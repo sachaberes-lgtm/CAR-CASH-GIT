@@ -7914,7 +7914,10 @@ local CASH = Color3.fromRGB(125, 255, 155)
 local OR1 = Color3.fromRGB(255, 226, 122)
 local ROUGE = Color3.fromRGB(255, 74, 100)
 local ENCRE_OR = Color3.fromRGB(58, 24, 0)
-local W_CONSOLE, H_CONSOLE = 470, 322
+-- LA CONSOLE AUX PROPORTIONS DU WEB (garage v7, 844 × 390 porté sur 720 px) : elle tient la moitié droite de l'écran. Elle est
+-- dessinée à 470 × 342 puis agrandie d'un bloc (UIScale × ECH_CONSOLE) ; ses textes sont écrits en conséquence (la police pixel
+-- fait 5/9 de son TextSize : voir Hud).
+local W_CONSOLE, H_CONSOLE, ECH_CONSOLE = 470, 342, 1.6
 
 -- une PLAQUE de la barre d'action : un cadre (qu'on place) et un fond (qui s'enfonce)
 local STYLES = {
@@ -7923,6 +7926,7 @@ local STYLES = {
 	laque = { ColorSequence.new(Color3.fromRGB(39, 32, 73), Color3.fromRGB(20, 16, 41)), C.trait, C.texte },
 	verrou = { ColorSequence.new(Color3.fromRGB(22, 20, 38), Color3.fromRGB(14, 12, 26)), Color3.fromRGB(40, 36, 66), C.terne },
 }
+local ICONES = { ["⌂"] = "maison", ["$"] = "panier" } -- (ce que la police pixel n'a pas : une icône du web)
 local function plaque(parent: Instance, nom: string): any
 	local cadre = inst("Frame", { Name = nom, BackgroundTransparency = 1 }, parent)
 	local tranche = inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = Color3.fromRGB(10, 8, 24), Size = UDim2.new(1, 0, 1, 0), Position = UDim2.fromOffset(0, 5) }, cadre)
@@ -7930,12 +7934,13 @@ local function plaque(parent: Instance, nom: string): any
 	local grad = inst("UIGradient", { Rotation = 90 }, fond)
 	local trait = inst("UIStroke", { Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, fond)
 	local filet = inst("Frame", { BorderSizePixel = 0, Size = UDim2.new(0, 4, 1, 0) }, fond)
-	local l1 = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.PIX, Size = UDim2.new(1, -10, 0, 16), Position = UDim2.fromOffset(5, 8),
-		TextSize = 10, Text = "" }, fond)
+	local l1 = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.PIX, Size = UDim2.new(1, -10, 0, 16), Position = UDim2.fromOffset(5, 7),
+		TextSize = 14, Text = "" }, fond)
 	local l2 = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.PIX, Size = UDim2.new(1, -10, 1, 0), Position = UDim2.fromOffset(5, 0),
 		TextSize = 16, Text = "" }, fond)
 	local b = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 5), Text = "", AutoButtonColor = false, ZIndex = 4 }, cadre)
-	local pq = { cadre = cadre, fond = fond, grad = grad, trait = trait, filet = filet, l1 = l1, l2 = l2, b = b, tranche = tranche, enfonce = false }
+	local pq = { cadre = cadre, fond = fond, grad = grad, trait = trait, filet = filet, l1 = l1, l2 = l2, b = b, tranche = tranche, enfonce = false,
+		ico = nil :: Frame?, icoNom = "", icoSeule = false }
 	local function pose(bas: boolean)
 		TweenService:Create(fond, K.RAPIDE, { Position = UDim2.fromOffset(0, (bas or pq.enfonce) and 5 or 0) }):Play()
 	end
@@ -7952,12 +7957,26 @@ local function habiller(pq: any, style: string, filet: Color3?, l1: string?, l2:
 	pq.trait.Color = (style == "laque" and filet == ROUGE) and ROUGE or s[2]
 	pq.filet.Visible = style == "laque" and filet ~= nil
 	if filet then pq.filet.BackgroundColor3 = filet end
-	pq.l1.Text = l1 or ""
+	-- « ⌂ » et « $ » : la police pixel ne les a pas — une icône pixel du web à la place (au-dessus du libellé, ou seule)
+	local ico = (l1 and ICONES[l1]) or ICONES[l2]
+	local seule = ICONES[l2] ~= nil
+	if ico ~= pq.icoNom or (ico and pq.icoSeule ~= seule) then
+		if pq.ico then pq.ico:Destroy() end
+		pq.ico, pq.icoNom, pq.icoSeule = nil, ico or "", seule
+		if ico then
+			pq.ico = K.icone(pq.fond, ico, seule and 3 or 2, filet or s[3], UDim2.new(0.5, 0, seule and 0.5 or 0, seule and 0 or 8), Vector2.new(0.5, seule and 0.5 or 0))
+		end
+	elseif pq.ico and filet then
+		K.teinter(pq.ico, filet)
+	end
+	if ico and not seule then l1 = " " end -- (la place de l'icône)
+	if seule then l2 = "" end
+	pq.l1.Text = (l1 and l1 ~= " ") and l1 or ""
 	pq.l1.TextColor3 = s[3]
 	pq.l2.Text = l2
 	pq.l2.TextColor3 = couleur2 or s[3]
 	pq.l2.TextSize = corps or 16
-	pq.l2.Position = UDim2.fromOffset(5, l1 and 9 or 0)
+	pq.l2.Position = UDim2.fromOffset(5, l1 and 11 or 0)
 	pq.enfonce = style == "verrou"
 	pq.fond.Position = UDim2.fromOffset(0, pq.enfonce and 5 or 0)
 end
@@ -8024,11 +8043,13 @@ local function creerTuile(i: number, rang: number): any
 	local pastille = inst("Frame", { BorderSizePixel = 0, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.45),
 		Size = UDim2.fromOffset(44, 12), BackgroundColor3 = Color3.fromHex(string.format("%06x", f.laque)) }, cadre)
 	inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = c, Size = UDim2.new(1, 0, 0, 3), Position = UDim2.new(0, 0, 1, -3), ZIndex = 2 }, cadre)
-	local prix = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.PIX, TextSize = 9, Text = "", TextColor3 = CASH,
-		Size = UDim2.new(1, -6, 0, 12), Position = UDim2.new(0, 0, 1, -17), TextXAlignment = Enum.TextXAlignment.Right, ZIndex = 3 }, cadre)
+	local prix = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.PIX, TextSize = 15, Text = "", TextColor3 = CASH,
+		Size = UDim2.new(1, -6, 0, 16), Position = UDim2.new(0, 0, 1, -21), TextXAlignment = Enum.TextXAlignment.Right, ZIndex = 3 }, cadre)
 	inst("UIStroke", { Color = C.encre, Thickness = 2 }, prix)
-	local verrou = inst("TextLabel", { BackgroundTransparency = 1, Text = "🔒", TextSize = 10, Size = UDim2.fromOffset(14, 14),
-		Position = UDim2.fromOffset(4, 3), ZIndex = 3, Visible = false }, cadre)
+	local verrou = K.icone(cadre, "verrou", 1, Color3.fromRGB(190, 180, 255), UDim2.fromOffset(5, 5))
+	verrou.ZIndex = 3
+	for _, p in verrou:GetChildren() do (p :: Frame).ZIndex = 3 end
+	verrou.Visible = false
 	local losange = inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = Color3.fromRGB(255, 199, 42), Size = UDim2.fromOffset(9, 9),
 		Position = UDim2.fromOffset(7, 6), Rotation = 45, ZIndex = 3, Visible = false }, cadre)
 	local b = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Text = "", ZIndex = 5 }, cadre)
@@ -8057,7 +8078,7 @@ local function majBandeHabits()
 			local cadre = inst("Frame", { Name = "H" .. j, BorderSizePixel = 0, BackgroundColor3 = Color3.fromRGB(26, 22, 50), LayoutOrder = j, ClipsDescendants = true }, U.bande)
 			local trait = inst("UIStroke", { Color = C.magenta, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Enabled = j == choisi[cat] }, cadre)
 			if cat == "aile" then
-				inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.PIX, TextSize = 8, TextWrapped = true, Text = FR and d.nom or d.en, TextColor3 = COUL_CAT.aile,
+				inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.PIX, TextSize = 13, TextWrapped = true, Text = FR and d.nom or d.en, TextColor3 = COUL_CAT.aile,
 					Size = UDim2.new(1, -8, 1, -18), Position = UDim2.fromOffset(4, 2) }, cadre)
 			else
 				local nu = inst("Frame", { BorderSizePixel = 0, Size = UDim2.new(1, -16, 0, (cat == "trainee") and 12 or 26), Position = UDim2.fromOffset(8, (cat == "trainee") and 14 or 6),
@@ -8087,8 +8108,8 @@ local function majBandeHabits()
 			else
 				etiquette, couleur = L.defi, OR1
 			end
-			local prix = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.PIX, TextSize = 9, Text = etiquette, TextColor3 = couleur,
-				Size = UDim2.new(1, -6, 0, 12), Position = UDim2.new(0, 0, 1, -17), TextXAlignment = Enum.TextXAlignment.Right, ZIndex = 3 }, cadre)
+			local prix = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.PIX, TextSize = 15, Text = etiquette, TextColor3 = couleur,
+				Size = UDim2.new(1, -6, 0, 16), Position = UDim2.new(0, 0, 1, -21), TextXAlignment = Enum.TextXAlignment.Right, ZIndex = 3 }, cadre)
 			inst("UIStroke", { Color = C.encre, Thickness = 2 }, prix)
 			if p[cat] == d.id then
 				inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = Color3.fromRGB(255, 199, 42), Size = UDim2.fromOffset(9, 9), Position = UDim2.new(1, -16, 1, -18), Rotation = 45, ZIndex = 3 }, cadre)
@@ -8181,6 +8202,7 @@ local function majCompte(direct: boolean?)
 	if direct or cibleV == compteVu then
 		compteVu = cibleV
 		U.compte.Text = Hud.compte(cibleV)
+		Hud.tenir(U.compteEchelle, U.compte.Text, 44, 262)
 		return
 	end
 	compteN += 1
@@ -8193,7 +8215,10 @@ local function majCompte(direct: boolean?)
 			U.compte.Text = Hud.compte(de + (cibleV - de) * (1 - (1 - u) ^ 3))
 			task.wait()
 		end
-		if n == compteN then U.compte.Text = Hud.compte(cibleV) end
+		if n == compteN then
+			U.compte.Text = Hud.compte(cibleV)
+			Hud.tenir(U.compteEchelle, U.compte.Text, 44, 262)
+		end
 	end)
 end
 
@@ -8217,7 +8242,7 @@ local function majFicheHabit()
 	local d = liste[choisi[cat]]
 	local nom = FR and d.nom or d.en
 	U.nom.Text = nom
-	U.nom.TextSize = math.clamp(math.floor(470 / math.max(8, utf8.len(nom) or #nom)), 16, 34)
+	U.nom.TextSize = math.clamp(math.floor(1000 / math.max(8, utf8.len(nom) or #nom)), 34, 86)
 	U.barre.BackgroundColor3 = COUL_CAT[cat]
 	U.rang.Text = choisi[cat] .. " / " .. #liste
 	U.desc.Text = FR and d.d or d.dEN
@@ -8244,8 +8269,8 @@ local function majFiche()
 	local function placer(pq: any, l: number, visible: boolean)
 		pq.cadre.Visible = visible
 		if not visible then return end
-		pq.cadre.Position = UDim2.fromOffset(x, 246)
-		pq.cadre.Size = UDim2.fromOffset(l, 58)
+		pq.cadre.Position = UDim2.fromOffset(x, 262)
+		pq.cadre.Size = UDim2.fromOffset(l, 62)
 		x += l + 8
 	end
 	local reste = W_CONSOLE - 28
@@ -8258,28 +8283,28 @@ local function majFiche()
 		placer(U.btJouer, reste - 8 - lDec, true)
 		habiller(U.btHome, "laque", C.lavande, nil, "⌂", 22)
 		habiller(U.btBoutique, "laque", C.magenta, nil, "$", 18)
-		habiller(U.btJouer, "laque", C.cyan, nil, L.jouer, 15)
+		habiller(U.btJouer, "laque", C.cyan, nil, L.jouer, 24)
 		if decision == "acheter" then
-			habiller(U.btDecision, "or_", nil, L.acheter, Hud.argent(prixDecision), 17)
+			habiller(U.btDecision, "or_", nil, L.acheter, Hud.argent(prixDecision), 28)
 		elseif decision == "pauvre" then
-			habiller(U.btDecision, "laque", ROUGE, L.manque, Hud.argent(prixDecision - compte), 15, ROUGE)
+			habiller(U.btDecision, "laque", ROUGE, L.manque, Hud.argent(prixDecision - compte), 24, ROUGE)
 		elseif decision == "equiper" then
-			habiller(U.btDecision, "or_", nil, nil, L.equiper, 18)
+			habiller(U.btDecision, "or_", nil, nil, L.equiper, 30)
 		elseif decision == "boutique" then
-			habiller(U.btDecision, "or_", nil, L.enBoutique, eurTexte(Catalogue[montre].cond.eur), 16)
+			habiller(U.btDecision, "or_", nil, L.enBoutique, eurTexte(Catalogue[montre].cond.eur), 26)
 		elseif decision == "gagner" then
-			habiller(U.btDecision, "verrou", nil, nil, "🔒 " .. L.gagner, 11)
+			habiller(U.btDecision, "verrou", nil, nil, L.gagner, 17)
 		else
-			habiller(U.btDecision, "verrou", nil, nil, "🔒 " .. L.verrou, 11)
+			habiller(U.btDecision, "verrou", nil, nil, L.verrou, 17)
 		end
 	else
 		placer(U.btHome, 76, true)
 		placer(U.btBoutique, 86, true)
 		placer(U.btDecision, 0, false)
 		placer(U.btJouer, reste - 76 - 86 - 16, true)
-		habiller(U.btHome, "laque", C.lavande, "⌂", L.home, 10)
-		habiller(U.btBoutique, "laque", C.magenta, "$", L.boutique, 9)
-		habiller(U.btJouer, "or_", nil, nil, L.jouer, 30)
+		habiller(U.btHome, "laque", C.lavande, "⌂", L.home, 19)
+		habiller(U.btBoutique, "laque", C.magenta, "$", L.boutique, 16)
+		habiller(U.btJouer, "or_", nil, nil, L.jouer, 62)
 	end
 end
 function Garage.majFicheCaisse()
@@ -8288,7 +8313,7 @@ function Garage.majFicheCaisse()
 	local nom = FR and f.nom or (f.en or f.nom)
 	nom = string.upper(nom)
 	U.nom.Text = nom
-	U.nom.TextSize = math.clamp(math.floor(470 / math.max(8, utf8.len(nom) or #nom)), 16, 34)
+	U.nom.TextSize = math.clamp(math.floor(1000 / math.max(8, utf8.len(nom) or #nom)), 34, 86)
 	U.barre.BackgroundColor3 = c
 	U.rang.Text = RANG[montre] .. " / " .. #LISTE
 	local k = f.cond
@@ -8431,40 +8456,40 @@ local function creerInterface()
 	-- les voiles : le haut et la droite s'assombrissent pour que le texte se lise (rien de flou : charte)
 	local vh = inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = Color3.fromRGB(7, 5, 15), Size = UDim2.new(1, 0, 0, 190) }, g)
 	inst("UIGradient", { Rotation = 90, Transparency = NumberSequence.new(0.15, 1) }, vh)
-	local vd = inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = Color3.fromRGB(7, 5, 15), Size = UDim2.new(0, 620, 1, 0), Position = UDim2.fromScale(1, 0),
+	local vd = inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = Color3.fromRGB(7, 5, 15), Size = UDim2.new(0, 900, 1, 0), Position = UDim2.fromScale(1, 0),
 		AnchorPoint = Vector2.new(1, 0) }, g)
 	inst("UIGradient", { Rotation = 0, Transparency = NumberSequence.new(1, 0.3) }, vd)
 	U.eclat = inst("Frame", { BorderSizePixel = 0, BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1) }, g)
 
 	-- ── le COMPTE ──
-	local cp = K.carbone(g, UDim2.fromOffset(250, 42), UDim2.fromOffset(22, 16))
-	inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = CASH, Size = UDim2.new(1, 0, 0, 2), Position = UDim2.new(0, 0, 1, -2) }, cp)
-	local piece = inst("TextLabel", { BorderSizePixel = 0, BackgroundColor3 = Color3.fromRGB(255, 199, 42), Size = UDim2.fromOffset(24, 24),
-		Position = UDim2.fromOffset(10, 8), FontFace = K.PIX, Text = "$", TextSize = 14, TextColor3 = ENCRE_OR }, cp)
-	inst("UIStroke", { Color = C.orSh, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, piece)
-	U.compte = K.texte(cp, { Text = "$ 0", TextSize = 18, TextColor3 = CASH, Size = UDim2.new(1, -52, 1, 0), Position = UDim2.fromOffset(44, 0),
-		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, contourCouleur = Color3.fromRGB(5, 36, 15) })
+	local cp = K.carbone(g, UDim2.fromOffset(340, 68), UDim2.fromOffset(40, 20))
+	inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = CASH, Size = UDim2.new(1, 0, 0, 3), Position = UDim2.new(0, 0, 1, -3) }, cp)
+	K.icone(cp, "piece", 4, { { 0.3, Color3.fromRGB(255, 240, 170) }, { 0.7, Color3.fromRGB(255, 199, 42) }, { 1, Color3.fromRGB(240, 150, 10) } }, UDim2.new(0, 16, 0.5, -1), Vector2.new(0, 0.5))
+	U.compte = K.texte(cp, { Text = "$ 0", TextSize = 44, TextColor3 = CASH, Size = UDim2.new(1, -70, 1, 0), Position = UDim2.fromOffset(64, 0),
+		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 3, contourCouleur = Color3.fromRGB(5, 36, 15) })
+	U.compteEchelle = inst("UIScale", {}, U.compte)
 	U.compteCadre = cp
 
 	-- ── la FICHE : nom, barre de rareté, rang, condition ──
-	U.nom = K.texte(g, { Text = "", TextSize = 34, TextColor3 = C.texte, Size = UDim2.fromOffset(500, 44), Position = UDim2.fromOffset(26, 72),
-		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 3 })
-	U.barre = inst("Frame", { BorderSizePixel = 0, Size = UDim2.fromOffset(330, 4), Position = UDim2.fromOffset(24, 122) }, g)
-	U.rang = K.texte(g, { Text = "", TextSize = 11, TextColor3 = C.terne, Size = UDim2.fromOffset(300, 16), Position = UDim2.fromOffset(26, 134),
-		TextXAlignment = Enum.TextXAlignment.Left })
-	U.desc = K.texte(g, { Text = "", RichText = true, TextSize = 11, TextColor3 = C.texte2, Size = UDim2.fromOffset(440, 70), Position = UDim2.fromOffset(26, 158),
+	U.nom = K.texte(g, { Text = "", TextSize = 86, TextColor3 = C.texte, Size = UDim2.fromOffset(640, 90), Position = UDim2.fromOffset(44, 102),
+		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 4 })
+	U.barre = inst("Frame", { BorderSizePixel = 0, Size = UDim2.fromOffset(440, 6), Position = UDim2.fromOffset(42, 196) }, g)
+	U.rang = K.texte(g, { Text = "", TextSize = 28, TextColor3 = C.terne, Size = UDim2.fromOffset(420, 30), Position = UDim2.fromOffset(44, 210),
+		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
+	U.desc = K.texte(g, { Text = "", RichText = true, TextSize = 20, TextColor3 = C.texte2, Size = UDim2.fromOffset(600, 120), Position = UDim2.fromOffset(44, 250),
 		TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, LineHeight = 1.4 })
-	U.tampon = K.texte(g, { Text = L.aToi, TextSize = 54, TextColor3 = Color3.fromRGB(255, 215, 94), Size = UDim2.fromOffset(520, 80),
+	U.tampon = K.texte(g, { Text = L.aToi, TextSize = 90, TextColor3 = Color3.fromRGB(255, 215, 94), Size = UDim2.fromOffset(760, 110),
 		Position = UDim2.new(0.3, 0, 0.42, 0), AnchorPoint = Vector2.new(0.5, 0.5), Rotation = -9, Visible = false, epais = 5,
 		contourCouleur = Color3.fromRGB(70, 30, 0), ZIndex = 20 })
 	U.tamponEchelle = inst("UIScale", {}, U.tampon)
 
 	-- ── ⚙ ──
-	U.btReglages = K.tuile(g, "", C.cyan, UDim2.fromOffset(56, 46), UDim2.new(1, -22, 0, 14), Vector2.new(1, 0), 16, "reglages")
+	U.btReglages = K.tuile(g, "", C.cyan, UDim2.fromOffset(104, 84), UDim2.new(1, -22, 0, 20), Vector2.new(1, 0), 30, "reglages")
 
 	-- ── LA CONSOLE ──
 	local cs = K.carbone(g, UDim2.fromOffset(W_CONSOLE, H_CONSOLE), UDim2.new(1, -22, 1, -16), nil, Vector2.new(1, 1))
 	cs.Active = true -- un glissé qui commence sur la console ne fait pas tourner la caisse
+	inst("UIScale", { Scale = ECH_CONSOLE }, cs)
 	U.console = cs
 	for k, c in { C.magenta, C.cyan, C.or_ } do -- la livrée, en liseré
 		inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = c, Size = UDim2.new(k == 1 and 0.44 or 0.25, -6, 0, 3),
@@ -8473,13 +8498,15 @@ local function creerInterface()
 	-- les onglets
 	U.onglets = {}
 	local lo = (W_CONSOLE - 28 - 12) / 4
-	for k, o in { { "voiture", L.voitures }, { "peinture", L.peinture }, { "aile", L.ailes }, { "trainee", L.trainees } } do
-		local f = inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = Color3.new(1, 1, 1), Size = UDim2.fromOffset(lo, 46),
+	for k, o in { { "voiture", L.voitures, "voiture" }, { "peinture", L.peinture, "pinceau" }, { "aile", L.ailes, "aile" }, { "trainee", L.trainees, "trainee" } } do
+		local f = inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = Color3.new(1, 1, 1), Size = UDim2.fromOffset(lo, 52),
 			Position = UDim2.fromOffset(14 + (k - 1) * (lo + 4), 14) }, cs)
 		local grad = inst("UIGradient", { Rotation = 90 }, f)
-		local b = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), FontFace = K.PIX, Text = o[2], TextSize = 9,
-			AutoButtonColor = false }, f)
-		U.onglets[o[1]] = { f = f, grad = grad, b = b }
+		local ico = K.icone(f, o[3], 2, C.terne, UDim2.new(0.5, 0, 0, 7), Vector2.new(0.5, 0))
+		local b = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), FontFace = K.PIX, Text = o[2], TextSize = 16,
+			TextYAlignment = Enum.TextYAlignment.Bottom, AutoButtonColor = false }, f)
+		inst("UIPadding", { PaddingBottom = UDim.new(0, 4) }, b)
+		U.onglets[o[1]] = { f = f, grad = grad, b = b, ico = ico }
 		b.Activated:Connect(function()
 			Sons.jouer("tap")
 			Garage.onglet(o[1])
@@ -8489,13 +8516,13 @@ local function creerInterface()
 	U.pastilles = {}
 	local lp = (W_CONSOLE - 28 - 16) / 5
 	for k, r in RARETES do
-		local f = inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = Color3.fromRGB(20, 16, 41), Size = UDim2.fromOffset(lp, 34),
-			Position = UDim2.fromOffset(14 + (k - 1) * (lp + 4), 70) }, cs)
+		local f = inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = Color3.fromRGB(20, 16, 41), Size = UDim2.fromOffset(lp, 36),
+			Position = UDim2.fromOffset(14 + (k - 1) * (lp + 4), 76) }, cs)
 		local trait = inst("UIStroke", { Color = C.trait, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, f)
 		inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = r.c, Size = UDim2.fromOffset(9, 9), Position = UDim2.new(0, 12, 0.5, 0),
 			AnchorPoint = Vector2.new(0.5, 0.5), Rotation = 45 }, f)
 		inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = r.c, Size = UDim2.new(1, 0, 0, 2), Position = UDim2.new(0, 0, 1, -2) }, f)
-		local txt = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.PIX, Text = "", TextSize = 9, TextColor3 = C.texte2,
+		local txt = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.PIX, Text = "", TextSize = 17, TextColor3 = C.texte2,
 			Size = UDim2.new(1, -24, 1, 0), Position = UDim2.fromOffset(22, 0) }, f)
 		local b = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 10), Position = UDim2.fromOffset(0, -5), Text = "" }, f)
 		U.pastilles[r.id] = { fond = f, trait = trait, txt = txt }
@@ -8510,11 +8537,11 @@ local function creerInterface()
 	U.filtres = {}
 	local lf = (W_CONSOLE - 28 - 8) / 3
 	for k, q in { { "tout", L.tout, Color3.fromRGB(201, 189, 240) }, { "moi", L.aMoi, Color3.fromRGB(94, 227, 122) }, { "acheter", L.aAcheter, C.cyan } } do
-		local f = inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = Color3.fromRGB(20, 16, 41), Size = UDim2.fromOffset(lf, 34),
-			Position = UDim2.fromOffset(14 + (k - 1) * (lf + 4), 70), Visible = false }, cs)
+		local f = inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = Color3.fromRGB(20, 16, 41), Size = UDim2.fromOffset(lf, 36),
+			Position = UDim2.fromOffset(14 + (k - 1) * (lf + 4), 76), Visible = false }, cs)
 		local trait = inst("UIStroke", { Color = C.trait, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, f)
 		inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = q[3], Size = UDim2.new(1, 0, 0, 2), Position = UDim2.new(0, 0, 1, -2) }, f)
-		local txt = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.PIX, Text = q[2], TextSize = 9, TextColor3 = C.texte2, Size = UDim2.fromScale(1, 1) }, f)
+		local txt = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.PIX, Text = q[2], TextSize = 15, TextColor3 = C.texte2, Size = UDim2.fromScale(1, 1) }, f)
 		local b = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 10), Position = UDim2.fromOffset(0, -5), Text = "" }, f)
 		U.filtres[q[1]] = { fond = f, trait = trait, txt = txt, nom = q[2], c = q[3] }
 		b.Activated:Connect(function()
@@ -8525,11 +8552,11 @@ local function creerInterface()
 		end)
 	end
 	-- la bande de vignettes : deux rangées, on fait défiler
-	U.bande = inst("ScrollingFrame", { BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.fromOffset(W_CONSOLE - 28, 122),
-		Position = UDim2.fromOffset(14, 114), CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.X,
+	U.bande = inst("ScrollingFrame", { BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.fromOffset(W_CONSOLE - 28, 132),
+		Position = UDim2.fromOffset(14, 122), CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.X,
 		ScrollingDirection = Enum.ScrollingDirection.X, ScrollBarThickness = 4, ScrollBarImageColor3 = C.terne,
 		VerticalScrollBarInset = Enum.ScrollBarInset.None }, cs)
-	inst("UIGridLayout", { CellSize = UDim2.fromOffset(104, 54), CellPadding = UDim2.fromOffset(6, 6), FillDirection = Enum.FillDirection.Vertical,
+	inst("UIGridLayout", { CellSize = UDim2.fromOffset(106, 58), CellPadding = UDim2.fromOffset(6, 6), FillDirection = Enum.FillDirection.Vertical,
 		FillDirectionMaxCells = 2, SortOrder = Enum.SortOrder.LayoutOrder }, U.bande)
 	inst("UIPadding", { PaddingTop = UDim.new(0, 2), PaddingLeft = UDim.new(0, 2) }, U.bande)
 	-- la barre d'action
@@ -8555,6 +8582,7 @@ function Garage.majOnglets()
 			ColorSequenceKeypoint.new(0.5, Color3.fromRGB(224, 36, 157)), ColorSequenceKeypoint.new(1, Color3.fromRGB(192, 21, 133)) })
 			or ColorSequence.new(Color3.fromRGB(30, 25, 58), Color3.fromRGB(18, 14, 36))
 		o.b.TextColor3 = actif and C.texte or C.terne
+		K.teinter(o.ico, actif and C.texte or C.terne)
 	end
 end
 
@@ -9297,7 +9325,8 @@ function Hud.nombre(v: number): string
 		for _, u in UNITES do
 			if v >= u[1] * 0.9995 then
 				local q = v / u[1]
-				s = (q < 100 and string.format("%.1f", q) or string.format("%.0f", q)) .. " " .. u[2]
+				s = (q < 100 and string.format("%.1f", q) or string.format("%.0f", q))
+				s = string.gsub(s, "%.0$", "") .. " " .. u[2] -- (« $ 2 k », pas « $ 2,0 k » : fmtC du web)
 				break
 			end
 		end
@@ -10977,32 +11006,49 @@ function Missions.recompense(rec: any): (string, Color3)
 	return "BONUS " .. Hud.argent(rec.cash or 0), VERT
 end
 
--- ════════ l'écran ════════
+-- ════════ l'écran (LES MISSIONS v2 du web, 844 × 390 porté sur 720 px) ════════
+-- Lu de gauche à droite : le titre et le mode d'emploi en haut à gauche, les TROIS DÉFIS en haut à droite (chacun sa jauge : le
+-- meilleur essai en UNE partie, et sa prime), la RÉCOMPENSE du carnet en bas à gauche (l'objet, dans la couleur de sa famille, et
+-- celui d'après), HOME et le lingot JOUER en bas à droite. (Les corps : la police pixel fait 5/9 de son TextSize — voir Hud.)
+local CYAN = Color3.fromRGB(94, 230, 255)
 local function creer()
 	local racine = Hud.racine
-	local g = inst("Frame", { Name = "Missions", BackgroundColor3 = Color3.fromRGB(7, 5, 15), BackgroundTransparency = 0.35, Size = UDim2.fromScale(1, 1), Visible = false, ZIndex = 12 }, racine)
+	local g = inst("Frame", { Name = "Missions", BackgroundColor3 = Color3.fromRGB(6, 16, 34), BackgroundTransparency = 0.22, Size = UDim2.fromScale(1, 1), Visible = false, ZIndex = 12 }, racine)
 	U.racine = g
-	U.titre = K.texte(g, { Text = "", TextSize = 18, TextColor3 = C.texte, Size = UDim2.new(1, -80, 0, 28), Position = UDim2.fromOffset(40, 30),
-		TextXAlignment = Enum.TextXAlignment.Left, epais = 3 })
-	for k, c in { C.magenta, C.cyan, C.or_ } do
-		inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = c, Size = UDim2.fromOffset(k == 1 and 180 or 110, 5), Position = UDim2.fromOffset(40 + (k == 1 and 0 or (k == 2 and 190 or 310)), 64) }, g)
-	end
+	K.texte(g, { Text = "MISSIONS", TextSize = 60, TextColor3 = CYAN, Size = UDim2.fromOffset(600, 62), Position = UDim2.fromOffset(34, 14),
+		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 4, contourCouleur = Color3.fromRGB(4, 30, 52) })
+	U.titre = K.texte(g, { Text = "", TextSize = 26, TextColor3 = C.texte2, Size = UDim2.fromOffset(620, 28), Position = UDim2.fromOffset(34, 80),
+		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
+	U.titreEchelle = inst("UIScale", {}, U.titre)
+	U.aide = K.texte(g, { Text = "", TextSize = 26, TextColor3 = C.or_, Size = UDim2.fromOffset(620, 60), Position = UDim2.fromOffset(34, 116),
+		TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, LineHeight = 1.25 })
+	-- les trois défis, en haut à droite (sur un écran moins large que celui du web, ils se resserrent)
+	local rangee = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, -690, 0, 196), Position = UDim2.new(1, -33, 0, 22), AnchorPoint = Vector2.new(1, 0) }, g)
+	inst("UISizeConstraint", { MaxSize = Vector2.new(810, 196), MinSize = Vector2.new(420, 196) }, rangee)
 	U.cartes = {}
 	for i = 1, 3 do
-		local c = K.carbone(g, UDim2.new(0.5, -60, 0, 112), UDim2.fromOffset(40, 90 + (i - 1) * 124), C.cyan)
-		c.Active = true
-		K.texte(c, { Text = tr("DEFI ", "CHALLENGE ") .. i, TextSize = 10, TextColor3 = C.terne, Size = UDim2.fromOffset(160, 14), Position = UDim2.fromOffset(22, 12),
-			TextXAlignment = Enum.TextXAlignment.Left })
-		local txt = K.texte(c, { Text = "", TextSize = 15, TextColor3 = C.texte, Size = UDim2.new(1, -170, 0, 22), Position = UDim2.fromOffset(22, 32),
+		local c = inst("Frame", { BackgroundColor3 = Color3.fromRGB(8, 22, 44), BackgroundTransparency = 0.08, BorderSizePixel = 0, Size = UDim2.new(1 / 3, -10, 1, 0),
+			Position = UDim2.new((i - 1) / 3, 5, 0, 0), Active = true }, rangee)
+		local trait = inst("UIStroke", { Color = CYAN, Thickness = 2, Transparency = 0.45, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, c)
+		local case = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(20, 20), Position = UDim2.fromOffset(16, 16) }, c)
+		local caseTrait = inst("UIStroke", { Color = CYAN, Thickness = 3, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, case)
+		local coche = K.icone(case, "coche", 2, VERT, UDim2.fromScale(0.5, 0.5), Vector2.new(0.5, 0.5))
+		coche.Visible = false
+		local tete = K.texte(c, { Text = tr("DEFI ", "CHALLENGE ") .. i, TextSize = 26, TextColor3 = CYAN, Size = UDim2.new(1, -56, 0, 28), Position = UDim2.fromOffset(46, 12),
 			TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
-		local prime = K.texte(c, { Text = "", TextSize = 16, TextColor3 = VERT, Size = UDim2.fromOffset(140, 22), Position = UDim2.new(1, -16, 0, 30),
-			AnchorPoint = Vector2.new(1, 0), TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false })
-		local fond = inst("Frame", { BackgroundColor3 = C.piste, BorderSizePixel = 0, Size = UDim2.new(1, -44, 0, 10), Position = UDim2.fromOffset(22, 64) }, c)
+		local txt = K.texte(c, { Text = "", TextSize = 32, TextColor3 = C.texte, Size = UDim2.new(1, -30, 0, 68), Position = UDim2.fromOffset(16, 46),
+			TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, TextScaled = true, LineHeight = 1.15, epais = 3 })
+		inst("UITextSizeConstraint", { MaxTextSize = 32, MinTextSize = 14 }, txt)
+		local fond = inst("Frame", { BackgroundColor3 = Color3.fromRGB(13, 10, 42), BorderSizePixel = 0, Size = UDim2.new(1, -150, 0, 10), Position = UDim2.fromOffset(16, 126) }, c)
+		inst("UIStroke", { Color = CYAN, Thickness = 1, Transparency = 0.5, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, fond)
 		local plein = inst("Frame", { BackgroundColor3 = C.cyan, BorderSizePixel = 0, Size = UDim2.fromScale(0, 1) }, fond)
-		local statut = K.texte(c, { Text = "", TextSize = 10, TextColor3 = C.texte2, Size = UDim2.new(1, -44, 0, 14), Position = UDim2.fromOffset(22, 84),
-			TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
+		local prime = K.texte(c, { Text = "", TextSize = 24, TextColor3 = VERT, Size = UDim2.fromOffset(124, 26), Position = UDim2.new(1, -10, 0, 118),
+			AnchorPoint = Vector2.new(1, 0), TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false })
+		local statut = K.texte(c, { Text = "", TextSize = 22, TextColor3 = C.texte2, Size = UDim2.new(1, -30, 0, 48), Position = UDim2.fromOffset(16, 144),
+			TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, TextScaled = true, LineHeight = 1.15 })
+		inst("UITextSizeConstraint", { MaxTextSize = 22, MinTextSize = 12 }, statut)
 		local b = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Text = "", ZIndex = 14 }, c)
-		U.cartes[i] = { cadre = c, txt = txt, prime = prime, plein = plein, statut = statut, filet = c:FindFirstChildOfClass("Frame") }
+		U.cartes[i] = { cadre = c, txt = txt, prime = prime, plein = plein, statut = statut, trait = trait, case = caseTrait, coche = coche, tete = tete }
 		b.Activated:Connect(function()
 			Sons.jouer("tap")
 			local m = etat()
@@ -11012,37 +11058,50 @@ local function creer()
 			Missions.maj()
 		end)
 	end
-	-- la RÉCOMPENSE
-	local r = K.carbone(g, UDim2.new(0.5, -100, 0, 236), UDim2.new(0.5, 30, 0, 90), C.or_)
-	U.recTitre = K.texte(r, { Text = "", TextSize = 11, TextColor3 = C.terne, Size = UDim2.new(1, -40, 0, 14), Position = UDim2.fromOffset(22, 14),
-		TextXAlignment = Enum.TextXAlignment.Left })
-	U.recVue = inst("ViewportFrame", { BackgroundTransparency = 1, Size = UDim2.new(1, -40, 0, 130), Position = UDim2.fromOffset(20, 34),
+	-- la RÉCOMPENSE, en bas à gauche
+	local r = inst("Frame", { BackgroundColor3 = Color3.fromRGB(8, 22, 44), BackgroundTransparency = 0.08, BorderSizePixel = 0, Size = UDim2.new(1, -33 - 800, 0, 208),
+		Position = UDim2.new(0, 33, 1, -26), AnchorPoint = Vector2.new(0, 1) }, g)
+	inst("UISizeConstraint", { MaxSize = Vector2.new(765, 208), MinSize = Vector2.new(400, 208) }, r)
+	inst("UIStroke", { Color = CYAN, Thickness = 2, Transparency = 0.45, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, r)
+	K.icone(r, "etoile", 3, C.or_, UDim2.fromOffset(18, 14))
+	K.texte(r, { Text = tr("RECOMPENSE", "REWARD"), TextSize = 28, TextColor3 = C.or_, Size = UDim2.fromOffset(300, 30), Position = UDim2.fromOffset(58, 14),
+		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
+	U.recTitre = K.texte(r, { Text = "", TextSize = 28, TextColor3 = C.or_, Size = UDim2.fromOffset(140, 30), Position = UDim2.new(1, -18, 0, 14), AnchorPoint = Vector2.new(1, 0),
+		TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false })
+	U.recVue = inst("ViewportFrame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(176, 96), Position = UDim2.fromOffset(18, 52),
 		Ambient = Color3.fromRGB(150, 150, 178), LightColor = Color3.fromRGB(255, 244, 230) }, r)
-	U.recNom = K.texte(r, { Text = "", TextSize = 20, Size = UDim2.new(1, -40, 0, 26), Position = UDim2.new(0, 20, 1, -66), TextWrapped = false, epais = 3 })
-	U.recSuite = K.texte(r, { Text = "", TextSize = 9, TextColor3 = C.terne, Size = UDim2.new(1, -40, 0, 14), Position = UDim2.new(0, 20, 1, -32), TextWrapped = false })
-	U.aide = K.texte(g, { Text = tr("TOUCHE UN DEFI POUR LE SUIVRE EN COURSE", "TAP A CHALLENGE TO TRACK IT IN RACE"), TextSize = 10, TextColor3 = C.texte2,
-		Size = UDim2.new(0.5, -60, 0, 16), Position = UDim2.fromOffset(40, 470), TextXAlignment = Enum.TextXAlignment.Left })
-	U.btHome = K.tuile(g, "HOME", C.lavande, UDim2.fromOffset(150, 70), UDim2.new(1, -420, 1, -30), Vector2.new(0, 1), 13, "maison", "v")
-	U.btJouer = K.lingot(g, tr("JOUER", "PLAY"), UDim2.fromOffset(250, 70), UDim2.new(1, -40, 1, -30), Vector2.new(1, 1), 30)
+	U.recNom = K.texte(r, { Text = "", TextSize = 40, Size = UDim2.new(1, -224, 0, 42), Position = UDim2.fromOffset(206, 66), TextXAlignment = Enum.TextXAlignment.Left,
+		TextWrapped = false, epais = 3 })
+	U.recNomEchelle = inst("UIScale", {}, U.recNom)
+	inst("Frame", { BackgroundColor3 = CYAN, BackgroundTransparency = 0.6, BorderSizePixel = 0, Size = UDim2.new(1, -36, 0, 2), Position = UDim2.fromOffset(18, 158) }, r)
+	K.icone(r, "verrou", 2, C.terne, UDim2.fromOffset(18, 172))
+	U.recSuite = K.texte(r, { Text = "", TextSize = 24, TextColor3 = C.texte2, Size = UDim2.new(1, -70, 0, 26), Position = UDim2.fromOffset(48, 168),
+		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
+	U.recSuiteEchelle = inst("UIScale", {}, U.recSuite)
+	-- HOME et le lingot JOUER, en bas à droite
+	U.btHome = K.tuile(g, "HOME", C.lavande, UDim2.fromOffset(164, 122), UDim2.new(1, -20 - 563 - 12, 1, -32), Vector2.new(1, 1), 30, "maison", "v")
+	U.btJouer = K.lingot(g, tr("JOUER", "PLAY"), UDim2.fromOffset(563, 122), UDim2.new(1, -20, 1, -32), Vector2.new(1, 1), 100)
 	U.btHome.Activated:Connect(function() ctx.surHome() end)
 	U.btJouer.Activated:Connect(function() ctx.surJouer() end)
 	for _, d in g:GetDescendants() do
 		if d:IsA("GuiObject") and d.ZIndex < 13 then d.ZIndex = 13 end
 	end
 
-	-- ── EN COURSE : la ligne du défi SUIVI (sous le chrono d'air) et la bannière « DEFI REUSSI » ──
+	-- ── EN COURSE : la ligne du défi SUIVI (en bas à gauche) et la bannière « DEFI REUSSI » ──
 	local hud = E.hud
-	U.suivi = inst("Frame", { Name = "DefiSuivi", BackgroundTransparency = 1, Size = UDim2.fromOffset(420, 30), Position = UDim2.new(1, -22, 0, 236),
-		AnchorPoint = Vector2.new(1, 0), Visible = false }, hud)
-	U.suiviTxt = K.texte(U.suivi, { Text = "", TextSize = 10, TextColor3 = C.texte2, Size = UDim2.new(1, 0, 0, 14), TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false })
-	local fs = inst("Frame", { BackgroundColor3 = C.piste, BorderSizePixel = 0, Size = UDim2.fromOffset(180, 4), Position = UDim2.new(1, 0, 0, 20), AnchorPoint = Vector2.new(1, 0) }, U.suivi)
+	U.suivi = inst("Frame", { Name = "DefiSuivi", BackgroundTransparency = 1, Size = UDim2.fromOffset(640, 40), Position = UDim2.new(0, 26, 1, -24),
+		AnchorPoint = Vector2.new(0, 1), Visible = false }, hud)
+	U.suiviTxt = K.texte(U.suivi, { Text = "", TextSize = 20, TextColor3 = C.texte2, Size = UDim2.new(1, 0, 0, 22), TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
+	local fs = inst("Frame", { BackgroundColor3 = C.piste, BorderSizePixel = 0, Size = UDim2.fromOffset(260, 6), Position = UDim2.fromOffset(0, 30) }, U.suivi)
 	U.suiviPlein = inst("Frame", { BackgroundColor3 = C.cyan, BorderSizePixel = 0, Size = UDim2.fromScale(0, 1) }, fs)
-	U.banniere = K.carbone(hud, UDim2.fromOffset(460, 70), UDim2.new(0.5, 0, 0, -90), VERT, Vector2.new(0.5, 0))
-	K.texte(U.banniere, { Text = tr("DEFI REUSSI", "CHALLENGE DONE"), TextSize = 10, TextColor3 = VERT, Size = UDim2.new(1, -30, 0, 14), Position = UDim2.fromOffset(20, 10),
-		TextXAlignment = Enum.TextXAlignment.Left })
-	U.banTxt = K.texte(U.banniere, { Text = "", TextSize = 14, TextColor3 = C.texte, Size = UDim2.new(1, -150, 0, 22), Position = UDim2.fromOffset(20, 32),
+	U.banniere = K.carbone(hud, UDim2.fromOffset(680, 104), UDim2.new(0.5, 60, 0, -120), VERT, Vector2.new(0.5, 0))
+	K.icone(U.banniere, "coche", 3, VERT, UDim2.fromOffset(22, 12))
+	K.texte(U.banniere, { Text = tr("DEFI REUSSI !", "CHALLENGE DONE!"), TextSize = 22, TextColor3 = VERT, Size = UDim2.new(1, -90, 0, 24), Position = UDim2.fromOffset(62, 14),
 		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
-	U.banPrime = K.texte(U.banniere, { Text = "", TextSize = 16, TextColor3 = VERT, Size = UDim2.fromOffset(130, 22), Position = UDim2.new(1, -14, 0, 30),
+	U.banTxt = K.texte(U.banniere, { Text = "", TextSize = 28, TextColor3 = C.texte, Size = UDim2.new(1, -230, 0, 32), Position = UDim2.fromOffset(22, 54),
+		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 3 })
+	U.banTxtEchelle = inst("UIScale", {}, U.banTxt)
+	U.banPrime = K.texte(U.banniere, { Text = "", TextSize = 28, TextColor3 = VERT, Size = UDim2.fromOffset(190, 32), Position = UDim2.new(1, -18, 0, 54),
 		AnchorPoint = Vector2.new(1, 0), TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false })
 	U.banniere.Visible = false
 end
@@ -11078,6 +11137,7 @@ function Missions.maj()
 	if not U.racine then return end
 	local m, c = etat(), carnet()
 	U.titre.Text = tr("CARNET ", "BOOK ") .. (m.n + 1) .. tr(" · CHAQUE DEFI EN UNE PARTIE", " · EACH CHALLENGE IN ONE RUN")
+	Hud.tenir(U.titreEchelle, U.titre.Text, 26, 600)
 	local faits = 0
 	for i = 1, 3 do
 		local d, u = c[i], U.cartes[i]
@@ -11092,19 +11152,28 @@ function Missions.maj()
 			u.statut.TextColor3 = VERT
 		elseif m.f == i then
 			u.statut.Text = tr("SUIVI EN COURSE", "TRACKED IN RACE")
-			u.statut.TextColor3 = C.cyan
+			u.statut.TextColor3 = C.or_
 		else
-			u.statut.Text = tr("MEILLEUR ESSAI ", "BEST RUN ") .. Carnets.progres(d, m.best[i], FR, Hud.argent)
+			u.statut.Text = tr("MEILLEUR ESSAI\n", "BEST RUN\n") .. Carnets.progres(d, m.best[i], FR, Hud.argent)
 			u.statut.TextColor3 = C.texte2
 		end
-		if u.filet then u.filet.BackgroundColor3 = ok and VERT or ((m.f == i) and C.or_ or C.cyan) end
+		-- la case se coche, le cadre prend la couleur de l'état (réussi vert · suivi or · à faire cyan)
+		local ce = ok and VERT or ((m.f == i) and C.or_ or CYAN)
+		u.trait.Color = ce
+		u.trait.Transparency = (ok or m.f == i) and 0 or 0.45
+		u.case.Color = ce
+		u.coche.Visible = ok
+		u.tete.TextColor3 = ce
 	end
 	local nom, couleur = Missions.recompense(c.rec)
-	U.recTitre.Text = tr("RECOMPENSE ", "REWARD ") .. faits .. " / 3"
-	U.recNom.Text = nom
+	U.recTitre.Text = faits .. " / 3"
+	U.recNom.Text = Hud.sansAccent(nom)
 	U.recNom.TextColor3 = couleur
 	local suite = Missions.recompense(Carnets.de(m.n + 1).rec)
-	U.recSuite.Text = tr("ENSUITE · ", "NEXT · ") .. suite
+	U.recSuite.Text = tr("ENSUITE · ", "NEXT · ") .. Hud.sansAccent(suite)
+	local largeur = U.recNom.Parent.AbsoluteSize.X / math.max(0.01, Hud.racine:FindFirstChildOfClass("UIScale").Scale)
+	Hud.tenir(U.recNomEchelle, U.recNom.Text, 40, math.max(160, largeur - 230))
+	Hud.tenir(U.recSuiteEchelle, U.recSuite.Text, 24, math.max(200, largeur - 76))
 	vignette(c.rec)
 	local suivi = (m.f >= 1 and not m.ok[m.f]) and c[m.f] or nil
 	U.aide.Text = suivi and (tr("SUIVI : ", "TRACKING: ") .. Carnets.texte(suivi, FR, Hud.argent))
@@ -11147,10 +11216,11 @@ function Missions.debut()
 end
 local function banniere(d: any)
 	U.banTxt.Text = Carnets.texte(d, FR, Hud.argent)
+	Hud.tenir(U.banTxtEchelle, U.banTxt.Text, 28, 440)
 	U.banPrime.Text = "+" .. Hud.argent(d.p)
 	U.banniere.Visible = true
-	U.banniere.Position = UDim2.new(0.5, 0, 0, -90)
-	TweenService:Create(U.banniere, K.LENTE, { Position = UDim2.new(0.5, 0, 0, 96) }):Play()
+	U.banniere.Position = UDim2.new(0.5, 60, 0, -120)
+	TweenService:Create(U.banniere, K.LENTE, { Position = UDim2.new(0.5, 60, 0, 92) }):Play()
 	banFin = os.clock() + 1.6
 	Sons.jouer("record", 1.3, 0.4)
 end

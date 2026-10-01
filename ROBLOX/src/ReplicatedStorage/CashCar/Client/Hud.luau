@@ -372,7 +372,8 @@ function Hud.nombre(v: number): string
 		for _, u in UNITES do
 			if v >= u[1] * 0.9995 then
 				local q = v / u[1]
-				s = (q < 100 and string.format("%.1f", q) or string.format("%.0f", q)) .. " " .. u[2]
+				s = (q < 100 and string.format("%.1f", q) or string.format("%.0f", q))
+				s = string.gsub(s, "%.0$", "") .. " " .. u[2] -- (« $ 2 k », pas « $ 2,0 k » : fmtC du web)
 				break
 			end
 		end

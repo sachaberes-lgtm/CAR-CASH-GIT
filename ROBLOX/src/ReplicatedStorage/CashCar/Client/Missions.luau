@@ -45,32 +45,49 @@ function Missions.recompense(rec: any): (string, Color3)
 	return "BONUS " .. Hud.argent(rec.cash or 0), VERT
 end
 
--- ════════ l'écran ════════
+-- ════════ l'écran (LES MISSIONS v2 du web, 844 × 390 porté sur 720 px) ════════
+-- Lu de gauche à droite : le titre et le mode d'emploi en haut à gauche, les TROIS DÉFIS en haut à droite (chacun sa jauge : le
+-- meilleur essai en UNE partie, et sa prime), la RÉCOMPENSE du carnet en bas à gauche (l'objet, dans la couleur de sa famille, et
+-- celui d'après), HOME et le lingot JOUER en bas à droite. (Les corps : la police pixel fait 5/9 de son TextSize — voir Hud.)
+local CYAN = Color3.fromRGB(94, 230, 255)
 local function creer()
 	local racine = Hud.racine
-	local g = inst("Frame", { Name = "Missions", BackgroundColor3 = Color3.fromRGB(7, 5, 15), BackgroundTransparency = 0.35, Size = UDim2.fromScale(1, 1), Visible = false, ZIndex = 12 }, racine)
+	local g = inst("Frame", { Name = "Missions", BackgroundColor3 = Color3.fromRGB(6, 16, 34), BackgroundTransparency = 0.22, Size = UDim2.fromScale(1, 1), Visible = false, ZIndex = 12 }, racine)
 	U.racine = g
-	U.titre = K.texte(g, { Text = "", TextSize = 18, TextColor3 = C.texte, Size = UDim2.new(1, -80, 0, 28), Position = UDim2.fromOffset(40, 30),
-		TextXAlignment = Enum.TextXAlignment.Left, epais = 3 })
-	for k, c in { C.magenta, C.cyan, C.or_ } do
-		inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = c, Size = UDim2.fromOffset(k == 1 and 180 or 110, 5), Position = UDim2.fromOffset(40 + (k == 1 and 0 or (k == 2 and 190 or 310)), 64) }, g)
-	end
+	K.texte(g, { Text = "MISSIONS", TextSize = 60, TextColor3 = CYAN, Size = UDim2.fromOffset(600, 62), Position = UDim2.fromOffset(34, 14),
+		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 4, contourCouleur = Color3.fromRGB(4, 30, 52) })
+	U.titre = K.texte(g, { Text = "", TextSize = 26, TextColor3 = C.texte2, Size = UDim2.fromOffset(620, 28), Position = UDim2.fromOffset(34, 80),
+		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
+	U.titreEchelle = inst("UIScale", {}, U.titre)
+	U.aide = K.texte(g, { Text = "", TextSize = 26, TextColor3 = C.or_, Size = UDim2.fromOffset(620, 60), Position = UDim2.fromOffset(34, 116),
+		TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, LineHeight = 1.25 })
+	-- les trois défis, en haut à droite (sur un écran moins large que celui du web, ils se resserrent)
+	local rangee = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, -690, 0, 196), Position = UDim2.new(1, -33, 0, 22), AnchorPoint = Vector2.new(1, 0) }, g)
+	inst("UISizeConstraint", { MaxSize = Vector2.new(810, 196), MinSize = Vector2.new(420, 196) }, rangee)
 	U.cartes = {}
 	for i = 1, 3 do
-		local c = K.carbone(g, UDim2.new(0.5, -60, 0, 112), UDim2.fromOffset(40, 90 + (i - 1) * 124), C.cyan)
-		c.Active = true
-		K.texte(c, { Text = tr("DEFI ", "CHALLENGE ") .. i, TextSize = 10, TextColor3 = C.terne, Size = UDim2.fromOffset(160, 14), Position = UDim2.fromOffset(22, 12),
-			TextXAlignment = Enum.TextXAlignment.Left })
-		local txt = K.texte(c, { Text = "", TextSize = 15, TextColor3 = C.texte, Size = UDim2.new(1, -170, 0, 22), Position = UDim2.fromOffset(22, 32),
+		local c = inst("Frame", { BackgroundColor3 = Color3.fromRGB(8, 22, 44), BackgroundTransparency = 0.08, BorderSizePixel = 0, Size = UDim2.new(1 / 3, -10, 1, 0),
+			Position = UDim2.new((i - 1) / 3, 5, 0, 0), Active = true }, rangee)
+		local trait = inst("UIStroke", { Color = CYAN, Thickness = 2, Transparency = 0.45, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, c)
+		local case = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(20, 20), Position = UDim2.fromOffset(16, 16) }, c)
+		local caseTrait = inst("UIStroke", { Color = CYAN, Thickness = 3, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, case)
+		local coche = K.icone(case, "coche", 2, VERT, UDim2.fromScale(0.5, 0.5), Vector2.new(0.5, 0.5))
+		coche.Visible = false
+		local tete = K.texte(c, { Text = tr("DEFI ", "CHALLENGE ") .. i, TextSize = 26, TextColor3 = CYAN, Size = UDim2.new(1, -56, 0, 28), Position = UDim2.fromOffset(46, 12),
 			TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
-		local prime = K.texte(c, { Text = "", TextSize = 16, TextColor3 = VERT, Size = UDim2.fromOffset(140, 22), Position = UDim2.new(1, -16, 0, 30),
-			AnchorPoint = Vector2.new(1, 0), TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false })
-		local fond = inst("Frame", { BackgroundColor3 = C.piste, BorderSizePixel = 0, Size = UDim2.new(1, -44, 0, 10), Position = UDim2.fromOffset(22, 64) }, c)
+		local txt = K.texte(c, { Text = "", TextSize = 32, TextColor3 = C.texte, Size = UDim2.new(1, -30, 0, 68), Position = UDim2.fromOffset(16, 46),
+			TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, TextScaled = true, LineHeight = 1.15, epais = 3 })
+		inst("UITextSizeConstraint", { MaxTextSize = 32, MinTextSize = 14 }, txt)
+		local fond = inst("Frame", { BackgroundColor3 = Color3.fromRGB(13, 10, 42), BorderSizePixel = 0, Size = UDim2.new(1, -150, 0, 10), Position = UDim2.fromOffset(16, 126) }, c)
+		inst("UIStroke", { Color = CYAN, Thickness = 1, Transparency = 0.5, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, fond)
 		local plein = inst("Frame", { BackgroundColor3 = C.cyan, BorderSizePixel = 0, Size = UDim2.fromScale(0, 1) }, fond)
-		local statut = K.texte(c, { Text = "", TextSize = 10, TextColor3 = C.texte2, Size = UDim2.new(1, -44, 0, 14), Position = UDim2.fromOffset(22, 84),
-			TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
+		local prime = K.texte(c, { Text = "", TextSize = 24, TextColor3 = VERT, Size = UDim2.fromOffset(124, 26), Position = UDim2.new(1, -10, 0, 118),
+			AnchorPoint = Vector2.new(1, 0), TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false })
+		local statut = K.texte(c, { Text = "", TextSize = 22, TextColor3 = C.texte2, Size = UDim2.new(1, -30, 0, 48), Position = UDim2.fromOffset(16, 144),
+			TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, TextScaled = true, LineHeight = 1.15 })
+		inst("UITextSizeConstraint", { MaxTextSize = 22, MinTextSize = 12 }, statut)
 		local b = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Text = "", ZIndex = 14 }, c)
-		U.cartes[i] = { cadre = c, txt = txt, prime = prime, plein = plein, statut = statut, filet = c:FindFirstChildOfClass("Frame") }
+		U.cartes[i] = { cadre = c, txt = txt, prime = prime, plein = plein, statut = statut, trait = trait, case = caseTrait, coche = coche, tete = tete }
 		b.Activated:Connect(function()
 			Sons.jouer("tap")
 			local m = etat()
@@ -80,37 +97,50 @@ local function creer()
 			Missions.maj()
 		end)
 	end
-	-- la RÉCOMPENSE
-	local r = K.carbone(g, UDim2.new(0.5, -100, 0, 236), UDim2.new(0.5, 30, 0, 90), C.or_)
-	U.recTitre = K.texte(r, { Text = "", TextSize = 11, TextColor3 = C.terne, Size = UDim2.new(1, -40, 0, 14), Position = UDim2.fromOffset(22, 14),
-		TextXAlignment = Enum.TextXAlignment.Left })
-	U.recVue = inst("ViewportFrame", { BackgroundTransparency = 1, Size = UDim2.new(1, -40, 0, 130), Position = UDim2.fromOffset(20, 34),
+	-- la RÉCOMPENSE, en bas à gauche
+	local r = inst("Frame", { BackgroundColor3 = Color3.fromRGB(8, 22, 44), BackgroundTransparency = 0.08, BorderSizePixel = 0, Size = UDim2.new(1, -33 - 800, 0, 208),
+		Position = UDim2.new(0, 33, 1, -26), AnchorPoint = Vector2.new(0, 1) }, g)
+	inst("UISizeConstraint", { MaxSize = Vector2.new(765, 208), MinSize = Vector2.new(400, 208) }, r)
+	inst("UIStroke", { Color = CYAN, Thickness = 2, Transparency = 0.45, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, r)
+	K.icone(r, "etoile", 3, C.or_, UDim2.fromOffset(18, 14))
+	K.texte(r, { Text = tr("RECOMPENSE", "REWARD"), TextSize = 28, TextColor3 = C.or_, Size = UDim2.fromOffset(300, 30), Position = UDim2.fromOffset(58, 14),
+		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
+	U.recTitre = K.texte(r, { Text = "", TextSize = 28, TextColor3 = C.or_, Size = UDim2.fromOffset(140, 30), Position = UDim2.new(1, -18, 0, 14), AnchorPoint = Vector2.new(1, 0),
+		TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false })
+	U.recVue = inst("ViewportFrame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(176, 96), Position = UDim2.fromOffset(18, 52),
 		Ambient = Color3.fromRGB(150, 150, 178), LightColor = Color3.fromRGB(255, 244, 230) }, r)
-	U.recNom = K.texte(r, { Text = "", TextSize = 20, Size = UDim2.new(1, -40, 0, 26), Position = UDim2.new(0, 20, 1, -66), TextWrapped = false, epais = 3 })
-	U.recSuite = K.texte(r, { Text = "", TextSize = 9, TextColor3 = C.terne, Size = UDim2.new(1, -40, 0, 14), Position = UDim2.new(0, 20, 1, -32), TextWrapped = false })
-	U.aide = K.texte(g, { Text = tr("TOUCHE UN DEFI POUR LE SUIVRE EN COURSE", "TAP A CHALLENGE TO TRACK IT IN RACE"), TextSize = 10, TextColor3 = C.texte2,
-		Size = UDim2.new(0.5, -60, 0, 16), Position = UDim2.fromOffset(40, 470), TextXAlignment = Enum.TextXAlignment.Left })
-	U.btHome = K.tuile(g, "HOME", C.lavande, UDim2.fromOffset(150, 70), UDim2.new(1, -420, 1, -30), Vector2.new(0, 1), 13, "maison", "v")
-	U.btJouer = K.lingot(g, tr("JOUER", "PLAY"), UDim2.fromOffset(250, 70), UDim2.new(1, -40, 1, -30), Vector2.new(1, 1), 30)
+	U.recNom = K.texte(r, { Text = "", TextSize = 40, Size = UDim2.new(1, -224, 0, 42), Position = UDim2.fromOffset(206, 66), TextXAlignment = Enum.TextXAlignment.Left,
+		TextWrapped = false, epais = 3 })
+	U.recNomEchelle = inst("UIScale", {}, U.recNom)
+	inst("Frame", { BackgroundColor3 = CYAN, BackgroundTransparency = 0.6, BorderSizePixel = 0, Size = UDim2.new(1, -36, 0, 2), Position = UDim2.fromOffset(18, 158) }, r)
+	K.icone(r, "verrou", 2, C.terne, UDim2.fromOffset(18, 172))
+	U.recSuite = K.texte(r, { Text = "", TextSize = 24, TextColor3 = C.texte2, Size = UDim2.new(1, -70, 0, 26), Position = UDim2.fromOffset(48, 168),
+		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
+	U.recSuiteEchelle = inst("UIScale", {}, U.recSuite)
+	-- HOME et le lingot JOUER, en bas à droite
+	U.btHome = K.tuile(g, "HOME", C.lavande, UDim2.fromOffset(164, 122), UDim2.new(1, -20 - 563 - 12, 1, -32), Vector2.new(1, 1), 30, "maison", "v")
+	U.btJouer = K.lingot(g, tr("JOUER", "PLAY"), UDim2.fromOffset(563, 122), UDim2.new(1, -20, 1, -32), Vector2.new(1, 1), 100)
 	U.btHome.Activated:Connect(function() ctx.surHome() end)
 	U.btJouer.Activated:Connect(function() ctx.surJouer() end)
 	for _, d in g:GetDescendants() do
 		if d:IsA("GuiObject") and d.ZIndex < 13 then d.ZIndex = 13 end
 	end
 
-	-- ── EN COURSE : la ligne du défi SUIVI (sous le chrono d'air) et la bannière « DEFI REUSSI » ──
+	-- ── EN COURSE : la ligne du défi SUIVI (en bas à gauche) et la bannière « DEFI REUSSI » ──
 	local hud = E.hud
-	U.suivi = inst("Frame", { Name = "DefiSuivi", BackgroundTransparency = 1, Size = UDim2.fromOffset(420, 30), Position = UDim2.new(1, -22, 0, 236),
-		AnchorPoint = Vector2.new(1, 0), Visible = false }, hud)
-	U.suiviTxt = K.texte(U.suivi, { Text = "", TextSize = 10, TextColor3 = C.texte2, Size = UDim2.new(1, 0, 0, 14), TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false })
-	local fs = inst("Frame", { BackgroundColor3 = C.piste, BorderSizePixel = 0, Size = UDim2.fromOffset(180, 4), Position = UDim2.new(1, 0, 0, 20), AnchorPoint = Vector2.new(1, 0) }, U.suivi)
+	U.suivi = inst("Frame", { Name = "DefiSuivi", BackgroundTransparency = 1, Size = UDim2.fromOffset(640, 40), Position = UDim2.new(0, 26, 1, -24),
+		AnchorPoint = Vector2.new(0, 1), Visible = false }, hud)
+	U.suiviTxt = K.texte(U.suivi, { Text = "", TextSize = 20, TextColor3 = C.texte2, Size = UDim2.new(1, 0, 0, 22), TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
+	local fs = inst("Frame", { BackgroundColor3 = C.piste, BorderSizePixel = 0, Size = UDim2.fromOffset(260, 6), Position = UDim2.fromOffset(0, 30) }, U.suivi)
 	U.suiviPlein = inst("Frame", { BackgroundColor3 = C.cyan, BorderSizePixel = 0, Size = UDim2.fromScale(0, 1) }, fs)
-	U.banniere = K.carbone(hud, UDim2.fromOffset(460, 70), UDim2.new(0.5, 0, 0, -90), VERT, Vector2.new(0.5, 0))
-	K.texte(U.banniere, { Text = tr("DEFI REUSSI", "CHALLENGE DONE"), TextSize = 10, TextColor3 = VERT, Size = UDim2.new(1, -30, 0, 14), Position = UDim2.fromOffset(20, 10),
-		TextXAlignment = Enum.TextXAlignment.Left })
-	U.banTxt = K.texte(U.banniere, { Text = "", TextSize = 14, TextColor3 = C.texte, Size = UDim2.new(1, -150, 0, 22), Position = UDim2.fromOffset(20, 32),
+	U.banniere = K.carbone(hud, UDim2.fromOffset(680, 104), UDim2.new(0.5, 60, 0, -120), VERT, Vector2.new(0.5, 0))
+	K.icone(U.banniere, "coche", 3, VERT, UDim2.fromOffset(22, 12))
+	K.texte(U.banniere, { Text = tr("DEFI REUSSI !", "CHALLENGE DONE!"), TextSize = 22, TextColor3 = VERT, Size = UDim2.new(1, -90, 0, 24), Position = UDim2.fromOffset(62, 14),
 		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
-	U.banPrime = K.texte(U.banniere, { Text = "", TextSize = 16, TextColor3 = VERT, Size = UDim2.fromOffset(130, 22), Position = UDim2.new(1, -14, 0, 30),
+	U.banTxt = K.texte(U.banniere, { Text = "", TextSize = 28, TextColor3 = C.texte, Size = UDim2.new(1, -230, 0, 32), Position = UDim2.fromOffset(22, 54),
+		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 3 })
+	U.banTxtEchelle = inst("UIScale", {}, U.banTxt)
+	U.banPrime = K.texte(U.banniere, { Text = "", TextSize = 28, TextColor3 = VERT, Size = UDim2.fromOffset(190, 32), Position = UDim2.new(1, -18, 0, 54),
 		AnchorPoint = Vector2.new(1, 0), TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false })
 	U.banniere.Visible = false
 end
@@ -146,6 +176,7 @@ function Missions.maj()
 	if not U.racine then return end
 	local m, c = etat(), carnet()
 	U.titre.Text = tr("CARNET ", "BOOK ") .. (m.n + 1) .. tr(" · CHAQUE DEFI EN UNE PARTIE", " · EACH CHALLENGE IN ONE RUN")
+	Hud.tenir(U.titreEchelle, U.titre.Text, 26, 600)
 	local faits = 0
 	for i = 1, 3 do
 		local d, u = c[i], U.cartes[i]
@@ -160,19 +191,28 @@ function Missions.maj()
 			u.statut.TextColor3 = VERT
 		elseif m.f == i then
 			u.statut.Text = tr("SUIVI EN COURSE", "TRACKED IN RACE")
-			u.statut.TextColor3 = C.cyan
+			u.statut.TextColor3 = C.or_
 		else
-			u.statut.Text = tr("MEILLEUR ESSAI ", "BEST RUN ") .. Carnets.progres(d, m.best[i], FR, Hud.argent)
+			u.statut.Text = tr("MEILLEUR ESSAI\n", "BEST RUN\n") .. Carnets.progres(d, m.best[i], FR, Hud.argent)
 			u.statut.TextColor3 = C.texte2
 		end
-		if u.filet then u.filet.BackgroundColor3 = ok and VERT or ((m.f == i) and C.or_ or C.cyan) end
+		-- la case se coche, le cadre prend la couleur de l'état (réussi vert · suivi or · à faire cyan)
+		local ce = ok and VERT or ((m.f == i) and C.or_ or CYAN)
+		u.trait.Color = ce
+		u.trait.Transparency = (ok or m.f == i) and 0 or 0.45
+		u.case.Color = ce
+		u.coche.Visible = ok
+		u.tete.TextColor3 = ce
 	end
 	local nom, couleur = Missions.recompense(c.rec)
-	U.recTitre.Text = tr("RECOMPENSE ", "REWARD ") .. faits .. " / 3"
-	U.recNom.Text = nom
+	U.recTitre.Text = faits .. " / 3"
+	U.recNom.Text = Hud.sansAccent(nom)
 	U.recNom.TextColor3 = couleur
 	local suite = Missions.recompense(Carnets.de(m.n + 1).rec)
-	U.recSuite.Text = tr("ENSUITE · ", "NEXT · ") .. suite
+	U.recSuite.Text = tr("ENSUITE · ", "NEXT · ") .. Hud.sansAccent(suite)
+	local largeur = U.recNom.Parent.AbsoluteSize.X / math.max(0.01, Hud.racine:FindFirstChildOfClass("UIScale").Scale)
+	Hud.tenir(U.recNomEchelle, U.recNom.Text, 40, math.max(160, largeur - 230))
+	Hud.tenir(U.recSuiteEchelle, U.recSuite.Text, 24, math.max(200, largeur - 76))
 	vignette(c.rec)
 	local suivi = (m.f >= 1 and not m.ok[m.f]) and c[m.f] or nil
 	U.aide.Text = suivi and (tr("SUIVI : ", "TRACKING: ") .. Carnets.texte(suivi, FR, Hud.argent))
@@ -215,10 +255,11 @@ function Missions.debut()
 end
 local function banniere(d: any)
 	U.banTxt.Text = Carnets.texte(d, FR, Hud.argent)
+	Hud.tenir(U.banTxtEchelle, U.banTxt.Text, 28, 440)
 	U.banPrime.Text = "+" .. Hud.argent(d.p)
 	U.banniere.Visible = true
-	U.banniere.Position = UDim2.new(0.5, 0, 0, -90)
-	TweenService:Create(U.banniere, K.LENTE, { Position = UDim2.new(0.5, 0, 0, 96) }):Play()
+	U.banniere.Position = UDim2.new(0.5, 60, 0, -120)
+	TweenService:Create(U.banniere, K.LENTE, { Position = UDim2.new(0.5, 60, 0, 92) }):Play()
 	banFin = os.clock() + 1.6
 	Sons.jouer("record", 1.3, 0.4)
 end
