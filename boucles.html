@@ -109,6 +109,7 @@ body.glisse .niv{border-style:dashed}
 </div>
 <script src="assets/audio/music/boucles/boucles-donnees.js"></script>
 <script src="assets/audio/music/boucles/petits-donnees.js?v=1"></script>
+<script src="assets/audio/music/boucles/vapeurs-donnees.js?v=2"></script>
 <script>
 'use strict';
 // les CIBLES du glisser : chaque onglet, et la corbeille
@@ -122,7 +123,7 @@ const ONGLETS={lobby:'Lobby',niv:'Niveaux',petits:'Petits sons'};
 // LES NIVEAUX DU JEU : dans l'onglet Niveaux, chaque son est rangé dans l'un d'eux (glisser-déposer)
 const NIVS=[['nuages','Nuages','#5ac8fa'],['ville','Ville','#ff2d92'],['orbite','Orbite','#af52de'],['frenesie','Frénésie','#ff3b30'],['aplacer','À placer','#8e8e93']];
 function nivDe(pour){pour=(pour||'').toUpperCase();return /NUAGE/.test(pour)?'nuages':/VILLE/.test(pour)?'ville':/ORBITE/.test(pour)?'orbite':/FR[EÉ]N/.test(pour)?'frenesie':'aplacer';}
-const TOUS=(window.PETITS||[]).map(p=>({g:'petits',id:p.id,titre:p.titre,style:p.style,bpm:p.bpm,cle:p.cle,dur:p.dur,f:p.f,idee:p.idee})).concat(
+const TOUS=(window.VAPEURS||[]).map(p=>({g:p.onglet||'petits',id:p.id,titre:p.titre,style:p.style,bpm:p.bpm,cle:p.cle,dur:p.dur,f:p.f,idee:p.idee,niv0:p.niv})).concat((window.PETITS||[]).map(p=>({g:'petits',id:p.id,titre:p.titre,style:p.style,bpm:p.bpm,cle:p.cle,dur:p.dur,f:p.f,idee:p.idee}))).concat(
   (window.BOUCLES||[]).filter(b=>b.f&&(b.groupe===GROUPE.lobby||b.groupe===GROUPE.niv)).map(b=>({g:b.groupe===GROUPE.lobby?'lobby':'niv',id:b.id,titre:b.titre,
     style:(b.pour||'').split('·').pop().trim(),bpm:b.bpm,cle:b.cle,dur:b.dur,f:b.f,idee:b.idee,niv0:nivDe(b.pour)})));
 // LE RANGEMENT de Léo : {groupes:{id:onglet}, corbeille:[id]} — gardé par la boîte (atelier-son/boite/rangement.json), sinon par le navigateur
