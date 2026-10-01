@@ -20,6 +20,7 @@ local CC = script.Parent.Parent
 local Config = require(CC:WaitForChild("Config"))
 local Caisse = require(CC:WaitForChild("Caisse"))
 local Maillage = require(script.Parent:WaitForChild("Maillage"))
+local Argent = require(script.Parent:WaitForChild("Argent"))
 local Hud = require(script.Parent:WaitForChild("Hud"))
 local Sons = require(script.Parent:WaitForChild("Sons"))
 
@@ -373,6 +374,8 @@ local function batir()
 	-- les deux lampes de studio : elles suivent la vue (la clé chaude, la rive cyan)
 	lampeCle = lampe("Cle", 0, 4.1, -5.2, Color3.fromRGB(255, 220, 168), 1.0, 60, true)
 	lampeRive = lampe("Rive", 0, 2.3, 6, CYAN, 0.45, 52)
+	-- L'ARGENT DE L'ATELIER : le plan des tas de billets (ils se bâtissent quand le compte les demande)
+	Argent.batir(d, O, M, LARG, PROF)
 end
 
 -- l'ambiance : dedans, le soleil du niveau n'existe pas. On éteint le dehors le temps de la visite (côté joueur seulement).
@@ -715,6 +718,7 @@ end
 local compteVu, compteN = 0, 0
 local function majCompte(direct: boolean?)
 	local cibleV = profil().compte or 0
+	Argent.maj(workspace:GetAttribute("DbgArgent") or cibleV) -- les tas de billets suivent le compte (DbgArgent : un compte de mise au point)
 	if direct or cibleV == compteVu then
 		compteVu = cibleV
 		U.compte.Text = Hud.compte(cibleV)
