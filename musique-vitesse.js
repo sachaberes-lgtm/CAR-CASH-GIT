@@ -50,14 +50,21 @@
 const MV_REGLES={moteurTemps:.5,hyst:.04,tenue:2,moteurSeuil:.2,plancher:.45,rattrapageMax:14,nitroBrillance:6,chanceVariante:.5,leadRespire:.7,
   // v2.2 — l'ÉLAN (nitro tenue/enchaînée, accélération), la RUPTURE et le filtre qui suit la vitesse
   nitroElan0:.35,nitroElanS:.18,nitroEnchaine:1.5,accElanK:1.2,accElanMax:.45,elanRetombe:1.8,dropApres:1.5,souffle:.09,boostSur:.75,energieElan:.55,
-  pompeMot:.28,ruptDelta:.32,ruptSous:.55,ruptPause:3,picDescend:.3,relanceSur:.45,ruptFc:900,fcBas:1300,fcHaut:19000};
+  pompeMot:.28,profWet:.42,profSec:.4,ruptDelta:.32,ruptSous:.55,ruptPause:3,picDescend:.3,relanceSur:.45,ruptFc:900,fcBas:1300,fcHaut:19000};
 function MusiqueVitesse(ac,sortie){
   const R=MV_REGLES;
   // bus → FILTRE (la vitesse, la rupture) → rattrapage → aigus (l'élan) → sortie ; + le SOUFFLE de la nitro, synthétisé en direct
   const bus=ac.createGain(),filt=ac.createBiquadFilter(),mkG=ac.createGain(),aigus=ac.createBiquadFilter();
   filt.type='lowpass';filt.frequency.value=20000;filt.Q.value=.5;
   aigus.type='highshelf';aigus.frequency.value=3200;aigus.gain.value=0;
-  bus.connect(filt);filt.connect(mkG);mkG.connect(aigus);aigus.connect(sortie||ac.destination);
+  /* (v3.2) LA PROFONDEUR — Léo : « la profondeur de la musique : encore un effet de superposition ». Plus d'instrument ajouté :
+     la DISTANCE devient l'effet. Lancée, la musique est tout près (sèche) ; quand la voiture ralentit elle s'ÉLOIGNE (la réverbe
+     monte, le direct recule — et le filtre de la vitesse l'assombrit) ; à l'arrêt et dans l'accalmie, elle est au loin. */
+  const sec=ac.createGain(),rev=ac.createConvolver(),wet=ac.createGain();wet.gain.value=0;
+  {const n=Math.floor(ac.sampleRate*2.8),ir=ac.createBuffer(2,n,ac.sampleRate);for(let c=0;c<2;c++){const d=ir.getChannelData(c);let h=0x1234567+c*7919;
+    for(let i=0;i<n;i++){h^=h<<13;h^=h>>>17;h^=h<<5;const t=i/ac.sampleRate;d[i]=((h>>>0)/4294967296*2-1)*Math.exp(-t*2.6)*(t<.012?t/.012:1);}}rev.buffer=ir;}
+  bus.connect(sec);sec.connect(filt);bus.connect(rev);rev.connect(wet);wet.connect(filt);
+  filt.connect(mkG);mkG.connect(aigus);aigus.connect(sortie||ac.destination);
   const soufG=ac.createGain(),soufF=ac.createBiquadFilter();soufG.gain.value=0;soufF.type='bandpass';soufF.Q.value=3;soufF.frequency.value=800;
   soufF.connect(soufG);soufG.connect(aigus);let soufSrc=null;
   const calmeG=ac.createGain();calmeG.gain.value=0;calmeG.connect(filt);let calmeBuf=null,calmeSrc=null;
@@ -81,7 +88,7 @@ function MusiqueVitesse(ac,sortie){
     calmeBuf=b.accalmie?await decode(b.accalmie.f).catch(()=>null):null;
     SQ=b.sequence||null;seqBuf=SQ?await decode(SQ.f):null;
     moBuf=b.passages?await decode(b.passages.monte.f).catch(()=>null):null;deBuf=b.passages?await decode(b.passages.descend.f).catch(()=>null):null;
-    const extra=C[0].bufs[0].duration-b.dur;deb=extra>.03?Math.min(extra,2112/C[0].bufs[0].sampleRate):0; // l'amorce AAC
+    if(C.length){const extra=C[0].bufs[0].duration-b.dur;deb=extra>.03?Math.min(extra,2112/C[0].bufs[0].sampleRate):0;} // l'amorce AAC
     if(seqBuf){const ex=seqBuf.duration-SQ.phrase*nPhrases();SQ.deb=ex>.03?Math.min(ex,2112/seqBuf.sampleRate):0;}
   }
   /* ---------------- LE SÉQUENCEUR (v3, la VILLE : « produis en samplant et en réorganisant ») ----------------
@@ -264,6 +271,8 @@ function MusiqueVitesse(ac,sortie){
     const mkC=SQ?1:Math.max(1,Math.min(Math.pow(10,R.rattrapageMax/20),Math.sqrt(R.plancher*E/Math.max(e,1e-12))));
     if(Math.abs(mkC-mk)>.01){mk=mkC;mkG.gain.setTargetAtTime(mk,now,.5);}
     aigus.gain.setTargetAtTime(R.nitroBrillance*elan,now,.08);
+    {const loin=rupt?1:Math.max(0,Math.min(1,1-(vF-.12)/.68));               // la PROFONDEUR : 0 = tout près (lancé), 1 = au loin (arrêt, accalmie)
+      wet.gain.setTargetAtTime(R.profWet*loin,now,.35);sec.gain.setTargetAtTime(1-R.profSec*loin,now,.35);}
     soufG.gain.setTargetAtTime(o.nitro?R.souffle*elan*elan:0,now,o.nitro?.1:.25);
     soufF.frequency.setTargetAtTime(500*Math.pow(16,elan),now,.15);
   }
@@ -282,7 +291,7 @@ function MusiqueVitesse(ac,sortie){
   return{charge:charge,joue:joue,stop:stop,regle:regle,palier:palier,position:position,pompeMoteur:pompeMoteur,sortie:bus,
     etat:function(){return{gains:C.map((L,k)=>(k===0&&!SQ)||L.on?1:0),variantes:C.map(L=>L.vs[L.var].v),noms:C.map(L=>L.c.nom),
       section:cur?cur.sec.nom:null,tour:nTour,rattrapage:+(20*Math.log10(mk)).toFixed(1)+' dB',elan:+elan.toFixed(2),acc:+acc.toFixed(2),rupture:rupt,boost:boost,
-      filtre:Math.round(filt.frequency.value)};}};
+      filtre:Math.round(filt.frequency.value),profondeur:+wet.gain.value.toFixed(2)};}};
 }
 G.MusiqueVitesse=MusiqueVitesse;G.MV_REGLES=MV_REGLES;
 })(window);

@@ -25,6 +25,7 @@
     une belle transition, un nouveau son par inspi » → v2.2-2.3 (§5 quinquies).
 12. « Pareil avec la musique de la VILLE, en samplant et en réorganisant, avec ta touche » → v3 (§5 sexies).
 13. « Mal réparti, prends des libertés, parallèle musique / moteur » + « trop superposé » → v3.1 (§5 septies).
+14. « Pas totalement ça : le choix des instruments, la profondeur — encore de la superposition » → v3.2 (§5 octies).
 
 ## 2. Les fichiers
 
@@ -261,6 +262,26 @@ une expérience son parallèle entre musique et moteur » · « la musique c'ét
 - Page : boîte SIMULÉE (5 rapports, affichée BOITE R1…R5). Mesuré (muet) : arrêt = CALME + pluie ; R1 GROOVE · R2-R3 PLEIN ·
   R4-R5 GROS ; 30 s au dernier rapport = SOMMET ; nitro 9 s = MONTÉE + charley ; lâchée = SOMMET ; ralenti à 60 % = PLEIN
   (une marche à la fois) ; arrêt brusque = ACCALMIE + pluie. Jeu : CALME → GROOVE au démarrage, pompe active, zéro erreur.
+
+## 5 octies. v3.2 — DE VRAIS INSTRUMENTS, LA PROFONDEUR EN EFFET (2026-10-01)
+
+Léo : « la musique c'était pas totalement ça — le choix des instruments ; et la profondeur de la musique, c'est encore un peu un
+effet de superposition ».
+- **Les NUAGES jouent un vrai morceau** : NOITE DE VELOCIDADE (leur musique d'origine), mesuré 132,25 BPM (le détecteur lisait
+  165 : les débuts de section tombent tous sur des multiples de 1,8147 s), cycle MI · SI · SOL# m · SOL# m (sol# mineur), intro
+  calme sur RÉ# 0-15. Phrases : CALME (4, 8) · GROOVE (16, 20) · PLEIN (24, 28) · GROS (48, 52) · SOMMET (64, 68) · MONTÉE
+  (40, 44 — les coupures rythmées). Entrée `nuages-noite`. NÉON DRIVE reste : `dbgCouches('nuages','neon-drive-2')`.
+- **`atelier-son/ville.py` devient un échantillonneur à réglages** (`CONFIGS` : ville, nuages) : `python atelier-son/ville.py
+  [ville|nuages]`.
+- **Rien d'ajouté par-dessus le morceau** pendant la course : retirés les rafales de charley et l'accalmie en Rhodes de la ville
+  (les nuages n'ont aucune couche). Reste la pluie de la ville, seulement à l'arrêt.
+- **La PROFONDEUR est un effet** (musique-vitesse.js) : une réverbe (2,8 s, calculée) en parallèle du son direct ; lancée = tout
+  près (sec), ralentir = elle s'ÉLOIGNE (réverbe jusqu'à .42, direct −40 %, + le filtre de la vitesse qui assombrit), arrêt et
+  accalmie = au loin. Vaut aussi pour NÉON DRIVE.
+- **La FLORAISON est taillée dans le morceau** : un demi-seconde de son intro, ÉTIRÉE en 4 s (grains de 140 ms, recouvrement ×4),
+  épanouie puis éteinte, réverbe — les mêmes instruments, suspendus (`figer` dans ville.py).
+- Mesuré (page, muet) : NUAGES arrêt = CALME, profondeur .42, filtre 1,3 kHz ; 50 % = GROOVE, .19 ; 100 % = GROS, 0 ; arrêt brusque
+  = ACCALMIE, .42, 915 Hz. Jeu : `nuages-noite` démarre en CALME, monte en GROOVE, zéro erreur.
 
 ## 6. CE QUI RESTE À FAIRE (intégration au jeu)
 

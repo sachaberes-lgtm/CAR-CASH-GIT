@@ -75,7 +75,9 @@ carrière, missions, garage à onglets, boutique), + SEULEMENT :
   chaque couche a son heure), son bonifié (§5 quater) ; v2.3 : filtre ← vitesse, ÉLAN (nitro
   tenue/enchaînée, accélération), ACCALMIE au lieu d'une coupure (plot/arrêt → floraison + partie calme, relance sur la mesure) (§5 quinquies). v3 : la VILLE = ADDICTIVE LOOP découpé en phrases
   (`atelier-son/ville.py`, séquenceur de musique-vitesse.js) + pluie, Rhodes, arpège, charley trap (§5 sexies) ; v3.1 : la BOÎTE mène la ville (une marche par
-  rapport, souffles de passage), le moteur pompe sur le temps (`MUS_POMPE_MOT` sur engPost), le morceau porte seul (§5 septies). **Tout est résumé pour une autre discussion dans `MUSIQUE-PASSATION.md`.** (clic = écoute, EN VOL, NITRO, ENCHAÎNER ; servie = boucle sans couture).
+  rapport, souffles de passage), le moteur pompe sur le temps (`MUS_POMPE_MOT` sur engPost), le morceau porte seul (§5 septies). v3.2 : les NUAGES jouent
+  NOITE DE VELOCIDADE échantillonné (`nuages-noite`), PROFONDEUR = réverbe qui monte quand on ralentit, floraison taillée dans le
+  morceau, plus rien par-dessus (§5 octies). **Tout est résumé pour une autre discussion dans `MUSIQUE-PASSATION.md`.** (clic = écoute, EN VOL, NITRO, ENCHAÎNER ; servie = boucle sans couture).
 
 
 ## LES 10 PREMIÈRES MINUTES — CÔTÉ INTERFACE (2026-09-29, session INTERFACE)

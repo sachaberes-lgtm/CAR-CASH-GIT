@@ -24,13 +24,32 @@ from boucles import *  # noqa: F403
 import boucles8  # noqa: F401  (GAMMES, chorus…)
 from boucles8 import chorus, voix_menee, shaker
 
-SOURCE = os.path.join(RACINE, 'assets', 'audio', 'music', 'addictive-loop.m4a')
-BPM = 129.92; MESURE = 240 / BPM; BAR0 = .681; QUEUE_P = .3
-# (nom, niveau, mesures de départ des phrases de 4) — mesuré : les sections changent sur les multiples de 4 depuis la mesure 0
-SECTIONS = [('CALME', 0, [0, 4]), ('GROOVE', 1, [8, 16]), ('PLEIN', 2, [24, 28]), ('GROS', 3, [40, 44]),
-            ('SOMMET', 4, [80, 84]), ('MONTEE', 5, [64, 68])]
-T = 57  # la
-PROG = [5, 3, 0, 0]  # FA (VI) · RÉ m (iv) · LA m (i) · LA m
+"""v3.2 (Léo : « la musique c'était pas totalement ça — le choix des instruments, et la profondeur : encore un effet de
+superposition ») : le script devient un ÉCHANTILLONNEUR à réglages (un par morceau) ; plus aucun instrument ajouté par-dessus
+pendant la course — la PROFONDEUR est un effet (musique-vitesse.js : la musique s'éloigne quand on ralentit), la FLORAISON est
+un instant du morceau lui-même, figé et étiré ; seule la pluie de la ville reste, et seulement à l'arrêt.
+   python atelier-son/ville.py ville      (ADDICTIVE LOOP → ville-addictive)
+   python atelier-son/ville.py nuages     (NOITE DE VELOCIDADE → nuages-noite)"""
+CONFIGS = {
+    'ville': dict(id='ville-addictive', prefixe='ville', titre='VILLE · ADDICTIVE LOOP', source='addictive-loop.m4a', bpm=129.92, bar0=.681,
+        ton=1, cle='la mineur', T=57, prog=[5, 3, 0, 0], pour='VILLE · EN JEU', pluie=True, figer=0,
+        # (nom, niveau, mesures de départ des phrases de 4) — mesuré : les sections changent sur les multiples de 4 depuis la mesure 0
+        sections=[('CALME', 0, [0, 4]), ('GROOVE', 1, [8, 16]), ('PLEIN', 2, [24, 28]), ('GROS', 3, [40, 44]), ('SOMMET', 4, [80, 84]), ('MONTEE', 5, [64, 68])],
+        idee="ADDICTIVE LOOP échantillonné et réorganisé en 12 phrases (CALME, GROOVE, PLEIN, GROS, SOMMET, MONTÉE). La BOÎTE DE VITESSES mène : chaque rapport fait monter le morceau d'une marche ; le moteur respire sur le temps ; la musique s'ÉLOIGNE quand on ralentit. Rien d'ajouté par-dessus : la pluie seulement à l'arrêt, la floraison taillée dans le morceau."),
+    # NOITE DE VELOCIDADE (la musique d'origine des NUAGES), mesuré : 132,25 BPM, mesure 1,8147 s, 1re mesure à −0,016 s, cycle MI · SI ·
+    # SOL# m · SOL# m (sol# mineur), intro calme sur RÉ# 0-15, groove à trous 16-23, plein 24-39, coupures 40-47, gros 48-55,
+    # sommet 64-71.
+    'nuages': dict(id='nuages-noite', prefixe='nuages', titre='NUAGES · NOITE DE VELOCIDADE', source='noite-de-velocidade.mp3', bpm=132.25, bar0=-.016,
+        ton=2, cle='sol# mineur', T=56, prog=[0, 0, 0, 0], pour='NUAGES · EN JEU', pluie=False, figer=8,
+        sections=[('CALME', 0, [4, 8]), ('GROOVE', 1, [16, 20]), ('PLEIN', 2, [24, 28]), ('GROS', 3, [48, 52]), ('SOMMET', 4, [64, 68]), ('MONTEE', 5, [40, 44])],
+        idee="NOITE DE VELOCIDADE échantillonné et réorganisé en 12 phrases (CALME, GROOVE, PLEIN, GROS, SOMMET, MONTÉE). La boîte de vitesses mène, le moteur respire sur le temps, la musique s'éloigne quand on ralentit. De vrais instruments, rien d'ajouté par-dessus."),
+}
+CFG = CONFIGS['ville']
+SOURCE = BPM = MESURE = BAR0 = SECTIONS = T = PROG = None; QUEUE_P = .3
+def regle_config(nom):
+    global CFG, SOURCE, BPM, MESURE, BAR0, SECTIONS, T, PROG
+    CFG = CONFIGS[nom]; SOURCE = os.path.join(RACINE, 'assets', 'audio', 'music', CFG['source'])
+    BPM = CFG['bpm']; MESURE = 240 / BPM; BAR0 = CFG['bar0']; SECTIONS = CFG['sections']; T = CFG['T']; PROG = CFG['prog']
 
 def m4a(nom, L, R, debit=160000):
     wav = os.path.join(SORTIE, nom + '.wav'); ecrit_wav(wav, L, R)
@@ -61,7 +80,7 @@ def phrases():
     for nom, niv, debuts in SECTIONS:
         idx = []
         for b in debuts:
-            t = attaque(m, BAR0 + b * MESURE); i = int(round(t * SR))
+            t = attaque(m, max(.045, BAR0 + b * MESURE)); i = int(round(t * SR))
             pl, pr = L[i:i + n].copy(), R[i:i + n].copy()
             f = int(.004 * SR); pl[:f] *= np.linspace(0, 1, f); pr[:f] *= np.linspace(0, 1, f)  # 4 ms d'entrée : pas de clic
             out.append((pl, pr)); idx.append(len(out) - 1)
@@ -132,6 +151,19 @@ def ville_calme():
     boucles8.fx_rev(M, [('rhodes', 1), ('cloche', 1)], 3.8, .5, 4500)
     return M, fin(M, {'rhodes': 1, 'cloche': 1, 'pluie': .7, 'fx': 1})
 
+def figer(L, R, t0, src=.5, dur=4., de=None):
+    """LE MORCEAU FIGÉ : on prend `src` secondes du morceau à `t0` et on les ÉTIRE en `dur` secondes (grains de 140 ms tirés dans
+    l'extrait, fenêtres de Hann, recouvrement ×4) — le même son, les mêmes instruments, suspendu ; puis il s'épanouit et s'éteint."""
+    de = de or Des(320); g = int(.14 * SR); pas = g // 4; n = int(dur * SR); oL = np.zeros(n + g); oR = np.zeros(n + g); w = np.hanning(g)
+    i0 = int(t0 * SR); span = int(src * SR) - g
+    for k in range(0, n, pas):
+        j = i0 + int(de.u(0, max(1, span))); oL[k:k + g] += L[j:j + g] * w; oR[k:k + g] += R[j:j + g] * w
+    oL, oR = oL[:n] / 1.6, oR[:n] / 1.6; t = np.arange(n) / SR
+    e = np.clip(t / .35, 0, 1) * np.exp(-np.maximum(0, t - .6) / 1.3)
+    oL, oR = filtre(oL * e, 'low', 6000), filtre(oR * e, 'low', 6000)
+    rL, rR = reverbe(oL, oR, 3.5, 5000, .03, de); oL = oL + rL * .5; oR = oR + rR * .5
+    pk = max(np.abs(oL).max(), np.abs(oR).max()); return oL * .6 / pk, oR * .6 / pk
+
 def ville_floraison():
     de = Des(306); n = int(4.5 * SR); L = np.zeros(n); R = np.zeros(n)
     for k, note in enumerate((57, 64, 67, 71, 72)):  # la m add9 en Rhodes, égrené
@@ -154,7 +186,7 @@ def ville_transition():
 # v3.1 (Léo : « la musique c'était un peu bof, trop superposé ») : LE MORCEAU PORTE SEUL. Ma touche ne sort plus que dans SES
 # moments : la pluie à l'arrêt (CALME), les rafales de charley pendant la MONTÉE en nitro. La nappe et l'arpège (toujours là
 # par-dessus le morceau) sont retirés ; le Rhodes vit dans l'ACCALMIE. + niveau minimum de section (niveauMin).
-COUCHES_VILLE = [('PLUIE', ville_pluie, -30, 0, 0, 0), ('CHARLEY TRAP', ville_trap, -28, .75, 9, 5)]
+COUCHES_VILLE = [('PLUIE', ville_pluie, -30, 0, 0, 0)]  # v3.2 : les rafales de charley retirées (superposition) ; la pluie seulement à l'arrêt
 
 def souffle_passage(monte=True):
     """LE PASSAGE DE MARCHE (v3.1, la musique suit la BOÎTE) : un souffle d'un temps qui MONTE vers la section suivante (bruit dont
@@ -169,39 +201,42 @@ def souffle_passage(monte=True):
     L = filtre(s, 'high', 300); R = np.roll(L, 200)
     pk = max(np.abs(L).max(), 1e-9); return L * .5 / pk, R * .5 / pk
 
-def rendre():
+def rendre(nom='ville'):
+    regle_config(nom); P = CFG['prefixe']
     os.makedirs(SORTIE, exist_ok=True)
-    print('… phrases d\'ADDICTIVE LOOP')
+    print('…', CFG['titre'])
     PL, PR, sections, lgT = phrases()
-    f_src = m4a('ville--phrases', PL, PR, 192000)
+    f_src = m4a(P + '--phrases', PL, PR, 192000)
     print('   %d phrases de %.3f s (%s)' % (len(PL) / SR / lgT, lgT, ', '.join(s['nom'] for s in sections)))
     couches = []
-    for nom, fn, cible, elanMin, nivMax, nivMin in COUCHES_VILLE:
+    for nom, fn, cible, elanMin, nivMax, nivMin in (COUCHES_VILLE if CFG['pluie'] else []):
         M, (L, R) = fn(); L, R = niveau(L, R, cible)
         f = m4a('ville--' + nom.lower().replace(' ', '-'), L, R)
         couches.append({'nom': nom, 'seuil': 0, 'sol': False, 'temps': 0, 'elanMin': elanMin, 'niveauMax': nivMax, 'niveauMin': nivMin, 'rms': round(rms(L, R), 5),
                         'variantes': [{'v': 'A', 'f': f, 'moteur': 0, 'rms': round(rms(L, R), 5)}]})
         print('   %-13s RMS %.1f dB  élan ≥ %.2f  niveau ≤ %d' % (nom, cible, elanMin, nivMax))
-    M, (cL, cR) = ville_calme(); cL, cR = niveau(cL, cR, -21); f_calme = m4a('ville--accalmie', cL, cR)
-    f_flo = m4a('ville--floraison', *ville_floraison()); f_tr = m4a('ville--transition', *ville_transition())
-    f_mo = m4a('ville--monte', *souffle_passage(True)); f_de = m4a('ville--descend', *souffle_passage(False))
-    d = {'titre': 'VILLE · ADDICTIVE LOOP', 'bpm': BPM, 'ton': 1, 'mesures': 4, 'dur': round(4 * MESURE, 5),
+    # la FLORAISON : un instant de l'intro du morceau (la 1re phrase CALME, à `figer` temps), figé et étiré
+    lC = SECTIONS[0][2][0]; sL, sR = lire_source()
+    f_flo = m4a(P + '--floraison', *figer(sL, sR, max(.05, BAR0 + lC * MESURE) + CFG['figer'] * MESURE / 4, .5, 4.))
+    f_tr = m4a(P + '--transition', *ville_transition())
+    f_mo = m4a(P + '--monte', *souffle_passage(True)); f_de = m4a(P + '--descend', *souffle_passage(False))
+    d = {'titre': CFG['titre'], 'bpm': BPM, 'ton': CFG['ton'], 'mesures': 4, 'dur': round(4 * MESURE, 5),
          'sequence': {'f': f_src, 'phrase': round(lgT, 5), 'mesures': 4, 'queue': QUEUE_P, 'sections': sections},
-         'couches': couches, 'transition': {'f': f_tr, 'avance': round(MESURE, 5)}, 'rupture': {'f': f_flo}, 'accalmie': {'f': f_calme},
+         'couches': couches, 'transition': {'f': f_tr, 'avance': round(MESURE, 5)}, 'rupture': {'f': f_flo}, 'accalmie': None, 'profondeur': True,
          'passages': {'monte': {'f': f_mo, 'avance': round(MESURE / 2, 5)}, 'descend': {'f': f_de}}, 'boite': True}
     # couches-jeu.js
     fj = os.path.join(SORTIE, 'couches-jeu.js'); jeu = json.loads(open(fj).read().split('=', 1)[1].rstrip().rstrip(';'))
-    jeu['ville-addictive'] = d
+    jeu[CFG['id']] = d
     open(fj, 'w').write('window.COUCHES_JEU=' + json.dumps(jeu, ensure_ascii=False) + ';\n')
     # boucles-donnees.js (la page)
     fd = os.path.join(SORTIE, 'boucles-donnees.js'); liste = json.loads(open(fd).read().split('=', 1)[1].rstrip().rstrip(';'))
-    liste = [b for b in liste if b['id'] != 'ville-addictive']
-    e = dict(d); e.update({'id': 'ville-addictive', 'groupe': 'MUSIQUE DE JEU · VITESSE + MOTEUR', 'pour': 'VILLE · EN JEU', 'cle': 'la mineur',
+    liste = [b for b in liste if b['id'] != CFG['id']]
+    e = dict(d); e.update({'id': CFG['id'], 'groupe': 'MUSIQUE DE JEU · VITESSE + MOTEUR', 'pour': CFG['pour'], 'cle': CFG['cle'],
         'f': f_src, 'pics': pics(PL[:int(4 * MESURE * SR) * 4], PR[:int(4 * MESURE * SR) * 4]),
-        'idee': "ADDICTIVE LOOP échantillonné et réorganisé en 12 phrases (CALME, GROOVE, PLEIN, GROS, SOMMET, MONTÉE). La BOÎTE DE VITESSES mène : chaque rapport fait monter le morceau d'une marche (avec un souffle qui y mène), le moteur respire sur le temps. Le morceau porte seul ; ma touche n'arrive qu'à ses moments : la pluie à l'arrêt, les rafales de charley en nitro, l'accalmie Rhodes."})
-    liste.insert(1, e)
+        'idee': CFG['idee']})
+    liste.insert(0, e)
     open(fd, 'w').write('window.BOUCLES=' + json.dumps(liste, ensure_ascii=False) + ';\n')
-    print('ok → ville-addictive')
+    print('ok →', CFG['id'])
 
 if __name__ == '__main__':
-    rendre()
+    for nom in (sys.argv[1:] or ['ville', 'nuages']): rendre(nom)
