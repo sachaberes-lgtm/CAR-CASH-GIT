@@ -8,6 +8,7 @@
                     déjà à l'échelle du jeu (×2,7), centré sur l'origine de la recette
      cristal        verre (l'icosaèdre à facettes), coeur (l'octaèdre), anneaux (le gyroscope : deux tores croisés) — en BLANC :
                     la pièce Roblox porte la couleur du pouvoir
+     dauphin        le dauphin low-poly néon de la figure LE DAUPHIN (une couleur par facette), nez vers −Z
    Même format que les caisses : v = sommets (x,y,z int16 au demi-millimètre + r,g,b + masque), t = triangles (uint16), en base64.
    Repère cuit : celui de ROBLOX (x,y,z) → (−x, y, −z), en MÈTRES.
    node ROBLOX/outils/cuire-objets.js            (à relancer quand les fruits du jeu web changent) */
@@ -33,7 +34,8 @@ const blocs = [
   bloc('const LPU={', '/* ---- LES 6 SILHOUETTES', false),      // lpKit
   bloc('const FRUIT_PAL=', '// UNE GÉOMÉTRIE PAR FRUIT', false), // FRUIT_PAL, SPH, FRUIT_DEFS
   L[ligne('const pwrGeo=')], L[ligne('const pwrGeo=') + 1],     // le cristal : pwrGeo, pwrCoreGeo, pwrRingGeo
-  'return {FRUIT_DEFS,FRUIT_PAL,lpKit,pwrGeo,pwrCoreGeo,pwrRingGeo};',
+  bloc('const DOL_L=', 'const DOL_GEO=', true),                 // le DAUPHIN : profil, robe, mkDolphinGeo, DOL_GEO
+  'return {FRUIT_DEFS,FRUIT_PAL,lpKit,pwrGeo,pwrCoreGeo,pwrRingGeo,DOL_GEO,DOL_L};',
 ];
 const stubs = {
   envTex: null, carFins: [], rimify: () => {}, lpGrad: () => {}, nuageShader: () => {}, vMat: m => m, lampTex: null,
@@ -108,7 +110,13 @@ const coeur = new THREE.Matrix4().makeScale(1.3, 1.3, 1.3);
 const a1 = new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(Math.PI / 2, 0, 0));
 const a2 = new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(Math.PI / 2, 0.9, 0)).multiply(new THREE.Matrix4().makeScale(0.84, 0.84, 0.84));
 const verre = cuire([{ g: G.pwrGeo }]), cr = cuire([{ g: G.pwrCoreGeo, m: coeur }]), an = cuire([{ g: G.pwrRingGeo, m: a1 }, { g: G.pwrRingGeo, m: a2 }]);
-out += '\t\tverre = ' + lua(verre) + ',\n\t\tcoeur = ' + lua(cr) + ',\n\t\tanneaux = ' + lua(an) + ',\n\t},\n}\n';
+out += '\t\tverre = ' + lua(verre) + ',\n\t\tcoeur = ' + lua(cr) + ',\n\t\tanneaux = ' + lua(an) + ',\n\t},\n';
 total += verre.nt + cr.nt + an.nt;
+// le DAUPHIN (mkDolphinGeo : corps, dorsale, pectorales, caudale et yeux fusionnés, une couleur par facette). Sur le web son nez est
+// en +x ; cuit, il regarde vers −Z de Roblox (l'avant d'une pièce) : un quart de tour autour de la verticale avant le changement de repère.
+const dauphin = cuire([{ g: G.DOL_GEO, m: new THREE.Matrix4().makeRotationY(-Math.PI / 2) }]);
+out += '\tdauphin = ' + lua(dauphin, ', long = ' + G.DOL_L) + ',\n}\n';
+total += dauphin.nt;
+console.log('  dauphin       ' + dauphin.nt + ' triangles, long ' + n3(dauphin.mx[2] - dauphin.mn[2]) + ' m');
 fs.writeFileSync(SORTIE, out);
 console.log(G.FRUIT_DEFS.length + ' fruits et le cristal cuits : ' + total + ' triangles, ' + (out.length / 1024).toFixed(0) + ' Ko → ' + SORTIE);

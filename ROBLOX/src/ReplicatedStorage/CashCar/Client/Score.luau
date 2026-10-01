@@ -620,6 +620,7 @@ function Score.dolTick(dt: number, sur: boolean, hF: number, p: number, fallT: n
 			nee = true
 		end
 		local ras = clamp(1 - (hF - 2.2) / 9.8, 0, 1)
+		DOL.ras = ras -- (la proximité de l'image : le banc la montre — Client/Dauphins)
 		DOL.mul += (dolVitMul(p) - DOL.mul) * math.min(1, dt * 4)
 		DOL.q += ras * ras * (0.3 + 0.7 * clamp((DOL.mul - 0.6) / 1.5, 0, 1)) * dt
 		DOL.aura = math.max(DOL.aura, math.min(DOL_AURA_MAX * DOL.mul, DOL.aura + DOL_AURA_RAS * ras * ras * (1 + 0.15 * (DOL.nb - 1)) * DOL.mul * dt))

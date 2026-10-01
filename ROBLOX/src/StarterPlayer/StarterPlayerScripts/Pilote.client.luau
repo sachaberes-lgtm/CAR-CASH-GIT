@@ -2304,6 +2304,9 @@ do
 	-- LE DRAGON de NITROOO : il lit l'état du bus (ntr, infini, fiche), rien d'autre à lui dire
 	local okD, errD = pcall(function() require(CL:WaitForChild("Dragon")).init() end)
 	if not okD then warn("[CashCar] dragon : " .. tostring(errD)) end
+	-- LE BANC DE DAUPHINS : il lit Score.DOL et l'état du bus
+	local okB, errB = pcall(function() require(CL:WaitForChild("Dauphins")).init() end)
+	if not okB then warn("[CashCar] dauphins : " .. tostring(errB)) end
 end
 Bus.agir.secousse = function(x: number) secousse = math.max(secousse, x) end
 Bus.agir.fov = function(d: number) fovPunch = math.max(fovPunch, d) end

@@ -685,15 +685,17 @@ local function tick(dt: number)
 	local corps = Lb > 0.25
 	D.Lb, D.dA = Lb, hl
 	D.N0 = MT(0, -0.35, -0.95) -- la NUQUE : l'arrière de la tête
-	local Wc = 0.4 + 0.5 * gB + 0.06 * R9
+	-- (vu dans Studio : en vol la caméra est derrière la caisse, DANS l'axe du corps — à pleine largeur il la cachait entièrement.
+	-- En l'air il s'affine et passe SOUS la trajectoire : on voit la caisse par-dessus.)
+	local Wc = (0.4 + 0.5 * gB + 0.06 * R9) * (1 - 0.4 * AI)
 	D.Aw = (0.35 + 1.1 * gB) * (1 - 0.45 * math.abs(VR)) * (1 + 0.35 * AI) * (1.3 - 0.6 * v1) -- fort, le vent le TEND
 	D.Av = (0.2 + 0.35 * gB) * (1 + 0.6 * AI)
-	D.y0 = 0.3 + Wc - (0.3 + 0.5 * Wc) * AI
+	D.y0 = (0.3 + Wc) * (1 - AI) - 1.6 * Wc * AI
 	D.lam = (4 + 2 * gB) * (1 + 0.35 * AI)
 	D.Af = Wc * (0.22 + 0.85 * VT) * D.raf   -- …et le fait CLAQUER
 	D.flm = 1.5 + 0.5 * Wc + 0.5 * v1
 	D.dev = 0.1 * VR * Lb * v1               -- en virage le bout libre part vers l'extérieur
-	D.sag = (1 - v1) * (1 - v1) * ((AI > 0.5) and Lb * 0.12 or math.max(0, D.y0 - Wc * 0.45)) -- sans vent, le papier pend
+	D.sag = (1 - v1) * (1 - v1) * ((AI > 0.5) and Lb * 0.12 or math.max(0, D.y0 - Wc * 0.45)) + 0.22 * Lb * AI -- sans vent, le papier pend ; en vol il plonge sous la caisse
 	local opCorps = math.min(1, 0.3 + 0.9 * V)
 	if corps then
 		echineCalc(cF, cR)
