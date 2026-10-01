@@ -36,6 +36,23 @@ h1{font-size:40px;font-weight:700;letter-spacing:-.02em;margin:0}
 .c.joue .prog{opacity:1}
 .vol{display:flex;align-items:center;gap:10px;color:var(--tx2);font-size:13px;margin-top:28px}
 .vol input{flex:1;max-width:240px;accent-color:var(--bleu)}
+/* ---- LA BOÎTE À CLAUDE : une petite fenêtre pour envoyer un message ou des MP3 (atelier-son/boite.py) */
+.bOuvre{position:fixed;right:20px;bottom:20px;border:0;background:var(--bleu);color:#fff;font:inherit;font-size:15px;font-weight:600;
+  padding:12px 18px;border-radius:999px;box-shadow:0 6px 20px rgba(0,0,0,.18);cursor:pointer;z-index:10}
+.boite{position:fixed;right:20px;bottom:20px;width:min(380px,calc(100vw - 40px));background:var(--carte);border-radius:18px;
+  box-shadow:0 12px 40px rgba(0,0,0,.25);padding:18px;z-index:11;display:none}
+.boite.on{display:block}
+.boite h3{margin:0 0 4px;font-size:17px}.boite .x{float:right;border:0;background:var(--fond);color:var(--tx2);width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:14px}
+.boite p{margin:0 0 12px;color:var(--tx2);font-size:13px}
+.boite textarea{width:100%;min-height:96px;resize:vertical;border:1px solid var(--fil);border-radius:12px;padding:10px;font:inherit;font-size:15px;
+  background:var(--fond);color:var(--tx)}
+.depot{margin-top:10px;border:1.5px dashed var(--fil);border-radius:12px;padding:12px;text-align:center;color:var(--tx2);font-size:13px;cursor:pointer}
+.depot.sur{border-color:var(--bleu);color:var(--bleu)}
+.pj{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.pj span{font-size:12px;background:var(--fond);border-radius:8px;padding:4px 8px}
+.envoi{margin-top:12px;width:100%;border:0;background:var(--bleu);color:#fff;font:inherit;font-size:15px;font-weight:600;padding:11px;border-radius:12px;cursor:pointer}
+.envoi:disabled{opacity:.5}
+.etatB{margin-top:10px;font-size:13px;color:var(--tx2);min-height:18px}.etatB.ok{color:#34c759}.etatB.ko{color:#ff3b30}
+.hist{margin-top:10px;font-size:12px;color:var(--tx2);max-height:110px;overflow:auto;line-height:1.5}
 </style>
 </head>
 <body>
@@ -47,6 +64,19 @@ h1{font-size:40px;font-weight:700;letter-spacing:-.02em;margin:0}
   </div>
   <div class="liste" id="liste"></div>
   <div class="vol">Volume <input type="range" id="vol" min="0" max="1" step=".01" value=".8"></div>
+</div>
+<button class="bOuvre" id="bOuvre">Envoyer à Claude</button>
+<div class="boite" id="boite">
+  <button class="x" id="bFerme" aria-label="Fermer">✕</button>
+  <h3>Envoyer à Claude</h3>
+  <p>Un message, des MP3 : ça arrive dans la boîte. Ensuite dis-moi « regarde la boîte » dans le chat.</p>
+  <textarea id="bTexte" placeholder="Ce que tu veux : une ambiance, un niveau, ce qui te plaît dans ce MP3…"></textarea>
+  <div class="depot" id="bDepot">Glisse des MP3 ici, ou touche pour en choisir</div>
+  <div class="pj" id="bPj"></div>
+  <button class="envoi" id="bEnvoi">Envoyer</button>
+  <div class="etatB" id="bEtat"></div>
+  <div class="hist" id="bHist"></div>
+  <input type="file" id="bFichier" accept="audio/*,.mp3,.m4a,.wav" multiple hidden>
 </div>
 <script src="assets/audio/music/boucles/boucles-donnees.js"></script>
 <script src="assets/audio/music/boucles/petits-donnees.js?v=1"></script>
@@ -88,6 +118,31 @@ document.getElementById('seg').onclick=function(e){const b=e.target.closest('but
 document.getElementById('vol').oninput=function(e){if(cur&&cur.el9)cur.el9.volume=+e.target.value;if(sortie)sortie.gain.setTargetAtTime(+e.target.value,ac.currentTime,.05);};
 (function f(){requestAnimationFrame(f);if(!cur)return;const p=cur.el9?(cur.el9.currentTime%cur.lg)/cur.lg:((ac.currentTime-cur.t0)%cur.lg)/cur.lg;cur.el.querySelector('.prog').style.width=(p*100)+'%';})();
 rend('lobby');
+// ---- LA BOÎTE À CLAUDE (le serveur : python3 atelier-son/boite.py, sur :8768)
+(function(){
+  const B='http://localhost:8768',$=id=>document.getElementById(id);let pj=[];
+  const etat=(t,k)=>{const e=$('bEtat');e.textContent=t;e.className='etatB'+(k?' '+k:'');};
+  async function hist(){try{const r=await fetch(B+'/boite/liste');const j=await r.json();
+    $('bHist').innerHTML=j.items.length?'<b>Déjà envoyé</b><br>'+j.items.map(t=>t.replace(/</g,'&lt;')).join('<br>'):'';etat('');}
+    catch(e){etat('La boîte est fermée. Lance : python3 atelier-son/boite.py','ko');}}
+  function ajoute(fs){for(const f of fs)if(/^audio\//.test(f.type)||/\.(mp3|m4a|wav|aac|flac|ogg)$/i.test(f.name))pj.push(f);
+    $('bPj').innerHTML=pj.map(f=>'<span>♪ '+f.name.replace(/</g,'&lt;')+'</span>').join('');}
+  $('bOuvre').onclick=()=>{$('boite').classList.add('on');$('bOuvre').style.display='none';hist();$('bTexte').focus();};
+  $('bFerme').onclick=()=>{$('boite').classList.remove('on');$('bOuvre').style.display='';};
+  const d=$('bDepot');d.onclick=()=>$('bFichier').click();$('bFichier').onchange=e=>{ajoute(e.target.files);e.target.value='';};
+  d.ondragover=e=>{e.preventDefault();d.classList.add('sur');};d.ondragleave=()=>d.classList.remove('sur');
+  d.ondrop=e=>{e.preventDefault();d.classList.remove('sur');ajoute(e.dataTransfer.files);};
+  $('bEnvoi').onclick=async function(){
+    const texte=$('bTexte').value.trim();if(!texte&&!pj.length)return etat('Écris un message ou ajoute un MP3.','ko');
+    this.disabled=true;etat('Envoi…');
+    try{const noms=[];
+      for(const f of pj){etat('Envoi de '+f.name+'…');const r=await fetch(B+'/boite/mp3?nom='+encodeURIComponent(f.name),{method:'POST',body:f});noms.push((await r.json()).nom);}
+      const r=await fetch(B+'/boite/message',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({texte:texte,fichiers:noms})});
+      if(!(await r.json()).ok)throw 0;
+      $('bTexte').value='';pj=[];$('bPj').innerHTML='';await hist();etat('Envoyé ✓ Dis-moi « regarde la boîte » dans le chat.','ok');}
+    catch(e){etat('La boîte est fermée. Lance : python3 atelier-son/boite.py','ko');}
+    this.disabled=false;};
+})();
 </script>
 </body>
 </html>

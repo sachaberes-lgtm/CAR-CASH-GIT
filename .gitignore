@@ -3,3 +3,6 @@
 
 # les MP3 de référence glissés dans le studio (musiques de tiers possibles) : jamais dans l'historique
 atelier-son/studio/references/
+
+# les MP3 envoyés par la boîte à Claude (boucles.html → atelier-son/boite.py) : jamais dans l'historique
+atelier-son/boite/mp3/
