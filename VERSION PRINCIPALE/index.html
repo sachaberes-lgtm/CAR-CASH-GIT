@@ -48,8 +48,13 @@ const CC_BUILD='__CC_BUILD__';
 const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(/[?&]menu=leo\b/.test(location.search)?' · MENU LEO':'')+(/[?&]chute=0\b/.test(location.search)?' · SANS CIEL':'');
 (function(){
   var q=location.search,M=window.matchMedia;
+  /* L'ÉCRAN NU PAR DÉFAUT (2026-10-01, copie de test de Léo : « je préfère le point de vue de la 1re image » = sans la forme de
+     l'iPhone) : sur l'ordi, l'écran du téléphone est un rectangle simple, sans boîtier, sans encoche ni coins arrondis, et le jeu ne
+     garde pas les marges de l'encoche. `ENCOCHE_DEFAUT=true` rend le boîtier du 13 Pro par défaut ; dans l'adresse, `?encoche=1` /
+     `?encoche=0` forcent l'un ou l'autre. Un vrai téléphone n'est jamais concerné (pas de cadre). */
+  var ENCOCHE_DEFAUT=false,ENC=/[?&]encoche=1\b/.test(q)||(ENCOCHE_DEFAUT&&!/[?&]encoche=0\b/.test(q));
   if(window.top!==window){ // DANS la colonne : les touches frappées pendant que la page-cadre avait le focus arrivent par message
-    if(/[?&]colonne=1\b/.test(q)&&!/[?&]encoche=0\b/.test(q))document.documentElement.classList.add('telCadre'); // les marges de l'iPhone de référence (voir « L'ENCOCHE »)
+    if(/[?&]colonne=1\b/.test(q)&&ENC)document.documentElement.classList.add('telCadre'); // les marges de l'iPhone de référence (voir « L'ENCOCHE »)
     addEventListener('message',function(e){var d=e.data;if(e.source!==window.parent||!d||d.cc!=='touche')return;
       try{document.dispatchEvent(new KeyboardEvent(d.t,{key:d.key,code:d.code,repeat:!!d.rep,bubbles:true,cancelable:true}));}catch(_){}});
     return;}
@@ -79,7 +84,7 @@ const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(/[?&]menu=leo\
        MARGES. iOS rentre l'interface de 47 px de chaque côté couché (21 en bas ; debout 47 en haut, 34 en bas) : dans la
        colonne, `html.telCadre` pose ces marges (--ccT/B/L/R, lues à la place de env(safe-area-inset-*) partout), et la page-
        cadre dessine l'écran arrondi + l'encoche, par-dessus l'image comme sur le vrai. `?encoche=0` = sans. */
-    var en=null;if(!/[?&]encoche=0\b/.test(q)){en=document.createElement('div');en.id='encoche';tel.appendChild(en);
+    var en=null;if(ENC){en=document.createElement('div');en.id='encoche';tel.appendChild(en);
       document.documentElement.classList.add('encoche');}
     var TEL_B=en?11:0; // la lunette du 13 Pro ≈ 11 pt de chaque côté de l'écran (sans encoche : l'écran nu, comme avant)
     var cadre=function(){
