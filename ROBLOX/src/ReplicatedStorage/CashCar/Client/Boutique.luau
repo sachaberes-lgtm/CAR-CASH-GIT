@@ -67,7 +67,7 @@ local function creer()
 		Active = true }, racine)
 	U.racine = g
 	K.degrade(g, Color3.fromRGB(58, 16, 70), Color3.fromRGB(10, 7, 24), 80)
-	K.texte(g, { Text = tr("BOUTIQUE", "SHOP"), TextSize = 78, TextColor3 = C.texte, Size = UDim2.fromOffset(800, 80), Position = UDim2.fromOffset(66, 22),
+	K.texte(g, { italique = true, Text = tr("BOUTIQUE", "SHOP"), TextSize = 78, TextColor3 = C.texte, Size = UDim2.fromOffset(800, 80), Position = UDim2.fromOffset(66, 22),
 		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 4 })
 	for i, c in { C.magenta, C.cyan, C.or_ } do
 		inst("Frame", { BackgroundColor3 = c, BorderSizePixel = 0, Size = UDim2.fromOffset(i == 1 and 82 or 38, 7), Position = UDim2.fromOffset(72 + (i == 1 and 0 or (i == 2 and 92 or 140)), 108) }, g)

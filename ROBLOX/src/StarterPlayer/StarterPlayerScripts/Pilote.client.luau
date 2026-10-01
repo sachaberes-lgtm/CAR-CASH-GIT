@@ -1854,7 +1854,7 @@ local function habiller(dt: number)
 	if tr9 and pwN <= 0 and not nitroBleue and nitroOn then
 		if tr9.arcenciel then arc = ARC_EN_CIEL elseif tr9.c then couleur = tr9.c end
 	end
-	Caisse.feu(poignees, feu, nitroOn and 130 or (boost > 0 and 55 or 0), couleur, arc)
+	Caisse.feu(poignees, feu, nitroOn and 130 or (boost > 0 and 55 or 0), couleur, arc, (mode == "drive" or mode == "fall") and not intro and kmh() > 20)
 	-- les AILES : rentrées dans le flanc au sol, sorties en vol ; les hélices brassent doucement au sol et s'emballent en vol
 	G.ailes += (((mode == "fall" and not intro) and 1 or 0) - G.ailes) * math.min(1, dt * 6)
 	G.helice += dt * (3.5 + G.ailes * 36)
@@ -2199,6 +2199,29 @@ E.btPause.Activated:Connect(basculerPause)
 local retourReglages = "menu"
 E.btReglages.Activated:Connect(function() if mode == "menu" then retourReglages = "menu"; Hud.ecran("reglages") end end)
 E.btReglM.Activated:Connect(function() if mode == "mort" then retourReglages = "mort"; Hud.ecran("reglages") end end)
+-- (mise au point) "DbgOuvre" : ouvrir un écran du menu depuis la console ou le banc à distance — "garage", "boutique",
+-- "reglages", "missions", "menu" (le retour) ; pour comparer chaque écran à la capture du jeu web sans toucher à la souris
+workspace:GetAttributeChangedSignal("DbgOuvre"):Connect(function()
+	local v = tostring(workspace:GetAttribute("DbgOuvre") or "")
+	if v == "menu" then
+		if mode == "garage" then Garage.fermer() end
+		G.boutique.fermer()
+		Missions.fermer()
+		if mode == "menu" or mode == "garage" or mode == "mort" then allerMenu() end
+	elseif mode ~= "menu" then
+		return
+	elseif v == "garage" then
+		ouvrirGarage()
+	elseif v == "boutique" then
+		G.boutique.ouvrir("menu")
+	elseif v == "reglages" then
+		retourReglages = "menu"
+		Hud.ecran("reglages")
+	elseif v == "missions" then
+		Hud.ecran("missions")
+		Missions.ouvrir()
+	end
+end)
 E.btReprendre.Activated:Connect(function()
 	if enPause then basculerPause()
 	elseif Hud.ecranCourant() == "reglages" then Hud.ecran(mode == "garage" and "garage" or retourReglages) end
@@ -2297,7 +2320,7 @@ Bus.etat = function()
 		reservoir = reservoir(), tier = tier, argent = argent, aura = aura, fallT = V.fallT, fallTR = V.fallTR,
 		zone = zoneN, figures = stats.figures, carCF = carCF, chainMult = V.chainMult, chainVal = V.chainVal, frein = Controles.frein,
 		driftOn = G.driftOn, driftLv = G.driftLv, nuage = ((mode == "drive" or mode == "fall") and G.nuageIn) or 0,
-		ntr = NTR, infini = pwN > 0, fiche = poignees.fiche,
+		ntr = NTR, infini = pwN > 0, fiche = poignees.fiche, bleue = nitroBleue, boost = boost,
 	}
 end
 Bus.agir.encaisser = encaisser

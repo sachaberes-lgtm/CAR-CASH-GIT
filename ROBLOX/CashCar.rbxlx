@@ -1854,7 +1854,7 @@ local function habiller(dt: number)
 	if tr9 and pwN <= 0 and not nitroBleue and nitroOn then
 		if tr9.arcenciel then arc = ARC_EN_CIEL elseif tr9.c then couleur = tr9.c end
 	end
-	Caisse.feu(poignees, feu, nitroOn and 130 or (boost > 0 and 55 or 0), couleur, arc)
+	Caisse.feu(poignees, feu, nitroOn and 130 or (boost > 0 and 55 or 0), couleur, arc, (mode == "drive" or mode == "fall") and not intro and kmh() > 20)
 	-- les AILES : rentrées dans le flanc au sol, sorties en vol ; les hélices brassent doucement au sol et s'emballent en vol
 	G.ailes += (((mode == "fall" and not intro) and 1 or 0) - G.ailes) * math.min(1, dt * 6)
 	G.helice += dt * (3.5 + G.ailes * 36)
@@ -2199,6 +2199,29 @@ E.btPause.Activated:Connect(basculerPause)
 local retourReglages = "menu"
 E.btReglages.Activated:Connect(function() if mode == "menu" then retourReglages = "menu"; Hud.ecran("reglages") end end)
 E.btReglM.Activated:Connect(function() if mode == "mort" then retourReglages = "mort"; Hud.ecran("reglages") end end)
+-- (mise au point) "DbgOuvre" : ouvrir un écran du menu depuis la console ou le banc à distance — "garage", "boutique",
+-- "reglages", "missions", "menu" (le retour) ; pour comparer chaque écran à la capture du jeu web sans toucher à la souris
+workspace:GetAttributeChangedSignal("DbgOuvre"):Connect(function()
+	local v = tostring(workspace:GetAttribute("DbgOuvre") or "")
+	if v == "menu" then
+		if mode == "garage" then Garage.fermer() end
+		G.boutique.fermer()
+		Missions.fermer()
+		if mode == "menu" or mode == "garage" or mode == "mort" then allerMenu() end
+	elseif mode ~= "menu" then
+		return
+	elseif v == "garage" then
+		ouvrirGarage()
+	elseif v == "boutique" then
+		G.boutique.ouvrir("menu")
+	elseif v == "reglages" then
+		retourReglages = "menu"
+		Hud.ecran("reglages")
+	elseif v == "missions" then
+		Hud.ecran("missions")
+		Missions.ouvrir()
+	end
+end)
 E.btReprendre.Activated:Connect(function()
 	if enPause then basculerPause()
 	elseif Hud.ecranCourant() == "reglages" then Hud.ecran(mode == "garage" and "garage" or retourReglages) end
@@ -2297,7 +2320,7 @@ Bus.etat = function()
 		reservoir = reservoir(), tier = tier, argent = argent, aura = aura, fallT = V.fallT, fallTR = V.fallTR,
 		zone = zoneN, figures = stats.figures, carCF = carCF, chainMult = V.chainMult, chainVal = V.chainVal, frein = Controles.frein,
 		driftOn = G.driftOn, driftLv = G.driftLv, nuage = ((mode == "drive" or mode == "fall") and G.nuageIn) or 0,
-		ntr = NTR, infini = pwN > 0, fiche = poignees.fiche,
+		ntr = NTR, infini = pwN > 0, fiche = poignees.fiche, bleue = nitroBleue, boost = boost,
 	}
 end
 Bus.agir.encaisser = encaisser
@@ -2677,7 +2700,7 @@ function Caisse.construire(nom: string, indice: number, ancree: boolean?, habits
 	r.Parent = m
 	m.PrimaryPart = r
 	-- L'origine de la racine = le point de contact au sol, au centre : le bas des roues est à y = 0.
-	local poignees = { flammes = {}, trainees = {}, essieux = {}, bases = {}, rayons = {}, fiche = fiche, indice = indice, maillage = true }
+	local poignees = { flammes = {}, veilleuses = {}, trainees = {}, essieux = {}, bases = {}, rayons = {}, fiche = fiche, indice = indice, maillage = true }
 	local laque = lumiere(Color3.fromHex(string.format("%06x", fiche.laque)))
 	-- LA PEINTURE de la boutique recouvre la laque (« usine » = la teinte du constructeur)
 	local peint = habits and Config.habit("peinture", habits.peinture)
@@ -2739,6 +2762,26 @@ function Caisse.construire(nom: string, indice: number, ancree: boolean?, habits
 		f.Color = ColorSequence.new(Color3.fromRGB(255, 220, 140), cJet)
 		f.Parent = a
 		table.insert(poignees.flammes, f)
+		-- LA VEILLEUSE (la plume de réacteur au filage, jTgt .34, L37647) : tant qu'on roule, une courte flamme orange brûle au
+		-- bout du pot — collée à lui, blanche au cœur, qui tremble ; la nitro l'allonge en vrai jet (ci-dessus)
+		local v = Instance.new("ParticleEmitter")
+		v.Name = "Veilleuse"
+		v.Texture = "rbxasset://textures/particles/fire_main.dds"
+		v.LightEmission = 1
+		v.LightInfluence = 0
+		v.LockedToPart = true
+		v.Rate = 70
+		v.Lifetime = NumberRange.new(0.05, 0.1)
+		v.Speed = NumberRange.new(4, 8)
+		v.SpreadAngle = Vector2.new(4, 4)
+		v.EmissionDirection = Enum.NormalId.Back
+		v.Brightness = 2.2
+		v.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.7), NumberSequenceKeypoint.new(1, 0.2) })
+		v.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.15), NumberSequenceKeypoint.new(1, 1) })
+		v.Color = ColorSequence.new(Color3.fromRGB(255, 236, 190), Color3.fromRGB(255, 140, 48))
+		v.Enabled = false
+		v.Parent = a
+		table.insert(poignees.veilleuses, v)
 	end
 	-- LE SILLAGE v6 (SIL, index.html L14430) : UN PAR POT (4 au plus), né dans sa bouche, long de 100 m. Deux couches dans chaque
 	-- sillage : un HALO doux qui s'élargit vers le bout, et un CŒUR fin qui blanchit à la tuyère (c'est lui que le bloom attrape).
@@ -2786,7 +2829,10 @@ end
 -- seconde et par pot ; c = la couleur du feu (orange nitro, bleu de réserve, violet de la nitro infinie, or du pad, ou la
 -- traînée de la boutique) ; arc = un arc-en-ciel (ColorSequence) à la place. Vers le bout, le feu tire au rouge-magenta.
 local BRAISE = Color3.fromRGB(255, 40, 110)
-function Caisse.feu(poignees: any, on: boolean, debit: number, c: Color3, arc: ColorSequence?)
+function Caisse.feu(poignees: any, on: boolean, debit: number, c: Color3, arc: ColorSequence?, veille: boolean?)
+	for _, v in poignees.veilleuses or {} do
+		if v.Enabled ~= (veille == true) then v.Enabled = veille == true end
+	end
 	local chaud = c:Lerp(Color3.new(1, 1, 1), 0.72)
 	local flamme = ColorSequence.new(chaud, c)
 	for _, f in poignees.flammes do
@@ -4917,7 +4963,7 @@ local function creer()
 		Active = true }, racine)
 	U.racine = g
 	K.degrade(g, Color3.fromRGB(58, 16, 70), Color3.fromRGB(10, 7, 24), 80)
-	K.texte(g, { Text = tr("BOUTIQUE", "SHOP"), TextSize = 78, TextColor3 = C.texte, Size = UDim2.fromOffset(800, 80), Position = UDim2.fromOffset(66, 22),
+	K.texte(g, { italique = true, Text = tr("BOUTIQUE", "SHOP"), TextSize = 78, TextColor3 = C.texte, Size = UDim2.fromOffset(800, 80), Position = UDim2.fromOffset(66, 22),
 		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 4 })
 	for i, c in { C.magenta, C.cyan, C.or_ } do
 		inst("Frame", { BackgroundColor3 = c, BorderSizePixel = 0, Size = UDim2.fromOffset(i == 1 and 82 or 38, 7), Position = UDim2.fromOffset(72 + (i == 1 and 0 or (i == 2 and 92 or 140)), 108) }, g)
@@ -7481,6 +7527,26 @@ end
 -- ════════ l'écran : le flash des BORDS (flashEcran, L28219 — le centre reste clair), les billets qui volent au compteur ════════
 local gui: ScreenGui
 local bords: { Frame } = {}
+-- LES BORDS DE L'IMAGE prennent la couleur de la poussée (nfxTick, L28452) — tant qu'on la TIENT : orange feu 30 %, bleu de
+-- réserve 36 %, violet de la nitro infinie, or du pad turbo (plus discret, 14 %). Ils montent vite (×8) et retombent en douceur
+-- (×2,6). Quatre bandes à part : le flash des bords (ci-dessous) garde les siennes.
+local teinte: { Frame } = {}
+local nfx = { edge = 0, c = Color3.fromRGB(255, 122, 36) }
+local function teinteTick(dt: number)
+	local vit = etat.mode == "drive" or etat.mode == "fall"
+	local on = etat.nitroOn == true
+	local eT = vit and (on and (etat.bleue and 0.36 or 0.3) or (((etat.boost or 0) > 0) and 0.14 or 0)) or 0
+	nfx.edge += (eT - nfx.edge) * math.min(1, dt * ((eT > nfx.edge) and 8 or 2.6))
+	local cible = (etat.bleue and Color3.fromRGB(91, 125, 255)) or (on and (etat.infini and Color3.fromRGB(157, 77, 255) or Color3.fromRGB(255, 122, 36))) or Color3.fromRGB(255, 215, 94)
+	nfx.c = nfx.c:Lerp(cible, math.min(1, dt * 12))
+	local a = 1 - nfx.edge
+	for _, f in teinte do
+		if f.BackgroundTransparency ~= a or f.BackgroundColor3 ~= nfx.c then
+			f.BackgroundTransparency = a
+			f.BackgroundColor3 = nfx.c
+		end
+	end
+end
 local function flashBords(couleur: Color3, alpha: number, duree: number?)
 	for _, f in bords do
 		f.BackgroundColor3 = couleur
@@ -8219,6 +8285,21 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 		g.Parent = f
 		table.insert(bords, f)
 	end
+	for _, d in { { 0, 0, 1, 0.34, 90 }, { 0, 0.66, 1, 0.34, 270 }, { 0, 0, 0.3, 1, 0 }, { 0.7, 0, 0.3, 1, 180 } } do
+		local f = Instance.new("Frame")
+		f.Name = "TeinteNitro"
+		f.BorderSizePixel = 0
+		f.BackgroundTransparency = 1
+		f.Position = UDim2.fromScale(d[1], d[2])
+		f.Size = UDim2.fromScale(d[3], d[4])
+		f.ZIndex = 4
+		f.Parent = gui
+		local g = Instance.new("UIGradient")
+		g.Rotation = d[5]
+		g.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0), NumberSequenceKeypoint.new(0.45, 0.7), NumberSequenceKeypoint.new(1, 1) })
+		g.Parent = f
+		table.insert(teinte, f)
+	end
 
 	-- LA VIGNETTE (uVigK/uVigC de l'ACES du jeu web : bleu nuit, discrète) : quatre bandes fixes, plus sombres en bas (le bitume)
 	for _, d in { { 0, 0, 1, 0.22, 90, 0.72 }, { 0, 0.66, 1, 0.34, 270, 0.5 }, { 0, 0, 0.2, 1, 0, 0.7 }, { 0.8, 0, 0.2, 1, 180, 0.7 } } do
@@ -8294,6 +8375,7 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 		explosionTick(dt)
 		palierTick(dt)
 		continuTick(dt)
+		teinteTick(dt)
 	end)
 	-- (mise au point, depuis la console de Studio) workspace:SetAttribute("DbgFx", "boom") — ou moteur7, pluie, cratere, jus3 —
 	-- rejoue un effet sur la caisse, sans attendre que la partie le provoque. Suivi d'un chiffre au besoin, pour le relancer.
@@ -8585,7 +8667,8 @@ local function ecriteau(piece: BasePart, face: Enum.NormalId, txt: string, coule
 end
 
 local NUIT = Color3.fromRGB(24, 26, 44)
-local MUR = Color3.fromRGB(36, 42, 74)
+local MUR = Color3.fromRGB(58, 66, 124) -- (capture web : une TÔLE bleu-violet, éclairée — à 36,42,74 l'atelier était un trou noir)
+local NERVURE = Color3.fromRGB(74, 84, 150)
 local PLINTHE = Color3.fromRGB(26, 30, 54)
 local ACIER = Color3.fromRGB(58, 64, 92)
 local CYAN = Color3.fromRGB(95, 240, 255)
@@ -8614,6 +8697,15 @@ local function batir()
 		b.CastShadow = false
 	end
 	bloc("PlintheFond", LARG, 1.0, 0.08, 0, 0.5, -PROF / 2 + 0.02, PLINTHE)
+	-- la TÔLE ondulée : une nervure claire tous les 0,7 m, au fond et sur les deux flancs
+	for k = 0, math.floor(LARG / 0.7) do
+		bloc("Nervure", 0.16, HAUT - 1.1, 0.06, -LARG / 2 + 0.35 + k * 0.7, 1 + (HAUT - 1.1) / 2, -PROF / 2 + 0.03, NERVURE).CastShadow = false
+	end
+	for _, s in { -1, 1 } do
+		for k = 0, math.floor(PROF / 0.7) - 1 do
+			bloc("Nervure", 0.06, HAUT - 1.1, 0.16, s * (LARG / 2 - 0.03), 1 + (HAUT - 1.1) / 2, -PROF / 2 + 0.35 + k * 0.7, NERVURE).CastShadow = false
+		end
+	end
 	-- les poutres et les six tubes (un qui grésille)
 	for k, z in { -7.5, 0, 7.5 } do
 		bloc("Poutre", LARG, 0.3, 0.3, 0, HAUT - 0.25, z, ACIER, Enum.Material.Metal)
@@ -8623,7 +8715,7 @@ local function batir()
 			if k == 1 and x == 5 then tubeMalade = t end
 		end
 	end
-	lampe("Plafonnier", 0, HAUT - 0.9, 0, Color3.fromRGB(190, 205, 255), 0.3, 60, true)
+	lampe("Plafonnier", 0, HAUT - 0.9, 0, Color3.fromRGB(190, 205, 255), 0.7, 60, true)
 
 	-- ── LA PORTE sectionnelle (elle se lève au lâcher) et le rideau de FEU derrière ──
 	porte = Instance.new("Model")
@@ -9363,7 +9455,7 @@ local function creerInterface()
 	U.compteCadre = cp
 
 	-- ── la FICHE : nom, barre de rareté, rang, condition ──
-	U.nom = K.texte(g, { Text = "", TextSize = 86, TextColor3 = C.texte, Size = UDim2.fromOffset(640, 90), Position = UDim2.fromOffset(44, 102),
+	U.nom = K.texte(g, { italique = true, Text = "", TextSize = 86, TextColor3 = C.texte, Size = UDim2.fromOffset(640, 90), Position = UDim2.fromOffset(44, 102),
 		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 4 })
 	U.barre = inst("Frame", { BorderSizePixel = 0, Size = UDim2.fromOffset(440, 6), Position = UDim2.fromOffset(42, 196) }, g)
 	U.rang = K.texte(g, { Text = "", TextSize = 28, TextColor3 = C.terne, Size = UDim2.fromOffset(420, 30), Position = UDim2.fromOffset(44, 210),
@@ -9950,6 +10042,8 @@ Hud.T = T
 
 -- ── la palette du web (charte v4/v5 : carbone, or, néon) ──
 local PIX = Font.new("rbxasset://fonts/families/PressStart2P.json")
+-- L'ITALIQUE du web (la charte penche ses titres et les libellés de ses plaques) : Roblox penche la police pixel lui-même
+local PIXI = Font.new("rbxasset://fonts/families/PressStart2P.json", Enum.FontWeight.Regular, Enum.FontStyle.Italic)
 local CH = 5 / 9 -- LA CHASSE de la police pixel : un caractère fait 5/9 du TextSize (mesuré dans Studio : « CASH CAR » en 80 = 350 px)
 Hud.CHASSE = CH
 local TXT = Font.new("rbxasset://fonts/families/BuilderSans.json", Enum.FontWeight.Bold)
@@ -9981,8 +10075,9 @@ local function texte(parent: Instance, props: { [string]: any }): TextLabel
 		Size = UDim2.new(1, 0, 0, 24), TextWrapped = true,
 	}, parent)
 	for k, v in props do
-		if k ~= "epais" and k ~= "contour" and k ~= "contourCouleur" then (t :: any)[k] = v end
+		if k ~= "epais" and k ~= "contour" and k ~= "contourCouleur" and k ~= "italique" then (t :: any)[k] = v end
 	end
+	if props.italique then t.FontFace = PIXI end
 	if props.contour ~= false then
 		inst("UIStroke", { Color = props.contourCouleur or C.encre, Thickness = props.epais or 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual }, t)
 	end
@@ -9993,7 +10088,9 @@ local function degrade(parent: Instance, a: Color3, b: Color3, rot: number?)
 end
 -- une plaque de CARBONE (le fond de tous les panneaux du web) avec son filet de couleur à gauche
 local function carbone(parent: Instance, taille: UDim2, pos: UDim2, filet: Color3?, ancre: Vector2?): Frame
-	local f = inst("Frame", { BackgroundColor3 = C.carbone, BorderSizePixel = 0, Size = taille, Position = pos,
+	-- (fond BLANC : un dégradé MULTIPLIE la couleur du cadre — sur du carbone, tous les panneaux du jeu sortaient presque NOIRS,
+	-- là où le web pose un bleu-violet de nuit)
+	local f = inst("Frame", { BackgroundColor3 = Color3.new(1, 1, 1), BorderSizePixel = 0, Size = taille, Position = pos,
 		AnchorPoint = ancre or Vector2.zero }, parent)
 	degrade(f, C.carbone2, C.carbone, 90)
 	inst("UIStroke", { Color = C.trait, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, f)
@@ -10068,7 +10165,7 @@ local function penche(parent: Instance, taille: UDim2, pos: UDim2, ancre: Vector
 	end
 	batir()
 	if taille.Y.Scale ~= 0 then boite:GetPropertyChangedSignal("AbsoluteSize"):Connect(batir) end
-	local b = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), FontFace = PIX, Text = "",
+	local b = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), FontFace = PIXI, Text = "",
 		TextColor3 = C.texte, TextSize = 16, AutoButtonColor = false }, plaque)
 	return boite, plaque, b
 end
@@ -10240,7 +10337,7 @@ end
 -- le KIT d'interface, prêté aux autres écrans (garage, missions, carrière…) : une seule charte
 Hud.kit = { inst = inst, texte = texte, degrade = degrade, carbone = carbone, tuile = tuile, lingot = lingot, retour = retour,
 	penche = penche, repeindre = repeindre, icone = icone, teinter = teinter, jauge = jauge, boutonRetour = boutonRetour,
-	PIX = PIX, TXT = TXT, RAPIDE = RAPIDE, LENTE = LENTE }
+	PIX = PIX, PIXI = PIXI, TXT = TXT, RAPIDE = RAPIDE, LENTE = LENTE }
 
 -- ── les formats d'argent (fmtC, L12383) ──
 local UNITES = FR and { { 1e15, "Bd" }, { 1e12, "Bn" }, { 1e9, "Md" }, { 1e6, "M" }, { 1e3, "k" } }
@@ -10358,11 +10455,11 @@ function Hud.creer()
 	inst("UIScale", { Scale = 1.4 }, logo)
 	local function mot(txt: string, x: number, bas: Color3)
 		local o = texte(logo, { Text = txt, TextSize = 100, TextColor3 = Color3.fromRGB(90, 40, 10), Size = UDim2.new(0, 300, 0, 100),
-			Position = UDim2.new(1, x + 5, 0, 6), AnchorPoint = Vector2.new(1, 0), TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false, contour = false })
+			Position = UDim2.new(1, x + 5, 0, 6), AnchorPoint = Vector2.new(1, 0), TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false, contour = false, italique = true })
 		o.TextTransparency = 0.1
 		local t = texte(logo, { Text = txt, TextSize = 100, TextColor3 = Color3.new(1, 1, 1), Size = UDim2.new(0, 300, 0, 100),
 			Position = UDim2.new(1, x, 0, 0), AnchorPoint = Vector2.new(1, 0), TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false,
-			epais = 4, contourCouleur = Color3.fromRGB(60, 24, 6) })
+			epais = 4, contourCouleur = Color3.fromRGB(60, 24, 6), italique = true })
 		-- (le LOGO est la seule dérogation de la charte au texte en dégradé : c'est une image de marque)
 		inst("UIGradient", { Rotation = 90, Color = ColorSequence.new({
 			ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 246, 180)), ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 196, 40)),
@@ -10392,7 +10489,7 @@ function Hud.creer()
 	E.btCarriere = tuile(menu, T.carriere, C.cyan, UDim2.fromOffset(202, 112), UDim2.new(1, -457, 1, -258), nil, 34, "trophee", "v")
 	E.btBoutique = tuile(menu, T.boutique, C.magenta, UDim2.fromOffset(202, 112), UDim2.new(1, -246, 1, -258), nil, 34, "panier", "v")
 	local jouer = inst("TextButton", { BackgroundTransparency = 1, AutoButtonColor = false, Size = UDim2.fromOffset(460, 100),
-		Position = UDim2.new(1, -356, 1, -20), AnchorPoint = Vector2.new(0.5, 1), FontFace = PIX, Text = T.jouer, TextSize = 100,
+		Position = UDim2.new(1, -356, 1, -20), AnchorPoint = Vector2.new(0.5, 1), FontFace = PIXI, Text = T.jouer, TextSize = 100,
 		TextColor3 = C.or_ }, menu)
 	inst("UIScale", { Scale = 1.12 }, jouer)
 	inst("UIStroke", { Color = Color3.fromRGB(60, 24, 6), Thickness = 5, ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual }, jouer)
@@ -10507,7 +10604,7 @@ function Hud.creer()
 	local reg = inst("Frame", { Name = "Reglages", BackgroundColor3 = Color3.new(1, 1, 1), BackgroundTransparency = 0.04, Size = UDim2.fromScale(1, 1), Visible = false, ZIndex = 22 }, racine)
 	E.reglages = reg
 	degrade(reg, Color3.fromRGB(46, 16, 62), Color3.fromRGB(10, 7, 24), 80)
-	texte(reg, { Text = T.reglages, TextSize = 78, TextColor3 = C.texte, Size = UDim2.fromOffset(800, 80), Position = UDim2.fromOffset(66, 22),
+	texte(reg, { Text = T.reglages, TextSize = 78, TextColor3 = C.texte, Size = UDim2.fromOffset(800, 80), Position = UDim2.fromOffset(66, 22), italique = true,
 		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 4 })
 	for i, c in { C.magenta, C.cyan, C.or_ } do
 		inst("Frame", { BackgroundColor3 = c, BorderSizePixel = 0, Size = UDim2.fromOffset(i == 1 and 82 or 38, 7), Position = UDim2.fromOffset(72 + (i == 1 and 0 or (i == 2 and 92 or 140)), 108) }, reg)
@@ -10515,7 +10612,7 @@ function Hud.creer()
 	local function colonne(titre: string, x0: number, x1: number): Frame
 		texte(reg, { Text = titre, TextSize = 26, TextColor3 = C.terne, Size = UDim2.new(0, 200, 0, 28), Position = UDim2.new(x0, 0, 0, 132),
 			TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
-		local p = inst("Frame", { BackgroundColor3 = C.carbone, BorderSizePixel = 0, Size = UDim2.new(x1 - x0, 0, 0, 0), Position = UDim2.new(x0, 0, 0, 172),
+		local p = inst("Frame", { BackgroundColor3 = Color3.new(1, 1, 1), BorderSizePixel = 0, Size = UDim2.new(x1 - x0, 0, 0, 0), Position = UDim2.new(x0, 0, 0, 172),
 			AutomaticSize = Enum.AutomaticSize.None }, reg)
 		degrade(p, C.carbone2, C.carbone, 90)
 		inst("UIStroke", { Color = C.trait, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, p)
@@ -10543,7 +10640,7 @@ function Hud.creer()
 			local inter = inst("Frame", { BackgroundColor3 = C.nuit, BorderSizePixel = 0, Size = UDim2.fromOffset(160, 62), Position = UDim2.new(1, -30, 0.5, 0), AnchorPoint = Vector2.new(1, 0.5) }, l)
 			o.trait = inst("UIStroke", { Color = C.trait, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, inter)
 			o.curseur = inst("Frame", { BackgroundColor3 = C.trait, BorderSizePixel = 0, Size = UDim2.fromOffset(58, 46), Position = UDim2.fromOffset(8, 8) }, inter)
-			o.mot = texte(inter, { Text = "OFF", TextSize = 28, TextColor3 = C.terne, Size = UDim2.fromOffset(86, 30), Position = UDim2.new(1, -8, 0.5, 0), AnchorPoint = Vector2.new(1, 0.5),
+			o.mot = texte(inter, { Text = "OFF", TextSize = 28, italique = true, TextColor3 = C.terne, Size = UDim2.fromOffset(86, 30), Position = UDim2.new(1, -8, 0.5, 0), AnchorPoint = Vector2.new(1, 0.5),
 				TextWrapped = false })
 		end
 		o.b = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Text = "", AutoButtonColor = false }, l)
@@ -10584,12 +10681,12 @@ function Hud.creer()
 		Size = UDim2.fromScale(1, 1), Visible = false, ZIndex = 30 }, racine)
 	E.mort = mort
 	degrade(mort, Color3.fromRGB(34, 16, 60), Color3.fromRGB(12, 8, 30), 60)
-	E.mCause = texte(mort, { Text = "", TextSize = 62, TextColor3 = C.rose, Size = UDim2.new(0.5, 0, 0, 64),
+	E.mCause = texte(mort, { Text = "", TextSize = 62, TextColor3 = C.rose, italique = true, Size = UDim2.new(0.5, 0, 0, 64),
 		Position = UDim2.new(0.03, 30, 0, 14), TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 4, contourCouleur = hx("3a0626") })
 	inst("UISizeConstraint", { MaxSize = Vector2.new(4000, 64) }, E.mCause)
 	E.mCauseEchelle = inst("UIScale", {}, E.mCause)
 	-- le panneau vert : VERSÉS AU COMPTE
-	local pv = inst("Frame", { BackgroundColor3 = Color3.fromRGB(10, 54, 30), BorderSizePixel = 0, Size = UDim2.new(0.48, 0, 0, 218),
+	local pv = inst("Frame", { BackgroundColor3 = Color3.new(1, 1, 1), BorderSizePixel = 0, Size = UDim2.new(0.48, 0, 0, 218),
 		Position = UDim2.new(0.03, 0, 0, 90) }, mort)
 	degrade(pv, Color3.fromRGB(16, 84, 46), Color3.fromRGB(4, 30, 16), 90)
 	inst("UIStroke", { Color = Color3.fromRGB(70, 200, 110), Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, pv)
@@ -10604,6 +10701,8 @@ function Hud.creer()
 	E.mCompte = texte(pv, { Text = "", TextSize = 26, TextColor3 = Color3.fromRGB(190, 250, 205), Size = UDim2.new(1, 0, 0, 28), Position = UDim2.new(0, 0, 1, -40), TextWrapped = false })
 	-- AURA et MOTEUR ATTEINT
 	local pa = carbone(mort, UDim2.new(0.235, 0, 0, 366), UDim2.new(0.03, 0, 0, 328), nil)
+	-- (capture web : chaque carte a SA teinte — l'aura sur un fond prune, le moteur sur un bleu de nuit ; en carbone noir, l'écran était un trou)
+	pa:FindFirstChildOfClass("UIGradient").Color = ColorSequence.new(Color3.fromRGB(58, 34, 92), Color3.fromRGB(26, 16, 50))
 	inst("Frame", { BackgroundColor3 = C.magenta, BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 4) }, pa)
 	texte(pa, { Text = T.aura, TextSize = 28, TextColor3 = C.texte2, Size = UDim2.new(1, 0, 0, 30), Position = UDim2.new(0, 0, 0.5, -84), TextWrapped = false })
 	E.mAura = texte(pa, { Text = "0", TextSize = 78, TextColor3 = hx("ff8ae0"), Size = UDim2.new(1, 0, 0, 80), Position = UDim2.new(0, 0, 0.5, -46), TextWrapped = false,
@@ -10611,6 +10710,7 @@ function Hud.creer()
 	E.mAuraEchelle = inst("UIScale", {}, E.mAura)
 	E.mAuraMeilleur = texte(pa, { Text = "", TextSize = 24, TextColor3 = C.terne, Size = UDim2.new(1, 0, 0, 26), Position = UDim2.new(0, 0, 0.5, 46), TextWrapped = false })
 	local pm = carbone(mort, UDim2.new(0.235, 0, 0, 366), UDim2.new(0.275, 0, 0, 328), nil)
+	pm:FindFirstChildOfClass("UIGradient").Color = ColorSequence.new(Color3.fromRGB(34, 46, 92), Color3.fromRGB(16, 20, 48))
 	inst("Frame", { BackgroundColor3 = C.cyan, BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 4) }, pm)
 	texte(pm, { Text = T.moteurAtteint, TextSize = 26, TextColor3 = C.texte2, Size = UDim2.new(1, 0, 0, 28), Position = UDim2.fromOffset(0, 18), TextWrapped = false })
 	-- la PHOTO : le moteur du palier, en 3D, qui tourne (rempli par Client/MoteurCarte à la fin de la partie)
@@ -14618,7 +14718,7 @@ Config.CIEL = {
 	soleil = rgb(1, 0.97, 0.93),  -- (presque neutre : le crème des nuages est CUIT dans leurs sommets ; un soleil pêche les passait au beige)
 	-- (2e retour de Sacha : « c'est moche » — tout tirait au CYAN GLACÉ, des icebergs. La version web met l'ombre en LAVANDE
 	-- (le côté ombre « pris par le ciel », nuage8Mat) et le soleil en crème : ce sont ces deux teintes qui font le coton.)
-	ambiance = Color3.fromRGB(84, 92, 132),
+	ambiance = Color3.fromRGB(120, 118, 180), -- (l'ambiance des lieux COUVERTS : l'atelier du garage, le dessous de la caisse)
 	ambianceExt = Color3.fromRGB(150, 160, 200),
 	expo = -0.22,
 	brumeDensite = 0.03,          -- (la mer de nuages doit se lire jusqu'à l'horizon : la brume du web n'en mange que 20 % à 4 km)

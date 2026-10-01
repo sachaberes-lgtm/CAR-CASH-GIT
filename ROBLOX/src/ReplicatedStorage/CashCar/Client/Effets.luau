@@ -220,6 +220,26 @@ end
 -- ════════ l'écran : le flash des BORDS (flashEcran, L28219 — le centre reste clair), les billets qui volent au compteur ════════
 local gui: ScreenGui
 local bords: { Frame } = {}
+-- LES BORDS DE L'IMAGE prennent la couleur de la poussée (nfxTick, L28452) — tant qu'on la TIENT : orange feu 30 %, bleu de
+-- réserve 36 %, violet de la nitro infinie, or du pad turbo (plus discret, 14 %). Ils montent vite (×8) et retombent en douceur
+-- (×2,6). Quatre bandes à part : le flash des bords (ci-dessous) garde les siennes.
+local teinte: { Frame } = {}
+local nfx = { edge = 0, c = Color3.fromRGB(255, 122, 36) }
+local function teinteTick(dt: number)
+	local vit = etat.mode == "drive" or etat.mode == "fall"
+	local on = etat.nitroOn == true
+	local eT = vit and (on and (etat.bleue and 0.36 or 0.3) or (((etat.boost or 0) > 0) and 0.14 or 0)) or 0
+	nfx.edge += (eT - nfx.edge) * math.min(1, dt * ((eT > nfx.edge) and 8 or 2.6))
+	local cible = (etat.bleue and Color3.fromRGB(91, 125, 255)) or (on and (etat.infini and Color3.fromRGB(157, 77, 255) or Color3.fromRGB(255, 122, 36))) or Color3.fromRGB(255, 215, 94)
+	nfx.c = nfx.c:Lerp(cible, math.min(1, dt * 12))
+	local a = 1 - nfx.edge
+	for _, f in teinte do
+		if f.BackgroundTransparency ~= a or f.BackgroundColor3 ~= nfx.c then
+			f.BackgroundTransparency = a
+			f.BackgroundColor3 = nfx.c
+		end
+	end
+end
 local function flashBords(couleur: Color3, alpha: number, duree: number?)
 	for _, f in bords do
 		f.BackgroundColor3 = couleur
@@ -958,6 +978,21 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 		g.Parent = f
 		table.insert(bords, f)
 	end
+	for _, d in { { 0, 0, 1, 0.34, 90 }, { 0, 0.66, 1, 0.34, 270 }, { 0, 0, 0.3, 1, 0 }, { 0.7, 0, 0.3, 1, 180 } } do
+		local f = Instance.new("Frame")
+		f.Name = "TeinteNitro"
+		f.BorderSizePixel = 0
+		f.BackgroundTransparency = 1
+		f.Position = UDim2.fromScale(d[1], d[2])
+		f.Size = UDim2.fromScale(d[3], d[4])
+		f.ZIndex = 4
+		f.Parent = gui
+		local g = Instance.new("UIGradient")
+		g.Rotation = d[5]
+		g.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0), NumberSequenceKeypoint.new(0.45, 0.7), NumberSequenceKeypoint.new(1, 1) })
+		g.Parent = f
+		table.insert(teinte, f)
+	end
 
 	-- LA VIGNETTE (uVigK/uVigC de l'ACES du jeu web : bleu nuit, discrète) : quatre bandes fixes, plus sombres en bas (le bitume)
 	for _, d in { { 0, 0, 1, 0.22, 90, 0.72 }, { 0, 0.66, 1, 0.34, 270, 0.5 }, { 0, 0, 0.2, 1, 0, 0.7 }, { 0.8, 0, 0.2, 1, 180, 0.7 } } do
@@ -1033,6 +1068,7 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 		explosionTick(dt)
 		palierTick(dt)
 		continuTick(dt)
+		teinteTick(dt)
 	end)
 	-- (mise au point, depuis la console de Studio) workspace:SetAttribute("DbgFx", "boom") — ou moteur7, pluie, cratere, jus3 —
 	-- rejoue un effet sur la caisse, sans attendre que la partie le provoque. Suivi d'un chiffre au besoin, pour le relancer.

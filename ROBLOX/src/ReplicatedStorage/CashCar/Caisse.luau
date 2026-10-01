@@ -194,7 +194,7 @@ function Caisse.construire(nom: string, indice: number, ancree: boolean?, habits
 	r.Parent = m
 	m.PrimaryPart = r
 	-- L'origine de la racine = le point de contact au sol, au centre : le bas des roues est à y = 0.
-	local poignees = { flammes = {}, trainees = {}, essieux = {}, bases = {}, rayons = {}, fiche = fiche, indice = indice, maillage = true }
+	local poignees = { flammes = {}, veilleuses = {}, trainees = {}, essieux = {}, bases = {}, rayons = {}, fiche = fiche, indice = indice, maillage = true }
 	local laque = lumiere(Color3.fromHex(string.format("%06x", fiche.laque)))
 	-- LA PEINTURE de la boutique recouvre la laque (« usine » = la teinte du constructeur)
 	local peint = habits and Config.habit("peinture", habits.peinture)
@@ -256,6 +256,26 @@ function Caisse.construire(nom: string, indice: number, ancree: boolean?, habits
 		f.Color = ColorSequence.new(Color3.fromRGB(255, 220, 140), cJet)
 		f.Parent = a
 		table.insert(poignees.flammes, f)
+		-- LA VEILLEUSE (la plume de réacteur au filage, jTgt .34, L37647) : tant qu'on roule, une courte flamme orange brûle au
+		-- bout du pot — collée à lui, blanche au cœur, qui tremble ; la nitro l'allonge en vrai jet (ci-dessus)
+		local v = Instance.new("ParticleEmitter")
+		v.Name = "Veilleuse"
+		v.Texture = "rbxasset://textures/particles/fire_main.dds"
+		v.LightEmission = 1
+		v.LightInfluence = 0
+		v.LockedToPart = true
+		v.Rate = 70
+		v.Lifetime = NumberRange.new(0.05, 0.1)
+		v.Speed = NumberRange.new(4, 8)
+		v.SpreadAngle = Vector2.new(4, 4)
+		v.EmissionDirection = Enum.NormalId.Back
+		v.Brightness = 2.2
+		v.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.7), NumberSequenceKeypoint.new(1, 0.2) })
+		v.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.15), NumberSequenceKeypoint.new(1, 1) })
+		v.Color = ColorSequence.new(Color3.fromRGB(255, 236, 190), Color3.fromRGB(255, 140, 48))
+		v.Enabled = false
+		v.Parent = a
+		table.insert(poignees.veilleuses, v)
 	end
 	-- LE SILLAGE v6 (SIL, index.html L14430) : UN PAR POT (4 au plus), né dans sa bouche, long de 100 m. Deux couches dans chaque
 	-- sillage : un HALO doux qui s'élargit vers le bout, et un CŒUR fin qui blanchit à la tuyère (c'est lui que le bloom attrape).
@@ -303,7 +323,10 @@ end
 -- seconde et par pot ; c = la couleur du feu (orange nitro, bleu de réserve, violet de la nitro infinie, or du pad, ou la
 -- traînée de la boutique) ; arc = un arc-en-ciel (ColorSequence) à la place. Vers le bout, le feu tire au rouge-magenta.
 local BRAISE = Color3.fromRGB(255, 40, 110)
-function Caisse.feu(poignees: any, on: boolean, debit: number, c: Color3, arc: ColorSequence?)
+function Caisse.feu(poignees: any, on: boolean, debit: number, c: Color3, arc: ColorSequence?, veille: boolean?)
+	for _, v in poignees.veilleuses or {} do
+		if v.Enabled ~= (veille == true) then v.Enabled = veille == true end
+	end
 	local chaud = c:Lerp(Color3.new(1, 1, 1), 0.72)
 	local flamme = ColorSequence.new(chaud, c)
 	for _, f in poignees.flammes do

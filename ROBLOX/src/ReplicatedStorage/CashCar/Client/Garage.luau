@@ -213,7 +213,8 @@ local function ecriteau(piece: BasePart, face: Enum.NormalId, txt: string, coule
 end
 
 local NUIT = Color3.fromRGB(24, 26, 44)
-local MUR = Color3.fromRGB(36, 42, 74)
+local MUR = Color3.fromRGB(58, 66, 124) -- (capture web : une TÔLE bleu-violet, éclairée — à 36,42,74 l'atelier était un trou noir)
+local NERVURE = Color3.fromRGB(74, 84, 150)
 local PLINTHE = Color3.fromRGB(26, 30, 54)
 local ACIER = Color3.fromRGB(58, 64, 92)
 local CYAN = Color3.fromRGB(95, 240, 255)
@@ -242,6 +243,15 @@ local function batir()
 		b.CastShadow = false
 	end
 	bloc("PlintheFond", LARG, 1.0, 0.08, 0, 0.5, -PROF / 2 + 0.02, PLINTHE)
+	-- la TÔLE ondulée : une nervure claire tous les 0,7 m, au fond et sur les deux flancs
+	for k = 0, math.floor(LARG / 0.7) do
+		bloc("Nervure", 0.16, HAUT - 1.1, 0.06, -LARG / 2 + 0.35 + k * 0.7, 1 + (HAUT - 1.1) / 2, -PROF / 2 + 0.03, NERVURE).CastShadow = false
+	end
+	for _, s in { -1, 1 } do
+		for k = 0, math.floor(PROF / 0.7) - 1 do
+			bloc("Nervure", 0.06, HAUT - 1.1, 0.16, s * (LARG / 2 - 0.03), 1 + (HAUT - 1.1) / 2, -PROF / 2 + 0.35 + k * 0.7, NERVURE).CastShadow = false
+		end
+	end
 	-- les poutres et les six tubes (un qui grésille)
 	for k, z in { -7.5, 0, 7.5 } do
 		bloc("Poutre", LARG, 0.3, 0.3, 0, HAUT - 0.25, z, ACIER, Enum.Material.Metal)
@@ -251,7 +261,7 @@ local function batir()
 			if k == 1 and x == 5 then tubeMalade = t end
 		end
 	end
-	lampe("Plafonnier", 0, HAUT - 0.9, 0, Color3.fromRGB(190, 205, 255), 0.3, 60, true)
+	lampe("Plafonnier", 0, HAUT - 0.9, 0, Color3.fromRGB(190, 205, 255), 0.7, 60, true)
 
 	-- ── LA PORTE sectionnelle (elle se lève au lâcher) et le rideau de FEU derrière ──
 	porte = Instance.new("Model")
@@ -991,7 +1001,7 @@ local function creerInterface()
 	U.compteCadre = cp
 
 	-- ── la FICHE : nom, barre de rareté, rang, condition ──
-	U.nom = K.texte(g, { Text = "", TextSize = 86, TextColor3 = C.texte, Size = UDim2.fromOffset(640, 90), Position = UDim2.fromOffset(44, 102),
+	U.nom = K.texte(g, { italique = true, Text = "", TextSize = 86, TextColor3 = C.texte, Size = UDim2.fromOffset(640, 90), Position = UDim2.fromOffset(44, 102),
 		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 4 })
 	U.barre = inst("Frame", { BorderSizePixel = 0, Size = UDim2.fromOffset(440, 6), Position = UDim2.fromOffset(42, 196) }, g)
 	U.rang = K.texte(g, { Text = "", TextSize = 28, TextColor3 = C.terne, Size = UDim2.fromOffset(420, 30), Position = UDim2.fromOffset(44, 210),

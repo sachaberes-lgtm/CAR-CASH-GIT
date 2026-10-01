@@ -163,7 +163,7 @@ Config.CIEL = {
 	soleil = rgb(1, 0.97, 0.93),  -- (presque neutre : le crème des nuages est CUIT dans leurs sommets ; un soleil pêche les passait au beige)
 	-- (2e retour de Sacha : « c'est moche » — tout tirait au CYAN GLACÉ, des icebergs. La version web met l'ombre en LAVANDE
 	-- (le côté ombre « pris par le ciel », nuage8Mat) et le soleil en crème : ce sont ces deux teintes qui font le coton.)
-	ambiance = Color3.fromRGB(84, 92, 132),
+	ambiance = Color3.fromRGB(120, 118, 180), -- (l'ambiance des lieux COUVERTS : l'atelier du garage, le dessous de la caisse)
 	ambianceExt = Color3.fromRGB(150, 160, 200),
 	expo = -0.22,
 	brumeDensite = 0.03,          -- (la mer de nuages doit se lire jusqu'à l'horizon : la brume du web n'en mange que 20 % à 4 km)
