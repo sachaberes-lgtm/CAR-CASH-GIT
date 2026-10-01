@@ -10283,7 +10283,19 @@ function Hud.creer()
 		local k = math.clamp(h / 720, 0.35, 2)
 		echelle.Scale = k
 		racine.Size = UDim2.fromScale(1 / k, 1 / k)
+		-- (mise au point) workspace:SetAttribute("DbgLarge", 1280) : l'interface se dessine comme sur un écran de cette largeur
+		-- (1280 = un écran 16:9), au milieu de la fenêtre — pour vérifier qu'aucun écran ne se chevauche sur un écran moins allongé
+		local force = workspace:GetAttribute("DbgLarge")
+		if type(force) == "number" and force > 300 then
+			racine.AnchorPoint = Vector2.new(0.5, 0)
+			racine.Position = UDim2.fromScale(0.5, 0)
+			racine.Size = UDim2.new(0, force, 1 / k, 0)
+		else
+			racine.AnchorPoint = Vector2.zero
+			racine.Position = UDim2.new()
+		end
 	end
+	workspace:GetAttributeChangedSignal("DbgLarge"):Connect(recaler)
 	recaler()
 	if workspace.CurrentCamera then workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(recaler) end
 	gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(recaler)
