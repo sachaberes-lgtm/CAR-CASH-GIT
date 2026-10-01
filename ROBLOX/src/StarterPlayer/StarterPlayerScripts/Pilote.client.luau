@@ -314,6 +314,7 @@ local SON_DE = { ["fig.maillon"] = "maillon", ["aura.geste"] = "maillon", ["aura
 	["flow.tic"] = "bip", ["frenesie.arme"] = "bip", ["plus.vite"] = "bip" }
 Score.dire.pop = function(txt: string, c: string?, prio: number?) Hud.pop(txt, HudScore.hex(c), (prio and prio >= 2) and 24 or 20) end
 Score.dire.slam = HudScore.slam
+Score.dire.hap = function(f: number?) Hud.vibre(f or 10) end
 Score.dire.flash = HudScore.flash
 Score.dire.tag = HudScore.tag
 Score.dire.verse = HudScore.verse
@@ -2203,7 +2204,9 @@ E.btReglM.Activated:Connect(function() if mode == "mort" then retourReglages = "
 -- "reglages", "missions", "menu" (le retour) ; pour comparer chaque écran à la capture du jeu web sans toucher à la souris
 workspace:GetAttributeChangedSignal("DbgOuvre"):Connect(function()
 	local v = tostring(workspace:GetAttribute("DbgOuvre") or "")
-	if v == "menu" then
+	if v == "pause" then
+		basculerPause() -- (en course : la pause s'ouvre, ou se referme)
+	elseif v == "menu" then
 		if mode == "garage" then Garage.fermer() end
 		G.boutique.fermer()
 		Missions.fermer()
@@ -2228,6 +2231,17 @@ E.btReprendre.Activated:Connect(function()
 end)
 E.btRecom.Activated:Connect(function() if enPause then enPause = false; Score.fin(false); nouvellePartie() end end)
 E.btMenuP.Activated:Connect(function() if enPause then enPause = false; Score.fin(false); allerMenu() end end)
+-- LES RÉGLAGES : une seule vérité, le PROFIL (gardé par le serveur d'une partie à l'autre) — Sons, Controles et Hud la recopient
+-- (avant, SON et MUSIQUE n'étaient jamais enregistrés : ils revenaient sur ON à chaque partie)
+do -- (un bloc : le corps du pilote frôle la limite des 200 variables locales)
+	local RG = profil.reglages or {}
+	Sons.actif = RG.son ~= false
+	Sons.musiqueActive = RG.musique ~= false
+	Sons.volSon = (RG.volSon or 100) / 100
+	Sons.volMus = (RG.volMus or 62) / 100
+	Controles.sensVol = (RG.volH == "monte") and -1 or 1
+	Hud.vib = RG.vib ~= false
+end
 local function majBoutonsSon()
 	E.btFacile.Text = T.facile .. (facile() and " ON" or " OFF")
 	E.btSonP.Text = T.son .. (Sons.actif and " ON" or " OFF")
@@ -2235,13 +2249,53 @@ local function majBoutonsSon()
 	Hud.reglage("son", Sons.actif)
 	Hud.reglage("musique", Sons.musiqueActive)
 	Hud.reglage("facile", facile())
+	Hud.reglage("vib", Hud.vib)
+	Hud.volume("volSon", Sons.volSon * 100, Sons.actif)
+	Hud.volume("volMus", Sons.volMus * 100, Sons.actif and Sons.musiqueActive)
+	Hud.valeur("volH", (Controles.sensVol < 0) and T.monte or T.plonge)
+	E.btPouceP.Text = T.pouce .. " : " .. ((Controles.sensVol < 0) and T.monte or T.plonge)
+end
+function G.basculeSon()
+	Sons.actif = not Sons.actif
+	reglage("son", Sons.actif)
+	majBoutonsSon()
+end
+function G.basculeMusique()
+	Sons.musiqueActive = not Sons.musiqueActive
+	reglage("musique", Sons.musiqueActive)
+	majBoutonsSon()
 end
 -- l'écran des RÉGLAGES (les mêmes interrupteurs que la pause : une seule vérité, Sons et le profil)
 E.rgRetour.Activated:Connect(function()
 	if Hud.ecranCourant() == "reglages" then Hud.ecran(mode == "garage" and "garage" or retourReglages) end
 end)
-E.rg.son.b.Activated:Connect(function() Sons.actif = not Sons.actif; majBoutonsSon() end)
-E.rg.musique.b.Activated:Connect(function() Sons.musiqueActive = not Sons.musiqueActive; majBoutonsSon() end)
+E.rg.son.b.Activated:Connect(G.basculeSon)
+E.rg.musique.b.Activated:Connect(G.basculeMusique)
+-- les CURSEURS : le son suit le doigt, le profil n'est écrit qu'au lâcher
+E.rg.volSon.surChange = function(v: number, fin: boolean)
+	Sons.volSon = v / 100
+	majBoutonsSon()
+	if fin then reglage("volSon", v) end
+end
+E.rg.volMus.surChange = function(v: number, fin: boolean)
+	Sons.volMus = v / 100
+	majBoutonsSon()
+	if fin then reglage("volMus", v) end
+end
+-- POUCE HAUT EN VOL : PLONGE ⇄ MONTE (volhBascule du web)
+function G.basculePouce()
+	Controles.sensVol = -Controles.sensVol
+	reglage("volH", (Controles.sensVol < 0) and "monte" or "plonge")
+	majBoutonsSon()
+end
+E.rg.volH.b.Activated:Connect(G.basculePouce)
+E.btPouceP.Activated:Connect(G.basculePouce)
+E.rg.vib.b.Activated:Connect(function()
+	Hud.vib = not Hud.vib
+	reglage("vib", Hud.vib)
+	majBoutonsSon()
+	Hud.vibre(30) -- (on sent tout de suite ce qu'on vient d'allumer)
+end)
 if E.rg.facile then
 	E.rg.facile.b.Activated:Connect(function()
 		reglage("facile", not facile())
@@ -2253,8 +2307,8 @@ E.rg.tuto.b.Activated:Connect(function()
 	reglage("tuto", false) -- la leçon revient à la prochaine partie
 	Hud.toast(tr("L'AUTO-ECOLE REVIENT A LA PROCHAINE PARTIE", "DRIVING SCHOOL IS BACK NEXT RUN"), Hud.C.vert)
 end)
-E.btSonP.Activated:Connect(function() Sons.actif = not Sons.actif; majBoutonsSon() end)
-E.btMusP.Activated:Connect(function() Sons.musiqueActive = not Sons.musiqueActive; majBoutonsSon() end)
+E.btSonP.Activated:Connect(G.basculeSon)
+E.btMusP.Activated:Connect(G.basculeMusique)
 E.btFacile.Activated:Connect(function()
 	reglage("facile", not facile())
 	reglage("facileChoisi", true)

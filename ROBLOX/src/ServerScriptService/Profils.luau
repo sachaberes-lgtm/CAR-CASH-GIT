@@ -33,7 +33,8 @@ function Profils.neuf(): Profil
 		habits = {},   -- les habillages gagnés ou achetés : « peinture:or », « trainee:arcenciel »…
 		porte = { peinture = "usine", aile = "panneaux", trainee = "nitro" }, -- ce que la caisse porte
 		carriere = {},
-		reglages = { son = true, musique = true, facile = false, facileChoisi = false, tuto = false },
+		reglages = { son = true, musique = true, facile = false, facileChoisi = false, tuto = false,
+			volSon = 100, volMus = 62, volH = "plonge", vib = true }, -- (les curseurs de volume du web : 100 % et 62 % ; POUCE HAUT EN VOL ; VIBRATIONS)
 		permis = false, -- le PERMIS de l'auto-école : +500 $, une seule fois dans la vie du compte
 		stats = { parties = 0, distance = 0, pieces = 0, figures = 0 },
 	}
@@ -220,6 +221,12 @@ end
 
 Profils.actions.reglage = function(_, prof, cle, valeur)
 	if type(cle) ~= "string" or prof.reglages[cle] == nil or type(valeur) ~= type(prof.reglages[cle]) then
+		return false, "reglage inconnu"
+	end
+	if type(valeur) == "number" then
+		if valeur ~= valeur then return false, "reglage inconnu" end
+		valeur = math.clamp(math.floor(valeur / 5 + 0.5) * 5, 0, 100) -- (les curseurs vont de 0 à 100 %, par pas de 5)
+	elseif type(valeur) == "string" and valeur ~= "plonge" and valeur ~= "monte" then
 		return false, "reglage inconnu"
 	end
 	prof.reglages[cle] = valeur

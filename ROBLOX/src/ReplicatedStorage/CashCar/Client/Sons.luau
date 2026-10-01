@@ -6,6 +6,9 @@ local Config = require(script.Parent.Parent:WaitForChild("Config"))
 local Sons = {}
 Sons.actif = true
 Sons.musiqueActive = true
+-- LES CURSEURS du web (VOL.sfx, VOL.mus) : 0-1. La musique a été accordée au réglage d'usine (62 %) : son niveau est relatif à lui.
+Sons.volSon = 1
+Sons.volMus = 0.62
 
 local dossier = Instance.new("Folder")
 dossier.Name = "CashCarSons"
@@ -58,7 +61,7 @@ function Sons.jouer(nom: string, hauteur: number?, volume: number?)
 	tours[nom] = (tours[nom] % #l) + 1
 	local s = l[tours[nom]]
 	s.PlaybackSpeed = hauteur or 1
-	if volume then s.Volume = volume else s.Volume = VOLUMES[nom] or 0.5 end
+	s.Volume = (volume or VOLUMES[nom] or 0.5) * Sons.volSon
 	s.TimePosition = 0
 	s:Play()
 end
@@ -89,7 +92,11 @@ function Sons.regler(nom: string, volume: number, hauteur: number?)
 	local s = Sons.boucle(nom)
 	if not s then return end
 	local v = (Sons.actif and volume or 0)
-	if nom == "musique" and not Sons.musiqueActive then v = 0 end
+	if nom == "musique" then
+		v = Sons.musiqueActive and v * Sons.volMus / 0.62 or 0
+	else
+		v *= Sons.volSon
+	end
 	s.Volume = v
 	if hauteur then s.PlaybackSpeed = hauteur end
 end

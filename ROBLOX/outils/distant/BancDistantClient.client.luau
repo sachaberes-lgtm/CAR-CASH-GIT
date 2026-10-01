@@ -31,6 +31,31 @@ ev.OnClientEvent:Connect(function(op: string, r: string, nom: string, prop: stri
 			if not pcall(function() (d :: any)[prop] = val end) then rate += 1 end
 		end)
 		ev:FireServer(string.format("prop %s.%s : %d écrits, %d refusés", nom, tostring(prop), n - rate, rate))
+	elseif op == "etat" then
+		-- l'état de la partie, tel que le pilote le publie (Bus.etat) : mode, pause, km/h…
+		local ok, e = pcall(function() return require(RS:WaitForChild("CashCar"):WaitForChild("Client"):WaitForChild("Bus")).etat() end)
+		local t = {}
+		if ok and type(e) == "table" then
+			for k, v in e do
+				if type(v) ~= "table" and typeof(v) ~= "CFrame" then table.insert(t, k .. "=" .. tostring(v)) end
+			end
+			table.sort(t)
+		end
+		if ok and type(e) == "table" and typeof(e.carCF) == "CFrame" then
+			local q = e.carCF.Position
+			table.insert(t, string.format("caisse=(%d,%d,%d)", q.X, q.Y, q.Z))
+		end
+		local c = workspace.CurrentCamera.CFrame.Position
+		table.insert(t, string.format("camera=(%d,%d,%d)", c.X, c.Y, c.Z))
+		local okH, ec = pcall(function() return require(RS.CashCar.Client.Hud).ecranCourant() end)
+		table.insert(t, "ecran=" .. tostring(okH and ec or "?"))
+		-- les images rendues pendant une seconde (0 = la boucle de rendu ne tourne plus)
+		local n, c9 = 0, nil
+		c9 = game:GetService("RunService").RenderStepped:Connect(function() n += 1 end)
+		task.wait(1)
+		c9:Disconnect()
+		table.insert(t, "images/s=" .. n)
+		ev:FireServer("etat : " .. (ok and table.concat(t, " ") or tostring(e)))
 	elseif op == "compte" then
 		ev:FireServer(string.format("compte %s : %d", nom, chacun(r, nom, function() end)))
 	elseif op == "lire" then

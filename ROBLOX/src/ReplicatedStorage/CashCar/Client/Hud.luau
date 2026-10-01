@@ -27,7 +27,7 @@ Hud.FR = FR
 local T = FR and {
 	jouer = "JOUER", rejouer = "REJOUER", menu = "HOME", reprendre = "REPRENDRE", recommencer = "RECOMMENCER",
 	pause = "PAUSE", son = "SON", musique = "MUSIQUE", record = "RECORD", nouveau = "NOUVEAU RECORD !",
-	reglages = "REGLAGES", fermer = "FERMER", retour = "RETOUR", jeu = "JEU", revoir = "REVOIR L'AUTO-ECOLE", verse = "VERSES AU COMPTE", compte = "COMPTE :", meilleur = "MEILLEUR",
+	reglages = "REGLAGES", fermer = "FERMER", retour = "RETOUR", jeu = "JEU", revoir = "REVOIR L'AUTO-ECOLE", volume = "VOLUME", pouce = "POUCE HAUT EN VOL", vibrations = "VIBRATIONS", plonge = "PLONGE", monte = "MONTE", verse = "VERSES AU COMPTE", compte = "COMPTE :", meilleur = "MEILLEUR",
 	moteurAtteint = "MOTEUR ATTEINT", palier = "PALIER", encore = "ENCORE %d PIECES POUR", moteurMax = "LE PLUS GROS MOTEUR",
 	multiMax = "MULTI MAX", kmhMax = "KM/H MAX", zone = "ZONE", figures = "FIGURES", frenesie = "FRENESIE", distance = "DISTANCE", pieces = "PIECES",
 	aura = "AURA", moteur = "MOTEUR", nitro = "NITRO", air = "AIR", go = "GO !", niveau = "MER DE NUAGES",
@@ -50,7 +50,7 @@ local T = FR and {
 } or {
 	jouer = "PLAY", rejouer = "PLAY AGAIN", menu = "HOME", reprendre = "RESUME", recommencer = "RESTART",
 	pause = "PAUSE", son = "SOUND", musique = "MUSIC", record = "BEST", nouveau = "NEW RECORD!",
-	reglages = "SETTINGS", fermer = "CLOSE", retour = "BACK", jeu = "GAME", revoir = "REPLAY DRIVING SCHOOL", verse = "PAID TO ACCOUNT", compte = "ACCOUNT:", meilleur = "BEST",
+	reglages = "SETTINGS", fermer = "CLOSE", retour = "BACK", jeu = "GAME", revoir = "REPLAY DRIVING SCHOOL", volume = "VOLUME", pouce = "THUMB UP IN THE AIR", vibrations = "VIBRATION", plonge = "DIVE", monte = "CLIMB", verse = "PAID TO ACCOUNT", compte = "ACCOUNT:", meilleur = "BEST",
 	moteurAtteint = "ENGINE REACHED", palier = "TIER", encore = "%d MORE COINS FOR", moteurMax = "THE BIGGEST ENGINE",
 	multiMax = "MAX MULTI", kmhMax = "MAX KM/H", zone = "ZONE", figures = "TRICKS", frenesie = "FRENZY", distance = "DISTANCE", pieces = "COINS",
 	aura = "AURA", moteur = "ENGINE", nitro = "NITRO", air = "AIR", go = "GO!", niveau = "SEA OF CLOUDS",
@@ -143,13 +143,24 @@ local function retour(b: GuiButton, cible: GuiObject)
 	b.MouseLeave:Connect(relache)
 	b.Activated:Connect(function()
 		Sons.jouer("tap")
-		pcall(function()
-			local HS = game:GetService("HapticService")
-			if HS:IsVibrationSupported(Enum.UserInputType.Gamepad1) then
-				HS:SetMotor(Enum.UserInputType.Gamepad1, Enum.VibrationMotor.Small, 0.4)
-				task.delay(0.06, function() HS:SetMotor(Enum.UserInputType.Gamepad1, Enum.VibrationMotor.Small, 0) end)
+		Hud.vibre(6)
+	end)
+end
+
+-- ── L'HAPTIQUE (hap du web) : UN seul endroit, et il écoute l'interrupteur VIBRATIONS. `ms` : la durée du coup (6 un appui,
+-- 40 un crash). La manette vibre ; le téléphone aussi quand Roblox le permet (moteur « Touch »). ──
+Hud.vib = true
+function Hud.vibre(ms: number)
+	if not Hud.vib then return end
+	pcall(function()
+		local HS = game:GetService("HapticService")
+		for _, t in { Enum.UserInputType.Gamepad1, Enum.UserInputType.Touch } do
+			if HS:IsVibrationSupported(t) then
+				local m = HS:IsMotorSupported(t, Enum.VibrationMotor.Small) and Enum.VibrationMotor.Small or Enum.VibrationMotor.Large
+				HS:SetMotor(t, m, math.clamp(0.25 + ms / 60, 0.25, 1))
+				task.delay(math.clamp(ms / 1000 + 0.04, 0.05, 0.25), function() pcall(function() HS:SetMotor(t, m, 0) end) end)
 			end
-		end)
+		end
 	end)
 end
 
@@ -616,14 +627,21 @@ function Hud.creer()
 	local voile = inst("Frame", { Name = "Pause", BackgroundColor3 = C.nuit, BackgroundTransparency = 0.25,
 		Size = UDim2.fromScale(1, 1), Visible = false, ZIndex = 20 }, racine)
 	E.pause = voile
-	-- (sans le mode FACILE, le panneau n'a pas de troisième rangée : il se resserre)
-	local pan = carbone(voile, UDim2.fromOffset(760, Config.FACILE_ACTIF and 560 or 470), UDim2.fromScale(0.5, 0.5), C.cyan, Vector2.new(0.5, 0.5))
+	-- (la troisième rangée : POUCE HAUT EN VOL — le web le met aussi dans la pause : « c'est en pleine partie qu'on découvre qu'on
+	-- préfère l'autre sens » — et, s'il est ouvert, le mode FACILE à côté)
+	local pan = carbone(voile, UDim2.fromOffset(760, 560), UDim2.fromScale(0.5, 0.5), C.cyan, Vector2.new(0.5, 0.5))
 	E.pauseTitre = texte(pan, { Text = T.pause, TextSize = 60, TextColor3 = C.texte, Size = UDim2.new(1, 0, 0, 62), Position = UDim2.fromOffset(0, 26), TextWrapped = false, epais = 4 })
 	E.btSonP = tuile(pan, T.son, C.cyan, UDim2.fromOffset(330, 84), UDim2.new(0.5, -10, 0, 116), Vector2.new(1, 0), 28)
 	E.btMusP = tuile(pan, T.musique, C.cyan, UDim2.fromOffset(330, 84), UDim2.new(0.5, 10, 0, 116), Vector2.new(0, 0), 28)
 	E.btRecom = tuile(pan, T.recommencer, C.magenta, UDim2.fromOffset(330, 84), UDim2.new(0.5, -10, 0, 218), Vector2.new(1, 0), 24, "rejouer")
 	E.btMenuP = tuile(pan, T.menu, C.lavande, UDim2.fromOffset(330, 84), UDim2.new(0.5, 10, 0, 218), Vector2.new(0, 0), 28, "maison")
-	E.btFacile = tuile(pan, T.facile, C.vert, UDim2.fromOffset(680, 72), UDim2.new(0.5, 0, 0, 320), Vector2.new(0.5, 0), 26)
+	if Config.FACILE_ACTIF then
+		E.btFacile = tuile(pan, T.facile, C.vert, UDim2.fromOffset(330, 72), UDim2.new(0.5, -10, 0, 320), Vector2.new(1, 0), 22)
+		E.btPouceP = tuile(pan, T.pouce, C.cyan, UDim2.fromOffset(330, 72), UDim2.new(0.5, 10, 0, 320), Vector2.new(0, 0), 16)
+	else
+		E.btFacile = tuile(pan, T.facile, C.vert, UDim2.fromOffset(680, 72), UDim2.new(0.5, 0, 0, 320), Vector2.new(0.5, 0), 26)
+		E.btPouceP = tuile(pan, T.pouce, C.cyan, UDim2.fromOffset(680, 72), UDim2.new(0.5, 0, 0, 320), Vector2.new(0.5, 0), 26, "aile", "g")
+	end
 	E.btRecom.Parent.Name = "Recom"
 	E.btMenuP.Parent.Name = "MenuP"
 	E.btReprendre = lingot(pan, T.reprendre, UDim2.new(1, -80, 0, 104), UDim2.new(0.5, 0, 1, -34), Vector2.new(0.5, 1), 64)
@@ -652,22 +670,32 @@ function Hud.creer()
 		inst("Frame", { BackgroundColor3 = C.lavande, BackgroundTransparency = 0.4, BorderSizePixel = 0, Size = UDim2.new(0, 5, 1, 0) }, p)
 		return p
 	end
-	-- une LIGNE : rend le bouton (toute la ligne se touche) et de quoi écrire son état
+	-- une LIGNE : rend le bouton (toute la ligne se touche) et de quoi écrire son état. `genre` : nil = interrupteur ON / OFF,
+	-- "action" = la flèche du web, "valeur" = un mot cyan et sa flèche (PLONGE ▶). Les lignes s'empilent dans leur colonne.
 	E.rg = {}
-	local function ligne(p: Frame, rang: number, cle: string, ico: string, libelle: string, action: boolean?)
-		local Hl = 108
-		p.Size = UDim2.new(p.Size.X.Scale, 0, 0, rang * Hl)
-		local l = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, Hl), Position = UDim2.fromOffset(0, (rang - 1) * Hl) }, p)
-		if rang > 1 then inst("Frame", { BackgroundColor3 = C.trait, BackgroundTransparency = 0.4, BorderSizePixel = 0, Size = UDim2.new(1, -10, 0, 2), Position = UDim2.fromOffset(8, 0) }, l) end
+	local Hl = 108
+	local function ligne(p: Frame, cle: string, ico: string, libelle: string, genre: string?)
+		local y = p:GetAttribute("y") or 0
+		p:SetAttribute("y", y + Hl)
+		p.Size = UDim2.new(p.Size.X.Scale, 0, 0, y + Hl)
+		local l = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, Hl), Position = UDim2.fromOffset(0, y) }, p)
+		if y > 0 then inst("Frame", { BackgroundColor3 = C.trait, BackgroundTransparency = 0.4, BorderSizePixel = 0, Size = UDim2.new(1, -10, 0, 2), Position = UDim2.fromOffset(8, 0) }, l) end
 		local case = inst("Frame", { BackgroundColor3 = C.nuit, BorderSizePixel = 0, Size = UDim2.fromOffset(62, 62), Position = UDim2.new(0, 30, 0.5, 0), AnchorPoint = Vector2.new(0, 0.5) }, l)
 		inst("UIStroke", { Color = C.trait, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, case)
 		local ic = icone(case, ico, 4, C.cyan, UDim2.fromScale(0.5, 0.5), Vector2.new(0.5, 0.5))
-		texte(l, { Text = libelle, TextSize = 34, TextColor3 = C.texte, Size = UDim2.new(1, -330, 0, 36), Position = UDim2.new(0, 116, 0.5, 0), AnchorPoint = Vector2.new(0, 0.5),
+		local lib = texte(l, { Text = libelle, TextSize = 34, TextColor3 = C.texte, Size = UDim2.new(1, -330, 0, 36), Position = UDim2.new(0, 116, 0.5, 0), AnchorPoint = Vector2.new(0, 0.5),
 			TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 3 })
 		local o: any = { ico = ic }
-		if action then
-			-- une action : la flèche du web, à droite
+		if genre == "action" then
 			icone(l, "droite", 3, C.cyan, UDim2.new(1, -34, 0.5, 0), Vector2.new(1, 0.5))
+		elseif genre == "valeur" then
+			icone(l, "droite", 3, C.cyan, UDim2.new(1, -34, 0.5, 0), Vector2.new(1, 0.5))
+			o.valeur = texte(l, { Text = "", TextSize = 34, italique = true, TextColor3 = C.cyan, Size = UDim2.fromOffset(220, 36), Position = UDim2.new(1, -72, 0.5, 0),
+				AnchorPoint = Vector2.new(1, 0.5), TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false })
+			-- (« POUCE HAUT EN VOL » + « PLONGE » : sur un écran 16:9 la ligne n'a pas la place à 34 — le libellé rapetisse pour tenir)
+			lib.Size = UDim2.new(1, -116 - 230, 0, 48) -- (assez haut : TextScaled se cale aussi sur la hauteur)
+			lib.TextScaled = true
+			inst("UITextSizeConstraint", { MaxTextSize = 34, MinTextSize = 16 }, lib)
 		else
 			-- l'interrupteur : une glissière sombre, son curseur, ON (cyan, à droite) ou OFF (éteint, à gauche)
 			local inter = inst("Frame", { BackgroundColor3 = C.nuit, BorderSizePixel = 0, Size = UDim2.fromOffset(160, 62), Position = UDim2.new(1, -30, 0.5, 0), AnchorPoint = Vector2.new(1, 0.5) }, l)
@@ -681,12 +709,61 @@ function Hud.creer()
 		o.ligne = l
 		E.rg[cle] = o
 	end
+	-- un CURSEUR de volume (volRow du web) : « VOLUME » et le pourcentage, une piste, une poignée qu'on fait glisser (pas de 5 %)
+	local Hc = 80
+	local function curseur(p: Frame, cle: string)
+		local y = p:GetAttribute("y") or 0
+		p:SetAttribute("y", y + Hc)
+		p.Size = UDim2.new(p.Size.X.Scale, 0, 0, y + Hc)
+		local l = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, Hc), Position = UDim2.fromOffset(0, y - 14) }, p)
+		texte(l, { Text = T.volume, TextSize = 22, TextColor3 = C.terne, Size = UDim2.new(0.5, 0, 0, 24), Position = UDim2.fromOffset(116, 6),
+			TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
+		local o: any = {}
+		o.pct = texte(l, { Text = "", TextSize = 22, TextColor3 = C.terne, Size = UDim2.new(0.4, 0, 0, 24), Position = UDim2.new(1, -30, 0, 6), AnchorPoint = Vector2.new(1, 0),
+			TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false })
+		local piste = inst("Frame", { BackgroundColor3 = C.nuit, BorderSizePixel = 0, Size = UDim2.new(1, -146, 0, 14), Position = UDim2.fromOffset(116, 50) }, l)
+		inst("UIStroke", { Color = C.trait, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, piste)
+		o.plein = inst("Frame", { BackgroundColor3 = C.trait, BorderSizePixel = 0, Size = UDim2.fromScale(0.5, 1) }, piste)
+		o.poignee = inst("Frame", { BackgroundColor3 = C.texte2, BorderSizePixel = 0, Size = UDim2.fromOffset(26, 44), Position = UDim2.fromScale(0.5, 0.5), AnchorPoint = Vector2.new(0.5, 0.5) }, piste)
+		inst("UIStroke", { Color = C.encre, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, o.poignee)
+		-- toute la bande se touche (la cible fait 88 px de haut, la piste 14) : on suit le doigt tant qu'il appuie
+		local zone = inst("TextButton", { BackgroundTransparency = 1, Text = "", AutoButtonColor = false, Size = UDim2.new(1, -116, 1, 0), Position = UDim2.fromOffset(100, 0) }, l)
+		o.surChange = nil :: ((number, boolean) -> ())?
+		local tient = false
+		local function lire(x: number, fin: boolean)
+			local a = piste.AbsolutePosition.X
+			local w = math.max(1, piste.AbsoluteSize.X)
+			local v = math.clamp(math.floor(((x - a) / w) * 20 + 0.5) * 5, 0, 100)
+			if o.surChange then o.surChange(v, fin) end
+		end
+		zone.InputBegan:Connect(function(io: InputObject)
+			if io.UserInputType == Enum.UserInputType.MouseButton1 or io.UserInputType == Enum.UserInputType.Touch then
+				tient = true
+				lire(io.Position.X, false)
+			end
+		end)
+		UserInputService.InputChanged:Connect(function(io: InputObject)
+			if tient and (io.UserInputType == Enum.UserInputType.MouseMovement or io.UserInputType == Enum.UserInputType.Touch) then lire(io.Position.X, false) end
+		end)
+		UserInputService.InputEnded:Connect(function(io: InputObject)
+			if tient and (io.UserInputType == Enum.UserInputType.MouseButton1 or io.UserInputType == Enum.UserInputType.Touch) then
+				tient = false
+				lire(io.Position.X, true)
+				Sons.jouer("tap")
+			end
+		end)
+		E.rg[cle] = o
+	end
 	local ca = colonne("AUDIO", 0.043, 0.487)
-	ligne(ca, 1, "son", "son", T.son)
-	ligne(ca, 2, "musique", "musique", T.musique)
+	ligne(ca, "son", "son", T.son)
+	curseur(ca, "volSon")
+	ligne(ca, "musique", "musique", T.musique)
+	curseur(ca, "volMus")
 	local cj = colonne(T.jeu, 0.513, 0.957)
-	ligne(cj, 1, "tuto", "volant", T.revoir, true)
-	if Config.FACILE_ACTIF then ligne(cj, 2, "facile", "coeur", T.facile) end -- (Sacha : « mets que le mode normal » — la ligne n'existe que si le mode est ouvert)
+	if Config.FACILE_ACTIF then ligne(cj, "facile", "coeur", T.facile) end -- (Sacha : « mets que le mode normal » — la ligne n'existe que si le mode est ouvert)
+	ligne(cj, "volH", "aile", T.pouce, "valeur")
+	ligne(cj, "vib", "vibre", T.vibrations)
+	ligne(cj, "tuto", "volant", T.revoir, "action")
 	E.rgRetour = boutonRetour(reg)
 	for _, d in reg:GetDescendants() do
 		if d:IsA("GuiObject") then d.ZIndex = 23 end
@@ -924,6 +1001,23 @@ function Hud.reglage(cle: string, on: boolean)
 end
 
 -- les trois cases du bouton MISSIONS : n défis tenus sur trois
+-- un CURSEUR de volume : sa poignée, son plein, son pourcentage (0-100)
+function Hud.volume(cle: string, v: number, actif: boolean)
+	local o = E.rg and E.rg[cle]
+	if not o or not o.poignee then return end
+	local u = math.clamp(v / 100, 0, 1)
+	o.poignee.Position = UDim2.fromScale(u, 0.5)
+	o.plein.Size = UDim2.fromScale(u, 1)
+	o.plein.BackgroundColor3 = actif and C.cyan or C.trait
+	o.poignee.BackgroundColor3 = actif and C.texte or C.terne
+	o.pct.Text = math.floor(v + 0.5) .. "%"
+end
+-- une ligne À VALEUR (POUCE HAUT EN VOL : PLONGE / MONTE)
+function Hud.valeur(cle: string, txt: string)
+	local o = E.rg and E.rg[cle]
+	if o and o.valeur then o.valeur.Text = txt end
+end
+
 function Hud.pastilles(n: number)
 	for i, p in E.misPips do p.BackgroundColor3 = (i <= n) and C.vert or C.trait end
 end

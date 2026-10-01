@@ -13,6 +13,8 @@ local Controles = {
 	volant = 0, assiette = 0, nitro = false, frein = false,
 	tactile = { actif = false, x = 0, y = 0, nitro = false },
 	surPause = nil :: (() -> ())?,
+	-- POUCE HAUT EN VOL (volSens du web) : 1 = PLONGE (pouce en haut = le nez plonge), −1 = MONTE. Le clavier et la manette ne changent pas.
+	sensVol = 1,
 }
 
 local tenues: { [Enum.KeyCode]: boolean } = {}
@@ -75,7 +77,7 @@ function Controles.lire()
 	local t = Controles.tactile
 	if t.actif then
 		v = t.x
-		a = t.y
+		a = t.y * Controles.sensVol
 	end
 	Controles.volant = math.clamp(v, -1, 1)
 	Controles.assiette = math.clamp(a, -1, 1)
