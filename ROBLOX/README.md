@@ -109,6 +109,11 @@ ressources Roblox (ton compte) : à voir plus tard.
   réponses, `outils/vue.sh <png>` photographie la vue 3D (PrintWindow : la fenêtre peut être cachée). `DbgJouer` lance une partie.
 - Mise au point dans Studio (barre de commande) : `workspace:SetAttribute("DbgAuto", true)` (pilote automatique), `DbgNitro`,
   `DbgInf`, `DbgPlein`, `DbgDauphins`, `DbgSerpent`, `DbgArgent` (un compte), `DbgBudget` (le budget de triangles),
-  `DbgFx` = "mort" | "moteur7" | "pluie" | "cratere" | "jus3".
+  `DbgFx` = "mort" | "moteur7" | "pluie" | "cratere" | "jus3", `DbgOuvre` = "jouer" | "garage" | "boutique" | "reglages" |
+  "missions" | "menu" | "pause" | "frenesie", `DbgLarge` = 1280 (l'interface d'un écran 16:9).
+- ⚠ Roblox Studio ne rend plus une seule image quand l'écran du PC s'est mis en veille (la partie de test se fige, les photos
+  sortent blanches) : `outils/ecran-allume.ps1 [minutes]` réveille l'écran et le garde allumé le temps du banc, sans rien régler.
+- Les nuages : `outils/cuire-nuages.js [ébauche] [fine]` (14 et 30 par défaut) cuit les 25 gabarits en deux finesses ; la fine
+  n'est chargée que pour les nuages proches (`Nuages.finesseTick`).
 - Budget de triangles : détruire une pièce ne rend rien, c'est son maillage d'origine qu'il faut détruire — `Client/Maillage`
   le fait pour toute pièce bâtie par lui (`Maillage.libre()` donne ce qu'il reste).
