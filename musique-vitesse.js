@@ -6,12 +6,15 @@
    Une boucle livrée en COUCHES (atelier-son/boucles.py) : toutes jouent EN MÊME TEMPS, calées à l'échantillon.
 
    DEUX AXES QUI SE MÉLANGENT
-   · la VITESSE (rapide) ouvre et ferme les couches — la couche 1 (harmonie) joue toujours ;
+   · le TEMPS (v2.1, Léo : « au début laisse vraiment la base, et évolue aussi avec le temps ») : chaque couche a une heure
+     (`temps`, secondes de musique jouée) avant laquelle elle reste fermée — au départ la BASE seule ; le moteur avance ces
+     heures (jusqu'à −`moteurTemps`) ;
+   · la VITESSE (rapide) ouvre et ferme les couches débloquées — la couche 1 (harmonie) joue toujours ;
    · le MOTEUR (lent, 0 → 1 au fil des paliers) avance les seuils (jusqu'à −`moteurSeuil`), débloque les VARIANTES riches et
      les couches réservées (ÉNERGIE), et chaque palier gagné déclenche une TRANSITION (montée + crash sur la mesure).
 
    TOUT TOMBE EN RYTHME (calé sur le tempo de la boucle)
-   · une couche n'entre/ne sort que sur un TEMPS (le prochain), jamais au milieu ; hystérésis ±`hyst` autour du seuil et au
+   · une couche ENTRE sur la prochaine MESURE et SORT sur le prochain temps, jamais au milieu ; hystérésis ±`hyst` autour du seuil et au
      moins `tenue` temps entre deux changements d'une même couche → pas de va-et-vient quand la vitesse hésite ;
    · entrer = net (τ ≈ 15 % d'un temps), sortir = en douceur (τ ≈ 60 % d'un temps) ;
    · EN VOL les couches `sol` (grosse caisse) sortent à la croche suivante et RETOMBENT sur le temps de la pose.
@@ -25,13 +28,13 @@
    const mv = MusiqueVitesse(ac, sortie);
    await mv.charge(boucle);           // { bpm, mesures, dur, couches:[{nom,seuil,sol,rms,variantes:[{v,f,moteur,rms}]}], transition:{f,avance} }
    mv.joue(); mv.stop();
-   mv.regle({ vitesse, enVol, nitro, moteur });   // chaque image — vitesse ≈ 1 en croisière, moteur 0…1
+   mv.regle({ vitesse, enVol, nitro, moteur, temps });   // chaque image — vitesse ≈ 1 en croisière, moteur 0…1, temps en s
    mv.palier(moteur);                  // un palier moteur vient d'être gagné (moteur = sa valeur après le palier)
    mv.etat();                          // gains, variantes, rattrapage…
    Les couches « à l'ancienne » (un seul `f`, pas de `variantes`) marchent aussi. */
 (function(G){
 'use strict';
-const MV_REGLES={hyst:.04,tenue:2,moteurSeuil:.2,plancher:.45,rattrapageMax:14,nitroBrillance:4,chanceVariante:.5,leadRespire:.7};
+const MV_REGLES={moteurTemps:.5,hyst:.04,tenue:2,moteurSeuil:.2,plancher:.45,rattrapageMax:14,nitroBrillance:4,chanceVariante:.5,leadRespire:.7};
 function MusiqueVitesse(ac,sortie){
   const R=MV_REGLES;
   const bus=ac.createGain(),mkG=ac.createGain(),aigus=ac.createBiquadFilter();
@@ -76,13 +79,14 @@ function MusiqueVitesse(ac,sortie){
       const el=eligibles(k,mot);
       const s=L.c.seuil*(1-R.moteurSeuil*mot);
       let veut=L.on;
-      if(!el.length)veut=false;
+      const heure=(L.c.temps||0)*(1-R.moteurTemps*mot);
+      if(!el.length||(o.temps!=null&&o.temps<heure))veut=false;
       else if(L.on&&v<s-R.hyst)veut=false;else if(!L.on&&v>=s+R.hyst)veut=true;
       if(L.c.sol&&o.enVol)veut=false;
       if(L.c.nom==='LEAD'&&L.repos&&!o.frenesie)veut=false;
       if(veut===L.on)return;
       const vite=L.c.sol;                                   // la grosse caisse : à la croche (vol) / au temps (pose)
-      const quand=prochain(vite&&!veut?temps/2:temps);
+      const quand=prochain(vite&&!veut?temps/2:veut&&!(vite&&L.tChange>-99)?temps*4:temps); // entrer = sur la MESURE ; la grosse caisse qui retombe après un vol = sur le temps
       if(!(L.c.sol&&o.enVol)&&quand-L.tChange<R.tenue*temps)return; // tenue minimale (sauf la coupure du vol)
       if(veut&&!el.includes(L.var))changeVariante(L,el[0],quand);
       L.on=veut;L.tChange=quand;

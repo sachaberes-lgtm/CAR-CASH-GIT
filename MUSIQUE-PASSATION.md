@@ -20,6 +20,7 @@
 7. Sauvegarder proprement + ce document. **« Pour l'instant, garde ça sur le côté »**.
 8. « NÉON DRIVE est pas mal, ajoute-la, on joue sur la map 1 NUAGES pour tester l'effet vitesse » → fait (§5 bis).
 9. « Qu'elle évolue encore plus, ni trop vite ni trop lentement, bien rythmée, vitesse ET moteur » → v2 (§5 ter).
+10. « Au début laisse vraiment la base, évolue aussi avec le temps ; un peu trop brut, bonifie » → v2.1 (§5 quater).
 
 ## 2. Les fichiers
 
@@ -167,6 +168,22 @@ Règles (`MV_REGLES` de `musique-vitesse.js` v2) :
 - Page : `boucles.html`, groupe MUSIQUE DE JEU — curseurs VITESSE et MOTEUR, bouton PALIER +1, SIMULER UNE COURSE (le
   moteur y monte d'un palier toutes les 7 s).
 - Données du jeu : `assets/audio/music/boucles/couches-jeu.js` (`window.COUCHES_JEU`, écrit par boucles.py).
+
+## 5 quater. v2.1 — LE TEMPS + LE SON BONIFIÉ (2026-10-01)
+
+Léo : « au début laisse vraiment la base, et évolue aussi avec le temps ; c'est original mais un peu trop brut, bonifie ».
+- **Troisième axe, le TEMPS** (secondes de musique jouée dans la partie, à l'horloge audio, remis à 0 à chaque partie) :
+  chaque couche a son heure — NAPPE et BASSE (la BASE) dès 0 s · GROSSE CAISSE 15 s · ARPÈGE 30 s · RYTHME 45 s · LEAD 70 s ·
+  ÉNERGIE 90 s (+ moteur ≥ 0,45). Le moteur avance ces heures (jusqu'à −50 %). Avant son heure une couche reste fermée
+  quelle que soit la vitesse ; après, la vitesse l'ouvre/la ferme (seuils : 0 · 30 · 60 · 45 · 70 · 90 · 85 %).
+- **Entrées sur la MESURE**, sorties sur le temps ; la grosse caisse qui retombe après un vol : sur le temps.
+- **Son bonifié** (`neon2`) : grosse caisse −5 dB et moins de clic (elle dominait de 10-15 dB), pompe .75 → .45, nappe en
+  chorus + sous-octave, basse sinus + scie douce, arpèges triangle (moins de carré), lead scie + triangle avec portamento,
+  aigus adoucis par bus, réverbe 3,4 s plus sombre avec pré-délai. Équilibre : NAPPE −21 dB, GROSSE CAISSE −18, BASSE −26.
+- Filet : si la musique DEVRAIT jouer et que la boucle est prête, `mcvTick` la lance (le départ par le garage la ratait).
+- Mesuré : page (VITESSE 100 %, +15 S) → base seule à 0:06, grosse caisse 0:24, arpège 0:42, rythme 1:00, ÉNERGIE au palier ;
+  jeu → base seule 13 s à 94 % de vitesse, grosse caisse à 15 s. Zéro erreur.
+- Page : TEMPS affiché, bouton **+15 S**, SIMULER UNE COURSE dure 2 min (2 vols, 2 nitros, virages, un palier / 10 s).
 
 ## 6. CE QUI RESTE À FAIRE (intégration au jeu)
 

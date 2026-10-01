@@ -567,8 +567,8 @@ def rendre_variantes(vid, spec):
         g = min(1., .89 / max(np.abs(L * k).max(), np.abs(R * k).max())); k *= g
         tous = set(M.bus) - {'fx'}; lg = len(L)
         couches = []
-        for i, (nom, bus, seuil, sol, cle, vs) in enumerate(spec['couches']):
-            c = {'nom': nom, 'seuil': seuil, 'sol': sol, 'variantes': []}
+        for i, (nom, bus, seuil, sol, cle, vs, *reste) in enumerate(spec['couches']):
+            c = {'nom': nom, 'seuil': seuil, 'sol': sol, 'temps': reste[0] if reste else 0, 'variantes': []}
             for v, mm in vs:
                 MUET.clear(); MUET.update(tous - set(bus))
                 _, (l, r) = fn({cle: v} if cle else {}); l = l * k; r = r * k
@@ -638,7 +638,7 @@ if __name__ == '__main__':
     jeu = {}
     for d in liste:
         if not d.get('couches'): continue
-        cs = [{k: c[k] for k in ('nom', 'seuil', 'sol', 'rms')} | {'variantes': c.get('variantes') or [{'v': 'A', 'f': c['f'], 'moteur': 0, 'rms': c['rms']}]} for c in d['couches']]
+        cs = [{k: c[k] for k in ('nom', 'seuil', 'sol', 'rms')} | {'temps': c.get('temps', 0)} | {'variantes': c.get('variantes') or [{'v': 'A', 'f': c['f'], 'moteur': 0, 'rms': c['rms']}]} for c in d['couches']]
         jeu[d['id']] = {'titre': d['titre'], 'bpm': d['bpm'], 'ton': d['ton'], 'mesures': d['mesures'], 'dur': d['dur'], 'couches': cs,
                         'transition': d.get('transition')}
     open(os.path.join(SORTIE, 'couches-jeu.js'), 'w').write('window.COUCHES_JEU=' + json.dumps(jeu, ensure_ascii=False) + ';\n')

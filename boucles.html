@@ -72,7 +72,8 @@ h2:first-child{margin-top:0}
     8 secondes : six inspirations pour le LOBBY, six propositions pour les NIVEAUX. Ensuite les longues (16 mesures) et GLASSY PLUCKS.
     Toutes se referment sans couture. Clique une carte pour l'écouter, reclique pour arrêter.<br>
     <b style="color:var(--cash)">SUIT LA VITESSE</b> : ces boucles sont livrées en couches. Monte le curseur VITESSE (ou lance SIMULER UNE COURSE) :
-    à l'arrêt il ne reste que l'harmonie, chaque couche entre à son seuil, et <b>*</b> se tait en vol puis retombe à la pose.</p>
+    à l'arrêt il ne reste que l'harmonie, chaque couche entre à son seuil, et <b>*</b> se tait en vol puis retombe à la pose.
+    NÉON DRIVE · MOTEUR ajoute le TEMPS (au début la base seule, chaque partie a son heure) et le MOTEUR (variantes riches, ÉNERGIE, PALIER +1).</p>
 
   <div class="barre">
     <label class="ctl">VOLUME <input type="range" id="vol" min="0" max="100" value="70"></label>
@@ -80,6 +81,8 @@ h2:first-child{margin-top:0}
     <button class="bt nitro" id="nitro" title="Maintiens : le son s'ouvre et pousse, comme la nitro en course">NITRO</button>
     <label class="ctl" title="La vitesse de la caisse (% de la vitesse de croisière) — pour les boucles À COUCHES">VITESSE <input type="range" id="vit" min="0" max="130" value="0"> <b id="vitV" style="color:var(--tx);min-width:42px">0%</b></label>
     <label class="ctl" title="Le moteur de la caisse (les paliers gagnés) — débloque les variantes riches et la couche ÉNERGIE">MOTEUR <input type="range" id="mot" min="0" max="100" value="0"> <b id="motV" style="color:var(--tx);min-width:42px">0%</b></label>
+    <span class="ctl" title="Le temps de musique jouée : au début la BASE seule, chaque partie a son heure">TEMPS <b id="tpsV" style="color:var(--tx);min-width:36px">0:00</b></span>
+    <button class="bt" id="plus15" title="Avance le temps de 15 secondes">+15 S</button>
     <button class="bt" id="pal" title="Un palier moteur gagné : montée + crash sur la mesure suivante">PALIER +1</button>
     <button class="bt" id="sim" title="Une course simulée : départ arrêté, accélération, un saut, la nitro, un virage, le crash">SIMULER UNE COURSE</button>
     <button class="bt" id="ench" title="À la fin d'un tour, passe à la boucle suivante">ENCHAINER</button>
@@ -108,7 +111,7 @@ const SERVI=location.protocol.startsWith('http');
 let AC=null,sortie=null,filtre=null,brillance=null,analyseur=null;
 const BUF={},EL={};
 let cur=null,src=null,t0=0,ench=false,nitro=false;
-let mv=null,mvOn=false,vitCur=0,sim=null,simVol=false,motCur=0,simP=null; // la musique qui suit la vitesse (musique-vitesse.js)
+let mv=null,mvOn=false,vitCur=0,sim=null,simVol=false,motCur=0,simP=null,tJeu0=0; // tJeu0 : l'heure où la musique a commencé (l'axe TEMPS) // la musique qui suit la vitesse (musique-vitesse.js)
 
 function audio(){
   if(AC)return AC;
@@ -150,7 +153,7 @@ async function joue(i){
       const ac=audio();if(ac.state!=='running')await ac.resume();
       if(b.couches&&window.MusiqueVitesse){ // À COUCHES : toutes les couches ensemble, la vitesse les ouvre
         etat('CHARGE LES COUCHES…');mv=mv||MusiqueVitesse(ac,filtre);await mv.charge(b);if(cur!==i)return;
-        mv.joue();mvOn=true;t0=ac.currentTime+.03;volFiltre();etat(b.titre+' · SUIT LA VITESSE');return;}
+        mv.joue();mvOn=true;t0=ac.currentTime+.03;tJeu0=performance.now();volFiltre();etat(b.titre+' · SUIT LA VITESSE');return;}
       etat('CHARGE…');const {buf,deb}=await charge(b);if(cur!==i)return;
       src=ac.createBufferSource();src.buffer=buf;src.loop=true;src.loopStart=deb;src.loopEnd=deb+b.dur;
       src.connect(filtre);t0=ac.currentTime+.02;src.start(t0,deb);volFiltre();
@@ -185,7 +188,7 @@ LISTE.forEach(function(b,i){
   c.querySelector('.idee').textContent=b.idee;
   if(b.couches){c.classList.add('aCouches');const bd=document.createElement('span');bd.className='badge';bd.textContent='SUIT LA VITESSE';c.querySelector('.pour').appendChild(bd);
     const cc=document.createElement('div');cc.className='couches';
-    b.couches.forEach(function(k,j){const d=document.createElement('div');d.className='cou'+(k.sol?' sol':'');d.style.setProperty('--s',k.seuil);
+    b.couches.forEach(function(k,j){const d=document.createElement('div');d.title=k.temps?('débloquée à '+k.temps+' s de musique'):'';d.className='cou'+(k.sol?' sol':'');d.style.setProperty('--s',k.seuil);
       d.innerHTML='<b></b><i></i><span></span>';d.querySelector('b').textContent=sa(k.nom)+(k.sol?' *':'');d.querySelector('span').textContent=Math.round(k.seuil*100)+'%';cc.appendChild(d);});
     const n=document.createElement('div');n.className='cou';n.innerHTML='<b>RATTRAPAGE</b><em class="mk" style="font-style:normal;color:var(--tx2)"></em><span></span>';cc.appendChild(n);
     c.appendChild(cc);}
@@ -212,16 +215,19 @@ function dessine(i,p){
 LISTE.forEach((b,i)=>dessine(i,null));
 let dernier=-1,derTour=0;
 // LA COURSE SIMULÉE : [seconde, vitesse, en vol, nitro, légende]
-const SIM=[[0,0,0,0,'ARRET'],[2,.12,0,0,'DEMARRAGE'],[7,.5,0,0,'ACCELERE'],[12,.85,0,0,''],[15,1,0,0,'CROISIERE'],[19,1,1,0,'EN VOL'],
-  [23,1,0,0,'POSE !'],[26,1.25,0,1,'NITRO'],[30,1.05,0,0,''],[32,.55,0,0,'VIRAGE SERRE'],[35,.95,0,0,'RELANCE'],[39,1,0,0,''],[40,0,0,0,'CRASH']];
+const SIM=[[0,0,0,0,'ARRET'],[3,.15,0,0,'DEMARRAGE'],[8,.55,0,0,'ACCELERE'],[14,.95,0,0,'CROISIERE'],[22,1,1,0,'EN VOL'],[25,1,0,0,'POSE !'],
+  [34,.6,0,0,'VIRAGE'],[38,1,0,0,'RELANCE'],[48,1,1,0,'EN VOL'],[51,1,0,0,'POSE !'],[58,1.25,0,1,'NITRO'],[63,1.05,0,0,''],[75,.5,0,0,'VIRAGE SERRE'],
+  [79,1,0,0,'RELANCE'],[95,1.25,0,1,'NITRO'],[100,1,0,0,''],[110,1,1,0,'EN VOL'],[113,1,0,0,'POSE !'],[119,1,0,0,''],[120,0,0,0,'CRASH']];
+const SIM_FIN=124;
 function simAt(t){for(let k=SIM.length-1;k>=0;k--)if(t>=SIM[k][0]){const a=SIM[k],b=SIM[k+1]||a,u=b===a?0:(t-a[0])/(b[0]-a[0]);
   return{v:a[1]+(b[1]-a[1])*(a[4]==='CRASH'?0:Math.min(1,u)),vol:!!a[2],nitro:!!a[3],leg:a[4]||SIM.slice(0,k).reverse().find(x=>x[4])[4]};}}
 (function boucle(){
-  if(sim){const t=(performance.now()-sim)/1000;if(t>44){sim=performance.now();simP=null;motCur=0;}const e=simAt(Math.min(t,43.99));vitCur=e.v;
+  if(sim){const t=(performance.now()-sim)/1000;if(t>SIM_FIN){sim=performance.now();simP=null;motCur=0;tJeu0=performance.now();}const e=simAt(Math.min(t,SIM_FIN-.01));vitCur=e.v;
     document.getElementById('vit').value=Math.round(vitCur*100);document.getElementById('vitV').textContent=Math.round(vitCur*100)+'%';
     simVol=e.vol;if(e.nitro!==nitro)setNitro(e.nitro);
-    const pal9=Math.floor(t/7);if(pal9!==simP){if(simP!=null&&mvOn&&mv.palier){motCur=Math.min(1,motCur+1/12);mv.palier(motCur);}simP=pal9;document.getElementById('mot').value=Math.round(motCur*100);document.getElementById('motV').textContent=Math.round(motCur*100)+'%';}etat((LISTE[cur]?sa(LISTE[cur].titre)+' · ':'')+e.leg);}
-  if(mvOn&&cur!=null){const enVol=simVol||(+document.getElementById('vol9').value>=50);mv.regle({vitesse:vitCur,enVol:enVol,nitro:nitro,moteur:motCur});
+    const pal9=Math.floor(t/10);if(pal9!==simP){if(simP!=null&&mvOn&&mv.palier){motCur=Math.min(1,motCur+1/12);mv.palier(motCur);}simP=pal9;document.getElementById('mot').value=Math.round(motCur*100);document.getElementById('motV').textContent=Math.round(motCur*100)+'%';}etat((LISTE[cur]?sa(LISTE[cur].titre)+' · ':'')+e.leg);}
+  if(mvOn&&cur!=null){const enVol=simVol||(+document.getElementById('vol9').value>=50);const tj=(performance.now()-tJeu0)/1000;mv.regle({vitesse:vitCur,enVol:enVol,nitro:nitro,moteur:motCur,temps:tj});
+    document.getElementById('tpsV').textContent=Math.floor(tj/60)+':'+String(Math.floor(tj%60)).padStart(2,'0');
     const st=mv.etat(),c=cartes[cur];c.querySelectorAll('.cou i').forEach((el,j)=>el.style.setProperty('--g',st.gains[j]));
     c.querySelectorAll('.cou span').forEach((el,j)=>{if(st.variantes&&st.variantes[j]&&LISTE[cur].couches[j].variantes)el.textContent=st.variantes[j]+' · '+Math.round(LISTE[cur].couches[j].seuil*100)+'%';});
     const mk=c.querySelector('.mk');if(mk)mk.textContent='+'+st.rattrapage;}
@@ -238,12 +244,13 @@ document.getElementById('vol').addEventListener('input',function(){if(sortie)vol
 document.getElementById('vol9').addEventListener('input',volFiltre);
 document.getElementById('vit').addEventListener('input',function(){simArrete();vitCur=this.value/100;document.getElementById('vitV').textContent=this.value+'%';});
 function simArrete(){if(!sim)return;sim=null;simVol=false;setNitro(false);document.getElementById('sim').classList.remove('on');}
+document.getElementById('plus15').addEventListener('click',function(){tJeu0-=15000;if(sim)sim-=15000;});
 document.getElementById('mot').addEventListener('input',function(){motCur=this.value/100;document.getElementById('motV').textContent=this.value+'%';});
 document.getElementById('pal').addEventListener('click',function(){motCur=Math.min(1,motCur+1/12);const m=document.getElementById('mot');m.value=Math.round(motCur*100);document.getElementById('motV').textContent=m.value+'%';if(mvOn&&mv.palier)mv.palier(motCur);});
 document.getElementById('sim').addEventListener('click',function(){
   if(sim){simArrete();return;}
   if(cur==null||!LISTE[cur].couches){const k=LISTE.findIndex(b=>b.couches);if(k>=0)joue(k);} // lance une boucle À COUCHES si besoin
-  sim=performance.now();simP=null;motCur=0;this.classList.add('on');});
+  sim=performance.now();simP=null;motCur=0;tJeu0=performance.now();this.classList.add('on');});
 const nb=document.getElementById('nitro');
 function setNitro(v){nitro=v;nb.classList.toggle('on',v);volFiltre();}
 nb.addEventListener('pointerdown',e=>{e.preventDefault();setNitro(true);});

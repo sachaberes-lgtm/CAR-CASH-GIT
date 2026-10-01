@@ -71,7 +71,8 @@ carrière, missions, garage à onglets, boutique), + SEULEMENT :
   boucle livrée en COUCHES (`COUCHES` + `rendre_couches` dans boucles.py → `*--cN.m4a`, s'additionnent exactement) ; couche 1
   harmonique, les autres s'ouvrent à leur seuil de vitesse, `sol` se tait en vol, rattrapage ≤ +14 dB à l'arrêt. Démo : curseur
   VITESSE / SIMULER UNE COURSE de `boucles.html`. v2 : NUAGES joue `neon-drive-2` (variantes par partie, couche ÉNERGIE, transition
-  de palier) ; décisions calées sur les temps, moteur = `engTier/12` (voir MUSIQUE-PASSATION.md §5 ter). **Tout est résumé pour une autre discussion dans `MUSIQUE-PASSATION.md`.** (clic = écoute, EN VOL, NITRO, ENCHAÎNER ; servie = boucle sans couture).
+  de palier) ; décisions calées sur les temps, moteur = `engTier/12` (voir MUSIQUE-PASSATION.md §5 ter) ; v2.1 : axe TEMPS (`MCV.t`, horloge audio, base seule au départ,
+  chaque couche a son heure), son bonifié (§5 quater). **Tout est résumé pour une autre discussion dans `MUSIQUE-PASSATION.md`.** (clic = écoute, EN VOL, NITRO, ENCHAÎNER ; servie = boucle sans couture).
 
 
 ## LES 10 PREMIÈRES MINUTES — CÔTÉ INTERFACE (2026-09-29, session INTERFACE)
