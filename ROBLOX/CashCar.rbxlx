@@ -2093,7 +2093,7 @@ E.btPasser.Activated:Connect(function()
 end)
 E.btFacileOui.Activated:Connect(function() choisir(true) end)
 E.btFacileNon.Activated:Connect(function() choisir(false) end)
-E.btJouer.Activated:Connect(function()
+function G.jouerMenu()
 	if mode ~= "menu" or KA.Titre.enPique() then return end
 	jouer(function()
 		if not KA.Titre.pret then
@@ -2105,7 +2105,8 @@ E.btJouer.Activated:Connect(function()
 		Sons.jouer("decollage")
 		KA.Titre.lancer(function() if mode == "menu" then nouvellePartie() end end)
 	end)
-end)
+end
+E.btJouer.Activated:Connect(G.jouerMenu)
 -- ── LE GARAGE : parcourir, acheter, équiper (voir Client/Garage) ──
 local function ouvrirGarage()
 	if mode ~= "menu" then return end
@@ -2206,6 +2207,8 @@ workspace:GetAttributeChangedSignal("DbgOuvre"):Connect(function()
 	local v = tostring(workspace:GetAttribute("DbgOuvre") or "")
 	if v == "pause" then
 		basculerPause() -- (en course : la pause s'ouvre, ou se referme)
+	elseif v == "jouer" then
+		G.jouerMenu() -- (le vrai JOUER du menu : le piqué du titre, puis la course)
 	elseif v == "frenesie" then
 		if mode == "drive" or mode == "fall" then Score.dbgFren() end
 	elseif v == "menu" then
