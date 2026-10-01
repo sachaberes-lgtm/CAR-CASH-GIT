@@ -133,6 +133,12 @@ Config.CAM = {
 }
 
 -- ── le reste ──
+-- Comme TEST_CAISSES du jeu web (index.html) : toutes les caisses s'ÉQUIPENT, mais la fiche du garage continue
+-- d'écrire la VRAIE condition. ⚠ à remettre à false pour la version publique : c'est l'unique interrupteur.
+Config.TEST_CAISSES = true
+
+Config.CAISSE_TEST = nil :: number? -- (banc) force la caisse équipée, pour regarder un gabarit sans passer par le garage
+
 Config.GARAGE_Y = 3000 -- où la caisse attend quand on est au menu (hors de la route)
 Config.DATASTORE = "CashCarRecords_v1"
 Config.GRAINE_FIXE = nil :: number? -- mettre un nombre pour que tous les serveurs roulent sur la même route

@@ -22,6 +22,7 @@ local Sons = require(CL:WaitForChild("Sons"))
 local Controles = require(CL:WaitForChild("Controles"))
 local Mer = require(CL:WaitForChild("Mer"))
 local Bus = require(CL:WaitForChild("Bus"))
+local Garage = require(CL:WaitForChild("Garage"))
 
 local M, SPD = Config.M, Config.SPD
 local RH, THICK = Config.ROAD_HALF, Config.THICK
@@ -68,17 +69,29 @@ local function cacher(m: Instance)
 end
 local caisseServeur = dossierCaisses:WaitForChild(joueur.Name) :: Model
 cacher(caisseServeur)
-local caisse = Caisse.construire("MaCaisse", caisseServeur:GetAttribute("Couleur") or Color3.fromRGB(255, 122, 26), true)
+-- le PROFIL (compte, caisses, caisse équipée, réglages) : lu au serveur, tenu à jour par ProfilMaj
+local fnProfil = CC:WaitForChild("Profil") :: RemoteFunction
+local fnAction = CC:WaitForChild("Action") :: RemoteFunction
+local profil = fnProfil:InvokeServer() or { compte = 0, record = 0, caisses = { 0 }, caisse = 0, reglages = {} }
+if Config.CAISSE_TEST then profil.caisse = Config.CAISSE_TEST end
+local caisse, poignees = Caisse.construire("MaCaisse", profil.caisse or 0, true)
 caisse.Parent = workspace
 local racine = caisse.PrimaryPart :: BasePart
-local flammes, trainees = {}, {}
-for i = 1, 2 do
-	local a = racine:WaitForChild("Tuyere" .. i)
-	table.insert(flammes, a:WaitForChild("Flamme" .. i))
-	table.insert(trainees, racine:WaitForChild("Trainee" .. i))
-end
-local reflet = racine:WaitForChild("RefletNitro") :: PointLight
+local flammes, trainees, reflet = poignees.flammes, poignees.trainees, poignees.reflet
 local visibleCaisse = true
+-- changer de caisse (le garage) : on rebâtit la mienne, au même endroit
+local function changerCaisse(indice: number)
+	local ancienne = caisse
+	local nouvelle, pg = Caisse.construire("MaCaisse", indice, true)
+	-- ⚠ PivotTo, pas « racine.CFrame = » : hors du monde, bouger la racine ne déplace pas les pièces soudées
+	-- (la soudure se recale à l'arrivée et la carrosserie reste plantée à l'origine : une caisse invisible)
+	nouvelle:PivotTo((ancienne.PrimaryPart :: BasePart).CFrame)
+	nouvelle.Parent = workspace
+	caisse, poignees, racine = nouvelle, pg, nouvelle.PrimaryPart :: BasePart
+	flammes, trainees, reflet = pg.flammes, pg.trainees, pg.reflet
+	ancienne:Destroy()
+	visibleCaisse = true
+end
 local function montrerCaisse(oui: boolean)
 	if visibleCaisse == oui then return end
 	visibleCaisse = oui
@@ -90,6 +103,13 @@ local function montrerCaisse(oui: boolean)
 end
 
 local record, compte, meilleurAura = 0, 0, 0
+CC:WaitForChild("ProfilMaj").OnClientEvent:Connect(function(p)
+	if type(p) ~= "table" then return end
+	local essai = Config.CAISSE_TEST
+	profil = p
+	if essai then profil.caisse = essai end
+	Garage.majProfil()
+end)
 evRecord.OnClientEvent:Connect(function(v, c)
 	if type(v) == "number" then
 		record = math.max(record, v)
@@ -321,8 +341,7 @@ local function exploser(cause: string)
 		p.CanTouch = false
 		p.CastShadow = false
 		p.Material = feu and Enum.Material.Neon or Enum.Material.SmoothPlastic
-		local plancher = caisse:FindFirstChild("Plancher") :: BasePart?
-		p.Color = feu and tons[rnd:NextInteger(1, #tons)] or (plancher and plancher.Color or Color3.fromRGB(255, 122, 26))
+		p.Color = feu and tons[rnd:NextInteger(1, #tons)] or poignees.laque
 		local t = (feu and rnd:NextNumber(1.2, 2.6) or rnd:NextNumber(0.6, 1.4)) * M
 		p.Size = feu and Vector3.new(t, t, t) or Vector3.new(t * 1.6, t * 0.25, t)
 		p.CFrame = CFrame.new(boomPos + Vector3.new(rnd:NextNumber(-1, 1), rnd:NextNumber(-0.5, 1), rnd:NextNumber(-1, 1)) * M)
@@ -872,19 +891,22 @@ local function habiller(dt: number)
 	local couleur = pwN > 0 and ColorSequence.new(Color3.fromRGB(190, 110, 255), Color3.fromRGB(110, 40, 255))
 		or (nitroOn and ColorSequence.new(Color3.fromRGB(255, 180, 70), Color3.fromRGB(255, 70, 30)))
 		or ColorSequence.new(Color3.fromRGB(255, 230, 130), Color3.fromRGB(255, 170, 40))
-	for i = 1, 2 do
-		flammes[i].Rate = nitroOn and 110 or (boost > 0 and 45 or 0)
-		trainees[i].Enabled = feu
-		trainees[i].Color = couleur
+	for _, f in flammes do f.Rate = nitroOn and 110 or (boost > 0 and 45 or 0) end
+	for _, t in trainees do
+		t.Enabled = feu
+		t.Color = couleur
 	end
+	-- les roues tournent à leur vraie vitesse (v / R) ; en l'air elles gardent leur élan
+	Caisse.rouler(poignees, vA * SPD * M * dt)
 	refletK += ((nitroOn and 1.6 or (boost > 0 and 0.9 or 0)) - refletK) * math.min(1, dt * 8)
 	reflet.Brightness = refletK
 	-- les boucles de son
 	local k = kmh()
 	local r = math.clamp(k / math.max(1, vmaxShow() * 1.55), 0, 1.6)
-	Sons.regler("moteur", (mode == "menu") and 0.12 or 0.32, 0.7 + r * 1.1 + (nitroOn and 0.1 or 0))
+	local atelier = mode == "garage"
+	Sons.regler("moteur", atelier and 0.05 or ((mode == "menu") and 0.12 or 0.32), 0.7 + r * 1.1 + (nitroOn and 0.1 or 0))
 	Sons.regler("nitro", nitroOn and 0.45 or 0)
-	Sons.regler("ventAltitude", (mode == "fall") and math.min(0.7, 0.25 + fallVel.Magnitude * 0.004) or 0.08 + r * 0.1)
+	Sons.regler("ventAltitude", atelier and 0 or ((mode == "fall") and math.min(0.7, 0.25 + fallVel.Magnitude * 0.004) or 0.08 + r * 0.1))
 	Sons.regler("musique", 0.32)
 end
 
@@ -1032,6 +1054,45 @@ end
 
 -- les boutons
 E.btJouer.Activated:Connect(function() if mode == "menu" then nouvellePartie() end end)
+-- ── LE GARAGE : parcourir, acheter, équiper (voir Client/Garage) ──
+local function ouvrirGarage()
+	if mode ~= "menu" then return end
+	mode = "garage"
+	Hud.ecran("garage")
+	Garage.ouvrir(profil.caisse)
+end
+Garage.init({
+	profil = function() return profil end,
+	-- une demande au serveur : il vérifie, il rend le profil à jour
+	action = function(nom: string, ...: any): (boolean, string?)
+		local ok, res, msg, p = pcall(function(...) return fnAction:InvokeServer(nom, ...) end, ...)
+		if not ok then return false, "erreur" end
+		if type(p) == "table" then
+			local essai = Config.CAISSE_TEST
+			profil = p
+			if essai then profil.caisse = essai end
+			compte = p.compte or compte
+		end
+		return res == true, msg
+	end,
+	surEquipe = function(i: number)
+		if poignees.indice ~= i then changerCaisse(i) end
+	end,
+	surHome = function()
+		Garage.fermer()
+		allerMenu()
+	end,
+	surJouer = function()
+		Garage.fermer()
+		allerMenu()
+		nouvellePartie()
+	end,
+	surReglages = function() Hud.ecran("reglages") end,
+})
+E.btGarage.Activated:Connect(ouvrirGarage)
+E.btMissions.Activated:Connect(function() if mode == "menu" then Hud.toast(T.bientot) end end)
+E.btCarriere.Activated:Connect(function() if mode == "menu" then Hud.toast(T.bientot) end end)
+E.btBoutique.Activated:Connect(function() if mode == "menu" then Hud.toast(T.bientot) end end)
 E.btRejouer.Activated:Connect(function() if mode == "mort" then nouvellePartie() end end)
 E.btMenuM.Activated:Connect(function() if mode == "mort" then allerMenu() end end)
 local function basculerPause()
@@ -1046,7 +1107,7 @@ E.btReglages.Activated:Connect(function() if mode == "menu" then retourReglages 
 E.btReglM.Activated:Connect(function() if mode == "mort" then retourReglages = "mort"; Hud.ecran("reglages") end end)
 E.btReprendre.Activated:Connect(function()
 	if enPause then basculerPause()
-	elseif Hud.ecranCourant() == "reglages" then Hud.ecran(retourReglages) end
+	elseif Hud.ecranCourant() == "reglages" then Hud.ecran(mode == "garage" and "garage" or retourReglages) end
 end)
 E.btRecom.Activated:Connect(function() if enPause then enPause = false; nouvellePartie() end end)
 E.btMenuP.Activated:Connect(function() if enPause then enPause = false; allerMenu() end end)
@@ -1059,7 +1120,7 @@ E.btMusP.Activated:Connect(function() Sons.musiqueActive = not Sons.musiqueActiv
 majBoutonsSon()
 
 -- ════════ les autres caisses : un double chez moi, lissé ; on ne voit que celles qui roulent dans NOTRE zone ════════
-type Double = { m: Model, c: Model, vu: boolean? }
+type Double = { m: Model, c: Model, vu: boolean?, pg: any, ind: number }
 local doubles: { [Model]: Double } = {}
 local function lisserDoubles(dt: number)
 	for m, d in doubles do
@@ -1078,11 +1139,17 @@ task.spawn(function()
 				local d = doubles[m]
 				if not d then
 					cacher(m)
-					local c = Caisse.construire("Autre", m:GetAttribute("Couleur") or Color3.new(1, 1, 1), true)
-					c.PrimaryPart.CFrame = m.PrimaryPart.CFrame
+					local ind = m:GetAttribute("Caisse") or 0
+					local c, pg = Caisse.construire("Autre", ind, true)
+					c:PivotTo(m.PrimaryPart.CFrame)
 					c.Parent = workspace
-					d = { m = m, c = c }
+					d = { m = m, c = c, pg = pg, ind = ind }
 					doubles[m] = d
+				elseif d.ind ~= (m:GetAttribute("Caisse") or 0) then
+					-- il a changé de caisse au garage : on redessine son double
+					d.c:Destroy()
+					doubles[m] = nil
+					continue
 				end
 				local voir = m:GetAttribute("EnCourse") == true and (m:GetAttribute("Zone") or 1) == zoneN
 				if d.vu ~= voir then
@@ -1093,14 +1160,8 @@ task.spawn(function()
 					if voir then d.c.PrimaryPart.CFrame = m.PrimaryPart.CFrame end
 				end
 				local nitro = voir and m:GetAttribute("Nitro") == true
-				local r = d.c.PrimaryPart
-				for i = 1, 2 do
-					local a = r:FindFirstChild("Tuyere" .. i)
-					local f = a and a:FindFirstChild("Flamme" .. i)
-					if f then (f :: ParticleEmitter).Rate = nitro and 90 or 0 end
-					local t = r:FindFirstChild("Trainee" .. i)
-					if t then (t :: Trail).Enabled = nitro end
-				end
+				for _, f in d.pg.flammes do f.Rate = nitro and 90 or 0 end
+				for _, t in d.pg.trainees do t.Enabled = nitro end
 			end
 		end
 		task.wait(0.25)
@@ -1158,7 +1219,7 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 			boomT += dt
 			secousse = math.max(secousse, boomT < 0.1 and 1.2 or 0)
 			if boomT > 1.8 then finPartie() end
-		elseif mode == "menu" then
+		elseif mode == "menu" or mode == "garage" then
 			-- la caisse PIQUE sur place : un souffle qui la berce
 			local t = os.clock()
 			local pos = repere(S_CHUTE, 1).Position + Vector3.new(0, H_CHUTE * M + math.sin(t * 1.1) * 0.5 * M, 0)
@@ -1182,7 +1243,7 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 			end
 		end
 		habiller(dt)
-		camera(dt)
+		if mode == "garage" then Garage.rendu(dtBrut) else camera(dt) end
 		Mer.suivre(cam.CFrame.Position, carCF.Position.Y, dt)
 		lisserDoubles(dt)
 		envoiT -= dtBrut

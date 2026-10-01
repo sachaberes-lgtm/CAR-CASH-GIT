@@ -35,6 +35,14 @@
 
 
 ## LA TOUCHE VAN GOGH + NUAGES v8.1 (2026-10-01, nuit, session GAMEPLAY) — Sacha : « inspiration Van Gogh pour le ciel » ; mesures de SON et DEBUGGING sur les v8
+- ⚠⚠ **(2026-10-01, matin, 2e verdict) SACHA : « enlève aussi dans le ciel, enlève tous les trucs Van Gogh »** — TOUT est retiré : la couche
+  `K.vg` du dôme (cielTourbillon, vgMer, vgTouche), ses appels (passes pleine et lisse), `vg` dans les biomes et dans bioApply. Seul reste
+  `skyU.uVG` (un objet inerte, lu par aucun shader). Le ciel est de nouveau celui du JOUR D'ALTITUDE (SON). NE PAS réintroduire de touche
+  « peinture » dans le niveau 1. Tout ce qui suit dans cette section décrit un essai RETIRÉ (gardé pour mémoire : ce qui a été tenté).
+- ⚠ **(2026-10-01, matin) VERDICT DE SACHA : « les nuages, j'aime pas l'effet Van Gogh, remets un effet normal »** — la touche est RETIRÉE
+  des NUAGES 3D (plus d'aplats de peintre ni de contour : `nuage8Mat` ne lit plus `uVG`, plus de `vO` ni de dérivées) et de la MER DE
+  NUAGES peinte (`vgMer` n'est plus appelé). Le CIEL garde ses touches et ses tourbillons (`cielTourbillon`, `uVG` par biome) tant que
+  Sacha ne dit pas le contraire : ne PAS remettre de touche sur les nuages. Les lignes ci-dessous sur « LES NUAGES » décrivent l'essai retiré.
 - PARTAGE : SON m'a confié TOUTE la touche (dôme compris, une seule main) ; le reste du dôme, les ambiances, l'étalonnage et la route restent
   à SON. `uVG` (skyU, partagé tel quel par les nuages : `N8_U.uVG = skyU.uVG`) porté par le biome : `vg:1` dans G9 (matin/midi/aprem),
   `vg:0` dans BIO_ETAL0, posé par bioApply. 0 = le ciel et les nuages d'avant.
@@ -105,6 +113,14 @@
   lente, volant vers la route 1,5 s) : AVANT la v2 (avec le bond) 2 rattrapées vite / 13 perdues sur 19 ; MAINTENANT 7 / 8 sur 20 (+5
   reposées plus loin). Passage du bord toujours sans à-coup (0,04 NDC). Le SON : impU 0 faisait jouer `chute` (le sifflet + « oh-oh »,
   fait pour les TROUS) — la sortie par le bord rejoue le `decollage` d'avant, dosé comme l'ancienne impulsion 3,4.
+- ⚠ LA BASCULE BORNÉE (2026-10-01, soir, Sacha via SON : « il y a des bugs quand on essaie de se poser sur la route ») — une faute du
+  SURSIS : la portée et la lèvre se mesuraient sur `fallT`, que chaque BUMP rend (demi-jauge) → la bascule se RÉARMAIT en plein vol ; et la
+  « bande » de la portée était toute la largeur de la route → une caisse passant SOUS la dalle (ou revenant après un bump) était remontée
+  d'un coup à la surface (jusqu'à 3 m en une image). Désormais `bascT` = le temps VÉCU depuis la sortie (jamais rendu) ; la bascule dure
+  1,1 s au plus et un BUMP la termine ; la portée n'agit qu'au-dessus de −LEVRE_H, pendant BASC_T ou AU-DELÀ du bord (demi-largeur) ; la
+  lèvre raccroche jusqu'à LEVRE_H = 2 m pendant 1 s (la marge que donnait, par accident, le réarmement). Après : un vol comme un autre.
+  ⚠ banc `rattrape.js` : le « pilote » tient le volant 1,5 s et classe « perdu » toute pose au-delà de 1 s (une route qui descend = la
+  caisse passe AU-DESSUS et se repose plus loin : ce n'est pas une mort) — bruité d'un passage à l'autre, à lire en tendance.
 - ⚠ PAS RÉGLÉ : à l'ATTERRISSAGE la caisse saute encore de ~0,3 NDC vers le bas de l'image en une image (déjà là avant : 0,44-0,46 mesuré).
   Cause pas encore trouvée — piste : ce qui s'applique d'un coup à la reprise de conduite (la visée, elle, est censée glisser).
 - Hook `dbgBord({lat,vL,grace,psi,vA,s,saut,rentre})` : pose la caisse au bord, force un petit saut, ou pousse la caisse vers la route en vol ;
