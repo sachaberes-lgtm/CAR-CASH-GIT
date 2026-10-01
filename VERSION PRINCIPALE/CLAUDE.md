@@ -1,5 +1,12 @@
 # CASH CAR — guide projet pour Claude Code
 
+## ⚠ LA VERSION DE RÉFÉRENCE — LIRE EN PREMIER (2026-10-01, Léo : « toutes les discussions où j'évoque une version récente, je parle de celle-là — sans tout casser »)
+- « La version récente / la nouvelle / la dernière / la bonne » = CE jeu, sur `main`, publié à https://car-cash-git.vercel.app/jouer/.
+  Son socle figé, validé par Léo en jeu le 2026-10-01 : l'étiquette git **`jeu-reference-2026-10-01`** (commit `c02c75a`). On bâtit
+  DESSUS, on ne repart jamais d'avant : pas d'une vieille branche, pas de `version-leolei-2026/`, pas de `AUTRE VERSION/`, pas d'une copie locale.
+- Les règles « SANS TOUT CASSER » (partir de `origin/main` à jour, fusionner sans jamais forcer, jeu testé sans erreur avant chaque
+  push, retour arrière par Vercel) et la liste de ce que contient la référence : voir `CLAUDE.md` à la RACINE du dépôt.
+
 ## LE DRAGON DE PAPIER (v7) + LA DARK TRIAD EN NOIR (2026-10-01, session GAMEPLAY, GRAPHISME et SON ont passé la main) — Sacha : « il faut que le dragon nitro ait un peu un aspect "papier", comme un vrai dragon chinois en papier ; il doit donc beaucoup réagir au vent et à la vitesse — retravaille ça très bien ; aussi, en dark triad, le dragon, les dauphins et le snake doivent être noirs »
 - **LES FEUILLES** (canevas peints une fois, mêmes matières et mêmes programmes) : `DRG_TEX` (le corps) n'est plus une laque brillante à écailles
   en fil d'or mais un LAMPION — papier vermillon MAT, PLIS d'accordéon (arête claire, creux, soufflet), ÉCAILLES de papier découpé (festons
