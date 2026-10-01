@@ -2194,7 +2194,27 @@ local function majBoutonsSon()
 	E.btFacile.Text = T.facile .. (facile() and " ON" or " OFF")
 	E.btSonP.Text = T.son .. (Sons.actif and " ON" or " OFF")
 	E.btMusP.Text = T.musique .. (Sons.musiqueActive and " ON" or " OFF")
+	Hud.reglage("son", Sons.actif)
+	Hud.reglage("musique", Sons.musiqueActive)
+	Hud.reglage("facile", facile())
 end
+-- l'écran des RÉGLAGES (les mêmes interrupteurs que la pause : une seule vérité, Sons et le profil)
+E.rgRetour.Activated:Connect(function()
+	if Hud.ecranCourant() == "reglages" then Hud.ecran(mode == "garage" and "garage" or retourReglages) end
+end)
+E.rg.son.b.Activated:Connect(function() Sons.actif = not Sons.actif; majBoutonsSon() end)
+E.rg.musique.b.Activated:Connect(function() Sons.musiqueActive = not Sons.musiqueActive; majBoutonsSon() end)
+if E.rg.facile then
+	E.rg.facile.b.Activated:Connect(function()
+		reglage("facile", not facile())
+		reglage("facileChoisi", true)
+		majBoutonsSon()
+	end)
+end
+E.rg.tuto.b.Activated:Connect(function()
+	reglage("tuto", false) -- la leçon revient à la prochaine partie
+	Hud.toast(tr("L'AUTO-ECOLE REVIENT A LA PROCHAINE PARTIE", "DRIVING SCHOOL IS BACK NEXT RUN"), Hud.C.vert)
+end)
 E.btSonP.Activated:Connect(function() Sons.actif = not Sons.actif; majBoutonsSon() end)
 E.btMusP.Activated:Connect(function() Sons.musiqueActive = not Sons.musiqueActive; majBoutonsSon() end)
 E.btFacile.Activated:Connect(function()
@@ -8980,7 +9000,7 @@ Hud.FR = FR
 local T = FR and {
 	jouer = "JOUER", rejouer = "REJOUER", menu = "HOME", reprendre = "REPRENDRE", recommencer = "RECOMMENCER",
 	pause = "PAUSE", son = "SON", musique = "MUSIQUE", record = "RECORD", nouveau = "NOUVEAU RECORD !",
-	reglages = "REGLAGES", fermer = "FERMER", verse = "VERSES AU COMPTE", compte = "COMPTE :", meilleur = "MEILLEUR",
+	reglages = "REGLAGES", fermer = "FERMER", retour = "RETOUR", jeu = "JEU", revoir = "REVOIR L'AUTO-ECOLE", verse = "VERSES AU COMPTE", compte = "COMPTE :", meilleur = "MEILLEUR",
 	moteurAtteint = "MOTEUR ATTEINT", palier = "PALIER", encore = "ENCORE %d PIECES POUR", moteurMax = "LE PLUS GROS MOTEUR",
 	multiMax = "MULTI MAX", kmhMax = "KM/H MAX", zone = "ZONE", figures = "FIGURES", frenesie = "FRENESIE", distance = "DISTANCE", pieces = "PIECES",
 	aura = "AURA", moteur = "MOTEUR", nitro = "NITRO", air = "AIR", go = "GO !", niveau = "MER DE NUAGES",
@@ -9003,7 +9023,7 @@ local T = FR and {
 } or {
 	jouer = "PLAY", rejouer = "PLAY AGAIN", menu = "HOME", reprendre = "RESUME", recommencer = "RESTART",
 	pause = "PAUSE", son = "SOUND", musique = "MUSIC", record = "BEST", nouveau = "NEW RECORD!",
-	reglages = "SETTINGS", fermer = "CLOSE", verse = "PAID TO ACCOUNT", compte = "ACCOUNT:", meilleur = "BEST",
+	reglages = "SETTINGS", fermer = "CLOSE", retour = "BACK", jeu = "GAME", revoir = "REPLAY DRIVING SCHOOL", verse = "PAID TO ACCOUNT", compte = "ACCOUNT:", meilleur = "BEST",
 	moteurAtteint = "ENGINE REACHED", palier = "TIER", encore = "%d MORE COINS FOR", moteurMax = "THE BIGGEST ENGINE",
 	multiMax = "MAX MULTI", kmhMax = "MAX KM/H", zone = "ZONE", figures = "TRICKS", frenesie = "FRENZY", distance = "DISTANCE", pieces = "COINS",
 	aura = "AURA", moteur = "ENGINE", nitro = "NITRO", air = "AIR", go = "GO!", niveau = "SEA OF CLOUDS",
@@ -9553,6 +9573,75 @@ function Hud.creer()
 		if d:IsA("GuiObject") then d.ZIndex = 21 end
 	end
 
+	-- ══ RÉGLAGES (#mSet du web) : un écran à part — le titre, deux colonnes de lignes (AUDIO · JEU), RETOUR en bas à gauche ══
+	-- Une ligne = une icône dans sa case, un libellé, et à droite un interrupteur (ON / OFF) ou une action.
+	-- (fond BLANC sous le dégradé : un dégradé multiplie la couleur du cadre — sur du bleu nuit il sortait presque noir)
+	local reg = inst("Frame", { Name = "Reglages", BackgroundColor3 = Color3.new(1, 1, 1), BackgroundTransparency = 0.04, Size = UDim2.fromScale(1, 1), Visible = false, ZIndex = 22 }, racine)
+	E.reglages = reg
+	degrade(reg, Color3.fromRGB(46, 16, 62), Color3.fromRGB(10, 7, 24), 80)
+	texte(reg, { Text = T.reglages, TextSize = 78, TextColor3 = C.texte, Size = UDim2.fromOffset(800, 80), Position = UDim2.fromOffset(66, 22),
+		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 4 })
+	for i, c in { C.magenta, C.cyan, C.or_ } do
+		inst("Frame", { BackgroundColor3 = c, BorderSizePixel = 0, Size = UDim2.fromOffset(i == 1 and 82 or 38, 7), Position = UDim2.fromOffset(72 + (i == 1 and 0 or (i == 2 and 92 or 140)), 108) }, reg)
+	end
+	local function colonne(titre: string, x0: number, x1: number): Frame
+		texte(reg, { Text = titre, TextSize = 26, TextColor3 = C.terne, Size = UDim2.new(0, 200, 0, 28), Position = UDim2.new(x0, 0, 0, 132),
+			TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
+		local p = inst("Frame", { BackgroundColor3 = C.carbone, BorderSizePixel = 0, Size = UDim2.new(x1 - x0, 0, 0, 0), Position = UDim2.new(x0, 0, 0, 172),
+			AutomaticSize = Enum.AutomaticSize.None }, reg)
+		degrade(p, C.carbone2, C.carbone, 90)
+		inst("UIStroke", { Color = C.trait, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, p)
+		inst("Frame", { BackgroundColor3 = C.lavande, BackgroundTransparency = 0.4, BorderSizePixel = 0, Size = UDim2.new(0, 5, 1, 0) }, p)
+		return p
+	end
+	-- une LIGNE : rend le bouton (toute la ligne se touche) et de quoi écrire son état
+	E.rg = {}
+	local function ligne(p: Frame, rang: number, cle: string, ico: string, libelle: string, action: boolean?)
+		local Hl = 108
+		p.Size = UDim2.new(p.Size.X.Scale, 0, 0, rang * Hl)
+		local l = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, Hl), Position = UDim2.fromOffset(0, (rang - 1) * Hl) }, p)
+		if rang > 1 then inst("Frame", { BackgroundColor3 = C.trait, BackgroundTransparency = 0.4, BorderSizePixel = 0, Size = UDim2.new(1, -10, 0, 2), Position = UDim2.fromOffset(8, 0) }, l) end
+		local case = inst("Frame", { BackgroundColor3 = C.nuit, BorderSizePixel = 0, Size = UDim2.fromOffset(62, 62), Position = UDim2.new(0, 30, 0.5, 0), AnchorPoint = Vector2.new(0, 0.5) }, l)
+		inst("UIStroke", { Color = C.trait, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, case)
+		local ic = icone(case, ico, 4, C.cyan, UDim2.fromScale(0.5, 0.5), Vector2.new(0.5, 0.5))
+		texte(l, { Text = libelle, TextSize = 34, TextColor3 = C.texte, Size = UDim2.new(1, -330, 0, 36), Position = UDim2.new(0, 116, 0.5, 0), AnchorPoint = Vector2.new(0, 0.5),
+			TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 3 })
+		local o: any = { ico = ic }
+		if action then
+			-- une action : la flèche du web, à droite
+			icone(l, "droite", 3, C.cyan, UDim2.new(1, -34, 0.5, 0), Vector2.new(1, 0.5))
+		else
+			-- l'interrupteur : une glissière sombre, son curseur, ON (cyan, à droite) ou OFF (éteint, à gauche)
+			local inter = inst("Frame", { BackgroundColor3 = C.nuit, BorderSizePixel = 0, Size = UDim2.fromOffset(160, 62), Position = UDim2.new(1, -30, 0.5, 0), AnchorPoint = Vector2.new(1, 0.5) }, l)
+			o.trait = inst("UIStroke", { Color = C.trait, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, inter)
+			o.curseur = inst("Frame", { BackgroundColor3 = C.trait, BorderSizePixel = 0, Size = UDim2.fromOffset(58, 46), Position = UDim2.fromOffset(8, 8) }, inter)
+			o.mot = texte(inter, { Text = "OFF", TextSize = 28, TextColor3 = C.terne, Size = UDim2.fromOffset(86, 30), Position = UDim2.new(1, -8, 0.5, 0), AnchorPoint = Vector2.new(1, 0.5),
+				TextWrapped = false })
+		end
+		o.b = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Text = "", AutoButtonColor = false }, l)
+		o.b.Activated:Connect(function() Sons.jouer("tap") end)
+		o.ligne = l
+		E.rg[cle] = o
+	end
+	local ca = colonne("AUDIO", 0.043, 0.487)
+	ligne(ca, 1, "son", "son", T.son)
+	ligne(ca, 2, "musique", "musique", T.musique)
+	local cj = colonne(T.jeu, 0.513, 0.957)
+	ligne(cj, 1, "tuto", "volant", T.revoir, true)
+	if Config.FACILE_ACTIF then ligne(cj, 2, "facile", "coeur", T.facile) end -- (Sacha : « mets que le mode normal » — la ligne n'existe que si le mode est ouvert)
+	local _, rtP, rtB = penche(reg, UDim2.fromOffset(290, 104), UDim2.new(0, 60, 1, -34), Vector2.new(0, 1), C.carbone, C.cyan, C.encre, C.trait)
+	icone(rtP, "gauche", 4, C.cyan, UDim2.new(0, 56, 0.5, 0), Vector2.new(0, 0.5))
+	rtB.Text = T.retour
+	rtB.TextSize = 32
+	rtB.TextXAlignment = Enum.TextXAlignment.Left
+	inst("UIPadding", { PaddingLeft = UDim.new(0, 112) }, rtB)
+	inst("UIStroke", { Color = C.encre, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual }, rtB)
+	retour(rtB, rtP)
+	E.rgRetour = rtB
+	for _, d in reg:GetDescendants() do
+		if d:IsA("GuiObject") then d.ZIndex = 23 end
+	end
+
 	-- ══ LE CHOIX DU MODE (à la toute première partie) ══
 	local choix = inst("Frame", { Name = "Choix", BackgroundColor3 = C.nuit, BackgroundTransparency = 0.2, Size = UDim2.fromScale(1, 1), Visible = false, ZIndex = 40 }, racine)
 	E.choix = choix
@@ -9571,7 +9660,7 @@ function Hud.creer()
 	-- l'AURA de la partie et le MOTEUR ATTEINT avec sa photo 3D. À droite : la carte du DÉFI, les quatre chiffres de la partie,
 	-- BOUTIQUE | REGLAGES, et la paire des jeux mobiles HOME | REJOUER (le lingot : la seule plaque d'or).
 	-- Tout est mesuré sur le web (844 × 390) et porté sur 720 px de haut.
-	local mort = inst("Frame", { Name = "Mort", BackgroundColor3 = C.nuit, BackgroundTransparency = 0.06,
+	local mort = inst("Frame", { Name = "Mort", BackgroundColor3 = Color3.new(1, 1, 1), BackgroundTransparency = 0.06,
 		Size = UDim2.fromScale(1, 1), Visible = false, ZIndex = 30 }, racine)
 	E.mort = mort
 	degrade(mort, Color3.fromRGB(34, 16, 60), Color3.fromRGB(12, 8, 30), 60)
@@ -9768,6 +9857,19 @@ function Hud.defi(d: any?)
 	end
 end
 
+-- un interrupteur des RÉGLAGES : allumé (cyan, curseur à droite) ou éteint
+function Hud.reglage(cle: string, on: boolean)
+	local o = E.rg and E.rg[cle]
+	if not o or not o.mot then return end
+	o.mot.Text = on and "ON" or "OFF"
+	o.mot.TextColor3 = on and C.cyan or C.terne
+	o.mot.Position = UDim2.new(on and 0 or 1, on and 94 or -8, 0.5, 0)
+	o.curseur.Position = UDim2.fromOffset(on and 94 or 8, 8)
+	o.curseur.BackgroundColor3 = on and C.cyan or C.trait
+	o.trait.Color = on and C.cyan or C.trait
+	teinter(o.ico, on and C.cyan or C.terne)
+end
+
 -- les trois cases du bouton MISSIONS : n défis tenus sur trois
 function Hud.pastilles(n: number)
 	for i, p in E.misPips do p.BackgroundColor3 = (i <= n) and C.vert or C.trait end
@@ -9847,7 +9949,8 @@ function Hud.ecran(nom: string)
 	E.charge.Visible = nom == "charge"
 	E.menu.Visible = nom == "menu"
 	E.hud.Visible = nom == "course" or nom == "pause"
-	E.pause.Visible = nom == "pause" or nom == "reglages"
+	E.pause.Visible = nom == "pause"
+	E.reglages.Visible = nom == "reglages"
 	E.mort.Visible = nom == "mort"
 	E.tactile.Visible = Hud.tactile and nom == "course"
 	if nom == "menu" and Hud.surMenu then Hud.surMenu() end
@@ -10634,29 +10737,47 @@ local function bruit(l: { number }, per: number, x: number, y: number): number
 	return a + (b - a) * fx + (c - a + (a - b - c + d) * fx) * fy
 end
 
+-- LES DÔMES (bruit cellulaire PÉRIODIQUE) : un point par case, tiré au hasard ; la hauteur d'un dôme tombe en cloche avec la
+-- distance au point le plus proche. Des cumulus ronds, serrés, avec un pli franc là où deux dômes se touchent — le bruit en
+-- bourrelets d'avant dessinait des veines de marbre, pas des nuages (vu dans Studio et à l'aperçu hors ligne).
+local function points(rnd: Random, per: number): { number }
+	local t = table.create(per * per * 2)
+	for k = 1, per * per * 2 do t[k] = 0.15 + 0.7 * rnd:NextNumber() end
+	return t
+end
+local function dome(t: { number }, per: number, x: number, y: number): number
+	local i, j = math.floor(x), math.floor(y)
+	local mieux = 9
+	for dj = -1, 1 do
+		for di = -1, 1 do
+			local ci, cj = i + di, j + dj
+			local k = ((cj % per) * per + (ci % per)) * 2
+			local dx, dy = ci + t[k + 1] - x, cj + t[k + 2] - y
+			local d = dx * dx + dy * dy
+			if d < mieux then mieux = d end
+		end
+	end
+	return math.max(0, 1 - mieux / 0.72)
+end
+
 -- le champ de hauteurs H (0..1, négatif dans les trous) sur la période, N × N, dans un buffer de flottants
 local function champ(graine: number, ceder: () -> ()): buffer
 	local rnd = Random.new(graine + 4127)
 	local TB = tables(rnd)
 	local TW = tables(rnd) -- la déformation du domaine et les trous
+	local P1, P2, P3 = points(rnd, 7), points(rnd, 17), points(rnd, 41)
 	local h = buffer.create(N * N * 4)
-	local amp = { [0] = 0.46, 0.28, 0.16, 0.10 }
 	for y = 0, N - 1 do
 		local v = y / N
 		for x = 0, N - 1 do
 			local u = x / N
-			-- le domaine se tord d'un quart de cellule : les dômes perdent leur quadrillage
-			local wu = u * 8 + (bruit(TW[1], 16, u * 16, v * 16) - 0.5) * 0.5
-			local wv = v * 8 + (bruit(TW[1], 16, u * 16 + 3.7, v * 16 + 1.3) - 0.5) * 0.5
-			local s = 0
-			for o = 0, 3 do
-				local k = 2 ^ o
-				local n = bruit(TB[o], 8 * k, wu * k, wv * k)
-				-- le BOURRELET : |2n − 1| — des plis (adoucis : à vif, on lisait des crêtes de glacier) et des bosses rondes entre eux
-				local pli = 2 * n - 1
-				s += amp[o] * (math.sqrt(pli * pli + 0.012) - 0.1)
-			end
-			s = math.min(1, s * 1.75)
+			-- le domaine se tord : les dômes ne sont pas des ronds parfaits
+			local wu = u + (bruit(TW[1], 16, u * 16, v * 16) - 0.5) * 0.035 + (bruit(TW[3], 64, u * 64, v * 64) - 0.5) * 0.006
+			local wv = v + (bruit(TW[1], 16, u * 16 + 3.7, v * 16 + 1.3) - 0.5) * 0.035 + (bruit(TW[3], 64, u * 64 + 1.9, v * 64 + 5.1) - 0.5) * 0.006
+			-- trois tailles de cumulus : les massifs, les dômes, le chou-fleur ; plus un grain de bruit fin
+			local d1, d2, d3 = dome(P1, 7, wu * 7, wv * 7), dome(P2, 17, wu * 17, wv * 17), dome(P3, 41, wu * 41, wv * 41)
+			local s = 0.16 + 0.46 * d1 ^ 0.7 + 0.32 * d2 ^ 0.8 * (0.45 + 0.55 * d1) + 0.08 * d3 + 0.03 * (bruit(TB[3], 64, u * 64, v * 64) - 0.5)
+			s = math.clamp(s, 0, 1)
 			-- les rares TROUS (un grand bruit) : la mer s'y creuse
 			local gros = bruit(TW[0], 8, u * 8 + 0.4, v * 8 + 0.9)
 			local trou = 1 - math.clamp((gros - 0.09) / 0.12, 0, 1)
@@ -10683,13 +10804,15 @@ local function peindre(h: buffer, soleil: Vector3, ceder: () -> ()): buffer
 	for y = 0, N - 1 do
 		for x = 0, N - 1 do
 			local a = H(h, x, y)
-			-- la pente VERS le soleil : si le relief descend vers lui, la facette le regarde
-			local lum = math.clamp(0.55 + 13 * (a - H(h, x + ex, y + ez)) + 0.6 * (a - 0.35), 0, 1)
-			lum = lum * lum * (3 - 2 * lum) -- (une courbe franche : à contraste doux, tout sortait blanc laiteux)
-			local creux = 1 - 0.16 * (1 - math.clamp(a / 0.22, 0, 1))
+			-- la pente VERS le soleil, à deux échelles (le flanc du dôme, le flanc du massif) : si le relief descend vers lui, la
+			-- facette le regarde ; et les creux entre deux dômes restent dans l'ombre
+			local lum = math.clamp(0.40 + 12 * (a - H(h, x + ex, y + ez)) + 7 * (a - H(h, x + ex * 4, y + ez * 4)) + 5 * (a - H(h, x + ex * 12, y + ez * 12))
+				+ 0.9 * (a - 0.5), 0, 1)
+			lum = 0.5 * lum + 0.5 * lum * lum * (3 - 2 * lum) -- (à mi-chemin : la courbe franche découpait des aplats blancs sur bleu)
+			local creux = 1 - 0.2 * (1 - math.clamp(a / 0.3, 0, 1))
 			local r = (ombre.R + (sommet.R - ombre.R) * lum) * creux
 			local g = (ombre.G + (sommet.G - ombre.G) * lum) * creux
-			local b = (ombre.B + (sommet.B - ombre.B) * lum) * (0.5 + 0.5 * creux)
+			local b = (ombre.B + (sommet.B - ombre.B) * lum) * (0.6 + 0.4 * creux)
 			if a < 0 then
 				local t = math.min(1, -a / 0.25)
 				r += (trouC.R - r) * t
@@ -13364,9 +13487,11 @@ Config.CIEL = {
 	saturation = 0.34,
 	contraste = 0.2,
 	mer = rgb(0.84, 0.90, 0.92),          -- la mer de nuages (couleur du brouillard du matin)
-	merOmbre = Color3.fromRGB(128, 148, 186),   -- le versant à l'ombre des dômes (web : #6390B5)
-	merSommet = Color3.fromRGB(190, 188, 182),  -- les sommets au soleil (web : #FFF7E9 — assombri : Roblox éclaire par-dessus)
-	merTrou = Color3.fromRGB(86, 128, 172),     -- les rares trous (#367CA8)
+	-- (Roblox éclaire l'image par-dessus, × 1,4 environ : ces teintes sont celles du web divisées d'autant — à l'écran, des
+	-- sommets blancs et des versants bleu ciel, comme la capture du menu web)
+	merOmbre = Color3.fromRGB(104, 132, 166),   -- le versant à l'ombre des dômes
+	merSommet = Color3.fromRGB(182, 183, 184),  -- les sommets au soleil
+	merTrou = Color3.fromRGB(58, 104, 158),     -- les rares trous
 	merMenu = 620,                              -- m : au menu la caisse tombe de très haut, la mer est loin dessous
 }
 Config.ROUTE = {

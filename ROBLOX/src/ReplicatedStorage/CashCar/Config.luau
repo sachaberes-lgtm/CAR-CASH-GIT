@@ -169,9 +169,11 @@ Config.CIEL = {
 	saturation = 0.34,
 	contraste = 0.2,
 	mer = rgb(0.84, 0.90, 0.92),          -- la mer de nuages (couleur du brouillard du matin)
-	merOmbre = Color3.fromRGB(128, 148, 186),   -- le versant à l'ombre des dômes (web : #6390B5)
-	merSommet = Color3.fromRGB(190, 188, 182),  -- les sommets au soleil (web : #FFF7E9 — assombri : Roblox éclaire par-dessus)
-	merTrou = Color3.fromRGB(86, 128, 172),     -- les rares trous (#367CA8)
+	-- (Roblox éclaire l'image par-dessus, × 1,4 environ : ces teintes sont celles du web divisées d'autant — à l'écran, des
+	-- sommets blancs et des versants bleu ciel, comme la capture du menu web)
+	merOmbre = Color3.fromRGB(104, 132, 166),   -- le versant à l'ombre des dômes
+	merSommet = Color3.fromRGB(182, 183, 184),  -- les sommets au soleil
+	merTrou = Color3.fromRGB(58, 104, 158),     -- les rares trous
 	merMenu = 620,                              -- m : au menu la caisse tombe de très haut, la mer est loin dessous
 }
 Config.ROUTE = {

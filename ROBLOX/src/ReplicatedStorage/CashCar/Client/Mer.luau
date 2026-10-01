@@ -67,29 +67,47 @@ local function bruit(l: { number }, per: number, x: number, y: number): number
 	return a + (b - a) * fx + (c - a + (a - b - c + d) * fx) * fy
 end
 
+-- LES DÔMES (bruit cellulaire PÉRIODIQUE) : un point par case, tiré au hasard ; la hauteur d'un dôme tombe en cloche avec la
+-- distance au point le plus proche. Des cumulus ronds, serrés, avec un pli franc là où deux dômes se touchent — le bruit en
+-- bourrelets d'avant dessinait des veines de marbre, pas des nuages (vu dans Studio et à l'aperçu hors ligne).
+local function points(rnd: Random, per: number): { number }
+	local t = table.create(per * per * 2)
+	for k = 1, per * per * 2 do t[k] = 0.15 + 0.7 * rnd:NextNumber() end
+	return t
+end
+local function dome(t: { number }, per: number, x: number, y: number): number
+	local i, j = math.floor(x), math.floor(y)
+	local mieux = 9
+	for dj = -1, 1 do
+		for di = -1, 1 do
+			local ci, cj = i + di, j + dj
+			local k = ((cj % per) * per + (ci % per)) * 2
+			local dx, dy = ci + t[k + 1] - x, cj + t[k + 2] - y
+			local d = dx * dx + dy * dy
+			if d < mieux then mieux = d end
+		end
+	end
+	return math.max(0, 1 - mieux / 0.72)
+end
+
 -- le champ de hauteurs H (0..1, négatif dans les trous) sur la période, N × N, dans un buffer de flottants
 local function champ(graine: number, ceder: () -> ()): buffer
 	local rnd = Random.new(graine + 4127)
 	local TB = tables(rnd)
 	local TW = tables(rnd) -- la déformation du domaine et les trous
+	local P1, P2, P3 = points(rnd, 7), points(rnd, 17), points(rnd, 41)
 	local h = buffer.create(N * N * 4)
-	local amp = { [0] = 0.46, 0.28, 0.16, 0.10 }
 	for y = 0, N - 1 do
 		local v = y / N
 		for x = 0, N - 1 do
 			local u = x / N
-			-- le domaine se tord d'un quart de cellule : les dômes perdent leur quadrillage
-			local wu = u * 8 + (bruit(TW[1], 16, u * 16, v * 16) - 0.5) * 0.5
-			local wv = v * 8 + (bruit(TW[1], 16, u * 16 + 3.7, v * 16 + 1.3) - 0.5) * 0.5
-			local s = 0
-			for o = 0, 3 do
-				local k = 2 ^ o
-				local n = bruit(TB[o], 8 * k, wu * k, wv * k)
-				-- le BOURRELET : |2n − 1| — des plis (adoucis : à vif, on lisait des crêtes de glacier) et des bosses rondes entre eux
-				local pli = 2 * n - 1
-				s += amp[o] * (math.sqrt(pli * pli + 0.012) - 0.1)
-			end
-			s = math.min(1, s * 1.75)
+			-- le domaine se tord : les dômes ne sont pas des ronds parfaits
+			local wu = u + (bruit(TW[1], 16, u * 16, v * 16) - 0.5) * 0.035 + (bruit(TW[3], 64, u * 64, v * 64) - 0.5) * 0.006
+			local wv = v + (bruit(TW[1], 16, u * 16 + 3.7, v * 16 + 1.3) - 0.5) * 0.035 + (bruit(TW[3], 64, u * 64 + 1.9, v * 64 + 5.1) - 0.5) * 0.006
+			-- trois tailles de cumulus : les massifs, les dômes, le chou-fleur ; plus un grain de bruit fin
+			local d1, d2, d3 = dome(P1, 7, wu * 7, wv * 7), dome(P2, 17, wu * 17, wv * 17), dome(P3, 41, wu * 41, wv * 41)
+			local s = 0.16 + 0.46 * d1 ^ 0.7 + 0.32 * d2 ^ 0.8 * (0.45 + 0.55 * d1) + 0.08 * d3 + 0.03 * (bruit(TB[3], 64, u * 64, v * 64) - 0.5)
+			s = math.clamp(s, 0, 1)
 			-- les rares TROUS (un grand bruit) : la mer s'y creuse
 			local gros = bruit(TW[0], 8, u * 8 + 0.4, v * 8 + 0.9)
 			local trou = 1 - math.clamp((gros - 0.09) / 0.12, 0, 1)
@@ -116,13 +134,15 @@ local function peindre(h: buffer, soleil: Vector3, ceder: () -> ()): buffer
 	for y = 0, N - 1 do
 		for x = 0, N - 1 do
 			local a = H(h, x, y)
-			-- la pente VERS le soleil : si le relief descend vers lui, la facette le regarde
-			local lum = math.clamp(0.55 + 13 * (a - H(h, x + ex, y + ez)) + 0.6 * (a - 0.35), 0, 1)
-			lum = lum * lum * (3 - 2 * lum) -- (une courbe franche : à contraste doux, tout sortait blanc laiteux)
-			local creux = 1 - 0.16 * (1 - math.clamp(a / 0.22, 0, 1))
+			-- la pente VERS le soleil, à deux échelles (le flanc du dôme, le flanc du massif) : si le relief descend vers lui, la
+			-- facette le regarde ; et les creux entre deux dômes restent dans l'ombre
+			local lum = math.clamp(0.40 + 12 * (a - H(h, x + ex, y + ez)) + 7 * (a - H(h, x + ex * 4, y + ez * 4)) + 5 * (a - H(h, x + ex * 12, y + ez * 12))
+				+ 0.9 * (a - 0.5), 0, 1)
+			lum = 0.5 * lum + 0.5 * lum * lum * (3 - 2 * lum) -- (à mi-chemin : la courbe franche découpait des aplats blancs sur bleu)
+			local creux = 1 - 0.2 * (1 - math.clamp(a / 0.3, 0, 1))
 			local r = (ombre.R + (sommet.R - ombre.R) * lum) * creux
 			local g = (ombre.G + (sommet.G - ombre.G) * lum) * creux
-			local b = (ombre.B + (sommet.B - ombre.B) * lum) * (0.5 + 0.5 * creux)
+			local b = (ombre.B + (sommet.B - ombre.B) * lum) * (0.6 + 0.4 * creux)
 			if a < 0 then
 				local t = math.min(1, -a / 0.25)
 				r += (trouC.R - r) * t

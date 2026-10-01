@@ -27,7 +27,7 @@ Hud.FR = FR
 local T = FR and {
 	jouer = "JOUER", rejouer = "REJOUER", menu = "HOME", reprendre = "REPRENDRE", recommencer = "RECOMMENCER",
 	pause = "PAUSE", son = "SON", musique = "MUSIQUE", record = "RECORD", nouveau = "NOUVEAU RECORD !",
-	reglages = "REGLAGES", fermer = "FERMER", verse = "VERSES AU COMPTE", compte = "COMPTE :", meilleur = "MEILLEUR",
+	reglages = "REGLAGES", fermer = "FERMER", retour = "RETOUR", jeu = "JEU", revoir = "REVOIR L'AUTO-ECOLE", verse = "VERSES AU COMPTE", compte = "COMPTE :", meilleur = "MEILLEUR",
 	moteurAtteint = "MOTEUR ATTEINT", palier = "PALIER", encore = "ENCORE %d PIECES POUR", moteurMax = "LE PLUS GROS MOTEUR",
 	multiMax = "MULTI MAX", kmhMax = "KM/H MAX", zone = "ZONE", figures = "FIGURES", frenesie = "FRENESIE", distance = "DISTANCE", pieces = "PIECES",
 	aura = "AURA", moteur = "MOTEUR", nitro = "NITRO", air = "AIR", go = "GO !", niveau = "MER DE NUAGES",
@@ -50,7 +50,7 @@ local T = FR and {
 } or {
 	jouer = "PLAY", rejouer = "PLAY AGAIN", menu = "HOME", reprendre = "RESUME", recommencer = "RESTART",
 	pause = "PAUSE", son = "SOUND", musique = "MUSIC", record = "BEST", nouveau = "NEW RECORD!",
-	reglages = "SETTINGS", fermer = "CLOSE", verse = "PAID TO ACCOUNT", compte = "ACCOUNT:", meilleur = "BEST",
+	reglages = "SETTINGS", fermer = "CLOSE", retour = "BACK", jeu = "GAME", revoir = "REPLAY DRIVING SCHOOL", verse = "PAID TO ACCOUNT", compte = "ACCOUNT:", meilleur = "BEST",
 	moteurAtteint = "ENGINE REACHED", palier = "TIER", encore = "%d MORE COINS FOR", moteurMax = "THE BIGGEST ENGINE",
 	multiMax = "MAX MULTI", kmhMax = "MAX KM/H", zone = "ZONE", figures = "TRICKS", frenesie = "FRENZY", distance = "DISTANCE", pieces = "COINS",
 	aura = "AURA", moteur = "ENGINE", nitro = "NITRO", air = "AIR", go = "GO!", niveau = "SEA OF CLOUDS",
@@ -600,6 +600,75 @@ function Hud.creer()
 		if d:IsA("GuiObject") then d.ZIndex = 21 end
 	end
 
+	-- ══ RÉGLAGES (#mSet du web) : un écran à part — le titre, deux colonnes de lignes (AUDIO · JEU), RETOUR en bas à gauche ══
+	-- Une ligne = une icône dans sa case, un libellé, et à droite un interrupteur (ON / OFF) ou une action.
+	-- (fond BLANC sous le dégradé : un dégradé multiplie la couleur du cadre — sur du bleu nuit il sortait presque noir)
+	local reg = inst("Frame", { Name = "Reglages", BackgroundColor3 = Color3.new(1, 1, 1), BackgroundTransparency = 0.04, Size = UDim2.fromScale(1, 1), Visible = false, ZIndex = 22 }, racine)
+	E.reglages = reg
+	degrade(reg, Color3.fromRGB(46, 16, 62), Color3.fromRGB(10, 7, 24), 80)
+	texte(reg, { Text = T.reglages, TextSize = 78, TextColor3 = C.texte, Size = UDim2.fromOffset(800, 80), Position = UDim2.fromOffset(66, 22),
+		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 4 })
+	for i, c in { C.magenta, C.cyan, C.or_ } do
+		inst("Frame", { BackgroundColor3 = c, BorderSizePixel = 0, Size = UDim2.fromOffset(i == 1 and 82 or 38, 7), Position = UDim2.fromOffset(72 + (i == 1 and 0 or (i == 2 and 92 or 140)), 108) }, reg)
+	end
+	local function colonne(titre: string, x0: number, x1: number): Frame
+		texte(reg, { Text = titre, TextSize = 26, TextColor3 = C.terne, Size = UDim2.new(0, 200, 0, 28), Position = UDim2.new(x0, 0, 0, 132),
+			TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
+		local p = inst("Frame", { BackgroundColor3 = C.carbone, BorderSizePixel = 0, Size = UDim2.new(x1 - x0, 0, 0, 0), Position = UDim2.new(x0, 0, 0, 172),
+			AutomaticSize = Enum.AutomaticSize.None }, reg)
+		degrade(p, C.carbone2, C.carbone, 90)
+		inst("UIStroke", { Color = C.trait, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, p)
+		inst("Frame", { BackgroundColor3 = C.lavande, BackgroundTransparency = 0.4, BorderSizePixel = 0, Size = UDim2.new(0, 5, 1, 0) }, p)
+		return p
+	end
+	-- une LIGNE : rend le bouton (toute la ligne se touche) et de quoi écrire son état
+	E.rg = {}
+	local function ligne(p: Frame, rang: number, cle: string, ico: string, libelle: string, action: boolean?)
+		local Hl = 108
+		p.Size = UDim2.new(p.Size.X.Scale, 0, 0, rang * Hl)
+		local l = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, Hl), Position = UDim2.fromOffset(0, (rang - 1) * Hl) }, p)
+		if rang > 1 then inst("Frame", { BackgroundColor3 = C.trait, BackgroundTransparency = 0.4, BorderSizePixel = 0, Size = UDim2.new(1, -10, 0, 2), Position = UDim2.fromOffset(8, 0) }, l) end
+		local case = inst("Frame", { BackgroundColor3 = C.nuit, BorderSizePixel = 0, Size = UDim2.fromOffset(62, 62), Position = UDim2.new(0, 30, 0.5, 0), AnchorPoint = Vector2.new(0, 0.5) }, l)
+		inst("UIStroke", { Color = C.trait, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, case)
+		local ic = icone(case, ico, 4, C.cyan, UDim2.fromScale(0.5, 0.5), Vector2.new(0.5, 0.5))
+		texte(l, { Text = libelle, TextSize = 34, TextColor3 = C.texte, Size = UDim2.new(1, -330, 0, 36), Position = UDim2.new(0, 116, 0.5, 0), AnchorPoint = Vector2.new(0, 0.5),
+			TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 3 })
+		local o: any = { ico = ic }
+		if action then
+			-- une action : la flèche du web, à droite
+			icone(l, "droite", 3, C.cyan, UDim2.new(1, -34, 0.5, 0), Vector2.new(1, 0.5))
+		else
+			-- l'interrupteur : une glissière sombre, son curseur, ON (cyan, à droite) ou OFF (éteint, à gauche)
+			local inter = inst("Frame", { BackgroundColor3 = C.nuit, BorderSizePixel = 0, Size = UDim2.fromOffset(160, 62), Position = UDim2.new(1, -30, 0.5, 0), AnchorPoint = Vector2.new(1, 0.5) }, l)
+			o.trait = inst("UIStroke", { Color = C.trait, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, inter)
+			o.curseur = inst("Frame", { BackgroundColor3 = C.trait, BorderSizePixel = 0, Size = UDim2.fromOffset(58, 46), Position = UDim2.fromOffset(8, 8) }, inter)
+			o.mot = texte(inter, { Text = "OFF", TextSize = 28, TextColor3 = C.terne, Size = UDim2.fromOffset(86, 30), Position = UDim2.new(1, -8, 0.5, 0), AnchorPoint = Vector2.new(1, 0.5),
+				TextWrapped = false })
+		end
+		o.b = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Text = "", AutoButtonColor = false }, l)
+		o.b.Activated:Connect(function() Sons.jouer("tap") end)
+		o.ligne = l
+		E.rg[cle] = o
+	end
+	local ca = colonne("AUDIO", 0.043, 0.487)
+	ligne(ca, 1, "son", "son", T.son)
+	ligne(ca, 2, "musique", "musique", T.musique)
+	local cj = colonne(T.jeu, 0.513, 0.957)
+	ligne(cj, 1, "tuto", "volant", T.revoir, true)
+	if Config.FACILE_ACTIF then ligne(cj, 2, "facile", "coeur", T.facile) end -- (Sacha : « mets que le mode normal » — la ligne n'existe que si le mode est ouvert)
+	local _, rtP, rtB = penche(reg, UDim2.fromOffset(290, 104), UDim2.new(0, 60, 1, -34), Vector2.new(0, 1), C.carbone, C.cyan, C.encre, C.trait)
+	icone(rtP, "gauche", 4, C.cyan, UDim2.new(0, 56, 0.5, 0), Vector2.new(0, 0.5))
+	rtB.Text = T.retour
+	rtB.TextSize = 32
+	rtB.TextXAlignment = Enum.TextXAlignment.Left
+	inst("UIPadding", { PaddingLeft = UDim.new(0, 112) }, rtB)
+	inst("UIStroke", { Color = C.encre, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual }, rtB)
+	retour(rtB, rtP)
+	E.rgRetour = rtB
+	for _, d in reg:GetDescendants() do
+		if d:IsA("GuiObject") then d.ZIndex = 23 end
+	end
+
 	-- ══ LE CHOIX DU MODE (à la toute première partie) ══
 	local choix = inst("Frame", { Name = "Choix", BackgroundColor3 = C.nuit, BackgroundTransparency = 0.2, Size = UDim2.fromScale(1, 1), Visible = false, ZIndex = 40 }, racine)
 	E.choix = choix
@@ -618,7 +687,7 @@ function Hud.creer()
 	-- l'AURA de la partie et le MOTEUR ATTEINT avec sa photo 3D. À droite : la carte du DÉFI, les quatre chiffres de la partie,
 	-- BOUTIQUE | REGLAGES, et la paire des jeux mobiles HOME | REJOUER (le lingot : la seule plaque d'or).
 	-- Tout est mesuré sur le web (844 × 390) et porté sur 720 px de haut.
-	local mort = inst("Frame", { Name = "Mort", BackgroundColor3 = C.nuit, BackgroundTransparency = 0.06,
+	local mort = inst("Frame", { Name = "Mort", BackgroundColor3 = Color3.new(1, 1, 1), BackgroundTransparency = 0.06,
 		Size = UDim2.fromScale(1, 1), Visible = false, ZIndex = 30 }, racine)
 	E.mort = mort
 	degrade(mort, Color3.fromRGB(34, 16, 60), Color3.fromRGB(12, 8, 30), 60)
@@ -815,6 +884,19 @@ function Hud.defi(d: any?)
 	end
 end
 
+-- un interrupteur des RÉGLAGES : allumé (cyan, curseur à droite) ou éteint
+function Hud.reglage(cle: string, on: boolean)
+	local o = E.rg and E.rg[cle]
+	if not o or not o.mot then return end
+	o.mot.Text = on and "ON" or "OFF"
+	o.mot.TextColor3 = on and C.cyan or C.terne
+	o.mot.Position = UDim2.new(on and 0 or 1, on and 94 or -8, 0.5, 0)
+	o.curseur.Position = UDim2.fromOffset(on and 94 or 8, 8)
+	o.curseur.BackgroundColor3 = on and C.cyan or C.trait
+	o.trait.Color = on and C.cyan or C.trait
+	teinter(o.ico, on and C.cyan or C.terne)
+end
+
 -- les trois cases du bouton MISSIONS : n défis tenus sur trois
 function Hud.pastilles(n: number)
 	for i, p in E.misPips do p.BackgroundColor3 = (i <= n) and C.vert or C.trait end
@@ -894,7 +976,8 @@ function Hud.ecran(nom: string)
 	E.charge.Visible = nom == "charge"
 	E.menu.Visible = nom == "menu"
 	E.hud.Visible = nom == "course" or nom == "pause"
-	E.pause.Visible = nom == "pause" or nom == "reglages"
+	E.pause.Visible = nom == "pause"
+	E.reglages.Visible = nom == "reglages"
 	E.mort.Visible = nom == "mort"
 	E.tactile.Visible = Hud.tactile and nom == "course"
 	if nom == "menu" and Hud.surMenu then Hud.surMenu() end

@@ -2194,7 +2194,27 @@ local function majBoutonsSon()
 	E.btFacile.Text = T.facile .. (facile() and " ON" or " OFF")
 	E.btSonP.Text = T.son .. (Sons.actif and " ON" or " OFF")
 	E.btMusP.Text = T.musique .. (Sons.musiqueActive and " ON" or " OFF")
+	Hud.reglage("son", Sons.actif)
+	Hud.reglage("musique", Sons.musiqueActive)
+	Hud.reglage("facile", facile())
 end
+-- l'écran des RÉGLAGES (les mêmes interrupteurs que la pause : une seule vérité, Sons et le profil)
+E.rgRetour.Activated:Connect(function()
+	if Hud.ecranCourant() == "reglages" then Hud.ecran(mode == "garage" and "garage" or retourReglages) end
+end)
+E.rg.son.b.Activated:Connect(function() Sons.actif = not Sons.actif; majBoutonsSon() end)
+E.rg.musique.b.Activated:Connect(function() Sons.musiqueActive = not Sons.musiqueActive; majBoutonsSon() end)
+if E.rg.facile then
+	E.rg.facile.b.Activated:Connect(function()
+		reglage("facile", not facile())
+		reglage("facileChoisi", true)
+		majBoutonsSon()
+	end)
+end
+E.rg.tuto.b.Activated:Connect(function()
+	reglage("tuto", false) -- la leçon revient à la prochaine partie
+	Hud.toast(tr("L'AUTO-ECOLE REVIENT A LA PROCHAINE PARTIE", "DRIVING SCHOOL IS BACK NEXT RUN"), Hud.C.vert)
+end)
 E.btSonP.Activated:Connect(function() Sons.actif = not Sons.actif; majBoutonsSon() end)
 E.btMusP.Activated:Connect(function() Sons.musiqueActive = not Sons.musiqueActive; majBoutonsSon() end)
 E.btFacile.Activated:Connect(function()
