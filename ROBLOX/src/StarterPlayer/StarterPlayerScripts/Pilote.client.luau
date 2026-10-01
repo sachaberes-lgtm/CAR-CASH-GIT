@@ -29,7 +29,7 @@ local HudScore = require(CL:WaitForChild("HudScore"))
 local Missions = require(CL:WaitForChild("Missions"))
 -- (Luau refuse plus de 200 variables locales dans une fonction — le premier niveau du script en est une : la caméra et les
 -- nuages vivent dans la table KA)
-local KA: any = { Camera = require(CL:WaitForChild("Camera")), Nuages = require(CL:WaitForChild("Nuages")),
+local KA: any = { Camera = require(CL:WaitForChild("Camera")), Nuages = require(CL:WaitForChild("Nuages")), Titre = require(CL:WaitForChild("Titre")),
 	pos = Vector3.zero, vise = Vector3.zero, up = Vector3.yAxis, fov = 72, V = {}, refletK = 0, envoiT = 0 }
 
 local M, SPD = Config.M, Config.SPD
@@ -1794,7 +1794,14 @@ local function camera(dt: number)
 			KA.vise += Vector3.new(math.sin(t * 47) * a9, math.sin(t * 37 + 1.3) * a9 * 0.8, 0)
 			secousse = math.max(0, secousse - 3 * dt)
 		end
-	else -- menu (la CHUTE du web) : la caisse à GAUCHE de l'écran, nez qui plonge vers la droite
+	elseif KA.Titre.pret then -- le menu : L'ÉCRAN TITRE v3 (Client/Titre)
+		local cfT, fovT = KA.Titre.vue(fiche)
+		KA.pos, KA.vise, KA.up, KA.fov = cfT.Position, cfT.Position + cfT.LookVector * (50 * M), cfT.UpVector, fovT
+		KA.Camera.etat.fov = fovT
+		cam.FieldOfView = fovT
+		cam.CFrame = cfT
+		return
+	else -- (le titre n'est pas encore prêt) la caisse à GAUCHE de l'écran, nez qui plonge vers la droite
 		local av = Vector3.new(menuCap.X, 0, menuCap.Z).Unit
 		local dr = av:Cross(Vector3.yAxis)
 		-- (chuteRender du web) la vue est EN HAUTEUR (~20°) et plonge sur la caisse : la mer de nuages remplit l'écran
@@ -1915,6 +1922,7 @@ local function allerMenu()
 	montrerCaisse(true)
 	KA.pos = carCF.Position + Vector3.yAxis * (10 * M) + menuCap:Cross(Vector3.yAxis) * (20 * M)
 	KA.vise = carCF.Position
+	KA.Titre.montrer(true)
 	Hud.ecran("menu")
 	E.menuRecord.Text = record > 0 and (T.record .. " " .. Hud.argent(record)) or ""
 	evEtat:FireServer("course", false)
@@ -1928,6 +1936,7 @@ local function nouvellePartie()
 	TU.rates, TU.pause, TU.msg, TU.msgT, TU.vraiment = 0, 0, nil, 0, 0
 	E.coach.Visible = false
 	zoneN = ecole and 0 or 1
+	KA.Titre.montrer(false)
 	remettreObjets(ZONES[zoneN])
 	activer(ZONES[zoneN])
 	preparer(2, Piste.suite(ZONES[1].piste :: Piste.Piste))
@@ -2073,7 +2082,19 @@ E.btPasser.Activated:Connect(function()
 end)
 E.btFacileOui.Activated:Connect(function() choisir(true) end)
 E.btFacileNon.Activated:Connect(function() choisir(false) end)
-E.btJouer.Activated:Connect(function() if mode == "menu" then jouer(nouvellePartie) end end)
+E.btJouer.Activated:Connect(function()
+	if mode ~= "menu" or KA.Titre.enPique() then return end
+	jouer(function()
+		if not KA.Titre.pret then
+			nouvellePartie()
+			return
+		end
+		-- JOUER : la caisse du titre PIQUE (1,75 s), le voile blanc monte, et la course démarre dessous
+		Hud.ecran("vide")
+		Sons.jouer("decollage")
+		KA.Titre.lancer(function() if mode == "menu" then nouvellePartie() end end)
+	end)
+end)
 -- ── LE GARAGE : parcourir, acheter, équiper (voir Client/Garage) ──
 local function ouvrirGarage()
 	if mode ~= "menu" then return end
@@ -2318,8 +2339,13 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 		elseif mode == "menu" or mode == "garage" then
 			-- la caisse PIQUE sur place : un souffle qui la berce
 			local t = os.clock()
-			local pos = repere(S_CHUTE, 1).Position + Vector3.new(0, H_CHUTE * M + math.sin(t * 1.1) * 0.5 * M, 0)
-			carCF = CFrame.new(pos) * menuRot * CFrame.Angles(math.sin(t * 0.8) * 0.03, 0, math.sin(t * 1.3) * 0.02)
+			if KA.Titre.pret then
+				-- L'ÉCRAN TITRE v3 : la caisse tombe très haut dans le ciel, entre les cumulus ; JOUER la fait piquer
+				carCF = KA.Titre.caisse(dt, function(k: number) if k > 0 then HudScore.flash("#ffffff", k) end end)
+			else
+				local pos = repere(S_CHUTE, 1).Position + Vector3.new(0, H_CHUTE * M + math.sin(t * 1.1) * 0.5 * M, 0)
+				carCF = CFrame.new(pos) * menuRot * CFrame.Angles(math.sin(t * 0.8) * 0.03, 0, math.sin(t * 1.3) * 0.02)
+			end
 		end
 		-- les éclats de l'explosion
 		if #eclats > 0 then
@@ -2372,6 +2398,12 @@ while not Mer.pret and os.clock() - t0 < 15 do
 end
 preparer(2, Piste.suite(z1.piste :: Piste.Piste))
 if profil.reglages and profil.reglages.tuto == false then preparer(0, nil) end
+-- le plan du titre (la place de la caisse dans le ciel) tout de suite, ses cumulus dès que les gabarits sont prêts
+task.spawn(function()
+	local okT, errT = pcall(KA.Titre.plan, z1.piste)
+	if not okT then warn("[CashCar] titre : " .. tostring(errT)) end
+	if mode == "menu" then KA.Titre.montrer(true) end
+end)
 allerMenu()
 end
 

@@ -485,6 +485,18 @@ function Nuages.suivre(liste: { Nuage }, car: Vector3, cam: Vector3, auSol: bool
 	end
 	return dedans, quoi, lequel
 end
+-- un nuage SEUL, centré sur lui-même (les cumulus du titre) : rend la pièce, et le décalage à ajouter au centre voulu (studs)
+function Nuages.seul(k: number, r: number): (MeshPart?, Vector3)
+	Nuages.modeles()
+	local g = gabarit(k)
+	if not g then return nil, Vector3.zero end
+	local rr = math.min(r, TAILLE_MAX / (math.max(g.taille.X, g.taille.Y, g.taille.Z) / UNITE * M))
+	local ech = Vector3.new(rr, rr, rr) * (M / UNITE)
+	local p = g.p:Clone()
+	p.Size = g.taille * ech
+	local milieu = (g.fiche.base + g.fiche.sommet) * 0.5
+	return p, g.centre * UNITE * ech - Vector3.new(0, milieu * rr * M, 0)
+end
 -- remettre les nuages d'une zone à neuf (nouvelle partie)
 function Nuages.remettre(liste: { Nuage })
 	for _, c in liste do

@@ -18,7 +18,7 @@ function Ciel.poser(Lighting: Lighting, ws: Workspace)
 	local C = Config.CIEL
 	Lighting.ClockTime = C.heure
 	Lighting.GeographicLatitude = 23
-	Lighting.Brightness = 2.6
+	Lighting.Brightness = 2.05 -- (a 2,6 les laques et la mer de nuages partaient au blanc : le jeu web est sature et contraste)
 	Lighting.Ambient = C.ambiance
 	Lighting.OutdoorAmbient = C.ambianceExt
 	Lighting.EnvironmentDiffuseScale = 1
