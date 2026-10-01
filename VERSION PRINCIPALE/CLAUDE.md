@@ -1,5 +1,21 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LA MÊME VERSION POUR TOUT LE MONDE — LA MISE À JOUR TOUTE SEULE (2026-10-01, Léo : « trouve un moyen pour qu'on joue au même jeu, juste — fais-moi ça en un coup »)
+- Le problème : deux joueurs voyaient deux jeux. Une appli posée sur l'écran d'accueil de l'iPhone REPREND la page gardée en mémoire
+  (aucun rechargement pendant des jours), un onglet resté ouvert garde l'ancienne version ; on ne savait même pas laquelle on avait.
+- `vercel-build.sh` grave le commit publié (`VERCEL_GIT_COMMIT_SHA`) dans le jeu — il remplace le jeton de `const CC_BUILD` dans le
+  `<head>` (UNE seule occurrence dans index.html : ne pas l'écrire ailleurs, même en commentaire) — et pose `jouer/version.json`
+  (`{"v":"<commit>"}`, servi en no-store par vercel.json, jamais rangé par sw.js).
+- LA MISE À JOUR TOUTE SEULE (bloc juste avant « fin ajout MOBILE / PWA ») : au lancement (+4 s), à chaque retour au premier plan et
+  toutes les 5 min, le jeu lit version.json ; en retard → il se RECHARGE dès qu'on n'est pas en course (menu, garage, écran de mort ;
+  jamais pendant le LÂCHER ni en arrière-plan), sauvegarde écrite d'abord ; sur l'ordi la page-cadre entière (`window.top`). Garde-fou :
+  2 rechargements au plus par version et par session (`sessionStorage.ccMaj`). Copie locale (jeton intact), file://, Capacitor : rien.
+- LE NUMÉRO : « VERSION 506f117 » en bas des RÉGLAGES (`#mvVer`) et sous le jeu sur l'ordi (`#ccVer`), avec « · MENU LEO » / « · SANS
+  CIEL » si l'adresse porte `?menu=leo` / `?chute=0` — deux joueurs comparent leurs deux écrans d'un coup d'œil. `dbgMaj()` : état.
+- MESURÉ (banc `maj.mjs` sur une copie construite par vercel-build.sh, servie en local) : même version → aucun rechargement ; nouvelle
+  version au menu → rechargé (2 fois au plus) ; publiée en pleine course → rien pendant 30 s de course, rechargé juste après la mort.
+- ⚠ Un appareil qui tourne une version d'AVANT ce mécanisme doit être rechargé une fois à la main (ou l'appli fermée/rouverte).
+
 ## L'ORDI = L'IPHONE DE SACHA, ENCOCHE COMPRISE (2026-10-01, Léo : « son emplacement des touches est différent — que sur mon ordi, tous les ordis, ça ressemble à ce que Sacha a »)
 - MESURÉ : le cadre de l'ordi avait déjà la TAILLE de l'iPhone 13 Pro de Sacha (844 × 390), pas ses MARGES. Sur le vrai téléphone iOS
   rentre l'interface de 47 px de chaque côté couché (21 en bas ; debout 47 en haut, 34 en bas) : au menu la colonne de boutons tombait

@@ -38,7 +38,8 @@
 //  v30 (2026-09-30) : les fruits font SPLOTCH (4 prises par fruit) — sons-banque.js?v=8.
 //  v42 (2026-09-30) : LA FRONDE (sortie de virage) et le TRAIN DE BOOSTS — son fronde, sons-banque.js?v=10.
 //  v45 (2026-09-30) : le SON du niveau 1 — nuages.ambiance (l'air d'altitude) et chute.vent (la chute libre du menu) — sons-banque.js?v=11 ; puis le NIVEAU 1 v2 (image).
-const CACHE = 'cashcar-v48';
+//  v49 (2026-10-01) : LA MISE À JOUR TOUTE SEULE — version.json n'est jamais mis en cache (le jeu le lit pour se recharger s'il est en retard).
+const CACHE = 'cashcar-v49';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
@@ -57,6 +58,9 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET') return;
+  // version.json (LA MISE À JOUR TOUTE SEULE, 2026-10-01) : le commit publié, lu par le jeu pour savoir s'il est en retard —
+  // JAMAIS servi ni rangé par le cache (cache-first le figerait, et chaque lecture ?t=… ajouterait une entrée).
+  if (/\/version\.json$/.test(new URL(req.url).pathname)) return;
 
   // Navigation (chargement de la page) : réseau d'abord → toujours la dernière version,
   // repli sur le cache si hors-ligne.

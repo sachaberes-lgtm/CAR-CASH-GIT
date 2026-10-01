@@ -41,6 +41,11 @@
    `node synchro-versions.js` (racine du dépôt) la régénère depuis la principale. Forçages ponctuels : `?tel=1` / `?pc=1`.
    (Déclarée au niveau global — un `const` de script classique est visible du grand script, qui la lit.) */
 const EDITION='mobile';
+/* LA MÊME VERSION POUR TOUT LE MONDE (2026-10-01, Léo : « trouve un moyen pour qu'on joue au même jeu, juste ») : `vercel-build.sh`
+   remplace ce jeton par le commit publié et pose `version.json` à côté du jeu. Le jeu compare les deux et se recharge tout seul
+   s'il est en retard (voir « LA MISE À JOUR TOUTE SEULE », près du service worker). En copie locale le jeton reste tel quel : rien ne se vérifie. */
+const CC_BUILD='__CC_BUILD__';
+const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(/[?&]menu=leo\b/.test(location.search)?' · MENU LEO':'')+(/[?&]chute=0\b/.test(location.search)?' · SANS CIEL':'');
 (function(){
   var q=location.search,M=window.matchMedia;
   if(window.top!==window){ // DANS la colonne : les touches frappées pendant que la page-cadre avait le focus arrivent par message
@@ -78,6 +83,7 @@ const EDITION='mobile';
     /* LE BOUTON TOURNER (2026-09-30, Léo : « ajoute une option où je peux regarder en mode portrait » — repris de sa branche
        `version-leolei-2026`, 26/09) : le téléphone passe COUCHÉ ⇄ DEBOUT sans recharger — le jeu, dans la colonne, ne reçoit qu'un
        resize (fovFit, HUD, garage suivent seuls), on peut tourner en pleine course. L'adresse garde le choix (`?colonne=portrait`). */
+    var vv=document.createElement('div');vv.id='ccVer';vv.textContent='VERSION '+CC_VER;document.body.appendChild(vv); // à comparer d'un coup d'œil avec les réglages du téléphone
     var tb=document.createElement('button');tb.id='tourne';tb.type='button';document.body.appendChild(tb);
     var tLbl=function(){tb.textContent=debout?'\u21bb  PAYSAGE':'\u21bb  PORTRAIT';tb.setAttribute('aria-label',debout?'Tenir le téléphone couché':'Tenir le téléphone debout');};
     tLbl();
@@ -102,7 +108,8 @@ html.colonne,html.colonne body{height:100%;margin:0;overflow:hidden;background:#
 html.colonne body{display:flex;align-items:center;justify-content:center;
   background:radial-gradient(ellipse 70% 42% at 50% 50%,#241a4a 0,#120c2a 48%,#07050f 100%)}
 html.colonne.debout body{background:radial-gradient(ellipse 42% 70% at 50% 50%,#241a4a 0,#120c2a 48%,#07050f 100%)}
-html.colonne body>*:not(#colonne):not(#tourne):not(#encoche){display:none!important}
+html.colonne body>*:not(#colonne):not(#tourne):not(#encoche):not(#ccVer){display:none!important}
+html.colonne #ccVer{position:fixed;left:14px;bottom:10px;z-index:9;font:600 10px/1 system-ui,-apple-system,sans-serif;letter-spacing:1px;color:rgba(255,255,255,.38);pointer-events:none}
 /* l'écran du 13 Pro : coins de 47 pt (le zoom du cadre les agrandit avec lui) et son encoche, posée par le script */
 html.colonne.encoche #colonne{border-radius:47px}
 html.colonne #encoche{position:fixed;z-index:8;background:#000;pointer-events:none}
@@ -121,6 +128,7 @@ html.colonne #colonne{display:block;flex:none;border:0;background:#07050f;
 /* L'ENCOCHE DANS LA COLONNE DE L'ORDI (2026-10-01, voir le <head>) : les zones sûres de l'iPhone 13 Pro de Sacha. Toutes les
    marges du jeu lisent var(--ccX, env(safe-area-inset-X)) : un vrai téléphone ne pose pas --ccX et garde les siennes. */
 html.telCadre{--ccT:0px;--ccB:21px;--ccL:47px;--ccR:47px}
+#mSet p.ccVer{margin:14px 0 2px;text-align:center;font:600 11px/1.3 var(--sans,system-ui,sans-serif);letter-spacing:1px;color:var(--tx3,#9a90c8);opacity:.8;max-width:none} /* le numéro de version (LA MISE À JOUR TOUTE SEULE) */
 @media (orientation:portrait){html.telCadre{--ccT:47px;--ccB:34px;--ccL:0px;--ccR:0px}}
   html,body{margin:0;padding:0;overflow:hidden;background:#07050f;font-family:var(--pix);user-select:none} /* (2026-09-29) #07050f, l'encre des écrans : plus de flash blanc entre l'écran natif et le jeu */
   canvas{display:block}
@@ -5682,6 +5690,7 @@ html body #garage:not(.menu) .gTab{font-size:var(--f1)} /* les onglets étaient 
           <div class="mLigne lien" data-m="imp"><i class="pxi pxi-importer" aria-hidden="true"></i><span class="tpL">RESTAURER UN CODE</span></div>
         </div>
         <div class="pbtn pb-red wide mWipe" data-m="wipe" role="button"><i class="pxi pxi-corbeille" aria-hidden="true"></i><span class="tpL">EFFACER MA PROGRESSION</span></div>
+        <p class="ccVer" id="mvVer"></p>
       </div>
       <div class="mDock"><div class="pbtn mBack" data-m="back" role="button" aria-label="Retour"><i class="pxi pxi-gauche" aria-hidden="true"></i>RETOUR</div></div>
     </div>
@@ -39001,6 +39010,32 @@ if(!(IS_MOBILE||/[?&]touch=1/.test(location.search))){
 // Sous Capacitor (app native iOS), window.Capacitor est défini et le protocole est capacitor:// — un
 // service worker n'y a pas sa place : on ne l'installe pas.
 if('serviceWorker'in navigator&&!window.Capacitor&&(location.protocol==='http:'||location.protocol==='https:')){ addEventListener('load',function(){ navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).catch(function(){}); }); }
+/* LA MISE À JOUR TOUTE SEULE (2026-10-01, Léo : « trouve un moyen pour qu'on joue au même jeu, juste — fais-moi ça en un coup »).
+   Deux joueurs pouvaient voir deux jeux : une appli posée sur l'écran d'accueil de l'iPhone REPREND la page gardée en mémoire (aucun
+   rechargement pendant des jours), un onglet resté ouvert garde l'ancienne. Le jeu connaît son commit (CC_BUILD, gravé par
+   vercel-build.sh) ; au lancement, à chaque retour au premier plan et toutes les 5 min il lit `version.json` (le commit publié, jamais
+   mis en cache : sw.js le laisse passer, vercel.json le sert en no-store). En retard → il se RECHARGE dès qu'on n'est pas en pleine
+   course (menu, garage, écran de mort), sauvegarde écrite d'abord ; sur l'ordi, c'est la page-cadre entière qui se recharge.
+   Garde-fou : 2 rechargements au plus par version et par session (si le site sert encore l'ancienne page, on n'insiste pas).
+   Copie locale / file:// / appli Capacitor : rien. Le numéro se lit en bas des RÉGLAGES (et sous le jeu sur l'ordi). */
+(function(){
+  var e=document.getElementById('mvVer');if(e)e.textContent='VERSION '+CC_VER;
+  if(/^__/.test(CC_BUILD)||window.Capacitor||!(location.protocol==='http:'||location.protocol==='https:'))return;
+  var neuf=null,vu=0;
+  function sur(){return(!started||gameOver)&&!document.hidden&&!(typeof GAR!=='undefined'&&GAR.go);}
+  function recharge(){
+    try{var t=JSON.parse(sessionStorage.getItem('ccMaj')||'{}'),n=t.v===neuf?t.n|0:0;if(n>=2)return;sessionStorage.setItem('ccMaj',JSON.stringify({v:neuf,n:n+1}));}catch(_){return;}
+    try{SAVE.flush();}catch(_){}
+    try{window.top.location.reload();}catch(_){location.reload();}
+  }
+  function verifie(){vu=Date.now();
+    fetch('version.json?t='+vu,{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(j){
+      if(j&&typeof j.v==='string'&&j.v&&j.v!==CC_BUILD){neuf=j.v;if(sur())recharge();}}).catch(function(){});}
+  window.dbgMaj=function(){return {build:CC_BUILD,neuf:neuf,sur:sur(),started:started,gameOver:gameOver,go:!!(typeof GAR!=='undefined'&&GAR.go),cache:document.hidden};};
+  setTimeout(verifie,4000);
+  setInterval(function(){if(neuf){if(sur())recharge();}else if(!document.hidden&&Date.now()-vu>3e5)verifie();},1e4);
+  document.addEventListener('visibilitychange',function(){if(!document.hidden&&Date.now()-vu>15e3)verifie();});
+})();
 /* ============ fin ajout MOBILE / PWA ============ */
 /* ============ LE BANC DU TÉLÉPHONE (?banc=1) — (2026-09-27, passe perf iPhone, tour 2) ============
    Sacha : « on repasse en mode pixel assez vite après avoir lancé ». Le banc du PC imite un iPhone mais la puce d'Apple (GPU à tuiles,
