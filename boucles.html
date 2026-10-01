@@ -170,7 +170,8 @@ async function joue(b,el){
   const meme=cur&&cur.id===b.id;stop();if(meme)return;
   if(FICHIER){const a9=new Audio(b.f);a9.loop=true;a9.volume=+document.getElementById('vol').value;a9.play();
     cur={id:b.id,el9:a9,el:el,lg:b.dur||8};el.classList.add('joue');el.querySelector('.btn').innerHTML=STOP;return;}
-  audio();await ac.resume();const buf=await tampon(b);
+  audio();await ac.resume();sortie.gain.value=+document.getElementById('vol').value; // le volume se relit à chaque lecture (jamais un 0 resté collé)
+  const buf=await tampon(b);
   // la boucle sans couture : l'amorce AAC sautée, bouclée sur sa durée exacte
   const ex=b.dur?buf.duration-b.dur:0,a=ex>.03?Math.min(ex,2112/buf.sampleRate):0,fin=b.dur?a+b.dur:buf.duration;
   const s=ac.createBufferSource(),g=ac.createGain();s.buffer=buf;s.loop=true;s.loopStart=a;s.loopEnd=fin;g.gain.value=0;
