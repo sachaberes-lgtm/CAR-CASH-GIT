@@ -514,7 +514,17 @@ def adoucir(L, R, haut=11000, bas=30):
     """le coup de chiffon : coupe ce qui pique au-dessus de `haut`, ce qui gronde sous `bas` (par bus : les couches restent additives)"""
     return filtre(filtre(L, 'low', haut), 'high', bas), filtre(filtre(R, 'low', haut), 'high', bas)
 
+def voix_menee(notes, prec, centre=62):
+    """L'ENCHAÎNEMENT DES VOIX : chaque note de l'accord se place à l'octave la plus proche de la voix d'avant (ou du centre,
+    au 1er accord) — l'harmonie glisse au lieu de sauter d'un bloc à l'autre."""
+    out = []
+    for i, n in enumerate(sorted(notes)):
+        cible = sorted(prec)[min(i, len(prec) - 1)] if prec else centre - 4 + 3 * i
+        k = round((cible - n) / 12); out.append(n + 12 * k)
+    return sorted(out)
+
 def neon2(sel=None):
+    neon2._prec = None  # la 1re nappe de chaque rendu part du centre (le rendu reste déterministe)
     """(2026-10-01, v2 « bonifiée » — Léo : « original mais un peu trop brut, trouve un moyen de bonifier ») : même morceau,
     même grille, mêmes variantes, mais MIXÉ : grosse caisse −5 dB et moins de clic (elle écrasait tout de 10 à 15 dB),
     pompe plus douce (.75 → .45), carrés arrondis (triangle + un peu de carré, filtrés), nappe en chorus avec une sous-octave
@@ -522,7 +532,7 @@ def neon2(sel=None):
     S = {'pad': 'A', 'arp': 'A', 'basse': 'A', 'bat': 'A', 'lead': 'A', 'energie': 'A'}; S.update(sel or {})
     M = Morceau(118, mesures=8, graine=12); de = M.de; T = 57  # la mineur
     prog = [0, 0, 5, 5, 2, 2, 6, 6]  # i · VI · III · VII, deux mesures chacun
-    M.patron('kick', 'x...x...x...x...', lambda: kick(de, 150, 46, .42, .25, 1.2), .62)
+    M.patron('kick', 'x...x...x...x...', lambda: kick(de, 150, 46, .42, .3, 1.3), .78)  # v2.2 : .62 → .78, « plus actif »
     # RYTHME — A : clap + charley ouverte · B : + doubles-croches fantômes, shaker, roulement en mesure 8
     M.patron('bat', '....x.......x...', lambda: clap(de, .24), .4, .1)
     M.patron('bat', '..x...x...x...x.', lambda: charley(de, True, 7000), .14, .2)
@@ -543,7 +553,8 @@ def neon2(sel=None):
             b.pose(M.t(m, p), balaye(s, np.full(nn, 320 + 650 * (p % 4 == 2))), .5 if S['basse'] == 'A' else .6)
         # NAPPE — A : l'accord · B : ouverte (9e, octave en haut, filtre qui s'ouvre) ; + une sous-octave ronde
         if m % 2 == 0:
-            notes = accord(T, 'min', d) + ([deg(T + 12, 'min', d + 1), deg(T + 12, 'min', d + 4)] if S['pad'] == 'B' else [])
+            notes = voix_menee(accord(T, 'min', d), getattr(neon2, '_prec', None)); neon2._prec = notes  # v2.2 : enchaînement des voix
+            notes = notes + ([deg(T + 12, 'min', d + 1), deg(T + 12, 'min', d + 4)] if S['pad'] == 'B' else [])
             for note in notes:
                 l, r2 = supersaw(note, M.temps * 8 + .6, 7, 12, de)
                 e = env(len(l), .45, 9, 1, .6, M.temps * 8 - .1)
@@ -595,7 +606,7 @@ def neon2(sel=None):
         vib = 1 + .005 * np.sin(2 * np.pi * 5.2 * t) * np.clip((t - .15) / .4, 0, 1)
         s = (.55 * scie(fg * vib, nn) + .45 * tri(fg * vib * 1.004, nn)) * env(nn, .05, 9, 1, .18, dur)
         ld.pose(M.t(mm, p), balaye(s, 1000 + 1700 * np.exp(-t / .35)), .2); prev = n
-    g = pompe(M.n, kicks, .45, .2)
+    g = pompe(M.n, kicks, .55, .18)  # v2.2 : .45 → .55
     for k in ('basse', 'pad', 'arp', 'energie'): M.bus[k].L *= g; M.bus[k].R *= g
     pad.L, pad.R = chorus(pad.L, pad.R, 16, 3, .35)
     for k, h in (('bat', 9500), ('arp', 9000), ('lead', 8500), ('energie', 10000), ('pad', 9000), ('basse', 5000), ('kick', 8000)):
@@ -620,16 +631,53 @@ def neon2_transition():
     L = L + rL * .5; R = R + rR * .5
     pk = max(np.abs(L).max(), np.abs(R).max()); return L * .7 / pk, R * .7 / pk
 
+def neon2_rupture():
+    """LA RUPTURE HARMONIEUSE (v2.2, Léo : « si la voiture s'arrête, la musique en même temps — une rupture harmonieuse ») :
+    au moment où la vitesse s'effondre, un ACCORD qui s'épanouit au lieu d'un silence sec — la mineur add9 en nappe large
+    (attaque de 60 ms), une cloche FM qui sonne la quinte, un grave qui tombe d'une octave (le poids du choc), une réverbe de
+    4 s. Dans la tonalité de NÉON DRIVE : il se pose sur la nappe qui reste."""
+    de = Des(14); n = int(4.5 * SR); L = np.zeros(n); R = np.zeros(n)
+    for note in (57, 64, 67, 71, 72):  # la · mi · sol · si · do
+        l, r = supersaw(note, 4.2, 7, 14, de); e = env(len(l), .35, 9, 1, 1.4, .9)  # v2.3 : une FLORAISON (attaque .35 s), plus un choc
+        L[:len(l)] += filtre(l * e, 'low', 2600) * .2; R[:len(r)] += filtre(r * e, 'low', 2600) * .2
+    c = fm(76, 3.5, 3.5, 2.5, .5, 1.3); L[:len(c)] += c * .12; R[:len(c)] += c * .12
+    t = np.arange(int(1.2 * SR)) / SR
+    boum = np.sin(2 * np.pi * np.cumsum(hz(45) * 2 ** (-t / .5)) / SR) * np.exp(-t / .35)
+    # v2.3 (« la musique ne doit pas se casser, plutôt une belle transition ») : plus de grave qui tombe
+    rL, rR = reverbe(L, R, 4., 4500, .03, de); L = L + rL * .6; R = R + rR * .6
+    pk = max(np.abs(L).max(), np.abs(R).max()); return L * .7 / pk, R * .7 / pk
+
+def neon2_calme():
+    """L'ACCALMIE (v2.3, Léo : « pas casser, une belle transition — construire un nouveau son à partir de chaque inspi ») : la
+    partie qui naît quand la voiture s'arrête ou s'effondre. Même grille, même tempo, calée sur la boucle (8 mesures) : des
+    cloches de verre en noires qui montent l'accord, une guitare pincée qui répond en contretemps, un souffle doux — rien qui
+    frappe. Elle se pose sur la NAPPE (qui ne s'arrête jamais) et s'efface quand le groove revient."""
+    M = Morceau(118, mesures=8, graine=15); de = M.de; T = 57
+    prog = [0, 0, 5, 5, 2, 2, 6, 6]; cl = M.piste('cloches'); gt = M.piste('guitare')
+    for m in range(8):
+        d = prog[m]; ch = accord(T + 12, 'min', d)
+        for i, p in enumerate((0, 4, 8, 12)):
+            n = ch[(i + (m % 2) * 2) % len(ch)] + (12 if i == 3 else 0)
+            cl.pose(M.t(m, p), fm(n, 2.5, 3.5, 1.8, .4, 1.1), .1, -.4 + .25 * i)
+        for p in (6, 14):
+            gt.pose(M.t(m, p), karplus(deg(T + 12, 'min', d + (4 if p == 6 else 2)), 1.8, .45, .996, de), .2, .45)
+    z = M.piste('souffle'); w = filtre(de.bruit(M.n), 'low', 900) * .03; z.L += w; z.R += np.roll(w, 4000)
+    eL, eR = echo(cl.L + gt.L, cl.R + gt.R, M.temps * .75, .4, 4, clair=3000)
+    rL, rR = reverbe(cl.L + gt.L + eL, cl.R + gt.R + eR, 3.8, 5000, .04, de)
+    M.piste('fx').L += rL * .5 + eL * .4; M.piste('fx').R += rR * .5 + eR * .4
+    return M, fin(M, {'cloches': 1, 'guitare': 1, 'souffle': 1, 'fx': 1})
+
 VARIANTES = {  # (nom, bus, seuil, sol, clé de variante, [(variante, moteur minimum)])
-    'neon-drive-2': dict(fn=neon2, transition=neon2_transition, titre='NÉON DRIVE · MOTEUR', bpm=118, ton=-4, couches=[
+    'neon-drive-2': dict(fn=neon2, transition=neon2_transition, rupture=neon2_rupture, calme=neon2_calme, titre='NÉON DRIVE · MOTEUR', bpm=118, ton=-4, couches=[
         # (2026-10-01, Léo : « au début laisse vraiment la base, et évolue aussi avec le temps ») : la BASE (nappe + basse) seule
         # au départ ; chaque autre partie attend son heure (dernier nombre, en secondes de musique), puis la vitesse l'ouvre.
+        # v2.2 (« c'était bien avant, plus actif ; le temps peut être moins ») : heures ÷ 3 — tout est là en ~35 s.
         ('NAPPE', ['pad'], 0, False, 'pad', [('A', 0), ('B', .35)], 0),
         ('BASSE', ['basse'], .3, False, 'basse', [('A', 0), ('B', .2)], 0),
-        ('GROSSE CAISSE', ['kick'], .6, True, None, [('A', 0)], 15),
-        ('ARPEGE', ['arp'], .45, False, 'arp', [('A', 0), ('C', 0), ('B', .25)], 30),
-        ('RYTHME', ['bat'], .7, False, 'bat', [('A', 0), ('B', .3)], 45),
-        ('LEAD', ['lead'], .9, False, 'lead', [('A', 0), ('B', 0), ('C', .5)], 70),
-        ('ENERGIE', ['energie'], .85, False, 'energie', [('A', .45)], 90),
+        ('GROSSE CAISSE', ['kick'], .55, True, None, [('A', 0)], 5),
+        ('ARPEGE', ['arp'], .4, False, 'arp', [('A', 0), ('C', 0), ('B', .25)], 10),
+        ('RYTHME', ['bat'], .65, False, 'bat', [('A', 0), ('B', .3)], 16),
+        ('LEAD', ['lead'], .88, False, 'lead', [('A', 0), ('B', 0), ('C', .5)], 25),
+        ('ENERGIE', ['energie'], .85, False, 'energie', [('A', .45)], 35),
     ]),
 }

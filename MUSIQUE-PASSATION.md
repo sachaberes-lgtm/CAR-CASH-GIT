@@ -21,6 +21,8 @@
 8. « NÉON DRIVE est pas mal, ajoute-la, on joue sur la map 1 NUAGES pour tester l'effet vitesse » → fait (§5 bis).
 9. « Qu'elle évolue encore plus, ni trop vite ni trop lentement, bien rythmée, vitesse ET moteur » → v2 (§5 ter).
 10. « Au début laisse vraiment la base, évolue aussi avec le temps ; un peu trop brut, bonifie » → v2.1 (§5 quater).
+11. « Plus actif, ça doit suivre, rupture harmonieuse » + « détails selon la nitro d'affilée / l'accélération » + « pas casser,
+    une belle transition, un nouveau son par inspi » → v2.2-2.3 (§5 quinquies).
 
 ## 2. Les fichiers
 
@@ -184,6 +186,31 @@ Léo : « au début laisse vraiment la base, et évolue aussi avec le temps ; c'
 - Mesuré : page (VITESSE 100 %, +15 S) → base seule à 0:06, grosse caisse 0:24, arpège 0:42, rythme 1:00, ÉNERGIE au palier ;
   jeu → base seule 13 s à 94 % de vitesse, grosse caisse à 15 s. Zéro erreur.
 - Page : TEMPS affiché, bouton **+15 S**, SIMULER UNE COURSE dure 2 min (2 vols, 2 nitros, virages, un palier / 10 s).
+
+## 5 quinquies. v2.2-2.3 — PLUS ACTIF, ÇA SUIT LA VOITURE, L'ÉLAN, L'ACCALMIE (2026-10-01)
+
+Léo : « c'était bien avant, plus actif, plus harmonieux ; le temps peut être moins ; il faut que ça SUIVE — si la voiture
+s'arrête, la musique en même temps, une rupture harmonieuse » · « plus de détails selon comment on accélère en nitro d'affilée,
+l'accélération normale pareil avec moins d'intensité » · « la musique ne doit pas se casser, plutôt une belle transition —
+construire un nouveau son à partir de chaque inspi ».
+- **Plus actif** : heures ÷ 3 (GROSSE CAISSE 5 s · ARPÈGE 10 · RYTHME 16 · LEAD 25 · ÉNERGIE 35), entrées sur le TEMPS,
+  grosse caisse .62 → .78, pompe .55. **Plus harmonieux** : la nappe enchaîne ses accords au plus court (`voix_menee`).
+- **Ça suit** : un FILTRE sur la musique ← vitesse (1,3 kHz à l'arrêt → 19 kHz lancé), en continu.
+- **L'ÉLAN** (0-1, `etat().elan`) : nitro = .35 d'emblée +.18/s tenue, relâchée < 1,5 s puis reprise = ENCHAÎNÉE (l'élan
+  continue) ; accélération normale = élan plafonné à .45. Effets : aigus jusqu'à +6 dB, un SOUFFLE synthétisé qui grimpe (nitro),
+  ÉNERGIE ouverte > .55, le lead ne se repose plus > .5, variantes chargées du RYTHME et de l'ARPÈGE si > .75 tenu 1 s (rendues
+  quand il retombe), nitro LÂCHÉE après 1,5 s = crash sur le temps.
+- **L'ACCALMIE** (pas une coupure) : vitesse qui s'effondre (chute > .32 sous .55 — plot, choc) ou arrêt progressif → sur le
+  TEMPS suivant le groove se retire en fondu, le son se ferme doucement (900 Hz), une FLORAISON (`neon-drive-2--rupture.m4a`,
+  la mineur add9, attaque .35 s) fait le pont et la partie ACCALMIE (`neon-drive-2--accalmie.m4a` : cloches de verre + guitare
+  pincée, `neon2_calme`, calée sur la boucle) prend le relais sur la nappe. RELANCE (vitesse > .45) : la montée part, son crash
+  tombe sur la mesure, le groove revient SUR cette mesure, l'accalmie s'efface.
+- Réglages : `MV_REGLES` (musique-vitesse.js). Mesuré (page, muet) : croisière = tout ; plot → ACCALMIE, filtre 2 kHz → 900 Hz ;
+  relance → groove revenu, élan .23 (accélération) ; nitro tenue → élan .98, ÉNERGIE + LEAD + variantes chargées ; arrêt
+  progressif → ACCALMIE. Jeu : couches à leur heure, élan .21 à l'accélération, zéro erreur.
+- Page : bouton **FREIN** (maintenu), NITRO maintenu fait accélérer, SIMULER UNE COURSE (100 s : plot, nitro tenue, nitro
+  enchaînée, arrêt, relances), la carte affiche ÉLAN et ACCALMIE. La logique de la page tourne sur une minuterie (pas sur
+  l'affichage) : elle suit même onglet caché, comme le son.
 
 ## 6. CE QUI RESTE À FAIRE (intégration au jeu)
 

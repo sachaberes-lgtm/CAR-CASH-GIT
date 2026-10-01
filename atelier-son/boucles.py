@@ -581,13 +581,24 @@ def rendre_variantes(vid, spec):
             c['rms'] = c['variantes'][0]['rms']; couches.append(c)
     finally:
         mod.FIN_BRUT = False; MUET.clear()
+    ru = None
+    if spec.get('rupture'):
+        uL, uR = spec['rupture'](); f = vid + '--rupture'; wav = os.path.join(SORTIE, f + '.wav'); ecrit_wav(wav, uL, uR)
+        subprocess.run(['afconvert', '-f', 'm4af', '-d', 'aac', '-b', '160000', '-q', '127', wav, os.path.join(SORTIE, f + '.m4a')], check=True); os.remove(wav)
+        ru = {'f': 'assets/audio/music/boucles/' + f + '.m4a'}
+    ca = None
+    if spec.get('calme'):  # l'ACCALMIE : une boucle calée, au niveau des couches (−12 dB sous le morceau complet)
+        _, (cL, cR) = spec['calme'](); cL = cL * .25; cR = cR * .25; f = vid + '--accalmie'; wav = os.path.join(SORTIE, f + '.wav'); ecrit_wav(wav, cL, cR)
+        subprocess.run(['afconvert', '-f', 'm4af', '-d', 'aac', '-b', '160000', '-q', '127', wav, os.path.join(SORTIE, f + '.m4a')], check=True); os.remove(wav)
+        ca = {'f': 'assets/audio/music/boucles/' + f + '.m4a'}
+        print('   ACCALMIE RMS %.1f dB' % (20 * np.log10(np.sqrt(((cL ** 2 + cR ** 2) / 2).mean()))))
     tL, tR = spec['transition']()
     f = vid + '--transition'; wav = os.path.join(SORTIE, f + '.wav'); ecrit_wav(wav, tL, tR)
     subprocess.run(['afconvert', '-f', 'm4af', '-d', 'aac', '-b', '160000', '-q', '127', wav, os.path.join(SORTIE, f + '.m4a')], check=True); os.remove(wav)
     Mn, (Ln, Rn) = fn({})  # le morceau complet, normalisé (pour la forme d'onde de la page)
     return {'id': vid, 'titre': spec['titre'], 'bpm': spec['bpm'], 'ton': spec['ton'], 'mesures': Mn.mes, 'dur': round(lg / SR, 5),
             'couches': couches, 'transition': {'f': 'assets/audio/music/boucles/' + f + '.m4a', 'avance': round(4 * 60 / spec['bpm'], 5)},
-            'pics': pics(Ln, Rn)}
+            'rupture': ru, 'accalmie': ca, 'pics': pics(Ln, Rn)}
 
 def pics(L, R, n=600):
     m = np.maximum(np.abs(L), np.abs(R)); k = len(m) // n
@@ -640,6 +651,6 @@ if __name__ == '__main__':
         if not d.get('couches'): continue
         cs = [{k: c[k] for k in ('nom', 'seuil', 'sol', 'rms')} | {'temps': c.get('temps', 0)} | {'variantes': c.get('variantes') or [{'v': 'A', 'f': c['f'], 'moteur': 0, 'rms': c['rms']}]} for c in d['couches']]
         jeu[d['id']] = {'titre': d['titre'], 'bpm': d['bpm'], 'ton': d['ton'], 'mesures': d['mesures'], 'dur': d['dur'], 'couches': cs,
-                        'transition': d.get('transition')}
+                        'transition': d.get('transition'), 'rupture': d.get('rupture'), 'accalmie': d.get('accalmie')}
     open(os.path.join(SORTIE, 'couches-jeu.js'), 'w').write('window.COUCHES_JEU=' + json.dumps(jeu, ensure_ascii=False) + ';\n')
     print('ok →', SORTIE)

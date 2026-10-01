@@ -85,6 +85,7 @@ h2:first-child{margin-top:0}
     <button class="bt" id="plus15" title="Avance le temps de 15 secondes">+15 S</button>
     <button class="bt" id="pal" title="Un palier moteur gagné : montée + crash sur la mesure suivante">PALIER +1</button>
     <button class="bt" id="sim" title="Une course simulée : départ arrêté, accélération, un saut, la nitro, un virage, le crash">SIMULER UNE COURSE</button>
+    <button class="bt" id="frein" title="Maintiens : la voiture freine jusqu'à l'arrêt (l'ACCALMIE)">FREIN</button>
     <button class="bt" id="ench" title="À la fin d'un tour, passe à la boucle suivante">ENCHAINER</button>
     <span class="etat" id="etat">—</span>
   </div>
@@ -215,13 +216,14 @@ function dessine(i,p){
 LISTE.forEach((b,i)=>dessine(i,null));
 let dernier=-1,derTour=0;
 // LA COURSE SIMULÉE : [seconde, vitesse, en vol, nitro, légende]
-const SIM=[[0,0,0,0,'ARRET'],[3,.15,0,0,'DEMARRAGE'],[8,.55,0,0,'ACCELERE'],[14,.95,0,0,'CROISIERE'],[22,1,1,0,'EN VOL'],[25,1,0,0,'POSE !'],
-  [34,.6,0,0,'VIRAGE'],[38,1,0,0,'RELANCE'],[48,1,1,0,'EN VOL'],[51,1,0,0,'POSE !'],[58,1.25,0,1,'NITRO'],[63,1.05,0,0,''],[75,.5,0,0,'VIRAGE SERRE'],
-  [79,1,0,0,'RELANCE'],[95,1.25,0,1,'NITRO'],[100,1,0,0,''],[110,1,1,0,'EN VOL'],[113,1,0,0,'POSE !'],[119,1,0,0,''],[120,0,0,0,'CRASH']];
-const SIM_FIN=124;
+const SIM=[[0,0,0,0,'ARRET'],[3,.2,0,0,'DEMARRAGE'],[9,.7,0,0,'ACCELERE'],[14,1,0,0,'CROISIERE'],[20,1,1,0,'EN VOL'],[23,1,0,0,'POSE !'],
+  [27,1.05,0,1,'NITRO TENUE'],[33,1.25,0,0,'NITRO LACHEE'],[37,1,0,0,'CROISIERE'],[39.5,1,0,0,''],[40,.3,0,0,'PLOT ! ACCALMIE'],[46,.3,0,0,''],
+  [50,.9,0,0,'RELANCE'],[55,1,0,0,''],[56,1.15,0,1,'NITRO'],[57.5,1.15,0,0,''],[58.3,1.2,0,1,'NITRO ENCHAINEE'],[60,1.2,0,0,''],[60.6,1.25,0,1,''],
+  [65,1.25,0,0,''],[68,1,0,0,'CROISIERE'],[70,1,0,0,''],[72.5,.03,0,0,'ARRET : ACCALMIE'],[80,.03,0,0,''],[86,.9,0,0,'RELANCE'],[95,1,0,0,''],[96,0,0,0,'CRASH']];
+const SIM_FIN=100;
 function simAt(t){for(let k=SIM.length-1;k>=0;k--)if(t>=SIM[k][0]){const a=SIM[k],b=SIM[k+1]||a,u=b===a?0:(t-a[0])/(b[0]-a[0]);
   return{v:a[1]+(b[1]-a[1])*(a[4]==='CRASH'?0:Math.min(1,u)),vol:!!a[2],nitro:!!a[3],leg:a[4]||SIM.slice(0,k).reverse().find(x=>x[4])[4]};}}
-(function boucle(){
+function logique(){ // LA LOGIQUE MUSICALE, toutes les 50 ms (une minuterie, pas l'affichage : elle continue onglet caché, comme le son)
   if(sim){const t=(performance.now()-sim)/1000;if(t>SIM_FIN){sim=performance.now();simP=null;motCur=0;tJeu0=performance.now();}const e=simAt(Math.min(t,SIM_FIN-.01));vitCur=e.v;
     document.getElementById('vit').value=Math.round(vitCur*100);document.getElementById('vitV').textContent=Math.round(vitCur*100)+'%';
     simVol=e.vol;if(e.nitro!==nitro)setNitro(e.nitro);
@@ -230,7 +232,10 @@ function simAt(t){for(let k=SIM.length-1;k>=0;k--)if(t>=SIM[k][0]){const a=SIM[k
     document.getElementById('tpsV').textContent=Math.floor(tj/60)+':'+String(Math.floor(tj%60)).padStart(2,'0');
     const st=mv.etat(),c=cartes[cur];c.querySelectorAll('.cou i').forEach((el,j)=>el.style.setProperty('--g',st.gains[j]));
     c.querySelectorAll('.cou span').forEach((el,j)=>{if(st.variantes&&st.variantes[j]&&LISTE[cur].couches[j].variantes)el.textContent=st.variantes[j]+' · '+Math.round(LISTE[cur].couches[j].seuil*100)+'%';});
-    const mk=c.querySelector('.mk');if(mk)mk.textContent='+'+st.rattrapage;}
+    const mk=c.querySelector('.mk');if(mk)mk.textContent='+'+st.rattrapage+(st.elan!=null?' · ELAN '+Math.round(st.elan*100)+'%'+(st.boost?' +':'')+(st.rupture?' · ACCALMIE':''):'');}
+}
+setInterval(logique,50);
+(function boucle(){
   if(cur!=null){const b=LISTE[cur];dessine(cur,pos()/b.dur);
     const tt=tours();if(ench&&src&&tt>derTour){derTour=tt;const n=(cur+1)%LISTE.length;joue(n);}else derTour=tt;
     if(dernier!==cur&&dernier>=0)dessine(dernier,null);dernier=cur;}
@@ -244,6 +249,12 @@ document.getElementById('vol').addEventListener('input',function(){if(sortie)vol
 document.getElementById('vol9').addEventListener('input',volFiltre);
 document.getElementById('vit').addEventListener('input',function(){simArrete();vitCur=this.value/100;document.getElementById('vitV').textContent=this.value+'%';});
 function simArrete(){if(!sim)return;sim=null;simVol=false;setNitro(false);document.getElementById('sim').classList.remove('on');}
+const fb=document.getElementById('frein');let frein=false;
+fb.addEventListener('pointerdown',e=>{e.preventDefault();simArrete();frein=true;fb.classList.add('on');});
+['pointerup','pointerleave','pointercancel'].forEach(ev=>fb.addEventListener(ev,()=>{frein=false;fb.classList.remove('on');}));
+setInterval(function(){if(sim)return;let c=null; // hors simulation, NITRO et FREIN pilotent la vitesse comme une vraie caisse
+  if(frein)c=Math.max(0,vitCur-.12);else if(nitro)c=Math.min(1.25,vitCur+.04);if(c==null)return;vitCur=c;
+  document.getElementById('vit').value=Math.round(vitCur*100);document.getElementById('vitV').textContent=Math.round(vitCur*100)+'%';},50);
 document.getElementById('plus15').addEventListener('click',function(){tJeu0-=15000;if(sim)sim-=15000;});
 document.getElementById('mot').addEventListener('input',function(){motCur=this.value/100;document.getElementById('motV').textContent=this.value+'%';});
 document.getElementById('pal').addEventListener('click',function(){motCur=Math.min(1,motCur+1/12);const m=document.getElementById('mot');m.value=Math.round(motCur*100);document.getElementById('motV').textContent=m.value+'%';if(mvOn&&mv.palier)mv.palier(motCur);});
