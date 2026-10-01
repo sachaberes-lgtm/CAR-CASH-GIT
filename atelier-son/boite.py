@@ -76,5 +76,9 @@ class Boite(http.server.BaseHTTPRequestHandler):
 
 
 if __name__ == '__main__':
+    try:
+        serveur = http.server.ThreadingHTTPServer(('127.0.0.1', PORT), Boite)
+    except OSError:   # déjà lancée (par Claude ou dans un autre terminal) : rien à faire, elle reçoit déjà
+        print('LA BOÎTE est déjà ouverte sur http://localhost:%d — rien à faire, tu peux envoyer.' % PORT); raise SystemExit(0)
     print('LA BOÎTE → http://localhost:%d (messages : %s)' % (PORT, MSG))
-    http.server.ThreadingHTTPServer(('127.0.0.1', PORT), Boite).serve_forever()
+    serveur.serve_forever()
