@@ -652,7 +652,7 @@ function Hud.creer()
 	texte(pm, { Text = T.moteurAtteint, TextSize = 26, TextColor3 = C.texte2, Size = UDim2.new(1, 0, 0, 28), Position = UDim2.fromOffset(0, 18), TextWrapped = false })
 	-- la PHOTO : le moteur du palier, en 3D, qui tourne (rempli par Client/MoteurCarte à la fin de la partie)
 	E.mMoteurVue = inst("ViewportFrame", { BackgroundTransparency = 1, Size = UDim2.new(1, -20, 0, 180), Position = UDim2.fromOffset(10, 50),
-		Ambient = Color3.fromRGB(150, 150, 170), LightColor = Color3.fromRGB(255, 250, 240), LightDirection = Vector3.new(-0.5, -1, -0.6) }, pm)
+		Ambient = Color3.fromRGB(78, 76, 96), LightColor = Color3.fromRGB(190, 182, 172), LightDirection = Vector3.new(-0.5, -1, -0.6) }, pm) -- (vu dans Studio : à 150 / 255 le moteur sortait blanc)
 	E.mMoteurNom = texte(pm, { Text = "", TextSize = 20, TextColor3 = C.or_, Size = UDim2.new(1, -16, 0, 22), Position = UDim2.fromOffset(8, 232), TextWrapped = false })
 	E.mMoteurNomEchelle = inst("UIScale", {}, E.mMoteurNom)
 	E.mMoteurPalier = texte(pm, { Text = "", RichText = true, TextSize = 26, TextColor3 = C.texte2, Size = UDim2.new(1, 0, 0, 46), Position = UDim2.fromOffset(0, 258), TextWrapped = false })

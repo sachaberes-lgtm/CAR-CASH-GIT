@@ -299,6 +299,53 @@ function Maillage.piece(d: { v: string, t: string }, echelle: number, opt: Optio
 	local mp, centre = Maillage.seul(piece, d, echelle, opt)
 	return mp, centre or Vector3.zero
 end
+-- Un maillage écrit À LA MAIN (le crâne du dragon) : tris = une liste de triangles { p1, p2, p3, c1, c2, c3 } (positions et
+-- couleurs par sommet). Rend la pièce (ancrée, double face, centrée sur sa boîte), le centre de la boîte et sa taille.
+local function brut(tris: { { any } }): (MeshPart?, Vector3, Vector3)
+	local ok, em = pcall(function() return AssetService:CreateEditableMesh() end)
+	if not ok or not em then return nil, Vector3.zero, Vector3.zero end
+	local mn, mx = Vector3.new(math.huge, math.huge, math.huge), Vector3.new(-math.huge, -math.huge, -math.huge)
+	for _, t in tris do
+		for n = 1, 3 do mn, mx = mn:Min(t[n]), mx:Max(t[n]) end
+	end
+	local centre = (mn + mx) / 2
+	local cids: { [number]: number } = {}
+	for _, t in tris do
+		local f = em:AddTriangle(em:AddVertex(t[1] - centre), em:AddVertex(t[2] - centre), em:AddVertex(t[3] - centre))
+		local ids = table.create(3)
+		for n = 1, 3 do
+			local c: Color3 = t[3 + n]
+			local cle = math.floor(c.R * 255 + 0.5) * 65536 + math.floor(c.G * 255 + 0.5) * 256 + math.floor(c.B * 255 + 0.5)
+			local cid = cids[cle]
+			if not cid then
+				cid = em:AddColor(c, 1)
+				cids[cle] = cid
+			end
+			ids[n] = cid
+		end
+		em:SetFaceColors(f, ids)
+	end
+	local okF, fige = pcall(function() return AssetService:CreateEditableMeshAsync(Content.fromObject(em), { FixedSize = true }) end)
+	if okF and fige then
+		em:Destroy()
+		em = fige
+	end
+	local okP, mp = pcall(function()
+		return AssetService:CreateMeshPartAsync(Content.fromObject(em), { CollisionFidelity = Enum.CollisionFidelity.Box })
+	end)
+	if not okP or not mp then return nil, Vector3.zero, Vector3.zero end
+	mp.Anchored = true
+	mp.CanCollide = false
+	mp.CanQuery = false
+	mp.CanTouch = false
+	mp.CastShadow = false
+	mp.DoubleSided = true
+	return mp, centre, mx - mn
+end
+function Maillage.brut(tris: { { any } }): (MeshPart?, Vector3, Vector3)
+	local mp, centre, taille = Maillage.seul(brut, tris)
+	return mp, centre or Vector3.zero, taille or Vector3.zero
+end
 function Maillage.fusion(liste: { any }, echelle: number, teinte: ((Color3) -> Color3)?): (MeshPart?, Vector3)
 	local mp, centre = Maillage.seul(fusion, liste, echelle, teinte)
 	return mp, centre or Vector3.zero

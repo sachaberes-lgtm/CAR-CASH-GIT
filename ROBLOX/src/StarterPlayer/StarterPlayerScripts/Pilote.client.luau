@@ -255,7 +255,7 @@ local G = {
 	hopY = 0, hopV = 0, choc = 0, -- LA POSE SANS SAUT : la hauteur qui reste à la pose, sa vitesse, la secousse due au contact
 	lgS = 240, lgK = 0, lgV = 0, lgAcc = 20, -- LA LIGNE PARFAITE : la prochaine abscisse, fruit (0) ou pad (1), la vitesse et l'accélération lissées
 }
-local NTR = { on = false, t = 0, pal = 0, boost = 0, k = 0, kc = 0 }
+local NTR = { on = false, t = 0, pal = 0, boost = 0, k = 0, kc = 0, gT = 0 }
 local NTR_BOOST, NTR_BOOST_MAX, NTR_T = 0.1, 1.6, 2
 -- vol
 local fallPos, fallVel, prevPos = Vector3.zero, Vector3.zero, Vector3.zero
@@ -425,6 +425,9 @@ local function nitroooTick(dt: number)
 	if NTR.on and not actif then NTR.on = false end
 	if actif then
 		NTR.t += dt
+		-- la TENUE (0 → 1 en 10 s) : la tête du dragon grossit, devient opaque, s'embrase (Client/Dragon)
+		local u = math.clamp(NTR.t / 10, 0, 1)
+		NTR.gT = u * u * (3 - 2 * u)
 		local pal = math.floor(NTR.t) -- UN PALIER par seconde tenue
 		if pal > NTR.pal and NTR.boost < NTR_BOOST_MAX - 0.001 then
 			NTR.pal = pal
@@ -438,8 +441,9 @@ local function nitroooTick(dt: number)
 	else
 		NTR.boost = math.max(0, NTR.boost - dt * 1.4) -- au lâcher : retombe en ~1 s
 	end
+	-- (web) plus on booste longtemps, plus elle brûle : 0,6 → 1 avec la tenue, et le coup de chaud d'un palier (~0,6 s)
+	local cible = actif and math.max((NTR.kc > 0) and 1 or 0, 0.6 + 0.4 * NTR.gT) or 0
 	NTR.kc = math.max(0, NTR.kc - dt * 1.6)
-	local cible = actif and 1 or 0
 	NTR.k += (cible - NTR.k) * math.min(1, dt * (cible > NTR.k and 9 or 3.2))
 	if actif then secousse = math.max(secousse, 0.08 * NTR.k) end
 end
@@ -2258,6 +2262,7 @@ Bus.etat = function()
 		reservoir = reservoir(), tier = tier, argent = argent, aura = aura, fallT = V.fallT, fallTR = V.fallTR,
 		zone = zoneN, figures = stats.figures, carCF = carCF, chainMult = V.chainMult, chainVal = V.chainVal, frein = Controles.frein,
 		driftOn = G.driftOn, driftLv = G.driftLv, nuage = ((mode == "drive" or mode == "fall") and G.nuageIn) or 0,
+		ntr = NTR, infini = pwN > 0, fiche = poignees.fiche,
 	}
 end
 Bus.agir.encaisser = encaisser
@@ -2267,6 +2272,9 @@ do
 	local okC, errC = pcall(function() require(CL:WaitForChild("MoteurCarte")).init() end)
 	G.carteMoteur = okC
 	if not okC then warn("[CashCar] carte moteur : " .. tostring(errC)) end
+	-- LE DRAGON de NITROOO : il lit l'état du bus (ntr, infini, fiche), rien d'autre à lui dire
+	local okD, errD = pcall(function() require(CL:WaitForChild("Dragon")).init() end)
+	if not okD then warn("[CashCar] dragon : " .. tostring(errD)) end
 end
 Bus.agir.secousse = function(x: number) secousse = math.max(secousse, x) end
 Bus.agir.fov = function(d: number) fovPunch = math.max(fovPunch, d) end
@@ -2284,6 +2292,8 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 	-- milieu de la route ; "DbgNitro" : il tient la nitro. Rien de tout ça n'existe pour un joueur.
 	if mode == "drive" and workspace:GetAttribute("DbgAuto") then Controles.volant = math.clamp(-(lat * 0.06 + psi * 2.2), -1, 1) end
 	if workspace:GetAttribute("DbgNitro") then Controles.nitro = true end
+	if workspace:GetAttribute("DbgInf") then pwN = math.max(pwN, 1) end -- "DbgInf" : la nitro infinie (pour regarder le dragon grandir)
+	if workspace:GetAttribute("DbgPlein") then nitroR = reservoir() end   -- "DbgPlein" : le plein à chaque image, sans le pouvoir (le dragon de FEU)
 	if mode == "charge" then return end
 	-- LE RALENTI de la frénésie : le seul ralenti du jeu
 	if mode == "drive" or mode == "fall" then dt = Score.ralentiDt(dt, enPause) end
