@@ -72,12 +72,15 @@ end
 local FLOW = { v = 0, lv = 0, idle = 0, vit = 1, revele = false, lentVu = false, nit = false, psyT = 0, lent9 = false, psyOk = false, reste = 9 }
 local FREN = { t = 0, rec = false, tr = { n = 0, m = 0, p = 0 }, k = 3, dit = { n = false, m = false, p = false }, ditT = 0,
 	arme = false, coup = false, butin = 0, vu = false, record = 0, nb = 0, max = 0 }
-local CHA = { pts = 0, x = 0, fam = {} :: { [string]: number }, n = 0, t = 0, liste = {} :: { string }, rec = 0, recB = false, xMax = 0 }
+local CHA = { pts = 0, x = 0, fam = {} :: { [string]: number }, n = 0, t = 0, age = 0, liste = {} :: { string }, rec = 0, recB = false, xMax = 0 }
 local ETAT = { enCours = false, mode = "drive", aura = 0, auraX2 = false, tuto = false }
 local RALENTI = { t = 0, d = 2.7, k = 0.3 }
 Score.FLOW, Score.FREN, Score.CHA, Score.ETAT = FLOW, FREN, CHA, ETAT
-local CHA_FEN, CHA_XMAX = 3.5, 10
+-- LA CHAÎNE SE FERME (web, 2026-10-01) : une chaîne vit CHA_VIE secondes AU PLUS (vol compris), puis s'encaisse au sol ;
+-- et les ROBINETS (récolte, rafale, paliers de NITROOO, nage du dauphin) tombent droit dans le compteur, hors chaîne.
+local CHA_FEN, CHA_XMAX, CHA_VIE = 3.5, 10, 25
 Score.CHA_FEN = CHA_FEN
+Score.CHA_VIE = CHA_VIE
 Score.X_COUL = { [0] = "#dfeeff", "#dfeeff", "#35e6ff", "#ffc93a", "#ff4fc2", "#9b6bff", "#ff3924", "#ff3924", "#ff3924", "#ff3924", "#ff3924" }
 
 local function clamp(x: number, a: number, b: number): number return math.max(a, math.min(b, x)) end
@@ -423,13 +426,20 @@ end
 
 -- ════════ LA CHAÎNE D'AURA ════════
 local function chaReset()
-	CHA.pts, CHA.x, CHA.n, CHA.t = 0, 0, 0, 0
+	CHA.pts, CHA.x, CHA.n, CHA.t, CHA.age = 0, 0, 0, 0, 0
 	table.clear(CHA.fam)
 	table.clear(CHA.liste)
 end
--- un geste entre dans la chaîne. brut = pas de décote à la redite ; muet = sans texte au-dessus de la caisse
-function Score.geste(nom: string, base: number, fam: string?, brut: boolean?, muet: boolean?): number
+-- un geste entre dans la chaîne. brut = pas de décote à la redite ; muet = sans texte au-dessus de la caisse ;
+-- rob = un ROBINET : payé au compteur tel quel — ni chaîne, ni ×, ni horloge
+function Score.geste(nom: string, base: number, fam: string?, brut: boolean?, muet: boolean?, rob: boolean?): number
 	if base <= 0 or not ETAT.enCours then return 0 end
+	if rob then
+		local p = math.max(1, math.floor(base * (ETAT.auraX2 and 2 or 1) + 0.5))
+		ETAT.aura += p
+		if not muet then Score.dire.pop(nom .. " +" .. p, "#ffd75e", 0) end
+		return p
+	end
 	local f = fam or nom
 	local k = CHA.fam[f] or 0
 	CHA.fam[f] = k + 1
@@ -437,6 +447,7 @@ function Score.geste(nom: string, base: number, fam: string?, brut: boolean?, mu
 	local x0 = CHA.x
 	if k == 0 then CHA.x = math.min(CHA_XMAX, CHA.x + 1) end -- chaque NOUVELLE famille : +1 au multiplicateur
 	CHA.xMax = math.max(CHA.xMax, CHA.x)
+	if CHA.n == 0 then CHA.age = 0 end
 	CHA.pts += p
 	CHA.n += 1
 	CHA.t = CHA_FEN
@@ -489,7 +500,8 @@ end
 function Score.chaineTick(dt: number, mode: string)
 	if CHA.n == 0 then return end
 	if mode ~= "fall" and mode ~= "boom" then CHA.t -= dt end -- l'horloge est GELÉE en l'air
-	if CHA.t <= 0 then chaineEncaisse() end
+	CHA.age += dt -- l'âge de la chaîne, lui, court partout
+	if CHA.t <= 0 or (CHA.age >= CHA_VIE and mode == "drive") then chaineEncaisse() end
 end
 
 -- ════════ LE RALENTI (la frénésie) : le SEUL ralenti du jeu ════════
@@ -519,6 +531,51 @@ function Score.ralentiDt(dtReel: number, pause: boolean): number
 end
 function Score.ralentiStop() RALENTI.t = 0 end
 
+-- ════════ LA LOI DU RÉSERVOIR (bloc pur <<<NITRO2>>> du web, 2026-10-01) ════════
+-- Le trou : décoller / se poser en boucle REMBOURSAIT la nitro (la pose rendait 20 % à chaque contact, la figure jusqu'à 1,2…).
+--   0. à sec, le réacteur S'ÉTEINT (il tient tant que la jauge PAIE l'image, se rallume à 0,3) ;
+--   1. LE VOL DÉPENSE, LA ROUTE REMPLIT : pose et figure rendent au PRORATA DU VOL FAIT NITRO COUPÉE ;
+--   2. la pose rend ses 20 % pour un vol d'au moins 1,2 s (prorata en dessous) ;
+--   3. le bump : 0,35 puis × 0,6 par rebond du même vol, rien au-delà du 4e, rien réacteur allumé ;
+--   4. NITROOO brûle × 0,75 au sol et plein en vol (la frénésie : × 0,5 partout) ;
+--   5. le rase-bord ne remplit que nitro COUPÉE.
+local N2 = {
+	regen = 0.2, seuil = 0.3, conso = 1,
+	ntrSol = 0.75, ntrAir = 1,
+	coup = 0.12,
+	posePct = 0.2, posePlein = 1.2,
+	figBase = 0.45, figPar = 0.12, figMax = 1.2,
+	bumpQ = 0.35, bumpK = 0.6, bumpN = 4,
+	rase = 0.22,
+}
+Score.N2 = N2
+-- la part du vol faite NITRO COUPÉE (1 = tout le vol, 0 = réacteur tenu d'un bout à l'autre)
+function Score.nitroPartDe(volT: number, nitT: number): number
+	return (volT > 1e-3) and clamp(1 - nitT / volT, 0, 1) or 1
+end
+-- ce que rend la POSE d'un vol de volT secondes dont nitT réacteur allumé, pour une jauge de cap
+function Score.nitroPoseDe(cap: number, volT: number, nitT: number): number
+	return N2.posePct * cap * math.min(1, volT / N2.posePlein) * Score.nitroPartDe(volT, nitT)
+end
+-- ce que rend la FIGURE posée (× de la chaîne, grade de pose : 1 · 1,5 parfaite · 2 divine)
+function Score.nitroFigDe(mult: number, g: number, volT: number, nitT: number): number
+	return math.min(N2.figMax, N2.figBase + mult * N2.figPar) * ((g >= 2 and 2) or (g >= 1.5 and 1.5) or 1) * Score.nitroPartDe(volT, nitT)
+end
+-- ce que rend le n-ième BUMP du vol (nit : réacteur allumé à l'impact)
+function Score.nitroBumpDe(n: number, nit: boolean): number
+	if nit or n > N2.bumpN then return 0 end
+	return N2.bumpQ * N2.bumpK ^ math.max(0, n - 1)
+end
+-- ce que le réacteur brûle pendant dt (kFren : la part de la frénésie)
+function Score.nitroConsoDe(dt: number, kFren: number, fren: boolean, ntr: boolean, air: boolean): number
+	return dt * N2.conso * (fren and kFren or (ntr and (air and N2.ntrAir or N2.ntrSol) or 1))
+end
+-- le réacteur TIENT-il ? res = ce qui reste (jauge + réserve bleue) · prise = ce que brûle cette image · on = il était allumé
+function Score.nitroTientDe(res: number, prise: number, on: boolean): boolean
+	if on then return res > math.max(0.005, prise) end
+	return res > N2.seuil
+end
+
 -- ════════ LE DAUPHIN v7 : l'aura de la nage ════════
 local DOL = { on = false, live = 0, mul = 1, q = 0, aura = 0, rasT = 0, offT = 0, nb = 0, ne = false, cote = {} :: { { any } }, show = 0, recap = 0, recapT = 0 }
 Score.DOL = DOL
@@ -529,7 +586,7 @@ function Score.dolFin()
 	if not DOL.on then return end
 	DOL.on = false
 	local n = math.floor(DOL.aura * (DOL.ne and 1 or DOL_AURA_NUE) + 0.5)
-	if n >= DOL_AURA_MIN then table.insert(DOL.cote, { T("DAUPHIN EN VOL", "DOLPHIN RUN"), n, "dauphinLive", true }) end -- versé À LA POSE seulement
+	if n >= DOL_AURA_MIN then table.insert(DOL.cote, { T("DAUPHIN EN VOL", "DOLPHIN RUN"), n, "dauphinLive", true, true }) end -- versé À LA POSE seulement, au compteur (robinet)
 	local f = math.min(DOL_FLOW_MAX, DOL_FLOW_K * DOL.q)
 	if DOL.ne and f >= 0.5 then Score.flowAdd(f, "risque") end
 	DOL.q = 0
@@ -559,7 +616,7 @@ function Score.dolTick(dt: number, sur: boolean, hF: number, p: number, fallT: n
 		if not DOL.ne and DOL.rasT >= DOL_FIG then
 			DOL.ne = true
 			DOL.aura += DOL_AURA0 * DOL.mul
-			table.insert(DOL.cote, { T("DAUPHIN", "DOLPHIN"), 150, "dauphin", false })
+			table.insert(DOL.cote, { T("DAUPHIN", "DOLPHIN"), 150, "dauphin", false, false })
 			nee = true
 		end
 		local ras = clamp(1 - (hF - 2.2) / 9.8, 0, 1)
@@ -582,7 +639,7 @@ end
 function Score.dolPose()
 	Score.dolFin()
 	local total = 0
-	for _, l in DOL.cote do total += Score.geste(l[1], l[2], l[3], l[4], true) end
+	for _, l in DOL.cote do total += Score.geste(l[1], l[2], l[3], l[4], true, l[5]) end
 	table.clear(DOL.cote)
 	if total > 0 then
 		DOL.recap, DOL.recapT = total, 2.2

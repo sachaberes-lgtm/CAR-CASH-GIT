@@ -238,6 +238,7 @@ local G = {
 	padCd = 0, padN = 0, padSL = nil :: number?, comboT = 0, safeS = 0,
 	distAvant = 0, vmax = 0, serie = 0, nbZones = 0, tempsDepart = 0,
 	fruitRaf = 0, fruitRafT = 0, coeurs = 3, ailes = 0, helice = 0,
+	hopY = 0, hopV = 0, choc = 0, -- LA POSE SANS SAUT : la hauteur qui reste à la pose, sa vitesse, la secousse due au contact
 	lgS = 240, lgK = 0, lgV = 0, lgAcc = 20, -- LA LIGNE PARFAITE : la prochaine abscisse, fruit (0) ou pad (1), la vitesse et l'accélération lissées
 }
 local NTR = { on = false, t = 0, pal = 0, boost = 0, k = 0, kc = 0 }
@@ -252,6 +253,7 @@ local V = {
 	fallUnder = false, fallStartSide = 1, flowS0 = 0, flowP0 = Vector3.zero,
 	curNear = false, curH = 0, curLat = 0, curT = 0,
 	chainVal = 0, chainMult = 1, chainN = 0, bigA = false, monstre = false, nitroAirT = 0, nitroAirTenue = 0,
+	volT = 0, nitT = 0, -- la durée du vol et le temps passé réacteur allumé : la pose ne rend que la part volée nitro coupée
 }
 local vus: { [string]: number } = {}
 local boomT, boomPos, causeMort = 0, Vector3.zero, "autre"
@@ -289,7 +291,6 @@ local function repere(sM: number, face: number): CFrame
 	return Piste.repereFace(piste, sM * M, face)
 end
 local function nitroGain(q: number) nitroR = math.min(reservoir(), nitroR + q) end
-local function nitroPct(p: number) nitroGain(p * reservoir()) end
 
 -- ════════ ce que le score fait dire ════════
 local SON_DE = { ["fig.maillon"] = "maillon", ["aura.geste"] = "maillon", ["aura.encaisse1"] = "encaisse", ["aura.encaisse2"] = "encaisse",
@@ -366,10 +367,10 @@ local function gererNitro(dt: number)
 	nitroR = math.min(res, nitroR + NI.regen * dt)
 	if pwN > 0 then nitroR = res end
 	local avant = nitroOn
-	local total = nitroR + nitroX
-	nitroOn = Controles.nitro and ((nitroOn and total > 0.005) or total > NI.seuil) -- il faut 0,3 pour ALLUMER
+	-- LA LOI DU RÉSERVOIR : il tient tant que la jauge PAIE l'image, et se rallume à 0,3
+	local prise = (pwN > 0) and 0 or Score.nitroConsoDe(dt, Score.F2.frenNitro, Score.frenesie(), NTR.on, mode == "fall")
+	nitroOn = Controles.nitro and Score.nitroTientDe(nitroR + nitroX, prise, nitroOn)
 	if nitroOn and pwN <= 0 then
-		local prise = dt * ((Score.frenesie() or NTR.on) and Score.F2.frenNitro or 1) -- ×0,5 en frénésie ou en NITROOO (non cumulés)
 		if nitroR >= prise then
 			nitroR -= prise
 		else
@@ -444,6 +445,7 @@ local function decoller(impU: number, impF: number, bord: boolean?)
 	if not intro then task.delay(0.6, function() if mode == "fall" then astuce(2) end end) end
 	V.fallT, V.fallTR, V.yawAcc, V.demiTours, V.nitroAirT, V.nitroAirTenue, V.sideCd, V.bounceN = 0, 0, 0, 0, 0, 0, 0, 0
 	V.fallVH0 = -1 -- le plafond horizontal se relève à la 1re image de vol
+	V.volT, V.nitT = 0, 0
 	G.driftOn, G.driftC, G.driftLv, yawR, G.slipB, G.carRoll, G.rollV, G.levreY = false, 0, 0, 0, 0, 0, 0, 0
 	G.virT, G.virC, G.virD, G.virPaye = 0, 0, false, false -- un virage quitté par le bord ne paie pas la fronde
 	G.froleN, G.froleT = 0, 0
@@ -684,9 +686,11 @@ end
 
 -- ════════ atterrir (tryLand, L30413-30570) ════════
 local voisins: { number } = {}
-local function atterrir(face: number, latX: number, sX: number)
+-- hR = la hauteur qui reste au-dessus de la face où l'on se pose (m ; négative : posée sous le niveau, par la lèvre)
+local function atterrir(face: number, latX: number, sX: number, hR: number?)
 	side = face
 	s = sX
+	G.hopY, G.hopV, G.choc = 0, 0, 0
 	if intro then
 		-- la CHUTE du départ se pose : la course commence (ni note, ni perte de vitesse)
 		intro = false
@@ -742,13 +746,13 @@ local function atterrir(face: number, latX: number, sX: number)
 	local paye = V.chainVal > 0 and qG * Config.DENOMS[tier + 1] >= 0.5 -- « cette pose porte une figure »
 	if paye then
 		Score.flowAdd((g >= 1.5) and 10 or 4, (g >= 1.5) and "risque" or "style", cachee and "m" or "n")
-		nitroGain(math.min(1.2, 0.45 + V.chainMult * 0.12) * ((g >= 1.5) and 1.5 or 1))
+		nitroGain(Score.nitroFigDe(V.chainMult, g, V.volT, V.nitT)) -- (au prorata du vol fait nitro coupée)
 		stats.poses += 1
 		ajouterPieces(math.clamp(math.floor(2 + qG / 6 + 0.5), 2, 18))
 		boost = math.max(boost, 0.5)
 		if g >= 1.5 then Score.geste(tr("POSE PARFAITE", "PERFECT LANDING"), 70, "pose") end
 	end
-	nitroPct(NI.pose) -- toute pose rend 20 % du réservoir
+	nitroGain(Score.nitroPoseDe(reservoir(), V.volT, V.nitT)) -- la pose rend 20 % de la jauge pour un VRAI vol (1,2 s), nitro coupée
 	if g >= 1.5 and not ratee and (V.fallT > 0.7 or paye) then stats.parfaites += 1 end
 	-- ARRACHÉE / AU CHEVEU : posé juste avant la fin du chrono
 	local reste = airMax() - V.fallTR
@@ -792,7 +796,17 @@ local function atterrir(face: number, latX: number, sX: number)
 		Score.flowCasse(angle)
 		secousse = math.max(secousse, 0.6)
 	end
-	secousse = math.max(secousse, math.min(0.6, impact * 0.04))
+	-- LA POSE SANS SAUT (web, 2026-10-01) : la pose est déclarée jusqu'à 3 m au-dessus de la dalle ; la caisse FINIT sa descente
+	-- (un petit saut de conduite) au lieu de tomber de 2,5 m en une image, et le choc part AU CONTACT
+	local reste9 = hR or 0
+	if reste9 > 0.25 then
+		G.hopY = reste9
+		G.hopV = ((face > 0) and vN or -vN) * SPD
+		G.choc = math.min(0.6, impact * 0.04)
+	else
+		if face > 0 and reste9 < 0 then G.levreY = math.max(-0.6, reste9) end -- posée sous le niveau : elle remonte sa marche
+		secousse = math.max(secousse, math.min(0.6, impact * 0.04))
+	end
 	Bus.emit("pose", { g = g, impact = impact, face = face, chainVal = V.chainVal, chainMult = V.chainMult, raccourci = gagne, figures = V.chainN, fallT = V.fallT, reste = reste })
 	mode = "drive"
 	Score.ETAT.mode = "drive"
@@ -868,17 +882,28 @@ local function essayerAtterrir(dt: number)
 		end
 		-- (c) le BUMP sur la tranche de la dalle
 		local sgL = math.sign(latOff)
-		local bumpIn = math.abs(latOff) >= RH and math.abs(latOff) < RH + 2.6 and vB * sgL < -3
+		-- (LA POSE DÉBOGUÉE, web 2026-10-01) le mur invisible du bord : le bump partait jusqu'à 2,6 m AVANT la tranche et 80 cm
+		-- AU-DESSUS du bitume — on revenait se poser par le côté, on rebondissait sur du vide.
+		local mrgB = demi + math.max(0.2, math.abs(vB) * SPD * dt * 1.5)
+		local bumpIn = math.abs(latOff) >= RH and math.abs(latOff) < RH + mrgB and vB * sgL < -3
 		local bumpThru = math.abs(prevL) >= RH and math.abs(latOff) < RH and math.sign(prevL) * vB < -3
-		if V.sideCd <= 0 and not intro and hOff > -THICK - 0.8 and hOff < 0.8 and (bumpIn or bumpThru) then
+		local tranche = V.sideCd <= 0 and not intro and hOff > -THICK - 0.12 and hOff < 0.12 and (bumpIn or bumpThru)
+		-- LA LÈVRE POUR TOUTE POSE : roues à moins de 45 cm sous le bitume au contact de la tranche → on se POSE au bord
+		if tranche and hOff > -0.45 and V.fallT > 0.35 and vN < 4.5 then
+			local cote = bumpThru and math.sign(prevL) or sgL
+			atterrir(1, cote * (RH - 0.05), (proche - 1) * DSm + math.clamp(tOff, -2, 2), hOff)
+			return
+		end
+		if tranche then
 			local sg = bumpThru and math.sign(prevL) or sgL
 			fallVel += B * (-vB * 1.65)
 			fallVel *= 0.78
-			fallVel += Vector3.new(0, 2.4, 0)
+			-- la tranche RENVOIE vers le ciel pour de bon (~1,9 m de montée) : de quoi revenir se poser au volant
+			fallVel = Vector3.new(fallVel.X, math.max(fallVel.Y + 2.4, 16), fallVel.Z)
 			fallPos += B * (sg * math.max(bumpThru and 0 or math.abs(latOff), RH + demi) - latOff) -- remise CONTRE la tranche
 			V.sideCd = 0.35
 			V.bounceN += 1
-			nitroGain(0.35)
+			nitroGain(Score.nitroBumpDe(V.bounceN, nitroOn and pwN <= 0)) -- 0,35 · 0,21 · 0,13 · 0,08 puis rien ; rien réacteur allumé
 			Score.flowAdd(6, "style")
 			V.fallT = math.max(0, V.fallT - airMax() * 0.5) -- DEMI-JAUGE rendue
 			V.fallTR = math.max(0, V.fallTR - airMax() * 0.5)
@@ -890,7 +915,7 @@ local function essayerAtterrir(dt: number)
 		end
 	end
 	-- ── (d) la POSE : le point EXACT où la trajectoire traverse le plan de la route ──
-	local bestFace, bestLat, bestS, bestD, trouve = 1, 0, 0, math.huge, false
+	local bestFace, bestLat, bestS, bestD, trouve, bestH = 1, 0, 0, math.huge, false, 0
 	local marge = facile() and FAC.bord or 0
 	for _, j in liste do
 		local F = piste.F[j]
@@ -912,7 +937,7 @@ local function essayerAtterrir(dt: number)
 				ok = true
 			end
 			if ok and math.abs(lx) < RH + marge and math.abs(h) < bestD then
-				bestFace, bestLat, bestS, bestD, trouve = 1, lx, (j - 1) * DSm + zx, math.abs(h), true
+				bestFace, bestLat, bestS, bestD, trouve, bestH = 1, lx, (j - 1) * DSm + zx, math.abs(h), true, h
 			end
 			-- la face du DESSOUS (on s'y colle en remontant)
 			local ok2, lx2, zx2 = false, la, z
@@ -925,11 +950,11 @@ local function essayerAtterrir(dt: number)
 				ok2 = true
 			end
 			if ok2 and math.abs(lx2) < RH + marge and math.abs(h + THICK) < bestD then
-				bestFace, bestLat, bestS, bestD, trouve = -1, lx2, (j - 1) * DSm + zx2, math.abs(h + THICK), true
+				bestFace, bestLat, bestS, bestD, trouve, bestH = -1, lx2, (j - 1) * DSm + zx2, math.abs(h + THICK), true, -THICK - h
 			end
 		end
 	end
-	if trouve then atterrir(bestFace, bestLat, bestS) end
+	if trouve then atterrir(bestFace, bestLat, bestS, bestH) end
 end
 
 -- ════════ les pouvoirs v2 (pwrPrend, L23479) : le même pouvoir se CUMULE (plafond 2 × sa durée) ════════
@@ -997,7 +1022,7 @@ local function ramasser(o: any)
 	if k == "piece" then
 		combo += 1
 		G.comboT = 3
-		if combo % 5 == 0 then Score.geste(tr("RECOLTE", "HARVEST") .. " x" .. combo, 30, "recolte", true) end -- LA RÉCOLTE
+		if combo % 5 == 0 then Score.geste(tr("RECOLTE", "HARVEST") .. " x" .. combo, 20, "recolte", true, false, true) end -- LA RÉCOLTE (un robinet : droit au compteur)
 		stats.pieces += 1
 		ajouterPieces(1)
 		Score.flowAdd(0.7, "route")
@@ -1034,7 +1059,7 @@ local function ramasser(o: any)
 		G.fruitRaf += 1
 		local rf = math.min(6, G.fruitRaf)
 		secousse = math.max(secousse, math.min(0.55, 0.18 + rf * 0.07))
-		if G.fruitRaf >= 3 then Score.geste(tr("RAFALE", "STREAK") .. " x" .. G.fruitRaf, 40 + rf * 30, "rafale", true) end
+		if G.fruitRaf >= 3 then Score.geste(tr("RAFALE", "STREAK") .. " x" .. G.fruitRaf, 15 + rf * 6, "rafale", true, false, true) end
 		if fd.boost >= 1.5 then
 			HudScore.slam(tr("PASTEQUE !", "WATERMELON!"), nil, "#e8253f", nil, 30, 1)
 			secousse = math.max(secousse, 0.3)
@@ -1477,7 +1502,7 @@ local function etapeSol(dt: number)
 	-- RASE-BORD : longer le vide recharge la nitro
 	if not intro and math.abs(lat) > RH * 0.8 and math.abs(vA) > maxSp * 0.5 then
 		G.raseT += dt
-		nitroGain(0.22 * dt)
+		if not nitroOn then nitroGain(Score.N2.rase * dt) end -- (rien ne se remplit en continu pendant que ça brûle)
 		Score.flowAdd(6 * dt, "route")
 		if G.raseT > 0.6 and not G.raseAnn then
 			G.raseAnn = true
@@ -1502,7 +1527,7 @@ local function etapeSol(dt: number)
 		if not G.pureArmed and G.pureT > G.pureNext then
 			G.pureNext = G.pureT + 2
 			G.pureLvl = math.min(5, G.pureLvl + 1)
-			Score.geste("NITROOO x" .. (G.pureLvl + 1), 60 + G.pureLvl * 40, "pure", true)
+			Score.geste("NITROOO x" .. (G.pureLvl + 1), 15 + G.pureLvl * 8, "pure", true, false, true)
 		end
 	else
 		G.pureT, G.pureArmed, G.pureNext, G.pureLvl = 0, true, 0, 0
@@ -1565,8 +1590,17 @@ local function etapeSol(dt: number)
 	G.carRoll = math.clamp(G.carRoll + G.rollV * d, -0.42, 0.42)
 	G.levreY *= math.exp(-16 * dt)
 	if math.abs(G.levreY) < 0.005 then G.levreY = 0 end
+	if G.hopY > 0 then
+		G.hopY += G.hopV * dt
+		G.hopV -= 26 * dt
+		if G.hopY <= 0 then -- le CONTACT
+			G.hopY, G.hopV = 0, 0
+			secousse = math.max(secousse, G.choc)
+			G.choc = 0
+		end
+	end
 	-- la caisse posée
-	local pos = cf2.Position + cf2.RightVector * (lat * M) + cf2.UpVector * (G.levreY * M)
+	local pos = cf2.Position + cf2.RightVector * (lat * M) + cf2.UpVector * ((G.levreY + G.hopY) * M)
 	carCF = CFrame.new(pos) * cf2.Rotation * CFrame.Angles(0, -psi, 0) * CFrame.Angles(0, 0, G.carRoll)
 end
 
@@ -1574,6 +1608,8 @@ end
 local function etapeAir(dt: number)
 	V.fallT += dt
 	V.fallTR += dt
+	V.volT += dt
+	if nitroOn and pwN <= 0 then V.nitT += dt end
 	V.kickT -= dt
 	V.sideCd -= dt
 	gererNitro(dt)
@@ -1904,6 +1940,7 @@ local function nouvellePartie()
 	stats.pieces, stats.poses, stats.parfaites, stats.fruits, stats.nitro, stats.duree, stats.chaine, stats.figures = 0, 0, 0, 0, 0, 0, 0, 0
 	G.tempsDepart = 0
 	G.fruitRaf, G.fruitRafT = 0, 0
+	G.hopY, G.hopV, G.choc = 0, 0, 0
 	G.coeurs = FAC.coeurs
 	G.safeS = S_CHUTE
 	G.lgS, G.lgK, G.lgV, G.lgAcc = 240, 0, 0, 20
@@ -7103,6 +7140,7 @@ function HudScore.tick(dt: number, mode: string)
 		U.chaL2.Text = (CH.liste[2] or "") .. "   " .. Hud.entier(CH.pts) .. " PTS"
 		U.chaFond.Visible = true
 		local q = (mode == "fall") and 1 or math.clamp(CH.t / Score.CHA_FEN, 0, 1)
+		q = math.min(q, math.clamp((Score.CHA_VIE - CH.age) / 3, 0, 1)) -- (les 3 dernières secondes de sa vie, la barre se vide)
 		U.chaT.Size = UDim2.fromScale(q, 1)
 		U.chaT.BackgroundColor3 = (mode ~= "fall" and CH.t < 1.1) and ((math.sin(t * 20) > 0) and ROUGE or C.magenta) or C.magenta
 	else
@@ -8135,12 +8173,15 @@ end
 local FLOW = { v = 0, lv = 0, idle = 0, vit = 1, revele = false, lentVu = false, nit = false, psyT = 0, lent9 = false, psyOk = false, reste = 9 }
 local FREN = { t = 0, rec = false, tr = { n = 0, m = 0, p = 0 }, k = 3, dit = { n = false, m = false, p = false }, ditT = 0,
 	arme = false, coup = false, butin = 0, vu = false, record = 0, nb = 0, max = 0 }
-local CHA = { pts = 0, x = 0, fam = {} :: { [string]: number }, n = 0, t = 0, liste = {} :: { string }, rec = 0, recB = false, xMax = 0 }
+local CHA = { pts = 0, x = 0, fam = {} :: { [string]: number }, n = 0, t = 0, age = 0, liste = {} :: { string }, rec = 0, recB = false, xMax = 0 }
 local ETAT = { enCours = false, mode = "drive", aura = 0, auraX2 = false, tuto = false }
 local RALENTI = { t = 0, d = 2.7, k = 0.3 }
 Score.FLOW, Score.FREN, Score.CHA, Score.ETAT = FLOW, FREN, CHA, ETAT
-local CHA_FEN, CHA_XMAX = 3.5, 10
+-- LA CHAÎNE SE FERME (web, 2026-10-01) : une chaîne vit CHA_VIE secondes AU PLUS (vol compris), puis s'encaisse au sol ;
+-- et les ROBINETS (récolte, rafale, paliers de NITROOO, nage du dauphin) tombent droit dans le compteur, hors chaîne.
+local CHA_FEN, CHA_XMAX, CHA_VIE = 3.5, 10, 25
 Score.CHA_FEN = CHA_FEN
+Score.CHA_VIE = CHA_VIE
 Score.X_COUL = { [0] = "#dfeeff", "#dfeeff", "#35e6ff", "#ffc93a", "#ff4fc2", "#9b6bff", "#ff3924", "#ff3924", "#ff3924", "#ff3924", "#ff3924" }
 
 local function clamp(x: number, a: number, b: number): number return math.max(a, math.min(b, x)) end
@@ -8486,13 +8527,20 @@ end
 
 -- ════════ LA CHAÎNE D'AURA ════════
 local function chaReset()
-	CHA.pts, CHA.x, CHA.n, CHA.t = 0, 0, 0, 0
+	CHA.pts, CHA.x, CHA.n, CHA.t, CHA.age = 0, 0, 0, 0, 0
 	table.clear(CHA.fam)
 	table.clear(CHA.liste)
 end
--- un geste entre dans la chaîne. brut = pas de décote à la redite ; muet = sans texte au-dessus de la caisse
-function Score.geste(nom: string, base: number, fam: string?, brut: boolean?, muet: boolean?): number
+-- un geste entre dans la chaîne. brut = pas de décote à la redite ; muet = sans texte au-dessus de la caisse ;
+-- rob = un ROBINET : payé au compteur tel quel — ni chaîne, ni ×, ni horloge
+function Score.geste(nom: string, base: number, fam: string?, brut: boolean?, muet: boolean?, rob: boolean?): number
 	if base <= 0 or not ETAT.enCours then return 0 end
+	if rob then
+		local p = math.max(1, math.floor(base * (ETAT.auraX2 and 2 or 1) + 0.5))
+		ETAT.aura += p
+		if not muet then Score.dire.pop(nom .. " +" .. p, "#ffd75e", 0) end
+		return p
+	end
 	local f = fam or nom
 	local k = CHA.fam[f] or 0
 	CHA.fam[f] = k + 1
@@ -8500,6 +8548,7 @@ function Score.geste(nom: string, base: number, fam: string?, brut: boolean?, mu
 	local x0 = CHA.x
 	if k == 0 then CHA.x = math.min(CHA_XMAX, CHA.x + 1) end -- chaque NOUVELLE famille : +1 au multiplicateur
 	CHA.xMax = math.max(CHA.xMax, CHA.x)
+	if CHA.n == 0 then CHA.age = 0 end
 	CHA.pts += p
 	CHA.n += 1
 	CHA.t = CHA_FEN
@@ -8552,7 +8601,8 @@ end
 function Score.chaineTick(dt: number, mode: string)
 	if CHA.n == 0 then return end
 	if mode ~= "fall" and mode ~= "boom" then CHA.t -= dt end -- l'horloge est GELÉE en l'air
-	if CHA.t <= 0 then chaineEncaisse() end
+	CHA.age += dt -- l'âge de la chaîne, lui, court partout
+	if CHA.t <= 0 or (CHA.age >= CHA_VIE and mode == "drive") then chaineEncaisse() end
 end
 
 -- ════════ LE RALENTI (la frénésie) : le SEUL ralenti du jeu ════════
@@ -8582,6 +8632,51 @@ function Score.ralentiDt(dtReel: number, pause: boolean): number
 end
 function Score.ralentiStop() RALENTI.t = 0 end
 
+-- ════════ LA LOI DU RÉSERVOIR (bloc pur <<<NITRO2>>> du web, 2026-10-01) ════════
+-- Le trou : décoller / se poser en boucle REMBOURSAIT la nitro (la pose rendait 20 % à chaque contact, la figure jusqu'à 1,2…).
+--   0. à sec, le réacteur S'ÉTEINT (il tient tant que la jauge PAIE l'image, se rallume à 0,3) ;
+--   1. LE VOL DÉPENSE, LA ROUTE REMPLIT : pose et figure rendent au PRORATA DU VOL FAIT NITRO COUPÉE ;
+--   2. la pose rend ses 20 % pour un vol d'au moins 1,2 s (prorata en dessous) ;
+--   3. le bump : 0,35 puis × 0,6 par rebond du même vol, rien au-delà du 4e, rien réacteur allumé ;
+--   4. NITROOO brûle × 0,75 au sol et plein en vol (la frénésie : × 0,5 partout) ;
+--   5. le rase-bord ne remplit que nitro COUPÉE.
+local N2 = {
+	regen = 0.2, seuil = 0.3, conso = 1,
+	ntrSol = 0.75, ntrAir = 1,
+	coup = 0.12,
+	posePct = 0.2, posePlein = 1.2,
+	figBase = 0.45, figPar = 0.12, figMax = 1.2,
+	bumpQ = 0.35, bumpK = 0.6, bumpN = 4,
+	rase = 0.22,
+}
+Score.N2 = N2
+-- la part du vol faite NITRO COUPÉE (1 = tout le vol, 0 = réacteur tenu d'un bout à l'autre)
+function Score.nitroPartDe(volT: number, nitT: number): number
+	return (volT > 1e-3) and clamp(1 - nitT / volT, 0, 1) or 1
+end
+-- ce que rend la POSE d'un vol de volT secondes dont nitT réacteur allumé, pour une jauge de cap
+function Score.nitroPoseDe(cap: number, volT: number, nitT: number): number
+	return N2.posePct * cap * math.min(1, volT / N2.posePlein) * Score.nitroPartDe(volT, nitT)
+end
+-- ce que rend la FIGURE posée (× de la chaîne, grade de pose : 1 · 1,5 parfaite · 2 divine)
+function Score.nitroFigDe(mult: number, g: number, volT: number, nitT: number): number
+	return math.min(N2.figMax, N2.figBase + mult * N2.figPar) * ((g >= 2 and 2) or (g >= 1.5 and 1.5) or 1) * Score.nitroPartDe(volT, nitT)
+end
+-- ce que rend le n-ième BUMP du vol (nit : réacteur allumé à l'impact)
+function Score.nitroBumpDe(n: number, nit: boolean): number
+	if nit or n > N2.bumpN then return 0 end
+	return N2.bumpQ * N2.bumpK ^ math.max(0, n - 1)
+end
+-- ce que le réacteur brûle pendant dt (kFren : la part de la frénésie)
+function Score.nitroConsoDe(dt: number, kFren: number, fren: boolean, ntr: boolean, air: boolean): number
+	return dt * N2.conso * (fren and kFren or (ntr and (air and N2.ntrAir or N2.ntrSol) or 1))
+end
+-- le réacteur TIENT-il ? res = ce qui reste (jauge + réserve bleue) · prise = ce que brûle cette image · on = il était allumé
+function Score.nitroTientDe(res: number, prise: number, on: boolean): boolean
+	if on then return res > math.max(0.005, prise) end
+	return res > N2.seuil
+end
+
 -- ════════ LE DAUPHIN v7 : l'aura de la nage ════════
 local DOL = { on = false, live = 0, mul = 1, q = 0, aura = 0, rasT = 0, offT = 0, nb = 0, ne = false, cote = {} :: { { any } }, show = 0, recap = 0, recapT = 0 }
 Score.DOL = DOL
@@ -8592,7 +8687,7 @@ function Score.dolFin()
 	if not DOL.on then return end
 	DOL.on = false
 	local n = math.floor(DOL.aura * (DOL.ne and 1 or DOL_AURA_NUE) + 0.5)
-	if n >= DOL_AURA_MIN then table.insert(DOL.cote, { T("DAUPHIN EN VOL", "DOLPHIN RUN"), n, "dauphinLive", true }) end -- versé À LA POSE seulement
+	if n >= DOL_AURA_MIN then table.insert(DOL.cote, { T("DAUPHIN EN VOL", "DOLPHIN RUN"), n, "dauphinLive", true, true }) end -- versé À LA POSE seulement, au compteur (robinet)
 	local f = math.min(DOL_FLOW_MAX, DOL_FLOW_K * DOL.q)
 	if DOL.ne and f >= 0.5 then Score.flowAdd(f, "risque") end
 	DOL.q = 0
@@ -8622,7 +8717,7 @@ function Score.dolTick(dt: number, sur: boolean, hF: number, p: number, fallT: n
 		if not DOL.ne and DOL.rasT >= DOL_FIG then
 			DOL.ne = true
 			DOL.aura += DOL_AURA0 * DOL.mul
-			table.insert(DOL.cote, { T("DAUPHIN", "DOLPHIN"), 150, "dauphin", false })
+			table.insert(DOL.cote, { T("DAUPHIN", "DOLPHIN"), 150, "dauphin", false, false })
 			nee = true
 		end
 		local ras = clamp(1 - (hF - 2.2) / 9.8, 0, 1)
@@ -8645,7 +8740,7 @@ end
 function Score.dolPose()
 	Score.dolFin()
 	local total = 0
-	for _, l in DOL.cote do total += Score.geste(l[1], l[2], l[3], l[4], true) end
+	for _, l in DOL.cote do total += Score.geste(l[1], l[2], l[3], l[4], true, l[5]) end
 	table.clear(DOL.cote)
 	if total > 0 then
 		DOL.recap, DOL.recapT = total, 2.2

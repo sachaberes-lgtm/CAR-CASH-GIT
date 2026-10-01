@@ -237,6 +237,7 @@ function HudScore.tick(dt: number, mode: string)
 		U.chaL2.Text = (CH.liste[2] or "") .. "   " .. Hud.entier(CH.pts) .. " PTS"
 		U.chaFond.Visible = true
 		local q = (mode == "fall") and 1 or math.clamp(CH.t / Score.CHA_FEN, 0, 1)
+		q = math.min(q, math.clamp((Score.CHA_VIE - CH.age) / 3, 0, 1)) -- (les 3 dernières secondes de sa vie, la barre se vide)
 		U.chaT.Size = UDim2.fromScale(q, 1)
 		U.chaT.BackgroundColor3 = (mode ~= "fall" and CH.t < 1.1) and ((math.sin(t * 20) > 0) and ROUGE or C.magenta) or C.magenta
 	else

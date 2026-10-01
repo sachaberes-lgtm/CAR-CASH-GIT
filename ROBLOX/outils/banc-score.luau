@@ -108,8 +108,51 @@ for i = 1, 100 do if Score.dolTick(0.02, true, 2, 1, 0.5 + i * 0.02) then nee = 
 verifie("dauphin né", nee, true)
 print("  dauphin : aura vue après 2 s au ras =", Score.dolVu())
 Score.ETAT.mode = "drive"; Score.dolPose()
-print("  dauphin : chaîne après la pose =", Score.CHA.pts, "×", Score.CHA.x)
-verifie("dauphin versé", Score.CHA.pts > 150, true)
+print("  dauphin : chaîne après la pose =", Score.CHA.pts, "×", Score.CHA.x, "· nage versée au compteur =", Score.aura())
+verifie("dauphin : la figure reste un geste de chaîne", Score.CHA.pts, 150)
+verifie("dauphin : la nage tombe droit au compteur", Score.aura() > 500, true)
+
+-- 4 bis. LA CHAÎNE SE FERME : les robinets vont droit au compteur ; une chaîne vit 25 s au plus
+Score.debut(0, 0); Score.ETAT.mode = "drive"
+Score.geste("RECOLTE x5", 20, "recolte", true, true, true)
+verifie("robinet : au compteur", Score.aura(), 20)
+verifie("robinet : hors chaîne", Score.CHA.n, 0)
+Score.ETAT.mode = "fall"
+Score.geste("180", 45, "vrille", true)
+for _ = 1, 260 do Score.chaineTick(0.1, "fall") end -- 26 s en vol : elle a passé l'âge, mais ne s'encaisse qu'au sol
+verifie("chaîne vieille, encore ouverte en vol", Score.CHA.n, 1)
+Score.chaineTick(0.016, "drive")
+verifie("chaîne vieille : encaissée à la pose", Score.aura(), 65)
+
+-- 4 ter. LA LOI DU RÉSERVOIR
+verifie("part : vol tout nitro", Score.nitroPartDe(3, 3), 0)
+verifie("part : vol sans nitro", Score.nitroPartDe(3, 0), 1)
+verifie("pose pleine", Score.nitroPoseDe(2, 1.2, 0), 0.4, 1e-9)
+verifie("pose d'un sautillement", Score.nitroPoseDe(2, 0.6, 0), 0.2, 1e-9)
+verifie("pose d'un vol tenu au nitro", Score.nitroPoseDe(2, 3, 3), 0)
+verifie("figure parfaite, moitié nitro", Score.nitroFigDe(1, 1.5, 2, 1), 0.57 * 1.5 * 0.5, 1e-9)
+verifie("bump 1", Score.nitroBumpDe(1, false), 0.35, 1e-9)
+verifie("bump 2", Score.nitroBumpDe(2, false), 0.21, 1e-9)
+verifie("bump 5", Score.nitroBumpDe(5, false), 0)
+verifie("bump nitro allumée", Score.nitroBumpDe(1, true), 0)
+verifie("NITROOO au sol", Score.nitroConsoDe(1, 0.5, false, true, false), 0.75, 1e-9)
+verifie("NITROOO en vol", Score.nitroConsoDe(1, 0.5, false, true, true), 1, 1e-9)
+verifie("frénésie", Score.nitroConsoDe(1, 0.5, true, true, true), 0.5, 1e-9)
+verifie("tient", Score.nitroTientDe(0.1, 0.033, true), true)
+verifie("à sec il s'éteint (30 i/s)", Score.nitroTientDe(0.02, 0.033, true), false)
+verifie("ne se rallume pas sous 0,3", Score.nitroTientDe(0.25, 0.016, false), false)
+-- la boucle de Sacha : bouton tenu, jauge de 2 — à 30 images/s le réacteur doit s'ÉTEINDRE
+do
+	local r, on, allume, dt = 2, false, 0, 1 / 30
+	for _ = 1, 30 * 60 do
+		r = math.min(2, r + Score.N2.regen * dt)
+		local prise = Score.nitroConsoDe(dt, 0.5, false, false, false)
+		on = Score.nitroTientDe(r, prise, on)
+		if on then r -= prise; allume += dt end
+	end
+	print(string.format("  bouton tenu 60 s à 30 i/s : réacteur allumé %.0f %% du temps", allume / 60 * 100))
+	verifie("plus de nitro infinie", allume < 30, true)
+end
 
 -- 5. les carnets : le générateur des carnets 10 et suivants doit tirer les mêmes défis que le jeu web
 local Carnets = require("../src/ReplicatedStorage/CashCar/Carnets")
