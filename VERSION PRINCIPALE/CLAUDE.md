@@ -163,6 +163,18 @@
   tactile ET (`hover:none` OU min(screen.width, screen.height) < 600).
 - Pas simulé (à deviner) : les barres de Safari quand Sacha joue dans le navigateur et pas depuis l'écran d'accueil (elles mangent ~40 px
   de hauteur couché). sw.js → v48 (Sacha était déjà en v47).
+- **LE BOÎTIER + LA CAISSE DANS LA ZONE SÛRE** (même soir, Léo : « petit problème de cadrage, voiture pas bien calée, et même le truc
+  iPhone c'est mal mis ») — MESURÉ (banc `cadrage.mjs`, fenêtre 1440 × 780) : une fenêtre d'ordi est moins allongée que 844 × 390, le
+  cadre prenait TOUTE la largeur — coins arrondis et encoche coupés par le bord de la fenêtre ; et la caisse du titre se collait contre
+  l'encoche (la bande libre se comptait depuis le bord de l'écran) et tombait dans le bas de la bande. Désormais :
+  · `#tel` = le BOÎTIER (posé en px par `cadre()`, SANS zoom) : lunette noire de `TEL_B` = 11 pt, cerclage d'acier, de l'air autour
+    (2,5 % sur les côtés, la place de TOURNER et du numéro en bas) ; l'iframe zoomée vit DEDANS sans décalage à elle (un left/top
+    sur un élément zoomé serait zoomé aussi) ; l'encoche est un enfant du boîtier, même noir que la lunette, avec ses deux « oreilles »
+    (`::before/::after`, congé de 6 pt). Sa place ne se lit plus par getBoundingClientRect de l'iframe zoomée : elle se calcule.
+  · `menuZoneSure()` (une sonde en `padding:var(--sT) var(--sR) var(--sB) var(--sL)`) : couché, `menuCadre` compte la bande libre
+    DANS la zone sûre et pose la caisse au milieu de la hauteur utile (47 %) ; debout le « un peu à gauche » de la CHUTE passe de
+    −0,16 à −0,07 (la caisse plongeante du titre v3 touchait le bord gauche). Vaut aussi pour le vrai iPhone (env()).
+  · ⚠ NON TESTÉ : Safari sur Mac (pas de WebKit au banc) — le zoom d'une iframe y est le point fragile.
 
 
 ## LA TOUCHE VAN GOGH + NUAGES v8.1 (2026-10-01, nuit, session GAMEPLAY) — Sacha : « inspiration Van Gogh pour le ciel » ; mesures de SON et DEBUGGING sur les v8

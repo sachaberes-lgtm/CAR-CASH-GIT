@@ -67,18 +67,33 @@ const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(/[?&]menu=leo\
     f.id='colonne';f.title='CASH CAR';f.setAttribute('allow','autoplay; fullscreen; gamepad');f.setAttribute('allowfullscreen','');
     f.src=u+(u.indexOf('?')<0?'?':'&')+'colonne=1';
     f.style.width=L+'px';f.style.height=H+'px';
-    document.body.appendChild(f);
+    /* LE CORPS DU TÉLÉPHONE (2026-10-01, Léo : « le truc iPhone c'est mal mis ») : l'écran collait aux bords de la fenêtre (une
+       fenêtre d'ordi est moins allongée que 844 × 390 : le cadre prenait TOUTE la largeur), ses coins arrondis et l'encoche étaient
+       coupés par le bord. Désormais un vrai boîtier : une lunette noire de `TEL_B` pt autour de l'écran, de l'air autour du
+       boîtier, et l'encoche posée DANS la lunette (même noir : elle en sort, comme sur le vrai). Le boîtier se place en px (#tel,
+       sans zoom), l'écran (l'iframe zoomée) vit dedans sans aucun décalage à lui — un left/top sur un élément zoomé serait zoomé aussi. */
+    var tel=document.createElement('div');tel.id='tel';tel.appendChild(f);
+    document.body.appendChild(tel);
     /* L'ENCOCHE (2026-10-01, Léo : « son emplacement des touches est différent — que sur tous les ordis ça ressemble à ce que
        Sacha a ») : le téléphone de référence est l'iPhone 13 Pro de Sacha, 844 × 390 — le cadre en avait la taille, pas les
        MARGES. iOS rentre l'interface de 47 px de chaque côté couché (21 en bas ; debout 47 en haut, 34 en bas) : dans la
        colonne, `html.telCadre` pose ces marges (--ccT/B/L/R, lues à la place de env(safe-area-inset-*) partout), et la page-
        cadre dessine l'écran arrondi + l'encoche, par-dessus l'image comme sur le vrai. `?encoche=0` = sans. */
-    var en=null;if(!/[?&]encoche=0\b/.test(q)){en=document.createElement('div');en.id='encoche';document.body.appendChild(en);
+    var en=null;if(!/[?&]encoche=0\b/.test(q)){en=document.createElement('div');en.id='encoche';tel.appendChild(en);
       document.documentElement.classList.add('encoche');}
-    var cadre=function(){var z=Math.max(.5,Math.min(innerHeight/H,innerWidth/L));f.style.zoom=z.toFixed(4);
-      if(!en)return;var r=f.getBoundingClientRect(),lo=154*z,ep=31*z,s=en.style; // l'encoche du 13 Pro ≈ 154 × 31 pt
-      if(debout){s.width=lo+'px';s.height=ep+'px';s.left=(r.left+(r.width-lo)/2)+'px';s.top=r.top+'px';s.borderRadius='0 0 '+(20*z)+'px '+(20*z)+'px';}
-      else{s.width=ep+'px';s.height=lo+'px';s.left=r.left+'px';s.top=(r.top+(r.height-lo)/2)+'px';s.borderRadius='0 '+(20*z)+'px '+(20*z)+'px 0';}};
+    var TEL_B=en?11:0; // la lunette du 13 Pro ≈ 11 pt de chaque côté de l'écran (sans encoche : l'écran nu, comme avant)
+    var cadre=function(){
+      // de l'air autour du boîtier ; en bas la place du bouton TOURNER et du numéro de version
+      var mx=Math.max(16,innerWidth*.025),mh=Math.max(14,innerHeight*.03),mb=Math.max(mh,40),
+        z=Math.max(.5,Math.min((innerHeight-mh-mb)/(H+2*TEL_B),(innerWidth-2*mx)/(L+2*TEL_B))),b=TEL_B*z,
+        w=(L+2*TEL_B)*z,h=(H+2*TEL_B)*z,ts=tel.style;
+      f.style.zoom=z.toFixed(4);
+      ts.width=w+'px';ts.height=h+'px';ts.padding=b+'px';ts.left=((innerWidth-w)/2)+'px';ts.top=(mh+(innerHeight-mh-mb-h)/2)+'px';
+      ts.borderRadius=en?((47+TEL_B)*z)+'px':'0'; // (?encoche=0 : l'écran nu, à angles droits, comme avant)
+      if(!en)return;var lo=154*z,ep=31*z,ro=(9*z)+'px',s=en.style; // l'encoche du 13 Pro ≈ 154 × 31 pt, coins de 9 pt, et ses deux « oreilles » (::before/::after)
+      s.setProperty('--or',(6*z)+'px');
+      if(debout){s.width=lo+'px';s.height=ep+'px';s.left=(b+(L*z-lo)/2)+'px';s.top=b+'px';s.borderRadius='0 0 '+ro+' '+ro;}
+      else{s.width=ep+'px';s.height=lo+'px';s.left=b+'px';s.top=(b+(H*z-lo)/2)+'px';s.borderRadius='0 '+ro+' '+ro+' 0';}};
     cadre();addEventListener('resize',cadre);
     /* LE BOUTON TOURNER (2026-09-30, Léo : « ajoute une option où je peux regarder en mode portrait » — repris de sa branche
        `version-leolei-2026`, 26/09) : le téléphone passe COUCHÉ ⇄ DEBOUT sans recharger — le jeu, dans la colonne, ne reçoit qu'un
@@ -108,19 +123,26 @@ html.colonne,html.colonne body{height:100%;margin:0;overflow:hidden;background:#
 html.colonne body{display:flex;align-items:center;justify-content:center;
   background:radial-gradient(ellipse 70% 42% at 50% 50%,#241a4a 0,#120c2a 48%,#07050f 100%)}
 html.colonne.debout body{background:radial-gradient(ellipse 42% 70% at 50% 50%,#241a4a 0,#120c2a 48%,#07050f 100%)}
-html.colonne body>*:not(#colonne):not(#tourne):not(#encoche):not(#ccVer){display:none!important}
+html.colonne body>*:not(#tel):not(#tourne):not(#ccVer){display:none!important}
 html.colonne #ccVer{position:fixed;left:14px;bottom:10px;z-index:9;font:600 10px/1 system-ui,-apple-system,sans-serif;letter-spacing:1px;color:rgba(255,255,255,.38);pointer-events:none}
-/* l'écran du 13 Pro : coins de 47 pt (le zoom du cadre les agrandit avec lui) et son encoche, posée par le script */
+/* le BOÎTIER (#tel, posé en px par le script) : la lunette noire, le cerclage d'acier, l'ombre et le halo néon du jeu ;
+   l'écran du 13 Pro dedans : coins de 47 pt (le zoom du cadre les agrandit avec lui) ; l'encoche dans la lunette, par-dessus l'image */
+html.colonne #tel{position:fixed;box-sizing:border-box;z-index:1;background:#050307;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.07),0 0 0 2px #2b2540,0 0 0 3px #0c0a14,0 24px 70px rgba(0,0,0,.7),0 0 90px rgba(255,62,200,.16)}
 html.colonne.encoche #colonne{border-radius:47px}
-html.colonne #encoche{position:fixed;z-index:8;background:#000;pointer-events:none}
+html.colonne #encoche{position:absolute;z-index:8;background:#050307;pointer-events:none}
+html.colonne #encoche::before,html.colonne #encoche::after{content:'';position:absolute;width:var(--or);height:var(--or)}
+html.colonne.couche #encoche::before{left:0;top:calc(-1*var(--or));background:radial-gradient(circle at 100% 0,transparent calc(var(--or) - .5px),#050307 var(--or))}
+html.colonne.couche #encoche::after{left:0;bottom:calc(-1*var(--or));background:radial-gradient(circle at 100% 100%,transparent calc(var(--or) - .5px),#050307 var(--or))}
+html.colonne.debout #encoche::before{top:0;left:calc(-1*var(--or));background:radial-gradient(circle at 0 100%,transparent calc(var(--or) - .5px),#050307 var(--or))}
+html.colonne.debout #encoche::after{top:0;right:calc(-1*var(--or));background:radial-gradient(circle at 100% 100%,transparent calc(var(--or) - .5px),#050307 var(--or))}
 /* (Léo) le bouton TOURNER, dans un coin de la page-cadre (hors du téléphone) */
 html.colonne #tourne{position:fixed;right:16px;bottom:16px;z-index:9;font:700 12px/1 system-ui,-apple-system,sans-serif;letter-spacing:1px;color:#fff;cursor:pointer;padding:11px 16px;border:0;border-radius:12px;
   background:linear-gradient(#7a6cff,#5143d9);box-shadow:0 4px 0 #2c2280,0 8px 18px rgba(0,0,0,.45);opacity:.85}
 html.colonne #tourne:hover{opacity:1}
 /* couché, le cadre prend toute la largeur : le bouton se range au milieu du bas, là où le jeu n'a rien */
 html.colonne:not(.debout) #tourne{right:auto;left:50%;bottom:8px;transform:translateX(-50%);padding:7px 12px;font-size:10px;opacity:.6}
-html.colonne #colonne{display:block;flex:none;border:0;background:#07050f;
-  box-shadow:0 0 0 1px rgba(255,255,255,.08),0 0 0 3px #07050f,0 24px 70px rgba(0,0,0,.7),0 0 90px rgba(255,62,200,.16)}
+html.colonne #colonne{display:block;flex:none;border:0;background:#07050f}
 </style>
 <style>
 @font-face{font-family:'Press Start 2P';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/pressstart2p.woff2') format('woff2');}
@@ -35006,6 +35028,13 @@ function menuVitrineFin(){ // on quitte l'accueil : le ciel du niveau reprend la
 const MENU_PLANS=[{n:'affiche',t:8,fov:44,lum:3.4},{n:'arriere',t:7,fov:40,lum:2.2},{n:'profil',t:7,fov:30,lum:.45}]; // lum : le PROFIL a le soleil dans le dos (on le garde hors champ) — il éclaire déjà tout le flanc
 MENUV.pl=0;MENUV.pt=0;MENUV.force=null;MENUV.lum=3.4;MENUV.sd=null;MENUV.cadreT=-1;MENUV.cadre={nx:0,ny:-.1,fr:.6,fh:.4,t:-9e9};
 MENUV.retour=false; // (2026-09-28) vrai entre le bouton MENU de l'écran de mort et le départ suivant (voir accueilRetour)
+function menuZoneSure(){ // les marges d'encoche du moment, en px (--sT/--sB/--sL/--sR : l'iPhone, ou la colonne de l'ordi qui l'imite)
+  let e=menuZoneSure.e;
+  if(!e){e=menuZoneSure.e=document.createElement('div');e.setAttribute('aria-hidden','true');
+    e.style.cssText='position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;padding:var(--sT) var(--sR) var(--sB) var(--sL)';
+    document.body.appendChild(e);}
+  const c=getComputedStyle(e);return {t:parseFloat(c.paddingTop)||0,r:parseFloat(c.paddingRight)||0,b:parseFloat(c.paddingBottom)||0,l:parseFloat(c.paddingLeft)||0};
+}
 function menuCadre(){ // la zone de l'écran que l'interface laisse libre → où poser la caisse (NDC) et quelle place elle y prend
   const W=innerWidth,H=Math.max(1,innerHeight),C=MENUV.cadre,T0=performance.now();
   if(T0-C.t<1000)return C;C.t=T0;
@@ -35015,10 +35044,13 @@ function menuCadre(){ // la zone de l'écran que l'interface laisse libre → o�
     for(const q of ['.mTitle','.mOutils','.mIcons','.mPlay']){const e=home.querySelector(q);if(!e)continue;const r=e.getBoundingClientRect();if(r.width<2||r.height<2)continue;
       vu=true;x0=Math.min(x0,r.left);x1=Math.max(x1,r.right);if(q==='.mTitle')tB=r.bottom;if(q==='.mOutils'||q==='.mIcons')iT=Math.min(iT===H*.74?1e9:iT,r.top);}} // (2026-09-28) la rangée MISSIONS · ⚙ ferme la bande de la caisse par le bas
   if(!vu){C.nx=0;C.ny=-.12;C.fr=W>H?.34:.62;C.fh=.4;return C;} // (menu PC, ?pc=1) : au centre, comme avant
-  const gL=x0,gR=W-x1;
-  if(W>H*1.15&&Math.max(gL,gR)>W*.14){ // PAYSAGE : la plus large bande latérale — la caisse un peu SOUS le milieu (sur la ligne de la mer),
-    const dr=gR>=gL,bw=dr?gR:gL,cx=dr?x1+bw*.52:bw*.48;   // un rien décalée vers les tuiles (la perspective grossit le nez : il sortait par le bord)
-    C.nx=cx/W*2-1;C.ny=-.2;C.fr=Math.min(.8,bw*.78/W);C.fh=.5;
+  /* (2026-10-01, Léo : « la voiture pas bien calée ») LA BANDE SE COMPTE DANS LA ZONE SÛRE : couché, l'encoche mange 47 px d'un côté
+     — la bande comptait depuis le bord de l'écran, la caisse venait se coller contre l'encoche (banc cadrage.mjs : 59 px du bord de
+     l'image, 12 de l'encoche). Et elle se pose au MILIEU de la hauteur utile (à −0,2 elle laissait le haut de la bande vide). */
+  const Z=menuZoneSure(),gL=x0-Z.l,gR=W-Z.r-x1;
+  if(W>H*1.15&&Math.max(gL,gR)>W*.14){ // PAYSAGE : la plus large bande latérale, la caisse au milieu de sa hauteur utile
+    const dr=gR>=gL,bw=dr?gR:gL,cx=dr?x1+bw*.5:Z.l+bw*.5,cy=Z.t+(H-Z.t-Z.b)*.47; // (la caisse plonge, nez en bas : son ancre un rien au-dessus du milieu)
+    C.nx=cx/W*2-1;C.ny=-(cy/H*2-1);C.fr=Math.min(.8,bw*.78/W);C.fh=.5;
   }else{ // PORTRAIT : la bande entre le bas du logo et le haut des tuiles
     const top=Math.min(tB,iT-40),cy=top+(iT-top)*.56; // un rien sous le milieu de la bande : la caisse pose sur la ligne d'horizon, le ciel au-dessus
     C.nx=0;C.ny=-(cy/H*2-1);C.fr=.62;C.fh=Math.max(.12,(iT-top)/H*.8);
@@ -35360,7 +35392,7 @@ function chuteRender(dt){
   for(const w of wheels)w.rotation.x+=dt*(7+u*30);for(const e of ESSIEUX)e.rotation.x+=dt*(7+u*30); // les roues tournent dans le vide
   // LA CAMÉRA : dans l'axe de la route, un peu au-dessus, la caisse dans la place libre (menuCadre)
   const Cd=menuCadre(),R9=.5*Math.hypot(sp.l||4.2,sp.w||1.9,(sp.h||.8)+.6)*sc,fov0=G?44+26*u*u:44;
-  const nx=Cd.nx+(camera.aspect<1?-.16:0);
+  const nx=Cd.nx+(camera.aspect<1?-.07:0); // debout « un peu à gauche » (Sacha) — à −0,16 la caisse plongeante du titre v3 (vue de trois-quarts dessus) touchait le bord gauche de l'écran (31 px, banc cadrage.mjs) : −0,07 la garde un rien à gauche du milieu
   if(Math.abs(camera.fov-fov0)>.01){camera.fov=fov0;camera.updateProjectionMatrix();}
   /* ⚠ (titre v3) LE DÉCENTREMENT DE L'ATELIER : le garage décale l'objectif (`setViewOffset`) pour sa mise en page et ne le rendait pas en
      revenant au ciel — mesuré (banc retour.js, sur main aussi) : après une visite au garage, la caisse du titre sortait du cadre à gauche
