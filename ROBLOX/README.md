@@ -134,6 +134,10 @@ ressources Roblox (ton compte) : à voir plus tard.
   `DbgInf`, `DbgPlein`, `DbgDauphins`, `DbgSerpent`, `DbgArgent` (un compte), `DbgBudget` (le budget de triangles),
   `DbgFx` = "mort" | "moteur7" | "pluie" | "cratere" | "jus3", `DbgOuvre` = "jouer" | "garage" | "boutique" | "reglages" |
   "missions" | "menu" | "pause" | "frenesie" | "portail…" (en course : saute au pied du portail, pour voir le niveau suivant), `DbgLarge` = 1280 (l'interface d'un écran 16:9).
+- **La longue partie** : `sh outils/longue.sh [minutes] [nitro]` — sur rails (`DbgAuto` = "rail"), immortelle (`DbgImmortel`), les
+  portails franchis pour de vrai ; rend les zones traversées, les morts évitées par cause et les erreurs de la Sortie. À lancer
+  avant de livrer un changement de jeu : c'est le seul banc qui joue des niveaux ENTIERS.
+- `outils/verifier.sh` compile tout ET liste les noms jamais déclarés (luau-analyze, s'il est à côté de luau-compile).
 - `DbgEclair` = true : dans l'orage, un éclair toutes les 2 s qui tient 1,2 s (le temps d'une photo).
 - `DbgHeure` = "matin" | "midi" | "aprem" | "titre" | "pluie" | "espace" | "tempete" | "minuit" impose une ambiance (`Client/Ambiance`) ; `nil` rend la main.
 - `NIVEAU=ville sh outils/banc.sh` (ou `espace`, `orage`, `nuit`, `hard`) : la copie de test force ce niveau dès la zone 1 (`Config.NIVEAU_TEST`, jamais dans

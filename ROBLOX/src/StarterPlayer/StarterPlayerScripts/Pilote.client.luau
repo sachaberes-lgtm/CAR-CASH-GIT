@@ -747,6 +747,13 @@ end
 
 local function exploser(cause: string)
 	if mode == "boom" or mode == "mort" then return end
+	-- (banc) workspace:SetAttribute("DbgImmortel", true) : la caisse ne meurt pas — replacée sur la route, la cause écrite dans la
+	-- Sortie. Pour laisser tourner une partie de plusieurs minutes à travers tous les niveaux.
+	if workspace:GetAttribute("DbgImmortel") then
+		warn(string.format("[CashCar] IMMORTEL %s zone=%d s=%d kmh=%d mode=%s", cause, zoneN, s, kmh(), mode))
+		replacer()
+		return
+	end
 	if TU.rate() or facileSauve(cause) then return end
 	causeMort = cause
 	boomPos = carCF.Position
@@ -2655,7 +2662,15 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 	Controles.lire()
 	-- (mise au point, depuis la console de Studio) workspace:SetAttribute("DbgAuto", true) : un pilote automatique tient le
 	-- milieu de la route ; "DbgNitro" : il tient la nitro. Rien de tout ça n'existe pour un joueur.
-	if mode == "drive" and workspace:GetAttribute("DbgAuto") then Controles.volant = math.clamp(-(lat * 0.06 + psi * 2.2), -1, 1) end
+	if mode == "drive" and workspace:GetAttribute("DbgAuto") then
+		Controles.volant = math.clamp(-(lat * 0.06 + psi * 2.2), -1, 1)
+		-- "rail" : la caisse est ramenée au milieu de la route de force (le pilote ci-dessus sort dans les virages rapides) — pour
+		-- qu'une partie de banc traverse des niveaux entiers
+		if workspace:GetAttribute("DbgAuto") == "rail" then
+			lat *= math.max(0, 1 - dt * 4)
+			psi *= math.max(0, 1 - dt * 8)
+		end
+	end
 	if workspace:GetAttribute("DbgNitro") then Controles.nitro = true end
 	if workspace:GetAttribute("DbgInf") then pwN = math.max(pwN, 1) end -- "DbgInf" : la nitro infinie (pour regarder le dragon grandir)
 	if workspace:GetAttribute("DbgPlein") then nitroR = reservoir() end   -- "DbgPlein" : le plein à chaque image, sans le pouvoir (le dragon de FEU)
