@@ -1025,7 +1025,7 @@ local function continuTick(dt: number)
 		if voile then voile.BackgroundTransparency = 1 - suivi.nuage * 0.26 end
 	end
 	-- le DRIFT : la gomme fume, la jante crache (or ; rose au dernier cran)
-	if etat.mode == "drive" and etat.driftOn then
+	if etat.mode == "drive" and (etat.driftOn or etat.glisse) then -- (L37012 : la fumée suit la VRAIE glisse — le drift, mais aussi la grosse charge en virage)
 		suivi.drift += dt * (10 + 8 * (etat.driftLv or 0))
 		while suivi.drift >= 1 do
 			suivi.drift -= 1
@@ -1227,6 +1227,10 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 				jet("braiseO", nez, -cf.LookVector, 1 + math.floor(2 * feu), 8, 26, 60)
 			end
 		end
+	end)
+	-- une petite gerbe demandée par le pilote (un plot percuté, la fronde, le plancher qui racle le bord, le décollage)
+	Bus.on("gerbe", function(nom: string, pos: Vector3, n: number, v0: number, v1: number, cone: number?)
+		jet(nom, pos, Vector3.yAxis, n, v0, v1, cone or 70)
 	end)
 	-- un éclair de bords demandé par le pilote (MIRACULÉ…)
 	Bus.on("flash", function(couleur: Color3, alpha: number?, duree: number?) flashBords(couleur, alpha or 0.7, duree) end)

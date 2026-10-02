@@ -37,6 +37,7 @@ KA.Orage = require(CL:WaitForChild("Orage"))
 KA.Debris = require(CL:WaitForChild("Debris"))
 KA.CielMusical = require(CL:WaitForChild("CielMusical"))
 KA.Viseur = require(CL:WaitForChild("Viseur"))
+KA.Traces = require(CL:WaitForChild("Traces"))
 
 local M, SPD = Config.M, Config.SPD
 local RH, THICK = Config.ROAD_HALF, Config.THICK
@@ -566,6 +567,11 @@ local function decoller(impU: number, impF: number, bord: boolean?)
 	V.bascOn = bord == true
 	V.bascT = 0
 	V.bascDir = bord and -((lat ~= 0) and math.sign(lat) or 1) or 1 -- la vrille tourne du côté du VIDE
+	if bord then
+		Bus.emit("gerbe", "eclatJaune", fallPos * M, 10, 3, 7) -- (au BORD la caisse ne crache rien : son plancher RACLE la lèvre)
+	else
+		Bus.emit("gerbe", "poussiere", fallPos * M, 8, 2, 6, 120) -- la poussière du décollage
+	end
 	V.airRoll = bord and roulis or 0
 	Score.dolDecolle()
 	mode = "fall"
@@ -1239,6 +1245,7 @@ local function obstacles(dt: number, cf: CFrame)
 				if e < 1.6 then
 					-- LE CHOC : il part devant, la caisse perd 1,5 %
 					o.touche = true
+					Bus.emit("gerbe", "eclatRouge", o.p.Position, 5, 3, 8) -- (un plot percuté COÛTE : éclats rouges — l'or, c'est l'argent)
 					local dl = lat - lo
 					local v = cf.LookVector * math.max(8, math.abs(vA) * 0.55) + cf.RightVector * ((dl > 0 and -1 or 1) * (2 + math.random() * 4))
 						+ cf.UpVector * (5 + math.random() * 5)
@@ -1813,6 +1820,9 @@ local function frondeLache(t: number, c: number)
 	G.frondeCd = 0.8
 	Sons.jouer("fronde", Sons.demiTons(({ 0, 2, 4, 7, 9 })[math.clamp(math.floor(p * 3 + 0.5), 0, 4) + 1]))
 	Score.gesteMuet(tr("FRONDE", "SLINGSHOT"), math.floor(30 + 40 * p + 0.5), "fronde")
+	for _, sd in { -1, 1 } do -- la gerbe d'or aux pots : on la voit partir
+		Bus.emit("gerbe", "eclatJaune", (carCF * CFrame.new(sd * poignees.fiche.w * 0.22 * M, 0.43 * M, (poignees.fiche.l * 0.5 + 0.2) * M)).Position, 3 + math.floor(3 * p + 0.5), 3, 8)
+	end
 end
 
 -- ════════ LA CONDUITE (L36300-36680) ════════
@@ -1992,9 +2002,23 @@ local function etapeSol(dt: number)
 			G.choc = 0
 		end
 	end
+	-- LE POWER-SLIDE (L36969 ; Sacha, 26/09 : « rajoute une animation où la voiture part VRAIMENT sur le côté pendant les virages ») :
+	-- l'arrière CHASSE à proportion de la charge du virage (lacet × vitesse) — le nez rentre dans la courbe jusqu'à ~18°, la
+	-- trajectoire reste celle qu'on pilote : on ne touche QU'À L'IMAGE. Il n'existe que dans un virage, et grandit avec lui.
+	local tdWant = math.sign(aLat) * 0.32 * (1 - math.exp(-math.abs(aLat) / 38)) * math.min(1, kmh() / 90)
+	G.driftYaw = (G.driftYaw or 0) + (tdWant - (G.driftYaw or 0)) * math.min(1, dt * ((math.abs(tdWant) > math.abs(G.driftYaw or 0)) and 5 or 3.2))
+	-- (traceTick, L37013) la gomme MARQUE dès que ça tourne fort ou que ça glisse — les traces de pneus, et la fumée de gomme
+	G.glisse = math.abs(vA) > 10 and (G.driftOn or math.abs(aLat) > 9)
+	G.fumee = math.abs(vA) > 14 and (G.driftOn or math.abs(aLat) > 16) -- (la fumée demande une VRAIE glisse : le drift, ou une grosse charge)
+	-- LE TANGAGE : elle plonge au frein et au drift, s'accroupit à la poussée (nitro, boost)
+	G.pitch = (G.pitch or 0) + ((((Controles.frein or G.driftOn) and 0.035 or 0) - ((nitroOn or boost > 0) and 0.03 or 0)) - (G.pitch or 0)) * math.min(1, dt * 6)
+	-- LES ROUES DEHORS : le plancher RACLE la lèvre — des étincelles sous la roue qui a passé le bord
+	if pe > 0 and math.abs(vA) > 12 and math.random() < dt * 28 * pe then
+		Bus.emit("gerbe", "eclatJaune", cf2.Position + cf2.RightVector * ((lat + math.sign(lat) * math.max(0, hw - dB)) * M) + cf2.UpVector * (0.08 * M), 1, 3, 7)
+	end
 	-- la caisse posée
 	local pos = cf2.Position + cf2.RightVector * (lat * M) + cf2.UpVector * ((G.levreY + G.hopY) * M)
-	carCF = CFrame.new(pos) * cf2.Rotation * CFrame.Angles(0, -psi, 0) * CFrame.Angles(0, 0, G.carRoll)
+	carCF = CFrame.new(pos) * cf2.Rotation * CFrame.Angles(0, -(psi + G.driftYaw), 0) * CFrame.Angles(-G.pitch, 0, G.carRoll)
 end
 
 -- ════════ LE VOL (L36896-37176) ════════
@@ -2860,7 +2884,7 @@ Bus.etat = function()
 		pouvoir = (pwN > 0 and "n") or (pwV > 0 and "v") or (pwX > 0 and "x") or (pwM > 0 and "m") or ((pwA > 0 and not TU.on) and "a") or nil,
 		reservoir = reservoir(), tier = tier, argent = argent, aura = aura, fallT = V.fallT, fallTR = V.fallTR,
 		zone = zoneN, figures = stats.figures, carCF = carCF, chainMult = V.chainMult, chainVal = V.chainVal, frein = Controles.frein,
-		driftOn = G.driftOn, driftLv = G.driftLv, nuage = ((mode == "drive" or mode == "fall") and G.nuageIn) or 0,
+		driftOn = G.driftOn, driftLv = G.driftLv, glisse = (mode == "drive") and G.fumee == true, nuage = ((mode == "drive" or mode == "fall") and G.nuageIn) or 0,
 		ntr = NTR, infini = pwN > 0, fiche = poignees.fiche, bleue = nitroBleue, boost = boost,
 	}
 end
@@ -3029,6 +3053,7 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 			if course and not enPause then G.satHard() end
 			if not enPause then G.debTick(dt, cam.CFrame) end
 			G.viseur(dt)
+			KA.Traces.tick(mode == "drive" and G.glisse == true and not enPause and not intro, carCF, poignees.fiche.w * 0.5, poignees.fiche.l or 4.4)
 			if course and not enPause then G.vpal(kmh()) end
 			-- L'OVULE respire et tourne lentement, son noyau bat (L37927)
 			do

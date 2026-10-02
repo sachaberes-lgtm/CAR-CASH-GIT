@@ -86,6 +86,9 @@ recommence (décision de Sacha, 2/10 : « fais la ville et l'espace, fais pas Pa
   qu'on vienne ; couper la route en vol pour l'atteindre paie un RACCOURCI.
 - **MIRACULÉ** (une chute perdue d'avance rattrapée), les **cris de vitesse** (« 400 KM/H ! », « RECORD DE VITESSE »), **COMÈTE**
   (la caisse brûle à partir du palier 27), les **bords de l'écran** qui battent à la couleur du pouvoir actif.
+- **L'attitude de la caisse** : le power-slide (l'arrière chasse dans les virages, jusqu'à ~18°), le tangage (elle plonge au frein,
+  s'accroupit à la poussée), les **traces de pneus** (`Client/Traces`), la fumée sur toute vraie glisse, les étincelles du plancher
+  qui racle le bord, des éclats rouges sur un plot percuté, la gerbe d'or de la fronde, la poussière du décollage.
 - **Le ciel musical** de la ville (`Client/CielMusical`) : seize quartiers de lumière et vingt-six piliers d'égaliseur autour de
   l'horizon, qui battent avec le morceau qui joue (ou à 120 à la minute sans musique importée) ; en sourdine à minuit.
 - **Le bitume mouillé** de la ville : les reflets de néon sont PEINTS dans l'image de la dalle (96 m qui se répètent).
