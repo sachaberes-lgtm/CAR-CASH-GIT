@@ -35,6 +35,7 @@ KA.Ville = require(CL:WaitForChild("Ville"))
 KA.Espace = require(CL:WaitForChild("Espace"))
 KA.Orage = require(CL:WaitForChild("Orage"))
 KA.Debris = require(CL:WaitForChild("Debris"))
+KA.CielMusical = require(CL:WaitForChild("CielMusical"))
 
 local M, SPD = Config.M, Config.SPD
 local RH, THICK = Config.ROAD_HALF, Config.THICK
@@ -2093,6 +2094,7 @@ local function habiller(dt: number)
 			veut = (var == "orage") and "musiqueOrage" or ((lieu == "ville") and "musiqueVille" or ((lieu == "nuages") and "musiqueNuages" or "musique"))
 		end
 		if not Sons.a(veut) then veut = "musique" end
+		G.musVeut = veut
 		G.mus = G.mus or { musique = 0, musiqueNuages = 0, musiqueVille = 0, musiqueOrage = 0 }
 		for nom, k in G.mus do
 			k += math.clamp(((nom == veut) and 1 or 0) - k, -dt / 1.2, dt / 1.2)
@@ -2792,6 +2794,12 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 			if sk > 0 then secousse = math.max(secousse, sk) end
 			if course and not enPause then G.satHard() end
 			if not enPause then G.debTick(dt, cam.CFrame) end
+			-- LE CIEL MUSICAL : la ville seulement (en sourdine à minuit) ; il suit le volume du morceau qui joue
+			do
+				local k = (enJeu and (piste :: any).niveau == "ville") and ((var == "nuit") and 0.5 or 1) or 0
+				local so: any = (k > 0 and Sons.actif and Sons.musiqueActive) and Sons.boucle(G.musVeut or "musique") or nil
+				KA.CielMusical.tick(dt, k, cam.CFrame.Position, (so and so.IsPlaying) and so.PlaybackLoudness / 420 or nil)
+			end
 			-- les portes de l'orbite : le tunnel déchire le champ, la rentrée tremble
 			if not course then
 				G.orbWarp, G.orbFeu = 0, 0

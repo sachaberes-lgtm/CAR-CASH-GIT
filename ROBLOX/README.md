@@ -76,6 +76,8 @@ recommence (décision de Sacha, 2/10 : « fais la ville et l'espace, fais pas Pa
 - **La pluie de débris** (`Client/Debris`, toute l'orbite) : un cercle rouge se pose là où la caisse SERA dans 1,5 s, un débris
   en feu y tombe — touché : −40 % de vitesse ; esquivé de près : aura, nitro, série.
 - **Les portes de l'orbite** : un tunnel de distorsion à l'entrée (1,9 s), une rentrée atmosphérique en feu à la sortie (2,6 s).
+- **Le ciel musical** de la ville (`Client/CielMusical`) : seize quartiers de lumière et vingt-six piliers d'égaliseur autour de
+  l'horizon, qui battent avec le morceau qui joue (ou à 120 à la minute sans musique importée) ; en sourdine à minuit.
 - **Le bitume mouillé** de la ville : les reflets de néon sont PEINTS dans l'image de la dalle (96 m qui se répètent).
 - Le niveau d'une zone : `Config.niveau(zone)` ; son ambiance : `Client/Ambiance` (`pluie`, `espace`) ; l'habit de sa route
   (liseré, bitume, lueur) : `HABITS` dans `Client/Construction`.
