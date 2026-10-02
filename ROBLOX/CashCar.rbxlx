@@ -18598,7 +18598,7 @@ local RH = Config.ROAD_HALF
 
 export type Objet = { s: number, lat: number, h: number, face: number, kind: string, pw: string?, grp: number?, r: number?, fruit: number?, ligne: boolean? }
 export type Piste = {
-	graine: number, zone: number, niveau: string, variante: string?, filets: { any }, entree: { number }?, DS: number, n: number, len: number, F: { CFrame },
+	graine: number, zone: number, niveau: string, variante: string?, archetype: string, filets: { any }, entree: { number }?, DS: number, n: number, len: number, F: { CFrame },
 	minY: number, grille: { [number]: { number } }, cellule: number,
 	objets: { Objet }, modules: { { a: number, b: number, nom: string } },
 }
@@ -18634,7 +18634,29 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 		if a <= SEUIL then return p end
 		return math.sign(p) * (SEUIL + (a - SEUIL) * GARDE)
 	end
-	local RS = 1.25 * LV
+	-- ── L'ADN DE PISTE (L9292 du jeu web) : chaque zone tire une PERSONNALITÉ — fini le tirage statistiquement identique.
+	--   FLOW : l'autoroute céleste, des virages qui chantent · TECH : le slalom, épingles et chicanes, des rayons serrés ·
+	--   ALPIN : crêtes et plongeons · VOLTIGE : le ciel est un cirque · GRAND8 : le mixte équilibré.
+	-- `w` : les poids des motifs (NUAGES, ORAGE, VILLE) · `wv` : ceux de l'ORBITE (grands virages, grands balayages) · `rs` : l'échelle
+	-- des rayons · `vt` : l'humeur verticale (vagues et plongeons). (Avant le 2/10 toutes les zones étaient des FLOW.)
+	local ARCH = {
+		{ nom = "FLOW", rs = 1.15, vt = 0.8, w = { grand = 16, virage = 30, epingle = 3, esses = 26, vague = 6, plongeon = 4, elan = 6, chicane = 6 },
+			wv = { grand = 28, virage = 40, epingle = 2, esses = 22, vague = 6, plongeon = 2, elan = 3, chicane = 5 } },
+		{ nom = "TECH", rs = 0.92, vt = 0.9, w = { grand = 8, virage = 20, epingle = 14, esses = 22, vague = 4, plongeon = 3, elan = 6, chicane = 16 },
+			wv = { grand = 16, virage = 28, epingle = 9, esses = 20, vague = 4, plongeon = 2, elan = 3, chicane = 13 } },
+		{ nom = "ALPIN", rs = 1.1, vt = 1.4, w = { grand = 12, virage = 22, epingle = 4, esses = 14, vague = 12, plongeon = 10, elan = 8, chicane = 4 },
+			wv = { grand = 22, virage = 32, epingle = 3, esses = 12, vague = 10, plongeon = 5, elan = 4, chicane = 4 } },
+		{ nom = "VOLTIGE", rs = 1.15, vt = 1.1, w = { grand = 14, virage = 22, epingle = 4, esses = 16, vague = 8, plongeon = 6, elan = 6, chicane = 5 },
+			wv = { grand = 24, virage = 32, epingle = 3, esses = 14, vague = 8, plongeon = 3, elan = 3, chicane = 4 } },
+		{ nom = "GRAND8", rs = 1, vt = 1, w = { grand = 14, virage = 24, epingle = 7, esses = 18, vague = 8, plongeon = 6, elan = 6, chicane = 8 },
+			wv = { grand = 24, virage = 34, epingle = 5, esses = 16, vague = 8, plongeon = 3, elan = 3, chicane = 6 } },
+	}
+	local AR: any = ecole and ARCH[1] or ARCH[rnd:NextInteger(1, 5)]
+	local VT: number = AR.vt
+	-- LA LATÉRALITÉ : une piste qui tourne plutôt à gauche ne ressemble pas à une équilibrée (une zone sur trois penche d'un côté,
+	-- une sur trois de l'autre)
+	local hand = ecole and 0 or ((rnd:NextNumber() < 0.33) and -1 or ((rnd:NextNumber() < 0.5) and 0 or 1))
+	local RS = AR.rs * 1.25 * LV
 	local LEN = P.longueur * (1 + math.min(1.1, (zone - 1) * 0.25))
 	local DS = P.pas
 
@@ -18709,7 +18731,7 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 		local a = math.rad(angleDeg)
 		seg(R * math.abs(a), a, penteFin)
 	end
-	local function sens(): number return (rnd:NextNumber() < 0.5) and -1 or 1 end
+	local function sens(): number return (rnd:NextNumber() < 0.5 + hand * 0.22) and 1 or -1 end
 
 	-- ── les motifs de la zone (poids de l'archétype FLOW, L8891 ; motifs L9039-9085) ──
 	-- ⚠ les virages PLONGENT : dans le jeu web un virage descend de 60 à 110 % de sa longueur (avant le lissage
@@ -18718,7 +18740,7 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 	local function desc(a: number, b: number): number return -math.min(P.penteMax, r(a, b)) end
 	local MOTIFS = {
 		{ "grand", 16, function() -- le grand balayage : large, il descend doucement
-			local large = VILLE or ESPACE -- (L9462) R 160-320 en VILLE et en ORBITE, 110-200 ailleurs
+			local large = ESPACE -- (L9462) R 160-320 en ORBITE, 110-200 ailleurs (la VILLE aussi : le terrain RELIEF du web est coupé)
 			local R = (large and (160 + r(0, 160)) or (110 + r(0, 90))) * RS
 			arc(R, sens() * math.min(100 + r(0, 60), (large and 64000 or 52000) / R), desc(0.12, 0.24))
 		end },
@@ -18744,12 +18766,13 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 		end },
 		{ "vague", 6, function() -- bosse + creux, en courbe
 			local sg = sens()
-			seg(r(40, 80), sg * math.rad(r(10, 22)), desc(0.2, 0.35), 30)
-			seg(r(50, 90), sg * math.rad(r(10, 22)), r(0.3, 0.4), 30)
-			seg(r(70, 120), sg * math.rad(r(12, 26)), desc(0.5, 0.7), 30)
+			-- (× VT : l'humeur verticale de l'archétype — un ALPIN creuse ses vagues, un FLOW les aplatit)
+			seg(r(40, 80), sg * math.rad(r(10, 22)), desc(0.2, 0.35) * VT, 30)
+			seg(r(50, 90), sg * math.rad(r(10, 22)), math.min(0.4, r(0.3, 0.4) * VT), 30)
+			seg(r(70, 120), sg * math.rad(r(12, 26)), desc(0.5, 0.7) * VT, 30)
 		end },
 		{ "plongeon", 4, function()
-			seg(r(60, 140), sens() * math.rad(r(10, 20)), desc(0.35, 0.58), 35)
+			seg(r(60, 140), sens() * math.rad(r(10, 20)), math.max(-0.58, desc(0.28, 0.48) * VT), 35) -- (L9487 : min(0,58 ; (0,28-0,48) × VT))
 			arc(r(90, 170) * RS, sens() * r(25, 75), desc(0.6, 0.8))
 		end },
 		{ "elan", 6, function() -- la ligne de momentum : longue, cintrée, raide
@@ -18765,8 +18788,8 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 	}
 	-- LES POIDS DU NIVEAU (`wv` : la VILLE a ses grands virages et ses grands balayages ; l'ORBITE les mêmes, tempérés par
 	-- ESP_ROUTE.w : épingles × 0,35 ; vagues, plongeons, chicanes × 0,5 ; lignes d'élan × 1,2)
-	if VILLE or ESPACE then
-		local W = { grand = 28, virage = 40, epingle = 2, esses = 22, vague = 6, plongeon = 2, elan = 3, chicane = 5 }
+	do
+		local W = table.clone(ESPACE and AR.wv or AR.w)
 		if ESPACE then
 			W.epingle *= 0.35
 			W.vague *= 0.5
@@ -18774,7 +18797,9 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 			W.chicane *= 0.5
 			W.elan *= 1.2
 		end
-		for _, m in MOTIFS do m[2] = W[m[1]] or m[2] end
+		-- L'HUMEUR DE LA ZONE : deux FLOW ne doivent pas se ressembler — les poids sont secoués à chaque zone (× 0,35 à 2,05) : celle-ci
+		-- sera obsédée par les esses, la suivante par les grands virages. Le caractère de l'archétype tient, seule l'humeur change.
+		for _, m in MOTIFS do m[2] = (W[m[1]] or m[2]) * (ecole and 1 or (0.35 + rnd:NextNumber() * 1.7)) end
 	end
 	-- entre deux motifs : une liaison qui tourne (16-36°) et descend de 8-16 m (L9084)
 	local function liaison()
@@ -19054,6 +19079,27 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 	end
 	-- l'arrivée : la dernière descente vers le PORTAIL, qui se pose à plat
 	if not ecole then
+		-- LA SIGNATURE DE FIN (L9507) : chaque archétype clôt SA zone par SON geste — la zone se retient. (Posée seulement si elle ne
+		-- traverse pas la route déjà bâtie.)
+		pc = pente
+		if AR.nom == "FLOW" then
+			local Rf = 220 * math.min(2, LV)
+			arc(Rf, sens() * 110, -160 / (math.rad(110) * Rf))
+		elseif AR.nom == "TECH" then
+			local sgF = sens()
+			for _ = 1, 3 do
+				arc(90 * RS, sgF * 24, -26 / (math.rad(24) * 90 * RS))
+				sgF = -sgF
+			end
+		elseif AR.nom == "ALPIN" then
+			seg(90, 0, -50 / 90, 30)
+			seg(80, 0, 26 / 80, 30) -- une arrivée surélevée
+		elseif AR.nom == "VOLTIGE" then
+			seg(120, 0, -0.25, 30)
+		else
+			arc(170 * RS, sens() * 100, -0.3)
+		end
+		poser(true) -- (refusée : la zone se clôt sans elle)
 		pc = pente
 		seg(110 * LV, 0, -0.28, 40)
 		seg(80, 0, 0, 50)
@@ -19087,7 +19133,7 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 	end
 
 	local piste = {
-		graine = graine, zone = zone, niveau = niv, variante = variante, filets = filets, entree = (entreeA > 0) and { entreeA, entreeB } or nil,
+		graine = graine, zone = zone, niveau = niv, variante = variante, archetype = AR.nom, filets = filets, entree = (entreeA > 0) and { entreeA, entreeB } or nil,
 		DS = DS * M, n = n, len = (n - 1) * DS * M, F = F,
 		minY = minY, grille = grille, cellule = CEL, objets = {}, modules = modules,
 	}

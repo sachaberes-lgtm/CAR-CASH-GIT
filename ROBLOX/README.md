@@ -86,6 +86,9 @@ recommence (décision de Sacha, 2/10 : « fais la ville et l'espace, fais pas Pa
   qu'on vienne ; couper la route en vol pour l'atteindre paie un RACCOURCI.
 - **MIRACULÉ** (une chute perdue d'avance rattrapée), les **cris de vitesse** (« 400 KM/H ! », « RECORD DE VITESSE »), **COMÈTE**
   (la caisse brûle à partir du palier 27), les **bords de l'écran** qui battent à la couleur du pouvoir actif.
+- **L'ADN de piste** : chaque zone tire un archétype (FLOW, TECH, ALPIN, VOLTIGE, GRAND8 — poids des motifs, échelle des rayons,
+  humeur verticale), une humeur (les poids secoués), une latéralité (elle penche à gauche, à droite ou pas) et sa signature de fin.
+  ⚠ La zone fait 9 km ici contre 14,4 km sur le web : la route en maillage se paie sur le budget de maillages (4 zones tenues).
 - **L'attitude de la caisse** : le power-slide (l'arrière chasse dans les virages, jusqu'à ~18°), le tangage (elle plonge au frein,
   s'accroupit à la poussée), les **traces de pneus** (`Client/Traces`), la fumée sur toute vraie glisse, les étincelles du plancher
   qui racle le bord, des éclats rouges sur un plot percuté, la gerbe d'or de la fronde, la poussière du décollage.
