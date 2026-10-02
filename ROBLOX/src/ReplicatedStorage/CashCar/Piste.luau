@@ -37,7 +37,8 @@ end
 -- Génère la zone `zone` à partir de la pose `depart` (CFrame en studs ; nil = l'origine du monde).
 -- `ceder` (facultatif) est appelé entre deux motifs : on étale le calcul sur plusieurs images.
 -- `ecole` = la piste DESSINÉE de l'auto-école (genTuto, L8765) : douze tronçons écrits à la main, pas de hasard.
-function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (() -> ())?, ecole: boolean?): Piste
+-- `parties` = le nombre de parties déjà jouées par CE joueur (les cristaux s'y adaptent : voir semer) ; nil = un vétéran.
+function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (() -> ())?, ecole: boolean?, parties: number?): Piste
 	local rnd = Random.new(graine * 97 + zone * 7919)
 	local function r(a: number, b: number): number return a + rnd:NextNumber() * (b - a) end
 	local niv: string = ecole and "nuages" or Config.niveau(zone).id
@@ -558,12 +559,12 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 		DS = DS * M, n = n, len = (n - 1) * DS * M, F = F,
 		minY = minY, grille = grille, cellule = CEL, objets = {}, modules = modules,
 	}
-	Piste.semer(piste :: any, rnd, zone, ecole)
+	Piste.semer(piste :: any, rnd, zone, ecole, parties)
 	return piste :: any
 end
 
 -- ── les objets (spawnPickups L23148) : tout existe sur les DEUX faces (miroir strict) ──
-function Piste.semer(p: Piste, rnd: Random, zone: number, ecole: boolean?)
+function Piste.semer(p: Piste, rnd: Random, zone: number, ecole: boolean?, parties: number?)
 	-- Ce que la route porte (buildTrack L10182-10286, spawnPickups L23625-23751). Tout existe en MIROIR sur les deux
 	-- faces ; lat est donné dans le repère de SA face (la droite du pilote qui roule dessus).
 	-- L'ordre : les flaques, les plots (lignes de chantier, slaloms, portes de frôlé), puis les pièces — qui ESQUIVENT
@@ -734,16 +735,27 @@ function Piste.semer(p: Piste, rnd: Random, zone: number, ecole: boolean?)
 	local sc = ecole and L or r(380, 640)
 	local PW = Config.POUVOIRS
 	local cles = { "n", "a", "v", "m", "x" }
+	-- LE TIRAGE S'ADAPTE AU JOUEUR (pwrPoids, L23572) : le débutant tombe sur ce qui le fait jouer tout de suite (AIMANT, AIR MAX) ; le
+	-- vétéran sur ce qui fait monter le score (AURA ×2). Et le tout PREMIER cristal d'un débutant (moins de 5 parties) est un AIMANT posé
+	-- près de l'axe : le premier pouvoir se prend sans le chercher, et l'or vient tout seul.
+	local np = parties or 99
+	local W: { [string]: number } = (np < 8) and { n = 0.2, a = 0.22, v = 0.12, m = 0.3, x = 0.16 }
+		or ((np < 30) and { n = 0.21, a = 0.19, v = 0.18, m = 0.21, x = 0.21 } or { n = PW.n.poids, a = PW.a.poids, v = PW.v.poids, m = PW.m.poids, x = PW.x.poids })
+	local premier = np < 5 and zone == 1 and not ecole
 	while sc < L - 140 do
 		local tot = 0
-		for _, k in cles do tot += PW[k].poids end
+		for _, k in cles do tot += W[k] end
 		local x = rnd:NextNumber() * tot
 		local pw = "n"
 		for _, k in cles do
-			x -= PW[k].poids
+			x -= W[k]
 			if x <= 0 then pw = k; break end
 		end
 		local lt = r(-1, 1) * (RH - 4)
+		if premier and not dansModule(sc) then
+			pw, premier = "m", false
+			lt *= 0.2
+		end
 		if not dansModule(sc) then
 			for _, face in { 1, -1 } do
 				table.insert(p.objets, { s = sc * M, lat = lt * M, h = 2.1 * M, face = face, kind = "cristal", pw = pw })
