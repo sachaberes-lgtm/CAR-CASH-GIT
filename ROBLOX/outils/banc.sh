@@ -1,7 +1,7 @@
 #!/bin/sh
 # Construit une copie de TEST hors du dépôt (Studio pose un verrou à côté du fichier ouvert).
 #   sh ROBLOX/outils/banc.sh [indice de caisse à forcer]
-#   NIVEAU=ville sh ROBLOX/outils/banc.sh        (force le niveau de toutes les zones : ville, espace)
+#   NIVEAU=ville sh ROBLOX/outils/banc.sh        (force le niveau de toutes les zones : ville, espace, orage, nuit, hard)
 set -e
 cd "$(dirname "$0")/.."
 T="${CASHCAR_BANC:-$TEMP/cashcar-banc}"; mkdir -p "$T"

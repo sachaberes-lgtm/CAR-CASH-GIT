@@ -33,6 +33,8 @@ local KA: any = { Camera = require(CL:WaitForChild("Camera")), Nuages = require(
 	pos = Vector3.zero, vise = Vector3.zero, up = Vector3.yAxis, fov = 72, V = {}, refletK = 0, envoiT = 0 }
 KA.Ville = require(CL:WaitForChild("Ville"))
 KA.Espace = require(CL:WaitForChild("Espace"))
+KA.Orage = require(CL:WaitForChild("Orage"))
+KA.Debris = require(CL:WaitForChild("Debris"))
 
 local M, SPD = Config.M, Config.SPD
 local RH, THICK = Config.ROAD_HALF, Config.THICK
@@ -187,7 +189,7 @@ local function preparer(z: number, depart: CFrame?): Zone
 			if okV then (e :: any).ville = resV else warn("[CashCar] ville : " .. tostring(resV)) end
 		elseif p.niveau == "espace" then
 			local okE, resE = pcall(KA.Espace.batir, p, ciel, graine + z * 31, ceder)
-			if not okE then warn("[CashCar] espace : " .. tostring(resE)) end
+			if okE then (e :: any).sats = resE else warn("[CashCar] espace : " .. tostring(resE)) end -- (sats : les obstacles de la PLUIE DE SATELLITES)
 		end
 		e.ciel = ciel
 		e.piste, e.dossier, e.objets, e.grille, e.pads, e.series, e.prisSerie, e.nuages = p, d, objs, grille, pads, series, {}, nuages
@@ -202,6 +204,10 @@ local function oublier(z: number)
 	ZONES[z] = nil
 end
 local function remettreObjets(e: Zone)
+	-- les satellites de la route (PLUIE DE SATELLITES) redeviennent tous à esquiver
+	if (e :: any).sats then
+		for _, o in (e :: any).sats do o.fait, o.pres, o.min = false, false, 99 end
+	end
 	-- ce que LA LIGNE PARFAITE a posé pendant la partie d'avant s'en va (elle reposera sa file)
 	if e.objets then
 		local garde, change = {}, false
@@ -307,7 +313,7 @@ function G.gK(): number return (piste and (piste :: any).niveau == "espace") and
 local function airMax(): number return Config.AIR_MAX * ((G.gK() < 1) and Config.ORB_AIR or 1) * (facile() and FAC.air or 1) end
 function G.nomNiveau(): string
 	local n = Config.niveau((piste and (piste :: any).zone) or 1)
-	if piste and (piste :: any).niveau ~= n.id then n = Config.NIVEAUX[1] end -- (l'auto-école)
+	if piste and ((piste :: any).niveau ~= n.id or (piste :: any).variante ~= n.var) then n = Config.NIVEAUX[1] end -- (l'auto-école)
 	return tr(n.nom, n.en)
 end
 local function horiz(v: Vector3): number return math.sqrt(v.X * v.X + v.Z * v.Z) end
@@ -1214,6 +1220,105 @@ local function obstacles(dt: number, cf: CFrame)
 	if G.froleT <= 0 then G.froleN = 0 end
 end
 
+-- LA PLUIE DE SATELLITES (satHard, L14061) : percuter un satellite de la route tue ; le frôler (moins de 3,2 m en travers) se paie
+-- comme un plot frôlé, une fois sorti de sa bulle. Au sol comme en vol.
+function G.satFrole(dm: number)
+	local pres = math.clamp(1 - dm / 3.2, 0, 1)
+	G.froleN += 1
+	G.froleT = 1.4
+	nitroGain(0.08 + 0.08 * pres)
+	Score.flowAdd(4 + 4 * pres, "style", "n")
+	momT = math.min(4.3, momT + 0.6)
+	Score.gesteMuet(tr("FROLE", "CLOSE CALL"), 20, "frole")
+	fovPunch = math.max(fovPunch, 1.5 + 2 * pres)
+	Sons.jouer("maillon", Sons.demiTons(math.min(12, G.froleN * 2)), 0.3)
+end
+function G.satHard()
+	local l = (zone :: any).sats
+	if not l or #l == 0 or graceT > 0 or intro then return end
+	local P = carCF.Position / M
+	for _, o in l do
+		if not o.fait then
+			local d = P - o.q
+			if d:Dot(d) > o.R2 then
+				if o.pres then -- sorti de la bulle : le frôlé se paie
+					o.fait = true
+					if o.min < 3.2 then G.satFrole(o.min) end
+				end
+			else
+				local a, u, t = math.abs(d:Dot(o.W)), math.abs(d:Dot(o.U)), math.abs(d:Dot(o.T))
+				if a < o.hw and u < o.hu and t < o.ht then
+					o.fait = true
+					secousse = math.max(secousse, 1.3)
+					exploser("sat")
+					return
+				end
+				-- à hauteur et au droit : la marge qui reste en travers
+				if u < o.hu + 1.2 and t < o.ht + 1 then
+					o.min = math.min(o.min, math.max(0, a - o.hw))
+					o.pres = true
+				end
+			end
+		end
+	end
+end
+
+-- L'ORBITE · LA PLUIE DE DÉBRIS (debTick, debFrappe, L32956) : la cible tombe là où la caisse SERA ; à l'impact, touché ou esquivé.
+-- La pluie se durcit vers le portail (≈ 3,4 s entre deux chutes au départ, 1,9 s à la fin). Seulement en orbite, sur le dessus.
+function G.debTick(dt: number, camCF: CFrame)
+	local D = KA.Debris
+	D.suite(dt)
+	if G.gK() >= 1 or TU.on or not (mode == "drive" or mode == "fall") then
+		D.cache()
+		return
+	end
+	if not D.on then
+		if mode == "drive" and side > 0 and not intro then
+			D.prochain -= dt
+			if D.prochain <= 0 then
+				local ok = D.arme(piste, s, lat, math.max(18, math.abs(vA)) * SPD)
+				if ok and not D.dit then
+					D.dit = true
+					Hud.pop(tr("ESQUIVE LES DEBRIS", "DODGE THE DEBRIS"), Color3.fromRGB(255, 138, 77), 20)
+				end
+				D.prochain = ok and (3.4 - math.clamp(s / (piste.len / M), 0, 1) * 1.5) * (0.8 + math.random() * 0.4) or 0.35
+			end
+		end
+		return
+	end
+	if not D.tick(dt, camCF) then return end
+	-- LA FRAPPE
+	local d = (carCF.Position - D.p1).Magnitude / M
+	secousse = math.max(secousse, 0.9 * math.max(0, 1 - d / 140))
+	if d < 260 then Sons.jouer("explosion", 0.7, 0.45 * (1 - d / 300)) end
+	if mode ~= "drive" then return end -- en vol, on l'a survolé
+	if side < 0 then
+		if d < D.R + 9 then Hud.pop(tr("A L'ABRI", "SAFE"), Color3.fromRGB(159, 232, 255), 20) end
+		return
+	end
+	if d < D.R + 1.2 then
+		-- TOUCHÉ : la vitesse et le flow prennent le choc — pas la vie ; en gravité lunaire, la gerbe soulève la caisse
+		vA *= 0.6
+		momT = 0
+		Score.flowFaute("n", 20, 0.25)
+		D.serie = 0
+		G.hopV = math.max(G.hopV, 7.5)
+		secousse = math.max(secousse, 1.1)
+		Hud.pop(tr("TOUCHE !", "HIT!"), Color3.fromRGB(255, 90, 60), 26)
+		Hud.vibre(90)
+		Sons.jouer("poseChoc", 0.7, 0.5)
+	elseif d < D.R + 9 then
+		-- ESQUIVÉ DE PRÈS : le risque paie, la série fait monter la mise
+		D.serie += 1
+		local k = math.min(4, D.serie)
+		Hud.pop(tr("ESQUIVE !", "DODGED!") .. ((D.serie > 1) and (" x" .. D.serie) or ""), Color3.fromRGB(255, 176, 0), 22)
+		Score.flowAdd(6 + k * 3, "style", "n")
+		nitroGain(0.08 + k * 0.04)
+		Score.gesteMuet(tr("ESQUIVE", "DODGE"), 24 + k * 6, "esquive")
+		Sons.jouer("maillon", Sons.demiTons(k * 2), 0.3)
+	end
+end
+
 local function objets(dt: number, pos: Vector3, t: number)
 	local objs = zone.objets :: { any }
 	-- les pièces proches tournent (les autres dorment : zéro coût)
@@ -1388,7 +1493,7 @@ local function activer(e: Zone)
 	if e.ciel then e.ciel.Parent = (mode ~= "menu" and mode ~= "garage" and mode ~= "charge") and e.dossier or nil end
 	oi = 1
 	evEtat:FireServer("zone", e.z)
-	Bus.emit("niveau", (piste :: any).niveau)
+	Bus.emit("niveau", (piste :: any).niveau, (piste :: any).variante)
 end
 local function passerPortail(): boolean
 	local ecole = TU.on and zoneN == 0 -- pendant la leçon, le portail ramène sur la piste d'école
@@ -2563,7 +2668,29 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 		Mer.montrer(mode == "menu" or mode == "garage" or (piste :: any).niveau == "nuages")
 		Mer.suivre(cam.CFrame.Position, carCF.Position.Y, dt, (mode == "menu" or mode == "garage") and Config.CIEL.merMenu * M or nil)
 		KA.Espace.tick(dt, (piste :: any).niveau == "espace" and mode ~= "menu" and mode ~= "garage", cam.CFrame, carCF)
-		KA.Ville.pluie((piste :: any).niveau == "ville" and mode ~= "menu" and mode ~= "garage", cam.CFrame)
+		do
+			local var, enJeu = (piste :: any).variante, mode ~= "menu" and mode ~= "garage" and mode ~= "charge"
+			local course = mode == "drive" or mode == "fall"
+			-- la pluie : la VILLE, MINUIT EN VILLE (moitié moins : pluie 0,55) et L'ORAGE
+			KA.Ville.pluie(enJeu and ((piste :: any).niveau == "ville" or var == "orage"), cam.CFrame, (var == "nuit") and 0.55 or 1)
+			-- MINUIT EN VILLE : pleins phares (ceux de la caisse au maximum, les faisceaux, la lampe qui court devant)
+			local minuit = var == "nuit" and course
+			if G.minuit ~= minuit then
+				G.minuit = minuit
+				local ph = poignees.phares
+				if ph then
+					ph.Brightness = minuit and 5.2 or 2
+					ph.Angle = minuit and 80 or 70
+					ph.Color = minuit and Color3.fromRGB(224, 242, 255) or Color3.fromRGB(255, 236, 200)
+				end
+			end
+			KA.Ville.phares(minuit, carCF, poignees.fiche.w * 0.5, poignees.fiche.l or 4.4)
+			-- L'ORAGE : l'éclair qui montre la route, le tonnerre qui secoue
+			local sk = KA.Orage.tick(dt, var == "orage" and course and not enPause, piste, s, carCF.Position / M)
+			if sk > 0 then secousse = math.max(secousse, sk) end
+			if course and not enPause then G.satHard() end
+			if not enPause then G.debTick(dt, cam.CFrame) end
+		end
 		-- les nuages PROCHES reçoivent leur version fine ; hors de la course, tout est rendu au budget (voir Nuages.finesseTick)
 		KA.Nuages.finesseTick(dtBrut, (mode == "drive" or mode == "fall" or mode == "menu") and cam.CFrame.Position or nil)
 		lisserDoubles(dt)

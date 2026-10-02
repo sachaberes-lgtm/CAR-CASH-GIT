@@ -423,8 +423,12 @@ function Nuages.batir(piste: any, dossier: Instance, graine: number, ceder: (() 
 	end
 
 	-- ════ LE CIEL DE COTON (buildCoton) — réglages du niveau NUAGES : deux fois moins de nuages, ×1,9 plus gros ════
-	local GZ, NZ = 1.9, 0.5
-	local function KK(n: number): number return math.max(1, math.floor(n * 0.5 + 0.5)) end
+	-- L'ORAGE (L8231, L8456) : « plus de nuages partout, au point que ça gêne la visibilité » — des nuages à la taille d'origine mais
+	-- ×1,6 plus nombreux, des MURS de ouate au ras de la route, un PLAFOND bas, un banc sur la route tous les 300-600 m. Le lointain
+	-- (au-delà de la brume de l'orage, ~1 km) n'est pas bâti : ce serait de la brume pure.
+	local OR = piste.variante == "orage"
+	local GZ, NZ = OR and 1 or 1.9, OR and 1 or 0.5
+	local function KK(n: number): number return math.max(1, math.floor(n * (OR and 1.6 or 0.5) + 0.5)) end
 	-- (1) LA COURONNE PROCHE, en ARCHIPELS : un grand et ses satellites, du ciel ouvert entre deux
 	for k = 0, KK(30) - 1 do
 		local i = strat(k, KK(30))
@@ -479,8 +483,33 @@ function Nuages.batir(piste: any, dossier: Instance, graine: number, ceder: (() 
 		local a, d, r = cr() * 6.2832, 260 + cr() * 1700, taille(rnd, 60 * GZ, 300 * GZ, 1.5)
 		pose(p, p.X + math.cos(a) * d, p.Y + 230 + cr() * 420, p.Z + math.sin(a) * d, r, tire(rnd, POIDS.mil))
 	end
+	if OR then
+		-- LES MURS : au ras de la route, de chaque côté, à hauteur de caisse — la route file dans un couloir de ouate : on ne voit plus
+		-- d'où vient le virage, seulement la route devant soi, et l'éclair qui éclaire le couloir
+		for k = 0, 29 do
+			local i = strat(k, 30)
+			local p = pt(i)
+			local qx, qz = travers(i)
+			local sg = (cr() < 0.5) and -1 or 1
+			local r = taille(rnd, 40, 120, 1.3)
+			local kk = tire(rnd, POIDS.pres)
+			local dd = RH + r * 0.8 + 20 + cr() * 40
+			for _ = 1, 3 do
+				if pose(p, p.X + qx * sg * dd, p.Y - r * 0.45 + cr() * 30, p.Z + qz * sg * dd, r, kk) then break end
+				dd += 40
+			end
+		end
+		-- LE PLAFOND : de grands nuages plats et bas, 70-170 m au-dessus de la route, sur elle et autour — le ciel se referme
+		for k = 0, 41 do
+			local i = strat(k, 42)
+			local p = pt(i)
+			local qx, qz = travers(i)
+			local lat, r = (cr() - 0.5) * 900, taille(rnd, 110, 230, 1.2)
+			pose(p, p.X + qx * lat, p.Y + 70 + cr() * 100, p.Z + qz * lat, r, parmi(rnd, { "stratocumulus", "stratocumulus", "humilis", 1, 4 }), 0.8 + cr() * 0.25)
+		end
+	end
 	-- (5) LE LOINTAIN : l'horizon a ses nuages
-	local K5 = math.floor(80 * NZ + 0.5)
+	local K5 = OR and 0 or math.floor(80 * NZ + 0.5)
 	for k = 0, K5 - 1 do
 		local p = pt(strat(k, K5))
 		local a, d, r = cr() * 6.2832, 1200 + cr() * 1400, taille(rnd, 120 * GZ, 560 * GZ, 1.4)
@@ -506,12 +535,12 @@ function Nuages.batir(piste: any, dossier: Instance, graine: number, ceder: (() 
 		end
 	end
 	-- (6) MASSIFS, TITANS à enclume, TOURS HÉROÏQUES et LE COLOSSE
-	for k = 0, 5 do
+	for k = 0, OR and -1 or 5 do
 		local p = pt(strat(k, 6))
 		local a, d, r = cr() * 6.2832, 900 + cr() * 1300, 280 + cr() * 300
 		pose(p, p.X + math.cos(a) * d, p.Y - 320 + cr() * 160, p.Z + math.sin(a) * d, r, parmi(rnd, { 2, 0, "congestus", "champignon", "stratocumulus" }))
 	end
-	for k = 0, 2 do
+	for k = 0, OR and -1 or 2 do
 		local p = pt(strat(k, 3))
 		local a, d, r = cr() * 6.2832, 1700 + cr() * 1500, (600 + cr() * 450) * 0.7
 		pose(p, p.X + math.cos(a) * d, p.Y - 420 + cr() * 200, p.Z + math.sin(a) * d, r, 24)
@@ -523,7 +552,7 @@ function Nuages.batir(piste: any, dossier: Instance, graine: number, ceder: (() 
 			if pose(p, p.X + math.cos(a) * (d + t * 160), p.Y - 300 + cr() * 80, p.Z + math.sin(a) * (d + t * 160), r, parmi(rnd, { "congestus", "cisaille" })) then break end
 		end
 	end
-	do
+	if not OR then
 		local p = pt(math.clamp(math.floor(NP * (0.6 + cr() * 0.15)), 1, NP))
 		local a, d = cr() * 6.2832, 1500 + cr() * 700
 		pose(p, p.X + math.cos(a) * d, p.Y - 380, p.Z + math.sin(a) * d, (760 + cr() * 300) * 0.75, 24)
@@ -583,17 +612,20 @@ function Nuages.batir(piste: any, dossier: Instance, graine: number, ceder: (() 
 	-- LES BANCS de route : rares ; chacun cache le virage suivant
 	do
 		local dernier = -1e9
-		local sp = 1600 + cr() * 900
+		local sp = (OR and 420 or 1600) + cr() * (OR and 300 or 900)
 		while sp < L - 300 do
-			if cr() >= 0.4 then
-				local mega = cr() < 0.1
+			if cr() >= (OR and 0.06 or 0.4) then
+				local mega = cr() < (OR and 0.45 or 0.1)
+				-- (à l'orage, un banc sur quatre ne couvre qu'UN côté de la route : on le frôle, on ne sait pas ce qu'il cache)
+				local dl9 = 0
+				if OR and not mega and cr() < 0.5 then dl9 = ((cr() < 0.5) and -1 or 1) * RH * (0.35 + cr() * 0.3) end
 				local s9 = sp
 				local r9 = mega and 55 or 25
-				local c9 = virage(sp, dernier)
+				local c9 = OR and -1 or virage(sp, dernier) -- (l'orage se roule À L'AVEUGLE : ses bancs ne choisissent pas leur place)
 				if c9 >= 0 then
 					dernier = c9
 					s9 = math.max(sp, c9 - 160 - r9)
-				elseif courbe(sp) >= 1 / 300 then
+				elseif not OR and courbe(sp) >= 1 / 300 then
 					local q = sp + 20
 					while q < math.min(L - 320, sp + 600) do
 						if courbe(q) < 1 / 330 then
@@ -604,11 +636,11 @@ function Nuages.batir(piste: any, dossier: Instance, graine: number, ceder: (() 
 					end
 				end
 				local f = F[math.clamp(math.floor(s9 / DS) + 1, 1, NP)]
-				local r = mega and (40 + cr() * 30) or (18 + cr() * 14)
-				local c = f.Position / M + f.UpVector * (mega and (6 + cr() * 4) or (2.5 + cr() * 2))
+				local r = mega and ((OR and 58 or 40) + cr() * (OR and 36 or 30)) or ((OR and 30 or 18) + cr() * (OR and 18 or 14))
+				local c = f.Position / M + f.UpVector * (mega and (6 + cr() * 4) or (2.5 + cr() * 2)) + f.RightVector * dl9
 				jeu(c, r, (r > 34) and { "mediocris" } or { "humilis" }, true)
 			end
-			sp += 1900 + cr() * 1400
+			sp += OR and (300 + cr() * 300) or (1900 + cr() * 1400)
 		end
 	end
 	-- les CHAMPS de coussins de vol : par 2-3, échelonnés le long de la piste

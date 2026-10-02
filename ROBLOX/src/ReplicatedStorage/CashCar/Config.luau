@@ -158,19 +158,25 @@ Config.FRUITS = {
 Config.LIGNE = { dt = 1.2, don = 1.15, voir = 3.5 }
 
 -- ── LES NIVEAUX (NIVEAUX du jeu web, L13322) : le portail est la porte entre deux mondes. Sacha, 2/10 : « fais la ville et
--- l'espace, fais pas Paris » — le cycle est NUAGES → VILLE → ORBITE → NUAGES…
+-- l'espace, fais pas Paris » — le cycle du web, sans Paris : NUAGES → VILLE → ORBITE → L'ORAGE → MINUIT EN VILLE → PLUIE DE
+-- SATELLITES, puis on recommence. Une VARIANTE (`var`) garde l'`id` de son lieu : toute la ville suit, tout le ciel de coton suit ;
+-- elle ne change que ce qui fait sa difficulté (orage : les bancs partout et l'éclair · nuit : les fenêtres éteintes et les phares ·
+-- hard : des satellites SUR la route).
 Config.NIVEAUX = {
 	{ id = "nuages", nom = "MER DE NUAGES", en = "SEA OF CLOUDS" },
 	{ id = "ville", nom = "AU-DESSUS DE LA VILLE", en = "ABOVE THE CITY" },
 	{ id = "espace", nom = "EN ORBITE", en = "IN ORBIT" },
+	{ id = "nuages", var = "orage", nom = "L'ORAGE", en = "THE STORM" },
+	{ id = "ville", var = "nuit", nom = "MINUIT EN VILLE", en = "MIDNIGHT CITY" },
+	{ id = "espace", var = "hard", nom = "PLUIE DE SATELLITES", en = "SATELLITE STORM" },
 }
-Config.NIVEAU_TEST = nil :: string? -- (banc) force le niveau de TOUTES les zones : "ville", "espace"
+Config.NIVEAU_TEST = nil :: string? -- (banc) force le niveau de TOUTES les zones : "ville", "espace", "orage", "nuit", "hard"
 -- le niveau d'une zone (la zone 0 est l'auto-école : le ciel des nuages)
 function Config.niveau(zone: number): any
 	local force = Config.NIVEAU_TEST
 	if force and zone > 0 then
 		for _, n in Config.NIVEAUX do
-			if n.id == force then return n end
+			if (n.var or n.id) == force then return n end
 		end
 	end
 	return Config.NIVEAUX[(math.max(1, zone) - 1) % #Config.NIVEAUX + 1]
@@ -237,7 +243,7 @@ Config.SONS = {
 	musique = "", moteur = "", nitro = "", ventAltitude = "",
 	piece = "", decollage = "", poseParfait = "", poseChoc = "", poseLourde = "", vrille = "",
 	maillon = "", bigAir = "", encaisse = "", explosion = "", pad = "", nitroPlein = "",
-	tap = "", go = "", bip = "", compteFin = "", record = "", portail = "", fronde = "",
+	tap = "", go = "", bip = "", compteFin = "", record = "", portail = "", fronde = "", tonnerre = "",
 }
 Config.SONS_SECOURS = {
 	explosion = "rbxasset://sounds/impact_explosion_03.mp3",
@@ -247,6 +253,7 @@ Config.SONS_SECOURS = {
 	ventAltitude = "rbxasset://sounds/action_falling.ogg",
 	tap = "rbxasset://sounds/volume_slider.ogg",
 	piece = "rbxasset://sounds/volume_slider.ogg",
+	tonnerre = "rbxasset://sounds/impact_explosion_03.mp3", -- (joué très grave : un roulement)
 }
 
 return Config

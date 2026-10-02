@@ -26,8 +26,10 @@ end
 -- ── les deux images de fenêtres (8 × 8 fenêtres, 16 pixels par travée) ──
 local CEL, NF = 16, 8
 local images: { any } = {}
-local function image(froide: boolean): any?
-	local k = froide and 2 or 1
+-- (MINUIT EN VILLE, villeApres L33057 : « 3 fenêtres sur 4 éteintes ») `nuit` : les mêmes façades, plus tard — un mur presque noir,
+-- une fenêtre allumée sur quatre, et celles qui restent brûlent plus fort (elles sont seules dans le noir)
+local function image(froide: boolean, nuit: boolean?): any?
+	local k = (froide and 2 or 1) + (nuit and 2 or 0)
 	if images[k] ~= nil then return images[k] or nil end
 	images[k] = false
 	local N = CEL * NF
@@ -36,7 +38,7 @@ local function image(froide: boolean): any?
 	local rnd = Random.new(froide and 7711 or 4242)
 	local b = buffer.create(N * N * 4)
 	-- le béton du village : gris-bleu, mouillé (× 1,25 : la teinte de chaque tour le ramène entre 0,8 et 1,25)
-	local mur = { 64, 67, 83 }
+	local mur = nuit and { 26, 27, 38 } or { 64, 67, 83 }
 	local dom = froide and { 143, 216, 255 } or { 255, 176, 74 }
 	local aut = froide and { 255, 176, 74 } or { 143, 216, 255 }
 	for i = 0, N * N - 1 do
@@ -48,10 +50,10 @@ local function image(froide: boolean): any?
 	for fy = 0, NF - 1 do
 		local vit = rnd:NextNumber() > 0.26 -- un plateau sur quatre dort (il garde quelques veilleuses)
 		for fx = 0, NF - 1 do
-			local allume = rnd:NextNumber() < (vit and 0.72 or 0.08)
+			local allume = rnd:NextNumber() < (vit and 0.72 or 0.08) * (nuit and 0.25 or 1)
 			if allume then
 				local c = (rnd:NextNumber() < 0.8) and dom or aut
-				local e = 0.8 + 0.4 * rnd:NextNumber()
+				local e = (nuit and 1.05 or 0.8) + 0.4 * rnd:NextNumber()
 				-- la fenêtre : 60 % de la travée en largeur (un bandeau dans les bureaux), 52 % de l'étage en hauteur
 				local x0, x1 = froide and 1 or 3, froide and 14 or 12
 				for y = 4, 11 do
@@ -145,6 +147,7 @@ export type Collision = { g: { [number]: { number } }, c: { number } }
 -- Bâtit la ville autour d'une piste. Rend la grille de collision des tours (en mètres).
 function Ville.batir(piste: any, dossier: Instance, graine: number, ceder: (() -> ())?, accent: Color3?): Collision
 	local vr = Random.new(graine + 0x5EED1)
+	local nuit = piste.variante == "nuit" -- MINUIT EN VILLE
 	local function r(): number return vr:NextNumber() end
 	local F = piste.F
 	local NP = piste.n
@@ -404,6 +407,10 @@ function Ville.batir(piste: any, dossier: Instance, graine: number, ceder: (() -
 				p.Size = Vector3.new(v[4] * M, math.min(2040, v[5] * M), v[6] * M)
 				p.CFrame = CFrame.new(v[1] * M, v[2] * M, v[3] * M)
 				p.Color = Color3.new(t, t, t)
+				if nuit then
+					local imN = image(v[9] > 0.5, true) -- (le même gabarit, une autre image : zéro maillage de plus)
+					if imN then p.TextureContent = Content.fromObject(imN) end
+				end
 				p.Parent = racine
 			else
 				boite(v, "Tour", Color3.new(0.25 * t, 0.26 * t, 0.32 * t), Enum.Material.SmoothPlastic)
@@ -417,6 +424,7 @@ function Ville.batir(piste: any, dossier: Instance, graine: number, ceder: (() -
 	end
 	for k, v in neons do
 		local c = (v[7] == 7) and (accent or NEON[1]) or NEON[v[7]]
+		if nuit then c = Color3.new(c.R * 0.55, c.G * 0.55, c.B * 0.55) end -- (à minuit le courant baisse : les enseignes couvent)
 		boite(v, "Neon", c, Enum.Material.Neon)
 		if ceder and k % 80 == 0 then ceder() end
 	end
@@ -430,7 +438,7 @@ end
 -- pièce invisible qui suit l'œil (les gouttes sont verrouillées à la pièce : à 300 km/h, une pluie posée dans le monde reste derrière).
 local pluieP: Part? = nil
 local pluieE: ParticleEmitter? = nil
-function Ville.pluie(actif: boolean, camCF: CFrame)
+function Ville.pluie(actif: boolean, camCF: CFrame, taux: number?)
 	if not pluieP then
 		if not actif then return end
 		local p = Instance.new("Part")
@@ -467,10 +475,72 @@ function Ville.pluie(actif: boolean, camCF: CFrame)
 		if not actif then e:Clear() end
 	end
 	if actif then
+		e.Rate = 520 * (taux or 1)
 		-- au-dessus de l'œil et un peu devant (à plat : la pluie tombe droit, quelle que soit l'assiette de la caméra)
 		local av = camCF.LookVector * Vector3.new(1, 0, 1)
 		p.CFrame = CFrame.new(camCF.Position + av * (10 * M) + Vector3.new(0, 16 * M, 0))
 	end
+end
+
+-- ── LES PHARES DE MINUIT (villeApres, PHARE_FX L14361) : « PLEINS PHARES » — à minuit ce sont eux qui éclairent la route. Deux
+-- FAISCEAUX qui partent des phares (70 m, 6 m d'ouverture au bout) : la pluie et la brume les rendent visibles ; et une lampe qui
+-- court DEVANT la caisse (les lumières de Roblox ne portent pas à plus de 24 m : celle de la caisse ne suffit pas).
+local PH: any = nil
+function Ville.phares(actif: boolean, carCF: CFrame, demi: number, long: number)
+	if not PH then
+		if not actif then return end
+		local function invisible(nom: string): Part
+			local p = Instance.new("Part")
+			p.Name = nom
+			p.Anchored = true
+			p.CanCollide, p.CanQuery, p.CanTouch = false, false, false
+			p.Transparency = 1
+			p.Size = Vector3.new(1, 1, 1)
+			return p
+		end
+		local base, loin = invisible("Faisceaux"), invisible("PhareLoin")
+		local fx = {}
+		for k = 1, 2 do
+			local a0, a1 = Instance.new("Attachment"), Instance.new("Attachment")
+			a0.Parent, a1.Parent = base, base
+			local b = Instance.new("Beam")
+			b.Attachment0, b.Attachment1 = a0, a1
+			b.FaceCamera = true
+			b.Segments = 1
+			b.Width0, b.Width1 = 0.5 * M, 12 * M
+			b.Color = ColorSequence.new(Color3.fromRGB(223, 233, 255))
+			b.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.5), NumberSequenceKeypoint.new(0.25, 0.68),
+				NumberSequenceKeypoint.new(0.7, 0.9), NumberSequenceKeypoint.new(1, 1) })
+			b.LightEmission = 1
+			b.LightInfluence = 0
+			b.Parent = base
+			fx[k] = { a0, a1, b }
+		end
+		local l = Instance.new("SpotLight")
+		l.Face = Enum.NormalId.Front
+		l.Angle = 110
+		l.Range = 60
+		l.Brightness = 4
+		l.Color = Color3.fromRGB(224, 242, 255) -- (du jaune halogène au BLANC xénon)
+		l.Shadows = false
+		l.Parent = loin
+		base.Parent, loin.Parent = workspace, workspace
+		PH = { base = base, loin = loin, fx = fx, lampe = l, on = true }
+	end
+	if PH.on ~= actif then
+		PH.on = actif
+		PH.lampe.Enabled = actif
+		for _, f in PH.fx do f[3].Enabled = actif end
+	end
+	if not actif then return end
+	PH.base.CFrame = carCF
+	for k, f in PH.fx do
+		local x = ((k == 1) and -1 or 1) * demi * 0.62 * M
+		f[1].Position = Vector3.new(x, 0.15 * M, -long * 0.5 * M)
+		f[2].Position = Vector3.new(x * 1.6, -0.9 * M, -(long * 0.5 + 70) * M)
+	end
+	-- la lampe : 15 m devant, 7 m au-dessus de la route, tournée vers le bitume devant elle
+	PH.loin.CFrame = carCF * CFrame.new(0, 7 * M, -15 * M) * CFrame.Angles(-math.rad(42), 0, 0)
 end
 
 -- la caisse est-elle DANS une tour ? (p en mètres ; marge : la demi-caisse)

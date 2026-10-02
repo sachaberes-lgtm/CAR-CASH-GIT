@@ -69,11 +69,34 @@ local HEURES: { [string]: any } = {
 		S = V3(282, 272, 254), OH = V3(182, 194, 238), OB = V3(158, 168, 224), mer = Color3.new(1, 1, 1),
 	},
 }
+-- ── LA TEMPÊTE (BIOMES.tempete, L13162) : le ciel de L'ORAGE — les nuages du niveau 1 dans le noir : ardoise au zénith, une brume
+-- proche et sombre (la route se lit à ~600 m : c'est l'ÉCLAIR qui l'ouvre, voir Client/Orage), pas de soleil, des nuages éclairés
+-- d'un argent FROID sur des flancs d'ardoise.
+HEURES.tempete = {
+	-- (mesuré au banc, 2/10) une brume ardoise (58,62,96) à densité 0,5 noyait tout dans un bleu outremer, nuages compris : le web
+	-- montre des nuages GRIS-LAVANDE sur un indigo violacé. La brume part donc vers le ROSE (Roblox lui retire son rouge), la densité
+	-- tombe à 0,3, et la caisse garde une vraie lumière (elle est claire sur le web)
+	sansSoleil = true, etoiles = 0, lum = 1.0, amb = RGB(118, 116, 170),
+	brume = RGB(160, 96, 124), loin = RGB(96, 60, 88), eclat = 0, voile = 10, densite = 0.3,
+	soleil = Color3.new(0.66, 0.70, 0.92), ext = RGB(180, 176, 220), teinte = Color3.new(1, 1, 1), sat = 0.1, con = 0.2, expo = -0.05,
+	S = V3(214, 208, 238), OH = V3(120, 118, 166), OB = V3(62, 58, 98), mer = Color3.new(0.42, 0.40, 0.56),
+}
+-- ── MINUIT (BIOMES.nuitNoire, L13175) : la PLUIE NÉON trois heures plus tard. Le ciel presque noir, quelques étoiles, une brume
+-- noire-bleue ; les lumières d'ambiance au plancher : ce qui éclaire la route, ce sont les PHARES.
+HEURES.minuit = {
+	-- (mesuré au banc) à exposition −0,3 et contraste 0,32 il ne restait RIEN : ni route ni caisse. Le web garde la caisse bien
+	-- lisible et la route devinée sous les phares : l'exposition remonte, le contraste baisse, la brume garde une pointe de rose
+	nuit = true, etoiles = 900, lum = 0.25, amb = RGB(150, 144, 176),
+	brume = RGB(60, 30, 70), loin = RGB(30, 14, 40), eclat = 0, voile = 6, densite = 0.3,
+	soleil = RGB(120, 140, 220), ext = RGB(170, 164, 196), teinte = RGB(236, 232, 255), sat = 0.28, con = 0.15, expo = 0.25,
+	S = V3(282, 272, 254), OH = V3(182, 194, 238), OB = V3(158, 168, 224), mer = Color3.new(1, 1, 1),
+}
 local ORDRE = { "matin", "midi", "aprem" }
 local FACES = { "SkyboxBk", "SkyboxDn", "SkyboxFt", "SkyboxLf", "SkyboxRt", "SkyboxUp" }
 local NOIR = "rbxasset://textures/blackBkg_square.png"
 local FACES_JOUR: { [string]: string }? = nil
 local NIVEAU = "nuages" -- le niveau de la zone active (Bus « niveau »)
+local VARIANTE: string? = nil -- sa variante (orage, nuit, hard)
 local courante = ""
 
 function Ambiance.nom(): string return courante end
@@ -100,7 +123,7 @@ function Ambiance.poser(nom: string, duree: number?)
 		Lighting.ClockTime = H.nuit and 0 or Config.CIEL.heure
 		if ciel then
 			ciel.StarCount = H.etoiles or 0
-			ciel.CelestialBodiesShown = not (H.nuit or H.noir)
+			ciel.CelestialBodiesShown = not (H.nuit or H.noir or H.sansSoleil)
 			-- le ciel NOIR de l'orbite : les six faces de la boîte du ciel passent au noir (une image livrée avec Roblox) ; ailleurs,
 			-- elles retrouvent celles d'origine
 			if not FACES_JOUR then
@@ -118,8 +141,20 @@ function Ambiance.poser(nom: string, duree: number?)
 	end)
 end
 
+-- L'ÉCLAIR (orageTick, L32253) : le ciel s'allume — `flash` ouvre l'exposition — et le brouillard RECULE (`ouvre` : la route, le
+-- portail se montrent). Posé à chaque image par Client/Orage tant que l'éclair vit ; 0, 0 rend l'ambiance de l'heure.
+function Ambiance.eclair(flash: number, ouvre: number)
+	local H = HEURES[courante]
+	if not H then return end
+	Lighting.ExposureCompensation = H.expo + 1.1 * flash
+	local atm = Lighting:FindFirstChild("Altitude")
+	if atm then (atm :: any).Density = H.densite * (1 - 0.5 * ouvre) end
+end
+
 -- l'ambiance du NIVEAU : aux NUAGES une heure au hasard (jamais deux fois la même de suite), la pluie néon en VILLE, le noir en ORBITE
 function Ambiance.auHasard(): string
+	if VARIANTE == "orage" then return "tempete" end
+	if VARIANTE == "nuit" then return "minuit" end
 	if NIVEAU == "ville" then return "pluie" end
 	if NIVEAU == "espace" then return "espace" end
 	local n
@@ -133,7 +168,7 @@ function Ambiance.init()
 		Lighting:WaitForChild("Etalonnage", 20)
 		Ambiance.poser("titre", 0.01)
 	end)
-	Bus.on("niveau", function(id: string) NIVEAU = id end)
+	Bus.on("niveau", function(id: string, var: string?) NIVEAU, VARIANTE = id, var end)
 	-- une partie qui commence, un portail franchi : l'heure change ; le menu revient au matin (l'ambiance du titre)
 	Bus.on("partie", function()
 		if workspace:GetAttribute("DbgHeure") then return end

@@ -54,14 +54,23 @@ Roblox limite le nombre d'imports audio par mois : commence par `moteur`, `nitro
 
 ## Ce qui est porté / ce qui ne l'est pas encore
 
-Le portage suit le jeu web **du jour** (`VERSION PRINCIPALE/index.html`), sur **trois niveaux** qui s'enchaînent de portail
-en portail : **NUAGES → VILLE → ORBITE**, puis on recommence (décision de Sacha, 2/10 : « fais la ville et l'espace, fais pas
-Paris » ; ni Paris, ni les variantes orage / minuit / pluie de satellites, ni la carrière pour l'instant).
+Le portage suit le jeu web **du jour** (`VERSION PRINCIPALE/index.html`) : **six niveaux** qui s'enchaînent de portail en
+portail, le cycle du web sans Paris — **NUAGES → VILLE → ORBITE → L'ORAGE → MINUIT EN VILLE → PLUIE DE SATELLITES**, puis on
+recommence (décision de Sacha, 2/10 : « fais la ville et l'espace, fais pas Paris » ; la carrière : pas pour l'instant).
 - **AU-DESSUS DE LA VILLE** (`Client/Ville`) : le canyon de tours à fenêtres chaudes ou froides, les enseignes de néon, la nuit
   violette, la pluie, les rails roses et leur lueur sur le bitume mouillé ; une entrée surélevée puis la grande rampe ; des pentes
   comprimées, de grands virages ; en vol, entrer dans une tour tue.
 - **EN ORBITE** (`Client/Espace`) : le ciel noir, la Terre qui se lève au bout de la route, la lune qui regarde la caisse, les
   Starlink et les débris ; une autoroute large et douce ; la gravité divisée par deux et la jauge de vol allongée (×1,7).
+- **L'ORAGE** (les nuages, variante `orage` — `Client/Orage`) : le ciel de tempête, la pluie, des murs et un plafond de nuages,
+  un banc sur la route tous les 300-600 m ; l'ÉCLAIR tombe devant la caisse, allume le ciel et fait reculer la brume ; le tonnerre suit.
+- **MINUIT EN VILLE** (la ville, variante `nuit`) : trois fenêtres sur quatre éteintes, les néons baissés, la nuit noire — et
+  les PHARES : ceux de la caisse au maximum, deux faisceaux, une lampe qui court devant.
+- **PLUIE DE SATELLITES** (l'orbite, variante `hard`) : des Starlink et des étages de fusée SUR la route, seuls ou en rideau de
+  deux avec une trouée ; les percuter tue (« PERCUTE PAR UN SATELLITE »), les frôler paie.
+- **La pluie de débris** (`Client/Debris`, toute l'orbite) : un cercle rouge se pose là où la caisse SERA dans 1,5 s, un débris
+  en feu y tombe — touché : −40 % de vitesse ; esquivé de près : aura, nitro, série.
+- **Le bitume mouillé** de la ville : les reflets de néon sont PEINTS dans l'image de la dalle (96 m qui se répètent).
 - Le niveau d'une zone : `Config.niveau(zone)` ; son ambiance : `Client/Ambiance` (`pluie`, `espace`) ; l'habit de sa route
   (liseré, bitume, lueur) : `HABITS` dans `Client/Construction`.
 
@@ -119,8 +128,9 @@ ressources Roblox (ton compte) : à voir plus tard.
   `DbgInf`, `DbgPlein`, `DbgDauphins`, `DbgSerpent`, `DbgArgent` (un compte), `DbgBudget` (le budget de triangles),
   `DbgFx` = "mort" | "moteur7" | "pluie" | "cratere" | "jus3", `DbgOuvre` = "jouer" | "garage" | "boutique" | "reglages" |
   "missions" | "menu" | "pause" | "frenesie" | "portail…" (en course : saute au pied du portail, pour voir le niveau suivant), `DbgLarge` = 1280 (l'interface d'un écran 16:9).
-- `DbgHeure` = "matin" | "midi" | "aprem" | "titre" | "pluie" | "espace" impose une ambiance (`Client/Ambiance`) ; `nil` rend la main.
-- `NIVEAU=ville sh outils/banc.sh` (ou `espace`) : la copie de test force ce niveau dès la zone 1 (`Config.NIVEAU_TEST`, jamais dans
+- `DbgEclair` = true : dans l'orage, un éclair toutes les 2 s qui tient 1,2 s (le temps d'une photo).
+- `DbgHeure` = "matin" | "midi" | "aprem" | "titre" | "pluie" | "espace" | "tempete" | "minuit" impose une ambiance (`Client/Ambiance`) ; `nil` rend la main.
+- `NIVEAU=ville sh outils/banc.sh` (ou `espace`, `orage`, `nuit`, `hard`) : la copie de test force ce niveau dès la zone 1 (`Config.NIVEAU_TEST`, jamais dans
   le fichier livré).
 - ⚠ LE BUDGET DE MAILLAGES : la ville se prépare PENDANT le niveau d'avant ; si le budget est plein, Roblox refuse ses gabarits
   (tours sans fenêtres, route à facettes). Tout maillage de plus sur la route se paie quatre fois (les zones 1 et 2 restent en

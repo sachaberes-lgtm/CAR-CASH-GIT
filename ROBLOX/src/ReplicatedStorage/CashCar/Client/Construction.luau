@@ -36,10 +36,13 @@ local REFLET = 0.02
 -- rail qui saigne vers l'intérieur du bitume (1,15 m ; 3,35 m sous la pluie : la route mouillée renvoie le néon), `nappeK` sa force.
 local HABITS: { [string]: any } = {
 	nuages = { accent = R.neon, bitume = R.bitume, nappe = 1.15, nappeK = 0.36 },
-	ville = { accent = Color3.fromRGB(242, 74, 160), bitume = Color3.fromRGB(40, 34, 80), nappe = 3.35, nappeK = 0.62 },
+	ville = { accent = Color3.fromRGB(242, 74, 160), bitume = Color3.fromRGB(40, 34, 80), nappe = 3.35, nappeK = 0.62, reflets = 1 },
 	espace = { accent = Color3.fromRGB(94, 230, 255), bitume = Color3.fromRGB(62, 52, 118), nappe = 1.15, nappeK = 0.36 },
 }
-local habit = HABITS.nuages
+-- les VARIANTES : L'ORAGE prend le violet électrique de l'éclair (0x8a7dff) sur un bitume mouillé ; à MINUIT EN VILLE les néons de la
+-- route tombent à 40 % (villeApres) ; la PLUIE DE SATELLITES garde l'habit de l'orbite
+HABITS.orage = { accent = Color3.fromRGB(138, 125, 255), bitume = Color3.fromRGB(70, 58, 96), nappe = 3.35, nappeK = 0.5 }
+HABITS.nuit = { accent = Color3.fromRGB(190, 58, 126), bitume = Color3.fromRGB(34, 30, 66), nappe = 3.35, nappeK = 0.3, reflets = 0.45 }
 -- LA NAPPE DE LUEUR (L10133) : le web pose sous chaque rail un ruban ADDITIF qui meurt sur l'asphalte. Ici c'est une IMAGE d'une
 -- bande de pixels en travers de la route (le bitume au milieu, le bitume + l'accent sur les bords), tendue sur la dalle par ses
 -- coordonnées de texture : zéro pièce et zéro triangle de plus. (1er essai : la couleur dans les SOMMETS, avec deux colonnes de
@@ -49,20 +52,49 @@ local nappes: { [any]: any } = {}
 local function imageNappe(h: any): any?
 	if nappes[h] ~= nil then return nappes[h] or nil end
 	nappes[h] = false
-	local N, H = 128, 2
+	-- LE BITUME MOUILLÉ DE LA VILLE (L9725 : « sous la pluie, la route n'était qu'un aplat violet : c'est pourtant LA surface qui fait
+	-- une nuit de pluie ») : `reflets` → l'image fait 96 m de long et porte des TRAÎNÉES de néon (magenta, cyan, ambre des fenêtres),
+	-- étirées dans le sens de la route comme des enseignes renvoyées par l'eau. Roblox ne reflète que le ciel : ces reflets sont
+	-- peints, pas calculés — mais en roulant, c'est bien une route qui brille.
+	local N, H = 128, h.reflets and 256 or 2
 	local ok, im = pcall(function() return AssetServiceR:CreateEditableImage({ Size = Vector2.new(N, H) }) end)
 	if not ok or not im then return nil end
-	local b = buffer.create(N * H * 4)
+	local px = table.create(N * H * 3, 0)
 	for x = 0, N - 1 do
 		local d = math.min(x + 0.5, N - x - 0.5) / N * 2 * RH -- (mètres depuis le bord le plus proche)
 		local k = math.max(0, 1 - d / h.nappe)
 		k = k * k * h.nappeK
 		local c = { h.bitume.R + h.accent.R * k, h.bitume.G + h.accent.G * k, h.bitume.B + h.accent.B * k }
 		for y = 0, H - 1 do
-			local o = (y * N + x) * 4
-			for j = 1, 3 do buffer.writeu8(b, o + j - 1, math.clamp(math.floor(c[j] * 255 + 0.5), 0, 255)) end
-			buffer.writeu8(b, o + 3, 255)
+			local o = (y * N + x) * 3
+			px[o + 1], px[o + 2], px[o + 3] = c[1], c[2], c[3]
 		end
+	end
+	if h.reflets then
+		local rnd = Random.new(977)
+		local TONS = { { 1, 0.24, 0.78 }, { 0.24, 0.91, 1 }, { 1, 0.69, 0.29 }, { 1, 0.31, 0.62 } }
+		for _ = 1, 30 do
+			local c = TONS[rnd:NextInteger(1, #TONS)]
+			local k = (0.10 + rnd:NextNumber() * 0.20) * h.reflets
+			local x0, sx = rnd:NextNumber() * N, 1.6 + rnd:NextNumber() * 3.6
+			local y0, ly = rnd:NextNumber() * H, 34 + rnd:NextNumber() * 80
+			for y = -math.floor(ly), math.floor(ly) do
+				local fy = 1 - (y / ly) ^ 2
+				local yy = (math.floor(y0 + y) % H) * N
+				for x = math.max(0, math.floor(x0 - 3 * sx)), math.min(N - 1, math.ceil(x0 + 3 * sx)) do
+					local g = math.exp(-((x - x0) / sx) ^ 2) * fy * fy * k
+					local o = (yy + x) * 3
+					px[o + 1] += c[1] * g
+					px[o + 2] += c[2] * g
+					px[o + 3] += c[3] * g
+				end
+			end
+		end
+	end
+	local b = buffer.create(N * H * 4)
+	for i = 0, N * H - 1 do
+		for j = 1, 3 do buffer.writeu8(b, i * 4 + j - 1, math.clamp(math.floor(px[i * 3 + j] * 255 + 0.5), 0, 255)) end
+		buffer.writeu8(b, i * 4 + 3, 255)
 	end
 	local ok2 = pcall(function() im:WritePixelsBuffer(Vector2.zero, Vector2.new(N, H), b) end)
 	nappes[h] = ok2 and im or false
@@ -87,7 +119,7 @@ local function part(taille: Vector3, cf: CFrame, couleur: Color3, matiere: Enum.
 end
 
 -- un triangle épais (épaisseur centrée sur le plan a-b-c) en deux coins
-local function triangle(a: Vector3, b: Vector3, c: Vector3, ep: number, parent: Instance)
+local function triangle(a: Vector3, b: Vector3, c: Vector3, ep: number, parent: Instance, couleur: Color3?)
 	local ab, ac, bc = b - a, c - a, c - b
 	local abd, acd, bcd = ab:Dot(ab), ac:Dot(ac), bc:Dot(bc)
 	if abd > acd and abd > bcd then
@@ -103,16 +135,18 @@ local function triangle(a: Vector3, b: Vector3, c: Vector3, ep: number, parent: 
 	local dos = bc.Unit
 	local hauteur = math.abs(ab:Dot(haut))
 	local w1 = modeleCoin:Clone()
+	if couleur then w1.Color = couleur end
 	w1.Size = Vector3.new(ep, hauteur, math.abs(ab:Dot(dos)))
 	w1.CFrame = CFrame.fromMatrix((a + b) / 2, droite, haut, dos)
 	w1.Parent = parent
 	local w2 = modeleCoin:Clone()
+	if couleur then w2.Color = couleur end
 	w2.Size = Vector3.new(ep, hauteur, math.abs(ac:Dot(dos)))
 	w2.CFrame = CFrame.fromMatrix((a + c) / 2, -droite, haut, -dos)
 	w2.Parent = parent
 end
 
-local function rail(a: Vector3, b: Vector3, haut: Vector3, parent: Instance)
+local function rail(a: Vector3, b: Vector3, haut: Vector3, parent: Instance, habit: any)
 	local d = b - a
 	local l = d.Magnitude
 	if l < 0.01 then return end
@@ -128,7 +162,8 @@ end
 -- trace un ruban continu aux normales lisses. Ici : un maillage par morceau de piste (Roblox : une pièce ≤ 2 048 studs), le
 -- dessus et le dessous de la dalle (les tranches sont sous les rails de néon), des normales PARTAGÉES d'un tronçon à l'autre.
 -- Rend false si Roblox refuse (budget de maillages) : le morceau retombe sur les coins.
-local function dalle(sections: { CFrame }, dossier: Instance): boolean
+local function dalle(sections: { CFrame }, dossier: Instance, ctx: { habit: any, dist: number }): boolean
+	local habit = ctx.habit
 	local demi = RH * M
 	local mn, mx = Vector3.new(math.huge, math.huge, math.huge), Vector3.new(-math.huge, -math.huge, -math.huge)
 	local pts = table.create(#sections * 4)
@@ -143,12 +178,22 @@ local function dalle(sections: { CFrame }, dossier: Instance): boolean
 	local centre = (mn + mx) / 2
 	local nt = (#sections - 1) * 4
 	local im = imageNappe(habit) -- (sans image — Roblox l'a refusée — : le bitume uni, dans les sommets)
+	local fin = ctx.dist
 	local bt = habit.bitume
 	local mp = Maillage.seul(function(): MeshPart?
 		local em = AssetServiceR:CreateEditableMesh()
 		local fond = em:AddColor(im and Color3.new(1, 1, 1) or bt, 1)
-		local uG, uD = em:AddUV(Vector2.new(0.004, 0.5)), em:AddUV(Vector2.new(0.996, 0.5))
-		local uv = { uG, uD, uG, uD }
+		-- (u : en travers de la route ; v : le long — l'image des reflets se répète tous les 96 m, d'un morceau de dalle au suivant)
+		local uv = table.create(#pts)
+		local dist = ctx.dist
+		for k, f in sections do
+			if k > 1 then dist += (f.Position - sections[k - 1].Position).Magnitude / M end
+			local v = habit.reflets and dist / 96 or 0.5
+			local uG, uD = em:AddUV(Vector2.new(0.004, v)), em:AddUV(Vector2.new(0.996, v))
+			local o = (k - 1) * 4
+			uv[o + 1], uv[o + 2], uv[o + 3], uv[o + 4] = uG, uD, uG, uD
+		end
+		fin = dist
 		local ids, nH, nB = table.create(#pts), table.create(#sections), table.create(#sections)
 		for i, q in pts do ids[i] = em:AddVertex(q - centre) end
 		for k, f in sections do
@@ -159,7 +204,7 @@ local function dalle(sections: { CFrame }, dossier: Instance): boolean
 			local t = em:AddTriangle(ids[a], ids[b], ids[c])
 			em:SetFaceNormals(t, { n[ka], n[kb], n[kc] })
 			em:SetFaceColors(t, { fond, fond, fond })
-			em:SetFaceUVs(t, { uv[(a - 1) % 4 + 1], uv[(b - 1) % 4 + 1], uv[(c - 1) % 4 + 1] })
+			em:SetFaceUVs(t, { uv[a], uv[b], uv[c] })
 		end
 		for k = 1, #sections - 1 do
 			local o, o2 = (k - 1) * 4, k * 4
@@ -182,6 +227,7 @@ local function dalle(sections: { CFrame }, dossier: Instance): boolean
 		Maillage.suivre(piece, em, nt)
 		return piece
 	end)
+	ctx.dist = fin
 	if not mp then return false end
 	mp.Name = "Dalle"
 	mp.Anchored = true
@@ -206,21 +252,22 @@ function Construction.route(piste: Piste.Piste, dossier: Instance, ceder: (() ->
 	local demi = RH * M
 	local i = 1
 	local compte = 0
-	habit = HABITS[(piste :: any).niveau] or HABITS.nuages
-	modeleCoin.Color = habit.bitume
+	-- (l'habit et la distance sont PROPRES à cet appel : deux zones peuvent se bâtir en même temps)
+	local habit = HABITS[(piste :: any).variante or ""] or HABITS[(piste :: any).niveau] or HABITS.nuages
+	local ctx = { habit = habit, dist = 0 }
 	-- le morceau de dalle en cours : ses sections (une par jointure), tant qu'il tient dans une pièce de Roblox
 	local sections: { CFrame } = { F[1] }
 	local mnS, mxS = F[1].Position, F[1].Position
 	local function fermer()
-		if #sections >= 2 and not dalle(sections, dossier) then
+		if #sections >= 2 and not dalle(sections, dossier, ctx) then
 			-- (secours : les coins épais, comme avant)
 			for k = 1, #sections - 1 do
 				local fa, fb = sections[k], sections[k + 1]
 				local mA, mB = fa.Position - fa.UpVector * (EP / 2), fb.Position - fb.UpVector * (EP / 2)
 				local gA, dA = mA - fa.RightVector * demi, mA + fa.RightVector * demi
 				local gB, dB = mB - fb.RightVector * demi, mB + fb.RightVector * demi
-				triangle(gA, dA, dB, EP, dossier)
-				triangle(gA, dB, gB, EP, dossier)
+				triangle(gA, dA, dB, EP, dossier, habit.bitume)
+				triangle(gA, dB, gB, EP, dossier, habit.bitume)
 			end
 		end
 		sections = { sections[#sections] }
@@ -242,8 +289,8 @@ function Construction.route(piste: Piste.Piste, dossier: Instance, ceder: (() ->
 		local e = mxS - mnS
 		if math.max(e.X, e.Y, e.Z) > 1700 or #sections > 80 then fermer() end
 		local rA, rB = demi - 0.12 * M, demi - 0.12 * M
-		rail(mA - fa.RightVector * rA, mB - fb.RightVector * rB, (fa.UpVector + fb.UpVector).Unit, dossier)
-		rail(mA + fa.RightVector * rA, mB + fb.RightVector * rB, (fa.UpVector + fb.UpVector).Unit, dossier)
+		rail(mA - fa.RightVector * rA, mB - fb.RightVector * rB, (fa.UpVector + fb.UpVector).Unit, dossier, habit)
+		rail(mA + fa.RightVector * rA, mB + fb.RightVector * rB, (fa.UpVector + fb.UpVector).Unit, dossier, habit)
 		i = j
 		compte += 1
 		if ceder and compte % 60 == 0 then ceder() end

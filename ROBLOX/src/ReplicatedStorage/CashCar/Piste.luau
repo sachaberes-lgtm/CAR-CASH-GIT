@@ -19,7 +19,7 @@ local RH = Config.ROAD_HALF
 
 export type Objet = { s: number, lat: number, h: number, face: number, kind: string, pw: string?, grp: number?, r: number?, fruit: number?, ligne: boolean? }
 export type Piste = {
-	graine: number, zone: number, niveau: string, entree: { number }?, DS: number, n: number, len: number, F: { CFrame },
+	graine: number, zone: number, niveau: string, variante: string?, entree: { number }?, DS: number, n: number, len: number, F: { CFrame },
 	minY: number, grille: { [number]: { number } }, cellule: number,
 	objets: { Objet }, modules: { { a: number, b: number, nom: string } },
 }
@@ -41,6 +41,7 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 	local rnd = Random.new(graine * 97 + zone * 7919)
 	local function r(a: number, b: number): number return a + rnd:NextNumber() * (b - a) end
 	local niv: string = ecole and "nuages" or Config.niveau(zone).id
+	local variante: string? = (not ecole) and Config.niveau(zone).var or nil
 	local VILLE, ESPACE = niv == "ville", niv == "espace"
 	local LV = 1 + (zone - 1) * 0.35          -- lvPiste : plus on va vite, plus les rayons s'ouvrent
 	-- L'AUTOROUTE ORBITALE (ESP_ROUTE, L8845) : en ESPACE la piste est dessinée pour 30 % de vitesse en plus
@@ -432,7 +433,7 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 	end
 
 	local piste = {
-		graine = graine, zone = zone, niveau = niv, entree = (entreeA > 0) and { entreeA, entreeB } or nil,
+		graine = graine, zone = zone, niveau = niv, variante = variante, entree = (entreeA > 0) and { entreeA, entreeB } or nil,
 		DS = DS * M, n = n, len = (n - 1) * DS * M, F = F,
 		minY = minY, grille = grille, cellule = CEL, objets = {}, modules = modules,
 	}

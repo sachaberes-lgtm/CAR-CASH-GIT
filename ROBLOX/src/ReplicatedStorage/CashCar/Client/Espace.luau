@@ -238,7 +238,7 @@ local function debris(parent: Instance, cf: CFrame, k: number, genre: number)
 	end
 end
 
-function Espace.batir(piste: any, dossier: Instance, graine: number, ceder: (() -> ())?)
+function Espace.batir(piste: any, dossier: Instance, graine: number, ceder: (() -> ())?): { any }
 	local rnd = Random.new(graine + 0xA57E)
 	local function r(): number return rnd:NextNumber() end
 	local F, NP = piste.F, piste.n
@@ -276,8 +276,84 @@ function Espace.batir(piste: any, dossier: Instance, graine: number, ceder: (() 
 		return true
 	end
 	local function tourne(): CFrame return CFrame.Angles(r() * 6.283, r() * 6.283, r() * 6.283) end
-	-- 1. le long du ruban : un satellite ou un débris tous les ~140 m, à 45-260 m de l'axe, au-dessus comme en dessous
 	local L = piste.len / M
+	-- 0. LA PLUIE DE SATELLITES (orbiteBuild §0, L13961 — Sacha : « la version hardcore, avec beaucoup plus de satellites : il faut que ça
+	-- devienne un élément de gameplay de devoir ESQUIVER les satellites »). Des satellites SUR la route, à hauteur de caisse : un
+	-- STARLINK en travers (ailes de 14-20 m, penché de 8 à 28°) ou un ÉTAGE DE FUSÉE couché (10-14 m) — seul, ou en RIDEAU de deux qui
+	-- ne laissent qu'une trouée de 11-14 m. Un tous les 110-230 m (× la vitesse du niveau) à partir de 650 m ; et, pour les voltigeurs,
+	-- des panneaux EN L'AIR (9-20 m au-dessus de la route). Chacun porte un LISERÉ ROUGE : c'est un obstacle, pas un décor. Sa boîte de
+	-- collision (Pilote : satHard) est exactement celle qu'on voit. Le dessous de la dalle reste libre (le raccourci des voltigeurs).
+	local obstacles: { any } = {}
+	if piste.variante == "hard" then
+		local ROUGE = Color3.fromRGB(255, 56, 72)
+		local RHo = RH - 2
+		local DSm = piste.DS / M
+		local function pose0(k: number, s9: number, la: number, h: number, rad: number, al: number, be: number)
+			local f = F[math.clamp(math.floor(s9 / DSm) + 1, 1, NP)]
+			local b, n, t = f.RightVector, f.UpVector, f.LookVector
+			local W: Vector3, U: Vector3, T: Vector3
+			if k == 0 then -- le panneau : ailes en travers, penché autour de la route
+				W, U, T = (b * math.cos(al) + n * math.sin(al)).Unit, (n * math.cos(al) - b * math.sin(al)).Unit, t
+			else -- l'étage : couché, un peu de biais
+				W, U, T = (b * math.cos(be) + t * math.sin(be)).Unit, n, (t * math.cos(be) - b * math.sin(be)).Unit
+			end
+			local q = f.Position / M + b * la + n * h
+			local hw = (k == 0) and rad or rad * 0.8
+			local hu = (k == 0) and rad * 0.06 or rad * 0.24
+			local ht = (k == 0) and rad * 0.13 or rad * 0.24
+			local cf = CFrame.fromMatrix(q * M, W, U)
+			if k == 0 then
+				piece(racine, Vector3.new(hw * 2, math.max(0.14, hu * 0.7), ht * 2), cf, AILE, Enum.Material.SmoothPlastic, 0.5).Name = "SatRoute"
+				piece(racine, Vector3.new(hw * 0.32, hu * 2, ht * 2.3), cf, BLANC, Enum.Material.Metal, 0.25)
+				for _, sg in { -1, 1 } do
+					piece(racine, Vector3.new(hw * 2, 0.22, 0.22), cf * CFrame.new(0, 0, sg * ht * M), ROUGE, Enum.Material.Neon)
+				end
+			else
+				local c = piece(racine, Vector3.new(hw * 2, hu * 2, hu * 2), cf, BLANC, Enum.Material.SmoothPlastic, 0.1)
+				c.Shape = Enum.PartType.Cylinder
+				c.Name = "SatRoute"
+				local bande = piece(racine, Vector3.new(hw * 0.3, hu * 2.03, hu * 2.03), cf * CFrame.new(hw * 0.35 * M, 0, 0), SOMBRE, Enum.Material.SmoothPlastic)
+				bande.Shape = Enum.PartType.Cylinder
+				for _, sg in { -1, 1 } do
+					local a = piece(racine, Vector3.new(0.3, hu * 2.1, hu * 2.1), cf * CFrame.new(sg * hw * 0.94 * M, 0, 0), ROUGE, Enum.Material.Neon)
+					a.Shape = Enum.PartType.Cylinder
+				end
+			end
+			local mx = math.max(hw, hu, ht) + 5
+			table.insert(obstacles, { q = q, W = W, U = U, T = T, hw = hw + 1.0, hu = hu + 0.75, ht = ht + 2.2, R2 = mx * mx, min = 99, pres = false, fait = false })
+		end
+		local function gabarit(): (number, number, number)
+			local k = (r() < 0.55) and 0 or 1
+			local rad = (k == 1) and (6 + r() * 3) or (7 + r() * 3)
+			return k, rad, (k == 1) and rad * 0.8 or rad
+		end
+		-- (l'écart grandit avec la vitesse de croisière du niveau : 1,3 à 2,7 s de route entre deux obstacles)
+		local espK = math.max(1, 0.45 + 0.4 * (1 + (piste.zone - 1) * 0.35) * 1.3)
+		local sp, no = 650 + r() * 100, 0
+		while sp < L - 420 do
+			if r() < 0.32 then -- LE RIDEAU : deux obstacles, une TROUÉE de 11-14 m quelque part entre eux
+				local gw = 11 + r() * 3
+				local g = (r() * 2 - 1) * (RHo - gw / 2 - 6)
+				for _, sg in { -1, 1 } do
+					local k, rad, half = gabarit()
+					pose0(k, sp + (r() - 0.5) * 6, g + sg * (gw / 2 + half), (k == 1) and (rad * 0.24 + 0.3) or 1.15, rad, sg * math.rad(8 + r() * 20), (r() - 0.5) * 0.5)
+				end
+			else
+				local k, rad, half = gabarit()
+				local la = (r() * 2 - 1) * math.max(0, RHo - half * 0.55)
+				pose0(k, sp, la, (k == 1) and (rad * 0.24 + 0.3) or 1.15, rad, ((r() < 0.5) and -1 or 1) * math.rad(8 + r() * 20), (r() - 0.5) * 0.6)
+			end
+			sp += (110 + r() * 120) * espK
+			no += 1
+			if ceder and no % 8 == 0 then ceder() end
+		end
+		local s9 = 900 + r() * 300
+		while s9 < L - 500 do -- EN L'AIR : pour qui saute par-dessus un rideau
+			pose0(0, s9, (r() * 2 - 1) * RHo * 0.8, 9 + r() * 11, 6 + r() * 4, (r() - 0.5) * 1.4, 0)
+			s9 += (420 + r() * 220) * espK
+		end
+	end
+	-- 1. le long du ruban : un satellite ou un débris tous les ~140 m, à 45-260 m de l'axe, au-dessus comme en dessous
 	local sp, n = 120.0, 0
 	while sp < L - 100 do
 		local f = F[math.clamp(math.floor(sp / (piste.DS / M)) + 1, 1, NP)]
@@ -305,6 +381,7 @@ function Espace.batir(piste: any, dossier: Instance, graine: number, ceder: (() 
 		end
 		if ceder then ceder() end
 	end
+	return obstacles
 end
 
 -- ── chaque image : la Terre et la lune se calent sur la caméra (avec retard), la lune regarde la caisse ──
