@@ -12221,6 +12221,12 @@ const CARS=[
  {name:'LE LINGOT',shape:'lingot',color:0xffc33a,accent:0x3a2400,maxKmh:380,accel:42,turn:2.9,h:1.5,w:2.1,l:4.3,spoiler:0,rar:'defi',
   fx:{jet:0xffd75e,core:0xffffff,trail:[1.35,1.02,.36],light:0xffd27a},
   desc:'Le banquier l\'avait mis au coffre. Tu l\'as gagné à la course : 999,9 millièmes de pure arrogance.'},
+ // (2026-10-02) L'ORIGAMI — Sacha, photo du pick-up d'inox : « mets cette voiture dans le jeu, fais-la exceptionnellement belle et parfaite ».
+ // Le pick-up plié dans une feuille d'acier, sans son nom ni son logo (comme toute la gamme). Cotes réelles : 5,68 × 2,03 × 1,79 m.
+ // Ajoutée EN DERNIER : aucun index de sauvegarde ne bouge. Son sillage est un courant froid (elle est électrique).
+ {name:'L\'ORIGAMI',shape:'origami',color:0xc9cdd2,accent:0x16181c,maxKmh:380,accel:42,turn:2.6,h:1.79,w:2.03,l:5.68,spoiler:0,rar:'epique',
+  fx:{jet:0xa8dcff,core:0xffffff,trail:[.62,1.08,1.5],light:0x9fd4ff},
+  desc:'Une feuille d\'inox, sept plis, zéro courbe. Vitres incassables, paraît-il : on a essayé avec une boule, on n\'en parle plus.'},
 ];
 // ---- VALEUR D'UNE PIÈCE — UNE ENTRÉE PAR PALIER MOTEUR (30) ---------------------------------
 // ⚠ Cette table est indexée par `engTier` depuis que les PIÈCES portent la progression, mais elle
@@ -12663,6 +12669,11 @@ Object.assign(I18N,{
  "Un capot ? Pour cacher un compresseur pareil ? Tu rigoles. Même les flammes sont d’époque.":"A hood? To hide a blower like that? You're kidding. Even the flames are vintage.",
  "LA PUCE":"THE FLEA",
  "Trois mètres, quatre phares, zéro complexe. Elle a battu des monstres sur la neige : toi, c'est l'apéro.":"Ten feet long, four headlights, zero complexes. It beat monsters in the snow: you're just the appetizer."
+});
+// (2026-10-02) L'ORIGAMI
+Object.assign(I18N,{
+ "L'ORIGAMI":"THE ORIGAMI",
+ "Une feuille d'inox, sept plis, zéro courbe. Vitres incassables, paraît-il : on a essayé avec une boule, on n'en parle plus.":"One sheet of stainless steel, seven folds, zero curves. Unbreakable windows, they say: we tried with a steel ball, we don't talk about it."
 });
 // (2026-09-29) les chaînes visibles qui manquaient
 Object.assign(I18N,{
@@ -15233,7 +15244,7 @@ function lpOmbre(geo,H){
 /* LES ROUES, façon Rocket League : un pneu GROS et facetté (16 pans, épaules chanfreinées), une
    jante dessinée sur la face EXTÉRIEURE (+X) — les roues de gauche sont posées en miroir.
    Styles : 'rayons' (n branches), 'multi' (rayons fins et nombreux), 'cadran' (disque percé),
-   'enjoliveur' (dôme chromé). `blanc` = flanc blanc, `crampons` = pavés de tout-terrain. */
+   'enjoliveur' (dôme chromé), 'plis' (flasque plié en étoile). `blanc` = flanc blanc, `crampons` = pavés de tout-terrain. */
 function lpWheel(o){
   const R=o.R,hw=o.w/2,K=lpKit({k:{g:'m',c:o.pneu||0x16171a},w:{g:'s',c:0xf4f1ea},
     c:{g:'c',c:o.jante||0xe6e9ee},d:{g:'m',c:o.fond||0x1b1c21},o:{g:'o',c:0xffc24a},a:{g:'p',c:o.accent||0xe6e9ee,f:0}});
@@ -15249,13 +15260,23 @@ function lpWheel(o){
   }else if(o.style==='enjoliveur'){
     K.lathe('c',[[R*.64,fx],[R*.52,fx+.025],[R*.24,fx+.055],[0,fx+.06]],16,0,0,0,'x');
     K.cyl('o',R*.13,.02,8,fx+.064,0,0,'x');
+  }else if(o.style==='plis'){
+    // (2026-10-02, L'ORIGAMI) LE FLASQUE PLIÉ : un disque plein, `n` plis en étoile — une crête, un creux, et chaque pan attrape SA
+    // lumière (un pan sur deux en `jante`, l'autre en `accent` : la roue qui tourne se lit). Les pointes débordent sur le flanc du pneu.
+    // ⚠ rien ne dépasse fx + 0,022 : le flou de jante (voir ROUES.flou) se pose à fx + 0,024, par-dessus.
+    const n=o.n||7,N=n*2,r=R*.64,ct=[fx+.012,0,0],pt=(a,rr,x)=>[x,Math.sin(a)*rr,Math.cos(a)*rr];
+    for(let s=0;s<N;s++){const a0=s/N*Math.PI*2,a1=(s+1)/N*Math.PI*2;
+      K.tri(s%2?'a':'c',ct,pt(a0,r,s%2?fx-.006:fx+.02),pt(a1,r,s%2?fx+.02:fx-.006));}
+    for(let s=0;s<n;s++){const a=s/n*Math.PI*2,d=Math.PI/N*.62;
+      K.tri('a',pt(a-d,R*.655,hw+.004),pt(a+d,R*.655,hw+.004),pt(a,R*.85,hw+.004));}
+    K.cyl('d',R*.10,.012,7,fx+.016,0,0,'x');                                // le cache-moyeu
   }else{
     const n=o.n||5,multi=o.style==='multi';
     K.lathe('c',[[R*.64,fx],[R*.55,fx]],16,0,0,0,'x');                     // la lèvre
     for(let s=0;s<n;s++){const a=s/n*Math.PI*2;
       K.box(multi?'c':'a',.03,R*.46,multi?R*.07:R*.13,fx-.012,Math.sin(a)*R*.33,Math.cos(a)*R*.33,-a);}
   }
-  if(o.style!=='enjoliveur')K.cyl('c',R*.16,.05,8,fx-.01,0,0,'x');        // le moyeu
+  if(o.style!=='enjoliveur'&&o.style!=='plis')K.cyl('c',R*.16,.05,8,fx-.01,0,0,'x'); // le moyeu
   return K.done();
 }
 /* ---- LES 6 SILHOUETTES (LA HONTE + LES CINQ, 2026-09-24) ---------------------------------------
@@ -18992,6 +19013,108 @@ Object.assign(SHAPES,{
 }
 });
 /* ===== LA GAMME DES 50 — FIN ===== */
+/* ============================================================================================
+   L'ORIGAMI (2026-10-02, Sacha, photo du pick-up d'inox : « mets cette voiture dans le jeu, fais-la exceptionnellement belle et
+   parfaite ») — le pick-up plié dans UNE feuille d'acier : zéro courbe, un toit en TRIANGLE dont la pointe est au-dessus du
+   conducteur, deux barres de feux d'un bord à l'autre (blanche devant, rouge derrière), des élargisseurs noirs taillés en trapèze,
+   un couvre-benne en lames d'acier. Sans son nom ni son logo, comme toute la gamme. Cotes réelles : 5,68 × 2,03 × 1,79 m.
+   ⚠ CE QUI LA REND JUSTE : CHAQUE PAN EST UN VRAI PLAN. Sur de l'inox (matière chrome), un quadrilatère gauchi se voit tout de
+   suite : ses deux triangles prennent deux reflets, et la diagonale apparaît en travers de la portière. Ici les pans sont des plans
+   EXACTS, écrits comme tels :
+     · le FLANC BAS  : x = xW(z) − KL·(yS(z) − y)   — il rentre vers le bas de caisse ;
+     · le FLANC HAUT : x = xW(z) − TB·(y − yS(z))   — vitres ET montants, il rentre vers le toit ;
+     · le DESSUS     : y = T(z), plat d'un bord à l'autre (capot, pare-brise, toit de verre, couvre-benne) ;
+     · la face et la poupe : les deux bouchons du loft.
+   `yS` (L'ARÊTE qui court du phare au feu), `xW` et `T` sont affines par morceaux, et chaque cassure est une station du loft : entre
+   deux stations tout reste coplanaire. Ce qui se pose DESSUS (vitres, lames, joints de portes) s'écrit dans le repère du pan (`SU`,
+   `SL`, `TP`), décollé de 6 mm : un polygone dans le plan, jamais une boîte qu'il faudrait incliner à la main.
+   ⚠ `TB` .64 (33° de dévers) n'est pas qu'une cote : à 27° (.50) comme à 30° (.58), le flanc haut renvoyait pile le contre-jour
+   ROSE du studio photo dans l'objectif (carPhoto) — vitre et montant sortaient d'un seul aplat blanc, puis magenta, sur la vignette
+   du garage : un plan n'a qu'une normale, il s'allume en entier. À 33°, la vitre reste sombre.
+   ⚠ LE COUVRE-BENNE EST EN ACIER, pas noir : en poursuite on voit SURTOUT le dessus de la caisse — tout noir (verre + rideau noir),
+   elle perdait son inox. Neuf lames, un ton sur deux ; pas de rainure fine (de loin elle scintille en pointillé).
+   Électrique : pas de pot. Les tuyères sortent sous le bouclier arrière (fiche `pots`).
+   ========================================================================================== */
+SHAPES.origami=function(K){
+  const U=LPU,R=.44,ZF=1.92,ZR=-1.72,ZN=2.74,ZT=-2.74,TB=.64,KL=.10,E=.006;
+  const P=K.kit({p:{g:'c',c:0xbdc2c9},S:{g:'c',c:0x7d838c},s:{g:'c',c:0x666c75},k:{g:'m',c:0x15161a},K:{g:'g',c:0x0b0c10},
+    g:{g:'g',c:0x10161d},W:{g:'l',c:0xf4f8ff},L:{g:'l',c:0xff1a26},O:{g:'l',c:0xffa21a}});
+  const yS=z=>U.lin([[ZT,1.21],[ZN,1.045]],z),                                  // L'ARÊTE : elle monte du nez à la poupe, d'un seul trait
+        xW=z=>U.lin([[ZT,1.0],[2.56,.985],[ZN,.90]],z),                         // la demi-largeur à l'arête ; le coin du nez est coupé
+        T=z=>U.lin([[ZT,1.30],[.50,1.79],[1.70,1.30],[ZN,1.075]],z),            // LE TRIANGLE : poupe · pointe · pied de pare-brise · nez
+        xR=z=>xW(z)-TB*(T(z)-yS(z));                                            // la rive du dessus : plus le toit est haut, plus il est étroit
+  const AR=[[0,2*R+.05],[R*.60,2*R+.05],[R+.14,.40]];                           // arche en TRAPÈZE
+  const zs=[ZT,.50,1.70,2.56,ZN];
+  for(const w of [ZF,ZR])for(const d of [R*.60,R+.14])zs.push(w-d,w+d);
+  zs.sort((a,b)=>a-b);
+  P.loft(zs,z=>{
+    const yb=U.arch(z,[ZF,ZR],AR,.40),s=yS(z),xw=xW(z),t=T(z),y2=yb+.05,y3=Math.max(y2+.012,.58),XL=y=>xw-KL*(s-y);
+    return [[0,yb],[XL(y2)-.05,yb],[XL(y2),y2],[XL(y3),y3],[xw,s],[xw-TB*(t-s),t],[0,t]];
+  },j=>(j>=0&&j<=2)?'k':'p');                                                   // plancher, chanfrein et bas de caisse noirs ; le reste : l'inox
+  // ---- LE REPÈRE DES PANS : tout ce qui se pose sur la tôle s'écrit dans SON plan (d = le décollement) ----
+  const poly=(k,p)=>{for(let i=1;i<p.length-1;i++)P.tri(k,p[0],p[i],p[i+1]);};  // un polygone convexe, en éventail
+  const SU=(sd,z,y,d)=>[sd*(xW(z)-TB*(y-yS(z))+d),y+d*TB,z],                    // flanc HAUT
+        SL=(sd,z,y,d)=>[sd*(xW(z)-KL*(yS(z)-y)+d),y,z],                         // flanc BAS
+        TP=(x,z,d)=>[x,T(z)+d,z];                                               // dessus
+  const bande=(k,x,z0,z1,d)=>poly(k,[TP(x(z0),z0,d),TP(-x(z0),z0,d),TP(-x(z1),z1,d),TP(x(z1),z1,d)]); // d'une rive à l'autre, de z0 à z1
+  // ---- LE DESSUS : capot, pare-brise et toit de verre d'un seul tenant, couvre-benne à lames — entre deux rives d'inox ----
+  const xg=z=>xR(z)-.05,xt=z=>xR(z)-.07;
+  bande('k',z=>xR(z)-.06,2.704,2.697,E*.5);                                     // les joints du coffre avant : le bord d'attaque…
+  for(const sd of [1,-1])poly('k',[[xR(1.76)-.06,1.76],[xR(1.76)-.053,1.76],[xR(2.70)-.053,2.70],[xR(2.70)-.06,2.70]].map(q=>TP(sd*q[0],q[1],E*.5))); // …et les deux côtés
+  bande('k',z=>xR(z)-.03,1.76,1.70,E);                                          // la grille d'auvent, au pied du pare-brise
+  bande('g',xg,1.68,.50,E);bande('g',xg,.50,-1.00,E);                           // pare-brise, toit de verre
+  poly('k',[TP(xg(1.62)-.07,1.62,3*E),TP(xg(1.62)-.045,1.62,3*E),TP(xg(.80)-.045,.80,3*E),TP(xg(.80)-.07,.80,3*E)]); // L'essuie-glace géant, le long du montant
+  bande('k',xt,-1.00,-1.03,E);
+  for(let i=0;i<9;i++){const z=-1.03-i*.184;bande(i%2?'S':'s',xt,z,z-.184,E);}  // les neuf lames
+  // ---- LES FLANCS ----
+  const yb_w=z=>yS(z)+.055,yt_w=z=>T(z)-.06;                                    // la vitre : au-dessus de l'arête, sous la rive
+  P.sym(sd=>{
+    // un seul pentagone, pointe en avant, bord arrière qui penche — c'est le dessin du toit en plus petit
+    poly('g',[[1.58,yb_w(1.58)],[1.46,yt_w(1.46)],[.50,yt_w(.50)],[-1.02,yt_w(-1.02)],[-1.32,yb_w(-1.32)]].map(q=>SU(sd,q[0],q[1],E)));
+    poly('K',[[.20,yb_w(.20)],[.26,yb_w(.26)],[.26,yt_w(.26)],[.20,yt_w(.20)]].map(q=>SU(sd,q[0],q[1],2*E)));   // le montant central
+    // les joints de portes (pas de poignée : c'est un bouton), sur le flanc bas puis jusqu'à la vitre
+    for(const z of [1.36,.23,-.98]){
+      poly('k',[[z-.0055,.60],[z+.0055,.60],[z+.0055,yS(z)],[z-.0055,yS(z)]].map(q=>SL(sd,q[0],q[1],E*.5)));
+      poly('k',[[z-.0055,yS(z)],[z+.0055,yS(z)],[z+.0055,yb_w(z)],[z-.0055,yb_w(z)]].map(q=>SU(sd,q[0],q[1],E*.5)));}
+    // LES ÉLARGISSEURS : trois plaques par roue (jambe, linteau, jambe), en saillie du flanc ; un feu de gabarit sur chacun
+    for(const w of [ZF,ZR]){const a=R*.60,b=R+.14,yt=2*R+.05,x=sd*.9675,ep=.135;
+      P.prism('k',[[w-b,.40],[w-a,yt],[w-a-.07,yt+.085],[w-b-.13,.40]],ep,x);
+      P.prism('k',[[w-a,yt],[w+a,yt],[w+a+.07,yt+.085],[w-a-.07,yt+.085]],ep,x);
+      P.prism('k',[[w+b,.40],[w+a,yt],[w+a+.07,yt+.085],[w+b+.13,.40]],ep,x);}
+    P.box('O',.02,.03,.11,sd*1.04,.80,ZF+.64);P.box('L',.02,.03,.11,sd*1.04,.80,ZR-.64);
+    // le rétro : un coin noir sur sa béquille, sa glace tournée vers l'arrière
+    P.prism('k',[[1.455,1.175],[1.56,1.175],[1.535,1.30],[1.47,1.30]],.15,sd*1.05);
+    P.box('K',.12,.085,.01,sd*1.055,1.24,1.462,.2);P.box('k',.10,.035,.06,sd*.95,1.19,1.51);
+    // LA FACE : les phares dans la fente, le retour de la barre de jour sur le coin coupé, un feu de position dans le bouclier
+    P.box('W',.24,.04,.02,sd*.70,.865,ZN+.008);
+    P.box('W',.20,.028,.02,sd*.948,1.048,2.653,0,sd*1.13,0);
+    P.box('O',.10,.03,.02,sd*.68,.70,2.836);
+    // LA POUPE : le retour de la barre rouge sur le flanc, un catadioptre, le joint du hayon
+    P.box('L',.016,.04,.13,sd*1.0,1.168,ZT+.06);
+    P.box('L',.16,.03,.02,sd*.68,.68,-2.836);
+    P.box('k',.007,.34,.012,sd*.90,.99,ZT-.002);
+  });
+  // ---- LA FACE ----
+  P.box('W',2*xR(ZN)-.02,.028,.03,0,1.048,ZN+.004);                             // LA BARRE DE JOUR, d'un bord à l'autre
+  P.box('K',1.74,.075,.02,0,.865,ZN+.002);                                      // la fente des phares
+  P.box('k',1.74,.43,.01,0,.615,ZN+.003);                                       // le bas du bouchon, derrière le bouclier : noir (l'inox dépassait dessous)
+  // LES BOUCLIERS : deux petits lofts, coins coupés en plan et dessous relevé (angles d'attaque et de fuite) — pas des pavés
+  P.loft([2.56,2.76,2.84],z=>{const x=U.lin([[2.56,.965],[2.76,.935],[2.84,.80]],z),a=U.lin([[2.56,.40],[2.76,.47],[2.84,.57]],z),
+    b=U.lin([[2.56,.815],[2.78,.815],[2.84,.775]],z);return [[0,a],[x,a],[x,b],[0,b]];},()=>'k');
+  P.box('K',1.00,.085,.02,0,.67,2.835);                                         // l'entrée d'air
+  // ---- LA POUPE ----
+  P.box('L',1.98,.04,.016,0,1.168,ZT-.004);                                     // LA BARRE ROUGE, d'un bord à l'autre
+  P.box('k',1.90,.07,.02,0,1.238,ZT-.002);                                      // le bandeau noir qui la coiffe
+  P.box('k',1.80,.007,.012,0,.82,ZT-.002);                                      // le joint bas du hayon
+  P.box('k',1.90,.40,.01,0,.60,ZT-.003);                                        // le bas du bouchon, derrière le bouclier
+  P.loft([-2.84,-2.76,-2.56],z=>{const x=U.lin([[-2.84,.84],[-2.76,.985],[-2.56,1.0]],z),a=U.lin([[-2.84,.57],[-2.76,.48],[-2.56,.42]],z),
+    b=U.lin([[-2.84,.76],[-2.78,.80],[-2.56,.80]],z);return [[0,a],[x,a],[x,b],[0,b]];},()=>'k');
+  P.box('k',.70,.03,.10,0,.805,-2.78);                                          // la marche
+  P.box('K',.36,.12,.02,0,.66,-2.836);                                          // la plaque (vierge)
+  K.commit(P);
+  return {hl:[.70,.865,ZN+.03],tl:[.80,1.168,ZT-.03],wx:.86,wzF:ZF,wzR:-ZR,pots:[[.52,.47,-2.83],[-.52,.47,-2.83]],
+          lpw:{R:R,w:.30,style:'plis',n:7,jante:0x8d939b,accent:0x1b1d21,fond:0x0e0f12}};
+};
 const CAR_VIEUX=[]; // les matières de la caisse d'avant : libérées à la construction suivante
 /* LA CAISSE NE DÉTRUIT PLUS SES PROGRAMMES (2026-09-28, chasse aux gels) — three DÉTRUIT un programme quand la dernière matière qui s'en
    sert est libérée. Le sursis d'une construction (`CAR_VIEUX`) suffisait tant que la caisse était DESSINÉE entre deux constructions ; le
@@ -20621,6 +20744,7 @@ const CAR_UNLOCK=[
 /* ===== LES CONDITIONS DES 50 — FIN ===== */
   {k:'carrN',v:10}, // (2026-09-27) LA CAISSE-NUAGE — les dix niveaux des NUAGES (elle se gagne en l'attrapant au niveau 10)
   {k:'carrV',v:10}, // (2026-09-27) LE LINGOT — les dix niveaux de la VILLE (il se gagne en battant le banquier au niveau 10)
+  {p:1200000}, // (2026-10-02) L'ORIGAMI — ÉPIQUE, à l'argent : entre LA DÉESSE et L'AIGLE DE FEU
 ]
 /* ============================================================================
    L'AURA ET LA BANQUE (2026-08-17) — la nouvelle règle
