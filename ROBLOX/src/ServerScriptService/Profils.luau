@@ -42,6 +42,7 @@ function Profils.neuf(): Profil
 	}
 end
 
+local Catalogue = require(game:GetService("ReplicatedStorage"):WaitForChild("CashCar"):WaitForChild("Caisses"):WaitForChild("Catalogue"))
 local function sain(p: any): Profil
 	local n = Profils.neuf()
 	if type(p) ~= "table" then return n end
@@ -64,13 +65,21 @@ local function sain(p: any): Profil
 	local liste = {}
 	for _, i in n.caisses do
 		if type(i) == "number" and i == math.floor(i) and i >= 0 and i < 1000 and not possede[i] then
-			possede[i] = true
-			table.insert(liste, i)
+			local f = Catalogue[i]
+			if f and f.retire then
+				-- LES CAISSES RETIRÉES (san, 2/10) : qui en avait acheté une est REMBOURSÉ au prix payé — une mise à jour ne confisque
+				-- pas — et elle sort de la liste (le remboursement ne joue donc qu'une fois)
+				if f.cond.k == "prix" then n.compte += f.cond.v end
+			else
+				possede[i] = true
+				table.insert(liste, i)
+			end
 		end
 	end
 	if not possede[0] then table.insert(liste, 0) end
 	n.caisses = liste
 	if type(n.caisse) ~= "number" or n.caisse ~= math.floor(n.caisse) or n.caisse < 0 then n.caisse = 0 end
+	if Catalogue[n.caisse] and Catalogue[n.caisse].retire then n.caisse = 0 end -- (qui roulait avec une caisse retirée repart en LA HONTE)
 	n.mis = Carnets.etat(n.mis)
 	local habits = {}
 	for _, h in n.habits do
@@ -119,14 +128,13 @@ end
 Profils.actions = {} :: { [string]: (Player, Profil, ...any) -> (boolean, string?) }
 
 -- ── le GARAGE : acheter et équiper (le catalogue est celui du jeu web, cuit) ──
-local Catalogue = require(game:GetService("ReplicatedStorage"):WaitForChild("CashCar"):WaitForChild("Caisses"):WaitForChild("Catalogue"))
 local Config = require(game:GetService("ReplicatedStorage"):WaitForChild("CashCar"):WaitForChild("Config"))
 function Profils.possede(prof: Profil, i: number): boolean
 	return table.find(prof.caisses, i) ~= nil
 end
 Profils.actions.acheter = function(_, prof, i)
 	local f = type(i) == "number" and Catalogue[i]
-	if not f then return false, "caisse inconnue" end
+	if not f or f.retire then return false, "caisse inconnue" end
 	if Profils.possede(prof, i) then return false, "deja a toi" end
 	if f.cond.k ~= "prix" then return false, "pas a vendre" end
 	if prof.compte < f.cond.v then return false, "pas assez" end
@@ -136,7 +144,7 @@ Profils.actions.acheter = function(_, prof, i)
 end
 Profils.actions.equiper = function(p, prof, i)
 	local f = type(i) == "number" and Catalogue[i]
-	if not f then return false, "caisse inconnue" end
+	if not f or f.retire then return false, "caisse inconnue" end
 	if not Profils.possede(prof, i) and not Config.TEST_CAISSES then return false, "pas a toi" end
 	prof.caisse = i
 	if Profils.surEquipe then Profils.surEquipe(p, i) end

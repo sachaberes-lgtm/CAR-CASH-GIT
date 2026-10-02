@@ -86,8 +86,10 @@ local LISTE: { number } = {} -- tout le garage, dans l'ordre des familles (garag
 local RANG: { [number]: number } = {}
 do
 	for _, r in RARETES do FAMILLES[r.id] = {} end
+	-- (carRetiree, 2/10 — Sacha : « supprimer ces 6 voitures du jeu, elles sont pas intéressantes ») une caisse RETIRÉE garde sa
+	-- ligne (les sauvegardes désignent les caisses par leur numéro) mais elle n'est plus nulle part : ni famille, ni vignette, ni compteur
 	for i, f in Catalogue do
-		table.insert(FAMILLES[f.rar] or FAMILLES.commun, i)
+		if not f.retire then table.insert(FAMILLES[f.rar] or FAMILLES.commun, i) end
 	end
 	for _, r in RARETES do
 		table.sort(FAMILLES[r.id], function(a, b)
