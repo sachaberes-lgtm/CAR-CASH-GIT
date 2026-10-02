@@ -18,13 +18,13 @@ function Ciel.poser(Lighting: Lighting, ws: Workspace)
 	local C = Config.CIEL
 	Lighting.ClockTime = C.heure
 	Lighting.GeographicLatitude = 23
-	Lighting.Brightness = 1.7 -- (3e retour : 2,0 → 1,7 et une ambiance plus forte — la caisse vue de dos était TERNE, saumon ; sur le web elle est orange vif) (a 2,6 les laques et la mer de nuages partaient au blanc : le jeu web est sature et contraste)
+	Lighting.Brightness = 1.2 -- (3e retour : 2,0 → 1,2 et une ambiance bien plus forte — la caisse vue de dos était TERNE, saumon ; sur le web elle est orange vif, les ombres sont légères) (a 2,6 les laques et la mer de nuages partaient au blanc : le jeu web est sature et contraste)
 	Lighting.Ambient = C.ambiance
 	Lighting.OutdoorAmbient = C.ambianceExt
 	-- (le ciel de Roblox, pris comme lumière d'ambiance, teintait TOUTES les ombres en cyan et se reflétait dans le bitume —
 	-- une route bleu clair, des nuages de glace : l'ambiance vient de OutdoorAmbient, lavande, et le reflet du ciel est en sourdine)
 	Lighting.EnvironmentDiffuseScale = 0.3
-	Lighting.EnvironmentSpecularScale = 0.8
+	Lighting.EnvironmentSpecularScale = 0.4
 	Lighting.ShadowSoftness = 0.25
 	Lighting.GlobalShadows = true
 	Lighting.ExposureCompensation = C.expo

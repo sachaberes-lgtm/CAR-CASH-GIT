@@ -194,7 +194,7 @@ function Caisse.construire(nom: string, indice: number, ancree: boolean?, habits
 	r.Parent = m
 	m.PrimaryPart = r
 	-- L'origine de la racine = le point de contact au sol, au centre : le bas des roues est à y = 0.
-	local poignees = { flammes = {}, veilleuses = {}, trainees = {}, essieux = {}, bases = {}, rayons = {}, fiche = fiche, indice = indice, maillage = true }
+	local poignees = { flammes = {}, plumes = {}, jetK = 0, jetT = os.clock(), trainees = {}, essieux = {}, bases = {}, rayons = {}, fiche = fiche, indice = indice, maillage = true }
 	local laque = lumiere(Color3.fromHex(string.format("%06x", fiche.laque)))
 	-- LA PEINTURE de la boutique recouvre la laque (« usine » = la teinte du constructeur)
 	local peint = habits and Config.habit("peinture", habits.peinture)
@@ -250,32 +250,36 @@ function Caisse.construire(nom: string, indice: number, ancree: boolean?, habits
 		f.Speed = NumberRange.new(36, 58)
 		f.SpreadAngle = Vector2.new(5, 5)
 		f.EmissionDirection = Enum.NormalId.Back
-		f.Brightness = 2
-		f.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1.25), NumberSequenceKeypoint.new(1, 0.15) })
+		f.Brightness = 1.6
+		f.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.7), NumberSequenceKeypoint.new(1, 0.1) })
 		f.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.1), NumberSequenceKeypoint.new(1, 1) })
 		f.Color = ColorSequence.new(Color3.fromRGB(255, 220, 140), cJet)
 		f.Parent = a
 		table.insert(poignees.flammes, f)
-		-- LA VEILLEUSE (la plume de réacteur au filage, jTgt .34, L37647) : tant qu'on roule, une courte flamme orange brûle au
-		-- bout du pot — collée à lui, blanche au cœur, qui tremble ; la nitro l'allonge en vrai jet (ci-dessus)
-		local v = Instance.new("ParticleEmitter")
-		v.Name = "Veilleuse"
-		v.Texture = "rbxasset://textures/particles/fire_main.dds"
-		v.LightEmission = 1
-		v.LightInfluence = 0
-		v.LockedToPart = true
-		v.Rate = 70
-		v.Lifetime = NumberRange.new(0.05, 0.1)
-		v.Speed = NumberRange.new(4, 8)
-		v.SpreadAngle = Vector2.new(4, 4)
-		v.EmissionDirection = Enum.NormalId.Back
-		v.Brightness = 2.2
-		v.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.7), NumberSequenceKeypoint.new(1, 0.2) })
-		v.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.15), NumberSequenceKeypoint.new(1, 1) })
-		v.Color = ColorSequence.new(Color3.fromRGB(255, 236, 190), Color3.fromRGB(255, 140, 48))
-		v.Enabled = false
-		v.Parent = a
-		table.insert(poignees.veilleuses, v)
+		-- LA PLUME DE RÉACTEUR (JETS du web, L37646) : un cône de lumière par pot — une coquille à la couleur du feu, un cœur blanc.
+		-- Courte au filage (elle brûle dès qu'on roule), longue et affûtée à la nitro ; elle tremble, chaque pot à son rythme.
+		-- (3e retour : la « veilleuse » en particules de feu grésillait comme un pétard — le web montre une flamme NETTE)
+		local bout = Instance.new("Attachment")
+		bout.Name = "Plume" .. i
+		bout.Position = a.Position + Vector3.new(0, 0, 0.5)
+		bout.Parent = r
+		local plume = { a = a, bout = bout, z0 = a.Position, coque = nil :: any, coeur = nil :: any }
+		for _, q in { { "coque", 0 }, { "coeur", 0.02 } } do
+			local bm = Instance.new("Beam")
+			bm.Name = "Plume_" .. q[1]
+			bm.Attachment0, bm.Attachment1 = a, bout
+			bm.FaceCamera = true
+			bm.Segments = 1
+			bm.LightEmission = 1
+			bm.LightInfluence = 0
+			bm.Brightness = 2
+			bm.ZOffset = q[2]
+			bm.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.05), NumberSequenceKeypoint.new(0.6, 0.45), NumberSequenceKeypoint.new(1, 1) })
+			bm.Enabled = false
+			bm.Parent = r;
+			(plume :: any)[q[1]] = bm
+		end
+		table.insert(poignees.plumes, plume)
 	end
 	-- LE SILLAGE v6 (SIL, index.html L14430) : UN PAR POT (4 au plus), né dans sa bouche, long de 100 m. Deux couches dans chaque
 	-- sillage : un HALO doux qui s'élargit vers le bout, et un CŒUR fin qui blanchit à la tuyère (c'est lui que le bloom attrape).
@@ -324,13 +328,41 @@ end
 -- traînée de la boutique) ; arc = un arc-en-ciel (ColorSequence) à la place. Vers le bout, le feu tire au rouge-magenta.
 local BRAISE = Color3.fromRGB(255, 40, 110)
 function Caisse.feu(poignees: any, on: boolean, debit: number, c: Color3, arc: ColorSequence?, veille: boolean?)
-	for _, v in poignees.veilleuses or {} do
-		if v.Enabled ~= (veille == true) then v.Enabled = veille == true end
+	-- la plume : sa force (jTgt du web : .34 au filage, 1,05 à la nitro, +.4 au pad), lissée ; sa longueur et sa largeur en découlent
+	do
+		local t = os.clock()
+		local dt = math.min(0.1, t - (poignees.jetT or t))
+		poignees.jetT = t
+		local nitro = on and debit >= 100
+		local cible = (nitro and 1.05 or (veille and 0.34 or 0)) + ((on and not nitro) and 0.4 or 0)
+		local k = (poignees.jetK or 0) + (cible - (poignees.jetK or 0)) * math.min(1, dt * 11)
+		poignees.jetK = k
+		local allume = k > 0.05
+		local fl = 0.82 + 0.18 * math.sin(t * 57 + math.sin(t * 33) * 2.1)
+		local long = nitro and 1.85 or 1
+		local coque = (on and c) or Color3.fromRGB(255, 140, 48)
+		local coeur = nitro and Color3.fromRGB(255, 242, 218) or Color3.fromRGB(255, 230, 176)
+		for i, p in poignees.plumes or {} do
+			if p.coque.Enabled ~= allume then
+				p.coque.Enabled = allume
+				p.coeur.Enabled = allume
+			end
+			if allume then
+				local f9 = 0.84 + 0.16 * math.sin(t * 31 + i * 2.4) * math.sin(t * 13.7 + i * 1.7)
+				local jl = math.max(0.03, 0.62 * k * 2.1 * fl * long) * f9
+				local jr = (0.09 + 0.07 * k + (nitro and 0.05 or 0)) * (1.1 - 0.1 * f9)
+				p.bout.Position = p.z0 + Vector3.new(0, 0, jl * M)
+				p.coque.Width0, p.coque.Width1 = jr * 2.3 * M, jr * 0.5 * M
+				p.coeur.Width0, p.coeur.Width1 = jr * 1.1 * M, jr * 0.12 * M
+				p.coque.Color = ColorSequence.new(coque, coque:Lerp(BRAISE, 0.35))
+				p.coeur.Color = ColorSequence.new(coeur)
+			end
+		end
 	end
 	local chaud = c:Lerp(Color3.new(1, 1, 1), 0.72)
 	local flamme = ColorSequence.new(chaud, c)
 	for _, f in poignees.flammes do
-		f.Rate = debit
+		f.Rate = debit * 0.4 -- (des braises dans la plume, plus un feu d'artifice)
 		f.Color = flamme
 	end
 	local halo = arc or ColorSequence.new({ ColorSequenceKeypoint.new(0, c), ColorSequenceKeypoint.new(0.6, c:Lerp(BRAISE, 0.3)), ColorSequenceKeypoint.new(1, c:Lerp(BRAISE, 0.6)) })

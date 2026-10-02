@@ -164,8 +164,8 @@ Config.CIEL = {
 	-- (2e retour de Sacha : « c'est moche » — tout tirait au CYAN GLACÉ, des icebergs. La version web met l'ombre en LAVANDE
 	-- (le côté ombre « pris par le ciel », nuage8Mat) et le soleil en crème : ce sont ces deux teintes qui font le coton.)
 	ambiance = Color3.fromRGB(120, 118, 180), -- (l'ambiance des lieux COUVERTS : l'atelier du garage, le dessous de la caisse)
-	ambianceExt = Color3.fromRGB(190, 190, 225),
-	expo = -0.22,
+	ambianceExt = Color3.fromRGB(235, 230, 245),
+	expo = -0.06,
 	brumeDensite = 0.035,         -- (la mer de nuages doit se lire jusqu'à l'horizon : la brume du web n'en mange que 20 % à 4 km)
 	brumeVoile = 0.5,  -- (à 0,5 on voyait les nuages PEINTS du ciel par défaut de Roblox : des cirrus de photo derrière des cumulus de jeu)
 	saturation = 0.3,
@@ -173,13 +173,14 @@ Config.CIEL = {
 	mer = rgb(0.84, 0.90, 0.92),          -- la mer de nuages (couleur du brouillard du matin)
 	-- (Roblox éclaire l'image par-dessus, × 1,4 environ : ces teintes sont celles du web divisées d'autant — à l'écran, des
 	-- sommets blancs et des versants bleu ciel, comme la capture du menu web)
-	merOmbre = Color3.fromRGB(96, 132, 196),    -- le versant à l'ombre des dômes (le bleu ciel du menu web)
-	merSommet = Color3.fromRGB(194, 190, 184),  -- les sommets au soleil (blanc crème)
-	merTrou = Color3.fromRGB(56, 100, 176),     -- les rares trous
+	-- (3e retour, mesuré : la mer du menu web est DOUCE, (133,160,183) en moyenne, peu contrastée — ici des trous bleu roi dans du blanc)
+	merOmbre = Color3.fromRGB(128, 152, 196),   -- le versant à l'ombre des dômes
+	merSommet = Color3.fromRGB(190, 190, 190),  -- les sommets au soleil
+	merTrou = Color3.fromRGB(96, 130, 186),     -- les rares trous
 	merMenu = 620,                              -- m : au menu la caisse tombe de très haut, la mer est loin dessous
 }
 Config.ROUTE = {
-	bitume = Color3.fromRGB(44, 42, 68),  -- (3e retour, capture contre capture : sur le web la route est un GRIS-LAVANDE glacé qui prend le ciel — en bleu nuit, Roblox en faisait une rivière bleu marine)
+	bitume = Color3.fromRGB(25, 24, 42),  -- (mesuré sur les captures web : de près le bitume est presque NOIR (16,25,36), au loin la brume l'éclaircit en gris-lavande ; son reflet du ciel fait le reste)
 	sodium = Color3.fromRGB(255, 188, 72), -- la ligne centrale
 	voie = Color3.fromRGB(210, 216, 230),  -- les lignes de voie
 	neon = Color3.fromRGB(62, 230, 240),  -- 0x3ee6f0 : les rails de néon

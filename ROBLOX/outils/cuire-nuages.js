@@ -50,7 +50,9 @@ const n3 = x => Math.round(x * 1000) / 1000;
 // de la route que leurs flancs à l'ombre : un ciel de nuages violets. Le soleil cuit est donc rasant, dans l'azimut du soleil de
 // Roblox ; le côté soleil est crème-pêche (la brume de contre-jour du web, fogCj), l'ombre un lavande clair.
 const SOL = (() => { const v = [-0.95, 0.3, -0.014], l = Math.hypot(v[0], v[1], v[2]); return v.map(x => x / l); })(), K = 1.3;
-const SOLEIL = [292, 262, 222], OMBRE_H = [196, 202, 240], OMBRE_B = [176, 180, 230];
+// (mesuré sur les captures web : côté soleil (198,209,222) au menu, (168,160,155) à (177,188,202) en course — un blanc à peine
+// crème, jamais pêche ; l'ombre (91,103,152) à (119,138,178) — un bleu-lavande)
+const SOLEIL = [282, 270, 252], OMBRE_H = [182, 194, 238], OMBRE_B = [158, 168, 224];
 const FD = (() => { const f = [-SOL[0], 0.55, -SOL[2]], l = Math.hypot(f[0], f[1], f[2]); return f.map(x => x / l); })();
 function peint(N, ao, tv, hh) {
   const l = Math.hypot(N[0], N[1], N[2]) || 1, n = [N[0] / l, N[1] / l, N[2] / l];

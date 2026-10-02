@@ -30,7 +30,7 @@ modeleCoin.BottomSurface = Enum.SurfaceType.Smooth
 modeleCoin.Material = Enum.Material.SmoothPlastic
 modeleCoin.Color = R.bitume
 modeleCoin.CastShadow = false -- (les coins de la dalle se faisaient de l'ombre entre eux : un fil sombre à chaque jointure, en travers de la route)
-local REFLET = 0.1
+local REFLET = 0.06
 modeleCoin.Reflectance = REFLET -- (le BITUME GLACÉ du jeu web : sombre de près, il prend le ciel et les nuages en rasant — sans reflet, un trou noir)
 
 local function part(taille: Vector3, cf: CFrame, couleur: Color3, matiere: Enum.Material, parent: Instance): Part

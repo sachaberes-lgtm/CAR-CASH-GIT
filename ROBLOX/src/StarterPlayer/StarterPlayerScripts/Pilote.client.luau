@@ -389,12 +389,16 @@ end
 local function gererNitro(dt: number)
 	local res = reservoir()
 	nitroR = math.min(res, nitroR + NI.regen * dt)
-	if pwN > 0 then nitroR = res end
+	-- LE BOOST DE DÉPART (startBoostT du web, L28463) : 3 s de nitro OFFERTE quand la caisse touche la route — elle tient la
+	-- touche à la place du joueur, ne coûte rien, et brille en arc-en-ciel (voir habiller). Pas à l'auto-école.
+	local offert = (G.departT or 0) > 0
+	if offert then G.departT = math.max(0, G.departT - dt) end
+	if pwN > 0 or offert then nitroR = res end
 	local avant = nitroOn
 	-- LA LOI DU RÉSERVOIR : il tient tant que la jauge PAIE l'image, et se rallume à 0,3
-	local prise = (pwN > 0) and 0 or Score.nitroConsoDe(dt, Score.F2.frenNitro, Score.frenesie(), NTR.on, mode == "fall")
-	nitroOn = Controles.nitro and Score.nitroTientDe(nitroR + nitroX, prise, nitroOn)
-	if nitroOn and pwN <= 0 then
+	local prise = (pwN > 0 or offert) and 0 or Score.nitroConsoDe(dt, Score.F2.frenNitro, Score.frenesie(), NTR.on, mode == "fall")
+	nitroOn = (Controles.nitro or offert) and Score.nitroTientDe(nitroR + nitroX, prise, nitroOn)
+	if nitroOn and pwN <= 0 and not offert then
 		if nitroR >= prise then
 			nitroR -= prise
 		else
@@ -404,7 +408,7 @@ local function gererNitro(dt: number)
 		end
 	end
 	nitroBleue = nitroOn and nitroR <= 0.01
-	if nitroOn then stats.nitro += dt end
+	if nitroOn and not offert then stats.nitro += dt end
 	if avant ~= nitroOn then
 		evEtat:FireServer("nitro", nitroOn)
 		Bus.emit("nitro", nitroOn, nitroBleue)
@@ -725,6 +729,7 @@ local function atterrir(face: number, latX: number, sX: number, hR: number?)
 		intro = false
 		lat = (face > 0) and latX or -latX
 		vA, psi, yawR, G.slipB = 40, 0, 0, 0
+		G.departT = TU.on and 0 or 3
 		mode = "drive"
 		Score.ETAT.mode = "drive"
 		graceT = 0.3
@@ -1548,7 +1553,7 @@ local function etapeSol(dt: number)
 		G.raseT, G.raseAnn = 0, false
 	end
 	-- NITROOO : la nitro tenue 2 s au-dessus de min(400, 55 % de la G.vmax)
-	if nitroOn and k > math.min(400, vmaxShow() * 0.55) then
+	if nitroOn and (G.departT or 0) <= 0 and k > math.min(400, vmaxShow() * 0.55) then -- (le boost de DÉPART tient la touche à la place du joueur : il ne compte pas)
 		G.pureT += dt
 		if G.pureT > NTR_T and G.pureArmed then
 			G.pureArmed = false
@@ -1851,6 +1856,8 @@ local function habiller(dt: number)
 	local fxC = poignees.fiche and poignees.fiche.fx and poignees.fiche.fx.jet
 	local couleur = (pwN > 0 and Color3.fromRGB(157, 77, 255)) or (nitroBleue and Color3.fromRGB(91, 125, 255))
 		or (nitroOn and (fxC and Color3.fromHex(string.format("%06x", fxC)) or Color3.fromRGB(255, 122, 36))) or Color3.fromRGB(255, 215, 94)
+	-- le départ en ARC-EN-CIEL : la teinte tourne pendant les 3 s offertes (la signature du LANCEMENT, pas de la caisse)
+	if (G.departT or 0) > 0 and pwN <= 0 and not nitroBleue then couleur = Color3.fromHSV((os.clock() * 0.65) % 1, 0.8, 1) end
 	-- la TRAÎNÉE de la boutique se pose par-dessus (nitro simple seulement : le violet, le bleu et l'or gardent leur sens)
 	local arc: ColorSequence? = nil
 	local tr9 = Config.habit("trainee", profil.porte and profil.porte.trainee)
@@ -1956,6 +1963,7 @@ local function nouvellePartie()
 	argent, aura = Config.CASH_DEPART, 0
 	pwN, pwA, pwV, pwM, pwX = 0, 0, 0, 0, 0
 	G.idleT, G.idleMsg, graceT = 0, 0, 0
+	G.departT = 0
 	G.distAvant, G.vmax, G.serie, G.nbZones = 0, 0, 0, 0
 	G.driftOn, G.driftC, G.driftLv, G.driftCd, G.slipB, G.slipT, G.oilCd = false, 0, 0, 0, 0, 0, 0
 	G.virT, G.virC, G.virD, G.virPaye, G.frondeCd, G.raseT, G.raseAnn, G.froleN, G.froleT = 0, 0, false, false, 0, 0, false, 0, 0
