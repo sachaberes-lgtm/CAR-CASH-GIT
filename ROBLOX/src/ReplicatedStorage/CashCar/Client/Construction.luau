@@ -27,10 +27,10 @@ modeleCoin.CanQuery = false
 modeleCoin.CanTouch = false
 modeleCoin.TopSurface = Enum.SurfaceType.Smooth
 modeleCoin.BottomSurface = Enum.SurfaceType.Smooth
-modeleCoin.Material = Enum.Material.SmoothPlastic
+modeleCoin.Material = Enum.Material.Plastic
 modeleCoin.Color = R.bitume
 modeleCoin.CastShadow = false -- (les coins de la dalle se faisaient de l'ombre entre eux : un fil sombre à chaque jointure, en travers de la route)
-local REFLET = 0.06
+local REFLET = 0.02
 modeleCoin.Reflectance = REFLET -- (le BITUME GLACÉ du jeu web : sombre de près, il prend le ciel et les nuages en rasant — sans reflet, un trou noir)
 
 local function part(taille: Vector3, cf: CFrame, couleur: Color3, matiere: Enum.Material, parent: Instance): Part
@@ -147,7 +147,7 @@ local function dalle(sections: { CFrame }, dossier: Instance): boolean
 	mp.CanTouch = false
 	mp.CastShadow = false
 	mp.DoubleSided = true
-	mp.Material = Enum.Material.SmoothPlastic
+	mp.Material = Enum.Material.Plastic -- (mat : en lisse, le bitume prenait tout le bleu du ciel en rasant — une route INDIGO le matin)
 	mp.Color = R.bitume
 	mp.Reflectance = REFLET
 	mp.CFrame = CFrame.new(centre)
@@ -203,21 +203,26 @@ function Construction.route(piste: Piste.Piste, dossier: Instance, ceder: (() ->
 		if ceder and compte % 60 == 0 then ceder() end
 	end
 	fermer()
-	-- le marquage du niveau 1 (capture web) : des pointillés BLANCS sur les voies, tous les 12 m — sur un ruban
-	-- de 56 m, ce sont eux qui disent la vitesse et l'échelle
-	local haut = 0.03 * M
-	local s = 6 * M
+	-- LA PEINTURE (buildTrack du web, L10149) : UNE ligne centrale en tirets — blanc lavande 0xe4ddff à demi transparent, 14 m de
+	-- tiret tous les 32 m (7 points sur 16), sur les DEUX faces de la dalle. (3e retour : il y avait ici deux rangées de gros
+	-- pointillés blancs sur les voies, qui n'existent pas dans le jeu web d'aujourd'hui.)
+	local LAVANDE = Color3.fromRGB(228, 221, 255)
+	local s = 4 * M
 	local k = 0
-	while s < piste.len - 6 * M do
-		local f = Piste.repere(piste, s)
-		local cfl = CFrame.fromMatrix(f.Position + f.UpVector * haut, f.RightVector, f.UpVector, -f.LookVector)
-		for _, x in { -0.34, 0.34 } do
-			local v = part(Vector3.new(0.45 * M, 0.06 * M, 6 * M), cfl + f.RightVector * (x * RH * M), R.voie, Enum.Material.SmoothPlastic, dossier)
-			v.CastShadow = false
+	while s < piste.len - 16 * M do
+		-- (chaque tiret en deux moitiés de 7 m : il suit la courbe)
+		for moitie = 0, 1 do
+			local f = Piste.repere(piste, s + (3.5 + moitie * 7) * M)
+			for _, y in { 0.05 * M, -EP - 0.05 * M } do
+				local v = part(Vector3.new(0.4 * M, 0.04 * M, 7.05 * M), CFrame.fromMatrix(f.Position + f.UpVector * y, f.RightVector, f.UpVector, -f.LookVector),
+					LAVANDE, Enum.Material.SmoothPlastic, dossier)
+				v.Transparency = 0.45
+				v.CastShadow = false
+			end
 		end
 		k += 1
-		s += 12 * M
-		if ceder and k % 150 == 0 then ceder() end
+		s += 32 * M
+		if ceder and k % 80 == 0 then ceder() end
 	end
 end
 

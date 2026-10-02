@@ -30,7 +30,20 @@ local BLANC = 1 -- la clarté de la ouate (la lumière est cuite dans les sommet
 -- nuage8Mat du jeu web — frontière d'ombre douce, soleil crème, ombre bleu-lavande) ; toutes les normales pointent vers le
 -- HAUT : l'éclairage de Roblox est alors le même sur tout le nuage (il ne fait que multiplier), plus de frontière dure ni de
 -- reflet de plastique — c'est la couleur cuite qu'on voit ──
-type Gabarit = { p: MeshPart, centre: Vector3, taille: Vector3, fiche: any }
+type Gabarit = { p: MeshPart, centre: Vector3, taille: Vector3, fiche: any, em: any, cols: { { number } } }
+-- LA PALETTE DE L'HEURE (les trois heures du niveau NUAGES du web : matin, midi, fin d'après-midi) : le côté soleil, l'ombre
+-- tournée vers le ciel, l'ombre du ventre — en 0-255. Les sommets portent les INGRÉDIENTS (part de soleil, modelé de l'ombre,
+-- part de ciel : outils/cuire-nuages.js) ; la couleur se compose ici, et se recompose quand l'heure change (Nuages.palette).
+local K_LUM = 1.3 -- (l'éclairage de Roblox multiplie tout par ~1,3 : les couleurs sont divisées d'autant)
+local PAL = { S = Vector3.new(282, 270, 252), OH = Vector3.new(182, 194, 238), OB = Vector3.new(158, 168, 224) }
+local function peindre(em: any, cols: { { number } })
+	local S, OH, OB = PAL.S, PAL.OH, PAL.OB
+	for _, q in cols do
+		local o = (OB + (OH - OB) * q[4]) * q[3]
+		local c = (o + (S - o) * q[2]) / (K_LUM * 255)
+		em:SetColor(q[1], Color3.new(math.clamp(c.X, 0, 1), math.clamp(c.Y, 0, 1), math.clamp(c.Z, 0, 1)))
+	end
+end
 local gabarits: { [number]: Gabarit | false } = {}
 local function batir(k: number, fin: boolean?): Gabarit?
 	local module = Modules:FindFirstChild(string.format(fin and "F%02d" or "N%02d", k))
@@ -81,6 +94,17 @@ local function batir(k: number, fin: boolean?): Gabarit?
 		em:Destroy()
 		em = fige
 	end
+	-- les ingrédients de chaque couleur, relus sur le maillage figé (ses numéros de couleur ne sont plus ceux d'avant), puis la
+	-- palette de l'heure — AVANT de créer la pièce : même si Roblox ne suivait pas les changements, la pièce naît juste
+	local cols: { { number } } = {}
+	local okC = pcall(function()
+		for _, id in em:GetColors() do
+			local c = em:GetColor(id)
+			table.insert(cols, { id, c.R, c.G * 1.25, c.B })
+		end
+		peindre(em, cols)
+	end)
+	if not okC then warn("[CashCar] nuage " .. k .. " : palette refusée") end
 	local okP, mp = pcall(function() return AssetService:CreateMeshPartAsync(Content.fromObject(em), { CollisionFidelity = Enum.CollisionFidelity.Box }) end)
 	if not okP or not mp then
 		warn("[CashCar] nuage " .. k .. " : pièce refusée")
@@ -99,7 +123,7 @@ local function batir(k: number, fin: boolean?): Gabarit?
 	mp.CastShadow = false
 	mp.Material = Enum.Material.Plastic -- (mat : en lisse, le soleil y posait des reflets de glace — des icebergs, pas du coton)
 	mp.Color = Color3.new(1, 1, 1)
-	return { p = mp, centre = centre / UNITE, taille = mp.Size, fiche = Liste[k] }
+	return { p = mp, centre = centre / UNITE, taille = mp.Size, fiche = Liste[k], em = em, cols = cols }
 end
 local function gabarit(k: number): Gabarit?
 	return gabarits[k] or nil
@@ -230,6 +254,19 @@ function Nuages.finesseTick(dt: number, cam: Vector3?)
 			if F.g then F.g.p:Destroy() end
 			fins[k] = nil
 		end
+	end
+end
+
+-- L'HEURE CHANGE : tous les nuages (les 25 gabarits et les versions fines chargées) reprennent la palette — leurs copies
+-- partagent leur maillage, elles suivent toutes seules
+function Nuages.palette(S: Vector3, OH: Vector3, OB: Vector3)
+	if PAL.S == S and PAL.OH == OH and PAL.OB == OB then return end
+	PAL.S, PAL.OH, PAL.OB = S, OH, OB
+	for _, g in gabarits do
+		if g then pcall(peindre, g.em, g.cols) end
+	end
+	for _, F in fins do
+		if F.g then pcall(peindre, F.g.em, F.g.cols) end
 	end
 end
 

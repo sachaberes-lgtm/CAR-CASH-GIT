@@ -224,6 +224,7 @@ local bords: { Frame } = {}
 -- réserve 36 %, violet de la nitro infinie, or du pad turbo (plus discret, 14 %). Ils montent vite (×8) et retombent en douceur
 -- (×2,6). Quatre bandes à part : le flash des bords (ci-dessous) garde les siennes.
 local teinte: { Frame } = {}
+local vigBas: Frame? = nil -- la bande du bas de la vignette : pleine sur la ROUTE (le bitume proche plonge dans le sombre), légère ailleurs
 local nfx = { edge = 0, c = Color3.fromRGB(255, 122, 36) }
 local function teinteTick(dt: number)
 	local vit = etat.mode == "drive" or etat.mode == "fall"
@@ -232,6 +233,10 @@ local function teinteTick(dt: number)
 	nfx.edge += (eT - nfx.edge) * math.min(1, dt * ((eT > nfx.edge) and 8 or 2.6))
 	local cible = (etat.bleue and Color3.fromRGB(91, 125, 255)) or (on and (etat.infini and Color3.fromRGB(157, 77, 255) or Color3.fromRGB(255, 122, 36))) or Color3.fromRGB(255, 215, 94)
 	nfx.c = nfx.c:Lerp(cible, math.min(1, dt * 12))
+	if vigBas then
+		local v = (etat.mode == "drive" and not etat.intro) and 0 or 0.6
+		vigBas.BackgroundTransparency += (v - vigBas.BackgroundTransparency) * math.min(1, dt * 4)
+	end
 	local a = 1 - nfx.edge
 	for _, f in teinte do
 		if f.BackgroundTransparency ~= a or f.BackgroundColor3 ~= nfx.c then
@@ -1095,7 +1100,7 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 	for _ = 1, GFN do table.insert(gerbe, fileNeuf(gui)) end
 
 	-- LA VIGNETTE (uVigK/uVigC de l'ACES du jeu web : bleu nuit, discrète) : quatre bandes fixes, plus sombres en bas (le bitume)
-	for _, d in { { 0, 0, 1, 0.22, 90, 0.7 }, { 0, 0.6, 1, 0.4, 270, 0.3 }, { 0, 0, 0.22, 1, 0, 0.62 }, { 0.78, 0, 0.22, 1, 180, 0.62 } } do -- (le bas plus sombre : le bitume proche fonce, comme sur le web)
+	for _, d in { { 0, 0, 1, 0.22, 90, 0.7 }, { 0, 0.5, 1, 0.5, 270, 0.1 }, { 0, 0, 0.22, 1, 0, 0.62 }, { 0.78, 0, 0.22, 1, 180, 0.62 } } do -- (le bas BIEN plus sombre : sur le web le bitume proche plonge dans le bleu nuit — mesuré (16,25,36) en bas d'image contre (110,105,140) à mi-route)
 		local f = Instance.new("Frame")
 		f.Name = "Vignette"
 		f.BorderSizePixel = 0
@@ -1107,8 +1112,12 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 		f.Parent = gui
 		local g = Instance.new("UIGradient")
 		g.Rotation = d[5]
-		g.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, d[6]), NumberSequenceKeypoint.new(0.6, 0.94), NumberSequenceKeypoint.new(1, 1) })
+		g.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, d[6]), NumberSequenceKeypoint.new(0.45, (d[6] < 0.2) and 0.62 or 0.9), NumberSequenceKeypoint.new(1, 1) })
 		g.Parent = f
+		if d[6] < 0.2 then
+			vigBas = f
+			f.BackgroundTransparency = 0.6
+		end
 	end
 
 	voile = Instance.new("Frame")

@@ -63,10 +63,10 @@ function peint(N, ao, tv, hh) {
   const ciel = ss(-0.35, 0.8, n[1]);
   const fl = (0.72 + 0.38 * Math.max(0, n[0] * FD[0] + n[1] * FD[1] + n[2] * FD[2]) + 0.12 * Math.max(0, -n[1])) / 0.98;
   const om = Math.min(1.2, fl) * (0.74 + 0.26 * ao) * (0.92 + 0.08 * hh) * 1.04;
-  return [0, 1, 2].map(j => {
-    const o = (OMBRE_B[j] + (OMBRE_H[j] - OMBRE_B[j]) * ciel) * om;
-    return Math.max(0, Math.min(255, Math.round((o + (SOLEIL[j] - o) * lit) / K)));
-  });
+  // (les TROIS HEURES du niveau : matin, midi, après-midi — on ne cuit plus une couleur mais ses INGRÉDIENTS : R = la part de
+  // soleil, V = le modelé du côté ombre (÷ 1,25), B = la part de ciel dans l'ombre. Le jeu compose la couleur avec la palette
+  // de l'heure : Client/Nuages, peindre)
+  return [lit, om / 1.25, ciel].map(x => Math.max(0, Math.min(255, Math.round(x * 255))));
 }
 fs.mkdirSync(SORTIE, { recursive: true });
 for (const f of fs.readdirSync(SORTIE)) fs.unlinkSync(path.join(SORTIE, f));

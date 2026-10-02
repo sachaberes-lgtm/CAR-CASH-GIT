@@ -174,13 +174,13 @@ Config.CIEL = {
 	-- (Roblox éclaire l'image par-dessus, × 1,4 environ : ces teintes sont celles du web divisées d'autant — à l'écran, des
 	-- sommets blancs et des versants bleu ciel, comme la capture du menu web)
 	-- (3e retour, mesuré : la mer du menu web est DOUCE, (133,160,183) en moyenne, peu contrastée — ici des trous bleu roi dans du blanc)
-	merOmbre = Color3.fromRGB(128, 152, 196),   -- le versant à l'ombre des dômes
-	merSommet = Color3.fromRGB(190, 190, 190),  -- les sommets au soleil
-	merTrou = Color3.fromRGB(96, 130, 186),     -- les rares trous
+	merOmbre = Color3.fromRGB(148, 166, 204),   -- le versant à l'ombre des dômes
+	merSommet = Color3.fromRGB(192, 192, 194),  -- les sommets au soleil
+	merTrou = Color3.fromRGB(120, 146, 196),    -- les rares trous
 	merMenu = 620,                              -- m : au menu la caisse tombe de très haut, la mer est loin dessous
 }
 Config.ROUTE = {
-	bitume = Color3.fromRGB(25, 24, 42),  -- (mesuré sur les captures web : de près le bitume est presque NOIR (16,25,36), au loin la brume l'éclaircit en gris-lavande ; son reflet du ciel fait le reste)
+	bitume = Color3.fromRGB(110, 104, 134),  -- (captures web en double définition : un bitume MAT, ardoise violacée (110,105,140) à mi-distance ; c'est la vignette qui noircit le bas de l'image, pas la route — et il ne reflète pas les nuages)
 	sodium = Color3.fromRGB(255, 188, 72), -- la ligne centrale
 	voie = Color3.fromRGB(210, 216, 230),  -- les lignes de voie
 	neon = Color3.fromRGB(62, 230, 240),  -- 0x3ee6f0 : les rails de néon

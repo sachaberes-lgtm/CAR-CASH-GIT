@@ -26,14 +26,17 @@ for ($i = 0; $i -lt 40; $i++) {
   Start-Sleep -Milliseconds 500
   $p = Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowTitle -like "*CashCarTest*" } | Select-Object -First 1
   if ($p) {
-    # HWND_BOTTOM, sans l'activer — et à la taille de l'écran (une fenêtre ouverte en petit donne une vue 3D minuscule, et le cadre de vue.sh tombe à côté)
-    # la fenêtre à la taille d'une fenêtre AGRANDIE (le cadre de vue.sh en dépend), sans l'activer
-    $lx = [RelanceCC]::GetSystemMetrics(61); $ly = [RelanceCC]::GetSystemMetrics(62); $d = [int](($lx - [RelanceCC]::GetSystemMetrics(0)) / 2)
-    [RelanceCC]::ShowWindow($p.MainWindowHandle, 4) | Out-Null # SW_SHOWNOACTIVATE
-    [RelanceCC]::SetWindowPos($p.MainWindowHandle, [IntPtr]1, -$d, -$d, $lx, $ly, 0x10) | Out-Null
+    # derrière toutes les autres, sans la bouger ni l'activer (redimensionner ici déréglait la mise en page de Studio : la vue 3D
+    # débordait de la fenêtre — vue.py retrouve le cadre de la vue tout seul, quelle que soit la taille)
+    [RelanceCC]::SetWindowPos($p.MainWindowHandle, [IntPtr]1, 0, 0, 0, 0, 0x13) | Out-Null
     if ($devant -ne [IntPtr]::Zero) { [RelanceCC]::SetForegroundWindow($devant) | Out-Null }
     break
   }
 }
 Start-Sleep $Attente
+# une fois Studio chargé (pas avant : sa mise en page se dérègle), une taille connue — la vue 3D a alors les proportions d'un
+# téléphone couché (~2,2), comme les captures du jeu web
+$p = Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowTitle -like "*CashCarTest*" } | Select-Object -First 1
+if ($p) { [RelanceCC]::SetWindowPos($p.MainWindowHandle, [IntPtr]1, 0, 0, 2900, 1640, 0x10) | Out-Null; Start-Sleep -Milliseconds 800 }
+& "$ici\studio-actif.ps1" | Out-Null # (le changement de taille lui retire « la main » : sans elle, 15 images par seconde)
 & "$ici\studio-touche.ps1"

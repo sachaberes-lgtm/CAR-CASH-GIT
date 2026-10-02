@@ -729,7 +729,7 @@ local function atterrir(face: number, latX: number, sX: number, hR: number?)
 		intro = false
 		lat = (face > 0) and latX or -latX
 		vA, psi, yawR, G.slipB = 40, 0, 0, 0
-		G.departT = TU.on and 0 or 3
+		G.departT = (TU.on or workspace:GetAttribute("DbgAuto") == true) and 0 or 3 -- (le pilote automatique du banc ne sait pas tenir un virage à pleine nitro : pas de boost offert pour lui, sauf DbgAuto = "boost")
 		mode = "drive"
 		Score.ETAT.mode = "drive"
 		graceT = 0.3
@@ -2399,6 +2399,9 @@ do
 	local okC, errC = pcall(function() require(CL:WaitForChild("MoteurCarte")).init() end)
 	G.carteMoteur = okC
 	if not okC then warn("[CashCar] carte moteur : " .. tostring(errC)) end
+	-- LES TROIS HEURES du niveau (matin · midi · après-midi dorée) : elles écoutent le bus (partie, portail, menu)
+	local okH, errH = pcall(function() require(CL:WaitForChild("Ambiance")).init() end)
+	if not okH then warn("[CashCar] ambiance : " .. tostring(errH)) end
 	-- LE DRAGON de NITROOO : il lit l'état du bus (ntr, infini, fiche), rien d'autre à lui dire
 	local okD, errD = pcall(function() require(CL:WaitForChild("Dragon")).init() end)
 	if not okD then warn("[CashCar] dragon : " .. tostring(errD)) end
