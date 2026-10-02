@@ -39,6 +39,7 @@ KA.CielMusical = require(CL:WaitForChild("CielMusical"))
 KA.Viseur = require(CL:WaitForChild("Viseur"))
 KA.Traces = require(CL:WaitForChild("Traces"))
 KA.Pigeons = require(CL:WaitForChild("Pigeons"))
+KA.Impact = require(CL:WaitForChild("Impact"))
 
 local M, SPD = Config.M, Config.SPD
 local RH, THICK = Config.ROAD_HALF, Config.THICK
@@ -2225,6 +2226,7 @@ local function etapeAir(dt: number)
 	fallPos += fallVel * dt * SPD
 	-- LES TOURS NE PARDONNENT PAS (villeHeurt, L11787) : en vol, entrer dans une tour de la ville tue
 	if (zone :: any).ville and not intro and KA.Ville.heurt((zone :: any).ville, fallPos) then
+		KA.Impact.frappe((zone :: any).ville, fallPos, fallVel * SPD) -- le CRATÈRE dans la façade, les morceaux, le feu (villeImpact, L10568)
 		exploser("tour")
 		return
 	end
@@ -2461,6 +2463,7 @@ local function allerMenu()
 	for z, x in ZONES do
 		if z > 2 and x.pret then oublier(z) end
 	end
+	KA.Impact.fin()
 	poserAuDepart()
 	montrerCaisse(true)
 	KA.pos = carCF.Position + Vector3.yAxis * (10 * M) + menuCap:Cross(Vector3.yAxis) * (20 * M)
@@ -2503,6 +2506,7 @@ local function nouvellePartie()
 	G.virT, G.virC, G.virD, G.virPaye, G.frondeCd, G.raseT, G.raseAnn, G.froleN, G.froleT = 0, 0, false, false, 0, 0, false, 0, 0
 	G.carRoll, G.rollV, G.levreY, secousse, fovPunch = 0, 0, 0, 0, 0
 	stats.pieces, stats.poses, stats.parfaites, stats.fruits, stats.nitro, stats.duree, stats.chaine, stats.figures = 0, 0, 0, 0, 0, 0, 0, 0
+	KA.Impact.fin() -- (le cratère de la partie d'avant s'éteint)
 	G.tempsDepart = 0
 	G.fruitRaf, G.fruitRafT = 0, 0
 	G.hopY, G.hopV, G.choc = 0, 0, 0
@@ -2829,6 +2833,9 @@ workspace:GetAttributeChangedSignal("DbgOuvre"):Connect(function()
 			sPrev = s
 			lat = 0
 		end
+	elseif string.sub(v, 1, 6) == "impact" then
+		-- (banc) un impact sur la tour la plus proche, et la vue pour le regarder
+		workspace:SetAttribute("DbgVue", KA.Impact.essai((zone :: any).ville, carCF.Position / M, tonumber(string.sub(v, 7, 8))))
 	elseif string.sub(v, 1, 7) == "pigeons" then
 		KA.Pigeons.maintenant(string.sub(v, 8, 8) == "P") -- (une volée tout de suite ; « pigeonsP… » : tout près, pour la photo)
 	elseif string.sub(v, 1, 4) == "saut" then
@@ -3196,6 +3203,7 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 			G.viseur(dt)
 			KA.Traces.tick(mode == "drive" and G.glisse == true and not enPause and not intro, carCF, poignees.fiche.w * 0.5, poignees.fiche.l or 4.4)
 			if course and not enPause then G.vpal(kmh()) end
+			if not enPause then secousse = math.max(secousse, KA.Impact.tick(dt)) end -- le cratère d'une tour : ses morceaux, son feu, sa fumée
 			-- LES PIGEONS RAMIERS : de rares volées en travers du ciel (jamais en orbite ni dans l'orage)
 			if not enPause then KA.Pigeons.tick(dt, carCF, not course or (piste :: any).niveau == "espace" or var == "orage", mode == "boom") end
 			-- L'OVULE respire et tourne lentement, son noyau bat (L37927)
