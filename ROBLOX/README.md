@@ -70,6 +70,7 @@ recommence (décision de Sacha, 2/10 : « fais la ville et l'espace, fais pas Pa
   deux avec une trouée ; les percuter tue (« PERCUTE PAR UN SATELLITE »), les frôler paie.
 - **La pluie de débris** (`Client/Debris`, toute l'orbite) : un cercle rouge se pose là où la caisse SERA dans 1,5 s, un débris
   en feu y tombe — touché : −40 % de vitesse ; esquivé de près : aura, nitro, série.
+- **Les portes de l'orbite** : un tunnel de distorsion à l'entrée (1,9 s), une rentrée atmosphérique en feu à la sortie (2,6 s).
 - **Le bitume mouillé** de la ville : les reflets de néon sont PEINTS dans l'image de la dalle (96 m qui se répètent).
 - Le niveau d'une zone : `Config.niveau(zone)` ; son ambiance : `Client/Ambiance` (`pluie`, `espace`) ; l'habit de sa route
   (liseré, bitume, lueur) : `HABITS` dans `Client/Construction`.

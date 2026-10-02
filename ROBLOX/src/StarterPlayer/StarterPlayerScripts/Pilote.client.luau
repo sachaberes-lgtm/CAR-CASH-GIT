@@ -1508,6 +1508,7 @@ local function passerPortail(): boolean
 	local longueur = piste.len / M
 	G.distAvant += longueur
 	local ancienne = zoneN
+	local lieuAvant = (piste :: any).niveau
 	-- le saut vertical entre la sortie et le départ remonté : caisse, vol et caméra bougent ensemble
 	local saut = (suiv.piste :: Piste.Piste).F[1].Position - piste.F[piste.n].Position
 	carCF = carCF + saut
@@ -1528,6 +1529,18 @@ local function passerPortail(): boolean
 	remettreObjets(suiv)
 	activer(suiv)
 	if not ecole then oublier(ancienne) end
+	-- L'ORBITE A SES PORTES (orbWarp, orbFeu, L29789) : on n'arrive plus dans l'espace par un simple fondu. ENTRÉE = un TUNNEL DE
+	-- DISTORSION (1,9 s : le champ se déchire, des traits de lumière filent, éclair bleu à l'entrée et à la sortie du tunnel) ;
+	-- SORTIE = une RENTRÉE ATMOSPHÉRIQUE EN FEU (2,6 s : la caisse retombe dans le ciel enveloppée de plasma, ça tremble)
+	if (piste :: any).niveau == "espace" and lieuAvant ~= "espace" then
+		G.orbWarp, G.orbFeu = 1, 0
+		secousse = math.max(secousse, 0.45)
+		Bus.emit("orbite", "entre")
+	elseif lieuAvant == "espace" and (piste :: any).niveau ~= "espace" then
+		G.orbFeu, G.orbWarp = 1, 0
+		secousse = math.max(secousse, 0.6)
+		Bus.emit("orbite", "sort")
+	end
 	local g = encaisser(denom() * 24, "portail")
 	nitroR = reservoir()
 	Bus.emit("portail", zoneN)
@@ -2528,6 +2541,7 @@ Bus.etat = function()
 	return {
 		mode = mode, pause = enPause, intro = intro, s = s, lat = lat, side = side, RH = RH, psi = psi,
 		steer = steerS, yawR = yawR, vA = vA, kmh = kmh(), vmax = vmaxShow(), nitroOn = nitroOn, nitroR = nitroR,
+		warp = G.orbWarp or 0, feu = G.orbFeu or 0,
 		reservoir = reservoir(), tier = tier, argent = argent, aura = aura, fallT = V.fallT, fallTR = V.fallTR,
 		zone = zoneN, figures = stats.figures, carCF = carCF, chainMult = V.chainMult, chainVal = V.chainVal, frein = Controles.frein,
 		driftOn = G.driftOn, driftLv = G.driftLv, nuage = ((mode == "drive" or mode == "fall") and G.nuageIn) or 0,
@@ -2690,6 +2704,20 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 			if sk > 0 then secousse = math.max(secousse, sk) end
 			if course and not enPause then G.satHard() end
 			if not enPause then G.debTick(dt, cam.CFrame) end
+			-- les portes de l'orbite : le tunnel déchire le champ, la rentrée tremble
+			if not course then
+				G.orbWarp, G.orbFeu = 0, 0
+			elseif not enPause then
+				if (G.orbWarp or 0) > 0 then
+					G.orbWarp = math.max(0, G.orbWarp - dt / 1.9)
+					fovPunch = math.max(fovPunch, 34 * math.sqrt(G.orbWarp))
+					if G.orbWarp == 0 then Bus.emit("orbite", "bout") end
+				end
+				if (G.orbFeu or 0) > 0 then
+					G.orbFeu = math.max(0, G.orbFeu - dt / 2.6)
+					secousse = math.max(secousse, 0.3 * G.orbFeu)
+				end
+			end
 		end
 		-- les nuages PROCHES reçoivent leur version fine ; hors de la course, tout est rendu au budget (voir Nuages.finesseTick)
 		KA.Nuages.finesseTick(dtBrut, (mode == "drive" or mode == "fall" or mode == "menu") and cam.CFrame.Position or nil)

@@ -297,11 +297,14 @@ local function filesTick(dt: number, ecran: Vector2)
 	local vc = math.max(60, etat.vmax or 200)
 	local nit = etat.nitroOn == true
 	local k = vit and (math.max(0, ((etat.kmh or 0) - vc * 0.6) / vc) + (nit and 0.6 or 0)) or 0
-	k = math.min(1.35, k)
+	-- (le TUNNEL de l'orbite : des traits de lumière bleue plein l'écran, quelle que soit la vitesse)
+	local warp = vit and (etat.warp or 0) or 0
+	k = math.min(1.35, k + warp * 1.3)
 	local W, H = ecran.X, ecran.Y
 	local m9 = math.min(W, H)
 	local cx, cy = W / 2, H * 0.46
 	local couleur = nit and (etat.bleue and Color3.fromRGB(178, 196, 255) or Color3.fromRGB(255, 208, 160)) or Color3.fromRGB(255, 248, 236)
+	if warp > 0.02 then couleur = Color3.fromRGB(160, 214, 255) end
 	local cible = math.floor(k * 30)
 	local viv = 0
 	for _, o in files do
@@ -353,6 +356,7 @@ local function gerbeAllume(ecran: Vector2, k: number)
 		o.w = (0.8 + rndF:NextNumber() * 1.1) * m9 / 390
 	end
 end
+local rentreeT = 0
 local function flashBords(couleur: Color3, alpha: number, duree: number?)
 	for _, f in bords do
 		f.BackgroundColor3 = couleur
@@ -1189,6 +1193,26 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 		continuTick(dt)
 		teinteTick(dt)
 		filesTick(dt, gui.AbsoluteSize)
+		-- LA RENTRÉE ATMOSPHÉRIQUE (orbFeu) : des flammes au nez qui lèchent la carrosserie et traînent derrière, des braises
+		local feu = etat.feu or 0
+		if feu > 0 and (etat.mode == "drive" or etat.mode == "fall") and not etat.pause then
+			rentreeT -= dt
+			if rentreeT <= 0 then
+				rentreeT = 0.045
+				local cf: CFrame = etat.carCF
+				local nez = cf.Position + cf.LookVector * (2.4 * M) + cf.UpVector * (0.5 * M)
+				jet("langue", nez, -cf.LookVector, 2 + math.floor(3 * feu), 10, 30, 34)
+				jet("braiseO", nez, -cf.LookVector, 1 + math.floor(2 * feu), 8, 26, 60)
+			end
+		end
+	end)
+	-- les portes de l'orbite : l'éclair bleu à l'entrée et au bout du tunnel, l'éclair orange de la rentrée
+	Bus.on("orbite", function(quoi: string)
+		if quoi == "sort" then
+			flashBords(Color3.fromRGB(255, 120, 40), 0.85, 0.7)
+		else
+			flashBords(Color3.fromRGB(140, 210, 255), 0.85, 0.6)
+		end
 	end)
 	-- (mise au point, depuis la console de Studio) workspace:SetAttribute("DbgFx", "boom") — ou moteur7, pluie, cratere, jus3 —
 	-- rejoue un effet sur la caisse, sans attendre que la partie le provoque. Suivi d'un chiffre au besoin, pour le relancer.

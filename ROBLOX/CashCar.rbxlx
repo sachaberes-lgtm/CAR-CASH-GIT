@@ -1508,6 +1508,7 @@ local function passerPortail(): boolean
 	local longueur = piste.len / M
 	G.distAvant += longueur
 	local ancienne = zoneN
+	local lieuAvant = (piste :: any).niveau
 	-- le saut vertical entre la sortie et le départ remonté : caisse, vol et caméra bougent ensemble
 	local saut = (suiv.piste :: Piste.Piste).F[1].Position - piste.F[piste.n].Position
 	carCF = carCF + saut
@@ -1528,6 +1529,18 @@ local function passerPortail(): boolean
 	remettreObjets(suiv)
 	activer(suiv)
 	if not ecole then oublier(ancienne) end
+	-- L'ORBITE A SES PORTES (orbWarp, orbFeu, L29789) : on n'arrive plus dans l'espace par un simple fondu. ENTRÉE = un TUNNEL DE
+	-- DISTORSION (1,9 s : le champ se déchire, des traits de lumière filent, éclair bleu à l'entrée et à la sortie du tunnel) ;
+	-- SORTIE = une RENTRÉE ATMOSPHÉRIQUE EN FEU (2,6 s : la caisse retombe dans le ciel enveloppée de plasma, ça tremble)
+	if (piste :: any).niveau == "espace" and lieuAvant ~= "espace" then
+		G.orbWarp, G.orbFeu = 1, 0
+		secousse = math.max(secousse, 0.45)
+		Bus.emit("orbite", "entre")
+	elseif lieuAvant == "espace" and (piste :: any).niveau ~= "espace" then
+		G.orbFeu, G.orbWarp = 1, 0
+		secousse = math.max(secousse, 0.6)
+		Bus.emit("orbite", "sort")
+	end
 	local g = encaisser(denom() * 24, "portail")
 	nitroR = reservoir()
 	Bus.emit("portail", zoneN)
@@ -2528,6 +2541,7 @@ Bus.etat = function()
 	return {
 		mode = mode, pause = enPause, intro = intro, s = s, lat = lat, side = side, RH = RH, psi = psi,
 		steer = steerS, yawR = yawR, vA = vA, kmh = kmh(), vmax = vmaxShow(), nitroOn = nitroOn, nitroR = nitroR,
+		warp = G.orbWarp or 0, feu = G.orbFeu or 0,
 		reservoir = reservoir(), tier = tier, argent = argent, aura = aura, fallT = V.fallT, fallTR = V.fallTR,
 		zone = zoneN, figures = stats.figures, carCF = carCF, chainMult = V.chainMult, chainVal = V.chainVal, frein = Controles.frein,
 		driftOn = G.driftOn, driftLv = G.driftLv, nuage = ((mode == "drive" or mode == "fall") and G.nuageIn) or 0,
@@ -2690,6 +2704,20 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 			if sk > 0 then secousse = math.max(secousse, sk) end
 			if course and not enPause then G.satHard() end
 			if not enPause then G.debTick(dt, cam.CFrame) end
+			-- les portes de l'orbite : le tunnel déchire le champ, la rentrée tremble
+			if not course then
+				G.orbWarp, G.orbFeu = 0, 0
+			elseif not enPause then
+				if (G.orbWarp or 0) > 0 then
+					G.orbWarp = math.max(0, G.orbWarp - dt / 1.9)
+					fovPunch = math.max(fovPunch, 34 * math.sqrt(G.orbWarp))
+					if G.orbWarp == 0 then Bus.emit("orbite", "bout") end
+				end
+				if (G.orbFeu or 0) > 0 then
+					G.orbFeu = math.max(0, G.orbFeu - dt / 2.6)
+					secousse = math.max(secousse, 0.3 * G.orbFeu)
+				end
+			end
 		end
 		-- les nuages PROCHES reçoivent leur version fine ; hors de la course, tout est rendu au budget (voir Nuages.finesseTick)
 		KA.Nuages.finesseTick(dtBrut, (mode == "drive" or mode == "fall" or mode == "menu") and cam.CFrame.Position or nil)
@@ -8451,11 +8479,14 @@ local function filesTick(dt: number, ecran: Vector2)
 	local vc = math.max(60, etat.vmax or 200)
 	local nit = etat.nitroOn == true
 	local k = vit and (math.max(0, ((etat.kmh or 0) - vc * 0.6) / vc) + (nit and 0.6 or 0)) or 0
-	k = math.min(1.35, k)
+	-- (le TUNNEL de l'orbite : des traits de lumière bleue plein l'écran, quelle que soit la vitesse)
+	local warp = vit and (etat.warp or 0) or 0
+	k = math.min(1.35, k + warp * 1.3)
 	local W, H = ecran.X, ecran.Y
 	local m9 = math.min(W, H)
 	local cx, cy = W / 2, H * 0.46
 	local couleur = nit and (etat.bleue and Color3.fromRGB(178, 196, 255) or Color3.fromRGB(255, 208, 160)) or Color3.fromRGB(255, 248, 236)
+	if warp > 0.02 then couleur = Color3.fromRGB(160, 214, 255) end
 	local cible = math.floor(k * 30)
 	local viv = 0
 	for _, o in files do
@@ -8507,6 +8538,7 @@ local function gerbeAllume(ecran: Vector2, k: number)
 		o.w = (0.8 + rndF:NextNumber() * 1.1) * m9 / 390
 	end
 end
+local rentreeT = 0
 local function flashBords(couleur: Color3, alpha: number, duree: number?)
 	for _, f in bords do
 		f.BackgroundColor3 = couleur
@@ -9343,6 +9375,26 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 		continuTick(dt)
 		teinteTick(dt)
 		filesTick(dt, gui.AbsoluteSize)
+		-- LA RENTRÉE ATMOSPHÉRIQUE (orbFeu) : des flammes au nez qui lèchent la carrosserie et traînent derrière, des braises
+		local feu = etat.feu or 0
+		if feu > 0 and (etat.mode == "drive" or etat.mode == "fall") and not etat.pause then
+			rentreeT -= dt
+			if rentreeT <= 0 then
+				rentreeT = 0.045
+				local cf: CFrame = etat.carCF
+				local nez = cf.Position + cf.LookVector * (2.4 * M) + cf.UpVector * (0.5 * M)
+				jet("langue", nez, -cf.LookVector, 2 + math.floor(3 * feu), 10, 30, 34)
+				jet("braiseO", nez, -cf.LookVector, 1 + math.floor(2 * feu), 8, 26, 60)
+			end
+		end
+	end)
+	-- les portes de l'orbite : l'éclair bleu à l'entrée et au bout du tunnel, l'éclair orange de la rentrée
+	Bus.on("orbite", function(quoi: string)
+		if quoi == "sort" then
+			flashBords(Color3.fromRGB(255, 120, 40), 0.85, 0.7)
+		else
+			flashBords(Color3.fromRGB(140, 210, 255), 0.85, 0.6)
+		end
 	end)
 	-- (mise au point, depuis la console de Studio) workspace:SetAttribute("DbgFx", "boom") — ou moteur7, pluie, cratere, jus3 —
 	-- rejoue un effet sur la caisse, sans attendre que la partie le provoque. Suivi d'un chiffre au besoin, pour le relancer.
@@ -15163,8 +15215,11 @@ return Nuages
 -- tombe à côté de la route, 380 à 900 m DEVANT la caisse. Il claque (0,2 s), vacille, s'éteint ; le ciel s'allume et le brouillard
 -- RECULE le temps de sa lueur (Ambiance.eclair) : on lit la route, le virage, le portail. Le tonnerre arrive après, plus fort et
 -- plus tôt quand c'est près. Le DERNIER éclair d'une zone tombe à côté du portail : il montre la sortie.
--- L'éclair lui-même : un tronc brisé de 16 segments, du ciel (640 m) jusque sous la route, et deux branches — des pièces de néon
--- tenues en réserve (jamais créées en course).
+-- L'éclair lui-même : un tronc brisé de 16 segments, du ciel (640 m) jusque sous la route, et deux branches.
+-- ⚠ DESSINÉ À L'ÉCRAN, PAS DANS LE MONDE (mesuré au banc, 2/10) : en pièces de néon posées à 400-900 m, la brume de Roblox
+-- l'avalait tout entier — on voyait le ciel s'allumer, jamais l'éclair (le web le dessine hors brume : `fog:false`). Ses points
+-- restent dans le monde ; chaque image, ils sont projetés et reliés par des traits d'interface, sous le HUD.
+local Players = game:GetService("Players")
 local Config = require(script.Parent.Parent:WaitForChild("Config"))
 local Piste = require(script.Parent.Parent:WaitForChild("Piste"))
 local Sons = require(script.Parent:WaitForChild("Sons"))
@@ -15175,29 +15230,38 @@ local RH = Config.ROAD_HALF
 local Orage = {}
 
 local N = 27 -- 16 segments de tronc, 6 + 5 de branches
-local E: any = { pieces = nil, dossier = nil, seg = {}, P = {}, t = 4, k = 0, vie = 0, tonT = -1, ton = 0, dernier = false, pisteVue = nil, allume = false }
-local COULEUR = Color3.fromRGB(236, 222, 255)
+local E: any = { traits = nil, gui = nil, seg = {}, P = {}, t = 4, k = 0, vie = 0, tonT = -1, ton = 0, dernier = false, pisteVue = nil, allume = false }
+local COULEUR = Color3.fromRGB(240, 228, 255)
+local HALO = Color3.fromRGB(176, 150, 255)
 
 local function reserve()
-	if E.pieces then return end
-	local d = Instance.new("Folder")
-	d.Name = "Eclair"
-	E.pieces = {}
+	if E.traits then return end
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "CashCarEclair"
+	gui.IgnoreGuiInset = true
+	gui.ResetOnSpawn = false
+	gui.DisplayOrder = -20 -- (sous le HUD et sous les effets d'écran)
+	gui.Enabled = false
+	E.traits = {}
 	for i = 1, N do
-		local p = Instance.new("Part")
-		p.Name = "Eclair"
-		p.Anchored = true
-		p.CanCollide, p.CanQuery, p.CanTouch = false, false, false
-		p.CastShadow = false
-		p.Material = Enum.Material.Neon
-		p.Color = COULEUR
-		p.Transparency = 1
-		p.Size = Vector3.new(1, 1, 1)
-		p.Parent = d
-		E.pieces[i] = p
+		local halo = Instance.new("Frame")
+		halo.AnchorPoint = Vector2.new(0.5, 0.5)
+		halo.BackgroundColor3 = HALO
+		halo.BackgroundTransparency = 1
+		halo.BorderSizePixel = 0
+		halo.Parent = gui
+		local coeur = Instance.new("Frame")
+		coeur.AnchorPoint = Vector2.new(0.5, 0.5)
+		coeur.Position = UDim2.fromScale(0.5, 0.5)
+		coeur.Size = UDim2.new(1, 0, 0.3, 0)
+		coeur.BackgroundColor3 = COULEUR
+		coeur.BackgroundTransparency = 1
+		coeur.BorderSizePixel = 0
+		coeur.Parent = halo
+		E.traits[i] = { halo, coeur }
 	end
-	d.Parent = workspace
-	E.dossier = d
+	gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
+	E.gui = gui
 end
 
 -- l'éclair tombe : son pied (en mètres), puis le tronc et les branches
@@ -15222,29 +15286,20 @@ local function frappe(piste: any, s: number, car: Vector3)
 	for k = 1, nT do
 		local u = k / nT
 		P[k] = Vector3.new(P[0].X + (pied.X - P[0].X) * u + h(46), P[0].Y - H * u, P[0].Z + (pied.Z - P[0].Z) * u + h(46))
-		table.insert(E.seg, { k - 1, k, 4.2 })
+		table.insert(E.seg, { k - 1, k, 9 })
 	end
 	local q = nT + 1
 	for _, br in { { 5, 6 }, { 10, 5 } } do
 		local prev, ang = br[1], math.random() * 6.283
 		for k = 1, br[2] do
 			P[q] = Vector3.new(P[prev].X + math.cos(ang) * 28 * k / br[2] * 3 + h(22), P[prev].Y - 34, P[prev].Z + math.sin(ang) * 28 * k / br[2] * 3 + h(22))
-			table.insert(E.seg, { prev, q, 2 })
+			table.insert(E.seg, { prev, q, 4.2 })
 			prev = q
 			q += 1
 		end
 	end
-	-- les pièces prennent leur place (une fois : l'éclair ne bouge pas, il ne fait que vaciller)
-	for i = 1, N do
-		local sg = E.seg[i]
-		local p = E.pieces[i]
-		if sg then
-			local a, b = P[sg[1]] * M, P[sg[2]] * M
-			p.Size = Vector3.new(sg[3] * M, sg[3] * M, (b - a).Magnitude + sg[3] * M * 0.6)
-			p.CFrame = CFrame.lookAt((a + b) / 2, b)
-		end
-	end
 	E.vie, E.k = 0.34, 1
+	E.sol = pied.Y + 140 -- (la hauteur de la route, à 10 m près : voir dessiner)
 	local dd = (pied - car).Magnitude
 	E.tonT = 0.25 + dd / 1400
 	E.ton = math.max(0.25, 1 - dd / 1400)
@@ -15253,13 +15308,47 @@ end
 local function eteindre()
 	if not E.allume then return end
 	E.allume = false
-	for i = 1, N do E.pieces[i].Transparency = 1 end
+	E.gui.Enabled = false
+end
+
+-- les traits de l'image : chaque segment projeté sur l'écran (derrière l'œil : rangé), sa largeur en pixels d'après sa distance
+local function dessiner(fl: number)
+	local cam = workspace.CurrentCamera
+	if not cam then return end
+	local focale = cam.ViewportSize.Y * 0.5 / math.tan(math.rad(cam.FieldOfView) * 0.5)
+	for i = 1, N do
+		local sg, tr = E.seg[i], E.traits[i]
+		local halo, coeur = tr[1], tr[2]
+		local vu = false
+		-- (un trait d'interface passe DEVANT tout : la part de l'éclair qui plonge sous la route — cachée par la dalle dans le jeu web —
+		-- n'est pas dessinée, sinon elle barrait le bitume et la caisse)
+		if sg and E.P[sg[2]].Y > E.sol then
+			local a = cam:WorldToViewportPoint(E.P[sg[1]] * M)
+			local b = cam:WorldToViewportPoint(E.P[sg[2]] * M)
+			if a.Z > 1 and b.Z > 1 then
+				local dx, dy = b.X - a.X, b.Y - a.Y
+				local l = math.sqrt(dx * dx + dy * dy)
+				-- (w = la demi-largeur du ruban du web, en mètres ; jamais moins de 5 pixels de halo)
+				local w = math.max(5, sg[3] * 2 * M / math.max(1, (a.Z + b.Z) * 0.5) * focale)
+				halo.Position = UDim2.fromOffset((a.X + b.X) * 0.5, (a.Y + b.Y) * 0.5)
+				halo.Size = UDim2.fromOffset(l + w * 0.5, w)
+				halo.Rotation = math.deg(math.atan2(dy, dx))
+				halo.BackgroundTransparency = 1 - 0.34 * fl
+				coeur.BackgroundTransparency = 1 - fl
+				vu = true
+			end
+		end
+		if not vu then
+			halo.BackgroundTransparency = 1
+			coeur.BackgroundTransparency = 1
+		end
+	end
 end
 
 -- À chaque image. `actif` : on roule ou on vole dans L'ORAGE. Rend la secousse du tonnerre (0 le reste du temps).
 function Orage.tick(dt: number, actif: boolean, piste: any, s: number, car: Vector3): number
 	if not actif then
-		if E.pieces and (E.allume or E.k > 0) then
+		if E.traits and (E.allume or E.k > 0) then
 			eteindre()
 			E.k, E.vie, E.tonT = 0, 0, -1
 			if Ambiance.nom() == "tempete" then Ambiance.eclair(0, 0) end
@@ -15280,11 +15369,17 @@ function Orage.tick(dt: number, actif: boolean, piste: any, s: number, car: Vect
 	end
 	if E.vie > 0 then
 		E.vie -= dt
-		-- il claque, puis vacille
-		local fl = (E.vie > 0.2) and 1 or ((math.sin(E.vie * 90) > 0) and 0.85 or 0.25)
-		E.allume = true
-		for i = 1, #E.seg do E.pieces[i].Transparency = 1 - fl end
-		if E.vie <= 0 then eteindre() end
+		if E.vie <= 0 then
+			eteindre()
+		else
+			-- il claque, puis vacille
+			local fl = (E.vie > 0.2) and 1 or ((math.sin(E.vie * 90) > 0) and 0.85 or 0.25)
+			if not E.allume then
+				E.allume = true
+				E.gui.Enabled = true
+			end
+			dessiner(fl)
+		end
 	end
 	if E.k > 0 then
 		E.k = math.max(0, E.k - dt * 1.9)
