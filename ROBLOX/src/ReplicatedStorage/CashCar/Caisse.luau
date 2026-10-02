@@ -312,7 +312,7 @@ function Caisse.construire(nom: string, indice: number, ancree: boolean?, habits
 			t.WidthScale = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(1, couche[3]) })
 			-- la queue s'éteint sur le dernier quart (24 m sur 100)
 			t.Transparency = (couche[1] == "Halo")
-				and NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.5), NumberSequenceKeypoint.new(0.3, 0.72), NumberSequenceKeypoint.new(0.76, 0.86), NumberSequenceKeypoint.new(1, 1) })
+				and NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.35), NumberSequenceKeypoint.new(0.3, 0.6), NumberSequenceKeypoint.new(0.76, 0.82), NumberSequenceKeypoint.new(1, 1) })
 				or NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.1), NumberSequenceKeypoint.new(0.3, 0.4), NumberSequenceKeypoint.new(0.76, 0.66), NumberSequenceKeypoint.new(1, 1) })
 			t.Color = ColorSequence.new(Color3.fromRGB(255, 160, 60), Color3.fromRGB(255, 60, 30))
 			t.Enabled = false
@@ -366,7 +366,7 @@ function Caisse.feu(poignees: any, on: boolean, debit: number, c: Color3, arc: C
 		f.Color = flamme
 	end
 	local halo = arc or ColorSequence.new({ ColorSequenceKeypoint.new(0, c), ColorSequenceKeypoint.new(0.6, c:Lerp(BRAISE, 0.3)), ColorSequenceKeypoint.new(1, c:Lerp(BRAISE, 0.6)) })
-	local coeur = arc or ColorSequence.new({ ColorSequenceKeypoint.new(0, c:Lerp(Color3.new(1, 1, 1), 0.4)), ColorSequenceKeypoint.new(0.08, c:Lerp(Color3.new(1, 1, 1), 0.1)), ColorSequenceKeypoint.new(1, c:Lerp(BRAISE, 0.45)) })
+	local coeur = arc or ColorSequence.new({ ColorSequenceKeypoint.new(0, c:Lerp(Color3.new(1, 1, 1), 0.25)), ColorSequenceKeypoint.new(0.06, c), ColorSequenceKeypoint.new(1, c:Lerp(BRAISE, 0.45)) }) -- (le cœur sortait JAUNE PÂLE : le web garde l'orange du feu jusqu'à la tuyère)
 	for _, t in poignees.trainees do
 		t.Enabled = on
 		t.Color = (t.Name == "Coeur") and coeur or halo

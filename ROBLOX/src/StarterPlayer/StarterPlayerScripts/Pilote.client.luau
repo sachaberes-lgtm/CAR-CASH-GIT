@@ -2525,7 +2525,7 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 		end
 		Mer.suivre(cam.CFrame.Position, carCF.Position.Y, dt, (mode == "menu" or mode == "garage") and Config.CIEL.merMenu * M or nil)
 		-- les nuages PROCHES reçoivent leur version fine ; hors de la course, tout est rendu au budget (voir Nuages.finesseTick)
-		KA.Nuages.finesseTick(dtBrut, (mode == "drive" or mode == "fall") and cam.CFrame.Position or nil)
+		KA.Nuages.finesseTick(dtBrut, (mode == "drive" or mode == "fall" or mode == "menu") and cam.CFrame.Position or nil)
 		lisserDoubles(dt)
 		KA.envoiT -= dtBrut
 		if KA.envoiT <= 0 and (mode == "drive" or mode == "fall") then

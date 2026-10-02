@@ -11,6 +11,7 @@
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
+local Lighting = game:GetService("Lighting")
 local GuiService = game:GetService("GuiService")
 local AssetService = game:GetService("AssetService")
 local Config = require(script.Parent.Parent:WaitForChild("Config"))
@@ -233,6 +234,15 @@ local function teinteTick(dt: number)
 	nfx.edge += (eT - nfx.edge) * math.min(1, dt * ((eT > nfx.edge) and 8 or 2.6))
 	local cible = (etat.bleue and Color3.fromRGB(91, 125, 255)) or (on and (etat.infini and Color3.fromRGB(157, 77, 255) or Color3.fromRGB(255, 122, 36))) or Color3.fromRGB(255, 215, 94)
 	nfx.c = nfx.c:Lerp(cible, math.min(1, dt * 12))
+	-- LE FLOU DU LOINTAIN ne vit qu'en COURSE (le web floute le décor à la vitesse ; son menu, lui, est net)
+	do
+		local flou = Lighting:FindFirstChild("Lointain")
+		if flou then
+			local v = ((etat.mode == "drive" or etat.mode == "fall") and not etat.intro) and 0.8 or 0
+			local f = flou.FarIntensity + (v - flou.FarIntensity) * math.min(1, dt * 3)
+			if math.abs(f - flou.FarIntensity) > 0.002 then flou.FarIntensity = f end
+		end
+	end
 	if vigBas then
 		local v = (etat.mode == "drive" and not etat.intro) and 0 or 0.6
 		vigBas.BackgroundTransparency += (v - vigBas.BackgroundTransparency) * math.min(1, dt * 4)

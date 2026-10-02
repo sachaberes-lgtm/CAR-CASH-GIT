@@ -111,6 +111,9 @@ ressources Roblox (ton compte) : à voir plus tard.
   `DbgInf`, `DbgPlein`, `DbgDauphins`, `DbgSerpent`, `DbgArgent` (un compte), `DbgBudget` (le budget de triangles),
   `DbgFx` = "mort" | "moteur7" | "pluie" | "cratere" | "jus3", `DbgOuvre` = "jouer" | "garage" | "boutique" | "reglages" |
   "missions" | "menu" | "pause" | "frenesie", `DbgLarge` = 1280 (l'interface d'un écran 16:9).
+- `DbgHeure` = "matin" | "midi" | "aprem" | "titre" impose une des heures du niveau (`Client/Ambiance`) ; `nil` rend la main au hasard.
+- ⚠ Hors de « la main », Studio bride la partie de test à 15 images par seconde (le pilote automatique sort de la route) :
+  `outils/studio-actif.ps1` lui fait croire qu'elle l'a, sans la mettre devant. `outils/vue.py` cherche seul le cadre de la vue 3D.
 - ⚠ Roblox Studio ne rend plus une seule image quand l'écran du PC s'est mis en veille (la partie de test se fige, les photos
   sortent blanches) : `outils/ecran-allume.ps1 [minutes]` réveille l'écran et le garde allumé le temps du banc, sans rien régler.
 - Les nuages : `outils/cuire-nuages.js [ébauche] [fine]` (12 et 26 par défaut) cuit les 25 gabarits en deux finesses ; la fine

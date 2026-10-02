@@ -2525,7 +2525,7 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 		end
 		Mer.suivre(cam.CFrame.Position, carCF.Position.Y, dt, (mode == "menu" or mode == "garage") and Config.CIEL.merMenu * M or nil)
 		-- les nuages PROCHES reçoivent leur version fine ; hors de la course, tout est rendu au budget (voir Nuages.finesseTick)
-		KA.Nuages.finesseTick(dtBrut, (mode == "drive" or mode == "fall") and cam.CFrame.Position or nil)
+		KA.Nuages.finesseTick(dtBrut, (mode == "drive" or mode == "fall" or mode == "menu") and cam.CFrame.Position or nil)
 		lisserDoubles(dt)
 		KA.envoiT -= dtBrut
 		if KA.envoiT <= 0 and (mode == "drive" or mode == "fall") then
@@ -2892,7 +2892,7 @@ function Caisse.construire(nom: string, indice: number, ancree: boolean?, habits
 			t.WidthScale = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(1, couche[3]) })
 			-- la queue s'éteint sur le dernier quart (24 m sur 100)
 			t.Transparency = (couche[1] == "Halo")
-				and NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.5), NumberSequenceKeypoint.new(0.3, 0.72), NumberSequenceKeypoint.new(0.76, 0.86), NumberSequenceKeypoint.new(1, 1) })
+				and NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.35), NumberSequenceKeypoint.new(0.3, 0.6), NumberSequenceKeypoint.new(0.76, 0.82), NumberSequenceKeypoint.new(1, 1) })
 				or NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.1), NumberSequenceKeypoint.new(0.3, 0.4), NumberSequenceKeypoint.new(0.76, 0.66), NumberSequenceKeypoint.new(1, 1) })
 			t.Color = ColorSequence.new(Color3.fromRGB(255, 160, 60), Color3.fromRGB(255, 60, 30))
 			t.Enabled = false
@@ -2946,7 +2946,7 @@ function Caisse.feu(poignees: any, on: boolean, debit: number, c: Color3, arc: C
 		f.Color = flamme
 	end
 	local halo = arc or ColorSequence.new({ ColorSequenceKeypoint.new(0, c), ColorSequenceKeypoint.new(0.6, c:Lerp(BRAISE, 0.3)), ColorSequenceKeypoint.new(1, c:Lerp(BRAISE, 0.6)) })
-	local coeur = arc or ColorSequence.new({ ColorSequenceKeypoint.new(0, c:Lerp(Color3.new(1, 1, 1), 0.4)), ColorSequenceKeypoint.new(0.08, c:Lerp(Color3.new(1, 1, 1), 0.1)), ColorSequenceKeypoint.new(1, c:Lerp(BRAISE, 0.45)) })
+	local coeur = arc or ColorSequence.new({ ColorSequenceKeypoint.new(0, c:Lerp(Color3.new(1, 1, 1), 0.25)), ColorSequenceKeypoint.new(0.06, c), ColorSequenceKeypoint.new(1, c:Lerp(BRAISE, 0.45)) }) -- (le cœur sortait JAUNE PÂLE : le web garde l'orange du feu jusqu'à la tuyère)
 	for _, t in poignees.trainees do
 		t.Enabled = on
 		t.Color = (t.Name == "Coeur") and coeur or halo
@@ -4761,14 +4761,20 @@ local V3 = Vector3.new
 -- S, OH, OB = la palette des nuages (0-255) · mer = la teinte de la mer de nuages
 local HEURES: { [string]: any } = {
 	matin = {
-		brume = RGB(250, 236, 210), loin = RGB(150, 190, 245), eclat = 0.45, voile = 0.9, densite = 0.038,
+		brume = RGB(246, 238, 222), loin = RGB(96, 156, 240), eclat = 0.2, voile = 0.4, densite = 0.034, -- (mesuré : à voile 0,9 le ciel du matin sortait BLANC ; le web a un zénith azur profond)
 		soleil = Color3.new(1, 0.97, 0.93), ext = RGB(235, 230, 245), teinte = RGB(255, 250, 244), sat = 0.30, con = 0.24, expo = -0.06,
 		S = V3(282, 272, 254), OH = V3(182, 194, 238), OB = V3(158, 168, 224), mer = Color3.new(1, 1, 1),
 	},
 	midi = {
-		brume = RGB(240, 240, 228), loin = RGB(120, 172, 250), eclat = 0.3, voile = 0.7, densite = 0.034,
+		brume = RGB(236, 240, 236), loin = RGB(72, 140, 244), eclat = 0.15, voile = 0.3, densite = 0.032,
 		soleil = Color3.new(1, 0.99, 0.96), ext = RGB(232, 234, 250), teinte = RGB(252, 252, 255), sat = 0.28, con = 0.26, expo = -0.02,
 		S = V3(288, 284, 274), OH = V3(176, 196, 246), OB = V3(152, 170, 232), mer = Color3.new(1, 1, 1),
+	},
+	-- LE TITRE (BIOMES.titre du web) : le matin poussé vers l'écran titre de Zelda — azur profond, horizon presque blanc, brume très loin
+	titre = {
+		brume = RGB(226, 238, 250), loin = RGB(70, 140, 235), eclat = 0.1, voile = 0.25, densite = 0.03,
+		soleil = Color3.new(1, 0.96, 0.88), ext = RGB(235, 232, 246), teinte = RGB(255, 252, 248), sat = 0.34, con = 0.22, expo = -0.04,
+		S = V3(286, 280, 268), OH = V3(176, 194, 242), OB = V3(152, 168, 228), mer = Color3.new(1, 1, 1),
 	},
 	aprem = {
 		brume = RGB(255, 214, 168), loin = RGB(142, 162, 226), eclat = 1.0, voile = 1.4, densite = 0.048,
@@ -4814,7 +4820,7 @@ function Ambiance.init()
 	task.spawn(function()
 		Lighting:WaitForChild("Altitude", 20)
 		Lighting:WaitForChild("Etalonnage", 20)
-		Ambiance.poser("matin", 0.01)
+		Ambiance.poser("titre", 0.01)
 	end)
 	-- une partie qui commence, un portail franchi : l'heure change ; le menu revient au matin (l'ambiance du titre)
 	Bus.on("partie", function()
@@ -4827,7 +4833,7 @@ function Ambiance.init()
 	end)
 	Bus.on("menu", function()
 		if workspace:GetAttribute("DbgHeure") then return end
-		Ambiance.poser("matin", 0.6)
+		Ambiance.poser("titre", 0.6)
 	end)
 	-- (mise au point) workspace:SetAttribute("DbgHeure", "aprem") : impose une heure ; nil rend la main au hasard
 	workspace:GetAttributeChangedSignal("DbgHeure"):Connect(function()
@@ -7624,6 +7630,7 @@ return Dragon
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
+local Lighting = game:GetService("Lighting")
 local GuiService = game:GetService("GuiService")
 local AssetService = game:GetService("AssetService")
 local Config = require(script.Parent.Parent:WaitForChild("Config"))
@@ -7846,6 +7853,15 @@ local function teinteTick(dt: number)
 	nfx.edge += (eT - nfx.edge) * math.min(1, dt * ((eT > nfx.edge) and 8 or 2.6))
 	local cible = (etat.bleue and Color3.fromRGB(91, 125, 255)) or (on and (etat.infini and Color3.fromRGB(157, 77, 255) or Color3.fromRGB(255, 122, 36))) or Color3.fromRGB(255, 215, 94)
 	nfx.c = nfx.c:Lerp(cible, math.min(1, dt * 12))
+	-- LE FLOU DU LOINTAIN ne vit qu'en COURSE (le web floute le décor à la vitesse ; son menu, lui, est net)
+	do
+		local flou = Lighting:FindFirstChild("Lointain")
+		if flou then
+			local v = ((etat.mode == "drive" or etat.mode == "fall") and not etat.intro) and 0.8 or 0
+			local f = flou.FarIntensity + (v - flou.FarIntensity) * math.min(1, dt * 3)
+			if math.abs(f - flou.FarIntensity) > 0.002 then flou.FarIntensity = f end
+		end
+	end
 	if vigBas then
 		local v = (etat.mode == "drive" and not etat.intro) and 0 or 0.6
 		vigBas.BackgroundTransparency += (v - vigBas.BackgroundTransparency) * math.min(1, dt * 4)
@@ -13541,7 +13557,7 @@ type Inscrit = { p: MeshPart, k: number, f: MeshPart?, q: number }
 local inscrits: { Inscrit } = {}
 local parPiece: { [MeshPart]: Inscrit } = {}
 local fins: { [number]: { g: Gabarit?, etat: string, vu: number } } = {}
-local FIN_ON, FIN_OFF, FIN_MAX, FIN_MARGE = 0.16, 0.12, 5, 7000
+local FIN_ON, FIN_OFF, FIN_MAX, FIN_MARGE = 0.16, 0.12, 4, 12000 -- (la marge : la carte moteur et un changement de caisse doivent toujours trouver leur place)
 local finT = 0
 local function inscrire(p: MeshPart, k: number)
 	local e = { p = p, k = k, f = nil, q = 0 }
@@ -13564,6 +13580,11 @@ local function oterFin(e: Inscrit)
 		e.f = nil
 	end
 	if e.p.Parent then e.p.LocalTransparencyModifier = 0 end
+end
+-- un nuage qu'on DÉPLACE à chaque image (les cumulus du titre) : sa copie fine le suit tout de suite
+function Nuages.suivreFin(p: MeshPart)
+	local e = parPiece[p]
+	if e and e.f then majFin(e) end
 end
 -- à chaque image (le pilote) : `cam` = la caméra en course ; nil au menu et au garage → toutes les versions fines sont rendues
 function Nuages.finesseTick(dt: number, cam: Vector3?)
@@ -14082,6 +14103,7 @@ function Nuages.seul(k: number, r: number): (MeshPart?, Vector3)
 	local p = g.p:Clone()
 	p.Size = g.taille * ech
 	p.Color = Color3.new(BLANC, BLANC, BLANC)
+	inscrire(p, k) -- (les cumulus du titre ont droit à leur version fine, comme sur le web : ils sont tout près)
 	local milieu = (g.fiche.base + g.fiche.sommet) * 0.5
 	return p, g.centre * UNITE * ech - Vector3.new(0, milieu * rr * M, 0)
 end
@@ -15217,6 +15239,7 @@ function Titre.caisse(dt: number, voile: ((number) -> ())?): CFrame
 			table.insert(poses, CFrame.new((S.C + droite * c.a + lh * c.b + Vector3.new(0, c.y, 0)) * M + c.dec))
 		end
 		workspace:BulkMoveTo(pieces, poses, Enum.BulkMoveMode.FireCFrameChanged)
+		for _, p in pieces do Nuages.suivreFin(p) end
 	end
 	-- (le repère cuit des caisses : le nez vers −Z, la droite du pilote +X)
 	return CFrame.fromMatrix((C - up * 0.45) * M, -sd, up, -f)
@@ -15232,7 +15255,8 @@ function Titre.vue(fiche: any): (CFrame, number)
 	local fov = G and (44 + 26 * u * u) or 44
 	-- la place libre (menuCadre) : couché, la bande de GAUCHE (les boutons sont à droite) ; debout, entre le titre et les boutons
 	-- (vu dans Studio à 0,42 : la caisse débordait du bord gauche) · web c02c75a : la caisse au MILIEU de la hauteur utile (elle laissait le haut vide)
-	local nx, ny, fr, fhh = -0.52, 0.04, 0.34, 0.5
+	-- (3e retour, mesuré : sur le web couché la caisse prend 27 % de la largeur de l'image — ici 20 %)
+	local nx, ny, fr, fhh = -0.52, 0.04, 0.39, 0.5
 	if aspect < 1 then nx, ny, fr, fhh = -0.16, 0.1, 0.62, 0.4 end
 	local R9 = 0.5 * math.sqrt(fiche.l * fiche.l + fiche.w * fiche.w + (fiche.h + 0.6) * (fiche.h + 0.6))
 	local tV = math.tan(math.rad(fov) / 2)

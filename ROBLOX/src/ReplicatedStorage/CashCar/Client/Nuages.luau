@@ -138,7 +138,7 @@ type Inscrit = { p: MeshPart, k: number, f: MeshPart?, q: number }
 local inscrits: { Inscrit } = {}
 local parPiece: { [MeshPart]: Inscrit } = {}
 local fins: { [number]: { g: Gabarit?, etat: string, vu: number } } = {}
-local FIN_ON, FIN_OFF, FIN_MAX, FIN_MARGE = 0.16, 0.12, 5, 7000
+local FIN_ON, FIN_OFF, FIN_MAX, FIN_MARGE = 0.16, 0.12, 4, 12000 -- (la marge : la carte moteur et un changement de caisse doivent toujours trouver leur place)
 local finT = 0
 local function inscrire(p: MeshPart, k: number)
 	local e = { p = p, k = k, f = nil, q = 0 }
@@ -161,6 +161,11 @@ local function oterFin(e: Inscrit)
 		e.f = nil
 	end
 	if e.p.Parent then e.p.LocalTransparencyModifier = 0 end
+end
+-- un nuage qu'on DÉPLACE à chaque image (les cumulus du titre) : sa copie fine le suit tout de suite
+function Nuages.suivreFin(p: MeshPart)
+	local e = parPiece[p]
+	if e and e.f then majFin(e) end
 end
 -- à chaque image (le pilote) : `cam` = la caméra en course ; nil au menu et au garage → toutes les versions fines sont rendues
 function Nuages.finesseTick(dt: number, cam: Vector3?)
@@ -679,6 +684,7 @@ function Nuages.seul(k: number, r: number): (MeshPart?, Vector3)
 	local p = g.p:Clone()
 	p.Size = g.taille * ech
 	p.Color = Color3.new(BLANC, BLANC, BLANC)
+	inscrire(p, k) -- (les cumulus du titre ont droit à leur version fine, comme sur le web : ils sont tout près)
 	local milieu = (g.fiche.base + g.fiche.sommet) * 0.5
 	return p, g.centre * UNITE * ech - Vector3.new(0, milieu * rr * M, 0)
 end

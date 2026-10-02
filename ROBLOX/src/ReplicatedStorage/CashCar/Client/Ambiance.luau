@@ -20,14 +20,20 @@ local V3 = Vector3.new
 -- S, OH, OB = la palette des nuages (0-255) · mer = la teinte de la mer de nuages
 local HEURES: { [string]: any } = {
 	matin = {
-		brume = RGB(250, 236, 210), loin = RGB(150, 190, 245), eclat = 0.45, voile = 0.9, densite = 0.038,
+		brume = RGB(246, 238, 222), loin = RGB(96, 156, 240), eclat = 0.2, voile = 0.4, densite = 0.034, -- (mesuré : à voile 0,9 le ciel du matin sortait BLANC ; le web a un zénith azur profond)
 		soleil = Color3.new(1, 0.97, 0.93), ext = RGB(235, 230, 245), teinte = RGB(255, 250, 244), sat = 0.30, con = 0.24, expo = -0.06,
 		S = V3(282, 272, 254), OH = V3(182, 194, 238), OB = V3(158, 168, 224), mer = Color3.new(1, 1, 1),
 	},
 	midi = {
-		brume = RGB(240, 240, 228), loin = RGB(120, 172, 250), eclat = 0.3, voile = 0.7, densite = 0.034,
+		brume = RGB(236, 240, 236), loin = RGB(72, 140, 244), eclat = 0.15, voile = 0.3, densite = 0.032,
 		soleil = Color3.new(1, 0.99, 0.96), ext = RGB(232, 234, 250), teinte = RGB(252, 252, 255), sat = 0.28, con = 0.26, expo = -0.02,
 		S = V3(288, 284, 274), OH = V3(176, 196, 246), OB = V3(152, 170, 232), mer = Color3.new(1, 1, 1),
+	},
+	-- LE TITRE (BIOMES.titre du web) : le matin poussé vers l'écran titre de Zelda — azur profond, horizon presque blanc, brume très loin
+	titre = {
+		brume = RGB(226, 238, 250), loin = RGB(70, 140, 235), eclat = 0.1, voile = 0.25, densite = 0.03,
+		soleil = Color3.new(1, 0.96, 0.88), ext = RGB(235, 232, 246), teinte = RGB(255, 252, 248), sat = 0.34, con = 0.22, expo = -0.04,
+		S = V3(286, 280, 268), OH = V3(176, 194, 242), OB = V3(152, 168, 228), mer = Color3.new(1, 1, 1),
 	},
 	aprem = {
 		brume = RGB(255, 214, 168), loin = RGB(142, 162, 226), eclat = 1.0, voile = 1.4, densite = 0.048,
@@ -73,7 +79,7 @@ function Ambiance.init()
 	task.spawn(function()
 		Lighting:WaitForChild("Altitude", 20)
 		Lighting:WaitForChild("Etalonnage", 20)
-		Ambiance.poser("matin", 0.01)
+		Ambiance.poser("titre", 0.01)
 	end)
 	-- une partie qui commence, un portail franchi : l'heure change ; le menu revient au matin (l'ambiance du titre)
 	Bus.on("partie", function()
@@ -86,7 +92,7 @@ function Ambiance.init()
 	end)
 	Bus.on("menu", function()
 		if workspace:GetAttribute("DbgHeure") then return end
-		Ambiance.poser("matin", 0.6)
+		Ambiance.poser("titre", 0.6)
 	end)
 	-- (mise au point) workspace:SetAttribute("DbgHeure", "aprem") : impose une heure ; nil rend la main au hasard
 	workspace:GetAttributeChangedSignal("DbgHeure"):Connect(function()
