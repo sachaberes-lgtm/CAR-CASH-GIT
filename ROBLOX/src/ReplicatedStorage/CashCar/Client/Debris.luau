@@ -40,7 +40,7 @@ local function batir()
 	sg.SizingMode = Enum.SurfaceGuiSizingMode.FixedSize
 	sg.CanvasSize = Vector2.new(512, 512)
 	sg.LightInfluence = 0
-	sg.Brightness = 2
+	sg.Brightness = 5 -- (mesuré au banc : à 2, sous le soleil dur de l'orbite, la cible se lisait à peine)
 	sg.Parent = cible
 	local function rond(): (Frame, UIStroke)
 		local f = Instance.new("Frame")
@@ -155,11 +155,11 @@ function Debris.tick(dt: number, camCF: CFrame): boolean
 	local pul = 0.55 + 0.45 * math.sin(D.t * (10 + 26 * u))
 	local kO = math.clamp(((D.p1 - camCF.Position).Magnitude / M - 12) / 22, 0, 1)
 	V.anneau.Size = UDim2.fromScale(R / RMAX, R / RMAX)
-	V.trait.Thickness = 512 * 0.14 * R / RMAX * 0.5
-	V.trait.Transparency = 1 - (0.45 + 0.5 * u) * pul * (0.3 + 0.7 * kO)
+	V.trait.Thickness = 512 * 0.2 * R / RMAX * 0.5
+	V.trait.Transparency = 1 - (0.6 + 0.4 * u) * (0.7 + 0.3 * pul) * (0.3 + 0.7 * kO)
 	local r9 = D.R * math.max(0.02, u)
 	V.disque.Size = UDim2.fromScale(r9 / RMAX, r9 / RMAX)
-	V.disque.BackgroundTransparency = 1 - (0.12 + 0.3 * u) * kO
+	V.disque.BackgroundTransparency = 1 - (0.2 + 0.36 * u) * kO
 	V.f1.WorldPosition = D.p1 + D.n * ((34 + u * 20) * M)
 	V.faisceau.Width0, V.faisceau.Width1 = (2.2 + u * 1.6) * M, (2.2 + u * 1.6) * M * 0.4
 	-- (sous l'œil, le faisceau s'efface lui aussi : il rougissait la moitié de l'écran quand la caisse passait dessus)
