@@ -665,18 +665,20 @@ function Hud.creer()
 	E.pause = voile
 	-- (la troisième rangée : POUCE HAUT EN VOL — le web le met aussi dans la pause : « c'est en pleine partie qu'on découvre qu'on
 	-- préfère l'autre sens » — et, s'il est ouvert, le mode FACILE à côté)
-	local pan = carbone(voile, UDim2.fromOffset(760, 560), UDim2.fromScale(0.5, 0.5), C.cyan, Vector2.new(0.5, 0.5))
+	local pan = carbone(voile, UDim2.fromOffset(760, 606), UDim2.fromScale(0.5, 0.5), C.cyan, Vector2.new(0.5, 0.5))
+	-- (charte v5 du web, #tpResume) LA PAUSE DIT OÙ EN EST LA PARTIE : l'aura, le moteur, le niveau — une ligne sous le titre
+	E.pauseBilan = texte(pan, { Text = "", TextSize = 26, TextColor3 = C.texte2, Size = UDim2.new(1, 0, 0, 30), Position = UDim2.fromOffset(0, 98), TextWrapped = false })
 	E.pauseTitre = texte(pan, { Text = T.pause, TextSize = 60, TextColor3 = C.texte, Size = UDim2.new(1, 0, 0, 62), Position = UDim2.fromOffset(0, 26), TextWrapped = false, epais = 4 })
-	E.btSonP = tuile(pan, T.son, C.cyan, UDim2.fromOffset(330, 84), UDim2.new(0.5, -10, 0, 116), Vector2.new(1, 0), 28)
-	E.btMusP = tuile(pan, T.musique, C.cyan, UDim2.fromOffset(330, 84), UDim2.new(0.5, 10, 0, 116), Vector2.new(0, 0), 28)
-	E.btRecom = tuile(pan, T.recommencer, C.magenta, UDim2.fromOffset(330, 84), UDim2.new(0.5, -10, 0, 218), Vector2.new(1, 0), 24, "rejouer")
-	E.btMenuP = tuile(pan, T.menu, C.lavande, UDim2.fromOffset(330, 84), UDim2.new(0.5, 10, 0, 218), Vector2.new(0, 0), 28, "maison")
+	E.btSonP = tuile(pan, T.son, C.cyan, UDim2.fromOffset(330, 84), UDim2.new(0.5, -10, 0, 142), Vector2.new(1, 0), 28)
+	E.btMusP = tuile(pan, T.musique, C.cyan, UDim2.fromOffset(330, 84), UDim2.new(0.5, 10, 0, 142), Vector2.new(0, 0), 28)
+	E.btRecom = tuile(pan, T.recommencer, C.magenta, UDim2.fromOffset(330, 84), UDim2.new(0.5, -10, 0, 244), Vector2.new(1, 0), 24, "rejouer")
+	E.btMenuP = tuile(pan, T.menu, C.lavande, UDim2.fromOffset(330, 84), UDim2.new(0.5, 10, 0, 244), Vector2.new(0, 0), 28, "maison")
 	if Config.FACILE_ACTIF then
-		E.btFacile = tuile(pan, T.facile, C.vert, UDim2.fromOffset(330, 72), UDim2.new(0.5, -10, 0, 320), Vector2.new(1, 0), 22)
-		E.btPouceP = tuile(pan, T.pouce, C.cyan, UDim2.fromOffset(330, 72), UDim2.new(0.5, 10, 0, 320), Vector2.new(0, 0), 16)
+		E.btFacile = tuile(pan, T.facile, C.vert, UDim2.fromOffset(330, 72), UDim2.new(0.5, -10, 0, 346), Vector2.new(1, 0), 22)
+		E.btPouceP = tuile(pan, T.pouce, C.cyan, UDim2.fromOffset(330, 72), UDim2.new(0.5, 10, 0, 346), Vector2.new(0, 0), 16)
 	else
-		E.btFacile = tuile(pan, T.facile, C.vert, UDim2.fromOffset(680, 72), UDim2.new(0.5, 0, 0, 320), Vector2.new(0.5, 0), 26)
-		E.btPouceP = tuile(pan, T.pouce, C.cyan, UDim2.fromOffset(680, 72), UDim2.new(0.5, 0, 0, 320), Vector2.new(0.5, 0), 26, "aile", "g")
+		E.btFacile = tuile(pan, T.facile, C.vert, UDim2.fromOffset(680, 72), UDim2.new(0.5, 0, 0, 346), Vector2.new(0.5, 0), 26)
+		E.btPouceP = tuile(pan, T.pouce, C.cyan, UDim2.fromOffset(680, 72), UDim2.new(0.5, 0, 0, 346), Vector2.new(0.5, 0), 26, "aile", "g")
 	end
 	E.btRecom.Parent.Name = "Recom"
 	E.btMenuP.Parent.Name = "MenuP"
@@ -1146,6 +1148,7 @@ function Hud.ecran(nom: string)
 	-- le même panneau sert à la pause (en course) et aux réglages (au menu / à la mort)
 	local reg = nom == "reglages"
 	E.pauseTitre.Text = reg and T.reglages or T.pause
+	E.pauseBilan.Visible = not reg
 	E.btRecom.Parent.Visible = not reg
 	E.btMenuP.Parent.Visible = not reg
 	E.btReprendre.Text = reg and T.fermer or T.reprendre
@@ -1213,6 +1216,10 @@ function Hud.logoCache()
 	logoN += 1
 	E.logo.Visible = false
 	E.astuce.Visible = false
+end
+-- le bilan de la partie en cours, sous le titre PAUSE
+function Hud.pauseBilan(aura: number, moteur: number, niveau: number)
+	E.pauseBilan.Text = string.format("AURA %s   -   %s %d   -   %s %d", Hud.entier(aura), FR and "MOTEUR" or "ENGINE", moteur, FR and "NIVEAU" or "LEVEL", niveau)
 end
 local astuceFin = 0
 function Hud.astuce(txt: string, duree: number?)

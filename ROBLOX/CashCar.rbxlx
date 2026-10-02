@@ -948,6 +948,22 @@ local function atterrir(face: number, latX: number, sX: number, hR: number?)
 		ajouterPieces(math.clamp(math.floor(2 + qG / 6 + 0.5), 2, 18))
 		boost = math.max(boost, 1.2) -- (L30824 : une figure encaissée relance — c'était 0,5 ici)
 		if g >= 1.5 then Score.geste(tr("POSE PARFAITE", "PERFECT LANDING"), 70, "pose") end
+		-- LE VERDICT DE LA POSE (L30795 et VERD_DEF, L28891 du jeu web) : toute pose qui encaisse une figure a son mot, à la taille de
+		-- son rang — MONSTRE < DOUBLE < TRIPLE < MÉTÉORE, SNAKE LOOP < MEGA. (Le web le fait crier par l'annonceur une fois sur trois ;
+		-- ici, sans les voix, le mot dit toujours le vrai rang.) Et PARFAIT ! se lit d'un coup d'œil.
+		do
+			local mot, c, taille, pr = tr("MONSTRE", "MONSTER"), "#5ee6ff", 30, 1
+			if qG >= 140 then
+				mot, c, taille, pr = tr("TRIPLE MONSTRE", "TRIPLE MONSTER"), "#ffd75e", 38, 2
+			elseif qG >= 45 then
+				mot, c, taille = tr("DOUBLE MONSTRE", "DOUBLE MONSTER"), "#ff3ec8", 34
+			end
+			if nitroOn and V.nitroAirT > 1 then mot, c, taille, pr = tr("METEORE", "METEOR"), "#ff7a24", 40, 2 end -- l'impact en pleine poussée
+			if serpent then mot, c, taille, pr = "SNAKE LOOP", "#b58cff", 40, 2 end
+			if nitroOn and V.nitroAirT > 5 then mot, c, taille, pr = tr("MEGA METEORE", "MEGA METEOR"), "#ff7a24", 44, 3 end -- 5 s de réacteur : l'ultime
+			HudScore.slam(mot, nil, c, nil, taille, pr)
+		end
+		if g >= 1.5 then Hud.pop(tr("PARFAIT !", "PERFECT!"), Hud.C.or_, 24) end
 	end
 	nitroGain(Score.nitroPoseDe(reservoir(), V.volT, V.nitT)) -- la pose rend 20 % de la jauge pour un VRAI vol (1,2 s), nitro coupée
 	if g >= 1.5 and not ratee and (V.fallT > 0.7 or paye) then stats.parfaites += 1 end
@@ -2335,6 +2351,22 @@ local function habiller(dt: number)
 	if tr9 and pwN <= 0 and not nitroBleue and nitroOn then
 		if tr9.arcenciel then arc = ARC_EN_CIEL elseif tr9.c then couleur = tr9.c end
 	end
+	-- LES SIGNATURES DE CAISSE (fx.rainbow · fx.spray, L37715 du jeu web) — des effets de NITRO, jamais en réserve bleue ni sous la
+	-- nitro infinie (le bleu et le violet gardent leur sens), et une traînée de boutique équipée passe devant :
+	--   · le CHAT POP-TART laisse un ARC-EN-CIEL ;
+	--   · le REQUIN ne crache pas du feu mais de l'EAU : une gerbe qui s'ÉVASE aux pots.
+	if nitroOn and pwN <= 0 and not nitroBleue and (mode == "drive" or mode == "fall") and not (tr9 and (tr9.arcenciel or tr9.c)) then
+		local gab = poignees.fiche and poignees.fiche.gabarit
+		if gab == "poptart" then
+			arc = ARC_EN_CIEL
+		elseif gab == "requin" then
+			local fi = poignees.fiche
+			for _ = 1, math.random(1, 3) do
+				local pot = (carCF * CFrame.new(((math.random() < 0.5) and -1 or 1) * fi.w * 0.22 * M, 0.43 * M, (fi.l * 0.5 + 0.15) * M)).Position
+				Bus.emit("gerbe", "eau", pot, 1, 10, 26, 28, (-carCF.LookVector + carCF.UpVector * 0.14).Unit)
+			end
+		end
+	end
 	Caisse.feu(poignees, feu, nitroOn and 130 or (boost > 0 and 55 or 0), couleur, arc, (mode == "drive" or mode == "fall") and not intro and kmh() > 20)
 	-- les AILES : rentrées dans le flanc au sol, sorties en vol ; les hélices brassent doucement au sol et s'emballent en vol
 	G.ailes += (((mode == "fall" and not intro) and 1 or 0) - G.ailes) * math.min(1, dt * 6)
@@ -2515,6 +2547,11 @@ local function finPartie()
 	aura = Score.fin(false)
 	local dist = G.distAvant + math.max(0, s)
 	local rec = argent > record and argent > Config.CASH_DEPART + 0.01
+	-- LES RECORDS NE SE CONTREDISENT PLUS (audit UX du 26/09, L38987) : le titre s'allume pour l'argent, l'AURA ou le MOTEUR — les
+	-- héros de cet écran. (L'aura : seulement s'il y avait un record à battre ; le moteur : un palier jamais atteint avant.)
+	-- Une partie QUITTÉE depuis la pause ne fête rien.
+	local recT = causeMort ~= "quitte" and (rec or (meilleurAura > 0 and aura > meilleurAura) or tier > (profil.moteurMax or 0))
+	profil.moteurMax = math.max(profil.moteurMax or 0, tier)
 	local mres = Missions.fin(CPT)
 	evFin:FireServer(argent, dist, aura, { pieces = stats.pieces, figures = stats.poses, kmh = G.vmax, zone = G.nbZones + 1, tier = tier,
 		multi = Score.CHA.xMax, cause = causeMort, parfaites = stats.parfaites, fruits = stats.fruits, nitro = stats.nitro,
@@ -2523,7 +2560,7 @@ local function finPartie()
 	meilleurAura = math.max(meilleurAura, aura)
 	G.kmhRecord = math.max(G.kmhRecord or 0, G.vmax or 0)
 	local cause = T.morts[causeMort] or T.morts.autre
-	E.mCause.Text = rec and T.nouveau or cause
+	E.mCause.Text = recT and T.nouveau or cause
 	Hud.tenir(E.mCauseEchelle, E.mCause.Text, 62, 560)
 	E.mRecord.Text = rec and (FR and "RECORD !" or "RECORD!") or ""
 	E.mRecord.Visible = rec
@@ -2539,7 +2576,7 @@ local function finPartie()
 	else
 		E.mMoteurEncore.Text = T.moteurMax
 	end
-	E.mPartie.Text = (rec and (cause .. "\n") or "") .. T.distance .. "  " .. Hud.entier(dist) .. " M   " .. T.pieces .. "  " .. stats.pieces
+	E.mPartie.Text = (recT and (cause .. "\n") or "") .. T.distance .. "  " .. Hud.entier(dist) .. " M   " .. T.pieces .. "  " .. stats.pieces
 		.. "   " .. T.figures .. "  " .. stats.poses
 	Hud.defi(mres.carte)
 	local st = {
@@ -2720,6 +2757,7 @@ local function basculerPause()
 	end
 	if not enPause then
 		enPause = true
+		Hud.pauseBilan(aura, tier + 1, zoneN)
 		Hud.ecran("pause")
 		return
 	end
@@ -2766,6 +2804,16 @@ E.btPause.Activated:Connect(basculerPause)
 local retourReglages = "menu"
 E.btReglages.Activated:Connect(function() if mode == "menu" then retourReglages = "menu"; Hud.ecran("reglages") end end)
 E.btReglM.Activated:Connect(function() if mode == "mort" then retourReglages = "mort"; Hud.ecran("reglages") end end)
+-- PASSER L'EXPLOSION (boomSkip, L24785 du jeu web) : une fois le souffle retombé (0,8 s), un tap, un clic, ESPACE ou le bouton A
+-- saute au bilan. On ne court-circuite rien : la boucle voit boomT à 1,8 et finit la partie comme d'habitude.
+game:GetService("UserInputService").InputBegan:Connect(function(io: InputObject)
+	if mode ~= "boom" or enPause or boomT <= 0.8 or boomT >= 1.8 then return end
+	local t = io.UserInputType
+	if t == Enum.UserInputType.Touch or t == Enum.UserInputType.MouseButton1 or io.KeyCode == Enum.KeyCode.Space
+		or io.KeyCode == Enum.KeyCode.Return or io.KeyCode == Enum.KeyCode.ButtonA then
+		boomT = 1.81
+	end
+end)
 -- (mise au point) "DbgOuvre" : ouvrir un écran du menu depuis la console ou le banc à distance — "garage", "boutique",
 -- "reglages", "missions", "menu" (le retour) ; pour comparer chaque écran à la capture du jeu web sans toucher à la souris
 workspace:GetAttributeChangedSignal("DbgOuvre"):Connect(function()
@@ -9977,6 +10025,8 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 	bassin("dard", { tex = TEX_BRAISE, c = hex(0xffd08a), t = 2.2, a = { 0, 0.5, 0.6, 1.3 }, op = 0.95, add = true, etire = true, vie = { 0.26, 0.46 }, nb = 1, eclat = 4 })
 	bassin("langue", { tex = TEX_FEU, c = hex(0xff7a24), t = 1.3, a = { 0, 0.5, 1, 0.45 }, op = 1, add = true, etire = true, vie = { 0.4, 1.1 }, nb = 4 })
 	bassin("eclatRouge", { tex = TEX_BRAISE, c = hex(0xff3b2a), t = 0.9, a = { 0.03, 0.5, 1, 0.5 }, op = 1, add = true, etire = true, vie = { 0.5, 1.3 }, nb = 6, eclat = 3 })
+	-- la GERBE D'EAU du requin (`spray`, L37723) : des gouttes claires qui filent et retombent
+	bassin("eau", { tex = TEX_BRAISE, c = hex(0xbfeaff), t = 0.55, a = { 0, 0.5, 1, 0.55 }, op = 0.9, add = true, acc = 16, etire = true, vie = { 0.22, 0.48 }, nb = 2, eclat = 2 })
 	bassin("eclatJaune", { tex = TEX_BRAISE, c = hex(0xffd94a), t = 1.05, a = { 0, 0.5, 1, 0.5 }, op = 1, add = true, etire = true, vie = { 0.3, 0.85 }, nb = 6, eclat = 3 })
 	bassin("sang", { tex = TEX_BRAISE, c = hex(0xa31212), t = 0.85, a = { 0, 0.4, 1, 0.8 }, op = 1, add = false, acc = 22, etire = true, vie = { 0.5, 1.7 }, nb = 3 })
 	bassin("braiseR", { tex = TEX_BRAISE, c = hex(0xff3818), t = 0.7, a = { 0.05, 0.45, 1, 0.5 }, op = 1, add = true, vie = { 1, 2.2 }, nb = 2, eclat = 3 })
@@ -12876,18 +12926,20 @@ function Hud.creer()
 	E.pause = voile
 	-- (la troisième rangée : POUCE HAUT EN VOL — le web le met aussi dans la pause : « c'est en pleine partie qu'on découvre qu'on
 	-- préfère l'autre sens » — et, s'il est ouvert, le mode FACILE à côté)
-	local pan = carbone(voile, UDim2.fromOffset(760, 560), UDim2.fromScale(0.5, 0.5), C.cyan, Vector2.new(0.5, 0.5))
+	local pan = carbone(voile, UDim2.fromOffset(760, 606), UDim2.fromScale(0.5, 0.5), C.cyan, Vector2.new(0.5, 0.5))
+	-- (charte v5 du web, #tpResume) LA PAUSE DIT OÙ EN EST LA PARTIE : l'aura, le moteur, le niveau — une ligne sous le titre
+	E.pauseBilan = texte(pan, { Text = "", TextSize = 26, TextColor3 = C.texte2, Size = UDim2.new(1, 0, 0, 30), Position = UDim2.fromOffset(0, 98), TextWrapped = false })
 	E.pauseTitre = texte(pan, { Text = T.pause, TextSize = 60, TextColor3 = C.texte, Size = UDim2.new(1, 0, 0, 62), Position = UDim2.fromOffset(0, 26), TextWrapped = false, epais = 4 })
-	E.btSonP = tuile(pan, T.son, C.cyan, UDim2.fromOffset(330, 84), UDim2.new(0.5, -10, 0, 116), Vector2.new(1, 0), 28)
-	E.btMusP = tuile(pan, T.musique, C.cyan, UDim2.fromOffset(330, 84), UDim2.new(0.5, 10, 0, 116), Vector2.new(0, 0), 28)
-	E.btRecom = tuile(pan, T.recommencer, C.magenta, UDim2.fromOffset(330, 84), UDim2.new(0.5, -10, 0, 218), Vector2.new(1, 0), 24, "rejouer")
-	E.btMenuP = tuile(pan, T.menu, C.lavande, UDim2.fromOffset(330, 84), UDim2.new(0.5, 10, 0, 218), Vector2.new(0, 0), 28, "maison")
+	E.btSonP = tuile(pan, T.son, C.cyan, UDim2.fromOffset(330, 84), UDim2.new(0.5, -10, 0, 142), Vector2.new(1, 0), 28)
+	E.btMusP = tuile(pan, T.musique, C.cyan, UDim2.fromOffset(330, 84), UDim2.new(0.5, 10, 0, 142), Vector2.new(0, 0), 28)
+	E.btRecom = tuile(pan, T.recommencer, C.magenta, UDim2.fromOffset(330, 84), UDim2.new(0.5, -10, 0, 244), Vector2.new(1, 0), 24, "rejouer")
+	E.btMenuP = tuile(pan, T.menu, C.lavande, UDim2.fromOffset(330, 84), UDim2.new(0.5, 10, 0, 244), Vector2.new(0, 0), 28, "maison")
 	if Config.FACILE_ACTIF then
-		E.btFacile = tuile(pan, T.facile, C.vert, UDim2.fromOffset(330, 72), UDim2.new(0.5, -10, 0, 320), Vector2.new(1, 0), 22)
-		E.btPouceP = tuile(pan, T.pouce, C.cyan, UDim2.fromOffset(330, 72), UDim2.new(0.5, 10, 0, 320), Vector2.new(0, 0), 16)
+		E.btFacile = tuile(pan, T.facile, C.vert, UDim2.fromOffset(330, 72), UDim2.new(0.5, -10, 0, 346), Vector2.new(1, 0), 22)
+		E.btPouceP = tuile(pan, T.pouce, C.cyan, UDim2.fromOffset(330, 72), UDim2.new(0.5, 10, 0, 346), Vector2.new(0, 0), 16)
 	else
-		E.btFacile = tuile(pan, T.facile, C.vert, UDim2.fromOffset(680, 72), UDim2.new(0.5, 0, 0, 320), Vector2.new(0.5, 0), 26)
-		E.btPouceP = tuile(pan, T.pouce, C.cyan, UDim2.fromOffset(680, 72), UDim2.new(0.5, 0, 0, 320), Vector2.new(0.5, 0), 26, "aile", "g")
+		E.btFacile = tuile(pan, T.facile, C.vert, UDim2.fromOffset(680, 72), UDim2.new(0.5, 0, 0, 346), Vector2.new(0.5, 0), 26)
+		E.btPouceP = tuile(pan, T.pouce, C.cyan, UDim2.fromOffset(680, 72), UDim2.new(0.5, 0, 0, 346), Vector2.new(0.5, 0), 26, "aile", "g")
 	end
 	E.btRecom.Parent.Name = "Recom"
 	E.btMenuP.Parent.Name = "MenuP"
@@ -13357,6 +13409,7 @@ function Hud.ecran(nom: string)
 	-- le même panneau sert à la pause (en course) et aux réglages (au menu / à la mort)
 	local reg = nom == "reglages"
 	E.pauseTitre.Text = reg and T.reglages or T.pause
+	E.pauseBilan.Visible = not reg
 	E.btRecom.Parent.Visible = not reg
 	E.btMenuP.Parent.Visible = not reg
 	E.btReprendre.Text = reg and T.fermer or T.reprendre
@@ -13424,6 +13477,10 @@ function Hud.logoCache()
 	logoN += 1
 	E.logo.Visible = false
 	E.astuce.Visible = false
+end
+-- le bilan de la partie en cours, sous le titre PAUSE
+function Hud.pauseBilan(aura: number, moteur: number, niveau: number)
+	E.pauseBilan.Text = string.format("AURA %s   -   %s %d   -   %s %d", Hud.entier(aura), FR and "MOTEUR" or "ENGINE", moteur, FR and "NIVEAU" or "LEVEL", niveau)
 end
 local astuceFin = 0
 function Hud.astuce(txt: string, duree: number?)
@@ -19792,6 +19849,7 @@ function Profils.neuf(): Profil
 	return {
 		v = VERSION,
 		compte = 0, record = 0, auraMeilleur = 0,
+		moteurMax = 0, -- le meilleur palier de MOTEUR jamais atteint (SAVE.d.ex.eng du web) : l'écran de fin dit « RECORD ! » s'il est battu
 		aura = 0,      -- l'aura de TOUJOURS (elle fait le rang : ANONYME … DIVINITÉ DU CIEL)
 		frenRec = 0,   -- la plus longue frénésie (s)
 		caisses = { 0 }, caisse = 0, -- indices du jeu web : 0 = LA HONTE, la caisse de départ
@@ -19824,7 +19882,7 @@ local function sain(p: any): Profil
 			n[k] = p[k]
 		end
 	end
-	for _, k in { "compte", "record", "auraMeilleur", "aura", "frenRec" } do
+	for _, k in { "compte", "record", "auraMeilleur", "aura", "frenRec", "moteurMax" } do
 		if n[k] ~= n[k] or n[k] < 0 or n[k] > 1e18 then n[k] = 0 end
 	end
 	local possede = {}
@@ -19872,6 +19930,7 @@ function Profils.sauver(p: Player)
 			local a = sain(ancien)
 			prof.record = math.max(prof.record, a.record)
 			prof.auraMeilleur = math.max(prof.auraMeilleur, a.auraMeilleur)
+			prof.moteurMax = math.max(prof.moteurMax, a.moteurMax)
 			return prof
 		end)
 	end)
@@ -20182,6 +20241,9 @@ evFin.OnServerEvent:Connect(function(p, montant, distance, aura, stats)
 	end
 	if type(stats) == "table" and type(stats.frenRec) == "number" and stats.frenRec == stats.frenRec and stats.frenRec >= 5 and stats.frenRec < 3600 then
 		prof.frenRec = math.max(prof.frenRec, stats.frenRec)
+	end
+	if type(stats) == "table" and type(stats.tier) == "number" and stats.tier == math.floor(stats.tier) and stats.tier >= 0 and stats.tier < 200 then
+		prof.moteurMax = math.max(prof.moteurMax, stats.tier)
 	end
 	prof.stats.parties += 1
 	if type(distance) == "number" and distance == distance and distance > 0 and distance < 1e7 then

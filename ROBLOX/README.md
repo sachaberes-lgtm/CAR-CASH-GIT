@@ -92,6 +92,23 @@ recommence (décision de Sacha, 2/10 : « fais la ville et l'espace, fais pas Pa
 - **L'attitude de la caisse** : le power-slide (l'arrière chasse dans les virages, jusqu'à ~18°), le tangage (elle plonge au frein,
   s'accroupit à la poussée), les **traces de pneus** (`Client/Traces`), la fumée sur toute vraie glisse, les étincelles du plancher
   qui racle le bord, des éclats rouges sur un plot percuté, la gerbe d'or de la fronde, la poussière du décollage.
+- **Le départ** : CASH CAR claque en or avec son halo quand la caisse touche la route, puis le nom du niveau prend le relais ;
+  3 s de nitro offerte (arc-en-ciel).
+- **Le coup d'allumage** de la nitro : une onde de choc à l'échappement, le champ qui s'ouvre, la caisse qui se cabre, une
+  vibration ; quand on lâche après une vraie tenue, une dernière bouffée sort des pots. Au-delà de 280 km/h, les bords de l'image
+  plongent dans le violet (la vignette de vitesse).
+- **Le verdict de la pose** : toute pose qui encaisse une figure a son mot, à la taille de son rang — MONSTRE, DOUBLE MONSTRE,
+  TRIPLE MONSTRE, MÉTÉORE, SNAKE LOOP, MEGA MÉTÉORE — et « PARFAIT ! ».
+- **Les vibrations** (manette, téléphone) : chaque geste se sent — pad, fruit, cristal, plot, flaque, drift, pose, fronde, mort.
+  Réglage VIBRATIONS.
+- **Les astuces** se lisent UNE fois dans la vie du compte (notées dans le profil) ; le drift a la sienne (1,2 s de braquage à
+  fond sans jamais avoir drifté) ; celle du vol dit le sens réglé (POUCE HAUT = PLONGE ou MONTE).
+- **Les cristaux s'adaptent au joueur** : le débutant tombe sur l'AIMANT et l'AIR MAX, le vétéran sur l'AURA ×2 ; le tout premier
+  cristal d'un débutant est un AIMANT posé près de l'axe.
+- **Les pigeons ramiers** (`Client/Pigeons`) : de rares volées en travers du ciel (jamais en orbite ni dans l'orage).
+- **Les signatures de caisse** à la nitro : l'arc-en-ciel du CHAT POP-TART, la gerbe d'eau du REQUIN.
+- **La mort** : ce sont les vraies pièces de LA caisse qui volent ; un tap passe l'explosion après 0,8 s ; « NOUVEAU RECORD ! »
+  s'allume pour l'argent, l'AURA ou un palier de MOTEUR jamais atteint. La pause dit où en est la partie (AURA · MOTEUR · NIVEAU).
 - **Le ciel musical** de la ville (`Client/CielMusical`) : seize quartiers de lumière et vingt-six piliers d'égaliseur autour de
   l'horizon, qui battent avec le morceau qui joue (ou à 120 à la minute sans musique importée) ; en sourdine à minuit.
 - **Le bitume mouillé** de la ville : les reflets de néon sont PEINTS dans l'image de la dalle (96 m qui se répètent).

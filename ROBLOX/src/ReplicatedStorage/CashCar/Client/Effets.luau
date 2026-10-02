@@ -1204,6 +1204,8 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 	bassin("dard", { tex = TEX_BRAISE, c = hex(0xffd08a), t = 2.2, a = { 0, 0.5, 0.6, 1.3 }, op = 0.95, add = true, etire = true, vie = { 0.26, 0.46 }, nb = 1, eclat = 4 })
 	bassin("langue", { tex = TEX_FEU, c = hex(0xff7a24), t = 1.3, a = { 0, 0.5, 1, 0.45 }, op = 1, add = true, etire = true, vie = { 0.4, 1.1 }, nb = 4 })
 	bassin("eclatRouge", { tex = TEX_BRAISE, c = hex(0xff3b2a), t = 0.9, a = { 0.03, 0.5, 1, 0.5 }, op = 1, add = true, etire = true, vie = { 0.5, 1.3 }, nb = 6, eclat = 3 })
+	-- la GERBE D'EAU du requin (`spray`, L37723) : des gouttes claires qui filent et retombent
+	bassin("eau", { tex = TEX_BRAISE, c = hex(0xbfeaff), t = 0.55, a = { 0, 0.5, 1, 0.55 }, op = 0.9, add = true, acc = 16, etire = true, vie = { 0.22, 0.48 }, nb = 2, eclat = 2 })
 	bassin("eclatJaune", { tex = TEX_BRAISE, c = hex(0xffd94a), t = 1.05, a = { 0, 0.5, 1, 0.5 }, op = 1, add = true, etire = true, vie = { 0.3, 0.85 }, nb = 6, eclat = 3 })
 	bassin("sang", { tex = TEX_BRAISE, c = hex(0xa31212), t = 0.85, a = { 0, 0.4, 1, 0.8 }, op = 1, add = false, acc = 22, etire = true, vie = { 0.5, 1.7 }, nb = 3 })
 	bassin("braiseR", { tex = TEX_BRAISE, c = hex(0xff3818), t = 0.7, a = { 0.05, 0.45, 1, 0.5 }, op = 1, add = true, vie = { 1, 2.2 }, nb = 2, eclat = 3 })

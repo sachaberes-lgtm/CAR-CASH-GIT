@@ -948,6 +948,22 @@ local function atterrir(face: number, latX: number, sX: number, hR: number?)
 		ajouterPieces(math.clamp(math.floor(2 + qG / 6 + 0.5), 2, 18))
 		boost = math.max(boost, 1.2) -- (L30824 : une figure encaissée relance — c'était 0,5 ici)
 		if g >= 1.5 then Score.geste(tr("POSE PARFAITE", "PERFECT LANDING"), 70, "pose") end
+		-- LE VERDICT DE LA POSE (L30795 et VERD_DEF, L28891 du jeu web) : toute pose qui encaisse une figure a son mot, à la taille de
+		-- son rang — MONSTRE < DOUBLE < TRIPLE < MÉTÉORE, SNAKE LOOP < MEGA. (Le web le fait crier par l'annonceur une fois sur trois ;
+		-- ici, sans les voix, le mot dit toujours le vrai rang.) Et PARFAIT ! se lit d'un coup d'œil.
+		do
+			local mot, c, taille, pr = tr("MONSTRE", "MONSTER"), "#5ee6ff", 30, 1
+			if qG >= 140 then
+				mot, c, taille, pr = tr("TRIPLE MONSTRE", "TRIPLE MONSTER"), "#ffd75e", 38, 2
+			elseif qG >= 45 then
+				mot, c, taille = tr("DOUBLE MONSTRE", "DOUBLE MONSTER"), "#ff3ec8", 34
+			end
+			if nitroOn and V.nitroAirT > 1 then mot, c, taille, pr = tr("METEORE", "METEOR"), "#ff7a24", 40, 2 end -- l'impact en pleine poussée
+			if serpent then mot, c, taille, pr = "SNAKE LOOP", "#b58cff", 40, 2 end
+			if nitroOn and V.nitroAirT > 5 then mot, c, taille, pr = tr("MEGA METEORE", "MEGA METEOR"), "#ff7a24", 44, 3 end -- 5 s de réacteur : l'ultime
+			HudScore.slam(mot, nil, c, nil, taille, pr)
+		end
+		if g >= 1.5 then Hud.pop(tr("PARFAIT !", "PERFECT!"), Hud.C.or_, 24) end
 	end
 	nitroGain(Score.nitroPoseDe(reservoir(), V.volT, V.nitT)) -- la pose rend 20 % de la jauge pour un VRAI vol (1,2 s), nitro coupée
 	if g >= 1.5 and not ratee and (V.fallT > 0.7 or paye) then stats.parfaites += 1 end
@@ -2335,6 +2351,22 @@ local function habiller(dt: number)
 	if tr9 and pwN <= 0 and not nitroBleue and nitroOn then
 		if tr9.arcenciel then arc = ARC_EN_CIEL elseif tr9.c then couleur = tr9.c end
 	end
+	-- LES SIGNATURES DE CAISSE (fx.rainbow · fx.spray, L37715 du jeu web) — des effets de NITRO, jamais en réserve bleue ni sous la
+	-- nitro infinie (le bleu et le violet gardent leur sens), et une traînée de boutique équipée passe devant :
+	--   · le CHAT POP-TART laisse un ARC-EN-CIEL ;
+	--   · le REQUIN ne crache pas du feu mais de l'EAU : une gerbe qui s'ÉVASE aux pots.
+	if nitroOn and pwN <= 0 and not nitroBleue and (mode == "drive" or mode == "fall") and not (tr9 and (tr9.arcenciel or tr9.c)) then
+		local gab = poignees.fiche and poignees.fiche.gabarit
+		if gab == "poptart" then
+			arc = ARC_EN_CIEL
+		elseif gab == "requin" then
+			local fi = poignees.fiche
+			for _ = 1, math.random(1, 3) do
+				local pot = (carCF * CFrame.new(((math.random() < 0.5) and -1 or 1) * fi.w * 0.22 * M, 0.43 * M, (fi.l * 0.5 + 0.15) * M)).Position
+				Bus.emit("gerbe", "eau", pot, 1, 10, 26, 28, (-carCF.LookVector + carCF.UpVector * 0.14).Unit)
+			end
+		end
+	end
 	Caisse.feu(poignees, feu, nitroOn and 130 or (boost > 0 and 55 or 0), couleur, arc, (mode == "drive" or mode == "fall") and not intro and kmh() > 20)
 	-- les AILES : rentrées dans le flanc au sol, sorties en vol ; les hélices brassent doucement au sol et s'emballent en vol
 	G.ailes += (((mode == "fall" and not intro) and 1 or 0) - G.ailes) * math.min(1, dt * 6)
@@ -2515,6 +2547,11 @@ local function finPartie()
 	aura = Score.fin(false)
 	local dist = G.distAvant + math.max(0, s)
 	local rec = argent > record and argent > Config.CASH_DEPART + 0.01
+	-- LES RECORDS NE SE CONTREDISENT PLUS (audit UX du 26/09, L38987) : le titre s'allume pour l'argent, l'AURA ou le MOTEUR — les
+	-- héros de cet écran. (L'aura : seulement s'il y avait un record à battre ; le moteur : un palier jamais atteint avant.)
+	-- Une partie QUITTÉE depuis la pause ne fête rien.
+	local recT = causeMort ~= "quitte" and (rec or (meilleurAura > 0 and aura > meilleurAura) or tier > (profil.moteurMax or 0))
+	profil.moteurMax = math.max(profil.moteurMax or 0, tier)
 	local mres = Missions.fin(CPT)
 	evFin:FireServer(argent, dist, aura, { pieces = stats.pieces, figures = stats.poses, kmh = G.vmax, zone = G.nbZones + 1, tier = tier,
 		multi = Score.CHA.xMax, cause = causeMort, parfaites = stats.parfaites, fruits = stats.fruits, nitro = stats.nitro,
@@ -2523,7 +2560,7 @@ local function finPartie()
 	meilleurAura = math.max(meilleurAura, aura)
 	G.kmhRecord = math.max(G.kmhRecord or 0, G.vmax or 0)
 	local cause = T.morts[causeMort] or T.morts.autre
-	E.mCause.Text = rec and T.nouveau or cause
+	E.mCause.Text = recT and T.nouveau or cause
 	Hud.tenir(E.mCauseEchelle, E.mCause.Text, 62, 560)
 	E.mRecord.Text = rec and (FR and "RECORD !" or "RECORD!") or ""
 	E.mRecord.Visible = rec
@@ -2539,7 +2576,7 @@ local function finPartie()
 	else
 		E.mMoteurEncore.Text = T.moteurMax
 	end
-	E.mPartie.Text = (rec and (cause .. "\n") or "") .. T.distance .. "  " .. Hud.entier(dist) .. " M   " .. T.pieces .. "  " .. stats.pieces
+	E.mPartie.Text = (recT and (cause .. "\n") or "") .. T.distance .. "  " .. Hud.entier(dist) .. " M   " .. T.pieces .. "  " .. stats.pieces
 		.. "   " .. T.figures .. "  " .. stats.poses
 	Hud.defi(mres.carte)
 	local st = {
@@ -2720,6 +2757,7 @@ local function basculerPause()
 	end
 	if not enPause then
 		enPause = true
+		Hud.pauseBilan(aura, tier + 1, zoneN)
 		Hud.ecran("pause")
 		return
 	end
@@ -2766,6 +2804,16 @@ E.btPause.Activated:Connect(basculerPause)
 local retourReglages = "menu"
 E.btReglages.Activated:Connect(function() if mode == "menu" then retourReglages = "menu"; Hud.ecran("reglages") end end)
 E.btReglM.Activated:Connect(function() if mode == "mort" then retourReglages = "mort"; Hud.ecran("reglages") end end)
+-- PASSER L'EXPLOSION (boomSkip, L24785 du jeu web) : une fois le souffle retombé (0,8 s), un tap, un clic, ESPACE ou le bouton A
+-- saute au bilan. On ne court-circuite rien : la boucle voit boomT à 1,8 et finit la partie comme d'habitude.
+game:GetService("UserInputService").InputBegan:Connect(function(io: InputObject)
+	if mode ~= "boom" or enPause or boomT <= 0.8 or boomT >= 1.8 then return end
+	local t = io.UserInputType
+	if t == Enum.UserInputType.Touch or t == Enum.UserInputType.MouseButton1 or io.KeyCode == Enum.KeyCode.Space
+		or io.KeyCode == Enum.KeyCode.Return or io.KeyCode == Enum.KeyCode.ButtonA then
+		boomT = 1.81
+	end
+end)
 -- (mise au point) "DbgOuvre" : ouvrir un écran du menu depuis la console ou le banc à distance — "garage", "boutique",
 -- "reglages", "missions", "menu" (le retour) ; pour comparer chaque écran à la capture du jeu web sans toucher à la souris
 workspace:GetAttributeChangedSignal("DbgOuvre"):Connect(function()

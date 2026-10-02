@@ -24,6 +24,7 @@ function Profils.neuf(): Profil
 	return {
 		v = VERSION,
 		compte = 0, record = 0, auraMeilleur = 0,
+		moteurMax = 0, -- le meilleur palier de MOTEUR jamais atteint (SAVE.d.ex.eng du web) : l'écran de fin dit « RECORD ! » s'il est battu
 		aura = 0,      -- l'aura de TOUJOURS (elle fait le rang : ANONYME … DIVINITÉ DU CIEL)
 		frenRec = 0,   -- la plus longue frénésie (s)
 		caisses = { 0 }, caisse = 0, -- indices du jeu web : 0 = LA HONTE, la caisse de départ
@@ -56,7 +57,7 @@ local function sain(p: any): Profil
 			n[k] = p[k]
 		end
 	end
-	for _, k in { "compte", "record", "auraMeilleur", "aura", "frenRec" } do
+	for _, k in { "compte", "record", "auraMeilleur", "aura", "frenRec", "moteurMax" } do
 		if n[k] ~= n[k] or n[k] < 0 or n[k] > 1e18 then n[k] = 0 end
 	end
 	local possede = {}
@@ -104,6 +105,7 @@ function Profils.sauver(p: Player)
 			local a = sain(ancien)
 			prof.record = math.max(prof.record, a.record)
 			prof.auraMeilleur = math.max(prof.auraMeilleur, a.auraMeilleur)
+			prof.moteurMax = math.max(prof.moteurMax, a.moteurMax)
 			return prof
 		end)
 	end)
