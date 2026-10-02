@@ -38,6 +38,7 @@ KA.Debris = require(CL:WaitForChild("Debris"))
 KA.CielMusical = require(CL:WaitForChild("CielMusical"))
 KA.Viseur = require(CL:WaitForChild("Viseur"))
 KA.Traces = require(CL:WaitForChild("Traces"))
+KA.Pigeons = require(CL:WaitForChild("Pigeons"))
 
 local M, SPD = Config.M, Config.SPD
 local RH, THICK = Config.ROAD_HALF, Config.THICK
@@ -462,8 +463,35 @@ local function figure(id: string, txt: string, val: number, rang: number, brut: 
 	Bus.emit("figure", id, val, n)
 end
 
+-- LE COUP D'ALLUMAGE (nitroAllume, L28422 du jeu web) — au front montant de la nitro, au sol comme en vol : le champ S'OUVRE d'un
+-- coup, la caisse SE CABRE (≈3° le temps du coup), la main le sent, une ONDE DE CHOC s'ouvre à l'échappement (Effets). Un réservoir
+-- vide qu'on tient appuyé rallume par à-coups rapprochés : ceux-là sont plus petits (× 0,45). `etage` : le passage en réserve
+-- BLEUE en pleine poussée, un coup plus petit (× 0,6).
+-- LA DERNIÈRE BOUFFÉE (nitroEteint) : quand on lâche après une vraie tenue (≥ 0,25 s), une langue de feu sort des pots.
+function G.nitroCoup(on: boolean, bleu: boolean, etage: boolean?): number
+	local cf, fi = carCF, poignees.fiche
+	if not on then
+		if (G.nitTenu or 0) >= 0.25 and mode ~= "boom" then
+			for _, sd in { -1, 1 } do
+				Bus.emit("gerbe", "langue", (cf * CFrame.new(sd * fi.w * 0.22 * M, 0.43 * M, (fi.l * 0.5 + 0.2) * M)).Position, 4, 9, 18, 22, -cf.LookVector)
+				Bus.emit("gerbe", "braiseO", (cf * CFrame.new(sd * fi.w * 0.22 * M, 0.43 * M, (fi.l * 0.5 + 0.2) * M)).Position, 2, 4, 9, 60, -cf.LookVector)
+			end
+		end
+		G.nitTenu = 0
+		return 0
+	end
+	local t = os.clock()
+	local k = (etage and 0.6 or 1) * ((t - (G.ignT0 or -9) < 0.65) and 0.45 or 1)
+	G.ignT0 = t
+	G.ign, G.ignK = 1, k
+	fovPunch = math.max(fovPunch, ((mode == "fall") and 8 or 7) * k)
+	secousse = math.max(secousse, 0.28 * k)
+	Hud.vibre(bleu and 16 or 26)
+	return k
+end
 -- ════════ la nitro : deux réservoirs (L36327) — l'orange se recharge seul, le BLEU ne vient que des fruits ════════
 local function gererNitro(dt: number)
+	G.ign = math.max(0, (G.ign or 0) - dt / 0.55)
 	local res = reservoir()
 	nitroR = math.min(res, nitroR + NI.regen * dt)
 	-- LE BOOST DE DÉPART (startBoostT du web, L28463) : 3 s de nitro OFFERTE quand la caisse touche la route — elle tient la
@@ -486,10 +514,14 @@ local function gererNitro(dt: number)
 	end
 	nitroBleue = nitroOn and nitroR <= 0.01
 	if nitroOn and not offert then stats.nitro += dt end
+	if nitroOn then G.nitTenu = (G.nitTenu or 0) + dt end
 	if avant ~= nitroOn then
 		evEtat:FireServer("nitro", nitroOn)
-		Bus.emit("nitro", nitroOn, nitroBleue)
+		Bus.emit("nitro", nitroOn, nitroBleue, G.nitroCoup(nitroOn, nitroBleue), poignees.fiche.l)
+	elseif nitroOn and nitroBleue and not G.bleuAvant then
+		Bus.emit("nitro", true, true, G.nitroCoup(true, true, true), poignees.fiche.l) -- (l'étage : la réserve bleue prend le relais)
 	end
+	G.bleuAvant = nitroBleue
 end
 
 -- ════════ NITROOO (L29695) : la nitro TENUE capitalise la vitesse (+10 % par seconde, plafond ×2,6) ════════
@@ -532,11 +564,20 @@ local function nitroooTick(dt: number)
 end
 
 -- ════════ décoller (startFall, L30229) ════════
-local function astuce(i: number)
-	if astucesVues[i] or TU.on then return end
+-- UNE FOIS À VIE (SAVE.d.ast du jeu web) : l'astuce lue est notée dans le profil, elle ne revient plus. `muet` : on la note sans
+-- l'afficher (le joueur vient de faire le geste tout seul : il n'a plus rien à apprendre).
+local function astuce(i: number, muet: boolean?)
+	local rg: any = profil.reglages
+	if astucesVues[i] or TU.on or (rg and rg["ast" .. i]) then return end
 	astucesVues[i] = true
-	Hud.astuce((Hud.tactile and T.astucesTactile or T.astuces)[i], 6)
+	if rg then rg["ast" .. i] = true end
+	task.spawn(function() pcall(function() fnAction:InvokeServer("reglage", "ast" .. i, true) end) end)
+	if muet then return end
+	-- (l'astuce du VOL dit le sens que le joueur a réglé : POUCE HAUT = PLONGE ou MONTE)
+	local k = (i == 2 and Controles.sensVol < 0) and 5 or i
+	Hud.astuce((Hud.tactile and T.astucesTactile or T.astuces)[k], 6)
 end
+G.astuce = astuce
 -- impU = l'élan vers le haut ; impF = le coup d'accélérateur ; bord = on sort par le BORD (la bascule : ni saut ni élan)
 local function decoller(impU: number, impF: number, bord: boolean?)
 	local cf = repere(s, side)
@@ -551,7 +592,7 @@ local function decoller(impU: number, impF: number, bord: boolean?)
 	flyAv = (fallVel.Magnitude > 1) and fallVel.Unit or T_
 	flyU = N - flyAv * N:Dot(flyAv)
 	flyU = (flyU.Magnitude > 1e-3) and flyU.Unit or N
-	if not intro then task.delay(0.6, function() if mode == "fall" then astuce(2) end end) end
+	if not intro then task.delay(1, function() if mode == "fall" then astuce(2) end end) end -- (L37500 : après 1 s de vol)
 	V.fallT, V.fallTR, V.yawAcc, V.demiTours, V.nitroAirT, V.nitroAirTenue, V.sideCd, V.bounceN = 0, 0, 0, 0, 0, 0, 0, 0
 	V.fallVH0 = -1 -- le plafond horizontal se relève à la 1re image de vol
 	V.volT, V.nitT = 0, 0
@@ -772,6 +813,7 @@ local function exploser(cause: string)
 	boomPos = carCF.Position
 	Score.mort() -- la chaîne OUVERTE part avec la caisse, le flow retombe
 	Bus.emit("mort", cause, mode == "fall", V.chainVal)
+	Hud.logoCache()
 	Hud.vibre(140)
 	mode = "boom"
 	Score.ETAT.mode = "boom"
@@ -851,7 +893,10 @@ local function atterrir(face: number, latX: number, sX: number, hR: number?)
 		graceT = 0.3
 		V.fallT, V.fallTR = 0, 0
 		E.air.Visible = false
-		Hud.grand(G.nomNiveau(), Hud.C.texte, 1.8)
+		-- LE LOGO PASSE LE RELAIS (fireLaunchBoost, L28467) : CASH CAR claque avec son halo ; le nom du niveau arrive quand il s'efface
+		-- (au même endroit, jamais par-dessus)
+		Hud.logoDepart()
+		task.delay(1.9, function() if mode == "drive" or mode == "fall" then Hud.grand(G.nomNiveau(), Hud.C.texte, 1.8) end end)
 		Sons.jouer("go")
 		Sons.jouer("poseChoc")
 		secousse = 0.6
@@ -1879,6 +1924,16 @@ local function etapeSol(dt: number)
 	if not intro and vitOk and frein and math.abs(steerS) > 0.35 then G.driftOn = true
 	elseif not vitOk or not frein or math.abs(steerS) < 0.2 then G.driftOn = false end
 	driftTick(dt, G.driftOn)
+	-- L'ASTUCE DU DRIFT (L36750 ; audit UX du 26/09 : « le geste du drift n'était enseigné nulle part ») : 1,2 s de braquage à fond
+	-- à bonne vitesse sans jamais avoir drifté → on le dit, une fois dans la vie. Le joueur qui drifte tout seul ne la verra jamais.
+	if G.driftOn then
+		G.astuce(4, true)
+	elseif vitOk and math.abs(steerS) > 0.8 and not intro then
+		G.astD = (G.astD or 0) + dt
+		if G.astD > 1.2 then G.astD = 0; G.astuce(4) end
+	else
+		G.astD = 0
+	end
 	if not frein and not G.driftOn and math.abs(psi - G.slipB) < 0.25 then momT = math.min(4.3, momT + dt) else momT = math.max(0, momT - 2 * dt) end
 	local momF = 1 + math.min(1.8, momT * momT * 0.1)
 	local a
@@ -2047,7 +2102,7 @@ local function etapeSol(dt: number)
 	G.glisse = math.abs(vA) > 10 and (G.driftOn or math.abs(aLat) > 9)
 	G.fumee = math.abs(vA) > 14 and (G.driftOn or math.abs(aLat) > 16) -- (la fumée demande une VRAIE glisse : le drift, ou une grosse charge)
 	-- LE TANGAGE : elle plonge au frein et au drift, s'accroupit à la poussée (nitro, boost)
-	G.pitch = (G.pitch or 0) + ((((Controles.frein or G.driftOn) and 0.035 or 0) - ((nitroOn or boost > 0) and 0.03 or 0)) - (G.pitch or 0)) * math.min(1, dt * 6)
+	G.pitch = (G.pitch or 0) + ((((Controles.frein or G.driftOn) and 0.035 or 0) - ((nitroOn or boost > 0) and 0.03 or 0) - (G.ign or 0) * (G.ignK or 0) * 0.1) - (G.pitch or 0)) * math.min(1, dt * 6) -- (… et SE CABRE à l'allumage de la nitro)
 	-- LES ROUES DEHORS : le plancher RACLE la lèvre — des étincelles sous la roue qui a passé le bord
 	if pe > 0 and math.abs(vA) > 12 and math.random() < dt * 28 * pe then
 		Bus.emit("gerbe", "eclatJaune", cf2.Position + cf2.RightVector * ((lat + math.sign(lat) * math.max(0, hw - dB)) * M) + cf2.UpVector * (0.08 * M), 1, 3, 7)
@@ -2726,6 +2781,8 @@ workspace:GetAttributeChangedSignal("DbgOuvre"):Connect(function()
 			sPrev = s
 			lat = 0
 		end
+	elseif string.sub(v, 1, 7) == "pigeons" then
+		KA.Pigeons.maintenant(string.sub(v, 8, 8) == "P") -- (une volée tout de suite ; « pigeonsP… » : tout près, pour la photo)
 	elseif string.sub(v, 1, 4) == "saut" then
 		-- (banc) un saut franc, tout de suite : pour photographier ce qui ne vit qu'en vol (le viseur, la jauge, les figures)
 		if mode == "drive" then decoller(tonumber(string.sub(v, 5, 6)) or 45, 1) end -- ("saut20…" : la poussée, sur deux chiffres)
@@ -3091,6 +3148,8 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 			G.viseur(dt)
 			KA.Traces.tick(mode == "drive" and G.glisse == true and not enPause and not intro, carCF, poignees.fiche.w * 0.5, poignees.fiche.l or 4.4)
 			if course and not enPause then G.vpal(kmh()) end
+			-- LES PIGEONS RAMIERS : de rares volées en travers du ciel (jamais en orbite ni dans l'orage)
+			if not enPause then KA.Pigeons.tick(dt, carCF, not course or (piste :: any).niveau == "espace" or var == "orage", mode == "boom") end
 			-- L'OVULE respire et tourne lentement, son noyau bat (L37927)
 			do
 				local po = (zone :: any).portail

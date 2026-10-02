@@ -232,8 +232,20 @@ local POUVOIRS_FX: { [string]: { any } } = {
 	n = { Color3.fromRGB(164, 92, 255), 0.85 }, a = { Color3.fromRGB(94, 230, 255), 0.8 }, v = { Color3.fromRGB(255, 62, 200), 0.85 },
 	m = { Color3.fromRGB(94, 227, 122), 0.55 }, x = { Color3.fromRGB(255, 215, 94), 0.85 },
 }
+-- LA VIGNETTE DE VITESSE (#speedFx, L173 et L37985) : les bords plongent dans un violet de nuit quand on va TRÈS vite — rien sous
+-- 280 km/h, pleine à 840 (le regard est tiré vers le centre : la route, la caisse).
+local vigVit: { Frame } = {}
+local vigVitK = 0
 local function teinteTick(dt: number)
 	local vit = etat.mode == "drive" or etat.mode == "fall"
+	do
+		local o = vit and math.clamp(((etat.kmh or 0) - 280) / 560, 0, 0.95) * 0.55 or 0
+		vigVitK += (o - vigVitK) * math.min(1, dt * 4)
+		local a = 1 - vigVitK
+		for _, f in vigVit do
+			if math.abs(f.BackgroundTransparency - a) > 0.004 then f.BackgroundTransparency = a end
+		end
+	end
 	local on = etat.nitroOn == true
 	local eT = vit and (on and (etat.bleue and 0.36 or 0.3) or (((etat.boost or 0) > 0) and 0.14 or 0)) or 0
 	-- (HUD v3, L38030) LES BORDS BATTENT À LA COULEUR DU POUVOIR ACTIF — le plus « chaud » d'abord ; la nitro, elle, garde sa teinte
@@ -1104,6 +1116,22 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 		g.Parent = f
 		table.insert(bords, f)
 	end
+	for _, d in { { 0, 0, 1, 0.3, 90 }, { 0, 0.7, 1, 0.3, 270 }, { 0, 0, 0.29, 1, 0 }, { 0.71, 0, 0.29, 1, 180 } } do
+		local f = Instance.new("Frame")
+		f.Name = "VignetteVitesse"
+		f.BorderSizePixel = 0
+		f.BackgroundColor3 = Color3.fromRGB(45, 20, 55)
+		f.BackgroundTransparency = 1
+		f.Position = UDim2.fromScale(d[1], d[2])
+		f.Size = UDim2.fromScale(d[3], d[4])
+		f.ZIndex = 2
+		f.Parent = gui
+		local g = Instance.new("UIGradient")
+		g.Rotation = d[5]
+		g.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0), NumberSequenceKeypoint.new(0.5, 0.6), NumberSequenceKeypoint.new(1, 1) })
+		g.Parent = f
+		table.insert(vigVit, f)
+	end
 	for _, d in { { 0, 0, 1, 0.34, 90 }, { 0, 0.66, 1, 0.34, 270 }, { 0, 0, 0.3, 1, 0 }, { 0.7, 0, 0.3, 1, 180 } } do
 		local f = Instance.new("Frame")
 		f.Name = "TeinteNitro"
@@ -1229,8 +1257,8 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 		end
 	end)
 	-- une petite gerbe demandée par le pilote (un plot percuté, la fronde, le plancher qui racle le bord, le décollage)
-	Bus.on("gerbe", function(nom: string, pos: Vector3, n: number, v0: number, v1: number, cone: number?)
-		jet(nom, pos, Vector3.yAxis, n, v0, v1, cone or 70)
+	Bus.on("gerbe", function(nom: string, pos: Vector3, n: number, v0: number, v1: number, cone: number?, vers: Vector3?)
+		jet(nom, pos, vers or Vector3.yAxis, n, v0, v1, cone or 70)
 	end)
 	-- un éclair de bords demandé par le pilote (MIRACULÉ…)
 	Bus.on("flash", function(couleur: Color3, alpha: number?, duree: number?) flashBords(couleur, alpha or 0.7, duree) end)
@@ -1311,10 +1339,28 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 		palier.t = 0
 		palier.c = couleur or OR
 	end)
-	Bus.on("nitro", function(on: boolean, bleue: boolean?)
+	Bus.on("nitro", function(on: boolean, bleue: boolean?, coup: number?, long: number?)
 		if on then
-			flashBords(bleue and Color3.fromRGB(91, 125, 255) or Color3.fromRGB(255, 122, 36), 0.3, 0.35)
-			gerbeAllume(gui.AbsoluteSize, bleue and 0.6 or 1)
+			local k = coup or 1
+			local c = bleue and Color3.fromRGB(91, 125, 255) or Color3.fromRGB(255, 122, 36)
+			flashBords(c, 0.3 * k, 0.35)
+			gerbeAllume(gui.AbsoluteSize, (bleue and 0.6 or 1) * k)
+			-- L'ONDE D'ALLUMAGE (NFX.ring, L28366) : un anneau de choc à l'échappement — il s'ouvre en 0,42 s (0,35 → 1,9 m), accroché à
+			-- la caisse, et passe PAR-DESSUS la route (sur le web, elle le coupait en fer à cheval).
+			if etat.carCF then
+				local a = Instance.new("Attachment")
+				a.Position = Vector3.new(0, 0.43 * M, ((long or 4.4) * 0.5 + 0.7) * M)
+				a.Parent = ancreCaisse
+				local g = Instance.new("BillboardGui")
+				g.LightInfluence = 0
+				g.Brightness = 3
+				g.AlwaysOnTop = true
+				g.Size = UDim2.fromScale(0.7 * M, 0.7 * M)
+				g.Adornee = a
+				g.Parent = a
+				local sc = 0.65 + 0.35 * k
+				table.insert(anneaux, { gui = g, trait = cercle(g, c, 5), t = 0, dur = 0.42, r0 = 0.35 * sc, r1 = 1.9 * sc, pic = math.min(1, 0.55 + 0.45 * k), pw = 3, pa = 2, vie = true })
+			end
 		end
 	end)
 end

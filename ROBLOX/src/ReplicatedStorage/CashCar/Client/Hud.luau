@@ -40,11 +40,15 @@ local T = FR and {
 		"Sors par le BORD de la route : tu voles, et tu te poses plus bas. C'est là que le jeu se joue.",
 		"En l'air : flèche HAUT = plonge, flèche BAS = monte. Gauche / droite = les vrilles.",
 		"Chaque pièce fait monter ton MOTEUR : plus de pièces, plus de vitesse.",
+		"Freine en tournant : DRIFT ! Lâche, et la caisse repart plus fort.",
+		"En l'air : flèche HAUT = monte, flèche BAS = plonge. Gauche / droite = les vrilles.",
 	},
 	astucesTactile = {
 		"Sors par le BORD de la route : tu voles, et tu te poses plus bas. C'est là que le jeu se joue.",
 		"En l'air : pouce en HAUT = plonge, en BAS = monte. Gauche / droite = les vrilles.",
 		"Chaque pièce fait monter ton MOTEUR : plus de pièces, plus de vitesse.",
+		"Tire le pouce vers le BAS en tournant : DRIFT !",
+		"En l'air : pouce en HAUT = monte, en BAS = plonge. Gauche / droite = les vrilles.",
 	},
 	morts = { air = "TROP LONGTEMPS EN L'AIR", vide = "AVALE PAR LE VIDE", arret = "EN PANNE SECHE", tour = "ENCASTRE DANS UNE TOUR", sat = "PERCUTE PAR UN SATELLITE", quitte = "PARTIE QUITTEE", autre = "GAME OVER" },
 } or {
@@ -63,11 +67,15 @@ local T = FR and {
 		"Leave the road by the EDGE: you fly, and land lower down. That's where the game is.",
 		"In the air: UP arrow = dive, DOWN arrow = climb. Left / right = spins.",
 		"Every coin grows your ENGINE: more coins, more speed.",
+		"Brake while turning: DRIFT! Let go, and the car shoots off harder.",
+		"In the air: UP arrow = climb, DOWN arrow = dive. Left / right = spins.",
 	},
 	astucesTactile = {
 		"Leave the road by the EDGE: you fly, and land lower down. That's where the game is.",
 		"In the air: thumb UP = dive, DOWN = climb. Left / right = spins.",
 		"Every coin grows your ENGINE: more coins, more speed.",
+		"Pull your thumb DOWN while turning: DRIFT!",
+		"In the air: thumb UP = climb, DOWN = dive. Left / right = spins.",
 	},
 	morts = { air = "TOO LONG IN THE AIR", vide = "SWALLOWED BY THE VOID", arret = "OUT OF GAS", tour = "SMASHED INTO A TOWER", sat = "HIT BY A SATELLITE", quitte = "RUN ENDED", autre = "GAME OVER" },
 }
@@ -574,6 +582,34 @@ function Hud.creer()
 	E.grand = texte(hud, { Text = "", TextSize = 38, TextColor3 = C.texte, Size = UDim2.new(1, 0, 0, 60), Position = UDim2.fromScale(0, 0.33), epais = 4 })
 	E.pop = texte(hud, { Text = "", TextSize = 22, TextColor3 = C.or_, Size = UDim2.new(1, 0, 0, 34), Position = UDim2.fromScale(0, 0.22), epais = 3 })
 	E.chaine = texte(hud, { Text = "", TextSize = 16, TextColor3 = C.cyan, Size = UDim2.new(1, 0, 0, 24), Position = UDim2.new(0, 0, 0.22, 38) })
+	-- LE LOGO DU DÉPART (#launchLogo + #launchGlow, L664 du jeu web ; 5/09 : « plus impressionnant ») : CASH CAR en or CLAQUE à
+	-- l'écran quand la caisse touche la route — parti de tout petit, il dépasse sa taille avant de s'y poser (un IMPACT, pas un
+	-- fondu), avec un halo doré derrière lui. C'est la seule célébration à rebond de l'interface (règle 7 de la charte).
+	do
+		local boite = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(640, 120), Position = UDim2.fromScale(0.5, 0.26),
+			AnchorPoint = Vector2.new(0.5, 0.5), Visible = false, ZIndex = 30 }, hud)
+		E.logoEchelle = inst("UIScale", { Scale = 0.18 }, boite)
+		-- le halo : des disques d'or emboîtés (un dégradé radial fait main)
+		E.logoHalo = {}
+		for k = 1, 6 do
+			local d = 520 * (1 - (k - 1) / 6.5)
+			local h = inst("Frame", { BackgroundColor3 = Color3.fromRGB(255, 180 + k * 7, 60 + k * 14), BackgroundTransparency = 1, BorderSizePixel = 0,
+				Size = UDim2.fromOffset(d, d), Position = UDim2.fromScale(0.5, 0.5), AnchorPoint = Vector2.new(0.5, 0.5), ZIndex = 29 }, boite)
+			inst("UICorner", { CornerRadius = UDim.new(0.5, 0) }, h)
+			E.logoHalo[k] = h
+		end
+		E.logoMots = {}
+		for k, m in { { "CASH", -84, Color3.fromRGB(255, 150, 30) }, { "CAR", 104, Color3.fromRGB(255, 94, 122) } } do
+			local t = texte(boite, { Text = m[1], TextSize = 84, TextColor3 = Color3.new(1, 1, 1), Size = UDim2.fromOffset(360, 100),
+				Position = UDim2.new(0.5, m[2], 0.5, 0), AnchorPoint = Vector2.new(0.5, 0.5), TextWrapped = false, epais = 4,
+				contourCouleur = Color3.fromRGB(60, 24, 6), italique = true, ZIndex = 31 })
+			inst("UIGradient", { Rotation = 90, Color = ColorSequence.new({
+				ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 246, 180)), ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 196, 40)),
+				ColorSequenceKeypoint.new(1, m[3]) }) }, t)
+			E.logoMots[k] = t
+		end
+		E.logo = boite
+	end
 	-- la carte ASTUCE
 	E.astuce = carbone(hud, UDim2.fromOffset(560, 108), UDim2.new(0.5, 130, 0, 180), C.cyan, Vector2.new(0.5, 0))
 	E.astuce.Visible = false
@@ -1141,6 +1177,42 @@ function Hud.grand(txt: string, couleur: Color3?, duree: number?, taille: number
 	E.grand.Size = UDim2.new(1, 0, 0, 80)
 	TweenService:Create(E.grand, LENTE, { Size = UDim2.new(1, 0, 0, 60) }):Play()
 	grandFin = os.clock() + (duree or 0.8)
+end
+-- LE LOGO DU DÉPART : il claque (0,7 s, à rebond), tient, puis s'efface — 1,9 s en tout, comme sur le web
+local logoN = 0
+function Hud.logoDepart()
+	logoN += 1
+	local n = logoN
+	E.logo.Visible = true
+	E.logoEchelle.Scale = 0.18
+	TweenService:Create(E.logoEchelle, TweenInfo.new(0.7, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 }):Play()
+	for _, t in E.logoMots do
+		t.TextTransparency = 1
+		local st = t:FindFirstChildOfClass("UIStroke")
+		if st then st.Transparency = 0 end
+		TweenService:Create(t, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { TextTransparency = 0 }):Play()
+	end
+	for k, h in E.logoHalo do
+		h.BackgroundTransparency = 1
+		TweenService:Create(h, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { BackgroundTransparency = 1 - 0.06 * k }):Play()
+	end
+	task.delay(1.9, function()
+		if n ~= logoN then return end
+		local sortie = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+		for _, t in E.logoMots do
+			TweenService:Create(t, sortie, { TextTransparency = 1 }):Play()
+			local st = t:FindFirstChildOfClass("UIStroke")
+			if st then TweenService:Create(st, sortie, { Transparency = 1 }):Play() end
+		end
+		for _, h in E.logoHalo do TweenService:Create(h, sortie, { BackgroundTransparency = 1 }):Play() end
+		task.delay(0.32, function() if n == logoN then E.logo.Visible = false end end)
+	end)
+end
+-- (une mort, un retour au menu : ni le logo ni la carte d'astuce ne restent plantés sur l'écran de fin ou la partie d'après)
+function Hud.logoCache()
+	logoN += 1
+	E.logo.Visible = false
+	E.astuce.Visible = false
 end
 local astuceFin = 0
 function Hud.astuce(txt: string, duree: number?)
