@@ -82,6 +82,10 @@ recommence (décision de Sacha, 2/10 : « fais la ville et l'espace, fais pas Pa
   sorties de virage sur 20 retombent dans le filet. Il paie VIRAGE À FOND (pris sans quitter la route) ou RATTRAPÉ (posé dans le filet).
 - **La pause** : la reprise compte 3-2-1 ; QUITTER et RECOMMENCER se confirment (deux appuis) ; QUITTER est une vraie fin de partie
   (les gains sont VERSÉS — avant le 2/10 ils étaient perdus), RECOMMENCER ne verse rien.
+- **Le portail** est l'OVULE du web : une sphère de 55 m (membrane translucide, noyau qui bat), qu'on franchit en y entrant d'où
+  qu'on vienne ; couper la route en vol pour l'atteindre paie un RACCOURCI.
+- **MIRACULÉ** (une chute perdue d'avance rattrapée), les **cris de vitesse** (« 400 KM/H ! », « RECORD DE VITESSE »), **COMÈTE**
+  (la caisse brûle à partir du palier 27), les **bords de l'écran** qui battent à la couleur du pouvoir actif.
 - **Le ciel musical** de la ville (`Client/CielMusical`) : seize quartiers de lumière et vingt-six piliers d'égaliseur autour de
   l'horizon, qui battent avec le morceau qui joue (ou à 120 à la minute sans musique importée) ; en sourdine à minuit.
 - **Le bitume mouillé** de la ville : les reflets de néon sont PEINTS dans l'image de la dalle (96 m qui se répètent).

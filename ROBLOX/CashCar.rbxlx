@@ -164,7 +164,7 @@ local function preparer(z: number, depart: CFrame?): Zone
 		local d = Instance.new("Folder")
 		d.Name = "Zone" .. z
 		Construction.route(p, d, ceder)
-		Construction.portail(p, d)
+		local ovule = Construction.portail(p, d)
 		local objs = Construction.objets(p, d, ceder)
 		-- LES NUAGES v8 : le ciel de coton, les bancs de route, les coussins, les tours (la piste d'école n'a que le ciel de coton :
 		-- sans lui, la toute première partie d'un joueur se jouait dans un ciel VIDE)
@@ -241,6 +241,8 @@ local function preparer(z: number, depart: CFrame?): Zone
 			if o.o.kind == "piece" and o.o.grp and o.o.face == 1 then series[o.o.grp] = (series[o.o.grp] or 0) + 1 end
 		end
 		e.ciel = ciel
+		local ea: any = e
+		ea.portail = ovule
 		e.piste, e.dossier, e.objets, e.grille, e.pads, e.series, e.prisSerie, e.nuages = p, d, objs, grille, pads, series, {}, nuages
 		e.pret = true
 	end)
@@ -890,13 +892,11 @@ local function atterrir(face: number, latX: number, sX: number, hR: number?)
 		Hud.vibre(40)
 	elseif gagne >= 60 then
 		raccourci = true
-		Score.flowAdd(math.min(45, 12 + gagne * 0.06), "risque", "m")
-		Hud.pop(tr("RACCOURCI +", "SHORTCUT +") .. math.floor(gagne + 0.5) .. " M", Color3.fromRGB(125, 255, 236), 22)
-		nitroGain(0.3)
-		Score.gesteMuet(tr("RACCOURCI", "SHORTCUT"), math.floor(math.min(250, 60 + gagne * 0.2) + 0.5), "coupe")
+		G.raccourci(gagne)
 	elseif gagne >= 25 then
 		Score.frenTrait("m", gagne / 60) -- une petite coupe nourrit MACHIAVEL
 	end
+	G.mirPose() -- MIRACULÉ : une chute qui était perdue d'avance
 	-- le dauphin verse ce qu'il a nagé
 	Score.dolPose()
 	-- les fautes, la série de poses propres
@@ -1286,6 +1286,54 @@ local function obstacles(dt: number, cf: CFrame)
 	if G.froleT <= 0 then G.froleN = 0 end
 end
 
+-- LE RACCOURCI (flowRaccourci, L32497) : couper la route paie — à la pose comme en entrant dans le portail en vol
+function G.raccourci(gagne: number)
+	Score.flowAdd(math.min(45, 12 + gagne * 0.06), "risque", "m")
+	Hud.pop(tr("RACCOURCI +", "SHORTCUT +") .. math.floor(gagne + 0.5) .. " M", Color3.fromRGB(125, 255, 236), 22)
+	nitroGain(0.3)
+	Score.gesteMuet(tr("RACCOURCI", "SHORTCUT"), math.floor(math.min(250, 60 + gagne * 0.2) + 0.5), "coupe")
+end
+-- MIRACULÉ (mirTick, mirPose, L23645) : la pose d'une chute qui était PERDUE D'AVANCE depuis 0,6 s ou plus (plus de route en vue,
+-- on tombait, 10 m sous la dalle la plus proche) — 160 d'aura, 240 après 1,5 s de perdition ; se rattraper au nitro : PSYCHO.
+function G.mirPose()
+	local m = G.mirMax or 0
+	G.mirT, G.mirMax = 0, 0
+	if m < 0.6 or TU.on then return end
+	Score.gesteMuet(tr("MIRACULE", "MIRACLE"), (m > 1.5) and 240 or 160, "miracle")
+	Score.flowAdd(10, "risque", "p")
+	task.delay(0.42, function()
+		if mode == "drive" or mode == "fall" then Hud.pop(tr("MIRACULE !", "MIRACLE!"), Color3.fromRGB(125, 255, 236), 24) end
+	end)
+	Bus.emit("flash", Color3.fromRGB(125, 255, 236), 0.7, 0.5)
+	Hud.vibre(120)
+	secousse = math.max(secousse, 0.45)
+	Sons.jouer("poseParfait", 1.25, 0.5)
+end
+-- LES PALIERS DE VITESSE (vpalTick, L23675) : chaque nouvelle centaine de km/h se crie (« 400 KM/H ! »), à partir d'une centaine
+-- sous le record — crier « 300 » à chaque partie deviendrait un tic — ; puis « RECORD DE VITESSE » quand il tombe.
+function G.vpal(k: number)
+	if TU.on or k <= 0 then return end
+	G.vp = G.vp or { n = 0, rec = false, c0 = 3 }
+	local P = G.vp
+	local c = math.floor(k / 100)
+	if c >= P.c0 and c > P.n then
+		P.n = c
+		Hud.pop((c * 100) .. tr(" KM/H !", " KM/H!"), (c >= 8) and Color3.fromRGB(255, 94, 200) or ((c >= 5) and Hud.C.or_ or Color3.fromRGB(159, 232, 255)), 24)
+		fovPunch = math.max(fovPunch, 5 + math.min(8, c))
+		Hud.vibre((c >= 6) and 50 or 10)
+		Sons.jouer("bip", Sons.demiTons(math.min(11, c)), 0.3)
+	end
+	local rec = G.kmhRecord or 0
+	if not P.rec and rec >= 250 and k > rec + 5 then
+		P.rec = true
+		task.delay(0.25, function()
+			if mode == "drive" or mode == "fall" then
+				HudScore.slam(tr("RECORD DE VITESSE", "SPEED RECORD"), math.floor(math.max(k, G.vmax) + 0.5) .. " KM/H", "#ffd75e", "#ff3924", 40, 2)
+			end
+		end)
+	end
+end
+
 -- LA ROUTE QUI TE RATTRAPE — LES DEUX PAIEMENTS (filetTick, filetRattrape, L32479 ; Sacha : « un virage bien pris paie PLUS qu'une
 -- chute rattrapée »). VIRAGE À FOND : traverser un virage à filet sans quitter la route, sans jamais descendre sous 80 % de sa
 -- vitesse de calcul (120 d'aura, du flow de route, un peu de nitro). RATTRAPÉ : sortir de ce virage et retomber dans son filet
@@ -1364,6 +1412,14 @@ function G.viseur(dt: number)
 		end
 	end
 	KA.Viseur.tick(dt, vu, cf, impact, os.clock())
+	-- (MIRACULÉ) depuis combien de temps cette chute est-elle perdue d'avance ?
+	if mode == "fall" and not intro then
+		local perdu = not vu and V.fallT > 0.4 and fallVel.Y < -4 and (not V.curNear or V.curH < -10)
+		G.mirT = perdu and ((G.mirT or 0) + dt) or math.max(0, (G.mirT or 0) - dt * 2)
+		G.mirMax = math.max(G.mirMax or 0, G.mirT)
+	else
+		G.mirT, G.mirMax = 0, 0
+	end
 end
 
 -- LA PLUIE DE SATELLITES (satHard, L14061) : percuter un satellite de la route tue ; le frôler (moins de 3,2 m en travers) se paie
@@ -1656,6 +1712,13 @@ local function passerPortail(): boolean
 		return false
 	end
 	local longueur = piste.len / M
+	-- LE RACCOURCI VERS LE PORTAIL (L30424 ; Sacha : « quand on coupe la route pour rejoindre le portail plus vite, ça doit quand même
+	-- rapporter du machiavélisme ») : on n'atterrit pas, la pose ne le voyait jamais. La piste qu'il restait à rouler jusqu'à l'entrée
+	-- de l'ovule (~L − 80) moins la ligne droite volée.
+	if mode == "fall" and not ecole then
+		local gagne = (longueur - 80 - V.flowS0) - (V.flowP0 - fallPos).Magnitude
+		if gagne >= 60 then G.raccourci(gagne) elseif gagne >= 25 then Score.frenTrait("m", gagne / 60) end
+	end
 	G.distAvant += longueur
 	local ancienne = zoneN
 	local lieuAvant = (piste :: any).niveau
@@ -2070,10 +2133,9 @@ local function etapeAir(dt: number)
 	elseif fallPos.Y * M < piste.minY - Config.MORT_SOUS * M then
 		exploser("vide")
 	else
-		-- on traverse le portail en volant : il compte aussi (même anneau que Construction.portail)
-		local f = Piste.repere(piste, piste.len - 20 * M)
-		local centre = f.Position + f.UpVector * (46 * M * 0.62)
-		if (fallPos * M - centre).Magnitude < 46 * M then passerPortail() end
+		-- on ENTRE dans l'ovule en volant : il compte aussi, d'où qu'on vienne (la sphère de Construction.portail)
+		local po = (zone :: any).portail
+		if po and (fallPos * M - po.c).Magnitude < po.R then passerPortail() end
 	end
 end
 
@@ -2289,6 +2351,7 @@ local function nouvellePartie()
 	G.idleT, G.idleMsg, graceT = 0, 0, 0
 	G.departT = 0
 	G.distAvant, G.vmax, G.serie, G.nbZones = 0, 0, 0, 0
+	G.vp = { n = 0, rec = false, c0 = math.max(3, math.floor((G.kmhRecord or 0) / 100) - 1) }
 	G.driftOn, G.driftC, G.driftLv, G.driftCd, G.slipB, G.slipT, G.oilCd = false, 0, 0, 0, 0, 0, 0
 	G.virT, G.virC, G.virD, G.virPaye, G.frondeCd, G.raseT, G.raseAnn, G.froleN, G.froleT = 0, 0, false, false, 0, 0, false, 0, 0
 	G.carRoll, G.rollV, G.levreY, secousse, fovPunch = 0, 0, 0, 0, 0
@@ -2343,6 +2406,7 @@ local function finPartie()
 		duree = stats.duree, chaine = stats.chaine, frenMax = Score.FREN.max, frenRec = Score.FREN.record, mis = mres.meilleur })
 	if rec then record = argent end
 	meilleurAura = math.max(meilleurAura, aura)
+	G.kmhRecord = math.max(G.kmhRecord or 0, G.vmax or 0)
 	local cause = T.morts[causeMort] or T.morts.autre
 	E.mCause.Text = rec and T.nouveau or cause
 	Hud.tenir(E.mCauseEchelle, E.mCause.Text, 62, 560)
@@ -2598,7 +2662,7 @@ workspace:GetAttributeChangedSignal("DbgOuvre"):Connect(function()
 	elseif string.sub(v, 1, 7) == "portail" then
 		-- (banc) saute au pied du portail : pour voir un changement de niveau sans rouler toute la zone
 		if mode == "drive" then
-			s = piste.len / M - 70
+			s = piste.len / M - ((string.sub(v, 8, 8) == "L") and 520 or 70) -- (« portailL… » : de LOIN, pour le voir venir)
 			sPrev = s
 			lat = 0
 		end
@@ -2793,6 +2857,7 @@ Bus.etat = function()
 		mode = mode, pause = enPause, intro = intro, s = s, lat = lat, side = side, RH = RH, psi = psi,
 		steer = steerS, yawR = yawR, vA = vA, kmh = kmh(), vmax = vmaxShow(), nitroOn = nitroOn, nitroR = nitroR,
 		warp = G.orbWarp or 0, feu = G.orbFeu or 0,
+		pouvoir = (pwN > 0 and "n") or (pwV > 0 and "v") or (pwX > 0 and "x") or (pwM > 0 and "m") or ((pwA > 0 and not TU.on) and "a") or nil,
 		reservoir = reservoir(), tier = tier, argent = argent, aura = aura, fallT = V.fallT, fallTR = V.fallTR,
 		zone = zoneN, figures = stats.figures, carCF = carCF, chainMult = V.chainMult, chainVal = V.chainVal, frein = Controles.frein,
 		driftOn = G.driftOn, driftLv = G.driftLv, nuage = ((mode == "drive" or mode == "fall") and G.nuageIn) or 0,
@@ -2964,6 +3029,21 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 			if course and not enPause then G.satHard() end
 			if not enPause then G.debTick(dt, cam.CFrame) end
 			G.viseur(dt)
+			if course and not enPause then G.vpal(kmh()) end
+			-- L'OVULE respire et tourne lentement, son noyau bat (L37927)
+			do
+				local po = (zone :: any).portail
+				if po and enJeu then
+					local t = os.clock()
+					local d = po.R * 2 * (1 + 0.035 * math.sin(t * 2.2))
+					po.membrane.Size = Vector3.new(d, d, d)
+					po.membrane.CFrame = CFrame.new(po.c) * CFrame.Angles(0, t * 0.12, 0)
+					po.irise.CFrame = CFrame.new(po.c) * CFrame.Angles(t * 0.1, -t * 0.2, 0)
+					local n = po.R * (0.44 + 0.085 * math.sin(t * 4.4))
+					po.noyau.Size = Vector3.new(n, n, n)
+					po.halo.Transparency = 1 - (0.22 + 0.08 * math.sin(t * 2.2)) * 0.8
+				end
+			end
 			-- LE CIEL MUSICAL : la ville seulement (en sourdine à minuit) ; il suit le volume du morceau qui joue
 			do
 				local k = (enJeu and (piste :: any).niveau == "ville") and ((var == "nuit") and 0.5 or 1) or 0
@@ -6651,28 +6731,34 @@ function Construction.route(piste: Piste.Piste, dossier: Instance, ceder: (() ->
 end
 
 -- le PORTAIL de fin de zone : un anneau d'or debout au-dessus de la route, et un voile qui scintille
-function Construction.portail(piste: Piste.Piste, dossier: Instance)
-	local f = Piste.repere(piste, piste.len - 20 * M)
-	local Rr = 46 * M
-	local c = f.Position + f.UpVector * (Rr * 0.62)
-	local nb = 28
-	for k = 0, nb - 1 do
-		local a0 = 2 * math.pi * k / nb
-		local a1 = 2 * math.pi * (k + 1) / nb
-		local p0 = c + (f.RightVector * math.cos(a0) + f.UpVector * math.sin(a0)) * Rr
-		local p1 = c + (f.RightVector * math.cos(a1) + f.UpVector * math.sin(a1)) * Rr
-		local seg = part(Vector3.new(3 * M, 3 * M, (p1 - p0).Magnitude + 1),
-			CFrame.lookAt((p0 + p1) / 2, p1, f.LookVector), (k % 2 == 0) and Color3.fromRGB(255, 215, 94) or Color3.fromRGB(255, 62, 200),
-			Enum.Material.Neon, dossier)
-		seg.CastShadow = false
+-- L'OVULE (L10343 ; Sacha, 26/09 : « plus gros et rond comme un ovule ; on peut le franchir en venant de n'importe quelle
+-- direction »). Plus un anneau posé sur la route : une SPHÈRE de 55 m de rayon (plus large que la route qui la traverse), le centre
+-- un peu au-dessus du bitume — la route entre dans le bas de l'ovule. Une membrane translucide qui brille sur ses bords (rose, et
+-- une seconde peau cyan dessous pour l'irisation), un NOYAU éclatant qui bat au centre, un halo. Le Pilote le fait respirer et
+-- tourner, et le franchit dès qu'on y ENTRE, d'où qu'on vienne. Rend ses pièces.
+function Construction.portail(piste: Piste.Piste, dossier: Instance): any
+	local f = Piste.repere(piste, piste.len - 25 * M)
+	local Rr = 55 * M
+	local c = f.Position + f.UpVector * (Rr * 0.38)
+	local function boule(d: number, couleur: Color3, matiere: Enum.Material, transp: number, nom: string): Part
+		local p = part(Vector3.new(d, d, d), CFrame.new(c), couleur, matiere, dossier)
+		p.Shape = Enum.PartType.Ball
+		p.Transparency = transp
+		p.CastShadow = false
+		p.Name = nom
+		return p
 	end
-	local voile = part(Vector3.new(Rr * 1.9, Rr * 1.9, 0.5), CFrame.fromMatrix(c, f.RightVector, f.UpVector, -f.LookVector),
-		Color3.fromRGB(255, 200, 120), Enum.Material.ForceField, dossier)
-	voile.Transparency = 0.2
-	local m = Instance.new("SpecialMesh")
-	m.MeshType = Enum.MeshType.Sphere
-	m.Scale = Vector3.new(1, 1, 0.02)
-	m.Parent = voile
+	local membrane = boule(Rr * 2, Color3.fromRGB(255, 79, 216), Enum.Material.ForceField, 0, "Ovule")
+	local irise = boule(Rr * 1.94, Color3.fromRGB(94, 230, 255), Enum.Material.ForceField, 0.35, "OvuleIrise")
+	local noyau = boule(Rr * 0.5, Color3.fromRGB(255, 208, 244), Enum.Material.Neon, 0.15, "OvuleNoyau")
+	local halo = boule(Rr * 0.9, Color3.fromRGB(255, 79, 216), Enum.Material.Neon, 0.8, "OvuleHalo")
+	local lum = Instance.new("PointLight")
+	lum.Color = Color3.fromRGB(255, 79, 216)
+	lum.Range = 60
+	lum.Brightness = 2
+	lum.Shadows = false
+	lum.Parent = noyau
+	return { c = c, R = Rr, membrane = membrane, irise = irise, noyau = noyau, halo = halo }
 end
 
 -- ── les objets ──
@@ -8794,12 +8880,21 @@ local bords: { Frame } = {}
 local teinte: { Frame } = {}
 local vigBas: Frame? = nil -- la bande du bas de la vignette : pleine sur la ROUTE (le bitume proche plonge dans le sombre), légère ailleurs
 local nfx = { edge = 0, c = Color3.fromRGB(255, 122, 36) }
+-- (PWR_DEFS.fx, L23506) la couleur de bord de chaque pouvoir, et sa force
+local POUVOIRS_FX: { [string]: { any } } = {
+	n = { Color3.fromRGB(164, 92, 255), 0.85 }, a = { Color3.fromRGB(94, 230, 255), 0.8 }, v = { Color3.fromRGB(255, 62, 200), 0.85 },
+	m = { Color3.fromRGB(94, 227, 122), 0.55 }, x = { Color3.fromRGB(255, 215, 94), 0.85 },
+}
 local function teinteTick(dt: number)
 	local vit = etat.mode == "drive" or etat.mode == "fall"
 	local on = etat.nitroOn == true
 	local eT = vit and (on and (etat.bleue and 0.36 or 0.3) or (((etat.boost or 0) > 0) and 0.14 or 0)) or 0
+	-- (HUD v3, L38030) LES BORDS BATTENT À LA COULEUR DU POUVOIR ACTIF — le plus « chaud » d'abord ; la nitro, elle, garde sa teinte
+	local pw = (vit and not on) and POUVOIRS_FX[etat.pouvoir or ""] or nil
+	if pw then eT = math.max(eT, pw[2] * (0.14 + 0.12 * (0.5 + 0.5 * math.sin(os.clock() * 5)))) end
 	nfx.edge += (eT - nfx.edge) * math.min(1, dt * ((eT > nfx.edge) and 8 or 2.6))
 	local cible = (etat.bleue and Color3.fromRGB(91, 125, 255)) or (on and (etat.infini and Color3.fromRGB(157, 77, 255) or Color3.fromRGB(255, 122, 36))) or Color3.fromRGB(255, 215, 94)
+	if pw then cible = pw[1] end
 	nfx.c = nfx.c:Lerp(cible, math.min(1, dt * 12))
 	-- LE FLOU DU LOINTAIN ne vit qu'en COURSE (le web floute le décor à la vitesse ; son menu, lui, est net)
 	do
@@ -9760,6 +9855,19 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 		continuTick(dt)
 		teinteTick(dt)
 		filesTick(dt, gui.AbsoluteSize)
+		-- COMÈTE (ENG_CAP.comete, L38121) : à partir du palier 27, la caisse BRÛLE en permanence — des flammes qui montent de la
+		-- carrosserie (60 par seconde), des braises
+		if (etat.tier or 0) >= 27 and (etat.mode == "drive" or etat.mode == "fall") and not etat.pause then
+			local cf: CFrame = etat.carCF
+			for _ = 1, 2 do
+				if rndF:NextNumber() < dt * 30 then
+					local q = cf.Position + cf.RightVector * ((rndF:NextNumber() - 0.5) * 1.7 * M) + cf.UpVector * ((0.25 + rndF:NextNumber() * 0.9) * M)
+						+ cf.LookVector * ((rndF:NextNumber() - 0.5) * 2.4 * M)
+					jet("langue", q, Vector3.yAxis, 1, 2.5, 7, 30, 0.2, 0.42)
+				end
+			end
+			if rndF:NextNumber() < dt * 10 then jet("braiseO", cf.Position + cf.UpVector * (0.4 * M), Vector3.yAxis, 1, 3, 8, 50, 0.5, 0.9) end
+		end
 		-- LA RENTRÉE ATMOSPHÉRIQUE (orbFeu) : des flammes au nez qui lèchent la carrosserie et traînent derrière, des braises
 		local feu = etat.feu or 0
 		if feu > 0 and (etat.mode == "drive" or etat.mode == "fall") and not etat.pause then
@@ -9773,6 +9881,8 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 			end
 		end
 	end)
+	-- un éclair de bords demandé par le pilote (MIRACULÉ…)
+	Bus.on("flash", function(couleur: Color3, alpha: number?, duree: number?) flashBords(couleur, alpha or 0.7, duree) end)
 	-- les portes de l'orbite : l'éclair bleu à l'entrée et au bout du tunnel, l'éclair orange de la rentrée
 	Bus.on("orbite", function(quoi: string)
 		if quoi == "sort" then

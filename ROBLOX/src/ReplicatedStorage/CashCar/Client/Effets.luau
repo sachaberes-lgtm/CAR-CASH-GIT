@@ -227,12 +227,21 @@ local bords: { Frame } = {}
 local teinte: { Frame } = {}
 local vigBas: Frame? = nil -- la bande du bas de la vignette : pleine sur la ROUTE (le bitume proche plonge dans le sombre), légère ailleurs
 local nfx = { edge = 0, c = Color3.fromRGB(255, 122, 36) }
+-- (PWR_DEFS.fx, L23506) la couleur de bord de chaque pouvoir, et sa force
+local POUVOIRS_FX: { [string]: { any } } = {
+	n = { Color3.fromRGB(164, 92, 255), 0.85 }, a = { Color3.fromRGB(94, 230, 255), 0.8 }, v = { Color3.fromRGB(255, 62, 200), 0.85 },
+	m = { Color3.fromRGB(94, 227, 122), 0.55 }, x = { Color3.fromRGB(255, 215, 94), 0.85 },
+}
 local function teinteTick(dt: number)
 	local vit = etat.mode == "drive" or etat.mode == "fall"
 	local on = etat.nitroOn == true
 	local eT = vit and (on and (etat.bleue and 0.36 or 0.3) or (((etat.boost or 0) > 0) and 0.14 or 0)) or 0
+	-- (HUD v3, L38030) LES BORDS BATTENT À LA COULEUR DU POUVOIR ACTIF — le plus « chaud » d'abord ; la nitro, elle, garde sa teinte
+	local pw = (vit and not on) and POUVOIRS_FX[etat.pouvoir or ""] or nil
+	if pw then eT = math.max(eT, pw[2] * (0.14 + 0.12 * (0.5 + 0.5 * math.sin(os.clock() * 5)))) end
 	nfx.edge += (eT - nfx.edge) * math.min(1, dt * ((eT > nfx.edge) and 8 or 2.6))
 	local cible = (etat.bleue and Color3.fromRGB(91, 125, 255)) or (on and (etat.infini and Color3.fromRGB(157, 77, 255) or Color3.fromRGB(255, 122, 36))) or Color3.fromRGB(255, 215, 94)
+	if pw then cible = pw[1] end
 	nfx.c = nfx.c:Lerp(cible, math.min(1, dt * 12))
 	-- LE FLOU DU LOINTAIN ne vit qu'en COURSE (le web floute le décor à la vitesse ; son menu, lui, est net)
 	do
@@ -1193,6 +1202,19 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 		continuTick(dt)
 		teinteTick(dt)
 		filesTick(dt, gui.AbsoluteSize)
+		-- COMÈTE (ENG_CAP.comete, L38121) : à partir du palier 27, la caisse BRÛLE en permanence — des flammes qui montent de la
+		-- carrosserie (60 par seconde), des braises
+		if (etat.tier or 0) >= 27 and (etat.mode == "drive" or etat.mode == "fall") and not etat.pause then
+			local cf: CFrame = etat.carCF
+			for _ = 1, 2 do
+				if rndF:NextNumber() < dt * 30 then
+					local q = cf.Position + cf.RightVector * ((rndF:NextNumber() - 0.5) * 1.7 * M) + cf.UpVector * ((0.25 + rndF:NextNumber() * 0.9) * M)
+						+ cf.LookVector * ((rndF:NextNumber() - 0.5) * 2.4 * M)
+					jet("langue", q, Vector3.yAxis, 1, 2.5, 7, 30, 0.2, 0.42)
+				end
+			end
+			if rndF:NextNumber() < dt * 10 then jet("braiseO", cf.Position + cf.UpVector * (0.4 * M), Vector3.yAxis, 1, 3, 8, 50, 0.5, 0.9) end
+		end
 		-- LA RENTRÉE ATMOSPHÉRIQUE (orbFeu) : des flammes au nez qui lèchent la carrosserie et traînent derrière, des braises
 		local feu = etat.feu or 0
 		if feu > 0 and (etat.mode == "drive" or etat.mode == "fall") and not etat.pause then
@@ -1206,6 +1228,8 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 			end
 		end
 	end)
+	-- un éclair de bords demandé par le pilote (MIRACULÉ…)
+	Bus.on("flash", function(couleur: Color3, alpha: number?, duree: number?) flashBords(couleur, alpha or 0.7, duree) end)
 	-- les portes de l'orbite : l'éclair bleu à l'entrée et au bout du tunnel, l'éclair orange de la rentrée
 	Bus.on("orbite", function(quoi: string)
 		if quoi == "sort" then

@@ -320,28 +320,34 @@ function Construction.route(piste: Piste.Piste, dossier: Instance, ceder: (() ->
 end
 
 -- le PORTAIL de fin de zone : un anneau d'or debout au-dessus de la route, et un voile qui scintille
-function Construction.portail(piste: Piste.Piste, dossier: Instance)
-	local f = Piste.repere(piste, piste.len - 20 * M)
-	local Rr = 46 * M
-	local c = f.Position + f.UpVector * (Rr * 0.62)
-	local nb = 28
-	for k = 0, nb - 1 do
-		local a0 = 2 * math.pi * k / nb
-		local a1 = 2 * math.pi * (k + 1) / nb
-		local p0 = c + (f.RightVector * math.cos(a0) + f.UpVector * math.sin(a0)) * Rr
-		local p1 = c + (f.RightVector * math.cos(a1) + f.UpVector * math.sin(a1)) * Rr
-		local seg = part(Vector3.new(3 * M, 3 * M, (p1 - p0).Magnitude + 1),
-			CFrame.lookAt((p0 + p1) / 2, p1, f.LookVector), (k % 2 == 0) and Color3.fromRGB(255, 215, 94) or Color3.fromRGB(255, 62, 200),
-			Enum.Material.Neon, dossier)
-		seg.CastShadow = false
+-- L'OVULE (L10343 ; Sacha, 26/09 : « plus gros et rond comme un ovule ; on peut le franchir en venant de n'importe quelle
+-- direction »). Plus un anneau posé sur la route : une SPHÈRE de 55 m de rayon (plus large que la route qui la traverse), le centre
+-- un peu au-dessus du bitume — la route entre dans le bas de l'ovule. Une membrane translucide qui brille sur ses bords (rose, et
+-- une seconde peau cyan dessous pour l'irisation), un NOYAU éclatant qui bat au centre, un halo. Le Pilote le fait respirer et
+-- tourner, et le franchit dès qu'on y ENTRE, d'où qu'on vienne. Rend ses pièces.
+function Construction.portail(piste: Piste.Piste, dossier: Instance): any
+	local f = Piste.repere(piste, piste.len - 25 * M)
+	local Rr = 55 * M
+	local c = f.Position + f.UpVector * (Rr * 0.38)
+	local function boule(d: number, couleur: Color3, matiere: Enum.Material, transp: number, nom: string): Part
+		local p = part(Vector3.new(d, d, d), CFrame.new(c), couleur, matiere, dossier)
+		p.Shape = Enum.PartType.Ball
+		p.Transparency = transp
+		p.CastShadow = false
+		p.Name = nom
+		return p
 	end
-	local voile = part(Vector3.new(Rr * 1.9, Rr * 1.9, 0.5), CFrame.fromMatrix(c, f.RightVector, f.UpVector, -f.LookVector),
-		Color3.fromRGB(255, 200, 120), Enum.Material.ForceField, dossier)
-	voile.Transparency = 0.2
-	local m = Instance.new("SpecialMesh")
-	m.MeshType = Enum.MeshType.Sphere
-	m.Scale = Vector3.new(1, 1, 0.02)
-	m.Parent = voile
+	local membrane = boule(Rr * 2, Color3.fromRGB(255, 79, 216), Enum.Material.ForceField, 0, "Ovule")
+	local irise = boule(Rr * 1.94, Color3.fromRGB(94, 230, 255), Enum.Material.ForceField, 0.35, "OvuleIrise")
+	local noyau = boule(Rr * 0.5, Color3.fromRGB(255, 208, 244), Enum.Material.Neon, 0.15, "OvuleNoyau")
+	local halo = boule(Rr * 0.9, Color3.fromRGB(255, 79, 216), Enum.Material.Neon, 0.8, "OvuleHalo")
+	local lum = Instance.new("PointLight")
+	lum.Color = Color3.fromRGB(255, 79, 216)
+	lum.Range = 60
+	lum.Brightness = 2
+	lum.Shadows = false
+	lum.Parent = noyau
+	return { c = c, R = Rr, membrane = membrane, irise = irise, noyau = noyau, halo = halo }
 end
 
 -- ── les objets ──
