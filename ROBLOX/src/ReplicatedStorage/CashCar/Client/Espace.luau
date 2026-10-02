@@ -321,7 +321,8 @@ function Espace.batir(piste: any, dossier: Instance, graine: number, ceder: (() 
 				end
 			end
 			local mx = math.max(hw, hu, ht) + 5
-			table.insert(obstacles, { q = q, W = W, U = U, T = T, hw = hw + 1.0, hu = hu + 0.75, ht = ht + 2.2, R2 = mx * mx, min = 99, pres = false, fait = false })
+			table.insert(obstacles, { q = q, W = W, U = U, T = T, hw = hw + 1.0, hu = hu + 0.75, ht = ht + 2.2, R2 = mx * mx, min = 99, pres = false, fait = false,
+				s = s9, haut = h > 5 }) -- (s, haut : la LIGNE PARFAITE ne pose jamais un fruit ni un pad dans un satellite posé sur la route)
 		end
 		local function gabarit(): (number, number, number)
 			local k = (r() < 0.55) and 0 or 1

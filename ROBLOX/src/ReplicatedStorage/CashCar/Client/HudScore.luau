@@ -139,6 +139,36 @@ function HudScore.slam(txt: string, sub: string?, c1: string?, c2: string?, tail
 	TweenService:Create(U.slamEchelle, TweenInfo.new(0.22, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), { Scale = 1 }):Play()
 end
 
+-- L'ARGENT QUI TOMBE EN FRÉNÉSIE (frenCash + fx3Tag, L21194 du jeu web) : un « ×3 » JAILLIT de là où l'argent est né (cinq
+-- étiquettes recyclées), et le « $×3 » de la bande de flow BAT. Au plus toutes les 90 ms (le pilote s'en charge).
+local FX3: any = { i = 0 }
+function HudScore.cash3(ecran: Vector2?)
+	if not FX3.pool then
+		FX3.pool = {}
+		for j = 1, 5 do
+			FX3.pool[j] = K.texte(U.slam.Parent, { Text = "", TextSize = 22, TextColor3 = hex("#ffd75e"), Size = UDim2.fromOffset(120, 26),
+				AnchorPoint = Vector2.new(0.5, 0.5), TextTransparency = 1, TextWrapped = false, epais = 3 })
+		end
+		FX3.echelle = inst("UIScale", {}, U.flowMul)
+	end
+	FX3.echelle.Scale = 1.35
+	TweenService:Create(FX3.echelle, TweenInfo.new(0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Scale = 1 }):Play()
+	if not ecran then return end
+	FX3.i = FX3.i % 5 + 1
+	local l: TextLabel = FX3.pool[FX3.i]
+	local racine = l.Parent :: GuiObject
+	local k = racine.AbsoluteSize.Y / 720 -- (l'interface est à l'échelle : on vise en pixels d'écran, on pose en unités de la racine)
+	local x, y = (ecran.X - racine.AbsolutePosition.X) / math.max(0.1, k), (ecran.Y - racine.AbsolutePosition.Y) / math.max(0.1, k)
+	l.Text = "×" .. Score.fmtMul(Score.flowMult())
+	l.Position = UDim2.fromOffset(x + math.random(-30, 30), y - 20)
+	l.TextTransparency = 0
+	local st = l:FindFirstChildOfClass("UIStroke")
+	if st then st.Transparency = 0 end
+	local ti = TweenInfo.new(0.55, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+	TweenService:Create(l, ti, { Position = UDim2.fromOffset(l.Position.X.Offset, y - 96), TextTransparency = 1 }):Play()
+	if st then TweenService:Create(st, ti, { Transparency = 1 }):Play() end
+end
+
 function HudScore.flash(couleur: string, alpha: number?)
 	U.eclair.BackgroundColor3 = hex(couleur)
 	U.eclair.BackgroundTransparency = 1 - (alpha or 0.5)
@@ -169,8 +199,133 @@ function HudScore.verse(g: number)
 	verseFin = os.clock() + 1.1
 end
 
+-- ════════ LE TITRE DE LA FRÉNÉSIE : « TRIPLE MONSTER » (frenTitre, L29157 du jeu web) ════════
+-- (Sacha, 28/09 : « quand on passe en frénésie, ça doit déclencher l'écriture TRIPLE MONSTER en rouge dégradé, avec une police un peu
+-- sataniste, et du sang qui coule du texte ».) Les lettres sont GOTHIQUES, dessinées au pixel (cornes en tête, fûts épais, pieds fendus
+-- en pointe), ombrées en bandes rouges (pâle en tête, sang au pied) ; du SANG coule de leurs pieds — des filets qui s'allongent par
+-- crans, puis une goutte qui se détache. 2,7 s : la durée exacte du ralenti. Pendant qu'il parle, la grande annonce se tait.
+-- (Les grilles sont celles du web, à la lettre ; bâti à la première frénésie.)
+local FT_G: { [string]: { string } } = {
+	T = { ".#.....#.", "##.....##", "#########", ".#######.", "...###...", "...###...", "...###...", "...###...", "...###...", "...###...", "...###...", "..#####..", ".##...##.", ".#.....#." },
+	R = { "#........", "##.......", "#######..", "###..###.", "###...##.", "###..###.", "######...", "###.##...", "###..##..", "###..###.", "###...##.", "###...###", "##.....##", "#.......#" },
+	I = { "#...#", "##.##", "#####", ".###.", ".###.", ".###.", ".###.", ".###.", ".###.", ".###.", ".###.", "#####", "##.##", "#...#" },
+	P = { "#........", "##.......", "#######..", "###..###.", "###...###", "###..###.", "#######..", "###......", "###......", "###......", "###......", "####.....", "##.......", "#........" },
+	L = { "#........", "##.......", "###......", "###......", "###......", "###......", "###......", "###......", "###......", "###......", "###......", "#######.#", "##.....##", "#.......#" },
+	E = { "#......#.", "##....##.", "########.", "###......", "###......", "###..#...", "######...", "###..#...", "###......", "###......", "###......", "########.", "##....##.", "#......#." },
+	M = { "#.........#", "##.......##", "###.#.#.###", "###########", "###.###.###", "###..#..###", "###.....###", "###.....###", "###.....###", "###.....###", "###.....###", "###.....###", "##.......##", "#.........#" },
+	O = { "....#....", "...###...", ".#######.", "###...###", "###...###", "###...###", "###...###", "###...###", "###...###", "###...###", "###...###", ".#######.", "...###...", "....#...." },
+	N = { "#.......#", "##.....##", "###...###", "####..###", "###.#.###", "###..####", "###...###", "###...###", "###...###", "###...###", "###...###", "###...###", "##.....##", "#.......#" },
+	S = { ".......#.", ".#######.", "###...###", "###....#.", "###......", ".######..", "..######.", "......###", "......###", ".#....###", "###...###", ".#######.", ".#.......", "#........" },
+}
+-- (les bandes du dégradé : 2 rangées pâles, 4 roses, 4 rouges, 2 sang, 2 sang sombre)
+local FT_BANDE = { "#ffe1e4", "#ffe1e4", "#ff6a78", "#ff6a78", "#ff6a78", "#ff6a78", "#ff2a3d", "#ff2a3d", "#ff2a3d", "#ff2a3d", "#c4001f", "#c4001f", "#7a0012", "#7a0012" }
+local FT: any = nil
+local T_FREN = (string.sub(game:GetService("Players").LocalPlayer.LocaleId or "fr", 1, 2) == "fr") and "FRENESIE" or "FRENZY"
+local ftN = 0
+local function ftLigne(parent: Instance, mot: string, px: number, nSang: number, graine: number, y0: number): { any }
+	local f = inst("Frame", { BackgroundTransparency = 1, AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, y0) }, parent)
+	local x = 0
+	local pieds: { number } = {}
+	for k = 1, #mot do
+		local g = FT_G[string.sub(mot, k, k)]
+		if g then
+			local w = #g[1]
+			for y, r in g do
+				local a: number? = nil
+				for i = 1, w + 1 do
+					local on = i <= w and string.sub(r, i, i) == "#"
+					if on and not a then a = i end
+					if not on and a then
+						-- (une ombre d'encre d'une case en bas à droite, puis la case : le cerne du web)
+						inst("Frame", { BackgroundColor3 = hex("#1c0408"), BorderSizePixel = 0, Size = UDim2.fromOffset((i - a) * px, px),
+							Position = UDim2.fromOffset((x + a - 1) * px + 2, (y - 1) * px + 2), ZIndex = 41 }, f)
+						inst("Frame", { BackgroundColor3 = hex(FT_BANDE[y]), BorderSizePixel = 0, Size = UDim2.fromOffset((i - a) * px, px),
+							Position = UDim2.fromOffset((x + a - 1) * px, (y - 1) * px), ZIndex = 42 }, f)
+						a = nil
+					end
+				end
+			end
+			local bas = g[#g]
+			for i = 1, w do
+				if string.sub(bas, i, i) == "#" then table.insert(pieds, x + i - 1) end -- le sang coule des POINTES des pieds
+			end
+			x += w + 1
+		end
+	end
+	f.Size = UDim2.fromOffset((x - 1) * px, 14 * px)
+	-- le SANG : quelques pieds tirés (graine fixe : le même dessin à chaque frénésie), un filet de 3 à 9 cases, sa goutte au bout
+	local r = graine
+	local function rnd(): number
+		r = (r * 9301 + 49297) % 233280
+		return r / 233280
+	end
+	local sang = {}
+	for _ = 1, nSang do
+		if #pieds == 0 then break end
+		local xx = table.remove(pieds, math.floor(rnd() * #pieds) + 1) :: number
+		local l = 3 + math.floor(rnd() * 7)
+		local dl = 0.15 + rnd() * 0.5
+		local filet = inst("Frame", { BackgroundColor3 = hex("#c4001f"), BorderSizePixel = 0, Size = UDim2.fromOffset(px, 0), Position = UDim2.fromOffset(xx * px, 14 * px), ZIndex = 42 }, f)
+		inst("UIGradient", { Rotation = 90, Color = ColorSequence.new(hex("#7a0012"), hex("#ff2a3d")) }, filet)
+		local goutte = inst("Frame", { BackgroundColor3 = hex("#ff2a3d"), BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.fromOffset(px * 1.3, px * 1.3), ZIndex = 42 }, f)
+		table.insert(sang, { filet = filet, goutte = goutte, l = l, dl = dl, x = xx, px = px })
+	end
+	return sang
+end
+function HudScore.frenTitre()
+	if not FT then
+		local g = inst("CanvasGroup", { Name = "FrenTitre", BackgroundTransparency = 1, Size = UDim2.fromOffset(700, 390), AnchorPoint = Vector2.new(0.5, 0),
+			Position = UDim2.fromScale(0.5, 0.28), Visible = false, ZIndex = 40 }, U.slam.Parent)
+		local sang = {}
+		for _, q in ftLigne(g, "TRIPLE", 6, 4, 7, 6) do table.insert(sang, q) end
+		for _, q in ftLigne(g, "MONSTER", 7, 8, 11, 6 + 14 * 6 + 16) do table.insert(sang, q) end
+		K.texte(g, { Text = T_FREN, TextSize = 20, TextColor3 = hex("#ffd0d5"), Size = UDim2.new(1, 0, 0, 24), Position = UDim2.fromOffset(0, 6 + 14 * 6 + 16 + 14 * 7 + 18),
+			TextWrapped = false, ZIndex = 43 })
+		FT = { g = g, sang = sang, echelle = inst("UIScale", {}, g) }
+	end
+	ftN += 1
+	local n = ftN
+	local g: CanvasGroup = FT.g
+	g.Visible = true
+	g.GroupTransparency = 1
+	FT.echelle.Scale = 1.8
+	TweenService:Create(FT.echelle, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), { Scale = 1 }):Play()
+	-- (pendant qu'il parle, la grande annonce et le verdict de la pose se taisent : UNE voix au centre)
+	slamFin, slamPrio = os.clock() + 2.7, 9
+	if E.astuce then E.astuce.Visible = false end -- (une carte d'astuce ne passe pas devant le titre)
+	U.slam.Text, U.slamSub.Text = "", ""
+	local t0 = os.clock()
+	task.spawn(function()
+		while n == ftN do
+			local t = os.clock() - t0
+			if t >= 2.7 then break end
+			-- l'entrée : il claque, clignote deux fois (0,35 → 0,6 s), tient, puis s'efface sur les 0,38 dernières secondes
+			local op = (t < 0.19) and (t / 0.19) or 1
+			if t > 0.3 and t < 0.43 then op = 0.25 + 0.75 * math.abs((t - 0.365) / 0.065) end
+			if t > 0.43 and t < 0.6 then op = 0.45 + 0.55 * math.abs((t - 0.515) / 0.085) end
+			if t > 2.32 then op = math.max(0, 1 - (t - 2.32) / 0.38) end
+			g.GroupTransparency = 1 - op
+			for _, q in FT.sang do
+				-- le filet s'allonge PAR CRANS (8 en 1,3 s), puis la goutte se détache et tombe
+				local u = math.clamp((t - q.dl - 0.25) / 1.3, 0, 1)
+				q.filet.Size = UDim2.fromOffset(q.px, q.l * q.px * math.floor(u * 8) / 8)
+				local v = (t - q.dl - 1.5) / 0.75
+				if v > 0 and v < 1 then
+					q.goutte.BackgroundTransparency = v
+					q.goutte.Position = UDim2.fromOffset(q.x * q.px - q.px * 0.15, (14 + q.l) * q.px + v * v * 5 * q.px)
+				else
+					q.goutte.BackgroundTransparency = 1
+				end
+			end
+			task.wait()
+		end
+		if n == ftN then g.Visible = false end
+	end)
+end
+
 function HudScore.fren(etat: string)
 	if etat == "debut" then
+		HudScore.frenTitre()
 		U.triade.Visible = true
 		U.triade.Position = UDim2.fromOffset(-260, 436)
 		TweenService:Create(U.triade, K.LENTE, { Position = UDim2.fromOffset(26, 436) }):Play()

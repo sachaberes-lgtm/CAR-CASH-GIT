@@ -222,7 +222,7 @@ local function frenDeclenche()
 		sub = cash
 	end
 	FREN.vu = true
-	Score.dire.slam(T("FRENESIE !", "FRENZY!"), sub, "#ff2a3d", "#ffb000", 44, 2, 22)
+	Score.dire.slam(T("FRENESIE !", "FRENZY!"), sub, "#ff2a3d", "#ffb000", 44, 2, 22) -- (le titre TRIPLE MONSTER la couvre 2,7 s : HudScore.frenTitre)
 	Score.dire.flash("#ff2a3d", 0.6)
 	Score.dire.son("frenesie")
 	Score.dire.musique(true)
@@ -666,13 +666,18 @@ Score.SFA = SFA
 function Score.poseJugee(propre: boolean, vraiVol: boolean): number
 	if not vraiVol then return 0 end
 	if not propre then
+		if SFA.n >= 3 then Score.dire.pop(T("SERIE CASSEE", "STREAK BROKEN"), "#ff5e7a", 1) end -- (L23659)
 		SFA.n = 0
 		return 0
 	end
 	SFA.n += 1
 	local n = SFA.n
-	if n == 3 or n == 5 or n == 8 or n == 12 or (n > 12 and (n - 12) % 5 == 0) then
-		Score.geste(T("SANS FAUTE", "FLAWLESS") .. " ×" .. n, 30 + 8 * math.min(20, n), "sansfaute", true)
+	if n == 3 or n == 5 or n == 8 or n == 12 or (n > 12 and n % 5 == 0) then -- (L23661 : 3 · 5 · 8 · 12, puis 15 · 20 · 25…)
+		Score.geste(T("SANS FAUTE", "FLAWLESS") .. " ×" .. n, 30 + 8 * math.min(20, n), "sansfaute", true, true)
+		-- (son texte arrive 0,7 s APRÈS la pose : le verdict et PARFAIT ! se lisent d'abord)
+		task.delay(0.7, function()
+			if ETAT.enCours then Score.dire.pop(T("SANS FAUTE", "FLAWLESS") .. " ×" .. n, "#7dff9a", 2) end
+		end)
 		return 0.12 -- la nitro rendue
 	end
 	return 0

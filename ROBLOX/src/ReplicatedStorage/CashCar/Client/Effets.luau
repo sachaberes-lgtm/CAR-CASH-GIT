@@ -1043,7 +1043,12 @@ local function continuTick(dt: number)
 			suivi.drift -= 1
 			local cote = (rnd:NextNumber() < 0.5) and -1 or 1
 			local pos = cf.Position - cf.LookVector * (1.5 * M) + cf.RightVector * (cote * 0.95 * M) - cf.UpVector * (0.3 * M)
-			jet(((etat.driftLv or 0) >= 3) and "roseC" or "orC", pos, -cf.LookVector * 2 + cf.UpVector, rnd:NextInteger(1, 3), 5 * 0.2, 7 * 0.8, 45)
+			-- (L20811) LES ÉTINCELLES DISENT LA CHARGE : rien tant que le mini-turbo n'est pas né, puis BLEU (MINI, 0,45 s), OR (SUPER,
+			-- 0,9 s), ROSE (ULTRA, 1,4 s). Avant, tout virage appuyé crachait de l'or : on ne lisait pas où en était le drift.
+			local lv9 = etat.driftLv or 0
+			if lv9 >= 1 then
+				jet((lv9 >= 3) and "roseC" or ((lv9 == 2) and "orC" or "bleuC"), pos, -cf.LookVector * 2 + cf.UpVector, rnd:NextInteger(1, 3), 5 * 0.2, 7 * 0.8, 45)
+			end
 			jet("poussiereC", pos, -cf.LookVector + cf.UpVector * 0.5, 1, 1, 3, 30, 0.4, 0.75)
 		end
 	end

@@ -391,8 +391,10 @@ local function nitroGain(q: number) nitroR = math.min(reservoir(), nitroR + q) e
 local SON_DE = { ["fig.maillon"] = "maillon", ["aura.geste"] = "maillon", ["aura.encaisse1"] = "encaisse", ["aura.encaisse2"] = "encaisse",
 	["aura.encaisse3"] = "encaisse", ["aura.record"] = "record", ["frenesie"] = "record", ["flow.palier"] = "nitroPlein", ["frenesie.record"] = "record",
 	["flow.tic"] = "bip", ["frenesie.arme"] = "bip", ["plus.vite"] = "bip" }
-Score.dire.pop = function(txt: string, c: string?, prio: number?) Hud.pop(txt, HudScore.hex(c), (prio and prio >= 2) and 24 or 20) end
+Score.dire.pop = function(txt: string, c: string?, prio: number?) Hud.pop(txt, HudScore.hex(c), (prio and prio >= 2) and 24 or 20, prio) end
 Score.dire.slam = HudScore.slam
+-- LA MUSIQUE EN FRÉNÉSIE (frenMus, L25559) : sans morceau dédié, la radio S'EMBALLE (× 1,06 en 0,3 s) et RETOMBE à la fin (0,45 s)
+Score.dire.musique = function(on: boolean) G.frenMus = on end
 Score.dire.hap = function(f: number?) Hud.vibre(f or 10) end
 Score.dire.flash = HudScore.flash
 Score.dire.tag = HudScore.tag
@@ -410,6 +412,13 @@ local function encaisser(x: number, source: string): number
 	local g = x * Score.flowMult()
 	argent += g
 	Score.frenCash(g)
+	-- (frenCash, L21194) l'argent qui tombe EN FRÉNÉSIE se voit : un « ×3 » jaillit de la caisse, le « $×3 » de la bande bat
+	if g > 0 and Score.FLOW.lv == 4 and os.clock() - (G.fx3T or 0) > 0.09 then
+		G.fx3T = os.clock()
+		local v, vu = workspace.CurrentCamera:WorldToScreenPoint(carCF.Position + carCF.UpVector * (1.2 * M))
+		HudScore.cash3((vu and v.Z > 0) and Vector2.new(v.X, v.Y) or nil)
+		Sons.jouer("frenCash", nil, 0.35)
+	end
 	Bus.emit("argent", g, source)
 	return g
 end
@@ -964,17 +973,17 @@ local function atterrir(face: number, latX: number, sX: number, hR: number?)
 			if nitroOn and V.nitroAirT > 5 then mot, c, taille, pr = tr("MEGA METEORE", "MEGA METEOR"), "#ff7a24", 44, 3 end -- 5 s de réacteur : l'ultime
 			HudScore.slam(mot, nil, c, nil, taille, pr)
 		end
-		if g >= 1.5 then Hud.pop(tr("PARFAIT !", "PERFECT!"), Hud.C.or_, 24) end
+		if g >= 1.5 then Hud.pop(tr("PARFAIT !", "PERFECT!"), Hud.C.or_, 24, 2) end
 	end
 	nitroGain(Score.nitroPoseDe(reservoir(), V.volT, V.nitT)) -- la pose rend 20 % de la jauge pour un VRAI vol (1,2 s), nitro coupée
 	if g >= 1.5 and not ratee and (V.fallT > 0.7 or paye) then stats.parfaites += 1 end
 	-- ARRACHÉE / AU CHEVEU : posé juste avant la fin du chrono
 	local reste = airMax() - V.fallTR
 	if pwA <= 0 and reste <= 0.10 then
-		Score.geste(tr("AU CHEVEU", "BY A HAIR"), 220, "cheveu")
+		Hud.pop(tr("AU CHEVEU", "BY A HAIR") .. " +" .. Score.gesteMuet(tr("AU CHEVEU", "BY A HAIR"), 220, "cheveu"), Color3.fromRGB(255, 94, 200), 24, 3)
 		Score.flowAdd(20, "risque", "n")
 	elseif pwA <= 0 and reste <= 0.30 then
-		Score.geste(tr("ARRACHEE", "CLUTCH"), 120, "cheveu")
+		Hud.pop(tr("ARRACHEE", "CLUTCH") .. " +" .. Score.gesteMuet(tr("ARRACHEE", "CLUTCH"), 120, "cheveu"), Hud.C.or_, 24, 3)
 		Score.flowAdd(12, "risque", "n")
 	end
 	-- LE RACCOURCI : la piste gagnée − la distance volée en ligne droite
@@ -1391,7 +1400,7 @@ end
 -- LE RACCOURCI (flowRaccourci, L32497) : couper la route paie — à la pose comme en entrant dans le portail en vol
 function G.raccourci(gagne: number)
 	Score.flowAdd(math.min(45, 12 + gagne * 0.06), "risque", "m")
-	Hud.pop(tr("RACCOURCI +", "SHORTCUT +") .. math.floor(gagne + 0.5) .. " M", Color3.fromRGB(125, 255, 236), 22)
+	Hud.pop(tr("RACCOURCI +", "SHORTCUT +") .. math.floor(gagne + 0.5) .. " M", Color3.fromRGB(125, 255, 236), 22, 3)
 	Hud.vibre(50)
 	nitroGain(0.3)
 	Score.gesteMuet(tr("RACCOURCI", "SHORTCUT"), math.floor(math.min(250, 60 + gagne * 0.2) + 0.5), "coupe")
@@ -1405,7 +1414,7 @@ function G.mirPose()
 	Score.gesteMuet(tr("MIRACULE", "MIRACLE"), (m > 1.5) and 240 or 160, "miracle")
 	Score.flowAdd(10, "risque", "p")
 	task.delay(0.42, function()
-		if mode == "drive" or mode == "fall" then Hud.pop(tr("MIRACULE !", "MIRACLE!"), Color3.fromRGB(125, 255, 236), 24) end
+		if mode == "drive" or mode == "fall" then Hud.pop(tr("MIRACULE !", "MIRACLE!"), Color3.fromRGB(125, 255, 236), 24, 3) end
 	end)
 	Bus.emit("flash", Color3.fromRGB(125, 255, 236), 0.7, 0.5)
 	Hud.vibre(120)
@@ -1609,7 +1618,7 @@ function G.debTick(dt: number, camCF: CFrame)
 		-- TOUCHÉ : la vitesse et le flow prennent le choc — pas la vie ; en gravité lunaire, la gerbe soulève la caisse
 		vA *= 0.6
 		momT = 0
-		Score.flowFaute("n", 20, 0.25)
+		Score.flowCoup(20) -- (L32966 : la jauge perd 20 points, sans plancher au palier)
 		D.serie = 0
 		G.hopV = math.max(G.hopV, 7.5)
 		secousse = math.max(secousse, 1.1)
@@ -1733,6 +1742,13 @@ local function ligneBloque(s9: number): boolean
 			if o.kind == "flaque" and d < (o.r or 2.5) + 7 then return true end
 		end
 	end
+	-- (L11913, PLUIE DE SATELLITES) jamais dans un satellite posé sur la route : la ligne idéale ne mène pas à la mort
+	local sats = (zone :: any).sats
+	if sats then
+		for _, o in sats do
+			if o.s and not o.haut and math.abs(o.s - s9) < o.ht + 12 then return true end
+		end
+	end
 	return false
 end
 local function ligneTick(dt: number)
@@ -1802,6 +1818,10 @@ local function activer(e: Zone)
 	if e.ciel then e.ciel.Parent = (mode ~= "menu" and mode ~= "garage" and mode ~= "charge") and e.dossier or nil end
 	oi = 1
 	evEtat:FireServer("zone", e.z)
+	-- LA VILLE SE GAGNE SUR LA ROUTE (flowLieu, L21007 — appelé par newTrack, L30919) : entre les tours on saute peu, le SUPER/ULTRA
+	-- TURBO et le raccourci y font partir la frénésie armée, la vitesse tenue au sol paie plus. (Avant le 2/10 soir ce réglage
+	-- existait mais n'était jamais posé : les deux niveaux de ville se jouaient aux règles des nuages.)
+	Score.lieu((piste :: any).niveau)
 	Bus.emit("niveau", (piste :: any).niveau, (piste :: any).variante)
 end
 local function passerPortail(): boolean
@@ -1844,6 +1864,27 @@ local function passerPortail(): boolean
 	end
 	remettreObjets(suiv)
 	activer(suiv)
+	-- TRAVERSÉ EN VOL (portailPasse, L30424 ; newTrack, L30943) : le vol s'arrête proprement — la caisse repart posée au départ de
+	-- la nouvelle route, son élan gardé ; la figure du vol compte, la chaîne d'argent se ferme. (Avant : le vol continuait, chrono
+	-- compris, parfois à 80 m du premier mètre de route — on mourait juste après le portail.) La coupe se cache sous son éclair.
+	if mode == "fall" and not intro then
+		vA = math.max(vA, Vector3.new(fallVel.X, 0, fallVel.Z).Magnitude / vitMult(), 20)
+		Score.dolFin()
+		if V.chainN > 0 then stats.poses += 1 end
+		V.chainVal, V.chainMult, V.chainN = 0, 1, 0
+		local avant = carCF.Position
+		s, sPrev, lat, latPrev, psi, side, yawR = 0, 0, 0, 0, 0, 1, 0
+		G.slipB, G.hopY, G.hopV, G.levreY, G.driftYaw = 0, 0, 0, 0, 0
+		mode = "drive"
+		Score.ETAT.mode = "drive"
+		graceT = 0.3
+		V.fallT, V.fallTR, V.bascOn = 0, 0, false
+		E.air.Visible = false
+		carCF = repere(0, 1)
+		KA.pos += carCF.Position - avant
+		KA.vise += carCF.Position - avant
+		Bus.emit("flash", Color3.fromRGB(255, 79, 216), 0.6, 0.5)
+	end
 	if not ecole then oublier(ancienne) end
 	-- L'ORBITE A SES PORTES (orbWarp, orbFeu, L29789) : on n'arrive plus dans l'espace par un simple fondu. ENTRÉE = un TUNNEL DE
 	-- DISTORSION (1,9 s : le champ se déchire, des traits de lumière filent, éclair bleu à l'entrée et à la sortie du tunnel) ;
@@ -1951,7 +1992,14 @@ local function etapeSol(dt: number)
 	else
 		G.astD = 0
 	end
-	if not frein and not G.driftOn and math.abs(psi - G.slipB) < 0.25 then momT = math.min(4.3, momT + dt) else momT = math.max(0, momT - 2 * dt) end
+	-- (L36721, conduite v6) elle se remplit quand on tient sa ligne (cap < 0,25), elle est GELÉE entre 0,25 et 0,6 (tenir sa ligne
+	-- dans un virage : on y braque forcément), elle ne se vide (2/s) qu'en glisse ou sur un gros coup de volant. Un slalom ou un
+	-- coup de frein ne coûtent plus la vitesse de pointe.
+	if not G.driftOn and math.abs(psi - G.slipB) < 0.6 then
+		if math.abs(psi - G.slipB) < 0.25 then momT = math.min(4.3, momT + dt) end
+	else
+		momT = math.max(0, momT - 2 * dt)
+	end
 	local momF = 1 + math.min(1.8, momT * momT * 0.1)
 	local a
 	if frein and not G.driftOn then
@@ -2401,10 +2449,15 @@ local function habiller(dt: number)
 		if not Sons.a(veut) then veut = "musique" end
 		G.musVeut = veut
 		G.mus = G.mus or { musique = 0, musiqueNuages = 0, musiqueVille = 0, musiqueOrage = 0 }
+		do
+			local cible = (G.frenMus and (mode == "drive" or mode == "fall")) and 1.06 or 1
+			local v = G.musVit or 1
+			G.musVit = v + math.clamp(cible - v, -dt * 0.06 / 0.45, dt * 0.06 / 0.3)
+		end
 		for nom, k in G.mus do
 			k += math.clamp(((nom == veut) and 1 or 0) - k, -dt / 1.2, dt / 1.2)
 			G.mus[nom] = k
-			if nom == "musique" or Sons.a(nom) then Sons.regler(nom, 0.32 * k) end
+			if nom == "musique" or Sons.a(nom) then Sons.regler(nom, 0.32 * k, G.musVit) end
 		end
 	end
 	-- (L36600) le silence habité de l'orbite : une ambiance en boucle, seulement là-haut
@@ -2423,7 +2476,21 @@ local function hud(dt: number)
 		local sec = string.format("%.1f", math.max(0, airMax() - V.fallTR))
 		if FR then sec = string.gsub(sec, "%.", ",") end
 		Hud.air(reste, sec, pwA > 0)
+		-- …ET IL TIQUE (L37497) : les yeux sont sur la caisse, pas sur le chrono — sous 1,5 s, un tic qui accélère (0,34 s → 0,09 s),
+		-- plus sec sous 0,5 s, et une micro-vibration à chaque tic. Un danger sonne en BOIS, jamais en cloche de récompense.
+		local r9 = airMax() - V.fallTR
+		if pwA <= 0 and r9 < 1.5 and r9 > 0 then
+			G.airTic = (G.airTic or 0) - dt
+			if G.airTic <= 0 then
+				G.airTic = 0.09 + 0.25 * r9 / 1.5
+				if Sons.a("alerteTic") then Sons.jouer((r9 < 0.5) and "alerteTac" or "alerteTic") else Sons.jouer("tap", (r9 < 0.5) and 0.7 or 0.55, 0.5) end
+				Hud.vibre(5)
+			end
+		else
+			G.airTic = 0
+		end
 	end
+	Hud.dolVol((mode == "fall" and not intro) and Score.dolVu() or 0) -- le dauphin : l'aura monte sous la caisse pendant qu'il nage
 	-- les plaques des pouvoirs actifs, dans l'ordre fixe du web (l'œil apprend où regarder)
 	local pw = {}
 	for _, q in { { "n", pwN }, { "a", pwA }, { "v", pwV }, { "m", pwM }, { "x", pwX } } do
@@ -3110,7 +3177,8 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 					if kN > 0 then secousse = math.max(secousse, ((mode == "fall") and 0.1 or 0.07) * kN) end
 					if quoi then
 						Bus.emit("nuage", quoi, kN)
-						if quoi == "defonce" then Score.flowAdd(3, "style", "n") elseif quoi == "percee" then Score.flowAdd(7, "risque", "n") end
+						-- (Sacha, 30/09 : « les nuages doivent juste BLOQUER LA VUE, rien d'autre » — `addStyle` est vide sur le web : ni le banc
+						-- défoncé ni la percée à l'aveugle ne paient de flow. À L'ORAGE, 90 bancs nourrissaient la jauge tout seuls.)
 					end
 				end
 				nitroooTick(dt)
@@ -9872,7 +9940,12 @@ local function continuTick(dt: number)
 			suivi.drift -= 1
 			local cote = (rnd:NextNumber() < 0.5) and -1 or 1
 			local pos = cf.Position - cf.LookVector * (1.5 * M) + cf.RightVector * (cote * 0.95 * M) - cf.UpVector * (0.3 * M)
-			jet(((etat.driftLv or 0) >= 3) and "roseC" or "orC", pos, -cf.LookVector * 2 + cf.UpVector, rnd:NextInteger(1, 3), 5 * 0.2, 7 * 0.8, 45)
+			-- (L20811) LES ÉTINCELLES DISENT LA CHARGE : rien tant que le mini-turbo n'est pas né, puis BLEU (MINI, 0,45 s), OR (SUPER,
+			-- 0,9 s), ROSE (ULTRA, 1,4 s). Avant, tout virage appuyé crachait de l'or : on ne lisait pas où en était le drift.
+			local lv9 = etat.driftLv or 0
+			if lv9 >= 1 then
+				jet((lv9 >= 3) and "roseC" or ((lv9 == 2) and "orC" or "bleuC"), pos, -cf.LookVector * 2 + cf.UpVector, rnd:NextInteger(1, 3), 5 * 0.2, 7 * 0.8, 45)
+			end
 			jet("poussiereC", pos, -cf.LookVector + cf.UpVector * 0.5, 1, 1, 3, 30, 0.4, 0.75)
 		end
 	end
@@ -10520,7 +10593,8 @@ function Espace.batir(piste: any, dossier: Instance, graine: number, ceder: (() 
 				end
 			end
 			local mx = math.max(hw, hu, ht) + 5
-			table.insert(obstacles, { q = q, W = W, U = U, T = T, hw = hw + 1.0, hu = hu + 0.75, ht = ht + 2.2, R2 = mx * mx, min = 99, pres = false, fait = false })
+			table.insert(obstacles, { q = q, W = W, U = U, T = T, hw = hw + 1.0, hu = hu + 0.75, ht = ht + 2.2, R2 = mx * mx, min = 99, pres = false, fait = false,
+				s = s9, haut = h > 5 }) -- (s, haut : la LIGNE PARFAITE ne pose jamais un fruit ni un pad dans un satellite posé sur la route)
 		end
 		local function gabarit(): (number, number, number)
 			local k = (r() < 0.55) and 0 or 1
@@ -12851,6 +12925,10 @@ function Hud.creer()
 	E.grand = texte(hud, { Text = "", TextSize = 38, TextColor3 = C.texte, Size = UDim2.new(1, 0, 0, 60), Position = UDim2.fromScale(0, 0.33), epais = 4 })
 	E.pop = texte(hud, { Text = "", TextSize = 22, TextColor3 = C.or_, Size = UDim2.new(1, 0, 0, 34), Position = UDim2.fromScale(0, 0.22), epais = 3 })
 	E.chaine = texte(hud, { Text = "", TextSize = 16, TextColor3 = C.cyan, Size = UDim2.new(1, 0, 0, 24), Position = UDim2.new(0, 0, 0.22, 38) })
+	-- LE DAUPHIN v7 (dolHudVol, L29722 ; Sacha, 30/09 : « on doit voir l'aura monter pendant l'animation des dauphins, pendant qu'on
+	-- survole la route ») : EN VOL, un compteur seul monte sous la caisse dès que les dauphins nagent — ce qui sera VRAIMENT versé.
+	E.dolVol = texte(hud, { Text = "", TextSize = 26, TextColor3 = Color3.fromRGB(125, 255, 236), Size = UDim2.new(1, 0, 0, 30),
+		Position = UDim2.fromScale(0, 0.76), Visible = false, epais = 3 })
 	-- LE LOGO DU DÉPART (#launchLogo + #launchGlow, L664 du jeu web ; 5/09 : « plus impressionnant ») : CASH CAR en or CLAQUE à
 	-- l'écran quand la caisse touche la route — parti de tout petit, il dépasse sa taille avant de s'y poser (un IMPACT, pas un
 	-- fondu), avec un halo doré derrière lui. C'est la seule célébration à rebond de l'interface (règle 7 de la charte).
@@ -13430,8 +13508,15 @@ end
 function Hud.ecranCourant(): string return courant end
 
 -- ── la course ──
+-- UNE PRIORITÉ (popTexte, L20827) : un temps fort (PARFAIT = 2 ; AU CHEVEU, RACCOURCI, MIRACULÉ = 3) ne se fait pas voler la
+-- vedette par un geste (0) ou un palier (1) dans les 650 ms. Sans elle, la pose écrivait jusqu'à sept textes dans la même image
+-- et seul le dernier se lisait.
 local popFin = 0
-function Hud.pop(txt: string, couleur: Color3?, taille: number?)
+local popPrio, popPrioFin = 0, 0
+function Hud.pop(txt: string, couleur: Color3?, taille: number?, prio: number?)
+	local p9, t9 = prio or 0, os.clock()
+	if p9 < popPrio and t9 < popPrioFin then return end
+	popPrio, popPrioFin = p9, t9 + 0.65
 	E.pop.Text = txt
 	E.pop.TextColor3 = couleur or C.or_
 	E.pop.TextSize = taille or 22
@@ -13485,6 +13570,20 @@ function Hud.logoCache()
 	logoN += 1
 	E.logo.Visible = false
 	E.astuce.Visible = false
+end
+-- le compteur du dauphin EN VOL (0 = rien à montrer) ; il n'écrit que si l'entier change, et BONDIT quand la figure naît
+local dolVu = -1
+function Hud.dolVol(v: number)
+	if v == dolVu then return end
+	local bond = dolVu > 0 and v >= dolVu * 1.6 and v - dolVu >= 20
+	dolVu = v
+	E.dolVol.Visible = v > 0
+	if v <= 0 then return end
+	E.dolVol.Text = "+" .. v .. " AURA"
+	if bond then
+		E.dolVol.TextSize = 38
+		TweenService:Create(E.dolVol, LENTE, { TextSize = 26 }):Play()
+	end
 end
 -- le bilan de la partie en cours, sous le titre PAUSE
 function Hud.pauseBilan(aura: number, moteur: number, niveau: number)
@@ -13651,6 +13750,36 @@ function HudScore.slam(txt: string, sub: string?, c1: string?, c2: string?, tail
 	TweenService:Create(U.slamEchelle, TweenInfo.new(0.22, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), { Scale = 1 }):Play()
 end
 
+-- L'ARGENT QUI TOMBE EN FRÉNÉSIE (frenCash + fx3Tag, L21194 du jeu web) : un « ×3 » JAILLIT de là où l'argent est né (cinq
+-- étiquettes recyclées), et le « $×3 » de la bande de flow BAT. Au plus toutes les 90 ms (le pilote s'en charge).
+local FX3: any = { i = 0 }
+function HudScore.cash3(ecran: Vector2?)
+	if not FX3.pool then
+		FX3.pool = {}
+		for j = 1, 5 do
+			FX3.pool[j] = K.texte(U.slam.Parent, { Text = "", TextSize = 22, TextColor3 = hex("#ffd75e"), Size = UDim2.fromOffset(120, 26),
+				AnchorPoint = Vector2.new(0.5, 0.5), TextTransparency = 1, TextWrapped = false, epais = 3 })
+		end
+		FX3.echelle = inst("UIScale", {}, U.flowMul)
+	end
+	FX3.echelle.Scale = 1.35
+	TweenService:Create(FX3.echelle, TweenInfo.new(0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Scale = 1 }):Play()
+	if not ecran then return end
+	FX3.i = FX3.i % 5 + 1
+	local l: TextLabel = FX3.pool[FX3.i]
+	local racine = l.Parent :: GuiObject
+	local k = racine.AbsoluteSize.Y / 720 -- (l'interface est à l'échelle : on vise en pixels d'écran, on pose en unités de la racine)
+	local x, y = (ecran.X - racine.AbsolutePosition.X) / math.max(0.1, k), (ecran.Y - racine.AbsolutePosition.Y) / math.max(0.1, k)
+	l.Text = "×" .. Score.fmtMul(Score.flowMult())
+	l.Position = UDim2.fromOffset(x + math.random(-30, 30), y - 20)
+	l.TextTransparency = 0
+	local st = l:FindFirstChildOfClass("UIStroke")
+	if st then st.Transparency = 0 end
+	local ti = TweenInfo.new(0.55, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+	TweenService:Create(l, ti, { Position = UDim2.fromOffset(l.Position.X.Offset, y - 96), TextTransparency = 1 }):Play()
+	if st then TweenService:Create(st, ti, { Transparency = 1 }):Play() end
+end
+
 function HudScore.flash(couleur: string, alpha: number?)
 	U.eclair.BackgroundColor3 = hex(couleur)
 	U.eclair.BackgroundTransparency = 1 - (alpha or 0.5)
@@ -13681,8 +13810,133 @@ function HudScore.verse(g: number)
 	verseFin = os.clock() + 1.1
 end
 
+-- ════════ LE TITRE DE LA FRÉNÉSIE : « TRIPLE MONSTER » (frenTitre, L29157 du jeu web) ════════
+-- (Sacha, 28/09 : « quand on passe en frénésie, ça doit déclencher l'écriture TRIPLE MONSTER en rouge dégradé, avec une police un peu
+-- sataniste, et du sang qui coule du texte ».) Les lettres sont GOTHIQUES, dessinées au pixel (cornes en tête, fûts épais, pieds fendus
+-- en pointe), ombrées en bandes rouges (pâle en tête, sang au pied) ; du SANG coule de leurs pieds — des filets qui s'allongent par
+-- crans, puis une goutte qui se détache. 2,7 s : la durée exacte du ralenti. Pendant qu'il parle, la grande annonce se tait.
+-- (Les grilles sont celles du web, à la lettre ; bâti à la première frénésie.)
+local FT_G: { [string]: { string } } = {
+	T = { ".#.....#.", "##.....##", "#########", ".#######.", "...###...", "...###...", "...###...", "...###...", "...###...", "...###...", "...###...", "..#####..", ".##...##.", ".#.....#." },
+	R = { "#........", "##.......", "#######..", "###..###.", "###...##.", "###..###.", "######...", "###.##...", "###..##..", "###..###.", "###...##.", "###...###", "##.....##", "#.......#" },
+	I = { "#...#", "##.##", "#####", ".###.", ".###.", ".###.", ".###.", ".###.", ".###.", ".###.", ".###.", "#####", "##.##", "#...#" },
+	P = { "#........", "##.......", "#######..", "###..###.", "###...###", "###..###.", "#######..", "###......", "###......", "###......", "###......", "####.....", "##.......", "#........" },
+	L = { "#........", "##.......", "###......", "###......", "###......", "###......", "###......", "###......", "###......", "###......", "###......", "#######.#", "##.....##", "#.......#" },
+	E = { "#......#.", "##....##.", "########.", "###......", "###......", "###..#...", "######...", "###..#...", "###......", "###......", "###......", "########.", "##....##.", "#......#." },
+	M = { "#.........#", "##.......##", "###.#.#.###", "###########", "###.###.###", "###..#..###", "###.....###", "###.....###", "###.....###", "###.....###", "###.....###", "###.....###", "##.......##", "#.........#" },
+	O = { "....#....", "...###...", ".#######.", "###...###", "###...###", "###...###", "###...###", "###...###", "###...###", "###...###", "###...###", ".#######.", "...###...", "....#...." },
+	N = { "#.......#", "##.....##", "###...###", "####..###", "###.#.###", "###..####", "###...###", "###...###", "###...###", "###...###", "###...###", "###...###", "##.....##", "#.......#" },
+	S = { ".......#.", ".#######.", "###...###", "###....#.", "###......", ".######..", "..######.", "......###", "......###", ".#....###", "###...###", ".#######.", ".#.......", "#........" },
+}
+-- (les bandes du dégradé : 2 rangées pâles, 4 roses, 4 rouges, 2 sang, 2 sang sombre)
+local FT_BANDE = { "#ffe1e4", "#ffe1e4", "#ff6a78", "#ff6a78", "#ff6a78", "#ff6a78", "#ff2a3d", "#ff2a3d", "#ff2a3d", "#ff2a3d", "#c4001f", "#c4001f", "#7a0012", "#7a0012" }
+local FT: any = nil
+local T_FREN = (string.sub(game:GetService("Players").LocalPlayer.LocaleId or "fr", 1, 2) == "fr") and "FRENESIE" or "FRENZY"
+local ftN = 0
+local function ftLigne(parent: Instance, mot: string, px: number, nSang: number, graine: number, y0: number): { any }
+	local f = inst("Frame", { BackgroundTransparency = 1, AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, y0) }, parent)
+	local x = 0
+	local pieds: { number } = {}
+	for k = 1, #mot do
+		local g = FT_G[string.sub(mot, k, k)]
+		if g then
+			local w = #g[1]
+			for y, r in g do
+				local a: number? = nil
+				for i = 1, w + 1 do
+					local on = i <= w and string.sub(r, i, i) == "#"
+					if on and not a then a = i end
+					if not on and a then
+						-- (une ombre d'encre d'une case en bas à droite, puis la case : le cerne du web)
+						inst("Frame", { BackgroundColor3 = hex("#1c0408"), BorderSizePixel = 0, Size = UDim2.fromOffset((i - a) * px, px),
+							Position = UDim2.fromOffset((x + a - 1) * px + 2, (y - 1) * px + 2), ZIndex = 41 }, f)
+						inst("Frame", { BackgroundColor3 = hex(FT_BANDE[y]), BorderSizePixel = 0, Size = UDim2.fromOffset((i - a) * px, px),
+							Position = UDim2.fromOffset((x + a - 1) * px, (y - 1) * px), ZIndex = 42 }, f)
+						a = nil
+					end
+				end
+			end
+			local bas = g[#g]
+			for i = 1, w do
+				if string.sub(bas, i, i) == "#" then table.insert(pieds, x + i - 1) end -- le sang coule des POINTES des pieds
+			end
+			x += w + 1
+		end
+	end
+	f.Size = UDim2.fromOffset((x - 1) * px, 14 * px)
+	-- le SANG : quelques pieds tirés (graine fixe : le même dessin à chaque frénésie), un filet de 3 à 9 cases, sa goutte au bout
+	local r = graine
+	local function rnd(): number
+		r = (r * 9301 + 49297) % 233280
+		return r / 233280
+	end
+	local sang = {}
+	for _ = 1, nSang do
+		if #pieds == 0 then break end
+		local xx = table.remove(pieds, math.floor(rnd() * #pieds) + 1) :: number
+		local l = 3 + math.floor(rnd() * 7)
+		local dl = 0.15 + rnd() * 0.5
+		local filet = inst("Frame", { BackgroundColor3 = hex("#c4001f"), BorderSizePixel = 0, Size = UDim2.fromOffset(px, 0), Position = UDim2.fromOffset(xx * px, 14 * px), ZIndex = 42 }, f)
+		inst("UIGradient", { Rotation = 90, Color = ColorSequence.new(hex("#7a0012"), hex("#ff2a3d")) }, filet)
+		local goutte = inst("Frame", { BackgroundColor3 = hex("#ff2a3d"), BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.fromOffset(px * 1.3, px * 1.3), ZIndex = 42 }, f)
+		table.insert(sang, { filet = filet, goutte = goutte, l = l, dl = dl, x = xx, px = px })
+	end
+	return sang
+end
+function HudScore.frenTitre()
+	if not FT then
+		local g = inst("CanvasGroup", { Name = "FrenTitre", BackgroundTransparency = 1, Size = UDim2.fromOffset(700, 390), AnchorPoint = Vector2.new(0.5, 0),
+			Position = UDim2.fromScale(0.5, 0.28), Visible = false, ZIndex = 40 }, U.slam.Parent)
+		local sang = {}
+		for _, q in ftLigne(g, "TRIPLE", 6, 4, 7, 6) do table.insert(sang, q) end
+		for _, q in ftLigne(g, "MONSTER", 7, 8, 11, 6 + 14 * 6 + 16) do table.insert(sang, q) end
+		K.texte(g, { Text = T_FREN, TextSize = 20, TextColor3 = hex("#ffd0d5"), Size = UDim2.new(1, 0, 0, 24), Position = UDim2.fromOffset(0, 6 + 14 * 6 + 16 + 14 * 7 + 18),
+			TextWrapped = false, ZIndex = 43 })
+		FT = { g = g, sang = sang, echelle = inst("UIScale", {}, g) }
+	end
+	ftN += 1
+	local n = ftN
+	local g: CanvasGroup = FT.g
+	g.Visible = true
+	g.GroupTransparency = 1
+	FT.echelle.Scale = 1.8
+	TweenService:Create(FT.echelle, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), { Scale = 1 }):Play()
+	-- (pendant qu'il parle, la grande annonce et le verdict de la pose se taisent : UNE voix au centre)
+	slamFin, slamPrio = os.clock() + 2.7, 9
+	if E.astuce then E.astuce.Visible = false end -- (une carte d'astuce ne passe pas devant le titre)
+	U.slam.Text, U.slamSub.Text = "", ""
+	local t0 = os.clock()
+	task.spawn(function()
+		while n == ftN do
+			local t = os.clock() - t0
+			if t >= 2.7 then break end
+			-- l'entrée : il claque, clignote deux fois (0,35 → 0,6 s), tient, puis s'efface sur les 0,38 dernières secondes
+			local op = (t < 0.19) and (t / 0.19) or 1
+			if t > 0.3 and t < 0.43 then op = 0.25 + 0.75 * math.abs((t - 0.365) / 0.065) end
+			if t > 0.43 and t < 0.6 then op = 0.45 + 0.55 * math.abs((t - 0.515) / 0.085) end
+			if t > 2.32 then op = math.max(0, 1 - (t - 2.32) / 0.38) end
+			g.GroupTransparency = 1 - op
+			for _, q in FT.sang do
+				-- le filet s'allonge PAR CRANS (8 en 1,3 s), puis la goutte se détache et tombe
+				local u = math.clamp((t - q.dl - 0.25) / 1.3, 0, 1)
+				q.filet.Size = UDim2.fromOffset(q.px, q.l * q.px * math.floor(u * 8) / 8)
+				local v = (t - q.dl - 1.5) / 0.75
+				if v > 0 and v < 1 then
+					q.goutte.BackgroundTransparency = v
+					q.goutte.Position = UDim2.fromOffset(q.x * q.px - q.px * 0.15, (14 + q.l) * q.px + v * v * 5 * q.px)
+				else
+					q.goutte.BackgroundTransparency = 1
+				end
+			end
+			task.wait()
+		end
+		if n == ftN then g.Visible = false end
+	end)
+end
+
 function HudScore.fren(etat: string)
 	if etat == "debut" then
+		HudScore.frenTitre()
 		U.triade.Visible = true
 		U.triade.Position = UDim2.fromOffset(-260, 436)
 		TweenService:Create(U.triade, K.LENTE, { Position = UDim2.fromOffset(26, 436) }):Play()
@@ -17019,7 +17273,7 @@ local function frenDeclenche()
 		sub = cash
 	end
 	FREN.vu = true
-	Score.dire.slam(T("FRENESIE !", "FRENZY!"), sub, "#ff2a3d", "#ffb000", 44, 2, 22)
+	Score.dire.slam(T("FRENESIE !", "FRENZY!"), sub, "#ff2a3d", "#ffb000", 44, 2, 22) -- (le titre TRIPLE MONSTER la couvre 2,7 s : HudScore.frenTitre)
 	Score.dire.flash("#ff2a3d", 0.6)
 	Score.dire.son("frenesie")
 	Score.dire.musique(true)
@@ -17463,13 +17717,18 @@ Score.SFA = SFA
 function Score.poseJugee(propre: boolean, vraiVol: boolean): number
 	if not vraiVol then return 0 end
 	if not propre then
+		if SFA.n >= 3 then Score.dire.pop(T("SERIE CASSEE", "STREAK BROKEN"), "#ff5e7a", 1) end -- (L23659)
 		SFA.n = 0
 		return 0
 	end
 	SFA.n += 1
 	local n = SFA.n
-	if n == 3 or n == 5 or n == 8 or n == 12 or (n > 12 and (n - 12) % 5 == 0) then
-		Score.geste(T("SANS FAUTE", "FLAWLESS") .. " ×" .. n, 30 + 8 * math.min(20, n), "sansfaute", true)
+	if n == 3 or n == 5 or n == 8 or n == 12 or (n > 12 and n % 5 == 0) then -- (L23661 : 3 · 5 · 8 · 12, puis 15 · 20 · 25…)
+		Score.geste(T("SANS FAUTE", "FLAWLESS") .. " ×" .. n, 30 + 8 * math.min(20, n), "sansfaute", true, true)
+		-- (son texte arrive 0,7 s APRÈS la pose : le verdict et PARFAIT ! se lisent d'abord)
+		task.delay(0.7, function()
+			if ETAT.enCours then Score.dire.pop(T("SANS FAUTE", "FLAWLESS") .. " ×" .. n, "#7dff9a", 2) end
+		end)
 		return 0.12 -- la nitro rendue
 	end
 	return 0

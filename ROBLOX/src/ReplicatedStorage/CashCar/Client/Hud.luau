@@ -582,6 +582,10 @@ function Hud.creer()
 	E.grand = texte(hud, { Text = "", TextSize = 38, TextColor3 = C.texte, Size = UDim2.new(1, 0, 0, 60), Position = UDim2.fromScale(0, 0.33), epais = 4 })
 	E.pop = texte(hud, { Text = "", TextSize = 22, TextColor3 = C.or_, Size = UDim2.new(1, 0, 0, 34), Position = UDim2.fromScale(0, 0.22), epais = 3 })
 	E.chaine = texte(hud, { Text = "", TextSize = 16, TextColor3 = C.cyan, Size = UDim2.new(1, 0, 0, 24), Position = UDim2.new(0, 0, 0.22, 38) })
+	-- LE DAUPHIN v7 (dolHudVol, L29722 ; Sacha, 30/09 : « on doit voir l'aura monter pendant l'animation des dauphins, pendant qu'on
+	-- survole la route ») : EN VOL, un compteur seul monte sous la caisse dès que les dauphins nagent — ce qui sera VRAIMENT versé.
+	E.dolVol = texte(hud, { Text = "", TextSize = 26, TextColor3 = Color3.fromRGB(125, 255, 236), Size = UDim2.new(1, 0, 0, 30),
+		Position = UDim2.fromScale(0, 0.76), Visible = false, epais = 3 })
 	-- LE LOGO DU DÉPART (#launchLogo + #launchGlow, L664 du jeu web ; 5/09 : « plus impressionnant ») : CASH CAR en or CLAQUE à
 	-- l'écran quand la caisse touche la route — parti de tout petit, il dépasse sa taille avant de s'y poser (un IMPACT, pas un
 	-- fondu), avec un halo doré derrière lui. C'est la seule célébration à rebond de l'interface (règle 7 de la charte).
@@ -1161,8 +1165,15 @@ end
 function Hud.ecranCourant(): string return courant end
 
 -- ── la course ──
+-- UNE PRIORITÉ (popTexte, L20827) : un temps fort (PARFAIT = 2 ; AU CHEVEU, RACCOURCI, MIRACULÉ = 3) ne se fait pas voler la
+-- vedette par un geste (0) ou un palier (1) dans les 650 ms. Sans elle, la pose écrivait jusqu'à sept textes dans la même image
+-- et seul le dernier se lisait.
 local popFin = 0
-function Hud.pop(txt: string, couleur: Color3?, taille: number?)
+local popPrio, popPrioFin = 0, 0
+function Hud.pop(txt: string, couleur: Color3?, taille: number?, prio: number?)
+	local p9, t9 = prio or 0, os.clock()
+	if p9 < popPrio and t9 < popPrioFin then return end
+	popPrio, popPrioFin = p9, t9 + 0.65
 	E.pop.Text = txt
 	E.pop.TextColor3 = couleur or C.or_
 	E.pop.TextSize = taille or 22
@@ -1216,6 +1227,20 @@ function Hud.logoCache()
 	logoN += 1
 	E.logo.Visible = false
 	E.astuce.Visible = false
+end
+-- le compteur du dauphin EN VOL (0 = rien à montrer) ; il n'écrit que si l'entier change, et BONDIT quand la figure naît
+local dolVu = -1
+function Hud.dolVol(v: number)
+	if v == dolVu then return end
+	local bond = dolVu > 0 and v >= dolVu * 1.6 and v - dolVu >= 20
+	dolVu = v
+	E.dolVol.Visible = v > 0
+	if v <= 0 then return end
+	E.dolVol.Text = "+" .. v .. " AURA"
+	if bond then
+		E.dolVol.TextSize = 38
+		TweenService:Create(E.dolVol, LENTE, { TextSize = 26 }):Play()
+	end
 end
 -- le bilan de la partie en cours, sous le titre PAUSE
 function Hud.pauseBilan(aura: number, moteur: number, niveau: number)
