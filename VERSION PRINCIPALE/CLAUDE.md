@@ -7,6 +7,18 @@
 - Les règles « SANS TOUT CASSER » (partir de `origin/main` à jour, fusionner sans jamais forcer, jeu testé sans erreur avant chaque
   push, retour arrière par Vercel) et la liste de ce que contient la référence : voir `CLAUDE.md` à la RACINE du dépôt.
 
+## SIX COMMUNES RETIRÉES (2026-10-02) — Sacha, capture du garage : « supprimer ces 6 voitures du jeu, elles sont pas intéressantes »
+- LA PIZZA EXPRESS, LE MONOSPACE, LE BREAK SUÉDOIS, LA BOULE, LE GLACIER, LE TOUT-TERRAIN SOVIÉTIQUE : `retire:1` dans leur fiche
+  (`CARS`). Pour le joueur elles ne sont plus nulle part : `rarListe` les saute (garage, vignettes, compteurs des familles : COMMUNES
+  15 → 9, gamme 69 → 63), `carPrice` rend 0 (objectif, pastille « à ta portée », garPortee), `carUnlocked` / `carUnlockedVrai` rendent
+  faux (on ne peut plus les équiper). Un seul test : `carRetiree(i)`.
+- ⚠ LEURS LIGNES RESTENT (fiche, condition, gabarit) : la sauvegarde désigne les caisses par leur INDEX (`equipped`, `owned`) — ôter
+  six lignes au milieu de `CARS` décalerait toutes les suivantes et donnerait à chacun la caisse d'un autre. Pour retirer une autre
+  caisse : `retire:1`, rien d'autre. Pour la rendre : ôter le drapeau.
+- LA SAUVEGARDE (`san`) : qui en avait acheté une est REMBOURSÉ au prix payé (elle sort de `owned`, le remboursement ne joue qu'une
+  fois) ; qui roulait avec repart en LA HONTE. Vérifié au banc : owned [19, 20] + 48 250 $ → owned [] + 54 750 $, equipped 0.
+- sw.js → v55.
+
 ## L'ORIGAMI — LE PICK-UP D'INOX (2026-10-02) — Sacha, photo du pick-up plié en acier : « mets cette voiture dans le jeu, fais-la exceptionnellement belle et parfaite »
 - **LA 69e CAISSE** : `CARS[68]`, `shape:'origami'`, ÉPIQUE, 1,2 M $ (entre LA DÉESSE et L'AIGLE DE FEU), ajoutée EN DERNIER (aucun
   index de sauvegarde ne bouge). Sans nom de marque ni logo, comme toute la gamme. Cotes réelles (5,68 × 2,03 × 1,79 m). Sillage

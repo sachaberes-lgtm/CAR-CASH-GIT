@@ -12109,23 +12109,28 @@ const CARS=[
   fx:{jet:0x7cff28,core:0xe8ffb4,trail:[.52,1.55,.10],light:0x6fe81e},
   desc:'Compacte japonaise passée au bain d\'acide : capot vitré sur le bloc, aileron de table à repasser, échappement qui crache vert.'},
 /* ===== LES FICHES DES 50 — DÉBUT ===== */
+ /* (2026-10-02, Sacha, capture du garage : « supprimer ces 6 voitures du jeu, elles sont pas intéressantes ») SIX COMMUNES RETIRÉES —
+    la pizza, le monospace, le break suédois, la boule, le glacier, le tout-terrain soviétique : `retire:1`. Elles ne sont plus NULLE
+    PART pour le joueur (garage, compteurs des familles, objectif, pastille « à ta portée », équipement — voir carRetiree). ⚠ Leur
+    LIGNE reste : la sauvegarde désigne les caisses par leur INDEX (`equipped`, `owned`) — ôter six lignes ici décalerait toutes les
+    suivantes et donnerait à chacun la caisse d'un autre. Qui en avait acheté une est remboursé au chargement (voir `san`). */
  {name:'LA POSTIÈRE',color:0xffd21a,accent:0x1f3b9c,maxKmh:190,accel:21,turn:2.5,h:1.85,w:1.8,l:4,spoiler:0,shape:'a_postiere',rar:'commun',
   desc:'Elle livre les recommandés à 190 km/h. Le facteur ne sonne plus jamais deux fois.'},
  {name:'LA DEUCHE',color:0x7a1426,accent:0x121212,maxKmh:185,accel:20,turn:2.6,h:1.6,w:1.48,l:3.83,spoiler:0,shape:'a_deuche',rar:'commun',
   desc:'Deux chevaux sous le capot, un moteur de jet dans le coffre. Le toit s\'ouvre, les rivaux se referment.'},
  {name:'LE TAXI JAUNE',color:0xffc61a,accent:0x141414,maxKmh:215,accel:24,turn:2.45,h:1.5,w:2,l:5.4,spoiler:0,shape:'a_taxi',rar:'commun',
   desc:'Le compteur tourne en millions. Tu montes, tu t\'accroches, tu ne négocies pas le prix.'},
- {name:'LA PIZZA EXPRESS',color:0xf4f1ea,accent:0xd8261e,maxKmh:190,accel:21,turn:2.9,h:1.45,w:1.5,l:3.4,spoiler:0,shape:'b_pizza',rar:'commun',
+ {name:'LA PIZZA EXPRESS',color:0xf4f1ea,accent:0xd8261e,maxKmh:190,accel:21,turn:2.9,h:1.45,w:1.5,l:3.4,spoiler:0,shape:'b_pizza',rar:'commun',retire:1,
   desc:'30 minutes chrono ou la pizza est offerte. Spoiler : elle n\'a jamais été offerte.'},
- {name:'LE MONOSPACE',color:0x5a7aa0,accent:0x6a6f78,maxKmh:200,accel:22,turn:2.5,h:1.66,w:1.78,l:4.25,spoiler:0,shape:'b_monospace',rar:'commun',
+ {name:'LE MONOSPACE',color:0x5a7aa0,accent:0x6a6f78,maxKmh:200,accel:22,turn:2.5,h:1.66,w:1.78,l:4.25,spoiler:0,shape:'b_monospace',rar:'commun',retire:1,
   desc:'Sept places, zéro limite. Les enfants hurlent, mais c\'est de joie : on vient de doubler une Ferrari.'},
- {name:'LE BREAK SUÉDOIS',color:0x1f4a36,accent:0xe9ecf0,maxKmh:210,accel:23,turn:2.4,h:1.46,w:1.72,l:4.8,spoiler:0,shape:'b_breaksuedois',rar:'commun',
+ {name:'LE BREAK SUÉDOIS',color:0x1f4a36,accent:0xe9ecf0,maxKmh:210,accel:23,turn:2.4,h:1.46,w:1.72,l:4.8,spoiler:0,shape:'b_breaksuedois',rar:'commun',retire:1,
   desc:'Carré, lourd, increvable. Il a vu passer trois divorces et deux krachs boursiers, il démarre toujours.'},
- {name:'LA BOULE',color:0x5fd6a4,accent:0x7d838b,maxKmh:190,accel:21,turn:2.9,h:1.42,w:1.63,l:3.43,spoiler:0,shape:'c_boule',rar:'commun',
+ {name:'LA BOULE',color:0x5fd6a4,accent:0x7d838b,maxKmh:190,accel:21,turn:2.9,h:1.42,w:1.63,l:3.43,spoiler:0,shape:'c_boule',rar:'commun',retire:1,
   desc:'Elle sourit à tout le monde. Même au radar. Surtout au radar.'},
- {name:'LE GLACIER',color:0xffb6d0,accent:0xfaf7f0,maxKmh:180,accel:20,turn:2.4,h:2.5,w:2,l:5,spoiler:0,shape:'c_glacier',rar:'commun',
+ {name:'LE GLACIER',color:0xffb6d0,accent:0xfaf7f0,maxKmh:180,accel:20,turn:2.4,h:2.5,w:2,l:5,spoiler:0,shape:'c_glacier',rar:'commun',retire:1,
   desc:'La musique qui fait courir les gamins. Là, c’est toi qui cours derrière. À 180.'},
- {name:'LE TOUT-TERRAIN SOVIÉTIQUE',color:0xc9b58a,accent:0x141414,maxKmh:200,accel:22,turn:2.6,h:1.64,w:1.68,l:3.74,spoiler:0,shape:'c_niva',rar:'commun',
+ {name:'LE TOUT-TERRAIN SOVIÉTIQUE',color:0xc9b58a,accent:0x141414,maxKmh:200,accel:22,turn:2.6,h:1.64,w:1.68,l:3.74,spoiler:0,shape:'c_niva',rar:'commun',retire:1,
   desc:'Quarante ans sans une retouche de dessin. Pourquoi changer ce qui gagne ?'},
  {name:'LE GRILLE-PAIN',color:0xff8a1e,accent:0xb8bec6,maxKmh:190,accel:21,turn:3.1,h:1.55,w:1.56,l:2.7,spoiler:0,shape:'d_grillepain',rar:'commun',
   desc:'Deux places, zéro coffre, et il se gare en travers. Le parking, c\'est lui qui le mange.'},
@@ -20786,7 +20791,8 @@ function carStat(k){
   if(k==='carrV')return ((SAVE.d.carr||{}).ville)|0;  // (2026-09-27) niveaux de la carrière VILLE terminés
   return (SAVE.d.ex&&SAVE.d.ex[k])||0;
 }
-function carPrice(i){const u=CAR_UNLOCK[i];return (u&&u.p)||0;} // 0 = pas à vendre
+function carRetiree(i){const c=CARS[i];return !!(c&&c.retire);} // (2026-10-02) une caisse RETIRÉE de la gamme (sa ligne reste : les index de sauvegarde ne bougent pas)
+function carPrice(i){const u=CAR_UNLOCK[i];return (!carRetiree(i)&&u&&u.p)||0;} // 0 = pas à vendre (une caisse retirée ne se vend plus)
 /* LES CINQ FAMILLES (2026-09-26) — une caisse porte sa famille (`rar` dans sa fiche) ; les 16 d'origine la déduisent de leur
    condition : boutique = LÉGENDAIRE, contrat/rang d'aura = DÉFI, prix ≥ 1 M = ÉPIQUE, ≥ 20 000 = RARE, sinon COMMUNE.
    ⚠ LÉGENDAIRE = en BOUTIQUE seulement (vrai argent) : c'est la règle du joueur. */
@@ -20800,18 +20806,19 @@ function carRar(i){const c=CARS[i];if(c&&c.rar)return c.rar;const u=CAR_UNLOCK[i
   if(!u)return 'commun';if(u.k==='premium')return 'legendaire';if(u.k)return 'defi';return u.p>=1e6?'epique':u.p>=20e3?'rare':'commun';}
 function carOrdre(i){const u=CAR_UNLOCK[i];if(!u)return -1;if(u.p)return u.p;if(u.eur)return parseFloat(String(u.eur).replace(',','.'))||0;
   if(u.k==='carnet')return u.v;if(u.k==='aura')return 100+u.v;return 1e9;} // dans une famille : du plus accessible au plus dur
-function rarListe(r){const L=[];for(let i=0;i<CARS.length;i++)if(carRar(i)===r)L.push(i);return L.sort(function(a,b){return carOrdre(a)-carOrdre(b);});}
+function rarListe(r){const L=[];for(let i=0;i<CARS.length;i++)if(carRar(i)===r&&!carRetiree(i))L.push(i);return L.sort(function(a,b){return carOrdre(a)-carOrdre(b);});}
 function rarInfo(r){return RARETES.find(function(x){return x.id===r;})||RARETES[0];}
 function carOwned(i){return !!(SAVE.d.owned&&SAVE.d.owned.indexOf(i)>=0);}
 /* (2026-09-26, user : « pour la version test donne-moi accès à toutes les voitures mais en laissant les conditions d'obtention »)
    TEST_CAISSES : toutes les caisses s'ÉQUIPENT, mais la fiche du garage continue d'écrire la VRAIE condition (voir garageShow).
    ⚠ à remettre à false pour la version publique : c'est l'unique interrupteur. */
 const TEST_CAISSES=true;
-function carUnlocked(i){return TEST_CAISSES||carUnlockedVrai(i);}
+function carUnlocked(i){return !carRetiree(i)&&(TEST_CAISSES||carUnlockedVrai(i));}
 /* (2026-09-30) ⚠ carUnlocked OUVRE (équiper, JOUER) ; ce qui dit AU JOUEUR où il en est — « une caisse à ta portée » (objectif, garPortee,
    pastille du GARAGE), « nouvelle caisse gagnée » (carSnapshot/carScan) et le bouton ACHETER — lit carUnlockedVrai : en TEST tout était
    « déjà à toi », le testeur ne voyait jamais la boucle achat → caisse que vivra le joueur. */
 function carUnlockedVrai(i){
+  if(carRetiree(i))return false; // (2026-10-02) retirée : ni à toi, ni à gagner
   if(i<=((SAVE.d.ex&&SAVE.d.ex.floor)|0))return true; // acquise sous les anciennes règles : elle le reste
   const u=CAR_UNLOCK[i];
   if(!u)return true;
@@ -27990,6 +27997,10 @@ const SAVE={
         sv:n('sv',1e3),zo:n('zo',1e4),ch:n('ch',1e5),km:n('km',1e5),s:n('s',1e12),f:Math.min(3600,Math.max(0,Math.floor((+e.f||0)*10)/10))};}
     if(Array.isArray(d.owned))c.owned=[...new Set(d.owned
       .map(x=>Math.round(+x)).filter(x=>isFinite(x)&&x>=0&&x<CARS.length))].slice(0,CARS.length);
+    /* (2026-10-02) LES CAISSES RETIRÉES (`retire`, voir CARS) : qui en avait acheté une est REMBOURSÉ au prix payé — une mise à jour ne
+       confisque pas — et elle sort de `owned` (le remboursement ne joue donc qu'une fois) ; qui roulait avec repart en LA HONTE. */
+    {let rb=0;c.owned=c.owned.filter(x=>{if(!CARS[x].retire)return true;rb+=(CAR_UNLOCK[x]&&CAR_UNLOCK[x].p)||0;return false;});
+     if(rb)c.bank=Math.min(1e30,c.bank+rb);if(CARS[c.equipped]&&CARS[c.equipped].retire)c.equipped=0;}
     if(d.ai&&typeof d.ai==='object'){const a=d.ai,g=(k,dv,lo,hi)=>THREE.MathUtils.clamp(isFinite(+a[k])?+a[k]:dv,lo,hi);
       c.ai={air:g('air',.5,0,1),boost:g('boost',.35,0,1),caution:g('caution',.5,0,1),
         skill:g('skill',.86,.5,1.1),aggr:g('aggr',.55,0,1),airDur:g('airDur',1.1,.4,4),
@@ -35355,7 +35366,7 @@ window.dbgFeu=function(on){const F=GAR.feu;if(!F)return null;if(on!=null&&GAR.fe
 var CHUTE={G:new THREE.Vector3(),nu:null,oA:0,oAc:0,oW:0,oP:0,oPc:0,mvT:0,on:false,t:0,go:null,L:-1,s:0,C:new THREE.Vector3(),cam:new THREE.Vector3(),f:new THREE.Vector3(),fh:new THREE.Vector3(),lh:new THREE.Vector3(),
   q:new THREE.Quaternion(),m:new THREE.Matrix4(),v1:new THREE.Vector3(),v2:new THREE.Vector3(),v3:new THREE.Vector3(),w:null,fil:null,voile:null,bioPas:-1,vent:false,entree:0};
 const CHUTE_OK=!/[?&]chute=0\b/.test(location.search); // (et seulement avec les boutons de Sacha : le menu de Léo, ?menu=leo, garde son atelier — son étiquette MISSIONS vit sur le socle)
-const CHUTE_P={az:2.35,cote:0,nuages:1,K:[1.02,1.08,1.1,1],R:[-.3,.5,.72,1],mzA:[1500,.8,9,.2],mzB:null,gite:-.45,coton:0,cle:.5,brume:1,expo:1,trainee:0,alt:900,avant:-1700,pitch:.62,roule:.12,cap:.28,elev:.34, /* (titre v3) voir « L'ÉCRAN TITRE v3 » : alt = au-dessus du SOMMET de la piste, az = l'angle regard ↔ soleil, cote = la piste décalée à droite de la caisse (couché), nuages = les cumulus du titre */ /* (niveau 1 v2) pitch .22 → .55, elev .22 → .30 : à plat, elle PLANAIT ; le nez piqué vers la mer, on la voit TOMBER */vit:14,echelle:1,taille:.82,sol:.3,sous:70,plancher:0}; // (2026-09-30, le JOUR D'ALTITUDE) de très haut au-dessus de TOUT le monde du niveau : les cumulus deviennent un champ de nuages sous la caisse, la mer à perte de vue ; plus de traînée orange ni de plancher peint ; brume repoussée, exposition et clé baissées (l'image sortait délavée) // (choisi aux captures : l'horizon et la mer de nuages dans l'image, le soleil de côté devant — sa lueur rose-or sur l'horizon)
+const CHUTE_P={cleC:0xfff1dc,rimC:0xbfe4ff,rim:1.1,rimS:0,lampe:1,az:2.35,cote:0,nuages:1,K:[1.02,1.08,1.1,1],R:[-.3,.5,.72,1],mzA:[1500,.8,9,.2],mzB:null,gite:-.45,coton:0,cle:.5,brume:1,expo:1,trainee:0,alt:900,avant:-1700,pitch:.62,roule:.12,cap:.28,elev:.34, /* (titre v3) voir « L'ÉCRAN TITRE v3 » : alt = au-dessus du SOMMET de la piste, az = l'angle regard ↔ soleil, cote = la piste décalée à droite de la caisse (couché), nuages = les cumulus du titre */ /* (niveau 1 v2) pitch .22 → .55, elev .22 → .30 : à plat, elle PLANAIT ; le nez piqué vers la mer, on la voit TOMBER */vit:14,echelle:1,taille:.82,sol:.3,sous:70,plancher:0}; // (2026-09-30, le JOUR D'ALTITUDE) de très haut au-dessus de TOUT le monde du niveau : les cumulus deviennent un champ de nuages sous la caisse, la mer à perte de vue ; plus de traînée orange ni de plancher peint ; brume repoussée, exposition et clé baissées (l'image sortait délavée) // (choisi aux captures : l'horizon et la mer de nuages dans l'image, le soleil de côté devant — sa lueur rose-or sur l'horizon)
 window.dbgChute=function(o){if(o&&typeof o==='object'){if(o.NU&&CHUTE.nu){o.NU.forEach(function(d,i){const c=CHUTE.nu[i];if(!c||!d)return;c.a=d[0];c.b=d[1];c.r=d[2];c.v=d[4];c.y=d[5];c.m.scale.set(d[2],d[2],d[2]);const dd=Math.hypot(d[0],d[1]);c.lo=-(1.2*dd+1.3*d[2]);c.hi=.1*dd+1.3*d[2];c.off=false;});for(let i=o.NU.length;i<CHUTE.nu.length;i++)CHUTE.nu[i].off=true;o=Object.assign({},o);delete o.NU;} /* (banc) NU : rejouer la disposition des cumulus du titre sans recharger */
   Object.assign(CHUTE_P,o);CHUTE.L=-1;}
   return {cadre:(function(){const c=menuCadre();return [+c.nx.toFixed(2),+c.ny.toFixed(2),+c.fr.toFixed(2),+c.fh.toFixed(2)];})(),ecran:(function(){const q=carGroup.position.clone().project(camera);return [+q.x.toFixed(2),+q.y.toFixed(2)];})(),orb:[+CHUTE.oA.toFixed(2),+CHUTE.oP.toFixed(2)],tris:CHUTE.nu?CHUTE.nu.reduce(function(a,c){return a+(c.m.visible&&c.m.geometry.index?c.m.geometry.index.count/3:0);},0):0,nu:CHUTE.nu?CHUTE.nu.filter(function(c){return c.m.visible;}).length:0,mz:+skyU.uMzA.value.x,ciel:document.body.classList.contains('titreCiel'),on:CHUTE.on,go:!!CHUTE.go,s:Math.round(CHUTE.s),C:CHUTE.C.toArray().map(Math.round),cam:CHUTE.cam.toArray().map(function(x){return +x.toFixed(1);}),P:CHUTE_P,
@@ -35363,7 +35374,7 @@ window.dbgChute=function(o){if(o&&typeof o==='object'){if(o.NU&&CHUTE.nu){o.NU.f
 function chuteVoulue(){return CHUTE_OK&&MENU_SACHA&&garageOn&&!!gEl&&gEl.classList.contains('menu')&&!gEl.classList.contains('missions');}
 function chutePlan(){ // (titre v3) le REGARD se règle sur le SOLEIL (lumière de côté : le volume des nuages), la caisse au-dessus de TOUTE la piste
   CHUTE.L=L;const P9=CHUTE_P,sx=SUN_DIR.x,sz=SUN_DIR.z,sn=Math.hypot(sx,sz)||1,ca=Math.cos(P9.az),sa=Math.sin(P9.az);
-  let lx9=(sx*ca-sz*sa)/sn,lz9=(sx*sa+sz*ca)/sn;if(-lz9*sx+lx9*sz<0){lx9=(sx*ca+sz*sa)/sn;lz9=(-sx*sa+sz*ca)/sn;} // le soleil à DROITE de l'image, à P.az du regard
+  let lx9=(sx*ca-sz*sa)/sn,lz9=(sx*sa+sz*ca)/sn;if((-lz9*sx+lx9*sz<0)!==(P9.az<0)){lx9=(sx*ca+sz*sa)/sn;lz9=(-sx*sa+sz*ca)/sn;} // le soleil à DROITE de l'image, à P.az du regard (az < 0 : à GAUCHE)
   CHUTE.lh.set(lx9,0,lz9).normalize();
   let gx=0,gz=0,n9=0,yM=-1e9;const sF=Math.min(L-1,3200);                       // LA DESTINATION : le début de la piste (son centre), et le sommet de toute la piste
   for(let s9=0;s9<=L-1;s9+=40){frameAt(s9,F);if(F.p.y>yM)yM=F.p.y;if(s9<=sF){gx+=F.p.x;gz+=F.p.z;n9++;}}
@@ -35543,9 +35554,10 @@ function chuteRender(dt){
   if(G&&u>.2){const a=(u-.2)*.9;camera.position.x+=(Math.random()-.5)*.08*a;camera.position.y+=(Math.random()-.5)*.08*a;} // l'air qui cogne
   camera.updateMatrixWorld();
   // LA LUMIÈRE : le soleil du ciel fait le gros ; une clé douce du côté caméra, un contre-jour bleu ciel qui détoure la caisse
-  stallKey.color.setHex(0xfff1dc);stallKey.intensity=.9*P.cle;stallKey.distance=60;stallKey.position.copy(CHUTE.cam).addScaledVector(up,4);
-  stallRim.color.setHex(0xbfe4ff);stallRim.intensity=1.1;stallRim.distance=40;stallRim.position.copy(C).addScaledVector(camera.getWorldDirection(CHUTE.v2),7).addScaledVector(up,2.5);
-  carLight.position.copy(CHUTE.cam).addScaledVector(up,2.5);carLight.intensity=1.6*P.cle;carLight.distance=60;
+  stallKey.color.setHex(P.cleC);stallKey.intensity=.9*P.cle;stallKey.distance=60;stallKey.position.copy(CHUTE.cam).addScaledVector(up,4);
+  camera.getWorldDirection(CHUTE.v2).multiplyScalar(1-P.rimS).addScaledVector(SUN_DIR,P.rimS).normalize();
+  stallRim.color.setHex(P.rimC);stallRim.intensity=P.rim;stallRim.distance=40;stallRim.position.copy(C).addScaledVector(CHUTE.v2,7).addScaledVector(up,2.5);
+  carLight.position.copy(CHUTE.cam).addScaledVector(up,2.5);carLight.intensity=1.6*P.cle*P.lampe;carLight.distance=60;
   headSpot.intensity=0;if(CARPOOL.head)CARPOOL.head.visible=false; // en plein jour, en l'air : ni phares (leur tache bleue sur les nuages au piqué), ni la nappe de 15 m des faisceaux (un plan qui flotte devant le nez)
   sunSprite.visible=sunSprite.material.opacity>.02;horizonGlow.visible=horizonGlow.material.opacity>.02;for(const r9 of RAYS)r9.visible=r9.material.opacity>.002;
   if(pigGroup)pigGroup.visible=false;if(landMark)landMark.visible=false;

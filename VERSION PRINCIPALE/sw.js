@@ -40,7 +40,8 @@
 //  v45 (2026-09-30) : le SON du niveau 1 — nuages.ambiance (l'air d'altitude) et chute.vent (la chute libre du menu) — sons-banque.js?v=11 ; puis le NIVEAU 1 v2 (image).
 //  v51 (2026-10-01) : LA MISE À JOUR TOUTE SEULE — version.json n'est jamais mis en cache (le jeu le lit pour se recharger s'il est en retard). v49 chez moi, v50 chez Sacha entre-temps.
 //  v54 (2026-10-02) : L'ORIGAMI, la 69e caisse (le pick-up d'inox).
-const CACHE = 'cashcar-v54';
+//  v55 (2026-10-02) : six communes retirées de la gamme.
+const CACHE = 'cashcar-v55';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
