@@ -15,6 +15,7 @@
 | Étape | Élément | Fichier | Pourquoi (les mots de Léo) | Validé le |
 |---|---|---|---|---|
 | — | VAPEUR (boucle de référence) | `assets/audio/music/boucles/lobby-vapeur.m4a` | « sa structure, sa différence, c'est beau » | 2026-10-01 |
+| — | LE LOBBY : VAPEUR · SALON, ASCENSEUR DORÉ, FILTRE D'OR, MÉTRO | `assets/audio/music/lobby/*.m4a` (branche main) | « les 4, au hasard à la connexion ; ça reste le même ; quand je rallume l'appli ça change » | 2026-10-02 |
 | — | GLASSY PLUCKS (lobby actuel) | `assets/audio/music/glassy-plucks-boucle.m4a` | morceau Suno de Léo, section 1:04 → 2:14 | 2026-10-01 |
 
 ## 3. Ce qui est rejeté (ne pas y revenir)
@@ -34,3 +35,5 @@
 - 2026-10-02 — ÉTAPE 1 proposée : 8 sons de départ, tous en mi♭ (`atelier-son/depart.py` → `assets/audio/music/depart/`),
   onglet « Étape 1 » de boucles.html : PIANO DOUX, GUITARE NYLON, KALIMBA, CLOCHE DE VERRE, NAPPE VAPEUR, BOÎTE À MUSIQUE,
   BASSE RONDE, SYNTHÉ CHAUD. Les ♥ de Léo → `rangement.json` (`gardes`). En attente de son choix.
+- 2026-10-02 — LE LOBBY appliqué sur `main` (local, commit aba79d2) : un des 4 tiré au hasard à chaque lancement, gardé toute la
+  session (accueil, garage, écran de fin) ; fichiers = la boucle répétée sans couture sur ~100 s. Pas poussé.
