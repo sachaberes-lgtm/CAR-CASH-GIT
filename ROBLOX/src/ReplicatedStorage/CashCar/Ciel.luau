@@ -18,13 +18,13 @@ function Ciel.poser(Lighting: Lighting, ws: Workspace)
 	local C = Config.CIEL
 	Lighting.ClockTime = C.heure
 	Lighting.GeographicLatitude = 23
-	Lighting.Brightness = 2.0 -- (a 2,6 les laques et la mer de nuages partaient au blanc : le jeu web est sature et contraste)
+	Lighting.Brightness = 1.7 -- (3e retour : 2,0 → 1,7 et une ambiance plus forte — la caisse vue de dos était TERNE, saumon ; sur le web elle est orange vif) (a 2,6 les laques et la mer de nuages partaient au blanc : le jeu web est sature et contraste)
 	Lighting.Ambient = C.ambiance
 	Lighting.OutdoorAmbient = C.ambianceExt
 	-- (le ciel de Roblox, pris comme lumière d'ambiance, teintait TOUTES les ombres en cyan et se reflétait dans le bitume —
 	-- une route bleu clair, des nuages de glace : l'ambiance vient de OutdoorAmbient, lavande, et le reflet du ciel est en sourdine)
 	Lighting.EnvironmentDiffuseScale = 0.3
-	Lighting.EnvironmentSpecularScale = 0.9
+	Lighting.EnvironmentSpecularScale = 0.8
 	Lighting.ShadowSoftness = 0.25
 	Lighting.GlobalShadows = true
 	Lighting.ExposureCompensation = C.expo
@@ -42,9 +42,10 @@ function Ciel.poser(Lighting: Lighting, ws: Workspace)
 	atm.Offset = 0.2
 	-- (mesuré au banc : une brume CRÈME posée sur le bleu du ciel donnait un ciel VERT-TURQUOISE ; en blanc bleuté, l'azur reste franc)
 	-- (et un horizon CLAIR, presque blanc, comme jHor du jeu web : un Decay bleu profond faisait une bande bleu sombre entre le ciel et la mer)
-	atm.Color = Color3.fromRGB(236, 240, 250)
+	-- (3e retour) un voile LAVANDE-ROSÉ : le bas du ciel et le lointain prennent le violet tendre des captures web
+	atm.Color = Color3.fromRGB(232, 238, 250)
 	atm.Decay = Color3.fromRGB(150, 195, 250)
-	atm.Glare = 0.25
+	atm.Glare = 0 -- (mesuré : le voile de la brume délavait le ciel en gris-lavande (149,148,164) ; le web est à (8,84,155) — presque plus de voile, l'azur revient)
 	atm.Haze = C.brumeVoile
 
 	local bloom = obtenir(Lighting, "BloomEffect", "Bloom")
@@ -60,10 +61,12 @@ function Ciel.poser(Lighting: Lighting, ws: Workspace)
 
 	-- le LOINTAIN adouci (le web floute le fond à la vitesse) : les facettes des nuages lointains fondent, la route et la caisse restent nettes
 	local flou = obtenir(Lighting, "DepthOfFieldEffect", "Lointain")
-	flou.FocusDistance = 40
-	flou.InFocusRadius = 900
+	-- (3e retour : le jeu web est VELOUTÉ — son flou de vitesse fond tout le décor ; un lointain net montrait des nuages en
+	-- carton. La caisse et la route proche restent nettes, tout le reste se floute franchement.)
+	flou.FocusDistance = 20
+	flou.InFocusRadius = 50
 	flou.NearIntensity = 0
-	flou.FarIntensity = 0.12
+	flou.FarIntensity = 0.8
 
 	local rays = obtenir(Lighting, "SunRaysEffect", "Rayons")
 	rays.Intensity = 0.05

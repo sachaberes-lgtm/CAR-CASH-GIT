@@ -13,8 +13,8 @@ const fs = require('fs'), path = require('path');
 const RACINE = path.join(__dirname, '..', '..');
 const SORTIE = path.join(__dirname, '..', 'src', 'ReplicatedStorage', 'CashCar', 'Nuages');
 const L = fs.readFileSync(path.join(RACINE, 'VERSION PRINCIPALE', 'index.html'), 'utf8').split('\n');
-const FINESSE = parseInt(process.argv[2] || '14', 10);
-const FINE = parseInt(process.argv[3] || '30', 10); // la finesse des nuages PROCHES
+const FINESSE = parseInt(process.argv[2] || '12', 10);
+const FINE = parseInt(process.argv[3] || '26', 10); // la finesse des nuages PROCHES
 
 function ligne(debut) { for (let i = 0; i < L.length; i++) if (L[i].startsWith(debut)) return i; throw new Error('introuvable dans index.html : ' + debut); }
 function bloc(debut, fin) { const a = ligne(debut); let b = a + 1; while (b < L.length && !L[b].startsWith(fin)) b++; return L.slice(a, b).join('\n'); }
@@ -45,15 +45,19 @@ const n3 = x => Math.round(x * 1000) / 1000;
    Côté Roblox, toutes les normales pointent vers le HAUT (voir Client/Nuages) : sa lumière devient la même partout (× K), et c'est
    cette couleur-ci qu'on voit. Le soleil est celui de Roblox (Lighting:GetSunDirection à 14 h 36, latitude 23) : les nuages ne
    tournent presque plus sur eux-mêmes (±0,4 rad), leur côté clair regarde le soleil du ciel. */
-const SOL = [-0.629, 0.777, -0.009], K = 1.3;
-const SOLEIL = [268, 259, 243], OMBRE_H = [172, 186, 230], OMBRE_B = [150, 160, 216];
+// (3e retour de Sacha : « c'est toujours moche ») Le soleil du jeu web est RASANT (SUN_DIR, 5,9° au-dessus de l'horizon) : vus de
+// la route, les nuages ont un grand flanc crème-pêche et un flanc lavande. Cuits avec le soleil HAUT de Roblox (51°), on ne voyait
+// de la route que leurs flancs à l'ombre : un ciel de nuages violets. Le soleil cuit est donc rasant, dans l'azimut du soleil de
+// Roblox ; le côté soleil est crème-pêche (la brume de contre-jour du web, fogCj), l'ombre un lavande clair.
+const SOL = (() => { const v = [-0.95, 0.3, -0.014], l = Math.hypot(v[0], v[1], v[2]); return v.map(x => x / l); })(), K = 1.3;
+const SOLEIL = [292, 262, 222], OMBRE_H = [196, 202, 240], OMBRE_B = [176, 180, 230];
 const FD = (() => { const f = [-SOL[0], 0.55, -SOL[2]], l = Math.hypot(f[0], f[1], f[2]); return f.map(x => x / l); })();
 function peint(N, ao, tv, hh) {
   const l = Math.hypot(N[0], N[1], N[2]) || 1, n = [N[0] / l, N[1] / l, N[2] / l];
   const nl = n[0] * SOL[0] + n[1] * SOL[1] + n[2] * SOL[2];
   // (le jeu web passe ensuite par son étalonnage — contraste 1,28, ACES — qui remonte les clairs : ici on ouvre la lumière d'autant,
   // sinon tout le nuage sortait GRIS-BEIGE, la crème ne touchait que les crêtes)
-  const lit = Math.pow(ss(-0.25, 0.5, nl) * (1 - 0.5 * (1 - tv)) * (0.45 + 0.55 * ao), 0.8);
+  const lit = Math.pow(ss(-0.3, 0.5, nl) * (1 - 0.45 * (1 - tv)) * (0.5 + 0.5 * ao), 0.75);
   const ciel = ss(-0.35, 0.8, n[1]);
   const fl = (0.72 + 0.38 * Math.max(0, n[0] * FD[0] + n[1] * FD[1] + n[2] * FD[2]) + 0.12 * Math.max(0, -n[1])) / 0.98;
   const om = Math.min(1.2, fl) * (0.74 + 0.26 * ao) * (0.92 + 0.08 * hh) * 1.04;

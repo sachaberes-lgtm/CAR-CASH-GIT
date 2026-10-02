@@ -1095,11 +1095,11 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 	for _ = 1, GFN do table.insert(gerbe, fileNeuf(gui)) end
 
 	-- LA VIGNETTE (uVigK/uVigC de l'ACES du jeu web : bleu nuit, discrète) : quatre bandes fixes, plus sombres en bas (le bitume)
-	for _, d in { { 0, 0, 1, 0.22, 90, 0.72 }, { 0, 0.66, 1, 0.34, 270, 0.5 }, { 0, 0, 0.2, 1, 0, 0.7 }, { 0.8, 0, 0.2, 1, 180, 0.7 } } do
+	for _, d in { { 0, 0, 1, 0.22, 90, 0.7 }, { 0, 0.6, 1, 0.4, 270, 0.3 }, { 0, 0, 0.22, 1, 0, 0.62 }, { 0.78, 0, 0.22, 1, 180, 0.62 } } do -- (le bas plus sombre : le bitume proche fonce, comme sur le web)
 		local f = Instance.new("Frame")
 		f.Name = "Vignette"
 		f.BorderSizePixel = 0
-		f.BackgroundColor3 = Color3.fromRGB(10, 18, 44)
+		f.BackgroundColor3 = Color3.fromRGB(20, 14, 48)
 		f.BackgroundTransparency = 0
 		f.Position = UDim2.fromScale(d[1], d[2])
 		f.Size = UDim2.fromScale(d[3], d[4])

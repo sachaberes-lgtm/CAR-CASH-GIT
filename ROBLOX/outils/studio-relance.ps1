@@ -10,8 +10,11 @@ public class RelanceCC {
   [DllImport("user32.dll")] public static extern bool SetWindowPos(IntPtr h, IntPtr apres, int x, int y, int w, int hh, uint f);
   [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
   [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr h);
+  [DllImport("user32.dll")] public static extern bool SetProcessDPIAware();
+  [DllImport("user32.dll")] public static extern int GetSystemMetrics(int i);
 }
 "@
+[RelanceCC]::SetProcessDPIAware() | Out-Null # (AVANT tout autre appel de fenêtre : sinon Windows traduit les tailles, ×1,5 sur cet écran)
 $ici = Split-Path -Parent $MyInvocation.MyCommand.Path
 $devant = [RelanceCC]::GetForegroundWindow()
 Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowTitle -like "*CashCarTest*" } | ForEach-Object { Stop-Process -Id $_.Id -Force }
@@ -23,7 +26,11 @@ for ($i = 0; $i -lt 40; $i++) {
   Start-Sleep -Milliseconds 500
   $p = Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowTitle -like "*CashCarTest*" } | Select-Object -First 1
   if ($p) {
-    [RelanceCC]::SetWindowPos($p.MainWindowHandle, [IntPtr]1, 0, 0, 0, 0, 0x13) | Out-Null # HWND_BOTTOM, sans bouger ni activer
+    # HWND_BOTTOM, sans l'activer — et à la taille de l'écran (une fenêtre ouverte en petit donne une vue 3D minuscule, et le cadre de vue.sh tombe à côté)
+    # la fenêtre à la taille d'une fenêtre AGRANDIE (le cadre de vue.sh en dépend), sans l'activer
+    $lx = [RelanceCC]::GetSystemMetrics(61); $ly = [RelanceCC]::GetSystemMetrics(62); $d = [int](($lx - [RelanceCC]::GetSystemMetrics(0)) / 2)
+    [RelanceCC]::ShowWindow($p.MainWindowHandle, 4) | Out-Null # SW_SHOWNOACTIVATE
+    [RelanceCC]::SetWindowPos($p.MainWindowHandle, [IntPtr]1, -$d, -$d, $lx, $ly, 0x10) | Out-Null
     if ($devant -ne [IntPtr]::Zero) { [RelanceCC]::SetForegroundWindow($devant) | Out-Null }
     break
   }

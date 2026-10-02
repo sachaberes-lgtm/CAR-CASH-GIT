@@ -1847,8 +1847,10 @@ local function habiller(dt: number)
 	racine.CFrame = carCF
 	local feu = nitroOn or boost > 0 or NTR.boost > 0
 	-- la couleur du feu (les teintes de la bible du web) : violet de la nitro infinie, bleu de la réserve, orange de la nitro, or du pad
+	-- (la SIGNATURE de la caisse — le rose du chat pop-tart, l'eau du requin — ne vit qu'à la nitro, et passe après les deux signaux)
+	local fxC = poignees.fiche and poignees.fiche.fx and poignees.fiche.fx.jet
 	local couleur = (pwN > 0 and Color3.fromRGB(157, 77, 255)) or (nitroBleue and Color3.fromRGB(91, 125, 255))
-		or (nitroOn and Color3.fromRGB(255, 122, 36)) or Color3.fromRGB(255, 215, 94)
+		or (nitroOn and (fxC and Color3.fromHex(string.format("%06x", fxC)) or Color3.fromRGB(255, 122, 36))) or Color3.fromRGB(255, 215, 94)
 	-- la TRAÎNÉE de la boutique se pose par-dessus (nitro simple seulement : le violet, le bleu et l'or gardent leur sens)
 	local arc: ColorSequence? = nil
 	local tr9 = Config.habit("trainee", profil.porte and profil.porte.trainee)

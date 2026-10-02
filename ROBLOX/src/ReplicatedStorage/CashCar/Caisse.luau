@@ -284,7 +284,7 @@ function Caisse.construire(nom: string, indice: number, ancree: boolean?, habits
 	local wu = (np == 1) and 1.4 or ((np >= 3) and 0.85 or 1)
 	for i, pot in fiche.pots do
 		if i > 4 then break end
-		for _, couche in { { "Halo", 0.42 * wu, 1.7, 0.8 }, { "Coeur", 0.15 * wu, 0.7, 1.15 } } do -- (2e retour : à 0,56 × 2,6 et 0,21, deux cônes BLANCS larges comme la caisse — le web trace deux rubans fins, de la couleur du feu) -- (vu dans Studio a 1,5 / 3,2 : en vol, la camera dans l axe, tout l ecran partait au blanc)
+		for _, couche in { { "Halo", 0.42 * wu, 1.7, 1 }, { "Coeur", 0.15 * wu, 0.7, 1 } } do -- (2e retour : à 0,56 × 2,6 et 0,21, deux cônes BLANCS larges comme la caisse — le web trace deux rubans fins, de la couleur du feu) -- (vu dans Studio a 1,5 / 3,2 : en vol, la camera dans l axe, tout l ecran partait au blanc)
 			local demi = couche[2] * 0.5 * M
 			local a0 = Instance.new("Attachment")
 			a0.Name = "Sillage" .. couche[1] .. "H" .. i
@@ -301,7 +301,7 @@ function Caisse.construire(nom: string, indice: number, ancree: boolean?, habits
 			t.Lifetime = 2.2
 			t.MaxLength = 100 * M
 			t.MinLength = 0.3
-			t.LightEmission = (couche[1] == "Halo") and 0.8 or 0.9 -- (à 1, les deux couches s'additionnaient jusqu'au blanc : la couleur du feu ne se lisait plus)
+			t.LightEmission = (couche[1] == "Halo") and 0.3 or 0.45 -- (3e retour : « des couleurs FRANCHES, le ruban doit rester orange / bleu, jamais blanc » — le web, L37700 ; en additif il blanchissait) -- (à 1, les deux couches s'additionnaient jusqu'au blanc : la couleur du feu ne se lisait plus)
 			t.LightInfluence = 0
 			t.Brightness = couche[4]
 			t.FaceCamera = true
@@ -334,7 +334,7 @@ function Caisse.feu(poignees: any, on: boolean, debit: number, c: Color3, arc: C
 		f.Color = flamme
 	end
 	local halo = arc or ColorSequence.new({ ColorSequenceKeypoint.new(0, c), ColorSequenceKeypoint.new(0.6, c:Lerp(BRAISE, 0.3)), ColorSequenceKeypoint.new(1, c:Lerp(BRAISE, 0.6)) })
-	local coeur = arc or ColorSequence.new({ ColorSequenceKeypoint.new(0, c:Lerp(Color3.new(1, 1, 1), 0.5)), ColorSequenceKeypoint.new(0.12, c:Lerp(Color3.new(1, 1, 1), 0.18)), ColorSequenceKeypoint.new(1, c:Lerp(BRAISE, 0.45)) })
+	local coeur = arc or ColorSequence.new({ ColorSequenceKeypoint.new(0, c:Lerp(Color3.new(1, 1, 1), 0.4)), ColorSequenceKeypoint.new(0.08, c:Lerp(Color3.new(1, 1, 1), 0.1)), ColorSequenceKeypoint.new(1, c:Lerp(BRAISE, 0.45)) })
 	for _, t in poignees.trainees do
 		t.Enabled = on
 		t.Color = (t.Name == "Coeur") and coeur or halo

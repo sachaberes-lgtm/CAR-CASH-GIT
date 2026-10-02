@@ -164,10 +164,10 @@ Config.CIEL = {
 	-- (2e retour de Sacha : « c'est moche » — tout tirait au CYAN GLACÉ, des icebergs. La version web met l'ombre en LAVANDE
 	-- (le côté ombre « pris par le ciel », nuage8Mat) et le soleil en crème : ce sont ces deux teintes qui font le coton.)
 	ambiance = Color3.fromRGB(120, 118, 180), -- (l'ambiance des lieux COUVERTS : l'atelier du garage, le dessous de la caisse)
-	ambianceExt = Color3.fromRGB(150, 160, 200),
+	ambianceExt = Color3.fromRGB(190, 190, 225),
 	expo = -0.22,
-	brumeDensite = 0.03,          -- (la mer de nuages doit se lire jusqu'à l'horizon : la brume du web n'en mange que 20 % à 4 km)
-	brumeVoile = 1.5,  -- (à 0,5 on voyait les nuages PEINTS du ciel par défaut de Roblox : des cirrus de photo derrière des cumulus de jeu)
+	brumeDensite = 0.035,         -- (la mer de nuages doit se lire jusqu'à l'horizon : la brume du web n'en mange que 20 % à 4 km)
+	brumeVoile = 0.5,  -- (à 0,5 on voyait les nuages PEINTS du ciel par défaut de Roblox : des cirrus de photo derrière des cumulus de jeu)
 	saturation = 0.3,
 	contraste = 0.24,
 	mer = rgb(0.84, 0.90, 0.92),          -- la mer de nuages (couleur du brouillard du matin)
@@ -179,7 +179,7 @@ Config.CIEL = {
 	merMenu = 620,                              -- m : au menu la caisse tombe de très haut, la mer est loin dessous
 }
 Config.ROUTE = {
-	bitume = Color3.fromRGB(36, 34, 62),  -- (capture web du 1er oct. : le bitume est presque NOIR-MARINE ; à 54,58,78 le ciel de Roblox le rendait bleu clair)
+	bitume = Color3.fromRGB(44, 42, 68),  -- (3e retour, capture contre capture : sur le web la route est un GRIS-LAVANDE glacé qui prend le ciel — en bleu nuit, Roblox en faisait une rivière bleu marine)
 	sodium = Color3.fromRGB(255, 188, 72), -- la ligne centrale
 	voie = Color3.fromRGB(210, 216, 230),  -- les lignes de voie
 	neon = Color3.fromRGB(62, 230, 240),  -- 0x3ee6f0 : les rails de néon

@@ -16,6 +16,7 @@ local M = Config.M
 local RH = Config.ROAD_HALF
 local EP = Config.THICK * M
 local R = Config.ROUTE
+local AssetServiceR = game:GetService("AssetService")
 
 local Construction = {}
 
@@ -28,7 +29,9 @@ modeleCoin.TopSurface = Enum.SurfaceType.Smooth
 modeleCoin.BottomSurface = Enum.SurfaceType.Smooth
 modeleCoin.Material = Enum.Material.SmoothPlastic
 modeleCoin.Color = R.bitume
-modeleCoin.Reflectance = 0.06 -- (le BITUME GLACÉ du jeu web : sombre de près, il prend le ciel et les nuages en rasant — sans reflet, un trou noir)
+modeleCoin.CastShadow = false -- (les coins de la dalle se faisaient de l'ombre entre eux : un fil sombre à chaque jointure, en travers de la route)
+local REFLET = 0.1
+modeleCoin.Reflectance = REFLET -- (le BITUME GLACÉ du jeu web : sombre de près, il prend le ciel et les nuages en rasant — sans reflet, un trou noir)
 
 local function part(taille: Vector3, cf: CFrame, couleur: Color3, matiere: Enum.Material, parent: Instance): Part
 	local p = Instance.new("Part")
@@ -82,6 +85,76 @@ local function rail(a: Vector3, b: Vector3, haut: Vector3, parent: Instance)
 	p.CastShadow = false
 end
 
+-- LA DALLE EN MAILLAGE (3e retour de Sacha : « c'est toujours moche ») : en coins épais, chaque tronçon avait SA normale — le soleil
+-- et le reflet du ciel changeaient d'un cran à chaque jointure, la route se lisait en FACETTES barrées de fils sombres. Le jeu web
+-- trace un ruban continu aux normales lisses. Ici : un maillage par morceau de piste (Roblox : une pièce ≤ 2 048 studs), le
+-- dessus et le dessous de la dalle (les tranches sont sous les rails de néon), des normales PARTAGÉES d'un tronçon à l'autre.
+-- Rend false si Roblox refuse (budget de maillages) : le morceau retombe sur les coins.
+local function dalle(sections: { CFrame }, dossier: Instance): boolean
+	local demi = RH * M
+	local mn, mx = Vector3.new(math.huge, math.huge, math.huge), Vector3.new(-math.huge, -math.huge, -math.huge)
+	local pts = table.create(#sections * 4)
+	for k, f in sections do
+		local g, d = f.Position - f.RightVector * demi, f.Position + f.RightVector * demi
+		local bas = f.UpVector * EP
+		for j, q in { g, d, g - bas, d - bas } do
+			pts[(k - 1) * 4 + j] = q
+			mn, mx = mn:Min(q), mx:Max(q)
+		end
+	end
+	local centre = (mn + mx) / 2
+	local nt = (#sections - 1) * 4
+	local mp = Maillage.seul(function(): MeshPart?
+		local em = AssetServiceR:CreateEditableMesh()
+		local blanc = em:AddColor(Color3.new(1, 1, 1), 1)
+		local ids, nH, nB = table.create(#pts), table.create(#sections), table.create(#sections)
+		for i, q in pts do ids[i] = em:AddVertex(q - centre) end
+		for k, f in sections do
+			nH[k] = em:AddNormal(f.UpVector)
+			nB[k] = em:AddNormal(-f.UpVector)
+		end
+		local function face(a: number, b: number, c: number, ka: number, kb: number, kc: number, n: { any })
+			local t = em:AddTriangle(ids[a], ids[b], ids[c])
+			em:SetFaceNormals(t, { n[ka], n[kb], n[kc] })
+			em:SetFaceColors(t, { blanc, blanc, blanc })
+		end
+		for k = 1, #sections - 1 do
+			local o, o2 = (k - 1) * 4, k * 4
+			-- le dessus (g, d de la section k ; g, d de la suivante), puis le dessous, tourné vers le bas
+			face(o + 1, o + 2, o2 + 2, k, k, k + 1, nH)
+			face(o + 1, o2 + 2, o2 + 1, k, k + 1, k + 1, nH)
+			face(o + 3, o2 + 4, o + 4, k, k + 1, k, nB)
+			face(o + 3, o2 + 3, o2 + 4, k, k + 1, k + 1, nB)
+		end
+		local okF, fige = pcall(function() return AssetServiceR:CreateEditableMeshAsync(Content.fromObject(em), { FixedSize = true }) end)
+		if okF and fige then
+			em:Destroy()
+			em = fige
+		end
+		local okP, piece = pcall(function() return AssetServiceR:CreateMeshPartAsync(Content.fromObject(em), { CollisionFidelity = Enum.CollisionFidelity.Box }) end)
+		if not okP or not piece then
+			pcall(function() em:Destroy() end)
+			return nil
+		end
+		Maillage.suivre(piece, em, nt)
+		return piece
+	end)
+	if not mp then return false end
+	mp.Name = "Dalle"
+	mp.Anchored = true
+	mp.CanCollide = false
+	mp.CanQuery = false
+	mp.CanTouch = false
+	mp.CastShadow = false
+	mp.DoubleSided = true
+	mp.Material = Enum.Material.SmoothPlastic
+	mp.Color = R.bitume
+	mp.Reflectance = REFLET
+	mp.CFrame = CFrame.new(centre)
+	mp.Parent = dossier
+	return true
+end
+
 -- Bâtit la route d'une piste dans `dossier`. `ceder` est appelé régulièrement (bâtir en tâche de fond).
 function Construction.route(piste: Piste.Piste, dossier: Instance, ceder: (() -> ())?)
 	local F = piste.F
@@ -89,6 +162,24 @@ function Construction.route(piste: Piste.Piste, dossier: Instance, ceder: (() ->
 	local demi = RH * M
 	local i = 1
 	local compte = 0
+	-- le morceau de dalle en cours : ses sections (une par jointure), tant qu'il tient dans une pièce de Roblox
+	local sections: { CFrame } = { F[1] }
+	local mnS, mxS = F[1].Position, F[1].Position
+	local function fermer()
+		if #sections >= 2 and not dalle(sections, dossier) then
+			-- (secours : les coins épais, comme avant)
+			for k = 1, #sections - 1 do
+				local fa, fb = sections[k], sections[k + 1]
+				local mA, mB = fa.Position - fa.UpVector * (EP / 2), fb.Position - fb.UpVector * (EP / 2)
+				local gA, dA = mA - fa.RightVector * demi, mA + fa.RightVector * demi
+				local gB, dB = mB - fb.RightVector * demi, mB + fb.RightVector * demi
+				triangle(gA, dA, dB, EP, dossier)
+				triangle(gA, dB, gB, EP, dossier)
+			end
+		end
+		sections = { sections[#sections] }
+		mnS, mxS = sections[1].Position, sections[1].Position
+	end
 	while i < n do
 		-- on allonge le quadrilatère tant que la route ne tourne ni ne plie (≤ 3°) et sur 30 m au plus
 		local j = i + 1
@@ -100,10 +191,10 @@ function Construction.route(piste: Piste.Piste, dossier: Instance, ceder: (() ->
 		local fa, fb = F[i], F[j]
 		local mA = fa.Position - fa.UpVector * (EP / 2)
 		local mB = fb.Position - fb.UpVector * (EP / 2)
-		local gA, dA = mA - fa.RightVector * demi, mA + fa.RightVector * demi
-		local gB, dB = mB - fb.RightVector * demi, mB + fb.RightVector * demi
-		triangle(gA, dA, dB, EP, dossier)
-		triangle(gA, dB, gB, EP, dossier)
+		table.insert(sections, fb)
+		mnS, mxS = mnS:Min(fb.Position), mxS:Max(fb.Position)
+		local e = mxS - mnS
+		if math.max(e.X, e.Y, e.Z) > 1700 or #sections > 80 then fermer() end
 		local rA, rB = demi - 0.12 * M, demi - 0.12 * M
 		rail(mA - fa.RightVector * rA, mB - fb.RightVector * rB, (fa.UpVector + fb.UpVector).Unit, dossier)
 		rail(mA + fa.RightVector * rA, mB + fb.RightVector * rB, (fa.UpVector + fb.UpVector).Unit, dossier)
@@ -111,6 +202,7 @@ function Construction.route(piste: Piste.Piste, dossier: Instance, ceder: (() ->
 		compte += 1
 		if ceder and compte % 60 == 0 then ceder() end
 	end
+	fermer()
 	-- le marquage du niveau 1 (capture web) : des pointillés BLANCS sur les voies, tous les 12 m — sur un ruban
 	-- de 56 m, ce sont eux qui disent la vitesse et l'échelle
 	local haut = 0.03 * M

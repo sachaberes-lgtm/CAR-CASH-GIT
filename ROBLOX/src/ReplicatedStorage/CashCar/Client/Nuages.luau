@@ -105,16 +105,16 @@ local function gabarit(k: number): Gabarit?
 	return gabarits[k] or nil
 end
 -- ── LA FINESSE DU TOUT PRÈS (N8_FIN du web : la surface d'un nuage suit sa taille à l'écran, 12 / 18 / 26 / 48 cellules) ──
--- Roblox ne tient pas quatre jeux de 25 maillages dans son budget : tous les nuages sont posés en ÉBAUCHE (14 cellules), et ceux
+-- Roblox ne tient pas quatre jeux de 25 maillages dans son budget : tous les nuages sont posés en ÉBAUCHE (12 cellules), et ceux
 -- qui deviennent GRANDS à l'écran (cotonTick : 73·R / (d − R/2) segments demandés, au-delà de ~13 l'ébauche montre ses facettes)
--- reçoivent une copie FINE (30 cellules) par-dessus l'ébauche cachée. Une version fine coûte ~4 000 triangles, partagés par
+-- reçoivent une copie FINE (26 cellules) par-dessus l'ébauche cachée. Une version fine coûte ~3 000 triangles, partagés par
 -- tous les nuages de son gabarit ; on en tient quelques-unes à la fois, les plus utiles d'abord, et on les rend dès qu'elles
 -- ne servent plus (le garage, la carte moteur ont besoin du budget).
 type Inscrit = { p: MeshPart, k: number, f: MeshPart?, q: number }
 local inscrits: { Inscrit } = {}
 local parPiece: { [MeshPart]: Inscrit } = {}
 local fins: { [number]: { g: Gabarit?, etat: string, vu: number } } = {}
-local FIN_ON, FIN_OFF, FIN_MAX, FIN_MARGE = 0.18, 0.14, 4, 10000
+local FIN_ON, FIN_OFF, FIN_MAX, FIN_MARGE = 0.16, 0.12, 5, 7000
 local finT = 0
 local function inscrire(p: MeshPart, k: number)
 	local e = { p = p, k = k, f = nil, q = 0 }
