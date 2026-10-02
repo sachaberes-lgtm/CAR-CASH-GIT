@@ -363,6 +363,14 @@ function Mer.creer(graine: number)
 	end)
 end
 
+-- la mer n'existe qu'au niveau NUAGES (et au menu) : la VILLE et l'ORBITE n'ont pas de nuages
+local visible = true
+function Mer.montrer(oui: boolean)
+	if oui == visible or not dossier then return end
+	visible = oui
+	dossier.Parent = oui and workspace or nil
+end
+
 -- la TEINTE de l'heure (Client/Ambiance) : la mer prend l'or de la fin d'après-midi
 function Mer.teinte(c: Color3)
 	if not dossier then return end

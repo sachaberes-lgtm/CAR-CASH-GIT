@@ -54,8 +54,16 @@ Roblox limite le nombre d'imports audio par mois : commence par `moteur`, `nitro
 
 ## Ce qui est porté / ce qui ne l'est pas encore
 
-Le portage suit le jeu web **du jour** (`VERSION PRINCIPALE/index.html`), sur **une seule map : le niveau NUAGES**
-(décision de Sacha : pas de ville, de Paris, d'espace ni de carrière sur Roblox).
+Le portage suit le jeu web **du jour** (`VERSION PRINCIPALE/index.html`), sur **trois niveaux** qui s'enchaînent de portail
+en portail : **NUAGES → VILLE → ORBITE**, puis on recommence (décision de Sacha, 2/10 : « fais la ville et l'espace, fais pas
+Paris » ; ni Paris, ni les variantes orage / minuit / pluie de satellites, ni la carrière pour l'instant).
+- **AU-DESSUS DE LA VILLE** (`Client/Ville`) : le canyon de tours à fenêtres chaudes ou froides, les enseignes de néon, la nuit
+  violette, la pluie, les rails roses et leur lueur sur le bitume mouillé ; une entrée surélevée puis la grande rampe ; des pentes
+  comprimées, de grands virages ; en vol, entrer dans une tour tue.
+- **EN ORBITE** (`Client/Espace`) : le ciel noir, la Terre qui se lève au bout de la route, la lune qui regarde la caisse, les
+  Starlink et les débris ; une autoroute large et douce ; la gravité divisée par deux et la jauge de vol allongée (×1,7).
+- Le niveau d'une zone : `Config.niveau(zone)` ; son ambiance : `Client/Ambiance` (`pluie`, `espace`) ; l'habit de sa route
+  (liseré, bitume, lueur) : `HABITS` dans `Client/Construction`.
 
 **Porté** (tout a été vu tourner dans Roblox Studio) :
 - la route-ruban qui plonge, ses deux faces, la conduite, le drift, la fronde, les pads, plots, flaques, épaves ;
@@ -110,8 +118,13 @@ ressources Roblox (ton compte) : à voir plus tard.
 - Mise au point dans Studio (barre de commande) : `workspace:SetAttribute("DbgAuto", true)` (pilote automatique), `DbgNitro`,
   `DbgInf`, `DbgPlein`, `DbgDauphins`, `DbgSerpent`, `DbgArgent` (un compte), `DbgBudget` (le budget de triangles),
   `DbgFx` = "mort" | "moteur7" | "pluie" | "cratere" | "jus3", `DbgOuvre` = "jouer" | "garage" | "boutique" | "reglages" |
-  "missions" | "menu" | "pause" | "frenesie", `DbgLarge` = 1280 (l'interface d'un écran 16:9).
-- `DbgHeure` = "matin" | "midi" | "aprem" | "titre" impose une des heures du niveau (`Client/Ambiance`) ; `nil` rend la main au hasard.
+  "missions" | "menu" | "pause" | "frenesie" | "portail…" (en course : saute au pied du portail, pour voir le niveau suivant), `DbgLarge` = 1280 (l'interface d'un écran 16:9).
+- `DbgHeure` = "matin" | "midi" | "aprem" | "titre" | "pluie" | "espace" impose une ambiance (`Client/Ambiance`) ; `nil` rend la main.
+- `NIVEAU=ville sh outils/banc.sh` (ou `espace`) : la copie de test force ce niveau dès la zone 1 (`Config.NIVEAU_TEST`, jamais dans
+  le fichier livré).
+- ⚠ LE BUDGET DE MAILLAGES : la ville se prépare PENDANT le niveau d'avant ; si le budget est plein, Roblox refuse ses gabarits
+  (tours sans fenêtres, route à facettes). Tout maillage de plus sur la route se paie quatre fois (les zones 1 et 2 restent en
+  réserve, plus la zone en cours et la suivante) : la lueur des rails est une IMAGE, pas des triangles. `DbgBudget` mesure.
 - ⚠ Hors de « la main », Studio bride la partie de test à 15 images par seconde (le pilote automatique sort de la route) :
   `outils/studio-actif.ps1` lui fait croire qu'elle l'a, sans la mettre devant. `outils/vue.py` cherche seul le cadre de la vue 3D.
 - ⚠ Roblox Studio ne rend plus une seule image quand l'écran du PC s'est mis en veille (la partie de test se fige, les photos

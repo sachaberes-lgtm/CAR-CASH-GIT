@@ -31,6 +31,43 @@ modeleCoin.Material = Enum.Material.Plastic
 modeleCoin.Color = R.bitume
 modeleCoin.CastShadow = false -- (les coins de la dalle se faisaient de l'ombre entre eux : un fil sombre à chaque jointure, en travers de la route)
 local REFLET = 0.02
+-- L'HABIT DE LA ROUTE, PAR NIVEAU (buildTrack du web, L10106 : « le liseré suit le monde, plus le hasard ») : NUAGES = le cyan de
+-- l'air, VILLE = le rose néon sur un bitume de nuit MOUILLÉ, ORBITE = le cyan froid sur un indigo profond. `nappe` = la lueur du
+-- rail qui saigne vers l'intérieur du bitume (1,15 m ; 3,35 m sous la pluie : la route mouillée renvoie le néon), `nappeK` sa force.
+local HABITS: { [string]: any } = {
+	nuages = { accent = R.neon, bitume = R.bitume, nappe = 1.15, nappeK = 0.36 },
+	ville = { accent = Color3.fromRGB(242, 74, 160), bitume = Color3.fromRGB(40, 34, 80), nappe = 3.35, nappeK = 0.62 },
+	espace = { accent = Color3.fromRGB(94, 230, 255), bitume = Color3.fromRGB(62, 52, 118), nappe = 1.15, nappeK = 0.36 },
+}
+local habit = HABITS.nuages
+-- LA NAPPE DE LUEUR (L10133) : le web pose sous chaque rail un ruban ADDITIF qui meurt sur l'asphalte. Ici c'est une IMAGE d'une
+-- bande de pixels en travers de la route (le bitume au milieu, le bitume + l'accent sur les bords), tendue sur la dalle par ses
+-- coordonnées de texture : zéro pièce et zéro triangle de plus. (1er essai : la couleur dans les SOMMETS, avec deux colonnes de
+-- points de plus par face — la dalle triplait, et quatre zones gardées en réserve vidaient le budget de maillages : la ville
+-- qui se préparait pendant le niveau NUAGES perdait ses fenêtres. Mesuré au banc, 2/10.)
+local nappes: { [any]: any } = {}
+local function imageNappe(h: any): any?
+	if nappes[h] ~= nil then return nappes[h] or nil end
+	nappes[h] = false
+	local N, H = 128, 2
+	local ok, im = pcall(function() return AssetServiceR:CreateEditableImage({ Size = Vector2.new(N, H) }) end)
+	if not ok or not im then return nil end
+	local b = buffer.create(N * H * 4)
+	for x = 0, N - 1 do
+		local d = math.min(x + 0.5, N - x - 0.5) / N * 2 * RH -- (mètres depuis le bord le plus proche)
+		local k = math.max(0, 1 - d / h.nappe)
+		k = k * k * h.nappeK
+		local c = { h.bitume.R + h.accent.R * k, h.bitume.G + h.accent.G * k, h.bitume.B + h.accent.B * k }
+		for y = 0, H - 1 do
+			local o = (y * N + x) * 4
+			for j = 1, 3 do buffer.writeu8(b, o + j - 1, math.clamp(math.floor(c[j] * 255 + 0.5), 0, 255)) end
+			buffer.writeu8(b, o + 3, 255)
+		end
+	end
+	local ok2 = pcall(function() im:WritePixelsBuffer(Vector2.zero, Vector2.new(N, H), b) end)
+	nappes[h] = ok2 and im or false
+	return nappes[h] or nil
+end
 modeleCoin.Reflectance = REFLET -- (le BITUME GLACÉ du jeu web : sombre de près, il prend le ciel et les nuages en rasant — sans reflet, un trou noir)
 
 local function part(taille: Vector3, cf: CFrame, couleur: Color3, matiere: Enum.Material, parent: Instance): Part
@@ -81,7 +118,8 @@ local function rail(a: Vector3, b: Vector3, haut: Vector3, parent: Instance)
 	if l < 0.01 then return end
 	local cf = CFrame.lookAt((a + b) / 2, b, haut)
 	-- (0,7 m de néon : deux gros tubes cyan qui mangeaient l'image — la version web trace un LISERÉ au bord de la dalle)
-	local p = part(Vector3.new(0.24 * M, EP + 0.1 * M, l + 0.05), cf, R.neon, Enum.Material.Neon, parent)
+	local p = part(Vector3.new(0.24 * M, EP + 0.1 * M, l + 0.05), cf, habit.accent, Enum.Material.Neon, parent)
+	p.Name = "Rail"
 	p.CastShadow = false
 end
 
@@ -104,9 +142,13 @@ local function dalle(sections: { CFrame }, dossier: Instance): boolean
 	end
 	local centre = (mn + mx) / 2
 	local nt = (#sections - 1) * 4
+	local im = imageNappe(habit) -- (sans image — Roblox l'a refusée — : le bitume uni, dans les sommets)
+	local bt = habit.bitume
 	local mp = Maillage.seul(function(): MeshPart?
 		local em = AssetServiceR:CreateEditableMesh()
-		local blanc = em:AddColor(Color3.new(1, 1, 1), 1)
+		local fond = em:AddColor(im and Color3.new(1, 1, 1) or bt, 1)
+		local uG, uD = em:AddUV(Vector2.new(0.004, 0.5)), em:AddUV(Vector2.new(0.996, 0.5))
+		local uv = { uG, uD, uG, uD }
 		local ids, nH, nB = table.create(#pts), table.create(#sections), table.create(#sections)
 		for i, q in pts do ids[i] = em:AddVertex(q - centre) end
 		for k, f in sections do
@@ -116,7 +158,8 @@ local function dalle(sections: { CFrame }, dossier: Instance): boolean
 		local function face(a: number, b: number, c: number, ka: number, kb: number, kc: number, n: { any })
 			local t = em:AddTriangle(ids[a], ids[b], ids[c])
 			em:SetFaceNormals(t, { n[ka], n[kb], n[kc] })
-			em:SetFaceColors(t, { blanc, blanc, blanc })
+			em:SetFaceColors(t, { fond, fond, fond })
+			em:SetFaceUVs(t, { uv[(a - 1) % 4 + 1], uv[(b - 1) % 4 + 1], uv[(c - 1) % 4 + 1] })
 		end
 		for k = 1, #sections - 1 do
 			local o, o2 = (k - 1) * 4, k * 4
@@ -148,7 +191,8 @@ local function dalle(sections: { CFrame }, dossier: Instance): boolean
 	mp.CastShadow = false
 	mp.DoubleSided = true
 	mp.Material = Enum.Material.Plastic -- (mat : en lisse, le bitume prenait tout le bleu du ciel en rasant — une route INDIGO le matin)
-	mp.Color = R.bitume
+	mp.Color = Color3.new(1, 1, 1) -- (la couleur est dans l'image de la nappe — ou, sans elle, dans les sommets)
+	if im then mp.TextureContent = Content.fromObject(im) end
 	mp.Reflectance = REFLET
 	mp.CFrame = CFrame.new(centre)
 	mp.Parent = dossier
@@ -162,6 +206,8 @@ function Construction.route(piste: Piste.Piste, dossier: Instance, ceder: (() ->
 	local demi = RH * M
 	local i = 1
 	local compte = 0
+	habit = HABITS[(piste :: any).niveau] or HABITS.nuages
+	modeleCoin.Color = habit.bitume
 	-- le morceau de dalle en cours : ses sections (une par jointure), tant qu'il tient dans une pièce de Roblox
 	local sections: { CFrame } = { F[1] }
 	local mnS, mxS = F[1].Position, F[1].Position

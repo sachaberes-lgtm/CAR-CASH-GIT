@@ -19,7 +19,7 @@ local RH = Config.ROAD_HALF
 
 export type Objet = { s: number, lat: number, h: number, face: number, kind: string, pw: string?, grp: number?, r: number?, fruit: number?, ligne: boolean? }
 export type Piste = {
-	graine: number, zone: number, DS: number, n: number, len: number, F: { CFrame },
+	graine: number, zone: number, niveau: string, entree: { number }?, DS: number, n: number, len: number, F: { CFrame },
 	minY: number, grille: { [number]: { number } }, cellule: number,
 	objets: { Objet }, modules: { { a: number, b: number, nom: string } },
 }
@@ -40,7 +40,20 @@ end
 function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (() -> ())?, ecole: boolean?): Piste
 	local rnd = Random.new(graine * 97 + zone * 7919)
 	local function r(a: number, b: number): number return a + rnd:NextNumber() * (b - a) end
+	local niv: string = ecole and "nuages" or Config.niveau(zone).id
+	local VILLE, ESPACE = niv == "ville", niv == "espace"
 	local LV = 1 + (zone - 1) * 0.35          -- lvPiste : plus on va vite, plus les rayons s'ouvrent
+	-- L'AUTOROUTE ORBITALE (ESP_ROUTE, L8845) : en ESPACE la piste est dessinée pour 30 % de vitesse en plus
+	if ESPACE then LV *= 1.3 end
+	-- LES PENTES COMPRIMÉES (VILLE_PENTE, ESP_ROUTE.pente) : sous le seuil rien ne bouge ; au-delà, seule une part de l'excès passe —
+	-- entre les tours chaque façade MESURE la pente (48° → 30°) ; en orbite, à gravité ÷2, le relief devient une houle (≤ ~10°)
+	local SEUIL, GARDE = 9, 1
+	if VILLE then SEUIL, GARDE = 0.30, 0.35 elseif ESPACE then SEUIL, GARDE = 0.14, 0.4 end
+	local function comprime(p: number): number
+		local a = math.abs(p)
+		if a <= SEUIL then return p end
+		return math.sign(p) * (SEUIL + (a - SEUIL) * GARDE)
+	end
 	local RS = 1.25 * LV
 	local LEN = P.longueur * (1 + math.min(1.1, (zone - 1) * 0.25))
 	local DS = P.pas
@@ -102,8 +115,9 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 	local function seg(longueur: number, angle: number, penteFin: number, rampe: number?)
 		local n = math.max(2, math.floor(longueur / DS + 0.5))
 		local p0 = pc
-		penteFin = math.clamp(penteFin, -P.penteMax, 0.40)
-		local nR = math.max(1, math.floor(math.min(longueur * 0.5, rampe or 55) / DS))
+		penteFin = comprime(math.clamp(penteFin, -P.penteMax, 0.40))
+		-- (ESP_ROUTE.cretes) en ESPACE, crêtes et creux sont arrondis 2,5 fois plus
+		local nR = math.max(1, math.floor(math.min(longueur * 0.5, (rampe or 55) * (ESPACE and 2.5 or 1)) / DS))
 		for k = 1, n do
 			local u = (k - 0.5) / n
 			local forme = 1 - math.cos(2 * math.pi * u) -- courbure nulle aux deux bouts, angle total respecté
@@ -124,8 +138,9 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 	local function desc(a: number, b: number): number return -math.min(P.penteMax, r(a, b)) end
 	local MOTIFS = {
 		{ "grand", 16, function() -- le grand balayage : large, il descend doucement
-			local R = (110 + r(0, 90)) * RS
-			arc(R, sens() * math.min(100 + r(0, 60), 52000 / R), desc(0.12, 0.24))
+			local large = VILLE or ESPACE -- (L9462) R 160-320 en VILLE et en ORBITE, 110-200 ailleurs
+			local R = (large and (160 + r(0, 160)) or (110 + r(0, 90))) * RS
+			arc(R, sens() * math.min(100 + r(0, 60), (large and 64000 or 52000) / R), desc(0.12, 0.24))
 		end },
 		{ "virage", 30, function() -- le grand virage : il PLONGE
 			local R = (80 + r(0, 120)) * RS
@@ -168,6 +183,19 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 			end
 		end },
 	}
+	-- LES POIDS DU NIVEAU (`wv` : la VILLE a ses grands virages et ses grands balayages ; l'ORBITE les mêmes, tempérés par
+	-- ESP_ROUTE.w : épingles × 0,35 ; vagues, plongeons, chicanes × 0,5 ; lignes d'élan × 1,2)
+	if VILLE or ESPACE then
+		local W = { grand = 28, virage = 40, epingle = 2, esses = 22, vague = 6, plongeon = 2, elan = 3, chicane = 5 }
+		if ESPACE then
+			W.epingle *= 0.35
+			W.vague *= 0.5
+			W.plongeon *= 0.5
+			W.chicane *= 0.5
+			W.elan *= 1.2
+		end
+		for _, m in MOTIFS do m[2] = W[m[1]] or m[2] end
+	end
 	-- entre deux motifs : une liaison qui tourne (16-36°) et descend de 8-16 m (L9084)
 	local function liaison()
 		local l = r(50, 90) * LV
@@ -252,6 +280,7 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 
 	-- ── poser un plan : simulé d'abord, écrit seulement s'il ne traverse pas la route ──
 	local modules = {}
+	local entreeA, entreeB = 0, 0 -- (VILLE) les numéros de points de la fin de la droite surélevée et du pied de la rampe
 	local function poser(verifier: boolean): boolean
 		local l, q = lacet, pos
 		local essai: { Vector3 } = {}
@@ -301,13 +330,24 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 	else
 	-- le départ : un bout plat pour poser la caisse, puis la rampe qui plonge (on prend de l'élan)
 	pc = 0
-	seg(40, 0, 0)
-	seg(P.departLong * LV, 0, -P.departPente, 40)
-	seg(40, 0, -0.08, 30)
+	if VILLE then
+		-- L'ENTRÉE DANS LA VILLE (VILLE_ENTREE_R, L8855) : une ligne droite quasi plate, SURÉLEVÉE — les toits qui la bordent restent
+		-- sous la route, on voit la ville défiler —, puis la GRANDE RAMPE qui plonge dans le canyon
+		seg(40, 0, 0)
+		seg(420 * LV, 0, -6 / 420, 40)
+		entreeA = #plan + 1
+		seg(520 * LV, 0, -220 / 520, 60)
+		entreeB = #plan + 1
+		seg(40, 0, -0.08, 30)
+	else
+		seg(40, 0, 0)
+		seg(P.departLong * LV, 0, -P.departPente, 40)
+		seg(40, 0, -0.08, 30)
+	end
 	poser(false)
 	end
 
-	local prochainModule = r(P.module[1], P.module[2]) * LV * 0.6
+	local prochainModule = (niv == "nuages") and r(P.module[1], P.module[2]) * LV * 0.6 or math.huge -- (les modules sont ceux du niveau NUAGES)
 	local POIDS_TOT = 0
 	for _, m in MOTIFS do POIDS_TOT += m[2] end
 	while (#pts - 1) * DS < LEN - 400 do
@@ -392,7 +432,8 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 	end
 
 	local piste = {
-		graine = graine, zone = zone, DS = DS * M, n = n, len = (n - 1) * DS * M, F = F,
+		graine = graine, zone = zone, niveau = niv, entree = (entreeA > 0) and { entreeA, entreeB } or nil,
+		DS = DS * M, n = n, len = (n - 1) * DS * M, F = F,
 		minY = minY, grille = grille, cellule = CEL, objets = {}, modules = modules,
 	}
 	Piste.semer(piste :: any, rnd, zone, ecole)

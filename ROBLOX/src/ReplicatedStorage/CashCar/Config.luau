@@ -10,6 +10,9 @@ Config.SPD = 0.48          -- vitesse globale : le monde avance de vA·SPD mètr
 Config.GRAV = 9.8 * 0.55   -- la pente qui freine ou relance, au sol
 Config.FALL_G = 33         -- gravité du vol (× SPD = 15,8 m/s² dans le monde)
 Config.AIR_MAX = 6         -- secondes en l'air avant l'explosion (le camembert)
+-- LA GRAVITÉ DE L'ORBITE (ORB_G, ORB_AIR, L28085) : en ESPACE la gravité est divisée par deux, la jauge d'airtime passe de 6 à 10,2 s
+Config.ORB_G = 0.5
+Config.ORB_AIR = 1.7
 Config.ROAD_HALF = 28      -- demi-largeur de la route (L7115 × LARGEUR 2.0) : 56 m de bitume
 Config.THICK = 2.6         -- épaisseur de la dalle
 Config.MORT_SOUS = 120     -- on meurt 120 m sous le point le plus bas de la piste
@@ -153,6 +156,25 @@ Config.FRUITS = {
 }
 -- LA LIGNE PARFAITE (L11855) : une file FRUIT, PAD, FRUIT, PAD… posée en course devant la caisse, sur la trajectoire idéale
 Config.LIGNE = { dt = 1.2, don = 1.15, voir = 3.5 }
+
+-- ── LES NIVEAUX (NIVEAUX du jeu web, L13322) : le portail est la porte entre deux mondes. Sacha, 2/10 : « fais la ville et
+-- l'espace, fais pas Paris » — le cycle est NUAGES → VILLE → ORBITE → NUAGES…
+Config.NIVEAUX = {
+	{ id = "nuages", nom = "MER DE NUAGES", en = "SEA OF CLOUDS" },
+	{ id = "ville", nom = "AU-DESSUS DE LA VILLE", en = "ABOVE THE CITY" },
+	{ id = "espace", nom = "EN ORBITE", en = "IN ORBIT" },
+}
+Config.NIVEAU_TEST = nil :: string? -- (banc) force le niveau de TOUTES les zones : "ville", "espace"
+-- le niveau d'une zone (la zone 0 est l'auto-école : le ciel des nuages)
+function Config.niveau(zone: number): any
+	local force = Config.NIVEAU_TEST
+	if force and zone > 0 then
+		for _, n in Config.NIVEAUX do
+			if n.id == force then return n end
+		end
+	end
+	return Config.NIVEAUX[(math.max(1, zone) - 1) % #Config.NIVEAUX + 1]
+end
 
 -- ── le niveau 1 : « le jour d'altitude » (biomes matin/midi/aprem, L12775) ──
 local function rgb(r, g, b) return Color3.new(r, g, b) end

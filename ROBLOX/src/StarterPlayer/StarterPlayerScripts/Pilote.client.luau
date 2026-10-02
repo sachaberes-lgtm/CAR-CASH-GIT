@@ -31,6 +31,8 @@ local Missions = require(CL:WaitForChild("Missions"))
 -- nuages vivent dans la table KA)
 local KA: any = { Camera = require(CL:WaitForChild("Camera")), Nuages = require(CL:WaitForChild("Nuages")), Titre = require(CL:WaitForChild("Titre")),
 	pos = Vector3.zero, vise = Vector3.zero, up = Vector3.yAxis, fov = 72, V = {}, refletK = 0, envoiT = 0 }
+KA.Ville = require(CL:WaitForChild("Ville"))
+KA.Espace = require(CL:WaitForChild("Espace"))
 
 local M, SPD = Config.M, Config.SPD
 local RH, THICK = Config.ROAD_HALF, Config.THICK
@@ -176,9 +178,16 @@ local function preparer(z: number, depart: CFrame?): Zone
 		local ciel = Instance.new("Folder") -- (à part : au menu, les nuages du niveau sont cachés — le titre a les siens)
 		ciel.Name = "Nuages"
 		ciel.Parent = d
-		do
+		if p.niveau == "nuages" then
 			local okN, resN = pcall(KA.Nuages.batir, p, ciel, graine + z * 31, ceder, z == 0)
 			if okN then nuages = resN else warn("[CashCar] nuages : " .. tostring(resN)) end
+		elseif p.niveau == "ville" then
+			-- LA VILLE : le canyon de tours, la forêt du village, les néons — et la grille de collision (en vol, une tour tue)
+			local okV, resV = pcall(KA.Ville.batir, p, ciel, graine + z * 31, ceder)
+			if okV then (e :: any).ville = resV else warn("[CashCar] ville : " .. tostring(resV)) end
+		elseif p.niveau == "espace" then
+			local okE, resE = pcall(KA.Espace.batir, p, ciel, graine + z * 31, ceder)
+			if not okE then warn("[CashCar] espace : " .. tostring(resE)) end
 		end
 		e.ciel = ciel
 		e.piste, e.dossier, e.objets, e.grille, e.pads, e.series, e.prisSerie, e.nuages = p, d, objs, grille, pads, series, {}, nuages
@@ -293,7 +302,14 @@ local function vitMult(): number return math.min(1 + NTR_BOOST_MAX, (pwV > 0 and
 local function kmh(): number return math.abs(vA) * 3.6 * SPD * vitMult() end
 local FAC = Config.FACILE
 local function facile(): boolean return Config.FACILE_ACTIF and profil.reglages ~= nil and profil.reglages.facile == true end
-local function airMax(): number return Config.AIR_MAX * (facile() and FAC.air or 1) end
+-- LA GRAVITÉ DE L'ORBITE (gK, L28086) : en ESPACE tout ce qui tombe tombe deux fois moins vite, et la jauge d'airtime s'allonge
+function G.gK(): number return (piste and (piste :: any).niveau == "espace") and Config.ORB_G or 1 end
+local function airMax(): number return Config.AIR_MAX * ((G.gK() < 1) and Config.ORB_AIR or 1) * (facile() and FAC.air or 1) end
+function G.nomNiveau(): string
+	local n = Config.niveau((piste and (piste :: any).zone) or 1)
+	if piste and (piste :: any).niveau ~= n.id then n = Config.NIVEAUX[1] end -- (l'auto-école)
+	return tr(n.nom, n.en)
+end
 local function horiz(v: Vector3): number return math.sqrt(v.X * v.X + v.Z * v.Z) end
 -- la vitesse ÷ la croisière (flowVitN, L21005) : en vol, la vitesse HORIZONTALE seule
 local function vitN(): number
@@ -735,7 +751,7 @@ local function atterrir(face: number, latX: number, sX: number, hR: number?)
 		graceT = 0.3
 		V.fallT, V.fallTR = 0, 0
 		E.air.Visible = false
-		Hud.grand(T.niveau, Hud.C.texte, 1.8)
+		Hud.grand(G.nomNiveau(), Hud.C.texte, 1.8)
 		Sons.jouer("go")
 		Sons.jouer("poseChoc")
 		secousse = 0.6
@@ -753,7 +769,7 @@ local function atterrir(face: number, latX: number, sX: number, hR: number?)
 	vA = vTan
 	psi = math.clamp(math.atan2(vLat, math.abs(vTan) + 1), -1.4, 1.4)
 	yawR, G.slipB = 0, 0
-	local perte = math.min(0.52, math.max(0, V.fallT - 0.8) * 0.15 + math.abs(vN) * 0.008)
+	local perte = math.min(0.52, math.max(0, V.fallT * G.gK() - 0.8) * 0.15 + math.abs(vN) * 0.008) -- (× gK : en orbite un même saut dure deux fois plus)
 	vA *= 1 - perte
 	local impact = math.abs(vN)
 	-- la pose RATÉE : la trajectoire arrive à plus de 55° de l'axe de la route
@@ -938,7 +954,7 @@ local function essayerAtterrir(dt: number)
 			fallVel += B * (-vB * 1.65)
 			fallVel *= 0.78
 			-- la tranche RENVOIE vers le ciel pour de bon (~1,9 m de montée) : de quoi revenir se poser au volant
-			fallVel = Vector3.new(fallVel.X, math.max(fallVel.Y + 2.4, 16), fallVel.Z)
+			fallVel = Vector3.new(fallVel.X, math.max(fallVel.Y + 2.4, 16 * math.sqrt(G.gK())), fallVel.Z)
 			fallPos += B * (sg * math.max(bumpThru and 0 or math.abs(latOff), RH + demi) - latOff) -- remise CONTRE la tranche
 			V.sideCd = 0.35
 			V.bascOn = false -- la tranche touchée : la bascule est finie
@@ -1372,6 +1388,7 @@ local function activer(e: Zone)
 	if e.ciel then e.ciel.Parent = (mode ~= "menu" and mode ~= "garage" and mode ~= "charge") and e.dossier or nil end
 	oi = 1
 	evEtat:FireServer("zone", e.z)
+	Bus.emit("niveau", (piste :: any).niveau)
 end
 local function passerPortail(): boolean
 	local ecole = TU.on and zoneN == 0 -- pendant la leçon, le portail ramène sur la piste d'école
@@ -1410,6 +1427,7 @@ local function passerPortail(): boolean
 	nitroR = reservoir()
 	Bus.emit("portail", zoneN)
 	HudScore.slam("ZONE " .. zoneN, "+" .. Hud.argent(g), "#00eaff", "#7dff9b", 34, 1)
+	if not ecole then task.delay(1.3, function() if mode == "drive" or mode == "fall" then Hud.grand(G.nomNiveau(), Hud.C.texte, 2.4) end end) end
 	Sons.jouer("portail")
 	if not ecole then preparer(zoneN + 1, Piste.suite(piste)) end
 	return true
@@ -1633,7 +1651,7 @@ local function etapeSol(dt: number)
 	if math.abs(G.levreY) < 0.005 then G.levreY = 0 end
 	if G.hopY > 0 then
 		G.hopY += G.hopV * dt
-		G.hopV -= 26 * dt
+		G.hopV -= 26 * G.gK() * dt
 		if G.hopY <= 0 then -- le CONTACT
 			G.hopY, G.hopV = 0, 0
 			secousse = math.max(secousse, G.choc)
@@ -1661,7 +1679,7 @@ local function etapeAir(dt: number)
 		if V.bascT > 1.1 then V.bascOn = false end
 	end
 	local gB = V.bascOn and math.min(1, V.bascT / 0.45) or 1 -- LE SURSIS : la gravité s'installe en 0,45 s
-	fallVel -= Vector3.new(0, FALL_G * gB * dt, 0)
+	fallVel -= Vector3.new(0, FALL_G * G.gK() * gB * dt, 0)
 	-- le repère de vol : l'avant = la trajectoire, le haut reste perpendiculaire (garde contre le blocage de cardan)
 	local vit = fallVel.Magnitude
 	if vit > 1 then flyAv = fallVel / vit end
@@ -1683,7 +1701,7 @@ local function etapeAir(dt: number)
 	end
 	if nitroOn then
 		-- la PORTANCE : la nitro reprend 60 % de la gravité (75 % en réserve bleue)
-		fallVel += Vector3.new(0, FALL_G * (nitroBleue and 0.75 or NI.portance) * gB * dt, 0)
+		fallVel += Vector3.new(0, FALL_G * G.gK() * (nitroBleue and 0.75 or NI.portance) * gB * dt, 0)
 		-- le COUP D'ALLUMAGE : une fois par allumage EN VOL, 0,5 s entre deux
 		if not V.nAirTenu and V.kickT <= 0 then
 			V.nAirTenu = true
@@ -1740,6 +1758,11 @@ local function etapeAir(dt: number)
 	end
 	prevPos = fallPos
 	fallPos += fallVel * dt * SPD
+	-- LES TOURS NE PARDONNENT PAS (villeHeurt, L11787) : en vol, entrer dans une tour de la ville tue
+	if (zone :: any).ville and not intro and KA.Ville.heurt((zone :: any).ville, fallPos) then
+		exploser("tour")
+		return
+	end
 	-- la vrille VISUELLE : la caisse roule autour de sa trajectoire
 	V.airRoll += (V.bascDir * (3.0 + math.min(2, V.fallT * 0.5)) * (V.bascOn and math.min(1, 0.25 + V.bascT * 1.9) or 1) + Controles.volant * 2.2) * dt * (intro and 0 or 1)
 	vit = fallVel.Magnitude
@@ -1931,6 +1954,10 @@ local function allerMenu()
 	zoneN = 1
 	remettreObjets(ZONES[1])
 	activer(ZONES[1])
+	-- les zones lointaines de la partie finie rendent leur place (leurs maillages, leurs tours) : la 1 et la 2 suffisent pour repartir
+	for z, x in ZONES do
+		if z > 2 and x.pret then oublier(z) end
+	end
 	poserAuDepart()
 	montrerCaisse(true)
 	KA.pos = carCF.Position + Vector3.yAxis * (10 * M) + menuCap:Cross(Vector3.yAxis) * (20 * M)
@@ -1953,6 +1980,9 @@ local function nouvellePartie()
 	KA.Titre.montrer(false)
 	remettreObjets(ZONES[zoneN])
 	activer(ZONES[zoneN])
+	for z, x in ZONES do
+		if z > 2 and x.pret then oublier(z) end -- (REJOUER depuis une zone lointaine : elle rend sa place)
+	end
 	preparer(2, Piste.suite(ZONES[1].piste :: Piste.Piste))
 	poserAuDepart()
 	vA, yawR, steerS, momT, boost, G.padCd, G.padN, G.padSL = 0, 0, 0, 0, 0, 0, 0, nil
@@ -2219,6 +2249,13 @@ workspace:GetAttributeChangedSignal("DbgOuvre"):Connect(function()
 		basculerPause() -- (en course : la pause s'ouvre, ou se referme)
 	elseif v == "jouer" then
 		G.jouerMenu() -- (le vrai JOUER du menu : le piqué du titre, puis la course)
+	elseif string.sub(v, 1, 7) == "portail" then
+		-- (banc) saute au pied du portail : pour voir un changement de niveau sans rouler toute la zone
+		if mode == "drive" then
+			s = piste.len / M - 70
+			sPrev = s
+			lat = 0
+		end
 	elseif v == "frenesie" then
 		if mode == "drive" or mode == "fall" then Score.dbgFren() end
 	elseif v == "menu" then
@@ -2523,7 +2560,10 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 			cam.CFrame = vue
 			cam.FieldOfView = workspace:GetAttribute("DbgFov") or 90
 		end
+		Mer.montrer(mode == "menu" or mode == "garage" or (piste :: any).niveau == "nuages")
 		Mer.suivre(cam.CFrame.Position, carCF.Position.Y, dt, (mode == "menu" or mode == "garage") and Config.CIEL.merMenu * M or nil)
+		KA.Espace.tick(dt, (piste :: any).niveau == "espace" and mode ~= "menu" and mode ~= "garage", cam.CFrame, carCF)
+		KA.Ville.pluie((piste :: any).niveau == "ville" and mode ~= "menu" and mode ~= "garage", cam.CFrame)
 		-- les nuages PROCHES reçoivent leur version fine ; hors de la course, tout est rendu au budget (voir Nuages.finesseTick)
 		KA.Nuages.finesseTick(dtBrut, (mode == "drive" or mode == "fall" or mode == "menu") and cam.CFrame.Position or nil)
 		lisserDoubles(dt)

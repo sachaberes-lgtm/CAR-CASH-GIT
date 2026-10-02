@@ -10,6 +10,7 @@ local TweenService = game:GetService("TweenService")
 local Bus = require(script.Parent:WaitForChild("Bus"))
 local Nuages = require(script.Parent:WaitForChild("Nuages"))
 local Mer = require(script.Parent:WaitForChild("Mer"))
+local Config = require(script.Parent.Parent:WaitForChild("Config"))
 
 local Ambiance = {}
 local RGB = Color3.fromRGB
@@ -40,8 +41,39 @@ local HEURES: { [string]: any } = {
 		soleil = Color3.new(1, 0.88, 0.72), ext = RGB(236, 222, 232), teinte = RGB(255, 244, 232), sat = 0.42, con = 0.32, expo = -0.1,
 		S = V3(292, 246, 198), OH = V3(162, 168, 226), OB = V3(136, 140, 206), mer = Color3.new(1, 0.93, 0.86),
 	},
+	-- ── LA PLUIE NÉON (BIOMES.pluie, L13084) : le ciel du niveau VILLE — un plafond ardoise bas et mouillé, ni soleil ni étoiles, une
+	-- brume VIOLETTE qui avale le lointain, et toute la couleur qui vient d'en bas : remplissage cyan, contre-jour MAGENTA.
+	-- (nuit = l'horloge de Roblox à minuit : le ciel est noir ; `lum` = la lumière directe, `amb` = l'ambiance qui porte presque tout)
+	pluie = {
+		-- (mesuré au banc, 2/10) · le VOILE colore le ciel (à 2,4 il restait NOIR : il faut 10 pour que la brume violette le remplisse)
+		-- · une ambiance CLAIRE et presque neutre : les fenêtres sont une image posée sur les tours, c'est l'ambiance qui les allume —
+		-- sous une ambiance violette l'orange #ffb04a sortait bleu-gris · une lumière directe faible : pas de soleil sous la pluie
+		nuit = true, etoiles = 0, lum = 0.5, amb = RGB(200, 190, 225),
+		-- · la nuit, Roblox rend la brume à ~0,3 du rouge et 0,75 du bleu demandés, et l'étalonnage pousse encore le bleu : une brume
+		-- violette (150,50,170) à saturation 0,5 donnait un ciel OUTREMER (45,0,241). Une brume ROSE (190,80,140), une saturation de
+		-- 0,25 et une exposition un cran plus bas rendent le violet profond du web (50,6,114 au zénith)
+		brume = RGB(190, 80, 140), loin = RGB(120, 50, 100), eclat = 0, voile = 10, densite = 0.26,
+		soleil = RGB(255, 96, 190), ext = RGB(235, 225, 250), teinte = RGB(238, 226, 255), sat = 0.25, con = 0.28, expo = -0.1,
+		S = V3(282, 272, 254), OH = V3(182, 194, 238), OB = V3(158, 168, 224), mer = Color3.new(1, 1, 1),
+	},
+	-- ── L'ORBITE (BIOMES.espace, L13063) : pas de ciel — « le NOIR COMPLET : zéro étoile, zéro lune, zéro halo solaire » ; UN soleil
+	-- blanc et dur ; le dessous éclairé par le bleu de la Terre.
+	-- (mesuré au banc, 2/10) à minuit Roblox n'éclaire plus qu'à la lune : la caisse sortait presque noire. L'orbite garde donc l'heure
+	-- du JOUR (le soleil dur est là) et c'est le CIEL qu'on peint en noir (`noir` : les six faces de la boîte du ciel).
+	espace = {
+		-- (mesuré : sous une ambiance bleu Terre (40,64,132) à saturation 0,4, le bitume sortait BLEU ÉLECTRIQUE (5,10,190) ; le web est
+		-- un indigo violacé (50,45,130) — l'ambiance garde du rouge, l'étalonnage sature moitié moins)
+		noir = true, etoiles = 0, lum = 2.6, amb = RGB(70, 62, 120),
+		brume = RGB(0, 0, 0), loin = RGB(0, 0, 0), eclat = 0, voile = 0, densite = 0,
+		soleil = Color3.new(1, 0.97, 0.92), ext = RGB(80, 84, 150), teinte = RGB(246, 248, 255), sat = 0.2, con = 0.34, expo = -0.1,
+		S = V3(282, 272, 254), OH = V3(182, 194, 238), OB = V3(158, 168, 224), mer = Color3.new(1, 1, 1),
+	},
 }
 local ORDRE = { "matin", "midi", "aprem" }
+local FACES = { "SkyboxBk", "SkyboxDn", "SkyboxFt", "SkyboxLf", "SkyboxRt", "SkyboxUp" }
+local NOIR = "rbxasset://textures/blackBkg_square.png"
+local FACES_JOUR: { [string]: string }? = nil
+local NIVEAU = "nuages" -- le niveau de la zone active (Bus « niveau »)
 local courante = ""
 
 function Ambiance.nom(): string return courante end
@@ -59,7 +91,25 @@ function Ambiance.poser(nom: string, duree: number?)
 	if cc then
 		TweenService:Create(cc, info, { TintColor = H.teinte, Saturation = H.sat, Contrast = H.con }):Play()
 	end
-	TweenService:Create(Lighting, info, { ColorShift_Top = H.soleil, OutdoorAmbient = H.ext, ExposureCompensation = H.expo }):Play()
+	TweenService:Create(Lighting, info, { ColorShift_Top = H.soleil, OutdoorAmbient = H.ext, ExposureCompensation = H.expo,
+		Brightness = H.lum or 1.2, Ambient = H.amb or Config.CIEL.ambiance }):Play()
+	-- le JOUR ou la NUIT : l'horloge bascule à mi-fondu (le ciel noir de la ville et de l'orbite, sans soleil ni lune de Roblox)
+	local ciel = Lighting:FindFirstChild("CielCashCar")
+	task.delay((duree or 1.2) * 0.5, function()
+		if courante ~= nom then return end
+		Lighting.ClockTime = H.nuit and 0 or Config.CIEL.heure
+		if ciel then
+			ciel.StarCount = H.etoiles or 0
+			ciel.CelestialBodiesShown = not (H.nuit or H.noir)
+			-- le ciel NOIR de l'orbite : les six faces de la boîte du ciel passent au noir (une image livrée avec Roblox) ; ailleurs,
+			-- elles retrouvent celles d'origine
+			if not FACES_JOUR then
+				FACES_JOUR = {}
+				for _, f in FACES do FACES_JOUR[f] = (ciel :: any)[f] end
+			end
+			for _, f in FACES do (ciel :: any)[f] = H.noir and NOIR or FACES_JOUR[f] end
+		end
+	end)
 	-- les nuages changent de palette à mi-fondu (le web passe par le sombre au portail : on ne voit pas la bascule)
 	task.delay((duree or 1.2) * 0.5, function()
 		if courante ~= nom then return end
@@ -68,8 +118,10 @@ function Ambiance.poser(nom: string, duree: number?)
 	end)
 end
 
--- une heure au hasard, jamais deux fois la même de suite
+-- l'ambiance du NIVEAU : aux NUAGES une heure au hasard (jamais deux fois la même de suite), la pluie néon en VILLE, le noir en ORBITE
 function Ambiance.auHasard(): string
+	if NIVEAU == "ville" then return "pluie" end
+	if NIVEAU == "espace" then return "espace" end
 	local n
 	repeat n = ORDRE[math.random(1, #ORDRE)] until n ~= courante
 	return n
@@ -81,6 +133,7 @@ function Ambiance.init()
 		Lighting:WaitForChild("Etalonnage", 20)
 		Ambiance.poser("titre", 0.01)
 	end)
+	Bus.on("niveau", function(id: string) NIVEAU = id end)
 	-- une partie qui commence, un portail franchi : l'heure change ; le menu revient au matin (l'ambiance du titre)
 	Bus.on("partie", function()
 		if workspace:GetAttribute("DbgHeure") then return end
