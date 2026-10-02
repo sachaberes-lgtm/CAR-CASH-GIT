@@ -21,12 +21,12 @@ local V3 = Vector3.new
 local HEURES: { [string]: any } = {
 	matin = {
 		brume = RGB(246, 238, 222), loin = RGB(96, 156, 240), eclat = 0.2, voile = 0.4, densite = 0.034, -- (mesuré : à voile 0,9 le ciel du matin sortait BLANC ; le web a un zénith azur profond)
-		soleil = Color3.new(1, 0.97, 0.93), ext = RGB(235, 230, 245), teinte = RGB(255, 250, 244), sat = 0.30, con = 0.24, expo = -0.06,
+		soleil = Color3.new(1, 0.97, 0.93), ext = RGB(235, 230, 245), teinte = RGB(255, 250, 244), sat = 0.38, con = 0.3, expo = -0.08,
 		S = V3(282, 272, 254), OH = V3(182, 194, 238), OB = V3(158, 168, 224), mer = Color3.new(1, 1, 1),
 	},
 	midi = {
 		brume = RGB(236, 240, 236), loin = RGB(72, 140, 244), eclat = 0.15, voile = 0.3, densite = 0.032,
-		soleil = Color3.new(1, 0.99, 0.96), ext = RGB(232, 234, 250), teinte = RGB(252, 252, 255), sat = 0.28, con = 0.26, expo = -0.02,
+		soleil = Color3.new(1, 0.99, 0.96), ext = RGB(232, 234, 250), teinte = RGB(252, 252, 255), sat = 0.36, con = 0.3, expo = -0.05,
 		S = V3(288, 284, 274), OH = V3(176, 196, 246), OB = V3(152, 170, 232), mer = Color3.new(1, 1, 1),
 	},
 	-- LE TITRE (BIOMES.titre du web) : le matin poussé vers l'écran titre de Zelda — azur profond, horizon presque blanc, brume très loin
@@ -36,8 +36,8 @@ local HEURES: { [string]: any } = {
 		S = V3(286, 280, 268), OH = V3(176, 194, 242), OB = V3(152, 168, 228), mer = Color3.new(1, 1, 1),
 	},
 	aprem = {
-		brume = RGB(255, 214, 168), loin = RGB(142, 162, 226), eclat = 1.0, voile = 1.4, densite = 0.048,
-		soleil = Color3.new(1, 0.88, 0.72), ext = RGB(236, 222, 232), teinte = RGB(255, 244, 232), sat = 0.34, con = 0.26, expo = -0.08,
+		brume = RGB(255, 214, 168), loin = RGB(84, 128, 220), eclat = 1.0, voile = 0.9, densite = 0.046,
+		soleil = Color3.new(1, 0.88, 0.72), ext = RGB(236, 222, 232), teinte = RGB(255, 244, 232), sat = 0.42, con = 0.32, expo = -0.1,
 		S = V3(292, 246, 198), OH = V3(162, 168, 226), OB = V3(136, 140, 206), mer = Color3.new(1, 0.93, 0.86),
 	},
 }

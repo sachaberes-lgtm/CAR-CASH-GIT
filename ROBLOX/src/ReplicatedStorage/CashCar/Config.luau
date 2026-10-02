@@ -180,7 +180,7 @@ Config.CIEL = {
 	merMenu = 620,                              -- m : au menu la caisse tombe de très haut, la mer est loin dessous
 }
 Config.ROUTE = {
-	bitume = Color3.fromRGB(110, 104, 134),  -- (captures web en double définition : un bitume MAT, ardoise violacée (110,105,140) à mi-distance ; c'est la vignette qui noircit le bas de l'image, pas la route — et il ne reflète pas les nuages)
+	bitume = Color3.fromRGB(84, 80, 108),  -- (captures web en double définition : un bitume MAT, ardoise violacée (110,105,140) à mi-distance ; c'est la vignette qui noircit le bas de l'image, pas la route — et il ne reflète pas les nuages)
 	sodium = Color3.fromRGB(255, 188, 72), -- la ligne centrale
 	voie = Color3.fromRGB(210, 216, 230),  -- les lignes de voie
 	neon = Color3.fromRGB(62, 230, 240),  -- 0x3ee6f0 : les rails de néon

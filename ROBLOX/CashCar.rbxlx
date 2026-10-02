@@ -4762,12 +4762,12 @@ local V3 = Vector3.new
 local HEURES: { [string]: any } = {
 	matin = {
 		brume = RGB(246, 238, 222), loin = RGB(96, 156, 240), eclat = 0.2, voile = 0.4, densite = 0.034, -- (mesuré : à voile 0,9 le ciel du matin sortait BLANC ; le web a un zénith azur profond)
-		soleil = Color3.new(1, 0.97, 0.93), ext = RGB(235, 230, 245), teinte = RGB(255, 250, 244), sat = 0.30, con = 0.24, expo = -0.06,
+		soleil = Color3.new(1, 0.97, 0.93), ext = RGB(235, 230, 245), teinte = RGB(255, 250, 244), sat = 0.38, con = 0.3, expo = -0.08,
 		S = V3(282, 272, 254), OH = V3(182, 194, 238), OB = V3(158, 168, 224), mer = Color3.new(1, 1, 1),
 	},
 	midi = {
 		brume = RGB(236, 240, 236), loin = RGB(72, 140, 244), eclat = 0.15, voile = 0.3, densite = 0.032,
-		soleil = Color3.new(1, 0.99, 0.96), ext = RGB(232, 234, 250), teinte = RGB(252, 252, 255), sat = 0.28, con = 0.26, expo = -0.02,
+		soleil = Color3.new(1, 0.99, 0.96), ext = RGB(232, 234, 250), teinte = RGB(252, 252, 255), sat = 0.36, con = 0.3, expo = -0.05,
 		S = V3(288, 284, 274), OH = V3(176, 196, 246), OB = V3(152, 170, 232), mer = Color3.new(1, 1, 1),
 	},
 	-- LE TITRE (BIOMES.titre du web) : le matin poussé vers l'écran titre de Zelda — azur profond, horizon presque blanc, brume très loin
@@ -4777,8 +4777,8 @@ local HEURES: { [string]: any } = {
 		S = V3(286, 280, 268), OH = V3(176, 194, 242), OB = V3(152, 168, 228), mer = Color3.new(1, 1, 1),
 	},
 	aprem = {
-		brume = RGB(255, 214, 168), loin = RGB(142, 162, 226), eclat = 1.0, voile = 1.4, densite = 0.048,
-		soleil = Color3.new(1, 0.88, 0.72), ext = RGB(236, 222, 232), teinte = RGB(255, 244, 232), sat = 0.34, con = 0.26, expo = -0.08,
+		brume = RGB(255, 214, 168), loin = RGB(84, 128, 220), eclat = 1.0, voile = 0.9, densite = 0.046,
+		soleil = Color3.new(1, 0.88, 0.72), ext = RGB(236, 222, 232), teinte = RGB(255, 244, 232), sat = 0.42, con = 0.32, expo = -0.1,
 		S = V3(292, 246, 198), OH = V3(162, 168, 226), OB = V3(136, 140, 206), mer = Color3.new(1, 0.93, 0.86),
 	},
 }
@@ -8741,7 +8741,7 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 		f.Parent = gui
 		local g = Instance.new("UIGradient")
 		g.Rotation = d[5]
-		g.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, d[6]), NumberSequenceKeypoint.new(0.45, (d[6] < 0.2) and 0.62 or 0.9), NumberSequenceKeypoint.new(1, 1) })
+		g.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, d[6]), NumberSequenceKeypoint.new(0.4, (d[6] < 0.2) and 0.42 or 0.9), NumberSequenceKeypoint.new(0.75, (d[6] < 0.2) and 0.86 or 0.97), NumberSequenceKeypoint.new(1, 1) })
 		g.Parent = f
 		if d[6] < 0.2 then
 			vigBas = f
@@ -15471,7 +15471,7 @@ Config.CIEL = {
 	merMenu = 620,                              -- m : au menu la caisse tombe de très haut, la mer est loin dessous
 }
 Config.ROUTE = {
-	bitume = Color3.fromRGB(110, 104, 134),  -- (captures web en double définition : un bitume MAT, ardoise violacée (110,105,140) à mi-distance ; c'est la vignette qui noircit le bas de l'image, pas la route — et il ne reflète pas les nuages)
+	bitume = Color3.fromRGB(84, 80, 108),  -- (captures web en double définition : un bitume MAT, ardoise violacée (110,105,140) à mi-distance ; c'est la vignette qui noircit le bas de l'image, pas la route — et il ne reflète pas les nuages)
 	sodium = Color3.fromRGB(255, 188, 72), -- la ligne centrale
 	voie = Color3.fromRGB(210, 216, 230),  -- les lignes de voie
 	neon = Color3.fromRGB(62, 230, 240),  -- 0x3ee6f0 : les rails de néon

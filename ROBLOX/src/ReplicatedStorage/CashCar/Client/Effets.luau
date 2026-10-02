@@ -1122,7 +1122,7 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 		f.Parent = gui
 		local g = Instance.new("UIGradient")
 		g.Rotation = d[5]
-		g.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, d[6]), NumberSequenceKeypoint.new(0.45, (d[6] < 0.2) and 0.62 or 0.9), NumberSequenceKeypoint.new(1, 1) })
+		g.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, d[6]), NumberSequenceKeypoint.new(0.4, (d[6] < 0.2) and 0.42 or 0.9), NumberSequenceKeypoint.new(0.75, (d[6] < 0.2) and 0.86 or 0.97), NumberSequenceKeypoint.new(1, 1) })
 		g.Parent = f
 		if d[6] < 0.2 then
 			vigBas = f
