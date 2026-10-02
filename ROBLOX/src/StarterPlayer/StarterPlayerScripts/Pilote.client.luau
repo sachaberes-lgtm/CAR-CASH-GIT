@@ -36,6 +36,7 @@ KA.Espace = require(CL:WaitForChild("Espace"))
 KA.Orage = require(CL:WaitForChild("Orage"))
 KA.Debris = require(CL:WaitForChild("Debris"))
 KA.CielMusical = require(CL:WaitForChild("CielMusical"))
+KA.Viseur = require(CL:WaitForChild("Viseur"))
 
 local M, SPD = Config.M, Config.SPD
 local RH, THICK = Config.ROAD_HALF, Config.THICK
@@ -252,6 +253,9 @@ local function oublier(z: number)
 	ZONES[z] = nil
 end
 local function remettreObjets(e: Zone)
+	if e.piste and (e.piste :: any).filets then
+		for _, q in (e.piste :: any).filets do q.paye = false end -- (les virages à filet redeviennent à payer)
+	end
 	-- les satellites de la route (PLUIE DE SATELLITES) redeviennent tous à esquiver
 	if (e :: any).sats then
 		for _, o in (e :: any).sats do o.fait, o.pres, o.min = false, false, 99 end
@@ -850,6 +854,8 @@ local function atterrir(face: number, latX: number, sX: number, hR: number?)
 		V.chainMult += 0.2
 	end
 	local g = (ratee and 0.65) or ((impact < 4.5 and perte < 0.2) and 1.5) or ((impact >= 10) and 0.65) or 1
+	-- (momentum v2, L30758) PARFAIT relance la vitesse, POSÉ LOURD en coûte la moitié
+	if g >= 1.5 then momT = math.max(momT, 3) elseif g < 1 then momT *= 0.5 end
 	G.serie += 1
 	local cachee = face < 0
 	local lv = Score.niveau()
@@ -860,7 +866,7 @@ local function atterrir(face: number, latX: number, sX: number, hR: number?)
 		nitroGain(Score.nitroFigDe(V.chainMult, g, V.volT, V.nitT)) -- (au prorata du vol fait nitro coupée)
 		stats.poses += 1
 		ajouterPieces(math.clamp(math.floor(2 + qG / 6 + 0.5), 2, 18))
-		boost = math.max(boost, 0.5)
+		boost = math.max(boost, 1.2) -- (L30824 : une figure encaissée relance — c'était 0,5 ici)
 		if g >= 1.5 then Score.geste(tr("POSE PARFAITE", "PERFECT LANDING"), 70, "pose") end
 	end
 	nitroGain(Score.nitroPoseDe(reservoir(), V.volT, V.nitT)) -- la pose rend 20 % de la jauge pour un VRAI vol (1,2 s), nitro coupée
@@ -877,7 +883,12 @@ local function atterrir(face: number, latX: number, sX: number, hR: number?)
 	-- LE RACCOURCI : la piste gagnée − la distance volée en ligne droite
 	local gagne = (s - V.flowS0) - (V.flowP0 - fallPos).Magnitude
 	local raccourci = false
-	if gagne >= 60 then
+	if G.filetDe(V.flowS0, s) then
+		-- posé dans le FILET de son virage : RATTRAPÉ, pas RACCOURCI
+		Score.gesteMuet(tr("RATTRAPE", "CAUGHT"), 50, "filet")
+		Score.flowAdd(6, "risque")
+		Hud.vibre(40)
+	elseif gagne >= 60 then
 		raccourci = true
 		Score.flowAdd(math.min(45, 12 + gagne * 0.06), "risque", "m")
 		Hud.pop(tr("RACCOURCI +", "SHORTCUT +") .. math.floor(gagne + 0.5) .. " M", Color3.fromRGB(125, 255, 236), 22)
@@ -1273,6 +1284,86 @@ local function obstacles(dt: number, cf: CFrame)
 	end
 	G.froleT -= dt
 	if G.froleT <= 0 then G.froleN = 0 end
+end
+
+-- LA ROUTE QUI TE RATTRAPE — LES DEUX PAIEMENTS (filetTick, filetRattrape, L32479 ; Sacha : « un virage bien pris paie PLUS qu'une
+-- chute rattrapée »). VIRAGE À FOND : traverser un virage à filet sans quitter la route, sans jamais descendre sous 80 % de sa
+-- vitesse de calcul (120 d'aura, du flow de route, un peu de nitro). RATTRAPÉ : sortir de ce virage et retomber dans son filet
+-- (50 d'aura, un peu de flow) — la pose lourde et la vitesse perdue font le reste.
+function G.filetTick()
+	local L = (piste :: any).filets
+	if not L or #L == 0 then return end
+	local q = nil
+	for _, f in L do
+		if s >= f.sC0 and s <= f.sC1 then
+			q = f
+			break
+		end
+	end
+	local v9 = math.abs(vA) * SPD
+	G.filR = G.filR or { q = nil, ok = false, vMin = 0 }
+	local Rf = G.filR
+	if q and Rf.q ~= q then
+		Rf.q, Rf.ok, Rf.vMin = q, not q.paye, v9
+	elseif q then
+		Rf.vMin = math.min(Rf.vMin, v9)
+	elseif Rf.q then
+		local q9 = Rf.q
+		Rf.q = nil
+		if Rf.ok and s > q9.sC1 and s < q9.sC1 + 200 and Rf.vMin >= 0.8 * q9.vN then
+			q9.paye = true
+			Score.geste(tr("VIRAGE A FOND", "FLAT OUT"), 120, "fond", true)
+			Score.flowAdd(14, "route")
+			nitroGain(0.25)
+			Hud.vibre(30)
+		end
+		Rf.ok = false
+	end
+end
+-- un vol parti de ce virage et posé dans son filet ?
+function G.filetDe(s0: number, s1: number): any
+	local L = (piste :: any).filets
+	if not L then return nil end
+	for _, q in L do
+		if s0 > q.sC0 - 80 and s0 < q.sC1 + 60 and s1 > q.sN0 - 160 and s1 < q.sN1 + 260 then return q end
+	end
+	return nil
+end
+
+-- LE VISEUR D'ATTERRISSAGE (L37462) : la chute intégrée en avance — quatorze pas de 0,12 s, la même gravité, la même avance — ; au
+-- premier pas qui passe à portée de la dalle (dessus ou dessous, moins de 20 m, dans la largeur de la route), l'anneau s'y pose
+-- et prend la couleur de l'impact PRÉDIT (la même unité que le verdict de la pose). Le viseur ne promet jamais une pose dans le vide.
+function G.viseur(dt: number)
+	if enPause then return end -- (en pause, le viseur reste où il est)
+	local vu, cf, impact = false, nil, 0
+	if mode == "fall" and not intro then
+		local pos, vel = fallPos, fallVel
+		G.lmOut = G.lmOut or {}
+		for _ = 1, 14 do
+			vel -= Vector3.new(0, FALL_G * G.gK() * 0.12, 0)
+			pos += vel * (0.12 * SPD)
+			local q = pos * M
+			local bi, bd = 0, (20 * M) ^ 2
+			for _, j in Piste.autour(piste, q, G.lmOut) do
+				local d = piste.F[j].Position - q
+				local dd = d:Dot(d)
+				if dd < bd then bd, bi = dd, j end
+			end
+			if bi > 0 then
+				local f = piste.F[bi]
+				local d = q - f.Position
+				local h2, l2 = d:Dot(f.UpVector) / M, d:Dot(f.RightVector) / M
+				if math.abs(l2) < RH and h2 > -THICK - 1 and h2 < 3 then
+					local dessus = h2 > -1.3
+					cf = CFrame.fromMatrix(f.Position + f.RightVector * (l2 * M) + f.UpVector * ((dessus and 0.3 or (-THICK - 0.3)) * M), f.RightVector, f.UpVector)
+					impact = math.abs(vel:Dot(f.UpVector))
+					vu = true
+					break
+				end
+			end
+		end
+	end
+	KA.Viseur.tick(dt, vu, cf, impact, os.clock())
 end
 
 -- LA PLUIE DE SATELLITES (satHard, L14061) : percuter un satellite de la route tue ; le frôler (moins de 3,2 m en travers) se paie
@@ -1772,6 +1863,7 @@ local function etapeSol(dt: number)
 	end
 	-- les plots, les flaques, les pads ; la ligne parfaite se pose devant
 	obstacles(dt, cf2)
+	G.filetTick()
 	if not intro and not TU.on then ligneTick(dt) end
 	G.fruitRafT -= dt
 	if G.fruitRafT <= 0 then G.fruitRaf = 0 end
@@ -2081,7 +2173,9 @@ local function habiller(dt: number)
 	local atelier = mode == "garage"
 	Sons.regler("moteur", atelier and 0.05 or ((mode == "menu") and 0.12 or 0.32), 0.7 + r * 1.1 + (nitroOn and 0.1 or 0))
 	Sons.regler("nitro", nitroOn and 0.45 or 0)
-	Sons.regler("ventAltitude", atelier and 0 or ((mode == "fall") and math.min(0.7, 0.25 + fallVel.Magnitude * 0.004) or 0.08 + r * 0.1))
+	-- (L36604 : `nuages.ambiance` est l'air d'un LIEU — la mer de nuages. En ville et en orbite il ne reste que le souffle de la vitesse)
+	local air = (piste and (piste :: any).niveau ~= "nuages" and mode ~= "menu") and 0.4 or 1
+	Sons.regler("ventAltitude", atelier and 0 or ((mode == "fall") and math.min(0.7, 0.25 + fallVel.Magnitude * 0.004) or 0.08 + r * 0.1) * air)
 	-- LA MUSIQUE SUIT LE LIEU (MUSIC_LIEU, L25333) : NOITE DE VELOCIDADE aux nuages, NOCTURNAL GROOVE en ville et à l'accueil (garage,
 	-- écran de fin), SWAG CASH CAR dans l'orage, la radio en orbite. Un morceau de lieu qui n'est pas importé laisse l'antenne à
 	-- `musique`. On passe de l'un à l'autre en fondu (1,2 s) ; chacun garde son fil, on ne le relance pas à chaque portail.
@@ -2431,10 +2525,62 @@ workspace:GetAttributeChangedSignal("DbgJouer"):Connect(function()
 	task.delay(1.5, function() if TU.on then TU.fin(true) end end)
 end)
 E.btMenuM.Activated:Connect(function() if mode == "mort" then allerMenu() end end)
+-- LA PAUSE (L38776). LA REPRISE EN 3-2-1 : REPRENDRE est en bas de l'écran — le pouce le quittait que la caisse repartait déjà à
+-- pleine vitesse. Trois temps de 0,3 s, jeu GELÉ : ce n'est pas un ralenti, c'est un compte. Rouvrir la pause pendant le compte
+-- l'annule.
 local function basculerPause()
 	if mode ~= "drive" and mode ~= "fall" then return end
-	enPause = not enPause
-	Hud.ecran(enPause and "pause" or "course")
+	if G.conf then -- (une question restée ouverte se referme avec le panneau)
+		G.conf.b.Text, G.conf.b.TextScaled = G.conf.libelle, false
+		G.conf = nil
+	end
+	if G.reprise then
+		G.reprise = false
+		Hud.ecran("pause")
+		return
+	end
+	if not enPause then
+		enPause = true
+		Hud.ecran("pause")
+		return
+	end
+	G.reprise = true
+	Hud.ecran("course")
+	task.spawn(function()
+		for n = 3, 1, -1 do
+			if not G.reprise or not enPause then return end
+			Hud.grand(tostring(n), Hud.C.or_, 0.3, 64)
+			Sons.jouer("bip", Sons.demiTons((n == 1) and 4 or 2), 0.4)
+			task.wait(0.3)
+		end
+		if G.reprise and enPause and (mode == "drive" or mode == "fall") then
+			enPause = false
+			Sons.jouer("go")
+		end
+		G.reprise = false
+	end)
+end
+-- QUITTER et RECOMMENCER se CONFIRMENT (la modale du web, L38822 : « QUITTER tombait sous le pouce et terminait la partie d'un seul
+-- tap ») : le premier appui pose la question SUR la tuile, le second (dans les 3,5 s) agit.
+function G.confirme(b: TextButton, quoi: string, question: string, libelle: string): boolean
+	local c = G.conf
+	if c and c.quoi == quoi and os.clock() - c.t < 3.5 then
+		b.Text, b.TextScaled = libelle, false
+		G.conf = nil
+		return true
+	end
+	if c then c.b.Text, c.b.TextScaled = c.libelle, false end
+	local moi = { quoi = quoi, t = os.clock(), b = b, libelle = libelle }
+	G.conf = moi
+	b.TextScaled = true
+	b.Text = question
+	task.delay(3.5, function()
+		if G.conf == moi then
+			b.Text, b.TextScaled = libelle, false
+			G.conf = nil
+		end
+	end)
+	return false
 end
 Controles.surPause = basculerPause
 E.btPause.Activated:Connect(basculerPause)
@@ -2456,6 +2602,9 @@ workspace:GetAttributeChangedSignal("DbgOuvre"):Connect(function()
 			sPrev = s
 			lat = 0
 		end
+	elseif string.sub(v, 1, 4) == "saut" then
+		-- (banc) un saut franc, tout de suite : pour photographier ce qui ne vit qu'en vol (le viseur, la jauge, les figures)
+		if mode == "drive" then decoller(tonumber(string.sub(v, 5, 6)) or 45, 1) end -- ("saut20…" : la poussée, sur deux chiffres)
 	elseif v == "frenesie" then
 		if mode == "drive" or mode == "fall" then Score.dbgFren() end
 	elseif v == "menu" then
@@ -2481,8 +2630,28 @@ E.btReprendre.Activated:Connect(function()
 	if enPause then basculerPause()
 	elseif Hud.ecranCourant() == "reglages" then Hud.ecran(mode == "garage" and "garage" or retourReglages) end
 end)
-E.btRecom.Activated:Connect(function() if enPause then enPause = false; Score.fin(false); nouvellePartie() end end)
-E.btMenuP.Activated:Connect(function() if enPause then enPause = false; Score.fin(false); allerMenu() end end)
+-- RECOMMENCER : « les gains de cette partie ne seront PAS versés ». QUITTER : « tes gains sont versés au compte » — c'est une vraie
+-- fin de partie (l'écran de fin, le versement, le record). (Avant le 2/10, QUITTER retournait au menu SANS rien verser : la partie
+-- était perdue. Relevé par l'audit du portage.) Pendant la leçon de l'auto-école, il n'y a rien à verser.
+E.btRecom.Activated:Connect(function()
+	if not enPause or G.reprise then return end
+	if not G.confirme(E.btRecom, "recom", tr("SUR ? GAINS PERDUS", "SURE? GAINS LOST"), T.recommencer) then return end
+	enPause = false
+	Score.fin(false)
+	nouvellePartie()
+end)
+E.btMenuP.Activated:Connect(function()
+	if not enPause or G.reprise then return end
+	if not G.confirme(E.btMenuP, "quit", tr("QUITTER ? GAINS VERSES", "QUIT? GAINS BANKED"), T.menu) then return end
+	enPause = false
+	if TU.on then
+		Score.fin(false)
+		allerMenu()
+		return
+	end
+	causeMort, boomPos, boomT = "quitte", carCF.Position, 0
+	finPartie()
+end)
 -- LES RÉGLAGES : une seule vérité, le PROFIL (gardé par le serveur d'une partie à l'autre) — Sons, Controles et Hud la recopient
 -- (avant, SON et MUSIQUE n'étaient jamais enregistrés : ils revenaient sur ON à chaque partie)
 do -- (un bloc : le corps du pilote frôle la limite des 200 variables locales)
@@ -2794,6 +2963,7 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 			if sk > 0 then secousse = math.max(secousse, sk) end
 			if course and not enPause then G.satHard() end
 			if not enPause then G.debTick(dt, cam.CFrame) end
+			G.viseur(dt)
 			-- LE CIEL MUSICAL : la ville seulement (en sourdine à minuit) ; il suit le volume du morceau qui joue
 			do
 				local k = (enJeu and (piste :: any).niveau == "ville") and ((var == "nuit") and 0.5 or 1) or 0

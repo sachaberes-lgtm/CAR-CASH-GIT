@@ -46,7 +46,7 @@ local T = FR and {
 		"En l'air : pouce en HAUT = plonge, en BAS = monte. Gauche / droite = les vrilles.",
 		"Chaque pièce fait monter ton MOTEUR : plus de pièces, plus de vitesse.",
 	},
-	morts = { air = "TROP LONGTEMPS EN L'AIR", vide = "AVALE PAR LE VIDE", arret = "EN PANNE SECHE", tour = "ENCASTRE DANS UNE TOUR", sat = "PERCUTE PAR UN SATELLITE", autre = "GAME OVER" },
+	morts = { air = "TROP LONGTEMPS EN L'AIR", vide = "AVALE PAR LE VIDE", arret = "EN PANNE SECHE", tour = "ENCASTRE DANS UNE TOUR", sat = "PERCUTE PAR UN SATELLITE", quitte = "PARTIE QUITTEE", autre = "GAME OVER" },
 } or {
 	jouer = "PLAY", rejouer = "PLAY AGAIN", menu = "HOME", reprendre = "RESUME", recommencer = "RESTART",
 	pause = "PAUSE", son = "SOUND", musique = "MUSIC", record = "BEST", nouveau = "NEW RECORD!",
@@ -69,7 +69,7 @@ local T = FR and {
 		"In the air: thumb UP = dive, DOWN = climb. Left / right = spins.",
 		"Every coin grows your ENGINE: more coins, more speed.",
 	},
-	morts = { air = "TOO LONG IN THE AIR", vide = "SWALLOWED BY THE VOID", arret = "OUT OF GAS", tour = "SMASHED INTO A TOWER", sat = "HIT BY A SATELLITE", autre = "GAME OVER" },
+	morts = { air = "TOO LONG IN THE AIR", vide = "SWALLOWED BY THE VOID", arret = "OUT OF GAS", tour = "SMASHED INTO A TOWER", sat = "HIT BY A SATELLITE", quitte = "RUN ENDED", autre = "GAME OVER" },
 }
 Hud.T = T
 

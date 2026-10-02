@@ -76,6 +76,12 @@ recommence (décision de Sacha, 2/10 : « fais la ville et l'espace, fais pas Pa
 - **La pluie de débris** (`Client/Debris`, toute l'orbite) : un cercle rouge se pose là où la caisse SERA dans 1,5 s, un débris
   en feu y tombe — touché : −40 % de vitesse ; esquivé de près : aura, nitro, série.
 - **Les portes de l'orbite** : un tunnel de distorsion à l'entrée (1,9 s), une rentrée atmosphérique en feu à la sortie (2,6 s).
+- **Le viseur d'atterrissage** (`Client/Viseur`) : en vol, un anneau se pose où la caisse va retomber — or qui bat = la fenêtre du
+  PARFAIT, blanc = pose normale, rouge = posé lourd.
+- **Le virage à filet** (module des NUAGES, un seul dans l'orage) : la bretelle du web, calculée sur la vraie chute — au banc, 20
+  sorties de virage sur 20 retombent dans le filet. Il paie VIRAGE À FOND (pris sans quitter la route) ou RATTRAPÉ (posé dans le filet).
+- **La pause** : la reprise compte 3-2-1 ; QUITTER et RECOMMENCER se confirment (deux appuis) ; QUITTER est une vraie fin de partie
+  (les gains sont VERSÉS — avant le 2/10 ils étaient perdus), RECOMMENCER ne verse rien.
 - **Le ciel musical** de la ville (`Client/CielMusical`) : seize quartiers de lumière et vingt-six piliers d'égaliseur autour de
   l'horizon, qui battent avec le morceau qui joue (ou à 120 à la minute sans musique importée) ; en sourdine à minuit.
 - **Le bitume mouillé** de la ville : les reflets de néon sont PEINTS dans l'image de la dalle (96 m qui se répètent).
@@ -135,7 +141,8 @@ ressources Roblox (ton compte) : à voir plus tard.
 - Mise au point dans Studio (barre de commande) : `workspace:SetAttribute("DbgAuto", true)` (pilote automatique), `DbgNitro`,
   `DbgInf`, `DbgPlein`, `DbgDauphins`, `DbgSerpent`, `DbgArgent` (un compte), `DbgBudget` (le budget de triangles),
   `DbgFx` = "mort" | "moteur7" | "pluie" | "cratere" | "jus3", `DbgOuvre` = "jouer" | "garage" | "boutique" | "reglages" |
-  "missions" | "menu" | "pause" | "frenesie" | "portail…" (en course : saute au pied du portail, pour voir le niveau suivant), `DbgLarge` = 1280 (l'interface d'un écran 16:9).
+  "missions" | "menu" | "pause" | "frenesie" | "portail…" (en course : saute au pied du portail, pour voir le niveau suivant) |
+  "saut22…" (un saut forcé, la poussée sur deux chiffres), `DbgLarge` = 1280 (l'interface d'un écran 16:9).
 - **La longue partie** : `sh outils/longue.sh [minutes] [nitro]` — sur rails (`DbgAuto` = "rail"), immortelle (`DbgImmortel`), les
   portails franchis pour de vrai ; rend les zones traversées, les morts évitées par cause et les erreurs de la Sortie. À lancer
   avant de livrer un changement de jeu : c'est le seul banc qui joue des niveaux ENTIERS.

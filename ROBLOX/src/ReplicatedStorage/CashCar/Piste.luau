@@ -19,7 +19,7 @@ local RH = Config.ROAD_HALF
 
 export type Objet = { s: number, lat: number, h: number, face: number, kind: string, pw: string?, grp: number?, r: number?, fruit: number?, ligne: boolean? }
 export type Piste = {
-	graine: number, zone: number, niveau: string, variante: string?, entree: { number }?, DS: number, n: number, len: number, F: { CFrame },
+	graine: number, zone: number, niveau: string, variante: string?, filets: { any }, entree: { number }?, DS: number, n: number, len: number, F: { CFrame },
 	minY: number, grille: { [number]: { number } }, cellule: number,
 	objets: { Objet }, modules: { { a: number, b: number, nom: string } },
 }
@@ -204,30 +204,91 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 	end
 
 	-- ── les modules du niveau NUAGES (L8918-8942) ──
+	local filetPlan: any = nil -- (posé par le module FILET : où sont, dans son plan, le virage et le filet) ⚠ déclaré AVANT les modules
 	local MODULES = {
 		FILET = function()
-			-- un virage rapide et presque plat… puis la route continue de tourner en s'ÉVASANT et en
-			-- descendant de 48 m : un tour plus loin, elle repasse sous le point où atterrit la caisse
-			-- qui a quitté le virage par l'extérieur (≈ 90 m plus loin sur la tangente, 2,4 s de vol).
+			-- LA ROUTE QUI TE RATTRAPE (filet(), L9361 du jeu web). Un virage RAPIDE et presque plat, puis la route fait une BRETELLE
+			-- (comme un échangeur : une ligne qui s'éloigne dans l'axe de sortie, un grand demi-tour, le retour) et repasse 42 à 54 m
+			-- PLUS BAS, à l'EXTÉRIEUR du virage, dans le même sens — pile là où retombe une caisse qui sort du virage par le bord. Le
+			-- filet est calculé sur la vraie physique du vol : sortie à l'angle f du virage, au bord extérieur (R + demi-route),
+			-- écartée de 0,13 rad vers le vide, à la vitesse de croisière vN, poussée de décollage `kick`, gravité FALL_G × SPD ; la
+			-- pose a lieu quand la caisse est descendue de dh(f) — le filet est ce LIEU DES POSES, pour f de −15 % à 115 % du virage.
+			-- (La 1re version d'ici était une spirale : 5 % des sorties s'y reposaient. Le web l'a retirée pour la même raison :
+			-- « on tourne sans rien voir venir ».)
 			local sg = sens()
-			local R1 = r(95, 140) * RS
-			arc(R1, sg * r(55, 75), 0)
-			local A = math.rad(410)
-			local descente = 48 + r(0, 6)
-			local n = math.floor(2 * math.pi * (R1 + 30) * (A / (2 * math.pi)) / DS)
-			local p0 = pc
-			local pente2 = -descente / (2 * math.pi * (R1 + 28))
-			local parcouru = 0
-			for k = 1, n do
-				local u = k / n
-				local Rk = R1 + 55 * lisse(u / 0.72)
-				local dl = DS / Rk
-				parcouru += dl
-				if parcouru > A then break end
-				table.insert(plan, { dl = sg * dl, p = p0 + (pente2 - p0) * lisse(k / 20) })
+			local Rv = r(95, 140) * RS
+			local th = math.rad(r(55, 75))
+			local Re = Rv + RH
+			local vN = 1.1 * (70 + (LV - 1) * 100)
+			local g, k0, DEV = Config.FALL_G * Config.SPD, 1.6, 0.13
+			seg(70 * LV, 0, -0.05, 35) -- l'APPROCHE : droite et lisible, le virage et son filet se voient venir
+			local pC = r(0.04, 0.07) -- (un virage presque plat : sa pente part avec la caisse — vy = −v × pente)
+			local dropC = th * Rv * pC
+			local function cercle(Rr: number, ang: number, pente9: number) -- un VRAI arc de cercle (rayon horizontal Rr), du côté sg
+				if ang < 1e-3 then return end
+				local n = math.max(1, math.floor(ang * Rr * math.sqrt(1 + pente9 * pente9) / DS + 0.5))
+				for _ = 1, n do table.insert(plan, { dl = sg * ang / n, p = pente9 }) end
 			end
-			pc = pente2
-			seg(60, 0, -0.05)
+			local function pose(f: number): (number, number, number) -- l'angle (depuis l'entrée du virage), le rayon, la hauteur de la pose
+				local fc = math.clamp(f, 0, 1)
+				local dh = 42 + 12 * fc
+				local b9 = vN * pC - k0
+				local t = (-b9 + math.sqrt(b9 * b9 + 2 * g * dh)) / g -- ½ g t² + (v × pente − kick) t = dh
+				local x = vN * t
+				local xr, xt = Re + x * math.sin(DEV), x * math.cos(DEV)
+				return f * th + math.atan2(xt, xr), math.sqrt(xr * xr + xt * xt), -dropC * fc - dh
+			end
+			local c0 = #plan
+			cercle(Rv, th, -pC) -- LE VIRAGE RAPIDE
+			local c1 = #plan
+			-- (repère du module : l'entrée du virage à l'origine, cap vers +y, le centre du virage en (Rv, 0) ; un cap φ va vers (sin φ, cos φ))
+			local function at(ps: number, rr: number): (number, number) return Rv - math.cos(ps) * rr, math.sin(ps) * rr end
+			local Ex, Ey = at(th, Rv)
+			local f0, f1 = -0.15, 1.15
+			local ps0, r0, y0 = pose(f0)
+			local hN = 2 * math.pi + ps0
+			local Nx, Ny = at(hN, r0)
+			-- LA BRETELLE : une droite dans l'axe de sortie, puis « virage · droite · virage » du même côté (rayon rB) jusqu'au début du filet
+			local Ls = r(200, 340) * LV
+			local P1x, P1y = Ex + math.sin(th) * Ls, Ey + math.cos(th) * Ls
+			local rB = math.max(55 * RS, r(0.72, 1.02) * Rv)
+			local c1x, c1y = P1x + rB * math.cos(th), P1y - rB * math.sin(th)
+			local c2x, c2y = Nx + rB * math.cos(hN), Ny - rB * math.sin(hN)
+			local D = math.sqrt((c2x - c1x) ^ 2 + (c2y - c1y) ^ 2)
+			local hs = math.atan2(c2x - c1x, c2y - c1y)
+			local b1, b2 = (hs - th) % (2 * math.pi), (hN - hs) % (2 * math.pi)
+			-- (les hauteurs : la chute de la sortie du virage au filet s'étale sur toute la bretelle, sans à-coup aux deux bouts)
+			local Lb = Ls + rB * b1 + D + rB * b2
+			local dyB = y0 + dropC
+			local fait = 0
+			local function bretelle(longueur: number, ang: number)
+				if longueur < 0.5 then return end
+				local n = math.max(1, math.floor(longueur / DS + 0.5))
+				for k = 1, n do
+					local u = (fait + (k - 0.5) / n * longueur) / Lb
+					table.insert(plan, { dl = sg * ang / n, p = dyB / Lb * 30 * u * u * (1 - u) * (1 - u) })
+				end
+				fait += longueur
+			end
+			bretelle(Ls, 0)
+			bretelle(rB * b1, b1)
+			bretelle(D, 0)
+			bretelle(rB * b2, b2)
+			-- LE FILET : le lieu des poses, de f0 à f1
+			local n0 = #plan
+			local psF = pose(f1)
+			local nF = math.max(6, math.ceil((psF - ps0) / math.rad(8)))
+			local psA, rA, yA = ps0, r0, y0
+			for k = 1, nF do
+				local psK, rK, yK = pose(f0 + (f1 - f0) * k / nF)
+				local rm = (rA + rK) * 0.5
+				cercle(rm, psK - psA, (yK - yA) / math.max(1, (psK - psA) * rm))
+				psA, rA, yA = psK, rK, yK
+			end
+			local n1 = #plan
+			cercle(rA, 0.42, -18 / (0.42 * rA)) -- la sortie, dans l'élan
+			pc = -18 / (0.42 * rA)
+			filetPlan = { c0 = c0, c1 = c1, n0 = n0, n1 = n1, vN = vN }
 		end,
 		LACETS = function()
 			-- la première branche, puis 2-3 épingles qui descendent de ~45 m chacune : les branches sont
@@ -260,13 +321,16 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 			seg(80, 0, -0.05, 40)
 		end,
 	}
+	local filets: { any } = {}
+	local filN = 0
+	local filMax = (variante == "orage") and 1 or ({ 3, 2, 1 })[math.min(3, math.floor((zone - 1) / #Config.NIVEAUX) + 1)]
 	local sac: { string } = {}
 	local dernierMod = ""
 	local function modSuivant(): string
 		if #sac == 0 then
-			-- (le FILET reste écrit mais sort du sac : au banc des vols, 5 % des sorties s'y reposaient, contre 25 %
-			-- dans les LACETS — sa boucle doit partir dans l'AUTRE sens, en bretelle, et passer par le point calculé)
-			sac = { "LACETS", "RUSSES", "LACETS", "PLONGEON", "CHAMEAU" }
+			-- (modTire, L9352 : un paquet MÉLANGÉ de cinq — le FILET, les LACETS, les MONTAGNES RUSSES, le GRAND PLONGEON, le DOS DE
+			-- CHAMEAU —, jamais le même deux fois de suite)
+			sac = { "FILET", "LACETS", "RUSSES", "PLONGEON", "CHAMEAU" }
 			for i = #sac, 2, -1 do
 				local j = rnd:NextInteger(1, i)
 				sac[i], sac[j] = sac[j], sac[i]
@@ -275,6 +339,8 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 			if sac[#sac] == sac[#sac - 1] then sac[2], sac[#sac] = sac[#sac], sac[2] end
 		end
 		local m = table.remove(sac) :: string
+		-- (FILET.par : 3 filets par zone à la 1re visite du niveau, 2 à la 2e, 1 ensuite — la même vitesse devient un vrai pari)
+		if m == "FILET" and filN >= filMax then m = "LACETS" end
 		dernierMod = m
 		return m
 	end
@@ -354,6 +420,7 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 	while (#pts - 1) * DS < LEN - 400 do
 		local ok = false
 		local estModule = (#pts - 1) * DS >= prochainModule
+		filetPlan = nil
 		for essai = 1, 14 do
 			pc = pente
 			local nom
@@ -377,6 +444,12 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 			if poser(true) then
 				if estModule and essai <= 6 then
 					table.insert(modules, { a = a * M, b = (#pts - 1) * DS * M, nom = nom }) -- en studs, comme len
+					if nom == "FILET" and filetPlan then
+						-- le virage et son filet, en MÈTRES le long de la piste (le Pilote paie VIRAGE À FOND et RATTRAPÉ)
+						filN += 1
+						table.insert(filets, { sC0 = a + filetPlan.c0 * DS, sC1 = a + filetPlan.c1 * DS, sN0 = a + filetPlan.n0 * DS,
+							sN1 = a + filetPlan.n1 * DS, vN = filetPlan.vN, paye = false })
+					end
 					prochainModule = (variante == "orage") and math.huge or ((#pts - 1) * DS + r(P.module[1], P.module[2]) * LV)
 				end
 				ok = true
@@ -435,7 +508,7 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 	end
 
 	local piste = {
-		graine = graine, zone = zone, niveau = niv, variante = variante, entree = (entreeA > 0) and { entreeA, entreeB } or nil,
+		graine = graine, zone = zone, niveau = niv, variante = variante, filets = filets, entree = (entreeA > 0) and { entreeA, entreeB } or nil,
 		DS = DS * M, n = n, len = (n - 1) * DS * M, F = F,
 		minY = minY, grille = grille, cellule = CEL, objets = {}, modules = modules,
 	}
