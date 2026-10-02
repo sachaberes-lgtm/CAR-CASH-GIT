@@ -38,8 +38,12 @@ pose plus bas : c'est là que le jeu se joue. 6 secondes en l'air maximum.
 
 ## Les sons (à faire une fois)
 
-Roblox ne joue que les sons importés sur Roblox. Le dossier **`sons-a-importer/`** contient 20 bruitages du
-jeu (tirés de notre banque de sons), un **moteur** et une **nitro** en boucle, et la **musique** du niveau 1.
+Roblox ne joue que les sons importés sur Roblox. Le dossier **`sons-a-importer/`** contient 30 bruitages du
+jeu (tirés de notre banque de sons), un **moteur** et une **nitro** en boucle, et **quatre musiques** : `musique` (la radio,
+jouée en orbite et partout où un morceau de lieu manque), `musiqueNuages`, `musiqueVille` (aussi l'accueil, le garage et l'écran
+de fin) et `musiqueOrage` — la musique suit le lieu, comme sur le web.
+Les sons des niveaux : `eclair`, `tonnerre` (l'orage), `orbiteEntre`, `orbiteSort`, `espaceAmbiance`, `explosionLoin`, `esquive`,
+`touche`, `abri` (l'orbite et ses débris), `mortSat` (la pluie de satellites).
 
 1. Studio → **Fenêtre → Gestionnaire de ressources** (Window → Asset Manager) → **Importation groupée** (Bulk Import)
    → sélectionner les fichiers de `sons-a-importer/`.
@@ -50,7 +54,8 @@ jeu (tirés de notre banque de sons), un **moteur** et une **nitro** en boucle, 
 
 Sans ça le jeu marche quand même (quelques sons de secours livrés avec Roblox : explosion, saut, vent).
 Roblox limite le nombre d'imports audio par mois : commence par `moteur`, `nitro`, `piece`, `explosion`,
-`poseParfait`, `musique`.
+`poseParfait`, `musique` ; puis `tonnerre`, `eclair`, `musiqueVille`, `musiqueNuages`.
+⚠ Les musiques : ne les importe que si tu en as les droits (Roblox vérifie les droits des sons importés).
 
 ## Ce qui est porté / ce qui ne l'est pas encore
 

@@ -91,6 +91,7 @@ local function frappe(piste: any, s: number, car: Vector3)
 	local dd = (pied - car).Magnitude
 	E.tonT = 0.25 + dd / 1400
 	E.ton = math.max(0.25, 1 - dd / 1400)
+	Sons.jouer("eclair", 1, 0.15 + 0.45 * E.ton) -- (le claquement ; le tonnerre arrive après)
 end
 
 local function eteindre()
@@ -179,7 +180,8 @@ function Orage.tick(dt: number, actif: boolean, piste: any, s: number, car: Vect
 	if E.tonT >= 0 then
 		E.tonT -= dt
 		if E.tonT < 0 then
-			Sons.jouer("tonnerre", 0.42 + math.random() * 0.1, 0.2 + 0.6 * E.ton)
+			-- (le vrai tonnerre à sa hauteur ; le son de secours — une explosion — joué très grave : un roulement)
+			Sons.jouer("tonnerre", Sons.a("tonnerre") and 1 or (0.42 + math.random() * 0.1), 0.2 + 0.6 * E.ton)
 			if E.ton > 0.7 then secousse = 0.25 end
 		end
 	end

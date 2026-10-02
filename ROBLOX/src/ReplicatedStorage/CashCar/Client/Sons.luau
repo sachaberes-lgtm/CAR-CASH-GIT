@@ -29,6 +29,12 @@ local VOLUMES = {
 	nitroPlein = 0.45, go = 0.6, bip = 0.5, compteFin = 0.6, record = 0.7, portail = 0.7, fronde = 0.5,
 }
 
+-- le VRAI son est-il importé ? (sinon on joue le son de secours, souvent à une autre hauteur — ou rien)
+function Sons.a(nom: string): boolean
+	local id = Config.SONS[nom]
+	return id ~= nil and id ~= ""
+end
+
 -- un petit bassin par son : on peut rejouer une pièce avant que la précédente ait fini
 local bassins: { [string]: { Sound } } = {}
 local tours: { [string]: number } = {}
@@ -92,7 +98,7 @@ function Sons.regler(nom: string, volume: number, hauteur: number?)
 	local s = Sons.boucle(nom)
 	if not s then return end
 	local v = (Sons.actif and volume or 0)
-	if nom == "musique" then
+	if string.sub(nom, 1, 7) == "musique" then -- (musique, musiqueNuages, musiqueVille, musiqueOrage)
 		v = Sons.musiqueActive and v * Sons.volMus / 0.62 or 0
 	else
 		v *= Sons.volSon

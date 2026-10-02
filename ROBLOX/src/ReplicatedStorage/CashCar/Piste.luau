@@ -358,7 +358,9 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 			pc = pente
 			local nom
 			if estModule and essai <= 6 then
-				nom = modSuivant()
+				-- (L9333-9349 : les modules — lacets, montagnes russes, grand plongeon, dos de chameau — sont ceux des NUAGES seuls ;
+				-- L'ORAGE, le niveau dur, n'a droit qu'à UN virage à filet)
+				nom = (variante == "orage") and "FILET" or modSuivant()
 				MODULES[nom]()
 			else
 				local x = rnd:NextNumber() * POIDS_TOT
@@ -375,7 +377,7 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 			if poser(true) then
 				if estModule and essai <= 6 then
 					table.insert(modules, { a = a * M, b = (#pts - 1) * DS * M, nom = nom }) -- en studs, comme len
-					prochainModule = (#pts - 1) * DS + r(P.module[1], P.module[2]) * LV
+					prochainModule = (variante == "orage") and math.huge or ((#pts - 1) * DS + r(P.module[1], P.module[2]) * LV)
 				end
 				ok = true
 				break

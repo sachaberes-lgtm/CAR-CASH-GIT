@@ -438,7 +438,7 @@ end
 -- pièce invisible qui suit l'œil (les gouttes sont verrouillées à la pièce : à 300 km/h, une pluie posée dans le monde reste derrière).
 local pluieP: Part? = nil
 local pluieE: ParticleEmitter? = nil
-function Ville.pluie(actif: boolean, camCF: CFrame, taux: number?)
+function Ville.pluie(actif: boolean, camCF: CFrame, taux: number?, vent: boolean?)
 	if not pluieP then
 		if not actif then return end
 		local p = Instance.new("Part")
@@ -478,7 +478,8 @@ function Ville.pluie(actif: boolean, camCF: CFrame, taux: number?)
 		e.Rate = 520 * (taux or 1)
 		-- au-dessus de l'œil et un peu devant (à plat : la pluie tombe droit, quelle que soit l'assiette de la caméra)
 		local av = camCF.LookVector * Vector3.new(1, 0, 1)
-		p.CFrame = CFrame.new(camCF.Position + av * (10 * M) + Vector3.new(0, 16 * M, 0))
+		-- (pluieTick, L13487 : L'ORAGE a du VENT — la pluie tombe en biais — et plus de pluie)
+		p.CFrame = CFrame.new(camCF.Position + av * (10 * M) + Vector3.new(0, 16 * M, 0)) * CFrame.Angles(0, 0, vent and math.rad(11) or 0)
 	end
 end
 

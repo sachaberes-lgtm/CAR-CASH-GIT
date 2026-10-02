@@ -164,16 +164,6 @@ local function preparer(z: number, depart: CFrame?): Zone
 		Construction.route(p, d, ceder)
 		Construction.portail(p, d)
 		local objs = Construction.objets(p, d, ceder)
-		table.sort(objs, function(a, b) return a.o.s < b.o.s end)
-		local grille = {}
-		local pads, series = {}, {}
-		for _, o in objs do
-			local k = cleObj(o.pos)
-			grille[k] = grille[k] or {}
-			table.insert(grille[k], o)
-			if o.o.kind == "pad" and o.o.face == 1 then table.insert(pads, o.o.s / M) end
-			if o.o.kind == "piece" and o.o.grp and o.o.face == 1 then series[o.o.grp] = (series[o.o.grp] or 0) + 1 end
-		end
 		-- LES NUAGES v8 : le ciel de coton, les bancs de route, les coussins, les tours (la piste d'école n'a que le ciel de coton :
 		-- sans lui, la toute première partie d'un joueur se jouait dans un ciel VIDE)
 		local nuages = {}
@@ -190,6 +180,63 @@ local function preparer(z: number, depart: CFrame?): Zone
 		elseif p.niveau == "espace" then
 			local okE, resE = pcall(KA.Espace.batir, p, ciel, graine + z * 31, ceder)
 			if okE then (e :: any).sats = resE else warn("[CashCar] espace : " .. tostring(resE)) end -- (sats : les obstacles de la PLUIE DE SATELLITES)
+		end
+		-- LE BANC NE CACHE PLUS DE PIÈGE (buildTrack du web, L10320). Un banc posé SUR la route se traverse à l'aveugle — c'est le jeu,
+		-- et sa sortie paie la percée. Mais un plot ou une flaque DANS le banc, ou dans la seconde qui suit sa sortie, ne se voit qu'une
+		-- fois touché : on retire le GROUPE de plots entier et la flaque, de 10 m avant le banc à 1 s de croisière après. SAUF les plots
+		-- de L'ORAGE (ses bancs couvrent la piste : le filtre le vidait — un plot coûte, il ne tue pas ; la flaque, elle, part partout).
+		if #nuages > 0 then
+			local vC = 70 + (math.max(1, z) - 1) * 0.35 * 100 -- (la croisière de conception de la piste, m/s)
+			local Z9: { number } = {}
+			for _, c in nuages do
+				if c.route then
+					local bi, bd = 1, math.huge
+					for i = 1, p.n, 8 do
+						local dd = (p.F[i].Position - c.c).Magnitude
+						if dd < bd then bd, bi = dd, i end
+					end
+					for i = math.max(1, bi - 8), math.min(p.n, bi + 8) do
+						local dd = (p.F[i].Position - c.c).Magnitude
+						if dd < bd then bd, bi = dd, i end
+					end
+					local sB = (bi - 1) * p.DS
+					table.insert(Z9, sB - c.r - 10 * M)
+					table.insert(Z9, sB + c.r + vC * M)
+				end
+			end
+			if #Z9 > 0 then
+				local function cache(s9: number): boolean
+					for k = 1, #Z9, 2 do
+						if s9 > Z9[k] and s9 < Z9[k + 1] then return true end
+					end
+					return false
+				end
+				local groupes: { [any]: boolean } = {}
+				if (p :: any).variante ~= "orage" then
+					for _, o in objs do
+						if o.o.kind == "plot" and cache(o.o.s) then groupes[o.o.grp or o] = true end
+					end
+				end
+				local garde = {}
+				for _, o in objs do
+					if (o.o.kind == "plot" and groupes[o.o.grp or o]) or (o.o.kind == "flaque" and cache(o.o.s)) then
+						if o.p then o.p:Destroy() end
+					else
+						table.insert(garde, o)
+					end
+				end
+				objs = garde
+			end
+		end
+		table.sort(objs, function(a, b) return a.o.s < b.o.s end)
+		local grille = {}
+		local pads, series = {}, {}
+		for _, o in objs do
+			local k = cleObj(o.pos)
+			grille[k] = grille[k] or {}
+			table.insert(grille[k], o)
+			if o.o.kind == "pad" and o.o.face == 1 then table.insert(pads, o.o.s / M) end
+			if o.o.kind == "piece" and o.o.grp and o.o.face == 1 then series[o.o.grp] = (series[o.o.grp] or 0) + 1 end
 		end
 		e.ciel = ciel
 		e.piste, e.dossier, e.objets, e.grille, e.pads, e.series, e.prisSerie, e.nuages = p, d, objs, grille, pads, series, {}, nuages
@@ -1250,6 +1297,7 @@ function G.satHard()
 				if a < o.hw and u < o.hu and t < o.ht then
 					o.fait = true
 					secousse = math.max(secousse, 1.3)
+					Sons.jouer("mortSat", 1, 0.7)
 					exploser("sat")
 					return
 				end
@@ -1290,10 +1338,13 @@ function G.debTick(dt: number, camCF: CFrame)
 	-- LA FRAPPE
 	local d = (carCF.Position - D.p1).Magnitude / M
 	secousse = math.max(secousse, 0.9 * math.max(0, 1 - d / 140))
-	if d < 260 then Sons.jouer("explosion", 0.7, 0.45 * (1 - d / 300)) end
+	if d < 260 then Sons.jouer("explosionLoin", Sons.a("explosionLoin") and 1 or 0.7, 0.45 * (1 - d / 300)) end
 	if mode ~= "drive" then return end -- en vol, on l'a survolé
 	if side < 0 then
-		if d < D.R + 9 then Hud.pop(tr("A L'ABRI", "SAFE"), Color3.fromRGB(159, 232, 255), 20) end
+		if d < D.R + 9 then
+			Hud.pop(tr("A L'ABRI", "SAFE"), Color3.fromRGB(159, 232, 255), 20)
+			Sons.jouer("abri", 1, 0.5)
+		end
 		return
 	end
 	if d < D.R + 1.2 then
@@ -1306,7 +1357,7 @@ function G.debTick(dt: number, camCF: CFrame)
 		secousse = math.max(secousse, 1.1)
 		Hud.pop(tr("TOUCHE !", "HIT!"), Color3.fromRGB(255, 90, 60), 26)
 		Hud.vibre(90)
-		Sons.jouer("poseChoc", 0.7, 0.5)
+		Sons.jouer(Sons.a("touche") and "touche" or "poseChoc", Sons.a("touche") and 1 or 0.7, 0.5)
 	elseif d < D.R + 9 then
 		-- ESQUIVÉ DE PRÈS : le risque paie, la série fait monter la mise
 		D.serie += 1
@@ -1315,7 +1366,7 @@ function G.debTick(dt: number, camCF: CFrame)
 		Score.flowAdd(6 + k * 3, "style", "n")
 		nitroGain(0.08 + k * 0.04)
 		Score.gesteMuet(tr("ESQUIVE", "DODGE"), 24 + k * 6, "esquive")
-		Sons.jouer("maillon", Sons.demiTons(k * 2), 0.3)
+		Sons.jouer(Sons.a("esquive") and "esquive" or "maillon", Sons.demiTons(k * 2), Sons.a("esquive") and 0.5 or 0.3)
 	end
 end
 
@@ -1536,10 +1587,12 @@ local function passerPortail(): boolean
 		G.orbWarp, G.orbFeu = 1, 0
 		secousse = math.max(secousse, 0.45)
 		Bus.emit("orbite", "entre")
+		Sons.jouer("orbiteEntre", 1, 0.7)
 	elseif lieuAvant == "espace" and (piste :: any).niveau ~= "espace" then
 		G.orbFeu, G.orbWarp = 1, 0
 		secousse = math.max(secousse, 0.6)
 		Bus.emit("orbite", "sort")
+		Sons.jouer("orbiteSort", 1, 0.7)
 	end
 	local g = encaisser(denom() * 24, "portail")
 	nitroR = reservoir()
@@ -2021,7 +2074,27 @@ local function habiller(dt: number)
 	Sons.regler("moteur", atelier and 0.05 or ((mode == "menu") and 0.12 or 0.32), 0.7 + r * 1.1 + (nitroOn and 0.1 or 0))
 	Sons.regler("nitro", nitroOn and 0.45 or 0)
 	Sons.regler("ventAltitude", atelier and 0 or ((mode == "fall") and math.min(0.7, 0.25 + fallVel.Magnitude * 0.004) or 0.08 + r * 0.1))
-	Sons.regler("musique", 0.32)
+	-- LA MUSIQUE SUIT LE LIEU (MUSIC_LIEU, L25333) : NOITE DE VELOCIDADE aux nuages, NOCTURNAL GROOVE en ville et à l'accueil (garage,
+	-- écran de fin), SWAG CASH CAR dans l'orage, la radio en orbite. Un morceau de lieu qui n'est pas importé laisse l'antenne à
+	-- `musique`. On passe de l'un à l'autre en fondu (1,2 s) ; chacun garde son fil, on ne le relance pas à chaque portail.
+	do
+		local veut = "musique"
+		if mode == "menu" or mode == "garage" or mode == "mort" or mode == "charge" then
+			veut = "musiqueVille"
+		elseif piste then
+			local lieu, var = (piste :: any).niveau, (piste :: any).variante
+			veut = (var == "orage") and "musiqueOrage" or ((lieu == "ville") and "musiqueVille" or ((lieu == "nuages") and "musiqueNuages" or "musique"))
+		end
+		if not Sons.a(veut) then veut = "musique" end
+		G.mus = G.mus or { musique = 0, musiqueNuages = 0, musiqueVille = 0, musiqueOrage = 0 }
+		for nom, k in G.mus do
+			k += math.clamp(((nom == veut) and 1 or 0) - k, -dt / 1.2, dt / 1.2)
+			G.mus[nom] = k
+			if nom == "musique" or Sons.a(nom) then Sons.regler(nom, 0.32 * k) end
+		end
+	end
+	-- (L36600) le silence habité de l'orbite : une ambiance en boucle, seulement là-haut
+	Sons.regler("espaceAmbiance", (G.gK() < 1 and (mode == "drive" or mode == "fall")) and 0.22 or 0)
 end
 
 -- ════════ le HUD ════════
@@ -2686,7 +2759,7 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 			local var, enJeu = (piste :: any).variante, mode ~= "menu" and mode ~= "garage" and mode ~= "charge"
 			local course = mode == "drive" or mode == "fall"
 			-- la pluie : la VILLE, MINUIT EN VILLE (moitié moins : pluie 0,55) et L'ORAGE
-			KA.Ville.pluie(enJeu and ((piste :: any).niveau == "ville" or var == "orage"), cam.CFrame, (var == "nuit") and 0.55 or 1)
+			KA.Ville.pluie(enJeu and ((piste :: any).niveau == "ville" or var == "orage"), cam.CFrame, (var == "nuit") and 0.55 or ((var == "orage") and 1.3 or 1), var == "orage")
 			-- MINUIT EN VILLE : pleins phares (ceux de la caisse au maximum, les faisceaux, la lampe qui court devant)
 			local minuit = var == "nuit" and course
 			if G.minuit ~= minuit then

@@ -241,9 +241,14 @@ Config.GRAINE_FIXE = nil :: number? -- mettre un nombre pour que tous les serveu
 -- Vide = le son de secours livré avec Roblox (quand il existe), sinon silence.
 Config.SONS = {
 	musique = "", moteur = "", nitro = "", ventAltitude = "",
+	-- la musique par LIEU (MUSIC_LIEU du web) : les nuages, la ville (et l'accueil), l'orage ; pas importée = `musique` continue
+	musiqueNuages = "", musiqueVille = "", musiqueOrage = "",
 	piece = "", decollage = "", poseParfait = "", poseChoc = "", poseLourde = "", vrille = "",
 	maillon = "", bigAir = "", encaisse = "", explosion = "", pad = "", nitroPlein = "",
-	tap = "", go = "", bip = "", compteFin = "", record = "", portail = "", fronde = "", tonnerre = "",
+	tap = "", go = "", bip = "", compteFin = "", record = "", portail = "", fronde = "",
+	-- les niveaux : l'éclair et le tonnerre de L'ORAGE ; les portes, l'ambiance et les débris de l'ORBITE ; la mort par satellite
+	eclair = "", tonnerre = "", orbiteEntre = "", orbiteSort = "", espaceAmbiance = "",
+	explosionLoin = "", esquive = "", touche = "", abri = "", mortSat = "",
 }
 Config.SONS_SECOURS = {
 	explosion = "rbxasset://sounds/impact_explosion_03.mp3",
@@ -254,6 +259,7 @@ Config.SONS_SECOURS = {
 	tap = "rbxasset://sounds/volume_slider.ogg",
 	piece = "rbxasset://sounds/volume_slider.ogg",
 	tonnerre = "rbxasset://sounds/impact_explosion_03.mp3", -- (joué très grave : un roulement)
+	explosionLoin = "rbxasset://sounds/impact_explosion_03.mp3",
 }
 
 return Config

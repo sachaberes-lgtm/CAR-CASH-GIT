@@ -18,6 +18,9 @@ const CHOIX = {
   encaisse: 'verdict.1', explosion: 'explosion', pad: 'pad', nitroPlein: 'nitro.plein',
   tap: 'ui.tap', go: 'ui.go', bip: 'ui.bip', compteFin: 'mort.compteFin', record: 'ui.record',
   portail: 'portail', fronde: 'fronde', ventAltitude: 'nuages.ambiance',
+  // les niveaux : l'orage (l'éclair, le tonnerre), l'orbite (ses portes, son silence habité, les débris), la pluie de satellites
+  eclair: 'foudre.eclair', tonnerre: 'tonnerre', orbiteEntre: 'orbite.entre', orbiteSort: 'orbite.sort', espaceAmbiance: 'espace.ambiance',
+  explosionLoin: 'explosion.loin', esquive: 'debris.esquive', touche: 'foudre.touche', abri: 'abri', mortSat: 'mort.foudre',
 };
 global.window = {};
 require(path.join(JEU, 'sons-banque.js'));
@@ -71,6 +74,14 @@ wav('nitro', s => {
   }
 });
 
+// LA MUSIQUE PAR LIEU (MUSIC_LIEU du jeu web) : nuages = NOITE DE VELOCIDADE, ville (et l'accueil) = NOCTURNAL GROOVE, orage = SWAG
+// CASH CAR ; l'orbite garde la radio (`musique` : NÉON CASH CAR). Un morceau pas importé = `musique` continue.
+for (const [nom, f] of Object.entries({ musiqueNuages: 'noite-de-velocidade.mp3', musiqueVille: 'nocturnal-groove.mp3', musiqueOrage: 'swag-cash-car-2.m4a' })) {
+  const src = path.join(JEU, 'assets', 'audio', 'music', f), dst = path.join(OUT, nom + '.mp3');
+  if (!fs.existsSync(src)) { console.log('absent :', f); continue; }
+  if (f.endsWith('.mp3')) fs.copyFileSync(src, dst);
+  else try { execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', src, '-c:a', 'libmp3lame', '-q:a', '4', dst]); } catch (e) { console.log('ffmpeg absent : ' + f + ' non converti'); }
+}
 // la musique du niveau 1
 const mus = path.join(JEU, 'assets', 'audio', 'music', 'lvl1-neon-cash-car-v3.mp3');
 if (fs.existsSync(mus)) fs.copyFileSync(mus, path.join(OUT, 'musique.mp3'));

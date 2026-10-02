@@ -516,14 +516,14 @@ function Nuages.batir(piste: any, dossier: Instance, graine: number, ceder: (() 
 		pose(p, p.X + math.cos(a) * d, p.Y - 260 + cr() * 700, p.Z + math.sin(a) * d, r, tire(rnd, POIDS.loin))
 	end
 	-- (7) LES CATHÉDRALES : de grands congestus qui montent de l'abîme — une PORTE (les deux côtés) ou une FALAISE (un seul)
-	local K7 = math.max(3, math.floor(L / 2000))
+	local K7 = math.max(3, math.floor(L / (OR and 1400 or 2000))) -- (aux NUAGES : moins de cathédrales, plus grosses — pas à l'orage)
 	for k = 0, K7 - 1 do
 		local i = strat(k, K7)
 		local p = pt(i)
 		local qx, qz = travers(i)
 		local cotes = (cr() < 0.45) and { -1, 1 } or { (cr() < 0.5) and -1 or 1 }
 		for _, sg in cotes do
-			local r = (220 + cr() * 120) * 1.45
+			local r = (220 + cr() * 120) * (OR and 1 or 1.45)
 			local kk = parmi(rnd, { "congestus", "cisaille", "champignon", 2 })
 			local yB = p.Y - (220 + cr() * 120)
 			local dd = RH + r * 1.25 + 60 + cr() * 230
@@ -547,7 +547,7 @@ function Nuages.batir(piste: any, dossier: Instance, graine: number, ceder: (() 
 	end
 	for k = 0, 2 do
 		local p = pt(strat(k, 3))
-		local a, d, r = cr() * 6.2832, 520 + cr() * 380, (200 + cr() * 140) * 1.5
+		local a, d, r = cr() * 6.2832, 520 + cr() * 380, (200 + cr() * 140) * (OR and 1 or 1.5)
 		for t = 0, 2 do
 			if pose(p, p.X + math.cos(a) * (d + t * 160), p.Y - 300 + cr() * 80, p.Z + math.sin(a) * (d + t * 160), r, parmi(rnd, { "congestus", "cisaille" })) then break end
 		end
