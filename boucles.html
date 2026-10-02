@@ -95,7 +95,7 @@ body.glisse .niv{border-style:dashed}
   <p class="sous">Touche une boucle pour l'écouter. Glisse-la sur un onglet pour la ranger, ou sur la corbeille.</p>
   <div class="barreO">
     <div class="seg" id="seg">
-      <button data-g="depart" class="on">Étape 1</button><button data-g="lobby">Lobby</button><button data-g="niv">Niveaux</button><button data-g="petits">Petits sons</button>
+      <button data-g="depart" class="on">Étape 1</button><button data-g="lobby">Lobby</button><button data-g="niv">Niveaux</button><button data-g="petits">Petits sons</button><button data-g="anciens">Anciens</button>
     </div>
     <button class="poub" id="poub" title="Glisse un son ici pour le supprimer — touche pour voir les sons supprimés"><svg viewBox="0 0 24 24"><path d="M9 3h6l1 2h4v2H4V5h4l1-2zm-3 6h12l-1 12H7L6 9z"/></svg><b id="poubN"></b></button>
   </div>
@@ -138,13 +138,38 @@ function cible(el,action){
   el.addEventListener('drop',e=>{e.preventDefault();el.classList.remove('cible');document.body.classList.remove('glisse');let id=enGlisse;try{id=id||e.dataTransfer.getData('text/plain');}catch(_){}enGlisse=null;if(id)action(id);});}
 let enGlisse=null; // le son qu'on tient (le dataTransfer ne se lit pas partout au lâcher)
 const GROUPE={lobby:'LOBBY · 8 SECONDES',niv:'NIVEAUX · 8 SECONDES'};
-const ONGLETS={depart:'Étape 1',lobby:'Lobby',niv:'Niveaux',petits:'Petits sons'};
+const ONGLETS={depart:'Étape 1',lobby:'Lobby',niv:'Niveaux',petits:'Petits sons',anciens:'Anciens'};
 // LES NIVEAUX DU JEU : dans l'onglet Niveaux, chaque son est rangé dans l'un d'eux (glisser-déposer)
 const NIVS=[['nuages','Nuages','#5ac8fa'],['ville','Ville','#ff2d92'],['orbite','Orbite','#af52de'],['frenesie','Frénésie','#ff3b30'],['aplacer','À placer','#8e8e93']];
 function nivDe(pour){pour=(pour||'').toUpperCase();return /NUAGE/.test(pour)?'nuages':/VILLE/.test(pour)?'ville':/ORBITE/.test(pour)?'orbite':/FR[EÉ]N/.test(pour)?'frenesie':'aplacer';}
-const TOUS=(window.DEPART||[]).map(p=>({g:'depart',unique:true,id:p.id,titre:p.titre,style:p.style,cle:p.cle,dur:p.dur,f:p.f,idee:p.idee})).concat((window.VAPEURS||[]).map(p=>({g:p.onglet||'petits',id:p.id,titre:p.titre,style:p.style,bpm:p.bpm,cle:p.cle,dur:p.dur,f:p.f,idee:p.idee,niv0:p.niv})).concat((window.PETITS||[]).map(p=>({g:'petits',id:p.id,titre:p.titre,style:p.style,bpm:p.bpm,cle:p.cle,dur:p.dur,f:p.f,idee:p.idee}))).concat(
+// 
+// LES ANCIENS (2026-10-02, Léo : « rajoute les anciens sons qu'on avait auparavant, avec leurs noms ou un truc indicatif, pour écouter
+// et comparer ») : les musiques du jeu d'avant, et mes essais d'avant le nouveau départ. Le libellé dit OÙ ça jouait.
+const M9='assets/audio/music/',B9='assets/audio/music/boucles/',C9='assets/audio/music/compo/';
+const ANCIENS=[
+  ['a-nocturnal','NOCTURNAL GROOVE','Ancien lobby · jeu de Sacha (jusqu’au 02/10)',M9+'nocturnal-groove.mp3','sol# mineur'],
+  ['a-swag','SWAG CASH CAR','Ancien lobby · ta version du 27/09',M9+'swag-cash-car-2.m4a','do mineur'],
+  ['a-glassy','GLASSY PLUCKS','Lobby de la branche musique · ton Suno',M9+'glassy-plucks-boucle.m4a','do# dorien',150.3,70.24333],
+  ['a-noite','NOITE DE VELOCIDADE','Musique des Nuages · jeu de Sacha',M9+'noite-de-velocidade.mp3','sol# mineur',132],
+  ['a-neon3','NEON CASH CAR v3','Ancienne musique du niveau 1',M9+'lvl1-neon-cash-car-v3.mp3','fa mineur'],
+  ['a-neon','NEON CASH CAR','Ancienne musique du niveau 1 (1re version)',M9+'lvl1-neon-cash-car.mp3','fa mineur'],
+  ['a-vitesse','CASH CAR VITESSE','Ancienne musique du niveau 2',M9+'lvl2-cash-car-vitesse.mp3','si mineur'],
+  ['a-addictive','ADDICTIVE LOOP','Musique de la Ville · ton morceau',M9+'addictive-loop.m4a','la mineur',130],
+  ['a-chrome','CHROME LEDGER','Ancienne musique du niveau 1 (août)',M9+'lvl1-chrome-ledger.mp3',''],
+  ['a-ascension','ASCENSION','Essai Claude v4 · Nuages (chef d’orchestre)',C9+'nuages-apercu.m4a','la mineur',128],
+  ['a-nuit','NUIT ÉLECTRIQUE','Essai Claude v4 · Ville',C9+'ville-apercu.m4a','fa mineur',140],
+  ['a-attraction','ATTRACTION','Essai Claude v4 · Orbite',C9+'orbite-apercu.m4a','ré mineur',174],
+  ['neon-drive','NÉON DRIVE','1er essai Claude · boucle longue · Nuages',B9+'neon-drive.m4a','la mineur',118],
+  ['pluie-neon','PLUIE NÉON','1er essai Claude · boucle longue · Ville',B9+'pluie-neon.m4a','fa mineur',88],
+  ['apesanteur','APESANTEUR','1er essai Claude · boucle longue · Orbite',B9+'apesanteur.m4a','ré dorien',96],
+  ['dark-triad','DARK TRIAD','1er essai Claude · boucle longue · Frénésie',B9+'dark-triad.m4a','do# phrygien',140],
+  ['caisse-enregistreuse','CAISSE ENREGISTREUSE','1er essai Claude · boucle longue · Boutique',B9+'caisse-enregistreuse.m4a','sol dorien',124],
+  ['garage-lofi','GARAGE','1er essai Claude · boucle longue · Garage',B9+'garage-lofi.m4a','mi dorien',82],
+  ['hypervitesse','HYPERVITESSE','1er essai Claude · boucle longue · Nitro',B9+'hypervitesse.m4a','fa# mineur',174],
+].map(a=>({g:'anciens',id:a[0],titre:a[1],style:a[2],f:a[3],cle:a[4]||'',bpm:a[5],dur:a[6]||(window.BOUCLES||[]).reduce((d,b)=>b.id===a[0]?b.dur:d,0)||0}));
+const TOUS=ANCIENS.concat((window.DEPART||[]).map(p=>({g:'depart',unique:true,id:p.id,titre:p.titre,style:p.style,cle:p.cle,dur:p.dur,f:p.f,idee:p.idee})).concat((window.VAPEURS||[]).map(p=>({g:p.onglet||'petits',id:p.id,titre:p.titre,style:p.style,bpm:p.bpm,cle:p.cle,dur:p.dur,f:p.f,idee:p.idee,niv0:p.niv})).concat((window.PETITS||[]).map(p=>({g:'petits',id:p.id,titre:p.titre,style:p.style,bpm:p.bpm,cle:p.cle,dur:p.dur,f:p.f,idee:p.idee}))).concat(
   (window.BOUCLES||[]).filter(b=>b.f&&(b.groupe===GROUPE.lobby||b.groupe===GROUPE.niv)).map(b=>({g:b.groupe===GROUPE.lobby?'lobby':'niv',id:b.id,titre:b.titre,
-    style:(b.pour||'').split('·').pop().trim(),bpm:b.bpm,cle:b.cle,dur:b.dur,f:b.f,idee:b.idee,niv0:nivDe(b.pour)}))));
+    style:(b.pour||'').split('·').pop().trim(),bpm:b.bpm,cle:b.cle,dur:b.dur,f:b.f,idee:b.idee,niv0:nivDe(b.pour)})))));
 // LE RANGEMENT de Léo : {groupes:{id:onglet}, corbeille:[id]} — gardé par la boîte (atelier-son/boite/rangement.json), sinon par le navigateur
 let RANGE={groupes:{},corbeille:[],niveaux:{},gardes:[]},ong='depart';
 const garde=b=>(RANGE.gardes||[]).indexOf(b.id)>=0,ongDe=b=>RANGE.groupes[b.id]||b.g,jete=b=>RANGE.corbeille.indexOf(b.id)>=0,nivD=b=>(RANGE.niveaux||{})[b.id]||b.niv0||'aplacer';
@@ -239,7 +264,7 @@ async function joue(b,el){
 }
 function carte(b){
   const el=document.createElement('div');el.className='c';
-  el.innerHTML='<div class="btn">'+PLAY+'</div><div class="txt"><div class="t">'+titre(b.titre)+'</div><div class="m">'+titre(b.style)+(b.bpm?' · '+Math.round(b.bpm)+' BPM':'')+' · '+b.cle+'</div><div class="idee">'+(b.idee||'')+'</div></div>'+
+  el.innerHTML='<div class="btn">'+PLAY+'</div><div class="txt"><div class="t">'+titre(b.titre)+'</div><div class="m">'+(b.g==='anciens'?b.style:titre(b.style))+(b.bpm?' · '+Math.round(b.bpm)+' BPM':'')+(b.cle?' · '+b.cle:'')+'</div><div class="idee">'+(b.idee||'')+'</div></div>'+
     (b.unique?'<button class="coeur'+(garde(b)?' on':'')+'" aria-label="Garder">♥</button>':'<button class="plus" aria-label="Options">•••</button>')+'<i class="prog"></i>';
   el.draggable=!b.unique;
   el.ondragstart=function(e){enGlisse=b.id;try{e.dataTransfer.setData('text/plain',b.id);}catch(_){}e.dataTransfer.effectAllowed='move';fermeMenu();
