@@ -248,6 +248,7 @@ Config.TEST_CAISSES = true
 -- LA LANGUE : celle de Roblox (LocaleId du joueur) — le français pour « fr-* », l'anglais pour tout le reste. UN SEUL endroit pour
 -- la lire. (banc) LANGUE_TEST force la langue (« en » : tout le jeu en anglais dans un Studio réglé en français).
 Config.LANGUE_TEST = nil :: string?
+Config.TACTILE_TEST = nil :: boolean? -- (banc) l'interface du TÉLÉPHONE (volant, bouton nitro, astuces tactiles) dans Studio
 function Config.francais(): boolean
 	if Config.LANGUE_TEST then return Config.LANGUE_TEST == "fr" end
 	local ok, l = pcall(function() return game:GetService("Players").LocalPlayer.LocaleId end)

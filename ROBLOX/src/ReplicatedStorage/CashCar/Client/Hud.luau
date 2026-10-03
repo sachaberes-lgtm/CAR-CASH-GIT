@@ -465,7 +465,7 @@ function Hud.creer()
 		Name = "CashCar", ResetOnSpawn = false, IgnoreGuiInset = false, ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
 		ScreenInsets = Enum.ScreenInsets.CoreUISafeInsets, DisplayOrder = 5,
 	}, pg)
-	local tactile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+	local tactile = Config.TACTILE_TEST == true or (UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled)
 	-- tout est dessiné pour un écran de 720 px de haut : une RACINE de 1/k de l'écran, agrandie k fois
 	local racine = inst("Frame", { Name = "Racine", BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1) }, gui)
 	Hud.racine = racine -- les autres écrans (garage…) se posent dans la même racine mise à l'échelle
@@ -699,6 +699,25 @@ function Hud.creer()
 	E.tactile = inst("Frame", { Name = "Tactile", BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Visible = false }, hud)
 	E.glisseTxt = texte(E.tactile, { Text = T.glisse, TextSize = 28, TextColor3 = C.texte2, TextXAlignment = Enum.TextXAlignment.Left,
 		Size = UDim2.fromOffset(420, 64), Position = UDim2.new(0, 26, 0.6, 0) })
+	-- (L1106, L3609) L'INVITATION DU VOLANT : un anneau de seize tirets cyan au milieu de la moitié gauche, sous le pouce, qui respire
+	-- (1,6 s : 35 → 80 %, × 1,08) — on sait OÙ poser le doigt. Il part au premier braquage, avec la consigne.
+	do
+		local D9 = 170
+		local g = inst("CanvasGroup", { Name = "Invite", BackgroundTransparency = 1, Size = UDim2.fromOffset(D9, D9), AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.new(0.25, 0, 1, -150), GroupTransparency = 0.65 }, E.tactile)
+		local sc = inst("UIScale", {}, g)
+		local R9 = D9 / 2 / 1.08 - 4
+		for k = 0, 15 do
+			local a = math.rad(-8 + 8 + k * 22.5) -- (chaque tiret couvre 16° sur 22,5 : son milieu)
+			inst("Frame", { BackgroundColor3 = Color3.fromRGB(159, 232, 255), BorderSizePixel = 0, AnchorPoint = Vector2.new(0.5, 0.5),
+				Size = UDim2.fromOffset(2 * math.pi * R9 * 16 / 360, 7), Rotation = math.deg(a) + 90,
+				Position = UDim2.new(0.5, math.cos(a) * R9, 0.5, math.sin(a) * R9) }, g)
+		end
+		local ti = TweenInfo.new(0.8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true)
+		TweenService:Create(g, ti, { GroupTransparency = 0.2 }):Play()
+		TweenService:Create(sc, ti, { Scale = 1.08 }):Play()
+		E.volantInvite = g
+	end
 	E.stickBase = inst("Frame", { BackgroundColor3 = C.plaqueSh, BackgroundTransparency = 0.35, BorderSizePixel = 0,
 		Size = UDim2.fromOffset(120, 120), AnchorPoint = Vector2.new(0.5, 0.5), Visible = false }, gStick)
 	inst("UIStroke", { Color = C.cyan, Thickness = 3 }, E.stickBase)
@@ -1173,6 +1192,7 @@ function Hud.brancherTactile()
 		if io.Position.X > cam.ViewportSize.X * 0.5 then return end
 		doigt = io
 		E.glisseTxt.Visible = false -- (L907 : la consigne est dite UNE fois — au premier braquage elle s'efface pour de bon)
+		E.volantInvite.Visible = false -- (et l'anneau d'invitation avec elle)
 		origine = Vector2.new(io.Position.X, io.Position.Y)
 		t.actif = true
 		t.x, t.y = 0, 0
