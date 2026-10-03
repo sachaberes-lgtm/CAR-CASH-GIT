@@ -246,35 +246,69 @@ def salon_simple(M, de, h, acc, basses, mel, rh_pas, sw, filtre_dor=False, harpe
     return finition(M, {'bat': .75, 'rh': 1, 'basse': 1, 'cordes': 1, 'vibra': 1, 'harpe': 1, 'pad': 1, 'fx': 1}, 8500)
 
 
-def v_filtre_salon():
-    """FILTRE D'OR · SALON — Sol m9 · Mi♭ maj9 · Do m9 · Fa7sus : le Rhodes tient l'accord (deux coups par mesure) et son filtre s'ouvre
-    sur la 1re moitié ; contrebasse, vibraphone rare, la harpe ouvre la 2e moitié où entrent les cordes."""
-    M = morceau(106, 505); de = M.de; h = Main(15, 5); SW = .12
-    M.patron('bat', 'x.......x.......', lambda: kick(de, 95, 42, .45, .03, 1.), .5)
-    M.patron('bat', '....x.......x...', lambda: rim(de), .22, .15, SW)
-    M.patron('bat', '..o...o...o...o.', lambda: balai(de), .22, -.2, SW, mes=range(4, 8))
-    acc = [[58, 62, 65, 69], [55, 58, 62, 65], [58, 62, 63, 67], [58, 60, 63, 67]]       # voix qui bougent d'un ton au plus
-    basses = [43, 39, 36, 41]                                                              # sol · mi♭ · do · fa
-    mel = [(0, 8, 86, 6), (1, 6, 82, 8), (2, 8, 82, 4), (2, 12, 79, 4), (3, 0, 84, 12),
-           (4, 4, 89, 4), (4, 8, 86, 6), (5, 6, 86, 8), (6, 8, 87, 4), (6, 12, 84, 4), (7, 0, 82, 14)]
-    L, R = salon_simple(M, de, h, acc, basses, mel, ((0, 7), (10, 5)), SW, True, [62, 65, 69, 74, 77, 81])
-    return M, (L, R)
+# (2026-10-03, 4e passe — Léo : « refais-les complètement ; je ne parlais pas du STYLE, seulement de la DURÉE des boucles — mais toutes les
+# musiques doivent suivre UNE ambiance ») : FILTRE D'OR et MÉTRO retrouvent LEUR style (house filtrée, 2-step garage) mais prennent la
+# DURÉE de VAPEUR · SALON — 8 mesures dont la 2e moitié répond à la 1re — et l'AMBIANCE du lobby : la même bande qui pleure (wobble),
+# la même grande réverbe douce, les aigus adoucis (passe-bas maître ~7 kHz), la même sonie.
+def ambiance(M, harmoniques, rev=(3., .4, 4500), lp=7200, gains=None):
+    bande(M, harmoniques)
+    fx_rev(M, [(k, 1) for k in harmoniques] + [('bat', .15)], rev[0], rev[1], rev[2])
+    return fin(M, gains, maitre_lp=lp)
 
 
-def v_metro_salon():
-    """MÉTRO · SALON — Fa m9 · Ré♭ maj9 · Si♭ m9 · Do m7 : le rebond 2-step reste dans la batterie (douce), le Rhodes tient l'accord sur
-    deux coups décalés ; contrebasse, vibraphone rare, la harpe ouvre la 2e moitié où entrent les cordes."""
-    M = morceau(104, 506); de = M.de; h = Main(16, 5); sw = .2
-    M.patron('bat', 'x.......x.x.....', lambda: kick(de, 95, 42, .4, .03, 1.), .48, swing=sw,
+def v_filtre_or():
+    """FILTRE D'OR — house filtrée à la française, 8 mesures : l'accord de funk haché en croches, son filtre s'ouvre sur les 4 premières
+    mesures ; la basse saute l'octave, quatre temps, ça pompe. La 2e moitié : filtre ouvert, charley ouvert, une nappe et un petit
+    gimmick au synthé doux répondent."""
+    M = morceau(124, 507); de = M.de; h = Main(17, 3); T = 55   # sol dorien
+    M.patron('bat', 'x...x...x...x...', lambda: kick(de, 140, 46, .32, .3, 1.4), .85)
+    M.patron('bat', '....x.......x...', lambda: clap(de, .2), .4)
+    M.patron('bat', '..x...x...x...x.', lambda: charley(de, True, 6500), .14, .25, mes=range(4, 8))
+    M.patron('bat', 'xxxxxxxxxxxxxxxx', lambda: shaker(de), .22, -.35)
+    ch = M.piste('accord'); b = M.piste('basse')
+    acc = [[67, 70, 74, 77], [65, 69, 72, 76], [67, 70, 74, 77], [70, 74, 77, 81]]     # Sol m7 · Fa maj7 · Sol m7 · Si♭ maj7 (celui d'origine)
+    for m in range(8):
+        for p in (0, 2, 3, 6, 8, 10, 11, 14):
+            for n in acc[m % 4]:
+                l, r = supersaw(n, M.dc * 1.3, 3, 10, de); e = env(len(l), .002, .07, .2)
+                ch.pose2(h.t(M.t(m, p)), l * e, r * e, h.g(.065))
+        r = deg(T - 12, 'dor', [0, 6, 0, 2][m % 4])
+        for p, o in ((0, 0), (3, 12), (6, 0), (7, 12), (10, 0), (12, 10), (14, 12)):
+            nn = int(M.dc * .9 * SR); s = np.tanh((scie(hz(r + o), nn) * .5 + sinus(hz(r + o), nn)) * env(nn, .002, .09, .3) * 2)
+            b.pose(h.t(M.t(m, p)), filtre(s, 'low', 1100), .45)
+    lg = int(M.lg * SR); u = np.clip(np.arange(M.n) / max(1, lg // 2), 0, 1)
+    fc = 380 * (18 ** (u ** 1.4)); ch.L = balaye(ch.L, fc); ch.R = balaye(ch.R, fc)          # LE FILTRE D'OR : fermé → ouvert en 4 mesures
+    nappe_vapeur(M, de, [[55, 58, 62, 65, 69], [53, 57, 60, 64, 67], [55, 58, 62, 65, 69], [58, 62, 65, 69, 72]], 1600, .05, range(4, 8))
+    melodie(M, [(4, 2, 74, 2), (4, 6, 77, 2), (4, 10, 74, 4), (5, 2, 72, 2), (5, 6, 76, 6), (6, 2, 74, 2), (6, 6, 77, 2), (6, 10, 79, 4), (7, 2, 77, 4), (7, 8, 74, 6)], h, .07)
+    pompe_bus(M, ('accord', 'basse', 'pad'), kicks_de(M), .55)
+    M.bus['accord'].L, M.bus['accord'].R = chorus(M.bus['accord'].L, M.bus['accord'].R, 12, 2, .5)
+    return M, ambiance(M, ('accord', 'pad', 'lead'), (2.8, .4, 4500), 6200, {'bat': .9, 'accord': 1.2, 'basse': 1, 'pad': 1, 'lead': 1, 'fx': 1})
+
+
+def v_metro():
+    """MÉTRO — UK garage en 2-step, 8 mesures : la grosse caisse qui saute, le charley qui boite, l'orgue en accords courts, la sous-basse
+    ronde. La 2e moitié : le charley se dédouble, une nappe sombre s'étend et une petite mélodie d'orgue répond."""
+    M = morceau(132, 508); de = M.de; h = Main(18, 3); T = 53; sw = .22   # fa mineur
+    M.patron('bat', 'x.......x.x.....', lambda: kick(de, 145, 46, .3, .3, 1.4), .85, swing=sw,
              var=lambda m: 'x.......x.x.....' if m % 2 == 0 else 'x.....x....x....')
-    M.patron('bat', '....x.......x...', lambda: rim(de), .22, .15, sw)
-    M.patron('bat', '..o...o...o...o.', lambda: balai(de), .2, -.25, sw, mes=range(4, 8))
-    acc = [[56, 60, 63, 67], [56, 60, 63, 65], [56, 60, 61, 65], [58, 60, 63, 67]]
-    basses = [41, 37, 34, 36]                                                              # fa · ré♭ · si♭ · do
-    mel = [(0, 8, 84, 6), (1, 6, 84, 8), (2, 8, 80, 4), (2, 12, 84, 4), (3, 0, 82, 12),
-           (4, 4, 91, 4), (4, 8, 87, 6), (5, 6, 84, 8), (6, 8, 85, 4), (6, 12, 84, 4), (7, 0, 79, 14)]
-    L, R = salon_simple(M, de, h, acc, basses, mel, ((0, 6), (7, 8)), sw, False, [60, 63, 67, 72, 75, 79])
-    return M, (L, R)
+    M.patron('bat', '....x.......x...', lambda: caisse(de, 200, 1., .13, 2200), .5, swing=sw)
+    M.patron('bat', '..x.x.xx..x.x.xx', lambda: charley(de, False, 7000), .09, .3, swing=sw,
+             var=lambda m: '..x.x.xx..x.x.xx' if m < 4 else '.xx.xxxx.xx.x.xx')
+    org = M.piste('orgue'); b = M.piste('basse')
+    for m in range(8):
+        d = [0, 5, 3, 4][m % 4]
+        for p in (0, 3, 7, 10):
+            for k, n in enumerate(accord(T + 12, 'harm' if d == 4 else 'min', d)):
+                s9 = plus(fm(n, .35, 1, 1.4, .05, .12), .4 * sinus(hz(n) * 2, int(.2 * SR)) * np.exp(-np.arange(int(.2 * SR)) / SR / .06))
+                org.pose(h.t(M.t(m, p, sw)), s9, h.g(.075), -.3 + .2 * k)
+        r = deg(T - 12, 'min', d)
+        for p, lg9 in ((0, 3), (6, 2), (11, 4)):
+            nn = int(lg9 * M.dc * SR); b.pose(M.t(m, p, sw), np.tanh(sinus(hz(r), nn) * env(nn, .005, 9, 1, .04, lg9 * M.dc - .04) * 1.5), .6)
+    nappe_vapeur(M, de, [[53, 56, 60, 63, 67], [49, 53, 56, 60, 63], [58, 61, 65, 68, 72], [55, 59, 62, 65, 68]], 1300, .05, range(4, 8))
+    ld = M.piste('lead')
+    for m, p, n in ((4, 3, 75), (4, 7, 72), (5, 3, 77), (5, 10, 75), (6, 3, 72), (6, 7, 68), (7, 3, 71), (7, 10, 72)):
+        ld.pose(h.t(M.t(m, p, sw)), plus(fm(n + 12, .5, 1, 1.2, .05, .2), .3 * fm(n + 24, .3, 1, .6, .03, .1)), h.g(.07), .25)
+    return M, ambiance(M, ('orgue', 'pad', 'lead'), (2.8, .4, 4500), 6000, {'bat': .9, 'orgue': 1, 'basse': 1, 'pad': 1, 'lead': 1, 'fx': 1})
 
 VAPEURS = [
     ('vapeur-salon', v_salon, {'titre': 'VAPEUR · SALON', 'style': 'Vaporwave lounge', 'bpm': 100, 'cle': 'mi♭ majeur', 'onglet': 'lobby',
@@ -285,10 +319,10 @@ VAPEURS = [
                                'idee': "Le même ciel qui se couvre : accords assombris, pluie, tonnerre au loin, caisse lourde à mi-tempo."}),
     ('vapeur-ciel', v_ciel, {'titre': 'VAPEUR CIEL', 'style': 'Vaporwave · ciel', 'bpm': 120, 'cle': 'fa majeur', 'onglet': 'niv', 'niv': 'nuages',
                              'idee': "Au-dessus des nuages : un ton plus haut, plus clair, des arpèges qui scintillent, la mélodie à l'octave."}),
-    ('filtre-salon', v_filtre_salon, {'titre': "FILTRE D'OR · SALON", 'style': 'Lounge · filtre', 'bpm': 106, 'cle': 'sol mineur', 'onglet': 'lobby',
-                                      'idee': "Dans la forme de VAPEUR : quatre accords tenus au Rhodes à trémolo, le filtre d'or qui s'ouvre, contrebasse, vibraphone rare ; la harpe ouvre la 2e moitié."}),
-    ('metro-salon', v_metro_salon, {'titre': 'MÉTRO · SALON', 'style': 'Lounge · 2-step', 'bpm': 104, 'cle': 'fa mineur', 'onglet': 'lobby',
-                                    'idee': "Dans la forme de VAPEUR : quatre accords tenus au Rhodes à trémolo, le rebond 2-step dans la batterie douce, contrebasse, vibraphone rare ; la harpe ouvre la 2e moitié."}),
+    ('filtre-or', v_filtre_or, {'titre': "FILTRE D'OR", 'style': 'House filtrée · 8 mesures', 'bpm': 124, 'cle': 'sol dorien', 'onglet': 'lobby',
+                                'idee': "Son style d'origine (l'accord haché dont le filtre s'ouvre, quatre temps), en 8 mesures comme VAPEUR · SALON et dans l'ambiance du lobby."}),
+    ('metro-8', v_metro, {'titre': 'MÉTRO', 'style': '2-step garage · 8 mesures', 'bpm': 132, 'cle': 'fa mineur', 'onglet': 'lobby',
+                          'idee': "Son style d'origine (2-step, orgue court, sous-basse), en 8 mesures comme VAPEUR · SALON et dans l'ambiance du lobby."}),
 ]
 
 if __name__ == '__main__':
