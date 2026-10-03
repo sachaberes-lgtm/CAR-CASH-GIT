@@ -28650,7 +28650,7 @@ const INSTRU={on:true,v:null,i:0,tDer:0,bus:null};
 const INSTRU_PHRASE=[0,2,4,3,5,4,7,5,3,4,2,0];                 // des degrés de la pentatonique : ça monte, ça respire, ça redescend
 function instruBus(){
   if(INSTRU.bus||!AC||!MASTER)return INSTRU.bus;
-  const g=AC.createGain();g.gain.value=.5;const d=AC.createDelay(1);d.delayTime.value=.3;const fb=AC.createGain();fb.gain.value=.28;
+  const g=AC.createGain();g.gain.value=.5;const d=AC.createDelay(1);d.delayTime.value=.3;const fb=AC.createGain();fb.gain.value=.18;
   const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=2600;
   g.connect(MASTER);g.connect(d);d.connect(lp);lp.connect(fb);fb.connect(d);lp.connect(MASTER);
   INSTRU.bus=g;return g;
@@ -28666,10 +28666,10 @@ function instruOn(){
   const g=AC.createGain(),flt=AC.createBiquadFilter(),o1=AC.createOscillator(),o2=AC.createOscillator(),o3=AC.createOscillator(),vib=AC.createOscillator(),vg=AC.createGain();
   o1.type='sawtooth';o2.type='sawtooth';o3.type='square';o1.frequency.value=f;o2.frequency.value=f;o3.frequency.value=f/2;o2.detune.value=9;o1.detune.value=-6;
   vib.frequency.value=5.4;vg.gain.value=0;vib.connect(vg);[o1,o2,o3].forEach(function(o){vg.connect(o.detune);});
-  vg.gain.setValueAtTime(0,now+.35);vg.gain.linearRampToValueAtTime(14,now+1.1);                   // le vibrato arrive si on TIENT
-  flt.type='lowpass';flt.Q.value=4;flt.frequency.setValueAtTime(f*14,now);flt.frequency.exponentialRampToValueAtTime(f*3,now+.18);  // le claquement de l'attaque
-  flt.frequency.exponentialRampToValueAtTime(f*7,now+1.6);                                            // tenu : le son s'ouvre
-  g.gain.setValueAtTime(0,now);g.gain.linearRampToValueAtTime(.22,now+.006);g.gain.setTargetAtTime(.13,now+.02,.15);
+  vg.gain.setValueAtTime(0,now+.35);vg.gain.linearRampToValueAtTime(8,now+1.1);                   // le vibrato arrive si on TIENT
+  flt.type='lowpass';flt.Q.value=.7;flt.frequency.setValueAtTime(f*5,now);flt.frequency.exponentialRampToValueAtTime(f*2,now+.18);  // (2026-10-03, Léo : « mille fois plus discret ») une attaque douce, plus de claquement
+  flt.frequency.exponentialRampToValueAtTime(f*3.5,now+1.6);                                          // tenu : le son s'ouvre, à peine
+  g.gain.setValueAtTime(0,now);g.gain.linearRampToValueAtTime(.035,now+.012);g.gain.setTargetAtTime(.02,now+.03,.15); // −16 dB : sous la musique, un reflet
   const m3=AC.createGain();m3.gain.value=.45;o3.connect(m3);
   o1.connect(flt);o2.connect(flt);m3.connect(flt);flt.connect(g);g.connect(bus);
   [o1,o2,o3,vib].forEach(function(o){o.start(now);});
