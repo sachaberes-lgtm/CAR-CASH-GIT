@@ -46,3 +46,7 @@
   répond), PAS le style. FILTRE D'OR (house filtrée) et MÉTRO (2-step) refaits dans LEUR style, en 8 mesures, et TOUTES les musiques
   du lobby suivent UNE ambiance (bande qui pleure, grande réverbe douce, aigus adoucis, même sonie). Les versions « salon » sont retirées.
   VAPEUR · SALON revenue à l'identique d'avant (sans le carillon, sans grésillement).
+- 2026-10-03 — MÉTRO et FILTRE D'OR ABANDONNÉS (retirés du lobby du jeu). CINQ NOUVEAUX LOBBYS proposés (`atelier-son/lobby5.py`, onglet
+  Lobby) dans la règle du lobby (8 mesures, ambiance commune) : VIEILLE FORTUNE (rock américain cyberpunk, old money / new gear),
+  TEMPLE DE JADE (DJ tech bouddhiste), MARGARITA BOSS (beach club), PARIS PUNK CASH (punk parisien, musette), SAVANE ROBOTIQUE
+  (savane × ville des robots). En attente du verdict de Léo.

@@ -319,10 +319,7 @@ VAPEURS = [
                                'idee': "Le même ciel qui se couvre : accords assombris, pluie, tonnerre au loin, caisse lourde à mi-tempo."}),
     ('vapeur-ciel', v_ciel, {'titre': 'VAPEUR CIEL', 'style': 'Vaporwave · ciel', 'bpm': 120, 'cle': 'fa majeur', 'onglet': 'niv', 'niv': 'nuages',
                              'idee': "Au-dessus des nuages : un ton plus haut, plus clair, des arpèges qui scintillent, la mélodie à l'octave."}),
-    ('filtre-or', v_filtre_or, {'titre': "FILTRE D'OR", 'style': 'House filtrée · 8 mesures', 'bpm': 124, 'cle': 'sol dorien', 'onglet': 'lobby',
-                                'idee': "Son style d'origine (l'accord haché dont le filtre s'ouvre, quatre temps), en 8 mesures comme VAPEUR · SALON et dans l'ambiance du lobby."}),
-    ('metro-8', v_metro, {'titre': 'MÉTRO', 'style': '2-step garage · 8 mesures', 'bpm': 132, 'cle': 'fa mineur', 'onglet': 'lobby',
-                          'idee': "Son style d'origine (2-step, orgue court, sous-basse), en 8 mesures comme VAPEUR · SALON et dans l'ambiance du lobby."}),
+    # (2026-10-03) FILTRE D'OR et MÉTRO ABANDONNÉS par Léo — v_filtre_or / v_metro restent écrits ci-dessus, hors de la liste.
 ]
 
 if __name__ == '__main__':
