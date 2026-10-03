@@ -67,3 +67,6 @@
 - 2026-10-03 — CIEL : la mélodie du niveau 4 plus forte (+3 dB dans les médiums) ; un GESTE DE TRANSITION différent à chaque passage
   (1→2 Rhodes qui monte + souffle inversé · 2→3 la demi-mesure qui se vide puis le beat qui tombe avec une cymbale · 3→4 la basse qui
   glisse vers le grave + charley ouvert + souffle · 4→5 relance + cymbale + Rhodes). Les boucles par niveau restent sans transition.
+- 2026-10-03 — CIEL, LE FINAL (niveau 5, « encore plus spectaculaire ») : le morceau MONTE D'UN TON (mi♭ → fa, mesuré), une
+  demi-mesure de SILENCE à la fin du niveau 4 (−22 dB) puis l'IMPACT (sous-basse qui gronde, cymbale, accord de cuivres) ; dans le
+  niveau 5 : cuivres soul qui claquent, chœur « ooh », cordes qui doublent la mélodie, charleys en doubles croches.

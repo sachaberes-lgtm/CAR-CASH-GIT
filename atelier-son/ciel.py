@@ -61,6 +61,37 @@ def caisse_poussiere(de):
     s = caisse(de, 185, 1.05, .19, 1500); return filtre(s, 'low', 5500)
 
 
+# (2026-10-03, Léo : « réserve un truc encore plus spectaculaire pour le 5 ») : LE FINAL — le morceau MONTE D'UN TON (mi♭ → fa),
+# une demi-mesure de SILENCE à la fin du niveau 4 (la nappe et la relance seules), puis l'IMPACT (sous-basse qui gronde, cymbale,
+# accord de CUIVRES) ; dans le niveau 5 : section de cuivres qui claque, CHŒUR « ooh », cordes qui doublent la mélodie, charleys serrés.
+TON5 = 2
+
+
+def cuivres(notes, dur):
+    """une section de cuivres de soul : des scies qui gonflent (attaque 30 ms), le filtre qui s'ouvre puis se pose, un vibrato léger"""
+    nn = int((dur + .1) * SR); t = np.arange(nn) / SR; s = 0
+    for k, n in enumerate(notes):
+        f = hz(n) * (1 + .004 * np.sin(2 * np.pi * 5.5 * t + k))
+        s = s + scie(f, nn) + .5 * scie(f * 1.006, nn)
+    fc = 700 + 2600 * np.exp(-t / .18) + 600
+    return balaye(s / len(notes) * env(nn, .03, .25, .55, .08, dur), fc) * .7
+
+
+def choeur(notes, dur):
+    """un chœur « ooh » : des scies douces à travers les formants d'un O (300 et 870 Hz), qui gonflent lentement"""
+    nn = int((dur + .5) * SR); t = np.arange(nn) / SR; s = 0
+    for n in notes:
+        for d9 in (-.006, .006): s = s + scie(hz(n) * (1 + d9) * (1 + .003 * np.sin(2 * np.pi * 4.8 * t)), nn)
+    a = passe_bande(s, 250, 400) + .5 * passe_bande(s, 750, 1000)
+    return a * env(nn, .45, 9, 1, .5, dur) * .5
+
+
+def impact_final(de):
+    nn = int(1.6 * SR); t = np.arange(nn) / SR
+    boom = np.sin(2 * np.pi * np.cumsum(62 * 2 ** (-t / .5)) / SR) * np.exp(-t / .55)
+    return np.tanh(boom * 1.6) * .9 + passe_bande(de.bruit(nn), 60, 400) * np.exp(-t / .12) * .3
+
+
 def souffle_inverse(acc, dur, de, fc=1800):
     """la nappe de l'accord SUIVANT jouée à l'envers, très doucement : elle « aspire » d'une mesure vers la suivante sans bruit de montée"""
     l, r = nappe(acc, dur, fc, de); n = int(dur * SR); l = l[:n][::-1]; r = r[:n][::-1]
@@ -76,10 +107,14 @@ def transition(M, m, nv, de, h, sw):
     4→5 la relance de caisse claire (déjà là) + la cymbale à l'arrivée + les notes de Rhodes qui montent."""
     rh = M.piste('trans'); t9 = M.t(m + 1)
     if nv in (1, 4):
-        for k, (p, n) in enumerate(((10, 70), (12, 75), (14, 77))):
+        for k, (p, n) in enumerate(((10, 70), (12, 75), (14, 77)) if nv == 1 else ((10, 72), (12, 77), (14, 79))):
             rh.pose(h.t(M.t(m, p, sw)), rhodes_p(n + 12, .5, .5 + .15 * k), .07 + .015 * k, -.2 + .2 * k)
-    if nv in (1, 3):
-        l, r = souffle_inverse(ACC[0], M.temps * 2, de); rh.pose2(t9 - len(l) / SR, l, r, .07)
+    if nv in (1, 3, 4):
+        acc9 = [n + TON5 for n in ACC[0]] if nv == 4 else ACC[0]
+        l, r = souffle_inverse(acc9, M.temps * 2, de); rh.pose2(t9 - len(l) / SR, l, r, .07 if nv < 4 else .11)
+    if nv == 4:                                                           # L'IMPACT du final : sous-basse, accord de cuivres
+        rh.pose(t9, impact_final(de), .55)
+        M.piste('cuivres').pose(t9, cuivres([n + TON5 + 12 for n in ACC[0][1:]], M.temps * 1.5), .2, .1)
     if nv in (2, 4):
         cr = crash(de, 1.8); rh.pose(t9, filtre(cr, 'low', 9000), .14, .3)
     if nv == 3:
@@ -96,7 +131,8 @@ def composer(M, niveau_de, de, h):
     bat = M.piste('bat'); sn = M.piste('sn'); pc = M.piste('perc'); ca = M.piste('rhc')
     prec = None
     for m in range(nb):
-        nv = niveau_de(m); q = ACC[m % 4]; r = RAC[m % 4]
+        nv = niveau_de(m); tr = TON5 if nv == 5 else 0; q = [n + tr for n in ACC[m % 4]]; r = RAC[m % 4] + tr
+        coupe = m % 8 == 7 and m + 1 < nb and niveau_de(m + 1) == 5   # la demi-mesure de SILENCE avant le final
         l9, r9 = nappe(q, M.temps * 4, [900, 1300, 1700, 2100, 2500][nv - 1], de)
         pd.pose2(M.t(m), l9, r9, [.16, .13, .11, .1, .09][nv - 1])
         if nv <= 2:                                                        # la sous-basse tenue (avant la basse funky)
@@ -104,6 +140,7 @@ def composer(M, niveau_de, de, h):
         if nv >= 2:                                                        # le RHODES pose l'accord
             pas = ((0, 12),) if nv == 2 else ((0, 7), (10, 5))
             for p, lg in pas:
+                if coupe and p >= 8: continue
                 v = .55 + .3 * h.r.random()
                 for k, n in enumerate(q[1:]): rh.pose(h.t(M.t(m, p, sw)) + k * .009, rhodes_p(n + 12, lg * M.dc, v), h.g(.07), -.25 + .12 * k)
         dernier = m % 8 == 7 and m + 1 < nb and niveau_de(m + 1) > nv     # la dernière mesure avant un niveau plus haut
@@ -113,29 +150,40 @@ def composer(M, niveau_de, de, h):
             for p in range(0, 16, 2):
                 if not (dernier and p >= 8): bat.pose(h.t(M.t(m, p, sw)), shaker(de), h.g(.12 if p % 4 else .18), -.4)
         if nv >= 3:                                                        # LE BEAT hip-hop
-            for p in ((0, 7, 10) if m % 2 == 0 else (0, 3, 10)): bat.pose(h.t(M.t(m, p, sw)), kick(de, 105, 42, .42, .25, 1.4), h.g(.9))
-            for p in (4, 12): sn.pose(h.t(M.t(m, p, sw)), caisse_poussiere(de), h.g(.6))
-            for p in range(0, 16, 2): bat.pose(h.t(M.t(m, p, sw)), charley(de, nv == 5 and p % 8 == 6, 7500), h.g(.13 if p % 4 else .17), .3)
+            for p in ((0, 7, 10) if m % 2 == 0 else (0, 3, 10)):
+                if not (coupe and p >= 8): bat.pose(h.t(M.t(m, p, sw)), kick(de, 105, 42, .42, .25, 1.4), h.g(.9))
+            for p in (4, 12):
+                if not (coupe and p >= 8): sn.pose(h.t(M.t(m, p, sw)), caisse_poussiere(de), h.g(.6))
+            for p in range(0, 16, 1 if nv == 5 else 2):
+                if coupe and p >= 8: continue
+                if p % 2: bat.pose(h.t(M.t(m, p, sw)), charley(de, False, 8000), h.g(.06), .35); continue   # le final : des charleys serrés
+                bat.pose(h.t(M.t(m, p, sw)), charley(de, nv == 5 and p % 8 == 6, 7500), h.g(.13 if p % 4 else .17), .3)
             if nv in (3, 4) and m % 8 == 7:                               # la petite relance vers le niveau suivant
                 for k, p in enumerate((13, 14, 15)): sn.pose(M.t(m, p, sw), caisse_poussiere(de), .2 + .1 * k)
             for p, o, lg in ((0, 0, 3), (3, 12, 1), (6, 7, 2), (8, 0, 3), (11, 0, 1), (12, 10, 2), (14, 7, 2)):   # la BASSE funky façon ARP
+                if coupe and p >= 8: continue
                 b.pose(h.t(M.t(m, p, sw)), basse_arp(r - 12 + o, lg * M.dc * .9), h.g(.5))
         if nv >= 4:                                                        # LA MÉLODIE au synthé monophonique
             for p, n, lg in MEL[m % 8]:
-                ld.pose(h.t(M.t(m, p, sw)), mono(n, prec, lg * M.dc * .95), h.g(.28)); prec = n   # (Léo : « augmente le son de la boucle ajoutée au niveau 4 »)
+                if coupe and p >= 8: continue
+                n = n + tr; ld.pose(h.t(M.t(m, p, sw)), mono(n, prec, lg * M.dc * .95), h.g(.28)); prec = n
+                if nv == 5: M.piste('cordes_m').pose(h.t(M.t(m, p, sw)), filtre(sum(supersaw(n - 12, lg * M.dc + .3, 4, 9, de)) * env(int((lg * M.dc + .3) * SR), .08, 9, 1, .15, lg * M.dc), 'low', 2200), .05, -.25)   # (Léo : « augmente le son de la boucle ajoutée au niveau 4 »)
         if dernier: transition(M, m, nv, de, h, sw)
         if nv == 5:
             for p, f, slap in ((2, 210, 0), (6, 300, 1), (9, 210, 0), (11, 210, 0), (14, 300, 1)):
                 pc.pose(h.t(M.t(m, p, sw)), conga(de, f, bool(slap)), h.g(.22), .35)
             for p, n, lg in MEL[m % 8][1:2]:                               # le Rhodes RÉPOND à la mélodie
-                ca.pose(h.t(M.t(m, p + 2, sw)), rhodes_p(n - 5, 1., .8), .07, -.3)
-    cordes(M, de, ACC, [m for m in range(nb) if niveau_de(m) == 5], .05, 1300)
+                ca.pose(h.t(M.t(m, p + 2, sw)), rhodes_p(n + tr - 5, 1., .8), .07, -.3)
+            for p in (0, 10):                                              # la section de CUIVRES claque l'accord
+                M.piste('cuivres').pose(h.t(M.t(m, p, sw)), cuivres([n + 12 for n in q[1:]], (5 if p == 0 else 3) * M.dc), h.g(.13), .1)
+            M.piste('choeur').pose(M.t(m), choeur([n + 12 for n in q[:4]], M.temps * 4), .1, -.1)   # le CHŒUR « ooh »
+    cordes(M, de, [[n + TON5 for n in a] for a in ACC], [m for m in range(nb) if niveau_de(m) == 5], .05, 1300)
     tremolo_stereo(M, 'rh', 4.2, .2)
     M.bus['nappe'].L, M.bus['nappe'].R = chorus(M.bus['nappe'].L, M.bus['nappe'].R)
-    bande(M, ('nappe', 'rh', 'lead', 'cordes', 'rhc', 'trans'))
+    bande(M, ('nappe', 'rh', 'lead', 'cordes', 'rhc', 'trans', 'choeur', 'cordes_m'))
     eL, eR = echo(ld.L, ld.R, M.temps * .75, .3); ld.L += eL * .3; ld.R += eR * .3
-    fx_rev(M, [('nappe', 1), ('rh', .7), ('lead', .8), ('cordes', 1), ('rhc', 1), ('trans', 1), ('sn', .35), ('bat', .1)], 3., .4, 4800)
-    return fin(M, {'nappe': 1, 'sub': 1, 'rh': 1, 'basse': 1, 'lead': 1, 'bat': .9, 'sn': .9, 'perc': 1, 'rhc': 1, 'cordes': 1, 'trans': 1, 'fx': 1}, maitre_lp=7500)
+    fx_rev(M, [('nappe', 1), ('rh', .7), ('lead', .8), ('cordes', 1), ('rhc', 1), ('trans', 1), ('cuivres', .6), ('choeur', 1), ('cordes_m', 1), ('sn', .35), ('bat', .1)], 3., .4, 4800)
+    return fin(M, {'nappe': 1, 'sub': 1, 'rh': 1, 'basse': 1, 'lead': 1, 'bat': .9, 'sn': .9, 'perc': 1, 'rhc': 1, 'cordes': 1, 'trans': 1, 'cuivres': 1, 'choeur': 1, 'cordes_m': 1, 'fx': 1}, maitre_lp=7800)
 
 
 def rendu(nom, mesures, niveau_de, graine):
@@ -152,9 +200,9 @@ if __name__ == '__main__':
     out.append({'id': 'ciel-complet', 'titre': 'CIEL · LES 5 NIVEAUX', 'style': 'Library soul / hip-hop · le morceau entier', 'bpm': BPM, 'cle': 'mi♭ majeur',
                 'f': 'assets/audio/music/ciel/ciel-complet.m4a?v=%d' % v, 'dur': d,
                 'idee': "La nappe vapeur qui s'étoffe en 5 niveaux de 8 mesures : nappe seule · Rhodes · beat hip-hop et basse ARP · mélodie au synthé mono · cordes et congas."})
-    noms = ['la nappe seule', 'le Rhodes', 'le beat et la basse', 'la mélodie', 'tout ouvert']
+    noms = ['la nappe seule', 'le Rhodes', 'le beat et la basse', 'la mélodie', 'le final : un ton plus haut, cuivres, chœur']
     for k in range(1, 6):
         d = rendu('ciel-n%d' % k, 8, lambda m, k=k: k, 710 + k)
-        out.append({'id': 'ciel-n%d' % k, 'titre': 'CIEL · NIVEAU %d' % k, 'style': 'Niveau %d · %s' % (k, noms[k - 1]), 'bpm': BPM, 'cle': 'mi♭ majeur',
+        out.append({'id': 'ciel-n%d' % k, 'titre': 'CIEL · NIVEAU %d' % k, 'style': 'Niveau %d · %s' % (k, noms[k - 1]), 'bpm': BPM, 'cle': 'fa majeur' if k == 5 else 'mi♭ majeur',
                     'f': 'assets/audio/music/ciel/ciel-n%d.m4a?v=%d' % (k, v), 'dur': d, 'idee': "Le niveau %d du CIEL, en boucle." % k})
     open(os.path.join(SORTIE, 'ciel-donnees.js'), 'w').write('window.CIEL=' + json.dumps(out, ensure_ascii=False) + ';\n'); print('ok')
