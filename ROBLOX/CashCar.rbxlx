@@ -3695,7 +3695,7 @@ _G.cashcar = function()
 	return { mode = mode, zone = zoneN, s = s, lat = lat, side = side, vA = vA, kmh = kmh(), psi = psi,
 		nitro = nitroR, tier = tier, argent = argent, aura = aura, fallT = V.fallT, n = piste and piste.n, len = piste and piste.len }
 end
-]]></ProtectedString></Properties></Item></Item></Item><Item class="ReplicatedStorage" referent="RBX000000CA"><Properties><string name="Name">ReplicatedStorage</string></Properties><Item class="Folder" referent="RBX000000C9"><Properties><string name="Name">CashCar</string></Properties><Item class="ModuleScript" referent="RBX00000006"><Properties><string name="Name">Caisse</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LA CAISSE. Chaque joueur DESSINE les caisses chez lui (la sienne, collée à sa physique ; celles des
+]]></ProtectedString></Properties></Item></Item></Item><Item class="ReplicatedStorage" referent="RBX000000CB"><Properties><string name="Name">ReplicatedStorage</string></Properties><Item class="Folder" referent="RBX000000CA"><Properties><string name="Name">CashCar</string></Properties><Item class="ModuleScript" referent="RBX00000006"><Properties><string name="Name">Caisse</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LA CAISSE. Chaque joueur DESSINE les caisses chez lui (la sienne, collée à sa physique ; celles des
 -- autres, lissées vers la position que le serveur relaie). Le nez regarde −Z (LookVector de Roblox).
 --
 -- Les 68 caisses sont celles du jeu web, AU TRIANGLE PRÈS : Caisses/Formes/Fxx est cuit par outils/cuire-caisses.js
@@ -20484,7 +20484,8 @@ Config.DATASTORE = "CashCarRecords_v1"
 Config.GRAINE_FIXE = nil :: number? -- mettre un nombre pour que tous les serveurs roulent sur la même route
 
 -- LES SONS. Roblox ne joue que des sons importés sur Roblox : importer le dossier ROBLOX/sons-a-importer
--- (Studio → Fenêtre → Asset Manager → Bulk Import), puis coller ici chaque numéro « rbxassetid://… ».
+-- (Studio → Fenêtre → Asset Manager → Bulk Import), puis outils/remplir-sons.luau dans la barre de commande (il remplit
+-- CashCar/SonsIds d'un coup) — ou coller ici chaque numéro « rbxassetid://… » à la main.
 -- Vide = le son de secours livré avec Roblox (quand il existe), sinon silence.
 Config.SONS = {
 	musique = "", moteur = "", nitro = "", ventAltitude = "", crissement = "", -- (crissement : la boucle des pneus qui glissent)
@@ -20510,6 +20511,16 @@ Config.SONS = {
 	turboSuper = "", turboUltra = "", nuageEntre = "", nuageSort = "", nuageDefonce = "", portailProche = "", impactImmeuble = "", departLogo = "",
 	moteurPalier = "", mortVide = "", mortAir = "", mortArret = "", debrisTole = "", garageTole = "", uiModale = "", uiFerme = "", uiRefus = "",
 }
+-- (les numéros remplis d'un coup par outils/remplir-sons.luau vivent dans CashCar/SonsIds : ils complètent les cases vides)
+do
+	local m = script.Parent:FindFirstChild("SonsIds")
+	local ok, ids = pcall(function() return m and require(m :: ModuleScript) end)
+	if ok and type(ids) == "table" then
+		for k, v in ids do
+			if type(v) == "string" and Config.SONS[k] == "" then Config.SONS[k] = v end
+		end
+	end
+end
 Config.SONS_SECOURS = {
 	explosion = "rbxasset://sounds/impact_explosion_03.mp3",
 	decollage = "rbxasset://sounds/action_jump.mp3",
@@ -21766,7 +21777,11 @@ function Piste.suite(p: Piste): CFrame
 end
 
 return Piste
-]]></ProtectedString></Properties></Item></Item></Item><Item class="ServerScriptService" referent="RBX000000CD"><Properties><string name="Name">ServerScriptService</string></Properties><Item class="ModuleScript" referent="RBX000000CB"><Properties><string name="Name">Profils</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LES PROFILS (serveur). Tout ce qu'un joueur garde d'une partie à l'autre : le COMPTE (l'argent
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000000C9"><Properties><string name="Name">SonsIds</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LES NUMÉROS DES SONS IMPORTÉS SUR ROBLOX (nom du son → « rbxassetid://… »).
+-- Rempli par outils/remplir-sons.luau (à coller dans la barre de commande de Studio après l'import des sons) ; Config.SONS les
+-- reprend au démarrage. Vide = aucun son importé : le jeu joue ses sons de secours.
+return {}
+]]></ProtectedString></Properties></Item></Item></Item><Item class="ServerScriptService" referent="RBX000000CE"><Properties><string name="Name">ServerScriptService</string></Properties><Item class="ModuleScript" referent="RBX000000CC"><Properties><string name="Name">Profils</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LES PROFILS (serveur). Tout ce qu'un joueur garde d'une partie à l'autre : le COMPTE (l'argent
 -- versé à chaque fin de partie), le record, les caisses achetées et celle qu'il conduit, les peintures,
 -- les missions, la carrière, les réglages. UNE entrée DataStore par joueur, versionnée (comme SAVE.d du web).
 --
@@ -22027,7 +22042,7 @@ Profils.actions.reglage = function(_, prof, cle, valeur)
 end
 
 return Profils
-]]></ProtectedString></Properties></Item><Item class="Script" referent="RBX000000CC"><Properties><string name="Name">Serveur</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LE SERVEUR. Il fait peu, exprès :
+]]></ProtectedString></Properties></Item><Item class="Script" referent="RBX000000CD"><Properties><string name="Name">Serveur</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LE SERVEUR. Il fait peu, exprès :
 --   1. il tire la GRAINE de la piste (tout le serveur roule sur la même route : chaque joueur la bâtit
 --      chez lui à partir de ce nombre — zéro pièce de route à envoyer sur le réseau) ;
 --   2. il pose le CIEL (lumière, atmosphère) ;
@@ -22246,4 +22261,4 @@ evFin.OnServerEvent:Connect(function(p, montant, distance, aura, stats)
 	Profils.pousser(p)
 	task.spawn(Profils.sauver, p)
 end)
-]]></ProtectedString></Properties></Item></Item><Item class="StarterGui" referent="RBX000000CE"><Properties><string name="Name">StarterGui</string></Properties></Item><Item class="SoundService" referent="RBX000000CF"><Properties><string name="Name">SoundService</string></Properties></Item></roblox>
+]]></ProtectedString></Properties></Item></Item><Item class="StarterGui" referent="RBX000000CF"><Properties><string name="Name">StarterGui</string></Properties></Item><Item class="SoundService" referent="RBX000000D0"><Properties><string name="Name">SoundService</string></Properties></Item></roblox>

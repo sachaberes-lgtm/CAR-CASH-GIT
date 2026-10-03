@@ -38,7 +38,7 @@ pose plus bas : c'est là que le jeu se joue. 6 secondes en l'air maximum.
 
 ## Les sons (à faire une fois)
 
-Roblox ne joue que les sons importés sur Roblox. Le dossier **`sons-a-importer/`** contient plus de cent bruitages du
+Roblox ne joue que les sons importés sur Roblox. Le dossier **`sons-a-importer/`** contient cent dix bruitages du
 jeu (tirés de notre banque de sons), cinq boucles (**moteur**, **nitro**, crissement, drift, rase-bord), et **quatre musiques** : `musique` (la radio,
 jouée en orbite et partout où un morceau de lieu manque), `musiqueNuages`, `musiqueVille` (aussi l'accueil, le garage et l'écran
 de fin) et `musiqueOrage` — la musique suit le lieu, comme sur le web.
@@ -47,9 +47,11 @@ Les sons des niveaux : `eclair`, `tonnerre` (l'orage), `orbiteEntre`, `orbiteSor
 
 1. Studio → **Fenêtre → Gestionnaire de ressources** (Window → Asset Manager) → **Importation groupée** (Bulk Import)
    → sélectionner les fichiers de `sons-a-importer/`.
-2. Clic droit sur chaque son importé → **Copier l'ID**.
-3. Dans Studio, ouvrir `ReplicatedStorage → CashCar → Config`, bloc `Config.SONS`, coller chaque numéro :
-   `piece = "rbxassetid://123456789",`
+2. Dans le Gestionnaire de ressources, dossier **Audio** : tout sélectionner → clic droit → **Insérer** (les sons arrivent dans
+   le Workspace, chacun avec le nom de son fichier).
+3. **Affichage → Barre de commande** (View → Command Bar) : coller TOUT le fichier `outils/remplir-sons.luau`, Entrée. Il range
+   chaque numéro dans `ReplicatedStorage → CashCar → SonsIds`, retire les sons insérés, et écrit dans la Sortie ce qui manque —
+   plus de numéros à copier un par un. (Envoie à Claude la liste qu'il écrit dans la Sortie : elle entrera dans le dépôt.)
 4. Refaire **Publier**.
 
 Sans ça le jeu marche quand même (quelques sons de secours livrés avec Roblox : explosion, saut, vent).
