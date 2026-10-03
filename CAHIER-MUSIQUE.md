@@ -53,3 +53,7 @@
 - 2026-10-03 — Les 5 lobbys refaits « moins de détails, plus jeu vidéo » : une mélodie de synthé qu'on retient, batterie simple,
   basse claire, accords courts, UN instrument signature par thème ; la 2e moitié reprend le thème une octave plus haut. L'AMBIANCE
   est gardée (Léo : « mais l'ambiance pas mal ») : bande, réverbe douce, aigus adoucis. RÈGLE : ambiance du lobby = à garder.
+- 2026-10-03 — Les 5 lobbys : « encore la même vibe, trop aigu, enfantin, plus stylé » → mélodies une octave plus bas, un timbre
+  PROPRE à chacun (guitare saturée · pluck deep house · pluck chaud · accordéon grave · synthé grave), la 2e moitié s'épaissit vers
+  le BAS (plus jamais une octave plus haut), accords en scies sombres, basse plus lourde. RÈGLE : éviter le registre aigu et l'onde
+  carrée nue (= « enfantin »).

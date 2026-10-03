@@ -279,17 +279,45 @@ def basse_jeu(m, dur, onde='tri'):
     return filtre(s * env(nn, .003, .12, .6, .03, dur - .03), 'low', 1200)
 
 
-def jeu_video(bpm, graine, prog, hook, bat, basse_pas, accords_pas, signature=None, lp=7000, onde='tri', gl=.13):
+# (2026-10-03, Léo : « encore la même vibe, trop aigu, enfantin — plus stylé ») : la mélodie descend d'une OCTAVE, chaque morceau a SON
+# timbre (fini la même onde carrée pour tous), la 2e moitié s'ÉPAISSIT vers le bas (doublure à l'octave grave) au lieu de monter,
+# accords en scies filtrées graves et sombres, basse plus lourde.
+def voix_lead(n, dur, timbre, de):
+    nn = int((dur + .05) * SR); t = np.arange(nn) / SR
+    if timbre == 'guitare': return guitare(de, [n], dur, False, 1.2) * 1.6
+    if timbre == 'pluck':                                                   # pluck de deep house : scies, filtre qui se referme vite
+        l, r = supersaw(n, dur + .05, 3, 12, de); fc = 400 + 3200 * np.exp(-t / .09)
+        return balaye((l + r) / 2 * env(nn, .002, .3, .25, .08, dur), fc)
+    if timbre == 'chaud':                                                   # pluck rond et chaud (beach club)
+        s = tri(hz(n), nn) + .5 * scie(hz(n), nn); fc = 600 + 2400 * np.exp(-t / .15)
+        return balaye(s * env(nn, .003, .35, .3, .08, dur), fc) * .8
+    if timbre == 'grave':                                                   # synthé grave et rond, un peu de grain
+        s = np.tanh((scie(hz(n), nn) * .6 + carre(hz(n) * 1.003, nn, .5) * .4) * 1.5); fc = 900 + 1200 * np.exp(-t / .25)
+        return balaye(s * env(nn, .005, .4, .5, .08, dur), fc) * .7
+    l, r = supersaw(n, dur + .05, 5, 14, de)                                # « scie » : lead synthwave filtrée
+    return filtre((l + r) / 2 * env(nn, .01, .3, .7, .08, dur), 'low', 2400)
+
+
+def stab_sombre(notes, dur, de):
+    L = 0
+    for n in notes:
+        n = n - 12 if n > 64 else n; l, r = supersaw(n, dur, 3, 10, de); L = L + (l + r) / 2
+    nn = len(L); return filtre(L / len(notes) * env(nn, .004, .12, .4, .05, dur * .8), 'low', 1500)
+
+
+def jeu_video(bpm, graine, prog, hook, bat, basse_pas, accords_pas, signature=None, lp=7000, onde='scie', gl=.13, timbre='scie'):
     M = Morceau(bpm, mesures=8, graine=graine); de = M.de; h = Main(graine, 3)
     for nom, motif, son, g in bat: M.patron('bat' if nom != 'sn' else 'sn', motif, son(de), g)
     b = M.piste('basse'); ac = M.piste('accords'); ld = M.piste('lead')
     for m in range(8):
         q = prog[m % 4]
-        for p, o, lg9 in basse_pas: b.pose(h.t(M.t(m, p)), basse_jeu(q[0] - 12 + o, lg9 * M.dc, onde), .6)
-        for p in accords_pas: ac.pose(h.t(M.t(m, p)), stab_jeu(q[1:]), .14 if m < 4 else .17)
-    for m0, o in ((0, 0), (4, 12)):                                        # le thème, puis le thème une octave plus haut
+        for p, o, lg9 in basse_pas: b.pose(h.t(M.t(m, p)), basse_jeu(q[0] - 12 + o, lg9 * M.dc, onde), .7)
+        for p in accords_pas: ac.pose(h.t(M.t(m, p)), stab_sombre(q[1:], .3, de), .2 if m < 4 else .24)
+    for m0 in (0, 4):                                                     # le thème une octave plus bas ; en 2e moitié, doublé à l'octave grave
         for m, pas in enumerate(hook):
-            for p, n, lg9 in pas: ld.pose(h.t(M.t(m + m0, p)), lead_jeu(n + o - (12 if o and n > 84 else 0), lg9 * M.dc * .95), h.g(gl))
+            for p, n, lg9 in pas:
+                n0 = n - 12; ld.pose(h.t(M.t(m + m0, p)), voix_lead(n0, lg9 * M.dc * .95, timbre, de), h.g(gl))
+                if m0: ld.pose(h.t(M.t(m + m0, p)), voix_lead(n0 - 12, lg9 * M.dc * .95, timbre, de), h.g(gl * .6), -.2)
     eL, eR = echo(ld.L, ld.R, M.temps * .75, .3); ld.L += eL * .35; ld.R += eR * .35
     if signature: signature(M, de, h)
     # (Léo : « mais l'ambiance pas mal ») : L'AMBIANCE DU LOBBY gardée — la bande qui pleure, la grande réverbe douce, les aigus adoucis
@@ -306,14 +334,14 @@ def l_fortune():
                      [('bat', 'x.....x.x.......', lambda de: (lambda: kick(de, 120, 44, .35, .4, 1.4)), .9),
                       ('sn', '....x.......x...', lambda de: (lambda: caisse(de, 190, 1., .15, 2000)), .6),
                       ('bat', 'x.x.x.x.x.x.x.x.', lambda de: (lambda: charley(de, False, 8000)), .1)],
-                     ((0, 0, 3), (4, 0, 2), (6, 12, 2), (8, 0, 3), (12, 0, 2), (14, 12, 2)), (2, 10), sig, onde='scie')
+                     ((0, 0, 3), (4, 0, 2), (6, 12, 2), (8, 0, 3), (12, 0, 2), (14, 12, 2)), (2, 10), sig, onde='scie', timbre='guitare', gl=.11)
 
 
 def l_temple():
     def sig(M, de, h):                                                    # (Léo : « le gong est chelou ») → la CLOCHE DU TEMPLE : claire, accordée
         g = M.piste('sig')                                                # sur la (la tonique), deux coups qui se répondent au début de chaque moitié
         for m in (0, 4):
-            for p, n, gg in ((0, 81, .2), (8, 88, .13)):
+            for p, n, gg in ((0, 69, .22), (8, 76, .14)):
                 g.pose(M.t(m, p), fm(n, 2.5, 3.5, 1.6, .2, 1.1), gg, -.2 if p else .2)
     hook = [[(0, 81, 2), (2, 84, 2), (4, 86, 4), (8, 88, 4), (12, 86, 4)], [(0, 84, 4), (4, 81, 4), (8, 79, 8)],
             [(0, 81, 2), (2, 84, 2), (4, 86, 2), (6, 88, 2), (8, 91, 4), (12, 88, 4)], [(0, 86, 4), (4, 84, 4), (8, 81, 8)]]
@@ -321,7 +349,7 @@ def l_temple():
                      [('bat', 'x...x...x...x...', lambda de: (lambda: kick(de, 120, 44, .35, .2, 1.2)), .85),
                       ('sn', '....x.......x...', lambda de: (lambda: clap(de, .18)), .4),
                       ('bat', '..x...x...x...x.', lambda de: (lambda: charley(de, False, 8000)), .12)],
-                     ((0, 0, 3), (6, 0, 2), (10, 7, 3)), (2, 6, 10, 14), sig)
+                     ((0, 0, 3), (6, 0, 2), (10, 7, 3)), (2, 10), sig, timbre='pluck')
 
 
 def l_margarita():
@@ -335,7 +363,7 @@ def l_margarita():
                           [('bat', 'x...x...x...x...', lambda de: (lambda: kick(de, 115, 45, .3, .2, 1.1)), .8),
                            ('sn', '....x.......x...', lambda de: (lambda: clap(de, .2)), .35),
                            ('bat', '..x...x...x...x.', lambda de: (lambda: charley(de, True, 8500)), .1)],
-                          ((0, 0, 3), (6, 7, 2), (8, 12, 2), (11, 7, 3)), (2, 6, 10, 14), sig, gl=.11)
+                          ((0, 0, 3), (6, 7, 2), (8, 12, 2), (11, 7, 3)), (2, 6, 10, 14), sig, gl=.13, timbre='chaud')
     return M, (L, R)
 
 
@@ -354,10 +382,11 @@ def l_paris():
     for m in range(8):
         q = prog[m % 4]
         for p in range(0, 16, 2): b.pose(h.t(M.t(m, p)), basse_jeu(q[0] - 12 + (12 if p % 4 else 0), M.dc * 1.8, 'scie'), .55)
-        for p in (2, 6, 10, 14): ac.pose(h.t(M.t(m, p)), stab_jeu(q[1:], .12), .13)
+        for p in (2, 6, 10, 14): ac.pose(h.t(M.t(m, p)), stab_sombre(q[1:], .14, de), .18)
+        if m >= 4: ac.pose(M.t(m), guitare(de, [q[0], q[0] + 7, q[0] + 12], M.temps * 1.8, False, 1.), .35, .3)   # en 2e moitié, les guitares claquent
     for m0, o, gn in ((0, 0, .14), (4, 12, .15)):
         for m, pas in enumerate(riff):
-            for p, n, lg9 in pas: ld.pose(h.t(M.t(m + m0, p)), accordeon(n + o, lg9 * M.dc * .95), h.g(gn))
+            for p, n, lg9 in pas: ld.pose(h.t(M.t(m + m0, p)), accordeon(n - 12 + (0 if not o else 0), lg9 * M.dc * .95), h.g(gn * 1.2))
     sig(M, de, h)
     return M, ambiance(M, ('lead', 'accords', 'sig'), {'bat': .9, 'sn': .9, 'basse': 1, 'accords': 1, 'lead': 1, 'sig': 1, 'fx': 1}, 6300)
 
@@ -374,7 +403,7 @@ def l_savane():
                      [('bat', 'x.....x...x.....', lambda de: (lambda: kick(de, 115, 44, .35, .2, 1.2)), .85),
                       ('sn', '....x.......x...', lambda de: (lambda: rim(de)), .45),
                       ('bat', '...t..t....t..t.'.replace('t', 'x'), lambda de: (lambda: djembe(de, 'ton')), .3)],
-                     ((0, 0, 3), (6, 0, 2), (10, 7, 2), (14, 12, 2)), (2, 10), sig)
+                     ((0, 0, 3), (6, 0, 2), (10, 7, 2), (14, 12, 2)), (2, 10), sig, timbre='grave', gl=.15)
 
 LOBBY5 = [
     ('l5-fortune', l_fortune, "VIEILLE FORTUNE", 'Rock américain cyberpunk · old money, new gear', 100, 'mi mineur',
