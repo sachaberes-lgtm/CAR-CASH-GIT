@@ -3355,6 +3355,29 @@ E.btFacile.Parent.Visible = Config.FACILE_ACTIF
 
 -- ════════ les autres caisses : un double chez moi, lissé ; on ne voit que celles qui roulent dans NOTRE zone ════════
 type Double = { m: Model, c: Model, vu: boolean?, pg: any, ind: number, cle: string }
+-- (Roblox : on joue à plusieurs) LE NOM DE L'AUTRE au-dessus de sa caisse — son pseudo, en pixel, qui s'efface au loin (90 m)
+function G.nomDouble(c: Model, m: Model)
+	local pp = c.PrimaryPart
+	if not pp then return end
+	local qui = Players:GetPlayerByUserId(m:GetAttribute("Joueur") or 0)
+	local bb = Instance.new("BillboardGui")
+	bb.Name = "Nom"
+	bb.Size = UDim2.fromOffset(220, 30)
+	bb.StudsOffsetWorldSpace = Vector3.new(0, 2.6 * M, 0)
+	bb.MaxDistance = 90 * M
+	bb.LightInfluence = 0
+	local l = Instance.new("TextLabel")
+	l.BackgroundTransparency = 1
+	l.Size = UDim2.fromScale(1, 1)
+	l.FontFace = Hud.kit.PIX
+	l.TextSize = 14
+	l.TextColor3 = Color3.new(1, 1, 1)
+	l.TextStrokeColor3 = Color3.fromRGB(16, 8, 34)
+	l.TextStrokeTransparency = 0
+	l.Text = qui and qui.DisplayName or m.Name
+	l.Parent = bb
+	bb.Parent = pp
+end
 -- où dessiner la caisse d'un autre : sur MA piste, à sa distance et à son écart (sa pose relative au repère de la route) ; à défaut
 -- (un serveur d'avant, une valeur absente), sa pose monde
 function G.poseDouble(m: Model): CFrame
@@ -3386,6 +3409,7 @@ task.spawn(function()
 					local porte = { peinture = m:GetAttribute("Peinture"), aile = m:GetAttribute("Aile"), trainee = m:GetAttribute("Trainee") }
 					local c, pg = Caisse.construire("Autre", ind, true, porte)
 					c:PivotTo(m.PrimaryPart.CFrame)
+					G.nomDouble(c, m)
 					c.Parent = workspace
 					d = { m = m, c = c, pg = pg, ind = ind, cle = tostring(porte.peinture) .. tostring(porte.aile) }
 					doubles[m] = d
@@ -3402,6 +3426,8 @@ task.spawn(function()
 						if p:IsA("BasePart") then p.LocalTransparencyModifier = voir and 0 or 1 end
 					end
 					if voir then d.c.PrimaryPart.CFrame = G.poseDouble(m) end
+					local nom9 = d.c.PrimaryPart and d.c.PrimaryPart:FindFirstChild("Nom")
+					if nom9 then (nom9 :: BillboardGui).Enabled = voir end -- (son nom part avec sa caisse)
 				end
 				local nitro = voir and m:GetAttribute("Nitro") == true
 				Caisse.feu(d.pg, nitro, nitro and 110 or 0, Color3.fromRGB(255, 122, 36))
