@@ -28638,54 +28638,62 @@ function nitroEteint(){ // LA DERNIÈRE BOUFFÉE : une langue de feu aux pots + 
     if(i<4)spawnP(embers,NFX.v.x,NFX.v.y,NFX.v.z,VC.x-hsF.x*(4+nfxR()*5)+(nfxR()-.5)*3,VC.y+1+nfxR()*2.5,VC.z-hsF.z*(4+nfxR()*5)+(nfxR()-.5)*3,.2+nfxR()*.15);}
   try{crackle(.7);}catch(e){}
 }
-/* LE BOOST JOUE UN INSTRUMENT (2026-10-03, Léo : « je n'entends pas trop la différence quand je booste : que le boost joue directement un
-   instrument qu'on peut SPAMMER, APPUYER LONGTEMPS, et qui est ACCORDÉ à la musique »).
-   Chaque appui sur la nitro joue la NOTE SUIVANTE d'une phrase, dans la gamme du morceau qui passe (la pentatonique de `sonTonSuit._t`,
-   la même que tous les sons du jeu) : SPAMMER = jouer une mélodie, jamais une fausse note. TENIR = la note tient, le filtre s'ouvre
-   doucement et un vibrato arrive (on a envie de rester appuyé) ; RELÂCHER = elle s'éteint en 0,35 s. Un nouvel appui coupe proprement
-   la note d'avant (un instrument monophonique : jamais de bouillie). La phrase repart du début après 2 s sans appui.
-   Le son : deux scies désaccordées + une carrée une octave plus bas, un filtre qui claque à l'attaque, un écho en croche pointée.
-   Par la console de son (MASTER : curseur EFFETS), donc aussi sur iPhone. `dbgInstru()` : état · `dbgInstru(0|1)` coupe / rallume. */
-const INSTRU={on:true,v:null,i:0,tDer:0,bus:null};
-const INSTRU_PHRASE=[0,2,4,3,5,4,7,5,3,4,2,0];                 // des degrés de la pentatonique : ça monte, ça respire, ça redescend
+/* LE BOOST JOUE UN ARPÈGE (2026-10-03, Léo : « que le boost joue directement un instrument qu'on peut SPAMMER, APPUYER LONGTEMPS,
+   ACCORDÉ à la musique » · puis « mille fois plus discret » · puis « pas cool comme instrument : bien filtré, vise plutôt un ARPÈGE et
+   une HARMONIE »). Un piano électrique doux (sinus + modulation FM qui s'éteint, filtré sous 1,8 kHz, comme les Rhodes du CIEL) égrène
+   les notes d'un ACCORD de la tonalité du morceau (`sonTonSuit._t` = la gamme majeure relative, comme tous les sons du jeu) :
+   · APPUI = l'arpège part sur l'accord suivant de la grille I · vi · IV · V (accords de neuvième : l'harmonie de VAPEUR) — SPAMMER = la
+     grille défile, toujours juste ; un appui bref joue au moins 3 notes ;
+   · TENIR = l'arpège monte et redescend en doubles croches et passe à l'accord suivant toutes les 2 boucles ;
+   · LÂCHER = plus de nouvelles notes, celles qui sonnent s'éteignent seules. La grille repart du I après 2,5 s sans appui.
+   Discret (≈ −30 dB sous une voix pleine), un écho en croche pointée. Par MASTER (curseur EFFETS) : marche aussi sur iPhone.
+   `dbgInstru()` : état · `dbgInstru(0|1)` coupe / rallume · `dbgInstru('essai')` (banc muet : les fréquences jouées). */
+const INSTRU={on:true,tient:false,ac:0,k:0,n:0,tNote:0,tDer:0,bus:null,iv:0,vu:[]};
+const INSTRU_GRILLE=[[0,4,7,11,14],[9,12,16,19,23],[5,9,12,16,19],[7,11,14,17,21]]; // I maj9 · vi m9 · IV maj9 · V9 (demi-tons sur la tonique grave)
+const INSTRU_MOTIF=[0,1,2,3,4,3,2,1];                                                // monte, redescend : une boucle = 8 doubles croches
+const INSTRU_PAS=.15;                                                                // une double croche ≈ 100 BPM (le CIEL est à 88)
 function instruBus(){
   if(INSTRU.bus||!AC||!MASTER)return INSTRU.bus;
-  const g=AC.createGain();g.gain.value=.5;const d=AC.createDelay(1);d.delayTime.value=.3;const fb=AC.createGain();fb.gain.value=.18;
-  const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=2600;
-  g.connect(MASTER);g.connect(d);d.connect(lp);lp.connect(fb);fb.connect(d);lp.connect(MASTER);
+  const g=AC.createGain();g.gain.value=1;const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1800;lp.Q.value=.5;
+  const d=AC.createDelay(1);d.delayTime.value=.45;const fb=AC.createGain();fb.gain.value=.22;const dl=AC.createBiquadFilter();dl.type='lowpass';dl.frequency.value=1200;
+  g.connect(lp);lp.connect(MASTER);lp.connect(d);d.connect(dl);dl.connect(fb);fb.connect(d);dl.connect(MASTER);
   INSTRU.bus=g;return g;
+}
+function instruNote(f,t,pan){ // une touche de piano électrique : sinus porteur, modulateur ×1 dont l'indice retombe (l'attaque « tine »), un peu de 2e harmonique
+  const bus=instruBus();if(!bus)return;
+  const c=AC.createOscillator(),m=AC.createOscillator(),mg=AC.createGain(),g=AC.createGain(),p=AC.createStereoPanner?AC.createStereoPanner():null;
+  c.frequency.value=f;m.frequency.value=f;mg.gain.setValueAtTime(f*1.1,t);mg.gain.setTargetAtTime(f*.15,t,.06);m.connect(mg);mg.connect(c.frequency);
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.03,t+.008);g.gain.setTargetAtTime(0,t+.02,.32);
+  c.connect(g);if(p){p.pan.value=pan;g.connect(p);p.connect(bus);}else g.connect(bus);
+  c.start(t);m.start(t);c.stop(t+1.8);m.stop(t+1.8);INSTRU.vu.push(Math.round(f));if(INSTRU.vu.length>24)INSTRU.vu.shift();
+}
+function instruPlanifie(){ // regard d'avance de 120 ms : les notes tombent pile, même si une image tousse
+  if(!AC){clearInterval(INSTRU.iv);INSTRU.iv=0;return;}
+  const fin=INSTRU.essai?1e9:AC.currentTime+.12;
+  while(INSTRU.tNote<fin){
+    if(!INSTRU.tient&&INSTRU.n>=3){clearInterval(INSTRU.iv);INSTRU.iv=0;return;}       // lâché : on finit au moins 3 notes, puis silence
+    const ac=INSTRU_GRILLE[INSTRU.ac%INSTRU_GRILLE.length],j=INSTRU_MOTIF[INSTRU.k%INSTRU_MOTIF.length];
+    const rac=TON/2*Math.pow(2,(sonTonSuit._t|0)/12);                                  // la tonique grave du morceau (mi3 décalé)
+    instruNote(rac*Math.pow(2,ac[j]/12),Math.max(INSTRU.tNote,AC.currentTime),INSTRU.k%2?.28:-.28);
+    INSTRU.k++;INSTRU.n++;INSTRU.tNote+=INSTRU_PAS;
+    if(INSTRU.k%(INSTRU_MOTIF.length*2)===0)INSTRU.ac++;                                // tenu : 2 boucles puis l'accord suivant
+  }
 }
 function instruOn(){
   if(!INSTRU.on||!AC||!SND.sfx||(AC.state!=='running'&&!INSTRU.essai)||paused)return;
-  const bus=instruBus();if(!bus)return;
-  const now=AC.currentTime,t=performance.now();
-  if(t-INSTRU.tDer>2000)INSTRU.i=0;INSTRU.tDer=t;
-  const deg=INSTRU_PHRASE[INSTRU.i%INSTRU_PHRASE.length];INSTRU.i++;
-  const f=TON*Math.pow(2,((sonTonSuit._t|0)+sonPd(deg))/12-1); // une octave sous le mi4 des pièces : un registre chaud, pas criard
-  instruOff(.04);
-  const g=AC.createGain(),flt=AC.createBiquadFilter(),o1=AC.createOscillator(),o2=AC.createOscillator(),o3=AC.createOscillator(),vib=AC.createOscillator(),vg=AC.createGain();
-  o1.type='sawtooth';o2.type='sawtooth';o3.type='square';o1.frequency.value=f;o2.frequency.value=f;o3.frequency.value=f/2;o2.detune.value=9;o1.detune.value=-6;
-  vib.frequency.value=5.4;vg.gain.value=0;vib.connect(vg);[o1,o2,o3].forEach(function(o){vg.connect(o.detune);});
-  vg.gain.setValueAtTime(0,now+.35);vg.gain.linearRampToValueAtTime(8,now+1.1);                   // le vibrato arrive si on TIENT
-  flt.type='lowpass';flt.Q.value=.7;flt.frequency.setValueAtTime(f*5,now);flt.frequency.exponentialRampToValueAtTime(f*2,now+.18);  // (2026-10-03, Léo : « mille fois plus discret ») une attaque douce, plus de claquement
-  flt.frequency.exponentialRampToValueAtTime(f*3.5,now+1.6);                                          // tenu : le son s'ouvre, à peine
-  g.gain.setValueAtTime(0,now);g.gain.linearRampToValueAtTime(.035,now+.012);g.gain.setTargetAtTime(.02,now+.03,.15); // −16 dB : sous la musique, un reflet
-  const m3=AC.createGain();m3.gain.value=.45;o3.connect(m3);
-  o1.connect(flt);o2.connect(flt);m3.connect(flt);flt.connect(g);g.connect(bus);
-  [o1,o2,o3,vib].forEach(function(o){o.start(now);});
-  INSTRU.v={g:g,os:[o1,o2,o3,vib]};
+  const t=performance.now();
+  INSTRU.ac=(t-INSTRU.tDer>2500)?0:INSTRU.ac+1;INSTRU.tDer=t;                           // chaque appui : l'accord suivant de la grille
+  INSTRU.k=0;INSTRU.n=0;INSTRU.tient=true;INSTRU.tNote=AC.currentTime+.005;
+  if(INSTRU.essai){INSTRU.tient=false;instruPlanifie();return;} // banc : l'appui bref (3 notes)
+  if(!INSTRU.iv)INSTRU.iv=setInterval(instruPlanifie,25);instruPlanifie();
 }
-function instruOff(rel){
-  const v=INSTRU.v;if(!v||!AC)return;INSTRU.v=null;const now=AC.currentTime,r=rel||.35;
-  try{v.g.gain.cancelScheduledValues(now);v.g.gain.setValueAtTime(v.g.gain.value,now);v.g.gain.setTargetAtTime(0,now,r/4);v.os.forEach(function(o){o.stop(now+r+.1);});}catch(e){}
-}
-window.dbgInstru=function(a){if(a===0||a===1){INSTRU.on=!!a;if(!a)instruOff(.05);}
-  if(a==='essai'){ // banc MUET : la phrase jouée sur un bus débranché, rend les fréquences
-    if(!AC)return'pas de contexte';const sb=INSTRU.bus,sv=SND.sfx,co=AC.createOscillator,fs=[];INSTRU.bus=AC.createGain();SND.sfx=true;INSTRU.tDer=0;INSTRU.essai=true;
-    AC.createOscillator=function(){const o=co.call(AC);fs.push(o);return o;};const out=[];
-    try{for(let k=0;k<8;k++){const n=fs.length;instruOn();if(fs[n])out.push(Math.round(fs[n].frequency.value));}}finally{AC.createOscillator=co;INSTRU.essai=false;}
-    const tient=!!INSTRU.v;instruOff(.05);INSTRU.bus=sb;SND.sfx=sv;return{notes:out,tenue:tient,ton:sonTonSuit._t|0,etat:AC.state};}
-  return{on:INSTRU.on,joue:!!INSTRU.v,note:INSTRU.i,ton:sonTonSuit._t|0,contexte:AC&&AC.state,effets:!!SND.sfx};};
+function instruOff(){INSTRU.tient=false;INSTRU.tDer=performance.now();}
+window.dbgInstru=function(a){if(a===0||a===1){INSTRU.on=!!a;if(!a)instruOff();}
+  if(a==='essai'){ // banc MUET : quatre appuis brefs sur un bus débranché, rend les fréquences
+    if(!AC)return'pas de contexte';const sb=INSTRU.bus,sv=SND.sfx;INSTRU.bus=AC.createGain();SND.sfx=true;INSTRU.tDer=0;INSTRU.essai=true;INSTRU.vu=[];
+    try{for(let k=0;k<4;k++){instruOn();instruOff();}}finally{INSTRU.essai=false;INSTRU.bus=sb;SND.sfx=sv;}
+    return{notes:INSTRU.vu.slice(),ton:sonTonSuit._t|0,etat:AC.state};}
+  return{on:INSTRU.on,tient:INSTRU.tient,accord:INSTRU.ac%4,ton:sonTonSuit._t|0,dernieres:INSTRU.vu.slice(-8),contexte:AC&&AC.state,effets:!!SND.sfx};};
 function nfxTick(dt){ // chaque image (après hsF/hsU) : l'onde, la teinte des bords, les enveloppes
   const vit=running&&!gameOver&&mode!=='boom';
   NFX.ign=Math.max(0,NFX.ign-dt/.55);NFX.off=Math.max(0,NFX.off-dt/1.2);
