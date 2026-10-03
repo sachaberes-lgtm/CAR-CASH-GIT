@@ -41,7 +41,7 @@
 //  v51 (2026-10-01) : LA MISE À JOUR TOUTE SEULE — version.json n'est jamais mis en cache (le jeu le lit pour se recharger s'il est en retard). v49 chez moi, v50 chez Sacha entre-temps.
 //  v54 (2026-10-02) : L'ORIGAMI, la 69e caisse (le pick-up d'inox).
 //  v55 (2026-10-02) : six communes retirées de la gamme.
-const CACHE = 'cashcar-v57'; // v57 (2026-10-03, Léo) : la copie de test de Léo versée sur main — écran nu sur l'ordi, atelier des nuages, écran titre (regard, tapotement, modelé), TEMPLE DE JADE retiré
+const CACHE = 'cashcar-v58'; // v58 (2026-10-03, Sacha) : debout, la comète de NITROOO ne voile plus l'écran (le dragon n'est plus « transparent ») · v57 (2026-10-03, Léo) : la copie de test de Léo versée sur main — écran nu sur l'ordi, atelier des nuages, écran titre (regard, tapotement, modelé), TEMPLE DE JADE retiré
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {

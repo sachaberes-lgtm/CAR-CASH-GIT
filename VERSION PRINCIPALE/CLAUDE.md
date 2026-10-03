@@ -7,6 +7,24 @@
 - Les règles « SANS TOUT CASSER » (partir de `origin/main` à jour, fusionner sans jamais forcer, jeu testé sans erreur avant chaque
   push, retour arrière par Vercel) et la liste de ce que contient la référence : voir `CLAUDE.md` à la RACINE du dépôt.
 
+## DEBOUT, LE DRAGON N'EST PLUS « TRANSPARENT » — LA COMÈTE NE VOILE PLUS L'ÉCRAN (2026-10-03) — Sacha : « la version mobile en vertical gère mal le dragon nitro, il y a de la transparence »
+- **CE QUI SE PASSAIT** (mesuré, banc d'images FIGÉES où l'on retire une partie à la fois — crâne, corps, traits, feu, yeux, enveloppe,
+  cœur, halos, langues) : ni le crâne ni le corps. Les cinq LANGUES de la comète (`NTR_LANGUES`, jusqu'à 2,4 × la longueur de la caisse,
+  ~11 m) et l'ENVELOPPE (~2,2 ×) partent du nez vers l'ARRIÈRE et passent SOUS la caméra (5,6 m de la caisse). Couché, le champ est large :
+  elles filent sur les côtés. Debout, le champ horizontal est étroit : elles tombaient en colonnes rouges translucides sur toute la
+  moitié basse de l'écran, la caisse comprise — on voyait la voiture et la route À TRAVERS le feu. Les opacités du dragon, elles, sont
+  les mêmes couché et debout (`dbgDragon().opa`).
+- **LE CORRECTIF** : le programme de la flamme vivante (`JET_VS/JET_FS`, celui des pots et de la comète) a un fondu près de l'objectif,
+  `uPres` (x → y m de PROFONDEUR de vue, part z) — (0,1,0) partout par défaut : les pots ne changent pas. `nitroooTick` le pose à chaque
+  image pour l'enveloppe et le cœur de la comète : rien à `NTR_PRES.de` (,42) × la profondeur de la caisse, entier à `NTR_PRES.a` (,86) ×,
+  part = `POR` — le PAYSAGE NE BOUGE PAS (part 0). La tête, les cornes, les flammes autour de la caisse restent ; la caisse se voit nette.
+  Même programme qu'avant (source changée, compilé au chargement) : 0 compilation en course.
+- A/B : `dbgDragon('pres', 0)` = la comète d'avant, `dbgDragon('pres', 1)` = le correctif ; `dbgDragon('pres')` rend l'état (`part`).
+- Vérifié : téléphone debout (390×844) et couché (844×390), menu → JOUER → course → NITROOO tenue → vols → mort, 0 erreur ; cadre de
+  l'ordi couché et `?colonne=portrait` (part 1 debout, 0 couché). Bancs (scratchpad de la session e3354704) : `drg-portrait.mjs`, `isole2.mjs` (parties une à une, image figée
+  par un crochet `__fige` posé dans une COPIE de banc, jamais dans le jeu), `cadre2.mjs` (vrai clic souris sur JOUER dans le cadre).
+- sw.js → v58.
+
 ## SIX COMMUNES RETIRÉES (2026-10-02) — Sacha, capture du garage : « supprimer ces 6 voitures du jeu, elles sont pas intéressantes »
 - LA PIZZA EXPRESS, LE MONOSPACE, LE BREAK SUÉDOIS, LA BOULE, LE GLACIER, LE TOUT-TERRAIN SOVIÉTIQUE : `retire:1` dans leur fiche
   (`CARS`). Pour le joueur elles ne sont plus nulle part : `rarListe` les saute (garage, vignettes, compteurs des familles : COMMUNES
