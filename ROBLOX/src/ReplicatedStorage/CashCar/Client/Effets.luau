@@ -1263,6 +1263,45 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 			end
 		end
 	end)
+	-- LES BOUTS DE TÔLE (dropChip, L26391) : de petits morceaux de la caisse (à sa laque ou à son accent) se détachent — une pose qui
+	-- coûte, un bump, et de temps en temps en roulant vite (l'épave plus que les autres). Douze pièces recyclées, 1,6 s de vie.
+	local TOLE: { any } = {}
+	local toleI = 0
+	Bus.on("tole", function(n: number, laque: Color3, accent: Color3)
+		local cf: CFrame = etat.carCF
+		if not cf then return end
+		for _ = 1, n do
+			toleI = toleI % 12 + 1
+			local q = TOLE[toleI]
+			if not q then
+				local p = Instance.new("Part")
+				p.Anchored = true
+				p.CanCollide, p.CanQuery, p.CanTouch = false, false, false
+				p.CastShadow = false
+				p.Material = Enum.Material.SmoothPlastic
+				p.Parent = workspace
+				q = { p = p, vie = 0 }
+				TOLE[toleI] = q
+			end
+			q.p.Size = Vector3.new(0.07 + rnd:NextNumber() * 0.14, 0.04 + rnd:NextNumber() * 0.07, 0.07 + rnd:NextNumber() * 0.14) * M
+			q.p.Color = (rnd:NextNumber() < 0.6) and laque or accent
+			q.cf = CFrame.new(cf.Position + cf.UpVector * (0.4 * M))
+			q.v = Vector3.new((rnd:NextNumber() - 0.5) * 6, 2 + rnd:NextNumber() * 3, (rnd:NextNumber() - 0.5) * 6) + cf.LookVector * ((etat.vA or 0) * Config.SPD * 0.8)
+			q.rx, q.ry = (rnd:NextNumber() - 0.5) * 10, (rnd:NextNumber() - 0.5) * 10
+			q.vie = 1.6
+			q.p.CFrame = q.cf
+		end
+	end)
+	RunService.Heartbeat:Connect(function(dt: number)
+		for _, q in TOLE do
+			if q.vie > 0 then
+				q.vie -= dt
+				q.v -= Vector3.yAxis * (20 * dt)
+				q.cf = (q.cf + q.v * dt * M) * CFrame.Angles(q.rx * dt, q.ry * dt, 0)
+				q.p.CFrame = (q.vie > 0) and q.cf or CFrame.new(0, -5000, 0)
+			end
+		end
+	end)
 	-- une petite gerbe demandée par le pilote (un plot percuté, la fronde, le plancher qui racle le bord, le décollage)
 	Bus.on("gerbe", function(nom: string, pos: Vector3, n: number, v0: number, v1: number, cone: number?, vers: Vector3?)
 		jet(nom, pos, vers or Vector3.yAxis, n, v0, v1, cone or 70)

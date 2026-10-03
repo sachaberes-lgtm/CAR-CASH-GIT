@@ -505,6 +505,16 @@ function G.nitroCoup(on: boolean, bleu: boolean, etage: boolean?): number
 	Hud.vibre(bleu and 16 or 26)
 	return k
 end
+-- LA TÔLE QUI PART (dropChip, L26391) : n bouts de la caisse, et le cliquetis de la tôle (au plus toutes les 0,45 s)
+function G.tole(n: number)
+	if n <= 0 or mode == "boom" then return end
+	local fi = poignees.fiche
+	Bus.emit("tole", n, poignees.laque or Color3.fromRGB(200, 90, 40), (fi and fi.accent) and Color3.fromHex(string.format("%06x", fi.accent)) or Color3.fromRGB(30, 30, 34))
+	if os.clock() > (G.toleSon or 0) then
+		G.toleSon = os.clock() + 0.45
+		Sons.vrai("debrisTole", nil, 0.3 + math.min(0.4, (n - 1) * 0.12))
+	end
+end
 -- ════════ la nitro : deux réservoirs (L36327) — l'orange se recharge seul, le BLEU ne vient que des fruits ════════
 local function gererNitro(dt: number)
 	G.ign = math.max(0, (G.ign or 0) - dt / 0.55)
@@ -947,6 +957,7 @@ local function atterrir(face: number, latX: number, sX: number, hR: number?)
 	psi = math.clamp(math.atan2(vLat, math.abs(vTan) + 1), -1.4, 1.4)
 	yawR, G.slipB = 0, 0
 	local perte = math.min(0.52, math.max(0, V.fallT * G.gK() - 0.8) * 0.15 + math.abs(vN) * 0.008) -- (× gK : en orbite un même saut dure deux fois plus)
+	if perte > 0.2 then G.tole(2) end -- (L30841 : une pose qui coûte arrache deux bouts)
 	vA *= 1 - perte
 	local impact = math.abs(vN)
 	-- la pose RATÉE : la trajectoire arrive à plus de 55° de l'axe de la route
@@ -1174,6 +1185,7 @@ local function essayerAtterrir(dt: number)
 			figure("bump", noms[V.bounceN] or ("MEGA BUMP x" .. V.bounceN), 0, math.min(3, V.bounceN), true, true)
 			secousse = math.max(secousse, math.min(1.3, 0.3 + math.abs(vB) * 0.03))
 			Sons.vrai("figBump", nil, nil, "poseChoc", 1.3)
+			G.tole(2 + math.floor(math.min(4, math.abs(vB) * 0.12))) -- (L30794 : ça casse ENCORE PLUS de bouts)
 			return
 		end
 	end
@@ -2207,6 +2219,13 @@ local function etapeSol(dt: number)
 	G.driftYaw = (G.driftYaw or 0) + (tdWant - (G.driftYaw or 0)) * math.min(1, dt * ((math.abs(tdWant) > math.abs(G.driftYaw or 0)) and 5 or 3.2))
 	-- (traceTick, L37013) la gomme MARQUE dès que ça tourne fort ou que ça glisse — les traces de pneus, et la fumée de gomme
 	G.glisse = math.abs(vA) > 10 and (G.driftOn or math.abs(aLat) > 9)
+	-- (L37084) des petits bouts se détachent PAR MOMENTS en roulant vite — réalisme, surtout l'épave (LA HONTE)
+	G.toleT = (G.toleT or 6) - dt
+	if G.toleT <= 0 then
+		local epave = (profil.caisse or 0) == 0
+		G.toleT = 5 + math.random() * 9 - (epave and 2.5 or 0)
+		if math.abs(vA) > 18 and math.random() < (epave and 0.85 or 0.4) then G.tole(epave and math.random(1, 2) or 1) end
+	end
 	G.glisseK = G.glisse and (G.driftOn and 1 or math.clamp((math.abs(aLat) - 9) / 20, 0.15, 1)) or 0 -- (combien ça glisse, pour le crissement)
 	G.fumee = math.abs(vA) > 14 and (G.driftOn or math.abs(aLat) > 16) -- (la fumée demande une VRAIE glisse : le drift, ou une grosse charge)
 	-- LE TANGAGE : elle plonge au frein et au drift, s'accroupit à la poussée (nitro, boost)
@@ -2428,6 +2447,23 @@ local function camera(dt: number)
 	-- (Roblox ne rend pas un champ de plus de 120°)
 	cam.FieldOfView = math.clamp(KA.fov, 20, 120)
 	if (KA.vise - KA.pos).Magnitude < 0.01 then KA.vise = KA.pos + Vector3.new(0, 0, -1) end
+	-- (L37350) L'À-COUP DE L'ALLUMAGE : la caméra recule d'un coup (≈1 m) et se soulève, puis revient ; tant qu'on tient la nitro, un
+	-- FRISSON continu (deux sinus : un grondement, pas un grésillement)
+	if mode == "drive" or mode == "fall" then
+		local av9 = (KA.vise - KA.pos).Magnitude > 0.01 and (KA.vise - KA.pos).Unit or Vector3.zAxis
+		local dr9 = av9:Cross(KA.up)
+		dr9 = (dr9.Magnitude > 1e-3) and dr9.Unit or Vector3.xAxis
+		local ig = G.ign or 0
+		if ig > 0 then
+			local e9 = ig * ig * (1 - ig) * 6.75 * (G.ignK or 0)
+			local j9 = math.max(0, ig - 0.85) * 0.9 * (G.ignK or 0)
+			sh += (-av9 * (1.05 * e9) + KA.up * (0.25 * e9 + (math.random() - 0.5) * j9) + dr9 * ((math.random() - 0.5) * j9)) * M
+		end
+		if nitroOn then
+			local a9 = nitroBleue and 0.05 or 0.036
+			sh += (KA.up * (math.sin(t * 38.7) * a9) + dr9 * (math.sin(t * 29.3 + 1.7) * a9 * 0.7)) * M
+		end
+	end
 	local cfC = CFrame.lookAt(KA.pos + sh, KA.vise, KA.up)
 	if roulis ~= 0 then cfC *= CFrame.Angles(0, 0, roulis) end
 	cam.CFrame = cfC

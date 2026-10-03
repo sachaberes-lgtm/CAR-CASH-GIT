@@ -260,7 +260,7 @@ Config.SONS = {
 	auraX8 = "", auraX10 = "", auraRecord = "", serie = "", recolte = "", fruit1 = "", fruit2 = "", fruit3 = "",
 	fruit4 = "", fruit5 = "", fruit6 = "", plot = "", flaque = "", frole = "", driftCharge = "", turboMini = "",
 	turboSuper = "", turboUltra = "", nuageEntre = "", nuageSort = "", nuageDefonce = "", portailProche = "", impactImmeuble = "", departLogo = "",
-	moteurPalier = "", mortVide = "", mortAir = "", mortArret = "",
+	moteurPalier = "", mortVide = "", mortAir = "", mortArret = "", debrisTole = "",
 }
 Config.SONS_SECOURS = {
 	explosion = "rbxasset://sounds/impact_explosion_03.mp3",
