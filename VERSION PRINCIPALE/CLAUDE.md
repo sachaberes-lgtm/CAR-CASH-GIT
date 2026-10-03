@@ -44,7 +44,7 @@
   `dbgPhoto` dans une scène à part), et le VRAI parcours menu → GARAGE → ÉPIQUES → vignette → JOUER, couché, debout, cadre de l'ordi.
 - sw.js → v54.
 
-## L'ÉCRAN TITRE : REGARD HORIZONTAL, LA CAISSE QU'ON TAPOTE, SON MODELÉ (2026-10-03, copie de test de Léo — « bloque le point de vue à ce niveau vertical, horizontal seulement ; on peut tapoter la voiture et simuler à l'endroit tapoté un coup qui la pousse / pivote en train de tomber ; travaille encore plus en profondeur le shading de la caisse, sans faire trop »)
+## L'ÉCRAN TITRE : REGARD HORIZONTAL, LA CAISSE QU'ON TAPOTE, SON MODELÉ (2026-10-03, copie de test de Léo, versée sur main le soir même — « bloque le point de vue à ce niveau vertical, horizontal seulement ; on peut tapoter la voiture et simuler à l'endroit tapoté un coup qui la pousse / pivote en train de tomber ; travaille encore plus en profondeur le shading de la caisse, sans faire trop »)
 - L'ORBITE AU DOIGT est HORIZONTALE : le glissé ne touche plus `CHUTE.oPc`.
 - LA HAUTEUR DU REGARD (même jour, Léo, deux captures : « voici le point de vue vertical souhaité ») : presque à niveau. Couché
   `elev` −0,08 (un rien SOUS la caisse : l'horizon juste sous le milieu de l'image, on voit son dessous), debout `elevP` +0,06 (l'horizon
@@ -58,7 +58,7 @@
   empruntées (carLight, trailLight) et hemi/sun sont rendues par chuteSort. `P.fige` fige l'instant (planches A/B, banc studio.mjs).
   Réglable dans l'atelier des nuages, section LA VOITURE.
 
-## L'ATELIER DES NUAGES — `?nuages=1` (2026-10-03, copie de test de Léo — Léo : « Sacha et moi on va bosser sur les nuages : une copie du nouveau menu, sans jeu, on va s'attarder sur le peaufinement de la scène et du réalisme des nuages »)
+## L'ATELIER DES NUAGES — `?nuages=1` (2026-10-03, copie de test de Léo, versée sur main le soir même — Léo : « Sacha et moi on va bosser sur les nuages : une copie du nouveau menu, sans jeu, on va s'attarder sur le peaufinement de la scène et du réalisme des nuages »)
 - `…/jouer/?nuages=1` : l'écran titre TEL QUEL (même scène, mêmes cumulus v8 `CHUTE_NU`, même ciel `BIOMES.titre`), sans l'intro « 1.61 »,
   sans les boutons (`html.labNuages` : #overlay invisible et INTOUCHABLE jusque dans ses `[data-m]` — mais toujours en place : `menuCadre`
   cadre la caisse sur eux), sans départ (Entrée/Espace/Échap avalés), sans mise à jour automatique (elle rechargerait en plein réglage).

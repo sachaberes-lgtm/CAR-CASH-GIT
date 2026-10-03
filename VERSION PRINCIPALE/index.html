@@ -25522,8 +25522,9 @@ function musicPickNext(excludeIdx){
 // (house filtrée) et MÉTRO (2-step) gardent leur style, en 8 mesures comme VAPEUR · SALON, dans l'ambiance du lobby (bande, réverbe, aigus doux).
 // (2026-10-03, Léo : « le lobby garde ce que j'ai déjà sélectionné ») : son tri dans la bibliothèque — VAPEUR · SALON, ASCENSEUR DORÉ,
 // VIEILLE FORTUNE (rock cyberpunk, façon jeu vidéo), TEMPLE DE JADE (DJ tech au temple). MÉTRO et FILTRE D'OR abandonnés.
+// (2026-10-03, Léo : « enlève la musique temple jade ») : TEMPLE DE JADE retiré (le tirage se fait entre les TROIS restants).
 const MUSIC_LOBBY=['assets/audio/music/lobby/vapeur-salon.m4a','assets/audio/music/lobby/lobby-ascenseur.m4a',
-  'assets/audio/music/lobby/vieille-fortune.m4a','assets/audio/music/lobby/temple-de-jade.m4a'];
+  'assets/audio/music/lobby/vieille-fortune.m4a'];
 const MUSIC={menu:MUSIC_LOBBY[Math.floor(Math.random()*MUSIC_LOBBY.length)]}; // avant : 'assets/audio/music/nocturnal-groove.mp3' · (2026-09-29, Léo : « la musique du lobby c'est NOCTURNAL GROOVE ») LA MUSIQUE DE L'ACCUEIL — accueil, garage, écran de fin ; jouée à .8 (un extrait de niveau jouait à .5). SWAG CASH CAR, qui tenait l'accueil quelques heures, est parti à L'ORAGE. Vide = le morceau du 1er niveau (musicPremier)
 // musicBaseVol .85→1 (2026-09-24, « la musique pas assez forte comparé au moteur ») : on relève le
 // NIVEAU ACCORDÉ et pas la valeur par défaut du curseur — celle-ci est sauvegardée chez le joueur

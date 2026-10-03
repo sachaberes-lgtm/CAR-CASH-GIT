@@ -30,7 +30,11 @@ avant d'y toucher. `ROBLOX/` est un autre jeu, le portage Roblox : un commit ROB
   · NITROOO et son DRAGON DE PAPIER (v7), la DARK TRIAD en noir ;
   · LA LOI DU RÉSERVOIR : plus de nitro infinie, et la chaîne d'aura qui se ferme ;
   · la pose déboguée et le bord sans « clic » (le correctif de Léo, porté) ;
-  · sur l'ordi, l'iPhone 13 Pro de Sacha couché (844 × 390), avec son boîtier, son encoche et le bouton PORTRAIT ;
+  · sur l'ordi, l'écran du téléphone couché (844 × 390) et le bouton PORTRAIT ;
+- **Ajouté depuis, sur `main` (2026-10-03, Léo)** — à garder : sur l'ordi l'écran NU par défaut (sans boîtier ni encoche, mais avec les
+  MARGES de l'iPhone : les boutons à la même place ; `?encoche=1` = le boîtier du 13 Pro) ; l'ATELIER DES NUAGES (`?nuages=1`) ; l'écran
+  titre au regard presque à niveau, qui ne tourne qu'à l'horizontale, la caisse qu'on TAPOTE et son modelé ; les trois musiques du lobby
+  (TEMPLE DE JADE retiré). Le détail : `VERSION PRINCIPALE/CLAUDE.md`.
   · la MISE À JOUR TOUTE SEULE et le numéro de version dans les réglages.
 - **SANS TOUT CASSER** — la règle de chaque session, avant de pousser :
   1. Partir de `origin/main` À JOUR : `git fetch origin main`, puis `git merge origin/main`. Jamais d'une vieille branche, jamais d'une copie locale.
