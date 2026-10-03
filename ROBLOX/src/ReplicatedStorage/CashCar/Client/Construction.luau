@@ -355,7 +355,7 @@ end
 -- ── les objets ──
 local OR = Color3.fromRGB(255, 205, 64)
 local AssetService = game:GetService("AssetService")
-local EN_FRANCAIS = string.sub(game:GetService("Players").LocalPlayer.LocaleId or "fr", 1, 2) == "fr"
+local EN_FRANCAIS = Config.francais()
 
 -- LE PLOT (L7344) : rouge DANGER, deux bandes blanches, 1,5 m — un seul maillage à facettes, bâti une fois puis copié.
 -- (le maillage est centré sur sa boîte : on le pose à mi-hauteur)

@@ -16,7 +16,7 @@ local Effets = require(script.Parent:WaitForChild("Effets"))
 local Moteurs = script.Parent.Parent:WaitForChild("Moteurs")
 local Liste = require(Moteurs:WaitForChild("Liste"))
 local M = Config.M
-local FR = string.sub(Players.LocalPlayer.LocaleId or "fr", 1, 2) == "fr"
+local FR = Config.francais()
 
 local MoteurCarte = {}
 

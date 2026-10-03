@@ -465,7 +465,7 @@ local function ajouterPieces(n: number)
 			Bus.emit("moteur", tier, gain, sommet)
 			if sommet then task.delay(0.35, function() Sons.jouer("record", 1.1, 0.45) end) end
 		else
-			HudScore.slam(Hud.sansAccent(MOT[tier + 1].nom), tr("NOUVEAU MOTEUR", "NEW ENGINE"), "#ffd75e", "#dfeeff", 26, 1)
+			HudScore.slam(Hud.sansAccent(Config.nomMoteur(tier + 1)), tr("NOUVEAU MOTEUR", "NEW ENGINE"), "#ffd75e", "#dfeeff", 26, 1)
 			Sons.vrai("moteurPalier", nil, nil, "nitroPlein", 1.1)
 			boost = math.max(boost, 0.8)
 			fovPunch = math.max(fovPunch, 11)
@@ -2849,7 +2849,7 @@ local function finPartie()
 	end)
 	E.mAuraMeilleur.Text = (recA and aura > 0) and (FR and "RECORD !" or "RECORD!") or (T.meilleur .. " " .. Hud.entier(meilleurAura))
 	E.mAuraMeilleur.TextColor3 = (recA and aura > 0) and Hud.C.or_ or Hud.C.terne
-	E.mMoteurNom.Text = Hud.sansAccent(MOT[tier + 1].nom)
+	E.mMoteurNom.Text = Hud.sansAccent(Config.nomMoteur(tier + 1))
 	Hud.tenir(E.mMoteurNomEchelle, E.mMoteurNom.Text, 20, 270)
 	E.mMoteurPalier.Text = T.palier .. '  <font size="46">' .. (tier + 1) .. "</font>" .. (recM and '  <font color="#ffd75e">RECORD !</font>' or "") -- (L39158 : le palier se compte à partir de 1)
 	-- (L39151) LE « PRESQUE » : mourir à 3 pièces du palier suivant, c'est LA raison de relancer — la carte le dit quand ce palier
@@ -2857,7 +2857,7 @@ local function finPartie()
 	local mq = (tier < #MOT - 1) and (MOT[tier + 2][1] - coinsGot) or 0
 	local presque = tier < #MOT - 1 and mq > 0 and tier + 1 > moteurAvant and mq <= math.max(3, math.ceil((MOT[tier + 2][1] - MOT[tier + 1][1]) * 0.3))
 	if presque then
-		E.mMoteurEncore.Text = string.format(T.encore, mq) .. "\n↑ " .. Hud.sansAccent(MOT[tier + 2].nom)
+		E.mMoteurEncore.Text = string.format(T.encore, mq) .. "\n↑ " .. Hud.sansAccent(Config.nomMoteur(tier + 2))
 	elseif not recM and moteurAvant > tier then
 		E.mMoteurEncore.Text = (FR and "RECORD  PALIER " or "RECORD  TIER ") .. (moteurAvant + 1)
 	else

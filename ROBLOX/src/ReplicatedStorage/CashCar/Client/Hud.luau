@@ -22,7 +22,7 @@ local Sons = require(script.Parent:WaitForChild("Sons"))
 local Hud = {}
 
 -- ── la langue : français si le compte Roblox est en français, anglais sinon ──
-local FR = string.sub(Players.LocalPlayer.LocaleId or "fr", 1, 2) == "fr"
+local FR = Config.francais()
 Hud.FR = FR
 local T = FR and {
 	jouer = "JOUER", rejouer = "REJOUER", menu = "HOME", quitter = "QUITTER", reprendre = "REPRENDRE", recommencer = "RECOMMENCER",

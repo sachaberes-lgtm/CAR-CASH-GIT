@@ -22,7 +22,7 @@ local Sons = require(script.Parent:WaitForChild("Sons"))
 local Score = require(script.Parent:WaitForChild("Score"))
 local Camera = require(script.Parent:WaitForChild("Camera"))
 local M = Config.M
-local FR = string.sub(Players.LocalPlayer.LocaleId or "fr", 1, 2) == "fr"
+local FR = Config.francais()
 local function tr(fr: string, en: string): string return FR and fr or en end
 
 local Effets = {}

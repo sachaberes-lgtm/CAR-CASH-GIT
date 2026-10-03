@@ -58,6 +58,22 @@ Config.MOTEURS = {
 	{ 2566, 4.12, nom = "SUPERNOVA", res = 3.56, d = "Tu ne brûles plus le carburant. Tu brûles le ciel." },
 	{ 2854, 4.20, nom = "TROU NOIR", res = 3.60, d = "Plus rien ne s'échappe. Même pas toi." },
 }
+-- (leur nom ANGLAIS vient de la liste cuite des moteurs : un seul endroit, celui du jeu web — voir Config.nomMoteur)
+do
+	local okL, L = pcall(function() return require(script.Parent:WaitForChild("Moteurs"):WaitForChild("Liste")) end)
+	if okL and type(L) == "table" then
+		for i, m in Config.MOTEURS do
+			local l = L[i - 1]
+			if type(l) == "table" and l.en then (m :: any).en = l.en end
+		end
+	end
+end
+-- le nom d'un moteur (indice 1 = le moteur rouillé) dans la langue du joueur
+function Config.nomMoteur(i: number): string
+	local m: any = Config.MOTEURS[i]
+	if not m then return "" end
+	return (Config.francais() or not m.en) and m.nom or m.en
+end
 -- valeur d'une pièce par palier de moteur (DENOMS L11820, × 0,25)
 Config.DENOMS = { 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 7, 7, 8, 8, 9, 9, 10, 11, 11, 12, 12, 13, 14, 15, 16, 16 }
 Config.CASH_DEPART = 1.61
@@ -229,6 +245,14 @@ Config.CAM = {
 -- d'écrire la VRAIE condition. ⚠ à remettre à false pour la version publique : c'est l'unique interrupteur.
 Config.TEST_CAISSES = true
 
+-- LA LANGUE : celle de Roblox (LocaleId du joueur) — le français pour « fr-* », l'anglais pour tout le reste. UN SEUL endroit pour
+-- la lire. (banc) LANGUE_TEST force la langue (« en » : tout le jeu en anglais dans un Studio réglé en français).
+Config.LANGUE_TEST = nil :: string?
+function Config.francais(): boolean
+	if Config.LANGUE_TEST then return Config.LANGUE_TEST == "fr" end
+	local ok, l = pcall(function() return game:GetService("Players").LocalPlayer.LocaleId end)
+	return string.sub((ok and l) or "fr", 1, 2) == "fr"
+end
 Config.CAISSE_TEST = nil :: number? -- (banc) force la caisse équipée, pour regarder un gabarit sans passer par le garage
 Config.BANC_BUDGET = false -- (banc) mesure, au menu, ce qu'il reste du budget de mémoire des maillages (voir Maillage.mesurer)
 
