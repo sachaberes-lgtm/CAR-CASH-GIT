@@ -1058,9 +1058,11 @@ local function atterrir(face: number, latX: number, sX: number, hR: number?)
 		G.hopY = reste9
 		G.hopV = ((face > 0) and vN or -vN) * SPD
 		G.choc = math.min(0.6, impact * 0.04)
+		G.squashT = 0.1 + math.min(0.2, impact * 0.022) -- (la caisse se tassera AU CONTACT)
 	else
 		if face > 0 and reste9 < 0 then G.levreY = math.max(-0.6, reste9) end -- posée sous le niveau : elle remonte sa marche
 		secousse = math.max(secousse, math.min(0.6, impact * 0.04))
+		G.squashT = math.max(G.squashT or 0, 0.1 + math.min(0.2, impact * 0.022)) -- (L30855 : la caisse se TASSE sur ses ressorts)
 	end
 	Bus.emit("pose", { g = g, impact = impact, face = face, chainVal = V.chainVal, chainMult = V.chainMult, raccourci = gagne, figures = V.chainN, fallT = V.fallT, reste = reste,
 		q = qG, paye = paye, serpent = serpent, ratee = ratee,
@@ -2195,6 +2197,7 @@ local function etapeSol(dt: number)
 			G.hopY, G.hopV = 0, 0
 			secousse = math.max(secousse, G.choc)
 			G.choc = 0
+			G.squashT = math.max(G.squashT or 0, 0.15) -- SPLAT. (L37030)
 		end
 	end
 	-- LE POWER-SLIDE (L36969 ; Sacha, 26/09 : « rajoute une animation où la voiture part VRAIMENT sur le côté pendant les virages ») :
@@ -2204,6 +2207,7 @@ local function etapeSol(dt: number)
 	G.driftYaw = (G.driftYaw or 0) + (tdWant - (G.driftYaw or 0)) * math.min(1, dt * ((math.abs(tdWant) > math.abs(G.driftYaw or 0)) and 5 or 3.2))
 	-- (traceTick, L37013) la gomme MARQUE dès que ça tourne fort ou que ça glisse — les traces de pneus, et la fumée de gomme
 	G.glisse = math.abs(vA) > 10 and (G.driftOn or math.abs(aLat) > 9)
+	G.glisseK = G.glisse and (G.driftOn and 1 or math.clamp((math.abs(aLat) - 9) / 20, 0.15, 1)) or 0 -- (combien ça glisse, pour le crissement)
 	G.fumee = math.abs(vA) > 14 and (G.driftOn or math.abs(aLat) > 16) -- (la fumée demande une VRAIE glisse : le drift, ou une grosse charge)
 	-- LE TANGAGE : elle plonge au frein et au drift, s'accroupit à la poussée (nitro, boost)
 	G.pitch = (G.pitch or 0) + ((((Controles.frein or G.driftOn) and 0.035 or 0) - ((nitroOn or boost > 0) and 0.03 or 0) - (G.ign or 0) * (G.ignK or 0) * 0.1) - (G.pitch or 0)) * math.min(1, dt * 6) -- (… et SE CABRE à l'allumage de la nitro)
@@ -2211,8 +2215,17 @@ local function etapeSol(dt: number)
 	if pe > 0 and math.abs(vA) > 12 and math.random() < dt * 28 * pe then
 		Bus.emit("gerbe", "eclatJaune", cf2.Position + cf2.RightVector * ((lat + math.sign(lat) * math.max(0, hw - dB)) * M) + cf2.UpVector * (0.08 * M), 1, 3, 7)
 	end
+	-- LA SUSPENSION (L37128, 28/09) : à la réception, au contact, la CARROSSERIE plonge sur ses ressorts (ω ≈ 15, amortie) — elle se
+	-- tasse, remonte en dépassant à peine et se pose ; les roues, elles, restent au sol (Caisse.rouler les remonte d'autant).
+	do
+		local sq = math.min(1, (G.squashT or 0) / 0.28)
+		G.squashT = math.max(0, (G.squashT or 0) - dt)
+		local d9 = math.min(dt, 1 / 30)
+		G.susV = (G.susV or 0) + ((-sq * 0.17 - (G.susY or 0)) * 230 - (G.susV or 0) * 16) * d9
+		G.susY = math.clamp((G.susY or 0) + G.susV * d9, -0.26, 0.12)
+	end
 	-- la caisse posée
-	local pos = cf2.Position + cf2.RightVector * (lat * M) + cf2.UpVector * ((G.levreY + G.hopY) * M)
+	local pos = cf2.Position + cf2.RightVector * (lat * M) + cf2.UpVector * ((G.levreY + G.hopY + G.susY) * M)
 	carCF = CFrame.new(pos) * cf2.Rotation * CFrame.Angles(0, -(psi + G.driftYaw), 0) * CFrame.Angles(-G.pitch, 0, G.carRoll)
 end
 
@@ -2463,7 +2476,7 @@ local function habiller(dt: number)
 	G.helice += dt * (3.5 + G.ailes * 36)
 	Caisse.deployer(poignees, G.ailes, G.helice)
 	-- les roues tournent à leur vraie vitesse (v / R) ; en l'air elles gardent leur élan
-	Caisse.rouler(poignees, vA * SPD * M * dt)
+	Caisse.rouler(poignees, vA * SPD * M * dt, (mode == "drive") and (G.susY or 0) or 0)
 	KA.refletK += ((nitroOn and 1.6 or (boost > 0 and 0.9 or 0)) - KA.refletK) * math.min(1, dt * 8)
 	reflet.Brightness = KA.refletK
 	-- les boucles de son
@@ -2472,6 +2485,12 @@ local function habiller(dt: number)
 	local atelier = mode == "garage"
 	Sons.regler("moteur", atelier and 0.05 or ((mode == "menu") and 0.12 or 0.32), 0.7 + r * 1.1 + (nitroOn and 0.1 or 0))
 	Sons.regler("nitro", nitroOn and 0.45 or 0)
+	-- LE CRISSEMENT (L38020) : une ZONE MORTE — il signale LA LIMITE, pas la conduite normale ; il monte avec la glisse et la vitesse,
+	-- et sa hauteur aussi (900 Hz + la glisse + la vitesse)
+	do
+		local gk = (mode == "drive" and not enPause) and (G.glisseK or 0) or 0
+		Sons.regler("crissement", (gk > 0) and math.min(0.5, gk ^ 1.3 * 0.45 * (0.4 + math.min(1, k / 380))) or 0, (900 + gk * 430 + k * 0.35) / 1100)
+	end
 	-- (L36604 : `nuages.ambiance` est l'air d'un LIEU — la mer de nuages. En ville et en orbite il ne reste que le souffle de la vitesse)
 	local air = (piste and (piste :: any).niveau ~= "nuages" and mode ~= "menu") and 0.4 or 1
 	Sons.regler("ventAltitude", atelier and 0 or ((mode == "fall") and math.min(0.7, 0.25 + fallVel.Magnitude * 0.004) or 0.08 + r * 0.1) * air)

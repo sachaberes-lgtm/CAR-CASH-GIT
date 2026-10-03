@@ -95,6 +95,22 @@ wav('nitro', s => {
   }
 });
 
+// CRISSEMENT (crissement v2 du jeu web, L27119) : deux bandes résonantes non harmoniques (950 et 1480 Hz) que fait BROUTER un
+// stick-slip à 12 Hz — la gomme accroche-lâche, le crissement VIT au lieu de siffler. Ici une bande = des sinus aux fréquences
+// ENTIÈRES (la boucle d'une seconde se referme sans couture), amplitude en cloche autour du centre ; le broutement = une
+// modulation de fréquence à 12 Hz (entier aussi). Roblox montera la hauteur avec la glisse et la vitesse (PlaybackSpeed).
+wav('crissement', s => {
+  const P = [];
+  for (const [fc, bw, dev] of [[950, 120, 60], [1480, 150, 90]]) for (let f = fc - 2 * bw; f <= fc + 2 * bw; f += 3) {
+    const x = (f - fc) / bw; P.push([f, rnd() * 6.283, Math.exp(-x * x * 2), dev]);
+  }
+  for (let i = 0; i < N; i++) {
+    const t = i / SR, tri = Math.asin(Math.sin(6.283 * 12 * t)) / 1.5708; let v = 0; // (le LFO triangle du web)
+    for (const [f, p, a, dev] of P) v += a * Math.sin(6.283 * f * t + p + (dev / 12) * tri);
+    s[i] = v; // (pas de saturation : un bruit de bande garde ses crêtes, le crissement reste fin)
+  }
+});
+
 // LA MUSIQUE PAR LIEU (MUSIC_LIEU du jeu web) : nuages = NOITE DE VELOCIDADE, ville (et l'accueil) = NOCTURNAL GROOVE, orage = SWAG
 // CASH CAR ; l'orbite garde la radio (`musique` : NÉON CASH CAR). Un morceau pas importé = `musique` continue.
 for (const [nom, f] of Object.entries({ musiqueNuages: 'noite-de-velocidade.mp3', musiqueVille: 'nocturnal-groove.mp3', musiqueOrage: 'swag-cash-car-2.m4a' })) {

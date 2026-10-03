@@ -516,12 +516,14 @@ function Caisse.vignette(indice: number): Model?
 end
 
 -- fait tourner les roues d'une caisse : avance = distance parcourue depuis la dernière image (studs, signée)
-function Caisse.rouler(poignees: any, avance: number)
+-- `sus` (m) : la carrosserie descendue sur ses ressorts — les roues remontent d'autant dans son repère, elles restent au sol
+function Caisse.rouler(poignees: any, avance: number, sus: number?)
 	if #poignees.essieux == 0 then return end
 	poignees.angle = (poignees.angle or 0) + avance / math.max(0.1, poignees.rayons[1])
 	local rot = CFrame.Angles(-poignees.angle, 0, 0)
+	local haut = CFrame.new(0, -(sus or 0) * M, 0)
 	for i, w in poignees.essieux do
-		w.C0 = poignees.bases[i] * rot
+		w.C0 = haut * poignees.bases[i] * rot
 	end
 end
 
