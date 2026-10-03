@@ -25514,7 +25514,17 @@ function musicPickNext(excludeIdx){
   let i;do{i=Math.floor(Math.random()*MUSIC_TRACKS.length);}while(i===excludeIdx);
   return i;
 }
-const MUSIC={menu:'assets/audio/music/nocturnal-groove.mp3'}; // (2026-09-29, Léo : « la musique du lobby c'est NOCTURNAL GROOVE ») LA MUSIQUE DE L'ACCUEIL — accueil, garage, écran de fin ; jouée à .8 (un extrait de niveau jouait à .5). SWAG CASH CAR, qui tenait l'accueil quelques heures, est parti à L'ORAGE. Vide = le morceau du 1er niveau (musicPremier)
+// (2026-10-02, Léo : « les sons du lobby, les 4, au hasard à la connexion ; une fois connecté ça reste le même ; quand j'éteins
+// l'appli et que je la rallume, ça change ») : un des quatre tiré au LANCEMENT, gardé toute la session (accueil, garage, écran de fin).
+// Chaque fichier = sa boucle répétée sans couture sur ~100 s (le petit blanc de <audio loop> ne tombe qu'une fois par tour).
+// Choisis par Léo dans sa bibliothèque de sons (onglet Lobby) : VAPEUR · SALON, ASCENSEUR DORÉ, FILTRE D'OR, MÉTRO. Avant : NOCTURNAL GROOVE.
+// (2026-10-03, Léo : « je parlais de la DURÉE des boucles, pas du style ; toutes les musiques doivent suivre UNE ambiance ») : FILTRE D'OR
+// (house filtrée) et MÉTRO (2-step) gardent leur style, en 8 mesures comme VAPEUR · SALON, dans l'ambiance du lobby (bande, réverbe, aigus doux).
+// (2026-10-03, Léo : « le lobby garde ce que j'ai déjà sélectionné ») : son tri dans la bibliothèque — VAPEUR · SALON, ASCENSEUR DORÉ,
+// VIEILLE FORTUNE (rock cyberpunk, façon jeu vidéo), TEMPLE DE JADE (DJ tech au temple). MÉTRO et FILTRE D'OR abandonnés.
+const MUSIC_LOBBY=['assets/audio/music/lobby/vapeur-salon.m4a','assets/audio/music/lobby/lobby-ascenseur.m4a',
+  'assets/audio/music/lobby/vieille-fortune.m4a','assets/audio/music/lobby/temple-de-jade.m4a'];
+const MUSIC={menu:MUSIC_LOBBY[Math.floor(Math.random()*MUSIC_LOBBY.length)]}; // avant : 'assets/audio/music/nocturnal-groove.mp3' · (2026-09-29, Léo : « la musique du lobby c'est NOCTURNAL GROOVE ») LA MUSIQUE DE L'ACCUEIL — accueil, garage, écran de fin ; jouée à .8 (un extrait de niveau jouait à .5). SWAG CASH CAR, qui tenait l'accueil quelques heures, est parti à L'ORAGE. Vide = le morceau du 1er niveau (musicPremier)
 // musicBaseVol .85→1 (2026-09-24, « la musique pas assez forte comparé au moteur ») : on relève le
 // NIVEAU ACCORDÉ et pas la valeur par défaut du curseur — celle-ci est sauvegardée chez le joueur
 // (`SAVE.d.vol.mus`), la changer n'aurait rien fait pour qui a déjà joué. Le moteur, lui, a reculé
@@ -25873,6 +25883,10 @@ function lvlTick(dt,S){
   skyU.uAcc.value.copy(LVLFX.acc);skyU.uAcc2.value.copy(LVLFX.acc2);
 }
 /* <<<FIN FOND>>> ========================================================== */
+const MUS_TEMPO={on:true,r:1,t:0};
+window.dbgTempo=function(a){if(a===0||a===1){MUS_TEMPO.on=!!a;if(!a)try{musicEl.playbackRate=1;MUS_TEMPO.r=1;}catch(e){}}
+  return{on:MUS_TEMPO.on,tempo:+MUS_TEMPO.r.toFixed(3),lecture:musicEl?musicEl.playbackRate:null,hauteurGardee:musicEl?musicEl.preservesPitch:null,
+    vitesse:+flowVitN().toFixed(2),mode:musicMode,frenesie:FRENM.on};};
 function musicTick(dt,mvt){
   try{sonTonSuit();}catch(e){} // (console de son) les sons accordés suivent la tonalité du morceau qui joue
   let target=0,beat=0,hiT=0;
@@ -25916,6 +25930,24 @@ function musicTick(dt,mvt){
   else if(musicMode==='menu')musicVolCible=musVol()*.5*mDuck;                   // le menu : en fond
   if(musicMode!=='none'){musicVolCour+=(musicVolCible-musicVolCour)*Math.min(1,dt*6);
     if(musicEl&&!musicEl.paused&&!VOL_LOCKED){try{const v9=Math.max(0,Math.min(1,musicVolCour));if(Math.abs(musicEl.volume-v9)>.002)musicEl.volume=v9;}catch(e){}}}
+  // ---- LE TEMPO SUIT LA VITESSE (2026-10-03, Léo : « harmonise la vitesse de la voiture avec le tempo, le rythme, la profondeur — agréable,
+  // selon les sciences du plaisir auditif ; la vitesse a un impact sur la vitesse de la musique sans déformer l'expérience ; ne casse rien »).
+  // On étire le TEMPS du morceau (playbackRate) en GARDANT SA HAUTEUR (preservesPitch) — le navigateur fait l'étirement, rien d'autre ne
+  // change, zéro risque sur iPhone (pas de graphe Web Audio). LA RÈGLE DU CONFORT : (1) petit — ±6 % au plus : le seuil où l'on PERÇOIT
+  // un tempo différent est de ~4-5 %, on sent l'énergie sans entendre de déformation ; (2) la hauteur ne bouge JAMAIS (une musique qui se
+  // désaccorde sonne fausse) ; (3) lent — l'entraînement : le tempo rejoint la voiture en ~2,5 s quand on accélère, ~4 s quand on ralentit,
+  // par crans de 0,5 % au plus toutes les 0,35 s (le groove ne vacille pas) ; (4) jamais pendant la FRÉNÉSIE ni le tape-stop, qui ont la bande.
+  // Croisière (flowVitN ≈ 1) = le tempo d'origine · départ / lent = −6 % · vitesse de pointe = +4 % · nitro = +2 % de plus.
+  // La PROFONDEUR suit déjà la vitesse : à l'arrêt la musique recule (volume ×0,62), lancée elle est « dans les oreilles » (voir plus haut).
+  // Console : `dbgTempo()` (état), `dbgTempo(0)` coupe (retour au tempo d'origine), `dbgTempo(1)` rallume.
+  if(MUS_TEMPO.on&&musicEl&&!musicEl.paused&&!FRENM.on&&!FRENM.sw&&!FRENM.surm&&musicEl.preservesPitch!==false&&musicEl.webkitPreservesPitch!==false){
+    let cible=1;
+    if(musicMode==='run'&&running&&!gameOver&&!paused){const v9=flowVitN();cible=1+Math.max(-.06,Math.min(.04,(v9-1)*.12))+(nitroOn?.02:0);}
+    MUS_TEMPO.r+=(cible-MUS_TEMPO.r)*Math.min(1,dt/(cible>MUS_TEMPO.r?2.5:4));
+    MUS_TEMPO.t+=dt;
+    if(MUS_TEMPO.t>.35){MUS_TEMPO.t=0;const q9=Math.round(MUS_TEMPO.r*200)/200;
+      if(Math.abs((musicEl.playbackRate||1)-q9)>=.004)try{musicEl.playbackRate=q9;}catch(e){}}
+  }
   // BOOST : le morceau S'AMPLIFIE — bass boost + chorus qui épaissit (distinct du filtre-mouvement)
   const boostAmt=(running&&!gameOver)?Math.min(1,(nitroOn?0.85:0)+Math.min(1,boost)*0.5):0;
   musChorusEnv+=(boostAmt-musChorusEnv)*Math.min(1,dt*6);
@@ -38775,7 +38807,10 @@ renderLeaders(-1);
     // garde que `playMusic`/`musicStartRun`, zéro risque de double contexte avec le garde ajouté
     // dans `start()`.
     if(!AC){try{if(typeof initAudio==='function')initAudio();}catch(e){}}
-    setTimeout(function(){try{if(!started)musicMenu();}catch(e){}},700); // la musique du menu arrive avec le menu
+    // (2026-10-03, Léo : « pour toutes les musiques, fais démarrer au moment du menu ciel ») : la musique du lobby part à l'instant où le
+    // voile s'ouvre sur le CIEL (420 ms, le fondu ci-dessous), et du DÉBUT du morceau — le 1er toucher l'avait lancée en silence une fraction
+    // de seconde pour libérer le lecteur. Avant : 700 ms, au milieu du fondu.
+    setTimeout(function(){try{if(!started){if(musicEl&&musicEl.paused&&MUSIC.menu&&musicEl.src.indexOf(MUSIC.menu)>=0)musicEl.currentTime=0;musicMenu();}}catch(e){}},420); // la musique du menu arrive avec le ciel
     // (2026-09-24, audit UX) sur TÉLÉPHONE on atterrit sur le MENU (JOUER · CARRIÈRE · GARAGE…) : le garage était le 1er écran
     // avec trois actions concurrentes (PLAY, CARRIÈRE, ✕) et une croix qui menait… au menu. Il redevient le lieu du CHOIX de la caisse.
     try{if(typeof openGarage==='function'&&!IS_MOBILE)openGarage();}catch(e){}
