@@ -27677,7 +27677,7 @@ function bumpSfx(n){ // rebond sur la tranche : carillon qui GRIMPE à chaque bu
 // monte (anticipation dopaminergique), la RELÂCHE offre le « pssht-tututu » (récompense de fin,
 // peak-end rule) — appuyer sur ESPACE devient un petit rituel à deux temps.
 function nitroSpool(){ // enclenchement : spool de turbo qui grimpe + goulée d'air
-  if(!sfxOk())return;
+  if(!sfxOk()||BTEST==='feu0')return;
   try{
     const lv=Math.min(15,Math.max(0,engTier|0)*.5),t0=AC.currentTime; // (2026-09-25) le palier MOTEUR, jamais la caisse (ACIDE montait à 6 kHz : le moustique)
     const o=AC.createOscillator(),g=AC.createGain(),f=AC.createBiquadFilter();
@@ -28858,8 +28858,8 @@ function instruPlanifie(){ // regard d'avance de 120 ms : les notes tombent pile
     let a9=fen.length?fen[mot[k%8]%Math.min(5,fen.length)]:-1;                          // l'arpège : les 5 premières notes de l'accord au-dessus de sol3
     if(a9>=0&&(mes&3)===3&&a9+12<=88)a9+=12;const arpK=(mes&3)===3?1.45:1;               // 4e mesure : il monte d'une octave (Léo : « plus aigu »)
     const et9=mes>=3;                                                                   // dès la 4e mesure tenue : l'ÉTINCELLE
-    if(a9>=0)instruTing(instruHz(a9),t,k%2?.35:-.35,V*arpK*(temps?1:.8));                 // l'arpège : le TING (Léo : « plus en mode ting, l'instrument n'est peut-être pas le bon »)
-    if(k%2===0||INSTRU.acc){const m9=instruMelodie(k,tons);if(m9>=0)instruNote(instruHz(m9),t,0,V*(INSTRU.acc?1.25:(k%8===0?1.05:.9)),.5,et9);INSTRU.acc=0;}
+    if(a9>=0&&BTEST!=='melodie')instruTing(instruHz(a9),t,k%2?.35:-.35,V*arpK*(temps?1:.8));                 // l'arpège : le TING (Léo : « plus en mode ting, l'instrument n'est peut-être pas le bon »)
+    if((k%2===0||INSTRU.acc)&&BTEST!=='arpege'){const m9=instruMelodie(k,tons);if(m9>=0)instruNote(instruHz(m9),t,0,V*(INSTRU.acc?1.25:(k%8===0?1.05:.9)),.5,et9);INSTRU.acc=0;}
     // (2026-10-03, Léo : « l'arpège crée une résonance grave à la fin, c'est dérangeant ») : plus de basse — le morceau a la sienne
     INSTRU.der=INSTRU.tNote;INSTRU.k++;INSTRU.n++;
     INSTRU.tNote=INSTRU.off!=null&&!INSTRU.essai?instruGrille(INSTRU.tNote+INSTRU.pas*.5):INSTRU.tNote+INSTRU.pas; // la note suivante, SUR la grille du morceau
@@ -28872,8 +28872,14 @@ function instruPlanifie(){ // regard d'avance de 120 ms : les notes tombent pile
    · plus d'ACCENT de mélodie au départ (c'était ce 1er son flou, une note de Rhodes appuyée dans la salle) ;
    · elle ENTRE en fondu : les premières notes à 30 %, pleine voix en ~2 temps (`INSTRU.monte`). La fin est inchangée. */
 const INSTRU_TENIR=.22;
+/* LES VERSIONS D'ÉCOUTE (2026-10-03, Léo : « ça ne doit pas passer par-dessus la musique, ça accompagne ; il y a une partie qui gêne —
+   trouvons-la ») : `?boost=` dans l'adresse coupe UNE couche du boost, pour l'isoler à l'oreille :
+   sans (pas de phrase) · arpege (l'arpège seul) · melodie (la mélodie seule) · feu0 (la flamme du nitro muette : grondement, pops,
+   turbo) · nitrooo0 (les sons de NITROOO muets). */
+const BTEST=(function(){try{return new URLSearchParams(location.search).get('boost')||'';}catch(e){return '';}})();
 function instruOn(){
   if(!INSTRU.on||!AC||!SND.sfx||(AC.state!=='running'&&!INSTRU.essai)||paused||(startBoostT>0&&!INSTRU.essai))return; // pendant le boost de départ : rien, même si le doigt est sur NITRO
+  if(BTEST==='sans')return;
   if(INSTRU.essai)return instruDemarre();
   INSTRU.doigt=true;clearTimeout(INSTRU.att);
   INSTRU.att=setTimeout(function(){if(INSTRU.doigt)try{instruDemarre();}catch(e){}},INSTRU_TENIR*1000); // il faut TENIR
@@ -30355,7 +30361,7 @@ function nitroooTick(dt){
     if(pal>NTR.pal&&NTR.boost<NTR_BOOST_MAX-.001){NTR.pal=pal;NTR.kc=1;
       const pct=Math.round(Math.min(NTR_BOOST_MAX,Math.pow(1+NTR_BOOST,pal)-1)*100); // (exponentiel) le palier affiche ce qu'il vaut vraiment
       try{popTexte('+'+pct+' %','#ffb040',1);}catch(e){}fovPunch=Math.max(fovPunch,4);flashEcran('rgba(255,140,40,.45)');hap(10);
-      if(SONV2)sfx('nitrooo.palier',{st:sonPd(pal%2?2:0),vol:-11});} // (2026-10-03, Léo : « quand j'appuie sur le boost avec la barre très remplie, ça MONTE trop fort ; quand ça s'égalise en notes plus douces c'est agréable ») : les paliers de NITROOO ne GRIMPENT plus la gamme (ils alternaient vers le 7e degré) et passent −11 dB — la phrase du boost prend le relais
+      if(SONV2&&BTEST!=='nitrooo0')sfx('nitrooo.palier',{st:sonPd(pal%2?2:0),vol:-11});} // (2026-10-03, Léo : « quand j'appuie sur le boost avec la barre très remplie, ça MONTE trop fort ; quand ça s'égalise en notes plus douces c'est agréable ») : les paliers de NITROOO ne GRIMPENT plus la gamme (ils alternaient vers le 7e degré) et passent −11 dB — la phrase du boost prend le relais
     NTR.boost=Math.min(NTR_BOOST_MAX,Math.max(NTR.boost,Math.pow(1+NTR_BOOST,NTR.t)-1)); // (exponentiel) continu entre deux paliers, ×1,10 à chaque seconde tenue
   }else NTR.boost=Math.max(0,NTR.boost-dt*1.4);
   const cible=actif?Math.max(NTR.kc>0?1:0,.6+.4*NTR.gT):0; // (2026-09-30, Sacha : « plus tu boostes longtemps, plus la tête devient grosse, opaque et enflammée ») — c'était l'inverse : 0,7 puis 0,5 après 6 s
@@ -37385,7 +37391,7 @@ function loop(now){
       // PURE SPEED → NITROOO (2026-09-29) : 2 s (NTR_T) de nitro soutenu sur la route, au-delà de 55 % de la vmax du moteur (voir le bloc NITROOO)
       if(nitroOn&&startBoostT<=0&&speedKmh>Math.min(400,vmaxShow()*.55)){ // (le boost de DÉPART tient la touche à la place du joueur : il ne compte pas)
         pureT+=dt;
-        if(pureT>NTR_T&&pureArmed){pureArmed=false;if(!NTR.on){annSpeak('pureSpeed',2);trickMsg('NITROOO !',3);if(SONV2)sfx('vitesse.pure',{st:sonPd(0),vol:-8});else noiseBurst(.5,.12,1200); // (2026-09-29) une NITROOO qui continue depuis le vol ne se réannonce ni ne se repaie
+        if(pureT>NTR_T&&pureArmed){pureArmed=false;if(!NTR.on){annSpeak('pureSpeed',2);trickMsg('NITROOO !',3);if(SONV2&&BTEST!=='nitrooo0')sfx('vitesse.pure',{st:sonPd(0),vol:-8});else noiseBurst(.5,.12,1200); // (2026-09-29) une NITROOO qui continue depuis le vol ne se réannonce ni ne se repaie
           chaineAura('NITROOO',120,'pure',false,SONV2);}pureNext=pureT+2;nitroooPart();
           if(!PARK.on)flowAdd(5,'risque','p');} // (NITROOO) un petit geste de flow, UNE fois par tenue (PSYCHO paie déjà la vitesse tenue)
         /* TENIR PLUS LONGTEMPS PAYE PLUS, MAIS PAR PALIERS. Un gain continu redeviendrait le robinet
@@ -37394,7 +37400,7 @@ function loop(now){
         // ⚠ PALIER PLAFONNÉ À 5 (audit 2026-08-18) : `150+pureLvl*100` sans borne, c'est une rente —
         // tenir 60 s donnait 30 salves dont la derniere a 3 150. L'escalade se sent jusqu'a ×6, apres
         // quoi c'est la DUREE qui paye, pas le multiplicateur.
-        if(!pureArmed&&pureT>pureNext){pureNext=pureT+2;pureLvl=Math.min(5,pureLvl+1);if(SONV2)sfx('vitesse.pure',{st:sonPd(pureLvl)});chaineAura('NITROOO ×'+(pureLvl+1),15+pureLvl*8,'pure',true,SONV2,true); /* (2026-10-01) 60+40·palier → 15+8·palier : calé quand un réservoir donnait 3 paliers toutes les 15 s ; sur la LIGNE PARFAITE la NITROOO se tient, et le palier tombe toutes les 2 s */}
+        if(!pureArmed&&pureT>pureNext){pureNext=pureT+2;pureLvl=Math.min(5,pureLvl+1);if(SONV2&&BTEST!=='nitrooo0')sfx('vitesse.pure',{st:sonPd(pureLvl%2?2:0),vol:-10}); /* (2026-10-03, Léo) il GRIMPAIT la gamme toutes les 2 s, à plein volume */chaineAura('NITROOO ×'+(pureLvl+1),15+pureLvl*8,'pure',true,SONV2,true); /* (2026-10-01) 60+40·palier → 15+8·palier : calé quand un réservoir donnait 3 paliers toutes les 15 s ; sur la LIGNE PARFAITE la NITROOO se tient, et le palier tombe toutes les 2 s */}
       }else{pureT=0;pureArmed=true;pureNext=0;pureLvl=0;}
       // point de respawn sûr
       if(side>0&&F.n.y>.5&&Math.abs(lat)<ROAD_HALF-2&&Math.abs(psi)<.5)safeS=s;
@@ -38478,7 +38484,7 @@ function loop(now){
         // LA FLAMME = le rumble brown, sol COMME air. Rond, chaud, PRÉSENT — aucun aigu à arracher.
         // (2026-09-26) la flamme ne vit QUE manette en main : pendant l'explosion (un tap NITRO pour la passer tient `keys.Space`)
         // et après `endGame` dans la même image, elle réécrivait ses gains — le souffle restait figé sur l'écran de mort
-        const nOn9=nitroOn&&mode!=='boom'&&!gameOver;
+        const nOn9=nitroOn&&mode!=='boom'&&!gameOver&&BTEST!=='feu0';
         const jb=nOn9?(nitroBlue?.52:.4):0;
         stt(jrG.gain,jb*(air9?1.1:1.05)*(.84+.32*Math.random())*dk,AC.currentTime,.08); // turbulence lente
         stt(jrDep.gain,jb*(air9?.22:.16)*dk,AC.currentTime,.1); // flutter 5 Hz : la flamme respire
