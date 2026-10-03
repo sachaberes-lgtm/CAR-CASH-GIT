@@ -170,6 +170,13 @@ evFin.OnServerEvent:Connect(function(p, montant, distance, aura, stats)
 	dernierEnvoi[p.UserId] = t
 	local prof = Profils.de(p)
 	prof.compte += math.max(0, montant - Config.CASH_DEPART) -- on ne verse que les GAINS, jamais la mise de 1,61 $
+	-- (L31161) une LEÇON QUITTÉE n'est pas une partie : seul l'argent gagné est versé — ni record, ni aura, ni partie comptée
+	if type(stats) == "table" and stats.lecon == true then
+		evRecord:FireClient(p, prof.record, prof.compte)
+		Profils.pousser(p)
+		task.spawn(Profils.sauver, p)
+		return
+	end
 	if montant > prof.record then prof.record = montant end
 	if type(aura) == "number" and aura == aura and aura >= 0 and aura < 1e12 then
 		prof.auraMeilleur = math.max(prof.auraMeilleur, aura)

@@ -74,6 +74,9 @@ ev:FireServer("joueur : arrivé")
 task.spawn(function()
 	local pg = Players.LocalPlayer:WaitForChild("PlayerGui")
 	while not pg:FindFirstChild("CashCarEffets") do task.wait(0.5) end
+	-- (l'intro du studio se joue avant l'accueil : on attend que le pilote dise « menu prêt » lui-même — 25 s au plus)
+	local t0 = os.clock()
+	while not Players.LocalPlayer:GetAttribute("MenuPret") and os.clock() - t0 < 25 do task.wait(0.25) end
 	ev:FireServer("joueur : menu prêt")
 end)
 game:GetService("LogService").MessageOut:Connect(function(msg, typ)

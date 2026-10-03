@@ -769,6 +769,15 @@ function TU.fin(passe: boolean)
 		end)
 	end
 end
+-- la leçon QUITTÉE depuis la pause (tutoQuitte, L22512) : elle s'arrête sans permis et RESTE à faire — elle sera reproposée au
+-- prochain départ. L'écran de fin qui suit le sait (G.lecon) : ni record ni partie comptée, seul l'argent gagné est versé.
+function G.tuQuitte()
+	TU.on = false
+	E.coach.Visible = false
+	Hud.nitroAppel(false)
+	if pwA > 0 then pwA = 0 end
+	G.lecon = true
+end
 function TU.bravo()
 	Sons.jouer("poseParfait", 1.2)
 	HudScore.flash("#62e062", 0.3) -- (la carte flashe en vert à chaque réussite)
@@ -2790,23 +2799,30 @@ local function finPartie()
 	-- LES RECORDS NE SE CONTREDISENT PLUS (audit UX du 26/09, L38987) : le titre s'allume pour l'argent, l'AURA ou le MOTEUR — les
 	-- héros de cet écran. (L'aura : seulement s'il y avait un record à battre ; le moteur : un palier jamais atteint avant.)
 	-- Une partie QUITTÉE depuis la pause ne fête rien.
+	local lecon = G.lecon == true -- (L31161) une LEÇON QUITTÉE n'est pas une partie
+	G.lecon = false
+	if lecon then rec = false end
 	local recA = causeMort ~= "quitte" and meilleurAura > 0 and aura > meilleurAura
 	local moteurAvant = profil.moteurMax or 0
 	local recM = causeMort ~= "quitte" and tier > moteurAvant
 	local recT = causeMort ~= "quitte" and (rec or recA or recM)
 	profil.moteurMax = math.max(moteurAvant, tier)
+	if lecon then profil.moteurMax = moteurAvant end
 	local mres = Missions.fin(CPT)
-	evFin:FireServer(argent, dist, aura, { pieces = stats.pieces, figures = stats.poses, kmh = G.vmax, zone = G.nbZones + 1, tier = tier,
+	evFin:FireServer(argent, dist, aura, { lecon = lecon or nil, pieces = stats.pieces, figures = stats.poses, kmh = G.vmax, zone = G.nbZones + 1, tier = tier,
 		multi = Score.CHA.xMax, cause = causeMort, parfaites = stats.parfaites, fruits = stats.fruits, nitro = stats.nitro,
 		duree = stats.duree, chaine = stats.chaine, frenMax = Score.FREN.max, frenRec = Score.FREN.record, mis = mres.meilleur })
 	if rec then record = argent end
-	meilleurAura = math.max(meilleurAura, aura)
+	if not lecon then meilleurAura = math.max(meilleurAura, aura) end
 	G.kmhRecord = math.max(G.kmhRecord or 0, G.vmax or 0)
 	profil.kmhMax = math.max(profil.kmhMax or 0, math.floor(G.kmhRecord + 0.5))
 	local cause = T.morts[causeMort] or T.morts.autre
 	-- (L4187, Sacha : « le texte sous GAME OVER sert à rien », « la caisse qui explose l'a déjà dit ») le titre dit GAME OVER ou
 	-- NOUVEAU RECORD !, jamais la cause ; et plus de ligne DISTANCE · PIÈCES · FIGURES (le web ne la montre pas)
-	E.mCause.Text = recT and T.nouveau or "GAME OVER"
+	E.mCause.Text = lecon and tr("AUTO-ECOLE INTERROMPUE", "DRIVING SCHOOL STOPPED") or recT and T.nouveau or "GAME OVER"
+	-- (L39139) après une leçon quittée, le lingot dit REPRENDRE : il relance la leçon
+	E.btRejouer.Text = lecon and T.reprendre or T.rejouer
+	E.btRejouer.TextSize = lecon and (FR and 62 or 58) or (FR and 80 or 58)
 	Hud.tenir(E.mCauseEchelle, E.mCause.Text, 62, 560)
 	E.mRecord.Text = rec and (FR and "RECORD !" or "RECORD!") or ""
 	E.mRecord.Visible = rec
@@ -3140,6 +3156,8 @@ workspace:GetAttributeChangedSignal("DbgOuvre"):Connect(function()
 	elseif string.sub(v, 1, 4) == "saut" then
 		-- (banc) un saut franc, tout de suite : pour photographier ce qui ne vit qu'en vol (le viseur, la jauge, les figures)
 		if mode == "drive" then decoller(tonumber(string.sub(v, 5, 6)) or 45, 1) end -- ("saut20…" : la poussée, sur deux chiffres)
+	elseif string.sub(v, 1, 7) == "quitter" then
+		G.quitterPause() -- (banc) QUITTER de la pause (« quitter1 », « quitter2 » : la question, puis la confirmation)
 	elseif v == "frenesie" then
 		if mode == "drive" or mode == "fall" then Score.dbgFren() end
 	elseif v == "menu" then
@@ -3175,18 +3193,18 @@ E.btRecom.Activated:Connect(function()
 	Score.fin(false)
 	nouvellePartie()
 end)
-E.btMenuP.Activated:Connect(function()
+function G.quitterPause() -- (nommée : le banc la presse aussi, « DbgOuvre quitter » deux fois = la question puis la confirmation)
 	if not enPause or G.reprise then return end
-	if not G.confirme(E.btMenuP, "quit", tr("QUITTER ? GAINS VERSES", "QUIT? GAINS BANKED"), T.quitter) then return end
+	-- (L38960) pendant la leçon, la question dit l'enjeu : la leçon reviendra au prochain départ (et le permis avec sa prime)
+	local qTxt = TU.on and (profil.permis and tr("LECON AU PROCHAIN DEPART", "LESSON ON NEXT RUN") or tr("LECON + PERMIS AU PROCHAIN DEPART", "LESSON + LICENSE ON NEXT RUN"))
+		or tr("QUITTER ? GAINS VERSES", "QUIT? GAINS BANKED")
+	if not G.confirme(E.btMenuP, "quit", qTxt, T.quitter) then return end
 	enPause = false
-	if TU.on then
-		Score.fin(false)
-		allerMenu()
-		return
-	end
+	if TU.on then G.tuQuitte() end
 	causeMort, boomPos, boomT = "quitte", carCF.Position, 0
 	finPartie()
-end)
+end
+E.btMenuP.Activated:Connect(G.quitterPause)
 -- LES RÉGLAGES : une seule vérité, le PROFIL (gardé par le serveur d'une partie à l'autre) — Sons, Controles et Hud la recopient
 -- (avant, SON et MUSIQUE n'étaient jamais enregistrés : ils revenaient sur ON à chaque partie)
 do -- (un bloc : le corps du pilote frôle la limite des 200 variables locales)
@@ -3624,6 +3642,7 @@ end)
 -- L'INTRO DU STUDIO : CASH CAR bat, explose, 1.61 GAMES — puis l'accueil (pas au banc : il attend « menu prêt » au plus vite)
 if not workspace:GetAttribute("DbgSansIntro") then pcall(Hud.introStudio) end
 allerMenu()
+game:GetService("Players").LocalPlayer:SetAttribute("MenuPret", true) -- (le banc attend ce signal : l'accueil est là, l'intro jouée)
 end
 
 -- (mise au point) workspace:SetAttribute("DbgBudget", "une étiquette") : ce qu'il reste du budget de triangles, écrit dans la Sortie
@@ -21681,6 +21700,13 @@ evFin.OnServerEvent:Connect(function(p, montant, distance, aura, stats)
 	dernierEnvoi[p.UserId] = t
 	local prof = Profils.de(p)
 	prof.compte += math.max(0, montant - Config.CASH_DEPART) -- on ne verse que les GAINS, jamais la mise de 1,61 $
+	-- (L31161) une LEÇON QUITTÉE n'est pas une partie : seul l'argent gagné est versé — ni record, ni aura, ni partie comptée
+	if type(stats) == "table" and stats.lecon == true then
+		evRecord:FireClient(p, prof.record, prof.compte)
+		Profils.pousser(p)
+		task.spawn(Profils.sauver, p)
+		return
+	end
 	if montant > prof.record then prof.record = montant end
 	if type(aura) == "number" and aura == aura and aura >= 0 and aura < 1e12 then
 		prof.auraMeilleur = math.max(prof.auraMeilleur, aura)
