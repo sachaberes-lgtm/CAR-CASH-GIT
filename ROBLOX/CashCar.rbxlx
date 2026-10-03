@@ -2588,20 +2588,29 @@ local function habiller(dt: number)
 	-- (L36604 : `nuages.ambiance` est l'air d'un LIEU — la mer de nuages. En ville et en orbite il ne reste que le souffle de la vitesse)
 	local air = (piste and (piste :: any).niveau ~= "nuages" and mode ~= "menu") and 0.4 or 1
 	Sons.regler("ventAltitude", atelier and 0 or ((mode == "fall") and math.min(0.7, 0.25 + fallVel.Magnitude * 0.004) or 0.08 + r * 0.1) * air)
-	-- LA MUSIQUE SUIT LE LIEU (MUSIC_LIEU, L25333) : NOITE DE VELOCIDADE aux nuages, NOCTURNAL GROOVE en ville et à l'accueil (garage,
-	-- écran de fin), SWAG CASH CAR dans l'orage, la radio en orbite. Un morceau de lieu qui n'est pas importé laisse l'antenne à
+	-- LA MUSIQUE SUIT LE LIEU (MUSIC_LIEU, L25333) : CIEL · LES 5 NIVEAUX aux nuages (3/10, avant NOITE DE VELOCIDADE), NOCTURNAL
+	-- GROOVE en ville, un morceau de LOBBY à l'accueil (garage, écran de fin), SWAG CASH CAR dans l'orage, la radio en orbite. Un morceau de lieu qui n'est pas importé laisse l'antenne à
 	-- `musique`. On passe de l'un à l'autre en fondu (1,2 s) ; chacun garde son fil, on ne le relance pas à chaque portail.
 	do
 		local veut = "musique"
 		if mode == "menu" or mode == "garage" or mode == "mort" or mode == "charge" then
-			veut = "musiqueVille"
+			-- (MUSIC_LOBBY, 3/10) l'accueil, le garage et l'écran de fin jouent UN morceau de lobby, tiré au lancement parmi ceux qui
+			-- sont importés, gardé toute la session ; aucun importé = NOCTURNAL GROOVE, comme avant
+			if G.lobby == nil then
+				local l = {}
+				for _, n in { "musiqueLobby1", "musiqueLobby2" } do
+					if Sons.a(n) then table.insert(l, n) end
+				end
+				G.lobby = (#l > 0) and l[math.random(1, #l)] or false
+			end
+			veut = G.lobby or "musiqueVille"
 		elseif piste then
 			local lieu, var = (piste :: any).niveau, (piste :: any).variante
 			veut = (var == "orage") and "musiqueOrage" or ((lieu == "ville") and "musiqueVille" or ((lieu == "nuages") and "musiqueNuages" or "musique"))
 		end
 		if not Sons.a(veut) then veut = "musique" end
 		G.musVeut = veut
-		G.mus = G.mus or { musique = 0, musiqueNuages = 0, musiqueVille = 0, musiqueOrage = 0 }
+		G.mus = G.mus or { musique = 0, musiqueNuages = 0, musiqueVille = 0, musiqueOrage = 0, musiqueLobby1 = 0, musiqueLobby2 = 0 }
 		do
 			local cible = (G.frenMus and (mode == "drive" or mode == "fall")) and 1.06 or 1
 			local v = G.musVit or 1
@@ -20492,6 +20501,8 @@ Config.SONS = {
 	driftBrrr = "", rasBord = "", -- (la charge du drift qui monte ; le grondement du rase-bord)
 	-- la musique par LIEU (MUSIC_LIEU du web) : les nuages, la ville (et l'accueil), l'orage ; pas importée = `musique` continue
 	musiqueNuages = "", musiqueVille = "", musiqueOrage = "",
+	-- l'ACCUEIL (MUSIC_LOBBY du web, 3/10) : un des deux morceaux de lobby, tiré au lancement et gardé toute la session
+	musiqueLobby1 = "", musiqueLobby2 = "",
 	piece = "", decollage = "", poseParfait = "", poseChoc = "", poseLourde = "", vrille = "",
 	maillon = "", bigAir = "", encaisse = "", explosion = "", pad = "", nitroPlein = "",
 	tap = "", go = "", bip = "", compteFin = "", record = "", portail = "", fronde = "",

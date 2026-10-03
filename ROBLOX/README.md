@@ -39,9 +39,10 @@ pose plus bas : c'est là que le jeu se joue. 6 secondes en l'air maximum.
 ## Les sons (à faire une fois)
 
 Roblox ne joue que les sons importés sur Roblox. Le dossier **`sons-a-importer/`** contient cent dix bruitages du
-jeu (tirés de notre banque de sons), cinq boucles (**moteur**, **nitro**, crissement, drift, rase-bord), et **quatre musiques** : `musique` (la radio,
-jouée en orbite et partout où un morceau de lieu manque), `musiqueNuages`, `musiqueVille` (aussi l'accueil, le garage et l'écran
-de fin) et `musiqueOrage` — la musique suit le lieu, comme sur le web.
+jeu (tirés de notre banque de sons), cinq boucles (**moteur**, **nitro**, crissement, drift, rase-bord), et **six musiques** : `musique` (la radio,
+jouée en orbite et partout où un morceau de lieu manque), `musiqueNuages` (CIEL · LES 5 NIVEAUX), `musiqueVille`, `musiqueOrage`,
+et les deux morceaux de l'accueil `musiqueLobby1` / `musiqueLobby2` (un des deux tiré à chaque lancement, aussi au garage et à
+l'écran de fin) — la musique suit le lieu, comme sur le web.
 Les sons des niveaux : `eclair`, `tonnerre` (l'orage), `orbiteEntre`, `orbiteSort`, `espaceAmbiance`, `explosionLoin`, `esquive`,
 `touche`, `abri` (l'orbite et ses débris), `mortSat` (la pluie de satellites).
 

@@ -275,6 +275,8 @@ Config.SONS = {
 	driftBrrr = "", rasBord = "", -- (la charge du drift qui monte ; le grondement du rase-bord)
 	-- la musique par LIEU (MUSIC_LIEU du web) : les nuages, la ville (et l'accueil), l'orage ; pas importée = `musique` continue
 	musiqueNuages = "", musiqueVille = "", musiqueOrage = "",
+	-- l'ACCUEIL (MUSIC_LOBBY du web, 3/10) : un des deux morceaux de lobby, tiré au lancement et gardé toute la session
+	musiqueLobby1 = "", musiqueLobby2 = "",
 	piece = "", decollage = "", poseParfait = "", poseChoc = "", poseLourde = "", vrille = "",
 	maillon = "", bigAir = "", encaisse = "", explosion = "", pad = "", nitroPlein = "",
 	tap = "", go = "", bip = "", compteFin = "", record = "", portail = "", fronde = "",
