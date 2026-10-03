@@ -799,8 +799,10 @@ function TU.rate(): boolean
 	HudScore.flash("#ffffff", 0.5)
 	return true
 end
+TU.gestes = { "glisse", "nitro", "bord", "nitro", "pose" } -- (L22416 : le geste de chaque étape)
 function TU.tick(dt: number)
 	Hud.nitroAppel(TU.on and TU.pause <= 0 and (TU.etape == 2 or TU.etape == 4))
+	Hud.coachGeste(TU.on and TU.gestes[math.clamp(TU.etape, 1, 5)] or nil)
 	if TU.msgT > 0 then
 		TU.msgT -= dt
 		if TU.msgT <= 0 then TU.msg = nil end
@@ -13529,7 +13531,7 @@ function Hud.creer()
 		Position = UDim2.fromOffset(86, 38), Text = "" }, E.astuce)
 	-- la carte de l'AUTO-ÉCOLE (#coach) : en HAUT, sous la jauge (web : top 62 px sur 390 — elle garde le haut de l'écran pour elle) ;
 	-- l'en-tête et PASSER, le titre, la consigne, cinq pastilles
-	E.coach = carbone(hud, UDim2.fromOffset(628, 150), UDim2.new(0.5, 60, 0, 92), C.vert, Vector2.new(0.5, 0))
+	E.coach = carbone(hud, UDim2.fromOffset(628, 196), UDim2.new(0.5, 60, 0, 92), C.vert, Vector2.new(0.5, 0))
 	E.coach.Visible = false
 	E.coachTete = texte(E.coach, { Text = "", TextSize = 16, TextColor3 = C.terne, Size = UDim2.new(1, -220, 0, 18), Position = UDim2.fromOffset(24, 14),
 		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
@@ -13538,6 +13540,16 @@ function Hud.creer()
 	E.coachTxt = inst("TextLabel", { BackgroundTransparency = 1, FontFace = TXT, TextSize = 22, TextColor3 = C.texte2, TextWrapped = true,
 		TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, Size = UDim2.new(1, -48, 0, 50),
 		Position = UDim2.fromOffset(24, 80), Text = "" }, E.coach)
+	-- (L1229) LA DÉMO DU GESTE : un petit film en pixels sous la consigne — le pouce qui glisse, l'éclair qu'on presse, la flèche
+	-- qui file vers le bord, la cible qui bat. Quatre pictos bâtis une fois ; Hud.coachGeste n'en montre qu'un et le fait jouer.
+	E.coachGeste = inst("Frame", { Name = "Geste", BackgroundTransparency = 1, ClipsDescendants = true, Size = UDim2.new(1, -48, 0, 44),
+		Position = UDim2.fromOffset(24, 128) }, E.coach)
+	E.coachGestes = {}
+	for _, g in { { "glisse", "pouce", Color3.new(1, 1, 1) }, { "nitro", "eclair", hx("ff8d2e") }, { "bord", "droite", Color3.new(1, 1, 1) }, { "pose", "cible", hx("7dff9a") } } do
+		local f = icone(E.coachGeste, g[2], 4, g[3], UDim2.new(0.5, 0, 0, 22), Vector2.new(0.5, 0.5))
+		f.Visible = false
+		E.coachGestes[g[1]] = { f = f, k = inst("UIScale", {}, f) }
+	end
 	E.coachPips = {}
 	for i = 1, 5 do
 		E.coachPips[i] = inst("Frame", { BackgroundColor3 = C.trait, BorderSizePixel = 0, Size = UDim2.fromOffset(40, 6), Position = UDim2.new(0, 24 + (i - 1) * 48, 1, -14) }, E.coach)
@@ -14208,6 +14220,39 @@ end
 -- le bilan de la partie en cours, sous le titre PAUSE
 function Hud.pauseBilan(aura: number, moteur: number, niveau: number)
 	E.pauseBilan.Text = string.format("AURA %s   -   %s %d   -   %s %d", Hud.entier(aura), FR and "MOTEUR" or "ENGINE", moteur, FR and "NIVEAU" or "LEVEL", niveau)
+end
+-- la démo du geste de l'auto-école (les keyframes du web, en marches : coGlisse 1,6 s ×16, coAppui ,5 s ×2, coBord 1,2 s ×12,
+-- coCible ,8 s ×4) — appelée à chaque image tant que la carte est là
+function Hud.coachGeste(nom: string?)
+	local t = os.clock()
+	for k, g in E.coachGestes do
+		local on = k == nom
+		if g.f.Visible ~= on then g.f.Visible = on end
+		if on then
+			local x, y, sc, tr9 = 0, 0, 1, 0
+			if k == "glisse" then
+				local u = math.floor((t % 1.6) / 1.6 * 16) / 16
+				x = -110 + 220 * (1 - math.abs(1 - 2 * u))
+			elseif k == "nitro" then
+				y = (t % 0.5 < 0.25) and 0 or 7
+			elseif k == "bord" then
+				local u = math.floor((t % 1.2) / 1.2 * 12) / 12
+				x = (u < 0.8) and (-90 + 200 * u / 0.8) or (110 + 40 * (u - 0.8) / 0.2)
+				tr9 = (u < 0.8) and 0 or (u - 0.8) / 0.2
+			else
+				local u = math.floor((t % 0.8) / 0.8 * 4) / 4
+				sc = 0.8 + 0.35 * (1 - math.abs(1 - 2 * u))
+			end
+			g.f.Position = UDim2.new(0.5, x, 0, 22 + y)
+			g.k.Scale = sc
+			if g.tr ~= tr9 then -- (les pixels ne s'effacent qu'au bout de la course vers le bord)
+				g.tr = tr9
+				for _, px9 in g.f:GetChildren() do
+					if px9:IsA("Frame") then px9.BackgroundTransparency = tr9 end
+				end
+			end
+		end
+	end
 end
 -- l'anneau d'appel du bouton NITRO (l'auto-école)
 function Hud.nitroAppel(on: boolean)

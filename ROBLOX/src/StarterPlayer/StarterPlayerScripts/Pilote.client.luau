@@ -799,8 +799,10 @@ function TU.rate(): boolean
 	HudScore.flash("#ffffff", 0.5)
 	return true
 end
+TU.gestes = { "glisse", "nitro", "bord", "nitro", "pose" } -- (L22416 : le geste de chaque étape)
 function TU.tick(dt: number)
 	Hud.nitroAppel(TU.on and TU.pause <= 0 and (TU.etape == 2 or TU.etape == 4))
+	Hud.coachGeste(TU.on and TU.gestes[math.clamp(TU.etape, 1, 5)] or nil)
 	if TU.msgT > 0 then
 		TU.msgT -= dt
 		if TU.msgT <= 0 then TU.msg = nil end
