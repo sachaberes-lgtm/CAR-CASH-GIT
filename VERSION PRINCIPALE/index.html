@@ -28851,7 +28851,8 @@ function instruPlanifie(){ // regard d'avance de 120 ms : les notes tombent pile
     if(!INSTRU.tient){if(INSTRU.queue<=0){clearInterval(INSTRU.iv);INSTRU.iv=0;return;}INSTRU.queue--;INSTRU.vel*=.84;} // lâché : la phrase s'éteint en finissant le temps
     if(INSTRU.essai&&INSTRU.n>=INSTRU.essaiN)return;
     const k=INSTRU.k,mes=k>>4;
-    const t=Math.max(INSTRU.tNote,AC.currentTime),temps=k%4===0,V=INSTRU.vel*((mes&3)>=2?.78:1); // mesures 3-4 un peu plus bas
+    if(INSTRU.tient)INSTRU.monte=Math.min(1,(INSTRU.monte||0)+1/8);                    // l'ENTRÉE en fondu : 8 notes (~2 temps) de 30 % à pleine voix
+    const t=Math.max(INSTRU.tNote,AC.currentTime),temps=k%4===0,V=INSTRU.vel*((mes&3)>=2?.78:1)*(.3+.7*(INSTRU.monte==null?1:INSTRU.monte)); // mesures 3-4 un peu plus bas
     const tons=instruTons(t+.01);                                                       // l'accord du MORCEAU, maintenant
     const fen=instruDans(tons,62,86),mot=INSTRU_MOTIFS[((k>>3)*3+(mes>>2))%INSTRU_MOTIFS.length];
     let a9=fen.length?fen[mot[k%8]%Math.min(5,fen.length)]:-1;                          // l'arpège : les 5 premières notes de l'accord au-dessus de sol3
@@ -28864,17 +28865,30 @@ function instruPlanifie(){ // regard d'avance de 120 ms : les notes tombent pile
     INSTRU.tNote=INSTRU.off!=null&&!INSTRU.essai?instruGrille(INSTRU.tNote+INSTRU.pas*.5):INSTRU.tNote+INSTRU.pas; // la note suivante, SUR la grille du morceau
   }
 }
+/* L'APPUI TENU (2026-10-03, Léo : « le début de l'effet, le premier son qu'on entend quand on appuie, est trop fort, presque dérangeant —
+   mais quand ça s'étend en plein de notes harmonieuses qui varient, c'est vraiment cool ; ça doit vraiment s'activer quand le joueur
+   APPUIE ET MAINTIENT ; la transition floue de fin est très bien, ne change pas ») :
+   · la phrase ne part qu'après INSTRU_TENIR (0,22 s) de doigt posé — un tap bref ne joue plus rien ;
+   · plus d'ACCENT de mélodie au départ (c'était ce 1er son flou, une note de Rhodes appuyée dans la salle) ;
+   · elle ENTRE en fondu : les premières notes à 30 %, pleine voix en ~2 temps (`INSTRU.monte`). La fin est inchangée. */
+const INSTRU_TENIR=.22;
 function instruOn(){
   if(!INSTRU.on||!AC||!SND.sfx||(AC.state!=='running'&&!INSTRU.essai)||paused||(startBoostT>0&&!INSTRU.essai))return; // pendant le boost de départ : rien, même si le doigt est sur NITRO
+  if(INSTRU.essai)return instruDemarre();
+  INSTRU.doigt=true;clearTimeout(INSTRU.att);
+  INSTRU.att=setTimeout(function(){if(INSTRU.doigt)try{instruDemarre();}catch(e){}},INSTRU_TENIR*1000); // il faut TENIR
+}
+function instruDemarre(){
+  if(!AC||paused||(startBoostT>0&&!INSTRU.essai))return;
   const t=performance.now(),neuve=t-INSTRU.tDer>2500&&!INSTRU.iv;INSTRU.tDer=t;
-  instruTempo();instruBus();instruEcho();INSTRU.tient=true;INSTRU.vel=1;INSTRU.acc=1;INSTRU.n=0;               // chaque appui : un ACCENT de mélodie
+  instruTempo();instruBus();instruEcho();INSTRU.tient=true;INSTRU.vel=1;INSTRU.acc=0;INSTRU.n=0;if(neuve||!INSTRU.iv)INSTRU.monte=0;
   if(neuve){INSTRU.k=0;INSTRU.mel=67;INSTRU.tNote=instruGrille(AC.currentTime+.005);}  // une phrase NEUVE (silence de 2,5 s)
   else if(!INSTRU.iv){INSTRU.tNote=instruGrille(Math.max(AC.currentTime+.005,INSTRU.der+.09));} // elle REPREND où elle en était
   if(INSTRU.tNote-AC.currentTime>.5)INSTRU.tNote=instruGrille(AC.currentTime+.005);   // garde-fou (horloges qui ont dérivé)
   if(INSTRU.essai){INSTRU.tient=!!INSTRU.essaiTenu;if(!INSTRU.tient)INSTRU.queue=3;instruPlanifie();INSTRU.tient=false;return;}
   if(!INSTRU.iv)INSTRU.iv=setInterval(instruPlanifie,25);instruPlanifie();
 }
-function instruOff(){if(!INSTRU.tient)return;INSTRU.tient=false;INSTRU.tDer=performance.now();INSTRU.queue=(4-INSTRU.k%4)%4+4;} // lâché : on finit le temps + un temps, en s'éteignant
+function instruOff(){INSTRU.doigt=false;clearTimeout(INSTRU.att);if(!INSTRU.tient)return;INSTRU.tient=false;INSTRU.tDer=performance.now();INSTRU.queue=(4-INSTRU.k%4)%4+4;} // lâché : on finit le temps + un temps, en s'éteignant
 window.dbgInstru=function(a){if(a==='bus'){try{const b=instruBus();let et='-';if(AC.state!=='running'&&INSTRU.etin){instruEtincelle(440,AC.currentTime,0,.1);et='ok';}return{bus:!!b,echo:!!INSTRU.dL,etincelle:et,contour:!!INSTRU.contour};}catch(e){return String(e);}}if(a===0||a===1){INSTRU.on=!!a;if(!a)instruOff();}
   if(a==='tenu'){ // banc MUET : un appui TENU de 64 doubles croches (4 mesures) — fréquences et écarts de temps
     if(!AC)return'pas de contexte';const sb=INSTRU.bus,sv=SND.sfx;INSTRU.bus=AC.createGain();SND.sfx=true;INSTRU.tDer=0;INSTRU.essai=true;INSTRU.essaiTenu=true;INSTRU.essaiN=64;INSTRU.vu=[];INSTRU.der=0;
