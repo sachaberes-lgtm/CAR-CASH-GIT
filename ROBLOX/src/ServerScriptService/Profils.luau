@@ -125,6 +125,24 @@ function Profils.sauver(p: Player)
 	end)
 end
 
+-- LES ÉCRITURES SE REGROUPENT : Roblox n'accepte qu'une écriture toutes les 6 s sur une même clé — au-delà il les met en file,
+-- puis les JETTE quand la file est pleine. Un réglage, une astuce vue, le permis, une fin de partie : chacun demandait la sienne.
+-- Ici, une seule écriture au plus toutes les 7 s par joueur ; ce qui arrive entre-temps part avec la suivante (le profil est le même
+-- objet, toujours à jour). Quand le joueur s'en va, `Profils.sauver` écrit tout de suite.
+local enAttente: { [number]: boolean } = {}
+local derniere: { [number]: number } = {}
+function Profils.sauverBientot(p: Player)
+	local id = p.UserId
+	if enAttente[id] then return end
+	enAttente[id] = true
+	task.spawn(function()
+		local attente = 7 - (os.clock() - (derniere[id] or -100))
+		if attente > 0 then task.wait(attente) end
+		enAttente[id] = nil
+		derniere[id] = os.clock()
+		Profils.sauver(p) -- (parti entre-temps : son profil est déjà écrit et oublié, sauver ne fait rien)
+	end)
+end
 function Profils.oublier(p: Player)
 	actifs[p.UserId] = nil
 end

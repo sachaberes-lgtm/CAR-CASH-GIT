@@ -21919,6 +21919,24 @@ function Profils.sauver(p: Player)
 	end)
 end
 
+-- LES ÉCRITURES SE REGROUPENT : Roblox n'accepte qu'une écriture toutes les 6 s sur une même clé — au-delà il les met en file,
+-- puis les JETTE quand la file est pleine. Un réglage, une astuce vue, le permis, une fin de partie : chacun demandait la sienne.
+-- Ici, une seule écriture au plus toutes les 7 s par joueur ; ce qui arrive entre-temps part avec la suivante (le profil est le même
+-- objet, toujours à jour). Quand le joueur s'en va, `Profils.sauver` écrit tout de suite.
+local enAttente: { [number]: boolean } = {}
+local derniere: { [number]: number } = {}
+function Profils.sauverBientot(p: Player)
+	local id = p.UserId
+	if enAttente[id] then return end
+	enAttente[id] = true
+	task.spawn(function()
+		local attente = 7 - (os.clock() - (derniere[id] or -100))
+		if attente > 0 then task.wait(attente) end
+		enAttente[id] = nil
+		derniere[id] = os.clock()
+		Profils.sauver(p) -- (parti entre-temps : son profil est déjà écrit et oublié, sauver ne fait rien)
+	end)
+end
 function Profils.oublier(p: Player)
 	actifs[p.UserId] = nil
 end
@@ -22125,7 +22143,7 @@ fnAction.OnServerInvoke = function(p, nom, ...)
 	local prof = Profils.de(p)
 	local ok, res, msg = pcall(f, p, prof, ...)
 	if not ok then return false, "erreur", prof end
-	if res then task.spawn(Profils.sauver, p) end
+	if res then Profils.sauverBientot(p) end
 	return res, msg, prof
 end
 
@@ -22234,7 +22252,7 @@ evFin.OnServerEvent:Connect(function(p, montant, distance, aura, stats)
 	if type(stats) == "table" and stats.lecon == true then
 		evRecord:FireClient(p, prof.record, prof.compte)
 		Profils.pousser(p)
-		task.spawn(Profils.sauver, p)
+		Profils.sauverBientot(p)
 		return
 	end
 	if montant > prof.record then prof.record = montant end
@@ -22270,6 +22288,6 @@ evFin.OnServerEvent:Connect(function(p, montant, distance, aura, stats)
 	end
 	evRecord:FireClient(p, prof.record, prof.compte)
 	Profils.pousser(p)
-	task.spawn(Profils.sauver, p)
+	Profils.sauverBientot(p)
 end)
 ]]></ProtectedString></Properties></Item></Item><Item class="StarterGui" referent="RBX000000CF"><Properties><string name="Name">StarterGui</string></Properties></Item><Item class="SoundService" referent="RBX000000D0"><Properties><string name="Name">SoundService</string></Properties></Item></roblox>

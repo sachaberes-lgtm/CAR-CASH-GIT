@@ -70,7 +70,7 @@ fnAction.OnServerInvoke = function(p, nom, ...)
 	local prof = Profils.de(p)
 	local ok, res, msg = pcall(f, p, prof, ...)
 	if not ok then return false, "erreur", prof end
-	if res then task.spawn(Profils.sauver, p) end
+	if res then Profils.sauverBientot(p) end
 	return res, msg, prof
 end
 
@@ -179,7 +179,7 @@ evFin.OnServerEvent:Connect(function(p, montant, distance, aura, stats)
 	if type(stats) == "table" and stats.lecon == true then
 		evRecord:FireClient(p, prof.record, prof.compte)
 		Profils.pousser(p)
-		task.spawn(Profils.sauver, p)
+		Profils.sauverBientot(p)
 		return
 	end
 	if montant > prof.record then prof.record = montant end
@@ -215,5 +215,5 @@ evFin.OnServerEvent:Connect(function(p, montant, distance, aura, stats)
 	end
 	evRecord:FireClient(p, prof.record, prof.compte)
 	Profils.pousser(p)
-	task.spawn(Profils.sauver, p)
+	Profils.sauverBientot(p)
 end)
