@@ -28813,7 +28813,7 @@ window.dbgInstru=function(a){if(a==='bus'){try{const b=instruBus();return{bus:!!
     if(!AC)return'pas de contexte';const sb=INSTRU.bus,sv=SND.sfx;INSTRU.bus=AC.createGain();SND.sfx=true;INSTRU.tDer=0;INSTRU.essai=true;INSTRU.vu=[];
     try{for(let k=0;k<4;k++){instruOn();}}finally{INSTRU.essai=false;INSTRU.bus=sb;SND.sfx=sv;}
     return{notes:INSTRU.vu.slice(),ton:sonTonSuit._t|0,etat:AC.state};}
-  return{on:INSTRU.on,tient:INSTRU.tient,accord:INSTRU.ac%4,ton:sonTonSuit._t|0,dernieres:INSTRU.vu.slice(-8),contexte:AC&&AC.state,effets:!!SND.sfx};};
+  return{on:INSTRU.on,tient:INSTRU.tient,mesure:INSTRU.k>>4,ton:sonTonSuit._t|0,dernieres:INSTRU.vu.slice(-8),contexte:AC&&AC.state,effets:!!SND.sfx};};
 function nfxTick(dt){ // chaque image (après hsF/hsU) : l'onde, la teinte des bords, les enveloppes
   const vit=running&&!gameOver&&mode!=='boom';
   NFX.ign=Math.max(0,NFX.ign-dt/.55);NFX.off=Math.max(0,NFX.off-dt/1.2);
@@ -37133,7 +37133,8 @@ function loop(now){
     if(LIVRE.on){LIVRE.t+=dt;if(nitroOn)LIVRE.tN+=dt;if(mode==='fall')LIVRE.tV+=dt;}
     if(wantN&&!loop._nvW&&!nitroOn&&mode!=='boom'){try{if(SONV2)sfx('nitro.vide');else noiseBurst(.04,.06,2500);}catch(e){}hap(6);} // (2026-09-26, audit son) NITRO À VIDE : un « tchk » sec — l'appui répond toujours
     loop._nvW=wantN;
-    if(wantN!==!!loop._iW){loop._iW=wantN;try{if(wantN&&mode!=='boom'&&!gameOver)instruOn();else instruOff();}catch(e){}} // (2026-10-03) LA PHRASE DU BOOST suit le DOIGT, pas la flamme (le réservoir vide la coupait)
+    const doigtN=!!(keys.ShiftLeft||keys.ShiftRight||keys.Space); // (2026-10-03, Léo) la phrase ne répond qu'au VRAI doigt : ni le boost de départ (startBoostT), ni le pilote auto
+    if(doigtN!==!!loop._iW){loop._iW=doigtN;try{if(doigtN&&mode!=='boom'&&!gameOver)instruOn();else instruOff();}catch(e){}} // (2026-10-03) LA PHRASE DU BOOST suit le DOIGT, pas la flamme (le réservoir vide la coupait)
     if(nitroOn&&pwrNitroT<=0&&!PARK.on&&startBoostT<=0){
       let take=tk9; /* (LA LOI DU RÉSERVOIR) NITROOO ne dure 2× qu'AU SOL */ // (v3, Sacha : « en frénésie le nitro baisse 2× plus lentement ») · (2026-09-30, HAUTE VITESSE) NITROOO aussi : réservoir plein, sans rien ramasser, il restait 0,5 s de NITROOO au moteur 1 (0 palier) et 2,5 s au moteur max (2) ; ×0,5 pendant NTR.on → 1,3 s (1 palier) et 6,6 s (6, +88 %). PAS cumulé avec la frénésie (×0,25 : 0,05/s net, une nitro quasi infinie)
       if(LIVRE.on)livre(mode==='fall'?'n-:vol':'n-:sol',Math.min(take,nitroR+nitroX));
