@@ -95,7 +95,7 @@ local function batir()
 	boum.Color = Color3.fromRGB(255, 120, 40)
 	d.Parent = workspace
 	V = { d = d, cible = cible, anneau = anneau, trait = trait, disque = disque, faisceau = faisceau, f0 = f0, f1 = f1,
-		traine = traine, t0 = t0, t1 = t1, tete = tete, boum = boum, boumT = 0, p0 = Vector3.zero, dir = Vector3.yAxis }
+		traine = traine, t0 = t0, t1 = t1, tete = tete, boum = boum, boumT = 0, p0 = Vector3.zero, dir = Vector3.yAxis, ancre = ancre }
 end
 
 local function montrer(oui: boolean)
@@ -131,6 +131,9 @@ function Debris.arme(piste: any, s: number, lat: number, avance: number): boolea
 	V.dir = (n * 0.45 + t * 0.72 + b * ((math.random() < 0.5) and -0.5 or 0.5)).Unit
 	V.p0 = Debris.p1 + V.dir * (720 * M)
 	V.cible.CFrame = CFrame.fromMatrix(Debris.p1, b, n)
+	-- (l'ancre des rubans se pose sur la cible : Roblox peut ne pas dessiner un Beam dont la pièce porteuse est hors champ — à
+	-- l'origine du monde, à des kilomètres de l'orbite, elle l'était toujours. Les attaches, elles, restent en coordonnées monde.)
+	V.ancre.CFrame = CFrame.new(Debris.p1)
 	V.f0.WorldPosition = Debris.p1
 	montrer(true)
 	return true
