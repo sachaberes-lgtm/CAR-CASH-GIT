@@ -28800,7 +28800,7 @@ function instruTing(f,t,pan,vel){
   const c=AC.createOscillator(),m=AC.createOscillator(),mg=AC.createGain(),g=AC.createGain(),sc=AC.createOscillator(),sg=AC.createGain(),p=AC.createStereoPanner?AC.createStereoPanner():null;
   c.frequency.value=f;m.frequency.value=f*3.5;mg.gain.setValueAtTime(f*1.1,t);mg.gain.setTargetAtTime(0,t,.06);m.connect(mg);mg.connect(c.frequency);
   sc.frequency.value=f*4;sg.gain.setValueAtTime(0,t);sg.gain.linearRampToValueAtTime(.3,t+.002);sg.gain.setTargetAtTime(0,t+.004,.035);sc.connect(sg);sg.connect(g);
-  const pk=.055*vel;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(pk,t+.003);g.gain.setTargetAtTime(0,t+.008,.35);
+  const pk=.07*vel;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(pk,t+.003);g.gain.setTargetAtTime(0,t+.008,.35); // (Léo : « un peu plus fort, que je le remarque ») +2 dB
   c.connect(g);if(p){p.pan.value=pan;g.connect(p);p.connect(INSTRU.etin);}else g.connect(INSTRU.etin);
   [c,m,sc].forEach(function(o){o.start(t);o.stop(t+1.8);});INSTRU.vu.push(Math.round(f));if(INSTRU.vu.length>200)INSTRU.vu.shift();
 }
@@ -28883,7 +28883,7 @@ function instruOn(){
   if(BTEST==='sans')return;
   if(INSTRU.essai)return instruDemarre();
   INSTRU.doigt=true;clearTimeout(INSTRU.att);
-  INSTRU.att=setTimeout(function(){if(INSTRU.doigt)try{instruDemarre();}catch(e){}},INSTRU_TENIR*1000); // il faut TENIR
+  instruDemarre(); // (2026-10-03, Léo : « l'activer dès qu'on appuie sur ESPACE, quand ça commence à booster — et en maintenant sur iPhone ») : plus d'attente de 0,22 s ; l'entrée en fondu suffit
 }
 function instruDemarre(){
   if(!AC||paused||(startBoostT>0&&!INSTRU.essai))return;
