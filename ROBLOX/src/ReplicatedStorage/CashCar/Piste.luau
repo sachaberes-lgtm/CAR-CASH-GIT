@@ -19,7 +19,7 @@ local RH = Config.ROAD_HALF
 
 export type Objet = { s: number, lat: number, h: number, face: number, kind: string, pw: string?, grp: number?, r: number?, fruit: number?, ligne: boolean? }
 export type Piste = {
-	graine: number, zone: number, niveau: string, variante: string?, archetype: string, filets: { any }, entree: { number }?, DS: number, n: number, len: number, F: { CFrame },
+	graine: number, zone: number, lv: number, niveau: string, variante: string?, archetype: string, filets: { any }, entree: { number }?, DS: number, n: number, len: number, F: { CFrame },
 	minY: number, grille: { [number]: { number } }, cellule: number,
 	objets: { Objet }, modules: { { a: number, b: number, nom: string } },
 }
@@ -38,13 +38,18 @@ end
 -- `ceder` (facultatif) est appelé entre deux motifs : on étale le calcul sur plusieurs images.
 -- `ecole` = la piste DESSINÉE de l'auto-école (genTuto, L8765) : douze tronçons écrits à la main, pas de hasard.
 -- `parties` = le nombre de parties déjà jouées par CE joueur (les cristaux s'y adaptent : voir semer) ; nil = un vétéran.
-function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (() -> ())?, ecole: boolean?, parties: number?): Piste
+-- `moteur` : { lv, str } — l'échelle des virages et le pas des motifs de pièces, calculés sur le MOTEUR du joueur (voir Pilote) ;
+-- nil = l'ancienne règle, sur le numéro de zone.
+function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (() -> ())?, ecole: boolean?, parties: number?, moteur: any?): Piste
 	local rnd = Random.new(graine * 97 + zone * 7919)
 	local function r(a: number, b: number): number return a + rnd:NextNumber() * (b - a) end
 	local niv: string = ecole and "nuages" or Config.niveau(zone).id
 	local variante: string? = (not ecole) and Config.niveau(zone).var or nil
 	local VILLE, ESPACE = niv == "ville", niv == "espace"
-	local LV = 1 + (zone - 1) * 0.35          -- lvPiste : plus on va vite, plus les rayons s'ouvrent
+	-- lvPiste (L28402, piste v6) : L'ÉCHELLE DES VIRAGES SUIT LA VITESSE DU MOTEUR — les virages grandissent, leur NOMBRE par minute
+	-- reste. (Avant le 3/10 elle suivait le numéro de zone : un joueur au petit moteur héritait des rayons d'un bolide.)
+	local LV = (moteur and moteur.lv) or (1 + (zone - 1) * 0.35)
+	local LV0 = LV -- (avant la marge de l'orbite : c'est elle que lisent l'écart des satellites et la croisière de conception)
 	-- L'AUTOROUTE ORBITALE (ESP_ROUTE, L8845) : en ESPACE la piste est dessinée pour 30 % de vitesse en plus
 	if ESPACE then LV *= 1.3 end
 	-- LES PENTES COMPRIMÉES (VILLE_PENTE, ESP_ROUTE.pente) : sous le seuil rien ne bouge ; au-delà, seule une part de l'excès passe —
@@ -555,16 +560,16 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 	end
 
 	local piste = {
-		graine = graine, zone = zone, niveau = niv, variante = variante, archetype = AR.nom, filets = filets, entree = (entreeA > 0) and { entreeA, entreeB } or nil,
+		graine = graine, zone = zone, lv = LV0, niveau = niv, variante = variante, archetype = AR.nom, filets = filets, entree = (entreeA > 0) and { entreeA, entreeB } or nil,
 		DS = DS * M, n = n, len = (n - 1) * DS * M, F = F,
 		minY = minY, grille = grille, cellule = CEL, objets = {}, modules = modules,
 	}
-	Piste.semer(piste :: any, rnd, zone, ecole, parties)
+	Piste.semer(piste :: any, rnd, zone, ecole, parties, moteur)
 	return piste :: any
 end
 
 -- ── les objets (spawnPickups L23148) : tout existe sur les DEUX faces (miroir strict) ──
-function Piste.semer(p: Piste, rnd: Random, zone: number, ecole: boolean?, parties: number?)
+function Piste.semer(p: Piste, rnd: Random, zone: number, ecole: boolean?, parties: number?, moteur: any?)
 	-- Ce que la route porte (buildTrack L10182-10286, spawnPickups L23625-23751). Tout existe en MIROIR sur les deux
 	-- faces ; lat est donné dans le repère de SA face (la droite du pilote qui roule dessus).
 	-- L'ordre : les flaques, les plots (lignes de chantier, slaloms, portes de frôlé), puis les pièces — qui ESQUIVENT
@@ -576,8 +581,9 @@ function Piste.semer(p: Piste, rnd: Random, zone: number, ecole: boolean?, parti
 	local L = p.len / M
 	local zones = zone - 1
 	local rich = math.clamp(0.88 + zones * 0.52, 0.88, 3.4)   -- la route s'enrichit à chaque portail
-	local STR = math.clamp(1 + zones * 0.22, 1, 2.1)           -- le pas des motifs s'allonge avec la vitesse
-	local vC = 70 + zones * 35                                 -- ~1 s de croisière (m)
+	-- (L23871) LE PAS DES MOTIFS SUIT LE MOTEUR : √(poussée × surmultipliée), 1 au départ, plafond 2,1 — un vrai slalom reste
+	local STR = (moteur and moteur.str) or math.clamp(1 + zones * 0.22, 1, 2.1)
+	local vC = 70 + ((p :: any).lv - 1) * 100                  -- ~1 s de croisière (m) : la croisière de conception (vC9, L9949)
 	local function dansModule(sp: number): boolean
 		for _, m in p.modules do
 			if sp > m.a / M - 30 and sp < m.b / M + 30 then return true end

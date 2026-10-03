@@ -330,7 +330,7 @@ function Espace.batir(piste: any, dossier: Instance, graine: number, ceder: (() 
 			return k, rad, (k == 1) and rad * 0.8 or rad
 		end
 		-- (l'écart grandit avec la vitesse de croisière du niveau : 1,3 à 2,7 s de route entre deux obstacles)
-		local espK = math.max(1, 0.45 + 0.4 * (1 + (piste.zone - 1) * 0.35) * 1.3)
+		local espK = math.max(1, 0.45 + 0.4 * ((piste :: any).lv or (1 + (piste.zone - 1) * 0.35))) -- (L13999 : lvPiste, 1,3 → 4,1 selon le palier)
 		local sp, no = 650 + r() * 100, 0
 		while sp < L - 420 do
 			if r() < 0.32 then -- LE RIDEAU : deux obstacles, une TROUÉE de 11-14 m quelque part entre eux

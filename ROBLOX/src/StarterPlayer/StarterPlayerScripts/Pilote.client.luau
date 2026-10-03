@@ -163,7 +163,18 @@ local function preparer(z: number, depart: CFrame?): Zone
 	ZONES[z] = e
 	task.spawn(function()
 		local function ceder() task.wait() end
-		local p = Piste.generer(graine, math.max(1, z), depart, ceder, z == 0, (profil.stats and profil.stats.parties) or nil)
+		-- (lvPiste, L28402) l'échelle des virages se calcule sur le MOTEUR : la croisière du palier +2 (on monte pendant la zone). La
+		-- zone suivante se bâtit UNE zone en avance : +3 pour elle (la première, bâtie au départ, garde le +2 du web).
+		local moteur: any = nil
+		do
+			local function late9(t9: number): number return 1 + math.min(0.5, math.max(0, t9 - 8) * 0.035) end
+			local t0 = KA.tierDe and KA.tierDe() or 0 -- (le palier vit plus bas dans le script : on le lit par KA)
+			local t = math.min(#MOT - 1, t0 + ((z <= 1) and 2 or 3))
+			local vw = 2.75 * 190 / 3.6 * late9(t) * MOT[t + 1][2] * SPD
+			local t1 = math.min(#MOT - 1, t0 + ((z <= 1) and 0 or 1))
+			moteur = { lv = 1 + math.clamp((vw - 70) / 140 * 1.4, 0, 3.4), str = math.clamp(math.sqrt(MOT[t1 + 1][2] * late9(t1)), 1, 2.1) }
+		end
+		local p = Piste.generer(graine, math.max(1, z), depart, ceder, z == 0, (profil.stats and profil.stats.parties) or nil, moteur)
 		local d = Instance.new("Folder")
 		d.Name = "Zone" .. z
 		Construction.route(p, d, ceder)
@@ -191,7 +202,7 @@ local function preparer(z: number, depart: CFrame?): Zone
 		-- fois touché : on retire le GROUPE de plots entier et la flaque, de 10 m avant le banc à 1 s de croisière après. SAUF les plots
 		-- de L'ORAGE (ses bancs couvrent la piste : le filtre le vidait — un plot coûte, il ne tue pas ; la flaque, elle, part partout).
 		if #nuages > 0 then
-			local vC = 70 + (math.max(1, z) - 1) * 0.35 * 100 -- (la croisière de conception de la piste, m/s)
+			local vC = 70 + ((p :: any).lv - 1) * 100 -- (la croisière de conception de la piste, m/s)
 			local Z9: { number } = {}
 			for _, c in nuages do
 				if c.route then
@@ -357,6 +368,7 @@ local carCF = CFrame.identity
 local menuRot = CFrame.identity -- la pose de la caisse au menu (la CHUTE), gardée pendant le plongeon du départ
 
 local function pousseMoteur(): number return MOT[tier + 1][2] end
+KA.tierDe = function(): number return tier end
 local function tardif(): number return 1 + math.min(0.5, math.max(0, tier - 8) * 0.035) end
 local function reservoir(): number return MOT[tier + 1].res or 2 end
 local function denom(): number return Config.DENOMS[tier + 1] * 0.25 end
