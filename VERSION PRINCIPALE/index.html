@@ -28648,7 +28648,7 @@ function nitroEteint(){ // LA DERNIÈRE BOUFFÉE : une langue de feu aux pots + 
    · LÂCHER = plus de nouvelles notes, celles qui sonnent s'éteignent seules. La grille repart du I après 2,5 s sans appui.
    Discret (≈ −30 dB sous une voix pleine), un écho en croche pointée. Par MASTER (curseur EFFETS) : marche aussi sur iPhone.
    `dbgInstru()` : état · `dbgInstru(0|1)` coupe / rallume · `dbgInstru('essai')` (banc muet : les fréquences jouées). */
-const INSTRU={on:true,tient:false,ac:0,k:0,n:0,tNote:0,tDer:0,bus:null,iv:0,vu:[]};
+const INSTRU={voix:0,der:0,on:true,tient:false,ac:0,k:0,n:0,tNote:0,tDer:0,bus:null,iv:0,vu:[]};
 const INSTRU_GRILLE=[[0,4,7,11,14],[9,12,16,19,23],[5,9,12,16,19],[7,11,14,17,21]]; // I maj9 · vi m9 · IV maj9 · V9 (demi-tons sur la tonique grave)
 const INSTRU_MOTIF=[0,1,2,3,4,3,2,1];                                                // monte, redescend : une boucle = 8 doubles croches
 const INSTRU_PAS=.15;                                                                // une double croche ≈ 100 BPM (le CIEL est à 88)
@@ -28660,10 +28660,12 @@ function instruBus(){
   INSTRU.bus=g;return g;
 }
 function instruNote(f,t,pan){ // une touche de piano électrique : sinus porteur, modulateur ×1 dont l'indice retombe (l'attaque « tine »), un peu de 2e harmonique
-  const bus=instruBus();if(!bus)return;
+  const bus=instruBus();if(!bus||INSTRU.voix>=6)return;
   const c=AC.createOscillator(),m=AC.createOscillator(),mg=AC.createGain(),g=AC.createGain(),p=AC.createStereoPanner?AC.createStereoPanner():null;
   c.frequency.value=f;m.frequency.value=f;mg.gain.setValueAtTime(f*1.1,t);mg.gain.setTargetAtTime(f*.15,t,.06);m.connect(mg);mg.connect(c.frequency);
-  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.03,t+.008);g.gain.setTargetAtTime(0,t+.02,.32);
+  if(INSTRU.voix>=6)return; // (2026-10-03, Léo : « pas de bruit parasite quand on spam ») jamais plus de 6 notes à la fois
+  INSTRU.voix++;c.onended=function(){INSTRU.voix--;};
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.065,t+.012);g.gain.setTargetAtTime(0,t+.025,.3); // (Léo : « fais plus fort »)
   c.connect(g);if(p){p.pan.value=pan;g.connect(p);p.connect(bus);}else g.connect(bus);
   c.start(t);m.start(t);c.stop(t+1.8);m.stop(t+1.8);INSTRU.vu.push(Math.round(f));if(INSTRU.vu.length>24)INSTRU.vu.shift();
 }
@@ -28675,7 +28677,7 @@ function instruPlanifie(){ // regard d'avance de 120 ms : les notes tombent pile
     const ac=INSTRU_GRILLE[INSTRU.ac%INSTRU_GRILLE.length],j=INSTRU_MOTIF[INSTRU.k%INSTRU_MOTIF.length];
     const rac=TON/2*Math.pow(2,(sonTonSuit._t|0)/12);                                  // la tonique grave du morceau (mi3 décalé)
     instruNote(rac*Math.pow(2,ac[j]/12),Math.max(INSTRU.tNote,AC.currentTime),INSTRU.k%2?.28:-.28);
-    INSTRU.k++;INSTRU.n++;INSTRU.tNote+=INSTRU_PAS;
+    INSTRU.der=INSTRU.tNote;INSTRU.k++;INSTRU.n++;INSTRU.tNote+=INSTRU_PAS;
     if(INSTRU.k%(INSTRU_MOTIF.length*2)===0)INSTRU.ac++;                                // tenu : 2 boucles puis l'accord suivant
   }
 }
@@ -28683,7 +28685,7 @@ function instruOn(){
   if(!INSTRU.on||!AC||!SND.sfx||(AC.state!=='running'&&!INSTRU.essai)||paused)return;
   const t=performance.now();
   INSTRU.ac=(t-INSTRU.tDer>2500)?0:INSTRU.ac+1;INSTRU.tDer=t;                           // chaque appui : l'accord suivant de la grille
-  INSTRU.k=0;INSTRU.n=0;INSTRU.tient=true;INSTRU.tNote=AC.currentTime+.005;
+  INSTRU.k=0;INSTRU.n=0;INSTRU.tient=true;INSTRU.tNote=Math.max(AC.currentTime+.005,INSTRU.der+.09); // spam : jamais deux notes collées (elles s'empilaient en grésillement)
   if(INSTRU.essai){INSTRU.tient=false;instruPlanifie();return;} // banc : l'appui bref (3 notes)
   if(!INSTRU.iv)INSTRU.iv=setInterval(instruPlanifie,25);instruPlanifie();
 }
