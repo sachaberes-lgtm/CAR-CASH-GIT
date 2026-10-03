@@ -746,6 +746,7 @@ end
 function TU.fin(passe: boolean)
 	TU.on = false
 	E.coach.Visible = false
+	Hud.nitroAppel(false)
 	if pwA > 0 then -- l'airtime prêté est repris : en vol, la jauge repart neuve
 		pwA = 0
 		V.fallT, V.fallTR = 0, 0
@@ -770,6 +771,8 @@ function TU.fin(passe: boolean)
 end
 function TU.bravo()
 	Sons.jouer("poseParfait", 1.2)
+	HudScore.flash("#62e062", 0.3) -- (la carte flashe en vert à chaque réussite)
+	Hud.vibre(20)
 	TU.pause = 0.75
 	if TU.etape >= 5 then
 		TU.etape = 6
@@ -788,6 +791,7 @@ function TU.rate(): boolean
 	return true
 end
 function TU.tick(dt: number)
+	Hud.nitroAppel(TU.on and TU.pause <= 0 and (TU.etape == 2 or TU.etape == 4))
 	if TU.msgT > 0 then
 		TU.msgT -= dt
 		if TU.msgT <= 0 then TU.msg = nil end
@@ -957,7 +961,7 @@ local function atterrir(face: number, latX: number, sX: number, hR: number?)
 		-- LE LOGO PASSE LE RELAIS (fireLaunchBoost, L28467) : CASH CAR claque avec son halo ; le nom du niveau arrive quand il s'efface
 		-- (au même endroit, jamais par-dessus)
 		Hud.logoDepart()
-		task.delay(1.9, function() if mode == "drive" or mode == "fall" then Hud.grand(G.nomNiveau(), Hud.C.texte, 1.8) end end)
+		task.delay(1.9, function() if (mode == "drive" or mode == "fall") and not TU.on then Hud.grand(G.nomNiveau(), Hud.C.texte, 1.8) end end) -- (L1247 : pas pendant la leçon)
 		Sons.vrai("departLogo", nil, nil, "go") -- (le logo CLAQUE : sub + accord d'or)
 		Sons.jouer("poseChoc")
 		secousse = 0.6
@@ -3087,8 +3091,12 @@ end
 Controles.surPause = basculerPause
 E.btPause.Activated:Connect(basculerPause)
 local retourReglages = "menu"
-E.btReglages.Activated:Connect(function() if mode == "menu" then retourReglages = "menu"; Hud.ecran("reglages") end end)
-E.btReglM.Activated:Connect(function() if mode == "mort" then retourReglages = "mort"; Hud.ecran("reglages") end end)
+-- (L39202) REVOIR L'AUTO-ÉCOLE dit « +$500 » tant que le permis n'a pas été payé
+function G.majReglages()
+	if E.rg.tuto and E.rg.tuto.lib then E.rg.tuto.lib.Text = T.revoir .. ((not profil.permis) and "  +$500" or "") end
+end
+E.btReglages.Activated:Connect(function() if mode == "menu" then retourReglages = "menu"; G.majReglages(); Hud.ecran("reglages") end end)
+E.btReglM.Activated:Connect(function() if mode == "mort" then retourReglages = "mort"; G.majReglages(); Hud.ecran("reglages") end end)
 -- PASSER L'EXPLOSION (boomSkip, L24785 du jeu web) : une fois le souffle retombé (0,8 s), un tap, un clic, ESPACE ou le bouton A
 -- saute au bilan. On ne court-circuite rien : la boucle voit boomT à 1,8 et finit la partie comme d'habitude.
 do

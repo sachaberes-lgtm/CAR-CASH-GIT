@@ -679,6 +679,10 @@ function Hud.creer()
 	E.nitroMini = jauge(nbP, UDim2.fromOffset(132, 20), UDim2.new(0.5, -6, 1, -16), Vector2.new(0.5, 1), 3, 2)
 	E.btNitro = nbB
 	nbB.ZIndex = 3
+	-- (L1243) L'APPEL : pendant les étapes NITRO de l'auto-école, un anneau d'or bat autour du bouton — c'est LUI qu'il faut presser
+	E.nitroAppel = inst("Frame", { Name = "Appel", BackgroundTransparency = 1, Size = UDim2.fromOffset(204, 176), Position = UDim2.new(1, -16, 1, -18),
+		AnchorPoint = Vector2.new(1, 1), Visible = false, ZIndex = 4 }, hud)
+	E.nitroAppelTrait = inst("UIStroke", { Color = C.or_, Thickness = 5, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, E.nitroAppel)
 	-- l'aide tactile
 	E.tactile = inst("Frame", { Name = "Tactile", BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Visible = false }, hud)
 	E.glisseTxt = texte(E.tactile, { Text = T.glisse, TextSize = 28, TextColor3 = C.texte2, TextXAlignment = Enum.TextXAlignment.Left,
@@ -1329,6 +1333,15 @@ end
 -- le bilan de la partie en cours, sous le titre PAUSE
 function Hud.pauseBilan(aura: number, moteur: number, niveau: number)
 	E.pauseBilan.Text = string.format("AURA %s   -   %s %d   -   %s %d", Hud.entier(aura), FR and "MOTEUR" or "ENGINE", moteur, FR and "NIVEAU" or "LEVEL", niveau)
+end
+-- l'anneau d'appel du bouton NITRO (l'auto-école)
+function Hud.nitroAppel(on: boolean)
+	if E.nitroAppel.Visible ~= on then E.nitroAppel.Visible = on end
+	if on then
+		local u = 0.5 + 0.5 * math.sin(os.clock() * 7)
+		E.nitroAppelTrait.Transparency = 0.1 + 0.6 * u
+		E.nitroAppelTrait.Thickness = 3 + 4 * (1 - u)
+	end
 end
 local astuceFin = 0
 function Hud.astuce(txt: string, duree: number?)
