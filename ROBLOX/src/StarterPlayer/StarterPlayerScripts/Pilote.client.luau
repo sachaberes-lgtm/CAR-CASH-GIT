@@ -3621,6 +3621,8 @@ task.spawn(function()
 	if not okT then warn("[CashCar] titre : " .. tostring(errT)) end
 	if mode == "menu" then KA.Titre.montrer(true) end
 end)
+-- L'INTRO DU STUDIO : CASH CAR bat, explose, 1.61 GAMES — puis l'accueil (pas au banc : il attend « menu prêt » au plus vite)
+if not workspace:GetAttribute("DbgSansIntro") then pcall(Hud.introStudio) end
 allerMenu()
 end
 

@@ -504,6 +504,8 @@ function Hud.creer()
 	E.charge = inst("Frame", { BackgroundColor3 = C.nuit, Size = UDim2.fromScale(1, 1), ZIndex = 50 }, racine)
 	local lg = texte(E.charge, { Text = "CASH CAR", TextSize = 64, TextColor3 = C.or_, Size = UDim2.new(1, 0, 0, 80),
 		Position = UDim2.fromScale(0, 0.34), ZIndex = 51, epais = 4 })
+	E.chargeLogo = lg
+	E.chargeEchelle = inst("UIScale", {}, lg)
 	degrade(lg, Color3.fromRGB(255, 244, 170), C.orFonce, 90)
 	E.chargeTxt = texte(E.charge, { Text = T.chargement, TextSize = 14, TextColor3 = C.texte2, Position = UDim2.fromScale(0, 0.52), ZIndex = 51 })
 
@@ -1342,6 +1344,88 @@ function Hud.nitroAppel(on: boolean)
 		E.nitroAppelTrait.Transparency = 0.1 + 0.6 * u
 		E.nitroAppelTrait.Thickness = 3 + 4 * (1 - u)
 	end
+end
+-- L'INTRO DU STUDIO (L38356 du jeu web — « accumulation… battements… FISSION ») : le titre CASH CAR bat trois fois (pulsation, micro-
+-- éclair, onde), puis TOUT explose — dollars, cœurs, trèfles, crânes, euros, yens — et la signature se lève dans la fumée, à sa
+-- place : 1.61 GAMES (Sacha, 25/09 : « marque juste 1.61 GAMES »). Elle s'EFFACE avant que l'écran ne s'ouvre (deux détonations de
+-- suite, et la première ne vaut plus rien). Une fois, au lancement ; ~4 s. Rend la main quand c'est fini.
+function Hud.introStudio()
+	local ch = E.charge
+	if not ch or not ch.Visible then return end
+	E.chargeTxt.Visible = false
+	local fl = inst("Frame", { BackgroundColor3 = Color3.fromRGB(255, 240, 200), BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.fromScale(1, 1), ZIndex = 58 }, ch)
+	local function onde(r1: number, ep: number, c: Color3, d: number)
+		local o = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(40, 40), Position = UDim2.fromScale(0.5, 0.39), AnchorPoint = Vector2.new(0.5, 0.5), ZIndex = 52 }, ch)
+		inst("UICorner", { CornerRadius = UDim.new(0.5, 0) }, o)
+		local st = inst("UIStroke", { Color = c, Thickness = ep, Transparency = 0.2 }, o)
+		local ti = TweenInfo.new(d, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+		TweenService:Create(o, ti, { Size = UDim2.fromOffset(r1, r1) }):Play()
+		TweenService:Create(st, ti, { Transparency = 1 }):Play()
+		task.delay(d + 0.05, function() o:Destroy() end)
+	end
+	-- les trois BATTEMENTS
+	for k = 1, 3 do
+		E.chargeEchelle.Scale = 1 + 0.13 * k
+		fl.BackgroundTransparency = 1 - 0.1 * k
+		onde(700 + k * 240, 3, Color3.fromRGB(255, 214, 110), 0.7)
+		Sons.jouer("bip", Sons.demiTons(-12 + k * 4), 0.4)
+		task.wait(0.13)
+		E.chargeEchelle.Scale = 1
+		fl.BackgroundTransparency = 1
+		task.wait(0.32)
+	end
+	-- LA FISSION : le titre éclate, les symboles partent dans tous les sens
+	fl.BackgroundTransparency = 0
+	Sons.vrai("departLogo", nil, nil, "explosion", 1.4, 0.4)
+	E.chargeLogo.Visible = false
+	local SYM = { { "$", "#ffd75e" }, { "♥", "#ff5e8a" }, { "♣", "#54e07a" }, { "☠", "#e8e8f0" }, { "€", "#9ad8ff" }, { "¥", "#ffc46b" }, { "1.61", "#fff2be" }, { "♦", "#ff9d2e" } }
+	for _ = 1, 46 do
+		local sy = SYM[math.random(1, #SYM)]
+		local a, v = math.random() * 6.283, 220 + math.random() * 700
+		local l = inst("TextLabel", { BackgroundTransparency = 1, FontFace = TXT, Text = sy[1], TextColor3 = Color3.fromHex(sy[2]), TextSize = 26 + math.random() * 44,
+			Size = UDim2.fromOffset(80, 80), Position = UDim2.fromScale(0.5, 0.39), AnchorPoint = Vector2.new(0.5, 0.5), Rotation = math.random() * 360, ZIndex = 53 }, ch)
+		local d = 1.5 + math.random() * 0.9
+		TweenService:Create(l, TweenInfo.new(d, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+			Position = UDim2.new(0.5, math.cos(a) * v, 0.39, math.sin(a) * v * 0.72), Rotation = l.Rotation + (math.random() - 0.5) * 300, TextTransparency = 1 }):Play()
+		task.delay(d + 0.05, function() l:Destroy() end)
+	end
+	for i = 0, 2 do onde(1600 - i * 300, 7 - i * 2, (i == 1) and Color3.fromRGB(255, 120, 180) or Color3.fromRGB(255, 224, 150), 0.9) end
+	task.wait(0.13)
+	TweenService:Create(fl, TweenInfo.new(0.25), { BackgroundTransparency = 1 }):Play()
+	task.wait(0.17)
+	-- LA SIGNATURE se lève à la place du titre
+	local sig = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(700, 140), Position = UDim2.fromScale(0.5, 0.39), AnchorPoint = Vector2.new(0.5, 0.5), ZIndex = 54 }, ch)
+	local sc = inst("UIScale", { Scale = 0.7 }, sig)
+	local n1 = texte(sig, { Text = "1.61", TextSize = 96, TextColor3 = C.or_, Size = UDim2.new(1, 0, 0, 100), Position = UDim2.fromOffset(0, 0), ZIndex = 55, epais = 5, TextTransparency = 1 })
+	local n2 = texte(sig, { Text = "GAMES", TextSize = 30, TextColor3 = C.texte, Size = UDim2.new(1, 0, 0, 34), Position = UDim2.fromOffset(0, 104), ZIndex = 55, epais = 3, TextTransparency = 1 })
+	degrade(n1, Color3.fromRGB(255, 244, 170), C.orFonce, 90)
+	local ti = TweenInfo.new(0.45, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+	TweenService:Create(sc, ti, { Scale = 1 }):Play()
+	for _, n9 in { n1, n2 } do
+		TweenService:Create(n9, ti, { TextTransparency = 0 }):Play()
+		local s9 = n9:FindFirstChildOfClass("UIStroke")
+		if s9 then
+			s9.Transparency = 1
+			TweenService:Create(s9, ti, { Transparency = 0 }):Play()
+		end
+	end
+	for _ = 1, 10 do -- (la scène tremble sous la détonation)
+		sig.Position = UDim2.new(0.5, (math.random() - 0.5) * 16, 0.39, (math.random() - 0.5) * 16)
+		task.wait(0.034)
+	end
+	sig.Position = UDim2.fromScale(0.5, 0.39)
+	task.wait(1.8)
+	-- …et elle s'EFFACE
+	local to = TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+	TweenService:Create(sc, to, { Scale = 1.16 }):Play()
+	TweenService:Create(n1, to, { TextTransparency = 1 }):Play()
+	TweenService:Create(n2, to, { TextTransparency = 1 }):Play()
+	for _, s9 in { n1:FindFirstChildOfClass("UIStroke"), n2:FindFirstChildOfClass("UIStroke") } do
+		if s9 then TweenService:Create(s9, to, { Transparency = 1 }):Play() end
+	end
+	task.wait(0.5)
+	sig:Destroy()
+	fl:Destroy()
 end
 local astuceFin = 0
 function Hud.astuce(txt: string, duree: number?)
