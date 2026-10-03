@@ -5826,6 +5826,7 @@ html body #garage:not(.menu) .gTab{font-size:var(--f1)} /* les onglets étaient 
 <!-- (2026-09-28) LA CONSOLE DE SON : la banque de sons (générée par atelier-son/cuire.js) et son lecteur. `defer` : ils ne retardent
      pas le démarrage (on n'en a besoin qu'au premier geste) ; changer `?v=` à chaque nouvelle banque (le service worker garde l'ancienne sinon). -->
 <script defer src="sons-banque.js?v=11"></script>
+<script defer src="assets/audio/music/harmonie.js?v=1"></script> <!-- (2026-10-03) l'harmonie des morceaux, temps par temps : la phrase du boost la lit (atelier-son/harmonie.py) -->
 <script defer src="sfx.js?v=4"></script>
 <script>
 (function(){
@@ -28702,17 +28703,41 @@ const INSTRU_MOTIFS=[[0,1,2,3,4,3,2,1],[0,2,1,3,2,4,3,1],[4,3,2,1,0,1,2,3],[0,1,
 const INSTRU_RYTHMES=[[1,0,1,0,1,0,1,1],[1,0,0,1,0,0,1,0],[1,1,0,1,1,0,1,0],[1,0,1,1,0,1,0,0],[1,0,0,0,1,0,1,1],[1,1,1,0,1,0,0,0]]; // croches de la mesure : 1 = une note
 const INSTRU_PENTA=[0,2,4,7,9,12,14,16,19,21];                                       // la pentatonique majeure du morceau (au-dessus de la tonique grave)
 const INSTRU_CONTOUR=[9,12,16,11];                                                   // vers où va la mélodie, mesure par mesure
-const INSTRU_BPM={'ciel':88,'vapeur-salon':100,'lobby-ascenseur':120};
-function instruTempo(){ // la double croche du morceau qui joue
-  let bpm=0;const src=(musicEl&&musicEl.src)||'';
-  for(const k in INSTRU_BPM)if(src.indexOf(k)>=0){bpm=INSTRU_BPM[k];break;}
-  if(!bpm&&typeof BCLK!=='undefined'&&BCLK.conf>.5&&BCLK.per>.3&&BCLK.per<1)bpm=60/BCLK.per;
-  if(!bpm)bpm=100;while(bpm<80)bpm*=2;while(bpm>140)bpm/=2;                           // une double croche entre ~.11 et ~.19 s
-  INSTRU.pas=60/bpm/4;
-  INSTRU.off=(musicEl&&!musicEl.paused&&musicEl.currentTime>0)?AC.currentTime-musicEl.currentTime:null; // l'horloge du morceau, vue de l'audio
+/* LA PHRASE LIT LE MORCEAU (2026-10-03, Léo : « encore plus harmonieux et accordé à CHAQUE musique de la liste (important), parce que ça
+   va au début mais c'est pire à la fin »). Deux causes : la phrase inventait SA grille d'accords (I · vi · ii · V) sans savoir où en était
+   celle du morceau (ASCENSEUR finit sur un La7♭9 : do#, si♭ — tout frottait), et le tempo n'était calé qu'à l'appui (l'écart grandissait
+   au fil d'un long appui). Désormais `CC_HARMONIE` (atelier-son/harmonie.py : tempo, position des temps et, TEMPS PAR TEMPS, les notes qui
+   sonnent dans le morceau — vérifié sur les grilles connues de VAPEUR, ASCENSEUR, CIEL) : la phrase ne joue QUE les notes que le morceau
+   joue à cet instant, et se recale sur sa position de lecture à CHAQUE note (zéro dérive, même après 2 minutes d'appui).
+   Morceau inconnu (frénésie, un nouveau fichier) : la pentatonique de `SON_TON`, comme avant — et une ligne de plus dans harmonie.py. */
+function instruH(){ // la fiche du morceau qui joue (ou null)
+  const H=window.CC_HARMONIE;if(!H||!musicEl||!musicEl.src)return null;
+  const nom=decodeURIComponent(musicEl.src.split('/').pop().split('?')[0]).replace(/\.[a-z0-9]+$/i,'');return H[nom]||null;
 }
-function instruGrille(t){ // la prochaine double croche du morceau à partir de t
+function instruTempo(){ // la double croche du morceau qui joue, et son horloge vue de l'audio
+  const H=instruH();INSTRU.H=H;let bpm=H?H.bpm:0;
+  if(!bpm&&typeof BCLK!=='undefined'&&BCLK.conf>.5&&BCLK.per>.3&&BCLK.per<1)bpm=60/BCLK.per;
+  if(!bpm)bpm=100;let pas=60/bpm/4;while(pas<.1)pas*=2;while(pas>.2)pas/=2;           // une note entre ~.1 et ~.2 s
+  INSTRU.pas=pas;instruHorloge();
+}
+function instruHorloge(){ // recalée à CHAQUE passage du planificateur : la phrase ne dérive jamais du morceau
+  INSTRU.off=(musicEl&&!musicEl.paused&&musicEl.currentTime>0&&(musicEl.playbackRate||1)===1)?AC.currentTime-musicEl.currentTime+(INSTRU.H?INSTRU.H.ph:0):null;
+}
+function instruGrille(t){ // la prochaine note de la grille du morceau à partir de t
   if(INSTRU.off==null)return t;const p=INSTRU.pas,x=(t-INSTRU.off)/p;return INSTRU.off+Math.ceil(x-.02)*p;
+}
+function instruTons(t){ // les notes (classes 0 = do) qui sonnent dans le morceau à l'instant t — et la tonique de repli
+  const H=INSTRU.H;
+  if(H&&INSTRU.off!=null){const tb=60/H.bpm;let b=Math.floor((t-INSTRU.off)/tb);b=Math.max(0,Math.min(H.m.length-1,b));const m=H.m[b],o=[];
+    for(let i=0;i<12;i++)if(m>>i&1)o.push(i);if(o.length>=2)return o;
+    if(H.gamme&&H.gamme.length)return H.gamme.filter(function(x,i){return i%2===0;});} // temps creux : la gamme, une note sur deux
+  const r=(4+(sonTonSuit._t|0)+120)%12;return [0,2,4,7,9].map(function(x){return(r+x)%12;}); // repli : la pentatonique du morceau
+}
+function instruHz(m){return 440*Math.pow(2,(m-69)/12);}
+function instruDans(tons,lo,hi){const o=[];for(let m=lo;m<=hi;m++)if(tons.indexOf(m%12)>=0)o.push(m);return o;}
+function instruRacine(tons){ // la fondamentale probable : une note dont la quinte ET la tierce sonnent aussi
+  for(const r of tons)if(tons.indexOf((r+7)%12)>=0&&(tons.indexOf((r+3)%12)>=0||tons.indexOf((r+4)%12)>=0))return r;
+  for(const r of tons)if(tons.indexOf((r+7)%12)>=0)return r;return tons[0];
 }
 /* LE RENDU PREMIUM (2026-10-03, Léo : « on n'entend pas assez, et c'est pas parfait parfait : perfectionne, rendu premium ») :
    · la TOUCHE : deux porteuses à ±4 cents (le chorus d'un vrai Rhodes, ouvertes en stéréo), un modulateur dont l'indice suit la
@@ -28788,49 +28813,47 @@ function instruNote(f,t,pan,vel,dec,etin){ // une touche de piano électrique (v
   const fin=t+2.4;[m,c1,c2,o2].forEach(function(o){o.start(t);o.stop(fin);});
   INSTRU.vu.push(Math.round(f));if(INSTRU.vu.length>200)INSTRU.vu.shift();
 }
-function instruMelodie(k,ac){ // la note de mélodie de la croche k (demi-tons au-dessus de la tonique grave), ou -1
+function instruMelodie(k,tons){ // la note de mélodie (MIDI) de la croche k, ou -1 — seulement des notes qui sonnent dans le morceau
   const mes=k>>4,cr=(k>>1)&7,ry=INSTRU_RYTHMES[(mes*5+(mes>>2))%INSTRU_RYTHMES.length];
   if(!ry[cr]&&!INSTRU.acc)return -1;
-  const prev=INSTRU.mel,cible=INSTRU_CONTOUR[mes&3]+((mes>>2)&1?2:0);
+  const prev=INSTRU.mel,cible=[67,70,74,69][mes&3]+((mes>>2)&1?2:0),dispo=instruDans(tons,62,79);if(!dispo.length)return -1;
   let n;
-  if(cr%2===0||INSTRU.acc){ // temps fort : la note de l'accord (une octave plus haut si besoin) la plus proche du chemin vers la cible
-    let best=prev,bd=99;
-    for(const x of ac)for(const o of [0,12]){const v=x+o;if(v<7||v>21||(INSTRU.acc&&v===prev))continue;/* un accent (spam) BOUGE toujours : jamais la même note martelée */const d=Math.abs(v-prev)+.5*Math.abs(v-cible);if(d<bd){bd=d;best=v;}}
-    n=best;
-  }else{ // entre deux : un pas de pentatonique vers la cible (parfois un pas de côté — la phrase respire)
-    let i=0,bi=0,bd=99;for(i=0;i<INSTRU_PENTA.length;i++){const d=Math.abs(INSTRU_PENTA[i]-prev);if(d<bd){bd=d;bi=i;}}
+  if(cr%2===0||INSTRU.acc){ // temps fort : la note la plus proche du chemin vers la cible ; un accent (spam) BOUGE toujours
+    let bd=1e9;n=dispo[0];for(const v of dispo){if(INSTRU.acc&&v===prev&&dispo.length>1)continue;const d=Math.abs(v-prev)+.5*Math.abs(v-cible);if(d<bd){bd=d;n=v;}}
+  }else{ // entre deux : la note voisine vers la cible (parfois un pas de côté — la phrase respire)
+    let bi=0,bd=1e9;for(let i=0;i<dispo.length;i++){const d=Math.abs(dispo[i]-prev);if(d<bd){bd=d;bi=i;}}
     const dir=cible>prev?1:cible<prev?-1:((k*7)%3)-1;
-    bi=Math.max(0,Math.min(INSTRU_PENTA.length-1,bi+(((k*13+mes)%5)===0?-dir:dir)));n=INSTRU_PENTA[bi];
-    if(n<7)n=7;if(n>21)n=19;
+    bi=Math.max(0,Math.min(dispo.length-1,bi+(((k*13+mes)%5)===0?-dir:dir)));n=dispo[bi];
   }
   INSTRU.mel=n;return n;
 }
 function instruPlanifie(){ // regard d'avance de 120 ms : les notes tombent pile, même si une image tousse
   if(!AC){clearInterval(INSTRU.iv);INSTRU.iv=0;return;}
-  if(INSTRU.tient&&(gameOver||paused||mode==='boom'||startBoostT>0))instruOff();                      // la partie s'arrête : la phrase se termine
+  if(INSTRU.tient&&(gameOver||paused||mode==='boom'||startBoostT>0))instruOff();      // la partie s'arrête : la phrase se termine
+  if(!INSTRU.essai){if(INSTRU.H!==instruH())instruTempo();else instruHorloge();}        // le morceau a changé ? on relit sa fiche ; sinon on se recale
   const fin=INSTRU.essai?1e9:AC.currentTime+.12;
   while(INSTRU.tNote<fin){
     if(!INSTRU.tient){if(INSTRU.queue<=0){clearInterval(INSTRU.iv);INSTRU.iv=0;return;}INSTRU.queue--;INSTRU.vel*=.84;} // lâché : la phrase s'éteint en finissant le temps
     if(INSTRU.essai&&INSTRU.n>=INSTRU.essaiN)return;
     const k=INSTRU.k,mes=k>>4;
-    const ac=INSTRU_GRILLE[mes%INSTRU_GRILLE.length];                                  // l'accord avance à chaque mesure
-    const mot=INSTRU_MOTIFS[((k>>3)*3+(mes>>2))%INSTRU_MOTIFS.length];                 // un dessin par demi-mesure, l'ordre change toutes les 4 mesures
-    const rac=TON/2*Math.pow(2,(sonTonSuit._t|0)/12);                                  // la tonique grave du morceau (mi3 décalé)
     const t=Math.max(INSTRU.tNote,AC.currentTime),temps=k%4===0,V=INSTRU.vel*((mes&3)>=2?.78:1); // mesures 3-4 un peu plus bas
-    let st9=ac[mot[k%8]];if(st9>16)st9-=12;                                            // l'arpège reste SOUS la mélodie…
-    if((mes&3)===3){st9+=12;if(st9>26)st9-=12;}const arpK=(mes&3)===3?1.45:1; // (Léo : « la mélodie aiguë qui apparaît à la 4e, on ne l'entend pas assez ») +3 dB sur l'octave                                        // …sauf la 4e mesure : il monte d'une octave, la phrase s'éclaire avant de reboucler (2026-10-03, Léo : « plus aigu l'arpège au niveau 4 »)
-    const et9=mes>=3;                                                                  // dès la 4e mesure tenue : l'ÉTINCELLE
-    instruNote(rac*Math.pow(2,st9/12),t,k%2?.3:-.3,V*arpK*(temps?.62:.48),.26,et9);
-    if(k%2===0||INSTRU.acc){const m9=instruMelodie(k,ac);if(m9>=0)instruNote(rac*Math.pow(2,m9/12),t,0,V*(INSTRU.acc?1.25:(k%8===0?1.05:.9)),.5,et9);INSTRU.acc=0;}
-    if(temps&&k>=32&&INSTRU.tient)instruNote(rac/2,t,0,V*.55,.45);                         // la basse tient la TONIQUE (sous n'importe quel accord du morceau) // dès la 3e mesure tenue : la basse pose le temps
-    INSTRU.der=INSTRU.tNote;INSTRU.k++;INSTRU.n++;INSTRU.tNote+=INSTRU.pas;
+    const tons=instruTons(t+.01);                                                       // l'accord du MORCEAU, maintenant
+    const fen=instruDans(tons,55,84),mot=INSTRU_MOTIFS[((k>>3)*3+(mes>>2))%INSTRU_MOTIFS.length];
+    let a9=fen.length?fen[mot[k%8]%Math.min(5,fen.length)]:-1;                          // l'arpège : les 5 premières notes de l'accord au-dessus de sol3
+    if(a9>=0&&(mes&3)===3&&a9+12<=81)a9+=12;const arpK=(mes&3)===3?1.45:1;               // 4e mesure : il monte d'une octave (Léo : « plus aigu »)
+    const et9=mes>=3;                                                                   // dès la 4e mesure tenue : l'ÉTINCELLE
+    if(a9>=0)instruNote(instruHz(a9),t,k%2?.3:-.3,V*arpK*(temps?.62:.48),.26,et9);
+    if(k%2===0||INSTRU.acc){const m9=instruMelodie(k,tons);if(m9>=0)instruNote(instruHz(m9),t,0,V*(INSTRU.acc?1.25:(k%8===0?1.05:.9)),.5,et9);INSTRU.acc=0;}
+    if(temps&&k>=32&&INSTRU.tient){const r9=instruRacine(tons);instruNote(instruHz(38+((r9-2+12)%12)),t,0,V*.55,.45);} // dès la 3e mesure tenue : la basse pose la fondamentale du MORCEAU
+    INSTRU.der=INSTRU.tNote;INSTRU.k++;INSTRU.n++;
+    INSTRU.tNote=INSTRU.off!=null&&!INSTRU.essai?instruGrille(INSTRU.tNote+INSTRU.pas*.5):INSTRU.tNote+INSTRU.pas; // la note suivante, SUR la grille du morceau
   }
 }
 function instruOn(){
   if(!INSTRU.on||!AC||!SND.sfx||(AC.state!=='running'&&!INSTRU.essai)||paused||(startBoostT>0&&!INSTRU.essai))return; // pendant le boost de départ : rien, même si le doigt est sur NITRO
   const t=performance.now(),neuve=t-INSTRU.tDer>2500&&!INSTRU.iv;INSTRU.tDer=t;
   instruTempo();instruBus();instruEcho();INSTRU.tient=true;INSTRU.vel=1;INSTRU.acc=1;INSTRU.n=0;               // chaque appui : un ACCENT de mélodie
-  if(neuve){INSTRU.k=0;INSTRU.mel=14;INSTRU.tNote=instruGrille(AC.currentTime+.005);}  // une phrase NEUVE (silence de 2,5 s)
+  if(neuve){INSTRU.k=0;INSTRU.mel=67;INSTRU.tNote=instruGrille(AC.currentTime+.005);}  // une phrase NEUVE (silence de 2,5 s)
   else if(!INSTRU.iv){INSTRU.tNote=instruGrille(Math.max(AC.currentTime+.005,INSTRU.der+.09));} // elle REPREND où elle en était
   if(INSTRU.tNote-AC.currentTime>.5)INSTRU.tNote=instruGrille(AC.currentTime+.005);   // garde-fou (horloges qui ont dérivé)
   if(INSTRU.essai){INSTRU.tient=!!INSTRU.essaiTenu;if(!INSTRU.tient)INSTRU.queue=3;instruPlanifie();INSTRU.tient=false;return;}
