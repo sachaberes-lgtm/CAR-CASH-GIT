@@ -75,3 +75,4 @@
   (volume qui recule à l'arrêt) existait déjà. Règle du plaisir auditif retenue : ±6 % max, hauteur fixe, transitions ≥ 2 s.
 - 2026-10-03 — LE CIEL EN JEU (jeu de référence, commit 7f1e9f7 sur `lobby-leo-main`, à pousser) : carrière NUAGES niveau n → CIEL · NIVEAU n
   (n = 1…5 ; le 5 = le final), niveaux 6-10 = NOITE ; partie sans fin aux NUAGES = le morceau entier. Fichiers : boucles répétées ~110 s.
+- 2026-10-03 — LOBBY : TEMPLE DE JADE retiré. Tirage = VAPEUR · SALON, ASCENSEUR DORÉ, VIEILLE FORTUNE (commit 4dd978b, à pousser).
