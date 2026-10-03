@@ -398,7 +398,7 @@ function G.nomNiveau(): string
 end
 local function horiz(v: Vector3): number return math.sqrt(v.X * v.X + v.Z * v.Z) end
 -- la vitesse ÷ la croisière (flowVitN, L21005) : en vol, la vitesse HORIZONTALE seule
-local function vitN(): number
+function G.vitN(): number
 	local vm = vmaxShow() * 2.9
 	if vm <= 0 then return 1 end
 	local v = (mode == "fall") and horiz(fallVel) or math.abs(vA)
@@ -602,7 +602,7 @@ local function nitroooPart()
 	fovPunch = math.max(fovPunch, 9)
 	secousse = math.max(secousse, 0.35)
 end
-local function nitroooTick(dt: number)
+function G.nitroooTick(dt: number)
 	local actif = NTR.on and nitroOn and (mode == "drive" or mode == "fall")
 	if NTR.on and not actif then NTR.on = false end
 	if actif then
@@ -707,7 +707,7 @@ local function replacer()
 	E.air.Visible = false
 end
 -- LES TROIS VIES du mode FACILE (facileSauve, L23506) : le vide et le chrono d'air pardonnent deux fois
-local function facileSauve(cause: string): boolean
+function G.facileSauve(cause: string): boolean
 	if not facile() or G.coeurs <= 1 or (cause ~= "vide" and cause ~= "air") then return false end
 	G.coeurs -= 1
 	replacer()
@@ -890,7 +890,7 @@ local function exploser(cause: string)
 		replacer()
 		return
 	end
-	if TU.rate() or facileSauve(cause) then return end
+	if TU.rate() or G.facileSauve(cause) then return end
 	causeMort = cause
 	boomPos = carCF.Position
 	Score.mort() -- la chaîne OUVERTE part avec la caisse, le flow retombe
@@ -1127,7 +1127,7 @@ local function atterrir(face: number, latX: number, sX: number, hR: number?)
 end
 
 -- la LÈVRE raccroche (levreRattrape, L30613) : la caisse qui bascule revient d'elle-même sur la route, −6 %
-local function levreRattrape(j: number, latOff: number, hOff: number, tOff: number)
+function G.levreRattrape(j: number, latOff: number, hOff: number, tOff: number)
 	local F = piste.F[j]
 	local vm = vitMult()
 	local vTan = fallVel:Dot(F.LookVector) / vm
@@ -1151,7 +1151,7 @@ local function levreRattrape(j: number, latOff: number, hOff: number, tOff: numb
 	E.air.Visible = false
 end
 
-local function essayerAtterrir(dt: number)
+function G.essayerAtterrir(dt: number)
 	local pos = fallPos * M
 	local prev = prevPos * M
 	local DSm = piste.DS / M
@@ -1189,7 +1189,7 @@ local function essayerAtterrir(dt: number)
 			end
 			-- (b) LA LÈVRE RACCROCHE : la caisse REVIENT vers la route dans la seconde, jusqu'à 2 m sous la surface
 			if V.sideCd <= 0 and V.bascT < 1 and hOff > -2 and hOff < 0.8 and math.abs(latOff) < RH + demi and vB * math.sign(latOff) < -0.5 then
-				levreRattrape(proche, latOff, hOff, tOff)
+				G.levreRattrape(proche, latOff, hOff, tOff)
 				return
 			end
 		end
@@ -1273,7 +1273,7 @@ local function essayerAtterrir(dt: number)
 end
 
 -- ════════ les pouvoirs v2 (pwrPrend, L23479) : le même pouvoir se CUMULE (plafond 2 × sa durée) ════════
-local function pouvoirPrend(k: string)
+function G.pouvoirPrend(k: string)
 	local d = Config.POUVOIRS[k]
 	local autres = 0
 	for kk, v in { n = pwN, a = pwA, v = pwV, m = pwM, x = pwX } do
@@ -1366,7 +1366,7 @@ local function ramasser(o: any)
 		Bus.emit("piece", g, combo)
 		Sons.jouer("piece", Sons.demiTons(({ 0, 2, 4, 7, 9, 12, 14, 16 })[((combo - 1) % 8) + 1]))
 	elseif k == "cristal" then
-		pouvoirPrend(o.o.pw)
+		G.pouvoirPrend(o.o.pw)
 		Hud.vibre(40)
 		-- le cristal de l'autre face disparaît avec lui (on ne le prend qu'une fois)
 		for _, x in zone.objets :: { any } do
@@ -1418,7 +1418,7 @@ end
 
 -- les plots volants (un plot percuté part devant, rebondit, se replie)
 local volants: { { p: BasePart, v: Vector3, r: Vector3, vie: number } } = {}
-local function obstacles(dt: number, cf: CFrame)
+function G.obstacles(dt: number, cf: CFrame)
 	-- les PLOTS (choc, frôlé) et les FLAQUES, sur la face où l'on roule — balayés : rien ne passe à travers
 	local objs = zone.objets :: { any }
 	local sM = s * M
@@ -1817,7 +1817,7 @@ local function poserEnCourse(o: Piste.Objet)
 		table.sort(zone.pads)
 	end
 end
-local function ligneBloque(s9: number): boolean
+function G.ligneBloque(s9: number): boolean
 	-- un plot à moins de 9 m, une flaque à moins de son rayon + 7 : la place est prise
 	local objs = zone.objets :: { any }
 	local lo, hi = 1, #objs + 1
@@ -1844,7 +1844,7 @@ local function ligneBloque(s9: number): boolean
 	end
 	return false
 end
-local function ligneTick(dt: number)
+function G.ligneTick(dt: number)
 	local LI = Config.LIGNE
 	local L = piste.len / M
 	local b0 = math.max(30, math.abs(vA) * SPD)
@@ -1861,7 +1861,7 @@ local function ligneTick(dt: number)
 		for d = 0, 160, 20 do
 			local q = G.lgS + d
 			if q >= L - 120 then break end
-			if not ligneBloque(q) then
+			if not G.ligneBloque(q) then
 				s9 = q
 				break
 			end
@@ -2004,7 +2004,7 @@ local function passerPortail(): boolean
 end
 
 -- ════════ le DRIFT et son MINI-TURBO (driftTick, L20758) ════════
-local function driftTick(dt: number, on: boolean)
+function G.driftTick(dt: number, on: boolean)
 	G.driftCd = math.max(0, G.driftCd - dt)
 	if on and G.driftCd <= 0 then
 		G.driftC += dt
@@ -2036,7 +2036,7 @@ local function driftTick(dt: number, on: boolean)
 end
 
 -- LA FRONDE (frondeLache, L28654) : un virage serré tenu SANS glisser rend de la vitesse à la sortie
-local function frondeLache(t: number, c: number)
+function G.frondeLache(t: number, c: number)
 	if intro or mode ~= "drive" or G.frondeCd > 0 or not (vA > 8) then return end
 	local k = math.clamp((t - 0.9) / 1.8, 0, 1)
 	local co = (t > 0) and math.min(1, c / t) or 0
@@ -2058,7 +2058,7 @@ local function frondeLache(t: number, c: number)
 end
 
 -- ════════ LA CONDUITE (L36300-36680) ════════
-local function etapeSol(dt: number)
+function G.etapeSol(dt: number)
 	local push, late = pousseMoteur(), tardif()
 	local maxSp = 190 / 3.6 * late * push
 	local acc9 = 22 * late * (1 + (push - 1) * 0.6)
@@ -2074,7 +2074,7 @@ local function etapeSol(dt: number)
 	local vitOk = math.abs(vA) > maxSp * 0.42
 	if not intro and vitOk and frein and math.abs(steerS) > 0.35 then G.driftOn = true
 	elseif not vitOk or not frein or math.abs(steerS) < 0.2 then G.driftOn = false end
-	driftTick(dt, G.driftOn)
+	G.driftTick(dt, G.driftOn)
 	-- L'ASTUCE DU DRIFT (L36750 ; audit UX du 26/09 : « le geste du drift n'était enseigné nulle part ») : 1,2 s de braquage à fond
 	-- à bonne vitesse sans jamais avoir drifté → on le dit, une fois dans la vie. Le joueur qui drifte tout seul ne la verra jamais.
 	if G.driftOn then
@@ -2143,7 +2143,7 @@ local function etapeSol(dt: number)
 		if lat * math.sign(yawR) > RH * 0.2 then G.virC += dt * vm end -- à la CORDE
 		if G.driftOn or G.slipT > 0 then G.virD = true end
 	elseif aB < 12 then
-		if G.virPaye and not G.virD then frondeLache(G.virT, G.virC) end
+		if G.virPaye and not G.virD then G.frondeLache(G.virT, G.virC) end
 		G.virT, G.virC, G.virD, G.virPaye = 0, 0, false, false
 	end
 	if G.virT > 0.9 and not G.virPaye then
@@ -2185,9 +2185,9 @@ local function etapeSol(dt: number)
 		G.pureT, G.pureArmed, G.pureNext, G.pureLvl = 0, true, 0, 0
 	end
 	-- les plots, les flaques, les pads ; la ligne parfaite se pose devant
-	obstacles(dt, cf2)
+	G.obstacles(dt, cf2)
 	G.filetTick()
-	if not intro and not TU.on then ligneTick(dt) end
+	if not intro and not TU.on then G.ligneTick(dt) end
 	G.fruitRafT -= dt
 	if G.fruitRafT <= 0 then G.fruitRaf = 0 end
 	-- ROULE OU CRÈVE (L36365)
@@ -2290,7 +2290,7 @@ local function etapeSol(dt: number)
 end
 
 -- ════════ LE VOL (L36896-37176) ════════
-local function etapeAir(dt: number)
+function G.etapeAir(dt: number)
 	V.fallT += dt
 	V.fallTR += dt
 	V.volT += dt
@@ -2405,7 +2405,7 @@ local function etapeAir(dt: number)
 	else
 		carCF = CFrame.new(fallPos * M) * carCF.Rotation
 	end
-	essayerAtterrir(dt)
+	G.essayerAtterrir(dt)
 	if mode ~= "fall" then return end
 	-- LE DAUPHIN : nager au ras de la dalle (dessus ou dessous, dans sa largeur)
 	if not intro then
@@ -2437,7 +2437,7 @@ end
 local menuCap = Vector3.new(0, 0, -1)
 -- (la caméra de ROUTE, de VOL et de MORT est celle du jeu web d'aujourd'hui : Client/Camera)
 KA.X = { repere = function(sM: number, face: number): CFrame return Piste.repereFace(piste, sM * M, face) end }
-local function camera(dt: number)
+function G.camera(dt: number)
 	if cam.CameraType ~= Enum.CameraType.Scriptable then cam.CameraType = Enum.CameraType.Scriptable end
 	local p = carCF.Position
 	local fiche = poignees.fiche
@@ -2514,7 +2514,7 @@ end
 local ARC_EN_CIEL = ColorSequence.new({ ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 60, 60)), ColorSequenceKeypoint.new(0.2, Color3.fromRGB(255, 190, 40)),
 	ColorSequenceKeypoint.new(0.4, Color3.fromRGB(110, 255, 90)), ColorSequenceKeypoint.new(0.6, Color3.fromRGB(60, 220, 255)),
 	ColorSequenceKeypoint.new(0.8, Color3.fromRGB(110, 90, 255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 70, 220)) })
-local function habiller(dt: number)
+function G.habiller(dt: number)
 	if mode == "boom" or mode == "mort" or mode == "charge" then return end
 	racine.CFrame = carCF
 	local feu = nitroOn or boost > 0 or NTR.boost > 0
@@ -2633,7 +2633,7 @@ local function habiller(dt: number)
 end
 
 -- ════════ le HUD ════════
-local function hud(dt: number)
+function G.hud(dt: number)
 	-- (cashHudTick, L12873) LE TOTAL DÉFILE vers l'argent (on le voit entrer, comme dans GTA) et FRAPPE à chaque gain ; les gains
 	-- s'additionnent dans le « +$ » tant qu'ils tombent (1,8 s après le dernier). Une nouvelle partie recale sans défiler.
 	do
@@ -3388,7 +3388,7 @@ function G.poseDouble(m: Model): CFrame
 	return (m.PrimaryPart :: BasePart).CFrame
 end
 local doubles: { [Model]: Double } = {}
-local function lisserDoubles(dt: number)
+function G.lisserDoubles(dt: number)
 	for m, d in doubles do
 		if not m.Parent then
 			Caisse.rendre(d.c)
@@ -3529,7 +3529,7 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 			Score.ETAT.auraX2 = pwX > 0
 			G.comboT -= dt
 			if G.comboT <= 0 then combo = 0 end
-			if mode == "drive" then etapeSol(dt) else etapeAir(dt) end
+			if mode == "drive" then G.etapeSol(dt) else G.etapeAir(dt) end
 			if mode == "drive" or mode == "fall" then
 				objets(dt, carCF.Position, os.clock())
 				-- LES NUAGES : ils ne font que BLOQUER LA VUE ; un banc percuté au sol éclate, le percer à l'aveugle paie du flow
@@ -3544,10 +3544,10 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 						-- défoncé ni la percée à l'aveugle ne paient de flow. À L'ORAGE, 90 bancs nourrissaient la jauge tout seuls.)
 					end
 				end
-				nitroooTick(dt)
+				G.nitroooTick(dt)
 				G.vmax = math.max(G.vmax, kmh())
 			end
-			Score.flowTick(dt, mode, vitN(), nitroOn)
+			Score.flowTick(dt, mode, G.vitN(), nitroOn)
 			Score.chaineTick(dt, mode)
 			aura = Score.aura()
 			-- les missions relisent les compteurs de la partie
@@ -3599,8 +3599,8 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 				end
 			end
 		end
-		habiller(dt)
-		if mode == "garage" then Garage.rendu(dtBrut) else camera(dt) end
+		G.habiller(dt)
+		if mode == "garage" then Garage.rendu(dtBrut) else G.camera(dt) end
 		local vue = workspace:GetAttribute("DbgVue") -- (mise au point) une vue imposée depuis la console de Studio
 		if vue then
 			cam.CFrame = vue
@@ -3674,7 +3674,7 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 		end
 		-- les nuages PROCHES reçoivent leur version fine ; hors de la course, tout est rendu au budget (voir Nuages.finesseTick)
 		KA.Nuages.finesseTick(dtBrut, (mode == "drive" or mode == "fall" or mode == "menu") and cam.CFrame.Position or nil)
-		lisserDoubles(dt)
+		G.lisserDoubles(dt)
 		KA.envoiT -= dtBrut
 		if KA.envoiT <= 0 and (mode == "drive" or mode == "fall") then
 			KA.envoiT = 1 / 15
@@ -3683,7 +3683,7 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 			evPos:FireServer(carCF, s, repere(s, 1):ToObjectSpace(carCF))
 		end
 	end
-	hud(dt)
+	G.hud(dt)
 end)
 
 -- ════════ le démarrage : on bâtit la zone 1 derrière l'écran de chargement ════════
