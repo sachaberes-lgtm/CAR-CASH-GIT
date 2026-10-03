@@ -3118,6 +3118,8 @@ workspace:GetAttributeChangedSignal("DbgOuvre"):Connect(function()
 			sPrev = s
 			lat = 0
 		end
+	elseif string.sub(v, 1, 7) == "onglet:" then
+		if mode == "garage" then Garage.onglet(string.sub(v, 8)) end -- (banc) « onglet:trainee » : un onglet du garage
 	elseif string.sub(v, 1, 6) == "impact" then
 		-- (banc) un impact sur la tour la plus proche, et la vue pour le regarder
 		workspace:SetAttribute("DbgVue", KA.Impact.essai((zone :: any).ville, carCF.Position / M, tonumber(string.sub(v, 7, 8))))
@@ -3163,7 +3165,7 @@ E.btRecom.Activated:Connect(function()
 end)
 E.btMenuP.Activated:Connect(function()
 	if not enPause or G.reprise then return end
-	if not G.confirme(E.btMenuP, "quit", tr("QUITTER ? GAINS VERSES", "QUIT? GAINS BANKED"), T.menu) then return end
+	if not G.confirme(E.btMenuP, "quit", tr("QUITTER ? GAINS VERSES", "QUIT? GAINS BANKED"), T.quitter) then return end
 	enPause = false
 	if TU.on then
 		Score.fin(false)
@@ -3243,6 +3245,35 @@ if E.rg.facile then
 		reglage("facile", not facile())
 		reglage("facileChoisi", true)
 		majBoutonsSon()
+	end)
+end
+-- EFFACER MA PROGRESSION : deux appuis (le premier demande « SÛR ? »), puis le profil repart à zéro — le compte, les caisses,
+-- les records, les réglages ; l'auto-école revient
+do
+	local arme = 0
+	local lib = E.rg.effacer.lib
+	local texte0 = lib.Text
+	E.rg.effacer.b.Activated:Connect(function()
+		if os.clock() > arme then
+			arme = os.clock() + 3.5
+			lib.Text = tr("SUR ? TOUT SERA PERDU", "SURE? ALL WILL BE LOST")
+			Hud.vibre(20)
+			task.delay(3.5, function() if os.clock() >= arme then lib.Text = texte0 end end)
+			return
+		end
+		arme = 0
+		lib.Text = texte0
+		local okI, ok, _, prof = pcall(function() return fnAction:InvokeServer("effacer") end)
+		if not okI or not ok or type(prof) ~= "table" then
+			Hud.toast(tr("IMPOSSIBLE POUR L'INSTANT", "NOT POSSIBLE RIGHT NOW"), Hud.C.rouge)
+			return
+		end
+		record, compte, meilleurAura, G.kmhRecord = 0, 0, 0, 0
+		lireProfil(prof)
+		Garage.majProfil()
+		if not ZONES[0] then preparer(0, nil) end
+		if KA.badges then KA.badges() end
+		Hud.toast(tr("PROGRESSION EFFACEE", "PROGRESS ERASED"), Hud.C.rouge)
 	end)
 end
 E.rg.tuto.b.Activated:Connect(function()
@@ -12393,6 +12424,51 @@ local function lisse(u: number): number
 	return u * u * (3 - 2 * u)
 end
 
+-- L'APERÇU DES TRAÎNÉES (trailApercu, L35066 du jeu web) : dans l'onglet TRAÎNÉES, deux rubans à la couleur ESSAYÉE (l'arc-en-ciel
+-- compris) sortent des pots de la vitrine et ondulent derrière elle — on voit la traînée, pas une pastille. Deux Beams accrochés à
+-- la caisse, leurs courbes animées à chaque image ; rendus (cachés) dès qu'on quitte l'onglet.
+local TRPV: any = { r = {}, sur = nil }
+local ARC9 = ColorSequence.new({ ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 59, 59)), ColorSequenceKeypoint.new(0.2, Color3.fromRGB(255, 155, 26)),
+	ColorSequenceKeypoint.new(0.4, Color3.fromRGB(255, 226, 58)), ColorSequenceKeypoint.new(0.6, Color3.fromRGB(59, 255, 106)),
+	ColorSequenceKeypoint.new(0.8, Color3.fromRGB(59, 180, 255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(155, 91, 255)) })
+local function apercuTrainee(on: boolean, t: number)
+	local racine = on and vitrine and vitrine.PrimaryPart
+	if not racine then
+		for _, r in TRPV.r do r.b.Enabled = false end
+		return
+	end
+	if TRPV.sur ~= racine then -- (une autre caisse sur le plateau : les rubans changent d'accroche)
+		for _, r in TRPV.r do r.a0:Destroy() r.a1:Destroy() r.b:Destroy() end
+		table.clear(TRPV.r)
+		TRPV.sur = racine
+		local f = Caisse.Catalogue[montre] or Caisse.Catalogue[0]
+		for k = 1, 2 do
+			local sd = (k == 1) and -1 or 1
+			local a0, a1 = Instance.new("Attachment"), Instance.new("Attachment")
+			a0.Position = Vector3.new(sd * f.w * 0.22, 0.43, f.l / 2 + 0.28) * M
+			a1.Position = Vector3.new(sd * (f.w * 0.22 + 0.5), 0.78, f.l / 2 + 9.3) * M
+			a0.Parent, a1.Parent = racine, racine
+			local b = Instance.new("Beam")
+			b.Attachment0, b.Attachment1 = a0, a1
+			b.Width0, b.Width1 = 0.47 * M, 0.07 * M
+			b.Segments = 24
+			b.LightEmission, b.LightInfluence = 1, 0
+			b.FaceCamera = true
+			b.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.55), NumberSequenceKeypoint.new(0.1, 0.25), NumberSequenceKeypoint.new(1, 1) })
+			b.Parent = racine
+			TRPV.r[k] = { a0 = a0, a1 = a1, b = b, sd = sd }
+		end
+	end
+	local d = Config.habit("trainee", essai.trainee or tenue().trainee)
+	local coul = (d and d.arcenciel) and ARC9 or ColorSequence.new((d and d.c) or Color3.fromRGB(255, 158, 26))
+	for _, r in TRPV.r do
+		r.b.Enabled = true
+		r.b.Color = coul
+		-- (le ruban ONDULE : deux sinus qui courent le long de lui)
+		r.b.CurveSize0 = math.sin(t * 4.5) * 1.6 * M * r.sd
+		r.b.CurveSize1 = math.sin(t * 3.2 + 1.3) * 1.2 * M
+	end
+end
 function Garage.rendu(dt: number)
 	if not Garage.ouvert or not dossier then return end
 	local cam = workspace.CurrentCamera
@@ -12443,6 +12519,10 @@ function Garage.rendu(dt: number)
 		vitrine:PivotTo(cfPlateau())
 		-- dans l'onglet AILES, la caisse les montre déployées
 		if vitrinePg then Caisse.deployer(vitrinePg, (onglet == "aile") and 1 or 0, t * 9) end
+	end
+	do
+		local okT = pcall(apercuTrainee, onglet == "trainee" and not lacher and vitrine ~= nil, t)
+		if not okT then apercuTrainee(false, t) end
 	end
 
 	-- ── la vue ──
@@ -13454,6 +13534,7 @@ function Hud.creer()
 			o.mot = texte(inter, { Text = "OFF", TextSize = 28, italique = true, TextColor3 = C.terne, Size = UDim2.fromOffset(86, 30), Position = UDim2.new(1, -8, 0.5, 0), AnchorPoint = Vector2.new(1, 0.5),
 				TextWrapped = false })
 		end
+		o.lib = lib
 		o.b = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Text = "", AutoButtonColor = false }, l)
 		o.b.Activated:Connect(function() Sons.jouer("tap") end)
 		o.ligne = l
@@ -13514,6 +13595,11 @@ function Hud.creer()
 	ligne(cj, "volH", "aile", T.pouce, "valeur")
 	ligne(cj, "vib", "vibre", T.vibrations)
 	ligne(cj, "tuto", "volant", T.revoir, "action")
+	-- (L5718) EFFACER MA PROGRESSION — en rouge, tout en bas, et il faut toucher DEUX fois
+	ligne(cj, "effacer", "croix", FR and "EFFACER MA PROGRESSION" or "ERASE MY PROGRESS", "action")
+	E.rg.effacer.lib.TextColor3 = C.rouge
+	E.rg.effacer.lib.TextScaled = true
+	inst("UITextSizeConstraint", { MaxTextSize = 34, MinTextSize = 14 }, E.rg.effacer.lib)
 	E.rgRetour = boutonRetour(reg)
 	for _, d in reg:GetDescendants() do
 		if d:IsA("GuiObject") then d.ZIndex = 23 end
@@ -21044,8 +21130,11 @@ end
 function Profils.sauver(p: Player)
 	local prof = actifs[p.UserId]
 	if not prof or not store then return end
+	local efface = prof.efface
+	prof.efface = nil
 	pcall(function()
 		store:UpdateAsync("p_" .. p.UserId, function(ancien)
+			if efface then return prof end -- (une progression EFFACÉE ne reprend rien de l'ancienne)
 			-- jamais en arrière : l'argent et le record ne redescendent pas si deux serveurs se croisent
 			local a = sain(ancien)
 			prof.record = math.max(prof.record, a.record)
@@ -21166,6 +21255,15 @@ function Profils.finCarnet(prof: Profil, essais: any)
 	end
 end
 
+-- EFFACER MA PROGRESSION (L39243 du jeu web, avec confirmation côté joueur) : le profil repart à zéro. `efface` dit à la sauvegarde de
+-- ne PAS fusionner avec l'ancien (sinon le record, l'aura et le moteur effacés y reviendraient — « jamais en arrière »).
+Profils.actions.effacer = function(_, prof)
+	local n = Profils.neuf()
+	for k in pairs(prof) do prof[k] = nil end
+	for k, v in n do prof[k] = v end
+	prof.efface = true
+	return true
+end
 Profils.actions.reglage = function(_, prof, cle, valeur)
 	if type(cle) ~= "string" or prof.reglages[cle] == nil or type(valeur) ~= type(prof.reglages[cle]) then
 		return false, "reglage inconnu"

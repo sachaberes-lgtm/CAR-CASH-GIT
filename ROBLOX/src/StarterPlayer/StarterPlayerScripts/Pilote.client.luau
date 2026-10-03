@@ -3118,6 +3118,8 @@ workspace:GetAttributeChangedSignal("DbgOuvre"):Connect(function()
 			sPrev = s
 			lat = 0
 		end
+	elseif string.sub(v, 1, 7) == "onglet:" then
+		if mode == "garage" then Garage.onglet(string.sub(v, 8)) end -- (banc) « onglet:trainee » : un onglet du garage
 	elseif string.sub(v, 1, 6) == "impact" then
 		-- (banc) un impact sur la tour la plus proche, et la vue pour le regarder
 		workspace:SetAttribute("DbgVue", KA.Impact.essai((zone :: any).ville, carCF.Position / M, tonumber(string.sub(v, 7, 8))))
@@ -3163,7 +3165,7 @@ E.btRecom.Activated:Connect(function()
 end)
 E.btMenuP.Activated:Connect(function()
 	if not enPause or G.reprise then return end
-	if not G.confirme(E.btMenuP, "quit", tr("QUITTER ? GAINS VERSES", "QUIT? GAINS BANKED"), T.menu) then return end
+	if not G.confirme(E.btMenuP, "quit", tr("QUITTER ? GAINS VERSES", "QUIT? GAINS BANKED"), T.quitter) then return end
 	enPause = false
 	if TU.on then
 		Score.fin(false)
@@ -3243,6 +3245,35 @@ if E.rg.facile then
 		reglage("facile", not facile())
 		reglage("facileChoisi", true)
 		majBoutonsSon()
+	end)
+end
+-- EFFACER MA PROGRESSION : deux appuis (le premier demande « SÛR ? »), puis le profil repart à zéro — le compte, les caisses,
+-- les records, les réglages ; l'auto-école revient
+do
+	local arme = 0
+	local lib = E.rg.effacer.lib
+	local texte0 = lib.Text
+	E.rg.effacer.b.Activated:Connect(function()
+		if os.clock() > arme then
+			arme = os.clock() + 3.5
+			lib.Text = tr("SUR ? TOUT SERA PERDU", "SURE? ALL WILL BE LOST")
+			Hud.vibre(20)
+			task.delay(3.5, function() if os.clock() >= arme then lib.Text = texte0 end end)
+			return
+		end
+		arme = 0
+		lib.Text = texte0
+		local okI, ok, _, prof = pcall(function() return fnAction:InvokeServer("effacer") end)
+		if not okI or not ok or type(prof) ~= "table" then
+			Hud.toast(tr("IMPOSSIBLE POUR L'INSTANT", "NOT POSSIBLE RIGHT NOW"), Hud.C.rouge)
+			return
+		end
+		record, compte, meilleurAura, G.kmhRecord = 0, 0, 0, 0
+		lireProfil(prof)
+		Garage.majProfil()
+		if not ZONES[0] then preparer(0, nil) end
+		if KA.badges then KA.badges() end
+		Hud.toast(tr("PROGRESSION EFFACEE", "PROGRESS ERASED"), Hud.C.rouge)
 	end)
 end
 E.rg.tuto.b.Activated:Connect(function()

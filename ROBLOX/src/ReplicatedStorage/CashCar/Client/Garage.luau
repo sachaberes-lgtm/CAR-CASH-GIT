@@ -1229,6 +1229,51 @@ local function lisse(u: number): number
 	return u * u * (3 - 2 * u)
 end
 
+-- L'APERÇU DES TRAÎNÉES (trailApercu, L35066 du jeu web) : dans l'onglet TRAÎNÉES, deux rubans à la couleur ESSAYÉE (l'arc-en-ciel
+-- compris) sortent des pots de la vitrine et ondulent derrière elle — on voit la traînée, pas une pastille. Deux Beams accrochés à
+-- la caisse, leurs courbes animées à chaque image ; rendus (cachés) dès qu'on quitte l'onglet.
+local TRPV: any = { r = {}, sur = nil }
+local ARC9 = ColorSequence.new({ ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 59, 59)), ColorSequenceKeypoint.new(0.2, Color3.fromRGB(255, 155, 26)),
+	ColorSequenceKeypoint.new(0.4, Color3.fromRGB(255, 226, 58)), ColorSequenceKeypoint.new(0.6, Color3.fromRGB(59, 255, 106)),
+	ColorSequenceKeypoint.new(0.8, Color3.fromRGB(59, 180, 255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(155, 91, 255)) })
+local function apercuTrainee(on: boolean, t: number)
+	local racine = on and vitrine and vitrine.PrimaryPart
+	if not racine then
+		for _, r in TRPV.r do r.b.Enabled = false end
+		return
+	end
+	if TRPV.sur ~= racine then -- (une autre caisse sur le plateau : les rubans changent d'accroche)
+		for _, r in TRPV.r do r.a0:Destroy() r.a1:Destroy() r.b:Destroy() end
+		table.clear(TRPV.r)
+		TRPV.sur = racine
+		local f = Caisse.Catalogue[montre] or Caisse.Catalogue[0]
+		for k = 1, 2 do
+			local sd = (k == 1) and -1 or 1
+			local a0, a1 = Instance.new("Attachment"), Instance.new("Attachment")
+			a0.Position = Vector3.new(sd * f.w * 0.22, 0.43, f.l / 2 + 0.28) * M
+			a1.Position = Vector3.new(sd * (f.w * 0.22 + 0.5), 0.78, f.l / 2 + 9.3) * M
+			a0.Parent, a1.Parent = racine, racine
+			local b = Instance.new("Beam")
+			b.Attachment0, b.Attachment1 = a0, a1
+			b.Width0, b.Width1 = 0.47 * M, 0.07 * M
+			b.Segments = 24
+			b.LightEmission, b.LightInfluence = 1, 0
+			b.FaceCamera = true
+			b.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.55), NumberSequenceKeypoint.new(0.1, 0.25), NumberSequenceKeypoint.new(1, 1) })
+			b.Parent = racine
+			TRPV.r[k] = { a0 = a0, a1 = a1, b = b, sd = sd }
+		end
+	end
+	local d = Config.habit("trainee", essai.trainee or tenue().trainee)
+	local coul = (d and d.arcenciel) and ARC9 or ColorSequence.new((d and d.c) or Color3.fromRGB(255, 158, 26))
+	for _, r in TRPV.r do
+		r.b.Enabled = true
+		r.b.Color = coul
+		-- (le ruban ONDULE : deux sinus qui courent le long de lui)
+		r.b.CurveSize0 = math.sin(t * 4.5) * 1.6 * M * r.sd
+		r.b.CurveSize1 = math.sin(t * 3.2 + 1.3) * 1.2 * M
+	end
+end
 function Garage.rendu(dt: number)
 	if not Garage.ouvert or not dossier then return end
 	local cam = workspace.CurrentCamera
@@ -1279,6 +1324,10 @@ function Garage.rendu(dt: number)
 		vitrine:PivotTo(cfPlateau())
 		-- dans l'onglet AILES, la caisse les montre déployées
 		if vitrinePg then Caisse.deployer(vitrinePg, (onglet == "aile") and 1 or 0, t * 9) end
+	end
+	do
+		local okT = pcall(apercuTrainee, onglet == "trainee" and not lacher and vitrine ~= nil, t)
+		if not okT then apercuTrainee(false, t) end
 	end
 
 	-- ── la vue ──

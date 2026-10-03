@@ -108,8 +108,11 @@ end
 function Profils.sauver(p: Player)
 	local prof = actifs[p.UserId]
 	if not prof or not store then return end
+	local efface = prof.efface
+	prof.efface = nil
 	pcall(function()
 		store:UpdateAsync("p_" .. p.UserId, function(ancien)
+			if efface then return prof end -- (une progression EFFACÉE ne reprend rien de l'ancienne)
 			-- jamais en arrière : l'argent et le record ne redescendent pas si deux serveurs se croisent
 			local a = sain(ancien)
 			prof.record = math.max(prof.record, a.record)
@@ -230,6 +233,15 @@ function Profils.finCarnet(prof: Profil, essais: any)
 	end
 end
 
+-- EFFACER MA PROGRESSION (L39243 du jeu web, avec confirmation côté joueur) : le profil repart à zéro. `efface` dit à la sauvegarde de
+-- ne PAS fusionner avec l'ancien (sinon le record, l'aura et le moteur effacés y reviendraient — « jamais en arrière »).
+Profils.actions.effacer = function(_, prof)
+	local n = Profils.neuf()
+	for k in pairs(prof) do prof[k] = nil end
+	for k, v in n do prof[k] = v end
+	prof.efface = true
+	return true
+end
 Profils.actions.reglage = function(_, prof, cle, valeur)
 	if type(cle) ~= "string" or prof.reglages[cle] == nil or type(valeur) ~= type(prof.reglages[cle]) then
 		return false, "reglage inconnu"

@@ -775,6 +775,7 @@ function Hud.creer()
 			o.mot = texte(inter, { Text = "OFF", TextSize = 28, italique = true, TextColor3 = C.terne, Size = UDim2.fromOffset(86, 30), Position = UDim2.new(1, -8, 0.5, 0), AnchorPoint = Vector2.new(1, 0.5),
 				TextWrapped = false })
 		end
+		o.lib = lib
 		o.b = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Text = "", AutoButtonColor = false }, l)
 		o.b.Activated:Connect(function() Sons.jouer("tap") end)
 		o.ligne = l
@@ -835,6 +836,11 @@ function Hud.creer()
 	ligne(cj, "volH", "aile", T.pouce, "valeur")
 	ligne(cj, "vib", "vibre", T.vibrations)
 	ligne(cj, "tuto", "volant", T.revoir, "action")
+	-- (L5718) EFFACER MA PROGRESSION — en rouge, tout en bas, et il faut toucher DEUX fois
+	ligne(cj, "effacer", "croix", FR and "EFFACER MA PROGRESSION" or "ERASE MY PROGRESS", "action")
+	E.rg.effacer.lib.TextColor3 = C.rouge
+	E.rg.effacer.lib.TextScaled = true
+	inst("UITextSizeConstraint", { MaxTextSize = 34, MinTextSize = 14 }, E.rg.effacer.lib)
 	E.rgRetour = boutonRetour(reg)
 	for _, d in reg:GetDescendants() do
 		if d:IsA("GuiObject") then d.ZIndex = 23 end
