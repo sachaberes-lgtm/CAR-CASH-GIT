@@ -28658,10 +28658,9 @@ function nitroAllume(bleu,etage){ // LE COUP — au front montant de `nitroOn` (
   hap(bleu?[8,16,8]:[14,26,10]);
   nitroWhoomp(k,bleu,NFX.air);
   if(!POST_ON)flashEcran(bleu?'rgba(91,125,255,.45)':'rgba(255,122,36,.45)'); // sans l'ACES (post coupé), le coup de couleur passe par le calque DOM
-  if(!etage)try{instruOn();}catch(e){} // (2026-10-03) LE BOOST JOUE UN INSTRUMENT (voir plus bas)
 }
 function nitroEteint(){ // LA DERNIÈRE BOUFFÉE : une langue de feu aux pots + la pétarade — puis le champ retombe en douceur (`NFX.off`)
-  NFX.off=1;try{instruOff();}catch(e){}
+  NFX.off=1;
   if(nitroHeldT<.25||mode==='boom')return; // un simple tap ne mérite pas la cérémonie
   const VC=PT_U.uVc.value;
   for(let i=0;i<8;i++){potMonde(CAR_POTS[i%CAR_POTS.length]||CAR_POT_C,NFX.v);
@@ -28679,17 +28678,24 @@ function nitroEteint(){ // LA DERNIÈRE BOUFFÉE : une langue de feu aux pots + 
    · LÂCHER = plus de nouvelles notes, celles qui sonnent s'éteignent seules. La grille repart du I après 2,5 s sans appui.
    Discret (≈ −30 dB sous une voix pleine), un écho en croche pointée. Par MASTER (curseur EFFETS) : marche aussi sur iPhone.
    `dbgInstru()` : état · `dbgInstru(0|1)` coupe / rallume · `dbgInstru('essai')` (banc muet : les fréquences jouées). */
-const INSTRU={fins:[],der:0,on:true,tient:false,ac:0,k:0,n:0,tNote:0,tDer:0,bus:null,iv:0,vu:[],pas:.15,off:null};
+const INSTRU={fins:[],der:0,on:true,tient:false,k:0,n:0,tNote:0,tDer:0,bus:null,iv:0,vu:[],pas:.15,off:null,queue:0,mel:14,vel:1,acc:0};
 const INSTRU_GRILLE=[[0,4,7,11,14],[9,12,16,19,23],[5,9,12,16,19],[7,11,14,17,21]]; // I maj9 · vi m9 · IV maj9 · V9 (demi-tons sur la tonique grave)
-/* (2026-10-03, Léo : « pas de pause entre chaque boucle quand on maintient : ça doit SUIVRE LE SON ; que ça se répète sans se répéter,
-   accordé, un effet d'ÉVOLUTION — sinon c'est parfaitement filtré »). La « pause » : le plafond de 6 voix comptait 0,9 s par note,
-   la 7e double croche tombait. Désormais :
-   · LE TEMPO DU MORCEAU : une double croche = ¼ de temps de `INSTRU_BPM` (ou du métronome du décor `BCLK` sinon), et les notes tombent
-     SUR LA GRILLE du morceau (calée sur `musicEl.currentTime` : les boucles commencent sur un premier temps) ;
-   · L'ÉVOLUTION, tenu : chaque boucle de 8 change de MOTIF (5 dessins), l'accord avance à chaque MESURE (16 doubles croches), la 3e et
-     la 4e mesure montent d'une octave, et à partir de la 3e une BASSE douce pose la fondamentale sur chaque temps — puis tout recommence
-     avec les dessins dans un autre ordre (jamais deux tours identiques avant longtemps). */
+/* LA PHRASE DU BOOST v3 (2026-10-03, Léo : « toujours un blanc entre les arpèges ; complexifie la structure pour qu'on puisse appuyer
+   longtemps et que ça donne une MÉLODIE accordée à la musique du jeu ; si le joueur lâche, ça ne doit pas tout casser »).
+   LE BLANC : le réservoir de nitro qui se vide pendant l'appui éteignait la nitro puis la rallumait (hystérésis) → l'arpège s'arrêtait
+   et repartait de zéro. La phrase suit désormais LE DOIGT (`wantN`, front montant/descendant dans la boucle), pas la flamme.
+   UNE PHRASE QUI CONTINUE : un compteur de doubles croches `k` qui ne repart de zéro qu'après 2,5 s de silence. Lâcher n'arrête pas
+   net : la phrase va au bout du temps en cours + un temps, en s'éteignant (`queue`) ; réappuyer REPREND là où elle était, sur la grille.
+   TROIS COUCHES, sur le tempo et la grille du morceau (`instruTempo`/`instruGrille`), dans sa tonalité (`sonTonSuit._t`) :
+   · l'ARPÈGE (doubles croches, doux) : un des 5 dessins par demi-mesure, l'accord avance à chaque MESURE (I · vi · IV · V) ;
+   · la MÉLODIE (au-dessus, plus présente) : un rythme par mesure (6 cellules), sur les temps forts une note de l'ACCORD, entre les deux
+     des pas dans la pentatonique, vers un contour de 4 mesures (monte · monte · sommet · redescend) ; registre sol3-do5 ;
+   · la BASSE douce sur les temps, à partir de la 3e mesure tenue.
+   Chaque nouvel appui (spam) frappe un ACCENT : la note de mélodie suivante part tout de suite, plus fort. */
 const INSTRU_MOTIFS=[[0,1,2,3,4,3,2,1],[0,2,1,3,2,4,3,1],[4,3,2,1,0,1,2,3],[0,1,2,4,3,2,4,1],[0,2,4,2,1,3,4,3]];
+const INSTRU_RYTHMES=[[1,0,1,0,1,0,1,1],[1,0,0,1,0,0,1,0],[1,1,0,1,1,0,1,0],[1,0,1,1,0,1,0,0],[1,0,0,0,1,0,1,1],[1,1,1,0,1,0,0,0]]; // croches de la mesure : 1 = une note
+const INSTRU_PENTA=[0,2,4,7,9,12,14,16,19,21];                                       // la pentatonique majeure du morceau (au-dessus de la tonique grave)
+const INSTRU_CONTOUR=[9,12,16,11];                                                   // vers où va la mélodie, mesure par mesure
 const INSTRU_BPM={'ciel':88,'vapeur-salon':100,'lobby-ascenseur':120,'vieille-fortune':100};
 function instruTempo(){ // la double croche du morceau qui joue
   let bpm=0;const src=(musicEl&&musicEl.src)||'';
@@ -28710,45 +28716,62 @@ function instruBus(){
   INSTRU.bus=g;return g;
 }
 function instruNote(f,t,pan,vel,dec){ // une touche de piano électrique : sinus porteur, modulateur ×1 dont l'indice retombe (l'attaque « tine »)
-  const bus=instruBus();if(!bus)return;
-  INSTRU.fins=INSTRU.fins.filter(function(x){return x>t;});if(INSTRU.fins.length>=8)return; // garde-fou du spam (les notes sont déjà espacées)
+  const bus=instruBus();if(!bus||vel<.03)return;
+  INSTRU.fins=INSTRU.fins.filter(function(x){return x>t;});if(INSTRU.fins.length>=10)return; // garde-fou (les notes sont déjà espacées)
   const c=AC.createOscillator(),m=AC.createOscillator(),mg=AC.createGain(),g=AC.createGain(),p=AC.createStereoPanner?AC.createStereoPanner():null;
   c.frequency.value=f;m.frequency.value=f;mg.gain.setValueAtTime(f*1.1,t);mg.gain.setTargetAtTime(f*.15,t,.06);m.connect(mg);mg.connect(c.frequency);
   INSTRU.fins.push(t+.35);
-  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.065*(vel||1),t+.012);g.gain.setTargetAtTime(0,t+.025,dec||.3);
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.065*vel,t+.012);g.gain.setTargetAtTime(0,t+.025,dec||.3);
   c.connect(g);if(p){p.pan.value=pan;g.connect(p);p.connect(bus);}else g.connect(bus);
-  c.start(t);m.start(t);c.stop(t+1.8);m.stop(t+1.8);INSTRU.vu.push(Math.round(f));if(INSTRU.vu.length>90)INSTRU.vu.shift();
+  c.start(t);m.start(t);c.stop(t+2.2);m.stop(t+2.2);INSTRU.vu.push(Math.round(f));if(INSTRU.vu.length>200)INSTRU.vu.shift();
+}
+function instruMelodie(k,ac){ // la note de mélodie de la croche k (demi-tons au-dessus de la tonique grave), ou -1
+  const mes=k>>4,cr=(k>>1)&7,ry=INSTRU_RYTHMES[(mes*5+(mes>>2))%INSTRU_RYTHMES.length];
+  if(!ry[cr]&&!INSTRU.acc)return -1;
+  const prev=INSTRU.mel,cible=INSTRU_CONTOUR[mes&3]+((mes>>2)&1?2:0);
+  let n;
+  if(cr%2===0||INSTRU.acc){ // temps fort : la note de l'accord (une octave plus haut si besoin) la plus proche du chemin vers la cible
+    let best=prev,bd=99;
+    for(const x of ac)for(const o of [0,12]){const v=x+o;if(v<7||v>21||(INSTRU.acc&&v===prev))continue;/* un accent (spam) BOUGE toujours : jamais la même note martelée */const d=Math.abs(v-prev)+.5*Math.abs(v-cible);if(d<bd){bd=d;best=v;}}
+    n=best;
+  }else{ // entre deux : un pas de pentatonique vers la cible (parfois un pas de côté — la phrase respire)
+    let i=0,bi=0,bd=99;for(i=0;i<INSTRU_PENTA.length;i++){const d=Math.abs(INSTRU_PENTA[i]-prev);if(d<bd){bd=d;bi=i;}}
+    const dir=cible>prev?1:cible<prev?-1:((k*7)%3)-1;
+    bi=Math.max(0,Math.min(INSTRU_PENTA.length-1,bi+(((k*13+mes)%5)===0?-dir:dir)));n=INSTRU_PENTA[bi];
+    if(n<7)n=7;if(n>21)n=19;
+  }
+  INSTRU.mel=n;return n;
 }
 function instruPlanifie(){ // regard d'avance de 120 ms : les notes tombent pile, même si une image tousse
   if(!AC){clearInterval(INSTRU.iv);INSTRU.iv=0;return;}
+  if(INSTRU.tient&&(gameOver||paused||mode==='boom'))instruOff();                      // la partie s'arrête : la phrase se termine
   const fin=INSTRU.essai?1e9:AC.currentTime+.12;
   while(INSTRU.tNote<fin){
-    if(!INSTRU.tient&&INSTRU.n>=3){clearInterval(INSTRU.iv);INSTRU.iv=0;return;}       // lâché : on finit au moins 3 notes, puis silence
+    if(!INSTRU.tient){if(INSTRU.queue<=0){clearInterval(INSTRU.iv);INSTRU.iv=0;return;}INSTRU.queue--;INSTRU.vel*=.84;} // lâché : la phrase s'éteint en finissant le temps
     if(INSTRU.essai&&INSTRU.n>=INSTRU.essaiN)return;
-    const k=INSTRU.k,boucle=(k/8)|0,mes=(k/16)|0;
-    const ac=INSTRU_GRILLE[(INSTRU.ac+mes)%INSTRU_GRILLE.length];                      // l'accord avance à chaque mesure
-    const mot=INSTRU_MOTIFS[(boucle*3+((mes/4)|0))%INSTRU_MOTIFS.length];              // un dessin par boucle, l'ordre change tous les 4 mesures
-    const oct=(mes%4>=2)?12:0;                                                         // 3e et 4e mesure : une octave au-dessus
+    const k=INSTRU.k,mes=k>>4;
+    const ac=INSTRU_GRILLE[mes%INSTRU_GRILLE.length];                                  // l'accord avance à chaque mesure
+    const mot=INSTRU_MOTIFS[((k>>3)*3+(mes>>2))%INSTRU_MOTIFS.length];                 // un dessin par demi-mesure, l'ordre change toutes les 4 mesures
     const rac=TON/2*Math.pow(2,(sonTonSuit._t|0)/12);                                  // la tonique grave du morceau (mi3 décalé)
-    const t=Math.max(INSTRU.tNote,AC.currentTime),temps=k%4===0;
-    let st9=ac[mot[k%8]]+oct;if(st9>21)st9-=12;                                       // jamais au-dessus de ~do5 : pas d'aigu (« enfantin »)
-    instruNote(rac*Math.pow(2,st9/12),t,k%2?.28:-.28,temps?1:.8);       // l'appui du temps un peu plus marqué
-    if(temps&&mes>=2&&INSTRU.tient)instruNote(rac/2*Math.pow(2,ac[0]/12),t,0,.7,.45);  // dès la 3e mesure : la basse pose le temps
+    const t=Math.max(INSTRU.tNote,AC.currentTime),temps=k%4===0,V=INSTRU.vel;
+    let st9=ac[mot[k%8]];if(st9>16)st9-=12;                                            // l'arpège reste SOUS la mélodie
+    instruNote(rac*Math.pow(2,st9/12),t,k%2?.3:-.3,V*(temps?.62:.48),.26);
+    if(k%2===0||INSTRU.acc){const m9=instruMelodie(k,ac);if(m9>=0)instruNote(rac*Math.pow(2,m9/12),t,0,V*(INSTRU.acc?1.25:(k%8===0?1.05:.9)),.5);INSTRU.acc=0;}
+    if(temps&&k>=32&&INSTRU.tient)instruNote(rac/2*Math.pow(2,ac[0]/12),t,0,V*.7,.45); // dès la 3e mesure tenue : la basse pose le temps
     INSTRU.der=INSTRU.tNote;INSTRU.k++;INSTRU.n++;INSTRU.tNote+=INSTRU.pas;
   }
 }
 function instruOn(){
   if(!INSTRU.on||!AC||!SND.sfx||(AC.state!=='running'&&!INSTRU.essai)||paused)return;
-  const t=performance.now();
-  INSTRU.ac=(t-INSTRU.tDer>2500)?0:INSTRU.ac+1;INSTRU.tDer=t;                           // chaque appui : l'accord suivant de la grille
-  instruTempo();
-  INSTRU.k=0;INSTRU.n=0;INSTRU.tient=true;
-  INSTRU.tNote=instruGrille(Math.max(AC.currentTime+.005,INSTRU.der+.09));             // sur la grille du morceau ; au spam jamais deux notes collées
+  const t=performance.now(),neuve=t-INSTRU.tDer>2500&&!INSTRU.iv;INSTRU.tDer=t;
+  instruTempo();INSTRU.tient=true;INSTRU.vel=1;INSTRU.acc=1;INSTRU.n=0;               // chaque appui : un ACCENT de mélodie
+  if(neuve){INSTRU.k=0;INSTRU.mel=14;INSTRU.tNote=instruGrille(AC.currentTime+.005);}  // une phrase NEUVE (silence de 2,5 s)
+  else if(!INSTRU.iv){INSTRU.tNote=instruGrille(Math.max(AC.currentTime+.005,INSTRU.der+.09));} // elle REPREND où elle en était
   if(INSTRU.tNote-AC.currentTime>.5)INSTRU.tNote=instruGrille(AC.currentTime+.005);   // garde-fou (horloges qui ont dérivé)
-  if(INSTRU.essai){INSTRU.tient=!!INSTRU.essaiTenu;instruPlanifie();INSTRU.tient=false;return;} // banc : l'appui bref (3 notes)
+  if(INSTRU.essai){INSTRU.tient=!!INSTRU.essaiTenu;if(!INSTRU.tient)INSTRU.queue=3;instruPlanifie();INSTRU.tient=false;return;}
   if(!INSTRU.iv)INSTRU.iv=setInterval(instruPlanifie,25);instruPlanifie();
 }
-function instruOff(){INSTRU.tient=false;INSTRU.tDer=performance.now();}
+function instruOff(){if(!INSTRU.tient)return;INSTRU.tient=false;INSTRU.tDer=performance.now();INSTRU.queue=(4-INSTRU.k%4)%4+4;} // lâché : on finit le temps + un temps, en s'éteignant
 window.dbgInstru=function(a){if(a===0||a===1){INSTRU.on=!!a;if(!a)instruOff();}
   if(a==='tenu'){ // banc MUET : un appui TENU de 64 doubles croches (4 mesures) — fréquences et écarts de temps
     if(!AC)return'pas de contexte';const sb=INSTRU.bus,sv=SND.sfx;INSTRU.bus=AC.createGain();SND.sfx=true;INSTRU.tDer=0;INSTRU.essai=true;INSTRU.essaiTenu=true;INSTRU.essaiN=64;INSTRU.vu=[];INSTRU.der=0;
@@ -28757,7 +28780,7 @@ window.dbgInstru=function(a){if(a===0||a===1){INSTRU.on=!!a;if(!a)instruOff();}
     return{pas:+INSTRU.pas.toFixed(3),calee:INSTRU.off!=null,notes:INSTRU.vu.slice(),ton:sonTonSuit._t|0};}
   if(a==='essai'){INSTRU.essaiN=1e9; // banc MUET : quatre appuis brefs sur un bus débranché, rend les fréquences
     if(!AC)return'pas de contexte';const sb=INSTRU.bus,sv=SND.sfx;INSTRU.bus=AC.createGain();SND.sfx=true;INSTRU.tDer=0;INSTRU.essai=true;INSTRU.vu=[];
-    try{for(let k=0;k<4;k++){instruOn();instruOff();}}finally{INSTRU.essai=false;INSTRU.bus=sb;SND.sfx=sv;}
+    try{for(let k=0;k<4;k++){instruOn();}}finally{INSTRU.essai=false;INSTRU.bus=sb;SND.sfx=sv;}
     return{notes:INSTRU.vu.slice(),ton:sonTonSuit._t|0,etat:AC.state};}
   return{on:INSTRU.on,tient:INSTRU.tient,accord:INSTRU.ac%4,ton:sonTonSuit._t|0,dernieres:INSTRU.vu.slice(-8),contexte:AC&&AC.state,effets:!!SND.sfx};};
 function nfxTick(dt){ // chaque image (après hsF/hsU) : l'onde, la teinte des bords, les enveloppes
@@ -37079,6 +37102,7 @@ function loop(now){
     if(LIVRE.on){LIVRE.t+=dt;if(nitroOn)LIVRE.tN+=dt;if(mode==='fall')LIVRE.tV+=dt;}
     if(wantN&&!loop._nvW&&!nitroOn&&mode!=='boom'){try{if(SONV2)sfx('nitro.vide');else noiseBurst(.04,.06,2500);}catch(e){}hap(6);} // (2026-09-26, audit son) NITRO À VIDE : un « tchk » sec — l'appui répond toujours
     loop._nvW=wantN;
+    if(wantN!==!!loop._iW){loop._iW=wantN;try{if(wantN&&mode!=='boom'&&!gameOver)instruOn();else instruOff();}catch(e){}} // (2026-10-03) LA PHRASE DU BOOST suit le DOIGT, pas la flamme (le réservoir vide la coupait)
     if(nitroOn&&pwrNitroT<=0&&!PARK.on&&startBoostT<=0){
       let take=tk9; /* (LA LOI DU RÉSERVOIR) NITROOO ne dure 2× qu'AU SOL */ // (v3, Sacha : « en frénésie le nitro baisse 2× plus lentement ») · (2026-09-30, HAUTE VITESSE) NITROOO aussi : réservoir plein, sans rien ramasser, il restait 0,5 s de NITROOO au moteur 1 (0 palier) et 2,5 s au moteur max (2) ; ×0,5 pendant NTR.on → 1,3 s (1 palier) et 6,6 s (6, +88 %). PAS cumulé avec la frénésie (×0,25 : 0,05/s net, une nitro quasi infinie)
       if(LIVRE.on)livre(mode==='fall'?'n-:vol':'n-:sol',Math.min(take,nitroR+nitroX));
