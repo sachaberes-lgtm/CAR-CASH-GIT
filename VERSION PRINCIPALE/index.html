@@ -25648,7 +25648,7 @@ function musicAnalyse(){
    pendant que sa copie saturée monte : on a l'impression que LE MORCEAU LUI-MÊME CHAUFFE. Un petit éclat à l'allumage de la nitro.
    LE DOSAGE : nitro = plein · plaque turbo = 60 % · simple vitesse de boost (flowVitN ≥ 1,15 → 1,35) = jusqu'à 35 %, « léger ».
    Montée 80 ms, retombée 0,5 s. Console : `dbgDisto()` (état) · `dbgDisto(0|1)` coupe / rallume. */
-const DIST={on:true,in:null,wet:null,env:0,nitroAv:false};
+const DIST={on:false,in:null,wet:null,env:0,nitroAv:false}; // (2026-10-03, Léo : « il reste une partie du son très dérangeante, forte, floue, qui monte — n'efface pas les bonnes rythmiques ») : la DISTORSION du boost est COUPÉE (la copie saturée qui gonflait à l'appui) ; la phrase du boost reste. `dbgDisto(1)` la rallume pour comparer.
 function distPrete(){
   if(DIST.in||!AC)return;
   try{
