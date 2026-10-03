@@ -38,8 +38,8 @@ pose plus bas : c'est là que le jeu se joue. 6 secondes en l'air maximum.
 
 ## Les sons (à faire une fois)
 
-Roblox ne joue que les sons importés sur Roblox. Le dossier **`sons-a-importer/`** contient 106 bruitages du
-jeu (tirés de notre banque de sons), un **moteur** et une **nitro** en boucle, et **quatre musiques** : `musique` (la radio,
+Roblox ne joue que les sons importés sur Roblox. Le dossier **`sons-a-importer/`** contient plus de cent bruitages du
+jeu (tirés de notre banque de sons), cinq boucles (**moteur**, **nitro**, crissement, drift, rase-bord), et **quatre musiques** : `musique` (la radio,
 jouée en orbite et partout où un morceau de lieu manque), `musiqueNuages`, `musiqueVille` (aussi l'accueil, le garage et l'écran
 de fin) et `musiqueOrage` — la musique suit le lieu, comme sur le web.
 Les sons des niveaux : `eclair`, `tonnerre` (l'orage), `orbiteEntre`, `orbiteSort`, `espaceAmbiance`, `explosionLoin`, `esquive`,
@@ -115,6 +115,16 @@ recommence (décision de Sacha, 2/10 : « fais la ville et l'espace, fais pas Pa
 - **Le ciel musical** de la ville (`Client/CielMusical`) : seize quartiers de lumière et vingt-six piliers d'égaliseur autour de
   l'horizon, qui battent avec le morceau qui joue (ou à 120 à la minute sans musique importée) ; en sourdine à minuit.
 - **Le bitume mouillé** de la ville : les reflets de néon sont PEINTS dans l'image de la dalle (96 m qui se répètent).
+- **L'intro du studio** : au lancement, CASH CAR bat trois fois, explose en dollars, cœurs, trèfles, crânes… et la signature
+  **1.61 GAMES** se lève avant l'accueil (~4 s).
+- **Les écrans** (audit du 3/10) : l'écran de fin du web (GAME OVER ou NOUVEAU RECORD !, le montant qui s'égrène, l'aura qui
+  monte, le moteur atteint, le « presque » du palier suivant) ; EFFACER SA PROGRESSION dans les réglages ; l'aperçu des traînées
+  au garage ; l'affiche RECORD PERSO de l'atelier (meilleure partie, aura max, palier, vitesse max) ; un tap sur la caisse du
+  garage lui donne un petit coup ; le HUD DISCRET (une plaque qui dure pâlit, un geste neuf la rallume) ; la jauge du record
+  d'aura ; NOUVEAU SOMMET sur la carte moteur.
+- **L'auto-école** comme sur le web : la démo du geste sous chaque consigne, l'anneau d'or qui bat autour du bouton NITRO, la
+  carte qui flashe en vert à chaque réussite, PASSER qui demande « VRAIMENT ? » tant que le permis n'est pas payé ; QUITTER
+  pendant la leçon ouvre « AUTO-ÉCOLE INTERROMPUE » (seul l'argent gagné est versé, REPRENDRE relance la leçon).
 - Le niveau d'une zone : `Config.niveau(zone)` ; son ambiance : `Client/Ambiance` (`pluie`, `espace`) ; l'habit de sa route
   (liseré, bitume, lueur) : `HABITS` dans `Client/Construction`.
 
