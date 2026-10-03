@@ -57,3 +57,10 @@
   PROPRE à chacun (guitare saturée · pluck deep house · pluck chaud · accordéon grave · synthé grave), la 2e moitié s'épaissit vers
   le BAS (plus jamais une octave plus haut), accords en scies sombres, basse plus lourde. RÈGLE : éviter le registre aigu et l'onde
   carrée nue (= « enfantin »).
+- 2026-10-03 — LOBBY retenu par Léo (« garde ce que j'ai sélectionné, push sur le main ») : VAPEUR · SALON, ASCENSEUR DORÉ, VIEILLE
+  FORTUNE, TEMPLE DE JADE → commit c399421 prêt sur `origin/main` (branche locale `lobby-leo-main`, dossier ../CAR-push) ; le push sur le
+  main de Sacha est lancé par Léo.
+- 2026-10-03 — LA MUSIQUE DU CIEL (`atelier-son/ciel.py`) : la NAPPE VAPEUR qui s'étoffe en 5 NIVEAUX de 8 mesures (88 BPM, mi♭),
+  structure inspirée de l'album EXPONENTIAL GENERATOR (Frollen Music Library : library music soul / hip-hop, Rhodes, percussions,
+  synthé monophonique sur une basse ARP) : 1 nappe seule · 2 Rhodes · 3 beat hip-hop + basse ARP · 4 mélodie au synthé mono ·
+  5 cordes et congas. Le morceau entier + chaque niveau en boucle (Niveaux → Nuages). En attente de l'écoute de Léo.

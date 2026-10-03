@@ -130,6 +130,7 @@ body.glisse .niv{border-style:dashed}
 <script src="assets/audio/music/boucles/vapeurs-donnees.js?v=8"></script>
 <script src="assets/audio/music/depart/depart-donnees.js?v=1"></script>
 <script src="assets/audio/music/boucles/lobby5-donnees.js?v=4"></script>
+<script src="assets/audio/music/ciel/ciel-donnees.js?v=1"></script>
 <script>
 'use strict';
 // les CIBLES du glisser : chaque onglet, et la corbeille
@@ -168,7 +169,7 @@ const ANCIENS=[
   ['garage-lofi','GARAGE','1er essai Claude · boucle longue · Garage',B9+'garage-lofi.m4a','mi dorien',82],
   ['hypervitesse','HYPERVITESSE','1er essai Claude · boucle longue · Nitro',B9+'hypervitesse.m4a','fa# mineur',174],
 ].map(a=>({g:'anciens',id:a[0],titre:a[1],style:a[2],f:a[3],cle:a[4]||'',bpm:a[5],dur:a[6]||(window.BOUCLES||[]).reduce((d,b)=>b.id===a[0]?b.dur:d,0)||0}));
-const TOUS=ANCIENS.concat((window.LOBBY5||[]).map(p=>({g:'lobby',id:p.id,titre:p.titre,style:p.style,bpm:p.bpm,cle:p.cle,dur:p.dur,f:p.f,idee:p.idee}))).concat((window.DEPART||[]).map(p=>({g:'depart',unique:true,id:p.id,titre:p.titre,style:p.style,cle:p.cle,dur:p.dur,f:p.f,idee:p.idee})).concat((window.VAPEURS||[]).map(p=>({g:p.onglet||'petits',id:p.id,titre:p.titre,style:p.style,bpm:p.bpm,cle:p.cle,dur:p.dur,f:p.f,idee:p.idee,niv0:p.niv})).concat((window.PETITS||[]).map(p=>({g:'petits',id:p.id,titre:p.titre,style:p.style,bpm:p.bpm,cle:p.cle,dur:p.dur,f:p.f,idee:p.idee}))).concat(
+const TOUS=ANCIENS.concat((window.CIEL||[]).map(p=>({g:'niv',niv0:'nuages',id:p.id,titre:p.titre,style:p.style,bpm:p.bpm,cle:p.cle,dur:p.dur,f:p.f,idee:p.idee}))).concat((window.LOBBY5||[]).map(p=>({g:'lobby',id:p.id,titre:p.titre,style:p.style,bpm:p.bpm,cle:p.cle,dur:p.dur,f:p.f,idee:p.idee}))).concat((window.DEPART||[]).map(p=>({g:'depart',unique:true,id:p.id,titre:p.titre,style:p.style,cle:p.cle,dur:p.dur,f:p.f,idee:p.idee})).concat((window.VAPEURS||[]).map(p=>({g:p.onglet||'petits',id:p.id,titre:p.titre,style:p.style,bpm:p.bpm,cle:p.cle,dur:p.dur,f:p.f,idee:p.idee,niv0:p.niv})).concat((window.PETITS||[]).map(p=>({g:'petits',id:p.id,titre:p.titre,style:p.style,bpm:p.bpm,cle:p.cle,dur:p.dur,f:p.f,idee:p.idee}))).concat(
   (window.BOUCLES||[]).filter(b=>b.f&&(b.groupe===GROUPE.lobby||b.groupe===GROUPE.niv)).map(b=>({g:b.groupe===GROUPE.lobby?'lobby':'niv',id:b.id,titre:b.titre,
     style:(b.pour||'').split('·').pop().trim(),bpm:b.bpm,cle:b.cle,dur:b.dur,f:b.f,idee:b.idee,niv0:nivDe(b.pour)})))));
 // LE RANGEMENT de Léo : {groupes:{id:onglet}, corbeille:[id]} — gardé par la boîte (atelier-son/boite/rangement.json), sinon par le navigateur
