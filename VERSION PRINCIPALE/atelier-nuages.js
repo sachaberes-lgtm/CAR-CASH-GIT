@@ -61,6 +61,15 @@ var G=[
   {s:'P',k:'mzT',i:3,n:'… sa force',mi:0,ma:1,p:.01},
   {s:'U',k:'v1',n:'Voile bleu de l’écran (haut et bas)',mi:0,ma:1,p:.01},
   {s:'U',k:'v2',n:'Bandeau bleu derrière les boutons',mi:0,ma:1,p:.01}]},
+ {t:'LA VOITURE',a:'Le modelé de la carrosserie au titre (les nuages ne bougent pas).',l:[
+  {s:'P',k:'studio',n:'Éclairage travaillé (décoché = celui d’avant)',x:1},
+  {s:'P',k:'amb',n:'Lumière d’ambiance sur la voiture',mi:.2,ma:1.2,p:.01},
+  {s:'P',k:'sol',n:'Soleil sur la voiture',mi:0,ma:1.5,p:.01},
+  {s:'P',k:'sk',n:'Lampe principale',mi:0,ma:3,p:.05},
+  {s:'P',k:'kh',n:'Lampe principale : du soleil → au zénith',mi:0,ma:1,p:.01},
+  {s:'P',k:'sc',n:'Lumière froide du ciel (dessus)',mi:0,ma:1,p:.01},
+  {s:'P',k:'sr',n:'Contre-jour (détoure la voiture)',mi:0,ma:3,p:.05},
+  {s:'P',k:'sb',n:'Rebond des nuages (par en dessous)',mi:0,ma:1,p:.01}]},
  {t:'LA SCENE',a:'Glisse sur l’image pour tourner autour de la caisse.',l:[
   {s:'P',k:'vit',n:'Montée des nuages (0 = figés)',mi:0,ma:40,p:.5},
   {s:'P',k:'caisse',n:'La voiture',x:1},

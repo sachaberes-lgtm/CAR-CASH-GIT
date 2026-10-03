@@ -44,6 +44,17 @@
   `dbgPhoto` dans une scène à part), et le VRAI parcours menu → GARAGE → ÉPIQUES → vignette → JOUER, couché, debout, cadre de l'ordi.
 - sw.js → v54.
 
+## L'ÉCRAN TITRE : REGARD HORIZONTAL, LA CAISSE QU'ON TAPOTE, SON MODELÉ (2026-10-03, copie de test de Léo — « bloque le point de vue à ce niveau vertical, horizontal seulement ; on peut tapoter la voiture et simuler à l'endroit tapoté un coup qui la pousse / pivote en train de tomber ; travaille encore plus en profondeur le shading de la caisse, sans faire trop »)
+- L'ORBITE AU DOIGT est HORIZONTALE : le glissé ne touche plus `CHUTE.oPc` (la hauteur du regard reste celle du menu, `P.elev`).
+- `chuteTape(e)` (le tap au ciel, branché dans le pointerup à la place de garageImpact quand `CHUTE.on`) : rayon caméra → la 1re pièce
+  VISIBLE et opaque de la caisse ; poussée dans le sens du rayon + couple r × F autour du CENTRE de la caisse (pas de son origine, au ras
+  des roues) ; `chuteTapeTick` : deux ressorts amortis (CHUTE_TAP K/C, KR/CR) la ramènent en deux-trois balancements ; éclat additif au
+  point touché, `sfx('garage.tole')`, `hap`. `dbgTape()` = coups, poussée (m), pivot (°). Rien pendant le piqué du JOUER.
+- `chuteStudio` (P.studio = 1) — le MODELÉ : l'ambiance (`hemi.intensity × amb`) et le soleil (`sun.intensity × sol`) baissés au titre (les
+  nuages ne lisent que leurs COULEURS), une clé haute (`sk`, `kh`), un zénith froid léger (`sc`), le contre-jour (`sr`). Les lampes
+  empruntées (carLight, trailLight) et hemi/sun sont rendues par chuteSort. `P.fige` fige l'instant (planches A/B, banc studio.mjs).
+  Réglable dans l'atelier des nuages, section LA VOITURE.
+
 ## L'ATELIER DES NUAGES — `?nuages=1` (2026-10-03, copie de test de Léo — Léo : « Sacha et moi on va bosser sur les nuages : une copie du nouveau menu, sans jeu, on va s'attarder sur le peaufinement de la scène et du réalisme des nuages »)
 - `…/jouer/?nuages=1` : l'écran titre TEL QUEL (même scène, mêmes cumulus v8 `CHUTE_NU`, même ciel `BIOMES.titre`), sans l'intro « 1.61 »,
   sans les boutons (`html.labNuages` : #overlay invisible et INTOUCHABLE jusque dans ses `[data-m]` — mais toujours en place : `menuCadre`
