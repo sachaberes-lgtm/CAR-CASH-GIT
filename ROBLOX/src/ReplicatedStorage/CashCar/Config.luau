@@ -241,6 +241,7 @@ Config.GRAINE_FIXE = nil :: number? -- mettre un nombre pour que tous les serveu
 -- Vide = le son de secours livré avec Roblox (quand il existe), sinon silence.
 Config.SONS = {
 	musique = "", moteur = "", nitro = "", ventAltitude = "", crissement = "", -- (crissement : la boucle des pneus qui glissent)
+	driftBrrr = "", rasBord = "", -- (la charge du drift qui monte ; le grondement du rase-bord)
 	-- la musique par LIEU (MUSIC_LIEU du web) : les nuages, la ville (et l'accueil), l'orage ; pas importée = `musique` continue
 	musiqueNuages = "", musiqueVille = "", musiqueOrage = "",
 	piece = "", decollage = "", poseParfait = "", poseChoc = "", poseLourde = "", vrille = "",

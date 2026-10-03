@@ -111,6 +111,28 @@ wav('crissement', s => {
   }
 });
 
+// LE « BRRRR » DU DRIFT (driftChargeSnd, L27385) : deux carrés à la QUINTE (124 et 186 Hz), passe-bas, trémolo à 15 Hz. Roblox le fait
+// MONTER en hauteur à chaque niveau de charge (PlaybackSpeed : bleu → or → rose) — on sait, sans regarder, qu'il est temps de lâcher.
+wav('driftBrrr', s => {
+  const car = (f, t) => (Math.sin(6.283 * f * t) >= 0 ? 1 : -1);
+  let lp = 0; const a = 1 - Math.exp(-6.283 * 900 / SR); // (le passe-bas d'un pôle, ~900 Hz)
+  for (let k = 0; k < 2; k++) for (let i = 0; i < N; i++) { // (deux passes : le filtre est en régime quand on écrit la boucle)
+    const t = i / SR;
+    lp += a * ((car(124, t) + 0.8 * car(186, t)) - lp);
+    if (k) s[i] = lp * (0.6 + 0.4 * Math.sin(6.283 * 15 * t));
+  }
+});
+// LE RASE-BORD GRONDE (raseSnd, L27426) : la caisse roule sur une BANDE RUGUEUSE — un bruit grave (bande 100-300 Hz, des sinus aux
+// fréquences entières : la boucle se referme) haché par un carré à 30 Hz. Roblox le hache plus vite avec la vitesse (PlaybackSpeed).
+wav('rasBord', s => {
+  const P = []; for (let f = 100; f <= 300; f++) { const x = (f - 190) / 70; P.push([f, rnd() * 6.283, Math.exp(-x * x)]); }
+  for (let i = 0; i < N; i++) {
+    const t = i / SR; let v = 0;
+    for (const [f, p, a] of P) v += a * Math.sin(6.283 * f * t + p);
+    s[i] = v * (Math.sin(6.283 * 30 * t) >= 0 ? 1 : 0.15);
+  }
+});
+
 // LA MUSIQUE PAR LIEU (MUSIC_LIEU du jeu web) : nuages = NOITE DE VELOCIDADE, ville (et l'accueil) = NOCTURNAL GROOVE, orage = SWAG
 // CASH CAR ; l'orbite garde la radio (`musique` : NÉON CASH CAR). Un morceau pas importé = `musique` continue.
 for (const [nom, f] of Object.entries({ musiqueNuages: 'noite-de-velocidade.mp3', musiqueVille: 'nocturnal-groove.mp3', musiqueOrage: 'swag-cash-car-2.m4a' })) {

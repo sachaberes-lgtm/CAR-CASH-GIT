@@ -2525,6 +2525,25 @@ local function habiller(dt: number)
 	-- et sa hauteur aussi (900 Hz + la glisse + la vitesse)
 	do
 		local gk = (mode == "drive" and not enPause) and (G.glisseK or 0) or 0
+		-- LE « BRRRR » DU DRIFT (driftChargeSnd) : il tient tout le drift et monte d'un cran à chaque niveau de charge
+		local dOn = mode == "drive" and not enPause and G.driftOn
+		do
+			local lv = G.driftLv or 0
+			local d0, dd = ({ 0, 0.45, 0.9, 1.4 })[lv + 1], ({ 0.45, 0.45, 0.5, 1 })[lv + 1]
+			local fr = (lv >= 3) and 1 or math.clamp(((G.driftC or 0) - d0) / dd, 0, 1)
+			local f = ({ 123.47, 164.81, 246.94, 329.63 })[lv + 1] * (1 + 0.25 * fr)
+			Sons.regler("driftBrrr", dOn and (0.06 + lv * 0.05) or 0, f / 124)
+		end
+		-- LE RASE-BORD GRONDE (raseSnd) : le danger se lit à l'oreille — et le pouce le sent (un tic toutes les 0,16 s)
+		local rOn = mode == "drive" and not enPause and (G.raseT or 0) > 0
+		Sons.regler("rasBord", rOn and math.min(0.5, 0.2 + G.raseT * 0.27) or 0, math.min(60, 18 + k * 0.05) / 30)
+		if rOn then
+			G.raseHap = (G.raseHap or 0) - dt
+			if G.raseHap <= 0 then
+				G.raseHap = 0.16
+				Hud.vibre(4)
+			end
+		end
 		Sons.regler("crissement", (gk > 0) and math.min(0.5, gk ^ 1.3 * 0.45 * (0.4 + math.min(1, k / 380))) or 0, (900 + gk * 430 + k * 0.35) / 1100)
 	end
 	-- (L36604 : `nuages.ambiance` est l'air d'un LIEU — la mer de nuages. En ville et en orbite il ne reste que le souffle de la vitesse)
@@ -19416,6 +19435,7 @@ Config.GRAINE_FIXE = nil :: number? -- mettre un nombre pour que tous les serveu
 -- Vide = le son de secours livré avec Roblox (quand il existe), sinon silence.
 Config.SONS = {
 	musique = "", moteur = "", nitro = "", ventAltitude = "", crissement = "", -- (crissement : la boucle des pneus qui glissent)
+	driftBrrr = "", rasBord = "", -- (la charge du drift qui monte ; le grondement du rase-bord)
 	-- la musique par LIEU (MUSIC_LIEU du web) : les nuages, la ville (et l'accueil), l'orage ; pas importée = `musique` continue
 	musiqueNuages = "", musiqueVille = "", musiqueOrage = "",
 	piece = "", decollage = "", poseParfait = "", poseChoc = "", poseLourde = "", vrille = "",
