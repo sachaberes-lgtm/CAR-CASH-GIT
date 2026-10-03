@@ -81,8 +81,16 @@ def v_salon():
     melodie(M, MEL_A, h, .08); melodie(M, MEL_B, h, .08)
     M.bus['pad'].L, M.bus['pad'].R = chorus(M.bus['pad'].L, M.bus['pad'].R); bande(M, ('pad', 'lead', 'rh'))
     fx_rev(M, [('pad', 1), ('lead', 1), ('rh', .7), ('bat', .2)], 3.2, .45, 4200)
-    L, R = fin(M, {'bat': .8, 'pad': 1, 'rh': 1, 'basse': 1, 'lead': 1, 'fx': 1}, maitre_lp=6500)
-    c = craquement(len(L), de, 9) * .8; return M, (L + c, R + np.roll(c, 700))
+    # (2026-10-03, Léo : « enlève les petits bruits dérangeants de VAPEUR — le grésillement — remplace par un autre truc ») : plus de
+    # craquements de vinyle ; à la place un CARILLON DE VERRE, rare et doux, qui tinte dans la gamme (mi♭ majeur pentatonique), loin derrière
+    ca = M.piste('carillon'); r9 = np.random.default_rng(77); gam = [75, 77, 79, 82, 84, 87, 89, 91]
+    for m in range(8):
+        for p in (2, 7, 11, 14):
+            if r9.random() < .35:
+                n = int(gam[r9.integers(len(gam))]); ca.pose(h.t(M.t(m, p, SW)), fm(n, 2.2, 3.5, 1.4, .25, 1.), .035 + .02 * r9.random(), r9.uniform(-.7, .7))
+    fx_rev(M, [('carillon', 1.4)], 3.5, .5, 7000)
+    L, R = fin(M, {'bat': .8, 'pad': 1, 'rh': 1, 'basse': 1, 'lead': 1, 'carillon': 1, 'fx': 1}, maitre_lp=6500)
+    return M, (L, R)
 
 
 # ------------------------------------------------------------------------------------------- NUAGES
@@ -164,6 +172,6 @@ if __name__ == '__main__':
         M, (L, R) = fn(); wav = os.path.join(SORTIE_V, vid + '.wav'); ecrit_wav(wav, L, R)
         subprocess.run(['afconvert', '-f', 'm4af', '-d', 'aac', '-b', '192000', '-q', '127', wav, os.path.join(SORTIE_V, vid + '.m4a')], check=True)
         os.remove(wav); print('  %-15s %.2f s' % (vid, len(L) / SR), flush=True)
-        out.append(dict(info, id=vid, f='assets/audio/music/boucles/' + vid + '.m4a', dur=round(len(L) / SR, 5)))
+        out.append(dict(info, id=vid, f='assets/audio/music/boucles/' + vid + '.m4a?v=%d' % int(__import__('time').time()), dur=round(len(L) / SR, 5)))  # ?v= : le navigateur reprend le son refait
     open(os.path.join(SORTIE_V, 'vapeurs-donnees.js'), 'w').write('window.VAPEURS=' + json.dumps(out, ensure_ascii=False) + ';\n')
     print('ok')
