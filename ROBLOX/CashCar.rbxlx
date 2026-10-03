@@ -17193,6 +17193,7 @@ return MoteurCarte
 local AssetService = game:GetService("AssetService")
 local Config = require(script.Parent.Parent:WaitForChild("Config"))
 local Maillage = require(script.Parent:WaitForChild("Maillage"))
+local Recyclage = require(script.Parent:WaitForChild("Recyclage"))
 local Modules = script.Parent.Parent:WaitForChild("Nuages")
 local Liste = require(Modules:WaitForChild("Liste"))
 local M = Config.M
@@ -17342,6 +17343,20 @@ local function oterFin(e: Inscrit)
 	if e.p.Parent then e.p.LocalTransparencyModifier = 0 end
 end
 -- un nuage qu'on DÉPLACE à chaque image (les cumulus du titre) : sa copie fine le suit tout de suite
+-- un nuage qui part au RECYCLAGE sort de la liste des « fins » : sa copie fine est rendue, son entrée oubliée — sinon, repris par
+-- la zone suivante, il serait inscrit deux fois (et sa version fine dédoublée)
+function Nuages.desinscrire(p: BasePart)
+	local e = parPiece[p :: any]
+	if not e then return end
+	oterFin(e)
+	parPiece[p :: any] = nil
+	local i = table.find(inscrits, e)
+	if i then
+		inscrits[i] = inscrits[#inscrits]
+		inscrits[#inscrits] = nil
+	end
+end
+Recyclage.surRendre.N = Nuages.desinscrire
 function Nuages.suivreFin(p: MeshPart)
 	local e = parPiece[p]
 	if e and e.f then majFin(e) end
@@ -17466,6 +17481,7 @@ function Nuages.modeles(ceder: (() -> ())?)
 	etatGabarits = 1
 	for k = 0, 24 do
 		gabarits[k] = Maillage.seul(batir, k) or false
+		if gabarits[k] then (gabarits[k] :: any).p:SetAttribute("Rec", "N" .. k) end -- (ses copies passent au recyclage : voir Client/Recyclage)
 		if ceder then ceder() end
 	end
 	etatGabarits = 2
@@ -17579,7 +17595,7 @@ function Nuages.batir(piste: any, dossier: Instance, graine: number, ceder: (() 
 		local origine = Vector3.new(x, yB - g.fiche.base * r * sy, z) * M
 		local ech = Vector3.new(r * sx, r * sy, r) * (M / UNITE)
 		local rot = CFrame.Angles(0, cap, 0)
-		local p = g.p:Clone()
+		local p = Recyclage.copie(g.p) :: MeshPart
 		p.Size = g.taille * ech
 		p.CFrame = CFrame.new(origine) * rot * CFrame.new(g.centre * UNITE * ech)
 		-- SA TEINTE : clair ou sourd, chaud ou froid, parfois lourd — en sourdine (30 %), comme la matière du jeu
@@ -17750,7 +17766,7 @@ function Nuages.batir(piste: any, dossier: Instance, graine: number, ceder: (() 
 		if not route and touche(c.X, c.Y, c.Z, r * 1.1, ry) then return end
 		local cap = (cr() - 0.5) * 0.8
 		local ech = Vector3.new(r, r, r) * (M / UNITE)
-		local p = g.p:Clone()
+		local p = Recyclage.copie(g.p) :: MeshPart
 		p.Size = g.taille * ech
 		p.Color = Color3.new(BLANC, BLANC, BLANC)
 		local milieu = (g.fiche.base + g.fiche.sommet) * 0.5
@@ -18279,6 +18295,8 @@ local gabaritDe: { [string]: BasePart } = {}
 local LOIN = CFrame.new(0, -1e5, 0)
 local MAX = 30000 -- (au-delà, on détruit : la réserve ne grossit pas sans fin)
 local total = 0
+-- (avant de ranger une pièce : ce que son module doit oublier d'elle, par la 1re lettre de sa clé — « N » : les nuages)
+Recyclage.surRendre = {} :: { [string]: (BasePart) -> () }
 
 function Recyclage.part(): Part
 	local l = reserve.P
@@ -18320,6 +18338,8 @@ function Recyclage.rendre(dossier: Instance?)
 			if d:IsA("BasePart") then
 				local cle = d:GetAttribute("Rec")
 				if type(cle) == "string" and total < MAX and not d:FindFirstChildWhichIsA("Instance") then
+					local f9 = Recyclage.surRendre[string.sub(cle, 1, 1)]
+					if f9 then pcall(f9, d) end
 					d.Parent = nil
 					d.CFrame = LOIN
 					if cle == "P" then

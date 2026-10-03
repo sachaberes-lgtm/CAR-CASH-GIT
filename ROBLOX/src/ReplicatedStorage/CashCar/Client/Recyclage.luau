@@ -19,6 +19,8 @@ local gabaritDe: { [string]: BasePart } = {}
 local LOIN = CFrame.new(0, -1e5, 0)
 local MAX = 30000 -- (au-delà, on détruit : la réserve ne grossit pas sans fin)
 local total = 0
+-- (avant de ranger une pièce : ce que son module doit oublier d'elle, par la 1re lettre de sa clé — « N » : les nuages)
+Recyclage.surRendre = {} :: { [string]: (BasePart) -> () }
 
 function Recyclage.part(): Part
 	local l = reserve.P
@@ -60,6 +62,8 @@ function Recyclage.rendre(dossier: Instance?)
 			if d:IsA("BasePart") then
 				local cle = d:GetAttribute("Rec")
 				if type(cle) == "string" and total < MAX and not d:FindFirstChildWhichIsA("Instance") then
+					local f9 = Recyclage.surRendre[string.sub(cle, 1, 1)]
+					if f9 then pcall(f9, d) end
 					d.Parent = nil
 					d.CFrame = LOIN
 					if cle == "P" then
