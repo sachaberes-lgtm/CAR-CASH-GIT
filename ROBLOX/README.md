@@ -23,6 +23,10 @@ avec le nom du script et la ligne. Copie-les à Claude.
 
 C'est toi qui publies (c'est ton compte Roblox) : Claude ne le fait pas à ta place.
 
+Les images de la page du jeu sont prêtes dans **`publication/`** : `icone-512.png` (l'icône) et cinq vignettes 1920×1080
+(`vignette-1-nuages.png` … `vignette-5-vol.png`), tirées du vrai jeu. Sur create.roblox.com → ton expérience → Places / Icône
+et Vignettes : les glisser. (Les refaire : `sh outils/vitrine.sh nuages` [ville, nuit, espace] puis `python outils/vitrine.py`.)
+
 ## Les commandes
 
 | | PC | Manette | Téléphone |
