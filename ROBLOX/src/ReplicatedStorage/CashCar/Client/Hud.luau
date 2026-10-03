@@ -418,6 +418,19 @@ function Hud.nombre(v: number): string
 	if FR then s = string.gsub(s, "%.", ",") end
 	return s
 end
+-- (cashTxt, L12856) LE COMPTEUR DE LA COURSE : compact au-delà de 100 000 ; les centimes seulement sous 10 $ (la mise de départ, 1,61) ;
+-- sinon un entier, avec ses séparateurs de milliers
+function Hud.cash(v: number): string
+	v = math.max(0, v)
+	if v >= 1e5 then return Hud.nombre(v) end
+	local e = math.floor(v + 1e-6)
+	if v < 10 and v - e > 0.004 then
+		local t = string.format("%.2f", v)
+		return FR and (string.gsub(t, "%.", ",")) or t
+	end
+	local out = string.reverse(string.gsub(string.reverse(tostring(e)), "(%d%d%d)", FR and "%1 " or "%1,"))
+	return (string.gsub(out, "^[ ,]", ""))
+end
 function Hud.argent(v: number): string
 	if v < 1000 and v == math.floor(v) then return "$ " .. tostring(v) end -- un montant rond s'écrit sans centimes (les primes, les prix)
 	return "$ " .. Hud.nombre(v)
@@ -580,6 +593,11 @@ function Hud.creer()
 	E.argent = texte(hud, { Text = "", RichText = true, TextSize = 55, TextColor3 = C.vert, Size = UDim2.new(0, 560, 0, 58),
 		Position = UDim2.new(1, -22, 0, 116), AnchorPoint = Vector2.new(1, 0), TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false,
 		epais = 4, contourCouleur = hx("04200f") })
+	E.argentEchelle = inst("UIScale", {}, E.argent)
+	-- (#cashHud .chD) chaque gain s'additionne dans un « +$ » sous le compteur tant que ça tombe (1,8 s après le dernier) — « ×3 » et
+	-- l'or en frénésie
+	E.argentPlus = texte(hud, { Text = "", TextSize = 24, TextColor3 = C.vert, Size = UDim2.new(0, 560, 0, 28), Position = UDim2.new(1, -22, 0, 174),
+		AnchorPoint = Vector2.new(1, 0), TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false, Visible = false, epais = 3, contourCouleur = hx("04200f") })
 	-- LE CHRONO DE VOL (#airHud du web) : l'aile, les secondes, « AIR », et la barre de la nitro qui se VIDE
 	E.air = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(200, 86), Position = UDim2.new(1, -22, 0, 184),
 		AnchorPoint = Vector2.new(1, 0), Visible = false }, hud)
@@ -588,7 +606,7 @@ function Hud.creer()
 		TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false, contourCouleur = hx("1c0430"), epais = 4 })
 	E.airJ = jauge(E.air, UDim2.new(1, 0, 0, 26), UDim2.fromOffset(0, 52), nil, 5, 3)
 	-- LES PLAQUES DE POUVOIR (#pwrChip) : une par pouvoir actif, sous l'argent (sous le chrono quand on vole)
-	E.pouvoirs = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(270, 340), Position = UDim2.new(1, -22, 0, 190), AnchorPoint = Vector2.new(1, 0) }, hud)
+	E.pouvoirs = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(270, 340), Position = UDim2.new(1, -22, 0, 208), AnchorPoint = Vector2.new(1, 0) }, hud) -- (sous le « +$ » du compteur)
 	-- le centre : la bannière du niveau, les figures, la chaîne
 	E.grand = texte(hud, { Text = "", TextSize = 38, TextColor3 = C.texte, Size = UDim2.new(1, 0, 0, 60), Position = UDim2.fromScale(0, 0.33), epais = 4 })
 	E.pop = texte(hud, { Text = "", TextSize = 22, TextColor3 = C.or_, Size = UDim2.new(1, 0, 0, 34), Position = UDim2.fromScale(0, 0.22), epais = 3 })
@@ -1261,6 +1279,26 @@ function Hud.dolVol(v: number)
 		E.dolVol.TextSize = 38
 		TweenService:Create(E.dolVol, LENTE, { TextSize = 26 }):Play()
 	end
+end
+-- le compteur d'argent de la course : la valeur affichée (qui défile), le « +$ » des gains qui tombent (nil = caché), la frappe
+local cashVu, cashPlus = "", ""
+function Hud.cashMaj(v: number, plus: string?, x3: boolean, frappe: boolean)
+	local t = '<font size="36">$</font>' .. Hud.cash(v)
+	if t ~= cashVu then
+		cashVu = t
+		E.argent.Text = t
+	end
+	if frappe then
+		E.argentEchelle.Scale = 1.12
+		TweenService:Create(E.argentEchelle, RAPIDE, { Scale = 1 }):Play()
+	end
+	local p = plus or ""
+	if p ~= cashPlus then
+		cashPlus = p
+		E.argentPlus.Text = p
+		E.argentPlus.Visible = p ~= ""
+	end
+	E.argentPlus.TextColor3 = x3 and C.or_ or C.vert
 end
 -- les pastilles de l'accueil : n choses à s'offrir au garage ; la boutique jamais visitée
 function Hud.badges(nGarage: number, shopNeuf: boolean)

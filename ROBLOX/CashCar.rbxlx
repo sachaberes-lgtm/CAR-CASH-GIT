@@ -452,7 +452,10 @@ local function ajouterPieces(n: number)
 			-- LA CARTE MOTEUR (Client/MoteurCarte) : le moteur en 3D au-dessus de la caisse, qui plonge dans le capot — c'est elle
 			-- qui donne la poussée, le coup de caméra et le « +N KM/H », à l'instant de l'impact
 			secousse = math.max(secousse, 0.15)
-			Bus.emit("moteur", tier, gain)
+			-- (L22722) NOUVEAU SOMMET : un palier jamais atteint avant cette partie — la carte le dit en or, avec la fanfare du record
+			local sommet = tier > (profil.moteurMax or 0)
+			Bus.emit("moteur", tier, gain, sommet)
+			if sommet then task.delay(0.35, function() Sons.jouer("record", 1.1, 0.45) end) end
 		else
 			HudScore.slam(Hud.sansAccent(MOT[tier + 1].nom), tr("NOUVEAU MOTEUR", "NEW ENGINE"), "#ffd75e", "#dfeeff", 26, 1)
 			Sons.vrai("moteurPalier", nil, nil, "nitroPlein", 1.1)
@@ -2592,7 +2595,27 @@ end
 
 -- ════════ le HUD ════════
 local function hud(dt: number)
-	E.argent.Text = '<font size="36">$</font>' .. Hud.nombre(argent)
+	-- (cashHudTick, L12873) LE TOTAL DÉFILE vers l'argent (on le voit entrer, comme dans GTA) et FRAPPE à chaque gain ; les gains
+	-- s'additionnent dans le « +$ » tant qu'ils tombent (1,8 s après le dernier). Une nouvelle partie recale sans défiler.
+	do
+		local C9 = G.cash
+		if not C9 then
+			C9 = { disp = argent, last = argent, delta = 0, dT = 0 }
+			G.cash = C9
+		end
+		local frappe = false
+		if argent < C9.last - 0.001 then
+			C9.disp, C9.last, C9.delta, C9.dT = argent, argent, 0, 0
+		elseif argent > C9.last + 0.001 then
+			C9.delta = ((C9.dT > 0) and C9.delta or 0) + (argent - C9.last)
+			C9.last, C9.dT, frappe = argent, 1.8, true
+		end
+		if C9.dT > 0 then C9.dT = math.max(0, C9.dT - dt) end
+		local ec = argent - C9.disp
+		C9.disp = (ec < 0.01) and argent or (C9.disp + ec * math.min(1, dt * 7))
+		local x3 = Score.FLOW.lv == 4
+		Hud.cashMaj(C9.disp, (C9.dT > 0 and C9.delta > 0) and ("+$ " .. Hud.cash(C9.delta) .. (x3 and " ×3" or "")) or nil, x3, frappe)
+	end
 	local res = reservoir()
 	-- la barre et le bouton NITRO : la réserve du moteur, la réserve bleue à la suite, violets en NITRO INFINIE
 	Hud.nitro(math.clamp(nitroR / res, 0, 1), math.clamp(nitroX / res, 0, 1), pwN > 0, nitroOn)
@@ -2760,8 +2783,11 @@ local function finPartie()
 	-- LES RECORDS NE SE CONTREDISENT PLUS (audit UX du 26/09, L38987) : le titre s'allume pour l'argent, l'AURA ou le MOTEUR — les
 	-- héros de cet écran. (L'aura : seulement s'il y avait un record à battre ; le moteur : un palier jamais atteint avant.)
 	-- Une partie QUITTÉE depuis la pause ne fête rien.
-	local recT = causeMort ~= "quitte" and (rec or (meilleurAura > 0 and aura > meilleurAura) or tier > (profil.moteurMax or 0))
-	profil.moteurMax = math.max(profil.moteurMax or 0, tier)
+	local recA = causeMort ~= "quitte" and meilleurAura > 0 and aura > meilleurAura
+	local moteurAvant = profil.moteurMax or 0
+	local recM = causeMort ~= "quitte" and tier > moteurAvant
+	local recT = causeMort ~= "quitte" and (rec or recA or recM)
+	profil.moteurMax = math.max(moteurAvant, tier)
 	local mres = Missions.fin(CPT)
 	evFin:FireServer(argent, dist, aura, { pieces = stats.pieces, figures = stats.poses, kmh = G.vmax, zone = G.nbZones + 1, tier = tier,
 		multi = Score.CHA.xMax, cause = causeMort, parfaites = stats.parfaites, fruits = stats.fruits, nitro = stats.nitro,
@@ -2777,22 +2803,40 @@ local function finPartie()
 	E.mRecord.Text = rec and (FR and "RECORD !" or "RECORD!") or ""
 	E.mRecord.Visible = rec
 	E.mCompte.Text = T.compte .. " " .. Hud.argent(compte + math.max(0, argent - Config.CASH_DEPART))
-	E.mAura.Text = Hud.entier(aura)
-	Hud.tenir(E.mAuraEchelle, E.mAura.Text, 78, 250)
-	E.mAuraMeilleur.Text = T.meilleur .. " " .. Hud.entier(meilleurAura)
+	E.mAura.Text = "0"
+	Hud.tenir(E.mAuraEchelle, Hud.entier(aura), 78, 250)
+	-- (L39161) l'aura MONTE de 0 quand la carte arrive (à 0,26 s), en 0,75 s
+	task.delay(0.26, function()
+		local t0 = os.clock()
+		while mode == "mort" do
+			local u = math.min(1, (os.clock() - t0) / 0.75)
+			E.mAura.Text = Hud.entier(math.floor(aura * (1 - (1 - u) ^ 3) + 0.5))
+			if u >= 1 then break end
+			task.wait()
+		end
+	end)
+	E.mAuraMeilleur.Text = (recA and aura > 0) and (FR and "RECORD !" or "RECORD!") or (T.meilleur .. " " .. Hud.entier(meilleurAura))
+	E.mAuraMeilleur.TextColor3 = (recA and aura > 0) and Hud.C.or_ or Hud.C.terne
 	E.mMoteurNom.Text = Hud.sansAccent(MOT[tier + 1].nom)
 	Hud.tenir(E.mMoteurNomEchelle, E.mMoteurNom.Text, 20, 270)
-	E.mMoteurPalier.Text = T.palier .. '  <font size="46">' .. (tier + 1) .. "</font>" -- (L39158 : le palier se compte à partir de 1, comme dans la pause)
-	if tier < #MOT - 1 then
-		E.mMoteurEncore.Text = string.format(T.encore, MOT[tier + 2][1] - coinsGot) .. "\n↑ " .. Hud.sansAccent(MOT[tier + 2].nom)
+	E.mMoteurPalier.Text = T.palier .. '  <font size="46">' .. (tier + 1) .. "</font>" .. (recM and '  <font color="#ffd75e">RECORD !</font>' or "") -- (L39158 : le palier se compte à partir de 1)
+	-- (L39151) LE « PRESQUE » : mourir à 3 pièces du palier suivant, c'est LA raison de relancer — la carte le dit quand ce palier
+	-- AURAIT été un record et qu'il ne manquait presque rien ; sinon, si le record est plus haut, elle rappelle le record à battre
+	local mq = (tier < #MOT - 1) and (MOT[tier + 2][1] - coinsGot) or 0
+	local presque = tier < #MOT - 1 and mq > 0 and tier + 1 > moteurAvant and mq <= math.max(3, math.ceil((MOT[tier + 2][1] - MOT[tier + 1][1]) * 0.3))
+	if presque then
+		E.mMoteurEncore.Text = string.format(T.encore, mq) .. "\n↑ " .. Hud.sansAccent(MOT[tier + 2].nom)
+	elseif not recM and moteurAvant > tier then
+		E.mMoteurEncore.Text = (FR and "RECORD  PALIER " or "RECORD  TIER ") .. (moteurAvant + 1)
 	else
-		E.mMoteurEncore.Text = T.moteurMax
+		E.mMoteurEncore.Text = ""
 	end
 	E.mPartie.Text = ""
 	Hud.defi(mres.carte)
 	local st = {
 		{ "x" .. Score.CHA.xMax, T.multiMax },
-		{ Hud.entier(G.vmax), T.kmhMax }, { tostring(G.nbZones + 1), T.zone }, { Score.mmss(Score.FREN.max), T.frenesie },
+		{ Hud.entier(G.vmax), T.kmhMax }, { tostring(G.nbZones + 1), FR and "NIVEAU" or "LEVEL" },
+		{ Score.mmss(Score.FREN.max), (Score.FREN.max >= 5 and Score.FREN.max >= (Score.FREN.record or 0) - 0.05) and "RECORD" or T.frenesie },
 	}
 	for i, v in st do
 		E.mStats[i][1].Text = v[1]
@@ -13053,6 +13097,19 @@ function Hud.nombre(v: number): string
 	if FR then s = string.gsub(s, "%.", ",") end
 	return s
 end
+-- (cashTxt, L12856) LE COMPTEUR DE LA COURSE : compact au-delà de 100 000 ; les centimes seulement sous 10 $ (la mise de départ, 1,61) ;
+-- sinon un entier, avec ses séparateurs de milliers
+function Hud.cash(v: number): string
+	v = math.max(0, v)
+	if v >= 1e5 then return Hud.nombre(v) end
+	local e = math.floor(v + 1e-6)
+	if v < 10 and v - e > 0.004 then
+		local t = string.format("%.2f", v)
+		return FR and (string.gsub(t, "%.", ",")) or t
+	end
+	local out = string.reverse(string.gsub(string.reverse(tostring(e)), "(%d%d%d)", FR and "%1 " or "%1,"))
+	return (string.gsub(out, "^[ ,]", ""))
+end
 function Hud.argent(v: number): string
 	if v < 1000 and v == math.floor(v) then return "$ " .. tostring(v) end -- un montant rond s'écrit sans centimes (les primes, les prix)
 	return "$ " .. Hud.nombre(v)
@@ -13215,6 +13272,11 @@ function Hud.creer()
 	E.argent = texte(hud, { Text = "", RichText = true, TextSize = 55, TextColor3 = C.vert, Size = UDim2.new(0, 560, 0, 58),
 		Position = UDim2.new(1, -22, 0, 116), AnchorPoint = Vector2.new(1, 0), TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false,
 		epais = 4, contourCouleur = hx("04200f") })
+	E.argentEchelle = inst("UIScale", {}, E.argent)
+	-- (#cashHud .chD) chaque gain s'additionne dans un « +$ » sous le compteur tant que ça tombe (1,8 s après le dernier) — « ×3 » et
+	-- l'or en frénésie
+	E.argentPlus = texte(hud, { Text = "", TextSize = 24, TextColor3 = C.vert, Size = UDim2.new(0, 560, 0, 28), Position = UDim2.new(1, -22, 0, 174),
+		AnchorPoint = Vector2.new(1, 0), TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false, Visible = false, epais = 3, contourCouleur = hx("04200f") })
 	-- LE CHRONO DE VOL (#airHud du web) : l'aile, les secondes, « AIR », et la barre de la nitro qui se VIDE
 	E.air = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(200, 86), Position = UDim2.new(1, -22, 0, 184),
 		AnchorPoint = Vector2.new(1, 0), Visible = false }, hud)
@@ -13223,7 +13285,7 @@ function Hud.creer()
 		TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false, contourCouleur = hx("1c0430"), epais = 4 })
 	E.airJ = jauge(E.air, UDim2.new(1, 0, 0, 26), UDim2.fromOffset(0, 52), nil, 5, 3)
 	-- LES PLAQUES DE POUVOIR (#pwrChip) : une par pouvoir actif, sous l'argent (sous le chrono quand on vole)
-	E.pouvoirs = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(270, 340), Position = UDim2.new(1, -22, 0, 190), AnchorPoint = Vector2.new(1, 0) }, hud)
+	E.pouvoirs = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(270, 340), Position = UDim2.new(1, -22, 0, 208), AnchorPoint = Vector2.new(1, 0) }, hud) -- (sous le « +$ » du compteur)
 	-- le centre : la bannière du niveau, les figures, la chaîne
 	E.grand = texte(hud, { Text = "", TextSize = 38, TextColor3 = C.texte, Size = UDim2.new(1, 0, 0, 60), Position = UDim2.fromScale(0, 0.33), epais = 4 })
 	E.pop = texte(hud, { Text = "", TextSize = 22, TextColor3 = C.or_, Size = UDim2.new(1, 0, 0, 34), Position = UDim2.fromScale(0, 0.22), epais = 3 })
@@ -13896,6 +13958,26 @@ function Hud.dolVol(v: number)
 		E.dolVol.TextSize = 38
 		TweenService:Create(E.dolVol, LENTE, { TextSize = 26 }):Play()
 	end
+end
+-- le compteur d'argent de la course : la valeur affichée (qui défile), le « +$ » des gains qui tombent (nil = caché), la frappe
+local cashVu, cashPlus = "", ""
+function Hud.cashMaj(v: number, plus: string?, x3: boolean, frappe: boolean)
+	local t = '<font size="36">$</font>' .. Hud.cash(v)
+	if t ~= cashVu then
+		cashVu = t
+		E.argent.Text = t
+	end
+	if frappe then
+		E.argentEchelle.Scale = 1.12
+		TweenService:Create(E.argentEchelle, RAPIDE, { Scale = 1 }):Play()
+	end
+	local p = plus or ""
+	if p ~= cashPlus then
+		cashPlus = p
+		E.argentPlus.Text = p
+		E.argentPlus.Visible = p ~= ""
+	end
+	E.argentPlus.TextColor3 = x3 and C.or_ or C.vert
 end
 -- les pastilles de l'accueil : n choses à s'offrir au garage ; la boutique jamais visitée
 function Hud.badges(nGarage: number, shopNeuf: boolean)
@@ -16098,7 +16180,7 @@ local function texte(parent: Instance, taille: number, y: number, h: number): Te
 	return l
 end
 
-local function ouvrir(tier: number, gain: number)
+local function ouvrir(tier: number, gain: number, sommet: boolean?)
 	fin()
 	local f = Liste[tier]
 	if not f then return end
@@ -16115,8 +16197,9 @@ local function ouvrir(tier: number, gain: number)
 	g.Parent = a
 	local cap = CAPACITES[tier]
 	local titre = texte(g, 9, 0, 14)
-	titre.Text = cap and (FR and cap[1] or cap[2]) or (FR and "NOUVEAU MOTEUR" or "NEW ENGINE")
-	titre.TextColor3 = cap and Color3.fromRGB(125, 255, 154) or Color3.fromRGB(223, 238, 255)
+	-- (L22722) un palier jamais atteint avant : NOUVEAU SOMMET, en or
+	titre.Text = cap and (FR and cap[1] or cap[2]) or (sommet and (FR and "NOUVEAU SOMMET" or "NEW PEAK") or (FR and "NOUVEAU MOTEUR" or "NEW ENGINE"))
+	titre.TextColor3 = cap and Color3.fromRGB(125, 255, 154) or (sommet and Color3.fromRGB(255, 215, 94) or Color3.fromRGB(223, 238, 255))
 	local nomTxt = sansAccent(FR and f.nom or f.en)
 	-- le nom dans la typo ombrée du HUD : une ombre dure décalée, à la couleur sombre du moteur
 	local ombre = texte(g, (#nomTxt > 12) and 15 or 20, 21, 30)
@@ -16278,8 +16361,8 @@ function MoteurCarte.init()
 	Bus.on("fin", function(r: any)
 		if Hud.E.mMoteurVue and r and r.tier then photo(Hud.E.mMoteurVue, r.tier) end
 	end)
-	Bus.on("moteur", function(tier: number, gain: number)
-		ouvrir(tier, gain or 0)
+	Bus.on("moteur", function(tier: number, gain: number, sommet: boolean?)
+		ouvrir(tier, gain or 0, sommet)
 	end)
 	Bus.on("mort", fin)
 	preparer(1)

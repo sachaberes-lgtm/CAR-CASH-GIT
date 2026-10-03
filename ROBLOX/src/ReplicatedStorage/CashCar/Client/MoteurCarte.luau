@@ -181,7 +181,7 @@ local function texte(parent: Instance, taille: number, y: number, h: number): Te
 	return l
 end
 
-local function ouvrir(tier: number, gain: number)
+local function ouvrir(tier: number, gain: number, sommet: boolean?)
 	fin()
 	local f = Liste[tier]
 	if not f then return end
@@ -198,8 +198,9 @@ local function ouvrir(tier: number, gain: number)
 	g.Parent = a
 	local cap = CAPACITES[tier]
 	local titre = texte(g, 9, 0, 14)
-	titre.Text = cap and (FR and cap[1] or cap[2]) or (FR and "NOUVEAU MOTEUR" or "NEW ENGINE")
-	titre.TextColor3 = cap and Color3.fromRGB(125, 255, 154) or Color3.fromRGB(223, 238, 255)
+	-- (L22722) un palier jamais atteint avant : NOUVEAU SOMMET, en or
+	titre.Text = cap and (FR and cap[1] or cap[2]) or (sommet and (FR and "NOUVEAU SOMMET" or "NEW PEAK") or (FR and "NOUVEAU MOTEUR" or "NEW ENGINE"))
+	titre.TextColor3 = cap and Color3.fromRGB(125, 255, 154) or (sommet and Color3.fromRGB(255, 215, 94) or Color3.fromRGB(223, 238, 255))
 	local nomTxt = sansAccent(FR and f.nom or f.en)
 	-- le nom dans la typo ombrée du HUD : une ombre dure décalée, à la couleur sombre du moteur
 	local ombre = texte(g, (#nomTxt > 12) and 15 or 20, 21, 30)
@@ -361,8 +362,8 @@ function MoteurCarte.init()
 	Bus.on("fin", function(r: any)
 		if Hud.E.mMoteurVue and r and r.tier then photo(Hud.E.mMoteurVue, r.tier) end
 	end)
-	Bus.on("moteur", function(tier: number, gain: number)
-		ouvrir(tier, gain or 0)
+	Bus.on("moteur", function(tier: number, gain: number, sommet: boolean?)
+		ouvrir(tier, gain or 0, sommet)
 	end)
 	Bus.on("mort", fin)
 	preparer(1)

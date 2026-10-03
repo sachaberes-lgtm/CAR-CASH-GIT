@@ -452,7 +452,10 @@ local function ajouterPieces(n: number)
 			-- LA CARTE MOTEUR (Client/MoteurCarte) : le moteur en 3D au-dessus de la caisse, qui plonge dans le capot — c'est elle
 			-- qui donne la poussée, le coup de caméra et le « +N KM/H », à l'instant de l'impact
 			secousse = math.max(secousse, 0.15)
-			Bus.emit("moteur", tier, gain)
+			-- (L22722) NOUVEAU SOMMET : un palier jamais atteint avant cette partie — la carte le dit en or, avec la fanfare du record
+			local sommet = tier > (profil.moteurMax or 0)
+			Bus.emit("moteur", tier, gain, sommet)
+			if sommet then task.delay(0.35, function() Sons.jouer("record", 1.1, 0.45) end) end
 		else
 			HudScore.slam(Hud.sansAccent(MOT[tier + 1].nom), tr("NOUVEAU MOTEUR", "NEW ENGINE"), "#ffd75e", "#dfeeff", 26, 1)
 			Sons.vrai("moteurPalier", nil, nil, "nitroPlein", 1.1)
@@ -2592,7 +2595,27 @@ end
 
 -- ════════ le HUD ════════
 local function hud(dt: number)
-	E.argent.Text = '<font size="36">$</font>' .. Hud.nombre(argent)
+	-- (cashHudTick, L12873) LE TOTAL DÉFILE vers l'argent (on le voit entrer, comme dans GTA) et FRAPPE à chaque gain ; les gains
+	-- s'additionnent dans le « +$ » tant qu'ils tombent (1,8 s après le dernier). Une nouvelle partie recale sans défiler.
+	do
+		local C9 = G.cash
+		if not C9 then
+			C9 = { disp = argent, last = argent, delta = 0, dT = 0 }
+			G.cash = C9
+		end
+		local frappe = false
+		if argent < C9.last - 0.001 then
+			C9.disp, C9.last, C9.delta, C9.dT = argent, argent, 0, 0
+		elseif argent > C9.last + 0.001 then
+			C9.delta = ((C9.dT > 0) and C9.delta or 0) + (argent - C9.last)
+			C9.last, C9.dT, frappe = argent, 1.8, true
+		end
+		if C9.dT > 0 then C9.dT = math.max(0, C9.dT - dt) end
+		local ec = argent - C9.disp
+		C9.disp = (ec < 0.01) and argent or (C9.disp + ec * math.min(1, dt * 7))
+		local x3 = Score.FLOW.lv == 4
+		Hud.cashMaj(C9.disp, (C9.dT > 0 and C9.delta > 0) and ("+$ " .. Hud.cash(C9.delta) .. (x3 and " ×3" or "")) or nil, x3, frappe)
+	end
 	local res = reservoir()
 	-- la barre et le bouton NITRO : la réserve du moteur, la réserve bleue à la suite, violets en NITRO INFINIE
 	Hud.nitro(math.clamp(nitroR / res, 0, 1), math.clamp(nitroX / res, 0, 1), pwN > 0, nitroOn)
@@ -2760,8 +2783,11 @@ local function finPartie()
 	-- LES RECORDS NE SE CONTREDISENT PLUS (audit UX du 26/09, L38987) : le titre s'allume pour l'argent, l'AURA ou le MOTEUR — les
 	-- héros de cet écran. (L'aura : seulement s'il y avait un record à battre ; le moteur : un palier jamais atteint avant.)
 	-- Une partie QUITTÉE depuis la pause ne fête rien.
-	local recT = causeMort ~= "quitte" and (rec or (meilleurAura > 0 and aura > meilleurAura) or tier > (profil.moteurMax or 0))
-	profil.moteurMax = math.max(profil.moteurMax or 0, tier)
+	local recA = causeMort ~= "quitte" and meilleurAura > 0 and aura > meilleurAura
+	local moteurAvant = profil.moteurMax or 0
+	local recM = causeMort ~= "quitte" and tier > moteurAvant
+	local recT = causeMort ~= "quitte" and (rec or recA or recM)
+	profil.moteurMax = math.max(moteurAvant, tier)
 	local mres = Missions.fin(CPT)
 	evFin:FireServer(argent, dist, aura, { pieces = stats.pieces, figures = stats.poses, kmh = G.vmax, zone = G.nbZones + 1, tier = tier,
 		multi = Score.CHA.xMax, cause = causeMort, parfaites = stats.parfaites, fruits = stats.fruits, nitro = stats.nitro,
@@ -2777,22 +2803,40 @@ local function finPartie()
 	E.mRecord.Text = rec and (FR and "RECORD !" or "RECORD!") or ""
 	E.mRecord.Visible = rec
 	E.mCompte.Text = T.compte .. " " .. Hud.argent(compte + math.max(0, argent - Config.CASH_DEPART))
-	E.mAura.Text = Hud.entier(aura)
-	Hud.tenir(E.mAuraEchelle, E.mAura.Text, 78, 250)
-	E.mAuraMeilleur.Text = T.meilleur .. " " .. Hud.entier(meilleurAura)
+	E.mAura.Text = "0"
+	Hud.tenir(E.mAuraEchelle, Hud.entier(aura), 78, 250)
+	-- (L39161) l'aura MONTE de 0 quand la carte arrive (à 0,26 s), en 0,75 s
+	task.delay(0.26, function()
+		local t0 = os.clock()
+		while mode == "mort" do
+			local u = math.min(1, (os.clock() - t0) / 0.75)
+			E.mAura.Text = Hud.entier(math.floor(aura * (1 - (1 - u) ^ 3) + 0.5))
+			if u >= 1 then break end
+			task.wait()
+		end
+	end)
+	E.mAuraMeilleur.Text = (recA and aura > 0) and (FR and "RECORD !" or "RECORD!") or (T.meilleur .. " " .. Hud.entier(meilleurAura))
+	E.mAuraMeilleur.TextColor3 = (recA and aura > 0) and Hud.C.or_ or Hud.C.terne
 	E.mMoteurNom.Text = Hud.sansAccent(MOT[tier + 1].nom)
 	Hud.tenir(E.mMoteurNomEchelle, E.mMoteurNom.Text, 20, 270)
-	E.mMoteurPalier.Text = T.palier .. '  <font size="46">' .. (tier + 1) .. "</font>" -- (L39158 : le palier se compte à partir de 1, comme dans la pause)
-	if tier < #MOT - 1 then
-		E.mMoteurEncore.Text = string.format(T.encore, MOT[tier + 2][1] - coinsGot) .. "\n↑ " .. Hud.sansAccent(MOT[tier + 2].nom)
+	E.mMoteurPalier.Text = T.palier .. '  <font size="46">' .. (tier + 1) .. "</font>" .. (recM and '  <font color="#ffd75e">RECORD !</font>' or "") -- (L39158 : le palier se compte à partir de 1)
+	-- (L39151) LE « PRESQUE » : mourir à 3 pièces du palier suivant, c'est LA raison de relancer — la carte le dit quand ce palier
+	-- AURAIT été un record et qu'il ne manquait presque rien ; sinon, si le record est plus haut, elle rappelle le record à battre
+	local mq = (tier < #MOT - 1) and (MOT[tier + 2][1] - coinsGot) or 0
+	local presque = tier < #MOT - 1 and mq > 0 and tier + 1 > moteurAvant and mq <= math.max(3, math.ceil((MOT[tier + 2][1] - MOT[tier + 1][1]) * 0.3))
+	if presque then
+		E.mMoteurEncore.Text = string.format(T.encore, mq) .. "\n↑ " .. Hud.sansAccent(MOT[tier + 2].nom)
+	elseif not recM and moteurAvant > tier then
+		E.mMoteurEncore.Text = (FR and "RECORD  PALIER " or "RECORD  TIER ") .. (moteurAvant + 1)
 	else
-		E.mMoteurEncore.Text = T.moteurMax
+		E.mMoteurEncore.Text = ""
 	end
 	E.mPartie.Text = ""
 	Hud.defi(mres.carte)
 	local st = {
 		{ "x" .. Score.CHA.xMax, T.multiMax },
-		{ Hud.entier(G.vmax), T.kmhMax }, { tostring(G.nbZones + 1), T.zone }, { Score.mmss(Score.FREN.max), T.frenesie },
+		{ Hud.entier(G.vmax), T.kmhMax }, { tostring(G.nbZones + 1), FR and "NIVEAU" or "LEVEL" },
+		{ Score.mmss(Score.FREN.max), (Score.FREN.max >= 5 and Score.FREN.max >= (Score.FREN.record or 0) - 0.05) and "RECORD" or T.frenesie },
 	}
 	for i, v in st do
 		E.mStats[i][1].Text = v[1]
