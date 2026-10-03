@@ -163,59 +163,128 @@ def balai(de):
     nn = int(.18 * SR); return passe_bande(de.bruit(nn), 2500, 9000) * np.exp(-np.arange(nn) / SR / .05) * .6
 
 
+# ---- (2026-10-03, Léo : « plus premium, MÉTRO et FILTRE D'OR ») : les instruments du salon CHIC
+def rhodes_p(m, dur=1.2, vel=1.):
+    """Rhodes « premium » : la lame (tine) plus brillante quand on joue fort, le corps, un léger désaccord entre les deux"""
+    d = int(dur * SR); t = np.arange(d) / SR
+    s = plus(fm(m, dur, 1, .9 + 1.4 * vel, .25, .7 + .6 * vel), .2 * vel * fm(m + 12, dur * .4, 14, 1.2, .03, .2))
+    s = plus(s, .35 * fm(m, dur, 1.003, .6, .4, 1.))
+    return s[:d] * (.6 + .4 * vel)
+
+
+def contrebasse(m, dur, de):
+    """contrebasse jouée aux doigts : la corde pincée (boisée) + la fondamentale ronde"""
+    x = karplus(m, dur + .3, .3, .9975, de)[:int(dur * SR)]; nn = len(x)
+    corps = sinus(hz(m), nn) * env(nn, .01, .5, .45, .08, dur * .85)
+    return filtre(x * .7 + corps * .8, 'low', 1400)
+
+
+def vibra(m, dur=2.):
+    nn = int(dur * SR); t = np.arange(nn) / SR
+    s = fm(m, dur, 4, .7, .2, 1.2)[:nn] * (1 + .25 * np.sin(2 * np.pi * 5.5 * t))   # le moteur du vibraphone
+    return s
+
+
+def ride(de):
+    nn = int(1.2 * SR); t = np.arange(nn) / SR
+    met = sum(np.sin(2 * np.pi * f * t + k) for k, f in enumerate((3120, 4410, 5230, 6870, 8130))) / 5
+    return (passe_bande(de.bruit(nn), 5000, 12000) * .4 + met * .3) * np.exp(-t / .5) * (1 - np.exp(-t / .002))
+
+
+def cordes(M, de, acc, mes, g=.05, fc=1300):
+    c = M.piste('cordes')
+    for m in mes:
+        for n in acc[m % 4][1:4]:
+            l, r = supersaw(n + 12, M.temps * 4 + 1., 4, 9, de); e = env(len(l), .9, 9, 1, .8, M.temps * 4)
+            c.pose2(M.t(m), filtre(l * e, 'low', fc), filtre(r * e, 'low', fc), g)
+
+
+def harpe(M, de, notes, m, p, h, g=.18):
+    a = M.piste('harpe')
+    for k, n in enumerate(notes):
+        a.pose(M.t(m, p) + k * .045, filtre(karplus(n, 1.6, .7, .998, de), 'high', 300), g * (.7 + .3 * k / len(notes)), -.5 + k / len(notes))
+
+
+def tremolo_stereo(M, nom, vit=4.6, prof=.35):
+    if nom not in M.bus: return
+    t = np.arange(M.n) / SR; o = np.sin(2 * np.pi * vit * t)
+    M.bus[nom].L *= 1 + prof * o; M.bus[nom].R *= 1 - prof * o
+
+
+def finition(M, pistes, lp=9000):
+    """la colle : une compression douce du mélange (les crêtes arrondies, le corps tient), puis la fin habituelle"""
+    for k in pistes:
+        if k in M.bus: M.bus[k].L = np.tanh(M.bus[k].L * 1.2) / 1.2; M.bus[k].R = np.tanh(M.bus[k].R * 1.2) / 1.2
+    return fin(M, pistes, maitre_lp=lp)
+
+
 def v_filtre_salon():
-    """FILTRE D'OR · SALON — l'idée de FILTRE D'OR (l'accord haché dont le filtre s'ouvre lentement), jouée au Rhodes dans un salon :
-    sol dorien en 7e et 9e, le filtre s'ouvre sur les 4 premières mesures, la 2e moitié est ouverte et une mélodie répond."""
+    """FILTRE D'OR · SALON (premium) — l'accord haché au Rhodes chic (trémolo stéréo, attaques qui chantent), le FILTRE D'OR qui s'ouvre sur
+    la 1re moitié, contrebasse, ride et balais ; la harpe ouvre la 2e moitié : cordes, vibraphone qui répond, et un vrai retour en fin de boucle."""
     M = morceau(106, 505); de = M.de; h = Main(15, 6); SW = .16
-    M.patron('bat', 'x.......x.......', lambda: kick(de, 100, 42, .45, .05, 1.), .55)
-    M.patron('bat', '....x.......x...', lambda: rim(de), .3, .15, SW)
-    M.patron('bat', '..x...x...x...x.', lambda: balai(de), .35, -.2, SW)
-    M.patron('bat', 'o.o.o.o.o.o.o.o.', lambda: shaker(de), .2, -.4, SW, mes=range(4, 8))
-    acc = [[55, 58, 62, 65, 69], [60, 64, 67, 70, 74], [53, 57, 60, 64, 67], [58, 62, 65, 69, 72]]  # Sol m9 · Do9 · Fa maj9 · Si♭ maj9
+    M.patron('bat', 'x.......x.......', lambda: kick(de, 95, 42, .45, .03, 1.), .5)
+    M.patron('bat', '....x.......x...', lambda: rim(de), .26, .15, SW)
+    M.patron('bat', '..x...x...x...x.', lambda: balai(de), .3, -.2, SW)
+    M.patron('bat', 'x..x..x.x..x..x.', lambda: ride(de), .16, .35, SW, mes=range(4, 8))
+    #            Sol m11                Do13                 Fa maj9              Si♭ maj7♯11   →  retour : La7♭9 (bar 8, 2e moitié)
+    acc = [[55, 58, 62, 65, 69, 72], [60, 64, 67, 70, 74, 81], [53, 57, 60, 64, 67, 69], [58, 62, 65, 69, 72, 76]]
     rh = M.piste('rh')
     for m in range(8):
-        for p in (0, 3, 6, 10, 13) if m % 2 == 0 else (2, 6, 8, 11, 14):          # l'accord HACHÉ, mais à la main et en contretemps
-            for k, n in enumerate(acc[m % 4]):
-                rh.pose(h.t(M.t(m, p, SW)) + k * .007, rhodes(n + 12, .6), h.g(.06), -.3 + .15 * k)
-    lg = int(M.lg * SR); u = np.clip(np.arange(M.n) / max(1, lg // 2), 0, 1)       # LE FILTRE D'OR : il s'ouvre sur la 1re moitié
-    fc = 500 * (16 ** u); rh.L = balaye(rh.L, fc); rh.R = balaye(rh.R, fc)
+        a = acc[m % 4] if m != 7 else [57, 61, 64, 67, 70, 73]
+        for p in (0, 3, 6, 10, 13) if m % 2 == 0 else (2, 6, 8, 11, 14):
+            v = .55 + .45 * h.r.random()
+            for k, n in enumerate(a[1:]):
+                rh.pose(h.t(M.t(m, p, SW)) + k * .006, rhodes_p(n + 12, .7, v), h.g(.05), -.3 + .15 * k)
+    lg = int(M.lg * SR); u = np.clip(np.arange(M.n) / max(1, lg // 2), 0, 1)
+    fc = 600 * (14 ** (u ** 1.3)); rh.L = balaye(rh.L, fc); rh.R = balaye(rh.R, fc)
+    tremolo_stereo(M, 'rh')
     b = M.piste('basse')
     for m in range(8):
-        r = acc[m % 4][0] - 12
-        for p, o in ((0, 0), (6, 7), (10, 12)):
-            nn = int(M.dc * 3.5 * SR); b.pose(h.t(M.t(m, p, SW)), (sinus(hz(r + o - 12), nn) + .2 * tri(hz(r + o - 12) * 2, nn)) * env(nn, .008, .35, .3), .55)
-    melodie(M, [(4, 2, 74, 4), (4, 8, 72, 6), (5, 4, 70, 8), (6, 2, 77, 4), (6, 8, 74, 6), (7, 0, 72, 12)], h, .08)
-    nappe_vapeur(M, de, acc, 1500, .05, range(4, 8))
-    M.bus['rh'].L, M.bus['rh'].R = chorus(M.bus['rh'].L, M.bus['rh'].R, 12, 2, .5); bande(M, ('lead', 'pad'))
-    fx_rev(M, [('rh', .8), ('lead', 1), ('pad', 1), ('bat', .2)], 2.8, .4, 4500)
-    return M, fin(M, {'bat': .8, 'rh': 1, 'basse': 1, 'lead': 1, 'pad': 1, 'fx': 1}, maitre_lp=7000)
+        r = (acc[m % 4][0] if m != 7 else 57) - 24
+        for p, o, lg9 in ((0, 0, 4), (6, 7, 2), (8, 12, 3), (14, 10, 2)):
+            b.pose(h.t(M.t(m, p, SW)), contrebasse(r + o, lg9 * M.dc * 1.1, de), h.g(.55))
+    harpe(M, de, [62, 65, 69, 72, 74, 77, 81, 84], 3, 10, h)
+    cordes(M, de, acc, range(4, 8), .05)
+    vb = M.piste('vibra')
+    for m, p, n in ((4, 2, 74), (4, 8, 72), (5, 4, 70), (5, 10, 69), (6, 2, 77), (6, 8, 74), (7, 0, 73), (7, 8, 72)):
+        vb.pose(h.t(M.t(m, p, SW)), vibra(n + 12, 1.8), h.g(.07), .3)
+    M.bus['rh'].L, M.bus['rh'].R = chorus(M.bus['rh'].L, M.bus['rh'].R, 11, 1.6, .4)
+    fx_rev(M, [('rh', .7), ('vibra', 1.2), ('cordes', 1), ('harpe', 1), ('bat', .2)], 3., .42, 5500)
+    return M, finition(M, {'bat': .8, 'rh': 1, 'basse': 1, 'cordes': 1, 'vibra': 1, 'harpe': 1, 'fx': 1}, 9500)
 
 
 def v_metro_salon():
-    """MÉTRO · SALON — l'idée de MÉTRO (le rebond 2-step du dernier métro) ralentie dans un salon : fa mineur en 9e au Rhodes court,
-    grosse caisse qui saute doucement, balais qui boitent, sous-basse ronde ; la 2e moitié s'ouvre et une mélodie répond."""
+    """MÉTRO · SALON (premium) — le rebond 2-step ralenti, Rhodes chic en 9e/11e avec trémolo stéréo, contrebasse, balais qui boitent ;
+    la 2e moitié : cordes, vibraphone qui répond, la harpe en ouverture et un retour en fin de boucle."""
     M = morceau(104, 506); de = M.de; h = Main(16, 6); sw = .22
-    M.patron('bat', 'x.......x.x.....', lambda: kick(de, 100, 42, .4, .05, 1.), .55, swing=sw,
+    M.patron('bat', 'x.......x.x.....', lambda: kick(de, 95, 42, .4, .03, 1.), .5, swing=sw,
              var=lambda m: 'x.......x.x.....' if m % 2 == 0 else 'x.....x....x....')
-    M.patron('bat', '....x.......x...', lambda: rim(de), .3, .15, sw)
-    M.patron('bat', '..x.x.xx..x.x.xx', lambda: balai(de), .22, -.25, sw)
-    acc = [[53, 56, 60, 63, 67], [49, 53, 56, 60, 63], [58, 61, 65, 68, 72], [55, 58, 62, 65, 68]]  # Fa m9 · Ré♭ maj9 · Si♭ m9 · Sol m7♭5
+    M.patron('bat', '....x.......x...', lambda: rim(de), .26, .15, sw)
+    M.patron('bat', '..x.x.xx..x.x.xx', lambda: balai(de), .2, -.25, sw)
+    M.patron('bat', 'x...x...x...x...', lambda: ride(de), .13, .35, sw, mes=range(4, 8))
+    #            Fa m11                  Ré♭ maj9 ♯11           Si♭ m9                 Sol ø7 (m7♭5)   →  retour : Do7♭9 (bar 8)
+    acc = [[53, 56, 60, 63, 67, 70], [49, 53, 56, 60, 63, 67], [58, 61, 65, 68, 72, 75], [55, 58, 61, 65, 68, 72]]
     rh = M.piste('rh')
     for m in range(8):
+        a = acc[m % 4] if m != 7 else [48, 52, 55, 58, 61, 64]
         for p in (0, 3, 7, 10):
-            for k, n in enumerate(acc[m % 4]):
-                rh.pose(h.t(M.t(m, p, sw)) + k * .007, rhodes(n + 12, .45 if m < 4 else .9), h.g(.07), -.3 + .15 * k)
+            v = .55 + .45 * h.r.random()
+            for k, n in enumerate(a[1:]):
+                rh.pose(h.t(M.t(m, p, sw)) + k * .006, rhodes_p(n + 12, .45 if m < 4 else .9, v), h.g(.06), -.3 + .15 * k)
+    tremolo_stereo(M, 'rh', 4.2, .3)
     b = M.piste('basse')
     for m in range(8):
-        r = acc[m % 4][0] - 12
+        r = (acc[m % 4][0] if m != 7 else 48) - 12
         for p, lg9 in ((0, 3), (6, 2), (11, 4)):
-            nn = int(lg9 * M.dc * SR); b.pose(h.t(M.t(m, p, sw)), np.tanh(sinus(hz(r - 12), nn) * env(nn, .008, 9, 1, .05, lg9 * M.dc - .05) * 1.3), .6)
-    melodie(M, [(4, 4, 72, 4), (4, 10, 75, 4), (5, 2, 72, 8), (6, 4, 68, 4), (6, 10, 70, 4), (7, 2, 67, 12)], h, .08)
-    nappe_vapeur(M, de, acc, 1400, .05, range(4, 8))
-    M.bus['rh'].L, M.bus['rh'].R = chorus(M.bus['rh'].L, M.bus['rh'].R, 12, 2, .5); bande(M, ('lead', 'pad'))
-    fx_rev(M, [('rh', .8), ('lead', 1), ('pad', 1), ('bat', .2)], 2.6, .4, 4500)
-    return M, fin(M, {'bat': .8, 'rh': 1, 'basse': 1, 'lead': 1, 'pad': 1, 'fx': 1}, maitre_lp=7000)
-
+            b.pose(h.t(M.t(m, p, sw)), contrebasse(r - 12, lg9 * M.dc * 1.1, de), h.g(.6))
+    harpe(M, de, [60, 63, 65, 68, 72, 75, 77, 80], 3, 10, h)
+    cordes(M, de, acc, range(4, 8), .05, 1200)
+    vb = M.piste('vibra')
+    for m, p, n in ((4, 4, 72), (4, 10, 75), (5, 2, 72), (5, 8, 70), (6, 4, 68), (6, 10, 70), (7, 2, 67), (7, 8, 64)):
+        vb.pose(h.t(M.t(m, p, sw)), vibra(n + 12, 1.8), h.g(.07), .3)
+    M.bus['rh'].L, M.bus['rh'].R = chorus(M.bus['rh'].L, M.bus['rh'].R, 11, 1.6, .4)
+    fx_rev(M, [('rh', .7), ('vibra', 1.2), ('cordes', 1), ('harpe', 1), ('bat', .2)], 2.8, .42, 5500)
+    return M, finition(M, {'bat': .8, 'rh': 1, 'basse': 1, 'cordes': 1, 'vibra': 1, 'harpe': 1, 'fx': 1}, 9500)
 
 VAPEURS = [
     ('vapeur-salon', v_salon, {'titre': 'VAPEUR · SALON', 'style': 'Vaporwave lounge', 'bpm': 100, 'cle': 'mi♭ majeur', 'onglet': 'lobby',
@@ -227,9 +296,9 @@ VAPEURS = [
     ('vapeur-ciel', v_ciel, {'titre': 'VAPEUR CIEL', 'style': 'Vaporwave · ciel', 'bpm': 120, 'cle': 'fa majeur', 'onglet': 'niv', 'niv': 'nuages',
                              'idee': "Au-dessus des nuages : un ton plus haut, plus clair, des arpèges qui scintillent, la mélodie à l'octave."}),
     ('filtre-salon', v_filtre_salon, {'titre': "FILTRE D'OR · SALON", 'style': 'Lounge · filtre', 'bpm': 106, 'cle': 'sol dorien', 'onglet': 'lobby',
-                                      'idee': "FILTRE D'OR dans le moule du salon : l'accord haché au Rhodes, le filtre qui s'ouvre sur la 1re moitié, une mélodie qui répond en 2e."}),
+                                      'idee': "FILTRE D'OR, salon chic : Rhodes à trémolo, le filtre d'or qui s'ouvre, contrebasse, ride ; la harpe ouvre la 2e moitié — cordes et vibraphone."}),
     ('metro-salon', v_metro_salon, {'titre': 'MÉTRO · SALON', 'style': 'Lounge · 2-step', 'bpm': 104, 'cle': 'fa mineur', 'onglet': 'lobby',
-                                    'idee': "MÉTRO dans le moule du salon : le rebond 2-step ralenti, Rhodes en 9e, balais, sous-basse ; la 2e moitié s'ouvre."}),
+                                    'idee': "MÉTRO, salon chic : le rebond 2-step ralenti, Rhodes à trémolo en 11e, contrebasse, balais ; la harpe ouvre la 2e moitié — cordes et vibraphone."}),
 ]
 
 if __name__ == '__main__':
