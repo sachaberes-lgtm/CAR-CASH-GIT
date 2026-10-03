@@ -149,7 +149,7 @@ end)
 
 -- la position : 20 fois par seconde au plus, jamais un nombre aberrant
 local derPos: { [number]: number } = {}
-evPos.OnServerEvent:Connect(function(p, cf)
+evPos.OnServerEvent:Connect(function(p, cf, sP, rel)
 	if typeof(cf) ~= "CFrame" then return end
 	local t = os.clock()
 	if derPos[p.UserId] and t - derPos[p.UserId] < 1 / 20 then return end
@@ -158,6 +158,11 @@ evPos.OnServerEvent:Connect(function(p, cf)
 	if v ~= v or math.abs(v.X) > 1e6 or math.abs(v.Y) > 1e6 or math.abs(v.Z) > 1e6 then return end
 	local m = dossier:FindFirstChild(p.Name)
 	if m and m.PrimaryPart then m.PrimaryPart.CFrame = cf end
+	-- (la place sur la piste : chacun la reporte sur SA route — voir G.poseDouble chez le joueur)
+	if m and type(sP) == "number" and sP == sP and sP >= 0 and sP < 1e6 and typeof(rel) == "CFrame" and rel.Position.Magnitude < 1e5 then
+		m:SetAttribute("S", sP)
+		m:SetAttribute("Rel", rel)
+	end
 end)
 
 -- Fin de partie : le montant vient du joueur. On le borne (un montant absurde est ignoré) —

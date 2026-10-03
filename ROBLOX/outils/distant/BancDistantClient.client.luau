@@ -58,6 +58,38 @@ ev.OnClientEvent:Connect(function(op: string, r: string, nom: string, prop: stri
 		ev:FireServer("etat : " .. (ok and table.concat(t, " ") or tostring(e)))
 	elseif op == "compte" then
 		ev:FireServer(string.format("compte %s : %d", nom, chacun(r, nom, function() end)))
+	elseif op == "arbre" then
+		-- l'inventaire du monde : pour chaque enfant de la racine, combien de descendants et de pièces (pour trouver ce qui s'accumule)
+		local t = {}
+		for _, c in racine(r):GetChildren() do
+			local n, np = 0, 0
+			for _, d in c:GetDescendants() do
+				n += 1
+				if d:IsA("BasePart") then np += 1 end
+			end
+			if n >= 20 then table.insert(t, { c.Name .. ":" .. c.ClassName, n, np }) end
+		end
+		table.sort(t, function(a, b) return a[2] > b[2] end)
+		local o = {}
+		for i = 1, math.min(30, #t) do table.insert(o, t[i][1] .. "=" .. t[i][2] .. "/" .. t[i][3]) end
+		ev:FireServer("arbre : " .. table.concat(o, " "))
+	elseif op == "stats" then
+		-- le coût du rendu, tel que Roblox le compte (triangles, appels de dessin, ombres, interface, mémoire, ms par image)
+		local St = game:GetService("Stats")
+		local t = {}
+		for _, k in { "SceneTriangleCount", "SceneDrawcallCount", "ShadowsTriangleCount", "ShadowsDrawcallCount", "UI2DTriangleCount",
+			"UI2DDrawcallCount", "UI3DTriangleCount", "UI3DDrawcallCount", "InstanceCount", "PrimitivesCount", "FrameTime", "RenderCPUFrameTime",
+			"RenderGPUFrameTime", "HeartbeatTimeMs" } do
+			local ok, v = pcall(function() return (St :: any)[k] end)
+			table.insert(t, k .. "=" .. (ok and tostring(typeof(v) == "number" and math.floor(v * 100 + 0.5) / 100 or v) or "?"))
+		end
+		local okM, mem = pcall(function() return St:GetTotalMemoryUsageMb() end)
+		table.insert(t, "memMb=" .. (okM and math.floor(mem) or "?"))
+		for _, tag in { "GraphicsMeshParts", "GraphicsParts", "GraphicsTexture", "GraphicsParticles", "Gui", "Instances", "LuaHeap", "PhysicsParts" } do
+			local okT, v = pcall(function() return St:GetMemoryUsageMbForTag((Enum.DeveloperMemoryTag :: any)[tag]) end)
+			if okT then table.insert(t, tag .. "=" .. math.floor(v)) end
+		end
+		ev:FireServer("stats : " .. table.concat(t, " "))
 	elseif op == "lire" then
 		local vu = false
 		chacun(r, nom, function(d)

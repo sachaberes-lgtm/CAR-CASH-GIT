@@ -3325,6 +3325,15 @@ E.btFacile.Parent.Visible = Config.FACILE_ACTIF
 
 -- ════════ les autres caisses : un double chez moi, lissé ; on ne voit que celles qui roulent dans NOTRE zone ════════
 type Double = { m: Model, c: Model, vu: boolean?, pg: any, ind: number, cle: string }
+-- où dessiner la caisse d'un autre : sur MA piste, à sa distance et à son écart (sa pose relative au repère de la route) ; à défaut
+-- (un serveur d'avant, une valeur absente), sa pose monde
+function G.poseDouble(m: Model): CFrame
+	local sA, rel = m:GetAttribute("S"), m:GetAttribute("Rel")
+	if type(sA) == "number" and typeof(rel) == "CFrame" and piste then
+		return repere(math.clamp(sA, 0, piste.len / M), 1) * rel
+	end
+	return (m.PrimaryPart :: BasePart).CFrame
+end
 local doubles: { [Model]: Double } = {}
 local function lisserDoubles(dt: number)
 	for m, d in doubles do
@@ -3332,7 +3341,7 @@ local function lisserDoubles(dt: number)
 			Caisse.rendre(d.c)
 			doubles[m] = nil
 		elseif d.vu and m.PrimaryPart then
-			d.c.PrimaryPart.CFrame = d.c.PrimaryPart.CFrame:Lerp(m.PrimaryPart.CFrame, math.min(1, dt * 10))
+			d.c.PrimaryPart.CFrame = d.c.PrimaryPart.CFrame:Lerp(G.poseDouble(m), math.min(1, dt * 10))
 		end
 	end
 end
@@ -3362,7 +3371,7 @@ task.spawn(function()
 					for _, p in d.c:GetDescendants() do
 						if p:IsA("BasePart") then p.LocalTransparencyModifier = voir and 0 or 1 end
 					end
-					if voir then d.c.PrimaryPart.CFrame = m.PrimaryPart.CFrame end
+					if voir then d.c.PrimaryPart.CFrame = G.poseDouble(m) end
 				end
 				local nitro = voir and m:GetAttribute("Nitro") == true
 				Caisse.feu(d.pg, nitro, nitro and 110 or 0, Color3.fromRGB(255, 122, 36))
@@ -3613,7 +3622,9 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 		KA.envoiT -= dtBrut
 		if KA.envoiT <= 0 and (mode == "drive" or mode == "fall") then
 			KA.envoiT = 1 / 15
-			evPos:FireServer(carCF)
+			-- (la place SUR LA PISTE voyage avec la pose : la route d'une zone dépend du MOTEUR de chacun — deux joueurs en zone 3
+			-- n'ont pas la même route. Chez l'autre, la caisse se pose sur SA route, à la même distance, au même écart.)
+			evPos:FireServer(carCF, s, repere(s, 1):ToObjectSpace(carCF))
 		end
 	end
 	hud(dt)
