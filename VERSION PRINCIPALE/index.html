@@ -25524,7 +25524,7 @@ let musicMode='none',musicBaseVol=1,musicBoostEnv=0;
    chaque famille retrouve exactement le mixage d'origine, et un curseur à fond ne peut donc pas
    faire hurler le jeu. */
 const VOL={mus:.62,sfx:1,vox:1};
-const ANN_MUS_DUCK=.34; // la voix parle → la bande-son tombe à 34 % (elle ne se coupe pas : elle recule)
+const ANN_MUS_DUCK=.88; // la voix parle → la bande-son recule à peine (2026-10-03, Léo : « les MONSTRE ne doivent pas cacher la musique » — c'était .34, −9 dB, la musique semblait s'arrêter à chaque pose)
 function musVol(){return musicBaseVol*VOL.mus;} // le niveau accordé × le curseur, en un seul endroit
 const MUSIC_FILT_REST=1500; // Hz : caisse à l'ARRÊT = son sourd/étouffé (réglable) — le mouvement rouvre le filtre jusqu'à MUSIC_FILT_OPEN
 const MUSIC_FILT_OPEN=20000; // …et s'ouvre en grand quand on booste (approche A : filtre sur boucle simple)
@@ -27748,7 +27748,7 @@ const ANN_DIR='assets/audio/announcer/';
 // à une place tirée au sort — imprévisible mais garanti. Les répliques épiques (first:1) sortent
 // dès leur toute première occurrence : on présente la voix, ensuite elle se mérite.
 const ANN_RATE=.94,ANN_DEMON_RATE=.80,ANN_DEMON_VOL=.26,ANN_ECHO1=162,ANN_ECHO2=324,
-      ANN_DUCK=.5,ANN_VOICE_VOL=.58; // volume dompté : la voix impressionne sans écraser le mix
+      ANN_DUCK=.5,ANN_VOICE_VOL=.42; // volume dompté : la voix impressionne sans écraser le mix
 const ANN_LIB={ // first:1 partout : chaque voix se présente à sa 1re occurrence, puis se mérite (1/3)
   m1:        {f:'monstre.mp3',       txt:'MONSTRE',cd:2500,first:1},         // figure simple à l'atterrissage
   m2:        {f:'double_monstre.mp3',txt:'DOUBLE MONSTRE',cd:2500,first:1},  // gros multiplicateur
