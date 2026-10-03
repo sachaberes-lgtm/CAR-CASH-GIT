@@ -137,6 +137,12 @@ recommence (décision de Sacha, 2/10 : « fais la ville et l'espace, fais pas Pa
 - Le niveau d'une zone : `Config.niveau(zone)` ; son ambiance : `Client/Ambiance` (`pluie`, `espace`) ; l'habit de sa route
   (liseré, bitume, lueur) : `HABITS` dans `Client/Construction`.
 
+**Nouveau le 3/10** (à essayer en premier) : l'intro « 1.61 GAMES » au lancement ; l'accueil avec ses cumulus et sa mer de nuages
+(ils étaient effacés), le regard à niveau du web et la caisse qu'on TAPOTE ; la fenêtre d'achat de la boutique ; les filets de vent
+de la nitro ; à plusieurs, le pseudo des autres au-dessus de leur caisse (posée sur TA route) ; la manette dans les menus ; quitter
+l'auto-école proprement ; le jeu complet en anglais ; et sous le capot : la mémoire qui ne grimpe plus de zone en zone, une
+sauvegarde qui ne peut plus effacer une progression.
+
 **Porté** (tout a été vu tourner dans Roblox Studio) :
 - la route-ruban qui plonge, ses deux faces, la conduite, le drift, la fronde, les pads, plots, flaques, épaves ;
 - le vol, les figures, les poses notées, les bumps, le bord (sursis, lèvre, bascule), la loi du réservoir de nitro ;
