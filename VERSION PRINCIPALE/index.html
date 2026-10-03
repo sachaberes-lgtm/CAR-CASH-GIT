@@ -30355,7 +30355,7 @@ function nitroooTick(dt){
     if(pal>NTR.pal&&NTR.boost<NTR_BOOST_MAX-.001){NTR.pal=pal;NTR.kc=1;
       const pct=Math.round(Math.min(NTR_BOOST_MAX,Math.pow(1+NTR_BOOST,pal)-1)*100); // (exponentiel) le palier affiche ce qu'il vaut vraiment
       try{popTexte('+'+pct+' %','#ffb040',1);}catch(e){}fovPunch=Math.max(fovPunch,4);flashEcran('rgba(255,140,40,.45)');hap(10);
-      if(SONV2)sfx('nitrooo.palier',{st:sonPd(Math.min(7,pal))});}
+      if(SONV2)sfx('nitrooo.palier',{st:sonPd(pal%2?2:0),vol:-11});} // (2026-10-03, Léo : « quand j'appuie sur le boost avec la barre très remplie, ça MONTE trop fort ; quand ça s'égalise en notes plus douces c'est agréable ») : les paliers de NITROOO ne GRIMPENT plus la gamme (ils alternaient vers le 7e degré) et passent −11 dB — la phrase du boost prend le relais
     NTR.boost=Math.min(NTR_BOOST_MAX,Math.max(NTR.boost,Math.pow(1+NTR_BOOST,NTR.t)-1)); // (exponentiel) continu entre deux paliers, ×1,10 à chaque seconde tenue
   }else NTR.boost=Math.max(0,NTR.boost-dt*1.4);
   const cible=actif?Math.max(NTR.kc>0?1:0,.6+.4*NTR.gT):0; // (2026-09-30, Sacha : « plus tu boostes longtemps, plus la tête devient grosse, opaque et enflammée ») — c'était l'inverse : 0,7 puis 0,5 après 6 s
@@ -37385,7 +37385,7 @@ function loop(now){
       // PURE SPEED → NITROOO (2026-09-29) : 2 s (NTR_T) de nitro soutenu sur la route, au-delà de 55 % de la vmax du moteur (voir le bloc NITROOO)
       if(nitroOn&&startBoostT<=0&&speedKmh>Math.min(400,vmaxShow()*.55)){ // (le boost de DÉPART tient la touche à la place du joueur : il ne compte pas)
         pureT+=dt;
-        if(pureT>NTR_T&&pureArmed){pureArmed=false;if(!NTR.on){annSpeak('pureSpeed',2);trickMsg('NITROOO !',3);if(SONV2)sfx('vitesse.pure',{st:sonPd(0)});else noiseBurst(.5,.12,1200); // (2026-09-29) une NITROOO qui continue depuis le vol ne se réannonce ni ne se repaie
+        if(pureT>NTR_T&&pureArmed){pureArmed=false;if(!NTR.on){annSpeak('pureSpeed',2);trickMsg('NITROOO !',3);if(SONV2)sfx('vitesse.pure',{st:sonPd(0),vol:-8});else noiseBurst(.5,.12,1200); // (2026-09-29) une NITROOO qui continue depuis le vol ne se réannonce ni ne se repaie
           chaineAura('NITROOO',120,'pure',false,SONV2);}pureNext=pureT+2;nitroooPart();
           if(!PARK.on)flowAdd(5,'risque','p');} // (NITROOO) un petit geste de flow, UNE fois par tenue (PSYCHO paie déjà la vitesse tenue)
         /* TENIR PLUS LONGTEMPS PAYE PLUS, MAIS PAR PALIERS. Un gain continu redeviendrait le robinet
