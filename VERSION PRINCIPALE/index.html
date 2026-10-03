@@ -25602,8 +25602,50 @@ function musicAnalyse(){
     musicAnaEl=AC.createMediaStreamSource(st);
     if(!musicAna){musicAna=AC.createAnalyser();musicAna.fftSize=256;musicAna.smoothingTimeConstant=.55;musicData=new Uint8Array(musicAna.frequencyBinCount);}
     musicAnaEl.connect(musicAna); // l'analyseur n'a pas de sortie : rien de ce qui passe ici ne s'entend
+    distPrete();if(DIST.in)musicAnaEl.connect(DIST.in); // (2026-10-03) …et la DISTORSION DU BOOST (sa sortie à elle s'entend, voir plus haut)
   }catch(e){}
 }
+/* LA DISTORSION DU BOOST (2026-10-03, Léo : « au lieu de modifier la vitesse — ça fait bizarre, ça coupe — fabrique un effet de
+   distorsion design, agréable, qui donne envie de booster non-stop ; léger quand tu es à la vitesse du boost, ça doit bien se ressentir »).
+   ⚠ La musique NE PASSE TOUJOURS PAS par Web Audio (voir « LA MUSIQUE v4 » : c'est ce qui la rendait muette sur iPhone). On part de
+   la COPIE du son que l'analyse du rythme tire déjà (`captureStream`, `musicAnaEl`) : elle traverse une saturation à lampe et s'ajoute
+   PAR-DESSUS la musique, qui continue de jouer telle quelle. Rien ne peut donc couper la musique : au pire, l'effet ne s'entend pas.
+   (Là où `captureStream` n'existe pas — iPhone, Safari — il n'y a pas d'effet, et rien ne change.)
+   LE SON : passe-haut 140 Hz → attaque (le « drive ») → saturation douce et asymétrique (des harmoniques paires, chaudes, comme une
+   lampe ou une bande qu'on pousse) → passe-bas 6 kHz → un peu de présence à 2,5 kHz. En boost, la musique d'origine recule de −2 dB
+   pendant que sa copie saturée monte : on a l'impression que LE MORCEAU LUI-MÊME CHAUFFE. Un petit éclat à l'allumage de la nitro.
+   LE DOSAGE : nitro = plein · plaque turbo = 60 % · simple vitesse de boost (flowVitN ≥ 1,15 → 1,35) = jusqu'à 35 %, « léger ».
+   Montée 80 ms, retombée 0,5 s. Console : `dbgDisto()` (état) · `dbgDisto(0|1)` coupe / rallume. */
+const DIST={on:true,in:null,wet:null,env:0,nitroAv:false};
+function distPrete(){
+  if(DIST.in||!AC)return;
+  try{
+    const hp=AC.createBiquadFilter();hp.type='highpass';hp.frequency.value=140;
+    const drive=AC.createGain();drive.gain.value=3.2;
+    const sat=AC.createWaveShaper();const n=2048,c=new Float32Array(n);
+    for(let i=0;i<n;i++){const x=i/(n-1)*2-1;c[i]=Math.tanh(1.6*x+.25*x*x)/Math.tanh(1.85);} // asymétrique : des harmoniques paires (le grain chaud)
+    sat.curve=c;sat.oversample='4x';
+    const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=6000;lp.Q.value=.6;
+    const pr=AC.createBiquadFilter();pr.type='peaking';pr.frequency.value=2500;pr.Q.value=.9;pr.gain.value=3;
+    const wet=AC.createGain();wet.gain.value=0;
+    hp.connect(drive);drive.connect(sat);sat.connect(lp);lp.connect(pr);pr.connect(wet);wet.connect(AC.destination);
+    DIST.in=hp;DIST.wet=wet;
+  }catch(e){DIST.in=null;}
+}
+function distTick(dt){
+  if(!DIST.in||!AC)return;
+  let c=0;
+  if(DIST.on&&musicMode==='run'&&running&&!gameOver&&!paused&&musicEl&&!musicEl.paused){
+    const v9=flowVitN();c=Math.max(nitroOn?1:0,Math.min(1,boost)*.6,Math.max(0,Math.min(1,(v9-1.15)/.2))*.35);
+  }
+  if(nitroOn&&!DIST.nitroAv&&c>0)DIST.env=Math.max(DIST.env,1.25);   // l'éclat de l'allumage
+  DIST.nitroAv=nitroOn;
+  DIST.env+=(c-DIST.env)*Math.min(1,dt/(c>DIST.env?.08:.5));
+  const cible=Math.max(0,DIST.env)*.5*musVol();
+  if(Math.abs((DIST._g||0)-cible)>.002){DIST._g=cible;try{DIST.wet.gain.setTargetAtTime(cible,AC.currentTime,.03);}catch(e){}}
+}
+window.dbgDisto=function(a){if(a===0||a===1)DIST.on=!!a;return{on:DIST.on,branchee:!!DIST.in,copieDuSon:!!musicAnaEl,niveau:+DIST.env.toFixed(2),
+  vitesse:+flowVitN().toFixed(2),nitro:!!nitroOn,boost:+Math.min(1,boost).toFixed(2)};};
 function musicGraph(){} // (v4 : plus de graphe Web Audio pour la bande-son — gardée vide pour les anciens appelants)
 function playMusic(url,opt){opt=opt||{};
   const el=musicElGet();
@@ -25865,10 +25907,6 @@ function lvlTick(dt,S){
   skyU.uAcc.value.copy(LVLFX.acc);skyU.uAcc2.value.copy(LVLFX.acc2);
 }
 /* <<<FIN FOND>>> ========================================================== */
-const MUS_TEMPO={on:true,r:1,t:0};
-window.dbgTempo=function(a){if(a===0||a===1){MUS_TEMPO.on=!!a;if(!a)try{musicEl.playbackRate=1;MUS_TEMPO.r=1;}catch(e){}}
-  return{on:MUS_TEMPO.on,tempo:+MUS_TEMPO.r.toFixed(3),lecture:musicEl?musicEl.playbackRate:null,hauteurGardee:musicEl?musicEl.preservesPitch:null,
-    vitesse:+flowVitN().toFixed(2),mode:musicMode,frenesie:FRENM.on};};
 function musicTick(dt,mvt){
   try{sonTonSuit();}catch(e){} // (console de son) les sons accordés suivent la tonalité du morceau qui joue
   let target=0,beat=0,hiT=0;
@@ -25908,28 +25946,11 @@ function musicTick(dt,mvt){
      boucle réécrirait le gain à chaque image et le fondu ne descendrait jamais. */
   const mDuck=(typeof ANN!=='undefined'&&ANN&&ANN.duck)?ANN_MUS_DUCK:1;
   // v4 : le VOLUME de l'élément fait tout (iOS l'ignore — le son y joue à plein, c'est le bouton du téléphone qui règle)
-  if(musicMode==='run')musicVolCible=musVol()*(.62+.38*musicBoostEnv)*mDuck;   // à l'arrêt un peu plus bas, lancé à plein
+  try{distTick(dt);}catch(e){}
+  if(musicMode==='run')musicVolCible=musVol()*(.62+.38*musicBoostEnv)*mDuck*(1-.2*Math.min(1,DIST.env));   // à l'arrêt un peu plus bas, lancé à plein
   else if(musicMode==='menu')musicVolCible=musVol()*.5*mDuck;                   // le menu : en fond
   if(musicMode!=='none'){musicVolCour+=(musicVolCible-musicVolCour)*Math.min(1,dt*6);
     if(musicEl&&!musicEl.paused&&!VOL_LOCKED){try{const v9=Math.max(0,Math.min(1,musicVolCour));if(Math.abs(musicEl.volume-v9)>.002)musicEl.volume=v9;}catch(e){}}}
-  // ---- LE TEMPO SUIT LA VITESSE (2026-10-03, Léo : « harmonise la vitesse de la voiture avec le tempo, le rythme, la profondeur — agréable,
-  // selon les sciences du plaisir auditif ; la vitesse a un impact sur la vitesse de la musique sans déformer l'expérience ; ne casse rien »).
-  // On étire le TEMPS du morceau (playbackRate) en GARDANT SA HAUTEUR (preservesPitch) — le navigateur fait l'étirement, rien d'autre ne
-  // change, zéro risque sur iPhone (pas de graphe Web Audio). LA RÈGLE DU CONFORT : (1) petit — ±6 % au plus : le seuil où l'on PERÇOIT
-  // un tempo différent est de ~4-5 %, on sent l'énergie sans entendre de déformation ; (2) la hauteur ne bouge JAMAIS (une musique qui se
-  // désaccorde sonne fausse) ; (3) lent — l'entraînement : le tempo rejoint la voiture en ~2,5 s quand on accélère, ~4 s quand on ralentit,
-  // par crans de 0,5 % au plus toutes les 0,35 s (le groove ne vacille pas) ; (4) jamais pendant la FRÉNÉSIE ni le tape-stop, qui ont la bande.
-  // Croisière (flowVitN ≈ 1) = le tempo d'origine · départ / lent = −6 % · vitesse de pointe = +4 % · nitro = +2 % de plus.
-  // La PROFONDEUR suit déjà la vitesse : à l'arrêt la musique recule (volume ×0,62), lancée elle est « dans les oreilles » (voir plus haut).
-  // Console : `dbgTempo()` (état), `dbgTempo(0)` coupe (retour au tempo d'origine), `dbgTempo(1)` rallume.
-  if(MUS_TEMPO.on&&musicEl&&!musicEl.paused&&!FRENM.on&&!FRENM.sw&&!FRENM.surm&&musicEl.preservesPitch!==false&&musicEl.webkitPreservesPitch!==false){
-    let cible=1;
-    if(musicMode==='run'&&running&&!gameOver&&!paused){const v9=flowVitN();cible=1+Math.max(-.06,Math.min(.04,(v9-1)*.12))+(nitroOn?.02:0);}
-    MUS_TEMPO.r+=(cible-MUS_TEMPO.r)*Math.min(1,dt/(cible>MUS_TEMPO.r?2.5:4));
-    MUS_TEMPO.t+=dt;
-    if(MUS_TEMPO.t>.35){MUS_TEMPO.t=0;const q9=Math.round(MUS_TEMPO.r*200)/200;
-      if(Math.abs((musicEl.playbackRate||1)-q9)>=.004)try{musicEl.playbackRate=q9;}catch(e){}}
-  }
   // BOOST : le morceau S'AMPLIFIE — bass boost + chorus qui épaissit (distinct du filtre-mouvement)
   const boostAmt=(running&&!gameOver)?Math.min(1,(nitroOn?0.85:0)+Math.min(1,boost)*0.5):0;
   musChorusEnv+=(boostAmt-musChorusEnv)*Math.min(1,dt*6);
