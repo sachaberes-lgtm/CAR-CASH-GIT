@@ -76,3 +76,7 @@
 - 2026-10-03 — LE CIEL EN JEU (jeu de référence, commit 7f1e9f7 sur `lobby-leo-main`, à pousser) : carrière NUAGES niveau n → CIEL · NIVEAU n
   (n = 1…5 ; le 5 = le final), niveaux 6-10 = NOITE ; partie sans fin aux NUAGES = le morceau entier. Fichiers : boucles répétées ~110 s.
 - 2026-10-03 — LOBBY : TEMPLE DE JADE retiré. Tirage = VAPEUR · SALON, ASCENSEUR DORÉ, VIEILLE FORTUNE (commit 4dd978b, à pousser).
+- 2026-10-03 — Le TEMPO qui suivait la vitesse est RETIRÉ (Léo : « ça fait bizarre, ça coupe »). À la place, LA DISTORSION DU BOOST
+  (commit 0bebfa4, à pousser) : une copie saturée « à lampe » de la musique monte par-dessus en nitro (plein), en plaque turbo (60 %),
+  et légèrement à la vitesse du boost (≤ 35 %) ; la musique d'origine recule de −2 dB. Jamais via Web Audio sur la musique elle-même
+  (règle « musique v4 » : iPhone). Pas d'effet là où captureStream manque (iPhone/Safari). RÈGLE : ne plus toucher au tempo/playbackRate.
