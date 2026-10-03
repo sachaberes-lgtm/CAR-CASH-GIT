@@ -45,7 +45,10 @@
 - sw.js → v54.
 
 ## L'ÉCRAN TITRE : REGARD HORIZONTAL, LA CAISSE QU'ON TAPOTE, SON MODELÉ (2026-10-03, copie de test de Léo — « bloque le point de vue à ce niveau vertical, horizontal seulement ; on peut tapoter la voiture et simuler à l'endroit tapoté un coup qui la pousse / pivote en train de tomber ; travaille encore plus en profondeur le shading de la caisse, sans faire trop »)
-- L'ORBITE AU DOIGT est HORIZONTALE : le glissé ne touche plus `CHUTE.oPc` (la hauteur du regard reste celle du menu, `P.elev`).
+- L'ORBITE AU DOIGT est HORIZONTALE : le glissé ne touche plus `CHUTE.oPc`.
+- LA HAUTEUR DU REGARD (même jour, Léo, deux captures : « voici le point de vue vertical souhaité ») : presque à niveau. Couché
+  `elev` −0,08 (un rien SOUS la caisse : l'horizon juste sous le milieu de l'image, on voit son dessous), debout `elevP` +0,06 (l'horizon
+  vers 40 %) — une seule valeur ne collait pas aux deux captures. Banc `elev.mjs` (planches à plusieurs hauteurs à côté des captures).
 - `chuteTape(e)` (le tap au ciel, branché dans le pointerup à la place de garageImpact quand `CHUTE.on`) : rayon caméra → la 1re pièce
   VISIBLE et opaque de la caisse ; poussée dans le sens du rayon + couple r × F autour du CENTRE de la caisse (pas de son origine, au ras
   des roues) ; `chuteTapeTick` : deux ressorts amortis (CHUTE_TAP K/C, KR/CR) la ramènent en deux-trois balancements ; éclat additif au

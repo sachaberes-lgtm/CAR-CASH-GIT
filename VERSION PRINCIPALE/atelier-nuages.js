@@ -71,6 +71,8 @@ var G=[
   {s:'P',k:'sr',n:'Contre-jour (détoure la voiture)',mi:0,ma:3,p:.05},
   {s:'P',k:'sb',n:'Rebond des nuages (par en dessous)',mi:0,ma:1,p:.01}]},
  {t:'LA SCENE',a:'Glisse sur l’image pour tourner autour de la caisse.',l:[
+  {s:'P',k:'elev',n:'Hauteur du regard, couché (− = sous la voiture)',mi:-.4,ma:.6,p:.01},
+  {s:'P',k:'elevP',n:'Hauteur du regard, debout',mi:-.4,ma:.6,p:.01},
   {s:'P',k:'vit',n:'Montée des nuages (0 = figés)',mi:0,ma:40,p:.5},
   {s:'P',k:'caisse',n:'La voiture',x:1},
   {s:'P',k:'nuages',n:'Les cumulus du titre',x:1},
