@@ -7,6 +7,18 @@
 - Les règles « SANS TOUT CASSER » (partir de `origin/main` à jour, fusionner sans jamais forcer, jeu testé sans erreur avant chaque
   push, retour arrière par Vercel) et la liste de ce que contient la référence : voir `CLAUDE.md` à la RACINE du dépôt.
 
+## LA MUSIQUE À SA VITESSE + PLUS DE RECHARGEMENTS POUR RIEN (2026-10-03, soir, Léo : « le jeu coupe bizarrement la musique » · « il y a de la distorsion qui nique tout »)
+- **LA DISTORSION** = `MUS_TEMPO` (« le tempo suit la vitesse », ajouté le même après-midi : `playbackRate` de −6 % à +6 % en gardant la
+  hauteur, un cran toutes les 0,35 s). MESURÉ (banc `tempo/` du scratchpad 83e03bdc : l'`<audio>` de Chromium enregistré par
+  `createMediaElementSource`, trois sons purs inharmoniques 440 / 1013 / 2711 Hz) : vitesse 1 → bruit ajouté −86 dB ; 0,97 ou 1,02 →
+  −29 dB en moyenne, pointes −17 dB ; les crans du réglage → −26 dB, pointes −14 dB, et un CLIC (×54) au passage par la vitesse 1.
+  Les fichiers sont PROPRES (lobby : crêtes −1,9 à −4,9 dBFS, aucun échantillon écrêté). ⇒ `MUS_TEMPO.on=false` : la bande joue à SA
+  vitesse. ⚠ NE PAS RALLUMER sans une autre méthode : hauteur gardée = étirement = distorsion ; hauteur libre = musique désaccordée.
+  (Safari n'est pas au banc : son étirement est un autre algorithme, à juger à l'oreille si quelqu'un veut retenter — `dbgTempo(1)`.)
+  Restent voulus et propres : le tape-stop de la mort et la radio « surmultipliée » de la frénésie (hauteur libre, pas d'étirement).
+- **LES COUPURES** = la mise à jour toute seule rechargeait le jeu à chaque push (voir LA MÊME VERSION POUR TOUT LE MONDE) : le numéro
+  de version est désormais l'empreinte du jeu, plus le commit. sw.js → v58.
+
 ## SIX COMMUNES RETIRÉES (2026-10-02) — Sacha, capture du garage : « supprimer ces 6 voitures du jeu, elles sont pas intéressantes »
 - LA PIZZA EXPRESS, LE MONOSPACE, LE BREAK SUÉDOIS, LA BOULE, LE GLACIER, LE TOUT-TERRAIN SOVIÉTIQUE : `retire:1` dans leur fiche
   (`CARS`). Pour le joueur elles ne sont plus nulle part : `rarListe` les saute (garage, vignettes, compteurs des familles : COMMUNES
@@ -216,14 +228,18 @@
 ## LA MÊME VERSION POUR TOUT LE MONDE — LA MISE À JOUR TOUTE SEULE (2026-10-01, Léo : « trouve un moyen pour qu'on joue au même jeu, juste — fais-moi ça en un coup »)
 - Le problème : deux joueurs voyaient deux jeux. Une appli posée sur l'écran d'accueil de l'iPhone REPREND la page gardée en mémoire
   (aucun rechargement pendant des jours), un onglet resté ouvert garde l'ancienne version ; on ne savait même pas laquelle on avait.
-- `vercel-build.sh` grave le commit publié (`VERCEL_GIT_COMMIT_SHA`) dans le jeu — il remplace le jeton de `const CC_BUILD` dans le
+- `vercel-build.sh` grave l'EMPREINTE DU JEU publié dans le jeu — il remplace le jeton de `const CC_BUILD` dans le
   `<head>` (UNE seule occurrence dans index.html : ne pas l'écrire ailleurs, même en commentaire) — et pose `jouer/version.json`
-  (`{"v":"<commit>"}`, servi en no-store par vercel.json, jamais rangé par sw.js).
+  (`{"v":"<empreinte>","commit":"<commit>"}`, servi en no-store par vercel.json, jamais rangé par sw.js).
+  ⚠ (2026-10-03, soir, Léo : « le jeu coupe bizarrement la musique ») c'était le COMMIT (`VERCEL_GIT_COMMIT_SHA`) : chaque push, même
+  ROBLOX seul (23 publications sur 25 ce jour-là), passait pour une nouvelle version et RECHARGEAIT tous les joueurs au menu ou à l'écran
+  de mort — musique coupée net, autre son du lobby tiré. L'empreinte = sha1 des fichiers de `jouer/` (jeton intact, sans CLAUDE.md /
+  README / JOUER.bat ni version.json) : elle ne bouge que si le JEU bouge. Vérifié : ROBLOX modifié → même empreinte ; index.html → neuve.
 - LA MISE À JOUR TOUTE SEULE (bloc juste avant « fin ajout MOBILE / PWA ») : au lancement (+4 s), à chaque retour au premier plan et
   toutes les 5 min, le jeu lit version.json ; en retard → il se RECHARGE dès qu'on n'est pas en course (menu, garage, écran de mort ;
   jamais pendant le LÂCHER ni en arrière-plan), sauvegarde écrite d'abord ; sur l'ordi la page-cadre entière (`window.top`). Garde-fou :
   2 rechargements au plus par version et par session (`sessionStorage.ccMaj`). Copie locale (jeton intact), file://, Capacitor : rien.
-- LE NUMÉRO : « VERSION 506f117 » en bas des RÉGLAGES (`#mvVer`) et sous le jeu sur l'ordi (`#ccVer`), avec « · MENU LEO » / « · SANS
+- LE NUMÉRO (les 7 premiers signes de l'empreinte) : « VERSION 506f117 » en bas des RÉGLAGES (`#mvVer`) et sous le jeu sur l'ordi (`#ccVer`), avec « · MENU LEO » / « · SANS
   CIEL » si l'adresse porte `?menu=leo` / `?chute=0` — deux joueurs comparent leurs deux écrans d'un coup d'œil. `dbgMaj()` : état.
 - MESURÉ (banc `maj.mjs` sur une copie construite par vercel-build.sh, servie en local) : même version → aucun rechargement ; nouvelle
   version au menu → rechargé (2 fois au plus) ; publiée en pleine course → rien pendant 30 s de course, rechargé juste après la mort.

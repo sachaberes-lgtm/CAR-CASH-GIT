@@ -25884,7 +25884,14 @@ function lvlTick(dt,S){
   skyU.uAcc.value.copy(LVLFX.acc);skyU.uAcc2.value.copy(LVLFX.acc2);
 }
 /* <<<FIN FOND>>> ========================================================== */
-const MUS_TEMPO={on:true,r:1,t:0};
+/* ⚠ COUPÉ (2026-10-03, le soir même, Léo : « il y a de la distorsion qui nique tout »). MESURÉ au banc (Chromium, l'<audio> du jeu
+   enregistré) : à vitesse 1 la lecture est propre (bruit ajouté −86 dB) ; DÈS QUE playbackRate ≠ 1 avec la hauteur gardée, le navigateur
+   étire le temps par morceaux recollés et SALIT le son — −29 dB de bruit en moyenne à 0,97 ou 1,02, des pointes à −17 dB ; avec les
+   crans toutes les 0,35 s du réglage, −26 dB et des pointes à −14 dB, plus un CLIC à chaque passage par la vitesse 1 (×54 la variation
+   normale du signal). Les fichiers, eux, sont propres (crêtes ≤ −1,9 dBFS, rien d'écrêté). Il n'existe pas d'étirement « gratuit » :
+   hauteur gardée = étirement = distorsion ; hauteur libre = la musique se désaccorde. Donc la bande joue à SA vitesse. `dbgTempo(1)`
+   rallume pour réessayer, rien d'autre n'est retiré. */
+const MUS_TEMPO={on:false,r:1,t:0};
 window.dbgTempo=function(a){if(a===0||a===1){MUS_TEMPO.on=!!a;if(!a)try{musicEl.playbackRate=1;MUS_TEMPO.r=1;}catch(e){}}
   return{on:MUS_TEMPO.on,tempo:+MUS_TEMPO.r.toFixed(3),lecture:musicEl?musicEl.playbackRate:null,hauteurGardee:musicEl?musicEl.preservesPitch:null,
     vitesse:+flowVitN().toFixed(2),mode:musicMode,frenesie:FRENM.on};};
