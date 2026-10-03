@@ -3164,6 +3164,8 @@ workspace:GetAttributeChangedSignal("DbgOuvre"):Connect(function()
 	elseif string.sub(v, 1, 4) == "saut" then
 		-- (banc) un saut franc, tout de suite : pour photographier ce qui ne vit qu'en vol (le viseur, la jauge, les figures)
 		if mode == "drive" then decoller(tonumber(string.sub(v, 5, 6)) or 45, 1) end -- ("saut20…" : la poussée, sur deux chiffres)
+	elseif string.sub(v, 1, 6) == "achat:" then
+		G.boutique.dbg(string.sub(v, 7)) -- (banc) « achat:2 » ouvre la fenêtre d'achat de la 2e case, « achat:oui » presse ACHETER
 	elseif string.sub(v, 1, 7) == "quitter" then
 		G.quitterPause() -- (banc) QUITTER de la pause (« quitter1 », « quitter2 » : la question, puis la confirmation)
 	elseif v == "frenesie" then

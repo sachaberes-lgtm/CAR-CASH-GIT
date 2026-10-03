@@ -4,6 +4,7 @@
 -- euros — Roblox n'affiche que des Robux : le prix n'est PAS écrit tant que Sacha n'a pas décidé des tarifs (la plaque dit BIENTOT).
 -- Les photos sont de vraies caisses 3D (Caisse.vignette) : bâties une par une à l'ouverture, RENDUES à la fermeture (le budget de
 -- triangles de Roblox est compté) ; si le budget refuse, la case garde sa pastille de couleur.
+local TweenService = game:GetService("TweenService")
 local Hud = require(script.Parent:WaitForChild("Hud"))
 local Sons = require(script.Parent:WaitForChild("Sons"))
 local Caisse = require(script.Parent.Parent:WaitForChild("Caisse"))
@@ -22,6 +23,8 @@ local UNE = 9 -- la caisse à la une : CHAT POP-TART
 local OR1 = Color3.fromRGB(255, 215, 94)
 
 local function tr(fr: string, en: string): string return FR and fr or en end
+local RARETE = { legendaire = { "LEGENDAIRE", "LEGENDARY", Color3.fromRGB(255, 215, 94) }, epique = { "EPIQUE", "EPIC", Color3.fromRGB(199, 125, 255) },
+	rare = { "RARE", "RARE", Color3.fromRGB(77, 184, 255) } }
 
 -- la liste : tout ce qui est « premium » dans le catalogue, dans l'ordre de ses indices, la une à part
 local LISTE: { number } = {}
@@ -61,6 +64,155 @@ local function bientot(parent: Instance, pos: UDim2, ancre: Vector2?, corps: num
 end
 
 local cases: { any } = {}
+-- ════════ LA FENÊTRE D'ACHAT (shopPop, L22245 ; Sacha, 1/10 : « il faut que la fenêtre de la voiture sorte de la page en mode
+-- pop-up pour valider la transaction ») ════════
+-- Toucher une caisse de la vitrine la fait SORTIR de la grille : sa carte quitte sa place (un trou reste), grandit et vient se poser
+-- au centre sur un voile — même photo (la caisse 3D de la case y passe : aucun maillage de plus), même nom — avec la rareté, sa
+-- phrase, UN lingot d'or (ACHETER) et ANNULER. Fermer (ANNULER, le voile, RETOUR) la renvoie À SA PLACE par le même chemin.
+-- L'achat n'est pas branché (les Robux : décision de Sacha) : ACHETER le DIT dans la fenêtre (« BIENTOT DISPONIBLE ») et ne donne
+-- jamais rien.
+local SP: any = { on = false }
+local function creerFenetre(g: Instance)
+	local v = inst("Frame", { Name = "Fenetre", BackgroundColor3 = Color3.fromRGB(6, 4, 16), BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1),
+		Visible = false, Active = true }, g)
+	local fond = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Text = "", AutoButtonColor = false }, v)
+	fond.Activated:Connect(function() Boutique.popFerme() end) -- (le VOILE ferme)
+	local W, H = 620, 600
+	local c = inst("Frame", { Name = "Carte", BackgroundColor3 = Color3.new(1, 1, 1), BorderSizePixel = 0, Size = UDim2.fromOffset(W, H),
+		AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Active = true }, v)
+	K.degrade(c, Color3.fromRGB(58, 26, 92), Color3.fromRGB(20, 12, 42), 90)
+	SP.trait = inst("UIStroke", { Color = OR1, Thickness = 3, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, c)
+	SP.bande = inst("Frame", { BackgroundColor3 = OR1, BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 6) }, c)
+	SP.echelle = inst("UIScale", {}, c)
+	SP.rare = K.texte(c, { Text = "", TextSize = 22, TextColor3 = OR1, Size = UDim2.fromOffset(300, 26), Position = UDim2.fromOffset(24, 22),
+		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
+	local rab = inst("Frame", { BackgroundColor3 = C.magenta, BorderSizePixel = 0, Size = UDim2.fromOffset(120, 48), Position = UDim2.new(1, -22, 0, 16), AnchorPoint = Vector2.new(1, 0) }, c)
+	inst("UIStroke", { Color = Color3.fromRGB(255, 190, 240), Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, rab)
+	K.texte(rab, { Text = "-50%", TextSize = 34, TextColor3 = C.texte, Size = UDim2.fromScale(1, 1), TextWrapped = false, epais = 3 })
+	SP.remise = rab
+	SP.vue = inst("ViewportFrame", { BackgroundTransparency = 1, Size = UDim2.new(1, -40, 0, 250), Position = UDim2.fromOffset(20, 56),
+		Ambient = Color3.fromRGB(104, 100, 128), LightColor = Color3.fromRGB(226, 216, 204) }, c)
+	SP.pastille = inst("Frame", { BorderSizePixel = 0, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromOffset(150, 42) }, SP.vue)
+	SP.nom = K.texte(c, { Text = "", TextSize = 46, TextColor3 = C.texte, Size = UDim2.new(1, -48, 0, 52), Position = UDim2.fromOffset(24, 312),
+		TextXAlignment = Enum.TextXAlignment.Left, TextScaled = true, epais = 4 })
+	inst("UITextSizeConstraint", { MaxTextSize = 46, MinTextSize = 18 }, SP.nom)
+	SP.desc = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.TXT, TextSize = 22, TextColor3 = C.texte2, TextWrapped = true, Text = "",
+		TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, Size = UDim2.new(1, -48, 0, 78), Position = UDim2.fromOffset(24, 372),
+		TextScaled = true }, c)
+	inst("UITextSizeConstraint", { MaxTextSize = 22, MinTextSize = 13 }, SP.desc)
+	-- UN lingot d'or (ACHETER), ANNULER en cyan à côté — deux décisions, une seule dorée (la charte)
+	SP.oui = K.lingot(c, tr("ACHETER", "BUY"), UDim2.new(0.56, -30, 0, 84), UDim2.new(0, 24, 1, -58), Vector2.new(0, 1), 40)
+	SP.non = K.tuile(c, tr("ANNULER", "CANCEL"), C.cyan, UDim2.new(0.44, -30, 0, 72), UDim2.new(1, -24, 1, -64), Vector2.new(1, 1), 24, "gauche")
+	SP.note = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.TXT, TextSize = 17, TextColor3 = C.terne, TextWrapped = true, Text = "",
+		Size = UDim2.new(1, -48, 0, 40), Position = UDim2.new(0, 24, 1, -48), TextXAlignment = Enum.TextXAlignment.Left }, c)
+	SP.acheter = function()
+		if not SP.on or SP.anim then return end
+		-- l'achat n'est pas branché : on le DIT, dans la fenêtre, et rien n'est donné
+		Sons.vrai("uiRefus", nil, nil, "tap", 0.8)
+		Hud.vibre(10)
+		SP.oui.TextScaled = true
+		SP.oui.Text = tr("BIENTOT DISPONIBLE", "COMING SOON")
+		SP.note.Text = tr("Les achats ouvriront à la sortie du jeu sur Roblox.", "Purchases open when the game launches on Roblox.")
+		SP.note.TextColor3 = OR1
+		task.spawn(function() -- (un refus se sent : la carte tremble)
+			for k = 1, 6 do
+				c.Position = UDim2.new(0.5, ((k % 2 == 0) and 1 or -1) * (7 - k), 0.5, 0)
+				task.wait(0.035)
+			end
+			if not SP.anim then c.Position = UDim2.fromScale(0.5, 0.5) end
+		end)
+	end
+	SP.oui.Activated:Connect(SP.acheter)
+	SP.non.Activated:Connect(function() Boutique.popFerme() end)
+	for _, o in v:GetDescendants() do
+		if o:IsA("GuiObject") then o.ZIndex = 30 end
+	end
+	v.ZIndex = 30
+	SP.voile, SP.carte = v, c
+	SP.trou = inst("Frame", { Name = "Trou", BackgroundColor3 = Color3.fromRGB(10, 7, 22), BorderSizePixel = 0, Size = UDim2.fromScale(1, 1), Visible = false, ZIndex = 29 })
+	inst("UIStroke", { Color = C.trait, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, SP.trou)
+end
+-- l'écart entre la case (à l'écran) et la carte posée au centre, en unités de l'interface : d'où elle part, où elle rentre
+local function viser(src: GuiObject): (UDim2, number)
+	local k = math.max(0.1, SP.carte.AbsoluteSize.X / (620 * SP.echelle.Scale)) -- (l'échelle de la racine de l'interface)
+	local vC = SP.voile.AbsolutePosition + SP.voile.AbsoluteSize / 2
+	local sC = src.AbsolutePosition + src.AbsoluteSize / 2
+	local d = (sC - vC) / k
+	return UDim2.new(0.5, d.X, 0.5, d.Y), math.min(1, src.AbsoluteSize.X / k / 620)
+end
+local TI = TweenInfo.new(0.42, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+function Boutique.pop(src: GuiObject, i: number, vp: ViewportFrame, pastille: Frame)
+	if SP.on or not SP.carte then return end
+	local f = Catalogue[i]
+	if not f then return end
+	SP.on, SP.anim, SP.src, SP.vp, SP.i = true, true, src, vp, i
+	local r = RARETE[f.rar] or RARETE.legendaire
+	SP.rare.Text, SP.rare.TextColor3 = tr(r[1], r[2]), r[3]
+	SP.trait.Color, SP.bande.BackgroundColor3 = r[3], r[3]
+	SP.remise.Visible = i == UNE
+	SP.nom.Text = Hud.sansAccent(string.upper(FR and f.nom or (f.en or f.nom)))
+	SP.desc.Text = FR and (f.desc or "") or (f.descEN or f.desc or "")
+	SP.oui.TextScaled = false
+	SP.oui.Text = tr("ACHETER", "BUY")
+	SP.note.Text = tr("Achat unique, avec tes Robux. À toi pour toujours.", "One-time purchase with your Robux. Yours forever.")
+	SP.note.TextColor3 = C.terne
+	-- la photo : la caisse 3D de la case passe dans la fenêtre (avec sa caméra), sinon sa pastille de couleur
+	SP.modele = vp:FindFirstChildOfClass("Model")
+	if SP.modele and vp.CurrentCamera then
+		SP.cam = vp.CurrentCamera:Clone()
+		SP.cam.Parent = SP.vue
+		SP.vue.CurrentCamera = SP.cam
+		SP.vue.LightDirection = vp.LightDirection
+		SP.modele.Parent = SP.vue
+		SP.pastille.Visible = false
+	else
+		SP.modele = nil
+		SP.pastille.Visible = true
+		SP.pastille.BackgroundColor3 = pastille.BackgroundColor3
+	end
+	-- LA CARTE SORT DE LA PAGE : posée au centre, puis partie de la place de la case
+	SP.voile.Visible = true
+	SP.voile.BackgroundTransparency = 1
+	SP.echelle.Scale = 1
+	SP.carte.Position = UDim2.fromScale(0.5, 0.5)
+	local pos, s = viser(src)
+	SP.carte.Position, SP.echelle.Scale = pos, s
+	SP.trou.Parent = src
+	SP.trou.Visible = true
+	Sons.vrai("uiModale", nil, nil, "tap", 1.1, 0.5)
+	Hud.vibre(8)
+	TweenService:Create(SP.voile, TI, { BackgroundTransparency = 0.32 }):Play()
+	TweenService:Create(SP.echelle, TI, { Scale = 1 }):Play()
+	local tw = TweenService:Create(SP.carte, TI, { Position = UDim2.fromScale(0.5, 0.5) })
+	tw.Completed:Once(function() SP.anim = false end)
+	tw:Play()
+end
+-- elle rentre à sa place, par le même chemin (vite = sans le trajet : la boutique se ferme)
+local function rentre()
+	if SP.modele and SP.vp then SP.modele.Parent = SP.vp end
+	if SP.cam then
+		SP.cam:Destroy()
+		SP.cam = nil
+	end
+	SP.modele = nil
+	SP.trou.Visible = false
+	SP.voile.Visible = false
+	SP.on, SP.anim = false, false
+end
+function Boutique.popFerme(vite: boolean?)
+	if not SP.on then return end
+	if vite then return rentre() end
+	if SP.anim then return end
+	SP.anim = true
+	Sons.vrai("uiFerme", nil, nil, "tap", 0.9, 0.4)
+	local pos, s = viser(SP.src)
+	local ti = TweenInfo.new(0.32, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut)
+	TweenService:Create(SP.voile, ti, { BackgroundTransparency = 1 }):Play()
+	TweenService:Create(SP.echelle, ti, { Scale = s }):Play()
+	local tw = TweenService:Create(SP.carte, ti, { Position = pos })
+	tw.Completed:Once(rentre)
+	tw:Play()
+end
 local function creer()
 	local racine = Hud.racine
 	local g = inst("Frame", { Name = "Boutique", BackgroundColor3 = Color3.new(1, 1, 1), BackgroundTransparency = 0.03, Size = UDim2.fromScale(1, 1), Visible = false, ZIndex = 18,
@@ -97,10 +249,8 @@ local function creer()
 	inst("UITextSizeConstraint", { MaxTextSize = 22, MinTextSize = 13 }, desc)
 	bientot(une, UDim2.new(1, -22, 1, -22), Vector2.new(1, 1), 28)
 	local bu = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Text = "", AutoButtonColor = false }, une)
-	bu.Activated:Connect(function()
-		Sons.jouer("tap")
-		Hud.toast(tr("BIENTOT DISPONIBLE", "COMING SOON"), OR1)
-	end)
+	U.une = une
+	bu.Activated:Connect(function() Boutique.pop(une, UNE, U.uneVue, U.unePastille) end)
 
 	-- ── LES LEGENDAIRES : la grille ──
 	K.texte(g, { Text = tr("LES LEGENDAIRES", "THE LEGENDARIES"), TextSize = 26, TextColor3 = C.terne, Size = UDim2.new(0, 500, 0, 28), Position = UDim2.new(0.5, 0, 0, 100),
@@ -125,19 +275,19 @@ local function creer()
 		inst("UITextSizeConstraint", { MaxTextSize = 28, MinTextSize = 13 }, n)
 		bientot(c, UDim2.new(0, 18, 1, -18), Vector2.new(0, 1), 22)
 		local b = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Text = "", AutoButtonColor = false }, c)
-		b.Activated:Connect(function()
-			Sons.jouer("tap")
-			Hud.toast(tr("BIENTOT DISPONIBLE", "COMING SOON"), OR1)
-		end)
-		cases[rang] = { i = i, vp = vp, pastille = pastille, modele = nil }
+		cases[rang] = { i = i, vp = vp, pastille = pastille, modele = nil, c = c }
+		b.Activated:Connect(function() Boutique.pop(c, i, vp, pastille) end)
 	end
 
 	-- ── RETOUR, en bas à gauche (sous le pouce, jamais en haut : la charte) ──
 	U.btRetour = K.boutonRetour(g)
-	U.btRetour.Activated:Connect(function() Boutique.fermer() end)
+	U.btRetour.Activated:Connect(function()
+		if SP.on then Boutique.popFerme() else Boutique.fermer() end -- (la fenêtre ouverte se ferme d'abord)
+	end)
 	for _, o in g:GetDescendants() do
 		if o:IsA("GuiObject") then o.ZIndex = 19 end
 	end
+	creerFenetre(g)
 end
 
 function Boutique.init(c: any)
@@ -192,9 +342,22 @@ function Boutique.ouvrir(d: string)
 	end)
 end
 
+-- (banc) ouvrir la fenêtre d'une case (0 = la une), presser ACHETER
+function Boutique.dbg(quoi: string)
+	if quoi == "oui" then
+		if SP.acheter then SP.acheter() end
+	elseif quoi == "non" then
+		Boutique.popFerme()
+	else
+		local r = tonumber(quoi) or 0
+		local k = cases[r]
+		if r == 0 or not k then Boutique.pop(U.une, UNE, U.uneVue, U.unePastille) else Boutique.pop(k.c, k.i, k.vp, k.pastille) end
+	end
+end
 function Boutique.fermer()
 	if not Boutique.ouvert then return end
 	Boutique.ouvert = false
+	Boutique.popFerme(true)
 	fileN += 1
 	U.racine.Visible = false
 	-- on rend les maillages (le garage en a besoin pour ses vignettes)

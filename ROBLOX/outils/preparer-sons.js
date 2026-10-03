@@ -41,7 +41,7 @@ const CHOIX = {
   flaque: 'flaque.huile', frole: 'frole', driftCharge: 'drift.charge', turboMini: 'turbo.mini',
   turboSuper: 'turbo.super', turboUltra: 'turbo.ultra', nuageEntre: 'nuage.entre', nuageSort: 'nuage.sort',
   nuageDefonce: 'nuage.defonce', portailProche: 'portail.proche', impactImmeuble: 'impact.immeuble', departLogo: 'depart.logo',
-  moteurPalier: 'moteur.palier', mortVide: 'mort.vide', mortAir: 'mort.air', mortArret: 'mort.arret', debrisTole: 'debris.tole', garageTole: 'garage.tole',
+  moteurPalier: 'moteur.palier', mortVide: 'mort.vide', mortAir: 'mort.air', mortArret: 'mort.arret', debrisTole: 'debris.tole', garageTole: 'garage.tole', uiModale: 'ui.modale', uiFerme: 'ui.feuilleFerme', uiRefus: 'ui.refus',
 };
 global.window = {};
 require(path.join(JEU, 'sons-banque.js'));
