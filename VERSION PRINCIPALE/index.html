@@ -25641,7 +25641,7 @@ function distTick(dt){
   if(nitroOn&&!DIST.nitroAv&&c>0)DIST.env=Math.max(DIST.env,1.25);   // l'éclat de l'allumage
   DIST.nitroAv=nitroOn;
   DIST.env+=(c-DIST.env)*Math.min(1,dt/(c>DIST.env?.08:.5));
-  const cible=Math.max(0,DIST.env)*.5*musVol();
+  const cible=Math.max(0,DIST.env)*.85*musVol();
   if(Math.abs((DIST._g||0)-cible)>.002){DIST._g=cible;try{DIST.wet.gain.setTargetAtTime(cible,AC.currentTime,.03);}catch(e){}}
 }
 window.dbgDisto=function(a){if(a===0||a===1)DIST.on=!!a;return{on:DIST.on,branchee:!!DIST.in,copieDuSon:!!musicAnaEl,niveau:+DIST.env.toFixed(2),
@@ -25947,7 +25947,7 @@ function musicTick(dt,mvt){
   const mDuck=(typeof ANN!=='undefined'&&ANN&&ANN.duck)?ANN_MUS_DUCK:1;
   // v4 : le VOLUME de l'élément fait tout (iOS l'ignore — le son y joue à plein, c'est le bouton du téléphone qui règle)
   try{distTick(dt);}catch(e){}
-  if(musicMode==='run')musicVolCible=musVol()*(.62+.38*musicBoostEnv)*mDuck*(1-.2*Math.min(1,DIST.env));   // à l'arrêt un peu plus bas, lancé à plein
+  if(musicMode==='run')musicVolCible=musVol()*(.62+.38*musicBoostEnv)*mDuck*(1-.3*Math.min(1,DIST.env));   // à l'arrêt un peu plus bas, lancé à plein
   else if(musicMode==='menu')musicVolCible=musVol()*.5*mDuck;                   // le menu : en fond
   if(musicMode!=='none'){musicVolCour+=(musicVolCible-musicVolCour)*Math.min(1,dt*6);
     if(musicEl&&!musicEl.paused&&!VOL_LOCKED){try{const v9=Math.max(0,Math.min(1,musicVolCour));if(Math.abs(musicEl.volume-v9)>.002)musicEl.volume=v9;}catch(e){}}}
@@ -26896,7 +26896,7 @@ function sonConsole(){ // branche la console sur le contexte du jeu (fin d'initA
   try{waPrecharge();}catch(e){} // les voix et les samples, décodés pour le mixage (voir LES VOIX ET LES SAMPLES DANS LE MIXAGE)
 }
 addEventListener('load',function(){try{sonConsole();}catch(e){}});
-const SON_TON={'ciel-n5':4,'ciel':2,'lvl1-neon-cash-car':-1,'lvl2-cash-car-vitesse':-2,'nocturnal-groove':0,'noite-de-velocidade':2,'swag-cash-car-2':-1,'addictive-loop':1}; // (2026-09-29) SWAG do m → −1, ADDICTIVE la m → +1 : énergie par gamme majeure (chroma des partiels), la plus petite des trois pentatoniques de la gamme gagnante — la méthode retrouve NÉON, NOCTURNAL et NOITE (pas VITESSE)
+const SON_TON={'ciel-n5':1,'ciel':-1,'vapeur-salon':-1,'lobby-ascenseur':-4,'vieille-fortune':3,'lvl1-neon-cash-car':-1,'lvl2-cash-car-vitesse':-2,'nocturnal-groove':0,'noite-de-velocidade':2,'swag-cash-car-2':-1,'addictive-loop':1}; // (2026-09-29) SWAG do m → −1, ADDICTIVE la m → +1 : énergie par gamme majeure (chroma des partiels), la plus petite des trois pentatoniques de la gamme gagnante — la méthode retrouve NÉON, NOCTURNAL et NOITE (pas VITESSE)
 function sonTonSuit(){
   if(!SONV2)return;let t=0;
   try{const el=musicEl;if(SND.music&&el&&el.src){for(const k in SON_TON)if(el.src.indexOf(k)>=0){t=SON_TON[k];break;}if(FRENM.surm)t+=1;}}catch(e){}
@@ -28627,9 +28627,10 @@ function nitroAllume(bleu,etage){ // LE COUP — au front montant de `nitroOn` (
   hap(bleu?[8,16,8]:[14,26,10]);
   nitroWhoomp(k,bleu,NFX.air);
   if(!POST_ON)flashEcran(bleu?'rgba(91,125,255,.45)':'rgba(255,122,36,.45)'); // sans l'ACES (post coupé), le coup de couleur passe par le calque DOM
+  if(!etage)try{instruOn();}catch(e){} // (2026-10-03) LE BOOST JOUE UN INSTRUMENT (voir plus bas)
 }
 function nitroEteint(){ // LA DERNIÈRE BOUFFÉE : une langue de feu aux pots + la pétarade — puis le champ retombe en douceur (`NFX.off`)
-  NFX.off=1;
+  NFX.off=1;try{instruOff();}catch(e){}
   if(nitroHeldT<.25||mode==='boom')return; // un simple tap ne mérite pas la cérémonie
   const VC=PT_U.uVc.value;
   for(let i=0;i<8;i++){potMonde(CAR_POTS[i%CAR_POTS.length]||CAR_POT_C,NFX.v);
@@ -28637,6 +28638,54 @@ function nitroEteint(){ // LA DERNIÈRE BOUFFÉE : une langue de feu aux pots + 
     if(i<4)spawnP(embers,NFX.v.x,NFX.v.y,NFX.v.z,VC.x-hsF.x*(4+nfxR()*5)+(nfxR()-.5)*3,VC.y+1+nfxR()*2.5,VC.z-hsF.z*(4+nfxR()*5)+(nfxR()-.5)*3,.2+nfxR()*.15);}
   try{crackle(.7);}catch(e){}
 }
+/* LE BOOST JOUE UN INSTRUMENT (2026-10-03, Léo : « je n'entends pas trop la différence quand je booste : que le boost joue directement un
+   instrument qu'on peut SPAMMER, APPUYER LONGTEMPS, et qui est ACCORDÉ à la musique »).
+   Chaque appui sur la nitro joue la NOTE SUIVANTE d'une phrase, dans la gamme du morceau qui passe (la pentatonique de `sonTonSuit._t`,
+   la même que tous les sons du jeu) : SPAMMER = jouer une mélodie, jamais une fausse note. TENIR = la note tient, le filtre s'ouvre
+   doucement et un vibrato arrive (on a envie de rester appuyé) ; RELÂCHER = elle s'éteint en 0,35 s. Un nouvel appui coupe proprement
+   la note d'avant (un instrument monophonique : jamais de bouillie). La phrase repart du début après 2 s sans appui.
+   Le son : deux scies désaccordées + une carrée une octave plus bas, un filtre qui claque à l'attaque, un écho en croche pointée.
+   Par la console de son (MASTER : curseur EFFETS), donc aussi sur iPhone. `dbgInstru()` : état · `dbgInstru(0|1)` coupe / rallume. */
+const INSTRU={on:true,v:null,i:0,tDer:0,bus:null};
+const INSTRU_PHRASE=[0,2,4,3,5,4,7,5,3,4,2,0];                 // des degrés de la pentatonique : ça monte, ça respire, ça redescend
+function instruBus(){
+  if(INSTRU.bus||!AC||!MASTER)return INSTRU.bus;
+  const g=AC.createGain();g.gain.value=.5;const d=AC.createDelay(1);d.delayTime.value=.3;const fb=AC.createGain();fb.gain.value=.28;
+  const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=2600;
+  g.connect(MASTER);g.connect(d);d.connect(lp);lp.connect(fb);fb.connect(d);lp.connect(MASTER);
+  INSTRU.bus=g;return g;
+}
+function instruOn(){
+  if(!INSTRU.on||!AC||!SND.sfx||(AC.state!=='running'&&!INSTRU.essai)||paused)return;
+  const bus=instruBus();if(!bus)return;
+  const now=AC.currentTime,t=performance.now();
+  if(t-INSTRU.tDer>2000)INSTRU.i=0;INSTRU.tDer=t;
+  const deg=INSTRU_PHRASE[INSTRU.i%INSTRU_PHRASE.length];INSTRU.i++;
+  const f=TON*Math.pow(2,((sonTonSuit._t|0)+sonPd(deg))/12-1); // une octave sous le mi4 des pièces : un registre chaud, pas criard
+  instruOff(.04);
+  const g=AC.createGain(),flt=AC.createBiquadFilter(),o1=AC.createOscillator(),o2=AC.createOscillator(),o3=AC.createOscillator(),vib=AC.createOscillator(),vg=AC.createGain();
+  o1.type='sawtooth';o2.type='sawtooth';o3.type='square';o1.frequency.value=f;o2.frequency.value=f;o3.frequency.value=f/2;o2.detune.value=9;o1.detune.value=-6;
+  vib.frequency.value=5.4;vg.gain.value=0;vib.connect(vg);[o1,o2,o3].forEach(function(o){vg.connect(o.detune);});
+  vg.gain.setValueAtTime(0,now+.35);vg.gain.linearRampToValueAtTime(14,now+1.1);                   // le vibrato arrive si on TIENT
+  flt.type='lowpass';flt.Q.value=4;flt.frequency.setValueAtTime(f*14,now);flt.frequency.exponentialRampToValueAtTime(f*3,now+.18);  // le claquement de l'attaque
+  flt.frequency.exponentialRampToValueAtTime(f*7,now+1.6);                                            // tenu : le son s'ouvre
+  g.gain.setValueAtTime(0,now);g.gain.linearRampToValueAtTime(.22,now+.006);g.gain.setTargetAtTime(.13,now+.02,.15);
+  const m3=AC.createGain();m3.gain.value=.45;o3.connect(m3);
+  o1.connect(flt);o2.connect(flt);m3.connect(flt);flt.connect(g);g.connect(bus);
+  [o1,o2,o3,vib].forEach(function(o){o.start(now);});
+  INSTRU.v={g:g,os:[o1,o2,o3,vib]};
+}
+function instruOff(rel){
+  const v=INSTRU.v;if(!v||!AC)return;INSTRU.v=null;const now=AC.currentTime,r=rel||.35;
+  try{v.g.gain.cancelScheduledValues(now);v.g.gain.setValueAtTime(v.g.gain.value,now);v.g.gain.setTargetAtTime(0,now,r/4);v.os.forEach(function(o){o.stop(now+r+.1);});}catch(e){}
+}
+window.dbgInstru=function(a){if(a===0||a===1){INSTRU.on=!!a;if(!a)instruOff(.05);}
+  if(a==='essai'){ // banc MUET : la phrase jouée sur un bus débranché, rend les fréquences
+    if(!AC)return'pas de contexte';const sb=INSTRU.bus,sv=SND.sfx,co=AC.createOscillator,fs=[];INSTRU.bus=AC.createGain();SND.sfx=true;INSTRU.tDer=0;INSTRU.essai=true;
+    AC.createOscillator=function(){const o=co.call(AC);fs.push(o);return o;};const out=[];
+    try{for(let k=0;k<8;k++){const n=fs.length;instruOn();if(fs[n])out.push(Math.round(fs[n].frequency.value));}}finally{AC.createOscillator=co;INSTRU.essai=false;}
+    const tient=!!INSTRU.v;instruOff(.05);INSTRU.bus=sb;SND.sfx=sv;return{notes:out,tenue:tient,ton:sonTonSuit._t|0,etat:AC.state};}
+  return{on:INSTRU.on,joue:!!INSTRU.v,note:INSTRU.i,ton:sonTonSuit._t|0,contexte:AC&&AC.state,effets:!!SND.sfx};};
 function nfxTick(dt){ // chaque image (après hsF/hsU) : l'onde, la teinte des bords, les enveloppes
   const vit=running&&!gameOver&&mode!=='boom';
   NFX.ign=Math.max(0,NFX.ign-dt/.55);NFX.off=Math.max(0,NFX.off-dt/1.2);
