@@ -37,3 +37,8 @@
   BASSE RONDE, SYNTHÉ CHAUD. Les ♥ de Léo → `rangement.json` (`gardes`). En attente de son choix.
 - 2026-10-02 — LE LOBBY appliqué sur `main` (local, commit aba79d2) : un des 4 tiré au hasard à chaque lancement, gardé toute la
   session (accueil, garage, écran de fin) ; fichiers = la boucle répétée sans couture sur ~100 s. Pas poussé.
+- 2026-10-03 — LOBBY : la musique part quand le ciel s'ouvre (du début du morceau) ; VAPEUR · SALON sans grésillement (carillon de verre
+  à la place des craquements) ; FILTRE D'OR et MÉTRO refaits « dans le moule » de VAPEUR / ASCENSEUR DORÉ, puis plus premium, puis
+  SIMPLIFIÉS au niveau de VAPEUR (Léo : « trop complexe à l'oreille ; les nouveaux instruments sont cool »).
+  RÈGLE APPRISE : la bonne densité = celle de VAPEUR (~4 attaques/s, 4 accords tenus en mouvement conjoint, une basse par mesure,
+  mélodie rare) ; les instruments qui plaisent : Rhodes à trémolo, contrebasse, vibraphone, cordes douces, glissando de harpe.
