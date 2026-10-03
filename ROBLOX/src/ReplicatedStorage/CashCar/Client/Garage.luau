@@ -1261,6 +1261,53 @@ local function lisse(u: number): number
 	return u * u * (3 - 2 * u)
 end
 
+-- LE TAP (garageImpact, L34784) : un appui bref sur la vue — ni glissé ni swipe — est un petit COUP : la caisse recule d'un rien
+-- et revient (0,4 s), dix éclats de sa laque giclent de son nez et retombent, un « tonk » de tôle. Elle ne change pas de modèle
+-- (le changement reste au swipe et aux flèches) : elle répond au toucher.
+local IMP: any = { t = 0, D = 0.4, b = {} }
+local function impact()
+	if not vitrine or lacher or not dossier then return end
+	IMP.t = IMP.D
+	local f = Caisse.Catalogue[montre] or Caisse.Catalogue[0]
+	local cf = vitrine:GetPivot()
+	local laque = (vitrinePg and vitrinePg.laque) or Color3.fromRGB(220, 90, 40)
+	for i = 1, 10 do
+		local q = IMP.b[i]
+		if not q then
+			local p = Instance.new("Part")
+			p.Anchored = true
+			p.CanCollide, p.CanQuery, p.CanTouch = false, false, false
+			p.CastShadow = false
+			p.Material = Enum.Material.SmoothPlastic
+			p.Parent = dossier
+			q = { p = p }
+			IMP.b[i] = q
+		end
+		local s9 = 0.06 + math.random() * 0.1
+		q.p.Size = Vector3.new(s9, s9 * 0.7, s9) * M
+		q.p.Color = (math.random() < 0.6) and laque or Color3.fromRGB(40, 42, 52)
+		q.p.Transparency = 0
+		local a, sp = math.random() * 6.283, 1.1 + math.random() * 1.8
+		q.cf = cf * CFrame.new(((math.random() - 0.5) * 0.3) * M, (0.35 + math.random() * 0.3) * M, -(f.l * 0.5 - 0.2) * M)
+		q.v = cf:VectorToWorldSpace(Vector3.new(math.cos(a) * sp * 0.4, 1.6 + math.random() * 1.6, -(math.sin(a) * sp * 0.4 + 2.2)))
+		q.rx, q.ry = (math.random() - 0.5) * 9, (math.random() - 0.5) * 9
+		q.p.CFrame = q.cf
+	end
+	Sons.vrai("garageTole", nil, nil, "poseChoc", 1.5, 0.35)
+	Hud.vibre(12)
+end
+local function impactTick(dt: number): number -- rend le recul de la caisse (m)
+	if IMP.t <= 0 then return 0 end
+	IMP.t = math.max(0, IMP.t - dt)
+	local ik = 1 - IMP.t / IMP.D
+	for _, q in IMP.b do
+		q.v -= Vector3.yAxis * (9 * dt)
+		q.cf = (q.cf + q.v * dt * M) * CFrame.Angles(q.rx * dt, q.ry * dt, 0)
+		q.p.CFrame = (IMP.t > 0) and q.cf or CFrame.new(0, -5000, 0)
+		q.p.Transparency = 1 - IMP.t / IMP.D
+	end
+	return math.sin(math.min(1, ik) * math.pi) * 0.16
+end
 -- L'APERÇU DES TRAÎNÉES (trailApercu, L35066 du jeu web) : dans l'onglet TRAÎNÉES, deux rubans à la couleur ESSAYÉE (l'arc-en-ciel
 -- compris) sortent des pots de la vitrine et ondulent derrière elle — on voit la traînée, pas une pastille. Deux Beams accrochés à
 -- la caisse, leurs courbes animées à chaque image ; rendus (cachés) dès qu'on quitte l'onglet.
@@ -1353,7 +1400,7 @@ function Garage.rendu(dt: number)
 			end
 		end
 	elseif vitrine and not lacher then
-		vitrine:PivotTo(cfPlateau())
+		vitrine:PivotTo(cfPlateau() * CFrame.new(0, 0, impactTick(dt) * M)) -- (le TAP : elle recule d'un rien)
 		-- dans l'onglet AILES, la caisse les montre déployées
 		if vitrinePg then Caisse.deployer(vitrinePg, (onglet == "aile") and 1 or 0, t * 9) end
 	end
@@ -1473,6 +1520,8 @@ local function brancherGestes()
 			local dx, dy = g.x - g.x0, g.y - g.y0
 			if Garage.ouvert and not lacher and os.clock() - g.t0 < 0.3 and math.abs(dx) > 64 and math.abs(dx) > 1.3 * math.abs(dy) then
 				Garage.voisin(dx < 0 and 1 or -1)
+			elseif Garage.ouvert and not lacher and math.abs(dx) < 14 and math.abs(dy) < 14 then
+				impact() -- ni glissé ni swipe : un TAP
 			end
 		end
 	end)
