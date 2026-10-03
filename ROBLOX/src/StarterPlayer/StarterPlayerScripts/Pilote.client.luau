@@ -388,9 +388,15 @@ end
 local function nitroGain(q: number) nitroR = math.min(reservoir(), nitroR + q) end
 
 -- ════════ ce que le score fait dire ════════
-local SON_DE = { ["fig.maillon"] = "maillon", ["aura.geste"] = "maillon", ["aura.encaisse1"] = "encaisse", ["aura.encaisse2"] = "encaisse",
-	["aura.encaisse3"] = "encaisse", ["aura.record"] = "record", ["frenesie"] = "record", ["flow.palier"] = "nitroPlein", ["frenesie.record"] = "record",
-	["flow.tic"] = "bip", ["frenesie.arme"] = "bip", ["plus.vite"] = "bip" }
+-- { le vrai son, son repli } — le repli est ce qu'on entendait avant l'import (voir Sons.vrai)
+local SON_DE: { [string]: { any } } = { ["fig.maillon"] = { "maillon" }, ["aura.geste"] = { "maillon" }, ["aura.encaisse1"] = { "encaisse" },
+	["aura.encaisse2"] = { "verdict2", "encaisse" }, ["aura.encaisse3"] = { "verdict3", "encaisse" }, ["aura.record"] = { "auraRecord", "record" },
+	["frenesie"] = { "frenEntre", "record" }, ["flow.palier"] = { "flowPalier", "nitroPlein" }, ["frenesie.record"] = { "frenRecord", "record" },
+	["flow.tic"] = { "bip" }, ["frenesie.arme"] = { "frenArme", "bip" }, ["plus.vite"] = { "plusVite", "bip" },
+	["triade.renait"] = { "triadeRenait" }, ["triade.meurt"] = { "triadeMeurt" }, ["triade.revele"] = { "triadeRevele" },
+	["frenesie.sort"] = { "frenSort" }, ["flow.perdu"] = { "flowPerdu" }, ["dauphin.banc"] = { "dauphinBanc" }, ["dauphin"] = { "figDauphin" },
+	["pose.travers"] = { "poseTravers" }, ["pose.contresens"] = { "poseContresens" },
+	["aura.x5"] = { "auraX5" }, ["aura.x8"] = { "auraX8" }, ["aura.x10"] = { "auraX10" }, ["sans.faute"] = { "sansFaute" } }
 Score.dire.pop = function(txt: string, c: string?, prio: number?) Hud.pop(txt, HudScore.hex(c), (prio and prio >= 2) and 24 or 20, prio) end
 Score.dire.slam = HudScore.slam
 -- LA MUSIQUE EN FRÉNÉSIE (frenMus, L25559) : sans morceau dédié, la radio S'EMBALLE (× 1,06 en 0,3 s) et RETOMBE à la fin (0,45 s)
@@ -403,7 +409,7 @@ Score.dire.fren = HudScore.fren
 Score.dire.fov = function(d: number) fovPunch = math.max(fovPunch, d) end
 Score.dire.son = function(nom: string, demiTons: number?)
 	local n = SON_DE[nom]
-	if n then Sons.jouer(n, demiTons and Sons.demiTons(demiTons) or nil) end
+	if n then Sons.vrai(n[1], demiTons and Sons.demiTons(demiTons) or nil, nil, n[2]) end
 end
 
 -- ════════ l'argent, le moteur ════════
@@ -436,7 +442,7 @@ local function ajouterPieces(n: number)
 			Bus.emit("moteur", tier, gain)
 		else
 			HudScore.slam(Hud.sansAccent(MOT[tier + 1].nom), tr("NOUVEAU MOTEUR", "NEW ENGINE"), "#ffd75e", "#dfeeff", 26, 1)
-			Sons.jouer("nitroPlein", 1.1)
+			Sons.vrai("moteurPalier", nil, nil, "nitroPlein", 1.1)
 			boost = math.max(boost, 0.8)
 			fovPunch = math.max(fovPunch, 11)
 			secousse = math.max(secousse, 0.4)
@@ -524,6 +530,21 @@ local function gererNitro(dt: number)
 	end
 	nitroBleue = nitroOn and nitroR <= 0.01
 	if nitroOn and not offert then stats.nitro += dt end
+	-- LA NITRO S'ENTEND (L36783-36807) : l'appui répond TOUJOURS — à vide, un « tchk » sec ; la jauge qui lâche sous le doigt, la
+	-- panne sèche ; et le ding quand le réservoir est de nouveau plein (pas sous un pouvoir, pas au boost offert).
+	if mode == "drive" or mode == "fall" then
+		local veut = Controles.nitro == true
+		if veut and not G.nVeut and not nitroOn then
+			Sons.vrai("nitroVide", nil, nil, "tap", 1.6, 0.3)
+			Hud.vibre(6)
+		elseif veut and avant and not nitroOn then
+			Sons.vrai("nitroSec")
+		end
+		G.nVeut = veut
+		local plein = nitroR >= res - 0.001
+		if plein and G.nPlein == false and pwN <= 0 and not offert and not nitroOn then Sons.vrai("nitroPleine", nil, 0.4) end
+		G.nPlein = plein
+	end
 	if nitroOn then G.nitTenu = (G.nitTenu or 0) + dt end
 	if avant ~= nitroOn then
 		evEtat:FireServer("nitro", nitroOn)
@@ -560,7 +581,7 @@ local function nitroooTick(dt: number)
 			local pct = math.floor(math.min(NTR_BOOST_MAX, (1 + NTR_BOOST) ^ pal - 1) * 100 + 0.5)
 			Hud.pop("+" .. pct .. " %", Color3.fromRGB(255, 176, 64), 20)
 			fovPunch = math.max(fovPunch, 4)
-			Sons.jouer("pad", Sons.demiTons(math.min(12, pal * 2)), 0.3)
+			Sons.vrai("nitroooPalier", Sons.demiTons(math.min(12, pal * 2)), 0.5, "pad", nil, 0.3)
 		end
 		NTR.boost = math.min(NTR_BOOST_MAX, math.max(NTR.boost, (1 + NTR_BOOST) ^ NTR.t - 1))
 	else
@@ -880,6 +901,7 @@ local function exploser(cause: string)
 			r = Vector3.new(rnd:NextNumber(-6, 6), rnd:NextNumber(-6, 6), rnd:NextNumber(-6, 6)), t = feu and 1 or 0 })
 	end
 	Sons.jouer("explosion")
+	Sons.vrai(({ vide = "mortVide", air = "mortAir", arret = "mortArret", tour = "impactImmeuble" })[cause] or "") -- (L24893 : chaque mort a sa signature)
 	montrerCaisse(false)
 	evEtat:FireServer("course", false)
 	E.air.Visible = false
@@ -907,7 +929,7 @@ local function atterrir(face: number, latX: number, sX: number, hR: number?)
 		-- (au même endroit, jamais par-dessus)
 		Hud.logoDepart()
 		task.delay(1.9, function() if mode == "drive" or mode == "fall" then Hud.grand(G.nomNiveau(), Hud.C.texte, 1.8) end end)
-		Sons.jouer("go")
+		Sons.vrai("departLogo", nil, nil, "go") -- (le logo CLAQUE : sub + accord d'or)
 		Sons.jouer("poseChoc")
 		secousse = 0.6
 		task.delay(1.2, function() astuce(1) end)
@@ -972,6 +994,10 @@ local function atterrir(face: number, latX: number, sX: number, hR: number?)
 			if serpent then mot, c, taille, pr = "SNAKE LOOP", "#b58cff", 40, 2 end
 			if nitroOn and V.nitroAirT > 5 then mot, c, taille, pr = tr("MEGA METEORE", "MEGA METEOR"), "#ff7a24", 44, 3 end -- 5 s de réacteur : l'ultime
 			HudScore.slam(mot, nil, c, nil, taille, pr)
+			-- (rewardSfx, L27525) le verdict résout la gamme du vol : chaque rang a sa signature
+			if nitroOn and V.nitroAirT > 5 then Sons.vrai("verdictMega") elseif serpent then Sons.vrai("figSnake")
+			elseif nitroOn and V.nitroAirT > 1 then Sons.vrai("verdictMeteor") elseif qG >= 140 then Sons.vrai("verdict3")
+			elseif qG >= 45 then Sons.vrai("verdict2") end
 		end
 		if g >= 1.5 then Hud.pop(tr("PARFAIT !", "PERFECT!"), Hud.C.or_, 24, 2) end
 	end
@@ -982,7 +1008,9 @@ local function atterrir(face: number, latX: number, sX: number, hR: number?)
 	if pwA <= 0 and reste <= 0.10 then
 		Hud.pop(tr("AU CHEVEU", "BY A HAIR") .. " +" .. Score.gesteMuet(tr("AU CHEVEU", "BY A HAIR"), 220, "cheveu"), Color3.fromRGB(255, 94, 200), 24, 3)
 		Score.flowAdd(20, "risque", "n")
+		Sons.vrai("poseCheveu")
 	elseif pwA <= 0 and reste <= 0.30 then
+		Sons.vrai("poseCheveu", 0.9)
 		Hud.pop(tr("ARRACHEE", "CLUTCH") .. " +" .. Score.gesteMuet(tr("ARRACHEE", "CLUTCH"), 120, "cheveu"), Hud.C.or_, 24, 3)
 		Score.flowAdd(12, "risque", "n")
 	end
@@ -1143,7 +1171,7 @@ local function essayerAtterrir(dt: number)
 			local noms = { "BUMP", "DOUBLE BUMP", "TRIPLE BUMP" }
 			figure("bump", noms[V.bounceN] or ("MEGA BUMP x" .. V.bounceN), 0, math.min(3, V.bounceN), true, true)
 			secousse = math.max(secousse, math.min(1.3, 0.3 + math.abs(vB) * 0.03))
-			Sons.jouer("poseChoc", 1.3)
+			Sons.vrai("figBump", nil, nil, "poseChoc", 1.3)
 			return
 		end
 	end
@@ -1200,12 +1228,19 @@ local function pouvoirPrend(k: string)
 	local function cumule(v: number): number return math.min(d.duree * 2, v + d.duree) end
 	if k == "n" then pwN = cumule(pwN) elseif k == "a" then pwA = cumule(pwA) elseif k == "v" then pwV = cumule(pwV)
 	elseif k == "m" then pwM = cumule(pwM) else pwX = cumule(pwX) end
-	HudScore.slam(FR and d.nom or d.nomEN, nil, "#" .. d.couleur:ToHex(), nil, 26, 1)
+	-- (PWR_DEFS.gros + sous, L23637) le pouvoir se NOMME en grand, avec ce qu'il donne dessous
+	local GROS = { n = { "NITRO ILLIMITEE", "UNLIMITED NITRO", "9 S A FOND", "9 S FLAT OUT" }, a = { "AIRTIME INFINI", "INFINITE AIRTIME", "14 S DE VOL", "14 S OF FLIGHT" },
+		v = { "VITESSE x2", "SPEED x2", "8 S", "8 S" }, m = { "AIMANT", "MAGNET", "L'OR VIENT A TOI", "GOLD COMES TO YOU" },
+		x = { "AURA x2", "AURA x2", "TOUTE L'AURA COMPTE DOUBLE", "ALL AURA COUNTS DOUBLE" } }
+	local g9 = GROS[k]
+	HudScore.slam(g9 and g9[FR and 1 or 2] or (FR and d.nom or d.nomEN), g9 and g9[FR and 3 or 4] or nil, "#" .. d.couleur:ToHex(), "#ffffff", 26, 1)
 	secousse = math.max(secousse, 0.35)
 	HudScore.flash("#" .. d.couleur:ToHex(), 0.35)
-	Sons.jouer("nitroPlein")
+	Sons.vrai("pwr" .. string.upper(k), nil, nil, "nitroPlein") -- (chaque pouvoir a sa voix)
 	if autres >= 1 then
 		local tri = autres >= 2
+		Sons.vrai(tri and "pwrTriple" or "pwrDouble") -- (un deuxième, un troisième pouvoir actif : le carillon du cumul)
+		Hud.vibre(tri and 60 or 40)
 		Score.gesteMuet(tri and tr("TRIPLE POUVOIR", "TRIPLE POWER") or tr("DOUBLE POUVOIR", "DOUBLE POWER"), tri and 150 or 70, "pwrCombo", true)
 	end
 	Bus.emit("pouvoir", k)
@@ -1256,6 +1291,7 @@ local function ramasser(o: any)
 	if k == "piece" then
 		combo += 1
 		G.comboT = 3
+		if combo % 5 == 0 then Sons.vrai("recolte") end
 		if combo % 5 == 0 then Score.geste(tr("RECOLTE", "HARVEST") .. " x" .. combo, 20, "recolte", true, false, true) end -- LA RÉCOLTE (un robinet : droit au compteur)
 		stats.pieces += 1
 		ajouterPieces(1)
@@ -1268,6 +1304,7 @@ local function ramasser(o: any)
 			if n >= 4 and zone.prisSerie[grp] == n then
 				Score.flowAdd(3 + n * 0.4, "style", "n")
 				Hud.pop(tr("SERIE COMPLETE x", "FULL SET x") .. n, Hud.C.or_, 20)
+				Sons.vrai("serie")
 			end
 		end
 		local mult = math.min(2.5, 1 + 0.5 * math.floor(combo / 5))
@@ -1302,7 +1339,7 @@ local function ramasser(o: any)
 		end
 		HudScore.flash("#" .. fd.couleur:ToHex(), 0.18 + 0.1 * math.min(1, fd.boost / 2))
 		Bus.emit("fruit", o.o.fruit, o.pos, fd)
-		Sons.jouer("piece", 0.8 + math.min(5, rf - 1) * 0.025)
+		Sons.vrai("fruit" .. (o.o.fruit or 1), 1 + math.min(5, rf - 1) * 0.03, nil, "piece", 0.8 + math.min(5, rf - 1) * 0.025)
 		-- le jumeau de l'autre face part avec lui
 		for _, x in zone.objets :: { any } do
 			if x ~= o and x.o.kind == "fruit" and math.abs(x.o.s - o.o.s) < 1 and not x.pris then
@@ -1356,7 +1393,7 @@ local function obstacles(dt: number, cf: CFrame)
 					vA *= 0.985
 					secousse = math.max(secousse, 0.14)
 					Score.flowFaute("n", 0, 0.25)
-					Sons.jouer("poseChoc", 1.6, 0.3)
+					Sons.vrai("plot", nil, nil, "poseChoc", 1.6, 0.3)
 				elseif not o.frole and o.dm and so <= s - 2.6 then
 					-- LE FRÔLÉ : le plot est passé derrière sans être touché, à moins de 3,6 m
 					o.frole = true
@@ -1371,7 +1408,7 @@ local function obstacles(dt: number, cf: CFrame)
 					G.slipT, G.oilCd = 0.75, 1.2
 					Hud.vibre(20)
 					secousse = math.max(secousse, 0.2)
-					Sons.jouer("poseChoc", 0.7, 0.3)
+					Sons.vrai("flaque", nil, nil, "poseChoc", 0.7, 0.3)
 				end
 			elseif o.o.kind == "pad" then
 				if balEcart(so, 6, sA, s, lA, lat, lo) < 4.1 then ramasser(o) end
@@ -1391,7 +1428,7 @@ local function obstacles(dt: number, cf: CFrame)
 		Score.gesteMuet((G.froleN >= 2) and ("SLALOM x" .. G.froleN) or tr("FROLE", "CLOSE CALL"), 20, "frole")
 		if fk == 1 and G.froleN >= 2 then Hud.pop("SLALOM x" .. G.froleN, (G.froleN >= 3) and Hud.C.or_ or Color3.fromRGB(125, 255, 236), 20) end
 		fovPunch = math.max(fovPunch, 1.5 + 2 * pres)
-		Sons.jouer("maillon", Sons.demiTons(math.min(12, G.froleN * 2)), 0.3)
+		Sons.vrai("frole", Sons.demiTons(math.min(9, G.froleN - 1)), 0.4, "maillon", Sons.demiTons(math.min(12, G.froleN * 2)), 0.3)
 	end
 	G.froleT -= dt
 	if G.froleT <= 0 then G.froleN = 0 end
@@ -1402,6 +1439,7 @@ function G.raccourci(gagne: number)
 	Score.flowAdd(math.min(45, 12 + gagne * 0.06), "risque", "m")
 	Hud.pop(tr("RACCOURCI +", "SHORTCUT +") .. math.floor(gagne + 0.5) .. " M", Color3.fromRGB(125, 255, 236), 22, 3)
 	Hud.vibre(50)
+	Sons.vrai("raccourci")
 	nitroGain(0.3)
 	Score.gesteMuet(tr("RACCOURCI", "SHORTCUT"), math.floor(math.min(250, 60 + gagne * 0.2) + 0.5), "coupe")
 end
@@ -1419,7 +1457,7 @@ function G.mirPose()
 	Bus.emit("flash", Color3.fromRGB(125, 255, 236), 0.7, 0.5)
 	Hud.vibre(120)
 	secousse = math.max(secousse, 0.45)
-	Sons.jouer("poseParfait", 1.25, 0.5)
+	Sons.vrai("miracule", nil, nil, "poseParfait", 1.25, 0.5)
 end
 -- LES PALIERS DE VITESSE (vpalTick, L23675) : chaque nouvelle centaine de km/h se crie (« 400 KM/H ! »), à partir d'une centaine
 -- sous le record — crier « 300 » à chaque partie deviendrait un tic — ; puis « RECORD DE VITESSE » quand il tombe.
@@ -1433,7 +1471,7 @@ function G.vpal(k: number)
 		Hud.pop((c * 100) .. tr(" KM/H !", " KM/H!"), (c >= 8) and Color3.fromRGB(255, 94, 200) or ((c >= 5) and Hud.C.or_ or Color3.fromRGB(159, 232, 255)), 24)
 		fovPunch = math.max(fovPunch, 5 + math.min(8, c))
 		Hud.vibre((c >= 6) and 50 or 10)
-		Sons.jouer("bip", Sons.demiTons(math.min(11, c)), 0.3)
+		Sons.vrai("palierVitesse", Sons.demiTons(math.min(11, c)), 0.45, "bip", nil, 0.3)
 	end
 	local rec = G.kmhRecord or 0
 	if not P.rec and rec >= 250 and k > rec + 5 then
@@ -1545,7 +1583,7 @@ function G.satFrole(dm: number)
 	momT = math.min(4.3, momT + 0.6)
 	Score.gesteMuet(tr("FROLE", "CLOSE CALL"), 20, "frole")
 	fovPunch = math.max(fovPunch, 1.5 + 2 * pres)
-	Sons.jouer("maillon", Sons.demiTons(math.min(12, G.froleN * 2)), 0.3)
+	Sons.vrai("frole", Sons.demiTons(math.min(9, G.froleN - 1)), 0.4, "maillon", Sons.demiTons(math.min(12, G.froleN * 2)), 0.3)
 end
 function G.satHard()
 	local l = (zone :: any).sats
@@ -1919,7 +1957,7 @@ local function driftTick(dt: number, on: boolean)
 		local lv = (G.driftC > 1.4 and 3) or (G.driftC > 0.9 and 2) or (G.driftC > 0.45 and 1) or 0
 		if lv > G.driftLv then
 			G.driftLv = lv
-			Sons.jouer("bip", Sons.demiTons(({ 0, 3, 5, 7 })[lv + 1] - 3), 0.35)
+			Sons.vrai("driftCharge", Sons.demiTons(({ 0, 3, 5, 7 })[lv + 1] - 3), 0.45, "bip", nil, 0.35)
 			Hud.vibre((lv == 3) and 50 or 10)
 		end
 	elseif not on and G.driftC > 0 then
@@ -1934,7 +1972,7 @@ local function driftTick(dt: number, on: boolean)
 			Score.flowAddDecl(9 * G.driftLv, "style", "n")
 			fovPunch = math.max(fovPunch, 6 + 6 * G.driftLv)
 			if G.driftLv == 3 then HudScore.flash("#ff5ec8", 0.35) end
-			Sons.jouer("fronde", Sons.demiTons(G.driftLv * 3))
+			Sons.vrai(({ "turboMini", "turboSuper", "turboUltra" })[math.clamp(G.driftLv, 1, 3)], nil, nil, "fronde", Sons.demiTons(G.driftLv * 3))
 			Score.gesteMuet(({ "MINI-TURBO", "SUPER TURBO", "ULTRA TURBO" })[G.driftLv], ({ 50, 100, 180 })[G.driftLv], "drift")
 			if G.driftLv >= Score.F2.decl.drift and Score.frenPeut() then Score.frenDeclenche() end -- (en ville, le drift déclenche)
 		end
@@ -2076,6 +2114,7 @@ local function etapeSol(dt: number)
 			G.pureArmed = false
 			if not NTR.on then
 				HudScore.slam("NITROOO !", nil, "#ff7a24", nil, 40, 1)
+				Sons.vrai("vitessePure")
 				Score.geste("NITROOO", 120, "pure")
 			end
 			G.pureNext = G.pureT + 2
@@ -2104,7 +2143,7 @@ local function etapeSol(dt: number)
 			if G.idleMsg <= 0 then
 				G.idleMsg = 0.5
 				Hud.pop(tr("ROULE OU CREVE  ", "DRIVE OR DIE  ") .. string.format("%.1f", math.max(0, Config.ARRET_T - G.idleT)), Color3.fromRGB(255, 77, 77), 20)
-				Sons.jouer("bip", 1.2)
+				Sons.vrai("arretTic", nil, nil, "bip", 1.2)
 			end
 		end
 		if G.idleT >= Config.ARRET_T then
@@ -2268,6 +2307,7 @@ local function etapeAir(dt: number)
 	if V.fallTR > 3.4 and not V.monstre and not intro then
 		V.monstre = true
 		Score.geste(tr("AIR MONSTRE", "MONSTER AIR"), 110, "V.monstre")
+		Sons.vrai("figMonstre")
 		Score.flowAdd(10, "risque", "n")
 	end
 	prevPos = fallPos
@@ -3163,6 +3203,21 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 			local aAvant = pwA
 			pwN, pwV, pwM, pwX = math.max(0, pwN - dt), math.max(0, pwV - dt), math.max(0, pwM - dt), math.max(0, pwX - dt)
 			pwA = math.max(0, pwA - dt * (enVol0 and 1 or 0.25))
+			-- (L23736, pwrFinSnd) le pouvoir PRÉVIENT qu'il s'en va (un tic-tac à 1,5 s de la fin, une fois) et dit qu'il est parti
+			G.pwBt = G.pwBt or {}
+			for kk, v in { n = pwN, a = pwA, v = pwV, m = pwM, x = pwX } do
+				if v > 0 and v < 1.5 then
+					if G.pwBt[kk] ~= 1 then
+						G.pwBt[kk] = 1
+						Sons.vrai("pwrBientot", nil, nil, "bip", 0.8, 0.3)
+					end
+				elseif v <= 0 and G.pwBt[kk] == 1 then
+					G.pwBt[kk] = 0
+					Sons.vrai("pwrFin", nil, nil, "bip", 0.6, 0.3)
+				elseif v >= 1.5 then
+					G.pwBt[kk] = 0
+				end
+			end
 			if aAvant > 0 and pwA <= 0 and enVol0 then V.fallT, V.fallTR = 0, 0 end -- il s'éteint EN VOL : une jauge neuve
 			Score.ETAT.auraX2 = pwX > 0
 			G.comboT -= dt
@@ -3177,6 +3232,7 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 					if kN > 0 then secousse = math.max(secousse, ((mode == "fall") and 0.1 or 0.07) * kN) end
 					if quoi then
 						Bus.emit("nuage", quoi, kN)
+						Sons.vrai(({ entre = "nuageEntre", sort = "nuageSort", percee = "nuageSort", defonce = "nuageDefonce" })[quoi] or "", nil, 0.5)
 						-- (Sacha, 30/09 : « les nuages doivent juste BLOQUER LA VUE, rien d'autre » — `addStyle` est vide sur le web : ni le banc
 						-- défoncé ni la percée à l'aveugle ne paient de flow. À L'ORAGE, 90 bancs nourrissaient la jauge tout seuls.)
 					end

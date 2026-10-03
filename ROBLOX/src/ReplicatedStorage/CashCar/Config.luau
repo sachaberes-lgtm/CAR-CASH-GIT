@@ -249,6 +249,18 @@ Config.SONS = {
 	-- les niveaux : l'éclair et le tonnerre de L'ORAGE ; les portes, l'ambiance et les débris de l'ORBITE ; la mort par satellite
 	eclair = "", tonnerre = "", orbiteEntre = "", orbiteSort = "", espaceAmbiance = "",
 	explosionLoin = "", esquive = "", touche = "", abri = "", mortSat = "",
+	-- (second audit, 2/10) les sons que le jeu web joue et que Roblox taisait. Pas importés : le jeu garde ce qu'on entendait avant
+	-- (voir Sons.vrai : le vrai son s'il est là, sinon son repli) — ou rien.
+	alerteTic = "", alerteTac = "", arretTic = "", nitroSec = "", nitroVide = "", nitroPleine = "", nitroooPalier = "", vitessePure = "",
+	pwrN = "", pwrA = "", pwrV = "", pwrM = "", pwrX = "", pwrDouble = "", pwrTriple = "", pwrBientot = "",
+	pwrFin = "", frenEntre = "", frenSort = "", frenArme = "", frenRecord = "", frenPose = "", frenCash = "", triadeRevele = "",
+	triadeRenait = "", triadeMeurt = "", flowPalier = "", flowPerdu = "", plusVite = "", poseTravers = "", poseContresens = "", poseCheveu = "",
+	verdict2 = "", verdict3 = "", verdictMeteor = "", verdictMega = "", figMonstre = "", figMeteore = "", figDauphin = "", dauphinBanc = "",
+	figSnake = "", figBump = "", raccourci = "", cratere = "", miracule = "", sansFaute = "", palierVitesse = "", auraX5 = "",
+	auraX8 = "", auraX10 = "", auraRecord = "", serie = "", recolte = "", fruit1 = "", fruit2 = "", fruit3 = "",
+	fruit4 = "", fruit5 = "", fruit6 = "", plot = "", flaque = "", frole = "", driftCharge = "", turboMini = "",
+	turboSuper = "", turboUltra = "", nuageEntre = "", nuageSort = "", nuageDefonce = "", portailProche = "", impactImmeuble = "", departLogo = "",
+	moteurPalier = "", mortVide = "", mortAir = "", mortArret = "",
 }
 Config.SONS_SECOURS = {
 	explosion = "rbxasset://sounds/impact_explosion_03.mp3",

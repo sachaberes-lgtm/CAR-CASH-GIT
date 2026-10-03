@@ -71,6 +71,15 @@ function Sons.jouer(nom: string, hauteur: number?, volume: number?)
 	s.TimePosition = 0
 	s:Play()
 end
+-- le VRAI son s'il est importé (à `hauteur`, `volume`) ; sinon son REPLI — ce qu'on entendait avant — à SA hauteur et SON volume.
+-- Sans repli et sans import : rien. Un son nouveau ne casse donc jamais rien, et il s'allume le jour où Sacha l'importe.
+function Sons.vrai(nom: string, hauteur: number?, volume: number?, repli: string?, hRepli: number?, vRepli: number?)
+	if Sons.a(nom) then
+		Sons.jouer(nom, hauteur, volume)
+	elseif repli then
+		Sons.jouer(repli, hRepli or hauteur, vRepli or volume)
+	end
+end
 function Sons.demiTons(n: number): number
 	return 2 ^ (n / 12)
 end

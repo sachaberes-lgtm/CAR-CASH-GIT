@@ -243,6 +243,7 @@ end
 
 local function flowRevele()
 	FLOW.revele = true
+	Score.dire.son("triade.revele")
 	Score.dire.pop((F2.decl.drift <= 3) and T("DRIFT · RACCOURCI · VITESSE", "DRIFT · SHORTCUT · SPEED") or T("FIGURE · RACCOURCI · NITRO", "TRICK · SHORTCUT · NITRO"), "#b58cff", 2)
 end
 
@@ -317,6 +318,7 @@ function Score.flowCasse(angle: number)
 	FLOW.v, FLOW.lv, FLOW.idle = 0, 0, 0
 	FREN.arme = false
 	Score.dire.pop((angle <= 90) and T("DE TRAVERS !", "SIDEWAYS!") or T("A CONTRESENS !", "WRONG WAY!"), "#ff5e7a", 2)
+	Score.dire.son((angle <= 90) and "pose.travers" or "pose.contresens")
 	if lvAvant >= 2 then Score.dire.flash("#ff2a3d", 0.35) end
 end
 
@@ -460,6 +462,12 @@ function Score.geste(nom: string, base: number, fam: string?, brut: boolean?, mu
 		if CHA.x == 5 then Score.dire.slam("×5", T("EN FEU !!", "ON FIRE!!"), Score.X_COUL[5], "#ffffff", 30, 1)
 		elseif CHA.x == 8 then Score.dire.slam("×8", T("DEMENT !!!", "INSANE!!!"), Score.X_COUL[8], "#ffffff", 34, 1)
 		elseif CHA.x == 10 then Score.dire.slam("×10", "MAX !!!", Score.X_COUL[10], "#ffd75e", 38, 2) end
+		-- (L29096) un palier de chaîne se SENT : son, éclair de bord à sa couleur, vibration
+		if CHA.x == 5 or CHA.x == 8 or CHA.x == 10 then
+			Score.dire.son("aura.x" .. CHA.x)
+			Score.dire.flash(Score.X_COUL[CHA.x], 0.4)
+			Score.dire.hap((CHA.x == 10) and 60 or 35)
+		end
 	end
 	if not muet then Score.dire.pop(nom .. " +" .. p, (CHA.x > x0) and "#ff9ee6" or "#ffd75e", 0) end
 	Score.dire.son((ETAT.mode == "fall") and "fig.maillon" or "aura.geste", math.min(12, CHA.x))
@@ -674,6 +682,7 @@ function Score.poseJugee(propre: boolean, vraiVol: boolean): number
 	local n = SFA.n
 	if n == 3 or n == 5 or n == 8 or n == 12 or (n > 12 and n % 5 == 0) then -- (L23661 : 3 · 5 · 8 · 12, puis 15 · 20 · 25…)
 		Score.geste(T("SANS FAUTE", "FLAWLESS") .. " ×" .. n, 30 + 8 * math.min(20, n), "sansfaute", true, true)
+		Score.dire.son("sans.faute")
 		-- (son texte arrive 0,7 s APRÈS la pose : le verdict et PARFAIT ! se lisent d'abord)
 		task.delay(0.7, function()
 			if ETAT.enCours then Score.dire.pop(T("SANS FAUTE", "FLAWLESS") .. " ×" .. n, "#7dff9a", 2) end

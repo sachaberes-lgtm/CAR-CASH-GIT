@@ -21,6 +21,27 @@ const CHOIX = {
   // les niveaux : l'orage (l'éclair, le tonnerre), l'orbite (ses portes, son silence habité, les débris), la pluie de satellites
   eclair: 'foudre.eclair', tonnerre: 'tonnerre', orbiteEntre: 'orbite.entre', orbiteSort: 'orbite.sort', espaceAmbiance: 'espace.ambiance',
   explosionLoin: 'explosion.loin', esquive: 'debris.esquive', touche: 'foudre.touche', abri: 'abri', mortSat: 'mort.foudre',
+  // (second audit, 2/10) tout ce que le jeu web fait ENTENDRE et que Roblox taisait : le chrono de vol, la nitro, les pouvoirs,
+  // la frénésie et la triade, les verdicts, les figures, les fruits, le drift, les nuages, le portail, les morts
+  alerteTic: 'alerte.tic', alerteTac: 'alerte.tac', arretTic: 'arret.tic', nitroSec: 'nitro.sec',
+  nitroVide: 'nitro.vide', nitroPleine: 'nitro.pleine', nitroooPalier: 'nitrooo.palier', vitessePure: 'vitesse.pure',
+  pwrN: 'pwr.n', pwrA: 'pwr.a', pwrV: 'pwr.v', pwrM: 'pwr.m',
+  pwrX: 'pwr.x', pwrDouble: 'pwr.double', pwrTriple: 'pwr.triple', pwrBientot: 'pwr.bientot',
+  pwrFin: 'pwr.fin', frenEntre: 'frenesie.entre', frenSort: 'frenesie.sort', frenArme: 'frenesie.arme',
+  frenRecord: 'frenesie.record', frenPose: 'frenesie.pose', frenCash: 'frenesie.cash', triadeRevele: 'triade.revele',
+  triadeRenait: 'triade.renait', triadeMeurt: 'triade.meurt', flowPalier: 'flow.2', flowPerdu: 'flow.perdu',
+  plusVite: 'plus.vite', poseTravers: 'pose.travers', poseContresens: 'pose.contresens', poseCheveu: 'pose.cheveu',
+  verdict2: 'verdict.2', verdict3: 'verdict.3', verdictMeteor: 'verdict.meteor', verdictMega: 'verdict.mega',
+  figMonstre: 'fig.monstre', figMeteore: 'fig.meteore', figDauphin: 'fig.dauphin', dauphinBanc: 'dauphin.banc',
+  figSnake: 'fig.snake', figBump: 'fig.bump', raccourci: 'raccourci', cratere: 'cratere',
+  miracule: 'jeu.miracule', sansFaute: 'jeu.sansFaute', palierVitesse: 'jeu.palierVitesse', auraX5: 'aura.x5',
+  auraX8: 'aura.x8', auraX10: 'aura.x10', auraRecord: 'aura.record', serie: 'piece.serie',
+  recolte: 'piece.recolte', fruit1: 'fruit.peche', fruit2: 'fruit.banane', fruit3: 'fruit.grenade',
+  fruit4: 'fruit.orange', fruit5: 'fruit.myrtille', fruit6: 'fruit.pasteque', plot: 'plot',
+  flaque: 'flaque.huile', frole: 'frole', driftCharge: 'drift.charge', turboMini: 'turbo.mini',
+  turboSuper: 'turbo.super', turboUltra: 'turbo.ultra', nuageEntre: 'nuage.entre', nuageSort: 'nuage.sort',
+  nuageDefonce: 'nuage.defonce', portailProche: 'portail.proche', impactImmeuble: 'impact.immeuble', departLogo: 'depart.logo',
+  moteurPalier: 'moteur.palier', mortVide: 'mort.vide', mortAir: 'mort.air', mortArret: 'mort.arret',
 };
 global.window = {};
 require(path.join(JEU, 'sons-banque.js'));

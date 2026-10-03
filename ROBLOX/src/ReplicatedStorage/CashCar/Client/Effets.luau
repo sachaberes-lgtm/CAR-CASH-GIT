@@ -840,7 +840,7 @@ local function cratere()
 	Bus.agir.secousse(1.1)
 	flashBords(Color3.fromRGB(255, 110, 20), 0.65)
 	HudScore.slam(tr("IMPACT METEORE", "METEOR IMPACT"), "", "#ffb000", "#ff3924", 40, 3)
-	Sons.jouer("explosion", 1.25, 0.5)
+	Sons.vrai("cratere", nil, nil, "explosion", 1.25, 0.5)
 end
 local function crateresTick(dt: number)
 	for i = #crateres, 1, -1 do
