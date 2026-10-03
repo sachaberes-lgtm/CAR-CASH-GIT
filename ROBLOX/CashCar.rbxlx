@@ -808,6 +808,14 @@ function TU.rate(): boolean
 end
 TU.gestes = { "glisse", "nitro", "bord", "nitro", "pose" } -- (L22416 : le geste de chaque étape)
 function TU.tick(dt: number)
+	-- (TUTO.attente, L22505) la 1re consigne attend la FIN du logo de départ : elle tombait pendant la sortie, par-dessus CASH CAR,
+	-- impossible à lire ni à exécuter — l'auto-école prend la parole pile quand le logo s'efface
+	if (TU.attenteFin or 0) > os.clock() then
+		if E.coach.Visible then E.coach.Visible = false end
+		Hud.nitroAppel(false)
+		Hud.coachGeste(nil)
+		return
+	end
 	Hud.nitroAppel(TU.on and TU.pause <= 0 and (TU.etape == 2 or TU.etape == 4))
 	Hud.coachGeste(TU.on and TU.gestes[math.clamp(TU.etape, 1, 5)] or nil)
 	if TU.msgT > 0 then
@@ -979,6 +987,7 @@ local function atterrir(face: number, latX: number, sX: number, hR: number?)
 		-- LE LOGO PASSE LE RELAIS (fireLaunchBoost, L28467) : CASH CAR claque avec son halo ; le nom du niveau arrive quand il s'efface
 		-- (au même endroit, jamais par-dessus)
 		Hud.logoDepart()
+		if TU.on then TU.attenteFin = os.clock() + 1.9 end -- (la leçon parle quand le logo s'efface)
 		task.delay(1.9, function() if (mode == "drive" or mode == "fall") and not TU.on then Hud.grand(G.nomNiveau(), Hud.C.texte, 1.8) end end) -- (L1247 : pas pendant la leçon)
 		Sons.vrai("departLogo", nil, nil, "go") -- (le logo CLAQUE : sub + accord d'or)
 		Sons.jouer("poseChoc")
