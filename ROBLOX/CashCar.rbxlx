@@ -41,6 +41,8 @@ KA.Traces = require(CL:WaitForChild("Traces"))
 KA.Pigeons = require(CL:WaitForChild("Pigeons"))
 KA.Impact = require(CL:WaitForChild("Impact"))
 KA.Recyclage = require(CL:WaitForChild("Recyclage"))
+-- (le tapotement de la caisse au titre : le « toc » de tôle de l'atelier et une vibration)
+KA.Titre.surTape = function() Sons.vrai("garageTole", nil, nil, "poseChoc", 1.5, 0.35) Hud.vibre(14) end
 
 local M, SPD = Config.M, Config.SPD
 local RH, THICK = Config.ROAD_HALF, Config.THICK
@@ -3173,6 +3175,9 @@ workspace:GetAttributeChangedSignal("DbgOuvre"):Connect(function()
 	elseif string.sub(v, 1, 4) == "saut" then
 		-- (banc) un saut franc, tout de suite : pour photographier ce qui ne vit qu'en vol (le viseur, la jauge, les figures)
 		if mode == "drive" then decoller(tonumber(string.sub(v, 5, 6)) or 45, 1) end -- ("saut20…" : la poussée, sur deux chiffres)
+	elseif v == "tape" then
+		local e9 = KA.Titre.dbgTape() -- (banc) un coup au milieu de la caisse
+		warn(string.format("[CashCar] tape : %d coups, poussée %.2f m, pivot %.1f°", e9.coups, e9.pousse, e9.pivot))
 	elseif string.sub(v, 1, 6) == "achat:" then
 		G.boutique.dbg(string.sub(v, 7)) -- (banc) « achat:2 » ouvre la fenêtre d'achat de la 2e case, « achat:oui » presse ACHETER
 	elseif string.sub(v, 1, 7) == "quitter" then
@@ -19296,7 +19301,9 @@ Titre.pret = false
 Titre.nuPret = false -- (les cumulus sont bâtis : l'accueil peut s'ouvrir)
 
 -- CHUTE_P (les réglages retenus aux captures)
-local P = { az = 2.35, alt = 900, avant = -1700, pitch = 0.62, roule = 0.12, cap = 0.28, elev = 0.34, gite = -0.45, vit = 14, taille = 0.82 }
+-- (3/10, Léo, deux captures : « voici le point de vue vertical souhaité ») le regard presque à NIVEAU — couché (elev) un rien SOUS la
+-- caisse : l'horizon à ~46 % de la hauteur, on voit son dessous ; debout (elevP) à peine au-dessus. (Avant : 0,34, on regardait le toit.)
+local P = { az = 2.35, alt = 900, avant = -1700, pitch = 0.62, roule = 0.12, cap = 0.28, elev = -0.08, elevP = 0.06, gite = -0.45, vit = 14, taille = 0.82 }
 -- CHUTE_NU : { droite, devant, rayon, gabarit, vitesse, hauteur de départ } en mètres
 local NU = {
 	-- devant
@@ -19366,6 +19373,7 @@ do
 		if traite or not S.vu or S.go or O.io then return end
 		if io.UserInputType == Enum.UserInputType.Touch or io.UserInputType == Enum.UserInputType.MouseButton1 then
 			O.io, O.x, O.y, O.mvT = io, io.Position.X, io.Position.Y, os.clock()
+			O.x0, O.y0, O.t0 = io.Position.X, io.Position.Y, os.clock()
 		end
 	end)
 	UIS.InputChanged:Connect(function(io: InputObject)
@@ -19383,8 +19391,77 @@ do
 		O.x, O.y = io.Position.X, io.Position.Y
 	end)
 	UIS.InputEnded:Connect(function(io: InputObject)
-		if O.io and (io == O.io or io.UserInputType == O.io.UserInputType) then O.io = nil end
+		if O.io and (io == O.io or io.UserInputType == O.io.UserInputType) then
+			O.io = nil
+			-- ni glissé ni tenu : un TAP — s'il touche la caisse, elle reçoit un petit coup
+			local p9 = io.Position
+			if math.abs(p9.X - (O.x0 or 0)) < 14 and math.abs(p9.Y - (O.y0 or 0)) < 14 and os.clock() - (O.t0 or 0) < 0.4 then
+				Titre.tape(Vector2.new(p9.X, p9.Y))
+			end
+		end
 	end)
+end
+-- LE TAPOTEMENT AU CIEL (chuteTape, L35713 du jeu web ; Léo, 3/10 : « on peut tapoter la voiture et simuler, à l'endroit tapoté, un
+-- coup qui fait légèrement pousser / pivoter la voiture en train de tomber dans les airs »). Le doigt lance un rayon de la caméra ;
+-- s'il touche la caisse, le coup part de CE point, dans le sens du rayon : une poussée (le centre recule de quelques décimètres) et
+-- un couple r × F (taper le nez la fait tourner autrement que taper l'aile) — puis deux ressorts amortis la ramènent, en deux ou
+-- trois balancements. Un éclat à l'endroit du coup, le « toc » de tôle de l'atelier, une vibration. (On vise la BOÎTE de la caisse :
+-- ses pièces ne répondent pas aux rayons.)
+local TAP: any = { p = Vector3.zero, v = Vector3.zero, r = Vector3.zero, w = Vector3.zero, V = 1.8, W = 0.5, WMAX = 1.3, K = 13, C = 2.6, KR = 15,
+	CR = 2.3, flT = 9, n = 0 }
+Titre.surTape = nil :: ((Vector3) -> ())? -- (le son et la vibration : posés par le pilote)
+function Titre.tape(ecran: Vector2): boolean
+	if not S.vu or S.go then return false end
+	local m = workspace:FindFirstChild("MaCaisse")
+	if not m or not m:IsA("Model") then return false end
+	local cam = workspace.CurrentCamera
+	local ray = cam:ScreenPointToRay(ecran.X, ecran.Y)
+	-- le rayon contre la boîte orientée de la caisse (dans son repère : une boîte alignée)
+	local bcf, bt = m:GetBoundingBox()
+	local o, d = bcf:PointToObjectSpace(ray.Origin), bcf:VectorToObjectSpace(ray.Direction.Unit)
+	local h = bt / 2
+	local t0, t1 = -math.huge, math.huge
+	for _, ax in { "X", "Y", "Z" } do
+		local oa, da, ha = (o :: any)[ax], (d :: any)[ax], (h :: any)[ax]
+		if math.abs(da) < 1e-9 then
+			if math.abs(oa) > ha then return false end
+		else
+			local a, b = (-ha - oa) / da, (ha - oa) / da
+			if a > b then a, b = b, a end
+			t0, t1 = math.max(t0, a), math.min(t1, b)
+		end
+	end
+	if t0 > t1 or t1 < 0 then return false end
+	local hit = ray.Origin + ray.Direction.Unit * math.max(0, t0)
+	local dir = ray.Direction.Unit
+	TAP.v += dir * TAP.V -- la poussée, dans le sens du doigt
+	if TAP.v.Magnitude > TAP.V * 2 then TAP.v = TAP.v.Unit * TAP.V * 2 end
+	TAP.w += (hit / M - S.pos):Cross(dir) * TAP.W -- le pivot : r × F
+	if TAP.w.Magnitude > TAP.WMAX then TAP.w = TAP.w.Unit * TAP.WMAX end
+	-- l'éclat, à l'endroit du coup
+	if not TAP.fl then
+		local f = Instance.new("Part")
+		f.Name = "Eclat"
+		f.Shape = Enum.PartType.Ball
+		f.Material = Enum.Material.Neon
+		f.Color = Color3.fromRGB(255, 240, 200)
+		f.Anchored, f.CanCollide, f.CanQuery, f.CanTouch, f.CastShadow = true, false, false, false, false
+		TAP.fl = f
+	end
+	TAP.fl.Position = hit - dir * (0.15 * M)
+	TAP.fl.Parent = workspace
+	TAP.flT, TAP.n = 0, TAP.n + 1
+	if Titre.surTape then Titre.surTape(hit) end
+	return true
+end
+-- (banc) le coup au milieu de l'écran, et son état
+function Titre.dbgTape(): any
+	local m = workspace:FindFirstChild("MaCaisse")
+	if m and m:IsA("Model") then
+		local v, _ = workspace.CurrentCamera:WorldToScreenPoint(m:GetPivot().Position)
+		Titre.tape(Vector2.new(v.X, v.Y))
+	end
+	return { coups = TAP.n, pousse = TAP.p.Magnitude, pivot = math.deg(TAP.r.Magnitude) }
 end
 function Titre.montrer(oui: boolean)
 	S.vu = oui
@@ -19451,7 +19528,33 @@ function Titre.caisse(dt: number, voile: ((number) -> ())?): CFrame
 		for _, p in pieces do Nuages.suivreFin(p) end
 	end
 	-- (le repère cuit des caisses : le nez vers −Z, la droite du pilote +X)
-	return CFrame.fromMatrix((C - up * 0.45) * M, -sd, up, -f)
+	local cfC = CFrame.fromMatrix((C - up * 0.45) * M, -sd, up, -f)
+	-- le TAPOTEMENT : deux ressorts amortis (poussée, pivot), la caisse tourne autour de son centre
+	do
+		local k = math.min(dt, 0.05)
+		TAP.v = (TAP.v - TAP.p * (TAP.K * k)) * math.exp(-TAP.C * k)
+		TAP.p += TAP.v * k
+		TAP.w = (TAP.w - TAP.r * (TAP.KR * k)) * math.exp(-TAP.CR * k)
+		TAP.r += TAP.w * k
+		if TAP.fl and TAP.fl.Parent then
+			TAP.flT += dt
+			local u = TAP.flT / 0.32
+			if u >= 1 then
+				TAP.fl.Parent = nil
+			else
+				TAP.fl.Transparency = u
+				local s9 = (0.35 + u * 1.1) * M
+				TAP.fl.Size = Vector3.new(s9, s9, s9)
+			end
+		end
+		local a = TAP.r.Magnitude
+		if a > 1e-5 or TAP.p.Magnitude > 1e-5 then
+			local Cs = C * M
+			local q = (a > 1e-5) and CFrame.fromAxisAngle(TAP.r / a, a) or CFrame.identity
+			cfC = CFrame.new(Cs + TAP.p * M) * q * CFrame.new(-Cs) * cfC
+		end
+	end
+	return cfC
 end
 
 -- La CAMÉRA du titre : rend son CFrame et son champ. fiche = la caisse montrée (l, w, h en mètres).
@@ -19493,7 +19596,7 @@ function Titre.vue(fiche: any): (CFrame, number)
 		local oc, os9 = math.cos(O.a), math.sin(O.a)
 		lx, lz = lx * oc - lz * os9, lx * os9 + lz * oc
 	end
-	local el9 = math.clamp(P.elev + O.p, -0.45, 1.25)
+	local el9 = math.clamp(((aspect < 1) and P.elevP or P.elev) + O.p, -0.45, 1.25)
 	local ce, se = math.cos(el9), math.sin(el9)
 	local C = S.pos
 	local pos = Vector3.new(C.X - lx * ce * d, C.Y + se * d, C.Z - lz * ce * d)
