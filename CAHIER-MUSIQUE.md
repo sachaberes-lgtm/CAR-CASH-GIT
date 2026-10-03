@@ -50,3 +50,6 @@
   Lobby) dans la règle du lobby (8 mesures, ambiance commune) : VIEILLE FORTUNE (rock américain cyberpunk, old money / new gear),
   TEMPLE DE JADE (DJ tech bouddhiste), MARGARITA BOSS (beach club), PARIS PUNK CASH (punk parisien, musette), SAVANE ROBOTIQUE
   (savane × ville des robots). En attente du verdict de Léo.
+- 2026-10-03 — Les 5 lobbys refaits « moins de détails, plus jeu vidéo » : une mélodie de synthé qu'on retient, batterie simple,
+  basse claire, accords courts, UN instrument signature par thème ; la 2e moitié reprend le thème une octave plus haut. L'AMBIANCE
+  est gardée (Léo : « mais l'ambiance pas mal ») : bande, réverbe douce, aigus adoucis. RÈGLE : ambiance du lobby = à garder.

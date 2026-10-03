@@ -255,17 +255,139 @@ def l_savane():
     return M, ambiance(M, ('kalimba', 'robot', 'bips'), {'bat': .85, 'perc': 1, 'kalimba': 1, 'basse': 1, 'robot': 1, 'bips': 1, 'fx': 1}, 7200)
 
 
+
+# ======================================================================================== v2 : « MOINS DE DÉTAILS, PLUS JEU VIDÉO »
+# (2026-10-03, Léo) — LE MOULE JEU VIDÉO : une MÉLODIE qu'on retient au synthé (onde carrée à vibrato, petit écho), une batterie simple
+# et franche, une basse claire, des accords COURTS en contretemps, et UN SEUL instrument signature par thème. 8 mesures : la 2e moitié
+# reprend le thème une octave plus haut avec la signature. L'ambiance du lobby reste (bande, réverbe douce, aigus doux), même sonie.
+def lead_jeu(m, dur, pw=.25, vib=.006):
+    nn = int((dur + .05) * SR); t = np.arange(nn) / SR
+    f = hz(m) * (1 + vib * np.sin(2 * np.pi * 5.5 * t) * np.clip((t - .12) / .2, 0, 1))
+    s = carre(f, nn, pw) * .7 + carre(f * 1.004, nn, pw) * .3
+    return filtre(s * env(nn, .005, .2, .7, .05, dur), 'low', 5500)
+
+
+def stab_jeu(notes, dur=.18):
+    nn = int(dur * SR); s = 0
+    for n in notes: s = s + carre(hz(n), nn, .5)
+    return filtre(s / len(notes) * env(nn, .002, .08, .3), 'low', 3000)
+
+
+def basse_jeu(m, dur, onde='tri'):
+    nn = int(dur * SR); f = hz(m)
+    s = tri(f, nn) if onde == 'tri' else (scie(f, nn) * .5 + sinus(f, nn))
+    return filtre(s * env(nn, .003, .12, .6, .03, dur - .03), 'low', 1200)
+
+
+def jeu_video(bpm, graine, prog, hook, bat, basse_pas, accords_pas, signature=None, lp=7000, onde='tri', gl=.13):
+    M = Morceau(bpm, mesures=8, graine=graine); de = M.de; h = Main(graine, 3)
+    for nom, motif, son, g in bat: M.patron('bat' if nom != 'sn' else 'sn', motif, son(de), g)
+    b = M.piste('basse'); ac = M.piste('accords'); ld = M.piste('lead')
+    for m in range(8):
+        q = prog[m % 4]
+        for p, o, lg9 in basse_pas: b.pose(h.t(M.t(m, p)), basse_jeu(q[0] - 12 + o, lg9 * M.dc, onde), .6)
+        for p in accords_pas: ac.pose(h.t(M.t(m, p)), stab_jeu(q[1:]), .14 if m < 4 else .17)
+    for m0, o in ((0, 0), (4, 12)):                                        # le thème, puis le thème une octave plus haut
+        for m, pas in enumerate(hook):
+            for p, n, lg9 in pas: ld.pose(h.t(M.t(m + m0, p)), lead_jeu(n + o - (12 if o and n > 84 else 0), lg9 * M.dc * .95), h.g(gl))
+    eL, eR = echo(ld.L, ld.R, M.temps * .75, .3); ld.L += eL * .35; ld.R += eR * .35
+    if signature: signature(M, de, h)
+    # (Léo : « mais l'ambiance pas mal ») : L'AMBIANCE DU LOBBY gardée — la bande qui pleure, la grande réverbe douce, les aigus adoucis
+    return M, ambiance(M, ('lead', 'accords', 'sig'), {'bat': .9, 'sn': .9, 'basse': 1, 'accords': 1, 'lead': 1, 'sig': 1, 'fx': 1}, lp)
+
+
+def l_fortune():
+    def sig(M, de, h):                                                    # la guitare : des accords de puissance sur la 2e moitié
+        g = M.piste('sig')
+        for m in range(4, 8): g.pose(M.t(m), guitare(de, [[52, 59, 64], [48, 55, 60], [55, 62, 67], [50, 57, 62]][m % 4], M.temps * 1.8, False, .9), .35, -.3)
+    hook = [[(0, 76, 4), (4, 79, 2), (6, 83, 4), (10, 81, 6)], [(0, 79, 4), (4, 76, 4), (8, 74, 8)],
+            [(0, 79, 4), (4, 81, 2), (6, 83, 4), (10, 86, 6)], [(0, 81, 4), (4, 78, 4), (8, 76, 8)]]
+    return jeu_video(100, 611, [[40, 64, 67, 71], [36, 64, 67, 72], [43, 62, 67, 71], [38, 62, 66, 69]], hook,
+                     [('bat', 'x.....x.x.......', lambda de: (lambda: kick(de, 120, 44, .35, .4, 1.4)), .9),
+                      ('sn', '....x.......x...', lambda de: (lambda: caisse(de, 190, 1., .15, 2000)), .6),
+                      ('bat', 'x.x.x.x.x.x.x.x.', lambda de: (lambda: charley(de, False, 8000)), .1)],
+                     ((0, 0, 3), (4, 0, 2), (6, 12, 2), (8, 0, 3), (12, 0, 2), (14, 12, 2)), (2, 10), sig, onde='scie')
+
+
+def l_temple():
+    def sig(M, de, h):                                                    # le gong, au début de chaque moitié
+        g = M.piste('sig')
+        for m in (0, 4):
+            nn = int(4 * SR); t = np.arange(nn) / SR
+            gg = sum(a * np.sin(2 * np.pi * f * t) for f, a in ((86, 1), (151, .6), (233, .4), (377, .25))) * np.exp(-t / 1.8) * (1 - np.exp(-t / .02))
+            g.pose(M.t(m), filtre(gg, 'low', 2500), .25)
+    hook = [[(0, 81, 2), (2, 84, 2), (4, 86, 4), (8, 88, 4), (12, 86, 4)], [(0, 84, 4), (4, 81, 4), (8, 79, 8)],
+            [(0, 81, 2), (2, 84, 2), (4, 86, 2), (6, 88, 2), (8, 91, 4), (12, 88, 4)], [(0, 86, 4), (4, 84, 4), (8, 81, 8)]]
+    return jeu_video(118, 612, [[45, 69, 72, 76], [41, 69, 72, 77], [43, 67, 71, 74], [45, 69, 72, 76]], hook,
+                     [('bat', 'x...x...x...x...', lambda de: (lambda: kick(de, 120, 44, .35, .2, 1.2)), .85),
+                      ('sn', '....x.......x...', lambda de: (lambda: clap(de, .18)), .4),
+                      ('bat', '..x...x...x...x.', lambda de: (lambda: charley(de, False, 8000)), .12)],
+                     ((0, 0, 3), (6, 0, 2), (10, 7, 3)), (2, 6, 10, 14), sig)
+
+
+def l_margarita():
+    def sig(M, de, h):                                                    # les congas, sur la 2e moitié
+        g = M.piste('sig')
+        for m in range(4, 8):
+            for p, f, sl in ((2, 210, 0), (5, 210, 0), (10, 300, 1), (13, 210, 0)): g.pose(h.t(M.t(m, p)), conga(de, f, bool(sl)), .3, .3)
+    hook = [[(0, 77, 2), (2, 81, 2), (4, 84, 4), (10, 81, 2), (12, 79, 4)], [(0, 79, 4), (4, 76, 2), (6, 79, 2), (8, 84, 8)],
+            [(0, 81, 2), (2, 77, 2), (4, 81, 4), (8, 86, 4), (12, 84, 4)], [(0, 82, 4), (4, 81, 4), (8, 77, 8)]]
+    M, (L, R) = jeu_video(112, 613, [[41, 65, 69, 72], [36, 64, 67, 72], [38, 65, 69, 74], [34, 65, 70, 74]], hook,
+                          [('bat', 'x...x...x...x...', lambda de: (lambda: kick(de, 115, 45, .3, .2, 1.1)), .8),
+                           ('sn', '....x.......x...', lambda de: (lambda: clap(de, .2)), .35),
+                           ('bat', '..x...x...x...x.', lambda de: (lambda: charley(de, True, 8500)), .1)],
+                          ((0, 0, 3), (6, 7, 2), (8, 12, 2), (11, 7, 3)), (2, 6, 10, 14), sig, gl=.11)
+    return M, (L, R)
+
+
+def l_paris():
+    def sig(M, de, h):                                                    # la caisse enregistreuse au bout de chaque moitié
+        g = M.piste('sig')
+        for m in (3, 7): g.pose(M.t(m, 12), caisse_enreg(de), .45, -.2)
+    riff = [[(0, 76, 2), (2, 75, 2), (4, 76, 4), (8, 72, 4), (12, 69, 4)], [(0, 72, 4), (4, 71, 2), (6, 69, 2), (8, 69, 8)],
+            [(0, 67, 4), (4, 69, 4), (8, 72, 4), (12, 76, 4)], [(0, 75, 4), (4, 76, 4), (8, 71, 8)]]
+    M = Morceau(168, mesures=8, graine=614); de = M.de; h = Main(614, 3)
+    M.patron('bat', 'x...x...x...x...', lambda: kick(de, 130, 46, .25, .5, 1.5), .85)
+    M.patron('sn', '..x...x...x...x.', lambda: caisse(de, 210, 1.1, .12, 2400), .55)
+    M.patron('bat', 'x.x.x.x.x.x.x.x.', lambda: charley(de, False, 8000), .1)
+    prog = [[45, 64, 69, 72], [41, 65, 69, 72], [36, 64, 67, 72], [40, 64, 68, 71]]
+    b = M.piste('basse'); ac = M.piste('accords'); ld = M.piste('lead')
+    for m in range(8):
+        q = prog[m % 4]
+        for p in range(0, 16, 2): b.pose(h.t(M.t(m, p)), basse_jeu(q[0] - 12 + (12 if p % 4 else 0), M.dc * 1.8, 'scie'), .55)
+        for p in (2, 6, 10, 14): ac.pose(h.t(M.t(m, p)), stab_jeu(q[1:], .12), .13)
+    for m0, o, gn in ((0, 0, .14), (4, 12, .15)):
+        for m, pas in enumerate(riff):
+            for p, n, lg9 in pas: ld.pose(h.t(M.t(m + m0, p)), accordeon(n + o, lg9 * M.dc * .95), h.g(gn))
+    sig(M, de, h)
+    return M, ambiance(M, ('lead', 'accords', 'sig'), {'bat': .9, 'sn': .9, 'basse': 1, 'accords': 1, 'lead': 1, 'sig': 1, 'fx': 1}, 6300)
+
+
+def l_savane():
+    def sig(M, de, h):                                                    # les bips de robot, sur la 2e moitié
+        g = M.piste('sig')
+        for m in range(4, 8):
+            for p in (3, 7, 11, 15):
+                nn = int(.07 * SR); g.pose(M.t(m, p), carre(hz(95 + (p % 3)), nn, .5) * np.exp(-np.arange(nn) / SR / .025), .07, .7 if p % 2 else -.7)
+    hook = [[(0, 79, 2), (3, 83, 2), (6, 86, 2), (8, 88, 4), (12, 86, 4)], [(0, 83, 3), (3, 79, 3), (6, 76, 2), (8, 79, 8)],
+            [(0, 84, 2), (3, 88, 2), (6, 91, 2), (8, 88, 4), (12, 84, 4)], [(0, 86, 3), (3, 81, 3), (6, 78, 2), (8, 79, 8)]]
+    return jeu_video(120, 615, [[43, 67, 71, 74], [40, 67, 71, 76], [36, 67, 72, 76], [38, 66, 69, 74]], hook,
+                     [('bat', 'x.....x...x.....', lambda de: (lambda: kick(de, 115, 44, .35, .2, 1.2)), .85),
+                      ('sn', '....x.......x...', lambda de: (lambda: rim(de)), .45),
+                      ('bat', '...t..t....t..t.'.replace('t', 'x'), lambda de: (lambda: djembe(de, 'ton')), .3)],
+                     ((0, 0, 3), (6, 0, 2), (10, 7, 2), (14, 12, 2)), (2, 10), sig)
+
 LOBBY5 = [
     ('l5-fortune', l_fortune, "VIEILLE FORTUNE", 'Rock américain cyberpunk · old money, new gear', 100, 'mi mineur',
-     "Guitares étouffées qui s'ouvrent en grands accords, batterie rock posée ; le « new gear » : un arpège de synthé froid ; le « old money » : un piano de salon qui chante."),
+     "Façon jeu vidéo : une mélodie de synthé qu'on retient, batterie rock simple ; en 2e moitié le thème monte et les guitares claquent."),
     ('l5-temple', l_temple, "TEMPLE DE JADE", 'DJ tech · temple bouddhiste', 118, 'la pentatonique',
-     "Deep tech feutré, bloc de bois du moine, guzheng pentatonique, un gong ouvre chaque moitié ; en 2e moitié les bols chantants et une flûte de bambou."),
+     "Façon jeu vidéo : un thème pentatonique au synthé sur un quatre temps ; un gong ouvre chaque moitié."),
     ('l5-margarita', l_margarita, "MARGARITA BOSS", 'Beach club · tropical house', 112, 'fa majeur',
-     "Quatre temps doux, congas, guitare nylon qui gratte les contretemps, marimba ; en 2e moitié le steel-drum chante."),
+     "Façon jeu vidéo : un thème ensoleillé au synthé, accords en contretemps ; en 2e moitié les congas entrent."),
     ('l5-paris', l_paris, "PARIS PUNK CASH", 'Punk parisien · musette', 168, 'la mineur',
-     "Batterie punk, guitares saturées, et un accordéon musette qui siffle le riff ; la caisse enregistreuse au bout de chaque moitié."),
+     "Façon jeu vidéo : l'accordéon musette joue le riff sur une batterie punk ; la caisse enregistreuse au bout de chaque moitié."),
     ('l5-savane', l_savane, "SAVANE ROBOTIQUE", 'Savane · ville des robots', 120, 'sol majeur',
-     "Djembé et shaker en polyrythme, kalimba en trois contre quatre ; en 2e moitié une voix de robot chante les accords, des bips répondent."),
+     "Façon jeu vidéo : un thème au synthé sur un groove de djembé ; en 2e moitié des bips de robot répondent."),
 ]
 
 if __name__ == '__main__':
