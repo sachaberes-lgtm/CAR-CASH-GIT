@@ -3684,6 +3684,12 @@ do
 	end
 end
 allerMenu()
+-- (la sauvegarde n'a pas pu être lue : cette session ne sera pas gardée — le joueur le sait, au lieu de croire qu'il a tout perdu)
+task.delay(1.5, function()
+	if joueur:GetAttribute("SauvegardeKO") then
+		Hud.toast(tr("SAUVEGARDE INDISPONIBLE : CETTE SESSION NE SERA PAS GARDEE", "SAVES UNAVAILABLE: THIS SESSION WON'T BE KEPT"), Hud.C.rouge)
+	end
+end)
 game:GetService("Players").LocalPlayer:SetAttribute("MenuPret", true) -- (le banc attend ce signal : l'accueil est là, l'intro jouée)
 end
 
