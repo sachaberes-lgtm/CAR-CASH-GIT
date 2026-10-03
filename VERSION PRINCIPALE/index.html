@@ -28724,18 +28724,18 @@ function instruBus(){
   if(INSTRU.bus||!AC||!MASTER)return INSTRU.bus;
   const g=AC.createGain();g.gain.value=1;
   const cp=AC.createDynamicsCompressor();cp.threshold.value=-20;cp.ratio.value=3;cp.attack.value=.008;cp.release.value=.18;cp.knee.value=12;
-  const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=2000;lp.Q.value=.5;
+  const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1600;lp.Q.value=.5;
   const hp=AC.createBiquadFilter();hp.type='highpass';hp.frequency.value=70;
-  const sec=AC.createGain();sec.gain.value=1.6;                                          // +5 dB
+  const sec=AC.createGain();sec.gain.value=1.05;                                         // (Léo : « plus fondu et effacé ») −3,5 dB sec, la salle porte le reste
   g.connect(cp);cp.connect(hp);hp.connect(lp);lp.connect(sec);sec.connect(MASTER);
   try{ // LA SALLE : du bruit qui s'éteint, assombri avec le temps (calculé une fois, 1,8 s)
     const n=Math.floor(AC.sampleRate*1.8),ir=AC.createBuffer(2,n,AC.sampleRate);
     for(let c=0;c<2;c++){const d=ir.getChannelData(c);let lo=0;for(let i=0;i<n;i++){const x=i/n,a=Math.pow(1-x,3.2),k=.25+.7*x;lo+=(Math.random()*2-1-lo)*(1-k);d[i]=lo*a*(i<AC.sampleRate*.012?i/(AC.sampleRate*.012):1);}}
-    const cv=AC.createConvolver();cv.buffer=ir;const rv=AC.createGain();rv.gain.value=.55;lp.connect(cv);cv.connect(rv);rv.connect(MASTER);
+    const cv=AC.createConvolver();cv.buffer=ir;const rv=AC.createGain();rv.gain.value=.85;lp.connect(cv);cv.connect(rv);rv.connect(MASTER);
   }catch(e){}
   try{ // L'ÉCHO PING-PONG en croche pointée, recalé sur le tempo à chaque appui (instruTempo)
     const dL=AC.createDelay(2),dR=AC.createDelay(2),fb=AC.createGain(),df=AC.createBiquadFilter(),mg=AC.createChannelMerger(2),eg=AC.createGain();
-    df.type='lowpass';df.frequency.value=1300;fb.gain.value=.3;eg.gain.value=.32;
+    df.type='lowpass';df.frequency.value=1300;fb.gain.value=.3;eg.gain.value=.38;
     lp.connect(df);df.connect(dL);dL.connect(dR);dR.connect(fb);fb.connect(dL);dL.connect(mg,0,0);dR.connect(mg,0,1);mg.connect(eg);eg.connect(MASTER);
     INSTRU.dL=dL;INSTRU.dR=dR;
   }catch(e){}
@@ -28750,11 +28750,11 @@ function instruNote(f,t,pan,vel,dec){ // une touche de piano électrique (voir L
   INSTRU.fins.push(t+.35);
   const g=AC.createGain(),m=AC.createOscillator(),mg=AC.createGain(),c1=AC.createOscillator(),c2=AC.createOscillator(),o2=AC.createOscillator(),g2=AC.createGain();
   const mp=AC.createStereoPanner?AC.createStereoPanner:null,p1=mp?AC.createStereoPanner():null,p2=mp?AC.createStereoPanner():null;
-  m.frequency.value=f;const ix=f*(.5+.9*Math.min(1.3,vel));                            // la force de frappe ouvre le timbre
+  m.frequency.value=f;const ix=f*(.3+.55*Math.min(1.3,vel));                            // attaque plus ronde (moins de « tine »)                            // la force de frappe ouvre le timbre
   mg.gain.setValueAtTime(ix,t);mg.gain.setTargetAtTime(f*.1,t,.07);m.connect(mg);mg.connect(c1.frequency);mg.connect(c2.frequency);
   c1.frequency.value=f;c2.frequency.value=f;c1.detune.value=-4;c2.detune.value=4;
   o2.frequency.value=f*2;g2.gain.setValueAtTime(.18,t);g2.gain.setTargetAtTime(0,t,.05);o2.connect(g2);g2.connect(g); // le corps d'octave, bref
-  const pk=.1*vel;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(pk,t+.01);g.gain.setTargetAtTime(pk*.35,t+.02,.12);g.gain.setTargetAtTime(0,t+.18,dec||.3);
+  const pk=.1*vel;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(pk,t+.025);  // une attaque qui se fondg.gain.setTargetAtTime(pk*.35,t+.02,.12);g.gain.setTargetAtTime(0,t+.18,dec||.3);
   if(p1){p1.pan.value=Math.max(-1,pan-.18);p2.pan.value=Math.min(1,pan+.18);const h1=AC.createGain(),h2=AC.createGain();h1.gain.value=h2.gain.value=.5;
     c1.connect(h1);h1.connect(p1);p1.connect(g);c2.connect(h2);h2.connect(p2);p2.connect(g);}
   else{const h=AC.createGain();h.gain.value=.5;c1.connect(h);c2.connect(h);h.connect(g);}
@@ -28792,8 +28792,8 @@ function instruPlanifie(){ // regard d'avance de 120 ms : les notes tombent pile
     const rac=TON/2*Math.pow(2,(sonTonSuit._t|0)/12);                                  // la tonique grave du morceau (mi3 décalé)
     const t=Math.max(INSTRU.tNote,AC.currentTime),temps=k%4===0,V=INSTRU.vel*((mes&3)>=2?.78:1); // mesures 3-4 un peu plus bas
     let st9=ac[mot[k%8]];if(st9>16)st9-=12;                                            // l'arpège reste SOUS la mélodie…
-    if((mes&3)===3){st9+=12;if(st9>26)st9-=12;}                                        // …sauf la 4e mesure : il monte d'une octave, la phrase s'éclaire avant de reboucler (2026-10-03, Léo : « plus aigu l'arpège au niveau 4 »)
-    instruNote(rac*Math.pow(2,st9/12),t,k%2?.3:-.3,V*(temps?.62:.48),.26);
+    if((mes&3)===3){st9+=12;if(st9>26)st9-=12;}const arpK=(mes&3)===3?.75:1;                                        // …sauf la 4e mesure : il monte d'une octave, la phrase s'éclaire avant de reboucler (2026-10-03, Léo : « plus aigu l'arpège au niveau 4 »)
+    instruNote(rac*Math.pow(2,st9/12),t,k%2?.3:-.3,V*arpK*(temps?.62:.48),.26);
     if(k%2===0||INSTRU.acc){const m9=instruMelodie(k,ac);if(m9>=0)instruNote(rac*Math.pow(2,m9/12),t,0,V*(INSTRU.acc?1.25:(k%8===0?1.05:.9)),.5);INSTRU.acc=0;}
     if(temps&&k>=32&&INSTRU.tient)instruNote(rac/2,t,0,V*.55,.45);                         // la basse tient la TONIQUE (sous n'importe quel accord du morceau) // dès la 3e mesure tenue : la basse pose le temps
     INSTRU.der=INSTRU.tNote;INSTRU.k++;INSTRU.n++;INSTRU.tNote+=INSTRU.pas;
