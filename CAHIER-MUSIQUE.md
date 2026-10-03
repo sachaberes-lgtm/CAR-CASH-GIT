@@ -70,3 +70,6 @@
 - 2026-10-03 — CIEL, LE FINAL (niveau 5, « encore plus spectaculaire ») : le morceau MONTE D'UN TON (mi♭ → fa, mesuré), une
   demi-mesure de SILENCE à la fin du niveau 4 (−22 dB) puis l'IMPACT (sous-basse qui gronde, cymbale, accord de cuivres) ; dans le
   niveau 5 : cuivres soul qui claquent, chœur « ooh », cordes qui doublent la mélodie, charleys en doubles croches.
+- 2026-10-03 — EN COURSE, LE TEMPO SUIT LA VITESSE (jeu de référence, branche `lobby-leo-main`, à pousser avec le lobby) : la musique
+  s'étire de −6 % (lent) à +4 % (pointe) +2 % en nitro, HAUTEUR CONSERVÉE (preservesPitch), changements lents et petits ; la profondeur
+  (volume qui recule à l'arrêt) existait déjà. Règle du plaisir auditif retenue : ±6 % max, hauteur fixe, transitions ≥ 2 s.
