@@ -58,6 +58,14 @@
   précision de surface, NOUVEAUX NUAGES), soleil et ciel (az, sunI, sunC, hemiI, jZen/jMid/jHor, expo, sat, vigK), brume et mer (fog,
   fogN/fogF, mzA), scène (vit, la voiture, les cumulus, les boutons). Gardés dans le navigateur (`ccNuagesLab1`) ; COPIER LES REGLAGES
   donne le texte à recopier dans le code (noms du code : CHUTE_P / BIOMES.titre / N8_OPT / graine).
+- ⚠ (même jour, Léo : « aucune me plaît, pourquoi le menu du début est mal placé ») TROIS CORRECTIONS sur la copie de test :
+  · la mer de nuages était NOIRE au menu et en course : `new THREE.Vector4()` vaut (0,0,0,**1**) — les trois couleurs forcées étaient à
+    part pleine, en noir. Écrire (0,0,0,0). ⚠ Un banc qui ne lit que les erreurs ne voit pas ça : regarder l'IMAGE.
+  · sans la forme de l'iPhone, l'écran nu perdait aussi ses MARGES (boutons collés au bord) : `telCadre` est posé dès `colonne=1` (sauf
+    `?encoche=0`) — la forme (boîtier, encoche) suit `ENCOCHE_DEFAUT`, la disposition reste celle du téléphone de Sacha ;
+  · le cadre VÉRIFIE au chargement que le jeu voit bien 844 × 390 : sinon (un navigateur qui n'applique pas le `zoom` au contenu de
+    l'iframe — Safari ? pas de banc ici) il passe en `transform: scale` (`MODE`, `?cadre=scale` pour le forcer). Banc `clicjouer.mjs`
+    (vrai clic souris sur JOUER, zoom et scale, couché et debout) : la course part.
 - **LE CIEL EN BAS** (même jour, Léo : « ajoute une fonction pour altérer le ciel en bas ») = la mer de nuages du dôme (`merZ`) et les deux
   voiles du menu. Forme : `CHUTE_P.mzA` (bosses) et `mzB` (trous, fermeture au loin, creux, trous encre → azur), `merLoin` (fondu au loin).
   Couleurs : trois uniforms NEUFS de `skyU`, `uMzT` / `uMzO` / `uMzH` (trous, ombres, dessus des bosses : rgb + part w) — w = 0 partout

@@ -54,7 +54,7 @@ const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(/[?&]menu=leo\
      `?encoche=0` forcent l'un ou l'autre. Un vrai téléphone n'est jamais concerné (pas de cadre). */
   var ENCOCHE_DEFAUT=false,ENC=/[?&]encoche=1\b/.test(q)||(ENCOCHE_DEFAUT&&!/[?&]encoche=0\b/.test(q));
   if(window.top!==window){ // DANS la colonne : les touches frappées pendant que la page-cadre avait le focus arrivent par message
-    if(/[?&]colonne=1\b/.test(q)&&ENC)document.documentElement.classList.add('telCadre'); // les marges de l'iPhone de référence (voir « L'ENCOCHE »)
+    if(/[?&]colonne=1\b/.test(q)&&!/[?&]encoche=0\b/.test(q))document.documentElement.classList.add('telCadre'); // les MARGES de l'iPhone restent, même sans en dessiner la forme : les boutons à la même place que sur le téléphone de Sacha (`?encoche=0` : sans marges) // les marges de l'iPhone de référence (voir « L'ENCOCHE »)
     addEventListener('message',function(e){var d=e.data;if(e.source!==window.parent||!d||d.cc!=='touche')return;
       try{document.dispatchEvent(new KeyboardEvent(d.t,{key:d.key,code:d.code,repeat:!!d.rep,bubbles:true,cancelable:true}));}catch(_){}});
     return;}
@@ -91,6 +91,7 @@ const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(/[?&]menu=leo\
     var LAB=/[?&]nuages=1\b/.test(q);
     if(LAB){document.documentElement.classList.add('labNuages');window.CC_LAB_JEU=function(){return f.contentWindow;};
       var sc=document.createElement('script');sc.src='atelier-nuages.js?v='+CC_BUILD;document.head.appendChild(sc);}
+    var MODE=/[?&]cadre=scale\b/.test(q)?'scale':'zoom'; // voir « LE ZOOM NE PASSE PAS PARTOUT » plus bas
     var TEL_B=en?11:0; // la lunette du 13 Pro ≈ 11 pt de chaque côté de l'écran (sans encoche : l'écran nu, comme avant)
     var cadre=function(){
       // de l'air autour du boîtier ; en bas la place du bouton TOURNER et du numéro de version
@@ -98,7 +99,8 @@ const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(/[?&]menu=leo\
       var mx=Math.max(16,LW*.025),mh=Math.max(14,innerHeight*.03),mb=Math.max(mh,40),
         z=Math.max(.5,Math.min((innerHeight-mh-mb)/(H+2*TEL_B),(LW-2*mx)/(L+2*TEL_B))),b=TEL_B*z,
         w=(L+2*TEL_B)*z,h=(H+2*TEL_B)*z,ts=tel.style;
-      f.style.zoom=z.toFixed(4);document.documentElement.style.setProperty('--labPW',PW+'px');
+      if(MODE==='zoom'){f.style.transform='';f.style.zoom=z.toFixed(4);}else{f.style.zoom='';f.style.transformOrigin='0 0';f.style.transform='scale('+z.toFixed(4)+')';}
+      document.documentElement.style.setProperty('--labPW',PW+'px');
       ts.width=w+'px';ts.height=h+'px';ts.padding=b+'px';ts.left=((LW-w)/2)+'px';ts.top=(mh+(innerHeight-mh-mb-h)/2)+'px';
       ts.borderRadius=en?((47+TEL_B)*z)+'px':'0'; // (?encoche=0 : l'écran nu, à angles droits, comme avant)
       if(!en)return;var lo=154*z,ep=31*z,ro=(9*z)+'px',s=en.style; // l'encoche du 13 Pro ≈ 154 × 31 pt, coins de 9 pt, et ses deux « oreilles » (::before/::after)
@@ -106,6 +108,13 @@ const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(/[?&]menu=leo\
       if(debout){s.width=lo+'px';s.height=ep+'px';s.left=(b+(L*z-lo)/2)+'px';s.top=b+'px';s.borderRadius='0 0 '+ro+' '+ro;}
       else{s.width=ep+'px';s.height=lo+'px';s.left=b+'px';s.top=(b+(H*z-lo)/2)+'px';s.borderRadius='0 '+ro+' '+ro+' 0';}};
     cadre();addEventListener('resize',cadre);
+    /* (2026-10-03, Léo : « pourquoi le menu du début est mal placé », sur ses deux liens) LE ZOOM NE PASSE PAS PARTOUT : Chrome applique le
+       `zoom` de l'iframe à son contenu (le jeu s'y croit dans un écran de 844 × 390, en haute définition) ; un navigateur qui ne le fait
+       pas (Safari ? Firefox ? — pas de banc pour eux ici) donne au jeu un écran de 1 400 px de large : le menu passe en disposition
+       « grand écran », boutons petits en bas, caisse à droite. On VÉRIFIE au chargement ce que voit le jeu ; si ce n'est pas 844 × 390,
+       on bascule sur une mise à l'échelle (transform) qui marche partout (image un peu moins fine). `?cadre=scale` la force (banc). */
+    f.addEventListener('load',function(){try{var iw=f.contentWindow.innerWidth,ih=f.contentWindow.innerHeight;
+      if(MODE==='zoom'&&(Math.abs(iw-L)>3||Math.abs(ih-H)>3)){MODE='scale';cadre();}}catch(_){}});
     /* LE BOUTON TOURNER (2026-09-30, Léo : « ajoute une option où je peux regarder en mode portrait » — repris de sa branche
        `version-leolei-2026`, 26/09) : le téléphone passe COUCHÉ ⇄ DEBOUT sans recharger — le jeu, dans la colonne, ne reçoit qu'un
        resize (fovFit, HUD, garage suivent seuls), on peut tourner en pleine course. L'adresse garde le choix (`?colonne=portrait`). */
@@ -5945,7 +5954,7 @@ const skyU={uTime:{value:0},uSunDir:{value:SUN_DIR},
   uVille:{value:0},uPluie:{value:0},uFogCol:{value:new THREE.Color(0x331f48)},uCam:{value:new THREE.Vector3()},
   uVilleY:{value:0},uParis:{value:0},uParisT:{value:0}, // (2026-09-28) uParis : le ciel de PARIS (toits bas à l'horizon, lueur d'or) au lieu des tours de la ville
   // (2026-09-26) la SKYLINE descend à l'altitude de la ville (en sinus d'élévation) : la route spirale AU-DESSUS des toits
-  uMzA:{value:new THREE.Vector4(760,.8,15,.25)},uMzB:{value:new THREE.Vector4(.20,.16,.26,.8)},uMzT:{value:new THREE.Vector4()},uMzO:{value:new THREE.Vector4()},uMzH:{value:new THREE.Vector4()}, /* (2026-10-03, atelier des nuages : « une fonction pour altérer le ciel en bas ») les COULEURS de la mer de nuages forcées — trous, ombres, dômes : rgb + part (w) ; w = 0 partout = la mer d'avant au bit près */ // (2026-09-30, niveau 1 v2) LA MER SCULPTÉE : échelle des cellules, part « gonflée », franchise de la lumière, remous · couverture, fermeture au loin, creux, clarté des trouées
+  uMzA:{value:new THREE.Vector4(760,.8,15,.25)},uMzB:{value:new THREE.Vector4(.20,.16,.26,.8)},uMzT:{value:new THREE.Vector4(0,0,0,0)},uMzO:{value:new THREE.Vector4(0,0,0,0)},uMzH:{value:new THREE.Vector4(0,0,0,0)}, /* ⚠ (0,0,0,0) ÉCRIT : un Vector4() vide vaut (0,0,0,1) — la part 1 peignait toute la mer en NOIR (vu par Léo au menu de sa copie). */ /* (2026-10-03, atelier des nuages : « une fonction pour altérer le ciel en bas ») les COULEURS de la mer de nuages forcées — trous, ombres, dômes : rgb + part (w) ; w = 0 partout = la mer d'avant au bit près */ // (2026-09-30, niveau 1 v2) LA MER SCULPTÉE : échelle des cellules, part « gonflée », franchise de la lumière, remous · couverture, fermeture au loin, creux, clarté des trouées
   uVG:{value:0}, /* (2026-10-01, Sacha : « enlève tous les trucs Van Gogh ») la touche Van Gogh est RETIRÉE du ciel comme des nuages : plus aucun shader ne lit cet uniforme — l'objet reste, inerte, pour qu'un code qui l'écrirait encore ne plante pas */
   uJour:{value:0},uMerLoin:{value:16000},uJZen:{value:new THREE.Vector3()},uJMid:{value:new THREE.Vector3()},uJHor:{value:new THREE.Vector3()},uJSol:{value:new THREE.Vector3()}, // (2026-09-30) LE JOUR D'ALTITUDE (voir cielJour) : 0 = le ciel d'avant
   uMer:{value:0}, // (2026-09-26) LA MER DE NUAGES PEINTE sous l'horizon — niveau NUAGES seulement (voir merNuages ; fondue par lvlStep comme la ville)
