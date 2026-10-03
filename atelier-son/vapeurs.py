@@ -155,6 +155,68 @@ def v_ciel():
     return M, fin(M, {'bat': .8, 'sn': .8, 'pad': 1, 'basse': 1, 'lead': 1, 'arp': 1, 'fx': 1}, maitre_lp=12000)
 
 
+# ------------------------------------------------------------------------------------------- LE SALON (2026-10-03)
+# Léo : « FILTRE D'OR et MÉTRO doivent être le même type de boucle que VAPEUR et ASCENSEUR DORÉ ». Le MOULE du salon : tempo posé (~105),
+# accords jazzy (7e, 9e) au Rhodes, batterie douce (grosse caisse ronde, rim et balais, shaker), basse ronde, 8 mesures dont la 2e moitié
+# RÉPOND à la 1re (une mélodie douce entre, la couche s'ouvre). Chacune garde SON idée.
+def balai(de):
+    nn = int(.18 * SR); return passe_bande(de.bruit(nn), 2500, 9000) * np.exp(-np.arange(nn) / SR / .05) * .6
+
+
+def v_filtre_salon():
+    """FILTRE D'OR · SALON — l'idée de FILTRE D'OR (l'accord haché dont le filtre s'ouvre lentement), jouée au Rhodes dans un salon :
+    sol dorien en 7e et 9e, le filtre s'ouvre sur les 4 premières mesures, la 2e moitié est ouverte et une mélodie répond."""
+    M = morceau(106, 505); de = M.de; h = Main(15, 6); SW = .16
+    M.patron('bat', 'x.......x.......', lambda: kick(de, 100, 42, .45, .05, 1.), .55)
+    M.patron('bat', '....x.......x...', lambda: rim(de), .3, .15, SW)
+    M.patron('bat', '..x...x...x...x.', lambda: balai(de), .35, -.2, SW)
+    M.patron('bat', 'o.o.o.o.o.o.o.o.', lambda: shaker(de), .2, -.4, SW, mes=range(4, 8))
+    acc = [[55, 58, 62, 65, 69], [60, 64, 67, 70, 74], [53, 57, 60, 64, 67], [58, 62, 65, 69, 72]]  # Sol m9 · Do9 · Fa maj9 · Si♭ maj9
+    rh = M.piste('rh')
+    for m in range(8):
+        for p in (0, 3, 6, 10, 13) if m % 2 == 0 else (2, 6, 8, 11, 14):          # l'accord HACHÉ, mais à la main et en contretemps
+            for k, n in enumerate(acc[m % 4]):
+                rh.pose(h.t(M.t(m, p, SW)) + k * .007, rhodes(n + 12, .6), h.g(.06), -.3 + .15 * k)
+    lg = int(M.lg * SR); u = np.clip(np.arange(M.n) / max(1, lg // 2), 0, 1)       # LE FILTRE D'OR : il s'ouvre sur la 1re moitié
+    fc = 500 * (16 ** u); rh.L = balaye(rh.L, fc); rh.R = balaye(rh.R, fc)
+    b = M.piste('basse')
+    for m in range(8):
+        r = acc[m % 4][0] - 12
+        for p, o in ((0, 0), (6, 7), (10, 12)):
+            nn = int(M.dc * 3.5 * SR); b.pose(h.t(M.t(m, p, SW)), (sinus(hz(r + o - 12), nn) + .2 * tri(hz(r + o - 12) * 2, nn)) * env(nn, .008, .35, .3), .55)
+    melodie(M, [(4, 2, 74, 4), (4, 8, 72, 6), (5, 4, 70, 8), (6, 2, 77, 4), (6, 8, 74, 6), (7, 0, 72, 12)], h, .08)
+    nappe_vapeur(M, de, acc, 1500, .05, range(4, 8))
+    M.bus['rh'].L, M.bus['rh'].R = chorus(M.bus['rh'].L, M.bus['rh'].R, 12, 2, .5); bande(M, ('lead', 'pad'))
+    fx_rev(M, [('rh', .8), ('lead', 1), ('pad', 1), ('bat', .2)], 2.8, .4, 4500)
+    return M, fin(M, {'bat': .8, 'rh': 1, 'basse': 1, 'lead': 1, 'pad': 1, 'fx': 1}, maitre_lp=7000)
+
+
+def v_metro_salon():
+    """MÉTRO · SALON — l'idée de MÉTRO (le rebond 2-step du dernier métro) ralentie dans un salon : fa mineur en 9e au Rhodes court,
+    grosse caisse qui saute doucement, balais qui boitent, sous-basse ronde ; la 2e moitié s'ouvre et une mélodie répond."""
+    M = morceau(104, 506); de = M.de; h = Main(16, 6); sw = .22
+    M.patron('bat', 'x.......x.x.....', lambda: kick(de, 100, 42, .4, .05, 1.), .55, swing=sw,
+             var=lambda m: 'x.......x.x.....' if m % 2 == 0 else 'x.....x....x....')
+    M.patron('bat', '....x.......x...', lambda: rim(de), .3, .15, sw)
+    M.patron('bat', '..x.x.xx..x.x.xx', lambda: balai(de), .22, -.25, sw)
+    acc = [[53, 56, 60, 63, 67], [49, 53, 56, 60, 63], [58, 61, 65, 68, 72], [55, 58, 62, 65, 68]]  # Fa m9 · Ré♭ maj9 · Si♭ m9 · Sol m7♭5
+    rh = M.piste('rh')
+    for m in range(8):
+        for p in (0, 3, 7, 10):
+            for k, n in enumerate(acc[m % 4]):
+                rh.pose(h.t(M.t(m, p, sw)) + k * .007, rhodes(n + 12, .45 if m < 4 else .9), h.g(.07), -.3 + .15 * k)
+    b = M.piste('basse')
+    for m in range(8):
+        r = acc[m % 4][0] - 12
+        for p, lg9 in ((0, 3), (6, 2), (11, 4)):
+            nn = int(lg9 * M.dc * SR); b.pose(h.t(M.t(m, p, sw)), np.tanh(sinus(hz(r - 12), nn) * env(nn, .008, 9, 1, .05, lg9 * M.dc - .05) * 1.3), .6)
+    melodie(M, [(4, 4, 72, 4), (4, 10, 75, 4), (5, 2, 72, 8), (6, 4, 68, 4), (6, 10, 70, 4), (7, 2, 67, 12)], h, .08)
+    nappe_vapeur(M, de, acc, 1400, .05, range(4, 8))
+    M.bus['rh'].L, M.bus['rh'].R = chorus(M.bus['rh'].L, M.bus['rh'].R, 12, 2, .5); bande(M, ('lead', 'pad'))
+    fx_rev(M, [('rh', .8), ('lead', 1), ('pad', 1), ('bat', .2)], 2.6, .4, 4500)
+    return M, fin(M, {'bat': .8, 'rh': 1, 'basse': 1, 'lead': 1, 'pad': 1, 'fx': 1}, maitre_lp=7000)
+
+
 VAPEURS = [
     ('vapeur-salon', v_salon, {'titre': 'VAPEUR · SALON', 'style': 'Vaporwave lounge', 'bpm': 100, 'cle': 'mi♭ majeur', 'onglet': 'lobby',
                                'idee': "VAPEUR pour l'accueil : plus lente, un Rhodes qui égrène les accords, des balais, du vinyle. En 2e moitié la mélodie répond."}),
@@ -164,6 +226,10 @@ VAPEURS = [
                                'idee': "Le même ciel qui se couvre : accords assombris, pluie, tonnerre au loin, caisse lourde à mi-tempo."}),
     ('vapeur-ciel', v_ciel, {'titre': 'VAPEUR CIEL', 'style': 'Vaporwave · ciel', 'bpm': 120, 'cle': 'fa majeur', 'onglet': 'niv', 'niv': 'nuages',
                              'idee': "Au-dessus des nuages : un ton plus haut, plus clair, des arpèges qui scintillent, la mélodie à l'octave."}),
+    ('filtre-salon', v_filtre_salon, {'titre': "FILTRE D'OR · SALON", 'style': 'Lounge · filtre', 'bpm': 106, 'cle': 'sol dorien', 'onglet': 'lobby',
+                                      'idee': "FILTRE D'OR dans le moule du salon : l'accord haché au Rhodes, le filtre qui s'ouvre sur la 1re moitié, une mélodie qui répond en 2e."}),
+    ('metro-salon', v_metro_salon, {'titre': 'MÉTRO · SALON', 'style': 'Lounge · 2-step', 'bpm': 104, 'cle': 'fa mineur', 'onglet': 'lobby',
+                                    'idee': "MÉTRO dans le moule du salon : le rebond 2-step ralenti, Rhodes en 9e, balais, sous-basse ; la 2e moitié s'ouvre."}),
 ]
 
 if __name__ == '__main__':
