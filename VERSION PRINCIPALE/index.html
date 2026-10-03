@@ -28731,13 +28731,18 @@ function instruBus(){
   try{ // LA SALLE : du bruit qui s'éteint, assombri avec le temps (calculé une fois, 1,8 s)
     const n=Math.floor(AC.sampleRate*1.8),ir=AC.createBuffer(2,n,AC.sampleRate);
     for(let c=0;c<2;c++){const d=ir.getChannelData(c);let lo=0;for(let i=0;i<n;i++){const x=i/n,a=Math.pow(1-x,3.2),k=.25+.7*x;lo+=(Math.random()*2-1-lo)*(1-k);d[i]=lo*a*(i<AC.sampleRate*.012?i/(AC.sampleRate*.012):1);}}
-    const cv=AC.createConvolver();cv.buffer=ir;const rv=AC.createGain();rv.gain.value=.85;lp.connect(cv);cv.connect(rv);rv.connect(MASTER);
+    const cv=AC.createConvolver();cv.buffer=ir;const rv=AC.createGain();rv.gain.value=.85;const pd=AC.createDelay(.2);pd.delayTime.value=.035;lp.connect(pd);pd.connect(cv);cv.connect(rv);rv.connect(MASTER); // pré-délai 35 ms : l'attaque de chaque note passe AVANT la salle
   }catch(e){}
   try{ // L'ÉCHO PING-PONG en croche pointée, recalé sur le tempo à chaque appui (instruTempo)
     const dL=AC.createDelay(2),dR=AC.createDelay(2),fb=AC.createGain(),df=AC.createBiquadFilter(),mg=AC.createChannelMerger(2),eg=AC.createGain();
     df.type='lowpass';df.frequency.value=1300;fb.gain.value=.3;eg.gain.value=.38;
     lp.connect(df);df.connect(dL);dL.connect(dR);dR.connect(fb);fb.connect(dL);dL.connect(mg,0,0);dR.connect(mg,0,1);mg.connect(eg);eg.connect(MASTER);
     INSTRU.dL=dL;INSTRU.dR=dR;
+  }catch(e){}
+  try{ // (2026-10-03, Léo : « à chaque note un peu plus d'individualité, fais-les ressortir un peu du fondu ») LE CONTOUR : l'attaque de chaque
+    // touche (un « tine » d'harmoniques, 40 ms) passe à côté du filtre sombre, de la salle et de l'écho — la note se dessine, le halo reste.
+    const ct=AC.createGain();ct.gain.value=1;const ch=AC.createBiquadFilter();ch.type='bandpass';ch.frequency.value=2600;ch.Q.value=.7;
+    ct.connect(ch);ch.connect(MASTER);INSTRU.contour=ct;
   }catch(e){}
   INSTRU.bus=g;return g;
 }
@@ -28759,6 +28764,9 @@ function instruNote(f,t,pan,vel,dec){ // une touche de piano électrique (voir L
     c1.connect(h1);h1.connect(p1);p1.connect(g);c2.connect(h2);h2.connect(p2);p2.connect(g);}
   else{const h=AC.createGain();h.gain.value=.5;c1.connect(h);c2.connect(h);h.connect(g);}
   g.connect(bus);
+  if(INSTRU.contour&&!INSTRU.essai){ // le contour de la note : le tine (rapport 7, comme une lame de Rhodes) qui s'éteint en 40 ms
+    const ti=AC.createOscillator(),tg=AC.createGain();ti.frequency.value=f*7;tg.gain.setValueAtTime(0,t);tg.gain.linearRampToValueAtTime(.022*vel,t+.003);tg.gain.setTargetAtTime(0,t+.004,.014);
+    ti.connect(tg);tg.connect(INSTRU.contour);ti.start(t);ti.stop(t+.25);}
   const fin=t+2.4;[m,c1,c2,o2].forEach(function(o){o.start(t);o.stop(fin);});
   INSTRU.vu.push(Math.round(f));if(INSTRU.vu.length>200)INSTRU.vu.shift();
 }
