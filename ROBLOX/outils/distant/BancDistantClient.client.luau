@@ -81,6 +81,18 @@ ev.OnClientEvent:Connect(function(op: string, r: string, nom: string, prop: stri
 		local o = {}
 		for i = 1, math.min(30, #t) do table.insert(o, t[i][1] .. "=" .. t[i][2] .. "/" .. t[i][3]) end
 		ev:FireServer("arbre : " .. table.concat(o, " "))
+	elseif op == "ecran" then
+		-- où tombent à l'écran les pièces qui s'appellent `nom` : x, y (0-1), profondeur, taille apparente (fraction de la hauteur)
+		local cam = workspace.CurrentCamera
+		local t = {}
+		chacun(r, nom, function(d)
+			if d:IsA("BasePart") and #t < 24 then
+				local v, vu = cam:WorldToViewportPoint(d.Position)
+				local h = d.Size.Magnitude / math.max(1, v.Z) / (2 * math.tan(math.rad(cam.FieldOfView) / 2))
+				table.insert(t, string.format("%s(%.2f,%.2f z%d t%.2f)", vu and "V" or "-", v.X / cam.ViewportSize.X, v.Y / cam.ViewportSize.Y, v.Z, h))
+			end
+		end)
+		ev:FireServer("ecran " .. nom .. " : " .. table.concat(t, " "))
 	elseif op == "stats" then
 		-- le coût du rendu, tel que Roblox le compte (triangles, appels de dessin, ombres, interface, mémoire, ms par image)
 		local St = game:GetService("Stats")

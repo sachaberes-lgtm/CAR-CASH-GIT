@@ -12,9 +12,11 @@ local Lighting = game:GetService("Lighting")
 local Config = require(script.Parent.Parent:WaitForChild("Config"))
 local Nuages = require(script.Parent:WaitForChild("Nuages"))
 local M = Config.M
+local K = Config.CIEL.titreK or 1 -- (la maquette : voir Config.CIEL.titreK)
 
 local Titre = {}
 Titre.pret = false
+Titre.nuPret = false -- (les cumulus sont bâtis : l'accueil peut s'ouvrir)
 
 -- CHUTE_P (les réglages retenus aux captures)
 local P = { az = 2.35, alt = 900, avant = -1700, pitch = 0.62, roule = 0.12, cap = 0.28, elev = 0.34, gite = -0.45, vit = 14, taille = 0.82 }
@@ -67,13 +69,14 @@ function Titre.plan(piste: any)
 	dossier.Name = "Titre"
 	S.dossier = dossier
 	for _, d in NU do
-		local p, dec = Nuages.seul(GABARIT[d[4]] or 0, d[3])
+		local p, dec = Nuages.seul(GABARIT[d[4]] or 0, d[3] * K)
 		if p then
 			local dd = math.sqrt(d[1] * d[1] + d[2] * d[2])
 			p.Parent = dossier
 			table.insert(S.nu, { p = p, dec = dec, a = d[1], b = d[2], y = d[6], v = d[5], lo = -(1.2 * dd + 1.3 * d[3]), hi = 0.1 * dd + 1.3 * d[3] })
 		end
 	end
+	Titre.nuPret = true
 end
 -- L'ORBITE AU DOIGT (L35538 du jeu web ; Sacha, 30/09 : « rajoute un moyen de déplacer la caméra autour de la voiture avec le doigt »)
 -- — glisser tourne le regard autour de la caisse (le tour complet), de haut en bas il monte ou plonge ; la vue rejoint le doigt en
@@ -165,7 +168,7 @@ function Titre.caisse(dt: number, voile: ((number) -> ())?): CFrame
 			c.y += P.vit * c.v * vk * dt
 			if c.y > c.hi then c.y = c.lo end
 			table.insert(pieces, c.p)
-			table.insert(poses, CFrame.new((S.C + droite * c.a + lh * c.b + Vector3.new(0, c.y, 0)) * M + c.dec))
+			table.insert(poses, CFrame.new((S.C + (droite * c.a + lh * c.b + Vector3.new(0, c.y, 0)) * K) * M + c.dec))
 		end
 		workspace:BulkMoveTo(pieces, poses, Enum.BulkMoveMode.FireCFrameChanged)
 		for _, p in pieces do Nuages.suivreFin(p) end
