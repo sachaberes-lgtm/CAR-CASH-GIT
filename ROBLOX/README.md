@@ -32,6 +32,8 @@ C'est toi qui publies (c'est ton compte Roblox) : Claude ne le fait pas à ta pl
 | En l'air : piquer / cabrer | ↑ / ↓ (ou Z/W, S) | stick gauche haut / bas | pouce gauche haut / bas |
 | Freiner (au sol) | ↓ ou S | L2 ou B | pouce gauche tiré vers le bas |
 | Pause | P | Start | bouton II en bas |
+| Menus | souris | A = JOUER / REJOUER · garage : gâchettes = caisse voisine, A = acheter/équiper, B = retour | doigt |
+| Accueil | clic sur la caisse = un petit coup | — | toucher la caisse = un petit coup |
 
 Le gaz est automatique partout. On sort par le **bord** de la route, on vole (vrilles, piqué, nitro), on se
 pose plus bas : c'est là que le jeu se joue. 6 secondes en l'air maximum.
