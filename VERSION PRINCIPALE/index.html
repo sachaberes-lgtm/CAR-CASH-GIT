@@ -28844,7 +28844,7 @@ function instruMelodie(k,tons){ // la note de mélodie (MIDI) de la croche k, ou
 }
 function instruPlanifie(){ // regard d'avance de 120 ms : les notes tombent pile, même si une image tousse
   if(!AC){clearInterval(INSTRU.iv);INSTRU.iv=0;return;}
-  if(INSTRU.tient&&(gameOver||paused||mode==='boom'||startBoostT>0))instruOff();      // la partie s'arrête : la phrase se termine
+  if(INSTRU.tient&&(gameOver||paused||mode==='boom'))instruOff();      // la partie s'arrête : la phrase se termine
   if(!INSTRU.essai){if(INSTRU.H!==instruH())instruTempo();else instruHorloge();}        // le morceau a changé ? on relit sa fiche ; sinon on se recale
   const fin=INSTRU.essai?1e9:AC.currentTime+.12;
   while(INSTRU.tNote<fin){
@@ -28859,6 +28859,8 @@ function instruPlanifie(){ // regard d'avance de 120 ms : les notes tombent pile
     if(a9>=0&&(mes&3)===3&&a9+12<=88)a9+=12;const arpK=(mes&3)===3?1.45:1;               // 4e mesure : il monte d'une octave (Léo : « plus aigu »)
     const et9=mes>=3;                                                                   // dès la 4e mesure tenue : l'ÉTINCELLE
     if(a9>=0&&BTEST!=='melodie')instruTing(instruHz(a9),t,k%2?.35:-.35,V*arpK*(temps?1:.8));                 // l'arpège : le TING (Léo : « plus en mode ting, l'instrument n'est peut-être pas le bon »)
+    if(INSTRU.intro>0&&k%2===0&&BTEST!=='arpege'){INSTRU.intro--;INSTRU.acc=1;const m9=instruMelodie(k,tons);INSTRU.acc=0; // (2026-10-03, Léo : « quelques notes un peu MÉLODIQUES dès qu'on appuie, sans déranger la musique ») : l'appel — 3 notes qui chantent, en ting
+      if(m9>=0)instruTing(instruHz(m9),t,0,.8);}
     if(INSTRU_MEL&&(k%2===0||INSTRU.acc)&&BTEST!=='arpege'){const m9=instruMelodie(k,tons);if(m9>=0)instruNote(instruHz(m9),t,0,V*(INSTRU.acc?1.25:(k%8===0?1.05:.9)),.5,et9);INSTRU.acc=0;}
     // (2026-10-03, Léo : « l'arpège crée une résonance grave à la fin, c'est dérangeant ») : plus de basse — le morceau a la sienne
     INSTRU.der=INSTRU.tNote;INSTRU.k++;INSTRU.n++;
@@ -28879,16 +28881,16 @@ const INSTRU_TENIR=.22;
 const INSTRU_MEL=false; // (2026-10-03, Léo : « j'aime que la partie qui fait ding ding ding ; il y en a une autre, assourdissante, qui ne colle pas à la musique, retire-la ») : la MÉLODIE (Rhodes dans la salle, puis étincelle) est retirée — il ne reste que le TING de l'arpège
 const BTEST=(function(){try{return new URLSearchParams(location.search).get('boost')||'';}catch(e){return '';}})();
 function instruOn(){
-  if(!INSTRU.on||!AC||!SND.sfx||(AC.state!=='running'&&!INSTRU.essai)||paused||(startBoostT>0&&!INSTRU.essai))return; // pendant le boost de départ : rien, même si le doigt est sur NITRO
+  if(!INSTRU.on||!AC||!SND.sfx||(AC.state!=='running'&&!INSTRU.essai)||paused)return; // (2026-10-03, Léo) un VRAI appui pendant le boost de départ lance la phrase (le départ seul, lui, ne la lance jamais : elle lit le doigt)
   if(BTEST==='sans')return;
   if(INSTRU.essai)return instruDemarre();
   INSTRU.doigt=true;clearTimeout(INSTRU.att);
   instruDemarre(); // (2026-10-03, Léo : « l'activer dès qu'on appuie sur ESPACE, quand ça commence à booster — et en maintenant sur iPhone ») : plus d'attente de 0,22 s ; l'entrée en fondu suffit
 }
 function instruDemarre(){
-  if(!AC||paused||(startBoostT>0&&!INSTRU.essai))return;
+  if(!AC||paused)return;
   const t=performance.now(),neuve=t-INSTRU.tDer>2500&&!INSTRU.iv;INSTRU.tDer=t;
-  instruTempo();instruBus();instruEcho();INSTRU.tient=true;INSTRU.vel=1;INSTRU.acc=0;INSTRU.n=0;if(neuve||!INSTRU.iv)INSTRU.monte=0;
+  instruTempo();instruBus();instruEcho();INSTRU.tient=true;INSTRU.vel=1;INSTRU.acc=0;INSTRU.n=0;INSTRU.intro=3;if(neuve||!INSTRU.iv)INSTRU.monte=0;
   if(neuve){INSTRU.k=0;INSTRU.mel=67;INSTRU.tNote=instruGrille(AC.currentTime+.005);}  // une phrase NEUVE (silence de 2,5 s)
   else if(!INSTRU.iv){INSTRU.tNote=instruGrille(Math.max(AC.currentTime+.005,INSTRU.der+.09));} // elle REPREND où elle en était
   if(INSTRU.tNote-AC.currentTime>.5)INSTRU.tNote=instruGrille(AC.currentTime+.005);   // garde-fou (horloges qui ont dérivé)
@@ -37239,7 +37241,6 @@ function loop(now){
     if(wantN&&!loop._nvW&&!nitroOn&&mode!=='boom'){try{if(SONV2)sfx('nitro.vide');else noiseBurst(.04,.06,2500);}catch(e){}hap(6);} // (2026-09-26, audit son) NITRO À VIDE : un « tchk » sec — l'appui répond toujours
     loop._nvW=wantN;
     const doigtN=!!(keys.ShiftLeft||keys.ShiftRight||keys.Space); // (2026-10-03, Léo) la phrase ne répond qu'au VRAI doigt : ni le boost de départ (startBoostT), ni le pilote auto
-    if(startBoostT>0)loop._iW=false; // le doigt déjà posé pendant le départ : la phrase partira à la fin du boost automatique
     if(doigtN!==!!loop._iW){loop._iW=doigtN;try{if(doigtN&&mode!=='boom'&&!gameOver)instruOn();else instruOff();}catch(e){}} // (2026-10-03) LA PHRASE DU BOOST suit le DOIGT, pas la flamme (le réservoir vide la coupait)
     if(nitroOn&&pwrNitroT<=0&&!PARK.on&&startBoostT<=0){
       let take=tk9; /* (LA LOI DU RÉSERVOIR) NITROOO ne dure 2× qu'AU SOL */ // (v3, Sacha : « en frénésie le nitro baisse 2× plus lentement ») · (2026-09-30, HAUTE VITESSE) NITROOO aussi : réservoir plein, sans rien ramasser, il restait 0,5 s de NITROOO au moteur 1 (0 palier) et 2,5 s au moteur max (2) ; ×0,5 pendant NTR.on → 1,3 s (1 palier) et 6,6 s (6, +88 %). PAS cumulé avec la frénésie (×0,25 : 0,05/s net, une nitro quasi infinie)
