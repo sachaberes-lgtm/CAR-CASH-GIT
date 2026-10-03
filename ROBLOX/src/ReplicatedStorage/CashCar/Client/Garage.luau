@@ -966,10 +966,10 @@ local function deciderHabit()
 		end
 	elseif decision == "pauvre" then
 		secouer()
-		Hud.toast("✗ " .. L.ilTeManque .. Hud.argent(d.p - (profil().compte or 0)), ROUGE)
+		Hud.toast(L.ilTeManque .. Hud.argent(d.p - (profil().compte or 0)), ROUGE, "croix")
 	elseif decision == "gagner" then
 		secouer()
-		Hud.toast("🔒 " .. (FR and d.d or d.dEN))
+		Hud.toast(FR and d.d or d.dEN, nil, "verrou")
 	end
 end
 local function decider()
@@ -993,7 +993,7 @@ local function decider()
 		end
 	elseif decision == "pauvre" then
 		secouer()
-		Hud.toast("✗ " .. L.ilTeManque .. Hud.argent(f.cond.v - (profil().compte or 0)), ROUGE)
+		Hud.toast(L.ilTeManque .. Hud.argent(f.cond.v - (profil().compte or 0)), ROUGE, "croix")
 	elseif decision == "equiper" then
 		occupe = true
 		local ok = ctx.action("equiper", montre)
@@ -1007,9 +1007,9 @@ local function decider()
 		end
 	elseif decision == "verrou" then
 		secouer()
-		Hud.toast("🔒 " .. condition(montre))
+		Hud.toast(condition(montre), nil, "verrou")
 	elseif decision == "boutique" then
-		Hud.toast("🛒 " .. L.bientot)
+		Hud.toast(L.bientot, nil, "panier")
 	end
 end
 
@@ -1641,5 +1641,8 @@ function Garage.jouer()
 		lacher = { t = 0, suite = function() ctx.surJouer() end }
 	end)
 end
+
+-- (banc) presser le lingot de décision, comme un doigt
+function Garage.dbgDecider() decider() end
 
 return Garage

@@ -3169,6 +3169,10 @@ workspace:GetAttributeChangedSignal("DbgOuvre"):Connect(function()
 			sPrev = s
 			lat = 0
 		end
+	elseif v == "gar:decider" or v == "gar:suivant" then
+		if mode == "garage" then -- (banc) presser le lingot de décision, passer à la caisse suivante
+			if v == "gar:decider" then Garage.dbgDecider() else Garage.voisin(1) end
+		end
 	elseif string.sub(v, 1, 7) == "onglet:" then
 		if mode == "garage" then Garage.onglet(string.sub(v, 8)) end -- (banc) « onglet:trainee » : un onglet du garage
 	elseif string.sub(v, 1, 6) == "impact" then
@@ -12528,10 +12532,10 @@ local function deciderHabit()
 		end
 	elseif decision == "pauvre" then
 		secouer()
-		Hud.toast("✗ " .. L.ilTeManque .. Hud.argent(d.p - (profil().compte or 0)), ROUGE)
+		Hud.toast(L.ilTeManque .. Hud.argent(d.p - (profil().compte or 0)), ROUGE, "croix")
 	elseif decision == "gagner" then
 		secouer()
-		Hud.toast("🔒 " .. (FR and d.d or d.dEN))
+		Hud.toast(FR and d.d or d.dEN, nil, "verrou")
 	end
 end
 local function decider()
@@ -12555,7 +12559,7 @@ local function decider()
 		end
 	elseif decision == "pauvre" then
 		secouer()
-		Hud.toast("✗ " .. L.ilTeManque .. Hud.argent(f.cond.v - (profil().compte or 0)), ROUGE)
+		Hud.toast(L.ilTeManque .. Hud.argent(f.cond.v - (profil().compte or 0)), ROUGE, "croix")
 	elseif decision == "equiper" then
 		occupe = true
 		local ok = ctx.action("equiper", montre)
@@ -12569,9 +12573,9 @@ local function decider()
 		end
 	elseif decision == "verrou" then
 		secouer()
-		Hud.toast("🔒 " .. condition(montre))
+		Hud.toast(condition(montre), nil, "verrou")
 	elseif decision == "boutique" then
-		Hud.toast("🛒 " .. L.bientot)
+		Hud.toast(L.bientot, nil, "panier")
 	end
 end
 
@@ -13203,6 +13207,9 @@ function Garage.jouer()
 		lacher = { t = 0, suite = function() ctx.surJouer() end }
 	end)
 end
+
+-- (banc) presser le lingot de décision, comme un doigt
+function Garage.dbgDecider() decider() end
 
 return Garage
 ]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000005F"><Properties><string name="Name">Hud</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — L'INTERFACE (menu, course, pause, réglages, mort), calquée sur la VERSION PRINCIPALE web.
@@ -14360,9 +14367,21 @@ function Hud.pastilles(n: number)
 end
 
 local toastN = 0
-function Hud.toast(txt: string, couleur: Color3?)
+-- ico : une icône PIXEL devant le texte (le web pose ses pictos en pixels ; « ✗ » n'existe dans aucune police de Roblox : un carré)
+function Hud.toast(txt: string, couleur: Color3?, ico: string?)
 	toastN += 1
 	local n = toastN
+	if E.toastIco then
+		E.toastIco:Destroy()
+		E.toastIco = nil
+	end
+	if ico then
+		local f = icone(E.toast, ico, 4, couleur or C.texte, UDim2.new(0, 22, 0.5, 0), Vector2.new(0, 0.5))
+		f.ZIndex = 82
+		for _, q in f:GetChildren() do (q :: Frame).ZIndex = 82 end
+		E.toastIco = f
+	end
+	E.toastTxt.Position = UDim2.fromOffset(ico and 40 or 14, 0)
 	E.toastTxt.Text = txt
 	E.toastTxt.TextColor3 = couleur or C.texte
 	E.toast.Visible = true

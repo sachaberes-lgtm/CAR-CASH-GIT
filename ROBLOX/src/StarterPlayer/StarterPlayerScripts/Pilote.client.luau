@@ -3169,6 +3169,10 @@ workspace:GetAttributeChangedSignal("DbgOuvre"):Connect(function()
 			sPrev = s
 			lat = 0
 		end
+	elseif v == "gar:decider" or v == "gar:suivant" then
+		if mode == "garage" then -- (banc) presser le lingot de décision, passer à la caisse suivante
+			if v == "gar:decider" then Garage.dbgDecider() else Garage.voisin(1) end
+		end
 	elseif string.sub(v, 1, 7) == "onglet:" then
 		if mode == "garage" then Garage.onglet(string.sub(v, 8)) end -- (banc) « onglet:trainee » : un onglet du garage
 	elseif string.sub(v, 1, 6) == "impact" then
