@@ -10904,6 +10904,44 @@ function Espace.batir(piste: any, dossier: Instance, graine: number, ceder: (() 
 		TRAINS[racine] = trains
 		racine.Destroying:Once(function() TRAINS[racine] = nil end)
 	end
+	-- 4. LES ANNEAUX DE DÉBRIS (orbiteBuild §4, L14053 — le syndrome de Kessler) : deux anneaux d'éclats autour de la piste. Le premier
+	-- presque à plat (7 à 14°) se couche sur l'horizon, derrière la route et la Terre ; le second, dressé de 26 à 37° et tourné d'un
+	-- quart de tour, monte en DIAGONALE dans le noir au-dessus de la route : un fleuve d'éclats en travers du ciel. Rayon : la moitié
+	-- de l'étendue de la piste + 250 m (1 à 2,6 km), épaisseur en cloche (± 380 m en travers, ± 120 m en hauteur). Jamais sur la route.
+	do
+		local cy = centre.Y + 160
+		local Rb0 = math.min(2600, math.max(1000, math.max(mx.X - mn.X, mx.Z - mn.Z) * 0.5 + 250))
+		local ta0, ti0 = r() * 6.283, 0.13 + r() * 0.12
+		local ta1, ti1 = ta0 + 1.57 + (r() - 0.5), 0.45 + r() * 0.2
+		local function gs(): number return (r() + r() + r() - 1.5) * 1.15 end -- (≈ une gaussienne)
+		local TEINTES = { BLANC, OR, Color3.fromRGB(150, 156, 170), Color3.fromRGB(70, 110, 190) } -- argent, lambeau d'or, tige d'acier, cellule
+		for anneau = 1, 2 do
+			local ta, ti = (anneau == 1) and ta0 or ta1, (anneau == 1) and ti0 or ti1
+			local Rb = (anneau == 1) and Rb0 or Rb0 * 1.15
+			local e1 = Vector3.new(math.cos(ta), 0, math.sin(ta))
+			local nz = CFrame.fromAxisAngle(e1, ti):VectorToWorldSpace(Vector3.yAxis)
+			local e2 = nz:Cross(e1).Unit
+			local posees, essais4 = 0, 0
+			while posees < 340 and essais4 < 1100 do
+				essais4 += 1
+				local th = r() * 6.283
+				local rr, hh = Rb + gs() * 380, gs() * 120
+				local rad = 6 + r() ^ 2.4 * 40
+				local q = Vector3.new(centre.X, cy, centre.Z) + e1 * (math.cos(th) * rr) + e2 * (math.sin(th) * rr) + nz * hh
+				if libre(q, rad * 1.3 + RH + 90) then
+					posees += 1
+					-- (un éclat de 1 à 3 km ne se lit pas sans l'ÉCLAT du soleil du web : un sur cinq brille — c'est lui qui dessine le fleuve)
+					local e = rad * 1.25
+					local x = r()
+					local c = TEINTES[(x < 0.4 and 1) or (x < 0.66 and 2) or (x < 0.86 and 3) or 4]
+					local brille = r() < 0.2
+					piece(racine, Vector3.new(e * (0.5 + r()), e * 0.12, e * (0.3 + r() * 0.6)), CFrame.new(q * M) * tourne(), brille and Color3.fromRGB(255, 236, 190) or c,
+						brille and Enum.Material.Neon or Enum.Material.Metal, 0.35)
+				end
+				if ceder and essais4 % 40 == 0 then ceder() end
+			end
+		end
+	end
 	return obstacles
 end
 
