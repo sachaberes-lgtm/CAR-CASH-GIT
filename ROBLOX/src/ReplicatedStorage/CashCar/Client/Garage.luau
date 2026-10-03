@@ -1642,7 +1642,7 @@ function Garage.jouer()
 	end)
 end
 
--- (banc) presser le lingot de décision, comme un doigt
+-- presser le lingot de décision, comme un doigt (la manette, le banc)
 function Garage.dbgDecider() decider() end
 
 return Garage

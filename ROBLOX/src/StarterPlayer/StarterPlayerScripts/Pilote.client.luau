@@ -2890,6 +2890,7 @@ local function finPartie()
 		E.mStats[i][2].Text = v[2]
 	end
 	Hud.ecran("mort")
+	G.mortT = os.clock() -- (la manette : REJOUER au bouton A attend 1,5 s — on lit d'abord le bilan)
 	Bus.emit("fin", { argent = argent, aura = aura, distance = dist, pieces = stats.pieces, figures = stats.poses,
 		kmh = G.vmax, zone = G.nbZones + 1, tier = tier, multi = Score.CHA.xMax, cause = causeMort, record = rec })
 	-- le montant s'égrène (750 ms), puis se pose
@@ -2995,6 +2996,29 @@ Garage.init({
 	end,
 })
 E.btGarage.Activated:Connect(ouvrirGarage)
+-- LA MANETTE HORS DE LA COURSE (propre à Roblox : Xbox, manettes PC) — A = JOUER à l'accueil ; A = REJOUER à l'écran de fin (après
+-- 1,5 s : la nitro est aussi au bouton A, on ne saute pas le bilan en mourant doigt posé) ; au garage, gâchettes ou croix
+-- gauche / droite = la caisse voisine, A = la décision (acheter, équiper), B = l'accueil. (Le curseur virtuel de Roblox reste là.)
+game:GetService("UserInputService").InputBegan:Connect(function(io: InputObject, traite: boolean)
+	local k = io.KeyCode
+	if io.UserInputType ~= Enum.UserInputType.Gamepad1 or traite then return end
+	if mode == "menu" and Hud.ecranCourant() == "menu" and k == Enum.KeyCode.ButtonA then
+		G.jouerMenu()
+	elseif mode == "mort" and Hud.ecranCourant() == "mort" and k == Enum.KeyCode.ButtonA and os.clock() - (G.mortT or 0) > 1.5 then
+		nouvellePartie()
+	elseif mode == "garage" and Garage.ouvert and not G.boutique.ouvert then -- (la vitrine ouverte depuis le garage a son RETOUR)
+		if k == Enum.KeyCode.ButtonR1 or k == Enum.KeyCode.DPadRight then
+			Garage.voisin(1)
+		elseif k == Enum.KeyCode.ButtonL1 or k == Enum.KeyCode.DPadLeft then
+			Garage.voisin(-1)
+		elseif k == Enum.KeyCode.ButtonA then
+			Garage.dbgDecider()
+		elseif k == Enum.KeyCode.ButtonB then
+			Garage.fermer()
+			allerMenu()
+		end
+	end
+end)
 -- ── LES MISSIONS : le carnet ouvert, ses trois défis, sa récompense (voir Client/Missions) ──
 Missions.init({
 	profil = function() return profil end,
