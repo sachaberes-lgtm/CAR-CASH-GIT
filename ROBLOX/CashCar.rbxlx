@@ -129,6 +129,7 @@ local function lireProfil(p: any)
 	if essai then profil.caisse = essai end
 	compte = p.compte or compte
 	meilleurAura = math.max(meilleurAura, p.auraMeilleur or 0)
+	if KA.kmhDe then KA.kmhDe(p.kmhMax or 0) end -- (la vitesse max du profil : les cris de vitesse et l'affiche du garage)
 end
 lireProfil(profil)
 CC:WaitForChild("ProfilMaj").OnClientEvent:Connect(function(p)
@@ -370,6 +371,8 @@ local menuRot = CFrame.identity -- la pose de la caisse au menu (la CHUTE), gard
 
 local function pousseMoteur(): number return MOT[tier + 1][2] end
 KA.tierDe = function(): number return tier end
+KA.kmhDe = function(v: number) G.kmhRecord = math.max(G.kmhRecord or 0, v) end
+KA.kmhDe(profil.kmhMax or 0)
 local function tardif(): number return 1 + math.min(0.5, math.max(0, tier - 8) * 0.035) end
 local function reservoir(): number return MOT[tier + 1].res or 2 end
 local function denom(): number return Config.DENOMS[tier + 1] * 0.25 end
@@ -2795,6 +2798,7 @@ local function finPartie()
 	if rec then record = argent end
 	meilleurAura = math.max(meilleurAura, aura)
 	G.kmhRecord = math.max(G.kmhRecord or 0, G.vmax or 0)
+	profil.kmhMax = math.max(profil.kmhMax or 0, math.floor(G.kmhRecord + 0.5))
 	local cause = T.morts[causeMort] or T.morts.autre
 	-- (L4187, Sacha : « le texte sous GAME OVER sert à rien », « la caisse qui explose l'a déjà dit ») le titre dit GAME OVER ou
 	-- NOUVEAU RECORD !, jamais la cause ; et plus de ligne DISTANCE · PIÈCES · FIGURES (le web ne la montre pas)
@@ -11409,6 +11413,7 @@ local function ecriteau(piece: BasePart, face: Enum.NormalId, txt: string, coule
 	return t
 end
 
+local AFFICHE: { TextLabel }? = nil -- (les quatre valeurs de l'affiche RECORD PERSO, posées par batir)
 local NUIT = Color3.fromRGB(24, 26, 44)
 local MUR = Color3.fromRGB(58, 66, 124) -- (capture web : une TÔLE bleu-violet, éclairée — à 36,42,74 l'atelier était un trou noir)
 local NERVURE = Color3.fromRGB(74, 84, 150)
@@ -11518,7 +11523,30 @@ local function batir()
 	-- l'affiche « RECORD PERSO » dans son cadre d'or
 	bloc("CadreAffiche", 1.7, 2.5, 0.08, 7.4, 2.5, PROF / 2 - 0.05, Color3.fromRGB(255, 200, 60)).Reflectance = 0.3
 	local aff = bloc("Affiche", 1.46, 2.26, 0.04, 7.4, 2.5, PROF / 2 - 0.11, Color3.fromRGB(58, 30, 112))
-	ecriteau(aff, Enum.NormalId.Front, FR and "RECORD\nPERSO" or "PERSONAL\nBEST", Color3.fromRGB(255, 215, 94), 16)
+	-- (affichesMaj, L33816) L'AFFICHE PARLE : le titre, puis TES records — la meilleure partie, l'aura max, le palier moteur, la vitesse
+	-- max ; tenus à jour à chaque ouverture du garage
+	do
+		local sg = Instance.new("SurfaceGui")
+		sg.Face = Enum.NormalId.Front
+		sg.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+		sg.PixelsPerStud = 40
+		sg.LightInfluence = 0
+		sg.Brightness = 2
+		sg.Parent = aff
+		local function lig(txt: string, y: number, h: number, corps: number, c: Color3): TextLabel
+			return inst("TextLabel", { BackgroundTransparency = 1, Size = UDim2.new(1, -16, 0, h), Position = UDim2.fromOffset(8, y), FontFace = K.PIX,
+				Text = txt, TextColor3 = c, TextScaled = true, TextWrapped = false }, sg)
+		end
+		local OR9, BL9, LV9 = Color3.fromRGB(255, 215, 94), Color3.new(1, 1, 1), Color3.fromRGB(180, 168, 230)
+		lig(FR and "RECORD" or "PERSONAL", 10, 18, 18, OR9)
+		lig(FR and "PERSO" or "BEST", 30, 12, 12, BL9)
+		AFFICHE = {}
+		for k, nom in { FR and "MEILLEURE PARTIE" or "BEST RUN", FR and "AURA MAX" or "MAX AURA", FR and "PALIER MOTEUR" or "ENGINE TIER", FR and "VITESSE MAX" or "TOP SPEED" } do
+			local y = 54 + (k - 1) * 40
+			lig(nom, y, 9, 9, LV9)
+			AFFICHE[k] = lig("-", y + 12, 16, 16, OR9)
+		end
+	end
 	-- les piles de pneus
 	for _, q in { { 8.9, 9.6, 3 }, { 9.7, 8.7, 2 }, { -9.6, -5.2, 4 }, { 9.6, -8.4, 3 } } do
 		for k = 0, q[3] - 1 do
@@ -12067,7 +12095,15 @@ function Garage.majFicheCaisse()
 	end
 end
 
+local function majAffiche()
+	if not AFFICHE then return end
+	local p = profil()
+	local v = { Hud.compte(p.record or 0), tostring(math.floor(p.auraMeilleur or 0)),
+		tostring((p.moteurMax or 0) + 1), math.floor(p.kmhMax or 0) .. " KM/H" }
+	for k, l in AFFICHE do l.Text = v[k] end
+end
 local function majTout()
+	majAffiche()
 	majCompte()
 	majPastilles()
 	if onglet ~= "voiture" then majBande() else
@@ -13365,7 +13401,7 @@ function Hud.creer()
 		TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false, contourCouleur = hx("1c0430"), epais = 4 })
 	E.airJ = jauge(E.air, UDim2.new(1, 0, 0, 26), UDim2.fromOffset(0, 52), nil, 5, 3)
 	-- LES PLAQUES DE POUVOIR (#pwrChip) : une par pouvoir actif, sous l'argent (sous le chrono quand on vole)
-	E.pouvoirs = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(270, 340), Position = UDim2.new(1, -22, 0, 208), AnchorPoint = Vector2.new(1, 0) }, hud) -- (sous le « +$ » du compteur)
+	E.pouvoirs = inst("CanvasGroup", { BackgroundTransparency = 1, Size = UDim2.fromOffset(270, 340), Position = UDim2.new(1, -22, 0, 208), AnchorPoint = Vector2.new(1, 0) }, hud) -- (sous le « +$ » du compteur)
 	-- le centre : la bannière du niveau, les figures, la chaîne
 	E.grand = texte(hud, { Text = "", TextSize = 38, TextColor3 = C.texte, Size = UDim2.new(1, 0, 0, 60), Position = UDim2.fromScale(0, 0.33), epais = 4 })
 	E.pop = texte(hud, { Text = "", TextSize = 22, TextColor3 = C.or_, Size = UDim2.new(1, 0, 0, 34), Position = UDim2.fromScale(0, 0.22), epais = 3 })
@@ -13760,6 +13796,8 @@ end
 -- ── LES PLAQUES DE POUVOIR : icône, nom, secondes au dixième, et la jauge qui se vide ; la dernière seconde et demie clignote ──
 local PW_ICO = { n = "flamme", a = "aile", v = "eclair", m = "aimant", x = "etoile" }
 local pwCle, pwEl = "", {} :: { any }
+local pwT0: number? = nil
+local pwCleVue = ""
 function Hud.pouvoirs(liste: { { any } }, sousChrono: boolean)
 	local cle = ""
 	for _, q in liste do cle ..= q[1] end
@@ -13784,7 +13822,19 @@ function Hud.pouvoirs(liste: { { any } }, sousChrono: boolean)
 			pwEl[i] = { p = p, s = s, u = u, bande = bande, duree = def.duree, t = "" }
 		end
 	end
-	E.pouvoirs.Position = UDim2.new(1, -22, 0, sousChrono and 282 or 190)
+	E.pouvoirs.Position = UDim2.new(1, -22, 0, sousChrono and 282 or 208)
+	-- LE HUD DISCRET (hudDiscretTick, L29175) : une plaque présente depuis plus de 3 s pâlit (45 %) ; un nouveau pouvoir la rallume,
+	-- et la fin d'un pouvoir (qui clignote) la garde EN PLEIN
+	if #liste == 0 then
+		pwT0 = nil
+	elseif not pwT0 or pwCleVue ~= cle then
+		pwT0, pwCleVue = os.clock(), cle
+	end
+	local fort = false
+	for _, q in liste do if q[2] < 1.5 then fort = true end end
+	local cible = (pwT0 and os.clock() - pwT0 > 3 and not fort) and 0.55 or 0
+	local g = E.pouvoirs.GroupTransparency
+	if math.abs(cible - g) > 0.005 then E.pouvoirs.GroupTransparency = g + (cible - g) * ((cible > g) and 0.05 or 0.3) end
 	for i, q in liste do
 		local e = pwEl[i]
 		if e then
@@ -14169,18 +14219,27 @@ function HudScore.creer()
 		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 5, contourCouleur = hex("#1c0430") })
 	U.auraMot = K.texte(bloc, { Text = "AURA", TextSize = 30, TextColor3 = Color3.fromRGB(255, 200, 250), Size = UDim2.fromOffset(110, 32), Position = UDim2.fromOffset(54, 26),
 		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 3 })
-	U.auraRec = K.texte(bloc, { Text = "", TextSize = 17, TextColor3 = C.terne, Size = UDim2.fromOffset(500, 18), Position = UDim2.fromOffset(4, 74),
+	-- (#avRec, L1560) la ligne de l'objectif « encore une » : une JAUGE (110 × 6) qui se remplit vers le record, puis le texte — en OR
+	local recF = inst("Frame", { BackgroundColor3 = Color3.new(0, 0, 0), BackgroundTransparency = 0.45, BorderSizePixel = 0, Size = UDim2.fromOffset(110, 6),
+		Position = UDim2.fromOffset(4, 80), Visible = false }, bloc)
+	U.recTrait = inst("UIStroke", { Color = hex("#ffd75e"), Transparency = 0.7, Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, recF)
+	U.recPlein = inst("Frame", { BackgroundColor3 = hex("#ffd75e"), BorderSizePixel = 0, Size = UDim2.fromScale(0, 1) }, recF)
+	U.recF = recF
+	U.auraRec = K.texte(bloc, { Text = "", TextSize = 17, TextColor3 = hex("#ffd75e"), Size = UDim2.fromOffset(500, 18), Position = UDim2.fromOffset(124, 74),
 		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
-	U.chaPts = K.texte(bloc, { Text = "", TextSize = 25, TextColor3 = C.texte2, Size = UDim2.fromOffset(240, 28), Position = UDim2.fromOffset(4, 124),
+	-- (la chaîne dans son propre groupe : elle PÂLIT quand elle dure — voir HudScore.tick)
+	local chGr = inst("CanvasGroup", { Name = "Chaine", BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1) }, bloc)
+	U.chaGr = chGr
+	U.chaPts = K.texte(chGr, { Text = "", TextSize = 25, TextColor3 = C.texte2, Size = UDim2.fromOffset(240, 28), Position = UDim2.fromOffset(4, 124),
 		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
-	U.chaX = K.texte(bloc, { Text = "", TextSize = 66, Size = UDim2.fromOffset(220, 68), Position = UDim2.fromOffset(70, 98),
+	U.chaX = K.texte(chGr, { Text = "", TextSize = 66, Size = UDim2.fromOffset(220, 68), Position = UDim2.fromOffset(70, 98),
 		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 5, contourCouleur = hex("#1c0430") })
-	local fondT = inst("Frame", { BackgroundColor3 = hex("#0d0a2a"), BorderSizePixel = 0, Size = UDim2.fromOffset(214, 10), Position = UDim2.fromOffset(4, 168), Visible = false }, bloc)
+	local fondT = inst("Frame", { BackgroundColor3 = hex("#0d0a2a"), BorderSizePixel = 0, Size = UDim2.fromOffset(214, 10), Position = UDim2.fromOffset(4, 168), Visible = false }, chGr)
 	U.chaFond = fondT
 	U.chaT = inst("Frame", { BackgroundColor3 = C.magenta, BorderSizePixel = 0, Size = UDim2.fromScale(1, 1) }, fondT)
-	U.chaL1 = K.texte(bloc, { Text = "", TextSize = 24, TextColor3 = C.texte, Size = UDim2.fromOffset(640, 26), Position = UDim2.fromOffset(4, 186),
+	U.chaL1 = K.texte(chGr, { Text = "", TextSize = 24, TextColor3 = C.texte, Size = UDim2.fromOffset(640, 26), Position = UDim2.fromOffset(4, 186),
 		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
-	U.chaL2 = K.texte(bloc, { Text = "", TextSize = 24, TextColor3 = C.terne, Size = UDim2.fromOffset(640, 26), Position = UDim2.fromOffset(4, 214),
+	U.chaL2 = K.texte(chGr, { Text = "", TextSize = 24, TextColor3 = C.terne, Size = UDim2.fromOffset(640, 26), Position = UDim2.fromOffset(4, 214),
 		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
 	U.verse = K.texte(bloc, { Text = "", TextSize = 30, TextColor3 = hex("#ff9ee6"), Size = UDim2.fromOffset(300, 32), Position = UDim2.fromOffset(190, 26),
 		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 3 })
@@ -14497,15 +14556,27 @@ function HudScore.tick(dt: number, mode: string)
 		U.auraMot.Position = UDim2.fromOffset(#chiffres * 73 * Hud.CHASSE + 14, 26) -- (police à chasse fixe : le mot suit le chiffre)
 	end
 	if CH.rec > 0 then
+		local pR = math.min(1, a / CH.rec)
+		U.recF.Visible = a <= CH.rec
+		U.recPlein.Size = UDim2.fromScale(pR, 1)
+		U.recTrait.Transparency = (pR >= 0.85) and (0.3 + 0.4 * math.abs(math.sin(os.clock() * 7))) or 0.7 -- (À PORTÉE : la jauge bat)
+		U.auraRec.Position = UDim2.fromOffset((a <= CH.rec) and 124 or 4, 74)
 		if a > CH.rec then U.auraRec.Text = "+" .. Hud.entier(a - CH.rec) .. Score.T(" AU-DESSUS", " ABOVE")
 		elseif a >= CH.rec * 0.85 then U.auraRec.Text = Score.T("ENCORE ", "ONLY ") .. Hud.entier(CH.rec - a)
 		else U.auraRec.Text = "RECORD " .. Hud.entier(CH.rec) end
 	else
 		U.auraRec.Text = ""
+		U.recF.Visible = false
 	end
 	if CH.n > 0 then
 		U.chaX.Text = "×" .. math.max(1, CH.x)
 		U.chaX.TextColor3 = hex(Score.X_COUL[CH.x])
+		-- LE HUD DISCRET (#avCh.discret, L5117) : une chaîne qui dure depuis plus de 3 s sans nouveau maillon PÂLIT (45 %) — un
+		-- nouveau geste la rallume
+		if CH.n ~= U.chaN then U.chaN, U.chaT0 = CH.n, os.clock() end
+		local cibleD = (os.clock() - (U.chaT0 or 0) > 3) and 0.55 or 0
+		local gD = U.chaGr.GroupTransparency
+		if math.abs(cibleD - gD) > 0.005 then U.chaGr.GroupTransparency = gD + (cibleD - gD) * ((cibleD > gD) and 0.05 or 0.35) end
 		U.chaL1.Text = CH.liste[1] or ""
 		U.chaL2.Text = CH.liste[2] or ""
 		local pts = Hud.entier(CH.pts)
@@ -14520,6 +14591,7 @@ function HudScore.tick(dt: number, mode: string)
 		U.chaT.BackgroundColor3 = (mode ~= "fall" and CH.t < 1.1) and ((math.sin(t * 20) > 0) and ROUGE or C.magenta) or C.magenta
 	else
 		U.chaX.Text, U.chaL1.Text, U.chaL2.Text, U.chaPts.Text = "", "", "", ""
+		U.chaGr.GroupTransparency, U.chaN = 0, nil
 		U.chaFond.Visible = false
 	end
 	if U.verse.Text ~= "" and t > verseFin then
@@ -21046,6 +21118,7 @@ function Profils.neuf(): Profil
 	return {
 		v = VERSION,
 		compte = 0, record = 0, auraMeilleur = 0,
+		kmhMax = 0, -- la plus grande vitesse jamais atteinte (km/h affichés)
 		moteurMax = 0, -- le meilleur palier de MOTEUR jamais atteint (SAVE.d.ex.eng du web) : l'écran de fin dit « RECORD ! » s'il est battu
 		aura = 0,      -- l'aura de TOUJOURS (elle fait le rang : ANONYME … DIVINITÉ DU CIEL)
 		frenRec = 0,   -- la plus longue frénésie (s)
@@ -21080,7 +21153,7 @@ local function sain(p: any): Profil
 			n[k] = p[k]
 		end
 	end
-	for _, k in { "compte", "record", "auraMeilleur", "aura", "frenRec", "moteurMax" } do
+	for _, k in { "compte", "record", "auraMeilleur", "aura", "frenRec", "moteurMax", "kmhMax" } do
 		if n[k] ~= n[k] or n[k] < 0 or n[k] > 1e18 then n[k] = 0 end
 	end
 	local possede = {}
@@ -21140,6 +21213,7 @@ function Profils.sauver(p: Player)
 			prof.record = math.max(prof.record, a.record)
 			prof.auraMeilleur = math.max(prof.auraMeilleur, a.auraMeilleur)
 			prof.moteurMax = math.max(prof.moteurMax, a.moteurMax)
+			prof.kmhMax = math.max(prof.kmhMax, a.kmhMax)
 			return prof
 		end)
 	end)
@@ -21458,6 +21532,9 @@ evFin.OnServerEvent:Connect(function(p, montant, distance, aura, stats)
 	end
 	if type(stats) == "table" and type(stats.frenRec) == "number" and stats.frenRec == stats.frenRec and stats.frenRec >= 5 and stats.frenRec < 3600 then
 		prof.frenRec = math.max(prof.frenRec, stats.frenRec)
+	end
+	if type(stats) == "table" and type(stats.kmh) == "number" and stats.kmh == stats.kmh and stats.kmh > 0 and stats.kmh < 1e5 then
+		prof.kmhMax = math.max(prof.kmhMax, math.floor(stats.kmh + 0.5))
 	end
 	if type(stats) == "table" and type(stats.tier) == "number" and stats.tier == math.floor(stats.tier) and stats.tier >= 0 and stats.tier < 200 then
 		prof.moteurMax = math.max(prof.moteurMax, stats.tier)

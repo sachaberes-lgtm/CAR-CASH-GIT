@@ -606,7 +606,7 @@ function Hud.creer()
 		TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false, contourCouleur = hx("1c0430"), epais = 4 })
 	E.airJ = jauge(E.air, UDim2.new(1, 0, 0, 26), UDim2.fromOffset(0, 52), nil, 5, 3)
 	-- LES PLAQUES DE POUVOIR (#pwrChip) : une par pouvoir actif, sous l'argent (sous le chrono quand on vole)
-	E.pouvoirs = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(270, 340), Position = UDim2.new(1, -22, 0, 208), AnchorPoint = Vector2.new(1, 0) }, hud) -- (sous le « +$ » du compteur)
+	E.pouvoirs = inst("CanvasGroup", { BackgroundTransparency = 1, Size = UDim2.fromOffset(270, 340), Position = UDim2.new(1, -22, 0, 208), AnchorPoint = Vector2.new(1, 0) }, hud) -- (sous le « +$ » du compteur)
 	-- le centre : la bannière du niveau, les figures, la chaîne
 	E.grand = texte(hud, { Text = "", TextSize = 38, TextColor3 = C.texte, Size = UDim2.new(1, 0, 0, 60), Position = UDim2.fromScale(0, 0.33), epais = 4 })
 	E.pop = texte(hud, { Text = "", TextSize = 22, TextColor3 = C.or_, Size = UDim2.new(1, 0, 0, 34), Position = UDim2.fromScale(0, 0.22), epais = 3 })
@@ -1001,6 +1001,8 @@ end
 -- ── LES PLAQUES DE POUVOIR : icône, nom, secondes au dixième, et la jauge qui se vide ; la dernière seconde et demie clignote ──
 local PW_ICO = { n = "flamme", a = "aile", v = "eclair", m = "aimant", x = "etoile" }
 local pwCle, pwEl = "", {} :: { any }
+local pwT0: number? = nil
+local pwCleVue = ""
 function Hud.pouvoirs(liste: { { any } }, sousChrono: boolean)
 	local cle = ""
 	for _, q in liste do cle ..= q[1] end
@@ -1025,7 +1027,19 @@ function Hud.pouvoirs(liste: { { any } }, sousChrono: boolean)
 			pwEl[i] = { p = p, s = s, u = u, bande = bande, duree = def.duree, t = "" }
 		end
 	end
-	E.pouvoirs.Position = UDim2.new(1, -22, 0, sousChrono and 282 or 190)
+	E.pouvoirs.Position = UDim2.new(1, -22, 0, sousChrono and 282 or 208)
+	-- LE HUD DISCRET (hudDiscretTick, L29175) : une plaque présente depuis plus de 3 s pâlit (45 %) ; un nouveau pouvoir la rallume,
+	-- et la fin d'un pouvoir (qui clignote) la garde EN PLEIN
+	if #liste == 0 then
+		pwT0 = nil
+	elseif not pwT0 or pwCleVue ~= cle then
+		pwT0, pwCleVue = os.clock(), cle
+	end
+	local fort = false
+	for _, q in liste do if q[2] < 1.5 then fort = true end end
+	local cible = (pwT0 and os.clock() - pwT0 > 3 and not fort) and 0.55 or 0
+	local g = E.pouvoirs.GroupTransparency
+	if math.abs(cible - g) > 0.005 then E.pouvoirs.GroupTransparency = g + (cible - g) * ((cible > g) and 0.05 or 0.3) end
 	for i, q in liste do
 		local e = pwEl[i]
 		if e then

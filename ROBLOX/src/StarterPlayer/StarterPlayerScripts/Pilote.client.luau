@@ -129,6 +129,7 @@ local function lireProfil(p: any)
 	if essai then profil.caisse = essai end
 	compte = p.compte or compte
 	meilleurAura = math.max(meilleurAura, p.auraMeilleur or 0)
+	if KA.kmhDe then KA.kmhDe(p.kmhMax or 0) end -- (la vitesse max du profil : les cris de vitesse et l'affiche du garage)
 end
 lireProfil(profil)
 CC:WaitForChild("ProfilMaj").OnClientEvent:Connect(function(p)
@@ -370,6 +371,8 @@ local menuRot = CFrame.identity -- la pose de la caisse au menu (la CHUTE), gard
 
 local function pousseMoteur(): number return MOT[tier + 1][2] end
 KA.tierDe = function(): number return tier end
+KA.kmhDe = function(v: number) G.kmhRecord = math.max(G.kmhRecord or 0, v) end
+KA.kmhDe(profil.kmhMax or 0)
 local function tardif(): number return 1 + math.min(0.5, math.max(0, tier - 8) * 0.035) end
 local function reservoir(): number return MOT[tier + 1].res or 2 end
 local function denom(): number return Config.DENOMS[tier + 1] * 0.25 end
@@ -2795,6 +2798,7 @@ local function finPartie()
 	if rec then record = argent end
 	meilleurAura = math.max(meilleurAura, aura)
 	G.kmhRecord = math.max(G.kmhRecord or 0, G.vmax or 0)
+	profil.kmhMax = math.max(profil.kmhMax or 0, math.floor(G.kmhRecord + 0.5))
 	local cause = T.morts[causeMort] or T.morts.autre
 	-- (L4187, Sacha : « le texte sous GAME OVER sert à rien », « la caisse qui explose l'a déjà dit ») le titre dit GAME OVER ou
 	-- NOUVEAU RECORD !, jamais la cause ; et plus de ligne DISTANCE · PIÈCES · FIGURES (le web ne la montre pas)

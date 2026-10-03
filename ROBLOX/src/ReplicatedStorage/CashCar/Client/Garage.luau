@@ -214,6 +214,7 @@ local function ecriteau(piece: BasePart, face: Enum.NormalId, txt: string, coule
 	return t
 end
 
+local AFFICHE: { TextLabel }? = nil -- (les quatre valeurs de l'affiche RECORD PERSO, posées par batir)
 local NUIT = Color3.fromRGB(24, 26, 44)
 local MUR = Color3.fromRGB(58, 66, 124) -- (capture web : une TÔLE bleu-violet, éclairée — à 36,42,74 l'atelier était un trou noir)
 local NERVURE = Color3.fromRGB(74, 84, 150)
@@ -323,7 +324,30 @@ local function batir()
 	-- l'affiche « RECORD PERSO » dans son cadre d'or
 	bloc("CadreAffiche", 1.7, 2.5, 0.08, 7.4, 2.5, PROF / 2 - 0.05, Color3.fromRGB(255, 200, 60)).Reflectance = 0.3
 	local aff = bloc("Affiche", 1.46, 2.26, 0.04, 7.4, 2.5, PROF / 2 - 0.11, Color3.fromRGB(58, 30, 112))
-	ecriteau(aff, Enum.NormalId.Front, FR and "RECORD\nPERSO" or "PERSONAL\nBEST", Color3.fromRGB(255, 215, 94), 16)
+	-- (affichesMaj, L33816) L'AFFICHE PARLE : le titre, puis TES records — la meilleure partie, l'aura max, le palier moteur, la vitesse
+	-- max ; tenus à jour à chaque ouverture du garage
+	do
+		local sg = Instance.new("SurfaceGui")
+		sg.Face = Enum.NormalId.Front
+		sg.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+		sg.PixelsPerStud = 40
+		sg.LightInfluence = 0
+		sg.Brightness = 2
+		sg.Parent = aff
+		local function lig(txt: string, y: number, h: number, corps: number, c: Color3): TextLabel
+			return inst("TextLabel", { BackgroundTransparency = 1, Size = UDim2.new(1, -16, 0, h), Position = UDim2.fromOffset(8, y), FontFace = K.PIX,
+				Text = txt, TextColor3 = c, TextScaled = true, TextWrapped = false }, sg)
+		end
+		local OR9, BL9, LV9 = Color3.fromRGB(255, 215, 94), Color3.new(1, 1, 1), Color3.fromRGB(180, 168, 230)
+		lig(FR and "RECORD" or "PERSONAL", 10, 18, 18, OR9)
+		lig(FR and "PERSO" or "BEST", 30, 12, 12, BL9)
+		AFFICHE = {}
+		for k, nom in { FR and "MEILLEURE PARTIE" or "BEST RUN", FR and "AURA MAX" or "MAX AURA", FR and "PALIER MOTEUR" or "ENGINE TIER", FR and "VITESSE MAX" or "TOP SPEED" } do
+			local y = 54 + (k - 1) * 40
+			lig(nom, y, 9, 9, LV9)
+			AFFICHE[k] = lig("-", y + 12, 16, 16, OR9)
+		end
+	end
 	-- les piles de pneus
 	for _, q in { { 8.9, 9.6, 3 }, { 9.7, 8.7, 2 }, { -9.6, -5.2, 4 }, { 9.6, -8.4, 3 } } do
 		for k = 0, q[3] - 1 do
@@ -872,7 +896,15 @@ function Garage.majFicheCaisse()
 	end
 end
 
+local function majAffiche()
+	if not AFFICHE then return end
+	local p = profil()
+	local v = { Hud.compte(p.record or 0), tostring(math.floor(p.auraMeilleur or 0)),
+		tostring((p.moteurMax or 0) + 1), math.floor(p.kmhMax or 0) .. " KM/H" }
+	for k, l in AFFICHE do l.Text = v[k] end
+end
 local function majTout()
+	majAffiche()
 	majCompte()
 	majPastilles()
 	if onglet ~= "voiture" then majBande() else

@@ -178,6 +178,9 @@ evFin.OnServerEvent:Connect(function(p, montant, distance, aura, stats)
 	if type(stats) == "table" and type(stats.frenRec) == "number" and stats.frenRec == stats.frenRec and stats.frenRec >= 5 and stats.frenRec < 3600 then
 		prof.frenRec = math.max(prof.frenRec, stats.frenRec)
 	end
+	if type(stats) == "table" and type(stats.kmh) == "number" and stats.kmh == stats.kmh and stats.kmh > 0 and stats.kmh < 1e5 then
+		prof.kmhMax = math.max(prof.kmhMax, math.floor(stats.kmh + 0.5))
+	end
 	if type(stats) == "table" and type(stats.tier) == "number" and stats.tier == math.floor(stats.tier) and stats.tier >= 0 and stats.tier < 200 then
 		prof.moteurMax = math.max(prof.moteurMax, stats.tier)
 	end
