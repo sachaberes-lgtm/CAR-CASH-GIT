@@ -42,3 +42,7 @@
   SIMPLIFIÉS au niveau de VAPEUR (Léo : « trop complexe à l'oreille ; les nouveaux instruments sont cool »).
   RÈGLE APPRISE : la bonne densité = celle de VAPEUR (~4 attaques/s, 4 accords tenus en mouvement conjoint, une basse par mesure,
   mélodie rare) ; les instruments qui plaisent : Rhodes à trémolo, contrebasse, vibraphone, cordes douces, glissando de harpe.
+- 2026-10-03 — CORRECTION de compréhension : « même type de boucle que VAPEUR » voulait dire la DURÉE (8 mesures, 2e moitié qui
+  répond), PAS le style. FILTRE D'OR (house filtrée) et MÉTRO (2-step) refaits dans LEUR style, en 8 mesures, et TOUTES les musiques
+  du lobby suivent UNE ambiance (bande qui pleure, grande réverbe douce, aigus adoucis, même sonie). Les versions « salon » sont retirées.
+  VAPEUR · SALON revenue à l'identique d'avant (sans le carillon, sans grésillement).
