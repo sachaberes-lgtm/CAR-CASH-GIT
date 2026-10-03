@@ -20197,14 +20197,26 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 			bretelle(D, 0)
 			bretelle(rB * b2, b2)
 			-- LE FILET : le lieu des poses, de f0 à f1
+			-- (3/10) Le filet passe EXACTEMENT par chaque point de chute calculé : d'un point au suivant, l'arc tangent qui le rejoint
+			-- (il tourne du double de l'écart entre le cap et la visée — le théorème de l'angle tangent-corde). Avant, des arcs
+			-- « concentriques » au virage DÉRIVAIENT quand le rayon des chutes change : à grande vitesse de moteur (lvPiste ≥ 3),
+			-- deux sorties sur cinq retombaient À CÔTÉ du filet (mesuré au banc serveur : 3 poses sur 5).
 			local n0 = #plan
 			local psF = pose(f1)
-			local nF = math.max(6, math.ceil((psF - ps0) / math.rad(8)))
+			local nF = math.max(8, math.ceil((psF - ps0) / math.rad(5)))
 			local psA, rA, yA = ps0, r0, y0
+			local cx, cy, cap = Nx, Ny, hN
 			for k = 1, nF do
 				local psK, rK, yK = pose(f0 + (f1 - f0) * k / nF)
-				local rm = (rA + rK) * 0.5
-				cercle(rm, psK - psA, (yK - yA) / math.max(1, (psK - psA) * rm))
+				local tx, ty = at(psK, rK)
+				local d = math.sqrt((tx - cx) ^ 2 + (ty - cy) ^ 2)
+				local ec = (math.atan2(tx - cx, ty - cy) - cap + math.pi) % (2 * math.pi) - math.pi -- l'écart cap → visée
+				local long = (math.abs(ec) > 1e-4) and d * ec / math.sin(ec) or d
+				local pente9 = (yK - yA) / math.max(1, long)
+				local n = math.max(1, math.floor(long * math.sqrt(1 + pente9 * pente9) / DS + 0.5))
+				for _ = 1, n do table.insert(plan, { dl = sg * 2 * ec / n, p = pente9 }) end
+				cap += 2 * ec
+				cx, cy = tx, ty
 				psA, rA, yA = psK, rK, yK
 			end
 			local n1 = #plan
