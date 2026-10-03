@@ -41,6 +41,8 @@ KA.Traces = require(CL:WaitForChild("Traces"))
 KA.Pigeons = require(CL:WaitForChild("Pigeons"))
 KA.Impact = require(CL:WaitForChild("Impact"))
 KA.Recyclage = require(CL:WaitForChild("Recyclage"))
+-- (le tapotement de la caisse au titre : le « toc » de tôle de l'atelier et une vibration)
+KA.Titre.surTape = function() Sons.vrai("garageTole", nil, nil, "poseChoc", 1.5, 0.35) Hud.vibre(14) end
 
 local M, SPD = Config.M, Config.SPD
 local RH, THICK = Config.ROAD_HALF, Config.THICK
@@ -396,7 +398,7 @@ function G.nomNiveau(): string
 end
 local function horiz(v: Vector3): number return math.sqrt(v.X * v.X + v.Z * v.Z) end
 -- la vitesse ÷ la croisière (flowVitN, L21005) : en vol, la vitesse HORIZONTALE seule
-local function vitN(): number
+function G.vitN(): number
 	local vm = vmaxShow() * 2.9
 	if vm <= 0 then return 1 end
 	local v = (mode == "fall") and horiz(fallVel) or math.abs(vA)
@@ -600,7 +602,7 @@ local function nitroooPart()
 	fovPunch = math.max(fovPunch, 9)
 	secousse = math.max(secousse, 0.35)
 end
-local function nitroooTick(dt: number)
+function G.nitroooTick(dt: number)
 	local actif = NTR.on and nitroOn and (mode == "drive" or mode == "fall")
 	if NTR.on and not actif then NTR.on = false end
 	if actif then
@@ -705,7 +707,7 @@ local function replacer()
 	E.air.Visible = false
 end
 -- LES TROIS VIES du mode FACILE (facileSauve, L23506) : le vide et le chrono d'air pardonnent deux fois
-local function facileSauve(cause: string): boolean
+function G.facileSauve(cause: string): boolean
 	if not facile() or G.coeurs <= 1 or (cause ~= "vide" and cause ~= "air") then return false end
 	G.coeurs -= 1
 	replacer()
@@ -806,6 +808,14 @@ function TU.rate(): boolean
 end
 TU.gestes = { "glisse", "nitro", "bord", "nitro", "pose" } -- (L22416 : le geste de chaque étape)
 function TU.tick(dt: number)
+	-- (TUTO.attente, L22505) la 1re consigne attend la FIN du logo de départ : elle tombait pendant la sortie, par-dessus CASH CAR,
+	-- impossible à lire ni à exécuter — l'auto-école prend la parole pile quand le logo s'efface
+	if (TU.attenteFin or 0) > os.clock() then
+		if E.coach.Visible then E.coach.Visible = false end
+		Hud.nitroAppel(false)
+		Hud.coachGeste(nil)
+		return
+	end
 	Hud.nitroAppel(TU.on and TU.pause <= 0 and (TU.etape == 2 or TU.etape == 4))
 	Hud.coachGeste(TU.on and TU.gestes[math.clamp(TU.etape, 1, 5)] or nil)
 	if TU.msgT > 0 then
@@ -888,7 +898,7 @@ local function exploser(cause: string)
 		replacer()
 		return
 	end
-	if TU.rate() or facileSauve(cause) then return end
+	if TU.rate() or G.facileSauve(cause) then return end
 	causeMort = cause
 	boomPos = carCF.Position
 	Score.mort() -- la chaîne OUVERTE part avec la caisse, le flow retombe
@@ -977,6 +987,7 @@ local function atterrir(face: number, latX: number, sX: number, hR: number?)
 		-- LE LOGO PASSE LE RELAIS (fireLaunchBoost, L28467) : CASH CAR claque avec son halo ; le nom du niveau arrive quand il s'efface
 		-- (au même endroit, jamais par-dessus)
 		Hud.logoDepart()
+		if TU.on then TU.attenteFin = os.clock() + 1.9 end -- (la leçon parle quand le logo s'efface)
 		task.delay(1.9, function() if (mode == "drive" or mode == "fall") and not TU.on then Hud.grand(G.nomNiveau(), Hud.C.texte, 1.8) end end) -- (L1247 : pas pendant la leçon)
 		Sons.vrai("departLogo", nil, nil, "go") -- (le logo CLAQUE : sub + accord d'or)
 		Sons.jouer("poseChoc")
@@ -1125,7 +1136,7 @@ local function atterrir(face: number, latX: number, sX: number, hR: number?)
 end
 
 -- la LÈVRE raccroche (levreRattrape, L30613) : la caisse qui bascule revient d'elle-même sur la route, −6 %
-local function levreRattrape(j: number, latOff: number, hOff: number, tOff: number)
+function G.levreRattrape(j: number, latOff: number, hOff: number, tOff: number)
 	local F = piste.F[j]
 	local vm = vitMult()
 	local vTan = fallVel:Dot(F.LookVector) / vm
@@ -1149,7 +1160,7 @@ local function levreRattrape(j: number, latOff: number, hOff: number, tOff: numb
 	E.air.Visible = false
 end
 
-local function essayerAtterrir(dt: number)
+function G.essayerAtterrir(dt: number)
 	local pos = fallPos * M
 	local prev = prevPos * M
 	local DSm = piste.DS / M
@@ -1187,7 +1198,7 @@ local function essayerAtterrir(dt: number)
 			end
 			-- (b) LA LÈVRE RACCROCHE : la caisse REVIENT vers la route dans la seconde, jusqu'à 2 m sous la surface
 			if V.sideCd <= 0 and V.bascT < 1 and hOff > -2 and hOff < 0.8 and math.abs(latOff) < RH + demi and vB * math.sign(latOff) < -0.5 then
-				levreRattrape(proche, latOff, hOff, tOff)
+				G.levreRattrape(proche, latOff, hOff, tOff)
 				return
 			end
 		end
@@ -1271,7 +1282,7 @@ local function essayerAtterrir(dt: number)
 end
 
 -- ════════ les pouvoirs v2 (pwrPrend, L23479) : le même pouvoir se CUMULE (plafond 2 × sa durée) ════════
-local function pouvoirPrend(k: string)
+function G.pouvoirPrend(k: string)
 	local d = Config.POUVOIRS[k]
 	local autres = 0
 	for kk, v in { n = pwN, a = pwA, v = pwV, m = pwM, x = pwX } do
@@ -1364,7 +1375,7 @@ local function ramasser(o: any)
 		Bus.emit("piece", g, combo)
 		Sons.jouer("piece", Sons.demiTons(({ 0, 2, 4, 7, 9, 12, 14, 16 })[((combo - 1) % 8) + 1]))
 	elseif k == "cristal" then
-		pouvoirPrend(o.o.pw)
+		G.pouvoirPrend(o.o.pw)
 		Hud.vibre(40)
 		-- le cristal de l'autre face disparaît avec lui (on ne le prend qu'une fois)
 		for _, x in zone.objets :: { any } do
@@ -1416,7 +1427,7 @@ end
 
 -- les plots volants (un plot percuté part devant, rebondit, se replie)
 local volants: { { p: BasePart, v: Vector3, r: Vector3, vie: number } } = {}
-local function obstacles(dt: number, cf: CFrame)
+function G.obstacles(dt: number, cf: CFrame)
 	-- les PLOTS (choc, frôlé) et les FLAQUES, sur la face où l'on roule — balayés : rien ne passe à travers
 	local objs = zone.objets :: { any }
 	local sM = s * M
@@ -1815,7 +1826,7 @@ local function poserEnCourse(o: Piste.Objet)
 		table.sort(zone.pads)
 	end
 end
-local function ligneBloque(s9: number): boolean
+function G.ligneBloque(s9: number): boolean
 	-- un plot à moins de 9 m, une flaque à moins de son rayon + 7 : la place est prise
 	local objs = zone.objets :: { any }
 	local lo, hi = 1, #objs + 1
@@ -1842,7 +1853,7 @@ local function ligneBloque(s9: number): boolean
 	end
 	return false
 end
-local function ligneTick(dt: number)
+function G.ligneTick(dt: number)
 	local LI = Config.LIGNE
 	local L = piste.len / M
 	local b0 = math.max(30, math.abs(vA) * SPD)
@@ -1859,7 +1870,7 @@ local function ligneTick(dt: number)
 		for d = 0, 160, 20 do
 			local q = G.lgS + d
 			if q >= L - 120 then break end
-			if not ligneBloque(q) then
+			if not G.ligneBloque(q) then
 				s9 = q
 				break
 			end
@@ -2002,7 +2013,7 @@ local function passerPortail(): boolean
 end
 
 -- ════════ le DRIFT et son MINI-TURBO (driftTick, L20758) ════════
-local function driftTick(dt: number, on: boolean)
+function G.driftTick(dt: number, on: boolean)
 	G.driftCd = math.max(0, G.driftCd - dt)
 	if on and G.driftCd <= 0 then
 		G.driftC += dt
@@ -2034,7 +2045,7 @@ local function driftTick(dt: number, on: boolean)
 end
 
 -- LA FRONDE (frondeLache, L28654) : un virage serré tenu SANS glisser rend de la vitesse à la sortie
-local function frondeLache(t: number, c: number)
+function G.frondeLache(t: number, c: number)
 	if intro or mode ~= "drive" or G.frondeCd > 0 or not (vA > 8) then return end
 	local k = math.clamp((t - 0.9) / 1.8, 0, 1)
 	local co = (t > 0) and math.min(1, c / t) or 0
@@ -2056,7 +2067,7 @@ local function frondeLache(t: number, c: number)
 end
 
 -- ════════ LA CONDUITE (L36300-36680) ════════
-local function etapeSol(dt: number)
+function G.etapeSol(dt: number)
 	local push, late = pousseMoteur(), tardif()
 	local maxSp = 190 / 3.6 * late * push
 	local acc9 = 22 * late * (1 + (push - 1) * 0.6)
@@ -2072,7 +2083,7 @@ local function etapeSol(dt: number)
 	local vitOk = math.abs(vA) > maxSp * 0.42
 	if not intro and vitOk and frein and math.abs(steerS) > 0.35 then G.driftOn = true
 	elseif not vitOk or not frein or math.abs(steerS) < 0.2 then G.driftOn = false end
-	driftTick(dt, G.driftOn)
+	G.driftTick(dt, G.driftOn)
 	-- L'ASTUCE DU DRIFT (L36750 ; audit UX du 26/09 : « le geste du drift n'était enseigné nulle part ») : 1,2 s de braquage à fond
 	-- à bonne vitesse sans jamais avoir drifté → on le dit, une fois dans la vie. Le joueur qui drifte tout seul ne la verra jamais.
 	if G.driftOn then
@@ -2141,7 +2152,7 @@ local function etapeSol(dt: number)
 		if lat * math.sign(yawR) > RH * 0.2 then G.virC += dt * vm end -- à la CORDE
 		if G.driftOn or G.slipT > 0 then G.virD = true end
 	elseif aB < 12 then
-		if G.virPaye and not G.virD then frondeLache(G.virT, G.virC) end
+		if G.virPaye and not G.virD then G.frondeLache(G.virT, G.virC) end
 		G.virT, G.virC, G.virD, G.virPaye = 0, 0, false, false
 	end
 	if G.virT > 0.9 and not G.virPaye then
@@ -2183,9 +2194,9 @@ local function etapeSol(dt: number)
 		G.pureT, G.pureArmed, G.pureNext, G.pureLvl = 0, true, 0, 0
 	end
 	-- les plots, les flaques, les pads ; la ligne parfaite se pose devant
-	obstacles(dt, cf2)
+	G.obstacles(dt, cf2)
 	G.filetTick()
-	if not intro and not TU.on then ligneTick(dt) end
+	if not intro and not TU.on then G.ligneTick(dt) end
 	G.fruitRafT -= dt
 	if G.fruitRafT <= 0 then G.fruitRaf = 0 end
 	-- ROULE OU CRÈVE (L36365)
@@ -2288,7 +2299,7 @@ local function etapeSol(dt: number)
 end
 
 -- ════════ LE VOL (L36896-37176) ════════
-local function etapeAir(dt: number)
+function G.etapeAir(dt: number)
 	V.fallT += dt
 	V.fallTR += dt
 	V.volT += dt
@@ -2403,7 +2414,7 @@ local function etapeAir(dt: number)
 	else
 		carCF = CFrame.new(fallPos * M) * carCF.Rotation
 	end
-	essayerAtterrir(dt)
+	G.essayerAtterrir(dt)
 	if mode ~= "fall" then return end
 	-- LE DAUPHIN : nager au ras de la dalle (dessus ou dessous, dans sa largeur)
 	if not intro then
@@ -2435,7 +2446,7 @@ end
 local menuCap = Vector3.new(0, 0, -1)
 -- (la caméra de ROUTE, de VOL et de MORT est celle du jeu web d'aujourd'hui : Client/Camera)
 KA.X = { repere = function(sM: number, face: number): CFrame return Piste.repereFace(piste, sM * M, face) end }
-local function camera(dt: number)
+function G.camera(dt: number)
 	if cam.CameraType ~= Enum.CameraType.Scriptable then cam.CameraType = Enum.CameraType.Scriptable end
 	local p = carCF.Position
 	local fiche = poignees.fiche
@@ -2512,7 +2523,7 @@ end
 local ARC_EN_CIEL = ColorSequence.new({ ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 60, 60)), ColorSequenceKeypoint.new(0.2, Color3.fromRGB(255, 190, 40)),
 	ColorSequenceKeypoint.new(0.4, Color3.fromRGB(110, 255, 90)), ColorSequenceKeypoint.new(0.6, Color3.fromRGB(60, 220, 255)),
 	ColorSequenceKeypoint.new(0.8, Color3.fromRGB(110, 90, 255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 70, 220)) })
-local function habiller(dt: number)
+function G.habiller(dt: number)
 	if mode == "boom" or mode == "mort" or mode == "charge" then return end
 	racine.CFrame = carCF
 	local feu = nitroOn or boost > 0 or NTR.boost > 0
@@ -2593,7 +2604,11 @@ local function habiller(dt: number)
 	-- `musique`. On passe de l'un à l'autre en fondu (1,2 s) ; chacun garde son fil, on ne le relance pas à chaque portail.
 	do
 		local veut = "musique"
-		if mode == "menu" or mode == "garage" or mode == "mort" or mode == "charge" then
+		if mode == "charge" then
+			-- (L39091, Léo 3/10 : « fais démarrer au moment du menu ciel ») pendant le chargement et l'intro du studio : silence — le
+			-- morceau de l'accueil part avec le ciel
+			veut = ""
+		elseif mode == "menu" or mode == "garage" or mode == "mort" then
 			-- (MUSIC_LOBBY, 3/10) l'accueil, le garage et l'écran de fin jouent UN morceau de lobby, tiré au lancement parmi ceux qui
 			-- sont importés, gardé toute la session ; aucun importé = NOCTURNAL GROOVE, comme avant
 			if G.lobby == nil then
@@ -2608,7 +2623,7 @@ local function habiller(dt: number)
 			local lieu, var = (piste :: any).niveau, (piste :: any).variante
 			veut = (var == "orage") and "musiqueOrage" or ((lieu == "ville") and "musiqueVille" or ((lieu == "nuages") and "musiqueNuages" or "musique"))
 		end
-		if not Sons.a(veut) then veut = "musique" end
+		if veut ~= "" and not Sons.a(veut) then veut = "musique" end
 		G.musVeut = veut
 		G.mus = G.mus or { musique = 0, musiqueNuages = 0, musiqueVille = 0, musiqueOrage = 0, musiqueLobby1 = 0, musiqueLobby2 = 0 }
 		do
@@ -2627,7 +2642,7 @@ local function habiller(dt: number)
 end
 
 -- ════════ le HUD ════════
-local function hud(dt: number)
+function G.hud(dt: number)
 	-- (cashHudTick, L12873) LE TOTAL DÉFILE vers l'argent (on le voit entrer, comme dans GTA) et FRAPPE à chaque gain ; les gains
 	-- s'additionnent dans le « +$ » tant qu'ils tombent (1,8 s après le dernier). Une nouvelle partie recale sans défiler.
 	do
@@ -2884,6 +2899,7 @@ local function finPartie()
 		E.mStats[i][2].Text = v[2]
 	end
 	Hud.ecran("mort")
+	G.mortT = os.clock() -- (la manette : REJOUER au bouton A attend 1,5 s — on lit d'abord le bilan)
 	Bus.emit("fin", { argent = argent, aura = aura, distance = dist, pieces = stats.pieces, figures = stats.poses,
 		kmh = G.vmax, zone = G.nbZones + 1, tier = tier, multi = Score.CHA.xMax, cause = causeMort, record = rec })
 	-- le montant s'égrène (750 ms), puis se pose
@@ -2989,6 +3005,29 @@ Garage.init({
 	end,
 })
 E.btGarage.Activated:Connect(ouvrirGarage)
+-- LA MANETTE HORS DE LA COURSE (propre à Roblox : Xbox, manettes PC) — A = JOUER à l'accueil ; A = REJOUER à l'écran de fin (après
+-- 1,5 s : la nitro est aussi au bouton A, on ne saute pas le bilan en mourant doigt posé) ; au garage, gâchettes ou croix
+-- gauche / droite = la caisse voisine, A = la décision (acheter, équiper), B = l'accueil. (Le curseur virtuel de Roblox reste là.)
+game:GetService("UserInputService").InputBegan:Connect(function(io: InputObject, traite: boolean)
+	local k = io.KeyCode
+	if io.UserInputType ~= Enum.UserInputType.Gamepad1 or traite then return end
+	if mode == "menu" and Hud.ecranCourant() == "menu" and k == Enum.KeyCode.ButtonA then
+		G.jouerMenu()
+	elseif mode == "mort" and Hud.ecranCourant() == "mort" and k == Enum.KeyCode.ButtonA and os.clock() - (G.mortT or 0) > 1.5 then
+		nouvellePartie()
+	elseif mode == "garage" and Garage.ouvert and not G.boutique.ouvert then -- (la vitrine ouverte depuis le garage a son RETOUR)
+		if k == Enum.KeyCode.ButtonR1 or k == Enum.KeyCode.DPadRight then
+			Garage.voisin(1)
+		elseif k == Enum.KeyCode.ButtonL1 or k == Enum.KeyCode.DPadLeft then
+			Garage.voisin(-1)
+		elseif k == Enum.KeyCode.ButtonA then
+			Garage.dbgDecider()
+		elseif k == Enum.KeyCode.ButtonB then
+			Garage.fermer()
+			allerMenu()
+		end
+	end
+end)
 -- ── LES MISSIONS : le carnet ouvert, ses trois défis, sa récompense (voir Client/Missions) ──
 Missions.init({
 	profil = function() return profil end,
@@ -3163,6 +3202,10 @@ workspace:GetAttributeChangedSignal("DbgOuvre"):Connect(function()
 			sPrev = s
 			lat = 0
 		end
+	elseif v == "gar:decider" or v == "gar:suivant" then
+		if mode == "garage" then -- (banc) presser le lingot de décision, passer à la caisse suivante
+			if v == "gar:decider" then Garage.dbgDecider() else Garage.voisin(1) end
+		end
 	elseif string.sub(v, 1, 7) == "onglet:" then
 		if mode == "garage" then Garage.onglet(string.sub(v, 8)) end -- (banc) « onglet:trainee » : un onglet du garage
 	elseif string.sub(v, 1, 6) == "impact" then
@@ -3173,6 +3216,9 @@ workspace:GetAttributeChangedSignal("DbgOuvre"):Connect(function()
 	elseif string.sub(v, 1, 4) == "saut" then
 		-- (banc) un saut franc, tout de suite : pour photographier ce qui ne vit qu'en vol (le viseur, la jauge, les figures)
 		if mode == "drive" then decoller(tonumber(string.sub(v, 5, 6)) or 45, 1) end -- ("saut20…" : la poussée, sur deux chiffres)
+	elseif v == "tape" then
+		local e9 = KA.Titre.dbgTape() -- (banc) un coup au milieu de la caisse
+		warn(string.format("[CashCar] tape : %d coups, poussée %.2f m, pivot %.1f°", e9.coups, e9.pousse, e9.pivot))
 	elseif string.sub(v, 1, 6) == "achat:" then
 		G.boutique.dbg(string.sub(v, 7)) -- (banc) « achat:2 » ouvre la fenêtre d'achat de la 2e case, « achat:oui » presse ACHETER
 	elseif string.sub(v, 1, 7) == "quitter" then
@@ -3342,6 +3388,29 @@ E.btFacile.Parent.Visible = Config.FACILE_ACTIF
 
 -- ════════ les autres caisses : un double chez moi, lissé ; on ne voit que celles qui roulent dans NOTRE zone ════════
 type Double = { m: Model, c: Model, vu: boolean?, pg: any, ind: number, cle: string }
+-- (Roblox : on joue à plusieurs) LE NOM DE L'AUTRE au-dessus de sa caisse — son pseudo, en pixel, qui s'efface au loin (90 m)
+function G.nomDouble(c: Model, m: Model)
+	local pp = c.PrimaryPart
+	if not pp then return end
+	local qui = Players:GetPlayerByUserId(m:GetAttribute("Joueur") or 0)
+	local bb = Instance.new("BillboardGui")
+	bb.Name = "Nom"
+	bb.Size = UDim2.fromOffset(220, 30)
+	bb.StudsOffsetWorldSpace = Vector3.new(0, 2.6 * M, 0)
+	bb.MaxDistance = 90 * M
+	bb.LightInfluence = 0
+	local l = Instance.new("TextLabel")
+	l.BackgroundTransparency = 1
+	l.Size = UDim2.fromScale(1, 1)
+	l.FontFace = Hud.kit.PIX
+	l.TextSize = 14
+	l.TextColor3 = Color3.new(1, 1, 1)
+	l.TextStrokeColor3 = Color3.fromRGB(16, 8, 34)
+	l.TextStrokeTransparency = 0
+	l.Text = qui and qui.DisplayName or m.Name
+	l.Parent = bb
+	bb.Parent = pp
+end
 -- où dessiner la caisse d'un autre : sur MA piste, à sa distance et à son écart (sa pose relative au repère de la route) ; à défaut
 -- (un serveur d'avant, une valeur absente), sa pose monde
 function G.poseDouble(m: Model): CFrame
@@ -3352,7 +3421,7 @@ function G.poseDouble(m: Model): CFrame
 	return (m.PrimaryPart :: BasePart).CFrame
 end
 local doubles: { [Model]: Double } = {}
-local function lisserDoubles(dt: number)
+function G.lisserDoubles(dt: number)
 	for m, d in doubles do
 		if not m.Parent then
 			Caisse.rendre(d.c)
@@ -3373,6 +3442,7 @@ task.spawn(function()
 					local porte = { peinture = m:GetAttribute("Peinture"), aile = m:GetAttribute("Aile"), trainee = m:GetAttribute("Trainee") }
 					local c, pg = Caisse.construire("Autre", ind, true, porte)
 					c:PivotTo(m.PrimaryPart.CFrame)
+					G.nomDouble(c, m)
 					c.Parent = workspace
 					d = { m = m, c = c, pg = pg, ind = ind, cle = tostring(porte.peinture) .. tostring(porte.aile) }
 					doubles[m] = d
@@ -3389,6 +3459,8 @@ task.spawn(function()
 						if p:IsA("BasePart") then p.LocalTransparencyModifier = voir and 0 or 1 end
 					end
 					if voir then d.c.PrimaryPart.CFrame = G.poseDouble(m) end
+					local nom9 = d.c.PrimaryPart and d.c.PrimaryPart:FindFirstChild("Nom")
+					if nom9 then (nom9 :: BillboardGui).Enabled = voir end -- (son nom part avec sa caisse)
 				end
 				local nitro = voir and m:GetAttribute("Nitro") == true
 				Caisse.feu(d.pg, nitro, nitro and 110 or 0, Color3.fromRGB(255, 122, 36))
@@ -3490,7 +3562,7 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 			Score.ETAT.auraX2 = pwX > 0
 			G.comboT -= dt
 			if G.comboT <= 0 then combo = 0 end
-			if mode == "drive" then etapeSol(dt) else etapeAir(dt) end
+			if mode == "drive" then G.etapeSol(dt) else G.etapeAir(dt) end
 			if mode == "drive" or mode == "fall" then
 				objets(dt, carCF.Position, os.clock())
 				-- LES NUAGES : ils ne font que BLOQUER LA VUE ; un banc percuté au sol éclate, le percer à l'aveugle paie du flow
@@ -3505,10 +3577,10 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 						-- défoncé ni la percée à l'aveugle ne paient de flow. À L'ORAGE, 90 bancs nourrissaient la jauge tout seuls.)
 					end
 				end
-				nitroooTick(dt)
+				G.nitroooTick(dt)
 				G.vmax = math.max(G.vmax, kmh())
 			end
-			Score.flowTick(dt, mode, vitN(), nitroOn)
+			Score.flowTick(dt, mode, G.vitN(), nitroOn)
 			Score.chaineTick(dt, mode)
 			aura = Score.aura()
 			-- les missions relisent les compteurs de la partie
@@ -3560,8 +3632,8 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 				end
 			end
 		end
-		habiller(dt)
-		if mode == "garage" then Garage.rendu(dtBrut) else camera(dt) end
+		G.habiller(dt)
+		if mode == "garage" then Garage.rendu(dtBrut) else G.camera(dt) end
 		local vue = workspace:GetAttribute("DbgVue") -- (mise au point) une vue imposée depuis la console de Studio
 		if vue then
 			cam.CFrame = vue
@@ -3635,7 +3707,7 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 		end
 		-- les nuages PROCHES reçoivent leur version fine ; hors de la course, tout est rendu au budget (voir Nuages.finesseTick)
 		KA.Nuages.finesseTick(dtBrut, (mode == "drive" or mode == "fall" or mode == "menu") and cam.CFrame.Position or nil)
-		lisserDoubles(dt)
+		G.lisserDoubles(dt)
 		KA.envoiT -= dtBrut
 		if KA.envoiT <= 0 and (mode == "drive" or mode == "fall") then
 			KA.envoiT = 1 / 15
@@ -3644,7 +3716,7 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 			evPos:FireServer(carCF, s, repere(s, 1):ToObjectSpace(carCF))
 		end
 	end
-	hud(dt)
+	G.hud(dt)
 end)
 
 -- ════════ le démarrage : on bâtit la zone 1 derrière l'écran de chargement ════════
@@ -3684,6 +3756,12 @@ do
 	end
 end
 allerMenu()
+-- (la sauvegarde n'a pas pu être lue : cette session ne sera pas gardée — le joueur le sait, au lieu de croire qu'il a tout perdu)
+task.delay(1.5, function()
+	if joueur:GetAttribute("SauvegardeKO") then
+		Hud.toast(tr("SAUVEGARDE INDISPONIBLE : CETTE SESSION NE SERA PAS GARDEE", "SAVES UNAVAILABLE: THIS SESSION WON'T BE KEPT"), Hud.C.rouge)
+	end
+end)
 game:GetService("Players").LocalPlayer:SetAttribute("MenuPret", true) -- (le banc attend ce signal : l'accueil est là, l'intro jouée)
 end
 
@@ -12513,10 +12591,10 @@ local function deciderHabit()
 		end
 	elseif decision == "pauvre" then
 		secouer()
-		Hud.toast("✗ " .. L.ilTeManque .. Hud.argent(d.p - (profil().compte or 0)), ROUGE)
+		Hud.toast(L.ilTeManque .. Hud.argent(d.p - (profil().compte or 0)), ROUGE, "croix")
 	elseif decision == "gagner" then
 		secouer()
-		Hud.toast("🔒 " .. (FR and d.d or d.dEN))
+		Hud.toast(FR and d.d or d.dEN, nil, "verrou")
 	end
 end
 local function decider()
@@ -12540,7 +12618,7 @@ local function decider()
 		end
 	elseif decision == "pauvre" then
 		secouer()
-		Hud.toast("✗ " .. L.ilTeManque .. Hud.argent(f.cond.v - (profil().compte or 0)), ROUGE)
+		Hud.toast(L.ilTeManque .. Hud.argent(f.cond.v - (profil().compte or 0)), ROUGE, "croix")
 	elseif decision == "equiper" then
 		occupe = true
 		local ok = ctx.action("equiper", montre)
@@ -12554,9 +12632,9 @@ local function decider()
 		end
 	elseif decision == "verrou" then
 		secouer()
-		Hud.toast("🔒 " .. condition(montre))
+		Hud.toast(condition(montre), nil, "verrou")
 	elseif decision == "boutique" then
-		Hud.toast("🛒 " .. L.bientot)
+		Hud.toast(L.bientot, nil, "panier")
 	end
 end
 
@@ -13188,6 +13266,9 @@ function Garage.jouer()
 		lacher = { t = 0, suite = function() ctx.surJouer() end }
 	end)
 end
+
+-- presser le lingot de décision, comme un doigt (la manette, le banc)
+function Garage.dbgDecider() decider() end
 
 return Garage
 ]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000005F"><Properties><string name="Name">Hud</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — L'INTERFACE (menu, course, pause, réglages, mort), calquée sur la VERSION PRINCIPALE web.
@@ -14345,9 +14426,21 @@ function Hud.pastilles(n: number)
 end
 
 local toastN = 0
-function Hud.toast(txt: string, couleur: Color3?)
+-- ico : une icône PIXEL devant le texte (le web pose ses pictos en pixels ; « ✗ » n'existe dans aucune police de Roblox : un carré)
+function Hud.toast(txt: string, couleur: Color3?, ico: string?)
 	toastN += 1
 	local n = toastN
+	if E.toastIco then
+		E.toastIco:Destroy()
+		E.toastIco = nil
+	end
+	if ico then
+		local f = icone(E.toast, ico, 4, couleur or C.texte, UDim2.new(0, 22, 0.5, 0), Vector2.new(0, 0.5))
+		f.ZIndex = 82
+		for _, q in f:GetChildren() do (q :: Frame).ZIndex = 82 end
+		E.toastIco = f
+	end
+	E.toastTxt.Position = UDim2.fromOffset(ico and 40 or 14, 0)
 	E.toastTxt.Text = txt
 	E.toastTxt.TextColor3 = couleur or C.texte
 	E.toast.Visible = true
@@ -19160,6 +19253,9 @@ Sons.actif = true
 Sons.musiqueActive = true
 -- LES CURSEURS du web (VOL.sfx, VOL.mus) : 0-1. La musique a été accordée au réglage d'usine (62 %) : son niveau est relatif à lui.
 Sons.volSon = 1
+-- (SFX_SOUS_MUS, L25558 ; Léo 3/10 : « les MONSTRE ne doivent pas cacher la musique — ça vaut pour TOUS les effets sonores ») :
+-- tous les effets −3 dB sous la musique (le curseur EFFETS s'applique par-dessus)
+local SOUS_MUS = 0.7
 Sons.volMus = 0.62
 
 local dossier = Instance.new("Folder")
@@ -19219,7 +19315,7 @@ function Sons.jouer(nom: string, hauteur: number?, volume: number?)
 	tours[nom] = (tours[nom] % #l) + 1
 	local s = l[tours[nom]]
 	s.PlaybackSpeed = hauteur or 1
-	s.Volume = (volume or VOLUMES[nom] or 0.5) * Sons.volSon
+	s.Volume = (volume or VOLUMES[nom] or 0.5) * Sons.volSon * SOUS_MUS
 	s.TimePosition = 0
 	s:Play()
 end
@@ -19262,7 +19358,7 @@ function Sons.regler(nom: string, volume: number, hauteur: number?)
 	if string.sub(nom, 1, 7) == "musique" then -- (musique, musiqueNuages, musiqueVille, musiqueOrage)
 		v = Sons.musiqueActive and v * Sons.volMus / 0.62 or 0
 	else
-		v *= Sons.volSon
+		v *= Sons.volSon * SOUS_MUS
 	end
 	s.Volume = v
 	if hauteur then s.PlaybackSpeed = hauteur end
@@ -19290,7 +19386,9 @@ Titre.pret = false
 Titre.nuPret = false -- (les cumulus sont bâtis : l'accueil peut s'ouvrir)
 
 -- CHUTE_P (les réglages retenus aux captures)
-local P = { az = 2.35, alt = 900, avant = -1700, pitch = 0.62, roule = 0.12, cap = 0.28, elev = 0.34, gite = -0.45, vit = 14, taille = 0.82 }
+-- (3/10, Léo, deux captures : « voici le point de vue vertical souhaité ») le regard presque à NIVEAU — couché (elev) un rien SOUS la
+-- caisse : l'horizon à ~46 % de la hauteur, on voit son dessous ; debout (elevP) à peine au-dessus. (Avant : 0,34, on regardait le toit.)
+local P = { az = 2.35, alt = 900, avant = -1700, pitch = 0.62, roule = 0.12, cap = 0.28, elev = -0.08, elevP = 0.06, gite = -0.45, vit = 14, taille = 0.82 }
 -- CHUTE_NU : { droite, devant, rayon, gabarit, vitesse, hauteur de départ } en mètres
 local NU = {
 	-- devant
@@ -19360,6 +19458,7 @@ do
 		if traite or not S.vu or S.go or O.io then return end
 		if io.UserInputType == Enum.UserInputType.Touch or io.UserInputType == Enum.UserInputType.MouseButton1 then
 			O.io, O.x, O.y, O.mvT = io, io.Position.X, io.Position.Y, os.clock()
+			O.x0, O.y0, O.t0 = io.Position.X, io.Position.Y, os.clock()
 		end
 	end)
 	UIS.InputChanged:Connect(function(io: InputObject)
@@ -19373,12 +19472,82 @@ do
 		O.ac += dA
 		O.w = O.w * 0.55 + dA / dm * 0.45
 		O.mvT = n9
-		O.pc = math.clamp(O.pc + (io.Position.Y - O.y) * k * 0.004, -0.6, 1.0)
+		-- (L36913, Léo 3/10 : « bloque le point de vue à ce niveau vertical : pas de haut en bas ») le doigt ne fait plus monter ni
+		-- plonger le regard : il tourne autour de la caisse, à la hauteur du menu
 		O.x, O.y = io.Position.X, io.Position.Y
 	end)
 	UIS.InputEnded:Connect(function(io: InputObject)
-		if O.io and (io == O.io or io.UserInputType == O.io.UserInputType) then O.io = nil end
+		if O.io and (io == O.io or io.UserInputType == O.io.UserInputType) then
+			O.io = nil
+			-- ni glissé ni tenu : un TAP — s'il touche la caisse, elle reçoit un petit coup
+			local p9 = io.Position
+			if math.abs(p9.X - (O.x0 or 0)) < 14 and math.abs(p9.Y - (O.y0 or 0)) < 14 and os.clock() - (O.t0 or 0) < 0.4 then
+				Titre.tape(Vector2.new(p9.X, p9.Y))
+			end
+		end
 	end)
+end
+-- LE TAPOTEMENT AU CIEL (chuteTape, L35713 du jeu web ; Léo, 3/10 : « on peut tapoter la voiture et simuler, à l'endroit tapoté, un
+-- coup qui fait légèrement pousser / pivoter la voiture en train de tomber dans les airs »). Le doigt lance un rayon de la caméra ;
+-- s'il touche la caisse, le coup part de CE point, dans le sens du rayon : une poussée (le centre recule de quelques décimètres) et
+-- un couple r × F (taper le nez la fait tourner autrement que taper l'aile) — puis deux ressorts amortis la ramènent, en deux ou
+-- trois balancements. Un éclat à l'endroit du coup, le « toc » de tôle de l'atelier, une vibration. (On vise la BOÎTE de la caisse :
+-- ses pièces ne répondent pas aux rayons.)
+local TAP: any = { p = Vector3.zero, v = Vector3.zero, r = Vector3.zero, w = Vector3.zero, V = 1.8, W = 0.5, WMAX = 1.3, K = 13, C = 2.6, KR = 15,
+	CR = 2.3, flT = 9, n = 0 }
+Titre.surTape = nil :: ((Vector3) -> ())? -- (le son et la vibration : posés par le pilote)
+function Titre.tape(ecran: Vector2): boolean
+	if not S.vu or S.go then return false end
+	local m = workspace:FindFirstChild("MaCaisse")
+	if not m or not m:IsA("Model") then return false end
+	local cam = workspace.CurrentCamera
+	local ray = cam:ScreenPointToRay(ecran.X, ecran.Y)
+	-- le rayon contre la boîte orientée de la caisse (dans son repère : une boîte alignée)
+	local bcf, bt = m:GetBoundingBox()
+	local o, d = bcf:PointToObjectSpace(ray.Origin), bcf:VectorToObjectSpace(ray.Direction.Unit)
+	local h = bt / 2
+	local t0, t1 = -math.huge, math.huge
+	for _, ax in { "X", "Y", "Z" } do
+		local oa, da, ha = (o :: any)[ax], (d :: any)[ax], (h :: any)[ax]
+		if math.abs(da) < 1e-9 then
+			if math.abs(oa) > ha then return false end
+		else
+			local a, b = (-ha - oa) / da, (ha - oa) / da
+			if a > b then a, b = b, a end
+			t0, t1 = math.max(t0, a), math.min(t1, b)
+		end
+	end
+	if t0 > t1 or t1 < 0 then return false end
+	local hit = ray.Origin + ray.Direction.Unit * math.max(0, t0)
+	local dir = ray.Direction.Unit
+	TAP.v += dir * TAP.V -- la poussée, dans le sens du doigt
+	if TAP.v.Magnitude > TAP.V * 2 then TAP.v = TAP.v.Unit * TAP.V * 2 end
+	TAP.w += (hit / M - S.pos):Cross(dir) * TAP.W -- le pivot : r × F
+	if TAP.w.Magnitude > TAP.WMAX then TAP.w = TAP.w.Unit * TAP.WMAX end
+	-- l'éclat, à l'endroit du coup
+	if not TAP.fl then
+		local f = Instance.new("Part")
+		f.Name = "Eclat"
+		f.Shape = Enum.PartType.Ball
+		f.Material = Enum.Material.Neon
+		f.Color = Color3.fromRGB(255, 240, 200)
+		f.Anchored, f.CanCollide, f.CanQuery, f.CanTouch, f.CastShadow = true, false, false, false, false
+		TAP.fl = f
+	end
+	TAP.fl.Position = hit - dir * (0.15 * M)
+	TAP.fl.Parent = workspace
+	TAP.flT, TAP.n = 0, TAP.n + 1
+	if Titre.surTape then Titre.surTape(hit) end
+	return true
+end
+-- (banc) le coup au milieu de l'écran, et son état
+function Titre.dbgTape(): any
+	local m = workspace:FindFirstChild("MaCaisse")
+	if m and m:IsA("Model") then
+		local v, _ = workspace.CurrentCamera:WorldToScreenPoint(m:GetPivot().Position)
+		Titre.tape(Vector2.new(v.X, v.Y))
+	end
+	return { coups = TAP.n, pousse = TAP.p.Magnitude, pivot = math.deg(TAP.r.Magnitude) }
 end
 function Titre.montrer(oui: boolean)
 	S.vu = oui
@@ -19445,7 +19614,33 @@ function Titre.caisse(dt: number, voile: ((number) -> ())?): CFrame
 		for _, p in pieces do Nuages.suivreFin(p) end
 	end
 	-- (le repère cuit des caisses : le nez vers −Z, la droite du pilote +X)
-	return CFrame.fromMatrix((C - up * 0.45) * M, -sd, up, -f)
+	local cfC = CFrame.fromMatrix((C - up * 0.45) * M, -sd, up, -f)
+	-- le TAPOTEMENT : deux ressorts amortis (poussée, pivot), la caisse tourne autour de son centre
+	do
+		local k = math.min(dt, 0.05)
+		TAP.v = (TAP.v - TAP.p * (TAP.K * k)) * math.exp(-TAP.C * k)
+		TAP.p += TAP.v * k
+		TAP.w = (TAP.w - TAP.r * (TAP.KR * k)) * math.exp(-TAP.CR * k)
+		TAP.r += TAP.w * k
+		if TAP.fl and TAP.fl.Parent then
+			TAP.flT += dt
+			local u = TAP.flT / 0.32
+			if u >= 1 then
+				TAP.fl.Parent = nil
+			else
+				TAP.fl.Transparency = u
+				local s9 = (0.35 + u * 1.1) * M
+				TAP.fl.Size = Vector3.new(s9, s9, s9)
+			end
+		end
+		local a = TAP.r.Magnitude
+		if a > 1e-5 or TAP.p.Magnitude > 1e-5 then
+			local Cs = C * M
+			local q = (a > 1e-5) and CFrame.fromAxisAngle(TAP.r / a, a) or CFrame.identity
+			cfC = CFrame.new(Cs + TAP.p * M) * q * CFrame.new(-Cs) * cfC
+		end
+	end
+	return cfC
 end
 
 -- La CAMÉRA du titre : rend son CFrame et son champ. fiche = la caisse montrée (l, w, h en mètres).
@@ -19487,7 +19682,7 @@ function Titre.vue(fiche: any): (CFrame, number)
 		local oc, os9 = math.cos(O.a), math.sin(O.a)
 		lx, lz = lx * oc - lz * os9, lx * os9 + lz * oc
 	end
-	local el9 = math.clamp(P.elev + O.p, -0.45, 1.25)
+	local el9 = math.clamp(((aspect < 1) and P.elevP or P.elev) + O.p, -0.45, 1.25)
 	local ce, se = math.cos(el9), math.sin(el9)
 	local C = S.pos
 	local pos = Vector3.new(C.X - lx * ce * d, C.Y + se * d, C.Z - lz * ce * d)
@@ -21886,11 +22081,31 @@ end
 
 local actifs: { [number]: Profil } = {}
 
+-- ⚠ UNE LECTURE RATÉE N'EST PAS UN JOUEUR NEUF. Avant le 3/10, une panne de la sauvegarde à l'arrivée donnait un profil VIDE — et la
+-- première écriture effaçait pour de bon les caisses, l'argent et les réglages du joueur. On essaie trois fois (1 s, 2 s, 4 s) ; si
+-- la sauvegarde ne répond toujours pas, la session joue sur un profil neuf SANS JAMAIS l'écrire (`horsLigne`), et le joueur le sait.
 function Profils.charger(p: Player): Profil
 	local prof = Profils.neuf()
 	if store then
-		local ok, v = pcall(function() return store:GetAsync("p_" .. p.UserId) end)
-		if ok and v ~= nil then prof = sain(v) end
+		local lu, v = false, nil
+		for essai = 1, 4 do
+			local ok, r = pcall(function() return store:GetAsync("p_" .. p.UserId) end)
+			if ok then
+				lu, v = true, r
+				break
+			end
+			-- (dans Studio sans accès aux services en ligne, la lecture échoue TOUJOURS : pas d'essai de plus, pas d'alerte — rien n'y est
+			-- gardé de toute façon)
+			if game:GetService("RunService"):IsStudio() then break end
+			warn("[CashCar] sauvegarde illisible pour " .. p.Name .. " (essai " .. essai .. ") : " .. tostring(r))
+			if essai < 4 then task.wait(2 ^ (essai - 1)) end
+		end
+		if lu and v ~= nil then
+			prof = sain(v)
+		elseif not lu then
+			(prof :: any).horsLigne = true
+			if not game:GetService("RunService"):IsStudio() then p:SetAttribute("SauvegardeKO", true) end
+		end
 	end
 	actifs[p.UserId] = prof
 	return prof
@@ -21902,7 +22117,7 @@ end
 
 function Profils.sauver(p: Player)
 	local prof = actifs[p.UserId]
-	if not prof or not store then return end
+	if not prof or not store or (prof :: any).horsLigne then return end -- (lecture ratée : on n'écrase rien)
 	local efface = prof.efface
 	prof.efface = nil
 	pcall(function()
@@ -21919,6 +22134,24 @@ function Profils.sauver(p: Player)
 	end)
 end
 
+-- LES ÉCRITURES SE REGROUPENT : Roblox n'accepte qu'une écriture toutes les 6 s sur une même clé — au-delà il les met en file,
+-- puis les JETTE quand la file est pleine. Un réglage, une astuce vue, le permis, une fin de partie : chacun demandait la sienne.
+-- Ici, une seule écriture au plus toutes les 7 s par joueur ; ce qui arrive entre-temps part avec la suivante (le profil est le même
+-- objet, toujours à jour). Quand le joueur s'en va, `Profils.sauver` écrit tout de suite.
+local enAttente: { [number]: boolean } = {}
+local derniere: { [number]: number } = {}
+function Profils.sauverBientot(p: Player)
+	local id = p.UserId
+	if enAttente[id] then return end
+	enAttente[id] = true
+	task.spawn(function()
+		local attente = 7 - (os.clock() - (derniere[id] or -100))
+		if attente > 0 then task.wait(attente) end
+		enAttente[id] = nil
+		derniere[id] = os.clock()
+		Profils.sauver(p) -- (parti entre-temps : son profil est déjà écrit et oublié, sauver ne fait rien)
+	end)
+end
 function Profils.oublier(p: Player)
 	actifs[p.UserId] = nil
 end
@@ -22125,7 +22358,7 @@ fnAction.OnServerInvoke = function(p, nom, ...)
 	local prof = Profils.de(p)
 	local ok, res, msg = pcall(f, p, prof, ...)
 	if not ok then return false, "erreur", prof end
-	if res then task.spawn(Profils.sauver, p) end
+	if res then Profils.sauverBientot(p) end
 	return res, msg, prof
 end
 
@@ -22234,7 +22467,7 @@ evFin.OnServerEvent:Connect(function(p, montant, distance, aura, stats)
 	if type(stats) == "table" and stats.lecon == true then
 		evRecord:FireClient(p, prof.record, prof.compte)
 		Profils.pousser(p)
-		task.spawn(Profils.sauver, p)
+		Profils.sauverBientot(p)
 		return
 	end
 	if montant > prof.record then prof.record = montant end
@@ -22270,6 +22503,6 @@ evFin.OnServerEvent:Connect(function(p, montant, distance, aura, stats)
 	end
 	evRecord:FireClient(p, prof.record, prof.compte)
 	Profils.pousser(p)
-	task.spawn(Profils.sauver, p)
+	Profils.sauverBientot(p)
 end)
 ]]></ProtectedString></Properties></Item></Item><Item class="StarterGui" referent="RBX000000CF"><Properties><string name="Name">StarterGui</string></Properties></Item><Item class="SoundService" referent="RBX000000D0"><Properties><string name="Name">SoundService</string></Properties></Item></roblox>

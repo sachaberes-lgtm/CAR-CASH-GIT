@@ -1153,9 +1153,21 @@ function Hud.pastilles(n: number)
 end
 
 local toastN = 0
-function Hud.toast(txt: string, couleur: Color3?)
+-- ico : une icône PIXEL devant le texte (le web pose ses pictos en pixels ; « ✗ » n'existe dans aucune police de Roblox : un carré)
+function Hud.toast(txt: string, couleur: Color3?, ico: string?)
 	toastN += 1
 	local n = toastN
+	if E.toastIco then
+		E.toastIco:Destroy()
+		E.toastIco = nil
+	end
+	if ico then
+		local f = icone(E.toast, ico, 4, couleur or C.texte, UDim2.new(0, 22, 0.5, 0), Vector2.new(0, 0.5))
+		f.ZIndex = 82
+		for _, q in f:GetChildren() do (q :: Frame).ZIndex = 82 end
+		E.toastIco = f
+	end
+	E.toastTxt.Position = UDim2.fromOffset(ico and 40 or 14, 0)
 	E.toastTxt.Text = txt
 	E.toastTxt.TextColor3 = couleur or C.texte
 	E.toast.Visible = true

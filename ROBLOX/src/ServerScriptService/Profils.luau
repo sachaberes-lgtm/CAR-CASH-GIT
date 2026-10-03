@@ -92,11 +92,31 @@ end
 
 local actifs: { [number]: Profil } = {}
 
+-- ⚠ UNE LECTURE RATÉE N'EST PAS UN JOUEUR NEUF. Avant le 3/10, une panne de la sauvegarde à l'arrivée donnait un profil VIDE — et la
+-- première écriture effaçait pour de bon les caisses, l'argent et les réglages du joueur. On essaie trois fois (1 s, 2 s, 4 s) ; si
+-- la sauvegarde ne répond toujours pas, la session joue sur un profil neuf SANS JAMAIS l'écrire (`horsLigne`), et le joueur le sait.
 function Profils.charger(p: Player): Profil
 	local prof = Profils.neuf()
 	if store then
-		local ok, v = pcall(function() return store:GetAsync("p_" .. p.UserId) end)
-		if ok and v ~= nil then prof = sain(v) end
+		local lu, v = false, nil
+		for essai = 1, 4 do
+			local ok, r = pcall(function() return store:GetAsync("p_" .. p.UserId) end)
+			if ok then
+				lu, v = true, r
+				break
+			end
+			-- (dans Studio sans accès aux services en ligne, la lecture échoue TOUJOURS : pas d'essai de plus, pas d'alerte — rien n'y est
+			-- gardé de toute façon)
+			if game:GetService("RunService"):IsStudio() then break end
+			warn("[CashCar] sauvegarde illisible pour " .. p.Name .. " (essai " .. essai .. ") : " .. tostring(r))
+			if essai < 4 then task.wait(2 ^ (essai - 1)) end
+		end
+		if lu and v ~= nil then
+			prof = sain(v)
+		elseif not lu then
+			(prof :: any).horsLigne = true
+			if not game:GetService("RunService"):IsStudio() then p:SetAttribute("SauvegardeKO", true) end
+		end
 	end
 	actifs[p.UserId] = prof
 	return prof
@@ -108,7 +128,7 @@ end
 
 function Profils.sauver(p: Player)
 	local prof = actifs[p.UserId]
-	if not prof or not store then return end
+	if not prof or not store or (prof :: any).horsLigne then return end -- (lecture ratée : on n'écrase rien)
 	local efface = prof.efface
 	prof.efface = nil
 	pcall(function()
@@ -125,6 +145,24 @@ function Profils.sauver(p: Player)
 	end)
 end
 
+-- LES ÉCRITURES SE REGROUPENT : Roblox n'accepte qu'une écriture toutes les 6 s sur une même clé — au-delà il les met en file,
+-- puis les JETTE quand la file est pleine. Un réglage, une astuce vue, le permis, une fin de partie : chacun demandait la sienne.
+-- Ici, une seule écriture au plus toutes les 7 s par joueur ; ce qui arrive entre-temps part avec la suivante (le profil est le même
+-- objet, toujours à jour). Quand le joueur s'en va, `Profils.sauver` écrit tout de suite.
+local enAttente: { [number]: boolean } = {}
+local derniere: { [number]: number } = {}
+function Profils.sauverBientot(p: Player)
+	local id = p.UserId
+	if enAttente[id] then return end
+	enAttente[id] = true
+	task.spawn(function()
+		local attente = 7 - (os.clock() - (derniere[id] or -100))
+		if attente > 0 then task.wait(attente) end
+		enAttente[id] = nil
+		derniere[id] = os.clock()
+		Profils.sauver(p) -- (parti entre-temps : son profil est déjà écrit et oublié, sauver ne fait rien)
+	end)
+end
 function Profils.oublier(p: Player)
 	actifs[p.UserId] = nil
 end

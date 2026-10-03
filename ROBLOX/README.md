@@ -32,6 +32,8 @@ C'est toi qui publies (c'est ton compte Roblox) : Claude ne le fait pas à ta pl
 | En l'air : piquer / cabrer | ↑ / ↓ (ou Z/W, S) | stick gauche haut / bas | pouce gauche haut / bas |
 | Freiner (au sol) | ↓ ou S | L2 ou B | pouce gauche tiré vers le bas |
 | Pause | P | Start | bouton II en bas |
+| Menus | souris | A = JOUER / REJOUER · garage : gâchettes = caisse voisine, A = acheter/équiper, B = retour | doigt |
+| Accueil | clic sur la caisse = un petit coup | — | toucher la caisse = un petit coup |
 
 Le gaz est automatique partout. On sort par le **bord** de la route, on vole (vrilles, piqué, nitro), on se
 pose plus bas : c'est là que le jeu se joue. 6 secondes en l'air maximum.
@@ -205,3 +207,16 @@ ressources Roblox (ton compte) : à voir plus tard.
   n'est chargée que pour les nuages proches (`Nuages.finesseTick`).
 - Budget de triangles : détruire une pièce ne rend rien, c'est son maillage d'origine qu'il faut détruire — `Client/Maillage`
   le fait pour toute pièce bâtie par lui (`Maillage.libre()` donne ce qu'il reste).
+- ⚠ LA MÉMOIRE DES PIÈCES : une pièce posée dans le monde laisse ~1,25 Ko derrière elle à sa destruction (mesuré au banc, même une
+  Part toute simple). Les décors de zone passent donc par `Client/Recyclage` : `Recyclage.part()` / `Recyclage.copie(gabarit)` pour
+  bâtir, et la zone oubliée rend ses pièces marquées (attribut `Rec`) à la réserve au lieu de les détruire.
+- ⚠ LA DISTANCE D'AFFICHAGE : Roblox démarre en qualité graphique basse et n'affiche pas le lointain (sur un téléphone en qualité
+  basse : jamais). Un décor qui doit se voir tient à ~1 000 studs — le titre est une maquette (`Config.CIEL.titreK`).
+- Bancs : `LANGUE=en sh outils/banc.sh` (tout le jeu en anglais), `TACTILE=1` (l'interface du téléphone) ; côté joueur,
+  `client("stats")` (triangles, appels de dessin, mémoire par catégorie), `client("arbre", "monde" | "w:Zone3")` (ce qui vit dans le
+  monde, pièce par pièce), `client("ecran", racine, nom)` (où tombent des pièces à l'écran). `DbgOuvre` = "achat:N" | "achat:oui" |
+  "quitter". Le banc attend `MenuPret` (posé après l'intro du studio) ; `DbgSansIntro` saute l'intro.
+- Les numéros des sons : `outils/remplir-sons.luau` (barre de commande de Studio) remplit `CashCar/SonsIds` ; recopier la liste qu'il
+  écrit dans la Sortie dans `src/ReplicatedStorage/CashCar/SonsIds.luau` pour qu'elle survive à la reconstruction du `.rbxlx`.
+- La sauvegarde : `Profils.sauverBientot` (une écriture au plus toutes les 7 s par joueur) ; une lecture ratée à l'arrivée donne
+  une session `horsLigne` qui n'écrit jamais (elle n'écrase pas la vraie progression).
