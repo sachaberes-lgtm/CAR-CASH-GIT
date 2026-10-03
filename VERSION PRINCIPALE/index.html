@@ -28859,7 +28859,7 @@ function instruPlanifie(){ // regard d'avance de 120 ms : les notes tombent pile
     if(a9>=0&&(mes&3)===3&&a9+12<=88)a9+=12;const arpK=(mes&3)===3?1.45:1;               // 4e mesure : il monte d'une octave (Léo : « plus aigu »)
     const et9=mes>=3;                                                                   // dès la 4e mesure tenue : l'ÉTINCELLE
     if(a9>=0&&BTEST!=='melodie')instruTing(instruHz(a9),t,k%2?.35:-.35,V*arpK*(temps?1:.8));                 // l'arpège : le TING (Léo : « plus en mode ting, l'instrument n'est peut-être pas le bon »)
-    if((k%2===0||INSTRU.acc)&&BTEST!=='arpege'){const m9=instruMelodie(k,tons);if(m9>=0)instruNote(instruHz(m9),t,0,V*(INSTRU.acc?1.25:(k%8===0?1.05:.9)),.5,et9);INSTRU.acc=0;}
+    if(INSTRU_MEL&&(k%2===0||INSTRU.acc)&&BTEST!=='arpege'){const m9=instruMelodie(k,tons);if(m9>=0)instruNote(instruHz(m9),t,0,V*(INSTRU.acc?1.25:(k%8===0?1.05:.9)),.5,et9);INSTRU.acc=0;}
     // (2026-10-03, Léo : « l'arpège crée une résonance grave à la fin, c'est dérangeant ») : plus de basse — le morceau a la sienne
     INSTRU.der=INSTRU.tNote;INSTRU.k++;INSTRU.n++;
     INSTRU.tNote=INSTRU.off!=null&&!INSTRU.essai?instruGrille(INSTRU.tNote+INSTRU.pas*.5):INSTRU.tNote+INSTRU.pas; // la note suivante, SUR la grille du morceau
@@ -28876,6 +28876,7 @@ const INSTRU_TENIR=.22;
    trouvons-la ») : `?boost=` dans l'adresse coupe UNE couche du boost, pour l'isoler à l'oreille :
    sans (pas de phrase) · arpege (l'arpège seul) · melodie (la mélodie seule) · feu0 (la flamme du nitro muette : grondement, pops,
    turbo) · nitrooo0 (les sons de NITROOO muets). */
+const INSTRU_MEL=false; // (2026-10-03, Léo : « j'aime que la partie qui fait ding ding ding ; il y en a une autre, assourdissante, qui ne colle pas à la musique, retire-la ») : la MÉLODIE (Rhodes dans la salle, puis étincelle) est retirée — il ne reste que le TING de l'arpège
 const BTEST=(function(){try{return new URLSearchParams(location.search).get('boost')||'';}catch(e){return '';}})();
 function instruOn(){
   if(!INSTRU.on||!AC||!SND.sfx||(AC.state!=='running'&&!INSTRU.essai)||paused||(startBoostT>0&&!INSTRU.essai))return; // pendant le boost de départ : rien, même si le doigt est sur NITRO
