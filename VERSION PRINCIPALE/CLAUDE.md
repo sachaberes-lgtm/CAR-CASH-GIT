@@ -44,6 +44,24 @@
   `dbgPhoto` dans une scène à part), et le VRAI parcours menu → GARAGE → ÉPIQUES → vignette → JOUER, couché, debout, cadre de l'ordi.
 - sw.js → v54.
 
+## L'ATELIER DES NUAGES — `?nuages=1` (2026-10-03, copie de test de Léo — Léo : « Sacha et moi on va bosser sur les nuages : une copie du nouveau menu, sans jeu, on va s'attarder sur le peaufinement de la scène et du réalisme des nuages »)
+- `…/jouer/?nuages=1` : l'écran titre TEL QUEL (même scène, mêmes cumulus v8 `CHUTE_NU`, même ciel `BIOMES.titre`), sans l'intro « 1.61 »,
+  sans les boutons (`html.labNuages` : #overlay invisible et INTOUCHABLE jusque dans ses `[data-m]` — mais toujours en place : `menuCadre`
+  cadre la caisse sur eux), sans départ (Entrée/Espace/Échap avalés), sans mise à jour automatique (elle rechargerait en plein réglage).
+  L'orbite au doigt marche (glisser sur l'image). Sans le paramètre, RIEN de tout ça n'existe (`NUAGES_LAB`, juste après `chuteFormes`).
+- Le PANNEAU = `atelier-nuages.js` (fichier à part, jamais chargé par le jeu normal) : sur l'ordi la page-cadre le pose à DROITE du
+  téléphone (`--labPW`, `cadre()` lui laisse la place) et pilote la colonne (même origine) ; sur un téléphone (pas de cadre) le jeu le
+  charge lui-même, par-dessus l'image, derrière un bouton REGLAGES. Il ne passe QUE par `window.ccNuages` : `regle` (= dbgChute : CHUTE_P),
+  `amb` (= dbgAmb('titre')), `formes({graine,fin,K,det,fq})` (refait les 5 gabarits du titre : graine 0xC4A5 + fin 0 + N8_OPT d'origine =
+  les nuages du menu), `vue`, `boutons`, `photo` (PNG lu dans l'image du rendu), `etat`, `defauts`.
+- Réglages exposés : lumière de la ouate (CHUTE_P.K blancheur/soleil/liseré/vapeur, R ombre début/fin/clarté), forme (N8_OPT.K/det/fq,
+  précision de surface, NOUVEAUX NUAGES), soleil et ciel (az, sunI, sunC, hemiI, jZen/jMid/jHor, expo, sat, vigK), brume et mer (fog,
+  fogN/fogF, mzA), scène (vit, la voiture, les cumulus, les boutons). Gardés dans le navigateur (`ccNuagesLab1`) ; COPIER LES REGLAGES
+  donne le texte à recopier dans le code (noms du code : CHUTE_P / BIOMES.titre / N8_OPT / graine).
+- ⚠ N8_OPT est GLOBAL : dans l'atelier il change aussi la forme des nuages de la course si on la refait — sans effet tant qu'on reste au titre.
+- Banc : `lab.mjs <nom> W H` (scratchpad de la session 83e03bdc) — prêt, réglages, nouveaux nuages, photo, copier, tap sur JOUER invisible,
+  Entrée, rechargement, tout remettre ; ordi, téléphone couché et debout : 0 erreur.
+
 ## LE DRAGON DE PAPIER (v7) + LA DARK TRIAD EN NOIR (2026-10-01, session GAMEPLAY, GRAPHISME et SON ont passé la main) — Sacha : « il faut que le dragon nitro ait un peu un aspect "papier", comme un vrai dragon chinois en papier ; il doit donc beaucoup réagir au vent et à la vitesse — retravaille ça très bien ; aussi, en dark triad, le dragon, les dauphins et le snake doivent être noirs »
 - **LES FEUILLES** (canevas peints une fois, mêmes matières et mêmes programmes) : `DRG_TEX` (le corps) n'est plus une laque brillante à écailles
   en fil d'or mais un LAMPION — papier vermillon MAT, PLIS d'accordéon (arête claire, creux, soufflet), ÉCAILLES de papier découpé (festons

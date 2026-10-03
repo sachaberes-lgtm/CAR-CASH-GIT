@@ -86,14 +86,20 @@ const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(/[?&]menu=leo\
        cadre dessine l'écran arrondi + l'encoche, par-dessus l'image comme sur le vrai. `?encoche=0` = sans. */
     var en=null;if(ENC){en=document.createElement('div');en.id='encoche';tel.appendChild(en);
       document.documentElement.classList.add('encoche');}
+    /* L'ATELIER DES NUAGES (?nuages=1, voir NUAGES_LAB dans le jeu) : le téléphone à gauche, le panneau de réglages à droite (fenêtre
+       étroite : par-dessus, derrière un bouton). Le panneau pilote le jeu de la colonne (même origine : il appelle ses fonctions). */
+    var LAB=/[?&]nuages=1\b/.test(q);
+    if(LAB){document.documentElement.classList.add('labNuages');window.CC_LAB_JEU=function(){return f.contentWindow;};
+      var sc=document.createElement('script');sc.src='atelier-nuages.js?v='+CC_BUILD;document.head.appendChild(sc);}
     var TEL_B=en?11:0; // la lunette du 13 Pro ≈ 11 pt de chaque côté de l'écran (sans encoche : l'écran nu, comme avant)
     var cadre=function(){
       // de l'air autour du boîtier ; en bas la place du bouton TOURNER et du numéro de version
-      var mx=Math.max(16,innerWidth*.025),mh=Math.max(14,innerHeight*.03),mb=Math.max(mh,40),
-        z=Math.max(.5,Math.min((innerHeight-mh-mb)/(H+2*TEL_B),(innerWidth-2*mx)/(L+2*TEL_B))),b=TEL_B*z,
+      var PW=LAB&&innerWidth>=900?Math.min(360,Math.max(300,innerWidth*.26)):0,LW=innerWidth-PW; // (atelier des nuages) le panneau à droite
+      var mx=Math.max(16,LW*.025),mh=Math.max(14,innerHeight*.03),mb=Math.max(mh,40),
+        z=Math.max(.5,Math.min((innerHeight-mh-mb)/(H+2*TEL_B),(LW-2*mx)/(L+2*TEL_B))),b=TEL_B*z,
         w=(L+2*TEL_B)*z,h=(H+2*TEL_B)*z,ts=tel.style;
-      f.style.zoom=z.toFixed(4);
-      ts.width=w+'px';ts.height=h+'px';ts.padding=b+'px';ts.left=((innerWidth-w)/2)+'px';ts.top=(mh+(innerHeight-mh-mb-h)/2)+'px';
+      f.style.zoom=z.toFixed(4);document.documentElement.style.setProperty('--labPW',PW+'px');
+      ts.width=w+'px';ts.height=h+'px';ts.padding=b+'px';ts.left=((LW-w)/2)+'px';ts.top=(mh+(innerHeight-mh-mb-h)/2)+'px';
       ts.borderRadius=en?((47+TEL_B)*z)+'px':'0'; // (?encoche=0 : l'écran nu, à angles droits, comme avant)
       if(!en)return;var lo=154*z,ep=31*z,ro=(9*z)+'px',s=en.style; // l'encoche du 13 Pro ≈ 154 × 31 pt, coins de 9 pt, et ses deux « oreilles » (::before/::after)
       s.setProperty('--or',(6*z)+'px');
@@ -128,7 +134,7 @@ html.colonne,html.colonne body{height:100%;margin:0;overflow:hidden;background:#
 html.colonne body{display:flex;align-items:center;justify-content:center;
   background:radial-gradient(ellipse 70% 42% at 50% 50%,#241a4a 0,#120c2a 48%,#07050f 100%)}
 html.colonne.debout body{background:radial-gradient(ellipse 42% 70% at 50% 50%,#241a4a 0,#120c2a 48%,#07050f 100%)}
-html.colonne body>*:not(#tel):not(#tourne):not(#ccVer){display:none!important}
+html.colonne body>*:not(#tel):not(#tourne):not(#ccVer):not(#labNu):not(#labNuBtn){display:none!important}
 html.colonne #ccVer{position:fixed;left:14px;bottom:10px;z-index:9;font:600 10px/1 system-ui,-apple-system,sans-serif;letter-spacing:1px;color:rgba(255,255,255,.38);pointer-events:none}
 /* le BOÎTIER (#tel, posé en px par le script) : la lunette noire, le cerclage d'acier, l'ombre et le halo néon du jeu ;
    l'écran du 13 Pro dedans : coins de 47 pt (le zoom du cadre les agrandit avec lui) ; l'encoche dans la lunette, par-dessus l'image */
@@ -147,6 +153,8 @@ html.colonne #tourne{position:fixed;right:16px;bottom:16px;z-index:9;font:700 12
 html.colonne #tourne:hover{opacity:1}
 /* couché, le cadre prend toute la largeur : le bouton se range au milieu du bas, là où le jeu n'a rien */
 html.colonne:not(.debout) #tourne{right:auto;left:50%;bottom:8px;transform:translateX(-50%);padding:7px 12px;font-size:10px;opacity:.6}
+html.colonne.labNuages:not(.debout) #tourne{left:calc((100% - var(--labPW,0px))/2)} /* (atelier des nuages) sous le téléphone, pas sous le panneau */
+html.colonne.labNuages.debout #tourne{right:calc(var(--labPW,0px) + 16px)}
 html.colonne #colonne{display:block;flex:none;border:0;background:#07050f}
 </style>
 <style>
@@ -155,6 +163,11 @@ html.colonne #colonne{display:block;flex:none;border:0;background:#07050f}
 /* L'ENCOCHE DANS LA COLONNE DE L'ORDI (2026-10-01, voir le <head>) : les zones sûres de l'iPhone 13 Pro de Sacha. Toutes les
    marges du jeu lisent var(--ccX, env(safe-area-inset-X)) : un vrai téléphone ne pose pas --ccX et garde les siennes. */
 html.telCadre{--ccT:0px;--ccB:21px;--ccL:47px;--ccR:47px}
+/* L'ATELIER DES NUAGES (?nuages=1) : l'interface du menu reste EN PLACE (la caisse se cadre sur elle) mais invisible et intouchable */
+html.labNuages #overlay{opacity:0!important;transition:opacity .25s}
+html.labNuages #overlay,html.labNuages #overlay *{pointer-events:none!important} /* ⚠ les [data-m] de l'accueil reprennent le doigt d'eux-mêmes : on les éteint UN PAR UN (sans ça, un JOUER invisible lançait la partie) */
+html.labNuages.labBoutons #overlay{opacity:1!important}
+html.labNuages #tSet,html.labNuages #tGear{display:none!important}
 #mSet p.ccVer{margin:14px 0 2px;text-align:center;font:600 11px/1.3 var(--sans,system-ui,sans-serif);letter-spacing:1px;color:var(--tx3,#9a90c8);opacity:.8;max-width:none} /* le numéro de version (LA MISE À JOUR TOUTE SEULE) */
 @media (orientation:portrait){html.telCadre{--ccT:47px;--ccB:34px;--ccL:0px;--ccR:0px}}
   html,body{margin:0;padding:0;overflow:hidden;background:#07050f;font-family:var(--pix);user-select:none} /* (2026-09-29) #07050f, l'encre des écrans : plus de flash blanc entre l'écran natif et le jeu */
@@ -35436,6 +35449,42 @@ function chuteCumulus(){
   CHUTE.nu=N;
 }
 try{if(CHUTE_OK)chuteFormes();}catch(e){} /* (titre v3) au chargement : les formes du titre passent AVANT celles du ciel de coton dans la file de l'ouvrier */
+/* L'ATELIER DES NUAGES (2026-10-03, Léo : « Sacha et moi on va bosser sur les nuages — fais-moi une copie du nouveau menu, sans jeu :
+   on va s'attarder sur le peaufinement de la scène et du réalisme des nuages »). `?nuages=1` dans l'adresse : l'écran titre TEL QUEL (la
+   même scène, les mêmes cumulus v8, le même ciel), sans les boutons (invisibles mais toujours là : la caisse garde la place qu'ils lui
+   laissent), sans départ possible (Entrée, Espace, Échap avalés), sans l'intro « 1.61 » ni la mise à jour automatique (elle rechargerait
+   la page en plein réglage). Le panneau (`atelier-nuages.js`, à côté du téléphone sur l'ordi, par-dessus l'image sur un téléphone) pilote
+   tout par `window.ccNuages` — les MÊMES réglages que le jeu (CHUTE_P, N8_OPT, BIOMES.titre) : ce qui est trouvé au panneau se recopie
+   tel quel dans le code. Sans ce paramètre, rien de tout ça n'existe. */
+const NUAGES_LAB=/[?&]nuages=1\b/.test(location.search);
+if(NUAGES_LAB){
+  document.documentElement.classList.add('labNuages');
+  CHUTE_P.caisse=1;
+  window.ccNuages={P:CHUTE_P,N8:N8_OPT,titre:function(){return BIOMES.titre;},
+    defauts:{P:JSON.parse(JSON.stringify(CHUTE_P)),N8:Object.assign({},N8_OPT),titre:JSON.parse(JSON.stringify(BIOMES.titre))},
+    regle:function(o){return dbgChute(o);},
+    amb:function(o){return dbgAmb('titre',o);},
+    vue:function(a,p){CHUTE.oAc=a||0;CHUTE.oPc=p||0;CHUTE.oW=0;},
+    boutons:function(on){document.documentElement.classList.toggle('labBoutons',!!on);},
+    pret:function(){return !!(CHUTE.on&&CHUTE.geo&&CHUTE.geo.every(function(e){return !!e.g;}));},
+    /* LES FORMES DU TITRE REFAITES : une autre graine (d'autres nuages), d'autres réglages du champ (N8_OPT), une autre finesse de
+       surface (cellules ; 0 = celles du menu). La graine 0xC4A5 + finesse 0 + N8_OPT d'origine = les nuages du menu, au sommet près. */
+    formes:function(o){o=o||{};if(!NUAGE8||!CHUTE.geo)return null;
+      for(const k of ['K','det','fq'])if(o[k]!=null&&isFinite(+o[k]))N8_OPT[k]=+o[k];
+      const graine=(o.graine>>>0)||0xC4A5,fin=Math.max(0,Math.min(64,+o.fin||0)),rg=mulberry32(graine);
+      [['mediocris',3],['humilis',3],['humilis',2],['mediocris',2],['congestus',3]].forEach(function(q,i){const e=CHUTE.geo[i];if(!e)return;
+        const S=cumulus8(q[0],rg);S.seed=Math.floor(rg()*997);const dyU=-(S.base+S.top)*.5,tok=e.tok=(e.tok|0)+1;
+        nuage8Async(S,fin||N8_FIN[q[1]],function(r9){if(e.tok!==tok)return;const g2=cotonBuf(r9);g2.translate(0,dyU,0);g2.computeBoundingSphere();
+          const vieux=e.g;e.g=g2;if(CHUTE.nu)for(const c of CHUTE.nu)if(c.e===e)c.m.geometry=g2;if(vieux&&vieux!==g2)vieux.dispose();});});
+      return {graine:graine,fin:fin,N8:Object.assign({},N8_OPT)};},
+    photo:function(){return new Promise(function(ok){requestAnimationFrame(function(){requestAnimationFrame(function(){ // lue dans la même image que le rendu
+      try{ok(renderer.domElement.toDataURL('image/png'));}catch(e){ok(null);}});});});},
+    etat:function(){return {tris:CHUTE.nu?CHUTE.nu.reduce(function(a,c){return a+(c.m.visible&&c.m.geometry.index?c.m.geometry.index.count/3:0);},0):0,
+      nuages:CHUTE.nu?CHUTE.nu.filter(function(c){return c.m.visible;}).length:0,orb:[CHUTE.oA,CHUTE.oP]};}};
+  addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '||e.key==='Escape'){e.stopImmediatePropagation();e.preventDefault();}},true); // sans jeu
+  if(window.top===window)addEventListener('DOMContentLoaded',function(){ // pas de page-cadre (téléphone, ?colonne=0) : le panneau se pose par-dessus l'image
+    window.CC_LAB_JEU=function(){return window;};const sc=document.createElement('script');sc.src='atelier-nuages.js?v='+CC_BUILD;document.head.appendChild(sc);});
+}
 function chuteMonte(){ // les bancs de nuage et les filets de vent (une fois)
   chuteCumulus();
   const tex=chuteNuageTex(),W=[];
@@ -35528,7 +35577,7 @@ function chuteRender(dt){
   const cr=Math.cos(ro),sr=Math.sin(ro);const ux=up.x*cr+sd.x*sr,uy=up.y*cr+sd.y*sr,uz=up.z*cr+sd.z*sr;up.set(ux,uy,uz);sd.crossVectors(up,f).normalize();
   CHUTE.m.makeBasis(sd,up,f);carGroup.quaternion.setFromRotationMatrix(CHUTE.m);
   const sp=CARS[garageI]||CARS[0],sc=P.echelle;carGroup.scale.set(sc,sc,sc);
-  carGroup.position.copy(C).addScaledVector(up,-.45*sc);carGroup.visible=true;   // (le centre de la caisse, pas ses roues, sur l'ancre)
+  carGroup.position.copy(C).addScaledVector(up,-.45*sc);carGroup.visible=P.caisse!==0; /* (atelier des nuages) P.caisse = 0 : les nuages seuls */   // (le centre de la caisse, pas ses roues, sur l'ancre)
   for(const w of wheels)w.rotation.x+=dt*(7+u*30);for(const e of ESSIEUX)e.rotation.x+=dt*(7+u*30); // les roues tournent dans le vide
   // LA CAMÉRA : dans l'axe de la route, un peu au-dessus, la caisse dans la place libre (menuCadre)
   const Cd=menuCadre(),R9=.5*Math.hypot(sp.l||4.2,sp.w||1.9,(sp.h||.8)+.6)*sc,fov0=G?44+26*u*u:44;
@@ -38437,6 +38486,7 @@ renderLeaders(-1);
   T9(function(){if(!launched&&!done){
     const n=document.getElementById('spNote');if(n)n.classList.add('on');
   }},900);
+  if(NUAGES_LAB)T9(hide,80); // (atelier des nuages) droit à l'écran titre, sans l'intro ni son clic
   // ---- SOUND DESIGN « 1.61 » : tout est accordé sur le NOMBRE D'OR φ=1,618 ----
   // Échelle inouïe (intervalles de φ : ni octaves ni quintes — le son littéral de 1.61),
   // compteuse à billets en guise de riser, sub qui bat à 0,618 Hz, jackpot de pièces à la fission.
@@ -39435,7 +39485,7 @@ if('serviceWorker'in navigator&&!window.Capacitor&&(location.protocol==='http:'|
    Copie locale / file:// / appli Capacitor : rien. Le numéro se lit en bas des RÉGLAGES (et sous le jeu sur l'ordi). */
 (function(){
   var e=document.getElementById('mvVer');if(e)e.textContent='VERSION '+CC_VER;
-  if(/^__/.test(CC_BUILD)||window.Capacitor||!(location.protocol==='http:'||location.protocol==='https:'))return;
+  if(/^__/.test(CC_BUILD)||window.Capacitor||!(location.protocol==='http:'||location.protocol==='https:')||NUAGES_LAB)return; // (l'atelier des nuages ne se recharge pas en plein réglage)
   var neuf=null,vu=0;
   function sur(){return(!started||gameOver)&&!document.hidden&&!(typeof GAR!=='undefined'&&GAR.go);}
   function recharge(){
