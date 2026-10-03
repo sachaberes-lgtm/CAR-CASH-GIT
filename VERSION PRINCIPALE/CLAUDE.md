@@ -44,6 +44,52 @@
   `dbgPhoto` dans une scène à part), et le VRAI parcours menu → GARAGE → ÉPIQUES → vignette → JOUER, couché, debout, cadre de l'ordi.
 - sw.js → v54.
 
+## L'ÉCRAN TITRE : REGARD HORIZONTAL, LA CAISSE QU'ON TAPOTE, SON MODELÉ (2026-10-03, copie de test de Léo, versée sur main le soir même — « bloque le point de vue à ce niveau vertical, horizontal seulement ; on peut tapoter la voiture et simuler à l'endroit tapoté un coup qui la pousse / pivote en train de tomber ; travaille encore plus en profondeur le shading de la caisse, sans faire trop »)
+- L'ORBITE AU DOIGT est HORIZONTALE : le glissé ne touche plus `CHUTE.oPc`.
+- LA HAUTEUR DU REGARD (même jour, Léo, deux captures : « voici le point de vue vertical souhaité ») : presque à niveau. Couché
+  `elev` −0,08 (un rien SOUS la caisse : l'horizon juste sous le milieu de l'image, on voit son dessous), debout `elevP` +0,06 (l'horizon
+  vers 40 %) — une seule valeur ne collait pas aux deux captures. Banc `elev.mjs` (planches à plusieurs hauteurs à côté des captures).
+- `chuteTape(e)` (le tap au ciel, branché dans le pointerup à la place de garageImpact quand `CHUTE.on`) : rayon caméra → la 1re pièce
+  VISIBLE et opaque de la caisse ; poussée dans le sens du rayon + couple r × F autour du CENTRE de la caisse (pas de son origine, au ras
+  des roues) ; `chuteTapeTick` : deux ressorts amortis (CHUTE_TAP K/C, KR/CR) la ramènent en deux-trois balancements ; éclat additif au
+  point touché, `sfx('garage.tole')`, `hap`. `dbgTape()` = coups, poussée (m), pivot (°). Rien pendant le piqué du JOUER.
+- `chuteStudio` (P.studio = 1) — le MODELÉ : l'ambiance (`hemi.intensity × amb`) et le soleil (`sun.intensity × sol`) baissés au titre (les
+  nuages ne lisent que leurs COULEURS), une clé haute (`sk`, `kh`), un zénith froid léger (`sc`), le contre-jour (`sr`). Les lampes
+  empruntées (carLight, trailLight) et hemi/sun sont rendues par chuteSort. `P.fige` fige l'instant (planches A/B, banc studio.mjs).
+  Réglable dans l'atelier des nuages, section LA VOITURE.
+
+## L'ATELIER DES NUAGES — `?nuages=1` (2026-10-03, copie de test de Léo, versée sur main le soir même — Léo : « Sacha et moi on va bosser sur les nuages : une copie du nouveau menu, sans jeu, on va s'attarder sur le peaufinement de la scène et du réalisme des nuages »)
+- `…/jouer/?nuages=1` : l'écran titre TEL QUEL (même scène, mêmes cumulus v8 `CHUTE_NU`, même ciel `BIOMES.titre`), sans l'intro « 1.61 »,
+  sans les boutons (`html.labNuages` : #overlay invisible et INTOUCHABLE jusque dans ses `[data-m]` — mais toujours en place : `menuCadre`
+  cadre la caisse sur eux), sans départ (Entrée/Espace/Échap avalés), sans mise à jour automatique (elle rechargerait en plein réglage).
+  L'orbite au doigt marche (glisser sur l'image). Sans le paramètre, RIEN de tout ça n'existe (`NUAGES_LAB`, juste après `chuteFormes`).
+- Le PANNEAU = `atelier-nuages.js` (fichier à part, jamais chargé par le jeu normal) : sur l'ordi la page-cadre le pose à DROITE du
+  téléphone (`--labPW`, `cadre()` lui laisse la place) et pilote la colonne (même origine) ; sur un téléphone (pas de cadre) le jeu le
+  charge lui-même, par-dessus l'image, derrière un bouton REGLAGES. Il ne passe QUE par `window.ccNuages` : `regle` (= dbgChute : CHUTE_P),
+  `amb` (= dbgAmb('titre')), `formes({graine,fin,K,det,fq})` (refait les 5 gabarits du titre : graine 0xC4A5 + fin 0 + N8_OPT d'origine =
+  les nuages du menu), `vue`, `boutons`, `photo` (PNG lu dans l'image du rendu), `etat`, `defauts`.
+- Réglages exposés : lumière de la ouate (CHUTE_P.K blancheur/soleil/liseré/vapeur, R ombre début/fin/clarté), forme (N8_OPT.K/det/fq,
+  précision de surface, NOUVEAUX NUAGES), soleil et ciel (az, sunI, sunC, hemiI, jZen/jMid/jHor, expo, sat, vigK), brume et mer (fog,
+  fogN/fogF, mzA), scène (vit, la voiture, les cumulus, les boutons). Gardés dans le navigateur (`ccNuagesLab1`) ; COPIER LES REGLAGES
+  donne le texte à recopier dans le code (noms du code : CHUTE_P / BIOMES.titre / N8_OPT / graine).
+- ⚠ (même jour, Léo : « aucune me plaît, pourquoi le menu du début est mal placé ») TROIS CORRECTIONS sur la copie de test :
+  · la mer de nuages était NOIRE au menu et en course : `new THREE.Vector4()` vaut (0,0,0,**1**) — les trois couleurs forcées étaient à
+    part pleine, en noir. Écrire (0,0,0,0). ⚠ Un banc qui ne lit que les erreurs ne voit pas ça : regarder l'IMAGE.
+  · sans la forme de l'iPhone, l'écran nu perdait aussi ses MARGES (boutons collés au bord) : `telCadre` est posé dès `colonne=1` (sauf
+    `?encoche=0`) — la forme (boîtier, encoche) suit `ENCOCHE_DEFAUT`, la disposition reste celle du téléphone de Sacha ;
+  · le cadre VÉRIFIE au chargement que le jeu voit bien 844 × 390 : sinon (un navigateur qui n'applique pas le `zoom` au contenu de
+    l'iframe — Safari ? pas de banc ici) il passe en `transform: scale` (`MODE`, `?cadre=scale` pour le forcer). Banc `clicjouer.mjs`
+    (vrai clic souris sur JOUER, zoom et scale, couché et debout) : la course part.
+- **LE CIEL EN BAS** (même jour, Léo : « ajoute une fonction pour altérer le ciel en bas ») = la mer de nuages du dôme (`merZ`) et les deux
+  voiles du menu. Forme : `CHUTE_P.mzA` (bosses) et `mzB` (trous, fermeture au loin, creux, trous encre → azur), `merLoin` (fondu au loin).
+  Couleurs : trois uniforms NEUFS de `skyU`, `uMzT` / `uMzO` / `uMzH` (trous, ombres, dessus des bosses : rgb + part w) — w = 0 partout
+  hors de l'atelier : la mer d'avant au bit près ; posés par chuteRender depuis `CHUTE_P.mzT/mzO/mzH`, rendus par chuteSort (`CHUTE.mz`).
+  Les voiles : `#overlay::after` (azur haut/bas de l'écran titre) et `#garage.menu.ciel::after` (bandeau des boutons) — l'atelier ne
+  masque plus que les ENFANTS de #overlay (le voile reste : le bas de l'image est celui du menu) ; `ccNuages.voile(1|2, 0..1)`.
+- ⚠ N8_OPT est GLOBAL : dans l'atelier il change aussi la forme des nuages de la course si on la refait — sans effet tant qu'on reste au titre.
+- Banc : `lab.mjs <nom> W H` (scratchpad de la session 83e03bdc) — prêt, réglages, nouveaux nuages, photo, copier, tap sur JOUER invisible,
+  Entrée, rechargement, tout remettre ; ordi, téléphone couché et debout : 0 erreur.
+
 ## LE DRAGON DE PAPIER (v7) + LA DARK TRIAD EN NOIR (2026-10-01, session GAMEPLAY, GRAPHISME et SON ont passé la main) — Sacha : « il faut que le dragon nitro ait un peu un aspect "papier", comme un vrai dragon chinois en papier ; il doit donc beaucoup réagir au vent et à la vitesse — retravaille ça très bien ; aussi, en dark triad, le dragon, les dauphins et le snake doivent être noirs »
 - **LES FEUILLES** (canevas peints une fois, mêmes matières et mêmes programmes) : `DRG_TEX` (le corps) n'est plus une laque brillante à écailles
   en fil d'or mais un LAMPION — papier vermillon MAT, PLIS d'accordéon (arête claire, creux, soufflet), ÉCAILLES de papier découpé (festons

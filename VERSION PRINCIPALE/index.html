@@ -48,8 +48,13 @@ const CC_BUILD='__CC_BUILD__';
 const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(/[?&]menu=leo\b/.test(location.search)?' · MENU LEO':'')+(/[?&]chute=0\b/.test(location.search)?' · SANS CIEL':'');
 (function(){
   var q=location.search,M=window.matchMedia;
+  /* L'ÉCRAN NU PAR DÉFAUT (2026-10-01, copie de test de Léo : « je préfère le point de vue de la 1re image » = sans la forme de
+     l'iPhone) : sur l'ordi, l'écran du téléphone est un rectangle simple, sans boîtier, sans encoche ni coins arrondis, et le jeu ne
+     garde pas les marges de l'encoche. `ENCOCHE_DEFAUT=true` rend le boîtier du 13 Pro par défaut ; dans l'adresse, `?encoche=1` /
+     `?encoche=0` forcent l'un ou l'autre. Un vrai téléphone n'est jamais concerné (pas de cadre). */
+  var ENCOCHE_DEFAUT=false,ENC=/[?&]encoche=1\b/.test(q)||(ENCOCHE_DEFAUT&&!/[?&]encoche=0\b/.test(q));
   if(window.top!==window){ // DANS la colonne : les touches frappées pendant que la page-cadre avait le focus arrivent par message
-    if(/[?&]colonne=1\b/.test(q)&&!/[?&]encoche=0\b/.test(q))document.documentElement.classList.add('telCadre'); // les marges de l'iPhone de référence (voir « L'ENCOCHE »)
+    if(/[?&]colonne=1\b/.test(q)&&!/[?&]encoche=0\b/.test(q))document.documentElement.classList.add('telCadre'); // les MARGES de l'iPhone restent, même sans en dessiner la forme : les boutons à la même place que sur le téléphone de Sacha (`?encoche=0` : sans marges) // les marges de l'iPhone de référence (voir « L'ENCOCHE »)
     addEventListener('message',function(e){var d=e.data;if(e.source!==window.parent||!d||d.cc!=='touche')return;
       try{document.dispatchEvent(new KeyboardEvent(d.t,{key:d.key,code:d.code,repeat:!!d.rep,bubbles:true,cancelable:true}));}catch(_){}});
     return;}
@@ -79,22 +84,37 @@ const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(/[?&]menu=leo\
        MARGES. iOS rentre l'interface de 47 px de chaque côté couché (21 en bas ; debout 47 en haut, 34 en bas) : dans la
        colonne, `html.telCadre` pose ces marges (--ccT/B/L/R, lues à la place de env(safe-area-inset-*) partout), et la page-
        cadre dessine l'écran arrondi + l'encoche, par-dessus l'image comme sur le vrai. `?encoche=0` = sans. */
-    var en=null;if(!/[?&]encoche=0\b/.test(q)){en=document.createElement('div');en.id='encoche';tel.appendChild(en);
+    var en=null;if(ENC){en=document.createElement('div');en.id='encoche';tel.appendChild(en);
       document.documentElement.classList.add('encoche');}
+    /* L'ATELIER DES NUAGES (?nuages=1, voir NUAGES_LAB dans le jeu) : le téléphone à gauche, le panneau de réglages à droite (fenêtre
+       étroite : par-dessus, derrière un bouton). Le panneau pilote le jeu de la colonne (même origine : il appelle ses fonctions). */
+    var LAB=/[?&]nuages=1\b/.test(q);
+    if(LAB){document.documentElement.classList.add('labNuages');window.CC_LAB_JEU=function(){return f.contentWindow;};
+      var sc=document.createElement('script');sc.src='atelier-nuages.js?v='+CC_BUILD;document.head.appendChild(sc);}
+    var MODE=/[?&]cadre=scale\b/.test(q)?'scale':'zoom'; // voir « LE ZOOM NE PASSE PAS PARTOUT » plus bas
     var TEL_B=en?11:0; // la lunette du 13 Pro ≈ 11 pt de chaque côté de l'écran (sans encoche : l'écran nu, comme avant)
     var cadre=function(){
       // de l'air autour du boîtier ; en bas la place du bouton TOURNER et du numéro de version
-      var mx=Math.max(16,innerWidth*.025),mh=Math.max(14,innerHeight*.03),mb=Math.max(mh,40),
-        z=Math.max(.5,Math.min((innerHeight-mh-mb)/(H+2*TEL_B),(innerWidth-2*mx)/(L+2*TEL_B))),b=TEL_B*z,
+      var PW=LAB&&innerWidth>=900?Math.min(360,Math.max(300,innerWidth*.26)):0,LW=innerWidth-PW; // (atelier des nuages) le panneau à droite
+      var mx=Math.max(16,LW*.025),mh=Math.max(14,innerHeight*.03),mb=Math.max(mh,40),
+        z=Math.max(.5,Math.min((innerHeight-mh-mb)/(H+2*TEL_B),(LW-2*mx)/(L+2*TEL_B))),b=TEL_B*z,
         w=(L+2*TEL_B)*z,h=(H+2*TEL_B)*z,ts=tel.style;
-      f.style.zoom=z.toFixed(4);
-      ts.width=w+'px';ts.height=h+'px';ts.padding=b+'px';ts.left=((innerWidth-w)/2)+'px';ts.top=(mh+(innerHeight-mh-mb-h)/2)+'px';
+      if(MODE==='zoom'){f.style.transform='';f.style.zoom=z.toFixed(4);}else{f.style.zoom='';f.style.transformOrigin='0 0';f.style.transform='scale('+z.toFixed(4)+')';}
+      document.documentElement.style.setProperty('--labPW',PW+'px');
+      ts.width=w+'px';ts.height=h+'px';ts.padding=b+'px';ts.left=((LW-w)/2)+'px';ts.top=(mh+(innerHeight-mh-mb-h)/2)+'px';
       ts.borderRadius=en?((47+TEL_B)*z)+'px':'0'; // (?encoche=0 : l'écran nu, à angles droits, comme avant)
       if(!en)return;var lo=154*z,ep=31*z,ro=(9*z)+'px',s=en.style; // l'encoche du 13 Pro ≈ 154 × 31 pt, coins de 9 pt, et ses deux « oreilles » (::before/::after)
       s.setProperty('--or',(6*z)+'px');
       if(debout){s.width=lo+'px';s.height=ep+'px';s.left=(b+(L*z-lo)/2)+'px';s.top=b+'px';s.borderRadius='0 0 '+ro+' '+ro;}
       else{s.width=ep+'px';s.height=lo+'px';s.left=b+'px';s.top=(b+(H*z-lo)/2)+'px';s.borderRadius='0 '+ro+' '+ro+' 0';}};
     cadre();addEventListener('resize',cadre);
+    /* (2026-10-03, Léo : « pourquoi le menu du début est mal placé », sur ses deux liens) LE ZOOM NE PASSE PAS PARTOUT : Chrome applique le
+       `zoom` de l'iframe à son contenu (le jeu s'y croit dans un écran de 844 × 390, en haute définition) ; un navigateur qui ne le fait
+       pas (Safari ? Firefox ? — pas de banc pour eux ici) donne au jeu un écran de 1 400 px de large : le menu passe en disposition
+       « grand écran », boutons petits en bas, caisse à droite. On VÉRIFIE au chargement ce que voit le jeu ; si ce n'est pas 844 × 390,
+       on bascule sur une mise à l'échelle (transform) qui marche partout (image un peu moins fine). `?cadre=scale` la force (banc). */
+    f.addEventListener('load',function(){try{var iw=f.contentWindow.innerWidth,ih=f.contentWindow.innerHeight;
+      if(MODE==='zoom'&&(Math.abs(iw-L)>3||Math.abs(ih-H)>3)){MODE='scale';cadre();}}catch(_){}});
     /* LE BOUTON TOURNER (2026-09-30, Léo : « ajoute une option où je peux regarder en mode portrait » — repris de sa branche
        `version-leolei-2026`, 26/09) : le téléphone passe COUCHÉ ⇄ DEBOUT sans recharger — le jeu, dans la colonne, ne reçoit qu'un
        resize (fovFit, HUD, garage suivent seuls), on peut tourner en pleine course. L'adresse garde le choix (`?colonne=portrait`). */
@@ -123,7 +143,7 @@ html.colonne,html.colonne body{height:100%;margin:0;overflow:hidden;background:#
 html.colonne body{display:flex;align-items:center;justify-content:center;
   background:radial-gradient(ellipse 70% 42% at 50% 50%,#241a4a 0,#120c2a 48%,#07050f 100%)}
 html.colonne.debout body{background:radial-gradient(ellipse 42% 70% at 50% 50%,#241a4a 0,#120c2a 48%,#07050f 100%)}
-html.colonne body>*:not(#tel):not(#tourne):not(#ccVer){display:none!important}
+html.colonne body>*:not(#tel):not(#tourne):not(#ccVer):not(#labNu):not(#labNuBtn){display:none!important}
 html.colonne #ccVer{position:fixed;left:14px;bottom:10px;z-index:9;font:600 10px/1 system-ui,-apple-system,sans-serif;letter-spacing:1px;color:rgba(255,255,255,.38);pointer-events:none}
 /* le BOÎTIER (#tel, posé en px par le script) : la lunette noire, le cerclage d'acier, l'ombre et le halo néon du jeu ;
    l'écran du 13 Pro dedans : coins de 47 pt (le zoom du cadre les agrandit avec lui) ; l'encoche dans la lunette, par-dessus l'image */
@@ -142,6 +162,8 @@ html.colonne #tourne{position:fixed;right:16px;bottom:16px;z-index:9;font:700 12
 html.colonne #tourne:hover{opacity:1}
 /* couché, le cadre prend toute la largeur : le bouton se range au milieu du bas, là où le jeu n'a rien */
 html.colonne:not(.debout) #tourne{right:auto;left:50%;bottom:8px;transform:translateX(-50%);padding:7px 12px;font-size:10px;opacity:.6}
+html.colonne.labNuages:not(.debout) #tourne{left:calc((100% - var(--labPW,0px))/2)} /* (atelier des nuages) sous le téléphone, pas sous le panneau */
+html.colonne.labNuages.debout #tourne{right:calc(var(--labPW,0px) + 16px)}
 html.colonne #colonne{display:block;flex:none;border:0;background:#07050f}
 </style>
 <style>
@@ -150,6 +172,13 @@ html.colonne #colonne{display:block;flex:none;border:0;background:#07050f}
 /* L'ENCOCHE DANS LA COLONNE DE L'ORDI (2026-10-01, voir le <head>) : les zones sûres de l'iPhone 13 Pro de Sacha. Toutes les
    marges du jeu lisent var(--ccX, env(safe-area-inset-X)) : un vrai téléphone ne pose pas --ccX et garde les siennes. */
 html.telCadre{--ccT:0px;--ccB:21px;--ccL:47px;--ccR:47px}
+/* L'ATELIER DES NUAGES (?nuages=1) : l'interface du menu reste EN PLACE (la caisse se cadre sur elle) mais invisible et intouchable */
+html.labNuages #overlay>*{opacity:0!important;transition:opacity .25s} /* les BOUTONS s'effacent, pas le voile bleu de l'écran (#overlay::after) : le bas de l'image reste celui du menu */
+html.labNuages body.touch.titreCiel #overlay[data-ecran="home"]::after{opacity:var(--labV1,1)} /* LE CIEL EN BAS : les deux voiles du menu, dosables */
+html.labNuages #garage.menu.ciel::after{opacity:var(--labV2,1)}
+html.labNuages #overlay,html.labNuages #overlay *{pointer-events:none!important} /* ⚠ les [data-m] de l'accueil reprennent le doigt d'eux-mêmes : on les éteint UN PAR UN (sans ça, un JOUER invisible lançait la partie) */
+html.labNuages.labBoutons #overlay>*{opacity:1!important}
+html.labNuages #tSet,html.labNuages #tGear{display:none!important}
 #mSet p.ccVer{margin:14px 0 2px;text-align:center;font:600 11px/1.3 var(--sans,system-ui,sans-serif);letter-spacing:1px;color:var(--tx3,#9a90c8);opacity:.8;max-width:none} /* le numéro de version (LA MISE À JOUR TOUTE SEULE) */
 @media (orientation:portrait){html.telCadre{--ccT:47px;--ccB:34px;--ccL:0px;--ccR:0px}}
   html,body{margin:0;padding:0;overflow:hidden;background:#07050f;font-family:var(--pix);user-select:none} /* (2026-09-29) #07050f, l'encre des écrans : plus de flash blanc entre l'écran natif et le jeu */
@@ -5925,7 +5954,7 @@ const skyU={uTime:{value:0},uSunDir:{value:SUN_DIR},
   uVille:{value:0},uPluie:{value:0},uFogCol:{value:new THREE.Color(0x331f48)},uCam:{value:new THREE.Vector3()},
   uVilleY:{value:0},uParis:{value:0},uParisT:{value:0}, // (2026-09-28) uParis : le ciel de PARIS (toits bas à l'horizon, lueur d'or) au lieu des tours de la ville
   // (2026-09-26) la SKYLINE descend à l'altitude de la ville (en sinus d'élévation) : la route spirale AU-DESSUS des toits
-  uMzA:{value:new THREE.Vector4(760,.8,15,.25)},uMzB:{value:new THREE.Vector4(.20,.16,.26,.8)}, // (2026-09-30, niveau 1 v2) LA MER SCULPTÉE : échelle des cellules, part « gonflée », franchise de la lumière, remous · couverture, fermeture au loin, creux, clarté des trouées
+  uMzA:{value:new THREE.Vector4(760,.8,15,.25)},uMzB:{value:new THREE.Vector4(.20,.16,.26,.8)},uMzT:{value:new THREE.Vector4(0,0,0,0)},uMzO:{value:new THREE.Vector4(0,0,0,0)},uMzH:{value:new THREE.Vector4(0,0,0,0)}, /* ⚠ (0,0,0,0) ÉCRIT : un Vector4() vide vaut (0,0,0,1) — la part 1 peignait toute la mer en NOIR (vu par Léo au menu de sa copie). */ /* (2026-10-03, atelier des nuages : « une fonction pour altérer le ciel en bas ») les COULEURS de la mer de nuages forcées — trous, ombres, dômes : rgb + part (w) ; w = 0 partout = la mer d'avant au bit près */ // (2026-09-30, niveau 1 v2) LA MER SCULPTÉE : échelle des cellules, part « gonflée », franchise de la lumière, remous · couverture, fermeture au loin, creux, clarté des trouées
   uVG:{value:0}, /* (2026-10-01, Sacha : « enlève tous les trucs Van Gogh ») la touche Van Gogh est RETIRÉE du ciel comme des nuages : plus aucun shader ne lit cet uniforme — l'objet reste, inerte, pour qu'un code qui l'écrirait encore ne plante pas */
   uJour:{value:0},uMerLoin:{value:16000},uJZen:{value:new THREE.Vector3()},uJMid:{value:new THREE.Vector3()},uJHor:{value:new THREE.Vector3()},uJSol:{value:new THREE.Vector3()}, // (2026-09-30) LE JOUR D'ALTITUDE (voir cielJour) : 0 = le ciel d'avant
   uMer:{value:0}, // (2026-09-26) LA MER DE NUAGES PEINTE sous l'horizon — niveau NUAGES seulement (voir merNuages ; fondue par lvlStep comme la ville)
@@ -5944,7 +5973,7 @@ const skyDome=(function(){
       'varying vec3 vDir;uniform vec3 uSunDir;uniform float uTime;',
       'uniform vec3 uSkyMul,uSkyLift,uSunTint;uniform float uSunHalo,uCity,uStars,uMoon,uPulse;', // grade biome (identité par défaut) + uPulse musique
       'uniform float uSpace;', // NIVEAU ORBITE : 0 = aucun effet
-      'uniform float uJour,uMerLoin;uniform vec3 uJZen,uJMid,uJHor,uJSol;uniform vec4 uMzA,uMzB;', // (2026-09-30) LE JOUR D ALTITUDE : 0 = le ciel d avant, au bit près
+      'uniform float uJour,uMerLoin;uniform vec3 uJZen,uJMid,uJHor,uJSol;uniform vec4 uMzA,uMzB,uMzT,uMzO,uMzH;', // (2026-09-30) LE JOUR D ALTITUDE : 0 = le ciel d avant, au bit près
       'uniform float uLvl,uSpin,uBeatK,uFlip,uBar,uHi,uWave,uHueAmp;uniform vec3 uAcc,uAcc2;uniform vec4 uRingR,uRingA;', // LE FOND DU NIVEAU
       'float hash21(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}',
       /* ROTATION DE TEINTE AUTOUR DE L AXE DES GRIS (Rodrigues). ⚠ c est LA fonction qui permet les
@@ -6188,9 +6217,9 @@ const skyDome=(function(){
       '  float lit=clamp(.5+(n-ns)*uMzA.z,0.,1.);',
       '  float big=vn(q*.07+11.3)-.5;',
       '  float cov=smoothstep(uMzB.x-uMzB.y*far-.22*big,uMzB.x+.14-uMzB.y*far-.22*big,n),cr=smoothstep(.55,.82,n),ao=smoothstep(uMzB.x,uMzB.x+.32,n);',
-      '  vec3 trou=mix(uJZen*.6,uJMid*.85,uMzB.w);',
-      '  vec3 ombre=mix(uJMid*.58+vec3(.10,.10,.16),F,.2);',
-      '  vec3 haut=mix(vec3(1.,.985,.96),uSunTint,.18);',
+      '  vec3 trou=mix(mix(uJZen*.6,uJMid*.85,uMzB.w),uMzT.rgb,uMzT.w);',
+      '  vec3 ombre=mix(mix(uJMid*.58+vec3(.10,.10,.16),F,.2),uMzO.rgb,uMzO.w);',
+      '  vec3 haut=mix(mix(vec3(1.,.985,.96),uSunTint,.18),uMzH.rgb,uMzH.w);',
       '  vec3 m=mix(ombre,haut,lit*(.45+.55*cr));',
       '  m*=1.-uMzB.z*(1.-ao);',
       '  m=mix(trou,m,cov);',
@@ -25525,6 +25554,8 @@ let musicMode='none',musicBaseVol=1,musicBoostEnv=0;
    faire hurler le jeu. */
 const VOL={mus:.62,sfx:1,vox:1};
 const ANN_MUS_DUCK=.88; // la voix parle → la bande-son recule à peine (2026-10-03, Léo : « les MONSTRE ne doivent pas cacher la musique » — c'était .34, −9 dB, la musique semblait s'arrêter à chaque pose)
+const SFX_SOUS_MUS=.7; // (2026-10-03, Léo : « les MONSTRE ne doivent pas cacher la musique — ça vaut pour TOUS les effets sonores ») : tous les effets −3 dB sous la musique (curseur EFFETS inchangé, appliqué par-dessus)
+function sfxVol(){return VOL.sfx*SFX_SOUS_MUS;}
 function musVol(){return musicBaseVol*VOL.mus;} // le niveau accordé × le curseur, en un seul endroit
 const MUSIC_FILT_REST=1500; // Hz : caisse à l'ARRÊT = son sourd/étouffé (réglable) — le mouvement rouvre le filtre jusqu'à MUSIC_FILT_OPEN
 const MUSIC_FILT_OPEN=20000; // …et s'ouvre en grand quand on booste (approche A : filtre sur boucle simple)
@@ -27060,7 +27091,7 @@ function initAudio(){
      ⚠ personne n'écrit `MASTER.gain` ailleurs (le ducking `dk` s'applique gain par gain, pas ici) :
      c'est ce qui permet de se l'approprier sans rien casser. Vérifié avant de le faire. */
   MASTER=AC.createGain();MASTER.gain.value=1; // le point de branchement de tout le WebAudio (le VOLUME DES EFFETS est en sortie : MASTER._vol)
-  MASTER._vol=AC.createGain();MASTER._vol.gain.value=VOL.sfx; /* (2026-09-28, console de son) ← LE VOLUME DES EFFETS, APRÈS le compresseur : devant lui, −6 dB au curseur ne baissaient les pics que de ~1,5 dB */
+  MASTER._vol=AC.createGain();MASTER._vol.gain.value=sfxVol(); /* (2026-09-28, console de son) ← LE VOLUME DES EFFETS, APRÈS le compresseur : devant lui, −6 dB au curseur ne baissaient les pics que de ~1,5 dB */
   BUSOUT=AC.createGain();                           // ← le vrai point de sortie commun
   const cmp=AC.createDynamicsCompressor();
   cmp.threshold.value=-16;cmp.knee.value=12;cmp.ratio.value=4;cmp.attack.value=.004;cmp.release.value=.16;
@@ -27839,7 +27870,7 @@ function fxPlay(d){ // un sample, plafonné et fondu — jamais de traîne qui m
   // ⚠ CE SON EST UN HTMLAudio : il ne traverse PAS le bus MASTER, donc le curseur EFFETS ne
   // l'atteint que si on l'applique ici. Oublier ce point donne un réglage qui « ne marche qu'à
   // moitié » — le moteur baisse, le tiroir-caisse continue de claquer à plein volume.
-  a.volume=d.v*VOL.sfx;
+  a.volume=d.v*sfxVol();
   a.addEventListener('error',function(){d.dead=true;});
   // (2026-09-26) un REFUS de lecture (iOS hors geste, pause arrivée avant le départ) n'est PAS un fichier absent : seul
   // `NotSupportedError` condamne le son. Avant, le premier refus le rayait pour toute la session.
@@ -27849,7 +27880,7 @@ function fxPlay(d){ // un sample, plafonné et fondu — jamais de traîne qui m
   const iv=setInterval(function(){
     const t=performance.now()-t0;
     if(t>=lim||a.paused||a.ended){clearInterval(iv);try{a.pause();}catch(e){}return;}
-    if(t>lim-fade)a.volume=Math.max(0,d.v*VOL.sfx*(lim-t)/fade);
+    if(t>lim-fade)a.volume=Math.max(0,d.v*sfxVol()*(lim-t)/fade);
   },50);
 }
 /* LE « WOW » — réservé aux combos qui le méritent. Seuil à 5 maillons (en dessous, ce n'est pas un
@@ -27885,7 +27916,7 @@ function deathSound(sansVoix){ // sansVoix : l'annonceur parle déjà — pas de
   deathStop();
   if(sampleWA(DEATH_DIR+d.f,d.v,d.max,deathEls))return; // (console de son) décodé : dans le mixage, curseur EFFETS compris sur iPhone
   let a;try{a=new Audio(DEATH_DIR+d.f);}catch(e){d.dead=true;return;}
-  a.volume=d.v*VOL.sfx; // HTMLAudio : hors du bus MASTER, le curseur s'applique ici
+  a.volume=d.v*sfxVol(); // HTMLAudio : hors du bus MASTER, le curseur s'applique ici
   a.addEventListener('error',function(){d.dead=true;});
   try{a.play().catch(function(er){if(er&&er.name==='NotSupportedError')d.dead=true;});}catch(e){d.dead=true;return;} // (voir fxPlay : un refus n'est pas une absence)
   deathEls.push(a);
@@ -27894,7 +27925,7 @@ function deathSound(sansVoix){ // sansVoix : l'annonceur parle déjà — pas de
   const iv=setInterval(function(){
     const t=performance.now()-t0;
     if(t>=lim||a.paused||a.ended){clearInterval(iv);try{a.pause();}catch(e){}return;}
-    if(t>lim-fade)a.volume=Math.max(0,d.v*VOL.sfx*(lim-t)/fade);
+    if(t>lim-fade)a.volume=Math.max(0,d.v*sfxVol()*(lim-t)/fade);
   },50);
 }
 // ⚠ iOS : `volume` est en LECTURE SEULE sur HTMLAudio. Sans ce test, les trois doublures se jouent
@@ -28161,7 +28192,7 @@ VOL.mus=SAVE.d.vol.mus;VOL.sfx=SAVE.d.vol.sfx;VOL.vox=SAVE.d.vol.vox;
    serait écrasé 16 ms plus tard. On ne pose donc que le bus des EFFETS et le cas MENU, où rien ne
    tourne. Chercher à « tout appliquer » ici, c'est se battre avec la boucle et perdre. */
 function volApply(){
-  try{if(MASTER&&AC)(MASTER._vol||MASTER).gain.setTargetAtTime(VOL.sfx,AC.currentTime,.03);}catch(e){} // rampe courte : un saut de gain CLAQUE
+  try{if(MASTER&&AC)(MASTER._vol||MASTER).gain.setTargetAtTime(sfxVol(),AC.currentTime,.03);}catch(e){} // rampe courte : un saut de gain CLAQUE
   // (la musique : son volume est réappliqué à chaque image par musicTick — rien à faire ici)
 }
 function volUI(){ // les deux écrans de réglages affichent le MÊME état — il n'y a qu'une source
@@ -28648,7 +28679,7 @@ function nitroEteint(){ // LA DERNIÈRE BOUFFÉE : une langue de feu aux pots + 
    · LÂCHER = plus de nouvelles notes, celles qui sonnent s'éteignent seules. La grille repart du I après 2,5 s sans appui.
    Discret (≈ −30 dB sous une voix pleine), un écho en croche pointée. Par MASTER (curseur EFFETS) : marche aussi sur iPhone.
    `dbgInstru()` : état · `dbgInstru(0|1)` coupe / rallume · `dbgInstru('essai')` (banc muet : les fréquences jouées). */
-const INSTRU={voix:0,der:0,on:true,tient:false,ac:0,k:0,n:0,tNote:0,tDer:0,bus:null,iv:0,vu:[]};
+const INSTRU={fins:[],der:0,on:true,tient:false,ac:0,k:0,n:0,tNote:0,tDer:0,bus:null,iv:0,vu:[]};
 const INSTRU_GRILLE=[[0,4,7,11,14],[9,12,16,19,23],[5,9,12,16,19],[7,11,14,17,21]]; // I maj9 · vi m9 · IV maj9 · V9 (demi-tons sur la tonique grave)
 const INSTRU_MOTIF=[0,1,2,3,4,3,2,1];                                                // monte, redescend : une boucle = 8 doubles croches
 const INSTRU_PAS=.15;                                                                // une double croche ≈ 100 BPM (le CIEL est à 88)
@@ -28660,11 +28691,11 @@ function instruBus(){
   INSTRU.bus=g;return g;
 }
 function instruNote(f,t,pan){ // une touche de piano électrique : sinus porteur, modulateur ×1 dont l'indice retombe (l'attaque « tine »), un peu de 2e harmonique
-  const bus=instruBus();if(!bus||INSTRU.voix>=6)return;
+  const bus=instruBus();if(!bus)return;
+  INSTRU.fins=INSTRU.fins.filter(function(x){return x>t;});if(INSTRU.fins.length>=6)return; // (Léo : « pas de bruit parasite au spam ») 6 notes qui sonnent au plus — compté sur l'horloge audio (un compteur à onended restait bloqué contexte suspendu)
   const c=AC.createOscillator(),m=AC.createOscillator(),mg=AC.createGain(),g=AC.createGain(),p=AC.createStereoPanner?AC.createStereoPanner():null;
   c.frequency.value=f;m.frequency.value=f;mg.gain.setValueAtTime(f*1.1,t);mg.gain.setTargetAtTime(f*.15,t,.06);m.connect(mg);mg.connect(c.frequency);
-  if(INSTRU.voix>=6)return; // (2026-10-03, Léo : « pas de bruit parasite quand on spam ») jamais plus de 6 notes à la fois
-  INSTRU.voix++;c.onended=function(){INSTRU.voix--;};
+  INSTRU.fins.push(t+.9);
   g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.065,t+.012);g.gain.setTargetAtTime(0,t+.025,.3); // (Léo : « fais plus fort »)
   c.connect(g);if(p){p.pan.value=pan;g.connect(p);p.connect(bus);}else g.connect(bus);
   c.start(t);m.start(t);c.stop(t+1.8);m.stop(t+1.8);INSTRU.vu.push(Math.round(f));if(INSTRU.vu.length>24)INSTRU.vu.shift();
@@ -35489,11 +35520,71 @@ window.dbgFeu=function(on){const F=GAR.feu;if(!F)return null;if(on!=null&&GAR.fe
 var CHUTE={G:new THREE.Vector3(),nu:null,oA:0,oAc:0,oW:0,oP:0,oPc:0,mvT:0,on:false,t:0,go:null,L:-1,s:0,C:new THREE.Vector3(),cam:new THREE.Vector3(),f:new THREE.Vector3(),fh:new THREE.Vector3(),lh:new THREE.Vector3(),
   q:new THREE.Quaternion(),m:new THREE.Matrix4(),v1:new THREE.Vector3(),v2:new THREE.Vector3(),v3:new THREE.Vector3(),w:null,fil:null,voile:null,bioPas:-1,vent:false,entree:0};
 const CHUTE_OK=!/[?&]chute=0\b/.test(location.search); // (et seulement avec les boutons de Sacha : le menu de Léo, ?menu=leo, garde son atelier — son étiquette MISSIONS vit sur le socle)
-const CHUTE_P={cleC:0xfff1dc,rimC:0xbfe4ff,rim:1.1,rimS:0,lampe:1,az:2.35,cote:0,nuages:1,K:[1.02,1.08,1.1,1],R:[-.3,.5,.72,1],mzA:[1500,.8,9,.2],mzB:null,gite:-.45,coton:0,cle:.5,brume:1,expo:1,trainee:0,alt:900,avant:-1700,pitch:.62,roule:.12,cap:.28,elev:.34, /* (titre v3) voir « L'ÉCRAN TITRE v3 » : alt = au-dessus du SOMMET de la piste, az = l'angle regard ↔ soleil, cote = la piste décalée à droite de la caisse (couché), nuages = les cumulus du titre */ /* (niveau 1 v2) pitch .22 → .55, elev .22 → .30 : à plat, elle PLANAIT ; le nez piqué vers la mer, on la voit TOMBER */vit:14,echelle:1,taille:.82,sol:.3,sous:70,plancher:0}; // (2026-09-30, le JOUR D'ALTITUDE) de très haut au-dessus de TOUT le monde du niveau : les cumulus deviennent un champ de nuages sous la caisse, la mer à perte de vue ; plus de traînée orange ni de plancher peint ; brume repoussée, exposition et clé baissées (l'image sortait délavée) // (choisi aux captures : l'horizon et la mer de nuages dans l'image, le soleil de côté devant — sa lueur rose-or sur l'horizon)
+const CHUTE_P={elevP:.06,studio:1,amb:.55,sol:.7,sk:1.6,kh:.75,sc:.12,sb:0,sr:1.35,fige:null, /* (2026-10-03) LE MODELÉ DE LA CAISSE, choisi sur planche (banc studio.mjs, f1) : voir chuteStudio */cleC:0xfff1dc,rimC:0xbfe4ff,rim:1.1,rimS:0,lampe:1,az:2.35,cote:0,nuages:1,K:[1.02,1.08,1.1,1],R:[-.3,.5,.72,1],mzA:[1500,.8,9,.2],mzB:null,gite:-.45,coton:0,cle:.5,brume:1,expo:1,trainee:0,alt:900,avant:-1700,pitch:.62,roule:.12,cap:.28,elev:-.08, /* (titre v3) voir « L'ÉCRAN TITRE v3 » : alt = au-dessus du SOMMET de la piste, az = l'angle regard ↔ soleil, cote = la piste décalée à droite de la caisse (couché), nuages = les cumulus du titre */ /* (niveau 1 v2) pitch .22 → .55, elev .22 → .30 : à plat, elle PLANAIT ; le nez piqué vers la mer, on la voit TOMBER */vit:14,echelle:1,taille:.82,sol:.3,sous:70,plancher:0}; // (2026-09-30, le JOUR D'ALTITUDE) de très haut au-dessus de TOUT le monde du niveau : les cumulus deviennent un champ de nuages sous la caisse, la mer à perte de vue ; plus de traînée orange ni de plancher peint ; brume repoussée, exposition et clé baissées (l'image sortait délavée) // (choisi aux captures : l'horizon et la mer de nuages dans l'image, le soleil de côté devant — sa lueur rose-or sur l'horizon)
 window.dbgChute=function(o){if(o&&typeof o==='object'){if(o.NU&&CHUTE.nu){o.NU.forEach(function(d,i){const c=CHUTE.nu[i];if(!c||!d)return;c.a=d[0];c.b=d[1];c.r=d[2];c.v=d[4];c.y=d[5];c.m.scale.set(d[2],d[2],d[2]);const dd=Math.hypot(d[0],d[1]);c.lo=-(1.2*dd+1.3*d[2]);c.hi=.1*dd+1.3*d[2];c.off=false;});for(let i=o.NU.length;i<CHUTE.nu.length;i++)CHUTE.nu[i].off=true;o=Object.assign({},o);delete o.NU;} /* (banc) NU : rejouer la disposition des cumulus du titre sans recharger */
   Object.assign(CHUTE_P,o);CHUTE.L=-1;}
   return {cadre:(function(){const c=menuCadre();return [+c.nx.toFixed(2),+c.ny.toFixed(2),+c.fr.toFixed(2),+c.fh.toFixed(2)];})(),ecran:(function(){const q=carGroup.position.clone().project(camera);return [+q.x.toFixed(2),+q.y.toFixed(2)];})(),orb:[+CHUTE.oA.toFixed(2),+CHUTE.oP.toFixed(2)],tris:CHUTE.nu?CHUTE.nu.reduce(function(a,c){return a+(c.m.visible&&c.m.geometry.index?c.m.geometry.index.count/3:0);},0):0,nu:CHUTE.nu?CHUTE.nu.filter(function(c){return c.m.visible;}).length:0,mz:+skyU.uMzA.value.x,ciel:document.body.classList.contains('titreCiel'),on:CHUTE.on,go:!!CHUTE.go,s:Math.round(CHUTE.s),C:CHUTE.C.toArray().map(Math.round),cam:CHUTE.cam.toArray().map(function(x){return +x.toFixed(1);}),P:CHUTE_P,
     route:(function(){try{frameAt(CHUTE.s,F);const q=F.p.clone().project(camera);return [+q.x.toFixed(2),+q.y.toFixed(2),+q.z.toFixed(3)];}catch(e){return null;}})()};};
+/* LE TAPOTEMENT AU CIEL (2026-10-03, Léo : « on peut tapoter la voiture et simuler, à l'endroit tapoté, un coup qui fait légèrement
+   pousser / pivoter la voiture en train de tomber dans les airs »). Le doigt lance un rayon de la caméra ; s'il touche la caisse (une
+   pièce visible et opaque), le coup part de CE point, dans le sens du rayon : une poussée (le centre recule de quelques décimètres) et un
+   couple r × F (taper le nez la fait tourner autrement que taper l'aile) — puis deux ressorts amortis la ramènent, en deux ou trois
+   balancements, comme une caisse en chute libre secouée par l'air. Un éclat à l'endroit du coup, le « toc » de tôle de l'atelier, une
+   vibration. Réglages : CHUTE_TAP (V poussée m/s, W pivot rad/s par m, K/C ressort et amorti, KR/CR pour la rotation). */
+const CHUTE_TAP={p:new THREE.Vector3(),v:new THREE.Vector3(),r:new THREE.Vector3(),w:new THREE.Vector3(),q:new THREE.Quaternion(),
+  ray:new THREE.Raycaster(),nd:new THREE.Vector2(),a:new THREE.Vector3(),o:new THREE.Vector3(),fl:null,flT:9,
+  V:1.8,W:.5,WMAX:1.3,K:13,C:2.6,KR:15,CR:2.3,n:0};
+window.dbgTape=function(){const T=CHUTE_TAP;return {coups:T.n,pousse:+T.p.length().toFixed(3),pivot:+(T.r.length()*57.3).toFixed(1)};}; // (dev) l'état du coup : nombre, poussée (m), pivot (°)
+function chuteVisible(o){for(let x=o;x;x=x.parent)if(!x.visible)return false;return true;}
+function chuteTape(e){
+  if(!CHUTE.on||CHUTE.go||!carGroup.visible)return false;
+  const T=CHUTE_TAP;T.nd.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);
+  camera.updateMatrixWorld();T.ray.setFromCamera(T.nd,camera);
+  let h=null;for(const x of T.ray.intersectObject(carGroup,true)){const m=x.object.material;
+    if(!x.object.isMesh||!chuteVisible(x.object))continue;if(m&&(m.blending===THREE.AdditiveBlending||(m.transparent&&m.opacity<.5)))continue;h=x;break;}
+  if(!h)return false;
+  const d=T.ray.ray.direction,c=CHUTE.ctr||carGroup.position;
+  T.v.addScaledVector(d,T.V);if(T.v.length()>T.V*2)T.v.setLength(T.V*2);                     // la poussée, dans le sens du doigt
+  T.a.subVectors(h.point,c).cross(d).multiplyScalar(T.W);T.w.add(T.a);if(T.w.length()>T.WMAX)T.w.setLength(T.WMAX); // le pivot : r × F
+  if(!T.fl){const cv=document.createElement('canvas');cv.width=cv.height=64;const x=cv.getContext('2d'),g=x.createRadialGradient(32,32,0,32,32,32);
+    g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.25,'rgba(255,240,200,.85)');g.addColorStop(1,'rgba(255,210,140,0)');x.fillStyle=g;x.fillRect(0,0,64,64);
+    T.fl=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthTest:false,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}));
+    T.fl.renderOrder=999;T.fl.visible=false;scene.add(T.fl);}
+  T.fl.position.copy(h.point).addScaledVector(d,-.15);T.flT=0;T.fl.visible=true;T.n++;
+  try{if(SONV2)sfx('garage.tole');else{chimeNote(340,0,.05,.10);noiseBurst(.14,.05,1400);}}catch(_){} /* le « toc » de tôle de l'atelier */
+  try{hap(14);}catch(_){}
+  return true;
+}
+function chuteTapeTick(dt,C,up,sc){ // les deux ressorts (poussée, pivot) et l'éclat ; la caisse tourne autour de son CENTRE (C), pas de son origine
+  const T=CHUTE_TAP,k=Math.min(dt,.05);CHUTE.ctr=C;
+  T.v.addScaledVector(T.p,-T.K*k).multiplyScalar(Math.exp(-T.C*k));T.p.addScaledVector(T.v,k);
+  T.w.addScaledVector(T.r,-T.KR*k).multiplyScalar(Math.exp(-T.CR*k));T.r.addScaledVector(T.w,k);
+  if(T.fl&&T.fl.visible){T.flT+=dt;const u=T.flT/.32;if(u>=1)T.fl.visible=false;else{T.fl.material.opacity=1-u;const s9=(.35+u*1.1)*sc;T.fl.scale.set(s9,s9,1);}}
+  if(T.p.lengthSq()+T.r.lengthSq()<1e-8&&T.v.lengthSq()+T.w.lengthSq()<1e-8)return;
+  const a=T.r.length();if(a>1e-6){T.q.setFromAxisAngle(T.a.copy(T.r).divideScalar(a),a);carGroup.quaternion.premultiply(T.q);}else T.q.identity();
+  T.o.copy(up).multiplyScalar(-.45*sc).applyQuaternion(T.q);carGroup.position.copy(C).add(T.o).add(T.p);
+}
+/* LE MODELÉ DE LA CAISSE AU TITRE (2026-10-03, Léo : « travailler encore plus en profondeur le shading de la caisse, sans faire trop »).
+   MESURÉ avant : deux lampes posées SUR la caméra (la clé et la lampe de caisse) éclairaient toutes les faces vues de face d'un même
+   aplat — la caisse se lisait comme un découpage. Les quatre lampes du titre (aucune de plus : elles sont toutes déjà en scène) jouent
+   maintenant le ciel autour d'elle : l'AMBIANCE baissée sur la caisse (`amb` : c'est elle qui aplatissait) et le SOLEIL de la scène
+   (`sol` : placé derrière la caméra pour les nuages, il l'éclairait de face — les nuages n'en lisent que la couleur) · la CLÉ chaude
+   HAUTE (`sk`, `kh` : du côté du soleil vers le zénith — le toit et le capot plus clairs que les flancs, l'arrière dans l'ombre) · un
+   ZÉNITH froid léger (`sc`) · le CONTRE-JOUR qui la détoure (`sr`). Banc studio.mjs (planches A/B, `dbgChute({fige})`) : f1 retenu, un cran plus clair (amb .55, sol .7, sk 1.6 : à .5/.6 la caisse tirait au brun dans le menu entier).
+   ⚠ Le REBOND par en dessous (`sb`, la lampe trailLight) blanchissait les vitres latérales et les pneus (le reflet d'une lampe basse) : 0.
+   Doses modérées : du volume, pas un effet. P.studio = 0 : l'éclairage d'avant. */
+const CHUTE_ST={c:new THREE.Vector3(),r:new THREE.Vector3()}; // (ses vecteurs à lui : CHUTE.v1 est le HAUT de la caisse, encore lu après)
+function chuteStudio(C,up,P){
+  const toC=CHUTE_ST.c.copy(CHUTE.cam).sub(C).normalize(),BT=BIOMES.titre||BIOMES[MENU_BIO];
+  hemi.intensity=(BT.hemiI!=null?BT.hemiI:.78)*P.amb;sun.intensity=(BT.sunI!=null?BT.sunI:1.6)*P.sol; /* (sol) la force du soleil — les nuages n'en lisent que la COULEUR */ /* L'AMBIANCE BAISSÉE (amb) : c'est elle qui aplatissait — les nuages ne la lisent pas (ils prennent les COULEURS de l'hémisphère, pas son intensité) ; bioApply la repose en quittant le titre */
+  stallKey.color.setHex(0xffeedd);stallKey.intensity=P.sk*P.cle*2;stallKey.distance=40;
+  CHUTE_ST.r.copy(SUN_DIR).multiplyScalar(1-P.kh).addScaledVector(AXIS_Y,P.kh).normalize(); // (kh) la clé : du côté du soleil (0) jusqu'au zénith (1)
+  stallKey.position.copy(C).addScaledVector(CHUTE_ST.r,9).addScaledVector(toC,1.5);
+  carLight.color.setHex(0xe6eeff);carLight.intensity=P.sc;carLight.distance=26;carLight.position.copy(C).addScaledVector(AXIS_Y,10).addScaledVector(toC,1.5);
+  trailLight.color.setHex(0xfff6ea);trailLight.intensity=P.sb;trailLight.distance=26;trailLight.position.copy(C).addScaledVector(AXIS_Y,-9).addScaledVector(toC,3);
+  camera.getWorldDirection(CHUTE_ST.r).multiplyScalar(1-P.rimS).addScaledVector(SUN_DIR,P.rimS).normalize();
+  stallRim.color.setHex(P.rimC);stallRim.intensity=P.rim*P.sr;stallRim.distance=40;stallRim.position.copy(C).addScaledVector(CHUTE_ST.r,7).addScaledVector(AXIS_Y,2.5);
+}
 function chuteVoulue(){return CHUTE_OK&&MENU_SACHA&&garageOn&&!!gEl&&gEl.classList.contains('menu')&&!gEl.classList.contains('missions');}
 function chutePlan(){ // (titre v3) le REGARD se règle sur le SOLEIL (lumière de côté : le volume des nuages), la caisse au-dessus de TOUTE la piste
   CHUTE.L=L;const P9=CHUTE_P,sx=SUN_DIR.x,sz=SUN_DIR.z,sn=Math.hypot(sx,sz)||1,ca=Math.cos(P9.az),sa=Math.sin(P9.az);
@@ -35554,6 +35645,45 @@ function chuteCumulus(){
   CHUTE.nu=N;
 }
 try{if(CHUTE_OK)chuteFormes();}catch(e){} /* (titre v3) au chargement : les formes du titre passent AVANT celles du ciel de coton dans la file de l'ouvrier */
+/* L'ATELIER DES NUAGES (2026-10-03, Léo : « Sacha et moi on va bosser sur les nuages — fais-moi une copie du nouveau menu, sans jeu :
+   on va s'attarder sur le peaufinement de la scène et du réalisme des nuages »). `?nuages=1` dans l'adresse : l'écran titre TEL QUEL (la
+   même scène, les mêmes cumulus v8, le même ciel), sans les boutons (invisibles mais toujours là : la caisse garde la place qu'ils lui
+   laissent), sans départ possible (Entrée, Espace, Échap avalés), sans l'intro « 1.61 » ni la mise à jour automatique (elle rechargerait
+   la page en plein réglage). Le panneau (`atelier-nuages.js`, à côté du téléphone sur l'ordi, par-dessus l'image sur un téléphone) pilote
+   tout par `window.ccNuages` — les MÊMES réglages que le jeu (CHUTE_P, N8_OPT, BIOMES.titre) : ce qui est trouvé au panneau se recopie
+   tel quel dans le code. Sans ce paramètre, rien de tout ça n'existe. */
+const NUAGES_LAB=/[?&]nuages=1\b/.test(location.search);
+if(NUAGES_LAB){
+  document.documentElement.classList.add('labNuages');
+  CHUTE_P.caisse=1;
+  if(!CHUTE_P.mzB)CHUTE_P.mzB=skyU.uMzB.value.toArray(); // LE CIEL EN BAS : la mer de nuages (forme + couleurs), départ = le menu (les couleurs forcées à part 0)
+  CHUTE_P.mzT=[.30,.58,.92,0];CHUTE_P.mzO=[.55,.60,.85,0];CHUTE_P.mzH=[1,.98,.95,0];CHUTE_P.merLoin=skyU.uMerLoin.value;
+  window.ccNuages={P:CHUTE_P,N8:N8_OPT,titre:function(){return BIOMES.titre;},
+    defauts:{P:JSON.parse(JSON.stringify(CHUTE_P)),N8:Object.assign({},N8_OPT),titre:JSON.parse(JSON.stringify(BIOMES.titre))},
+    regle:function(o){return dbgChute(o);},
+    amb:function(o){return dbgAmb('titre',o);},
+    vue:function(a,p){CHUTE.oAc=a||0;CHUTE.oPc=p||0;CHUTE.oW=0;},
+    boutons:function(on){document.documentElement.classList.toggle('labBoutons',!!on);},
+    voile:function(k,v){document.documentElement.style.setProperty(k===2?'--labV2':'--labV1',String(Math.max(0,Math.min(1,+v))));}, // 1 = le voile du menu, 0 = aucun
+    pret:function(){return !!(CHUTE.on&&CHUTE.geo&&CHUTE.geo.every(function(e){return !!e.g;}));},
+    /* LES FORMES DU TITRE REFAITES : une autre graine (d'autres nuages), d'autres réglages du champ (N8_OPT), une autre finesse de
+       surface (cellules ; 0 = celles du menu). La graine 0xC4A5 + finesse 0 + N8_OPT d'origine = les nuages du menu, au sommet près. */
+    formes:function(o){o=o||{};if(!NUAGE8||!CHUTE.geo)return null;
+      for(const k of ['K','det','fq'])if(o[k]!=null&&isFinite(+o[k]))N8_OPT[k]=+o[k];
+      const graine=(o.graine>>>0)||0xC4A5,fin=Math.max(0,Math.min(64,+o.fin||0)),rg=mulberry32(graine);
+      [['mediocris',3],['humilis',3],['humilis',2],['mediocris',2],['congestus',3]].forEach(function(q,i){const e=CHUTE.geo[i];if(!e)return;
+        const S=cumulus8(q[0],rg);S.seed=Math.floor(rg()*997);const dyU=-(S.base+S.top)*.5,tok=e.tok=(e.tok|0)+1;
+        nuage8Async(S,fin||N8_FIN[q[1]],function(r9){if(e.tok!==tok)return;const g2=cotonBuf(r9);g2.translate(0,dyU,0);g2.computeBoundingSphere();
+          const vieux=e.g;e.g=g2;if(CHUTE.nu)for(const c of CHUTE.nu)if(c.e===e)c.m.geometry=g2;if(vieux&&vieux!==g2)vieux.dispose();});});
+      return {graine:graine,fin:fin,N8:Object.assign({},N8_OPT)};},
+    photo:function(){return new Promise(function(ok){requestAnimationFrame(function(){requestAnimationFrame(function(){ // lue dans la même image que le rendu
+      try{ok(renderer.domElement.toDataURL('image/png'));}catch(e){ok(null);}});});});},
+    etat:function(){return {tris:CHUTE.nu?CHUTE.nu.reduce(function(a,c){return a+(c.m.visible&&c.m.geometry.index?c.m.geometry.index.count/3:0);},0):0,
+      nuages:CHUTE.nu?CHUTE.nu.filter(function(c){return c.m.visible;}).length:0,orb:[CHUTE.oA,CHUTE.oP]};}};
+  addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '||e.key==='Escape'){e.stopImmediatePropagation();e.preventDefault();}},true); // sans jeu
+  if(window.top===window)addEventListener('DOMContentLoaded',function(){ // pas de page-cadre (téléphone, ?colonne=0) : le panneau se pose par-dessus l'image
+    window.CC_LAB_JEU=function(){return window;};const sc=document.createElement('script');sc.src='atelier-nuages.js?v='+CC_BUILD;document.head.appendChild(sc);});
+}
 function chuteMonte(){ // les bancs de nuage et les filets de vent (une fois)
   chuteCumulus();
   const tex=chuteNuageTex(),W=[];
@@ -35585,7 +35715,8 @@ function chuteVoileEl(){ // le banc de nuage traversé au JOUER : un voile blanc
   document.body.appendChild(e);CHUTE.voile=e;return e;
 }
 function chuteEntre(){ // de l'atelier (ou de rien) au ciel
-  CHUTE.on=true;CHUTE.t=0;CHUTE.bioPas=-1;CHUTE.bioT=null;document.body.classList.add('titreCiel');if(!CHUTE.mz)CHUTE.mz=[skyU.uMzA.value.clone(),skyU.uMzB.value.clone()];CHUTE.oA=CHUTE.oAc=CHUTE.oW=CHUTE.oP=CHUTE.oPc=0; // (2026-09-30) l'orbite repart du plan de face
+  if(!CHUTE.lc)CHUTE.lc=new THREE.Color();CHUTE.lc.copy(carLight.color);CHUTE_TAP.p.set(0,0,0);CHUTE_TAP.v.set(0,0,0);CHUTE_TAP.r.set(0,0,0);CHUTE_TAP.w.set(0,0,0);
+  CHUTE.on=true;CHUTE.t=0;CHUTE.bioPas=-1;CHUTE.bioT=null;document.body.classList.add('titreCiel');if(!CHUTE.mz)CHUTE.mz=[skyU.uMzA.value.clone(),skyU.uMzB.value.clone(),skyU.uMzT.value.clone(),skyU.uMzO.value.clone(),skyU.uMzH.value.clone(),skyU.uMerLoin.value];CHUTE.oA=CHUTE.oAc=CHUTE.oW=CHUTE.oP=CHUTE.oPc=0; // (2026-09-30) l'orbite repart du plan de face
   if(!CHUTE.av)CHUTE.av={c:new THREE.Color()};CHUTE.av.e=acesPass?acesPass.uniforms.uExposure.value:null;if(scene.fog){CHUTE.av.c.copy(scene.fog.color);CHUTE.av.n=scene.fog.near;CHUTE.av.f=scene.fog.far;} // (2026-09-30) l'exposition et la brume d'avant (l'atelier les retrouve)
   if(!CHUTE.w)chuteMonte();
   if(GAR.root)GAR.root.visible=false;garageFloor.visible=false;gEl.classList.add('ciel'); /* (niveau 1 v2) le bandeau du bas prend l'azur profond du ciel (voir #garage.menu.ciel::after) */
@@ -35595,8 +35726,9 @@ function chuteEntre(){ // de l'atelier (ou de rien) au ciel
 }
 function chuteSort(ferme){ // on quitte le ciel : l'atelier (boutique, missions) ou la course (ferme)
   if(!CHUTE.on&&!CHUTE.go)return;
-  CHUTE.on=false;CHUTE.go=null;gEl.classList.remove('ciel');document.body.classList.remove('titreCiel');if(CHUTE.mz){skyU.uMzA.value.copy(CHUTE.mz[0]);skyU.uMzB.value.copy(CHUTE.mz[1]);}if(COTON.root)COTON.root.visible=COTON.n>0;if(CHUTE.nu)for(const c of CHUTE.nu)c.m.visible=false; /* (titre v3) les cumulus du titre se rangent */
+  CHUTE.on=false;CHUTE.go=null;gEl.classList.remove('ciel');document.body.classList.remove('titreCiel');if(CHUTE.mz){skyU.uMzA.value.copy(CHUTE.mz[0]);skyU.uMzB.value.copy(CHUTE.mz[1]);skyU.uMzT.value.copy(CHUTE.mz[2]);skyU.uMzO.value.copy(CHUTE.mz[3]);skyU.uMzH.value.copy(CHUTE.mz[4]);skyU.uMerLoin.value=CHUTE.mz[5];}if(COTON.root)COTON.root.visible=COTON.n>0;if(CHUTE.nu)for(const c of CHUTE.nu)c.m.visible=false; /* (titre v3) les cumulus du titre se rangent */
   if(CHUTE.snd){try{CHUTE.snd.stop(ferme?.5:.3);}catch(e){}CHUTE.snd=null;} /* (niveau 1 v2) la chute libre se tait */
+  trailLight.intensity=0;if(CHUTE.lc)carLight.color.copy(CHUTE.lc);{const BT=BIOMES.titre||BIOMES[MENU_BIO];if(BT.hemiI!=null)hemi.intensity=BT.hemiI;if(BT.sunI!=null)sun.intensity=BT.sunI;} // (2026-10-03) le studio du titre rend l'ambiance (il la baisse sur la caisse), puis la lumière du rebond (à 0 partout ailleurs) et la couleur de la lampe de caisse
   if(CHUTE.w)for(const w of CHUTE.w){w.sp.visible=false;}
   if(CHUTE.fil)CHUTE.fil.m.visible=false;
   if(CHUTE.sol)for(const sp of CHUTE.sol)sp.visible=false;
@@ -35615,11 +35747,11 @@ function chuteLance(){ // JOUER, depuis le ciel : elle pique
 }
 function chuteRender(dt){
   if(!CHUTE.on)chuteEntre();
-  CHUTE.t+=dt;const t=CHUTE.t,P=CHUTE_P,G=CHUTE.go;
+  CHUTE.t=CHUTE_P.fige!=null?CHUTE_P.fige:CHUTE.t+dt;const t=CHUTE.t,P=CHUTE_P,G=CHUTE.go; /* (P.fige : la caisse et la vue figées à cet instant — comparer deux réglages sur la MÊME image) */
   // LE CIEL DU JOUR DES NUAGES (celui de l'accueil d'avant : MENU_BIO), repeint si le voyage BIO est passé derrière
   {const BT=BIOMES.titre||BIOMES[MENU_BIO]; /* (titre v3) l'ambiance du titre */
    if(!MENUV.bio||CHUTE.bioPas!==BIO.pas||CHUTE.bioT!==BT){if(!MENUV.bio||CHUTE.bioT!==BT)paintEnv(BT.env,BT.eS1,BT.eS2);MENUV.bio=true;CHUTE.bioPas=BIO.pas;CHUTE.bioT=BT;bioApply(BT);}}
-  skyU.uMer.value=1;if(P.mzA)skyU.uMzA.value.fromArray(P.mzA);if(P.mzB)skyU.uMzB.value.fromArray(P.mzB); /* (titre v3) la mer de nuages du titre (rendue par chuteSort) */
+  skyU.uMer.value=1;if(P.mzA)skyU.uMzA.value.fromArray(P.mzA);if(P.mzB)skyU.uMzB.value.fromArray(P.mzB);if(P.mzT)skyU.uMzT.value.fromArray(P.mzT);if(P.mzO)skyU.uMzO.value.fromArray(P.mzO);if(P.mzH)skyU.uMzH.value.fromArray(P.mzH);if(P.merLoin)skyU.uMerLoin.value=P.merLoin; /* (titre v3) la mer de nuages du titre (rendue par chuteSort) */
   if(CHUTE.nuM){CHUTE.nuM.uniforms.uK.value.fromArray(P.K);CHUTE.nuM.uniforms.uR.value.fromArray(P.R);}
   /* (2026-09-30) LA BRUME ET L'EXPOSITION DE L'AMBIANCE : seule la course les réécrit (updateClouds) — au menu la brume restait le violet
      de départ du jeu (#5e3254) et l'exposition .71 : la mer de nuages et les cumulus s'y noyaient en violet. chuteSort rend celles d'avant. */
@@ -35646,7 +35778,7 @@ function chuteRender(dt){
   const cr=Math.cos(ro),sr=Math.sin(ro);const ux=up.x*cr+sd.x*sr,uy=up.y*cr+sd.y*sr,uz=up.z*cr+sd.z*sr;up.set(ux,uy,uz);sd.crossVectors(up,f).normalize();
   CHUTE.m.makeBasis(sd,up,f);carGroup.quaternion.setFromRotationMatrix(CHUTE.m);
   const sp=CARS[garageI]||CARS[0],sc=P.echelle;carGroup.scale.set(sc,sc,sc);
-  carGroup.position.copy(C).addScaledVector(up,-.45*sc);carGroup.visible=true;   // (le centre de la caisse, pas ses roues, sur l'ancre)
+  carGroup.position.copy(C).addScaledVector(up,-.45*sc);carGroup.visible=P.caisse!==0;chuteTapeTick(dt,C,up,sc); /* (2026-10-03) le coup du tapotement : poussée et pivot autour du CENTRE, qui reviennent en ressort */ /* (atelier des nuages) P.caisse = 0 : les nuages seuls */   // (le centre de la caisse, pas ses roues, sur l'ancre)
   for(const w of wheels)w.rotation.x+=dt*(7+u*30);for(const e of ESSIEUX)e.rotation.x+=dt*(7+u*30); // les roues tournent dans le vide
   // LA CAMÉRA : dans l'axe de la route, un peu au-dessus, la caisse dans la place libre (menuCadre)
   const Cd=menuCadre(),R9=.5*Math.hypot(sp.l||4.2,sp.w||1.9,(sp.h||.8)+.6)*sc,fov0=G?44+26*u*u:44;
@@ -35664,7 +35796,7 @@ function chuteRender(dt){
      automatique : c'est JOUER qui ramène la caméra derrière elle pour le piqué. La caisse, elle, ne bouge pas dans le monde. */
   if(!G){if(!garageDrag&&CHUTE.oW){CHUTE.oAc+=CHUTE.oW*dt;CHUTE.oW*=Math.exp(-dt*3);if(Math.abs(CHUTE.oW)<.015)CHUTE.oW=0;}
     const kS=1-Math.exp(-dt*10);CHUTE.oA+=(CHUTE.oAc-CHUTE.oA)*kS;CHUTE.oP+=(CHUTE.oPc-CHUTE.oP)*kS;}
-  const oc=Math.cos(CHUTE.oA),os=Math.sin(CHUTE.oA),ox=lx*oc-lz*os,oz=lx*os+lz*oc,el9=THREE.MathUtils.clamp(P.elev+CHUTE.oP,-.45,1.25);
+  const oc=Math.cos(CHUTE.oA),os=Math.sin(CHUTE.oA),ox=lx*oc-lz*os,oz=lx*os+lz*oc,el9=THREE.MathUtils.clamp((camera.aspect<1&&P.elevP!=null?P.elevP:P.elev)+CHUTE.oP,-.45,1.25); /* (2026-10-03, Léo, deux captures : « voici le point de vue vertical souhaité ») le regard presque à niveau — couché (elev) un rien SOUS la caisse : l'horizon à ~46 % de la hauteur, on voit son dessous ; debout (elevP) à peine au-dessus : l'horizon à ~40 % */
   const ce=Math.cos(el9),se=Math.sin(el9);
   CHUTE.cam.set(C.x-ox*ce*d,C.y+se*d,C.z-oz*ce*d);
   if(G){const k=Math.min(1,u/.5),e9=k*k*(3-2*k);                                   // la caméra passe DERRIÈRE elle (poursuite plongeante)
@@ -35677,10 +35809,11 @@ function chuteRender(dt){
   if(G&&u>.2){const a=(u-.2)*.9;camera.position.x+=(Math.random()-.5)*.08*a;camera.position.y+=(Math.random()-.5)*.08*a;} // l'air qui cogne
   camera.updateMatrixWorld();
   // LA LUMIÈRE : le soleil du ciel fait le gros ; une clé douce du côté caméra, un contre-jour bleu ciel qui détoure la caisse
+  if(P.studio){chuteStudio(C,up,P);}else{trailLight.intensity=0;if(CHUTE.lc)carLight.color.copy(CHUTE.lc);{const BT=BIOMES.titre||BIOMES[MENU_BIO];if(BT.hemiI!=null)hemi.intensity=BT.hemiI;if(BT.sunI!=null)sun.intensity=BT.sunI;} // (2026-10-03) LE MODELÉ DE LA CAISSE (voir chuteStudio) ; P.studio = 0 : l'éclairage d'avant
   stallKey.color.setHex(P.cleC);stallKey.intensity=.9*P.cle;stallKey.distance=60;stallKey.position.copy(CHUTE.cam).addScaledVector(up,4);
   camera.getWorldDirection(CHUTE.v2).multiplyScalar(1-P.rimS).addScaledVector(SUN_DIR,P.rimS).normalize();
   stallRim.color.setHex(P.rimC);stallRim.intensity=P.rim;stallRim.distance=40;stallRim.position.copy(C).addScaledVector(CHUTE.v2,7).addScaledVector(up,2.5);
-  carLight.position.copy(CHUTE.cam).addScaledVector(up,2.5);carLight.intensity=1.6*P.cle*P.lampe;carLight.distance=60;
+  carLight.position.copy(CHUTE.cam).addScaledVector(up,2.5);carLight.intensity=1.6*P.cle*P.lampe;carLight.distance=60;}
   headSpot.intensity=0;if(CARPOOL.head)CARPOOL.head.visible=false; // en plein jour, en l'air : ni phares (leur tache bleue sur les nuages au piqué), ni la nappe de 15 m des faisceaux (un plan qui flotte devant le nez)
   sunSprite.visible=sunSprite.material.opacity>.02;horizonGlow.visible=horizonGlow.material.opacity>.02;for(const r9 of RAYS)r9.visible=r9.material.opacity>.002;
   if(pigGroup)pigGroup.visible=false;if(landMark)landMark.visible=false;
@@ -36579,7 +36712,7 @@ addEventListener('pointerup',e=>{
   if(garageDrag&&!gPince){
     const dx=e.clientX-gpx0,dy=e.clientY-gpy0;
     if(Math.abs(dx)>SWIPE_PX&&Math.abs(dx)>Math.abs(dy)*1.3){if(!gEl.classList.contains('menu'))garageGo(dx<0?1:-1);} // (2026-09-30) au MENU un glissé fait tourner le plateau, il ne change pas de caisse (c'est la BOUTIQUE qui feuillette) // glisse à GAUCHE → caisse SUIVANTE (même sens qu'un carrousel qu'on feuillette)
-    else if(Math.abs(dx)<14&&Math.abs(dy)<14){let af=null;try{af=afficheVise(e);}catch(_){}if(af)afficheTap(af);else garageImpact();} // ni glissé ni swipe : un TAP — sur une AFFICHE elle saute (voir afficheTap), sinon la caisse encaisse (voir garageImpact)
+    else if(Math.abs(dx)<14&&Math.abs(dy)<14){if(CHUTE&&CHUTE.on){if(!CHUTE.go)chuteTape(e);}else{let af=null;try{af=afficheVise(e);}catch(_){}if(af)afficheTap(af);else garageImpact();}} // (2026-10-03) AU CIEL : le tap est un COUP sur la caisse en chute (chuteTape) // ni glissé ni swipe : un TAP — sur une AFFICHE elle saute (voir afficheTap), sinon la caisse encaisse (voir garageImpact)
     if(performance.now()-(GAR.mvT||0)>90)GAR.vW=0;else GAR.vW=THREE.MathUtils.clamp(GAR.vW||0,-7,7);
     if(CHUTE&&CHUTE.on){if(performance.now()-(CHUTE.mvT||0)>90)CHUTE.oW=0;else CHUTE.oW=THREE.MathUtils.clamp(CHUTE.oW||0,-7,7);} // (2026-09-30) l'orbite du ciel : lâchée en mouvement, elle garde son élan // (le glissé fondu) doigt arrêté avant de lâcher : la vue reste ; lancé : elle file sur son élan
   }
@@ -36592,7 +36725,7 @@ addEventListener('pointermove',e=>{
     return;}
   if(e.pointerId!==gpId||gPince)return;
   if(CHUTE&&CHUTE.on&&!CHUTE.go){const n9=performance.now(),dm=Math.max(8,n9-(CHUTE.mvT||n9-16))/1000,dA=-(e.clientX-gpx)*.008; // (2026-09-30) AU CIEL : le glissé fait tourner le regard autour de la caisse (voir « L'ORBITE AU DOIGT »)
-    CHUTE.oAc+=dA;CHUTE.oW=(CHUTE.oW||0)*.55+dA/dm*.45;CHUTE.mvT=n9;CHUTE.oPc=THREE.MathUtils.clamp(CHUTE.oPc+(e.clientY-gpy)*.004,-.6,1.0);
+    CHUTE.oAc+=dA;CHUTE.oW=(CHUTE.oW||0)*.55+dA/dm*.45;CHUTE.mvT=n9; /* (2026-10-03, Léo : « bloque le point de vue à ce niveau vertical : pas de haut en bas, horizontal à ce niveau-là ») le doigt ne fait plus monter ni plonger le regard : il tourne autour de la caisse, à la hauteur du menu */
     gpx=e.clientX;gpy=e.clientY;return;}
   if(GAR.go||gEl.classList.contains('missions'))return; // JOUER est parti / l'écran des MISSIONS : la vue ne se touche plus
   if(gEl&&gEl.classList.contains('menu')){const dA=-(e.clientX-gpx)*.007,n9=performance.now(),dm=Math.max(8,n9-(GAR.mvT||n9-16))/1000;
@@ -38555,6 +38688,7 @@ renderLeaders(-1);
   T9(function(){if(!launched&&!done){
     const n=document.getElementById('spNote');if(n)n.classList.add('on');
   }},900);
+  if(NUAGES_LAB)T9(hide,80); // (atelier des nuages) droit à l'écran titre, sans l'intro ni son clic
   // ---- SOUND DESIGN « 1.61 » : tout est accordé sur le NOMBRE D'OR φ=1,618 ----
   // Échelle inouïe (intervalles de φ : ni octaves ni quintes — le son littéral de 1.61),
   // compteuse à billets en guise de riser, sub qui bat à 0,618 Hz, jackpot de pièces à la fission.
@@ -38568,7 +38702,7 @@ renderLeaders(-1);
     /* (2026-09-28) L'INTRO OBÉIT AU CURSEUR EFFETS. Elle vit dans son propre contexte, branché en direct sur la sortie : le bus
        MASTER (qui porte `VOL.sfx`) ne la voyait pas. Le volume se pose APRÈS le compresseur — posé avant, il changerait la dose de
        compression, donc le son lui-même ; après, c'est un vrai bouton de volume, et à 100 % rien ne bouge. */
-    const vol9=A.createGain();vol9.gain.value=VOL.sfx;vol9.connect(A.destination);
+    const vol9=A.createGain();vol9.gain.value=(typeof sfxVol==='function'?sfxVol():VOL.sfx);vol9.connect(A.destination);
     comp.threshold.value=-14;comp.ratio.value=5;comp.connect(vol9);
     master=A.createGain();master.gain.value=1;master.connect(comp);
     const nzBuf=(function(){const n=A.sampleRate*2,b=A.createBuffer(1,n,A.sampleRate),c=b.getChannelData(0);for(let i=0;i<n;i++)c[i]=Math.random()*2-1;return b;})();
@@ -39556,7 +39690,7 @@ if('serviceWorker'in navigator&&!window.Capacitor&&(location.protocol==='http:'|
    Copie locale / file:// / appli Capacitor : rien. Le numéro se lit en bas des RÉGLAGES (et sous le jeu sur l'ordi). */
 (function(){
   var e=document.getElementById('mvVer');if(e)e.textContent='VERSION '+CC_VER;
-  if(/^__/.test(CC_BUILD)||window.Capacitor||!(location.protocol==='http:'||location.protocol==='https:'))return;
+  if(/^__/.test(CC_BUILD)||window.Capacitor||!(location.protocol==='http:'||location.protocol==='https:')||NUAGES_LAB)return; // (l'atelier des nuages ne se recharge pas en plein réglage)
   var neuf=null,vu=0;
   function sur(){return(!started||gameOver)&&!document.hidden&&!(typeof GAR!=='undefined'&&GAR.go);}
   function recharge(){
