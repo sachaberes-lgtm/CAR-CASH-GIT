@@ -28791,7 +28791,8 @@ function instruPlanifie(){ // regard d'avance de 120 ms : les notes tombent pile
     const mot=INSTRU_MOTIFS[((k>>3)*3+(mes>>2))%INSTRU_MOTIFS.length];                 // un dessin par demi-mesure, l'ordre change toutes les 4 mesures
     const rac=TON/2*Math.pow(2,(sonTonSuit._t|0)/12);                                  // la tonique grave du morceau (mi3 décalé)
     const t=Math.max(INSTRU.tNote,AC.currentTime),temps=k%4===0,V=INSTRU.vel*((mes&3)>=2?.78:1); // mesures 3-4 un peu plus bas
-    let st9=ac[mot[k%8]];if(st9>16)st9-=12;                                            // l'arpège reste SOUS la mélodie
+    let st9=ac[mot[k%8]];if(st9>16)st9-=12;                                            // l'arpège reste SOUS la mélodie…
+    if((mes&3)===3){st9+=12;if(st9>26)st9-=12;}                                        // …sauf la 4e mesure : il monte d'une octave, la phrase s'éclaire avant de reboucler (2026-10-03, Léo : « plus aigu l'arpège au niveau 4 »)
     instruNote(rac*Math.pow(2,st9/12),t,k%2?.3:-.3,V*(temps?.62:.48),.26);
     if(k%2===0||INSTRU.acc){const m9=instruMelodie(k,ac);if(m9>=0)instruNote(rac*Math.pow(2,m9/12),t,0,V*(INSTRU.acc?1.25:(k%8===0?1.05:.9)),.5);INSTRU.acc=0;}
     if(temps&&k>=32&&INSTRU.tient)instruNote(rac/2,t,0,V*.55,.45);                         // la basse tient la TONIQUE (sous n'importe quel accord du morceau) // dès la 3e mesure tenue : la basse pose le temps
