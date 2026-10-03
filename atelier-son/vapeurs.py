@@ -83,13 +83,9 @@ def v_salon():
     fx_rev(M, [('pad', 1), ('lead', 1), ('rh', .7), ('bat', .2)], 3.2, .45, 4200)
     # (2026-10-03, Léo : « enlève les petits bruits dérangeants de VAPEUR — le grésillement — remplace par un autre truc ») : plus de
     # craquements de vinyle ; à la place un CARILLON DE VERRE, rare et doux, qui tinte dans la gamme (mi♭ majeur pentatonique), loin derrière
-    ca = M.piste('carillon'); r9 = np.random.default_rng(77); gam = [75, 77, 79, 82, 84, 87, 89, 91]
-    for m in range(8):
-        for p in (2, 7, 11, 14):
-            if r9.random() < .35:
-                n = int(gam[r9.integers(len(gam))]); ca.pose(h.t(M.t(m, p, SW)), fm(n, 2.2, 3.5, 1.4, .25, 1.), .035 + .02 * r9.random(), r9.uniform(-.7, .7))
-    fx_rev(M, [('carillon', 1.4)], 3.5, .5, 7000)
-    L, R = fin(M, {'bat': .8, 'pad': 1, 'rh': 1, 'basse': 1, 'lead': 1, 'carillon': 1, 'fx': 1}, maitre_lp=6500)
+    # (2026-10-03, Léo : « pourquoi tu as changé VAPEUR · SALON, reviens sur avant ») : le carillon est retiré — la boucle d'avant,
+    # à l'identique, SANS le grésillement (les craquements de vinyle restent retirés : c'était sa demande précédente).
+    L, R = fin(M, {'bat': .8, 'pad': 1, 'rh': 1, 'basse': 1, 'lead': 1, 'fx': 1}, maitre_lp=6500)
     return M, (L, R)
 
 
