@@ -25,7 +25,7 @@ local Hud = {}
 local FR = string.sub(Players.LocalPlayer.LocaleId or "fr", 1, 2) == "fr"
 Hud.FR = FR
 local T = FR and {
-	jouer = "JOUER", rejouer = "REJOUER", menu = "HOME", reprendre = "REPRENDRE", recommencer = "RECOMMENCER",
+	jouer = "JOUER", rejouer = "REJOUER", menu = "HOME", quitter = "QUITTER", reprendre = "REPRENDRE", recommencer = "RECOMMENCER",
 	pause = "PAUSE", son = "SON", musique = "MUSIQUE", record = "RECORD", nouveau = "NOUVEAU RECORD !",
 	reglages = "REGLAGES", fermer = "FERMER", retour = "RETOUR", jeu = "JEU", revoir = "REVOIR L'AUTO-ECOLE", volume = "VOLUME", pouce = "POUCE HAUT EN VOL", vibrations = "VIBRATIONS", plonge = "PLONGE", monte = "MONTE", verse = "VERSES AU COMPTE", compte = "COMPTE :", meilleur = "MEILLEUR",
 	moteurAtteint = "MOTEUR ATTEINT", palier = "PALIER", encore = "ENCORE %d PIECES POUR", moteurMax = "LE PLUS GROS MOTEUR",
@@ -52,7 +52,7 @@ local T = FR and {
 	},
 	morts = { air = "TROP LONGTEMPS EN L'AIR", vide = "AVALE PAR LE VIDE", arret = "EN PANNE SECHE", tour = "ENCASTRE DANS UNE TOUR", sat = "PERCUTE PAR UN SATELLITE", quitte = "PARTIE QUITTEE", autre = "GAME OVER" },
 } or {
-	jouer = "PLAY", rejouer = "PLAY AGAIN", menu = "HOME", reprendre = "RESUME", recommencer = "RESTART",
+	jouer = "PLAY", rejouer = "PLAY AGAIN", menu = "HOME", quitter = "QUIT", reprendre = "RESUME", recommencer = "RESTART",
 	pause = "PAUSE", son = "SOUND", musique = "MUSIC", record = "BEST", nouveau = "NEW RECORD!",
 	reglages = "SETTINGS", fermer = "CLOSE", retour = "BACK", jeu = "GAME", revoir = "REPLAY DRIVING SCHOOL", volume = "VOLUME", pouce = "THUMB UP IN THE AIR", vibrations = "VIBRATION", plonge = "DIVE", monte = "CLIMB", verse = "PAID TO ACCOUNT", compte = "ACCOUNT:", meilleur = "BEST",
 	moteurAtteint = "ENGINE REACHED", palier = "TIER", encore = "%d MORE COINS FOR", moteurMax = "THE BIGGEST ENGINE",
@@ -526,7 +526,7 @@ function Hud.creer()
 		inst("Frame", { BackgroundColor3 = c, BorderSizePixel = 0, Size = UDim2.new(i == 1 and 0.44 or 0.28, -8, 1, 0),
 			Position = UDim2.fromScale(i == 1 and 0 or (i == 2 and 0.44 or 0.72), 0) }, barre)
 	end
-	E.menuRecord = texte(logo, { Text = "", TextSize = 16, TextColor3 = C.vert, Position = UDim2.fromOffset(0, 120),
+	E.menuRecord = texte(logo, { Text = "", TextSize = 16, TextColor3 = C.vert, Position = UDim2.fromOffset(0, 120), Visible = false, -- (L5613 : le logo parle seul)
 		TextXAlignment = Enum.TextXAlignment.Right, Size = UDim2.new(1, -14, 0, 20), TextWrapped = false })
 	-- la colonne de droite du web (#mHome) : MISSIONS + ⚙, puis GARAGE · CARRIERE · BOUTIQUE, puis JOUER en lettres d'or
 	E.btMissions = tuile(menu, T.missions, C.vert, UDim2.fromOffset(510, 94), UDim2.new(1, -668, 1, -366), nil, 39, "cible", "g")
@@ -540,6 +540,17 @@ function Hud.creer()
 	E.btGarage = tuile(menu, T.garage, C.cyan, UDim2.fromOffset(202, 112), UDim2.new(1, -668, 1, -258), nil, 34, "voiture", "v")
 	E.btCarriere = tuile(menu, T.carriere, C.cyan, UDim2.fromOffset(202, 112), UDim2.new(1, -457, 1, -258), nil, 34, "trophee", "v")
 	E.btBoutique = tuile(menu, T.boutique, C.magenta, UDim2.fromOffset(202, 112), UDim2.new(1, -246, 1, -258), nil, 34, "panier", "v")
+	-- LES PASTILLES (#bdGar, #bdShop, L5623) : le GARAGE dit combien de choses la banque peut s'offrir (caisses et habillages — tout
+	-- ce qui s'achète en argent du jeu est au garage) ; la BOUTIQUE dit NEW tant qu'on n'y est jamais allé
+	local function pastille(tuile9: TextButton, fond: Color3): TextLabel
+		local l = texte(tuile9.Parent :: Instance, { Text = "", TextSize = 18, TextColor3 = Color3.new(1, 1, 1), BackgroundColor3 = fond, BackgroundTransparency = 0,
+			Size = UDim2.fromOffset(46, 30), Position = UDim2.new(1, -4, 0, -10), AnchorPoint = Vector2.new(1, 0), TextWrapped = false, Visible = false, ZIndex = 8 })
+		inst("UICorner", { CornerRadius = UDim.new(0, 6) }, l)
+		return l
+	end
+	E.bdGar = pastille(E.btGarage, C.rouge)
+	E.bdShop = pastille(E.btBoutique, C.magenta)
+	E.bdShop.Text = "NEW"
 	local jouer = inst("TextButton", { BackgroundTransparency = 1, AutoButtonColor = false, Size = UDim2.fromOffset(460, 100),
 		Position = UDim2.new(1, -356, 1, -20), AnchorPoint = Vector2.new(0.5, 1), FontFace = PIXI, Text = T.jouer, TextSize = 100,
 		TextColor3 = C.or_ }, menu)
@@ -652,7 +663,7 @@ function Hud.creer()
 	nbB.ZIndex = 3
 	-- l'aide tactile
 	E.tactile = inst("Frame", { Name = "Tactile", BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Visible = false }, hud)
-	texte(E.tactile, { Text = T.glisse, TextSize = 28, TextColor3 = C.texte2, TextXAlignment = Enum.TextXAlignment.Left,
+	E.glisseTxt = texte(E.tactile, { Text = T.glisse, TextSize = 28, TextColor3 = C.texte2, TextXAlignment = Enum.TextXAlignment.Left,
 		Size = UDim2.fromOffset(420, 64), Position = UDim2.new(0, 26, 0.6, 0) })
 	E.stickBase = inst("Frame", { BackgroundColor3 = C.plaqueSh, BackgroundTransparency = 0.35, BorderSizePixel = 0,
 		Size = UDim2.fromOffset(120, 120), AnchorPoint = Vector2.new(0.5, 0.5), Visible = false }, gStick)
@@ -676,7 +687,7 @@ function Hud.creer()
 	E.btSonP = tuile(pan, T.son, C.cyan, UDim2.fromOffset(330, 84), UDim2.new(0.5, -10, 0, 142), Vector2.new(1, 0), 28)
 	E.btMusP = tuile(pan, T.musique, C.cyan, UDim2.fromOffset(330, 84), UDim2.new(0.5, 10, 0, 142), Vector2.new(0, 0), 28)
 	E.btRecom = tuile(pan, T.recommencer, C.magenta, UDim2.fromOffset(330, 84), UDim2.new(0.5, -10, 0, 244), Vector2.new(1, 0), 24, "rejouer")
-	E.btMenuP = tuile(pan, T.menu, C.lavande, UDim2.fromOffset(330, 84), UDim2.new(0.5, 10, 0, 244), Vector2.new(0, 0), 28, "maison")
+	E.btMenuP = tuile(pan, T.quitter, C.rouge, UDim2.fromOffset(330, 84), UDim2.new(0.5, 10, 0, 244), Vector2.new(0, 0), 28, "quitter") -- (L5774 : QUITTER, rouge — elle VERSE les gains et ouvre l'écran de fin)
 	if Config.FACILE_ACTIF then
 		E.btFacile = tuile(pan, T.facile, C.vert, UDim2.fromOffset(330, 72), UDim2.new(0.5, -10, 0, 346), Vector2.new(1, 0), 22)
 		E.btPouceP = tuile(pan, T.pouce, C.cyan, UDim2.fromOffset(330, 72), UDim2.new(0.5, 10, 0, 346), Vector2.new(0, 0), 16)
@@ -832,6 +843,10 @@ function Hud.creer()
 	local mort = inst("Frame", { Name = "Mort", BackgroundColor3 = Color3.new(1, 1, 1), BackgroundTransparency = 0.06,
 		Size = UDim2.fromScale(1, 1), Visible = false, ZIndex = 30 }, racine)
 	E.mort = mort
+	-- (L39294) LA GARDE : l'écran de fin ignore les appuis pendant 0,6 s — on martèle NITRO pour passer l'explosion, et REJOUER est
+	-- juste sous le pouce : sans elle, la partie repartait avant qu'on ait vu son résultat
+	E.mGarde = inst("TextButton", { Name = "Garde", Text = "", BackgroundTransparency = 1, AutoButtonColor = false, Size = UDim2.fromScale(1, 1),
+		ZIndex = 60, Visible = false }, mort)
 	degrade(mort, Color3.fromRGB(34, 16, 60), Color3.fromRGB(12, 8, 30), 60)
 	E.mCause = texte(mort, { Text = "", TextSize = 62, TextColor3 = C.rose, italique = true, Size = UDim2.new(0.5, 0, 0, 64),
 		Position = UDim2.new(0.03, 30, 0, 14), TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 4, contourCouleur = hx("3a0626") })
@@ -1103,6 +1118,7 @@ function Hud.brancherTactile()
 		local cam = workspace.CurrentCamera
 		if io.Position.X > cam.ViewportSize.X * 0.5 then return end
 		doigt = io
+		E.glisseTxt.Visible = false -- (L907 : la consigne est dite UNE fois — au premier braquage elle s'efface pour de bon)
 		origine = Vector2.new(io.Position.X, io.Position.Y)
 		t.actif = true
 		t.x, t.y = 0, 0
@@ -1156,6 +1172,10 @@ function Hud.ecran(nom: string)
 	E.btRecom.Parent.Visible = not reg
 	E.btMenuP.Parent.Visible = not reg
 	E.btReprendre.Text = reg and T.fermer or T.reprendre
+	if nom == "mort" then
+		E.mGarde.Visible = true
+		task.delay(0.6, function() E.mGarde.Visible = false end)
+	end
 	if nom == "menu" or nom == "mort" then
 		local f = nom == "menu" and E.menu or E.mort
 		f.Position = UDim2.fromOffset(0, 24)
@@ -1241,6 +1261,12 @@ function Hud.dolVol(v: number)
 		E.dolVol.TextSize = 38
 		TweenService:Create(E.dolVol, LENTE, { TextSize = 26 }):Play()
 	end
+end
+-- les pastilles de l'accueil : n choses à s'offrir au garage ; la boutique jamais visitée
+function Hud.badges(nGarage: number, shopNeuf: boolean)
+	E.bdGar.Text = tostring(nGarage)
+	E.bdGar.Visible = nGarage > 0
+	E.bdShop.Visible = shopNeuf
 end
 -- le bilan de la partie en cours, sous le titre PAUSE
 function Hud.pauseBilan(aura: number, moteur: number, niveau: number)

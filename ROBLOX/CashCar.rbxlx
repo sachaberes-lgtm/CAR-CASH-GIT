@@ -135,6 +135,7 @@ CC:WaitForChild("ProfilMaj").OnClientEvent:Connect(function(p)
 	if type(p) ~= "table" then return end
 	lireProfil(p)
 	Garage.majProfil()
+	if KA.badges and Hud.ecranCourant() == "menu" then KA.badges() end -- (un achat, un défi payé : les pastilles suivent)
 end)
 evRecord.OnClientEvent:Connect(function(v, c)
 	if type(v) == "number" then
@@ -628,7 +629,7 @@ local function astuce(i: number, muet: boolean?)
 	if muet then return end
 	-- (l'astuce du VOL dit le sens que le joueur a réglé : POUCE HAUT = PLONGE ou MONTE)
 	local k = (i == 2 and Controles.sensVol < 0) and 5 or i
-	Hud.astuce((Hud.tactile and T.astucesTactile or T.astuces)[k], 6)
+	Hud.astuce((Hud.tactile and T.astucesTactile or T.astuces)[k], 2.8) -- (misBanniere, L21811 : 2,6 s de lecture)
 end
 G.astuce = astuce
 -- impU = l'élan vers le haut ; impF = le coup d'accélérateur ; bord = on sort par le BORD (la bascule : ni saut ni élan)
@@ -954,8 +955,7 @@ local function atterrir(face: number, latX: number, sX: number, hR: number?)
 		Sons.vrai("departLogo", nil, nil, "go") -- (le logo CLAQUE : sub + accord d'or)
 		Sons.jouer("poseChoc")
 		secousse = 0.6
-		task.delay(1.2, function() astuce(1) end)
-		task.delay(16, function() astuce(3) end)
+		-- (les astuces « sors par le bord » et « chaque pièce fait monter ton moteur » n'existent pas dans le jeu web : retirées)
 		return
 	end
 	local cf = repere(s, side)
@@ -2665,11 +2665,24 @@ local function allerMenu()
 	Bus.emit("menu")
 	Hud.ecran("menu")
 	E.menuRecord.Text = record > 0 and (T.record .. " " .. Hud.argent(record)) or ""
+	if KA.badges then KA.badges() end
 	evEtat:FireServer("course", false)
 end
 
 local function nouvellePartie()
-	-- la leçon tant qu'elle n'a pas été passée (ou sautée) : la piste d'école est la zone 0
+	-- la leçon tant qu'elle n'a pas été passée (ou sautée) : la piste d'école est la zone 0. (3/10) Si elle n'est pas encore bâtie — un
+	-- JOUER très rapide sur un compte neuf, ou REVOIR L'AUTO-ÉCOLE — on l'ATTEND (quelques secondes au plus) au lieu de la sauter en silence.
+	if profil.reglages ~= nil and profil.reglages.tuto == false then
+		if not ZONES[0] then preparer(0, nil) end
+		if ZONES[0] and not ZONES[0].pret then
+			if G.lanceAttend then return end -- (un second appui pendant l'attente ne lance pas une seconde partie)
+			G.lanceAttend = true
+			local t9 = os.clock()
+			while ZONES[0] and not ZONES[0].pret and os.clock() - t9 < 8 do task.wait(0.1) end
+			G.lanceAttend = false
+			if mode ~= "menu" and mode ~= "mort" then return end -- (le joueur est parti ailleurs entre-temps)
+		end
+	end
 	local ecole = profil.reglages ~= nil and profil.reglages.tuto == false and ZONES[0] ~= nil and ZONES[0].pret
 	TU.on = ecole
 	TU.vers(1)
@@ -2743,7 +2756,7 @@ local function finPartie()
 	mode = "mort"
 	aura = Score.fin(false)
 	local dist = G.distAvant + math.max(0, s)
-	local rec = argent > record and argent > Config.CASH_DEPART + 0.01
+	local rec = argent > record and argent > Config.CASH_DEPART + 0.5 -- (partieRecord, L24610 : au moins 0,50 $ gagnés)
 	-- LES RECORDS NE SE CONTREDISENT PLUS (audit UX du 26/09, L38987) : le titre s'allume pour l'argent, l'AURA ou le MOTEUR — les
 	-- héros de cet écran. (L'aura : seulement s'il y avait un record à battre ; le moteur : un palier jamais atteint avant.)
 	-- Une partie QUITTÉE depuis la pause ne fête rien.
@@ -2757,7 +2770,9 @@ local function finPartie()
 	meilleurAura = math.max(meilleurAura, aura)
 	G.kmhRecord = math.max(G.kmhRecord or 0, G.vmax or 0)
 	local cause = T.morts[causeMort] or T.morts.autre
-	E.mCause.Text = recT and T.nouveau or cause
+	-- (L4187, Sacha : « le texte sous GAME OVER sert à rien », « la caisse qui explose l'a déjà dit ») le titre dit GAME OVER ou
+	-- NOUVEAU RECORD !, jamais la cause ; et plus de ligne DISTANCE · PIÈCES · FIGURES (le web ne la montre pas)
+	E.mCause.Text = recT and T.nouveau or "GAME OVER"
 	Hud.tenir(E.mCauseEchelle, E.mCause.Text, 62, 560)
 	E.mRecord.Text = rec and (FR and "RECORD !" or "RECORD!") or ""
 	E.mRecord.Visible = rec
@@ -2767,14 +2782,13 @@ local function finPartie()
 	E.mAuraMeilleur.Text = T.meilleur .. " " .. Hud.entier(meilleurAura)
 	E.mMoteurNom.Text = Hud.sansAccent(MOT[tier + 1].nom)
 	Hud.tenir(E.mMoteurNomEchelle, E.mMoteurNom.Text, 20, 270)
-	E.mMoteurPalier.Text = T.palier .. '  <font size="46">' .. tier .. "</font>"
+	E.mMoteurPalier.Text = T.palier .. '  <font size="46">' .. (tier + 1) .. "</font>" -- (L39158 : le palier se compte à partir de 1, comme dans la pause)
 	if tier < #MOT - 1 then
 		E.mMoteurEncore.Text = string.format(T.encore, MOT[tier + 2][1] - coinsGot) .. "\n↑ " .. Hud.sansAccent(MOT[tier + 2].nom)
 	else
 		E.mMoteurEncore.Text = T.moteurMax
 	end
-	E.mPartie.Text = (recT and (cause .. "\n") or "") .. T.distance .. "  " .. Hud.entier(dist) .. " M   " .. T.pieces .. "  " .. stats.pieces
-		.. "   " .. T.figures .. "  " .. stats.poses
+	E.mPartie.Text = ""
 	Hud.defi(mres.carte)
 	local st = {
 		{ "x" .. Score.CHA.xMax, T.multiMax },
@@ -2928,7 +2942,33 @@ G.boutique = require(CL:WaitForChild("Boutique"))
 G.boutique.init({ retour = function(d: string)
 	if d == "garage" then Garage.vignettes(true) else Hud.ecran(d) end
 end })
-E.btBoutique.Activated:Connect(function() if mode == "menu" then G.boutique.ouvrir("menu") end end)
+E.btBoutique.Activated:Connect(function()
+	if mode ~= "menu" then return end
+	if profil.reglages and not profil.reglages.shopVu then
+		reglage("shopVu", true)
+		G.badges()
+	end
+	G.boutique.ouvrir("menu")
+end)
+-- (mFill, L39179) ce que la banque peut s'offrir au GARAGE : les habillages à vendre pas encore à soi, les caisses à l'argent pas
+-- encore à soi (ni retirées) — dont le prix tient dans le compte
+function G.badges()
+	local n, bank = 0, compte
+	local a: { [string]: boolean } = {}
+	for _, h in profil.habits or {} do a[h] = true end
+	for cat, l in Config.HABITS do
+		for _, d in l do
+			if d.p and d.p <= bank and not a[cat .. ":" .. d.id] then n += 1 end
+		end
+	end
+	local moi: { [number]: boolean } = {}
+	for _, i in profil.caisses or {} do moi[i] = true end
+	for i, f in Caisse.Catalogue do
+		if not f.retire and f.cond.k == "prix" and f.cond.v <= bank and not moi[i] then n += 1 end
+	end
+	Hud.badges(n, profil.reglages ~= nil and profil.reglages.shopVu ~= true)
+end
+KA.badges = G.badges
 E.btBoutiqueM.Activated:Connect(function() if mode == "mort" then G.boutique.ouvrir("mort") end end)
 Hud.surMenu = function() Hud.pastilles(Missions.faits()) end
 E.btRejouer.Activated:Connect(function() if mode == "mort" then nouvellePartie() end end)
@@ -3003,6 +3043,14 @@ E.btReglages.Activated:Connect(function() if mode == "menu" then retourReglages 
 E.btReglM.Activated:Connect(function() if mode == "mort" then retourReglages = "mort"; Hud.ecran("reglages") end end)
 -- PASSER L'EXPLOSION (boomSkip, L24785 du jeu web) : une fois le souffle retombé (0,8 s), un tap, un clic, ESPACE ou le bouton A
 -- saute au bilan. On ne court-circuite rien : la boucle voit boomT à 1,8 et finit la partie comme d'habitude.
+do
+	local function quitte()
+		if workspace:GetAttribute("DbgAuto") then return end
+		if (mode == "drive" or mode == "fall") and not intro and not enPause then basculerPause() end
+	end
+	game:GetService("GuiService").MenuOpened:Connect(quitte)
+	game:GetService("UserInputService").WindowFocusReleased:Connect(quitte)
+end
 game:GetService("UserInputService").InputBegan:Connect(function(io: InputObject)
 	if mode ~= "boom" or enPause or boomT <= 0.8 or boomT >= 1.8 then return end
 	local t = io.UserInputType
@@ -3155,6 +3203,7 @@ if E.rg.facile then
 end
 E.rg.tuto.b.Activated:Connect(function()
 	reglage("tuto", false) -- la leçon revient à la prochaine partie
+	if not ZONES[0] then preparer(0, nil) end -- (sa piste n'existe que si le joueur ne l'avait jamais faite : on la bâtit maintenant)
 	Hud.toast(tr("L'AUTO-ECOLE REVIENT A LA PROCHAINE PARTIE", "DRIVING SCHOOL IS BACK NEXT RUN"), Hud.C.vert)
 end)
 E.btSonP.Activated:Connect(G.basculeSon)
@@ -12611,7 +12660,7 @@ local Hud = {}
 local FR = string.sub(Players.LocalPlayer.LocaleId or "fr", 1, 2) == "fr"
 Hud.FR = FR
 local T = FR and {
-	jouer = "JOUER", rejouer = "REJOUER", menu = "HOME", reprendre = "REPRENDRE", recommencer = "RECOMMENCER",
+	jouer = "JOUER", rejouer = "REJOUER", menu = "HOME", quitter = "QUITTER", reprendre = "REPRENDRE", recommencer = "RECOMMENCER",
 	pause = "PAUSE", son = "SON", musique = "MUSIQUE", record = "RECORD", nouveau = "NOUVEAU RECORD !",
 	reglages = "REGLAGES", fermer = "FERMER", retour = "RETOUR", jeu = "JEU", revoir = "REVOIR L'AUTO-ECOLE", volume = "VOLUME", pouce = "POUCE HAUT EN VOL", vibrations = "VIBRATIONS", plonge = "PLONGE", monte = "MONTE", verse = "VERSES AU COMPTE", compte = "COMPTE :", meilleur = "MEILLEUR",
 	moteurAtteint = "MOTEUR ATTEINT", palier = "PALIER", encore = "ENCORE %d PIECES POUR", moteurMax = "LE PLUS GROS MOTEUR",
@@ -12638,7 +12687,7 @@ local T = FR and {
 	},
 	morts = { air = "TROP LONGTEMPS EN L'AIR", vide = "AVALE PAR LE VIDE", arret = "EN PANNE SECHE", tour = "ENCASTRE DANS UNE TOUR", sat = "PERCUTE PAR UN SATELLITE", quitte = "PARTIE QUITTEE", autre = "GAME OVER" },
 } or {
-	jouer = "PLAY", rejouer = "PLAY AGAIN", menu = "HOME", reprendre = "RESUME", recommencer = "RESTART",
+	jouer = "PLAY", rejouer = "PLAY AGAIN", menu = "HOME", quitter = "QUIT", reprendre = "RESUME", recommencer = "RESTART",
 	pause = "PAUSE", son = "SOUND", musique = "MUSIC", record = "BEST", nouveau = "NEW RECORD!",
 	reglages = "SETTINGS", fermer = "CLOSE", retour = "BACK", jeu = "GAME", revoir = "REPLAY DRIVING SCHOOL", volume = "VOLUME", pouce = "THUMB UP IN THE AIR", vibrations = "VIBRATION", plonge = "DIVE", monte = "CLIMB", verse = "PAID TO ACCOUNT", compte = "ACCOUNT:", meilleur = "BEST",
 	moteurAtteint = "ENGINE REACHED", palier = "TIER", encore = "%d MORE COINS FOR", moteurMax = "THE BIGGEST ENGINE",
@@ -13112,7 +13161,7 @@ function Hud.creer()
 		inst("Frame", { BackgroundColor3 = c, BorderSizePixel = 0, Size = UDim2.new(i == 1 and 0.44 or 0.28, -8, 1, 0),
 			Position = UDim2.fromScale(i == 1 and 0 or (i == 2 and 0.44 or 0.72), 0) }, barre)
 	end
-	E.menuRecord = texte(logo, { Text = "", TextSize = 16, TextColor3 = C.vert, Position = UDim2.fromOffset(0, 120),
+	E.menuRecord = texte(logo, { Text = "", TextSize = 16, TextColor3 = C.vert, Position = UDim2.fromOffset(0, 120), Visible = false, -- (L5613 : le logo parle seul)
 		TextXAlignment = Enum.TextXAlignment.Right, Size = UDim2.new(1, -14, 0, 20), TextWrapped = false })
 	-- la colonne de droite du web (#mHome) : MISSIONS + ⚙, puis GARAGE · CARRIERE · BOUTIQUE, puis JOUER en lettres d'or
 	E.btMissions = tuile(menu, T.missions, C.vert, UDim2.fromOffset(510, 94), UDim2.new(1, -668, 1, -366), nil, 39, "cible", "g")
@@ -13126,6 +13175,17 @@ function Hud.creer()
 	E.btGarage = tuile(menu, T.garage, C.cyan, UDim2.fromOffset(202, 112), UDim2.new(1, -668, 1, -258), nil, 34, "voiture", "v")
 	E.btCarriere = tuile(menu, T.carriere, C.cyan, UDim2.fromOffset(202, 112), UDim2.new(1, -457, 1, -258), nil, 34, "trophee", "v")
 	E.btBoutique = tuile(menu, T.boutique, C.magenta, UDim2.fromOffset(202, 112), UDim2.new(1, -246, 1, -258), nil, 34, "panier", "v")
+	-- LES PASTILLES (#bdGar, #bdShop, L5623) : le GARAGE dit combien de choses la banque peut s'offrir (caisses et habillages — tout
+	-- ce qui s'achète en argent du jeu est au garage) ; la BOUTIQUE dit NEW tant qu'on n'y est jamais allé
+	local function pastille(tuile9: TextButton, fond: Color3): TextLabel
+		local l = texte(tuile9.Parent :: Instance, { Text = "", TextSize = 18, TextColor3 = Color3.new(1, 1, 1), BackgroundColor3 = fond, BackgroundTransparency = 0,
+			Size = UDim2.fromOffset(46, 30), Position = UDim2.new(1, -4, 0, -10), AnchorPoint = Vector2.new(1, 0), TextWrapped = false, Visible = false, ZIndex = 8 })
+		inst("UICorner", { CornerRadius = UDim.new(0, 6) }, l)
+		return l
+	end
+	E.bdGar = pastille(E.btGarage, C.rouge)
+	E.bdShop = pastille(E.btBoutique, C.magenta)
+	E.bdShop.Text = "NEW"
 	local jouer = inst("TextButton", { BackgroundTransparency = 1, AutoButtonColor = false, Size = UDim2.fromOffset(460, 100),
 		Position = UDim2.new(1, -356, 1, -20), AnchorPoint = Vector2.new(0.5, 1), FontFace = PIXI, Text = T.jouer, TextSize = 100,
 		TextColor3 = C.or_ }, menu)
@@ -13238,7 +13298,7 @@ function Hud.creer()
 	nbB.ZIndex = 3
 	-- l'aide tactile
 	E.tactile = inst("Frame", { Name = "Tactile", BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Visible = false }, hud)
-	texte(E.tactile, { Text = T.glisse, TextSize = 28, TextColor3 = C.texte2, TextXAlignment = Enum.TextXAlignment.Left,
+	E.glisseTxt = texte(E.tactile, { Text = T.glisse, TextSize = 28, TextColor3 = C.texte2, TextXAlignment = Enum.TextXAlignment.Left,
 		Size = UDim2.fromOffset(420, 64), Position = UDim2.new(0, 26, 0.6, 0) })
 	E.stickBase = inst("Frame", { BackgroundColor3 = C.plaqueSh, BackgroundTransparency = 0.35, BorderSizePixel = 0,
 		Size = UDim2.fromOffset(120, 120), AnchorPoint = Vector2.new(0.5, 0.5), Visible = false }, gStick)
@@ -13262,7 +13322,7 @@ function Hud.creer()
 	E.btSonP = tuile(pan, T.son, C.cyan, UDim2.fromOffset(330, 84), UDim2.new(0.5, -10, 0, 142), Vector2.new(1, 0), 28)
 	E.btMusP = tuile(pan, T.musique, C.cyan, UDim2.fromOffset(330, 84), UDim2.new(0.5, 10, 0, 142), Vector2.new(0, 0), 28)
 	E.btRecom = tuile(pan, T.recommencer, C.magenta, UDim2.fromOffset(330, 84), UDim2.new(0.5, -10, 0, 244), Vector2.new(1, 0), 24, "rejouer")
-	E.btMenuP = tuile(pan, T.menu, C.lavande, UDim2.fromOffset(330, 84), UDim2.new(0.5, 10, 0, 244), Vector2.new(0, 0), 28, "maison")
+	E.btMenuP = tuile(pan, T.quitter, C.rouge, UDim2.fromOffset(330, 84), UDim2.new(0.5, 10, 0, 244), Vector2.new(0, 0), 28, "quitter") -- (L5774 : QUITTER, rouge — elle VERSE les gains et ouvre l'écran de fin)
 	if Config.FACILE_ACTIF then
 		E.btFacile = tuile(pan, T.facile, C.vert, UDim2.fromOffset(330, 72), UDim2.new(0.5, -10, 0, 346), Vector2.new(1, 0), 22)
 		E.btPouceP = tuile(pan, T.pouce, C.cyan, UDim2.fromOffset(330, 72), UDim2.new(0.5, 10, 0, 346), Vector2.new(0, 0), 16)
@@ -13418,6 +13478,10 @@ function Hud.creer()
 	local mort = inst("Frame", { Name = "Mort", BackgroundColor3 = Color3.new(1, 1, 1), BackgroundTransparency = 0.06,
 		Size = UDim2.fromScale(1, 1), Visible = false, ZIndex = 30 }, racine)
 	E.mort = mort
+	-- (L39294) LA GARDE : l'écran de fin ignore les appuis pendant 0,6 s — on martèle NITRO pour passer l'explosion, et REJOUER est
+	-- juste sous le pouce : sans elle, la partie repartait avant qu'on ait vu son résultat
+	E.mGarde = inst("TextButton", { Name = "Garde", Text = "", BackgroundTransparency = 1, AutoButtonColor = false, Size = UDim2.fromScale(1, 1),
+		ZIndex = 60, Visible = false }, mort)
 	degrade(mort, Color3.fromRGB(34, 16, 60), Color3.fromRGB(12, 8, 30), 60)
 	E.mCause = texte(mort, { Text = "", TextSize = 62, TextColor3 = C.rose, italique = true, Size = UDim2.new(0.5, 0, 0, 64),
 		Position = UDim2.new(0.03, 30, 0, 14), TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 4, contourCouleur = hx("3a0626") })
@@ -13689,6 +13753,7 @@ function Hud.brancherTactile()
 		local cam = workspace.CurrentCamera
 		if io.Position.X > cam.ViewportSize.X * 0.5 then return end
 		doigt = io
+		E.glisseTxt.Visible = false -- (L907 : la consigne est dite UNE fois — au premier braquage elle s'efface pour de bon)
 		origine = Vector2.new(io.Position.X, io.Position.Y)
 		t.actif = true
 		t.x, t.y = 0, 0
@@ -13742,6 +13807,10 @@ function Hud.ecran(nom: string)
 	E.btRecom.Parent.Visible = not reg
 	E.btMenuP.Parent.Visible = not reg
 	E.btReprendre.Text = reg and T.fermer or T.reprendre
+	if nom == "mort" then
+		E.mGarde.Visible = true
+		task.delay(0.6, function() E.mGarde.Visible = false end)
+	end
 	if nom == "menu" or nom == "mort" then
 		local f = nom == "menu" and E.menu or E.mort
 		f.Position = UDim2.fromOffset(0, 24)
@@ -13827,6 +13896,12 @@ function Hud.dolVol(v: number)
 		E.dolVol.TextSize = 38
 		TweenService:Create(E.dolVol, LENTE, { TextSize = 26 }):Play()
 	end
+end
+-- les pastilles de l'accueil : n choses à s'offrir au garage ; la boutique jamais visitée
+function Hud.badges(nGarage: number, shopNeuf: boolean)
+	E.bdGar.Text = tostring(nGarage)
+	E.bdGar.Visible = nGarage > 0
+	E.bdShop.Visible = shopNeuf
 end
 -- le bilan de la partie en cours, sous le titre PAUSE
 function Hud.pauseBilan(aura: number, moteur: number, niveau: number)
@@ -18340,7 +18415,7 @@ local GABARIT = { [0] = 0, [1] = 1, [2] = 3, [3] = 5, [4] = 2 }
 type Cumulus = { p: MeshPart, dec: Vector3, a: number, b: number, y: number, v: number, lo: number, hi: number }
 local S = {
 	C = Vector3.zero, lh = Vector3.zAxis, t = 0, go = nil :: { t: number, suite: () -> (), fini: boolean }?,
-	nu = {} :: { Cumulus }, dossier = nil :: Folder?, fh = Vector3.xAxis, f = Vector3.xAxis, pos = Vector3.zero, u = 0,
+	nu = {} :: { Cumulus }, dossier = nil :: Folder?, fh = Vector3.xAxis, f = Vector3.xAxis, pos = Vector3.zero, u = 0, vu = false,
 }
 
 -- LE PLAN (chutePlan) : où tombe la caisse, vers où l'on regarde ; puis les cumulus (bâtis une fois, en tâche de fond)
@@ -18382,7 +18457,39 @@ function Titre.plan(piste: any)
 		end
 	end
 end
+-- L'ORBITE AU DOIGT (L35538 du jeu web ; Sacha, 30/09 : « rajoute un moyen de déplacer la caméra autour de la voiture avec le doigt »)
+-- — glisser tourne le regard autour de la caisse (le tour complet), de haut en bas il monte ou plonge ; la vue rejoint le doigt en
+-- douceur (~0,1 s) et, lâchée en mouvement, elle garde son ÉLAN (frottement × e^−3t). Pas de retour automatique : c'est JOUER qui
+-- ramène la caméra derrière la caisse pour le piqué. La caisse, elle, ne bouge pas. (Un appui sur un bouton du menu n'y touche pas.)
+local O = { a = 0, ac = 0, w = 0, p = 0, pc = 0, mvT = 0, x = 0, y = 0, dt0 = os.clock(), io = nil :: InputObject? }
+do
+	local UIS = game:GetService("UserInputService")
+	UIS.InputBegan:Connect(function(io: InputObject, traite: boolean)
+		if traite or not S.vu or S.go or O.io then return end
+		if io.UserInputType == Enum.UserInputType.Touch or io.UserInputType == Enum.UserInputType.MouseButton1 then
+			O.io, O.x, O.y, O.mvT = io, io.Position.X, io.Position.Y, os.clock()
+		end
+	end)
+	UIS.InputChanged:Connect(function(io: InputObject)
+		local d = O.io
+		if not d or S.go then return end
+		if io ~= d and not (d.UserInputType == Enum.UserInputType.MouseButton1 and io.UserInputType == Enum.UserInputType.MouseMovement) then return end
+		local k = 844 / math.max(1, workspace.CurrentCamera.ViewportSize.X) -- (le geste du web se mesure sur un écran couché de 844 px)
+		local n9 = os.clock()
+		local dm = math.max(0.008, n9 - O.mvT)
+		local dA = -(io.Position.X - O.x) * k * 0.008
+		O.ac += dA
+		O.w = O.w * 0.55 + dA / dm * 0.45
+		O.mvT = n9
+		O.pc = math.clamp(O.pc + (io.Position.Y - O.y) * k * 0.004, -0.6, 1.0)
+		O.x, O.y = io.Position.X, io.Position.Y
+	end)
+	UIS.InputEnded:Connect(function(io: InputObject)
+		if O.io and (io == O.io or io.UserInputType == O.io.UserInputType) then O.io = nil end
+	end)
+end
 function Titre.montrer(oui: boolean)
+	S.vu = oui
 	if S.dossier then S.dossier.Parent = oui and workspace or nil end
 	if oui then
 		S.go = nil
@@ -18470,7 +18577,26 @@ function Titre.vue(fiche: any): (CFrame, number)
 	local sw = math.sin(t * 0.11) * 0.07 + math.sin(t * 0.047 + 1.1) * 0.04
 	local cA, sA = math.cos(sw), math.sin(sw)
 	local lx, lz = S.lh.X * cA - S.lh.Z * sA, S.lh.X * sA + S.lh.Z * cA
-	local ce, se = math.cos(P.elev), math.sin(P.elev)
+	-- l'orbite au doigt : l'élan qui s'use, la vue qui rejoint la cible du doigt
+	do
+		local n9 = os.clock()
+		local dt = math.min(0.1, n9 - O.dt0)
+		O.dt0 = n9
+		if not G then
+			if not O.io and O.w ~= 0 then
+				O.ac += O.w * dt
+				O.w *= math.exp(-dt * 3)
+				if math.abs(O.w) < 0.015 then O.w = 0 end
+			end
+			local kS = 1 - math.exp(-dt * 10)
+			O.a += (O.ac - O.a) * kS
+			O.p += (O.pc - O.p) * kS
+		end
+		local oc, os9 = math.cos(O.a), math.sin(O.a)
+		lx, lz = lx * oc - lz * os9, lx * os9 + lz * oc
+	end
+	local el9 = math.clamp(P.elev + O.p, -0.45, 1.25)
+	local ce, se = math.cos(el9), math.sin(el9)
 	local C = S.pos
 	local pos = Vector3.new(C.X - lx * ce * d, C.Y + se * d, C.Z - lz * ce * d)
 	local k = 1
@@ -20763,7 +20889,7 @@ function Profils.neuf(): Profil
 		carriere = {},
 		reglages = { son = true, musique = true, facile = false, facileChoisi = false, tuto = false,
 			volSon = 100, volMus = 62, volH = "plonge", vib = true, -- (les curseurs de volume du web : 100 % et 62 % ; POUCE HAUT EN VOL ; VIBRATIONS)
-			ast1 = false, ast2 = false, ast3 = false, ast4 = false }, -- les ASTUCES déjà lues (une fois à vie) : le bord, le vol, les pièces, le drift
+			ast1 = false, ast2 = false, ast3 = false, ast4 = false, shopVu = false }, -- (shopVu : la BOUTIQUE a été visitée — sa pastille NEW s'éteint) -- les ASTUCES déjà lues (une fois à vie) : le bord, le vol, les pièces, le drift
 		permis = false, -- le PERMIS de l'auto-école : +500 $, une seule fois dans la vie du compte
 		stats = { parties = 0, distance = 0, pieces = 0, figures = 0 },
 	}

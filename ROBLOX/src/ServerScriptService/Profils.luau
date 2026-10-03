@@ -36,7 +36,7 @@ function Profils.neuf(): Profil
 		carriere = {},
 		reglages = { son = true, musique = true, facile = false, facileChoisi = false, tuto = false,
 			volSon = 100, volMus = 62, volH = "plonge", vib = true, -- (les curseurs de volume du web : 100 % et 62 % ; POUCE HAUT EN VOL ; VIBRATIONS)
-			ast1 = false, ast2 = false, ast3 = false, ast4 = false }, -- les ASTUCES déjà lues (une fois à vie) : le bord, le vol, les pièces, le drift
+			ast1 = false, ast2 = false, ast3 = false, ast4 = false, shopVu = false }, -- (shopVu : la BOUTIQUE a été visitée — sa pastille NEW s'éteint) -- les ASTUCES déjà lues (une fois à vie) : le bord, le vol, les pièces, le drift
 		permis = false, -- le PERMIS de l'auto-école : +500 $, une seule fois dans la vie du compte
 		stats = { parties = 0, distance = 0, pieces = 0, figures = 0 },
 	}

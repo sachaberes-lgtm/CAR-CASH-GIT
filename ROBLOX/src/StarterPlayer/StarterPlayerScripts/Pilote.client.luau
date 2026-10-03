@@ -135,6 +135,7 @@ CC:WaitForChild("ProfilMaj").OnClientEvent:Connect(function(p)
 	if type(p) ~= "table" then return end
 	lireProfil(p)
 	Garage.majProfil()
+	if KA.badges and Hud.ecranCourant() == "menu" then KA.badges() end -- (un achat, un défi payé : les pastilles suivent)
 end)
 evRecord.OnClientEvent:Connect(function(v, c)
 	if type(v) == "number" then
@@ -628,7 +629,7 @@ local function astuce(i: number, muet: boolean?)
 	if muet then return end
 	-- (l'astuce du VOL dit le sens que le joueur a réglé : POUCE HAUT = PLONGE ou MONTE)
 	local k = (i == 2 and Controles.sensVol < 0) and 5 or i
-	Hud.astuce((Hud.tactile and T.astucesTactile or T.astuces)[k], 6)
+	Hud.astuce((Hud.tactile and T.astucesTactile or T.astuces)[k], 2.8) -- (misBanniere, L21811 : 2,6 s de lecture)
 end
 G.astuce = astuce
 -- impU = l'élan vers le haut ; impF = le coup d'accélérateur ; bord = on sort par le BORD (la bascule : ni saut ni élan)
@@ -954,8 +955,7 @@ local function atterrir(face: number, latX: number, sX: number, hR: number?)
 		Sons.vrai("departLogo", nil, nil, "go") -- (le logo CLAQUE : sub + accord d'or)
 		Sons.jouer("poseChoc")
 		secousse = 0.6
-		task.delay(1.2, function() astuce(1) end)
-		task.delay(16, function() astuce(3) end)
+		-- (les astuces « sors par le bord » et « chaque pièce fait monter ton moteur » n'existent pas dans le jeu web : retirées)
 		return
 	end
 	local cf = repere(s, side)
@@ -2665,11 +2665,24 @@ local function allerMenu()
 	Bus.emit("menu")
 	Hud.ecran("menu")
 	E.menuRecord.Text = record > 0 and (T.record .. " " .. Hud.argent(record)) or ""
+	if KA.badges then KA.badges() end
 	evEtat:FireServer("course", false)
 end
 
 local function nouvellePartie()
-	-- la leçon tant qu'elle n'a pas été passée (ou sautée) : la piste d'école est la zone 0
+	-- la leçon tant qu'elle n'a pas été passée (ou sautée) : la piste d'école est la zone 0. (3/10) Si elle n'est pas encore bâtie — un
+	-- JOUER très rapide sur un compte neuf, ou REVOIR L'AUTO-ÉCOLE — on l'ATTEND (quelques secondes au plus) au lieu de la sauter en silence.
+	if profil.reglages ~= nil and profil.reglages.tuto == false then
+		if not ZONES[0] then preparer(0, nil) end
+		if ZONES[0] and not ZONES[0].pret then
+			if G.lanceAttend then return end -- (un second appui pendant l'attente ne lance pas une seconde partie)
+			G.lanceAttend = true
+			local t9 = os.clock()
+			while ZONES[0] and not ZONES[0].pret and os.clock() - t9 < 8 do task.wait(0.1) end
+			G.lanceAttend = false
+			if mode ~= "menu" and mode ~= "mort" then return end -- (le joueur est parti ailleurs entre-temps)
+		end
+	end
 	local ecole = profil.reglages ~= nil and profil.reglages.tuto == false and ZONES[0] ~= nil and ZONES[0].pret
 	TU.on = ecole
 	TU.vers(1)
@@ -2743,7 +2756,7 @@ local function finPartie()
 	mode = "mort"
 	aura = Score.fin(false)
 	local dist = G.distAvant + math.max(0, s)
-	local rec = argent > record and argent > Config.CASH_DEPART + 0.01
+	local rec = argent > record and argent > Config.CASH_DEPART + 0.5 -- (partieRecord, L24610 : au moins 0,50 $ gagnés)
 	-- LES RECORDS NE SE CONTREDISENT PLUS (audit UX du 26/09, L38987) : le titre s'allume pour l'argent, l'AURA ou le MOTEUR — les
 	-- héros de cet écran. (L'aura : seulement s'il y avait un record à battre ; le moteur : un palier jamais atteint avant.)
 	-- Une partie QUITTÉE depuis la pause ne fête rien.
@@ -2757,7 +2770,9 @@ local function finPartie()
 	meilleurAura = math.max(meilleurAura, aura)
 	G.kmhRecord = math.max(G.kmhRecord or 0, G.vmax or 0)
 	local cause = T.morts[causeMort] or T.morts.autre
-	E.mCause.Text = recT and T.nouveau or cause
+	-- (L4187, Sacha : « le texte sous GAME OVER sert à rien », « la caisse qui explose l'a déjà dit ») le titre dit GAME OVER ou
+	-- NOUVEAU RECORD !, jamais la cause ; et plus de ligne DISTANCE · PIÈCES · FIGURES (le web ne la montre pas)
+	E.mCause.Text = recT and T.nouveau or "GAME OVER"
 	Hud.tenir(E.mCauseEchelle, E.mCause.Text, 62, 560)
 	E.mRecord.Text = rec and (FR and "RECORD !" or "RECORD!") or ""
 	E.mRecord.Visible = rec
@@ -2767,14 +2782,13 @@ local function finPartie()
 	E.mAuraMeilleur.Text = T.meilleur .. " " .. Hud.entier(meilleurAura)
 	E.mMoteurNom.Text = Hud.sansAccent(MOT[tier + 1].nom)
 	Hud.tenir(E.mMoteurNomEchelle, E.mMoteurNom.Text, 20, 270)
-	E.mMoteurPalier.Text = T.palier .. '  <font size="46">' .. tier .. "</font>"
+	E.mMoteurPalier.Text = T.palier .. '  <font size="46">' .. (tier + 1) .. "</font>" -- (L39158 : le palier se compte à partir de 1, comme dans la pause)
 	if tier < #MOT - 1 then
 		E.mMoteurEncore.Text = string.format(T.encore, MOT[tier + 2][1] - coinsGot) .. "\n↑ " .. Hud.sansAccent(MOT[tier + 2].nom)
 	else
 		E.mMoteurEncore.Text = T.moteurMax
 	end
-	E.mPartie.Text = (recT and (cause .. "\n") or "") .. T.distance .. "  " .. Hud.entier(dist) .. " M   " .. T.pieces .. "  " .. stats.pieces
-		.. "   " .. T.figures .. "  " .. stats.poses
+	E.mPartie.Text = ""
 	Hud.defi(mres.carte)
 	local st = {
 		{ "x" .. Score.CHA.xMax, T.multiMax },
@@ -2928,7 +2942,33 @@ G.boutique = require(CL:WaitForChild("Boutique"))
 G.boutique.init({ retour = function(d: string)
 	if d == "garage" then Garage.vignettes(true) else Hud.ecran(d) end
 end })
-E.btBoutique.Activated:Connect(function() if mode == "menu" then G.boutique.ouvrir("menu") end end)
+E.btBoutique.Activated:Connect(function()
+	if mode ~= "menu" then return end
+	if profil.reglages and not profil.reglages.shopVu then
+		reglage("shopVu", true)
+		G.badges()
+	end
+	G.boutique.ouvrir("menu")
+end)
+-- (mFill, L39179) ce que la banque peut s'offrir au GARAGE : les habillages à vendre pas encore à soi, les caisses à l'argent pas
+-- encore à soi (ni retirées) — dont le prix tient dans le compte
+function G.badges()
+	local n, bank = 0, compte
+	local a: { [string]: boolean } = {}
+	for _, h in profil.habits or {} do a[h] = true end
+	for cat, l in Config.HABITS do
+		for _, d in l do
+			if d.p and d.p <= bank and not a[cat .. ":" .. d.id] then n += 1 end
+		end
+	end
+	local moi: { [number]: boolean } = {}
+	for _, i in profil.caisses or {} do moi[i] = true end
+	for i, f in Caisse.Catalogue do
+		if not f.retire and f.cond.k == "prix" and f.cond.v <= bank and not moi[i] then n += 1 end
+	end
+	Hud.badges(n, profil.reglages ~= nil and profil.reglages.shopVu ~= true)
+end
+KA.badges = G.badges
 E.btBoutiqueM.Activated:Connect(function() if mode == "mort" then G.boutique.ouvrir("mort") end end)
 Hud.surMenu = function() Hud.pastilles(Missions.faits()) end
 E.btRejouer.Activated:Connect(function() if mode == "mort" then nouvellePartie() end end)
@@ -3003,6 +3043,14 @@ E.btReglages.Activated:Connect(function() if mode == "menu" then retourReglages 
 E.btReglM.Activated:Connect(function() if mode == "mort" then retourReglages = "mort"; Hud.ecran("reglages") end end)
 -- PASSER L'EXPLOSION (boomSkip, L24785 du jeu web) : une fois le souffle retombé (0,8 s), un tap, un clic, ESPACE ou le bouton A
 -- saute au bilan. On ne court-circuite rien : la boucle voit boomT à 1,8 et finit la partie comme d'habitude.
+do
+	local function quitte()
+		if workspace:GetAttribute("DbgAuto") then return end
+		if (mode == "drive" or mode == "fall") and not intro and not enPause then basculerPause() end
+	end
+	game:GetService("GuiService").MenuOpened:Connect(quitte)
+	game:GetService("UserInputService").WindowFocusReleased:Connect(quitte)
+end
 game:GetService("UserInputService").InputBegan:Connect(function(io: InputObject)
 	if mode ~= "boom" or enPause or boomT <= 0.8 or boomT >= 1.8 then return end
 	local t = io.UserInputType
@@ -3155,6 +3203,7 @@ if E.rg.facile then
 end
 E.rg.tuto.b.Activated:Connect(function()
 	reglage("tuto", false) -- la leçon revient à la prochaine partie
+	if not ZONES[0] then preparer(0, nil) end -- (sa piste n'existe que si le joueur ne l'avait jamais faite : on la bâtit maintenant)
 	Hud.toast(tr("L'AUTO-ECOLE REVIENT A LA PROCHAINE PARTIE", "DRIVING SCHOOL IS BACK NEXT RUN"), Hud.C.vert)
 end)
 E.btSonP.Activated:Connect(G.basculeSon)
