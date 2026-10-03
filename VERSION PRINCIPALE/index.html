@@ -28750,18 +28750,18 @@ function instruBus(){
   const g=AC.createGain();g.gain.value=1;
   const cp=AC.createDynamicsCompressor();cp.threshold.value=-20;cp.ratio.value=3;cp.attack.value=.008;cp.release.value=.18;cp.knee.value=12;
   const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1600;lp.Q.value=.5;
-  const hp=AC.createBiquadFilter();hp.type='highpass';hp.frequency.value=70;
+  const hp=AC.createBiquadFilter();hp.type='highpass';hp.frequency.value=160;
   const sec=AC.createGain();sec.gain.value=1.05;                                         // (Léo : « plus fondu et effacé ») −3,5 dB sec, la salle porte le reste
   g.connect(cp);cp.connect(hp);hp.connect(lp);lp.connect(sec);sec.connect(MASTER);
   try{ // LA SALLE : du bruit qui s'éteint, assombri avec le temps (calculé une fois, 1,8 s)
     const n=Math.floor(AC.sampleRate*1.8),ir=AC.createBuffer(2,n,AC.sampleRate);
     for(let c=0;c<2;c++){const d=ir.getChannelData(c);let lo=0;for(let i=0;i<n;i++){const x=i/n,a=Math.pow(1-x,3.2),k=.25+.7*x;lo+=(Math.random()*2-1-lo)*(1-k);d[i]=lo*a*(i<AC.sampleRate*.012?i/(AC.sampleRate*.012):1);}}
-    const cv=AC.createConvolver();cv.buffer=ir;const rv=AC.createGain();rv.gain.value=.85;const pd=AC.createDelay(.2);pd.delayTime.value=.035;INSTRU.salle=pd;lp.connect(pd);pd.connect(cv);cv.connect(rv);rv.connect(MASTER); // pré-délai 35 ms : l'attaque de chaque note passe AVANT la salle
+    const cv=AC.createConvolver();cv.buffer=ir;const rv=AC.createGain();rv.gain.value=.85;const pd=AC.createDelay(.2);pd.delayTime.value=.035;INSTRU.salle=pd;const rh=AC.createBiquadFilter();rh.type='highpass';rh.frequency.value=320;lp.connect(rh);rh.connect(pd); /* la salle ne prend plus le grave (la « résonance ») */pd.connect(cv);cv.connect(rv);rv.connect(MASTER); // pré-délai 35 ms : l'attaque de chaque note passe AVANT la salle
   }catch(e){}
   try{ // L'ÉCHO PING-PONG en croche pointée, recalé sur le tempo à chaque appui (instruTempo)
     const dL=AC.createDelay(2),dR=AC.createDelay(2),fb=AC.createGain(),df=AC.createBiquadFilter(),mg=AC.createChannelMerger(2),eg=AC.createGain();
-    df.type='lowpass';df.frequency.value=1300;fb.gain.value=.3;eg.gain.value=.38;
-    lp.connect(df);df.connect(dL);dL.connect(dR);dR.connect(fb);fb.connect(dL);dL.connect(mg,0,0);dR.connect(mg,0,1);mg.connect(eg);eg.connect(MASTER);
+    df.type='lowpass';df.frequency.value=1300;const dh=AC.createBiquadFilter();dh.type='highpass';dh.frequency.value=300;fb.gain.value=.3;eg.gain.value=.38;
+    lp.connect(dh);dh.connect(df);df.connect(dL);dL.connect(dR);dR.connect(fb);fb.connect(dL);dL.connect(mg,0,0);dR.connect(mg,0,1);mg.connect(eg);eg.connect(MASTER);
     INSTRU.dL=dL;INSTRU.dR=dR;
   }catch(e){}
   try{ // (2026-10-03, Léo : « à chaque note un peu plus d'individualité, fais-les ressortir un peu du fondu ») LE CONTOUR : l'attaque de chaque
@@ -28788,6 +28788,21 @@ function instruEtincelle(f,t,pan,vel){
   const pk=.05*vel;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(pk,t+.004);g.gain.setTargetAtTime(0,t+.01,.22);
   c.connect(g);if(p){p.pan.value=pan*1.4;g.connect(p);p.connect(bus);}else g.connect(bus);
   [c,m,sc].forEach(function(o){o.start(t);o.stop(t+1.4);});INSTRU.vu.push(Math.round(f));if(INSTRU.vu.length>200)INSTRU.vu.shift();
+}
+/* LE TING (2026-10-03) : l'arpège change d'instrument — une petite cloche de verre / célesta (sinus + FM au rapport 3,5 qui s'éteint en
+   ~60 ms, scintillement ×4 au contact, déclin .35 s), sur le bus clair de l'étincelle (350 Hz – 7 kHz, un peu de salle). Aucun grave. */
+function instruTing(f,t,pan,vel){
+  const bus=instruBus();if(!bus||vel<.03)return;
+  if(!INSTRU.essai){t+=(Math.random()-.5)*.006;vel*=.92+Math.random()*.16;}t=Math.max(t,AC.currentTime);
+  INSTRU.fins=INSTRU.fins.filter(function(x){return x>t;});if(INSTRU.fins.length>=12)return;
+  if(INSTRU.essai||!INSTRU.etin){INSTRU.vu.push(Math.round(f));if(INSTRU.vu.length>200)INSTRU.vu.shift();return;}
+  INSTRU.fins.push(t+.25);
+  const c=AC.createOscillator(),m=AC.createOscillator(),mg=AC.createGain(),g=AC.createGain(),sc=AC.createOscillator(),sg=AC.createGain(),p=AC.createStereoPanner?AC.createStereoPanner():null;
+  c.frequency.value=f;m.frequency.value=f*3.5;mg.gain.setValueAtTime(f*1.1,t);mg.gain.setTargetAtTime(0,t,.06);m.connect(mg);mg.connect(c.frequency);
+  sc.frequency.value=f*4;sg.gain.setValueAtTime(0,t);sg.gain.linearRampToValueAtTime(.3,t+.002);sg.gain.setTargetAtTime(0,t+.004,.035);sc.connect(sg);sg.connect(g);
+  const pk=.055*vel;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(pk,t+.003);g.gain.setTargetAtTime(0,t+.008,.35);
+  c.connect(g);if(p){p.pan.value=pan;g.connect(p);p.connect(INSTRU.etin);}else g.connect(INSTRU.etin);
+  [c,m,sc].forEach(function(o){o.start(t);o.stop(t+1.8);});INSTRU.vu.push(Math.round(f));if(INSTRU.vu.length>200)INSTRU.vu.shift();
 }
 function instruNote(f,t,pan,vel,dec,etin){ // une touche de piano électrique (voir LE RENDU PREMIUM) — ou d'étincelle
   const bus=instruBus();if(!bus||vel<.03)return;
@@ -28838,13 +28853,13 @@ function instruPlanifie(){ // regard d'avance de 120 ms : les notes tombent pile
     const k=INSTRU.k,mes=k>>4;
     const t=Math.max(INSTRU.tNote,AC.currentTime),temps=k%4===0,V=INSTRU.vel*((mes&3)>=2?.78:1); // mesures 3-4 un peu plus bas
     const tons=instruTons(t+.01);                                                       // l'accord du MORCEAU, maintenant
-    const fen=instruDans(tons,55,84),mot=INSTRU_MOTIFS[((k>>3)*3+(mes>>2))%INSTRU_MOTIFS.length];
+    const fen=instruDans(tons,62,86),mot=INSTRU_MOTIFS[((k>>3)*3+(mes>>2))%INSTRU_MOTIFS.length];
     let a9=fen.length?fen[mot[k%8]%Math.min(5,fen.length)]:-1;                          // l'arpège : les 5 premières notes de l'accord au-dessus de sol3
-    if(a9>=0&&(mes&3)===3&&a9+12<=81)a9+=12;const arpK=(mes&3)===3?1.45:1;               // 4e mesure : il monte d'une octave (Léo : « plus aigu »)
+    if(a9>=0&&(mes&3)===3&&a9+12<=88)a9+=12;const arpK=(mes&3)===3?1.45:1;               // 4e mesure : il monte d'une octave (Léo : « plus aigu »)
     const et9=mes>=3;                                                                   // dès la 4e mesure tenue : l'ÉTINCELLE
-    if(a9>=0)instruNote(instruHz(a9),t,k%2?.3:-.3,V*arpK*(temps?.62:.48),.26,et9);
+    if(a9>=0)instruTing(instruHz(a9),t,k%2?.35:-.35,V*arpK*(temps?1:.8));                 // l'arpège : le TING (Léo : « plus en mode ting, l'instrument n'est peut-être pas le bon »)
     if(k%2===0||INSTRU.acc){const m9=instruMelodie(k,tons);if(m9>=0)instruNote(instruHz(m9),t,0,V*(INSTRU.acc?1.25:(k%8===0?1.05:.9)),.5,et9);INSTRU.acc=0;}
-    if(temps&&k>=32&&INSTRU.tient){const r9=instruRacine(tons);instruNote(instruHz(38+((r9-2+12)%12)),t,0,V*.55,.45);} // dès la 3e mesure tenue : la basse pose la fondamentale du MORCEAU
+    // (2026-10-03, Léo : « l'arpège crée une résonance grave à la fin, c'est dérangeant ») : plus de basse — le morceau a la sienne
     INSTRU.der=INSTRU.tNote;INSTRU.k++;INSTRU.n++;
     INSTRU.tNote=INSTRU.off!=null&&!INSTRU.essai?instruGrille(INSTRU.tNote+INSTRU.pas*.5):INSTRU.tNote+INSTRU.pas; // la note suivante, SUR la grille du morceau
   }
