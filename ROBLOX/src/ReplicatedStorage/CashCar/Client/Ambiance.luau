@@ -31,8 +31,11 @@ local HEURES: { [string]: any } = {
 		S = V3(288, 284, 274), OH = V3(176, 196, 246), OB = V3(152, 170, 232), mer = Color3.new(1, 1, 1),
 	},
 	-- LE TITRE (BIOMES.titre du web) : le matin poussé vers l'écran titre de Zelda — azur profond, horizon presque blanc, brume très loin
+	-- (3/10, mesuré au banc : à densité 0,03 la brume de Roblox EFFAÇAIT tout le décor du titre — les 18 cumulus, à 2-7 km de la
+	-- caméra, et la mer de nuages, étaient bien dans le cadre mais fondus dans le ciel : l'écran titre n'était qu'un aplat cyan. À
+	-- 0,01 la mer et les cumulus reviennent, comme sur le web)
 	titre = {
-		brume = RGB(226, 238, 250), loin = RGB(70, 140, 235), eclat = 0.1, voile = 0.25, densite = 0.03,
+		brume = RGB(226, 238, 250), loin = RGB(70, 140, 235), eclat = 0.1, voile = 0.25, densite = 0.01,
 		soleil = Color3.new(1, 0.96, 0.88), ext = RGB(235, 232, 246), teinte = RGB(255, 252, 248), sat = 0.34, con = 0.22, expo = -0.04,
 		S = V3(286, 280, 268), OH = V3(176, 194, 242), OB = V3(152, 168, 228), mer = Color3.new(1, 1, 1),
 	},

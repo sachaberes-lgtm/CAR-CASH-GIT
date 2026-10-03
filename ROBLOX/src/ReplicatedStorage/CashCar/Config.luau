@@ -221,6 +221,11 @@ Config.CIEL = {
 	merOmbre = Color3.fromRGB(148, 166, 204),   -- le versant à l'ombre des dômes
 	merSommet = Color3.fromRGB(192, 192, 194),  -- les sommets au soleil
 	merTrou = Color3.fromRGB(120, 146, 196),    -- les rares trous
+	-- LA MAQUETTE DU TITRE (3/10, mesuré au banc) : Roblox démarre en qualité graphique basse et n'affiche alors PAS ce qui est loin —
+	-- les cumulus du titre (1 à 7 km) et la mer (620 m dessous) restaient invisibles 15 à 30 s, les plus proches d'abord ; sur un
+	-- téléphone en qualité basse, jamais. Le décor du titre est donc une MAQUETTE : distances et tailles × titreK autour de la caisse
+	-- (les angles, donc l'image, ne changent pas), la mer du menu × titreK aussi.
+	titreK = 0.35,
 	merMenu = 620,                              -- m : au menu la caisse tombe de très haut, la mer est loin dessous
 }
 Config.ROUTE = {

@@ -3559,7 +3559,7 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 			cam.FieldOfView = workspace:GetAttribute("DbgFov") or 90
 		end
 		Mer.montrer(mode == "menu" or mode == "garage" or (piste :: any).niveau == "nuages")
-		Mer.suivre(cam.CFrame.Position, carCF.Position.Y, dt, (mode == "menu" or mode == "garage") and Config.CIEL.merMenu * M or nil)
+		Mer.suivre(cam.CFrame.Position, carCF.Position.Y, dt, (mode == "menu" or mode == "garage") and Config.CIEL.merMenu * (Config.CIEL.titreK or 1) * M or nil)
 		KA.Espace.tick(dt, (piste :: any).niveau == "espace" and mode ~= "menu" and mode ~= "garage", cam.CFrame, carCF)
 		do
 			local var, enJeu = (piste :: any).variante, mode ~= "menu" and mode ~= "garage" and mode ~= "charge"
@@ -3652,16 +3652,28 @@ while not Mer.pret and os.clock() - t0 < 15 do
 	E.chargeTxt.Text = T.chargement .. string.rep(".", math.floor((os.clock() - t0) * 3) % 4)
 	task.wait(0.1)
 end
-preparer(2, Piste.suite(z1.piste :: Piste.Piste))
-if profil.reglages and profil.reglages.tuto == false then preparer(0, nil) end
--- le plan du titre (la place de la caisse dans le ciel) tout de suite, ses cumulus dès que les gabarits sont prêts
+-- le plan du titre (la place de la caisse dans le ciel) tout de suite, ses cumulus dès que les gabarits sont prêts — AVANT la zone 2
+-- (3/10 : ils passaient après elle à l'atelier des maillages, et l'accueil s'ouvrait 10 à 20 s avant eux sur un ciel vide)
 task.spawn(function()
 	local okT, errT = pcall(KA.Titre.plan, z1.piste)
 	if not okT then warn("[CashCar] titre : " .. tostring(errT)) end
+	KA.Titre.nuPret = true
 	if mode == "menu" then KA.Titre.montrer(true) end
 end)
+task.wait()
+preparer(2, Piste.suite(z1.piste :: Piste.Piste))
+if profil.reglages and profil.reglages.tuto == false then preparer(0, nil) end
 -- L'INTRO DU STUDIO : CASH CAR bat, explose, 1.61 GAMES — puis l'accueil (pas au banc : il attend « menu prêt » au plus vite)
 if not workspace:GetAttribute("DbgSansIntro") then pcall(Hud.introStudio) end
+-- l'accueil n'ouvre pas sur un ciel vide : on attend les cumulus du titre (8 s au plus, le chargement reparle)
+do
+	local t1 = os.clock()
+	if not KA.Titre.nuPret then E.chargeTxt.Visible = true end
+	while not KA.Titre.nuPret and os.clock() - t1 < 8 do
+		E.chargeTxt.Text = T.chargement .. string.rep(".", math.floor((os.clock() - t1) * 3) % 4)
+		task.wait(0.1)
+	end
+end
 allerMenu()
 game:GetService("Players").LocalPlayer:SetAttribute("MenuPret", true) -- (le banc attend ce signal : l'accueil est là, l'intro jouée)
 end
