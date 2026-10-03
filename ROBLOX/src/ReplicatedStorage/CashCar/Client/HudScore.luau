@@ -72,18 +72,27 @@ function HudScore.creer()
 		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 5, contourCouleur = hex("#1c0430") })
 	U.auraMot = K.texte(bloc, { Text = "AURA", TextSize = 30, TextColor3 = Color3.fromRGB(255, 200, 250), Size = UDim2.fromOffset(110, 32), Position = UDim2.fromOffset(54, 26),
 		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 3 })
-	U.auraRec = K.texte(bloc, { Text = "", TextSize = 17, TextColor3 = C.terne, Size = UDim2.fromOffset(500, 18), Position = UDim2.fromOffset(4, 74),
+	-- (#avRec, L1560) la ligne de l'objectif « encore une » : une JAUGE (110 × 6) qui se remplit vers le record, puis le texte — en OR
+	local recF = inst("Frame", { BackgroundColor3 = Color3.new(0, 0, 0), BackgroundTransparency = 0.45, BorderSizePixel = 0, Size = UDim2.fromOffset(110, 6),
+		Position = UDim2.fromOffset(4, 80), Visible = false }, bloc)
+	U.recTrait = inst("UIStroke", { Color = hex("#ffd75e"), Transparency = 0.7, Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, recF)
+	U.recPlein = inst("Frame", { BackgroundColor3 = hex("#ffd75e"), BorderSizePixel = 0, Size = UDim2.fromScale(0, 1) }, recF)
+	U.recF = recF
+	U.auraRec = K.texte(bloc, { Text = "", TextSize = 17, TextColor3 = hex("#ffd75e"), Size = UDim2.fromOffset(500, 18), Position = UDim2.fromOffset(124, 74),
 		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
-	U.chaPts = K.texte(bloc, { Text = "", TextSize = 25, TextColor3 = C.texte2, Size = UDim2.fromOffset(240, 28), Position = UDim2.fromOffset(4, 124),
+	-- (la chaîne dans son propre groupe : elle PÂLIT quand elle dure — voir HudScore.tick)
+	local chGr = inst("CanvasGroup", { Name = "Chaine", BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1) }, bloc)
+	U.chaGr = chGr
+	U.chaPts = K.texte(chGr, { Text = "", TextSize = 25, TextColor3 = C.texte2, Size = UDim2.fromOffset(240, 28), Position = UDim2.fromOffset(4, 124),
 		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
-	U.chaX = K.texte(bloc, { Text = "", TextSize = 66, Size = UDim2.fromOffset(220, 68), Position = UDim2.fromOffset(70, 98),
+	U.chaX = K.texte(chGr, { Text = "", TextSize = 66, Size = UDim2.fromOffset(220, 68), Position = UDim2.fromOffset(70, 98),
 		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 5, contourCouleur = hex("#1c0430") })
-	local fondT = inst("Frame", { BackgroundColor3 = hex("#0d0a2a"), BorderSizePixel = 0, Size = UDim2.fromOffset(214, 10), Position = UDim2.fromOffset(4, 168), Visible = false }, bloc)
+	local fondT = inst("Frame", { BackgroundColor3 = hex("#0d0a2a"), BorderSizePixel = 0, Size = UDim2.fromOffset(214, 10), Position = UDim2.fromOffset(4, 168), Visible = false }, chGr)
 	U.chaFond = fondT
 	U.chaT = inst("Frame", { BackgroundColor3 = C.magenta, BorderSizePixel = 0, Size = UDim2.fromScale(1, 1) }, fondT)
-	U.chaL1 = K.texte(bloc, { Text = "", TextSize = 24, TextColor3 = C.texte, Size = UDim2.fromOffset(640, 26), Position = UDim2.fromOffset(4, 186),
+	U.chaL1 = K.texte(chGr, { Text = "", TextSize = 24, TextColor3 = C.texte, Size = UDim2.fromOffset(640, 26), Position = UDim2.fromOffset(4, 186),
 		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
-	U.chaL2 = K.texte(bloc, { Text = "", TextSize = 24, TextColor3 = C.terne, Size = UDim2.fromOffset(640, 26), Position = UDim2.fromOffset(4, 214),
+	U.chaL2 = K.texte(chGr, { Text = "", TextSize = 24, TextColor3 = C.terne, Size = UDim2.fromOffset(640, 26), Position = UDim2.fromOffset(4, 214),
 		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
 	U.verse = K.texte(bloc, { Text = "", TextSize = 30, TextColor3 = hex("#ff9ee6"), Size = UDim2.fromOffset(300, 32), Position = UDim2.fromOffset(190, 26),
 		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 3 })
@@ -400,15 +409,27 @@ function HudScore.tick(dt: number, mode: string)
 		U.auraMot.Position = UDim2.fromOffset(#chiffres * 73 * Hud.CHASSE + 14, 26) -- (police à chasse fixe : le mot suit le chiffre)
 	end
 	if CH.rec > 0 then
+		local pR = math.min(1, a / CH.rec)
+		U.recF.Visible = a <= CH.rec
+		U.recPlein.Size = UDim2.fromScale(pR, 1)
+		U.recTrait.Transparency = (pR >= 0.85) and (0.3 + 0.4 * math.abs(math.sin(os.clock() * 7))) or 0.7 -- (À PORTÉE : la jauge bat)
+		U.auraRec.Position = UDim2.fromOffset((a <= CH.rec) and 124 or 4, 74)
 		if a > CH.rec then U.auraRec.Text = "+" .. Hud.entier(a - CH.rec) .. Score.T(" AU-DESSUS", " ABOVE")
 		elseif a >= CH.rec * 0.85 then U.auraRec.Text = Score.T("ENCORE ", "ONLY ") .. Hud.entier(CH.rec - a)
 		else U.auraRec.Text = "RECORD " .. Hud.entier(CH.rec) end
 	else
 		U.auraRec.Text = ""
+		U.recF.Visible = false
 	end
 	if CH.n > 0 then
 		U.chaX.Text = "×" .. math.max(1, CH.x)
 		U.chaX.TextColor3 = hex(Score.X_COUL[CH.x])
+		-- LE HUD DISCRET (#avCh.discret, L5117) : une chaîne qui dure depuis plus de 3 s sans nouveau maillon PÂLIT (45 %) — un
+		-- nouveau geste la rallume
+		if CH.n ~= U.chaN then U.chaN, U.chaT0 = CH.n, os.clock() end
+		local cibleD = (os.clock() - (U.chaT0 or 0) > 3) and 0.55 or 0
+		local gD = U.chaGr.GroupTransparency
+		if math.abs(cibleD - gD) > 0.005 then U.chaGr.GroupTransparency = gD + (cibleD - gD) * ((cibleD > gD) and 0.05 or 0.35) end
 		U.chaL1.Text = CH.liste[1] or ""
 		U.chaL2.Text = CH.liste[2] or ""
 		local pts = Hud.entier(CH.pts)
@@ -423,6 +444,7 @@ function HudScore.tick(dt: number, mode: string)
 		U.chaT.BackgroundColor3 = (mode ~= "fall" and CH.t < 1.1) and ((math.sin(t * 20) > 0) and ROUGE or C.magenta) or C.magenta
 	else
 		U.chaX.Text, U.chaL1.Text, U.chaL2.Text, U.chaPts.Text = "", "", "", ""
+		U.chaGr.GroupTransparency, U.chaN = 0, nil
 		U.chaFond.Visible = false
 	end
 	if U.verse.Text ~= "" and t > verseFin then

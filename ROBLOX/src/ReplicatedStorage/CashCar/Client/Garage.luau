@@ -214,6 +214,7 @@ local function ecriteau(piece: BasePart, face: Enum.NormalId, txt: string, coule
 	return t
 end
 
+local AFFICHE: { TextLabel }? = nil -- (les quatre valeurs de l'affiche RECORD PERSO, posées par batir)
 local NUIT = Color3.fromRGB(24, 26, 44)
 local MUR = Color3.fromRGB(58, 66, 124) -- (capture web : une TÔLE bleu-violet, éclairée — à 36,42,74 l'atelier était un trou noir)
 local NERVURE = Color3.fromRGB(74, 84, 150)
@@ -323,7 +324,30 @@ local function batir()
 	-- l'affiche « RECORD PERSO » dans son cadre d'or
 	bloc("CadreAffiche", 1.7, 2.5, 0.08, 7.4, 2.5, PROF / 2 - 0.05, Color3.fromRGB(255, 200, 60)).Reflectance = 0.3
 	local aff = bloc("Affiche", 1.46, 2.26, 0.04, 7.4, 2.5, PROF / 2 - 0.11, Color3.fromRGB(58, 30, 112))
-	ecriteau(aff, Enum.NormalId.Front, FR and "RECORD\nPERSO" or "PERSONAL\nBEST", Color3.fromRGB(255, 215, 94), 16)
+	-- (affichesMaj, L33816) L'AFFICHE PARLE : le titre, puis TES records — la meilleure partie, l'aura max, le palier moteur, la vitesse
+	-- max ; tenus à jour à chaque ouverture du garage
+	do
+		local sg = Instance.new("SurfaceGui")
+		sg.Face = Enum.NormalId.Front
+		sg.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+		sg.PixelsPerStud = 40
+		sg.LightInfluence = 0
+		sg.Brightness = 2
+		sg.Parent = aff
+		local function lig(txt: string, y: number, h: number, corps: number, c: Color3): TextLabel
+			return inst("TextLabel", { BackgroundTransparency = 1, Size = UDim2.new(1, -16, 0, h), Position = UDim2.fromOffset(8, y), FontFace = K.PIX,
+				Text = txt, TextColor3 = c, TextScaled = true, TextWrapped = false }, sg)
+		end
+		local OR9, BL9, LV9 = Color3.fromRGB(255, 215, 94), Color3.new(1, 1, 1), Color3.fromRGB(180, 168, 230)
+		lig(FR and "RECORD" or "PERSONAL", 10, 18, 18, OR9)
+		lig(FR and "PERSO" or "BEST", 30, 12, 12, BL9)
+		AFFICHE = {}
+		for k, nom in { FR and "MEILLEURE PARTIE" or "BEST RUN", FR and "AURA MAX" or "MAX AURA", FR and "PALIER MOTEUR" or "ENGINE TIER", FR and "VITESSE MAX" or "TOP SPEED" } do
+			local y = 54 + (k - 1) * 40
+			lig(nom, y, 9, 9, LV9)
+			AFFICHE[k] = lig("-", y + 12, 16, 16, OR9)
+		end
+	end
 	-- les piles de pneus
 	for _, q in { { 8.9, 9.6, 3 }, { 9.7, 8.7, 2 }, { -9.6, -5.2, 4 }, { 9.6, -8.4, 3 } } do
 		for k = 0, q[3] - 1 do
@@ -872,7 +896,15 @@ function Garage.majFicheCaisse()
 	end
 end
 
+local function majAffiche()
+	if not AFFICHE then return end
+	local p = profil()
+	local v = { Hud.compte(p.record or 0), tostring(math.floor(p.auraMeilleur or 0)),
+		tostring((p.moteurMax or 0) + 1), math.floor(p.kmhMax or 0) .. " KM/H" }
+	for k, l in AFFICHE do l.Text = v[k] end
+end
 local function majTout()
+	majAffiche()
 	majCompte()
 	majPastilles()
 	if onglet ~= "voiture" then majBande() else
@@ -1229,6 +1261,53 @@ local function lisse(u: number): number
 	return u * u * (3 - 2 * u)
 end
 
+-- LE TAP (garageImpact, L34784) : un appui bref sur la vue — ni glissé ni swipe — est un petit COUP : la caisse recule d'un rien
+-- et revient (0,4 s), dix éclats de sa laque giclent de son nez et retombent, un « tonk » de tôle. Elle ne change pas de modèle
+-- (le changement reste au swipe et aux flèches) : elle répond au toucher.
+local IMP: any = { t = 0, D = 0.4, b = {} }
+local function impact()
+	if not vitrine or lacher or not dossier then return end
+	IMP.t = IMP.D
+	local f = Caisse.Catalogue[montre] or Caisse.Catalogue[0]
+	local cf = vitrine:GetPivot()
+	local laque = (vitrinePg and vitrinePg.laque) or Color3.fromRGB(220, 90, 40)
+	for i = 1, 10 do
+		local q = IMP.b[i]
+		if not q then
+			local p = Instance.new("Part")
+			p.Anchored = true
+			p.CanCollide, p.CanQuery, p.CanTouch = false, false, false
+			p.CastShadow = false
+			p.Material = Enum.Material.SmoothPlastic
+			p.Parent = dossier
+			q = { p = p }
+			IMP.b[i] = q
+		end
+		local s9 = 0.06 + math.random() * 0.1
+		q.p.Size = Vector3.new(s9, s9 * 0.7, s9) * M
+		q.p.Color = (math.random() < 0.6) and laque or Color3.fromRGB(40, 42, 52)
+		q.p.Transparency = 0
+		local a, sp = math.random() * 6.283, 1.1 + math.random() * 1.8
+		q.cf = cf * CFrame.new(((math.random() - 0.5) * 0.3) * M, (0.35 + math.random() * 0.3) * M, -(f.l * 0.5 - 0.2) * M)
+		q.v = cf:VectorToWorldSpace(Vector3.new(math.cos(a) * sp * 0.4, 1.6 + math.random() * 1.6, -(math.sin(a) * sp * 0.4 + 2.2)))
+		q.rx, q.ry = (math.random() - 0.5) * 9, (math.random() - 0.5) * 9
+		q.p.CFrame = q.cf
+	end
+	Sons.vrai("garageTole", nil, nil, "poseChoc", 1.5, 0.35)
+	Hud.vibre(12)
+end
+local function impactTick(dt: number): number -- rend le recul de la caisse (m)
+	if IMP.t <= 0 then return 0 end
+	IMP.t = math.max(0, IMP.t - dt)
+	local ik = 1 - IMP.t / IMP.D
+	for _, q in IMP.b do
+		q.v -= Vector3.yAxis * (9 * dt)
+		q.cf = (q.cf + q.v * dt * M) * CFrame.Angles(q.rx * dt, q.ry * dt, 0)
+		q.p.CFrame = (IMP.t > 0) and q.cf or CFrame.new(0, -5000, 0)
+		q.p.Transparency = 1 - IMP.t / IMP.D
+	end
+	return math.sin(math.min(1, ik) * math.pi) * 0.16
+end
 -- L'APERÇU DES TRAÎNÉES (trailApercu, L35066 du jeu web) : dans l'onglet TRAÎNÉES, deux rubans à la couleur ESSAYÉE (l'arc-en-ciel
 -- compris) sortent des pots de la vitrine et ondulent derrière elle — on voit la traînée, pas une pastille. Deux Beams accrochés à
 -- la caisse, leurs courbes animées à chaque image ; rendus (cachés) dès qu'on quitte l'onglet.
@@ -1321,7 +1400,7 @@ function Garage.rendu(dt: number)
 			end
 		end
 	elseif vitrine and not lacher then
-		vitrine:PivotTo(cfPlateau())
+		vitrine:PivotTo(cfPlateau() * CFrame.new(0, 0, impactTick(dt) * M)) -- (le TAP : elle recule d'un rien)
 		-- dans l'onglet AILES, la caisse les montre déployées
 		if vitrinePg then Caisse.deployer(vitrinePg, (onglet == "aile") and 1 or 0, t * 9) end
 	end
@@ -1441,6 +1520,8 @@ local function brancherGestes()
 			local dx, dy = g.x - g.x0, g.y - g.y0
 			if Garage.ouvert and not lacher and os.clock() - g.t0 < 0.3 and math.abs(dx) > 64 and math.abs(dx) > 1.3 * math.abs(dy) then
 				Garage.voisin(dx < 0 and 1 or -1)
+			elseif Garage.ouvert and not lacher and math.abs(dx) < 14 and math.abs(dy) < 14 then
+				impact() -- ni glissé ni swipe : un TAP
 			end
 		end
 	end)

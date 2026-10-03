@@ -606,7 +606,7 @@ function Hud.creer()
 		TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false, contourCouleur = hx("1c0430"), epais = 4 })
 	E.airJ = jauge(E.air, UDim2.new(1, 0, 0, 26), UDim2.fromOffset(0, 52), nil, 5, 3)
 	-- LES PLAQUES DE POUVOIR (#pwrChip) : une par pouvoir actif, sous l'argent (sous le chrono quand on vole)
-	E.pouvoirs = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(270, 340), Position = UDim2.new(1, -22, 0, 208), AnchorPoint = Vector2.new(1, 0) }, hud) -- (sous le « +$ » du compteur)
+	E.pouvoirs = inst("CanvasGroup", { BackgroundTransparency = 1, Size = UDim2.fromOffset(270, 340), Position = UDim2.new(1, -22, 0, 208), AnchorPoint = Vector2.new(1, 0) }, hud) -- (sous le « +$ » du compteur)
 	-- le centre : la bannière du niveau, les figures, la chaîne
 	E.grand = texte(hud, { Text = "", TextSize = 38, TextColor3 = C.texte, Size = UDim2.new(1, 0, 0, 60), Position = UDim2.fromScale(0, 0.33), epais = 4 })
 	E.pop = texte(hud, { Text = "", TextSize = 22, TextColor3 = C.or_, Size = UDim2.new(1, 0, 0, 34), Position = UDim2.fromScale(0, 0.22), epais = 3 })
@@ -679,6 +679,10 @@ function Hud.creer()
 	E.nitroMini = jauge(nbP, UDim2.fromOffset(132, 20), UDim2.new(0.5, -6, 1, -16), Vector2.new(0.5, 1), 3, 2)
 	E.btNitro = nbB
 	nbB.ZIndex = 3
+	-- (L1243) L'APPEL : pendant les étapes NITRO de l'auto-école, un anneau d'or bat autour du bouton — c'est LUI qu'il faut presser
+	E.nitroAppel = inst("Frame", { Name = "Appel", BackgroundTransparency = 1, Size = UDim2.fromOffset(204, 176), Position = UDim2.new(1, -16, 1, -18),
+		AnchorPoint = Vector2.new(1, 1), Visible = false, ZIndex = 4 }, hud)
+	E.nitroAppelTrait = inst("UIStroke", { Color = C.or_, Thickness = 5, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, E.nitroAppel)
 	-- l'aide tactile
 	E.tactile = inst("Frame", { Name = "Tactile", BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Visible = false }, hud)
 	E.glisseTxt = texte(E.tactile, { Text = T.glisse, TextSize = 28, TextColor3 = C.texte2, TextXAlignment = Enum.TextXAlignment.Left,
@@ -1001,6 +1005,8 @@ end
 -- ── LES PLAQUES DE POUVOIR : icône, nom, secondes au dixième, et la jauge qui se vide ; la dernière seconde et demie clignote ──
 local PW_ICO = { n = "flamme", a = "aile", v = "eclair", m = "aimant", x = "etoile" }
 local pwCle, pwEl = "", {} :: { any }
+local pwT0: number? = nil
+local pwCleVue = ""
 function Hud.pouvoirs(liste: { { any } }, sousChrono: boolean)
 	local cle = ""
 	for _, q in liste do cle ..= q[1] end
@@ -1025,7 +1031,19 @@ function Hud.pouvoirs(liste: { { any } }, sousChrono: boolean)
 			pwEl[i] = { p = p, s = s, u = u, bande = bande, duree = def.duree, t = "" }
 		end
 	end
-	E.pouvoirs.Position = UDim2.new(1, -22, 0, sousChrono and 282 or 190)
+	E.pouvoirs.Position = UDim2.new(1, -22, 0, sousChrono and 282 or 208)
+	-- LE HUD DISCRET (hudDiscretTick, L29175) : une plaque présente depuis plus de 3 s pâlit (45 %) ; un nouveau pouvoir la rallume,
+	-- et la fin d'un pouvoir (qui clignote) la garde EN PLEIN
+	if #liste == 0 then
+		pwT0 = nil
+	elseif not pwT0 or pwCleVue ~= cle then
+		pwT0, pwCleVue = os.clock(), cle
+	end
+	local fort = false
+	for _, q in liste do if q[2] < 1.5 then fort = true end end
+	local cible = (pwT0 and os.clock() - pwT0 > 3 and not fort) and 0.55 or 0
+	local g = E.pouvoirs.GroupTransparency
+	if math.abs(cible - g) > 0.005 then E.pouvoirs.GroupTransparency = g + (cible - g) * ((cible > g) and 0.05 or 0.3) end
 	for i, q in liste do
 		local e = pwEl[i]
 		if e then
@@ -1315,6 +1333,15 @@ end
 -- le bilan de la partie en cours, sous le titre PAUSE
 function Hud.pauseBilan(aura: number, moteur: number, niveau: number)
 	E.pauseBilan.Text = string.format("AURA %s   -   %s %d   -   %s %d", Hud.entier(aura), FR and "MOTEUR" or "ENGINE", moteur, FR and "NIVEAU" or "LEVEL", niveau)
+end
+-- l'anneau d'appel du bouton NITRO (l'auto-école)
+function Hud.nitroAppel(on: boolean)
+	if E.nitroAppel.Visible ~= on then E.nitroAppel.Visible = on end
+	if on then
+		local u = 0.5 + 0.5 * math.sin(os.clock() * 7)
+		E.nitroAppelTrait.Transparency = 0.1 + 0.6 * u
+		E.nitroAppelTrait.Thickness = 3 + 4 * (1 - u)
+	end
 end
 local astuceFin = 0
 function Hud.astuce(txt: string, duree: number?)
