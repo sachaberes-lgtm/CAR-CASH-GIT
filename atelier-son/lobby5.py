@@ -310,12 +310,11 @@ def l_fortune():
 
 
 def l_temple():
-    def sig(M, de, h):                                                    # le gong, au début de chaque moitié
-        g = M.piste('sig')
+    def sig(M, de, h):                                                    # (Léo : « le gong est chelou ») → la CLOCHE DU TEMPLE : claire, accordée
+        g = M.piste('sig')                                                # sur la (la tonique), deux coups qui se répondent au début de chaque moitié
         for m in (0, 4):
-            nn = int(4 * SR); t = np.arange(nn) / SR
-            gg = sum(a * np.sin(2 * np.pi * f * t) for f, a in ((86, 1), (151, .6), (233, .4), (377, .25))) * np.exp(-t / 1.8) * (1 - np.exp(-t / .02))
-            g.pose(M.t(m), filtre(gg, 'low', 2500), .25)
+            for p, n, gg in ((0, 81, .2), (8, 88, .13)):
+                g.pose(M.t(m, p), fm(n, 2.5, 3.5, 1.6, .2, 1.1), gg, -.2 if p else .2)
     hook = [[(0, 81, 2), (2, 84, 2), (4, 86, 4), (8, 88, 4), (12, 86, 4)], [(0, 84, 4), (4, 81, 4), (8, 79, 8)],
             [(0, 81, 2), (2, 84, 2), (4, 86, 2), (6, 88, 2), (8, 91, 4), (12, 88, 4)], [(0, 86, 4), (4, 84, 4), (8, 81, 8)]]
     return jeu_video(118, 612, [[45, 69, 72, 76], [41, 69, 72, 77], [43, 67, 71, 74], [45, 69, 72, 76]], hook,
