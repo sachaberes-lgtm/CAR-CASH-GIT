@@ -2595,7 +2595,11 @@ local function habiller(dt: number)
 	-- `musique`. On passe de l'un à l'autre en fondu (1,2 s) ; chacun garde son fil, on ne le relance pas à chaque portail.
 	do
 		local veut = "musique"
-		if mode == "menu" or mode == "garage" or mode == "mort" or mode == "charge" then
+		if mode == "charge" then
+			-- (L39091, Léo 3/10 : « fais démarrer au moment du menu ciel ») pendant le chargement et l'intro du studio : silence — le
+			-- morceau de l'accueil part avec le ciel
+			veut = ""
+		elseif mode == "menu" or mode == "garage" or mode == "mort" then
 			-- (MUSIC_LOBBY, 3/10) l'accueil, le garage et l'écran de fin jouent UN morceau de lobby, tiré au lancement parmi ceux qui
 			-- sont importés, gardé toute la session ; aucun importé = NOCTURNAL GROOVE, comme avant
 			if G.lobby == nil then
@@ -2610,7 +2614,7 @@ local function habiller(dt: number)
 			local lieu, var = (piste :: any).niveau, (piste :: any).variante
 			veut = (var == "orage") and "musiqueOrage" or ((lieu == "ville") and "musiqueVille" or ((lieu == "nuages") and "musiqueNuages" or "musique"))
 		end
-		if not Sons.a(veut) then veut = "musique" end
+		if veut ~= "" and not Sons.a(veut) then veut = "musique" end
 		G.musVeut = veut
 		G.mus = G.mus or { musique = 0, musiqueNuages = 0, musiqueVille = 0, musiqueOrage = 0, musiqueLobby1 = 0, musiqueLobby2 = 0 }
 		do

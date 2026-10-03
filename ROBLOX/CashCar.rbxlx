@@ -2595,7 +2595,11 @@ local function habiller(dt: number)
 	-- `musique`. On passe de l'un à l'autre en fondu (1,2 s) ; chacun garde son fil, on ne le relance pas à chaque portail.
 	do
 		local veut = "musique"
-		if mode == "menu" or mode == "garage" or mode == "mort" or mode == "charge" then
+		if mode == "charge" then
+			-- (L39091, Léo 3/10 : « fais démarrer au moment du menu ciel ») pendant le chargement et l'intro du studio : silence — le
+			-- morceau de l'accueil part avec le ciel
+			veut = ""
+		elseif mode == "menu" or mode == "garage" or mode == "mort" then
 			-- (MUSIC_LOBBY, 3/10) l'accueil, le garage et l'écran de fin jouent UN morceau de lobby, tiré au lancement parmi ceux qui
 			-- sont importés, gardé toute la session ; aucun importé = NOCTURNAL GROOVE, comme avant
 			if G.lobby == nil then
@@ -2610,7 +2614,7 @@ local function habiller(dt: number)
 			local lieu, var = (piste :: any).niveau, (piste :: any).variante
 			veut = (var == "orage") and "musiqueOrage" or ((lieu == "ville") and "musiqueVille" or ((lieu == "nuages") and "musiqueNuages" or "musique"))
 		end
-		if not Sons.a(veut) then veut = "musique" end
+		if veut ~= "" and not Sons.a(veut) then veut = "musique" end
 		G.musVeut = veut
 		G.mus = G.mus or { musique = 0, musiqueNuages = 0, musiqueVille = 0, musiqueOrage = 0, musiqueLobby1 = 0, musiqueLobby2 = 0 }
 		do
@@ -19171,6 +19175,9 @@ Sons.actif = true
 Sons.musiqueActive = true
 -- LES CURSEURS du web (VOL.sfx, VOL.mus) : 0-1. La musique a été accordée au réglage d'usine (62 %) : son niveau est relatif à lui.
 Sons.volSon = 1
+-- (SFX_SOUS_MUS, L25558 ; Léo 3/10 : « les MONSTRE ne doivent pas cacher la musique — ça vaut pour TOUS les effets sonores ») :
+-- tous les effets −3 dB sous la musique (le curseur EFFETS s'applique par-dessus)
+local SOUS_MUS = 0.7
 Sons.volMus = 0.62
 
 local dossier = Instance.new("Folder")
@@ -19230,7 +19237,7 @@ function Sons.jouer(nom: string, hauteur: number?, volume: number?)
 	tours[nom] = (tours[nom] % #l) + 1
 	local s = l[tours[nom]]
 	s.PlaybackSpeed = hauteur or 1
-	s.Volume = (volume or VOLUMES[nom] or 0.5) * Sons.volSon
+	s.Volume = (volume or VOLUMES[nom] or 0.5) * Sons.volSon * SOUS_MUS
 	s.TimePosition = 0
 	s:Play()
 end
@@ -19273,7 +19280,7 @@ function Sons.regler(nom: string, volume: number, hauteur: number?)
 	if string.sub(nom, 1, 7) == "musique" then -- (musique, musiqueNuages, musiqueVille, musiqueOrage)
 		v = Sons.musiqueActive and v * Sons.volMus / 0.62 or 0
 	else
-		v *= Sons.volSon
+		v *= Sons.volSon * SOUS_MUS
 	end
 	s.Volume = v
 	if hauteur then s.PlaybackSpeed = hauteur end
@@ -19387,7 +19394,8 @@ do
 		O.ac += dA
 		O.w = O.w * 0.55 + dA / dm * 0.45
 		O.mvT = n9
-		O.pc = math.clamp(O.pc + (io.Position.Y - O.y) * k * 0.004, -0.6, 1.0)
+		-- (L36913, Léo 3/10 : « bloque le point de vue à ce niveau vertical : pas de haut en bas ») le doigt ne fait plus monter ni
+		-- plonger le regard : il tourne autour de la caisse, à la hauteur du menu
 		O.x, O.y = io.Position.X, io.Position.Y
 	end)
 	UIS.InputEnded:Connect(function(io: InputObject)

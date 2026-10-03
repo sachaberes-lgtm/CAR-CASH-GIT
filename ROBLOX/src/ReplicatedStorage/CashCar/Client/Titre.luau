@@ -105,7 +105,8 @@ do
 		O.ac += dA
 		O.w = O.w * 0.55 + dA / dm * 0.45
 		O.mvT = n9
-		O.pc = math.clamp(O.pc + (io.Position.Y - O.y) * k * 0.004, -0.6, 1.0)
+		-- (L36913, Léo 3/10 : « bloque le point de vue à ce niveau vertical : pas de haut en bas ») le doigt ne fait plus monter ni
+		-- plonger le regard : il tourne autour de la caisse, à la hauteur du menu
 		O.x, O.y = io.Position.X, io.Position.Y
 	end)
 	UIS.InputEnded:Connect(function(io: InputObject)
