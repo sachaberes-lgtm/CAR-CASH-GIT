@@ -28679,7 +28679,11 @@ function nitroEteint(){ // LA DERNIÈRE BOUFFÉE : une langue de feu aux pots + 
    Discret (≈ −30 dB sous une voix pleine), un écho en croche pointée. Par MASTER (curseur EFFETS) : marche aussi sur iPhone.
    `dbgInstru()` : état · `dbgInstru(0|1)` coupe / rallume · `dbgInstru('essai')` (banc muet : les fréquences jouées). */
 const INSTRU={fins:[],der:0,on:true,tient:false,k:0,n:0,tNote:0,tDer:0,bus:null,iv:0,vu:[],pas:.15,off:null,queue:0,mel:14,vel:1,acc:0};
-const INSTRU_GRILLE=[[0,4,7,11,14],[9,12,16,19,23],[5,9,12,16,19],[7,11,14,17,21]]; // I maj9 · vi m9 · IV maj9 · V9 (demi-tons sur la tonique grave)
+/* (2026-10-03, Léo : « le 3e et le 4e son gâchent un peu la musique — baisse ou adapte si tu vois c'est quoi la dissonance ») : LA
+   DISSONANCE = la 4te (5 demi-tons) et la 7e majeure (11) — dans IV maj9 et V9 surtout, et dans les 7es de I et vi. La phrase part quand
+   le JOUEUR appuie, pas sur la grille d'accords du morceau : ces deux notes tombaient sur un autre accord et frottaient. Désormais
+   SEULEMENT les notes de la PENTATONIQUE (0 2 4 7 9) — celles qui vont sur tous les accords du morceau, comme tous les sons du jeu. */
+const INSTRU_GRILLE=[[0,4,7,9,14],[9,12,16,19,21],[2,4,9,14,16],[7,9,12,14,16]]; // I 6/9 · vi · ii sus · V sus (tout en pentatonique)
 /* LA PHRASE DU BOOST v3 (2026-10-03, Léo : « toujours un blanc entre les arpèges ; complexifie la structure pour qu'on puisse appuyer
    longtemps et que ça donne une MÉLODIE accordée à la musique du jeu ; si le joueur lâche, ça ne doit pas tout casser »).
    LE BLANC : le réservoir de nitro qui se vide pendant l'appui éteignait la nitro puis la rallumait (hystérésis) → l'arpège s'arrêtait
@@ -28784,11 +28788,11 @@ function instruPlanifie(){ // regard d'avance de 120 ms : les notes tombent pile
     const ac=INSTRU_GRILLE[mes%INSTRU_GRILLE.length];                                  // l'accord avance à chaque mesure
     const mot=INSTRU_MOTIFS[((k>>3)*3+(mes>>2))%INSTRU_MOTIFS.length];                 // un dessin par demi-mesure, l'ordre change toutes les 4 mesures
     const rac=TON/2*Math.pow(2,(sonTonSuit._t|0)/12);                                  // la tonique grave du morceau (mi3 décalé)
-    const t=Math.max(INSTRU.tNote,AC.currentTime),temps=k%4===0,V=INSTRU.vel;
+    const t=Math.max(INSTRU.tNote,AC.currentTime),temps=k%4===0,V=INSTRU.vel*((mes&3)>=2?.78:1); // mesures 3-4 un peu plus bas
     let st9=ac[mot[k%8]];if(st9>16)st9-=12;                                            // l'arpège reste SOUS la mélodie
     instruNote(rac*Math.pow(2,st9/12),t,k%2?.3:-.3,V*(temps?.62:.48),.26);
     if(k%2===0||INSTRU.acc){const m9=instruMelodie(k,ac);if(m9>=0)instruNote(rac*Math.pow(2,m9/12),t,0,V*(INSTRU.acc?1.25:(k%8===0?1.05:.9)),.5);INSTRU.acc=0;}
-    if(temps&&k>=32&&INSTRU.tient)instruNote(rac/2*Math.pow(2,ac[0]/12),t,0,V*.7,.45); // dès la 3e mesure tenue : la basse pose le temps
+    if(temps&&k>=32&&INSTRU.tient)instruNote(rac/2,t,0,V*.55,.45);                         // la basse tient la TONIQUE (sous n'importe quel accord du morceau) // dès la 3e mesure tenue : la basse pose le temps
     INSTRU.der=INSTRU.tNote;INSTRU.k++;INSTRU.n++;INSTRU.tNote+=INSTRU.pas;
   }
 }
