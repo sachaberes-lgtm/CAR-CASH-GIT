@@ -64,3 +64,6 @@
   structure inspirée de l'album EXPONENTIAL GENERATOR (Frollen Music Library : library music soul / hip-hop, Rhodes, percussions,
   synthé monophonique sur une basse ARP) : 1 nappe seule · 2 Rhodes · 3 beat hip-hop + basse ARP · 4 mélodie au synthé mono ·
   5 cordes et congas. Le morceau entier + chaque niveau en boucle (Niveaux → Nuages). En attente de l'écoute de Léo.
+- 2026-10-03 — CIEL : la mélodie du niveau 4 plus forte (+3 dB dans les médiums) ; un GESTE DE TRANSITION différent à chaque passage
+  (1→2 Rhodes qui monte + souffle inversé · 2→3 la demi-mesure qui se vide puis le beat qui tombe avec une cymbale · 3→4 la basse qui
+  glisse vers le grave + charley ouvert + souffle · 4→5 relance + cymbale + Rhodes). Les boucles par niveau restent sans transition.

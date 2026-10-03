@@ -17,7 +17,7 @@ import os, sys, json, subprocess, time
 import numpy as np
 sys.path.insert(0, os.path.dirname(__file__))
 from boucles import *  # noqa: F403
-from boucles8 import chorus, fx_rev, rim, shaker
+from boucles8 import chorus, fx_rev, rim, shaker, crash
 from petits import Main
 from vapeurs import bande, rhodes_p, cordes, tremolo_stereo
 from lobby5 import conga
@@ -61,6 +61,34 @@ def caisse_poussiere(de):
     s = caisse(de, 185, 1.05, .19, 1500); return filtre(s, 'low', 5500)
 
 
+def souffle_inverse(acc, dur, de, fc=1800):
+    """la nappe de l'accord SUIVANT jouée à l'envers, très doucement : elle « aspire » d'une mesure vers la suivante sans bruit de montée"""
+    l, r = nappe(acc, dur, fc, de); n = int(dur * SR); l = l[:n][::-1]; r = r[:n][::-1]
+    e = np.linspace(0, 1, n) ** 2; return l * e, r * e
+
+
+def transition(M, m, nv, de, h, sw):
+    """(Léo : « sur les niveaux d'avant, un petit grain de changement entre chacun : que la transition soit cohérente mais satisfaisante »)
+    un geste DIFFÉRENT à chaque passage, toujours dans l'harmonie (Si♭7sus → Mi♭maj9) :
+    1→2 trois notes de Rhodes qui montent + le souffle inversé de l'accord qui arrive ·
+    2→3 la 2e demi-mesure se vide (rim et shaker se taisent) puis le beat TOMBE avec une cymbale ·
+    3→4 la basse glisse d'une octave vers le grave, un charley s'ouvre, le souffle inversé ·
+    4→5 la relance de caisse claire (déjà là) + la cymbale à l'arrivée + les notes de Rhodes qui montent."""
+    rh = M.piste('trans'); t9 = M.t(m + 1)
+    if nv in (1, 4):
+        for k, (p, n) in enumerate(((10, 70), (12, 75), (14, 77))):
+            rh.pose(h.t(M.t(m, p, sw)), rhodes_p(n + 12, .5, .5 + .15 * k), .07 + .015 * k, -.2 + .2 * k)
+    if nv in (1, 3):
+        l, r = souffle_inverse(ACC[0], M.temps * 2, de); rh.pose2(t9 - len(l) / SR, l, r, .07)
+    if nv in (2, 4):
+        cr = crash(de, 1.8); rh.pose(t9, filtre(cr, 'low', 9000), .14, .3)
+    if nv == 3:
+        nn = int(M.temps * 1.5 * SR); t = np.arange(nn) / SR; f = hz(RAC[3] - 12) * 2 ** (-t / (M.temps * 1.5))   # si♭ qui glisse vers le si♭ grave
+        s = (scie(f, nn) * .5 + sinus(f, nn) * .7) * env(nn, .004, 9, 1, .1, M.temps * 1.4)
+        M.piste('basse').pose(M.t(m, 10, sw), filtre(s, 'low', 900), .45)
+        M.piste('bat').pose(M.t(m, 14, sw), charley(de, True, 7000), .25, .3)
+
+
 def composer(M, niveau_de, de, h):
     """pose les instruments mesure par mesure selon le NIVEAU de chaque mesure"""
     sw = .2; nb = M.mes
@@ -78,9 +106,12 @@ def composer(M, niveau_de, de, h):
             for p, lg in pas:
                 v = .55 + .3 * h.r.random()
                 for k, n in enumerate(q[1:]): rh.pose(h.t(M.t(m, p, sw)) + k * .009, rhodes_p(n + 12, lg * M.dc, v), h.g(.07), -.25 + .12 * k)
+        dernier = m % 8 == 7 and m + 1 < nb and niveau_de(m + 1) > nv     # la dernière mesure avant un niveau plus haut
         if nv == 2:
-            for p in (4, 12): bat.pose(h.t(M.t(m, p, sw)), rim(de), h.g(.25), .15)
-            for p in range(0, 16, 2): bat.pose(h.t(M.t(m, p, sw)), shaker(de), h.g(.12 if p % 4 else .18), -.4)
+            for p in (4, 12):
+                if not (dernier and p >= 8): bat.pose(h.t(M.t(m, p, sw)), rim(de), h.g(.25), .15)
+            for p in range(0, 16, 2):
+                if not (dernier and p >= 8): bat.pose(h.t(M.t(m, p, sw)), shaker(de), h.g(.12 if p % 4 else .18), -.4)
         if nv >= 3:                                                        # LE BEAT hip-hop
             for p in ((0, 7, 10) if m % 2 == 0 else (0, 3, 10)): bat.pose(h.t(M.t(m, p, sw)), kick(de, 105, 42, .42, .25, 1.4), h.g(.9))
             for p in (4, 12): sn.pose(h.t(M.t(m, p, sw)), caisse_poussiere(de), h.g(.6))
@@ -91,7 +122,8 @@ def composer(M, niveau_de, de, h):
                 b.pose(h.t(M.t(m, p, sw)), basse_arp(r - 12 + o, lg * M.dc * .9), h.g(.5))
         if nv >= 4:                                                        # LA MÉLODIE au synthé monophonique
             for p, n, lg in MEL[m % 8]:
-                ld.pose(h.t(M.t(m, p, sw)), mono(n, prec, lg * M.dc * .95), h.g(.1)); prec = n
+                ld.pose(h.t(M.t(m, p, sw)), mono(n, prec, lg * M.dc * .95), h.g(.28)); prec = n   # (Léo : « augmente le son de la boucle ajoutée au niveau 4 »)
+        if dernier: transition(M, m, nv, de, h, sw)
         if nv == 5:
             for p, f, slap in ((2, 210, 0), (6, 300, 1), (9, 210, 0), (11, 210, 0), (14, 300, 1)):
                 pc.pose(h.t(M.t(m, p, sw)), conga(de, f, bool(slap)), h.g(.22), .35)
@@ -100,10 +132,10 @@ def composer(M, niveau_de, de, h):
     cordes(M, de, ACC, [m for m in range(nb) if niveau_de(m) == 5], .05, 1300)
     tremolo_stereo(M, 'rh', 4.2, .2)
     M.bus['nappe'].L, M.bus['nappe'].R = chorus(M.bus['nappe'].L, M.bus['nappe'].R)
-    bande(M, ('nappe', 'rh', 'lead', 'cordes', 'rhc'))
+    bande(M, ('nappe', 'rh', 'lead', 'cordes', 'rhc', 'trans'))
     eL, eR = echo(ld.L, ld.R, M.temps * .75, .3); ld.L += eL * .3; ld.R += eR * .3
-    fx_rev(M, [('nappe', 1), ('rh', .7), ('lead', .8), ('cordes', 1), ('rhc', 1), ('sn', .35), ('bat', .1)], 3., .4, 4800)
-    return fin(M, {'nappe': 1, 'sub': 1, 'rh': 1, 'basse': 1, 'lead': 1, 'bat': .9, 'sn': .9, 'perc': 1, 'rhc': 1, 'cordes': 1, 'fx': 1}, maitre_lp=7500)
+    fx_rev(M, [('nappe', 1), ('rh', .7), ('lead', .8), ('cordes', 1), ('rhc', 1), ('trans', 1), ('sn', .35), ('bat', .1)], 3., .4, 4800)
+    return fin(M, {'nappe': 1, 'sub': 1, 'rh': 1, 'basse': 1, 'lead': 1, 'bat': .9, 'sn': .9, 'perc': 1, 'rhc': 1, 'cordes': 1, 'trans': 1, 'fx': 1}, maitre_lp=7500)
 
 
 def rendu(nom, mesures, niveau_de, graine):
