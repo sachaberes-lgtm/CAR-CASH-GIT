@@ -40,6 +40,7 @@ KA.Viseur = require(CL:WaitForChild("Viseur"))
 KA.Traces = require(CL:WaitForChild("Traces"))
 KA.Pigeons = require(CL:WaitForChild("Pigeons"))
 KA.Impact = require(CL:WaitForChild("Impact"))
+KA.Recyclage = require(CL:WaitForChild("Recyclage"))
 
 local M, SPD = Config.M, Config.SPD
 local RH, THICK = Config.ROAD_HALF, Config.THICK
@@ -267,7 +268,11 @@ end
 local function oublier(z: number)
 	local e = ZONES[z]
 	if not e or z <= 2 then return end -- la 1 et la 2 restent en réserve (on y revient à chaque partie)
-	if e.dossier then e.dossier:Destroy() end
+	if e.dossier then
+		local t0 = os.clock()
+		KA.Recyclage.rendre(e.dossier) -- (il sort du monde ; ses pièces de décor attendent la zone suivante, le reste est détruit : voir Client/Recyclage)
+		if workspace:GetAttribute("DbgRecyc") then warn(string.format("[CashCar] oubli zone %d : %.0f ms, %d en réserve", z, (os.clock() - t0) * 1000, KA.Recyclage.compte())) end
+	end
 	ZONES[z] = nil
 end
 local function remettreObjets(e: Zone)
@@ -460,7 +465,7 @@ local function ajouterPieces(n: number)
 			Bus.emit("moteur", tier, gain, sommet)
 			if sommet then task.delay(0.35, function() Sons.jouer("record", 1.1, 0.45) end) end
 		else
-			HudScore.slam(Hud.sansAccent(MOT[tier + 1].nom), tr("NOUVEAU MOTEUR", "NEW ENGINE"), "#ffd75e", "#dfeeff", 26, 1)
+			HudScore.slam(Hud.sansAccent(Config.nomMoteur(tier + 1)), tr("NOUVEAU MOTEUR", "NEW ENGINE"), "#ffd75e", "#dfeeff", 26, 1)
 			Sons.vrai("moteurPalier", nil, nil, "nitroPlein", 1.1)
 			boost = math.max(boost, 0.8)
 			fovPunch = math.max(fovPunch, 11)
@@ -769,6 +774,15 @@ function TU.fin(passe: boolean)
 		end)
 	end
 end
+-- la leçon QUITTÉE depuis la pause (tutoQuitte, L22512) : elle s'arrête sans permis et RESTE à faire — elle sera reproposée au
+-- prochain départ. L'écran de fin qui suit le sait (G.lecon) : ni record ni partie comptée, seul l'argent gagné est versé.
+function G.tuQuitte()
+	TU.on = false
+	E.coach.Visible = false
+	Hud.nitroAppel(false)
+	if pwA > 0 then pwA = 0 end
+	G.lecon = true
+end
 function TU.bravo()
 	Sons.jouer("poseParfait", 1.2)
 	HudScore.flash("#62e062", 0.3) -- (la carte flashe en vert à chaque réussite)
@@ -790,8 +804,10 @@ function TU.rate(): boolean
 	HudScore.flash("#ffffff", 0.5)
 	return true
 end
+TU.gestes = { "glisse", "nitro", "bord", "nitro", "pose" } -- (L22416 : le geste de chaque étape)
 function TU.tick(dt: number)
 	Hud.nitroAppel(TU.on and TU.pause <= 0 and (TU.etape == 2 or TU.etape == 4))
+	Hud.coachGeste(TU.on and TU.gestes[math.clamp(TU.etape, 1, 5)] or nil)
 	if TU.msgT > 0 then
 		TU.msgT -= dt
 		if TU.msgT <= 0 then TU.msg = nil end
@@ -1425,6 +1441,7 @@ local function obstacles(dt: number, cf: CFrame)
 					local dl = lat - lo
 					local v = cf.LookVector * math.max(8, math.abs(vA) * 0.55) + cf.RightVector * ((dl > 0 and -1 or 1) * (2 + math.random() * 4))
 						+ cf.UpVector * (5 + math.random() * 5)
+					o.p:SetAttribute("Rec", nil) -- (un plot qui vole ne rejoint jamais le recyclage : il pourrait être repris en plein vol)
 					table.insert(volants, { p = o.p, v = v * M * 0.6, r = Vector3.new(math.random() * 16 - 8, 0, math.random() * 16 - 8), vie = 1.6 })
 					vA *= 0.985
 					secousse = math.max(secousse, 0.14)
@@ -2790,23 +2807,30 @@ local function finPartie()
 	-- LES RECORDS NE SE CONTREDISENT PLUS (audit UX du 26/09, L38987) : le titre s'allume pour l'argent, l'AURA ou le MOTEUR — les
 	-- héros de cet écran. (L'aura : seulement s'il y avait un record à battre ; le moteur : un palier jamais atteint avant.)
 	-- Une partie QUITTÉE depuis la pause ne fête rien.
+	local lecon = G.lecon == true -- (L31161) une LEÇON QUITTÉE n'est pas une partie
+	G.lecon = false
+	if lecon then rec = false end
 	local recA = causeMort ~= "quitte" and meilleurAura > 0 and aura > meilleurAura
 	local moteurAvant = profil.moteurMax or 0
 	local recM = causeMort ~= "quitte" and tier > moteurAvant
 	local recT = causeMort ~= "quitte" and (rec or recA or recM)
 	profil.moteurMax = math.max(moteurAvant, tier)
+	if lecon then profil.moteurMax = moteurAvant end
 	local mres = Missions.fin(CPT)
-	evFin:FireServer(argent, dist, aura, { pieces = stats.pieces, figures = stats.poses, kmh = G.vmax, zone = G.nbZones + 1, tier = tier,
+	evFin:FireServer(argent, dist, aura, { lecon = lecon or nil, pieces = stats.pieces, figures = stats.poses, kmh = G.vmax, zone = G.nbZones + 1, tier = tier,
 		multi = Score.CHA.xMax, cause = causeMort, parfaites = stats.parfaites, fruits = stats.fruits, nitro = stats.nitro,
 		duree = stats.duree, chaine = stats.chaine, frenMax = Score.FREN.max, frenRec = Score.FREN.record, mis = mres.meilleur })
 	if rec then record = argent end
-	meilleurAura = math.max(meilleurAura, aura)
+	if not lecon then meilleurAura = math.max(meilleurAura, aura) end
 	G.kmhRecord = math.max(G.kmhRecord or 0, G.vmax or 0)
 	profil.kmhMax = math.max(profil.kmhMax or 0, math.floor(G.kmhRecord + 0.5))
 	local cause = T.morts[causeMort] or T.morts.autre
 	-- (L4187, Sacha : « le texte sous GAME OVER sert à rien », « la caisse qui explose l'a déjà dit ») le titre dit GAME OVER ou
 	-- NOUVEAU RECORD !, jamais la cause ; et plus de ligne DISTANCE · PIÈCES · FIGURES (le web ne la montre pas)
-	E.mCause.Text = recT and T.nouveau or "GAME OVER"
+	E.mCause.Text = lecon and tr("AUTO-ECOLE INTERROMPUE", "DRIVING SCHOOL STOPPED") or recT and T.nouveau or "GAME OVER"
+	-- (L39139) après une leçon quittée, le lingot dit REPRENDRE : il relance la leçon
+	E.btRejouer.Text = lecon and T.reprendre or T.rejouer
+	E.btRejouer.TextSize = lecon and (FR and 62 or 58) or (FR and 80 or 58)
 	Hud.tenir(E.mCauseEchelle, E.mCause.Text, 62, 560)
 	E.mRecord.Text = rec and (FR and "RECORD !" or "RECORD!") or ""
 	E.mRecord.Visible = rec
@@ -2825,7 +2849,7 @@ local function finPartie()
 	end)
 	E.mAuraMeilleur.Text = (recA and aura > 0) and (FR and "RECORD !" or "RECORD!") or (T.meilleur .. " " .. Hud.entier(meilleurAura))
 	E.mAuraMeilleur.TextColor3 = (recA and aura > 0) and Hud.C.or_ or Hud.C.terne
-	E.mMoteurNom.Text = Hud.sansAccent(MOT[tier + 1].nom)
+	E.mMoteurNom.Text = Hud.sansAccent(Config.nomMoteur(tier + 1))
 	Hud.tenir(E.mMoteurNomEchelle, E.mMoteurNom.Text, 20, 270)
 	E.mMoteurPalier.Text = T.palier .. '  <font size="46">' .. (tier + 1) .. "</font>" .. (recM and '  <font color="#ffd75e">RECORD !</font>' or "") -- (L39158 : le palier se compte à partir de 1)
 	-- (L39151) LE « PRESQUE » : mourir à 3 pièces du palier suivant, c'est LA raison de relancer — la carte le dit quand ce palier
@@ -2833,7 +2857,7 @@ local function finPartie()
 	local mq = (tier < #MOT - 1) and (MOT[tier + 2][1] - coinsGot) or 0
 	local presque = tier < #MOT - 1 and mq > 0 and tier + 1 > moteurAvant and mq <= math.max(3, math.ceil((MOT[tier + 2][1] - MOT[tier + 1][1]) * 0.3))
 	if presque then
-		E.mMoteurEncore.Text = string.format(T.encore, mq) .. "\n↑ " .. Hud.sansAccent(MOT[tier + 2].nom)
+		E.mMoteurEncore.Text = string.format(T.encore, mq) .. "\n↑ " .. Hud.sansAccent(Config.nomMoteur(tier + 2))
 	elseif not recM and moteurAvant > tier then
 		E.mMoteurEncore.Text = (FR and "RECORD  PALIER " or "RECORD  TIER ") .. (moteurAvant + 1)
 	else
@@ -3140,6 +3164,10 @@ workspace:GetAttributeChangedSignal("DbgOuvre"):Connect(function()
 	elseif string.sub(v, 1, 4) == "saut" then
 		-- (banc) un saut franc, tout de suite : pour photographier ce qui ne vit qu'en vol (le viseur, la jauge, les figures)
 		if mode == "drive" then decoller(tonumber(string.sub(v, 5, 6)) or 45, 1) end -- ("saut20…" : la poussée, sur deux chiffres)
+	elseif string.sub(v, 1, 6) == "achat:" then
+		G.boutique.dbg(string.sub(v, 7)) -- (banc) « achat:2 » ouvre la fenêtre d'achat de la 2e case, « achat:oui » presse ACHETER
+	elseif string.sub(v, 1, 7) == "quitter" then
+		G.quitterPause() -- (banc) QUITTER de la pause (« quitter1 », « quitter2 » : la question, puis la confirmation)
 	elseif v == "frenesie" then
 		if mode == "drive" or mode == "fall" then Score.dbgFren() end
 	elseif v == "menu" then
@@ -3175,18 +3203,18 @@ E.btRecom.Activated:Connect(function()
 	Score.fin(false)
 	nouvellePartie()
 end)
-E.btMenuP.Activated:Connect(function()
+function G.quitterPause() -- (nommée : le banc la presse aussi, « DbgOuvre quitter » deux fois = la question puis la confirmation)
 	if not enPause or G.reprise then return end
-	if not G.confirme(E.btMenuP, "quit", tr("QUITTER ? GAINS VERSES", "QUIT? GAINS BANKED"), T.quitter) then return end
+	-- (L38960) pendant la leçon, la question dit l'enjeu : la leçon reviendra au prochain départ (et le permis avec sa prime)
+	local qTxt = TU.on and (profil.permis and tr("LECON AU PROCHAIN DEPART", "LESSON ON NEXT RUN") or tr("LECON + PERMIS AU PROCHAIN DEPART", "LESSON + LICENSE ON NEXT RUN"))
+		or tr("QUITTER ? GAINS VERSES", "QUIT? GAINS BANKED")
+	if not G.confirme(E.btMenuP, "quit", qTxt, T.quitter) then return end
 	enPause = false
-	if TU.on then
-		Score.fin(false)
-		allerMenu()
-		return
-	end
+	if TU.on then G.tuQuitte() end
 	causeMort, boomPos, boomT = "quitte", carCF.Position, 0
 	finPartie()
-end)
+end
+E.btMenuP.Activated:Connect(G.quitterPause)
 -- LES RÉGLAGES : une seule vérité, le PROFIL (gardé par le serveur d'une partie à l'autre) — Sons, Controles et Hud la recopient
 -- (avant, SON et MUSIQUE n'étaient jamais enregistrés : ils revenaient sur ON à chaque partie)
 do -- (un bloc : le corps du pilote frôle la limite des 200 variables locales)
@@ -3305,6 +3333,15 @@ E.btFacile.Parent.Visible = Config.FACILE_ACTIF
 
 -- ════════ les autres caisses : un double chez moi, lissé ; on ne voit que celles qui roulent dans NOTRE zone ════════
 type Double = { m: Model, c: Model, vu: boolean?, pg: any, ind: number, cle: string }
+-- où dessiner la caisse d'un autre : sur MA piste, à sa distance et à son écart (sa pose relative au repère de la route) ; à défaut
+-- (un serveur d'avant, une valeur absente), sa pose monde
+function G.poseDouble(m: Model): CFrame
+	local sA, rel = m:GetAttribute("S"), m:GetAttribute("Rel")
+	if type(sA) == "number" and typeof(rel) == "CFrame" and piste then
+		return repere(math.clamp(sA, 0, piste.len / M), 1) * rel
+	end
+	return (m.PrimaryPart :: BasePart).CFrame
+end
 local doubles: { [Model]: Double } = {}
 local function lisserDoubles(dt: number)
 	for m, d in doubles do
@@ -3312,7 +3349,7 @@ local function lisserDoubles(dt: number)
 			Caisse.rendre(d.c)
 			doubles[m] = nil
 		elseif d.vu and m.PrimaryPart then
-			d.c.PrimaryPart.CFrame = d.c.PrimaryPart.CFrame:Lerp(m.PrimaryPart.CFrame, math.min(1, dt * 10))
+			d.c.PrimaryPart.CFrame = d.c.PrimaryPart.CFrame:Lerp(G.poseDouble(m), math.min(1, dt * 10))
 		end
 	end
 end
@@ -3342,7 +3379,7 @@ task.spawn(function()
 					for _, p in d.c:GetDescendants() do
 						if p:IsA("BasePart") then p.LocalTransparencyModifier = voir and 0 or 1 end
 					end
-					if voir then d.c.PrimaryPart.CFrame = m.PrimaryPart.CFrame end
+					if voir then d.c.PrimaryPart.CFrame = G.poseDouble(m) end
 				end
 				local nitro = voir and m:GetAttribute("Nitro") == true
 				Caisse.feu(d.pg, nitro, nitro and 110 or 0, Color3.fromRGB(255, 122, 36))
@@ -3593,7 +3630,9 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 		KA.envoiT -= dtBrut
 		if KA.envoiT <= 0 and (mode == "drive" or mode == "fall") then
 			KA.envoiT = 1 / 15
-			evPos:FireServer(carCF)
+			-- (la place SUR LA PISTE voyage avec la pose : la route d'une zone dépend du MOTEUR de chacun — deux joueurs en zone 3
+			-- n'ont pas la même route. Chez l'autre, la caisse se pose sur SA route, à la même distance, au même écart.)
+			evPos:FireServer(carCF, s, repere(s, 1):ToObjectSpace(carCF))
 		end
 	end
 	hud(dt)
@@ -3621,7 +3660,10 @@ task.spawn(function()
 	if not okT then warn("[CashCar] titre : " .. tostring(errT)) end
 	if mode == "menu" then KA.Titre.montrer(true) end
 end)
+-- L'INTRO DU STUDIO : CASH CAR bat, explose, 1.61 GAMES — puis l'accueil (pas au banc : il attend « menu prêt » au plus vite)
+if not workspace:GetAttribute("DbgSansIntro") then pcall(Hud.introStudio) end
 allerMenu()
+game:GetService("Players").LocalPlayer:SetAttribute("MenuPret", true) -- (le banc attend ce signal : l'accueil est là, l'intro jouée)
 end
 
 -- (mise au point) workspace:SetAttribute("DbgBudget", "une étiquette") : ce qu'il reste du budget de triangles, écrit dans la Sortie

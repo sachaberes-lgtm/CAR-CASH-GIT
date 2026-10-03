@@ -229,7 +229,7 @@ local FT_G: { [string]: { string } } = {
 -- (les bandes du dégradé : 2 rangées pâles, 4 roses, 4 rouges, 2 sang, 2 sang sombre)
 local FT_BANDE = { "#ffe1e4", "#ffe1e4", "#ff6a78", "#ff6a78", "#ff6a78", "#ff6a78", "#ff2a3d", "#ff2a3d", "#ff2a3d", "#ff2a3d", "#c4001f", "#c4001f", "#7a0012", "#7a0012" }
 local FT: any = nil
-local T_FREN = (string.sub(game:GetService("Players").LocalPlayer.LocaleId or "fr", 1, 2) == "fr") and "FRENESIE" or "FRENZY"
+local T_FREN = require(script.Parent.Parent:WaitForChild("Config")).francais() and "FRENESIE" or "FRENZY"
 local ftN = 0
 local function ftLigne(parent: Instance, mot: string, px: number, nSang: number, graine: number, y0: number): { any }
 	local f = inst("Frame", { BackgroundTransparency = 1, AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, y0) }, parent)

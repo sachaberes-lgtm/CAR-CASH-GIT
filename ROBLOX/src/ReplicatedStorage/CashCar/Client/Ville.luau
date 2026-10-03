@@ -11,6 +11,7 @@
 local AssetService = game:GetService("AssetService")
 local Config = require(script.Parent.Parent:WaitForChild("Config"))
 local Maillage = require(script.Parent:WaitForChild("Maillage"))
+local Recyclage = require(script.Parent:WaitForChild("Recyclage"))
 local M = Config.M
 local RH = Config.ROAD_HALF
 
@@ -117,6 +118,7 @@ local function gabarit(nw: number, np: number, nh: number, froide: boolean): Mes
 	end)
 	if not mp then return nil end
 	mp.Name = "Tour"
+	mp:SetAttribute("Rec", "T" .. cle) -- (ses copies passent au recyclage : voir Client/Recyclage)
 	mp.Anchored = true
 	mp.CanCollide = false
 	mp.CanQuery = false
@@ -381,7 +383,7 @@ function Ville.batir(piste: any, dossier: Instance, graine: number, ceder: (() -
 
 	-- ── LA POSE ──
 	local function boite(v: { number }, nom: string, couleur: Color3, matiere: Enum.Material): Part
-		local p = Instance.new("Part")
+		local p = Recyclage.part() -- (reprise au recyclage quand la zone est oubliée)
 		p.Name = nom
 		p.Anchored = true
 		p.CanCollide = false
@@ -403,7 +405,7 @@ function Ville.batir(piste: any, dossier: Instance, graine: number, ceder: (() -
 			local g = gabarit(cran(v[4] / 28, CRANS_L), cran(v[6] / 28, CRANS_L), cran(v[5] / 32, CRANS_H), v[9] > 0.5)
 			local t = v[8] / 1.25
 			if g then
-				local p = g:Clone()
+				local p = Recyclage.copie(g)
 				p.Size = Vector3.new(v[4] * M, math.min(2040, v[5] * M), v[6] * M)
 				p.CFrame = CFrame.new(v[1] * M, v[2] * M, v[3] * M)
 				p.Color = Color3.new(t, t, t)

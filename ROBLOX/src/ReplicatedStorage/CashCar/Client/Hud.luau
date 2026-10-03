@@ -22,7 +22,7 @@ local Sons = require(script.Parent:WaitForChild("Sons"))
 local Hud = {}
 
 -- ── la langue : français si le compte Roblox est en français, anglais sinon ──
-local FR = string.sub(Players.LocalPlayer.LocaleId or "fr", 1, 2) == "fr"
+local FR = Config.francais()
 Hud.FR = FR
 local T = FR and {
 	jouer = "JOUER", rejouer = "REJOUER", menu = "HOME", quitter = "QUITTER", reprendre = "REPRENDRE", recommencer = "RECOMMENCER",
@@ -465,7 +465,7 @@ function Hud.creer()
 		Name = "CashCar", ResetOnSpawn = false, IgnoreGuiInset = false, ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
 		ScreenInsets = Enum.ScreenInsets.CoreUISafeInsets, DisplayOrder = 5,
 	}, pg)
-	local tactile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+	local tactile = Config.TACTILE_TEST == true or (UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled)
 	-- tout est dessiné pour un écran de 720 px de haut : une RACINE de 1/k de l'écran, agrandie k fois
 	local racine = inst("Frame", { Name = "Racine", BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1) }, gui)
 	Hud.racine = racine -- les autres écrans (garage…) se posent dans la même racine mise à l'échelle
@@ -504,6 +504,8 @@ function Hud.creer()
 	E.charge = inst("Frame", { BackgroundColor3 = C.nuit, Size = UDim2.fromScale(1, 1), ZIndex = 50 }, racine)
 	local lg = texte(E.charge, { Text = "CASH CAR", TextSize = 64, TextColor3 = C.or_, Size = UDim2.new(1, 0, 0, 80),
 		Position = UDim2.fromScale(0, 0.34), ZIndex = 51, epais = 4 })
+	E.chargeLogo = lg
+	E.chargeEchelle = inst("UIScale", {}, lg)
 	degrade(lg, Color3.fromRGB(255, 244, 170), C.orFonce, 90)
 	E.chargeTxt = texte(E.charge, { Text = T.chargement, TextSize = 14, TextColor3 = C.texte2, Position = UDim2.fromScale(0, 0.52), ZIndex = 51 })
 
@@ -654,7 +656,7 @@ function Hud.creer()
 		Position = UDim2.fromOffset(86, 38), Text = "" }, E.astuce)
 	-- la carte de l'AUTO-ÉCOLE (#coach) : en HAUT, sous la jauge (web : top 62 px sur 390 — elle garde le haut de l'écran pour elle) ;
 	-- l'en-tête et PASSER, le titre, la consigne, cinq pastilles
-	E.coach = carbone(hud, UDim2.fromOffset(628, 150), UDim2.new(0.5, 60, 0, 92), C.vert, Vector2.new(0.5, 0))
+	E.coach = carbone(hud, UDim2.fromOffset(628, 196), UDim2.new(0.5, 60, 0, 92), C.vert, Vector2.new(0.5, 0))
 	E.coach.Visible = false
 	E.coachTete = texte(E.coach, { Text = "", TextSize = 16, TextColor3 = C.terne, Size = UDim2.new(1, -220, 0, 18), Position = UDim2.fromOffset(24, 14),
 		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
@@ -663,6 +665,16 @@ function Hud.creer()
 	E.coachTxt = inst("TextLabel", { BackgroundTransparency = 1, FontFace = TXT, TextSize = 22, TextColor3 = C.texte2, TextWrapped = true,
 		TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, Size = UDim2.new(1, -48, 0, 50),
 		Position = UDim2.fromOffset(24, 80), Text = "" }, E.coach)
+	-- (L1229) LA DÉMO DU GESTE : un petit film en pixels sous la consigne — le pouce qui glisse, l'éclair qu'on presse, la flèche
+	-- qui file vers le bord, la cible qui bat. Quatre pictos bâtis une fois ; Hud.coachGeste n'en montre qu'un et le fait jouer.
+	E.coachGeste = inst("Frame", { Name = "Geste", BackgroundTransparency = 1, ClipsDescendants = true, Size = UDim2.new(1, -48, 0, 44),
+		Position = UDim2.fromOffset(24, 128) }, E.coach)
+	E.coachGestes = {}
+	for _, g in { { "glisse", "pouce", Color3.new(1, 1, 1) }, { "nitro", "eclair", hx("ff8d2e") }, { "bord", "droite", Color3.new(1, 1, 1) }, { "pose", "cible", hx("7dff9a") } } do
+		local f = icone(E.coachGeste, g[2], 4, g[3], UDim2.new(0.5, 0, 0, 22), Vector2.new(0.5, 0.5))
+		f.Visible = false
+		E.coachGestes[g[1]] = { f = f, k = inst("UIScale", {}, f) }
+	end
 	E.coachPips = {}
 	for i = 1, 5 do
 		E.coachPips[i] = inst("Frame", { BackgroundColor3 = C.trait, BorderSizePixel = 0, Size = UDim2.fromOffset(40, 6), Position = UDim2.new(0, 24 + (i - 1) * 48, 1, -14) }, E.coach)
@@ -687,6 +699,25 @@ function Hud.creer()
 	E.tactile = inst("Frame", { Name = "Tactile", BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Visible = false }, hud)
 	E.glisseTxt = texte(E.tactile, { Text = T.glisse, TextSize = 28, TextColor3 = C.texte2, TextXAlignment = Enum.TextXAlignment.Left,
 		Size = UDim2.fromOffset(420, 64), Position = UDim2.new(0, 26, 0.6, 0) })
+	-- (L1106, L3609) L'INVITATION DU VOLANT : un anneau de seize tirets cyan au milieu de la moitié gauche, sous le pouce, qui respire
+	-- (1,6 s : 35 → 80 %, × 1,08) — on sait OÙ poser le doigt. Il part au premier braquage, avec la consigne.
+	do
+		local D9 = 170
+		local g = inst("CanvasGroup", { Name = "Invite", BackgroundTransparency = 1, Size = UDim2.fromOffset(D9, D9), AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.new(0.25, 0, 1, -150), GroupTransparency = 0.65 }, E.tactile)
+		local sc = inst("UIScale", {}, g)
+		local R9 = D9 / 2 / 1.08 - 4
+		for k = 0, 15 do
+			local a = math.rad(-8 + 8 + k * 22.5) -- (chaque tiret couvre 16° sur 22,5 : son milieu)
+			inst("Frame", { BackgroundColor3 = Color3.fromRGB(159, 232, 255), BorderSizePixel = 0, AnchorPoint = Vector2.new(0.5, 0.5),
+				Size = UDim2.fromOffset(2 * math.pi * R9 * 16 / 360, 7), Rotation = math.deg(a) + 90,
+				Position = UDim2.new(0.5, math.cos(a) * R9, 0.5, math.sin(a) * R9) }, g)
+		end
+		local ti = TweenInfo.new(0.8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true)
+		TweenService:Create(g, ti, { GroupTransparency = 0.2 }):Play()
+		TweenService:Create(sc, ti, { Scale = 1.08 }):Play()
+		E.volantInvite = g
+	end
 	E.stickBase = inst("Frame", { BackgroundColor3 = C.plaqueSh, BackgroundTransparency = 0.35, BorderSizePixel = 0,
 		Size = UDim2.fromOffset(120, 120), AnchorPoint = Vector2.new(0.5, 0.5), Visible = false }, gStick)
 	inst("UIStroke", { Color = C.cyan, Thickness = 3 }, E.stickBase)
@@ -1161,6 +1192,7 @@ function Hud.brancherTactile()
 		if io.Position.X > cam.ViewportSize.X * 0.5 then return end
 		doigt = io
 		E.glisseTxt.Visible = false -- (L907 : la consigne est dite UNE fois — au premier braquage elle s'efface pour de bon)
+		E.volantInvite.Visible = false -- (et l'anneau d'invitation avec elle)
 		origine = Vector2.new(io.Position.X, io.Position.Y)
 		t.actif = true
 		t.x, t.y = 0, 0
@@ -1334,6 +1366,39 @@ end
 function Hud.pauseBilan(aura: number, moteur: number, niveau: number)
 	E.pauseBilan.Text = string.format("AURA %s   -   %s %d   -   %s %d", Hud.entier(aura), FR and "MOTEUR" or "ENGINE", moteur, FR and "NIVEAU" or "LEVEL", niveau)
 end
+-- la démo du geste de l'auto-école (les keyframes du web, en marches : coGlisse 1,6 s ×16, coAppui ,5 s ×2, coBord 1,2 s ×12,
+-- coCible ,8 s ×4) — appelée à chaque image tant que la carte est là
+function Hud.coachGeste(nom: string?)
+	local t = os.clock()
+	for k, g in E.coachGestes do
+		local on = k == nom
+		if g.f.Visible ~= on then g.f.Visible = on end
+		if on then
+			local x, y, sc, tr9 = 0, 0, 1, 0
+			if k == "glisse" then
+				local u = math.floor((t % 1.6) / 1.6 * 16) / 16
+				x = -110 + 220 * (1 - math.abs(1 - 2 * u))
+			elseif k == "nitro" then
+				y = (t % 0.5 < 0.25) and 0 or 7
+			elseif k == "bord" then
+				local u = math.floor((t % 1.2) / 1.2 * 12) / 12
+				x = (u < 0.8) and (-90 + 200 * u / 0.8) or (110 + 40 * (u - 0.8) / 0.2)
+				tr9 = (u < 0.8) and 0 or (u - 0.8) / 0.2
+			else
+				local u = math.floor((t % 0.8) / 0.8 * 4) / 4
+				sc = 0.8 + 0.35 * (1 - math.abs(1 - 2 * u))
+			end
+			g.f.Position = UDim2.new(0.5, x, 0, 22 + y)
+			g.k.Scale = sc
+			if g.tr ~= tr9 then -- (les pixels ne s'effacent qu'au bout de la course vers le bord)
+				g.tr = tr9
+				for _, px9 in g.f:GetChildren() do
+					if px9:IsA("Frame") then px9.BackgroundTransparency = tr9 end
+				end
+			end
+		end
+	end
+end
 -- l'anneau d'appel du bouton NITRO (l'auto-école)
 function Hud.nitroAppel(on: boolean)
 	if E.nitroAppel.Visible ~= on then E.nitroAppel.Visible = on end
@@ -1342,6 +1407,88 @@ function Hud.nitroAppel(on: boolean)
 		E.nitroAppelTrait.Transparency = 0.1 + 0.6 * u
 		E.nitroAppelTrait.Thickness = 3 + 4 * (1 - u)
 	end
+end
+-- L'INTRO DU STUDIO (L38356 du jeu web — « accumulation… battements… FISSION ») : le titre CASH CAR bat trois fois (pulsation, micro-
+-- éclair, onde), puis TOUT explose — dollars, cœurs, trèfles, crânes, euros, yens — et la signature se lève dans la fumée, à sa
+-- place : 1.61 GAMES (Sacha, 25/09 : « marque juste 1.61 GAMES »). Elle s'EFFACE avant que l'écran ne s'ouvre (deux détonations de
+-- suite, et la première ne vaut plus rien). Une fois, au lancement ; ~4 s. Rend la main quand c'est fini.
+function Hud.introStudio()
+	local ch = E.charge
+	if not ch or not ch.Visible then return end
+	E.chargeTxt.Visible = false
+	local fl = inst("Frame", { BackgroundColor3 = Color3.fromRGB(255, 240, 200), BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.fromScale(1, 1), ZIndex = 58 }, ch)
+	local function onde(r1: number, ep: number, c: Color3, d: number)
+		local o = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(40, 40), Position = UDim2.fromScale(0.5, 0.39), AnchorPoint = Vector2.new(0.5, 0.5), ZIndex = 52 }, ch)
+		inst("UICorner", { CornerRadius = UDim.new(0.5, 0) }, o)
+		local st = inst("UIStroke", { Color = c, Thickness = ep, Transparency = 0.2 }, o)
+		local ti = TweenInfo.new(d, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+		TweenService:Create(o, ti, { Size = UDim2.fromOffset(r1, r1) }):Play()
+		TweenService:Create(st, ti, { Transparency = 1 }):Play()
+		task.delay(d + 0.05, function() o:Destroy() end)
+	end
+	-- les trois BATTEMENTS
+	for k = 1, 3 do
+		E.chargeEchelle.Scale = 1 + 0.13 * k
+		fl.BackgroundTransparency = 1 - 0.1 * k
+		onde(700 + k * 240, 3, Color3.fromRGB(255, 214, 110), 0.7)
+		Sons.jouer("bip", Sons.demiTons(-12 + k * 4), 0.4)
+		task.wait(0.13)
+		E.chargeEchelle.Scale = 1
+		fl.BackgroundTransparency = 1
+		task.wait(0.32)
+	end
+	-- LA FISSION : le titre éclate, les symboles partent dans tous les sens
+	fl.BackgroundTransparency = 0
+	Sons.vrai("departLogo", nil, nil, "explosion", 1.4, 0.4)
+	E.chargeLogo.Visible = false
+	local SYM = { { "$", "#ffd75e" }, { "♥", "#ff5e8a" }, { "♣", "#54e07a" }, { "☠", "#e8e8f0" }, { "€", "#9ad8ff" }, { "¥", "#ffc46b" }, { "1.61", "#fff2be" }, { "♦", "#ff9d2e" } }
+	for _ = 1, 46 do
+		local sy = SYM[math.random(1, #SYM)]
+		local a, v = math.random() * 6.283, 220 + math.random() * 700
+		local l = inst("TextLabel", { BackgroundTransparency = 1, FontFace = TXT, Text = sy[1], TextColor3 = Color3.fromHex(sy[2]), TextSize = 26 + math.random() * 44,
+			Size = UDim2.fromOffset(80, 80), Position = UDim2.fromScale(0.5, 0.39), AnchorPoint = Vector2.new(0.5, 0.5), Rotation = math.random() * 360, ZIndex = 53 }, ch)
+		local d = 1.5 + math.random() * 0.9
+		TweenService:Create(l, TweenInfo.new(d, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+			Position = UDim2.new(0.5, math.cos(a) * v, 0.39, math.sin(a) * v * 0.72), Rotation = l.Rotation + (math.random() - 0.5) * 300, TextTransparency = 1 }):Play()
+		task.delay(d + 0.05, function() l:Destroy() end)
+	end
+	for i = 0, 2 do onde(1600 - i * 300, 7 - i * 2, (i == 1) and Color3.fromRGB(255, 120, 180) or Color3.fromRGB(255, 224, 150), 0.9) end
+	task.wait(0.13)
+	TweenService:Create(fl, TweenInfo.new(0.25), { BackgroundTransparency = 1 }):Play()
+	task.wait(0.17)
+	-- LA SIGNATURE se lève à la place du titre
+	local sig = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(700, 140), Position = UDim2.fromScale(0.5, 0.39), AnchorPoint = Vector2.new(0.5, 0.5), ZIndex = 54 }, ch)
+	local sc = inst("UIScale", { Scale = 0.7 }, sig)
+	local n1 = texte(sig, { Text = "1.61", TextSize = 96, TextColor3 = C.or_, Size = UDim2.new(1, 0, 0, 100), Position = UDim2.fromOffset(0, 0), ZIndex = 55, epais = 5, TextTransparency = 1 })
+	local n2 = texte(sig, { Text = "GAMES", TextSize = 30, TextColor3 = C.texte, Size = UDim2.new(1, 0, 0, 34), Position = UDim2.fromOffset(0, 104), ZIndex = 55, epais = 3, TextTransparency = 1 })
+	degrade(n1, Color3.fromRGB(255, 244, 170), C.orFonce, 90)
+	local ti = TweenInfo.new(0.45, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+	TweenService:Create(sc, ti, { Scale = 1 }):Play()
+	for _, n9 in { n1, n2 } do
+		TweenService:Create(n9, ti, { TextTransparency = 0 }):Play()
+		local s9 = n9:FindFirstChildOfClass("UIStroke")
+		if s9 then
+			s9.Transparency = 1
+			TweenService:Create(s9, ti, { Transparency = 0 }):Play()
+		end
+	end
+	for _ = 1, 10 do -- (la scène tremble sous la détonation)
+		sig.Position = UDim2.new(0.5, (math.random() - 0.5) * 16, 0.39, (math.random() - 0.5) * 16)
+		task.wait(0.034)
+	end
+	sig.Position = UDim2.fromScale(0.5, 0.39)
+	task.wait(1.8)
+	-- …et elle s'EFFACE
+	local to = TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+	TweenService:Create(sc, to, { Scale = 1.16 }):Play()
+	TweenService:Create(n1, to, { TextTransparency = 1 }):Play()
+	TweenService:Create(n2, to, { TextTransparency = 1 }):Play()
+	for _, s9 in { n1:FindFirstChildOfClass("UIStroke"), n2:FindFirstChildOfClass("UIStroke") } do
+		if s9 then TweenService:Create(s9, to, { Transparency = 1 }):Play() end
+	end
+	task.wait(0.5)
+	sig:Destroy()
+	fl:Destroy()
 end
 local astuceFin = 0
 function Hud.astuce(txt: string, duree: number?)

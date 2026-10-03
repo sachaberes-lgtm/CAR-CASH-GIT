@@ -22,7 +22,7 @@ local Sons = require(script.Parent:WaitForChild("Sons"))
 local Score = require(script.Parent:WaitForChild("Score"))
 local Camera = require(script.Parent:WaitForChild("Camera"))
 local M = Config.M
-local FR = string.sub(Players.LocalPlayer.LocaleId or "fr", 1, 2) == "fr"
+local FR = Config.francais()
 local function tr(fr: string, en: string): string return FR and fr or en end
 
 local Effets = {}
@@ -1081,6 +1081,106 @@ local function continuTick(dt: number)
 	end
 end
 
+-- ════════ LES STRIES DE VENT (ventN / nfxVent, L28513) ════════
+-- Pendant la NITRO, des points POSÉS dans le monde (vitesse nulle), devant l'objectif et sur les CÔTÉS de l'image (le centre reste
+-- à la caisse) : la caisse les traverse à pleine vitesse, chacun s'étire dans sa vitesse RELATIVE — des filets d'air qui passent à
+-- 2-9 m de la caméra, avec la parallaxe que les filés 2D n'ont pas. 40 par seconde (52 en réserve bleue), 0,3-0,5 s de vie, fondu
+-- près de l'objectif. Ici : un Beam additif par strie (deux attaches posées dans le monde), 64 en réserve, jamais recréés.
+-- Le sens de la course se lit dans le DÉPLACEMENT de la caisse (au sol le cap, en vol la vitesse — pas le nez qui vrille).
+local VENT: any = { n = 64, l = {}, i = 0, acc = 0, prev = nil, dir = Vector3.new(0, 0, -1), v = 0 }
+local rndV = Random.new(0x6d2b79f5)
+do
+	-- (la transparence d'un Beam est une NumberSequence : dix crans préparés une fois, aucune allocation à l'image)
+	VENT.crans = {}
+	for k = 0, 10 do
+		local a = 1 - k / 10 * 0.62
+		VENT.crans[k] = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.35, a), NumberSequenceKeypoint.new(0.8, a),
+			NumberSequenceKeypoint.new(1, 1) })
+	end
+end
+local function ventBatir()
+	-- (⚠ Roblox ne dessine pas un Beam dont la pièce porteuse sort du champ : accrochées à l'origine du monde, à 3 km de la course,
+	-- les stries existaient et ne s'affichaient JAMAIS. Leur ancre suit donc la caméra, et les attaches se posent en coordonnées monde.)
+	VENT.ancre = ancre("FxVent")
+	for i = 1, VENT.n do
+		local a0, a1 = Instance.new("Attachment"), Instance.new("Attachment")
+		a0.Name, a1.Name = "VentA", "VentB"
+		a0.Parent, a1.Parent = VENT.ancre, VENT.ancre
+		local b = Instance.new("Beam")
+		b.Name = "Vent"
+		b.Attachment0, b.Attachment1 = a0, a1
+		b.FaceCamera = true
+		b.LightEmission = 1
+		b.LightInfluence = 0
+		b.Segments = 1
+		b.Color = ColorSequence.new(Color3.fromRGB(255, 240, 220))
+		b.Transparency = VENT.crans[0]
+		b.Width0, b.Width1 = 0.05 * M, 0.05 * M
+		b.Enabled = false
+		b.Parent = VENT.ancre
+		VENT.l[i] = { b = b, a0 = a0, a1 = a1, p = Vector3.zero, t = 9, T = 1, cran = 0 }
+	end
+end
+local function ventTick(dt: number)
+	local cf: CFrame = etat.carCF
+	local vit = cf and (etat.mode == "drive" or etat.mode == "fall")
+	-- le sens et la vitesse de la course (studs/s), lissés
+	if vit and VENT.prev and dt > 0 then
+		local d = cf.Position - VENT.prev
+		local v = d.Magnitude / dt
+		if v > 1 and v < 4000 then
+			VENT.dir = VENT.dir:Lerp(d.Unit, math.min(1, dt * 12)).Unit
+			VENT.v += (v - VENT.v) * math.min(1, dt * 8)
+		end
+	end
+	VENT.prev = cf and cf.Position or nil
+	-- la semence : seulement nitro tenue, en course
+	if vit and etat.nitroOn then
+		VENT.acc += dt * (etat.bleue and 52 or 40)
+		local v9 = math.max(20, VENT.v / M) -- (m/s)
+		local cR, cU, cP = cam.CFrame.RightVector, cam.CFrame.UpVector, cam.CFrame.Position
+		while VENT.acc >= 1 do
+			VENT.acc -= 1
+			VENT.i = VENT.i % VENT.n + 1
+			local o = VENT.l[VENT.i]
+			local d = math.max(9, v9 * 0.1) + rndV:NextNumber() * math.max(18, v9 * 0.22)
+			local cx = ((rndV:NextNumber() < 0.5) and -1 or 1) * (2.6 + rndV:NextNumber() * 6.5)
+			local cy = -3.2 + rndV:NextNumber() * 6.4
+			o.p = cP + (VENT.dir * d + cR * cx + cU * cy) * M
+			o.t, o.T = 0, 0.3 + rndV:NextNumber() * 0.2
+		end
+	else
+		VENT.acc = 0
+	end
+	-- les stries vivantes : posées, étirées dans la vitesse relative (str .05 : 5 centièmes de seconde de course), fondu au bord
+	-- de leur vie et près de l'objectif
+	local L = math.clamp(VENT.v * 0.05, 0.6 * M, 7 * M)
+	local cP = cam.CFrame.Position
+	VENT.ancre.CFrame = cam.CFrame * CFrame.new(0, 0, -6 * M)
+	for _, o in VENT.l do
+		if o.t < o.T then
+			o.t += dt
+			local u = o.t / o.T
+			if u >= 1 then
+				o.b.Enabled = false
+				continue
+			end
+			local pres9 = math.clamp(((o.p - cP).Magnitude / M - 1.4) / 3, 0, 1)
+			local env = math.min(u / 0.12, 1, (1 - u) / 0.4) * pres9
+			local cran = math.clamp(math.floor(env * 10 + 0.5), 0, 10)
+			if cran ~= o.cran then
+				o.cran = cran
+				o.b.Transparency = VENT.crans[cran]
+			end
+			o.a0.WorldPosition = o.p - VENT.dir * (L * 0.5)
+			o.a1.WorldPosition = o.p + VENT.dir * (L * 0.5)
+			if not o.b.Enabled then o.b.Enabled = true end
+		elseif o.b.Enabled then
+			o.b.Enabled = false
+		end
+	end
+end
+
 -- ════════ le branchement ════════
 function Effets.init(ctx: { compteur: GuiObject? }?)
 	if ancreMonde then return end
@@ -1088,6 +1188,7 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 	ancreMonde = ancre("FxMonde")
 	ancreMonde.CFrame = CFrame.new(0, 0, 0)
 	ancreCaisse = ancre("FxCaisse")
+	ventBatir()
 	lueurA = Instance.new("Attachment")
 	lueurA.Parent = ancreMonde
 	lueur = Instance.new("PointLight")
@@ -1237,6 +1338,7 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 		continuTick(dt)
 		teinteTick(dt)
 		filesTick(dt, gui.AbsoluteSize)
+		ventTick(dt)
 		-- COMÈTE (ENG_CAP.comete, L38121) : à partir du palier 27, la caisse BRÛLE en permanence — des flammes qui montent de la
 		-- carrosserie (60 par seconde), des braises
 		if (etat.tier or 0) >= 27 and (etat.mode == "drive" or etat.mode == "fall") and not etat.pause then

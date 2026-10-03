@@ -12,6 +12,7 @@ local function racine(r: string): Instance
 	if r == "lumiere" then return game:GetService("Lighting") end
 	if r == "ecran" then return Players.LocalPlayer:WaitForChild("PlayerGui") end
 	if r == "camera" then return workspace.CurrentCamera end
+	if string.sub(r, 1, 2) == "w:" then return workspace:FindFirstChild(string.sub(r, 3), true) or workspace end -- (« w:Zone3 » : un dossier du monde)
 	return workspace
 end
 local function chacun(r: string, nom: string, f: (Instance) -> ()): number
@@ -58,6 +59,45 @@ ev.OnClientEvent:Connect(function(op: string, r: string, nom: string, prop: stri
 		ev:FireServer("etat : " .. (ok and table.concat(t, " ") or tostring(e)))
 	elseif op == "compte" then
 		ev:FireServer(string.format("compte %s : %d", nom, chacun(r, nom, function() end)))
+	elseif op == "arbre" then
+		-- l'inventaire du monde : pour chaque enfant de la racine, combien de descendants et de pièces (pour trouver ce qui s'accumule)
+		local t = {}
+		for _, c in racine(r):GetChildren() do
+			local n, np = 0, 0
+			for _, d in c:GetDescendants() do
+				n += 1
+				if d:IsA("BasePart") then np += 1 end
+			end
+			if n >= 20 then table.insert(t, { c.Name .. ":" .. c.ClassName, n, np }) end
+		end
+		if string.sub(r, 1, 2) == "w:" then -- (dans un dossier : on compte aussi les pièces par nom et par classe)
+			local parNom = {}
+			for _, d in racine(r):GetDescendants() do
+				if d:IsA("BasePart") then local k = d.Name .. ":" .. d.ClassName parNom[k] = (parNom[k] or 0) + 1 end
+			end
+			for k, n in parNom do if n >= 20 then table.insert(t, { "#" .. k, n, n }) end end
+		end
+		table.sort(t, function(a, b) return a[2] > b[2] end)
+		local o = {}
+		for i = 1, math.min(30, #t) do table.insert(o, t[i][1] .. "=" .. t[i][2] .. "/" .. t[i][3]) end
+		ev:FireServer("arbre : " .. table.concat(o, " "))
+	elseif op == "stats" then
+		-- le coût du rendu, tel que Roblox le compte (triangles, appels de dessin, ombres, interface, mémoire, ms par image)
+		local St = game:GetService("Stats")
+		local t = {}
+		for _, k in { "SceneTriangleCount", "SceneDrawcallCount", "ShadowsTriangleCount", "ShadowsDrawcallCount", "UI2DTriangleCount",
+			"UI2DDrawcallCount", "UI3DTriangleCount", "UI3DDrawcallCount", "InstanceCount", "PrimitivesCount", "FrameTime", "RenderCPUFrameTime",
+			"RenderGPUFrameTime", "HeartbeatTimeMs" } do
+			local ok, v = pcall(function() return (St :: any)[k] end)
+			table.insert(t, k .. "=" .. (ok and tostring(typeof(v) == "number" and math.floor(v * 100 + 0.5) / 100 or v) or "?"))
+		end
+		local okM, mem = pcall(function() return St:GetTotalMemoryUsageMb() end)
+		table.insert(t, "memMb=" .. (okM and math.floor(mem) or "?"))
+		for _, tag in { "GraphicsMeshParts", "GraphicsParts", "GraphicsTexture", "GraphicsParticles", "Gui", "Instances", "LuaHeap", "PhysicsParts" } do
+			local okT, v = pcall(function() return St:GetMemoryUsageMbForTag((Enum.DeveloperMemoryTag :: any)[tag]) end)
+			if okT then table.insert(t, tag .. "=" .. math.floor(v)) end
+		end
+		ev:FireServer("stats : " .. table.concat(t, " "))
 	elseif op == "lire" then
 		local vu = false
 		chacun(r, nom, function(d)
@@ -74,6 +114,9 @@ ev:FireServer("joueur : arrivé")
 task.spawn(function()
 	local pg = Players.LocalPlayer:WaitForChild("PlayerGui")
 	while not pg:FindFirstChild("CashCarEffets") do task.wait(0.5) end
+	-- (l'intro du studio se joue avant l'accueil : on attend que le pilote dise « menu prêt » lui-même — 25 s au plus)
+	local t0 = os.clock()
+	while not Players.LocalPlayer:GetAttribute("MenuPret") and os.clock() - t0 < 25 do task.wait(0.25) end
 	ev:FireServer("joueur : menu prêt")
 end)
 game:GetService("LogService").MessageOut:Connect(function(msg, typ)
