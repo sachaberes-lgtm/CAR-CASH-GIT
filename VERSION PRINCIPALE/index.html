@@ -164,9 +164,11 @@ html.colonne #colonne{display:block;flex:none;border:0;background:#07050f}
    marges du jeu lisent var(--ccX, env(safe-area-inset-X)) : un vrai téléphone ne pose pas --ccX et garde les siennes. */
 html.telCadre{--ccT:0px;--ccB:21px;--ccL:47px;--ccR:47px}
 /* L'ATELIER DES NUAGES (?nuages=1) : l'interface du menu reste EN PLACE (la caisse se cadre sur elle) mais invisible et intouchable */
-html.labNuages #overlay{opacity:0!important;transition:opacity .25s}
+html.labNuages #overlay>*{opacity:0!important;transition:opacity .25s} /* les BOUTONS s'effacent, pas le voile bleu de l'écran (#overlay::after) : le bas de l'image reste celui du menu */
+html.labNuages body.touch.titreCiel #overlay[data-ecran="home"]::after{opacity:var(--labV1,1)} /* LE CIEL EN BAS : les deux voiles du menu, dosables */
+html.labNuages #garage.menu.ciel::after{opacity:var(--labV2,1)}
 html.labNuages #overlay,html.labNuages #overlay *{pointer-events:none!important} /* ⚠ les [data-m] de l'accueil reprennent le doigt d'eux-mêmes : on les éteint UN PAR UN (sans ça, un JOUER invisible lançait la partie) */
-html.labNuages.labBoutons #overlay{opacity:1!important}
+html.labNuages.labBoutons #overlay>*{opacity:1!important}
 html.labNuages #tSet,html.labNuages #tGear{display:none!important}
 #mSet p.ccVer{margin:14px 0 2px;text-align:center;font:600 11px/1.3 var(--sans,system-ui,sans-serif);letter-spacing:1px;color:var(--tx3,#9a90c8);opacity:.8;max-width:none} /* le numéro de version (LA MISE À JOUR TOUTE SEULE) */
 @media (orientation:portrait){html.telCadre{--ccT:47px;--ccB:34px;--ccL:0px;--ccR:0px}}
@@ -5943,7 +5945,7 @@ const skyU={uTime:{value:0},uSunDir:{value:SUN_DIR},
   uVille:{value:0},uPluie:{value:0},uFogCol:{value:new THREE.Color(0x331f48)},uCam:{value:new THREE.Vector3()},
   uVilleY:{value:0},uParis:{value:0},uParisT:{value:0}, // (2026-09-28) uParis : le ciel de PARIS (toits bas à l'horizon, lueur d'or) au lieu des tours de la ville
   // (2026-09-26) la SKYLINE descend à l'altitude de la ville (en sinus d'élévation) : la route spirale AU-DESSUS des toits
-  uMzA:{value:new THREE.Vector4(760,.8,15,.25)},uMzB:{value:new THREE.Vector4(.20,.16,.26,.8)}, // (2026-09-30, niveau 1 v2) LA MER SCULPTÉE : échelle des cellules, part « gonflée », franchise de la lumière, remous · couverture, fermeture au loin, creux, clarté des trouées
+  uMzA:{value:new THREE.Vector4(760,.8,15,.25)},uMzB:{value:new THREE.Vector4(.20,.16,.26,.8)},uMzT:{value:new THREE.Vector4()},uMzO:{value:new THREE.Vector4()},uMzH:{value:new THREE.Vector4()}, /* (2026-10-03, atelier des nuages : « une fonction pour altérer le ciel en bas ») les COULEURS de la mer de nuages forcées — trous, ombres, dômes : rgb + part (w) ; w = 0 partout = la mer d'avant au bit près */ // (2026-09-30, niveau 1 v2) LA MER SCULPTÉE : échelle des cellules, part « gonflée », franchise de la lumière, remous · couverture, fermeture au loin, creux, clarté des trouées
   uVG:{value:0}, /* (2026-10-01, Sacha : « enlève tous les trucs Van Gogh ») la touche Van Gogh est RETIRÉE du ciel comme des nuages : plus aucun shader ne lit cet uniforme — l'objet reste, inerte, pour qu'un code qui l'écrirait encore ne plante pas */
   uJour:{value:0},uMerLoin:{value:16000},uJZen:{value:new THREE.Vector3()},uJMid:{value:new THREE.Vector3()},uJHor:{value:new THREE.Vector3()},uJSol:{value:new THREE.Vector3()}, // (2026-09-30) LE JOUR D'ALTITUDE (voir cielJour) : 0 = le ciel d'avant
   uMer:{value:0}, // (2026-09-26) LA MER DE NUAGES PEINTE sous l'horizon — niveau NUAGES seulement (voir merNuages ; fondue par lvlStep comme la ville)
@@ -5962,7 +5964,7 @@ const skyDome=(function(){
       'varying vec3 vDir;uniform vec3 uSunDir;uniform float uTime;',
       'uniform vec3 uSkyMul,uSkyLift,uSunTint;uniform float uSunHalo,uCity,uStars,uMoon,uPulse;', // grade biome (identité par défaut) + uPulse musique
       'uniform float uSpace;', // NIVEAU ORBITE : 0 = aucun effet
-      'uniform float uJour,uMerLoin;uniform vec3 uJZen,uJMid,uJHor,uJSol;uniform vec4 uMzA,uMzB;', // (2026-09-30) LE JOUR D ALTITUDE : 0 = le ciel d avant, au bit près
+      'uniform float uJour,uMerLoin;uniform vec3 uJZen,uJMid,uJHor,uJSol;uniform vec4 uMzA,uMzB,uMzT,uMzO,uMzH;', // (2026-09-30) LE JOUR D ALTITUDE : 0 = le ciel d avant, au bit près
       'uniform float uLvl,uSpin,uBeatK,uFlip,uBar,uHi,uWave,uHueAmp;uniform vec3 uAcc,uAcc2;uniform vec4 uRingR,uRingA;', // LE FOND DU NIVEAU
       'float hash21(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}',
       /* ROTATION DE TEINTE AUTOUR DE L AXE DES GRIS (Rodrigues). ⚠ c est LA fonction qui permet les
@@ -6206,9 +6208,9 @@ const skyDome=(function(){
       '  float lit=clamp(.5+(n-ns)*uMzA.z,0.,1.);',
       '  float big=vn(q*.07+11.3)-.5;',
       '  float cov=smoothstep(uMzB.x-uMzB.y*far-.22*big,uMzB.x+.14-uMzB.y*far-.22*big,n),cr=smoothstep(.55,.82,n),ao=smoothstep(uMzB.x,uMzB.x+.32,n);',
-      '  vec3 trou=mix(uJZen*.6,uJMid*.85,uMzB.w);',
-      '  vec3 ombre=mix(uJMid*.58+vec3(.10,.10,.16),F,.2);',
-      '  vec3 haut=mix(vec3(1.,.985,.96),uSunTint,.18);',
+      '  vec3 trou=mix(mix(uJZen*.6,uJMid*.85,uMzB.w),uMzT.rgb,uMzT.w);',
+      '  vec3 ombre=mix(mix(uJMid*.58+vec3(.10,.10,.16),F,.2),uMzO.rgb,uMzO.w);',
+      '  vec3 haut=mix(mix(vec3(1.,.985,.96),uSunTint,.18),uMzH.rgb,uMzH.w);',
       '  vec3 m=mix(ombre,haut,lit*(.45+.55*cr));',
       '  m*=1.-uMzB.z*(1.-ao);',
       '  m=mix(trou,m,cov);',
@@ -35460,12 +35462,15 @@ const NUAGES_LAB=/[?&]nuages=1\b/.test(location.search);
 if(NUAGES_LAB){
   document.documentElement.classList.add('labNuages');
   CHUTE_P.caisse=1;
+  if(!CHUTE_P.mzB)CHUTE_P.mzB=skyU.uMzB.value.toArray(); // LE CIEL EN BAS : la mer de nuages (forme + couleurs), départ = le menu (les couleurs forcées à part 0)
+  CHUTE_P.mzT=[.30,.58,.92,0];CHUTE_P.mzO=[.55,.60,.85,0];CHUTE_P.mzH=[1,.98,.95,0];CHUTE_P.merLoin=skyU.uMerLoin.value;
   window.ccNuages={P:CHUTE_P,N8:N8_OPT,titre:function(){return BIOMES.titre;},
     defauts:{P:JSON.parse(JSON.stringify(CHUTE_P)),N8:Object.assign({},N8_OPT),titre:JSON.parse(JSON.stringify(BIOMES.titre))},
     regle:function(o){return dbgChute(o);},
     amb:function(o){return dbgAmb('titre',o);},
     vue:function(a,p){CHUTE.oAc=a||0;CHUTE.oPc=p||0;CHUTE.oW=0;},
     boutons:function(on){document.documentElement.classList.toggle('labBoutons',!!on);},
+    voile:function(k,v){document.documentElement.style.setProperty(k===2?'--labV2':'--labV1',String(Math.max(0,Math.min(1,+v))));}, // 1 = le voile du menu, 0 = aucun
     pret:function(){return !!(CHUTE.on&&CHUTE.geo&&CHUTE.geo.every(function(e){return !!e.g;}));},
     /* LES FORMES DU TITRE REFAITES : une autre graine (d'autres nuages), d'autres réglages du champ (N8_OPT), une autre finesse de
        surface (cellules ; 0 = celles du menu). La graine 0xC4A5 + finesse 0 + N8_OPT d'origine = les nuages du menu, au sommet près. */
@@ -35516,7 +35521,7 @@ function chuteVoileEl(){ // le banc de nuage traversé au JOUER : un voile blanc
   document.body.appendChild(e);CHUTE.voile=e;return e;
 }
 function chuteEntre(){ // de l'atelier (ou de rien) au ciel
-  CHUTE.on=true;CHUTE.t=0;CHUTE.bioPas=-1;CHUTE.bioT=null;document.body.classList.add('titreCiel');if(!CHUTE.mz)CHUTE.mz=[skyU.uMzA.value.clone(),skyU.uMzB.value.clone()];CHUTE.oA=CHUTE.oAc=CHUTE.oW=CHUTE.oP=CHUTE.oPc=0; // (2026-09-30) l'orbite repart du plan de face
+  CHUTE.on=true;CHUTE.t=0;CHUTE.bioPas=-1;CHUTE.bioT=null;document.body.classList.add('titreCiel');if(!CHUTE.mz)CHUTE.mz=[skyU.uMzA.value.clone(),skyU.uMzB.value.clone(),skyU.uMzT.value.clone(),skyU.uMzO.value.clone(),skyU.uMzH.value.clone(),skyU.uMerLoin.value];CHUTE.oA=CHUTE.oAc=CHUTE.oW=CHUTE.oP=CHUTE.oPc=0; // (2026-09-30) l'orbite repart du plan de face
   if(!CHUTE.av)CHUTE.av={c:new THREE.Color()};CHUTE.av.e=acesPass?acesPass.uniforms.uExposure.value:null;if(scene.fog){CHUTE.av.c.copy(scene.fog.color);CHUTE.av.n=scene.fog.near;CHUTE.av.f=scene.fog.far;} // (2026-09-30) l'exposition et la brume d'avant (l'atelier les retrouve)
   if(!CHUTE.w)chuteMonte();
   if(GAR.root)GAR.root.visible=false;garageFloor.visible=false;gEl.classList.add('ciel'); /* (niveau 1 v2) le bandeau du bas prend l'azur profond du ciel (voir #garage.menu.ciel::after) */
@@ -35526,7 +35531,7 @@ function chuteEntre(){ // de l'atelier (ou de rien) au ciel
 }
 function chuteSort(ferme){ // on quitte le ciel : l'atelier (boutique, missions) ou la course (ferme)
   if(!CHUTE.on&&!CHUTE.go)return;
-  CHUTE.on=false;CHUTE.go=null;gEl.classList.remove('ciel');document.body.classList.remove('titreCiel');if(CHUTE.mz){skyU.uMzA.value.copy(CHUTE.mz[0]);skyU.uMzB.value.copy(CHUTE.mz[1]);}if(COTON.root)COTON.root.visible=COTON.n>0;if(CHUTE.nu)for(const c of CHUTE.nu)c.m.visible=false; /* (titre v3) les cumulus du titre se rangent */
+  CHUTE.on=false;CHUTE.go=null;gEl.classList.remove('ciel');document.body.classList.remove('titreCiel');if(CHUTE.mz){skyU.uMzA.value.copy(CHUTE.mz[0]);skyU.uMzB.value.copy(CHUTE.mz[1]);skyU.uMzT.value.copy(CHUTE.mz[2]);skyU.uMzO.value.copy(CHUTE.mz[3]);skyU.uMzH.value.copy(CHUTE.mz[4]);skyU.uMerLoin.value=CHUTE.mz[5];}if(COTON.root)COTON.root.visible=COTON.n>0;if(CHUTE.nu)for(const c of CHUTE.nu)c.m.visible=false; /* (titre v3) les cumulus du titre se rangent */
   if(CHUTE.snd){try{CHUTE.snd.stop(ferme?.5:.3);}catch(e){}CHUTE.snd=null;} /* (niveau 1 v2) la chute libre se tait */
   if(CHUTE.w)for(const w of CHUTE.w){w.sp.visible=false;}
   if(CHUTE.fil)CHUTE.fil.m.visible=false;
@@ -35550,7 +35555,7 @@ function chuteRender(dt){
   // LE CIEL DU JOUR DES NUAGES (celui de l'accueil d'avant : MENU_BIO), repeint si le voyage BIO est passé derrière
   {const BT=BIOMES.titre||BIOMES[MENU_BIO]; /* (titre v3) l'ambiance du titre */
    if(!MENUV.bio||CHUTE.bioPas!==BIO.pas||CHUTE.bioT!==BT){if(!MENUV.bio||CHUTE.bioT!==BT)paintEnv(BT.env,BT.eS1,BT.eS2);MENUV.bio=true;CHUTE.bioPas=BIO.pas;CHUTE.bioT=BT;bioApply(BT);}}
-  skyU.uMer.value=1;if(P.mzA)skyU.uMzA.value.fromArray(P.mzA);if(P.mzB)skyU.uMzB.value.fromArray(P.mzB); /* (titre v3) la mer de nuages du titre (rendue par chuteSort) */
+  skyU.uMer.value=1;if(P.mzA)skyU.uMzA.value.fromArray(P.mzA);if(P.mzB)skyU.uMzB.value.fromArray(P.mzB);if(P.mzT)skyU.uMzT.value.fromArray(P.mzT);if(P.mzO)skyU.uMzO.value.fromArray(P.mzO);if(P.mzH)skyU.uMzH.value.fromArray(P.mzH);if(P.merLoin)skyU.uMerLoin.value=P.merLoin; /* (titre v3) la mer de nuages du titre (rendue par chuteSort) */
   if(CHUTE.nuM){CHUTE.nuM.uniforms.uK.value.fromArray(P.K);CHUTE.nuM.uniforms.uR.value.fromArray(P.R);}
   /* (2026-09-30) LA BRUME ET L'EXPOSITION DE L'AMBIANCE : seule la course les réécrit (updateClouds) — au menu la brume restait le violet
      de départ du jeu (#5e3254) et l'exposition .71 : la mer de nuages et les cumulus s'y noyaient en violet. chuteSort rend celles d'avant. */

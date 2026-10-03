@@ -58,6 +58,12 @@
   précision de surface, NOUVEAUX NUAGES), soleil et ciel (az, sunI, sunC, hemiI, jZen/jMid/jHor, expo, sat, vigK), brume et mer (fog,
   fogN/fogF, mzA), scène (vit, la voiture, les cumulus, les boutons). Gardés dans le navigateur (`ccNuagesLab1`) ; COPIER LES REGLAGES
   donne le texte à recopier dans le code (noms du code : CHUTE_P / BIOMES.titre / N8_OPT / graine).
+- **LE CIEL EN BAS** (même jour, Léo : « ajoute une fonction pour altérer le ciel en bas ») = la mer de nuages du dôme (`merZ`) et les deux
+  voiles du menu. Forme : `CHUTE_P.mzA` (bosses) et `mzB` (trous, fermeture au loin, creux, trous encre → azur), `merLoin` (fondu au loin).
+  Couleurs : trois uniforms NEUFS de `skyU`, `uMzT` / `uMzO` / `uMzH` (trous, ombres, dessus des bosses : rgb + part w) — w = 0 partout
+  hors de l'atelier : la mer d'avant au bit près ; posés par chuteRender depuis `CHUTE_P.mzT/mzO/mzH`, rendus par chuteSort (`CHUTE.mz`).
+  Les voiles : `#overlay::after` (azur haut/bas de l'écran titre) et `#garage.menu.ciel::after` (bandeau des boutons) — l'atelier ne
+  masque plus que les ENFANTS de #overlay (le voile reste : le bas de l'image est celui du menu) ; `ccNuages.voile(1|2, 0..1)`.
 - ⚠ N8_OPT est GLOBAL : dans l'atelier il change aussi la forme des nuages de la course si on la refait — sans effet tant qu'on reste au titre.
 - Banc : `lab.mjs <nom> W H` (scratchpad de la session 83e03bdc) — prêt, réglages, nouveaux nuages, photo, copier, tap sur JOUER invisible,
   Entrée, rechargement, tout remettre ; ordi, téléphone couché et debout : 0 erreur.

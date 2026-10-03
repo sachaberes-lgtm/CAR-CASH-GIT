@@ -39,14 +39,28 @@ var G=[
   {s:'titre',k:'expo',n:'Exposition',mi:.5,ma:1.5,p:.01},
   {s:'titre',k:'sat',n:'Saturation',mi:.5,ma:1.8,p:.01},
   {s:'titre',k:'vigK',n:'Vignette',mi:0,ma:.6,p:.01}]},
- {t:'BRUME ET MER DE NUAGES',a:'La profondeur et le tapis sous la caisse.',l:[
+ {t:'LA BRUME',a:'La profondeur : ce qui se fond au loin.',l:[
   {s:'titre',k:'fog',n:'Couleur de la brume',c:1},
   {s:'titre',k:'fogN',n:'Brume : début (m)',mi:0,ma:3000,p:10},
-  {s:'titre',k:'fogF',n:'Brume : fin (m)',mi:1000,ma:15000,p:50},
-  {s:'P',k:'mzA',i:0,n:'Mer : taille des bosses (m)',mi:300,ma:4000,p:10},
-  {s:'P',k:'mzA',i:1,n:'Mer : bosses gonflées',mi:0,ma:1,p:.01},
-  {s:'P',k:'mzA',i:2,n:'Mer : lumière franche',mi:1,ma:20,p:.1},
-  {s:'P',k:'mzA',i:3,n:'Mer : remous',mi:0,ma:.8,p:.01}]},
+  {s:'titre',k:'fogF',n:'Brume : fin (m)',mi:1000,ma:15000,p:50}]},
+ {t:'LE CIEL EN BAS',a:'La mer de nuages sous la caisse : sa forme, puis ses couleurs. Une couleur ne s’applique que si sa force est au-dessus de 0.',l:[
+  {s:'P',k:'mzA',i:0,n:'Taille des bosses (m)',mi:300,ma:4000,p:10},
+  {s:'P',k:'mzA',i:1,n:'Bosses gonflées',mi:0,ma:1,p:.01},
+  {s:'P',k:'mzA',i:2,n:'Lumière franche sur les bosses',mi:1,ma:20,p:.1},
+  {s:'P',k:'mzA',i:3,n:'Remous',mi:0,ma:.8,p:.01},
+  {s:'P',k:'mzB',i:0,n:'Trous dans la mer (plus = plus de trous)',mi:-.3,ma:.9,p:.01},
+  {s:'P',k:'mzB',i:1,n:'La mer se referme au loin',mi:0,ma:.6,p:.01},
+  {s:'P',k:'mzB',i:2,n:'Creux entre les bosses assombris',mi:0,ma:.9,p:.01},
+  {s:'P',k:'mzB',i:3,n:'Trous : encre → azur',mi:0,ma:1,p:.01},
+  {s:'P',k:'merLoin',n:'Fondu dans la brume au loin (m)',mi:2000,ma:40000,p:100},
+  {s:'P',k:'mzH',n:'Couleur du dessus des bosses',c:1,rgb:1},
+  {s:'P',k:'mzH',i:3,n:'… sa force',mi:0,ma:1,p:.01},
+  {s:'P',k:'mzO',n:'Couleur des ombres',c:1,rgb:1},
+  {s:'P',k:'mzO',i:3,n:'… sa force',mi:0,ma:1,p:.01},
+  {s:'P',k:'mzT',n:'Couleur des trous',c:1,rgb:1},
+  {s:'P',k:'mzT',i:3,n:'… sa force',mi:0,ma:1,p:.01},
+  {s:'U',k:'v1',n:'Voile bleu de l’écran (haut et bas)',mi:0,ma:1,p:.01},
+  {s:'U',k:'v2',n:'Bandeau bleu derrière les boutons',mi:0,ma:1,p:.01}]},
  {t:'LA SCENE',a:'Glisse sur l’image pour tourner autour de la caisse.',l:[
   {s:'P',k:'vit',n:'Montée des nuages (0 = figés)',mi:0,ma:40,p:.5},
   {s:'P',k:'caisse',n:'La voiture',x:1},
@@ -55,7 +69,7 @@ var G=[
   {s:'B',k:'vue',n:'REVENIR A LA VUE DU MENU'}]}];
 
 /* ---------- l'état : ce qui a été changé (gardé dans ce navigateur) ---------- */
-var S={P:{},titre:{},N8:{},F:{graine:0,fin:0},U:{boutons:0}};
+var S={P:{},titre:{},N8:{},F:{graine:0,fin:0},U:{boutons:0,v1:1,v2:1}};
 try{var t0=JSON.parse(localStorage.getItem(CLE)||'null');if(t0&&typeof t0==='object')for(var k0 in S)if(t0[k0]&&typeof t0[k0]==='object')S[k0]=Object.assign(S[k0],t0[k0]);}catch(e){}
 function garde(){try{localStorage.setItem(CLE,JSON.stringify(S));}catch(e){}}
 
@@ -69,11 +83,11 @@ var refaireT=0;
 function refaire(){clearTimeout(refaireT);etat('nuages en calcul…');refaireT=setTimeout(function(){var A=api();if(!A)return;
   A.formes(Object.assign({graine:S.F.graine,fin:S.F.fin},S.N8));},350);}
 function pose(it,v){var A=api();if(!A)return;var o={}; // la valeur va au jeu, et dans l'état gardé
-  if(it.s==='P'){if(it.i!=null){var a=(A.P[it.k]||[]).slice();a[it.i]=v;v=a;}o[it.k]=v;A.regle(o);S.P[it.k]=v;}
+  if(it.s==='P'){if(it.i!=null||it.rgb){var a=(A.P[it.k]||[]).slice();if(it.rgb){a[0]=v[0];a[1]=v[1];a[2]=v[2];}else a[it.i]=v;v=a;}o[it.k]=v;A.regle(o);S.P[it.k]=v;}
   else if(it.s==='titre'){o[it.k]=v;A.amb(o);S.titre[it.k]=v;}
   else if(it.s==='N8'){S.N8[it.k]=v;refaire();}
   else if(it.s==='F'){S.F[it.k]=v;refaire();}
-  else if(it.s==='U'){S.U[it.k]=v;if(it.k==='boutons')A.boutons(!!v);}
+  else if(it.s==='U'){S.U[it.k]=v;if(it.k==='boutons')A.boutons(!!v);else if(it.k==='v1'||it.k==='v2')A.voile(it.k==='v2'?2:1,v);}
   garde();}
 
 /* ---------- couleurs : [r,g,b] de 0 à 1 ⇄ #rrggbb ---------- */
@@ -134,7 +148,7 @@ function etat(m){ETAT.textContent=m||'';}
 
 function defaut(it){var A=api();if(!A)return null;var d=A.defauts;
   if(it.s==='P'){var v=d.P[it.k];return it.i!=null?(v&&v[it.i]):v;}
-  if(it.s==='titre')return d.titre[it.k];if(it.s==='N8')return d.N8[it.k];if(it.s==='F')return 0;if(it.s==='U')return 0;return null;}
+  if(it.s==='titre')return d.titre[it.k];if(it.s==='N8')return d.N8[it.k];if(it.s==='F')return 0;if(it.s==='U')return it.k==='boutons'?0:1;return null;}
 function change(it,v){var d=defaut(it);if(it.c)return hex(v)!==hex(d);if(it.x)return !!v!==!!(d==null?1:d);return Math.abs((+v||0)-(+d||0))>1e-6;}
 function rafraichit(){ // les contrôles reprennent les valeurs EN COURS du jeu
   G.forEach(function(g,gi){g.l.forEach(function(it,ii){if(it.s==='B')return;var e=D.getElementById('ln'+gi+'_'+ii),vb=D.getElementById('ln'+gi+'_'+ii+'v'),v=lit(it);if(!e)return;
@@ -157,7 +171,7 @@ P.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest(
     try{navigator.clipboard.writeText(t).then(function(){fini(true);},function(){fini(D.execCommand&&D.execCommand('copy'));});}catch(_){fini(false);}}
   else if(k==='remettre'){var d=A.defauts,o={};G.forEach(function(g){g.l.forEach(function(it){if(it.s==='P')o[it.k]=JSON.parse(JSON.stringify(d.P[it.k]));});});
     A.regle(o);var ta={};G.forEach(function(g){g.l.forEach(function(it){if(it.s==='titre')ta[it.k]=JSON.parse(JSON.stringify(d.titre[it.k]));});});A.amb(ta);
-    S={P:{},titre:{},N8:{},F:{graine:0,fin:0},U:{boutons:0}};A.boutons(false);A.formes(Object.assign({graine:0,fin:0},d.N8));garde();rafraichit();TXT.style.display='none';etat('tout est revenu comme au menu');}});
+    S={P:{},titre:{},N8:{},F:{graine:0,fin:0},U:{boutons:0,v1:1,v2:1}};A.boutons(false);A.voile(1,1);A.voile(2,1);A.formes(Object.assign({graine:0,fin:0},d.N8));garde();rafraichit();TXT.style.display='none';etat('tout est revenu comme au menu');}});
 
 function texte(){ // ce qui a changé, dans les noms du code — prêt à recopier dans index.html
   var A=api(),L=['ATELIER DES NUAGES — réglages (à recopier dans VERSION PRINCIPALE/index.html)'];
@@ -165,6 +179,7 @@ function texte(){ // ce qui a changé, dans les noms du code — prêt à recopi
   if(p.length)L.push('CHUTE_P : '+JSON.stringify(p.reduce(function(o,k){o[k]=S.P[k];return o;},{})));
   if(Object.keys(S.titre).length)L.push('BIOMES.titre : '+JSON.stringify(S.titre));
   if(Object.keys(S.N8).length)L.push('N8_OPT : '+JSON.stringify(S.N8));
+  if(S.U.v1!==1||S.U.v2!==1)L.push('voiles du menu (opacité, 1 = comme le menu) : '+JSON.stringify({ecran:S.U.v1,bandeau:S.U.v2}));
   if(S.F.graine||S.F.fin)L.push('formes du titre : '+JSON.stringify({graine:S.F.graine||'0xC4A5 (le menu)',fin:S.F.fin||'celle du menu'}));
   if(L.length===1)L.push('(rien de changé : c’est le menu tel quel)');
   try{var e=A.etat();L.push('— '+e.nuages+' cumulus à l’image, '+Math.round(e.tris/1000)+' k triangles');}catch(_){}
@@ -177,7 +192,7 @@ var essais=0;(function attend(){var A=api();
   // les réglages gardés reviennent
   if(Object.keys(S.P).length)A.regle(JSON.parse(JSON.stringify(S.P)));
   if(Object.keys(S.titre).length)A.amb(JSON.parse(JSON.stringify(S.titre)));
-  if(S.U.boutons)A.boutons(true);
+  if(S.U.boutons)A.boutons(true);if(S.U.v1!==1)A.voile(1,S.U.v1);if(S.U.v2!==1)A.voile(2,S.U.v2);
   if(S.F.graine||S.F.fin||Object.keys(S.N8).length)A.formes(Object.assign({graine:S.F.graine,fin:S.F.fin},S.N8));
   rafraichit();etat('prêt');
   setInterval(function(){var A2=api();if(!A2||!ETAT||/photo|copi|revenu/.test(ETAT.textContent))return;try{var e=A2.etat();etat(e.nuages+' cumulus à l’image · '+Math.round(e.tris/1000)+' k triangles');}catch(_){}},1500);
