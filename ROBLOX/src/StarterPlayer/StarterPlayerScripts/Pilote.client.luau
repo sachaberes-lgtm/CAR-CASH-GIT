@@ -40,6 +40,7 @@ KA.Viseur = require(CL:WaitForChild("Viseur"))
 KA.Traces = require(CL:WaitForChild("Traces"))
 KA.Pigeons = require(CL:WaitForChild("Pigeons"))
 KA.Impact = require(CL:WaitForChild("Impact"))
+KA.Recyclage = require(CL:WaitForChild("Recyclage"))
 
 local M, SPD = Config.M, Config.SPD
 local RH, THICK = Config.ROAD_HALF, Config.THICK
@@ -267,7 +268,11 @@ end
 local function oublier(z: number)
 	local e = ZONES[z]
 	if not e or z <= 2 then return end -- la 1 et la 2 restent en réserve (on y revient à chaque partie)
-	if e.dossier then e.dossier:Destroy() end
+	if e.dossier then
+		local t0 = os.clock()
+		KA.Recyclage.rendre(e.dossier) -- (il sort du monde ; ses pièces de décor attendent la zone suivante, le reste est détruit : voir Client/Recyclage)
+		if workspace:GetAttribute("DbgRecyc") then warn(string.format("[CashCar] oubli zone %d : %.0f ms, %d en réserve", z, (os.clock() - t0) * 1000, KA.Recyclage.compte())) end
+	end
 	ZONES[z] = nil
 end
 local function remettreObjets(e: Zone)
@@ -1436,6 +1441,7 @@ local function obstacles(dt: number, cf: CFrame)
 					local dl = lat - lo
 					local v = cf.LookVector * math.max(8, math.abs(vA) * 0.55) + cf.RightVector * ((dl > 0 and -1 or 1) * (2 + math.random() * 4))
 						+ cf.UpVector * (5 + math.random() * 5)
+					o.p:SetAttribute("Rec", nil) -- (un plot qui vole ne rejoint jamais le recyclage : il pourrait être repris en plein vol)
 					table.insert(volants, { p = o.p, v = v * M * 0.6, r = Vector3.new(math.random() * 16 - 8, 0, math.random() * 16 - 8), vie = 1.6 })
 					vA *= 0.985
 					secousse = math.max(secousse, 0.14)

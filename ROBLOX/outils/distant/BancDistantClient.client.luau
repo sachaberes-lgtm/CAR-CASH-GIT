@@ -12,6 +12,7 @@ local function racine(r: string): Instance
 	if r == "lumiere" then return game:GetService("Lighting") end
 	if r == "ecran" then return Players.LocalPlayer:WaitForChild("PlayerGui") end
 	if r == "camera" then return workspace.CurrentCamera end
+	if string.sub(r, 1, 2) == "w:" then return workspace:FindFirstChild(string.sub(r, 3), true) or workspace end -- (« w:Zone3 » : un dossier du monde)
 	return workspace
 end
 local function chacun(r: string, nom: string, f: (Instance) -> ()): number
@@ -68,6 +69,13 @@ ev.OnClientEvent:Connect(function(op: string, r: string, nom: string, prop: stri
 				if d:IsA("BasePart") then np += 1 end
 			end
 			if n >= 20 then table.insert(t, { c.Name .. ":" .. c.ClassName, n, np }) end
+		end
+		if string.sub(r, 1, 2) == "w:" then -- (dans un dossier : on compte aussi les pièces par nom et par classe)
+			local parNom = {}
+			for _, d in racine(r):GetDescendants() do
+				if d:IsA("BasePart") then local k = d.Name .. ":" .. d.ClassName parNom[k] = (parNom[k] or 0) + 1 end
+			end
+			for k, n in parNom do if n >= 20 then table.insert(t, { "#" .. k, n, n }) end end
 		end
 		table.sort(t, function(a, b) return a[2] > b[2] end)
 		local o = {}

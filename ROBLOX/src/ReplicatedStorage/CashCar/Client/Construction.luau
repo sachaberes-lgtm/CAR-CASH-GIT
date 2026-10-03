@@ -11,6 +11,7 @@
 local Config = require(script.Parent.Parent:WaitForChild("Config"))
 local Piste = require(script.Parent.Parent:WaitForChild("Piste"))
 local Maillage = require(script.Parent:WaitForChild("Maillage"))
+local Recyclage = require(script.Parent:WaitForChild("Recyclage"))
 local Objets = require(script.Parent.Parent:WaitForChild("Objets"))
 local M = Config.M
 local RH = Config.ROAD_HALF
@@ -102,8 +103,9 @@ local function imageNappe(h: any): any?
 end
 modeleCoin.Reflectance = REFLET -- (le BITUME GLACÉ du jeu web : sombre de près, il prend le ciel et les nuages en rasant — sans reflet, un trou noir)
 
-local function part(taille: Vector3, cf: CFrame, couleur: Color3, matiere: Enum.Material, parent: Instance): Part
-	local p = Instance.new("Part")
+-- (rec : une pièce de DÉCOR, reprise au recyclage quand la zone est oubliée — voir Client/Recyclage)
+local function part(taille: Vector3, cf: CFrame, couleur: Color3, matiere: Enum.Material, parent: Instance, rec: boolean?): Part
+	local p = rec and Recyclage.part() or Instance.new("Part")
 	p.Anchored = true
 	p.CanCollide = false
 	p.CanQuery = false
@@ -152,7 +154,7 @@ local function rail(a: Vector3, b: Vector3, haut: Vector3, parent: Instance, hab
 	if l < 0.01 then return end
 	local cf = CFrame.lookAt((a + b) / 2, b, haut)
 	-- (0,7 m de néon : deux gros tubes cyan qui mangeaient l'image — la version web trace un LISERÉ au bord de la dalle)
-	local p = part(Vector3.new(0.24 * M, EP + 0.1 * M, l + 0.05), cf, habit.accent, Enum.Material.Neon, parent)
+	local p = part(Vector3.new(0.24 * M, EP + 0.1 * M, l + 0.05), cf, habit.accent, Enum.Material.Neon, parent, true)
 	p.Name = "Rail"
 	p.CastShadow = false
 end
@@ -308,7 +310,7 @@ function Construction.route(piste: Piste.Piste, dossier: Instance, ceder: (() ->
 			local f = Piste.repere(piste, s + (3.5 + moitie * 7) * M)
 			for _, y in { 0.05 * M, -EP - 0.05 * M } do
 				local v = part(Vector3.new(0.4 * M, 0.04 * M, 7.05 * M), CFrame.fromMatrix(f.Position + f.UpVector * y, f.RightVector, f.UpVector, -f.LookVector),
-					LAVANDE, Enum.Material.SmoothPlastic, dossier)
+					LAVANDE, Enum.Material.SmoothPlastic, dossier, true)
 				v.Transparency = 0.45
 				v.CastShadow = false
 			end
@@ -360,7 +362,10 @@ local EN_FRANCAIS = string.sub(game:GetService("Players").LocalPlayer.LocaleId o
 local PLOT_H = 1.5
 local modelePlot: BasePart? = nil
 local function plotModele(): BasePart
-	if modelePlot then return modelePlot end
+	if modelePlot then
+		if not modelePlot:GetAttribute("Rec") then modelePlot:SetAttribute("Rec", "plot") end -- (ses copies passent au recyclage)
+		return modelePlot
+	end
 	local ROUGE, BLANC = Color3.fromRGB(255, 59, 92), Color3.fromRGB(250, 250, 255)
 	local mp = Maillage.seul(function()
 		local em = AssetService:CreateEditableMesh()
@@ -464,6 +469,7 @@ local pieceAtelier
 local function pieceModele(): BasePart?
 	if modelePiece ~= nil then return modelePiece or nil end
 	modelePiece = Maillage.seul(pieceAtelier) or false
+	if modelePiece then modelePiece:SetAttribute("Rec", "piece") end -- (ses copies passent au recyclage)
 	return modelePiece or nil
 end
 pieceAtelier = function(): BasePart?
@@ -627,7 +633,7 @@ function Construction.unObjet(piste: Piste.Piste, o: Piste.Objet, dossier: Insta
 		local modele = pieceModele()
 		if modele then
 			-- la frappe regarde le pilote qui arrive (puis elle tourne sur elle-même)
-			p = modele:Clone()
+			p = Recyclage.copie(modele)
 			p.CFrame = CFrame.fromMatrix(pos, f.RightVector, f.UpVector)
 			p.Parent = dossier
 		else
@@ -656,7 +662,7 @@ function Construction.unObjet(piste: Piste.Piste, o: Piste.Objet, dossier: Insta
 			rail.Parent = p
 		end
 	elseif o.kind == "plot" then
-		p = plotModele():Clone()
+		p = Recyclage.copie(plotModele())
 		p.CFrame = CFrame.fromMatrix(pos + f.UpVector * (PLOT_H / 2 * M), f.RightVector, f.UpVector)
 		p.Parent = dossier
 	elseif o.kind == "flaque" then
