@@ -2588,20 +2588,29 @@ local function habiller(dt: number)
 	-- (L36604 : `nuages.ambiance` est l'air d'un LIEU — la mer de nuages. En ville et en orbite il ne reste que le souffle de la vitesse)
 	local air = (piste and (piste :: any).niveau ~= "nuages" and mode ~= "menu") and 0.4 or 1
 	Sons.regler("ventAltitude", atelier and 0 or ((mode == "fall") and math.min(0.7, 0.25 + fallVel.Magnitude * 0.004) or 0.08 + r * 0.1) * air)
-	-- LA MUSIQUE SUIT LE LIEU (MUSIC_LIEU, L25333) : NOITE DE VELOCIDADE aux nuages, NOCTURNAL GROOVE en ville et à l'accueil (garage,
-	-- écran de fin), SWAG CASH CAR dans l'orage, la radio en orbite. Un morceau de lieu qui n'est pas importé laisse l'antenne à
+	-- LA MUSIQUE SUIT LE LIEU (MUSIC_LIEU, L25333) : CIEL · LES 5 NIVEAUX aux nuages (3/10, avant NOITE DE VELOCIDADE), NOCTURNAL
+	-- GROOVE en ville, un morceau de LOBBY à l'accueil (garage, écran de fin), SWAG CASH CAR dans l'orage, la radio en orbite. Un morceau de lieu qui n'est pas importé laisse l'antenne à
 	-- `musique`. On passe de l'un à l'autre en fondu (1,2 s) ; chacun garde son fil, on ne le relance pas à chaque portail.
 	do
 		local veut = "musique"
 		if mode == "menu" or mode == "garage" or mode == "mort" or mode == "charge" then
-			veut = "musiqueVille"
+			-- (MUSIC_LOBBY, 3/10) l'accueil, le garage et l'écran de fin jouent UN morceau de lobby, tiré au lancement parmi ceux qui
+			-- sont importés, gardé toute la session ; aucun importé = NOCTURNAL GROOVE, comme avant
+			if G.lobby == nil then
+				local l = {}
+				for _, n in { "musiqueLobby1", "musiqueLobby2" } do
+					if Sons.a(n) then table.insert(l, n) end
+				end
+				G.lobby = (#l > 0) and l[math.random(1, #l)] or false
+			end
+			veut = G.lobby or "musiqueVille"
 		elseif piste then
 			local lieu, var = (piste :: any).niveau, (piste :: any).variante
 			veut = (var == "orage") and "musiqueOrage" or ((lieu == "ville") and "musiqueVille" or ((lieu == "nuages") and "musiqueNuages" or "musique"))
 		end
 		if not Sons.a(veut) then veut = "musique" end
 		G.musVeut = veut
-		G.mus = G.mus or { musique = 0, musiqueNuages = 0, musiqueVille = 0, musiqueOrage = 0 }
+		G.mus = G.mus or { musique = 0, musiqueNuages = 0, musiqueVille = 0, musiqueOrage = 0, musiqueLobby1 = 0, musiqueLobby2 = 0 }
 		do
 			local cible = (G.frenMus and (mode == "drive" or mode == "fall")) and 1.06 or 1
 			local v = G.musVit or 1
@@ -3559,7 +3568,7 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 			cam.FieldOfView = workspace:GetAttribute("DbgFov") or 90
 		end
 		Mer.montrer(mode == "menu" or mode == "garage" or (piste :: any).niveau == "nuages")
-		Mer.suivre(cam.CFrame.Position, carCF.Position.Y, dt, (mode == "menu" or mode == "garage") and Config.CIEL.merMenu * M or nil)
+		Mer.suivre(cam.CFrame.Position, carCF.Position.Y, dt, (mode == "menu" or mode == "garage") and Config.CIEL.merMenu * (Config.CIEL.titreK or 1) * M or nil)
 		KA.Espace.tick(dt, (piste :: any).niveau == "espace" and mode ~= "menu" and mode ~= "garage", cam.CFrame, carCF)
 		do
 			local var, enJeu = (piste :: any).variante, mode ~= "menu" and mode ~= "garage" and mode ~= "charge"
@@ -3652,16 +3661,28 @@ while not Mer.pret and os.clock() - t0 < 15 do
 	E.chargeTxt.Text = T.chargement .. string.rep(".", math.floor((os.clock() - t0) * 3) % 4)
 	task.wait(0.1)
 end
-preparer(2, Piste.suite(z1.piste :: Piste.Piste))
-if profil.reglages and profil.reglages.tuto == false then preparer(0, nil) end
--- le plan du titre (la place de la caisse dans le ciel) tout de suite, ses cumulus dès que les gabarits sont prêts
+-- le plan du titre (la place de la caisse dans le ciel) tout de suite, ses cumulus dès que les gabarits sont prêts — AVANT la zone 2
+-- (3/10 : ils passaient après elle à l'atelier des maillages, et l'accueil s'ouvrait 10 à 20 s avant eux sur un ciel vide)
 task.spawn(function()
 	local okT, errT = pcall(KA.Titre.plan, z1.piste)
 	if not okT then warn("[CashCar] titre : " .. tostring(errT)) end
+	KA.Titre.nuPret = true
 	if mode == "menu" then KA.Titre.montrer(true) end
 end)
+task.wait()
+preparer(2, Piste.suite(z1.piste :: Piste.Piste))
+if profil.reglages and profil.reglages.tuto == false then preparer(0, nil) end
 -- L'INTRO DU STUDIO : CASH CAR bat, explose, 1.61 GAMES — puis l'accueil (pas au banc : il attend « menu prêt » au plus vite)
 if not workspace:GetAttribute("DbgSansIntro") then pcall(Hud.introStudio) end
+-- l'accueil n'ouvre pas sur un ciel vide : on attend les cumulus du titre (8 s au plus, le chargement reparle)
+do
+	local t1 = os.clock()
+	if not KA.Titre.nuPret then E.chargeTxt.Visible = true end
+	while not KA.Titre.nuPret and os.clock() - t1 < 8 do
+		E.chargeTxt.Text = T.chargement .. string.rep(".", math.floor((os.clock() - t1) * 3) % 4)
+		task.wait(0.1)
+	end
+end
 allerMenu()
 game:GetService("Players").LocalPlayer:SetAttribute("MenuPret", true) -- (le banc attend ce signal : l'accueil est là, l'intro jouée)
 end
@@ -3683,7 +3704,7 @@ _G.cashcar = function()
 	return { mode = mode, zone = zoneN, s = s, lat = lat, side = side, vA = vA, kmh = kmh(), psi = psi,
 		nitro = nitroR, tier = tier, argent = argent, aura = aura, fallT = V.fallT, n = piste and piste.n, len = piste and piste.len }
 end
-]]></ProtectedString></Properties></Item></Item></Item><Item class="ReplicatedStorage" referent="RBX000000CA"><Properties><string name="Name">ReplicatedStorage</string></Properties><Item class="Folder" referent="RBX000000C9"><Properties><string name="Name">CashCar</string></Properties><Item class="ModuleScript" referent="RBX00000006"><Properties><string name="Name">Caisse</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LA CAISSE. Chaque joueur DESSINE les caisses chez lui (la sienne, collée à sa physique ; celles des
+]]></ProtectedString></Properties></Item></Item></Item><Item class="ReplicatedStorage" referent="RBX000000CB"><Properties><string name="Name">ReplicatedStorage</string></Properties><Item class="Folder" referent="RBX000000CA"><Properties><string name="Name">CashCar</string></Properties><Item class="ModuleScript" referent="RBX00000006"><Properties><string name="Name">Caisse</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LA CAISSE. Chaque joueur DESSINE les caisses chez lui (la sienne, collée à sa physique ; celles des
 -- autres, lissées vers la position que le serveur relaie). Le nez regarde −Z (LookVector de Roblox).
 --
 -- Les 68 caisses sont celles du jeu web, AU TRIANGLE PRÈS : Caisses/Formes/Fxx est cuit par outils/cuire-caisses.js
@@ -5899,8 +5920,11 @@ local HEURES: { [string]: any } = {
 		S = V3(288, 284, 274), OH = V3(176, 196, 246), OB = V3(152, 170, 232), mer = Color3.new(1, 1, 1),
 	},
 	-- LE TITRE (BIOMES.titre du web) : le matin poussé vers l'écran titre de Zelda — azur profond, horizon presque blanc, brume très loin
+	-- (3/10, mesuré au banc : à densité 0,03 la brume de Roblox EFFAÇAIT tout le décor du titre — les 18 cumulus, à 2-7 km de la
+	-- caméra, et la mer de nuages, étaient bien dans le cadre mais fondus dans le ciel : l'écran titre n'était qu'un aplat cyan. À
+	-- 0,01 la mer et les cumulus reviennent, comme sur le web)
 	titre = {
-		brume = RGB(226, 238, 250), loin = RGB(70, 140, 235), eclat = 0.1, voile = 0.25, densite = 0.03,
+		brume = RGB(226, 238, 250), loin = RGB(70, 140, 235), eclat = 0.1, voile = 0.25, densite = 0.01,
 		soleil = Color3.new(1, 0.96, 0.88), ext = RGB(235, 232, 246), teinte = RGB(255, 252, 248), sat = 0.34, con = 0.22, expo = -0.04,
 		S = V3(286, 280, 268), OH = V3(176, 194, 242), OB = V3(152, 168, 228), mer = Color3.new(1, 1, 1),
 	},
@@ -19259,9 +19283,11 @@ local Lighting = game:GetService("Lighting")
 local Config = require(script.Parent.Parent:WaitForChild("Config"))
 local Nuages = require(script.Parent:WaitForChild("Nuages"))
 local M = Config.M
+local K = Config.CIEL.titreK or 1 -- (la maquette : voir Config.CIEL.titreK)
 
 local Titre = {}
 Titre.pret = false
+Titre.nuPret = false -- (les cumulus sont bâtis : l'accueil peut s'ouvrir)
 
 -- CHUTE_P (les réglages retenus aux captures)
 local P = { az = 2.35, alt = 900, avant = -1700, pitch = 0.62, roule = 0.12, cap = 0.28, elev = 0.34, gite = -0.45, vit = 14, taille = 0.82 }
@@ -19314,13 +19340,14 @@ function Titre.plan(piste: any)
 	dossier.Name = "Titre"
 	S.dossier = dossier
 	for _, d in NU do
-		local p, dec = Nuages.seul(GABARIT[d[4]] or 0, d[3])
+		local p, dec = Nuages.seul(GABARIT[d[4]] or 0, d[3] * K)
 		if p then
 			local dd = math.sqrt(d[1] * d[1] + d[2] * d[2])
 			p.Parent = dossier
 			table.insert(S.nu, { p = p, dec = dec, a = d[1], b = d[2], y = d[6], v = d[5], lo = -(1.2 * dd + 1.3 * d[3]), hi = 0.1 * dd + 1.3 * d[3] })
 		end
 	end
+	Titre.nuPret = true
 end
 -- L'ORBITE AU DOIGT (L35538 du jeu web ; Sacha, 30/09 : « rajoute un moyen de déplacer la caméra autour de la voiture avec le doigt »)
 -- — glisser tourne le regard autour de la caisse (le tour complet), de haut en bas il monte ou plonge ; la vue rejoint le doigt en
@@ -19412,7 +19439,7 @@ function Titre.caisse(dt: number, voile: ((number) -> ())?): CFrame
 			c.y += P.vit * c.v * vk * dt
 			if c.y > c.hi then c.y = c.lo end
 			table.insert(pieces, c.p)
-			table.insert(poses, CFrame.new((S.C + droite * c.a + lh * c.b + Vector3.new(0, c.y, 0)) * M + c.dec))
+			table.insert(poses, CFrame.new((S.C + (droite * c.a + lh * c.b + Vector3.new(0, c.y, 0)) * K) * M + c.dec))
 		end
 		workspace:BulkMoveTo(pieces, poses, Enum.BulkMoveMode.FireCFrameChanged)
 		for _, p in pieces do Nuages.suivreFin(p) end
@@ -20420,6 +20447,11 @@ Config.CIEL = {
 	merOmbre = Color3.fromRGB(148, 166, 204),   -- le versant à l'ombre des dômes
 	merSommet = Color3.fromRGB(192, 192, 194),  -- les sommets au soleil
 	merTrou = Color3.fromRGB(120, 146, 196),    -- les rares trous
+	-- LA MAQUETTE DU TITRE (3/10, mesuré au banc) : Roblox démarre en qualité graphique basse et n'affiche alors PAS ce qui est loin —
+	-- les cumulus du titre (1 à 7 km) et la mer (620 m dessous) restaient invisibles 15 à 30 s, les plus proches d'abord ; sur un
+	-- téléphone en qualité basse, jamais. Le décor du titre est donc une MAQUETTE : distances et tailles × titreK autour de la caisse
+	-- (les angles, donc l'image, ne changent pas), la mer du menu × titreK aussi.
+	titreK = 0.35,
 	merMenu = 620,                              -- m : au menu la caisse tombe de très haut, la mer est loin dessous
 }
 Config.ROUTE = {
@@ -20461,13 +20493,16 @@ Config.DATASTORE = "CashCarRecords_v1"
 Config.GRAINE_FIXE = nil :: number? -- mettre un nombre pour que tous les serveurs roulent sur la même route
 
 -- LES SONS. Roblox ne joue que des sons importés sur Roblox : importer le dossier ROBLOX/sons-a-importer
--- (Studio → Fenêtre → Asset Manager → Bulk Import), puis coller ici chaque numéro « rbxassetid://… ».
+-- (Studio → Fenêtre → Asset Manager → Bulk Import), puis outils/remplir-sons.luau dans la barre de commande (il remplit
+-- CashCar/SonsIds d'un coup) — ou coller ici chaque numéro « rbxassetid://… » à la main.
 -- Vide = le son de secours livré avec Roblox (quand il existe), sinon silence.
 Config.SONS = {
 	musique = "", moteur = "", nitro = "", ventAltitude = "", crissement = "", -- (crissement : la boucle des pneus qui glissent)
 	driftBrrr = "", rasBord = "", -- (la charge du drift qui monte ; le grondement du rase-bord)
 	-- la musique par LIEU (MUSIC_LIEU du web) : les nuages, la ville (et l'accueil), l'orage ; pas importée = `musique` continue
 	musiqueNuages = "", musiqueVille = "", musiqueOrage = "",
+	-- l'ACCUEIL (MUSIC_LOBBY du web, 3/10) : un des deux morceaux de lobby, tiré au lancement et gardé toute la session
+	musiqueLobby1 = "", musiqueLobby2 = "",
 	piece = "", decollage = "", poseParfait = "", poseChoc = "", poseLourde = "", vrille = "",
 	maillon = "", bigAir = "", encaisse = "", explosion = "", pad = "", nitroPlein = "",
 	tap = "", go = "", bip = "", compteFin = "", record = "", portail = "", fronde = "",
@@ -20487,6 +20522,16 @@ Config.SONS = {
 	turboSuper = "", turboUltra = "", nuageEntre = "", nuageSort = "", nuageDefonce = "", portailProche = "", impactImmeuble = "", departLogo = "",
 	moteurPalier = "", mortVide = "", mortAir = "", mortArret = "", debrisTole = "", garageTole = "", uiModale = "", uiFerme = "", uiRefus = "",
 }
+-- (les numéros remplis d'un coup par outils/remplir-sons.luau vivent dans CashCar/SonsIds : ils complètent les cases vides)
+do
+	local m = script.Parent:FindFirstChild("SonsIds")
+	local ok, ids = pcall(function() return m and require(m :: ModuleScript) end)
+	if ok and type(ids) == "table" then
+		for k, v in ids do
+			if type(v) == "string" and Config.SONS[k] == "" then Config.SONS[k] = v end
+		end
+	end
+end
 Config.SONS_SECOURS = {
 	explosion = "rbxasset://sounds/impact_explosion_03.mp3",
 	decollage = "rbxasset://sounds/action_jump.mp3",
@@ -21743,7 +21788,11 @@ function Piste.suite(p: Piste): CFrame
 end
 
 return Piste
-]]></ProtectedString></Properties></Item></Item></Item><Item class="ServerScriptService" referent="RBX000000CD"><Properties><string name="Name">ServerScriptService</string></Properties><Item class="ModuleScript" referent="RBX000000CB"><Properties><string name="Name">Profils</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LES PROFILS (serveur). Tout ce qu'un joueur garde d'une partie à l'autre : le COMPTE (l'argent
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000000C9"><Properties><string name="Name">SonsIds</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LES NUMÉROS DES SONS IMPORTÉS SUR ROBLOX (nom du son → « rbxassetid://… »).
+-- Rempli par outils/remplir-sons.luau (à coller dans la barre de commande de Studio après l'import des sons) ; Config.SONS les
+-- reprend au démarrage. Vide = aucun son importé : le jeu joue ses sons de secours.
+return {}
+]]></ProtectedString></Properties></Item></Item></Item><Item class="ServerScriptService" referent="RBX000000CE"><Properties><string name="Name">ServerScriptService</string></Properties><Item class="ModuleScript" referent="RBX000000CC"><Properties><string name="Name">Profils</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LES PROFILS (serveur). Tout ce qu'un joueur garde d'une partie à l'autre : le COMPTE (l'argent
 -- versé à chaque fin de partie), le record, les caisses achetées et celle qu'il conduit, les peintures,
 -- les missions, la carrière, les réglages. UNE entrée DataStore par joueur, versionnée (comme SAVE.d du web).
 --
@@ -22004,7 +22053,7 @@ Profils.actions.reglage = function(_, prof, cle, valeur)
 end
 
 return Profils
-]]></ProtectedString></Properties></Item><Item class="Script" referent="RBX000000CC"><Properties><string name="Name">Serveur</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LE SERVEUR. Il fait peu, exprès :
+]]></ProtectedString></Properties></Item><Item class="Script" referent="RBX000000CD"><Properties><string name="Name">Serveur</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LE SERVEUR. Il fait peu, exprès :
 --   1. il tire la GRAINE de la piste (tout le serveur roule sur la même route : chaque joueur la bâtit
 --      chez lui à partir de ce nombre — zéro pièce de route à envoyer sur le réseau) ;
 --   2. il pose le CIEL (lumière, atmosphère) ;
@@ -22223,4 +22272,4 @@ evFin.OnServerEvent:Connect(function(p, montant, distance, aura, stats)
 	Profils.pousser(p)
 	task.spawn(Profils.sauver, p)
 end)
-]]></ProtectedString></Properties></Item></Item><Item class="StarterGui" referent="RBX000000CE"><Properties><string name="Name">StarterGui</string></Properties></Item><Item class="SoundService" referent="RBX000000CF"><Properties><string name="Name">SoundService</string></Properties></Item></roblox>
+]]></ProtectedString></Properties></Item></Item><Item class="StarterGui" referent="RBX000000CF"><Properties><string name="Name">StarterGui</string></Properties></Item><Item class="SoundService" referent="RBX000000D0"><Properties><string name="Name">SoundService</string></Properties></Item></roblox>

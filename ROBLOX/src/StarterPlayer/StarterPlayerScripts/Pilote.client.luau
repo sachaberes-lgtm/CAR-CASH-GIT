@@ -2588,20 +2588,29 @@ local function habiller(dt: number)
 	-- (L36604 : `nuages.ambiance` est l'air d'un LIEU — la mer de nuages. En ville et en orbite il ne reste que le souffle de la vitesse)
 	local air = (piste and (piste :: any).niveau ~= "nuages" and mode ~= "menu") and 0.4 or 1
 	Sons.regler("ventAltitude", atelier and 0 or ((mode == "fall") and math.min(0.7, 0.25 + fallVel.Magnitude * 0.004) or 0.08 + r * 0.1) * air)
-	-- LA MUSIQUE SUIT LE LIEU (MUSIC_LIEU, L25333) : NOITE DE VELOCIDADE aux nuages, NOCTURNAL GROOVE en ville et à l'accueil (garage,
-	-- écran de fin), SWAG CASH CAR dans l'orage, la radio en orbite. Un morceau de lieu qui n'est pas importé laisse l'antenne à
+	-- LA MUSIQUE SUIT LE LIEU (MUSIC_LIEU, L25333) : CIEL · LES 5 NIVEAUX aux nuages (3/10, avant NOITE DE VELOCIDADE), NOCTURNAL
+	-- GROOVE en ville, un morceau de LOBBY à l'accueil (garage, écran de fin), SWAG CASH CAR dans l'orage, la radio en orbite. Un morceau de lieu qui n'est pas importé laisse l'antenne à
 	-- `musique`. On passe de l'un à l'autre en fondu (1,2 s) ; chacun garde son fil, on ne le relance pas à chaque portail.
 	do
 		local veut = "musique"
 		if mode == "menu" or mode == "garage" or mode == "mort" or mode == "charge" then
-			veut = "musiqueVille"
+			-- (MUSIC_LOBBY, 3/10) l'accueil, le garage et l'écran de fin jouent UN morceau de lobby, tiré au lancement parmi ceux qui
+			-- sont importés, gardé toute la session ; aucun importé = NOCTURNAL GROOVE, comme avant
+			if G.lobby == nil then
+				local l = {}
+				for _, n in { "musiqueLobby1", "musiqueLobby2" } do
+					if Sons.a(n) then table.insert(l, n) end
+				end
+				G.lobby = (#l > 0) and l[math.random(1, #l)] or false
+			end
+			veut = G.lobby or "musiqueVille"
 		elseif piste then
 			local lieu, var = (piste :: any).niveau, (piste :: any).variante
 			veut = (var == "orage") and "musiqueOrage" or ((lieu == "ville") and "musiqueVille" or ((lieu == "nuages") and "musiqueNuages" or "musique"))
 		end
 		if not Sons.a(veut) then veut = "musique" end
 		G.musVeut = veut
-		G.mus = G.mus or { musique = 0, musiqueNuages = 0, musiqueVille = 0, musiqueOrage = 0 }
+		G.mus = G.mus or { musique = 0, musiqueNuages = 0, musiqueVille = 0, musiqueOrage = 0, musiqueLobby1 = 0, musiqueLobby2 = 0 }
 		do
 			local cible = (G.frenMus and (mode == "drive" or mode == "fall")) and 1.06 or 1
 			local v = G.musVit or 1
@@ -3559,7 +3568,7 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 			cam.FieldOfView = workspace:GetAttribute("DbgFov") or 90
 		end
 		Mer.montrer(mode == "menu" or mode == "garage" or (piste :: any).niveau == "nuages")
-		Mer.suivre(cam.CFrame.Position, carCF.Position.Y, dt, (mode == "menu" or mode == "garage") and Config.CIEL.merMenu * M or nil)
+		Mer.suivre(cam.CFrame.Position, carCF.Position.Y, dt, (mode == "menu" or mode == "garage") and Config.CIEL.merMenu * (Config.CIEL.titreK or 1) * M or nil)
 		KA.Espace.tick(dt, (piste :: any).niveau == "espace" and mode ~= "menu" and mode ~= "garage", cam.CFrame, carCF)
 		do
 			local var, enJeu = (piste :: any).variante, mode ~= "menu" and mode ~= "garage" and mode ~= "charge"
@@ -3652,16 +3661,28 @@ while not Mer.pret and os.clock() - t0 < 15 do
 	E.chargeTxt.Text = T.chargement .. string.rep(".", math.floor((os.clock() - t0) * 3) % 4)
 	task.wait(0.1)
 end
-preparer(2, Piste.suite(z1.piste :: Piste.Piste))
-if profil.reglages and profil.reglages.tuto == false then preparer(0, nil) end
--- le plan du titre (la place de la caisse dans le ciel) tout de suite, ses cumulus dès que les gabarits sont prêts
+-- le plan du titre (la place de la caisse dans le ciel) tout de suite, ses cumulus dès que les gabarits sont prêts — AVANT la zone 2
+-- (3/10 : ils passaient après elle à l'atelier des maillages, et l'accueil s'ouvrait 10 à 20 s avant eux sur un ciel vide)
 task.spawn(function()
 	local okT, errT = pcall(KA.Titre.plan, z1.piste)
 	if not okT then warn("[CashCar] titre : " .. tostring(errT)) end
+	KA.Titre.nuPret = true
 	if mode == "menu" then KA.Titre.montrer(true) end
 end)
+task.wait()
+preparer(2, Piste.suite(z1.piste :: Piste.Piste))
+if profil.reglages and profil.reglages.tuto == false then preparer(0, nil) end
 -- L'INTRO DU STUDIO : CASH CAR bat, explose, 1.61 GAMES — puis l'accueil (pas au banc : il attend « menu prêt » au plus vite)
 if not workspace:GetAttribute("DbgSansIntro") then pcall(Hud.introStudio) end
+-- l'accueil n'ouvre pas sur un ciel vide : on attend les cumulus du titre (8 s au plus, le chargement reparle)
+do
+	local t1 = os.clock()
+	if not KA.Titre.nuPret then E.chargeTxt.Visible = true end
+	while not KA.Titre.nuPret and os.clock() - t1 < 8 do
+		E.chargeTxt.Text = T.chargement .. string.rep(".", math.floor((os.clock() - t1) * 3) % 4)
+		task.wait(0.1)
+	end
+end
 allerMenu()
 game:GetService("Players").LocalPlayer:SetAttribute("MenuPret", true) -- (le banc attend ce signal : l'accueil est là, l'intro jouée)
 end

@@ -7,17 +7,33 @@
 - Les règles « SANS TOUT CASSER » (partir de `origin/main` à jour, fusionner sans jamais forcer, jeu testé sans erreur avant chaque
   push, retour arrière par Vercel) et la liste de ce que contient la référence : voir `CLAUDE.md` à la RACINE du dépôt.
 
-## LA MUSIQUE À SA VITESSE + PLUS DE RECHARGEMENTS POUR RIEN (2026-10-03, soir, Léo : « le jeu coupe bizarrement la musique » · « il y a de la distorsion qui nique tout »)
-- **LA DISTORSION** = `MUS_TEMPO` (« le tempo suit la vitesse », ajouté le même après-midi : `playbackRate` de −6 % à +6 % en gardant la
-  hauteur, un cran toutes les 0,35 s). MESURÉ (banc `tempo/` du scratchpad 83e03bdc : l'`<audio>` de Chromium enregistré par
+## PLUS DE COUPURES DE MUSIQUE + LE TEMPO MESURÉ (2026-10-03, soir, Léo : « le jeu coupe bizarrement la musique » · « il y a de la distorsion qui nique tout »)
+- **LES COUPURES** = la mise à jour toute seule RECHARGEAIT le jeu à chaque push, même ROBLOX seul (voir LA MÊME VERSION POUR TOUT LE
+  MONDE) : le numéro de version est désormais l'EMPREINTE du jeu publié, plus le commit. sw.js → v84.
+- **LA DISTORSION — le tempo qui suivait la voiture** (`MUS_TEMPO`, `playbackRate` ±6 % en gardant la hauteur) : retiré sur main par
+  l'autre session (0bebfa4) ; MESURÉ ici (banc `tempo/` du scratchpad 83e03bdc : l'`<audio>` de Chromium enregistré par
   `createMediaElementSource`, trois sons purs inharmoniques 440 / 1013 / 2711 Hz) : vitesse 1 → bruit ajouté −86 dB ; 0,97 ou 1,02 →
-  −29 dB en moyenne, pointes −17 dB ; les crans du réglage → −26 dB, pointes −14 dB, et un CLIC (×54) au passage par la vitesse 1.
-  Les fichiers sont PROPRES (lobby : crêtes −1,9 à −4,9 dBFS, aucun échantillon écrêté). ⇒ `MUS_TEMPO.on=false` : la bande joue à SA
-  vitesse. ⚠ NE PAS RALLUMER sans une autre méthode : hauteur gardée = étirement = distorsion ; hauteur libre = musique désaccordée.
-  (Safari n'est pas au banc : son étirement est un autre algorithme, à juger à l'oreille si quelqu'un veut retenter — `dbgTempo(1)`.)
-  Restent voulus et propres : le tape-stop de la mort et la radio « surmultipliée » de la frénésie (hauteur libre, pas d'étirement).
-- **LES COUPURES** = la mise à jour toute seule rechargeait le jeu à chaque push (voir LA MÊME VERSION POUR TOUT LE MONDE) : le numéro
-  de version est désormais l'empreinte du jeu, plus le commit. sw.js → v58.
+  −29 dB en moyenne, pointes −17 dB ; des crans toutes les 0,35 s → −26 dB, pointes −14 dB, et un CLIC (×54) au passage par la vitesse 1.
+  ⚠ NE PAS LE REMETTRE : hauteur gardée = étirement par morceaux = distorsion ; hauteur libre = musique désaccordée. Les fichiers du
+  lobby sont PROPRES (crêtes −1,9 à −4,9 dBFS, aucun échantillon écrêté).
+
+## DEBOUT, LE DRAGON N'EST PLUS « TRANSPARENT » — LA COMÈTE NE VOILE PLUS L'ÉCRAN (2026-10-03) — Sacha : « la version mobile en vertical gère mal le dragon nitro, il y a de la transparence »
+- **CE QUI SE PASSAIT** (mesuré, banc d'images FIGÉES où l'on retire une partie à la fois — crâne, corps, traits, feu, yeux, enveloppe,
+  cœur, halos, langues) : ni le crâne ni le corps. Les cinq LANGUES de la comète (`NTR_LANGUES`, jusqu'à 2,4 × la longueur de la caisse,
+  ~11 m) et l'ENVELOPPE (~2,2 ×) partent du nez vers l'ARRIÈRE et passent SOUS la caméra (5,6 m de la caisse). Couché, le champ est large :
+  elles filent sur les côtés. Debout, le champ horizontal est étroit : elles tombaient en colonnes rouges translucides sur toute la
+  moitié basse de l'écran, la caisse comprise — on voyait la voiture et la route À TRAVERS le feu. Les opacités du dragon, elles, sont
+  les mêmes couché et debout (`dbgDragon().opa`).
+- **LE CORRECTIF** : le programme de la flamme vivante (`JET_VS/JET_FS`, celui des pots et de la comète) a un fondu près de l'objectif,
+  `uPres` (x → y m de PROFONDEUR de vue, part z) — (0,1,0) partout par défaut : les pots ne changent pas. `nitroooTick` le pose à chaque
+  image pour l'enveloppe et le cœur de la comète : rien à `NTR_PRES.de` (,42) × la profondeur de la caisse, entier à `NTR_PRES.a` (,86) ×,
+  part = `POR` — le PAYSAGE NE BOUGE PAS (part 0). La tête, les cornes, les flammes autour de la caisse restent ; la caisse se voit nette.
+  Même programme qu'avant (source changée, compilé au chargement) : 0 compilation en course.
+- A/B : `dbgDragon('pres', 0)` = la comète d'avant, `dbgDragon('pres', 1)` = le correctif ; `dbgDragon('pres')` rend l'état (`part`).
+- Vérifié : téléphone debout (390×844) et couché (844×390), menu → JOUER → course → NITROOO tenue → vols → mort, 0 erreur ; cadre de
+  l'ordi couché et `?colonne=portrait` (part 1 debout, 0 couché). Bancs (scratchpad de la session e3354704) : `drg-portrait.mjs`, `isole2.mjs` (parties une à une, image figée
+  par un crochet `__fige` posé dans une COPIE de banc, jamais dans le jeu), `cadre2.mjs` (vrai clic souris sur JOUER dans le cadre).
+- sw.js → v58.
 
 ## SIX COMMUNES RETIRÉES (2026-10-02) — Sacha, capture du garage : « supprimer ces 6 voitures du jeu, elles sont pas intéressantes »
 - LA PIZZA EXPRESS, LE MONOSPACE, LE BREAK SUÉDOIS, LA BOULE, LE GLACIER, LE TOUT-TERRAIN SOVIÉTIQUE : `retire:1` dans leur fiche

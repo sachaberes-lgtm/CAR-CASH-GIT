@@ -133,9 +133,10 @@ wav('rasBord', s => {
   }
 });
 
-// LA MUSIQUE PAR LIEU (MUSIC_LIEU du jeu web) : nuages = NOITE DE VELOCIDADE, ville (et l'accueil) = NOCTURNAL GROOVE, orage = SWAG
-// CASH CAR ; l'orbite garde la radio (`musique` : NÉON CASH CAR). Un morceau pas importé = `musique` continue.
-for (const [nom, f] of Object.entries({ musiqueNuages: 'noite-de-velocidade.mp3', musiqueVille: 'nocturnal-groove.mp3', musiqueOrage: 'swag-cash-car-2.m4a' })) {
+// LA MUSIQUE PAR LIEU (MUSIC_LIEU du jeu web) : nuages = CIEL · LES 5 NIVEAUX (3/10), ville = NOCTURNAL GROOVE, orage = SWAG CASH
+// CAR, l'accueil = un des deux morceaux de LOBBY ; l'orbite garde la radio (`musique` : NÉON CASH CAR). Pas importé = `musique`.
+for (const [nom, f] of Object.entries({ musiqueNuages: 'ciel/ciel-complet.m4a', musiqueVille: 'nocturnal-groove.mp3', musiqueOrage: 'swag-cash-car-2.m4a',
+  musiqueLobby1: 'lobby/vapeur-salon.m4a', musiqueLobby2: 'lobby/lobby-ascenseur.m4a' })) {
   const src = path.join(JEU, 'assets', 'audio', 'music', f), dst = path.join(OUT, nom + '.mp3');
   if (!fs.existsSync(src)) { console.log('absent :', f); continue; }
   if (f.endsWith('.mp3')) fs.copyFileSync(src, dst);

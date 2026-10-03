@@ -5826,6 +5826,7 @@ html body #garage:not(.menu) .gTab{font-size:var(--f1)} /* les onglets étaient 
 <!-- (2026-09-28) LA CONSOLE DE SON : la banque de sons (générée par atelier-son/cuire.js) et son lecteur. `defer` : ils ne retardent
      pas le démarrage (on n'en a besoin qu'au premier geste) ; changer `?v=` à chaque nouvelle banque (le service worker garde l'ancienne sinon). -->
 <script defer src="sons-banque.js?v=11"></script>
+<script defer src="assets/audio/music/harmonie.js?v=2"></script> <!-- (2026-10-03) l'harmonie des morceaux, temps par temps : la phrase du boost la lit (atelier-son/harmonie.py) -->
 <script defer src="sfx.js?v=4"></script>
 <script>
 (function(){
@@ -14886,11 +14887,11 @@ const jetGeo=(function(){ // (2026-09-28) un PROFIL de flamme tourné (étroit �
    l'angle (plus de cornet à arête dure). UN seul programme pour l'enveloppe et le cœur (mêmes sources, uniforms à part), sans
    brouillard ni lumières : il est compilé au chargement avec le reste (`renderer.compile` parcourt aussi le caché) et ne dépend
    d'aucun nombre de lumières. `color` reste une vraie THREE.Color (la boucle, l'arc-en-ciel et dbgNitro la lisent/écrivent). */
-const JET_VS='uniform float uT;varying vec2 vUv;varying float vE;void main(){vUv=uv;vec3 p=position;float w=uv.y*uv.y;'
+const JET_VS='uniform float uT;varying vec2 vUv;varying float vE;varying float vZ;void main(){vUv=uv;vec3 p=position;float w=uv.y*uv.y;'
   +'p.x+=sin(uT*23.+uv.y*9.)*.2*w;p.y+=cos(uT*19.+uv.y*7.)*.2*w;'                // la pointe LÈCHE l'air : elle erre, la racine reste dans le pot
-  +'vec4 mv=modelViewMatrix*vec4(p,1.);vE=abs(dot(normalize(normalMatrix*normal),normalize(-mv.xyz)));gl_Position=projectionMatrix*mv;}';
-const JET_FS='uniform vec3 uCol;uniform vec3 uHot;uniform vec3 uRac;uniform float uT;uniform float uA;uniform float uRonge;uniform float uLong;'
-  +'varying vec2 vUv;varying float vE;'
+  +'vec4 mv=modelViewMatrix*vec4(p,1.);vE=abs(dot(normalize(normalMatrix*normal),normalize(-mv.xyz)));vZ=-mv.z;gl_Position=projectionMatrix*mv;}';
+const JET_FS='uniform vec3 uCol;uniform vec3 uHot;uniform vec3 uRac;uniform float uT;uniform float uA;uniform float uRonge;uniform float uLong;uniform vec3 uPres;'
+  +'varying vec2 vUv;varying float vE;varying float vZ;'
   +'float hh(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}'
   +'float nn(vec2 p,float P){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);'           // bruit de valeur PÉRIODIQUE autour du cône (pas de couture)
   +'return mix(mix(hh(vec2(mod(i.x,P),i.y)),hh(vec2(mod(i.x+1.,P),i.y)),f.x),mix(hh(vec2(mod(i.x,P),i.y+1.)),hh(vec2(mod(i.x+1.,P),i.y+1.)),f.x),f.y);}'
@@ -14902,9 +14903,9 @@ const JET_FS='uniform vec3 uCol;uniform vec3 uHot;uniform vec3 uRac;uniform floa
   +'c=mix(c,uCol,smoothstep(.12,.5,v));'                                          // → la couleur de la poussée
   +'c=mix(c,uCol*vec3(.95,.42,.3),smoothstep(.55,1.,v));'                         // → qui rougit vers la pointe
   +'c+=uHot*.35*smoothstep(.55,.95,n)*(1.-v);'                                    // les crêtes du bruit s'embrasent
-  +'gl_FragColor=vec4(c,d*smoothstep(.02,.5,vE)*uA);}';
+  +'gl_FragColor=vec4(c,d*smoothstep(.02,.5,vE)*uA*mix(1.,smoothstep(uPres.x,uPres.y,vZ),uPres.z));}'; // uPres : près de l'objectif la flamme s'efface (x → y m de profondeur, part z) — 0 pour les pots, la comète de NITROOO s'en sert debout
 function jetMat(col,hot,rac,a,ronge,lng){
-  const u={uCol:{value:new THREE.Color(col)},uHot:{value:new THREE.Color(hot)},uRac:{value:new THREE.Color(rac)},uT:JET_T,uA:{value:a},uRonge:{value:ronge},uLong:{value:lng}};
+  const u={uCol:{value:new THREE.Color(col)},uHot:{value:new THREE.Color(hot)},uRac:{value:new THREE.Color(rac)},uT:JET_T,uA:{value:a},uRonge:{value:ronge},uLong:{value:lng},uPres:{value:new THREE.Vector3(0,1,0)}};
   const m=new THREE.ShaderMaterial({uniforms:u,vertexShader:JET_VS,fragmentShader:JET_FS,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false});
   m.color=u.uCol.value;return m;}
 const JET_T={value:0}; // l'horloge des flammes (partagée par l'enveloppe et le cœur), avancée par la boucle
@@ -25496,7 +25497,17 @@ const MUSIC_LIEU={
   orage: {titre:'SWAG CASH CAR',      f:'assets/audio/music/swag-cash-car-2.m4a'}      // 2 min 37 — (2026-09-29, Léo : « la musique actuelle du lobby est censée être dans le ciel électrique ») L'ORAGE, le niveau des éclairs, qui n'avait pas de morceau à lui
 };
 let musicLieu=null; // le morceau de LIEU qui tient l'antenne (null = la radio)
-function musicLieuVoulu(){return (LVL.cur&&MUSIC_LIEU[LVL.cur.id])||null;}
+// (2026-10-03, Léo : « je n'entends pas les musiques qu'on vient de faire — applique-les sur les 5 premiers niveaux CLOUD, cloud = ciel ») :
+// LA MUSIQUE DU CIEL (la nappe vapeur qui s'étoffe en 5 niveaux, atelier-son/ciel.py du dépôt de Léo). En CARRIÈRE, les niveaux 1 à 5
+// des NUAGES jouent chacun SON niveau du ciel (1 nappe seule · 2 Rhodes · 3 beat et basse · 4 mélodie · 5 le final, un ton plus haut) ;
+// les niveaux 6 à 10 gardent NOITE DE VELOCIDADE. En partie SANS FIN, la zone NUAGES joue le morceau entier (les 5 niveaux à la suite).
+// Chaque fichier = sa boucle de 8 mesures répétée sans couture sur ~110 s. Les objets sont FIXES (musicSuitLieu compare par identité).
+const MUSIC_CIEL=[1,2,3,4,5].map(function(k){return{titre:'CIEL · NIVEAU '+k,f:'assets/audio/music/ciel/ciel-n'+k+'.m4a'};});
+const MUSIC_CIEL_TOUT={titre:'CIEL · LES 5 NIVEAUX',f:'assets/audio/music/ciel/ciel-complet.m4a'};
+function musicLieuVoulu(){
+  const c=LVL.cur;if(!c)return null;
+  if(c.id==='nuages'){if(c.carr){if(c.carr.i<5)return MUSIC_CIEL[c.carr.i];}else if(!c.piste)return MUSIC_CIEL_TOUT;}
+  return MUSIC_LIEU[c.id]||null;}
 /* appelé à chaque changement de niveau (fin de `newTrack`) : change de morceau SEULEMENT si le lieu
    en réclame un autre que celui qui joue. */
 function musicSuitLieu(){
@@ -25522,9 +25533,9 @@ function musicPickNext(excludeIdx){
 // (house filtrée) et MÉTRO (2-step) gardent leur style, en 8 mesures comme VAPEUR · SALON, dans l'ambiance du lobby (bande, réverbe, aigus doux).
 // (2026-10-03, Léo : « le lobby garde ce que j'ai déjà sélectionné ») : son tri dans la bibliothèque — VAPEUR · SALON, ASCENSEUR DORÉ,
 // VIEILLE FORTUNE (rock cyberpunk, façon jeu vidéo), TEMPLE DE JADE (DJ tech au temple). MÉTRO et FILTRE D'OR abandonnés.
-// (2026-10-03, Léo : « enlève la musique temple jade ») : TEMPLE DE JADE retiré (le tirage se fait entre les TROIS restants).
-const MUSIC_LOBBY=['assets/audio/music/lobby/vapeur-salon.m4a','assets/audio/music/lobby/lobby-ascenseur.m4a',
-  'assets/audio/music/lobby/vieille-fortune.m4a'];
+// (2026-10-03, Léo : « enlève TEMPLE DE JADE ») : le tirage se fait entre les trois.
+// (2026-10-03, Léo : « enlève VIEILLE FORTUNE aussi ») : le tirage se fait entre les deux.
+const MUSIC_LOBBY=['assets/audio/music/lobby/vapeur-salon.m4a','assets/audio/music/lobby/lobby-ascenseur.m4a'];
 const MUSIC={menu:MUSIC_LOBBY[Math.floor(Math.random()*MUSIC_LOBBY.length)]}; // avant : 'assets/audio/music/nocturnal-groove.mp3' · (2026-09-29, Léo : « la musique du lobby c'est NOCTURNAL GROOVE ») LA MUSIQUE DE L'ACCUEIL — accueil, garage, écran de fin ; jouée à .8 (un extrait de niveau jouait à .5). SWAG CASH CAR, qui tenait l'accueil quelques heures, est parti à L'ORAGE. Vide = le morceau du 1er niveau (musicPremier)
 // musicBaseVol .85→1 (2026-09-24, « la musique pas assez forte comparé au moteur ») : on relève le
 // NIVEAU ACCORDÉ et pas la valeur par défaut du curseur — celle-ci est sauvegardée chez le joueur
@@ -25543,7 +25554,9 @@ let musicMode='none',musicBaseVol=1,musicBoostEnv=0;
    chaque famille retrouve exactement le mixage d'origine, et un curseur à fond ne peut donc pas
    faire hurler le jeu. */
 const VOL={mus:.62,sfx:1,vox:1};
-const ANN_MUS_DUCK=.34; // la voix parle → la bande-son tombe à 34 % (elle ne se coupe pas : elle recule)
+const ANN_MUS_DUCK=.88; // la voix parle → la bande-son recule à peine (2026-10-03, Léo : « les MONSTRE ne doivent pas cacher la musique » — c'était .34, −9 dB, la musique semblait s'arrêter à chaque pose)
+const SFX_SOUS_MUS=.7; // (2026-10-03, Léo : « les MONSTRE ne doivent pas cacher la musique — ça vaut pour TOUS les effets sonores ») : tous les effets −3 dB sous la musique (curseur EFFETS inchangé, appliqué par-dessus)
+function sfxVol(){return VOL.sfx*SFX_SOUS_MUS;}
 function musVol(){return musicBaseVol*VOL.mus;} // le niveau accordé × le curseur, en un seul endroit
 const MUSIC_FILT_REST=1500; // Hz : caisse à l'ARRÊT = son sourd/étouffé (réglable) — le mouvement rouvre le filtre jusqu'à MUSIC_FILT_OPEN
 const MUSIC_FILT_OPEN=20000; // …et s'ouvre en grand quand on booste (approche A : filtre sur boucle simple)
@@ -25621,8 +25634,52 @@ function musicAnalyse(){
     musicAnaEl=AC.createMediaStreamSource(st);
     if(!musicAna){musicAna=AC.createAnalyser();musicAna.fftSize=256;musicAna.smoothingTimeConstant=.55;musicData=new Uint8Array(musicAna.frequencyBinCount);}
     musicAnaEl.connect(musicAna); // l'analyseur n'a pas de sortie : rien de ce qui passe ici ne s'entend
+    distPrete();if(DIST.in)musicAnaEl.connect(DIST.in); // (2026-10-03) …et la DISTORSION DU BOOST (sa sortie à elle s'entend, voir plus haut)
   }catch(e){}
 }
+/* LA DISTORSION DU BOOST (2026-10-03, Léo : « au lieu de modifier la vitesse — ça fait bizarre, ça coupe — fabrique un effet de
+   distorsion design, agréable, qui donne envie de booster non-stop ; léger quand tu es à la vitesse du boost, ça doit bien se ressentir »).
+   ⚠ La musique NE PASSE TOUJOURS PAS par Web Audio (voir « LA MUSIQUE v4 » : c'est ce qui la rendait muette sur iPhone). On part de
+   la COPIE du son que l'analyse du rythme tire déjà (`captureStream`, `musicAnaEl`) : elle traverse une saturation à lampe et s'ajoute
+   PAR-DESSUS la musique, qui continue de jouer telle quelle. Rien ne peut donc couper la musique : au pire, l'effet ne s'entend pas.
+   (Là où `captureStream` n'existe pas — iPhone, Safari — il n'y a pas d'effet, et rien ne change.)
+   LE SON : passe-haut 140 Hz → attaque (le « drive ») → saturation douce et asymétrique (des harmoniques paires, chaudes, comme une
+   lampe ou une bande qu'on pousse) → passe-bas 6 kHz → un peu de présence à 2,5 kHz. En boost, la musique d'origine recule de −2 dB
+   pendant que sa copie saturée monte : on a l'impression que LE MORCEAU LUI-MÊME CHAUFFE. Un petit éclat à l'allumage de la nitro.
+   LE DOSAGE : nitro = plein · plaque turbo = 60 % · simple vitesse de boost (flowVitN ≥ 1,15 → 1,35) = jusqu'à 35 %, « léger ».
+   Montée 80 ms, retombée 0,5 s. Console : `dbgDisto()` (état) · `dbgDisto(0|1)` coupe / rallume. */
+const DIST={on:false,in:null,wet:null,env:0,nitroAv:false}; // (2026-10-03, Léo : « il reste une partie du son très dérangeante, forte, floue, qui monte — n'efface pas les bonnes rythmiques ») : la DISTORSION du boost est COUPÉE (la copie saturée qui gonflait à l'appui) ; la phrase du boost reste. `dbgDisto(1)` la rallume pour comparer.
+function distPrete(){
+  if(DIST.in||!AC)return;
+  try{
+    const hp=AC.createBiquadFilter();hp.type='highpass';hp.frequency.value=140;
+    const drive=AC.createGain();drive.gain.value=3.2;
+    const sat=AC.createWaveShaper();const n=2048,c=new Float32Array(n);
+    for(let i=0;i<n;i++){const x=i/(n-1)*2-1;c[i]=Math.tanh(1.6*x+.25*x*x)/Math.tanh(1.85);} // asymétrique : des harmoniques paires (le grain chaud)
+    sat.curve=c;sat.oversample='4x';
+    const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=6000;lp.Q.value=.6;
+    const pr=AC.createBiquadFilter();pr.type='peaking';pr.frequency.value=2500;pr.Q.value=.9;pr.gain.value=3;
+    const wet=AC.createGain();wet.gain.value=0;
+    hp.connect(drive);drive.connect(sat);sat.connect(lp);lp.connect(pr);pr.connect(wet);wet.connect(AC.destination);
+    DIST.in=hp;DIST.wet=wet;
+  }catch(e){DIST.in=null;}
+}
+function distTick(dt){
+  if(!DIST.in||!AC)return;
+  let c=0;
+  if(startBoostT>0)DIST.dep=1.2; // (2026-10-03, Léo : « le boost automatique du début joue encore de la musique ») : le départ n'est pas un boost du joueur — rien pendant, ni 1,2 s après (le temps que l'élan retombe)
+  else if(DIST.dep>0)DIST.dep-=dt;
+  if(DIST.on&&!(DIST.dep>0)&&musicMode==='run'&&running&&!gameOver&&!paused&&musicEl&&!musicEl.paused){
+    const v9=flowVitN();c=Math.max(nitroOn?1:0,Math.min(1,boost)*.6,Math.max(0,Math.min(1,(v9-1.15)/.2))*.35);
+  }
+  if(nitroOn&&!DIST.nitroAv&&c>0)DIST.env=Math.max(DIST.env,1.25);   // l'éclat de l'allumage
+  DIST.nitroAv=nitroOn;
+  DIST.env+=(c-DIST.env)*Math.min(1,dt/(c>DIST.env?.08:.5));
+  const cible=Math.max(0,DIST.env)*.85*musVol();
+  if(Math.abs((DIST._g||0)-cible)>.002){DIST._g=cible;try{DIST.wet.gain.setTargetAtTime(cible,AC.currentTime,.03);}catch(e){}}
+}
+window.dbgDisto=function(a){if(a===0||a===1)DIST.on=!!a;return{on:DIST.on,branchee:!!DIST.in,copieDuSon:!!musicAnaEl,niveau:+DIST.env.toFixed(2),
+  vitesse:+flowVitN().toFixed(2),nitro:!!nitroOn,boost:+Math.min(1,boost).toFixed(2)};};
 function musicGraph(){} // (v4 : plus de graphe Web Audio pour la bande-son — gardée vide pour les anciens appelants)
 function playMusic(url,opt){opt=opt||{};
   const el=musicElGet();
@@ -25884,17 +25941,6 @@ function lvlTick(dt,S){
   skyU.uAcc.value.copy(LVLFX.acc);skyU.uAcc2.value.copy(LVLFX.acc2);
 }
 /* <<<FIN FOND>>> ========================================================== */
-/* ⚠ COUPÉ (2026-10-03, le soir même, Léo : « il y a de la distorsion qui nique tout »). MESURÉ au banc (Chromium, l'<audio> du jeu
-   enregistré) : à vitesse 1 la lecture est propre (bruit ajouté −86 dB) ; DÈS QUE playbackRate ≠ 1 avec la hauteur gardée, le navigateur
-   étire le temps par morceaux recollés et SALIT le son — −29 dB de bruit en moyenne à 0,97 ou 1,02, des pointes à −17 dB ; avec les
-   crans toutes les 0,35 s du réglage, −26 dB et des pointes à −14 dB, plus un CLIC à chaque passage par la vitesse 1 (×54 la variation
-   normale du signal). Les fichiers, eux, sont propres (crêtes ≤ −1,9 dBFS, rien d'écrêté). Il n'existe pas d'étirement « gratuit » :
-   hauteur gardée = étirement = distorsion ; hauteur libre = la musique se désaccorde. Donc la bande joue à SA vitesse. `dbgTempo(1)`
-   rallume pour réessayer, rien d'autre n'est retiré. */
-const MUS_TEMPO={on:false,r:1,t:0};
-window.dbgTempo=function(a){if(a===0||a===1){MUS_TEMPO.on=!!a;if(!a)try{musicEl.playbackRate=1;MUS_TEMPO.r=1;}catch(e){}}
-  return{on:MUS_TEMPO.on,tempo:+MUS_TEMPO.r.toFixed(3),lecture:musicEl?musicEl.playbackRate:null,hauteurGardee:musicEl?musicEl.preservesPitch:null,
-    vitesse:+flowVitN().toFixed(2),mode:musicMode,frenesie:FRENM.on};};
 function musicTick(dt,mvt){
   try{sonTonSuit();}catch(e){} // (console de son) les sons accordés suivent la tonalité du morceau qui joue
   let target=0,beat=0,hiT=0;
@@ -25934,28 +25980,11 @@ function musicTick(dt,mvt){
      boucle réécrirait le gain à chaque image et le fondu ne descendrait jamais. */
   const mDuck=(typeof ANN!=='undefined'&&ANN&&ANN.duck)?ANN_MUS_DUCK:1;
   // v4 : le VOLUME de l'élément fait tout (iOS l'ignore — le son y joue à plein, c'est le bouton du téléphone qui règle)
-  if(musicMode==='run')musicVolCible=musVol()*(.62+.38*musicBoostEnv)*mDuck;   // à l'arrêt un peu plus bas, lancé à plein
+  try{distTick(dt);}catch(e){}
+  if(musicMode==='run')musicVolCible=musVol()*(.62+.38*musicBoostEnv)*mDuck*(1-.3*Math.min(1,DIST.env));   // à l'arrêt un peu plus bas, lancé à plein
   else if(musicMode==='menu')musicVolCible=musVol()*.5*mDuck;                   // le menu : en fond
   if(musicMode!=='none'){musicVolCour+=(musicVolCible-musicVolCour)*Math.min(1,dt*6);
     if(musicEl&&!musicEl.paused&&!VOL_LOCKED){try{const v9=Math.max(0,Math.min(1,musicVolCour));if(Math.abs(musicEl.volume-v9)>.002)musicEl.volume=v9;}catch(e){}}}
-  // ---- LE TEMPO SUIT LA VITESSE (2026-10-03, Léo : « harmonise la vitesse de la voiture avec le tempo, le rythme, la profondeur — agréable,
-  // selon les sciences du plaisir auditif ; la vitesse a un impact sur la vitesse de la musique sans déformer l'expérience ; ne casse rien »).
-  // On étire le TEMPS du morceau (playbackRate) en GARDANT SA HAUTEUR (preservesPitch) — le navigateur fait l'étirement, rien d'autre ne
-  // change, zéro risque sur iPhone (pas de graphe Web Audio). LA RÈGLE DU CONFORT : (1) petit — ±6 % au plus : le seuil où l'on PERÇOIT
-  // un tempo différent est de ~4-5 %, on sent l'énergie sans entendre de déformation ; (2) la hauteur ne bouge JAMAIS (une musique qui se
-  // désaccorde sonne fausse) ; (3) lent — l'entraînement : le tempo rejoint la voiture en ~2,5 s quand on accélère, ~4 s quand on ralentit,
-  // par crans de 0,5 % au plus toutes les 0,35 s (le groove ne vacille pas) ; (4) jamais pendant la FRÉNÉSIE ni le tape-stop, qui ont la bande.
-  // Croisière (flowVitN ≈ 1) = le tempo d'origine · départ / lent = −6 % · vitesse de pointe = +4 % · nitro = +2 % de plus.
-  // La PROFONDEUR suit déjà la vitesse : à l'arrêt la musique recule (volume ×0,62), lancée elle est « dans les oreilles » (voir plus haut).
-  // Console : `dbgTempo()` (état), `dbgTempo(0)` coupe (retour au tempo d'origine), `dbgTempo(1)` rallume.
-  if(MUS_TEMPO.on&&musicEl&&!musicEl.paused&&!FRENM.on&&!FRENM.sw&&!FRENM.surm&&musicEl.preservesPitch!==false&&musicEl.webkitPreservesPitch!==false){
-    let cible=1;
-    if(musicMode==='run'&&running&&!gameOver&&!paused){const v9=flowVitN();cible=1+Math.max(-.06,Math.min(.04,(v9-1)*.12))+(nitroOn?.02:0);}
-    MUS_TEMPO.r+=(cible-MUS_TEMPO.r)*Math.min(1,dt/(cible>MUS_TEMPO.r?2.5:4));
-    MUS_TEMPO.t+=dt;
-    if(MUS_TEMPO.t>.35){MUS_TEMPO.t=0;const q9=Math.round(MUS_TEMPO.r*200)/200;
-      if(Math.abs((musicEl.playbackRate||1)-q9)>=.004)try{musicEl.playbackRate=q9;}catch(e){}}
-  }
   // BOOST : le morceau S'AMPLIFIE — bass boost + chorus qui épaissit (distinct du filtre-mouvement)
   const boostAmt=(running&&!gameOver)?Math.min(1,(nitroOn?0.85:0)+Math.min(1,boost)*0.5):0;
   musChorusEnv+=(boostAmt-musChorusEnv)*Math.min(1,dt*6);
@@ -26901,7 +26930,7 @@ function sonConsole(){ // branche la console sur le contexte du jeu (fin d'initA
   try{waPrecharge();}catch(e){} // les voix et les samples, décodés pour le mixage (voir LES VOIX ET LES SAMPLES DANS LE MIXAGE)
 }
 addEventListener('load',function(){try{sonConsole();}catch(e){}});
-const SON_TON={'lvl1-neon-cash-car':-1,'lvl2-cash-car-vitesse':-2,'nocturnal-groove':0,'noite-de-velocidade':2,'swag-cash-car-2':-1,'addictive-loop':1}; // (2026-09-29) SWAG do m → −1, ADDICTIVE la m → +1 : énergie par gamme majeure (chroma des partiels), la plus petite des trois pentatoniques de la gamme gagnante — la méthode retrouve NÉON, NOCTURNAL et NOITE (pas VITESSE)
+const SON_TON={'ciel-n5':1,'ciel':-1,'vapeur-salon':-1,'lobby-ascenseur':-4,'lvl1-neon-cash-car':-1,'lvl2-cash-car-vitesse':-2,'nocturnal-groove':0,'noite-de-velocidade':2,'swag-cash-car-2':-1,'addictive-loop':1}; // (2026-09-29) SWAG do m → −1, ADDICTIVE la m → +1 : énergie par gamme majeure (chroma des partiels), la plus petite des trois pentatoniques de la gamme gagnante — la méthode retrouve NÉON, NOCTURNAL et NOITE (pas VITESSE)
 function sonTonSuit(){
   if(!SONV2)return;let t=0;
   try{const el=musicEl;if(SND.music&&el&&el.src){for(const k in SON_TON)if(el.src.indexOf(k)>=0){t=SON_TON[k];break;}if(FRENM.surm)t+=1;}}catch(e){}
@@ -27065,7 +27094,7 @@ function initAudio(){
      ⚠ personne n'écrit `MASTER.gain` ailleurs (le ducking `dk` s'applique gain par gain, pas ici) :
      c'est ce qui permet de se l'approprier sans rien casser. Vérifié avant de le faire. */
   MASTER=AC.createGain();MASTER.gain.value=1; // le point de branchement de tout le WebAudio (le VOLUME DES EFFETS est en sortie : MASTER._vol)
-  MASTER._vol=AC.createGain();MASTER._vol.gain.value=VOL.sfx; /* (2026-09-28, console de son) ← LE VOLUME DES EFFETS, APRÈS le compresseur : devant lui, −6 dB au curseur ne baissaient les pics que de ~1,5 dB */
+  MASTER._vol=AC.createGain();MASTER._vol.gain.value=sfxVol(); /* (2026-09-28, console de son) ← LE VOLUME DES EFFETS, APRÈS le compresseur : devant lui, −6 dB au curseur ne baissaient les pics que de ~1,5 dB */
   BUSOUT=AC.createGain();                           // ← le vrai point de sortie commun
   const cmp=AC.createDynamicsCompressor();
   cmp.threshold.value=-16;cmp.knee.value=12;cmp.ratio.value=4;cmp.attack.value=.004;cmp.release.value=.16;
@@ -27753,7 +27782,7 @@ const ANN_DIR='assets/audio/announcer/';
 // à une place tirée au sort — imprévisible mais garanti. Les répliques épiques (first:1) sortent
 // dès leur toute première occurrence : on présente la voix, ensuite elle se mérite.
 const ANN_RATE=.94,ANN_DEMON_RATE=.80,ANN_DEMON_VOL=.26,ANN_ECHO1=162,ANN_ECHO2=324,
-      ANN_DUCK=.5,ANN_VOICE_VOL=.58; // volume dompté : la voix impressionne sans écraser le mix
+      ANN_DUCK=.5,ANN_VOICE_VOL=.42; // volume dompté : la voix impressionne sans écraser le mix
 const ANN_LIB={ // first:1 partout : chaque voix se présente à sa 1re occurrence, puis se mérite (1/3)
   m1:        {f:'monstre.mp3',       txt:'MONSTRE',cd:2500,first:1},         // figure simple à l'atterrissage
   m2:        {f:'double_monstre.mp3',txt:'DOUBLE MONSTRE',cd:2500,first:1},  // gros multiplicateur
@@ -27844,7 +27873,7 @@ function fxPlay(d){ // un sample, plafonné et fondu — jamais de traîne qui m
   // ⚠ CE SON EST UN HTMLAudio : il ne traverse PAS le bus MASTER, donc le curseur EFFETS ne
   // l'atteint que si on l'applique ici. Oublier ce point donne un réglage qui « ne marche qu'à
   // moitié » — le moteur baisse, le tiroir-caisse continue de claquer à plein volume.
-  a.volume=d.v*VOL.sfx;
+  a.volume=d.v*sfxVol();
   a.addEventListener('error',function(){d.dead=true;});
   // (2026-09-26) un REFUS de lecture (iOS hors geste, pause arrivée avant le départ) n'est PAS un fichier absent : seul
   // `NotSupportedError` condamne le son. Avant, le premier refus le rayait pour toute la session.
@@ -27854,7 +27883,7 @@ function fxPlay(d){ // un sample, plafonné et fondu — jamais de traîne qui m
   const iv=setInterval(function(){
     const t=performance.now()-t0;
     if(t>=lim||a.paused||a.ended){clearInterval(iv);try{a.pause();}catch(e){}return;}
-    if(t>lim-fade)a.volume=Math.max(0,d.v*VOL.sfx*(lim-t)/fade);
+    if(t>lim-fade)a.volume=Math.max(0,d.v*sfxVol()*(lim-t)/fade);
   },50);
 }
 /* LE « WOW » — réservé aux combos qui le méritent. Seuil à 5 maillons (en dessous, ce n'est pas un
@@ -27890,7 +27919,7 @@ function deathSound(sansVoix){ // sansVoix : l'annonceur parle déjà — pas de
   deathStop();
   if(sampleWA(DEATH_DIR+d.f,d.v,d.max,deathEls))return; // (console de son) décodé : dans le mixage, curseur EFFETS compris sur iPhone
   let a;try{a=new Audio(DEATH_DIR+d.f);}catch(e){d.dead=true;return;}
-  a.volume=d.v*VOL.sfx; // HTMLAudio : hors du bus MASTER, le curseur s'applique ici
+  a.volume=d.v*sfxVol(); // HTMLAudio : hors du bus MASTER, le curseur s'applique ici
   a.addEventListener('error',function(){d.dead=true;});
   try{a.play().catch(function(er){if(er&&er.name==='NotSupportedError')d.dead=true;});}catch(e){d.dead=true;return;} // (voir fxPlay : un refus n'est pas une absence)
   deathEls.push(a);
@@ -27899,7 +27928,7 @@ function deathSound(sansVoix){ // sansVoix : l'annonceur parle déjà — pas de
   const iv=setInterval(function(){
     const t=performance.now()-t0;
     if(t>=lim||a.paused||a.ended){clearInterval(iv);try{a.pause();}catch(e){}return;}
-    if(t>lim-fade)a.volume=Math.max(0,d.v*VOL.sfx*(lim-t)/fade);
+    if(t>lim-fade)a.volume=Math.max(0,d.v*sfxVol()*(lim-t)/fade);
   },50);
 }
 // ⚠ iOS : `volume` est en LECTURE SEULE sur HTMLAudio. Sans ce test, les trois doublures se jouent
@@ -28166,7 +28195,7 @@ VOL.mus=SAVE.d.vol.mus;VOL.sfx=SAVE.d.vol.sfx;VOL.vox=SAVE.d.vol.vox;
    serait écrasé 16 ms plus tard. On ne pose donc que le bus des EFFETS et le cas MENU, où rien ne
    tourne. Chercher à « tout appliquer » ici, c'est se battre avec la boucle et perdre. */
 function volApply(){
-  try{if(MASTER&&AC)(MASTER._vol||MASTER).gain.setTargetAtTime(VOL.sfx,AC.currentTime,.03);}catch(e){} // rampe courte : un saut de gain CLAQUE
+  try{if(MASTER&&AC)(MASTER._vol||MASTER).gain.setTargetAtTime(sfxVol(),AC.currentTime,.03);}catch(e){} // rampe courte : un saut de gain CLAQUE
   // (la musique : son volume est réappliqué à chaque image par musicTick — rien à faire ici)
 }
 function volUI(){ // les deux écrans de réglages affichent le MÊME état — il n'y a qu'une source
@@ -28642,6 +28671,235 @@ function nitroEteint(){ // LA DERNIÈRE BOUFFÉE : une langue de feu aux pots + 
     if(i<4)spawnP(embers,NFX.v.x,NFX.v.y,NFX.v.z,VC.x-hsF.x*(4+nfxR()*5)+(nfxR()-.5)*3,VC.y+1+nfxR()*2.5,VC.z-hsF.z*(4+nfxR()*5)+(nfxR()-.5)*3,.2+nfxR()*.15);}
   try{crackle(.7);}catch(e){}
 }
+/* LE BOOST JOUE UN ARPÈGE (2026-10-03, Léo : « que le boost joue directement un instrument qu'on peut SPAMMER, APPUYER LONGTEMPS,
+   ACCORDÉ à la musique » · puis « mille fois plus discret » · puis « pas cool comme instrument : bien filtré, vise plutôt un ARPÈGE et
+   une HARMONIE »). Un piano électrique doux (sinus + modulation FM qui s'éteint, filtré sous 1,8 kHz, comme les Rhodes du CIEL) égrène
+   les notes d'un ACCORD de la tonalité du morceau (`sonTonSuit._t` = la gamme majeure relative, comme tous les sons du jeu) :
+   · APPUI = l'arpège part sur l'accord suivant de la grille I · vi · IV · V (accords de neuvième : l'harmonie de VAPEUR) — SPAMMER = la
+     grille défile, toujours juste ; un appui bref joue au moins 3 notes ;
+   · TENIR = l'arpège monte et redescend en doubles croches et passe à l'accord suivant toutes les 2 boucles ;
+   · LÂCHER = plus de nouvelles notes, celles qui sonnent s'éteignent seules. La grille repart du I après 2,5 s sans appui.
+   Discret (≈ −30 dB sous une voix pleine), un écho en croche pointée. Par MASTER (curseur EFFETS) : marche aussi sur iPhone.
+   `dbgInstru()` : état · `dbgInstru(0|1)` coupe / rallume · `dbgInstru('essai')` (banc muet : les fréquences jouées). */
+const INSTRU={fins:[],der:0,on:true,tient:false,k:0,n:0,tNote:0,tDer:0,bus:null,iv:0,vu:[],pas:.15,off:null,queue:0,mel:14,vel:1,acc:0};
+/* (2026-10-03, Léo : « le 3e et le 4e son gâchent un peu la musique — baisse ou adapte si tu vois c'est quoi la dissonance ») : LA
+   DISSONANCE = la 4te (5 demi-tons) et la 7e majeure (11) — dans IV maj9 et V9 surtout, et dans les 7es de I et vi. La phrase part quand
+   le JOUEUR appuie, pas sur la grille d'accords du morceau : ces deux notes tombaient sur un autre accord et frottaient. Désormais
+   SEULEMENT les notes de la PENTATONIQUE (0 2 4 7 9) — celles qui vont sur tous les accords du morceau, comme tous les sons du jeu. */
+const INSTRU_GRILLE=[[0,4,7,9,14],[9,12,16,19,21],[2,4,9,14,16],[7,9,12,14,16]]; // I 6/9 · vi · ii sus · V sus (tout en pentatonique)
+/* LA PHRASE DU BOOST v3 (2026-10-03, Léo : « toujours un blanc entre les arpèges ; complexifie la structure pour qu'on puisse appuyer
+   longtemps et que ça donne une MÉLODIE accordée à la musique du jeu ; si le joueur lâche, ça ne doit pas tout casser »).
+   LE BLANC : le réservoir de nitro qui se vide pendant l'appui éteignait la nitro puis la rallumait (hystérésis) → l'arpège s'arrêtait
+   et repartait de zéro. La phrase suit désormais LE DOIGT (`wantN`, front montant/descendant dans la boucle), pas la flamme.
+   UNE PHRASE QUI CONTINUE : un compteur de doubles croches `k` qui ne repart de zéro qu'après 2,5 s de silence. Lâcher n'arrête pas
+   net : la phrase va au bout du temps en cours + un temps, en s'éteignant (`queue`) ; réappuyer REPREND là où elle était, sur la grille.
+   TROIS COUCHES, sur le tempo et la grille du morceau (`instruTempo`/`instruGrille`), dans sa tonalité (`sonTonSuit._t`) :
+   · l'ARPÈGE (doubles croches, doux) : un des 5 dessins par demi-mesure, l'accord avance à chaque MESURE (I · vi · IV · V) ;
+   · la MÉLODIE (au-dessus, plus présente) : un rythme par mesure (6 cellules), sur les temps forts une note de l'ACCORD, entre les deux
+     des pas dans la pentatonique, vers un contour de 4 mesures (monte · monte · sommet · redescend) ; registre sol3-do5 ;
+   · la BASSE douce sur les temps, à partir de la 3e mesure tenue.
+   Chaque nouvel appui (spam) frappe un ACCENT : la note de mélodie suivante part tout de suite, plus fort. */
+const INSTRU_MOTIFS=[[0,1,2,3,4,3,2,1],[0,2,1,3,2,4,3,1],[4,3,2,1,0,1,2,3],[0,1,2,4,3,2,4,1],[0,2,4,2,1,3,4,3]];
+const INSTRU_RYTHMES=[[1,0,1,0,1,0,1,1],[1,0,0,1,0,0,1,0],[1,1,0,1,1,0,1,0],[1,0,1,1,0,1,0,0],[1,0,0,0,1,0,1,1],[1,1,1,0,1,0,0,0]]; // croches de la mesure : 1 = une note
+const INSTRU_PENTA=[0,2,4,7,9,12,14,16,19,21];                                       // la pentatonique majeure du morceau (au-dessus de la tonique grave)
+const INSTRU_CONTOUR=[9,12,16,11];                                                   // vers où va la mélodie, mesure par mesure
+/* LA PHRASE LIT LE MORCEAU (2026-10-03, Léo : « encore plus harmonieux et accordé à CHAQUE musique de la liste (important), parce que ça
+   va au début mais c'est pire à la fin »). Deux causes : la phrase inventait SA grille d'accords (I · vi · ii · V) sans savoir où en était
+   celle du morceau (ASCENSEUR finit sur un La7♭9 : do#, si♭ — tout frottait), et le tempo n'était calé qu'à l'appui (l'écart grandissait
+   au fil d'un long appui). Désormais `CC_HARMONIE` (atelier-son/harmonie.py : tempo, position des temps et, TEMPS PAR TEMPS, les notes qui
+   sonnent dans le morceau — vérifié sur les grilles connues de VAPEUR, ASCENSEUR, CIEL) : la phrase ne joue QUE les notes que le morceau
+   joue à cet instant, et se recale sur sa position de lecture à CHAQUE note (zéro dérive, même après 2 minutes d'appui).
+   Morceau inconnu (frénésie, un nouveau fichier) : la pentatonique de `SON_TON`, comme avant — et une ligne de plus dans harmonie.py. */
+function instruH(){ // la fiche du morceau qui joue (ou null)
+  const H=window.CC_HARMONIE;if(!H||!musicEl||!musicEl.src)return null;
+  const nom=decodeURIComponent(musicEl.src.split('/').pop().split('?')[0]).replace(/\.[a-z0-9]+$/i,'');return H[nom]||null;
+}
+function instruTempo(){ // la double croche du morceau qui joue, et son horloge vue de l'audio
+  const H=instruH();INSTRU.H=H;let bpm=H?H.bpm:0;
+  if(!bpm&&typeof BCLK!=='undefined'&&BCLK.conf>.5&&BCLK.per>.3&&BCLK.per<1)bpm=60/BCLK.per;
+  if(!bpm)bpm=100;let pas=60/bpm/4;while(pas<.1)pas*=2;while(pas>.2)pas/=2;           // une note entre ~.1 et ~.2 s
+  INSTRU.pas=pas;instruHorloge();
+}
+function instruHorloge(){ // recalée à CHAQUE passage du planificateur : la phrase ne dérive jamais du morceau
+  INSTRU.off=(musicEl&&!musicEl.paused&&musicEl.currentTime>0&&(musicEl.playbackRate||1)===1)?AC.currentTime-musicEl.currentTime+(INSTRU.H?INSTRU.H.ph:0):null;
+}
+function instruGrille(t){ // la prochaine note de la grille du morceau à partir de t
+  if(INSTRU.off==null)return t;const p=INSTRU.pas,x=(t-INSTRU.off)/p;return INSTRU.off+Math.ceil(x-.02)*p;
+}
+function instruTons(t){ // les notes (classes 0 = do) qui sonnent dans le morceau à l'instant t — et la tonique de repli
+  const H=INSTRU.H;
+  if(H&&INSTRU.off!=null){const tb=60/H.bpm;let b=Math.floor((t-INSTRU.off)/tb);b=Math.max(0,Math.min(H.m.length-1,b));const m=H.m[b],o=[];
+    for(let i=0;i<12;i++)if(m>>i&1)o.push(i);if(o.length>=2)return o;
+    if(H.gamme&&H.gamme.length)return H.gamme.filter(function(x,i){return i%2===0;});} // temps creux : la gamme, une note sur deux
+  const r=(4+(sonTonSuit._t|0)+120)%12;return [0,2,4,7,9].map(function(x){return(r+x)%12;}); // repli : la pentatonique du morceau
+}
+function instruHz(m){return 440*Math.pow(2,(m-69)/12);}
+function instruDans(tons,lo,hi){const o=[];for(let m=lo;m<=hi;m++)if(tons.indexOf(m%12)>=0)o.push(m);return o;}
+function instruRacine(tons){ // la fondamentale probable : une note dont la quinte ET la tierce sonnent aussi
+  for(const r of tons)if(tons.indexOf((r+7)%12)>=0&&(tons.indexOf((r+3)%12)>=0||tons.indexOf((r+4)%12)>=0))return r;
+  for(const r of tons)if(tons.indexOf((r+7)%12)>=0)return r;return tons[0];
+}
+/* LE RENDU PREMIUM (2026-10-03, Léo : « on n'entend pas assez, et c'est pas parfait parfait : perfectionne, rendu premium ») :
+   · la TOUCHE : deux porteuses à ±4 cents (le chorus d'un vrai Rhodes, ouvertes en stéréo), un modulateur dont l'indice suit la
+     FORCE de frappe (doux = rond, fort = qui « tinte »), un corps d'octave qui s'éteint vite, un peu d'humain (±4 ms, ±8 % de force) ;
+   · le BUS : une compression douce qui soude les trois couches → le filtre sous 2 kHz (« parfaitement filtré ») → une SALLE (réverbe
+     à convolution calculée, 1,8 s, sombre) + un ÉCHO en croche pointée CALÉ SUR LE TEMPO du morceau, filtré et en ping-pong ;
+   · le niveau : +5 dB (il passe devant les effets, toujours sous la musique). */
+function instruBus(){
+  if(INSTRU.bus||!AC||!MASTER)return INSTRU.bus;
+  const g=AC.createGain();g.gain.value=1;
+  const cp=AC.createDynamicsCompressor();cp.threshold.value=-20;cp.ratio.value=3;cp.attack.value=.008;cp.release.value=.18;cp.knee.value=12;
+  const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1600;lp.Q.value=.5;
+  const hp=AC.createBiquadFilter();hp.type='highpass';hp.frequency.value=160;
+  const sec=AC.createGain();sec.gain.value=1.05;                                         // (Léo : « plus fondu et effacé ») −3,5 dB sec, la salle porte le reste
+  g.connect(cp);cp.connect(hp);hp.connect(lp);lp.connect(sec);sec.connect(MASTER);
+  try{ // LA SALLE : du bruit qui s'éteint, assombri avec le temps (calculé une fois, 1,8 s)
+    const n=Math.floor(AC.sampleRate*1.8),ir=AC.createBuffer(2,n,AC.sampleRate);
+    for(let c=0;c<2;c++){const d=ir.getChannelData(c);let lo=0;for(let i=0;i<n;i++){const x=i/n,a=Math.pow(1-x,3.2),k=.25+.7*x;lo+=(Math.random()*2-1-lo)*(1-k);d[i]=lo*a*(i<AC.sampleRate*.012?i/(AC.sampleRate*.012):1);}}
+    const cv=AC.createConvolver();cv.buffer=ir;const rv=AC.createGain();rv.gain.value=.85;const pd=AC.createDelay(.2);pd.delayTime.value=.035;INSTRU.salle=pd;const rh=AC.createBiquadFilter();rh.type='highpass';rh.frequency.value=320;lp.connect(rh);rh.connect(pd); /* la salle ne prend plus le grave (la « résonance ») */pd.connect(cv);cv.connect(rv);rv.connect(MASTER); // pré-délai 35 ms : l'attaque de chaque note passe AVANT la salle
+  }catch(e){}
+  try{ // L'ÉCHO PING-PONG en croche pointée, recalé sur le tempo à chaque appui (instruTempo)
+    const dL=AC.createDelay(2),dR=AC.createDelay(2),fb=AC.createGain(),df=AC.createBiquadFilter(),mg=AC.createChannelMerger(2),eg=AC.createGain();
+    df.type='lowpass';df.frequency.value=1300;const dh=AC.createBiquadFilter();dh.type='highpass';dh.frequency.value=300;fb.gain.value=.3;eg.gain.value=.38;
+    lp.connect(dh);dh.connect(df);df.connect(dL);dL.connect(dR);dR.connect(fb);fb.connect(dL);dL.connect(mg,0,0);dR.connect(mg,0,1);mg.connect(eg);eg.connect(MASTER);
+    INSTRU.dL=dL;INSTRU.dR=dR;
+  }catch(e){}
+  try{ // (2026-10-03, Léo : « à chaque note un peu plus d'individualité, fais-les ressortir un peu du fondu ») LE CONTOUR : l'attaque de chaque
+    // touche (un « tine » d'harmoniques, 40 ms) passe à côté du filtre sombre, de la salle et de l'écho — la note se dessine, le halo reste.
+    const ct=AC.createGain();ct.gain.value=1;const ch=AC.createBiquadFilter();ch.type='bandpass';ch.frequency.value=2600;ch.Q.value=.7;
+    ct.connect(ch);ch.connect(MASTER);INSTRU.contour=ct;
+  }catch(e){}
+  try{ // LE BUS ÉTINCELLE (la 4e mesure et après) : clair, aéré — pas le filtre sombre ; un peu de salle
+    const eb=AC.createGain();eb.gain.value=1;const eh=AC.createBiquadFilter();eh.type='highpass';eh.frequency.value=350;
+    const el=AC.createBiquadFilter();el.type='lowpass';el.frequency.value=7000;const es=AC.createGain();es.gain.value=.5;
+    eb.connect(eh);eh.connect(el);el.connect(MASTER);el.connect(es);if(INSTRU.salle)es.connect(INSTRU.salle);INSTRU.etin=eb;
+  }catch(e){}
+  INSTRU.bus=g;return g;
+}
+function instruEcho(){try{const t=Math.min(.9,INSTRU.pas*6);if(INSTRU.dL){INSTRU.dL.delayTime.setTargetAtTime(t/2,AC.currentTime,.05);INSTRU.dR.delayTime.setTargetAtTime(t/2,AC.currentTime,.05);}}catch(e){}}
+/* L'ÉTINCELLE (2026-10-03, Léo : « à partir du niveau 4, remplace juste le son du boost par un truc plus ÉTINCELLE, plus discret, même
+   mélodie et arpège ») : dès la 4e mesure tenue, les MÊMES notes changent de timbre — un célesta de verre (sinus + FM au rapport 3,5 qui
+   s'éteint vite, harmonique ×4 en scintillement), plus court, plus bas, sur un bus clair. */
+function instruEtincelle(f,t,pan,vel){
+  const bus=INSTRU.etin;if(!bus)return;INSTRU.fins.push(t+.25);
+  const c=AC.createOscillator(),m=AC.createOscillator(),mg=AC.createGain(),g=AC.createGain(),sc=AC.createOscillator(),sg=AC.createGain(),p=AC.createStereoPanner?AC.createStereoPanner():null;
+  c.frequency.value=f;m.frequency.value=f*3.5;mg.gain.setValueAtTime(f*1.4,t);mg.gain.setTargetAtTime(0,t,.05);m.connect(mg);mg.connect(c.frequency);
+  sc.frequency.value=f*4;sg.gain.setValueAtTime(0,t);sg.gain.linearRampToValueAtTime(.25,t+.003);sg.gain.setTargetAtTime(0,t+.005,.04);sc.connect(sg);sg.connect(g);
+  const pk=.05*vel;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(pk,t+.004);g.gain.setTargetAtTime(0,t+.01,.22);
+  c.connect(g);if(p){p.pan.value=pan*1.4;g.connect(p);p.connect(bus);}else g.connect(bus);
+  [c,m,sc].forEach(function(o){o.start(t);o.stop(t+1.4);});INSTRU.vu.push(Math.round(f));if(INSTRU.vu.length>200)INSTRU.vu.shift();
+}
+/* LE TING (2026-10-03) : l'arpège change d'instrument — une petite cloche de verre / célesta (sinus + FM au rapport 3,5 qui s'éteint en
+   ~60 ms, scintillement ×4 au contact, déclin .35 s), sur le bus clair de l'étincelle (350 Hz – 7 kHz, un peu de salle). Aucun grave. */
+function instruTing(f,t,pan,vel){
+  const bus=instruBus();if(!bus||vel<.03)return;
+  if(!INSTRU.essai){t+=(Math.random()-.5)*.006;vel*=.92+Math.random()*.16;}t=Math.max(t,AC.currentTime);
+  INSTRU.fins=INSTRU.fins.filter(function(x){return x>t;});if(INSTRU.fins.length>=12)return;
+  if(INSTRU.essai||!INSTRU.etin){INSTRU.vu.push(Math.round(f));if(INSTRU.vu.length>200)INSTRU.vu.shift();return;}
+  INSTRU.fins.push(t+.25);
+  const c=AC.createOscillator(),m=AC.createOscillator(),mg=AC.createGain(),g=AC.createGain(),sc=AC.createOscillator(),sg=AC.createGain(),p=AC.createStereoPanner?AC.createStereoPanner():null;
+  c.frequency.value=f;m.frequency.value=f*3.5;mg.gain.setValueAtTime(f*1.1,t);mg.gain.setTargetAtTime(0,t,.06);m.connect(mg);mg.connect(c.frequency);
+  sc.frequency.value=f*4;sg.gain.setValueAtTime(0,t);sg.gain.linearRampToValueAtTime(.3,t+.002);sg.gain.setTargetAtTime(0,t+.004,.035);sc.connect(sg);sg.connect(g);
+  const pk=.055*vel;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(pk,t+.003);g.gain.setTargetAtTime(0,t+.008,.35);
+  c.connect(g);if(p){p.pan.value=pan;g.connect(p);p.connect(INSTRU.etin);}else g.connect(INSTRU.etin);
+  [c,m,sc].forEach(function(o){o.start(t);o.stop(t+1.8);});INSTRU.vu.push(Math.round(f));if(INSTRU.vu.length>200)INSTRU.vu.shift();
+}
+function instruNote(f,t,pan,vel,dec,etin){ // une touche de piano électrique (voir LE RENDU PREMIUM) — ou d'étincelle
+  const bus=instruBus();if(!bus||vel<.03)return;
+  if(!INSTRU.essai){t+=(Math.random()-.5)*.008;vel*=.92+Math.random()*.16;}               // la main d'un musicien, pas d'une machine
+  t=Math.max(t,AC.currentTime);
+  INSTRU.fins=INSTRU.fins.filter(function(x){return x>t;});if(INSTRU.fins.length>=12)return; // garde-fou (les notes sont déjà espacées)
+  if(etin&&INSTRU.etin&&!INSTRU.essai){instruEtincelle(f,t,pan,vel);return;}
+  INSTRU.fins.push(t+.35);
+  const g=AC.createGain(),m=AC.createOscillator(),mg=AC.createGain(),c1=AC.createOscillator(),c2=AC.createOscillator(),o2=AC.createOscillator(),g2=AC.createGain();
+  const mp=AC.createStereoPanner?AC.createStereoPanner:null,p1=mp?AC.createStereoPanner():null,p2=mp?AC.createStereoPanner():null;
+  m.frequency.value=f;const ix=f*(.3+.55*Math.min(1.3,vel));                            // attaque plus ronde (moins de « tine »)                            // la force de frappe ouvre le timbre
+  mg.gain.setValueAtTime(ix,t);mg.gain.setTargetAtTime(f*.1,t,.07);m.connect(mg);mg.connect(c1.frequency);mg.connect(c2.frequency);
+  c1.frequency.value=f;c2.frequency.value=f;c1.detune.value=-4;c2.detune.value=4;
+  o2.frequency.value=f*2;g2.gain.setValueAtTime(.18,t);g2.gain.setTargetAtTime(0,t,.05);o2.connect(g2);g2.connect(g); // le corps d'octave, bref
+  const pk=.1*vel;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(pk,t+.025);  // une attaque qui se fondg.gain.setTargetAtTime(pk*.35,t+.02,.12);g.gain.setTargetAtTime(0,t+.18,dec||.3);
+  if(p1){p1.pan.value=Math.max(-1,pan-.18);p2.pan.value=Math.min(1,pan+.18);const h1=AC.createGain(),h2=AC.createGain();h1.gain.value=h2.gain.value=.5;
+    c1.connect(h1);h1.connect(p1);p1.connect(g);c2.connect(h2);h2.connect(p2);p2.connect(g);}
+  else{const h=AC.createGain();h.gain.value=.5;c1.connect(h);c2.connect(h);h.connect(g);}
+  g.connect(bus);
+  if(INSTRU.contour&&!INSTRU.essai){ // le contour de la note : le tine (rapport 7, comme une lame de Rhodes) qui s'éteint en 40 ms
+    const ti=AC.createOscillator(),tg=AC.createGain();ti.frequency.value=f*7;tg.gain.setValueAtTime(0,t);tg.gain.linearRampToValueAtTime(.022*vel,t+.003);tg.gain.setTargetAtTime(0,t+.004,.014);
+    ti.connect(tg);tg.connect(INSTRU.contour);ti.start(t);ti.stop(t+.25);}
+  const fin=t+2.4;[m,c1,c2,o2].forEach(function(o){o.start(t);o.stop(fin);});
+  INSTRU.vu.push(Math.round(f));if(INSTRU.vu.length>200)INSTRU.vu.shift();
+}
+function instruMelodie(k,tons){ // la note de mélodie (MIDI) de la croche k, ou -1 — seulement des notes qui sonnent dans le morceau
+  const mes=k>>4,cr=(k>>1)&7,ry=INSTRU_RYTHMES[(mes*5+(mes>>2))%INSTRU_RYTHMES.length];
+  if(!ry[cr]&&!INSTRU.acc)return -1;
+  const prev=INSTRU.mel,cible=[67,70,74,69][mes&3]+((mes>>2)&1?2:0),dispo=instruDans(tons,62,79);if(!dispo.length)return -1;
+  let n;
+  if(cr%2===0||INSTRU.acc){ // temps fort : la note la plus proche du chemin vers la cible ; un accent (spam) BOUGE toujours
+    let bd=1e9;n=dispo[0];for(const v of dispo){if(INSTRU.acc&&v===prev&&dispo.length>1)continue;const d=Math.abs(v-prev)+.5*Math.abs(v-cible);if(d<bd){bd=d;n=v;}}
+  }else{ // entre deux : la note voisine vers la cible (parfois un pas de côté — la phrase respire)
+    let bi=0,bd=1e9;for(let i=0;i<dispo.length;i++){const d=Math.abs(dispo[i]-prev);if(d<bd){bd=d;bi=i;}}
+    const dir=cible>prev?1:cible<prev?-1:((k*7)%3)-1;
+    bi=Math.max(0,Math.min(dispo.length-1,bi+(((k*13+mes)%5)===0?-dir:dir)));n=dispo[bi];
+  }
+  INSTRU.mel=n;return n;
+}
+function instruPlanifie(){ // regard d'avance de 120 ms : les notes tombent pile, même si une image tousse
+  if(!AC){clearInterval(INSTRU.iv);INSTRU.iv=0;return;}
+  if(INSTRU.tient&&(gameOver||paused||mode==='boom'||startBoostT>0))instruOff();      // la partie s'arrête : la phrase se termine
+  if(!INSTRU.essai){if(INSTRU.H!==instruH())instruTempo();else instruHorloge();}        // le morceau a changé ? on relit sa fiche ; sinon on se recale
+  const fin=INSTRU.essai?1e9:AC.currentTime+.12;
+  while(INSTRU.tNote<fin){
+    if(!INSTRU.tient){if(INSTRU.queue<=0){clearInterval(INSTRU.iv);INSTRU.iv=0;return;}INSTRU.queue--;INSTRU.vel*=.84;} // lâché : la phrase s'éteint en finissant le temps
+    if(INSTRU.essai&&INSTRU.n>=INSTRU.essaiN)return;
+    const k=INSTRU.k,mes=k>>4;
+    if(INSTRU.tient)INSTRU.monte=Math.min(1,(INSTRU.monte||0)+1/8);                    // l'ENTRÉE en fondu : 8 notes (~2 temps) de 30 % à pleine voix
+    const t=Math.max(INSTRU.tNote,AC.currentTime),temps=k%4===0,V=INSTRU.vel*((mes&3)>=2?.78:1)*(.3+.7*(INSTRU.monte==null?1:INSTRU.monte)); // mesures 3-4 un peu plus bas
+    const tons=instruTons(t+.01);                                                       // l'accord du MORCEAU, maintenant
+    const fen=instruDans(tons,62,86),mot=INSTRU_MOTIFS[((k>>3)*3+(mes>>2))%INSTRU_MOTIFS.length];
+    let a9=fen.length?fen[mot[k%8]%Math.min(5,fen.length)]:-1;                          // l'arpège : les 5 premières notes de l'accord au-dessus de sol3
+    if(a9>=0&&(mes&3)===3&&a9+12<=88)a9+=12;const arpK=(mes&3)===3?1.45:1;               // 4e mesure : il monte d'une octave (Léo : « plus aigu »)
+    const et9=mes>=3;                                                                   // dès la 4e mesure tenue : l'ÉTINCELLE
+    if(a9>=0)instruTing(instruHz(a9),t,k%2?.35:-.35,V*arpK*(temps?1:.8));                 // l'arpège : le TING (Léo : « plus en mode ting, l'instrument n'est peut-être pas le bon »)
+    if(k%2===0||INSTRU.acc){const m9=instruMelodie(k,tons);if(m9>=0)instruNote(instruHz(m9),t,0,V*(INSTRU.acc?1.25:(k%8===0?1.05:.9)),.5,et9);INSTRU.acc=0;}
+    // (2026-10-03, Léo : « l'arpège crée une résonance grave à la fin, c'est dérangeant ») : plus de basse — le morceau a la sienne
+    INSTRU.der=INSTRU.tNote;INSTRU.k++;INSTRU.n++;
+    INSTRU.tNote=INSTRU.off!=null&&!INSTRU.essai?instruGrille(INSTRU.tNote+INSTRU.pas*.5):INSTRU.tNote+INSTRU.pas; // la note suivante, SUR la grille du morceau
+  }
+}
+/* L'APPUI TENU (2026-10-03, Léo : « le début de l'effet, le premier son qu'on entend quand on appuie, est trop fort, presque dérangeant —
+   mais quand ça s'étend en plein de notes harmonieuses qui varient, c'est vraiment cool ; ça doit vraiment s'activer quand le joueur
+   APPUIE ET MAINTIENT ; la transition floue de fin est très bien, ne change pas ») :
+   · la phrase ne part qu'après INSTRU_TENIR (0,22 s) de doigt posé — un tap bref ne joue plus rien ;
+   · plus d'ACCENT de mélodie au départ (c'était ce 1er son flou, une note de Rhodes appuyée dans la salle) ;
+   · elle ENTRE en fondu : les premières notes à 30 %, pleine voix en ~2 temps (`INSTRU.monte`). La fin est inchangée. */
+const INSTRU_TENIR=.22;
+function instruOn(){
+  if(!INSTRU.on||!AC||!SND.sfx||(AC.state!=='running'&&!INSTRU.essai)||paused||(startBoostT>0&&!INSTRU.essai))return; // pendant le boost de départ : rien, même si le doigt est sur NITRO
+  if(INSTRU.essai)return instruDemarre();
+  INSTRU.doigt=true;clearTimeout(INSTRU.att);
+  INSTRU.att=setTimeout(function(){if(INSTRU.doigt)try{instruDemarre();}catch(e){}},INSTRU_TENIR*1000); // il faut TENIR
+}
+function instruDemarre(){
+  if(!AC||paused||(startBoostT>0&&!INSTRU.essai))return;
+  const t=performance.now(),neuve=t-INSTRU.tDer>2500&&!INSTRU.iv;INSTRU.tDer=t;
+  instruTempo();instruBus();instruEcho();INSTRU.tient=true;INSTRU.vel=1;INSTRU.acc=0;INSTRU.n=0;if(neuve||!INSTRU.iv)INSTRU.monte=0;
+  if(neuve){INSTRU.k=0;INSTRU.mel=67;INSTRU.tNote=instruGrille(AC.currentTime+.005);}  // une phrase NEUVE (silence de 2,5 s)
+  else if(!INSTRU.iv){INSTRU.tNote=instruGrille(Math.max(AC.currentTime+.005,INSTRU.der+.09));} // elle REPREND où elle en était
+  if(INSTRU.tNote-AC.currentTime>.5)INSTRU.tNote=instruGrille(AC.currentTime+.005);   // garde-fou (horloges qui ont dérivé)
+  if(INSTRU.essai){INSTRU.tient=!!INSTRU.essaiTenu;if(!INSTRU.tient)INSTRU.queue=3;instruPlanifie();INSTRU.tient=false;return;}
+  if(!INSTRU.iv)INSTRU.iv=setInterval(instruPlanifie,25);instruPlanifie();
+}
+function instruOff(){INSTRU.doigt=false;clearTimeout(INSTRU.att);if(!INSTRU.tient)return;INSTRU.tient=false;INSTRU.tDer=performance.now();INSTRU.queue=(4-INSTRU.k%4)%4+4;} // lâché : on finit le temps + un temps, en s'éteignant
+window.dbgInstru=function(a){if(a==='bus'){try{const b=instruBus();let et='-';if(AC.state!=='running'&&INSTRU.etin){instruEtincelle(440,AC.currentTime,0,.1);et='ok';}return{bus:!!b,echo:!!INSTRU.dL,etincelle:et,contour:!!INSTRU.contour};}catch(e){return String(e);}}if(a===0||a===1){INSTRU.on=!!a;if(!a)instruOff();}
+  if(a==='tenu'){ // banc MUET : un appui TENU de 64 doubles croches (4 mesures) — fréquences et écarts de temps
+    if(!AC)return'pas de contexte';const sb=INSTRU.bus,sv=SND.sfx;INSTRU.bus=AC.createGain();SND.sfx=true;INSTRU.tDer=0;INSTRU.essai=true;INSTRU.essaiTenu=true;INSTRU.essaiN=64;INSTRU.vu=[];INSTRU.der=0;
+    const t0=[];const cn=instruNote;
+    try{instruOn();}finally{INSTRU.essai=false;INSTRU.essaiTenu=false;INSTRU.bus=sb;SND.sfx=sv;}
+    return{pas:+INSTRU.pas.toFixed(3),calee:INSTRU.off!=null,notes:INSTRU.vu.slice(),ton:sonTonSuit._t|0};}
+  if(a==='essai'){INSTRU.essaiN=1e9; // banc MUET : quatre appuis brefs sur un bus débranché, rend les fréquences
+    if(!AC)return'pas de contexte';const sb=INSTRU.bus,sv=SND.sfx;INSTRU.bus=AC.createGain();SND.sfx=true;INSTRU.tDer=0;INSTRU.essai=true;INSTRU.vu=[];
+    try{for(let k=0;k<4;k++){instruOn();}}finally{INSTRU.essai=false;INSTRU.bus=sb;SND.sfx=sv;}
+    return{notes:INSTRU.vu.slice(),ton:sonTonSuit._t|0,etat:AC.state};}
+  return{on:INSTRU.on,tient:INSTRU.tient,mesure:INSTRU.k>>4,ton:sonTonSuit._t|0,dernieres:INSTRU.vu.slice(-8),contexte:AC&&AC.state,effets:!!SND.sfx};};
 function nfxTick(dt){ // chaque image (après hsF/hsU) : l'onde, la teinte des bords, les enveloppes
   const vit=running&&!gameOver&&mode!=='boom';
   NFX.ign=Math.max(0,NFX.ign-dt/.55);NFX.off=Math.max(0,NFX.off-dt/1.2);
@@ -30065,7 +30323,7 @@ function orbFxTick(dt){
      à 0,7, puis 0,5 après 6 s.
    · NITRO INFINIE : le plasma prend le VIOLET du pouvoir (NINF), comme tout le reste. */
 const NTR={on:false,t:0,k:0,kc:0,boost:0,pouls:0,pal:0,gT:0,shell:null,core:null,halo:null,halo2:null,langues:null,airT:0,airFig:false,
-  f:new THREE.Vector3(),r:new THREE.Vector3(),u:new THREE.Vector3(),p:new THREE.Vector3(),q:new THREE.Quaternion()};
+  f:new THREE.Vector3(),r:new THREE.Vector3(),u:new THREE.Vector3(),p:new THREE.Vector3(),q:new THREE.Quaternion(),cv:new THREE.Vector3()};
 /* LES LANGUES DU PLASMA (vu au banc : une enveloppe unique, vue de dos, se présentait par la TRANCHE — la flamme vivante efface ce qui est
    vu de biais — : la caisse rougeoyait à peine). Le feu d'une rentrée atmosphérique se voit en LANGUES qui partent du bouclier avant et
    filent le long de la carrosserie : cinq flammes vivantes, du même programme que les pots (qui, eux, se lisent très bien de dos), nées
@@ -30074,6 +30332,7 @@ const NTR={on:false,t:0,k:0,kc:0,boost:0,pouls:0,pal:0,gT:0,shell:null,core:null
     rayon (× largeur), longueur (× longueur), déphasage] */
 const NTR_LANGUES=[[-.44,.42,.5,.2,.1,.24,1.25,0],[.44,.42,.5,-.2,.1,.24,1.25,1.7],[0,.72,.46,0,.2,.3,1.05,3.1],
   [-.3,1.02,.1,.1,.16,.2,.95,4.4],[.3,1.02,.1,-.1,.16,.2,.95,5.6]];
+const NTR_PRES={de:.42,a:.86,k:1}; // (debout) la comète s'efface entre l'objectif et la caisse — voir nitroooTick ; k:0 = comme avant
 const NTR_BOOST=.1,NTR_BOOST_MAX=1.6,NTR_T=2; // (2026-09-29, nuit, Sacha : « à ×2,6 ») PLAFOND ×2,6 (+160 %, palier 10 : le dragon est adulte) — MESURÉ au banc (ntrx.js) avec ×5 : dès ×2 la caisse décolle à chaque relief, vers ×4,6 elle s'envolait 8 s et mourait « TROP LONGTEMPS EN L'AIR » · (2026-09-29, Sacha : « le nitrooo doit se déclencher après 2 secondes de nitro » — c'était 3) · (même soir, Sacha : « la progression de vitesse EXPONENTIELLE, pas de barrière ») : ×1,10 PAR PALIER, composé (+10, +21, +33, +46, +61, +77, +95, +114, +136, +159 %…) ; le plafond de sûreté passe de +80 % à ×5 (palier 17 — hors d'atteinte d'un réservoir en jeu) : au-delà la physique n'a jamais été éprouvée
 /* LE PLAFOND DE VITESSE COMMUN (2026-09-29, nuit — trouvé par DEBUGGING, mesuré) : VITESSE ×2 ramassée au plafond de NITROOO faisait
    ×2 × 2,6 = ×5,2 — au-delà du seuil mortel mesuré (×4,6 : la caisse s'envole à chaque relief et meurt « TROP LONGTEMPS EN L'AIR »).
@@ -30113,6 +30372,16 @@ function nitroooTick(dt){
     for(const o of [NTR.shell,NTR.core,NTR.halo,NTR.halo2].concat(NTR.langues)){o.frustumCulled=false;o.renderOrder=5;o.visible=false;scene.add(o);}}
   const inf=pwrNitroT>0,sp=CARS[level],c=carGroup.position,q=carGroup.quaternion,HS=.85+.75*NTR.gT; // HS : la comète grossit avec la tenue, comme la tête du dragon
   const tri9=triNoir(); /* (dragon v7) DARK TRIAD : la comète devient un feu SOMBRE, rouge sang — le dragon qu'elle porte est noir */
+  /* (2026-10-03, Sacha : « la version mobile en vertical gère mal le dragon nitro, il y a de la transparence ») DEBOUT, LA COMÈTE NE VOILE
+     PLUS L'ÉCRAN. Mesuré (banc drg-portrait / isole2, 390×844, image figée, une partie retirée à la fois) : les cinq LANGUES (jusqu'à 2,4 ×
+     la longueur de la caisse, ~11 m) et l'ENVELOPPE (~2,2 ×) partent du nez vers l'arrière et passent SOUS la caméra (5,6 m de la caisse).
+     Couché, le champ est large : elles filent sur les côtés de l'image. Debout, le champ horizontal est étroit : elles tombaient en
+     colonnes rouges translucides sur toute la moitié basse, caisse comprise — on voyait la voiture et la route À TRAVERS le feu. Comme
+     les bandes du dragon et le sillage (« près de l'objectif tout s'efface, jamais de voile »), la flamme s'efface désormais entre la
+     caméra et l'arrière de la caisse : rien à `NTR_PRES.de` × la profondeur de la caisse, entière à `NTR_PRES.a` ×. ×POR : le paysage ne
+     bouge pas. */
+  {const cd=NTR.cv.subVectors(c,camera.position).dot(camera.getWorldDirection(NTR.p)),pr=POR*NTR_PRES.k;
+   ntrShellM.uniforms.uPres.value.set(cd*NTR_PRES.de,cd*NTR_PRES.a,pr);ntrCoreM.uniforms.uPres.value.set(cd*NTR_PRES.de,cd*NTR_PRES.a,pr);}
   ntrShellM.color.setHex(tri9?0x5a0010:inf?NINF.jet:0xff3a0c);ntrShellM.uniforms.uHot.value.setHex(tri9?0xff2a3d:inf?NINF.core:0xfff6d0);ntrShellM.uniforms.uRac.value.setHex(tri9?0x3a0008:inf?0xf0dcff:0xffffff);
   ntrCoreM.color.setHex(tri9?0x90101c:inf?0xd8b0ff:0xffc050);ntrCoreM.uniforms.uRac.value.setHex(tri9?0xff8090:inf?0xffffff:0xfff6d6);
   const F9=NTR.f.set(0,0,1).applyQuaternion(q),R9=NTR.r.set(1,0,0).applyQuaternion(q),U9=NTR.u.set(0,1,0).applyQuaternion(q);
@@ -30608,12 +30877,13 @@ function dragonTick(dt){
 }
 window.dbgFace=function(f){if(f)side=f<0?-1:1;return side;}; // (banc) rouler sur la face du DESSOUS (−1) ou du dessus (1)
 window.dbgDragon=function(q){
+  if(q==='pres'){if(arguments[1]!=null)NTR_PRES.k=+arguments[1];return {de:NTR_PRES.de,a:NTR_PRES.a,k:NTR_PRES.k,por:+POR.toFixed(2),part:NTR.shell?+ntrShellM.uniforms.uPres.value.z.toFixed(2):null};} // (debout) dbgDragon('pres',0) : la comète d'avant, qui voilait l'écran (A/B)
   if(q==='tick'){if(DRG.m&&DRG.m.visible)dragonTick(1/60);return DRG.vu.slice();} // (banc, v6) en PAUSE photo : une image de dragon recalculée pour la caméra de la photo (les yeux dépendent de l'angle)
   if(q==='ecran'){if(!DRG.m||!DRG.m.visible)return null;const o={},pr=function(n,v){const d9=v.distanceTo(camera.position);DRG.pj.copy(v).project(camera);o[n]=[+DRG.pj.x.toFixed(2),+DRG.pj.y.toFixed(2),Math.round(d9)];};
     const mid=function(nom,der){const s=DRG.S[nom],o9=(s.o+(der?s.n-1:Math.floor(s.n/2)))*6,p=DRG.pos;return DRG.a.set((p[o9]+p[o9+3])/2,(p[o9+1]+p[o9+4])/2,(p[o9+2]+p[o9+5])/2);};
     pr('tete',DRG.hC);pr('oeil',DRG.yeux[1].position);pr('nez',DRG.nez);pr('corne',mid('corD',true));pr('corps',mid('corps',false));pr('queue',mid('corps',true));return o;}
   return {visible:!!(DRG.m&&DRG.m.visible),palier:NTR.pal,troncons:+DRG.nS.toFixed(2),tenue:+NTR.gT.toFixed(2),tete:+DRG.Hs.toFixed(2),corps:+DRG.Lb.toFixed(1),histo:DRG.hN,
-    boost:+NTR.boost.toFixed(2),vent:+DRG.vt.toFixed(2),noir:triNoir(),intensite:+NTR.k.toFixed(2),rugit:+DRG.roar.toFixed(2),points:DRG.NP,cap:DRG.hF.toArray().map(function(v){return +v.toFixed(3);}),nezc:DRG.cF.toArray().map(function(v){return +v.toFixed(2);}),pos:DRG.c.toArray().map(function(v){return +v.toFixed(1);}),camDedans:+(1-(DRG.fC==null?1:DRG.fC)).toFixed(2),vol:mode==='fall',forme:+DRG.fo.toFixed(2),yeux:DRG.vu.map(function(v){return +v.toFixed(2);}),virage:+DRG.vir.toFixed(2),air:+DRG.air.toFixed(2),ressort:+DRG.nodS.toFixed(3)};};
+    boost:+NTR.boost.toFixed(2),vent:+DRG.vt.toFixed(2),noir:triNoir(),intensite:+NTR.k.toFixed(2),rugit:+DRG.roar.toFixed(2),points:DRG.NP,cap:DRG.hF.toArray().map(function(v){return +v.toFixed(3);}),nezc:DRG.cF.toArray().map(function(v){return +v.toFixed(2);}),pos:DRG.c.toArray().map(function(v){return +v.toFixed(1);}),camDedans:+(1-(DRG.fC==null?1:DRG.fC)).toFixed(2),opa:DRG.m?{crane:+DRG.tm.material.opacity.toFixed(2),traits:+DRG.m.material[1].opacity.toFixed(2),corps:+DRG.m.material[0].opacity.toFixed(2)}:null,vol:mode==='fall',forme:+DRG.fo.toFixed(2),yeux:DRG.vu.map(function(v){return +v.toFixed(2);}),virage:+DRG.vir.toFixed(2),air:+DRG.air.toFixed(2),ressort:+DRG.nodS.toFixed(3)};};
 function nitroooVide(){ // (2026-09-29, audit GAMEPLAY) une partie qui finit ou recommence : plus de boost, plus de plasma, plus de dragon
   NTR.on=false;NTR.t=NTR.boost=NTR.k=NTR.kc=0;NTR.pal=0;NTR.airT=0;NTR.airFig=false;
   if(NTR.shell){NTR.shell.visible=NTR.core.visible=NTR.halo.visible=NTR.halo2.visible=false;for(const m of NTR.langues)m.visible=false;}
@@ -36961,6 +37231,9 @@ function loop(now){
     if(LIVRE.on){LIVRE.t+=dt;if(nitroOn)LIVRE.tN+=dt;if(mode==='fall')LIVRE.tV+=dt;}
     if(wantN&&!loop._nvW&&!nitroOn&&mode!=='boom'){try{if(SONV2)sfx('nitro.vide');else noiseBurst(.04,.06,2500);}catch(e){}hap(6);} // (2026-09-26, audit son) NITRO À VIDE : un « tchk » sec — l'appui répond toujours
     loop._nvW=wantN;
+    const doigtN=!!(keys.ShiftLeft||keys.ShiftRight||keys.Space); // (2026-10-03, Léo) la phrase ne répond qu'au VRAI doigt : ni le boost de départ (startBoostT), ni le pilote auto
+    if(startBoostT>0)loop._iW=false; // le doigt déjà posé pendant le départ : la phrase partira à la fin du boost automatique
+    if(doigtN!==!!loop._iW){loop._iW=doigtN;try{if(doigtN&&mode!=='boom'&&!gameOver)instruOn();else instruOff();}catch(e){}} // (2026-10-03) LA PHRASE DU BOOST suit le DOIGT, pas la flamme (le réservoir vide la coupait)
     if(nitroOn&&pwrNitroT<=0&&!PARK.on&&startBoostT<=0){
       let take=tk9; /* (LA LOI DU RÉSERVOIR) NITROOO ne dure 2× qu'AU SOL */ // (v3, Sacha : « en frénésie le nitro baisse 2× plus lentement ») · (2026-09-30, HAUTE VITESSE) NITROOO aussi : réservoir plein, sans rien ramasser, il restait 0,5 s de NITROOO au moteur 1 (0 palier) et 2,5 s au moteur max (2) ; ×0,5 pendant NTR.on → 1,3 s (1 palier) et 6,6 s (6, +88 %). PAS cumulé avec la frénésie (×0,25 : 0,05/s net, une nitro quasi infinie)
       if(LIVRE.on)livre(mode==='fall'?'n-:vol':'n-:sol',Math.min(take,nitroR+nitroX));
@@ -38617,7 +38890,7 @@ renderLeaders(-1);
     /* (2026-09-28) L'INTRO OBÉIT AU CURSEUR EFFETS. Elle vit dans son propre contexte, branché en direct sur la sortie : le bus
        MASTER (qui porte `VOL.sfx`) ne la voyait pas. Le volume se pose APRÈS le compresseur — posé avant, il changerait la dose de
        compression, donc le son lui-même ; après, c'est un vrai bouton de volume, et à 100 % rien ne bouge. */
-    const vol9=A.createGain();vol9.gain.value=VOL.sfx;vol9.connect(A.destination);
+    const vol9=A.createGain();vol9.gain.value=(typeof sfxVol==='function'?sfxVol():VOL.sfx);vol9.connect(A.destination);
     comp.threshold.value=-14;comp.ratio.value=5;comp.connect(vol9);
     master=A.createGain();master.gain.value=1;master.connect(comp);
     const nzBuf=(function(){const n=A.sampleRate*2,b=A.createBuffer(1,n,A.sampleRate),c=b.getChannelData(0);for(let i=0;i<n;i++)c[i]=Math.random()*2-1;return b;})();

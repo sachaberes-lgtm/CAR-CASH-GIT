@@ -221,6 +221,11 @@ Config.CIEL = {
 	merOmbre = Color3.fromRGB(148, 166, 204),   -- le versant à l'ombre des dômes
 	merSommet = Color3.fromRGB(192, 192, 194),  -- les sommets au soleil
 	merTrou = Color3.fromRGB(120, 146, 196),    -- les rares trous
+	-- LA MAQUETTE DU TITRE (3/10, mesuré au banc) : Roblox démarre en qualité graphique basse et n'affiche alors PAS ce qui est loin —
+	-- les cumulus du titre (1 à 7 km) et la mer (620 m dessous) restaient invisibles 15 à 30 s, les plus proches d'abord ; sur un
+	-- téléphone en qualité basse, jamais. Le décor du titre est donc une MAQUETTE : distances et tailles × titreK autour de la caisse
+	-- (les angles, donc l'image, ne changent pas), la mer du menu × titreK aussi.
+	titreK = 0.35,
 	merMenu = 620,                              -- m : au menu la caisse tombe de très haut, la mer est loin dessous
 }
 Config.ROUTE = {
@@ -262,13 +267,16 @@ Config.DATASTORE = "CashCarRecords_v1"
 Config.GRAINE_FIXE = nil :: number? -- mettre un nombre pour que tous les serveurs roulent sur la même route
 
 -- LES SONS. Roblox ne joue que des sons importés sur Roblox : importer le dossier ROBLOX/sons-a-importer
--- (Studio → Fenêtre → Asset Manager → Bulk Import), puis coller ici chaque numéro « rbxassetid://… ».
+-- (Studio → Fenêtre → Asset Manager → Bulk Import), puis outils/remplir-sons.luau dans la barre de commande (il remplit
+-- CashCar/SonsIds d'un coup) — ou coller ici chaque numéro « rbxassetid://… » à la main.
 -- Vide = le son de secours livré avec Roblox (quand il existe), sinon silence.
 Config.SONS = {
 	musique = "", moteur = "", nitro = "", ventAltitude = "", crissement = "", -- (crissement : la boucle des pneus qui glissent)
 	driftBrrr = "", rasBord = "", -- (la charge du drift qui monte ; le grondement du rase-bord)
 	-- la musique par LIEU (MUSIC_LIEU du web) : les nuages, la ville (et l'accueil), l'orage ; pas importée = `musique` continue
 	musiqueNuages = "", musiqueVille = "", musiqueOrage = "",
+	-- l'ACCUEIL (MUSIC_LOBBY du web, 3/10) : un des deux morceaux de lobby, tiré au lancement et gardé toute la session
+	musiqueLobby1 = "", musiqueLobby2 = "",
 	piece = "", decollage = "", poseParfait = "", poseChoc = "", poseLourde = "", vrille = "",
 	maillon = "", bigAir = "", encaisse = "", explosion = "", pad = "", nitroPlein = "",
 	tap = "", go = "", bip = "", compteFin = "", record = "", portail = "", fronde = "",
@@ -288,6 +296,16 @@ Config.SONS = {
 	turboSuper = "", turboUltra = "", nuageEntre = "", nuageSort = "", nuageDefonce = "", portailProche = "", impactImmeuble = "", departLogo = "",
 	moteurPalier = "", mortVide = "", mortAir = "", mortArret = "", debrisTole = "", garageTole = "", uiModale = "", uiFerme = "", uiRefus = "",
 }
+-- (les numéros remplis d'un coup par outils/remplir-sons.luau vivent dans CashCar/SonsIds : ils complètent les cases vides)
+do
+	local m = script.Parent:FindFirstChild("SonsIds")
+	local ok, ids = pcall(function() return m and require(m :: ModuleScript) end)
+	if ok and type(ids) == "table" then
+		for k, v in ids do
+			if type(v) == "string" and Config.SONS[k] == "" then Config.SONS[k] = v end
+		end
+	end
+end
 Config.SONS_SECOURS = {
 	explosion = "rbxasset://sounds/impact_explosion_03.mp3",
 	decollage = "rbxasset://sounds/action_jump.mp3",

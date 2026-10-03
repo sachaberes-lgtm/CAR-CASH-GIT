@@ -41,8 +41,8 @@
 //  v51 (2026-10-01) : LA MISE À JOUR TOUTE SEULE — version.json n'est jamais mis en cache (le jeu le lit pour se recharger s'il est en retard). v49 chez moi, v50 chez Sacha entre-temps.
 //  v54 (2026-10-02) : L'ORIGAMI, la 69e caisse (le pick-up d'inox).
 //  v55 (2026-10-02) : six communes retirées de la gamme.
-//  v57 (2026-10-03, Léo) : la copie de test de Léo versée sur main — écran nu sur l'ordi, atelier des nuages, écran titre (regard, tapotement, modelé), TEMPLE DE JADE retiré.
-const CACHE = 'cashcar-v58'; // v58 (2026-10-03, soir, Léo : « distorsion », « le jeu coupe bizarrement la musique ») : la musique à SA vitesse (le tempo qui suit la voiture est coupé)
+//  v83 (2026-10-03) : main de Sacha (le dragon de NITROOO) + musique de Léo (CIEL moderne, phrase du boost qui lit chaque morceau)
+const CACHE = 'cashcar-v84'; // v84 (2026-10-03, soir, Léo : « le jeu coupe bizarrement la musique ») : plus de rechargement à chaque push (le numéro de version = l'empreinte du jeu)
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {

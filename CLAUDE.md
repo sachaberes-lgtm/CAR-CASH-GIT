@@ -36,8 +36,9 @@ avant d'y toucher. `ROBLOX/` est un autre jeu, le portage Roblox : un commit ROB
 - **Ajouté depuis, sur `main` (2026-10-03, Léo)** — à garder : sur l'ordi l'écran NU par défaut (sans boîtier ni encoche, mais avec les
   MARGES de l'iPhone : les boutons à la même place ; `?encoche=1` = le boîtier du 13 Pro) ; l'ATELIER DES NUAGES (`?nuages=1`) ; l'écran
   titre au regard presque à niveau, qui ne tourne qu'à l'horizontale, la caisse qu'on TAPOTE et son modelé ; les trois musiques du lobby
-  (TEMPLE DE JADE retiré) ; le soir, la musique rejouée à SA vitesse (le tempo qui suivait la voiture la DISTORDAIT, mesuré) et le
-  numéro de version = l'empreinte du jeu. Le détail : `VERSION PRINCIPALE/CLAUDE.md`.
+  (TEMPLE DE JADE retiré) ; le soir, le numéro de version = l'EMPREINTE du jeu (plus de rechargement à chaque push : c'était la
+  musique « coupée bizarrement ») et le tempo qui suivait la voiture retiré (il DISTORDAIT, mesuré). Le détail : `VERSION PRINCIPALE/CLAUDE.md`.
+  · (2026-10-03, Sacha) DEBOUT, la comète de NITROOO ne voile plus l'écran : le dragon n'est plus « transparent » (le paysage ne bouge pas).
   · la MISE À JOUR TOUTE SEULE et le numéro de version dans les réglages.
 - **SANS TOUT CASSER** — la règle de chaque session, avant de pousser :
   1. Partir de `origin/main` À JOUR : `git fetch origin main`, puis `git merge origin/main`. Jamais d'une vieille branche, jamais d'une copie locale.
