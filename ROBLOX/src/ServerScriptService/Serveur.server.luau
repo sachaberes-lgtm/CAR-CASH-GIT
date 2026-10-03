@@ -47,6 +47,8 @@ local fnProfil = remote("Profil", "RemoteFunction")   -- le client lit son profi
 local fnAction = remote("Action", "RemoteFunction")   -- le client demande (acheter, équiper, régler…), le serveur vérifie
 local evProfil = remote("ProfilMaj")                  -- le serveur pousse le profil à jour
 Profils.pousser = function(p: Player) evProfil:FireClient(p, Profils.de(p)) end
+-- LES REVENUS : cadeaux, badges, classement, passes, seconde chance (voir Revenus)
+local Revenus = require(script.Parent:WaitForChild("Revenus"))
 Profils.surHabit = function(p: Player) -- la peinture, les ailes, la traînée : les autres doivent les voir
 	local m = dossier:FindFirstChild(p.Name)
 	local prof = Profils.de(p)
@@ -114,9 +116,11 @@ local function arrivee(p: Player)
 		rec.Value = math.floor(prof.record)
 		evRecord:FireClient(p, prof.record, prof.compte)
 		Profils.pousser(p)
+		Revenus.arrivee(p, prof)
 	end)
 end
 Players.PlayerAdded:Connect(arrivee)
+Revenus.init({ Profils = Profils, remote = remote, compte = function(p: Player, prof: any) evRecord:FireClient(p, prof.record, prof.compte) end })
 -- en test dans Studio, le joueur peut être entré AVANT que ce script écoute : on le rattrape
 for _, p in Players:GetPlayers() do task.spawn(arrivee, p) end
 
@@ -125,6 +129,7 @@ Players.PlayerRemoving:Connect(function(p)
 	if m then m:Destroy() end
 	Profils.sauver(p)
 	Profils.oublier(p)
+	Revenus.depart(p)
 end)
 
 game:BindToClose(function()
@@ -174,7 +179,8 @@ evFin.OnServerEvent:Connect(function(p, montant, distance, aura, stats)
 	if dernierEnvoi[p.UserId] and t - dernierEnvoi[p.UserId] < 2 then return end
 	dernierEnvoi[p.UserId] = t
 	local prof = Profils.de(p)
-	prof.compte += math.max(0, montant - Config.CASH_DEPART) -- on ne verse que les GAINS, jamais la mise de 1,61 $
+	-- on ne verse que les GAINS, jamais la mise de 1,61 $ — multipliés par les droits du joueur (passe ×2 ARGENT, Premium +10 %)
+	prof.compte += math.max(0, montant - Config.CASH_DEPART) * Revenus.multiplicateur(p)
 	-- (L31161) une LEÇON QUITTÉE n'est pas une partie : seul l'argent gagné est versé — ni record, ni aura, ni partie comptée
 	if type(stats) == "table" and stats.lecon == true then
 		evRecord:FireClient(p, prof.record, prof.compte)
@@ -207,6 +213,7 @@ evFin.OnServerEvent:Connect(function(p, montant, distance, aura, stats)
 		end
 		pcall(Profils.finCarnet, prof, stats.mis) -- les missions : meilleurs essais, carnet qui se ferme
 		if Profils.finPartie then pcall(Profils.finPartie, p, prof, stats) end -- (carrière)
+		pcall(Revenus.surFin, p, prof, stats, aura) -- (les badges d'exploit, le classement mondial)
 	end
 	local ls = p:FindFirstChild("leaderstats")
 	if ls then

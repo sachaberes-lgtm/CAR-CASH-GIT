@@ -171,6 +171,28 @@ environ 68 000 triangles ; le jeu tient dedans (il compte ce qu'il utilise et re
 du garage restent en pastille de couleur quand la place manque. La solution définitive serait d'importer les maillages comme
 ressources Roblox (ton compte) : à voir plus tard.
 
+## Gagner de l'argent avec le jeu (hors boutique)
+
+Tout est déjà codé et **éteint** : chaque objet payant attend son NUMÉRO dans `src/ReplicatedStorage/CashCar/Config.luau`,
+bloc `Config.REVENUS`. À 0, il ne s'affiche pas. Ce que le jeu fait déjà, gratuit, pour faire REVENIR les joueurs :
+- **le cadeau du jour** : une fenêtre à l'accueil, 7 jours qui montent (500 $ → 5 000 $) ; rater un jour = retour au jour 1 ;
+- **les cadeaux de temps de jeu** : 5, 15, 30, 60 minutes dans la session, puis chaque heure (tuile en bas à gauche) ;
+- **inviter des amis** : la fenêtre d'invitation de Roblox ; un ami qui arrive par ton lien = 1 000 $ pour lui et pour toi ;
+- **le TOP 10 MONDE** : les meilleurs records de tous les serveurs (il a besoin des API de données, voir plus bas) ;
+- **les joueurs Premium** gagnent +10 % (et Roblox te paie au temps qu'ils passent dans le jeu, sans rien vendre).
+
+Ce que TU dois créer sur **create.roblox.com → ton expérience** (les prix en Robux, c'est toi qui décides là-bas) :
+1. **Monétisation → Passes** : « x2 ARGENT » (tout l'argent d'une partie compte double ; il est proposé sur l'écran de fin) et
+   « VIP » (cadeaux doublés, nom doré au-dessus de la caisse) → recopie leurs numéros dans `passes = { argent2 = …, vip = … }` ;
+2. **Monétisation → Produits de développeur** : « Seconde chance » (repartir là où l'on a explosé, proposé 6 s après la mort,
+   une fois par partie, après 20 s de course) → son numéro dans `produits = { secondeChance = … }` ;
+3. **Engagement → Badges** (chaque badge coûte un peu de Robux à créer) : Bienvenue, Permis, Zone 6, Moteur palier 10,
+   1 000 d'aura, Millionnaire, 7 jours d'affilée → leurs numéros dans `badges = { … }` ;
+4. **(optionnel) un groupe Roblox** pour le jeu → son numéro dans `groupe = …` : le rejoindre donne 2 000 $ (une fois) ;
+5. **Paramètres → Sécurité → « Activer l'accès Studio aux API »** et la publication : sans ça, ni sauvegarde ni classement.
+
+Puis `node ROBLOX/construire.js` et republier. Les sommes (cadeaux, bonus) se règlent dans le même bloc.
+
 ## Pour le développeur (Claude ou autre)
 
 - **Les sources sont dans `src/`**, le `.rbxlx` se RECONSTRUIT : `node ROBLOX/construire.js` (ne pas éditer le

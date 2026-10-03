@@ -41,6 +41,7 @@ KA.Traces = require(CL:WaitForChild("Traces"))
 KA.Pigeons = require(CL:WaitForChild("Pigeons"))
 KA.Impact = require(CL:WaitForChild("Impact"))
 KA.Recyclage = require(CL:WaitForChild("Recyclage"))
+KA.Revenus = require(CL:WaitForChild("Revenus")) -- (cadeaux, seconde chance, ×2 ARGENT : voir Client/Revenus)
 -- (le tapotement de la caisse au titre : le « toc » de tôle de l'atelier et une vibration)
 KA.Titre.surTape = function() Sons.vrai("garageTole", nil, nil, "poseChoc", 1.5, 0.35) Hud.vibre(14) end
 
@@ -2783,6 +2784,7 @@ local function nouvellePartie()
 	G.virT, G.virC, G.virD, G.virPaye, G.frondeCd, G.raseT, G.raseAnn, G.froleN, G.froleT = 0, 0, false, false, 0, 0, false, 0, 0
 	G.carRoll, G.rollV, G.levreY, secousse, fovPunch = 0, 0, 0, 0, 0
 	stats.pieces, stats.poses, stats.parfaites, stats.fruits, stats.nitro, stats.duree, stats.chaine, stats.figures = 0, 0, 0, 0, 0, 0, 0, 0
+	G.seconde, G.secondeUsee = nil, false
 	KA.Impact.fin() -- (le cratère de la partie d'avant s'éteint)
 	G.tempsDepart = 0
 	G.fruitRaf, G.fruitRafT = 0, 0
@@ -2858,7 +2860,9 @@ local function finPartie()
 	Hud.tenir(E.mCauseEchelle, E.mCause.Text, 62, 560)
 	E.mRecord.Text = rec and (FR and "RECORD !" or "RECORD!") or ""
 	E.mRecord.Visible = rec
-	E.mCompte.Text = T.compte .. " " .. Hud.argent(compte + math.max(0, argent - Config.CASH_DEPART))
+	-- (les droits du joueur : passe ×2 ARGENT, Premium +10 % — le MÊME calcul que le serveur ; sinon l'offre ×2 à la place du badge)
+	local mulR = KA.Revenus.finEcran(E.mRecord, rec, math.max(0, argent - Config.CASH_DEPART), lecon)
+	E.mCompte.Text = T.compte .. " " .. Hud.argent(compte + math.max(0, argent - Config.CASH_DEPART) * mulR)
 	E.mAura.Text = "0"
 	Hud.tenir(E.mAuraEchelle, Hud.entier(aura), 78, 250)
 	-- (L39161) l'aura MONTE de 0 quand la carte arrive (à 0,26 s), en 0,75 s
@@ -2903,7 +2907,7 @@ local function finPartie()
 	Bus.emit("fin", { argent = argent, aura = aura, distance = dist, pieces = stats.pieces, figures = stats.poses,
 		kmh = G.vmax, zone = G.nbZones + 1, tier = tier, multi = Score.CHA.xMax, cause = causeMort, record = rec })
 	-- le montant s'égrène (750 ms), puis se pose
-	local cible = math.max(0, argent - Config.CASH_DEPART) -- on ne verse que les GAINS, jamais la mise de 1,61 $
+	local cible = math.max(0, argent - Config.CASH_DEPART) * mulR -- on ne verse que les GAINS, jamais la mise de 1,61 $
 	task.spawn(function()
 		local t0 = os.clock()
 		while os.clock() - t0 < 0.75 do
@@ -3028,6 +3032,31 @@ game:GetService("UserInputService").InputBegan:Connect(function(io: InputObject,
 		end
 	end
 end)
+-- ── LES REVENUS : le cadeau du jour, les cadeaux de temps de jeu, inviter, le groupe, la seconde chance (voir Client/Revenus) ──
+KA.Revenus.init({
+	action = function(nom: string, ...: any): (boolean, string?)
+		local ok, res, msg, p = pcall(function(...) return fnAction:InvokeServer(nom, ...) end, ...)
+		if not ok then return false, "erreur" end
+		if type(p) == "table" then lireProfil(p) end
+		return res == true, msg
+	end,
+	occupe = function() return mode ~= "menu" end,
+})
+-- la seconde chance ACCORDÉE (achetée, ou simulée au banc) : la caisse repart là où elle a explosé — sa partie, son argent, son
+-- moteur ; la chaîne ouverte, elle, est partie avec l'explosion. Refusée : la fin de partie suit son cours.
+function G.revivre(ok: boolean)
+	if not ok or mode ~= "boom" then
+		G.seconde = false
+		return
+	end
+	G.seconde, G.secondeUsee = nil, true
+	montrerCaisse(true)
+	replacer()
+	evEtat:FireServer("course", true)
+	HudScore.slam(tr("SECONDE CHANCE", "SECOND CHANCE"), tr("LA PARTIE CONTINUE", "THE RUN GOES ON"), "#ffd75e", "#ffffff", 40, 3)
+	Sons.jouer("go")
+	Hud.vibre(30)
+end
 -- ── LES MISSIONS : le carnet ouvert, ses trois défis, sa récompense (voir Client/Missions) ──
 Missions.init({
 	profil = function() return profil end,
@@ -3408,6 +3437,10 @@ function G.nomDouble(c: Model, m: Model)
 	l.TextStrokeColor3 = Color3.fromRGB(16, 8, 34)
 	l.TextStrokeTransparency = 0
 	l.Text = qui and qui.DisplayName or m.Name
+	if qui and qui:GetAttribute("VIP") then -- (le passe VIP : le nom en OR, la mention devant)
+		l.TextColor3 = Hud.C.or_
+		l.Text = "VIP " .. l.Text
+	end
 	l.Parent = bb
 	bb.Parent = pp
 end
@@ -3603,7 +3636,13 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 		elseif mode == "boom" then
 			boomT += dt
 			secousse = math.max(secousse, boomT < 0.1 and 1.2 or 0)
-			if boomT > 1.8 then finPartie() end
+			-- LA SECONDE CHANCE (voir Client/Revenus) : la carte s'ouvre quand la boule de feu retombe ; tant qu'elle est ouverte, la
+			-- fin de partie attend sa réponse (G.seconde : nil = pas proposée, true = ouverte, false = refusée)
+			if boomT > 1.2 and G.seconde == nil and KA.Revenus.secondeDispo(G.secondeUsee == true, stats.duree, TU.on or G.lecon == true) then
+				G.seconde = true
+				KA.Revenus.offrirSeconde(G.revivre)
+			end
+			if boomT > 1.8 and not G.seconde then finPartie() end
 		elseif mode == "menu" or mode == "garage" then
 			-- la caisse PIQUE sur place : un souffle qui la berce
 			local t = os.clock()

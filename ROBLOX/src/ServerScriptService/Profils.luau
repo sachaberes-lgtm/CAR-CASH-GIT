@@ -40,6 +40,9 @@ function Profils.neuf(): Profil
 			ast1 = false, ast2 = false, ast3 = false, ast4 = false, shopVu = false }, -- (shopVu : la BOUTIQUE a été visitée — sa pastille NEW s'éteint) -- les ASTUCES déjà lues (une fois à vie) : le bord, le vol, les pièces, le drift
 		permis = false, -- le PERMIS de l'auto-école : +500 $, une seule fois dans la vie du compte
 		stats = { parties = 0, distance = 0, pieces = 0, figures = 0 },
+		-- les REVENUS (voir Revenus) : le cadeau du jour (son jour UTC, la série), le bonus de groupe pris, qui m'a invité, les reçus
+		-- d'achat déjà servis (un reçu ne sert jamais deux fois)
+		jour = 0, serie = 0, groupe = false, invite = 0, achats = {},
 	}
 end
 
@@ -59,7 +62,12 @@ local function sain(p: any): Profil
 			n[k] = p[k]
 		end
 	end
-	for _, k in { "compte", "record", "auraMeilleur", "aura", "frenRec", "moteurMax", "kmhMax" } do
+	local achats = {}
+	for _, a in n.achats do
+		if type(a) == "string" and #a < 80 and #achats < 30 then table.insert(achats, a) end
+	end
+	n.achats = achats
+	for _, k in { "compte", "record", "auraMeilleur", "aura", "frenRec", "moteurMax", "kmhMax", "jour", "serie", "invite" } do
 		if n[k] ~= n[k] or n[k] < 0 or n[k] > 1e18 then n[k] = 0 end
 	end
 	local possede = {}
