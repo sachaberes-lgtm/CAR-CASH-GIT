@@ -11,6 +11,7 @@
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
+local Lighting = game:GetService("Lighting")
 local GuiService = game:GetService("GuiService")
 local AssetService = game:GetService("AssetService")
 local Config = require(script.Parent.Parent:WaitForChild("Config"))
@@ -220,6 +221,163 @@ end
 -- ════════ l'écran : le flash des BORDS (flashEcran, L28219 — le centre reste clair), les billets qui volent au compteur ════════
 local gui: ScreenGui
 local bords: { Frame } = {}
+-- LES BORDS DE L'IMAGE prennent la couleur de la poussée (nfxTick, L28452) — tant qu'on la TIENT : orange feu 30 %, bleu de
+-- réserve 36 %, violet de la nitro infinie, or du pad turbo (plus discret, 14 %). Ils montent vite (×8) et retombent en douceur
+-- (×2,6). Quatre bandes à part : le flash des bords (ci-dessous) garde les siennes.
+local teinte: { Frame } = {}
+local vigBas: Frame? = nil -- la bande du bas de la vignette : pleine sur la ROUTE (le bitume proche plonge dans le sombre), légère ailleurs
+local nfx = { edge = 0, c = Color3.fromRGB(255, 122, 36) }
+-- (PWR_DEFS.fx, L23506) la couleur de bord de chaque pouvoir, et sa force
+local POUVOIRS_FX: { [string]: { any } } = {
+	n = { Color3.fromRGB(164, 92, 255), 0.85 }, a = { Color3.fromRGB(94, 230, 255), 0.8 }, v = { Color3.fromRGB(255, 62, 200), 0.85 },
+	m = { Color3.fromRGB(94, 227, 122), 0.55 }, x = { Color3.fromRGB(255, 215, 94), 0.85 },
+}
+-- LA VIGNETTE DE VITESSE (#speedFx, L173 et L37985) : les bords plongent dans un violet de nuit quand on va TRÈS vite — rien sous
+-- 280 km/h, pleine à 840 (le regard est tiré vers le centre : la route, la caisse).
+local vigVit: { Frame } = {}
+local vigVitK = 0
+local function teinteTick(dt: number)
+	local vit = etat.mode == "drive" or etat.mode == "fall"
+	do
+		local o = vit and math.clamp(((etat.kmh or 0) - 280) / 560, 0, 0.95) * 0.55 or 0
+		vigVitK += (o - vigVitK) * math.min(1, dt * 4)
+		local a = 1 - vigVitK
+		for _, f in vigVit do
+			if math.abs(f.BackgroundTransparency - a) > 0.004 then f.BackgroundTransparency = a end
+		end
+	end
+	local on = etat.nitroOn == true
+	local eT = vit and (on and (etat.bleue and 0.36 or 0.3) or (((etat.boost or 0) > 0) and 0.14 or 0)) or 0
+	-- (HUD v3, L38030) LES BORDS BATTENT À LA COULEUR DU POUVOIR ACTIF — le plus « chaud » d'abord ; la nitro, elle, garde sa teinte
+	local pw = (vit and not on) and POUVOIRS_FX[etat.pouvoir or ""] or nil
+	if pw then eT = math.max(eT, pw[2] * (0.14 + 0.12 * (0.5 + 0.5 * math.sin(os.clock() * 5)))) end
+	nfx.edge += (eT - nfx.edge) * math.min(1, dt * ((eT > nfx.edge) and 8 or 2.6))
+	local cible = (etat.bleue and Color3.fromRGB(91, 125, 255)) or (on and (etat.infini and Color3.fromRGB(157, 77, 255) or Color3.fromRGB(255, 122, 36))) or Color3.fromRGB(255, 215, 94)
+	if pw then cible = pw[1] end
+	nfx.c = nfx.c:Lerp(cible, math.min(1, dt * 12))
+	-- LE FLOU DU LOINTAIN ne vit qu'en COURSE (le web floute le décor à la vitesse ; son menu, lui, est net)
+	do
+		local flou = Lighting:FindFirstChild("Lointain")
+		if flou then
+			local v = ((etat.mode == "drive" or etat.mode == "fall") and not etat.intro) and 0.8 or 0
+			local f = flou.FarIntensity + (v - flou.FarIntensity) * math.min(1, dt * 3)
+			if math.abs(f - flou.FarIntensity) > 0.002 then flou.FarIntensity = f end
+		end
+	end
+	if vigBas then
+		local v = (etat.mode == "drive" and not etat.intro) and 0 or 0.6
+		vigBas.BackgroundTransparency += (v - vigBas.BackgroundTransparency) * math.min(1, dt * 4)
+	end
+	local a = 1 - nfx.edge
+	for _, f in teinte do
+		if f.BackgroundTransparency ~= a or f.BackgroundColor3 ~= nfx.c then
+			f.BackgroundTransparency = a
+			f.BackgroundColor3 = nfx.c
+		end
+	end
+end
+-- LES FILÉS v2 (drawSpeedLines, L28514) : des traits fins façon anime qui FILENT du milieu vers les bords. Chacun VIT : il naît
+-- loin du centre (le milieu reste net), file en 0,2-0,4 s, s'allume et s'éteint en douceur, puis renaît ailleurs. « Un peu » en
+-- croisière, beaucoup au boost et à la nitro (chauffés à la couleur de la poussée). + LA GERBE de l'allumage (nfxFiles) : 18 traits
+-- qui jaillissent près du centre quand on appuie. Une COMÈTE : tête franche vers l'extérieur, queue qui s'étire vers le centre.
+local SLN, GFN = 44, 18
+local files: { any } = {}
+local gerbe: { any } = {}
+local rndF = Random.new(0x2f6b1a3)
+local COMETE = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.55, 0.45), NumberSequenceKeypoint.new(0.86, 0),
+	NumberSequenceKeypoint.new(1, 1) })
+local function fileNeuf(parent: Instance): any
+	local f = Instance.new("Frame")
+	f.Name = "File"
+	f.BorderSizePixel = 0
+	f.BackgroundColor3 = Color3.new(1, 1, 1)
+	f.AnchorPoint = Vector2.new(0.5, 0.5)
+	f.Visible = false
+	f.ZIndex = 3
+	local g = Instance.new("UIGradient")
+	g.Transparency = COMETE
+	g.Parent = f
+	f.Parent = parent
+	return { f = f, a = 0, r = 0, v = 0, t = 9, T = 1, l = 0, w = 1, al = 0 }
+end
+local function filePose(o: any, cx: number, cy: number, k: number, couleur: Color3, alpha: number)
+	local ca, sa = math.cos(o.a), math.sin(o.a) * 0.82
+	local d9 = math.sqrt(ca * ca + sa * sa)
+	local r = o.r + o.v * o.t
+	local l = o.l * d9
+	local f = o.f
+	f.Size = UDim2.fromOffset(l, math.max(1, o.w * 3))
+	f.Position = UDim2.fromOffset(cx + ca * r + ca / d9 * l / 2, cy + sa * r + sa / d9 * l / 2)
+	f.Rotation = math.deg(math.atan2(sa, ca))
+	f.BackgroundColor3 = couleur
+	f.BackgroundTransparency = 1 - alpha
+	f.Visible = true
+end
+local function filesTick(dt: number, ecran: Vector2)
+	local vit = etat.mode == "drive" or etat.mode == "fall"
+	local vc = math.max(60, etat.vmax or 200)
+	local nit = etat.nitroOn == true
+	local k = vit and (math.max(0, ((etat.kmh or 0) - vc * 0.6) / vc) + (nit and 0.6 or 0)) or 0
+	-- (le TUNNEL de l'orbite : des traits de lumière bleue plein l'écran, quelle que soit la vitesse)
+	local warp = vit and (etat.warp or 0) or 0
+	k = math.min(1.35, k + warp * 1.3)
+	local W, H = ecran.X, ecran.Y
+	local m9 = math.min(W, H)
+	local cx, cy = W / 2, H * 0.46
+	local couleur = nit and (etat.bleue and Color3.fromRGB(178, 196, 255) or Color3.fromRGB(255, 208, 160)) or Color3.fromRGB(255, 248, 236)
+	if warp > 0.02 then couleur = Color3.fromRGB(160, 214, 255) end
+	local cible = math.floor(k * 30)
+	local viv = 0
+	for _, o in files do
+		if o.t >= o.T then
+			if viv >= cible then
+				if o.f.Visible then o.f.Visible = false end
+				continue
+			end
+			o.a = rndF:NextNumber() * 6.2832
+			o.r = m9 * (0.28 + rndF:NextNumber() * 0.46)
+			o.v = m9 * (1.1 + rndF:NextNumber() * 1.3) * (0.6 + 0.4 * k)
+			o.t, o.T = 0, 0.22 + rndF:NextNumber() * 0.2
+			o.l = (110 + rndF:NextNumber() * 260) * (0.5 + 0.5 * k) * m9 / 390
+			o.w = (0.5 + rndF:NextNumber() * 0.8 * math.min(1, k)) * m9 / 390
+			o.al = 0.06 + rndF:NextNumber() * 0.14
+		end
+		o.t += dt
+		local u = o.t / o.T
+		if u >= 1 then
+			o.f.Visible = false
+			continue
+		end
+		viv += 1
+		-- (Roblox n'additionne pas la lumière comme le canvas « lighter » du web : un peu plus opaques pour se lire autant)
+		filePose(o, cx, cy, k, couleur, math.min(1, o.al * 1.8 * math.sin(u * math.pi) * math.min(1, k + 0.25)))
+	end
+	for _, o in gerbe do
+		if o.t < o.T then
+			o.t += dt
+			local u = o.t / o.T
+			if u > 0 and u < 1 then
+				filePose(o, cx, cy, 1, couleur, math.min(1, 0.55 * math.sin(u * math.pi)))
+			else
+				o.f.Visible = false
+			end
+		elseif o.f.Visible then
+			o.f.Visible = false
+		end
+	end
+end
+local function gerbeAllume(ecran: Vector2, k: number)
+	local m9 = math.min(ecran.X, ecran.Y)
+	for _, o in gerbe do
+		o.a = rndF:NextNumber() * 6.2832
+		o.r = m9 * (0.12 + rndF:NextNumber() * 0.22)
+		o.v = m9 * (2.2 + rndF:NextNumber() * 1.6) * (0.7 + 0.3 * k)
+		o.t, o.T = -rndF:NextNumber() * 0.1, 0.2 + rndF:NextNumber() * 0.16
+		o.l = (180 + rndF:NextNumber() * 260) * (0.6 + 0.4 * k) * m9 / 390
+		o.w = (0.8 + rndF:NextNumber() * 1.1) * m9 / 390
+	end
+end
+local rentreeT = 0
 local function flashBords(couleur: Color3, alpha: number, duree: number?)
 	for _, f in bords do
 		f.BackgroundColor3 = couleur
@@ -682,7 +840,7 @@ local function cratere()
 	Bus.agir.secousse(1.1)
 	flashBords(Color3.fromRGB(255, 110, 20), 0.65)
 	HudScore.slam(tr("IMPACT METEORE", "METEOR IMPACT"), "", "#ffb000", "#ff3924", 40, 3)
-	Sons.jouer("explosion", 1.25, 0.5)
+	Sons.vrai("cratere", nil, nil, "explosion", 1.25, 0.5)
 end
 local function crateresTick(dt: number)
 	for i = #crateres, 1, -1 do
@@ -879,13 +1037,18 @@ local function continuTick(dt: number)
 		if voile then voile.BackgroundTransparency = 1 - suivi.nuage * 0.26 end
 	end
 	-- le DRIFT : la gomme fume, la jante crache (or ; rose au dernier cran)
-	if etat.mode == "drive" and etat.driftOn then
+	if etat.mode == "drive" and (etat.driftOn or etat.glisse) then -- (L37012 : la fumée suit la VRAIE glisse — le drift, mais aussi la grosse charge en virage)
 		suivi.drift += dt * (10 + 8 * (etat.driftLv or 0))
 		while suivi.drift >= 1 do
 			suivi.drift -= 1
 			local cote = (rnd:NextNumber() < 0.5) and -1 or 1
 			local pos = cf.Position - cf.LookVector * (1.5 * M) + cf.RightVector * (cote * 0.95 * M) - cf.UpVector * (0.3 * M)
-			jet(((etat.driftLv or 0) >= 3) and "roseC" or "orC", pos, -cf.LookVector * 2 + cf.UpVector, rnd:NextInteger(1, 3), 5 * 0.2, 7 * 0.8, 45)
+			-- (L20811) LES ÉTINCELLES DISENT LA CHARGE : rien tant que le mini-turbo n'est pas né, puis BLEU (MINI, 0,45 s), OR (SUPER,
+			-- 0,9 s), ROSE (ULTRA, 1,4 s). Avant, tout virage appuyé crachait de l'or : on ne lisait pas où en était le drift.
+			local lv9 = etat.driftLv or 0
+			if lv9 >= 1 then
+				jet((lv9 >= 3) and "roseC" or ((lv9 == 2) and "orC" or "bleuC"), pos, -cf.LookVector * 2 + cf.UpVector, rnd:NextInteger(1, 3), 5 * 0.2, 7 * 0.8, 45)
+			end
 			jet("poussiereC", pos, -cf.LookVector + cf.UpVector * 0.5, 1, 1, 3, 30, 0.4, 0.75)
 		end
 	end
@@ -958,6 +1121,60 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 		g.Parent = f
 		table.insert(bords, f)
 	end
+	for _, d in { { 0, 0, 1, 0.3, 90 }, { 0, 0.7, 1, 0.3, 270 }, { 0, 0, 0.29, 1, 0 }, { 0.71, 0, 0.29, 1, 180 } } do
+		local f = Instance.new("Frame")
+		f.Name = "VignetteVitesse"
+		f.BorderSizePixel = 0
+		f.BackgroundColor3 = Color3.fromRGB(45, 20, 55)
+		f.BackgroundTransparency = 1
+		f.Position = UDim2.fromScale(d[1], d[2])
+		f.Size = UDim2.fromScale(d[3], d[4])
+		f.ZIndex = 2
+		f.Parent = gui
+		local g = Instance.new("UIGradient")
+		g.Rotation = d[5]
+		g.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0), NumberSequenceKeypoint.new(0.5, 0.6), NumberSequenceKeypoint.new(1, 1) })
+		g.Parent = f
+		table.insert(vigVit, f)
+	end
+	for _, d in { { 0, 0, 1, 0.34, 90 }, { 0, 0.66, 1, 0.34, 270 }, { 0, 0, 0.3, 1, 0 }, { 0.7, 0, 0.3, 1, 180 } } do
+		local f = Instance.new("Frame")
+		f.Name = "TeinteNitro"
+		f.BorderSizePixel = 0
+		f.BackgroundTransparency = 1
+		f.Position = UDim2.fromScale(d[1], d[2])
+		f.Size = UDim2.fromScale(d[3], d[4])
+		f.ZIndex = 4
+		f.Parent = gui
+		local g = Instance.new("UIGradient")
+		g.Rotation = d[5]
+		g.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0), NumberSequenceKeypoint.new(0.45, 0.7), NumberSequenceKeypoint.new(1, 1) })
+		g.Parent = f
+		table.insert(teinte, f)
+	end
+	for _ = 1, SLN do table.insert(files, fileNeuf(gui)) end
+	for _ = 1, GFN do table.insert(gerbe, fileNeuf(gui)) end
+
+	-- LA VIGNETTE (uVigK/uVigC de l'ACES du jeu web : bleu nuit, discrète) : quatre bandes fixes, plus sombres en bas (le bitume)
+	for _, d in { { 0, 0, 1, 0.22, 90, 0.7 }, { 0, 0.5, 1, 0.5, 270, 0.1 }, { 0, 0, 0.22, 1, 0, 0.62 }, { 0.78, 0, 0.22, 1, 180, 0.62 } } do -- (le bas BIEN plus sombre : sur le web le bitume proche plonge dans le bleu nuit — mesuré (16,25,36) en bas d'image contre (110,105,140) à mi-route)
+		local f = Instance.new("Frame")
+		f.Name = "Vignette"
+		f.BorderSizePixel = 0
+		f.BackgroundColor3 = Color3.fromRGB(20, 14, 48)
+		f.BackgroundTransparency = 0
+		f.Position = UDim2.fromScale(d[1], d[2])
+		f.Size = UDim2.fromScale(d[3], d[4])
+		f.ZIndex = 1
+		f.Parent = gui
+		local g = Instance.new("UIGradient")
+		g.Rotation = d[5]
+		g.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, d[6]), NumberSequenceKeypoint.new(0.4, (d[6] < 0.2) and 0.42 or 0.9), NumberSequenceKeypoint.new(0.75, (d[6] < 0.2) and 0.86 or 0.97), NumberSequenceKeypoint.new(1, 1) })
+		g.Parent = f
+		if d[6] < 0.2 then
+			vigBas = f
+			f.BackgroundTransparency = 0.6
+		end
+	end
 
 	voile = Instance.new("Frame")
 	voile.Name = "Voile"
@@ -992,6 +1209,8 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 	bassin("dard", { tex = TEX_BRAISE, c = hex(0xffd08a), t = 2.2, a = { 0, 0.5, 0.6, 1.3 }, op = 0.95, add = true, etire = true, vie = { 0.26, 0.46 }, nb = 1, eclat = 4 })
 	bassin("langue", { tex = TEX_FEU, c = hex(0xff7a24), t = 1.3, a = { 0, 0.5, 1, 0.45 }, op = 1, add = true, etire = true, vie = { 0.4, 1.1 }, nb = 4 })
 	bassin("eclatRouge", { tex = TEX_BRAISE, c = hex(0xff3b2a), t = 0.9, a = { 0.03, 0.5, 1, 0.5 }, op = 1, add = true, etire = true, vie = { 0.5, 1.3 }, nb = 6, eclat = 3 })
+	-- la GERBE D'EAU du requin (`spray`, L37723) : des gouttes claires qui filent et retombent
+	bassin("eau", { tex = TEX_BRAISE, c = hex(0xbfeaff), t = 0.55, a = { 0, 0.5, 1, 0.55 }, op = 0.9, add = true, acc = 16, etire = true, vie = { 0.22, 0.48 }, nb = 2, eclat = 2 })
 	bassin("eclatJaune", { tex = TEX_BRAISE, c = hex(0xffd94a), t = 1.05, a = { 0, 0.5, 1, 0.5 }, op = 1, add = true, etire = true, vie = { 0.3, 0.85 }, nb = 6, eclat = 3 })
 	bassin("sang", { tex = TEX_BRAISE, c = hex(0xa31212), t = 0.85, a = { 0, 0.4, 1, 0.8 }, op = 1, add = false, acc = 22, etire = true, vie = { 0.5, 1.7 }, nb = 3 })
 	bassin("braiseR", { tex = TEX_BRAISE, c = hex(0xff3818), t = 0.7, a = { 0.05, 0.45, 1, 0.5 }, op = 1, add = true, vie = { 1, 2.2 }, nb = 2, eclat = 3 })
@@ -1016,6 +1235,86 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 		explosionTick(dt)
 		palierTick(dt)
 		continuTick(dt)
+		teinteTick(dt)
+		filesTick(dt, gui.AbsoluteSize)
+		-- COMÈTE (ENG_CAP.comete, L38121) : à partir du palier 27, la caisse BRÛLE en permanence — des flammes qui montent de la
+		-- carrosserie (60 par seconde), des braises
+		if (etat.tier or 0) >= 27 and (etat.mode == "drive" or etat.mode == "fall") and not etat.pause then
+			local cf: CFrame = etat.carCF
+			for _ = 1, 2 do
+				if rndF:NextNumber() < dt * 30 then
+					local q = cf.Position + cf.RightVector * ((rndF:NextNumber() - 0.5) * 1.7 * M) + cf.UpVector * ((0.25 + rndF:NextNumber() * 0.9) * M)
+						+ cf.LookVector * ((rndF:NextNumber() - 0.5) * 2.4 * M)
+					jet("langue", q, Vector3.yAxis, 1, 2.5, 7, 30, 0.2, 0.42)
+				end
+			end
+			if rndF:NextNumber() < dt * 10 then jet("braiseO", cf.Position + cf.UpVector * (0.4 * M), Vector3.yAxis, 1, 3, 8, 50, 0.5, 0.9) end
+		end
+		-- LA RENTRÉE ATMOSPHÉRIQUE (orbFeu) : des flammes au nez qui lèchent la carrosserie et traînent derrière, des braises
+		local feu = etat.feu or 0
+		if feu > 0 and (etat.mode == "drive" or etat.mode == "fall") and not etat.pause then
+			rentreeT -= dt
+			if rentreeT <= 0 then
+				rentreeT = 0.045
+				local cf: CFrame = etat.carCF
+				local nez = cf.Position + cf.LookVector * (2.4 * M) + cf.UpVector * (0.5 * M)
+				jet("langue", nez, -cf.LookVector, 2 + math.floor(3 * feu), 10, 30, 34)
+				jet("braiseO", nez, -cf.LookVector, 1 + math.floor(2 * feu), 8, 26, 60)
+			end
+		end
+	end)
+	-- LES BOUTS DE TÔLE (dropChip, L26391) : de petits morceaux de la caisse (à sa laque ou à son accent) se détachent — une pose qui
+	-- coûte, un bump, et de temps en temps en roulant vite (l'épave plus que les autres). Douze pièces recyclées, 1,6 s de vie.
+	local TOLE: { any } = {}
+	local toleI = 0
+	Bus.on("tole", function(n: number, laque: Color3, accent: Color3)
+		local cf: CFrame = etat.carCF
+		if not cf then return end
+		for _ = 1, n do
+			toleI = toleI % 12 + 1
+			local q = TOLE[toleI]
+			if not q then
+				local p = Instance.new("Part")
+				p.Anchored = true
+				p.CanCollide, p.CanQuery, p.CanTouch = false, false, false
+				p.CastShadow = false
+				p.Material = Enum.Material.SmoothPlastic
+				p.Parent = workspace
+				q = { p = p, vie = 0 }
+				TOLE[toleI] = q
+			end
+			q.p.Size = Vector3.new(0.07 + rnd:NextNumber() * 0.14, 0.04 + rnd:NextNumber() * 0.07, 0.07 + rnd:NextNumber() * 0.14) * M
+			q.p.Color = (rnd:NextNumber() < 0.6) and laque or accent
+			q.cf = CFrame.new(cf.Position + cf.UpVector * (0.4 * M))
+			q.v = Vector3.new((rnd:NextNumber() - 0.5) * 6, 2 + rnd:NextNumber() * 3, (rnd:NextNumber() - 0.5) * 6) + cf.LookVector * ((etat.vA or 0) * Config.SPD * 0.8)
+			q.rx, q.ry = (rnd:NextNumber() - 0.5) * 10, (rnd:NextNumber() - 0.5) * 10
+			q.vie = 1.6
+			q.p.CFrame = q.cf
+		end
+	end)
+	RunService.Heartbeat:Connect(function(dt: number)
+		for _, q in TOLE do
+			if q.vie > 0 then
+				q.vie -= dt
+				q.v -= Vector3.yAxis * (20 * dt)
+				q.cf = (q.cf + q.v * dt * M) * CFrame.Angles(q.rx * dt, q.ry * dt, 0)
+				q.p.CFrame = (q.vie > 0) and q.cf or CFrame.new(0, -5000, 0)
+			end
+		end
+	end)
+	-- une petite gerbe demandée par le pilote (un plot percuté, la fronde, le plancher qui racle le bord, le décollage)
+	Bus.on("gerbe", function(nom: string, pos: Vector3, n: number, v0: number, v1: number, cone: number?, vers: Vector3?)
+		jet(nom, pos, vers or Vector3.yAxis, n, v0, v1, cone or 70)
+	end)
+	-- un éclair de bords demandé par le pilote (MIRACULÉ…)
+	Bus.on("flash", function(couleur: Color3, alpha: number?, duree: number?) flashBords(couleur, alpha or 0.7, duree) end)
+	-- les portes de l'orbite : l'éclair bleu à l'entrée et au bout du tunnel, l'éclair orange de la rentrée
+	Bus.on("orbite", function(quoi: string)
+		if quoi == "sort" then
+			flashBords(Color3.fromRGB(255, 120, 40), 0.85, 0.7)
+		else
+			flashBords(Color3.fromRGB(140, 210, 255), 0.85, 0.6)
+		end
 	end)
 	-- (mise au point, depuis la console de Studio) workspace:SetAttribute("DbgFx", "boom") — ou moteur7, pluie, cratere, jus3 —
 	-- rejoue un effet sur la caisse, sans attendre que la partie le provoque. Suivi d'un chiffre au besoin, pour le relancer.
@@ -1086,8 +1385,29 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 		palier.t = 0
 		palier.c = couleur or OR
 	end)
-	Bus.on("nitro", function(on: boolean, bleue: boolean?)
-		if on then flashBords(bleue and Color3.fromRGB(91, 125, 255) or Color3.fromRGB(255, 122, 36), 0.3, 0.35) end
+	Bus.on("nitro", function(on: boolean, bleue: boolean?, coup: number?, long: number?)
+		if on then
+			local k = coup or 1
+			local c = bleue and Color3.fromRGB(91, 125, 255) or Color3.fromRGB(255, 122, 36)
+			flashBords(c, 0.3 * k, 0.35)
+			gerbeAllume(gui.AbsoluteSize, (bleue and 0.6 or 1) * k)
+			-- L'ONDE D'ALLUMAGE (NFX.ring, L28366) : un anneau de choc à l'échappement — il s'ouvre en 0,42 s (0,35 → 1,9 m), accroché à
+			-- la caisse, et passe PAR-DESSUS la route (sur le web, elle le coupait en fer à cheval).
+			if etat.carCF then
+				local a = Instance.new("Attachment")
+				a.Position = Vector3.new(0, 0.43 * M, ((long or 4.4) * 0.5 + 0.7) * M)
+				a.Parent = ancreCaisse
+				local g = Instance.new("BillboardGui")
+				g.LightInfluence = 0
+				g.Brightness = 3
+				g.AlwaysOnTop = true
+				g.Size = UDim2.fromScale(0.7 * M, 0.7 * M)
+				g.Adornee = a
+				g.Parent = a
+				local sc = 0.65 + 0.35 * k
+				table.insert(anneaux, { gui = g, trait = cercle(g, c, 5), t = 0, dur = 0.42, r0 = 0.35 * sc, r1 = 1.9 * sc, pic = math.min(1, 0.55 + 0.45 * k), pw = 3, pa = 2, vie = true })
+			end
+		end
 	end)
 end
 

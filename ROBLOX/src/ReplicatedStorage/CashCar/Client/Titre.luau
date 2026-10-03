@@ -33,7 +33,7 @@ local GABARIT = { [0] = 0, [1] = 1, [2] = 3, [3] = 5, [4] = 2 }
 type Cumulus = { p: MeshPart, dec: Vector3, a: number, b: number, y: number, v: number, lo: number, hi: number }
 local S = {
 	C = Vector3.zero, lh = Vector3.zAxis, t = 0, go = nil :: { t: number, suite: () -> (), fini: boolean }?,
-	nu = {} :: { Cumulus }, dossier = nil :: Folder?, fh = Vector3.xAxis, f = Vector3.xAxis, pos = Vector3.zero, u = 0,
+	nu = {} :: { Cumulus }, dossier = nil :: Folder?, fh = Vector3.xAxis, f = Vector3.xAxis, pos = Vector3.zero, u = 0, vu = false,
 }
 
 -- LE PLAN (chutePlan) : où tombe la caisse, vers où l'on regarde ; puis les cumulus (bâtis une fois, en tâche de fond)
@@ -75,7 +75,39 @@ function Titre.plan(piste: any)
 		end
 	end
 end
+-- L'ORBITE AU DOIGT (L35538 du jeu web ; Sacha, 30/09 : « rajoute un moyen de déplacer la caméra autour de la voiture avec le doigt »)
+-- — glisser tourne le regard autour de la caisse (le tour complet), de haut en bas il monte ou plonge ; la vue rejoint le doigt en
+-- douceur (~0,1 s) et, lâchée en mouvement, elle garde son ÉLAN (frottement × e^−3t). Pas de retour automatique : c'est JOUER qui
+-- ramène la caméra derrière la caisse pour le piqué. La caisse, elle, ne bouge pas. (Un appui sur un bouton du menu n'y touche pas.)
+local O = { a = 0, ac = 0, w = 0, p = 0, pc = 0, mvT = 0, x = 0, y = 0, dt0 = os.clock(), io = nil :: InputObject? }
+do
+	local UIS = game:GetService("UserInputService")
+	UIS.InputBegan:Connect(function(io: InputObject, traite: boolean)
+		if traite or not S.vu or S.go or O.io then return end
+		if io.UserInputType == Enum.UserInputType.Touch or io.UserInputType == Enum.UserInputType.MouseButton1 then
+			O.io, O.x, O.y, O.mvT = io, io.Position.X, io.Position.Y, os.clock()
+		end
+	end)
+	UIS.InputChanged:Connect(function(io: InputObject)
+		local d = O.io
+		if not d or S.go then return end
+		if io ~= d and not (d.UserInputType == Enum.UserInputType.MouseButton1 and io.UserInputType == Enum.UserInputType.MouseMovement) then return end
+		local k = 844 / math.max(1, workspace.CurrentCamera.ViewportSize.X) -- (le geste du web se mesure sur un écran couché de 844 px)
+		local n9 = os.clock()
+		local dm = math.max(0.008, n9 - O.mvT)
+		local dA = -(io.Position.X - O.x) * k * 0.008
+		O.ac += dA
+		O.w = O.w * 0.55 + dA / dm * 0.45
+		O.mvT = n9
+		O.pc = math.clamp(O.pc + (io.Position.Y - O.y) * k * 0.004, -0.6, 1.0)
+		O.x, O.y = io.Position.X, io.Position.Y
+	end)
+	UIS.InputEnded:Connect(function(io: InputObject)
+		if O.io and (io == O.io or io.UserInputType == O.io.UserInputType) then O.io = nil end
+	end)
+end
 function Titre.montrer(oui: boolean)
+	S.vu = oui
 	if S.dossier then S.dossier.Parent = oui and workspace or nil end
 	if oui then
 		S.go = nil
@@ -136,6 +168,7 @@ function Titre.caisse(dt: number, voile: ((number) -> ())?): CFrame
 			table.insert(poses, CFrame.new((S.C + droite * c.a + lh * c.b + Vector3.new(0, c.y, 0)) * M + c.dec))
 		end
 		workspace:BulkMoveTo(pieces, poses, Enum.BulkMoveMode.FireCFrameChanged)
+		for _, p in pieces do Nuages.suivreFin(p) end
 	end
 	-- (le repère cuit des caisses : le nez vers −Z, la droite du pilote +X)
 	return CFrame.fromMatrix((C - up * 0.45) * M, -sd, up, -f)
@@ -151,7 +184,8 @@ function Titre.vue(fiche: any): (CFrame, number)
 	local fov = G and (44 + 26 * u * u) or 44
 	-- la place libre (menuCadre) : couché, la bande de GAUCHE (les boutons sont à droite) ; debout, entre le titre et les boutons
 	-- (vu dans Studio à 0,42 : la caisse débordait du bord gauche) · web c02c75a : la caisse au MILIEU de la hauteur utile (elle laissait le haut vide)
-	local nx, ny, fr, fhh = -0.52, 0.04, 0.34, 0.5
+	-- (3e retour, mesuré : sur le web couché la caisse prend 27 % de la largeur de l'image — ici 20 %)
+	local nx, ny, fr, fhh = -0.52, 0.04, 0.39, 0.5
 	if aspect < 1 then nx, ny, fr, fhh = -0.16, 0.1, 0.62, 0.4 end
 	local R9 = 0.5 * math.sqrt(fiche.l * fiche.l + fiche.w * fiche.w + (fiche.h + 0.6) * (fiche.h + 0.6))
 	local tV = math.tan(math.rad(fov) / 2)
@@ -161,7 +195,26 @@ function Titre.vue(fiche: any): (CFrame, number)
 	local sw = math.sin(t * 0.11) * 0.07 + math.sin(t * 0.047 + 1.1) * 0.04
 	local cA, sA = math.cos(sw), math.sin(sw)
 	local lx, lz = S.lh.X * cA - S.lh.Z * sA, S.lh.X * sA + S.lh.Z * cA
-	local ce, se = math.cos(P.elev), math.sin(P.elev)
+	-- l'orbite au doigt : l'élan qui s'use, la vue qui rejoint la cible du doigt
+	do
+		local n9 = os.clock()
+		local dt = math.min(0.1, n9 - O.dt0)
+		O.dt0 = n9
+		if not G then
+			if not O.io and O.w ~= 0 then
+				O.ac += O.w * dt
+				O.w *= math.exp(-dt * 3)
+				if math.abs(O.w) < 0.015 then O.w = 0 end
+			end
+			local kS = 1 - math.exp(-dt * 10)
+			O.a += (O.ac - O.a) * kS
+			O.p += (O.pc - O.p) * kS
+		end
+		local oc, os9 = math.cos(O.a), math.sin(O.a)
+		lx, lz = lx * oc - lz * os9, lx * os9 + lz * oc
+	end
+	local el9 = math.clamp(P.elev + O.p, -0.45, 1.25)
+	local ce, se = math.cos(el9), math.sin(el9)
 	local C = S.pos
 	local pos = Vector3.new(C.X - lx * ce * d, C.Y + se * d, C.Z - lz * ce * d)
 	local k = 1

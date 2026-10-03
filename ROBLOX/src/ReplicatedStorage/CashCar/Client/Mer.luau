@@ -363,6 +363,28 @@ function Mer.creer(graine: number)
 	end)
 end
 
+-- la mer n'existe qu'au niveau NUAGES (et au menu) : la VILLE et l'ORBITE n'ont pas de nuages
+local visible = true
+function Mer.montrer(oui: boolean)
+	if oui == visible or not dossier then return end
+	visible = oui
+	dossier.Parent = oui and workspace or nil
+end
+
+-- la TEINTE de l'heure (Client/Ambiance) : la mer prend l'or de la fin d'après-midi
+function Mer.teinte(c: Color3)
+	if not dossier then return end
+	local C = Config.CIEL
+	local base = C.merOmbre:Lerp(C.merSommet, 0.62)
+	for _, p in dossier:GetDescendants() do
+		if p == plateau then
+			p.Color = Color3.new(base.R * c.R, base.G * c.G, base.B * c.B)
+		elseif p:IsA("MeshPart") then
+			p.Color = c
+		end
+	end
+end
+
 -- à chaque image : camPos = la caméra, yCaisse = l'altitude de la caisse (studs)
 function Mer.suivre(camPos: Vector3, yCaisse: number, dt: number, sous: number?)
 	if not dossier then return end

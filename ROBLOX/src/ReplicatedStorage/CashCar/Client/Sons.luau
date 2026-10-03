@@ -6,6 +6,9 @@ local Config = require(script.Parent.Parent:WaitForChild("Config"))
 local Sons = {}
 Sons.actif = true
 Sons.musiqueActive = true
+-- LES CURSEURS du web (VOL.sfx, VOL.mus) : 0-1. La musique a été accordée au réglage d'usine (62 %) : son niveau est relatif à lui.
+Sons.volSon = 1
+Sons.volMus = 0.62
 
 local dossier = Instance.new("Folder")
 dossier.Name = "CashCarSons"
@@ -25,6 +28,12 @@ local VOLUMES = {
 	poseParfait = 0.6, vrille = 0.45, maillon = 0.4, bigAir = 0.5, encaisse = 0.6, pad = 0.55,
 	nitroPlein = 0.45, go = 0.6, bip = 0.5, compteFin = 0.6, record = 0.7, portail = 0.7, fronde = 0.5,
 }
+
+-- le VRAI son est-il importé ? (sinon on joue le son de secours, souvent à une autre hauteur — ou rien)
+function Sons.a(nom: string): boolean
+	local id = Config.SONS[nom]
+	return id ~= nil and id ~= ""
+end
 
 -- un petit bassin par son : on peut rejouer une pièce avant que la précédente ait fini
 local bassins: { [string]: { Sound } } = {}
@@ -58,9 +67,18 @@ function Sons.jouer(nom: string, hauteur: number?, volume: number?)
 	tours[nom] = (tours[nom] % #l) + 1
 	local s = l[tours[nom]]
 	s.PlaybackSpeed = hauteur or 1
-	if volume then s.Volume = volume else s.Volume = VOLUMES[nom] or 0.5 end
+	s.Volume = (volume or VOLUMES[nom] or 0.5) * Sons.volSon
 	s.TimePosition = 0
 	s:Play()
+end
+-- le VRAI son s'il est importé (à `hauteur`, `volume`) ; sinon son REPLI — ce qu'on entendait avant — à SA hauteur et SON volume.
+-- Sans repli et sans import : rien. Un son nouveau ne casse donc jamais rien, et il s'allume le jour où Sacha l'importe.
+function Sons.vrai(nom: string, hauteur: number?, volume: number?, repli: string?, hRepli: number?, vRepli: number?)
+	if Sons.a(nom) then
+		Sons.jouer(nom, hauteur, volume)
+	elseif repli then
+		Sons.jouer(repli, hRepli or hauteur, vRepli or volume)
+	end
 end
 function Sons.demiTons(n: number): number
 	return 2 ^ (n / 12)
@@ -89,7 +107,11 @@ function Sons.regler(nom: string, volume: number, hauteur: number?)
 	local s = Sons.boucle(nom)
 	if not s then return end
 	local v = (Sons.actif and volume or 0)
-	if nom == "musique" and not Sons.musiqueActive then v = 0 end
+	if string.sub(nom, 1, 7) == "musique" then -- (musique, musiqueNuages, musiqueVille, musiqueOrage)
+		v = Sons.musiqueActive and v * Sons.volMus / 0.62 or 0
+	else
+		v *= Sons.volSon
+	end
 	s.Volume = v
 	if hauteur then s.PlaybackSpeed = hauteur end
 end

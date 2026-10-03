@@ -24,6 +24,7 @@ function Profils.neuf(): Profil
 	return {
 		v = VERSION,
 		compte = 0, record = 0, auraMeilleur = 0,
+		moteurMax = 0, -- le meilleur palier de MOTEUR jamais atteint (SAVE.d.ex.eng du web) : l'écran de fin dit « RECORD ! » s'il est battu
 		aura = 0,      -- l'aura de TOUJOURS (elle fait le rang : ANONYME … DIVINITÉ DU CIEL)
 		frenRec = 0,   -- la plus longue frénésie (s)
 		caisses = { 0 }, caisse = 0, -- indices du jeu web : 0 = LA HONTE, la caisse de départ
@@ -33,12 +34,15 @@ function Profils.neuf(): Profil
 		habits = {},   -- les habillages gagnés ou achetés : « peinture:or », « trainee:arcenciel »…
 		porte = { peinture = "usine", aile = "panneaux", trainee = "nitro" }, -- ce que la caisse porte
 		carriere = {},
-		reglages = { son = true, musique = true, facile = false, facileChoisi = false, tuto = false },
+		reglages = { son = true, musique = true, facile = false, facileChoisi = false, tuto = false,
+			volSon = 100, volMus = 62, volH = "plonge", vib = true, -- (les curseurs de volume du web : 100 % et 62 % ; POUCE HAUT EN VOL ; VIBRATIONS)
+			ast1 = false, ast2 = false, ast3 = false, ast4 = false, shopVu = false }, -- (shopVu : la BOUTIQUE a été visitée — sa pastille NEW s'éteint) -- les ASTUCES déjà lues (une fois à vie) : le bord, le vol, les pièces, le drift
 		permis = false, -- le PERMIS de l'auto-école : +500 $, une seule fois dans la vie du compte
 		stats = { parties = 0, distance = 0, pieces = 0, figures = 0 },
 	}
 end
 
+local Catalogue = require(game:GetService("ReplicatedStorage"):WaitForChild("CashCar"):WaitForChild("Caisses"):WaitForChild("Catalogue"))
 local function sain(p: any): Profil
 	local n = Profils.neuf()
 	if type(p) ~= "table" then return n end
@@ -54,20 +58,28 @@ local function sain(p: any): Profil
 			n[k] = p[k]
 		end
 	end
-	for _, k in { "compte", "record", "auraMeilleur", "aura", "frenRec" } do
+	for _, k in { "compte", "record", "auraMeilleur", "aura", "frenRec", "moteurMax" } do
 		if n[k] ~= n[k] or n[k] < 0 or n[k] > 1e18 then n[k] = 0 end
 	end
 	local possede = {}
 	local liste = {}
 	for _, i in n.caisses do
 		if type(i) == "number" and i == math.floor(i) and i >= 0 and i < 1000 and not possede[i] then
-			possede[i] = true
-			table.insert(liste, i)
+			local f = Catalogue[i]
+			if f and f.retire then
+				-- LES CAISSES RETIRÉES (san, 2/10) : qui en avait acheté une est REMBOURSÉ au prix payé — une mise à jour ne confisque
+				-- pas — et elle sort de la liste (le remboursement ne joue donc qu'une fois)
+				if f.cond.k == "prix" then n.compte += f.cond.v end
+			else
+				possede[i] = true
+				table.insert(liste, i)
+			end
 		end
 	end
 	if not possede[0] then table.insert(liste, 0) end
 	n.caisses = liste
 	if type(n.caisse) ~= "number" or n.caisse ~= math.floor(n.caisse) or n.caisse < 0 then n.caisse = 0 end
+	if Catalogue[n.caisse] and Catalogue[n.caisse].retire then n.caisse = 0 end -- (qui roulait avec une caisse retirée repart en LA HONTE)
 	n.mis = Carnets.etat(n.mis)
 	local habits = {}
 	for _, h in n.habits do
@@ -96,12 +108,16 @@ end
 function Profils.sauver(p: Player)
 	local prof = actifs[p.UserId]
 	if not prof or not store then return end
+	local efface = prof.efface
+	prof.efface = nil
 	pcall(function()
 		store:UpdateAsync("p_" .. p.UserId, function(ancien)
+			if efface then return prof end -- (une progression EFFACÉE ne reprend rien de l'ancienne)
 			-- jamais en arrière : l'argent et le record ne redescendent pas si deux serveurs se croisent
 			local a = sain(ancien)
 			prof.record = math.max(prof.record, a.record)
 			prof.auraMeilleur = math.max(prof.auraMeilleur, a.auraMeilleur)
+			prof.moteurMax = math.max(prof.moteurMax, a.moteurMax)
 			return prof
 		end)
 	end)
@@ -115,14 +131,13 @@ end
 Profils.actions = {} :: { [string]: (Player, Profil, ...any) -> (boolean, string?) }
 
 -- ── le GARAGE : acheter et équiper (le catalogue est celui du jeu web, cuit) ──
-local Catalogue = require(game:GetService("ReplicatedStorage"):WaitForChild("CashCar"):WaitForChild("Caisses"):WaitForChild("Catalogue"))
 local Config = require(game:GetService("ReplicatedStorage"):WaitForChild("CashCar"):WaitForChild("Config"))
 function Profils.possede(prof: Profil, i: number): boolean
 	return table.find(prof.caisses, i) ~= nil
 end
 Profils.actions.acheter = function(_, prof, i)
 	local f = type(i) == "number" and Catalogue[i]
-	if not f then return false, "caisse inconnue" end
+	if not f or f.retire then return false, "caisse inconnue" end
 	if Profils.possede(prof, i) then return false, "deja a toi" end
 	if f.cond.k ~= "prix" then return false, "pas a vendre" end
 	if prof.compte < f.cond.v then return false, "pas assez" end
@@ -132,7 +147,7 @@ Profils.actions.acheter = function(_, prof, i)
 end
 Profils.actions.equiper = function(p, prof, i)
 	local f = type(i) == "number" and Catalogue[i]
-	if not f then return false, "caisse inconnue" end
+	if not f or f.retire then return false, "caisse inconnue" end
 	if not Profils.possede(prof, i) and not Config.TEST_CAISSES then return false, "pas a toi" end
 	prof.caisse = i
 	if Profils.surEquipe then Profils.surEquipe(p, i) end
@@ -218,8 +233,23 @@ function Profils.finCarnet(prof: Profil, essais: any)
 	end
 end
 
+-- EFFACER MA PROGRESSION (L39243 du jeu web, avec confirmation côté joueur) : le profil repart à zéro. `efface` dit à la sauvegarde de
+-- ne PAS fusionner avec l'ancien (sinon le record, l'aura et le moteur effacés y reviendraient — « jamais en arrière »).
+Profils.actions.effacer = function(_, prof)
+	local n = Profils.neuf()
+	for k in pairs(prof) do prof[k] = nil end
+	for k, v in n do prof[k] = v end
+	prof.efface = true
+	return true
+end
 Profils.actions.reglage = function(_, prof, cle, valeur)
 	if type(cle) ~= "string" or prof.reglages[cle] == nil or type(valeur) ~= type(prof.reglages[cle]) then
+		return false, "reglage inconnu"
+	end
+	if type(valeur) == "number" then
+		if valeur ~= valeur then return false, "reglage inconnu" end
+		valeur = math.clamp(math.floor(valeur / 5 + 0.5) * 5, 0, 100) -- (les curseurs vont de 0 à 100 %, par pas de 5)
+	elseif type(valeur) == "string" and valeur ~= "plonge" and valeur ~= "monte" then
 		return false, "reglage inconnu"
 	end
 	prof.reglages[cle] = valeur

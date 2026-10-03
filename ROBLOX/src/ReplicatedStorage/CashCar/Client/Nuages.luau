@@ -24,12 +24,29 @@ local Nuages = {}
 
 local UNITE = 100 -- studs par unité de nuage dans le gabarit
 local TAILLE_MAX = 2000 -- studs : la plus grande pièce que Roblox accepte
+local BLANC = 1 -- la clarté de la ouate (la lumière est cuite dans les sommets : voir batir)
 
--- ── les gabarits : un EditableMesh à normales LISSES (le gradient du champ) et couleurs aux sommets ──
-type Gabarit = { p: MeshPart, centre: Vector3, taille: Vector3, fiche: any }
+-- ── les gabarits : un EditableMesh, la LUMIÈRE CUITE dans les couleurs des sommets (outils/cuire-nuages.js : la formule de
+-- nuage8Mat du jeu web — frontière d'ombre douce, soleil crème, ombre bleu-lavande) ; toutes les normales pointent vers le
+-- HAUT : l'éclairage de Roblox est alors le même sur tout le nuage (il ne fait que multiplier), plus de frontière dure ni de
+-- reflet de plastique — c'est la couleur cuite qu'on voit ──
+type Gabarit = { p: MeshPart, centre: Vector3, taille: Vector3, fiche: any, em: any, cols: { { number } } }
+-- LA PALETTE DE L'HEURE (les trois heures du niveau NUAGES du web : matin, midi, fin d'après-midi) : le côté soleil, l'ombre
+-- tournée vers le ciel, l'ombre du ventre — en 0-255. Les sommets portent les INGRÉDIENTS (part de soleil, modelé de l'ombre,
+-- part de ciel : outils/cuire-nuages.js) ; la couleur se compose ici, et se recompose quand l'heure change (Nuages.palette).
+local K_LUM = 1.3 -- (l'éclairage de Roblox multiplie tout par ~1,3 : les couleurs sont divisées d'autant)
+local PAL = { S = Vector3.new(282, 270, 252), OH = Vector3.new(182, 194, 238), OB = Vector3.new(158, 168, 224) }
+local function peindre(em: any, cols: { { number } })
+	local S, OH, OB = PAL.S, PAL.OH, PAL.OB
+	for _, q in cols do
+		local o = (OB + (OH - OB) * q[4]) * q[3]
+		local c = (o + (S - o) * q[2]) / (K_LUM * 255)
+		em:SetColor(q[1], Color3.new(math.clamp(c.X, 0, 1), math.clamp(c.Y, 0, 1), math.clamp(c.Z, 0, 1)))
+	end
+end
 local gabarits: { [number]: Gabarit | false } = {}
-local function batir(k: number): Gabarit?
-	local module = Modules:FindFirstChild(string.format("N%02d", k))
+local function batir(k: number, fin: boolean?): Gabarit?
+	local module = Modules:FindFirstChild(string.format(fin and "F%02d" or "N%02d", k))
 	if not module then return nil end
 	local okD, d = pcall(require, module)
 	if not okD then return nil end
@@ -50,13 +67,12 @@ local function batir(k: number): Gabarit?
 		mn, mx = mn:Min(p), mx:Max(p)
 	end
 	local centre = (mn + mx) / 2
-	local ids, nrm, col = table.create(nv), table.create(nv), table.create(nv)
+	local ids, col = table.create(nv), table.create(nv)
+	local haut = em:AddNormal(Vector3.yAxis)
 	local couleurs: { [number]: number } = {}
 	for i = 0, nv - 1 do
 		local o = i * 12
 		ids[i + 1] = em:AddVertex(pts[i + 1] - centre)
-		local n = Vector3.new(buffer.readi8(v, o + 6), buffer.readi8(v, o + 7), buffer.readi8(v, o + 8))
-		nrm[i + 1] = em:AddNormal((n.Magnitude > 0) and n.Unit or Vector3.yAxis)
 		-- (les teintes voisines partagent leur couleur : 32 niveaux par voie suffisent à un dégradé de ouate)
 		local r, g, b = buffer.readu8(v, o + 9) // 8, buffer.readu8(v, o + 10) // 8, buffer.readu8(v, o + 11) // 8
 		local cle = r * 1024 + g * 32 + b
@@ -70,7 +86,7 @@ local function batir(k: number): Gabarit?
 	for i = 0, buffer.len(t) - 6, 6 do
 		local a, b, c = buffer.readu16(t, i) + 1, buffer.readu16(t, i + 2) + 1, buffer.readu16(t, i + 4) + 1
 		local f = em:AddTriangle(ids[a], ids[b], ids[c])
-		em:SetFaceNormals(f, { nrm[a], nrm[b], nrm[c] })
+		em:SetFaceNormals(f, { haut, haut, haut })
 		em:SetFaceColors(f, { col[a], col[b], col[c] })
 	end
 	local okF, fige = pcall(function() return AssetService:CreateEditableMeshAsync(Content.fromObject(em), { FixedSize = true }) end)
@@ -78,25 +94,187 @@ local function batir(k: number): Gabarit?
 		em:Destroy()
 		em = fige
 	end
+	-- les ingrédients de chaque couleur, relus sur le maillage figé (ses numéros de couleur ne sont plus ceux d'avant), puis la
+	-- palette de l'heure — AVANT de créer la pièce : même si Roblox ne suivait pas les changements, la pièce naît juste
+	local cols: { { number } } = {}
+	local okC = pcall(function()
+		for _, id in em:GetColors() do
+			local c = em:GetColor(id)
+			table.insert(cols, { id, c.R, c.G * 1.25, c.B })
+		end
+		peindre(em, cols)
+	end)
+	if not okC then warn("[CashCar] nuage " .. k .. " : palette refusée") end
 	local okP, mp = pcall(function() return AssetService:CreateMeshPartAsync(Content.fromObject(em), { CollisionFidelity = Enum.CollisionFidelity.Box }) end)
 	if not okP or not mp then
 		warn("[CashCar] nuage " .. k .. " : pièce refusée")
 		return nil
 	end
-	Maillage.noter(buffer.len(t) / 6) -- (le compte du budget de triangles)
+	if fin then
+		Maillage.suivre(mp, em, buffer.len(t) / 6) -- (la version fine se rend : sa destruction libère le budget)
+	else
+		Maillage.noter(buffer.len(t) / 6) -- (le compte du budget de triangles)
+	end
 	mp.Name = "Nuage"
 	mp.Anchored = true
 	mp.CanCollide = false
 	mp.CanQuery = false
 	mp.CanTouch = false
 	mp.CastShadow = false
-	mp.Material = Enum.Material.SmoothPlastic
+	mp.Material = Enum.Material.Plastic -- (mat : en lisse, le soleil y posait des reflets de glace — des icebergs, pas du coton)
 	mp.Color = Color3.new(1, 1, 1)
-	return { p = mp, centre = centre / UNITE, taille = mp.Size, fiche = Liste[k] }
+	return { p = mp, centre = centre / UNITE, taille = mp.Size, fiche = Liste[k], em = em, cols = cols }
 end
 local function gabarit(k: number): Gabarit?
 	return gabarits[k] or nil
 end
+-- ── LA FINESSE DU TOUT PRÈS (N8_FIN du web : la surface d'un nuage suit sa taille à l'écran, 12 / 18 / 26 / 48 cellules) ──
+-- Roblox ne tient pas quatre jeux de 25 maillages dans son budget : tous les nuages sont posés en ÉBAUCHE (12 cellules), et ceux
+-- qui deviennent GRANDS à l'écran (cotonTick : 73·R / (d − R/2) segments demandés, au-delà de ~13 l'ébauche montre ses facettes)
+-- reçoivent une copie FINE (26 cellules) par-dessus l'ébauche cachée. Une version fine coûte ~3 000 triangles, partagés par
+-- tous les nuages de son gabarit ; on en tient quelques-unes à la fois, les plus utiles d'abord, et on les rend dès qu'elles
+-- ne servent plus (le garage, la carte moteur ont besoin du budget).
+type Inscrit = { p: MeshPart, k: number, f: MeshPart?, q: number }
+local inscrits: { Inscrit } = {}
+local parPiece: { [MeshPart]: Inscrit } = {}
+local fins: { [number]: { g: Gabarit?, etat: string, vu: number } } = {}
+local FIN_ON, FIN_OFF, FIN_MAX, FIN_MARGE = 0.16, 0.12, 4, 12000 -- (la marge : la carte moteur et un changement de caisse doivent toujours trouver leur place)
+local finT = 0
+local function inscrire(p: MeshPart, k: number)
+	local e = { p = p, k = k, f = nil, q = 0 }
+	table.insert(inscrits, e)
+	parPiece[p] = e
+end
+-- la copie fine suit l'ébauche : sa taille (un banc qui éclate), sa place, sa transparence (la caméra dedans)
+local function majFin(e: Inscrit)
+	local f, p = e.f, e.p
+	local g, gf = gabarits[e.k], fins[e.k] and fins[e.k].g
+	if not f or not g or not gf then return end
+	local ech = p.Size / g.taille
+	f.Size = gf.taille * ech
+	f.CFrame = p.CFrame * CFrame.new((gf.centre - g.centre) * UNITE * ech)
+	if f.Transparency ~= p.Transparency then f.Transparency = p.Transparency end
+end
+local function oterFin(e: Inscrit)
+	if e.f then
+		e.f:Destroy()
+		e.f = nil
+	end
+	if e.p.Parent then e.p.LocalTransparencyModifier = 0 end
+end
+-- un nuage qu'on DÉPLACE à chaque image (les cumulus du titre) : sa copie fine le suit tout de suite
+function Nuages.suivreFin(p: MeshPart)
+	local e = parPiece[p]
+	if e and e.f then majFin(e) end
+end
+-- à chaque image (le pilote) : `cam` = la caméra en course ; nil au menu et au garage → toutes les versions fines sont rendues
+function Nuages.finesseTick(dt: number, cam: Vector3?)
+	finT -= dt
+	if finT > 0 then return end
+	finT = 0.2
+	local maintenant = os.clock()
+	-- 1) chaque nuage vivant et montré : combien de segments il demande
+	local voulus: { [number]: number } = {}
+	local i = 1
+	while i <= #inscrits do
+		local e = inscrits[i]
+		local p = e.p
+		if not p.Parent then
+			-- (sa zone a été détruite : il sort de la liste)
+			oterFin(e)
+			parPiece[p] = nil
+			inscrits[i] = inscrits[#inscrits]
+			inscrits[#inscrits] = nil
+			continue
+		end
+		local q = 0
+		if cam and p:IsDescendantOf(workspace) then
+			local R = math.max(p.Size.X, p.Size.Y, p.Size.Z) * 0.5
+			local d = (p.Position - cam).Magnitude
+			q = R / math.max(1, d - R * 0.5)
+		end
+		e.q = q
+		if q > (e.f and FIN_OFF or FIN_ON) then voulus[e.k] = math.max(voulus[e.k] or 0, q) end
+		i += 1
+	end
+	-- 2) les gabarits fins à tenir : les plus demandés d'abord, tant que le budget le permet
+	local ordre = {}
+	for k, q in voulus do
+		if k ~= 24 then table.insert(ordre, { k, q }) end
+	end
+	table.sort(ordre, function(a, b) return a[2] > b[2] end)
+	local tenus = 0
+	for _, v in ordre do
+		local k = v[1]
+		local F = fins[k]
+		if tenus >= FIN_MAX then
+			voulus[k] = nil
+			continue
+		end
+		if not F then
+			local tri = (Liste[k] and Liste[k].fin) or 4000
+			if Maillage.libre() - tri > FIN_MARGE then
+				F = { g = nil, etat = "charge", vu = maintenant }
+				fins[k] = F
+				task.spawn(function()
+					local g = Maillage.seul(batir, k, true)
+					if fins[k] ~= F then
+						if g then g.p:Destroy() end
+						return
+					end
+					F.g = g
+					F.etat = g and "pret" or "refus"
+				end)
+			else
+				voulus[k] = nil
+				continue
+			end
+		end
+		F.vu = maintenant
+		tenus += 1
+	end
+	-- 3) chaque nuage : sa copie fine (si son gabarit fin est prêt et qu'il la demande), ou son ébauche
+	for _, e in inscrits do
+		local F = fins[e.k]
+		local veut = voulus[e.k] ~= nil and e.q > (e.f and FIN_OFF or FIN_ON) and F ~= nil and F.etat == "pret"
+		if veut and not e.f then
+			local f = (F :: any).g.p:Clone()
+			f.Color = e.p.Color
+			f.Parent = e.p.Parent
+			e.f = f
+			e.p.LocalTransparencyModifier = 1
+			majFin(e)
+		elseif not veut and e.f then
+			oterFin(e)
+		elseif e.f then
+			majFin(e)
+		end
+	end
+	-- 4) les gabarits fins qui ne servent plus depuis 3 s (tout de suite hors de la course) : rendus au budget
+	for k, F in fins do
+		if F.etat ~= "charge" and (not cam or maintenant - F.vu > 3) then
+			for _, e in inscrits do
+				if e.k == k and e.f then oterFin(e) end
+			end
+			if F.g then F.g.p:Destroy() end
+			fins[k] = nil
+		end
+	end
+end
+
+-- L'HEURE CHANGE : tous les nuages (les 25 gabarits et les versions fines chargées) reprennent la palette — leurs copies
+-- partagent leur maillage, elles suivent toutes seules
+function Nuages.palette(S: Vector3, OH: Vector3, OB: Vector3)
+	if PAL.S == S and PAL.OH == OH and PAL.OB == OB then return end
+	PAL.S, PAL.OH, PAL.OB = S, OH, OB
+	for _, g in gabarits do
+		if g then pcall(peindre, g.em, g.cols) end
+	end
+	for _, F in fins do
+		if F.g then pcall(peindre, F.g.em, F.g.cols) end
+	end
+end
+
 -- les 25 gabarits, bâtis UNE fois, l'un après l'autre (0 = pas commencé, 1 = en cours, 2 = prêts) : qui arrive pendant
 -- qu'ils se bâtissent ATTEND — sinon une deuxième zone se bâtirait sans eux
 local etatGabarits = 0
@@ -158,7 +336,8 @@ end
 export type Nuage = { p: MeshPart, c: Vector3, r: number, ry: number, route: boolean, base: Vector3, echelle: Vector3, casse: number, dedans: boolean }
 
 -- Bâtit le ciel et les nuages de jeu d'une piste. Rend la liste des nuages qu'on TRAVERSE (bancs, coussins, tours).
-function Nuages.batir(piste: any, dossier: Instance, graine: number, ceder: (() -> ())?): { Nuage }
+-- (decor : le ciel de coton SEUL, sans les nuages qu'on traverse — la piste de l'auto-école)
+function Nuages.batir(piste: any, dossier: Instance, graine: number, ceder: (() -> ())?, decor: boolean?): { Nuage }
 	Nuages.modeles(ceder)
 	local rnd = Random.new(graine)
 	local function cr(): number return rnd:NextNumber() end
@@ -207,7 +386,8 @@ function Nuages.batir(piste: any, dossier: Instance, graine: number, ceder: (() 
 		local sx = 0.86 + cr() * 0.44
 		local sy0 = (gn == "fractus" or gn == "altocumulus" or gn == "stratocumulus") and (0.75 + cr() * 0.25) or (0.85 + cr() * 0.3)
 		local sy = syF or sy0
-		local cap, l9, w9, lourd = cr() * 6.2832, 0.82 + cr() * 0.22, (cr() - 0.5) * 2, cr() < 0.12
+		-- (la lumière est cuite pour le soleil du ciel : un nuage ne tourne plus que de ±0,4 rad sur lui-même, son côté clair reste au soleil)
+		local cap, l9, w9, lourd = (cr() - 0.5) * 0.8, 0.82 + cr() * 0.22, (cr() - 0.5) * 2, cr() < 0.12
 		-- Roblox : pas plus de 2 048 studs par pièce → un nuage trop gros est rapproché de la route d'autant
 		local plus = math.max(g.taille.X * sx, g.taille.Y * sy, g.taille.Z) / UNITE * r * M
 		if plus > TAILLE_MAX then
@@ -225,8 +405,10 @@ function Nuages.batir(piste: any, dossier: Instance, graine: number, ceder: (() 
 		p.CFrame = CFrame.new(origine) * rot * CFrame.new(g.centre * UNITE * ech)
 		-- SA TEINTE : clair ou sourd, chaud ou froid, parfois lourd — en sourdine (30 %), comme la matière du jeu
 		local tr, tv, tb = l9 * (1 + 0.2 * w9) * (lourd and 0.8 or 1), l9 * (1 + 0.02 * w9) * (lourd and 0.83 or 1), l9 * (1 - 0.22 * w9) * (lourd and 0.95 or 1)
-		p.Color = Color3.new(math.min(1, 1 + (tr - 1) * 0.3), math.min(1, 1 + (tv - 1) * 0.3), math.min(1, 1 + (tb - 1) * 0.3))
+		-- (× BLANC : à 1, sous le soleil de Roblox, toute la face éclairée partait au blanc pur, sans modelé)
+		p.Color = Color3.new(math.min(1, 1 + (tr - 1) * 0.3) * BLANC, math.min(1, 1 + (tv - 1) * 0.3) * BLANC, math.min(1, 1 + (tb - 1) * 0.3) * BLANC)
 		p.Parent = dossier
+		inscrire(p, k)
 		nb += 1
 		if ceder and nb % 12 == 0 then ceder() end
 		return p
@@ -241,8 +423,12 @@ function Nuages.batir(piste: any, dossier: Instance, graine: number, ceder: (() 
 	end
 
 	-- ════ LE CIEL DE COTON (buildCoton) — réglages du niveau NUAGES : deux fois moins de nuages, ×1,9 plus gros ════
-	local GZ, NZ = 1.9, 0.5
-	local function KK(n: number): number return math.max(1, math.floor(n * 0.5 + 0.5)) end
+	-- L'ORAGE (L8231, L8456) : « plus de nuages partout, au point que ça gêne la visibilité » — des nuages à la taille d'origine mais
+	-- ×1,6 plus nombreux, des MURS de ouate au ras de la route, un PLAFOND bas, un banc sur la route tous les 300-600 m. Le lointain
+	-- (au-delà de la brume de l'orage, ~1 km) n'est pas bâti : ce serait de la brume pure.
+	local OR = piste.variante == "orage"
+	local GZ, NZ = OR and 1 or 1.9, OR and 1 or 0.5
+	local function KK(n: number): number return math.max(1, math.floor(n * (OR and 1.6 or 0.5) + 0.5)) end
 	-- (1) LA COURONNE PROCHE, en ARCHIPELS : un grand et ses satellites, du ciel ouvert entre deux
 	for k = 0, KK(30) - 1 do
 		local i = strat(k, KK(30))
@@ -297,22 +483,47 @@ function Nuages.batir(piste: any, dossier: Instance, graine: number, ceder: (() 
 		local a, d, r = cr() * 6.2832, 260 + cr() * 1700, taille(rnd, 60 * GZ, 300 * GZ, 1.5)
 		pose(p, p.X + math.cos(a) * d, p.Y + 230 + cr() * 420, p.Z + math.sin(a) * d, r, tire(rnd, POIDS.mil))
 	end
+	if OR then
+		-- LES MURS : au ras de la route, de chaque côté, à hauteur de caisse — la route file dans un couloir de ouate : on ne voit plus
+		-- d'où vient le virage, seulement la route devant soi, et l'éclair qui éclaire le couloir
+		for k = 0, 29 do
+			local i = strat(k, 30)
+			local p = pt(i)
+			local qx, qz = travers(i)
+			local sg = (cr() < 0.5) and -1 or 1
+			local r = taille(rnd, 40, 120, 1.3)
+			local kk = tire(rnd, POIDS.pres)
+			local dd = RH + r * 0.8 + 20 + cr() * 40
+			for _ = 1, 3 do
+				if pose(p, p.X + qx * sg * dd, p.Y - r * 0.45 + cr() * 30, p.Z + qz * sg * dd, r, kk) then break end
+				dd += 40
+			end
+		end
+		-- LE PLAFOND : de grands nuages plats et bas, 70-170 m au-dessus de la route, sur elle et autour — le ciel se referme
+		for k = 0, 41 do
+			local i = strat(k, 42)
+			local p = pt(i)
+			local qx, qz = travers(i)
+			local lat, r = (cr() - 0.5) * 900, taille(rnd, 110, 230, 1.2)
+			pose(p, p.X + qx * lat, p.Y + 70 + cr() * 100, p.Z + qz * lat, r, parmi(rnd, { "stratocumulus", "stratocumulus", "humilis", 1, 4 }), 0.8 + cr() * 0.25)
+		end
+	end
 	-- (5) LE LOINTAIN : l'horizon a ses nuages
-	local K5 = math.floor(80 * NZ + 0.5)
+	local K5 = OR and 0 or math.floor(80 * NZ + 0.5)
 	for k = 0, K5 - 1 do
 		local p = pt(strat(k, K5))
 		local a, d, r = cr() * 6.2832, 1200 + cr() * 1400, taille(rnd, 120 * GZ, 560 * GZ, 1.4)
 		pose(p, p.X + math.cos(a) * d, p.Y - 260 + cr() * 700, p.Z + math.sin(a) * d, r, tire(rnd, POIDS.loin))
 	end
 	-- (7) LES CATHÉDRALES : de grands congestus qui montent de l'abîme — une PORTE (les deux côtés) ou une FALAISE (un seul)
-	local K7 = math.max(3, math.floor(L / 2000))
+	local K7 = math.max(3, math.floor(L / (OR and 1400 or 2000))) -- (aux NUAGES : moins de cathédrales, plus grosses — pas à l'orage)
 	for k = 0, K7 - 1 do
 		local i = strat(k, K7)
 		local p = pt(i)
 		local qx, qz = travers(i)
 		local cotes = (cr() < 0.45) and { -1, 1 } or { (cr() < 0.5) and -1 or 1 }
 		for _, sg in cotes do
-			local r = (220 + cr() * 120) * 1.45
+			local r = (220 + cr() * 120) * (OR and 1 or 1.45)
 			local kk = parmi(rnd, { "congestus", "cisaille", "champignon", 2 })
 			local yB = p.Y - (220 + cr() * 120)
 			local dd = RH + r * 1.25 + 60 + cr() * 230
@@ -324,28 +535,30 @@ function Nuages.batir(piste: any, dossier: Instance, graine: number, ceder: (() 
 		end
 	end
 	-- (6) MASSIFS, TITANS à enclume, TOURS HÉROÏQUES et LE COLOSSE
-	for k = 0, 5 do
+	for k = 0, OR and -1 or 5 do
 		local p = pt(strat(k, 6))
 		local a, d, r = cr() * 6.2832, 900 + cr() * 1300, 280 + cr() * 300
 		pose(p, p.X + math.cos(a) * d, p.Y - 320 + cr() * 160, p.Z + math.sin(a) * d, r, parmi(rnd, { 2, 0, "congestus", "champignon", "stratocumulus" }))
 	end
-	for k = 0, 2 do
+	for k = 0, OR and -1 or 2 do
 		local p = pt(strat(k, 3))
 		local a, d, r = cr() * 6.2832, 1700 + cr() * 1500, (600 + cr() * 450) * 0.7
 		pose(p, p.X + math.cos(a) * d, p.Y - 420 + cr() * 200, p.Z + math.sin(a) * d, r, 24)
 	end
 	for k = 0, 2 do
 		local p = pt(strat(k, 3))
-		local a, d, r = cr() * 6.2832, 520 + cr() * 380, (200 + cr() * 140) * 1.5
+		local a, d, r = cr() * 6.2832, 520 + cr() * 380, (200 + cr() * 140) * (OR and 1 or 1.5)
 		for t = 0, 2 do
 			if pose(p, p.X + math.cos(a) * (d + t * 160), p.Y - 300 + cr() * 80, p.Z + math.sin(a) * (d + t * 160), r, parmi(rnd, { "congestus", "cisaille" })) then break end
 		end
 	end
-	do
+	if not OR then
 		local p = pt(math.clamp(math.floor(NP * (0.6 + cr() * 0.15)), 1, NP))
 		local a, d = cr() * 6.2832, 1500 + cr() * 700
 		pose(p, p.X + math.cos(a) * d, p.Y - 380, p.Z + math.sin(a) * d, (760 + cr() * 300) * 0.75, 24)
 	end
+
+	if decor then return traverses end
 
 	-- ════ LES NUAGES DE JEU (buildClouds) : ceux qu'on traverse ════
 	-- un nuage de jeu (mkCloud v8) : centré sur c, rayon r ; rend sa fiche pour le suivi (dedans / dehors)
@@ -356,14 +569,16 @@ function Nuages.batir(piste: any, dossier: Instance, graine: number, ceder: (() 
 		local ry = (g.fiche.sommet - g.fiche.base) * r * 0.5
 		-- (mkCloud centre le maillage sur son milieu : le dessous est à c.y − ry)
 		if not route and touche(c.X, c.Y, c.Z, r * 1.1, ry) then return end
-		local cap = cr() * 6.2832
+		local cap = (cr() - 0.5) * 0.8
 		local ech = Vector3.new(r, r, r) * (M / UNITE)
 		local p = g.p:Clone()
 		p.Size = g.taille * ech
+		p.Color = Color3.new(BLANC, BLANC, BLANC)
 		local milieu = (g.fiche.base + g.fiche.sommet) * 0.5
 		local base = Vector3.new(c.X, c.Y - milieu * r, c.Z) * M
 		p.CFrame = CFrame.new(base) * CFrame.Angles(0, cap, 0) * CFrame.new(g.centre * UNITE * ech)
 		p.Parent = dossier
+		inscrire(p, kk)
 		-- (« dedans » = l'ellipsoïde r × ry autour du centre, comme dans le jeu web)
 		table.insert(traverses, { p = p, c = c * M, r = r * M, ry = ry * M, route = route, base = p.Position, echelle = p.Size, casse = 0, dedans = false })
 		nb += 1
@@ -397,17 +612,20 @@ function Nuages.batir(piste: any, dossier: Instance, graine: number, ceder: (() 
 	-- LES BANCS de route : rares ; chacun cache le virage suivant
 	do
 		local dernier = -1e9
-		local sp = 1600 + cr() * 900
+		local sp = (OR and 420 or 1600) + cr() * (OR and 300 or 900)
 		while sp < L - 300 do
-			if cr() >= 0.4 then
-				local mega = cr() < 0.1
+			if cr() >= (OR and 0.06 or 0.4) then
+				local mega = cr() < (OR and 0.45 or 0.1)
+				-- (à l'orage, un banc sur quatre ne couvre qu'UN côté de la route : on le frôle, on ne sait pas ce qu'il cache)
+				local dl9 = 0
+				if OR and not mega and cr() < 0.5 then dl9 = ((cr() < 0.5) and -1 or 1) * RH * (0.35 + cr() * 0.3) end
 				local s9 = sp
 				local r9 = mega and 55 or 25
-				local c9 = virage(sp, dernier)
+				local c9 = OR and -1 or virage(sp, dernier) -- (l'orage se roule À L'AVEUGLE : ses bancs ne choisissent pas leur place)
 				if c9 >= 0 then
 					dernier = c9
 					s9 = math.max(sp, c9 - 160 - r9)
-				elseif courbe(sp) >= 1 / 300 then
+				elseif not OR and courbe(sp) >= 1 / 300 then
 					local q = sp + 20
 					while q < math.min(L - 320, sp + 600) do
 						if courbe(q) < 1 / 330 then
@@ -418,11 +636,11 @@ function Nuages.batir(piste: any, dossier: Instance, graine: number, ceder: (() 
 					end
 				end
 				local f = F[math.clamp(math.floor(s9 / DS) + 1, 1, NP)]
-				local r = mega and (40 + cr() * 30) or (18 + cr() * 14)
-				local c = f.Position / M + f.UpVector * (mega and (6 + cr() * 4) or (2.5 + cr() * 2))
+				local r = mega and ((OR and 58 or 40) + cr() * (OR and 36 or 30)) or ((OR and 30 or 18) + cr() * (OR and 18 or 14))
+				local c = f.Position / M + f.UpVector * (mega and (6 + cr() * 4) or (2.5 + cr() * 2)) + f.RightVector * dl9
 				jeu(c, r, (r > 34) and { "mediocris" } or { "humilis" }, true)
 			end
-			sp += 1900 + cr() * 1400
+			sp += OR and (300 + cr() * 300) or (1900 + cr() * 1400)
 		end
 	end
 	-- les CHAMPS de coussins de vol : par 2-3, échelonnés le long de la piste
@@ -483,6 +701,8 @@ function Nuages.suivre(liste: { Nuage }, car: Vector3, cam: Vector3, auSol: bool
 		local dc = (e.X * e.X + e.Z * e.Z) / (c.r * c.r) + (e.Y * e.Y) / (c.ry * c.ry)
 		local t = (dc < 1.1) and 0.82 or 0
 		if c.p.Transparency ~= t then c.p.Transparency = t end
+		local e = parPiece[c.p]
+		if e and e.f then majFin(e) end
 	end
 	return dedans, quoi, lequel
 end
@@ -495,6 +715,8 @@ function Nuages.seul(k: number, r: number): (MeshPart?, Vector3)
 	local ech = Vector3.new(rr, rr, rr) * (M / UNITE)
 	local p = g.p:Clone()
 	p.Size = g.taille * ech
+	p.Color = Color3.new(BLANC, BLANC, BLANC)
+	inscrire(p, k) -- (les cumulus du titre ont droit à leur version fine, comme sur le web : ils sont tout près)
 	local milieu = (g.fiche.base + g.fiche.sommet) * 0.5
 	return p, g.centre * UNITE * ech - Vector3.new(0, milieu * rr * M, 0)
 end

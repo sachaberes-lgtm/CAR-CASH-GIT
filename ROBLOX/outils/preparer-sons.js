@@ -18,6 +18,30 @@ const CHOIX = {
   encaisse: 'verdict.1', explosion: 'explosion', pad: 'pad', nitroPlein: 'nitro.plein',
   tap: 'ui.tap', go: 'ui.go', bip: 'ui.bip', compteFin: 'mort.compteFin', record: 'ui.record',
   portail: 'portail', fronde: 'fronde', ventAltitude: 'nuages.ambiance',
+  // les niveaux : l'orage (l'éclair, le tonnerre), l'orbite (ses portes, son silence habité, les débris), la pluie de satellites
+  eclair: 'foudre.eclair', tonnerre: 'tonnerre', orbiteEntre: 'orbite.entre', orbiteSort: 'orbite.sort', espaceAmbiance: 'espace.ambiance',
+  explosionLoin: 'explosion.loin', esquive: 'debris.esquive', touche: 'foudre.touche', abri: 'abri', mortSat: 'mort.foudre',
+  // (second audit, 2/10) tout ce que le jeu web fait ENTENDRE et que Roblox taisait : le chrono de vol, la nitro, les pouvoirs,
+  // la frénésie et la triade, les verdicts, les figures, les fruits, le drift, les nuages, le portail, les morts
+  alerteTic: 'alerte.tic', alerteTac: 'alerte.tac', arretTic: 'arret.tic', nitroSec: 'nitro.sec',
+  nitroVide: 'nitro.vide', nitroPleine: 'nitro.pleine', nitroooPalier: 'nitrooo.palier', vitessePure: 'vitesse.pure',
+  pwrN: 'pwr.n', pwrA: 'pwr.a', pwrV: 'pwr.v', pwrM: 'pwr.m',
+  pwrX: 'pwr.x', pwrDouble: 'pwr.double', pwrTriple: 'pwr.triple', pwrBientot: 'pwr.bientot',
+  pwrFin: 'pwr.fin', frenEntre: 'frenesie.entre', frenSort: 'frenesie.sort', frenArme: 'frenesie.arme',
+  frenRecord: 'frenesie.record', frenPose: 'frenesie.pose', frenCash: 'frenesie.cash', triadeRevele: 'triade.revele',
+  triadeRenait: 'triade.renait', triadeMeurt: 'triade.meurt', flowPalier: 'flow.2', flowPerdu: 'flow.perdu',
+  plusVite: 'plus.vite', poseTravers: 'pose.travers', poseContresens: 'pose.contresens', poseCheveu: 'pose.cheveu',
+  verdict2: 'verdict.2', verdict3: 'verdict.3', verdictMeteor: 'verdict.meteor', verdictMega: 'verdict.mega',
+  figMonstre: 'fig.monstre', figMeteore: 'fig.meteore', figDauphin: 'fig.dauphin', dauphinBanc: 'dauphin.banc',
+  figSnake: 'fig.snake', figBump: 'fig.bump', raccourci: 'raccourci', cratere: 'cratere',
+  miracule: 'jeu.miracule', sansFaute: 'jeu.sansFaute', palierVitesse: 'jeu.palierVitesse', auraX5: 'aura.x5',
+  auraX8: 'aura.x8', auraX10: 'aura.x10', auraRecord: 'aura.record', serie: 'piece.serie',
+  recolte: 'piece.recolte', fruit1: 'fruit.peche', fruit2: 'fruit.banane', fruit3: 'fruit.grenade',
+  fruit4: 'fruit.orange', fruit5: 'fruit.myrtille', fruit6: 'fruit.pasteque', plot: 'plot',
+  flaque: 'flaque.huile', frole: 'frole', driftCharge: 'drift.charge', turboMini: 'turbo.mini',
+  turboSuper: 'turbo.super', turboUltra: 'turbo.ultra', nuageEntre: 'nuage.entre', nuageSort: 'nuage.sort',
+  nuageDefonce: 'nuage.defonce', portailProche: 'portail.proche', impactImmeuble: 'impact.immeuble', departLogo: 'depart.logo',
+  moteurPalier: 'moteur.palier', mortVide: 'mort.vide', mortAir: 'mort.air', mortArret: 'mort.arret', debrisTole: 'debris.tole',
 };
 global.window = {};
 require(path.join(JEU, 'sons-banque.js'));
@@ -71,6 +95,52 @@ wav('nitro', s => {
   }
 });
 
+// CRISSEMENT (crissement v2 du jeu web, L27119) : deux bandes résonantes non harmoniques (950 et 1480 Hz) que fait BROUTER un
+// stick-slip à 12 Hz — la gomme accroche-lâche, le crissement VIT au lieu de siffler. Ici une bande = des sinus aux fréquences
+// ENTIÈRES (la boucle d'une seconde se referme sans couture), amplitude en cloche autour du centre ; le broutement = une
+// modulation de fréquence à 12 Hz (entier aussi). Roblox montera la hauteur avec la glisse et la vitesse (PlaybackSpeed).
+wav('crissement', s => {
+  const P = [];
+  for (const [fc, bw, dev] of [[950, 120, 60], [1480, 150, 90]]) for (let f = fc - 2 * bw; f <= fc + 2 * bw; f += 3) {
+    const x = (f - fc) / bw; P.push([f, rnd() * 6.283, Math.exp(-x * x * 2), dev]);
+  }
+  for (let i = 0; i < N; i++) {
+    const t = i / SR, tri = Math.asin(Math.sin(6.283 * 12 * t)) / 1.5708; let v = 0; // (le LFO triangle du web)
+    for (const [f, p, a, dev] of P) v += a * Math.sin(6.283 * f * t + p + (dev / 12) * tri);
+    s[i] = v; // (pas de saturation : un bruit de bande garde ses crêtes, le crissement reste fin)
+  }
+});
+
+// LE « BRRRR » DU DRIFT (driftChargeSnd, L27385) : deux carrés à la QUINTE (124 et 186 Hz), passe-bas, trémolo à 15 Hz. Roblox le fait
+// MONTER en hauteur à chaque niveau de charge (PlaybackSpeed : bleu → or → rose) — on sait, sans regarder, qu'il est temps de lâcher.
+wav('driftBrrr', s => {
+  const car = (f, t) => (Math.sin(6.283 * f * t) >= 0 ? 1 : -1);
+  let lp = 0; const a = 1 - Math.exp(-6.283 * 900 / SR); // (le passe-bas d'un pôle, ~900 Hz)
+  for (let k = 0; k < 2; k++) for (let i = 0; i < N; i++) { // (deux passes : le filtre est en régime quand on écrit la boucle)
+    const t = i / SR;
+    lp += a * ((car(124, t) + 0.8 * car(186, t)) - lp);
+    if (k) s[i] = lp * (0.6 + 0.4 * Math.sin(6.283 * 15 * t));
+  }
+});
+// LE RASE-BORD GRONDE (raseSnd, L27426) : la caisse roule sur une BANDE RUGUEUSE — un bruit grave (bande 100-300 Hz, des sinus aux
+// fréquences entières : la boucle se referme) haché par un carré à 30 Hz. Roblox le hache plus vite avec la vitesse (PlaybackSpeed).
+wav('rasBord', s => {
+  const P = []; for (let f = 100; f <= 300; f++) { const x = (f - 190) / 70; P.push([f, rnd() * 6.283, Math.exp(-x * x)]); }
+  for (let i = 0; i < N; i++) {
+    const t = i / SR; let v = 0;
+    for (const [f, p, a] of P) v += a * Math.sin(6.283 * f * t + p);
+    s[i] = v * (Math.sin(6.283 * 30 * t) >= 0 ? 1 : 0.15);
+  }
+});
+
+// LA MUSIQUE PAR LIEU (MUSIC_LIEU du jeu web) : nuages = NOITE DE VELOCIDADE, ville (et l'accueil) = NOCTURNAL GROOVE, orage = SWAG
+// CASH CAR ; l'orbite garde la radio (`musique` : NÉON CASH CAR). Un morceau pas importé = `musique` continue.
+for (const [nom, f] of Object.entries({ musiqueNuages: 'noite-de-velocidade.mp3', musiqueVille: 'nocturnal-groove.mp3', musiqueOrage: 'swag-cash-car-2.m4a' })) {
+  const src = path.join(JEU, 'assets', 'audio', 'music', f), dst = path.join(OUT, nom + '.mp3');
+  if (!fs.existsSync(src)) { console.log('absent :', f); continue; }
+  if (f.endsWith('.mp3')) fs.copyFileSync(src, dst);
+  else try { execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', src, '-c:a', 'libmp3lame', '-q:a', '4', dst]); } catch (e) { console.log('ffmpeg absent : ' + f + ' non converti'); }
+}
 // la musique du niveau 1
 const mus = path.join(JEU, 'assets', 'audio', 'music', 'lvl1-neon-cash-car-v3.mp3');
 if (fs.existsSync(mus)) fs.copyFileSync(mus, path.join(OUT, 'musique.mp3'));

@@ -38,8 +38,12 @@ pose plus bas : c'est là que le jeu se joue. 6 secondes en l'air maximum.
 
 ## Les sons (à faire une fois)
 
-Roblox ne joue que les sons importés sur Roblox. Le dossier **`sons-a-importer/`** contient 20 bruitages du
-jeu (tirés de notre banque de sons), un **moteur** et une **nitro** en boucle, et la **musique** du niveau 1.
+Roblox ne joue que les sons importés sur Roblox. Le dossier **`sons-a-importer/`** contient 106 bruitages du
+jeu (tirés de notre banque de sons), un **moteur** et une **nitro** en boucle, et **quatre musiques** : `musique` (la radio,
+jouée en orbite et partout où un morceau de lieu manque), `musiqueNuages`, `musiqueVille` (aussi l'accueil, le garage et l'écran
+de fin) et `musiqueOrage` — la musique suit le lieu, comme sur le web.
+Les sons des niveaux : `eclair`, `tonnerre` (l'orage), `orbiteEntre`, `orbiteSort`, `espaceAmbiance`, `explosionLoin`, `esquive`,
+`touche`, `abri` (l'orbite et ses débris), `mortSat` (la pluie de satellites).
 
 1. Studio → **Fenêtre → Gestionnaire de ressources** (Window → Asset Manager) → **Importation groupée** (Bulk Import)
    → sélectionner les fichiers de `sons-a-importer/`.
@@ -49,13 +53,70 @@ jeu (tirés de notre banque de sons), un **moteur** et une **nitro** en boucle, 
 4. Refaire **Publier**.
 
 Sans ça le jeu marche quand même (quelques sons de secours livrés avec Roblox : explosion, saut, vent).
+Depuis le 3/10, CHAQUE événement du jeu web a son son (le chrono de vol qui tique, la nitro vide, chaque pouvoir, la frénésie,
+les verdicts, les fruits, le drift, les nuages, les morts…) : tant qu'un son n'est pas importé, le jeu joue celui d'avant à sa
+place (ou rien) — l'importer suffit à l'allumer, rien d'autre à toucher.
 Roblox limite le nombre d'imports audio par mois : commence par `moteur`, `nitro`, `piece`, `explosion`,
-`poseParfait`, `musique`.
+`poseParfait`, `musique` ; puis `tonnerre`, `eclair`, `musiqueVille`, `musiqueNuages`.
+⚠ Les musiques : ne les importe que si tu en as les droits (Roblox vérifie les droits des sons importés).
 
 ## Ce qui est porté / ce qui ne l'est pas encore
 
-Le portage suit le jeu web **du jour** (`VERSION PRINCIPALE/index.html`), sur **une seule map : le niveau NUAGES**
-(décision de Sacha : pas de ville, de Paris, d'espace ni de carrière sur Roblox).
+Le portage suit le jeu web **du jour** (`VERSION PRINCIPALE/index.html`) : **six niveaux** qui s'enchaînent de portail en
+portail, le cycle du web sans Paris — **NUAGES → VILLE → ORBITE → L'ORAGE → MINUIT EN VILLE → PLUIE DE SATELLITES**, puis on
+recommence (décision de Sacha, 2/10 : « fais la ville et l'espace, fais pas Paris » ; la carrière : pas pour l'instant).
+- **AU-DESSUS DE LA VILLE** (`Client/Ville`) : le canyon de tours à fenêtres chaudes ou froides, les enseignes de néon, la nuit
+  violette, la pluie, les rails roses et leur lueur sur le bitume mouillé ; une entrée surélevée puis la grande rampe ; des pentes
+  comprimées, de grands virages ; en vol, entrer dans une tour tue.
+- **EN ORBITE** (`Client/Espace`) : le ciel noir, la Terre qui se lève au bout de la route, la lune qui regarde la caisse, les
+  Starlink et les débris ; une autoroute large et douce ; la gravité divisée par deux et la jauge de vol allongée (×1,7).
+- **L'ORAGE** (les nuages, variante `orage` — `Client/Orage`) : le ciel de tempête, la pluie, des murs et un plafond de nuages,
+  un banc sur la route tous les 300-600 m ; l'ÉCLAIR tombe devant la caisse, allume le ciel et fait reculer la brume ; le tonnerre suit.
+- **MINUIT EN VILLE** (la ville, variante `nuit`) : trois fenêtres sur quatre éteintes, les néons baissés, la nuit noire — et
+  les PHARES : ceux de la caisse au maximum, deux faisceaux, une lampe qui court devant.
+- **PLUIE DE SATELLITES** (l'orbite, variante `hard`) : des Starlink et des étages de fusée SUR la route, seuls ou en rideau de
+  deux avec une trouée ; les percuter tue (« PERCUTE PAR UN SATELLITE »), les frôler paie.
+- **La pluie de débris** (`Client/Debris`, toute l'orbite) : un cercle rouge se pose là où la caisse SERA dans 1,5 s, un débris
+  en feu y tombe — touché : −40 % de vitesse ; esquivé de près : aura, nitro, série.
+- **Les portes de l'orbite** : un tunnel de distorsion à l'entrée (1,9 s), une rentrée atmosphérique en feu à la sortie (2,6 s).
+- **Le viseur d'atterrissage** (`Client/Viseur`) : en vol, un anneau se pose où la caisse va retomber — or qui bat = la fenêtre du
+  PARFAIT, blanc = pose normale, rouge = posé lourd.
+- **Le virage à filet** (module des NUAGES, un seul dans l'orage) : la bretelle du web, calculée sur la vraie chute — au banc, 20
+  sorties de virage sur 20 retombent dans le filet. Il paie VIRAGE À FOND (pris sans quitter la route) ou RATTRAPÉ (posé dans le filet).
+- **La pause** : la reprise compte 3-2-1 ; QUITTER et RECOMMENCER se confirment (deux appuis) ; QUITTER est une vraie fin de partie
+  (les gains sont VERSÉS — avant le 2/10 ils étaient perdus), RECOMMENCER ne verse rien.
+- **Le portail** est l'OVULE du web : une sphère de 55 m (membrane translucide, noyau qui bat), qu'on franchit en y entrant d'où
+  qu'on vienne ; couper la route en vol pour l'atteindre paie un RACCOURCI.
+- **MIRACULÉ** (une chute perdue d'avance rattrapée), les **cris de vitesse** (« 400 KM/H ! », « RECORD DE VITESSE »), **COMÈTE**
+  (la caisse brûle à partir du palier 27), les **bords de l'écran** qui battent à la couleur du pouvoir actif.
+- **L'ADN de piste** : chaque zone tire un archétype (FLOW, TECH, ALPIN, VOLTIGE, GRAND8 — poids des motifs, échelle des rayons,
+  humeur verticale), une humeur (les poids secoués), une latéralité (elle penche à gauche, à droite ou pas) et sa signature de fin.
+  ⚠ La zone fait 9 km ici contre 14,4 km sur le web : la route en maillage se paie sur le budget de maillages (4 zones tenues).
+- **L'attitude de la caisse** : le power-slide (l'arrière chasse dans les virages, jusqu'à ~18°), le tangage (elle plonge au frein,
+  s'accroupit à la poussée), les **traces de pneus** (`Client/Traces`), la fumée sur toute vraie glisse, les étincelles du plancher
+  qui racle le bord, des éclats rouges sur un plot percuté, la gerbe d'or de la fronde, la poussière du décollage.
+- **Le départ** : CASH CAR claque en or avec son halo quand la caisse touche la route, puis le nom du niveau prend le relais ;
+  3 s de nitro offerte (arc-en-ciel).
+- **Le coup d'allumage** de la nitro : une onde de choc à l'échappement, le champ qui s'ouvre, la caisse qui se cabre, une
+  vibration ; quand on lâche après une vraie tenue, une dernière bouffée sort des pots. Au-delà de 280 km/h, les bords de l'image
+  plongent dans le violet (la vignette de vitesse).
+- **Le verdict de la pose** : toute pose qui encaisse une figure a son mot, à la taille de son rang — MONSTRE, DOUBLE MONSTRE,
+  TRIPLE MONSTRE, MÉTÉORE, SNAKE LOOP, MEGA MÉTÉORE — et « PARFAIT ! ».
+- **Les vibrations** (manette, téléphone) : chaque geste se sent — pad, fruit, cristal, plot, flaque, drift, pose, fronde, mort.
+  Réglage VIBRATIONS.
+- **Les astuces** se lisent UNE fois dans la vie du compte (notées dans le profil) ; le drift a la sienne (1,2 s de braquage à
+  fond sans jamais avoir drifté) ; celle du vol dit le sens réglé (POUCE HAUT = PLONGE ou MONTE).
+- **Les cristaux s'adaptent au joueur** : le débutant tombe sur l'AIMANT et l'AIR MAX, le vétéran sur l'AURA ×2 ; le tout premier
+  cristal d'un débutant est un AIMANT posé près de l'axe.
+- **Les pigeons ramiers** (`Client/Pigeons`) : de rares volées en travers du ciel (jamais en orbite ni dans l'orage).
+- **Les signatures de caisse** à la nitro : l'arc-en-ciel du CHAT POP-TART, la gerbe d'eau du REQUIN.
+- **La mort** : ce sont les vraies pièces de LA caisse qui volent ; un tap passe l'explosion après 0,8 s ; « NOUVEAU RECORD ! »
+  s'allume pour l'argent, l'AURA ou un palier de MOTEUR jamais atteint. La pause dit où en est la partie (AURA · MOTEUR · NIVEAU).
+- **Le ciel musical** de la ville (`Client/CielMusical`) : seize quartiers de lumière et vingt-six piliers d'égaliseur autour de
+  l'horizon, qui battent avec le morceau qui joue (ou à 120 à la minute sans musique importée) ; en sourdine à minuit.
+- **Le bitume mouillé** de la ville : les reflets de néon sont PEINTS dans l'image de la dalle (96 m qui se répètent).
+- Le niveau d'une zone : `Config.niveau(zone)` ; son ambiance : `Client/Ambiance` (`pluie`, `espace`) ; l'habit de sa route
+  (liseré, bitume, lueur) : `HABITS` dans `Client/Construction`.
 
 **Porté** (tout a été vu tourner dans Roblox Studio) :
 - la route-ruban qui plonge, ses deux faces, la conduite, le drift, la fronde, les pads, plots, flaques, épaves ;
@@ -102,8 +163,32 @@ ressources Roblox (ton compte) : à voir plus tard.
 - `outils/cuire-*.js` : cuisent les formes du jeu web (caisses, objets et dauphin, moteurs, nuages, icônes) en modules Luau.
 - `outils/verifier.sh <luau-compile>` : compile tous les scripts comme Studio (`-O1 -g2` : la limite des 200 variables
   locales ne se voit qu'ainsi). `outils/banc.sh` + `outils/studio.ps1` : la copie de banc et son ouverture dans Studio.
+- **Le banc à distance** (on teste sans prendre la souris ni l'écran à personne) : `outils/banc.sh` construit la copie de test AVEC
+  `outils/distant/` (jamais dans `CashCar.rbxlx`) ; `python outils/distant.py serveur` tient le relais, `outils/studio-relance.ps1`
+  rouvre la copie derrière les autres fenêtres et lance la partie (F5), `distant.py envoie|fichier` exécute du Luau côté serveur
+  (`client("prop", "monde", nom, propriété, valeur)` pour ce qui n'existe que chez le joueur), `distant.py journal` lit les
+  réponses, `outils/vue.sh <png>` photographie la vue 3D (PrintWindow : la fenêtre peut être cachée). `DbgJouer` lance une partie.
 - Mise au point dans Studio (barre de commande) : `workspace:SetAttribute("DbgAuto", true)` (pilote automatique), `DbgNitro`,
   `DbgInf`, `DbgPlein`, `DbgDauphins`, `DbgSerpent`, `DbgArgent` (un compte), `DbgBudget` (le budget de triangles),
-  `DbgFx` = "mort" | "moteur7" | "pluie" | "cratere" | "jus3".
+  `DbgFx` = "mort" | "moteur7" | "pluie" | "cratere" | "jus3", `DbgOuvre` = "jouer" | "garage" | "boutique" | "reglages" |
+  "missions" | "menu" | "pause" | "frenesie" | "portail…" (en course : saute au pied du portail, pour voir le niveau suivant) |
+  "saut22…" (un saut forcé, la poussée sur deux chiffres), `DbgLarge` = 1280 (l'interface d'un écran 16:9).
+- **La longue partie** : `sh outils/longue.sh [minutes] [nitro]` — sur rails (`DbgAuto` = "rail"), immortelle (`DbgImmortel`), les
+  portails franchis pour de vrai ; rend les zones traversées, les morts évitées par cause et les erreurs de la Sortie. À lancer
+  avant de livrer un changement de jeu : c'est le seul banc qui joue des niveaux ENTIERS.
+- `outils/verifier.sh` compile tout ET liste les noms jamais déclarés (luau-analyze, s'il est à côté de luau-compile).
+- `DbgEclair` = true : dans l'orage, un éclair toutes les 2 s qui tient 1,2 s (le temps d'une photo).
+- `DbgHeure` = "matin" | "midi" | "aprem" | "titre" | "pluie" | "espace" | "tempete" | "minuit" impose une ambiance (`Client/Ambiance`) ; `nil` rend la main.
+- `NIVEAU=ville sh outils/banc.sh` (ou `espace`, `orage`, `nuit`, `hard`) : la copie de test force ce niveau dès la zone 1 (`Config.NIVEAU_TEST`, jamais dans
+  le fichier livré).
+- ⚠ LE BUDGET DE MAILLAGES : la ville se prépare PENDANT le niveau d'avant ; si le budget est plein, Roblox refuse ses gabarits
+  (tours sans fenêtres, route à facettes). Tout maillage de plus sur la route se paie quatre fois (les zones 1 et 2 restent en
+  réserve, plus la zone en cours et la suivante) : la lueur des rails est une IMAGE, pas des triangles. `DbgBudget` mesure.
+- ⚠ Hors de « la main », Studio bride la partie de test à 15 images par seconde (le pilote automatique sort de la route) :
+  `outils/studio-actif.ps1` lui fait croire qu'elle l'a, sans la mettre devant. `outils/vue.py` cherche seul le cadre de la vue 3D.
+- ⚠ Roblox Studio ne rend plus une seule image quand l'écran du PC s'est mis en veille (la partie de test se fige, les photos
+  sortent blanches) : `outils/ecran-allume.ps1 [minutes]` réveille l'écran et le garde allumé le temps du banc, sans rien régler.
+- Les nuages : `outils/cuire-nuages.js [ébauche] [fine]` (12 et 26 par défaut) cuit les 25 gabarits en deux finesses ; la fine
+  n'est chargée que pour les nuages proches (`Nuages.finesseTick`).
 - Budget de triangles : détruire une pièce ne rend rien, c'est son maillage d'origine qu'il faut détruire — `Client/Maillage`
   le fait pour toute pièce bâtie par lui (`Maillage.libre()` donne ce qu'il reste).

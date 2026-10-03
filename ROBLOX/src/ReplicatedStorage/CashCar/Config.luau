@@ -10,6 +10,9 @@ Config.SPD = 0.48          -- vitesse globale : le monde avance de vA·SPD mètr
 Config.GRAV = 9.8 * 0.55   -- la pente qui freine ou relance, au sol
 Config.FALL_G = 33         -- gravité du vol (× SPD = 15,8 m/s² dans le monde)
 Config.AIR_MAX = 6         -- secondes en l'air avant l'explosion (le camembert)
+-- LA GRAVITÉ DE L'ORBITE (ORB_G, ORB_AIR, L28085) : en ESPACE la gravité est divisée par deux, la jauge d'airtime passe de 6 à 10,2 s
+Config.ORB_G = 0.5
+Config.ORB_AIR = 1.7
 Config.ROAD_HALF = 28      -- demi-largeur de la route (L7115 × LARGEUR 2.0) : 56 m de bitume
 Config.THICK = 2.6         -- épaisseur de la dalle
 Config.MORT_SOUS = 120     -- on meurt 120 m sous le point le plus bas de la piste
@@ -154,30 +157,58 @@ Config.FRUITS = {
 -- LA LIGNE PARFAITE (L11855) : une file FRUIT, PAD, FRUIT, PAD… posée en course devant la caisse, sur la trajectoire idéale
 Config.LIGNE = { dt = 1.2, don = 1.15, voir = 3.5 }
 
+-- ── LES NIVEAUX (NIVEAUX du jeu web, L13322) : le portail est la porte entre deux mondes. Sacha, 2/10 : « fais la ville et
+-- l'espace, fais pas Paris » — le cycle du web, sans Paris : NUAGES → VILLE → ORBITE → L'ORAGE → MINUIT EN VILLE → PLUIE DE
+-- SATELLITES, puis on recommence. Une VARIANTE (`var`) garde l'`id` de son lieu : toute la ville suit, tout le ciel de coton suit ;
+-- elle ne change que ce qui fait sa difficulté (orage : les bancs partout et l'éclair · nuit : les fenêtres éteintes et les phares ·
+-- hard : des satellites SUR la route).
+Config.NIVEAUX = {
+	{ id = "nuages", nom = "MER DE NUAGES", en = "SEA OF CLOUDS" },
+	{ id = "ville", nom = "AU-DESSUS DE LA VILLE", en = "ABOVE THE CITY" },
+	{ id = "espace", nom = "EN ORBITE", en = "IN ORBIT" },
+	{ id = "nuages", var = "orage", nom = "L'ORAGE", en = "THE STORM" },
+	{ id = "ville", var = "nuit", nom = "MINUIT EN VILLE", en = "MIDNIGHT CITY" },
+	{ id = "espace", var = "hard", nom = "PLUIE DE SATELLITES", en = "SATELLITE STORM" },
+}
+Config.NIVEAU_TEST = nil :: string? -- (banc) force le niveau de TOUTES les zones : "ville", "espace", "orage", "nuit", "hard"
+-- le niveau d'une zone (la zone 0 est l'auto-école : le ciel des nuages)
+function Config.niveau(zone: number): any
+	local force = Config.NIVEAU_TEST
+	if force and zone > 0 then
+		for _, n in Config.NIVEAUX do
+			if (n.var or n.id) == force then return n end
+		end
+	end
+	return Config.NIVEAUX[(math.max(1, zone) - 1) % #Config.NIVEAUX + 1]
+end
+
 -- ── le niveau 1 : « le jour d'altitude » (biomes matin/midi/aprem, L12775) ──
 local function rgb(r, g, b) return Color3.new(r, g, b) end
 Config.CIEL = {
 	heure = 14.6,
 	zenith = rgb(0.08, 0.30, 0.62),
 	horizon = rgb(0.93, 0.93, 0.86),
-	soleil = rgb(1, 0.95, 0.84),
-	ambiance = Color3.fromRGB(70, 86, 118),
-	ambianceExt = Color3.fromRGB(150, 170, 200),
-	expo = -0.05,                -- (1er retour : la capture Studio était délavée, laiteuse)
+	soleil = rgb(1, 0.97, 0.93),  -- (presque neutre : le crème des nuages est CUIT dans leurs sommets ; un soleil pêche les passait au beige)
+	-- (2e retour de Sacha : « c'est moche » — tout tirait au CYAN GLACÉ, des icebergs. La version web met l'ombre en LAVANDE
+	-- (le côté ombre « pris par le ciel », nuage8Mat) et le soleil en crème : ce sont ces deux teintes qui font le coton.)
+	ambiance = Color3.fromRGB(120, 118, 180), -- (l'ambiance des lieux COUVERTS : l'atelier du garage, le dessous de la caisse)
+	ambianceExt = Color3.fromRGB(235, 230, 245),
+	expo = -0.06,
 	brumeDensite = 0.035,         -- (la mer de nuages doit se lire jusqu'à l'horizon : la brume du web n'en mange que 20 % à 4 km)
-	brumeVoile = 1.3,
-	saturation = 0.34,
-	contraste = 0.2,
+	brumeVoile = 0.5,  -- (à 0,5 on voyait les nuages PEINTS du ciel par défaut de Roblox : des cirrus de photo derrière des cumulus de jeu)
+	saturation = 0.3,
+	contraste = 0.24,
 	mer = rgb(0.84, 0.90, 0.92),          -- la mer de nuages (couleur du brouillard du matin)
 	-- (Roblox éclaire l'image par-dessus, × 1,4 environ : ces teintes sont celles du web divisées d'autant — à l'écran, des
 	-- sommets blancs et des versants bleu ciel, comme la capture du menu web)
-	merOmbre = Color3.fromRGB(104, 132, 166),   -- le versant à l'ombre des dômes
-	merSommet = Color3.fromRGB(182, 183, 184),  -- les sommets au soleil
-	merTrou = Color3.fromRGB(58, 104, 158),     -- les rares trous
+	-- (3e retour, mesuré : la mer du menu web est DOUCE, (133,160,183) en moyenne, peu contrastée — ici des trous bleu roi dans du blanc)
+	merOmbre = Color3.fromRGB(148, 166, 204),   -- le versant à l'ombre des dômes
+	merSommet = Color3.fromRGB(192, 192, 194),  -- les sommets au soleil
+	merTrou = Color3.fromRGB(120, 146, 196),    -- les rares trous
 	merMenu = 620,                              -- m : au menu la caisse tombe de très haut, la mer est loin dessous
 }
 Config.ROUTE = {
-	bitume = Color3.fromRGB(30, 32, 48),  -- (capture web du 1er oct. : le bitume est presque NOIR-MARINE ; à 54,58,78 le ciel de Roblox le rendait bleu clair)
+	bitume = Color3.fromRGB(84, 80, 108),  -- (captures web en double définition : un bitume MAT, ardoise violacée (110,105,140) à mi-distance ; c'est la vignette qui noircit le bas de l'image, pas la route — et il ne reflète pas les nuages)
 	sodium = Color3.fromRGB(255, 188, 72), -- la ligne centrale
 	voie = Color3.fromRGB(210, 216, 230),  -- les lignes de voie
 	neon = Color3.fromRGB(62, 230, 240),  -- 0x3ee6f0 : les rails de néon
@@ -209,10 +240,28 @@ Config.GRAINE_FIXE = nil :: number? -- mettre un nombre pour que tous les serveu
 -- (Studio → Fenêtre → Asset Manager → Bulk Import), puis coller ici chaque numéro « rbxassetid://… ».
 -- Vide = le son de secours livré avec Roblox (quand il existe), sinon silence.
 Config.SONS = {
-	musique = "", moteur = "", nitro = "", ventAltitude = "",
+	musique = "", moteur = "", nitro = "", ventAltitude = "", crissement = "", -- (crissement : la boucle des pneus qui glissent)
+	driftBrrr = "", rasBord = "", -- (la charge du drift qui monte ; le grondement du rase-bord)
+	-- la musique par LIEU (MUSIC_LIEU du web) : les nuages, la ville (et l'accueil), l'orage ; pas importée = `musique` continue
+	musiqueNuages = "", musiqueVille = "", musiqueOrage = "",
 	piece = "", decollage = "", poseParfait = "", poseChoc = "", poseLourde = "", vrille = "",
 	maillon = "", bigAir = "", encaisse = "", explosion = "", pad = "", nitroPlein = "",
 	tap = "", go = "", bip = "", compteFin = "", record = "", portail = "", fronde = "",
+	-- les niveaux : l'éclair et le tonnerre de L'ORAGE ; les portes, l'ambiance et les débris de l'ORBITE ; la mort par satellite
+	eclair = "", tonnerre = "", orbiteEntre = "", orbiteSort = "", espaceAmbiance = "",
+	explosionLoin = "", esquive = "", touche = "", abri = "", mortSat = "",
+	-- (second audit, 2/10) les sons que le jeu web joue et que Roblox taisait. Pas importés : le jeu garde ce qu'on entendait avant
+	-- (voir Sons.vrai : le vrai son s'il est là, sinon son repli) — ou rien.
+	alerteTic = "", alerteTac = "", arretTic = "", nitroSec = "", nitroVide = "", nitroPleine = "", nitroooPalier = "", vitessePure = "",
+	pwrN = "", pwrA = "", pwrV = "", pwrM = "", pwrX = "", pwrDouble = "", pwrTriple = "", pwrBientot = "",
+	pwrFin = "", frenEntre = "", frenSort = "", frenArme = "", frenRecord = "", frenPose = "", frenCash = "", triadeRevele = "",
+	triadeRenait = "", triadeMeurt = "", flowPalier = "", flowPerdu = "", plusVite = "", poseTravers = "", poseContresens = "", poseCheveu = "",
+	verdict2 = "", verdict3 = "", verdictMeteor = "", verdictMega = "", figMonstre = "", figMeteore = "", figDauphin = "", dauphinBanc = "",
+	figSnake = "", figBump = "", raccourci = "", cratere = "", miracule = "", sansFaute = "", palierVitesse = "", auraX5 = "",
+	auraX8 = "", auraX10 = "", auraRecord = "", serie = "", recolte = "", fruit1 = "", fruit2 = "", fruit3 = "",
+	fruit4 = "", fruit5 = "", fruit6 = "", plot = "", flaque = "", frole = "", driftCharge = "", turboMini = "",
+	turboSuper = "", turboUltra = "", nuageEntre = "", nuageSort = "", nuageDefonce = "", portailProche = "", impactImmeuble = "", departLogo = "",
+	moteurPalier = "", mortVide = "", mortAir = "", mortArret = "", debrisTole = "",
 }
 Config.SONS_SECOURS = {
 	explosion = "rbxasset://sounds/impact_explosion_03.mp3",
@@ -222,6 +271,8 @@ Config.SONS_SECOURS = {
 	ventAltitude = "rbxasset://sounds/action_falling.ogg",
 	tap = "rbxasset://sounds/volume_slider.ogg",
 	piece = "rbxasset://sounds/volume_slider.ogg",
+	tonnerre = "rbxasset://sounds/impact_explosion_03.mp3", -- (joué très grave : un roulement)
+	explosionLoin = "rbxasset://sounds/impact_explosion_03.mp3",
 }
 
 return Config

@@ -86,8 +86,10 @@ local LISTE: { number } = {} -- tout le garage, dans l'ordre des familles (garag
 local RANG: { [number]: number } = {}
 do
 	for _, r in RARETES do FAMILLES[r.id] = {} end
+	-- (carRetiree, 2/10 — Sacha : « supprimer ces 6 voitures du jeu, elles sont pas intéressantes ») une caisse RETIRÉE garde sa
+	-- ligne (les sauvegardes désignent les caisses par leur numéro) mais elle n'est plus nulle part : ni famille, ni vignette, ni compteur
 	for i, f in Catalogue do
-		table.insert(FAMILLES[f.rar] or FAMILLES.commun, i)
+		if not f.retire then table.insert(FAMILLES[f.rar] or FAMILLES.commun, i) end
 	end
 	for _, r in RARETES do
 		table.sort(FAMILLES[r.id], function(a, b)
@@ -213,7 +215,8 @@ local function ecriteau(piece: BasePart, face: Enum.NormalId, txt: string, coule
 end
 
 local NUIT = Color3.fromRGB(24, 26, 44)
-local MUR = Color3.fromRGB(36, 42, 74)
+local MUR = Color3.fromRGB(58, 66, 124) -- (capture web : une TÔLE bleu-violet, éclairée — à 36,42,74 l'atelier était un trou noir)
+local NERVURE = Color3.fromRGB(74, 84, 150)
 local PLINTHE = Color3.fromRGB(26, 30, 54)
 local ACIER = Color3.fromRGB(58, 64, 92)
 local CYAN = Color3.fromRGB(95, 240, 255)
@@ -242,6 +245,15 @@ local function batir()
 		b.CastShadow = false
 	end
 	bloc("PlintheFond", LARG, 1.0, 0.08, 0, 0.5, -PROF / 2 + 0.02, PLINTHE)
+	-- la TÔLE ondulée : une nervure claire tous les 0,7 m, au fond et sur les deux flancs
+	for k = 0, math.floor(LARG / 0.7) do
+		bloc("Nervure", 0.16, HAUT - 1.1, 0.06, -LARG / 2 + 0.35 + k * 0.7, 1 + (HAUT - 1.1) / 2, -PROF / 2 + 0.03, NERVURE).CastShadow = false
+	end
+	for _, s in { -1, 1 } do
+		for k = 0, math.floor(PROF / 0.7) - 1 do
+			bloc("Nervure", 0.06, HAUT - 1.1, 0.16, s * (LARG / 2 - 0.03), 1 + (HAUT - 1.1) / 2, -PROF / 2 + 0.35 + k * 0.7, NERVURE).CastShadow = false
+		end
+	end
 	-- les poutres et les six tubes (un qui grésille)
 	for k, z in { -7.5, 0, 7.5 } do
 		bloc("Poutre", LARG, 0.3, 0.3, 0, HAUT - 0.25, z, ACIER, Enum.Material.Metal)
@@ -251,7 +263,7 @@ local function batir()
 			if k == 1 and x == 5 then tubeMalade = t end
 		end
 	end
-	lampe("Plafonnier", 0, HAUT - 0.9, 0, Color3.fromRGB(190, 205, 255), 0.3, 60, true)
+	lampe("Plafonnier", 0, HAUT - 0.9, 0, Color3.fromRGB(190, 205, 255), 0.7, 60, true)
 
 	-- ── LA PORTE sectionnelle (elle se lève au lâcher) et le rideau de FEU derrière ──
 	porte = Instance.new("Model")
@@ -991,7 +1003,7 @@ local function creerInterface()
 	U.compteCadre = cp
 
 	-- ── la FICHE : nom, barre de rareté, rang, condition ──
-	U.nom = K.texte(g, { Text = "", TextSize = 86, TextColor3 = C.texte, Size = UDim2.fromOffset(640, 90), Position = UDim2.fromOffset(44, 102),
+	U.nom = K.texte(g, { italique = true, Text = "", TextSize = 86, TextColor3 = C.texte, Size = UDim2.fromOffset(640, 90), Position = UDim2.fromOffset(44, 102),
 		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 4 })
 	U.barre = inst("Frame", { BorderSizePixel = 0, Size = UDim2.fromOffset(440, 6), Position = UDim2.fromOffset(42, 196) }, g)
 	U.rang = K.texte(g, { Text = "", TextSize = 28, TextColor3 = C.terne, Size = UDim2.fromOffset(420, 30), Position = UDim2.fromOffset(44, 210),
@@ -1217,6 +1229,51 @@ local function lisse(u: number): number
 	return u * u * (3 - 2 * u)
 end
 
+-- L'APERÇU DES TRAÎNÉES (trailApercu, L35066 du jeu web) : dans l'onglet TRAÎNÉES, deux rubans à la couleur ESSAYÉE (l'arc-en-ciel
+-- compris) sortent des pots de la vitrine et ondulent derrière elle — on voit la traînée, pas une pastille. Deux Beams accrochés à
+-- la caisse, leurs courbes animées à chaque image ; rendus (cachés) dès qu'on quitte l'onglet.
+local TRPV: any = { r = {}, sur = nil }
+local ARC9 = ColorSequence.new({ ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 59, 59)), ColorSequenceKeypoint.new(0.2, Color3.fromRGB(255, 155, 26)),
+	ColorSequenceKeypoint.new(0.4, Color3.fromRGB(255, 226, 58)), ColorSequenceKeypoint.new(0.6, Color3.fromRGB(59, 255, 106)),
+	ColorSequenceKeypoint.new(0.8, Color3.fromRGB(59, 180, 255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(155, 91, 255)) })
+local function apercuTrainee(on: boolean, t: number)
+	local racine = on and vitrine and vitrine.PrimaryPart
+	if not racine then
+		for _, r in TRPV.r do r.b.Enabled = false end
+		return
+	end
+	if TRPV.sur ~= racine then -- (une autre caisse sur le plateau : les rubans changent d'accroche)
+		for _, r in TRPV.r do r.a0:Destroy() r.a1:Destroy() r.b:Destroy() end
+		table.clear(TRPV.r)
+		TRPV.sur = racine
+		local f = Caisse.Catalogue[montre] or Caisse.Catalogue[0]
+		for k = 1, 2 do
+			local sd = (k == 1) and -1 or 1
+			local a0, a1 = Instance.new("Attachment"), Instance.new("Attachment")
+			a0.Position = Vector3.new(sd * f.w * 0.22, 0.43, f.l / 2 + 0.28) * M
+			a1.Position = Vector3.new(sd * (f.w * 0.22 + 0.5), 0.78, f.l / 2 + 9.3) * M
+			a0.Parent, a1.Parent = racine, racine
+			local b = Instance.new("Beam")
+			b.Attachment0, b.Attachment1 = a0, a1
+			b.Width0, b.Width1 = 0.47 * M, 0.07 * M
+			b.Segments = 24
+			b.LightEmission, b.LightInfluence = 1, 0
+			b.FaceCamera = true
+			b.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.55), NumberSequenceKeypoint.new(0.1, 0.25), NumberSequenceKeypoint.new(1, 1) })
+			b.Parent = racine
+			TRPV.r[k] = { a0 = a0, a1 = a1, b = b, sd = sd }
+		end
+	end
+	local d = Config.habit("trainee", essai.trainee or tenue().trainee)
+	local coul = (d and d.arcenciel) and ARC9 or ColorSequence.new((d and d.c) or Color3.fromRGB(255, 158, 26))
+	for _, r in TRPV.r do
+		r.b.Enabled = true
+		r.b.Color = coul
+		-- (le ruban ONDULE : deux sinus qui courent le long de lui)
+		r.b.CurveSize0 = math.sin(t * 4.5) * 1.6 * M * r.sd
+		r.b.CurveSize1 = math.sin(t * 3.2 + 1.3) * 1.2 * M
+	end
+end
 function Garage.rendu(dt: number)
 	if not Garage.ouvert or not dossier then return end
 	local cam = workspace.CurrentCamera
@@ -1267,6 +1324,10 @@ function Garage.rendu(dt: number)
 		vitrine:PivotTo(cfPlateau())
 		-- dans l'onglet AILES, la caisse les montre déployées
 		if vitrinePg then Caisse.deployer(vitrinePg, (onglet == "aile") and 1 or 0, t * 9) end
+	end
+	do
+		local okT = pcall(apercuTrainee, onglet == "trainee" and not lacher and vitrine ~= nil, t)
+		if not okT then apercuTrainee(false, t) end
 	end
 
 	-- ── la vue ──

@@ -16,6 +16,7 @@ local M = Config.M
 local RH = Config.ROAD_HALF
 local EP = Config.THICK * M
 local R = Config.ROUTE
+local AssetServiceR = game:GetService("AssetService")
 
 local Construction = {}
 
@@ -26,9 +27,80 @@ modeleCoin.CanQuery = false
 modeleCoin.CanTouch = false
 modeleCoin.TopSurface = Enum.SurfaceType.Smooth
 modeleCoin.BottomSurface = Enum.SurfaceType.Smooth
-modeleCoin.Material = Enum.Material.SmoothPlastic
+modeleCoin.Material = Enum.Material.Plastic
 modeleCoin.Color = R.bitume
-modeleCoin.Reflectance = 0.03
+modeleCoin.CastShadow = false -- (les coins de la dalle se faisaient de l'ombre entre eux : un fil sombre à chaque jointure, en travers de la route)
+local REFLET = 0.02
+-- L'HABIT DE LA ROUTE, PAR NIVEAU (buildTrack du web, L10106 : « le liseré suit le monde, plus le hasard ») : NUAGES = le cyan de
+-- l'air, VILLE = le rose néon sur un bitume de nuit MOUILLÉ, ORBITE = le cyan froid sur un indigo profond. `nappe` = la lueur du
+-- rail qui saigne vers l'intérieur du bitume (1,15 m ; 3,35 m sous la pluie : la route mouillée renvoie le néon), `nappeK` sa force.
+local HABITS: { [string]: any } = {
+	nuages = { accent = R.neon, bitume = R.bitume, nappe = 1.15, nappeK = 0.36 },
+	ville = { accent = Color3.fromRGB(242, 74, 160), bitume = Color3.fromRGB(40, 34, 80), nappe = 3.35, nappeK = 0.62, reflets = 1 },
+	espace = { accent = Color3.fromRGB(94, 230, 255), bitume = Color3.fromRGB(62, 52, 118), nappe = 1.15, nappeK = 0.36 },
+}
+-- les VARIANTES : L'ORAGE prend le violet électrique de l'éclair (0x8a7dff) sur un bitume mouillé ; à MINUIT EN VILLE les néons de la
+-- route tombent à 40 % (villeApres) ; la PLUIE DE SATELLITES garde l'habit de l'orbite
+HABITS.orage = { accent = Color3.fromRGB(138, 125, 255), bitume = Color3.fromRGB(70, 58, 96), nappe = 3.35, nappeK = 0.5 }
+HABITS.nuit = { accent = Color3.fromRGB(190, 58, 126), bitume = Color3.fromRGB(34, 30, 66), nappe = 3.35, nappeK = 0.3, reflets = 0.45 }
+-- LA NAPPE DE LUEUR (L10133) : le web pose sous chaque rail un ruban ADDITIF qui meurt sur l'asphalte. Ici c'est une IMAGE d'une
+-- bande de pixels en travers de la route (le bitume au milieu, le bitume + l'accent sur les bords), tendue sur la dalle par ses
+-- coordonnées de texture : zéro pièce et zéro triangle de plus. (1er essai : la couleur dans les SOMMETS, avec deux colonnes de
+-- points de plus par face — la dalle triplait, et quatre zones gardées en réserve vidaient le budget de maillages : la ville
+-- qui se préparait pendant le niveau NUAGES perdait ses fenêtres. Mesuré au banc, 2/10.)
+local nappes: { [any]: any } = {}
+local function imageNappe(h: any): any?
+	if nappes[h] ~= nil then return nappes[h] or nil end
+	nappes[h] = false
+	-- LE BITUME MOUILLÉ DE LA VILLE (L9725 : « sous la pluie, la route n'était qu'un aplat violet : c'est pourtant LA surface qui fait
+	-- une nuit de pluie ») : `reflets` → l'image fait 96 m de long et porte des TRAÎNÉES de néon (magenta, cyan, ambre des fenêtres),
+	-- étirées dans le sens de la route comme des enseignes renvoyées par l'eau. Roblox ne reflète que le ciel : ces reflets sont
+	-- peints, pas calculés — mais en roulant, c'est bien une route qui brille.
+	local N, H = 128, h.reflets and 256 or 2
+	local ok, im = pcall(function() return AssetServiceR:CreateEditableImage({ Size = Vector2.new(N, H) }) end)
+	if not ok or not im then return nil end
+	local px = table.create(N * H * 3, 0)
+	for x = 0, N - 1 do
+		local d = math.min(x + 0.5, N - x - 0.5) / N * 2 * RH -- (mètres depuis le bord le plus proche)
+		local k = math.max(0, 1 - d / h.nappe)
+		k = k * k * h.nappeK
+		local c = { h.bitume.R + h.accent.R * k, h.bitume.G + h.accent.G * k, h.bitume.B + h.accent.B * k }
+		for y = 0, H - 1 do
+			local o = (y * N + x) * 3
+			px[o + 1], px[o + 2], px[o + 3] = c[1], c[2], c[3]
+		end
+	end
+	if h.reflets then
+		local rnd = Random.new(977)
+		local TONS = { { 1, 0.24, 0.78 }, { 0.24, 0.91, 1 }, { 1, 0.69, 0.29 }, { 1, 0.31, 0.62 } }
+		for _ = 1, 30 do
+			local c = TONS[rnd:NextInteger(1, #TONS)]
+			local k = (0.10 + rnd:NextNumber() * 0.20) * h.reflets
+			local x0, sx = rnd:NextNumber() * N, 1.6 + rnd:NextNumber() * 3.6
+			local y0, ly = rnd:NextNumber() * H, 34 + rnd:NextNumber() * 80
+			for y = -math.floor(ly), math.floor(ly) do
+				local fy = 1 - (y / ly) ^ 2
+				local yy = (math.floor(y0 + y) % H) * N
+				for x = math.max(0, math.floor(x0 - 3 * sx)), math.min(N - 1, math.ceil(x0 + 3 * sx)) do
+					local g = math.exp(-((x - x0) / sx) ^ 2) * fy * fy * k
+					local o = (yy + x) * 3
+					px[o + 1] += c[1] * g
+					px[o + 2] += c[2] * g
+					px[o + 3] += c[3] * g
+				end
+			end
+		end
+	end
+	local b = buffer.create(N * H * 4)
+	for i = 0, N * H - 1 do
+		for j = 1, 3 do buffer.writeu8(b, i * 4 + j - 1, math.clamp(math.floor(px[i * 3 + j] * 255 + 0.5), 0, 255)) end
+		buffer.writeu8(b, i * 4 + 3, 255)
+	end
+	local ok2 = pcall(function() im:WritePixelsBuffer(Vector2.zero, Vector2.new(N, H), b) end)
+	nappes[h] = ok2 and im or false
+	return nappes[h] or nil
+end
+modeleCoin.Reflectance = REFLET -- (le BITUME GLACÉ du jeu web : sombre de près, il prend le ciel et les nuages en rasant — sans reflet, un trou noir)
 
 local function part(taille: Vector3, cf: CFrame, couleur: Color3, matiere: Enum.Material, parent: Instance): Part
 	local p = Instance.new("Part")
@@ -47,7 +119,7 @@ local function part(taille: Vector3, cf: CFrame, couleur: Color3, matiere: Enum.
 end
 
 -- un triangle épais (épaisseur centrée sur le plan a-b-c) en deux coins
-local function triangle(a: Vector3, b: Vector3, c: Vector3, ep: number, parent: Instance)
+local function triangle(a: Vector3, b: Vector3, c: Vector3, ep: number, parent: Instance, couleur: Color3?)
 	local ab, ac, bc = b - a, c - a, c - b
 	local abd, acd, bcd = ab:Dot(ab), ac:Dot(ac), bc:Dot(bc)
 	if abd > acd and abd > bcd then
@@ -63,22 +135,114 @@ local function triangle(a: Vector3, b: Vector3, c: Vector3, ep: number, parent: 
 	local dos = bc.Unit
 	local hauteur = math.abs(ab:Dot(haut))
 	local w1 = modeleCoin:Clone()
+	if couleur then w1.Color = couleur end
 	w1.Size = Vector3.new(ep, hauteur, math.abs(ab:Dot(dos)))
 	w1.CFrame = CFrame.fromMatrix((a + b) / 2, droite, haut, dos)
 	w1.Parent = parent
 	local w2 = modeleCoin:Clone()
+	if couleur then w2.Color = couleur end
 	w2.Size = Vector3.new(ep, hauteur, math.abs(ac:Dot(dos)))
 	w2.CFrame = CFrame.fromMatrix((a + c) / 2, -droite, haut, -dos)
 	w2.Parent = parent
 end
 
-local function rail(a: Vector3, b: Vector3, haut: Vector3, parent: Instance)
+local function rail(a: Vector3, b: Vector3, haut: Vector3, parent: Instance, habit: any)
 	local d = b - a
 	local l = d.Magnitude
 	if l < 0.01 then return end
 	local cf = CFrame.lookAt((a + b) / 2, b, haut)
-	local p = part(Vector3.new(0.7 * M, EP + 0.3 * M, l + 0.05), cf, R.neon, Enum.Material.Neon, parent)
+	-- (0,7 m de néon : deux gros tubes cyan qui mangeaient l'image — la version web trace un LISERÉ au bord de la dalle)
+	local p = part(Vector3.new(0.24 * M, EP + 0.1 * M, l + 0.05), cf, habit.accent, Enum.Material.Neon, parent)
+	p.Name = "Rail"
 	p.CastShadow = false
+end
+
+-- LA DALLE EN MAILLAGE (3e retour de Sacha : « c'est toujours moche ») : en coins épais, chaque tronçon avait SA normale — le soleil
+-- et le reflet du ciel changeaient d'un cran à chaque jointure, la route se lisait en FACETTES barrées de fils sombres. Le jeu web
+-- trace un ruban continu aux normales lisses. Ici : un maillage par morceau de piste (Roblox : une pièce ≤ 2 048 studs), le
+-- dessus et le dessous de la dalle (les tranches sont sous les rails de néon), des normales PARTAGÉES d'un tronçon à l'autre.
+-- Rend false si Roblox refuse (budget de maillages) : le morceau retombe sur les coins.
+local function dalle(sections: { CFrame }, dossier: Instance, ctx: { habit: any, dist: number }): boolean
+	local habit = ctx.habit
+	local demi = RH * M
+	local mn, mx = Vector3.new(math.huge, math.huge, math.huge), Vector3.new(-math.huge, -math.huge, -math.huge)
+	local pts = table.create(#sections * 4)
+	for k, f in sections do
+		local g, d = f.Position - f.RightVector * demi, f.Position + f.RightVector * demi
+		local bas = f.UpVector * EP
+		for j, q in { g, d, g - bas, d - bas } do
+			pts[(k - 1) * 4 + j] = q
+			mn, mx = mn:Min(q), mx:Max(q)
+		end
+	end
+	local centre = (mn + mx) / 2
+	local nt = (#sections - 1) * 4
+	local im = imageNappe(habit) -- (sans image — Roblox l'a refusée — : le bitume uni, dans les sommets)
+	local fin = ctx.dist
+	local bt = habit.bitume
+	local mp = Maillage.seul(function(): MeshPart?
+		local em = AssetServiceR:CreateEditableMesh()
+		local fond = em:AddColor(im and Color3.new(1, 1, 1) or bt, 1)
+		-- (u : en travers de la route ; v : le long — l'image des reflets se répète tous les 96 m, d'un morceau de dalle au suivant)
+		local uv = table.create(#pts)
+		local dist = ctx.dist
+		for k, f in sections do
+			if k > 1 then dist += (f.Position - sections[k - 1].Position).Magnitude / M end
+			local v = habit.reflets and dist / 96 or 0.5
+			local uG, uD = em:AddUV(Vector2.new(0.004, v)), em:AddUV(Vector2.new(0.996, v))
+			local o = (k - 1) * 4
+			uv[o + 1], uv[o + 2], uv[o + 3], uv[o + 4] = uG, uD, uG, uD
+		end
+		fin = dist
+		local ids, nH, nB = table.create(#pts), table.create(#sections), table.create(#sections)
+		for i, q in pts do ids[i] = em:AddVertex(q - centre) end
+		for k, f in sections do
+			nH[k] = em:AddNormal(f.UpVector)
+			nB[k] = em:AddNormal(-f.UpVector)
+		end
+		local function face(a: number, b: number, c: number, ka: number, kb: number, kc: number, n: { any })
+			local t = em:AddTriangle(ids[a], ids[b], ids[c])
+			em:SetFaceNormals(t, { n[ka], n[kb], n[kc] })
+			em:SetFaceColors(t, { fond, fond, fond })
+			em:SetFaceUVs(t, { uv[a], uv[b], uv[c] })
+		end
+		for k = 1, #sections - 1 do
+			local o, o2 = (k - 1) * 4, k * 4
+			-- le dessus (g, d de la section k ; g, d de la suivante), puis le dessous, tourné vers le bas
+			face(o + 1, o + 2, o2 + 2, k, k, k + 1, nH)
+			face(o + 1, o2 + 2, o2 + 1, k, k + 1, k + 1, nH)
+			face(o + 3, o2 + 4, o + 4, k, k + 1, k, nB)
+			face(o + 3, o2 + 3, o2 + 4, k, k + 1, k + 1, nB)
+		end
+		local okF, fige = pcall(function() return AssetServiceR:CreateEditableMeshAsync(Content.fromObject(em), { FixedSize = true }) end)
+		if okF and fige then
+			em:Destroy()
+			em = fige
+		end
+		local okP, piece = pcall(function() return AssetServiceR:CreateMeshPartAsync(Content.fromObject(em), { CollisionFidelity = Enum.CollisionFidelity.Box }) end)
+		if not okP or not piece then
+			pcall(function() em:Destroy() end)
+			return nil
+		end
+		Maillage.suivre(piece, em, nt)
+		return piece
+	end)
+	ctx.dist = fin
+	if not mp then return false end
+	mp.Name = "Dalle"
+	mp.Anchored = true
+	mp.CanCollide = false
+	mp.CanQuery = false
+	mp.CanTouch = false
+	mp.CastShadow = false
+	mp.DoubleSided = true
+	mp.Material = Enum.Material.Plastic -- (mat : en lisse, le bitume prenait tout le bleu du ciel en rasant — une route INDIGO le matin)
+	mp.Color = Color3.new(1, 1, 1) -- (la couleur est dans l'image de la nappe — ou, sans elle, dans les sommets)
+	if im then mp.TextureContent = Content.fromObject(im) end
+	mp.Reflectance = REFLET
+	mp.CFrame = CFrame.new(centre)
+	mp.Parent = dossier
+	return true
 end
 
 -- Bâtit la route d'une piste dans `dossier`. `ceder` est appelé régulièrement (bâtir en tâche de fond).
@@ -88,6 +252,27 @@ function Construction.route(piste: Piste.Piste, dossier: Instance, ceder: (() ->
 	local demi = RH * M
 	local i = 1
 	local compte = 0
+	-- (l'habit et la distance sont PROPRES à cet appel : deux zones peuvent se bâtir en même temps)
+	local habit = HABITS[(piste :: any).variante or ""] or HABITS[(piste :: any).niveau] or HABITS.nuages
+	local ctx = { habit = habit, dist = 0 }
+	-- le morceau de dalle en cours : ses sections (une par jointure), tant qu'il tient dans une pièce de Roblox
+	local sections: { CFrame } = { F[1] }
+	local mnS, mxS = F[1].Position, F[1].Position
+	local function fermer()
+		if #sections >= 2 and not dalle(sections, dossier, ctx) then
+			-- (secours : les coins épais, comme avant)
+			for k = 1, #sections - 1 do
+				local fa, fb = sections[k], sections[k + 1]
+				local mA, mB = fa.Position - fa.UpVector * (EP / 2), fb.Position - fb.UpVector * (EP / 2)
+				local gA, dA = mA - fa.RightVector * demi, mA + fa.RightVector * demi
+				local gB, dB = mB - fb.RightVector * demi, mB + fb.RightVector * demi
+				triangle(gA, dA, dB, EP, dossier, habit.bitume)
+				triangle(gA, dB, gB, EP, dossier, habit.bitume)
+			end
+		end
+		sections = { sections[#sections] }
+		mnS, mxS = sections[1].Position, sections[1].Position
+	end
 	while i < n do
 		-- on allonge le quadrilatère tant que la route ne tourne ni ne plie (≤ 3°) et sur 30 m au plus
 		local j = i + 1
@@ -99,58 +284,70 @@ function Construction.route(piste: Piste.Piste, dossier: Instance, ceder: (() ->
 		local fa, fb = F[i], F[j]
 		local mA = fa.Position - fa.UpVector * (EP / 2)
 		local mB = fb.Position - fb.UpVector * (EP / 2)
-		local gA, dA = mA - fa.RightVector * demi, mA + fa.RightVector * demi
-		local gB, dB = mB - fb.RightVector * demi, mB + fb.RightVector * demi
-		triangle(gA, dA, dB, EP, dossier)
-		triangle(gA, dB, gB, EP, dossier)
-		local rA, rB = demi - 0.35 * M, demi - 0.35 * M
-		rail(mA - fa.RightVector * rA, mB - fb.RightVector * rB, (fa.UpVector + fb.UpVector).Unit, dossier)
-		rail(mA + fa.RightVector * rA, mB + fb.RightVector * rB, (fa.UpVector + fb.UpVector).Unit, dossier)
+		table.insert(sections, fb)
+		mnS, mxS = mnS:Min(fb.Position), mxS:Max(fb.Position)
+		local e = mxS - mnS
+		if math.max(e.X, e.Y, e.Z) > 1700 or #sections > 80 then fermer() end
+		local rA, rB = demi - 0.12 * M, demi - 0.12 * M
+		rail(mA - fa.RightVector * rA, mB - fb.RightVector * rB, (fa.UpVector + fb.UpVector).Unit, dossier, habit)
+		rail(mA + fa.RightVector * rA, mB + fb.RightVector * rB, (fa.UpVector + fb.UpVector).Unit, dossier, habit)
 		i = j
 		compte += 1
 		if ceder and compte % 60 == 0 then ceder() end
 	end
-	-- le marquage du niveau 1 (capture web) : des pointillés BLANCS sur les voies, tous les 12 m — sur un ruban
-	-- de 56 m, ce sont eux qui disent la vitesse et l'échelle
-	local haut = 0.03 * M
-	local s = 6 * M
+	fermer()
+	-- LA PEINTURE (buildTrack du web, L10149) : UNE ligne centrale en tirets — blanc lavande 0xe4ddff à demi transparent, 14 m de
+	-- tiret tous les 32 m (7 points sur 16), sur les DEUX faces de la dalle. (3e retour : il y avait ici deux rangées de gros
+	-- pointillés blancs sur les voies, qui n'existent pas dans le jeu web d'aujourd'hui.)
+	local LAVANDE = Color3.fromRGB(228, 221, 255)
+	local s = 4 * M
 	local k = 0
-	while s < piste.len - 6 * M do
-		local f = Piste.repere(piste, s)
-		local cfl = CFrame.fromMatrix(f.Position + f.UpVector * haut, f.RightVector, f.UpVector, -f.LookVector)
-		for _, x in { -0.34, 0.34 } do
-			local v = part(Vector3.new(0.45 * M, 0.06 * M, 6 * M), cfl + f.RightVector * (x * RH * M), R.voie, Enum.Material.SmoothPlastic, dossier)
-			v.CastShadow = false
+	while s < piste.len - 16 * M do
+		-- (chaque tiret en deux moitiés de 7 m : il suit la courbe)
+		for moitie = 0, 1 do
+			local f = Piste.repere(piste, s + (3.5 + moitie * 7) * M)
+			for _, y in { 0.05 * M, -EP - 0.05 * M } do
+				local v = part(Vector3.new(0.4 * M, 0.04 * M, 7.05 * M), CFrame.fromMatrix(f.Position + f.UpVector * y, f.RightVector, f.UpVector, -f.LookVector),
+					LAVANDE, Enum.Material.SmoothPlastic, dossier)
+				v.Transparency = 0.45
+				v.CastShadow = false
+			end
 		end
 		k += 1
-		s += 12 * M
-		if ceder and k % 150 == 0 then ceder() end
+		s += 32 * M
+		if ceder and k % 80 == 0 then ceder() end
 	end
 end
 
 -- le PORTAIL de fin de zone : un anneau d'or debout au-dessus de la route, et un voile qui scintille
-function Construction.portail(piste: Piste.Piste, dossier: Instance)
-	local f = Piste.repere(piste, piste.len - 20 * M)
-	local Rr = 46 * M
-	local c = f.Position + f.UpVector * (Rr * 0.62)
-	local nb = 28
-	for k = 0, nb - 1 do
-		local a0 = 2 * math.pi * k / nb
-		local a1 = 2 * math.pi * (k + 1) / nb
-		local p0 = c + (f.RightVector * math.cos(a0) + f.UpVector * math.sin(a0)) * Rr
-		local p1 = c + (f.RightVector * math.cos(a1) + f.UpVector * math.sin(a1)) * Rr
-		local seg = part(Vector3.new(3 * M, 3 * M, (p1 - p0).Magnitude + 1),
-			CFrame.lookAt((p0 + p1) / 2, p1, f.LookVector), (k % 2 == 0) and Color3.fromRGB(255, 215, 94) or Color3.fromRGB(255, 62, 200),
-			Enum.Material.Neon, dossier)
-		seg.CastShadow = false
+-- L'OVULE (L10343 ; Sacha, 26/09 : « plus gros et rond comme un ovule ; on peut le franchir en venant de n'importe quelle
+-- direction »). Plus un anneau posé sur la route : une SPHÈRE de 55 m de rayon (plus large que la route qui la traverse), le centre
+-- un peu au-dessus du bitume — la route entre dans le bas de l'ovule. Une membrane translucide qui brille sur ses bords (rose, et
+-- une seconde peau cyan dessous pour l'irisation), un NOYAU éclatant qui bat au centre, un halo. Le Pilote le fait respirer et
+-- tourner, et le franchit dès qu'on y ENTRE, d'où qu'on vienne. Rend ses pièces.
+function Construction.portail(piste: Piste.Piste, dossier: Instance): any
+	local f = Piste.repere(piste, piste.len - 25 * M)
+	local Rr = 55 * M
+	local c = f.Position + f.UpVector * (Rr * 0.38)
+	local function boule(d: number, couleur: Color3, matiere: Enum.Material, transp: number, nom: string): Part
+		local p = part(Vector3.new(d, d, d), CFrame.new(c), couleur, matiere, dossier)
+		p.Shape = Enum.PartType.Ball
+		p.Transparency = transp
+		p.CastShadow = false
+		p.Name = nom
+		return p
 	end
-	local voile = part(Vector3.new(Rr * 1.9, Rr * 1.9, 0.5), CFrame.fromMatrix(c, f.RightVector, f.UpVector, -f.LookVector),
-		Color3.fromRGB(255, 200, 120), Enum.Material.ForceField, dossier)
-	voile.Transparency = 0.2
-	local m = Instance.new("SpecialMesh")
-	m.MeshType = Enum.MeshType.Sphere
-	m.Scale = Vector3.new(1, 1, 0.02)
-	m.Parent = voile
+	local membrane = boule(Rr * 2, Color3.fromRGB(255, 79, 216), Enum.Material.ForceField, 0, "Ovule")
+	local irise = boule(Rr * 1.94, Color3.fromRGB(94, 230, 255), Enum.Material.ForceField, 0.35, "OvuleIrise")
+	local noyau = boule(Rr * 0.5, Color3.fromRGB(255, 208, 244), Enum.Material.Neon, 0.15, "OvuleNoyau")
+	local halo = boule(Rr * 0.9, Color3.fromRGB(255, 79, 216), Enum.Material.Neon, 0.8, "OvuleHalo")
+	local lum = Instance.new("PointLight")
+	lum.Color = Color3.fromRGB(255, 79, 216)
+	lum.Range = 60
+	lum.Brightness = 2
+	lum.Shadows = false
+	lum.Parent = noyau
+	return { c = c, R = Rr, membrane = membrane, irise = irise, noyau = noyau, halo = halo }
 end
 
 -- ── les objets ──

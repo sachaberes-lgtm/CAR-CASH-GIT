@@ -7,6 +7,43 @@
 - Les règles « SANS TOUT CASSER » (partir de `origin/main` à jour, fusionner sans jamais forcer, jeu testé sans erreur avant chaque
   push, retour arrière par Vercel) et la liste de ce que contient la référence : voir `CLAUDE.md` à la RACINE du dépôt.
 
+## SIX COMMUNES RETIRÉES (2026-10-02) — Sacha, capture du garage : « supprimer ces 6 voitures du jeu, elles sont pas intéressantes »
+- LA PIZZA EXPRESS, LE MONOSPACE, LE BREAK SUÉDOIS, LA BOULE, LE GLACIER, LE TOUT-TERRAIN SOVIÉTIQUE : `retire:1` dans leur fiche
+  (`CARS`). Pour le joueur elles ne sont plus nulle part : `rarListe` les saute (garage, vignettes, compteurs des familles : COMMUNES
+  15 → 9, gamme 69 → 63), `carPrice` rend 0 (objectif, pastille « à ta portée », garPortee), `carUnlocked` / `carUnlockedVrai` rendent
+  faux (on ne peut plus les équiper). Un seul test : `carRetiree(i)`.
+- ⚠ LEURS LIGNES RESTENT (fiche, condition, gabarit) : la sauvegarde désigne les caisses par leur INDEX (`equipped`, `owned`) — ôter
+  six lignes au milieu de `CARS` décalerait toutes les suivantes et donnerait à chacun la caisse d'un autre. Pour retirer une autre
+  caisse : `retire:1`, rien d'autre. Pour la rendre : ôter le drapeau.
+- LA SAUVEGARDE (`san`) : qui en avait acheté une est REMBOURSÉ au prix payé (elle sort de `owned`, le remboursement ne joue qu'une
+  fois) ; qui roulait avec repart en LA HONTE. Vérifié au banc : owned [19, 20] + 48 250 $ → owned [] + 54 750 $, equipped 0.
+- sw.js → v55.
+
+## L'ORIGAMI — LE PICK-UP D'INOX (2026-10-02) — Sacha, photo du pick-up plié en acier : « mets cette voiture dans le jeu, fais-la exceptionnellement belle et parfaite »
+- **LA 69e CAISSE** : `CARS[68]`, `shape:'origami'`, ÉPIQUE, 1,2 M $ (entre LA DÉESSE et L'AIGLE DE FEU), ajoutée EN DERNIER (aucun
+  index de sauvegarde ne bouge). Sans nom de marque ni logo, comme toute la gamme. Cotes réelles (5,68 × 2,03 × 1,79 m). Sillage
+  propre (`fx` : un courant froid bleu-blanc — elle est électrique). Traduite (`I18N` : THE ORIGAMI).
+- **LE GABARIT** (`SHAPES.origami`, juste après « LA GAMME DES 50 — FIN ») : ~2 000 facettes. ⚠ CHAQUE PAN EST UN PLAN EXACT — sur de
+  l'inox (matière chrome `c`, clé `p` comme LA DOLORÈS), un quadrilatère gauchi montre sa diagonale. Quatre familles de plans, écrites
+  comme telles : flanc BAS `x = xW − KL·(yS − y)`, flanc HAUT `x = xW − TB·(y − yS)`, DESSUS `y = T(z)` plat d'une rive à l'autre,
+  et les deux bouchons du loft. `yS` (l'arête), `xW`, `T` (le triangle du toit) sont affines par morceaux et chaque cassure est une
+  station du loft. Tout ce qui se pose dessus (vitres, lames, joints, essuie-glace) est un POLYGONE écrit dans le repère de son pan
+  (`SU` / `SL` / `TP`), décollé de 6 mm — jamais une boîte inclinée à la main.
+- **TROIS RÉGLAGES QUI NE SE DEVINENT PAS** (vus au banc, en image) :
+  · `TB` .64 (33° de dévers des vitres) : à 27° comme à 30° le flanc haut renvoyait pile le contre-jour ROSE du studio (`carPhoto`)
+    dans l'objectif — un plan n'a qu'une normale, vitre et montant s'allumaient d'un seul aplat sur la vignette du garage ;
+  · le COUVRE-BENNE est en ACIER (neuf lames, un ton sur deux), pas noir comme le vrai : en poursuite on voit surtout le DESSUS de
+    la caisse — verre + rideau noirs, elle n'avait plus rien d'inox. Pas de rainures fines : de loin elles scintillent en pointillé ;
+  · les boucliers sont deux petits LOFTS (coins coupés en plan, dessous relevé), et le bas des deux bouchons est recouvert de noir
+    (sinon l'inox dépasse sous le bouclier).
+- **LA ROUE `plis`** (nouveau style de `lpWheel`) : un flasque plein plié en étoile (`n` plis, une crête, un creux, un pan sur deux
+  en `jante` / `accent`), pointes qui débordent sur le flanc du pneu. ⚠ rien ne dépasse `fx + .022` : le flou de jante se pose à
+  `fx + .024`. Libre pour d'autres caisses.
+- Électrique : aucun pot dessiné, les tuyères sont DÉCLARÉES (`pots` dans la fiche d'ancrages, sous le bouclier arrière).
+- Bancs (scratchpad de la session, à refaire au besoin sur le même modèle) : planche de studio 6 vues + vignette (`dbgCar` /
+  `dbgPhoto` dans une scène à part), et le VRAI parcours menu → GARAGE → ÉPIQUES → vignette → JOUER, couché, debout, cadre de l'ordi.
+- sw.js → v54.
+
 ## LE DRAGON DE PAPIER (v7) + LA DARK TRIAD EN NOIR (2026-10-01, session GAMEPLAY, GRAPHISME et SON ont passé la main) — Sacha : « il faut que le dragon nitro ait un peu un aspect "papier", comme un vrai dragon chinois en papier ; il doit donc beaucoup réagir au vent et à la vitesse — retravaille ça très bien ; aussi, en dark triad, le dragon, les dauphins et le snake doivent être noirs »
 - **LES FEUILLES** (canevas peints une fois, mêmes matières et mêmes programmes) : `DRG_TEX` (le corps) n'est plus une laque brillante à écailles
   en fil d'or mais un LAMPION — papier vermillon MAT, PLIS d'accordéon (arête claire, creux, soufflet), ÉCAILLES de papier découpé (festons

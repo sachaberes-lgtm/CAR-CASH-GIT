@@ -222,7 +222,7 @@ local function frenDeclenche()
 		sub = cash
 	end
 	FREN.vu = true
-	Score.dire.slam(T("FRENESIE !", "FRENZY!"), sub, "#ff2a3d", "#ffb000", 44, 2, 22)
+	Score.dire.slam(T("FRENESIE !", "FRENZY!"), sub, "#ff2a3d", "#ffb000", 44, 2, 22) -- (le titre TRIPLE MONSTER la couvre 2,7 s : HudScore.frenTitre)
 	Score.dire.flash("#ff2a3d", 0.6)
 	Score.dire.son("frenesie")
 	Score.dire.musique(true)
@@ -243,6 +243,7 @@ end
 
 local function flowRevele()
 	FLOW.revele = true
+	Score.dire.son("triade.revele")
 	Score.dire.pop((F2.decl.drift <= 3) and T("DRIFT · RACCOURCI · VITESSE", "DRIFT · SHORTCUT · SPEED") or T("FIGURE · RACCOURCI · NITRO", "TRICK · SHORTCUT · NITRO"), "#b58cff", 2)
 end
 
@@ -317,12 +318,15 @@ function Score.flowCasse(angle: number)
 	FLOW.v, FLOW.lv, FLOW.idle = 0, 0, 0
 	FREN.arme = false
 	Score.dire.pop((angle <= 90) and T("DE TRAVERS !", "SIDEWAYS!") or T("A CONTRESENS !", "WRONG WAY!"), "#ff5e7a", 2)
+	Score.dire.son((angle <= 90) and "pose.travers" or "pose.contresens")
 	if lvAvant >= 2 then Score.dire.flash("#ff2a3d", 0.35) end
 end
 
 -- ════════ la frénésie se déclenche (une figure POSÉE, un raccourci ou un drift en ville) ════════
 function Score.frenPeut(): boolean return FREN.arme and FLOW.lv < 4 end
 function Score.frenDeclenche() if Score.frenPeut() then frenDeclenche() end end
+-- (mise au point) la frénésie tout de suite, pour regarder le DARK TRIAD (dragon, dauphins et serpent noirs)
+function Score.dbgFren() if FLOW.lv < 4 then FREN.arme = true frenDeclenche() end end
 
 -- chaque paiement en frénésie nourrit le butin
 function Score.frenCash(g: number) if FLOW.lv == 4 then FREN.butin += g end end
@@ -458,6 +462,12 @@ function Score.geste(nom: string, base: number, fam: string?, brut: boolean?, mu
 		if CHA.x == 5 then Score.dire.slam("×5", T("EN FEU !!", "ON FIRE!!"), Score.X_COUL[5], "#ffffff", 30, 1)
 		elseif CHA.x == 8 then Score.dire.slam("×8", T("DEMENT !!!", "INSANE!!!"), Score.X_COUL[8], "#ffffff", 34, 1)
 		elseif CHA.x == 10 then Score.dire.slam("×10", "MAX !!!", Score.X_COUL[10], "#ffd75e", 38, 2) end
+		-- (L29096) un palier de chaîne se SENT : son, éclair de bord à sa couleur, vibration
+		if CHA.x == 5 or CHA.x == 8 or CHA.x == 10 then
+			Score.dire.son("aura.x" .. CHA.x)
+			Score.dire.flash(Score.X_COUL[CHA.x], 0.4)
+			Score.dire.hap((CHA.x == 10) and 60 or 35)
+		end
 	end
 	if not muet then Score.dire.pop(nom .. " +" .. p, (CHA.x > x0) and "#ff9ee6" or "#ffd75e", 0) end
 	Score.dire.son((ETAT.mode == "fall") and "fig.maillon" or "aura.geste", math.min(12, CHA.x))
@@ -664,13 +674,19 @@ Score.SFA = SFA
 function Score.poseJugee(propre: boolean, vraiVol: boolean): number
 	if not vraiVol then return 0 end
 	if not propre then
+		if SFA.n >= 3 then Score.dire.pop(T("SERIE CASSEE", "STREAK BROKEN"), "#ff5e7a", 1) end -- (L23659)
 		SFA.n = 0
 		return 0
 	end
 	SFA.n += 1
 	local n = SFA.n
-	if n == 3 or n == 5 or n == 8 or n == 12 or (n > 12 and (n - 12) % 5 == 0) then
-		Score.geste(T("SANS FAUTE", "FLAWLESS") .. " ×" .. n, 30 + 8 * math.min(20, n), "sansfaute", true)
+	if n == 3 or n == 5 or n == 8 or n == 12 or (n > 12 and n % 5 == 0) then -- (L23661 : 3 · 5 · 8 · 12, puis 15 · 20 · 25…)
+		Score.geste(T("SANS FAUTE", "FLAWLESS") .. " ×" .. n, 30 + 8 * math.min(20, n), "sansfaute", true, true)
+		Score.dire.son("sans.faute")
+		-- (son texte arrive 0,7 s APRÈS la pose : le verdict et PARFAIT ! se lisent d'abord)
+		task.delay(0.7, function()
+			if ETAT.enCours then Score.dire.pop(T("SANS FAUTE", "FLAWLESS") .. " ×" .. n, "#7dff9a", 2) end
+		end)
 		return 0.12 -- la nitro rendue
 	end
 	return 0

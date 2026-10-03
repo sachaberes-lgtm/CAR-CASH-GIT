@@ -65,6 +65,8 @@ local function suivre(mp: Instance, em: any, triangles: number)
 		pcall(function() em:Destroy() end)
 	end)
 end
+-- (une pièce bâtie AILLEURS mais qui doit rendre sa place à sa destruction : les nuages FINS, chargés et lâchés en course)
+Maillage.suivre = suivre
 -- détruire un objet bâti ici (ses pièces rendent leur maillage toutes seules)
 function Maillage.rendre(objet: Instance?)
 	if objet then objet:Destroy() end

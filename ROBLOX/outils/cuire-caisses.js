@@ -44,6 +44,7 @@ const blocs = [
   bloc('const NUAGE_BLOBS=', 'const GH=', false),                               // la caisse-nuage
   L[ligne('function lingotGeo(')],
   bloc('SHAPES.lingot=', '};', true),                                           // le lingot
+  bloc('SHAPES.origami=', '};', true),                                          // L'ORIGAMI (2/10) : son gabarit vit APRÈS la gamme des 50
   `return {CARS,CAR_UNLOCK,carRar,SHAPES,lpKit,lpWheel,lpOmbre,carProfile,SPH9,FACET_SHAPES,geoFacette,
     monte:function(g){carGroup=g;}};`,
 ];
@@ -270,7 +271,7 @@ for (let i = 0; i < CARS.length; i++) {
   if (u) cond = u.p != null ? '{ k = "prix", v = ' + u.p + ' }' : '{ k = ' + q(u.k) + (u.v != null ? ', v = ' + u.v : '') + (u.eur ? ', eur = ' + q(u.eur) : '') + ' }';
   const rar = G.carRar ? G.carRar(i) : 'commun';
   const fx = s.fx ? '{ ' + ['jet', 'core', 'light'].filter(k => s.fx[k] != null).map(k => k + ' = ' + hex(s.fx[k])).concat(s.fx.trail ? ['trainee = { ' + s.fx.trail.join(', ') + ' }'] : [], s.fx.rainbow ? ['arcenciel = true'] : []).join(', ') + ' }' : 'nil';
-  fiches.push('\t[' + i + '] = { nom = ' + q(s.name) + ', en = ' + q(en(s.name) || s.name) + ', rar = ' + q(rar) + ', gabarit = ' + q(s.shape) + ', cond = ' + cond +
+  fiches.push('\t[' + i + '] = { nom = ' + q(s.name) + ', en = ' + q(en(s.name) || s.name) + ', rar = ' + q(rar) + ', gabarit = ' + q(s.shape) + (s.retire ? ', retire = true' : '') + ', cond = ' + cond +
     ',\n\t\tlaque = ' + hex(s.color) + ', accent = ' + hex(s.accent) + ', w = ' + s.w + ', h = ' + s.h + ', l = ' + s.l + ', kmh = ' + s.maxKmh + ', triangles = ' + nt +
     ',\n\t\tphare = ' + rox([a.A.hl[0], a.A.hl[1], a.A.hl[2]]) + ', feu = ' + rox([a.A.tl[0], a.A.tl[1], a.A.tl[2]]) +
     ', pots = { ' + a.pots.map(rox).join(', ') + ' }' +

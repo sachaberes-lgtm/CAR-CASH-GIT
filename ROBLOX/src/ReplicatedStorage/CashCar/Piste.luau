@@ -19,7 +19,7 @@ local RH = Config.ROAD_HALF
 
 export type Objet = { s: number, lat: number, h: number, face: number, kind: string, pw: string?, grp: number?, r: number?, fruit: number?, ligne: boolean? }
 export type Piste = {
-	graine: number, zone: number, DS: number, n: number, len: number, F: { CFrame },
+	graine: number, zone: number, lv: number, niveau: string, variante: string?, archetype: string, filets: { any }, entree: { number }?, DS: number, n: number, len: number, F: { CFrame },
 	minY: number, grille: { [number]: { number } }, cellule: number,
 	objets: { Objet }, modules: { { a: number, b: number, nom: string } },
 }
@@ -37,11 +37,53 @@ end
 -- Génère la zone `zone` à partir de la pose `depart` (CFrame en studs ; nil = l'origine du monde).
 -- `ceder` (facultatif) est appelé entre deux motifs : on étale le calcul sur plusieurs images.
 -- `ecole` = la piste DESSINÉE de l'auto-école (genTuto, L8765) : douze tronçons écrits à la main, pas de hasard.
-function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (() -> ())?, ecole: boolean?): Piste
+-- `parties` = le nombre de parties déjà jouées par CE joueur (les cristaux s'y adaptent : voir semer) ; nil = un vétéran.
+-- `moteur` : { lv, str } — l'échelle des virages et le pas des motifs de pièces, calculés sur le MOTEUR du joueur (voir Pilote) ;
+-- nil = l'ancienne règle, sur le numéro de zone.
+function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (() -> ())?, ecole: boolean?, parties: number?, moteur: any?): Piste
 	local rnd = Random.new(graine * 97 + zone * 7919)
 	local function r(a: number, b: number): number return a + rnd:NextNumber() * (b - a) end
-	local LV = 1 + (zone - 1) * 0.35          -- lvPiste : plus on va vite, plus les rayons s'ouvrent
-	local RS = 1.25 * LV
+	local niv: string = ecole and "nuages" or Config.niveau(zone).id
+	local variante: string? = (not ecole) and Config.niveau(zone).var or nil
+	local VILLE, ESPACE = niv == "ville", niv == "espace"
+	-- lvPiste (L28402, piste v6) : L'ÉCHELLE DES VIRAGES SUIT LA VITESSE DU MOTEUR — les virages grandissent, leur NOMBRE par minute
+	-- reste. (Avant le 3/10 elle suivait le numéro de zone : un joueur au petit moteur héritait des rayons d'un bolide.)
+	local LV = (moteur and moteur.lv) or (1 + (zone - 1) * 0.35)
+	local LV0 = LV -- (avant la marge de l'orbite : c'est elle que lisent l'écart des satellites et la croisière de conception)
+	-- L'AUTOROUTE ORBITALE (ESP_ROUTE, L8845) : en ESPACE la piste est dessinée pour 30 % de vitesse en plus
+	if ESPACE then LV *= 1.3 end
+	-- LES PENTES COMPRIMÉES (VILLE_PENTE, ESP_ROUTE.pente) : sous le seuil rien ne bouge ; au-delà, seule une part de l'excès passe —
+	-- entre les tours chaque façade MESURE la pente (48° → 30°) ; en orbite, à gravité ÷2, le relief devient une houle (≤ ~10°)
+	local SEUIL, GARDE = 9, 1
+	if VILLE then SEUIL, GARDE = 0.30, 0.35 elseif ESPACE then SEUIL, GARDE = 0.14, 0.4 end
+	local function comprime(p: number): number
+		local a = math.abs(p)
+		if a <= SEUIL then return p end
+		return math.sign(p) * (SEUIL + (a - SEUIL) * GARDE)
+	end
+	-- ── L'ADN DE PISTE (L9292 du jeu web) : chaque zone tire une PERSONNALITÉ — fini le tirage statistiquement identique.
+	--   FLOW : l'autoroute céleste, des virages qui chantent · TECH : le slalom, épingles et chicanes, des rayons serrés ·
+	--   ALPIN : crêtes et plongeons · VOLTIGE : le ciel est un cirque · GRAND8 : le mixte équilibré.
+	-- `w` : les poids des motifs (NUAGES, ORAGE, VILLE) · `wv` : ceux de l'ORBITE (grands virages, grands balayages) · `rs` : l'échelle
+	-- des rayons · `vt` : l'humeur verticale (vagues et plongeons). (Avant le 2/10 toutes les zones étaient des FLOW.)
+	local ARCH = {
+		{ nom = "FLOW", rs = 1.15, vt = 0.8, w = { grand = 16, virage = 30, epingle = 3, esses = 26, vague = 6, plongeon = 4, elan = 6, chicane = 6 },
+			wv = { grand = 28, virage = 40, epingle = 2, esses = 22, vague = 6, plongeon = 2, elan = 3, chicane = 5 } },
+		{ nom = "TECH", rs = 0.92, vt = 0.9, w = { grand = 8, virage = 20, epingle = 14, esses = 22, vague = 4, plongeon = 3, elan = 6, chicane = 16 },
+			wv = { grand = 16, virage = 28, epingle = 9, esses = 20, vague = 4, plongeon = 2, elan = 3, chicane = 13 } },
+		{ nom = "ALPIN", rs = 1.1, vt = 1.4, w = { grand = 12, virage = 22, epingle = 4, esses = 14, vague = 12, plongeon = 10, elan = 8, chicane = 4 },
+			wv = { grand = 22, virage = 32, epingle = 3, esses = 12, vague = 10, plongeon = 5, elan = 4, chicane = 4 } },
+		{ nom = "VOLTIGE", rs = 1.15, vt = 1.1, w = { grand = 14, virage = 22, epingle = 4, esses = 16, vague = 8, plongeon = 6, elan = 6, chicane = 5 },
+			wv = { grand = 24, virage = 32, epingle = 3, esses = 14, vague = 8, plongeon = 3, elan = 3, chicane = 4 } },
+		{ nom = "GRAND8", rs = 1, vt = 1, w = { grand = 14, virage = 24, epingle = 7, esses = 18, vague = 8, plongeon = 6, elan = 6, chicane = 8 },
+			wv = { grand = 24, virage = 34, epingle = 5, esses = 16, vague = 8, plongeon = 3, elan = 3, chicane = 6 } },
+	}
+	local AR: any = ecole and ARCH[1] or ARCH[rnd:NextInteger(1, 5)]
+	local VT: number = AR.vt
+	-- LA LATÉRALITÉ : une piste qui tourne plutôt à gauche ne ressemble pas à une équilibrée (une zone sur trois penche d'un côté,
+	-- une sur trois de l'autre)
+	local hand = ecole and 0 or ((rnd:NextNumber() < 0.33) and -1 or ((rnd:NextNumber() < 0.5) and 0 or 1))
+	local RS = AR.rs * 1.25 * LV
 	local LEN = P.longueur * (1 + math.min(1.1, (zone - 1) * 0.25))
 	local DS = P.pas
 
@@ -102,8 +144,9 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 	local function seg(longueur: number, angle: number, penteFin: number, rampe: number?)
 		local n = math.max(2, math.floor(longueur / DS + 0.5))
 		local p0 = pc
-		penteFin = math.clamp(penteFin, -P.penteMax, 0.40)
-		local nR = math.max(1, math.floor(math.min(longueur * 0.5, rampe or 55) / DS))
+		penteFin = comprime(math.clamp(penteFin, -P.penteMax, 0.40))
+		-- (ESP_ROUTE.cretes) en ESPACE, crêtes et creux sont arrondis 2,5 fois plus
+		local nR = math.max(1, math.floor(math.min(longueur * 0.5, (rampe or 55) * (ESPACE and 2.5 or 1)) / DS))
 		for k = 1, n do
 			local u = (k - 0.5) / n
 			local forme = 1 - math.cos(2 * math.pi * u) -- courbure nulle aux deux bouts, angle total respecté
@@ -115,7 +158,7 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 		local a = math.rad(angleDeg)
 		seg(R * math.abs(a), a, penteFin)
 	end
-	local function sens(): number return (rnd:NextNumber() < 0.5) and -1 or 1 end
+	local function sens(): number return (rnd:NextNumber() < 0.5 + hand * 0.22) and 1 or -1 end
 
 	-- ── les motifs de la zone (poids de l'archétype FLOW, L8891 ; motifs L9039-9085) ──
 	-- ⚠ les virages PLONGENT : dans le jeu web un virage descend de 60 à 110 % de sa longueur (avant le lissage
@@ -124,8 +167,9 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 	local function desc(a: number, b: number): number return -math.min(P.penteMax, r(a, b)) end
 	local MOTIFS = {
 		{ "grand", 16, function() -- le grand balayage : large, il descend doucement
-			local R = (110 + r(0, 90)) * RS
-			arc(R, sens() * math.min(100 + r(0, 60), 52000 / R), desc(0.12, 0.24))
+			local large = ESPACE -- (L9462) R 160-320 en ORBITE, 110-200 ailleurs (la VILLE aussi : le terrain RELIEF du web est coupé)
+			local R = (large and (160 + r(0, 160)) or (110 + r(0, 90))) * RS
+			arc(R, sens() * math.min(100 + r(0, 60), (large and 64000 or 52000) / R), desc(0.12, 0.24))
 		end },
 		{ "virage", 30, function() -- le grand virage : il PLONGE
 			local R = (80 + r(0, 120)) * RS
@@ -149,12 +193,13 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 		end },
 		{ "vague", 6, function() -- bosse + creux, en courbe
 			local sg = sens()
-			seg(r(40, 80), sg * math.rad(r(10, 22)), desc(0.2, 0.35), 30)
-			seg(r(50, 90), sg * math.rad(r(10, 22)), r(0.3, 0.4), 30)
-			seg(r(70, 120), sg * math.rad(r(12, 26)), desc(0.5, 0.7), 30)
+			-- (× VT : l'humeur verticale de l'archétype — un ALPIN creuse ses vagues, un FLOW les aplatit)
+			seg(r(40, 80), sg * math.rad(r(10, 22)), desc(0.2, 0.35) * VT, 30)
+			seg(r(50, 90), sg * math.rad(r(10, 22)), math.min(0.4, r(0.3, 0.4) * VT), 30)
+			seg(r(70, 120), sg * math.rad(r(12, 26)), desc(0.5, 0.7) * VT, 30)
 		end },
 		{ "plongeon", 4, function()
-			seg(r(60, 140), sens() * math.rad(r(10, 20)), desc(0.35, 0.58), 35)
+			seg(r(60, 140), sens() * math.rad(r(10, 20)), math.max(-0.58, desc(0.28, 0.48) * VT), 35) -- (L9487 : min(0,58 ; (0,28-0,48) × VT))
 			arc(r(90, 170) * RS, sens() * r(25, 75), desc(0.6, 0.8))
 		end },
 		{ "elan", 6, function() -- la ligne de momentum : longue, cintrée, raide
@@ -168,6 +213,21 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 			end
 		end },
 	}
+	-- LES POIDS DU NIVEAU (`wv` : la VILLE a ses grands virages et ses grands balayages ; l'ORBITE les mêmes, tempérés par
+	-- ESP_ROUTE.w : épingles × 0,35 ; vagues, plongeons, chicanes × 0,5 ; lignes d'élan × 1,2)
+	do
+		local W = table.clone(ESPACE and AR.wv or AR.w)
+		if ESPACE then
+			W.epingle *= 0.35
+			W.vague *= 0.5
+			W.plongeon *= 0.5
+			W.chicane *= 0.5
+			W.elan *= 1.2
+		end
+		-- L'HUMEUR DE LA ZONE : deux FLOW ne doivent pas se ressembler — les poids sont secoués à chaque zone (× 0,35 à 2,05) : celle-ci
+		-- sera obsédée par les esses, la suivante par les grands virages. Le caractère de l'archétype tient, seule l'humeur change.
+		for _, m in MOTIFS do m[2] = (W[m[1]] or m[2]) * (ecole and 1 or (0.35 + rnd:NextNumber() * 1.7)) end
+	end
 	-- entre deux motifs : une liaison qui tourne (16-36°) et descend de 8-16 m (L9084)
 	local function liaison()
 		local l = r(50, 90) * LV
@@ -175,30 +235,103 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 	end
 
 	-- ── les modules du niveau NUAGES (L8918-8942) ──
+	local filetPlan: any = nil -- (posé par le module FILET : où sont, dans son plan, le virage et le filet) ⚠ déclaré AVANT les modules
 	local MODULES = {
 		FILET = function()
-			-- un virage rapide et presque plat… puis la route continue de tourner en s'ÉVASANT et en
-			-- descendant de 48 m : un tour plus loin, elle repasse sous le point où atterrit la caisse
-			-- qui a quitté le virage par l'extérieur (≈ 90 m plus loin sur la tangente, 2,4 s de vol).
+			-- LA ROUTE QUI TE RATTRAPE (filet(), L9361 du jeu web). Un virage RAPIDE et presque plat, puis la route fait une BRETELLE
+			-- (comme un échangeur : une ligne qui s'éloigne dans l'axe de sortie, un grand demi-tour, le retour) et repasse 42 à 54 m
+			-- PLUS BAS, à l'EXTÉRIEUR du virage, dans le même sens — pile là où retombe une caisse qui sort du virage par le bord. Le
+			-- filet est calculé sur la vraie physique du vol : sortie à l'angle f du virage, au bord extérieur (R + demi-route),
+			-- écartée de 0,13 rad vers le vide, à la vitesse de croisière vN, poussée de décollage `kick`, gravité FALL_G × SPD ; la
+			-- pose a lieu quand la caisse est descendue de dh(f) — le filet est ce LIEU DES POSES, pour f de −15 % à 115 % du virage.
+			-- (La 1re version d'ici était une spirale : 5 % des sorties s'y reposaient. Le web l'a retirée pour la même raison :
+			-- « on tourne sans rien voir venir ».)
 			local sg = sens()
-			local R1 = r(95, 140) * RS
-			arc(R1, sg * r(55, 75), 0)
-			local A = math.rad(410)
-			local descente = 48 + r(0, 6)
-			local n = math.floor(2 * math.pi * (R1 + 30) * (A / (2 * math.pi)) / DS)
-			local p0 = pc
-			local pente2 = -descente / (2 * math.pi * (R1 + 28))
-			local parcouru = 0
-			for k = 1, n do
-				local u = k / n
-				local Rk = R1 + 55 * lisse(u / 0.72)
-				local dl = DS / Rk
-				parcouru += dl
-				if parcouru > A then break end
-				table.insert(plan, { dl = sg * dl, p = p0 + (pente2 - p0) * lisse(k / 20) })
+			local Rv = r(95, 140) * RS
+			local th = math.rad(r(55, 75))
+			local Re = Rv + RH
+			local vN = 1.1 * (70 + (LV - 1) * 100)
+			local g, k0, DEV = Config.FALL_G * Config.SPD, 1.6, 0.13
+			seg(70 * LV, 0, -0.05, 35) -- l'APPROCHE : droite et lisible, le virage et son filet se voient venir
+			local pC = r(0.04, 0.07) -- (un virage presque plat : sa pente part avec la caisse — vy = −v × pente)
+			local dropC = th * Rv * pC
+			local function cercle(Rr: number, ang: number, pente9: number) -- un VRAI arc de cercle (rayon horizontal Rr), du côté sg
+				if ang < 1e-3 then return end
+				local n = math.max(1, math.floor(ang * Rr * math.sqrt(1 + pente9 * pente9) / DS + 0.5))
+				for _ = 1, n do table.insert(plan, { dl = sg * ang / n, p = pente9 }) end
 			end
-			pc = pente2
-			seg(60, 0, -0.05)
+			local function pose(f: number): (number, number, number) -- l'angle (depuis l'entrée du virage), le rayon, la hauteur de la pose
+				local fc = math.clamp(f, 0, 1)
+				local dh = 42 + 12 * fc
+				local b9 = vN * pC - k0
+				local t = (-b9 + math.sqrt(b9 * b9 + 2 * g * dh)) / g -- ½ g t² + (v × pente − kick) t = dh
+				local x = vN * t
+				local xr, xt = Re + x * math.sin(DEV), x * math.cos(DEV)
+				return f * th + math.atan2(xt, xr), math.sqrt(xr * xr + xt * xt), -dropC * fc - dh
+			end
+			local c0 = #plan
+			cercle(Rv, th, -pC) -- LE VIRAGE RAPIDE
+			local c1 = #plan
+			-- (repère du module : l'entrée du virage à l'origine, cap vers +y, le centre du virage en (Rv, 0) ; un cap φ va vers (sin φ, cos φ))
+			local function at(ps: number, rr: number): (number, number) return Rv - math.cos(ps) * rr, math.sin(ps) * rr end
+			local Ex, Ey = at(th, Rv)
+			local f0, f1 = -0.15, 1.15
+			local ps0, r0, y0 = pose(f0)
+			local hN = 2 * math.pi + ps0
+			local Nx, Ny = at(hN, r0)
+			-- LA BRETELLE : une droite dans l'axe de sortie, puis « virage · droite · virage » du même côté (rayon rB) jusqu'au début du filet
+			local Ls = r(200, 340) * LV
+			local P1x, P1y = Ex + math.sin(th) * Ls, Ey + math.cos(th) * Ls
+			local rB = math.max(55 * RS, r(0.72, 1.02) * Rv)
+			local c1x, c1y = P1x + rB * math.cos(th), P1y - rB * math.sin(th)
+			local c2x, c2y = Nx + rB * math.cos(hN), Ny - rB * math.sin(hN)
+			local D = math.sqrt((c2x - c1x) ^ 2 + (c2y - c1y) ^ 2)
+			local hs = math.atan2(c2x - c1x, c2y - c1y)
+			local b1, b2 = (hs - th) % (2 * math.pi), (hN - hs) % (2 * math.pi)
+			-- (les hauteurs : la chute de la sortie du virage au filet s'étale sur toute la bretelle, sans à-coup aux deux bouts)
+			local Lb = Ls + rB * b1 + D + rB * b2
+			local dyB = y0 + dropC
+			local fait = 0
+			local function bretelle(longueur: number, ang: number)
+				if longueur < 0.5 then return end
+				local n = math.max(1, math.floor(longueur / DS + 0.5))
+				for k = 1, n do
+					local u = (fait + (k - 0.5) / n * longueur) / Lb
+					table.insert(plan, { dl = sg * ang / n, p = dyB / Lb * 30 * u * u * (1 - u) * (1 - u) })
+				end
+				fait += longueur
+			end
+			bretelle(Ls, 0)
+			bretelle(rB * b1, b1)
+			bretelle(D, 0)
+			bretelle(rB * b2, b2)
+			-- LE FILET : le lieu des poses, de f0 à f1
+			-- (3/10) Le filet passe EXACTEMENT par chaque point de chute calculé : d'un point au suivant, l'arc tangent qui le rejoint
+			-- (il tourne du double de l'écart entre le cap et la visée — le théorème de l'angle tangent-corde). Avant, des arcs
+			-- « concentriques » au virage DÉRIVAIENT quand le rayon des chutes change : à grande vitesse de moteur (lvPiste ≥ 3),
+			-- deux sorties sur cinq retombaient À CÔTÉ du filet (mesuré au banc serveur : 3 poses sur 5).
+			local n0 = #plan
+			local psF = pose(f1)
+			local nF = math.max(8, math.ceil((psF - ps0) / math.rad(5)))
+			local psA, rA, yA = ps0, r0, y0
+			local cx, cy, cap = Nx, Ny, hN
+			for k = 1, nF do
+				local psK, rK, yK = pose(f0 + (f1 - f0) * k / nF)
+				local tx, ty = at(psK, rK)
+				local d = math.sqrt((tx - cx) ^ 2 + (ty - cy) ^ 2)
+				local ec = (math.atan2(tx - cx, ty - cy) - cap + math.pi) % (2 * math.pi) - math.pi -- l'écart cap → visée
+				local long = (math.abs(ec) > 1e-4) and d * ec / math.sin(ec) or d
+				local pente9 = (yK - yA) / math.max(1, long)
+				local n = math.max(1, math.floor(long * math.sqrt(1 + pente9 * pente9) / DS + 0.5))
+				for _ = 1, n do table.insert(plan, { dl = sg * 2 * ec / n, p = pente9 }) end
+				cap += 2 * ec
+				cx, cy = tx, ty
+				psA, rA, yA = psK, rK, yK
+			end
+			local n1 = #plan
+			cercle(rA, 0.42, -18 / (0.42 * rA)) -- la sortie, dans l'élan
+			pc = -18 / (0.42 * rA)
+			filetPlan = { c0 = c0, c1 = c1, n0 = n0, n1 = n1, vN = vN }
 		end,
 		LACETS = function()
 			-- la première branche, puis 2-3 épingles qui descendent de ~45 m chacune : les branches sont
@@ -231,13 +364,16 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 			seg(80, 0, -0.05, 40)
 		end,
 	}
+	local filets: { any } = {}
+	local filN = 0
+	local filMax = (variante == "orage") and 1 or ({ 3, 2, 1 })[math.min(3, math.floor((zone - 1) / #Config.NIVEAUX) + 1)]
 	local sac: { string } = {}
 	local dernierMod = ""
 	local function modSuivant(): string
 		if #sac == 0 then
-			-- (le FILET reste écrit mais sort du sac : au banc des vols, 5 % des sorties s'y reposaient, contre 25 %
-			-- dans les LACETS — sa boucle doit partir dans l'AUTRE sens, en bretelle, et passer par le point calculé)
-			sac = { "LACETS", "RUSSES", "LACETS", "PLONGEON", "CHAMEAU" }
+			-- (modTire, L9352 : un paquet MÉLANGÉ de cinq — le FILET, les LACETS, les MONTAGNES RUSSES, le GRAND PLONGEON, le DOS DE
+			-- CHAMEAU —, jamais le même deux fois de suite)
+			sac = { "FILET", "LACETS", "RUSSES", "PLONGEON", "CHAMEAU" }
 			for i = #sac, 2, -1 do
 				local j = rnd:NextInteger(1, i)
 				sac[i], sac[j] = sac[j], sac[i]
@@ -246,12 +382,15 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 			if sac[#sac] == sac[#sac - 1] then sac[2], sac[#sac] = sac[#sac], sac[2] end
 		end
 		local m = table.remove(sac) :: string
+		-- (FILET.par : 3 filets par zone à la 1re visite du niveau, 2 à la 2e, 1 ensuite — la même vitesse devient un vrai pari)
+		if m == "FILET" and filN >= filMax then m = "LACETS" end
 		dernierMod = m
 		return m
 	end
 
 	-- ── poser un plan : simulé d'abord, écrit seulement s'il ne traverse pas la route ──
 	local modules = {}
+	local entreeA, entreeB = 0, 0 -- (VILLE) les numéros de points de la fin de la droite surélevée et du pied de la rampe
 	local function poser(verifier: boolean): boolean
 		local l, q = lacet, pos
 		local essai: { Vector3 } = {}
@@ -301,23 +440,37 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 	else
 	-- le départ : un bout plat pour poser la caisse, puis la rampe qui plonge (on prend de l'élan)
 	pc = 0
-	seg(40, 0, 0)
-	seg(P.departLong * LV, 0, -P.departPente, 40)
-	seg(40, 0, -0.08, 30)
+	if VILLE then
+		-- L'ENTRÉE DANS LA VILLE (VILLE_ENTREE_R, L8855) : une ligne droite quasi plate, SURÉLEVÉE — les toits qui la bordent restent
+		-- sous la route, on voit la ville défiler —, puis la GRANDE RAMPE qui plonge dans le canyon
+		seg(40, 0, 0)
+		seg(420 * LV, 0, -6 / 420, 40)
+		entreeA = #plan + 1
+		seg(520 * LV, 0, -220 / 520, 60)
+		entreeB = #plan + 1
+		seg(40, 0, -0.08, 30)
+	else
+		seg(40, 0, 0)
+		seg(P.departLong * LV, 0, -P.departPente, 40)
+		seg(40, 0, -0.08, 30)
+	end
 	poser(false)
 	end
 
-	local prochainModule = r(P.module[1], P.module[2]) * LV * 0.6
+	local prochainModule = (niv == "nuages") and r(P.module[1], P.module[2]) * LV * 0.6 or math.huge -- (les modules sont ceux du niveau NUAGES)
 	local POIDS_TOT = 0
 	for _, m in MOTIFS do POIDS_TOT += m[2] end
 	while (#pts - 1) * DS < LEN - 400 do
 		local ok = false
 		local estModule = (#pts - 1) * DS >= prochainModule
+		filetPlan = nil
 		for essai = 1, 14 do
 			pc = pente
 			local nom
 			if estModule and essai <= 6 then
-				nom = modSuivant()
+				-- (L9333-9349 : les modules — lacets, montagnes russes, grand plongeon, dos de chameau — sont ceux des NUAGES seuls ;
+				-- L'ORAGE, le niveau dur, n'a droit qu'à UN virage à filet)
+				nom = (variante == "orage") and "FILET" or modSuivant()
 				MODULES[nom]()
 			else
 				local x = rnd:NextNumber() * POIDS_TOT
@@ -334,7 +487,13 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 			if poser(true) then
 				if estModule and essai <= 6 then
 					table.insert(modules, { a = a * M, b = (#pts - 1) * DS * M, nom = nom }) -- en studs, comme len
-					prochainModule = (#pts - 1) * DS + r(P.module[1], P.module[2]) * LV
+					if nom == "FILET" and filetPlan then
+						-- le virage et son filet, en MÈTRES le long de la piste (le Pilote paie VIRAGE À FOND et RATTRAPÉ)
+						filN += 1
+						table.insert(filets, { sC0 = a + filetPlan.c0 * DS, sC1 = a + filetPlan.c1 * DS, sN0 = a + filetPlan.n0 * DS,
+							sN1 = a + filetPlan.n1 * DS, vN = filetPlan.vN, paye = false })
+					end
+					prochainModule = (variante == "orage") and math.huge or ((#pts - 1) * DS + r(P.module[1], P.module[2]) * LV)
 				end
 				ok = true
 				break
@@ -359,6 +518,27 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 	end
 	-- l'arrivée : la dernière descente vers le PORTAIL, qui se pose à plat
 	if not ecole then
+		-- LA SIGNATURE DE FIN (L9507) : chaque archétype clôt SA zone par SON geste — la zone se retient. (Posée seulement si elle ne
+		-- traverse pas la route déjà bâtie.)
+		pc = pente
+		if AR.nom == "FLOW" then
+			local Rf = 220 * math.min(2, LV)
+			arc(Rf, sens() * 110, -160 / (math.rad(110) * Rf))
+		elseif AR.nom == "TECH" then
+			local sgF = sens()
+			for _ = 1, 3 do
+				arc(90 * RS, sgF * 24, -26 / (math.rad(24) * 90 * RS))
+				sgF = -sgF
+			end
+		elseif AR.nom == "ALPIN" then
+			seg(90, 0, -50 / 90, 30)
+			seg(80, 0, 26 / 80, 30) -- une arrivée surélevée
+		elseif AR.nom == "VOLTIGE" then
+			seg(120, 0, -0.25, 30)
+		else
+			arc(170 * RS, sens() * 100, -0.3)
+		end
+		poser(true) -- (refusée : la zone se clôt sans elle)
 		pc = pente
 		seg(110 * LV, 0, -0.28, 40)
 		seg(80, 0, 0, 50)
@@ -392,15 +572,16 @@ function Piste.generer(graine: number, zone: number, depart: CFrame?, ceder: (()
 	end
 
 	local piste = {
-		graine = graine, zone = zone, DS = DS * M, n = n, len = (n - 1) * DS * M, F = F,
+		graine = graine, zone = zone, lv = LV0, niveau = niv, variante = variante, archetype = AR.nom, filets = filets, entree = (entreeA > 0) and { entreeA, entreeB } or nil,
+		DS = DS * M, n = n, len = (n - 1) * DS * M, F = F,
 		minY = minY, grille = grille, cellule = CEL, objets = {}, modules = modules,
 	}
-	Piste.semer(piste :: any, rnd, zone, ecole)
+	Piste.semer(piste :: any, rnd, zone, ecole, parties, moteur)
 	return piste :: any
 end
 
 -- ── les objets (spawnPickups L23148) : tout existe sur les DEUX faces (miroir strict) ──
-function Piste.semer(p: Piste, rnd: Random, zone: number, ecole: boolean?)
+function Piste.semer(p: Piste, rnd: Random, zone: number, ecole: boolean?, parties: number?, moteur: any?)
 	-- Ce que la route porte (buildTrack L10182-10286, spawnPickups L23625-23751). Tout existe en MIROIR sur les deux
 	-- faces ; lat est donné dans le repère de SA face (la droite du pilote qui roule dessus).
 	-- L'ordre : les flaques, les plots (lignes de chantier, slaloms, portes de frôlé), puis les pièces — qui ESQUIVENT
@@ -412,8 +593,9 @@ function Piste.semer(p: Piste, rnd: Random, zone: number, ecole: boolean?)
 	local L = p.len / M
 	local zones = zone - 1
 	local rich = math.clamp(0.88 + zones * 0.52, 0.88, 3.4)   -- la route s'enrichit à chaque portail
-	local STR = math.clamp(1 + zones * 0.22, 1, 2.1)           -- le pas des motifs s'allonge avec la vitesse
-	local vC = 70 + zones * 35                                 -- ~1 s de croisière (m)
+	-- (L23871) LE PAS DES MOTIFS SUIT LE MOTEUR : √(poussée × surmultipliée), 1 au départ, plafond 2,1 — un vrai slalom reste
+	local STR = (moteur and moteur.str) or math.clamp(1 + zones * 0.22, 1, 2.1)
+	local vC = 70 + ((p :: any).lv - 1) * 100                  -- ~1 s de croisière (m) : la croisière de conception (vC9, L9949)
 	local function dansModule(sp: number): boolean
 		for _, m in p.modules do
 			if sp > m.a / M - 30 and sp < m.b / M + 30 then return true end
@@ -571,16 +753,27 @@ function Piste.semer(p: Piste, rnd: Random, zone: number, ecole: boolean?)
 	local sc = ecole and L or r(380, 640)
 	local PW = Config.POUVOIRS
 	local cles = { "n", "a", "v", "m", "x" }
+	-- LE TIRAGE S'ADAPTE AU JOUEUR (pwrPoids, L23572) : le débutant tombe sur ce qui le fait jouer tout de suite (AIMANT, AIR MAX) ; le
+	-- vétéran sur ce qui fait monter le score (AURA ×2). Et le tout PREMIER cristal d'un débutant (moins de 5 parties) est un AIMANT posé
+	-- près de l'axe : le premier pouvoir se prend sans le chercher, et l'or vient tout seul.
+	local np = parties or 99
+	local W: { [string]: number } = (np < 8) and { n = 0.2, a = 0.22, v = 0.12, m = 0.3, x = 0.16 }
+		or ((np < 30) and { n = 0.21, a = 0.19, v = 0.18, m = 0.21, x = 0.21 } or { n = PW.n.poids, a = PW.a.poids, v = PW.v.poids, m = PW.m.poids, x = PW.x.poids })
+	local premier = np < 5 and zone == 1 and not ecole
 	while sc < L - 140 do
 		local tot = 0
-		for _, k in cles do tot += PW[k].poids end
+		for _, k in cles do tot += W[k] end
 		local x = rnd:NextNumber() * tot
 		local pw = "n"
 		for _, k in cles do
-			x -= PW[k].poids
+			x -= W[k]
 			if x <= 0 then pw = k; break end
 		end
 		local lt = r(-1, 1) * (RH - 4)
+		if premier and not dansModule(sc) then
+			pw, premier = "m", false
+			lt *= 0.2
+		end
 		if not dansModule(sc) then
 			for _, face in { 1, -1 } do
 				table.insert(p.objets, { s = sc * M, lat = lt * M, h = 2.1 * M, face = face, kind = "cristal", pw = pw })

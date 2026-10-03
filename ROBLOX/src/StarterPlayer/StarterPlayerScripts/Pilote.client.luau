@@ -31,6 +31,15 @@ local Missions = require(CL:WaitForChild("Missions"))
 -- nuages vivent dans la table KA)
 local KA: any = { Camera = require(CL:WaitForChild("Camera")), Nuages = require(CL:WaitForChild("Nuages")), Titre = require(CL:WaitForChild("Titre")),
 	pos = Vector3.zero, vise = Vector3.zero, up = Vector3.yAxis, fov = 72, V = {}, refletK = 0, envoiT = 0 }
+KA.Ville = require(CL:WaitForChild("Ville"))
+KA.Espace = require(CL:WaitForChild("Espace"))
+KA.Orage = require(CL:WaitForChild("Orage"))
+KA.Debris = require(CL:WaitForChild("Debris"))
+KA.CielMusical = require(CL:WaitForChild("CielMusical"))
+KA.Viseur = require(CL:WaitForChild("Viseur"))
+KA.Traces = require(CL:WaitForChild("Traces"))
+KA.Pigeons = require(CL:WaitForChild("Pigeons"))
+KA.Impact = require(CL:WaitForChild("Impact"))
 
 local M, SPD = Config.M, Config.SPD
 local RH, THICK = Config.ROAD_HALF, Config.THICK
@@ -126,6 +135,7 @@ CC:WaitForChild("ProfilMaj").OnClientEvent:Connect(function(p)
 	if type(p) ~= "table" then return end
 	lireProfil(p)
 	Garage.majProfil()
+	if KA.badges and Hud.ecranCourant() == "menu" then KA.badges() end -- (un achat, un défi payé : les pastilles suivent)
 end)
 evRecord.OnClientEvent:Connect(function(v, c)
 	if type(v) == "number" then
@@ -154,12 +164,87 @@ local function preparer(z: number, depart: CFrame?): Zone
 	ZONES[z] = e
 	task.spawn(function()
 		local function ceder() task.wait() end
-		local p = Piste.generer(graine, math.max(1, z), depart, ceder, z == 0)
+		-- (lvPiste, L28402) l'échelle des virages se calcule sur le MOTEUR : la croisière du palier +2 (on monte pendant la zone). La
+		-- zone suivante se bâtit UNE zone en avance : +3 pour elle (la première, bâtie au départ, garde le +2 du web).
+		local moteur: any = nil
+		do
+			local function late9(t9: number): number return 1 + math.min(0.5, math.max(0, t9 - 8) * 0.035) end
+			local t0 = KA.tierDe and KA.tierDe() or 0 -- (le palier vit plus bas dans le script : on le lit par KA)
+			local t = math.min(#MOT - 1, t0 + ((z <= 1) and 2 or 3))
+			local vw = 2.75 * 190 / 3.6 * late9(t) * MOT[t + 1][2] * SPD
+			local t1 = math.min(#MOT - 1, t0 + ((z <= 1) and 0 or 1))
+			moteur = { lv = 1 + math.clamp((vw - 70) / 140 * 1.4, 0, 3.4), str = math.clamp(math.sqrt(MOT[t1 + 1][2] * late9(t1)), 1, 2.1) }
+		end
+		local p = Piste.generer(graine, math.max(1, z), depart, ceder, z == 0, (profil.stats and profil.stats.parties) or nil, moteur)
 		local d = Instance.new("Folder")
 		d.Name = "Zone" .. z
 		Construction.route(p, d, ceder)
-		Construction.portail(p, d)
+		local ovule = Construction.portail(p, d)
 		local objs = Construction.objets(p, d, ceder)
+		-- LES NUAGES v8 : le ciel de coton, les bancs de route, les coussins, les tours (la piste d'école n'a que le ciel de coton :
+		-- sans lui, la toute première partie d'un joueur se jouait dans un ciel VIDE)
+		local nuages = {}
+		local ciel = Instance.new("Folder") -- (à part : au menu, les nuages du niveau sont cachés — le titre a les siens)
+		ciel.Name = "Nuages"
+		ciel.Parent = d
+		if p.niveau == "nuages" then
+			local okN, resN = pcall(KA.Nuages.batir, p, ciel, graine + z * 31, ceder, z == 0)
+			if okN then nuages = resN else warn("[CashCar] nuages : " .. tostring(resN)) end
+		elseif p.niveau == "ville" then
+			-- LA VILLE : le canyon de tours, la forêt du village, les néons — et la grille de collision (en vol, une tour tue)
+			local okV, resV = pcall(KA.Ville.batir, p, ciel, graine + z * 31, ceder)
+			if okV then (e :: any).ville = resV else warn("[CashCar] ville : " .. tostring(resV)) end
+		elseif p.niveau == "espace" then
+			local okE, resE = pcall(KA.Espace.batir, p, ciel, graine + z * 31, ceder)
+			if okE then (e :: any).sats = resE else warn("[CashCar] espace : " .. tostring(resE)) end -- (sats : les obstacles de la PLUIE DE SATELLITES)
+		end
+		-- LE BANC NE CACHE PLUS DE PIÈGE (buildTrack du web, L10320). Un banc posé SUR la route se traverse à l'aveugle — c'est le jeu,
+		-- et sa sortie paie la percée. Mais un plot ou une flaque DANS le banc, ou dans la seconde qui suit sa sortie, ne se voit qu'une
+		-- fois touché : on retire le GROUPE de plots entier et la flaque, de 10 m avant le banc à 1 s de croisière après. SAUF les plots
+		-- de L'ORAGE (ses bancs couvrent la piste : le filtre le vidait — un plot coûte, il ne tue pas ; la flaque, elle, part partout).
+		if #nuages > 0 then
+			local vC = 70 + ((p :: any).lv - 1) * 100 -- (la croisière de conception de la piste, m/s)
+			local Z9: { number } = {}
+			for _, c in nuages do
+				if c.route then
+					local bi, bd = 1, math.huge
+					for i = 1, p.n, 8 do
+						local dd = (p.F[i].Position - c.c).Magnitude
+						if dd < bd then bd, bi = dd, i end
+					end
+					for i = math.max(1, bi - 8), math.min(p.n, bi + 8) do
+						local dd = (p.F[i].Position - c.c).Magnitude
+						if dd < bd then bd, bi = dd, i end
+					end
+					local sB = (bi - 1) * p.DS
+					table.insert(Z9, sB - c.r - 10 * M)
+					table.insert(Z9, sB + c.r + vC * M)
+				end
+			end
+			if #Z9 > 0 then
+				local function cache(s9: number): boolean
+					for k = 1, #Z9, 2 do
+						if s9 > Z9[k] and s9 < Z9[k + 1] then return true end
+					end
+					return false
+				end
+				local groupes: { [any]: boolean } = {}
+				if (p :: any).variante ~= "orage" then
+					for _, o in objs do
+						if o.o.kind == "plot" and cache(o.o.s) then groupes[o.o.grp or o] = true end
+					end
+				end
+				local garde = {}
+				for _, o in objs do
+					if (o.o.kind == "plot" and groupes[o.o.grp or o]) or (o.o.kind == "flaque" and cache(o.o.s)) then
+						if o.p then o.p:Destroy() end
+					else
+						table.insert(garde, o)
+					end
+				end
+				objs = garde
+			end
+		end
 		table.sort(objs, function(a, b) return a.o.s < b.o.s end)
 		local grille = {}
 		local pads, series = {}, {}
@@ -170,16 +255,9 @@ local function preparer(z: number, depart: CFrame?): Zone
 			if o.o.kind == "pad" and o.o.face == 1 then table.insert(pads, o.o.s / M) end
 			if o.o.kind == "piece" and o.o.grp and o.o.face == 1 then series[o.o.grp] = (series[o.o.grp] or 0) + 1 end
 		end
-		-- LES NUAGES v8 : le ciel de coton, les bancs de route, les coussins, les tours (la piste d'école n'en a pas)
-		local nuages = {}
-		local ciel = Instance.new("Folder") -- (à part : au menu, les nuages du niveau sont cachés — le titre a les siens)
-		ciel.Name = "Nuages"
-		ciel.Parent = d
-		if z ~= 0 then
-			local okN, resN = pcall(KA.Nuages.batir, p, ciel, graine + z * 31, ceder)
-			if okN then nuages = resN else warn("[CashCar] nuages : " .. tostring(resN)) end
-		end
 		e.ciel = ciel
+		local ea: any = e
+		ea.portail = ovule
 		e.piste, e.dossier, e.objets, e.grille, e.pads, e.series, e.prisSerie, e.nuages = p, d, objs, grille, pads, series, {}, nuages
 		e.pret = true
 	end)
@@ -192,6 +270,13 @@ local function oublier(z: number)
 	ZONES[z] = nil
 end
 local function remettreObjets(e: Zone)
+	if e.piste and (e.piste :: any).filets then
+		for _, q in (e.piste :: any).filets do q.paye = false end -- (les virages à filet redeviennent à payer)
+	end
+	-- les satellites de la route (PLUIE DE SATELLITES) redeviennent tous à esquiver
+	if (e :: any).sats then
+		for _, o in (e :: any).sats do o.fait, o.pres, o.min = false, false, 99 end
+	end
 	-- ce que LA LIGNE PARFAITE a posé pendant la partie d'avant s'en va (elle reposera sa file)
 	if e.objets then
 		local garde, change = {}, false
@@ -284,6 +369,7 @@ local carCF = CFrame.identity
 local menuRot = CFrame.identity -- la pose de la caisse au menu (la CHUTE), gardée pendant le plongeon du départ
 
 local function pousseMoteur(): number return MOT[tier + 1][2] end
+KA.tierDe = function(): number return tier end
 local function tardif(): number return 1 + math.min(0.5, math.max(0, tier - 8) * 0.035) end
 local function reservoir(): number return MOT[tier + 1].res or 2 end
 local function denom(): number return Config.DENOMS[tier + 1] * 0.25 end
@@ -292,7 +378,14 @@ local function vitMult(): number return math.min(1 + NTR_BOOST_MAX, (pwV > 0 and
 local function kmh(): number return math.abs(vA) * 3.6 * SPD * vitMult() end
 local FAC = Config.FACILE
 local function facile(): boolean return Config.FACILE_ACTIF and profil.reglages ~= nil and profil.reglages.facile == true end
-local function airMax(): number return Config.AIR_MAX * (facile() and FAC.air or 1) end
+-- LA GRAVITÉ DE L'ORBITE (gK, L28086) : en ESPACE tout ce qui tombe tombe deux fois moins vite, et la jauge d'airtime s'allonge
+function G.gK(): number return (piste and (piste :: any).niveau == "espace") and Config.ORB_G or 1 end
+local function airMax(): number return Config.AIR_MAX * ((G.gK() < 1) and Config.ORB_AIR or 1) * (facile() and FAC.air or 1) end
+function G.nomNiveau(): string
+	local n = Config.niveau((piste and (piste :: any).zone) or 1)
+	if piste and ((piste :: any).niveau ~= n.id or (piste :: any).variante ~= n.var) then n = Config.NIVEAUX[1] end -- (l'auto-école)
+	return tr(n.nom, n.en)
+end
 local function horiz(v: Vector3): number return math.sqrt(v.X * v.X + v.Z * v.Z) end
 -- la vitesse ÷ la croisière (flowVitN, L21005) : en vol, la vitesse HORIZONTALE seule
 local function vitN(): number
@@ -308,11 +401,20 @@ end
 local function nitroGain(q: number) nitroR = math.min(reservoir(), nitroR + q) end
 
 -- ════════ ce que le score fait dire ════════
-local SON_DE = { ["fig.maillon"] = "maillon", ["aura.geste"] = "maillon", ["aura.encaisse1"] = "encaisse", ["aura.encaisse2"] = "encaisse",
-	["aura.encaisse3"] = "encaisse", ["aura.record"] = "record", ["frenesie"] = "record", ["flow.palier"] = "nitroPlein", ["frenesie.record"] = "record",
-	["flow.tic"] = "bip", ["frenesie.arme"] = "bip", ["plus.vite"] = "bip" }
-Score.dire.pop = function(txt: string, c: string?, prio: number?) Hud.pop(txt, HudScore.hex(c), (prio and prio >= 2) and 24 or 20) end
+-- { le vrai son, son repli } — le repli est ce qu'on entendait avant l'import (voir Sons.vrai)
+local SON_DE: { [string]: { any } } = { ["fig.maillon"] = { "maillon" }, ["aura.geste"] = { "maillon" }, ["aura.encaisse1"] = { "encaisse" },
+	["aura.encaisse2"] = { "verdict2", "encaisse" }, ["aura.encaisse3"] = { "verdict3", "encaisse" }, ["aura.record"] = { "auraRecord", "record" },
+	["frenesie"] = { "frenEntre", "record" }, ["flow.palier"] = { "flowPalier", "nitroPlein" }, ["frenesie.record"] = { "frenRecord", "record" },
+	["flow.tic"] = { "bip" }, ["frenesie.arme"] = { "frenArme", "bip" }, ["plus.vite"] = { "plusVite", "bip" },
+	["triade.renait"] = { "triadeRenait" }, ["triade.meurt"] = { "triadeMeurt" }, ["triade.revele"] = { "triadeRevele" },
+	["frenesie.sort"] = { "frenSort" }, ["flow.perdu"] = { "flowPerdu" }, ["dauphin.banc"] = { "dauphinBanc" }, ["dauphin"] = { "figDauphin" },
+	["pose.travers"] = { "poseTravers" }, ["pose.contresens"] = { "poseContresens" },
+	["aura.x5"] = { "auraX5" }, ["aura.x8"] = { "auraX8" }, ["aura.x10"] = { "auraX10" }, ["sans.faute"] = { "sansFaute" } }
+Score.dire.pop = function(txt: string, c: string?, prio: number?) Hud.pop(txt, HudScore.hex(c), (prio and prio >= 2) and 24 or 20, prio) end
 Score.dire.slam = HudScore.slam
+-- LA MUSIQUE EN FRÉNÉSIE (frenMus, L25559) : sans morceau dédié, la radio S'EMBALLE (× 1,06 en 0,3 s) et RETOMBE à la fin (0,45 s)
+Score.dire.musique = function(on: boolean) G.frenMus = on end
+Score.dire.hap = function(f: number?) Hud.vibre(f or 10) end
 Score.dire.flash = HudScore.flash
 Score.dire.tag = HudScore.tag
 Score.dire.verse = HudScore.verse
@@ -320,7 +422,7 @@ Score.dire.fren = HudScore.fren
 Score.dire.fov = function(d: number) fovPunch = math.max(fovPunch, d) end
 Score.dire.son = function(nom: string, demiTons: number?)
 	local n = SON_DE[nom]
-	if n then Sons.jouer(n, demiTons and Sons.demiTons(demiTons) or nil) end
+	if n then Sons.vrai(n[1], demiTons and Sons.demiTons(demiTons) or nil, nil, n[2]) end
 end
 
 -- ════════ l'argent, le moteur ════════
@@ -329,6 +431,13 @@ local function encaisser(x: number, source: string): number
 	local g = x * Score.flowMult()
 	argent += g
 	Score.frenCash(g)
+	-- (frenCash, L21194) l'argent qui tombe EN FRÉNÉSIE se voit : un « ×3 » jaillit de la caisse, le « $×3 » de la bande bat
+	if g > 0 and Score.FLOW.lv == 4 and os.clock() - (G.fx3T or 0) > 0.09 then
+		G.fx3T = os.clock()
+		local v, vu = workspace.CurrentCamera:WorldToScreenPoint(carCF.Position + carCF.UpVector * (1.2 * M))
+		HudScore.cash3((vu and v.Z > 0) and Vector2.new(v.X, v.Y) or nil)
+		Sons.jouer("frenCash", nil, 0.35)
+	end
 	Bus.emit("argent", g, source)
 	return g
 end
@@ -343,10 +452,13 @@ local function ajouterPieces(n: number)
 			-- LA CARTE MOTEUR (Client/MoteurCarte) : le moteur en 3D au-dessus de la caisse, qui plonge dans le capot — c'est elle
 			-- qui donne la poussée, le coup de caméra et le « +N KM/H », à l'instant de l'impact
 			secousse = math.max(secousse, 0.15)
-			Bus.emit("moteur", tier, gain)
+			-- (L22722) NOUVEAU SOMMET : un palier jamais atteint avant cette partie — la carte le dit en or, avec la fanfare du record
+			local sommet = tier > (profil.moteurMax or 0)
+			Bus.emit("moteur", tier, gain, sommet)
+			if sommet then task.delay(0.35, function() Sons.jouer("record", 1.1, 0.45) end) end
 		else
 			HudScore.slam(Hud.sansAccent(MOT[tier + 1].nom), tr("NOUVEAU MOTEUR", "NEW ENGINE"), "#ffd75e", "#dfeeff", 26, 1)
-			Sons.jouer("nitroPlein", 1.1)
+			Sons.vrai("moteurPalier", nil, nil, "nitroPlein", 1.1)
 			boost = math.max(boost, 0.8)
 			fovPunch = math.max(fovPunch, 11)
 			secousse = math.max(secousse, 0.4)
@@ -383,16 +495,57 @@ local function figure(id: string, txt: string, val: number, rang: number, brut: 
 	Bus.emit("figure", id, val, n)
 end
 
+-- LE COUP D'ALLUMAGE (nitroAllume, L28422 du jeu web) — au front montant de la nitro, au sol comme en vol : le champ S'OUVRE d'un
+-- coup, la caisse SE CABRE (≈3° le temps du coup), la main le sent, une ONDE DE CHOC s'ouvre à l'échappement (Effets). Un réservoir
+-- vide qu'on tient appuyé rallume par à-coups rapprochés : ceux-là sont plus petits (× 0,45). `etage` : le passage en réserve
+-- BLEUE en pleine poussée, un coup plus petit (× 0,6).
+-- LA DERNIÈRE BOUFFÉE (nitroEteint) : quand on lâche après une vraie tenue (≥ 0,25 s), une langue de feu sort des pots.
+function G.nitroCoup(on: boolean, bleu: boolean, etage: boolean?): number
+	local cf, fi = carCF, poignees.fiche
+	if not on then
+		if (G.nitTenu or 0) >= 0.25 and mode ~= "boom" then
+			for _, sd in { -1, 1 } do
+				Bus.emit("gerbe", "langue", (cf * CFrame.new(sd * fi.w * 0.22 * M, 0.43 * M, (fi.l * 0.5 + 0.2) * M)).Position, 4, 9, 18, 22, -cf.LookVector)
+				Bus.emit("gerbe", "braiseO", (cf * CFrame.new(sd * fi.w * 0.22 * M, 0.43 * M, (fi.l * 0.5 + 0.2) * M)).Position, 2, 4, 9, 60, -cf.LookVector)
+			end
+		end
+		G.nitTenu = 0
+		return 0
+	end
+	local t = os.clock()
+	local k = (etage and 0.6 or 1) * ((t - (G.ignT0 or -9) < 0.65) and 0.45 or 1)
+	G.ignT0 = t
+	G.ign, G.ignK = 1, k
+	fovPunch = math.max(fovPunch, ((mode == "fall") and 8 or 7) * k)
+	secousse = math.max(secousse, 0.28 * k)
+	Hud.vibre(bleu and 16 or 26)
+	return k
+end
+-- LA TÔLE QUI PART (dropChip, L26391) : n bouts de la caisse, et le cliquetis de la tôle (au plus toutes les 0,45 s)
+function G.tole(n: number)
+	if n <= 0 or mode == "boom" then return end
+	local fi = poignees.fiche
+	Bus.emit("tole", n, poignees.laque or Color3.fromRGB(200, 90, 40), (fi and fi.accent) and Color3.fromHex(string.format("%06x", fi.accent)) or Color3.fromRGB(30, 30, 34))
+	if os.clock() > (G.toleSon or 0) then
+		G.toleSon = os.clock() + 0.45
+		Sons.vrai("debrisTole", nil, 0.3 + math.min(0.4, (n - 1) * 0.12))
+	end
+end
 -- ════════ la nitro : deux réservoirs (L36327) — l'orange se recharge seul, le BLEU ne vient que des fruits ════════
 local function gererNitro(dt: number)
+	G.ign = math.max(0, (G.ign or 0) - dt / 0.55)
 	local res = reservoir()
 	nitroR = math.min(res, nitroR + NI.regen * dt)
-	if pwN > 0 then nitroR = res end
+	-- LE BOOST DE DÉPART (startBoostT du web, L28463) : 3 s de nitro OFFERTE quand la caisse touche la route — elle tient la
+	-- touche à la place du joueur, ne coûte rien, et brille en arc-en-ciel (voir habiller). Pas à l'auto-école.
+	local offert = (G.departT or 0) > 0
+	if offert then G.departT = math.max(0, G.departT - dt) end
+	if pwN > 0 or offert then nitroR = res end
 	local avant = nitroOn
 	-- LA LOI DU RÉSERVOIR : il tient tant que la jauge PAIE l'image, et se rallume à 0,3
-	local prise = (pwN > 0) and 0 or Score.nitroConsoDe(dt, Score.F2.frenNitro, Score.frenesie(), NTR.on, mode == "fall")
-	nitroOn = Controles.nitro and Score.nitroTientDe(nitroR + nitroX, prise, nitroOn)
-	if nitroOn and pwN <= 0 then
+	local prise = (pwN > 0 or offert) and 0 or Score.nitroConsoDe(dt, Score.F2.frenNitro, Score.frenesie(), NTR.on, mode == "fall")
+	nitroOn = (Controles.nitro or offert) and Score.nitroTientDe(nitroR + nitroX, prise, nitroOn)
+	if nitroOn and pwN <= 0 and not offert then
 		if nitroR >= prise then
 			nitroR -= prise
 		else
@@ -402,11 +555,30 @@ local function gererNitro(dt: number)
 		end
 	end
 	nitroBleue = nitroOn and nitroR <= 0.01
-	if nitroOn then stats.nitro += dt end
+	if nitroOn and not offert then stats.nitro += dt end
+	-- LA NITRO S'ENTEND (L36783-36807) : l'appui répond TOUJOURS — à vide, un « tchk » sec ; la jauge qui lâche sous le doigt, la
+	-- panne sèche ; et le ding quand le réservoir est de nouveau plein (pas sous un pouvoir, pas au boost offert).
+	if mode == "drive" or mode == "fall" then
+		local veut = Controles.nitro == true
+		if veut and not G.nVeut and not nitroOn then
+			Sons.vrai("nitroVide", nil, nil, "tap", 1.6, 0.3)
+			Hud.vibre(6)
+		elseif veut and avant and not nitroOn then
+			Sons.vrai("nitroSec")
+		end
+		G.nVeut = veut
+		local plein = nitroR >= res - 0.001
+		if plein and G.nPlein == false and pwN <= 0 and not offert and not nitroOn then Sons.vrai("nitroPleine", nil, 0.4) end
+		G.nPlein = plein
+	end
+	if nitroOn then G.nitTenu = (G.nitTenu or 0) + dt end
 	if avant ~= nitroOn then
 		evEtat:FireServer("nitro", nitroOn)
-		Bus.emit("nitro", nitroOn, nitroBleue)
+		Bus.emit("nitro", nitroOn, nitroBleue, G.nitroCoup(nitroOn, nitroBleue), poignees.fiche.l)
+	elseif nitroOn and nitroBleue and not G.bleuAvant then
+		Bus.emit("nitro", true, true, G.nitroCoup(true, true, true), poignees.fiche.l) -- (l'étage : la réserve bleue prend le relais)
 	end
+	G.bleuAvant = nitroBleue
 end
 
 -- ════════ NITROOO (L29695) : la nitro TENUE capitalise la vitesse (+10 % par seconde, plafond ×2,6) ════════
@@ -435,7 +607,7 @@ local function nitroooTick(dt: number)
 			local pct = math.floor(math.min(NTR_BOOST_MAX, (1 + NTR_BOOST) ^ pal - 1) * 100 + 0.5)
 			Hud.pop("+" .. pct .. " %", Color3.fromRGB(255, 176, 64), 20)
 			fovPunch = math.max(fovPunch, 4)
-			Sons.jouer("pad", Sons.demiTons(math.min(12, pal * 2)), 0.3)
+			Sons.vrai("nitroooPalier", Sons.demiTons(math.min(12, pal * 2)), 0.5, "pad", nil, 0.3)
 		end
 		NTR.boost = math.min(NTR_BOOST_MAX, math.max(NTR.boost, (1 + NTR_BOOST) ^ NTR.t - 1))
 	else
@@ -449,11 +621,20 @@ local function nitroooTick(dt: number)
 end
 
 -- ════════ décoller (startFall, L30229) ════════
-local function astuce(i: number)
-	if astucesVues[i] or TU.on then return end
+-- UNE FOIS À VIE (SAVE.d.ast du jeu web) : l'astuce lue est notée dans le profil, elle ne revient plus. `muet` : on la note sans
+-- l'afficher (le joueur vient de faire le geste tout seul : il n'a plus rien à apprendre).
+local function astuce(i: number, muet: boolean?)
+	local rg: any = profil.reglages
+	if astucesVues[i] or TU.on or (rg and rg["ast" .. i]) then return end
 	astucesVues[i] = true
-	Hud.astuce((Hud.tactile and T.astucesTactile or T.astuces)[i], 6)
+	if rg then rg["ast" .. i] = true end
+	task.spawn(function() pcall(function() fnAction:InvokeServer("reglage", "ast" .. i, true) end) end)
+	if muet then return end
+	-- (l'astuce du VOL dit le sens que le joueur a réglé : POUCE HAUT = PLONGE ou MONTE)
+	local k = (i == 2 and Controles.sensVol < 0) and 5 or i
+	Hud.astuce((Hud.tactile and T.astucesTactile or T.astuces)[k], 2.8) -- (misBanniere, L21811 : 2,6 s de lecture)
 end
+G.astuce = astuce
 -- impU = l'élan vers le haut ; impF = le coup d'accélérateur ; bord = on sort par le BORD (la bascule : ni saut ni élan)
 local function decoller(impU: number, impF: number, bord: boolean?)
 	local cf = repere(s, side)
@@ -468,7 +649,7 @@ local function decoller(impU: number, impF: number, bord: boolean?)
 	flyAv = (fallVel.Magnitude > 1) and fallVel.Unit or T_
 	flyU = N - flyAv * N:Dot(flyAv)
 	flyU = (flyU.Magnitude > 1e-3) and flyU.Unit or N
-	if not intro then task.delay(0.6, function() if mode == "fall" then astuce(2) end end) end
+	if not intro then task.delay(1, function() if mode == "fall" then astuce(2) end end) end -- (L37500 : après 1 s de vol)
 	V.fallT, V.fallTR, V.yawAcc, V.demiTours, V.nitroAirT, V.nitroAirTenue, V.sideCd, V.bounceN = 0, 0, 0, 0, 0, 0, 0, 0
 	V.fallVH0 = -1 -- le plafond horizontal se relève à la 1re image de vol
 	V.volT, V.nitT = 0, 0
@@ -484,6 +665,11 @@ local function decoller(impU: number, impF: number, bord: boolean?)
 	V.bascOn = bord == true
 	V.bascT = 0
 	V.bascDir = bord and -((lat ~= 0) and math.sign(lat) or 1) or 1 -- la vrille tourne du côté du VIDE
+	if bord then
+		Bus.emit("gerbe", "eclatJaune", fallPos * M, 10, 3, 7) -- (au BORD la caisse ne crache rien : son plancher RACLE la lèvre)
+	else
+		Bus.emit("gerbe", "poussiere", fallPos * M, 8, 2, 6, 120) -- la poussière du décollage
+	end
 	V.airRoll = bord and roulis or 0
 	Score.dolDecolle()
 	mode = "fall"
@@ -672,11 +858,20 @@ end
 
 local function exploser(cause: string)
 	if mode == "boom" or mode == "mort" then return end
+	-- (banc) workspace:SetAttribute("DbgImmortel", true) : la caisse ne meurt pas — replacée sur la route, la cause écrite dans la
+	-- Sortie. Pour laisser tourner une partie de plusieurs minutes à travers tous les niveaux.
+	if workspace:GetAttribute("DbgImmortel") then
+		warn(string.format("[CashCar] IMMORTEL %s zone=%d s=%d kmh=%d mode=%s", cause, zoneN, s, kmh(), mode))
+		replacer()
+		return
+	end
 	if TU.rate() or facileSauve(cause) then return end
 	causeMort = cause
 	boomPos = carCF.Position
 	Score.mort() -- la chaîne OUVERTE part avec la caisse, le flow retombe
 	Bus.emit("mort", cause, mode == "fall", V.chainVal)
+	Hud.logoCache()
+	Hud.vibre(140)
 	mode = "boom"
 	Score.ETAT.mode = "boom"
 	boomT = 0
@@ -686,8 +881,34 @@ local function exploser(cause: string)
 	for _, e in eclats do e.p:Destroy() end
 	table.clear(eclats)
 	local rnd = Random.new()
+	-- LES VRAIS MORCEAUX DE LA CAISSE (L24651) : les pièces du modèle — une roue, la carrosserie, un aileron — sont ARRACHÉES et partent
+	-- chacune dans SA direction (la roue gauche à gauche, le nez devant…), pas trop vite : elles retombent dans la boule de feu.
+	do
+		local np = 0
+		for _, ch in caisse:GetDescendants() do
+			if np >= 9 then break end
+			if ch:IsA("BasePart") and ch ~= racine and ch.Transparency < 0.9 and ch.Size.Magnitude > 0.4 * M and rnd:NextNumber() > 0.35 then
+				local ok, d = pcall(function() return ch:Clone() end)
+				if ok and d then
+					np += 1
+					for _, x in d:GetChildren() do
+						if not x:IsA("DataModelMesh") and not x:IsA("SurfaceAppearance") then x:Destroy() end
+					end
+					d.Anchored = true
+					d.CanCollide, d.CanQuery, d.CanTouch = false, false, false
+					d.CFrame = ch.CFrame
+					d.Parent = workspace
+					local dir = ch.Position - boomPos
+					if dir.Magnitude < 0.1 then dir = Vector3.new(rnd:NextNumber(-0.5, 0.5), 0.3, rnd:NextNumber(-0.5, 0.5)) end
+					dir = dir.Unit
+					table.insert(eclats, { p = d, v = Vector3.new(dir.X * rnd:NextNumber(6, 14), 4 + rnd:NextNumber(0, 7) + dir.Y * 6, dir.Z * rnd:NextNumber(6, 14)) * M,
+						r = Vector3.new(rnd:NextNumber(-6, 6), rnd:NextNumber(-6, 6), 0), t = 0 })
+				end
+			end
+		end
+	end
 	local tons = { Color3.fromRGB(255, 60, 50) }
-	for _ = 1, 12 do
+	for _ = 1, 7 do -- (+ quelques éclats de tôle)
 		local feu = false
 		local p = Instance.new("Part")
 		p.Anchored = true
@@ -706,6 +927,7 @@ local function exploser(cause: string)
 			r = Vector3.new(rnd:NextNumber(-6, 6), rnd:NextNumber(-6, 6), rnd:NextNumber(-6, 6)), t = feu and 1 or 0 })
 	end
 	Sons.jouer("explosion")
+	Sons.vrai(({ vide = "mortVide", air = "mortAir", arret = "mortArret", tour = "impactImmeuble" })[cause] or "") -- (L24893 : chaque mort a sa signature)
 	montrerCaisse(false)
 	evEtat:FireServer("course", false)
 	E.air.Visible = false
@@ -723,17 +945,20 @@ local function atterrir(face: number, latX: number, sX: number, hR: number?)
 		intro = false
 		lat = (face > 0) and latX or -latX
 		vA, psi, yawR, G.slipB = 40, 0, 0, 0
+		G.departT = (TU.on or workspace:GetAttribute("DbgAuto") == true) and 0 or 3 -- (le pilote automatique du banc ne sait pas tenir un virage à pleine nitro : pas de boost offert pour lui, sauf DbgAuto = "boost")
 		mode = "drive"
 		Score.ETAT.mode = "drive"
 		graceT = 0.3
 		V.fallT, V.fallTR = 0, 0
 		E.air.Visible = false
-		Hud.grand(T.niveau, Hud.C.texte, 1.8)
-		Sons.jouer("go")
+		-- LE LOGO PASSE LE RELAIS (fireLaunchBoost, L28467) : CASH CAR claque avec son halo ; le nom du niveau arrive quand il s'efface
+		-- (au même endroit, jamais par-dessus)
+		Hud.logoDepart()
+		task.delay(1.9, function() if mode == "drive" or mode == "fall" then Hud.grand(G.nomNiveau(), Hud.C.texte, 1.8) end end)
+		Sons.vrai("departLogo", nil, nil, "go") -- (le logo CLAQUE : sub + accord d'or)
 		Sons.jouer("poseChoc")
 		secousse = 0.6
-		task.delay(1.2, function() astuce(1) end)
-		task.delay(16, function() astuce(3) end)
+		-- (les astuces « sors par le bord » et « chaque pièce fait monter ton moteur » n'existent pas dans le jeu web : retirées)
 		return
 	end
 	local cf = repere(s, side)
@@ -746,7 +971,8 @@ local function atterrir(face: number, latX: number, sX: number, hR: number?)
 	vA = vTan
 	psi = math.clamp(math.atan2(vLat, math.abs(vTan) + 1), -1.4, 1.4)
 	yawR, G.slipB = 0, 0
-	local perte = math.min(0.52, math.max(0, V.fallT - 0.8) * 0.15 + math.abs(vN) * 0.008)
+	local perte = math.min(0.52, math.max(0, V.fallT * G.gK() - 0.8) * 0.15 + math.abs(vN) * 0.008) -- (× gK : en orbite un même saut dure deux fois plus)
+	if perte > 0.2 then G.tole(2) end -- (L30841 : une pose qui coûte arrache deux bouts)
 	vA *= 1 - perte
 	local impact = math.abs(vN)
 	-- la pose RATÉE : la trajectoire arrive à plus de 55° de l'axe de la route
@@ -766,6 +992,8 @@ local function atterrir(face: number, latX: number, sX: number, hR: number?)
 		V.chainMult += 0.2
 	end
 	local g = (ratee and 0.65) or ((impact < 4.5 and perte < 0.2) and 1.5) or ((impact >= 10) and 0.65) or 1
+	-- (momentum v2, L30758) PARFAIT relance la vitesse, POSÉ LOURD en coûte la moitié
+	if g >= 1.5 then momT = math.max(momT, 3) elseif g < 1 then momT *= 0.5 end
 	G.serie += 1
 	local cachee = face < 0
 	local lv = Score.niveau()
@@ -776,35 +1004,61 @@ local function atterrir(face: number, latX: number, sX: number, hR: number?)
 		nitroGain(Score.nitroFigDe(V.chainMult, g, V.volT, V.nitT)) -- (au prorata du vol fait nitro coupée)
 		stats.poses += 1
 		ajouterPieces(math.clamp(math.floor(2 + qG / 6 + 0.5), 2, 18))
-		boost = math.max(boost, 0.5)
+		boost = math.max(boost, 1.2) -- (L30824 : une figure encaissée relance — c'était 0,5 ici)
 		if g >= 1.5 then Score.geste(tr("POSE PARFAITE", "PERFECT LANDING"), 70, "pose") end
+		-- LE VERDICT DE LA POSE (L30795 et VERD_DEF, L28891 du jeu web) : toute pose qui encaisse une figure a son mot, à la taille de
+		-- son rang — MONSTRE < DOUBLE < TRIPLE < MÉTÉORE, SNAKE LOOP < MEGA. (Le web le fait crier par l'annonceur une fois sur trois ;
+		-- ici, sans les voix, le mot dit toujours le vrai rang.) Et PARFAIT ! se lit d'un coup d'œil.
+		do
+			local mot, c, taille, pr = tr("MONSTRE", "MONSTER"), "#5ee6ff", 30, 1
+			if qG >= 140 then
+				mot, c, taille, pr = tr("TRIPLE MONSTRE", "TRIPLE MONSTER"), "#ffd75e", 38, 2
+			elseif qG >= 45 then
+				mot, c, taille = tr("DOUBLE MONSTRE", "DOUBLE MONSTER"), "#ff3ec8", 34
+			end
+			if nitroOn and V.nitroAirT > 1 then mot, c, taille, pr = tr("METEORE", "METEOR"), "#ff7a24", 40, 2 end -- l'impact en pleine poussée
+			if serpent then mot, c, taille, pr = "SNAKE LOOP", "#b58cff", 40, 2 end
+			if nitroOn and V.nitroAirT > 5 then mot, c, taille, pr = tr("MEGA METEORE", "MEGA METEOR"), "#ff7a24", 44, 3 end -- 5 s de réacteur : l'ultime
+			HudScore.slam(mot, nil, c, nil, taille, pr)
+			-- (rewardSfx, L27525) le verdict résout la gamme du vol : chaque rang a sa signature
+			if nitroOn and V.nitroAirT > 5 then Sons.vrai("verdictMega") elseif serpent then Sons.vrai("figSnake")
+			elseif nitroOn and V.nitroAirT > 1 then Sons.vrai("verdictMeteor") elseif qG >= 140 then Sons.vrai("verdict3")
+			elseif qG >= 45 then Sons.vrai("verdict2") end
+		end
+		if g >= 1.5 then Hud.pop(tr("PARFAIT !", "PERFECT!"), Hud.C.or_, 24, 2) end
 	end
 	nitroGain(Score.nitroPoseDe(reservoir(), V.volT, V.nitT)) -- la pose rend 20 % de la jauge pour un VRAI vol (1,2 s), nitro coupée
 	if g >= 1.5 and not ratee and (V.fallT > 0.7 or paye) then stats.parfaites += 1 end
 	-- ARRACHÉE / AU CHEVEU : posé juste avant la fin du chrono
 	local reste = airMax() - V.fallTR
 	if pwA <= 0 and reste <= 0.10 then
-		Score.geste(tr("AU CHEVEU", "BY A HAIR"), 220, "cheveu")
+		Hud.pop(tr("AU CHEVEU", "BY A HAIR") .. " +" .. Score.gesteMuet(tr("AU CHEVEU", "BY A HAIR"), 220, "cheveu"), Color3.fromRGB(255, 94, 200), 24, 3)
 		Score.flowAdd(20, "risque", "n")
+		Sons.vrai("poseCheveu")
 	elseif pwA <= 0 and reste <= 0.30 then
-		Score.geste(tr("ARRACHEE", "CLUTCH"), 120, "cheveu")
+		Sons.vrai("poseCheveu", 0.9)
+		Hud.pop(tr("ARRACHEE", "CLUTCH") .. " +" .. Score.gesteMuet(tr("ARRACHEE", "CLUTCH"), 120, "cheveu"), Hud.C.or_, 24, 3)
 		Score.flowAdd(12, "risque", "n")
 	end
 	-- LE RACCOURCI : la piste gagnée − la distance volée en ligne droite
 	local gagne = (s - V.flowS0) - (V.flowP0 - fallPos).Magnitude
 	local raccourci = false
-	if gagne >= 60 then
+	if G.filetDe(V.flowS0, s) then
+		-- posé dans le FILET de son virage : RATTRAPÉ, pas RACCOURCI
+		Score.gesteMuet(tr("RATTRAPE", "CAUGHT"), 50, "filet")
+		Score.flowAdd(6, "risque")
+		Hud.vibre(40)
+	elseif gagne >= 60 then
 		raccourci = true
-		Score.flowAdd(math.min(45, 12 + gagne * 0.06), "risque", "m")
-		Hud.pop(tr("RACCOURCI +", "SHORTCUT +") .. math.floor(gagne + 0.5) .. " M", Color3.fromRGB(125, 255, 236), 22)
-		nitroGain(0.3)
-		Score.gesteMuet(tr("RACCOURCI", "SHORTCUT"), math.floor(math.min(250, 60 + gagne * 0.2) + 0.5), "coupe")
+		G.raccourci(gagne)
 	elseif gagne >= 25 then
 		Score.frenTrait("m", gagne / 60) -- une petite coupe nourrit MACHIAVEL
 	end
+	G.mirPose() -- MIRACULÉ : une chute qui était perdue d'avance
 	-- le dauphin verse ce qu'il a nagé
 	Score.dolPose()
 	-- les fautes, la série de poses propres
+	if V.fallT > 0.25 then Hud.vibre((ratee or impact >= 10) and 45 or ((g >= 1.5) and 30 or 14)) end -- (chaque pose se SENT dans la main)
 	if ratee then
 		Sons.jouer("poseLourde")
 	elseif impact >= 10 then
@@ -830,9 +1084,11 @@ local function atterrir(face: number, latX: number, sX: number, hR: number?)
 		G.hopY = reste9
 		G.hopV = ((face > 0) and vN or -vN) * SPD
 		G.choc = math.min(0.6, impact * 0.04)
+		G.squashT = 0.1 + math.min(0.2, impact * 0.022) -- (la caisse se tassera AU CONTACT)
 	else
 		if face > 0 and reste9 < 0 then G.levreY = math.max(-0.6, reste9) end -- posée sous le niveau : elle remonte sa marche
 		secousse = math.max(secousse, math.min(0.6, impact * 0.04))
+		G.squashT = math.max(G.squashT or 0, 0.1 + math.min(0.2, impact * 0.022)) -- (L30855 : la caisse se TASSE sur ses ressorts)
 	end
 	Bus.emit("pose", { g = g, impact = impact, face = face, chainVal = V.chainVal, chainMult = V.chainMult, raccourci = gagne, figures = V.chainN, fallT = V.fallT, reste = reste,
 		q = qG, paye = paye, serpent = serpent, ratee = ratee,
@@ -931,7 +1187,7 @@ local function essayerAtterrir(dt: number)
 			fallVel += B * (-vB * 1.65)
 			fallVel *= 0.78
 			-- la tranche RENVOIE vers le ciel pour de bon (~1,9 m de montée) : de quoi revenir se poser au volant
-			fallVel = Vector3.new(fallVel.X, math.max(fallVel.Y + 2.4, 16), fallVel.Z)
+			fallVel = Vector3.new(fallVel.X, math.max(fallVel.Y + 2.4, 16 * math.sqrt(G.gK())), fallVel.Z)
 			fallPos += B * (sg * math.max(bumpThru and 0 or math.abs(latOff), RH + demi) - latOff) -- remise CONTRE la tranche
 			V.sideCd = 0.35
 			V.bascOn = false -- la tranche touchée : la bascule est finie
@@ -943,7 +1199,8 @@ local function essayerAtterrir(dt: number)
 			local noms = { "BUMP", "DOUBLE BUMP", "TRIPLE BUMP" }
 			figure("bump", noms[V.bounceN] or ("MEGA BUMP x" .. V.bounceN), 0, math.min(3, V.bounceN), true, true)
 			secousse = math.max(secousse, math.min(1.3, 0.3 + math.abs(vB) * 0.03))
-			Sons.jouer("poseChoc", 1.3)
+			Sons.vrai("figBump", nil, nil, "poseChoc", 1.3)
+			G.tole(2 + math.floor(math.min(4, math.abs(vB) * 0.12))) -- (L30794 : ça casse ENCORE PLUS de bouts)
 			return
 		end
 	end
@@ -1000,12 +1257,19 @@ local function pouvoirPrend(k: string)
 	local function cumule(v: number): number return math.min(d.duree * 2, v + d.duree) end
 	if k == "n" then pwN = cumule(pwN) elseif k == "a" then pwA = cumule(pwA) elseif k == "v" then pwV = cumule(pwV)
 	elseif k == "m" then pwM = cumule(pwM) else pwX = cumule(pwX) end
-	HudScore.slam(FR and d.nom or d.nomEN, nil, "#" .. d.couleur:ToHex(), nil, 26, 1)
+	-- (PWR_DEFS.gros + sous, L23637) le pouvoir se NOMME en grand, avec ce qu'il donne dessous
+	local GROS = { n = { "NITRO ILLIMITEE", "UNLIMITED NITRO", "9 S A FOND", "9 S FLAT OUT" }, a = { "AIRTIME INFINI", "INFINITE AIRTIME", "14 S DE VOL", "14 S OF FLIGHT" },
+		v = { "VITESSE x2", "SPEED x2", "8 S", "8 S" }, m = { "AIMANT", "MAGNET", "L'OR VIENT A TOI", "GOLD COMES TO YOU" },
+		x = { "AURA x2", "AURA x2", "TOUTE L'AURA COMPTE DOUBLE", "ALL AURA COUNTS DOUBLE" } }
+	local g9 = GROS[k]
+	HudScore.slam(g9 and g9[FR and 1 or 2] or (FR and d.nom or d.nomEN), g9 and g9[FR and 3 or 4] or nil, "#" .. d.couleur:ToHex(), "#ffffff", 26, 1)
 	secousse = math.max(secousse, 0.35)
 	HudScore.flash("#" .. d.couleur:ToHex(), 0.35)
-	Sons.jouer("nitroPlein")
+	Sons.vrai("pwr" .. string.upper(k), nil, nil, "nitroPlein") -- (chaque pouvoir a sa voix)
 	if autres >= 1 then
 		local tri = autres >= 2
+		Sons.vrai(tri and "pwrTriple" or "pwrDouble") -- (un deuxième, un troisième pouvoir actif : le carillon du cumul)
+		Hud.vibre(tri and 60 or 40)
 		Score.gesteMuet(tri and tr("TRIPLE POUVOIR", "TRIPLE POWER") or tr("DOUBLE POUVOIR", "DOUBLE POWER"), tri and 150 or 70, "pwrCombo", true)
 	end
 	Bus.emit("pouvoir", k)
@@ -1042,6 +1306,7 @@ local function ramasser(o: any)
 		fovPunch = math.max(fovPunch, 10 + 2 * trk)
 		HudScore.flash("#ff9600", 0.3)
 		Sons.jouer("pad", Sons.demiTons(({ 0, 2, 4, 7, 9 })[trk + 1]))
+		Hud.vibre((trk > 0) and 30 or 10) -- (le pad se sent ; le train de boosts, plus fort)
 		Hud.pop((G.padN > 1) and ("BOOST x" .. G.padN) or "BOOST", Color3.fromRGB(255, 176, 0), 22)
 		Bus.emit("pad", G.padN)
 		if o.o.ligne then
@@ -1055,6 +1320,7 @@ local function ramasser(o: any)
 	if k == "piece" then
 		combo += 1
 		G.comboT = 3
+		if combo % 5 == 0 then Sons.vrai("recolte") end
 		if combo % 5 == 0 then Score.geste(tr("RECOLTE", "HARVEST") .. " x" .. combo, 20, "recolte", true, false, true) end -- LA RÉCOLTE (un robinet : droit au compteur)
 		stats.pieces += 1
 		ajouterPieces(1)
@@ -1067,6 +1333,7 @@ local function ramasser(o: any)
 			if n >= 4 and zone.prisSerie[grp] == n then
 				Score.flowAdd(3 + n * 0.4, "style", "n")
 				Hud.pop(tr("SERIE COMPLETE x", "FULL SET x") .. n, Hud.C.or_, 20)
+				Sons.vrai("serie")
 			end
 		end
 		local mult = math.min(2.5, 1 + 0.5 * math.floor(combo / 5))
@@ -1075,6 +1342,7 @@ local function ramasser(o: any)
 		Sons.jouer("piece", Sons.demiTons(({ 0, 2, 4, 7, 9, 12, 14, 16 })[((combo - 1) % 8) + 1]))
 	elseif k == "cristal" then
 		pouvoirPrend(o.o.pw)
+		Hud.vibre(40)
 		-- le cristal de l'autre face disparaît avec lui (on ne le prend qu'une fois)
 		for _, x in zone.objets :: { any } do
 			if x ~= o and x.o.kind == "cristal" and math.abs(x.o.s - o.o.s) < 1 and not x.pris then
@@ -1087,6 +1355,7 @@ local function ramasser(o: any)
 		nitroX = math.min(2, nitroX + (o.o.ligne and 1.15 or 0.2 * reservoir()))
 		stats.fruits += 1
 		local fd = FRUITS[o.o.fruit or 1]
+		Hud.vibre((fd.boost >= 1.5) and 60 or 11)
 		-- LA RAFALE (fruitCroque, L29230) : 3 fruits et plus à moins de 2,6 s l'un de l'autre
 		G.fruitRafT = 2.6
 		G.fruitRaf += 1
@@ -1099,7 +1368,7 @@ local function ramasser(o: any)
 		end
 		HudScore.flash("#" .. fd.couleur:ToHex(), 0.18 + 0.1 * math.min(1, fd.boost / 2))
 		Bus.emit("fruit", o.o.fruit, o.pos, fd)
-		Sons.jouer("piece", 0.8 + math.min(5, rf - 1) * 0.025)
+		Sons.vrai("fruit" .. (o.o.fruit or 1), 1 + math.min(5, rf - 1) * 0.03, nil, "piece", 0.8 + math.min(5, rf - 1) * 0.025)
 		-- le jumeau de l'autre face part avec lui
 		for _, x in zone.objets :: { any } do
 			if x ~= o and x.o.kind == "fruit" and math.abs(x.o.s - o.o.s) < 1 and not x.pris then
@@ -1144,6 +1413,8 @@ local function obstacles(dt: number, cf: CFrame)
 				if e < 1.6 then
 					-- LE CHOC : il part devant, la caisse perd 1,5 %
 					o.touche = true
+					Bus.emit("gerbe", "eclatRouge", o.p.Position, 5, 3, 8) -- (un plot percuté COÛTE : éclats rouges — l'or, c'est l'argent)
+					Hud.vibre(10)
 					local dl = lat - lo
 					local v = cf.LookVector * math.max(8, math.abs(vA) * 0.55) + cf.RightVector * ((dl > 0 and -1 or 1) * (2 + math.random() * 4))
 						+ cf.UpVector * (5 + math.random() * 5)
@@ -1151,7 +1422,7 @@ local function obstacles(dt: number, cf: CFrame)
 					vA *= 0.985
 					secousse = math.max(secousse, 0.14)
 					Score.flowFaute("n", 0, 0.25)
-					Sons.jouer("poseChoc", 1.6, 0.3)
+					Sons.vrai("plot", nil, nil, "poseChoc", 1.6, 0.3)
 				elseif not o.frole and o.dm and so <= s - 2.6 then
 					-- LE FRÔLÉ : le plot est passé derrière sans être touché, à moins de 3,6 m
 					o.frole = true
@@ -1164,8 +1435,9 @@ local function obstacles(dt: number, cf: CFrame)
 				local r = o.o.r or 2.5
 				if balEcart(so, r + 2, sA, s, lA, lat, lo) < r + 0.6 then
 					G.slipT, G.oilCd = 0.75, 1.2
+					Hud.vibre(20)
 					secousse = math.max(secousse, 0.2)
-					Sons.jouer("poseChoc", 0.7, 0.3)
+					Sons.vrai("flaque", nil, nil, "poseChoc", 0.7, 0.3)
 				end
 			elseif o.o.kind == "pad" then
 				if balEcart(so, 6, sA, s, lA, lat, lo) < 4.1 then ramasser(o) end
@@ -1185,10 +1457,251 @@ local function obstacles(dt: number, cf: CFrame)
 		Score.gesteMuet((G.froleN >= 2) and ("SLALOM x" .. G.froleN) or tr("FROLE", "CLOSE CALL"), 20, "frole")
 		if fk == 1 and G.froleN >= 2 then Hud.pop("SLALOM x" .. G.froleN, (G.froleN >= 3) and Hud.C.or_ or Color3.fromRGB(125, 255, 236), 20) end
 		fovPunch = math.max(fovPunch, 1.5 + 2 * pres)
-		Sons.jouer("maillon", Sons.demiTons(math.min(12, G.froleN * 2)), 0.3)
+		Sons.vrai("frole", Sons.demiTons(math.min(9, G.froleN - 1)), 0.4, "maillon", Sons.demiTons(math.min(12, G.froleN * 2)), 0.3)
 	end
 	G.froleT -= dt
 	if G.froleT <= 0 then G.froleN = 0 end
+end
+
+-- LE RACCOURCI (flowRaccourci, L32497) : couper la route paie — à la pose comme en entrant dans le portail en vol
+function G.raccourci(gagne: number)
+	Score.flowAdd(math.min(45, 12 + gagne * 0.06), "risque", "m")
+	Hud.pop(tr("RACCOURCI +", "SHORTCUT +") .. math.floor(gagne + 0.5) .. " M", Color3.fromRGB(125, 255, 236), 22, 3)
+	Hud.vibre(50)
+	Sons.vrai("raccourci")
+	nitroGain(0.3)
+	Score.gesteMuet(tr("RACCOURCI", "SHORTCUT"), math.floor(math.min(250, 60 + gagne * 0.2) + 0.5), "coupe")
+end
+-- MIRACULÉ (mirTick, mirPose, L23645) : la pose d'une chute qui était PERDUE D'AVANCE depuis 0,6 s ou plus (plus de route en vue,
+-- on tombait, 10 m sous la dalle la plus proche) — 160 d'aura, 240 après 1,5 s de perdition ; se rattraper au nitro : PSYCHO.
+function G.mirPose()
+	local m = G.mirMax or 0
+	G.mirT, G.mirMax = 0, 0
+	if m < 0.6 or TU.on then return end
+	Score.gesteMuet(tr("MIRACULE", "MIRACLE"), (m > 1.5) and 240 or 160, "miracle")
+	Score.flowAdd(10, "risque", "p")
+	task.delay(0.42, function()
+		if mode == "drive" or mode == "fall" then Hud.pop(tr("MIRACULE !", "MIRACLE!"), Color3.fromRGB(125, 255, 236), 24, 3) end
+	end)
+	Bus.emit("flash", Color3.fromRGB(125, 255, 236), 0.7, 0.5)
+	Hud.vibre(120)
+	secousse = math.max(secousse, 0.45)
+	Sons.vrai("miracule", nil, nil, "poseParfait", 1.25, 0.5)
+end
+-- LES PALIERS DE VITESSE (vpalTick, L23675) : chaque nouvelle centaine de km/h se crie (« 400 KM/H ! »), à partir d'une centaine
+-- sous le record — crier « 300 » à chaque partie deviendrait un tic — ; puis « RECORD DE VITESSE » quand il tombe.
+function G.vpal(k: number)
+	if TU.on or k <= 0 then return end
+	G.vp = G.vp or { n = 0, rec = false, c0 = 3 }
+	local P = G.vp
+	local c = math.floor(k / 100)
+	if c >= P.c0 and c > P.n then
+		P.n = c
+		Hud.pop((c * 100) .. tr(" KM/H !", " KM/H!"), (c >= 8) and Color3.fromRGB(255, 94, 200) or ((c >= 5) and Hud.C.or_ or Color3.fromRGB(159, 232, 255)), 24)
+		fovPunch = math.max(fovPunch, 5 + math.min(8, c))
+		Hud.vibre((c >= 6) and 50 or 10)
+		Sons.vrai("palierVitesse", Sons.demiTons(math.min(11, c)), 0.45, "bip", nil, 0.3)
+	end
+	local rec = G.kmhRecord or 0
+	if not P.rec and rec >= 250 and k > rec + 5 then
+		P.rec = true
+		task.delay(0.25, function()
+			if mode == "drive" or mode == "fall" then
+				HudScore.slam(tr("RECORD DE VITESSE", "SPEED RECORD"), math.floor(math.max(k, G.vmax) + 0.5) .. " KM/H", "#ffd75e", "#ff3924", 40, 2)
+			end
+		end)
+	end
+end
+
+-- LA ROUTE QUI TE RATTRAPE — LES DEUX PAIEMENTS (filetTick, filetRattrape, L32479 ; Sacha : « un virage bien pris paie PLUS qu'une
+-- chute rattrapée »). VIRAGE À FOND : traverser un virage à filet sans quitter la route, sans jamais descendre sous 80 % de sa
+-- vitesse de calcul (120 d'aura, du flow de route, un peu de nitro). RATTRAPÉ : sortir de ce virage et retomber dans son filet
+-- (50 d'aura, un peu de flow) — la pose lourde et la vitesse perdue font le reste.
+function G.filetTick()
+	local L = (piste :: any).filets
+	if not L or #L == 0 then return end
+	local q = nil
+	for _, f in L do
+		if s >= f.sC0 and s <= f.sC1 then
+			q = f
+			break
+		end
+	end
+	local v9 = math.abs(vA) * SPD
+	G.filR = G.filR or { q = nil, ok = false, vMin = 0 }
+	local Rf = G.filR
+	if q and Rf.q ~= q then
+		Rf.q, Rf.ok, Rf.vMin = q, not q.paye, v9
+	elseif q then
+		Rf.vMin = math.min(Rf.vMin, v9)
+	elseif Rf.q then
+		local q9 = Rf.q
+		Rf.q = nil
+		if Rf.ok and s > q9.sC1 and s < q9.sC1 + 200 and Rf.vMin >= 0.8 * q9.vN then
+			q9.paye = true
+			Score.geste(tr("VIRAGE A FOND", "FLAT OUT"), 120, "fond", true)
+			Score.flowAdd(14, "route")
+			nitroGain(0.25)
+			Hud.vibre(30)
+		end
+		Rf.ok = false
+	end
+end
+-- un vol parti de ce virage et posé dans son filet ?
+function G.filetDe(s0: number, s1: number): any
+	local L = (piste :: any).filets
+	if not L then return nil end
+	for _, q in L do
+		if s0 > q.sC0 - 80 and s0 < q.sC1 + 60 and s1 > q.sN0 - 160 and s1 < q.sN1 + 260 then return q end
+	end
+	return nil
+end
+
+-- LE VISEUR D'ATTERRISSAGE (L37462) : la chute intégrée en avance — quatorze pas de 0,12 s, la même gravité, la même avance — ; au
+-- premier pas qui passe à portée de la dalle (dessus ou dessous, moins de 20 m, dans la largeur de la route), l'anneau s'y pose
+-- et prend la couleur de l'impact PRÉDIT (la même unité que le verdict de la pose). Le viseur ne promet jamais une pose dans le vide.
+function G.viseur(dt: number)
+	if enPause then return end -- (en pause, le viseur reste où il est)
+	local vu, cf, impact = false, nil, 0
+	if mode == "fall" and not intro then
+		local pos, vel = fallPos, fallVel
+		G.lmOut = G.lmOut or {}
+		for _ = 1, 14 do
+			vel -= Vector3.new(0, FALL_G * G.gK() * 0.12, 0)
+			pos += vel * (0.12 * SPD)
+			local q = pos * M
+			local bi, bd = 0, (20 * M) ^ 2
+			for _, j in Piste.autour(piste, q, G.lmOut) do
+				local d = piste.F[j].Position - q
+				local dd = d:Dot(d)
+				if dd < bd then bd, bi = dd, j end
+			end
+			if bi > 0 then
+				local f = piste.F[bi]
+				local d = q - f.Position
+				local h2, l2 = d:Dot(f.UpVector) / M, d:Dot(f.RightVector) / M
+				if math.abs(l2) < RH and h2 > -THICK - 1 and h2 < 3 then
+					local dessus = h2 > -1.3
+					cf = CFrame.fromMatrix(f.Position + f.RightVector * (l2 * M) + f.UpVector * ((dessus and 0.3 or (-THICK - 0.3)) * M), f.RightVector, f.UpVector)
+					impact = math.abs(vel:Dot(f.UpVector))
+					vu = true
+					break
+				end
+			end
+		end
+	end
+	KA.Viseur.tick(dt, vu, cf, impact, os.clock())
+	-- (MIRACULÉ) depuis combien de temps cette chute est-elle perdue d'avance ?
+	if mode == "fall" and not intro then
+		local perdu = not vu and V.fallT > 0.4 and fallVel.Y < -4 and (not V.curNear or V.curH < -10)
+		G.mirT = perdu and ((G.mirT or 0) + dt) or math.max(0, (G.mirT or 0) - dt * 2)
+		G.mirMax = math.max(G.mirMax or 0, G.mirT)
+	else
+		G.mirT, G.mirMax = 0, 0
+	end
+end
+
+-- LA PLUIE DE SATELLITES (satHard, L14061) : percuter un satellite de la route tue ; le frôler (moins de 3,2 m en travers) se paie
+-- comme un plot frôlé, une fois sorti de sa bulle. Au sol comme en vol.
+function G.satFrole(dm: number)
+	local pres = math.clamp(1 - dm / 3.2, 0, 1)
+	G.froleN += 1
+	G.froleT = 1.4
+	nitroGain(0.08 + 0.08 * pres)
+	Score.flowAdd(4 + 4 * pres, "style", "n")
+	momT = math.min(4.3, momT + 0.6)
+	Score.gesteMuet(tr("FROLE", "CLOSE CALL"), 20, "frole")
+	fovPunch = math.max(fovPunch, 1.5 + 2 * pres)
+	Sons.vrai("frole", Sons.demiTons(math.min(9, G.froleN - 1)), 0.4, "maillon", Sons.demiTons(math.min(12, G.froleN * 2)), 0.3)
+end
+function G.satHard()
+	local l = (zone :: any).sats
+	if not l or #l == 0 or graceT > 0 or intro then return end
+	local P = carCF.Position / M
+	for _, o in l do
+		if not o.fait then
+			local d = P - o.q
+			if d:Dot(d) > o.R2 then
+				if o.pres then -- sorti de la bulle : le frôlé se paie
+					o.fait = true
+					if o.min < 3.2 then G.satFrole(o.min) end
+				end
+			else
+				local a, u, t = math.abs(d:Dot(o.W)), math.abs(d:Dot(o.U)), math.abs(d:Dot(o.T))
+				if a < o.hw and u < o.hu and t < o.ht then
+					o.fait = true
+					secousse = math.max(secousse, 1.3)
+					Sons.jouer("mortSat", 1, 0.7)
+					exploser("sat")
+					return
+				end
+				-- à hauteur et au droit : la marge qui reste en travers
+				if u < o.hu + 1.2 and t < o.ht + 1 then
+					o.min = math.min(o.min, math.max(0, a - o.hw))
+					o.pres = true
+				end
+			end
+		end
+	end
+end
+
+-- L'ORBITE · LA PLUIE DE DÉBRIS (debTick, debFrappe, L32956) : la cible tombe là où la caisse SERA ; à l'impact, touché ou esquivé.
+-- La pluie se durcit vers le portail (≈ 3,4 s entre deux chutes au départ, 1,9 s à la fin). Seulement en orbite, sur le dessus.
+function G.debTick(dt: number, camCF: CFrame)
+	local D = KA.Debris
+	D.suite(dt)
+	if G.gK() >= 1 or TU.on or not (mode == "drive" or mode == "fall") then
+		D.cache()
+		return
+	end
+	if not D.on then
+		if mode == "drive" and side > 0 and not intro then
+			D.prochain -= dt
+			if D.prochain <= 0 then
+				local ok = D.arme(piste, s, lat, math.max(18, math.abs(vA)) * SPD)
+				if ok and not D.dit then
+					D.dit = true
+					Hud.pop(tr("ESQUIVE LES DEBRIS", "DODGE THE DEBRIS"), Color3.fromRGB(255, 138, 77), 20)
+				end
+				D.prochain = ok and (3.4 - math.clamp(s / (piste.len / M), 0, 1) * 1.5) * (0.8 + math.random() * 0.4) or 0.35
+			end
+		end
+		return
+	end
+	if not D.tick(dt, camCF) then return end
+	-- LA FRAPPE
+	local d = (carCF.Position - D.p1).Magnitude / M
+	secousse = math.max(secousse, 0.9 * math.max(0, 1 - d / 140))
+	if d < 260 then Sons.jouer("explosionLoin", Sons.a("explosionLoin") and 1 or 0.7, 0.45 * (1 - d / 300)) end
+	if mode ~= "drive" then return end -- en vol, on l'a survolé
+	if side < 0 then
+		if d < D.R + 9 then
+			Hud.pop(tr("A L'ABRI", "SAFE"), Color3.fromRGB(159, 232, 255), 20)
+			Sons.jouer("abri", 1, 0.5)
+		end
+		return
+	end
+	if d < D.R + 1.2 then
+		-- TOUCHÉ : la vitesse et le flow prennent le choc — pas la vie ; en gravité lunaire, la gerbe soulève la caisse
+		vA *= 0.6
+		momT = 0
+		Score.flowCoup(20) -- (L32966 : la jauge perd 20 points, sans plancher au palier)
+		D.serie = 0
+		G.hopV = math.max(G.hopV, 7.5)
+		secousse = math.max(secousse, 1.1)
+		Hud.pop(tr("TOUCHE !", "HIT!"), Color3.fromRGB(255, 90, 60), 26)
+		Hud.vibre(90)
+		Sons.jouer(Sons.a("touche") and "touche" or "poseChoc", Sons.a("touche") and 1 or 0.7, 0.5)
+	elseif d < D.R + 9 then
+		-- ESQUIVÉ DE PRÈS : le risque paie, la série fait monter la mise
+		D.serie += 1
+		local k = math.min(4, D.serie)
+		Hud.pop(tr("ESQUIVE !", "DODGED!") .. ((D.serie > 1) and (" x" .. D.serie) or ""), Color3.fromRGB(255, 176, 0), 22)
+		Score.flowAdd(6 + k * 3, "style", "n")
+		nitroGain(0.08 + k * 0.04)
+		Score.gesteMuet(tr("ESQUIVE", "DODGE"), 24 + k * 6, "esquive")
+		Sons.jouer(Sons.a("esquive") and "esquive" or "maillon", Sons.demiTons(k * 2), Sons.a("esquive") and 0.5 or 0.3)
+	end
 end
 
 local function objets(dt: number, pos: Vector3, t: number)
@@ -1296,6 +1809,13 @@ local function ligneBloque(s9: number): boolean
 			if o.kind == "flaque" and d < (o.r or 2.5) + 7 then return true end
 		end
 	end
+	-- (L11913, PLUIE DE SATELLITES) jamais dans un satellite posé sur la route : la ligne idéale ne mène pas à la mort
+	local sats = (zone :: any).sats
+	if sats then
+		for _, o in sats do
+			if o.s and not o.haut and math.abs(o.s - s9) < o.ht + 12 then return true end
+		end
+	end
 	return false
 end
 local function ligneTick(dt: number)
@@ -1365,6 +1885,11 @@ local function activer(e: Zone)
 	if e.ciel then e.ciel.Parent = (mode ~= "menu" and mode ~= "garage" and mode ~= "charge") and e.dossier or nil end
 	oi = 1
 	evEtat:FireServer("zone", e.z)
+	-- LA VILLE SE GAGNE SUR LA ROUTE (flowLieu, L21007 — appelé par newTrack, L30919) : entre les tours on saute peu, le SUPER/ULTRA
+	-- TURBO et le raccourci y font partir la frénésie armée, la vitesse tenue au sol paie plus. (Avant le 2/10 soir ce réglage
+	-- existait mais n'était jamais posé : les deux niveaux de ville se jouaient aux règles des nuages.)
+	Score.lieu((piste :: any).niveau)
+	Bus.emit("niveau", (piste :: any).niveau, (piste :: any).variante)
 end
 local function passerPortail(): boolean
 	local ecole = TU.on and zoneN == 0 -- pendant la leçon, le portail ramène sur la piste d'école
@@ -1377,8 +1902,16 @@ local function passerPortail(): boolean
 		return false
 	end
 	local longueur = piste.len / M
+	-- LE RACCOURCI VERS LE PORTAIL (L30424 ; Sacha : « quand on coupe la route pour rejoindre le portail plus vite, ça doit quand même
+	-- rapporter du machiavélisme ») : on n'atterrit pas, la pose ne le voyait jamais. La piste qu'il restait à rouler jusqu'à l'entrée
+	-- de l'ovule (~L − 80) moins la ligne droite volée.
+	if mode == "fall" and not ecole then
+		local gagne = (longueur - 80 - V.flowS0) - (V.flowP0 - fallPos).Magnitude
+		if gagne >= 60 then G.raccourci(gagne) elseif gagne >= 25 then Score.frenTrait("m", gagne / 60) end
+	end
 	G.distAvant += longueur
 	local ancienne = zoneN
+	local lieuAvant = (piste :: any).niveau
 	-- le saut vertical entre la sortie et le départ remonté : caisse, vol et caméra bougent ensemble
 	local saut = (suiv.piste :: Piste.Piste).F[1].Position - piste.F[piste.n].Position
 	carCF = carCF + saut
@@ -1398,11 +1931,47 @@ local function passerPortail(): boolean
 	end
 	remettreObjets(suiv)
 	activer(suiv)
+	-- TRAVERSÉ EN VOL (portailPasse, L30424 ; newTrack, L30943) : le vol s'arrête proprement — la caisse repart posée au départ de
+	-- la nouvelle route, son élan gardé ; la figure du vol compte, la chaîne d'argent se ferme. (Avant : le vol continuait, chrono
+	-- compris, parfois à 80 m du premier mètre de route — on mourait juste après le portail.) La coupe se cache sous son éclair.
+	if mode == "fall" and not intro then
+		vA = math.max(vA, Vector3.new(fallVel.X, 0, fallVel.Z).Magnitude / vitMult(), 20)
+		Score.dolFin()
+		if V.chainN > 0 then stats.poses += 1 end
+		V.chainVal, V.chainMult, V.chainN = 0, 1, 0
+		local avant = carCF.Position
+		s, sPrev, lat, latPrev, psi, side, yawR = 0, 0, 0, 0, 0, 1, 0
+		G.slipB, G.hopY, G.hopV, G.levreY, G.driftYaw = 0, 0, 0, 0, 0
+		mode = "drive"
+		Score.ETAT.mode = "drive"
+		graceT = 0.3
+		V.fallT, V.fallTR, V.bascOn = 0, 0, false
+		E.air.Visible = false
+		carCF = repere(0, 1)
+		KA.pos += carCF.Position - avant
+		KA.vise += carCF.Position - avant
+		Bus.emit("flash", Color3.fromRGB(255, 79, 216), 0.6, 0.5)
+	end
 	if not ecole then oublier(ancienne) end
+	-- L'ORBITE A SES PORTES (orbWarp, orbFeu, L29789) : on n'arrive plus dans l'espace par un simple fondu. ENTRÉE = un TUNNEL DE
+	-- DISTORSION (1,9 s : le champ se déchire, des traits de lumière filent, éclair bleu à l'entrée et à la sortie du tunnel) ;
+	-- SORTIE = une RENTRÉE ATMOSPHÉRIQUE EN FEU (2,6 s : la caisse retombe dans le ciel enveloppée de plasma, ça tremble)
+	if (piste :: any).niveau == "espace" and lieuAvant ~= "espace" then
+		G.orbWarp, G.orbFeu = 1, 0
+		secousse = math.max(secousse, 0.45)
+		Bus.emit("orbite", "entre")
+		Sons.jouer("orbiteEntre", 1, 0.7)
+	elseif lieuAvant == "espace" and (piste :: any).niveau ~= "espace" then
+		G.orbFeu, G.orbWarp = 1, 0
+		secousse = math.max(secousse, 0.6)
+		Bus.emit("orbite", "sort")
+		Sons.jouer("orbiteSort", 1, 0.7)
+	end
 	local g = encaisser(denom() * 24, "portail")
 	nitroR = reservoir()
 	Bus.emit("portail", zoneN)
 	HudScore.slam("ZONE " .. zoneN, "+" .. Hud.argent(g), "#00eaff", "#7dff9b", 34, 1)
+	if not ecole then task.delay(1.3, function() if mode == "drive" or mode == "fall" then Hud.grand(G.nomNiveau(), Hud.C.texte, 2.4) end end) end
 	Sons.jouer("portail")
 	if not ecole then preparer(zoneN + 1, Piste.suite(piste)) end
 	return true
@@ -1417,7 +1986,8 @@ local function driftTick(dt: number, on: boolean)
 		local lv = (G.driftC > 1.4 and 3) or (G.driftC > 0.9 and 2) or (G.driftC > 0.45 and 1) or 0
 		if lv > G.driftLv then
 			G.driftLv = lv
-			Sons.jouer("bip", Sons.demiTons(({ 0, 3, 5, 7 })[lv + 1] - 3), 0.35)
+			Sons.vrai("driftCharge", Sons.demiTons(({ 0, 3, 5, 7 })[lv + 1] - 3), 0.45, "bip", nil, 0.35)
+			Hud.vibre((lv == 3) and 50 or 10)
 		end
 	elseif not on and G.driftC > 0 then
 		if G.driftLv > 0 then
@@ -1431,7 +2001,7 @@ local function driftTick(dt: number, on: boolean)
 			Score.flowAddDecl(9 * G.driftLv, "style", "n")
 			fovPunch = math.max(fovPunch, 6 + 6 * G.driftLv)
 			if G.driftLv == 3 then HudScore.flash("#ff5ec8", 0.35) end
-			Sons.jouer("fronde", Sons.demiTons(G.driftLv * 3))
+			Sons.vrai(({ "turboMini", "turboSuper", "turboUltra" })[math.clamp(G.driftLv, 1, 3)], nil, nil, "fronde", Sons.demiTons(G.driftLv * 3))
 			Score.gesteMuet(({ "MINI-TURBO", "SUPER TURBO", "ULTRA TURBO" })[G.driftLv], ({ 50, 100, 180 })[G.driftLv], "drift")
 			if G.driftLv >= Score.F2.decl.drift and Score.frenPeut() then Score.frenDeclenche() end -- (en ville, le drift déclenche)
 		end
@@ -1455,6 +2025,10 @@ local function frondeLache(t: number, c: number)
 	G.frondeCd = 0.8
 	Sons.jouer("fronde", Sons.demiTons(({ 0, 2, 4, 7, 9 })[math.clamp(math.floor(p * 3 + 0.5), 0, 4) + 1]))
 	Score.gesteMuet(tr("FRONDE", "SLINGSHOT"), math.floor(30 + 40 * p + 0.5), "fronde")
+	Hud.vibre((p > 1.1) and 50 or 30)
+	for _, sd in { -1, 1 } do -- la gerbe d'or aux pots : on la voit partir
+		Bus.emit("gerbe", "eclatJaune", (carCF * CFrame.new(sd * poignees.fiche.w * 0.22 * M, 0.43 * M, (poignees.fiche.l * 0.5 + 0.2) * M)).Position, 3 + math.floor(3 * p + 0.5), 3, 8)
+	end
 end
 
 -- ════════ LA CONDUITE (L36300-36680) ════════
@@ -1475,7 +2049,24 @@ local function etapeSol(dt: number)
 	if not intro and vitOk and frein and math.abs(steerS) > 0.35 then G.driftOn = true
 	elseif not vitOk or not frein or math.abs(steerS) < 0.2 then G.driftOn = false end
 	driftTick(dt, G.driftOn)
-	if not frein and not G.driftOn and math.abs(psi - G.slipB) < 0.25 then momT = math.min(4.3, momT + dt) else momT = math.max(0, momT - 2 * dt) end
+	-- L'ASTUCE DU DRIFT (L36750 ; audit UX du 26/09 : « le geste du drift n'était enseigné nulle part ») : 1,2 s de braquage à fond
+	-- à bonne vitesse sans jamais avoir drifté → on le dit, une fois dans la vie. Le joueur qui drifte tout seul ne la verra jamais.
+	if G.driftOn then
+		G.astuce(4, true)
+	elseif vitOk and math.abs(steerS) > 0.8 and not intro then
+		G.astD = (G.astD or 0) + dt
+		if G.astD > 1.2 then G.astD = 0; G.astuce(4) end
+	else
+		G.astD = 0
+	end
+	-- (L36721, conduite v6) elle se remplit quand on tient sa ligne (cap < 0,25), elle est GELÉE entre 0,25 et 0,6 (tenir sa ligne
+	-- dans un virage : on y braque forcément), elle ne se vide (2/s) qu'en glisse ou sur un gros coup de volant. Un slalom ou un
+	-- coup de frein ne coûtent plus la vitesse de pointe.
+	if not G.driftOn and math.abs(psi - G.slipB) < 0.6 then
+		if math.abs(psi - G.slipB) < 0.25 then momT = math.min(4.3, momT + dt) end
+	else
+		momT = math.max(0, momT - 2 * dt)
+	end
 	local momF = 1 + math.min(1.8, momT * momT * 0.1)
 	local a
 	if frein and not G.driftOn then
@@ -1546,12 +2137,13 @@ local function etapeSol(dt: number)
 		G.raseT, G.raseAnn = 0, false
 	end
 	-- NITROOO : la nitro tenue 2 s au-dessus de min(400, 55 % de la G.vmax)
-	if nitroOn and k > math.min(400, vmaxShow() * 0.55) then
+	if nitroOn and (G.departT or 0) <= 0 and k > math.min(400, vmaxShow() * 0.55) then -- (le boost de DÉPART tient la touche à la place du joueur : il ne compte pas)
 		G.pureT += dt
 		if G.pureT > NTR_T and G.pureArmed then
 			G.pureArmed = false
 			if not NTR.on then
 				HudScore.slam("NITROOO !", nil, "#ff7a24", nil, 40, 1)
+				Sons.vrai("vitessePure")
 				Score.geste("NITROOO", 120, "pure")
 			end
 			G.pureNext = G.pureT + 2
@@ -1568,6 +2160,7 @@ local function etapeSol(dt: number)
 	end
 	-- les plots, les flaques, les pads ; la ligne parfaite se pose devant
 	obstacles(dt, cf2)
+	G.filetTick()
 	if not intro and not TU.on then ligneTick(dt) end
 	G.fruitRafT -= dt
 	if G.fruitRafT <= 0 then G.fruitRaf = 0 end
@@ -1579,7 +2172,7 @@ local function etapeSol(dt: number)
 			if G.idleMsg <= 0 then
 				G.idleMsg = 0.5
 				Hud.pop(tr("ROULE OU CREVE  ", "DRIVE OR DIE  ") .. string.format("%.1f", math.max(0, Config.ARRET_T - G.idleT)), Color3.fromRGB(255, 77, 77), 20)
-				Sons.jouer("bip", 1.2)
+				Sons.vrai("arretTic", nil, nil, "bip", 1.2)
 			end
 		end
 		if G.idleT >= Config.ARRET_T then
@@ -1626,16 +2219,48 @@ local function etapeSol(dt: number)
 	if math.abs(G.levreY) < 0.005 then G.levreY = 0 end
 	if G.hopY > 0 then
 		G.hopY += G.hopV * dt
-		G.hopV -= 26 * dt
+		G.hopV -= 26 * G.gK() * dt
 		if G.hopY <= 0 then -- le CONTACT
 			G.hopY, G.hopV = 0, 0
 			secousse = math.max(secousse, G.choc)
 			G.choc = 0
+			G.squashT = math.max(G.squashT or 0, 0.15) -- SPLAT. (L37030)
 		end
 	end
+	-- LE POWER-SLIDE (L36969 ; Sacha, 26/09 : « rajoute une animation où la voiture part VRAIMENT sur le côté pendant les virages ») :
+	-- l'arrière CHASSE à proportion de la charge du virage (lacet × vitesse) — le nez rentre dans la courbe jusqu'à ~18°, la
+	-- trajectoire reste celle qu'on pilote : on ne touche QU'À L'IMAGE. Il n'existe que dans un virage, et grandit avec lui.
+	local tdWant = math.sign(aLat) * 0.32 * (1 - math.exp(-math.abs(aLat) / 38)) * math.min(1, kmh() / 90)
+	G.driftYaw = (G.driftYaw or 0) + (tdWant - (G.driftYaw or 0)) * math.min(1, dt * ((math.abs(tdWant) > math.abs(G.driftYaw or 0)) and 5 or 3.2))
+	-- (traceTick, L37013) la gomme MARQUE dès que ça tourne fort ou que ça glisse — les traces de pneus, et la fumée de gomme
+	G.glisse = math.abs(vA) > 10 and (G.driftOn or math.abs(aLat) > 9)
+	-- (L37084) des petits bouts se détachent PAR MOMENTS en roulant vite — réalisme, surtout l'épave (LA HONTE)
+	G.toleT = (G.toleT or 6) - dt
+	if G.toleT <= 0 then
+		local epave = (profil.caisse or 0) == 0
+		G.toleT = 5 + math.random() * 9 - (epave and 2.5 or 0)
+		if math.abs(vA) > 18 and math.random() < (epave and 0.85 or 0.4) then G.tole(epave and math.random(1, 2) or 1) end
+	end
+	G.glisseK = G.glisse and (G.driftOn and 1 or math.clamp((math.abs(aLat) - 9) / 20, 0.15, 1)) or 0 -- (combien ça glisse, pour le crissement)
+	G.fumee = math.abs(vA) > 14 and (G.driftOn or math.abs(aLat) > 16) -- (la fumée demande une VRAIE glisse : le drift, ou une grosse charge)
+	-- LE TANGAGE : elle plonge au frein et au drift, s'accroupit à la poussée (nitro, boost)
+	G.pitch = (G.pitch or 0) + ((((Controles.frein or G.driftOn) and 0.035 or 0) - ((nitroOn or boost > 0) and 0.03 or 0) - (G.ign or 0) * (G.ignK or 0) * 0.1) - (G.pitch or 0)) * math.min(1, dt * 6) -- (… et SE CABRE à l'allumage de la nitro)
+	-- LES ROUES DEHORS : le plancher RACLE la lèvre — des étincelles sous la roue qui a passé le bord
+	if pe > 0 and math.abs(vA) > 12 and math.random() < dt * 28 * pe then
+		Bus.emit("gerbe", "eclatJaune", cf2.Position + cf2.RightVector * ((lat + math.sign(lat) * math.max(0, hw - dB)) * M) + cf2.UpVector * (0.08 * M), 1, 3, 7)
+	end
+	-- LA SUSPENSION (L37128, 28/09) : à la réception, au contact, la CARROSSERIE plonge sur ses ressorts (ω ≈ 15, amortie) — elle se
+	-- tasse, remonte en dépassant à peine et se pose ; les roues, elles, restent au sol (Caisse.rouler les remonte d'autant).
+	do
+		local sq = math.min(1, (G.squashT or 0) / 0.28)
+		G.squashT = math.max(0, (G.squashT or 0) - dt)
+		local d9 = math.min(dt, 1 / 30)
+		G.susV = (G.susV or 0) + ((-sq * 0.17 - (G.susY or 0)) * 230 - (G.susV or 0) * 16) * d9
+		G.susY = math.clamp((G.susY or 0) + G.susV * d9, -0.26, 0.12)
+	end
 	-- la caisse posée
-	local pos = cf2.Position + cf2.RightVector * (lat * M) + cf2.UpVector * ((G.levreY + G.hopY) * M)
-	carCF = CFrame.new(pos) * cf2.Rotation * CFrame.Angles(0, -psi, 0) * CFrame.Angles(0, 0, G.carRoll)
+	local pos = cf2.Position + cf2.RightVector * (lat * M) + cf2.UpVector * ((G.levreY + G.hopY + G.susY) * M)
+	carCF = CFrame.new(pos) * cf2.Rotation * CFrame.Angles(0, -(psi + G.driftYaw), 0) * CFrame.Angles(-G.pitch, 0, G.carRoll)
 end
 
 -- ════════ LE VOL (L36896-37176) ════════
@@ -1654,7 +2279,7 @@ local function etapeAir(dt: number)
 		if V.bascT > 1.1 then V.bascOn = false end
 	end
 	local gB = V.bascOn and math.min(1, V.bascT / 0.45) or 1 -- LE SURSIS : la gravité s'installe en 0,45 s
-	fallVel -= Vector3.new(0, FALL_G * gB * dt, 0)
+	fallVel -= Vector3.new(0, FALL_G * G.gK() * gB * dt, 0)
 	-- le repère de vol : l'avant = la trajectoire, le haut reste perpendiculaire (garde contre le blocage de cardan)
 	local vit = fallVel.Magnitude
 	if vit > 1 then flyAv = fallVel / vit end
@@ -1676,7 +2301,7 @@ local function etapeAir(dt: number)
 	end
 	if nitroOn then
 		-- la PORTANCE : la nitro reprend 60 % de la gravité (75 % en réserve bleue)
-		fallVel += Vector3.new(0, FALL_G * (nitroBleue and 0.75 or NI.portance) * gB * dt, 0)
+		fallVel += Vector3.new(0, FALL_G * G.gK() * (nitroBleue and 0.75 or NI.portance) * gB * dt, 0)
 		-- le COUP D'ALLUMAGE : une fois par allumage EN VOL, 0,5 s entre deux
 		if not V.nAirTenu and V.kickT <= 0 then
 			V.nAirTenu = true
@@ -1729,10 +2354,17 @@ local function etapeAir(dt: number)
 	if V.fallTR > 3.4 and not V.monstre and not intro then
 		V.monstre = true
 		Score.geste(tr("AIR MONSTRE", "MONSTER AIR"), 110, "V.monstre")
+		Sons.vrai("figMonstre")
 		Score.flowAdd(10, "risque", "n")
 	end
 	prevPos = fallPos
 	fallPos += fallVel * dt * SPD
+	-- LES TOURS NE PARDONNENT PAS (villeHeurt, L11787) : en vol, entrer dans une tour de la ville tue
+	if (zone :: any).ville and not intro and KA.Ville.heurt((zone :: any).ville, fallPos) then
+		KA.Impact.frappe((zone :: any).ville, fallPos, fallVel * SPD) -- le CRATÈRE dans la façade, les morceaux, le feu (villeImpact, L10568)
+		exploser("tour")
+		return
+	end
 	-- la vrille VISUELLE : la caisse roule autour de sa trajectoire
 	V.airRoll += (V.bascDir * (3.0 + math.min(2, V.fallT * 0.5)) * (V.bascOn and math.min(1, 0.25 + V.bascT * 1.9) or 1) + Controles.volant * 2.2) * dt * (intro and 0 or 1)
 	vit = fallVel.Magnitude
@@ -1769,10 +2401,9 @@ local function etapeAir(dt: number)
 	elseif fallPos.Y * M < piste.minY - Config.MORT_SOUS * M then
 		exploser("vide")
 	else
-		-- on traverse le portail en volant : il compte aussi (même anneau que Construction.portail)
-		local f = Piste.repere(piste, piste.len - 20 * M)
-		local centre = f.Position + f.UpVector * (46 * M * 0.62)
-		if (fallPos * M - centre).Magnitude < 46 * M then passerPortail() end
+		-- on ENTRE dans l'ovule en volant : il compte aussi, d'où qu'on vienne (la sphère de Construction.portail)
+		local po = (zone :: any).portail
+		if po and (fallPos * M - po.c).Magnitude < po.R then passerPortail() end
 	end
 end
 
@@ -1831,6 +2462,23 @@ local function camera(dt: number)
 	-- (Roblox ne rend pas un champ de plus de 120°)
 	cam.FieldOfView = math.clamp(KA.fov, 20, 120)
 	if (KA.vise - KA.pos).Magnitude < 0.01 then KA.vise = KA.pos + Vector3.new(0, 0, -1) end
+	-- (L37350) L'À-COUP DE L'ALLUMAGE : la caméra recule d'un coup (≈1 m) et se soulève, puis revient ; tant qu'on tient la nitro, un
+	-- FRISSON continu (deux sinus : un grondement, pas un grésillement)
+	if mode == "drive" or mode == "fall" then
+		local av9 = (KA.vise - KA.pos).Magnitude > 0.01 and (KA.vise - KA.pos).Unit or Vector3.zAxis
+		local dr9 = av9:Cross(KA.up)
+		dr9 = (dr9.Magnitude > 1e-3) and dr9.Unit or Vector3.xAxis
+		local ig = G.ign or 0
+		if ig > 0 then
+			local e9 = ig * ig * (1 - ig) * 6.75 * (G.ignK or 0)
+			local j9 = math.max(0, ig - 0.85) * 0.9 * (G.ignK or 0)
+			sh += (-av9 * (1.05 * e9) + KA.up * (0.25 * e9 + (math.random() - 0.5) * j9) + dr9 * ((math.random() - 0.5) * j9)) * M
+		end
+		if nitroOn then
+			local a9 = nitroBleue and 0.05 or 0.036
+			sh += (KA.up * (math.sin(t * 38.7) * a9) + dr9 * (math.sin(t * 29.3 + 1.7) * a9 * 0.7)) * M
+		end
+	end
 	local cfC = CFrame.lookAt(KA.pos + sh, KA.vise, KA.up)
 	if roulis ~= 0 then cfC *= CFrame.Angles(0, 0, roulis) end
 	cam.CFrame = cfC
@@ -1845,21 +2493,41 @@ local function habiller(dt: number)
 	racine.CFrame = carCF
 	local feu = nitroOn or boost > 0 or NTR.boost > 0
 	-- la couleur du feu (les teintes de la bible du web) : violet de la nitro infinie, bleu de la réserve, orange de la nitro, or du pad
+	-- (la SIGNATURE de la caisse — le rose du chat pop-tart, l'eau du requin — ne vit qu'à la nitro, et passe après les deux signaux)
+	local fxC = poignees.fiche and poignees.fiche.fx and poignees.fiche.fx.jet
 	local couleur = (pwN > 0 and Color3.fromRGB(157, 77, 255)) or (nitroBleue and Color3.fromRGB(91, 125, 255))
-		or (nitroOn and Color3.fromRGB(255, 122, 36)) or Color3.fromRGB(255, 215, 94)
+		or (nitroOn and (fxC and Color3.fromHex(string.format("%06x", fxC)) or Color3.fromRGB(255, 122, 36))) or Color3.fromRGB(255, 215, 94)
+	-- le départ en ARC-EN-CIEL : la teinte tourne pendant les 3 s offertes (la signature du LANCEMENT, pas de la caisse)
+	if (G.departT or 0) > 0 and pwN <= 0 and not nitroBleue then couleur = Color3.fromHSV((os.clock() * 0.65) % 1, 0.8, 1) end
 	-- la TRAÎNÉE de la boutique se pose par-dessus (nitro simple seulement : le violet, le bleu et l'or gardent leur sens)
 	local arc: ColorSequence? = nil
 	local tr9 = Config.habit("trainee", profil.porte and profil.porte.trainee)
 	if tr9 and pwN <= 0 and not nitroBleue and nitroOn then
 		if tr9.arcenciel then arc = ARC_EN_CIEL elseif tr9.c then couleur = tr9.c end
 	end
-	Caisse.feu(poignees, feu, nitroOn and 130 or (boost > 0 and 55 or 0), couleur, arc)
+	-- LES SIGNATURES DE CAISSE (fx.rainbow · fx.spray, L37715 du jeu web) — des effets de NITRO, jamais en réserve bleue ni sous la
+	-- nitro infinie (le bleu et le violet gardent leur sens), et une traînée de boutique équipée passe devant :
+	--   · le CHAT POP-TART laisse un ARC-EN-CIEL ;
+	--   · le REQUIN ne crache pas du feu mais de l'EAU : une gerbe qui s'ÉVASE aux pots.
+	if nitroOn and pwN <= 0 and not nitroBleue and (mode == "drive" or mode == "fall") and not (tr9 and (tr9.arcenciel or tr9.c)) then
+		local gab = poignees.fiche and poignees.fiche.gabarit
+		if gab == "poptart" then
+			arc = ARC_EN_CIEL
+		elseif gab == "requin" then
+			local fi = poignees.fiche
+			for _ = 1, math.random(1, 3) do
+				local pot = (carCF * CFrame.new(((math.random() < 0.5) and -1 or 1) * fi.w * 0.22 * M, 0.43 * M, (fi.l * 0.5 + 0.15) * M)).Position
+				Bus.emit("gerbe", "eau", pot, 1, 10, 26, 28, (-carCF.LookVector + carCF.UpVector * 0.14).Unit)
+			end
+		end
+	end
+	Caisse.feu(poignees, feu, nitroOn and 130 or (boost > 0 and 55 or 0), couleur, arc, (mode == "drive" or mode == "fall") and not intro and kmh() > 20)
 	-- les AILES : rentrées dans le flanc au sol, sorties en vol ; les hélices brassent doucement au sol et s'emballent en vol
 	G.ailes += (((mode == "fall" and not intro) and 1 or 0) - G.ailes) * math.min(1, dt * 6)
 	G.helice += dt * (3.5 + G.ailes * 36)
 	Caisse.deployer(poignees, G.ailes, G.helice)
 	-- les roues tournent à leur vraie vitesse (v / R) ; en l'air elles gardent leur élan
-	Caisse.rouler(poignees, vA * SPD * M * dt)
+	Caisse.rouler(poignees, vA * SPD * M * dt, (mode == "drive") and (G.susY or 0) or 0)
 	KA.refletK += ((nitroOn and 1.6 or (boost > 0 and 0.9 or 0)) - KA.refletK) * math.min(1, dt * 8)
 	reflet.Brightness = KA.refletK
 	-- les boucles de son
@@ -1868,13 +2536,86 @@ local function habiller(dt: number)
 	local atelier = mode == "garage"
 	Sons.regler("moteur", atelier and 0.05 or ((mode == "menu") and 0.12 or 0.32), 0.7 + r * 1.1 + (nitroOn and 0.1 or 0))
 	Sons.regler("nitro", nitroOn and 0.45 or 0)
-	Sons.regler("ventAltitude", atelier and 0 or ((mode == "fall") and math.min(0.7, 0.25 + fallVel.Magnitude * 0.004) or 0.08 + r * 0.1))
-	Sons.regler("musique", 0.32)
+	-- LE CRISSEMENT (L38020) : une ZONE MORTE — il signale LA LIMITE, pas la conduite normale ; il monte avec la glisse et la vitesse,
+	-- et sa hauteur aussi (900 Hz + la glisse + la vitesse)
+	do
+		local gk = (mode == "drive" and not enPause) and (G.glisseK or 0) or 0
+		-- LE « BRRRR » DU DRIFT (driftChargeSnd) : il tient tout le drift et monte d'un cran à chaque niveau de charge
+		local dOn = mode == "drive" and not enPause and G.driftOn
+		do
+			local lv = G.driftLv or 0
+			local d0, dd = ({ 0, 0.45, 0.9, 1.4 })[lv + 1], ({ 0.45, 0.45, 0.5, 1 })[lv + 1]
+			local fr = (lv >= 3) and 1 or math.clamp(((G.driftC or 0) - d0) / dd, 0, 1)
+			local f = ({ 123.47, 164.81, 246.94, 329.63 })[lv + 1] * (1 + 0.25 * fr)
+			Sons.regler("driftBrrr", dOn and (0.06 + lv * 0.05) or 0, f / 124)
+		end
+		-- LE RASE-BORD GRONDE (raseSnd) : le danger se lit à l'oreille — et le pouce le sent (un tic toutes les 0,16 s)
+		local rOn = mode == "drive" and not enPause and (G.raseT or 0) > 0
+		Sons.regler("rasBord", rOn and math.min(0.5, 0.2 + G.raseT * 0.27) or 0, math.min(60, 18 + k * 0.05) / 30)
+		if rOn then
+			G.raseHap = (G.raseHap or 0) - dt
+			if G.raseHap <= 0 then
+				G.raseHap = 0.16
+				Hud.vibre(4)
+			end
+		end
+		Sons.regler("crissement", (gk > 0) and math.min(0.5, gk ^ 1.3 * 0.45 * (0.4 + math.min(1, k / 380))) or 0, (900 + gk * 430 + k * 0.35) / 1100)
+	end
+	-- (L36604 : `nuages.ambiance` est l'air d'un LIEU — la mer de nuages. En ville et en orbite il ne reste que le souffle de la vitesse)
+	local air = (piste and (piste :: any).niveau ~= "nuages" and mode ~= "menu") and 0.4 or 1
+	Sons.regler("ventAltitude", atelier and 0 or ((mode == "fall") and math.min(0.7, 0.25 + fallVel.Magnitude * 0.004) or 0.08 + r * 0.1) * air)
+	-- LA MUSIQUE SUIT LE LIEU (MUSIC_LIEU, L25333) : NOITE DE VELOCIDADE aux nuages, NOCTURNAL GROOVE en ville et à l'accueil (garage,
+	-- écran de fin), SWAG CASH CAR dans l'orage, la radio en orbite. Un morceau de lieu qui n'est pas importé laisse l'antenne à
+	-- `musique`. On passe de l'un à l'autre en fondu (1,2 s) ; chacun garde son fil, on ne le relance pas à chaque portail.
+	do
+		local veut = "musique"
+		if mode == "menu" or mode == "garage" or mode == "mort" or mode == "charge" then
+			veut = "musiqueVille"
+		elseif piste then
+			local lieu, var = (piste :: any).niveau, (piste :: any).variante
+			veut = (var == "orage") and "musiqueOrage" or ((lieu == "ville") and "musiqueVille" or ((lieu == "nuages") and "musiqueNuages" or "musique"))
+		end
+		if not Sons.a(veut) then veut = "musique" end
+		G.musVeut = veut
+		G.mus = G.mus or { musique = 0, musiqueNuages = 0, musiqueVille = 0, musiqueOrage = 0 }
+		do
+			local cible = (G.frenMus and (mode == "drive" or mode == "fall")) and 1.06 or 1
+			local v = G.musVit or 1
+			G.musVit = v + math.clamp(cible - v, -dt * 0.06 / 0.45, dt * 0.06 / 0.3)
+		end
+		for nom, k in G.mus do
+			k += math.clamp(((nom == veut) and 1 or 0) - k, -dt / 1.2, dt / 1.2)
+			G.mus[nom] = k
+			if nom == "musique" or Sons.a(nom) then Sons.regler(nom, 0.32 * k, G.musVit) end
+		end
+	end
+	-- (L36600) le silence habité de l'orbite : une ambiance en boucle, seulement là-haut
+	Sons.regler("espaceAmbiance", (G.gK() < 1 and (mode == "drive" or mode == "fall")) and 0.22 or 0)
 end
 
 -- ════════ le HUD ════════
 local function hud(dt: number)
-	E.argent.Text = '<font size="36">$</font>' .. Hud.nombre(argent)
+	-- (cashHudTick, L12873) LE TOTAL DÉFILE vers l'argent (on le voit entrer, comme dans GTA) et FRAPPE à chaque gain ; les gains
+	-- s'additionnent dans le « +$ » tant qu'ils tombent (1,8 s après le dernier). Une nouvelle partie recale sans défiler.
+	do
+		local C9 = G.cash
+		if not C9 then
+			C9 = { disp = argent, last = argent, delta = 0, dT = 0 }
+			G.cash = C9
+		end
+		local frappe = false
+		if argent < C9.last - 0.001 then
+			C9.disp, C9.last, C9.delta, C9.dT = argent, argent, 0, 0
+		elseif argent > C9.last + 0.001 then
+			C9.delta = ((C9.dT > 0) and C9.delta or 0) + (argent - C9.last)
+			C9.last, C9.dT, frappe = argent, 1.8, true
+		end
+		if C9.dT > 0 then C9.dT = math.max(0, C9.dT - dt) end
+		local ec = argent - C9.disp
+		C9.disp = (ec < 0.01) and argent or (C9.disp + ec * math.min(1, dt * 7))
+		local x3 = Score.FLOW.lv == 4
+		Hud.cashMaj(C9.disp, (C9.dT > 0 and C9.delta > 0) and ("+$ " .. Hud.cash(C9.delta) .. (x3 and " ×3" or "")) or nil, x3, frappe)
+	end
 	local res = reservoir()
 	-- la barre et le bouton NITRO : la réserve du moteur, la réserve bleue à la suite, violets en NITRO INFINIE
 	Hud.nitro(math.clamp(nitroR / res, 0, 1), math.clamp(nitroX / res, 0, 1), pwN > 0, nitroOn)
@@ -1884,7 +2625,21 @@ local function hud(dt: number)
 		local sec = string.format("%.1f", math.max(0, airMax() - V.fallTR))
 		if FR then sec = string.gsub(sec, "%.", ",") end
 		Hud.air(reste, sec, pwA > 0)
+		-- …ET IL TIQUE (L37497) : les yeux sont sur la caisse, pas sur le chrono — sous 1,5 s, un tic qui accélère (0,34 s → 0,09 s),
+		-- plus sec sous 0,5 s, et une micro-vibration à chaque tic. Un danger sonne en BOIS, jamais en cloche de récompense.
+		local r9 = airMax() - V.fallTR
+		if pwA <= 0 and r9 < 1.5 and r9 > 0 then
+			G.airTic = (G.airTic or 0) - dt
+			if G.airTic <= 0 then
+				G.airTic = 0.09 + 0.25 * r9 / 1.5
+				if Sons.a("alerteTic") then Sons.jouer((r9 < 0.5) and "alerteTac" or "alerteTic") else Sons.jouer("tap", (r9 < 0.5) and 0.7 or 0.55, 0.5) end
+				Hud.vibre(5)
+			end
+		else
+			G.airTic = 0
+		end
 	end
+	Hud.dolVol((mode == "fall" and not intro) and Score.dolVu() or 0) -- le dauphin : l'aura monte sous la caisse pendant qu'il nage
 	-- les plaques des pouvoirs actifs, dans l'ordre fixe du web (l'œil apprend où regarder)
 	local pw = {}
 	for _, q in { { "n", pwN }, { "a", pwA }, { "v", pwV }, { "m", pwM }, { "x", pwX } } do
@@ -1920,6 +2675,11 @@ local function allerMenu()
 	zoneN = 1
 	remettreObjets(ZONES[1])
 	activer(ZONES[1])
+	-- les zones lointaines de la partie finie rendent leur place (leurs maillages, leurs tours) : la 1 et la 2 suffisent pour repartir
+	for z, x in ZONES do
+		if z > 2 and x.pret then oublier(z) end
+	end
+	KA.Impact.fin()
 	poserAuDepart()
 	montrerCaisse(true)
 	KA.pos = carCF.Position + Vector3.yAxis * (10 * M) + menuCap:Cross(Vector3.yAxis) * (20 * M)
@@ -1928,11 +2688,24 @@ local function allerMenu()
 	Bus.emit("menu")
 	Hud.ecran("menu")
 	E.menuRecord.Text = record > 0 and (T.record .. " " .. Hud.argent(record)) or ""
+	if KA.badges then KA.badges() end
 	evEtat:FireServer("course", false)
 end
 
 local function nouvellePartie()
-	-- la leçon tant qu'elle n'a pas été passée (ou sautée) : la piste d'école est la zone 0
+	-- la leçon tant qu'elle n'a pas été passée (ou sautée) : la piste d'école est la zone 0. (3/10) Si elle n'est pas encore bâtie — un
+	-- JOUER très rapide sur un compte neuf, ou REVOIR L'AUTO-ÉCOLE — on l'ATTEND (quelques secondes au plus) au lieu de la sauter en silence.
+	if profil.reglages ~= nil and profil.reglages.tuto == false then
+		if not ZONES[0] then preparer(0, nil) end
+		if ZONES[0] and not ZONES[0].pret then
+			if G.lanceAttend then return end -- (un second appui pendant l'attente ne lance pas une seconde partie)
+			G.lanceAttend = true
+			local t9 = os.clock()
+			while ZONES[0] and not ZONES[0].pret and os.clock() - t9 < 8 do task.wait(0.1) end
+			G.lanceAttend = false
+			if mode ~= "menu" and mode ~= "mort" then return end -- (le joueur est parti ailleurs entre-temps)
+		end
+	end
 	local ecole = profil.reglages ~= nil and profil.reglages.tuto == false and ZONES[0] ~= nil and ZONES[0].pret
 	TU.on = ecole
 	TU.vers(1)
@@ -1942,6 +2715,9 @@ local function nouvellePartie()
 	KA.Titre.montrer(false)
 	remettreObjets(ZONES[zoneN])
 	activer(ZONES[zoneN])
+	for z, x in ZONES do
+		if z > 2 and x.pret then oublier(z) end -- (REJOUER depuis une zone lointaine : elle rend sa place)
+	end
 	preparer(2, Piste.suite(ZONES[1].piste :: Piste.Piste))
 	poserAuDepart()
 	vA, yawR, steerS, momT, boost, G.padCd, G.padN, G.padSL = 0, 0, 0, 0, 0, 0, 0, nil
@@ -1952,11 +2728,14 @@ local function nouvellePartie()
 	argent, aura = Config.CASH_DEPART, 0
 	pwN, pwA, pwV, pwM, pwX = 0, 0, 0, 0, 0
 	G.idleT, G.idleMsg, graceT = 0, 0, 0
+	G.departT = 0
 	G.distAvant, G.vmax, G.serie, G.nbZones = 0, 0, 0, 0
+	G.vp = { n = 0, rec = false, c0 = math.max(3, math.floor((G.kmhRecord or 0) / 100) - 1) }
 	G.driftOn, G.driftC, G.driftLv, G.driftCd, G.slipB, G.slipT, G.oilCd = false, 0, 0, 0, 0, 0, 0
 	G.virT, G.virC, G.virD, G.virPaye, G.frondeCd, G.raseT, G.raseAnn, G.froleN, G.froleT = 0, 0, false, false, 0, 0, false, 0, 0
 	G.carRoll, G.rollV, G.levreY, secousse, fovPunch = 0, 0, 0, 0, 0
 	stats.pieces, stats.poses, stats.parfaites, stats.fruits, stats.nitro, stats.duree, stats.chaine, stats.figures = 0, 0, 0, 0, 0, 0, 0, 0
+	KA.Impact.fin() -- (le cratère de la partie d'avant s'éteint)
 	G.tempsDepart = 0
 	G.fruitRaf, G.fruitRafT = 0, 0
 	G.hopY, G.hopV, G.choc = 0, 0, 0
@@ -2000,36 +2779,64 @@ local function finPartie()
 	mode = "mort"
 	aura = Score.fin(false)
 	local dist = G.distAvant + math.max(0, s)
-	local rec = argent > record and argent > Config.CASH_DEPART + 0.01
+	local rec = argent > record and argent > Config.CASH_DEPART + 0.5 -- (partieRecord, L24610 : au moins 0,50 $ gagnés)
+	-- LES RECORDS NE SE CONTREDISENT PLUS (audit UX du 26/09, L38987) : le titre s'allume pour l'argent, l'AURA ou le MOTEUR — les
+	-- héros de cet écran. (L'aura : seulement s'il y avait un record à battre ; le moteur : un palier jamais atteint avant.)
+	-- Une partie QUITTÉE depuis la pause ne fête rien.
+	local recA = causeMort ~= "quitte" and meilleurAura > 0 and aura > meilleurAura
+	local moteurAvant = profil.moteurMax or 0
+	local recM = causeMort ~= "quitte" and tier > moteurAvant
+	local recT = causeMort ~= "quitte" and (rec or recA or recM)
+	profil.moteurMax = math.max(moteurAvant, tier)
 	local mres = Missions.fin(CPT)
 	evFin:FireServer(argent, dist, aura, { pieces = stats.pieces, figures = stats.poses, kmh = G.vmax, zone = G.nbZones + 1, tier = tier,
 		multi = Score.CHA.xMax, cause = causeMort, parfaites = stats.parfaites, fruits = stats.fruits, nitro = stats.nitro,
 		duree = stats.duree, chaine = stats.chaine, frenMax = Score.FREN.max, frenRec = Score.FREN.record, mis = mres.meilleur })
 	if rec then record = argent end
 	meilleurAura = math.max(meilleurAura, aura)
+	G.kmhRecord = math.max(G.kmhRecord or 0, G.vmax or 0)
 	local cause = T.morts[causeMort] or T.morts.autre
-	E.mCause.Text = rec and T.nouveau or cause
+	-- (L4187, Sacha : « le texte sous GAME OVER sert à rien », « la caisse qui explose l'a déjà dit ») le titre dit GAME OVER ou
+	-- NOUVEAU RECORD !, jamais la cause ; et plus de ligne DISTANCE · PIÈCES · FIGURES (le web ne la montre pas)
+	E.mCause.Text = recT and T.nouveau or "GAME OVER"
 	Hud.tenir(E.mCauseEchelle, E.mCause.Text, 62, 560)
 	E.mRecord.Text = rec and (FR and "RECORD !" or "RECORD!") or ""
 	E.mRecord.Visible = rec
 	E.mCompte.Text = T.compte .. " " .. Hud.argent(compte + math.max(0, argent - Config.CASH_DEPART))
-	E.mAura.Text = Hud.entier(aura)
-	Hud.tenir(E.mAuraEchelle, E.mAura.Text, 78, 250)
-	E.mAuraMeilleur.Text = T.meilleur .. " " .. Hud.entier(meilleurAura)
+	E.mAura.Text = "0"
+	Hud.tenir(E.mAuraEchelle, Hud.entier(aura), 78, 250)
+	-- (L39161) l'aura MONTE de 0 quand la carte arrive (à 0,26 s), en 0,75 s
+	task.delay(0.26, function()
+		local t0 = os.clock()
+		while mode == "mort" do
+			local u = math.min(1, (os.clock() - t0) / 0.75)
+			E.mAura.Text = Hud.entier(math.floor(aura * (1 - (1 - u) ^ 3) + 0.5))
+			if u >= 1 then break end
+			task.wait()
+		end
+	end)
+	E.mAuraMeilleur.Text = (recA and aura > 0) and (FR and "RECORD !" or "RECORD!") or (T.meilleur .. " " .. Hud.entier(meilleurAura))
+	E.mAuraMeilleur.TextColor3 = (recA and aura > 0) and Hud.C.or_ or Hud.C.terne
 	E.mMoteurNom.Text = Hud.sansAccent(MOT[tier + 1].nom)
 	Hud.tenir(E.mMoteurNomEchelle, E.mMoteurNom.Text, 20, 270)
-	E.mMoteurPalier.Text = T.palier .. '  <font size="46">' .. tier .. "</font>"
-	if tier < #MOT - 1 then
-		E.mMoteurEncore.Text = string.format(T.encore, MOT[tier + 2][1] - coinsGot) .. "\n↑ " .. Hud.sansAccent(MOT[tier + 2].nom)
+	E.mMoteurPalier.Text = T.palier .. '  <font size="46">' .. (tier + 1) .. "</font>" .. (recM and '  <font color="#ffd75e">RECORD !</font>' or "") -- (L39158 : le palier se compte à partir de 1)
+	-- (L39151) LE « PRESQUE » : mourir à 3 pièces du palier suivant, c'est LA raison de relancer — la carte le dit quand ce palier
+	-- AURAIT été un record et qu'il ne manquait presque rien ; sinon, si le record est plus haut, elle rappelle le record à battre
+	local mq = (tier < #MOT - 1) and (MOT[tier + 2][1] - coinsGot) or 0
+	local presque = tier < #MOT - 1 and mq > 0 and tier + 1 > moteurAvant and mq <= math.max(3, math.ceil((MOT[tier + 2][1] - MOT[tier + 1][1]) * 0.3))
+	if presque then
+		E.mMoteurEncore.Text = string.format(T.encore, mq) .. "\n↑ " .. Hud.sansAccent(MOT[tier + 2].nom)
+	elseif not recM and moteurAvant > tier then
+		E.mMoteurEncore.Text = (FR and "RECORD  PALIER " or "RECORD  TIER ") .. (moteurAvant + 1)
 	else
-		E.mMoteurEncore.Text = T.moteurMax
+		E.mMoteurEncore.Text = ""
 	end
-	E.mPartie.Text = (rec and (cause .. "\n") or "") .. T.distance .. "  " .. Hud.entier(dist) .. " M   " .. T.pieces .. "  " .. stats.pieces
-		.. "   " .. T.figures .. "  " .. stats.poses
+	E.mPartie.Text = ""
 	Hud.defi(mres.carte)
 	local st = {
 		{ "x" .. Score.CHA.xMax, T.multiMax },
-		{ Hud.entier(G.vmax), T.kmhMax }, { tostring(G.nbZones + 1), T.zone }, { Score.mmss(Score.FREN.max), T.frenesie },
+		{ Hud.entier(G.vmax), T.kmhMax }, { tostring(G.nbZones + 1), FR and "NIVEAU" or "LEVEL" },
+		{ Score.mmss(Score.FREN.max), (Score.FREN.max >= 5 and Score.FREN.max >= (Score.FREN.record or 0) - 0.05) and "RECORD" or T.frenesie },
 	}
 	for i, v in st do
 		E.mStats[i][1].Text = v[1]
@@ -2091,7 +2898,7 @@ E.btPasser.Activated:Connect(function()
 end)
 E.btFacileOui.Activated:Connect(function() choisir(true) end)
 E.btFacileNon.Activated:Connect(function() choisir(false) end)
-E.btJouer.Activated:Connect(function()
+function G.jouerMenu()
 	if mode ~= "menu" or KA.Titre.enPique() then return end
 	jouer(function()
 		if not KA.Titre.pret then
@@ -2103,7 +2910,8 @@ E.btJouer.Activated:Connect(function()
 		Sons.jouer("decollage")
 		KA.Titre.lancer(function() if mode == "menu" then nouvellePartie() end end)
 	end)
-end)
+end
+E.btJouer.Activated:Connect(G.jouerMenu)
 -- ── LE GARAGE : parcourir, acheter, équiper (voir Client/Garage) ──
 local function ouvrirGarage()
 	if mode ~= "menu" then return end
@@ -2178,27 +2986,206 @@ G.boutique = require(CL:WaitForChild("Boutique"))
 G.boutique.init({ retour = function(d: string)
 	if d == "garage" then Garage.vignettes(true) else Hud.ecran(d) end
 end })
-E.btBoutique.Activated:Connect(function() if mode == "menu" then G.boutique.ouvrir("menu") end end)
+E.btBoutique.Activated:Connect(function()
+	if mode ~= "menu" then return end
+	if profil.reglages and not profil.reglages.shopVu then
+		reglage("shopVu", true)
+		G.badges()
+	end
+	G.boutique.ouvrir("menu")
+end)
+-- (mFill, L39179) ce que la banque peut s'offrir au GARAGE : les habillages à vendre pas encore à soi, les caisses à l'argent pas
+-- encore à soi (ni retirées) — dont le prix tient dans le compte
+function G.badges()
+	local n, bank = 0, compte
+	local a: { [string]: boolean } = {}
+	for _, h in profil.habits or {} do a[h] = true end
+	for cat, l in Config.HABITS do
+		for _, d in l do
+			if d.p and d.p <= bank and not a[cat .. ":" .. d.id] then n += 1 end
+		end
+	end
+	local moi: { [number]: boolean } = {}
+	for _, i in profil.caisses or {} do moi[i] = true end
+	for i, f in Caisse.Catalogue do
+		if not f.retire and f.cond.k == "prix" and f.cond.v <= bank and not moi[i] then n += 1 end
+	end
+	Hud.badges(n, profil.reglages ~= nil and profil.reglages.shopVu ~= true)
+end
+KA.badges = G.badges
 E.btBoutiqueM.Activated:Connect(function() if mode == "mort" then G.boutique.ouvrir("mort") end end)
 Hud.surMenu = function() Hud.pastilles(Missions.faits()) end
 E.btRejouer.Activated:Connect(function() if mode == "mort" then nouvellePartie() end end)
+-- (mise au point) "DbgJouer" : lancer une partie depuis la console ou le banc à distance — du menu ou de l'écran de fin, l'auto-école passée
+workspace:GetAttributeChangedSignal("DbgJouer"):Connect(function()
+	if mode == "menu" or mode == "mort" then nouvellePartie() end
+	task.delay(1.5, function() if TU.on then TU.fin(true) end end)
+end)
 E.btMenuM.Activated:Connect(function() if mode == "mort" then allerMenu() end end)
+-- LA PAUSE (L38776). LA REPRISE EN 3-2-1 : REPRENDRE est en bas de l'écran — le pouce le quittait que la caisse repartait déjà à
+-- pleine vitesse. Trois temps de 0,3 s, jeu GELÉ : ce n'est pas un ralenti, c'est un compte. Rouvrir la pause pendant le compte
+-- l'annule.
 local function basculerPause()
 	if mode ~= "drive" and mode ~= "fall" then return end
-	enPause = not enPause
-	Hud.ecran(enPause and "pause" or "course")
+	if G.conf then -- (une question restée ouverte se referme avec le panneau)
+		G.conf.b.Text, G.conf.b.TextScaled = G.conf.libelle, false
+		G.conf = nil
+	end
+	if G.reprise then
+		G.reprise = false
+		Hud.ecran("pause")
+		return
+	end
+	if not enPause then
+		enPause = true
+		Hud.pauseBilan(aura, tier + 1, zoneN)
+		Hud.ecran("pause")
+		return
+	end
+	G.reprise = true
+	Hud.ecran("course")
+	task.spawn(function()
+		for n = 3, 1, -1 do
+			if not G.reprise or not enPause then return end
+			Hud.grand(tostring(n), Hud.C.or_, 0.3, 64)
+			Sons.jouer("bip", Sons.demiTons((n == 1) and 4 or 2), 0.4)
+			task.wait(0.3)
+		end
+		if G.reprise and enPause and (mode == "drive" or mode == "fall") then
+			enPause = false
+			Sons.jouer("go")
+		end
+		G.reprise = false
+	end)
+end
+-- QUITTER et RECOMMENCER se CONFIRMENT (la modale du web, L38822 : « QUITTER tombait sous le pouce et terminait la partie d'un seul
+-- tap ») : le premier appui pose la question SUR la tuile, le second (dans les 3,5 s) agit.
+function G.confirme(b: TextButton, quoi: string, question: string, libelle: string): boolean
+	local c = G.conf
+	if c and c.quoi == quoi and os.clock() - c.t < 3.5 then
+		b.Text, b.TextScaled = libelle, false
+		G.conf = nil
+		return true
+	end
+	if c then c.b.Text, c.b.TextScaled = c.libelle, false end
+	local moi = { quoi = quoi, t = os.clock(), b = b, libelle = libelle }
+	G.conf = moi
+	b.TextScaled = true
+	b.Text = question
+	task.delay(3.5, function()
+		if G.conf == moi then
+			b.Text, b.TextScaled = libelle, false
+			G.conf = nil
+		end
+	end)
+	return false
 end
 Controles.surPause = basculerPause
 E.btPause.Activated:Connect(basculerPause)
 local retourReglages = "menu"
 E.btReglages.Activated:Connect(function() if mode == "menu" then retourReglages = "menu"; Hud.ecran("reglages") end end)
 E.btReglM.Activated:Connect(function() if mode == "mort" then retourReglages = "mort"; Hud.ecran("reglages") end end)
+-- PASSER L'EXPLOSION (boomSkip, L24785 du jeu web) : une fois le souffle retombé (0,8 s), un tap, un clic, ESPACE ou le bouton A
+-- saute au bilan. On ne court-circuite rien : la boucle voit boomT à 1,8 et finit la partie comme d'habitude.
+do
+	local function quitte()
+		if workspace:GetAttribute("DbgAuto") then return end
+		if (mode == "drive" or mode == "fall") and not intro and not enPause then basculerPause() end
+	end
+	game:GetService("GuiService").MenuOpened:Connect(quitte)
+	game:GetService("UserInputService").WindowFocusReleased:Connect(quitte)
+end
+game:GetService("UserInputService").InputBegan:Connect(function(io: InputObject)
+	if mode ~= "boom" or enPause or boomT <= 0.8 or boomT >= 1.8 then return end
+	local t = io.UserInputType
+	if t == Enum.UserInputType.Touch or t == Enum.UserInputType.MouseButton1 or io.KeyCode == Enum.KeyCode.Space
+		or io.KeyCode == Enum.KeyCode.Return or io.KeyCode == Enum.KeyCode.ButtonA then
+		boomT = 1.81
+	end
+end)
+-- (mise au point) "DbgOuvre" : ouvrir un écran du menu depuis la console ou le banc à distance — "garage", "boutique",
+-- "reglages", "missions", "menu" (le retour) ; pour comparer chaque écran à la capture du jeu web sans toucher à la souris
+workspace:GetAttributeChangedSignal("DbgOuvre"):Connect(function()
+	local v = tostring(workspace:GetAttribute("DbgOuvre") or "")
+	if v == "pause" then
+		basculerPause() -- (en course : la pause s'ouvre, ou se referme)
+	elseif v == "jouer" then
+		G.jouerMenu() -- (le vrai JOUER du menu : le piqué du titre, puis la course)
+	elseif string.sub(v, 1, 7) == "portail" then
+		-- (banc) saute au pied du portail : pour voir un changement de niveau sans rouler toute la zone
+		if mode == "drive" then
+			s = piste.len / M - ((string.sub(v, 8, 8) == "L") and 520 or 70) -- (« portailL… » : de LOIN, pour le voir venir)
+			sPrev = s
+			lat = 0
+		end
+	elseif string.sub(v, 1, 7) == "onglet:" then
+		if mode == "garage" then Garage.onglet(string.sub(v, 8)) end -- (banc) « onglet:trainee » : un onglet du garage
+	elseif string.sub(v, 1, 6) == "impact" then
+		-- (banc) un impact sur la tour la plus proche, et la vue pour le regarder
+		workspace:SetAttribute("DbgVue", KA.Impact.essai((zone :: any).ville, carCF.Position / M, tonumber(string.sub(v, 7, 8))))
+	elseif string.sub(v, 1, 7) == "pigeons" then
+		KA.Pigeons.maintenant(string.sub(v, 8, 8) == "P") -- (une volée tout de suite ; « pigeonsP… » : tout près, pour la photo)
+	elseif string.sub(v, 1, 4) == "saut" then
+		-- (banc) un saut franc, tout de suite : pour photographier ce qui ne vit qu'en vol (le viseur, la jauge, les figures)
+		if mode == "drive" then decoller(tonumber(string.sub(v, 5, 6)) or 45, 1) end -- ("saut20…" : la poussée, sur deux chiffres)
+	elseif v == "frenesie" then
+		if mode == "drive" or mode == "fall" then Score.dbgFren() end
+	elseif v == "menu" then
+		if mode == "garage" then Garage.fermer() end
+		G.boutique.fermer()
+		Missions.fermer()
+		if mode == "menu" or mode == "garage" or mode == "mort" then allerMenu() end
+	elseif mode ~= "menu" then
+		return
+	elseif v == "garage" then
+		ouvrirGarage()
+	elseif v == "boutique" then
+		G.boutique.ouvrir("menu")
+	elseif v == "reglages" then
+		retourReglages = "menu"
+		Hud.ecran("reglages")
+	elseif v == "missions" then
+		Hud.ecran("missions")
+		Missions.ouvrir()
+	end
+end)
 E.btReprendre.Activated:Connect(function()
 	if enPause then basculerPause()
 	elseif Hud.ecranCourant() == "reglages" then Hud.ecran(mode == "garage" and "garage" or retourReglages) end
 end)
-E.btRecom.Activated:Connect(function() if enPause then enPause = false; Score.fin(false); nouvellePartie() end end)
-E.btMenuP.Activated:Connect(function() if enPause then enPause = false; Score.fin(false); allerMenu() end end)
+-- RECOMMENCER : « les gains de cette partie ne seront PAS versés ». QUITTER : « tes gains sont versés au compte » — c'est une vraie
+-- fin de partie (l'écran de fin, le versement, le record). (Avant le 2/10, QUITTER retournait au menu SANS rien verser : la partie
+-- était perdue. Relevé par l'audit du portage.) Pendant la leçon de l'auto-école, il n'y a rien à verser.
+E.btRecom.Activated:Connect(function()
+	if not enPause or G.reprise then return end
+	if not G.confirme(E.btRecom, "recom", tr("SUR ? GAINS PERDUS", "SURE? GAINS LOST"), T.recommencer) then return end
+	enPause = false
+	Score.fin(false)
+	nouvellePartie()
+end)
+E.btMenuP.Activated:Connect(function()
+	if not enPause or G.reprise then return end
+	if not G.confirme(E.btMenuP, "quit", tr("QUITTER ? GAINS VERSES", "QUIT? GAINS BANKED"), T.quitter) then return end
+	enPause = false
+	if TU.on then
+		Score.fin(false)
+		allerMenu()
+		return
+	end
+	causeMort, boomPos, boomT = "quitte", carCF.Position, 0
+	finPartie()
+end)
+-- LES RÉGLAGES : une seule vérité, le PROFIL (gardé par le serveur d'une partie à l'autre) — Sons, Controles et Hud la recopient
+-- (avant, SON et MUSIQUE n'étaient jamais enregistrés : ils revenaient sur ON à chaque partie)
+do -- (un bloc : le corps du pilote frôle la limite des 200 variables locales)
+	local RG = profil.reglages or {}
+	Sons.actif = RG.son ~= false
+	Sons.musiqueActive = RG.musique ~= false
+	Sons.volSon = (RG.volSon or 100) / 100
+	Sons.volMus = (RG.volMus or 62) / 100
+	Controles.sensVol = (RG.volH == "monte") and -1 or 1
+	Hud.vib = RG.vib ~= false
+end
 local function majBoutonsSon()
 	E.btFacile.Text = T.facile .. (facile() and " ON" or " OFF")
 	E.btSonP.Text = T.son .. (Sons.actif and " ON" or " OFF")
@@ -2206,13 +3193,53 @@ local function majBoutonsSon()
 	Hud.reglage("son", Sons.actif)
 	Hud.reglage("musique", Sons.musiqueActive)
 	Hud.reglage("facile", facile())
+	Hud.reglage("vib", Hud.vib)
+	Hud.volume("volSon", Sons.volSon * 100, Sons.actif)
+	Hud.volume("volMus", Sons.volMus * 100, Sons.actif and Sons.musiqueActive)
+	Hud.valeur("volH", (Controles.sensVol < 0) and T.monte or T.plonge)
+	E.btPouceP.Text = T.pouce .. " : " .. ((Controles.sensVol < 0) and T.monte or T.plonge)
+end
+function G.basculeSon()
+	Sons.actif = not Sons.actif
+	reglage("son", Sons.actif)
+	majBoutonsSon()
+end
+function G.basculeMusique()
+	Sons.musiqueActive = not Sons.musiqueActive
+	reglage("musique", Sons.musiqueActive)
+	majBoutonsSon()
 end
 -- l'écran des RÉGLAGES (les mêmes interrupteurs que la pause : une seule vérité, Sons et le profil)
 E.rgRetour.Activated:Connect(function()
 	if Hud.ecranCourant() == "reglages" then Hud.ecran(mode == "garage" and "garage" or retourReglages) end
 end)
-E.rg.son.b.Activated:Connect(function() Sons.actif = not Sons.actif; majBoutonsSon() end)
-E.rg.musique.b.Activated:Connect(function() Sons.musiqueActive = not Sons.musiqueActive; majBoutonsSon() end)
+E.rg.son.b.Activated:Connect(G.basculeSon)
+E.rg.musique.b.Activated:Connect(G.basculeMusique)
+-- les CURSEURS : le son suit le doigt, le profil n'est écrit qu'au lâcher
+E.rg.volSon.surChange = function(v: number, fin: boolean)
+	Sons.volSon = v / 100
+	majBoutonsSon()
+	if fin then reglage("volSon", v) end
+end
+E.rg.volMus.surChange = function(v: number, fin: boolean)
+	Sons.volMus = v / 100
+	majBoutonsSon()
+	if fin then reglage("volMus", v) end
+end
+-- POUCE HAUT EN VOL : PLONGE ⇄ MONTE (volhBascule du web)
+function G.basculePouce()
+	Controles.sensVol = -Controles.sensVol
+	reglage("volH", (Controles.sensVol < 0) and "monte" or "plonge")
+	majBoutonsSon()
+end
+E.rg.volH.b.Activated:Connect(G.basculePouce)
+E.btPouceP.Activated:Connect(G.basculePouce)
+E.rg.vib.b.Activated:Connect(function()
+	Hud.vib = not Hud.vib
+	reglage("vib", Hud.vib)
+	majBoutonsSon()
+	Hud.vibre(30) -- (on sent tout de suite ce qu'on vient d'allumer)
+end)
 if E.rg.facile then
 	E.rg.facile.b.Activated:Connect(function()
 		reglage("facile", not facile())
@@ -2220,12 +3247,42 @@ if E.rg.facile then
 		majBoutonsSon()
 	end)
 end
+-- EFFACER MA PROGRESSION : deux appuis (le premier demande « SÛR ? »), puis le profil repart à zéro — le compte, les caisses,
+-- les records, les réglages ; l'auto-école revient
+do
+	local arme = 0
+	local lib = E.rg.effacer.lib
+	local texte0 = lib.Text
+	E.rg.effacer.b.Activated:Connect(function()
+		if os.clock() > arme then
+			arme = os.clock() + 3.5
+			lib.Text = tr("SUR ? TOUT SERA PERDU", "SURE? ALL WILL BE LOST")
+			Hud.vibre(20)
+			task.delay(3.5, function() if os.clock() >= arme then lib.Text = texte0 end end)
+			return
+		end
+		arme = 0
+		lib.Text = texte0
+		local okI, ok, _, prof = pcall(function() return fnAction:InvokeServer("effacer") end)
+		if not okI or not ok or type(prof) ~= "table" then
+			Hud.toast(tr("IMPOSSIBLE POUR L'INSTANT", "NOT POSSIBLE RIGHT NOW"), Hud.C.rouge)
+			return
+		end
+		record, compte, meilleurAura, G.kmhRecord = 0, 0, 0, 0
+		lireProfil(prof)
+		Garage.majProfil()
+		if not ZONES[0] then preparer(0, nil) end
+		if KA.badges then KA.badges() end
+		Hud.toast(tr("PROGRESSION EFFACEE", "PROGRESS ERASED"), Hud.C.rouge)
+	end)
+end
 E.rg.tuto.b.Activated:Connect(function()
 	reglage("tuto", false) -- la leçon revient à la prochaine partie
+	if not ZONES[0] then preparer(0, nil) end -- (sa piste n'existe que si le joueur ne l'avait jamais faite : on la bâtit maintenant)
 	Hud.toast(tr("L'AUTO-ECOLE REVIENT A LA PROCHAINE PARTIE", "DRIVING SCHOOL IS BACK NEXT RUN"), Hud.C.vert)
 end)
-E.btSonP.Activated:Connect(function() Sons.actif = not Sons.actif; majBoutonsSon() end)
-E.btMusP.Activated:Connect(function() Sons.musiqueActive = not Sons.musiqueActive; majBoutonsSon() end)
+E.btSonP.Activated:Connect(G.basculeSon)
+E.btMusP.Activated:Connect(G.basculeMusique)
 E.btFacile.Activated:Connect(function()
 	reglage("facile", not facile())
 	reglage("facileChoisi", true)
@@ -2288,10 +3345,12 @@ Bus.etat = function()
 	return {
 		mode = mode, pause = enPause, intro = intro, s = s, lat = lat, side = side, RH = RH, psi = psi,
 		steer = steerS, yawR = yawR, vA = vA, kmh = kmh(), vmax = vmaxShow(), nitroOn = nitroOn, nitroR = nitroR,
+		warp = G.orbWarp or 0, feu = G.orbFeu or 0,
+		pouvoir = (pwN > 0 and "n") or (pwV > 0 and "v") or (pwX > 0 and "x") or (pwM > 0 and "m") or ((pwA > 0 and not TU.on) and "a") or nil,
 		reservoir = reservoir(), tier = tier, argent = argent, aura = aura, fallT = V.fallT, fallTR = V.fallTR,
 		zone = zoneN, figures = stats.figures, carCF = carCF, chainMult = V.chainMult, chainVal = V.chainVal, frein = Controles.frein,
-		driftOn = G.driftOn, driftLv = G.driftLv, nuage = ((mode == "drive" or mode == "fall") and G.nuageIn) or 0,
-		ntr = NTR, infini = pwN > 0, fiche = poignees.fiche,
+		driftOn = G.driftOn, driftLv = G.driftLv, glisse = (mode == "drive") and G.fumee == true, nuage = ((mode == "drive" or mode == "fall") and G.nuageIn) or 0,
+		ntr = NTR, infini = pwN > 0, fiche = poignees.fiche, bleue = nitroBleue, boost = boost,
 	}
 end
 Bus.agir.encaisser = encaisser
@@ -2301,6 +3360,9 @@ do
 	local okC, errC = pcall(function() require(CL:WaitForChild("MoteurCarte")).init() end)
 	G.carteMoteur = okC
 	if not okC then warn("[CashCar] carte moteur : " .. tostring(errC)) end
+	-- LES TROIS HEURES du niveau (matin · midi · après-midi dorée) : elles écoutent le bus (partie, portail, menu)
+	local okH, errH = pcall(function() require(CL:WaitForChild("Ambiance")).init() end)
+	if not okH then warn("[CashCar] ambiance : " .. tostring(errH)) end
 	-- LE DRAGON de NITROOO : il lit l'état du bus (ntr, infini, fiche), rien d'autre à lui dire
 	local okD, errD = pcall(function() require(CL:WaitForChild("Dragon")).init() end)
 	if not okD then warn("[CashCar] dragon : " .. tostring(errD)) end
@@ -2325,7 +3387,15 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 	Controles.lire()
 	-- (mise au point, depuis la console de Studio) workspace:SetAttribute("DbgAuto", true) : un pilote automatique tient le
 	-- milieu de la route ; "DbgNitro" : il tient la nitro. Rien de tout ça n'existe pour un joueur.
-	if mode == "drive" and workspace:GetAttribute("DbgAuto") then Controles.volant = math.clamp(-(lat * 0.06 + psi * 2.2), -1, 1) end
+	if mode == "drive" and workspace:GetAttribute("DbgAuto") then
+		Controles.volant = math.clamp(-(lat * 0.06 + psi * 2.2), -1, 1)
+		-- "rail" : la caisse est ramenée au milieu de la route de force (le pilote ci-dessus sort dans les virages rapides) — pour
+		-- qu'une partie de banc traverse des niveaux entiers
+		if workspace:GetAttribute("DbgAuto") == "rail" then
+			lat *= math.max(0, 1 - dt * 4)
+			psi *= math.max(0, 1 - dt * 8)
+		end
+	end
 	if workspace:GetAttribute("DbgNitro") then Controles.nitro = true end
 	if workspace:GetAttribute("DbgInf") then pwN = math.max(pwN, 1) end -- "DbgInf" : la nitro infinie (pour regarder le dragon grandir)
 	if workspace:GetAttribute("DbgPlein") then nitroR = reservoir() end   -- "DbgPlein" : le plein à chaque image, sans le pouvoir (le dragon de FEU)
@@ -2343,6 +3413,21 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 			local aAvant = pwA
 			pwN, pwV, pwM, pwX = math.max(0, pwN - dt), math.max(0, pwV - dt), math.max(0, pwM - dt), math.max(0, pwX - dt)
 			pwA = math.max(0, pwA - dt * (enVol0 and 1 or 0.25))
+			-- (L23736, pwrFinSnd) le pouvoir PRÉVIENT qu'il s'en va (un tic-tac à 1,5 s de la fin, une fois) et dit qu'il est parti
+			G.pwBt = G.pwBt or {}
+			for kk, v in { n = pwN, a = pwA, v = pwV, m = pwM, x = pwX } do
+				if v > 0 and v < 1.5 then
+					if G.pwBt[kk] ~= 1 then
+						G.pwBt[kk] = 1
+						Sons.vrai("pwrBientot", nil, nil, "bip", 0.8, 0.3)
+					end
+				elseif v <= 0 and G.pwBt[kk] == 1 then
+					G.pwBt[kk] = 0
+					Sons.vrai("pwrFin", nil, nil, "bip", 0.6, 0.3)
+				elseif v >= 1.5 then
+					G.pwBt[kk] = 0
+				end
+			end
 			if aAvant > 0 and pwA <= 0 and enVol0 then V.fallT, V.fallTR = 0, 0 end -- il s'éteint EN VOL : une jauge neuve
 			Score.ETAT.auraX2 = pwX > 0
 			G.comboT -= dt
@@ -2357,7 +3442,9 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 					if kN > 0 then secousse = math.max(secousse, ((mode == "fall") and 0.1 or 0.07) * kN) end
 					if quoi then
 						Bus.emit("nuage", quoi, kN)
-						if quoi == "defonce" then Score.flowAdd(3, "style", "n") elseif quoi == "percee" then Score.flowAdd(7, "risque", "n") end
+						Sons.vrai(({ entre = "nuageEntre", sort = "nuageSort", percee = "nuageSort", defonce = "nuageDefonce" })[quoi] or "", nil, 0.5)
+						-- (Sacha, 30/09 : « les nuages doivent juste BLOQUER LA VUE, rien d'autre » — `addStyle` est vide sur le web : ni le banc
+						-- défoncé ni la percée à l'aveugle ne paient de flow. À L'ORAGE, 90 bancs nourrissaient la jauge tout seuls.)
 					end
 				end
 				nitroooTick(dt)
@@ -2422,7 +3509,74 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 			cam.CFrame = vue
 			cam.FieldOfView = workspace:GetAttribute("DbgFov") or 90
 		end
+		Mer.montrer(mode == "menu" or mode == "garage" or (piste :: any).niveau == "nuages")
 		Mer.suivre(cam.CFrame.Position, carCF.Position.Y, dt, (mode == "menu" or mode == "garage") and Config.CIEL.merMenu * M or nil)
+		KA.Espace.tick(dt, (piste :: any).niveau == "espace" and mode ~= "menu" and mode ~= "garage", cam.CFrame, carCF)
+		do
+			local var, enJeu = (piste :: any).variante, mode ~= "menu" and mode ~= "garage" and mode ~= "charge"
+			local course = mode == "drive" or mode == "fall"
+			-- la pluie : la VILLE, MINUIT EN VILLE (moitié moins : pluie 0,55) et L'ORAGE
+			KA.Ville.pluie(enJeu and ((piste :: any).niveau == "ville" or var == "orage"), cam.CFrame, (var == "nuit") and 0.55 or ((var == "orage") and 1.3 or 1), var == "orage")
+			-- MINUIT EN VILLE : pleins phares (ceux de la caisse au maximum, les faisceaux, la lampe qui court devant)
+			local minuit = var == "nuit" and course
+			if G.minuit ~= minuit then
+				G.minuit = minuit
+				local ph = poignees.phares
+				if ph then
+					ph.Brightness = minuit and 5.2 or 2
+					ph.Angle = minuit and 80 or 70
+					ph.Color = minuit and Color3.fromRGB(224, 242, 255) or Color3.fromRGB(255, 236, 200)
+				end
+			end
+			KA.Ville.phares(minuit, carCF, poignees.fiche.w * 0.5, poignees.fiche.l or 4.4)
+			-- L'ORAGE : l'éclair qui montre la route, le tonnerre qui secoue
+			local sk = KA.Orage.tick(dt, var == "orage" and course and not enPause, piste, s, carCF.Position / M)
+			if sk > 0 then secousse = math.max(secousse, sk) end
+			if course and not enPause then G.satHard() end
+			if not enPause then G.debTick(dt, cam.CFrame) end
+			G.viseur(dt)
+			KA.Traces.tick(mode == "drive" and G.glisse == true and not enPause and not intro, carCF, poignees.fiche.w * 0.5, poignees.fiche.l or 4.4)
+			if course and not enPause then G.vpal(kmh()) end
+			if not enPause then secousse = math.max(secousse, KA.Impact.tick(dt)) end -- le cratère d'une tour : ses morceaux, son feu, sa fumée
+			-- LES PIGEONS RAMIERS : de rares volées en travers du ciel (jamais en orbite ni dans l'orage)
+			if not enPause then KA.Pigeons.tick(dt, carCF, not course or (piste :: any).niveau == "espace" or var == "orage", mode == "boom") end
+			-- L'OVULE respire et tourne lentement, son noyau bat (L37927)
+			do
+				local po = (zone :: any).portail
+				if po and enJeu then
+					local t = os.clock()
+					local d = po.R * 2 * (1 + 0.035 * math.sin(t * 2.2))
+					po.membrane.Size = Vector3.new(d, d, d)
+					po.membrane.CFrame = CFrame.new(po.c) * CFrame.Angles(0, t * 0.12, 0)
+					po.irise.CFrame = CFrame.new(po.c) * CFrame.Angles(t * 0.1, -t * 0.2, 0)
+					local n = po.R * (0.44 + 0.085 * math.sin(t * 4.4))
+					po.noyau.Size = Vector3.new(n, n, n)
+					po.halo.Transparency = 1 - (0.22 + 0.08 * math.sin(t * 2.2)) * 0.8
+				end
+			end
+			-- LE CIEL MUSICAL : la ville seulement (en sourdine à minuit) ; il suit le volume du morceau qui joue
+			do
+				local k = (enJeu and (piste :: any).niveau == "ville") and ((var == "nuit") and 0.5 or 1) or 0
+				local so: any = (k > 0 and Sons.actif and Sons.musiqueActive) and Sons.boucle(G.musVeut or "musique") or nil
+				KA.CielMusical.tick(dt, k, cam.CFrame.Position, (so and so.IsPlaying) and so.PlaybackLoudness / 420 or nil)
+			end
+			-- les portes de l'orbite : le tunnel déchire le champ, la rentrée tremble
+			if not course then
+				G.orbWarp, G.orbFeu = 0, 0
+			elseif not enPause then
+				if (G.orbWarp or 0) > 0 then
+					G.orbWarp = math.max(0, G.orbWarp - dt / 1.9)
+					fovPunch = math.max(fovPunch, 34 * math.sqrt(G.orbWarp))
+					if G.orbWarp == 0 then Bus.emit("orbite", "bout") end
+				end
+				if (G.orbFeu or 0) > 0 then
+					G.orbFeu = math.max(0, G.orbFeu - dt / 2.6)
+					secousse = math.max(secousse, 0.3 * G.orbFeu)
+				end
+			end
+		end
+		-- les nuages PROCHES reçoivent leur version fine ; hors de la course, tout est rendu au budget (voir Nuages.finesseTick)
+		KA.Nuages.finesseTick(dtBrut, (mode == "drive" or mode == "fall" or mode == "menu") and cam.CFrame.Position or nil)
 		lisserDoubles(dt)
 		KA.envoiT -= dtBrut
 		if KA.envoiT <= 0 and (mode == "drive" or mode == "fall") then

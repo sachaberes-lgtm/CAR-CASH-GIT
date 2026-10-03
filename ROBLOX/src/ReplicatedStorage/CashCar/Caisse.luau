@@ -194,7 +194,7 @@ function Caisse.construire(nom: string, indice: number, ancree: boolean?, habits
 	r.Parent = m
 	m.PrimaryPart = r
 	-- L'origine de la racine = le point de contact au sol, au centre : le bas des roues est à y = 0.
-	local poignees = { flammes = {}, trainees = {}, essieux = {}, bases = {}, rayons = {}, fiche = fiche, indice = indice, maillage = true }
+	local poignees = { flammes = {}, plumes = {}, jetK = 0, jetT = os.clock(), trainees = {}, essieux = {}, bases = {}, rayons = {}, fiche = fiche, indice = indice, maillage = true }
 	local laque = lumiere(Color3.fromHex(string.format("%06x", fiche.laque)))
 	-- LA PEINTURE de la boutique recouvre la laque (« usine » = la teinte du constructeur)
 	local peint = habits and Config.habit("peinture", habits.peinture)
@@ -250,12 +250,36 @@ function Caisse.construire(nom: string, indice: number, ancree: boolean?, habits
 		f.Speed = NumberRange.new(36, 58)
 		f.SpreadAngle = Vector2.new(5, 5)
 		f.EmissionDirection = Enum.NormalId.Back
-		f.Brightness = 2.5
-		f.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1.25), NumberSequenceKeypoint.new(1, 0.15) })
+		f.Brightness = 1.6
+		f.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.7), NumberSequenceKeypoint.new(1, 0.1) })
 		f.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.1), NumberSequenceKeypoint.new(1, 1) })
 		f.Color = ColorSequence.new(Color3.fromRGB(255, 220, 140), cJet)
 		f.Parent = a
 		table.insert(poignees.flammes, f)
+		-- LA PLUME DE RÉACTEUR (JETS du web, L37646) : un cône de lumière par pot — une coquille à la couleur du feu, un cœur blanc.
+		-- Courte au filage (elle brûle dès qu'on roule), longue et affûtée à la nitro ; elle tremble, chaque pot à son rythme.
+		-- (3e retour : la « veilleuse » en particules de feu grésillait comme un pétard — le web montre une flamme NETTE)
+		local bout = Instance.new("Attachment")
+		bout.Name = "Plume" .. i
+		bout.Position = a.Position + Vector3.new(0, 0, 0.5)
+		bout.Parent = r
+		local plume = { a = a, bout = bout, z0 = a.Position, coque = nil :: any, coeur = nil :: any }
+		for _, q in { { "coque", 0 }, { "coeur", 0.02 } } do
+			local bm = Instance.new("Beam")
+			bm.Name = "Plume_" .. q[1]
+			bm.Attachment0, bm.Attachment1 = a, bout
+			bm.FaceCamera = true
+			bm.Segments = 1
+			bm.LightEmission = 1
+			bm.LightInfluence = 0
+			bm.Brightness = 2
+			bm.ZOffset = q[2]
+			bm.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.05), NumberSequenceKeypoint.new(0.6, 0.45), NumberSequenceKeypoint.new(1, 1) })
+			bm.Enabled = false
+			bm.Parent = r;
+			(plume :: any)[q[1]] = bm
+		end
+		table.insert(poignees.plumes, plume)
 	end
 	-- LE SILLAGE v6 (SIL, index.html L14430) : UN PAR POT (4 au plus), né dans sa bouche, long de 100 m. Deux couches dans chaque
 	-- sillage : un HALO doux qui s'élargit vers le bout, et un CŒUR fin qui blanchit à la tuyère (c'est lui que le bloom attrape).
@@ -264,7 +288,7 @@ function Caisse.construire(nom: string, indice: number, ancree: boolean?, habits
 	local wu = (np == 1) and 1.4 or ((np >= 3) and 0.85 or 1)
 	for i, pot in fiche.pots do
 		if i > 4 then break end
-		for _, couche in { { "Halo", 0.56 * wu, 2.6, 1.0 }, { "Coeur", 0.21 * wu, 0.7, 2.0 } } do -- (vu dans Studio a 1,5 / 3,2 : en vol, la camera dans l axe, tout l ecran partait au blanc)
+		for _, couche in { { "Halo", 0.42 * wu, 1.7, 1 }, { "Coeur", 0.15 * wu, 0.7, 1 } } do -- (2e retour : à 0,56 × 2,6 et 0,21, deux cônes BLANCS larges comme la caisse — le web trace deux rubans fins, de la couleur du feu) -- (vu dans Studio a 1,5 / 3,2 : en vol, la camera dans l axe, tout l ecran partait au blanc)
 			local demi = couche[2] * 0.5 * M
 			local a0 = Instance.new("Attachment")
 			a0.Name = "Sillage" .. couche[1] .. "H" .. i
@@ -281,15 +305,15 @@ function Caisse.construire(nom: string, indice: number, ancree: boolean?, habits
 			t.Lifetime = 2.2
 			t.MaxLength = 100 * M
 			t.MinLength = 0.3
-			t.LightEmission = 1
+			t.LightEmission = (couche[1] == "Halo") and 0.3 or 0.45 -- (3e retour : « des couleurs FRANCHES, le ruban doit rester orange / bleu, jamais blanc » — le web, L37700 ; en additif il blanchissait) -- (à 1, les deux couches s'additionnaient jusqu'au blanc : la couleur du feu ne se lisait plus)
 			t.LightInfluence = 0
 			t.Brightness = couche[4]
 			t.FaceCamera = true
 			t.WidthScale = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(1, couche[3]) })
 			-- la queue s'éteint sur le dernier quart (24 m sur 100)
 			t.Transparency = (couche[1] == "Halo")
-				and NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.62), NumberSequenceKeypoint.new(0.76, 0.76), NumberSequenceKeypoint.new(1, 1) })
-				or NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.05), NumberSequenceKeypoint.new(0.5, 0.3), NumberSequenceKeypoint.new(0.76, 0.5), NumberSequenceKeypoint.new(1, 1) })
+				and NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.35), NumberSequenceKeypoint.new(0.3, 0.6), NumberSequenceKeypoint.new(0.76, 0.82), NumberSequenceKeypoint.new(1, 1) })
+				or NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.1), NumberSequenceKeypoint.new(0.3, 0.4), NumberSequenceKeypoint.new(0.76, 0.66), NumberSequenceKeypoint.new(1, 1) })
 			t.Color = ColorSequence.new(Color3.fromRGB(255, 160, 60), Color3.fromRGB(255, 60, 30))
 			t.Enabled = false
 			t.Parent = r
@@ -303,15 +327,46 @@ end
 -- seconde et par pot ; c = la couleur du feu (orange nitro, bleu de réserve, violet de la nitro infinie, or du pad, ou la
 -- traînée de la boutique) ; arc = un arc-en-ciel (ColorSequence) à la place. Vers le bout, le feu tire au rouge-magenta.
 local BRAISE = Color3.fromRGB(255, 40, 110)
-function Caisse.feu(poignees: any, on: boolean, debit: number, c: Color3, arc: ColorSequence?)
+function Caisse.feu(poignees: any, on: boolean, debit: number, c: Color3, arc: ColorSequence?, veille: boolean?)
+	-- la plume : sa force (jTgt du web : .34 au filage, 1,05 à la nitro, +.4 au pad), lissée ; sa longueur et sa largeur en découlent
+	do
+		local t = os.clock()
+		local dt = math.min(0.1, t - (poignees.jetT or t))
+		poignees.jetT = t
+		local nitro = on and debit >= 100
+		local cible = (nitro and 1.05 or (veille and 0.34 or 0)) + ((on and not nitro) and 0.4 or 0)
+		local k = (poignees.jetK or 0) + (cible - (poignees.jetK or 0)) * math.min(1, dt * 11)
+		poignees.jetK = k
+		local allume = k > 0.05
+		local fl = 0.82 + 0.18 * math.sin(t * 57 + math.sin(t * 33) * 2.1)
+		local long = nitro and 1.85 or 1
+		local coque = (on and c) or Color3.fromRGB(255, 140, 48)
+		local coeur = nitro and Color3.fromRGB(255, 242, 218) or Color3.fromRGB(255, 230, 176)
+		for i, p in poignees.plumes or {} do
+			if p.coque.Enabled ~= allume then
+				p.coque.Enabled = allume
+				p.coeur.Enabled = allume
+			end
+			if allume then
+				local f9 = 0.84 + 0.16 * math.sin(t * 31 + i * 2.4) * math.sin(t * 13.7 + i * 1.7)
+				local jl = math.max(0.03, 0.62 * k * 2.1 * fl * long) * f9
+				local jr = (0.09 + 0.07 * k + (nitro and 0.05 or 0)) * (1.1 - 0.1 * f9)
+				p.bout.Position = p.z0 + Vector3.new(0, 0, jl * M)
+				p.coque.Width0, p.coque.Width1 = jr * 2.3 * M, jr * 0.5 * M
+				p.coeur.Width0, p.coeur.Width1 = jr * 1.1 * M, jr * 0.12 * M
+				p.coque.Color = ColorSequence.new(coque, coque:Lerp(BRAISE, 0.35))
+				p.coeur.Color = ColorSequence.new(coeur)
+			end
+		end
+	end
 	local chaud = c:Lerp(Color3.new(1, 1, 1), 0.72)
 	local flamme = ColorSequence.new(chaud, c)
 	for _, f in poignees.flammes do
-		f.Rate = debit
+		f.Rate = debit * 0.4 -- (des braises dans la plume, plus un feu d'artifice)
 		f.Color = flamme
 	end
 	local halo = arc or ColorSequence.new({ ColorSequenceKeypoint.new(0, c), ColorSequenceKeypoint.new(0.6, c:Lerp(BRAISE, 0.3)), ColorSequenceKeypoint.new(1, c:Lerp(BRAISE, 0.6)) })
-	local coeur = arc or ColorSequence.new({ ColorSequenceKeypoint.new(0, chaud), ColorSequenceKeypoint.new(0.25, c:Lerp(Color3.new(1, 1, 1), 0.3)), ColorSequenceKeypoint.new(1, c:Lerp(BRAISE, 0.45)) })
+	local coeur = arc or ColorSequence.new({ ColorSequenceKeypoint.new(0, c:Lerp(Color3.new(1, 1, 1), 0.25)), ColorSequenceKeypoint.new(0.06, c), ColorSequenceKeypoint.new(1, c:Lerp(BRAISE, 0.45)) }) -- (le cœur sortait JAUNE PÂLE : le web garde l'orange du feu jusqu'à la tuyère)
 	for _, t in poignees.trainees do
 		t.Enabled = on
 		t.Color = (t.Name == "Coeur") and coeur or halo
@@ -461,12 +516,14 @@ function Caisse.vignette(indice: number): Model?
 end
 
 -- fait tourner les roues d'une caisse : avance = distance parcourue depuis la dernière image (studs, signée)
-function Caisse.rouler(poignees: any, avance: number)
+-- `sus` (m) : la carrosserie descendue sur ses ressorts — les roues remontent d'autant dans son repère, elles restent au sol
+function Caisse.rouler(poignees: any, avance: number, sus: number?)
 	if #poignees.essieux == 0 then return end
 	poignees.angle = (poignees.angle or 0) + avance / math.max(0.1, poignees.rayons[1])
 	local rot = CFrame.Angles(-poignees.angle, 0, 0)
+	local haut = CFrame.new(0, -(sus or 0) * M, 0)
 	for i, w in poignees.essieux do
-		w.C0 = poignees.bases[i] * rot
+		w.C0 = haut * poignees.bases[i] * rot
 	end
 end
 
