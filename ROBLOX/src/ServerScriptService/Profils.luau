@@ -43,6 +43,9 @@ function Profils.neuf(): Profil
 		-- les REVENUS (voir Revenus) : le cadeau du jour (son jour UTC, la série), le bonus de groupe pris, qui m'a invité, les reçus
 		-- d'achat déjà servis (un reçu ne sert jamais deux fois)
 		jour = 0, serie = 0, groupe = false, invite = 0, achats = {},
+		-- LA ROUE : les tours en réserve, l'heure (os.time) du dernier tour gratuit, les parties vers le prochain tour offert, la caisse
+		-- qui vient d'être gagnée et qu'on peut encore préférer en argent (-1 : aucune)
+		roue = { n = 0, libre = 0, parties = 0, attente = -1 },
 	}
 end
 
@@ -51,7 +54,7 @@ local function sain(p: any): Profil
 	local n = Profils.neuf()
 	if type(p) ~= "table" then return n end
 	for k, v in n do
-		if k == "reglages" or k == "porte" then
+		if k == "reglages" or k == "porte" or k == "roue" then
 			-- (clé par clé : un vieux profil n'a pas les réglages ajoutés depuis)
 			if type(p[k]) == "table" then
 				for rk, rv in v do
@@ -67,6 +70,10 @@ local function sain(p: any): Profil
 		if type(a) == "string" and #a < 80 and #achats < 30 then table.insert(achats, a) end
 	end
 	n.achats = achats
+	for _, k in { "n", "libre", "parties" } do
+		local v = n.roue[k]
+		if v ~= v or v < 0 or v > 1e12 then n.roue[k] = 0 end
+	end
 	for _, k in { "compte", "record", "auraMeilleur", "aura", "frenRec", "moteurMax", "kmhMax", "jour", "serie", "invite" } do
 		if n[k] ~= n[k] or n[k] < 0 or n[k] > 1e18 then n[k] = 0 end
 	end
@@ -225,7 +232,7 @@ end
 function Profils.aHabit(prof: Profil, cat: string, id: string): boolean
 	local d = habit(cat, id)
 	if not d then return false end
-	if not d.p and not d.mis then return true end -- offert
+	if not d.p and not d.mis and not d.roue then return true end -- offert
 	return table.find(prof.habits, cat .. ":" .. id) ~= nil
 end
 Profils.actions.habitAcheter = function(p, prof, cat, id)
