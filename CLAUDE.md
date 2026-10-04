@@ -2,6 +2,9 @@
 
 Le jeu web vit dans `VERSION PRINCIPALE/` : un seul fichier, `index.html`. Son guide complet est `VERSION PRINCIPALE/CLAUDE.md`, à lire
 avant d'y toucher. `ROBLOX/` est un autre jeu, le portage Roblox : un commit ROBLOX ne change pas le jeu web.
+**L'édition POKI** (2026-10-04) n'est pas un autre jeu : c'est `VERSION PRINCIPALE` sans missions, carrière ni boutique, avec le SDK de
+Poki. `node poki-construire.js` en tire `POKI/` et `POKI.zip` (ignorés par git, à refaire après chaque changement du jeu) ; `?poki=1`
+la montre sur n'importe quelle copie. Le détail : « L'ÉDITION POKI » dans `VERSION PRINCIPALE/CLAUDE.md`.
 
 ## LA VERSION DE RÉFÉRENCE (2026-10-01, Léo : « toutes les discussions où j'évoque une version récente, je parle de celle-là — et qu'on soit à jour avec ça, sans tout casser, parce que la dernière fois ça a tout cassé »)
 - Quand Léo (ou Sacha) dit « la version récente », « la nouvelle version », « la dernière », « celle de ce soir » ou « la bonne », il parle

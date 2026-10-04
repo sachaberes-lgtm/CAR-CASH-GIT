@@ -7,6 +7,37 @@
 - Les règles « SANS TOUT CASSER » (partir de `origin/main` à jour, fusionner sans jamais forcer, jeu testé sans erreur avant chaque
   push, retour arrière par Vercel) et la liste de ce que contient la référence : voir `CLAUDE.md` à la RACINE du dépôt.
 
+## L'ÉDITION POKI (2026-10-04) — Sacha : « créer une version de Cash Car pour Poki game en enlevant les missions et la carrière »
+- **UN SEUL JEU** : l'édition Poki n'est pas une copie qu'on retouche. `node poki-construire.js` (racine du dépôt) fabrique `POKI/` (le
+  dossier) et `POKI.zip` (à envoyer sur Poki for Developers, `index.html` à la racine) depuis CE dossier, en basculant la seule ligne
+  `const POKI_BUILD=false;` du `<head>`. Les deux sont dans `.gitignore` : on les REFAIT après chaque changement du jeu. `?poki=1` force
+  l'édition Poki sur n'importe quelle copie (banc, Vercel : `…/jouer/?poki=1`, `&pokidebug=1` = le journal du SDK en console).
+- **Tout est gardé par la constante globale `POKI`** (déclarée dans le `<head>`, visible du grand script) — sans elle, rien ne change :
+  menus, missions, carrière, boutique, mode TEST, intro, cadre de l'ordi : la version principale est intacte (banc menu → JOUER → course
+  passé couché, debout et dans le cadre de l'ordi).
+- **Ce que l'édition Poki retire** : les MISSIONS (`misTick` ne coche plus rien, `misFin` → null, porte de l'accueil, socle 3D et écran de
+  l'atelier, `#mMis`, mission suivie en course), la CARRIÈRE (tuile, `#carr`, portes du menu de Léo — `MENU_SACHA` forcé), la BOUTIQUE en
+  vrai argent (Poki interdit les achats intégrés : tuiles, portes du garage, `#mShop`), le MODE TEST (`TEST_CAISSES=!POKI`), l'INTRO
+  « 1.61 » à toucher (Poki a son écran de chargement : le voile s'ouvre seul, l'AudioContext naît au premier geste), le service worker, la
+  mise à jour toute seule, le plein écran pris par le jeu, les marges d'iPhone et le boîtier de l'ordi. CSS : `<style id="poki">`.
+- **Ce qui la remplace** : les caisses des carnets, de la carrière et de la boutique passent À L'ARGENT DU JEU (bloc `if(POKI)` sous
+  `CAR_UNLOCK` : carnets 30 k → 1,45 M, CAISSE-NUAGE 1,8 M, LINGOT 2,2 M, légendaires 2,9 → 6,5 M au-dessus de LA RAIE, rangées par leur
+  ancien prix en euros, famille d'or gardée) ; l'OR MASSIF (150 k) et l'ARC-EN-CIEL (40 k) s'achètent ; l'accueil = [GARAGE | ⚙] puis
+  JOUER (la porte MISSIONS est rhabillée en GARAGE, la rangée des tuiles s'efface) ; l'écran de mort montre l'OBJECTIF D'ACHAT (prochaine
+  caisse, photo, barre du compte, touché → garage : branche POKI d'`objRender`). POSTER 84 (rang d'aura) reste la seule caisse DÉFI.
+- **Le kit Poki** (`<head>` : `CC_PK` dans le document de plus haut ; fin du grand script : « LE KIT POKI, CÔTÉ JEU ») : SDK v2 chargé
+  depuis game-cdn.poki.com (seule requête externe permise), `init` → `gameLoadingFinished` (menu prêt) → `gameplayStart/Stop` (4 fois par
+  seconde : course lancée, pas finie, pas en pause, pas de pub) → `commercialBreak` avant chaque nouvelle partie (`pkPasse` dans
+  `playViaGarage`, REJOUER, RECOMMENCER — jamais avant la toute première). Pendant une pub, `window.CC_PUB` : `AudioContext.resume`,
+  `media.play` et le clavier sont refusés (consigne de Poki). `CC_PK.bonus()` (rewardedBreak) est prêt mais rien ne l'appelle : une
+  SECONDE CHANCE ou un ×2 à l'écran de mort sont les candidats. SDK bloqué (bloqueur de pubs) = jeu normal sans pub. `dbgPoki()`.
+- **L'ordi** : Poki veut un jeu qui couvre son cadre 16:9. La page-cadre garde la colonne (la mise en page du téléphone) mais à la forme
+  de la fenêtre : 390 de haut × la largeur (16:9 → 693 × 390), sans boîtier, sans bouton TOURNER ni numéro sous le jeu. Chez Poki le jeu
+  est TOUJOURS dans un cadre : « dans la colonne » se lit à l'adresse (`colonne=1`), plus à `window.top`. La page-cadre masque son propre
+  jeu par la classe `ccHors` (pas tout `body>*` : le cadre de pub que le SDK y pose doit rester visible) et ne charge le SDK qu'après.
+- **Pas encore fait / à trancher** : l'auto-école parle de POUCE même au clavier chez Poki (vrai aussi dans le cadre de l'ordi de la
+  version principale) ; `dark-triad.mp3` manque (404 en console, déjà vrai sur `main`) ; le compte développeur Poki, la page du jeu et
+  l'envoi du zip = Sacha ; droits des musiques et noms de marques (CHAT POP-TART…) à vérifier avant publication.
 ## LE DÉPART EN MUSIQUE (2026-10-04, copie de test de Léo — « harmonise le début de partie et le début de la musique, c'est un peu violent ; un effet sonore de boost pas trop fort qui fait la transition jusqu'à la musique, fais un truc stylé »)
 - AVANT, à la sortie du nuage, tout tombait dans la MÊME image : le lobby coupé net, la musique de course à sa 1re mesure (montée à
   60 % en 0,15 s), le WHOOMP de la nitro offerte, le rugissement du réacteur et le claquement du logo (sub + accord).
