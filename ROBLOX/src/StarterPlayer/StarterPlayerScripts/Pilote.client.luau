@@ -26,7 +26,6 @@ local Bus = require(CL:WaitForChild("Bus"))
 local Garage = require(CL:WaitForChild("Garage"))
 local Score = require(CL:WaitForChild("Score"))
 local HudScore = require(CL:WaitForChild("HudScore"))
-local Missions = require(CL:WaitForChild("Missions"))
 -- (Luau refuse plus de 200 variables locales dans une fonction — le premier niveau du script en est une : la caméra et les
 -- nuages vivent dans la table KA)
 local KA: any = { Camera = require(CL:WaitForChild("Camera")), Nuages = require(CL:WaitForChild("Nuages")), Titre = require(CL:WaitForChild("Titre")),
@@ -42,6 +41,7 @@ KA.Pigeons = require(CL:WaitForChild("Pigeons"))
 KA.Impact = require(CL:WaitForChild("Impact"))
 KA.Recyclage = require(CL:WaitForChild("Recyclage"))
 KA.Revenus = require(CL:WaitForChild("Revenus")) -- (cadeaux, seconde chance, ×2 ARGENT : voir Client/Revenus)
+KA.Roue = require(CL:WaitForChild("Roue")) -- (LA ROUE, à la place des missions et de la carrière : voir Client/Roue)
 -- (le tapotement de la caisse au titre : le « toc » de tôle de l'atelier et une vibration)
 KA.Titre.surTape = function() Sons.vrai("garageTole", nil, nil, "poseChoc", 1.5, 0.35) Hud.vibre(14) end
 
@@ -124,6 +124,7 @@ local function montrerCaisse(oui: boolean)
 	end
 	for _, f in flammes do f.Enabled = oui end
 	for _, t in trainees do if not oui then t.Enabled = false end end
+	if poignees.heros then poignees.heros.Enabled = oui end -- (la lampe du héros s'éteint avec la caisse)
 end
 
 local record, compte, meilleurAura = 0, 0, 0
@@ -2796,7 +2797,6 @@ local function nouvellePartie()
 	table.clear(volants)
 	Score.debut(meilleurAura, profil.frenRec or 0)
 	HudScore.raz()
-	Missions.debut()
 	Bus.emit("partie")
 	E.air.Visible = false
 	montrerCaisse(true)
@@ -2842,10 +2842,9 @@ local function finPartie()
 	local recT = causeMort ~= "quitte" and (rec or recA or recM)
 	profil.moteurMax = math.max(moteurAvant, tier)
 	if lecon then profil.moteurMax = moteurAvant end
-	local mres = Missions.fin(CPT)
 	evFin:FireServer(argent, dist, aura, { lecon = lecon or nil, pieces = stats.pieces, figures = stats.poses, kmh = G.vmax, zone = G.nbZones + 1, tier = tier,
 		multi = Score.CHA.xMax, cause = causeMort, parfaites = stats.parfaites, fruits = stats.fruits, nitro = stats.nitro,
-		duree = stats.duree, chaine = stats.chaine, frenMax = Score.FREN.max, frenRec = Score.FREN.record, mis = mres.meilleur })
+		duree = stats.duree, chaine = stats.chaine, frenMax = Score.FREN.max, frenRec = Score.FREN.record })
 	if rec then record = argent end
 	if not lecon then meilleurAura = math.max(meilleurAura, aura) end
 	G.kmhRecord = math.max(G.kmhRecord or 0, G.vmax or 0)
@@ -2892,7 +2891,7 @@ local function finPartie()
 		E.mMoteurEncore.Text = ""
 	end
 	E.mPartie.Text = ""
-	Hud.defi(mres.carte)
+	Hud.defi(KA.Roue.carte()) -- (la carte de LA ROUE : les parties vers le prochain tour)
 	local st = {
 		{ "x" .. Score.CHA.xMax, T.multiMax },
 		{ Hud.entier(G.vmax), T.kmhMax }, { tostring(G.nbZones + 1), FR and "NIVEAU" or "LEVEL" },
@@ -3057,39 +3056,19 @@ function G.revivre(ok: boolean)
 	Sons.jouer("go")
 	Hud.vibre(30)
 end
--- ── LES MISSIONS : le carnet ouvert, ses trois défis, sa récompense (voir Client/Missions) ──
-Missions.init({
-	profil = function() return profil end,
-	action = function(nom: string, ...: any): (boolean, string?)
+-- ── LA ROUE (Sacha, 4/10) : à la place des MISSIONS et de la CARRIÈRE — le tirage au serveur, la roue tourne ici (Client/Roue) ──
+KA.Roue.init({
+	action = function(nom: string, ...: any): (boolean, any)
 		local ok, res, msg, p = pcall(function(...) return fnAction:InvokeServer(nom, ...) end, ...)
 		if not ok then return false, "erreur" end
-		if type(p) == "table" then
-			-- (le serveur rend le profil : on garde ce que la partie en cours a déjà coché, sa réponse peut arriver en retard)
-			local m = profil.mis
-			lireProfil(p)
-			if m and p.mis and m.n == p.mis.n then
-				for i = 1, 3 do
-					if m.ok[i] then p.mis.ok[i] = true end
-				end
-			end
-		end
+		if type(p) == "table" then lireProfil(p) end
 		return res == true, msg
 	end,
-	surHome = function()
-		Missions.fermer()
-		Hud.ecran("menu")
-	end,
-	surJouer = function()
-		Missions.fermer()
-		if mode == "menu" then jouer(nouvellePartie) end
-	end,
+	surEquipe = function(i: number) if poignees.indice ~= i then changerCaisse(i) end end,
+	info = E.roueInfo, pastille = E.bdRoue,
 })
-E.btMissions.Activated:Connect(function()
-	if mode ~= "menu" then return end
-	Hud.ecran("missions")
-	Missions.ouvrir()
-end)
-E.btCarriere.Activated:Connect(function() if mode == "menu" then Hud.toast(T.bientot) end end)
+E.btRoue.Activated:Connect(function() if mode == "menu" then KA.Roue.ouvrir() end end)
+E.mDefiBouton.Activated:Connect(function() if mode == "mort" then KA.Roue.ouvrir() end end)
 -- LA BOUTIQUE : une vitrine (rien ne se vend encore) ; RETOUR ramène à l'écran d'où l'on vient
 G.boutique = require(CL:WaitForChild("Boutique"))
 G.boutique.init({ retour = function(d: string)
@@ -3123,7 +3102,6 @@ function G.badges()
 end
 KA.badges = G.badges
 E.btBoutiqueM.Activated:Connect(function() if mode == "mort" then G.boutique.ouvrir("mort") end end)
-Hud.surMenu = function() Hud.pastilles(Missions.faits()) end
 E.btRejouer.Activated:Connect(function() if mode == "mort" then nouvellePartie() end end)
 -- (mise au point) "DbgJouer" : lancer une partie depuis la console ou le banc à distance — du menu ou de l'écran de fin, l'auto-école passée
 workspace:GetAttributeChangedSignal("DbgJouer"):Connect(function()
@@ -3217,7 +3195,7 @@ game:GetService("UserInputService").InputBegan:Connect(function(io: InputObject)
 	end
 end)
 -- (mise au point) "DbgOuvre" : ouvrir un écran du menu depuis la console ou le banc à distance — "garage", "boutique",
--- "reglages", "missions", "menu" (le retour) ; pour comparer chaque écran à la capture du jeu web sans toucher à la souris
+-- "reglages", "roue", "menu" (le retour) ; pour comparer chaque écran à la capture du jeu web sans toucher à la souris
 workspace:GetAttributeChangedSignal("DbgOuvre"):Connect(function()
 	local v = tostring(workspace:GetAttribute("DbgOuvre") or "")
 	if v == "pause" then
@@ -3257,7 +3235,7 @@ workspace:GetAttributeChangedSignal("DbgOuvre"):Connect(function()
 	elseif v == "menu" then
 		if mode == "garage" then Garage.fermer() end
 		G.boutique.fermer()
-		Missions.fermer()
+		KA.Roue.fermer()
 		if mode == "menu" or mode == "garage" or mode == "mort" then allerMenu() end
 	elseif mode ~= "menu" then
 		return
@@ -3268,9 +3246,8 @@ workspace:GetAttributeChangedSignal("DbgOuvre"):Connect(function()
 	elseif v == "reglages" then
 		retourReglages = "menu"
 		Hud.ecran("reglages")
-	elseif v == "missions" then
-		Hud.ecran("missions")
-		Missions.ouvrir()
+	elseif v == "roue" then
+		KA.Roue.ouvrir()
 	end
 end)
 E.btReprendre.Activated:Connect(function()
@@ -3619,11 +3596,7 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 			-- les missions relisent les compteurs de la partie
 			CPT.pieces, CPT.fruits, CPT.gains, CPT.poses, CPT.parfaites = stats.pieces, stats.fruits, argent - Config.CASH_DEPART, stats.poses, stats.parfaites
 			CPT.kmh, CPT.zones, CPT.duree, CPT.chaine, CPT.nitro = G.vmax, G.nbZones, stats.duree, stats.chaine, stats.nitro
-			-- (les missions et la leçon ne doivent JAMAIS pouvoir arrêter la partie : une erreur les coupe, la course continue)
-			if mode == "drive" or mode == "fall" then
-				local okM, errM = pcall(Missions.tick, dt, CPT)
-				if not okM then warn("[CashCar] missions : " .. tostring(errM)) end
-			end
+			-- (la leçon ne doit JAMAIS pouvoir arrêter la partie : une erreur la coupe, la course continue)
 			if TU.on and not intro then
 				local okT, errT = pcall(TU.tick, dt)
 				if not okT then

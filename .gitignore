@@ -38,3 +38,7 @@ _archive/
 
 # --- Pistes generees : donnees, pas du code (track.js les refait) ---
 ml/sim/track-*.json
+
+# --- L edition POKI : generee par poki-construire.js depuis VERSION PRINCIPALE (on la refait, on ne l edite pas) ---
+POKI/
+POKI.zip

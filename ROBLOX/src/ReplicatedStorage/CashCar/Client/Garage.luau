@@ -37,8 +37,8 @@ local L = FR and {
 	home = "HOME", boutique = "BOUTIQUE", jouer = "JOUER", acheter = "ACHETER", manque = "IL MANQUE",
 	equiper = "EQUIPER", verrou = "VERROUILLEE", enBoutique = "EN BOUTIQUE", aToi = "A TOI !",
 	ilTeManque = "IL TE MANQUE ", bientot = "BIENTOT DISPONIBLE",
-	tout = "TOUT", aMoi = "A MOI", aAcheter = "A ACHETER", gagner = "A GAGNER", defi = "DEFI",
-	carnet = "SE GAGNE EN RELEVANT 3 DEFIS", carrN = "ATTRAPE-LA AU NIVEAU 10 DES NUAGES  (%d / 10)",
+	tout = "TOUT", aMoi = "A MOI", aAcheter = "A ACHETER", gagner = "A GAGNER", defi = "ROUE",
+	roue = "SE GAGNE A LA ROUE (ACCUEIL)", carrN = "ATTRAPE-LA AU NIVEAU 10 DES NUAGES  (%d / 10)",
 	carrV = "BATS LE BANQUIER AU NIVEAU 10 DE LA VILLE  (%d / 10)", aura = "RANG D'AURA « %s »   (le tien : « %s »)",
 	rangs = { "ANONYME", "REMARQUE", "ON PARLE DE TOI", "REPUTE", "LEGENDE LOCALE", "STAR DU BITUME", "MYTHE", "DIVINITE DU CIEL" },
 } or {
@@ -46,8 +46,8 @@ local L = FR and {
 	home = "HOME", boutique = "SHOP", jouer = "PLAY", acheter = "BUY", manque = "SHORT BY",
 	equiper = "EQUIP", verrou = "LOCKED", enBoutique = "IN THE SHOP", aToi = "YOURS!",
 	ilTeManque = "SHORT BY ", bientot = "COMING SOON",
-	tout = "ALL", aMoi = "MINE", aAcheter = "FOR SALE", gagner = "EARN IT", defi = "CHALLENGE",
-	carnet = "WON BY BEATING 3 CHALLENGES", carrN = "CATCH HER IN CLOUDS LEVEL 10  (%d / 10)",
+	tout = "ALL", aMoi = "MINE", aAcheter = "FOR SALE", gagner = "EARN IT", defi = "WHEEL",
+	roue = "WON ON THE WHEEL (HOME SCREEN)", carrN = "CATCH HER IN CLOUDS LEVEL 10  (%d / 10)",
 	carrV = "BEAT THE BANKER IN CITY LEVEL 10  (%d / 10)", aura = 'AURA RANK "%s"   (yours: "%s")',
 	rangs = { "NOBODY", "NOTICED", "THEY'RE TALKING ABOUT YOU", "RENOWNED", "LOCAL LEGEND", "ASPHALT STAR", "MYTH", "SKY GOD" },
 }
@@ -77,7 +77,7 @@ local function ordre(i: number): number -- carOrdre : dans une famille, du plus 
 	if k.k == "depart" then return -1 end
 	if k.k == "prix" then return k.v end
 	if k.k == "premium" then return eurNombre(k.eur) end
-	if k.k == "carnet" then return k.v end
+	if k.k == "roue" then return i end
 	if k.k == "aura" then return 100 + k.v end
 	return 1e9
 end
@@ -120,7 +120,6 @@ local function gagnee(i: number): boolean -- carUnlockedVrai
 	local k = Catalogue[i].cond
 	if k.k == "depart" or possede(i) then return true end
 	if k.k == "aura" then return rangAura(profil().aura or 0) - 1 >= k.v end
-	if k.k == "carnet" then return ((profil().mis and profil().mis.n) or 0) >= k.v end
 	return false
 end
 local function ouverte(i: number): boolean return Config.TEST_CAISSES == true or gagnee(i) end
@@ -133,7 +132,7 @@ local choisi = { peinture = 1, aile = 1, trainee = 1 }     -- l'article montré 
 local filtre = "tout"
 local function tenue(): any return profil().porte or { peinture = "usine", aile = "panneaux", trainee = "nitro" } end
 local function aHabit(cat: string, d: any): boolean
-	if not d.p and not d.mis then return true end
+	if not d.p and not d.mis and not d.roue then return true end
 	return table.find(profil().habits or {}, cat .. ":" .. d.id) ~= nil
 end
 local function habitsVitrine(): any
@@ -781,9 +780,7 @@ end
 -- ce qu'il reste à faire pour une caisse fermée (carUnlockText)
 local function condition(i: number): string
 	local k = Catalogue[i].cond
-	if k.k == "carnet" then return L.carnet end
-	if k.k == "carrN" then return string.format(L.carrN, 0) end
-	if k.k == "carrV" then return string.format(L.carrV, 0) end
+	if k.k == "roue" then return L.roue end
 	if k.k == "aura" then return string.format(L.aura, L.rangs[k.v + 1] or "?", L.rangs[rangAura(profil().aura or 0)]) end
 	if k.k == "premium" then return L.boutique .. " — " .. eurTexte(k.eur) end
 	return ""

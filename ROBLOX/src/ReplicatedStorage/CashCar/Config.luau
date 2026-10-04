@@ -136,7 +136,7 @@ Config.HABITS = {
 		{ id = "noir", nom = "NOIR MAT", en = "MATTE BLACK", p = 9000, c = hx(0x202128), g = "s", d = "Pas un reflet. Même la police hésite.", dEN = "Not a single reflection. Even the police hesitate." },
 		{ id = "couchant", nom = "COUCHER DE SOLEIL", en = "SUNSET", p = 18000, grad = { hx(0xffc23a), hx(0xff4f8b), hx(0x6b3cff) }, d = "Du miel en bas, du violet en haut : le ciel de 19 h, en laque.", dEN = "Honey at the bottom, violet at the top: the 7 pm sky, in lacquer." },
 		{ id = "chrome", nom = "CHROME MIROIR", en = "MIRROR CHROME", p = 60000, c = hx(0xe9eef5), g = "c", d = "Tu te vois dedans. Les autres aussi.", dEN = "You can see yourself in it. So can the others." },
-		{ id = "or", nom = "OR MASSIF", en = "SOLID GOLD", mis = 4, c = hx(0xffc93a), g = "o", d = "Ne s'achète pas : elle se gagne en relevant des défis.", dEN = "Can't be bought: it is won by beating challenges." },
+		{ id = "or", nom = "OR MASSIF", en = "SOLID GOLD", roue = true, c = hx(0xffc93a), g = "o", d = "Ne s'achète pas : elle se gagne à la ROUE.", dEN = "Can't be bought: it is won on the WHEEL." },
 	},
 	aile = {
 		{ id = "panneaux", nom = "PANNEAUX", en = "PANELS", d = "Deux planches de planeur qui sortent des flancs. Sobre.", dEN = "Two glider boards sliding out of the sides. Sober." },
@@ -149,7 +149,7 @@ Config.HABITS = {
 		{ id = "menthe", nom = "MENTHE", en = "MINT", p = 2000, c = Color3.fromRGB(59, 255, 180), d = "Un sillage vert d'eau qui sent le propre.", dEN = "A sea-green wake that smells clean." },
 		{ id = "rose", nom = "ROSE NEON", en = "NEON PINK", p = 4000, c = Color3.fromRGB(255, 39, 185), d = "Le rose des enseignes. On te suit à la trace.", dEN = "The pink of the signs. They can track you by it." },
 		{ id = "or", nom = "POUDRE D'OR", en = "GOLD DUST", p = 15000, c = Color3.fromRGB(255, 185, 39), d = "Tu ne laisses pas de la fumée derrière toi. Tu laisses de l'or.", dEN = "You don't leave smoke behind you. You leave gold." },
-		{ id = "arcenciel", nom = "ARC-EN-CIEL", en = "RAINBOW", mis = 5, arcenciel = true, d = "Ne s'achète pas : elle se gagne en relevant des défis.", dEN = "Can't be bought: it is won by beating challenges." },
+		{ id = "arcenciel", nom = "ARC-EN-CIEL", en = "RAINBOW", roue = true, arcenciel = true, d = "Ne s'achète pas : elle se gagne à la ROUE.", dEN = "Can't be bought: it is won on the WHEEL." },
 	},
 }
 function Config.habit(cat: string, id: string?): any
@@ -250,6 +250,25 @@ Config.CAM = {
 -- d'écrire la VRAIE condition. ⚠ à remettre à false pour la version publique : c'est l'unique interrupteur.
 Config.TEST_CAISSES = true
 
+-- ── LA ROUE (voir Client/Roue et ServerScriptService/Revenus) : huit cases, tirées au SERVEUR selon leur poids `w`. Un tour gratuit
+-- toutes les `libreH` heures, un tour offert toutes les `parties` parties (d'au moins 15 s), et des tours à vendre (REVENUS.produits.tours3).
+-- « caisse » : une caisse EXCLUSIVE de la roue (cond.k = "roue") qu'on n'a pas encore — on choisit de la GARDER ou de la vendre
+-- `revente` $ ; plus rien à gagner : `revente` $ d'office. « habit » : la peinture OR MASSIF ou la traînée ARC-EN-CIEL ; déjà tout :
+-- `v` $. L'ordre est celui de la roue, dans le sens des aiguilles d'une montre depuis le haut.
+Config.ROUE = {
+	libreH = 4, parties = 3, revente = 7500,
+	cases = {
+		{ k = "argent", v = 250, w = 24 },
+		{ k = "caisse", w = 7 },
+		{ k = "argent", v = 500, w = 22 },
+		{ k = "argent", v = 2500, w = 9 },
+		{ k = "argent", v = 1000, w = 18 },
+		{ k = "habit", v = 2500, w = 5 },
+		{ k = "argent", v = 5000, w = 5 },
+		{ k = "argent", v = 20000, w = 1, jackpot = true },
+	},
+}
+
 -- ── LES REVENUS (voir ServerScriptService/Revenus) — HORS de la boutique des caisses ──
 -- Les NUMÉROS se posent ici une fois les objets créés sur create.roblox.com (ton expérience → Monétisation / Engagement) : à 0,
 -- l'objet n'existe pas et ce qui en dépend se tait. Les prix en Robux se règlent sur le site, pas ici.
@@ -258,7 +277,7 @@ Config.REVENUS = {
 	-- « VIP » (cadeaux du jour et de temps de jeu doublés, nom doré au-dessus de la caisse)
 	passes = { argent2 = 0, vip = 0 },
 	-- les PRODUITS (achat répété) : la SECONDE CHANCE (repartir là où l'on a explosé, la partie continue)
-	produits = { secondeChance = 0 },
+	produits = { secondeChance = 0, tours3 = 0 }, -- (tours3 : TROIS TOURS DE ROUE d'un coup — voir Config.ROUE)
 	-- les BADGES : bienvenue, permis de l'auto-école, zone 6 atteinte, moteur palier 10, 1 000 d'aura en une partie, record d'un
 	-- million, sept jours d'affilée
 	badges = { bienvenue = 0, permis = 0, zone6 = 0, moteur10 = 0, aura1000 = 0, millionnaire = 0, serie7 = 0 },
@@ -273,6 +292,9 @@ Config.REVENUS = {
 -- la lire. (banc) LANGUE_TEST force la langue (« en » : tout le jeu en anglais dans un Studio réglé en français).
 Config.LANGUE_TEST = nil :: string?
 Config.TACTILE_TEST = nil :: boolean? -- (banc) l'interface du TÉLÉPHONE (volant, bouton nitro, astuces tactiles) dans Studio
+-- (banc) la copie de TEST est MUETTE (Sacha, 4/10 : les essais jouaient le son du jeu sur son PC pendant qu'il travaillait) —
+-- outils/banc.sh la pose toujours, sauf `SON=1` ; le jeu publié n'y touche jamais
+Config.MUET_TEST = nil :: boolean?
 function Config.francais(): boolean
 	if Config.LANGUE_TEST then return Config.LANGUE_TEST == "fr" end
 	local ok, l = pcall(function() return game:GetService("Players").LocalPlayer.LocaleId end)

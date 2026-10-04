@@ -2,6 +2,9 @@
 
 Le jeu web vit dans `VERSION PRINCIPALE/` : un seul fichier, `index.html`. Son guide complet est `VERSION PRINCIPALE/CLAUDE.md`, à lire
 avant d'y toucher. `ROBLOX/` est un autre jeu, le portage Roblox : un commit ROBLOX ne change pas le jeu web.
+**L'édition POKI** (2026-10-04) n'est pas un autre jeu : c'est `VERSION PRINCIPALE` sans missions, carrière ni boutique, avec le SDK de
+Poki. `node poki-construire.js` en tire `POKI/` et `POKI.zip` (ignorés par git, à refaire après chaque changement du jeu) ; `?poki=1`
+la montre sur n'importe quelle copie. Le détail : « L'ÉDITION POKI » dans `VERSION PRINCIPALE/CLAUDE.md`.
 
 ## LA VERSION DE RÉFÉRENCE (2026-10-01, Léo : « toutes les discussions où j'évoque une version récente, je parle de celle-là — et qu'on soit à jour avec ça, sans tout casser, parce que la dernière fois ça a tout cassé »)
 - Quand Léo (ou Sacha) dit « la version récente », « la nouvelle version », « la dernière », « celle de ce soir » ou « la bonne », il parle
@@ -40,6 +43,10 @@ avant d'y toucher. `ROBLOX/` est un autre jeu, le portage Roblox : un commit ROB
   musique « coupée bizarrement ») et le tempo qui suivait la voiture retiré (il DISTORDAIT, mesuré). Le détail : `VERSION PRINCIPALE/CLAUDE.md`.
   · (2026-10-03, Sacha) DEBOUT, la comète de NITROOO ne voile plus l'écran : le dragon n'est plus « transparent » (le paysage ne bouge pas).
   · la MISE À JOUR TOUTE SEULE et le numéro de version dans les réglages.
+  · (2026-10-04, Léo, d'abord sur sa copie de test) LE DÉPART EN MUSIQUE : le lobby s'efface pendant le piqué et la musique de course
+    part TOUT DE SUITE, pendant le boost, en fondu de 0,6 s (`DEPMUS`) — le son de transition `depart.envol` a été RETIRÉ (Léo).
+  · (2026-10-04, Léo, copie de test) la MÉLODIE de la phrase du nitro s'éteint de nouveau (un `//` avalait son extinction depuis le 3/10 :
+    une nappe d'orgue sous les « ding » — c'était l'intrus).
 - **SANS TOUT CASSER** — la règle de chaque session, avant de pousser :
   1. Partir de `origin/main` À JOUR : `git fetch origin main`, puis `git merge origin/main`. Jamais d'une vieille branche, jamais d'une copie locale.
   2. Sur `main`, on FUSIONNE. Jamais de `push --force`, de `reset` ni de revert du travail de l'autre ; dans un conflit, on garde les deux.

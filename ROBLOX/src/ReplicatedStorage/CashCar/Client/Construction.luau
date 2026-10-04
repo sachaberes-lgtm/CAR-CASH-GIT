@@ -57,7 +57,8 @@ local function imageNappe(h: any): any?
 	-- une nuit de pluie ») : `reflets` → l'image fait 96 m de long et porte des TRAÎNÉES de néon (magenta, cyan, ambre des fenêtres),
 	-- étirées dans le sens de la route comme des enseignes renvoyées par l'eau. Roblox ne reflète que le ciel : ces reflets sont
 	-- peints, pas calculés — mais en roulant, c'est bien une route qui brille.
-	local N, H = 128, h.reflets and 256 or 2
+	-- (4/10 : toutes les routes ont une LONGUEUR d'image — 96 m — pour porter la matière du bitume, voir plus bas)
+	local N, H = 128, h.reflets and 256 or 128
 	local ok, im = pcall(function() return AssetServiceR:CreateEditableImage({ Size = Vector2.new(N, H) }) end)
 	if not ok or not im then return nil end
 	local px = table.create(N * H * 3, 0)
@@ -69,6 +70,39 @@ local function imageNappe(h: any): any?
 		for y = 0, H - 1 do
 			local o = (y * N + x) * 3
 			px[o + 1], px[o + 2], px[o + 3] = c[1], c[2], c[3]
+		end
+	end
+	-- LA MATIÈRE DU BITUME (Sacha, 4/10 : « améliore les graphismes au max ») : la dalle était un aplat — de près, une route
+	-- d'asphalte a des MARBRURES, des plaques plus claires, d'autres usées. Deux bruits doux (des cases de 8 et de 32 pixels, soit
+	-- 3,5 m et 14 m de large), qui bouclent sur la longueur de l'image ; pas de grain fin : sans mipmaps, un grain au pixel
+	-- scintillerait au loin. Moyenne 1 : la teinte de la route ne bouge pas, elle prend du relief.
+	do
+		local rb = Random.new(4242)
+		local function grille(c: number): { number }
+			local g = {}
+			for i = 1, (N // c + 2) * (H // c) do g[i] = rb:NextNumber() * 2 - 1 end
+			return g
+		end
+		local function bruit(g: { number }, c: number, x: number, y: number): number
+			local nx, ny = N // c + 2, H // c
+			local fx, fy = x / c, y / c
+			local ix, iy = math.floor(fx), math.floor(fy)
+			local tx, ty = fx - ix, fy - iy
+			tx, ty = tx * tx * (3 - 2 * tx), ty * ty * (3 - 2 * ty)
+			local function v(a: number, b: number): number return g[(b % ny) * nx + math.min(nx - 1, a) + 1] end
+			local h0 = v(ix, iy) + (v(ix + 1, iy) - v(ix, iy)) * tx
+			local h1 = v(ix, iy + 1) + (v(ix + 1, iy + 1) - v(ix, iy + 1)) * tx
+			return h0 + (h1 - h0) * ty
+		end
+		local g8, g32 = grille(8), grille(32)
+		for y = 0, H - 1 do
+			for x = 0, N - 1 do
+				local f = 1 + 0.08 * bruit(g8, 8, x, y) + 0.06 * bruit(g32, 32, x, y)
+				local o = (y * N + x) * 3
+				px[o + 1] *= f
+				px[o + 2] *= f
+				px[o + 3] *= f
+			end
 		end
 	end
 	if h.reflets then
@@ -190,7 +224,7 @@ local function dalle(sections: { CFrame }, dossier: Instance, ctx: { habit: any,
 		local dist = ctx.dist
 		for k, f in sections do
 			if k > 1 then dist += (f.Position - sections[k - 1].Position).Magnitude / M end
-			local v = habit.reflets and dist / 96 or 0.5
+			local v = dist / 96
 			local uG, uD = em:AddUV(Vector2.new(0.004, v)), em:AddUV(Vector2.new(0.996, v))
 			local o = (k - 1) * 4
 			uv[o + 1], uv[o + 2], uv[o + 3], uv[o + 4] = uG, uD, uG, uD

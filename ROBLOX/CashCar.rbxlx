@@ -26,7 +26,6 @@ local Bus = require(CL:WaitForChild("Bus"))
 local Garage = require(CL:WaitForChild("Garage"))
 local Score = require(CL:WaitForChild("Score"))
 local HudScore = require(CL:WaitForChild("HudScore"))
-local Missions = require(CL:WaitForChild("Missions"))
 -- (Luau refuse plus de 200 variables locales dans une fonction — le premier niveau du script en est une : la caméra et les
 -- nuages vivent dans la table KA)
 local KA: any = { Camera = require(CL:WaitForChild("Camera")), Nuages = require(CL:WaitForChild("Nuages")), Titre = require(CL:WaitForChild("Titre")),
@@ -42,6 +41,7 @@ KA.Pigeons = require(CL:WaitForChild("Pigeons"))
 KA.Impact = require(CL:WaitForChild("Impact"))
 KA.Recyclage = require(CL:WaitForChild("Recyclage"))
 KA.Revenus = require(CL:WaitForChild("Revenus")) -- (cadeaux, seconde chance, ×2 ARGENT : voir Client/Revenus)
+KA.Roue = require(CL:WaitForChild("Roue")) -- (LA ROUE, à la place des missions et de la carrière : voir Client/Roue)
 -- (le tapotement de la caisse au titre : le « toc » de tôle de l'atelier et une vibration)
 KA.Titre.surTape = function() Sons.vrai("garageTole", nil, nil, "poseChoc", 1.5, 0.35) Hud.vibre(14) end
 
@@ -124,6 +124,7 @@ local function montrerCaisse(oui: boolean)
 	end
 	for _, f in flammes do f.Enabled = oui end
 	for _, t in trainees do if not oui then t.Enabled = false end end
+	if poignees.heros then poignees.heros.Enabled = oui end -- (la lampe du héros s'éteint avec la caisse)
 end
 
 local record, compte, meilleurAura = 0, 0, 0
@@ -2796,7 +2797,6 @@ local function nouvellePartie()
 	table.clear(volants)
 	Score.debut(meilleurAura, profil.frenRec or 0)
 	HudScore.raz()
-	Missions.debut()
 	Bus.emit("partie")
 	E.air.Visible = false
 	montrerCaisse(true)
@@ -2842,10 +2842,9 @@ local function finPartie()
 	local recT = causeMort ~= "quitte" and (rec or recA or recM)
 	profil.moteurMax = math.max(moteurAvant, tier)
 	if lecon then profil.moteurMax = moteurAvant end
-	local mres = Missions.fin(CPT)
 	evFin:FireServer(argent, dist, aura, { lecon = lecon or nil, pieces = stats.pieces, figures = stats.poses, kmh = G.vmax, zone = G.nbZones + 1, tier = tier,
 		multi = Score.CHA.xMax, cause = causeMort, parfaites = stats.parfaites, fruits = stats.fruits, nitro = stats.nitro,
-		duree = stats.duree, chaine = stats.chaine, frenMax = Score.FREN.max, frenRec = Score.FREN.record, mis = mres.meilleur })
+		duree = stats.duree, chaine = stats.chaine, frenMax = Score.FREN.max, frenRec = Score.FREN.record })
 	if rec then record = argent end
 	if not lecon then meilleurAura = math.max(meilleurAura, aura) end
 	G.kmhRecord = math.max(G.kmhRecord or 0, G.vmax or 0)
@@ -2892,7 +2891,7 @@ local function finPartie()
 		E.mMoteurEncore.Text = ""
 	end
 	E.mPartie.Text = ""
-	Hud.defi(mres.carte)
+	Hud.defi(KA.Roue.carte()) -- (la carte de LA ROUE : les parties vers le prochain tour)
 	local st = {
 		{ "x" .. Score.CHA.xMax, T.multiMax },
 		{ Hud.entier(G.vmax), T.kmhMax }, { tostring(G.nbZones + 1), FR and "NIVEAU" or "LEVEL" },
@@ -3057,39 +3056,19 @@ function G.revivre(ok: boolean)
 	Sons.jouer("go")
 	Hud.vibre(30)
 end
--- ── LES MISSIONS : le carnet ouvert, ses trois défis, sa récompense (voir Client/Missions) ──
-Missions.init({
-	profil = function() return profil end,
-	action = function(nom: string, ...: any): (boolean, string?)
+-- ── LA ROUE (Sacha, 4/10) : à la place des MISSIONS et de la CARRIÈRE — le tirage au serveur, la roue tourne ici (Client/Roue) ──
+KA.Roue.init({
+	action = function(nom: string, ...: any): (boolean, any)
 		local ok, res, msg, p = pcall(function(...) return fnAction:InvokeServer(nom, ...) end, ...)
 		if not ok then return false, "erreur" end
-		if type(p) == "table" then
-			-- (le serveur rend le profil : on garde ce que la partie en cours a déjà coché, sa réponse peut arriver en retard)
-			local m = profil.mis
-			lireProfil(p)
-			if m and p.mis and m.n == p.mis.n then
-				for i = 1, 3 do
-					if m.ok[i] then p.mis.ok[i] = true end
-				end
-			end
-		end
+		if type(p) == "table" then lireProfil(p) end
 		return res == true, msg
 	end,
-	surHome = function()
-		Missions.fermer()
-		Hud.ecran("menu")
-	end,
-	surJouer = function()
-		Missions.fermer()
-		if mode == "menu" then jouer(nouvellePartie) end
-	end,
+	surEquipe = function(i: number) if poignees.indice ~= i then changerCaisse(i) end end,
+	info = E.roueInfo, pastille = E.bdRoue,
 })
-E.btMissions.Activated:Connect(function()
-	if mode ~= "menu" then return end
-	Hud.ecran("missions")
-	Missions.ouvrir()
-end)
-E.btCarriere.Activated:Connect(function() if mode == "menu" then Hud.toast(T.bientot) end end)
+E.btRoue.Activated:Connect(function() if mode == "menu" then KA.Roue.ouvrir() end end)
+E.mDefiBouton.Activated:Connect(function() if mode == "mort" then KA.Roue.ouvrir() end end)
 -- LA BOUTIQUE : une vitrine (rien ne se vend encore) ; RETOUR ramène à l'écran d'où l'on vient
 G.boutique = require(CL:WaitForChild("Boutique"))
 G.boutique.init({ retour = function(d: string)
@@ -3123,7 +3102,6 @@ function G.badges()
 end
 KA.badges = G.badges
 E.btBoutiqueM.Activated:Connect(function() if mode == "mort" then G.boutique.ouvrir("mort") end end)
-Hud.surMenu = function() Hud.pastilles(Missions.faits()) end
 E.btRejouer.Activated:Connect(function() if mode == "mort" then nouvellePartie() end end)
 -- (mise au point) "DbgJouer" : lancer une partie depuis la console ou le banc à distance — du menu ou de l'écran de fin, l'auto-école passée
 workspace:GetAttributeChangedSignal("DbgJouer"):Connect(function()
@@ -3217,7 +3195,7 @@ game:GetService("UserInputService").InputBegan:Connect(function(io: InputObject)
 	end
 end)
 -- (mise au point) "DbgOuvre" : ouvrir un écran du menu depuis la console ou le banc à distance — "garage", "boutique",
--- "reglages", "missions", "menu" (le retour) ; pour comparer chaque écran à la capture du jeu web sans toucher à la souris
+-- "reglages", "roue", "menu" (le retour) ; pour comparer chaque écran à la capture du jeu web sans toucher à la souris
 workspace:GetAttributeChangedSignal("DbgOuvre"):Connect(function()
 	local v = tostring(workspace:GetAttribute("DbgOuvre") or "")
 	if v == "pause" then
@@ -3257,7 +3235,7 @@ workspace:GetAttributeChangedSignal("DbgOuvre"):Connect(function()
 	elseif v == "menu" then
 		if mode == "garage" then Garage.fermer() end
 		G.boutique.fermer()
-		Missions.fermer()
+		KA.Roue.fermer()
 		if mode == "menu" or mode == "garage" or mode == "mort" then allerMenu() end
 	elseif mode ~= "menu" then
 		return
@@ -3268,9 +3246,8 @@ workspace:GetAttributeChangedSignal("DbgOuvre"):Connect(function()
 	elseif v == "reglages" then
 		retourReglages = "menu"
 		Hud.ecran("reglages")
-	elseif v == "missions" then
-		Hud.ecran("missions")
-		Missions.ouvrir()
+	elseif v == "roue" then
+		KA.Roue.ouvrir()
 	end
 end)
 E.btReprendre.Activated:Connect(function()
@@ -3619,11 +3596,7 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 			-- les missions relisent les compteurs de la partie
 			CPT.pieces, CPT.fruits, CPT.gains, CPT.poses, CPT.parfaites = stats.pieces, stats.fruits, argent - Config.CASH_DEPART, stats.poses, stats.parfaites
 			CPT.kmh, CPT.zones, CPT.duree, CPT.chaine, CPT.nitro = G.vmax, G.nbZones, stats.duree, stats.chaine, stats.nitro
-			-- (les missions et la leçon ne doivent JAMAIS pouvoir arrêter la partie : une erreur les coupe, la course continue)
-			if mode == "drive" or mode == "fall" then
-				local okM, errM = pcall(Missions.tick, dt, CPT)
-				if not okM then warn("[CashCar] missions : " .. tostring(errM)) end
-			end
+			-- (la leçon ne doit JAMAIS pouvoir arrêter la partie : une erreur la coupe, la course continue)
 			if TU.on and not intro then
 				local okT, errT = pcall(TU.tick, dt)
 				if not okT then
@@ -3842,7 +3815,7 @@ Caisse.Catalogue = Catalogue
 
 -- comment chaque matière du jeu web répond à la lumière de Roblox
 local MATIERES = {
-	p = { Enum.Material.SmoothPlastic, 0.10 }, -- LAQUE
+	p = { Enum.Material.SmoothPlastic, 0.15 }, -- LAQUE (4/10 : 0,10 → 0,15 — la peinture renvoie le ciel, la caisse brille)
 	c = { Enum.Material.SmoothPlastic, 0.45 }, -- CHROME
 	o = { Enum.Material.SmoothPlastic, 0.35 }, -- OR
 	s = { Enum.Material.SmoothPlastic, 0.0 },  -- cuir, toile, satiné
@@ -4053,6 +4026,24 @@ function Caisse.construire(nom: string, indice: number, ancree: boolean?, habits
 	reflet.Color = Color3.fromRGB(255, 122, 36)
 	reflet.Parent = r
 	poignees.reflet = reflet
+	-- LA LAMPE DU HÉROS (4/10, « améliore les éclairages ») : la caméra de poursuite voit la caisse de DOS, souvent à contre-jour —
+	-- une carrosserie terne, sans reflet. Une lampe douce, derrière et au-dessus (là où est la caméra), allume le coffre et le toit et
+	-- pose un éclat sur la laque. Rien qu'une lumière (aucune pièce), et seulement sur la caisse du joueur (la vitrine du garage a
+	-- ses lampes de studio).
+	if nom == "MaCaisse" then
+		local a = Instance.new("Attachment")
+		a.Name = "LampeHeros"
+		a.Position = Vector3.new(0, (fiche.h or 1.4) * 1.9 * M, (fiche.l * 0.5 + 2.4) * M)
+		a.Parent = r
+		local l = Instance.new("PointLight")
+		l.Name = "Heros"
+		l.Range = 9 * M
+		l.Brightness = 1.1
+		l.Color = Color3.fromRGB(255, 244, 232)
+		l.Shadows = false
+		l.Parent = a
+		poignees.heros = l
+	end
 
 	-- ── l'échappement : une flamme par POT (4 au plus), un ruban par côté — aux vrais emplacements de CETTE caisse ──
 	local fx = fiche.fx
@@ -4353,7 +4344,8 @@ end
 return Caisse
 ]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX0000004E"><Properties><string name="Name">Caisses</string></Properties><Item class="ModuleScript" referent="RBX00000007"><Properties><string name="Name">Catalogue</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LE CATALOGUE DES 69 CAISSES — CUIT par outils/cuire-caisses.js depuis VERSION PRINCIPALE/index.html, ne pas éditer.
 -- Indices du jeu web (0 = LA HONTE) : ce sont ceux des sauvegardes, ils ne bougent jamais.
--- Repère : nez vers −Z, droite du pilote +X, mètres. cond.k : depart · prix (v = $) · aura (rang) · carnet (n°) · premium (argent réel) · carrN / carrV (campagne).
+-- Repère : nez vers −Z, droite du pilote +X, mètres. cond.k : depart · prix (v = $) · aura (rang) · roue (EXCLUSIVE de la ROUE : elle ne
+-- s'achète pas, elle se gagne en la tournant — ce sont les anciennes caisses des carnets et de la campagne, 4/10) · premium (argent réel).
 -- roues = { x, y, z, miroir, rayon } · trainees = un point par ruban de nitro · ailes = panneaux | helices | none (ce que le gabarit déploie en vol).
 return {
 	[0] = { nom = "LA HONTE", en = "THE SHAME", rar = "commun", gabarit = "epave", cond = { k = "depart" },
@@ -4392,19 +4384,19 @@ return {
 		trainees = { { -0.4, 0.4, 2.19 }, { 0.4, 0.4, 2.19 } }, capot = { 0, 1.1846, -1.1592 },
 		roues = { { 0.8, 0.36, -1.14, true, 0.36 }, { -0.8, 0.36, -1.14, false, 0.36 }, { 0.8, 0.36, 1.32, true, 0.36 }, { -0.8, 0.36, 1.32, false, 0.36 } }, ailes = "panneaux", fx = nil,
 		desc = "Elle était punaisée au mur de ta chambre. Maintenant, c'est toi qui la conduis.", descEN = "She was pinned to your bedroom wall. Now you're the one driving her." },
-	[6] = { nom = "LA BULLE", en = "THE BUBBLE", rar = "defi", gabarit = "bulle", cond = { k = "carnet", v = 1 },
+	[6] = { nom = "LA BULLE", en = "THE BUBBLE", rar = "defi", gabarit = "bulle", cond = { k = "roue" },
 		laque = 0x8fd6ff, accent = 0xf3ead6, w = 1.9, h = 1.53, l = 4.2, kmh = 215, triangles = 3304,
 		phare = { -0.7, 0.78, -1.78 }, feu = { -0.72, 0.72, 1.74 }, pots = { { -0.3, 0.36, 2.18 }, { 0.3, 0.36, 2.18 } },
 		trainees = { { -0.3, 0.36, 2.18 }, { 0.3, 0.36, 2.18 } }, capot = { 0, 1.5434, -1.176 },
 		roues = { { 0.74, 0.36, -1.3, true, 0.36 }, { -0.74, 0.36, -1.3, false, 0.36 }, { 0.74, 0.36, 1.22, true, 0.36 }, { -0.74, 0.36, 1.22, false, 0.36 } }, ailes = "panneaux", fx = nil,
 		desc = "Ronde comme un sou neuf. Tout le monde lui sourit, même la police.", descEN = "Round as a shiny penny. Everyone smiles at it, even the cops." },
-	[7] = { nom = "LE COMBI", en = "THE CAMPER", rar = "defi", gabarit = "combi", cond = { k = "carnet", v = 2 },
+	[7] = { nom = "LE COMBI", en = "THE CAMPER", rar = "defi", gabarit = "combi", cond = { k = "roue" },
 		laque = 0x35c2bb, accent = 0xf4ecd8, w = 1.76, h = 1.98, l = 4.4, kmh = 245, triangles = 2804,
 		phare = { -0.6, 0.82, -2.24 }, feu = { -0.74, 0.8, 2.24 }, pots = { { -0.3, 0.4, 2.33 }, { 0.3, 0.4, 2.33 } },
 		trainees = { { -0.3, 0.4, 2.33 }, { 0.3, 0.4, 2.33 } }, capot = { 0, 1.8944, -1.232 },
 		roues = { { 0.78, 0.36, -1.22, true, 0.36 }, { -0.78, 0.36, -1.22, false, 0.36 }, { 0.78, 0.36, 1.22, true, 0.36 }, { -0.78, 0.36, 1.22, false, 0.36 } }, ailes = "panneaux", fx = nil,
 		desc = "Planche sur le toit, la paix dans le cœur, et 45 chevaux qui font de leur mieux.", descEN = "Board on the roof, peace in the heart, and 45 horses doing their best." },
-	[8] = { nom = "LA DOLORÈS", en = "LA DOLORES", rar = "defi", gabarit = "dolores", cond = { k = "carnet", v = 3 },
+	[8] = { nom = "LA DOLORÈS", en = "LA DOLORES", rar = "defi", gabarit = "dolores", cond = { k = "roue" },
 		laque = 0xc3c7cc, accent = 0x141518, w = 1.86, h = 1.14, l = 4.22, kmh = 360, triangles = 2372,
 		phare = { -0.5, 0.56, -2.13 }, feu = { -0.54, 0.66, 2.13 }, pots = { { -0.38, 0.34, 2.23 }, { 0.38, 0.34, 2.23 } },
 		trainees = { { -0.38, 0.34, 2.23 }, { 0.38, 0.34, 2.23 } }, capot = { 0, 1.2392, -1.1816 },
@@ -4728,37 +4720,37 @@ return {
 		trainees = { { -0.46, 0.43, 2.44 }, { 0.46, 0.43, 2.44 } }, capot = { 0, 1.208, -1.316 },
 		roues = { { 0.84, 0.37, -1.4, true, 0.37 }, { -0.84, 0.37, -1.4, false, 0.37 }, { 0.84, 0.37, 1.4, true, 0.37 }, { -0.84, 0.37, 1.4, false, 0.37 } }, ailes = "panneaux", fx = nil,
 		desc = "Il dormait sur un tas d'or. Maintenant il roule dessus, et il crache du feu à chaque rapport.", descEN = "It used to sleep on a pile of gold. Now it drives on one, and breathes fire on every gear change." },
-	[62] = { nom = "LE MASTODONTE", en = "THE MASTODON", rar = "defi", gabarit = "a_mastodonte", cond = { k = "carnet", v = 9 },
+	[62] = { nom = "LE MASTODONTE", en = "THE MASTODON", rar = "defi", gabarit = "a_mastodonte", cond = { k = "roue" },
 		laque = 0x1463ff, accent = 0xff7a14, w = 2.6, h = 3, l = 4.8, kmh = 280, triangles = 3472,
 		phare = { -0.74, 1.86, -2.39 }, feu = { -0.86, 1.86, 2.39 }, pots = { { 0.57, 0.5, 2.39 }, { -0.57, 0.5, 2.39 } },
 		trainees = { { -0.57, 0.5, 2.39 }, { 0.57, 0.5, 2.39 } }, capot = { 0, 2.69, -1.344 },
 		roues = { { 1, 0.8, -1.48, true, 0.8 }, { -1, 0.8, -1.48, false, 0.8 }, { 1, 0.8, 1.48, true, 0.8 }, { -1, 0.8, 1.48, false, 0.8 } }, ailes = "panneaux", fx = nil,
 		desc = "Il ne double personne : il passe dessus. Les dos d'âne, c'est lui qui les fabrique.", descEN = "It doesn't pass anyone: it drives over them. Speed bumps? It makes them." },
-	[63] = { nom = "LA GROUPE B", en = "THE GROUP B", rar = "defi", gabarit = "b_groupeb", cond = { k = "carnet", v = 7 },
+	[63] = { nom = "LA GROUPE B", en = "THE GROUP B", rar = "defi", gabarit = "b_groupeb", cond = { k = "roue" },
 		laque = 0xf4f4f0, accent = 0xd8261e, w = 1.67, h = 1.35, l = 3.83, kmh = 380, triangles = 3440,
 		phare = { -0.53, 0.64, -1.93 }, feu = { -0.55, 0.83, 1.93 }, pots = { { -0.37, 0.3, 1.97 }, { 0.37, 0.3, 1.97 } },
 		trainees = { { -0.37, 0.3, 1.97 }, { 0.37, 0.3, 1.97 } }, capot = { 0, 1.403, -1.0724 },
 		roues = { { 0.74, 0.33, -1.28, true, 0.33 }, { -0.74, 0.33, -1.28, false, 0.33 }, { 0.74, 0.33, 1.26, true, 0.33 }, { -0.74, 0.33, 1.26, false, 0.33 } }, ailes = "panneaux", fx = nil,
 		desc = "Tellement rapide qu'on l'a interdite. Ici, personne n'interdit rien : bon courage pour la rattraper.", descEN = "So fast they banned it. Nobody bans anything here: good luck catching it." },
-	[64] = { nom = "LE HOT ROD", en = "THE HOT ROD", rar = "defi", gabarit = "c_hotrod", cond = { k = "carnet", v = 8 },
+	[64] = { nom = "LE HOT ROD", en = "THE HOT ROD", rar = "defi", gabarit = "c_hotrod", cond = { k = "roue" },
 		laque = 0x121212, accent = 0xff6a14, w = 1.7, h = 1.4, l = 3.9, kmh = 380, triangles = 3410,
 		phare = { -0.5, 0.98, -1.7 }, feu = { -0.34, 0.7, 1.87 }, pots = { { -0.36, 0.36, 1.94 }, { 0.36, 0.36, 1.94 } },
 		trainees = { { -0.36, 0.36, 1.94 }, { 0.36, 0.36, 1.94 } }, capot = { 0, 1.442, -1.092 },
 		roues = { { 0.68, 0.35, -1.6, true, 0.35 }, { -0.68, 0.35, -1.6, false, 0.35 }, { 0.68, 0.35, 1.09, true, 0.35 }, { -0.68, 0.35, 1.09, false, 0.35 } }, ailes = "panneaux", fx = nil,
 		desc = "Un capot ? Pour cacher un compresseur pareil ? Tu rigoles. Même les flammes sont d’époque.", descEN = "A hood? To hide a blower like that? You're kidding. Even the flames are vintage." },
-	[65] = { nom = "LA PUCE", en = "THE FLEA", rar = "defi", gabarit = "d_puce", cond = { k = "carnet", v = 6 },
+	[65] = { nom = "LA PUCE", en = "THE FLEA", rar = "defi", gabarit = "d_puce", cond = { k = "roue" },
 		laque = 0xc8141e, accent = 0xf4f4f0, w = 1.41, h = 1.35, l = 3.05, kmh = 320, triangles = 3428,
 		phare = { -0.5, 0.665, -1.46 }, feu = { -0.54, 0.66, 1.46 }, pots = { { -0.31, 0.26, 1.52 } },
 		trainees = { { -0.31, 0.26, 1.52 } }, capot = { 0, 1.403, -0.854 },
 		roues = { { 0.6, 0.25, -0.99, true, 0.25 }, { -0.6, 0.25, -0.99, false, 0.25 }, { 0.6, 0.25, 0.99, true, 0.25 }, { -0.6, 0.25, 0.99, false, 0.25 } }, ailes = "panneaux", fx = nil,
 		desc = "Trois mètres, quatre phares, zéro complexe. Elle a battu des monstres sur la neige : toi, c'est l'apéro.", descEN = "Ten feet long, four headlights, zero complexes. It beat monsters in the snow: you're just the appetizer." },
-	[66] = { nom = "LA CAISSE-NUAGE", en = "THE CLOUD CAR", rar = "defi", gabarit = "nuage", cond = { k = "carrN", v = 10 },
+	[66] = { nom = "LA CAISSE-NUAGE", en = "THE CLOUD CAR", rar = "defi", gabarit = "nuage", cond = { k = "roue" },
 		laque = 0xfff6ee, accent = 0xffd9b8, w = 2.1, h = 1.3, l = 4.1, kmh = 360, triangles = 6349,
 		phare = { -0.56, 0.6, -1.98 }, feu = { -0.6, 0.66, 1.98 }, pots = { { 0.462, 0.43, 2.36 }, { -0.462, 0.43, 2.36 } },
 		trainees = { { -0.462, 0.43, 2.36 }, { 0.462, 0.43, 2.36 } }, capot = { 0, 1.364, -1.148 },
 		roues = { { 0.98, 0.36, -1.28, false, 0.36 }, { -0.98, 0.36, -1.28, false, 0.36 }, { 0.98, 0.36, 1.28, false, 0.36 }, { -0.98, 0.36, 1.28, false, 0.36 } }, ailes = "none", fx = { jet = 0xfff0f6, core = 0xffffff, light = 0xffe6f2, trainee = { 1.25, 1.05, 0.9 } },
 		desc = "Tu l'as chassée tout un coucher de soleil. Elle est douce comme un nuage et elle file comme un orage.", descEN = "You chased her through a whole sunset. Soft as a cloud, fast as a storm." },
-	[67] = { nom = "LE LINGOT", en = "THE GOLD BAR", rar = "defi", gabarit = "lingot", cond = { k = "carrV", v = 10 },
+	[67] = { nom = "LE LINGOT", en = "THE GOLD BAR", rar = "defi", gabarit = "lingot", cond = { k = "roue" },
 		laque = 0xffc33a, accent = 0x3a2400, w = 2.1, h = 1.5, l = 4.3, kmh = 380, triangles = 946,
 		phare = { -0.62, 0.66, -2.16 }, feu = { -0.66, 0.7, 2.14 }, pots = { { 0.462, 0.43, 2.46 }, { -0.462, 0.43, 2.46 } },
 		trainees = { { -0.462, 0.43, 2.46 }, { 0.462, 0.43, 2.46 } }, capot = { 0, 1.52, -1.204 },
@@ -5944,8 +5936,10 @@ function Ciel.poser(Lighting: Lighting, ws: Workspace)
 	-- (le ciel de Roblox, pris comme lumière d'ambiance, teintait TOUTES les ombres en cyan et se reflétait dans le bitume —
 	-- une route bleu clair, des nuages de glace : l'ambiance vient de OutdoorAmbient, lavande, et le reflet du ciel est en sourdine)
 	Lighting.EnvironmentDiffuseScale = 0.3
-	Lighting.EnvironmentSpecularScale = 0.4
-	Lighting.ShadowSoftness = 0.25
+	-- (4/10, Sacha : « améliore les éclairages ») le reflet du ciel remonte SUR LES LAQUES — la caisse prend enfin le ciel et le soleil
+	-- dans sa peinture — sans toucher à l'ambiance (c'est elle qui teintait le bitume en cyan) ; des ombres plus franches
+	Lighting.EnvironmentSpecularScale = 0.75
+	Lighting.ShadowSoftness = 0.15
 	Lighting.GlobalShadows = true
 	Lighting.ExposureCompensation = C.expo
 	Lighting.ColorShift_Top = C.soleil
@@ -5969,7 +5963,7 @@ function Ciel.poser(Lighting: Lighting, ws: Workspace)
 	atm.Haze = C.brumeVoile
 
 	local bloom = obtenir(Lighting, "BloomEffect", "Bloom")
-	bloom.Intensity = 0.3 -- (à 0,55 / 0,94 tout ce qui était clair bavait : les nuages, la mer, le sillage — une image surexposée)
+	bloom.Intensity = 0.36 -- (à 0,55 / 0,94 tout ce qui était clair bavait : les nuages, la mer, le sillage — une image surexposée ; 0,36 : les néons respirent)
 	bloom.Size = 24
 	bloom.Threshold = 1.5
 
@@ -5984,12 +5978,12 @@ function Ciel.poser(Lighting: Lighting, ws: Workspace)
 	-- (3e retour : le jeu web est VELOUTÉ — son flou de vitesse fond tout le décor ; un lointain net montrait des nuages en
 	-- carton. La caisse et la route proche restent nettes, tout le reste se floute franchement.)
 	flou.FocusDistance = 20
-	flou.InFocusRadius = 50
+	flou.InFocusRadius = 65
 	flou.NearIntensity = 0
 	flou.FarIntensity = 0.8
 
 	local rays = obtenir(Lighting, "SunRaysEffect", "Rayons")
-	rays.Intensity = 0.05
+	rays.Intensity = 0.1 -- (4/10 : les rayons se voient quand on regarde vers le soleil)
 	rays.Spread = 0.55
 
 	-- les nuages dynamiques de Roblox, au-dessus : de la matière dans le ciel, zéro pièce
@@ -6110,6 +6104,11 @@ local courante = ""
 
 function Ambiance.nom(): string return courante end
 
+-- L'ÉCLAT (Sacha, 4/10 : « améliore les éclairages et les graphismes » — et sa direction de toujours : saturé, contrasté, façon GTA,
+-- jamais délavé). Mesuré au banc en A/B sur la même image : +0,12 de saturation, +0,08 de contraste, et le JOUR, le voile et
+-- l'éblouissement de la brume divisés par deux — le ciel bleuit, les nuages prennent du relief, la ville claque. (La nuit, le
+-- voile reste : c'est lui qui peint le ciel violet de la ville et de l'orage.)
+local ECLAT = { sat = 0.12, con = 0.08, voile = 0.55, eblouit = 0.5 }
 function Ambiance.poser(nom: string, duree: number?)
 	local H = HEURES[nom]
 	if not H or nom == courante then return end
@@ -6118,10 +6117,12 @@ function Ambiance.poser(nom: string, duree: number?)
 	local cc = Lighting:FindFirstChild("Etalonnage")
 	local info = TweenInfo.new(math.max(0.01, duree or 1.2), Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
 	if atm then
-		TweenService:Create(atm, info, { Color = H.brume, Decay = H.loin, Glare = H.eclat, Haze = H.voile, Density = H.densite }):Play()
+		local jour = not (H.nuit or H.noir or H.sansSoleil)
+		TweenService:Create(atm, info, { Color = H.brume, Decay = H.loin, Glare = H.eclat * (jour and ECLAT.eblouit or 1),
+			Haze = H.voile * (jour and ECLAT.voile or 1), Density = H.densite }):Play()
 	end
 	if cc then
-		TweenService:Create(cc, info, { TintColor = H.teinte, Saturation = H.sat, Contrast = H.con }):Play()
+		TweenService:Create(cc, info, { TintColor = H.teinte, Saturation = H.sat + ECLAT.sat, Contrast = H.con + ECLAT.con }):Play()
 	end
 	TweenService:Create(Lighting, info, { ColorShift_Top = H.soleil, OutdoorAmbient = H.ext, ExposureCompensation = H.expo,
 		Brightness = H.lum or 1.2, Ambient = H.amb or Config.CIEL.ambiance }):Play()
@@ -7358,7 +7359,8 @@ local function imageNappe(h: any): any?
 	-- une nuit de pluie ») : `reflets` → l'image fait 96 m de long et porte des TRAÎNÉES de néon (magenta, cyan, ambre des fenêtres),
 	-- étirées dans le sens de la route comme des enseignes renvoyées par l'eau. Roblox ne reflète que le ciel : ces reflets sont
 	-- peints, pas calculés — mais en roulant, c'est bien une route qui brille.
-	local N, H = 128, h.reflets and 256 or 2
+	-- (4/10 : toutes les routes ont une LONGUEUR d'image — 96 m — pour porter la matière du bitume, voir plus bas)
+	local N, H = 128, h.reflets and 256 or 128
 	local ok, im = pcall(function() return AssetServiceR:CreateEditableImage({ Size = Vector2.new(N, H) }) end)
 	if not ok or not im then return nil end
 	local px = table.create(N * H * 3, 0)
@@ -7370,6 +7372,39 @@ local function imageNappe(h: any): any?
 		for y = 0, H - 1 do
 			local o = (y * N + x) * 3
 			px[o + 1], px[o + 2], px[o + 3] = c[1], c[2], c[3]
+		end
+	end
+	-- LA MATIÈRE DU BITUME (Sacha, 4/10 : « améliore les graphismes au max ») : la dalle était un aplat — de près, une route
+	-- d'asphalte a des MARBRURES, des plaques plus claires, d'autres usées. Deux bruits doux (des cases de 8 et de 32 pixels, soit
+	-- 3,5 m et 14 m de large), qui bouclent sur la longueur de l'image ; pas de grain fin : sans mipmaps, un grain au pixel
+	-- scintillerait au loin. Moyenne 1 : la teinte de la route ne bouge pas, elle prend du relief.
+	do
+		local rb = Random.new(4242)
+		local function grille(c: number): { number }
+			local g = {}
+			for i = 1, (N // c + 2) * (H // c) do g[i] = rb:NextNumber() * 2 - 1 end
+			return g
+		end
+		local function bruit(g: { number }, c: number, x: number, y: number): number
+			local nx, ny = N // c + 2, H // c
+			local fx, fy = x / c, y / c
+			local ix, iy = math.floor(fx), math.floor(fy)
+			local tx, ty = fx - ix, fy - iy
+			tx, ty = tx * tx * (3 - 2 * tx), ty * ty * (3 - 2 * ty)
+			local function v(a: number, b: number): number return g[(b % ny) * nx + math.min(nx - 1, a) + 1] end
+			local h0 = v(ix, iy) + (v(ix + 1, iy) - v(ix, iy)) * tx
+			local h1 = v(ix, iy + 1) + (v(ix + 1, iy + 1) - v(ix, iy + 1)) * tx
+			return h0 + (h1 - h0) * ty
+		end
+		local g8, g32 = grille(8), grille(32)
+		for y = 0, H - 1 do
+			for x = 0, N - 1 do
+				local f = 1 + 0.08 * bruit(g8, 8, x, y) + 0.06 * bruit(g32, 32, x, y)
+				local o = (y * N + x) * 3
+				px[o + 1] *= f
+				px[o + 2] *= f
+				px[o + 3] *= f
+			end
 		end
 	end
 	if h.reflets then
@@ -7491,7 +7526,7 @@ local function dalle(sections: { CFrame }, dossier: Instance, ctx: { habit: any,
 		local dist = ctx.dist
 		for k, f in sections do
 			if k > 1 then dist += (f.Position - sections[k - 1].Position).Magnitude / M end
-			local v = habit.reflets and dist / 96 or 0.5
+			local v = dist / 96
 			local uG, uD = em:AddUV(Vector2.new(0.004, v)), em:AddUV(Vector2.new(0.996, v))
 			local o = (k - 1) * 4
 			uv[o + 1], uv[o + 2], uv[o + 3], uv[o + 4] = uG, uD, uG, uD
@@ -9811,7 +9846,8 @@ local function teinteTick(dt: number)
 	do
 		local flou = Lighting:FindFirstChild("Lointain")
 		if flou then
-			local v = ((etat.mode == "drive" or etat.mode == "fall") and not etat.intro) and 0.8 or 0
+			-- (4/10, « améliore les graphismes » : 0,8 → 0,6 — le lointain reste velouté, mais on y lit enfin les nuages et la ville)
+			local v = ((etat.mode == "drive" or etat.mode == "fall") and not etat.intro) and 0.6 or 0
 			local f = flou.FarIntensity + (v - flou.FarIntensity) * math.min(1, dt * 3)
 			if math.abs(f - flou.FarIntensity) > 0.002 then flou.FarIntensity = f end
 		end
@@ -11701,8 +11737,8 @@ local L = FR and {
 	home = "HOME", boutique = "BOUTIQUE", jouer = "JOUER", acheter = "ACHETER", manque = "IL MANQUE",
 	equiper = "EQUIPER", verrou = "VERROUILLEE", enBoutique = "EN BOUTIQUE", aToi = "A TOI !",
 	ilTeManque = "IL TE MANQUE ", bientot = "BIENTOT DISPONIBLE",
-	tout = "TOUT", aMoi = "A MOI", aAcheter = "A ACHETER", gagner = "A GAGNER", defi = "DEFI",
-	carnet = "SE GAGNE EN RELEVANT 3 DEFIS", carrN = "ATTRAPE-LA AU NIVEAU 10 DES NUAGES  (%d / 10)",
+	tout = "TOUT", aMoi = "A MOI", aAcheter = "A ACHETER", gagner = "A GAGNER", defi = "ROUE",
+	roue = "SE GAGNE A LA ROUE (ACCUEIL)", carrN = "ATTRAPE-LA AU NIVEAU 10 DES NUAGES  (%d / 10)",
 	carrV = "BATS LE BANQUIER AU NIVEAU 10 DE LA VILLE  (%d / 10)", aura = "RANG D'AURA « %s »   (le tien : « %s »)",
 	rangs = { "ANONYME", "REMARQUE", "ON PARLE DE TOI", "REPUTE", "LEGENDE LOCALE", "STAR DU BITUME", "MYTHE", "DIVINITE DU CIEL" },
 } or {
@@ -11710,8 +11746,8 @@ local L = FR and {
 	home = "HOME", boutique = "SHOP", jouer = "PLAY", acheter = "BUY", manque = "SHORT BY",
 	equiper = "EQUIP", verrou = "LOCKED", enBoutique = "IN THE SHOP", aToi = "YOURS!",
 	ilTeManque = "SHORT BY ", bientot = "COMING SOON",
-	tout = "ALL", aMoi = "MINE", aAcheter = "FOR SALE", gagner = "EARN IT", defi = "CHALLENGE",
-	carnet = "WON BY BEATING 3 CHALLENGES", carrN = "CATCH HER IN CLOUDS LEVEL 10  (%d / 10)",
+	tout = "ALL", aMoi = "MINE", aAcheter = "FOR SALE", gagner = "EARN IT", defi = "WHEEL",
+	roue = "WON ON THE WHEEL (HOME SCREEN)", carrN = "CATCH HER IN CLOUDS LEVEL 10  (%d / 10)",
 	carrV = "BEAT THE BANKER IN CITY LEVEL 10  (%d / 10)", aura = 'AURA RANK "%s"   (yours: "%s")',
 	rangs = { "NOBODY", "NOTICED", "THEY'RE TALKING ABOUT YOU", "RENOWNED", "LOCAL LEGEND", "ASPHALT STAR", "MYTH", "SKY GOD" },
 }
@@ -11741,7 +11777,7 @@ local function ordre(i: number): number -- carOrdre : dans une famille, du plus 
 	if k.k == "depart" then return -1 end
 	if k.k == "prix" then return k.v end
 	if k.k == "premium" then return eurNombre(k.eur) end
-	if k.k == "carnet" then return k.v end
+	if k.k == "roue" then return i end
 	if k.k == "aura" then return 100 + k.v end
 	return 1e9
 end
@@ -11784,7 +11820,6 @@ local function gagnee(i: number): boolean -- carUnlockedVrai
 	local k = Catalogue[i].cond
 	if k.k == "depart" or possede(i) then return true end
 	if k.k == "aura" then return rangAura(profil().aura or 0) - 1 >= k.v end
-	if k.k == "carnet" then return ((profil().mis and profil().mis.n) or 0) >= k.v end
 	return false
 end
 local function ouverte(i: number): boolean return Config.TEST_CAISSES == true or gagnee(i) end
@@ -11797,7 +11832,7 @@ local choisi = { peinture = 1, aile = 1, trainee = 1 }     -- l'article montré 
 local filtre = "tout"
 local function tenue(): any return profil().porte or { peinture = "usine", aile = "panneaux", trainee = "nitro" } end
 local function aHabit(cat: string, d: any): boolean
-	if not d.p and not d.mis then return true end
+	if not d.p and not d.mis and not d.roue then return true end
 	return table.find(profil().habits or {}, cat .. ":" .. d.id) ~= nil
 end
 local function habitsVitrine(): any
@@ -12445,9 +12480,7 @@ end
 -- ce qu'il reste à faire pour une caisse fermée (carUnlockText)
 local function condition(i: number): string
 	local k = Catalogue[i].cond
-	if k.k == "carnet" then return L.carnet end
-	if k.k == "carrN" then return string.format(L.carrN, 0) end
-	if k.k == "carrV" then return string.format(L.carrV, 0) end
+	if k.k == "roue" then return L.roue end
 	if k.k == "aura" then return string.format(L.aura, L.rangs[k.v + 1] or "?", L.rangs[rangAura(profil().aura or 0)]) end
 	if k.k == "premium" then return L.boutique .. " — " .. eurTexte(k.eur) end
 	return ""
@@ -13344,7 +13377,7 @@ local T = FR and {
 	multiMax = "MULTI MAX", kmhMax = "KM/H MAX", zone = "ZONE", figures = "FIGURES", frenesie = "FRENESIE", distance = "DISTANCE", pieces = "PIECES",
 	aura = "AURA", moteur = "MOTEUR", nitro = "NITRO", air = "AIR", go = "GO !", niveau = "MER DE NUAGES",
 	astuce = "ASTUCE", glisse = "GLISSE POUR\nTOURNER", chargement = "LA ROUTE SE CONSTRUIT",
-		missions = "MISSIONS", garage = "GARAGE", carriere = "CARRIERE", boutique = "BOUTIQUE", bientot = "BIENTOT DISPONIBLE",
+		missions = "MISSIONS", garage = "GARAGE", carriere = "CARRIERE", boutique = "BOUTIQUE", bientot = "BIENTOT DISPONIBLE", roue = "LA ROUE",
 		facile = "MODE FACILE", choisis = "CHOISIS TON MODE", normal = "NORMAL", facileMot = "FACILE",
 		facileTxt = "En FACILE, la voiture suit mieux les virages, tu restes plus longtemps en l'air et tu as 3 vies. Tu pourras changer dans les réglages.",
 		vies = "PLUS QUE %d VIES", derniereVie = "DERNIERE VIE !", onRepart = "ON REPART !",
@@ -13371,7 +13404,7 @@ local T = FR and {
 	multiMax = "MAX MULTI", kmhMax = "MAX KM/H", zone = "ZONE", figures = "TRICKS", frenesie = "FRENZY", distance = "DISTANCE", pieces = "COINS",
 	aura = "AURA", moteur = "ENGINE", nitro = "NITRO", air = "AIR", go = "GO!", niveau = "SEA OF CLOUDS",
 	astuce = "TIP", glisse = "SWIPE TO\nSTEER", chargement = "BUILDING THE ROAD",
-		missions = "MISSIONS", garage = "GARAGE", carriere = "CAREER", boutique = "SHOP", bientot = "COMING SOON",
+		missions = "MISSIONS", garage = "GARAGE", carriere = "CAREER", boutique = "SHOP", bientot = "COMING SOON", roue = "THE WHEEL",
 		facile = "EASY MODE", choisis = "PICK YOUR MODE", normal = "NORMAL", facileMot = "EASY",
 		facileTxt = "In EASY, the car follows the turns better, you stay longer in the air and you get 3 lives. You can change it in the settings.",
 		vies = "%d LIVES LEFT", derniereVie = "LAST LIFE!", onRepart = "BACK ON THE ROAD!",
@@ -13855,18 +13888,17 @@ function Hud.creer()
 	end
 	E.menuRecord = texte(logo, { Text = "", TextSize = 16, TextColor3 = C.vert, Position = UDim2.fromOffset(0, 120), Visible = false, -- (L5613 : le logo parle seul)
 		TextXAlignment = Enum.TextXAlignment.Right, Size = UDim2.new(1, -14, 0, 20), TextWrapped = false })
-	-- la colonne de droite du web (#mHome) : MISSIONS + ⚙, puis GARAGE · CARRIERE · BOUTIQUE, puis JOUER en lettres d'or
-	E.btMissions = tuile(menu, T.missions, C.vert, UDim2.fromOffset(510, 94), UDim2.new(1, -668, 1, -366), nil, 39, "cible", "g")
-	-- les trois cases = les trois défis du carnet (allumées par le pilote : Hud.pastilles)
+	-- la colonne de droite : LA ROUE + ⚙, puis GARAGE · BOUTIQUE, puis JOUER en lettres d'or (Sacha, 4/10 : les MISSIONS et la
+	-- CARRIÈRE sont parties — « supprime les éléments inutiles » —, la ROUE a pris la place des missions, voir Client/Roue)
+	E.btRoue = tuile(menu, T.roue, C.or_, UDim2.fromOffset(510, 94), UDim2.new(1, -668, 1, -366), nil, 39,
+		"..#####..|.#..#..#.|#.#.#.#.#|#..###..#|#########|#..###..#|#.#.#.#.#|.#..#..#.|..#####..", "g")
+	-- (à droite de la tuile : « x2 » en or quand des tours attendent, sinon le compte à rebours du prochain tour gratuit)
+	E.roueInfo = texte(E.btRoue.Parent :: Instance, { Text = "", TextSize = 26, TextColor3 = C.terne, Size = UDim2.fromOffset(170, 40),
+		Position = UDim2.new(1, -40, 0.5, 0), AnchorPoint = Vector2.new(1, 0.5), TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false })
 	E.misPips = {}
-	for i = 1, 3 do
-		E.misPips[i] = inst("Frame", { BackgroundColor3 = C.trait, BorderSizePixel = 0, Size = UDim2.fromOffset(12, 26), Position = UDim2.new(1, -120 + i * 19, 0.5, 0),
-			AnchorPoint = Vector2.new(0, 0.5), Rotation = 12 }, E.btMissions.Parent)
-	end
 	E.btReglages = tuile(menu, "", C.cyan, UDim2.fromOffset(104, 94), UDim2.new(1, -148, 1, -366), nil, 34, "reglages")
-	E.btGarage = tuile(menu, T.garage, C.cyan, UDim2.fromOffset(202, 112), UDim2.new(1, -668, 1, -258), nil, 34, "voiture", "v")
-	E.btCarriere = tuile(menu, T.carriere, C.cyan, UDim2.fromOffset(202, 112), UDim2.new(1, -457, 1, -258), nil, 34, "trophee", "v")
-	E.btBoutique = tuile(menu, T.boutique, C.magenta, UDim2.fromOffset(202, 112), UDim2.new(1, -246, 1, -258), nil, 34, "panier", "v")
+	E.btGarage = tuile(menu, T.garage, C.cyan, UDim2.fromOffset(307, 112), UDim2.new(1, -668, 1, -258), nil, 34, "voiture", "v")
+	E.btBoutique = tuile(menu, T.boutique, C.magenta, UDim2.fromOffset(307, 112), UDim2.new(1, -352, 1, -258), nil, 34, "panier", "v")
 	-- LES PASTILLES (#bdGar, #bdShop, L5623) : le GARAGE dit combien de choses la banque peut s'offrir (caisses et habillages — tout
 	-- ce qui s'achète en argent du jeu est au garage) ; la BOUTIQUE dit NEW tant qu'on n'y est jamais allé
 	local function pastille(tuile9: TextButton, fond: Color3): TextLabel
@@ -13878,6 +13910,8 @@ function Hud.creer()
 	E.bdGar = pastille(E.btGarage, C.rouge)
 	E.bdShop = pastille(E.btBoutique, C.magenta)
 	E.bdShop.Text = "NEW"
+	E.bdRoue = pastille(E.btRoue, C.rouge) -- (un tour attend : le « ! » rouge, comme une notification)
+	E.bdRoue.Text = "!"
 	local jouer = inst("TextButton", { BackgroundTransparency = 1, AutoButtonColor = false, Size = UDim2.fromOffset(460, 100),
 		Position = UDim2.new(1, -356, 1, -20), AnchorPoint = Vector2.new(0.5, 1), FontFace = PIXI, Text = T.jouer, TextSize = 100,
 		TextColor3 = C.or_ }, menu)
@@ -14259,10 +14293,12 @@ function Hud.creer()
 	E.mMoteurPalier = texte(pm, { Text = "", RichText = true, TextSize = 26, TextColor3 = C.texte2, Size = UDim2.new(1, 0, 0, 46), Position = UDim2.fromOffset(0, 258), TextWrapped = false })
 	E.mMoteurEncore = texte(pm, { Text = "", TextSize = 17, TextColor3 = Color3.fromRGB(255, 176, 40), Size = UDim2.new(1, -16, 0, 48),
 		Position = UDim2.fromOffset(8, 308), LineHeight = 1.3 })
-	-- à droite : la carte du DÉFI
+	-- à droite : la carte de LA ROUE (l'ancienne carte du défi : les mêmes cases, voir Hud.defi et Client/Roue) — on la touche, la
+	-- roue s'ouvre
 	local pp = carbone(mort, UDim2.new(0.435, 0, 0, 282), UDim2.new(0.535, 0, 0, 26), C.vert)
+	E.mDefiBouton = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Text = "", AutoButtonColor = false }, pp)
 	E.mDefiFilet = pp:FindFirstChildOfClass("Frame")
-	E.mDefiIco = icone(pp, "coche", 4, C.vert, UDim2.fromOffset(28, 22))
+	E.mDefiIco = icone(pp, "..#####..|.#..#..#.|#.#.#.#.#|#..###..#|#########|#..###..#|#.#.#.#.#|.#..#..#.|..#####..", 4, C.vert, UDim2.fromOffset(28, 22))
 	E.mDefiTete = texte(pp, { Text = "", TextSize = 24, TextColor3 = C.vert, Size = UDim2.new(1, -200, 0, 26), Position = UDim2.fromOffset(76, 28),
 		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
 	E.mDefiPips = {}
@@ -16478,373 +16514,7 @@ function Mer.suivre(camPos: Vector3, yCaisse: number, dt: number, sous: number?)
 end
 
 return Mer
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000064"><Properties><string name="Name">Missions</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LES MISSIONS (carnets de 3 défis, voir Carnets). Trois endroits, comme sur le web :
---   · l'ÉCRAN des missions (depuis le menu) : les trois défis du carnet ouvert, leur jauge (le MEILLEUR ESSAI d'une
---     partie), la prime, la récompense ; on TOUCHE un défi pour le suivre en course ;
---   · EN COURSE : toutes les 0,25 s on relit les compteurs de la partie ; un défi réussi claque sa bannière verte
---     (« DEFI REUSSI » + la prime, versée au compte tout de suite, même si la partie finit mal) ; le défi SUIVI
---     tient une ligne discrète sous l'argent ;
---   · à la MORT : le défi dont cette partie s'est le plus approchée, et la récompense si le carnet vient de se fermer.
--- Le serveur fait foi (primes, récompenses) : ici on DEMANDE (ctx.action("defi", i, valeur)).
-local TweenService = game:GetService("TweenService")
-local CC = script.Parent.Parent
-local Carnets = require(CC:WaitForChild("Carnets"))
-local Caisse = require(CC:WaitForChild("Caisse"))
-local Hud = require(script.Parent:WaitForChild("Hud"))
-local Sons = require(script.Parent:WaitForChild("Sons"))
-
-local Missions = { ouvert = false }
-local K, C, E, FR = Hud.kit, Hud.C, Hud.E, Hud.FR
-local inst = K.inst
-local ctx: any = nil
-local U: any = {}
-local VERT = Color3.fromRGB(125, 255, 155)
-local function tr(fr: string, en: string): string return FR and fr or en end
-
-local function etat(): any
-	local p = ctx.profil()
-	if type(p.mis) ~= "table" or not p.mis.sain then -- (remis d'aplomb UNE fois par profil reçu, pas à chaque image)
-		p.mis = Carnets.etat(p.mis)
-		p.mis.sain = true
-	end
-	return p.mis
-end
-local function carnet(): any return Carnets.de(etat().n) end
-
--- le nom d'une récompense et sa couleur (une caisse : la couleur de sa rareté ; une peinture, une traînée ; du cash : le vert de l'argent)
-local RARETE = { commun = Color3.fromRGB(185, 196, 214), rare = Color3.fromRGB(77, 184, 255), epique = Color3.fromRGB(199, 125, 255),
-	legendaire = Color3.fromRGB(255, 215, 94), defi = Color3.fromRGB(94, 227, 122) }
-function Missions.recompense(rec: any): (string, Color3)
-	if rec.caisse then
-		local f = Caisse.Catalogue[rec.caisse]
-		return string.upper(FR and f.nom or (f.en or f.nom)), RARETE[f.rar] or C.texte
-	elseif rec.habit then
-		local traine = string.sub(rec.habit, 1, 7) == "trainee"
-		return tr(rec.nom, rec.en), traine and Color3.fromRGB(255, 176, 64) or Color3.fromRGB(255, 154, 216)
-	end
-	return "BONUS " .. Hud.argent(rec.cash or 0), VERT
-end
-
--- ════════ l'écran (LES MISSIONS v2 du web, 844 × 390 porté sur 720 px) ════════
--- Lu de gauche à droite : le titre et le mode d'emploi en haut à gauche, les TROIS DÉFIS en haut à droite (chacun sa jauge : le
--- meilleur essai en UNE partie, et sa prime), la RÉCOMPENSE du carnet en bas à gauche (l'objet, dans la couleur de sa famille, et
--- celui d'après), HOME et le lingot JOUER en bas à droite. (Les corps : la police pixel fait 5/9 de son TextSize — voir Hud.)
-local CYAN = Color3.fromRGB(94, 230, 255)
-local function creer()
-	local racine = Hud.racine
-	local g = inst("Frame", { Name = "Missions", BackgroundColor3 = Color3.fromRGB(6, 16, 34), BackgroundTransparency = 0.22, Size = UDim2.fromScale(1, 1), Visible = false, ZIndex = 12 }, racine)
-	U.racine = g
-	K.texte(g, { Text = "MISSIONS", TextSize = 60, TextColor3 = CYAN, Size = UDim2.fromOffset(600, 62), Position = UDim2.fromOffset(34, 14),
-		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 4, contourCouleur = Color3.fromRGB(4, 30, 52) })
-	U.titre = K.texte(g, { Text = "", TextSize = 26, TextColor3 = C.texte2, Size = UDim2.fromOffset(620, 28), Position = UDim2.fromOffset(34, 80),
-		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
-	U.titreEchelle = inst("UIScale", {}, U.titre)
-	U.aide = K.texte(g, { Text = "", TextSize = 26, TextColor3 = C.or_, Size = UDim2.fromOffset(620, 60), Position = UDim2.fromOffset(34, 116),
-		TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, LineHeight = 1.25 })
-	-- les trois défis, en haut à droite (sur un écran moins large que celui du web, ils se resserrent)
-	local rangee = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, -690, 0, 196), Position = UDim2.new(1, -33, 0, 22), AnchorPoint = Vector2.new(1, 0) }, g)
-	inst("UISizeConstraint", { MaxSize = Vector2.new(810, 196), MinSize = Vector2.new(420, 196) }, rangee)
-	U.cartes = {}
-	for i = 1, 3 do
-		local c = inst("Frame", { BackgroundColor3 = Color3.fromRGB(8, 22, 44), BackgroundTransparency = 0.08, BorderSizePixel = 0, Size = UDim2.new(1 / 3, -10, 1, 0),
-			Position = UDim2.new((i - 1) / 3, 5, 0, 0), Active = true }, rangee)
-		local trait = inst("UIStroke", { Color = CYAN, Thickness = 2, Transparency = 0.45, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, c)
-		local case = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(20, 20), Position = UDim2.fromOffset(16, 16) }, c)
-		local caseTrait = inst("UIStroke", { Color = CYAN, Thickness = 3, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, case)
-		local coche = K.icone(case, "coche", 2, VERT, UDim2.fromScale(0.5, 0.5), Vector2.new(0.5, 0.5))
-		coche.Visible = false
-		local tete = K.texte(c, { Text = tr("DEFI ", "CHALLENGE ") .. i, TextSize = 26, TextColor3 = CYAN, Size = UDim2.new(1, -56, 0, 28), Position = UDim2.fromOffset(46, 12),
-			TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
-		local txt = K.texte(c, { Text = "", TextSize = 32, TextColor3 = C.texte, Size = UDim2.new(1, -30, 0, 68), Position = UDim2.fromOffset(16, 46),
-			TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, TextScaled = true, LineHeight = 1.15, epais = 3 })
-		inst("UITextSizeConstraint", { MaxTextSize = 32, MinTextSize = 14 }, txt)
-		local fond = inst("Frame", { BackgroundColor3 = Color3.fromRGB(13, 10, 42), BorderSizePixel = 0, Size = UDim2.new(1, -150, 0, 10), Position = UDim2.fromOffset(16, 126) }, c)
-		inst("UIStroke", { Color = CYAN, Thickness = 1, Transparency = 0.5, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, fond)
-		local plein = inst("Frame", { BackgroundColor3 = C.cyan, BorderSizePixel = 0, Size = UDim2.fromScale(0, 1) }, fond)
-		local prime = K.texte(c, { Text = "", TextSize = 24, TextColor3 = VERT, Size = UDim2.fromOffset(124, 26), Position = UDim2.new(1, -10, 0, 118),
-			AnchorPoint = Vector2.new(1, 0), TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false })
-		local statut = K.texte(c, { Text = "", TextSize = 22, TextColor3 = C.texte2, Size = UDim2.new(1, -30, 0, 48), Position = UDim2.fromOffset(16, 144),
-			TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, TextScaled = true, LineHeight = 1.15 })
-		inst("UITextSizeConstraint", { MaxTextSize = 22, MinTextSize = 12 }, statut)
-		local b = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Text = "", ZIndex = 14 }, c)
-		U.cartes[i] = { cadre = c, txt = txt, prime = prime, plein = plein, statut = statut, trait = trait, case = caseTrait, coche = coche, tete = tete }
-		b.Activated:Connect(function()
-			Sons.jouer("tap")
-			local m = etat()
-			if m.ok[i] then return end
-			m.f = (m.f == i) and -1 or i -- toucher le défi suivi le lâche
-			task.spawn(function() ctx.action("suivre", m.f) end)
-			Missions.maj()
-		end)
-	end
-	-- la RÉCOMPENSE, en bas à gauche
-	local r = inst("Frame", { BackgroundColor3 = Color3.fromRGB(8, 22, 44), BackgroundTransparency = 0.08, BorderSizePixel = 0, Size = UDim2.new(1, -33 - 800, 0, 208),
-		Position = UDim2.new(0, 33, 1, -26), AnchorPoint = Vector2.new(0, 1) }, g)
-	inst("UISizeConstraint", { MaxSize = Vector2.new(765, 208), MinSize = Vector2.new(400, 208) }, r)
-	inst("UIStroke", { Color = CYAN, Thickness = 2, Transparency = 0.45, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, r)
-	K.icone(r, "etoile", 3, C.or_, UDim2.fromOffset(18, 14))
-	K.texte(r, { Text = tr("RECOMPENSE", "REWARD"), TextSize = 28, TextColor3 = C.or_, Size = UDim2.fromOffset(300, 30), Position = UDim2.fromOffset(58, 14),
-		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
-	U.recTitre = K.texte(r, { Text = "", TextSize = 28, TextColor3 = C.or_, Size = UDim2.fromOffset(140, 30), Position = UDim2.new(1, -18, 0, 14), AnchorPoint = Vector2.new(1, 0),
-		TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false })
-	U.recVue = inst("ViewportFrame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(176, 96), Position = UDim2.fromOffset(18, 52),
-		Ambient = Color3.fromRGB(150, 150, 178), LightColor = Color3.fromRGB(255, 244, 230) }, r)
-	U.recNom = K.texte(r, { Text = "", TextSize = 40, Size = UDim2.new(1, -224, 0, 42), Position = UDim2.fromOffset(206, 66), TextXAlignment = Enum.TextXAlignment.Left,
-		TextWrapped = false, epais = 3 })
-	U.recNomEchelle = inst("UIScale", {}, U.recNom)
-	inst("Frame", { BackgroundColor3 = CYAN, BackgroundTransparency = 0.6, BorderSizePixel = 0, Size = UDim2.new(1, -36, 0, 2), Position = UDim2.fromOffset(18, 158) }, r)
-	K.icone(r, "verrou", 2, C.terne, UDim2.fromOffset(18, 172))
-	U.recSuite = K.texte(r, { Text = "", TextSize = 24, TextColor3 = C.texte2, Size = UDim2.new(1, -70, 0, 26), Position = UDim2.fromOffset(48, 168),
-		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
-	U.recSuiteEchelle = inst("UIScale", {}, U.recSuite)
-	-- HOME et le lingot JOUER, en bas à droite
-	U.btHome = K.tuile(g, "HOME", C.lavande, UDim2.fromOffset(164, 122), UDim2.new(1, -20 - 563 - 12, 1, -32), Vector2.new(1, 1), 30, "maison", "v")
-	U.btJouer = K.lingot(g, tr("JOUER", "PLAY"), UDim2.fromOffset(563, 122), UDim2.new(1, -20, 1, -32), Vector2.new(1, 1), 100)
-	U.btHome.Activated:Connect(function() ctx.surHome() end)
-	U.btJouer.Activated:Connect(function() ctx.surJouer() end)
-	for _, d in g:GetDescendants() do
-		if d:IsA("GuiObject") and d.ZIndex < 13 then d.ZIndex = 13 end
-	end
-
-	-- ── EN COURSE : la ligne du défi SUIVI (en bas à gauche) et la bannière « DEFI REUSSI » ──
-	local hud = E.hud
-	U.suivi = inst("Frame", { Name = "DefiSuivi", BackgroundTransparency = 1, Size = UDim2.fromOffset(640, 40), Position = UDim2.new(0, 26, 1, -24),
-		AnchorPoint = Vector2.new(0, 1), Visible = false }, hud)
-	U.suiviTxt = K.texte(U.suivi, { Text = "", TextSize = 20, TextColor3 = C.texte2, Size = UDim2.new(1, 0, 0, 22), TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
-	local fs = inst("Frame", { BackgroundColor3 = C.piste, BorderSizePixel = 0, Size = UDim2.fromOffset(260, 6), Position = UDim2.fromOffset(0, 30) }, U.suivi)
-	U.suiviPlein = inst("Frame", { BackgroundColor3 = C.cyan, BorderSizePixel = 0, Size = UDim2.fromScale(0, 1) }, fs)
-	U.banniere = K.carbone(hud, UDim2.fromOffset(680, 104), UDim2.new(0.5, 60, 0, -120), VERT, Vector2.new(0.5, 0))
-	K.icone(U.banniere, "coche", 3, VERT, UDim2.fromOffset(22, 12))
-	K.texte(U.banniere, { Text = tr("DEFI REUSSI !", "CHALLENGE DONE!"), TextSize = 22, TextColor3 = VERT, Size = UDim2.new(1, -90, 0, 24), Position = UDim2.fromOffset(62, 14),
-		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
-	U.banTxt = K.texte(U.banniere, { Text = "", TextSize = 28, TextColor3 = C.texte, Size = UDim2.new(1, -230, 0, 32), Position = UDim2.fromOffset(22, 54),
-		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 3 })
-	U.banTxtEchelle = inst("UIScale", {}, U.banTxt)
-	U.banPrime = K.texte(U.banniere, { Text = "", TextSize = 28, TextColor3 = VERT, Size = UDim2.fromOffset(190, 32), Position = UDim2.new(1, -18, 0, 54),
-		AnchorPoint = Vector2.new(1, 0), TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false })
-	U.banniere.Visible = false
-end
-
-local vignetteDe = -1
-local function vignette(rec: any)
-	local i = rec.caisse or -1
-	if i == vignetteDe then return end
-	vignetteDe = i
-	for _, o in U.recVue:GetChildren() do
-		if o:IsA("Model") then Caisse.rendre(o) end -- (la vignette d'avant rend ses triangles)
-	end
-	U.recVue:ClearAllChildren()
-	if i < 0 then return end
-	task.spawn(function()
-		local m = Caisse.vignette(i)
-		if not m or vignetteDe ~= i then
-			Caisse.rendre(m)
-			return
-		end
-		local corps = m.PrimaryPart :: BasePart
-		local az, el = 0.82, 0.27
-		local dir = Vector3.new(-math.sin(az) * math.cos(el), math.sin(el), -math.cos(az) * math.cos(el))
-		local cam = Instance.new("Camera")
-		cam.FieldOfView = 24
-		local dist = (corps.Size.Z * math.sin(az) + corps.Size.X * math.cos(az)) / 0.9 / (2 * math.tan(math.rad(12)) * 2.2) + corps.Size.Z * 0.18
-		cam.CFrame = CFrame.lookAt(corps.Position + dir * dist, corps.Position)
-		cam.Parent = U.recVue
-		U.recVue.CurrentCamera = cam
-		U.recVue.LightDirection = (-dir * 0.5 + Vector3.new(0.5, -1, 0.2)).Unit
-		m.Parent = U.recVue
-	end)
-end
-
-function Missions.maj()
-	if not U.racine then return end
-	local m, c = etat(), carnet()
-	U.titre.Text = tr("CARNET ", "BOOK ") .. (m.n + 1) .. tr(" · CHAQUE DEFI EN UNE PARTIE", " · EACH CHALLENGE IN ONE RUN")
-	Hud.tenir(U.titreEchelle, U.titre.Text, 26, 600)
-	local faits = 0
-	for i = 1, 3 do
-		local d, u = c[i], U.cartes[i]
-		u.txt.Text = Carnets.texte(d, FR, Hud.argent)
-		u.prime.Text = "+" .. Hud.argent(d.p)
-		local ok = m.ok[i]
-		if ok then faits += 1 end
-		u.plein.Size = UDim2.fromScale(ok and 1 or math.clamp(m.best[i] / d.v, 0, 1), 1)
-		u.plein.BackgroundColor3 = ok and VERT or C.cyan
-		if ok then
-			u.statut.Text = tr("REUSSI", "DONE")
-			u.statut.TextColor3 = VERT
-		elseif m.f == i then
-			u.statut.Text = tr("SUIVI EN COURSE", "TRACKED IN RACE")
-			u.statut.TextColor3 = C.or_
-		else
-			u.statut.Text = tr("MEILLEUR ESSAI\n", "BEST RUN\n") .. Carnets.progres(d, m.best[i], FR, Hud.argent)
-			u.statut.TextColor3 = C.texte2
-		end
-		-- la case se coche, le cadre prend la couleur de l'état (réussi vert · suivi or · à faire cyan)
-		local ce = ok and VERT or ((m.f == i) and C.or_ or CYAN)
-		u.trait.Color = ce
-		u.trait.Transparency = (ok or m.f == i) and 0 or 0.45
-		u.case.Color = ce
-		u.coche.Visible = ok
-		u.tete.TextColor3 = ce
-	end
-	local nom, couleur = Missions.recompense(c.rec)
-	U.recTitre.Text = faits .. " / 3"
-	U.recNom.Text = Hud.sansAccent(nom)
-	U.recNom.TextColor3 = couleur
-	local suite = Missions.recompense(Carnets.de(m.n + 1).rec)
-	U.recSuite.Text = tr("ENSUITE · ", "NEXT · ") .. Hud.sansAccent(suite)
-	local largeur = U.recNom.Parent.AbsoluteSize.X / math.max(0.01, Hud.racine:FindFirstChildOfClass("UIScale").Scale)
-	Hud.tenir(U.recNomEchelle, U.recNom.Text, 40, math.max(160, largeur - 230))
-	Hud.tenir(U.recSuiteEchelle, U.recSuite.Text, 24, math.max(200, largeur - 76))
-	vignette(c.rec)
-	local suivi = (m.f >= 1 and not m.ok[m.f]) and c[m.f] or nil
-	U.aide.Text = suivi and (tr("SUIVI : ", "TRACKING: ") .. Carnets.texte(suivi, FR, Hud.argent))
-		or tr("TOUCHE UN DEFI POUR LE SUIVRE EN COURSE", "TAP A CHALLENGE TO TRACK IT IN RACE")
-end
-
-function Missions.init(c: any)
-	ctx = c
-	creer()
-end
--- combien de défis du carnet sont tenus (les trois cases du bouton MISSIONS de l'accueil)
-function Missions.faits(): number
-	local m, n = etat(), 0
-	for i = 1, 3 do
-		if m.ok[i] then n += 1 end
-	end
-	return n
-end
-function Missions.ouvrir()
-	Missions.ouvert = true
-	Missions.maj()
-	U.racine.Visible = true
-	U.racine.Position = UDim2.fromOffset(0, 18)
-	TweenService:Create(U.racine, K.LENTE, { Position = UDim2.fromOffset(0, 0) }):Play()
-end
-function Missions.fermer()
-	Missions.ouvert = false
-	U.racine.Visible = false
-end
-
--- ════════ en course ════════
-local horloge, banFin, suiviFin = 0, 0, 0
-local reussisPartie: { number } = {}
-local meilleurePartie = { 0, 0, 0 }
-function Missions.debut()
-	horloge, suiviFin = 0, 0
-	table.clear(reussisPartie)
-	meilleurePartie = { 0, 0, 0 }
-	U.banniere.Visible = false
-end
-local function banniere(d: any)
-	U.banTxt.Text = Carnets.texte(d, FR, Hud.argent)
-	Hud.tenir(U.banTxtEchelle, U.banTxt.Text, 28, 440)
-	U.banPrime.Text = "+" .. Hud.argent(d.p)
-	U.banniere.Visible = true
-	U.banniere.Position = UDim2.new(0.5, 60, 0, -120)
-	TweenService:Create(U.banniere, K.LENTE, { Position = UDim2.new(0.5, 60, 0, 92) }):Play()
-	banFin = os.clock() + 1.6
-	Sons.jouer("record", 1.3, 0.4)
-end
--- r = les compteurs de la partie (voir Carnets.valeur)
-function Missions.tick(dt: number, r: any)
-	local t = os.clock()
-	if U.banniere.Visible and t > banFin then
-		U.banniere.Visible = false
-	end
-	horloge -= dt
-	local m, c = etat(), carnet()
-	if horloge <= 0 then
-		horloge = 0.25
-		for i = 1, 3 do
-			if not m.ok[i] then
-				local d = c[i]
-				local v = Carnets.valeur(d.k, r)
-				meilleurePartie[i] = math.max(meilleurePartie[i], v)
-				if v > m.best[i] then m.best[i] = math.min(d.v, v) end
-				if v >= d.v then
-					m.ok[i] = true -- (le serveur confirme et verse la prime)
-					table.insert(reussisPartie, i)
-					banniere(d)
-					if m.f == i then suiviFin = t + 3.2 end
-					task.spawn(function() ctx.action("defi", i, v) end)
-				end
-			end
-		end
-	end
-	-- la ligne du défi suivi
-	local f = m.f
-	if f >= 1 and c[f] then
-		local d = c[f]
-		U.suivi.Visible = true
-		if m.ok[f] then
-			U.suiviTxt.Text = "◆ " .. Carnets.texte(d, FR, Hud.argent) .. " · " .. tr("REUSSI", "DONE")
-			U.suiviTxt.TextColor3 = VERT
-			U.suiviPlein.Size = UDim2.fromScale(1, 1)
-			U.suiviPlein.BackgroundColor3 = VERT
-			if suiviFin > 0 and t > suiviFin then
-				m.f = -1
-				suiviFin = 0
-			end
-		else
-			local v = Carnets.valeur(d.k, r)
-			U.suiviTxt.Text = "◆ " .. Carnets.texte(d, FR, Hud.argent) .. " · " .. Carnets.progres(d, v, FR, Hud.argent)
-			U.suiviTxt.TextColor3 = C.texte2
-			U.suiviPlein.Size = UDim2.fromScale(math.clamp(v / d.v, 0, 1), 1)
-			U.suiviPlein.BackgroundColor3 = C.cyan
-		end
-	else
-		U.suivi.Visible = false
-	end
-end
-
--- à la mort : ce qu'il faut écrire sur l'écran de fin. Rend { ligne, couleur, ferme = { nom, couleur }? }
-function Missions.fin(r: any): any
-	U.suivi.Visible = false
-	U.banniere.Visible = false
-	local m, c = etat(), carnet()
-	local res: any = { meilleur = meilleurePartie }
-	-- LA CARTE de l'écran de fin (Hud.defi) : l'en-tête, le défi, sa jauge, sa prime, l'objet du carnet, les trois cases
-	local recNom, recCouleur = Missions.recompense(c.rec)
-	local function carte(d: any, reussi: boolean, tete: string, part: number)
-		res.carte = { tete = tete, reussi = reussi, texte = Carnets.texte(d, FR, Hud.argent), part = part, prime = "+" .. Hud.argent(d.p),
-			rec = Hud.sansAccent(recNom), recCouleur = recCouleur, faits = { m.ok[1], m.ok[2], m.ok[3] } }
-	end
-	if m.ok[1] and m.ok[2] and m.ok[3] then
-		-- le carnet se FERME (le serveur donne la récompense à la fin de la partie)
-		local nom, couleur = Missions.recompense(c.rec)
-		carte(c[reussisPartie[#reussisPartie] or 3], true, tr("CARNET FINI !", "BOOK DONE!"), 1)
-		res.ferme = { nom = nom, couleur = couleur, rec = c.rec }
-		res.ligne = tr("DEFIS REUSSIS ! ", "CHALLENGES DONE! ") .. nom .. ((c.rec.cash and tr(" VERSES AU COMPTE", " PAID TO ACCOUNT")) or tr(" EST A TOI", " IS YOURS"))
-		res.couleur = C.or_
-		return res
-	end
-	if #reussisPartie > 0 then
-		local d = c[reussisPartie[#reussisPartie]]
-		carte(d, true, tr("DEFI REUSSI !", "CHALLENGE DONE!"), 1)
-		res.ligne = tr("DEFI REUSSI ! ", "CHALLENGE DONE! ") .. Carnets.texte(d, FR, Hud.argent) .. "  +" .. Hud.argent(d.p)
-		res.couleur = VERT
-		return res
-	end
-	-- sinon : le défi dont cette partie s'est le plus approchée
-	local mieux, part = 0, -1
-	for i = 1, 3 do
-		if not m.ok[i] then
-			local q = math.clamp(Carnets.valeur(c[i].k, r) / c[i].v, 0, 1)
-			if q > part then mieux, part = i, q end
-		end
-	end
-	if mieux > 0 then
-		local d = c[mieux]
-		carte(d, false, tr("DEFI · ", "CHALLENGE · ") .. Carnets.progres(d, Carnets.valeur(d.k, r), FR, Hud.argent), part)
-		res.ligne = Carnets.texte(d, FR, Hud.argent) .. "\n" .. tr("CETTE PARTIE · ", "THIS RUN · ") .. Carnets.progres(d, Carnets.valeur(d.k, r), FR, Hud.argent)
-		res.couleur = C.texte2
-	end
-	return res
-end
-
-return Missions
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000065"><Properties><string name="Name">MoteurCarte</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LA CARTE MOTEUR (engBig v5, index.html L22577) : à chaque palier, le NOUVEAU MOTEUR apparaît en 3D au-dessus
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000064"><Properties><string name="Name">MoteurCarte</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LA CARTE MOTEUR (engBig v5, index.html L22577) : à chaque palier, le NOUVEAU MOTEUR apparaît en 3D au-dessus
 -- de la caisse, son nom à sa couleur néon ; il tourne une seconde, puis PLONGE dans le capot en rétrécissant. À l'impact :
 -- l'éclair à sa couleur, le coup de caméra, la poussée — et « +N KM/H » jaillit de la caisse.
 -- (verdicts de Sacha sur le jeu web : le moteur 3D en GRAND dès qu'on le débloque ; il suit la voiture, ne cache jamais la
@@ -17216,7 +16886,7 @@ function MoteurCarte.init()
 end
 
 return MoteurCarte
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000066"><Properties><string name="Name">Nuages</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LES NUAGES v8 du jeu web (VERSION PRINCIPALE/index.html : buildCoton L8203, buildClouds L8422, mkCloud L8379).
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000065"><Properties><string name="Name">Nuages</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LES NUAGES v8 du jeu web (VERSION PRINCIPALE/index.html : buildCoton L8203, buildClouds L8422, mkCloud L8379).
 -- Les 25 gabarits sont CUITS (Nuages/Nxx — outils/cuire-nuages.js : le sculpteur de cumulus et la surface du jeu) ; ici on
 -- les POSE, avec les règles du niveau NUAGES :
 --   · LE CIEL DE COTON : des archipels près de la route, des nuages au-dessus et en dessous du ruban, la couronne du milieu
@@ -17964,7 +17634,7 @@ function Nuages.remettre(liste: { Nuage })
 end
 
 return Nuages
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000067"><Properties><string name="Name">Orage</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — L'ORAGE (le 4e niveau du cycle : les NUAGES sous l'orage — eclFrappe, eclEcrit, orageTick, L32209 du jeu web).
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000066"><Properties><string name="Name">Orage</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — L'ORAGE (le 4e niveau du cycle : les NUAGES sous l'orage — eclFrappe, eclEcrit, orageTick, L32209 du jeu web).
 -- « LA ROUTE SE CACHE : L'ÉCLAIR LA MONTRE » : la brume de la tempête ferme la vue à ~600 m ; toutes les 3,4 à 7,4 s un éclair
 -- tombe à côté de la route, 380 à 900 m DEVANT la caisse. Il claque (0,2 s), vacille, s'éteint ; le ciel s'allume et le brouillard
 -- RECULE le temps de sa lueur (Ambiance.eclair) : on lit la route, le virage, le portail. Le tonnerre arrive après, plus fort et
@@ -18155,7 +17825,7 @@ function Orage.tick(dt: number, actif: boolean, piste: any, s: number, car: Vect
 end
 
 return Orage
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000068"><Properties><string name="Name">Pigeons</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LES PIGEONS RAMIERS (PIGEONS, mkPigeon, spawnPigeonFlock, updatePigeons — L8605 du jeu web) : de rares traversées
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000067"><Properties><string name="Name">Pigeons</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LES PIGEONS RAMIERS (PIGEONS, mkPigeon, spawnPigeonFlock, updatePigeons — L8605 du jeu web) : de rares traversées
 -- d'oiseaux, un peu de vie dans le ciel. Une volée de 2 à 5 ramiers passe en travers, loin devant la caisse, bat des ailes… puis plane.
 -- RARE, exprès : la première après 12-26 s, les suivantes toutes les 24-56 s, jamais deux volées à la fois.
 -- PAS DE PIGEON EN ORBITE NI DANS L'ORAGE (revue PISTE du 30/09) : une volée de ramiers devant la Terre vue du vide, ou en plein déluge
@@ -18313,7 +17983,7 @@ function Pigeons.maintenant(pres: boolean?)
 end
 
 return Pigeons
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000069"><Properties><string name="Name">Recyclage</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LE RECYCLAGE DES PIÈCES.
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000068"><Properties><string name="Name">Recyclage</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LE RECYCLAGE DES PIÈCES.
 -- Mesuré au banc le 3/10 (outils/distant : `client("stats")`) : la mémoire « PhysicsParts » montait d'environ 20 Mo à CHAQUE zone
 -- bâtie, et ne redescendait jamais — sur une longue session de téléphone (une zone 3, une zone 4… à chaque partie), de quoi
 -- saturer. Une expérience isolée a donné la loi : une pièce posée dans le monde laisse ~1,25 Ko derrière elle à sa destruction,
@@ -18408,7 +18078,7 @@ end
 function Recyclage.compte(): number return total end
 
 return Recyclage
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000006A"><Properties><string name="Name">Revenus</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LES REVENUS, côté joueur (voir ServerScriptService/Revenus) : ce qui fait revenir et ce qui se paie, HORS boutique.
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000069"><Properties><string name="Name">Revenus</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LES REVENUS, côté joueur (voir ServerScriptService/Revenus) : ce qui fait revenir et ce qui se paie, HORS boutique.
 --   · le CADEAU DU JOUR : à l'accueil, une carte de sept jours qui montent — on prend celui d'aujourd'hui (la série casse si l'on
 --     saute un jour) ;
 --   · la PILE de l'accueil, en bas à gauche, sous le pouce : le CADEAU de temps de jeu (son compte à rebours, puis « CADEAU ! »),
@@ -18842,6 +18512,495 @@ function Revenus.init(c: any)
 end
 
 return Revenus
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000006A"><Properties><string name="Name">Roue</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LA ROUE (Sacha, 4/10 : « rajoute bouton roulette pour gagner une voiture ou de l'argent au choix »). Elle remplace les
+-- MISSIONS et la CARRIÈRE au menu. Huit cases (Config.ROUE) : de l'argent, une CAISSE EXCLUSIVE (les neuf caisses qu'on ne trouve
+-- nulle part ailleurs), un SKIN (peinture OR MASSIF, traînée ARC-EN-CIEL), le JACKPOT. Le TIRAGE se fait au serveur
+-- (ServerScriptService/Revenus) : la roue d'ici ne fait que TOURNER jusqu'à la case qu'il a tirée. Une caisse gagnée se choisit :
+-- LA GARDER (elle est équipée tout de suite) ou LA VENDRE contre de l'argent — la voiture OU l'argent, au choix.
+-- D'où viennent les tours : un GRATUIT toutes les 4 h, un OFFERT toutes les 3 parties (la carte de l'écran de fin compte les
+-- parties), et des tours à vendre en Robux (REVENUS.produits.tours3 — à 0, le bouton n'existe pas).
+-- La roue est en PIXELS (la DA du jeu) : un disque de 60 × 60 cases peint ligne par ligne (une barrette par suite de cases de même
+-- couleur, comme les icônes), dans un CanvasGroup qu'on fait tourner d'un bloc.
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local MarketplaceService = game:GetService("MarketplaceService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local CC = ReplicatedStorage:WaitForChild("CashCar")
+local Config = require(CC:WaitForChild("Config"))
+local Caisse = require(CC:WaitForChild("Caisse"))
+local Hud = require(script.Parent:WaitForChild("Hud"))
+local Sons = require(script.Parent:WaitForChild("Sons"))
+local RO, R = Config.ROUE, Config.REVENUS
+local Catalogue = Caisse.Catalogue
+local K, C, FR = Hud.kit, Hud.C, Hud.FR
+local inst, texte = K.inst, K.texte
+local joueur = Players.LocalPlayer
+local RGB = Color3.fromRGB
+local OR1 = RGB(255, 215, 94)
+
+local Roue = {}
+local ctx: any = nil
+local U: any = {}
+local N = #RO.cases
+local PAS = 360 / N
+local function tr(fr: string, en: string): string return FR and fr or en end
+local function attr(n: string): any return joueur:GetAttribute(n) end
+-- l'icône du bouton (une grille 9 × 9 écrite sur place, comme celles du carnet)
+Roue.ICONE = "..#####..|.#..#..#.|#.#.#.#.#|#..###..#|#########|#..###..#|#.#.#.#.#|.#..#..#.|..#####.."
+
+-- ════════ l'état des tours ════════
+function Roue.libre(): boolean
+	local p = attr("RoueProchain")
+	return type(p) == "number" and workspace:GetServerTimeNow() >= p
+end
+function Roue.tours(): number return (attr("RoueTours") or 0) + (Roue.libre() and 1 or 0) end
+local function hms(s: number): string
+	s = math.max(0, math.ceil(s))
+	local h = s // 3600
+	if h > 0 then return string.format("%d:%02d:%02d", h, (s % 3600) // 60, s % 60) end
+	return string.format("%d:%02d", s // 60, s % 60)
+end
+function Roue.attente(): string
+	local p = attr("RoueProchain")
+	if type(p) ~= "number" then return "" end
+	return hms(p - workspace:GetServerTimeNow())
+end
+
+-- ════════ LES CASES : couleur, libellé ════════
+local function couleurCase(k: number): (Color3, Color3)
+	local c = RO.cases[k]
+	if c.jackpot then return RGB(255, 196, 40), RGB(60, 30, 4) end
+	if c.k == "caisse" then return RGB(70, 214, 120), RGB(6, 40, 18) end
+	if c.k == "habit" then return RGB(236, 64, 176), RGB(255, 255, 255) end
+	return (k % 2 == 1) and RGB(78, 44, 168) or RGB(28, 92, 196), RGB(255, 255, 255)
+end
+local function libelle(k: number): string
+	local c = RO.cases[k]
+	if c.jackpot then return "JACKPOT" end
+	if c.k == "caisse" then return tr("CAISSE", "CAR") end
+	if c.k == "habit" then return "SKIN" end
+	return Hud.argent(c.v)
+end
+
+-- ════════ LE DISQUE EN PIXELS ════════
+local G9, PX = 60, 8
+local function assombrir(c: Color3, k: number): Color3 return Color3.new(c.R * k, c.G * k, c.B * k) end
+local function batirDisque(parent: Instance): CanvasGroup
+	local cg = inst("CanvasGroup", { Name = "Disque", BackgroundTransparency = 1, Size = UDim2.fromOffset(G9 * PX, G9 * PX),
+		AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5) }, parent)
+	local R0 = G9 / 2
+	local SEP, BORD, BORD2 = RGB(14, 8, 34), RGB(255, 205, 70), RGB(150, 92, 10)
+	for y = 0, G9 - 1 do
+		local debut, cle, coul = -1, "", nil :: Color3?
+		local function fermer(x1: number)
+			if coul and debut >= 0 then
+				inst("Frame", { BackgroundColor3 = coul, BorderSizePixel = 0, Size = UDim2.fromOffset((x1 - debut) * PX, PX),
+					Position = UDim2.fromOffset(debut * PX, y * PX) }, cg)
+			end
+		end
+		for x = 0, G9 do
+			local c: Color3? = nil
+			if x < G9 then
+				local dx, dy = x + 0.5 - R0, y + 0.5 - R0
+				local r = math.sqrt(dx * dx + dy * dy)
+				if r <= R0 then
+					if r > R0 - 2.2 then
+						c = (dy < 0) and BORD or assombrir(BORD, 0.82) -- (la jante d'or, plus claire en haut : la lumière vient du ciel)
+					elseif r > R0 - 3.1 then
+						c = BORD2
+					else
+						local a = math.deg(math.atan2(dx, -dy)) % 360 -- (dans le sens des aiguilles d'une montre depuis le haut)
+						local s = (a + PAS / 2) % 360
+						local k = math.floor(s / PAS) + 1
+						local bord = math.min(s % PAS, PAS - s % PAS)
+						if math.rad(bord) * r < 0.6 then
+							c = SEP
+						else
+							local fond = couleurCase(k)
+							-- trois anneaux de lumière : clair au bord, plein, sombre vers le moyeu (le relief du pixel art)
+							c = (r > R0 - 5.2) and fond:Lerp(Color3.new(1, 1, 1), 0.18) or ((r < R0 * 0.42) and assombrir(fond, 0.78) or fond)
+						end
+					end
+				end
+			end
+			local cl = c and c:ToHex() or ""
+			if cl ~= cle then
+				fermer(x)
+				debut, cle, coul = x, cl, c
+			end
+		end
+	end
+	-- les AMPOULES de la jante (elles clignotent pendant que la roue tourne)
+	U.ampoules = {}
+	for i = 1, 16 do
+		local a = math.rad((i - 0.5) * 22.5)
+		local rr = (R0 - 1.1) * PX
+		local f = inst("Frame", { BackgroundColor3 = Color3.new(1, 1, 1), BorderSizePixel = 0, Size = UDim2.fromOffset(PX, PX), AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.new(0.5, math.sin(a) * rr, 0.5, -math.cos(a) * rr), ZIndex = 3 }, cg)
+		U.ampoules[i] = f
+	end
+	-- les LIBELLÉS : le long du rayon, du moyeu vers la jante
+	for k = 1, N do
+		local a = (k - 1) * PAS
+		local rr = R0 * 0.58 * PX
+		local _, ct = couleurCase(k)
+		local t = texte(cg, { Text = libelle(k), TextSize = (RO.cases[k].jackpot or utf8.len(libelle(k)) > 6) and 17 or 21, TextColor3 = ct, Size = UDim2.fromOffset(170, 26),
+			AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.new(0.5, math.sin(math.rad(a)) * rr, 0.5, -math.cos(math.rad(a)) * rr),
+			Rotation = a - 90, TextWrapped = false, epais = 2, ZIndex = 2 })
+		if ct ~= Color3.new(1, 1, 1) then (t:FindFirstChildOfClass("UIStroke") :: UIStroke).Enabled = false end
+	end
+	return cg
+end
+-- le moyeu (immobile, par-dessus) et l'aiguille en haut
+local function batirMoyeu(parent: Instance)
+	local m = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(13 * PX, 13 * PX), AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.5), ZIndex = 4 }, parent)
+	for y = 0, 12 do
+		local dy = y + 0.5 - 6.5
+		local w = math.floor(math.sqrt(math.max(0, 42.25 - dy * dy)) + 0.5)
+		if w > 0 then
+			inst("Frame", { BackgroundColor3 = (math.abs(dy) > 4.5 or w * 2 >= 12) and RGB(150, 92, 10) or RGB(255, 205, 70), BorderSizePixel = 0,
+				Size = UDim2.fromOffset(w * 2 * PX, PX), Position = UDim2.fromOffset((6.5 - w) * PX, y * PX), ZIndex = 4 }, m)
+		end
+	end
+	texte(m, { Text = "$", TextSize = 46, TextColor3 = RGB(60, 30, 4), Size = UDim2.fromScale(1, 1), contour = false, TextWrapped = false, ZIndex = 5 })
+	-- l'AIGUILLE : un triangle d'or cerné d'encre, la pointe vers la roue
+	local fleche = "#########|#########|.#######.|.#######.|..#####..|..#####..|...###...|...###...|....#...."
+	local ai = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(9 * 7, 9 * 7), AnchorPoint = Vector2.new(0.5, 0),
+		Position = UDim2.new(0.5, 0, 0.5, -G9 * PX / 2 - 22), ZIndex = 6 }, parent)
+	local fond = K.icone(ai, fleche, 7, C.encre, UDim2.fromScale(0.5, 0), Vector2.new(0.5, 0))
+	fond.Position = UDim2.new(0.5, 0, 0, 3)
+	K.icone(ai, fleche, 6, { { 0.3, RGB(255, 244, 170) }, { 0.7, RGB(255, 196, 40) }, { 1, RGB(200, 120, 10) } }, UDim2.new(0.5, 0, 0, 0), Vector2.new(0.5, 0))
+	for _, d in ai:GetDescendants() do
+		if d:IsA("GuiObject") then d.ZIndex = 6 end
+	end
+	U.aiguille = ai
+end
+
+-- la photo d'une caisse (Client/Boutique : la vignette en un maillage, cadrée de trois quarts)
+local function photographier(vp: ViewportFrame, i: number): Model?
+	local m = Caisse.vignette(i)
+	if not m then return nil end
+	local corps = m.PrimaryPart :: BasePart
+	local az, el = 0.82, 0.27
+	local dir = Vector3.new(-math.sin(az) * math.cos(el), math.sin(el), -math.cos(az) * math.cos(el))
+	local projete = corps.Size.Z * math.sin(az) + corps.Size.X * math.cos(az)
+	local dist = projete / 0.9 / (2 * math.tan(math.rad(12)) * 1.9) + corps.Size.Z * 0.18 -- (×1,9 : la caisse REMPLIT le cadre, c'est le lot)
+	local cam = Instance.new("Camera")
+	cam.FieldOfView = 24
+	local vise = corps.Position + Vector3.new(0, -corps.Size.Y * 0.04, 0)
+	cam.CFrame = CFrame.lookAt(vise + dir * dist, vise)
+	cam.Parent = vp
+	vp.CurrentCamera = cam
+	vp.LightDirection = (-dir * 0.5 + Vector3.new(0.5, -1, 0.2)).Unit
+	m.Parent = vp
+	return m
+end
+
+-- ════════ LA FENÊTRE ════════
+local function creer()
+	local v = inst("Frame", { Name = "Roue", BackgroundColor3 = RGB(6, 4, 16), BackgroundTransparency = 0.25, Size = UDim2.fromScale(1, 1),
+		Visible = false, Active = true, ZIndex = 42 }, Hud.racine)
+	inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Text = "", AutoButtonColor = false }, v) -- (le voile avale les clics)
+	-- les rayons dorés derrière la roue (immobiles : un éventail qui respire)
+	local scene = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(620, 620), AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.new(0.5, -250, 0.5, 6) }, v)
+	U.halo = inst("Frame", { BackgroundColor3 = RGB(255, 196, 40), BackgroundTransparency = 0.82, BorderSizePixel = 0, Size = UDim2.fromOffset(560, 560),
+		AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5) }, scene)
+	inst("UICorner", { CornerRadius = UDim.new(0.5, 0) }, U.halo)
+	inst("UIGradient", { Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.2), NumberSequenceKeypoint.new(0.5, 0.75), NumberSequenceKeypoint.new(1, 1) }),
+		Rotation = 90 }, U.halo)
+	U.disque = batirDisque(scene)
+	batirMoyeu(scene)
+
+	-- la colonne de droite : le titre, les tours, TOURNER
+	local col = K.carbone(v, UDim2.fromOffset(520, 560), UDim2.new(0.5, 330, 0.5, 6), OR1, Vector2.new(0.5, 0.5))
+	U.col = col
+	texte(col, { Text = tr("LA ROUE", "THE WHEEL"), TextSize = 56, TextColor3 = OR1, italique = true, Size = UDim2.new(1, 0, 0, 60), Position = UDim2.fromOffset(0, 26),
+		TextWrapped = false, epais = 4 })
+	inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.TXT, TextSize = 21, TextColor3 = C.texte2, TextWrapped = true,
+		Text = tr("De l'argent, des skins… et neuf caisses qu'on ne gagne QU'ICI. Une caisse gagnée : tu la gardes, ou tu la revends — au choix.",
+			"Cash, skins… and nine cars you can ONLY win here. Win a car: keep it, or sell it — your call."),
+		Size = UDim2.new(1, -60, 0, 78), Position = UDim2.fromOffset(32, 92) }, col)
+	-- ── l'état : les tours, le prochain gratuit, les parties ──
+	U.etat = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 380), Position = UDim2.fromOffset(0, 176) }, col)
+	U.tours = texte(U.etat, { Text = "", TextSize = 34, TextColor3 = C.texte, Size = UDim2.new(1, 0, 0, 40), Position = UDim2.fromOffset(0, 4), TextWrapped = false, epais = 3 })
+	U.prochain = texte(U.etat, { Text = "", TextSize = 18, TextColor3 = C.terne, Size = UDim2.new(1, 0, 0, 22), Position = UDim2.fromOffset(0, 52), TextWrapped = false })
+	U.parties = texte(U.etat, { Text = "", TextSize = 18, TextColor3 = C.terne, Size = UDim2.new(1, 0, 0, 22), Position = UDim2.fromOffset(0, 80), TextWrapped = false })
+	U.tourner = K.lingot(U.etat, tr("TOURNER", "SPIN"), UDim2.fromOffset(420, 100), UDim2.new(0.5, 0, 0, 124), Vector2.new(0.5, 0), 46)
+	U.tourner.Activated:Connect(function() Roue.tourner() end)
+	U.acheter = K.tuile(U.etat, tr("3 TOURS", "3 SPINS"), C.magenta, UDim2.fromOffset(250, 68), UDim2.new(0, 34, 1, -24), Vector2.new(0, 1), 20, "panier")
+	U.acheterBoite = U.acheter.Parent.Parent
+	U.acheter.Activated:Connect(function()
+		local id = R.produits.tours3
+		if type(id) == "number" and id > 0 then pcall(function() MarketplaceService:PromptProductPurchase(joueur, id) end) end
+	end)
+	U.fermer = K.tuile(U.etat, "", C.cyan, UDim2.fromOffset(150, 68), UDim2.new(1, -34, 1, -24), Vector2.new(1, 1), 30, "croix")
+	U.fermer.Activated:Connect(function() Roue.fermer() end)
+
+	-- ── le GAIN (à la place de l'état, quand la roue s'arrête) ──
+	U.gain = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 380), Position = UDim2.fromOffset(0, 176), Visible = false }, col)
+	U.gTete = texte(U.gain, { Text = "", TextSize = 40, TextColor3 = OR1, italique = true, Size = UDim2.new(1, 0, 0, 46), Position = UDim2.fromOffset(0, 0), TextWrapped = false, epais = 4 })
+	U.gMontant = texte(U.gain, { Text = "", TextSize = 64, TextColor3 = C.menthe, Size = UDim2.new(1, -20, 0, 72), Position = UDim2.fromOffset(10, 70), TextWrapped = false,
+		epais = 5, contourCouleur = RGB(4, 40, 20) })
+	U.gVue = inst("ViewportFrame", { BackgroundTransparency = 1, Size = UDim2.new(1, -40, 0, 170), Position = UDim2.fromOffset(20, 44),
+		Ambient = RGB(150, 150, 178), LightColor = RGB(255, 250, 240) }, U.gain)
+	U.gNom = texte(U.gain, { Text = "", TextSize = 30, TextColor3 = C.texte, Size = UDim2.new(1, -30, 0, 34), Position = UDim2.fromOffset(15, 214), TextWrapped = false,
+		TextScaled = true, epais = 3 })
+	inst("UITextSizeConstraint", { MaxTextSize = 30, MinTextSize = 14 }, U.gNom)
+	U.gNote = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.TXT, TextSize = 20, TextColor3 = C.texte2, TextWrapped = true, Text = "",
+		Size = UDim2.new(1, -60, 0, 60), Position = UDim2.fromOffset(30, 172) }, U.gain)
+	U.gGarder = K.lingot(U.gain, tr("LA GARDER", "KEEP IT"), UDim2.fromOffset(260, 92), UDim2.new(0, 30, 1, -24), Vector2.new(0, 1), 32)
+	U.gVendre = K.tuile(U.gain, "", C.cyan, UDim2.fromOffset(190, 84), UDim2.new(1, -30, 1, -28), Vector2.new(1, 1), 18)
+	U.gVendre.TextWrapped = true
+	U.gOk = K.lingot(U.gain, "OK", UDim2.fromOffset(300, 92), UDim2.new(0.5, 0, 1, -24), Vector2.new(0.5, 1), 40)
+	U.gGarder.Activated:Connect(function() Roue.choisir(true) end)
+	U.gVendre.Activated:Connect(function() Roue.choisir(false) end)
+	U.gOk.Activated:Connect(function() Roue.retourEtat() end)
+	U.voile = v
+end
+
+-- ════════ l'affichage de l'état ════════
+local function majEtat()
+	if not U.voile then return end
+	local n, libre = Roue.tours(), Roue.libre()
+	U.tours.Text = (n > 0) and (tr("TOURS : ", "SPINS: ") .. n) or tr("PLUS DE TOUR", "NO SPINS LEFT")
+	U.tours.TextColor3 = (n > 0) and OR1 or C.terne
+	U.prochain.Text = libre and tr("TOUR GRATUIT DISPONIBLE !", "FREE SPIN READY!") or (tr("GRATUIT DANS ", "FREE IN ") .. Roue.attente())
+	U.prochain.TextColor3 = libre and C.menthe or C.terne
+	local pa = attr("RoueParties") or 0
+	U.parties.Text = string.format(tr("PARTIES : %d / %d  →  +1 TOUR", "RUNS: %d / %d  →  +1 SPIN"), pa, RO.parties)
+	local id = R.produits.tours3
+	U.acheterBoite.Visible = type(id) == "number" and id > 0
+	U.tourner.Text = (n > 0) and tr("TOURNER", "SPIN") or tr("PLUS DE TOUR", "NO SPINS")
+	U.tourner.TextSize = (n > 0) and 46 or 30
+end
+
+-- ════════ TOURNER ════════
+U.angle = 0
+local function segmentEnHaut(ang: number): number return math.floor(((-ang) % 360 + PAS / 2) / PAS) end
+function Roue.tourner()
+	if U.tourne or not U.voile or U.gain.Visible then return end
+	if Roue.tours() <= 0 then
+		Sons.vrai("uiRefus", nil, nil, "tap", 0.8)
+		Hud.toast(tr("PLUS DE TOUR : REVIENS PLUS TARD", "NO SPINS: COME BACK LATER"), nil, "croix")
+		return
+	end
+	U.tourne = true
+	U.tourner.Text = "..."
+	task.spawn(function()
+		local ok, res = ctx.action("roue")
+		if not ok or type(res) ~= "table" or not RO.cases[res.case] then
+			U.tourne = false
+			majEtat()
+			Hud.toast(tr("LA ROUE EST COINCEE, REESSAIE", "THE WHEEL IS STUCK, TRY AGAIN"), nil, "croix")
+			return
+		end
+		Sons.jouer("go", 1.2, 0.6)
+		-- 5 tours pleins, puis la case tirée sous l'aiguille (un peu décalée dans sa case : une vraie roue ne s'arrête jamais pile au milieu)
+		local a0 = U.angle % 360
+		local cible = -((res.case - 1) * PAS) + (math.random() - 0.5) * PAS * 0.62
+		local d = ((cible - a0) % 360) + 360 * 5
+		local T, t = 5.4, 0
+		local dernier = segmentEnHaut(a0)
+		local cn: RBXScriptConnection
+		cn = RunService.RenderStepped:Connect(function(dt: number)
+			t += dt
+			local u = math.min(1, t / T)
+			local e = 1 - (1 - u) ^ 4
+			U.angle = a0 + d * e
+			U.disque.Rotation = U.angle
+			local s = segmentEnHaut(U.angle)
+			if s ~= dernier then
+				dernier = s
+				Sons.jouer("bip", 1.6 - 0.5 * u, 0.32) -- (le cliquet : il ralentit avec la roue)
+				U.aiguille.Rotation = -14
+				Hud.vibre(4)
+			end
+			U.aiguille.Rotation *= 0.82
+			-- les ampoules : une sur deux, en alternance — de plus en plus lentement
+			local ph = math.floor(os.clock() * (4 + 10 * (1 - u))) % 2
+			for i, a in U.ampoules do a.BackgroundColor3 = ((i + ph) % 2 == 0) and Color3.new(1, 1, 1) or RGB(255, 170, 30) end
+			if u >= 1 then
+				cn:Disconnect()
+				U.aiguille.Rotation = 0
+				U.tourne = false
+				Roue.reveler(res)
+			end
+		end)
+	end)
+end
+
+-- ════════ LE GAIN ════════
+function Roue.reveler(res: any)
+	U.res = res
+	U.etat.Visible = false
+	U.gain.Visible = true
+	U.gVue:ClearAllChildren()
+	local pi = U.gain:FindFirstChild("Pinceau")
+	if pi then pi:Destroy() end
+	if U.gModele then
+		Caisse.rendre(U.gModele)
+		U.gModele = nil
+	end
+	local c = RO.cases[res.case]
+	local caisse = res.caisse
+	U.gMontant.Visible = res.gain ~= nil
+	U.gVue.Visible = caisse ~= nil
+	U.gNom.Visible = caisse ~= nil or res.habit ~= nil
+	U.gGarder.Parent.Parent.Visible = caisse ~= nil
+	U.gVendre.Parent.Parent.Visible = caisse ~= nil
+	U.gOk.Parent.Parent.Visible = caisse == nil
+	U.gNote.Text = ""
+	if caisse then
+		local f = Catalogue[caisse]
+		U.gTete.Text = tr("UNE CAISSE !", "A CAR!")
+		U.gNom.Text = string.upper(FR and f.nom or (f.en or f.nom))
+		U.gNom.Position = UDim2.fromOffset(15, 214)
+		U.gModele = photographier(U.gVue, caisse)
+		U.gVendre.Text = tr("LA VENDRE\n", "SELL IT\n") .. Hud.argent(RO.revente)
+		Sons.jouer("record")
+		Hud.vibre(60)
+	elseif res.habit then
+		local d = Config.habit(res.habit[1], res.habit[2])
+		U.gTete.Text = tr("UN SKIN !", "A SKIN!")
+		U.gNom.Text = d and string.upper(FR and d.nom or d.en) or "?"
+		U.gNom.Position = UDim2.fromOffset(15, 70)
+		-- (le pinceau, à la couleur du skin)
+		local ic = K.icone(U.gVue, "pinceau", 7, (d and d.c) or (d and d.arcenciel and C.magenta) or OR1, UDim2.new(0.5, 0, 0, 132), Vector2.new(0.5, 0.5))
+		ic.Parent = U.gain
+		ic.Name = "Pinceau"
+		U.gNote.Text = tr("Il t'attend au GARAGE, onglet ", "It's waiting in the GARAGE, tab ") .. ((res.habit[1] == "peinture") and tr("PEINTURE.", "PAINT.") or tr("TRAINEES.", "TRAILS."))
+		Sons.jouer("record")
+		Hud.vibre(40)
+	else
+		local jack = c.jackpot == true
+		U.gTete.Text = jack and "JACKPOT !!!" or tr("GAGNE !", "YOU WIN!")
+		U.gMontant.Text = "+" .. Hud.argent(res.gain)
+		U.gNote.Text = (c.k ~= "argent") and tr("(Tu avais déjà tout : la case paie.)", "(You already had it all: the slot pays out.)") or ""
+		Sons.jouer(jack and "record" or "encaisse")
+		Hud.vibre(jack and 120 or 30)
+	end
+	-- le gain BONDIT
+	local sc = U.gain:FindFirstChildOfClass("UIScale") or inst("UIScale", {}, U.gain)
+	sc.Scale = 0.6
+	TweenService:Create(sc, TweenInfo.new(0.28, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 }):Play()
+end
+-- la caisse gagnée : la garder (équipée) ou la vendre
+function Roue.choisir(garder: boolean)
+	local res = U.res
+	if not res or not res.caisse or U.choix then return end
+	U.choix = true
+	task.spawn(function()
+		local ok = ctx.action(garder and "roueGarder" or "roueVendre", res.caisse)
+		U.choix = false
+		if ok then
+			if garder then
+				if ctx.surEquipe then ctx.surEquipe(res.caisse) end
+				Sons.jouer("maillon")
+				Hud.toast(tr("NOUVELLE CAISSE AU GARAGE", "NEW CAR IN THE GARAGE"), OR1, "voiture")
+			else
+				Sons.jouer("encaisse")
+				Hud.toast(tr("VENDUE  +", "SOLD  +") .. Hud.argent(RO.revente), C.menthe, "piece")
+			end
+			U.res = nil -- (choisi : rien à garder d'office en sortant)
+		end
+		Roue.retourEtat()
+	end)
+end
+function Roue.retourEtat()
+	if U.res and U.res.caisse and not U.choix and U.gGarder.Parent.Parent.Visible then
+		-- (fermer sans choisir : la caisse reste au garage — elle est déjà à toi)
+		task.spawn(function() ctx.action("roueGarder", U.res.caisse) end)
+	end
+	U.res = nil
+	U.gain.Visible = false
+	U.etat.Visible = true
+	majEtat()
+end
+
+-- ════════ ouvrir / fermer ════════
+function Roue.ouvrir()
+	if not U.voile then creer() end
+	if U.voile.Visible then return end
+	U.gain.Visible = false
+	U.etat.Visible = true
+	majEtat()
+	U.voile.Visible = true
+	Sons.vrai("uiModale", nil, nil, "tap", 1.1, 0.5)
+	local sc = U.voile:FindFirstChildOfClass("UIScale") or inst("UIScale", {}, U.voile)
+	sc.Scale = 0.92
+	TweenService:Create(sc, TweenInfo.new(0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Scale = 1 }):Play()
+end
+function Roue.fermer()
+	if not U.voile or U.tourne then return end
+	if U.gain.Visible then Roue.retourEtat() end
+	U.voile.Visible = false
+	if ctx.surFerme then ctx.surFerme() end
+end
+function Roue.ouverte(): boolean return U.voile ~= nil and U.voile.Visible end
+
+-- ════════ la carte de l'ÉCRAN DE FIN (à la place de l'ancien défi) : Hud.defi ════════
+function Roue.carte(): any
+	local n, libre = Roue.tours(), Roue.libre()
+	local pa = attr("RoueParties") or 0
+	local faits = {}
+	for i = 1, 3 do faits[i] = pa >= i end
+	return {
+		tete = tr("LA ROUE", "THE WHEEL"),
+		reussi = n > 0,
+		texte = (n > 0) and string.format(tr("%d TOUR%s A JOUER !", "%d SPIN%s TO PLAY!"), n, n > 1 and "S" or "")
+			or string.format(tr("ENCORE %d PARTIE%s\nPOUR UN TOUR", "%d MORE RUN%s\nFOR A SPIN"), RO.parties - pa, (RO.parties - pa) > 1 and "S" or ""),
+		part = pa / RO.parties,
+		prime = libre and tr("GRATUIT : PRET", "FREE: READY") or (tr("GRATUIT DANS ", "FREE IN ") .. Roue.attente()),
+		rec = (n > 0) and tr("TOURNER >", "SPIN >") or "",
+		recCouleur = OR1,
+		faits = faits,
+	}
+end
+
+-- ════════ le branchement ════════
+-- c = { action = function(nom, ...) → ok, res ; surEquipe = function(i) ; info = TextLabel du bouton du menu (le compte des tours) }
+function Roue.init(c: any)
+	ctx = c
+	-- le TICKET du menu et la carte de fin vivent : tours, compte à rebours (deux fois par seconde)
+	local t0 = 0
+	RunService.RenderStepped:Connect(function()
+		if os.clock() - t0 < 0.5 then
+			if U.voile and U.voile.Visible and not U.tourne then
+				-- (les ampoules respirent au repos)
+				local ph = math.floor(os.clock() * 2) % 2
+				for i, a in U.ampoules do a.BackgroundColor3 = ((i + ph) % 2 == 0) and Color3.new(1, 1, 1) or RGB(255, 170, 30) end
+			end
+			return
+		end
+		t0 = os.clock()
+		local n = Roue.tours()
+		if c.info then
+			c.info.Text = (n > 0) and ("x" .. n) or Roue.attente()
+			c.info.TextColor3 = (n > 0) and OR1 or C.terne
+		end
+		if c.pastille then c.pastille.Visible = n > 0 end
+		local e = Hud.ecranCourant()
+		if e == "mort" then Hud.defi(Roue.carte()) end
+		if U.voile and U.voile.Visible and not U.tourne and not U.gain.Visible then majEtat() end
+		if U.voile and U.voile.Visible and e ~= "menu" and e ~= "mort" then Roue.fermer() end
+	end)
+	-- (banc) workspace:SetAttribute("DbgRoue", "ouvrir…" | "tourner…" | "garder…" | "vendre…" | "ok…" | "fermer…")
+	workspace:GetAttributeChangedSignal("DbgRoue"):Connect(function()
+		local q = tostring(workspace:GetAttribute("DbgRoue") or "")
+		if string.find(q, "^ouvrir") then Roue.ouvrir()
+		elseif string.find(q, "^tourner") then Roue.tourner()
+		elseif string.find(q, "^garder") then Roue.choisir(true)
+		elseif string.find(q, "^vendre") then Roue.choisir(false)
+		elseif string.find(q, "^ok") then Roue.retourEtat()
+		elseif string.find(q, "^fermer") then Roue.fermer() end
+	end)
+end
+
+return Roue
 ]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000006B"><Properties><string name="Name">Score</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LE SCORE : le FLOW (jauge 0-100, quatre cases + la FRÉNÉSIE), la TRIADE (NARCISSE · MACHIAVEL · PSYCHO),
 -- la CHAÎNE D'AURA, le RALENTI de la frénésie et l'aura du DAUPHIN. C'est le « méta » du jeu web, porté ligne pour
 -- ligne (index.html : FLOW2 L20930, flowAdd L21025, flowTick L21321, frenDeclenche L21116, frenTriade L21244,
@@ -19754,6 +19913,16 @@ Sons.volMus = 0.62
 local dossier = Instance.new("Folder")
 dossier.Name = "CashCarSons"
 dossier.Parent = SoundService
+-- (banc) la copie de test est muette : tous les sons du jeu passent par ce groupe à volume 0 (voir Config.MUET_TEST) — les
+-- volumes et les curseurs continuent de vivre normalement, seul ce qui sort des haut-parleurs est coupé
+local muet: SoundGroup? = nil
+if Config.MUET_TEST then
+	local g = Instance.new("SoundGroup")
+	g.Name = "MuetTest"
+	g.Volume = 0
+	g.Parent = SoundService
+	muet = g
+end
 
 local function source(nom: string): string?
 	local id = Config.SONS[nom]
@@ -19792,6 +19961,7 @@ local function bassin(nom: string): { Sound }?
 		s.Name = nom .. k
 		s.SoundId = src
 		s.Volume = VOLUMES[nom] or 0.5
+		s.SoundGroup = muet
 		s.Parent = dossier
 		table.insert(l, s)
 	end
@@ -19839,6 +20009,7 @@ function Sons.boucle(nom: string): Sound?
 	s.SoundId = src
 	s.Looped = true
 	s.Volume = 0
+	s.SoundGroup = muet
 	s.Parent = dossier
 	s:Play()
 	boucles[nom] = s
@@ -21050,7 +21221,7 @@ Config.HABITS = {
 		{ id = "noir", nom = "NOIR MAT", en = "MATTE BLACK", p = 9000, c = hx(0x202128), g = "s", d = "Pas un reflet. Même la police hésite.", dEN = "Not a single reflection. Even the police hesitate." },
 		{ id = "couchant", nom = "COUCHER DE SOLEIL", en = "SUNSET", p = 18000, grad = { hx(0xffc23a), hx(0xff4f8b), hx(0x6b3cff) }, d = "Du miel en bas, du violet en haut : le ciel de 19 h, en laque.", dEN = "Honey at the bottom, violet at the top: the 7 pm sky, in lacquer." },
 		{ id = "chrome", nom = "CHROME MIROIR", en = "MIRROR CHROME", p = 60000, c = hx(0xe9eef5), g = "c", d = "Tu te vois dedans. Les autres aussi.", dEN = "You can see yourself in it. So can the others." },
-		{ id = "or", nom = "OR MASSIF", en = "SOLID GOLD", mis = 4, c = hx(0xffc93a), g = "o", d = "Ne s'achète pas : elle se gagne en relevant des défis.", dEN = "Can't be bought: it is won by beating challenges." },
+		{ id = "or", nom = "OR MASSIF", en = "SOLID GOLD", roue = true, c = hx(0xffc93a), g = "o", d = "Ne s'achète pas : elle se gagne à la ROUE.", dEN = "Can't be bought: it is won on the WHEEL." },
 	},
 	aile = {
 		{ id = "panneaux", nom = "PANNEAUX", en = "PANELS", d = "Deux planches de planeur qui sortent des flancs. Sobre.", dEN = "Two glider boards sliding out of the sides. Sober." },
@@ -21063,7 +21234,7 @@ Config.HABITS = {
 		{ id = "menthe", nom = "MENTHE", en = "MINT", p = 2000, c = Color3.fromRGB(59, 255, 180), d = "Un sillage vert d'eau qui sent le propre.", dEN = "A sea-green wake that smells clean." },
 		{ id = "rose", nom = "ROSE NEON", en = "NEON PINK", p = 4000, c = Color3.fromRGB(255, 39, 185), d = "Le rose des enseignes. On te suit à la trace.", dEN = "The pink of the signs. They can track you by it." },
 		{ id = "or", nom = "POUDRE D'OR", en = "GOLD DUST", p = 15000, c = Color3.fromRGB(255, 185, 39), d = "Tu ne laisses pas de la fumée derrière toi. Tu laisses de l'or.", dEN = "You don't leave smoke behind you. You leave gold." },
-		{ id = "arcenciel", nom = "ARC-EN-CIEL", en = "RAINBOW", mis = 5, arcenciel = true, d = "Ne s'achète pas : elle se gagne en relevant des défis.", dEN = "Can't be bought: it is won by beating challenges." },
+		{ id = "arcenciel", nom = "ARC-EN-CIEL", en = "RAINBOW", roue = true, arcenciel = true, d = "Ne s'achète pas : elle se gagne à la ROUE.", dEN = "Can't be bought: it is won on the WHEEL." },
 	},
 }
 function Config.habit(cat: string, id: string?): any
@@ -21164,6 +21335,25 @@ Config.CAM = {
 -- d'écrire la VRAIE condition. ⚠ à remettre à false pour la version publique : c'est l'unique interrupteur.
 Config.TEST_CAISSES = true
 
+-- ── LA ROUE (voir Client/Roue et ServerScriptService/Revenus) : huit cases, tirées au SERVEUR selon leur poids `w`. Un tour gratuit
+-- toutes les `libreH` heures, un tour offert toutes les `parties` parties (d'au moins 15 s), et des tours à vendre (REVENUS.produits.tours3).
+-- « caisse » : une caisse EXCLUSIVE de la roue (cond.k = "roue") qu'on n'a pas encore — on choisit de la GARDER ou de la vendre
+-- `revente` $ ; plus rien à gagner : `revente` $ d'office. « habit » : la peinture OR MASSIF ou la traînée ARC-EN-CIEL ; déjà tout :
+-- `v` $. L'ordre est celui de la roue, dans le sens des aiguilles d'une montre depuis le haut.
+Config.ROUE = {
+	libreH = 4, parties = 3, revente = 7500,
+	cases = {
+		{ k = "argent", v = 250, w = 24 },
+		{ k = "caisse", w = 7 },
+		{ k = "argent", v = 500, w = 22 },
+		{ k = "argent", v = 2500, w = 9 },
+		{ k = "argent", v = 1000, w = 18 },
+		{ k = "habit", v = 2500, w = 5 },
+		{ k = "argent", v = 5000, w = 5 },
+		{ k = "argent", v = 20000, w = 1, jackpot = true },
+	},
+}
+
 -- ── LES REVENUS (voir ServerScriptService/Revenus) — HORS de la boutique des caisses ──
 -- Les NUMÉROS se posent ici une fois les objets créés sur create.roblox.com (ton expérience → Monétisation / Engagement) : à 0,
 -- l'objet n'existe pas et ce qui en dépend se tait. Les prix en Robux se règlent sur le site, pas ici.
@@ -21172,7 +21362,7 @@ Config.REVENUS = {
 	-- « VIP » (cadeaux du jour et de temps de jeu doublés, nom doré au-dessus de la caisse)
 	passes = { argent2 = 0, vip = 0 },
 	-- les PRODUITS (achat répété) : la SECONDE CHANCE (repartir là où l'on a explosé, la partie continue)
-	produits = { secondeChance = 0 },
+	produits = { secondeChance = 0, tours3 = 0 }, -- (tours3 : TROIS TOURS DE ROUE d'un coup — voir Config.ROUE)
 	-- les BADGES : bienvenue, permis de l'auto-école, zone 6 atteinte, moteur palier 10, 1 000 d'aura en une partie, record d'un
 	-- million, sept jours d'affilée
 	badges = { bienvenue = 0, permis = 0, zone6 = 0, moteur10 = 0, aura1000 = 0, millionnaire = 0, serie7 = 0 },
@@ -21187,6 +21377,9 @@ Config.REVENUS = {
 -- la lire. (banc) LANGUE_TEST force la langue (« en » : tout le jeu en anglais dans un Studio réglé en français).
 Config.LANGUE_TEST = nil :: string?
 Config.TACTILE_TEST = nil :: boolean? -- (banc) l'interface du TÉLÉPHONE (volant, bouton nitro, astuces tactiles) dans Studio
+-- (banc) la copie de TEST est MUETTE (Sacha, 4/10 : les essais jouaient le son du jeu sur son PC pendant qu'il travaillait) —
+-- outils/banc.sh la pose toujours, sauf `SON=1` ; le jeu publié n'y touche jamais
+Config.MUET_TEST = nil :: boolean?
 function Config.francais(): boolean
 	if Config.LANGUE_TEST then return Config.LANGUE_TEST == "fr" end
 	local ok, l = pcall(function() return game:GetService("Players").LocalPlayer.LocaleId end)
@@ -22544,6 +22737,9 @@ function Profils.neuf(): Profil
 		-- les REVENUS (voir Revenus) : le cadeau du jour (son jour UTC, la série), le bonus de groupe pris, qui m'a invité, les reçus
 		-- d'achat déjà servis (un reçu ne sert jamais deux fois)
 		jour = 0, serie = 0, groupe = false, invite = 0, achats = {},
+		-- LA ROUE : les tours en réserve, l'heure (os.time) du dernier tour gratuit, les parties vers le prochain tour offert, la caisse
+		-- qui vient d'être gagnée et qu'on peut encore préférer en argent (-1 : aucune)
+		roue = { n = 0, libre = 0, parties = 0, attente = -1 },
 	}
 end
 
@@ -22552,7 +22748,7 @@ local function sain(p: any): Profil
 	local n = Profils.neuf()
 	if type(p) ~= "table" then return n end
 	for k, v in n do
-		if k == "reglages" or k == "porte" then
+		if k == "reglages" or k == "porte" or k == "roue" then
 			-- (clé par clé : un vieux profil n'a pas les réglages ajoutés depuis)
 			if type(p[k]) == "table" then
 				for rk, rv in v do
@@ -22568,6 +22764,10 @@ local function sain(p: any): Profil
 		if type(a) == "string" and #a < 80 and #achats < 30 then table.insert(achats, a) end
 	end
 	n.achats = achats
+	for _, k in { "n", "libre", "parties" } do
+		local v = n.roue[k]
+		if v ~= v or v < 0 or v > 1e12 then n.roue[k] = 0 end
+	end
 	for _, k in { "compte", "record", "auraMeilleur", "aura", "frenRec", "moteurMax", "kmhMax", "jour", "serie", "invite" } do
 		if n[k] ~= n[k] or n[k] < 0 or n[k] > 1e18 then n[k] = 0 end
 	end
@@ -22726,7 +22926,7 @@ end
 function Profils.aHabit(prof: Profil, cat: string, id: string): boolean
 	local d = habit(cat, id)
 	if not d then return false end
-	if not d.p and not d.mis then return true end -- offert
+	if not d.p and not d.mis and not d.roue then return true end -- offert
 	return table.find(prof.habits, cat .. ":" .. id) ~= nil
 end
 Profils.actions.habitAcheter = function(p, prof, cat, id)
@@ -22812,7 +23012,9 @@ return Profils
 --     MONDIAL ; le BONUS PREMIUM (+10 % d'argent : on donne aux membres Premium une raison de jouer ici) ;
 --   · LE BOUCHE-À-OREILLE : le bonus de GROUPE (une fois), les INVITATIONS d'amis (les deux sont récompensés) ;
 --   · LES ACHATS EN ROBUX, sans boutique : le passe « ×2 ARGENT » (proposé à l'écran de fin, au moment où l'on voit ce qu'on aurait
---     gagné), le passe VIP (cadeaux doublés, nom doré), et le produit SECONDE CHANCE (repartir là où l'on a explosé).
+--     gagné), le passe VIP (cadeaux doublés, nom doré), et le produit SECONDE CHANCE (repartir là où l'on a explosé) ;
+--   · LA ROUE : un tour gratuit toutes les 4 h, un tour offert toutes les 3 parties, des tours à vendre — le tirage se fait ICI
+--     (jamais chez le joueur) : de l'argent, une caisse EXCLUSIVE (à garder ou à revendre, au choix), un habillage, le jackpot.
 -- ⚠ Les numéros (passes, produits, badges, groupe) se posent dans Config.REVENUS une fois créés sur create.roblox.com par Sacha : à 0,
 -- l'objet n'existe pas encore et tout ce qui en dépend se tait (rien ne se vend sans lui). Le cadeau du jour, le temps de jeu, le
 -- classement et les invitations marchent sans rien créer.
@@ -22825,7 +23027,9 @@ local HttpService = game:GetService("HttpService")
 
 local CC = ReplicatedStorage:WaitForChild("CashCar")
 local Config = require(CC:WaitForChild("Config"))
+local Catalogue = require(CC:WaitForChild("Caisses"):WaitForChild("Catalogue"))
 local R = Config.REVENUS
+local RO = Config.ROUE
 
 local Revenus = {}
 local ctx: any = nil
@@ -22902,6 +23106,83 @@ local function seuil(n: number): (number, number) -- le n-ième cadeau (1…) : 
 	if n <= #t then return t[n][1], t[n][2] end
 	local dernier = t[#t]
 	return dernier[1] + (n - #t) * 60, dernier[2]
+end
+
+-- ── LA ROUE ──
+-- ce que le joueur voit de sa roue (attributs, lus par Client/Roue) : les tours en réserve, l'heure du prochain tour gratuit (os.time,
+-- comparée chez lui à workspace:GetServerTimeNow), les parties faites vers le tour offert
+local function etatRoue(p: Player, prof: any)
+	local r = prof.roue
+	p:SetAttribute("RoueTours", r.n)
+	p:SetAttribute("RoueProchain", r.libre + RO.libreH * 3600)
+	p:SetAttribute("RoueParties", r.parties)
+end
+Revenus.etatRoue = etatRoue
+local rng = Random.new()
+local function tirer(): number
+	local total = 0
+	for _, c in RO.cases do total += c.w end
+	local x = rng:NextNumber() * total
+	for k, c in RO.cases do
+		x -= c.w
+		if x <= 0 then return k end
+	end
+	return 1
+end
+-- un tour : gratuit s'il est l'heure, sinon pris dans la réserve. Rend { case, gain?, caisse?, habit? } — le client fait tourner la
+-- roue JUSQU'À la case tirée ici
+local function tourner(p: Player, prof: any): (boolean, any)
+	local r = prof.roue
+	local t = os.time()
+	if t - r.libre >= RO.libreH * 3600 then
+		r.libre = t
+	elseif r.n > 0 then
+		r.n -= 1
+	else
+		return false, "pas de tour"
+	end
+	local k = tirer()
+	-- (banc) workspace:SetAttribute("DbgRoueCase", k) force la case (Studio seulement)
+	local force = workspace:GetAttribute("DbgRoueCase")
+	if game:GetService("RunService"):IsStudio() and type(force) == "number" and RO.cases[force] then k = force end
+	local c = RO.cases[k]
+	local res: any = { case = k }
+	r.attente = -1
+	if c.k == "caisse" then
+		local libres = {}
+		for i, f in Catalogue do
+			if f.cond.k == "roue" and not f.retire and not table.find(prof.caisses, i) then table.insert(libres, i) end
+		end
+		table.sort(libres)
+		if #libres > 0 then
+			local i = libres[rng:NextInteger(1, #libres)]
+			table.insert(prof.caisses, i)
+			r.attente = i
+			res.caisse = i
+		else
+			res.gain = RO.revente -- (toute la collection est déjà au garage : la case paie)
+		end
+	elseif c.k == "habit" then
+		local libres = {}
+		for cat, l in Config.HABITS do
+			for _, d in l do
+				if d.roue and not table.find(prof.habits, cat .. ":" .. d.id) then table.insert(libres, { cat, d.id }) end
+			end
+		end
+		if #libres > 0 then
+			local h = libres[rng:NextInteger(1, #libres)]
+			table.insert(prof.habits, h[1] .. ":" .. h[2])
+			res.habit = h
+		else
+			res.gain = c.v
+		end
+	else
+		res.gain = c.v
+	end
+	if res.gain then prof.compte += res.gain end
+	etatRoue(p, prof)
+	ctx.compte(p, prof)
+	return true, res
 end
 
 -- ── le CLASSEMENT MONDIAL : le meilleur record de chacun, les dix premiers rafraîchis toutes les 2 min ──
@@ -22991,6 +23272,24 @@ function Revenus.init(c: any)
 		return true
 	end
 
+	-- LA ROUE : tourner ; puis, si c'est une caisse, la GARDER (elle est équipée) ou la REVENDRE (au choix : la caisse ou l'argent)
+	P.actions.roue = tourner
+	P.actions.roueGarder = function(p, prof, i)
+		if type(i) ~= "number" or prof.roue.attente ~= i then return false, "rien a garder" end
+		prof.roue.attente = -1
+		return P.actions.equiper(p, prof, i)
+	end
+	P.actions.roueVendre = function(p, prof, i)
+		if type(i) ~= "number" or prof.roue.attente ~= i then return false, "rien a vendre" end
+		local j = table.find(prof.caisses, i)
+		if j then table.remove(prof.caisses, j) end
+		if prof.caisse == i then prof.caisse = 0 end
+		prof.roue.attente = -1
+		prof.compte += RO.revente
+		ctx.compte(p, prof)
+		return true
+	end
+
 	-- la SECONDE CHANCE (produit) : accordée par Roblox (ProcessReceipt), une fois par achat — jamais deux fois le même reçu
 	MarketplaceService.ProcessReceipt = function(info)
 		local p = Players:GetPlayerByUserId(info.PlayerId)
@@ -22999,6 +23298,10 @@ function Revenus.init(c: any)
 		if table.find(prof.achats, info.PurchaseId) then return Enum.ProductPurchaseDecision.PurchaseGranted end
 		if info.ProductId == R.produits.secondeChance then
 			evRevivre:FireClient(p)
+		elseif info.ProductId == R.produits.tours3 then
+			prof.roue.n += 3
+			etatRoue(p, prof)
+			dire(p, "tours", nil, "3")
 		else
 			return Enum.ProductPurchaseDecision.NotProcessedYet
 		end
@@ -23033,6 +23336,7 @@ function Revenus.arrivee(p: Player, prof: any)
 	p:SetAttribute("GroupeFait", prof.groupe == true)
 	lireDroits(p)
 	etatJour(p, prof)
+	etatRoue(p, prof)
 	badge(p, "bienvenue")
 	if prof.permis then badge(p, "permis") end
 	-- L'INVITATION : arrivé par le lien d'un ami (une fois dans la vie du compte) — lui et l'ami présent sont récompensés
@@ -23058,6 +23362,20 @@ end
 -- à chaque fin de partie : les badges d'exploit, le classement
 function Revenus.surFin(p: Player, prof: any, stats: any, aura: number?)
 	if type(stats) ~= "table" or stats.lecon then return end
+	-- LA ROUE : une vraie partie (15 s de course au moins) compte pour le tour offert
+	-- (et le serveur le vérifie à sa montre : deux fins de partie à moins de 15 s d'écart ne comptent qu'une fois)
+	local se = session[p.UserId]
+	if type(stats.duree) == "number" and stats.duree >= 15 and se and os.clock() - (se.roueT or -100) >= 15 then
+		se.roueT = os.clock()
+		local r = prof.roue
+		r.parties += 1
+		if r.parties >= RO.parties then
+			r.parties = 0
+			r.n += 1
+			dire(p, "tours", nil, "1")
+		end
+		etatRoue(p, prof)
+	end
 	if type(stats.zone) == "number" and stats.zone >= 6 then badge(p, "zone6") end
 	if type(stats.tier) == "number" and stats.tier >= 9 then badge(p, "moteur10") end
 	if type(aura) == "number" and aura >= 1000 then badge(p, "aura1000") end

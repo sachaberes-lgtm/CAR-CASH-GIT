@@ -41,33 +41,98 @@
    `node synchro-versions.js` (racine du dépôt) la régénère depuis la principale. Forçages ponctuels : `?tel=1` / `?pc=1`.
    (Déclarée au niveau global — un `const` de script classique est visible du grand script, qui la lit.) */
 const EDITION='mobile';
+/* L'ÉDITION POKI (2026-10-04, Sacha : « créer une version de Cash Car pour Poki en enlevant les missions et la carrière »). Le dossier
+   `POKI/` du dépôt est une COPIE GÉNÉRÉE de celui-ci (`node poki-construire.js`, racine du dépôt) : la seule ligne qui diffère est
+   `POKI_BUILD`, basculée à true. `?poki=1` force l'édition Poki sur n'importe quelle copie (banc, Vercel). Ce qu'elle change, tout
+   gardé par `POKI` : ni MISSIONS, ni CARRIÈRE, ni BOUTIQUE (Poki interdit les achats en vrai argent), plus de mode TEST (les caisses
+   des missions, de la carrière et de la boutique passent à un prix en argent du jeu), plus d'intro « 1.61 » à toucher, le kit Poki
+   (chargement fini, début/fin de partie, pause pub avant REJOUER — son et clavier coupés pendant la pub), et sur l'ordi l'écran du
+   téléphone couché qui REMPLIT la fenêtre de Poki (16:9) au lieu d'un téléphone posé au milieu. Voir « L'ÉDITION POKI » dans CLAUDE.md. */
+const POKI_BUILD=false;
+const POKI=POKI_BUILD||/[?&]poki=1\b/.test(location.search);
+if(POKI)document.documentElement.classList.add('poki');
 /* LA MÊME VERSION POUR TOUT LE MONDE (2026-10-01, Léo : « trouve un moyen pour qu'on joue au même jeu, juste ») : `vercel-build.sh`
    remplace ce jeton par le commit publié et pose `version.json` à côté du jeu. Le jeu compare les deux et se recharge tout seul
    s'il est en retard (voir « LA MISE À JOUR TOUTE SEULE », près du service worker). En copie locale le jeton reste tel quel : rien ne se vérifie. */
 const CC_BUILD='__CC_BUILD__';
-const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(/[?&]menu=leo\b/.test(location.search)?' · MENU LEO':'')+(/[?&]chute=0\b/.test(location.search)?' · SANS CIEL':'');
+const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(POKI?' · POKI':'')+(!POKI&&/[?&]menu=leo\b/.test(location.search)?' · MENU LEO':'')+(/[?&]chute=0\b/.test(location.search)?' · SANS CIEL':'');
+/* LE KIT POKI (édition POKI seulement). Le document de PLUS HAUT du jeu (la page-cadre sur l'ordi, la page elle-même sur un téléphone)
+   charge le SDK de Poki et porte `CC_PK` ; le jeu, dans la colonne, l'appelle par `parent.CC_PK` (même origine). Le SDK bloqué (bloqueur
+   de pubs, hors ligne) ne bloque RIEN : chaque appel se résout tout de suite, sans pub. Pendant une pub, `CC_PUB` est vrai dans le
+   document du jeu : plus de son (AudioContext.resume et media.play refusés) et plus de clavier — consigne de Poki. */
+if(POKI)(function(){
+  var dedans=/[?&]colonne=1\b/.test(location.search);
+  // le clavier ne fait pas défiler la page de Poki, la molette non plus (sauf dans une liste qui défile vraiment)
+  addEventListener('keydown',function(e){var t=e.target;if(window.CC_PUB){e.stopImmediatePropagation();e.preventDefault();return;}
+    if(/^(Space|Arrow|PageUp|PageDown)/.test(e.code)&&!(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable)))e.preventDefault();},true);
+  addEventListener('keyup',function(e){if(window.CC_PUB){e.stopImmediatePropagation();e.preventDefault();}},true);
+  addEventListener('wheel',function(e){for(var n=e.target;n&&n.nodeType===1&&n!==document.documentElement;n=n.parentNode){
+    var o=getComputedStyle(n).overflowY;if((o==='auto'||o==='scroll')&&n.scrollHeight>n.clientHeight+1)return;}e.preventDefault();},{passive:false});
+  var AP=window.AudioContext||window.webkitAudioContext;
+  if(AP&&AP.prototype.resume){var r0=AP.prototype.resume;AP.prototype.resume=function(){if(window.CC_PUB)return Promise.resolve();return r0.apply(this,arguments);};}
+  if(window.HTMLMediaElement){var p0=HTMLMediaElement.prototype.play;HTMLMediaElement.prototype.play=function(){
+    if(window.CC_PUB)return Promise.reject(new Error('pub Poki'));return p0.apply(this,arguments);};}
+  if(dedans)return; // la colonne : le SDK vit dans la page-cadre
+  var PK=window.CC_PK={etat:0,sdk:null,veut:{fini:false,jeu:false},jeuEnvoye:false,finiEnvoye:false,enPub:false,
+    // 0 = SDK en route · 1 = prêt · -1 = absent (bloqué) : tout se résout sans pub
+    pret:function(){if(PK.veut.fini&&!PK.finiEnvoye&&PK.etat===1){PK.finiEnvoye=true;try{PK.sdk.gameLoadingFinished();}catch(e){}}PK.jeuSync();},
+    fini:function(){PK.veut.fini=true;PK.pret();},
+    jeu:function(on){PK.veut.jeu=!!on;PK.jeuSync();},
+    jeuSync:function(){if(PK.etat!==1||PK.enPub||PK.veut.jeu===PK.jeuEnvoye)return;PK.jeuEnvoye=PK.veut.jeu;
+      try{if(PK.jeuEnvoye)PK.sdk.gameplayStart();else PK.sdk.gameplayStop();}catch(e){}},
+    // la pause pub : `muet(true)` à l'instant où une pub démarre (s'il y en a une — Poki décide), `muet(false)` puis `suite()` après
+    pub:function(muet,suite){if(PK.etat!==1||PK.enPub){suite();return;}
+      PK.veut.jeu=false;PK.jeuSync();PK.enPub=true;var coupe=false,fin=false;
+      var apres=function(){if(fin)return;fin=true;PK.enPub=false;if(coupe)try{muet(false);}catch(e){}suite();};
+      try{PK.sdk.commercialBreak(function(){coupe=true;try{muet(true);}catch(e){}}).then(apres,apres);}catch(e){apres();}},
+    // la pub récompensée (prête pour une SECONDE CHANCE ou un ×2 : rien ne l'appelle encore) — `suite(true)` si elle a été vue jusqu'au bout
+    bonus:function(muet,suite){if(PK.etat!==1||PK.enPub){suite(false);return;}
+      PK.veut.jeu=false;PK.jeuSync();PK.enPub=true;var coupe=false,fin=false;
+      var apres=function(ok){if(fin)return;fin=true;PK.enPub=false;if(coupe)try{muet(false);}catch(e){}suite(!!ok);};
+      try{PK.sdk.rewardedBreak(function(){coupe=true;try{muet(true);}catch(e){}}).then(apres,function(){apres(false);});}catch(e){apres(false);}},
+    charge:function(){if(PK.charge.f)return;PK.charge.f=1;var s=document.createElement('script');s.src='https://game-cdn.poki.com/scripts/v2/poki-sdk.js';
+      var non=function(){PK.etat=-1;};
+      s.onerror=non;s.onload=function(){try{var S=window.PokiSDK;if(!S){non();return;}
+        if(/[?&]pokidebug=1\b/.test(location.search))try{S.setDebug(true);}catch(e){}
+        var ok=function(){PK.sdk=S;PK.etat=1;PK.pret();};S.init().then(ok,ok);}catch(e){non();}};
+      document.head.appendChild(s);}};
+  // `PK.charge()` est appelé par le script de la colonne, juste en dessous : tout de suite sur un téléphone ; sur l'ordi, une fois que la
+  // page-cadre a rangé le jeu qu'elle ne fait pas tourner (sinon le cadre de pub que le SDK pose dans la page serait masqué avec lui)
+})();
 (function(){
   var q=location.search,M=window.matchMedia;
   /* L'ÉCRAN NU PAR DÉFAUT (2026-10-01, copie de test de Léo : « je préfère le point de vue de la 1re image » = sans la forme de
      l'iPhone) : sur l'ordi, l'écran du téléphone est un rectangle simple, sans boîtier, sans encoche ni coins arrondis, et le jeu ne
      garde pas les marges de l'encoche. `ENCOCHE_DEFAUT=true` rend le boîtier du 13 Pro par défaut ; dans l'adresse, `?encoche=1` /
      `?encoche=0` forcent l'un ou l'autre. Un vrai téléphone n'est jamais concerné (pas de cadre). */
-  var ENCOCHE_DEFAUT=false,ENC=/[?&]encoche=1\b/.test(q)||(ENCOCHE_DEFAUT&&!/[?&]encoche=0\b/.test(q));
-  if(window.top!==window){ // DANS la colonne : les touches frappées pendant que la page-cadre avait le focus arrivent par message
-    if(/[?&]colonne=1\b/.test(q)&&!/[?&]encoche=0\b/.test(q))document.documentElement.classList.add('telCadre'); // les MARGES de l'iPhone restent, même sans en dessiner la forme : les boutons à la même place que sur le téléphone de Sacha (`?encoche=0` : sans marges) // les marges de l'iPhone de référence (voir « L'ENCOCHE »)
+  var ENCOCHE_DEFAUT=false,ENC=!POKI&&(/[?&]encoche=1\b/.test(q)||(ENCOCHE_DEFAUT&&!/[?&]encoche=0\b/.test(q)));
+  var PKC=POKI?window.CC_PK:null; // (POKI) le document de plus haut charge le SDK de Poki
+  /* (POKI) le jeu tourne TOUJOURS dans un cadre chez Poki (leur page) : « dans la colonne » se lit à l'adresse (`colonne=1`), plus à
+     `window.top`. Et pas de marges d'iPhone (`telCadre`) : la colonne de Poki est l'écran entier de leur cadre. */
+  if(POKI?/[?&]colonne=1\b/.test(q):window.top!==window){ // DANS la colonne : les touches frappées pendant que la page-cadre avait le focus arrivent par message
+    if(!POKI&&/[?&]colonne=1\b/.test(q)&&!/[?&]encoche=0\b/.test(q))document.documentElement.classList.add('telCadre'); // les MARGES de l'iPhone restent, même sans en dessiner la forme : les boutons à la même place que sur le téléphone de Sacha (`?encoche=0` : sans marges) // les marges de l'iPhone de référence (voir « L'ENCOCHE »)
     addEventListener('message',function(e){var d=e.data;if(e.source!==window.parent||!d||d.cc!=='touche')return;
       try{document.dispatchEvent(new KeyboardEvent(d.t,{key:d.key,code:d.code,repeat:!!d.rep,bubbles:true,cancelable:true}));}catch(_){}});
     return;}
-  if(EDITION!=='mobile'||window.Capacitor||/[?&](pc|desktop)=1|[?&]colonne=0/.test(q)&&!/[?&](tel|mobile)=1/.test(q))return; // ?pc=1 : menu desktop · ?colonne=0 : l'ancien plein écran
+  if(EDITION!=='mobile'||window.Capacitor||/[?&](pc|desktop)=1|[?&]colonne=0/.test(q)&&!/[?&](tel|mobile)=1/.test(q)){if(PKC)PKC.charge();return;} // ?pc=1 : menu desktop · ?colonne=0 : l'ancien plein écran
   var tactile=(M&&M('(pointer:coarse)').matches)||('ontouchstart' in window)||navigator.maxTouchPoints>0;
-  if(tactile&&((M&&M('(hover:none)').matches)||Math.min(screen.width,screen.height)<600))return; // un vrai téléphone : il EST l'écran
+  if(tactile&&((M&&M('(hover:none)').matches)||Math.min(screen.width,screen.height)<600)){if(PKC)PKC.charge();return;} // un vrai téléphone : il EST l'écran
   /* (2026-10-01, Léo : « sur tous les ordis ») la taille de l'ÉCRAN, plus celle de la fenêtre : un portable à écran tactile
      (1 536 × 864 → fenêtre < 820 px de haut) passait pour un téléphone et jouait sans cadre, étiré sur tout le moniteur */
   window.CC_COLONNE=true;window.__gameReady=true; // (le chien de garde du démarrage n'a rien à garder ici : le jeu démarre dans le cadre)
   var debout=/[?&]colonne=portrait/.test(q);
   document.documentElement.classList.add('colonne',debout?'debout':'couche');
   var L=debout?390:844,H=debout?844:390; // l'écran logique de référence (iPhone 12 à 15) — couché par défaut (le verdict de Sacha)
+  /* (POKI) LE TÉLÉPHONE COUCHÉ QUI REMPLIT LE CADRE DE POKI : Poki veut un jeu qui couvre TOUT son cadre 16:9 (pas de bandes). La
+     colonne garde la hauteur d'un téléphone couché (390) et prend la LARGEUR de la fenêtre (16:9 → 693 × 390, un téléphone 16:9
+     tenu en paysage) : la même mise en page qu'un téléphone, agrandie sans bande ni boîtier. Fenêtre plus haute que large : debout. */
+  var pokiDims=function(){var a=innerWidth/Math.max(1,innerHeight);debout=a<1;
+    if(debout){L=390;H=Math.max(390,Math.round(390/a));}else{H=390;L=Math.max(390,Math.round(390*a));}
+    document.documentElement.classList.toggle('debout',debout);document.documentElement.classList.toggle('couche',!debout);};
+  if(POKI)pokiDims();
   document.addEventListener('DOMContentLoaded',function(){
+    if(POKI){for(var k=document.body.children,i=0;i<k.length;i++)k[i].classList.add('ccHors'); // le jeu que la page-cadre ne fait pas tourner
+      if(PKC)PKC.charge();} // …et seulement maintenant le SDK : ce qu'il posera dans la page reste visible (le cadre de pub)
     var f=document.createElement('iframe'),u=location.href.split('#')[0];
     f.id='colonne';f.title='CASH CAR';f.setAttribute('allow','autoplay; fullscreen; gamepad');f.setAttribute('allowfullscreen','');
     f.src=u+(u.indexOf('?')<0?'?':'&')+'colonne=1';
@@ -88,12 +153,17 @@ const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(/[?&]menu=leo\
       document.documentElement.classList.add('encoche');}
     /* L'ATELIER DES NUAGES (?nuages=1, voir NUAGES_LAB dans le jeu) : le téléphone à gauche, le panneau de réglages à droite (fenêtre
        étroite : par-dessus, derrière un bouton). Le panneau pilote le jeu de la colonne (même origine : il appelle ses fonctions). */
-    var LAB=/[?&]nuages=1\b/.test(q);
+    var LAB=!POKI&&/[?&]nuages=1\b/.test(q);
     if(LAB){document.documentElement.classList.add('labNuages');window.CC_LAB_JEU=function(){return f.contentWindow;};
       var sc=document.createElement('script');sc.src='atelier-nuages.js?v='+CC_BUILD;document.head.appendChild(sc);}
     var MODE=/[?&]cadre=scale\b/.test(q)?'scale':'zoom'; // voir « LE ZOOM NE PASSE PAS PARTOUT » plus bas
     var TEL_B=en?11:0; // la lunette du 13 Pro ≈ 11 pt de chaque côté de l'écran (sans encoche : l'écran nu, comme avant)
     var cadre=function(){
+      if(POKI){pokiDims();f.style.width=L+'px';f.style.height=H+'px'; // (POKI) bord à bord : ni air, ni boîtier, ni bouton TOURNER
+        var zp=Math.min(innerWidth/L,innerHeight/H),tp=tel.style;
+        if(MODE==='zoom'){f.style.transform='';f.style.zoom=zp.toFixed(4);}else{f.style.zoom='';f.style.transformOrigin='0 0';f.style.transform='scale('+zp.toFixed(4)+')';}
+        tp.width=(L*zp)+'px';tp.height=(H*zp)+'px';tp.padding='0';tp.borderRadius='0';
+        tp.left=((innerWidth-L*zp)/2)+'px';tp.top=((innerHeight-H*zp)/2)+'px';return;}
       // de l'air autour du boîtier ; en bas la place du bouton TOURNER et du numéro de version
       var PW=LAB&&innerWidth>=900?Math.min(360,Math.max(300,innerWidth*.26)):0,LW=innerWidth-PW; // (atelier des nuages) le panneau à droite
       var mx=Math.max(16,LW*.025),mh=Math.max(14,innerHeight*.03),mb=Math.max(mh,40),
@@ -118,6 +188,7 @@ const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(/[?&]menu=leo\
     /* LE BOUTON TOURNER (2026-09-30, Léo : « ajoute une option où je peux regarder en mode portrait » — repris de sa branche
        `version-leolei-2026`, 26/09) : le téléphone passe COUCHÉ ⇄ DEBOUT sans recharger — le jeu, dans la colonne, ne reçoit qu'un
        resize (fovFit, HUD, garage suivent seuls), on peut tourner en pleine course. L'adresse garde le choix (`?colonne=portrait`). */
+    if(!POKI){ // (POKI) ni numéro de version sous le jeu, ni bouton TOURNER : la fenêtre de Poki décide de la forme
     var vv=document.createElement('div');vv.id='ccVer';vv.textContent='VERSION '+CC_VER;document.body.appendChild(vv); // à comparer d'un coup d'œil avec les réglages du téléphone
     var tb=document.createElement('button');tb.id='tourne';tb.type='button';document.body.appendChild(tb);
     var tLbl=function(){tb.textContent=debout?'\u21bb  PAYSAGE':'\u21bb  PORTRAIT';tb.setAttribute('aria-label',debout?'Tenir le téléphone couché':'Tenir le téléphone debout');};
@@ -127,6 +198,7 @@ const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(/[?&]menu=leo\
       f.style.width=L+'px';f.style.height=H+'px';cadre();tLbl();
       try{var u=new URL(location.href);if(debout)u.searchParams.set('colonne','portrait');else u.searchParams.delete('colonne');history.replaceState(null,'',u.toString());}catch(_){}
       donne();});
+    }
     // le CLAVIER va au jeu : focus donné au chargement et à chaque clic hors de la colonne ; une touche frappée entre-temps est relayée
     var donne=function(){try{f.contentWindow.focus();}catch(_){}};
     f.addEventListener('load',donne);addEventListener('pointerdown',donne);
@@ -143,7 +215,9 @@ html.colonne,html.colonne body{height:100%;margin:0;overflow:hidden;background:#
 html.colonne body{display:flex;align-items:center;justify-content:center;
   background:radial-gradient(ellipse 70% 42% at 50% 50%,#241a4a 0,#120c2a 48%,#07050f 100%)}
 html.colonne.debout body{background:radial-gradient(ellipse 42% 70% at 50% 50%,#241a4a 0,#120c2a 48%,#07050f 100%)}
-html.colonne body>*:not(#tel):not(#tourne):not(#ccVer):not(#labNu):not(#labNuBtn){display:none!important}
+html.colonne:not(.poki) body>*:not(#tel):not(#tourne):not(#ccVer):not(#labNu):not(#labNuBtn){display:none!important}
+html.colonne.poki body>.ccHors{display:none!important} /* (POKI) seulement le jeu rangé : ce que le SDK de Poki pose dans la page (la pub) reste visible */
+html.poki,html.poki body{overscroll-behavior:none}
 html.colonne #ccVer{position:fixed;left:14px;bottom:10px;z-index:9;font:600 10px/1 system-ui,-apple-system,sans-serif;letter-spacing:1px;color:rgba(255,255,255,.38);pointer-events:none}
 /* le BOÎTIER (#tel, posé en px par le script) : la lunette noire, le cerclage d'acier, l'ombre et le halo néon du jeu ;
    l'écran du 13 Pro dedans : coins de 47 pt (le zoom du cadre les agrandit avec lui) ; l'encoche dans la lunette, par-dessus l'image */
@@ -5422,6 +5496,20 @@ html body #garage:not(.menu) #gMisAncre{display:none!important}
 html body #garage:not(.menu) #gRar .gR b{font-size:var(--f1)} /* les comptes « 1/15 » étaient à 8 px */
 html body #garage:not(.menu) .gTab{font-size:var(--f1)} /* les onglets étaient en --f0 (8 px) : 10 px, « TRAINEES » tient encore dans son quart de console debout (80 px dans 89) */
 </style>
+<style id="poki">
+/* L'ÉDITION POKI (2026-10-04) — tout est sous `html.poki` : sans elle, rien ici ne s'applique. Ce qui n'existe pas chez Poki disparaît
+   de l'écran : les MISSIONS (porte de l'accueil, socle et écran de l'atelier, écran #mMis, mission suivie en course), la CARRIÈRE (tuile,
+   feuille #carr, et les portes du menu de Léo) et la BOUTIQUE en vrai argent (tuiles, portes du garage, écran #mShop). Le code reste :
+   rien n'y mène plus. L'écran de mort garde son bloc #mObj, que objRender remplit en OBJECTIF D'ACHAT (voir objRender). */
+/* l'ACCUEIL : la rangée des tuiles (GARAGE · CARRIÈRE · BOUTIQUE) n'aurait plus gardé que GARAGE, seul et étiré ; il prend la place
+   de la porte des MISSIONS, à côté du ⚙ (le script POKI en fin de jeu la rhabille), et la rangée des tuiles s'efface */
+html.poki #mHome .mIcons{display:none!important}
+html.poki #mHome .mMisBtn{--nc:var(--neoC)}
+html.poki #mHome .mMisBtn .pxi{color:var(--neoC)}
+html.poki #mHome .mMisBtn:not([data-m="garage"]),html.poki #gMisAncre,html.poki #gMis,html.poki #mMis,html.poki #misFocus,
+html.poki [data-m="carr"],html.poki #gCarr,html.poki .gLevel,html.poki #carr,
+html.poki [data-m="shop"],html.poki [data-go="shop"],html.poki .gBoutique,html.poki #mShop,html.poki #bdShop{display:none!important}
+</style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
   <div id="spStage">
@@ -5825,8 +5913,8 @@ html body #garage:not(.menu) .gTab{font-size:var(--f1)} /* les onglets étaient 
 <script src="vendor/postprocessing/UnrealBloomPass.js"></script>
 <!-- (2026-09-28) LA CONSOLE DE SON : la banque de sons (générée par atelier-son/cuire.js) et son lecteur. `defer` : ils ne retardent
      pas le démarrage (on n'en a besoin qu'au premier geste) ; changer `?v=` à chaque nouvelle banque (le service worker garde l'ancienne sinon). -->
-<script defer src="sons-banque.js?v=11"></script>
-<script defer src="assets/audio/music/harmonie.js?v=4"></script> <!-- (2026-10-03) l'harmonie des morceaux, temps par temps : la phrase du boost la lit (atelier-son/harmonie.py) -->
+<script defer src="sons-banque.js?v=13"></script>
+<script defer src="assets/audio/music/harmonie.js?v=5"></script> <!-- (2026-10-03) l'harmonie des morceaux, temps par temps : la phrase du boost la lit (atelier-son/harmonie.py) -->
 <script defer src="sfx.js?v=4"></script>
 <script>
 (function(){
@@ -12757,6 +12845,13 @@ Object.assign(I18N,{"MULTI MAX":"BEST MULTI","Fini l'entraînement : tu as 3 VIE
 Object.assign(I18N_ZH,{"MULTI MAX":"最高倍数","Fini l'entraînement : tu as 3 VIES. En l'air, pose-toi avant la fin du chrono.":"训练结束：你有 3 条命。空中要在计时结束前着陆。","IL MENE DE":"银行家领先","Argent, caisses, habillages, missions, records, carrière et réglages : tout repart de zéro.":"金钱、赛车、外观、任务、纪录、生涯和设置：全部清零。"});
 Object.assign(I18N,{"MODE FACILE": "EASY MODE", "POUCE HAUT EN VOL": "THUMB UP IN THE AIR", "PLONGE": "DIVE", "MONTE": "CLIMB", "CHOISIS TON MODE": "PICK YOUR MODE", "En FACILE, la voiture suit mieux les virages, tu restes plus longtemps en l'air et tu as 3 vies. Tu pourras changer dans les réglages.": "In EASY, the car follows the turns better, you stay longer in the air and you get 3 lives. You can change it in the settings.", "FACILE": "EASY", "NORMAL": "NORMAL", "VIES": "LIVES", "DERNIERE VIE !": "LAST LIFE!", "ON REPART !": "BACK ON THE ROAD!", "En l'air : pouce en HAUT = monte, en BAS = plonge.": "In the air: thumb UP = climb, DOWN = dive."});
 Object.assign(I18N_ZH,{"MODE FACILE": "简单模式", "POUCE HAUT EN VOL": "空中拇指向上", "PLONGE": "俯冲", "MONTE": "爬升", "CHOISIS TON MODE": "选择模式", "En FACILE, la voiture suit mieux les virages, tu restes plus longtemps en l'air et tu as 3 vies. Tu pourras changer dans les réglages.": "简单模式：车更容易过弯，空中停留更久，还有 3 条命。可以在设置里更改。", "FACILE": "简单", "NORMAL": "普通", "VIES": "条命", "DERNIERE VIE !": "最后一条命！", "ON REPART !": "重新上路！", "En l'air : pouce en HAUT = monte, en BAS = plonge.": "空中：拇指向上 = 爬升，向下 = 俯冲。"});
+// (POKI) les textes propres à l'édition Poki (les habillages des anciens carnets, l'effacement sans missions ni carrière)
+if(POKI){Object.assign(I18N,{"Vingt-quatre carats sur la carrosserie. Discret, comme toi.":"Twenty-four carats on the bodywork. Subtle, like you.",
+  "Toutes les couleurs à la fois. Personne ne t'oublie.":"Every colour at once. Nobody forgets you.",
+  "Argent, caisses, habillages, records et réglages : tout repart de zéro.":"Money, cars, cosmetics, records and settings: everything starts over."});
+ Object.assign(I18N_ZH,{"Vingt-quatre carats sur la carrosserie. Discret, comme toi.":"车身镀上二十四K金。低调，就像你。",
+  "Toutes les couleurs à la fois. Personne ne t'oublie.":"所有颜色一次到齐。没人会忘记你。",
+  "Argent, caisses, habillages, records et réglages : tout repart de zéro.":"金钱、赛车、外观、纪录和设置：全部清零。"});}
 // (2026-09-29) écran de fin v5
 Object.assign(I18N_ZH,{"MEILLEUR": "最佳", "COMPTE": "账户"});
 // ⚠ nommée TR et non T : `T` est DÉJÀ le tableau des tangentes de la piste (T[bi].y) — la
@@ -20781,6 +20876,17 @@ const CAR_UNLOCK=[
   {k:'carrV',v:10}, // (2026-09-27) LE LINGOT — les dix niveaux de la VILLE (il se gagne en battant le banquier au niveau 10)
   {p:1200000}, // (2026-10-02) L'ORIGAMI — ÉPIQUE, à l'argent : entre LA DÉESSE et L'AIGLE DE FEU
 ]
+/* (POKI) PLUS DE MISSIONS, DE CARRIÈRE NI DE BOUTIQUE : les caisses qui s'y gagnaient passent À L'ARGENT DU JEU (sinon le garage montrerait
+   des caisses qu'on ne peut plus avoir). Les prix prolongent la gamme : les carnets là où ils tombaient dans la progression (LA BULLE
+   juste après les communes… LE MASTODONTE parmi les épiques), les deux trophées de la carrière en haut des épiques, les LÉGENDAIRES de la
+   boutique AU-DESSUS de LA RAIE (2,5 M), rangées par leur ancien prix en euros. Leur famille suit : LÉGENDAIRE reste légendaire (la
+   couleur or), une caisse « défi » devient ce que son prix dit (rare / épique). POSTER 84 (rang d'aura) reste un DÉFI : il se gagne au style. */
+if(POKI){const PRIX_CARNET={1:30e3,2:80e3,3:220e3,6:420e3,7:700e3,8:1.05e6,9:1.45e6},PRIX_CARR={carrN:1.8e6,carrV:2.2e6};
+  CAR_UNLOCK.forEach(function(u,i){if(!u||!u.k)return;const c=CARS[i];let p=0;
+    if(u.k==='premium'){p=Math.round((2e6+(parseFloat(String(u.eur).replace(',','.'))||5)*450e3)/1e5)*1e5;if(c)c.rar='legendaire';}
+    else if(u.k==='carnet')p=PRIX_CARNET[u.v]||Math.round(300e3*u.v/1e5)*1e5;
+    else if(PRIX_CARR[u.k])p=PRIX_CARR[u.k];
+    if(!p)return;CAR_UNLOCK[i]={p:p};if(c&&c.rar==='defi')delete c.rar;});}
 /* ============================================================================
    L'AURA ET LA BANQUE (2026-08-17) — la nouvelle règle
    ----------------------------------------------------------------------------
@@ -20842,7 +20948,7 @@ function carOwned(i){return !!(SAVE.d.owned&&SAVE.d.owned.indexOf(i)>=0);}
 /* (2026-09-26, user : « pour la version test donne-moi accès à toutes les voitures mais en laissant les conditions d'obtention »)
    TEST_CAISSES : toutes les caisses s'ÉQUIPENT, mais la fiche du garage continue d'écrire la VRAIE condition (voir garageShow).
    ⚠ à remettre à false pour la version publique : c'est l'unique interrupteur. */
-const TEST_CAISSES=true;
+const TEST_CAISSES=!POKI; // (POKI) la version publique : les caisses se GAGNENT
 function carUnlocked(i){return !carRetiree(i)&&(TEST_CAISSES||carUnlockedVrai(i));}
 /* (2026-09-30) ⚠ carUnlocked OUVRE (équiper, JOUER) ; ce qui dit AU JOUEUR où il en est — « une caisse à ta portée » (objectif, garPortee,
    pastille du GARAGE), « nouvelle caisse gagnée » (carSnapshot/carScan) et le bouton ACHETER — lit carUnlockedVrai : en TEST tout était
@@ -21765,7 +21871,7 @@ const CARNETS=[
   {r:{car:7},m:[{k:'tricks',v:2,p:600},{k:'perfect',v:1,p:600},{k:'kmh',v:672,p:600}]}, // 672 = 700 × 0,96 (SPD .5 → .4 → .48 : −20 % puis +20 %)
   {r:{car:8},m:[{k:'zones',v:1,p:1500},{k:GAP_ON?'gaps':'chain',v:GAP_ON?1:3,p:1500},{k:'cash',v:20000,p:2000}]}, // (2026-09-26) sans catapultes (GAP_ON), un gap est IMPOSSIBLE : le contrat bloquait toute la suite
   {r:{cat:'peinture',id:'or'},m:[{k:'survie',v:150,p:4000},{k:'tricks',v:8,p:4000},{k:'cash',v:100000,p:5000}]},
-  {r:{cat:'trainee',id:'arcenciel'},m:[{k:'zones',v:2,p:8000},{k:'chain',v:4,p:8000},{k:'perfect',v:3,p:8000}]},
+  {r:{cat:'trainee',id:'arcenciel'},m:[{k:'zones',v:2,p:8000},{k:'chain',v:4,p:8000},{k:'coins',v:80,p:8000}]}, /* (2026-10-04, Sacha : « enlève la mission 3 pose parfaite ») le DÉFI 3 de ce carnet était « 3 POSES PARFAITES » : 80 pièces en une partie à la place (même prime) */
 /* ===== LES CARNETS DES 50 — DÉBUT ===== */
   {r:{car:65},m:[{k:'tricks',v:10,p:10000},{k:'coins',v:120,p:10000},{k:'zones',v:2,p:12000}]},
   {r:{car:63},m:[{k:'perfect',v:5,p:15000},{k:'kmh',v:900,p:15000},{k:'chain',v:6,p:18000}]},
@@ -21858,6 +21964,7 @@ function misOn(){return started&&!gameOver&&!SANDBOX&&!PARK.on;}
 function misTick(dt){ // appelée par la boucle : les contrats se cochent EN DIRECT, pas à la fin
   if(!misOn()){if(misTick._f!==0){misTick._f=0;try{misFocusMaj();}catch(e){}}return;} // (2026-09-30) la mission suivie s'éteint hors course
   RUNX.t+=dt;if(nitroOn)RUNX.nitro+=dt;
+  if(POKI)return; // (POKI) pas de missions : les compteurs de la partie tournent (écran de fin), aucun défi ne se coche
   misT-=dt;if(misT>0)return;misT=.25;
   const s=misEtat(),c=carnet(s.n);
   for(let i=0;i<3;i++){if(s.ok[i])continue;const m=c.m[i],v9=misVal(m.k);
@@ -21874,6 +21981,7 @@ function misTick(dt){ // appelée par la boucle : les contrats se cochent EN DIR
    compteurs d'une partie déjà bien entamée, et ses missions tomberaient toutes seules — gagnées sans
    avoir été lues. Rend la récompense (pour l'écran de mort) ou null. */
 function misFin(){
+  if(POKI)return null; // (POKI) pas de carnet à refermer (une vieille sauvegarde aux trois défis cochés n'y ouvre rien)
   const s=misEtat();if(!(s.ok[0]&&s.ok[1]&&s.ok[2]))return null;
   const c=carnet(s.n),r=c.r;
   if(r.cat){const o=SAVE.d.shop.own;const k=r.cat+':'+r.id;if(o.indexOf(k)<0)o.push(k);}
@@ -22014,6 +22122,20 @@ let MIS_REC=null; // la récompense du carnet refermé à cette fin de partie (n
    (plein), ce que la partie vient d'y verser (qui se remplit sous les yeux), et ce qu'il manque. */
 function objRender(el){
   if(!el)return;
+  /* (POKI) PAS DE PORTE DES MISSIONS : l'écran de mort montre L'OBJECTIF D'ACHAT — la prochaine caisse (ou le prochain habillage) à
+     s'offrir, sa photo, la barre du compte qui se remplit sous les yeux ; touché, le garage s'ouvre dessus (`buyGoal`). Tout acquis : rien. */
+  if(POKI){const o=objectif();
+    if(!o){el.className='mObj';el.removeAttribute('data-m');el.innerHTML='';return;} // :empty → masqué
+    const b=bank(),pret=b>=o.prix,w=Math.min(100,b/Math.max(1,o.prix)*100),fig=objFig(o);
+    el.className='mObj misPorte'+(fig?' aFig':'');el.setAttribute('data-m','buyGoal');
+    try{el.style.setProperty('--rc',o.car!=null?rarInfo(carRar(o.car)).c:(MIS_CAT_COL[o.cat]||'#ffffff'));}catch(e){}
+    el.innerHTML='<div class="obHd"><span>'+pxi(pret?'coche':o.car!=null?'voiture':'piece')+' '+TR(pret?'TU PEUX TE L\'OFFRIR':'OBJECTIF')+'</span></div>'
+      +fig+'<div class="obBig">'+TR(o.nom)+'</div>'
+      +'<div class="obBar'+(pret?' ok':'')+'"><i style="width:0%" data-w="'+w.toFixed(1)+'"></i></div>'
+      +'<div class="obFt"><span>'+fmtC(Math.min(b,o.prix))+' / '+fmtC(o.prix)+'</span><span class="obGain"><b>'+TR('VOIR')+'</b>'+pxi('droite')+'</span></div>';
+    const gi=el.querySelector('.obBar i');
+    setTimeout(function(){requestAnimationFrame(function(){if(gi)gi.style.width=gi.dataset.w+'%';});},REDUCED_MOTION?0:520);
+    return;}
   if(MIS_REC){const r=MIS_REC;
     el.className='mObj rec';el.setAttribute('data-m','voirRec');el.style.removeProperty('--rc');
     // (2026-09-28, console de son) CARNET BOUCLÉ — la récompense la plus rare : la carte arrive à 490 ms, UNE fois par mort
@@ -22399,6 +22521,10 @@ const COSM={
     {id:'or',      n:'POUDRE D\'OR',      p:15000, rgb:[1.45,1.05,.22],d:'Tu ne laisses pas de la fumée derrière toi. Tu laisses de l\'or.'},
     {id:'arcenciel',n:'ARC-EN-CIEL',      mis:5,   rainbow:1,d:'Ne s\'achète pas : elle se gagne en relevant des défis.'}]
 };
+if(POKI){ // (POKI) sans missions, les deux habillages des carnets s'achètent, au sommet de leur rayon
+  const o9=COSM.peinture.find(function(d){return d.id==='or';}),a9=COSM.trainee.find(function(d){return d.id==='arcenciel';});
+  if(o9){delete o9.mis;o9.p=150000;o9.d='Vingt-quatre carats sur la carrosserie. Discret, comme toi.';}
+  if(a9){delete a9.mis;a9.p=40000;a9.d='Toutes les couleurs à la fois. Personne ne t\'oublie.';}}
 const SHOP_CATS=['voiture','peinture','aile','trainee'];
 const SHOP={tab:'voiture',i:{peinture:0,aile:0,trainee:0},prev:null}; // prev : l'article ESSAYÉ (pas forcément à toi)
 function shopOwned(cat,id){const d=COSM[cat].find(x=>x.id===id);if(!d)return false;
@@ -25697,11 +25823,23 @@ function playMusic(url,opt){opt=opt||{};
 }
 function stopMusic(){musicVoulue=false;if(musicEl){try{musicEl.pause();}catch(e){}}musicOn=false;}
 // ---- LE GESTIONNAIRE : menu étouffé → partie (même morceau, qui s'ouvre) → radio → tape-stop en fin ----
-function musicStartRun(){ // au début d'une partie (start / resetGame)
+/* LE DÉPART EN MUSIQUE (2026-10-04, Léo : « harmonise le début de partie et le début de la musique, c'est un peu violent »). AVANT, à la
+   sortie du nuage, tout tombait dans la MÊME image : le lobby coupé net et la musique de course qui bondissait à 60 % en 0,15 s.
+   · le PIQUÉ de JOUER : la musique du lobby S'EFFACE (musicTick, mode menu : × 1 − t/1,5) ; au REJOUER, sous le fondu au noir (`sort`) ;
+   · la COURSE : sa musique part TOUT DE SUITE, pendant le boost offert, en fondu en S de `fondu` s (musicTick, `f0`).
+   ⚠ (même jour, Léo : « enlève le bruit de transition, le boost de la voiture AVANT la musique ; la musique doit commencer PENDANT que la
+   voiture booste, pour tous les niveaux ») : le son de transition `depart.envol` (1,55 s de montée AVANT la musique) est RETIRÉ — la
+   musique n'attend plus rien. NE PAS remettre de son ni de délai entre le départ et la musique.
+   ⚠ iPhone : le volume d'un <audio> y est en lecture seule (VOL_LOCKED) — ni fondu du lobby ni fondu d'entrée. `DEPMUS.on=false` = avant. */
+const DEPMUS={on:true,fondu:.6,f0:-1,sort:0}; // sort : l'instant du REJOUER (le lobby de l'écran de mort s'efface sous le fondu au noir)
+function musicStartRun(depart){ // au début d'une partie (start / resetGame : depart = vrai) — et quand on rallume la MUSIQUE en course
+  DEPMUS.f0=-1;DEPMUS.sort=0;
   if(!SND.music||!MUSIC_TRACKS.length)return;
   musicCur=musicPickNext(-1);          // nouvelle partie = une piste tirée au hasard dans la radio…
   musicLieu=musicLieuVoulu();          // …mais le MONDE a peut-être sa propre musique (voir MUSIC_LIEU)
-  musicMode='run';NIVEAU_FX=0;musicPlayCurrent();
+  musicMode='run';NIVEAU_FX=0;
+  if(depart&&DEPMUS.on){DEPMUS.f0=performance.now();musicVolCour=0;} // (LE DÉPART EN MUSIQUE) elle part tout de suite, en fondu (musicJoue pose le volume 0 avant de lancer)
+  musicPlayCurrent();
   /* LE LEVER DE PISTE : le décor repart de zéro et remonte avec le morceau, le métronome est remis à plat. */
   LVLFX.k=0;LVLFX.spin=0;LVLFX.flip=LVLFX.flipTo=0;LVLFX.dir=1;
   BCLK.ph=0;BCLK.n=0;BCLK.conf=0;BCLK.miss=0;BCLK.last=BCLK.t-9;BCLK.per=.5;BCLK.force=0;
@@ -25731,6 +25869,7 @@ function musicNext(){
 }
 function musicStop(tape){ // fin de partie : « tape-stop » (la bande ralentit et s'éteint) ou coupure nette
   musicMode='none';musicVoulue=false;
+  DEPMUS.f0=-1; // (LE DÉPART EN MUSIQUE) un fondu d'entrée en cours s'arrête là
   clearInterval(FRENM.iv);FRENM.on=false;FRENM.sw=false;FRENM.surm=false; // la frénésie ne survit pas à la partie
   const el=musicEl;
   /* (2026-09-30) LA BANDE N'A PLUS QU'UN FIL : l'intervalle du tape-stop (~0,6 s) n'était jamais rangé — un REJOUER rapide (uiGarde
@@ -25982,8 +26121,12 @@ function musicTick(dt,mvt){
   // v4 : le VOLUME de l'élément fait tout (iOS l'ignore — le son y joue à plein, c'est le bouton du téléphone qui règle)
   try{distTick(dt);}catch(e){}
   if(musicMode==='run')musicVolCible=musVol()*(.62+.38*musicBoostEnv)*mDuck*(1-.3*Math.min(1,DIST.env));   // à l'arrêt un peu plus bas, lancé à plein
-  else if(musicMode==='menu')musicVolCible=musVol()*.5*mDuck;                   // le menu : en fond
-  if(musicMode!=='none'){musicVolCour+=(musicVolCible-musicVolCour)*Math.min(1,dt*6);
+  else if(musicMode==='menu'){musicVolCible=musVol()*.5*mDuck;                   // le menu : en fond
+    if(DEPMUS.on&&GAR.go)musicVolCible*=Math.max(0,1-(GAR.go.t||0)/1.5);          // (LE DÉPART EN MUSIQUE) il s'EFFACE pendant le piqué de JOUER…
+    if(DEPMUS.sort){const d9=performance.now()-DEPMUS.sort;if(d9>3000)DEPMUS.sort=0;else musicVolCible*=Math.max(0,1-d9/350);}} // …et sous le fondu au noir du REJOUER
+  if(DEPMUS.f0>=0&&musicMode==='run'){const k9=(performance.now()-DEPMUS.f0)/(DEPMUS.fondu*1000); // (LE DÉPART EN MUSIQUE) l'entrée en fondu : une courbe en S, pas le ressort ordinaire (il bondissait de 0 à 60 % en 0,15 s)
+    if(k9>=1)DEPMUS.f0=-1;else musicVolCour=musicVolCible*k9*k9*(3-2*k9);}
+  if(musicMode!=='none'){if(!(DEPMUS.f0>=0))musicVolCour+=(musicVolCible-musicVolCour)*Math.min(1,dt*6);
     if(musicEl&&!musicEl.paused&&!VOL_LOCKED){try{const v9=Math.max(0,Math.min(1,musicVolCour));if(Math.abs(musicEl.volume-v9)>.002)musicEl.volume=v9;}catch(e){}}}
   // BOOST : le morceau S'AMPLIFIE — bass boost + chorus qui épaissit (distinct du filtre-mouvement)
   const boostAmt=(running&&!gameOver)?Math.min(1,(nitroOn?0.85:0)+Math.min(1,boost)*0.5):0;
@@ -28817,7 +28960,11 @@ function instruNote(f,t,pan,vel,dec,etin){ // une touche de piano électrique (v
   mg.gain.setValueAtTime(ix,t);mg.gain.setTargetAtTime(f*.1,t,.07);m.connect(mg);mg.connect(c1.frequency);mg.connect(c2.frequency);
   c1.frequency.value=f;c2.frequency.value=f;c1.detune.value=-4;c2.detune.value=4;
   o2.frequency.value=f*2;g2.gain.setValueAtTime(.18,t);g2.gain.setTargetAtTime(0,t,.05);o2.connect(g2);g2.connect(g); // le corps d'octave, bref
-  const pk=.1*vel;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(pk,t+.025);  // une attaque qui se fondg.gain.setTargetAtTime(pk*.35,t+.02,.12);g.gain.setTargetAtTime(0,t+.18,dec||.3);
+  const pk=.1*vel;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(pk,t+.025);g.gain.setTargetAtTime(pk*.35,t+.03,.12);g.gain.setTargetAtTime(0,t+.18,dec||.3); /* une attaque qui se fond, puis la touche S'ÉTEINT
+     ⚠ (2026-10-04, Léo : « trouve le son intrus de la musique du nitro, peut-être un autre instrument ») : depuis le 3/10 (53fd3f4) un
+     commentaire `//` posé au milieu de cette ligne avalait les deux `setTargetAtTime` — la note de MÉLODIE ne s'éteignait plus : chaque
+     touche restait à pleine voix 2,4 s puis se coupait net (clic). Sur les 3 premières mesures tenues, 3 à 5 touches tenues se
+     superposaient en une NAPPE D'ORGUE désaccordée (le chorus ±4 cents) sous les « ding » de l'arpège : l'intrus. Au milieu d'une ligne, un commentaire s'écrit en BLOC, jamais `//`. */
   if(p1){p1.pan.value=Math.max(-1,pan-.18);p2.pan.value=Math.min(1,pan+.18);const h1=AC.createGain(),h2=AC.createGain();h1.gain.value=h2.gain.value=.5;
     c1.connect(h1);h1.connect(p1);p1.connect(g);c2.connect(h2);h2.connect(p2);p2.connect(g);}
   else{const h=AC.createGain();h.gain.value=.5;c1.connect(h);c2.connect(h);h.connect(g);}
@@ -31496,9 +31643,9 @@ function resetGame(){
   // tirelire — `respawn()` juste au-dessus la pose DÉJÀ au sol, roulante. Ce qui remplace la chute :
   // 3 s de BOOST OFFERT (`startBoostT`) — « pas dur à gérer » pour le joueur puisqu'il n'a RIEN à
   // tenir, la poussée tient la touche à sa place — et le logo qui brille au-dessus de la caisse.
+  musicStartRun(true); // nouvelle partie → la playlist repart du début, en fondu, PENDANT le boost offert (LE DÉPART EN MUSIQUE)
   fireLaunchBoost();
   showMsg(pickL(GO_LINES),'#7dff9b');
-  musicStartRun(); // nouvelle partie → la playlist repart du début
   try{document.dispatchEvent(new Event('cc:jeu'));}catch(e){} // la course part ou s'arrête : les commandes le savent À L'INSTANT, pas au prochain tick
 }
 // Fin de run : les exploits de la partie rejoignent les compteurs À VIE. Cumuls pour ce qui se
@@ -31674,7 +31821,7 @@ function start(){
   running=true;
   paintMoney(); // la mise de départ et la bonne devise, tout de suite
   survStart(); // le mode armé au menu s'active pour cette première run
-  musicStartRun(); // la bande-son démarre avec la partie
+  musicStartRun(true); // la bande-son démarre avec la partie, en fondu, pendant le boost offert (LE DÉPART EN MUSIQUE)
   try{document.dispatchEvent(new Event('cc:jeu'));}catch(e){} // la course part ou s'arrête : les commandes le savent À L'INSTANT, pas au prochain tick
 }
 /* ============================================================================
@@ -34532,7 +34679,7 @@ function buildGarageRoom(){
      néon VERT (la couleur des défis), coiffée d'une cible qui tourne. Au sol, HORS du plateau (il ne tourne pas avec la caisse), côté
      porte, à 3,8 m du centre : la plus longue caisse (6 m) balaie 3,2 m. x < 0 = à DROITE de l'écran (la caméra regarde la porte, +Z).
      Son étiquette MISSIONS est du DOM qui le suit à l'écran (#gMisAncre, garMenuSuit) : un vrai bouton, net, traduit, accessible. */
-  {const sx=-2.9,sz=2.5,vert=BA(0x5ee37a);
+  if(!POKI){const sx=-2.9,sz=2.5,vert=BA(0x5ee37a); // (POKI) pas de missions : pas de socle
    cy(sx,.62,sz,.42,1.24,M.fer);cy(sx,1.27,sz,.47,.07,M.acier);cy(sx,.08,sz,.5,.16,M.acier);
    for(const y9 of [.34,.98])cy(sx,y9,sz,.435,.06,vert);                                   // deux cerclages néon
    const ci=new THREE.Group();ci.position.set(sx,1.78,sz);g.add(ci);GAR.misCible=ci;GAR.misPos=new THREE.Vector3(sx,2.28,sz);
@@ -35113,6 +35260,7 @@ function garLacherSon(){try{if(SONV2)sfx('garage.lacher');else{noiseBurst(.6,.22
 // du user) — le garage reste la scène du départ, seule sa vitrine de shopping n'a rien à y faire.
 function playViaGarage(tuto){
   if(pendingScore!=null||(started&&!gameOver))return; // course en cours, ou nom en cours de saisie : rien à faire
+  if(!pkPasse(function(){playViaGarage(tuto);}))return; // (POKI) la pause pub d'avant partie (jamais avant la toute première) — voir pkPasse
   // (2026-09-25, transitions App Store) le menu ne disparaît plus d'un coup sur l'atelier : fondu au noir, l'atelier
   // s'allume DESSOUS, et le LÂCHER démarre quand le voile se lève — la caméra quitte l'orbite sous les yeux du joueur.
   if(garageOn){if(tuto)tutoArme();garageLaunch();return;}
@@ -36513,7 +36661,7 @@ function gActSync(){const a=$('gAct');if(!a)return;const bt=$('gEquip'),row=$('g
    (même soir, Sacha a tranché : « je préfère ma version de l'interface finalement ») — le DÉFAUT est la version de Sacha : ses boutons,
    son écran MISSIONS rangé (f474c51, rétabli à côté de celui de Léo : gmRenderS/gmPlace/gmSuitS, CSS sous html.misS) et sa porte fermée.
    La version de Léo reste ENTIÈRE derrière `?menu=leo` (menu du sketch, ses missions, la porte relevée). ?menu=sacha marche toujours. */
-const MENU_SACHA=!/[?&]menu=leo\b/.test(location.search);
+const MENU_SACHA=POKI||!/[?&]menu=leo\b/.test(location.search); // (POKI) toujours le menu de Sacha
 document.documentElement.classList.toggle('misS',MENU_SACHA); // l'écran MISSIONS de Sacha : ses règles CSS vivent sous html.misS
 /* (même soir, Léo : « enlève la porte ») la porte FERMÉE au menu (Sacha, b8e7ce7) va avec SA version : par défaut (ou ?porte=1) elle
    descend au menu et s'ouvre au JOUER ; avec ?menu=leo elle reste RELEVÉE sous le plafond (l'image d'avant : le feu se voit dès le menu). */
@@ -39098,7 +39246,7 @@ renderLeaders(-1);
     // utilisateur qu'un `AudioContext` réclame — autant s'en servir tout de suite. `if(!AC)` : même
     // garde que `playMusic`/`musicStartRun`, zéro risque de double contexte avec le garde ajouté
     // dans `start()`.
-    if(!AC){try{if(typeof initAudio==='function')initAudio();}catch(e){}}
+    if(!AC&&!POKI){try{if(typeof initAudio==='function')initAudio();}catch(e){}} // (POKI) pas de geste ici : le contexte naît au premier toucher
     // (2026-10-03, Léo : « pour toutes les musiques, fais démarrer au moment du menu ciel ») : la musique du lobby part à l'instant où le
     // voile s'ouvre sur le CIEL (420 ms, le fondu ci-dessous), et du DÉBUT du morceau — le 1er toucher l'avait lancée en silence une fraction
     // de seconde pour libérer le lecteur. Avant : 700 ms, au milieu du fondu.
@@ -39116,6 +39264,9 @@ renderLeaders(-1);
     if(!launched)launch();
     else if(performance.now()-tLaunch>600)hide(); // ⚠ un DOUBLE-CLIC sur la plaque sautait tout
   });
+  /* (POKI) PAS D'INTRO À TOUCHER : Poki veut le jeu tout de suite (sa page a déjà son écran de chargement) — le voile s'ouvre seul sur
+     le menu. Le son et la musique attendent le premier geste (voir « LE KIT POKI, CÔTÉ JEU » : initAudio au premier toucher). */
+  if(POKI)hide();
 })();
 /* ============ MOBILE / TACTILE / PAUSE / PWA — ajout non intrusif (rien de la physique n'est réécrit) ============ */
 // PAUSE commune : clavier P, bouton tactile ⏸ et pause auto passent tous par ici (gère aussi le son)
@@ -39182,7 +39333,7 @@ function goImmersive(){
   // Sous Capacitor (app native) : la WebView est déjà plein écran et requestFullscreen n'est pas
   // supporté — on le garde pour le web uniquement. Et pas sur l'ordi en `?tel=1` : cliquer JOUER
   // ne doit pas avaler l'écran entier sans qu'on l'ait demandé.
-  if(!window.Capacitor&&!FORCE_TEL){ try{ const el=document.documentElement;
+  if(!window.Capacitor&&!FORCE_TEL&&!POKI){ try{ const el=document.documentElement; // (POKI) le plein écran est celui de Poki : on ne le prend pas soi-même
     if(el.requestFullscreen&&!document.fullscreenElement)el.requestFullscreen({navigationUI:'hide'}).catch(function(){});
     else if(el.webkitRequestFullscreen&&!document.webkitFullscreenElement)el.webkitRequestFullscreen();
   }catch(e){} }
@@ -39418,8 +39569,10 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='reset'||a==='quit'){ const q9=a==='quit'; // (2026-09-25) CONFIRMÉS : QUITTER tombait sous le pouce et terminait la partie d'un seul tap
       modale({titre:q9?'QUITTER LA PARTIE ?':'RECOMMENCER ?',texte:q9?(TUTO.on?(SAVE.d.permis?'Tu reprendras la leçon au prochain départ.':"Tu reprendras la leçon au prochain départ : le PERMIS et sa prime t'attendent."):'Tes gains sont versés au compte.'):'Les gains de cette partie ne seront PAS versés.', // (2026-09-29) pendant la leçon, « tes gains sont versés » taisait l'enjeu
         boutons:[{l:q9?'QUITTER':'RECOMMENCER',ic:q9?'quitter':'rejouer',cls:'pb-red',v:1},{l:'CONTINUER',ic:'lecture',v:0}]}) // CONTINUER en DERNIER : Échap clique le dernier bouton
-      .then(function(r){ if(!r.v||!started||gameOver)return; panOpen(false);
-        if(q9){if(TUTO.on)tutoQuitte();const sb=SANDBOX;SANDBOX=false;endGame();SANDBOX=sb;} else {carrIci();resetGame();} }); } // carrIci : la carrière repart du niveau en cours · (2026-09-28) tutoQuitte : la leçon quittée sera reproposée
+      .then(function(r){ if(!r.v||!started||gameOver)return;
+        const f9=function(){ if(!started||gameOver)return; panOpen(false);
+          if(q9){if(TUTO.on)tutoQuitte();const sb=SANDBOX;SANDBOX=false;endGame();SANDBOX=sb;} else {carrIci();resetGame();} };
+        if(q9||pkPasse(f9))f9(); }); } // (POKI) RECOMMENCER passe par la pause pub, le panneau reste ouvert (jeu en pause) pendant qu'elle passe // carrIci : la carrière repart du niveau en cours · (2026-09-28) tutoQuitte : la leçon quittée sera reproposée
     uiClic(a==='close'?'retour':a==='snd'?(SND.sfx?'on':'off'):a==='vox'?(SND.voice?'on':'off'):a==='mus'?(SND.music?'on':'off'):a==='surv'?(SURV.armed?'on':'off'):(a==='ctl'||a==='q'||a==='volh')?'onglet':(a==='reset'||a==='quit')?'danger':''); /* (console de son) le RÔLE — ici le clic part APRÈS la bascule : l'interrupteur sonne son nouvel état */ // ⚠ EN DERNIER : un bouton qui SORT de la pause (reprendre, recommencer, quitter) garde son clic ; en pause il reste le visuel et la vibration
   }
   if(gear)gear.addEventListener('click',gearOpenHandler); // au relâcher (voir mHit) : le panneau défile, un glissé n'active rien
@@ -39681,7 +39834,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   }
   function mTap(a,el){
     if(a!=='snd')uiClic(mRole9(a));uiPop(el);if(a==='play'||a==='replay')pixBurst(el,16); // chaque bouton REBONDIT ; JOUER lâche une gerbe — (2026-09-28) SON : le clic part APRÈS la bascule (plus bas)
-    if(a==='replay'&&started&&gameOver){ goImmersive(); ecranWipe(function(){ if(started&&gameOver){ if(!CARR.actif)tutoArme(); resetGame(); } }); } // REJOUER : tout de suite, sans repasser par l'atelier — mais par un fondu (la piste neuve se construit DESSOUS) · (2026-09-28) tutoArme : « REVOIR L'AUTO-ÉCOLE » promet le PROCHAIN départ, REJOUER compris (sans effet si elle est déjà faite ; pas en carrière : son niveau passe devant la piste d'apprentissage)
+    if(a==='replay'&&started&&gameOver){ const r9=function(){ DEPMUS.sort=performance.now(); goImmersive(); ecranWipe(function(){ if(started&&gameOver){ if(!CARR.actif)tutoArme(); resetGame(); } }); }; if(pkPasse(r9))r9(); } // (POKI) pkPasse : la pause pub avant de rejouer // REJOUER : tout de suite, sans repasser par l'atelier — mais par un fondu (la piste neuve se construit DESSOUS) · (2026-09-28) tutoArme : « REVOIR L'AUTO-ÉCOLE » promet le PROCHAIN départ, REJOUER compris (sans effet si elle est déjà faite ; pas en carrière : son niveau passe devant la piste d'apprentissage)
     else if(a==='play'||a==='replay'){ if(a==='play')CARR.actif=null;
       if(a==='play'&&SAVE.d.facile==null&&!SAVE.d.tuto){facChoix().then(function(){goImmersive();playViaGarage(true);});} // (2026-09-29) le 1er JOUER demande le mode
       else{goImmersive(); playViaGarage(true);} } // 1re partie = AUTO-ÉCOLE : tutoArme passe SOUS le voile (la reconstruction de la piste figeait le bouton avant qu'il monte)
@@ -39739,7 +39892,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
         if(SAVE.import(r.texte.trim())){toast(pxi('coche')+' '+TR('RESTAURE — RECHARGE…'));setTimeout(function(){location.reload();},900);}
         else toast(pxi('croix')+' '+TR('CODE INVALIDE')); }); }
     else if(a==='wipe'){
-      modale({titre:'TOUT EFFACER ?',texte:'Argent, caisses, habillages, missions, records, carrière et réglages : tout repart de zéro.',
+      modale({titre:'TOUT EFFACER ?',texte:POKI?'Argent, caisses, habillages, records et réglages : tout repart de zéro.':'Argent, caisses, habillages, missions, records, carrière et réglages : tout repart de zéro.',
         boutons:[{l:'EFFACER',ic:'corbeille',cls:'pb-red',v:1},{l:'ANNULER',v:0}]}).then(function(r){
         if(r.v){SAVE.d=SAVE.san(null);SAVE.flush();location.reload();} }); }
   }
@@ -39878,7 +40031,7 @@ if(!(IS_MOBILE||/[?&]touch=1/.test(location.search))){
 // PWA : enregistrement du service worker (offline + installable), en http(s) uniquement et HORS Capacitor.
 // Sous Capacitor (app native iOS), window.Capacitor est défini et le protocole est capacitor:// — un
 // service worker n'y a pas sa place : on ne l'installe pas.
-if('serviceWorker'in navigator&&!window.Capacitor&&(location.protocol==='http:'||location.protocol==='https:')){ addEventListener('load',function(){ navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).catch(function(){}); }); }
+if('serviceWorker'in navigator&&!window.Capacitor&&!POKI&&(location.protocol==='http:'||location.protocol==='https:')){ addEventListener('load',function(){ navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).catch(function(){}); }); }
 /* LA MISE À JOUR TOUTE SEULE (2026-10-01, Léo : « trouve un moyen pour qu'on joue au même jeu, juste — fais-moi ça en un coup »).
    Deux joueurs pouvaient voir deux jeux : une appli posée sur l'écran d'accueil de l'iPhone REPREND la page gardée en mémoire (aucun
    rechargement pendant des jours), un onglet resté ouvert garde l'ancienne. Le jeu connaît son commit (CC_BUILD, gravé par
@@ -39889,7 +40042,7 @@ if('serviceWorker'in navigator&&!window.Capacitor&&(location.protocol==='http:'|
    Copie locale / file:// / appli Capacitor : rien. Le numéro se lit en bas des RÉGLAGES (et sous le jeu sur l'ordi). */
 (function(){
   var e=document.getElementById('mvVer');if(e)e.textContent='VERSION '+CC_VER;
-  if(/^__/.test(CC_BUILD)||window.Capacitor||!(location.protocol==='http:'||location.protocol==='https:')||NUAGES_LAB)return; // (l'atelier des nuages ne se recharge pas en plein réglage)
+  if(/^__/.test(CC_BUILD)||window.Capacitor||POKI||!(location.protocol==='http:'||location.protocol==='https:')||NUAGES_LAB)return; // (l'atelier des nuages ne se recharge pas en plein réglage)
   var neuf=null,vu=0;
   function sur(){return(!started||gameOver)&&!document.hidden&&!(typeof GAR!=='undefined'&&GAR.go);}
   function recharge(){
@@ -40005,6 +40158,40 @@ if(BANC_ON)(function(){
     bouton('COPIER',k=>copier(txt,k));
   })();
 })();
+/* ============ LE KIT POKI, CÔTÉ JEU (édition POKI — voir « LE KIT POKI » dans le <head>) ============
+   Le SDK vit dans le document de plus haut (`CC_PK`) ; le jeu lui dit ce qui se passe :
+   · `fini()` une fois, ici : le menu est là, le chargement est fini (gameLoadingFinished) ;
+   · `jeu(on)` 4 fois par seconde : on joue VRAIMENT (course lancée, pas finie, pas en pause, pas de pub) → gameplayStart / Stop ;
+   · `pkPasse(f)` devant chaque nouvelle partie (JOUER, REJOUER, RECOMMENCER) : la pause pub (commercialBreak) — Poki décide s'il y en
+     a une ; jamais avant la toute première partie de la session. Pendant la pub : `pkMuet(true)` (son, musique et clavier coupés). */
+function pk(){if(!POKI)return null;try{return window.CC_PK||(window.parent!==window?window.parent.CC_PK:null)||null;}catch(e){return null;}}
+let pkDeja=false; // une partie a déjà été jouée dans cette session : la pause pub peut passer avant la suivante
+function pkMuet(on){
+  window.CC_PUB=!!on; // lu par le <head> : AudioContext.resume, media.play et le clavier refusés tant qu'il est vrai
+  try{ if(on){ if(AC&&AC.state==='running')AC.suspend(); pkMuet._m=!!(musicEl&&!musicEl.paused); if(pkMuet._m)musicEl.pause(); }
+    else{ if(AC&&SND.sfx&&!paused&&AC.state!=='running')AC.resume(); if(pkMuet._m){pkMuet._m=false;musicJoue();} } }catch(e){}
+}
+function pkPasse(f){ // vrai = on enchaîne tout de suite ; faux = la pause pub passe d'abord, et f() suivra
+  if(!POKI||!pkDeja||pkPasse._dedans)return true;
+  const p=pk();if(!p||p.etat!==1)return true;  // SDK absent ou pas prêt : on joue, sans pub
+  if(pkPasse._attente)return false;            // un 2e tap pendant la pub : rien
+  pkPasse._attente=true;
+  p.pub(pkMuet,function(){pkPasse._attente=false;pkPasse._dedans=true;try{f();}catch(e){}pkPasse._dedans=false;});
+  return false;
+}
+if(POKI){
+  // pas d'intro à toucher (voir le splash) : le contexte audio naît au PREMIER geste, et se réveille aux suivants
+  const g9=function(){if(window.CC_PUB)return;try{if(!AC){if(typeof initAudio==='function')initAudio();}else if(SND.sfx&&!paused&&AC.state!=='running')AC.resume();}catch(e){}};
+  ['pointerdown','touchend','keydown'].forEach(function(ev){addEventListener(ev,g9,{capture:true,passive:true});});
+  setInterval(function(){const p=pk();if(!p)return;const on=started&&!gameOver&&!paused&&!window.CC_PUB;if(on)pkDeja=true;p.jeu(on);},250);
+  // l'ACCUEIL : la porte des MISSIONS devient la porte du GARAGE (même place, à côté du ⚙), avec la pastille des caisses à portée (voir <style id="poki">)
+  try{const mb=document.querySelector('#mHome .mMisBtn'),bd=document.getElementById('bdGar');
+    if(mb){mb.setAttribute('data-m','garage');mb.setAttribute('aria-label','Garage');
+      mb.innerHTML='<i class="pxi pxi-voiture" aria-hidden="true"></i><span data-fr="GARAGE">'+TR('GARAGE')+'</span>';if(bd)mb.appendChild(bd);}}catch(e){}
+  try{const p=pk();if(p)p.fini();}catch(e){}
+  window.dbgPoki=function(){const p=pk();return {poki:POKI,sdk:p?p.etat:null,fini:p?p.finiEnvoye:null,jeu:p?p.jeuEnvoye:null,enPub:p?p.enPub:null,pub:!!window.CC_PUB,deja:pkDeja,
+    colonne:/[?&]colonne=1\b/.test(location.search),test:TEST_CAISSES};};
+}
 window.__gameReady=true; // la boucle part : le chien de garde du mouchard se tait
 requestAnimationFrame(loop);
 })();

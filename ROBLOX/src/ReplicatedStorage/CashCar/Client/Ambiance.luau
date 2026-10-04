@@ -104,6 +104,11 @@ local courante = ""
 
 function Ambiance.nom(): string return courante end
 
+-- L'ÉCLAT (Sacha, 4/10 : « améliore les éclairages et les graphismes » — et sa direction de toujours : saturé, contrasté, façon GTA,
+-- jamais délavé). Mesuré au banc en A/B sur la même image : +0,12 de saturation, +0,08 de contraste, et le JOUR, le voile et
+-- l'éblouissement de la brume divisés par deux — le ciel bleuit, les nuages prennent du relief, la ville claque. (La nuit, le
+-- voile reste : c'est lui qui peint le ciel violet de la ville et de l'orage.)
+local ECLAT = { sat = 0.12, con = 0.08, voile = 0.55, eblouit = 0.5 }
 function Ambiance.poser(nom: string, duree: number?)
 	local H = HEURES[nom]
 	if not H or nom == courante then return end
@@ -112,10 +117,12 @@ function Ambiance.poser(nom: string, duree: number?)
 	local cc = Lighting:FindFirstChild("Etalonnage")
 	local info = TweenInfo.new(math.max(0.01, duree or 1.2), Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
 	if atm then
-		TweenService:Create(atm, info, { Color = H.brume, Decay = H.loin, Glare = H.eclat, Haze = H.voile, Density = H.densite }):Play()
+		local jour = not (H.nuit or H.noir or H.sansSoleil)
+		TweenService:Create(atm, info, { Color = H.brume, Decay = H.loin, Glare = H.eclat * (jour and ECLAT.eblouit or 1),
+			Haze = H.voile * (jour and ECLAT.voile or 1), Density = H.densite }):Play()
 	end
 	if cc then
-		TweenService:Create(cc, info, { TintColor = H.teinte, Saturation = H.sat, Contrast = H.con }):Play()
+		TweenService:Create(cc, info, { TintColor = H.teinte, Saturation = H.sat + ECLAT.sat, Contrast = H.con + ECLAT.con }):Play()
 	end
 	TweenService:Create(Lighting, info, { ColorShift_Top = H.soleil, OutdoorAmbient = H.ext, ExposureCompensation = H.expo,
 		Brightness = H.lum or 1.2, Ambient = H.amb or Config.CIEL.ambiance }):Play()

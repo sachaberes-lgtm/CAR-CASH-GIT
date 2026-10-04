@@ -4,7 +4,9 @@
 --     MONDIAL ; le BONUS PREMIUM (+10 % d'argent : on donne aux membres Premium une raison de jouer ici) ;
 --   · LE BOUCHE-À-OREILLE : le bonus de GROUPE (une fois), les INVITATIONS d'amis (les deux sont récompensés) ;
 --   · LES ACHATS EN ROBUX, sans boutique : le passe « ×2 ARGENT » (proposé à l'écran de fin, au moment où l'on voit ce qu'on aurait
---     gagné), le passe VIP (cadeaux doublés, nom doré), et le produit SECONDE CHANCE (repartir là où l'on a explosé).
+--     gagné), le passe VIP (cadeaux doublés, nom doré), et le produit SECONDE CHANCE (repartir là où l'on a explosé) ;
+--   · LA ROUE : un tour gratuit toutes les 4 h, un tour offert toutes les 3 parties, des tours à vendre — le tirage se fait ICI
+--     (jamais chez le joueur) : de l'argent, une caisse EXCLUSIVE (à garder ou à revendre, au choix), un habillage, le jackpot.
 -- ⚠ Les numéros (passes, produits, badges, groupe) se posent dans Config.REVENUS une fois créés sur create.roblox.com par Sacha : à 0,
 -- l'objet n'existe pas encore et tout ce qui en dépend se tait (rien ne se vend sans lui). Le cadeau du jour, le temps de jeu, le
 -- classement et les invitations marchent sans rien créer.
@@ -17,7 +19,9 @@ local HttpService = game:GetService("HttpService")
 
 local CC = ReplicatedStorage:WaitForChild("CashCar")
 local Config = require(CC:WaitForChild("Config"))
+local Catalogue = require(CC:WaitForChild("Caisses"):WaitForChild("Catalogue"))
 local R = Config.REVENUS
+local RO = Config.ROUE
 
 local Revenus = {}
 local ctx: any = nil
@@ -94,6 +98,83 @@ local function seuil(n: number): (number, number) -- le n-ième cadeau (1…) : 
 	if n <= #t then return t[n][1], t[n][2] end
 	local dernier = t[#t]
 	return dernier[1] + (n - #t) * 60, dernier[2]
+end
+
+-- ── LA ROUE ──
+-- ce que le joueur voit de sa roue (attributs, lus par Client/Roue) : les tours en réserve, l'heure du prochain tour gratuit (os.time,
+-- comparée chez lui à workspace:GetServerTimeNow), les parties faites vers le tour offert
+local function etatRoue(p: Player, prof: any)
+	local r = prof.roue
+	p:SetAttribute("RoueTours", r.n)
+	p:SetAttribute("RoueProchain", r.libre + RO.libreH * 3600)
+	p:SetAttribute("RoueParties", r.parties)
+end
+Revenus.etatRoue = etatRoue
+local rng = Random.new()
+local function tirer(): number
+	local total = 0
+	for _, c in RO.cases do total += c.w end
+	local x = rng:NextNumber() * total
+	for k, c in RO.cases do
+		x -= c.w
+		if x <= 0 then return k end
+	end
+	return 1
+end
+-- un tour : gratuit s'il est l'heure, sinon pris dans la réserve. Rend { case, gain?, caisse?, habit? } — le client fait tourner la
+-- roue JUSQU'À la case tirée ici
+local function tourner(p: Player, prof: any): (boolean, any)
+	local r = prof.roue
+	local t = os.time()
+	if t - r.libre >= RO.libreH * 3600 then
+		r.libre = t
+	elseif r.n > 0 then
+		r.n -= 1
+	else
+		return false, "pas de tour"
+	end
+	local k = tirer()
+	-- (banc) workspace:SetAttribute("DbgRoueCase", k) force la case (Studio seulement)
+	local force = workspace:GetAttribute("DbgRoueCase")
+	if game:GetService("RunService"):IsStudio() and type(force) == "number" and RO.cases[force] then k = force end
+	local c = RO.cases[k]
+	local res: any = { case = k }
+	r.attente = -1
+	if c.k == "caisse" then
+		local libres = {}
+		for i, f in Catalogue do
+			if f.cond.k == "roue" and not f.retire and not table.find(prof.caisses, i) then table.insert(libres, i) end
+		end
+		table.sort(libres)
+		if #libres > 0 then
+			local i = libres[rng:NextInteger(1, #libres)]
+			table.insert(prof.caisses, i)
+			r.attente = i
+			res.caisse = i
+		else
+			res.gain = RO.revente -- (toute la collection est déjà au garage : la case paie)
+		end
+	elseif c.k == "habit" then
+		local libres = {}
+		for cat, l in Config.HABITS do
+			for _, d in l do
+				if d.roue and not table.find(prof.habits, cat .. ":" .. d.id) then table.insert(libres, { cat, d.id }) end
+			end
+		end
+		if #libres > 0 then
+			local h = libres[rng:NextInteger(1, #libres)]
+			table.insert(prof.habits, h[1] .. ":" .. h[2])
+			res.habit = h
+		else
+			res.gain = c.v
+		end
+	else
+		res.gain = c.v
+	end
+	if res.gain then prof.compte += res.gain end
+	etatRoue(p, prof)
+	ctx.compte(p, prof)
+	return true, res
 end
 
 -- ── le CLASSEMENT MONDIAL : le meilleur record de chacun, les dix premiers rafraîchis toutes les 2 min ──
@@ -183,6 +264,24 @@ function Revenus.init(c: any)
 		return true
 	end
 
+	-- LA ROUE : tourner ; puis, si c'est une caisse, la GARDER (elle est équipée) ou la REVENDRE (au choix : la caisse ou l'argent)
+	P.actions.roue = tourner
+	P.actions.roueGarder = function(p, prof, i)
+		if type(i) ~= "number" or prof.roue.attente ~= i then return false, "rien a garder" end
+		prof.roue.attente = -1
+		return P.actions.equiper(p, prof, i)
+	end
+	P.actions.roueVendre = function(p, prof, i)
+		if type(i) ~= "number" or prof.roue.attente ~= i then return false, "rien a vendre" end
+		local j = table.find(prof.caisses, i)
+		if j then table.remove(prof.caisses, j) end
+		if prof.caisse == i then prof.caisse = 0 end
+		prof.roue.attente = -1
+		prof.compte += RO.revente
+		ctx.compte(p, prof)
+		return true
+	end
+
 	-- la SECONDE CHANCE (produit) : accordée par Roblox (ProcessReceipt), une fois par achat — jamais deux fois le même reçu
 	MarketplaceService.ProcessReceipt = function(info)
 		local p = Players:GetPlayerByUserId(info.PlayerId)
@@ -191,6 +290,10 @@ function Revenus.init(c: any)
 		if table.find(prof.achats, info.PurchaseId) then return Enum.ProductPurchaseDecision.PurchaseGranted end
 		if info.ProductId == R.produits.secondeChance then
 			evRevivre:FireClient(p)
+		elseif info.ProductId == R.produits.tours3 then
+			prof.roue.n += 3
+			etatRoue(p, prof)
+			dire(p, "tours", nil, "3")
 		else
 			return Enum.ProductPurchaseDecision.NotProcessedYet
 		end
@@ -225,6 +328,7 @@ function Revenus.arrivee(p: Player, prof: any)
 	p:SetAttribute("GroupeFait", prof.groupe == true)
 	lireDroits(p)
 	etatJour(p, prof)
+	etatRoue(p, prof)
 	badge(p, "bienvenue")
 	if prof.permis then badge(p, "permis") end
 	-- L'INVITATION : arrivé par le lien d'un ami (une fois dans la vie du compte) — lui et l'ami présent sont récompensés
@@ -250,6 +354,20 @@ end
 -- à chaque fin de partie : les badges d'exploit, le classement
 function Revenus.surFin(p: Player, prof: any, stats: any, aura: number?)
 	if type(stats) ~= "table" or stats.lecon then return end
+	-- LA ROUE : une vraie partie (15 s de course au moins) compte pour le tour offert
+	-- (et le serveur le vérifie à sa montre : deux fins de partie à moins de 15 s d'écart ne comptent qu'une fois)
+	local se = session[p.UserId]
+	if type(stats.duree) == "number" and stats.duree >= 15 and se and os.clock() - (se.roueT or -100) >= 15 then
+		se.roueT = os.clock()
+		local r = prof.roue
+		r.parties += 1
+		if r.parties >= RO.parties then
+			r.parties = 0
+			r.n += 1
+			dire(p, "tours", nil, "1")
+		end
+		etatRoue(p, prof)
+	end
 	if type(stats.zone) == "number" and stats.zone >= 6 then badge(p, "zone6") end
 	if type(stats.tier) == "number" and stats.tier >= 9 then badge(p, "moteur10") end
 	if type(aura) == "number" and aura >= 1000 then badge(p, "aura1000") end

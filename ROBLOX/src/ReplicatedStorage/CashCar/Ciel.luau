@@ -24,8 +24,10 @@ function Ciel.poser(Lighting: Lighting, ws: Workspace)
 	-- (le ciel de Roblox, pris comme lumière d'ambiance, teintait TOUTES les ombres en cyan et se reflétait dans le bitume —
 	-- une route bleu clair, des nuages de glace : l'ambiance vient de OutdoorAmbient, lavande, et le reflet du ciel est en sourdine)
 	Lighting.EnvironmentDiffuseScale = 0.3
-	Lighting.EnvironmentSpecularScale = 0.4
-	Lighting.ShadowSoftness = 0.25
+	-- (4/10, Sacha : « améliore les éclairages ») le reflet du ciel remonte SUR LES LAQUES — la caisse prend enfin le ciel et le soleil
+	-- dans sa peinture — sans toucher à l'ambiance (c'est elle qui teintait le bitume en cyan) ; des ombres plus franches
+	Lighting.EnvironmentSpecularScale = 0.75
+	Lighting.ShadowSoftness = 0.15
 	Lighting.GlobalShadows = true
 	Lighting.ExposureCompensation = C.expo
 	Lighting.ColorShift_Top = C.soleil
@@ -49,7 +51,7 @@ function Ciel.poser(Lighting: Lighting, ws: Workspace)
 	atm.Haze = C.brumeVoile
 
 	local bloom = obtenir(Lighting, "BloomEffect", "Bloom")
-	bloom.Intensity = 0.3 -- (à 0,55 / 0,94 tout ce qui était clair bavait : les nuages, la mer, le sillage — une image surexposée)
+	bloom.Intensity = 0.36 -- (à 0,55 / 0,94 tout ce qui était clair bavait : les nuages, la mer, le sillage — une image surexposée ; 0,36 : les néons respirent)
 	bloom.Size = 24
 	bloom.Threshold = 1.5
 
@@ -64,12 +66,12 @@ function Ciel.poser(Lighting: Lighting, ws: Workspace)
 	-- (3e retour : le jeu web est VELOUTÉ — son flou de vitesse fond tout le décor ; un lointain net montrait des nuages en
 	-- carton. La caisse et la route proche restent nettes, tout le reste se floute franchement.)
 	flou.FocusDistance = 20
-	flou.InFocusRadius = 50
+	flou.InFocusRadius = 65
 	flou.NearIntensity = 0
 	flou.FarIntensity = 0.8
 
 	local rays = obtenir(Lighting, "SunRaysEffect", "Rayons")
-	rays.Intensity = 0.05
+	rays.Intensity = 0.1 -- (4/10 : les rayons se voient quand on regarde vers le soleil)
 	rays.Spread = 0.55
 
 	-- les nuages dynamiques de Roblox, au-dessus : de la matière dans le ciel, zéro pièce

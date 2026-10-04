@@ -7,6 +7,59 @@
 - Les règles « SANS TOUT CASSER » (partir de `origin/main` à jour, fusionner sans jamais forcer, jeu testé sans erreur avant chaque
   push, retour arrière par Vercel) et la liste de ce que contient la référence : voir `CLAUDE.md` à la RACINE du dépôt.
 
+## L'ÉDITION POKI (2026-10-04) — Sacha : « créer une version de Cash Car pour Poki game en enlevant les missions et la carrière »
+- **UN SEUL JEU** : l'édition Poki n'est pas une copie qu'on retouche. `node poki-construire.js` (racine du dépôt) fabrique `POKI/` (le
+  dossier) et `POKI.zip` (à envoyer sur Poki for Developers, `index.html` à la racine) depuis CE dossier, en basculant la seule ligne
+  `const POKI_BUILD=false;` du `<head>`. Les deux sont dans `.gitignore` : on les REFAIT après chaque changement du jeu. `?poki=1` force
+  l'édition Poki sur n'importe quelle copie (banc, Vercel : `…/jouer/?poki=1`, `&pokidebug=1` = le journal du SDK en console).
+- **Tout est gardé par la constante globale `POKI`** (déclarée dans le `<head>`, visible du grand script) — sans elle, rien ne change :
+  menus, missions, carrière, boutique, mode TEST, intro, cadre de l'ordi : la version principale est intacte (banc menu → JOUER → course
+  passé couché, debout et dans le cadre de l'ordi).
+- **Ce que l'édition Poki retire** : les MISSIONS (`misTick` ne coche plus rien, `misFin` → null, porte de l'accueil, socle 3D et écran de
+  l'atelier, `#mMis`, mission suivie en course), la CARRIÈRE (tuile, `#carr`, portes du menu de Léo — `MENU_SACHA` forcé), la BOUTIQUE en
+  vrai argent (Poki interdit les achats intégrés : tuiles, portes du garage, `#mShop`), le MODE TEST (`TEST_CAISSES=!POKI`), l'INTRO
+  « 1.61 » à toucher (Poki a son écran de chargement : le voile s'ouvre seul, l'AudioContext naît au premier geste), le service worker, la
+  mise à jour toute seule, le plein écran pris par le jeu, les marges d'iPhone et le boîtier de l'ordi. CSS : `<style id="poki">`.
+- **Ce qui la remplace** : les caisses des carnets, de la carrière et de la boutique passent À L'ARGENT DU JEU (bloc `if(POKI)` sous
+  `CAR_UNLOCK` : carnets 30 k → 1,45 M, CAISSE-NUAGE 1,8 M, LINGOT 2,2 M, légendaires 2,9 → 6,5 M au-dessus de LA RAIE, rangées par leur
+  ancien prix en euros, famille d'or gardée) ; l'OR MASSIF (150 k) et l'ARC-EN-CIEL (40 k) s'achètent ; l'accueil = [GARAGE | ⚙] puis
+  JOUER (la porte MISSIONS est rhabillée en GARAGE, la rangée des tuiles s'efface) ; l'écran de mort montre l'OBJECTIF D'ACHAT (prochaine
+  caisse, photo, barre du compte, touché → garage : branche POKI d'`objRender`). POSTER 84 (rang d'aura) reste la seule caisse DÉFI.
+- **Le kit Poki** (`<head>` : `CC_PK` dans le document de plus haut ; fin du grand script : « LE KIT POKI, CÔTÉ JEU ») : SDK v2 chargé
+  depuis game-cdn.poki.com (seule requête externe permise), `init` → `gameLoadingFinished` (menu prêt) → `gameplayStart/Stop` (4 fois par
+  seconde : course lancée, pas finie, pas en pause, pas de pub) → `commercialBreak` avant chaque nouvelle partie (`pkPasse` dans
+  `playViaGarage`, REJOUER, RECOMMENCER — jamais avant la toute première). Pendant une pub, `window.CC_PUB` : `AudioContext.resume`,
+  `media.play` et le clavier sont refusés (consigne de Poki). `CC_PK.bonus()` (rewardedBreak) est prêt mais rien ne l'appelle : une
+  SECONDE CHANCE ou un ×2 à l'écran de mort sont les candidats. SDK bloqué (bloqueur de pubs) = jeu normal sans pub. `dbgPoki()`.
+- **L'ordi** : Poki veut un jeu qui couvre son cadre 16:9. La page-cadre garde la colonne (la mise en page du téléphone) mais à la forme
+  de la fenêtre : 390 de haut × la largeur (16:9 → 693 × 390), sans boîtier, sans bouton TOURNER ni numéro sous le jeu. Chez Poki le jeu
+  est TOUJOURS dans un cadre : « dans la colonne » se lit à l'adresse (`colonne=1`), plus à `window.top`. La page-cadre masque son propre
+  jeu par la classe `ccHors` (pas tout `body>*` : le cadre de pub que le SDK y pose doit rester visible) et ne charge le SDK qu'après.
+- **Pas encore fait / à trancher** : l'auto-école parle de POUCE même au clavier chez Poki (vrai aussi dans le cadre de l'ordi de la
+  version principale) ; `dark-triad.mp3` manque (404 en console, déjà vrai sur `main`) ; le compte développeur Poki, la page du jeu et
+  l'envoi du zip = Sacha ; droits des musiques et noms de marques (CHAT POP-TART…) à vérifier avant publication.
+## LE DÉPART EN MUSIQUE (2026-10-04, copie de test de Léo — « harmonise le début de partie et le début de la musique, c'est un peu violent »)
+- AVANT, à la sortie du nuage, tout tombait dans la MÊME image : le lobby coupé net et la musique de course qui bondissait à 60 % en 0,15 s.
+- MAINTENANT (bloc `DEPMUS`, juste avant `musicStartRun`) : pendant le piqué de JOUER le lobby S'EFFACE (musicTick, mode menu :
+  × 1 − `GAR.go.t`/1,5 s ; au REJOUER de l'écran de mort, en 0,35 s sous le fondu au noir, `DEPMUS.sort`) ; la musique de course part TOUT
+  DE SUITE, pendant le boost offert, en fondu en S de 0,6 s (`DEPMUS.f0`). Le logo, le whoomp et le réacteur du départ sont ceux d'avant.
+- ⚠ RETIRÉ LE MÊME JOUR (Léo : « enlève le bruit de transition, le boost de la voiture AVANT la musique ; la musique doit commencer PENDANT
+  que la voiture booste, pour tous les niveaux ») : le son `depart.envol` (1,55 s de montée, la musique attendait son « poser ») — recette
+  et banque rendues (?v=13). NE PAS remettre de son ni de délai entre le départ et la musique.
+- ⚠ iPhone (`VOL_LOCKED`) : ni fondu du lobby ni fondu d'entrée sur un `<audio>`. `DEPMUS.on=false` = le départ d'avant.
+
+## L'INTRUS DE LA PHRASE DU NITRO (2026-10-04, copie de test de Léo — « aide-moi à trouver un son intrus dans la musique du nitro, peut-être un autre instrument ; les petites notes ding ding ding qui varient, c'est top »)
+- TROUVÉ : la MÉLODIE au piano électrique (`instruNote`, mesures 1 à 3 de l'appui tenu). Le 3/10 (53fd3f4) un `//` posé au milieu de sa
+  ligne d'enveloppe avalait les deux `setTargetAtTime` : la touche ne s'éteignait plus — pleine voix 2,4 s puis coupée net (clic) ; 3 à 5
+  touches tenues se superposaient en une NAPPE D'ORGUE (chorus ±4 cents) sous les « ding » de l'arpège (`instruTing`).
+- MESURÉ (le code du jeu rendu hors ligne, 8 premières secondes, musique CIEL COMPLET) : mélodie seule −17 dB, arpège seul −32 dB — la
+  2e voix couvrait les « ding » de 15 dB ; réparée −31 dB ; la phrase entière −19,4 → −27,0 dB.
+- RÉPARÉ : l'extinction est rendue (attaque 25 ms, puis ×0,35 en 0,12 s, puis s'éteint, `dec` = 0,5 s). L'arpège et l'étincelle (mesure 4+)
+  ne changent pas. À DÉCIDER avec Léo (banc d'écoute « La phrase du NITRO », scratchpad 83e03bdc `banc-nitro/`, publié en artifact) : garder
+  ce piano réparé, ou jouer la mélodie en « ding » dès la 1re mesure (variante TOUT EN DING du banc), et faire évoluer davantage la mélodie
+  des « ding ». Le banc embarque le code de la phrase TEL QUEL (construire.py le recopie depuis index.html) : couches à couper, versions.
+- sw.js → v86.
+
 ## PLUS DE COUPURES DE MUSIQUE + LE TEMPO MESURÉ (2026-10-03, soir, Léo : « le jeu coupe bizarrement la musique » · « il y a de la distorsion qui nique tout »)
 - **LES COUPURES** = la mise à jour toute seule RECHARGEAIT le jeu à chaque push, même ROBLOX seul (voir LA MÊME VERSION POUR TOUT LE
   MONDE) : le numéro de version est désormais l'EMPREINTE du jeu publié, plus le commit. sw.js → v84.

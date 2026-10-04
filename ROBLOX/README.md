@@ -150,13 +150,16 @@ sauvegarde qui ne peut plus effacer une progression.
 - les effets (étincelles, gerbes, explosion, billets, pluie de devises, taches de jus), les nuages 3D, la mer de nuages ;
 - le dragon de papier de NITROOO, le banc de dauphins, le serpent du snake loop (noirs en dark triad) ;
 - l'écran titre (la caisse qui tombe dans le ciel), le menu, le garage (68 caisses, peintures, ailes, traînées, tas de
-  billets), les missions (carnets de défis), la boutique (vitrine), les réglages, l'auto-école, l'écran de fin ;
+  billets), LA ROUE (à la place des missions et de la carrière, retirées le 4/10), la boutique (vitrine), les réglages,
+  l'auto-école, l'écran de fin ;
 - l'interface aux proportions du web (plaques penchées, icônes pixel, jauges en bandes) ;
 - le classement, la sauvegarde, le multijoueur (on voit les caisses des autres).
 
 **Pas encore / à décider par Sacha** :
 - la **boutique ne vend rien** (comme sur le web : « BIENTOT ») ; sur Roblox les prix seront en **Robux** : à fixer ;
-- le bouton **CARRIERE** dit « BIENTOT » (il n'y a qu'une map) : le garder, le retirer, ou en faire autre chose ;
+- **LA ROUE** (accueil) : un tour gratuit toutes les 4 h, un tour offert toutes les 3 parties ; on y gagne de l'argent, un skin, ou
+  l'une des 9 caisses EXCLUSIVES (à garder ou à revendre 7 500 $, au choix). Les cases et leurs chances : `Config.ROUE` ;
+  « 3 TOURS » en Robux : `REVENUS.produits.tours3` (à créer, comme la seconde chance) ;
 - les **sons** : tant qu'ils ne sont pas importés (voir plus haut), on n'entend que les sons de secours ;
 - le mode FACILE existe dans le code mais il est éteint (`Config.FACILE_ACTIF`).
 
@@ -218,8 +221,10 @@ Puis `node ROBLOX/construire.js` et republier. Les sommes (cadeaux, bonus) se r�
 - Mise au point dans Studio (barre de commande) : `workspace:SetAttribute("DbgAuto", true)` (pilote automatique), `DbgNitro`,
   `DbgInf`, `DbgPlein`, `DbgDauphins`, `DbgSerpent`, `DbgArgent` (un compte), `DbgBudget` (le budget de triangles),
   `DbgFx` = "mort" | "moteur7" | "pluie" | "cratere" | "jus3", `DbgOuvre` = "jouer" | "garage" | "boutique" | "reglages" |
-  "missions" | "menu" | "pause" | "frenesie" | "portail…" (en course : saute au pied du portail, pour voir le niveau suivant) |
+  "roue" | "menu" | "pause" | "frenesie" | "portail…" (en course : saute au pied du portail, pour voir le niveau suivant) |
   "saut22…" (un saut forcé, la poussée sur deux chiffres), `DbgLarge` = 1280 (l'interface d'un écran 16:9).
+- **La roue au banc** : `DbgRoue` = "ouvrir…" | "tourner…" | "garder…" | "vendre…" | "ok…" | "fermer…", `DbgRoueCase` = 1-8
+  (force la case, Studio seulement) ; les cadeaux : `DbgRevenu` = "prendre…" | "temps…" | "classement…" | "fermer…".
 - **La longue partie** : `sh outils/longue.sh [minutes] [nitro]` — sur rails (`DbgAuto` = "rail"), immortelle (`DbgImmortel`), les
   portails franchis pour de vrai ; rend les zones traversées, les morts évitées par cause et les erreurs de la Sortie. À lancer
   avant de livrer un changement de jeu : c'est le seul banc qui joue des niveaux ENTIERS.

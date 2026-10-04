@@ -32,7 +32,7 @@ local T = FR and {
 	multiMax = "MULTI MAX", kmhMax = "KM/H MAX", zone = "ZONE", figures = "FIGURES", frenesie = "FRENESIE", distance = "DISTANCE", pieces = "PIECES",
 	aura = "AURA", moteur = "MOTEUR", nitro = "NITRO", air = "AIR", go = "GO !", niveau = "MER DE NUAGES",
 	astuce = "ASTUCE", glisse = "GLISSE POUR\nTOURNER", chargement = "LA ROUTE SE CONSTRUIT",
-		missions = "MISSIONS", garage = "GARAGE", carriere = "CARRIERE", boutique = "BOUTIQUE", bientot = "BIENTOT DISPONIBLE",
+		missions = "MISSIONS", garage = "GARAGE", carriere = "CARRIERE", boutique = "BOUTIQUE", bientot = "BIENTOT DISPONIBLE", roue = "LA ROUE",
 		facile = "MODE FACILE", choisis = "CHOISIS TON MODE", normal = "NORMAL", facileMot = "FACILE",
 		facileTxt = "En FACILE, la voiture suit mieux les virages, tu restes plus longtemps en l'air et tu as 3 vies. Tu pourras changer dans les réglages.",
 		vies = "PLUS QUE %d VIES", derniereVie = "DERNIERE VIE !", onRepart = "ON REPART !",
@@ -59,7 +59,7 @@ local T = FR and {
 	multiMax = "MAX MULTI", kmhMax = "MAX KM/H", zone = "ZONE", figures = "TRICKS", frenesie = "FRENZY", distance = "DISTANCE", pieces = "COINS",
 	aura = "AURA", moteur = "ENGINE", nitro = "NITRO", air = "AIR", go = "GO!", niveau = "SEA OF CLOUDS",
 	astuce = "TIP", glisse = "SWIPE TO\nSTEER", chargement = "BUILDING THE ROAD",
-		missions = "MISSIONS", garage = "GARAGE", carriere = "CAREER", boutique = "SHOP", bientot = "COMING SOON",
+		missions = "MISSIONS", garage = "GARAGE", carriere = "CAREER", boutique = "SHOP", bientot = "COMING SOON", roue = "THE WHEEL",
 		facile = "EASY MODE", choisis = "PICK YOUR MODE", normal = "NORMAL", facileMot = "EASY",
 		facileTxt = "In EASY, the car follows the turns better, you stay longer in the air and you get 3 lives. You can change it in the settings.",
 		vies = "%d LIVES LEFT", derniereVie = "LAST LIFE!", onRepart = "BACK ON THE ROAD!",
@@ -543,18 +543,17 @@ function Hud.creer()
 	end
 	E.menuRecord = texte(logo, { Text = "", TextSize = 16, TextColor3 = C.vert, Position = UDim2.fromOffset(0, 120), Visible = false, -- (L5613 : le logo parle seul)
 		TextXAlignment = Enum.TextXAlignment.Right, Size = UDim2.new(1, -14, 0, 20), TextWrapped = false })
-	-- la colonne de droite du web (#mHome) : MISSIONS + ⚙, puis GARAGE · CARRIERE · BOUTIQUE, puis JOUER en lettres d'or
-	E.btMissions = tuile(menu, T.missions, C.vert, UDim2.fromOffset(510, 94), UDim2.new(1, -668, 1, -366), nil, 39, "cible", "g")
-	-- les trois cases = les trois défis du carnet (allumées par le pilote : Hud.pastilles)
+	-- la colonne de droite : LA ROUE + ⚙, puis GARAGE · BOUTIQUE, puis JOUER en lettres d'or (Sacha, 4/10 : les MISSIONS et la
+	-- CARRIÈRE sont parties — « supprime les éléments inutiles » —, la ROUE a pris la place des missions, voir Client/Roue)
+	E.btRoue = tuile(menu, T.roue, C.or_, UDim2.fromOffset(510, 94), UDim2.new(1, -668, 1, -366), nil, 39,
+		"..#####..|.#..#..#.|#.#.#.#.#|#..###..#|#########|#..###..#|#.#.#.#.#|.#..#..#.|..#####..", "g")
+	-- (à droite de la tuile : « x2 » en or quand des tours attendent, sinon le compte à rebours du prochain tour gratuit)
+	E.roueInfo = texte(E.btRoue.Parent :: Instance, { Text = "", TextSize = 26, TextColor3 = C.terne, Size = UDim2.fromOffset(170, 40),
+		Position = UDim2.new(1, -40, 0.5, 0), AnchorPoint = Vector2.new(1, 0.5), TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false })
 	E.misPips = {}
-	for i = 1, 3 do
-		E.misPips[i] = inst("Frame", { BackgroundColor3 = C.trait, BorderSizePixel = 0, Size = UDim2.fromOffset(12, 26), Position = UDim2.new(1, -120 + i * 19, 0.5, 0),
-			AnchorPoint = Vector2.new(0, 0.5), Rotation = 12 }, E.btMissions.Parent)
-	end
 	E.btReglages = tuile(menu, "", C.cyan, UDim2.fromOffset(104, 94), UDim2.new(1, -148, 1, -366), nil, 34, "reglages")
-	E.btGarage = tuile(menu, T.garage, C.cyan, UDim2.fromOffset(202, 112), UDim2.new(1, -668, 1, -258), nil, 34, "voiture", "v")
-	E.btCarriere = tuile(menu, T.carriere, C.cyan, UDim2.fromOffset(202, 112), UDim2.new(1, -457, 1, -258), nil, 34, "trophee", "v")
-	E.btBoutique = tuile(menu, T.boutique, C.magenta, UDim2.fromOffset(202, 112), UDim2.new(1, -246, 1, -258), nil, 34, "panier", "v")
+	E.btGarage = tuile(menu, T.garage, C.cyan, UDim2.fromOffset(307, 112), UDim2.new(1, -668, 1, -258), nil, 34, "voiture", "v")
+	E.btBoutique = tuile(menu, T.boutique, C.magenta, UDim2.fromOffset(307, 112), UDim2.new(1, -352, 1, -258), nil, 34, "panier", "v")
 	-- LES PASTILLES (#bdGar, #bdShop, L5623) : le GARAGE dit combien de choses la banque peut s'offrir (caisses et habillages — tout
 	-- ce qui s'achète en argent du jeu est au garage) ; la BOUTIQUE dit NEW tant qu'on n'y est jamais allé
 	local function pastille(tuile9: TextButton, fond: Color3): TextLabel
@@ -566,6 +565,8 @@ function Hud.creer()
 	E.bdGar = pastille(E.btGarage, C.rouge)
 	E.bdShop = pastille(E.btBoutique, C.magenta)
 	E.bdShop.Text = "NEW"
+	E.bdRoue = pastille(E.btRoue, C.rouge) -- (un tour attend : le « ! » rouge, comme une notification)
+	E.bdRoue.Text = "!"
 	local jouer = inst("TextButton", { BackgroundTransparency = 1, AutoButtonColor = false, Size = UDim2.fromOffset(460, 100),
 		Position = UDim2.new(1, -356, 1, -20), AnchorPoint = Vector2.new(0.5, 1), FontFace = PIXI, Text = T.jouer, TextSize = 100,
 		TextColor3 = C.or_ }, menu)
@@ -947,10 +948,12 @@ function Hud.creer()
 	E.mMoteurPalier = texte(pm, { Text = "", RichText = true, TextSize = 26, TextColor3 = C.texte2, Size = UDim2.new(1, 0, 0, 46), Position = UDim2.fromOffset(0, 258), TextWrapped = false })
 	E.mMoteurEncore = texte(pm, { Text = "", TextSize = 17, TextColor3 = Color3.fromRGB(255, 176, 40), Size = UDim2.new(1, -16, 0, 48),
 		Position = UDim2.fromOffset(8, 308), LineHeight = 1.3 })
-	-- à droite : la carte du DÉFI
+	-- à droite : la carte de LA ROUE (l'ancienne carte du défi : les mêmes cases, voir Hud.defi et Client/Roue) — on la touche, la
+	-- roue s'ouvre
 	local pp = carbone(mort, UDim2.new(0.435, 0, 0, 282), UDim2.new(0.535, 0, 0, 26), C.vert)
+	E.mDefiBouton = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Text = "", AutoButtonColor = false }, pp)
 	E.mDefiFilet = pp:FindFirstChildOfClass("Frame")
-	E.mDefiIco = icone(pp, "coche", 4, C.vert, UDim2.fromOffset(28, 22))
+	E.mDefiIco = icone(pp, "..#####..|.#..#..#.|#.#.#.#.#|#..###..#|#########|#..###..#|#.#.#.#.#|.#..#..#.|..#####..", 4, C.vert, UDim2.fromOffset(28, 22))
 	E.mDefiTete = texte(pp, { Text = "", TextSize = 24, TextColor3 = C.vert, Size = UDim2.new(1, -200, 0, 26), Position = UDim2.fromOffset(76, 28),
 		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
 	E.mDefiPips = {}
