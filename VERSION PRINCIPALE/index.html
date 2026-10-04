@@ -34612,15 +34612,58 @@ function buildGarageRoom(){
      les hublots du 4e panneau et sous la porte. Au LÂCHER, ils remontent le rail, prennent le coude et filent sous le plafond (garPorte,
      0,8 s dès le JOUER) : le rideau de flammes apparaît et la caisse y entre. Ouverte, la porte retrouve exactement la place des panneaux
      empilés d'avant (y 4,98 ; z hd − 0,85 − 1,02 i). */
-  {const nerf=(x,w,h)=>{x.fillStyle='#8f98ab';x.fillRect(0,0,w,h);
-      for(const y9 of [9,20]){x.fillStyle='#5d6576';x.fillRect(0,y9,w,2);x.fillStyle='#b9c1d1';x.fillRect(0,y9+2,w,1);} // deux nervures par panneau
-      x.fillStyle='#4c5363';x.fillRect(0,0,w,1);x.fillRect(0,h-1,w,1);for(let i=0;i<8;i++)x.fillRect(i*w/8,0,1,h);};    // les bords, les joints verticaux (aucune lumière derrière)
-   const tN=cvT(256,32,nerf),tH=cvT(256,32,(x,w,h)=>{nerf(x,w,h);for(let i=0;i<6;i++){const cx=w*(.14+.144*i);x.fillStyle='#2a2f3a';x.fillRect(cx-12,7,24,17);x.fillStyle='#1a0602';x.fillRect(cx-10,9,20,13);}}),
-         eH=cvT(256,32,(x,w,h)=>{x.fillStyle='#000';x.fillRect(0,0,w,h);for(let i=0;i<6;i++){const cx=w*(.14+.144*i),gr=x.createLinearGradient(0,22,0,9);gr.addColorStop(0,'#ffd26a');gr.addColorStop(1,'#ff4a10');x.fillStyle=gr;x.fillRect(cx-10,9,20,13);}}); // les hublots : le FEU derrière
-   const mN=L(0xffffff,0x0b0d12,{map:tN}),mH=L(0xffffff,0xffffff,{map:tH,emissiveMap:eH}),P9=[];
-   for(let i=0;i<5;i++)P9.push(bx(0,.47+.94*i,hd-.2,9.5,.9,.1,i===3?mH:mN));
-   GAR.porte={P:P9,zD:hd-.2,k:0,e:-1,mH:mH,db:null};garPortePose(0);
-   if(!PORTE_FERMEE)for(const m9 of P9)m9.visible=false;} // (2026-10-04, Léo : « enlève la porte ») plus de panneaux : l'ouverture brûle — `?porte=1` rend la porte fermée de Sacha
+  /* LA PORTE v2 (2026-10-04, Léo : « remets une porte maintenant que les flammes sont plus jolies, et fais une porte de garage plus jolie »).
+     Une seule toile pour toute la porte (1000 × 500, une bande de 100 par panneau) que chaque panneau lit par ses UV : une LAQUE indigo
+     à CAISSONS biseautés (six par panneau, la lumière d'en haut à gauche), le haut en bandeau — CASH CAR en lettres d'or pixel entre deux
+     filets de néon rose —, le 4e panneau percé de six VRAIS HUBLOTS (trous dans la toile, alphaTest : derrière, le feu en pixels brûle
+     pour de bon), une poignée d'or, et en bas une bande de danger jaune et noire sur son joint de caoutchouc. La toile d'ÉMISSION fait
+     passer la lueur du feu par les JOINTS des panneaux et fait luire l'or et le néon ; elle bat avec les flammes (garPorte).
+     Une matière pour les cinq panneaux (même programme qu'une Lambert de l'atelier + alphaTest : compilée au menu avec lui). */
+  {const DW=1000,DH=500,dCv=document.createElement('canvas'),eCv=document.createElement('canvas');dCv.width=eCv.width=DW;dCv.height=eCv.height=DH;
+   const dx=dCv.getContext('2d'),ex=eCv.getContext('2d');
+   const peint=function(){
+     dx.clearRect(0,0,DW,DH);ex.fillStyle='#000';ex.fillRect(0,0,DW,DH);
+     const caisson=function(x0,y0,w,h){
+       dx.fillStyle='#14111f';dx.fillRect(x0-3,y0-3,w+6,h+6);                                  // la feuillure (l'ombre autour)
+       const gr=dx.createLinearGradient(0,y0,0,y0+h);gr.addColorStop(0,'#3a3566');gr.addColorStop(1,'#26223f');dx.fillStyle=gr;dx.fillRect(x0,y0,w,h);
+       dx.fillStyle='#6a63a6';dx.fillRect(x0,y0,w,3);dx.fillRect(x0,y0,3,h);                  // le biseau éclairé (haut, gauche)
+       dx.fillStyle='#100d1c';dx.fillRect(x0,y0+h-3,w,3);dx.fillRect(x0+w-3,y0,3,h);          // le biseau dans l'ombre (bas, droite)
+       dx.fillStyle='#4a447e';dx.fillRect(x0+3,y0+3,w-6,1);};
+     for(let i=0;i<5;i++){const y0=(4-i)*100;
+       const gr=dx.createLinearGradient(0,y0,0,y0+100);gr.addColorStop(0,'#2f2a4d');gr.addColorStop(1,'#1d1a31');dx.fillStyle=gr;dx.fillRect(0,y0,DW,100);
+       dx.fillStyle='#726bb0';dx.fillRect(0,y0,DW,2);dx.fillStyle='#3d3862';dx.fillRect(0,y0+2,DW,1);   // l'arête du panneau
+       dx.fillStyle='#0a0814';dx.fillRect(0,y0+96,DW,4);                                        // le joint
+       ex.fillStyle='#ff6a1c';ex.fillRect(0,y0+97,DW,2);ex.fillStyle='#7a2a08';ex.fillRect(0,y0,DW,1);   // le feu passe par les joints
+       if(i<=2){const h0=i===0?y0+12:y0+16,hh=i===0?54:66;for(let k=0;k<6;k++)caisson(30+k*160,h0,140,hh);}
+       if(i===3){for(let k=0;k<6;k++){const x0=30+k*160,yw=y0+18,w=140,h=62;                    // LES HUBLOTS
+         dx.fillStyle='#0b0a12';dx.fillRect(x0-4,yw-4,w+8,h+8);
+         dx.fillStyle='#d5dbec';dx.fillRect(x0,yw,w,4);dx.fillRect(x0,yw,4,h);                  // le cadre chromé
+         dx.fillStyle='#5a6078';dx.fillRect(x0,yw+h-4,w,4);dx.fillRect(x0+w-4,yw,4,h);
+         dx.fillStyle='#9aa1b8';dx.fillRect(x0+4,yw+4,w-8,3);
+         dx.clearRect(x0+8,yw+8,w-16,h-16);                                                     // le trou : derrière, le feu
+         for(const [cx,cy] of [[x0+8,yw+8],[x0+w-11,yw+8],[x0+8,yw+h-11],[x0+w-11,yw+h-11]]){dx.fillStyle='#5a6078';dx.fillRect(cx,cy,3,3);} // coins arrondis, en pixels
+         ex.fillStyle='#3a1206';ex.fillRect(x0,yw,w,h);}}                                        // le reflet du feu sur le cadre
+       if(i===4){dx.fillStyle='#ff3ec8';dx.fillRect(40,y0+14,DW-80,3);dx.fillRect(40,y0+84,DW-80,3);   // LE BANDEAU : néon rose
+         ex.fillStyle='#c4268e';ex.fillRect(40,y0+14,DW-80,3);ex.fillRect(40,y0+84,DW-80,3);
+         dx.font='44px "Press Start 2P", monospace';dx.textAlign='center';dx.textBaseline='middle';
+         const tx=DW/2,ty=y0+52;dx.fillStyle='#4a2600';dx.fillText('CASH CAR',tx+5,ty+5);dx.fillText('CASH CAR',tx+3,ty+3); // l'épaisseur
+         const go=dx.createLinearGradient(0,ty-22,0,ty+22);go.addColorStop(0,'#fff4b0');go.addColorStop(.45,'#ffcf3a');go.addColorStop(1,'#c4820c');
+         dx.fillStyle=go;dx.fillText('CASH CAR',tx,ty);
+         ex.font=dx.font;ex.textAlign='center';ex.textBaseline='middle';ex.fillStyle='#8a6214';ex.fillText('CASH CAR',tx,ty);}
+       if(i===1){dx.fillStyle='#3a2a08';dx.fillRect(452,y0+50,96,12);dx.fillStyle='#e8b73a';dx.fillRect(450,y0+46,96,12); // LA POIGNÉE d'or
+         dx.fillStyle='#fff0a0';dx.fillRect(450,y0+46,96,3);ex.fillStyle='#3a2a08';ex.fillRect(450,y0+46,96,12);}
+       if(i===0){dx.fillStyle='#16131f';dx.fillRect(0,y0+72,DW,20);                              // LA BANDE DE DANGER : noir, puis les biais jaunes
+         dx.fillStyle='#f5c425';for(let x=-20;x<DW+20;x+=36){dx.beginPath();dx.moveTo(x,y0+92);dx.lineTo(x+18,y0+72);dx.lineTo(x+36,y0+72);dx.lineTo(x+18,y0+92);dx.fill();}
+         dx.fillStyle='#0a0812';dx.fillRect(0,y0+70,DW,2);dx.fillStyle='#07060b';dx.fillRect(0,y0+92,DW,8);   // le joint de caoutchouc
+         ex.fillStyle='#ff6a1c';ex.fillRect(0,y0+98,DW,2);}}};                                   // la lueur SOUS la porte
+   peint();
+   const tD=new THREE.CanvasTexture(dCv),tE=new THREE.CanvasTexture(eCv);tD.magFilter=THREE.NearestFilter;tD.anisotropy=4;tE.anisotropy=4;
+   try{if(document.fonts&&document.fonts.load)document.fonts.load('44px "Press Start 2P"').then(function(){peint();tD.needsUpdate=true;tE.needsUpdate=true;}).catch(function(){});}catch(e){}
+   const mH=new THREE.MeshLambertMaterial({color:0xffffff,map:tD,emissive:0xffffff,emissiveMap:tE,alphaTest:.5,fog:false}),P9=[];
+   for(let i=0;i<5;i++){const geo=new THREE.BoxGeometry(9.5,.9,.1),uv=geo.attributes.uv;
+     for(let v=0;v<uv.count;v++)uv.setY(v,(i+uv.getY(v))/5);                               // chaque panneau lit SA bande de la toile
+     const m=new THREE.Mesh(geo,mH);m.position.set(0,.47+.94*i,hd-.2);g.add(m);P9.push(m);}
+   GAR.porte={P:P9,zD:hd-.2,k:0,e:-1,mH:mH,db:null};garPortePose(0);}
   bx(3.2,5.55,hd-3.4,.8,.46,.66,M.acier);                               // le moteur de porte
   cy(3.2,5.2,hd-3.4,.03,.5,M.chrome);
   // ⚠ PAS DE BARRIÈRE, PAS DE PARVIS CLOS (verdict user) : franchir le seuil, c'est déjà être sur
@@ -35812,7 +35855,7 @@ function feuCubeNait(C,t,k){
 function garFeuCubes(dt){
   const C=GAR.feuC,F=GAR.feu,Q=FEU_CUBES;if(!C||!F)return;
   if(!Q.on){if(C.n){C.n=0;C.A.count=C.B.count=0;}return;}
-  {const v9=!GAR.porte||GAR.porte.e>.3;if(C.A.visible!==v9)C.A.visible=C.B.visible=v9;} // (?porte=1) porte fermée : les cubes la traverseraient — ils attendent qu'elle s'ouvre
+  {const v9=!GAR.porte||GAR.porte.e>.5;if(C.A.visible!==v9)C.A.visible=C.B.visible=v9;} // porte fermée : les cubes la traverseraient — ils attendent qu'elle s'ouvre (le feu se voit par les hublots)
   dt=Math.min(dt,.05);const k=F.k,t=F.t,P=C.p,M=C.m,col=C.A.instanceColor.array;
   C.acc+=dt*(250+520*k)*(REDUCED_MOTION?.5:1);
   while(C.acc>=1){C.acc-=1;if(C.n>=Q.N){C.acc=0;break;}feuCubeNait(C,t,k);}
@@ -36736,7 +36779,7 @@ const MENU_SACHA=POKI||!/[?&]menu=leo\b/.test(location.search); // (POKI) toujou
 document.documentElement.classList.toggle('misS',MENU_SACHA); // l'écran MISSIONS de Sacha : ses règles CSS vivent sous html.misS
 /* (même soir, Léo : « enlève la porte ») la porte FERMÉE au menu (Sacha, b8e7ce7) va avec SA version : par défaut (ou ?porte=1) elle
    descend au menu et s'ouvre au JOUER ; avec ?menu=leo elle reste RELEVÉE sous le plafond (l'image d'avant : le feu se voit dès le menu). */
-const PORTE_FERMEE=/[?&]porte=1\b/.test(location.search); // (2026-10-04, Léo : « enlève la porte ») c'était MENU_SACHA||?porte=1 — la porte fermée de Sacha (30/09) ne revient plus qu'avec ?porte=1
+const PORTE_FERMEE=MENU_SACHA||/[?&]porte=1\b/.test(location.search); // (2026-10-04) Léo l'avait enlevée le matin, puis : « remets une porte maintenant que les flammes sont plus jolies » — la porte fermée de Sacha revient (voir LA PORTE v2)
 function garMode(m){
   if(!gEl)return;const menu=m==='menu'||m==='missions',mis=m==='missions'; // (2026-09-30) MISSIONS = le menu, vu d'en haut, avec la constellation
   if(menu){if(SHOP.tab!=='voiture'||SHOP.prev)shopTab('voiture');const eq=equippedCar();if(garageI!==eq&&!GAR.sw)garageShow(eq);} // au menu : TA caisse, sans essai

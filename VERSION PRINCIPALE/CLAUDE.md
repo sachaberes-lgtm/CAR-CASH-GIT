@@ -38,9 +38,15 @@
 - **Pas encore fait / à trancher** : l'auto-école parle de POUCE même au clavier chez Poki (vrai aussi dans le cadre de l'ordi de la
   version principale) ; `dark-triad.mp3` manque (404 en console, déjà vrai sur `main`) ; le compte développeur Poki, la page du jeu et
   l'envoi du zip = Sacha ; droits des musiques et noms de marques (CHAT POP-TART…) à vérifier avant publication.
-## LA PORTE ENLEVÉE, LE FEU EN CUBES (2026-10-04, copie de test de Léo — « enlève la porte, remets des flammes pixelisées façon Minecraft, plus CUBE ; travaille couleurs, brillance, transparence, des pixels cubes satisfaisants » · « des flammes dans TOUS LES SENS : là ça sort d'en bas, je veux que ça vienne d'en haut, des côtés et d'en bas »)
-- LA PORTE : `PORTE_FERMEE` = `?porte=1` SEULEMENT (c'était `MENU_SACHA||?porte=1`) et ses cinq panneaux ne se montrent plus. ⚠ La porte
-  FERMÉE était le choix de SACHA (30/09, défaut de son menu) : Léo l'enlève — à faire valider par Sacha avant `main` (règle 4).
+## LE FEU EN CUBES + LA PORTE v2 (2026-10-04, copie de test de Léo — « enlève la porte, remets des flammes pixelisées façon Minecraft, plus CUBE ; travaille couleurs, brillance, transparence, des pixels cubes satisfaisants » · « des flammes dans TOUS LES SENS : d'en haut, des côtés et d'en bas » · « le milieu sombre un peu dérangeant » · puis « remets une porte maintenant que les flammes sont plus jolies, et fais une porte de garage plus jolie »)
+- LA PORTE : enlevée le matin, REMISE le soir — `PORTE_FERMEE` = `MENU_SACHA||?porte=1` comme avant (la porte fermée de Sacha), mais
+  REDESSINÉE (LA PORTE v2, dans `buildGarageRoom`) : une seule toile 1000 × 500 que chaque panneau lit par ses UV (une bande de 100) —
+  laque indigo à six CAISSONS biseautés par panneau ; le panneau du haut en bandeau, CASH CAR en lettres d'or pixel (Press Start 2P,
+  repeinte quand la police arrive) entre deux filets de néon rose ; le 4e panneau percé de six VRAIS HUBLOTS (trous dans la toile,
+  `alphaTest` : derrière, le feu en pixels brûle pour de bon) à cadre chromé ; une poignée d'or ; en bas une bande de danger jaune et
+  noire sur un joint de caoutchouc. La toile d'ÉMISSION fait passer la lueur du feu par les JOINTS et sous la porte, fait luire l'or et le
+  néon ; elle bat avec les flammes (`garPorte`, `mH`). Une matière pour les cinq panneaux. Les cubes du feu attendent que la porte soit
+  à moitié levée (`GAR.porte.e > ,5`) : fermée, ils la traverseraient.
 - LE RIDEAU PEINT (`feuPixPas`) brûle depuis les QUATRE bords (seuil `hh`, linteau `F.hT`, montants `F.sG`/`F.sD`, chacun ses langues) ;
   au centre, LE BRASIER (même jour, Léo : « intéressant, mais le milieu sombre un peu dérangeant ») : cinq tons d'orange en pixels francs
   (`FEU_BRASIER`), des nappes de chaleur qui montent lentement, tramées ; chaque case prend la plus claire de la langue et du brasier
@@ -53,7 +59,8 @@
   halo ×1,9 additif à 17 % (la brillance, la transparence). Au lâcher : deux fois plus de cubes, plus loin, plus vifs.
 - Compilés au menu avec l'atelier (atelierChauffe), rien en course (l'atelier est caché). `FEU_CUBES.on=false` = le rideau seul ;
   `dbgFeu()` rend `cubes`. Vérifié (banc `garfeu.mjs`, scratchpad 83e03bdc) : boutique couchée et debout, lâcher → course, 0 erreur ;
-  menu → JOUER → course couché, debout, cadre de l'ordi : 0 erreur. sw.js → v87, puis v88 (le brasier).
+  menu → JOUER → course couché, debout, cadre de l'ordi : 0 erreur. sw.js → v87, v88 (le brasier), v89 (la porte v2 ; aussi vérifiée
+  sous `?menu=leo`, porte relevée).
 
 ## LE DÉPART EN MUSIQUE (2026-10-04, copie de test de Léo — « harmonise le début de partie et le début de la musique, c'est un peu violent »)
 - AVANT, à la sortie du nuage, tout tombait dans la MÊME image : le lobby coupé net et la musique de course qui bondissait à 60 % en 0,15 s.
