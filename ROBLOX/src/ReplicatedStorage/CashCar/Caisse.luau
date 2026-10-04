@@ -19,7 +19,7 @@ Caisse.Catalogue = Catalogue
 
 -- comment chaque matière du jeu web répond à la lumière de Roblox
 local MATIERES = {
-	p = { Enum.Material.SmoothPlastic, 0.10 }, -- LAQUE
+	p = { Enum.Material.SmoothPlastic, 0.15 }, -- LAQUE (4/10 : 0,10 → 0,15 — la peinture renvoie le ciel, la caisse brille)
 	c = { Enum.Material.SmoothPlastic, 0.45 }, -- CHROME
 	o = { Enum.Material.SmoothPlastic, 0.35 }, -- OR
 	s = { Enum.Material.SmoothPlastic, 0.0 },  -- cuir, toile, satiné
@@ -230,6 +230,24 @@ function Caisse.construire(nom: string, indice: number, ancree: boolean?, habits
 	reflet.Color = Color3.fromRGB(255, 122, 36)
 	reflet.Parent = r
 	poignees.reflet = reflet
+	-- LA LAMPE DU HÉROS (4/10, « améliore les éclairages ») : la caméra de poursuite voit la caisse de DOS, souvent à contre-jour —
+	-- une carrosserie terne, sans reflet. Une lampe douce, derrière et au-dessus (là où est la caméra), allume le coffre et le toit et
+	-- pose un éclat sur la laque. Rien qu'une lumière (aucune pièce), et seulement sur la caisse du joueur (la vitrine du garage a
+	-- ses lampes de studio).
+	if nom == "MaCaisse" then
+		local a = Instance.new("Attachment")
+		a.Name = "LampeHeros"
+		a.Position = Vector3.new(0, (fiche.h or 1.4) * 1.9 * M, (fiche.l * 0.5 + 2.4) * M)
+		a.Parent = r
+		local l = Instance.new("PointLight")
+		l.Name = "Heros"
+		l.Range = 9 * M
+		l.Brightness = 1.1
+		l.Color = Color3.fromRGB(255, 244, 232)
+		l.Shadows = false
+		l.Parent = a
+		poignees.heros = l
+	end
 
 	-- ── l'échappement : une flamme par POT (4 au plus), un ruban par côté — aux vrais emplacements de CETTE caisse ──
 	local fx = fiche.fx

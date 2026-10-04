@@ -259,7 +259,8 @@ local function teinteTick(dt: number)
 	do
 		local flou = Lighting:FindFirstChild("Lointain")
 		if flou then
-			local v = ((etat.mode == "drive" or etat.mode == "fall") and not etat.intro) and 0.8 or 0
+			-- (4/10, « améliore les graphismes » : 0,8 → 0,6 — le lointain reste velouté, mais on y lit enfin les nuages et la ville)
+			local v = ((etat.mode == "drive" or etat.mode == "fall") and not etat.intro) and 0.6 or 0
 			local f = flou.FarIntensity + (v - flou.FarIntensity) * math.min(1, dt * 3)
 			if math.abs(f - flou.FarIntensity) > 0.002 then flou.FarIntensity = f end
 		end

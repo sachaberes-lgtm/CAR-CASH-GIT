@@ -292,6 +292,9 @@ Config.REVENUS = {
 -- la lire. (banc) LANGUE_TEST force la langue (« en » : tout le jeu en anglais dans un Studio réglé en français).
 Config.LANGUE_TEST = nil :: string?
 Config.TACTILE_TEST = nil :: boolean? -- (banc) l'interface du TÉLÉPHONE (volant, bouton nitro, astuces tactiles) dans Studio
+-- (banc) la copie de TEST est MUETTE (Sacha, 4/10 : les essais jouaient le son du jeu sur son PC pendant qu'il travaillait) —
+-- outils/banc.sh la pose toujours, sauf `SON=1` ; le jeu publié n'y touche jamais
+Config.MUET_TEST = nil :: boolean?
 function Config.francais(): boolean
 	if Config.LANGUE_TEST then return Config.LANGUE_TEST == "fr" end
 	local ok, l = pcall(function() return game:GetService("Players").LocalPlayer.LocaleId end)

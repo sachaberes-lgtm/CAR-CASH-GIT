@@ -16,6 +16,16 @@ Sons.volMus = 0.62
 local dossier = Instance.new("Folder")
 dossier.Name = "CashCarSons"
 dossier.Parent = SoundService
+-- (banc) la copie de test est muette : tous les sons du jeu passent par ce groupe à volume 0 (voir Config.MUET_TEST) — les
+-- volumes et les curseurs continuent de vivre normalement, seul ce qui sort des haut-parleurs est coupé
+local muet: SoundGroup? = nil
+if Config.MUET_TEST then
+	local g = Instance.new("SoundGroup")
+	g.Name = "MuetTest"
+	g.Volume = 0
+	g.Parent = SoundService
+	muet = g
+end
 
 local function source(nom: string): string?
 	local id = Config.SONS[nom]
@@ -54,6 +64,7 @@ local function bassin(nom: string): { Sound }?
 		s.Name = nom .. k
 		s.SoundId = src
 		s.Volume = VOLUMES[nom] or 0.5
+		s.SoundGroup = muet
 		s.Parent = dossier
 		table.insert(l, s)
 	end
@@ -101,6 +112,7 @@ function Sons.boucle(nom: string): Sound?
 	s.SoundId = src
 	s.Looped = true
 	s.Volume = 0
+	s.SoundGroup = muet
 	s.Parent = dossier
 	s:Play()
 	boucles[nom] = s

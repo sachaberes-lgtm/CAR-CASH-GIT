@@ -11,7 +11,6 @@
 local Lighting = game:GetService("Lighting")
 local Config = require(script.Parent.Parent:WaitForChild("Config"))
 local Nuages = require(script.Parent:WaitForChild("Nuages"))
-local Iles = require(script.Parent:WaitForChild("Iles"))
 local M = Config.M
 local K = Config.CIEL.titreK or 1 -- (la maquette : voir Config.CIEL.titreK)
 
@@ -32,16 +31,13 @@ local NU = {
 	-- à gauche et tout autour
 	{ -600, 1300, 160, 0, 1, -700 }, { -1000, 400, 140, 1, 1, -380 }, { -700, -600, 150, 3, 1, -450 }, { 300, -1000, 180, 0, 1, -520 }, { 1200, -400, 160, 1, 1, -330 }, { -200, -1500, 220, 4, 1, -640 },
 }
--- LES ÎLES DU CIEL (4/10, Sacha : « améliore la map… les graphismes au max ») : quatre îles flottantes qui montent avec les
--- cumulus — on tombe le long d'elles, comme à l'ouverture de Zelda TOTK. { droite, devant, hauteur de départ, rayon, graine }
-local ILES = { { 470, 1050, -330, 115, 11 }, { 950, 1700, -520, 165, 23 }, { -700, 2300, -760, 230, 37 }, { 520, 700, -170, 58, 41 } }
 -- les cinq formes du titre (mediocris, humilis, humilis, mediocris, congestus) → les gabarits du ciel de coton qui leur ressemblent
 local GABARIT = { [0] = 0, [1] = 1, [2] = 3, [3] = 5, [4] = 2 }
 
 type Cumulus = { p: MeshPart, dec: Vector3, a: number, b: number, y: number, v: number, lo: number, hi: number }
 local S = {
 	C = Vector3.zero, lh = Vector3.zAxis, t = 0, go = nil :: { t: number, suite: () -> (), fini: boolean }?,
-	nu = {} :: { Cumulus }, iles = {} :: { any }, dossier = nil :: Folder?, fh = Vector3.xAxis, f = Vector3.xAxis, pos = Vector3.zero, u = 0, vu = false,
+	nu = {} :: { Cumulus }, dossier = nil :: Folder?, fh = Vector3.xAxis, f = Vector3.xAxis, pos = Vector3.zero, u = 0, vu = false,
 }
 
 -- LE PLAN (chutePlan) : où tombe la caisse, vers où l'on regarde ; puis les cumulus (bâtis une fois, en tâche de fond)
@@ -80,13 +76,6 @@ function Titre.plan(piste: any)
 			local dd = math.sqrt(d[1] * d[1] + d[2] * d[2])
 			p.Parent = dossier
 			table.insert(S.nu, { p = p, dec = dec, a = d[1], b = d[2], y = d[6], v = d[5], lo = -(1.2 * dd + 1.3 * d[3]), hi = 0.1 * dd + 1.3 * d[3] })
-		end
-	end
-	for _, d in ILES do
-		local ok, m = pcall(Iles.maquette, dossier, d[4] * K, d[5])
-		if ok and m and #m.parts > 0 then
-			local dd = math.sqrt(d[1] * d[1] + d[2] * d[2])
-			table.insert(S.iles, { m = m, a = d[1], b = d[2], y = d[3], v = 1, lo = -(1.2 * dd + 2.6 * d[4]), hi = 0.1 * dd + 1.6 * d[4] })
 		end
 	end
 	Titre.nuPret = true
@@ -256,21 +245,6 @@ function Titre.caisse(dt: number, voile: ((number) -> ())?): CFrame
 		end
 		workspace:BulkMoveTo(pieces, poses, Enum.BulkMoveMode.FireCFrameChanged)
 		for _, p in pieces do Nuages.suivreFin(p) end
-		-- les ÎLES montent avec eux (chaque pièce garde sa pose dans l'île)
-		if #S.iles > 0 then
-			table.clear(pieces)
-			table.clear(poses)
-			for _, c in S.iles do
-				c.y += P.vit * c.v * vk * dt
-				if c.y > c.hi then c.y = c.lo end
-				local o = CFrame.new((S.C + (droite * c.a + lh * c.b + Vector3.new(0, c.y, 0)) * K) * M)
-				for i, p in c.m.parts do
-					table.insert(pieces, p)
-					table.insert(poses, o * c.m.offs[i])
-				end
-			end
-			workspace:BulkMoveTo(pieces, poses, Enum.BulkMoveMode.FireCFrameChanged)
-		end
 	end
 	-- (le repère cuit des caisses : le nez vers −Z, la droite du pilote +X)
 	local cfC = CFrame.fromMatrix((C - up * 0.45) * M, -sd, up, -f)
