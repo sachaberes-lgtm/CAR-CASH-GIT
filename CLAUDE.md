@@ -20,9 +20,11 @@ avant d'y toucher. `ROBLOX/` est un autre jeu, le portage Roblox : un commit ROB
   · `AUTRE VERSION/` : l'édition PC, gelée depuis le 25/09 ;
   · toute copie locale, tout zip, tout lien githack figé sur un vieux commit.
 - **Pour savoir quelle version tourne** : ouvrir ⚙ RÉGLAGES et lire la ligne du bas, « VERSION xxxxxxx ». Sur l'ordi, elle est aussi sous
-  le téléphone. C'est le commit publié par Vercel ; une copie locale affiche « VERSION LOCALE ».
-  ⚠ Ce numéro change aussi quand seul ROBLOX a bougé : le jeu web est alors identique. Pour voir si le JEU a changé depuis la référence,
-  lancer `git log --oneline c02c75a..origin/main -- "VERSION PRINCIPALE"`.
+  le téléphone. Depuis le 2026-10-03 au soir, c'est l'EMPREINTE DU JEU publié (les fichiers de `VERSION PRINCIPALE/`), plus le commit :
+  elle ne change QUE si le jeu web change — un push qui ne touche que ROBLOX ou les notes laisse le même numéro (et ne recharge plus les
+  joueurs : c'était la musique « coupée bizarrement »). Le commit publié se lit dans `…/jouer/version.json` (« commit »). Une copie locale
+  affiche « VERSION LOCALE ». Pour voir si le JEU a changé depuis la référence, lancer
+  `git log --oneline c02c75a..origin/main -- "VERSION PRINCIPALE"`.
 - **Ce que contient la référence**, pour la reconnaître :
   · le menu de SACHA par défaut (`?menu=leo` = celui de Léo), posé sur l'écran titre v3 : la caisse tombe dans un ciel de cumulus et
     on tourne la caméra autour d'elle au doigt ;
@@ -34,7 +36,8 @@ avant d'y toucher. `ROBLOX/` est un autre jeu, le portage Roblox : un commit ROB
 - **Ajouté depuis, sur `main` (2026-10-03, Léo)** — à garder : sur l'ordi l'écran NU par défaut (sans boîtier ni encoche, mais avec les
   MARGES de l'iPhone : les boutons à la même place ; `?encoche=1` = le boîtier du 13 Pro) ; l'ATELIER DES NUAGES (`?nuages=1`) ; l'écran
   titre au regard presque à niveau, qui ne tourne qu'à l'horizontale, la caisse qu'on TAPOTE et son modelé ; les trois musiques du lobby
-  (TEMPLE DE JADE retiré). Le détail : `VERSION PRINCIPALE/CLAUDE.md`.
+  (TEMPLE DE JADE retiré) ; le soir, le numéro de version = l'EMPREINTE du jeu (plus de rechargement à chaque push : c'était la
+  musique « coupée bizarrement ») et le tempo qui suivait la voiture retiré (il DISTORDAIT, mesuré). Le détail : `VERSION PRINCIPALE/CLAUDE.md`.
   · (2026-10-03, Sacha) DEBOUT, la comète de NITROOO ne voile plus l'écran : le dragon n'est plus « transparent » (le paysage ne bouge pas).
   · la MISE À JOUR TOUTE SEULE et le numéro de version dans les réglages.
 - **SANS TOUT CASSER** — la règle de chaque session, avant de pousser :

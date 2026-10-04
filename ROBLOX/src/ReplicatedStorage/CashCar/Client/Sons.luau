@@ -8,6 +8,9 @@ Sons.actif = true
 Sons.musiqueActive = true
 -- LES CURSEURS du web (VOL.sfx, VOL.mus) : 0-1. La musique a été accordée au réglage d'usine (62 %) : son niveau est relatif à lui.
 Sons.volSon = 1
+-- (SFX_SOUS_MUS, L25558 ; Léo 3/10 : « les MONSTRE ne doivent pas cacher la musique — ça vaut pour TOUS les effets sonores ») :
+-- tous les effets −3 dB sous la musique (le curseur EFFETS s'applique par-dessus)
+local SOUS_MUS = 0.7
 Sons.volMus = 0.62
 
 local dossier = Instance.new("Folder")
@@ -67,7 +70,7 @@ function Sons.jouer(nom: string, hauteur: number?, volume: number?)
 	tours[nom] = (tours[nom] % #l) + 1
 	local s = l[tours[nom]]
 	s.PlaybackSpeed = hauteur or 1
-	s.Volume = (volume or VOLUMES[nom] or 0.5) * Sons.volSon
+	s.Volume = (volume or VOLUMES[nom] or 0.5) * Sons.volSon * SOUS_MUS
 	s.TimePosition = 0
 	s:Play()
 end
@@ -110,7 +113,7 @@ function Sons.regler(nom: string, volume: number, hauteur: number?)
 	if string.sub(nom, 1, 7) == "musique" then -- (musique, musiqueNuages, musiqueVille, musiqueOrage)
 		v = Sons.musiqueActive and v * Sons.volMus / 0.62 or 0
 	else
-		v *= Sons.volSon
+		v *= Sons.volSon * SOUS_MUS
 	end
 	s.Volume = v
 	if hauteur then s.PlaybackSpeed = hauteur end

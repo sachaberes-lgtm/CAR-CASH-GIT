@@ -250,6 +250,25 @@ Config.CAM = {
 -- d'écrire la VRAIE condition. ⚠ à remettre à false pour la version publique : c'est l'unique interrupteur.
 Config.TEST_CAISSES = true
 
+-- ── LES REVENUS (voir ServerScriptService/Revenus) — HORS de la boutique des caisses ──
+-- Les NUMÉROS se posent ici une fois les objets créés sur create.roblox.com (ton expérience → Monétisation / Engagement) : à 0,
+-- l'objet n'existe pas et ce qui en dépend se tait. Les prix en Robux se règlent sur le site, pas ici.
+Config.REVENUS = {
+	-- les PASSES (achat unique, vendus aussi sur la page du jeu) : « ×2 ARGENT » (tout l'argent d'une partie compte double),
+	-- « VIP » (cadeaux du jour et de temps de jeu doublés, nom doré au-dessus de la caisse)
+	passes = { argent2 = 0, vip = 0 },
+	-- les PRODUITS (achat répété) : la SECONDE CHANCE (repartir là où l'on a explosé, la partie continue)
+	produits = { secondeChance = 0 },
+	-- les BADGES : bienvenue, permis de l'auto-école, zone 6 atteinte, moteur palier 10, 1 000 d'aura en une partie, record d'un
+	-- million, sept jours d'affilée
+	badges = { bienvenue = 0, permis = 0, zone6 = 0, moteur10 = 0, aura1000 = 0, millionnaire = 0, serie7 = 0 },
+	groupe = 0, groupeBonus = 2000, -- le GROUPE Roblox du jeu : rejoindre = 2 000 $ (une fois)
+	premiumBonus = 0.1, -- +10 % d'argent pour les membres Premium (Roblox paie au temps qu'ils passent dans le jeu)
+	invitation = 1000, -- arriver par l'invitation d'un ami : 1 000 $ pour lui et pour l'ami (une fois)
+	jour = { 500, 750, 1000, 1500, 2000, 3000, 5000 }, -- le CADEAU DU JOUR, jours 1 à 7 de la série (puis ça recommence)
+	tempsJeu = { { 5, 300 }, { 15, 800 }, { 30, 1500 }, { 60, 3000 } }, -- { minutes dans la session, $ } — puis 3 000 $ chaque heure
+}
+
 -- LA LANGUE : celle de Roblox (LocaleId du joueur) — le français pour « fr-* », l'anglais pour tout le reste. UN SEUL endroit pour
 -- la lire. (banc) LANGUE_TEST force la langue (« en » : tout le jeu en anglais dans un Studio réglé en français).
 Config.LANGUE_TEST = nil :: string?
