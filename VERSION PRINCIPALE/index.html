@@ -5914,7 +5914,7 @@ html.poki [data-m="shop"],html.poki [data-go="shop"],html.poki .gBoutique,html.p
 <!-- (2026-09-28) LA CONSOLE DE SON : la banque de sons (générée par atelier-son/cuire.js) et son lecteur. `defer` : ils ne retardent
      pas le démarrage (on n'en a besoin qu'au premier geste) ; changer `?v=` à chaque nouvelle banque (le service worker garde l'ancienne sinon). -->
 <script defer src="sons-banque.js?v=13"></script>
-<script defer src="assets/audio/music/harmonie.js?v=7"></script> <!-- (2026-10-03) l'harmonie des morceaux, temps par temps : la phrase du boost la lit (atelier-son/harmonie.py) -->
+<script defer src="assets/audio/music/harmonie.js?v=8"></script> <!-- (2026-10-03) l'harmonie des morceaux, temps par temps : la phrase du boost la lit (atelier-son/harmonie.py) -->
 <script defer src="sfx.js?v=4"></script>
 <script>
 (function(){
@@ -11715,7 +11715,12 @@ function buildVoxCity(seed,accC){
   // UNE TOUR : (cx,cz) son centre, d sa distance à l'axe, yN l'altitude du tronçon qu'elle BORDE, yLo le plus bas de ce tronçon
   /* L'ENTRÉE SURÉLEVÉE (voir VILLE_ENTREE) : `eEnt(i)` vaut 1 le long de la droite, glisse à 0 au pied de la rampe. Les tours qui bordent
      ces tronçons ont leurs toits ramenés SOUS la route (de `toit` à `toit`+`etage` m plus bas, les plus hautes restant les plus hautes) : sans aucun
-     tirage `vr` de plus, la ville garde ses tours, ses teintes et ses néons — elle est juste plus basse là où l'on arrive. */
+     tirage `vr` de plus, la ville garde ses tours, ses teintes et ses néons — elle est juste plus basse là où l'on arrive.
+     ⚠ ENTRÉE v2 (2026-10-04, Léo : « les niveaux villes ne sont pas tous des villes ») : MESURÉ (banc villepos.mjs, scratchpad 83e03bdc) —
+     sur ~1 km (la droite + la rampe, ~10 s de jeu) TOUTES les tours (les trois rangs ET la forêt proche) passaient sous la route : AU-DESSUS
+     DE LA VILLE et MINUIT EN VILLE commençaient par un ciel vide et une route mouillée, aucune tour à l'écran ; plus loin la ville est
+     là (1 500-1 700 tours). Désormais seul le MUR (1er rang, au bord de la route) passe dessous — la route reste droite et SURÉLEVÉE au-dessus
+     de lui (Sacha, 29/09) ; le 2e et le 3e rang et la forêt gardent leur hauteur : on arrive ENTRE les gratte-ciel. Mêmes tirages. */
   let iEA=-1,iEB=-1;
   if(VILLE_ENTREE){let dA=1e18,dB=1e18;const lim=Math.min(NP,Math.ceil(NP*.45));
     for(let i=0;i<lim;i++){const a=pts[i].distanceToSquared(VILLE_ENTREE.pA),b=pts[i].distanceToSquared(VILLE_ENTREE.pB);if(a<dA){dA=a;iEA=i;}if(b<dB){dB=b;iEB=i;}}
@@ -11769,7 +11774,7 @@ function buildVoxCity(seed,accC){
     let yLo=pts[i].y;for(let j=Math.max(0,i-pasC*5);j<=Math.min(NP-1,i+pasC*5);j+=pasC)if(pts[j].y<yLo)yLo=pts[j].y; // le pied se noie sous le point le plus bas du tronçon
     for(const sg of [-1,1])for(const rw of ROWS){if(vr()>rw[2]*kC)continue;
       const w=snap(16+vr()*26),p=snap(16+vr()*26),hd=Math.hypot(w,p)*.5,lat=ROAD_HALF+rw[0]+hd+vr()*rw[1],al=(vr()-.5)*SN*.6;
-      const nt0=nT,eI=eEnt(i);batir(pts[i].x+px*sg*lat+tx*al,pts[i].z+pz*sg*lat+tz*al,lat,pts[i].y,yLo,true,w,p,eI);
+      const nt0=nT,eI=eEnt(i);batir(pts[i].x+px*sg*lat+tx*al,pts[i].z+pz*sg*lat+tz*al,lat,pts[i].y,yLo,true,w,p,rw===ROWS[0]?eI:0); // (2026-10-04) seul le MUR (1er rang) passe sous la route à l'entrée — voir ENTRÉE v2
       // LE PANNEAU : un mur sur quatre du 1er rang porte une réclame, tournée VERS la route, un peu au-dessus d'elle
       if(rw===ROWS[0]&&nT>nt0&&vr()<(IS_MOBILE?.22:.3)){const pw=24+vr()*16,ph=pw*(.75+vr()*.25),d9=lat-hd*.72-1.5;
         (eI>.3?[]:pubs).push(pts[i].x+px*sg*d9+tx*al,pts[i].y+16+vr()*40,pts[i].z+pz*sg*d9+tz*al,Math.atan2(-px*sg,-pz*sg),pw,ph);}} // (entrée surélevée : pas de réclame en l'air au-dessus des toits — les tirages restent)
@@ -11779,7 +11784,7 @@ function buildVoxCity(seed,accC){
   for(const v of cF){if(vr()>kF*.8)continue;const cx=v[2]+(vr()-.5)*SF*.4,cz=v[3]+(vr()-.5)*SF*.4;
     let d2=1e12,yN=pts[v[1]].y,yLo=yN,iN=v[1];
     proches(cx,cz,360,function(i){const p=pts[i],dx=p.x-cx,dz=p.z-cz,e=dx*dx+dz*dz;if(e<d2){d2=e;yN=p.y;iN=i;}if(e<129600&&p.y<yLo)yLo=p.y;});
-    const dF=d2<1e12?Math.sqrt(d2):v[0];batir(cx,cz,dF,yN,yLo,false,snap(20+vr()*30),snap(20+vr()*30),eEnt(iN)*(1-THREE.MathUtils.smoothstep(dF,500,1100)));} // (entrée surélevée : la forêt proche baisse aussi, la ligne d'horizon au loin reste)
+    const dF=d2<1e12?Math.sqrt(d2):v[0];batir(cx,cz,dF,yN,yLo,false,snap(20+vr()*30),snap(20+vr()*30),0);} // (2026-10-04, ENTRÉE v2) la forêt garde sa hauteur à l'entrée (elle baissait près de la droite)
   CITY.nC=Math.round(NP/pasC);CITY.nF=cF.length;
   // (2026-09-26, user : « enlève les carrés qui bougent en l'air ») : la CIRCULATION VOLANTE est retirée
   // LES TOURS SONT DURES (2026-09-26, user : « si le joueur entre en collision avec un immeuble, il meurt ») : chaque volume est rangé
@@ -25619,7 +25624,7 @@ const MUSIC_TRACKS=[
    Fichiers renommés en ASCII sans espace : une URL mal encodée ne plante pas, elle se tait. */
 const MUSIC_LIEU={
   nuages:{titre:'NOITE DE VELOCIDADE',f:'assets/audio/music/noite-de-velocidade.mp3'}, // 2 min 29
-  ville: {titre:'GLASSY PLUCKS',      f:'assets/audio/music/glassy-plucks-boucle.m4a'}, // (2026-10-04, Léo : « Glassy Plucks est la musique des niveaux VILLE ») — sa boucle de 44 mesures (1:10) ; avant : NOCTURNAL GROOVE (nocturnal-groove.mp3, 2 min 59)
+  ville: {titre:'GLASSY PLUCKS',      f:'assets/audio/music/glassy-plucks-boucle.m4a'}, // 70 s en boucle — (2026-10-04, Léo : « la musique pour la ville, c'est GLASSY PLUCKS ») son morceau Suno, la section 1:04 → 2:14 bouclée sur 44 mesures exactes (150,3 BPM), reprise de sa branche garage-2026-10 ; avant : NOCTURNAL GROOVE (qui reste dans la radio). Toute VILLE : AU-DESSUS DE LA VILLE, MINUIT EN VILLE, la carrière VILLE. ⚠ droits : garder la preuve d'abonnement Suno payant
   orage: {titre:'SWAG CASH CAR',      f:'assets/audio/music/swag-cash-car-2.m4a'}      // 2 min 37 — (2026-09-29, Léo : « la musique actuelle du lobby est censée être dans le ciel électrique ») L'ORAGE, le niveau des éclairs, qui n'avait pas de morceau à lui
 };
 let musicLieu=null; // le morceau de LIEU qui tient l'antenne (null = la radio)
@@ -27074,6 +27079,8 @@ function sonConsole(){ // branche la console sur le contexte du jeu (fin d'initA
 }
 addEventListener('load',function(){try{sonConsole();}catch(e){}});
 const SON_TON={'glassy-plucks':-2,'ciel-n5':1,'ciel':-1,'vapeur-salon':-1,'lobby-ascenseur':-4,'lvl1-neon-cash-car':-1,'lvl2-cash-car-vitesse':-2,'nocturnal-groove':0,'noite-de-velocidade':2,'swag-cash-car-2':-1,'addictive-loop':1}; // (2026-09-29) SWAG do m → −1, ADDICTIVE la m → +1 : énergie par gamme majeure (chroma des partiels), la plus petite des trois pentatoniques de la gamme gagnante — la méthode retrouve NÉON, NOCTURNAL et NOITE (pas VITESSE)
+/* (2026-10-04) GLASSY PLUCKS −2 : MESURÉ (chroma de harmonie.py) — si, la, ré, mi, fa# dominent, ré♯ et la♯ presque absents : si mineur /
+   ré majeur (comme VITESSE), pas le « do# dorien » noté sur la branche de Léo (0). Sa fiche d'harmonie (la phrase du boost) est dans harmonie.js. */
 function sonTonSuit(){
   if(!SONV2)return;let t=0;
   try{const el=musicEl;if(SND.music&&el&&el.src){for(const k in SON_TON)if(el.src.indexOf(k)>=0){t=SON_TON[k];break;}if(FRENM.surm)t+=1;}}catch(e){}
@@ -34628,13 +34635,57 @@ function buildGarageRoom(){
      les hublots du 4e panneau et sous la porte. Au LÂCHER, ils remontent le rail, prennent le coude et filent sous le plafond (garPorte,
      0,8 s dès le JOUER) : le rideau de flammes apparaît et la caisse y entre. Ouverte, la porte retrouve exactement la place des panneaux
      empilés d'avant (y 4,98 ; z hd − 0,85 − 1,02 i). */
-  {const nerf=(x,w,h)=>{x.fillStyle='#8f98ab';x.fillRect(0,0,w,h);
-      for(const y9 of [9,20]){x.fillStyle='#5d6576';x.fillRect(0,y9,w,2);x.fillStyle='#b9c1d1';x.fillRect(0,y9+2,w,1);} // deux nervures par panneau
-      x.fillStyle='#4c5363';x.fillRect(0,0,w,1);x.fillRect(0,h-1,w,1);for(let i=0;i<8;i++)x.fillRect(i*w/8,0,1,h);};    // les bords, les joints verticaux (aucune lumière derrière)
-   const tN=cvT(256,32,nerf),tH=cvT(256,32,(x,w,h)=>{nerf(x,w,h);for(let i=0;i<6;i++){const cx=w*(.14+.144*i);x.fillStyle='#2a2f3a';x.fillRect(cx-12,7,24,17);x.fillStyle='#1a0602';x.fillRect(cx-10,9,20,13);}}),
-         eH=cvT(256,32,(x,w,h)=>{x.fillStyle='#000';x.fillRect(0,0,w,h);for(let i=0;i<6;i++){const cx=w*(.14+.144*i),gr=x.createLinearGradient(0,22,0,9);gr.addColorStop(0,'#ffd26a');gr.addColorStop(1,'#ff4a10');x.fillStyle=gr;x.fillRect(cx-10,9,20,13);}}); // les hublots : le FEU derrière
-   const mN=L(0xffffff,0x0b0d12,{map:tN}),mH=L(0xffffff,0xffffff,{map:tH,emissiveMap:eH}),P9=[];
-   for(let i=0;i<5;i++)P9.push(bx(0,.47+.94*i,hd-.2,9.5,.9,.1,i===3?mH:mN));
+  /* LA PORTE v2 (2026-10-04, Léo : « remets une porte maintenant que les flammes sont plus jolies, et fais une porte de garage plus jolie »).
+     Une seule toile pour toute la porte (1000 × 500, une bande de 100 par panneau) que chaque panneau lit par ses UV : une LAQUE indigo
+     à CAISSONS biseautés (six par panneau, la lumière d'en haut à gauche), le haut en bandeau — CASH CAR en lettres d'or pixel entre deux
+     filets de néon rose —, le 4e panneau percé de six VRAIS HUBLOTS (trous dans la toile, alphaTest : derrière, le feu en pixels brûle
+     pour de bon), une poignée d'or, et en bas une bande de danger jaune et noire sur son joint de caoutchouc. La toile d'ÉMISSION fait
+     passer la lueur du feu par les JOINTS des panneaux et fait luire l'or et le néon ; elle bat avec les flammes (garPorte).
+     Une matière pour les cinq panneaux (même programme qu'une Lambert de l'atelier + alphaTest : compilée au menu avec lui). */
+  {const DW=1000,DH=500,dCv=document.createElement('canvas'),eCv=document.createElement('canvas');dCv.width=eCv.width=DW;dCv.height=eCv.height=DH;
+   const dx=dCv.getContext('2d'),ex=eCv.getContext('2d');
+   const peint=function(){
+     dx.clearRect(0,0,DW,DH);ex.fillStyle='#000';ex.fillRect(0,0,DW,DH);
+     const caisson=function(x0,y0,w,h){
+       dx.fillStyle='#14111f';dx.fillRect(x0-3,y0-3,w+6,h+6);                                  // la feuillure (l'ombre autour)
+       const gr=dx.createLinearGradient(0,y0,0,y0+h);gr.addColorStop(0,'#3a3566');gr.addColorStop(1,'#26223f');dx.fillStyle=gr;dx.fillRect(x0,y0,w,h);
+       dx.fillStyle='#6a63a6';dx.fillRect(x0,y0,w,3);dx.fillRect(x0,y0,3,h);                  // le biseau éclairé (haut, gauche)
+       dx.fillStyle='#100d1c';dx.fillRect(x0,y0+h-3,w,3);dx.fillRect(x0+w-3,y0,3,h);          // le biseau dans l'ombre (bas, droite)
+       dx.fillStyle='#4a447e';dx.fillRect(x0+3,y0+3,w-6,1);};
+     for(let i=0;i<5;i++){const y0=(4-i)*100;
+       const gr=dx.createLinearGradient(0,y0,0,y0+100);gr.addColorStop(0,'#2f2a4d');gr.addColorStop(1,'#1d1a31');dx.fillStyle=gr;dx.fillRect(0,y0,DW,100);
+       dx.fillStyle='#726bb0';dx.fillRect(0,y0,DW,2);dx.fillStyle='#3d3862';dx.fillRect(0,y0+2,DW,1);   // l'arête du panneau
+       dx.fillStyle='#0a0814';dx.fillRect(0,y0+96,DW,4);                                        // le joint
+       ex.fillStyle='#ff6a1c';ex.fillRect(0,y0+97,DW,2);ex.fillStyle='#7a2a08';ex.fillRect(0,y0,DW,1);   // le feu passe par les joints
+       if(i<=2){const h0=i===0?y0+12:y0+16,hh=i===0?54:66;for(let k=0;k<6;k++)caisson(30+k*160,h0,140,hh);}
+       if(i===3){for(let k=0;k<6;k++){const x0=30+k*160,yw=y0+18,w=140,h=62;                    // LES HUBLOTS
+         dx.fillStyle='#0b0a12';dx.fillRect(x0-4,yw-4,w+8,h+8);
+         dx.fillStyle='#d5dbec';dx.fillRect(x0,yw,w,4);dx.fillRect(x0,yw,4,h);                  // le cadre chromé
+         dx.fillStyle='#5a6078';dx.fillRect(x0,yw+h-4,w,4);dx.fillRect(x0+w-4,yw,4,h);
+         dx.fillStyle='#9aa1b8';dx.fillRect(x0+4,yw+4,w-8,3);
+         dx.clearRect(x0+8,yw+8,w-16,h-16);                                                     // le trou : derrière, le feu
+         for(const [cx,cy] of [[x0+8,yw+8],[x0+w-11,yw+8],[x0+8,yw+h-11],[x0+w-11,yw+h-11]]){dx.fillStyle='#5a6078';dx.fillRect(cx,cy,3,3);} // coins arrondis, en pixels
+         ex.fillStyle='#3a1206';ex.fillRect(x0,yw,w,h);}}                                        // le reflet du feu sur le cadre
+       if(i===4){dx.fillStyle='#ff3ec8';dx.fillRect(40,y0+14,DW-80,3);dx.fillRect(40,y0+84,DW-80,3);   // LE BANDEAU : néon rose
+         ex.fillStyle='#c4268e';ex.fillRect(40,y0+14,DW-80,3);ex.fillRect(40,y0+84,DW-80,3);
+         dx.font='44px "Press Start 2P", monospace';dx.textAlign='center';dx.textBaseline='middle';
+         const tx=DW/2,ty=y0+52;dx.fillStyle='#4a2600';dx.fillText('CASH CAR',tx+5,ty+5);dx.fillText('CASH CAR',tx+3,ty+3); // l'épaisseur
+         const go=dx.createLinearGradient(0,ty-22,0,ty+22);go.addColorStop(0,'#fff4b0');go.addColorStop(.45,'#ffcf3a');go.addColorStop(1,'#c4820c');
+         dx.fillStyle=go;dx.fillText('CASH CAR',tx,ty);
+         ex.font=dx.font;ex.textAlign='center';ex.textBaseline='middle';ex.fillStyle='#8a6214';ex.fillText('CASH CAR',tx,ty);}
+       if(i===1){dx.fillStyle='#3a2a08';dx.fillRect(452,y0+50,96,12);dx.fillStyle='#e8b73a';dx.fillRect(450,y0+46,96,12); // LA POIGNÉE d'or
+         dx.fillStyle='#fff0a0';dx.fillRect(450,y0+46,96,3);ex.fillStyle='#3a2a08';ex.fillRect(450,y0+46,96,12);}
+       if(i===0){dx.fillStyle='#16131f';dx.fillRect(0,y0+72,DW,20);                              // LA BANDE DE DANGER : noir, puis les biais jaunes
+         dx.fillStyle='#f5c425';for(let x=-20;x<DW+20;x+=36){dx.beginPath();dx.moveTo(x,y0+92);dx.lineTo(x+18,y0+72);dx.lineTo(x+36,y0+72);dx.lineTo(x+18,y0+92);dx.fill();}
+         dx.fillStyle='#0a0812';dx.fillRect(0,y0+70,DW,2);dx.fillStyle='#07060b';dx.fillRect(0,y0+92,DW,8);   // le joint de caoutchouc
+         ex.fillStyle='#ff6a1c';ex.fillRect(0,y0+98,DW,2);}}};                                   // la lueur SOUS la porte
+   peint();
+   const tD=new THREE.CanvasTexture(dCv),tE=new THREE.CanvasTexture(eCv);tD.magFilter=THREE.NearestFilter;tD.anisotropy=4;tE.anisotropy=4;
+   try{if(document.fonts&&document.fonts.load)document.fonts.load('44px "Press Start 2P"').then(function(){peint();tD.needsUpdate=true;tE.needsUpdate=true;}).catch(function(){});}catch(e){}
+   const mH=new THREE.MeshLambertMaterial({color:0xffffff,map:tD,emissive:0xffffff,emissiveMap:tE,alphaTest:.5,fog:false}),P9=[];
+   for(let i=0;i<5;i++){const geo=new THREE.BoxGeometry(9.5,.9,.1),uv=geo.attributes.uv;
+     for(let v=0;v<uv.count;v++)uv.setY(v,(i+uv.getY(v))/5);                               // chaque panneau lit SA bande de la toile
+     const m=new THREE.Mesh(geo,mH);m.position.set(0,.47+.94*i,hd-.2);g.add(m);P9.push(m);}
    GAR.porte={P:P9,zD:hd-.2,k:0,e:-1,mH:mH,db:null};garPortePose(0);}
   bx(3.2,5.55,hd-3.4,.8,.46,.66,M.acier);                               // le moteur de porte
   cy(3.2,5.2,hd-3.4,.03,.5,M.chrome);
@@ -34678,6 +34729,21 @@ function buildGarageRoom(){
    const F=GAR.feu={cv:cv,cx:cv.getContext('2d'),img:null,f:new Uint8Array(W9*H9),h:new Float32Array(W9),em:[],W:W9,H:H9,tex:tex,acc:0,t:0,k:0};
    F.img=F.cx.createImageData(W9,H9);GAR.feuM=fl;
    for(let i=0;i<70;i++)feuPixPas(F); // il BRÛLE déjà quand la porte apparaît (sinon il naîtrait sous les yeux, du seuil vers le haut)
+   /* LES FLAMMES EN CUBES — voir FEU_CUBES (près de feuPixPas). Deux instanciations qui PARTAGENT leurs matrices et leurs couleurs : le
+      CUBE plein (faces ombrées comme un bloc de jeu de cubes, couleurs au-delà de 1 : le halo du post les prend) et son HALO (le même cube
+      ×1,9, additif, translucide) — 2 appels de dessin, 24 + 36 sommets par flamme. Compilés au menu avec l'atelier (atelierChauffe). */
+   {const N=FEU_CUBES.N,bx9=new THREE.BoxGeometry(1,1,1),ps=bx9.attributes.position,nm=bx9.attributes.normal,cl=new Float32Array(ps.count*3);
+    for(let i=0;i<ps.count;i++){const nx=nm.getX(i),ny=nm.getY(i),nz=nm.getZ(i),v9=ny>.5?1:ny<-.5?.5:nz<-.5?.86:nz>.5?.55:.68; // dessus clair, face vue (−z) presque pleine, flancs, dessous sombre
+      cl[i*3]=cl[i*3+1]=cl[i*3+2]=v9;}
+    bx9.setAttribute('color',new THREE.BufferAttribute(cl,3));
+    const A=new THREE.InstancedMesh(bx9,new THREE.MeshBasicMaterial({vertexColors:true,fog:false,toneMapped:false}),N);
+    const B=new THREE.InstancedMesh(new THREE.BoxGeometry(1.9,1.9,1.9),new THREE.MeshBasicMaterial({fog:false,toneMapped:false,transparent:true,opacity:.17,
+      blending:THREE.AdditiveBlending,depthWrite:false}),N);
+    A.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(N*3),3);
+    B.instanceMatrix=A.instanceMatrix;B.instanceColor=A.instanceColor;  // le halo suit le cube : mêmes tampons
+    A.count=B.count=0;A.frustumCulled=B.frustumCulled=false;B.renderOrder=2;g.add(A);g.add(B);
+    GAR.feuC={A:A,B:B,n:0,p:new Float32Array(N*9),acc:0,m:new THREE.Matrix4(),z0:hd};
+    for(let i=0;i<45;i++){F.t+=1/30;garFeuCubes(1/30);}}  // elles brûlent déjà à l'ouverture
    const lu=flat(blobTex,0,.04,hd-1.3,12.5,6,0,THREE.AdditiveBlending);lu.rotation.x=-Math.PI/2;lu.material.color.setHex(0xff5a14);lu.renderOrder=-1;GAR.feuLu=lu;}
   /* LE SOCLE DES MISSIONS (2026-09-30, sketch de Léo : « missions » sur un fût à droite de la caisse) : une colonne de fer cerclée de
      néon VERT (la couleur des défis), coiffée d'une cible qui tourne. Au sol, HORS du plateau (il ne tourne pas avec la caisse), côté
@@ -35772,26 +35838,92 @@ function menuVitrine(dt){
    Tout reste un plan opaque, une texture de 96 × 48, NearestFilter : 4 608 cases, ~2 sinus chacune, 30 pas/s — rien. */
 const FEU_PAL=[[92,16,22],[148,28,28],[204,58,30],[236,104,36],[255,152,52],[255,204,102],[255,238,186]];
 const FEU_BAY=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
-const FEU_FUM=[[40,11,14],[28,8,11],[18,6,9],[11,4,7]];
+const FEU_FUM=[[40,11,14],[28,8,11],[18,6,9],[11,4,7]]; // (feu v3) — ⚠ (2026-10-04) le feu brûle maintenant depuis les quatre bords : au CENTRE de la porte, ces tons sont un cœur de braise sombre (FEU_CENTRE), pas un trou noir
+const FEU_CENTRE=[[74,16,18],[56,12,15],[42,9,13],[30,7,11]]; // (inutilisé depuis le brasier, gardé pour comparer)
+/* LE BRASIER DU CENTRE (2026-10-04, Léo : « intéressant, mais le milieu sombre un peu dérangeant ») : le centre de l'ouverture n'est plus
+   une fumée noire mais un BRASIER orange qui ondule — cinq tons en pixels francs, des nappes de chaleur qui montent lentement, tramées
+   (Bayer). Il reste SOUS les langues (moins clair que l'orange des flammes) : les flammes des quatre bords et les cubes se lisent dessus.
+   Chaque case prend la plus claire des deux couleurs, la flamme ou le brasier. */
+const FEU_BRASIER=[[112,24,20],[138,34,22],[164,47,24],[188,62,27],[208,80,31]];
+/* LES FLAMMES EN CUBES (2026-10-04, Léo : « enlève la porte, remets des flammes pixelisées façon Minecraft, plus CUBE ; travaille les
+   couleurs, la brillance, la transparence — des pixels cubes satisfaisants » · « des flammes dans TOUS LES SENS : là ça sort d'en bas, je
+   veux que ça vienne d'en haut, des côtés — et d'en bas »). Le rideau peint (feuPixPas) reste DERRIÈRE, plus sombre, et brûle désormais
+   depuis les QUATRE bords ; devant lui, des CUBES de feu (`GAR.feuC`, garFeuCubes) :
+   · ils NAISSENT sur les quatre bords de l'ouverture — le seuil, le linteau, les deux montants — groupés en LANGUES qui glissent le long du
+     bord (un sinus au carré : on n'en sème que là où il est haut), et partent VERS L'INTÉRIEUR ;
+   · le feu MONTE : une poussée vers le haut sur tous — ceux du linteau plongent puis se RECOURBENT vers le haut, ceux des montants filent
+     vers le centre en s'élevant ; un tourbillon latéral les fait onduler ;
+   · des cubes de 34 cm (à 12 m, la caméra de l'atelier doit LIRE un cube, pas un point) posés sur une GRILLE de 17 cm : ils sautent de
+     case en case, ils ne glissent pas ; quatre couches de profondeur, et un sur trois sort de la porte vers l'atelier ; jamais tournés ;
+   · six BANDES de couleur par âge (`FEU_CUBES.pal` : cœur blanc chaud → jaune → orange → vermillon → rouge → braise), au-delà de 1 pour
+     les premières (le halo du post les attrape), et la TAILLE qui fond par crans avec l'âge ;
+   · au LÂCHER (`GAR.feu.k`) : deux fois plus de flammes, plus loin, plus vives.
+   `FEU_CUBES.on=false` rend le rideau seul. `dbgFeu()` rend aussi le nombre de cubes. */
+const FEU_CUBES={on:true,N:760,c:.34,pas:.17,
+  pal:[[2.1,1.85,1.2],[1.95,1.32,.34],[1.65,.7,.12],[1.22,.34,.06],[.92,.2,.06],[.66,.13,.05]], // (brasier) les deux dernières éclaircies : sur l'orange du centre, une braise trop sombre se lisait comme une tache
+  taille:[1,.95,.84,.7,.55,.38],seuils:[.8,.62,.44,.27,.12],
+  X0:-4.62,X1:4.62,Y0:.04,Y1:4.6};
+function feuCubeNait(C,t,k){
+  const Q=FEU_CUBES,P=C.p,o=C.n*9,r=Math.random()*(1.25+.55+.45+.45);
+  const e=r<1.25?0:r<1.8?1:r<2.25?2:3;                                        // 0 seuil · 1 linteau · 2 montant gauche · 3 montant droit
+  let u=0;for(let n=0;n<4;n++){u=Math.random();const s9=Math.sin(u*(e<2?17:9)+t*(e&1?-1.7:2.1)+e*1.9),pr=.18+.82*(s9>0?s9*s9:0);if(Math.random()<pr)break;} // les LANGUES
+  const W=Q.X1-Q.X0,Hh=Q.Y1-Q.Y0,f=1+.45*k;
+  let x,y,vx,vy;
+  if(e===0){x=Q.X0+u*W;y=Q.Y0;vx=(Math.random()-.5)*.5;vy=(1.7+1.5*Math.random())*f;}
+  else if(e===1){x=Q.X0+u*W;y=Q.Y1;vx=(Math.random()-.5)*.5;vy=-(1.2+1.1*Math.random())*f;}
+  else{x=e===2?Q.X0:Q.X1;y=Q.Y0+u*Hh*.96;vx=(e===2?1:-1)*(1.15+1.05*Math.random())*f;vy=.3*Math.random();}
+  P[o]=x;P[o+1]=y;P[o+2]=C.z0+[-.26,-.06,.14,.3][(Math.random()*4)|0];P[o+3]=vx;P[o+4]=vy;
+  const L=.5+.55*Math.random()+.25*k;P[o+5]=L;P[o+6]=L;P[o+7]=.75+.5*Math.random();P[o+8]=Math.random()<.33?-(.4+1.3*Math.random()):0;C.n++; // un sur trois SORT de la porte, vers l'atelier
+}
+function garFeuCubes(dt){
+  const C=GAR.feuC,F=GAR.feu,Q=FEU_CUBES;if(!C||!F)return;
+  if(!Q.on){if(C.n){C.n=0;C.A.count=C.B.count=0;}return;}
+  {const v9=!GAR.porte||GAR.porte.e>.5;if(C.A.visible!==v9)C.A.visible=C.B.visible=v9;} // porte fermée : les cubes la traverseraient — ils attendent qu'elle s'ouvre (le feu se voit par les hublots)
+  dt=Math.min(dt,.05);const k=F.k,t=F.t,P=C.p,M=C.m,col=C.A.instanceColor.array;
+  C.acc+=dt*(250+520*k)*(REDUCED_MOTION?.5:1);
+  while(C.acc>=1){C.acc-=1;if(C.n>=Q.N){C.acc=0;break;}feuCubeNait(C,t,k);}
+  const D=.78+.4*k,dr=Math.exp(-1.3*dt);
+  for(let i=0;i<C.n;i++){let o=i*9;
+    P[o+5]-=dt;
+    if(P[o+5]<=0||P[o+1]>Q.Y1+.3||P[o+1]<-.1){C.n--;if(i<C.n){P.copyWithin(o,C.n*9,C.n*9+9);i--;}continue;} // la dernière prend sa place
+    const x=P[o],y=P[o+1];
+    P[o+3]=P[o+3]*dr+Math.sin(y*3.1+t*4.3+x*.7)*1.3*dt;                        // le tourbillon
+    P[o+4]+=1.75*dt;                                                            // le feu MONTE (le linteau plonge puis se recourbe)
+    P[o]+=P[o+3]*dt;P[o+1]+=P[o+4]*dt;P[o+2]+=P[o+8]*dt;
+    const a=P[o+5]/P[o+6],b=a>Q.seuils[0]?0:a>Q.seuils[1]?1:a>Q.seuils[2]?2:a>Q.seuils[3]?3:a>Q.seuils[4]?4:5;
+    const sz=Q.c*Q.taille[b]*P[o+7],xs=Math.round(P[o]/Q.pas)*Q.pas,ys=Math.round(P[o+1]/Q.pas)*Q.pas;  // sur la GRILLE : des cases, pas un glissé
+    M.makeScale(sz,sz,sz);M.elements[12]=xs;M.elements[13]=ys;M.elements[14]=Math.round(P[o+2]/Q.pas)*Q.pas;C.A.setMatrixAt(i,M);
+    const c=Q.pal[b];col[i*3]=c[0]*D;col[i*3+1]=c[1]*D;col[i*3+2]=c[2]*D;}
+  C.A.count=C.B.count=C.n;C.A.instanceMatrix.needsUpdate=true;C.A.instanceColor.needsUpdate=true;
+}
 function feuPixPas(F){
   const W=F.W,H=F.H,t=F.t,k=F.k,hh=F.h,px=F.img.data,dt=F.dt||1/30;
-  const top=.45+.35*k;                                                       // la hauteur moyenne des flammes (part de la porte)
+  /* (2026-10-04, Léo : « des flammes dans tous les sens ») le rideau brûle depuis les QUATRE bords : le seuil (hh), le linteau (hT), les
+     deux montants (sG, sD) — chacun ses langues ; derrière les cubes, un cran plus sombre (D). */
+  const hT=F.hT||(F.hT=new Float32Array(W)),sG=F.sG||(F.sG=new Float32Array(H)),sD=F.sD||(F.sD=new Float32Array(H));
+  const top=.34+.3*k;                                                        // la hauteur moyenne des flammes du seuil (part de la porte)
   for(let x=0;x<W;x++){const u=x/(W-1);
     let h=top*(.7+.17*Math.sin(u*7.1+t*.9)+.13*Math.sin(u*13.3-t*1.45));
     const tg=Math.sin(u*23+t*2.3+1.7*Math.sin(u*6.2-t*.8));h+=top*.45*tg*tg*tg*(tg>0?1:0); // les LANGUES
-    hh[x]=Math.min(.9,h);}
-  const D=.84+.16*k;                                                         // au repos un cran plus sombre : il est là, il ne crie pas
+    hh[x]=Math.min(.8,h);
+    const tt=Math.sin(u*19-t*1.9+1.3*Math.sin(u*5.1+t*.7));hT[x]=(.17+.12*k)*(.75+.25*Math.sin(u*9.3+t*1.1))+(.14+.08*k)*(tt>0?tt*tt*tt:0);}
+  for(let y=0;y<H;y++){const v=1-(y+.5)/H,s1=Math.sin(v*14+t*2.6+1.2*Math.sin(v*4.3-t)),s2=Math.sin(v*11-t*2.2+.8);
+    sG[y]=(.08+.05*k)*(.8+.2*Math.sin(v*6+t))+(.07+.04*k)*(s1>0?s1*s1*s1:0);sD[y]=(.08+.05*k)*(.8+.2*Math.sin(v*5.3-t*1.2))+(.07+.04*k)*(s2>0?s2*s2*s2:0);}
+  const D=.84+.16*k;                                                         // au repos un cran plus sombre : il est là, il ne crie pas — (brasier) les langues gardent leur éclat : elles se lisent SUR le brasier
   for(let y=0;y<H;y++){const v=1-(y+.5)/H,o0=y*W;
     const ond=v*(2.1*Math.sin(v*11-t*5.2)+1.1*Math.sin(v*23-t*8.3));        // la colonne lue ondule avec la hauteur
-    const gf=Math.min(1,Math.pow(v/.95,.8));                                 // la fumée : du rougeoiement au noir
-    for(let x=0;x<W;x++){const o=(o0+x)*4;
+    for(let x=0;x<W;x++){const o=(o0+x)*4,u=x/(W-1);
       let xs=Math.round(x+ond+.8*Math.sin(x*.5+t*3.3)*v);xs=xs<0?0:xs>=W?W-1:xs;
-      const h=hh[xs],I=h>0?1-v/h:-1;
-      let c;
-      if(I>0){const b=I<.1?0:I<.24?1:I<.4?2:I<.57?3:I<.74?4:I<.9?5:6;c=FEU_PAL[b];
-        px[o]=c[0]*D;px[o+1]=c[1]*D;px[o+2]=c[2]*D;}
-      else{const q=gf*3+(FEU_BAY[(y&3)*4+(x&3)]/16-.5)*.9+.12*Math.sin(x*.21+v*5-t*.7);   // tramage ordonné : un dégradé en pixels francs
-        c=FEU_FUM[q<.5?0:q<1.5?1:q<2.5?2:3];px[o]=c[0];px[o+1]=c[1];px[o+2]=c[2];}
+      const h=hh[xs];let I=h>0?1-v/h:-1;
+      const iT=1-(1-v)/hT[xs],iG=1-u/sG[y],iD=1-(1-u)/sD[y];if(iT>I)I=iT;if(iG>I)I=iG;if(iD>I)I=iD;
+      // le BRASIER : des nappes de chaleur qui montent (v − t), deux ondes lentes, le tramage, et un peu plus chaud près des langues
+      const hb=.42+.17*Math.sin(u*5.3+t*.9)*Math.sin(v*4.1-t*.7)+.14*Math.sin(u*11-v*7+t*1.6)+.12*Math.sin(v*9-t*2.2+u*3.1)
+        +(FEU_BAY[(y&3)*4+(x&3)]/16-.5)*.3+(I>-.6?.25*(1+I/.6):0);
+      const cb=FEU_BRASIER[hb<.22?0:hb<.4?1:hb<.56?2:hb<.72?3:4],Kb=.8+.2*k;
+      let r=cb[0]*Kb,g9=cb[1]*Kb,b9=cb[2]*Kb;
+      if(I>0){const b=I<.1?0:I<.24?1:I<.4?2:I<.57?3:I<.74?4:I<.9?5:6,c=FEU_PAL[b];
+        if(c[0]*.3+c[1]*.59+c[2]*.11>(r*.3+g9*.59+b9*.11)/D){r=c[0]*D;g9=c[1]*D;b9=c[2]*D;}} // la plus claire des deux : la langue, ou le brasier
+      px[o]=r;px[o+1]=g9;px[o+2]=b9;
       px[o+3]=255;}}
   // LES BRAISES : une case qui monte et se balance, ambre → rouge → éteinte
   const E=F.em,nb=(3.5+60*k)*dt,cnt=Math.floor(nb)+(Math.random()<nb%1?1:0); // ~3,5 braises/s au repos, une gerbe au lâcher
@@ -35821,6 +35953,7 @@ function garFeu(dt){ // il brûle au repos, il RUGIT pendant le lâcher (k : 0 �
   const u=G?Math.min(1,G.t/1.7):0,k0=u*u*(3-2*u);F.k+=(k0-F.k)*Math.min(1,dt*(G?12:3));
   {const po=GAR.porte?Math.max(0,GAR.porte.e):1,db=8*F.k-9*(1-po);if(openGarage._feu&&(G||GAR.porte&&Math.abs(db-(GAR.porte.db==null?99:GAR.porte.db))>.3)){if(GAR.porte)GAR.porte.db=db;try{openGarage._feu.gain(db,.05);}catch(e){}}} // le feu GRONDE quand la caisse entre dedans — (2026-09-30) ÉTOUFFÉ derrière la porte fermée
   if(GAR.feuLu)GAR.feuLu.material.opacity=Math.min(1,(.16+.03*Math.sin(F.t*9.1)+.02*Math.sin(F.t*23.7))*(1+F.k*2.4)*(.4+.6*(GAR.porte?Math.max(0,GAR.porte.e):1))); // (v3, Léo : « le sol ») .42 → .16 au repos, elle monte au lâcher ; (porte fermée : la lueur qui passe SOUS la porte)
+  try{garFeuCubes(dt);}catch(e){}
   const pas=REDUCED_MOTION?1/12:1/30;F.acc+=dt;if(F.acc<pas)return;F.acc=Math.min(F.acc-pas,pas);F.t+=pas;F.dt=pas;feuPixPas(F);
 }
 function garBeaute(dt,t9){ // (2026-09-30) L'ATELIER v2 : ce qui vit — le feu qui éclaire et se reflète, le néon, les gyrophares, l'anneau de LED, les braises
@@ -35841,7 +35974,7 @@ function garBeaute(dt,t9){ // (2026-09-30) L'ATELIER v2 : ce qui vit — le feu 
 // banc : `dbgFeu()` rend l'état du feu ; `dbgFeu(false)` l'éteint (mesure A/B du coût), `dbgFeu(true)` le rallume
 window.dbgFeu=function(on){const F=GAR.feu;if(!F)return null;if(on!=null&&GAR.feuM){GAR.feuM.visible=!!on;if(GAR.feuLu)GAR.feuLu.visible=!!on;}
   let hm=0;for(let i=0;i<F.W;i++)hm+=F.h[i];
-  return {k:+F.k.toFixed(2),t:+F.t.toFixed(2),cases:F.W+'×'+F.H,brule:+(hm/F.W).toFixed(2),braises:F.em.length,visible:GAR.feuM?GAR.feuM.visible:null,son:!!openGarage._feu};};
+  return {k:+F.k.toFixed(2),t:+F.t.toFixed(2),cases:F.W+'×'+F.H,brule:+(hm/F.W).toFixed(2),braises:F.em.length,cubes:GAR.feuC?GAR.feuC.n:null,visible:GAR.feuM?GAR.feuM.visible:null,son:!!openGarage._feu};};
 /* ===================== LA CHUTE — LE MENU DANS LE CIEL (2026-09-30, Sacha, capture de Zelda : Tears of the Kingdom à l'appui) =====================
    « Au lieu d'être dans le garage, la voiture doit TOMBER DU CIEL, en face d'une route, dans le biome nuage, de très haut, à l'infini ; garde
    l'affichage et les boutons ; on la voit tomber sur la gauche, à la place de la voiture du garage, et sur la droite les boutons que j'ai faits. »
@@ -36669,7 +36802,7 @@ const MENU_SACHA=POKI||!/[?&]menu=leo\b/.test(location.search); // (POKI) toujou
 document.documentElement.classList.toggle('misS',MENU_SACHA); // l'écran MISSIONS de Sacha : ses règles CSS vivent sous html.misS
 /* (même soir, Léo : « enlève la porte ») la porte FERMÉE au menu (Sacha, b8e7ce7) va avec SA version : par défaut (ou ?porte=1) elle
    descend au menu et s'ouvre au JOUER ; avec ?menu=leo elle reste RELEVÉE sous le plafond (l'image d'avant : le feu se voit dès le menu). */
-const PORTE_FERMEE=MENU_SACHA||/[?&]porte=1\b/.test(location.search);
+const PORTE_FERMEE=MENU_SACHA||/[?&]porte=1\b/.test(location.search); // (2026-10-04) Léo l'avait enlevée le matin, puis : « remets une porte maintenant que les flammes sont plus jolies » — la porte fermée de Sacha revient (voir LA PORTE v2)
 function garMode(m){
   if(!gEl)return;const menu=m==='menu'||m==='missions',mis=m==='missions'; // (2026-09-30) MISSIONS = le menu, vu d'en haut, avec la constellation
   if(menu){if(SHOP.tab!=='voiture'||SHOP.prev)shopTab('voiture');const eq=equippedCar();if(garageI!==eq&&!GAR.sw)garageShow(eq);} // au menu : TA caisse, sans essai

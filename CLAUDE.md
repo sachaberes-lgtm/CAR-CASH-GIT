@@ -45,8 +45,13 @@ la montre sur n'importe quelle copie. Le détail : « L'ÉDITION POKI » dans `V
   · la MISE À JOUR TOUTE SEULE et le numéro de version dans les réglages.
   · (2026-10-04, Léo, d'abord sur sa copie de test) LE DÉPART EN MUSIQUE : le lobby s'efface pendant le piqué et la musique de course
     part TOUT DE SUITE, pendant le boost, en fondu de 0,6 s (`DEPMUS`) — le son de transition `depart.envol` a été RETIRÉ (Léo).
-  · (2026-10-04, Léo, copie de test) la MÉLODIE de la phrase du nitro s'éteint de nouveau (un `//` avalait son extinction depuis le 3/10 :
+  · (2026-10-04, Léo) la MÉLODIE de la phrase du nitro s'éteint de nouveau (un `//` avalait son extinction depuis le 3/10 :
     une nappe d'orgue sous les « ding » — c'était l'intrus).
+  · (2026-10-04, Léo) LA VILLE DÈS L'ENTRÉE (le portail ne débouche plus sur un ciel vide : seul le 1er rang de tours passe sous la route
+    surélevée) et GLASSY PLUCKS, la musique de toutes les villes.
+  · (2026-10-04, Léo) le FEU EN CUBES : des flammes en cubes de pixels qui viennent des quatre bords de l'ouverture
+    (`FEU_CUBES`), un brasier orange au centre ; et LA PORTE v2 — la porte fermée de Sacha est GARDÉE (Léo l'avait enlevée puis l'a
+    fait remettre), mais redessinée : caissons en laque indigo, CASH CAR en or, hublots qui laissent voir le feu.
 - **SANS TOUT CASSER** — la règle de chaque session, avant de pousser :
   1. Partir de `origin/main` À JOUR : `git fetch origin main`, puis `git merge origin/main`. Jamais d'une vieille branche, jamais d'une copie locale.
   2. Sur `main`, on FUSIONNE. Jamais de `push --force`, de `reset` ni de revert du travail de l'autre ; dans un conflit, on garde les deux.
