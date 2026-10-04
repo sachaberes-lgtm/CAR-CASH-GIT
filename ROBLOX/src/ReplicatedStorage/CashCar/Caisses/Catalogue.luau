@@ -100,7 +100,7 @@ return {
 		phare = { -0.6016, 0.598, -2.11 }, feu = { -0.6392, 0.7592, 2.09 }, pots = { { 0.4136, 0.43, 2.36 }, { -0.4136, 0.43, 2.36 } },
 		trainees = { { -0.4136, 0.43, 2.36 }, { 0.4136, 0.43, 2.36 } }, capot = { 0, 0.8336, -1.148 },
 		roues = { { 0.94, 0.376, -1.3, false, 0.376 }, { -0.94, 0.376, -1.3, false, 0.376 }, { 0.94, 0.376, 1.3, false, 0.376 }, { -0.94, 0.376, 1.3, false, 0.376 } }, neon = 0x8dff2a, ailes = "panneaux", fx = { jet = 0x7cff28, core = 0xe8ffb4, light = 0x6fe81e, trainee = { 0.52, 1.55, 0.1 } },
-		desc = "Compacte japonaise passée au bain d'acide : capot vitré sur le bloc, aileron de table à repasser, échappement qui crache vert.", descEN = "A Japanese compact dipped in acid: glass bonnet over the engine, ironing-board wing, exhaust that spits green." },
+		desc = "Compacte japonaise passée au bain d'acide : capot vitré sur le bloc, aileron de table à repasser, échappement qui crache vert.", descEN = "A Japanese compact dipped in acid: glass hood over the engine, ironing-board wing, exhaust that spits green." },
 	[16] = { nom = "LA POSTIÈRE", en = "THE MAIL LADY", rar = "commun", gabarit = "a_postiere", cond = { k = "prix", v = 1500 },
 		laque = 0xffd21a, accent = 0x1f3b9c, w = 1.8, h = 1.85, l = 4, kmh = 190, triangles = 3268,
 		phare = { -0.49, 0.77, -1.92 }, feu = { -0.7, 1.02, 1.96 }, pots = { { -0.4, 0.34, 2.01 } },

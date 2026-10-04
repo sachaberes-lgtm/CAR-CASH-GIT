@@ -42,7 +42,7 @@ function Revenus.mention(): string?
 	local a, p = attr("Argent2"), attr("Premium")
 	if a and p then return "x2 + PREMIUM" end
 	if a then return tr("x2 ARGENT", "x2 CASH") end
-	if p then return "PREMIUM +" .. math.floor(R.premiumBonus * 100 + 0.5) .. "%" end
+	if p then return "PREMIUM +" .. math.floor(R.premiumBonus * 100 + 0.5) .. tr(" %", "%") end
 	return nil
 end
 
@@ -110,7 +110,7 @@ local function majJour()
 		k.m.Text = fait and "OK" or Hud.argent(R.jour[i] * vip)
 		K.teinter(k.ico, col)
 	end
-	U.jVip.Text = (vip > 1) and "VIP : x2" or ""
+	U.jVip.Text = (vip > 1) and tr("VIP : ×2", "VIP: ×2") or ""
 	U.jPrendre.Text = tr("PRENDRE  ", "CLAIM  ") .. Hud.argent(R.jour[auj] * vip)
 end
 
@@ -197,7 +197,7 @@ local function majPile()
 		if genre == "groupe" then
 			U.bonus.Text = tr("GROUPE  +", "GROUP  +") .. Hud.argent(R.groupeBonus)
 		elseif genre == "premium" then
-			U.bonus.Text = "PREMIUM  +" .. math.floor(R.premiumBonus * 100 + 0.5) .. tr("% D'ARGENT", "% CASH")
+			U.bonus.Text = "PREMIUM  +" .. math.floor(R.premiumBonus * 100 + 0.5) .. tr(" % D'ARGENT", "% CASH")
 		end
 	end
 end
@@ -367,6 +367,8 @@ local function annonce(quoi: string, montant: number?, txt: string?)
 		groupe = tr("BONUS DU GROUPE  ", "GROUP BONUS  ") .. a,
 		invite = tr("INVITE PAR UN AMI  ", "INVITED BY A FRIEND  ") .. a,
 		ami = Hud.sansAccent(string.upper(txt or "?")) .. tr(" EST VENU  ", " JOINED  ") .. a,
+		tours = (txt == "1") and tr("+1 TOUR DE ROUE", "+1 WHEEL SPIN")
+			or tr("+" .. (txt or "?") .. " TOURS DE ROUE", "+" .. (txt or "?") .. " WHEEL SPINS"),
 		passe = (txt == "argent2") and tr("x2 ARGENT : TES PARTIES COMPTENT DOUBLE", "x2 CASH: YOUR RUNS COUNT DOUBLE")
 			or tr("VIP : CADEAUX DOUBLES", "VIP: GIFTS DOUBLED"),
 	}

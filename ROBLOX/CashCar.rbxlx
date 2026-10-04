@@ -769,7 +769,7 @@ function TU.fin(passe: boolean)
 		profil.permis = true
 		task.spawn(function() pcall(function() fnAction:InvokeServer("permis") end) end)
 	end
-	HudScore.slam(tr("PERMIS OBTENU !", "LICENSE EARNED!"), premier and "+$500" or nil, "#62e062", "#ffd75e", 40, 3)
+	HudScore.slam(tr("PERMIS OBTENU !", "LICENSE EARNED!"), premier and ("+" .. Hud.argent(500)) or nil, "#62e062", "#ffd75e", 40, 3)
 	Sons.jouer("record")
 	if premier then
 		task.delay(1.8, function()
@@ -1099,7 +1099,7 @@ local function atterrir(face: number, latX: number, sX: number, hR: number?)
 		Sons.jouer("poseLourde")
 	elseif impact >= 10 then
 		Score.flowFaute("n", 6, 0.5)
-		Hud.pop(tr("POSE LOURD", "HEAVY LANDING"), Hud.C.rouge, 20)
+		Hud.pop(tr("POSE LOURDE", "HEAVY LANDING"), Hud.C.rouge, 20)
 		Sons.jouer("poseLourde")
 	elseif g >= 1.5 then
 		Sons.jouer("poseParfait")
@@ -1294,7 +1294,8 @@ function G.pouvoirPrend(k: string)
 	if k == "n" then pwN = cumule(pwN) elseif k == "a" then pwA = cumule(pwA) elseif k == "v" then pwV = cumule(pwV)
 	elseif k == "m" then pwM = cumule(pwM) else pwX = cumule(pwX) end
 	-- (PWR_DEFS.gros + sous, L23637) le pouvoir se NOMME en grand, avec ce qu'il donne dessous
-	local GROS = { n = { "NITRO ILLIMITEE", "UNLIMITED NITRO", "9 S A FOND", "9 S FLAT OUT" }, a = { "AIRTIME INFINI", "INFINITE AIRTIME", "14 S DE VOL", "14 S OF FLIGHT" },
+	-- (les mêmes noms que la plaque du HUD et le cristal sur la piste : NITRO MAX, AIR MAX)
+	local GROS = { n = { "NITRO MAX", "NITRO MAX", "9 S A FOND", "9 S FLAT OUT" }, a = { "AIR MAX", "AIR MAX", "14 S DE VOL", "14 S OF FLIGHT" },
 		v = { "VITESSE x2", "SPEED x2", "8 S", "8 S" }, m = { "AIMANT", "MAGNET", "L'OR VIENT A TOI", "GOLD COMES TO YOU" },
 		x = { "AURA x2", "AURA x2", "TOUTE L'AURA COMPTE DOUBLE", "ALL AURA COUNTS DOUBLE" } }
 	local g9 = GROS[k]
@@ -2179,7 +2180,7 @@ function G.etapeSol(dt: number)
 		if G.pureT > NTR_T and G.pureArmed then
 			G.pureArmed = false
 			if not NTR.on then
-				HudScore.slam("NITROOO !", nil, "#ff7a24", nil, 40, 1)
+				HudScore.slam(tr("NITROOO !", "NITROOO!"), nil, "#ff7a24", nil, 40, 1)
 				Sons.vrai("vitessePure")
 				Score.geste("NITROOO", 120, "pure")
 			end
@@ -2208,7 +2209,7 @@ function G.etapeSol(dt: number)
 			G.idleMsg -= dt
 			if G.idleMsg <= 0 then
 				G.idleMsg = 0.5
-				Hud.pop(tr("ROULE OU CREVE  ", "DRIVE OR DIE  ") .. string.format("%.1f", math.max(0, Config.ARRET_T - G.idleT)), Color3.fromRGB(255, 77, 77), 20)
+				Hud.pop(tr("ROULE OU CREVE  ", "DRIVE OR DIE  ") .. (string.gsub(string.format("%.1f", math.max(0, Config.ARRET_T - G.idleT)), "%.", FR and "," or ".")), Color3.fromRGB(255, 77, 77), 20)
 				Sons.vrai("arretTic", nil, nil, "bip", 1.2)
 			end
 		end
@@ -2878,13 +2879,13 @@ local function finPartie()
 	E.mAuraMeilleur.TextColor3 = (recA and aura > 0) and Hud.C.or_ or Hud.C.terne
 	E.mMoteurNom.Text = Hud.sansAccent(Config.nomMoteur(tier + 1))
 	Hud.tenir(E.mMoteurNomEchelle, E.mMoteurNom.Text, 20, 270)
-	E.mMoteurPalier.Text = T.palier .. '  <font size="46">' .. (tier + 1) .. "</font>" .. (recM and '  <font color="#ffd75e">RECORD !</font>' or "") -- (L39158 : le palier se compte à partir de 1)
+	E.mMoteurPalier.Text = T.palier .. '  <font size="46">' .. (tier + 1) .. "</font>" .. (recM and ('  <font color="#ffd75e">' .. tr("RECORD !", "RECORD!") .. '</font>') or "") -- (L39158 : le palier se compte à partir de 1)
 	-- (L39151) LE « PRESQUE » : mourir à 3 pièces du palier suivant, c'est LA raison de relancer — la carte le dit quand ce palier
 	-- AURAIT été un record et qu'il ne manquait presque rien ; sinon, si le record est plus haut, elle rappelle le record à battre
 	local mq = (tier < #MOT - 1) and (MOT[tier + 2][1] - coinsGot) or 0
 	local presque = tier < #MOT - 1 and mq > 0 and tier + 1 > moteurAvant and mq <= math.max(3, math.ceil((MOT[tier + 2][1] - MOT[tier + 1][1]) * 0.3))
 	if presque then
-		E.mMoteurEncore.Text = string.format(T.encore, mq) .. "\n↑ " .. Hud.sansAccent(Config.nomMoteur(tier + 2))
+		E.mMoteurEncore.Text = ((mq == 1) and T.encore1 or string.format(T.encore, mq)) .. "\n" .. Hud.sansAccent(Config.nomMoteur(tier + 2)) -- (« ↑ » : un carré)
 	elseif not recM and moteurAvant > tier then
 		E.mMoteurEncore.Text = (FR and "RECORD  PALIER " or "RECORD  TIER ") .. (moteurAvant + 1)
 	else
@@ -2893,8 +2894,8 @@ local function finPartie()
 	E.mPartie.Text = ""
 	Hud.defi(KA.Roue.carte()) -- (la carte de LA ROUE : les parties vers le prochain tour)
 	local st = {
-		{ "x" .. Score.CHA.xMax, T.multiMax },
-		{ Hud.entier(G.vmax), T.kmhMax }, { tostring(G.nbZones + 1), FR and "NIVEAU" or "LEVEL" },
+		{ "×" .. math.max(1, Score.CHA.xMax), T.multiMax }, -- (sans chaîne, le multiplicateur vaut ×1, pas ×0)
+		{ Hud.entier(G.vmax), T.kmhMax }, { tostring(G.nbZones + 1), "ZONE" },
 		{ Score.mmss(Score.FREN.max), (Score.FREN.max >= 5 and Score.FREN.max >= (Score.FREN.record or 0) - 0.05) and "RECORD" or T.frenesie },
 	}
 	for i, v in st do
@@ -2950,7 +2951,7 @@ E.btPasser.Activated:Connect(function()
 	-- PASSER : si le permis n'a jamais été payé, on demande d'abord (« VRAIMENT ? », 3 s)
 	if not profil.permis and os.clock() > TU.vraiment then
 		TU.vraiment = os.clock() + 3
-		TU.dire(tr("PERMIS +$500", "LICENSE +$500"))
+		TU.dire(tr("PERMIS +", "LICENSE +") .. Hud.argent(500))
 		TU.carte()
 		return
 	end
@@ -3172,7 +3173,7 @@ E.btPause.Activated:Connect(basculerPause)
 local retourReglages = "menu"
 -- (L39202) REVOIR L'AUTO-ÉCOLE dit « +$500 » tant que le permis n'a pas été payé
 function G.majReglages()
-	if E.rg.tuto and E.rg.tuto.lib then E.rg.tuto.lib.Text = T.revoir .. ((not profil.permis) and "  +$500" or "") end
+	if E.rg.tuto and E.rg.tuto.lib then E.rg.tuto.lib.Text = T.revoir .. ((not profil.permis) and ("  +" .. Hud.argent(500)) or "") end
 end
 E.btReglages.Activated:Connect(function() if mode == "menu" then retourReglages = "menu"; G.majReglages(); Hud.ecran("reglages") end end)
 E.btReglM.Activated:Connect(function() if mode == "mort" then retourReglages = "mort"; G.majReglages(); Hud.ecran("reglages") end end)
@@ -3298,7 +3299,7 @@ local function majBoutonsSon()
 	Hud.volume("volSon", Sons.volSon * 100, Sons.actif)
 	Hud.volume("volMus", Sons.volMus * 100, Sons.actif and Sons.musiqueActive)
 	Hud.valeur("volH", (Controles.sensVol < 0) and T.monte or T.plonge)
-	E.btPouceP.Text = T.pouce .. " : " .. ((Controles.sensVol < 0) and T.monte or T.plonge)
+	E.btPouceP.Text = T.pouce .. tr(" : ", ": ") .. ((Controles.sensVol < 0) and T.monte or T.plonge)
 end
 function G.basculeSon()
 	Sons.actif = not Sons.actif
@@ -4444,7 +4445,7 @@ return {
 		phare = { -0.6016, 0.598, -2.11 }, feu = { -0.6392, 0.7592, 2.09 }, pots = { { 0.4136, 0.43, 2.36 }, { -0.4136, 0.43, 2.36 } },
 		trainees = { { -0.4136, 0.43, 2.36 }, { 0.4136, 0.43, 2.36 } }, capot = { 0, 0.8336, -1.148 },
 		roues = { { 0.94, 0.376, -1.3, false, 0.376 }, { -0.94, 0.376, -1.3, false, 0.376 }, { 0.94, 0.376, 1.3, false, 0.376 }, { -0.94, 0.376, 1.3, false, 0.376 } }, neon = 0x8dff2a, ailes = "panneaux", fx = { jet = 0x7cff28, core = 0xe8ffb4, light = 0x6fe81e, trainee = { 0.52, 1.55, 0.1 } },
-		desc = "Compacte japonaise passée au bain d'acide : capot vitré sur le bloc, aileron de table à repasser, échappement qui crache vert.", descEN = "A Japanese compact dipped in acid: glass bonnet over the engine, ironing-board wing, exhaust that spits green." },
+		desc = "Compacte japonaise passée au bain d'acide : capot vitré sur le bloc, aileron de table à repasser, échappement qui crache vert.", descEN = "A Japanese compact dipped in acid: glass hood over the engine, ironing-board wing, exhaust that spits green." },
 	[16] = { nom = "LA POSTIÈRE", en = "THE MAIL LADY", rar = "commun", gabarit = "a_postiere", cond = { k = "prix", v = 1500 },
 		laque = 0xffd21a, accent = 0x1f3b9c, w = 1.8, h = 1.85, l = 4, kmh = 190, triangles = 3268,
 		phare = { -0.49, 0.77, -1.92 }, feu = { -0.7, 1.02, 1.96 }, pots = { { -0.4, 0.34, 2.01 } },
@@ -6557,6 +6558,7 @@ local function creerFenetre(g: Instance)
 	inst("UIStroke", { Color = Color3.fromRGB(255, 190, 240), Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, rab)
 	K.texte(rab, { Text = "-50%", TextSize = 34, TextColor3 = C.texte, Size = UDim2.fromScale(1, 1), TextWrapped = false, epais = 3 })
 	SP.remise = rab
+	rab.Visible = false -- (pas de prix, pas de remise : elle reviendra avec les tarifs en Robux)
 	SP.vue = inst("ViewportFrame", { BackgroundTransparency = 1, Size = UDim2.new(1, -40, 0, 250), Position = UDim2.fromOffset(20, 56),
 		Ambient = Color3.fromRGB(104, 100, 128), LightColor = Color3.fromRGB(226, 216, 204) }, c)
 	SP.pastille = inst("Frame", { BorderSizePixel = 0, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromOffset(150, 42) }, SP.vue)
@@ -6579,7 +6581,7 @@ local function creerFenetre(g: Instance)
 		Hud.vibre(10)
 		SP.oui.TextScaled = true
 		SP.oui.Text = tr("BIENTOT DISPONIBLE", "COMING SOON")
-		SP.note.Text = tr("Les achats ouvriront à la sortie du jeu sur Roblox.", "Purchases open when the game launches on Roblox.")
+		SP.note.Text = tr("Les achats arrivent très bientôt.", "Purchases are coming very soon.") -- (le jeu est publié : plus de « à la sortie »)
 		SP.note.TextColor3 = OR1
 		task.spawn(function() -- (un refus se sent : la carte tremble)
 			for k = 1, 6 do
@@ -6699,10 +6701,11 @@ local function creer()
 	inst("UIStroke", { Color = C.magenta, Thickness = 3, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, une)
 	local et = inst("Frame", { BackgroundColor3 = C.magenta, BorderSizePixel = 0, Size = UDim2.fromOffset(318, 44), Position = UDim2.fromOffset(22, 22) }, une)
 	inst("UIStroke", { Color = Color3.fromRGB(255, 190, 240), Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, et)
-	K.texte(et, { Text = tr("OFFRE DE LANCEMENT", "LAUNCH OFFER"), TextSize = 24, TextColor3 = C.texte, Size = UDim2.fromScale(1, 1), TextWrapped = false })
+	K.texte(et, { Text = tr("A LA UNE", "FEATURED"), TextSize = 24, TextColor3 = C.texte, Size = UDim2.fromScale(1, 1), TextWrapped = false })
 	local rab = inst("Frame", { BackgroundColor3 = C.magenta, BorderSizePixel = 0, Size = UDim2.fromOffset(132, 54), Position = UDim2.new(1, -22, 0, 18), AnchorPoint = Vector2.new(1, 0) }, une)
 	inst("UIStroke", { Color = Color3.fromRGB(255, 190, 240), Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, rab)
 	K.texte(rab, { Text = "-50%", TextSize = 38, TextColor3 = C.texte, Size = UDim2.fromScale(1, 1), TextWrapped = false, epais = 3 })
+	rab.Visible = false
 	U.uneVue = inst("ViewportFrame", { BackgroundTransparency = 1, Size = UDim2.new(0.46, 0, 0, 230), Position = UDim2.new(0, 10, 0, 86),
 		Ambient = Color3.fromRGB(104, 100, 128), LightColor = Color3.fromRGB(226, 216, 204) }, une)
 	U.unePastille = inst("Frame", { BorderSizePixel = 0, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromOffset(120, 34),
@@ -11739,8 +11742,8 @@ local L = FR and {
 	equiper = "EQUIPER", verrou = "VERROUILLEE", enBoutique = "EN BOUTIQUE", aToi = "A TOI !",
 	ilTeManque = "IL TE MANQUE ", bientot = "BIENTOT DISPONIBLE",
 	tout = "TOUT", aMoi = "A MOI", aAcheter = "A ACHETER", gagner = "A GAGNER", defi = "ROUE",
-	roue = "SE GAGNE A LA ROUE (ACCUEIL)", carrN = "ATTRAPE-LA AU NIVEAU 10 DES NUAGES  (%d / 10)",
-	carrV = "BATS LE BANQUIER AU NIVEAU 10 DE LA VILLE  (%d / 10)", aura = "RANG D'AURA « %s »   (le tien : « %s »)",
+	roue = "SE GAGNE A LA ROUE", carrN = "ATTRAPE-LA AU NIVEAU 10 DES NUAGES  (%d / 10)",
+	carrV = "BATS LE BANQUIER AU NIVEAU 10 DE LA VILLE  (%d / 10)", aura = "RANG D'AURA « %s »   (LE TIEN : « %s »)",
 	rangs = { "ANONYME", "REMARQUE", "ON PARLE DE TOI", "REPUTE", "LEGENDE LOCALE", "STAR DU BITUME", "MYTHE", "DIVINITE DU CIEL" },
 } or {
 	voitures = "CARS", peinture = "PAINT", ailes = "WINGS", trainees = "TRAILS",
@@ -11748,7 +11751,7 @@ local L = FR and {
 	equiper = "EQUIP", verrou = "LOCKED", enBoutique = "IN THE SHOP", aToi = "YOURS!",
 	ilTeManque = "SHORT BY ", bientot = "COMING SOON",
 	tout = "ALL", aMoi = "MINE", aAcheter = "FOR SALE", gagner = "EARN IT", defi = "WHEEL",
-	roue = "WON ON THE WHEEL (HOME SCREEN)", carrN = "CATCH HER IN CLOUDS LEVEL 10  (%d / 10)",
+	roue = "WON ON THE WHEEL", carrN = "CATCH HER IN CLOUDS LEVEL 10  (%d / 10)",
 	carrV = "BEAT THE BANKER IN CITY LEVEL 10  (%d / 10)", aura = 'AURA RANK "%s"   (yours: "%s")',
 	rangs = { "NOBODY", "NOTICED", "THEY'RE TALKING ABOUT YOU", "RENOWNED", "LOCAL LEGEND", "ASPHALT STAR", "MYTH", "SKY GOD" },
 }
@@ -12120,9 +12123,12 @@ local function ambiance(on: boolean)
 		sauve = { b = Lighting.Brightness, a = Lighting.Ambient, o = Lighting.OutdoorAmbient, e = Lighting.ExposureCompensation,
 			d = Lighting.EnvironmentDiffuseScale, s = Lighting.EnvironmentSpecularScale, dens = atm and atm.Density, r = rays and rays.Enabled }
 		Lighting.Brightness = 0
-		Lighting.Ambient = Color3.fromRGB(46, 44, 84)
-		Lighting.OutdoorAmbient = Color3.fromRGB(46, 44, 84)
-		Lighting.ExposureCompensation = -0.25
+		-- (4/10, mesuré au banc : quand la machine rame, Roblox baisse la qualité et COUPE les lampes — or l'atelier n'est éclairé que
+		-- par elles : à (46, 44, 84) il devenait NOIR, la caisse invisible. Sur un petit téléphone, ce serait tout le temps. Une
+		-- ambiance de secours plus claire : l'atelier se lit sans lampes, et garde sa pénombre quand elles brillent)
+		Lighting.Ambient = Color3.fromRGB(82, 78, 130)
+		Lighting.OutdoorAmbient = Color3.fromRGB(82, 78, 130)
+		Lighting.ExposureCompensation = -0.2
 		Lighting.EnvironmentDiffuseScale = 0.12
 		Lighting.EnvironmentSpecularScale = 0.25
 		if atm then atm.Density = 0 end
@@ -12262,7 +12268,7 @@ local function majTuile(i: number)
 		elseif f.cond.k == "premium" then etiquette, couleur = L.boutique, OR1
 		elseif f.cond.k == "roue" then etiquette, couleur = L.defi, OR1 end
 	elseif not equipee then
-		etiquette = "✓"
+		etiquette = L.aMoi -- (« ✓ » : un carré dans toutes les polices de Roblox)
 	end
 	t.prix.Text = etiquette
 	t.prix.TextColor3 = couleur
@@ -12341,7 +12347,7 @@ local function majBandeHabits()
 			local a = aHabit(cat, d)
 			local etiquette, couleur = "", CASH
 			if a then
-				etiquette = (p[cat] == d.id) and "" or "✓"
+				etiquette = (p[cat] == d.id) and "" or L.aMoi
 			elseif d.p then
 				etiquette = Hud.argent(d.p)
 			else
@@ -12564,7 +12570,7 @@ function Garage.majFicheCaisse()
 	local f = Catalogue[montre]
 	local c = COULEUR_RAR[f.rar]
 	local nom = FR and f.nom or (f.en or f.nom)
-	nom = string.upper(nom)
+	nom = Hud.sansAccent(string.upper(nom)) -- (la police pixel n'a pas de capitales accentuées : « DOLORèS »)
 	U.nom.Text = nom
 	U.nom.TextSize = math.clamp(math.floor(1000 / math.max(8, utf8.len(nom) or #nom)), 34, 86)
 	U.barre.BackgroundColor3 = c
@@ -12574,7 +12580,7 @@ function Garage.majFicheCaisse()
 	local test = ouv and not aMoi
 	-- la fiche n'écrit que la condition d'une caisse fermée (le prix, lui, est sur le bouton et la vignette)
 	local desc = ""
-	if not aMoi and k.k ~= "prix" then desc = "🔒 " .. condition(montre) end
+	if not aMoi and k.k ~= "prix" then desc = condition(montre) end -- (le cadenas est sur la vignette ; « 🔒 » sortait en carré)
 	if test then desc = '<font color="#ffd75e">[TEST]</font> ' .. desc end
 	U.desc.Text = desc
 	-- le bouton
@@ -13373,7 +13379,7 @@ local T = FR and {
 	jouer = "JOUER", rejouer = "REJOUER", menu = "HOME", quitter = "QUITTER", reprendre = "REPRENDRE", recommencer = "RECOMMENCER",
 	pause = "PAUSE", son = "SON", musique = "MUSIQUE", record = "RECORD", nouveau = "NOUVEAU RECORD !",
 	reglages = "REGLAGES", fermer = "FERMER", retour = "RETOUR", jeu = "JEU", revoir = "REVOIR L'AUTO-ECOLE", volume = "VOLUME", pouce = "POUCE HAUT EN VOL", vibrations = "VIBRATIONS", plonge = "PLONGE", monte = "MONTE", verse = "VERSES AU COMPTE", compte = "COMPTE :", meilleur = "MEILLEUR",
-	moteurAtteint = "MOTEUR ATTEINT", palier = "PALIER", encore = "ENCORE %d PIECES POUR", moteurMax = "LE PLUS GROS MOTEUR",
+	moteurAtteint = "MOTEUR ATTEINT", palier = "PALIER", encore = "ENCORE %d PIECES POUR", encore1 = "ENCORE 1 PIECE POUR", moteurMax = "LE PLUS GROS MOTEUR",
 	multiMax = "MULTI MAX", kmhMax = "KM/H MAX", zone = "ZONE", figures = "FIGURES", frenesie = "FRENESIE", distance = "DISTANCE", pieces = "PIECES",
 	aura = "AURA", moteur = "MOTEUR", nitro = "NITRO", air = "AIR", go = "GO !", niveau = "MER DE NUAGES",
 	astuce = "ASTUCE", glisse = "GLISSE POUR\nTOURNER", chargement = "LA ROUTE SE CONSTRUIT",
@@ -13399,8 +13405,8 @@ local T = FR and {
 } or {
 	jouer = "PLAY", rejouer = "PLAY AGAIN", menu = "HOME", quitter = "QUIT", reprendre = "RESUME", recommencer = "RESTART",
 	pause = "PAUSE", son = "SOUND", musique = "MUSIC", record = "BEST", nouveau = "NEW RECORD!",
-	reglages = "SETTINGS", fermer = "CLOSE", retour = "BACK", jeu = "GAME", revoir = "REPLAY DRIVING SCHOOL", volume = "VOLUME", pouce = "THUMB UP IN THE AIR", vibrations = "VIBRATION", plonge = "DIVE", monte = "CLIMB", verse = "PAID TO ACCOUNT", compte = "ACCOUNT:", meilleur = "BEST",
-	moteurAtteint = "ENGINE REACHED", palier = "TIER", encore = "%d MORE COINS FOR", moteurMax = "THE BIGGEST ENGINE",
+	reglages = "SETTINGS", fermer = "CLOSE", retour = "BACK", jeu = "GAME", revoir = "REPLAY DRIVING SCHOOL", volume = "VOLUME", pouce = "THUMB UP IN FLIGHT", vibrations = "VIBRATION", plonge = "DIVE", monte = "CLIMB", verse = "BANKED", compte = "ACCOUNT:", meilleur = "BEST",
+	moteurAtteint = "ENGINE REACHED", palier = "TIER", encore = "%d MORE COINS FOR", encore1 = "1 MORE COIN FOR", moteurMax = "THE BIGGEST ENGINE",
 	multiMax = "MAX MULTI", kmhMax = "MAX KM/H", zone = "ZONE", figures = "TRICKS", frenesie = "FRENZY", distance = "DISTANCE", pieces = "COINS",
 	aura = "AURA", moteur = "ENGINE", nitro = "NITRO", air = "AIR", go = "GO!", niveau = "SEA OF CLOUDS",
 	astuce = "TIP", glisse = "SWIPE TO\nSTEER", chargement = "BUILDING THE ROAD",
@@ -13788,8 +13794,8 @@ function Hud.compte(v: number): string
 end
 function Hud.entier(v: number): string
 	local s = tostring(math.floor(v + 0.5))
-	local out = string.reverse(string.gsub(string.reverse(s), "(%d%d%d)", "%1 "))
-	return (string.gsub(out, "^ ", ""))
+	local out = string.reverse(string.gsub(string.reverse(s), "(%d%d%d)", FR and "%1 " or "%1,"))
+	return (string.gsub(out, "^[ ,]", ""))
 end
 
 -- l'ÉCLAIR de la nitro, en trois bandes (lèvre, plein, ombre) — pas un aplat
@@ -13910,8 +13916,8 @@ function Hud.creer()
 	E.bdGar = pastille(E.btGarage, C.rouge)
 	E.bdShop = pastille(E.btBoutique, C.magenta)
 	E.bdShop.Text = "NEW"
-	E.bdRoue = pastille(E.btRoue, C.rouge) -- (un tour attend : le « ! » rouge, comme une notification)
-	E.bdRoue.Text = "!"
+	E.bdRoue = pastille(E.btRoue, C.rouge) -- (des tours attendent : leur nombre en rouge, comme une notification)
+	E.bdRoue.Text = "1" -- (Client/Roue y écrit le nombre de tours)
 	local jouer = inst("TextButton", { BackgroundTransparency = 1, AutoButtonColor = false, Size = UDim2.fromOffset(460, 100),
 		Position = UDim2.new(1, -356, 1, -20), AnchorPoint = Vector2.new(0.5, 1), FontFace = PIXI, Text = T.jouer, TextSize = 100,
 		TextColor3 = C.or_ }, menu)
@@ -14222,6 +14228,15 @@ function Hud.creer()
 	E.rg.effacer.lib.TextColor3 = C.rouge
 	E.rg.effacer.lib.TextScaled = true
 	inst("UITextSizeConstraint", { MaxTextSize = 34, MinTextSize = 14 }, E.rg.effacer.lib)
+	-- (sur un écran 16:9, « POUCE HAUT EN VOL » passait à la ligne et « REVOIR L'AUTO-ECOLE  +$ 500 » débordait sur la flèche)
+	for _, cle in { "volH", "tuto" } do
+		local o = E.rg[cle]
+		if o and o.lib then
+			o.lib.TextScaled = true
+			o.lib.TextWrapped = false
+			inst("UITextSizeConstraint", { MaxTextSize = 34, MinTextSize = 14 }, o.lib)
+		end
+	end
 	E.rgRetour = boutonRetour(reg)
 	for _, d in reg:GetDescendants() do
 		if d:IsA("GuiObject") then d.ZIndex = 23 end
@@ -14321,7 +14336,9 @@ function Hud.creer()
 	E.mStats = {}
 	for i = 1, 4 do
 		local col = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.new(0.25, 0, 1, 0), Position = UDim2.fromScale((i - 1) * 0.25, 0) }, ps)
-		local v = texte(col, { Text = "", TextSize = 56, TextColor3 = C.texte, Size = UDim2.new(1, 0, 0, 58), Position = UDim2.fromOffset(0, 16), TextWrapped = false, epais = 3 })
+		local v = texte(col, { Text = "", TextSize = 56, TextColor3 = C.texte, Size = UDim2.new(1, -10, 0, 58), Position = UDim2.fromOffset(5, 16), TextWrapped = false, epais = 3,
+			TextScaled = true }) -- (« 1 234 » km/h débordait de sa colonne)
+		inst("UITextSizeConstraint", { MaxTextSize = 56, MinTextSize = 20 }, v)
 		local l = texte(col, { Text = "", TextSize = 20, TextColor3 = C.lavande, Size = UDim2.new(1, 0, 0, 22), Position = UDim2.fromOffset(0, 88), TextWrapped = false })
 		E.mStats[i] = { v, l }
 		if i > 1 then inst("Frame", { BackgroundColor3 = C.trait, BorderSizePixel = 0, Size = UDim2.new(0, 2, 0.7, 0), Position = UDim2.fromScale(0, 0.15) }, col) end
@@ -14371,7 +14388,8 @@ local aEtat = ""
 function Hud.air(reste: number, secondes: string, infini: boolean)
 	local fam = infini and "menthe" or (reste > 0.4 and "air" or (reste > 0.2 and "or_" or "rouge"))
 	E.airJ.regler(infini and 1 or reste, fam, 0)
-	E.airTxt.Text = (infini and "∞" or secondes) .. ' <font size="20">' .. T.air .. "</font>"
+	-- (l'air infini disait « ∞ » : un carré en police pixel)
+	E.airTxt.Text = (infini and "MAX" or secondes) .. ' <font size="20">' .. T.air .. "</font>"
 	if fam ~= aEtat then
 		aEtat = fam
 		E.airTxt.TextColor3 = FAM[fam][2]
@@ -14488,7 +14506,7 @@ function Hud.volume(cle: string, v: number, actif: boolean)
 	o.plein.Size = UDim2.fromScale(u, 1)
 	o.plein.BackgroundColor3 = actif and C.cyan or C.trait
 	o.poignee.BackgroundColor3 = actif and C.texte or C.terne
-	o.pct.Text = math.floor(v + 0.5) .. "%"
+	o.pct.Text = math.floor(v + 0.5) .. (FR and " %" or "%")
 end
 -- une ligne À VALEUR (POUCE HAUT EN VOL : PLONGE / MONTE)
 function Hud.valeur(cle: string, txt: string)
@@ -14724,7 +14742,9 @@ function Hud.badges(nGarage: number, shopNeuf: boolean)
 end
 -- le bilan de la partie en cours, sous le titre PAUSE
 function Hud.pauseBilan(aura: number, moteur: number, niveau: number)
-	E.pauseBilan.Text = string.format("AURA %s   -   %s %d   -   %s %d", Hud.entier(aura), FR and "MOTEUR" or "ENGINE", moteur, FR and "NIVEAU" or "LEVEL", niveau)
+	-- (la piste de l'auto-école est la zone 0 : la pause y disait « NIVEAU 0 »)
+	local ou = (niveau <= 0) and (FR and "AUTO-ECOLE" or "DRIVING SCHOOL") or ("ZONE " .. niveau)
+	E.pauseBilan.Text = string.format("AURA %s   -   %s %d   -   %s", Hud.entier(aura), T.palier, moteur, ou)
 end
 -- la démo du geste de l'auto-école (les keyframes du web, en marches : coGlisse 1,6 s ×16, coAppui ,5 s ×2, coBord 1,2 s ×12,
 -- coCible ,8 s ×4) — appelée à chaque image tant que la carte est là
@@ -18122,7 +18142,7 @@ function Revenus.mention(): string?
 	local a, p = attr("Argent2"), attr("Premium")
 	if a and p then return "x2 + PREMIUM" end
 	if a then return tr("x2 ARGENT", "x2 CASH") end
-	if p then return "PREMIUM +" .. math.floor(R.premiumBonus * 100 + 0.5) .. "%" end
+	if p then return "PREMIUM +" .. math.floor(R.premiumBonus * 100 + 0.5) .. tr(" %", "%") end
 	return nil
 end
 
@@ -18190,7 +18210,7 @@ local function majJour()
 		k.m.Text = fait and "OK" or Hud.argent(R.jour[i] * vip)
 		K.teinter(k.ico, col)
 	end
-	U.jVip.Text = (vip > 1) and "VIP : x2" or ""
+	U.jVip.Text = (vip > 1) and tr("VIP : ×2", "VIP: ×2") or ""
 	U.jPrendre.Text = tr("PRENDRE  ", "CLAIM  ") .. Hud.argent(R.jour[auj] * vip)
 end
 
@@ -18277,7 +18297,7 @@ local function majPile()
 		if genre == "groupe" then
 			U.bonus.Text = tr("GROUPE  +", "GROUP  +") .. Hud.argent(R.groupeBonus)
 		elseif genre == "premium" then
-			U.bonus.Text = "PREMIUM  +" .. math.floor(R.premiumBonus * 100 + 0.5) .. tr("% D'ARGENT", "% CASH")
+			U.bonus.Text = "PREMIUM  +" .. math.floor(R.premiumBonus * 100 + 0.5) .. tr(" % D'ARGENT", "% CASH")
 		end
 	end
 end
@@ -18447,6 +18467,8 @@ local function annonce(quoi: string, montant: number?, txt: string?)
 		groupe = tr("BONUS DU GROUPE  ", "GROUP BONUS  ") .. a,
 		invite = tr("INVITE PAR UN AMI  ", "INVITED BY A FRIEND  ") .. a,
 		ami = Hud.sansAccent(string.upper(txt or "?")) .. tr(" EST VENU  ", " JOINED  ") .. a,
+		tours = (txt == "1") and tr("+1 TOUR DE ROUE", "+1 WHEEL SPIN")
+			or tr("+" .. (txt or "?") .. " TOURS DE ROUE", "+" .. (txt or "?") .. " WHEEL SPINS"),
 		passe = (txt == "argent2") and tr("x2 ARGENT : TES PARTIES COMPTENT DOUBLE", "x2 CASH: YOUR RUNS COUNT DOUBLE")
 			or tr("VIP : CADEAUX DOUBLES", "VIP: GIFTS DOUBLED"),
 	}
@@ -18781,7 +18803,9 @@ local function creer()
 		texte(U.chances, { Text = nom, TextSize = 17, TextColor3 = C.texte, Size = UDim2.fromOffset(300, 34), Position = UDim2.fromOffset(82, y),
 			TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
 		local pc = c.w / total * 100
-		texte(U.chances, { Text = string.format(pc < 10 and "%.1f %%" or "%.0f %%", pc), TextSize = 17, TextColor3 = OR1, Size = UDim2.fromOffset(120, 34),
+		local pcT = string.format(pc < 10 and "%.1f" or "%.0f", pc)
+		if FR then pcT = string.gsub(pcT, "%.", ",") end
+		texte(U.chances, { Text = pcT .. " %", TextSize = 17, TextColor3 = OR1, Size = UDim2.fromOffset(120, 34),
 			Position = UDim2.new(1, -46, 0, y), AnchorPoint = Vector2.new(1, 0), TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false })
 	end
 	local okC = K.tuile(U.chances, "OK", C.cyan, UDim2.fromOffset(160, 64), UDim2.new(0.5, 0, 1, -24), Vector2.new(0.5, 1), 24)
@@ -18796,16 +18820,16 @@ end
 local function majEtat()
 	if not U.voile then return end
 	local n, libre = Roue.tours(), Roue.libre()
-	U.tours.Text = (n > 0) and (tr("TOURS : ", "SPINS: ") .. n) or tr("PLUS DE TOUR", "NO SPINS LEFT")
+	U.tours.Text = (n > 0) and (tr("TOURS : ", "SPINS: ") .. n) or tr("PLUS DE TOURS", "NO SPINS LEFT")
 	U.tours.TextColor3 = (n > 0) and OR1 or C.terne
 	U.prochain.Text = libre and tr("TOUR GRATUIT DISPONIBLE !", "FREE SPIN READY!") or (tr("GRATUIT DANS ", "FREE IN ") .. Roue.attente())
 	U.prochain.TextColor3 = libre and C.menthe or C.terne
 	local pa = attr("RoueParties") or 0
-	U.parties.Text = string.format(tr("PARTIES : %d / %d  →  +1 TOUR", "RUNS: %d / %d  →  +1 SPIN"), pa, RO.parties)
+	U.parties.Text = string.format(tr("PARTIES : %d / %d  =  +1 TOUR", "RUNS: %d / %d  =  +1 SPIN"), pa, RO.parties)
 	local id = R.produits.tours3
 	-- (règle de Roblox : là où les lots payants tirés au hasard sont interdits, on ne VEND pas de tours — les gratuits restent)
 	U.acheterBoite.Visible = type(id) == "number" and id > 0 and not U.hasardInterdit
-	U.tourner.Text = (n > 0) and tr("TOURNER", "SPIN") or tr("PLUS DE TOUR", "NO SPINS")
+	U.tourner.Text = (n > 0) and tr("TOURNER", "SPIN") or tr("PLUS DE TOURS", "NO SPINS")
 	U.tourner.TextSize = (n > 0) and 46 or 30
 end
 
@@ -18816,7 +18840,7 @@ function Roue.tourner()
 	if U.tourne or not U.voile or U.gain.Visible or U.chances.Visible then return end
 	if Roue.tours() <= 0 then
 		Sons.vrai("uiRefus", nil, nil, "tap", 0.8)
-		Hud.toast(tr("PLUS DE TOUR : REVIENS PLUS TARD", "NO SPINS: COME BACK LATER"), nil, "croix")
+		Hud.toast(tr("PLUS DE TOURS : REVIENS PLUS TARD", "NO SPINS: COME BACK LATER"), nil, "croix")
 		return
 	end
 	U.tourne = true
@@ -18888,7 +18912,7 @@ function Roue.reveler(res: any)
 	if caisse then
 		local f = Catalogue[caisse]
 		U.gTete.Text = tr("UNE CAISSE !", "A CAR!")
-		U.gNom.Text = string.upper(FR and f.nom or (f.en or f.nom))
+		U.gNom.Text = Hud.sansAccent(string.upper(FR and f.nom or (f.en or f.nom)))
 		U.gNom.Position = UDim2.fromOffset(15, 214)
 		U.gModele = photographier(U.gVue, caisse)
 		U.gVendre.Text = tr("LA VENDRE\n", "SELL IT\n") .. Hud.argent(RO.revente)
@@ -18897,7 +18921,7 @@ function Roue.reveler(res: any)
 	elseif res.habit then
 		local d = Config.habit(res.habit[1], res.habit[2])
 		U.gTete.Text = tr("UN SKIN !", "A SKIN!")
-		U.gNom.Text = d and string.upper(FR and d.nom or d.en) or "?"
+		U.gNom.Text = d and Hud.sansAccent(string.upper(FR and d.nom or d.en)) or "?"
 		U.gNom.Position = UDim2.fromOffset(15, 70)
 		-- (le pinceau, à la couleur du skin)
 		local ic = K.icone(U.gVue, "pinceau", 7, (d and d.c) or (d and d.arcenciel and C.magenta) or OR1, UDim2.new(0.5, 0, 0, 132), Vector2.new(0.5, 0.5))
@@ -18908,7 +18932,7 @@ function Roue.reveler(res: any)
 		Hud.vibre(40)
 	else
 		local jack = c.jackpot == true
-		U.gTete.Text = jack and "JACKPOT !!!" or tr("GAGNE !", "YOU WIN!")
+		U.gTete.Text = jack and tr("JACKPOT !!!", "JACKPOT!!!") or tr("GAGNE !", "YOU WIN!")
 		U.gMontant.Text = "+" .. Hud.argent(res.gain)
 		U.gNote.Text = (c.k ~= "argent") and tr("(Tu avais déjà tout : la case paie.)", "(You already had it all: the slot pays out.)") or ""
 		Sons.jouer(jack and "record" or "encaisse")
@@ -19014,11 +19038,16 @@ function Roue.init(c: any)
 		end
 		t0 = os.clock()
 		local n = Roue.tours()
+		-- (le « ! » de la pastille était illisible à cette taille : elle porte le NOMBRE de tours, la tuile dit TOURNE ! — ou, sans tour,
+		-- le compte à rebours du prochain tour gratuit)
 		if c.info then
-			c.info.Text = (n > 0) and ("x" .. n) or Roue.attente()
+			c.info.Text = (n > 0) and tr("TOURNE !", "SPIN!") or Roue.attente()
 			c.info.TextColor3 = (n > 0) and OR1 or C.terne
 		end
-		if c.pastille then c.pastille.Visible = n > 0 end
+		if c.pastille then
+			c.pastille.Visible = n > 0
+			c.pastille.Text = (n > 9) and "9+" or tostring(n)
+		end
 		local e = Hud.ecranCourant()
 		if e == "mort" then Hud.defi(Roue.carte()) end
 		if U.voile and U.voile.Visible and not U.tourne and not U.gain.Visible then majEtat() end
@@ -19099,7 +19128,11 @@ Score.FLOW_NOM = { [0] = "FLOW", "FLOW I", "FLOW II", "FLOW III", "FRENESIE" }
 Score.FLOW_COL = { [0] = "#ffffff", "#5ee6ff", "#ffd75e", "#ff5ec8", "#ff2a3d" }
 Score.FLOW_CEL = { "#5ee6ff", "#ffd75e", "#ff5ec8", "#b58cff" }
 Score.SEUIL = SEUIL
-local NOM_TRAIT = { n = "NARCISSE", m = "MACHIAVEL", p = "PSYCHO" }
+-- (les noms des traits, dans la langue du joueur — lus à l'affichage : la langue se pose après le chargement du module)
+local NOM_TRAIT = setmetatable({}, { __index = function(_, k: string): string?
+	local n = ({ n = { "NARCISSE", "NARCISSIST" }, m = { "MACHIAVEL", "MACHIAVELLI" }, p = { "PSYCHO", "PSYCHO" } })[k]
+	return n and T(n[1], n[2]) or nil
+end })
 Score.NOM_TRAIT = NOM_TRAIT
 
 -- le lieu : la VILLE ouvre d'autres réglages (flowLieu)
@@ -19129,6 +19162,12 @@ local function mmss(t: number): string
 	return string.format("%d:%02d", s // 60, s % 60)
 end
 Score.mmss = mmss
+-- l'aura en toutes lettres, avec ses milliers séparés comme au compteur (« 12 345 » ; « 12,345 » en anglais)
+local function entier(v: number): string
+	local s = tostring(math.floor(v + 0.5))
+	local out = string.reverse(string.gsub(string.reverse(s), "(%d%d%d)", FR and "%1 " or "%1,"))
+	return (string.gsub(out, "^[ ,]", ""))
+end
 local function fmtMul(x: number): string
 	local s = (x == math.floor(x)) and tostring(x) or string.format("%.1f", x)
 	if FR then s = string.gsub(s, "%.", ",") end
@@ -19252,7 +19291,7 @@ local function frenDeclenche()
 	FLOW.v, FLOW.lv, FLOW.idle = 100, 4, 0
 	frenDebut()
 	local rc = (FREN.record >= 5) and FREN.record or 0
-	local cash = "CASH ×" .. fmtMul(Score.flowMult())
+	local cash = T("ARGENT ×", "CASH ×") .. fmtMul(Score.flowMult())
 	local sub
 	if not FREN.vu then
 		sub = T("TIENS LES TROIS TRAITS", "HOLD ALL THREE TRAITS")
@@ -19418,11 +19457,11 @@ function Score.flowTick(dt: number, mode: string, vitN: number, nitroOn: boolean
 					FREN.dit[t] = true
 					FREN.ditT = 0.9
 					if t == "n" then
-						Score.dire.pop((F2.decl.drift <= 3) and "DRIFT !" or T("UNE FIGURE !", "A TRICK!"), "#ffd75e", 2)
+						Score.dire.pop((F2.decl.drift <= 3) and T("DRIFT !", "DRIFT!") or T("UNE FIGURE !", "A TRICK!"), "#ffd75e", 2)
 					elseif t == "m" then
 						Score.dire.pop(T("RACCOURCI !", "SHORTCUT!"), "#7dffec", 2)
 					else
-						Score.dire.pop("NITRO !", "#ff7a24", 2)
+						Score.dire.pop(T("NITRO !", "NITRO!"), "#ff7a24", 2)
 					end
 					Score.dire.son("triade.meurt")
 				end
@@ -19501,7 +19540,7 @@ function Score.geste(nom: string, base: number, fam: string?, brut: boolean?, mu
 	if CHA.x > x0 then
 		if CHA.x == 5 then Score.dire.slam("×5", T("EN FEU !!", "ON FIRE!!"), Score.X_COUL[5], "#ffffff", 30, 1)
 		elseif CHA.x == 8 then Score.dire.slam("×8", T("DEMENT !!!", "INSANE!!!"), Score.X_COUL[8], "#ffffff", 34, 1)
-		elseif CHA.x == 10 then Score.dire.slam("×10", "MAX !!!", Score.X_COUL[10], "#ffd75e", 38, 2) end
+		elseif CHA.x == 10 then Score.dire.slam("×10", T("MAX !!!", "MAX!!!"), Score.X_COUL[10], "#ffd75e", 38, 2) end
 		-- (L29096) un palier de chaîne se SENT : son, éclair de bord à sa couleur, vibration
 		if CHA.x == 5 or CHA.x == 8 or CHA.x == 10 then
 			Score.dire.son("aura.x" .. CHA.x)
@@ -19529,7 +19568,7 @@ local function chaineEncaisse()
 		-- le record de la partie battu EN COURSE (une fois)
 		if not CHA.recB and CHA.rec > 0 and ETAT.aura > CHA.rec and not ETAT.tuto then
 			CHA.recB = true
-			Score.dire.slam(T("RECORD BATTU !", "RECORD BEATEN!"), "AURA " .. ETAT.aura, "#ffd75e", "#ffb000", 30, 2, 14)
+			Score.dire.slam(T("RECORD BATTU !", "RECORD BEATEN!"), "AURA " .. entier(ETAT.aura), "#ffd75e", "#ffb000", 30, 2, 14)
 			Score.dire.son("aura.record")
 		end
 	end
@@ -19541,7 +19580,7 @@ Score.chaineEncaisse = chaineEncaisse
 function Score.chainePerdue()
 	local g = math.floor(CHA.pts * math.max(1, CHA.x) + 0.5)
 	if CHA.n > 0 and g > 0 then
-		Score.dire.slam(T("CHAINE PERDUE", "CHAIN LOST"), "-" .. g .. " AURA", "#ff5e7a", "#b0102a", 24, 2)
+		Score.dire.slam(T("CHAINE PERDUE", "CHAIN LOST"), "-" .. entier(g) .. " AURA", "#ff5e7a", "#b0102a", 24, 2)
 	end
 	chaReset()
 	Score.dire.chaine()
@@ -19694,7 +19733,7 @@ function Score.dolPose()
 	table.clear(DOL.cote)
 	if total > 0 then
 		DOL.recap, DOL.recapT = total, 2.2
-		Score.dire.pop(T("DAUPHIN", "DOLPHIN") .. " ×" .. math.max(1, DOL.nb) .. "  +" .. total .. " AURA", "#7dffec", 1)
+		Score.dire.pop(T("DAUPHIN", "DOLPHIN") .. " ×" .. math.max(1, DOL.nb) .. "  +" .. entier(total) .. " AURA", "#7dffec", 1)
 	end
 	DOL.rasT, DOL.ne, DOL.live, DOL.aura = 0, false, 0, 0
 end
@@ -21252,16 +21291,16 @@ Config.POUVOIRS = {
 local function hx(h: number): Color3 return Color3.fromRGB(bit32.rshift(h, 16), bit32.band(bit32.rshift(h, 8), 255), bit32.band(h, 255)) end
 Config.HABITS = {
 	peinture = {
-		{ id = "usine", nom = "D'ORIGINE", en = "FACTORY", d = "La teinte du constructeur. Elle a fait ses preuves.", dEN = "The maker's colour. It has proven itself." },
+		{ id = "usine", nom = "D'ORIGINE", en = "FACTORY", d = "La teinte du constructeur. Elle a fait ses preuves.", dEN = "The maker's color. It has proven itself." },
 		{ id = "menthe", nom = "MENTHE GLACEE", en = "ICED MINT", p = 2500, c = hx(0x5ff0c6), d = "Fraîche comme un billet qui sort du distributeur.", dEN = "Fresh as a bill straight out of the ATM." },
-		{ id = "minuit", nom = "BLEU MINUIT", en = "MIDNIGHT BLUE", p = 5000, c = hx(0x2b43c4), d = "Le bleu des néons de la ville, à trois heures du matin.", dEN = "The blue of the city neons, at three in the morning." },
+		{ id = "minuit", nom = "BLEU MINUIT", en = "MIDNIGHT BLUE", p = 5000, c = hx(0x2b43c4), d = "Le bleu des néons de la ville, à trois heures du matin.", dEN = "The blue of the city's neon signs, at three in the morning." },
 		{ id = "noir", nom = "NOIR MAT", en = "MATTE BLACK", p = 9000, c = hx(0x202128), g = "s", d = "Pas un reflet. Même la police hésite.", dEN = "Not a single reflection. Even the police hesitate." },
 		{ id = "couchant", nom = "COUCHER DE SOLEIL", en = "SUNSET", p = 18000, grad = { hx(0xffc23a), hx(0xff4f8b), hx(0x6b3cff) }, d = "Du miel en bas, du violet en haut : le ciel de 19 h, en laque.", dEN = "Honey at the bottom, violet at the top: the 7 pm sky, in lacquer." },
 		{ id = "chrome", nom = "CHROME MIROIR", en = "MIRROR CHROME", p = 60000, c = hx(0xe9eef5), g = "c", d = "Tu te vois dedans. Les autres aussi.", dEN = "You can see yourself in it. So can the others." },
 		{ id = "or", nom = "OR MASSIF", en = "SOLID GOLD", roue = true, c = hx(0xffc93a), g = "o", d = "Ne s'achète pas : elle se gagne à la ROUE.", dEN = "Can't be bought: it is won on the WHEEL." },
 	},
 	aile = {
-		{ id = "panneaux", nom = "PANNEAUX", en = "PANELS", d = "Deux planches de planeur qui sortent des flancs. Sobre.", dEN = "Two glider boards sliding out of the sides. Sober." },
+		{ id = "panneaux", nom = "PANNEAUX", en = "PANELS", d = "Deux planches de planeur qui sortent des flancs. Sobre.", dEN = "Two glider boards sliding out of the sides. Understated." },
 		{ id = "helices", nom = "HELICES", en = "PROPELLERS", p = 3000, d = "Quatre rotors. Ça ne vole pas mieux, mais ça brasse de l'air.", dEN = "Four rotors. It doesn't fly better, but it moves some air." },
 		{ id = "plumes", nom = "PLUMES D'ANGE", en = "ANGEL FEATHERS", p = 12000, d = "Blanches, en éventail. Le ciel te prend pour un des siens.", dEN = "White, fanned out. The sky takes you for one of its own." },
 		{ id = "chauve", nom = "CHAUVE-SOURIS", en = "BAT", p = 25000, d = "Membranes noires et doigts d'os. Pour les vols de nuit.", dEN = "Black membranes and bone fingers. For night flights." },
