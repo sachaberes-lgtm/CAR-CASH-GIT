@@ -38,14 +38,37 @@
 - **Pas encore fait / à trancher** : l'auto-école parle de POUCE même au clavier chez Poki (vrai aussi dans le cadre de l'ordi de la
   version principale) ; `dark-triad.mp3` manque (404 en console, déjà vrai sur `main`) ; le compte développeur Poki, la page du jeu et
   l'envoi du zip = Sacha ; droits des musiques et noms de marques (CHAT POP-TART…) à vérifier avant publication.
-## LA VITRINE DU GARAGE (2026-10-04, copie de test de Léo — « ne mets pas direct le shop dans le garage, c'est agressif »)
+## LA VITRINE DU GARAGE (2026-10-04, copie de test de Léo — « ne mets pas direct le shop dans le garage, c'est agressif » · puis « je veux un beau point de vue sur la voiture, des boutons visibles minimalistes — menu, shop — comme avant mais un peu mieux, premium, smooth ; quand on maintient sur la voiture, ça active un inventaire comme le shop mais avec les objets possédés, entourés d'une lueur de la couleur de leur rareté »)
 - Le bouton GARAGE (accueil `mTap 'garage'`, et `#garageBtn` du menu de l'ordi) ouvre l'atelier AU CALME : `garVitrine(true)`, posée APRÈS
-  `garMode('boutique')` / `openGarage()` — ta caisse (jamais un essai), son nom, et HOME · TUNING · JOUER. Masqués (`<style id="garageVitrine">`,
-  après garageV7) : compte, rang, famille, onglets, vignettes à prix, flèches, ACHETER/ÉQUIPER, BOUTIQUE en vrai argent.
-- TUNING (`#gPerso`, laque cyan, pinceau) déplie la console d'avant (`garVitrine(false)` + `.deplie` : elle remonte en 0,34 s) ; les
-  flèches du clavier aussi. `garMode` replie TOUJOURS la vitrine : tous les autres chemins (VOIR une récompense, l'objectif, la
-  personnalisation, la BOUTIQUE du menu de Léo) ouvrent la boutique dépliée, sur l'objet visé.
-- Vérifié (banc `garfeu.mjs` TUNING=1) : vitrine couchée et debout, TUNING déplie, lâcher → course, 0 erreur.
+  `garMode('boutique')` / `openGarage()` — ta caisse (jamais un essai), son nom, et HOME · SHOP · JOUER. Masqués (`<style id="garageVitrine">`,
+  après garageV7) : compte, rang, famille, onglets, vignettes à prix, flèches, ACHETER/ÉQUIPER, BOUTIQUE en vrai argent. En vitrine le glissé
+  TOURNE la caisse, il ne feuillette plus la gamme (`garageGo` coupé), et ne change pas la hauteur du regard.
+- **LES TOUCHES (v2)** : plus de console — HOME · SHOP · JOUER posées sur le sol (laque fine, filet de couleur dessous, arrivée en cascade,
+  `gvMonte`) ; couché, calées à droite sous le pouce. SHOP (`#gPerso`, la PIÈCE : l'argent du JEU ; c'était TUNING) déplie la console d'avant
+  (`garVitrine(false)` + `.deplie`) ; les flèches du clavier aussi. `garMode` replie TOUJOURS la vitrine : les autres chemins (VOIR une
+  récompense, l'objectif, la personnalisation, la BOUTIQUE du menu de Léo) ouvrent la boutique dépliée, sur l'objet visé. Voiles allégés.
+- **LE POINT DE VUE (v2, `garageRender`, `VITRINE_CAM`, fondu `GAR.vit`)** : caméra plus basse (hauteur de phare), regard presque à niveau,
+  objectif un peu resserré (×,9), plateau plus lent (,15 rad/s), clé et contre-jour un cran plus forts. Le RECUL SE CALCULE sur la caisse
+  (`garGabarit` : empreinte au sol et hauteur, mesurées caisse droite à l'échelle 1) : elle tient dans `fw` (,9) de la largeur LIBRE
+  (`garLibre`, tiroir ouvert compris) et `fh` de sa hauteur — MESURÉ : un recul fixe la coupait aux bords debout, de profil. Et il suit à
+  moitié (`adapt` ,5) la largeur qu'elle MONTRE à l'instant : la caméra s'approche quand elle montre l'arrière, recule de profil (travelling
+  lissé ~1 s). Debout elle se pose à 60 % de la place libre (`cy`) : la porte et le feu au-dessus. Réglable à chaud : `dbgInv('cam',{…})`.
+- **L'INVENTAIRE (`INV`, `invOuvre`/`invFerme`/`invRender`/`invEquipe`, `#gInv`)** : le doigt (ou la souris) TENU sur la caisse
+  (`garSurCaisse` : sa carrosserie projetée, élargie de 8 % + 10 px) — après 0,12 s un anneau de la couleur de la caisse se remplit sous le
+  doigt (`#gInvAnneau`, 0,45 s), plein il ouvre le tiroir (vibration) ; bouger de plus de 12 px annule (c'est un glissé) ; le relâcher qui suit
+  est avalé (`INV.mange`). Au clavier : I. Le tiroir (debout en bas, couché à droite) : les onglets de la console avec leur compte, et la grille
+  de ce qui est À TOI — caisses `carUnlockedVrai` (en TEST tout s'équipe, l'inventaire dit la vérité ; l'équipée y est toujours), habillages
+  possédés (d'origine compris), rangés du plus rare au plus commun, chaque tuile dans la LUEUR de sa famille (couleurs `RARETES`, force
+  `INV_LUEUR`, en rgba — pas de color-mix). Les habillages n'avaient pas de famille : `cosmRar` (d'origine = COMMUNE, ≤ 5 000 = RARE, au-delà =
+  ÉPIQUE, gagné par défi = DÉFI ; jamais LÉGENDAIRE, le rang du vrai argent) — ⚠ décision prise sans Léo, à confirmer. Toucher = ÉQUIPER tout de
+  suite (caisse : `garageSaute`, la bascule du plateau ; habillage : `shopEquip` + `buildCar`), éclair de sa couleur, coche verte. Ailes et
+  traînées se montrent sur leur onglet (traînée à ,55). Fermer : la croix, un tap dans la scène, Échap, I ; tout changement de mode le referme.
+  L'astuce « MAINTIENS LA CAISSE · INVENTAIRE » (`.aideInv`, ~9 s à chaque vitrine) jusqu'à la 1re ouverture (`SAVE.d.ast`, bit 4).
+- Vérifié (bancs `inv.mjs`, `ang.mjs`, `parcours.mjs`, `cadreinv.mjs`, scratchpad 83e03bdc) : vitrine debout/couché aux quatre angles (la
+  caisse entière), tap court et glissé n'ouvrent rien, doigt tenu → tiroir, équiper peinture et caisse, traînées, Échap, SHOP → console ;
+  accueil → JOUER → course, mort → REJOUER, mort → HOME → GARAGE → inventaire → HOME → JOUER, JOUER du garage — debout, couché et dans le
+  cadre de l'ordi (souris maintenue, touches I/Échap, clic JOUER) : 0 erreur. ⚠ Au rendu logiciel (~400 ms l'image) un glissé peut arriver
+  APRÈS la fin du délai et ouvrir le tiroir : artefact du banc (sur téléphone les mouvements arrivent toutes les 16 ms). sw.js → v104, v105.
 
 ## LA VILLE DÈS L'ENTRÉE + GLASSY PLUCKS (2026-10-04, Léo — « les niveaux villes ne sont pas tous des villes » · « la musique pour la ville, c'est GLASSY PLUCKS »)
 - MESURÉ d'abord (bancs `villes.mjs`, `cycle.mjs`, `villepos.mjs`, `citystat.mjs`, scratchpad 83e03bdc) : les 10 niveaux VILLE de la
