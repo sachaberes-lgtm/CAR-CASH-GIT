@@ -891,29 +891,6 @@ D('garage.lacher',{fam:'interface',dur:1.9,st:1,db:+3,max:1,cd:1,dit:'LE LÂCHER
     swish(b,R,1.1,.5,300,5000,.5,-.6,.6,.9);grave(b,o,1.36,90,40,.2,.4,.6);}});
 D('depart.logo',{fam:'interface',dur:1.6,st:1,key:1,db:+3,max:1,cd:1,dit:'le logo CASH CAR du départ claque : sub + accord d’or + poussière',
   r:function(b,R,o){grave(b,o,0,80,40,.3,.6,.8);clic(b,{t0:0,f:1800,d:.02,v:.5},R);stab(b,R,[12,19,24,28],0,.2,.9,.15,1.3);scintille(b,R,.05,1,12,.1);}});
-/* LE DÉPART EN MUSIQUE (2026-10-04, Léo : « harmonise le début de partie et le début de la musique, c'est un peu violent ; un effet sonore
-   de boost pas trop fort qui fait la transition jusqu'à la musique — fais un truc stylé »). Avant, à la sortie du nuage TOUT tombait dans la
-   même image : la musique de course à sa première mesure, le WHOOMP de la nitro offerte, le claquement du logo (sub + accord). Ce son les
-   remplace et ENCHAÎNE : 1) l'allumage — un souffle rond qui s'ouvre, jamais un coup ; 2) la MONTÉE (POSE = 1,55 s) — le souffle du boost
-   qui grimpe, un roulement qui accélère, une quinte qui monte d'une octave filtre ouvert, la poussière d'or qui se densifie ; 3) le POSER —
-   un pied doux, le souffle qui s'ouvre en stéréo, un accord tenu qui s'efface en 1,4 s : c'est LÀ que la musique de la course entre (en
-   fondu). ⚠ `DEPMUS.t` dans index.html = POSE ici. Cuit en mi, transposé dans la tonalité du morceau qui va entrer ; rj 0 (le moindre
-   désaccord s'entendrait contre la musique qui arrive). */
-D('depart.envol',{fam:'interface',dur:3.4,st:1,key:1,db:-1,max:1,cd:1,rj:0,dit:'le DÉPART EN MUSIQUE : le boost offert s’allume, monte 1,55 s et se POSE — la musique de la course entre pile sur le poser',
-  r:function(b,R,o){const POSE=1.55;
-    bruit(b,{c:'n',t0:0,a:.09,d:.75,v:.55,ft:'lp',f:260,f1:1500,g:.55,q:.7},R);                          // 1) l'allumage : le souffle rond
-    grave(b,o,0,60,45,.45,.7,.24);
-    bruit(b,{c:'r',t0:.08,a:POSE-.1,h:0,d:.05,v:.32,ft:'bp',f:320,f1:6800,g:POSE-.08,gc:1.7,q:1.1,pan:-.5,pan1:.5},R); // 2) la montée : le souffle du boost qui grimpe, coupé net au poser
-    for(let i=0,t=.22;t<POSE-.04;i++){const k=Math.min(1,(t-.22)/(POSE-.26));                          //    le roulement qui accélère (des tics de plus en plus serrés)
-      bruit(b,{c:'b',t0:t,a:.001,d:.03+.02*k,v:.04+.13*k*k,ft:'bp',f:2000+3000*k,q:1.4,pan:i%2?.3:-.3},R);t+=.17*(1-k*.8);}
-    for(const [st,v] of [[-12,.06],[-5,.04]])for(const dt of [-.004,.004])                                //    la quinte qui monte d'une octave, filtre qui s'ouvre
-      osc(b,{f:nE(st)*(1+dt),f1:nE(st+12)*(1+dt),g:POSE-.12,gc:1.8,w:'saw',t0:.12,a:POSE-.2,h:.06,d:.1,v:v,pan:dt*90,flt:['lp',450,3800,POSE-.12,.8,1.6]});
-    scintille(b,R,.45,POSE-.5,10,.05);                                                                    //    la poussière d'or qui se densifie
-    grave(b,o,POSE,74,44,.16,.55,.5);clic(b,{t0:POSE,f:1500,d:.012,v:.14},R);                             // 3) le POSER : le pied doux
-    swish(b,R,POSE,.95,6200,650,.24,-.7,.7,.8);                                                           //    le souffle qui s'ouvre
-    nappe(b,R,[0,7,12,19],POSE,.015,.12,1.4,.1,2600);                                                    //    l'accord tenu, que la musique relaie
-    cloche(b,{f:nE(24),r:[1,2,2.76],m:[1,.3,.1],d:[1.3,.45,.12],t0:POSE+.01,v:.13},R);scintille(b,R,POSE,.7,8,.055);
-  }});
 D('mort.enseigne',{fam:'interface',bus:'ui',dur:.95,st:1,db:-6,max:1,cd:1,dit:'l’enseigne GAME OVER s’allume : le néon qui grésille et clignote (0,9 s)',
   r:function(b,R,o){const on=[[0,.06],[.12,.16],[.22,.25],[.3,.5]];for(const [a,z] of on){osc(b,{f:100,w:'saw',t0:a,a:.003,h:z-a-.01,d:z>.4?.4:.02,v:.12,flt:['lp',2500,2500,1,.7]});bruit(b,{c:'b',t0:a,a:.002,h:z-a-.01,d:z>.4?.3:.02,v:.05,ft:'bp',f:4500,q:1},R);clic(b,{t0:a,f:3000,d:.004,v:.3},R);}}});
 D('mort.compteFin',{fam:'interface',dur:1.2,st:1,key:1,db:0,max:1,cd:.5,dit:'le montant de l’écran de mort se POSE (750 ms) : clac + accord',

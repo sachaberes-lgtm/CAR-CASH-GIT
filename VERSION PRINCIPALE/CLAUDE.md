@@ -38,26 +38,27 @@
 - **Pas encore fait / à trancher** : l'auto-école parle de POUCE même au clavier chez Poki (vrai aussi dans le cadre de l'ordi de la
   version principale) ; `dark-triad.mp3` manque (404 en console, déjà vrai sur `main`) ; le compte développeur Poki, la page du jeu et
   l'envoi du zip = Sacha ; droits des musiques et noms de marques (CHAT POP-TART…) à vérifier avant publication.
-## LE DÉPART EN MUSIQUE (2026-10-04, copie de test de Léo — « harmonise le début de partie et le début de la musique, c'est un peu violent ; un effet sonore de boost pas trop fort qui fait la transition jusqu'à la musique, fais un truc stylé »)
-- AVANT, à la sortie du nuage, tout tombait dans la MÊME image : le lobby coupé net, la musique de course à sa 1re mesure (montée à
-  60 % en 0,15 s), le WHOOMP de la nitro offerte, le rugissement du réacteur et le claquement du logo (sub + accord).
-- DÉSORMAIS UNE PHRASE (bloc `DEPMUS`, juste avant `musicStartRun`) :
-  · le PIQUÉ de JOUER : le lobby S'EFFACE (musicTick, mode menu : × 1 − `GAR.go.t`/1,5 s) ; au REJOUER de l'écran de mort, en 0,35 s
-    sous le fondu au noir (`DEPMUS.sort`) ;
-  · la sortie du nuage : `sfx('depart.envol')` (atelier-son, bloc juste après `depart.logo`) REMPLACE le logo et le whoomp — souffle rond
-    qui s'ouvre, puis une MONTÉE (roulement qui accélère, quinte qui grimpe d'une octave, poussière d'or) ; accordé sur le morceau qui va
-    entrer (`musicStartRun(true)` pose sa source EN ATTENTE — option `attend` de playMusic — AVANT `fireLaunchBoost` ; resetGame a été
-    réordonné pour ça) ; le réacteur de la nitro offerte part à 35 % (`feuK`) et retrouve sa voix en 3 s, le coup d'allumage ×0,55 ;
-  · le POSER (`DEPMUS.t` 1,55 s = POSE de la recette ; ÷ 2^(ton/12) : transposer accélère le son) : la musique de course ENTRE en
-    fondu en S de 0,9 s (`DEPMUS.f0`, musicTick).
-- Replis : pas de son du départ (effets coupés, banque pas décodée, contexte suspendu — RECOMMENCER depuis la pause) → la musique entre
-  tout de suite, en fondu ; auto-école (pas de boost) → idem, le logo garde son claquement ; rallumer la MUSIQUE en course → immédiat.
-  ⚠ iPhone (`VOL_LOCKED`) : ni fondu du lobby ni fondu d'entrée possibles sur un `<audio>` — le son du départ couvre la coupure du lobby
-  et son poser porte l'entrée. `DEPMUS.on=false` = le départ d'avant.
-- MESURÉ (banc `depmus*.mjs`, scratchpad 83e03bdc, muet, SwiftShader) : JOUER → lobby 0,35 → 0 pendant le piqué → `depart.envol` →
-  `play()` de la course 1,55-1,64 s après (gigue du rendu logiciel), volume 0 → 0,62 en ~0,9 s ; REJOUER après une mort : même phrase ;
-  RECOMMENCER : le repli. Son : 3,1 s, enveloppe souffle −22 dB → creux → montée −38 → −29 dB → poser −21 dB → queue. Banque ?v=12.
-- sw.js → v85.
+## LE DÉPART EN MUSIQUE (2026-10-04, copie de test de Léo — « harmonise le début de partie et le début de la musique, c'est un peu violent »)
+- AVANT, à la sortie du nuage, tout tombait dans la MÊME image : le lobby coupé net et la musique de course qui bondissait à 60 % en 0,15 s.
+- MAINTENANT (bloc `DEPMUS`, juste avant `musicStartRun`) : pendant le piqué de JOUER le lobby S'EFFACE (musicTick, mode menu :
+  × 1 − `GAR.go.t`/1,5 s ; au REJOUER de l'écran de mort, en 0,35 s sous le fondu au noir, `DEPMUS.sort`) ; la musique de course part TOUT
+  DE SUITE, pendant le boost offert, en fondu en S de 0,6 s (`DEPMUS.f0`). Le logo, le whoomp et le réacteur du départ sont ceux d'avant.
+- ⚠ RETIRÉ LE MÊME JOUR (Léo : « enlève le bruit de transition, le boost de la voiture AVANT la musique ; la musique doit commencer PENDANT
+  que la voiture booste, pour tous les niveaux ») : le son `depart.envol` (1,55 s de montée, la musique attendait son « poser ») — recette
+  et banque rendues (?v=13). NE PAS remettre de son ni de délai entre le départ et la musique.
+- ⚠ iPhone (`VOL_LOCKED`) : ni fondu du lobby ni fondu d'entrée sur un `<audio>`. `DEPMUS.on=false` = le départ d'avant.
+
+## L'INTRUS DE LA PHRASE DU NITRO (2026-10-04, copie de test de Léo — « aide-moi à trouver un son intrus dans la musique du nitro, peut-être un autre instrument ; les petites notes ding ding ding qui varient, c'est top »)
+- TROUVÉ : la MÉLODIE au piano électrique (`instruNote`, mesures 1 à 3 de l'appui tenu). Le 3/10 (53fd3f4) un `//` posé au milieu de sa
+  ligne d'enveloppe avalait les deux `setTargetAtTime` : la touche ne s'éteignait plus — pleine voix 2,4 s puis coupée net (clic) ; 3 à 5
+  touches tenues se superposaient en une NAPPE D'ORGUE (chorus ±4 cents) sous les « ding » de l'arpège (`instruTing`).
+- MESURÉ (le code du jeu rendu hors ligne, 8 premières secondes, musique CIEL COMPLET) : mélodie seule −17 dB, arpège seul −32 dB — la
+  2e voix couvrait les « ding » de 15 dB ; réparée −31 dB ; la phrase entière −19,4 → −27,0 dB.
+- RÉPARÉ : l'extinction est rendue (attaque 25 ms, puis ×0,35 en 0,12 s, puis s'éteint, `dec` = 0,5 s). L'arpège et l'étincelle (mesure 4+)
+  ne changent pas. À DÉCIDER avec Léo (banc d'écoute « La phrase du NITRO », scratchpad 83e03bdc `banc-nitro/`, publié en artifact) : garder
+  ce piano réparé, ou jouer la mélodie en « ding » dès la 1re mesure (variante TOUT EN DING du banc), et faire évoluer davantage la mélodie
+  des « ding ». Le banc embarque le code de la phrase TEL QUEL (construire.py le recopie depuis index.html) : couches à couper, versions.
+- sw.js → v86.
 
 ## PLUS DE COUPURES DE MUSIQUE + LE TEMPO MESURÉ (2026-10-03, soir, Léo : « le jeu coupe bizarrement la musique » · « il y a de la distorsion qui nique tout »)
 - **LES COUPURES** = la mise à jour toute seule RECHARGEAIT le jeu à chaque push, même ROBLOX seul (voir LA MÊME VERSION POUR TOUT LE

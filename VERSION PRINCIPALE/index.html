@@ -5913,7 +5913,7 @@ html.poki [data-m="shop"],html.poki [data-go="shop"],html.poki .gBoutique,html.p
 <script src="vendor/postprocessing/UnrealBloomPass.js"></script>
 <!-- (2026-09-28) LA CONSOLE DE SON : la banque de sons (générée par atelier-son/cuire.js) et son lecteur. `defer` : ils ne retardent
      pas le démarrage (on n'en a besoin qu'au premier geste) ; changer `?v=` à chaque nouvelle banque (le service worker garde l'ancienne sinon). -->
-<script defer src="sons-banque.js?v=12"></script>
+<script defer src="sons-banque.js?v=13"></script>
 <script defer src="assets/audio/music/harmonie.js?v=2"></script> <!-- (2026-10-03) l'harmonie des morceaux, temps par temps : la phrase du boost la lit (atelier-son/harmonie.py) -->
 <script defer src="sfx.js?v=4"></script>
 <script>
@@ -25817,43 +25817,29 @@ function playMusic(url,opt){opt=opt||{};
   if(musicStop._iv){clearInterval(musicStop._iv);musicStop._iv=0;} // (2026-09-30) un tape-stop encore en cours ne rattrape plus le morceau qu'on relance (REJOUER rapide)
   musicBandeNette(el); // …et la bande repart à SA vitesse et SA hauteur (le tape-stop coupé en route la laissait sans `preservesPitch`)
   if(opt.volume!=null){musicVolCible=opt.volume;if(!meme||el.paused)musicVolCour=opt.volume;}
-  if(opt.attend){musicVoulue=false;try{el.pause();}catch(e){}return el;} // (LE DÉPART EN MUSIQUE) la source est posée et se charge, la lecture attend son entrée (voir DEPMUS)
   musicVoulue=true;
   if(el.paused||!meme)musicJoue();
   return el;
 }
 function stopMusic(){musicVoulue=false;if(musicEl){try{musicEl.pause();}catch(e){}}musicOn=false;}
 // ---- LE GESTIONNAIRE : menu étouffé → partie (même morceau, qui s'ouvre) → radio → tape-stop en fin ----
-/* LE DÉPART EN MUSIQUE (2026-10-04, Léo : « harmonise le début de partie et le début de la musique, c'est un peu violent ; un effet sonore
-   de boost pas trop fort mais qui fait la transition jusqu'à la musique — fais un truc stylé »). AVANT, à la sortie du nuage, tout tombait
-   dans la MÊME image : le lobby coupé net, la musique de course à sa 1re mesure et à plein, le WHOOMP de la nitro offerte, le rugissement
-   du réacteur, le claquement du logo (sub + accord). DÉSORMAIS une phrase en trois temps :
-   · le PIQUÉ (1,75 s) : la musique du lobby S'EFFACE (musicTick, mode menu : × 1 − t/1,5) — au nuage elle s'est tue ;
-   · la SORTIE DU NUAGE : `depart.envol` (atelier-son) remplace le logo ET le whoomp — un souffle rond qui s'ouvre, puis une MONTÉE
-     (roulement qui accélère, quinte qui grimpe d'une octave, poussière d'or) dans la tonalité du morceau qui va entrer ; le réacteur de
-     la nitro offerte part à `feuK` (35 %) et ne retrouve sa voix qu'à la fin des 3 s ;
-   · le POSER (`t` = 1,55 s, transposition comprise) : la musique de course ENTRE, en fondu de `fondu` s, sur l'accord tenu du son.
-   Sans la console de son (effets coupés, banque absente) : la musique part tout de suite, en fondu. À l'auto-école (pas de boost) : en
-   fondu aussi. ⚠ iPhone : le volume d'un <audio> y est en lecture seule (VOL_LOCKED) — ni fondu du lobby ni fondu d'entrée ; c'est le
-   son du départ qui couvre la coupure du lobby et le poser qui porte l'entrée de la musique. `DEPMUS.on=false` = le départ d'avant. */
-const DEPMUS={on:true,t:1.55,fondu:.9,feuK:.35,att:0,to:0,f0:-1,son:false,sort:0}; // sort : l'instant du REJOUER (le lobby de l'écran de mort s'efface sous le fondu au noir)
-function depEnvolOk(){return DEPMUS.on&&SONV2&&sfxOk()&&!!window.CCSON&&window.CCSON.existe('depart.envol');}
-function depEntre(){DEPMUS.to=0; // la musique de course ENTRE (au poser du son du départ), en fondu
-  if(!DEPMUS.att||musicMode!=='run'||gameOver)return;DEPMUS.att=0;
-  DEPMUS.f0=performance.now();musicVolCour=0;musicVoulue=true;musicJoue();}
-function sonTonDe(src){if(src)for(const k in SON_TON)if(src.indexOf(k)>=0)return SON_TON[k];return 0;}
+/* LE DÉPART EN MUSIQUE (2026-10-04, Léo : « harmonise le début de partie et le début de la musique, c'est un peu violent »). AVANT, à la
+   sortie du nuage, tout tombait dans la MÊME image : le lobby coupé net et la musique de course qui bondissait à 60 % en 0,15 s.
+   · le PIQUÉ de JOUER : la musique du lobby S'EFFACE (musicTick, mode menu : × 1 − t/1,5) ; au REJOUER, sous le fondu au noir (`sort`) ;
+   · la COURSE : sa musique part TOUT DE SUITE, pendant le boost offert, en fondu en S de `fondu` s (musicTick, `f0`).
+   ⚠ (même jour, Léo : « enlève le bruit de transition, le boost de la voiture AVANT la musique ; la musique doit commencer PENDANT que la
+   voiture booste, pour tous les niveaux ») : le son de transition `depart.envol` (1,55 s de montée AVANT la musique) est RETIRÉ — la
+   musique n'attend plus rien. NE PAS remettre de son ni de délai entre le départ et la musique.
+   ⚠ iPhone : le volume d'un <audio> y est en lecture seule (VOL_LOCKED) — ni fondu du lobby ni fondu d'entrée. `DEPMUS.on=false` = avant. */
+const DEPMUS={on:true,fondu:.6,f0:-1,sort:0}; // sort : l'instant du REJOUER (le lobby de l'écran de mort s'efface sous le fondu au noir)
 function musicStartRun(depart){ // au début d'une partie (start / resetGame : depart = vrai) — et quand on rallume la MUSIQUE en course
-  clearTimeout(DEPMUS.to);DEPMUS.to=0;DEPMUS.att=0;DEPMUS.f0=-1;DEPMUS.sort=0;
+  DEPMUS.f0=-1;DEPMUS.sort=0;
   if(!SND.music||!MUSIC_TRACKS.length)return;
   musicCur=musicPickNext(-1);          // nouvelle partie = une piste tirée au hasard dans la radio…
   musicLieu=musicLieuVoulu();          // …mais le MONDE a peut-être sa propre musique (voir MUSIC_LIEU)
   musicMode='run';NIVEAU_FX=0;
-  if(depart&&DEPMUS.on){
-    const tuto=typeof TUTO!=='undefined'&&TUTO.on;
-    if(!tuto&&depEnvolOk()){ // le son du départ jouera (fireLaunchBoost, juste après) : la musique l'attend — s'il ne vient pas, elle entre au bout de 0,25 s
-      DEPMUS.att=1;musicPlayCurrent(true);DEPMUS.to=setTimeout(depEntre,250);
-    }else{DEPMUS.f0=performance.now();musicVolCour=0;musicPlayCurrent();} // pas de son du départ : la musique entre tout de suite, en fondu (musicJoue pose le volume 0 avant de lancer)
-  }else musicPlayCurrent();
+  if(depart&&DEPMUS.on){DEPMUS.f0=performance.now();musicVolCour=0;} // (LE DÉPART EN MUSIQUE) elle part tout de suite, en fondu (musicJoue pose le volume 0 avant de lancer)
+  musicPlayCurrent();
   /* LE LEVER DE PISTE : le décor repart de zéro et remonte avec le morceau, le métronome est remis à plat. */
   LVLFX.k=0;LVLFX.spin=0;LVLFX.flip=LVLFX.flipTo=0;LVLFX.dir=1;
   BCLK.ph=0;BCLK.n=0;BCLK.conf=0;BCLK.miss=0;BCLK.last=BCLK.t-9;BCLK.per=.5;BCLK.force=0;
@@ -25865,11 +25851,11 @@ function musicMenu(){
   musicMode='menu';
   playMusic(MUSIC.menu||musicPremier(),{loop:true,volume:musVol()*(MUSIC.menu?.8:.5),garde:true}); // l'intro a SON morceau, joué plus franchement que l'extrait d'un niveau
 }
-function musicPlayCurrent(attend){
+function musicPlayCurrent(){
   const ouv=musicMode==='run'&&!!musicLieu;
   const url=musicMode==='menu'?(MUSIC.menu||musicPremier()):ouv?musicLieu.f:(MUSIC_TRACKS[musicCur]||{}).f;
   if(!url)return;
-  playMusic(url,{loop:musicMode==='menu'||ouv,garde:true,attend:!!attend}); // menu et LIEU bouclent ; ensuite la radio enchaîne (`ended`) — `attend` : LE DÉPART EN MUSIQUE
+  playMusic(url,{loop:musicMode==='menu'||ouv,garde:true}); // menu et LIEU bouclent ; ensuite la radio enchaîne (`ended`)
 }
 /* ---- L'ENCHAÎNEMENT RADIO : un morceau se termine → un AUTRE au hasard, sans fanfare. ---- */
 function musicNext(){
@@ -25883,7 +25869,7 @@ function musicNext(){
 }
 function musicStop(tape){ // fin de partie : « tape-stop » (la bande ralentit et s'éteint) ou coupure nette
   musicMode='none';musicVoulue=false;
-  clearTimeout(DEPMUS.to);DEPMUS.to=0;DEPMUS.att=0;DEPMUS.f0=-1; // une entrée de musique encore attendue ne part plus
+  DEPMUS.f0=-1; // (LE DÉPART EN MUSIQUE) un fondu d'entrée en cours s'arrête là
   clearInterval(FRENM.iv);FRENM.on=false;FRENM.sw=false;FRENM.surm=false; // la frénésie ne survit pas à la partie
   const el=musicEl;
   /* (2026-09-30) LA BANDE N'A PLUS QU'UN FIL : l'intervalle du tape-stop (~0,6 s) n'était jamais rangé — un REJOUER rapide (uiGarde
@@ -28811,13 +28797,12 @@ function nitroWhoomp(k,bleu,air){ // LE « WHOOMP » d'allumage — 8 à 10 nœu
 }
 function nitroAllume(bleu,etage){ // LE COUP — au front montant de `nitroOn` (sol ET vol) ; `etage` : le passage en réserve bleue, en plus petit
   const n9=performance.now(),rep=n9-NFX.t0<650;NFX.t0=n9; // réservoir vide qu'on tient appuyé (hystérésis) : des rallumages rapprochés, un coup plus petit
-  const dep9=!etage&&startBoostT>0&&DEPMUS.son; // (LE DÉPART EN MUSIQUE) la nitro offerte s'allume sous le son du départ : pas de whoomp, un coup plus doux
-  const k=(etage?.6:1)*(rep?.45:1)*(dep9?.55:1);
+  const k=(etage?.6:1)*(rep?.45:1);
   NFX.ign=1;NFX.ignK=k;NFX.off=0;NFX.ringT=0;NFX.ringK=k;NFX.air=mode==='fall';NFX_FIL.arme=true; // (la gerbe de filés : voir nfxFiles)
   NFX.col.setHex(bleu?0x5b7dff:0xff7a24); // la teinte de l'onde et des bords est juste dès la première image
   fovPunch=Math.max(fovPunch,(NFX.air?8:7)*k);     // le champ S'OUVRE d'un coup (lu au sol comme en vol) — un COUP au-dessus de l'ouverture de la nitro (+15°), pas un second zoom : à 14 la caisse fondait de moitié
   hap(bleu?[8,16,8]:[14,26,10]);
-  if(!dep9)nitroWhoomp(k,bleu,NFX.air);
+  nitroWhoomp(k,bleu,NFX.air);
   if(!POST_ON)flashEcran(bleu?'rgba(91,125,255,.45)':'rgba(255,122,36,.45)'); // sans l'ACES (post coupé), le coup de couleur passe par le calque DOM
 }
 function nitroEteint(){ // LA DERNIÈRE BOUFFÉE : une langue de feu aux pots + la pétarade — puis le champ retombe en douceur (`NFX.off`)
@@ -28975,7 +28960,11 @@ function instruNote(f,t,pan,vel,dec,etin){ // une touche de piano électrique (v
   mg.gain.setValueAtTime(ix,t);mg.gain.setTargetAtTime(f*.1,t,.07);m.connect(mg);mg.connect(c1.frequency);mg.connect(c2.frequency);
   c1.frequency.value=f;c2.frequency.value=f;c1.detune.value=-4;c2.detune.value=4;
   o2.frequency.value=f*2;g2.gain.setValueAtTime(.18,t);g2.gain.setTargetAtTime(0,t,.05);o2.connect(g2);g2.connect(g); // le corps d'octave, bref
-  const pk=.1*vel;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(pk,t+.025);  // une attaque qui se fondg.gain.setTargetAtTime(pk*.35,t+.02,.12);g.gain.setTargetAtTime(0,t+.18,dec||.3);
+  const pk=.1*vel;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(pk,t+.025);g.gain.setTargetAtTime(pk*.35,t+.03,.12);g.gain.setTargetAtTime(0,t+.18,dec||.3); /* une attaque qui se fond, puis la touche S'ÉTEINT
+     ⚠ (2026-10-04, Léo : « trouve le son intrus de la musique du nitro, peut-être un autre instrument ») : depuis le 3/10 (53fd3f4) un
+     commentaire `//` posé au milieu de cette ligne avalait les deux `setTargetAtTime` — la note de MÉLODIE ne s'éteignait plus : chaque
+     touche restait à pleine voix 2,4 s puis se coupait net (clic). Sur les 3 premières mesures tenues, 3 à 5 touches tenues se
+     superposaient en une NAPPE D'ORGUE désaccordée (le chorus ±4 cents) sous les « ding » de l'arpège : l'intrus. Au milieu d'une ligne, un commentaire s'écrit en BLOC, jamais `//`. */
   if(p1){p1.pan.value=Math.max(-1,pan-.18);p2.pan.value=Math.min(1,pan+.18);const h1=AC.createGain(),h2=AC.createGain();h1.gain.value=h2.gain.value=.5;
     c1.connect(h1);h1.connect(p1);p1.connect(g);c2.connect(h2);h2.connect(p2);p2.connect(g);}
   else{const h=AC.createGain();h.gain.value=.5;c1.connect(h);c2.connect(h);h.connect(g);}
@@ -29092,13 +29081,7 @@ function fireLaunchBoost(){
   // classe `.on` et le MÊME minuteur — un flash sans le mot, ou le mot sans le flash, ferait deux
   // demi-effets au lieu d'un seul coup net.
   const ll9=$('launchLogo'),lg9=$('launchGlow');
-  DEPMUS.son=false;
-  if(startBoostT>0&&depEnvolOk()){ /* (LE DÉPART EN MUSIQUE, voir DEPMUS) le son du départ remplace le claquement du logo et le whoomp de la nitro offerte ;
-       il est accordé sur le morceau qui va entrer (musicStartRun l'a déjà posé, en attente) et la musique entre à son POSER */
-    try{sonTonSuit();if(sfx('depart.envol')){DEPMUS.son=true;
-      if(DEPMUS.att){clearTimeout(DEPMUS.to);const t9=SND.music&&musicEl?sonTonDe(musicEl.src):0; // la transposition change aussi la VITESSE du son : le poser arrive d'autant plus tôt (ou tard)
-        DEPMUS.to=setTimeout(depEntre,DEPMUS.t*1000/Math.pow(2,t9/12));}}}catch(e){}}
-  if(ll9){ll9.classList.remove('on');void ll9.offsetWidth;ll9.classList.add('on');if(!DEPMUS.son)try{sfx('depart.logo');}catch(e){}} /* (console de son) le logo CLAQUE : sub + accord d'or */
+  if(ll9){ll9.classList.remove('on');void ll9.offsetWidth;ll9.classList.add('on');try{sfx('depart.logo');}catch(e){}} /* (console de son) le logo CLAQUE : sub + accord d'or */
   if(lg9){lg9.classList.remove('on');void lg9.offsetWidth;lg9.classList.add('on');}
   clearTimeout(fireLaunchBoost._t);fireLaunchBoost._t=setTimeout(function(){
     if(ll9)ll9.classList.remove('on');if(lg9)lg9.classList.remove('on');
@@ -31648,7 +31631,7 @@ function resetGame(){
   // tirelire — `respawn()` juste au-dessus la pose DÉJÀ au sol, roulante. Ce qui remplace la chute :
   // 3 s de BOOST OFFERT (`startBoostT`) — « pas dur à gérer » pour le joueur puisqu'il n'a RIEN à
   // tenir, la poussée tient la touche à sa place — et le logo qui brille au-dessus de la caisse.
-  musicStartRun(true); // nouvelle partie → la playlist repart du début — AVANT le boost : le son du départ s'accorde sur le morceau qui va entrer (LE DÉPART EN MUSIQUE)
+  musicStartRun(true); // nouvelle partie → la playlist repart du début, en fondu, PENDANT le boost offert (LE DÉPART EN MUSIQUE)
   fireLaunchBoost();
   showMsg(pickL(GO_LINES),'#7dff9b');
   try{document.dispatchEvent(new Event('cc:jeu'));}catch(e){} // la course part ou s'arrête : les commandes le savent À L'INSTANT, pas au prochain tick
@@ -31826,7 +31809,7 @@ function start(){
   running=true;
   paintMoney(); // la mise de départ et la bonne devise, tout de suite
   survStart(); // le mode armé au menu s'active pour cette première run
-  musicStartRun(true); // la bande-son démarre avec la partie (LE DÉPART EN MUSIQUE : elle attend le poser du son du départ, voir DEPMUS)
+  musicStartRun(true); // la bande-son démarre avec la partie, en fondu, pendant le boost offert (LE DÉPART EN MUSIQUE)
   try{document.dispatchEvent(new Event('cc:jeu'));}catch(e){} // la course part ou s'arrête : les commandes le savent À L'INSTANT, pas au prochain tick
 }
 /* ============================================================================
@@ -38644,8 +38627,7 @@ function loop(now){
         // (2026-09-26) la flamme ne vit QUE manette en main : pendant l'explosion (un tap NITRO pour la passer tient `keys.Space`)
         // et après `endGame` dans la même image, elle réécrivait ses gains — le souffle restait figé sur l'écran de mort
         const nOn9=nitroOn&&mode!=='boom'&&!gameOver;
-        const dpK=startBoostT>0&&DEPMUS.son?DEPMUS.feuK+(1-DEPMUS.feuK)*Math.max(0,1-startBoostT/3):1; // (LE DÉPART EN MUSIQUE) le réacteur de la nitro offerte part bas et retrouve sa voix en 3 s
-        const jb=nOn9?(nitroBlue?.52:.4)*dpK:0;
+        const jb=nOn9?(nitroBlue?.52:.4):0;
         stt(jrG.gain,jb*(air9?1.1:1.05)*(.84+.32*Math.random())*dk,AC.currentTime,.08); // turbulence lente
         stt(jrDep.gain,jb*(air9?.22:.16)*dk,AC.currentTime,.1); // flutter 5 Hz : la flamme respire
         stt(jrF.frequency,nOn9?(air9?310+spd3*.3:430+spd3*.35)+(nitroBlue?80:0):240,AC.currentTime,.1); // un poil plus mordante au sol
@@ -38660,8 +38642,8 @@ function loop(now){
           stt(jetOsc.frequency,900+spd3*3.5+(nitroBlue?400:0),AC.currentTime,.08);
           // pétillement en pops BRUNS, discrets et distincts : ça crépite, ça ne souffle pas.
           // (moins denses qu'avant : 25/s de pops ronds > 50/s de pops blancs qui fusionnent en tapis)
-          if(Math.random()<dt*(air9?9:(TEL_NATIF?10:25))*dpK)flamePop(.02+Math.random()*.05,air9?.05+Math.random()*.06:.1+Math.random()*.14,(air9?300:380)+Math.random()*260+(TEL_NATIF?500:0)); // téléphone : moins de pops (≈80 nœuds/s alloués), plus hauts (audibles)
-          if(!air9&&Math.random()<dt*2.4*dpK){flamePop(.05+Math.random()*.04,.3,520);subBoom(.05);} // le POK : plop + mini coup de poitrine
+          if(Math.random()<dt*(air9?9:(TEL_NATIF?10:25)))flamePop(.02+Math.random()*.05,air9?.05+Math.random()*.06:.1+Math.random()*.14,(air9?300:380)+Math.random()*260+(TEL_NATIF?500:0)); // téléphone : moins de pops (≈80 nœuds/s alloués), plus hauts (audibles)
+          if(!air9&&Math.random()<dt*2.4){flamePop(.05+Math.random()*.04,.3,520);subBoom(.05);} // le POK : plop + mini coup de poitrine
         }
         if(nOn9&&air9&&!loop._jetWas&&NFX.ign<.5){ // ALLUMAGE : FWOOM rond — souffle grave + coup de poitrine (le sifflet strident a dégagé) — (vague 3) seulement quand on DÉCOLLE nitro tenue : un allumage frais a déjà son WHOOMP (nitroAllume)
           noiseBurst(.35,.2,300);subBoom(.15);
