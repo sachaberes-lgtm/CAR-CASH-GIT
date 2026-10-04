@@ -267,7 +267,9 @@ local function creer()
 		texte(U.chances, { Text = nom, TextSize = 17, TextColor3 = C.texte, Size = UDim2.fromOffset(300, 34), Position = UDim2.fromOffset(82, y),
 			TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
 		local pc = c.w / total * 100
-		texte(U.chances, { Text = string.format(pc < 10 and "%.1f %%" or "%.0f %%", pc), TextSize = 17, TextColor3 = OR1, Size = UDim2.fromOffset(120, 34),
+		local pcT = string.format(pc < 10 and "%.1f" or "%.0f", pc)
+		if FR then pcT = string.gsub(pcT, "%.", ",") end
+		texte(U.chances, { Text = pcT .. " %", TextSize = 17, TextColor3 = OR1, Size = UDim2.fromOffset(120, 34),
 			Position = UDim2.new(1, -46, 0, y), AnchorPoint = Vector2.new(1, 0), TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false })
 	end
 	local okC = K.tuile(U.chances, "OK", C.cyan, UDim2.fromOffset(160, 64), UDim2.new(0.5, 0, 1, -24), Vector2.new(0.5, 1), 24)
@@ -282,16 +284,16 @@ end
 local function majEtat()
 	if not U.voile then return end
 	local n, libre = Roue.tours(), Roue.libre()
-	U.tours.Text = (n > 0) and (tr("TOURS : ", "SPINS: ") .. n) or tr("PLUS DE TOUR", "NO SPINS LEFT")
+	U.tours.Text = (n > 0) and (tr("TOURS : ", "SPINS: ") .. n) or tr("PLUS DE TOURS", "NO SPINS LEFT")
 	U.tours.TextColor3 = (n > 0) and OR1 or C.terne
 	U.prochain.Text = libre and tr("TOUR GRATUIT DISPONIBLE !", "FREE SPIN READY!") or (tr("GRATUIT DANS ", "FREE IN ") .. Roue.attente())
 	U.prochain.TextColor3 = libre and C.menthe or C.terne
 	local pa = attr("RoueParties") or 0
-	U.parties.Text = string.format(tr("PARTIES : %d / %d  →  +1 TOUR", "RUNS: %d / %d  →  +1 SPIN"), pa, RO.parties)
+	U.parties.Text = string.format(tr("PARTIES : %d / %d  =  +1 TOUR", "RUNS: %d / %d  =  +1 SPIN"), pa, RO.parties)
 	local id = R.produits.tours3
 	-- (règle de Roblox : là où les lots payants tirés au hasard sont interdits, on ne VEND pas de tours — les gratuits restent)
 	U.acheterBoite.Visible = type(id) == "number" and id > 0 and not U.hasardInterdit
-	U.tourner.Text = (n > 0) and tr("TOURNER", "SPIN") or tr("PLUS DE TOUR", "NO SPINS")
+	U.tourner.Text = (n > 0) and tr("TOURNER", "SPIN") or tr("PLUS DE TOURS", "NO SPINS")
 	U.tourner.TextSize = (n > 0) and 46 or 30
 end
 
@@ -302,7 +304,7 @@ function Roue.tourner()
 	if U.tourne or not U.voile or U.gain.Visible or U.chances.Visible then return end
 	if Roue.tours() <= 0 then
 		Sons.vrai("uiRefus", nil, nil, "tap", 0.8)
-		Hud.toast(tr("PLUS DE TOUR : REVIENS PLUS TARD", "NO SPINS: COME BACK LATER"), nil, "croix")
+		Hud.toast(tr("PLUS DE TOURS : REVIENS PLUS TARD", "NO SPINS: COME BACK LATER"), nil, "croix")
 		return
 	end
 	U.tourne = true
@@ -374,7 +376,7 @@ function Roue.reveler(res: any)
 	if caisse then
 		local f = Catalogue[caisse]
 		U.gTete.Text = tr("UNE CAISSE !", "A CAR!")
-		U.gNom.Text = string.upper(FR and f.nom or (f.en or f.nom))
+		U.gNom.Text = Hud.sansAccent(string.upper(FR and f.nom or (f.en or f.nom)))
 		U.gNom.Position = UDim2.fromOffset(15, 214)
 		U.gModele = photographier(U.gVue, caisse)
 		U.gVendre.Text = tr("LA VENDRE\n", "SELL IT\n") .. Hud.argent(RO.revente)
@@ -383,7 +385,7 @@ function Roue.reveler(res: any)
 	elseif res.habit then
 		local d = Config.habit(res.habit[1], res.habit[2])
 		U.gTete.Text = tr("UN SKIN !", "A SKIN!")
-		U.gNom.Text = d and string.upper(FR and d.nom or d.en) or "?"
+		U.gNom.Text = d and Hud.sansAccent(string.upper(FR and d.nom or d.en)) or "?"
 		U.gNom.Position = UDim2.fromOffset(15, 70)
 		-- (le pinceau, à la couleur du skin)
 		local ic = K.icone(U.gVue, "pinceau", 7, (d and d.c) or (d and d.arcenciel and C.magenta) or OR1, UDim2.new(0.5, 0, 0, 132), Vector2.new(0.5, 0.5))
@@ -394,7 +396,7 @@ function Roue.reveler(res: any)
 		Hud.vibre(40)
 	else
 		local jack = c.jackpot == true
-		U.gTete.Text = jack and "JACKPOT !!!" or tr("GAGNE !", "YOU WIN!")
+		U.gTete.Text = jack and tr("JACKPOT !!!", "JACKPOT!!!") or tr("GAGNE !", "YOU WIN!")
 		U.gMontant.Text = "+" .. Hud.argent(res.gain)
 		U.gNote.Text = (c.k ~= "argent") and tr("(Tu avais déjà tout : la case paie.)", "(You already had it all: the slot pays out.)") or ""
 		Sons.jouer(jack and "record" or "encaisse")
@@ -500,11 +502,16 @@ function Roue.init(c: any)
 		end
 		t0 = os.clock()
 		local n = Roue.tours()
+		-- (le « ! » de la pastille était illisible à cette taille : elle porte le NOMBRE de tours, la tuile dit TOURNE ! — ou, sans tour,
+		-- le compte à rebours du prochain tour gratuit)
 		if c.info then
-			c.info.Text = (n > 0) and ("x" .. n) or Roue.attente()
+			c.info.Text = (n > 0) and tr("TOURNE !", "SPIN!") or Roue.attente()
 			c.info.TextColor3 = (n > 0) and OR1 or C.terne
 		end
-		if c.pastille then c.pastille.Visible = n > 0 end
+		if c.pastille then
+			c.pastille.Visible = n > 0
+			c.pastille.Text = (n > 9) and "9+" or tostring(n)
+		end
 		local e = Hud.ecranCourant()
 		if e == "mort" then Hud.defi(Roue.carte()) end
 		if U.voile and U.voile.Visible and not U.tourne and not U.gain.Visible then majEtat() end

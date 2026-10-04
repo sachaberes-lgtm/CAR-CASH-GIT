@@ -28,7 +28,7 @@ local T = FR and {
 	jouer = "JOUER", rejouer = "REJOUER", menu = "HOME", quitter = "QUITTER", reprendre = "REPRENDRE", recommencer = "RECOMMENCER",
 	pause = "PAUSE", son = "SON", musique = "MUSIQUE", record = "RECORD", nouveau = "NOUVEAU RECORD !",
 	reglages = "REGLAGES", fermer = "FERMER", retour = "RETOUR", jeu = "JEU", revoir = "REVOIR L'AUTO-ECOLE", volume = "VOLUME", pouce = "POUCE HAUT EN VOL", vibrations = "VIBRATIONS", plonge = "PLONGE", monte = "MONTE", verse = "VERSES AU COMPTE", compte = "COMPTE :", meilleur = "MEILLEUR",
-	moteurAtteint = "MOTEUR ATTEINT", palier = "PALIER", encore = "ENCORE %d PIECES POUR", moteurMax = "LE PLUS GROS MOTEUR",
+	moteurAtteint = "MOTEUR ATTEINT", palier = "PALIER", encore = "ENCORE %d PIECES POUR", encore1 = "ENCORE 1 PIECE POUR", moteurMax = "LE PLUS GROS MOTEUR",
 	multiMax = "MULTI MAX", kmhMax = "KM/H MAX", zone = "ZONE", figures = "FIGURES", frenesie = "FRENESIE", distance = "DISTANCE", pieces = "PIECES",
 	aura = "AURA", moteur = "MOTEUR", nitro = "NITRO", air = "AIR", go = "GO !", niveau = "MER DE NUAGES",
 	astuce = "ASTUCE", glisse = "GLISSE POUR\nTOURNER", chargement = "LA ROUTE SE CONSTRUIT",
@@ -54,8 +54,8 @@ local T = FR and {
 } or {
 	jouer = "PLAY", rejouer = "PLAY AGAIN", menu = "HOME", quitter = "QUIT", reprendre = "RESUME", recommencer = "RESTART",
 	pause = "PAUSE", son = "SOUND", musique = "MUSIC", record = "BEST", nouveau = "NEW RECORD!",
-	reglages = "SETTINGS", fermer = "CLOSE", retour = "BACK", jeu = "GAME", revoir = "REPLAY DRIVING SCHOOL", volume = "VOLUME", pouce = "THUMB UP IN THE AIR", vibrations = "VIBRATION", plonge = "DIVE", monte = "CLIMB", verse = "PAID TO ACCOUNT", compte = "ACCOUNT:", meilleur = "BEST",
-	moteurAtteint = "ENGINE REACHED", palier = "TIER", encore = "%d MORE COINS FOR", moteurMax = "THE BIGGEST ENGINE",
+	reglages = "SETTINGS", fermer = "CLOSE", retour = "BACK", jeu = "GAME", revoir = "REPLAY DRIVING SCHOOL", volume = "VOLUME", pouce = "THUMB UP IN FLIGHT", vibrations = "VIBRATION", plonge = "DIVE", monte = "CLIMB", verse = "BANKED", compte = "ACCOUNT:", meilleur = "BEST",
+	moteurAtteint = "ENGINE REACHED", palier = "TIER", encore = "%d MORE COINS FOR", encore1 = "1 MORE COIN FOR", moteurMax = "THE BIGGEST ENGINE",
 	multiMax = "MAX MULTI", kmhMax = "MAX KM/H", zone = "ZONE", figures = "TRICKS", frenesie = "FRENZY", distance = "DISTANCE", pieces = "COINS",
 	aura = "AURA", moteur = "ENGINE", nitro = "NITRO", air = "AIR", go = "GO!", niveau = "SEA OF CLOUDS",
 	astuce = "TIP", glisse = "SWIPE TO\nSTEER", chargement = "BUILDING THE ROAD",
@@ -443,8 +443,8 @@ function Hud.compte(v: number): string
 end
 function Hud.entier(v: number): string
 	local s = tostring(math.floor(v + 0.5))
-	local out = string.reverse(string.gsub(string.reverse(s), "(%d%d%d)", "%1 "))
-	return (string.gsub(out, "^ ", ""))
+	local out = string.reverse(string.gsub(string.reverse(s), "(%d%d%d)", FR and "%1 " or "%1,"))
+	return (string.gsub(out, "^[ ,]", ""))
 end
 
 -- l'ÉCLAIR de la nitro, en trois bandes (lèvre, plein, ombre) — pas un aplat
@@ -565,8 +565,8 @@ function Hud.creer()
 	E.bdGar = pastille(E.btGarage, C.rouge)
 	E.bdShop = pastille(E.btBoutique, C.magenta)
 	E.bdShop.Text = "NEW"
-	E.bdRoue = pastille(E.btRoue, C.rouge) -- (un tour attend : le « ! » rouge, comme une notification)
-	E.bdRoue.Text = "!"
+	E.bdRoue = pastille(E.btRoue, C.rouge) -- (des tours attendent : leur nombre en rouge, comme une notification)
+	E.bdRoue.Text = "1" -- (Client/Roue y écrit le nombre de tours)
 	local jouer = inst("TextButton", { BackgroundTransparency = 1, AutoButtonColor = false, Size = UDim2.fromOffset(460, 100),
 		Position = UDim2.new(1, -356, 1, -20), AnchorPoint = Vector2.new(0.5, 1), FontFace = PIXI, Text = T.jouer, TextSize = 100,
 		TextColor3 = C.or_ }, menu)
@@ -877,6 +877,15 @@ function Hud.creer()
 	E.rg.effacer.lib.TextColor3 = C.rouge
 	E.rg.effacer.lib.TextScaled = true
 	inst("UITextSizeConstraint", { MaxTextSize = 34, MinTextSize = 14 }, E.rg.effacer.lib)
+	-- (sur un écran 16:9, « POUCE HAUT EN VOL » passait à la ligne et « REVOIR L'AUTO-ECOLE  +$ 500 » débordait sur la flèche)
+	for _, cle in { "volH", "tuto" } do
+		local o = E.rg[cle]
+		if o and o.lib then
+			o.lib.TextScaled = true
+			o.lib.TextWrapped = false
+			inst("UITextSizeConstraint", { MaxTextSize = 34, MinTextSize = 14 }, o.lib)
+		end
+	end
 	E.rgRetour = boutonRetour(reg)
 	for _, d in reg:GetDescendants() do
 		if d:IsA("GuiObject") then d.ZIndex = 23 end
@@ -976,7 +985,9 @@ function Hud.creer()
 	E.mStats = {}
 	for i = 1, 4 do
 		local col = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.new(0.25, 0, 1, 0), Position = UDim2.fromScale((i - 1) * 0.25, 0) }, ps)
-		local v = texte(col, { Text = "", TextSize = 56, TextColor3 = C.texte, Size = UDim2.new(1, 0, 0, 58), Position = UDim2.fromOffset(0, 16), TextWrapped = false, epais = 3 })
+		local v = texte(col, { Text = "", TextSize = 56, TextColor3 = C.texte, Size = UDim2.new(1, -10, 0, 58), Position = UDim2.fromOffset(5, 16), TextWrapped = false, epais = 3,
+			TextScaled = true }) -- (« 1 234 » km/h débordait de sa colonne)
+		inst("UITextSizeConstraint", { MaxTextSize = 56, MinTextSize = 20 }, v)
 		local l = texte(col, { Text = "", TextSize = 20, TextColor3 = C.lavande, Size = UDim2.new(1, 0, 0, 22), Position = UDim2.fromOffset(0, 88), TextWrapped = false })
 		E.mStats[i] = { v, l }
 		if i > 1 then inst("Frame", { BackgroundColor3 = C.trait, BorderSizePixel = 0, Size = UDim2.new(0, 2, 0.7, 0), Position = UDim2.fromScale(0, 0.15) }, col) end
@@ -1026,7 +1037,8 @@ local aEtat = ""
 function Hud.air(reste: number, secondes: string, infini: boolean)
 	local fam = infini and "menthe" or (reste > 0.4 and "air" or (reste > 0.2 and "or_" or "rouge"))
 	E.airJ.regler(infini and 1 or reste, fam, 0)
-	E.airTxt.Text = (infini and "∞" or secondes) .. ' <font size="20">' .. T.air .. "</font>"
+	-- (l'air infini disait « ∞ » : un carré en police pixel)
+	E.airTxt.Text = (infini and "MAX" or secondes) .. ' <font size="20">' .. T.air .. "</font>"
 	if fam ~= aEtat then
 		aEtat = fam
 		E.airTxt.TextColor3 = FAM[fam][2]
@@ -1143,7 +1155,7 @@ function Hud.volume(cle: string, v: number, actif: boolean)
 	o.plein.Size = UDim2.fromScale(u, 1)
 	o.plein.BackgroundColor3 = actif and C.cyan or C.trait
 	o.poignee.BackgroundColor3 = actif and C.texte or C.terne
-	o.pct.Text = math.floor(v + 0.5) .. "%"
+	o.pct.Text = math.floor(v + 0.5) .. (FR and " %" or "%")
 end
 -- une ligne À VALEUR (POUCE HAUT EN VOL : PLONGE / MONTE)
 function Hud.valeur(cle: string, txt: string)
@@ -1379,7 +1391,9 @@ function Hud.badges(nGarage: number, shopNeuf: boolean)
 end
 -- le bilan de la partie en cours, sous le titre PAUSE
 function Hud.pauseBilan(aura: number, moteur: number, niveau: number)
-	E.pauseBilan.Text = string.format("AURA %s   -   %s %d   -   %s %d", Hud.entier(aura), FR and "MOTEUR" or "ENGINE", moteur, FR and "NIVEAU" or "LEVEL", niveau)
+	-- (la piste de l'auto-école est la zone 0 : la pause y disait « NIVEAU 0 »)
+	local ou = (niveau <= 0) and (FR and "AUTO-ECOLE" or "DRIVING SCHOOL") or ("ZONE " .. niveau)
+	E.pauseBilan.Text = string.format("AURA %s   -   %s %d   -   %s", Hud.entier(aura), T.palier, moteur, ou)
 end
 -- la démo du geste de l'auto-école (les keyframes du web, en marches : coGlisse 1,6 s ×16, coAppui ,5 s ×2, coBord 1,2 s ×12,
 -- coCible ,8 s ×4) — appelée à chaque image tant que la carte est là

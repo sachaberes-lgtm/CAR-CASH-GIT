@@ -769,7 +769,7 @@ function TU.fin(passe: boolean)
 		profil.permis = true
 		task.spawn(function() pcall(function() fnAction:InvokeServer("permis") end) end)
 	end
-	HudScore.slam(tr("PERMIS OBTENU !", "LICENSE EARNED!"), premier and "+$500" or nil, "#62e062", "#ffd75e", 40, 3)
+	HudScore.slam(tr("PERMIS OBTENU !", "LICENSE EARNED!"), premier and ("+" .. Hud.argent(500)) or nil, "#62e062", "#ffd75e", 40, 3)
 	Sons.jouer("record")
 	if premier then
 		task.delay(1.8, function()
@@ -1099,7 +1099,7 @@ local function atterrir(face: number, latX: number, sX: number, hR: number?)
 		Sons.jouer("poseLourde")
 	elseif impact >= 10 then
 		Score.flowFaute("n", 6, 0.5)
-		Hud.pop(tr("POSE LOURD", "HEAVY LANDING"), Hud.C.rouge, 20)
+		Hud.pop(tr("POSE LOURDE", "HEAVY LANDING"), Hud.C.rouge, 20)
 		Sons.jouer("poseLourde")
 	elseif g >= 1.5 then
 		Sons.jouer("poseParfait")
@@ -1294,7 +1294,8 @@ function G.pouvoirPrend(k: string)
 	if k == "n" then pwN = cumule(pwN) elseif k == "a" then pwA = cumule(pwA) elseif k == "v" then pwV = cumule(pwV)
 	elseif k == "m" then pwM = cumule(pwM) else pwX = cumule(pwX) end
 	-- (PWR_DEFS.gros + sous, L23637) le pouvoir se NOMME en grand, avec ce qu'il donne dessous
-	local GROS = { n = { "NITRO ILLIMITEE", "UNLIMITED NITRO", "9 S A FOND", "9 S FLAT OUT" }, a = { "AIRTIME INFINI", "INFINITE AIRTIME", "14 S DE VOL", "14 S OF FLIGHT" },
+	-- (les mêmes noms que la plaque du HUD et le cristal sur la piste : NITRO MAX, AIR MAX)
+	local GROS = { n = { "NITRO MAX", "NITRO MAX", "9 S A FOND", "9 S FLAT OUT" }, a = { "AIR MAX", "AIR MAX", "14 S DE VOL", "14 S OF FLIGHT" },
 		v = { "VITESSE x2", "SPEED x2", "8 S", "8 S" }, m = { "AIMANT", "MAGNET", "L'OR VIENT A TOI", "GOLD COMES TO YOU" },
 		x = { "AURA x2", "AURA x2", "TOUTE L'AURA COMPTE DOUBLE", "ALL AURA COUNTS DOUBLE" } }
 	local g9 = GROS[k]
@@ -2179,7 +2180,7 @@ function G.etapeSol(dt: number)
 		if G.pureT > NTR_T and G.pureArmed then
 			G.pureArmed = false
 			if not NTR.on then
-				HudScore.slam("NITROOO !", nil, "#ff7a24", nil, 40, 1)
+				HudScore.slam(tr("NITROOO !", "NITROOO!"), nil, "#ff7a24", nil, 40, 1)
 				Sons.vrai("vitessePure")
 				Score.geste("NITROOO", 120, "pure")
 			end
@@ -2208,7 +2209,7 @@ function G.etapeSol(dt: number)
 			G.idleMsg -= dt
 			if G.idleMsg <= 0 then
 				G.idleMsg = 0.5
-				Hud.pop(tr("ROULE OU CREVE  ", "DRIVE OR DIE  ") .. string.format("%.1f", math.max(0, Config.ARRET_T - G.idleT)), Color3.fromRGB(255, 77, 77), 20)
+				Hud.pop(tr("ROULE OU CREVE  ", "DRIVE OR DIE  ") .. (string.gsub(string.format("%.1f", math.max(0, Config.ARRET_T - G.idleT)), "%.", FR and "," or ".")), Color3.fromRGB(255, 77, 77), 20)
 				Sons.vrai("arretTic", nil, nil, "bip", 1.2)
 			end
 		end
@@ -2878,13 +2879,13 @@ local function finPartie()
 	E.mAuraMeilleur.TextColor3 = (recA and aura > 0) and Hud.C.or_ or Hud.C.terne
 	E.mMoteurNom.Text = Hud.sansAccent(Config.nomMoteur(tier + 1))
 	Hud.tenir(E.mMoteurNomEchelle, E.mMoteurNom.Text, 20, 270)
-	E.mMoteurPalier.Text = T.palier .. '  <font size="46">' .. (tier + 1) .. "</font>" .. (recM and '  <font color="#ffd75e">RECORD !</font>' or "") -- (L39158 : le palier se compte à partir de 1)
+	E.mMoteurPalier.Text = T.palier .. '  <font size="46">' .. (tier + 1) .. "</font>" .. (recM and ('  <font color="#ffd75e">' .. tr("RECORD !", "RECORD!") .. '</font>') or "") -- (L39158 : le palier se compte à partir de 1)
 	-- (L39151) LE « PRESQUE » : mourir à 3 pièces du palier suivant, c'est LA raison de relancer — la carte le dit quand ce palier
 	-- AURAIT été un record et qu'il ne manquait presque rien ; sinon, si le record est plus haut, elle rappelle le record à battre
 	local mq = (tier < #MOT - 1) and (MOT[tier + 2][1] - coinsGot) or 0
 	local presque = tier < #MOT - 1 and mq > 0 and tier + 1 > moteurAvant and mq <= math.max(3, math.ceil((MOT[tier + 2][1] - MOT[tier + 1][1]) * 0.3))
 	if presque then
-		E.mMoteurEncore.Text = string.format(T.encore, mq) .. "\n↑ " .. Hud.sansAccent(Config.nomMoteur(tier + 2))
+		E.mMoteurEncore.Text = ((mq == 1) and T.encore1 or string.format(T.encore, mq)) .. "\n" .. Hud.sansAccent(Config.nomMoteur(tier + 2)) -- (« ↑ » : un carré)
 	elseif not recM and moteurAvant > tier then
 		E.mMoteurEncore.Text = (FR and "RECORD  PALIER " or "RECORD  TIER ") .. (moteurAvant + 1)
 	else
@@ -2893,8 +2894,8 @@ local function finPartie()
 	E.mPartie.Text = ""
 	Hud.defi(KA.Roue.carte()) -- (la carte de LA ROUE : les parties vers le prochain tour)
 	local st = {
-		{ "x" .. Score.CHA.xMax, T.multiMax },
-		{ Hud.entier(G.vmax), T.kmhMax }, { tostring(G.nbZones + 1), FR and "NIVEAU" or "LEVEL" },
+		{ "×" .. math.max(1, Score.CHA.xMax), T.multiMax }, -- (sans chaîne, le multiplicateur vaut ×1, pas ×0)
+		{ Hud.entier(G.vmax), T.kmhMax }, { tostring(G.nbZones + 1), "ZONE" },
 		{ Score.mmss(Score.FREN.max), (Score.FREN.max >= 5 and Score.FREN.max >= (Score.FREN.record or 0) - 0.05) and "RECORD" or T.frenesie },
 	}
 	for i, v in st do
@@ -2950,7 +2951,7 @@ E.btPasser.Activated:Connect(function()
 	-- PASSER : si le permis n'a jamais été payé, on demande d'abord (« VRAIMENT ? », 3 s)
 	if not profil.permis and os.clock() > TU.vraiment then
 		TU.vraiment = os.clock() + 3
-		TU.dire(tr("PERMIS +$500", "LICENSE +$500"))
+		TU.dire(tr("PERMIS +", "LICENSE +") .. Hud.argent(500))
 		TU.carte()
 		return
 	end
@@ -3172,7 +3173,7 @@ E.btPause.Activated:Connect(basculerPause)
 local retourReglages = "menu"
 -- (L39202) REVOIR L'AUTO-ÉCOLE dit « +$500 » tant que le permis n'a pas été payé
 function G.majReglages()
-	if E.rg.tuto and E.rg.tuto.lib then E.rg.tuto.lib.Text = T.revoir .. ((not profil.permis) and "  +$500" or "") end
+	if E.rg.tuto and E.rg.tuto.lib then E.rg.tuto.lib.Text = T.revoir .. ((not profil.permis) and ("  +" .. Hud.argent(500)) or "") end
 end
 E.btReglages.Activated:Connect(function() if mode == "menu" then retourReglages = "menu"; G.majReglages(); Hud.ecran("reglages") end end)
 E.btReglM.Activated:Connect(function() if mode == "mort" then retourReglages = "mort"; G.majReglages(); Hud.ecran("reglages") end end)
@@ -3298,7 +3299,7 @@ local function majBoutonsSon()
 	Hud.volume("volSon", Sons.volSon * 100, Sons.actif)
 	Hud.volume("volMus", Sons.volMus * 100, Sons.actif and Sons.musiqueActive)
 	Hud.valeur("volH", (Controles.sensVol < 0) and T.monte or T.plonge)
-	E.btPouceP.Text = T.pouce .. " : " .. ((Controles.sensVol < 0) and T.monte or T.plonge)
+	E.btPouceP.Text = T.pouce .. tr(" : ", ": ") .. ((Controles.sensVol < 0) and T.monte or T.plonge)
 end
 function G.basculeSon()
 	Sons.actif = not Sons.actif

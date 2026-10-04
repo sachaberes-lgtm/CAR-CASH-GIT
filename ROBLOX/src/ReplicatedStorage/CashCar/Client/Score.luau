@@ -59,7 +59,11 @@ Score.FLOW_NOM = { [0] = "FLOW", "FLOW I", "FLOW II", "FLOW III", "FRENESIE" }
 Score.FLOW_COL = { [0] = "#ffffff", "#5ee6ff", "#ffd75e", "#ff5ec8", "#ff2a3d" }
 Score.FLOW_CEL = { "#5ee6ff", "#ffd75e", "#ff5ec8", "#b58cff" }
 Score.SEUIL = SEUIL
-local NOM_TRAIT = { n = "NARCISSE", m = "MACHIAVEL", p = "PSYCHO" }
+-- (les noms des traits, dans la langue du joueur — lus à l'affichage : la langue se pose après le chargement du module)
+local NOM_TRAIT = setmetatable({}, { __index = function(_, k: string): string?
+	local n = ({ n = { "NARCISSE", "NARCISSIST" }, m = { "MACHIAVEL", "MACHIAVELLI" }, p = { "PSYCHO", "PSYCHO" } })[k]
+	return n and T(n[1], n[2]) or nil
+end })
 Score.NOM_TRAIT = NOM_TRAIT
 
 -- le lieu : la VILLE ouvre d'autres réglages (flowLieu)
@@ -89,6 +93,12 @@ local function mmss(t: number): string
 	return string.format("%d:%02d", s // 60, s % 60)
 end
 Score.mmss = mmss
+-- l'aura en toutes lettres, avec ses milliers séparés comme au compteur (« 12 345 » ; « 12,345 » en anglais)
+local function entier(v: number): string
+	local s = tostring(math.floor(v + 0.5))
+	local out = string.reverse(string.gsub(string.reverse(s), "(%d%d%d)", FR and "%1 " or "%1,"))
+	return (string.gsub(out, "^[ ,]", ""))
+end
 local function fmtMul(x: number): string
 	local s = (x == math.floor(x)) and tostring(x) or string.format("%.1f", x)
 	if FR then s = string.gsub(s, "%.", ",") end
@@ -212,7 +222,7 @@ local function frenDeclenche()
 	FLOW.v, FLOW.lv, FLOW.idle = 100, 4, 0
 	frenDebut()
 	local rc = (FREN.record >= 5) and FREN.record or 0
-	local cash = "CASH ×" .. fmtMul(Score.flowMult())
+	local cash = T("ARGENT ×", "CASH ×") .. fmtMul(Score.flowMult())
 	local sub
 	if not FREN.vu then
 		sub = T("TIENS LES TROIS TRAITS", "HOLD ALL THREE TRAITS")
@@ -378,11 +388,11 @@ function Score.flowTick(dt: number, mode: string, vitN: number, nitroOn: boolean
 					FREN.dit[t] = true
 					FREN.ditT = 0.9
 					if t == "n" then
-						Score.dire.pop((F2.decl.drift <= 3) and "DRIFT !" or T("UNE FIGURE !", "A TRICK!"), "#ffd75e", 2)
+						Score.dire.pop((F2.decl.drift <= 3) and T("DRIFT !", "DRIFT!") or T("UNE FIGURE !", "A TRICK!"), "#ffd75e", 2)
 					elseif t == "m" then
 						Score.dire.pop(T("RACCOURCI !", "SHORTCUT!"), "#7dffec", 2)
 					else
-						Score.dire.pop("NITRO !", "#ff7a24", 2)
+						Score.dire.pop(T("NITRO !", "NITRO!"), "#ff7a24", 2)
 					end
 					Score.dire.son("triade.meurt")
 				end
@@ -461,7 +471,7 @@ function Score.geste(nom: string, base: number, fam: string?, brut: boolean?, mu
 	if CHA.x > x0 then
 		if CHA.x == 5 then Score.dire.slam("×5", T("EN FEU !!", "ON FIRE!!"), Score.X_COUL[5], "#ffffff", 30, 1)
 		elseif CHA.x == 8 then Score.dire.slam("×8", T("DEMENT !!!", "INSANE!!!"), Score.X_COUL[8], "#ffffff", 34, 1)
-		elseif CHA.x == 10 then Score.dire.slam("×10", "MAX !!!", Score.X_COUL[10], "#ffd75e", 38, 2) end
+		elseif CHA.x == 10 then Score.dire.slam("×10", T("MAX !!!", "MAX!!!"), Score.X_COUL[10], "#ffd75e", 38, 2) end
 		-- (L29096) un palier de chaîne se SENT : son, éclair de bord à sa couleur, vibration
 		if CHA.x == 5 or CHA.x == 8 or CHA.x == 10 then
 			Score.dire.son("aura.x" .. CHA.x)
@@ -489,7 +499,7 @@ local function chaineEncaisse()
 		-- le record de la partie battu EN COURSE (une fois)
 		if not CHA.recB and CHA.rec > 0 and ETAT.aura > CHA.rec and not ETAT.tuto then
 			CHA.recB = true
-			Score.dire.slam(T("RECORD BATTU !", "RECORD BEATEN!"), "AURA " .. ETAT.aura, "#ffd75e", "#ffb000", 30, 2, 14)
+			Score.dire.slam(T("RECORD BATTU !", "RECORD BEATEN!"), "AURA " .. entier(ETAT.aura), "#ffd75e", "#ffb000", 30, 2, 14)
 			Score.dire.son("aura.record")
 		end
 	end
@@ -501,7 +511,7 @@ Score.chaineEncaisse = chaineEncaisse
 function Score.chainePerdue()
 	local g = math.floor(CHA.pts * math.max(1, CHA.x) + 0.5)
 	if CHA.n > 0 and g > 0 then
-		Score.dire.slam(T("CHAINE PERDUE", "CHAIN LOST"), "-" .. g .. " AURA", "#ff5e7a", "#b0102a", 24, 2)
+		Score.dire.slam(T("CHAINE PERDUE", "CHAIN LOST"), "-" .. entier(g) .. " AURA", "#ff5e7a", "#b0102a", 24, 2)
 	end
 	chaReset()
 	Score.dire.chaine()
@@ -654,7 +664,7 @@ function Score.dolPose()
 	table.clear(DOL.cote)
 	if total > 0 then
 		DOL.recap, DOL.recapT = total, 2.2
-		Score.dire.pop(T("DAUPHIN", "DOLPHIN") .. " ×" .. math.max(1, DOL.nb) .. "  +" .. total .. " AURA", "#7dffec", 1)
+		Score.dire.pop(T("DAUPHIN", "DOLPHIN") .. " ×" .. math.max(1, DOL.nb) .. "  +" .. entier(total) .. " AURA", "#7dffec", 1)
 	end
 	DOL.rasT, DOL.ne, DOL.live, DOL.aura = 0, false, 0, 0
 end
