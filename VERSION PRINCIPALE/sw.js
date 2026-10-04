@@ -42,7 +42,7 @@
 //  v54 (2026-10-02) : L'ORIGAMI, la 69e caisse (le pick-up d'inox).
 //  v55 (2026-10-02) : six communes retirées de la gamme.
 //  v83 (2026-10-03) : main de Sacha (le dragon de NITROOO) + musique de Léo (CIEL moderne, phrase du boost qui lit chaque morceau)
-const CACHE = 'cashcar-v104'; // v86 (2026-10-04, Léo) : la musique de course part PENDANT le boost (plus de son de transition), banque ?v=13 ; la mélodie de la phrase du nitro s'éteint de nouveau · v85 (2026-10-04, Léo : « harmonise le début de partie et le début de la musique ») : LE DÉPART EN MUSIQUE, banque de sons ?v=12 · v84 (2026-10-03, soir, Léo : « le jeu coupe bizarrement la musique ») : plus de rechargement à chaque push (le numéro de version = l'empreinte du jeu)
+const CACHE = 'cashcar-v105'; // v86 (2026-10-04, Léo) : la musique de course part PENDANT le boost (plus de son de transition), banque ?v=13 ; la mélodie de la phrase du nitro s'éteint de nouveau · v85 (2026-10-04, Léo : « harmonise le début de partie et le début de la musique ») : LE DÉPART EN MUSIQUE, banque de sons ?v=12 · v84 (2026-10-03, soir, Léo : « le jeu coupe bizarrement la musique ») : plus de rechargement à chaque push (le numéro de version = l'empreinte du jeu)
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
