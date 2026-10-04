@@ -58,6 +58,14 @@
     sur la caisse (`vise` −,38 couché, +,22 debout) — on la voit d'un peu au-dessus, le plateau en ellipse ; debout `fwP` ,8 (un cran de recul) ;
     la caisse posée à 43 % de la largeur libre (`cx`) — le cadrage se calcule sur la plus petite des deux moitiés : elle reste entière de
     profil — et debout à 55 % de la hauteur libre (`cy`).
+- **LA MISE EN PAGE v3 (même soir, Léo : « réorganise les boutons et la place occupée sur l'écran, c'est pas beau »)** — MESURÉ sur les captures :
+  tout s'empilait dans un coin (debout ⚙ + nom + plaque des jauges à gauche, la droite vide ; couché ⚙ + plaque + astuce + touches à droite),
+  HOME et SHOP n'avaient ni la largeur ni la hauteur de JOUER. Désormais DEUX BARRES sur la même marge (16 px + zone sûre) : EN HAUT le nom à
+  gauche (il s'arrête avant le ⚙, sa taille suit la place), le ⚙ dans le coin droit (debout aussi : `#gOutils` fixe), les deux jauges en CARTES
+  égales (debout en rangée pleine largeur sous le nom, couché sur la ligne du nom entre lui et le ⚙) ; EN BAS HOME et SHOP en deux carrés
+  (pictogramme sur son mot), JOUER prend le reste, même hauteur (62 px debout, 56 couché) ; couché les touches à droite sous le pouce et
+  l'astuce à gauche, sur deux lignes (elle tient même dans les marges de l'iPhone). Cartes : argent = valeur, %, la caisse visée et son
+  prix (coche verte qui luit quand elle s'achète) ; aura = valeur, %, le rang en rose (le suivant au survol).
 - **LES JAUGES (même soir, Léo : « ça fait un peu vide, ajoute un peu de vie : jauge money, jauge aura, moyennes, colorées »)** — `#gVJ`,
   `gvJauges(anim)` appelée par `garVitrine(true)` : l'ARGENT (vert billet, vers la prochaine caisse à vendre — `objectif()`, celle que visait
   le profil du menu de Léo ; pleine : « À TA PORTÉE » qui luit) et l'AURA (violet → rose, le rang, vers le rang suivant, ce qu'il manque).
@@ -79,7 +87,7 @@
   caisse entière), tap court et glissé n'ouvrent rien, doigt tenu → tiroir, équiper peinture et caisse, traînées, Échap, SHOP → console ;
   accueil → JOUER → course, mort → REJOUER, mort → HOME → GARAGE → inventaire → HOME → JOUER, JOUER du garage — debout, couché et dans le
   cadre de l'ordi (souris maintenue, touches I/Échap, clic JOUER) : 0 erreur. ⚠ Au rendu logiciel (~400 ms l'image) un glissé peut arriver
-  APRÈS la fin du délai et ouvrir le tiroir : artefact du banc (sur téléphone les mouvements arrivent toutes les 16 ms). sw.js → v104, v105, v106 (le plan v2 et les jauges : mêmes parcours repassés, 0 erreur).
+  APRÈS la fin du délai et ouvrir le tiroir : artefact du banc (sur téléphone les mouvements arrivent toutes les 16 ms). sw.js → v104, v105, v106 (le plan v2 et les jauges), v107 (les deux barres) : mêmes parcours repassés à chaque fois, 0 erreur.
 
 ## LA VILLE DÈS L'ENTRÉE + GLASSY PLUCKS (2026-10-04, Léo — « les niveaux villes ne sont pas tous des villes » · « la musique pour la ville, c'est GLASSY PLUCKS »)
 - MESURÉ d'abord (bancs `villes.mjs`, `cycle.mjs`, `villepos.mjs`, `citystat.mjs`, scratchpad 83e03bdc) : les 10 niveaux VILLE de la
