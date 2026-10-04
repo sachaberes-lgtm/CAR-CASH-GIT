@@ -1,7 +1,8 @@
 -- CASH CAR — LE CATALOGUE DES 69 CAISSES — CUIT par outils/cuire-caisses.js depuis VERSION PRINCIPALE/index.html, ne pas éditer.
 -- Indices du jeu web (0 = LA HONTE) : ce sont ceux des sauvegardes, ils ne bougent jamais.
--- Repère : nez vers −Z, droite du pilote +X, mètres. cond.k : depart · prix (v = $) · aura (rang) · roue (EXCLUSIVE de la ROUE : elle ne
--- s'achète pas, elle se gagne en la tournant — ce sont les anciennes caisses des carnets et de la campagne, 4/10) · premium (argent réel).
+-- Repère : nez vers −Z, droite du pilote +X, mètres. cond.k : depart · prix (v = $) · aura (rang) · roue (EXCLUSIVE de la ROUE : les
+-- anciennes caisses des carnets et de la campagne — missions et carrière n'existent pas sur Roblox) · premium (argent réel).
+-- (version publique Roblox : les noms affichés ne citent aucune marque déposée — voir ROBLOX_NOMS dans outils/cuire-caisses.js)
 -- roues = { x, y, z, miroir, rayon } · trainees = un point par ruban de nitro · ailes = panneaux | helices | none (ce que le gabarit déploie en vol).
 return {
 	[0] = { nom = "LA HONTE", en = "THE SHAME", rar = "commun", gabarit = "epave", cond = { k = "depart" },
@@ -58,7 +59,7 @@ return {
 		trainees = { { -0.38, 0.34, 2.23 }, { 0.38, 0.34, 2.23 } }, capot = { 0, 1.2392, -1.1816 },
 		roues = { { 0.8, 0.34, -1.22, true, 0.34 }, { -0.8, 0.34, -1.22, false, 0.34 }, { 0.8, 0.34, 1.26, true, 0.34 }, { -0.8, 0.34, 1.26, false, 0.34 } }, ailes = "panneaux", fx = nil,
 		desc = "Inox brossé, portes papillon. À 88 à l'heure elle remonte le temps, paraît-il. Toi, tu vas plus vite.", descEN = "Brushed steel, gullwing doors. At 88 it travels back in time, apparently. You go faster." },
-	[9] = { nom = "CHAT POP-TART", en = "POP-TART CAT", rar = "legendaire", gabarit = "poptart", cond = { k = "premium", eur = "4,99 €" },
+	[9] = { nom = "CHAT ARC-EN-CIEL", en = "RAINBOW CAT", rar = "legendaire", gabarit = "poptart", cond = { k = "premium", eur = "4,99 €" },
 		laque = 0xf6b98a, accent = 0xf78fb8, w = 1.95, h = 0.8, l = 3.4, kmh = 560, triangles = 1840,
 		phare = { -0.546, 0.368, -1.428 }, feu = { -0.624, 0.48, 1.564 }, pots = { { 0.429, 0.43, 2.01 }, { -0.429, 0.43, 2.01 } },
 		trainees = { { -0.429, 0.43, 2.01 }, { 0.429, 0.43, 2.01 } }, capot = { 0, 0.974, -0.952 },
@@ -82,7 +83,7 @@ return {
 		trainees = { { -0.462, 0.43, 2.71 }, { 0.462, 0.43, 2.71 } }, capot = { 0, 0.662, -1.344 },
 		roues = { { 1.21, 0.4, -1.65, false, 0.4 }, { -1.21, 0.4, -1.65, false, 0.4 }, { 1.21, 0.4, 1.65, false, 0.4 }, { -1.21, 0.4, 1.65, false, 0.4 } }, neon = 0xfff0a0, ailes = "panneaux", fx = nil,
 		desc = "Un aileron, un baquet, et tes économies peintes en doré. Le circuit appelle ça de la triche. Nous, du talent.", descEN = "A wing, a bucket seat, and your savings painted gold. The track calls it cheating. We call it talent." },
-	[13] = { nom = "LE MANS 24", en = "LE MANS 24", rar = "legendaire", gabarit = "lemans", cond = { k = "premium", eur = "2,99 €" },
+	[13] = { nom = "ENDURANCE 24", en = "ENDURANCE 24", rar = "legendaire", gabarit = "lemans", cond = { k = "premium", eur = "2,99 €" },
 		laque = 0xe8ecf2, accent = 0xff5a1a, w = 2.18, h = 0.46, l = 5.35, kmh = 543, triangles = 1168,
 		phare = { -0.5232, 0.5064, -2.568 }, feu = { -0.6976, 0.5708, 2.735 }, pots = { { 0.4796, 0.43, 2.985 }, { -0.4796, 0.43, 2.985 } },
 		trainees = { { -0.4796, 0.43, 2.985 }, { 0.4796, 0.43, 2.985 } }, capot = { 0, 0.7088, -1.498 },
@@ -129,7 +130,7 @@ return {
 		phare = { -0.52, 0.6, -2.15 }, feu = { -0.72, 0.78, 2.14 }, pots = { { -0.4, 0.29, 2.18 } },
 		trainees = { { -0.4, 0.29, 2.18 } }, capot = { 0, 1.6448, -1.19 },
 		roues = { { 0.74, 0.32, -1.3, true, 0.32 }, { -0.74, 0.32, -1.3, false, 0.32 }, { 0.74, 0.32, 1.28, true, 0.32 }, { -0.74, 0.32, 1.28, false, 0.32 } }, ailes = "panneaux", fx = nil,
-		desc = "Sept places, zéro limite. Les enfants hurlent, mais c'est de joie : on vient de doubler une Ferrari.", descEN = "Seven seats, zero limits. The kids are screaming, but it's pure joy: we just passed a Ferrari." },
+		desc = "Sept places, zéro limite. Les enfants hurlent, mais c'est de joie : on vient de doubler une supercar.", descEN = "Seven seats, zero limits. The kids are screaming, but it's pure joy: we just passed a supercar." },
 	[21] = { nom = "LE BREAK SUÉDOIS", en = "THE SWEDISH WAGON", rar = "commun", gabarit = "b_breaksuedois", retire = true, cond = { k = "prix", v = 4000 },
 		laque = 0x1f4a36, accent = 0xe9ecf0, w = 1.72, h = 1.46, l = 4.8, kmh = 210, triangles = 2872,
 		phare = { -0.575, 0.76, -2.33 }, feu = { -0.73, 0.8, 2.32 }, pots = { { -0.38, 0.3, 2.39 } },
@@ -214,7 +215,7 @@ return {
 		trainees = { { -0.37, 0.28, 2.41 } }, capot = { 0, 1.4576, -1.316 },
 		roues = { { 0.72, 0.32, -1.3, true, 0.32 }, { -0.72, 0.32, -1.3, false, 0.32 }, { 0.72, 0.32, 1.225, true, 0.32 }, { -0.72, 0.32, 1.225, false, 0.32 } }, ailes = "panneaux", fx = nil,
 		desc = "Conçue par des gens qui font des avions. Ça se voit au pare-brise, ça se sent quand le turbo arrive.", descEN = "Designed by people who build airplanes. You can see it in the windshield. You can feel it when the turbo kicks in." },
-	[35] = { nom = "LE QUATTRO", en = "THE QUATTRO", rar = "rare", gabarit = "b_quattro", cond = { k = "prix", v = 52000 },
+	[35] = { nom = "LE RALLYE", en = "THE RALLY", rar = "rare", gabarit = "b_quattro", cond = { k = "prix", v = 52000 },
 		laque = 0xefeee8, accent = 0x141518, w = 1.72, h = 1.34, l = 4.4, kmh = 290, triangles = 3020,
 		phare = { -0.62, 0.66, -2.22 }, feu = { -0.56, 0.83, 2.22 }, pots = { { -0.36, 0.29, 2.26 } },
 		trainees = { { -0.36, 0.29, 2.26 } }, capot = { 0, 1.3952, -1.232 },
@@ -292,7 +293,7 @@ return {
 		trainees = { { -0.08, 0.36, 2.23 }, { 0.08, 0.36, 2.23 } }, capot = { 0, 1.169, -1.2208 },
 		roues = { { 0.76, 0.33, -1.26, true, 0.33 }, { -0.76, 0.33, -1.26, false, 0.33 }, { 0.76, 0.33, 1.24, true, 0.33 }, { -0.76, 0.33, 1.24, false, 0.33 } }, ailes = "panneaux", fx = nil,
 		desc = "Elle a des cils. Et un V12 juste derrière ta nuque. Elle te fait les yeux doux, pas de cadeaux.", descEN = "She has eyelashes. And a V12 right behind your neck. She bats her eyes at you, but don't expect favors." },
-	[48] = { nom = "LA STRATOS", en = "THE STRATOS", rar = "epique", gabarit = "c_stratos", cond = { k = "prix", v = 750000 },
+	[48] = { nom = "LE BISEAU", en = "THE WEDGE", rar = "epique", gabarit = "c_stratos", cond = { k = "prix", v = 750000 },
 		laque = 0xf4f4f0, accent = 0x1ea050, w = 1.75, h = 1.11, l = 3.71, kmh = 340, triangles = 3372,
 		phare = { -0.36, 1.02, -1.37 }, feu = { -0.56, 0.66, 1.87 }, pots = { { 0.3, 0.38, 1.915 }, { -0.3, 0.38, 1.915 } },
 		trainees = { { -0.3, 0.38, 1.915 }, { 0.3, 0.38, 1.915 } }, capot = { 0, 1.2158, -1.0388 },

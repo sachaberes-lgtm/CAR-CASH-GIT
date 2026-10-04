@@ -32,7 +32,7 @@ function bloc(debut, fin, comprise, apres) {
 }
 // un bloc = de la 1re ligne qui commence par `debut` à la ligne AVANT celle qui commence par `fin`
 const blocs = [
-  'const IS_MOBILE=false,IS_LOW_END=false;const sphere9=g=>g.computeBoundingSphere();',
+  'const IS_MOBILE=false,IS_LOW_END=false,POKI=false;const sphere9=g=>g.computeBoundingSphere();', // (POKI : l'édition Poki du web, 4/10 — Roblox cuit l'édition normale)
   bloc('const CLOUD_SPH=', '/* LE CIEL DE COTON', false),                       // la boule des nuages + mergeSpheres (la caisse-nuage)
   bloc('const CARS=[', '];', true),
   bloc('const CAR_UNLOCK=[', '/* ==========', false),
@@ -246,6 +246,13 @@ const rox = p => '{ ' + [-p[0], p[1], -p[2]].map(n4).join(', ') + ' }'; // repè
 const hex = c => '0x' + (c >>> 0).toString(16).padStart(6, '0');
 fs.mkdirSync(path.join(SORTIE, 'Formes'), { recursive: true });
 for (const f of fs.readdirSync(path.join(SORTIE, 'Formes'))) fs.unlinkSync(path.join(SORTIE, 'Formes', f));
+// ── LA VERSION ROBLOX (4/10) : ce qui diffère du jeu web, appliqué À LA CUISSON pour survivre à la prochaine ──
+//   · missions et carrière n'existent pas sur Roblox : leurs caisses (carnets, campagne) se gagnent à la ROUE ;
+//   · un jeu Roblox public ne cite aucune marque déposée : ces noms affichés (et une description) sont changés.
+const ROBLOX_ROUE = ['carnet', 'carrN', 'carrV'];
+const ROBLOX_NOMS = { 'CHAT POP-TART': ['CHAT ARC-EN-CIEL', 'RAINBOW CAT'], 'LE MANS 24': ['ENDURANCE 24', 'ENDURANCE 24'],
+  'LE QUATTRO': ['LE RALLYE', 'THE RALLY'], 'LA STRATOS': ['LE BISEAU', 'THE WEDGE'] };
+const ROBLOX_DESC = [['une Ferrari', 'une supercar'], ['a Ferrari', 'a supercar']];
 const fiches = []; let totalT = 0, totalK = 0, totalP = 0; const erreurs = [];
 for (let i = 0; i < CARS.length; i++) {
   let a, corps, roue;
@@ -269,21 +276,25 @@ for (let i = 0; i < CARS.length; i++) {
   const centre = [0, 1, 2].map(j => a.pots.reduce((t, p) => t + p[j], 0) / a.pots.length);
   let cond = '{ k = "depart" }';
   if (u) cond = u.p != null ? '{ k = "prix", v = ' + u.p + ' }' : '{ k = ' + q(u.k) + (u.v != null ? ', v = ' + u.v : '') + (u.eur ? ', eur = ' + q(u.eur) : '') + ' }';
+  if (u && ROBLOX_ROUE.includes(u.k)) cond = '{ k = "roue" }';
+  const nomR = ROBLOX_NOMS[s.name], descR = t => ROBLOX_DESC.reduce((a, r) => a.split(r[0]).join(r[1]), t || '');
   const rar = G.carRar ? G.carRar(i) : 'commun';
   const fx = s.fx ? '{ ' + ['jet', 'core', 'light'].filter(k => s.fx[k] != null).map(k => k + ' = ' + hex(s.fx[k])).concat(s.fx.trail ? ['trainee = { ' + s.fx.trail.join(', ') + ' }'] : [], s.fx.rainbow ? ['arcenciel = true'] : []).join(', ') + ' }' : 'nil';
-  fiches.push('\t[' + i + '] = { nom = ' + q(s.name) + ', en = ' + q(en(s.name) || s.name) + ', rar = ' + q(rar) + ', gabarit = ' + q(s.shape) + (s.retire ? ', retire = true' : '') + ', cond = ' + cond +
+  fiches.push('\t[' + i + '] = { nom = ' + q(nomR ? nomR[0] : s.name) + ', en = ' + q(nomR ? nomR[1] : (en(s.name) || s.name)) + ', rar = ' + q(rar) + ', gabarit = ' + q(s.shape) + (s.retire ? ', retire = true' : '') + ', cond = ' + cond +
     ',\n\t\tlaque = ' + hex(s.color) + ', accent = ' + hex(s.accent) + ', w = ' + s.w + ', h = ' + s.h + ', l = ' + s.l + ', kmh = ' + s.maxKmh + ', triangles = ' + nt +
     ',\n\t\tphare = ' + rox([a.A.hl[0], a.A.hl[1], a.A.hl[2]]) + ', feu = ' + rox([a.A.tl[0], a.A.tl[1], a.A.tl[2]]) +
     ', pots = { ' + a.pots.map(rox).join(', ') + ' }' +
     ',\n\t\ttrainees = { ' + ((gL.length && dR.length) ? [moy(dR), moy(gL)] : [centre]).map(rox).join(', ') + ' }, capot = ' + rox([0, y0c(s), s.l * .28]) +
     ',\n\t\troues = { ' + a.roues.map(r => '{ ' + [-r.x, r.y, -r.z].map(n4).join(', ') + ', ' + (r.miroir ? 'true' : 'false') + ', ' + n4(r.R) + ' }').join(', ') + ' }' +
     (s.glow != null ? ', neon = ' + hex(s.glow) : '') + ', ailes = ' + q(a.A.wings === 'none' ? 'none' : (a.A.wings === 'props' ? 'helices' : 'panneaux')) + ', fx = ' + fx +
-    ',\n\t\tdesc = ' + q(s.desc || '') + ', descEN = ' + q(en(s.desc) || s.desc || '') + ' },');
+    ',\n\t\tdesc = ' + q(descR(s.desc)) + ', descEN = ' + q(descR(en(s.desc) || s.desc)) + ' },');
 }
 function y0c(s) { return .35 + s.h * .78; }
 const cat = '-- CASH CAR — LE CATALOGUE DES ' + CARS.length + ' CAISSES — CUIT par outils/cuire-caisses.js depuis VERSION PRINCIPALE/index.html, ne pas éditer.\n' +
   '-- Indices du jeu web (0 = LA HONTE) : ce sont ceux des sauvegardes, ils ne bougent jamais.\n' +
-  '-- Repère : nez vers −Z, droite du pilote +X, mètres. cond.k : depart · prix (v = $) · aura (rang) · carnet (n°) · premium (argent réel) · carrN / carrV (campagne).\n' +
+  '-- Repère : nez vers −Z, droite du pilote +X, mètres. cond.k : depart · prix (v = $) · aura (rang) · roue (EXCLUSIVE de la ROUE : les\n' +
+  '-- anciennes caisses des carnets et de la campagne — missions et carrière n\'existent pas sur Roblox) · premium (argent réel).\n' +
+  '-- (version publique Roblox : les noms affichés ne citent aucune marque déposée — voir ROBLOX_NOMS dans outils/cuire-caisses.js)\n' +
   '-- roues = { x, y, z, miroir, rayon } · trainees = un point par ruban de nitro · ailes = panneaux | helices | none (ce que le gabarit déploie en vol).\n' +
   'return {\n' + fiches.join('\n') + '\n}\n';
 fs.writeFileSync(path.join(SORTIE, 'Catalogue.luau'), cat);

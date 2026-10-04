@@ -96,6 +96,9 @@ local function sain(p: any): Profil
 	n.caisses = liste
 	if type(n.caisse) ~= "number" or n.caisse ~= math.floor(n.caisse) or n.caisse < 0 then n.caisse = 0 end
 	if Catalogue[n.caisse] and Catalogue[n.caisse].retire then n.caisse = 0 end -- (qui roulait avec une caisse retirée repart en LA HONTE)
+	-- (4/10, version publique) une caisse équipée qu'on ne possède pas — un reste des essais où tout s'équipait : retour à LA HONTE
+	local CfgP = require(game:GetService("ReplicatedStorage"):WaitForChild("CashCar"):WaitForChild("Config"))
+	if not possede[n.caisse] and not CfgP.TEST_CAISSES then n.caisse = 0 end
 	n.mis = Carnets.etat(n.mis)
 	local habits = {}
 	for _, h in n.habits do
@@ -209,17 +212,8 @@ Profils.actions.equiper = function(p, prof, i)
 	return true
 end
 
--- ── les MISSIONS : un défi réussi verse sa prime TOUT DE SUITE ; le carnet se ferme à la fin de la partie ──
-Profils.actions.defi = function(_, prof, i, v)
-	if type(i) ~= "number" or i ~= math.floor(i) or i < 1 or i > 3 then return false, "defi inconnu" end
-	local d = Carnets.de(prof.mis.n)[i]
-	if prof.mis.ok[i] then return false, "deja reussi" end
-	if type(v) ~= "number" or v ~= v or v < d.v then return false, "pas atteint" end
-	prof.mis.ok[i] = true
-	prof.mis.best[i] = d.v
-	prof.compte += d.p
-	return true
-end
+-- ── les MISSIONS (retirées du jeu le 4/10 : la ROUE les remplace) — leurs actions ne répondent plus : « defi » payait sur la simple
+-- parole du joueur. Le carnet reste dans le profil (les vieilles sauvegardes), plus rien ne le fait avancer. ──
 -- ── les HABILLAGES (shopBuy / shopEquip, L22150) : peintures, ailes, traînées ──
 local function habit(cat: any, id: any): any
 	local l = type(cat) == "string" and Config.HABITS[cat]
@@ -259,35 +253,6 @@ Profils.actions.permis = function(_, prof)
 	prof.compte += 500
 	return true
 end
-Profils.actions.suivre = function(_, prof, i)
-	if i ~= -1 and not (type(i) == "number" and i == math.floor(i) and i >= 1 and i <= 3) then return false, "defi inconnu" end
-	prof.mis.f = i
-	return true
-end
--- à la fin d'une partie : les meilleurs essais, puis le carnet se ferme si les trois défis sont réussis
-function Profils.finCarnet(prof: Profil, essais: any)
-	local c = Carnets.de(prof.mis.n)
-	if type(essais) == "table" then
-		for i = 1, 3 do
-			local b = essais[i]
-			if type(b) == "number" and b == b and b > prof.mis.best[i] and not prof.mis.ok[i] then
-				prof.mis.best[i] = math.min(c[i].v * 0.999, b) -- (un essai ne RÉUSSIT pas le défi : seule l'action « defi » le fait)
-			end
-		end
-	end
-	if prof.mis.ok[1] and prof.mis.ok[2] and prof.mis.ok[3] then
-		local rec = c.rec
-		if rec.caisse then
-			if not Profils.possede(prof, rec.caisse) then table.insert(prof.caisses, rec.caisse) end
-		elseif rec.habit then
-			if not table.find(prof.habits, rec.habit) then table.insert(prof.habits, rec.habit) end
-		elseif rec.cash then
-			prof.compte += rec.cash
-		end
-		prof.mis = { n = prof.mis.n + 1, ok = { false, false, false }, best = { 0, 0, 0 }, f = -1 }
-	end
-end
-
 -- EFFACER MA PROGRESSION (L39243 du jeu web, avec confirmation côté joueur) : le profil repart à zéro. `efface` dit à la sauvegarde de
 -- ne PAS fusionner avec l'ancien (sinon le record, l'aura et le moteur effacés y reviendraient — « jamais en arrière »).
 Profils.actions.effacer = function(_, prof)

@@ -19,7 +19,7 @@ local U: any = {}
 local ctx: any = nil
 local depuis = "menu"
 local fileN = 0
-local UNE = 9 -- la caisse à la une : CHAT POP-TART
+local UNE = 9 -- la caisse à la une : le CHAT ARC-EN-CIEL
 local OR1 = Color3.fromRGB(255, 215, 94)
 
 local function tr(fr: string, en: string): string return FR and fr or en end
