@@ -5914,7 +5914,7 @@ html.poki [data-m="shop"],html.poki [data-go="shop"],html.poki .gBoutique,html.p
 <!-- (2026-09-28) LA CONSOLE DE SON : la banque de sons (générée par atelier-son/cuire.js) et son lecteur. `defer` : ils ne retardent
      pas le démarrage (on n'en a besoin qu'au premier geste) ; changer `?v=` à chaque nouvelle banque (le service worker garde l'ancienne sinon). -->
 <script defer src="sons-banque.js?v=13"></script>
-<script defer src="assets/audio/music/harmonie.js?v=6"></script> <!-- (2026-10-03) l'harmonie des morceaux, temps par temps : la phrase du boost la lit (atelier-son/harmonie.py) -->
+<script defer src="assets/audio/music/harmonie.js?v=7"></script> <!-- (2026-10-03) l'harmonie des morceaux, temps par temps : la phrase du boost la lit (atelier-son/harmonie.py) -->
 <script defer src="sfx.js?v=4"></script>
 <script>
 (function(){
@@ -28991,7 +28991,7 @@ function instruMelodie(k,tons){ // la note de mélodie (MIDI) de la croche k, ou
 }
 function instruPlanifie(){ // regard d'avance de 120 ms : les notes tombent pile, même si une image tousse
   if(!AC){clearInterval(INSTRU.iv);INSTRU.iv=0;return;}
-  if(INSTRU.tient&&(gameOver||paused||mode==='boom'))instruOff();      // la partie s'arrête : la phrase se termine
+  if(INSTRU.tient&&(gameOver||paused||mode==='boom'||(!INSTRU.essai&&!instruMusiqueOk())))instruOff(); // (la musique change de map : la phrase se termine)      // la partie s'arrête : la phrase se termine
   if(!INSTRU.essai){if(INSTRU.H!==instruH())instruTempo();else instruHorloge();}        // le morceau a changé ? on relit sa fiche ; sinon on se recale
   const fin=INSTRU.essai?1e9:AC.currentTime+.12;
   while(INSTRU.tNote<fin){
@@ -29030,10 +29030,14 @@ const INSTRU_TENIR=.22;
    turbo) · nitrooo0 (les sons de NITROOO muets). */
 const INSTRU_MEL=false; // (2026-10-03, Léo : « j'aime que la partie qui fait ding ding ding ; il y en a une autre, assourdissante, qui ne colle pas à la musique, retire-la ») : la MÉLODIE (Rhodes dans la salle, puis étincelle) est retirée — il ne reste que le TING de l'arpège
 const BTEST=(function(){try{return new URLSearchParams(location.search).get('boost')||'';}catch(e){return '';}})();
+function instruMusiqueOk(){ // la phrase du boost n'existe que sur la musique pour laquelle elle est dessinée : CIEL · NIVEAU 1 à 5
+  return !!(musicEl&&musicEl.src&&/\/ciel-n[1-5]\.m4a/.test(musicEl.src));
+}
 function instruOn(){
   if(!INSTRU.on||!AC||!SND.sfx||(AC.state!=='running'&&!INSTRU.essai)||paused)return; // (2026-10-03, Léo) un VRAI appui pendant le boost de départ lance la phrase (le départ seul, lui, ne la lance jamais : elle lit le doigt)
   if(BTEST==='sans')return;
   if(INSTRU.essai)return instruDemarre();
+  if(!instruMusiqueOk())return; // (2026-10-04, Léo : « les effets du boost musical seront dessinés pour CHAQUE map et sa musique : seulement avec la musique des 5 premiers niveaux du CIEL ») 
   INSTRU.doigt=true;clearTimeout(INSTRU.att);
   instruDemarre(); // (2026-10-03, Léo : « l'activer dès qu'on appuie sur ESPACE, quand ça commence à booster — et en maintenant sur iPhone ») : plus d'attente de 0,22 s ; l'entrée en fondu suffit
 }
