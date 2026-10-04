@@ -5556,6 +5556,45 @@ html body #garage.deplie:not(.menu) #gBottom{animation:gDeplie .34s var(--ease,c
   html body #garage.vitrine:not(.menu) #gAct>:is(#gClose,#gPerso){height:48px;min-height:48px;padding:0 14px 0 16px}
   html body #garage.vitrine:not(.menu) #gAct>#gJouer{height:52px;min-height:52px}
 }
+/* LES JAUGES (même soir, Léo : « ça fait un peu vide, ajoute un peu de vie : jauge money, jauge aura, moyennes, colorées ») — la jauge de
+   la charte (fond d'encre, quatre bandes, curseur blanc), en vert billet pour l'ARGENT (vers la prochaine caisse à vendre, `objectif()`) et en
+   violet → rose pour l'AURA (vers le rang suivant) ; elles se REMPLISSENT à l'entrée de la vitrine, les chiffres défilent, un reflet passe.
+   Debout sous le nom ; couché en haut à droite (la caisse est un peu à gauche) ; masquées pendant l'inventaire. */
+#gVJ{display:none}
+html body #garage.vitrine:not(.menu):not(.inv) #gVJ{display:flex}
+#gVJ{flex-direction:column;gap:12px;box-sizing:border-box;width:min(262px,68vw);margin-top:16px;padding:12px 14px 11px 12px;pointer-events:none;
+  background:linear-gradient(180deg,rgba(18,13,38,.84),rgba(8,6,18,.86));box-shadow:inset 0 0 0 1px var(--fil),inset 0 1px 0 rgba(255,255,255,.1),0 14px 30px -14px rgba(0,0,0,.8);
+  clip-path:polygon(9px 0,100% 0,100% calc(100% - 9px),calc(100% - 9px) 100%,0 100%,0 9px);animation:gvJEntre .6s var(--ease) .2s backwards}
+@keyframes gvJEntre{from{opacity:0;translate:-16px 0}to{opacity:1;translate:0 0}}
+.gvL{display:grid;grid-template-columns:auto auto minmax(0,1fr);align-items:center;column-gap:8px;row-gap:6px}
+.gvL .pxi{--pxs:2}
+.gvL b{font-weight:400;font-size:var(--f3);letter-spacing:1px;white-space:nowrap}
+.gvL .gvR{min-width:0;justify-self:end;font-size:var(--f0);letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 0 var(--txO)}
+.gvL u{grid-column:1/-1;position:relative;display:block;height:10px;overflow:hidden;background:#07050f;box-shadow:inset 0 0 0 1px rgba(255,255,255,.13),inset 0 -2px 0 rgba(0,0,0,.5)}
+.gvL u em{position:absolute;left:0;top:0;bottom:0;width:calc(var(--f,0) * 100%);transition:width 1.2s var(--ease) .35s}
+.gvL u em::after{content:'';position:absolute;right:0;top:0;bottom:0;width:2px;background:#fff;box-shadow:0 0 6px #fff}
+.gvL u::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(100deg,transparent 35%,rgba(255,255,255,.55) 48%,transparent 60%) no-repeat;background-size:240% 100%;
+  animation:k4Lingot 5.2s var(--ease) 1.8s infinite}
+.gvL .gvS{grid-column:1/-1;display:flex;gap:8px;min-width:0;font-size:var(--f0);letter-spacing:0;color:var(--tx3);white-space:nowrap}
+.gvL .gvS i{flex:1;min-width:0;font-style:normal;overflow:hidden;text-overflow:ellipsis}
+.gvL .gvS em{flex:none;font-style:normal;color:var(--tx2)}
+.gvA b{color:var(--cash);text-shadow:0 2px 0 var(--cashO),0 0 12px rgba(125,255,155,.35)}
+.gvA .pxi{color:var(--au2);animation:k4Piece 3.2s var(--ease) infinite}
+.gvA .gvR{color:#7dff9b}
+.gvA.portee .gvR{color:#0b2a14;background:#7dff9b;padding:2px 5px;box-shadow:0 0 10px rgba(125,255,155,.6);animation:gvPortee 1.6s ease-in-out infinite}
+@keyframes gvPortee{50%{box-shadow:0 0 18px rgba(125,255,155,.95)}}
+.gvA u em{background:linear-gradient(180deg,#e6fff0 0 2px,#7dff9b 2px 5px,#2fd36a 5px 8px,#13853e 8px);box-shadow:0 0 10px rgba(94,240,138,.55)}
+.gvU b{color:#e2c2ff;text-shadow:0 2px 0 #2a0b4a,0 0 12px rgba(199,125,255,.4)}
+.gvU .pxi{color:#c77dff;animation:gvEtoile 2.6s ease-in-out infinite}
+@keyframes gvEtoile{50%{filter:drop-shadow(0 0 8px #e9b8ff) brightness(1.4)}}
+.gvU .gvR{color:#ff9ad8}
+.gvU u em{background:linear-gradient(90deg,transparent,rgba(255,154,216,.9)) ,linear-gradient(180deg,#f6e4ff 0 2px,#c77dff 2px 5px,#9a4dff 5px 8px,#5a1fb0 8px);box-shadow:0 0 10px rgba(199,125,255,.6)}
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html body #garage.vitrine:not(.menu) #gVJ{position:fixed;right:calc(var(--sR) + 16px);top:calc(var(--sT) + 68px);margin:0;width:258px;padding:10px 12px 9px 10px;gap:10px;animation-name:gvJEntreC}
+  @keyframes gvJEntreC{from{opacity:0;translate:16px 0}to{opacity:1;translate:0 0}}
+}
+@media (prefers-reduced-motion:reduce){#gVJ,.gvL u::after,.gvA .pxi,.gvU .pxi{animation:none!important}.gvL u em{transition:none}}
+html[data-reduced-motion] #gVJ,html[data-reduced-motion] .gvL u::after,html[data-reduced-motion] .gvA .pxi,html[data-reduced-motion] .gvU .pxi{animation:none!important}
 /* L'ASTUCE : le geste dit une fois — un doigt qui appuie, un anneau qui se remplit */
 html body #garage.vitrine.aideInv:not(.menu):not(.inv) #gInvAide{display:flex}
 #gInvAide{position:absolute;z-index:2;left:50%;bottom:calc(var(--sB) + 90px);translate:-50% 0;align-items:center;gap:10px;padding:9px 14px 9px 12px;pointer-events:none;white-space:nowrap;
@@ -5741,6 +5780,11 @@ html.poki [data-m="shop"],html.poki [data-go="shop"],html.poki .gBoutique,html.p
         <div id="gDesc"></div>
         <div id="gBank">COMPTE : —</div>
         <div id="gHint">glisse pour tourner · molette pour zoomer</div>
+      </div>
+      <!-- (2026-10-04, Léo : « ça fait un peu vide, ajoute un peu de vie : jauge money, jauge aura, moyennes, colorées ») LA VITRINE : voir gvJauges -->
+      <div id="gVJ" aria-label="Compte et aura">
+        <div class="gvL gvA"><i class="pxi pxi-piece" aria-hidden="true"></i><b>$ 0</b><small class="gvR"></small><u><em></em></u><span class="gvS"></span></div>
+        <div class="gvL gvU"><i class="pxi pxi-etoile" aria-hidden="true"></i><b>0</b><small class="gvR"></small><u><em></em></u><span class="gvS"></span></div>
       </div>
     </div>
     <div id="lbBoxG"></div>
@@ -36525,7 +36569,7 @@ function chuteRender(dt){
 const GAR_CAM_A=Math.PI;
 function garRot(){return GAR_CAM_A-garageAng;}
 function garCamA(){return GAR_CAM_A+(GAR.vA||0)+(GAR.swO||0);} // (2026-09-30) l'azimut RÉEL de la caméra : l'axe + le regard du doigt + le balancement (voir « LE GARAGE QUI VIT »)
-const VITRINE_CAM={fw:.9,fh:.8,cy:.6,adapt:.5,p:-.1,y:-.45,vise:.12,viseP:.24,fov:.9,rot:.15,cle:.3,rim:.35}; // LA VITRINE v2 : la caisse tient dans fw de la largeur libre et fh de sa hauteur, inclinaison +p rad, hauteur +y m, visée +vise (+viseP debout), objectif ×fov, plateau rot rad/s, lampes +cle/+rim
+const VITRINE_CAM={fw:.9,fwP:.8,fh:.8,cx:.43,cy:.55,adapt:.5,p:.08,y:0,vise:-.38,viseP:.6,fov:.9,rot:.15,cle:.3,rim:.35}; // LA VITRINE v2 : la caisse tient dans fw de la largeur libre et fh de sa hauteur, inclinaison +p rad, hauteur +y m, visée +vise (+viseP debout), objectif ×fov, plateau rot rad/s, lampes +cle/+rim
 /* le GABARIT de la caisse vue en tournant : R = demi-diagonale de son empreinte au sol (la plus large qu'elle montre), H = sa hauteur. Mesuré
    caisse droite et à l'échelle 1 (la bascule l'écrase, le toucher la tasse), une fois par caisse et par construction. */
 function garGabarit(){
@@ -36745,10 +36789,10 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
      (`adapt`) : la caméra s'approche quand elle montre l'arrière, recule quand elle passe de profil — un travelling lent (lissé ~1 s),
      comme un cadreur qui garde son sujet. Jamais plus près que ce qui la garde entière. */
   if(VK>.001){const G=garGabarit(),lb=garLibre(),tv=Math.tan(fovG*Math.PI/360),th=tv*VP.w/Math.max(1,VP.h),
-      zw=Math.max(.3,(lb.x1-lb.x0)/VP.w),zh=Math.max(.25,(lb.y1-lb.y0)/VP.h),
+      zw=Math.max(.3,2*Math.min(lb.cx-lb.x0,lb.x1-lb.cx)/VP.w),zh=Math.max(.25,(lb.y1-lb.y0)/VP.h),fw=VC.fw+(VC.fwP-VC.fw)*POR, /* (même soir, Léo) la caisse décalée à gauche : la place qui compte est la plus petite des deux moitiés ; debout un peu plus de recul (fwP) */
       q=carGroup.rotation.y-cA,sq=Math.abs(Math.sin(q)),cq=Math.abs(Math.cos(q)),
       w=G.a*sq+G.b*cq,pr=G.a*cq+G.b*sq,wE=G.R+(w-G.R)*VC.adapt,pE=G.R+(pr-G.R)*VC.adapt,
-      dW=wE/(VC.fw*zw*th)+pE,dH=(G.H*.5+pE*Math.sin(Math.max(.05,cPit))+.25)/(VC.fh*zh*tv)+pE,dV=Math.max(dW,dH,3.2);
+      dW=wE/(fw*zw*th)+pE,dH=(G.H*.5+pE*Math.sin(Math.max(.05,cPit))+.25)/(VC.fh*zh*tv)+pE,dV=Math.max(dW,dH,3.2);
     GAR.dVs=GAR.dVs?GAR.dVs+(dV-GAR.dVs)*Math.min(1,dt*1.6):dV;dG0=dG0*(1-VK)+GAR.dVs*VK;}
   const capH=8+2.5*Math.pow(Math.max(0,-Math.cos(cA)),2); // (2026-09-30, le tour complet) 10,5 m seulement dans l'axe libre (côté établi) ; ailleurs le décor est rangé pour 8 m (la règle des 8,3 m)
   const dG=Math.min(dG0,capH/Math.max(.2,Math.cos(garagePitch))); // (2026-09-29) 8 → 10,5 m : la caméra est FIXE, dans l'axe libre de l'atelier (côté établi) — elle recule au lieu d'ouvrir l'objectif jusqu'à ~87° (« l'effet loupe »)
@@ -36817,7 +36861,7 @@ function garLibre(){
     r.vit=gEl.classList.contains('vitrine');
     if(INV&&INV.on){const iv=$('gInv'),ir=iv&&iv.getBoundingClientRect();     // (2026-10-04) L'INVENTAIRE ouvert : la caisse se pose au-dessus du tiroir (debout), à sa gauche (couché)
       if(ir&&ir.width>0){if(W>H*1.2&&ir.left>W*.3){r.x1=Math.min(r.x1,ir.left);r.y1=H-12;}else r.y1=Math.min(r.y1,ir.top);}}}
-  r.cx=(r.x0+r.x1)/2;r.cy=(r.y0+r.y1)/2;if(r.shop)r.cy=r.y0+(r.y1-r.y0)*(r.vit?(.5+(VITRINE_CAM.cy-.5)*POR):.44); /* (vitrine v2) debout la caisse se pose un peu plus BAS : le feu et la porte au-dessus, moins de sol vide dessous */ /* (garage v7) la caisse se posait BAS dans sa zone (DEBUGGING) : son centre à 44 % de la zone, pas 50 */return garLibre._r=r;
+  r.cx=(r.x0+r.x1)/2;if(r.vit)r.cx=r.x0+(r.x1-r.x0)*VITRINE_CAM.cx;r.cy=(r.y0+r.y1)/2;if(r.shop)r.cy=r.y0+(r.y1-r.y0)*(r.vit?(.5+(VITRINE_CAM.cy-.5)*POR):.44); /* (vitrine v2) debout la caisse se pose un peu plus BAS : le feu et la porte au-dessus, moins de sol vide dessous */ /* (garage v7) la caisse se posait BAS dans sa zone (DEBUGGING) : son centre à 44 % de la zone, pas 50 */return garLibre._r=r;
 }
 function garCadre(k){
   const r=garLibre();camera.clearViewOffset();camera.updateMatrixWorld();
@@ -37023,9 +37067,31 @@ const PORTE_FERMEE=MENU_SACHA||/[?&]porte=1\b/.test(location.search); // (2026-1
 function garVitrine(on){
   if(!gEl)return;if(!on)invFerme(true);gEl.classList.toggle('vitrine',!!on);gEl.classList.toggle('aideInv',!!on&&!((SAVE.d.ast|0)&4)); // (v2) l'astuce du doigt tenu, tant que l'inventaire n'a jamais été ouvertgEl.classList.toggle('deplie',!on&&gEl.classList.contains('deplie'));garLibre._r=null;
   if(on){if(SHOP.tab!=='voiture'||SHOP.prev)shopTab('voiture');const eq=equippedCar();if(garageI!==eq&&!GAR.sw)garageShow(eq);} // en vitrine : TA caisse, jamais un essai
+  if(on)gvJauges(true);
 }
-try{Object.assign(I18N,{'TUNING':'TUNING','SHOP':'SHOP','INVENTAIRE':'INVENTORY','MAINTIENS LA CAISSE':'HOLD YOUR CAR','OBJETS':'ITEMS','OBJET':'ITEM'});
-  Object.assign(I18N_ZH,{'SHOP':'商店','INVENTAIRE':'库存','MAINTIENS LA CAISSE':'长按你的车','OBJETS':'件物品','OBJET':'件物品'});}catch(e){}
+/* LES JAUGES DE LA VITRINE (voir « LES JAUGES » dans <style id="garageVitrine">) : l'ARGENT vers la prochaine caisse à vendre (`objectif()`, ce
+   que vise le menu de Léo), l'AURA vers le rang suivant. `anim` : elles partent de zéro et se remplissent, les chiffres défilent (0,9 s). */
+function gvJauges(anim){
+  const el=$('gVJ');if(!el)return;
+  const b=Math.max(0,Math.floor(bank())),o=objectif(),au=Math.max(0,SAVE.d.aura||0),r=auraRank(),lo=AURA_RANKS[r].v,nx=AURA_RANKS[r+1];
+  const fA=o&&o.prix?Math.max(0,Math.min(1,b/o.prix)):1,fU=nx?Math.max(0,Math.min(1,(au-lo)/(nx.v-lo))):1;
+  const fm=function(x){return CUR()+(LANG==='fr'?' ':'')+Math.round(x).toLocaleString(LOC()).replace(/[\u202f\u00a0]/g,' ');};
+  const A=el.querySelector('.gvA'),U=el.querySelector('.gvU'),q=function(e,c){return e.querySelector(c);};
+  q(A,'.gvR').textContent=fA>=1&&o?sansAcc(TR('A TA PORTEE')):Math.floor(fA*100)+' %';A.classList.toggle('portee',fA>=1&&!!o); // la caisse visée s'achète déjà : on le DIT
+  const sub=function(e,g,d){const x=q(e,'.gvS');x.innerHTML='<i></i><em></em>';x.firstChild.textContent=g;x.lastChild.textContent=d||'';};
+  sub(A,o?sansAcc(TR('VERS'))+' '+sansAcc(TR(o.nom)):sansAcc(TR('TOUT EST A TOI')),o?fmtC(o.prix):'');             // le nom se coupe s'il le faut, jamais le prix
+  q(U,'.gvR').textContent=sansAcc(auraRankName(r));
+  sub(U,nx?sansAcc(TR('VERS'))+' '+sansAcc(TR(nx.n)):sansAcc(TR('SOMMET ATTEINT')),nx?'+'+fmtAura(Math.max(0,nx.v-au)):'');
+  const eA=q(A,'u em'),eU=q(U,'u em');
+  if(anim&&!REDUCED_MOTION){eA.style.transition=eU.style.transition='none';eA.style.setProperty('--f','0');eU.style.setProperty('--f','0');void eA.offsetWidth;eA.style.transition=eU.style.transition='';
+    const t0=performance.now(),bA=q(A,'b'),bU=q(U,'b'),D=900,f9=function(){const k=Math.min(1,(performance.now()-t0-350)/D),e=k<0?0:1-Math.pow(1-k,3);
+      bA.textContent=fm(b*e);bU.textContent=fmtAura(au*e);if(k<1&&gEl.classList.contains('vitrine'))requestAnimationFrame(f9);else{bA.textContent=fm(b);bU.textContent=fmtAura(au);}};
+    bA.textContent=fm(0);bU.textContent=fmtAura(0);requestAnimationFrame(f9);
+    requestAnimationFrame(function(){eA.style.setProperty('--f',fA.toFixed(3));eU.style.setProperty('--f',fU.toFixed(3));});}
+  else{q(A,'b').textContent=fm(b);q(U,'b').textContent=fmtAura(au);eA.style.setProperty('--f',fA.toFixed(3));eU.style.setProperty('--f',fU.toFixed(3));}
+}
+try{Object.assign(I18N,{'A TA PORTEE':'AFFORDABLE','VERS':'TO','TOUT EST A TOI':'YOU OWN IT ALL','SOMMET ATTEINT':'TOP RANK','TUNING':'TUNING','SHOP':'SHOP','INVENTAIRE':'INVENTORY','MAINTIENS LA CAISSE':'HOLD YOUR CAR','OBJETS':'ITEMS','OBJET':'ITEM'});
+  Object.assign(I18N_ZH,{'A TA PORTEE':'买得起','VERS':'距','TOUT EST A TOI':'全部拥有','SOMMET ATTEINT':'最高等级','SHOP':'商店','INVENTAIRE':'库存','MAINTIENS LA CAISSE':'长按你的车','OBJETS':'件物品','OBJET':'件物品'});}catch(e){}
 /* ================= L'INVENTAIRE (2026-10-04, Léo : « quand on maintient sur la voiture, ça active un inventaire comme le shop, mais avec les
    objets possédés, entourés par une lueur de la couleur de leur rareté ») =================
    · LE GESTE : en VITRINE, le doigt (ou la souris) posé SUR la caisse (`garSurCaisse` : sa carrosserie projetée à l'écran, un peu élargie) et

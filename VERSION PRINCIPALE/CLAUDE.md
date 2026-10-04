@@ -52,7 +52,18 @@
   (`garGabarit` : empreinte au sol et hauteur, mesurées caisse droite à l'échelle 1) : elle tient dans `fw` (,9) de la largeur LIBRE
   (`garLibre`, tiroir ouvert compris) et `fh` de sa hauteur — MESURÉ : un recul fixe la coupait aux bords debout, de profil. Et il suit à
   moitié (`adapt` ,5) la largeur qu'elle MONTRE à l'instant : la caméra s'approche quand elle montre l'arrière, recule de profil (travelling
-  lissé ~1 s). Debout elle se pose à 60 % de la place libre (`cy`) : la porte et le feu au-dessus. Réglable à chaud : `dbgInv('cam',{…})`.
+  lissé ~1 s). Réglable à chaud : `dbgInv('cam',{…})`.
+  · (même soir, Léo : « le point de vue un peu plus haut, légèrement incliné vers le bas vers la voiture, couché et debout ; debout c'est un
+    peu trop rapproché ; pas centré pile sur la voiture, un peu à gauche ») : inclinaison +0,08 rad au lieu de −0,1, hauteur d'origine, visée
+    sur la caisse (`vise` −,38 couché, +,22 debout) — on la voit d'un peu au-dessus, le plateau en ellipse ; debout `fwP` ,8 (un cran de recul) ;
+    la caisse posée à 43 % de la largeur libre (`cx`) — le cadrage se calcule sur la plus petite des deux moitiés : elle reste entière de
+    profil — et debout à 55 % de la hauteur libre (`cy`).
+- **LES JAUGES (même soir, Léo : « ça fait un peu vide, ajoute un peu de vie : jauge money, jauge aura, moyennes, colorées »)** — `#gVJ`,
+  `gvJauges(anim)` appelée par `garVitrine(true)` : l'ARGENT (vert billet, vers la prochaine caisse à vendre — `objectif()`, celle que visait
+  le profil du menu de Léo ; pleine : « À TA PORTÉE » qui luit) et l'AURA (violet → rose, le rang, vers le rang suivant, ce qu'il manque).
+  La jauge de la charte (fond d'encre, quatre bandes, curseur blanc) ; à l'entrée elles se REMPLISSENT (1,2 s), les chiffres défilent, un
+  reflet passe toutes les ~5 s, la pièce tourne, l'étoile scintille. Debout sous le nom ; couché en haut à droite (la caisse est à gauche) ;
+  masquées pendant l'inventaire. Le nom de la cible se coupe s'il le faut, jamais le prix.
 - **L'INVENTAIRE (`INV`, `invOuvre`/`invFerme`/`invRender`/`invEquipe`, `#gInv`)** : le doigt (ou la souris) TENU sur la caisse
   (`garSurCaisse` : sa carrosserie projetée, élargie de 8 % + 10 px) — après 0,12 s un anneau de la couleur de la caisse se remplit sous le
   doigt (`#gInvAnneau`, 0,45 s), plein il ouvre le tiroir (vibration) ; bouger de plus de 12 px annule (c'est un glissé) ; le relâcher qui suit
@@ -68,7 +79,7 @@
   caisse entière), tap court et glissé n'ouvrent rien, doigt tenu → tiroir, équiper peinture et caisse, traînées, Échap, SHOP → console ;
   accueil → JOUER → course, mort → REJOUER, mort → HOME → GARAGE → inventaire → HOME → JOUER, JOUER du garage — debout, couché et dans le
   cadre de l'ordi (souris maintenue, touches I/Échap, clic JOUER) : 0 erreur. ⚠ Au rendu logiciel (~400 ms l'image) un glissé peut arriver
-  APRÈS la fin du délai et ouvrir le tiroir : artefact du banc (sur téléphone les mouvements arrivent toutes les 16 ms). sw.js → v104, v105.
+  APRÈS la fin du délai et ouvrir le tiroir : artefact du banc (sur téléphone les mouvements arrivent toutes les 16 ms). sw.js → v104, v105, v106 (le plan v2 et les jauges : mêmes parcours repassés, 0 erreur).
 
 ## LA VILLE DÈS L'ENTRÉE + GLASSY PLUCKS (2026-10-04, Léo — « les niveaux villes ne sont pas tous des villes » · « la musique pour la ville, c'est GLASSY PLUCKS »)
 - MESURÉ d'abord (bancs `villes.mjs`, `cycle.mjs`, `villepos.mjs`, `citystat.mjs`, scratchpad 83e03bdc) : les 10 niveaux VILLE de la
