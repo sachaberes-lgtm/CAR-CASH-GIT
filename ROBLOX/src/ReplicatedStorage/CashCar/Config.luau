@@ -130,16 +130,16 @@ Config.POUVOIRS = {
 local function hx(h: number): Color3 return Color3.fromRGB(bit32.rshift(h, 16), bit32.band(bit32.rshift(h, 8), 255), bit32.band(h, 255)) end
 Config.HABITS = {
 	peinture = {
-		{ id = "usine", nom = "D'ORIGINE", en = "FACTORY", d = "La teinte du constructeur. Elle a fait ses preuves.", dEN = "The maker's colour. It has proven itself." },
+		{ id = "usine", nom = "D'ORIGINE", en = "FACTORY", d = "La teinte du constructeur. Elle a fait ses preuves.", dEN = "The maker's color. It has proven itself." },
 		{ id = "menthe", nom = "MENTHE GLACEE", en = "ICED MINT", p = 2500, c = hx(0x5ff0c6), d = "Fraîche comme un billet qui sort du distributeur.", dEN = "Fresh as a bill straight out of the ATM." },
-		{ id = "minuit", nom = "BLEU MINUIT", en = "MIDNIGHT BLUE", p = 5000, c = hx(0x2b43c4), d = "Le bleu des néons de la ville, à trois heures du matin.", dEN = "The blue of the city neons, at three in the morning." },
+		{ id = "minuit", nom = "BLEU MINUIT", en = "MIDNIGHT BLUE", p = 5000, c = hx(0x2b43c4), d = "Le bleu des néons de la ville, à trois heures du matin.", dEN = "The blue of the city's neon signs, at three in the morning." },
 		{ id = "noir", nom = "NOIR MAT", en = "MATTE BLACK", p = 9000, c = hx(0x202128), g = "s", d = "Pas un reflet. Même la police hésite.", dEN = "Not a single reflection. Even the police hesitate." },
 		{ id = "couchant", nom = "COUCHER DE SOLEIL", en = "SUNSET", p = 18000, grad = { hx(0xffc23a), hx(0xff4f8b), hx(0x6b3cff) }, d = "Du miel en bas, du violet en haut : le ciel de 19 h, en laque.", dEN = "Honey at the bottom, violet at the top: the 7 pm sky, in lacquer." },
 		{ id = "chrome", nom = "CHROME MIROIR", en = "MIRROR CHROME", p = 60000, c = hx(0xe9eef5), g = "c", d = "Tu te vois dedans. Les autres aussi.", dEN = "You can see yourself in it. So can the others." },
 		{ id = "or", nom = "OR MASSIF", en = "SOLID GOLD", roue = true, c = hx(0xffc93a), g = "o", d = "Ne s'achète pas : elle se gagne à la ROUE.", dEN = "Can't be bought: it is won on the WHEEL." },
 	},
 	aile = {
-		{ id = "panneaux", nom = "PANNEAUX", en = "PANELS", d = "Deux planches de planeur qui sortent des flancs. Sobre.", dEN = "Two glider boards sliding out of the sides. Sober." },
+		{ id = "panneaux", nom = "PANNEAUX", en = "PANELS", d = "Deux planches de planeur qui sortent des flancs. Sobre.", dEN = "Two glider boards sliding out of the sides. Understated." },
 		{ id = "helices", nom = "HELICES", en = "PROPELLERS", p = 3000, d = "Quatre rotors. Ça ne vole pas mieux, mais ça brasse de l'air.", dEN = "Four rotors. It doesn't fly better, but it moves some air." },
 		{ id = "plumes", nom = "PLUMES D'ANGE", en = "ANGEL FEATHERS", p = 12000, d = "Blanches, en éventail. Le ciel te prend pour un des siens.", dEN = "White, fanned out. The sky takes you for one of its own." },
 		{ id = "chauve", nom = "CHAUVE-SOURIS", en = "BAT", p = 25000, d = "Membranes noires et doigts d'os. Pour les vols de nuit.", dEN = "Black membranes and bone fingers. For night flights." },

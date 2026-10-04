@@ -38,8 +38,8 @@ local L = FR and {
 	equiper = "EQUIPER", verrou = "VERROUILLEE", enBoutique = "EN BOUTIQUE", aToi = "A TOI !",
 	ilTeManque = "IL TE MANQUE ", bientot = "BIENTOT DISPONIBLE",
 	tout = "TOUT", aMoi = "A MOI", aAcheter = "A ACHETER", gagner = "A GAGNER", defi = "ROUE",
-	roue = "SE GAGNE A LA ROUE (ACCUEIL)", carrN = "ATTRAPE-LA AU NIVEAU 10 DES NUAGES  (%d / 10)",
-	carrV = "BATS LE BANQUIER AU NIVEAU 10 DE LA VILLE  (%d / 10)", aura = "RANG D'AURA « %s »   (le tien : « %s »)",
+	roue = "SE GAGNE A LA ROUE", carrN = "ATTRAPE-LA AU NIVEAU 10 DES NUAGES  (%d / 10)",
+	carrV = "BATS LE BANQUIER AU NIVEAU 10 DE LA VILLE  (%d / 10)", aura = "RANG D'AURA « %s »   (LE TIEN : « %s »)",
 	rangs = { "ANONYME", "REMARQUE", "ON PARLE DE TOI", "REPUTE", "LEGENDE LOCALE", "STAR DU BITUME", "MYTHE", "DIVINITE DU CIEL" },
 } or {
 	voitures = "CARS", peinture = "PAINT", ailes = "WINGS", trainees = "TRAILS",
@@ -47,7 +47,7 @@ local L = FR and {
 	equiper = "EQUIP", verrou = "LOCKED", enBoutique = "IN THE SHOP", aToi = "YOURS!",
 	ilTeManque = "SHORT BY ", bientot = "COMING SOON",
 	tout = "ALL", aMoi = "MINE", aAcheter = "FOR SALE", gagner = "EARN IT", defi = "WHEEL",
-	roue = "WON ON THE WHEEL (HOME SCREEN)", carrN = "CATCH HER IN CLOUDS LEVEL 10  (%d / 10)",
+	roue = "WON ON THE WHEEL", carrN = "CATCH HER IN CLOUDS LEVEL 10  (%d / 10)",
 	carrV = "BEAT THE BANKER IN CITY LEVEL 10  (%d / 10)", aura = 'AURA RANK "%s"   (yours: "%s")',
 	rangs = { "NOBODY", "NOTICED", "THEY'RE TALKING ABOUT YOU", "RENOWNED", "LOCAL LEGEND", "ASPHALT STAR", "MYTH", "SKY GOD" },
 }
@@ -419,9 +419,12 @@ local function ambiance(on: boolean)
 		sauve = { b = Lighting.Brightness, a = Lighting.Ambient, o = Lighting.OutdoorAmbient, e = Lighting.ExposureCompensation,
 			d = Lighting.EnvironmentDiffuseScale, s = Lighting.EnvironmentSpecularScale, dens = atm and atm.Density, r = rays and rays.Enabled }
 		Lighting.Brightness = 0
-		Lighting.Ambient = Color3.fromRGB(46, 44, 84)
-		Lighting.OutdoorAmbient = Color3.fromRGB(46, 44, 84)
-		Lighting.ExposureCompensation = -0.25
+		-- (4/10, mesuré au banc : quand la machine rame, Roblox baisse la qualité et COUPE les lampes — or l'atelier n'est éclairé que
+		-- par elles : à (46, 44, 84) il devenait NOIR, la caisse invisible. Sur un petit téléphone, ce serait tout le temps. Une
+		-- ambiance de secours plus claire : l'atelier se lit sans lampes, et garde sa pénombre quand elles brillent)
+		Lighting.Ambient = Color3.fromRGB(82, 78, 130)
+		Lighting.OutdoorAmbient = Color3.fromRGB(82, 78, 130)
+		Lighting.ExposureCompensation = -0.2
 		Lighting.EnvironmentDiffuseScale = 0.12
 		Lighting.EnvironmentSpecularScale = 0.25
 		if atm then atm.Density = 0 end
@@ -561,7 +564,7 @@ local function majTuile(i: number)
 		elseif f.cond.k == "premium" then etiquette, couleur = L.boutique, OR1
 		elseif f.cond.k == "roue" then etiquette, couleur = L.defi, OR1 end
 	elseif not equipee then
-		etiquette = "✓"
+		etiquette = L.aMoi -- (« ✓ » : un carré dans toutes les polices de Roblox)
 	end
 	t.prix.Text = etiquette
 	t.prix.TextColor3 = couleur
@@ -640,7 +643,7 @@ local function majBandeHabits()
 			local a = aHabit(cat, d)
 			local etiquette, couleur = "", CASH
 			if a then
-				etiquette = (p[cat] == d.id) and "" or "✓"
+				etiquette = (p[cat] == d.id) and "" or L.aMoi
 			elseif d.p then
 				etiquette = Hud.argent(d.p)
 			else
@@ -863,7 +866,7 @@ function Garage.majFicheCaisse()
 	local f = Catalogue[montre]
 	local c = COULEUR_RAR[f.rar]
 	local nom = FR and f.nom or (f.en or f.nom)
-	nom = string.upper(nom)
+	nom = Hud.sansAccent(string.upper(nom)) -- (la police pixel n'a pas de capitales accentuées : « DOLORèS »)
 	U.nom.Text = nom
 	U.nom.TextSize = math.clamp(math.floor(1000 / math.max(8, utf8.len(nom) or #nom)), 34, 86)
 	U.barre.BackgroundColor3 = c
@@ -873,7 +876,7 @@ function Garage.majFicheCaisse()
 	local test = ouv and not aMoi
 	-- la fiche n'écrit que la condition d'une caisse fermée (le prix, lui, est sur le bouton et la vignette)
 	local desc = ""
-	if not aMoi and k.k ~= "prix" then desc = "🔒 " .. condition(montre) end
+	if not aMoi and k.k ~= "prix" then desc = condition(montre) end -- (le cadenas est sur la vignette ; « 🔒 » sortait en carré)
 	if test then desc = '<font color="#ffd75e">[TEST]</font> ' .. desc end
 	U.desc.Text = desc
 	-- le bouton

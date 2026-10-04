@@ -90,6 +90,7 @@ local function creerFenetre(g: Instance)
 	inst("UIStroke", { Color = Color3.fromRGB(255, 190, 240), Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, rab)
 	K.texte(rab, { Text = "-50%", TextSize = 34, TextColor3 = C.texte, Size = UDim2.fromScale(1, 1), TextWrapped = false, epais = 3 })
 	SP.remise = rab
+	rab.Visible = false -- (pas de prix, pas de remise : elle reviendra avec les tarifs en Robux)
 	SP.vue = inst("ViewportFrame", { BackgroundTransparency = 1, Size = UDim2.new(1, -40, 0, 250), Position = UDim2.fromOffset(20, 56),
 		Ambient = Color3.fromRGB(104, 100, 128), LightColor = Color3.fromRGB(226, 216, 204) }, c)
 	SP.pastille = inst("Frame", { BorderSizePixel = 0, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromOffset(150, 42) }, SP.vue)
@@ -112,7 +113,7 @@ local function creerFenetre(g: Instance)
 		Hud.vibre(10)
 		SP.oui.TextScaled = true
 		SP.oui.Text = tr("BIENTOT DISPONIBLE", "COMING SOON")
-		SP.note.Text = tr("Les achats ouvriront à la sortie du jeu sur Roblox.", "Purchases open when the game launches on Roblox.")
+		SP.note.Text = tr("Les achats arrivent très bientôt.", "Purchases are coming very soon.") -- (le jeu est publié : plus de « à la sortie »)
 		SP.note.TextColor3 = OR1
 		task.spawn(function() -- (un refus se sent : la carte tremble)
 			for k = 1, 6 do
@@ -232,10 +233,11 @@ local function creer()
 	inst("UIStroke", { Color = C.magenta, Thickness = 3, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, une)
 	local et = inst("Frame", { BackgroundColor3 = C.magenta, BorderSizePixel = 0, Size = UDim2.fromOffset(318, 44), Position = UDim2.fromOffset(22, 22) }, une)
 	inst("UIStroke", { Color = Color3.fromRGB(255, 190, 240), Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, et)
-	K.texte(et, { Text = tr("OFFRE DE LANCEMENT", "LAUNCH OFFER"), TextSize = 24, TextColor3 = C.texte, Size = UDim2.fromScale(1, 1), TextWrapped = false })
+	K.texte(et, { Text = tr("A LA UNE", "FEATURED"), TextSize = 24, TextColor3 = C.texte, Size = UDim2.fromScale(1, 1), TextWrapped = false })
 	local rab = inst("Frame", { BackgroundColor3 = C.magenta, BorderSizePixel = 0, Size = UDim2.fromOffset(132, 54), Position = UDim2.new(1, -22, 0, 18), AnchorPoint = Vector2.new(1, 0) }, une)
 	inst("UIStroke", { Color = Color3.fromRGB(255, 190, 240), Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, rab)
 	K.texte(rab, { Text = "-50%", TextSize = 38, TextColor3 = C.texte, Size = UDim2.fromScale(1, 1), TextWrapped = false, epais = 3 })
+	rab.Visible = false
 	U.uneVue = inst("ViewportFrame", { BackgroundTransparency = 1, Size = UDim2.new(0.46, 0, 0, 230), Position = UDim2.new(0, 10, 0, 86),
 		Ambient = Color3.fromRGB(104, 100, 128), LightColor = Color3.fromRGB(226, 216, 204) }, une)
 	U.unePastille = inst("Frame", { BorderSizePixel = 0, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromOffset(120, 34),
