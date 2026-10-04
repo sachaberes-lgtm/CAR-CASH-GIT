@@ -42,6 +42,7 @@ KA.Impact = require(CL:WaitForChild("Impact"))
 KA.Recyclage = require(CL:WaitForChild("Recyclage"))
 KA.Revenus = require(CL:WaitForChild("Revenus")) -- (cadeaux, seconde chance, ×2 ARGENT : voir Client/Revenus)
 KA.Roue = require(CL:WaitForChild("Roue")) -- (LA ROUE, à la place des missions et de la carrière : voir Client/Roue)
+KA.Iles = require(CL:WaitForChild("Iles")) -- (les îles flottantes du niveau NUAGES : voir Client/Iles)
 -- (le tapotement de la caisse au titre : le « toc » de tôle de l'atelier et une vibration)
 KA.Titre.surTape = function() Sons.vrai("garageTole", nil, nil, "poseChoc", 1.5, 0.35) Hud.vibre(14) end
 
@@ -195,6 +196,9 @@ local function preparer(z: number, depart: CFrame?): Zone
 		if p.niveau == "nuages" then
 			local okN, resN = pcall(KA.Nuages.batir, p, ciel, graine + z * 31, ceder, z == 0)
 			if okN then nuages = resN else warn("[CashCar] nuages : " .. tostring(resN)) end
+			-- LES ÎLES FLOTTANTES (4/10) : le décor du ciel — loin du ruban, sans collision
+			local okI, resI = pcall(KA.Iles.batir, p, ciel, graine + z * 53, ceder)
+			if not okI then warn("[CashCar] îles : " .. tostring(resI)) end
 		elseif p.niveau == "ville" then
 			-- LA VILLE : le canyon de tours, la forêt du village, les néons — et la grille de collision (en vol, une tour tue)
 			local okV, resV = pcall(KA.Ville.batir, p, ciel, graine + z * 31, ceder)
@@ -3214,6 +3218,8 @@ workspace:GetAttributeChangedSignal("DbgOuvre"):Connect(function()
 		end
 	elseif string.sub(v, 1, 7) == "onglet:" then
 		if mode == "garage" then Garage.onglet(string.sub(v, 8)) end -- (banc) « onglet:trainee » : un onglet du garage
+	elseif v == "ile" then
+		workspace:SetAttribute("DbgVue", KA.Iles.vue(carCF.Position)) -- (banc) la photo de l'île flottante la plus proche
 	elseif string.sub(v, 1, 6) == "impact" then
 		-- (banc) un impact sur la tour la plus proche, et la vue pour le regarder
 		workspace:SetAttribute("DbgVue", KA.Impact.essai((zone :: any).ville, carCF.Position / M, tonumber(string.sub(v, 7, 8))))
