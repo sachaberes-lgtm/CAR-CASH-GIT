@@ -43,7 +43,7 @@
 //  v55 (2026-10-02) : six communes retirées de la gamme.
 //  v83 (2026-10-03) : main de Sacha (le dragon de NITROOO) + musique de Léo (CIEL moderne, phrase du boost qui lit chaque morceau)
 //  v90 (2026-10-04, Léo) : CIEL niveau 5 premium, ting du boost régulé sous la musique.
-const CACHE = 'cashcar-v90'; // v84 (2026-10-03, soir, Léo : « le jeu coupe bizarrement la musique ») : plus de rechargement à chaque push (le numéro de version = l'empreinte du jeu)
+const CACHE = 'cashcar-v91'; // v84 (2026-10-03, soir, Léo : « le jeu coupe bizarrement la musique ») : plus de rechargement à chaque push (le numéro de version = l'empreinte du jeu)
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
