@@ -42,7 +42,9 @@
 - LA PORTE : `PORTE_FERMEE` = `?porte=1` SEULEMENT (c'était `MENU_SACHA||?porte=1`) et ses cinq panneaux ne se montrent plus. ⚠ La porte
   FERMÉE était le choix de SACHA (30/09, défaut de son menu) : Léo l'enlève — à faire valider par Sacha avant `main` (règle 4).
 - LE RIDEAU PEINT (`feuPixPas`) brûle depuis les QUATRE bords (seuil `hh`, linteau `F.hT`, montants `F.sG`/`F.sD`, chacun ses langues) ;
-  un cran plus sombre derrière les cubes ; au centre un cœur de braise sombre en tramage (`FEU_CENTRE`), plus de trou noir.
+  au centre, LE BRASIER (même jour, Léo : « intéressant, mais le milieu sombre un peu dérangeant ») : cinq tons d'orange en pixels francs
+  (`FEU_BRASIER`), des nappes de chaleur qui montent lentement, tramées ; chaque case prend la plus claire de la langue et du brasier
+  (les langues des bords se lisent dessus). Les deux dernières bandes des cubes éclaircies : sur l'orange, une braise sombre faisait tache.
 - LES CUBES (`FEU_CUBES`, `feuCubeNait`, `garFeuCubes` appelée par garFeu à chaque image) : jusqu'à 760 cubes de 34 cm qui NAISSENT
   sur les quatre bords de l'ouverture, groupés en langues, partent vers l'intérieur et MONTENT (ceux du linteau plongent puis se
   recourbent) ; posés sur une grille de 17 cm (ils sautent de case en case), quatre couches de profondeur, un sur trois sort vers
@@ -51,7 +53,7 @@
   halo ×1,9 additif à 17 % (la brillance, la transparence). Au lâcher : deux fois plus de cubes, plus loin, plus vifs.
 - Compilés au menu avec l'atelier (atelierChauffe), rien en course (l'atelier est caché). `FEU_CUBES.on=false` = le rideau seul ;
   `dbgFeu()` rend `cubes`. Vérifié (banc `garfeu.mjs`, scratchpad 83e03bdc) : boutique couchée et debout, lâcher → course, 0 erreur ;
-  menu → JOUER → course couché, debout, cadre de l'ordi : 0 erreur. sw.js → v87.
+  menu → JOUER → course couché, debout, cadre de l'ordi : 0 erreur. sw.js → v87, puis v88 (le brasier).
 
 ## LE DÉPART EN MUSIQUE (2026-10-04, copie de test de Léo — « harmonise le début de partie et le début de la musique, c'est un peu violent »)
 - AVANT, à la sortie du nuage, tout tombait dans la MÊME image : le lobby coupé net et la musique de course qui bondissait à 60 % en 0,15 s.

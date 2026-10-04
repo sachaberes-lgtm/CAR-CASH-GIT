@@ -35773,7 +35773,12 @@ function menuVitrine(dt){
 const FEU_PAL=[[92,16,22],[148,28,28],[204,58,30],[236,104,36],[255,152,52],[255,204,102],[255,238,186]];
 const FEU_BAY=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
 const FEU_FUM=[[40,11,14],[28,8,11],[18,6,9],[11,4,7]]; // (feu v3) — ⚠ (2026-10-04) le feu brûle maintenant depuis les quatre bords : au CENTRE de la porte, ces tons sont un cœur de braise sombre (FEU_CENTRE), pas un trou noir
-const FEU_CENTRE=[[74,16,18],[56,12,15],[42,9,13],[30,7,11]];
+const FEU_CENTRE=[[74,16,18],[56,12,15],[42,9,13],[30,7,11]]; // (inutilisé depuis le brasier, gardé pour comparer)
+/* LE BRASIER DU CENTRE (2026-10-04, Léo : « intéressant, mais le milieu sombre un peu dérangeant ») : le centre de l'ouverture n'est plus
+   une fumée noire mais un BRASIER orange qui ondule — cinq tons en pixels francs, des nappes de chaleur qui montent lentement, tramées
+   (Bayer). Il reste SOUS les langues (moins clair que l'orange des flammes) : les flammes des quatre bords et les cubes se lisent dessus.
+   Chaque case prend la plus claire des deux couleurs, la flamme ou le brasier. */
+const FEU_BRASIER=[[112,24,20],[138,34,22],[164,47,24],[188,62,27],[208,80,31]];
 /* LES FLAMMES EN CUBES (2026-10-04, Léo : « enlève la porte, remets des flammes pixelisées façon Minecraft, plus CUBE ; travaille les
    couleurs, la brillance, la transparence — des pixels cubes satisfaisants » · « des flammes dans TOUS LES SENS : là ça sort d'en bas, je
    veux que ça vienne d'en haut, des côtés — et d'en bas »). Le rideau peint (feuPixPas) reste DERRIÈRE, plus sombre, et brûle désormais
@@ -35789,7 +35794,7 @@ const FEU_CENTRE=[[74,16,18],[56,12,15],[42,9,13],[30,7,11]];
    · au LÂCHER (`GAR.feu.k`) : deux fois plus de flammes, plus loin, plus vives.
    `FEU_CUBES.on=false` rend le rideau seul. `dbgFeu()` rend aussi le nombre de cubes. */
 const FEU_CUBES={on:true,N:760,c:.34,pas:.17,
-  pal:[[2.1,1.85,1.2],[1.95,1.32,.34],[1.65,.7,.12],[1.22,.34,.06],[.74,.12,.05],[.3,.05,.04]],
+  pal:[[2.1,1.85,1.2],[1.95,1.32,.34],[1.65,.7,.12],[1.22,.34,.06],[.92,.2,.06],[.66,.13,.05]], // (brasier) les deux dernières éclaircies : sur l'orange du centre, une braise trop sombre se lisait comme une tache
   taille:[1,.95,.84,.7,.55,.38],seuils:[.8,.62,.44,.27,.12],
   X0:-4.62,X1:4.62,Y0:.04,Y1:4.6};
 function feuCubeNait(C,t,k){
@@ -35838,18 +35843,21 @@ function feuPixPas(F){
     const tt=Math.sin(u*19-t*1.9+1.3*Math.sin(u*5.1+t*.7));hT[x]=(.17+.12*k)*(.75+.25*Math.sin(u*9.3+t*1.1))+(.14+.08*k)*(tt>0?tt*tt*tt:0);}
   for(let y=0;y<H;y++){const v=1-(y+.5)/H,s1=Math.sin(v*14+t*2.6+1.2*Math.sin(v*4.3-t)),s2=Math.sin(v*11-t*2.2+.8);
     sG[y]=(.08+.05*k)*(.8+.2*Math.sin(v*6+t))+(.07+.04*k)*(s1>0?s1*s1*s1:0);sD[y]=(.08+.05*k)*(.8+.2*Math.sin(v*5.3-t*1.2))+(.07+.04*k)*(s2>0?s2*s2*s2:0);}
-  const D=(.84+.16*k)*(FEU_CUBES.on?.8:1);                                   // au repos un cran plus sombre : il est là, il ne crie pas
+  const D=.84+.16*k;                                                         // au repos un cran plus sombre : il est là, il ne crie pas — (brasier) les langues gardent leur éclat : elles se lisent SUR le brasier
   for(let y=0;y<H;y++){const v=1-(y+.5)/H,o0=y*W;
     const ond=v*(2.1*Math.sin(v*11-t*5.2)+1.1*Math.sin(v*23-t*8.3));        // la colonne lue ondule avec la hauteur
     for(let x=0;x<W;x++){const o=(o0+x)*4,u=x/(W-1);
       let xs=Math.round(x+ond+.8*Math.sin(x*.5+t*3.3)*v);xs=xs<0?0:xs>=W?W-1:xs;
       const h=hh[xs];let I=h>0?1-v/h:-1;
       const iT=1-(1-v)/hT[xs],iG=1-u/sG[y],iD=1-(1-u)/sD[y];if(iT>I)I=iT;if(iG>I)I=iG;if(iD>I)I=iD;
-      let c;
-      if(I>0){const b=I<.1?0:I<.24?1:I<.4?2:I<.57?3:I<.74?4:I<.9?5:6;c=FEU_PAL[b];
-        px[o]=c[0]*D;px[o+1]=c[1]*D;px[o+2]=c[2]*D;}
-      else{const q=Math.min(3.4,-I*2.2)+(FEU_BAY[(y&3)*4+(x&3)]/16-.5)*.9+.12*Math.sin(x*.21+v*5-t*.7);   // tramage ordonné : près des flammes la fumée rougeoie, au centre elle est noire
-        c=FEU_CENTRE[q<.5?0:q<1.5?1:q<2.5?2:3];px[o]=c[0];px[o+1]=c[1];px[o+2]=c[2];}
+      // le BRASIER : des nappes de chaleur qui montent (v − t), deux ondes lentes, le tramage, et un peu plus chaud près des langues
+      const hb=.42+.17*Math.sin(u*5.3+t*.9)*Math.sin(v*4.1-t*.7)+.14*Math.sin(u*11-v*7+t*1.6)+.12*Math.sin(v*9-t*2.2+u*3.1)
+        +(FEU_BAY[(y&3)*4+(x&3)]/16-.5)*.3+(I>-.6?.25*(1+I/.6):0);
+      const cb=FEU_BRASIER[hb<.22?0:hb<.4?1:hb<.56?2:hb<.72?3:4],Kb=.8+.2*k;
+      let r=cb[0]*Kb,g9=cb[1]*Kb,b9=cb[2]*Kb;
+      if(I>0){const b=I<.1?0:I<.24?1:I<.4?2:I<.57?3:I<.74?4:I<.9?5:6,c=FEU_PAL[b];
+        if(c[0]*.3+c[1]*.59+c[2]*.11>(r*.3+g9*.59+b9*.11)/D){r=c[0]*D;g9=c[1]*D;b9=c[2]*D;}} // la plus claire des deux : la langue, ou le brasier
+      px[o]=r;px[o+1]=g9;px[o+2]=b9;
       px[o+3]=255;}}
   // LES BRAISES : une case qui monte et se balance, ambre → rouge → éteinte
   const E=F.em,nb=(3.5+60*k)*dt,cnt=Math.floor(nb)+(Math.random()<nb%1?1:0); // ~3,5 braises/s au repos, une gerbe au lâcher
