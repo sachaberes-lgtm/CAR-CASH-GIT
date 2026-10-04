@@ -5826,7 +5826,7 @@ html body #garage:not(.menu) .gTab{font-size:var(--f1)} /* les onglets étaient 
 <!-- (2026-09-28) LA CONSOLE DE SON : la banque de sons (générée par atelier-son/cuire.js) et son lecteur. `defer` : ils ne retardent
      pas le démarrage (on n'en a besoin qu'au premier geste) ; changer `?v=` à chaque nouvelle banque (le service worker garde l'ancienne sinon). -->
 <script defer src="sons-banque.js?v=11"></script>
-<script defer src="assets/audio/music/harmonie.js?v=2"></script> <!-- (2026-10-03) l'harmonie des morceaux, temps par temps : la phrase du boost la lit (atelier-son/harmonie.py) -->
+<script defer src="assets/audio/music/harmonie.js?v=3"></script> <!-- (2026-10-03) l'harmonie des morceaux, temps par temps : la phrase du boost la lit (atelier-son/harmonie.py) -->
 <script defer src="sfx.js?v=4"></script>
 <script>
 (function(){
@@ -28756,11 +28756,11 @@ function instruBus(){
   try{ // LA SALLE : du bruit qui s'éteint, assombri avec le temps (calculé une fois, 1,8 s)
     const n=Math.floor(AC.sampleRate*1.8),ir=AC.createBuffer(2,n,AC.sampleRate);
     for(let c=0;c<2;c++){const d=ir.getChannelData(c);let lo=0;for(let i=0;i<n;i++){const x=i/n,a=Math.pow(1-x,3.2),k=.25+.7*x;lo+=(Math.random()*2-1-lo)*(1-k);d[i]=lo*a*(i<AC.sampleRate*.012?i/(AC.sampleRate*.012):1);}}
-    const cv=AC.createConvolver();cv.buffer=ir;const rv=AC.createGain();rv.gain.value=.85;const pd=AC.createDelay(.2);pd.delayTime.value=.035;INSTRU.salle=pd;const rh=AC.createBiquadFilter();rh.type='highpass';rh.frequency.value=320;lp.connect(rh);rh.connect(pd); /* la salle ne prend plus le grave (la « résonance ») */pd.connect(cv);cv.connect(rv);rv.connect(MASTER); // pré-délai 35 ms : l'attaque de chaque note passe AVANT la salle
+    const cv=AC.createConvolver();cv.buffer=ir;const rv=AC.createGain();rv.gain.value=.55;const pd=AC.createDelay(.2);pd.delayTime.value=.035;INSTRU.salle=pd;const rh=AC.createBiquadFilter();rh.type='highpass';rh.frequency.value=320;lp.connect(rh);rh.connect(pd); /* la salle ne prend plus le grave (la « résonance ») */pd.connect(cv);cv.connect(rv);rv.connect(MASTER); // pré-délai 35 ms : l'attaque de chaque note passe AVANT la salle
   }catch(e){}
   try{ // L'ÉCHO PING-PONG en croche pointée, recalé sur le tempo à chaque appui (instruTempo)
     const dL=AC.createDelay(2),dR=AC.createDelay(2),fb=AC.createGain(),df=AC.createBiquadFilter(),mg=AC.createChannelMerger(2),eg=AC.createGain();
-    df.type='lowpass';df.frequency.value=1300;const dh=AC.createBiquadFilter();dh.type='highpass';dh.frequency.value=300;fb.gain.value=.3;eg.gain.value=.38;
+    df.type='lowpass';df.frequency.value=1300;const dh=AC.createBiquadFilter();dh.type='highpass';dh.frequency.value=300;fb.gain.value=.3;eg.gain.value=.26;
     lp.connect(dh);dh.connect(df);df.connect(dL);dL.connect(dR);dR.connect(fb);fb.connect(dL);dL.connect(mg,0,0);dR.connect(mg,0,1);mg.connect(eg);eg.connect(MASTER);
     INSTRU.dL=dL;INSTRU.dR=dR;
   }catch(e){}
@@ -28800,7 +28800,7 @@ function instruTing(f,t,pan,vel){
   const c=AC.createOscillator(),m=AC.createOscillator(),mg=AC.createGain(),g=AC.createGain(),sc=AC.createOscillator(),sg=AC.createGain(),p=AC.createStereoPanner?AC.createStereoPanner():null;
   c.frequency.value=f;m.frequency.value=f*3.5;mg.gain.setValueAtTime(f*1.1,t);mg.gain.setTargetAtTime(0,t,.06);m.connect(mg);mg.connect(c.frequency);
   sc.frequency.value=f*4;sg.gain.setValueAtTime(0,t);sg.gain.linearRampToValueAtTime(.3,t+.002);sg.gain.setTargetAtTime(0,t+.004,.035);sc.connect(sg);sg.connect(g);
-  const pk=.07*vel;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(pk,t+.003);g.gain.setTargetAtTime(0,t+.008,.35); // (Léo : « un peu plus fort, que je le remarque ») +2 dB
+  const pk=.062*vel;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(pk,t+.003);g.gain.setTargetAtTime(0,t+.008,.35); // (2026-10-04) −1 dB, et il se pose ensuite (voir niv9)
   c.connect(g);if(p){p.pan.value=pan;g.connect(p);p.connect(INSTRU.etin);}else g.connect(INSTRU.etin);
   [c,m,sc].forEach(function(o){o.start(t);o.stop(t+1.8);});INSTRU.vu.push(Math.round(f));if(INSTRU.vu.length>200)INSTRU.vu.shift();
 }
@@ -28851,8 +28851,11 @@ function instruPlanifie(){ // regard d'avance de 120 ms : les notes tombent pile
     if(!INSTRU.tient){if(INSTRU.queue<=0){clearInterval(INSTRU.iv);INSTRU.iv=0;return;}INSTRU.queue--;INSTRU.vel*=.84;} // lâché : la phrase s'éteint en finissant le temps
     if(INSTRU.essai&&INSTRU.n>=INSTRU.essaiN)return;
     const k=INSTRU.k,mes=k>>4;
-    if(INSTRU.tient)INSTRU.monte=Math.min(1,(INSTRU.monte||0)+1/8);                    // l'ENTRÉE en fondu : 8 notes (~2 temps) de 30 % à pleine voix
-    const t=Math.max(INSTRU.tNote,AC.currentTime),temps=k%4===0,V=INSTRU.vel*((mes&3)>=2?.78:1)*(.3+.7*(INSTRU.monte==null?1:INSTRU.monte)); // mesures 3-4 un peu plus bas
+    if(INSTRU.tient)INSTRU.monte=(INSTRU.monte||0)+1;                                   // compte les notes depuis l'appui
+    /* (2026-10-04, Léo : « le son du nitro qui englobe par-dessus la musique : cool au début, ça fait un petit effet, mais là c'est trop fort —
+       régule ») : la phrase ENTRE (fondu sur 6 notes), garde son effet ~1 mesure, puis SE POSE à 55 % sous la musique (en 2 mesures). */
+    const mo9=INSTRU.monte==null?99:INSTRU.monte,niv9=mo9<6?.35+.65*mo9/6:(mo9<16?1:Math.max(.55,1-.45*(mo9-16)/32));
+    const t=Math.max(INSTRU.tNote,AC.currentTime),temps=k%4===0,V=INSTRU.vel*((mes&3)>=2?.85:1)*niv9; // mesures 3-4 un peu plus bas
     const tons=instruTons(t+.01);                                                       // l'accord du MORCEAU, maintenant
     const fen=instruDans(tons,62,86),mot=INSTRU_MOTIFS[((k>>3)*3+(mes>>2))%INSTRU_MOTIFS.length];
     let a9=fen.length?fen[mot[k%8]%Math.min(5,fen.length)]:-1;                          // l'arpège : les 5 premières notes de l'accord au-dessus de sol3
