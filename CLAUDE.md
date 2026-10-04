@@ -45,6 +45,14 @@ carrière, missions, garage à onglets, boutique), + SEULEMENT :
   SANS FIN) + 10 cases (même règle d'ouverture que la carrière : `TEST_CARRIERE || i ≤ carrFait`). Le JOUER du garage (`gselJoue`) part du
   niveau choisi par `carrLancer` de Sacha (permis d'abord, piste reconstruite sous le voile) ; SANS FIN = `playViaGarage(true)`. À la mort,
   le choix suit le niveau où l'on est tombé (`nivSelSuit`). Clavier : ↑ ↓ le monde. Le JOUER de l'accueil et la CARRIÈRE de Sacha ne changent pas.
+- **LE NOUVEAU GARAGE — SKETCH DE LÉO** (2026-10-04, vue iPhone) : au REPOS, la caisse FACE À NOUS (`GAR.yaw` → π, la porte en feu
+  dans le dos ; `GAR_PIT0` .34 = vue plus plongeante), l'AURA MOYENNE en haut à gauche (`#gAuraMoy` = `SAVE.d.aura ÷ ex.runs`, `gHubMaj`),
+  RÉGLAGES en haut à droite, et en bas `#gHub` : CUSTOM · MISSIONS · BOUTIQUE / MAISON · NIVEAU (`#gMap`, déplacée dans la grille) · JOUER
+  (couché : une rangée de six). CUSTOM = l'inventaire (`shopOuvre`, la tuile remplace le bouton rouge : `BR_RANGE` le garde dans le sol) ;
+  MISSIONS / BOUTIQUE = les écrans de l'accueil sous le voile, leur RETOUR revient au garage (`window.__gRetour`). Le JOUER en lettres
+  (`#gPlayMain`) et le compteur `$` sont masqués au repos. ICÔNES PIXEL PREMIUM : `PXP_G` (grilles de lettres) → `pxpSvg` (biseau, reflet
+  diagonal, contour d'encre, épaisseur) ; le lapin goofy à 3 oreilles = MISSIONS. ⚠ `#garage` laisse passer le doigt : `#gHub` reprend
+  `pointer-events:auto`. Dents de requin du sketch : NON (juste le dessin).
 - **PAS REPRIS** (restent dans l'historique, commit e11925d et avant) : PARIS au sol, boost de départ, HUD discret, guide du jeu, lumière v2,
   tic des boutons, accueil GARAGE/RÉGLAGES, lapin/boîte-boutique. Sacha a porté PARIS sur sa version dans sa branche `paris` (pas dans son main).
 - `sw.js` : `cashcar-v31`. Tests muets (sfx/mus/vox à false), jamais de push sur le `main` de Sacha.

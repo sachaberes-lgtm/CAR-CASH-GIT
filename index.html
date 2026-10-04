@@ -4700,6 +4700,59 @@ html #garage.nivOuvert:not(.boutique):not(.quiet):not(.launching) #gNiv{display:
   html #garage .gNav{top:calc(var(--sT) + 150px)}
   html #gNext{right:calc(var(--sR) + 8px)}
 }
+/* ===== LE NOUVEAU GARAGE (2026-10-04, sketch de Léo) — l'état AU REPOS seulement ; la boutique déployée (CUSTOM) garde tout son dessin.
+   Debout : deux rangées de trois tuiles collées en bas (CUSTOM · MISSIONS · BOUTIQUE / MAISON · NIVEAU · JOUER). Couché : une seule
+   rangée de six. Les icônes de la rangée du haut sont des SVG pixel (pxpSvg) redressés dans la pente des touches. */
+#gHub,#gAuraMoy{display:none;pointer-events:auto} /* ⚠ #garage laisse passer le doigt à la 3D : la grille reprend les touchers */
+#garage{--hubH:186px}
+html body #garage:not(.boutique):not(.quiet):not(.launching) #gPlayMain{display:none!important} /* JOUER est désormais la tuile d'or en bas */
+html body #garage:not(.boutique) #gAct #gClose,html body #garage:not(.boutique) #gCompteur{display:none!important} /* MAISON et l'aura moyenne les remplacent au repos */
+html #garage:not(.boutique):not(.quiet):not(.launching) #gHub{display:grid;position:fixed;z-index:5;--hW:min(calc(100vw - 28px - var(--sL) - var(--sR)),430px);
+  left:calc(50% - var(--hW) / 2);bottom:calc(var(--sB) + 16px);width:var(--hW);grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:96px 78px;gap:12px 12px;
+  animation:leoDeploie var(--t-in,400ms) var(--ease,ease) backwards}
+#gHub .gHb{min-width:0;min-height:0;height:100%;padding:8px 6px 8px 10px;flex-direction:column;gap:7px}
+#gHub .gHi{display:block;line-height:0;transform:skewX(var(--skI));animation:gHFlotte 2.4s steps(2,jump-none) infinite}
+#gHub .gMis .gHi{animation-delay:-.8s}#gHub .gShp .gHi{animation-delay:-1.6s}
+@keyframes gHFlotte{50%{translate:0 -2px}}
+#gHub .gHi svg{display:block;filter:drop-shadow(0 0 8px color-mix(in srgb,var(--nc) 55%,transparent))}
+#gHub .gHl{font-size:9px;letter-spacing:1px}
+#gHub .gCus{--nc:#b98bff}#gHub .gMis{--nc:var(--neoC,#5ee6ff)}#gHub .gHome{--nc:var(--tx2,#c9c4f0)}
+#gHub .gHome .pxi{--pxs:4}
+/* LA BRILLANCE : un reflet qui balaie les trois tuiles l'une après l'autre (seule la position du fond bouge) */
+#gHub .gHb:not(#gMap)::after{content:'';position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(105deg,transparent 38%,rgba(255,255,255,.16) 47%,rgba(255,255,255,.3) 50%,rgba(255,255,255,.16) 53%,transparent 62%) no-repeat;
+  background-size:300% 100%;background-position:150% 0;animation:gHReflet 6s var(--ease,ease) infinite}
+#gHub .gMis::after{animation-delay:.35s}#gHub .gShp::after{animation-delay:.7s}#gHub .gPlay::after{animation-delay:1.05s}
+@keyframes gHReflet{0%,70%{background-position:150% 0}100%{background-position:-50% 0}}
+#gHub .gPlay .gHl{font-size:20px;letter-spacing:3px}
+/* LE NIVEAU : la MAP du garage, devenue une tuile */
+html body #garage:not(.boutique):not(.quiet):not(.launching) #gHub #gMap{position:relative;right:auto;bottom:auto;max-width:none;min-height:0;height:100%;
+  padding:6px 8px 6px 12px;flex-direction:column;justify-content:center;gap:6px;min-width:0}
+#gHub #gMap .gmTxt{align-items:center;gap:5px;max-width:100%}
+#gHub #gMap .gmNom{font-size:10px;white-space:nowrap}
+#gHub #gMap .gmSous{max-width:100%;font-size:8px}
+#gHub #gMap .gmChev{position:absolute;top:7px;right:9px}
+/* le choix du niveau s'ouvre AU-DESSUS de la grille, au milieu */
+html body #garage.nivOuvert:not(.boutique):not(.quiet):not(.launching) #gNiv{right:auto;left:calc(50% - min(156px,calc(50vw - 14px)));
+  bottom:calc(var(--sB) + var(--hubH) + 30px)}
+/* L'AURA MOYENNE, en haut à gauche : une plaque qu'on lit (droite, coins coupés, filet d'aura) */
+html #garage:not(.boutique):not(.quiet):not(.launching) #gAuraMoy{display:flex;position:fixed;z-index:5;top:calc(var(--sT) + 12px);left:calc(var(--sL) + 14px);
+  align-items:center;gap:10px;padding:7px 14px 7px 10px;font-family:var(--pix);
+  background:linear-gradient(180deg,rgba(26,20,58,.9),rgba(10,8,28,.9));clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);
+  box-shadow:inset 0 0 0 1px rgba(170,160,255,.2),inset 3px 0 0 var(--aura,#ffd75e);animation:leoDeploie var(--t-in,400ms) var(--ease,ease) backwards}
+#gAuraMoy .gHi{line-height:0}
+#gAuraMoy .gamT{display:flex;flex-direction:column;gap:6px}
+#gAuraMoy em{font-style:normal;font-size:8px;letter-spacing:1px;color:var(--tx2,#c9c4f0)}
+#gAuraMoy b{font-weight:400;font-size:16px;letter-spacing:1px;color:var(--aura,#ffd75e);text-shadow:0 2px 0 #1c0430}
+@media (orientation:landscape) and (max-height:540px){
+  #garage{--hubH:82px}
+  html #garage:not(.boutique):not(.quiet):not(.launching) #gHub{--hW:min(calc(100vw - 28px - var(--sL) - var(--sR)),780px);grid-template-columns:repeat(6,minmax(0,1fr));
+    grid-template-rows:82px;bottom:calc(var(--sB) + 12px)}
+  #gHub .gHome{order:-1}
+  #gHub .gHb{gap:5px;padding:6px 4px 6px 8px}
+  #gHub .gPlay .gHl{font-size:16px}
+}
+@media (prefers-reduced-motion:reduce){#gHub .gHi,#gHub .gHb::after{animation:none}}
 </style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
@@ -4769,7 +4822,18 @@ html #garage.nivOuvert:not(.boutique):not(.quiet):not(.launching) #gNiv{display:
       </div>
       <!-- (2026-09-29, Léo) LE GARAGE AU REPOS, SES COINS : RÉGLAGES en haut à droite, la MAP qu'on va jouer en bas à droite (un tap : le choix du niveau) -->
       <button id="gSet" class="pbtn pbCarre" type="button" aria-label="Réglages"><i class="pxi pxi-reglages" aria-hidden="true"></i></button>
+    </div>
+    <!-- LE NOUVEAU GARAGE (2026-10-04, sketch de Léo, vue iPhone) — au repos : l'AURA MOYENNE en haut à gauche, RÉGLAGES en haut à
+         droite, la caisse face à nous sur son plateau, la porte en feu derrière ; en bas deux rangées : CUSTOM · MISSIONS · BOUTIQUE,
+         puis MAISON · NIVEAU · JOUER. Les icônes sont dessinées case par case (pxpSvg). La MAP (#gMap) vit dans la grille. -->
+    <div id="gAuraMoy" aria-label="Aura moyenne"><span class="gHi" data-ic="piece"></span><span class="gamT"><em data-fr="AURA MOYENNE">AURA MOYENNE</em><b>—</b></span></div>
+    <div id="gHub">
+      <button class="pbtn gHb gCus" data-g="custom" type="button" aria-label="Custom"><span class="gHi" data-ic="custom"></span><span class="gHl" data-fr="CUSTOM">CUSTOM</span></button>
+      <button class="pbtn gHb gMis" data-g="mis" type="button" aria-label="Missions"><span class="gHi" data-ic="mis"></span><span class="gHl" data-fr="MISSIONS">MISSIONS</span></button>
+      <button class="pbtn gHb gShp pb-mag" data-g="shop" type="button" aria-label="Boutique"><span class="gHi" data-ic="shop"></span><span class="gHl" data-fr="BOUTIQUE">BOUTIQUE</span></button>
+      <button class="pbtn gHb gHome" data-g="home" type="button" aria-label="Accueil"><i class="pxi pxi-maison" aria-hidden="true"></i></button>
       <button id="gMap" class="pbtn" type="button" aria-label="Map"><i class="pxi gmIc" aria-hidden="true"></i><span class="gmTxt"><b class="gmNom"></b><em class="gmSous"></em></span><i class="pxi pxi-haut gmChev" aria-hidden="true"></i></button>
+      <button class="pbtn pb-gold gHb gPlay" data-g="play" type="button" aria-label="Jouer"><span class="gHl" data-fr="JOUER">JOUER</span></button>
     </div>
   </div>
   <!-- LE VOILE DU DÉPART : il couvre la seule COUPE de la séquence — l'instant où l'on quitte
@@ -10005,6 +10069,7 @@ const I18N_ZH={
 
 // ---- L'ÉCONOMIE v3 (2026-09-25) : boutique, contrats, objectif ----
 Object.assign(I18N,{"BOUTIQUE": "SHOP", "CONTRAT": "CONTRACT", "REMPLI !": "COMPLETE!", "OBJECTIF": "GOAL", "TU PEUX TE L'OFFRIR": "YOU CAN AFFORD IT", "ACHETER": "BUY", "ARTICLES À TA PORTÉE": "ITEMS YOU CAN AFFORD", "ARTICLE À TA PORTÉE": "ITEM YOU CAN AFFORD", "EST À TOI — VA LA VOIR": "IS YOURS — GO SEE IT", "EST À TOI — ESSAIE-LA": "IS YOURS — TRY IT ON", "VERSÉS SUR TON COMPTE": "PAID INTO YOUR ACCOUNT", "VOITURES": "CARS", "PEINTURE": "PAINT", "AILES": "WINGS", "TRAÎNÉES": "TRAILS", "TRAÎNÉE": "TRAIL", "ÉQUIPÉE": "EQUIPPED", "D'ORIGINE": "FACTORY", "MENTHE GLACÉE": "ICE MINT", "BLEU MINUIT": "MIDNIGHT BLUE", "NOIR MAT": "MATTE BLACK", "COUCHER DE SOLEIL": "SUNSET", "CHROME MIROIR": "MIRROR CHROME", "OR MASSIF": "SOLID GOLD", "PANNEAUX": "PANELS", "HÉLICES": "PROPELLERS", "PLUMES D'ANGE": "ANGEL FEATHERS", "CHAUVE-SOURIS": "BAT", "NITRO": "NITRO", "MENTHE": "MINT", "ROSE NÉON": "NEON PINK", "POUDRE D'OR": "GOLD DUST", "ARC-EN-CIEL": "RAINBOW", "LA BULLE": "THE BUBBLE", "LE COMBI": "THE CAMPER", "LA DOLORÈS": "LA DOLORES", "La teinte du constructeur. Elle a fait ses preuves.": "The factory color. It has proved itself.", "Fraîche comme un billet qui sort du distributeur.": "Fresh as a bill straight out of the ATM.", "Le bleu des néons de la ville, à trois heures du matin.": "The blue of the city neons, at 3 a.m.", "Pas un reflet. Même la police hésite.": "Not a single reflection. Even the cops hesitate.", "Du miel en bas, du violet en haut : le ciel de 19 h, en laque.": "Honey at the bottom, violet on top: the 7 p.m. sky, in lacquer.", "Tu te vois dedans. Les autres aussi.": "You can see yourself in it. So can everyone else.", "Ne s'achète pas : se mérite au contrat n° 4.": "Not for sale: earned with contract #4.", "Deux planches de planeur qui sortent des flancs. Sobre.": "Two glider boards sliding out of the sides. Understated.", "Quatre rotors. Ça ne vole pas mieux, mais ça brasse de l'air.": "Four rotors. It does not fly any better, but it moves a lot of air.", "Blanches, en éventail. Le ciel te prend pour un des siens.": "White, fanned out. The sky takes you for one of its own.", "Membranes noires et doigts d'os. Pour les vols de nuit.": "Black membranes and bony fingers. For night flights.", "Orange brûlé. Le classique des tuyères.": "Burnt orange. The exhaust classic.", "Un sillage vert d'eau qui sent le propre.": "A sea-green wake that smells clean.", "Le rose des enseignes. On te suit à la trace.": "Neon-sign pink. Everyone can follow you.", "Tu ne laisses pas de la fumée derrière toi. Tu laisses de l'or.": "You do not leave smoke behind. You leave gold.", "Ne s'achète pas : se mérite au contrat n° 5.": "Not for sale: earned with contract #5.", "Ronde comme un sou neuf. Tout le monde lui sourit, même la police.": "Round as a shiny penny. Everyone smiles at it, even the cops.", "Planche sur le toit, la paix dans le cœur, et 45 chevaux qui font de leur mieux.": "Board on the roof, peace in the heart, and 45 horses doing their best.", "Inox brossé, portes papillon. À 88 à l'heure elle remonte le temps, paraît-il. Toi, tu vas plus vite.": "Brushed steel, gullwing doors. At 88 it travels back in time, apparently. You go faster.", "IL TE MANQUE": "YOU ARE SHORT", "COMPTE": "ACCOUNT"});
+Object.assign(I18N,{"AURA MOYENNE": "AVG AURA", "CUSTOM": "CUSTOM"}); // (2026-10-04) le nouveau garage
 Object.assign(I18N,{"DAUPHIN":"DOLPHIN"});Object.assign(I18N_ZH,{"DAUPHIN":"海豚"}); // (dauphin v3) l'étiquette
 Object.assign(I18N,{"SORTI ! GLISSE TON POUCE POUR SUIVRE LA ROUTE": "OFF THE ROAD! SLIDE YOUR THUMB TO FOLLOW IT", "TROP LONGTEMPS EN L'AIR : POSE-TOI AVANT": "TOO LONG IN THE AIR: LAND SOONER", "TOMBE DANS LE VIDE": "FELL INTO THE VOID", "ENCASTRE DANS UNE TOUR": "CRASHED INTO A TOWER", "6 S A L'ARRET : ROULE OU CREVE": "6 S STANDING STILL: DRIVE OR DIE", "DERNIER DE LA MEUTE": "LAST OF THE PACK", "CHAINE MAX": "BEST CHAIN", "ASTUCE": "TIP", "Tire le pouce vers le BAS en tournant : DRIFT !": "Pull your thumb DOWN while steering: DRIFT!", "En l'air : pouce en HAUT = plonge, en BAS = cabre.": "In the air: thumb UP = dive, DOWN = pull up.", "AUTO-ÉCOLE": "DRIVING SCHOOL", "PASSER": "SKIP", "TOURNE": "STEER", "DÉCOLLE": "TAKE OFF", "VOLE AU NITRO": "FLY ON NITRO", "POSE-TOI": "LAND IT", "Glisse ton pouce à gauche… puis à droite.": "Slide your thumb left… then right.", "Maintiens NITRO : ça pousse fort.": "Hold NITRO: it pushes hard.", "Fonce hors de la route, par le bord. N'aie pas peur.": "Drive off the road, over the edge. Don't be scared.", "En l'air, MAINTIENS NITRO et reviens au-dessus de la route.": "In the air, HOLD NITRO and steer back over the road.", "Au-dessus de la route, l'anneau apparaît : pose-toi dessus (or = parfait).": "Over the road, the ring appears: land on it (gold = perfect).", "PERMIS OBTENU !": "LICENSE EARNED!", "ENCORE ! ET CETTE FOIS, NITRO EN L'AIR": "AGAIN! AND THIS TIME, NITRO IN THE AIR", "RATÉ ! ON RECOMMENCE": "MISSED! TRY AGAIN", "L'AUTO-ÉCOLE T'ATTEND AU PROCHAIN JOUER": "DRIVING SCHOOL AWAITS ON YOUR NEXT PLAY", "REVOIR L'AUTO-ECOLE": "REPLAY DRIVING SCHOOL"});
 Object.assign(I18N_ZH,{"SORTI ! GLISSE TON POUCE POUR SUIVRE LA ROUTE": "冲出赛道！滑动拇指，沿着路走", "TROP LONGTEMPS EN L'AIR : POSE-TOI AVANT": "空中 6 秒：早点着陆", "TOMBE DANS LE VIDE": "坠入虚空", "ENCASTRE DANS UNE TOUR": "撞上高楼", "6 S A L'ARRET : ROULE OU CREVE": "停车 6 秒：开起来，不然就爆", "DERNIER DE LA MEUTE": "垫底出局", "CHAINE MAX": "最长连击", "ASTUCE": "提示", "Tire le pouce vers le BAS en tournant : DRIFT !": "转向时拇指向下拉：漂移！", "En l'air : pouce en HAUT = plonge, en BAS = cabre.": "空中：拇指向上 = 俯冲，向下 = 拉起。", "AUTO-ÉCOLE": "驾校", "PASSER": "跳过", "TOURNE": "转向", "NITRO": "氮气", "DÉCOLLE": "起飞", "VOLE AU NITRO": "氮气飞行", "POSE-TOI": "着陆", "Glisse ton pouce à gauche… puis à droite.": "拇指向左滑……再向右滑。", "Maintiens NITRO : ça pousse fort.": "按住氮气：推力很猛。", "Fonce hors de la route, par le bord. N'aie pas peur.": "从路边冲出去，别怕。", "En l'air, MAINTIENS NITRO et reviens au-dessus de la route.": "在空中按住氮气，飞回赛道上方。", "Au-dessus de la route, l'anneau apparaît : pose-toi dessus (or = parfait).": "飞到赛道上方，圆环就会出现：落在上面（金色＝完美）。", "PERMIS OBTENU !": "驾照到手！", "RATÉ ! ON RECOMMENCE": "失败！再来", "REVOIR L'AUTO-ECOLE": "重温驾校"});
@@ -29711,6 +29776,7 @@ function brEtiquette(){ // l'étiquette : repeinte à chaque ouverture (la langu
   x.save();x.translate(w/2,h/2+1);x.scale(m,1);x.fillStyle='#000';x.fillText(t,2,2);x.fillStyle='#ffe6f7';x.fillText(t,0,0);x.restore();
   T.tex.needsUpdate=true;
 }
+const BR_RANGE=true,GAR_PIT0=.34; // (2026-10-04, sketch de Léo) la tuile CUSTOM remplace le bouton rouge (il reste dans le sol) ; la vue plonge davantage sur le plateau
 function buildBoutonRouge(g){
   const b=new THREE.Group();b.position.set(BR_POS.x,0,BR_POS.z);b.scale.setScalar(BR_S);g.add(b);GAR.btn=b;
   const L=(c,k)=>new THREE.MeshLambertMaterial({color:c,emissive:c,emissiveIntensity:k==null?.04:k,fog:false});
@@ -29745,7 +29811,7 @@ function boutonTick(dt,t9){ // il respire, répond au survol, s'enfonce à l'app
   if(GAR.btnPress>0)GAR.btnPress=Math.max(0,GAR.btnPress-dt);
   const pr=GAR.btnPress>0?Math.sin(Math.min(1,1-GAR.btnPress/.26)*Math.PI):0;
   const pul=.5+.5*Math.sin(t9*3.6),hv=GAR.btnHover?1:0,q=GAR.go?0:1;
-  GAR.btnK+=((GAR.btq?0:1)-GAR.btnK)*Math.min(1,dt*(GAR.btq?5:3));const kk=GAR.btnK;  // il rentre dans le sol en boutique (la caisse y tourne)
+  GAR.btnK+=((GAR.btq||BR_RANGE?0:1)-GAR.btnK)*Math.min(1,dt*(GAR.btq?5:3));const kk=GAR.btnK;  // il rentre dans le sol en boutique (la caisse y tourne)
   GAR.btn.visible=kk>.02&&!gEl.classList.contains('quiet');
   {const L9=VP.w>VP.h*1.25,bx=L9?BR_POS.xL:BR_POS.x,bz=L9?BR_POS.zL:BR_POS.z,sc=L9?BR_S*1.15:BR_S;
    GAR.btn.position.set(bx,GAR.POD-(1-kk)*1.8,bz);GAR.btn.scale.set(sc,sc*Math.max(.02,kk),sc);} // sa place suit l'orientation (les commandes ne sont pas aux mêmes bords)
@@ -29958,6 +30024,55 @@ function gMapMaj(){ // la MAP du garage : le monde et le niveau qui vont se joue
  if(st)st.addEventListener('click',e=>{e.stopPropagation();uiPop(e.currentTarget);uiClic('nav'); // RÉGLAGES : l'écran de Sacha, au lever du voile (comme la boutique payante)
    if(GAR.go)return;ecranWipe(function(){closeGarage();},function(){if(!garageOn&&window.__mGo)window.__mGo('set');});});
  gMapMaj();}
+/* ---- LE NOUVEAU GARAGE (2026-10-04, sketch de Léo) ------------------------------------------------------------------------------
+   LES ICÔNES PIXEL PREMIUM (Léo : « reflet en profondeur et brillance alléchante, qui colle au reste de l'interface ») : chaque icône
+   est une grille de lettres (une lettre = une matière, `.` = vide). `pxpSvg` la MODÈLE toute seule — biseau clair en haut à gauche,
+   ombre en bas à droite (la main du badge DARK TRIAD), un reflet blanc en diagonale sur les pleins, le contour d'encre, et l'ÉPAISSEUR
+   (la silhouette redescend de deux cases, plus sombre). Une seule passe, au premier affichage ; des rectangles par rangée. */
+const PXP={m:['#ffa6ea','#ff3ec8','#9c137a'],b:['#d6fbff','#5ee6ff','#1a86a8'],c:['#ffffff','#b8c2e8','#566089'],
+  k:['#8a78c8','#4f3f86','#2a1f50'],y:['#fff4b8','#ffd75e','#b5760c'],l:['#ffffff','#e6ddff','#9a88d8'],p:['#ffd2f0','#ff7ccf','#b13a7e'],
+  d:['#8a4e06'],E:['#1c0430'],W:['#ffffff']};
+const PXP_G={
+  custom:['.......bbbbbb...........','......bbbbbbbb.........y','......bbWbbbbb..........','......bbbbbbbb.....p....','.......bbbbbb.........b.',
+    '........cccc............','.mmmmmmmmmmmmmmccc..y...','mmmmmmmmmmmmmmmcccc...p.','mmmmmmmmmmmmmmmcccc.b...','.mmmmmmmmmmmmmmccc....y.',
+    '..kkkkk..c..............','..kkkkk.cc..............','..kkkkk.................','..kkkkk.................','..kkkkk.................','...kkk..................'],
+  mis:['..ll.......ll.........','.llll.....llll...lll..','.lppl.....lppl..lllll.','.lppl.....lppl.lllppll','.lppl.....lppl.llpppll','.lppl.....lppl.llppll.',
+    '..lpl......lpl.lllll..','..lll......lll.llll...','..lllllllllllllll.....','.lllllllllllllllll....','lllllllllllllllllll...','llllEElllllEEEllll....',
+    'llllEWlllllEWElllll...','llllllllllllEEllll....','lpplllllppllllllppl...','.lllllllEEEElllllll...','.lllllllEppEllllll....','..llllllllllllllll....','....llllllllll........'],
+  shop:['cc....................','.c....................','.c.......mmbbmm.......','..c......bbbbbb.......','..cyyyyyymmbbmmyyyyyy.','...y.y.y.mmbbmm.y.y.y.',
+    '...yyyyyyyyyyyyyyyyyy.','....y.y.y.y.y.y.y.y.y.','....yyyyyyyyyyyyyyyy..','.....y.y.y.y.y.y.y.y..','.....yyyyyyyyyyyyyy...','......c...........c...',
+    '......ccccccccccccc...','.....kkk.........kkk..','.....kWk.........kWk..','.....kkk.........kkk..'],
+  piece:['...yyyyyy...','.yyyyyyyyyy.','.yyyyddyyyy.','yyyyddddyyyy','yyyddyyyyyyy','yyyyddddyyyy','yyyyyyyddyyy','yyyyddddyyyy','.yyyyddyyyy.','.yyyyyyyyyy.','...yyyyyy...']};
+function pxpSvg(G,s){
+  const H=G.length,W=Math.max(...G.map(r=>r.length)),M=1,D=2,w=W+M*2,h=H+M*2+D,INK='#1c0430',EP='#0d0220';
+  const q=(x,y)=>{const r=G[y];if(!r)return null;const c=r[x];return c&&c!=='.'?c:null;};
+  const F=Array.from({length:h},()=>new Array(w).fill(null)),gl=Math.round((W+H)*.34);
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const k=q(x,y);if(!k)continue;const P=PXP[k]||['#f0f'];let c=P[0];
+    if(P.length>1){const lt=q(x,y-1)!==k||q(x-1,y)!==k,dk=q(x,y+1)!==k||q(x+1,y)!==k;c=lt?P[0]:dk?P[2]:P[1];
+      if(!dk&&y<H*.62&&(x+y===gl||x+y===gl+1))c='#ffffff';}           // la brillance : un reflet en diagonale, sur les pleins
+    F[y+M][x+M]=c;}
+  const S=F.map(r=>r.slice());                                         // le contour d'encre (quatre voisins : les coins s'arrondissent)
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(!F[y][x]&&((F[y-1]&&F[y-1][x])||(F[y+1]&&F[y+1][x])||F[y][x-1]||F[y][x+1]))S[y][x]=INK;
+  const T=S.map(r=>r.slice());                                         // l'épaisseur : la silhouette redescend de D cases
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(!S[y][x])for(let d=1;d<=D;d++)if(S[y-d]&&S[y-d][x]){T[y][x]=EP;break;}
+  let o='';for(let y=0;y<h;y++){let x=0;while(x<w){const c=T[y][x];if(!c){x++;continue;}let e=x+1;while(e<w&&T[y][e]===c)e++;
+    o+='<rect x="'+x+'" y="'+y+'" width="'+(e-x)+'" height="1" fill="'+c+'"/>';x=e;}}
+  return '<svg viewBox="0 0 '+w+' '+h+'" width="'+w*s+'" height="'+h*s+'" shape-rendering="crispEdges" aria-hidden="true">'+o+'</svg>';
+}
+function gHubMaj(){ // les icônes (une fois) et l'AURA MOYENNE (à chaque ouverture : aura de toutes les parties ÷ nombre de parties)
+  for(const el of document.querySelectorAll('#gHub .gHi,#gAuraMoy .gHi'))if(!el.firstChild){const G=PXP_G[el.getAttribute('data-ic')];if(G)el.innerHTML=pxpSvg(G,2);}
+  const b=document.querySelector('#gAuraMoy b');if(!b)return;
+  const n=(SAVE.d.ex&&SAVE.d.ex.runs)|0,m=n?Math.round((SAVE.d.aura||0)/n):0;
+  const t=n?(typeof fmtAura==='function'?fmtAura(m):String(m)):'—';if(b.textContent!==t)b.textContent=t;
+}
+{const hub=document.getElementById('gHub');
+ if(hub)hub.addEventListener('click',e=>{const bt=e.target.closest('.gHb');if(!bt||!garageOn||GAR.go||GAR.btq)return;e.stopPropagation();
+   const g=bt.getAttribute('data-g');uiPop(bt);
+   if(g==='play'){uiClic();pixBurst(bt,16);setTimeout(gselJoue,180);return;}         // JOUER : le niveau choisi (la tuile du milieu)
+   if(g==='home'){$('gClose').click();return;}                                       // MAISON : le RETOUR de l'atelier (il a son clic et son voile)
+   if(g==='custom'){shopOuvre();return;}                                             // CUSTOM : l'inventaire — la boutique du garage se déploie
+   uiClic('nav');const s=g==='mis'?'mis':'shop';window.__gRetour=true;              // MISSIONS / BOUTIQUE : les écrans de l'accueil, au lever du voile (leur RETOUR ramène ici)
+   ecranWipe(function(){closeGarage();},function(){if(!garageOn&&window.__mGo)window.__mGo(s);});});}
 addEventListener('keydown',e=>{if(!garageOn||ecranWipe._on||GAR.go||GAR.btq)return;if(e.code==='Enter'&&!e.repeat){e.preventDefault();gselJoue();}}); // Entrée = JOUER, au garage
 /* ---- LES FLAMMES DE LA PORTE (2026-09-29, Léo : « au dehors de la porte du garage, des flammes qui jaillissent ») --------------------
    Trois paires de CANONS À FLAMMES de part et d'autre de la route, juste dehors : une veilleuse qui lèche en permanence et, toutes les ~4 s
@@ -30339,7 +30454,7 @@ function openGarage(quiet){
   if(pigGroup)pigGroup.visible=false;
   if(!GAR.root)buildGarageRoom();   // L'ATELIER se bâtit à la PREMIÈRE visite : zéro coût pour qui n'y entre jamais
   GAR.root.visible=true;
-  brEtiquette();affichesMaj();gselInit();gselRendu(); // (Léo) l'étiquette du bouton rouge, les records, le choix du niveau : à jour (langue, chiffres, progression)
+  brEtiquette();affichesMaj();gselInit();gselRendu();gHubMaj();window.__gRetour=false; // (Léo) l'étiquette du bouton rouge, les records, le choix du niveau : à jour (langue, chiffres, progression)
   GAR.yaw=0;GAR.yawV=0;GAR.podX=0;GAR.btnHover=false;GAR.btnDown=false;GAR.btnPress=0;GAR.affH=null;
   paintEnvAtelier(); // (2026-09-26) la laque reflète l'ATELIER (tubes, clé chaude, contre-jour cyan), plus le ciel de la dernière course
   // (2026-09-26, vague 2) …et l'atelier a SA lumière (biome `atelier`) au lieu du ciel et du soleil de la dernière course. Posée hors
@@ -30349,7 +30464,7 @@ function openGarage(quiet){
   bioApply(BIOMES.atelier);MENUV.bio=false;
   garageAng=.42;garagePitch=.22;garageDist=7.8; // départ trois-quarts avant : on voit la caisse ET l'établi derrière ; ⚠ 6,9→7,8 (2026-09-05, « trop zoomé ») — la caisse ne mange plus tout le cadre
   // (Léo) « le garage est la LIGNE DE DÉPART » : on entre DERRIÈRE la caisse, la porte ouverte au fond du cadre ; toujours au garage, jamais en boutique
-  garageAng=Math.PI;garagePitch=.2;GAR.btq=false;GAR.bk=0;GAR.swK=0;GAR.swO=0;GAR.swP=0;GAR.btnK=1;gEl.classList.remove('boutique');gEl.classList.remove('nivOuvert');FLM.salveT=1.2;
+  garageAng=Math.PI;garagePitch=GAR_PIT0;GAR.yaw=Math.PI;GAR.btq=false;GAR.bk=0;GAR.swK=0;GAR.swO=0;GAR.swP=0;GAR.btnK=BR_RANGE?0:1;gEl.classList.remove('boutique');gEl.classList.remove('nivOuvert');FLM.salveT=1.2;
   garageShow(level||0);
 }
 function closeGarage(){
@@ -30562,7 +30677,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
   GAR.root.position.y=ay;GAR.root.visible=true;
   // (Léo) LA CAISSE QUI TOURNE : le doigt la lance, elle garde son élan « comme dans l'espace » ; onglet TRAÎNÉES : elle se pose de
   // trois-quarts arrière (on regarde ce qui SORT des tuyères — un ruban de 11 m qui tourne balaierait la caméra)
-  if(!GAR.go){if(!GAR.btq){const k9=Math.round(GAR.yaw/(Math.PI*2))*Math.PI*2;GAR.yaw+=(k9-GAR.yaw)*Math.min(1,dt*3.2);GAR.yawV=0;} // GARAGE : elle revient face à la porte
+  if(!GAR.go){if(!GAR.btq){const k9=Math.round((GAR.yaw-Math.PI)/(Math.PI*2))*Math.PI*2+Math.PI;GAR.yaw+=(k9-GAR.yaw)*Math.min(1,dt*3.2);GAR.yawV=0;} // GARAGE : elle revient FACE À NOUS, la porte en feu dans le dos (sketch de Léo, 04/10)
     else if(SHOP.tab==='trainee'){let d9=(GARV.a+Math.PI-.55)-GAR.yaw;d9=Math.atan2(Math.sin(d9),Math.cos(d9));GAR.yaw+=d9*Math.min(1,dt*3);GAR.yawV=0;}
     else if(!garageDrag)GAR.yaw+=GAR.yawV*dt;}
   carGroup.position.set(0,ay+GAR.POD,0);carGroup.rotation.set(0,GAR.yaw,0);carGroup.visible=true; // posée SUR le plateau
@@ -31035,7 +31150,7 @@ let gpId=null,gPince=false;
    elle reste arrêtée. Le swipe qui changeait de caisse est retiré : un lancer vif serait pris pour « suivante » — les flèches ◀ ▶,
    la bande de vignettes et le clavier font ce travail. Un TAP sur le BOUTON ROUGE ouvre la boutique, sur une AFFICHE la fait
    sauter ; ailleurs, la caisse encaisse (garageImpact, comme avant). La garde « un seul doigt » de Sacha (gpId/gPince) est gardée. */
-addEventListener('pointerdown',e=>{if(!garageOn||ecranWipe._on)return;if(e.target.closest&&e.target.closest('#gTop,#gBottom,#gNiv,#wipe,#carr,#modale'))return;
+addEventListener('pointerdown',e=>{if(!garageOn||ecranWipe._on)return;if(e.target.closest&&e.target.closest('#gTop,#gBottom,#gNiv,#gHub,#gAuraMoy,#wipe,#carr,#modale'))return;
   if(garageDrag){gPince=true;return;}
   gEl.classList.remove('nivOuvert'); // (Léo) un tap dans l'atelier referme le choix du niveau
   garageDrag=true;gpId=e.pointerId;gPince=false;gpx=gpx0=e.clientX;gpy=gpy0=e.clientY;GAR._mt=performance.now();
@@ -33570,7 +33685,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='play'||a==='replay'){ if(a==='play')CARR.actif=null;
       goImmersive(); playViaGarage(true); } // 1re partie = AUTO-ÉCOLE : tutoArme passe SOUS le voile (la reconstruction de la piste figeait le bouton avant qu'il monte)
     else if(a==='tuto'){ SAVE.d.tuto=0;SAVE.flush();toast(pxi('coche')+' '+TR('L\'AUTO-ÉCOLE T\'ATTEND AU PROCHAIN JOUER')); }
-    else if(a==='back')mGo(mRoot());
+    else if(a==='back'){ if(window.__gRetour&&(mCur==='mis'||mCur==='shop')){ window.__gRetour=false; ecranWipe(function(){openGarage();shopTab('voiture');}); } else mGo(mRoot()); } // (2026-10-04) venu des tuiles du GARAGE : le retour y ramène
     else if(a==='carr'){ carrVue(null); } // (2026-09-27) la CARRIÈRE : les mondes, puis les dix niveaux (feuille #carr)
     else if(a==='modes'||a==='set'||a==='mis')mGo(a);
     // (2026-09-28) MENU : l'écran de mort rend la main à l'ACCUEIL — sous le volet, la course est rangée et la vitrine revient
