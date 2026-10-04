@@ -5496,6 +5496,23 @@ html body #garage:not(.menu) #gMisAncre{display:none!important}
 html body #garage:not(.menu) #gRar .gR b{font-size:var(--f1)} /* les comptes « 1/15 » étaient à 8 px */
 html body #garage:not(.menu) .gTab{font-size:var(--f1)} /* les onglets étaient en --f0 (8 px) : 10 px, « TRAINEES » tient encore dans son quart de console debout (80 px dans 89) */
 </style>
+<style id="garageVitrine">
+/* LA VITRINE DU GARAGE (2026-10-04, Léo : « ne mets pas direct le shop dans le garage, c'est agressif »). Le bouton GARAGE ouvre d'abord
+   l'atelier AU CALME : ta caisse sur son plateau, la porte, le feu — son nom, et trois touches : HOME · TUNING · JOUER. Ni compte, ni
+   onglets, ni vignettes à prix, ni ACHETER, ni BOUTIQUE en vrai argent. TUNING déplie la console d'avant (garVitrine(false)). Les
+   chemins qui visent un OBJET (VOIR une récompense, l'objectif, la personnalisation…) ouvrent toujours la boutique dépliée. */
+#gPerso{display:none}
+html body #garage.vitrine:not(.menu) :is(#gTabs,#gRar,#gStrip,.gNav,#gBuyRow,#gEquip,#gShopBas,#gCompteur,#gBank,#gLvl,#gRarPill,#gDesc,#gDots,#gSw,#gHint,#gMeta,#lbBoxG){display:none!important}
+html body #garage.vitrine:not(.menu) #gAct #gPerso{display:flex;flex:none;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:84px;min-width:84px;
+  padding:6px 4px 4px 8px;font-size:var(--f0);letter-spacing:1px}
+html body #garage.vitrine:not(.menu) #gAct #gPerso .pxi{--pxs:3}
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){html body #garage.vitrine:not(.menu) #gAct #gPerso{width:76px;min-width:76px;min-height:54px;gap:4px;padding:4px 2px 2px 6px}}
+html body #garage.vitrine:not(.menu) #gName::after{opacity:.55}
+html body #garage.deplie:not(.menu) #gBottom{animation:gDeplie .34s var(--ease,cubic-bezier(.32,.72,0,1)) both}
+@keyframes gDeplie{from{translate:0 24px;opacity:.35}to{translate:0 0;opacity:1}}
+@media (prefers-reduced-motion:reduce){html body #garage.deplie:not(.menu) #gBottom{animation:none}}
+html[data-reduced-motion] body #garage.deplie:not(.menu) #gBottom{animation:none}
+</style>
 <style id="poki">
 /* L'ÉDITION POKI (2026-10-04) — tout est sous `html.poki` : sans elle, rien ici ne s'applique. Ce qui n'existe pas chez Poki disparaît
    de l'écran : les MISSIONS (porte de l'accueil, socle et écran de l'atelier, écran #mMis, mission suivie en course), la CARRIÈRE (tuile,
@@ -5598,6 +5615,7 @@ html.poki [data-m="shop"],html.poki [data-go="shop"],html.poki .gBoutique,html.p
              entre les deux quand il y a un choix à faire (la caisse équipée n'en a pas : JOUER prend la place) -->
         <button id="gClose" class="pbtn" aria-label="Accueil"><i class="pxi pxi-maison" aria-hidden="true"></i><span data-fr="HOME">HOME</span></button><!-- (2026-09-30, Léo : « dans la boutique, au lieu d'un bouton MENU (erreur), un bouton HOME, qui remplace tous les boutons GARAGE ou MENU ») -->
         <!-- (2026-09-30, Sacha via DEBUGGING, idée de Léo) la BOUTIQUE bien visible, EN BAS (charte règle 4) : secondaire magenta, jamais d'or (règle 3) -->
+        <button id="gPerso" class="pbtn pb-cyan" aria-label="Tuning"><i class="pxi pxi-pinceau" aria-hidden="true"></i><span data-fr="TUNING">TUNING</span></button><!-- (2026-10-04, Léo : « ne mets pas direct le shop dans le garage, c'est agressif ») LA VITRINE : voir garVitrine -->
         <button id="gShopBas" class="pbtn pb-mag" data-go="shop" aria-label="Boutique"><i class="pxi pxi-panier" aria-hidden="true"></i><span data-fr="BOUTIQUE">BOUTIQUE</span></button>
         <div id="gBuyRow"><button id="gBuy" class="pbtn pb-gold">ACHETER</button></div>
         <button id="gEquip" class="pbtn pb-gold">ÉQUIPER</button>
@@ -36756,9 +36774,11 @@ $('stBoost').addEventListener('change',saveFruits);
 $('stFreq').addEventListener('change',saveFruits);
 addEventListener('keydown',e=>{if(!stallOn)return;
   if(e.code==='Escape')closeStall();else if(e.code==='ArrowLeft')stallShow(stallI-1);else if(e.code==='ArrowRight')stallShow(stallI+1);});
-$('garageBtn').addEventListener('click',e=>{e.stopPropagation();openGarage();});
+$('garageBtn').addEventListener('click',e=>{e.stopPropagation();openGarage();garVitrine(true);}); // (2026-10-04) la VITRINE d'abord
 /* (2026-09-29, Léo) la MAISON de l'atelier = le MENU de l'écran de mort : on rentre à l'ACCUEIL (venu de la mort, la course est rangée
    comme par son MENU — accueilRetour) ; venu des MISSIONS (VOIR), on y retourne comme avant (`__mRetour`, lu à la fermeture). */
+$('gPerso').addEventListener('click',e=>{e.stopPropagation();uiPop(e.currentTarget);uiClic('nav'); // TUNING : la console se déplie (onglets, familles, vignettes, achat)
+  gEl.classList.add('deplie');garVitrine(false);gEl.classList.add('deplie');});
 $('gClose').addEventListener('click',e=>{e.stopPropagation();uiPop(e.currentTarget);uiClic('retour');
   if(window.__mRetour){ecranWipe(function(){closeGarage();});return;} // venu des MISSIONS (VOIR) : on y retourne
   ecranWipe(function(){if(started&&gameOver)accueilRetour();garMode('menu');});}); // (2026-09-30) le garage EST le menu : la maison y ramène
@@ -36803,8 +36823,15 @@ document.documentElement.classList.toggle('misS',MENU_SACHA); // l'écran MISSIO
 /* (même soir, Léo : « enlève la porte ») la porte FERMÉE au menu (Sacha, b8e7ce7) va avec SA version : par défaut (ou ?porte=1) elle
    descend au menu et s'ouvre au JOUER ; avec ?menu=leo elle reste RELEVÉE sous le plafond (l'image d'avant : le feu se voit dès le menu). */
 const PORTE_FERMEE=MENU_SACHA||/[?&]porte=1\b/.test(location.search); // (2026-10-04) Léo l'avait enlevée le matin, puis : « remets une porte maintenant que les flammes sont plus jolies » — la porte fermée de Sacha revient (voir LA PORTE v2)
+/* LA VITRINE (voir <style id="garageVitrine">) : le garage AU CALME — ta caisse, sans prix. `garMode` la replie toujours (tous les autres
+   chemins ouvrent la boutique dépliée) ; seul le bouton GARAGE la pose, APRÈS garMode / openGarage. */
+function garVitrine(on){
+  if(!gEl)return;gEl.classList.toggle('vitrine',!!on);gEl.classList.toggle('deplie',!on&&gEl.classList.contains('deplie'));garLibre._r=null;
+  if(on){if(SHOP.tab!=='voiture'||SHOP.prev)shopTab('voiture');const eq=equippedCar();if(garageI!==eq&&!GAR.sw)garageShow(eq);} // en vitrine : TA caisse, jamais un essai
+}
+try{Object.assign(I18N,{'TUNING':'TUNING'});}catch(e){}
 function garMode(m){
-  if(!gEl)return;const menu=m==='menu'||m==='missions',mis=m==='missions'; // (2026-09-30) MISSIONS = le menu, vu d'en haut, avec la constellation
+  if(!gEl)return;gEl.classList.remove('vitrine','deplie');const menu=m==='menu'||m==='missions',mis=m==='missions'; // (2026-09-30) MISSIONS = le menu, vu d'en haut, avec la constellation
   if(menu){if(SHOP.tab!=='voiture'||SHOP.prev)shopTab('voiture');const eq=equippedCar();if(garageI!==eq&&!GAR.sw)garageShow(eq);} // au menu : TA caisse, sans essai
   gEl.classList.toggle('menu',menu);gEl.classList.toggle('missions',mis);garLibre._r=null;
   document.body.classList.toggle('garMenuH',MENU_SACHA&&menu&&!mis); // (2026-09-30, Sacha) au MENU, ses boutons — (même soir, Léo : « remets ma version sketch ») seulement avec ?menu=sacha, voir MENU_SACHA : l'accueil #mHome par-dessus l'atelier (voir « LE MENU = LE GARAGE + LES BOUTONS DE SACHA »)
@@ -37218,7 +37245,7 @@ addEventListener('pointermove',e=>{
 // ⚠ ORBITE BORNÉE À 7,8 m : au-delà on sortait par les murs et on traversait la servante et les
 // piles de pneus. Le décor est rangé POUR ce rayon (rien de posé à moins de 8,3 m du centre).
 addEventListener('wheel',e=>{if(!garageOn)return;garageDist=THREE.MathUtils.clamp(garageDist+e.deltaY*.008,4.6,8.6);},{passive:true}); // plafond 7,8→8,6 (2026-09-05) : le zoom arrière par défaut est monté, la molette doit pouvoir suivre
-addEventListener('keydown',e=>{if(!garageOn||ecranWipe._on)return;if(e.code==='Escape'){const cr9=$('carr');if(cr9&&cr9.classList.contains('on'))feuilleFerme(cr9,'on');else if(!GAR.go&&gEl.classList.contains('missions'))garMode('menu');else if(!GAR.go&&!gEl.classList.contains('menu')){if(window.__mRetour)ecranWipe(closeGarage);else ecranWipe(function(){if(started&&gameOver)accueilRetour();garMode('menu');});}}else if(e.code==='ArrowLeft')garageGo(-1);else if(e.code==='ArrowRight')garageGo(1);else if(e.code==='Enter'&&!e.repeat&&!document.querySelector('#modale.on,#carr.on')){e.preventDefault();garJouer();}}); // même chemin que les flèches à l'écran (boutique comprise, premium exclues) · (2026-09-29) Entrée = JOUER, comme à l'accueil
+addEventListener('keydown',e=>{if(!garageOn||ecranWipe._on)return;if(e.code==='Escape'){const cr9=$('carr');if(cr9&&cr9.classList.contains('on'))feuilleFerme(cr9,'on');else if(!GAR.go&&gEl.classList.contains('missions'))garMode('menu');else if(!GAR.go&&!gEl.classList.contains('menu')){if(window.__mRetour)ecranWipe(closeGarage);else ecranWipe(function(){if(started&&gameOver)accueilRetour();garMode('menu');});}}else if((e.code==='ArrowLeft'||e.code==='ArrowRight')&&gEl.classList.contains('vitrine'))garVitrine(false);else if(e.code==='ArrowLeft')garageGo(-1);else if(e.code==='ArrowRight')garageGo(1);else if(e.code==='Enter'&&!e.repeat&&!document.querySelector('#modale.on,#carr.on')){e.preventDefault();garJouer();}}); // même chemin que les flèches à l'écran (boutique comprise, premium exclues) · (2026-09-29) Entrée = JOUER, comme à l'accueil
 
 // ---------- BOUCLE ----------
 const fwdW=new THREE.Vector3(),tmp=new THREE.Vector3(),tmp2=new THREE.Vector3(),tmp3=new THREE.Vector3(),mat4=new THREE.Matrix4();
@@ -39998,7 +40025,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     /* (2026-09-30, Sacha : « c'est buggé, les boutons ne sont pas connectés ») GARAGE et MISSIONS, APRÈS UNE PARTIE, depuis le menu : la course
        était finie (started && gameOver restent vrais jusqu'au prochain JOUER) → ils repassaient par accueilRetour, qui ne rejoue qu'une fois
        (MENUV.retour) → le bouton ne faisait RIEN jusqu'à la partie suivante. L'atelier déjà ouvert (garageOn) = on y va tout droit. */
-    else if(a==='garage'){ if(started&&gameOver&&!garageOn)ecranWipe(function(){ accueilRetour(); mGo('home','racine'); }); else ecranWipe(function(){ if(garageOn)garMode('boutique'); else openGarage(); }); } // (2026-09-30, Sacha : ses boutons) GARAGE = l'ATELIER (caisses, peinture, ailes, traînées) — le menu, on y est déjà
+    else if(a==='garage'){ if(started&&gameOver&&!garageOn)ecranWipe(function(){ accueilRetour(); mGo('home','racine'); }); else ecranWipe(function(){ if(garageOn)garMode('boutique'); else openGarage(); garVitrine(true); }); } // (2026-09-30, Sacha : ses boutons) GARAGE = l'ATELIER (caisses, peinture, ailes, traînées) — le menu, on y est déjà
     else if(a==='surv'){ clic(survBtnEl); mFill(); }
     else if(a==='park'){ clic(parkBtnEl); mFill(); }
     else if(a==='sand'){ SANDBOX=!SANDBOX; SAVE.d.sand=SANDBOX; SAVE.flush(); mFill(); }

@@ -38,6 +38,15 @@
 - **Pas encore fait / à trancher** : l'auto-école parle de POUCE même au clavier chez Poki (vrai aussi dans le cadre de l'ordi de la
   version principale) ; `dark-triad.mp3` manque (404 en console, déjà vrai sur `main`) ; le compte développeur Poki, la page du jeu et
   l'envoi du zip = Sacha ; droits des musiques et noms de marques (CHAT POP-TART…) à vérifier avant publication.
+## LA VITRINE DU GARAGE (2026-10-04, copie de test de Léo — « ne mets pas direct le shop dans le garage, c'est agressif »)
+- Le bouton GARAGE (accueil `mTap 'garage'`, et `#garageBtn` du menu de l'ordi) ouvre l'atelier AU CALME : `garVitrine(true)`, posée APRÈS
+  `garMode('boutique')` / `openGarage()` — ta caisse (jamais un essai), son nom, et HOME · TUNING · JOUER. Masqués (`<style id="garageVitrine">`,
+  après garageV7) : compte, rang, famille, onglets, vignettes à prix, flèches, ACHETER/ÉQUIPER, BOUTIQUE en vrai argent.
+- TUNING (`#gPerso`, laque cyan, pinceau) déplie la console d'avant (`garVitrine(false)` + `.deplie` : elle remonte en 0,34 s) ; les
+  flèches du clavier aussi. `garMode` replie TOUJOURS la vitrine : tous les autres chemins (VOIR une récompense, l'objectif, la
+  personnalisation, la BOUTIQUE du menu de Léo) ouvrent la boutique dépliée, sur l'objet visé.
+- Vérifié (banc `garfeu.mjs` TUNING=1) : vitrine couchée et debout, TUNING déplie, lâcher → course, 0 erreur.
+
 ## LA VILLE DÈS L'ENTRÉE + GLASSY PLUCKS (2026-10-04, Léo — « les niveaux villes ne sont pas tous des villes » · « la musique pour la ville, c'est GLASSY PLUCKS »)
 - MESURÉ d'abord (bancs `villes.mjs`, `cycle.mjs`, `villepos.mjs`, `citystat.mjs`, scratchpad 83e03bdc) : les 10 niveaux VILLE de la
   CARRIÈRE ont leur ville (tours tout autour dès le départ). Dans le MODE PRINCIPAL, AU-DESSUS DE LA VILLE et MINUIT EN VILLE ont la leur
