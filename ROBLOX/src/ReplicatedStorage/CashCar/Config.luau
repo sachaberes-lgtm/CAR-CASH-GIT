@@ -248,7 +248,7 @@ Config.CAM = {
 -- ── le reste ──
 -- Comme TEST_CAISSES du jeu web (index.html) : toutes les caisses s'ÉQUIPENT, mais la fiche du garage continue
 -- d'écrire la VRAIE condition. ⚠ à remettre à false pour la version publique : c'est l'unique interrupteur.
-Config.TEST_CAISSES = true
+Config.TEST_CAISSES = false -- (4/10 : la version PUBLIQUE — chaque caisse se gagne, s'achète ou se tire à la roue)
 
 -- ── LA ROUE (voir Client/Roue et ServerScriptService/Revenus) : huit cases, tirées au SERVEUR selon leur poids `w`. Un tour gratuit
 -- toutes les `libreH` heures, un tour offert toutes les `parties` parties (d'au moins 15 s), et des tours à vendre (REVENUS.produits.tours3).

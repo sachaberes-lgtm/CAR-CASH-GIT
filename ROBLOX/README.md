@@ -13,19 +13,31 @@ le code). Même conduite, même vol, mêmes atterrissages, même moteur qui mont
 Si quelque chose casse : menu **Affichage → Output** (View → Output). Les erreurs y sont écrites en rouge,
 avec le nom du script et la ligne. Copie-les à Claude.
 
-## Le mettre en ligne sur Roblox (que tes potes y jouent)
+## Le mettre en ligne sur Roblox — la check-list (dans l'ordre)
 
-1. Dans Studio : **Fichier → Publier sur Roblox** (File → Publish to Roblox) → « Créer une nouvelle expérience »,
-   nom `CASH CAR`, genre Course.
-2. **Paramètres du jeu → Sécurité → « Activer l'accès de Studio aux services API »** : sans ça les records
-   ne sont pas sauvegardés.
-3. Sur create.roblox.com → ton expérience → la rendre **Publique** quand tu es prêt.
+Le jeu est PRÊT À PUBLIER (4/10) : réglages de test coupés, aucun prix en euros, aucune marque déposée dans les noms, les chances
+de la roue affichées, l'argent de fin de partie borné par le serveur (anti-triche), la sauvegarde sûre. Ce qui reste, c'est TON
+compte Roblox qui le fait — Claude ne publie pas à ta place :
 
-C'est toi qui publies (c'est ton compte Roblox) : Claude ne le fait pas à ta place.
+1. **Ton compte** : vérifié par pièce d'identité (13 ans ou plus) — Roblox l'exige pour les formes 3D que le jeu fabrique par code.
+2. **Studio → Fichier → Publier sur Roblox** (File → Publish to Roblox) → « Créer une nouvelle expérience », nom `CASH CAR`,
+   genre Course.
+3. **Studio → Paramètres du jeu → Sécurité** : cocher **« Activer l'accès de Studio aux services API »** (sauvegarde,
+   classement) et **« Autoriser les API de maillage et d'image »** (Allow Mesh & Image APIs — sans ça, ni caisses ni nuages).
+   Sauvegarder.
+4. **create.roblox.com → ton expérience** :
+   - **Questionnaire** (Audience → « Questionnaire sur la maturité ») : le jeu n'a ni violence réaliste, ni sang, ni texte libre
+     entre joueurs ; il a des achats en Robux (si tu en crées) et une ROUE avec des lots au hasard — répondre honnêtement ;
+   - **Paramètres de base** : la description — prête dans **`publication/description.txt`** (français + anglais) ;
+   - **Places → Icône et vignettes** : glisser **`publication/icone-512.png`** et les cinq vignettes `vignette-*.png` ;
+   - **Appareils** : ordinateur, téléphone, tablette, console (tout est jouable : clavier, tactile, manette) ;
+   - **Places → Nombre de joueurs max** : 12 conseillé (chacun voit les caisses des autres sur sa route) ;
+   - **Localisation** : langue source Français, ajouter Anglais (le jeu suit la langue du joueur tout seul).
+5. (Optionnel, pour gagner des Robux) créer les passes, produits et badges — voir « Gagner de l'argent avec le jeu » plus bas —
+   et recopier leurs numéros dans `Config.REVENUS`, puis `node ROBLOX/construire.js` et republier.
+6. **Rendre l'expérience Publique** (Paramètres de base → Public) quand tu es prêt.
 
-Les images de la page du jeu sont prêtes dans **`publication/`** : `icone-512.png` (l'icône) et cinq vignettes 1920×1080
-(`vignette-1-nuages.png` … `vignette-5-vol.png`), tirées du vrai jeu. Sur create.roblox.com → ton expérience → Places / Icône
-et Vignettes : les glisser. (Les refaire : `sh outils/vitrine.sh nuages` [ville, nuit, espace] puis `python outils/vitrine.py`.)
+À chaque nouvelle version : `node ROBLOX/construire.js`, ouvrir `CashCar.rbxlx` dans Studio, **Fichier → Publier sur Roblox**.
 
 ## Les commandes
 
@@ -163,7 +175,7 @@ sauvegarde qui ne peut plus effacer une progression.
 - les **sons** : tant qu'ils ne sont pas importés (voir plus haut), on n'entend que les sons de secours ;
 - le mode FACILE existe dans le code mais il est éteint (`Config.FACILE_ACTIF`).
 
-## ⚠ Avant de publier : deux réglages Roblox indispensables
+## Pourquoi le compte vérifié et les « API de maillage » (étapes 1 et 3)
 
 Le jeu fabrique ses formes 3D par code (caisses, nuages, moteurs, dauphins…). Roblox l'autorise seulement si :
 1. **Paramètres du jeu → Sécurité → « Autoriser les API de maillage et d'image »** (Allow Mesh & Image APIs) est activé ;

@@ -11,6 +11,7 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local MarketplaceService = game:GetService("MarketplaceService")
+local PolicyService = game:GetService("PolicyService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local CC = ReplicatedStorage:WaitForChild("CashCar")
@@ -245,6 +246,35 @@ local function creer()
 	U.gGarder.Activated:Connect(function() Roue.choisir(true) end)
 	U.gVendre.Activated:Connect(function() Roue.choisir(false) end)
 	U.gOk.Activated:Connect(function() Roue.retourEtat() end)
+	-- LES CHANCES (règle de Roblox pour tout lot tiré au hasard qu'on peut payer en Robux : les afficher AVANT l'achat). Un lien sous
+	-- TOURNER ; le tableau prend la place de l'état — case par case, sa couleur, son lot, sa chance.
+	U.chancesBt = inst("TextButton", { BackgroundTransparency = 1, AutoButtonColor = false, FontFace = K.PIX, TextSize = 16, TextColor3 = C.cyan,
+		Text = tr("VOIR LES CHANCES", "SEE THE ODDS"), Size = UDim2.fromOffset(300, 44), Position = UDim2.new(0.5, 0, 0, 232), AnchorPoint = Vector2.new(0.5, 0) }, U.etat)
+	U.chancesBt.Activated:Connect(function()
+		Sons.jouer("tap")
+		U.chances.Visible = true
+		U.etat.Visible = false
+	end)
+	U.chances = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 380), Position = UDim2.fromOffset(0, 176), Visible = false }, col)
+	local total = 0
+	for _, c in RO.cases do total += c.w end
+	for k, c in RO.cases do
+		local y = (k - 1) * 34
+		local fond = couleurCase(k)
+		inst("Frame", { BackgroundColor3 = fond, BorderSizePixel = 0, Size = UDim2.fromOffset(22, 22), Position = UDim2.fromOffset(46, y + 6) }, U.chances)
+		local nom = libelle(k)
+		if c.k == "caisse" then nom = tr("CAISSE EXCLUSIVE", "EXCLUSIVE CAR") elseif c.k == "habit" then nom = tr("SKIN EXCLUSIF", "EXCLUSIVE SKIN") end
+		texte(U.chances, { Text = nom, TextSize = 17, TextColor3 = C.texte, Size = UDim2.fromOffset(300, 34), Position = UDim2.fromOffset(82, y),
+			TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
+		local pc = c.w / total * 100
+		texte(U.chances, { Text = string.format(pc < 10 and "%.1f %%" or "%.0f %%", pc), TextSize = 17, TextColor3 = OR1, Size = UDim2.fromOffset(120, 34),
+			Position = UDim2.new(1, -46, 0, y), AnchorPoint = Vector2.new(1, 0), TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false })
+	end
+	local okC = K.tuile(U.chances, "OK", C.cyan, UDim2.fromOffset(160, 64), UDim2.new(0.5, 0, 1, -24), Vector2.new(0.5, 1), 24)
+	okC.Activated:Connect(function()
+		U.chances.Visible = false
+		U.etat.Visible = true
+	end)
 	U.voile = v
 end
 
@@ -259,7 +289,8 @@ local function majEtat()
 	local pa = attr("RoueParties") or 0
 	U.parties.Text = string.format(tr("PARTIES : %d / %d  →  +1 TOUR", "RUNS: %d / %d  →  +1 SPIN"), pa, RO.parties)
 	local id = R.produits.tours3
-	U.acheterBoite.Visible = type(id) == "number" and id > 0
+	-- (règle de Roblox : là où les lots payants tirés au hasard sont interdits, on ne VEND pas de tours — les gratuits restent)
+	U.acheterBoite.Visible = type(id) == "number" and id > 0 and not U.hasardInterdit
 	U.tourner.Text = (n > 0) and tr("TOURNER", "SPIN") or tr("PLUS DE TOUR", "NO SPINS")
 	U.tourner.TextSize = (n > 0) and 46 or 30
 end
@@ -268,7 +299,7 @@ end
 U.angle = 0
 local function segmentEnHaut(ang: number): number return math.floor(((-ang) % 360 + PAS / 2) / PAS) end
 function Roue.tourner()
-	if U.tourne or not U.voile or U.gain.Visible then return end
+	if U.tourne or not U.voile or U.gain.Visible or U.chances.Visible then return end
 	if Roue.tours() <= 0 then
 		Sons.vrai("uiRefus", nil, nil, "tap", 0.8)
 		Hud.toast(tr("PLUS DE TOUR : REVIENS PLUS TARD", "NO SPINS: COME BACK LATER"), nil, "croix")
@@ -412,6 +443,7 @@ function Roue.ouvrir()
 	if not U.voile then creer() end
 	if U.voile.Visible then return end
 	U.gain.Visible = false
+	U.chances.Visible = false
 	U.etat.Visible = true
 	majEtat()
 	U.voile.Visible = true
@@ -451,6 +483,10 @@ end
 -- c = { action = function(nom, ...) → ok, res ; surEquipe = function(i) ; info = TextLabel du bouton du menu (le compte des tours) }
 function Roue.init(c: any)
 	ctx = c
+	task.spawn(function()
+		local ok, info = pcall(function() return PolicyService:GetPolicyInfoForPlayerAsync(joueur) end)
+		U.hasardInterdit = not ok or (type(info) == "table" and info.ArePaidRandomItemsRestricted == true) -- (sans réponse : prudence, on ne vend pas)
+	end)
 	-- le TICKET du menu et la carte de fin vivent : tours, compte à rebours (deux fois par seconde)
 	local t0 = 0
 	RunService.RenderStepped:Connect(function()
@@ -482,6 +518,7 @@ function Roue.init(c: any)
 		elseif string.find(q, "^garder") then Roue.choisir(true)
 		elseif string.find(q, "^vendre") then Roue.choisir(false)
 		elseif string.find(q, "^ok") then Roue.retourEtat()
+		elseif string.find(q, "^chances") and U.chancesBt then U.chances.Visible, U.etat.Visible = true, false
 		elseif string.find(q, "^fermer") then Roue.fermer() end
 	end)
 end

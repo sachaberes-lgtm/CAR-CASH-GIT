@@ -4344,8 +4344,9 @@ end
 return Caisse
 ]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX0000004E"><Properties><string name="Name">Caisses</string></Properties><Item class="ModuleScript" referent="RBX00000007"><Properties><string name="Name">Catalogue</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LE CATALOGUE DES 69 CAISSES — CUIT par outils/cuire-caisses.js depuis VERSION PRINCIPALE/index.html, ne pas éditer.
 -- Indices du jeu web (0 = LA HONTE) : ce sont ceux des sauvegardes, ils ne bougent jamais.
--- Repère : nez vers −Z, droite du pilote +X, mètres. cond.k : depart · prix (v = $) · aura (rang) · roue (EXCLUSIVE de la ROUE : elle ne
--- s'achète pas, elle se gagne en la tournant — ce sont les anciennes caisses des carnets et de la campagne, 4/10) · premium (argent réel).
+-- Repère : nez vers −Z, droite du pilote +X, mètres. cond.k : depart · prix (v = $) · aura (rang) · roue (EXCLUSIVE de la ROUE : les
+-- anciennes caisses des carnets et de la campagne — missions et carrière n'existent pas sur Roblox) · premium (argent réel).
+-- (version publique Roblox : les noms affichés ne citent aucune marque déposée — voir ROBLOX_NOMS dans outils/cuire-caisses.js)
 -- roues = { x, y, z, miroir, rayon } · trainees = un point par ruban de nitro · ailes = panneaux | helices | none (ce que le gabarit déploie en vol).
 return {
 	[0] = { nom = "LA HONTE", en = "THE SHAME", rar = "commun", gabarit = "epave", cond = { k = "depart" },
@@ -4402,7 +4403,7 @@ return {
 		trainees = { { -0.38, 0.34, 2.23 }, { 0.38, 0.34, 2.23 } }, capot = { 0, 1.2392, -1.1816 },
 		roues = { { 0.8, 0.34, -1.22, true, 0.34 }, { -0.8, 0.34, -1.22, false, 0.34 }, { 0.8, 0.34, 1.26, true, 0.34 }, { -0.8, 0.34, 1.26, false, 0.34 } }, ailes = "panneaux", fx = nil,
 		desc = "Inox brossé, portes papillon. À 88 à l'heure elle remonte le temps, paraît-il. Toi, tu vas plus vite.", descEN = "Brushed steel, gullwing doors. At 88 it travels back in time, apparently. You go faster." },
-	[9] = { nom = "CHAT POP-TART", en = "POP-TART CAT", rar = "legendaire", gabarit = "poptart", cond = { k = "premium", eur = "4,99 €" },
+	[9] = { nom = "CHAT ARC-EN-CIEL", en = "RAINBOW CAT", rar = "legendaire", gabarit = "poptart", cond = { k = "premium", eur = "4,99 €" },
 		laque = 0xf6b98a, accent = 0xf78fb8, w = 1.95, h = 0.8, l = 3.4, kmh = 560, triangles = 1840,
 		phare = { -0.546, 0.368, -1.428 }, feu = { -0.624, 0.48, 1.564 }, pots = { { 0.429, 0.43, 2.01 }, { -0.429, 0.43, 2.01 } },
 		trainees = { { -0.429, 0.43, 2.01 }, { 0.429, 0.43, 2.01 } }, capot = { 0, 0.974, -0.952 },
@@ -4426,7 +4427,7 @@ return {
 		trainees = { { -0.462, 0.43, 2.71 }, { 0.462, 0.43, 2.71 } }, capot = { 0, 0.662, -1.344 },
 		roues = { { 1.21, 0.4, -1.65, false, 0.4 }, { -1.21, 0.4, -1.65, false, 0.4 }, { 1.21, 0.4, 1.65, false, 0.4 }, { -1.21, 0.4, 1.65, false, 0.4 } }, neon = 0xfff0a0, ailes = "panneaux", fx = nil,
 		desc = "Un aileron, un baquet, et tes économies peintes en doré. Le circuit appelle ça de la triche. Nous, du talent.", descEN = "A wing, a bucket seat, and your savings painted gold. The track calls it cheating. We call it talent." },
-	[13] = { nom = "LE MANS 24", en = "LE MANS 24", rar = "legendaire", gabarit = "lemans", cond = { k = "premium", eur = "2,99 €" },
+	[13] = { nom = "ENDURANCE 24", en = "ENDURANCE 24", rar = "legendaire", gabarit = "lemans", cond = { k = "premium", eur = "2,99 €" },
 		laque = 0xe8ecf2, accent = 0xff5a1a, w = 2.18, h = 0.46, l = 5.35, kmh = 543, triangles = 1168,
 		phare = { -0.5232, 0.5064, -2.568 }, feu = { -0.6976, 0.5708, 2.735 }, pots = { { 0.4796, 0.43, 2.985 }, { -0.4796, 0.43, 2.985 } },
 		trainees = { { -0.4796, 0.43, 2.985 }, { 0.4796, 0.43, 2.985 } }, capot = { 0, 0.7088, -1.498 },
@@ -4473,7 +4474,7 @@ return {
 		phare = { -0.52, 0.6, -2.15 }, feu = { -0.72, 0.78, 2.14 }, pots = { { -0.4, 0.29, 2.18 } },
 		trainees = { { -0.4, 0.29, 2.18 } }, capot = { 0, 1.6448, -1.19 },
 		roues = { { 0.74, 0.32, -1.3, true, 0.32 }, { -0.74, 0.32, -1.3, false, 0.32 }, { 0.74, 0.32, 1.28, true, 0.32 }, { -0.74, 0.32, 1.28, false, 0.32 } }, ailes = "panneaux", fx = nil,
-		desc = "Sept places, zéro limite. Les enfants hurlent, mais c'est de joie : on vient de doubler une Ferrari.", descEN = "Seven seats, zero limits. The kids are screaming, but it's pure joy: we just passed a Ferrari." },
+		desc = "Sept places, zéro limite. Les enfants hurlent, mais c'est de joie : on vient de doubler une supercar.", descEN = "Seven seats, zero limits. The kids are screaming, but it's pure joy: we just passed a supercar." },
 	[21] = { nom = "LE BREAK SUÉDOIS", en = "THE SWEDISH WAGON", rar = "commun", gabarit = "b_breaksuedois", retire = true, cond = { k = "prix", v = 4000 },
 		laque = 0x1f4a36, accent = 0xe9ecf0, w = 1.72, h = 1.46, l = 4.8, kmh = 210, triangles = 2872,
 		phare = { -0.575, 0.76, -2.33 }, feu = { -0.73, 0.8, 2.32 }, pots = { { -0.38, 0.3, 2.39 } },
@@ -4558,7 +4559,7 @@ return {
 		trainees = { { -0.37, 0.28, 2.41 } }, capot = { 0, 1.4576, -1.316 },
 		roues = { { 0.72, 0.32, -1.3, true, 0.32 }, { -0.72, 0.32, -1.3, false, 0.32 }, { 0.72, 0.32, 1.225, true, 0.32 }, { -0.72, 0.32, 1.225, false, 0.32 } }, ailes = "panneaux", fx = nil,
 		desc = "Conçue par des gens qui font des avions. Ça se voit au pare-brise, ça se sent quand le turbo arrive.", descEN = "Designed by people who build airplanes. You can see it in the windshield. You can feel it when the turbo kicks in." },
-	[35] = { nom = "LE QUATTRO", en = "THE QUATTRO", rar = "rare", gabarit = "b_quattro", cond = { k = "prix", v = 52000 },
+	[35] = { nom = "LE RALLYE", en = "THE RALLY", rar = "rare", gabarit = "b_quattro", cond = { k = "prix", v = 52000 },
 		laque = 0xefeee8, accent = 0x141518, w = 1.72, h = 1.34, l = 4.4, kmh = 290, triangles = 3020,
 		phare = { -0.62, 0.66, -2.22 }, feu = { -0.56, 0.83, 2.22 }, pots = { { -0.36, 0.29, 2.26 } },
 		trainees = { { -0.36, 0.29, 2.26 } }, capot = { 0, 1.3952, -1.232 },
@@ -4636,7 +4637,7 @@ return {
 		trainees = { { -0.08, 0.36, 2.23 }, { 0.08, 0.36, 2.23 } }, capot = { 0, 1.169, -1.2208 },
 		roues = { { 0.76, 0.33, -1.26, true, 0.33 }, { -0.76, 0.33, -1.26, false, 0.33 }, { 0.76, 0.33, 1.24, true, 0.33 }, { -0.76, 0.33, 1.24, false, 0.33 } }, ailes = "panneaux", fx = nil,
 		desc = "Elle a des cils. Et un V12 juste derrière ta nuque. Elle te fait les yeux doux, pas de cadeaux.", descEN = "She has eyelashes. And a V12 right behind your neck. She bats her eyes at you, but don't expect favors." },
-	[48] = { nom = "LA STRATOS", en = "THE STRATOS", rar = "epique", gabarit = "c_stratos", cond = { k = "prix", v = 750000 },
+	[48] = { nom = "LE BISEAU", en = "THE WEDGE", rar = "epique", gabarit = "c_stratos", cond = { k = "prix", v = 750000 },
 		laque = 0xf4f4f0, accent = 0x1ea050, w = 1.75, h = 1.11, l = 3.71, kmh = 340, triangles = 3372,
 		phare = { -0.36, 1.02, -1.37 }, feu = { -0.56, 0.66, 1.87 }, pots = { { 0.3, 0.38, 1.915 }, { -0.3, 0.38, 1.915 } },
 		trainees = { { -0.3, 0.38, 1.915 }, { 0.3, 0.38, 1.915 } }, capot = { 0, 1.2158, -1.0388 },
@@ -6485,7 +6486,7 @@ local U: any = {}
 local ctx: any = nil
 local depuis = "menu"
 local fileN = 0
-local UNE = 9 -- la caisse à la une : CHAT POP-TART
+local UNE = 9 -- la caisse à la une : le CHAT ARC-EN-CIEL
 local OR1 = Color3.fromRGB(255, 215, 94)
 
 local function tr(fr: string, en: string): string return FR and fr or en end
@@ -11768,10 +11769,6 @@ local function eurNombre(s: string?): number
 	local n = tonumber((string.gsub(string.gsub(s, ",", "."), "[^%d%.]", "")))
 	return n or 0
 end
-local function eurTexte(s: string): string
-	if FR then return s end
-	return string.format("€%.2f", eurNombre(s))
-end
 local function ordre(i: number): number -- carOrdre : dans une famille, du plus accessible au plus dur
 	local k = Catalogue[i].cond
 	if k.k == "depart" then return -1 end
@@ -12260,7 +12257,10 @@ local function majTuile(i: number)
 	local etiquette, couleur = "", CASH
 	if sombre then
 		if f.cond.k == "prix" then etiquette = Hud.argent(f.cond.v)
-		elseif f.cond.k == "premium" then etiquette, couleur = eurTexte(f.cond.eur), OR1 end
+		-- (4/10, version publique : Roblox se paie en Robux — plus aucun prix en euros à l'écran ; la caisse de la boutique dit BOUTIQUE,
+		-- celle de la roue dit ROUE)
+		elseif f.cond.k == "premium" then etiquette, couleur = L.boutique, OR1
+		elseif f.cond.k == "roue" then etiquette, couleur = L.defi, OR1 end
 	elseif not equipee then
 		etiquette = "✓"
 	end
@@ -12482,7 +12482,7 @@ local function condition(i: number): string
 	local k = Catalogue[i].cond
 	if k.k == "roue" then return L.roue end
 	if k.k == "aura" then return string.format(L.aura, L.rangs[k.v + 1] or "?", L.rangs[rangAura(profil().aura or 0)]) end
-	if k.k == "premium" then return L.boutique .. " — " .. eurTexte(k.eur) end
+	if k.k == "premium" then return L.boutique .. " — " .. L.bientot end
 	return ""
 end
 
@@ -12544,7 +12544,7 @@ local function majFiche()
 		elseif decision == "equiper" then
 			habiller(U.btDecision, "or_", nil, nil, L.equiper, 30)
 		elseif decision == "boutique" then
-			habiller(U.btDecision, "or_", nil, L.enBoutique, eurTexte(Catalogue[montre].cond.eur), 26)
+			habiller(U.btDecision, "or_", nil, L.enBoutique, FR and "BIENTOT" or "SOON", 26)
 		elseif decision == "gagner" then
 			habiller(U.btDecision, "verrou", nil, nil, L.gagner, 17)
 		else
@@ -18525,6 +18525,7 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local MarketplaceService = game:GetService("MarketplaceService")
+local PolicyService = game:GetService("PolicyService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local CC = ReplicatedStorage:WaitForChild("CashCar")
@@ -18759,6 +18760,35 @@ local function creer()
 	U.gGarder.Activated:Connect(function() Roue.choisir(true) end)
 	U.gVendre.Activated:Connect(function() Roue.choisir(false) end)
 	U.gOk.Activated:Connect(function() Roue.retourEtat() end)
+	-- LES CHANCES (règle de Roblox pour tout lot tiré au hasard qu'on peut payer en Robux : les afficher AVANT l'achat). Un lien sous
+	-- TOURNER ; le tableau prend la place de l'état — case par case, sa couleur, son lot, sa chance.
+	U.chancesBt = inst("TextButton", { BackgroundTransparency = 1, AutoButtonColor = false, FontFace = K.PIX, TextSize = 16, TextColor3 = C.cyan,
+		Text = tr("VOIR LES CHANCES", "SEE THE ODDS"), Size = UDim2.fromOffset(300, 44), Position = UDim2.new(0.5, 0, 0, 232), AnchorPoint = Vector2.new(0.5, 0) }, U.etat)
+	U.chancesBt.Activated:Connect(function()
+		Sons.jouer("tap")
+		U.chances.Visible = true
+		U.etat.Visible = false
+	end)
+	U.chances = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 380), Position = UDim2.fromOffset(0, 176), Visible = false }, col)
+	local total = 0
+	for _, c in RO.cases do total += c.w end
+	for k, c in RO.cases do
+		local y = (k - 1) * 34
+		local fond = couleurCase(k)
+		inst("Frame", { BackgroundColor3 = fond, BorderSizePixel = 0, Size = UDim2.fromOffset(22, 22), Position = UDim2.fromOffset(46, y + 6) }, U.chances)
+		local nom = libelle(k)
+		if c.k == "caisse" then nom = tr("CAISSE EXCLUSIVE", "EXCLUSIVE CAR") elseif c.k == "habit" then nom = tr("SKIN EXCLUSIF", "EXCLUSIVE SKIN") end
+		texte(U.chances, { Text = nom, TextSize = 17, TextColor3 = C.texte, Size = UDim2.fromOffset(300, 34), Position = UDim2.fromOffset(82, y),
+			TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
+		local pc = c.w / total * 100
+		texte(U.chances, { Text = string.format(pc < 10 and "%.1f %%" or "%.0f %%", pc), TextSize = 17, TextColor3 = OR1, Size = UDim2.fromOffset(120, 34),
+			Position = UDim2.new(1, -46, 0, y), AnchorPoint = Vector2.new(1, 0), TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false })
+	end
+	local okC = K.tuile(U.chances, "OK", C.cyan, UDim2.fromOffset(160, 64), UDim2.new(0.5, 0, 1, -24), Vector2.new(0.5, 1), 24)
+	okC.Activated:Connect(function()
+		U.chances.Visible = false
+		U.etat.Visible = true
+	end)
 	U.voile = v
 end
 
@@ -18773,7 +18803,8 @@ local function majEtat()
 	local pa = attr("RoueParties") or 0
 	U.parties.Text = string.format(tr("PARTIES : %d / %d  →  +1 TOUR", "RUNS: %d / %d  →  +1 SPIN"), pa, RO.parties)
 	local id = R.produits.tours3
-	U.acheterBoite.Visible = type(id) == "number" and id > 0
+	-- (règle de Roblox : là où les lots payants tirés au hasard sont interdits, on ne VEND pas de tours — les gratuits restent)
+	U.acheterBoite.Visible = type(id) == "number" and id > 0 and not U.hasardInterdit
 	U.tourner.Text = (n > 0) and tr("TOURNER", "SPIN") or tr("PLUS DE TOUR", "NO SPINS")
 	U.tourner.TextSize = (n > 0) and 46 or 30
 end
@@ -18782,7 +18813,7 @@ end
 U.angle = 0
 local function segmentEnHaut(ang: number): number return math.floor(((-ang) % 360 + PAS / 2) / PAS) end
 function Roue.tourner()
-	if U.tourne or not U.voile or U.gain.Visible then return end
+	if U.tourne or not U.voile or U.gain.Visible or U.chances.Visible then return end
 	if Roue.tours() <= 0 then
 		Sons.vrai("uiRefus", nil, nil, "tap", 0.8)
 		Hud.toast(tr("PLUS DE TOUR : REVIENS PLUS TARD", "NO SPINS: COME BACK LATER"), nil, "croix")
@@ -18926,6 +18957,7 @@ function Roue.ouvrir()
 	if not U.voile then creer() end
 	if U.voile.Visible then return end
 	U.gain.Visible = false
+	U.chances.Visible = false
 	U.etat.Visible = true
 	majEtat()
 	U.voile.Visible = true
@@ -18965,6 +18997,10 @@ end
 -- c = { action = function(nom, ...) → ok, res ; surEquipe = function(i) ; info = TextLabel du bouton du menu (le compte des tours) }
 function Roue.init(c: any)
 	ctx = c
+	task.spawn(function()
+		local ok, info = pcall(function() return PolicyService:GetPolicyInfoForPlayerAsync(joueur) end)
+		U.hasardInterdit = not ok or (type(info) == "table" and info.ArePaidRandomItemsRestricted == true) -- (sans réponse : prudence, on ne vend pas)
+	end)
 	-- le TICKET du menu et la carte de fin vivent : tours, compte à rebours (deux fois par seconde)
 	local t0 = 0
 	RunService.RenderStepped:Connect(function()
@@ -18996,6 +19032,7 @@ function Roue.init(c: any)
 		elseif string.find(q, "^garder") then Roue.choisir(true)
 		elseif string.find(q, "^vendre") then Roue.choisir(false)
 		elseif string.find(q, "^ok") then Roue.retourEtat()
+		elseif string.find(q, "^chances") and U.chancesBt then U.chances.Visible, U.etat.Visible = true, false
 		elseif string.find(q, "^fermer") then Roue.fermer() end
 	end)
 end
@@ -21333,7 +21370,7 @@ Config.CAM = {
 -- ── le reste ──
 -- Comme TEST_CAISSES du jeu web (index.html) : toutes les caisses s'ÉQUIPENT, mais la fiche du garage continue
 -- d'écrire la VRAIE condition. ⚠ à remettre à false pour la version publique : c'est l'unique interrupteur.
-Config.TEST_CAISSES = true
+Config.TEST_CAISSES = false -- (4/10 : la version PUBLIQUE — chaque caisse se gagne, s'achète ou se tire à la roue)
 
 -- ── LA ROUE (voir Client/Roue et ServerScriptService/Revenus) : huit cases, tirées au SERVEUR selon leur poids `w`. Un tour gratuit
 -- toutes les `libreH` heures, un tour offert toutes les `parties` parties (d'au moins 15 s), et des tours à vendre (REVENUS.produits.tours3).
@@ -22790,6 +22827,9 @@ local function sain(p: any): Profil
 	n.caisses = liste
 	if type(n.caisse) ~= "number" or n.caisse ~= math.floor(n.caisse) or n.caisse < 0 then n.caisse = 0 end
 	if Catalogue[n.caisse] and Catalogue[n.caisse].retire then n.caisse = 0 end -- (qui roulait avec une caisse retirée repart en LA HONTE)
+	-- (4/10, version publique) une caisse équipée qu'on ne possède pas — un reste des essais où tout s'équipait : retour à LA HONTE
+	local CfgP = require(game:GetService("ReplicatedStorage"):WaitForChild("CashCar"):WaitForChild("Config"))
+	if not possede[n.caisse] and not CfgP.TEST_CAISSES then n.caisse = 0 end
 	n.mis = Carnets.etat(n.mis)
 	local habits = {}
 	for _, h in n.habits do
@@ -22903,17 +22943,8 @@ Profils.actions.equiper = function(p, prof, i)
 	return true
 end
 
--- ── les MISSIONS : un défi réussi verse sa prime TOUT DE SUITE ; le carnet se ferme à la fin de la partie ──
-Profils.actions.defi = function(_, prof, i, v)
-	if type(i) ~= "number" or i ~= math.floor(i) or i < 1 or i > 3 then return false, "defi inconnu" end
-	local d = Carnets.de(prof.mis.n)[i]
-	if prof.mis.ok[i] then return false, "deja reussi" end
-	if type(v) ~= "number" or v ~= v or v < d.v then return false, "pas atteint" end
-	prof.mis.ok[i] = true
-	prof.mis.best[i] = d.v
-	prof.compte += d.p
-	return true
-end
+-- ── les MISSIONS (retirées du jeu le 4/10 : la ROUE les remplace) — leurs actions ne répondent plus : « defi » payait sur la simple
+-- parole du joueur. Le carnet reste dans le profil (les vieilles sauvegardes), plus rien ne le fait avancer. ──
 -- ── les HABILLAGES (shopBuy / shopEquip, L22150) : peintures, ailes, traînées ──
 local function habit(cat: any, id: any): any
 	local l = type(cat) == "string" and Config.HABITS[cat]
@@ -22953,35 +22984,6 @@ Profils.actions.permis = function(_, prof)
 	prof.compte += 500
 	return true
 end
-Profils.actions.suivre = function(_, prof, i)
-	if i ~= -1 and not (type(i) == "number" and i == math.floor(i) and i >= 1 and i <= 3) then return false, "defi inconnu" end
-	prof.mis.f = i
-	return true
-end
--- à la fin d'une partie : les meilleurs essais, puis le carnet se ferme si les trois défis sont réussis
-function Profils.finCarnet(prof: Profil, essais: any)
-	local c = Carnets.de(prof.mis.n)
-	if type(essais) == "table" then
-		for i = 1, 3 do
-			local b = essais[i]
-			if type(b) == "number" and b == b and b > prof.mis.best[i] and not prof.mis.ok[i] then
-				prof.mis.best[i] = math.min(c[i].v * 0.999, b) -- (un essai ne RÉUSSIT pas le défi : seule l'action « defi » le fait)
-			end
-		end
-	end
-	if prof.mis.ok[1] and prof.mis.ok[2] and prof.mis.ok[3] then
-		local rec = c.rec
-		if rec.caisse then
-			if not Profils.possede(prof, rec.caisse) then table.insert(prof.caisses, rec.caisse) end
-		elseif rec.habit then
-			if not table.find(prof.habits, rec.habit) then table.insert(prof.habits, rec.habit) end
-		elseif rec.cash then
-			prof.compte += rec.cash
-		end
-		prof.mis = { n = prof.mis.n + 1, ok = { false, false, false }, best = { 0, 0, 0 }, f = -1 }
-	end
-end
-
 -- EFFACER MA PROGRESSION (L39243 du jeu web, avec confirmation côté joueur) : le profil repart à zéro. `efface` dit à la sauvegarde de
 -- ne PAS fusionner avec l'ancien (sinon le record, l'aura et le moteur effacés y reviendraient — « jamais en arrière »).
 Profils.actions.effacer = function(_, prof)
@@ -23512,6 +23514,7 @@ Revenus.init({ Profils = Profils, remote = remote, compte = function(p: Player, 
 for _, p in Players:GetPlayers() do task.spawn(arrivee, p) end
 
 Players.PlayerRemoving:Connect(function(p)
+	debutCourse[p.UserId] = nil
 	local m = dossier:FindFirstChild(p.Name)
 	if m then m:Destroy() end
 	Profils.sauver(p)
@@ -23519,14 +23522,26 @@ Players.PlayerRemoving:Connect(function(p)
 	Revenus.depart(p)
 end)
 
+-- (à l'arrêt d'un serveur, Roblox laisse 30 s : toutes les sauvegardes partent EN MÊME TEMPS, pas l'une après l'autre)
 game:BindToClose(function()
+	local reste = 0
 	for _, p in Players:GetPlayers() do
-		Profils.sauver(p)
+		reste += 1
+		task.spawn(function()
+			pcall(Profils.sauver, p)
+			reste -= 1
+		end)
 	end
+	local t0 = os.clock()
+	while reste > 0 and os.clock() - t0 < 25 do task.wait(0.1) end
 end)
 
+-- LA MONTRE DU SERVEUR (4/10, avant publication) : quand une partie commence, le serveur le note — à la fin, il sait combien de
+-- temps elle a VRAIMENT duré, et borne le montant déclaré par le joueur (voir evFin). Une seconde chance ne relance pas la montre.
+local debutCourse: { [number]: number } = {}
 -- ce que les AUTRES doivent savoir de ma caisse : est-ce que je roule, dans quelle zone, nitro allumée ?
 evEtat.OnServerEvent:Connect(function(p, quoi, valeur)
+	if quoi == "course" and valeur == true and not debutCourse[p.UserId] then debutCourse[p.UserId] = os.clock() end
 	local m = dossier:FindFirstChild(p.Name)
 	if not m then return end
 	if quoi == "course" then
@@ -23565,6 +23580,16 @@ evFin.OnServerEvent:Connect(function(p, montant, distance, aura, stats)
 	local t = os.clock()
 	if dernierEnvoi[p.UserId] and t - dernierEnvoi[p.UserId] < 2 then return end
 	dernierEnvoi[p.UserId] = t
+	-- LE PLAFOND (4/10) : le montant vient du joueur — un tricheur pouvait s'inventer des milliards et squatter le classement mondial.
+	-- Mesuré au banc en jouant « parfait » (immortel, nitro tenue) : ~1 500 $ à 1 min, ~94 000 $ à 6 min. Le plafond laisse dix fois
+	-- plus (2 000 + 8 × durée²) : aucun vrai joueur ne le touche, une fortune inventée y est ramenée.
+	local duree = debutCourse[p.UserId] and (t - debutCourse[p.UserId]) or 0
+	debutCourse[p.UserId] = nil
+	local plafond = 2000 + 8 * duree * duree
+	if montant > plafond then
+		warn(string.format("[CashCar] fin de partie bornée : %s annonçait %.0f $ en %.0f s (plafond %.0f)", p.Name, montant, duree, plafond))
+		montant = plafond
+	end
 	local prof = Profils.de(p)
 	-- on ne verse que les GAINS, jamais la mise de 1,61 $ — multipliés par les droits du joueur (passe ×2 ARGENT, Premium +10 %)
 	prof.compte += math.max(0, montant - Config.CASH_DEPART) * Revenus.multiplicateur(p)
@@ -23598,7 +23623,6 @@ evFin.OnServerEvent:Connect(function(p, montant, distance, aura, stats)
 			local v = stats[k]
 			if type(v) == "number" and v == v and v >= 0 and v < 1e6 then prof.stats[k] += v end
 		end
-		pcall(Profils.finCarnet, prof, stats.mis) -- les missions : meilleurs essais, carnet qui se ferme
 		if Profils.finPartie then pcall(Profils.finPartie, p, prof, stats) end -- (carrière)
 		pcall(Revenus.surFin, p, prof, stats, aura) -- (les badges d'exploit, le classement mondial)
 	end

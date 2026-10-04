@@ -68,10 +68,6 @@ local function eurNombre(s: string?): number
 	local n = tonumber((string.gsub(string.gsub(s, ",", "."), "[^%d%.]", "")))
 	return n or 0
 end
-local function eurTexte(s: string): string
-	if FR then return s end
-	return string.format("€%.2f", eurNombre(s))
-end
 local function ordre(i: number): number -- carOrdre : dans une famille, du plus accessible au plus dur
 	local k = Catalogue[i].cond
 	if k.k == "depart" then return -1 end
@@ -560,7 +556,10 @@ local function majTuile(i: number)
 	local etiquette, couleur = "", CASH
 	if sombre then
 		if f.cond.k == "prix" then etiquette = Hud.argent(f.cond.v)
-		elseif f.cond.k == "premium" then etiquette, couleur = eurTexte(f.cond.eur), OR1 end
+		-- (4/10, version publique : Roblox se paie en Robux — plus aucun prix en euros à l'écran ; la caisse de la boutique dit BOUTIQUE,
+		-- celle de la roue dit ROUE)
+		elseif f.cond.k == "premium" then etiquette, couleur = L.boutique, OR1
+		elseif f.cond.k == "roue" then etiquette, couleur = L.defi, OR1 end
 	elseif not equipee then
 		etiquette = "✓"
 	end
@@ -782,7 +781,7 @@ local function condition(i: number): string
 	local k = Catalogue[i].cond
 	if k.k == "roue" then return L.roue end
 	if k.k == "aura" then return string.format(L.aura, L.rangs[k.v + 1] or "?", L.rangs[rangAura(profil().aura or 0)]) end
-	if k.k == "premium" then return L.boutique .. " — " .. eurTexte(k.eur) end
+	if k.k == "premium" then return L.boutique .. " — " .. L.bientot end
 	return ""
 end
 
@@ -844,7 +843,7 @@ local function majFiche()
 		elseif decision == "equiper" then
 			habiller(U.btDecision, "or_", nil, nil, L.equiper, 30)
 		elseif decision == "boutique" then
-			habiller(U.btDecision, "or_", nil, L.enBoutique, eurTexte(Catalogue[montre].cond.eur), 26)
+			habiller(U.btDecision, "or_", nil, L.enBoutique, FR and "BIENTOT" or "SOON", 26)
 		elseif decision == "gagner" then
 			habiller(U.btDecision, "verrou", nil, nil, L.gagner, 17)
 		else
