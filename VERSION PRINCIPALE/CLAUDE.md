@@ -7,6 +7,27 @@
 - Les règles « SANS TOUT CASSER » (partir de `origin/main` à jour, fusionner sans jamais forcer, jeu testé sans erreur avant chaque
   push, retour arrière par Vercel) et la liste de ce que contient la référence : voir `CLAUDE.md` à la RACINE du dépôt.
 
+## LE DÉPART EN MUSIQUE (2026-10-04, copie de test de Léo — « harmonise le début de partie et le début de la musique, c'est un peu violent ; un effet sonore de boost pas trop fort qui fait la transition jusqu'à la musique, fais un truc stylé »)
+- AVANT, à la sortie du nuage, tout tombait dans la MÊME image : le lobby coupé net, la musique de course à sa 1re mesure (montée à
+  60 % en 0,15 s), le WHOOMP de la nitro offerte, le rugissement du réacteur et le claquement du logo (sub + accord).
+- DÉSORMAIS UNE PHRASE (bloc `DEPMUS`, juste avant `musicStartRun`) :
+  · le PIQUÉ de JOUER : le lobby S'EFFACE (musicTick, mode menu : × 1 − `GAR.go.t`/1,5 s) ; au REJOUER de l'écran de mort, en 0,35 s
+    sous le fondu au noir (`DEPMUS.sort`) ;
+  · la sortie du nuage : `sfx('depart.envol')` (atelier-son, bloc juste après `depart.logo`) REMPLACE le logo et le whoomp — souffle rond
+    qui s'ouvre, puis une MONTÉE (roulement qui accélère, quinte qui grimpe d'une octave, poussière d'or) ; accordé sur le morceau qui va
+    entrer (`musicStartRun(true)` pose sa source EN ATTENTE — option `attend` de playMusic — AVANT `fireLaunchBoost` ; resetGame a été
+    réordonné pour ça) ; le réacteur de la nitro offerte part à 35 % (`feuK`) et retrouve sa voix en 3 s, le coup d'allumage ×0,55 ;
+  · le POSER (`DEPMUS.t` 1,55 s = POSE de la recette ; ÷ 2^(ton/12) : transposer accélère le son) : la musique de course ENTRE en
+    fondu en S de 0,9 s (`DEPMUS.f0`, musicTick).
+- Replis : pas de son du départ (effets coupés, banque pas décodée, contexte suspendu — RECOMMENCER depuis la pause) → la musique entre
+  tout de suite, en fondu ; auto-école (pas de boost) → idem, le logo garde son claquement ; rallumer la MUSIQUE en course → immédiat.
+  ⚠ iPhone (`VOL_LOCKED`) : ni fondu du lobby ni fondu d'entrée possibles sur un `<audio>` — le son du départ couvre la coupure du lobby
+  et son poser porte l'entrée. `DEPMUS.on=false` = le départ d'avant.
+- MESURÉ (banc `depmus*.mjs`, scratchpad 83e03bdc, muet, SwiftShader) : JOUER → lobby 0,35 → 0 pendant le piqué → `depart.envol` →
+  `play()` de la course 1,55-1,64 s après (gigue du rendu logiciel), volume 0 → 0,62 en ~0,9 s ; REJOUER après une mort : même phrase ;
+  RECOMMENCER : le repli. Son : 3,1 s, enveloppe souffle −22 dB → creux → montée −38 → −29 dB → poser −21 dB → queue. Banque ?v=12.
+- sw.js → v85.
+
 ## PLUS DE COUPURES DE MUSIQUE + LE TEMPO MESURÉ (2026-10-03, soir, Léo : « le jeu coupe bizarrement la musique » · « il y a de la distorsion qui nique tout »)
 - **LES COUPURES** = la mise à jour toute seule RECHARGEAIT le jeu à chaque push, même ROBLOX seul (voir LA MÊME VERSION POUR TOUT LE
   MONDE) : le numéro de version est désormais l'EMPREINTE du jeu publié, plus le commit. sw.js → v84.

@@ -40,6 +40,8 @@ avant d'y toucher. `ROBLOX/` est un autre jeu, le portage Roblox : un commit ROB
   musique « coupée bizarrement ») et le tempo qui suivait la voiture retiré (il DISTORDAIT, mesuré). Le détail : `VERSION PRINCIPALE/CLAUDE.md`.
   · (2026-10-03, Sacha) DEBOUT, la comète de NITROOO ne voile plus l'écran : le dragon n'est plus « transparent » (le paysage ne bouge pas).
   · la MISE À JOUR TOUTE SEULE et le numéro de version dans les réglages.
+  · (2026-10-04, Léo, d'abord sur sa copie de test) LE DÉPART EN MUSIQUE : le lobby s'efface pendant le piqué, un son de boost qui
+    MONTE (`depart.envol`) remplace le claquement du logo et le whoomp, et la musique de course entre en fondu sur son « poser » (`DEPMUS`).
 - **SANS TOUT CASSER** — la règle de chaque session, avant de pousser :
   1. Partir de `origin/main` À JOUR : `git fetch origin main`, puis `git merge origin/main`. Jamais d'une vieille branche, jamais d'une copie locale.
   2. Sur `main`, on FUSIONNE. Jamais de `push --force`, de `reset` ni de revert du travail de l'autre ; dans un conflit, on garde les deux.
