@@ -47,6 +47,8 @@ la montre sur n'importe quelle copie. Le détail : « L'ÉDITION POKI » dans `V
     part TOUT DE SUITE, pendant le boost, en fondu de 0,6 s (`DEPMUS`) — le son de transition `depart.envol` a été RETIRÉ (Léo).
   · (2026-10-04, Léo, copie de test) la MÉLODIE de la phrase du nitro s'éteint de nouveau (un `//` avalait son extinction depuis le 3/10 :
     une nappe d'orgue sous les « ding » — c'était l'intrus).
+  · (2026-10-04, Léo, COPIE DE TEST — la porte fermée était le choix de Sacha : son accord avant `main`) la PORTE du garage enlevée
+    (`?porte=1` la rend) et le FEU EN CUBES : des flammes en cubes de pixels qui viennent des quatre bords de l'ouverture (`FEU_CUBES`).
 - **SANS TOUT CASSER** — la règle de chaque session, avant de pousser :
   1. Partir de `origin/main` À JOUR : `git fetch origin main`, puis `git merge origin/main`. Jamais d'une vieille branche, jamais d'une copie locale.
   2. Sur `main`, on FUSIONNE. Jamais de `push --force`, de `reset` ni de revert du travail de l'autre ; dans un conflit, on garde les deux.

@@ -38,6 +38,21 @@
 - **Pas encore fait / à trancher** : l'auto-école parle de POUCE même au clavier chez Poki (vrai aussi dans le cadre de l'ordi de la
   version principale) ; `dark-triad.mp3` manque (404 en console, déjà vrai sur `main`) ; le compte développeur Poki, la page du jeu et
   l'envoi du zip = Sacha ; droits des musiques et noms de marques (CHAT POP-TART…) à vérifier avant publication.
+## LA PORTE ENLEVÉE, LE FEU EN CUBES (2026-10-04, copie de test de Léo — « enlève la porte, remets des flammes pixelisées façon Minecraft, plus CUBE ; travaille couleurs, brillance, transparence, des pixels cubes satisfaisants » · « des flammes dans TOUS LES SENS : là ça sort d'en bas, je veux que ça vienne d'en haut, des côtés et d'en bas »)
+- LA PORTE : `PORTE_FERMEE` = `?porte=1` SEULEMENT (c'était `MENU_SACHA||?porte=1`) et ses cinq panneaux ne se montrent plus. ⚠ La porte
+  FERMÉE était le choix de SACHA (30/09, défaut de son menu) : Léo l'enlève — à faire valider par Sacha avant `main` (règle 4).
+- LE RIDEAU PEINT (`feuPixPas`) brûle depuis les QUATRE bords (seuil `hh`, linteau `F.hT`, montants `F.sG`/`F.sD`, chacun ses langues) ;
+  un cran plus sombre derrière les cubes ; au centre un cœur de braise sombre en tramage (`FEU_CENTRE`), plus de trou noir.
+- LES CUBES (`FEU_CUBES`, `feuCubeNait`, `garFeuCubes` appelée par garFeu à chaque image) : jusqu'à 760 cubes de 34 cm qui NAISSENT
+  sur les quatre bords de l'ouverture, groupés en langues, partent vers l'intérieur et MONTENT (ceux du linteau plongent puis se
+  recourbent) ; posés sur une grille de 17 cm (ils sautent de case en case), quatre couches de profondeur, un sur trois sort vers
+  l'atelier ; six bandes de couleur par âge (blanc chaud > 1 → braise) et une taille qui fond par crans. Deux InstancedMesh qui
+  PARTAGENT matrices et couleurs : le cube plein (faces ombrées par couleurs de sommet : dessus clair, flancs, dessous sombre) et son
+  halo ×1,9 additif à 17 % (la brillance, la transparence). Au lâcher : deux fois plus de cubes, plus loin, plus vifs.
+- Compilés au menu avec l'atelier (atelierChauffe), rien en course (l'atelier est caché). `FEU_CUBES.on=false` = le rideau seul ;
+  `dbgFeu()` rend `cubes`. Vérifié (banc `garfeu.mjs`, scratchpad 83e03bdc) : boutique couchée et debout, lâcher → course, 0 erreur ;
+  menu → JOUER → course couché, debout, cadre de l'ordi : 0 erreur. sw.js → v87.
+
 ## LE DÉPART EN MUSIQUE (2026-10-04, copie de test de Léo — « harmonise le début de partie et le début de la musique, c'est un peu violent »)
 - AVANT, à la sortie du nuage, tout tombait dans la MÊME image : le lobby coupé net et la musique de course qui bondissait à 60 % en 0,15 s.
 - MAINTENANT (bloc `DEPMUS`, juste avant `musicStartRun`) : pendant le piqué de JOUER le lobby S'EFFACE (musicTick, mode menu :
