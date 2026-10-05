@@ -23980,7 +23980,78 @@ return {
 	uiFerme = "rbxassetid://139441221739985",
 	uiRefus = "rbxassetid://96725026294097",
 }
-]]></ProtectedString></Properties></Item></Item></Item><Item class="ServerScriptService" referent="RBX000000D0"><Properties><string name="Name">ServerScriptService</string></Properties><Item class="ModuleScript" referent="RBX000000CD"><Properties><string name="Name">Profils</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LES PROFILS (serveur). Tout ce qu'un joueur garde d'une partie à l'autre : le COMPTE (l'argent
+]]></ProtectedString></Properties></Item></Item></Item><Item class="ServerScriptService" referent="RBX000000D1"><Properties><string name="Name">ServerScriptService</string></Properties><Item class="ModuleScript" referent="RBX000000CD"><Properties><string name="Name">Analytique</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LES STATISTIQUES ROBLOX (Creator Hub → l'expérience → Analytics) : invisibles pour le joueur, le tableau de bord de Sacha.
+--   · l'ENTONNOIR DES NOUVEAUX (Onboarding) : arrivé → première course → première fin → deuxième course → une minute tenue →
+--     première caisse achetée. On y lit OÙ un nouveau joueur décroche : c'est la courbe qui fait (ou défait) un jeu Roblox.
+--   · l'ÉCONOMIE (Economy) : chaque dollar du jeu qui entre (course, cadeaux, roue, packs payés) et qui sort (caisses, habillages),
+--     avec le solde — on voit si l'argent coule trop vite ou trop lentement.
+--   · quelques ÉVÉNEMENTS (Custom) : la zone atteinte, le montant d'une course, un cœur utilisé, un achat en Robux.
+-- Tout passe par pcall : une statistique ne casse jamais le jeu (et en Studio, Roblox n'enregistre rien).
+local AS = game:GetService("AnalyticsService")
+local Players = game:GetService("Players")
+local ET = Enum.AnalyticsEconomyTransactionType
+
+local A = {}
+A.T = {
+	jeu = ET.Gameplay.Name, achatRobux = ET.IAP.Name, boutique = ET.Shop.Name,
+	cadeau = ET.TimedReward.Name, accueil = ET.Onboarding.Name,
+}
+
+-- l'entonnoir : seulement pour un NOUVEAU joueur (aucune partie au compteur), chaque étape une fois et dans l'ordre
+local suivi: { [number]: { etape: number, debuts: number } } = {}
+local function etape(p: Player, n: number, nom: string)
+	local s = suivi[p.UserId]
+	if not s or n ~= s.etape + 1 then return end
+	s.etape = n
+	pcall(function() AS:LogOnboardingFunnelStepEvent(p, n, nom) end)
+end
+
+function A.arrivee(p: Player, prof: any)
+	local neuf = type(prof.stats) == "table" and prof.stats.parties == 0
+	suivi[p.UserId] = neuf and { etape = 0, debuts = 0 } or nil
+	if neuf then etape(p, 1, "Arrive") end
+end
+function A.depart(p: Player)
+	suivi[p.UserId] = nil
+end
+
+-- une course part (la montre du serveur démarre)
+function A.debut(p: Player)
+	local s = suivi[p.UserId]
+	if not s then return end
+	s.debuts += 1
+	if s.debuts == 1 then etape(p, 2, "Premiere course") end
+	if s.debuts == 2 then etape(p, 4, "Deuxieme course") end
+end
+
+-- une course finit : l'entonnoir, la zone, le montant
+function A.fin(p: Player, montant: number, stats: any, duree: number)
+	etape(p, 3, "Premiere fin")
+	if duree >= 60 then etape(p, 5, "Une minute tenue") end
+	pcall(function()
+		if type(stats) == "table" and type(stats.zone) == "number" then AS:LogCustomEvent(p, "ZoneAtteinte", stats.zone) end
+		AS:LogCustomEvent(p, "MontantCourse", math.floor(montant))
+		AS:LogCustomEvent(p, "DureeCourse", math.floor(duree))
+	end)
+end
+
+-- l'argent du jeu qui bouge : `montant` > 0 entre, < 0 sort ; `solde` = le compte APRÈS ; `quoi` = un des A.T ; `article` = ce que c'est
+function A.argent(p: Player, montant: number, solde: number, quoi: string, article: string?)
+	if montant == 0 or montant ~= montant then return end
+	local sens = montant > 0 and Enum.AnalyticsEconomyFlowType.Source or Enum.AnalyticsEconomyFlowType.Sink
+	pcall(function() AS:LogEconomyEvent(p, sens, "Dollars", math.floor(math.abs(montant)), math.floor(solde), quoi, article) end)
+	if montant < 0 and article and string.sub(article, 1, 7) == "caisse:" then etape(p, 6, "Premiere caisse achetee") end
+end
+
+-- un événement nommé (un cœur utilisé, un achat en Robux…)
+function A.evenement(p: Player, nom: string, valeur: number?)
+	pcall(function() AS:LogCustomEvent(p, nom, valeur or 1) end)
+end
+
+Players.PlayerRemoving:Connect(A.depart)
+
+return A
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000000CE"><Properties><string name="Name">Profils</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LES PROFILS (serveur). Tout ce qu'un joueur garde d'une partie à l'autre : le COMPTE (l'argent
 -- versé à chaque fin de partie), le record, les caisses achetées et celle qu'il conduit, les peintures,
 -- les missions, la carrière, les réglages. UNE entrée DataStore par joueur, versionnée (comme SAVE.d du web).
 --
@@ -24006,6 +24077,7 @@ function Profils.neuf(): Profil
 	return {
 		v = VERSION,
 		compte = 0, record = 0, auraMeilleur = 0,
+		recordPur = 0, -- (5/10) le meilleur record SANS AIDE (ni cœur, ni nitro infinie, ni mode facile) : lui seul entre au TOP 10
 		kmhMax = 0, -- la plus grande vitesse jamais atteinte (km/h affichés)
 		moteurMax = 0, -- le meilleur palier de MOTEUR jamais atteint (SAVE.d.ex.eng du web) : l'écran de fin dit « RECORD ! » s'il est battu
 		aura = 0,      -- l'aura de TOUJOURS (elle fait le rang : ANONYME … DIVINITÉ DU CIEL)
@@ -24062,7 +24134,7 @@ local function sain(p: any): Profil
 		local v = n.roue[k]
 		if v ~= v or v < 0 or v > 1e12 then n.roue[k] = 0 end
 	end
-	for _, k in { "compte", "record", "auraMeilleur", "aura", "frenRec", "moteurMax", "kmhMax", "jour", "serie", "invite", "coeurs" } do
+	for _, k in { "compte", "record", "recordPur", "auraMeilleur", "aura", "frenRec", "moteurMax", "kmhMax", "jour", "serie", "invite", "coeurs" } do
 		if n[k] ~= n[k] or n[k] < 0 or n[k] > 1e18 then n[k] = 0 end
 	end
 	n.coeurs = math.floor(n.coeurs) -- (des cœurs ENTIERS : un demi-cœur ne sauve personne)
@@ -24171,6 +24243,7 @@ function Profils.sauver(p: Player): boolean
 			-- jamais en arrière : l'argent et le record ne redescendent pas si deux serveurs se croisent
 			local a = sain(ancien)
 			prof.record = math.max(prof.record, a.record)
+			prof.recordPur = math.max(prof.recordPur, a.recordPur)
 			prof.auraMeilleur = math.max(prof.auraMeilleur, a.auraMeilleur)
 			prof.moteurMax = math.max(prof.moteurMax, a.moteurMax)
 			prof.kmhMax = math.max(prof.kmhMax, a.kmhMax)
@@ -24215,10 +24288,11 @@ Profils.actions = {} :: { [string]: (Player, Profil, ...any) -> (boolean, string
 
 -- ── le GARAGE : acheter et équiper (le catalogue est celui du jeu web, cuit) ──
 local Config = require(game:GetService("ReplicatedStorage"):WaitForChild("CashCar"):WaitForChild("Config"))
+local Analytique = require(script.Parent:WaitForChild("Analytique")) -- (l'argent qui sort : caisses, habillages)
 function Profils.possede(prof: Profil, i: number): boolean
 	return table.find(prof.caisses, i) ~= nil
 end
-Profils.actions.acheter = function(_, prof, i)
+Profils.actions.acheter = function(p, prof, i)
 	local f = type(i) == "number" and Catalogue[i]
 	if not f or f.retire then return false, "caisse inconnue" end
 	if Profils.possede(prof, i) then return false, "deja a toi" end
@@ -24226,6 +24300,7 @@ Profils.actions.acheter = function(_, prof, i)
 	if prof.compte < f.cond.v then return false, "pas assez" end
 	prof.compte -= f.cond.v
 	table.insert(prof.caisses, i)
+	Analytique.argent(p, -f.cond.v, prof.compte, Analytique.T.boutique, "caisse:" .. i)
 	return true -- (comme carBuy du web : la caisse achetée n'est PAS équipée d'office)
 end
 Profils.actions.equiper = function(p, prof, i)
@@ -24261,6 +24336,7 @@ Profils.actions.habitAcheter = function(p, prof, cat, id)
 	if prof.compte < d.p then return false, "pas assez" end
 	prof.compte -= d.p
 	table.insert(prof.habits, cat .. ":" .. id)
+	Analytique.argent(p, -d.p, prof.compte, Analytique.T.boutique, "habit:" .. cat .. ":" .. id)
 	prof.porte[cat] = id -- (un habillage acheté est porté tout de suite — pas une caisse)
 	if Profils.surHabit then Profils.surHabit(p) end
 	return true
@@ -24272,10 +24348,11 @@ Profils.actions.habitEquiper = function(p, prof, cat, id)
 	return true
 end
 
-Profils.actions.permis = function(_, prof)
+Profils.actions.permis = function(p, prof)
 	if prof.permis then return false, "deja" end
 	prof.permis = true
 	prof.compte += 500
+	Analytique.argent(p, 500, prof.compte, Analytique.T.accueil, "permis")
 	return true
 end
 -- EFFACER MA PROGRESSION (L39243 du jeu web, avec confirmation côté joueur) : le profil repart à zéro. `efface` dit à la sauvegarde de
@@ -24319,7 +24396,7 @@ Profils.actions.reglage = function(p, prof, cle, valeur)
 end
 
 return Profils
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000000CE"><Properties><string name="Name">Revenus</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LES REVENUS (serveur). Ce qui fait vivre — et rapporter — un jeu Roblox, HORS de la boutique des caisses :
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000000CF"><Properties><string name="Name">Revenus</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LES REVENUS (serveur). Ce qui fait vivre — et rapporter — un jeu Roblox, HORS de la boutique des caisses :
 --   · LES RAISONS DE REVENIR (Roblox paie les créateurs au TEMPS que ses membres Premium passent dans le jeu) : le CADEAU DU JOUR et
 --     sa SÉRIE (7 jours qui montent), les CADEAUX DE TEMPS DE JEU (5, 15, 30, 60 min dans la session), les BADGES, le CLASSEMENT
 --     MONDIAL ; le BONUS PREMIUM (+10 % d'argent : on donne aux membres Premium une raison de jouer ici) ;
@@ -24350,6 +24427,7 @@ local HttpService = game:GetService("HttpService")
 local CC = ReplicatedStorage:WaitForChild("CashCar")
 local Config = require(CC:WaitForChild("Config"))
 local Catalogue = require(CC:WaitForChild("Caisses"):WaitForChild("Catalogue"))
+local An = require(script.Parent:WaitForChild("Analytique")) -- (les statistiques Roblox : l'argent qui entre, les achats)
 local R = Config.REVENUS
 local RO = Config.ROUE
 
@@ -24358,7 +24436,9 @@ local ctx: any = nil
 -- (payes : les passes achetés PENDANT la session — Roblox garde en cache la réponse de UserOwnsGamePassAsync, qui peut encore dire
 -- « non » juste après l'achat : un passe payé ici ne se reperd pas)
 local droits: { [number]: { argent2: boolean, nitroInfini: boolean, vip: boolean, premium: boolean, payes: { [string]: boolean } } } = {}
-local session: { [number]: { debut: number, n: number, badges: { [string]: boolean }, classeT: number } } = {}
+-- (aide : la partie en cours a été AIDÉE — un cœur, la nitro infinie, le mode facile — elle ne compte pas au TOP 10 ;
+-- inscrit : le record déjà écrit au classement pendant cette session)
+local session: { [number]: { debut: number, n: number, badges: { [string]: boolean }, inscrit: number, aide: boolean } } = {}
 local Studio = game:GetService("RunService"):IsStudio()
 
 local function jourDe(t: number): number return math.floor(t / 86400) end -- (le jour UTC : le même pour tous les serveurs)
@@ -24381,6 +24461,9 @@ local function etatNitro(p: Player, d: any)
 	end
 	p:SetAttribute("NitroPasse", d.nitroInfini == true)
 	p:SetAttribute("NitroInfini", d.nitroInfini == true and on)
+	-- (rallumée en pleine partie, ou le passe acheté en route : la partie devient aidée)
+	local se = session[p.UserId]
+	if se and d.nitroInfini == true and on then se.aide = true end
 end
 local function lireDroits(p: Player)
 	local d = droits[p.UserId] or { argent2 = false, nitroInfini = false, vip = false, premium = false, payes = {} }
@@ -24429,6 +24512,7 @@ local function dire(p: Player, quoi: string, montant: number?, txt: string?)
 end
 local function crediter(p: Player, prof: any, montant: number)
 	prof.compte += math.floor(montant)
+	An.argent(p, math.floor(montant), prof.compte, An.T.jeu, "invitation")
 	ctx.Profils.pousser(p)
 	ctx.compte(p, prof)
 	ctx.Profils.sauverBientot(p)
@@ -24534,7 +24618,10 @@ local function tourner(p: Player, prof: any): (boolean, any)
 	else
 		res.gain = c.v
 	end
-	if res.gain then prof.compte += res.gain end
+	if res.gain then
+		prof.compte += res.gain
+		An.argent(p, res.gain, prof.compte, An.T.cadeau, "roue")
+	end
 	etatRoue(p, prof)
 	ctx.compte(p, prof)
 	return true, res
@@ -24575,6 +24662,7 @@ local function octroyer(p: Player, prof: any, nom: string): boolean
 		-- rebâtit quand IL choisit de la porter). Racheté malgré tout (deux fenêtres ouvertes) : il est payé, il est donné.
 		local kt = R.kit
 		prof.compte += kt.argent
+		An.argent(p, kt.argent, prof.compte, An.T.achatRobux, "kit")
 		prof.coeurs += kt.coeurs
 		if not table.find(prof.habits, kt.habit) then table.insert(prof.habits, kt.habit) end
 		prof.kit = true
@@ -24587,6 +24675,7 @@ local function octroyer(p: Player, prof: any, nom: string): boolean
 		local a = R.argent[tonumber(string.sub(nom, 7)) or 0]
 		if not a then return false end
 		prof.compte += a.v
+		An.argent(p, a.v, prof.compte, An.T.achatRobux, nom)
 		ctx.compte(p, prof)
 		ctx.Profils.pousser(p)
 		dire(p, "argent", a.v)
@@ -24635,10 +24724,12 @@ local function recevoir(p: Player, nom: string, achat: string): Enum.ProductPurc
 	return Enum.ProductPurchaseDecision.PurchaseGranted
 end
 
--- ── le CLASSEMENT MONDIAL : le meilleur record de chacun, les dix premiers rafraîchis toutes les 2 min ──
+-- ── le CLASSEMENT MONDIAL : le meilleur record SANS AIDE de chacun, les dix premiers rafraîchis toutes les 2 min ──
+-- (Sacha, 5/10 : « le TOP 10 sans aide » — un cœur, la nitro infinie ou le mode facile s'achètent ou s'allument : ils ne doivent
+-- pas acheter une place. Nouveau tableau v2 : l'ancien mélangeait les records aidés, il ne se trie plus.)
 local classement: any = nil
 do
-	local ok, s = pcall(function() return DataStoreService:GetOrderedDataStore("CashCarClassement_v1") end)
+	local ok, s = pcall(function() return DataStoreService:GetOrderedDataStore("CashCarClassement_v2") end)
 	if ok then classement = s end
 end
 local noms: { [number]: string } = {}
@@ -24660,13 +24751,24 @@ local function rafraichir()
 	end
 	CC:SetAttribute("Classement", HttpService:JSONEncode(liste))
 end
+-- (une écriture à la première partie de la session — elle remet le tableau d'accord avec le profil — puis seulement quand le record
+-- sans aide MONTE : un record se bat rarement, le budget d'écritures de Roblox reste intact)
 local function inscrire(p: Player, record: number)
 	local se = session[p.UserId]
-	if not classement or not se or os.clock() - se.classeT < 30 then return end
-	se.classeT = os.clock()
+	record = math.floor(record)
+	if not classement or not se or record <= 0 or record <= se.inscrit then return end
+	se.inscrit = record
 	task.spawn(function()
-		pcall(function() classement:SetAsync(tostring(p.UserId), math.floor(record)) end)
+		local ok = pcall(function() classement:SetAsync(tostring(p.UserId), record) end)
+		if not ok and session[p.UserId] == se then se.inscrit = 0 end -- (raté : la prochaine fin de partie réessaie)
 	end)
+end
+-- la partie démarre (le serveur lance sa montre) : part-elle déjà aidée ? (nitro infinie allumée, mode facile)
+function Revenus.debut(p: Player)
+	local se = session[p.UserId]
+	if not se or not ctx or not ctx.Profils.pret(p) then return end
+	local rg = ctx.Profils.de(p).reglages
+	se.aide = p:GetAttribute("NitroInfini") == true or (type(rg) == "table" and rg.facile == true)
 end
 
 -- ════════ le branchement ════════
@@ -24676,8 +24778,10 @@ function Revenus.init(c: any)
 	evRevivre = c.remote("Revivre")
 	local P = ctx.Profils
 	-- l'interrupteur NITRO INFINIE (réglage « nitroInf ») : le pilote suit l'attribut, tout de suite
-	P.surReglage = function(p: Player, _, cle: string)
+	P.surReglage = function(p: Player, prof: any, cle: string)
 		if cle == "nitroInf" then etatNitro(p, Revenus.droits(p)) end
+		-- (le mode FACILE allumé en pleine partie : elle devient aidée)
+		if cle == "facile" and prof.reglages.facile == true and session[p.UserId] then session[p.UserId].aide = true end
 	end
 
 	-- le CADEAU DU JOUR
@@ -24688,6 +24792,7 @@ function Revenus.init(c: any)
 		prof.jour = auj
 		local g = gainJour(p, prof.serie)
 		prof.compte += g
+		An.argent(p, g, prof.compte, An.T.cadeau, "cadeauJour")
 		etatJour(p, prof)
 		if prof.serie >= 7 then badge(p, "serie7") end
 		dire(p, "jour", g)
@@ -24703,6 +24808,7 @@ function Revenus.init(c: any)
 		se.n += 1
 		g *= Revenus.droits(p).vip and 2 or 1
 		prof.compte += g
+		An.argent(p, g, prof.compte, An.T.cadeau, "cadeauTemps")
 		p:SetAttribute("CadeauN", se.n)
 		dire(p, "temps", g)
 		ctx.compte(p, prof)
@@ -24720,6 +24826,7 @@ function Revenus.init(c: any)
 		if not membre then return false, "pas membre" end
 		prof.groupe = true
 		prof.compte += R.groupeBonus
+		An.argent(p, R.groupeBonus, prof.compte, An.T.accueil, "groupe")
 		p:SetAttribute("GroupeFait", true)
 		dire(p, "groupe", R.groupeBonus)
 		ctx.compte(p, prof)
@@ -24740,6 +24847,7 @@ function Revenus.init(c: any)
 		if prof.caisse == i then prof.caisse = 0 end
 		prof.roue.attente = -1
 		prof.compte += RO.revente
+		An.argent(p, RO.revente, prof.compte, An.T.jeu, "roueVente")
 		ctx.compte(p, prof)
 		return true
 	end
@@ -24754,6 +24862,8 @@ function Revenus.init(c: any)
 		end
 		prof.coeurs -= 1
 		etatCoeurs(p, prof)
+		if session[p.UserId] then session[p.UserId].aide = true end -- (une vie de plus : la partie sort du TOP 10)
+		An.evenement(p, "CoeurUtilise")
 		return true
 	end
 
@@ -24768,6 +24878,7 @@ function Revenus.init(c: any)
 			return Enum.ProductPurchaseDecision.NotProcessedYet
 		end
 		local ok, d = pcall(recevoir, p, nom, tostring(info.PurchaseId))
+		if ok and d == Enum.ProductPurchaseDecision.PurchaseGranted then An.evenement(p, "Robux_" .. nom, info.CurrencySpent) end
 		if not ok then
 			warn("[CashCar] achat " .. nom .. " : " .. tostring(d))
 			return Enum.ProductPurchaseDecision.NotProcessedYet
@@ -24842,7 +24953,7 @@ end
 
 -- à l'arrivée (profil chargé) : les droits, le cadeau du jour, l'horloge des cadeaux, le badge de bienvenue, l'invitation
 function Revenus.arrivee(p: Player, prof: any)
-	session[p.UserId] = { debut = workspace:GetServerTimeNow(), n = 0, badges = {}, classeT = -100 }
+	session[p.UserId] = { debut = workspace:GetServerTimeNow(), n = 0, badges = {}, inscrit = 0, aide = false }
 	p:SetAttribute("CadeauDebut", session[p.UserId].debut)
 	p:SetAttribute("CadeauN", 0)
 	p:SetAttribute("GroupeFait", prof.groupe == true)
@@ -24877,7 +24988,7 @@ function Revenus.depart(p: Player)
 end
 
 -- à chaque fin de partie : les badges d'exploit, le classement
-function Revenus.surFin(p: Player, prof: any, stats: any, aura: number?)
+function Revenus.surFin(p: Player, prof: any, stats: any, aura: number?, montant: number?)
 	if type(stats) ~= "table" or stats.lecon then return end
 	-- LA ROUE : une vraie partie (15 s de course au moins) compte pour le tour offert
 	-- (et le serveur le vérifie à sa montre : deux fins de partie à moins de 15 s d'écart ne comptent qu'une fois)
@@ -24898,11 +25009,16 @@ function Revenus.surFin(p: Player, prof: any, stats: any, aura: number?)
 	if type(aura) == "number" and aura >= 1000 then badge(p, "aura1000") end
 	if prof.record >= 1e6 then badge(p, "millionnaire") end
 	if prof.permis then badge(p, "permis") end
-	inscrire(p, prof.record)
+	-- LE TOP 10 SANS AIDE : la partie n'y monte que si rien ne l'a aidée, du départ à l'explosion (et rien d'allumé à l'arrivée)
+	local rg = prof.reglages
+	local aidee = (se and se.aide) or p:GetAttribute("NitroInfini") == true or (type(rg) == "table" and rg.facile == true)
+	if not aidee and type(montant) == "number" and montant > prof.recordPur then prof.recordPur = montant end
+	if se then se.aide = false end
+	inscrire(p, prof.recordPur)
 end
 
 return Revenus
-]]></ProtectedString></Properties></Item><Item class="Script" referent="RBX000000CF"><Properties><string name="Name">Serveur</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LE SERVEUR. Il fait peu, exprès :
+]]></ProtectedString></Properties></Item><Item class="Script" referent="RBX000000D0"><Properties><string name="Name">Serveur</string><ProtectedString name="Source"><![CDATA[-- CASH CAR — LE SERVEUR. Il fait peu, exprès :
 --   1. il tire la GRAINE de la piste (tout le serveur roule sur la même route : chaque joueur la bâtit
 --      chez lui à partir de ce nombre — zéro pièce de route à envoyer sur le réseau) ;
 --   2. il pose le CIEL (lumière, atmosphère) ;
@@ -24953,6 +25069,7 @@ local evProfil = remote("ProfilMaj")                  -- le serveur pousse le pr
 Profils.pousser = function(p: Player) evProfil:FireClient(p, Profils.de(p)) end
 -- LES REVENUS : cadeaux, badges, classement, passes, cœurs (voir Revenus)
 local Revenus = require(script.Parent:WaitForChild("Revenus"))
+local Analytique = require(script.Parent:WaitForChild("Analytique")) -- (les statistiques Roblox : entonnoir, économie)
 Profils.surHabit = function(p: Player) -- la peinture, les ailes, la traînée : les autres doivent les voir
 	local m = dossier:FindFirstChild(p.Name)
 	local prof = Profils.de(p)
@@ -25021,6 +25138,7 @@ local function arrivee(p: Player)
 		evRecord:FireClient(p, prof.record, prof.compte)
 		Profils.pousser(p)
 		Revenus.arrivee(p, prof)
+		Analytique.arrivee(p, prof)
 	end)
 end
 -- LA MONTRE DU SERVEUR (4/10, avant publication) : quand une partie commence, le serveur le note — à la fin, il sait combien de
@@ -25059,7 +25177,11 @@ end)
 
 -- ce que les AUTRES doivent savoir de ma caisse : est-ce que je roule, dans quelle zone, nitro allumée ?
 evEtat.OnServerEvent:Connect(function(p, quoi, valeur)
-	if quoi == "course" and valeur == true and not debutCourse[p.UserId] then debutCourse[p.UserId] = os.clock() end
+	if quoi == "course" and valeur == true and not debutCourse[p.UserId] then
+		debutCourse[p.UserId] = os.clock()
+		Revenus.debut(p) -- (la partie part-elle SANS AIDE ? le TOP 10 n'inscrit que celles-là)
+		Analytique.debut(p)
+	end
 	local m = dossier:FindFirstChild(p.Name)
 	if not m then return end
 	if quoi == "course" then
@@ -25110,7 +25232,10 @@ evFin.OnServerEvent:Connect(function(p, montant, distance, aura, stats)
 	end
 	local prof = Profils.de(p)
 	-- on ne verse que les GAINS, jamais la mise de 1,61 $ — multipliés par les droits du joueur (passe ×2 ARGENT, Premium +10 %)
-	prof.compte += math.max(0, montant - Config.CASH_DEPART) * Revenus.multiplicateur(p)
+	local gain = math.max(0, montant - Config.CASH_DEPART) * Revenus.multiplicateur(p)
+	prof.compte += gain
+	Analytique.argent(p, gain, prof.compte, Analytique.T.jeu, "course")
+	Analytique.fin(p, montant, stats, duree)
 	-- (L31161) une LEÇON QUITTÉE n'est pas une partie : seul l'argent gagné est versé — ni record, ni aura, ni partie comptée
 	if type(stats) == "table" and stats.lecon == true then
 		evRecord:FireClient(p, prof.record, prof.compte)
@@ -25142,7 +25267,7 @@ evFin.OnServerEvent:Connect(function(p, montant, distance, aura, stats)
 			if type(v) == "number" and v == v and v >= 0 and v < 1e6 then prof.stats[k] += v end
 		end
 		if Profils.finPartie then pcall(Profils.finPartie, p, prof, stats) end -- (carrière)
-		pcall(Revenus.surFin, p, prof, stats, aura) -- (les badges d'exploit, le classement mondial)
+		pcall(Revenus.surFin, p, prof, stats, aura, montant) -- (les badges d'exploit, le classement mondial)
 	end
 	local ls = p:FindFirstChild("leaderstats")
 	if ls then
@@ -25153,4 +25278,4 @@ evFin.OnServerEvent:Connect(function(p, montant, distance, aura, stats)
 	Profils.pousser(p)
 	Profils.sauverBientot(p)
 end)
-]]></ProtectedString></Properties></Item></Item><Item class="StarterGui" referent="RBX000000D1"><Properties><string name="Name">StarterGui</string></Properties></Item><Item class="SoundService" referent="RBX000000D2"><Properties><string name="Name">SoundService</string></Properties></Item></roblox>
+]]></ProtectedString></Properties></Item></Item><Item class="StarterGui" referent="RBX000000D2"><Properties><string name="Name">StarterGui</string></Properties></Item><Item class="SoundService" referent="RBX000000D3"><Properties><string name="Name">SoundService</string></Properties></Item></roblox>

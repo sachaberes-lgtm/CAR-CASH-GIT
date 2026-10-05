@@ -54,7 +54,10 @@ compte Roblox qui le fait — Claude ne publie pas à ta place :
 Le gaz est automatique partout. On sort par le **bord** de la route, on vole (vrilles, piqué, nitro), on se
 pose plus bas : c'est là que le jeu se joue. 6 secondes en l'air maximum.
 
-## Les sons (à faire une fois)
+## Les sons — FAIT le 5/10
+
+✅ Les 122 sons sont importés sur ton compte et leurs numéros sont dans `src/ReplicatedStorage/CashCar/SonsIds.luau` (vérifiés au
+banc : tous se chargent). Rien à refaire — sauf si tu ajoutes un son : la marche à suivre ci-dessous reste valable.
 
 Roblox ne joue que les sons importés sur Roblox. Le dossier **`sons-a-importer/`** contient cent dix bruitages du
 jeu (tirés de notre banque de sons), cinq boucles (**moteur**, **nitro**, crissement, drift, rase-bord), et **six musiques** : `musique` (la radio,
@@ -174,7 +177,9 @@ sauvegarde qui ne peut plus effacer une progression.
 - **LA ROUE** (accueil) : un tour gratuit toutes les 4 h, un tour offert toutes les 3 parties ; on y gagne de l'argent, un skin, ou
   l'une des 9 caisses EXCLUSIVES (à garder ou à revendre 7 500 $, au choix). Les cases et leurs chances : `Config.ROUE` ;
   « 3 TOURS » en Robux : `REVENUS.produits.tours3` (à créer, comme le cœur) ;
-- les **sons** : tant qu'ils ne sont pas importés (voir plus haut), on n'entend que les sons de secours ;
+- les **sons** : les 122 sont importés (5/10) — bruitages, boucles moteur/nitro/drift et les six musiques ;
+- le **TOP 10 mondial** est « SANS AIDE » : seule une partie jouée sans cœur, sans nitro infinie et sans mode facile y monte (le
+  record de l'écran de fin, lui, compte tout) ;
 - le mode FACILE existe dans le code mais il est éteint (`Config.FACILE_ACTIF`).
 
 ## Pourquoi le compte vérifié et les « API de maillage » (étapes 1 et 3)
@@ -269,6 +274,15 @@ nombre, à coller à la place du `0`. Pour l'image d'un passe, une capture du je
 
 Puis `node ROBLOX/construire.js` et republier. Les sommes (cadeaux, bonus) se règlent dans le même bloc.
 ⚠ Le questionnaire de maturité (Audience) doit dire que le jeu a des achats en Robux.
+
+## Lire les statistiques (une fois le jeu en ligne)
+
+Creator Hub → ton expérience → **Analytics**. Le jeu y envoie lui-même (rien à régler) :
+- **Funnels → Onboarding** : sur 100 NOUVEAUX joueurs, combien 1. arrivent, 2. lancent une course, 3. la finissent, 4. en
+  relancent une, 5. tiennent une minute, 6. achètent une caisse. La marche où la courbe chute, c'est là qu'il faut travailler.
+- **Economy** : les dollars du jeu qui entrent (course, cadeaux, roue, packs payés) et qui sortent (caisses, habillages).
+- **Custom events** : `ZoneAtteinte`, `MontantCourse`, `DureeCourse`, `CoeurUtilise`, `Robux_<produit>`.
+Les chiffres apparaissent après quelques heures, et seulement pour le jeu publié (Studio n'envoie rien).
 
 ## Pour le développeur (Claude ou autre)
 

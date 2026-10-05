@@ -49,6 +49,7 @@ local evProfil = remote("ProfilMaj")                  -- le serveur pousse le pr
 Profils.pousser = function(p: Player) evProfil:FireClient(p, Profils.de(p)) end
 -- LES REVENUS : cadeaux, badges, classement, passes, cœurs (voir Revenus)
 local Revenus = require(script.Parent:WaitForChild("Revenus"))
+local Analytique = require(script.Parent:WaitForChild("Analytique")) -- (les statistiques Roblox : entonnoir, économie)
 Profils.surHabit = function(p: Player) -- la peinture, les ailes, la traînée : les autres doivent les voir
 	local m = dossier:FindFirstChild(p.Name)
 	local prof = Profils.de(p)
@@ -117,6 +118,7 @@ local function arrivee(p: Player)
 		evRecord:FireClient(p, prof.record, prof.compte)
 		Profils.pousser(p)
 		Revenus.arrivee(p, prof)
+		Analytique.arrivee(p, prof)
 	end)
 end
 -- LA MONTRE DU SERVEUR (4/10, avant publication) : quand une partie commence, le serveur le note — à la fin, il sait combien de
@@ -155,7 +157,11 @@ end)
 
 -- ce que les AUTRES doivent savoir de ma caisse : est-ce que je roule, dans quelle zone, nitro allumée ?
 evEtat.OnServerEvent:Connect(function(p, quoi, valeur)
-	if quoi == "course" and valeur == true and not debutCourse[p.UserId] then debutCourse[p.UserId] = os.clock() end
+	if quoi == "course" and valeur == true and not debutCourse[p.UserId] then
+		debutCourse[p.UserId] = os.clock()
+		Revenus.debut(p) -- (la partie part-elle SANS AIDE ? le TOP 10 n'inscrit que celles-là)
+		Analytique.debut(p)
+	end
 	local m = dossier:FindFirstChild(p.Name)
 	if not m then return end
 	if quoi == "course" then
@@ -206,7 +212,10 @@ evFin.OnServerEvent:Connect(function(p, montant, distance, aura, stats)
 	end
 	local prof = Profils.de(p)
 	-- on ne verse que les GAINS, jamais la mise de 1,61 $ — multipliés par les droits du joueur (passe ×2 ARGENT, Premium +10 %)
-	prof.compte += math.max(0, montant - Config.CASH_DEPART) * Revenus.multiplicateur(p)
+	local gain = math.max(0, montant - Config.CASH_DEPART) * Revenus.multiplicateur(p)
+	prof.compte += gain
+	Analytique.argent(p, gain, prof.compte, Analytique.T.jeu, "course")
+	Analytique.fin(p, montant, stats, duree)
 	-- (L31161) une LEÇON QUITTÉE n'est pas une partie : seul l'argent gagné est versé — ni record, ni aura, ni partie comptée
 	if type(stats) == "table" and stats.lecon == true then
 		evRecord:FireClient(p, prof.record, prof.compte)
@@ -238,7 +247,7 @@ evFin.OnServerEvent:Connect(function(p, montant, distance, aura, stats)
 			if type(v) == "number" and v == v and v >= 0 and v < 1e6 then prof.stats[k] += v end
 		end
 		if Profils.finPartie then pcall(Profils.finPartie, p, prof, stats) end -- (carrière)
-		pcall(Revenus.surFin, p, prof, stats, aura) -- (les badges d'exploit, le classement mondial)
+		pcall(Revenus.surFin, p, prof, stats, aura, montant) -- (les badges d'exploit, le classement mondial)
 	end
 	local ls = p:FindFirstChild("leaderstats")
 	if ls then
