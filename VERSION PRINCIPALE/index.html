@@ -5914,7 +5914,7 @@ html.poki [data-m="shop"],html.poki [data-go="shop"],html.poki .gBoutique,html.p
 <!-- (2026-09-28) LA CONSOLE DE SON : la banque de sons (générée par atelier-son/cuire.js) et son lecteur. `defer` : ils ne retardent
      pas le démarrage (on n'en a besoin qu'au premier geste) ; changer `?v=` à chaque nouvelle banque (le service worker garde l'ancienne sinon). -->
 <script defer src="sons-banque.js?v=13"></script>
-<script defer src="assets/audio/music/harmonie.js?v=15"></script> <!-- (2026-10-03) l'harmonie des morceaux, temps par temps : la phrase du boost la lit (atelier-son/harmonie.py) -->
+<script defer src="assets/audio/music/harmonie.js?v=16"></script> <!-- (2026-10-03) l'harmonie des morceaux, temps par temps : la phrase du boost la lit (atelier-son/harmonie.py) -->
 <script defer src="sfx.js?v=4"></script>
 <script>
 (function(){
@@ -25634,12 +25634,15 @@ let musicLieu=null; // le morceau de LIEU qui tient l'antenne (null = la radio)
 const MUSIC_CIEL=[1,2,3,4,5].map(function(k){return{titre:'CIEL · NIVEAU '+k,f:'assets/audio/music/ciel/ciel-n'+k+'.m4a'};});
 // (2026-10-05, Léo : « voilà les musiques 1 à 5 de la ville » — NÉON COMPLÈTE 1 à 5, ses boucles du Studio recréées par atelier-son/neon_ville.py :
 // 12 tours de 4 mesures qui évoluent, 96 s chacune ; avant, NÉON seule au niveau 1)
-const MUSIC_VILLE=[1,2,3,4,5].map(function(k){return{titre:'NÉON COMPLÈTE '+k,f:'assets/audio/music/ville/ville-n'+k+'.m4a'};});
+// (2026-10-05, Léo : « fais les 4 prochains niveaux en t'inspirant de la base… qu'à la cinq on ressente EXPLOSION, ARGENT, BOOMIN, LUXURY ») : 6 à 10 = la
+// suite composée (atelier-son/ville_suite.py) — PLUIE D'OR · SOUS-SOL · PENTHOUSE · CHAMBRE FORTE · CASH EXPLOSION
+const MUSIC_VILLE=['NÉON COMPLÈTE 1','NÉON COMPLÈTE 2','NÉON COMPLÈTE 3','NÉON COMPLÈTE 4','NÉON COMPLÈTE 5',"PLUIE D'OR",'SOUS-SOL','PENTHOUSE','CHAMBRE FORTE','CASH EXPLOSION']
+  .map(function(t,i){return{titre:t,f:'assets/audio/music/ville/ville-n'+(i+1)+'.m4a'};});
 const MUSIC_CIEL_TOUT={titre:'CIEL · LES 5 NIVEAUX',f:'assets/audio/music/ciel/ciel-complet.m4a'};
 function musicLieuVoulu(){
   const c=LVL.cur;if(!c)return null;
   if(c.id==='nuages'){if(c.carr){if(c.carr.i<5)return MUSIC_CIEL[c.carr.i];}else if(!c.piste)return MUSIC_CIEL_TOUT;}
-  if(c.id==='ville'&&c.carr&&c.carr.i<5)return MUSIC_VILLE[c.carr.i]; // la carrière VILLE, niveaux 1 à 5 : NÉON COMPLÈTE 1 à 5
+  if(c.id==='ville'&&c.carr&&MUSIC_VILLE[c.carr.i])return MUSIC_VILLE[c.carr.i]; // la carrière VILLE : ses dix musiques (NÉON COMPLÈTE 1-5, puis la suite)
   return MUSIC_LIEU[c.id]||null;}
 /* appelé à chaque changement de niveau (fin de `newTrack`) : change de morceau SEULEMENT si le lieu
    en réclame un autre que celui qui joue. */
