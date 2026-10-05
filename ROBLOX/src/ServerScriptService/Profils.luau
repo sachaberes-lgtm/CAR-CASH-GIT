@@ -24,6 +24,7 @@ function Profils.neuf(): Profil
 	return {
 		v = VERSION,
 		compte = 0, record = 0, auraMeilleur = 0,
+		recordPur = 0, -- (5/10) le meilleur record SANS AIDE (ni cœur, ni nitro infinie, ni mode facile) : lui seul entre au TOP 10
 		kmhMax = 0, -- la plus grande vitesse jamais atteinte (km/h affichés)
 		moteurMax = 0, -- le meilleur palier de MOTEUR jamais atteint (SAVE.d.ex.eng du web) : l'écran de fin dit « RECORD ! » s'il est battu
 		aura = 0,      -- l'aura de TOUJOURS (elle fait le rang : ANONYME … DIVINITÉ DU CIEL)
@@ -80,7 +81,7 @@ local function sain(p: any): Profil
 		local v = n.roue[k]
 		if v ~= v or v < 0 or v > 1e12 then n.roue[k] = 0 end
 	end
-	for _, k in { "compte", "record", "auraMeilleur", "aura", "frenRec", "moteurMax", "kmhMax", "jour", "serie", "invite", "coeurs" } do
+	for _, k in { "compte", "record", "recordPur", "auraMeilleur", "aura", "frenRec", "moteurMax", "kmhMax", "jour", "serie", "invite", "coeurs" } do
 		if n[k] ~= n[k] or n[k] < 0 or n[k] > 1e18 then n[k] = 0 end
 	end
 	n.coeurs = math.floor(n.coeurs) -- (des cœurs ENTIERS : un demi-cœur ne sauve personne)
@@ -189,6 +190,7 @@ function Profils.sauver(p: Player): boolean
 			-- jamais en arrière : l'argent et le record ne redescendent pas si deux serveurs se croisent
 			local a = sain(ancien)
 			prof.record = math.max(prof.record, a.record)
+			prof.recordPur = math.max(prof.recordPur, a.recordPur)
 			prof.auraMeilleur = math.max(prof.auraMeilleur, a.auraMeilleur)
 			prof.moteurMax = math.max(prof.moteurMax, a.moteurMax)
 			prof.kmhMax = math.max(prof.kmhMax, a.kmhMax)
@@ -233,10 +235,11 @@ Profils.actions = {} :: { [string]: (Player, Profil, ...any) -> (boolean, string
 
 -- ── le GARAGE : acheter et équiper (le catalogue est celui du jeu web, cuit) ──
 local Config = require(game:GetService("ReplicatedStorage"):WaitForChild("CashCar"):WaitForChild("Config"))
+local Analytique = require(script.Parent:WaitForChild("Analytique")) -- (l'argent qui sort : caisses, habillages)
 function Profils.possede(prof: Profil, i: number): boolean
 	return table.find(prof.caisses, i) ~= nil
 end
-Profils.actions.acheter = function(_, prof, i)
+Profils.actions.acheter = function(p, prof, i)
 	local f = type(i) == "number" and Catalogue[i]
 	if not f or f.retire then return false, "caisse inconnue" end
 	if Profils.possede(prof, i) then return false, "deja a toi" end
@@ -244,6 +247,7 @@ Profils.actions.acheter = function(_, prof, i)
 	if prof.compte < f.cond.v then return false, "pas assez" end
 	prof.compte -= f.cond.v
 	table.insert(prof.caisses, i)
+	Analytique.argent(p, -f.cond.v, prof.compte, Analytique.T.boutique, "caisse:" .. i)
 	return true -- (comme carBuy du web : la caisse achetée n'est PAS équipée d'office)
 end
 Profils.actions.equiper = function(p, prof, i)
@@ -279,6 +283,7 @@ Profils.actions.habitAcheter = function(p, prof, cat, id)
 	if prof.compte < d.p then return false, "pas assez" end
 	prof.compte -= d.p
 	table.insert(prof.habits, cat .. ":" .. id)
+	Analytique.argent(p, -d.p, prof.compte, Analytique.T.boutique, "habit:" .. cat .. ":" .. id)
 	prof.porte[cat] = id -- (un habillage acheté est porté tout de suite — pas une caisse)
 	if Profils.surHabit then Profils.surHabit(p) end
 	return true
@@ -290,10 +295,11 @@ Profils.actions.habitEquiper = function(p, prof, cat, id)
 	return true
 end
 
-Profils.actions.permis = function(_, prof)
+Profils.actions.permis = function(p, prof)
 	if prof.permis then return false, "deja" end
 	prof.permis = true
 	prof.compte += 500
+	Analytique.argent(p, 500, prof.compte, Analytique.T.accueil, "permis")
 	return true
 end
 -- EFFACER MA PROGRESSION (L39243 du jeu web, avec confirmation côté joueur) : le profil repart à zéro. `efface` dit à la sauvegarde de
