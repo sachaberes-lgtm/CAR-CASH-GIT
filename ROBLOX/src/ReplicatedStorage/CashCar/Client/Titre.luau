@@ -78,6 +78,24 @@ function Titre.plan(piste: any)
 			table.insert(S.nu, { p = p, dec = dec, a = d[1], b = d[2], y = d[6], v = d[5], lo = -(1.2 * dd + 1.3 * d[3]), hi = 0.1 * dd + 1.3 * d[3] })
 		end
 	end
+	-- LES JUMEAUX (5/10, Sacha : « prends des libertés pour le menu ») : chaque cumulus remonte un cycle de 2-3 km en ~3 min — la
+	-- plupart du temps il est SOUS le cadre, et l'accueil montrait un ciel vide. Un jumeau par cumulus, décalé d'un demi-cycle, un
+	-- peu de côté, d'une autre forme : il y a toujours du coton qui monte autour de la caisse. (Des copies du même maillage : zéro
+	-- triangle de plus à bâtir.)
+	local n0 = #S.nu
+	for i = 1, n0 do
+		local c = S.nu[i]
+		local d = NU[i]
+		if d then
+			local p, dec = Nuages.seul(GABARIT[(d[4] + 2) % 5] or 0, d[3] * K * 0.8)
+			if p then
+				p.Parent = dossier
+				local cyc = c.hi - c.lo
+				local y = c.lo + ((c.y - c.lo + cyc * 0.5) % cyc)
+				table.insert(S.nu, { p = p, dec = dec, a = c.a + ((i % 2 == 0) and 1 or -1) * (120 + d[3] * 0.6), b = c.b * 0.92, y = y, v = c.v * 1.08, lo = c.lo, hi = c.hi })
+			end
+		end
+	end
 	Titre.nuPret = true
 end
 -- L'ORBITE AU DOIGT (L35538 du jeu web ; Sacha, 30/09 : « rajoute un moyen de déplacer la caméra autour de la voiture avec le doigt »)

@@ -110,6 +110,11 @@ ev.OnClientEvent:Connect(function(op: string, r: string, nom: string, prop: stri
 			if okT then table.insert(t, tag .. "=" .. math.floor(v)) end
 		end
 		ev:FireServer("stats : " .. table.concat(t, " "))
+	elseif op == "grand" then
+		-- (banc) la bannière du niveau, tout de suite (pour la photographier)
+		local H = require(RS:WaitForChild("CashCar"):WaitForChild("Client"):WaitForChild("Hud"))
+		H.grand(nom, nil, 3)
+		ev:FireServer("grand : " .. tostring(nom))
 	elseif op == "sons" then
 		-- (5/10) les sons QUI JOUENT et leur volume effectif — pour savoir d'où vient un bruit pendant les essais
 		local t = {}
