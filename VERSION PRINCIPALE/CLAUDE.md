@@ -264,6 +264,9 @@
     côté de la map, et JOUER petit comme le MISSIONS actuel ») LA PILE v6 : à droite, de haut en bas, MISSIONS en barre fine (30 px, sans
     conducteurs), JOUER (46 px), la MAP branchée dessous (`#gvBranche` : les deux conducteurs d'or ; liseré d'or et flux sur sa tranche ;
     JOUER enfoncé l'allume) ; à gauche SHOP, à côté de la map. Couché : 26 / 40 / 40 px. sw.js → v121.
+  · (même soir, Léo : « jauge en haut, HOME · settings à gauche en haut ») : HOME (dans le coin) puis ⚙ EN HAUT À GAUCHE (`#gOutils` ancré à
+    gauche) ; les jauges en haut à droite (debout empilées à droite de HOME · ⚙, couché dans le coin haut-droit) ; couché, l'astuce du burn-out
+    descend sous HOME · ⚙. sw.js → v122.
   Banc `vit6.mjs <nom> W H [zones]` (captures vitrine + tiroir, JOUER → course). sw.js → v116 (passé en v120 à la fusion : main était déjà en v119).
 - **L'ATELIER AÉRÉ + LE RENDU (même jour, Léo : « enlève quelques accessoires du garage, ça fait un peu rempli pour rien — les pieds tu
   dois laisser, ça fait partie du jeu ; les billets, mes trucs de trophée, tout ça laisse ; aère un peu l'espace · travaille plus le
