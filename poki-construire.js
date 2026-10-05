@@ -15,15 +15,23 @@
    UNE ÉDITION PAR PORTAIL (2026-10-05) — la même édition, seul le KIT change (`const PORTAIL_SDK='poki';` du <head>) :
      · `node poki-construire.js`       → `POKI/`  + `POKI.zip`  : le kit de Poki ;
      · `node poki-construire.js crazy` → `CRAZY/` + `CRAZY.zip` : le kit de CrazyGames (SDK v3), et SANS MODE FACILE (Sacha) ;
-     · `node poki-construire.js itch`  → `ITCH/`  + `ITCH.zip`  : aucun kit, aucune pub (itch.io, un site à soi…). */
+     · `node poki-construire.js itch`  → `ITCH/`  + `ITCH.zip`  : aucun kit, aucune pub (itch.io, un site à soi…) ;
+     · `node poki-construire.js playgama` → `PLAYGAMA/` + `PLAYGAMA.zip` : le Bridge SDK de Playgama (2026-10-06), avec son fichier
+       `playgama-bridge-config.json` à côté de index.html (le Bridge le lit au démarrage).
+   À PLAT (2026-10-06, CrazyGames : « Archive files are not supported » puis, au lancement, « moteur 3D chargé : NON ») : leur page d'envoi
+   prend des FICHIERS glissés, pas un zip, et les sous-dossiers (vendor/, assets/) n'y sont pas arrivés — le jeu cherchait
+   vendor/three.min.js dans le vide. L'édition CrazyGames sort donc À PLAT : tous les fichiers à la racine, sans un seul sous-dossier,
+   et chaque chemin du jeu (« vendor/… », « assets/…/ », écrits en dur ou composés, `DEATH_DIR`, `FX_DIR`, la police, les icônes du
+   manifeste) réécrit vers la racine. Les noms de fichiers sont tous différents (le script refuse sinon). `--plat` le fait pour les autres. */
 const fs=require('fs'),path=require('path'),cp=require('child_process');
-const ED=process.argv.includes('itch')?'itch':process.argv.includes('crazy')?'crazy':'poki';
-const NOM={poki:'POKI',crazy:'CRAZY',itch:'ITCH'}[ED],SDK={poki:'poki',crazy:'crazy',itch:''}[ED];
-const OU={poki:'Poki for Developers',crazy:'CrazyGames (developer.crazygames.com, type HTML5)',itch:'itch.io (Kind of project : HTML)'}[ED];
+const ED=['itch','crazy','playgama'].find(e=>process.argv.includes(e))||'poki';
+const NOM={poki:'POKI',crazy:'CRAZY',itch:'ITCH',playgama:'PLAYGAMA'}[ED],SDK={poki:'poki',crazy:'crazy',itch:'',playgama:'playgama'}[ED];
+const OU={poki:'Poki for Developers',crazy:'CrazyGames (developer.crazygames.com, type HTML5)',itch:'itch.io (Kind of project : HTML)',
+  playgama:'Playgama (developer.playgama.com)'}[ED];
 const SRC=path.join(__dirname,'VERSION PRINCIPALE'),DST=path.join(__dirname,NOM),ZIP=path.join(__dirname,NOM+'.zip');
 const SAUTE=new Set(['CLAUDE.md','README.md','JOUER.bat','sw.js','sons.html','atelier-son','atelier-nuages.js']); // à la racine du jeu
 const SAUTE_REL=new Set([1,2,3,4,5].map(k=>'assets/audio/music/ciel/ciel-n'+k+'.m4a') // la musique des niveaux 1 à 5 de la CARRIÈRE (nuages…
-  .concat([1,2,3,4,5].map(k=>'assets/audio/music/ville/ville-n'+k+'.m4a'))                // …et ville)
+  .concat(['assets/audio/music/ville'])                 // …et le dossier ENTIER de la ville : NÉON COMPLÈTE 1-10, que la carrière seule joue (musicLieuVoulu)
   .concat(['assets/audio/announcer','assets/audio/death/eww.m4a','assets/audio/fx/wow.mp3'])); // les VOIX (dossier entier pour l'annonceur)
 function copie(de,vers,rel){
   fs.mkdirSync(vers,{recursive:true});
@@ -45,6 +53,21 @@ s=s.replace('const POKI_BUILD=false;','const POKI_BUILD=true;');
 let ver='';try{ver=cp.execFileSync('git',['log','-1','--format=%h','--','VERSION PRINCIPALE'],{cwd:__dirname}).toString().trim();}catch(e){}
 if(ver)s=s.replace("const CC_BUILD='__CC_BUILD__';","const CC_BUILD='"+ver+"';");
 fs.writeFileSync(f,s);
+if(ED==='playgama') // le fichier de réglages du Bridge, à côté de index.html : une pub interstitielle au plus toutes les 60 s
+  fs.writeFileSync(path.join(DST,'playgama-bridge-config.json'),JSON.stringify({advertisement:{minimumDelayBetweenInterstitial:60},platforms:{}},null,2)+'\n');
+if(ED==='crazy'||process.argv.includes('--plat')){ // À PLAT : voir l'en-tête
+  const vus=new Map();
+  (function remonte(d,rel){for(const n of fs.readdirSync(d)){const p=path.join(d,n);
+    if(fs.statSync(p).isDirectory()){remonte(p,rel+n+'/');continue;}
+    if(!rel)continue;
+    if(vus.has(n)||fs.existsSync(path.join(DST,n))){console.error('✗ deux fichiers « '+n+' » ('+(vus.get(n)||'racine')+', '+rel+') : impossible de les mettre à plat');process.exit(1);}
+    vus.set(n,rel);fs.renameSync(p,path.join(DST,n));}})(DST,'');
+  for(const n of fs.readdirSync(DST))if(fs.statSync(path.join(DST,n)).isDirectory())fs.rmSync(path.join(DST,n),{recursive:true,force:true});
+  const plat=function(t){return t.replace(/(?<![A-Za-z0-9_\-])(\.\/)?(?:assets|vendor)\/(?:[A-Za-z0-9_\-]+\/)*/g,function(m,p){return p||'';});};
+  for(const n of ['index.html','manifest.webmanifest','sfx.js']){const q=path.join(DST,n);if(fs.existsSync(q))fs.writeFileSync(q,plat(fs.readFileSync(q,'utf8')));}
+  const reste=(fs.readFileSync(f,'utf8').match(/['"(](?:\.\/)?(?:assets|vendor)\//g)||[]).length;
+  if(reste){console.error('✗ '+reste+' chemin(s) vers assets/ ou vendor/ resté(s) dans index.html après la mise à plat');process.exit(1);}
+  console.log('✓ à plat : '+vus.size+' fichiers remontés à la racine, chemins réécrits');}
 let o=0,nb=0;(function taille(d){for(const n of fs.readdirSync(d)){const p=path.join(d,n),t=fs.statSync(p);if(t.isDirectory())taille(p);else{o+=t.size;nb++;}}})(DST);
 console.log('✓ '+NOM+'/ régénéré depuis VERSION PRINCIPALE'+(ver?' ('+ver+')':'')+' — '+nb+' fichiers, '+(o/1048576).toFixed(1)+' Mo');
 if(process.argv.includes('--sans-zip'))process.exit(0);
