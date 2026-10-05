@@ -12,9 +12,9 @@ from scipy.io import wavfile
 SR = 22050
 MORCEAUX = ['lobby/vapeur-salon.m4a', 'lobby/lobby-ascenseur.m4a', 'ciel/ciel-n1.m4a', 'ciel/ciel-n2.m4a', 'ciel/ciel-n3.m4a',
             'ciel/ciel-n4.m4a', 'ciel/ciel-n5.m4a', 'ciel/ciel-complet.m4a', 'lvl1-neon-cash-car-v3.mp3', 'lvl2-cash-car-vitesse.mp3',
-            'addictive-loop.m4a', 'noite-de-velocidade.mp3', 'nocturnal-groove.mp3', 'swag-cash-car-2.m4a', 'glassy-plucks-boucle.m4a', 'ville/ville-n1.m4a']
+            'addictive-loop.m4a', 'noite-de-velocidade.mp3', 'nocturnal-groove.mp3', 'swag-cash-car-2.m4a', 'glassy-plucks-boucle.m4a', 'ville/ville-n1.m4a', 'ville/ville-n2.m4a', 'ville/ville-n3.m4a', 'ville/ville-n4.m4a', 'ville/ville-n5.m4a']
 # les tempos CONNUS (morceaux composés à l'atelier) : on ne les devine pas
-BPM_SUR = {'ville-n1': 120, 'vapeur-salon': 100, 'lobby-ascenseur': 120, 'ciel-n5': 95, 'ciel': 88, 'glassy-plucks': 150.335}  # GLASSY : mesuré à l'échantillon (44 mesures exactes)
+BPM_SUR = {'ville-n': 120, 'vapeur-salon': 100, 'lobby-ascenseur': 120, 'ciel-n5': 95, 'ciel': 88, 'glassy-plucks': 150.335}  # GLASSY : mesuré à l'échantillon (44 mesures exactes)
 
 
 def lire(f):
