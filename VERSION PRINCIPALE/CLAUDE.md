@@ -108,6 +108,15 @@
     un peu dans le cadre et y revient — le flottement de la v109 sans son fouet ; le glissé vD attend qu'elle ait rejoint, écart < ,03) ;
     roulis ×(1 − `dRoulis` ,6), balancement ×(1 − `dSway` ,35), élan `dElan` 2 / `dFrein` 3. ⚠ ET UN BUG DE LA v109 : un commentaire
     collé avait AVALÉ `GAR.swP=…` (le balancement VERTICAL de la caméra, menu compris) — rendu. sw.js → v111.
+  · (même soir, Léo : « arrête de faire tourner automatiquement le garage ; le pdv un peu plus proche ; l'effet de mouvement doit moins
+    basculer, et suivre la voiture un tout petit peu plus — pas trop ») AU REPOS LA CAMÉRA NE TOURNE PLUS D'ELLE-MÊME : balancement latéral
+    coupé en vitrine (`dSway` 1) et le glissé `vD` n'est plus un asservissement permanent mais une HYSTÉRÉSIS (`GAR.vDon` : il recadre
+    au-delà de 3 % d'écart, jusqu'à 0,6 %, puis se tait — le zoom qui respire avec le plateau le faisait tourner sans fin, lentement).
+    Mesuré au banc (`repos.mjs`, 30 s au repos) : azimut figé (couché 0,656 rad constant ; debout écart 0,002 rad). Moins de bascule :
+    balancement vertical ×,5 (`dSwayV`), roulis ×,15 (`dRoulis` ,85), rebond plus sage (`dAmorti` ,78). La visée suit un peu mieux
+    (`dRegard` 4,5 : ~0,22 s). ~10 % plus près (`fw` ,98 · `fwP` ,88 · `fh` ,88) — couché, la place à gauche de la colonne JOUER est
+    remplie (banc `bord.mjs` : à `fw` 1,1 la boîte de la caisse sort de l'écran). Le PLATEAU, lui, tourne toujours (la caisse sur
+    elle-même) — `VITRINE_CAM.rot` 0 l'arrête. sw.js → v112.
 - **L'ATELIER AÉRÉ + LE RENDU (même jour, Léo : « enlève quelques accessoires du garage, ça fait un peu rempli pour rien — les pieds tu
   dois laisser, ça fait partie du jeu ; les billets, mes trucs de trophée, tout ça laisse ; aère un peu l'espace · travaille plus le
   rendu »)** — `GAR_AERE` (juste avant `buildGarageRoom`) : le petit bazar ne se construit plus — cartons, bidons, fûts et jerricans de
