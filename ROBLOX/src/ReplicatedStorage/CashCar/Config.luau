@@ -271,15 +271,19 @@ Config.ROUE = {
 	},
 }
 
--- ── LES REVENUS (voir ServerScriptService/Revenus) — HORS de la boutique des caisses ──
+-- ── LES REVENUS (voir ServerScriptService/Revenus) — les offres en Robux sont aussi EN TÊTE de la BOUTIQUE (Client/Boutique) ──
 -- Les NUMÉROS se posent ici une fois les objets créés sur create.roblox.com (ton expérience → Monétisation / Engagement) : à 0,
--- l'objet n'existe pas et ce qui en dépend se tait. Les prix en Robux se règlent sur le site, pas ici.
+-- l'objet n'existe pas et ce qui en dépend se tait (sa carte de la boutique dit BIENTOT). Les prix en Robux se règlent sur le site,
+-- pas ici : le jeu les LIT sur Roblox.
 Config.REVENUS = {
-	-- les PASSES (achat unique, vendus aussi sur la page du jeu) : « ×2 ARGENT » (tout l'argent d'une partie compte double),
+	-- les PASSES (achat unique, vendus aussi sur la page du jeu et dans la BOUTIQUE) : « ×2 ARGENT » (tout l'argent d'une partie
+	-- compte double — 500 R$), « NITRO INFINIE » (la réserve de nitro ne se vide jamais, pour toujours — 700 R$ ; Sacha, 5/10),
 	-- « VIP » (cadeaux du jour et de temps de jeu doublés, nom doré au-dessus de la caisse)
-	passes = { argent2 = 0, vip = 0 },
-	-- les PRODUITS (achat répété) : la SECONDE CHANCE (repartir là où l'on a explosé, la partie continue)
-	produits = { secondeChance = 0, tours3 = 0 }, -- (tours3 : TROIS TOURS DE ROUE d'un coup — voir Config.ROUE)
+	passes = { argent2 = 0, nitroInfini = 0, vip = 0 },
+	-- les PRODUITS (achat répété) : le CŒUR (50 R$ ; Sacha, 5/10 : « une vie en plus sous forme de cœur ») — un cœur = une vie : la
+	-- caisse qui devait exploser repart sur la route ; les cœurs se GARDENT dans le profil d'une partie à l'autre ; proposé aussi à la
+	-- mort quand on n'en a plus (acheté, il est consommé aussitôt : on repart là où l'on a explosé)
+	produits = { coeur = 0, tours3 = 0 }, -- (tours3 : TROIS TOURS DE ROUE d'un coup — voir Config.ROUE)
 	-- les BADGES : bienvenue, permis de l'auto-école, zone 6 atteinte, moteur palier 10, 1 000 d'aura en une partie, record d'un
 	-- million, sept jours d'affilée
 	badges = { bienvenue = 0, permis = 0, zone6 = 0, moteur10 = 0, aura1000 = 0, millionnaire = 0, serie7 = 0 },

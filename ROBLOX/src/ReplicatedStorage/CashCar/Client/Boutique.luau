@@ -1,14 +1,22 @@
--- CASH CAR — LA BOUTIQUE (l'écran #mShop du jeu web) : SEULEMENT les caisses qui s'achètent avec de l'argent réel — une vitrine.
--- À gauche l'OFFRE DE LANCEMENT (la caisse à la une, −50 %), à droite LES LEGENDAIRES en grille qui défile, RETOUR en bas à gauche.
--- ⚠ Rien ne se vend encore : sur le web chaque case dit « BIENTOT » (la porte d'achat refuse) ; ici aussi. Les prix du web sont en
--- euros — Roblox n'affiche que des Robux : le prix n'est PAS écrit tant que Sacha n'a pas décidé des tarifs (la plaque dit BIENTOT).
+-- CASH CAR — LA BOUTIQUE (l'écran #mShop du jeu web) : ce qui s'achète avec de l'argent réel.
+-- EN TÊTE (Sacha, 5/10 : « fais de ce jeu une usine à fric ») : LES OFFRES EN ROBUX — ×2 ARGENT, NITRO INFINIE, +1 CŒUR (et VIP,
+-- 3 TOURS DE ROUE quand ils existent) — de grandes cartes avec leur prix lu sur Roblox et un gros ACHETER.
+-- En dessous, la vitrine des caisses : à gauche l'OFFRE DE LANCEMENT (la caisse à la une, −50 %), à droite LES LEGENDAIRES en grille.
+-- La page entière défile (offres, puis vitrine) ; RETOUR reste en bas à gauche.
+-- ⚠ Les CAISSES ne se vendent pas encore : sur le web chaque case dit « BIENTOT » (la porte d'achat refuse) ; ici aussi. Les prix du
+-- web sont en euros — Roblox n'affiche que des Robux : le prix n'est PAS écrit tant que Sacha n'a pas décidé des tarifs (la plaque
+-- dit BIENTOT). Les OFFRES EN ROBUX, elles, se vendent dès que leur numéro est posé dans Config.REVENUS.
 -- Les photos sont de vraies caisses 3D (Caisse.vignette) : bâties une par une à l'ouverture, RENDUES à la fermeture (le budget de
 -- triangles de Roblox est compté) ; si le budget refuse, la case garde sa pastille de couleur.
 local TweenService = game:GetService("TweenService")
+local MarketplaceService = game:GetService("MarketplaceService")
+local joueur = game:GetService("Players").LocalPlayer
 local Hud = require(script.Parent:WaitForChild("Hud"))
 local Sons = require(script.Parent:WaitForChild("Sons"))
 local Caisse = require(script.Parent.Parent:WaitForChild("Caisse"))
 local Maillage = require(script.Parent:WaitForChild("Maillage"))
+local Config = require(script.Parent.Parent:WaitForChild("Config"))
+local Revenus = require(script.Parent:WaitForChild("Revenus")) -- (les prix lus sur Roblox, le stock de cœurs)
 local Catalogue = Caisse.Catalogue
 local K, C = Hud.kit, Hud.C
 local inst = K.inst
@@ -214,6 +222,130 @@ function Boutique.popFerme(vite: boolean?)
 	tw.Completed:Once(rentre)
 	tw:Play()
 end
+
+-- ════════ LES OFFRES EN ROBUX (Sacha, 5/10 : « un bouton pour payer 500 Robux pour avoir 2X plus d'argent, un bouton pour payer
+-- 700 Robux pour avoir nitro infini, un bouton pour avoir une vie en plus sous forme de cœur pour 50 Robux ») ════════
+-- Une carte par offre, côte à côte, en tête de la page : l'icône, le nom, la phrase qui donne envie, le PRIX (lu sur Roblox — le
+-- prix se règle sur create.roblox.com, jamais ici ; sans réponse, pas de prix écrit) et un gros ACHETER qui ouvre la fenêtre d'achat
+-- de Roblox. Un passe déjà à soi : ACTIF. Un numéro encore à 0 dans Config.REVENUS : BIENTOT, comme le reste de la vitrine (la
+-- carte reste, le bouton ne fait rien). VIP et 3 TOURS DE ROUE n'ont de carte que s'ils existent.
+-- `passe` : passe de jeu (achat unique) / produit (achat répété) ; `attr` : l'attribut joueur qui dit qu'on le possède (posé par
+-- le serveur) ; `seulSi` : pas de carte BIENTOT pour lui.
+local R = Config.REVENUS
+local ROUE_ICO = "..#####..|.#..#..#.|#.#.#.#.#|#..###..#|#########|#..###..#|#.#.#.#.#|.#..#..#.|..#####.." -- (la roue de l'accueil)
+local OFFRES = {
+	{ cle = "argent2", passe = true, attr = "Argent2", ico = "piece", c = Color3.fromRGB(255, 215, 94),
+		titre = { "x2 ARGENT", "x2 CASH" }, tag = { "A VIE", "FOREVER" },
+		txt = { "Tout l'argent de tes parties compte DOUBLE. Pour toujours.", "All the cash from your runs counts DOUBLE. Forever." } },
+	{ cle = "nitroInfini", passe = true, attr = "NitroInfini", ico = "flamme", c = Color3.fromRGB(176, 107, 255),
+		titre = { "NITRO INFINIE", "INFINITE NITRO" }, tag = { "A VIE", "FOREVER" },
+		txt = { "La jauge ne se vide JAMAIS : nitro à fond, tout le temps, dans chaque partie.",
+			"The gauge NEVER empties: full nitro, all the time, in every run." } },
+	{ cle = "coeur", passe = false, ico = "coeur", c = Color3.fromRGB(255, 94, 122),
+		titre = { "+1 COEUR", "+1 HEART" }, tag = { "+1 VIE", "+1 LIFE" },
+		txt = { "Une vie de plus : au lieu d'exploser, tu repars sur la route. Tes cœurs se gardent d'une partie à l'autre.",
+			"One more life: instead of blowing up, you're back on the road. Your hearts carry over from run to run." } },
+	{ cle = "vip", passe = true, attr = "VIP", ico = "etoile", c = Color3.fromRGB(0, 234, 255), seulSi = true,
+		titre = { "VIP", "VIP" }, tag = { "A VIE", "FOREVER" },
+		txt = { "Cadeaux du jour et de temps de jeu DOUBLÉS, et ton nom en or au-dessus de ta caisse.",
+			"Daily and playtime gifts DOUBLED, and your name in gold above your car." } },
+	{ cle = "tours3", passe = false, ico = ROUE_ICO, c = Color3.fromRGB(255, 62, 200), seulSi = true,
+		titre = { "3 TOURS DE ROUE", "3 WHEEL SPINS" }, tag = { "x3", "x3" },
+		txt = { "Trois tours de LA ROUE d'un coup : de l'argent, des habillages, des caisses exclusives.",
+			"Three spins of THE WHEEL at once: cash, skins, exclusive cars." } },
+}
+local function idOffre(o: any): number
+	local id = (o.passe and R.passes or R.produits)[o.cle]
+	return (type(id) == "number" and id > 0) and id or 0
+end
+local OF: any = { cartes = {}, n = 0 }
+local H_OFFRE = 300
+-- l'achat : la fenêtre de Roblox (le serveur accorde : ProcessReceipt pour un produit, PromptGamePassPurchaseFinished pour un passe)
+local function acheterOffre(o: any)
+	local id = idOffre(o)
+	if id <= 0 then return end
+	if o.passe then
+		pcall(function() MarketplaceService:PromptGamePassPurchase(joueur, id) end)
+	else
+		pcall(function() MarketplaceService:PromptProductPurchase(joueur, id) end)
+	end
+end
+-- bâtir la rangée des offres dans `page`, à partir de `y0` ; rend la hauteur prise
+local function creerOffres(page: Instance, y0: number): number
+	K.texte(page, { italique = true, Text = tr("OFFRES ROBUX", "ROBUX DEALS"), TextSize = 30, TextColor3 = OR1, Size = UDim2.fromOffset(700, 34),
+		Position = UDim2.new(0.043, 0, 0, y0), TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 3 })
+	local liste = {}
+	for _, o in OFFRES do
+		if not o.seulSi or idOffre(o) > 0 then table.insert(liste, o) end
+	end
+	local n = #liste
+	local ecart = 18
+	local rang = inst("Frame", { Name = "Offres", BackgroundTransparency = 1, Size = UDim2.new(0.914, 0, 0, H_OFFRE), Position = UDim2.new(0.043, 0, 0, y0 + 46) }, page)
+	for k, o in liste do
+		local i = k - 1
+		local c = inst("Frame", { Name = "Offre_" .. o.cle, BackgroundColor3 = Color3.new(1, 1, 1), BorderSizePixel = 0,
+			Size = UDim2.new(1 / n, -ecart * (n - 1) / n, 1, 0), Position = UDim2.new(i / n, i * ecart / n, 0, 0) }, rang)
+		K.degrade(c, Color3.fromRGB(34, 20, 64):Lerp(o.c, 0.3), Color3.fromRGB(16, 10, 34), 90)
+		inst("UIStroke", { Color = o.c, Thickness = 3, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, c)
+		inst("Frame", { BackgroundColor3 = o.c, BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 6) }, c)
+		-- l'étiquette, en haut à droite : À VIE (un passe), +1 VIE (le cœur), x3 (la roue)
+		local tag = inst("Frame", { BackgroundColor3 = o.c, BorderSizePixel = 0, Size = UDim2.fromOffset(18 + utf8.len(tr(o.tag[1], o.tag[2])) * 16 * Hud.CHASSE + 18, 30),
+			Position = UDim2.new(1, -14, 0, 18), AnchorPoint = Vector2.new(1, 0) }, c)
+		K.texte(tag, { Text = tr(o.tag[1], o.tag[2]), TextSize = 16, TextColor3 = C.encre, Size = UDim2.fromScale(1, 1), TextWrapped = false, contour = false })
+		-- l'icône pixel, à la couleur de l'offre (lèvre claire, plein, ombre)
+		K.icone(c, o.ico, 6, { { 0.3, o.c:Lerp(Color3.new(1, 1, 1), 0.45) }, { 0.7, o.c }, { 1, o.c:Lerp(Color3.new(0, 0, 0), 0.35) } }, UDim2.fromOffset(18, 20))
+		local carte: any = { o = o, c = c }
+		-- le CŒUR dit combien on en a, à droite du prix (la police du texte sait dessiner « ♥ », pas la police pixel)
+		if o.cle == "coeur" then
+			carte.nb = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.TXT, TextSize = 34, TextColor3 = o.c, Text = "",
+				TextXAlignment = Enum.TextXAlignment.Right, Size = UDim2.fromOffset(110, 36), Position = UDim2.new(1, -16, 0, 196), AnchorPoint = Vector2.new(1, 0) }, c)
+		end
+		local nom = K.texte(c, { italique = true, Text = tr(o.titre[1], o.titre[2]), TextSize = 30, TextColor3 = C.texte, Size = UDim2.new(1, -32, 0, 36),
+			Position = UDim2.fromOffset(16, 84), TextXAlignment = Enum.TextXAlignment.Left, TextScaled = true, TextWrapped = false, epais = 3 })
+		inst("UITextSizeConstraint", { MaxTextSize = 30, MinTextSize = 14 }, nom)
+		local d = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.TXT, TextSize = 19, TextColor3 = C.texte2, TextWrapped = true,
+			Text = tr(o.txt[1], o.txt[2]), TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top,
+			Size = UDim2.new(1, -32, 0, 70), Position = UDim2.fromOffset(16, 124), TextScaled = true }, c)
+		inst("UITextSizeConstraint", { MaxTextSize = 19, MinTextSize = 12 }, d)
+		carte.prix = K.texte(c, { Text = "", TextSize = 28, TextColor3 = OR1, Size = UDim2.new(1, -32, 0, 32), Position = UDim2.fromOffset(16, 198),
+			TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 3 })
+		-- le BOUTON, en bas : trois états, trois plaques (une seule visible à la fois)
+		local function place(): Frame
+			return inst("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, -32, 0, 64), Position = UDim2.new(0, 16, 1, -14), AnchorPoint = Vector2.new(0, 1),
+				Visible = false }, c)
+		end
+		carte.sAch, carte.sAct, carte.sBie = place(), place(), place()
+		carte.bt = K.lingot(carte.sAch, tr("ACHETER", "BUY"), UDim2.new(1, 0, 0, 64), UDim2.new(), nil, 26)
+		carte.bt.Activated:Connect(function() acheterOffre(o) end)
+		local actif = K.tuile(carte.sAct, tr("ACTIF", "OWNED"), C.vert, UDim2.new(1, 0, 0, 64), UDim2.new(), nil, 22, "coche")
+		actif.Activated:Connect(function() Hud.toast(tr("DEJA A TOI", "ALREADY YOURS"), C.vert, "coche") end)
+		bientot(carte.sBie, UDim2.fromScale(0.5, 0.5), Vector2.new(0.5, 0.5), 24)
+		table.insert(OF.cartes, carte)
+	end
+	return 46 + H_OFFRE
+end
+-- l'état de chaque carte : BIENTOT (pas de numéro) · ACTIF (le passe est à soi) · ACHETER (+ son prix, dès que Roblox l'a dit)
+local function majOffres()
+	for _, k in OF.cartes do
+		local o = k.o
+		local id = idOffre(o)
+		local possede = o.passe and o.attr ~= nil and joueur:GetAttribute(o.attr) == true
+		local etat = possede and "actif" or ((id > 0) and "acheter" or "bientot")
+		if k.etat ~= etat then
+			k.etat = etat
+			k.sAch.Visible, k.sAct.Visible, k.sBie.Visible = etat == "acheter", etat == "actif", etat == "bientot"
+		end
+		local prix = (etat == "acheter") and Revenus.prix(id, o.passe) or nil
+		local tp = prix and Revenus.robux(prix) or ""
+		if k.prix.Text ~= tp then k.prix.Text = tp end
+		if k.nb then
+			local nC = Revenus.coeurs()
+			local tn = "♥ " .. nC
+			if k.nb.Text ~= tn then k.nb.Text = tn end
+			k.nb.TextTransparency = (nC > 0) and 0 or 0.55
+		end
+	end
+end
 local function creer()
 	local racine = Hud.racine
 	local g = inst("Frame", { Name = "Boutique", BackgroundColor3 = Color3.new(1, 1, 1), BackgroundTransparency = 0.03, Size = UDim2.fromScale(1, 1), Visible = false, ZIndex = 18,
@@ -226,9 +358,17 @@ local function creer()
 		inst("Frame", { BackgroundColor3 = c, BorderSizePixel = 0, Size = UDim2.fromOffset(i == 1 and 82 or 38, 7), Position = UDim2.fromOffset(72 + (i == 1 and 0 or (i == 2 and 92 or 140)), 108) }, g)
 	end
 
+	-- ── LA PAGE (5/10) : sous le titre, tout défile d'un seul geste — les OFFRES EN ROBUX en tête, puis la VITRINE des caisses ──
+	U.page = inst("ScrollingFrame", { Name = "Page", BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.new(1, 0, 1, -118),
+		Position = UDim2.fromOffset(0, 118), CanvasSize = UDim2.new(), ScrollingDirection = Enum.ScrollingDirection.Y, ScrollBarThickness = 6,
+		ScrollBarImageColor3 = C.terne }, g)
+	local yVit = creerOffres(U.page, 8) + 30
+	-- la vitrine : la une à gauche, LES LEGENDAIRES à droite — telles qu'avant, posées sous les offres
+	local vit = inst("Frame", { Name = "Vitrine", BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 600), Position = UDim2.fromOffset(0, yVit) }, U.page)
+
 	-- ── L'OFFRE DE LANCEMENT : la caisse à la une ──
 	local f = Catalogue[UNE]
-	local une = inst("Frame", { BackgroundColor3 = Color3.new(1, 1, 1), BorderSizePixel = 0, Size = UDim2.new(0.436, 0, 0, 400), Position = UDim2.new(0.043, 0, 0, 136) }, g)
+	local une = inst("Frame", { BackgroundColor3 = Color3.new(1, 1, 1), BorderSizePixel = 0, Size = UDim2.new(0.436, 0, 0, 400), Position = UDim2.new(0.043, 0, 0, 36) }, vit)
 	K.degrade(une, Color3.fromRGB(96, 24, 110), Color3.fromRGB(38, 14, 62), 90)
 	inst("UIStroke", { Color = C.magenta, Thickness = 3, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, une)
 	local et = inst("Frame", { BackgroundColor3 = C.magenta, BorderSizePixel = 0, Size = UDim2.fromOffset(318, 44), Position = UDim2.fromOffset(22, 22) }, une)
@@ -254,12 +394,15 @@ local function creer()
 	U.une = une
 	bu.Activated:Connect(function() Boutique.pop(une, UNE, U.uneVue, U.unePastille) end)
 
-	-- ── LES LEGENDAIRES : la grille ──
-	K.texte(g, { Text = tr("LES LEGENDAIRES", "THE LEGENDARIES"), TextSize = 26, TextColor3 = C.terne, Size = UDim2.new(0, 500, 0, 28), Position = UDim2.new(0.5, 0, 0, 100),
+	-- ── LES LEGENDAIRES : la grille (5/10 : elle ne défile plus seule — c'est la PAGE qui défile ; deux défilements emboîtés se
+	-- volaient la molette et le doigt) ──
+	K.texte(vit, { Text = tr("LES LEGENDAIRES", "THE LEGENDARIES"), TextSize = 26, TextColor3 = C.terne, Size = UDim2.new(0, 500, 0, 28), Position = UDim2.new(0.5, 0, 0, 0),
 		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
-	U.grille = inst("ScrollingFrame", { BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.new(0.457, 0, 1, -150), Position = UDim2.new(0.5, 0, 0, 136),
-		CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, ScrollingDirection = Enum.ScrollingDirection.Y, ScrollBarThickness = 6,
-		ScrollBarImageColor3 = C.terne }, g)
+	local rangs = math.ceil(#LISTE / 2)
+	local hGrille = 4 + rangs * 340 + math.max(0, rangs - 1) * 18 + 12
+	U.grille = inst("Frame", { BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.new(0.457, 0, 0, hGrille), Position = UDim2.new(0.5, 0, 0, 36) }, vit)
+	vit.Size = UDim2.new(1, 0, 0, 36 + math.max(400, hGrille))
+	U.page.CanvasSize = UDim2.fromOffset(0, yVit + vit.Size.Y.Offset + 24)
 	inst("UIGridLayout", { CellSize = UDim2.new(0.5, -14, 0, 340), CellPadding = UDim2.fromOffset(16, 18), SortOrder = Enum.SortOrder.LayoutOrder }, U.grille)
 	inst("UIPadding", { PaddingTop = UDim.new(0, 4), PaddingLeft = UDim.new(0, 3), PaddingBottom = UDim.new(0, 12) }, U.grille)
 	for rang, i in LISTE do
@@ -303,8 +446,19 @@ function Boutique.ouvrir(d: string)
 	depuis = d
 	Boutique.ouvert = true
 	U.racine.Visible = true
-	U.grille.CanvasPosition = Vector2.zero
+	U.page.CanvasPosition = Vector2.zero -- (on arrive TOUJOURS sur les offres en Robux)
 	if d ~= "garage" then Hud.ecran("boutique") end
+	-- les offres se tiennent à jour tant que la boutique est ouverte : un prix qui arrive de Roblox, un passe qui vient d'être acheté
+	-- (ACTIF), un cœur de plus
+	OF.n += 1
+	local nOf = OF.n
+	majOffres()
+	task.spawn(function()
+		while Boutique.ouvert and OF.n == nOf do
+			task.wait(0.4)
+			if Boutique.ouvert and OF.n == nOf then majOffres() end
+		end
+	end)
 	-- les photos : la une d'abord, puis la grille, une par une ; au premier refus (budget) on s'arrête, les pastilles restent
 	fileN += 1
 	local n = fileN
@@ -344,12 +498,23 @@ function Boutique.ouvrir(d: string)
 	end)
 end
 
--- (banc) ouvrir la fenêtre d'une case (0 = la une), presser ACHETER
+-- (banc) ouvrir la fenêtre d'une case (0 = la une), presser ACHETER ; « offre:coeur » (ou argent2, nitroInfini, vip, tours3) presse
+-- ACHETER sur la carte de cette offre en Robux (la fenêtre d'achat de Roblox s'ouvre si son numéro existe — dans Studio, un achat
+-- de TEST, rien n'est débité) ; « offres » écrit dans la Sortie l'état de chaque carte
 function Boutique.dbg(quoi: string)
 	if quoi == "oui" then
 		if SP.acheter then SP.acheter() end
 	elseif quoi == "non" then
 		Boutique.popFerme()
+	elseif string.sub(quoi, 1, 6) == "offre:" then
+		for _, k in OF.cartes do
+			if k.o.cle == string.sub(quoi, 7) then acheterOffre(k.o) end
+		end
+	elseif quoi == "offres" then
+		majOffres()
+		for _, k in OF.cartes do
+			print(string.format("[boutique] %s : %s, prix « %s »%s", k.o.cle, k.etat or "?", k.prix.Text, k.nb and (", " .. k.nb.Text) or ""))
+		end
 	else
 		local r = tonumber(quoi) or 0
 		local k = cases[r]

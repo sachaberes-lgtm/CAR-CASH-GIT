@@ -43,6 +43,9 @@ function Profils.neuf(): Profil
 		-- les REVENUS (voir Revenus) : le cadeau du jour (son jour UTC, la série), le bonus de groupe pris, qui m'a invité, les reçus
 		-- d'achat déjà servis (un reçu ne sert jamais deux fois)
 		jour = 0, serie = 0, groupe = false, invite = 0, achats = {},
+		-- LES CŒURS (le produit à 50 R$, Sacha 5/10) : le stock de vies en plus — un cœur se dépense quand la caisse devait exploser
+		-- (action « coeur »), un achat en ajoute un (ProcessReceipt, voir Revenus)
+		coeurs = 0,
 		-- LA ROUE : les tours en réserve, l'heure (os.time) du dernier tour gratuit, les parties vers le prochain tour offert, la caisse
 		-- qui vient d'être gagnée et qu'on peut encore préférer en argent (-1 : aucune)
 		roue = { n = 0, libre = 0, parties = 0, attente = -1 },
@@ -74,9 +77,10 @@ local function sain(p: any): Profil
 		local v = n.roue[k]
 		if v ~= v or v < 0 or v > 1e12 then n.roue[k] = 0 end
 	end
-	for _, k in { "compte", "record", "auraMeilleur", "aura", "frenRec", "moteurMax", "kmhMax", "jour", "serie", "invite" } do
+	for _, k in { "compte", "record", "auraMeilleur", "aura", "frenRec", "moteurMax", "kmhMax", "jour", "serie", "invite", "coeurs" } do
 		if n[k] ~= n[k] or n[k] < 0 or n[k] > 1e18 then n[k] = 0 end
 	end
+	n.coeurs = math.floor(n.coeurs) -- (des cœurs ENTIERS : un demi-cœur ne sauve personne)
 	local possede = {}
 	local liste = {}
 	for _, i in n.caisses do
@@ -255,10 +259,15 @@ Profils.actions.permis = function(_, prof)
 end
 -- EFFACER MA PROGRESSION (L39243 du jeu web, avec confirmation côté joueur) : le profil repart à zéro. `efface` dit à la sauvegarde de
 -- ne PAS fusionner avec l'ancien (sinon le record, l'aura et le moteur effacés y reviendraient — « jamais en arrière »).
+-- (5/10) ce qui a été PAYÉ EN ROBUX ne s'efface pas : les cœurs en réserve, et les reçus déjà servis (sans eux, un reçu que Roblox
+-- représente serait servi une seconde fois). Les passes, eux, vivent chez Roblox : rien à garder ici.
 Profils.actions.effacer = function(_, prof)
 	local n = Profils.neuf()
+	local coeurs, achats = prof.coeurs, prof.achats
 	for k in pairs(prof) do prof[k] = nil end
 	for k, v in n do prof[k] = v end
+	if type(coeurs) == "number" then prof.coeurs = coeurs end
+	if type(achats) == "table" then prof.achats = achats end
 	prof.efface = true
 	return true
 end

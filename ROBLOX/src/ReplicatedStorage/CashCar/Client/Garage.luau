@@ -422,9 +422,9 @@ local function ambiance(on: boolean)
 		-- (4/10, mesuré au banc : quand la machine rame, Roblox baisse la qualité et COUPE les lampes — or l'atelier n'est éclairé que
 		-- par elles : à (46, 44, 84) il devenait NOIR, la caisse invisible. Sur un petit téléphone, ce serait tout le temps. Une
 		-- ambiance de secours plus claire : l'atelier se lit sans lampes, et garde sa pénombre quand elles brillent)
-		Lighting.Ambient = Color3.fromRGB(82, 78, 130)
-		Lighting.OutdoorAmbient = Color3.fromRGB(82, 78, 130)
-		Lighting.ExposureCompensation = -0.2
+		Lighting.Ambient = Color3.fromRGB(112, 106, 160) -- (5/10 : 82,78,130 restait trop sombre lampes coupées — la caisse se perdait)
+		Lighting.OutdoorAmbient = Color3.fromRGB(112, 106, 160)
+		Lighting.ExposureCompensation = -0.1
 		Lighting.EnvironmentDiffuseScale = 0.12
 		Lighting.EnvironmentSpecularScale = 0.25
 		if atm then atm.Density = 0 end
@@ -468,12 +468,15 @@ local function plaque(parent: Instance, nom: string): any
 	local tranche = inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = Color3.fromRGB(10, 8, 24), Size = UDim2.new(1, 0, 1, 0), Position = UDim2.fromOffset(0, 5) }, cadre)
 	local fond = inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = Color3.new(1, 1, 1), Size = UDim2.fromScale(1, 1) }, cadre)
 	local grad = inst("UIGradient", { Rotation = 90 }, fond)
-	local trait = inst("UIStroke", { Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, fond)
-	local filet = inst("Frame", { BorderSizePixel = 0, Size = UDim2.new(0, 4, 1, 0) }, fond)
+	local trait = inst("UIStroke", { Thickness = 3, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, fond)
+	local filet = inst("Frame", { BorderSizePixel = 0, Size = UDim2.new(0, 6, 1, 0) }, fond)
 	local l1 = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.PIX, Size = UDim2.new(1, -10, 0, 16), Position = UDim2.fromOffset(5, 7),
 		TextSize = 14, Text = "" }, fond)
 	local l2 = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.PIX, Size = UDim2.new(1, -10, 1, 0), Position = UDim2.fromOffset(5, 0),
 		TextSize = 16, Text = "" }, fond)
+	-- (v2, 5/10 : les libellés cernés d'encre, comme ceux des tuiles de l'accueil)
+	inst("UIStroke", { Color = C.encre, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual }, l1)
+	inst("UIStroke", { Color = C.encre, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual }, l2)
 	local b = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 5), Text = "", AutoButtonColor = false, ZIndex = 4 }, cadre)
 	local pq = { cadre = cadre, fond = fond, grad = grad, trait = trait, filet = filet, l1 = l1, l2 = l2, b = b, tranche = tranche, enfonce = false,
 		ico = nil :: Frame?, icoNom = "", icoSeule = false }
@@ -490,7 +493,14 @@ end
 local function habiller(pq: any, style: string, filet: Color3?, l1: string?, l2: string, corps: number?, couleur2: Color3?)
 	local s = STYLES[style]
 	pq.grad.Color = s[1]
-	pq.trait.Color = (style == "laque" and filet == ROUGE) and ROUGE or s[2]
+	-- (v2, 5/10, Sacha : « les boutons sont super moches ») une plaque LAQUE prend la couleur de son filet (plongée dans la nuit,
+	-- éclairée en haut), cernée d'encre — HOME lavande, BOUTIQUE rose, JOUER or : on les distingue d'un coup d'œil
+	if style == "laque" and filet then
+		local fondT = Color3.new(filet.R * 0.34, filet.G * 0.34, filet.B * 0.34):Lerp(C.carbone, 0.42)
+		pq.grad.Color = ColorSequence.new(fondT:Lerp(Color3.new(1, 1, 1), 0.14), Color3.new(fondT.R * 0.8, fondT.G * 0.8, fondT.B * 0.8))
+		pq.tranche.BackgroundColor3 = Color3.new(filet.R * 0.16, filet.G * 0.16, filet.B * 0.16)
+	end
+	pq.trait.Color = (style == "laque" and filet == ROUGE) and ROUGE or ((style == "verrou") and s[2] or C.encre)
 	pq.filet.Visible = style == "laque" and filet ~= nil
 	if filet then pq.filet.BackgroundColor3 = filet end
 	-- « ⌂ » et « $ » : la police pixel ne les a pas — une icône pixel du web à la place (au-dessus du libellé, ou seule)
@@ -579,9 +589,14 @@ local function creerTuile(i: number, rang: number): any
 	local trait = inst("UIStroke", { Color = c, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Enabled = false }, cadre)
 	local vp = inst("ViewportFrame", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Ambient = Color3.fromRGB(150, 150, 178),
 		LightColor = Color3.fromRGB(255, 244, 230) }, cadre)
-	-- en attendant la photo : une pastille à la couleur de sa laque
-	local pastille = inst("Frame", { BorderSizePixel = 0, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.45),
-		Size = UDim2.fromOffset(44, 12), BackgroundColor3 = Color3.fromHex(string.format("%06x", f.laque)) }, cadre)
+	-- en attendant la photo (ou quand le budget de formes de Roblox la refuse) : une PETITE VOITURE EN PIXELS à la couleur de sa
+	-- laque, cernée d'encre — une barre de couleur ne disait pas « une caisse » (5/10, « le garage, travaille-le »)
+	local laque = Color3.fromHex(string.format("%06x", f.laque))
+	local pastille = inst("Frame", { BackgroundTransparency = 1, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.42),
+		Size = UDim2.fromOffset(9 * 5, 9 * 5) }, cadre)
+	local ombre9 = K.icone(pastille, "voiture", 5, C.encre, UDim2.fromOffset(2, 2))
+	K.icone(pastille, "voiture", 5, { { 0.36, laque:Lerp(Color3.new(1, 1, 1), 0.35) }, { 0.75, laque }, { 1, laque:Lerp(Color3.new(0, 0, 0), 0.45) } }, UDim2.fromOffset(0, 0))
+	ombre9.Name = "Ombre"
 	inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = c, Size = UDim2.new(1, 0, 0, 3), Position = UDim2.new(0, 0, 1, -3), ZIndex = 2 }, cadre)
 	local prix = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.PIX, TextSize = 15, Text = "", TextColor3 = CASH,
 		Size = UDim2.new(1, -6, 0, 16), Position = UDim2.new(0, 0, 1, -21), TextXAlignment = Enum.TextXAlignment.Right, ZIndex = 3 }, cadre)

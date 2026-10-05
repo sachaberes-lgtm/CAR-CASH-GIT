@@ -1,11 +1,14 @@
--- CASH CAR — LES REVENUS, côté joueur (voir ServerScriptService/Revenus) : ce qui fait revenir et ce qui se paie, HORS boutique.
+-- CASH CAR — LES REVENUS, côté joueur (voir ServerScriptService/Revenus) : ce qui fait revenir et ce qui se paie.
 --   · le CADEAU DU JOUR : à l'accueil, une carte de sept jours qui montent — on prend celui d'aujourd'hui (la série casse si l'on
 --     saute un jour) ;
 --   · la PILE de l'accueil, en bas à gauche, sous le pouce : le CADEAU de temps de jeu (son compte à rebours, puis « CADEAU ! »),
---     INVITER DES AMIS, et selon le cas REJOINDRE LE GROUPE (une fois, de l'argent) ou PREMIUM (+10 % sur tout l'argent) ;
---   · la SECONDE CHANCE : quand la caisse explose, une carte propose de repartir là où l'on a explosé — la partie continue ;
+--     le TOP 10, INVITER DES AMIS, la BOUTIQUE ROBUX (5/10 : un raccourci vers les offres) et selon le cas REJOINDRE LE GROUPE (une
+--     fois, de l'argent) ou PREMIUM (+10 % sur tout l'argent) ;
+--   · LE CŒUR À LA MORT (5/10, il remplace la « seconde chance ») : quand la caisse explose et qu'il ne reste aucun cœur, une carte
+--     propose d'en acheter un — acheté, il est dépensé aussitôt : on repart là où l'on a explosé, la partie continue ;
 --   · l'écran de fin : la mention ×2 ARGENT / PREMIUM quand on y a droit, sinon l'offre « ×2 ARGENT » à la place du badge RECORD ;
---   · le TOP 10 MONDE (la tuile CLASSEMENT de la pile) : les meilleurs records de tous les serveurs, rafraîchis par le serveur.
+--   · le TOP 10 MONDE (la tuile CLASSEMENT de la pile) : les meilleurs records de tous les serveurs, rafraîchis par le serveur ;
+--   · LES PRIX en Robux, lus sur Roblox une fois par objet (Revenus.prix) — pour la carte du cœur et pour la BOUTIQUE.
 -- Tout ce qui se paie se tait tant que son numéro est à 0 dans Config.REVENUS (rien ne se vend sans que Sacha l'ait créé).
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -44,6 +47,36 @@ function Revenus.mention(): string?
 	if a then return tr("x2 ARGENT", "x2 CASH") end
 	if p then return "PREMIUM +" .. math.floor(R.premiumBonus * 100 + 0.5) .. tr(" %", "%") end
 	return nil
+end
+
+-- ── LES PRIX EN ROBUX (5/10) : c'est Sacha qui les fixe sur create.roblox.com — le jeu les LIT, une fois par objet, en tâche de fond.
+-- Rend le prix s'il est connu, sinon nil (et la question part) : sans réponse de Roblox, on n'écrit pas de prix. Un échec se
+-- redemande au bout de 30 s. `passe` : un passe de jeu (sinon un produit de développeur). ──
+local prixLu: { [string]: number } = {}
+local prixDemande: { [string]: number } = {}
+function Revenus.prix(id: number, passe: boolean): number?
+	if type(id) ~= "number" or id <= 0 then return nil end
+	local cle = (passe and "p" or "d") .. id
+	if prixLu[cle] then return prixLu[cle] end
+	if os.clock() - (prixDemande[cle] or -100) > 30 then
+		prixDemande[cle] = os.clock()
+		task.spawn(function()
+			local ok, info = pcall(function()
+				return MarketplaceService:GetProductInfo(id, passe and Enum.InfoType.GamePass or Enum.InfoType.Product)
+			end)
+			if ok and type(info) == "table" and type(info.PriceInRobux) == "number" then prixLu[cle] = info.PriceInRobux end
+		end)
+	end
+	return nil
+end
+-- un prix à l'écran : « R$ 500 » (la police pixel n'a pas l'icône Robux)
+function Revenus.robux(n: number?): string
+	return n and ("R$ " .. math.floor(n)) or ""
+end
+-- le stock de cœurs (attribut posé par le serveur)
+function Revenus.coeurs(): number
+	local n = attr("Coeurs")
+	return (type(n) == "number" and n > 0) and math.floor(n) or 0
 end
 
 -- ── la FENÊTRE (la famille de la fenêtre d'achat de la boutique) : un voile qui bloque ce qu'il couvre, une carte violette à
@@ -121,7 +154,7 @@ local function puce(y: number, ico: string, filet: Color3): TextButton
 	return b
 end
 local function creerPile()
-	local p = inst("Frame", { Name = "PileAccueil", BackgroundTransparency = 1, Size = UDim2.fromOffset(440, 300), Position = UDim2.new(0, 34, 1, -30),
+	local p = inst("Frame", { Name = "PileAccueil", BackgroundTransparency = 1, Size = UDim2.fromOffset(440, 380), Position = UDim2.new(0, 34, 1, -30),
 		AnchorPoint = Vector2.new(0, 1), Visible = false, ZIndex = 12 }, Hud.racine)
 	U.pile = p
 	-- le CADEAU de temps de jeu (en bas : c'est lui qui change, lui qu'on vient chercher)
@@ -148,8 +181,16 @@ local function creerPile()
 			Hud.toast(tr("INVITATIONS INDISPONIBLES ICI", "INVITES NOT AVAILABLE HERE"), nil, "croix")
 		end
 	end)
-	-- REJOINDRE LE GROUPE (une fois) ou PREMIUM
-	U.bonus = puce(-228, "drapeau", C.vert)
+	-- LA BOUTIQUE ROBUX (Sacha, 5/10 : « fais de ce jeu une usine à fric ») : un raccourci vers les offres en Robux, en tête de la
+	-- boutique — ×2 ARGENT, NITRO INFINIE, LES CŒURS
+	U.robux = puce(-228, "panier", OR1)
+	U.robux.Text = tr("BOUTIQUE ROBUX", "ROBUX SHOP")
+	U.robux.TextColor3 = OR1
+	U.robux.Activated:Connect(function()
+		if ctx and ctx.boutique then ctx.boutique() end
+	end)
+	-- REJOINDRE LE GROUPE (une fois) ou PREMIUM — tout en haut : quand elle n'a rien à offrir, elle disparaît sans laisser de trou
+	U.bonus = puce(-304, "drapeau", C.vert)
 	U.bonusBoite = U.bonus.Parent.Parent
 	U.bonus.Activated:Connect(function()
 		if U.bonusGenre == "groupe" then
@@ -249,16 +290,21 @@ function Revenus.classement()
 	Sons.vrai("uiModale", nil, nil, "tap", 1.1, 0.5)
 end
 
--- ════════ LA SECONDE CHANCE ════════
-local prixSeconde: string? = nil
+-- ════════ LE CŒUR À LA MORT (Sacha, 5/10 : « un bouton pour avoir une vie en plus sous forme de cœur pour 50 Robux ») ════════
+-- Il remplace la « seconde chance » : quand la caisse explose et qu'il ne reste AUCUN cœur (sinon un cœur l'aurait déjà sauvée,
+-- voir G.coeurSauve dans le pilote), la carte propose d'en acheter un. Roblox l'accorde (ProcessReceipt : +1 au stock), le serveur
+-- répond « Revivre », la carte se ferme sur un oui et le pilote DÉPENSE ce cœur aussitôt : on repart là où l'on a explosé.
+-- Un cœur acheté n'est jamais perdu : si la carte s'est refermée entre-temps, il attend dans le stock la prochaine explosion.
 local function creerSeconde()
-	local v, c = fenetre("SecondeChance", 800, 420)
-	texte(c, { Text = tr("SECONDE CHANCE", "SECOND CHANCE"), TextSize = 50, TextColor3 = OR1, italique = true, Size = UDim2.new(1, 0, 0, 56),
+	local v, c = fenetre("CoeurMort", 800, 420)
+	texte(c, { Text = tr("UN COEUR = UNE VIE", "ONE HEART = ONE LIFE"), TextSize = 46, TextColor3 = OR1, italique = true, Size = UDim2.new(1, 0, 0, 56),
 		Position = UDim2.fromOffset(0, 30), TextWrapped = false, epais = 4 })
+	K.icone(c, "coeur", 7, C.rouge, UDim2.fromOffset(44, 104))
 	inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.TXT, TextSize = 26, TextColor3 = C.texte2, TextWrapped = true,
-		Text = tr("Repars là où tu as explosé : la partie continue, avec ton argent, ton moteur et ta zone.",
-			"Restart right where you blew up: the run goes on, with your cash, your engine and your zone."),
-		Size = UDim2.new(1, -80, 0, 70), Position = UDim2.fromOffset(40, 100) }, c)
+		TextXAlignment = Enum.TextXAlignment.Left,
+		Text = tr("Un cœur, et tu repars là où tu as explosé : la partie continue, avec ton argent, ton moteur et ta zone.",
+			"One heart, and you restart right where you blew up: the run goes on, with your cash, your engine and your zone."),
+		Size = UDim2.new(1, -170, 0, 76), Position = UDim2.fromOffset(130, 98) }, c)
 	local fond = inst("Frame", { BackgroundColor3 = C.nuit, BorderSizePixel = 0, Size = UDim2.new(1, -80, 0, 12), Position = UDim2.fromOffset(40, 190) }, c)
 	U.sBarre = inst("Frame", { BackgroundColor3 = OR1, BorderSizePixel = 0, Size = UDim2.fromScale(1, 1) }, fond)
 	U.sOui = K.lingot(c, tr("CONTINUER", "CONTINUE"), UDim2.new(0.58, -40, 0, 92), UDim2.new(0, 40, 1, -40), Vector2.new(0, 1), 34)
@@ -266,26 +312,22 @@ local function creerSeconde()
 	U.seconde = v
 end
 local evRevivre: RemoteEvent? = nil
--- la proposer ? Le produit existe (ou le banc la simule), elle n'a pas déjà servi dans cette partie, pas pendant la leçon, et c'est
--- une vraie partie (au moins 20 s de course : on ne vend rien à qui vient de rater le premier virage)
+-- la proposer ? Le produit CŒUR existe (ou le banc la simule : DbgSeconde), pas pendant la leçon, et c'est une vraie partie (au
+-- moins 20 s de course : on ne vend rien à qui vient de rater le premier virage). Elle revient à CHAQUE mort sans cœur (un cœur =
+-- une vie) : refusée, la partie s'arrête de toute façon. (`dejaUsee` : gardé pour le pilote, qui ne le lève plus.)
 function Revenus.secondeDispo(dejaUsee: boolean, duree: number, lecon: boolean): boolean
 	if dejaUsee or lecon or (duree or 0) < 20 then return false end
-	return idDe(R.produits, "secondeChance") > 0 or workspace:GetAttribute("DbgSeconde") ~= nil
+	return idDe(R.produits, "coeur") > 0 or workspace:GetAttribute("DbgSeconde") ~= nil
 end
 -- la carte : 6 s pour choisir (le chrono s'arrête pendant que Roblox demande la confirmation) ; fin(true) = on repart
 function Revenus.offrirSeconde(fin: (boolean) -> ())
 	local v = U.seconde
-	local id = idDe(R.produits, "secondeChance")
-	if not prixSeconde and id > 0 then
-		task.spawn(function()
-			local ok, info = pcall(function() return MarketplaceService:GetProductInfo(id, Enum.InfoType.Product) end)
-			if ok and info and info.PriceInRobux then prixSeconde = "R$" .. info.PriceInRobux end
-		end)
-	end
-	U.sOui.Text = tr("CONTINUER", "CONTINUE") .. (prixSeconde and ("  " .. prixSeconde) or "")
+	local id = idDe(R.produits, "coeur")
+	local prix = Revenus.prix(id, false)
+	U.sOui.Text = tr("CONTINUER", "CONTINUE") .. (prix and ("  " .. Revenus.robux(prix)) or "")
 	v.Visible = true
 	Sons.vrai("uiModale", nil, nil, "tap", 1.1, 0.5)
-	local t, enAchat, fini = 6, false, false
+	local t, enAchat, fini, attente = 6, false, false, -1
 	local cns: { RBXScriptConnection } = {}
 	local function clore(ok: boolean)
 		if fini then return end
@@ -308,12 +350,24 @@ function Revenus.offrirSeconde(fin: (boolean) -> ())
 		if not achete then
 			enAchat = false
 			clore(false)
+			return
 		end
-		-- (acheté : on attend que le serveur l'accorde — le signal « Revivre »)
+		-- (acheté : on attend que le serveur l'accorde — le signal « Revivre » — 12 s au plus : passé ce délai la partie se termine,
+		-- et le cœur, quand il arrivera, attendra dans le stock)
+		attente = 12
 	end))
 	if evRevivre then table.insert(cns, evRevivre.OnClientEvent:Connect(function() clore(true) end)) end
 	table.insert(cns, RunService.RenderStepped:Connect(function(dt: number)
 		if not enAchat then t -= dt end
+		if attente > 0 then
+			attente -= dt
+			if attente <= 0 then clore(false) end
+		end
+		-- (le prix arrive de Roblox pendant que la carte est ouverte : il s'écrit)
+		if not prix then
+			prix = Revenus.prix(id, false)
+			if prix then U.sOui.Text = tr("CONTINUER", "CONTINUE") .. "  " .. Revenus.robux(prix) end
+		end
 		U.sBarre.Size = UDim2.fromScale(math.clamp(t / 6, 0, 1), 1)
 		if t <= 0 then clore(false) end
 	end))
@@ -370,15 +424,22 @@ local function annonce(quoi: string, montant: number?, txt: string?)
 		tours = (txt == "1") and tr("+1 TOUR DE ROUE", "+1 WHEEL SPIN")
 			or tr("+" .. (txt or "?") .. " TOURS DE ROUE", "+" .. (txt or "?") .. " WHEEL SPINS"),
 		passe = (txt == "argent2") and tr("x2 ARGENT : TES PARTIES COMPTENT DOUBLE", "x2 CASH: YOUR RUNS COUNT DOUBLE")
+			or (txt == "nitroInfini") and tr("NITRO INFINIE : LA JAUGE NE SE VIDE PLUS", "INFINITE NITRO: THE GAUGE NEVER EMPTIES")
 			or tr("VIP : CADEAUX DOUBLES", "VIP: GIFTS DOUBLED"),
+		coeur = (txt == "1") and tr("+1 COEUR", "+1 HEART")
+			or tr("+1 COEUR  (" .. (txt or "?") .. " EN RESERVE)", "+1 HEART  (" .. (txt or "?") .. " IN STOCK)"),
 	}
-	Hud.toast(libelles[quoi] or a, OR1, (quoi == "passe") and "etoile" or "cadeau")
-	Sons.jouer((quoi == "passe") and "record" or "encaisse")
+	-- (un cœur acheté sur la carte de la mort est dépensé aussitôt : le pilote le dit lui-même, pas de bandeau par-dessus)
+	if quoi == "coeur" and Revenus.secondeOuverte() then return end
+	local ico = (quoi == "passe") and "etoile" or ((quoi == "coeur") and "coeur" or "cadeau")
+	Hud.toast(libelles[quoi] or a, (quoi == "coeur") and C.rouge or OR1, ico)
+	Sons.jouer((quoi == "passe" or quoi == "coeur") and "record" or "encaisse")
 	Hud.vibre(30)
 end
 
 -- ════════ le branchement ════════
--- c = { action = function(nom, ...) → ok, msg ; occupe = function() → vrai si l'accueil n'est pas vraiment là (intro, garage…) }
+-- c = { action = function(nom, ...) → ok, msg ; occupe = function() → vrai si l'accueil n'est pas vraiment là (intro, garage…) ;
+--       boutique = function() → ouvre la BOUTIQUE sur ses offres en Robux (la tuile BOUTIQUE ROBUX de la pile) }
 function Revenus.init(c: any)
 	ctx = c
 	creerJour()

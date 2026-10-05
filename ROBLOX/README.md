@@ -168,10 +168,12 @@ sauvegarde qui ne peut plus effacer une progression.
 - le classement, la sauvegarde, le multijoueur (on voit les caisses des autres).
 
 **Pas encore / à décider par Sacha** :
-- la **boutique ne vend rien** (comme sur le web : « BIENTOT ») ; sur Roblox les prix seront en **Robux** : à fixer ;
+- la **boutique** : en tête, les **offres en Robux** (×2 ARGENT, NITRO INFINIE, +1 CŒUR — voir « Gagner de l'argent avec le jeu ») se
+  vendent dès que tu as créé leurs numéros ; en dessous, la **vitrine des caisses** ne vend rien (comme sur le web : « BIENTOT ») ;
+  leurs prix en Robux : à fixer ;
 - **LA ROUE** (accueil) : un tour gratuit toutes les 4 h, un tour offert toutes les 3 parties ; on y gagne de l'argent, un skin, ou
   l'une des 9 caisses EXCLUSIVES (à garder ou à revendre 7 500 $, au choix). Les cases et leurs chances : `Config.ROUE` ;
-  « 3 TOURS » en Robux : `REVENUS.produits.tours3` (à créer, comme la seconde chance) ;
+  « 3 TOURS » en Robux : `REVENUS.produits.tours3` (à créer, comme le cœur) ;
 - les **sons** : tant qu'ils ne sont pas importés (voir plus haut), on n'entend que les sons de secours ;
 - le mode FACILE existe dans le code mais il est éteint (`Config.FACILE_ACTIF`).
 
@@ -186,27 +188,48 @@ environ 68 000 triangles ; le jeu tient dedans (il compte ce qu'il utilise et re
 du garage restent en pastille de couleur quand la place manque. La solution définitive serait d'importer les maillages comme
 ressources Roblox (ton compte) : à voir plus tard.
 
-## Gagner de l'argent avec le jeu (hors boutique)
+## Gagner de l'argent avec le jeu
 
 Tout est déjà codé et **éteint** : chaque objet payant attend son NUMÉRO dans `src/ReplicatedStorage/CashCar/Config.luau`,
-bloc `Config.REVENUS`. À 0, il ne s'affiche pas. Ce que le jeu fait déjà, gratuit, pour faire REVENIR les joueurs :
+bloc `Config.REVENUS`. À 0, il ne se vend pas (dans la boutique, sa carte dit « BIENTOT »). Le **prix**, c'est sur Roblox que tu le
+fixes : le jeu le lit tout seul et l'écrit sur les cartes (« R$ 500 »).
+
+**Ce qui se vend (Sacha, 5/10 : « fais de ce jeu une usine à fric »)** — tout est EN TÊTE de la **BOUTIQUE** (bouton BOUTIQUE de
+l'accueil et de l'écran de fin, et la tuile **BOUTIQUE ROBUX** en bas à gauche de l'accueil), en grandes cartes avec un gros ACHETER :
+- **×2 ARGENT** (passe, **500 R$**) : tout l'argent de chaque partie compte double, pour toujours — aussi proposé sur l'écran de fin ;
+- **NITRO INFINIE** (passe, **700 R$**) : la jauge de nitro ne se vide jamais (violette, comme le pouvoir NITRO MAX) ;
+- **+1 CŒUR** (produit, **50 R$**, s'achète autant de fois qu'on veut) : un cœur = une vie. Quand la caisse devait exploser, un cœur
+  est dépensé et elle repart sur la route (« ♥ 3 » en haut à droite pendant la course) ; les cœurs se gardent d'une partie à l'autre
+  (et ne s'effacent pas avec la progression). À la mort, quand il n'en reste plus, une carte propose « UN COEUR = UNE VIE » : acheté,
+  il est dépensé aussitôt et on repart là où on a explosé ;
+- **VIP** (passe) et **3 TOURS DE ROUE** (produit) : leurs cartes n'apparaissent que quand leurs numéros existent.
+
+Ce que le jeu fait déjà, gratuit, pour faire REVENIR les joueurs :
 - **le cadeau du jour** : une fenêtre à l'accueil, 7 jours qui montent (500 $ → 5 000 $) ; rater un jour = retour au jour 1 ;
 - **les cadeaux de temps de jeu** : 5, 15, 30, 60 minutes dans la session, puis chaque heure (tuile en bas à gauche) ;
 - **inviter des amis** : la fenêtre d'invitation de Roblox ; un ami qui arrive par ton lien = 1 000 $ pour lui et pour toi ;
 - **le TOP 10 MONDE** : les meilleurs records de tous les serveurs (il a besoin des API de données, voir plus bas) ;
 - **les joueurs Premium** gagnent +10 % (et Roblox te paie au temps qu'ils passent dans le jeu, sans rien vendre).
 
-Ce que TU dois créer sur **create.roblox.com → ton expérience** (les prix en Robux, c'est toi qui décides là-bas) :
-1. **Monétisation → Passes** : « x2 ARGENT » (tout l'argent d'une partie compte double ; il est proposé sur l'écran de fin) et
-   « VIP » (cadeaux doublés, nom doré au-dessus de la caisse) → recopie leurs numéros dans `passes = { argent2 = …, vip = … }` ;
-2. **Monétisation → Produits de développeur** : « Seconde chance » (repartir là où l'on a explosé, proposé 6 s après la mort,
-   une fois par partie, après 20 s de course) → son numéro dans `produits = { secondeChance = … }` ;
-3. **Engagement → Badges** (chaque badge coûte un peu de Robux à créer) : Bienvenue, Permis, Zone 6, Moteur palier 10,
-   1 000 d'aura, Millionnaire, 7 jours d'affilée → leurs numéros dans `badges = { … }` ;
-4. **(optionnel) un groupe Roblox** pour le jeu → son numéro dans `groupe = …` : le rejoindre donne 2 000 $ (une fois) ;
-5. **Paramètres → Sécurité → « Activer l'accès Studio aux API »** et la publication : sans ça, ni sauvegarde ni classement.
+Ce que TU dois créer sur **create.roblox.com → ton expérience** (le prix se règle là-bas, au moment de la création ou après) —
+chaque numéro se recopie dans `src/ReplicatedStorage/CashCar/Config.luau`, bloc `Config.REVENUS` :
+
+| Où sur le site | Nom à lui donner | Prix | Où recopier son numéro |
+|---|---|---|---|
+| Monétisation → **Passes** | « x2 ARGENT » | **500 R$** | `passes = { argent2 = … }` |
+| Monétisation → **Passes** | « NITRO INFINIE » | **700 R$** | `passes = { nitroInfini = … }` |
+| Monétisation → **Produits de développeur** | « COEUR » (une vie) | **50 R$** | `produits = { coeur = … }` |
+| Monétisation → **Passes** | « VIP » (cadeaux doublés, nom doré) | à toi de voir | `passes = { vip = … }` |
+| Monétisation → **Produits de développeur** | « 3 TOURS DE ROUE » | à toi de voir | `produits = { tours3 = … }` |
+| Engagement → **Badges** (chaque badge coûte un peu de Robux à créer) | Bienvenue, Permis, Zone 6, Moteur palier 10, 1 000 d'aura, Millionnaire, 7 jours d'affilée | — | `badges = { bienvenue = …, permis = …, zone6 = …, moteur10 = …, aura1000 = …, millionnaire = …, serie7 = … }` |
+
+Le numéro d'un passe ou d'un produit : son ID, affiché sur sa page du site (ou « Copier l'ID » dans le menu ⋯ de sa vignette) — un
+nombre, à coller à la place du `0`. Pour l'image d'un passe, une capture du jeu suffit.
+- **(optionnel) un groupe Roblox** pour le jeu → son numéro dans `groupe = …` : le rejoindre donne 2 000 $ (une fois) ;
+- **Paramètres → Sécurité → « Activer l'accès Studio aux API »** et la publication : sans ça, ni sauvegarde ni classement.
 
 Puis `node ROBLOX/construire.js` et republier. Les sommes (cadeaux, bonus) se règlent dans le même bloc.
+⚠ Le questionnaire de maturité (Audience) doit dire que le jeu a des achats en Robux.
 
 ## Pour le développeur (Claude ou autre)
 
@@ -237,6 +260,11 @@ Puis `node ROBLOX/construire.js` et republier. Les sommes (cadeaux, bonus) se r�
   "saut22…" (un saut forcé, la poussée sur deux chiffres), `DbgLarge` = 1280 (l'interface d'un écran 16:9).
 - **La roue au banc** : `DbgRoue` = "ouvrir…" | "tourner…" | "garder…" | "vendre…" | "ok…" | "fermer…", `DbgRoueCase` = 1-8
   (force la case, Studio seulement) ; les cadeaux : `DbgRevenu` = "prendre…" | "temps…" | "classement…" | "fermer…".
+- **Les achats en Robux au banc** (posés CÔTÉ SERVEUR, Studio seulement) : `DbgPasse` = "nitroInfini" | "argent2" | "vip" (ou plusieurs :
+  "nitroInfini,argent2") fait comme si le joueur possédait ces passes (nil rend la main) ; `DbgCoeurs` = 3 pose le stock de cœurs.
+  La carte du cœur à la mort : `DbgSeconde` = "oui" (elle s'ouvre même sans numéro, après 20 s de course) puis `DbgRevenu` =
+  "continuer…" (acheté, on repart) ou "refuser…". La boutique : `DbgOuvre` = "boutique", puis "achat:offres" (l'état de chaque carte
+  dans la Sortie) ou "achat:offre:coeur" (presse ACHETER — dans Studio, un achat de TEST, rien n'est débité).
 - **La longue partie** : `sh outils/longue.sh [minutes] [nitro]` — sur rails (`DbgAuto` = "rail"), immortelle (`DbgImmortel`), les
   portails franchis pour de vrai ; rend les zones traversées, les morts évitées par cause et les erreurs de la Sortie. À lancer
   avant de livrer un changement de jeu : c'est le seul banc qui joue des niveaux ENTIERS.

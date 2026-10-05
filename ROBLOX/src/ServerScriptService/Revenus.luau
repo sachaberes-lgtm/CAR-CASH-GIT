@@ -3,8 +3,11 @@
 --     sa SÉRIE (7 jours qui montent), les CADEAUX DE TEMPS DE JEU (5, 15, 30, 60 min dans la session), les BADGES, le CLASSEMENT
 --     MONDIAL ; le BONUS PREMIUM (+10 % d'argent : on donne aux membres Premium une raison de jouer ici) ;
 --   · LE BOUCHE-À-OREILLE : le bonus de GROUPE (une fois), les INVITATIONS d'amis (les deux sont récompensés) ;
---   · LES ACHATS EN ROBUX, sans boutique : le passe « ×2 ARGENT » (proposé à l'écran de fin, au moment où l'on voit ce qu'on aurait
---     gagné), le passe VIP (cadeaux doublés, nom doré), et le produit SECONDE CHANCE (repartir là où l'on a explosé) ;
+--   · LES ACHATS EN ROBUX (Sacha, 5/10 : « fais de ce jeu une usine à fric ») — en tête de la BOUTIQUE, et là où ils ont un sens :
+--     le passe « ×2 ARGENT » (500 R$ ; aussi proposé à l'écran de fin, au moment où l'on voit ce qu'on aurait gagné), le passe
+--     « NITRO INFINIE » (700 R$ : la réserve ne se vide jamais — attribut joueur NitroInfini, lu par le pilote), le passe VIP
+--     (cadeaux doublés, nom doré), et le produit CŒUR (50 R$, achat répété : une vie de plus, GARDÉE dans le profil — proposé aussi
+--     à la mort quand on n'en a plus : acheté, il est dépensé aussitôt et la caisse repart là où elle a explosé) ;
 --   · LA ROUE : un tour gratuit toutes les 4 h, un tour offert toutes les 3 parties, des tours à vendre — le tirage se fait ICI
 --     (jamais chez le joueur) : de l'argent, une caisse EXCLUSIVE (à garder ou à revendre, au choix), un habillage, le jackpot.
 -- ⚠ Les numéros (passes, produits, badges, groupe) se posent dans Config.REVENUS une fois créés sur create.roblox.com par Sacha : à 0,
@@ -25,23 +28,36 @@ local RO = Config.ROUE
 
 local Revenus = {}
 local ctx: any = nil
-local droits: { [number]: { argent2: boolean, vip: boolean, premium: boolean } } = {}
+-- (payes : les passes achetés PENDANT la session — Roblox garde en cache la réponse de UserOwnsGamePassAsync, qui peut encore dire
+-- « non » juste après l'achat : un passe payé ici ne se reperd pas)
+local droits: { [number]: { argent2: boolean, nitroInfini: boolean, vip: boolean, premium: boolean, payes: { [string]: boolean } } } = {}
 local session: { [number]: { debut: number, n: number, badges: { [string]: boolean }, classeT: number } } = {}
+local Studio = game:GetService("RunService"):IsStudio()
 
 local function jourDe(t: number): number return math.floor(t / 86400) end -- (le jour UTC : le même pour tous les serveurs)
 
 -- ── les DROITS : passes possédés, Premium ──
+-- (banc) workspace:SetAttribute("DbgPasse", "nitroInfini") — ou "argent2", "vip", ou plusieurs : « nitroInfini,argent2 » — fait comme
+-- si le joueur possédait ce passe (Studio seulement : en ligne, seul Roblox dit ce qu'on possède)
+local function passeSimule(nom: string): boolean
+	if not Studio then return false end
+	local q = workspace:GetAttribute("DbgPasse")
+	return type(q) == "string" and string.find("," .. q .. ",", "," .. nom .. ",", 1, true) ~= nil
+end
 local function lireDroits(p: Player)
-	local d = droits[p.UserId] or { argent2 = false, vip = false, premium = false }
+	local d = droits[p.UserId] or { argent2 = false, nitroInfini = false, vip = false, premium = false, payes = {} }
 	for nom, id in R.passes do
-		if type(id) == "number" and id > 0 then
-			local ok, a = pcall(function() return MarketplaceService:UserOwnsGamePassAsync(p.UserId, id) end)
-			if ok then (d :: any)[nom] = a == true end
+		local a = d.payes[nom] == true or passeSimule(nom)
+		if not a and type(id) == "number" and id > 0 then
+			local ok, r = pcall(function() return MarketplaceService:UserOwnsGamePassAsync(p.UserId, id) end)
+			a = if ok then r == true else (d :: any)[nom] == true -- (Roblox ne répond pas : on garde ce qu'on savait)
 		end
+		(d :: any)[nom] = a
 	end
 	d.premium = p.MembershipType == Enum.MembershipType.Premium
 	droits[p.UserId] = d
 	p:SetAttribute("Argent2", d.argent2)
+	p:SetAttribute("NitroInfini", d.nitroInfini) -- (le pilote le lit : la réserve ne se vide plus)
 	p:SetAttribute("VIP", d.vip)
 	p:SetAttribute("Premium", d.premium)
 	return d
@@ -77,6 +93,10 @@ local function crediter(p: Player, prof: any, montant: number)
 	ctx.Profils.pousser(p)
 	ctx.compte(p, prof)
 	ctx.Profils.sauverBientot(p)
+end
+-- ── LES CŒURS : le stock vit dans le profil, le joueur le lit sur son attribut « Coeurs » (pilote, boutique) ──
+local function etatCoeurs(p: Player, prof: any)
+	p:SetAttribute("Coeurs", math.max(0, math.floor(prof.coeurs or 0)))
 end
 
 -- ── le CADEAU DU JOUR : 7 jours qui montent, la série repart à 1 si l'on saute un jour ; VIP = doublé ──
@@ -282,13 +302,33 @@ function Revenus.init(c: any)
 		return true
 	end
 
-	-- la SECONDE CHANCE (produit) : accordée par Roblox (ProcessReceipt), une fois par achat — jamais deux fois le même reçu
+	-- UN CŒUR SE DÉPENSE (Sacha, 5/10 : « une vie en plus sous forme de cœur ») : la caisse devait exploser, le pilote l'a déjà
+	-- replacée sur la route (il n'attend pas la réponse) — ici on retire le cœur du stock, et on refuse à zéro
+	P.actions.coeur = function(p, prof)
+		if (prof.coeurs or 0) < 1 then
+			etatCoeurs(p, prof) -- (le joueur se croyait un cœur de trop : il relit la vérité)
+			return false, "plus de coeur"
+		end
+		prof.coeurs -= 1
+		etatCoeurs(p, prof)
+		return true
+	end
+
+	-- les PRODUITS (le CŒUR, les 3 TOURS DE ROUE) : accordés par Roblox (ProcessReceipt), une fois par achat — jamais deux fois le
+	-- même reçu
 	MarketplaceService.ProcessReceipt = function(info)
 		local p = Players:GetPlayerByUserId(info.PlayerId)
 		if not p then return Enum.ProductPurchaseDecision.NotProcessedYet end
 		local prof = P.de(p)
 		if table.find(prof.achats, info.PurchaseId) then return Enum.ProductPurchaseDecision.PurchaseGranted end
-		if info.ProductId == R.produits.secondeChance then
+		-- (une session dont la sauvegarde est illisible n'écrit jamais : ce qu'on y accorderait serait perdu en partant — Roblox
+		-- représentera le reçu plus tard, quand la sauvegarde répondra)
+		if (prof :: any).horsLigne and not Studio then return Enum.ProductPurchaseDecision.NotProcessedYet end
+		if info.ProductId == R.produits.coeur then
+			-- +1 cœur au stock ; la carte de la MORT l'attend peut-être (Revivre) : elle le dépense aussitôt et la caisse repart
+			prof.coeurs += 1
+			etatCoeurs(p, prof)
+			dire(p, "coeur", nil, tostring(prof.coeurs))
 			evRevivre:FireClient(p)
 		elseif info.ProductId == R.produits.tours3 then
 			prof.roue.n += 3
@@ -302,15 +342,35 @@ function Revenus.init(c: any)
 		P.sauverBientot(p)
 		return Enum.ProductPurchaseDecision.PurchaseGranted
 	end
-	-- un passe acheté EN JEU : ses droits tout de suite
+	-- un passe acheté EN JEU : ses droits tout de suite (noté « payé » : la réponse de Roblox, en cache, peut encore dire non)
 	MarketplaceService.PromptGamePassPurchaseFinished:Connect(function(p, id, achete)
 		if not achete then return end
+		local d = Revenus.droits(p)
+		for nom, pid in R.passes do
+			if type(pid) == "number" and pid > 0 and pid == id then d.payes[nom] = true end
+		end
 		lireDroits(p)
 		for nom, pid in R.passes do
-			if pid == id then dire(p, "passe", nil, nom) end
+			if type(pid) == "number" and pid > 0 and pid == id then dire(p, "passe", nil, nom) end
 		end
 	end)
 	Players.PlayerMembershipChanged:Connect(function(p) lireDroits(p) end)
+
+	-- (banc, Studio seulement) DbgPasse : voir passeSimule ; DbgCoeurs = n : le stock de cœurs de chaque joueur posé à n
+	if Studio then
+		workspace:GetAttributeChangedSignal("DbgPasse"):Connect(function()
+			for _, p in Players:GetPlayers() do lireDroits(p) end
+		end)
+		workspace:GetAttributeChangedSignal("DbgCoeurs"):Connect(function()
+			local n = tonumber(workspace:GetAttribute("DbgCoeurs"))
+			if not n then return end
+			for _, p in Players:GetPlayers() do
+				local prof = P.de(p)
+				prof.coeurs = math.max(0, math.floor(n))
+				etatCoeurs(p, prof)
+			end
+		end)
+	end
 
 	task.spawn(function()
 		while true do
@@ -329,6 +389,10 @@ function Revenus.arrivee(p: Player, prof: any)
 	lireDroits(p)
 	etatJour(p, prof)
 	etatRoue(p, prof)
+	-- (banc) DbgCoeurs posé AVANT l'arrivée du joueur : il s'applique aussi
+	local dbgC = Studio and tonumber(workspace:GetAttribute("DbgCoeurs"))
+	if dbgC then prof.coeurs = math.max(0, math.floor(dbgC)) end
+	etatCoeurs(p, prof)
 	badge(p, "bienvenue")
 	if prof.permis then badge(p, "permis") end
 	-- L'INVITATION : arrivé par le lien d'un ami (une fois dans la vie du compte) — lui et l'ami présent sont récompensés

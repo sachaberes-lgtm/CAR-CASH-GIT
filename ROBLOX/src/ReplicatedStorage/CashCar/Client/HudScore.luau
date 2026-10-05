@@ -1,5 +1,5 @@
 -- CASH CAR — LE HUD DU SCORE (dans l'écran de course) : la bande de FLOW sous la nitro (le mot, quatre cases, « $×1,3 »),
--- les étiquettes de trait (+NARCISSE / -PSYCHO), l'emblème de la FRÉNÉSIE (trois barres N · M · P et son chrono),
+-- les étiquettes de trait (+STYLE / -VITESSE), l'emblème de la FRÉNÉSIE (trois barres N · M · P et son chrono),
 -- le compteur d'AURA et sa chaîne (les deux dernières lignes, le ×, la barre des 3,5 s), l'annonce qui claque (slam),
 -- l'éclair d'écran. Tout se lit dans Client/Score (FLOW, FREN, CHA) ; ce module ne fait qu'afficher.
 local TweenService = game:GetService("TweenService")
