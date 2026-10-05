@@ -3652,6 +3652,12 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 			cam.CFrame = vue
 			cam.FieldOfView = workspace:GetAttribute("DbgFov") or 90
 		end
+		-- (banc, les vignettes de la page Roblox) "DbgVueCaisse" = un Vector3 en mètres DANS LE REPÈRE DE LA CAISSE (−Z = devant) : la
+		-- caméra suit la caisse à cette place et la regarde — un plan de photographe qui vole avec elle
+		if typeof(workspace:GetAttribute("DbgVueCaisse")) == "Vector3" then
+			cam.CFrame = CFrame.lookAt((carCF * CFrame.new((workspace:GetAttribute("DbgVueCaisse") :: Vector3) * M)).Position, (carCF * CFrame.new(0, 0.8 * M, 0)).Position)
+			cam.FieldOfView = workspace:GetAttribute("DbgFov") or 50
+		end
 		Mer.montrer(mode == "menu" or mode == "garage" or (piste :: any).niveau == "nuages")
 		Mer.suivre(cam.CFrame.Position, carCF.Position.Y, dt, (mode == "menu" or mode == "garage") and Config.CIEL.merMenu * (Config.CIEL.titreK or 1) * M or nil)
 		KA.Espace.tick(dt, (piste :: any).niveau == "espace" and mode ~= "menu" and mode ~= "garage", cam.CFrame, carCF)
