@@ -47,7 +47,7 @@ local fnProfil = remote("Profil", "RemoteFunction")   -- le client lit son profi
 local fnAction = remote("Action", "RemoteFunction")   -- le client demande (acheter, équiper, régler…), le serveur vérifie
 local evProfil = remote("ProfilMaj")                  -- le serveur pousse le profil à jour
 Profils.pousser = function(p: Player) evProfil:FireClient(p, Profils.de(p)) end
--- LES REVENUS : cadeaux, badges, classement, passes, seconde chance (voir Revenus)
+-- LES REVENUS : cadeaux, badges, classement, passes, cœurs (voir Revenus)
 local Revenus = require(script.Parent:WaitForChild("Revenus"))
 Profils.surHabit = function(p: Player) -- la peinture, les ailes, la traînée : les autres doivent les voir
 	local m = dossier:FindFirstChild(p.Name)
@@ -120,7 +120,7 @@ local function arrivee(p: Player)
 	end)
 end
 -- LA MONTRE DU SERVEUR (4/10, avant publication) : quand une partie commence, le serveur le note — à la fin, il sait combien de
--- temps elle a VRAIMENT duré, et borne le montant déclaré par le joueur (voir evFin). Une seconde chance ne relance pas la montre.
+-- temps elle a VRAIMENT duré, et borne le montant déclaré par le joueur (voir evFin). Un cœur dépensé (la vie de plus) ne relance pas la montre.
 -- (5/10 : déclarée ICI, avant le départ d'un joueur qui la vide — déclarée plus bas, elle était inconnue à cet endroit :
 -- le départ plantait AVANT la sauvegarde du profil)
 local debutCourse: { [number]: number } = {}

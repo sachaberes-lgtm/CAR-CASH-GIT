@@ -304,7 +304,10 @@ function Ville.batir(piste: any, dossier: Instance, graine: number, ceder: (() -
 						local w, p = snap(16 + r() * 26), snap(16 + r() * 26)
 						local hd = math.sqrt(w * w + p * p) * 0.5
 						local lat, al = RH + rw[1] + hd + r() * rw[2], (r() - 0.5) * SN * 0.6
-						batir(pi.X + px * sg * lat + tx * al, pi.Z + pz * sg * lat + tz * al, lat, pi.Y, yLo, true, w, p, eEnt(i))
+						-- (ENTRÉE v2, web f0b1a84, Léo 4/10 : « les niveaux villes ne sont pas tous des villes ») seul le MUR — le 1er rang, au bord —
+						-- passe sous la route surélevée de l'entrée ; le 2e et le 3e rang gardent leur hauteur : on arrive ENTRE les gratte-ciel, pas
+						-- dans un ciel vide (et depuis le 5/10, la ville OUVRE la partie : c'est le premier écran du jeu). Mêmes tirages.
+						batir(pi.X + px * sg * lat + tx * al, pi.Z + pz * sg * lat + tz * al, lat, pi.Y, yLo, true, w, p, (rw == ROWS[1]) and eEnt(i) or 0)
 					end
 				end
 			end
@@ -353,7 +356,7 @@ function Ville.batir(piste: any, dossier: Instance, graine: number, ceder: (() -
 					if e < 129600 and p.Y < yLo then yLo = p.Y end
 				end)
 				local dF = (d2 < 1e12) and math.sqrt(d2) or v[1]
-				batir(cx, cz, dF, yN, yLo, false, snap(20 + r() * 30), snap(20 + r() * 30), eEnt(iN) * (1 - lisse(dF, 500, 1100)))
+				batir(cx, cz, dF, yN, yLo, false, snap(20 + r() * 30), snap(20 + r() * 30), 0) -- (ENTRÉE v2 : la forêt garde sa hauteur à l'entrée)
 			end
 			if ceder and n % 40 == 0 then ceder() end
 		end

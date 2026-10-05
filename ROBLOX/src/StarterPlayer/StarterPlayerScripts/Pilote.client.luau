@@ -40,7 +40,7 @@ KA.Traces = require(CL:WaitForChild("Traces"))
 KA.Pigeons = require(CL:WaitForChild("Pigeons"))
 KA.Impact = require(CL:WaitForChild("Impact"))
 KA.Recyclage = require(CL:WaitForChild("Recyclage"))
-KA.Revenus = require(CL:WaitForChild("Revenus")) -- (cadeaux, seconde chance, ×2 ARGENT : voir Client/Revenus)
+KA.Revenus = require(CL:WaitForChild("Revenus")) -- (cadeaux, le cœur à la mort, ×2 ARGENT : voir Client/Revenus)
 KA.Roue = require(CL:WaitForChild("Roue")) -- (LA ROUE, à la place des missions et de la carrière : voir Client/Roue)
 -- (le tapotement de la caisse au titre : le « toc » de tôle de l'atelier et une vibration)
 KA.Titre.surTape = function() Sons.vrai("garageTole", nil, nil, "poseChoc", 1.5, 0.35) Hud.vibre(14) end
@@ -552,10 +552,13 @@ local function gererNitro(dt: number)
 	-- touche à la place du joueur, ne coûte rien, et brille en arc-en-ciel (voir habiller). Pas à l'auto-école.
 	local offert = (G.departT or 0) > 0
 	if offert then G.departT = math.max(0, G.departT - dt) end
-	if pwN > 0 or offert then nitroR = res end
+	-- LE PASSE NITRO INFINIE (700 R$, Sacha 5/10) : la réserve ne se vide JAMAIS — le pouvoir NITRO MAX, pour toujours. Le serveur
+	-- pose l'attribut ; la touche reste au joueur (rien ne s'allume tout seul) et la poussée est celle de la nitro ordinaire.
+	G.nInfOn = joueur:GetAttribute("NitroInfini") == true
+	if pwN > 0 or offert or G.nInfOn then nitroR = res end
 	local avant = nitroOn
 	-- LA LOI DU RÉSERVOIR : il tient tant que la jauge PAIE l'image, et se rallume à 0,3
-	local prise = (pwN > 0 or offert) and 0 or Score.nitroConsoDe(dt, Score.F2.frenNitro, Score.frenesie(), NTR.on, mode == "fall")
+	local prise = (pwN > 0 or offert or G.nInfOn) and 0 or Score.nitroConsoDe(dt, Score.F2.frenNitro, Score.frenesie(), NTR.on, mode == "fall")
 	nitroOn = (Controles.nitro or offert) and Score.nitroTientDe(nitroR + nitroX, prise, nitroOn)
 	if nitroOn and pwN <= 0 and not offert then
 		if nitroR >= prise then
@@ -654,7 +657,11 @@ local function decoller(impU: number, impF: number, bord: boolean?)
 	local roulis = G.carRoll
 	local vm = vitMult()
 	local vL = vA * math.sin(psi - G.slipB)
-	fallPos = (cf.Position + B * (lat * M)) / M + N * (bord and 0 or 0.6)
+	-- (bord v2, L31142) au BORD la caisse part d'où elle est — hopY compris : sortie pendant le petit saut d'une pose, elle tombait
+	-- d'un coup jusqu'au bitume (jusqu'à 3 m en une image). Et le saut en cours s'efface (L31154) : la LÈVRE qui la raccroche
+	-- ensuite (levreRattrape ne le remet pas à zéro) la faisait retomber d'un saut fantôme.
+	fallPos = (cf.Position + B * (lat * M)) / M + N * (bord and G.hopY or 0.6)
+	G.hopY, G.hopV, G.choc = 0, 0, 0
 	fallVel = T_ * (vA * math.cos(psi - G.slipB) * impF * vm) + B * (vL * vm) + N * impU -- l'éjection = l'avance RÉELLE
 	if fallVel.Y > 70 then fallVel = Vector3.new(fallVel.X, 70, fallVel.Z) end
 	prevPos = fallPos
@@ -716,6 +723,29 @@ function G.facileSauve(cause: string): boolean
 	HudScore.slam((G.coeurs > 1) and string.format(T.vies, G.coeurs) or T.derniereVie, T.onRepart, "#ff5e7a", "#ffd75e", 40, 3)
 	Sons.jouer("poseLourde")
 	return true
+end
+-- LES CŒURS (Sacha, 5/10 : « un bouton pour avoir une vie en plus sous forme de cœur pour 50 Robux ») : le stock vit au serveur
+-- (profil, attribut joueur « Coeurs ») ; `G.coeurPris` compte les cœurs dépensés ici dont le serveur n'a pas encore pris acte — le
+-- compte utilisable est le stock MOINS ceux-là (la caisse repart tout de suite, on n'attend pas la réponse)
+G.coeurPris = 0
+function G.coeursN(): number
+	local n = joueur:GetAttribute("Coeurs")
+	return math.max(0, ((type(n) == "number") and math.floor(n) or 0) - G.coeurPris)
+end
+function G.coeurUtiliser()
+	G.coeurPris += 1
+	task.spawn(function()
+		pcall(function() fnAction:InvokeServer("coeur") end) -- (le serveur retire le cœur, et refuse à zéro)
+		G.coeurPris = math.max(0, G.coeurPris - 1)
+	end)
+end
+-- UN CŒUR PEUT SAUVER LA CAISSE — S'IL LE VEUT (5/10, lot 2 : un cœur parti tout seul sur une partie de 25 s faisait regretter
+-- l'achat). La caisse EXPLOSE ; `G.coeurOffre` dit si, avec des cœurs en réserve, la carte de la mort proposera « UTILISER UN
+-- COEUR » (Client/Revenus, offrirSeconde) : choisi, G.revivre la replace là où elle a explosé. Toutes les morts : le vide, le chrono
+-- d'air, la panne, la tour, le satellite ; jamais à l'auto-école ni dans une leçon. Ne sauve plus rien d'office : rend toujours faux.
+function G.coeurSauve(cause: string): boolean
+	G.coeurOffre = not (cause == "quitte" or TU.on or G.lecon == true) and G.coeursN() > 0
+	return false
 end
 
 -- ════════ L'AUTO-ÉCOLE ════════
@@ -900,7 +930,7 @@ local function exploser(cause: string)
 		replacer()
 		return
 	end
-	if TU.rate() or G.facileSauve(cause) then return end
+	if TU.rate() or G.facileSauve(cause) or G.coeurSauve(cause) then return end -- (5/10 : un CŒUR en réserve = une vie de plus)
 	causeMort = cause
 	boomPos = carCF.Position
 	Score.mort() -- la chaîne OUVERTE part avec la caisse, le flow retombe
@@ -1003,9 +1033,12 @@ local function atterrir(face: number, latX: number, sX: number, hR: number?)
 	local vT, vB, vN = fallVel:Dot(T_), fallVel:Dot(B), fallVel:Dot(N)
 	lat = (face > 0) and latX or -latX
 	-- la vitesse de vol redevient une vitesse de route (÷ vitMult : elle était partie multipliée)
-	local vTan, vLat = vT / vm, vB * 0.4 / vm
+	local vTan = vT / vm
 	vA = vTan
-	psi = math.clamp(math.atan2(vLat, math.abs(vTan) + 1), -1.4, 1.4)
+	-- (5/10) le cap de la pose = la direction EXACTE du vol (L31333, « PAS DU TOUT d'assistance », 25/09) : la composante de côté
+	-- passait ici à 40 % — la caisse se posait redressée de plus de moitié (un vol à 22° de l'axe posait à 9°). Le ×0,4 du web
+	-- est celui de vL, la glisse latérale, que la conduite réécrit dès l'image suivante (L37675) : il ne touche pas au cap.
+	psi = math.clamp(math.atan2(vB, math.abs(vT) + 1), -1.4, 1.4)
 	yawR, G.slipB = 0, 0
 	local perte = math.min(0.52, math.max(0, V.fallT * G.gK() - 0.8) * 0.15 + math.abs(vN) * 0.008) -- (× gK : en orbite un même saut dure deux fois plus)
 	if perte > 0.2 then G.tole(2) end -- (L30841 : une pose qui coûte arrache deux bouts)
@@ -1088,7 +1121,7 @@ local function atterrir(face: number, latX: number, sX: number, hR: number?)
 		raccourci = true
 		G.raccourci(gagne)
 	elseif gagne >= 25 then
-		Score.frenTrait("m", gagne / 60) -- une petite coupe nourrit MACHIAVEL
+		Score.frenTrait("m", gagne / 60) -- une petite coupe nourrit la RUSE
 	end
 	G.mirPose() -- MIRACULÉ : une chute qui était perdue d'avance
 	-- le dauphin verse ce qu'il a nagé
@@ -1118,7 +1151,10 @@ local function atterrir(face: number, latX: number, sX: number, hR: number?)
 	local reste9 = hR or 0
 	if reste9 > 0.25 then
 		G.hopY = reste9
-		G.hopV = ((face > 0) and vN or -vN) * SPD
+		-- (5/10) vN est déjà lu dans le repère de SA face (repere(s, face) : sous la dalle, le haut est retourné) — le web, lui, le
+		-- lit sur la normale du DESSUS et le retourne pour la face cachée (L31369). Le retourner une 2e fois envoyait la caisse posée
+		-- SOUS la route s'ÉLOIGNER de la dalle avant d'y revenir (un rebond fantôme à chaque pose dessous avec du jeu)
+		G.hopV = vN * SPD
 		G.choc = math.min(0.6, impact * 0.04)
 		G.squashT = 0.1 + math.min(0.2, impact * 0.022) -- (la caisse se tassera AU CONTACT)
 	else
@@ -1159,7 +1195,69 @@ function G.levreRattrape(j: number, latOff: number, hOff: number, tOff: number)
 	Score.dolFin() -- (rien n'est payé ni rendu : ce que le dauphin a nagé attendra la prochaine pose)
 	secousse = math.max(secousse, 0.28)
 	Sons.jouer("poseChoc", 1.2, 0.3)
+	-- (5/10, L31535) le pneu qui monte la marche : la caisse se tasse, la main le sent, le plancher crache sa gerbe d'or
+	G.squashT = math.max(G.squashT or 0, 0.14)
+	Hud.vibre(18)
+	Bus.emit("gerbe", "or", carCF.Position, 8, 7 * 0.15, 7 * 0.75, 58)
 	E.air.Visible = false
+end
+
+-- LE RADAR À PORTÉE (5/10) : tous les échantillons de la piste rangés dans les cases de la grille qui touchent la boîte
+-- [pos − r, pos + r] (pos en studs, r en mètres). Piste.autour ne fouille que les 27 cases voisines (16 m) : la portée SÛRE
+-- n'y est que de 16 m, quand la route a 28 m de demi-largeur. (La clé est celle de Piste : cle(x, y, z).)
+function G.autour(pos: Vector3, rayonM: number, out: { number }): { number }
+	table.clear(out)
+	local CEL, g, r = piste.cellule, piste.grille, rayonM * M
+	for cx = math.floor((pos.X - r) / CEL), math.floor((pos.X + r) / CEL) do
+		for cy = math.floor((pos.Y - r) / CEL), math.floor((pos.Y + r) / CEL) do
+			for cz = math.floor((pos.Z - r) / CEL), math.floor((pos.Z + r) / CEL) do
+				local l = g[(cx + 4096) * 67108864 + (cy + 4096) * 8192 + (cz + 4096)]
+				if l then table.move(l, 1, #l, #out + 1, out) end
+			end
+		end
+	end
+	return out
+end
+-- (banc) le JOURNAL DU BORD : pendant 4 s après un « DbgOuvre bord… », chaque décision du bord s'écrit dans la Sortie
+function G.dbgNote(quoi: string, h: number, l: number, vB: number)
+	if os.clock() > (G.dbgBordT or 0) then return end
+	warn(string.format("[CashCar] BORD : %s  h=%.2f m  lat=%.2f m (bord a %d)  vB=%.1f  fallT=%.2f  air=%.2f s", quoi, h, l, RH, vB, V.fallT, V.fallTR))
+end
+-- (banc, 5/10) LE BORD AU BANC (le dbgPose du web, L27702) — workspace « DbgOuvre » = "bord<h>[/<vB>[/<vN>]]", en conduite :
+-- la caisse est lâchée 1 m DEHORS du bord le plus proche (au-delà de sa demi-largeur), à h m du niveau du bitume (négatif : dans
+-- l'épaisseur de la dalle, 2,6 m), et revient vers la route de CÔTÉ (vB, 20 par défaut, en unités de vA ; sa vitesse le long ;
+-- vN vers le haut, 0 par défaut), après 1 s de vol fictif (comme le banc du web) — 5 s de jauge d'air. « bord-1.2 » : la
+-- carrosserie cogne la TRANCHE → BUMP ; « bord0.1 » : les roues accrochent la LÈVRE → posée au bord ; « bord1.5 » : elle arrive
+-- au-dessus du bitume et se pose près du bord ; « bord-3.5 » : elle passe SOUS la dalle ; « bord-3.5/20/8 » : elle y remonte et
+-- se colle DESSOUS. Le verdict s'écrit dans la Sortie (« [CashCar] BORD : … »).
+function G.dbgBord(h: number, vB: number?, vN: number?)
+	if mode ~= "drive" or intro then return end
+	local cf = repere(s, 1)
+	local sg = (lat * side >= 0) and 1 or -1 -- (le bord le plus proche, lu sur la face du DESSUS)
+	local vT = math.max(60, math.abs(vA))
+	decoller(0, 1)
+	fallPos = cf.Position / M + cf.RightVector * (sg * (RH + poignees.fiche.w * 0.5 + 1)) + cf.UpVector * h
+	fallVel = cf.LookVector * vT + cf.RightVector * (-sg * (vB or 20)) + cf.UpVector * (vN or 0)
+	prevPos = fallPos
+	flyU, flyAv = cf.UpVector, fallVel.Unit -- (à l'endroit, même lâchée depuis le dessous de la dalle)
+	V.fallT, V.fallTR, V.volT, V.fallVH0, V.fallStartSide, V.fallUnder = 1, 1, 1, -1, 1, false
+	G.dbgBordT = os.clock() + 4
+	warn(string.format("[CashCar] BORD : lachee a %.1f m de l'axe, h=%.2f m, vB=%d vers la route, vN=%d", RH + poignees.fiche.w * 0.5 + 1, h, vB or 20, vN or 0))
+end
+-- (banc, 5/10) « DbgOuvre » = "bordL" : LA BASCULE — la caisse passe le bord (la vraie sortie, decoller(…, bord)), file 0,3 s vers le
+-- vide (le SURSIS la porte sur la lèvre), puis revient vers la route comme si on braquait : la LÈVRE la RACCROCHE (−6 %).
+function G.dbgBascule()
+	if mode ~= "drive" or intro or side < 0 then return end
+	local sg = (lat >= 0) and 1 or -1
+	lat = sg * (RH + 0.02)
+	decoller(0, 1, true)
+	local B = repere(s, 1).RightVector
+	fallVel += B * (sg * 3 - fallVel:Dot(B)) -- (vers le vide, 3 en travers)
+	G.dbgBordT = os.clock() + 4
+	warn("[CashCar] BORD : bascule par le bord, retour vers la route dans 0,3 s")
+	task.delay(0.3, function()
+		if mode == "fall" and V.bascOn then fallVel += B * (-sg * 3 - fallVel:Dot(B)) end -- (on braque : elle revient)
+	end)
 end
 
 function G.essayerAtterrir(dt: number)
@@ -1169,13 +1267,17 @@ function G.essayerAtterrir(dt: number)
 	local demi = poignees.fiche.w * 0.5
 	local vol = (fallPos - prevPos).Magnitude
 	-- ── le RADAR : le point de piste le plus proche (dauphin, serpent, sursis, lèvre, bump) ──
+	-- (5/10, Sacha : « les bords de la map ne donnent pas l'effet de bump ») le radar fouille désormais 48 m autour de la caisse
+	-- (G.autour) : Piste.autour n'en voyait que 16 sûrs, la route en fait 28 de demi-largeur — au BORD l'axe de la route tombait
+	-- hors des 27 cases une fois sur deux et le web, lui, cherche sur TOUTE la piste (dalleProche, L31233). Le dauphin compte
+	-- jusqu'à 40 m au-dessus de la dalle, à 25 m de l'axe (DOL_HMAX, L30253) : 48 m ; la physique du bord garde ses 40 m (L31244).
 	local proche, dProche = nil, math.huge
-	local liste = Piste.autour(piste, pos, voisins)
+	local liste = G.autour(pos, 48, voisins)
 	for _, j in liste do
 		local d = (piste.F[j].Position - pos).Magnitude
 		if d < dProche then proche, dProche = j, d end
 	end
-	V.curNear = proche ~= nil and dProche < 40 * M
+	V.curNear = proche ~= nil and dProche < 48 * M
 	if V.curNear and proche then
 		local F = piste.F[proche]
 		local lc = F:PointToObjectSpace(pos)
@@ -1185,8 +1287,8 @@ function G.essayerAtterrir(dt: number)
 		local vN, vB = fallVel:Dot(N), fallVel:Dot(B)
 		local prevL = latOff - vB * dt * SPD
 		-- le SERPENT : passer SOUS la dalle, dans sa largeur
-		if not V.fallUnder and math.abs(latOff) < RH and ((V.fallStartSide > 0 and hOff < -THICK - 1) or (V.fallStartSide <= 0 and hOff > 1)) then V.fallUnder = true end
-		if V.bascOn and V.fallStartSide > 0 and not intro then
+		if dProche < 40 * M and not V.fallUnder and math.abs(latOff) < RH and ((V.fallStartSide > 0 and hOff < -THICK - 1) or (V.fallStartSide <= 0 and hOff > 1)) then V.fallUnder = true end
+		if V.bascOn and V.fallStartSide > 0 and not intro and dProche < 40 * M then
 			-- (a) LE SURSIS : la caisse est PORTÉE par la lèvre tant qu'elle bascule (0,45 s) ou que ses roues intérieures touchent
 			-- encore — AU-DELÀ du bord seulement, et jamais plus bas que la lèvre (2 m) : sans ces bornes, une caisse passant
 			-- SOUS la route ou revenant après un bump était remontée d'un coup à la surface (jusqu'à 3 m en une image)
@@ -1200,6 +1302,7 @@ function G.essayerAtterrir(dt: number)
 			end
 			-- (b) LA LÈVRE RACCROCHE : la caisse REVIENT vers la route dans la seconde, jusqu'à 2 m sous la surface
 			if V.sideCd <= 0 and V.bascT < 1 and hOff > -2 and hOff < 0.8 and math.abs(latOff) < RH + demi and vB * math.sign(latOff) < -0.5 then
+				G.dbgNote("LA LEVRE RACCROCHE", hOff, latOff, vB)
 				G.levreRattrape(proche, latOff, hOff, tOff)
 				return
 			end
@@ -1211,10 +1314,11 @@ function G.essayerAtterrir(dt: number)
 		local mrgB = demi + math.max(0.2, math.abs(vB) * SPD * dt * 1.5)
 		local bumpIn = math.abs(latOff) >= RH and math.abs(latOff) < RH + mrgB and vB * sgL < -3
 		local bumpThru = math.abs(prevL) >= RH and math.abs(latOff) < RH and math.sign(prevL) * vB < -3
-		local tranche = V.sideCd <= 0 and not intro and hOff > -THICK - 0.12 and hOff < 0.12 and (bumpIn or bumpThru)
+		local tranche = V.sideCd <= 0 and not intro and dProche < 40 * M and hOff > -THICK - 0.12 and hOff < 0.12 and (bumpIn or bumpThru)
 		-- LA LÈVRE POUR TOUTE POSE : roues à moins de 45 cm sous le bitume au contact de la tranche → on se POSE au bord
 		if tranche and hOff > -0.45 and V.fallT > 0.35 and vN < 4.5 then
 			local cote = bumpThru and math.sign(prevL) or sgL
+			G.dbgNote("POSE PAR LA LEVRE", hOff, latOff, vB)
 			atterrir(1, cote * (RH - 0.05), (proche - 1) * DSm + math.clamp(tOff, -2, 2), hOff)
 			return
 		end
@@ -1237,6 +1341,10 @@ function G.essayerAtterrir(dt: number)
 			secousse = math.max(secousse, math.min(1.3, 0.3 + math.abs(vB) * 0.03))
 			Sons.vrai("figBump", nil, nil, "poseChoc", 1.3)
 			G.tole(2 + math.floor(math.min(4, math.abs(vB) * 0.12))) -- (L30794 : ça casse ENCORE PLUS de bouts)
+			-- (5/10) le choc se SENT dans la main (hap(24), L31299) et crache sa gerbe d'or (sparkBurst(sparkGold, 12, 10), L31307)
+			Hud.vibre(24)
+			Bus.emit("gerbe", "or", carCF.Position, 12, 10 * 0.15, 10 * 0.75, 58)
+			G.dbgNote("BUMP x" .. V.bounceN, hOff, latOff, vB)
 			return
 		end
 	end
@@ -1250,16 +1358,25 @@ function G.essayerAtterrir(dt: number)
 		local h, hp = lc.Y / M, lp.Y / M
 		local la, z = lc.X / M, -lc.Z / M
 		local vN = fallVel:Dot(F.UpVector)
-		local tranche = DSm * 0.6 + vol
+		-- (5/10) le point le plus PROCHE (le bestI du web, L31233) est TOUJOURS candidat : au bord EXTÉRIEUR d'une épingle les
+		-- échantillons s'écartent (2 m sur l'axe, jusqu'à 3,8 m à 28 m de l'axe dans un rayon de 32 m) et aucun n'était à moins
+		-- de 1,2 m de la caisse — elle traversait la route (mesuré : 1 pose sur 5 au bord extérieur d'une épingle)
+		local zMax = (j == proche) and 3 or DSm * 0.6
+		local tranche = zMax + vol
+		-- (5/10) …et pas de TRAVERSÉE dans le premier dixième du vol (le web : fallT > .1, L31313) : la caisse qui sort en RASANT le
+		-- bord extérieur d'un virage (1-2 cm par image) est encore « dans la largeur » pour l'échantillon voisin — reposée à la
+		-- 1re image, ressortie à la suivante, reposée… collée au bord. Compté en temps de VOL (volT) : un bump ou un pouvoir qui
+		-- rendent fallT ne rouvrent pas ce trou.
+		local percee = V.volT > 0.1 or intro
 		if math.abs(z) <= tranche then
 			-- la face du DESSUS
 			local ok, lx, zx = false, la, z
-			if hp >= 0 and h < 0 then
+			if percee and hp >= 0 and h < 0 then
 				local t = hp / (hp - h)
 				lx = (lp.X + (lc.X - lp.X) * t) / M
 				zx = -(lp.Z + (lc.Z - lp.Z) * t) / M
-				ok = math.abs(zx) <= DSm * 0.6
-			elseif V.fallT > 0.35 and h > -1.2 and h < 3 and vN < 4.5 and math.abs(z) <= DSm * 0.6 then
+				ok = math.abs(zx) <= zMax
+			elseif V.fallT > 0.35 and h > -1.2 and h < 3 and vN < 4.5 and math.abs(z) <= zMax then
 				ok = true
 			end
 			if ok and math.abs(lx) < RH + marge and math.abs(h) < bestD then
@@ -1267,12 +1384,12 @@ function G.essayerAtterrir(dt: number)
 			end
 			-- la face du DESSOUS (on s'y colle en remontant)
 			local ok2, lx2, zx2 = false, la, z
-			if hp <= -THICK and h > -THICK then
+			if percee and hp <= -THICK and h > -THICK then
 				local t = (hp + THICK) / (hp - h)
 				lx2 = (lp.X + (lc.X - lp.X) * t) / M
 				zx2 = -(lp.Z + (lc.Z - lp.Z) * t) / M
-				ok2 = math.abs(zx2) <= DSm * 0.6
-			elseif V.fallT > 0.35 and h > -THICK - 3 and h < -THICK + 1.2 and vN > -4.5 and math.abs(z) <= DSm * 0.6 then
+				ok2 = math.abs(zx2) <= zMax
+			elseif V.fallT > 0.35 and h > -THICK - 3 and h < -THICK + 1.2 and vN > -4.5 and math.abs(z) <= zMax then
 				ok2 = true
 			end
 			if ok2 and math.abs(lx2) < RH + marge and math.abs(h + THICK) < bestD then
@@ -1280,7 +1397,10 @@ function G.essayerAtterrir(dt: number)
 			end
 		end
 	end
-	if trouve then atterrir(bestFace, bestLat, bestS, bestH) end
+	if trouve then
+		G.dbgNote((bestFace > 0) and "POSE DESSUS" or "POSE DESSOUS", bestH, bestLat, 0)
+		atterrir(bestFace, bestLat, bestS, bestH)
+	end
 end
 
 -- ════════ les pouvoirs v2 (pwrPrend, L23479) : le même pouvoir se CUMULE (plafond 2 × sa durée) ════════
@@ -1511,7 +1631,7 @@ function G.raccourci(gagne: number)
 	Score.gesteMuet(tr("RACCOURCI", "SHORTCUT"), math.floor(math.min(250, 60 + gagne * 0.2) + 0.5), "coupe")
 end
 -- MIRACULÉ (mirTick, mirPose, L23645) : la pose d'une chute qui était PERDUE D'AVANCE depuis 0,6 s ou plus (plus de route en vue,
--- on tombait, 10 m sous la dalle la plus proche) — 160 d'aura, 240 après 1,5 s de perdition ; se rattraper au nitro : PSYCHO.
+-- on tombait, 10 m sous la dalle la plus proche) — 160 d'aura, 240 après 1,5 s de perdition ; se rattraper au nitro : VITESSE.
 function G.mirPose()
 	local m = G.mirMax or 0
 	G.mirT, G.mirMax = 0, 0
@@ -1609,7 +1729,7 @@ function G.viseur(dt: number)
 			pos += vel * (0.12 * SPD)
 			local q = pos * M
 			local bi, bd = 0, (20 * M) ^ 2
-			for _, j in Piste.autour(piste, q, G.lmOut) do
+			for _, j in G.autour(q, 20, G.lmOut) do -- (5/10 : les 20 m du web, L38350 — Piste.autour n'en voyait que 16 sûrs)
 				local d = piste.F[j].Position - q
 				local dd = d:Dot(d)
 				if dd < bd then bd, bi = dd, j end
@@ -1941,7 +2061,7 @@ local function passerPortail(): boolean
 	end
 	local longueur = piste.len / M
 	-- LE RACCOURCI VERS LE PORTAIL (L30424 ; Sacha : « quand on coupe la route pour rejoindre le portail plus vite, ça doit quand même
-	-- rapporter du machiavélisme ») : on n'atterrit pas, la pose ne le voyait jamais. La piste qu'il restait à rouler jusqu'à l'entrée
+	-- rapporter de la RUSE ») : on n'atterrit pas, la pose ne le voyait jamais. La piste qu'il restait à rouler jusqu'à l'entrée
 	-- de l'ovule (~L − 80) moins la ligne droite volée.
 	if mode == "fall" and not ecole then
 		local gagne = (longueur - 80 - V.flowS0) - (V.flowP0 - fallPos).Magnitude
@@ -2668,8 +2788,9 @@ function G.hud(dt: number)
 		Hud.cashMaj(C9.disp, (C9.dT > 0 and C9.delta > 0) and ("+$ " .. Hud.cash(C9.delta) .. (x3 and " ×3" or "")) or nil, x3, frappe)
 	end
 	local res = reservoir()
-	-- la barre et le bouton NITRO : la réserve du moteur, la réserve bleue à la suite, violets en NITRO INFINIE
-	Hud.nitro(math.clamp(nitroR / res, 0, 1), math.clamp(nitroX / res, 0, 1), pwN > 0, nitroOn)
+	-- la barre et le bouton NITRO : la réserve du moteur, la réserve bleue à la suite, violets en NITRO INFINIE (le pouvoir, ou le
+	-- passe en Robux)
+	Hud.nitro(math.clamp(nitroR / res, 0, 1), math.clamp(nitroX / res, 0, 1), pwN > 0 or G.nInfOn == true, nitroOn)
 	if mode == "fall" and not intro then
 		E.air.Visible = true
 		local reste = pwA > 0 and 1 or math.clamp(1 - V.fallTR / airMax(), 0, 1)
@@ -2700,6 +2821,10 @@ function G.hud(dt: number)
 	if facile() and (mode == "drive" or mode == "fall") then
 		E.coeurs.Visible = true
 		E.coeurs.Text = string.rep("♥", G.coeurs) .. '<font color="#40385e">' .. string.rep("♥", math.max(0, FAC.coeurs - G.coeurs)) .. "</font>"
+	elseif (mode == "drive" or mode == "fall") and not TU.on and G.coeursN() > 0 then
+		-- LES CŒURS achetés (5/10) : « ♥ 3 » en haut à droite, tant qu'il en reste
+		E.coeurs.Visible = true
+		E.coeurs.Text = "♥ " .. G.coeursN()
 	else
 		E.coeurs.Visible = false
 	end
@@ -3032,7 +3157,7 @@ game:GetService("UserInputService").InputBegan:Connect(function(io: InputObject,
 		end
 	end
 end)
--- ── LES REVENUS : le cadeau du jour, les cadeaux de temps de jeu, inviter, le groupe, la seconde chance (voir Client/Revenus) ──
+-- ── LES REVENUS : le cadeau du jour, les cadeaux de temps de jeu, inviter, le groupe, le cœur à la mort (voir Client/Revenus) ──
 KA.Revenus.init({
 	action = function(nom: string, ...: any): (boolean, string?)
 		local ok, res, msg, p = pcall(function(...) return fnAction:InvokeServer(nom, ...) end, ...)
@@ -3041,19 +3166,32 @@ KA.Revenus.init({
 		return res == true, msg
 	end,
 	occupe = function() return mode ~= "menu" end,
+	-- la tuile BOUTIQUE ROBUX de la pile (5/10) : la boutique, qui s'ouvre toujours sur ses offres en Robux
+	boutique = function()
+		if mode ~= "menu" then return end
+		if profil.reglages and not profil.reglages.shopVu then
+			reglage("shopVu", true)
+			G.badges()
+		end
+		G.boutique.ouvrir("menu")
+	end,
 })
--- la seconde chance ACCORDÉE (achetée, ou simulée au banc) : la caisse repart là où elle a explosé — sa partie, son argent, son
--- moteur ; la chaîne ouverte, elle, est partie avec l'explosion. Refusée : la fin de partie suit son cours.
+-- LE CŒUR CHOISI À LA MORT (5/10 : UTILISER UN COEUR de la réserve, ou un cœur ACHETÉ sur la carte — ou simulé au banc) : on le
+-- DÉPENSE — la caisse repart là où elle a explosé : sa partie, son argent, son moteur ; la chaîne ouverte, elle, est partie avec
+-- l'explosion. Refusé : la fin de partie suit son cours. (La carte peut revenir à la mort suivante : un cœur = une vie.)
 function G.revivre(ok: boolean)
+	G.coeurOffre = false
 	if not ok or mode ~= "boom" then
 		G.seconde = false
 		return
 	end
-	G.seconde, G.secondeUsee = nil, true
+	G.seconde = nil
+	G.coeurUtiliser()
 	montrerCaisse(true)
 	replacer()
 	evEtat:FireServer("course", true)
-	HudScore.slam(tr("SECONDE CHANCE", "SECOND CHANCE"), tr("LA PARTIE CONTINUE", "THE RUN GOES ON"), "#ffd75e", "#ffffff", 40, 3)
+	HudScore.slam(tr("UN COEUR = UNE VIE", "ONE HEART = ONE LIFE"), (G.coeursN() > 0) and tr("ENCORE " .. G.coeursN() .. " EN RESERVE", G.coeursN() .. " LEFT IN STOCK")
+		or tr("LA PARTIE CONTINUE", "THE RUN GOES ON"), "#ff5e7a", "#ffffff", 40, 3)
 	Sons.jouer("go")
 	Hud.vibre(30)
 end
@@ -3224,6 +3362,14 @@ workspace:GetAttributeChangedSignal("DbgOuvre"):Connect(function()
 	elseif string.sub(v, 1, 4) == "saut" then
 		-- (banc) un saut franc, tout de suite : pour photographier ce qui ne vit qu'en vol (le viseur, la jauge, les figures)
 		if mode == "drive" then decoller(tonumber(string.sub(v, 5, 6)) or 45, 1) end -- ("saut20…" : la poussée, sur deux chiffres)
+	elseif string.sub(v, 1, 5) == "bordL" then
+		G.dbgBascule() -- (banc, 5/10) la sortie par le bord, puis le retour : la LÈVRE raccroche (voir G.dbgBascule)
+	elseif string.sub(v, 1, 4) == "bord" then
+		-- (banc, 5/10) la caisse lâchée à côté du bord, qui revient vers la route : « bord-1.2 » (BUMP), « bord0.1 » (la LÈVRE),
+		-- « bord1.5 » (pose au bord), « bord-3.5 » (dessous) ; « bord-1.2/45 » : 45 de vitesse en travers ; « bord-3.5/20/8 » : et
+		-- 8 vers le haut (voir G.dbgBord)
+		local hS, vS, nS = string.match(string.sub(v, 5), "^([^/]*)/?([^/]*)/?(.*)$")
+		G.dbgBord(tonumber(hS) or -1.2, tonumber(vS), tonumber(nS))
 	elseif v == "tape" then
 		local e9 = KA.Titre.dbgTape() -- (banc) un coup au milieu de la caisse
 		warn(string.format("[CashCar] tape : %d coups, poussée %.2f m, pivot %.1f°", e9.coups, e9.pousse, e9.pivot))
@@ -3610,11 +3756,12 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 		elseif mode == "boom" then
 			boomT += dt
 			secousse = math.max(secousse, boomT < 0.1 and 1.2 or 0)
-			-- LA SECONDE CHANCE (voir Client/Revenus) : la carte s'ouvre quand la boule de feu retombe ; tant qu'elle est ouverte, la
-			-- fin de partie attend sa réponse (G.seconde : nil = pas proposée, true = ouverte, false = refusée)
-			if boomT > 1.2 and G.seconde == nil and KA.Revenus.secondeDispo(G.secondeUsee == true, stats.duree, TU.on or G.lecon == true) then
+			-- LE CŒUR À LA MORT (voir Client/Revenus) : la carte s'ouvre quand la boule de feu retombe ; tant qu'elle est ouverte, la
+			-- fin de partie attend sa réponse (G.seconde : nil = pas proposée, true = ouverte, false = refusée). Avec des cœurs en
+			-- réserve (G.coeurOffre, posé par G.coeurSauve) elle propose d'en UTILISER un ; sans, d'en acheter un.
+			if boomT > 1.2 and G.seconde == nil and KA.Revenus.secondeDispo(G.secondeUsee == true, stats.duree, TU.on or G.lecon == true, G.coeurOffre and G.coeursN() or 0) then
 				G.seconde = true
-				KA.Revenus.offrirSeconde(G.revivre)
+				KA.Revenus.offrirSeconde(G.revivre, G.coeurOffre and G.coeursN() or 0)
 			end
 			if boomT > 1.8 and not G.seconde then finPartie() end
 		elseif mode == "menu" or mode == "garage" then

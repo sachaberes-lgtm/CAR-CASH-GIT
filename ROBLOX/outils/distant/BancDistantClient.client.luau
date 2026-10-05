@@ -110,6 +110,21 @@ ev.OnClientEvent:Connect(function(op: string, r: string, nom: string, prop: stri
 			if okT then table.insert(t, tag .. "=" .. math.floor(v)) end
 		end
 		ev:FireServer("stats : " .. table.concat(t, " "))
+	elseif op == "grand" then
+		-- (banc) la bannière du niveau, tout de suite (pour la photographier)
+		local H = require(RS:WaitForChild("CashCar"):WaitForChild("Client"):WaitForChild("Hud"))
+		H.grand(nom, nil, 3)
+		ev:FireServer("grand : " .. tostring(nom))
+	elseif op == "sons" then
+		-- (5/10) les sons QUI JOUENT et leur volume effectif — pour savoir d'où vient un bruit pendant les essais
+		local t = {}
+		for _, d in game:GetDescendants() do
+			if d:IsA("Sound") and d.IsPlaying then
+				local g = d.SoundGroup
+				table.insert(t, string.format("%s(v%.2f g%s%.2f)", d:GetFullName(), d.Volume, g and g.Name or "-", g and g.Volume or 1))
+			end
+		end
+		ev:FireServer("sons : " .. #t .. " " .. table.concat(t, " ", 1, math.min(#t, 12)))
 	elseif op == "lire" then
 		local vu = false
 		chacun(r, nom, function(d)

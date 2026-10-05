@@ -37,6 +37,8 @@ Start-Sleep $Attente
 # une fois Studio chargé (pas avant : sa mise en page se dérègle), une taille connue — la vue 3D a alors les proportions d'un
 # téléphone couché (~2,2), comme les captures du jeu web
 $p = Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowTitle -like "*CashCarTest*" } | Select-Object -First 1
-if ($p) { [RelanceCC]::SetWindowPos($p.MainWindowHandle, [IntPtr]1, 0, 0, 2900, 1640, 0x10) | Out-Null; Start-Sleep -Milliseconds 800 }
+# (5/10 : PLUS de redimensionnement — il dereglait la mise en page de Studio : la vue du jeu debordait de la fenetre et les photos
+# n'en montraient que la moitie gauche. `CASHCAR_TAILLE=1` le remet.)
+if ($p -and $env:CASHCAR_TAILLE) { [RelanceCC]::SetWindowPos($p.MainWindowHandle, [IntPtr]1, 0, 0, 2900, 1640, 0x10) | Out-Null; Start-Sleep -Milliseconds 800 }
 & "$ici\studio-actif.ps1" | Out-Null # (le changement de taille lui retire « la main » : sans elle, 15 images par seconde)
 & "$ici\studio-touche.ps1"

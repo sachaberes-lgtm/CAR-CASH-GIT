@@ -36,7 +36,9 @@ local REFLET = 0.02
 -- l'air, VILLE = le rose néon sur un bitume de nuit MOUILLÉ, ORBITE = le cyan froid sur un indigo profond. `nappe` = la lueur du
 -- rail qui saigne vers l'intérieur du bitume (1,15 m ; 3,35 m sous la pluie : la route mouillée renvoie le néon), `nappeK` sa force.
 local HABITS: { [string]: any } = {
-	nuages = { accent = R.neon, bitume = R.bitume, nappe = 1.15, nappeK = 0.36 },
+	-- (5/10, Sacha : « prends des libertés pour la map ») le bitume des NUAGES s'assombrit — un violet profond qui fait ressortir la
+	-- caisse orange et le coton blanc — et la lueur cyan des rails saigne deux fois plus loin sur la route, comme en ville
+	nuages = { accent = R.neon, bitume = Color3.fromRGB(56, 50, 96), nappe = 2.4, nappeK = 0.5 },
 	ville = { accent = Color3.fromRGB(242, 74, 160), bitume = Color3.fromRGB(40, 34, 80), nappe = 3.35, nappeK = 0.62, reflets = 1 },
 	espace = { accent = Color3.fromRGB(94, 230, 255), bitume = Color3.fromRGB(62, 52, 118), nappe = 1.15, nappeK = 0.36 },
 }

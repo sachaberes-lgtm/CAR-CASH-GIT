@@ -1,4 +1,4 @@
--- CASH CAR — LE SCORE : le FLOW (jauge 0-100, quatre cases + la FRÉNÉSIE), la TRIADE (NARCISSE · MACHIAVEL · PSYCHO),
+-- CASH CAR — LE SCORE : le FLOW (jauge 0-100, quatre cases + la FRÉNÉSIE), la TRIADE (STYLE · RUSE · VITESSE),
 -- la CHAÎNE D'AURA, le RALENTI de la frénésie et l'aura du DAUPHIN. C'est le « méta » du jeu web, porté ligne pour
 -- ligne (index.html : FLOW2 L20930, flowAdd L21025, flowTick L21321, frenDeclenche L21116, frenTriade L21244,
 -- chaineAura L28686, chaineEncaisse L28914, RALENTI L21096, dolTick L29467).
@@ -15,7 +15,7 @@ Score.dire = {
 	son = function(_nom: string, _demiTons: number?) end,
 	flash = function(_couleur: string, _alpha: number?) end,
 	hap = function(_force: number?) end,
-	tag = function(_trait: string, _signe: number) end,                                  -- +NARCISSE / -PSYCHO à côté du mot FLOW
+	tag = function(_trait: string, _signe: number) end,                                  -- +STYLE / -VITESSE à côté du mot FLOW
 	fov = function(_degres: number) end,                                                 -- un coup de champ
 	chaine = function() end,                                                             -- la chaîne d'aura a bougé
 	verse = function(_g: number) end,                                                    -- une chaîne s'encaisse (+g d'aura)
@@ -61,7 +61,8 @@ Score.FLOW_CEL = { "#5ee6ff", "#ffd75e", "#ff5ec8", "#b58cff" }
 Score.SEUIL = SEUIL
 -- (les noms des traits, dans la langue du joueur — lus à l'affichage : la langue se pose après le chargement du module)
 local NOM_TRAIT = setmetatable({}, { __index = function(_, k: string): string?
-	local n = ({ n = { "NARCISSE", "NARCISSIST" }, m = { "MACHIAVEL", "MACHIAVELLI" }, p = { "PSYCHO", "PSYCHO" } })[k]
+	-- (5/10, Sacha : les trois noms d'origine sont retirés du jeu — les traits s'appellent par ce qu'ils récompensent)
+	local n = ({ n = { "STYLE", "STYLE" }, m = { "RUSE", "CUNNING" }, p = { "VITESSE", "SPEED" } })[k]
 	return n and T(n[1], n[2]) or nil
 end })
 Score.NOM_TRAIT = NOM_TRAIT
@@ -261,7 +262,7 @@ end
 function Score.flowAdd(q: number, fam: string?, trait: string?)
 	if q <= 0 or not ETAT.enCours then return end
 	local f = fam or "style"
-	local t9 = trait or ((f ~= "route") and "n" or nil) -- tout geste de style / risque est NARCISSE, sauf trait donné ; la route n'a pas d'auteur
+	local t9 = trait or ((f ~= "route") and "n" or nil) -- tout geste de style / risque est STYLE, sauf trait donné ; la route n'a pas d'auteur
 	if FLOW.lv == 4 and t9 then
 		frenTrait(t9, (f == "risque") and 1 or ((F2.part :: any)[f] or 0) * math.min(1, q / 6))
 		flowTag(t9, 1)
@@ -352,7 +353,7 @@ function Score.flowTick(dt: number, mode: string, vitN: number, nitroOn: boolean
 	FLOW.nit = nit
 	if not air and not nit then FLOW.idle += dt end -- le répit ne court ni en vol ni sous nitro
 	if FLOW.lv < 4 and dt > 0 then
-		-- PSYCHO hors frénésie : la vitesse TENUE paie
+		-- VITESSE hors frénésie : la vitesse TENUE paie
 		local P = F2.psy
 		FLOW.psyT = (mode ~= "boom" and FLOW.vit >= (air and P.air or P.sol)) and FLOW.psyT + dt or 0
 		if FLOW.psyT >= P.t then
@@ -373,7 +374,7 @@ function Score.flowTick(dt: number, mode: string, vitN: number, nitroOn: boolean
 	local fr9 = FLOW.lv == 4
 	if fr9 then
 		-- LA TRIADE : avant la brûlure
-		if nit or FLOW.vit >= F2.triade.vit then FREN.tr.p = F2.triade.p end -- PSYCHO : nitro tenue OU vitesse ≥ 1,3 × la croisière
+		if nit or FLOW.vit >= F2.triade.vit then FREN.tr.p = F2.triade.p end -- VITESSE : nitro tenue OU vitesse ≥ 1,3 × la croisière
 		local k = 0
 		FREN.ditT = math.max(0, FREN.ditT - dt)
 		for _, t in { "n", "m", "p" } do
