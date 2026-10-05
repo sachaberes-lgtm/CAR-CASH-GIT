@@ -39900,10 +39900,7 @@ renderLeaders(-1);
     T9(function(){beat(1.8);},2150);
     T9(fission,2650);
     T9(hide,(SAVE&&SAVE.d&&SAVE.d.tuto)?4600:6400); // (2026-09-26) 6,4 s à CHAQUE lancement : complète la 1re fois, écourtée ensuite
-    /* (2026-10-06, Léo : « il y a encore des versions où l'intro CASH CAR qui explose : la musique commence même avant ça — il faut enlever
-       COMPLÈTEMENT toute musique qui arrive avant le ciel ») : la composition de l'intro (accords « nombre d'or », compteuse qui monte,
-       battements de cœur, sub) ne joue plus — l'intro est muette, la musique du lobby part avec le ciel (hide, 420 ms). */
-    if(INTRO_SON)try{introSound();}catch(e){} // le son ne doit JAMAIS bloquer les visuels
+    try{introSound();}catch(e){} // le son ne doit JAMAIS bloquer les visuels
   }
   // PAS de lancement auto : on attend le geste (seul moyen d'avoir le son — règle navigateur).
   // ⚠ LA PLAQUE ARRIVE EN 900 ms, PAS EN 4 s. L'ancien « CLIQUE » se faisait attendre quatre secondes
@@ -39916,7 +39913,6 @@ renderLeaders(-1);
   // ---- SOUND DESIGN « 1.61 » : tout est accordé sur le NOMBRE D'OR φ=1,618 ----
   // Échelle inouïe (intervalles de φ : ni octaves ni quintes — le son littéral de 1.61),
   // compteuse à billets en guise de riser, sub qui bat à 0,618 Hz, jackpot de pièces à la fission.
-  const INTRO_SON=false; // true = l'ancienne composition de l'intro
   function introSound(){
     if(!SND.sfx||!(VOL.sfx>0))return; // mute SON : l'intro reste muette aussi — (2026-09-28) et le curseur EFFETS à zéro aussi
     try{iAC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){return;}
