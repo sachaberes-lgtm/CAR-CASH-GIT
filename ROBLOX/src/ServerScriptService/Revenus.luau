@@ -10,6 +10,12 @@
 --     à la mort quand on n'en a plus : acheté, il est dépensé aussitôt et la caisse repart là où elle a explosé) ;
 --   · LA ROUE : un tour gratuit toutes les 4 h, un tour offert toutes les 3 parties, des tours à vendre — le tirage se fait ICI
 --     (jamais chez le joueur) : de l'argent, une caisse EXCLUSIVE (à garder ou à revendre, au choix), un habillage, le jackpot.
+--   · (5/10, lot 2 de l'usine à fric) les PACKS DE CŒURS (5, 15), les PACKS D'ARGENT (5 paliers), le KIT DU PILOTE (l'offre de
+--     bienvenue, une fois par compte) et les 13 CAISSES LÉGENDAIRES (achat unique, purement cosmétique) — tous des PRODUITS, tous
+--     accordés par la même porte (`recevoir`) : ProcessReceipt, et le banc DbgAchat ;
+--   · (5/10) UN ACHAT N'EST ACCORDÉ QU'UNE FOIS ÉCRIT : le profil est sauvé AVANT de répondre « accordé » à Roblox ; s'il ne l'est pas,
+--     Roblox représentera le reçu — et un reçu déjà servi ne crédite jamais deux fois (`prof.achats`).
+--   · (5/10) le passe NITRO INFINIE s'éteint et se rallume (réglage « nitroInf ») : `NitroPasse` = on l'a, `NitroInfini` = il agit.
 -- ⚠ Les numéros (passes, produits, badges, groupe) se posent dans Config.REVENUS une fois créés sur create.roblox.com par Sacha : à 0,
 -- l'objet n'existe pas encore et tout ce qui en dépend se tait (rien ne se vend sans lui). Le cadeau du jour, le temps de jeu, le
 -- classement et les invitations marchent sans rien créer.
@@ -44,6 +50,17 @@ local function passeSimule(nom: string): boolean
 	local q = workspace:GetAttribute("DbgPasse")
 	return type(q) == "string" and string.find("," .. q .. ",", "," .. nom .. ",", 1, true) ~= nil
 end
+-- LA NITRO INFINIE (5/10) : `NitroPasse` = le passe est à lui (la boutique dit ACTIF, les réglages montrent l'interrupteur) ;
+-- `NitroInfini` = elle AGIT (le pilote le lit : la réserve ne se vide plus) — le passe ET son interrupteur allumé (par défaut)
+local function etatNitro(p: Player, d: any)
+	local on = true
+	if ctx and ctx.Profils.pret(p) then
+		local rg = ctx.Profils.de(p).reglages
+		on = not (type(rg) == "table" and rg.nitroInf == false)
+	end
+	p:SetAttribute("NitroPasse", d.nitroInfini == true)
+	p:SetAttribute("NitroInfini", d.nitroInfini == true and on)
+end
 local function lireDroits(p: Player)
 	local d = droits[p.UserId] or { argent2 = false, nitroInfini = false, vip = false, premium = false, payes = {} }
 	for nom, id in R.passes do
@@ -57,9 +74,9 @@ local function lireDroits(p: Player)
 	d.premium = p.MembershipType == Enum.MembershipType.Premium
 	droits[p.UserId] = d
 	p:SetAttribute("Argent2", d.argent2)
-	p:SetAttribute("NitroInfini", d.nitroInfini) -- (le pilote le lit : la réserve ne se vide plus)
 	p:SetAttribute("VIP", d.vip)
 	p:SetAttribute("Premium", d.premium)
+	etatNitro(p, d)
 	return d
 end
 function Revenus.droits(p: Player): any return droits[p.UserId] or lireDroits(p) end
@@ -85,6 +102,7 @@ Revenus.badge = badge
 
 -- un message pour le joueur (un bandeau, un montant qui tombe) — voir Client/Revenus
 local evRevenu: RemoteEvent? = nil
+local evRevivre: RemoteEvent? = nil -- (la carte de la mort attend son cœur acheté : voir Client/Revenus, offrirSeconde)
 local function dire(p: Player, quoi: string, montant: number?, txt: string?)
 	if evRevenu then evRevenu:FireClient(p, quoi, montant, txt) end
 end
@@ -97,6 +115,10 @@ end
 -- ── LES CŒURS : le stock vit dans le profil, le joueur le lit sur son attribut « Coeurs » (pilote, boutique) ──
 local function etatCoeurs(p: Player, prof: any)
 	p:SetAttribute("Coeurs", math.max(0, math.floor(prof.coeurs or 0)))
+end
+-- ── LE KIT DU PILOTE : acheté une fois, il quitte la boutique (attribut « KitPris ») ──
+local function etatKit(p: Player, prof: any)
+	p:SetAttribute("KitPris", prof.kit == true)
 end
 
 -- ── le CADEAU DU JOUR : 7 jours qui montent, la série repart à 1 si l'on saute un jour ; VIP = doublé ──
@@ -197,6 +219,101 @@ local function tourner(p: Player, prof: any): (boolean, any)
 	return true, res
 end
 
+-- ════════ LES PRODUITS (achats en Robux) ════════
+-- Chaque produit a un NOM — « coeur », « coeur5 », « coeur15 », « tours3 », « kit », « argent1 »…« argent5 », « caisse9 »… — et
+-- tout passe par UNE porte, `recevoir` : ProcessReceipt (le vrai achat) et le banc DbgAchat (Studio) — le même chemin, la même
+-- sauvegarde, le même garde-fou contre le double crédit.
+local function nomProduit(id: number): string?
+	if type(id) ~= "number" or id <= 0 then return nil end
+	for nom, pid in R.produits do
+		if pid == id then return nom end
+	end
+	for k, a in R.argent do
+		if a.id == id then return "argent" .. k end
+	end
+	for i, pid in R.caisses do
+		if pid == id then return "caisse" .. i end
+	end
+	return nil
+end
+-- accorde le produit `nom` (dans le profil EN MÉMOIRE — `recevoir` l'écrit ensuite) et le dit au joueur ; faux = nom inconnu
+local function octroyer(p: Player, prof: any, nom: string): boolean
+	local nC = R.coeursPar[nom]
+	if nC then
+		-- des CŒURS au stock ; la carte de la MORT attend peut-être celui-là (Revivre) : elle le dépense aussitôt, la caisse repart
+		prof.coeurs += nC
+		etatCoeurs(p, prof)
+		dire(p, "coeur", nC, tostring(prof.coeurs))
+		if evRevivre then evRevivre:FireClient(p) end
+	elseif nom == "tours3" then
+		prof.roue.n += 3
+		etatRoue(p, prof)
+		dire(p, "tours", nil, "3")
+	elseif nom == "kit" then
+		-- LE KIT DU PILOTE : l'argent, les cœurs, l'habillage offert (rangé au garage, pas porté d'office : la caisse du joueur se
+		-- rebâtit quand IL choisit de la porter). Racheté malgré tout (deux fenêtres ouvertes) : il est payé, il est donné.
+		local kt = R.kit
+		prof.compte += kt.argent
+		prof.coeurs += kt.coeurs
+		if not table.find(prof.habits, kt.habit) then table.insert(prof.habits, kt.habit) end
+		prof.kit = true
+		etatCoeurs(p, prof)
+		etatKit(p, prof)
+		ctx.compte(p, prof)
+		ctx.Profils.pousser(p)
+		dire(p, "kit", kt.argent, tostring(kt.coeurs))
+	elseif string.sub(nom, 1, 6) == "argent" then
+		local a = R.argent[tonumber(string.sub(nom, 7)) or 0]
+		if not a then return false end
+		prof.compte += a.v
+		ctx.compte(p, prof)
+		ctx.Profils.pousser(p)
+		dire(p, "argent", a.v)
+	elseif string.sub(nom, 1, 6) == "caisse" then
+		local i = tonumber(string.sub(nom, 7))
+		local f = i and Catalogue[i]
+		if not i or not f or f.cond.k ~= "premium" or f.retire then return false end
+		if table.find(prof.caisses, i) then
+			-- (déjà à lui : la boutique cache ACHETER d'une caisse qu'on possède — deux fenêtres ouvertes en même temps, au pire)
+			warn(string.format("[CashCar] %s a racheté la caisse %d qu'il possédait déjà", p.Name, i))
+		else
+			table.insert(prof.caisses, i)
+		end
+		ctx.Profils.pousser(p) -- (le garage la montre aussitôt comme à lui)
+		dire(p, "caisse", nil, tostring(i))
+	else
+		return false
+	end
+	return true
+end
+-- LA PORTE DES ACHATS : `achat` = le numéro du reçu (PurchaseId). Rend la décision pour Roblox.
+local dernierBanc: { [number]: { string } } = {} -- (banc) le dernier achat simulé, pour le « rejouer » (même reçu deux fois)
+local function recevoir(p: Player, nom: string, achat: string): Enum.ProductPurchaseDecision
+	local P = ctx.Profils
+	-- le profil d'abord : un reçu resté en attente arrive AVEC le joueur, avant que sa sauvegarde soit lue — il attend (30 s au plus)
+	local t0 = os.clock()
+	while not P.pret(p) and p.Parent and os.clock() - t0 < 30 do task.wait(0.2) end
+	if not P.pret(p) or not p.Parent then return Enum.ProductPurchaseDecision.NotProcessedYet end
+	local prof = P.de(p)
+	-- (une session dont la sauvegarde est illisible n'écrit jamais : ce qu'on y accorderait serait perdu en partant — Roblox
+	-- représentera le reçu plus tard, quand la sauvegarde répondra)
+	if (prof :: any).horsLigne and not Studio then return Enum.ProductPurchaseDecision.NotProcessedYet end
+	if not table.find(prof.achats, achat) then
+		if not octroyer(p, prof, nom) then return Enum.ProductPurchaseDecision.NotProcessedYet end
+		table.insert(prof.achats, achat)
+		while #prof.achats > 30 do table.remove(prof.achats, 1) end
+	end
+	-- ACCORDÉ QU'UNE FOIS ÉCRIT (5/10) : sinon « pas encore » — Roblox représentera ce reçu ; il est déjà dans `achats` (en mémoire),
+	-- il ne créditera pas une seconde fois, seule l'écriture sera retentée. (Studio n'écrit jamais : accordé — sauf DbgSauveKO.)
+	local ecrit = P.sauverMaintenant(p)
+	if Studio then ecrit = not workspace:GetAttribute("DbgSauveKO") end
+	if not ecrit then
+		warn(string.format("[CashCar] achat %s de %s pas encore écrit : Roblox le représentera", nom, p.Name))
+		return Enum.ProductPurchaseDecision.NotProcessedYet
+	end
+	return Enum.ProductPurchaseDecision.PurchaseGranted
+end
+
 -- ── le CLASSEMENT MONDIAL : le meilleur record de chacun, les dix premiers rafraîchis toutes les 2 min ──
 local classement: any = nil
 do
@@ -235,8 +352,12 @@ end
 function Revenus.init(c: any)
 	ctx = c
 	evRevenu = c.remote("Revenu")
-	local evRevivre = c.remote("Revivre")
+	evRevivre = c.remote("Revivre")
 	local P = ctx.Profils
+	-- l'interrupteur NITRO INFINIE (réglage « nitroInf ») : le pilote suit l'attribut, tout de suite
+	P.surReglage = function(p: Player, _, cle: string)
+		if cle == "nitroInf" then etatNitro(p, Revenus.droits(p)) end
+	end
 
 	-- le CADEAU DU JOUR
 	P.actions.cadeauJour = function(p, prof)
@@ -302,8 +423,9 @@ function Revenus.init(c: any)
 		return true
 	end
 
-	-- UN CŒUR SE DÉPENSE (Sacha, 5/10 : « une vie en plus sous forme de cœur ») : la caisse devait exploser, le pilote l'a déjà
-	-- replacée sur la route (il n'attend pas la réponse) — ici on retire le cœur du stock, et on refuse à zéro
+	-- UN CŒUR SE DÉPENSE (Sacha, 5/10 : « une vie en plus sous forme de cœur ») : la caisse a explosé, le joueur a choisi UTILISER UN
+	-- CŒUR sur la carte de la mort et le pilote l'a déjà replacée sur la route (il n'attend pas la réponse) — ici on retire le cœur
+	-- du stock, et on refuse à zéro
 	P.actions.coeur = function(p, prof)
 		if (prof.coeurs or 0) < 1 then
 			etatCoeurs(p, prof) -- (le joueur se croyait un cœur de trop : il relit la vérité)
@@ -314,33 +436,22 @@ function Revenus.init(c: any)
 		return true
 	end
 
-	-- les PRODUITS (le CŒUR, les 3 TOURS DE ROUE) : accordés par Roblox (ProcessReceipt), une fois par achat — jamais deux fois le
-	-- même reçu
+	-- les PRODUITS (cœurs, packs, kit, argent, caisses légendaires, tours de roue) : accordés par Roblox (ProcessReceipt), une fois par
+	-- achat — jamais deux fois le même reçu, et jamais « accordé » avant d'être écrit (voir `recevoir`)
 	MarketplaceService.ProcessReceipt = function(info)
 		local p = Players:GetPlayerByUserId(info.PlayerId)
 		if not p then return Enum.ProductPurchaseDecision.NotProcessedYet end
-		local prof = P.de(p)
-		if table.find(prof.achats, info.PurchaseId) then return Enum.ProductPurchaseDecision.PurchaseGranted end
-		-- (une session dont la sauvegarde est illisible n'écrit jamais : ce qu'on y accorderait serait perdu en partant — Roblox
-		-- représentera le reçu plus tard, quand la sauvegarde répondra)
-		if (prof :: any).horsLigne and not Studio then return Enum.ProductPurchaseDecision.NotProcessedYet end
-		if info.ProductId == R.produits.coeur then
-			-- +1 cœur au stock ; la carte de la MORT l'attend peut-être (Revivre) : elle le dépense aussitôt et la caisse repart
-			prof.coeurs += 1
-			etatCoeurs(p, prof)
-			dire(p, "coeur", nil, tostring(prof.coeurs))
-			evRevivre:FireClient(p)
-		elseif info.ProductId == R.produits.tours3 then
-			prof.roue.n += 3
-			etatRoue(p, prof)
-			dire(p, "tours", nil, "3")
-		else
+		local nom = nomProduit(info.ProductId)
+		if not nom then
+			warn("[CashCar] reçu d'un produit inconnu : " .. tostring(info.ProductId) .. " (son numéro est-il dans Config.REVENUS ?)")
 			return Enum.ProductPurchaseDecision.NotProcessedYet
 		end
-		table.insert(prof.achats, info.PurchaseId)
-		while #prof.achats > 30 do table.remove(prof.achats, 1) end
-		P.sauverBientot(p)
-		return Enum.ProductPurchaseDecision.PurchaseGranted
+		local ok, d = pcall(recevoir, p, nom, tostring(info.PurchaseId))
+		if not ok then
+			warn("[CashCar] achat " .. nom .. " : " .. tostring(d))
+			return Enum.ProductPurchaseDecision.NotProcessedYet
+		end
+		return d
 	end
 	-- un passe acheté EN JEU : ses droits tout de suite (noté « payé » : la réponse de Roblox, en cache, peut encore dire non)
 	MarketplaceService.PromptGamePassPurchaseFinished:Connect(function(p, id, achete)
@@ -370,6 +481,34 @@ function Revenus.init(c: any)
 				etatCoeurs(p, prof)
 			end
 		end)
+		-- DbgAchat = "coeur5" | "coeur15" | "coeur" | "kit" | "argent1"…"argent5" | "caisse9"… | "tours3" : un REÇU simulé, accordé
+		-- par la même porte que les vrais (`recevoir`) — un mot de plus après le nom pour rejouer le même (« coeur5 2 ») ; « rejouer »
+		-- représente le DERNIER reçu simulé (il ne doit rien créditer une seconde fois) ; DbgSauveKO = true : l'écriture « rate »
+		-- (le reçu répond « pas encore »)
+		workspace:GetAttributeChangedSignal("DbgAchat"):Connect(function()
+			local q = workspace:GetAttribute("DbgAchat")
+			local nom = type(q) == "string" and string.match(q, "^%w+")
+			if not nom then return end
+			for _, p in Players:GetPlayers() do
+				task.spawn(function()
+					local recu = { nom, "BANC-" .. nom .. "-" .. HttpService:GenerateGUID(false) }
+					if nom == "rejouer" then
+						recu = dernierBanc[p.UserId]
+						if not recu then
+						print("[revenus] DbgAchat rejouer : aucun achat simulé avant")
+						return
+					end
+					end
+					dernierBanc[p.UserId] = recu
+					local avant = P.de(p)
+					local c0, n0 = avant.compte, avant.coeurs
+					local d = recevoir(p, recu[1], recu[2])
+					local prof = P.de(p)
+					print(string.format("[revenus] DbgAchat %s (%s) pour %s : %s — compte %.0f → %.0f, cœurs %.0f → %.0f, kit %s, caisses %s",
+						recu[1], recu[2], p.Name, tostring(d), c0, prof.compte, n0, prof.coeurs, tostring(prof.kit), table.concat(prof.caisses, ",")))
+				end)
+			end
+		end)
 	end
 
 	task.spawn(function()
@@ -389,6 +528,7 @@ function Revenus.arrivee(p: Player, prof: any)
 	lireDroits(p)
 	etatJour(p, prof)
 	etatRoue(p, prof)
+	etatKit(p, prof)
 	-- (banc) DbgCoeurs posé AVANT l'arrivée du joueur : il s'applique aussi
 	local dbgC = Studio and tonumber(workspace:GetAttribute("DbgCoeurs"))
 	if dbgC then prof.coeurs = math.max(0, math.floor(dbgC)) end

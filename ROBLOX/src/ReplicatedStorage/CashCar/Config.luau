@@ -279,11 +279,45 @@ Config.REVENUS = {
 	-- les PASSES (achat unique, vendus aussi sur la page du jeu et dans la BOUTIQUE) : « ×2 ARGENT » (tout l'argent d'une partie
 	-- compte double — 500 R$), « NITRO INFINIE » (la réserve de nitro ne se vide jamais, pour toujours — 700 R$ ; Sacha, 5/10),
 	-- « VIP » (cadeaux du jour et de temps de jeu doublés, nom doré au-dessus de la caisse)
+	-- (NITRO INFINIE se coupe et se rallume dans les RÉGLAGES — colonne JEU — pour qui possède le passe : réglage « nitroInf »)
 	passes = { argent2 = 0, nitroInfini = 0, vip = 0 },
-	-- les PRODUITS (achat répété) : le CŒUR (50 R$ ; Sacha, 5/10 : « une vie en plus sous forme de cœur ») — un cœur = une vie : la
-	-- caisse qui devait exploser repart sur la route ; les cœurs se GARDENT dans le profil d'une partie à l'autre ; proposé aussi à la
-	-- mort quand on n'en a plus (acheté, il est consommé aussitôt : on repart là où l'on a explosé)
-	produits = { coeur = 0, tours3 = 0 }, -- (tours3 : TROIS TOURS DE ROUE d'un coup — voir Config.ROUE)
+	-- les PRODUITS (achat répété) : le CŒUR (50 R$ ; Sacha, 5/10 : « une vie en plus sous forme de cœur ») — un cœur = une vie : à
+	-- l'explosion, la carte de la mort propose d'en UTILISER un (on repart sur la route) ou de terminer ; les cœurs se GARDENT dans le
+	-- profil d'une partie à l'autre ; sans cœur, la même carte propose d'en acheter un (acheté, il sert aussitôt).
+	-- (5/10, lot 2) les PACKS de cœurs : coeur5 (5 cœurs, ~199 R$), coeur15 (15 cœurs, ~499 R$) ; le KIT DU PILOTE (99 R$, une fois
+	-- par compte : voir `kit` plus bas)
+	produits = { coeur = 0, coeur5 = 0, coeur15 = 0, tours3 = 0, kit = 0 }, -- (tours3 : TROIS TOURS DE ROUE d'un coup — voir Config.ROUE)
+	coeursPar = { coeur = 1, coeur5 = 5, coeur15 = 15 }, -- combien de cœurs donne chaque produit « cœur »
+	-- LE KIT DU PILOTE (l'offre de bienvenue, en tête de la boutique tant qu'il n'est pas acheté) : de l'argent, des cœurs, et un
+	-- habillage OFFERT (« catégorie:id » de Config.HABITS — ici la traînée POUDRE D'OR, rangée au garage)
+	kit = { argent = 50000, coeurs = 3, habit = "trainee:or" },
+	-- LES PACKS D'ARGENT (produits, achat répété ; section ARGENT de la boutique) : `id` = le numéro du produit, `v` = les $ versés au
+	-- compte. Prix conseillés : 99 · 249 · 499 · 999 · 2 499 R$ (le bonus grandit avec la taille). Les montants se règlent ICI.
+	argent = {
+		{ id = 0, v = 25000 },  -- 99 R$
+		{ id = 0, v = 70000 },  -- 249 R$
+		{ id = 0, v = 150000 }, -- 499 R$
+		{ id = 0, v = 325000 }, -- 999 R$
+		{ id = 0, v = 900000 }, -- 2 499 R$
+	},
+	-- LES CAISSES LÉGENDAIRES en Robux (les 13 « premium » du catalogue, cond.k = "premium") : [indice de la caisse] = numéro du
+	-- PRODUIT. Achat UNIQUE gardé dans le profil (une caisse à soi ne se rachète pas) ; purement cosmétique — la vitesse vient du
+	-- moteur, jamais de la caisse. Prix conseillés (le prix web en euros × ~80) en commentaire.
+	caisses = {
+		[9] = 0,  -- CHAT ARC-EN-CIEL (4,99 €) — 399 R$
+		[10] = 0, -- REQUIN (9,99 €) — 799 R$
+		[11] = 0, -- COMÈTE (4,99 €) — 399 R$
+		[12] = 0, -- FORMULE OR (4,99 €) — 399 R$
+		[13] = 0, -- ENDURANCE 24 (2,99 €) — 249 R$
+		[14] = 0, -- EL PATRON (2,99 €) — 249 R$
+		[15] = 0, -- ACIDE (1,99 €) — 149 R$
+		[56] = 0, -- L'ÉTERNELLE (9,99 €) — 799 R$
+		[57] = 0, -- LE TRÔNE CENTRAL (7,99 €) — 599 R$
+		[58] = 0, -- LE SPECTRE (7,99 €) — 599 R$
+		[59] = 0, -- LE CHEVALIER NOIR (9,99 €) — 799 R$
+		[60] = 0, -- LE MUR DU SON (6,99 €) — 549 R$
+		[61] = 0, -- LE DRAGON D'OR (9,99 €) — 799 R$
+	},
 	-- les BADGES : bienvenue, permis de l'auto-école, zone 6 atteinte, moteur palier 10, 1 000 d'aura en une partie, record d'un
 	-- million, sept jours d'affilée
 	badges = { bienvenue = 0, permis = 0, zone6 = 0, moteur10 = 0, aura1000 = 0, millionnaire = 0, serie7 = 0 },

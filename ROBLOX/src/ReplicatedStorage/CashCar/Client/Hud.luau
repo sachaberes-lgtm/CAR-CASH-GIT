@@ -743,6 +743,18 @@ function Hud.creer()
 	-- LES PLAQUES DE POUVOIR (#pwrChip) : une par pouvoir actif, sous l'argent (sous le chrono quand on vole)
 	E.pouvoirs = inst("CanvasGroup", { BackgroundTransparency = 1, Size = UDim2.fromOffset(270, 340), Position = UDim2.new(1, -22, 0, 208), AnchorPoint = Vector2.new(1, 0) }, hud) -- (sous le « +$ » du compteur)
 	-- le centre : la bannière du niveau, les figures, la chaîne
+	-- (5/10) la BANNIÈRE du niveau sur un BANDEAU : un texte blanc posé sur la ville ou le ciel se lisait mal — une bande d'encre qui
+	-- s'efface aux deux bouts, un filet de néon dessus et dessous, le nom en grand
+	E.grandBande = inst("Frame", { BackgroundColor3 = C.encre, BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 78),
+		Position = UDim2.fromScale(0, 0.33), AnchorPoint = Vector2.new(0, 0.15) }, hud)
+	inst("UIGradient", { Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.25, 0.25),
+		NumberSequenceKeypoint.new(0.75, 0.25), NumberSequenceKeypoint.new(1, 1) }) }, E.grandBande)
+	for _, y9 in { 0, 1 } do
+		local f9 = inst("Frame", { Name = "Filet", BackgroundColor3 = C.cyan, BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 3),
+			Position = UDim2.new(0, 0, y9, -y9 * 3) }, E.grandBande)
+		inst("UIGradient", { Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.3, 0),
+			NumberSequenceKeypoint.new(0.7, 0), NumberSequenceKeypoint.new(1, 1) }) }, f9)
+	end
 	E.grand = texte(hud, { Text = "", TextSize = 38, TextColor3 = C.texte, Size = UDim2.new(1, 0, 0, 60), Position = UDim2.fromScale(0, 0.33), epais = 4 })
 	E.pop = texte(hud, { Text = "", TextSize = 22, TextColor3 = C.or_, Size = UDim2.new(1, 0, 0, 34), Position = UDim2.fromScale(0, 0.22), epais = 3 })
 	E.chaine = texte(hud, { Text = "", TextSize = 16, TextColor3 = C.cyan, Size = UDim2.new(1, 0, 0, 24), Position = UDim2.new(0, 0, 0.22, 38) })
@@ -1003,6 +1015,7 @@ function Hud.creer()
 	if Config.FACILE_ACTIF then ligne(cj, "facile", "coeur", T.facile) end -- (Sacha : « mets que le mode normal » — la ligne n'existe que si le mode est ouvert)
 	ligne(cj, "volH", "aile", T.pouce, "valeur")
 	ligne(cj, "vib", "vibre", T.vibrations)
+	ligne(cj, "nitroInf", "flamme", FR and "NITRO INFINIE" or "INFINITE NITRO") -- (5/10) le passe NITRO INFINIE, coupé ou rallumé : branché et montré (à qui le possède) par Client/Revenus
 	ligne(cj, "tuto", "volant", T.revoir, "action")
 	-- (L5718) EFFACER MA PROGRESSION — en rouge, tout en bas, et il faut toucher DEUX fois
 	ligne(cj, "effacer", "croix", FR and "EFFACER MA PROGRESSION" or "ERASE MY PROGRESS", "action")
@@ -1440,10 +1453,22 @@ function Hud.grand(txt: string, couleur: Color3?, duree: number?, taille: number
 	E.grand.Text = txt
 	E.grand.TextColor3 = couleur or C.texte
 	E.grand.TextTransparency = 0
-	E.grand.TextSize = taille or 38
+	E.grand.TextSize = taille or 50
 	E.grand.Size = UDim2.new(1, 0, 0, 80)
 	TweenService:Create(E.grand, LENTE, { Size = UDim2.new(1, 0, 0, 60) }):Play()
 	grandFin = os.clock() + (duree or 0.8)
+	-- le bandeau : seulement pour un NOM (le compte à rebours, lui, passe une taille et reste nu)
+	local bande = taille == nil
+	E.grandBande.BackgroundTransparency = bande and 0 or 1
+	for _, f9 in E.grandBande:GetChildren() do
+		if f9:IsA("Frame") then f9.BackgroundTransparency = bande and 0 or 1 end
+	end
+	if bande then
+		E.grandBande.Size = UDim2.new(0.4, 0, 0, 78)
+		E.grandBande.Position = UDim2.new(0.3, 0, 0.33, 0)
+		TweenService:Create(E.grandBande, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+			{ Size = UDim2.new(1, 0, 0, 78), Position = UDim2.fromScale(0, 0.33) }):Play()
+	end
 end
 -- LE LOGO DU DÉPART : il claque (0,7 s, à rebond), tient, puis s'efface — 1,9 s en tout, comme sur le web
 local logoN = 0
@@ -1667,6 +1692,13 @@ function Hud.tick()
 	end
 	if E.grand.Text ~= "" and t > grandFin then
 		E.grand.TextTransparency = math.min(1, (t - grandFin) / 0.3)
+		if E.grandBande.BackgroundTransparency < 1 then
+			local a9 = math.min(1, (t - grandFin) / 0.3)
+			E.grandBande.BackgroundTransparency = a9
+			for _, f9 in E.grandBande:GetChildren() do
+				if f9:IsA("Frame") then f9.BackgroundTransparency = a9 end
+			end
+		end
 		if t > grandFin + 0.3 then E.grand.Text = "" end
 	end
 	if E.astuce.Visible and t > astuceFin then E.astuce.Visible = false end

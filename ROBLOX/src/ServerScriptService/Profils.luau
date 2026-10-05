@@ -37,7 +37,8 @@ function Profils.neuf(): Profil
 		carriere = {},
 		reglages = { son = true, musique = true, facile = false, facileChoisi = false, tuto = false,
 			volSon = 100, volMus = 62, volH = "plonge", vib = true, -- (les curseurs de volume du web : 100 % et 62 % ; POUCE HAUT EN VOL ; VIBRATIONS)
-			ast1 = false, ast2 = false, ast3 = false, ast4 = false, shopVu = false }, -- (shopVu : la BOUTIQUE a été visitée — sa pastille NEW s'éteint) -- les ASTUCES déjà lues (une fois à vie) : le bord, le vol, les pièces, le drift
+			ast1 = false, ast2 = false, ast3 = false, ast4 = false, shopVu = false, -- (shopVu : la BOUTIQUE a été visitée — sa pastille NEW s'éteint) -- les ASTUCES déjà lues (une fois à vie) : le bord, le vol, les pièces, le drift
+			nitroInf = true }, -- (5/10) le passe NITRO INFINIE allumé (son interrupteur, colonne JEU des réglages : rejouer avec la jauge quand on veut)
 		permis = false, -- le PERMIS de l'auto-école : +500 $, une seule fois dans la vie du compte
 		stats = { parties = 0, distance = 0, pieces = 0, figures = 0 },
 		-- les REVENUS (voir Revenus) : le cadeau du jour (son jour UTC, la série), le bonus de groupe pris, qui m'a invité, les reçus
@@ -46,6 +47,8 @@ function Profils.neuf(): Profil
 		-- LES CŒURS (le produit à 50 R$, Sacha 5/10) : le stock de vies en plus — un cœur se dépense quand la caisse devait exploser
 		-- (action « coeur »), un achat en ajoute un (ProcessReceipt, voir Revenus)
 		coeurs = 0,
+		-- LE KIT DU PILOTE (5/10, l'offre de bienvenue en Robux) : déjà acheté — une fois par compte, il quitte la boutique
+		kit = false,
 		-- LA ROUE : les tours en réserve, l'heure (os.time) du dernier tour gratuit, les parties vers le prochain tour offert, la caisse
 		-- qui vient d'être gagnée et qu'on peut encore préférer en argent (-1 : aucune)
 		roue = { n = 0, libre = 0, parties = 0, attente = -1 },
@@ -117,7 +120,25 @@ local actifs: { [number]: Profil } = {}
 -- ⚠ UNE LECTURE RATÉE N'EST PAS UN JOUEUR NEUF. Avant le 3/10, une panne de la sauvegarde à l'arrivée donnait un profil VIDE — et la
 -- première écriture effaçait pour de bon les caisses, l'argent et les réglages du joueur. On essaie trois fois (1 s, 2 s, 4 s) ; si
 -- la sauvegarde ne répond toujours pas, la session joue sur un profil neuf SANS JAMAIS l'écrire (`horsLigne`), et le joueur le sait.
+-- (5/10) UNE SEULE LECTURE À LA FOIS par joueur : le profil était parfois lu DEUX fois à l'arrivée (l'arrivée + une demande du
+-- client, ou un reçu d'achat en attente), et la seconde lecture, plus lente, remplaçait la première — avec ce qu'on y avait déjà
+-- crédité. La seconde demande attend la première et rend le MÊME profil.
+local enLecture: { [number]: boolean } = {}
+function Profils.pret(p: Player): boolean
+	return actifs[p.UserId] ~= nil and not enLecture[p.UserId]
+end
 function Profils.charger(p: Player): Profil
+	local id = p.UserId
+	if enLecture[id] then
+		while enLecture[id] and p.Parent do task.wait(0.1) end
+		local deja = actifs[id]
+		if deja then return deja end
+		local hors = Profils.neuf() -- (parti pendant la lecture : un profil jetable, jamais écrit)
+		;(hors :: any).horsLigne = true
+		return hors
+	end
+	if actifs[id] then return actifs[id] end
+	enLecture[id] = true
 	local prof = Profils.neuf()
 	if store then
 		local lu, v = false, nil
@@ -134,13 +155,21 @@ function Profils.charger(p: Player): Profil
 			if essai < 4 then task.wait(2 ^ (essai - 1)) end
 		end
 		if lu and v ~= nil then
-			prof = sain(v)
-		elseif not lu then
+			local okS, r = pcall(sain, v)
+			if okS then
+				prof = r
+			else
+				lu = false -- (une sauvegarde qu'on ne sait pas relire : on ne l'écrasera pas non plus)
+			end
+		end
+		if not lu then
 			(prof :: any).horsLigne = true
 			if not game:GetService("RunService"):IsStudio() then p:SetAttribute("SauvegardeKO", true) end
 		end
 	end
-	actifs[p.UserId] = prof
+	-- (parti pendant la lecture : on ne garde rien — sinon ce profil-là resservirait, périmé, à son retour sur ce serveur)
+	if p.Parent then actifs[id] = prof end
+	enLecture[id] = nil
 	return prof
 end
 
@@ -148,12 +177,13 @@ function Profils.de(p: Player): Profil
 	return actifs[p.UserId] or Profils.charger(p)
 end
 
-function Profils.sauver(p: Player)
+-- rend VRAI si le profil est écrit (5/10 : un achat en Robux n'est accordé qu'à cette condition — voir Revenus)
+function Profils.sauver(p: Player): boolean
 	local prof = actifs[p.UserId]
-	if not prof or not store or (prof :: any).horsLigne then return end -- (lecture ratée : on n'écrase rien)
+	if not prof or not store or (prof :: any).horsLigne then return false end -- (lecture ratée : on n'écrase rien)
 	local efface = prof.efface
 	prof.efface = nil
-	pcall(function()
+	local ok = pcall(function()
 		store:UpdateAsync("p_" .. p.UserId, function(ancien)
 			if efface then return prof end -- (une progression EFFACÉE ne reprend rien de l'ancienne)
 			-- jamais en arrière : l'argent et le record ne redescendent pas si deux serveurs se croisent
@@ -165,6 +195,8 @@ function Profils.sauver(p: Player)
 			return prof
 		end)
 	end)
+	if not ok and efface then prof.efface = true end -- (l'écriture a raté : l'effacement repartira avec la suivante)
+	return ok
 end
 
 -- LES ÉCRITURES SE REGROUPENT : Roblox n'accepte qu'une écriture toutes les 6 s sur une même clé — au-delà il les met en file,
@@ -184,6 +216,13 @@ function Profils.sauverBientot(p: Player)
 		derniere[id] = os.clock()
 		Profils.sauver(p) -- (parti entre-temps : son profil est déjà écrit et oublié, sauver ne fait rien)
 	end)
+end
+-- ÉCRIRE MAINTENANT, et savoir si c'est fait (5/10 : les ACHATS EN ROBUX — ProcessReceipt ne répond « accordé » qu'une fois l'achat
+-- écrit ; s'il ne l'est pas, Roblox représentera le reçu). Hors du regroupement de 7 s : Roblox met en file une écriture trop
+-- rapprochée sur la même clé (l'appel attend son tour), il ne la refuse pas.
+function Profils.sauverMaintenant(p: Player): boolean
+	derniere[p.UserId] = os.clock()
+	return Profils.sauver(p)
 end
 function Profils.oublier(p: Player)
 	actifs[p.UserId] = nil
@@ -261,17 +300,28 @@ end
 -- ne PAS fusionner avec l'ancien (sinon le record, l'aura et le moteur effacés y reviendraient — « jamais en arrière »).
 -- (5/10) ce qui a été PAYÉ EN ROBUX ne s'efface pas : les cœurs en réserve, et les reçus déjà servis (sans eux, un reçu que Roblox
 -- représente serait servi une seconde fois). Les passes, eux, vivent chez Roblox : rien à garder ici.
+-- (5/10, lot 2) ni les CAISSES LÉGENDAIRES achetées, ni le KIT DU PILOTE (et l'habillage qu'il offre) : payés, gardés.
 Profils.actions.effacer = function(_, prof)
 	local n = Profils.neuf()
-	local coeurs, achats = prof.coeurs, prof.achats
+	local coeurs, achats, kit = prof.coeurs, prof.achats, prof.kit == true
+	local payees = {}
+	for _, i in (type(prof.caisses) == "table" and prof.caisses or {}) do
+		local f = type(i) == "number" and Catalogue[i]
+		if f and f.cond.k == "premium" then table.insert(payees, i) end
+	end
 	for k in pairs(prof) do prof[k] = nil end
 	for k, v in n do prof[k] = v end
 	if type(coeurs) == "number" then prof.coeurs = coeurs end
 	if type(achats) == "table" then prof.achats = achats end
+	for _, i in payees do table.insert(prof.caisses, i) end
+	if kit then
+		prof.kit = true
+		table.insert(prof.habits, Config.REVENUS.kit.habit)
+	end
 	prof.efface = true
 	return true
 end
-Profils.actions.reglage = function(_, prof, cle, valeur)
+Profils.actions.reglage = function(p, prof, cle, valeur)
 	if type(cle) ~= "string" or prof.reglages[cle] == nil or type(valeur) ~= type(prof.reglages[cle]) then
 		return false, "reglage inconnu"
 	end
@@ -282,6 +332,7 @@ Profils.actions.reglage = function(_, prof, cle, valeur)
 		return false, "reglage inconnu"
 	end
 	prof.reglages[cle] = valeur
+	if Profils.surReglage then Profils.surReglage(p, prof, cle) end -- (5/10 : NITRO INFINIE coupée ou rallumée — voir Revenus)
 	return true
 end
 

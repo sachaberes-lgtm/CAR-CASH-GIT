@@ -634,8 +634,11 @@ local function majBandeHabits()
 			local cadre = inst("Frame", { Name = "H" .. j, BorderSizePixel = 0, BackgroundColor3 = Color3.fromRGB(26, 22, 50), LayoutOrder = j, ClipsDescendants = true }, U.bande)
 			local trait = inst("UIStroke", { Color = C.magenta, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Enabled = j == choisi[cat] }, cadre)
 			if cat == "aile" then
+				-- (5/10) une aile en pixels à gauche du nom : la case disait un mot, elle montre une aile
+				local ic9 = K.icone(cadre, "aile", 3, { { 0.4, Color3.fromRGB(220, 246, 255) }, { 1, COUL_CAT.aile } }, UDim2.new(0, 8, 0.5, -8), Vector2.new(0, 0.5))
+				ic9.ZIndex = 2
 				inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.PIX, TextSize = 13, TextWrapped = true, Text = FR and d.nom or d.en, TextColor3 = COUL_CAT.aile,
-					Size = UDim2.new(1, -8, 1, -18), Position = UDim2.fromOffset(4, 2) }, cadre)
+					Size = UDim2.new(1, -44, 1, -18), Position = UDim2.fromOffset(40, 2), TextXAlignment = Enum.TextXAlignment.Left }, cadre)
 			else
 				local nu = inst("Frame", { BorderSizePixel = 0, Size = UDim2.new(1, -16, 0, (cat == "trainee") and 12 or 26), Position = UDim2.fromOffset(8, (cat == "trainee") and 14 or 6),
 					BackgroundColor3 = Color3.new(1, 1, 1) }, cadre)
@@ -799,7 +802,7 @@ local function condition(i: number): string
 	local k = Catalogue[i].cond
 	if k.k == "roue" then return L.roue end
 	if k.k == "aura" then return string.format(L.aura, L.rangs[k.v + 1] or "?", L.rangs[rangAura(profil().aura or 0)]) end
-	if k.k == "premium" then return L.boutique .. " — " .. L.bientot end
+	if k.k == "premium" then return FR and "EN VENTE A LA BOUTIQUE" or "FOR SALE IN THE SHOP" end
 	return ""
 end
 
@@ -861,7 +864,8 @@ local function majFiche()
 		elseif decision == "equiper" then
 			habiller(U.btDecision, "or_", nil, nil, L.equiper, 30)
 		elseif decision == "boutique" then
-			habiller(U.btDecision, "or_", nil, L.enBoutique, FR and "BIENTOT" or "SOON", 26)
+			-- (5/10 : les légendaires se vendent en Robux — le bouton mène à la boutique, qui donne le prix)
+			habiller(U.btDecision, "or_", nil, L.enBoutique, FR and "VOIR" or "VIEW", 26)
 		elseif decision == "gagner" then
 			habiller(U.btDecision, "verrou", nil, nil, L.gagner, 17)
 		elseif decision == "roue" then
@@ -1025,7 +1029,7 @@ local function decider()
 		secouer()
 		Hud.toast(condition(montre), nil, "verrou")
 	elseif decision == "boutique" then
-		Hud.toast(L.bientot, nil, "panier")
+		if ctx.surBoutique then ctx.surBoutique() else Hud.toast(L.bientot, nil, "panier") end
 	end
 end
 

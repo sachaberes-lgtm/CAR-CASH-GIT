@@ -739,18 +739,13 @@ function G.coeurUtiliser()
 		G.coeurPris = math.max(0, G.coeurPris - 1)
 	end)
 end
--- UN CŒUR SAUVE LA CAISSE : elle devait exploser, elle repart sur sa ligne sûre — le modèle des vies du mode FACILE (qui passe
--- d'abord). Toutes les morts : le vide, le chrono d'air, la panne, la tour, le satellite ; jamais à l'auto-école ni dans une leçon.
+-- UN CŒUR PEUT SAUVER LA CAISSE — S'IL LE VEUT (5/10, lot 2 : un cœur parti tout seul sur une partie de 25 s faisait regretter
+-- l'achat). La caisse EXPLOSE ; `G.coeurOffre` dit si, avec des cœurs en réserve, la carte de la mort proposera « UTILISER UN
+-- COEUR » (Client/Revenus, offrirSeconde) : choisi, G.revivre la replace là où elle a explosé. Toutes les morts : le vide, le chrono
+-- d'air, la panne, la tour, le satellite ; jamais à l'auto-école ni dans une leçon. Ne sauve plus rien d'office : rend toujours faux.
 function G.coeurSauve(cause: string): boolean
-	if cause == "quitte" or TU.on or G.lecon == true or G.coeursN() < 1 then return false end
-	G.coeurUtiliser()
-	replacer()
-	local n = G.coeursN()
-	HudScore.slam((n > 1) and tr("ENCORE " .. n .. " COEURS", n .. " HEARTS LEFT") or ((n == 1) and tr("ENCORE 1 COEUR", "1 HEART LEFT"))
-		or tr("PLUS DE COEUR !", "NO HEARTS LEFT!"), T.onRepart, "#ff5e7a", "#ffd75e", 40, 3)
-	Sons.jouer("poseLourde")
-	Hud.vibre(30)
-	return true
+	G.coeurOffre = not (cause == "quitte" or TU.on or G.lecon == true) and G.coeursN() > 0
+	return false
 end
 
 -- ════════ L'AUTO-ÉCOLE ════════
@@ -3181,10 +3176,11 @@ KA.Revenus.init({
 		G.boutique.ouvrir("menu")
 	end,
 })
--- LE CŒUR ACHETÉ À LA MORT (5/10, il remplace la seconde chance ; ou simulé au banc) : Roblox l'a mis au stock, on le DÉPENSE
--- aussitôt — la caisse repart là où elle a explosé : sa partie, son argent, son moteur ; la chaîne ouverte, elle, est partie avec
+-- LE CŒUR CHOISI À LA MORT (5/10 : UTILISER UN COEUR de la réserve, ou un cœur ACHETÉ sur la carte — ou simulé au banc) : on le
+-- DÉPENSE — la caisse repart là où elle a explosé : sa partie, son argent, son moteur ; la chaîne ouverte, elle, est partie avec
 -- l'explosion. Refusé : la fin de partie suit son cours. (La carte peut revenir à la mort suivante : un cœur = une vie.)
 function G.revivre(ok: boolean)
+	G.coeurOffre = false
 	if not ok or mode ~= "boom" then
 		G.seconde = false
 		return
@@ -3194,7 +3190,8 @@ function G.revivre(ok: boolean)
 	montrerCaisse(true)
 	replacer()
 	evEtat:FireServer("course", true)
-	HudScore.slam(tr("UN COEUR = UNE VIE", "ONE HEART = ONE LIFE"), tr("LA PARTIE CONTINUE", "THE RUN GOES ON"), "#ff5e7a", "#ffffff", 40, 3)
+	HudScore.slam(tr("UN COEUR = UNE VIE", "ONE HEART = ONE LIFE"), (G.coeursN() > 0) and tr("ENCORE " .. G.coeursN() .. " EN RESERVE", G.coeursN() .. " LEFT IN STOCK")
+		or tr("LA PARTIE CONTINUE", "THE RUN GOES ON"), "#ff5e7a", "#ffffff", 40, 3)
 	Sons.jouer("go")
 	Hud.vibre(30)
 end
@@ -3760,10 +3757,11 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 			boomT += dt
 			secousse = math.max(secousse, boomT < 0.1 and 1.2 or 0)
 			-- LE CŒUR À LA MORT (voir Client/Revenus) : la carte s'ouvre quand la boule de feu retombe ; tant qu'elle est ouverte, la
-			-- fin de partie attend sa réponse (G.seconde : nil = pas proposée, true = ouverte, false = refusée)
-			if boomT > 1.2 and G.seconde == nil and KA.Revenus.secondeDispo(G.secondeUsee == true, stats.duree, TU.on or G.lecon == true) then
+			-- fin de partie attend sa réponse (G.seconde : nil = pas proposée, true = ouverte, false = refusée). Avec des cœurs en
+			-- réserve (G.coeurOffre, posé par G.coeurSauve) elle propose d'en UTILISER un ; sans, d'en acheter un.
+			if boomT > 1.2 and G.seconde == nil and KA.Revenus.secondeDispo(G.secondeUsee == true, stats.duree, TU.on or G.lecon == true, G.coeurOffre and G.coeursN() or 0) then
 				G.seconde = true
-				KA.Revenus.offrirSeconde(G.revivre)
+				KA.Revenus.offrirSeconde(G.revivre, G.coeurOffre and G.coeursN() or 0)
 			end
 			if boomT > 1.8 and not G.seconde then finPartie() end
 		elseif mode == "menu" or mode == "garage" then

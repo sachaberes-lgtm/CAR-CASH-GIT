@@ -4,8 +4,10 @@
 --   · la PILE de l'accueil, en bas à gauche, sous le pouce : le CADEAU de temps de jeu (son compte à rebours, puis « CADEAU ! »),
 --     le TOP 10, INVITER DES AMIS, la BOUTIQUE ROBUX (5/10 : un raccourci vers les offres) et selon le cas REJOINDRE LE GROUPE (une
 --     fois, de l'argent) ou PREMIUM (+10 % sur tout l'argent) ;
---   · LE CŒUR À LA MORT (5/10, il remplace la « seconde chance ») : quand la caisse explose et qu'il ne reste aucun cœur, une carte
---     propose d'en acheter un — acheté, il est dépensé aussitôt : on repart là où l'on a explosé, la partie continue ;
+--   · LE CŒUR À LA MORT (5/10, il remplace la « seconde chance ») : quand la caisse explose, une carte propose — avec des cœurs en
+--     réserve — d'en UTILISER un (gratuit, un appui) ou de terminer ; sans cœur, d'en acheter un — acheté, il sert aussitôt : on
+--     repart là où l'on a explosé, la partie continue (lot 2 : le cœur se CHOISIT, il ne part plus tout seul sur une partie de 25 s) ;
+--   · l'interrupteur NITRO INFINIE des RÉGLAGES (colonne JEU, ligne posée par Hud) : branché ICI, montré à qui possède le passe ;
 --   · l'écran de fin : la mention ×2 ARGENT / PREMIUM quand on y a droit, sinon l'offre « ×2 ARGENT » à la place du badge RECORD ;
 --   · le TOP 10 MONDE (la tuile CLASSEMENT de la pile) : les meilleurs records de tous les serveurs, rafraîchis par le serveur ;
 --   · LES PRIX en Robux, lus sur Roblox une fois par objet (Revenus.prix) — pour la carte du cœur et pour la BOUTIQUE.
@@ -18,6 +20,7 @@ local HttpService = game:GetService("HttpService")
 
 local CC = ReplicatedStorage:WaitForChild("CashCar")
 local Config = require(CC:WaitForChild("Config"))
+local Catalogue = require(CC:WaitForChild("Caisses"):WaitForChild("Catalogue")) -- (le nom d'une caisse légendaire achetée)
 local Hud = require(script.Parent:WaitForChild("Hud"))
 local Sons = require(script.Parent:WaitForChild("Sons"))
 local R = Config.REVENUS
@@ -51,7 +54,9 @@ end
 
 -- ── LES PRIX EN ROBUX (5/10) : c'est Sacha qui les fixe sur create.roblox.com — le jeu les LIT, une fois par objet, en tâche de fond.
 -- Rend le prix s'il est connu, sinon nil (et la question part) : sans réponse de Roblox, on n'écrit pas de prix. Un échec se
--- redemande au bout de 30 s. `passe` : un passe de jeu (sinon un produit de développeur). ──
+-- redemande au bout de 30 s. `passe` : un passe de jeu (sinon un produit de développeur).
+-- (5/10) GetProductInfoAsync (GetProductInfo est dépréciée) : lue ICI, chez le joueur, elle rend SON prix — le prix régional et la
+-- remise des abonnés Roblox Plus (PriceInRobux = ce qu'il paiera vraiment). ──
 local prixLu: { [string]: number } = {}
 local prixDemande: { [string]: number } = {}
 function Revenus.prix(id: number, passe: boolean): number?
@@ -62,7 +67,7 @@ function Revenus.prix(id: number, passe: boolean): number?
 		prixDemande[cle] = os.clock()
 		task.spawn(function()
 			local ok, info = pcall(function()
-				return MarketplaceService:GetProductInfo(id, passe and Enum.InfoType.GamePass or Enum.InfoType.Product)
+				return (MarketplaceService :: any):GetProductInfoAsync(id, passe and Enum.InfoType.GamePass or Enum.InfoType.Product)
 			end)
 			if ok and type(info) == "table" and type(info.PriceInRobux) == "number" then prixLu[cle] = info.PriceInRobux end
 		end)
@@ -100,19 +105,37 @@ local function creerJour()
 		Position = UDim2.fromOffset(0, 30), TextWrapped = false, epais = 4 })
 	U.jSous = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.TXT, TextSize = 24, TextColor3 = C.texte2, Text = "",
 		Size = UDim2.new(1, -40, 0, 28), Position = UDim2.fromOffset(20, 94) }, c)
+	-- LES SEPT CASES v2 (5/10, Sacha : « travaille les graphismes… les cadeaux ») : elles étaient grises et toutes pareilles. Chacune a
+	-- son FOND (nuit : à venir · vert : pris · or : AUJOURD'HUI, qui pulse), un gros cadeau, et le montant en grand ; la 7e, le
+	-- trophée, est plus large — c'est le gros lot de la semaine.
 	U.jCases = {}
-	local W, G9 = 114, 12
-	local x0 = (940 - (7 * W + 6 * G9)) / 2
+	local W, G9 = 112, 10
+	local x0 = (940 - (6 * W + 1.25 * W + 6 * G9)) / 2
+	local xC = x0
 	for i = 1, 7 do
-		local f = inst("Frame", { BackgroundColor3 = C.nuit, BorderSizePixel = 0, Size = UDim2.fromOffset(W, 156), Position = UDim2.fromOffset(x0 + (i - 1) * (W + G9), 138) }, c)
+		local Wi = (i == 7) and math.floor(W * 1.25) or W
+		local f = inst("Frame", { BackgroundColor3 = Color3.new(1, 1, 1), BorderSizePixel = 0, Size = UDim2.fromOffset(Wi, 170), Position = UDim2.fromOffset(xC, 132) }, c)
+		xC += Wi + G9
+		local grad = inst("UIGradient", { Rotation = 90 }, f)
 		local st = inst("UIStroke", { Color = C.trait, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, f)
-		local j = texte(f, { Text = tr("J", "D") .. i, TextSize = 20, TextColor3 = C.terne, Size = UDim2.new(1, 0, 0, 22), Position = UDim2.fromOffset(0, 12), TextWrapped = false })
-		local ico = K.icone(f, (i == 7) and "trophee" or "cadeau", 5, C.terne, UDim2.new(0.5, 0, 0, 42), Vector2.new(0.5, 0))
-		local m = texte(f, { Text = "", TextSize = 18, TextColor3 = C.terne, Size = UDim2.new(1, -8, 0, 20), Position = UDim2.new(0, 4, 1, -34),
-			TextWrapped = false, TextScaled = true })
-		inst("UITextSizeConstraint", { MaxTextSize = 18, MinTextSize = 10 }, m)
-		U.jCases[i] = { st = st, j = j, ico = ico, m = m }
+		local j = texte(f, { Text = tr("J", "D") .. i, TextSize = 20, TextColor3 = C.terne, Size = UDim2.new(1, 0, 0, 22), Position = UDim2.fromOffset(0, 10), TextWrapped = false })
+		local ico = K.icone(f, (i == 7) and "trophee" or "cadeau", (i == 7) and 7 or 6, C.terne, UDim2.new(0.5, 0, 0, 38), Vector2.new(0.5, 0))
+		local m = texte(f, { Text = "", TextSize = 22, TextColor3 = C.terne, Size = UDim2.new(1, -8, 0, 26), Position = UDim2.new(0, 4, 1, -38),
+			TextWrapped = false, TextScaled = true, epais = 3 })
+		inst("UITextSizeConstraint", { MaxTextSize = 22, MinTextSize = 10 }, m)
+		local sc = inst("UIScale", {}, f)
+		U.jCases[i] = { f = f, grad = grad, st = st, j = j, ico = ico, m = m, sc = sc }
 	end
+	-- (la case d'aujourd'hui respire)
+	task.spawn(function()
+		while v.Parent do
+			if v.Visible and U.jIci then
+				local k = U.jCases[U.jIci]
+				if k then k.sc.Scale = 1.06 + 0.04 * math.sin(os.clock() * 5) end
+			end
+			task.wait()
+		end
+	end)
 	U.jVip = texte(c, { Text = "", TextSize = 18, TextColor3 = OR1, Size = UDim2.new(1, 0, 0, 20), Position = UDim2.fromOffset(0, 306), TextWrapped = false })
 	U.jPrendre = K.lingot(c, tr("PRENDRE", "CLAIM"), UDim2.fromOffset(520, 96), UDim2.new(0.5, 0, 1, -34), Vector2.new(0.5, 1), 36)
 	U.jPrendre.Activated:Connect(function()
@@ -133,15 +156,32 @@ local function majJour()
 		"Day " .. serie .. " in a row — come back tomorrow: it keeps growing.")
 		or tr("Reviens chaque jour : le cadeau monte. Rate un jour, et ça repart du début.",
 		"Come back every day: the gift grows. Miss a day and it starts over.")
+	U.jIci = auj
 	for i, k in U.jCases do
 		local fait, ici = i < auj, i == auj
-		local col = ici and OR1 or (fait and C.vert or C.terne)
-		k.st.Color = ici and OR1 or (fait and C.vert or C.trait)
+		local col = ici and Color3.fromRGB(60, 30, 4) or (fait and C.menthe or C.texte2)
+		-- les fonds : or d'aujourd'hui, vert de ce qui est pris, nuit bleutée de ce qui vient (le trophée : violet royal)
+		local haut, bas
+		if ici then
+			haut, bas = Color3.fromRGB(255, 236, 130), Color3.fromRGB(240, 160, 20)
+		elseif fait then
+			haut, bas = Color3.fromRGB(40, 110, 60), Color3.fromRGB(16, 52, 30)
+		elseif i == 7 then
+			haut, bas = Color3.fromRGB(96, 52, 150), Color3.fromRGB(40, 18, 70)
+		else
+			haut, bas = Color3.fromRGB(44, 40, 92), Color3.fromRGB(22, 18, 48)
+		end
+		k.grad.Color = ColorSequence.new(haut, bas)
+		k.st.Color = ici and Color3.fromRGB(255, 250, 200) or (fait and C.vert or C.trait)
 		k.st.Thickness = ici and 4 or 2
+		k.sc.Scale = 1
 		k.j.TextColor3 = col
-		k.m.TextColor3 = ici and C.texte or col
-		k.m.Text = fait and "OK" or Hud.argent(R.jour[i] * vip)
-		K.teinter(k.ico, col)
+		k.m.TextColor3 = ici and Color3.fromRGB(60, 30, 4) or col
+		local trait9 = k.m:FindFirstChildOfClass("UIStroke")
+		if trait9 then trait9.Enabled = not ici end
+		k.m.Text = fait and tr("PRIS", "TAKEN") or Hud.argent(R.jour[i] * vip)
+		K.teinter(k.ico, ici and { { 0.4, Color3.fromRGB(255, 255, 255) }, { 1, Color3.fromRGB(200, 60, 120) } }
+			or (fait and C.menthe or ((i == 7) and OR1 or C.texte2)))
 	end
 	U.jVip.Text = (vip > 1) and tr("VIP : ×2", "VIP: ×2") or ""
 	U.jPrendre.Text = tr("PRENDRE  ", "CLAIM  ") .. Hud.argent(R.jour[auj] * vip)
@@ -291,40 +331,56 @@ function Revenus.classement()
 end
 
 -- ════════ LE CŒUR À LA MORT (Sacha, 5/10 : « un bouton pour avoir une vie en plus sous forme de cœur pour 50 Robux ») ════════
--- Il remplace la « seconde chance » : quand la caisse explose et qu'il ne reste AUCUN cœur (sinon un cœur l'aurait déjà sauvée,
--- voir G.coeurSauve dans le pilote), la carte propose d'en acheter un. Roblox l'accorde (ProcessReceipt : +1 au stock), le serveur
--- répond « Revivre », la carte se ferme sur un oui et le pilote DÉPENSE ce cœur aussitôt : on repart là où l'on a explosé.
--- Un cœur acheté n'est jamais perdu : si la carte s'est refermée entre-temps, il attend dans le stock la prochaine explosion.
+-- Il remplace la « seconde chance ». Quand la caisse explose, la carte propose :
+--   · AVEC des cœurs en réserve (5/10, lot 2 : le cœur se CHOISIT) — UTILISER UN COEUR, gratuit, un appui ; ou TERMINER ;
+--   · SANS cœur — d'en acheter un : Roblox l'accorde (ProcessReceipt : +1 au stock), le serveur répond « Revivre », la carte se ferme
+--     sur un oui.
+-- Dans les deux cas le pilote DÉPENSE alors un cœur (G.revivre) : on repart là où l'on a explosé. Un cœur acheté n'est jamais
+-- perdu : si la carte s'est refermée entre-temps, il attend dans le stock la prochaine explosion.
 local function creerSeconde()
 	local v, c = fenetre("CoeurMort", 800, 420)
 	texte(c, { Text = tr("UN COEUR = UNE VIE", "ONE HEART = ONE LIFE"), TextSize = 46, TextColor3 = OR1, italique = true, Size = UDim2.new(1, 0, 0, 56),
 		Position = UDim2.fromOffset(0, 30), TextWrapped = false, epais = 4 })
 	K.icone(c, "coeur", 7, C.rouge, UDim2.fromOffset(44, 104))
-	inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.TXT, TextSize = 26, TextColor3 = C.texte2, TextWrapped = true,
-		TextXAlignment = Enum.TextXAlignment.Left,
-		Text = tr("Un cœur, et tu repars là où tu as explosé : la partie continue, avec ton argent, ton moteur et ta zone.",
-			"One heart, and you restart right where you blew up: the run goes on, with your cash, your engine and your zone."),
-		Size = UDim2.new(1, -170, 0, 76), Position = UDim2.fromOffset(130, 98) }, c)
-	local fond = inst("Frame", { BackgroundColor3 = C.nuit, BorderSizePixel = 0, Size = UDim2.new(1, -80, 0, 12), Position = UDim2.fromOffset(40, 190) }, c)
+	-- la réserve, sous le cœur (la police du texte sait dessiner « ♥ », pas la police pixel)
+	U.sStock = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.TXT, TextSize = 30, TextColor3 = C.rouge, Text = "",
+		Size = UDim2.fromOffset(110, 30), Position = UDim2.fromOffset(20, 168) }, c)
+	U.sTxt = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.TXT, TextSize = 26, TextColor3 = C.texte2, TextWrapped = true,
+		TextXAlignment = Enum.TextXAlignment.Left, Text = "", Size = UDim2.new(1, -170, 0, 96), Position = UDim2.fromOffset(130, 96), TextScaled = true }, c)
+	inst("UITextSizeConstraint", { MaxTextSize = 26, MinTextSize = 16 }, U.sTxt)
+	local fond = inst("Frame", { BackgroundColor3 = C.nuit, BorderSizePixel = 0, Size = UDim2.new(1, -80, 0, 12), Position = UDim2.fromOffset(40, 208) }, c)
 	U.sBarre = inst("Frame", { BackgroundColor3 = OR1, BorderSizePixel = 0, Size = UDim2.fromScale(1, 1) }, fond)
 	U.sOui = K.lingot(c, tr("CONTINUER", "CONTINUE"), UDim2.new(0.58, -40, 0, 92), UDim2.new(0, 40, 1, -40), Vector2.new(0, 1), 34)
 	U.sNon = K.tuile(c, tr("NON MERCI", "NO THANKS"), C.cyan, UDim2.new(0.42, -40, 0, 76), UDim2.new(1, -40, 1, -46), Vector2.new(1, 1), 22)
 	U.seconde = v
 end
 local evRevivre: RemoteEvent? = nil
--- la proposer ? Le produit CŒUR existe (ou le banc la simule : DbgSeconde), pas pendant la leçon, et c'est une vraie partie (au
--- moins 20 s de course : on ne vend rien à qui vient de rater le premier virage). Elle revient à CHAQUE mort sans cœur (un cœur =
--- une vie) : refusée, la partie s'arrête de toute façon. (`dejaUsee` : gardé pour le pilote, qui ne le lève plus.)
-function Revenus.secondeDispo(dejaUsee: boolean, duree: number, lecon: boolean): boolean
-	if dejaUsee or lecon or (duree or 0) < 20 then return false end
+-- la proposer ? Pas pendant la leçon. Avec des cœurs en réserve (`coeurs`, compté par le pilote) : TOUJOURS — c'est le joueur qui
+-- décide s'il le dépense. Sans cœur : le produit CŒUR existe (ou le banc la simule : DbgSeconde), et c'est une vraie partie (au moins
+-- 20 s de course : on ne vend rien à qui vient de rater le premier virage). Elle revient à CHAQUE mort (un cœur = une vie) : refusée,
+-- la partie s'arrête de toute façon. (`dejaUsee` : gardé pour le pilote, qui ne le lève plus.)
+function Revenus.secondeDispo(dejaUsee: boolean, duree: number, lecon: boolean, coeurs: number?): boolean
+	if dejaUsee or lecon then return false end
+	if (coeurs or 0) > 0 then return true end
+	if (duree or 0) < 20 then return false end
 	return idDe(R.produits, "coeur") > 0 or workspace:GetAttribute("DbgSeconde") ~= nil
 end
--- la carte : 6 s pour choisir (le chrono s'arrête pendant que Roblox demande la confirmation) ; fin(true) = on repart
-function Revenus.offrirSeconde(fin: (boolean) -> ())
+-- la carte : 6 s pour choisir (le chrono s'arrête pendant que Roblox demande la confirmation) ; fin(true) = on repart.
+-- `coeurs` > 0 : la carte propose d'en UTILISER un (rien à acheter) ; sinon d'en acheter un.
+function Revenus.offrirSeconde(fin: (boolean) -> (), coeurs: number?)
 	local v = U.seconde
+	local stock = math.max(0, math.floor(coeurs or 0))
+	local utiliser = stock > 0
 	local id = idDe(R.produits, "coeur")
-	local prix = Revenus.prix(id, false)
-	U.sOui.Text = tr("CONTINUER", "CONTINUE") .. (prix and ("  " .. Revenus.robux(prix)) or "")
+	local prix = (not utiliser) and Revenus.prix(id, false) or nil
+	U.sStock.Text = utiliser and ("♥ " .. stock) or ""
+	U.sTxt.Text = utiliser and tr("Un cœur de ta réserve, et tu repars là où tu as explosé : la partie continue, avec ton argent, ton moteur et ta zone.",
+			"One heart from your stock, and you restart right where you blew up: the run goes on, with your cash, your engine and your zone.")
+		or tr("Un cœur, et tu repars là où tu as explosé : la partie continue, avec ton argent, ton moteur et ta zone.",
+			"One heart, and you restart right where you blew up: the run goes on, with your cash, your engine and your zone.")
+	U.sOui.TextSize = utiliser and 28 or 34
+	U.sOui.Text = utiliser and tr("UTILISER UN COEUR", "USE A HEART") or (tr("CONTINUER", "CONTINUE") .. (prix and ("  " .. Revenus.robux(prix)) or ""))
+	U.sNon.Text = utiliser and tr("TERMINER", "END RUN") or tr("NON MERCI", "NO THANKS")
 	v.Visible = true
 	Sons.vrai("uiModale", nil, nil, "tap", 1.1, 0.5)
 	local t, enAchat, fini, attente = 6, false, false, -1
@@ -340,6 +396,7 @@ function Revenus.offrirSeconde(fin: (boolean) -> ())
 	table.insert(cns, U.sNon.Activated:Connect(function() clore(false) end))
 	table.insert(cns, U.sOui.Activated:Connect(function()
 		if enAchat then return end
+		if utiliser then clore(true) return end -- (un cœur de la réserve : rien à payer, le pilote le dépense)
 		if workspace:GetAttribute("DbgSeconde") == "oui" then clore(true) return end -- (banc : l'achat simulé)
 		if id <= 0 then clore(false) return end
 		enAchat = true
@@ -364,7 +421,7 @@ function Revenus.offrirSeconde(fin: (boolean) -> ())
 			if attente <= 0 then clore(false) end
 		end
 		-- (le prix arrive de Roblox pendant que la carte est ouverte : il s'écrit)
-		if not prix then
+		if not prix and not utiliser then
 			prix = Revenus.prix(id, false)
 			if prix then U.sOui.Text = tr("CONTINUER", "CONTINUE") .. "  " .. Revenus.robux(prix) end
 		end
@@ -426,15 +483,70 @@ local function annonce(quoi: string, montant: number?, txt: string?)
 		passe = (txt == "argent2") and tr("x2 ARGENT : TES PARTIES COMPTENT DOUBLE", "x2 CASH: YOUR RUNS COUNT DOUBLE")
 			or (txt == "nitroInfini") and tr("NITRO INFINIE : LA JAUGE NE SE VIDE PLUS", "INFINITE NITRO: THE GAUGE NEVER EMPTIES")
 			or tr("VIP : CADEAUX DOUBLES", "VIP: GIFTS DOUBLED"),
-		coeur = (txt == "1") and tr("+1 COEUR", "+1 HEART")
-			or tr("+1 COEUR  (" .. (txt or "?") .. " EN RESERVE)", "+1 HEART  (" .. (txt or "?") .. " IN STOCK)"),
 	}
+	-- (5/10, lot 2) les CŒURS (montant = combien on en reçoit, txt = la réserve), l'ARGENT acheté, le KIT DU PILOTE (montant = ses $,
+	-- txt = ses cœurs), une CAISSE LÉGENDAIRE (txt = son indice)
+	if quoi == "coeur" then
+		local n = math.floor(montant or 1)
+		local mot = tr((n > 1) and " COEURS" or " COEUR", (n > 1) and " HEARTS" or " HEART")
+		libelles.coeur = "+" .. n .. mot .. ((tonumber(txt) == n) and "" or tr("  (" .. (txt or "?") .. " EN RESERVE)", "  (" .. (txt or "?") .. " IN STOCK)"))
+	elseif quoi == "argent" then
+		libelles.argent = "+" .. Hud.compte(montant or 0) .. tr("  AU COMPTE", "  BANKED")
+	elseif quoi == "kit" then
+		libelles.kit = tr("KIT DU PILOTE : +", "DRIVER'S KIT: +") .. Hud.compte(montant or 0) .. tr(", +" .. (txt or "?") .. " COEURS, TRAINEE POUDRE D'OR AU GARAGE",
+			", +" .. (txt or "?") .. " HEARTS, GOLD DUST TRAIL IN THE GARAGE")
+	elseif quoi == "caisse" then
+		local f = Catalogue[tonumber(txt) or -1]
+		local nom = f and Hud.sansAccent(string.upper(FR and f.nom or (f.en or f.nom))) or "?"
+		libelles.caisse = nom .. tr(" EST A TOI : ELLE T'ATTEND AU GARAGE", " IS YOURS: IT'S WAITING IN THE GARAGE")
+	end
 	-- (un cœur acheté sur la carte de la mort est dépensé aussitôt : le pilote le dit lui-même, pas de bandeau par-dessus)
 	if quoi == "coeur" and Revenus.secondeOuverte() then return end
-	local ico = (quoi == "passe") and "etoile" or ((quoi == "coeur") and "coeur" or "cadeau")
-	Hud.toast(libelles[quoi] or a, (quoi == "coeur") and C.rouge or OR1, ico)
-	Sons.jouer((quoi == "passe" or quoi == "coeur") and "record" or "encaisse")
+	local ico = (quoi == "passe" or quoi == "caisse") and "etoile" or ((quoi == "coeur") and "coeur" or ((quoi == "argent") and "piece" or "cadeau"))
+	Hud.toast(libelles[quoi] or a, (quoi == "coeur") and C.rouge or ((quoi == "argent") and C.menthe or OR1), ico)
+	Sons.jouer((quoi == "passe" or quoi == "coeur" or quoi == "caisse" or quoi == "kit") and "record" or "encaisse")
 	Hud.vibre(30)
+end
+
+-- ════════ L'INTERRUPTEUR NITRO INFINIE (5/10 : « qui possède le passe peut l'éteindre / le rallumer ») ════════
+-- Sa ligne vit dans la colonne JEU des RÉGLAGES (Hud) ; elle n'existe que pour qui possède le passe (attribut NitroPasse) : sinon
+-- elle se REPLIE et les lignes du dessous remontent — pas de trou. ON / OFF = l'attribut NitroInfini (le passe ET l'interrupteur),
+-- posé par le serveur ; le réglage « nitroInf » du profil le garde d'une session à l'autre. Allumé par défaut.
+local function majNitroReglage()
+	local o = Hud.E.rg and Hud.E.rg.nitroInf
+	if not o or not o.ligne then return end
+	local a = attr("NitroPasse") == true
+	local l = o.ligne :: Frame
+	if l.Visible ~= a then
+		local p = l.Parent :: Frame
+		local h = l.Size.Y.Offset
+		local y = l.Position.Y.Offset
+		for _, x in p:GetChildren() do
+			-- (« >= » : repliée, la ligne du dessous est remontée EXACTEMENT à sa place — avec « > » elle n'en redescendait pas, et les deux
+			-- lignes se superposaient, mesuré au banc le 5/10)
+			if x ~= l and x:IsA("Frame") and x.Position.Y.Offset >= y + (a and 0 or 1) then x.Position += UDim2.fromOffset(0, a and h or -h) end
+		end
+		p.Size += UDim2.fromOffset(0, a and h or -h)
+		l.Visible = a
+	end
+	Hud.reglage("nitroInf", attr("NitroInfini") == true)
+end
+local function brancherNitroReglage()
+	local o = Hud.E.rg and Hud.E.rg.nitroInf
+	if not o or not o.b then return end
+	o.b.Activated:Connect(function()
+		if U.nOccupe or attr("NitroPasse") ~= true then return end
+		U.nOccupe = true
+		local on = not (attr("NitroInfini") == true)
+		Hud.reglage("nitroInf", on) -- (tout de suite à l'écran ; le serveur confirme par l'attribut)
+		Hud.vibre(6)
+		ctx.action("reglage", "nitroInf", on)
+		U.nOccupe = false
+		task.delay(0.4, majNitroReglage)
+	end)
+	joueur:GetAttributeChangedSignal("NitroPasse"):Connect(majNitroReglage)
+	joueur:GetAttributeChangedSignal("NitroInfini"):Connect(majNitroReglage)
+	majNitroReglage()
 end
 
 -- ════════ le branchement ════════
@@ -446,6 +558,7 @@ function Revenus.init(c: any)
 	creerPile()
 	creerSeconde()
 	creerClassement()
+	brancherNitroReglage()
 	task.spawn(function()
 		local ev = CC:WaitForChild("Revenu", 30)
 		if ev then (ev :: RemoteEvent).OnClientEvent:Connect(annonce) end
