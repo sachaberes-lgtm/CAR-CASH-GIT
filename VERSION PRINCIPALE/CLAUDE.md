@@ -7,6 +7,29 @@
 - Les règles « SANS TOUT CASSER » (partir de `origin/main` à jour, fusionner sans jamais forcer, jeu testé sans erreur avant chaque
   push, retour arrière par Vercel) et la liste de ce que contient la référence : voir `CLAUDE.md` à la RACINE du dépôt.
 
+## LES HEURES DU TITRE — six ambiances de l'accueil au ciel (2026-10-05, session GAMEPLAY, GRAPHISME a passé la main) — Sacha : « pour l'écran d'accueil dans le ciel, fais plusieurs éclairages et ambiances à plusieurs moments de la journée : matin, midi, après-midi, golden hour, soir, nuit — il faut que toutes les ambiances soient magnifiques »
+- **L'HEURE DU TÉLÉPHONE** (`titreHeureDe`) : nuit 22 h-5 h · matin 5 h-10 h · midi 10 h-14 h · après-midi 14 h-17 h · golden hour 17 h-19 h 30 ·
+  soir 19 h 30-22 h ; relue toutes les 20 s au menu (`titreHeureTick`, en tête de chuteRender). Pour juger : `…/jouer/?heure=golden` (matin,
+  midi, aprem, golden, soir, nuit) ou `dbgHeure('nuit')` / `dbgHeure(null)` (retour à l'horloge). Aucun objet ajouté : lumière, couleurs, air.
+- **LES AMBIANCES** (`BIOMES.titreMatin … titreNuit`, juste après `BIOMES.titre`, toutes clonées du titre v3 par `titreAmb`) : le MATIN est le
+  titre v3 au bit près ; MIDI le bleu le plus profond, horizon blanc, cumulus d'un blanc franc ; APRÈS-MIDI l'horizon crème et un air tiède ;
+  GOLDEN HOUR ambre sur l'horizon, ciel lavande, mer de nuages aux sommets dorés et ombres mauves ; SOIR la bande corail sous l'indigo, les
+  premières étoiles, la lune ; NUIT un ciel d'encre étoilé, la mer de nuages argentée, plus de soleil (bioApply laissait son disque à 15 % :
+  chuteRender l'éteint quand `sunHalo` vaut 0). `BIOMES.titre` POINTE sur l'heure du moment (chuteRender la réapplique quand elle change) :
+  l'atelier des nuages (`?nuages=1`) règle donc l'heure affichée.
+- **CE QUI VA AVEC** (`TITRE_H`, près de `CHUTE_P`) : par heure, les clés de CHUTE_P (cumulus du titre K/R, mer de nuages mzT/mzO/mzH, angle
+  regard ↔ soleil `az`, lampes de la caisse `cleS` (clé, nouvelle) / `zenC` (zénith, nouvelle) / `rimC` / `kh` / `sk` / `amb` / `sol` / `sc` /
+  `sr`, `expo`) — une clé absente reprend sa valeur d'origine (`CHUTE_P0`) ; les VOILES de l'écran (`--tvC/--tvA/--tvA2` pour l'azur haut/bas,
+  `--tvB/--tvBA` pour le bandeau des boutons : la nuit est plus sombre derrière JOUER) ; la TEINTE des bancs et des filets de vent qui montent.
+- **LE CIEL POMMELÉ** (`cielMotif`, dôme) : au jour d'altitude il prend la clarté du ciel (`uJMid`) — sur un ciel de soir ou de nuit ses petits
+  nuages blancs dessinaient une GRILLE DE POINTS. Le jour : ×1, inchangé ; les ciels de nuit de la course (uJour 0) : inchangés.
+- **PIÈGES MESURÉS** (banc `heures/photo.js`, SwiftShader, l'accueil figé au même instant aux six heures, debout et couché) : aux heures sombres,
+  avec les doses du jour, la caisse n'était qu'une SILHOUETTE NOIRE (clé et ambiance relevées par heure) ; la nuit, le shader des cumulus
+  ramène le soleil au BLANC (la teinte n'y passe que si le soleil est chaud) — des nuages lunaires se font par l'OMBRE (R) plus que par la
+  lumière (K) ; la golden hour noyée dans sa brume était une nappe pêche sans relief (brume repoussée, mer contrastée).
+- VÉRIFIÉ : 0 erreur ; JOUER depuis l'accueil de NUIT → la course part (banc `heures/jouer.js`) ; 18 cumulus au titre à chaque heure.
+  ⚠ NON MESURÉ : l'iPhone (les heures n'ajoutent ni programme ni objet : seules des valeurs changent) ; l'avis de Sacha sur chaque heure.
+
 ## L'ÉDITION POKI (2026-10-04) — Sacha : « créer une version de Cash Car pour Poki game en enlevant les missions et la carrière »
 - **UN SEUL JEU** : l'édition Poki n'est pas une copie qu'on retouche. `node poki-construire.js` (racine du dépôt) fabrique `POKI/` (le
   dossier) et `POKI.zip` (à envoyer sur Poki for Developers, `index.html` à la racine) depuis CE dossier, en basculant la seule ligne
@@ -43,8 +66,20 @@
     `dead`, les préchargements (annPreload, waPrecharge, fxPreload) les sautent, l'interrupteur VOIX et son volume sont masqués ; le
     script ne copie ni `announcer/`, ni `eww.m4a`, ni `wow.mp3` (banc : zéro requête de voix). Les chœurs et le cri du dauphin sont de la
     SYNTHÈSE (sons-banque) : gardés. Le script saute aussi `music/ville/ville-n1…n5` (carrière seulement).
+- **UNE ÉDITION PAR PORTAIL (2026-10-05)** — `POKI` = l'édition des portails ; `const PORTAIL_SDK='poki';` (le `<head>`) dit QUEL kit elle
+  charge, et `node poki-construire.js [crazy|itch]` le bascule : `POKI/`+`POKI.zip` (Poki), `CRAZY/`+`CRAZY.zip` (CrazyGames SDK v3),
+  `ITCH/`+`ITCH.zip` (aucun kit). `CC_PK` est un seul objet à deux PILOTES (`KITS.poki`, `KITS.crazy` : init, fini, jeu, pub, bonus, muet) ;
+  le jeu ne parle qu'à lui. CrazyGames : `loadingStart` dès le SDK prêt, `loadingStop` au menu, `gameplayStart/Stop`, pub `midgame` avant
+  REJOUER (le SDK tient son délai de ~3 min), leur réglage `muteAudio` → `pkSilence` (`window.CC_MUET`, son coupé sans bloquer le clavier) ;
+  hors de leurs domaines et de localhost le SDK est « disabled » → traité comme absent. `?crazy=1` force l'édition CrazyGames.
+  · (Sacha : « prépare-moi le zip pour CrazyGames et ne mets pas de mode facile ») `FACILE_OK` faux sur CrazyGames : `SAVE.d.facile=0` à
+    l'init (le choix du 1er JOUER ne se pose plus), `facOn()` toujours faux, interrupteur masqué (`html.sansFacile`). Poki et itch gardent le choix.
+  · La VITRINE de l'atelier (session de Léo, 5/10) a ajouté une porte MISSIONS sous JOUER (`#gvMis`) : masquée en POKI. Le cartouche du
+    niveau (`#gvNiv`) reste (il lit NIVEAUX[0] : la ville).
+  · Bancs (scratchpad 06ee90dc) : CRAZY en local (pubs de démonstration) → SDK prêt, chargement fini, partie, mort, 1 pub `midgame` au
+    REJOUER, pas de choix du mode ; POKI et ITCH inchangés ; version principale menu → JOUER → course.
 - **L'ÉDITION WEB pour itch.io (2026-10-05)** : `node poki-construire.js itch` → `ITCH/` + `ITCH.zip` (gitignorés) = l'édition Poki avec
-  `const POKI_SDK=false;` : aucun script de Poki chargé (`CC_PK.etat` −1, aucune pub, REJOUER direct), réglages « VERSION … · WEB ».
+  `PORTAIL_SDK=''` : aucun script de portail chargé (`CC_PK.etat` −1, aucune pub, REJOUER direct), réglages « VERSION … · WEB ».
   Banc : zéro requête vers poki.com/poki.io, partie → mort → REJOUER sans erreur. Sur itch.io : Kind of project = HTML, le zip « played
   in the browser », le champ URL = l'adresse de la PAGE itch (pas le lien Vercel).
 - **Pas encore fait / à trancher** : l'auto-école parle de POUCE même au clavier chez Poki (vrai aussi dans le cadre de l'ordi de la
