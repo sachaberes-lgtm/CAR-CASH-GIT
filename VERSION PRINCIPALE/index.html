@@ -25959,7 +25959,7 @@ const MUSIC_CIEL_TOUT={titre:'CIEL · LES 5 NIVEAUX',f:'assets/audio/music/ciel/
 function musicLieuVoulu(){
   const c=LVL.cur;if(!c)return null;
   if(c.id==='nuages'){if(c.carr){if(c.carr.i<5)return MUSIC_CIEL[c.carr.i];}else if(!c.piste)return MUSIC_CIEL_TOUT;}
-  if(c.id==='ville'&&c.carr&&MUSIC_VILLE[c.carr.i])return MUSIC_VILLE[c.carr.i]; // la carrière VILLE : ses dix musiques (NÉON COMPLÈTE 1-5, puis la suite)
+  if(c.id==='ville'&&c.carr&&c.carr.i<5)return MUSIC_VILLE[c.carr.i]; /* (2026-10-05, Léo : « seulement celles de mon screen » : NÉON COMPLÈTE 1-5 ; 6-10 en attente) */ // la carrière VILLE : ses dix musiques (NÉON COMPLÈTE 1-5, puis la suite)
   return MUSIC_LIEU[c.id]||null;}
 /* appelé à chaque changement de niveau (fin de `newTrack`) : change de morceau SEULEMENT si le lieu
    en réclame un autre que celui qui joue. */
