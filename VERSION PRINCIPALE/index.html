@@ -49,21 +49,28 @@ const EDITION='mobile';
    (chargement fini, début/fin de partie, pause pub avant REJOUER — son et clavier coupés pendant la pub), et sur l'ordi l'écran du
    téléphone couché qui REMPLIT la fenêtre de Poki (16:9) au lieu d'un téléphone posé au milieu. Voir « L'ÉDITION POKI » dans CLAUDE.md. */
 const POKI_BUILD=false;
-/* (2026-10-05, Sacha publie aussi sur itch.io) L'ÉDITION WEB = l'édition Poki SANS le kit de Poki : mêmes retraits (missions, carrière,
-   boutique, voix…), mêmes caisses à l'argent du jeu, mais aucun SDK chargé (`CC_PK` reste à l'état −1 : pas de pub, chaque appel se
-   résout tout de suite). `node poki-construire.js itch` fabrique `ITCH/` + `ITCH.zip` en basculant AUSSI cette ligne à false. */
-const POKI_SDK=true;
-const POKI=POKI_BUILD||/[?&]poki=1\b/.test(location.search);
+/* LES PORTAILS (2026-10-05) : `POKI` est l'ÉDITION DES PORTAILS (sans missions, carrière, boutique ni voix) ; `PORTAIL_SDK` dit QUEL kit
+   elle charge — 'poki' (Poki), 'crazy' (CrazyGames), '' (aucun : itch.io, un site à soi — pas de pub, chaque appel se résout tout de
+   suite). `node poki-construire.js [itch|crazy]` bascule les deux lignes. `?poki=1` / `?crazy=1` forcent l'édition sur n'importe quelle copie.
+   (CrazyGames, Sacha : « prépare-moi le zip pour CrazyGames et ne mets pas de mode facile » : `FACILE_OK` faux → ni le choix du mode au
+   1er JOUER, ni l'interrupteur MODE FACILE.) */
+const PORTAIL_SDK='poki';
+const POKI=POKI_BUILD||/[?&](poki|crazy)=1\b/.test(location.search);
+const PORTAIL=/[?&]crazy=1\b/.test(location.search)?'crazy':PORTAIL_SDK;
+const FACILE_OK=!(POKI&&PORTAIL==='crazy');
 if(POKI)document.documentElement.classList.add('poki');
+if(!FACILE_OK)document.documentElement.classList.add('sansFacile');
 /* LA MÊME VERSION POUR TOUT LE MONDE (2026-10-01, Léo : « trouve un moyen pour qu'on joue au même jeu, juste ») : `vercel-build.sh`
    remplace ce jeton par le commit publié et pose `version.json` à côté du jeu. Le jeu compare les deux et se recharge tout seul
    s'il est en retard (voir « LA MISE À JOUR TOUTE SEULE », près du service worker). En copie locale le jeton reste tel quel : rien ne se vérifie. */
 const CC_BUILD='__CC_BUILD__';
-const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(POKI?(POKI_SDK?' · POKI':' · WEB'):'')+(!POKI&&/[?&]menu=leo\b/.test(location.search)?' · MENU LEO':'')+(/[?&]chute=0\b/.test(location.search)?' · SANS CIEL':'');
-/* LE KIT POKI (édition POKI seulement). Le document de PLUS HAUT du jeu (la page-cadre sur l'ordi, la page elle-même sur un téléphone)
-   charge le SDK de Poki et porte `CC_PK` ; le jeu, dans la colonne, l'appelle par `parent.CC_PK` (même origine). Le SDK bloqué (bloqueur
-   de pubs, hors ligne) ne bloque RIEN : chaque appel se résout tout de suite, sans pub. Pendant une pub, `CC_PUB` est vrai dans le
-   document du jeu : plus de son (AudioContext.resume et media.play refusés) et plus de clavier — consigne de Poki. */
+const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(POKI?' · '+({poki:'POKI',crazy:'CRAZYGAMES'}[PORTAIL]||'WEB'):'')+(!POKI&&/[?&]menu=leo\b/.test(location.search)?' · MENU LEO':'')+(/[?&]chute=0\b/.test(location.search)?' · SANS CIEL':'');
+/* LE KIT DES PORTAILS (édition POKI seulement). Le document de PLUS HAUT du jeu (la page-cadre sur l'ordi, la page elle-même sur un
+   téléphone) charge le SDK du portail et porte `CC_PK` ; le jeu, dans la colonne, l'appelle par `parent.CC_PK` (même origine). Le SDK
+   bloqué (bloqueur de pubs, hors ligne, mauvais domaine) ne bloque RIEN : chaque appel se résout tout de suite, sans pub. Pendant une pub,
+   `CC_PUB` est vrai dans le document du jeu : plus de son (AudioContext.resume et media.play refusés) et plus de clavier — consigne de Poki
+   comme de CrazyGames ; `CC_MUET` (le réglage « son coupé » de CrazyGames) refuse le son, pas le clavier. Un PILOTE par portail
+   (`KITS`) : le jeu ne parle qu'à `CC_PK` (fini, jeu, pub, bonus, surMuet), jamais au SDK. */
 if(POKI)(function(){
   var dedans=/[?&]colonne=1\b/.test(location.search);
   // le clavier ne fait pas défiler la page de Poki, la molette non plus (sauf dans une liste qui défile vraiment)
@@ -73,33 +80,56 @@ if(POKI)(function(){
   addEventListener('wheel',function(e){for(var n=e.target;n&&n.nodeType===1&&n!==document.documentElement;n=n.parentNode){
     var o=getComputedStyle(n).overflowY;if((o==='auto'||o==='scroll')&&n.scrollHeight>n.clientHeight+1)return;}e.preventDefault();},{passive:false});
   var AP=window.AudioContext||window.webkitAudioContext;
-  if(AP&&AP.prototype.resume){var r0=AP.prototype.resume;AP.prototype.resume=function(){if(window.CC_PUB)return Promise.resolve();return r0.apply(this,arguments);};}
+  if(AP&&AP.prototype.resume){var r0=AP.prototype.resume;AP.prototype.resume=function(){if(window.CC_PUB||window.CC_MUET)return Promise.resolve();return r0.apply(this,arguments);};}
   if(window.HTMLMediaElement){var p0=HTMLMediaElement.prototype.play;HTMLMediaElement.prototype.play=function(){
-    if(window.CC_PUB)return Promise.reject(new Error('pub Poki'));return p0.apply(this,arguments);};}
+    if(window.CC_PUB||window.CC_MUET)return Promise.reject(new Error('pub / son coupé par le portail'));return p0.apply(this,arguments);};}
   if(dedans)return; // la colonne : le SDK vit dans la page-cadre
-  var PK=window.CC_PK={etat:0,sdk:null,veut:{fini:false,jeu:false},jeuEnvoye:false,finiEnvoye:false,enPub:false,
-    // 0 = SDK en route · 1 = prêt · -1 = absent (bloqué) : tout se résout sans pub
-    pret:function(){if(PK.veut.fini&&!PK.finiEnvoye&&PK.etat===1){PK.finiEnvoye=true;try{PK.sdk.gameLoadingFinished();}catch(e){}}PK.jeuSync();},
+  // LES PILOTES : `init(ok, non)` (ok(sdk) quand il est prêt, non() s'il est absent ou inutilisable), puis fini, jeu, pub, bonus, muet
+  var KITS={
+    poki:{src:'https://game-cdn.poki.com/scripts/v2/poki-sdk.js',
+      init:function(ok,non){var S=window.PokiSDK;if(!S)return non();if(/[?&]pokidebug=1\b/.test(location.search))try{S.setDebug(true);}catch(e){}
+        S.init().then(function(){ok(S);},function(){ok(S);});},
+      fini:function(S){S.gameLoadingFinished();},
+      jeu:function(S,on){if(on)S.gameplayStart();else S.gameplayStop();},
+      pub:function(S,deb,fin){S.commercialBreak(deb).then(fin,fin);},
+      bonus:function(S,deb,fin){S.rewardedBreak(deb).then(function(r){fin(!!r);},function(){fin(false);});}},
+    /* CRAZYGAMES (SDK v3) : hors de leurs domaines (et de localhost, où il joue des pubs de démonstration) le SDK est « disabled » et ses
+       méthodes LÈVENT des erreurs : on le traite comme absent. loadingStart dès qu'il est prêt, loadingStop au menu ; une pub `midgame`
+       avant REJOUER (le SDK tient lui-même son délai de ~3 min : une demande trop tôt revient en adError, la partie part tout de suite) ;
+       leur réglage `muteAudio` passe AVANT les nôtres (surMuet). */
+    crazy:{src:'https://sdk.crazygames.com/crazygames-sdk-v3.js',
+      init:function(ok,non){var C=window.CrazyGames&&window.CrazyGames.SDK;if(!C)return non();
+        C.init().then(function(){if(C.environment==='disabled')return non();try{C.game.loadingStart();}catch(e){}ok(C);},non);},
+      fini:function(C){C.game.loadingStop();},
+      jeu:function(C,on){if(on)C.game.gameplayStart();else C.game.gameplayStop();},
+      pub:function(C,deb,fin){C.ad.requestAd('midgame',{adStarted:deb,adFinished:fin,adError:fin});},
+      bonus:function(C,deb,fin){C.ad.requestAd('rewarded',{adStarted:deb,adFinished:function(){fin(true);},adError:function(){fin(false);}});},
+      muet:function(C,f){var lis=function(s){f(!!(s&&s.muteAudio));};lis(C.game.settings);C.game.addSettingsChangeListener(lis);}}};
+  var K=KITS[PORTAIL]||null;
+  var PK=window.CC_PK={etat:0,sdk:null,portail:K?PORTAIL:'',veut:{fini:false,jeu:false},jeuEnvoye:false,finiEnvoye:false,enPub:false,muets:[],
+    // 0 = SDK en route · 1 = prêt · -1 = absent (bloqué, mauvais domaine, ou édition sans kit) : tout se résout sans pub
+    pret:function(){if(PK.veut.fini&&!PK.finiEnvoye&&PK.etat===1){PK.finiEnvoye=true;try{K.fini(PK.sdk);}catch(e){}}PK.jeuSync();},
     fini:function(){PK.veut.fini=true;PK.pret();},
     jeu:function(on){PK.veut.jeu=!!on;PK.jeuSync();},
     jeuSync:function(){if(PK.etat!==1||PK.enPub||PK.veut.jeu===PK.jeuEnvoye)return;PK.jeuEnvoye=PK.veut.jeu;
-      try{if(PK.jeuEnvoye)PK.sdk.gameplayStart();else PK.sdk.gameplayStop();}catch(e){}},
-    // la pause pub : `muet(true)` à l'instant où une pub démarre (s'il y en a une — Poki décide), `muet(false)` puis `suite()` après
+      try{K.jeu(PK.sdk,PK.jeuEnvoye);}catch(e){}},
+    // la pause pub : `muet(true)` à l'instant où une pub démarre (s'il y en a une — le portail décide), `muet(false)` puis `suite()` après
     pub:function(muet,suite){if(PK.etat!==1||PK.enPub){suite();return;}
       PK.veut.jeu=false;PK.jeuSync();PK.enPub=true;var coupe=false,fin=false;
       var apres=function(){if(fin)return;fin=true;PK.enPub=false;if(coupe)try{muet(false);}catch(e){}suite();};
-      try{PK.sdk.commercialBreak(function(){coupe=true;try{muet(true);}catch(e){}}).then(apres,apres);}catch(e){apres();}},
+      try{K.pub(PK.sdk,function(){coupe=true;try{muet(true);}catch(e){}},apres);}catch(e){apres();}},
     // la pub récompensée (prête pour une SECONDE CHANCE ou un ×2 : rien ne l'appelle encore) — `suite(true)` si elle a été vue jusqu'au bout
     bonus:function(muet,suite){if(PK.etat!==1||PK.enPub){suite(false);return;}
       PK.veut.jeu=false;PK.jeuSync();PK.enPub=true;var coupe=false,fin=false;
       var apres=function(ok){if(fin)return;fin=true;PK.enPub=false;if(coupe)try{muet(false);}catch(e){}suite(!!ok);};
-      try{PK.sdk.rewardedBreak(function(){coupe=true;try{muet(true);}catch(e){}}).then(apres,function(){apres(false);});}catch(e){apres(false);}},
-    charge:function(){if(PK.charge.f)return;PK.charge.f=1;if(!POKI_SDK){PK.etat=-1;return;} // l'édition WEB (itch.io…) : pas de kit Poki
-      var s=document.createElement('script');s.src='https://game-cdn.poki.com/scripts/v2/poki-sdk.js';
+      try{K.bonus(PK.sdk,function(){coupe=true;try{muet(true);}catch(e){}},apres);}catch(e){apres(false);}},
+    // le « son coupé » imposé par le portail (CrazyGames) : le jeu s'y abonne, le pilote le lui transmet dès qu'il est prêt
+    surMuet:function(f){PK.muets.push(f);if(PK.etat===1&&K.muet)try{K.muet(PK.sdk,f);}catch(e){}},
+    charge:function(){if(PK.charge.f)return;PK.charge.f=1;if(!K){PK.etat=-1;return;} // l'édition WEB (itch.io…) : aucun kit
+      var s=document.createElement('script');s.src=K.src;
       var non=function(){PK.etat=-1;};
-      s.onerror=non;s.onload=function(){try{var S=window.PokiSDK;if(!S){non();return;}
-        if(/[?&]pokidebug=1\b/.test(location.search))try{S.setDebug(true);}catch(e){}
-        var ok=function(){PK.sdk=S;PK.etat=1;PK.pret();};S.init().then(ok,ok);}catch(e){non();}};
+      s.onerror=non;s.onload=function(){try{K.init(function(S){PK.sdk=S;PK.etat=1;
+          if(K.muet)PK.muets.forEach(function(f){try{K.muet(S,f);}catch(e){}});PK.pret();},non);}catch(e){non();}};
       document.head.appendChild(s);}};
   // `PK.charge()` est appelé par le script de la colonne, juste en dessous : tout de suite sur un téléphone ; sur l'ordi, une fois que la
   // page-cadre a rangé le jeu qu'elle ne fait pas tourner (sinon le cadre de pub que le SDK pose dans la page serait masqué avec lui)
@@ -5798,6 +5828,11 @@ html.poki [data-m="carr"],html.poki #gCarr,html.poki .gLevel,html.poki #carr,
 html.poki [data-m="shop"],html.poki [data-go="shop"],html.poki .gBoutique,html.poki #mShop,html.poki #bdShop{display:none!important}
 /* (2026-10-05) PAS DE VOIX dans l'édition Poki : l'interrupteur VOIX et son curseur de volume n'ont plus rien à régler (réglages, pause, menu desktop) */
 html.poki [data-m="vox"],html.poki #mVolRowVox,html.poki [data-a="vox"],html.poki #voxBtn,html.poki [data-tg="voxBtn"],html.poki #volRowVox,html.poki #volLock{display:none!important}
+/* (2026-10-05) la VITRINE de l'atelier (nouvelle barre du bas, session de Léo) a sa propre porte MISSIONS sous JOUER (#gvMis) : masquée aussi.
+   Le cartouche du niveau (#gvNiv) reste : il dit le 1er niveau de la partie sans fin (NIVEAUX[0], la ville ici). */
+html.poki #gvMis{display:none!important}
+/* (CrazyGames) pas de MODE FACILE : l'interrupteur des réglages disparaît (FACILE_OK, voir le <head>) */
+html.sansFacile [data-m="facile"]{display:none!important}
 </style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
@@ -28847,7 +28882,7 @@ function gK(){return (LVL.espaceA>=.5&&!PARK.on)?ORB_G:1;}
    · 3 VIES — une chute, un vol trop long, une tour : la caisse repart de sa ligne sûre (facileSauve — le filet du BOUCLIER, pouvoir retiré le 29/09) ;
    · POSE — 5 m de bitume en plus de chaque côté pour se poser (la caisse est ramenée dans la largeur), angle de pose ratée +30°. */
 const FAC={coeurs:3},FAC_AIR=10/6,FAC_BORD=5,FAC_VIRAGE=.8,FAC_CAP=1.6;
-function facOn(){return !!(SAVE.d&&SAVE.d.facile)&&!PARK.on;}
+function facOn(){return !!(SAVE.d&&SAVE.d.facile)&&!PARK.on&&FACILE_OK;} // (CrazyGames) FACILE_OK faux : jamais de mode facile, même par une sauvegarde importée
 function facBord(){return facOn()?FAC_BORD:0;}
 function facFilet(){return facOn()&&FAC.coeurs>1&&!TUTO.on;} // il reste une vie à perdre : la chute perdue d'avance est rattrapée tout de suite
 function volSens(){return SAVE.d&&SAVE.d.volH==='monte'?-1:1;}
@@ -41334,7 +41369,14 @@ function pkPasse(f){ // vrai = on enchaîne tout de suite ; faux = la pause pub 
   p.pub(pkMuet,function(){pkPasse._attente=false;pkPasse._dedans=true;try{f();}catch(e){}pkPasse._dedans=false;});
   return false;
 }
+function pkSilence(on){ // (CrazyGames) leur réglage « son coupé » passe avant les nôtres : même coupure qu'une pub, le clavier en moins
+  window.CC_MUET=!!on;
+  try{ if(on){ if(AC&&AC.state==='running')AC.suspend(); if(musicEl&&!musicEl.paused){pkSilence._m=true;musicEl.pause();} }
+    else{ if(AC&&SND.sfx&&!paused&&!window.CC_PUB&&AC.state!=='running')AC.resume(); if(pkSilence._m&&!window.CC_PUB){pkSilence._m=false;musicJoue();} } }catch(e){}
+}
 if(POKI){
+  if(!FACILE_OK){SAVE.d.facile=0;} // (CrazyGames) pas de mode facile : le choix du 1er JOUER ne se pose plus, l'interrupteur est masqué (html.sansFacile)
+  try{const p=pk();if(p&&p.surMuet)p.surMuet(pkSilence);}catch(e){}
   // pas d'intro à toucher (voir le splash) : le contexte audio naît au PREMIER geste, et se réveille aux suivants
   const g9=function(){if(window.CC_PUB)return;try{if(!AC){if(typeof initAudio==='function')initAudio();}else if(SND.sfx&&!paused&&AC.state!=='running')AC.resume();}catch(e){}};
   ['pointerdown','touchend','keydown'].forEach(function(ev){addEventListener(ev,g9,{capture:true,passive:true});});

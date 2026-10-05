@@ -43,8 +43,20 @@
     `dead`, les préchargements (annPreload, waPrecharge, fxPreload) les sautent, l'interrupteur VOIX et son volume sont masqués ; le
     script ne copie ni `announcer/`, ni `eww.m4a`, ni `wow.mp3` (banc : zéro requête de voix). Les chœurs et le cri du dauphin sont de la
     SYNTHÈSE (sons-banque) : gardés. Le script saute aussi `music/ville/ville-n1…n5` (carrière seulement).
+- **UNE ÉDITION PAR PORTAIL (2026-10-05)** — `POKI` = l'édition des portails ; `const PORTAIL_SDK='poki';` (le `<head>`) dit QUEL kit elle
+  charge, et `node poki-construire.js [crazy|itch]` le bascule : `POKI/`+`POKI.zip` (Poki), `CRAZY/`+`CRAZY.zip` (CrazyGames SDK v3),
+  `ITCH/`+`ITCH.zip` (aucun kit). `CC_PK` est un seul objet à deux PILOTES (`KITS.poki`, `KITS.crazy` : init, fini, jeu, pub, bonus, muet) ;
+  le jeu ne parle qu'à lui. CrazyGames : `loadingStart` dès le SDK prêt, `loadingStop` au menu, `gameplayStart/Stop`, pub `midgame` avant
+  REJOUER (le SDK tient son délai de ~3 min), leur réglage `muteAudio` → `pkSilence` (`window.CC_MUET`, son coupé sans bloquer le clavier) ;
+  hors de leurs domaines et de localhost le SDK est « disabled » → traité comme absent. `?crazy=1` force l'édition CrazyGames.
+  · (Sacha : « prépare-moi le zip pour CrazyGames et ne mets pas de mode facile ») `FACILE_OK` faux sur CrazyGames : `SAVE.d.facile=0` à
+    l'init (le choix du 1er JOUER ne se pose plus), `facOn()` toujours faux, interrupteur masqué (`html.sansFacile`). Poki et itch gardent le choix.
+  · La VITRINE de l'atelier (session de Léo, 5/10) a ajouté une porte MISSIONS sous JOUER (`#gvMis`) : masquée en POKI. Le cartouche du
+    niveau (`#gvNiv`) reste (il lit NIVEAUX[0] : la ville).
+  · Bancs (scratchpad 06ee90dc) : CRAZY en local (pubs de démonstration) → SDK prêt, chargement fini, partie, mort, 1 pub `midgame` au
+    REJOUER, pas de choix du mode ; POKI et ITCH inchangés ; version principale menu → JOUER → course.
 - **L'ÉDITION WEB pour itch.io (2026-10-05)** : `node poki-construire.js itch` → `ITCH/` + `ITCH.zip` (gitignorés) = l'édition Poki avec
-  `const POKI_SDK=false;` : aucun script de Poki chargé (`CC_PK.etat` −1, aucune pub, REJOUER direct), réglages « VERSION … · WEB ».
+  `PORTAIL_SDK=''` : aucun script de portail chargé (`CC_PK.etat` −1, aucune pub, REJOUER direct), réglages « VERSION … · WEB ».
   Banc : zéro requête vers poki.com/poki.io, partie → mort → REJOUER sans erreur. Sur itch.io : Kind of project = HTML, le zip « played
   in the browser », le champ URL = l'adresse de la PAGE itch (pas le lien Vercel).
 - **Pas encore fait / à trancher** : l'auto-école parle de POUCE même au clavier chez Poki (vrai aussi dans le cadre de l'ordi de la

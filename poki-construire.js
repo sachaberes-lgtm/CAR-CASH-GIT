@@ -12,10 +12,14 @@
        <head> de index.html) ; refuse de continuer si la ligne n'est pas là exactement une fois ;
      · grave le numéro de version (le commit de VERSION PRINCIPALE) : les RÉGLAGES affichent « VERSION xxxxxxx · POKI » ;
      · compresse (Windows : le tar.exe du système sait faire un .zip). `--sans-zip` : le dossier seulement.
-   `node poki-construire.js itch` (2026-10-05, itch.io) : la même édition SANS le kit de Poki (`const POKI_SDK=true;` → false) — aucun
-   script de Poki chargé, aucune pub — dans `ITCH/` + `ITCH.zip`. Pour itch.io, CrazyGames (avant son propre kit), un site à soi… */
+   UNE ÉDITION PAR PORTAIL (2026-10-05) — la même édition, seul le KIT change (`const PORTAIL_SDK='poki';` du <head>) :
+     · `node poki-construire.js`       → `POKI/`  + `POKI.zip`  : le kit de Poki ;
+     · `node poki-construire.js crazy` → `CRAZY/` + `CRAZY.zip` : le kit de CrazyGames (SDK v3), et SANS MODE FACILE (Sacha) ;
+     · `node poki-construire.js itch`  → `ITCH/`  + `ITCH.zip`  : aucun kit, aucune pub (itch.io, un site à soi…). */
 const fs=require('fs'),path=require('path'),cp=require('child_process');
-const ITCH=process.argv.includes('itch'),NOM=ITCH?'ITCH':'POKI';
+const ED=process.argv.includes('itch')?'itch':process.argv.includes('crazy')?'crazy':'poki';
+const NOM={poki:'POKI',crazy:'CRAZY',itch:'ITCH'}[ED],SDK={poki:'poki',crazy:'crazy',itch:''}[ED];
+const OU={poki:'Poki for Developers',crazy:'CrazyGames (developer.crazygames.com, type HTML5)',itch:'itch.io (Kind of project : HTML)'}[ED];
 const SRC=path.join(__dirname,'VERSION PRINCIPALE'),DST=path.join(__dirname,NOM),ZIP=path.join(__dirname,NOM+'.zip');
 const SAUTE=new Set(['CLAUDE.md','README.md','JOUER.bat','sw.js','sons.html','atelier-son','atelier-nuages.js']); // à la racine du jeu
 const SAUTE_REL=new Set([1,2,3,4,5].map(k=>'assets/audio/music/ciel/ciel-n'+k+'.m4a') // la musique des niveaux 1 à 5 de la CARRIÈRE (nuages…
@@ -35,9 +39,9 @@ const f=path.join(DST,'index.html');let s=fs.readFileSync(f,'utf8');
 const n=(s.match(/const POKI_BUILD=false;/g)||[]).length;
 if(n!==1){console.error('✗ ligne POKI_BUILD introuvable ('+n+' occurrence) — rien n\'a été basculé');process.exit(1);}
 s=s.replace('const POKI_BUILD=false;','const POKI_BUILD=true;');
-if(ITCH){const k=(s.match(/const POKI_SDK=true;/g)||[]).length;
-  if(k!==1){console.error('✗ ligne POKI_SDK introuvable ('+k+' occurrence) — l\'édition web garderait le kit de Poki');process.exit(1);}
-  s=s.replace('const POKI_SDK=true;','const POKI_SDK=false;');}
+{const k=(s.match(/const PORTAIL_SDK='poki';/g)||[]).length;
+  if(k!==1){console.error('✗ ligne PORTAIL_SDK introuvable ('+k+' occurrence) — l\'édition '+NOM+' porterait le mauvais kit');process.exit(1);}
+  s=s.replace("const PORTAIL_SDK='poki';","const PORTAIL_SDK='"+SDK+"';");}
 let ver='';try{ver=cp.execFileSync('git',['log','-1','--format=%h','--','VERSION PRINCIPALE'],{cwd:__dirname}).toString().trim();}catch(e){}
 if(ver)s=s.replace("const CC_BUILD='__CC_BUILD__';","const CC_BUILD='"+ver+"';");
 fs.writeFileSync(f,s);
@@ -49,5 +53,5 @@ const tar=process.platform==='win32'?path.join(process.env.SystemRoot||'C:\\Wind
 try{
   if(process.platform==='win32')cp.execFileSync(tar,['-a','-c','-f',ZIP].concat(fs.readdirSync(DST)),{cwd:DST,stdio:'inherit'});
   else cp.execFileSync('zip',['-r','-q',ZIP].concat(fs.readdirSync(DST)),{cwd:DST,stdio:'inherit'});
-  console.log('✓ '+NOM+'.zip — '+(fs.statSync(ZIP).size/1048576).toFixed(1)+' Mo'+(ITCH?', à envoyer sur itch.io (Kind of project : HTML)':', à envoyer sur Poki for Developers'));
+  console.log('✓ '+NOM+'.zip — '+(fs.statSync(ZIP).size/1048576).toFixed(1)+' Mo, à envoyer sur '+OU);
 }catch(e){console.error('✗ compression impossible ('+e.message+') : zipper le CONTENU de '+NOM+'/ à la main (index.html à la racine du zip)');process.exit(1);}
