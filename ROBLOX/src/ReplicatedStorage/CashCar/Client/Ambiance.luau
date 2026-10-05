@@ -109,6 +109,10 @@ function Ambiance.nom(): string return courante end
 -- l'éblouissement de la brume divisés par deux — le ciel bleuit, les nuages prennent du relief, la ville claque. (La nuit, le
 -- voile reste : c'est lui qui peint le ciel violet de la ville et de l'orage.)
 local ECLAT = { sat = 0.12, con = 0.08, voile = 0.55, eblouit = 0.5 }
+-- LA LAMPE DU HÉROS (Caisse.construire) suit l'heure (5/10, revue visuelle) : la nuit elle sauve la caisse du contre-jour ; en plein
+-- jour, ajoutée au soleil, elle délavait la laque en PÊCHE — elle se fait discrète
+local HEROS = { pluie = 1.1, minuit = 1.3, tempete = 1.0, espace = 0.6 }
+local HEROS_JOUR = 0.3
 function Ambiance.poser(nom: string, duree: number?)
 	local H = HEURES[nom]
 	if not H or nom == courante then return end
@@ -116,6 +120,11 @@ function Ambiance.poser(nom: string, duree: number?)
 	local atm = Lighting:FindFirstChild("Altitude")
 	local cc = Lighting:FindFirstChild("Etalonnage")
 	local info = TweenInfo.new(math.max(0.01, duree or 1.2), Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+	local kH = HEROS[nom] or HEROS_JOUR
+	workspace:SetAttribute("HerosK", kH)
+	local mc = workspace:FindFirstChild("MaCaisse")
+	local lh = mc and mc:FindFirstChild("Heros", true)
+	if lh and lh:IsA("PointLight") then TweenService:Create(lh, info, { Brightness = kH }):Play() end
 	if atm then
 		local jour = not (H.nuit or H.noir or H.sansSoleil)
 		TweenService:Create(atm, info, { Color = H.brume, Decay = H.loin, Glare = H.eclat * (jour and ECLAT.eblouit or 1),
