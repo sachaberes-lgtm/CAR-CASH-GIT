@@ -90,6 +90,18 @@
     le tour au doigt est ADOUCI (`VITRINE_CAM.dPx/dSuit/dElan/dSway`) : ,0042 rad par pixel au lieu de ,007 (mesuré : le même glissé tourne 60° au
     lieu de 127°), la vue rejoint le doigt en ~0,25 s (elle flotte derrière lui), l'élan plafonné à 2,6 rad/s (7), la caméra penche 4× moins dans
     le virage, le balancement au repos ×0,4. Le menu de Léo garde ses réglages. sw.js → v109.
+  · (même jour, Léo : « effet flottant à revoir, restructurer pour que ce soit satisfaisant — là c'est un peu brut, le mouvement caméra garage »)
+    LE TOUR RESTRUCTURÉ, en vitrine (`VITRINE_CAM.dLisse/dFrein/dElan`, commentaire au-dessus de `VITRINE_CAM`). Quatre défauts trouvés :
+    ① la vue suivait le doigt au 1er ordre (pleine vitesse d'un coup, arrêt net) → un RESSORT AMORTI CRITIQUE (`GAR.vAv`, dLisse ,35 s) : elle
+    accélère, puis se pose sans dépasser ; lâchée, elle glisse et freine (dFrein 3,5/s, élan ≤ 1,6 rad/s : un glissé moyen ajoute ~80 % du
+    geste) ; rattrapée en vol, elle ralentit sous le doigt sans revenir en arrière (cible = position + vitesse × dLisse/2) ;
+    ② la visée restait clouée sur la porte pendant le tour (elle « fouettait » de l'entrée au fond) → visée RIGIDE : la caméra regarde toujours
+    par-dessus la caisse, dans l'axe du doigt (`aV = cA − vD`) ; au repos c'est l'entrée, comme avant ;
+    ③ le zoom respirait avec l'angle du doigt → il ne suit plus que le plateau ;
+    ④ le recadrage de l'image se lissait par IMAGE (plus vite à 120 Hz, à-coups quand une image saute) → lissé dans le TEMPS (`GAR.dtR`, ~0,15 s).
+    Et le glissé qui pose la caisse à gauche (`GAR.vD`) monte en douceur avec la vitrine (gain 7 en smoothstep) : il partait net puis traînait
+    2-3 s (mesuré en paysage : écart ,031 → ,012 au même instant). Simulé à 60 i/s (pic de vitesse 42°/s pour un doigt à 57°/s, posé en ~1,8 s).
+    `dbgInv('mvt')` = [angle, vitesse, cible, décalage]. sw.js → v110.
 - **LES JAUGES (même soir, Léo : « ça fait un peu vide, ajoute un peu de vie : jauge money, jauge aura, moyennes, colorées »)** — `#gVJ`,
   `gvJauges(anim)` appelée par `garVitrine(true)` : l'ARGENT (vert billet, vers la prochaine caisse à vendre — `objectif()`, celle que visait
   le profil du menu de Léo ; pleine : « À TA PORTÉE » qui luit) et l'AURA (violet → rose, le rang, vers le rang suivant, ce qu'il manque).
