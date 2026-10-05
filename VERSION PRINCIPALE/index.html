@@ -5914,7 +5914,7 @@ html.poki [data-m="shop"],html.poki [data-go="shop"],html.poki .gBoutique,html.p
 <!-- (2026-09-28) LA CONSOLE DE SON : la banque de sons (générée par atelier-son/cuire.js) et son lecteur. `defer` : ils ne retardent
      pas le démarrage (on n'en a besoin qu'au premier geste) ; changer `?v=` à chaque nouvelle banque (le service worker garde l'ancienne sinon). -->
 <script defer src="sons-banque.js?v=13"></script>
-<script defer src="assets/audio/music/harmonie.js?v=13"></script> <!-- (2026-10-03) l'harmonie des morceaux, temps par temps : la phrase du boost la lit (atelier-son/harmonie.py) -->
+<script defer src="assets/audio/music/harmonie.js?v=14"></script> <!-- (2026-10-03) l'harmonie des morceaux, temps par temps : la phrase du boost la lit (atelier-son/harmonie.py) -->
 <script defer src="sfx.js?v=4"></script>
 <script>
 (function(){
@@ -25632,13 +25632,14 @@ let musicLieu=null; // le morceau de LIEU qui tient l'antenne (null = la radio)
 // les niveaux 6 à 10 gardent NOITE DE VELOCIDADE. En partie SANS FIN, la zone NUAGES joue le morceau entier (les 5 niveaux à la suite).
 // Chaque fichier = sa boucle de 8 mesures répétée sans couture sur ~110 s. Les objets sont FIXES (musicSuitLieu compare par identité).
 const MUSIC_CIEL=[1,2,3,4,5].map(function(k){return{titre:'CIEL · NIVEAU '+k,f:'assets/audio/music/ciel/ciel-n'+k+'.m4a'};});
-// (2026-10-05, Léo : « musique pour le niveau 1 ville » — sa boucle NÉON du Studio, recréée par atelier-son/neon_ville.py : 12 tours de 4 mesures qui évoluent)
-const MUSIC_VILLE1={titre:'NÉON',f:'assets/audio/music/ville/ville-n1.m4a'};
+// (2026-10-05, Léo : « voilà les musiques 1 à 5 de la ville » — NÉON COMPLÈTE 1 à 5, ses boucles du Studio recréées par atelier-son/neon_ville.py :
+// 12 tours de 4 mesures qui évoluent, 96 s chacune ; avant, NÉON seule au niveau 1)
+const MUSIC_VILLE=[1,2,3,4,5].map(function(k){return{titre:'NÉON COMPLÈTE '+k,f:'assets/audio/music/ville/ville-n'+k+'.m4a'};});
 const MUSIC_CIEL_TOUT={titre:'CIEL · LES 5 NIVEAUX',f:'assets/audio/music/ciel/ciel-complet.m4a'};
 function musicLieuVoulu(){
   const c=LVL.cur;if(!c)return null;
   if(c.id==='nuages'){if(c.carr){if(c.carr.i<5)return MUSIC_CIEL[c.carr.i];}else if(!c.piste)return MUSIC_CIEL_TOUT;}
-  if(c.id==='ville'&&c.carr&&c.carr.i===0)return MUSIC_VILLE1; // la carrière VILLE, niveau 1 : NÉON
+  if(c.id==='ville'&&c.carr&&c.carr.i<5)return MUSIC_VILLE[c.carr.i]; // la carrière VILLE, niveaux 1 à 5 : NÉON COMPLÈTE 1 à 5
   return MUSIC_LIEU[c.id]||null;}
 /* appelé à chaque changement de niveau (fin de `newTrack`) : change de morceau SEULEMENT si le lieu
    en réclame un autre que celui qui joue. */
@@ -27079,7 +27080,7 @@ function sonConsole(){ // branche la console sur le contexte du jeu (fin d'initA
   try{waPrecharge();}catch(e){} // les voix et les samples, décodés pour le mixage (voir LES VOIX ET LES SAMPLES DANS LE MIXAGE)
 }
 addEventListener('load',function(){try{sonConsole();}catch(e){}});
-const SON_TON={'ville-n1':5,'glassy-plucks':-2,'ciel-n5':1,'ciel':-1,'vapeur-salon':-1,'lobby-ascenseur':-4,'lvl1-neon-cash-car':-1,'lvl2-cash-car-vitesse':-2,'nocturnal-groove':0,'noite-de-velocidade':2,'swag-cash-car-2':-1,'addictive-loop':1}; // (2026-09-29) SWAG do m → −1, ADDICTIVE la m → +1 : énergie par gamme majeure (chroma des partiels), la plus petite des trois pentatoniques de la gamme gagnante — la méthode retrouve NÉON, NOCTURNAL et NOITE (pas VITESSE)
+const SON_TON={'ville-n':5,'glassy-plucks':-2,'ciel-n5':1,'ciel':-1,'vapeur-salon':-1,'lobby-ascenseur':-4,'lvl1-neon-cash-car':-1,'lvl2-cash-car-vitesse':-2,'nocturnal-groove':0,'noite-de-velocidade':2,'swag-cash-car-2':-1,'addictive-loop':1}; // (2026-09-29) SWAG do m → −1, ADDICTIVE la m → +1 : énergie par gamme majeure (chroma des partiels), la plus petite des trois pentatoniques de la gamme gagnante — la méthode retrouve NÉON, NOCTURNAL et NOITE (pas VITESSE)
 /* (2026-10-04) GLASSY PLUCKS −2 : MESURÉ (chroma de harmonie.py) — si, la, ré, mi, fa# dominent, ré♯ et la♯ presque absents : si mineur /
    ré majeur (comme VITESSE), pas le « do# dorien » noté sur la branche de Léo (0). Sa fiche d'harmonie (la phrase du boost) est dans harmonie.js. */
 function sonTonSuit(){
