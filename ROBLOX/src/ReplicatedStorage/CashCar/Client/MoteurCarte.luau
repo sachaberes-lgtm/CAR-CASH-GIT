@@ -7,6 +7,7 @@
 -- d'avance, en tâche de fond : rien ne se construit à l'instant du palier.
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
 local Config = require(script.Parent.Parent:WaitForChild("Config"))
 local Bus = require(script.Parent:WaitForChild("Bus"))
 local Hud = require(script.Parent:WaitForChild("Hud"))
@@ -37,12 +38,6 @@ local function lumiere(c: Color3): Color3
 	local mx = math.max(c.R, c.G, c.B, 0.001)
 	local f = math.clamp(0.92 / mx, 1, 1.5)
 	return Color3.new(math.min(1, c.R * f), math.min(1, c.G * f), math.min(1, c.B * f))
-end
-local function sansAccent(s: string): string
-	for a, b in { ["É"] = "E", ["È"] = "E", ["Ê"] = "E", ["À"] = "A", ["Â"] = "A", ["Î"] = "I", ["Ô"] = "O", ["Û"] = "U", ["Ç"] = "C", ["Œ"] = "OE" } do
-		s = string.gsub(s, a, b)
-	end
-	return s
 end
 -- la couleur du moteur poussée au NÉON (engNeon) : les gris d'acier des premiers paliers deviennent cyan, le reste gagne sa saturation
 local function neon(h: number): Color3
@@ -153,10 +148,15 @@ local function oublier(sauf: number?)
 end
 
 -- ── la carte ──
-type Carte = { t: number, tier: number, modele: Model?, gui: BillboardGui, a: Attachment, titre: TextLabel, nom: TextLabel, ombre: TextLabel,
+-- LA CARTE v2 (5/10, revue du HUD) : le titre était écrit en 9 px et le nom en 20, quelle que soit la taille de l'écran (illisible sur
+-- un PC, minuscule sur un téléphone), cernés d'un trait de 1 px. Elle se dessine maintenant comme le HUD — pour un écran de 720 de haut,
+-- agrandie avec lui — cernée d'encre épaisse, le nom en relief à la couleur sombre du moteur ; et elle CLAQUE en arrivant.
+type Carte = { t: number, tier: number, modele: Model?, gui: BillboardGui, a: Attachment, textes: { TextLabel }, traits: { UIStroke },
 	couleur: Color3, gain: number, tour: number, atelier: boolean, plonge: boolean, impact: boolean }
 local carte: Carte? = nil
 local ancre: Part
+local PIX = Font.new("rbxasset://fonts/families/PressStart2P.json")
+local ENCRE = Color3.fromRGB(28, 4, 48)
 
 local function fin()
 	local c = carte
@@ -168,17 +168,29 @@ local function fin()
 	preparer(c.tier + 1)
 end
 
-local function texte(parent: Instance, taille: number, y: number, h: number): TextLabel
+-- l'échelle de l'interface (Hud : un écran de 720 de haut) — plancher 0,62 : sur un téléphone couché, le titre reste lisible
+local function echelleHud(): number
+	local sc = Hud.racine and Hud.racine:FindFirstChildOfClass("UIScale")
+	return math.clamp(sc and sc.Scale or 1, 0.62, 2)
+end
+
+local function texte(parent: Instance, taille: number, y: number, h: number, couleur: Color3, trait: number, cTrait: Color3, z: number): (TextLabel, UIStroke)
 	local l = Instance.new("TextLabel")
 	l.BackgroundTransparency = 1
-	l.FontFace = Font.new("rbxasset://fonts/families/PressStart2P.json")
+	l.FontFace = PIX
 	l.TextSize = taille
+	l.TextColor3 = couleur
+	l.TextWrapped = false
 	l.Size = UDim2.new(1, 0, 0, h)
 	l.Position = UDim2.fromOffset(0, y)
-	l.TextStrokeColor3 = Color3.fromRGB(28, 4, 48)
-	l.TextStrokeTransparency = 0
+	l.ZIndex = z
 	l.Parent = parent
-	return l
+	local s = Instance.new("UIStroke")
+	s.Color = cTrait
+	s.Thickness = trait
+	s.ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual
+	s.Parent = l
+	return l, s
 end
 
 local function ouvrir(tier: number, gain: number, sommet: boolean?)
@@ -186,33 +198,50 @@ local function ouvrir(tier: number, gain: number, sommet: boolean?)
 	local f = Liste[tier]
 	if not f then return end
 	local couleur = neon(f.couleur)
+	local k = echelleHud()
+	local function px(v: number): number return math.floor(v * k + 0.5) end
 	local a = Instance.new("Attachment")
 	a.Parent = ancre
 	local g = Instance.new("BillboardGui")
-	g.Size = UDim2.fromOffset(360, 64)
+	g.Size = UDim2.fromOffset(px(660), px(104))
 	g.AlwaysOnTop = true
 	g.LightInfluence = 0
 	g.MaxDistance = 400 * M
-	g.StudsOffsetWorldSpace = Vector3.new(0, 1.35 * M, 0)
+	-- (le nom se pose AU-DESSUS du moteur 3D ; quand le moteur n'a pas pu être bâti — le budget de triangles était plein —, il descend
+	-- à sa place : sinon il flottait haut dans le ciel, sur les annonces du centre de l'écran)
+	g.StudsOffsetWorldSpace = Vector3.new(0, (prets[tier] and 1.35 or 0.2) * M, 0)
+	g.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	g.Adornee = a
 	g.Parent = a
+	-- (une boîte qui porte l'échelle : le claquement d'arrivée, ancré par le bas — la carte pousse depuis le toit)
+	local boite = Instance.new("Frame")
+	boite.BackgroundTransparency = 1
+	boite.AnchorPoint = Vector2.new(0.5, 1)
+	boite.Position = UDim2.fromScale(0.5, 1)
+	boite.Size = UDim2.fromScale(1, 1)
+	boite.Parent = g
+	local sc = Instance.new("UIScale")
+	sc.Scale = 1.55
+	sc.Parent = boite
+	TweenService:Create(sc, TweenInfo.new(0.34, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 }):Play()
 	local cap = CAPACITES[tier]
-	local titre = texte(g, 9, 0, 14)
 	-- (L22722) un palier jamais atteint avant : NOUVEAU SOMMET, en or
-	titre.Text = cap and (FR and cap[1] or cap[2]) or (sommet and (FR and "NOUVEAU SOMMET" or "NEW PEAK") or (FR and "NOUVEAU MOTEUR" or "NEW ENGINE"))
-	titre.TextColor3 = cap and Color3.fromRGB(125, 255, 154) or (sommet and Color3.fromRGB(255, 215, 94) or Color3.fromRGB(223, 238, 255))
-	local nomTxt = sansAccent(FR and f.nom or f.en)
-	-- le nom dans la typo ombrée du HUD : une ombre dure décalée, à la couleur sombre du moteur
-	local ombre = texte(g, (#nomTxt > 12) and 15 or 20, 21, 30)
+	local tTxt = cap and (FR and cap[1] or cap[2]) or (sommet and (FR and "NOUVEAU SOMMET" or "NEW PEAK") or (FR and "NOUVEAU MOTEUR" or "NEW ENGINE"))
+	local tCoul = cap and Color3.fromRGB(125, 255, 154) or (sommet and Color3.fromRGB(255, 215, 94) or Color3.fromRGB(223, 238, 255))
+	local titre, sT = texte(boite, px(17), 0, px(22), tCoul, math.max(2, px(3)), ENCRE, 3)
+	titre.Text = tTxt
+	local nomTxt = Hud.sansAccent(FR and f.nom or f.en)
+	local corps = (#nomTxt > 14) and 26 or ((#nomTxt > 10) and 32 or 38)
+	-- le nom dans la typo ombrée du HUD : une ombre dure décalée, à la couleur sombre du moteur ; dessus, le néon cerné d'encre
+	local cOmbre = couleur:Lerp(Color3.new(0, 0, 0), 0.68)
+	local ombre, sO = texte(boite, px(corps), px(34) + math.max(2, px(5)), px(corps + 8), cOmbre, math.max(2, px(4)), cOmbre, 1)
+	ombre.Position = UDim2.fromOffset(math.max(2, px(5)), ombre.Position.Y.Offset)
 	ombre.Text = nomTxt
-	ombre.TextColor3 = couleur:Lerp(Color3.new(0, 0, 0), 0.62)
-	ombre.TextStrokeTransparency = 1
-	local nom = texte(g, (#nomTxt > 12) and 15 or 20, 18, 30)
+	local nom, sN = texte(boite, px(corps), px(34), px(corps + 8), couleur, math.max(2, px(4)), ENCRE, 2)
 	nom.Text = nomTxt
-	nom.TextColor3 = couleur
 	local modele = prets[tier]
 	if modele then modele.Parent = workspace end
-	carte = { t = 0, tier = tier, modele = modele, gui = g, a = a, titre = titre, nom = nom, ombre = ombre, couleur = couleur, gain = gain,
+	carte = { t = 0, tier = tier, modele = modele, gui = g, a = a, textes = { titre, ombre, nom }, traits = { sT, sO, sN }, couleur = couleur, gain = gain,
 		tour = 0, atelier = false, plonge = false, impact = false }
 	-- l'éclat de l'apparition, et les cylindres qui chantent : une note par cylindre, sur une gamme qui monte
 	local cf: CFrame = Bus.etat().carCF
@@ -254,9 +283,8 @@ local function tick(dt: number)
 	local pos = cf.Position + cf.UpVector * (haut * M) - cf.LookVector * (1.2 * M * k)
 	c.a.WorldPosition = pos
 	local fondu = math.clamp(u * 3, 0, 1)
-	c.titre.TextTransparency, c.titre.TextStrokeTransparency = fondu, fondu
-	c.nom.TextTransparency, c.nom.TextStrokeTransparency = fondu, fondu
-	c.ombre.TextTransparency = fondu
+	for _, l in c.textes do l.TextTransparency = fondu end
+	for _, s in c.traits do s.Transparency = fondu end
 	if c.modele then
 		local naissance = math.min(1, c.t / 0.14)
 		c.modele:ScaleTo(math.max(0.02, (0.6 + 0.4 * naissance) * (1 - 0.92 * k)))
