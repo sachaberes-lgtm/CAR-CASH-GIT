@@ -117,6 +117,32 @@
     (`dRegard` 4,5 : ~0,22 s). ~10 % plus près (`fw` ,98 · `fwP` ,88 · `fh` ,88) — couché, la place à gauche de la colonne JOUER est
     remplie (banc `bord.mjs` : à `fw` 1,1 la boîte de la caisse sort de l'écran). Le PLATEAU, lui, tourne toujours (la caisse sur
     elle-même) — `VITRINE_CAM.rot` 0 l'arrête. sw.js → v112.
+  · (même soir, Léo : « après 3 s sans action du joueur sur le joystick invisible qui gère le pdv du garage, le champ de vision se
+    replace vers la porte, agréablement ») LE RETOUR À LA PORTE (`GAR.ret`, `VITRINE_CAM.retAttente/retDuree/retPente`) : `retAttente` 3 s
+    après le dernier toucher ET l'élan retombé, la vue revient face à l'entrée par le chemin le plus court (≤ un demi-tour), courbe en S
+    (sinus) de 1,1 s + 0,9 s × angle/π (banc `retour.mjs` : 87° en ~1,6 s, puis tenue à 0). Un doigt posé la RATTRAPE (elle ralentit sous
+    lui, ~5° au banc). Arrivée, l'angle est ramené dans [−π, π] (le regard qui traîne aussi). sw.js → v113.
+- **LE BURN-OUT + LE COFFRE (même soir, Léo : « lorsque j'appuie sur la voiture, au lieu d'ouvrir l'inventaire — qui va être ajouté à côté
+  du bouton jouer —, la voiture va booster de manière satisfaisante : un burn-out, puisque sinon elle foncerait ; un effet stylé, travaillé,
+  design, avec des pixels, de la transparence, parce qu'il y aura de la fumée ; maintenue longtemps, la fumée disparaît mais peut
+  s'accumuler, et le joueur peut jouer avec ; si tu surpasses, encore mieux »)** — tout est dans le bloc « LE BURN-OUT » (après
+  `invHoldFin`). LE GESTE : le doigt TENU 0,14 s sur la caisse (vitrine) → `burnPart` ; tant qu'il tient, ça brûle ; il peut glisser
+  (la vue tourne autour de la caisse qui fume) ; un tap bref reste le « tonk » ; un tap DANS la fumée la souffle. L'inventaire a son
+  bouton **COFFRE** (`#gvCof`, icône pixel `coffre`, néon rose, colonne 2 à gauche de JOUER — le coffre de la caisse) et la touche I ;
+  l'appui long ne l'ouvre plus (`invHoldDebut` n'est plus branché). L'astuce « MAINTIENS TA CAISSE · BURN-OUT » (`#gInvAide`, bit 8 de
+  `SAVE.d.ast`) jusqu'au premier burn-out. LA CAISSE : roues ARRIÈRE seules (les `ESSIEUX` en z < 0), cul écrasé, nez levé,
+  tremblement, poupe qui chasse, plateau arrêté (`garageAng × (1 − BURN.k)`), caméra qui vibre à peine. LA FUMÉE : 320 quads
+  instanciés face caméra (pas de points WebGL : `gl_PointSize` plafonne à 64 px sur certains téléphones), dessinés en GROS PIXELS
+  d'écran de 5 px CSS (dérivées `dFdx/dFdy` : l'UV lue au centre du gros pixel — la même grille pour toutes, près ou loin), bord
+  dentelé, s'ÉMIETTE case par case en vieillissant, éclairée d'en haut, rosie près de la porte, bleuie au ras du plateau ; elle monte,
+  s'étale sous le plafond, vit 6 à 10 s (recyclée de la plus vieille). Le doigt qui glisse la POUSSE (`burnDoigt` : le rayon du doigt
+  dans la salle). LE FEU : 180 pixels additifs 3 × 3 — pétarades aux pots (rupteur, lâcher) et braises des pneus chauds (`chaud` ≥ ,45,
+  ~1,5 s). LES TRACES : deux bandes de gomme en pixels sur le plateau (`GAR.pod`), qui foncent et s'effacent en ~40 s. LE SON : le
+  VRAI moteur du palier (`ENG_SND[engTier]`, celui de la course) au RUPTEUR (~8 coupures/s), le crissement de la course (`skidG`), les
+  `crackle` au lâcher — aucun nœud neuf, leurs PORTES s'ouvrent/se ferment ; la liste des réglages des nœuds est sortie de la boucle
+  dans `engApplique(P9)` (la course l'appelle, inchangée). `closeGarage` → `burnCoupe` (silence, plus rien). Console : `dbgBurn()` ·
+  `dbgBurn(s)` (un burn-out de s secondes) · `dbgBurn(0)`. Bancs `burn.mjs` (geste réel, captures), `burnson.mjs` (son : portes 0 et 3
+  ouvertes pendant, la course repart) ; `cadreinv.mjs` mis au geste neuf (souris tenue = burn-out, I/Échap, COFFRE/croix, JOUER).
 - **L'ATELIER AÉRÉ + LE RENDU (même jour, Léo : « enlève quelques accessoires du garage, ça fait un peu rempli pour rien — les pieds tu
   dois laisser, ça fait partie du jeu ; les billets, mes trucs de trophée, tout ça laisse ; aère un peu l'espace · travaille plus le
   rendu »)** — `GAR_AERE` (juste avant `buildGarageRoom`) : le petit bazar ne se construit plus — cartons, bidons, fûts et jerricans de
