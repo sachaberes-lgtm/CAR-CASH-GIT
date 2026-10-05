@@ -23,12 +23,12 @@ local HEURES: { [string]: any } = {
 	matin = {
 		brume = RGB(246, 238, 222), loin = RGB(96, 156, 240), eclat = 0.2, voile = 0.4, densite = 0.034, -- (mesuré : à voile 0,9 le ciel du matin sortait BLANC ; le web a un zénith azur profond)
 		soleil = Color3.new(1, 0.97, 0.93), ext = RGB(235, 230, 245), teinte = RGB(255, 250, 244), sat = 0.38, con = 0.3, expo = -0.08,
-		S = V3(282, 272, 254), OH = V3(182, 194, 238), OB = V3(158, 168, 224), mer = Color3.new(1, 1, 1),
+		S = V3(300, 280, 248), OH = V3(186, 184, 236), OB = V3(160, 156, 222), mer = Color3.new(1, 1, 1), -- (5/10 : la face au soleil dorée, l'ombre mauve)
 	},
 	midi = {
 		brume = RGB(236, 240, 236), loin = RGB(72, 140, 244), eclat = 0.15, voile = 0.3, densite = 0.032,
 		soleil = Color3.new(1, 0.99, 0.96), ext = RGB(232, 234, 250), teinte = RGB(252, 252, 255), sat = 0.36, con = 0.3, expo = -0.05,
-		S = V3(288, 284, 274), OH = V3(176, 196, 246), OB = V3(152, 170, 232), mer = Color3.new(1, 1, 1),
+		S = V3(300, 286, 256), OH = V3(184, 188, 244), OB = V3(156, 160, 230), mer = Color3.new(1, 1, 1), -- (5/10 : un soleil plus chaud sur le coton)
 	},
 	-- LE TITRE (BIOMES.titre du web) : le matin poussé vers l'écran titre de Zelda — azur profond, horizon presque blanc, brume très loin
 	-- (3/10, mesuré au banc : à densité 0,03 la brume de Roblox EFFAÇAIT tout le décor du titre — les 18 cumulus, à 2-7 km de la
@@ -109,6 +109,10 @@ function Ambiance.nom(): string return courante end
 -- l'éblouissement de la brume divisés par deux — le ciel bleuit, les nuages prennent du relief, la ville claque. (La nuit, le
 -- voile reste : c'est lui qui peint le ciel violet de la ville et de l'orage.)
 local ECLAT = { sat = 0.12, con = 0.08, voile = 0.55, eblouit = 0.5 }
+-- LA LAMPE DU HÉROS (Caisse.construire) suit l'heure (5/10, revue visuelle) : la nuit elle sauve la caisse du contre-jour ; en plein
+-- jour, ajoutée au soleil, elle délavait la laque en PÊCHE — elle se fait discrète
+local HEROS = { pluie = 1.1, minuit = 1.3, tempete = 1.0, espace = 0.6 }
+local HEROS_JOUR = 0.3
 function Ambiance.poser(nom: string, duree: number?)
 	local H = HEURES[nom]
 	if not H or nom == courante then return end
@@ -116,6 +120,11 @@ function Ambiance.poser(nom: string, duree: number?)
 	local atm = Lighting:FindFirstChild("Altitude")
 	local cc = Lighting:FindFirstChild("Etalonnage")
 	local info = TweenInfo.new(math.max(0.01, duree or 1.2), Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+	local kH = HEROS[nom] or HEROS_JOUR
+	workspace:SetAttribute("HerosK", kH)
+	local mc = workspace:FindFirstChild("MaCaisse")
+	local lh = mc and mc:FindFirstChild("Heros", true)
+	if lh and lh:IsA("PointLight") then TweenService:Create(lh, info, { Brightness = kH }):Play() end
 	if atm then
 		local jour = not (H.nuit or H.noir or H.sansSoleil)
 		TweenService:Create(atm, info, { Color = H.brume, Decay = H.loin, Glare = H.eclat * (jour and ECLAT.eblouit or 1),

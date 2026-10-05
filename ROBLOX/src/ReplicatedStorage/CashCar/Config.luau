@@ -178,9 +178,11 @@ Config.LIGNE = { dt = 1.2, don = 1.15, voir = 3.5 }
 -- SATELLITES, puis on recommence. Une VARIANTE (`var`) garde l'`id` de son lieu : toute la ville suit, tout le ciel de coton suit ;
 -- elle ne change que ce qui fait sa difficulté (orage : les bancs partout et l'éclair · nuit : les fenêtres éteintes et les phares ·
 -- hard : des satellites SUR la route).
+-- (5/10, Sacha : « sur la version Roblox, mets la ville avant les nuages » — la VILLE ouvre la partie ; l'auto-école, la zone 0,
+-- garde le ciel des nuages)
 Config.NIVEAUX = {
-	{ id = "nuages", nom = "MER DE NUAGES", en = "SEA OF CLOUDS" },
 	{ id = "ville", nom = "AU-DESSUS DE LA VILLE", en = "ABOVE THE CITY" },
+	{ id = "nuages", nom = "MER DE NUAGES", en = "SEA OF CLOUDS" },
 	{ id = "espace", nom = "EN ORBITE", en = "IN ORBIT" },
 	{ id = "nuages", var = "orage", nom = "L'ORAGE", en = "THE STORM" },
 	{ id = "ville", var = "nuit", nom = "MINUIT EN VILLE", en = "MIDNIGHT CITY" },
@@ -269,15 +271,53 @@ Config.ROUE = {
 	},
 }
 
--- ── LES REVENUS (voir ServerScriptService/Revenus) — HORS de la boutique des caisses ──
+-- ── LES REVENUS (voir ServerScriptService/Revenus) — les offres en Robux sont aussi EN TÊTE de la BOUTIQUE (Client/Boutique) ──
 -- Les NUMÉROS se posent ici une fois les objets créés sur create.roblox.com (ton expérience → Monétisation / Engagement) : à 0,
--- l'objet n'existe pas et ce qui en dépend se tait. Les prix en Robux se règlent sur le site, pas ici.
+-- l'objet n'existe pas et ce qui en dépend se tait (sa carte de la boutique dit BIENTOT). Les prix en Robux se règlent sur le site,
+-- pas ici : le jeu les LIT sur Roblox.
 Config.REVENUS = {
-	-- les PASSES (achat unique, vendus aussi sur la page du jeu) : « ×2 ARGENT » (tout l'argent d'une partie compte double),
+	-- les PASSES (achat unique, vendus aussi sur la page du jeu et dans la BOUTIQUE) : « ×2 ARGENT » (tout l'argent d'une partie
+	-- compte double — 500 R$), « NITRO INFINIE » (la réserve de nitro ne se vide jamais, pour toujours — 700 R$ ; Sacha, 5/10),
 	-- « VIP » (cadeaux du jour et de temps de jeu doublés, nom doré au-dessus de la caisse)
-	passes = { argent2 = 0, vip = 0 },
-	-- les PRODUITS (achat répété) : la SECONDE CHANCE (repartir là où l'on a explosé, la partie continue)
-	produits = { secondeChance = 0, tours3 = 0 }, -- (tours3 : TROIS TOURS DE ROUE d'un coup — voir Config.ROUE)
+	-- (NITRO INFINIE se coupe et se rallume dans les RÉGLAGES — colonne JEU — pour qui possède le passe : réglage « nitroInf »)
+	passes = { argent2 = 0, nitroInfini = 0, vip = 0 },
+	-- les PRODUITS (achat répété) : le CŒUR (50 R$ ; Sacha, 5/10 : « une vie en plus sous forme de cœur ») — un cœur = une vie : à
+	-- l'explosion, la carte de la mort propose d'en UTILISER un (on repart sur la route) ou de terminer ; les cœurs se GARDENT dans le
+	-- profil d'une partie à l'autre ; sans cœur, la même carte propose d'en acheter un (acheté, il sert aussitôt).
+	-- (5/10, lot 2) les PACKS de cœurs : coeur5 (5 cœurs, ~199 R$), coeur15 (15 cœurs, ~499 R$) ; le KIT DU PILOTE (99 R$, une fois
+	-- par compte : voir `kit` plus bas)
+	produits = { coeur = 0, coeur5 = 0, coeur15 = 0, tours3 = 0, kit = 0 }, -- (tours3 : TROIS TOURS DE ROUE d'un coup — voir Config.ROUE)
+	coeursPar = { coeur = 1, coeur5 = 5, coeur15 = 15 }, -- combien de cœurs donne chaque produit « cœur »
+	-- LE KIT DU PILOTE (l'offre de bienvenue, en tête de la boutique tant qu'il n'est pas acheté) : de l'argent, des cœurs, et un
+	-- habillage OFFERT (« catégorie:id » de Config.HABITS — ici la traînée POUDRE D'OR, rangée au garage)
+	kit = { argent = 50000, coeurs = 3, habit = "trainee:or" },
+	-- LES PACKS D'ARGENT (produits, achat répété ; section ARGENT de la boutique) : `id` = le numéro du produit, `v` = les $ versés au
+	-- compte. Prix conseillés : 99 · 249 · 499 · 999 · 2 499 R$ (le bonus grandit avec la taille). Les montants se règlent ICI.
+	argent = {
+		{ id = 0, v = 25000 },  -- 99 R$
+		{ id = 0, v = 70000 },  -- 249 R$
+		{ id = 0, v = 150000 }, -- 499 R$
+		{ id = 0, v = 325000 }, -- 999 R$
+		{ id = 0, v = 900000 }, -- 2 499 R$
+	},
+	-- LES CAISSES LÉGENDAIRES en Robux (les 13 « premium » du catalogue, cond.k = "premium") : [indice de la caisse] = numéro du
+	-- PRODUIT. Achat UNIQUE gardé dans le profil (une caisse à soi ne se rachète pas) ; purement cosmétique — la vitesse vient du
+	-- moteur, jamais de la caisse. Prix conseillés (le prix web en euros × ~80) en commentaire.
+	caisses = {
+		[9] = 0,  -- CHAT ARC-EN-CIEL (4,99 €) — 399 R$
+		[10] = 0, -- REQUIN (9,99 €) — 799 R$
+		[11] = 0, -- COMÈTE (4,99 €) — 399 R$
+		[12] = 0, -- FORMULE OR (4,99 €) — 399 R$
+		[13] = 0, -- ENDURANCE 24 (2,99 €) — 249 R$
+		[14] = 0, -- EL PATRON (2,99 €) — 249 R$
+		[15] = 0, -- ACIDE (1,99 €) — 149 R$
+		[56] = 0, -- L'ÉTERNELLE (9,99 €) — 799 R$
+		[57] = 0, -- LE TRÔNE CENTRAL (7,99 €) — 599 R$
+		[58] = 0, -- LE SPECTRE (7,99 €) — 599 R$
+		[59] = 0, -- LE CHEVALIER NOIR (9,99 €) — 799 R$
+		[60] = 0, -- LE MUR DU SON (6,99 €) — 549 R$
+		[61] = 0, -- LE DRAGON D'OR (9,99 €) — 799 R$
+	},
 	-- les BADGES : bienvenue, permis de l'auto-école, zone 6 atteinte, moteur palier 10, 1 000 d'aura en une partie, record d'un
 	-- million, sept jours d'affilée
 	badges = { bienvenue = 0, permis = 0, zone6 = 0, moteur10 = 0, aura1000 = 0, millionnaire = 0, serie7 = 0 },

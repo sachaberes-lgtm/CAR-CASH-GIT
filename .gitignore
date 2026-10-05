@@ -42,3 +42,5 @@ ml/sim/track-*.json
 # --- L edition POKI : generee par poki-construire.js depuis VERSION PRINCIPALE (on la refait, on ne l edite pas) ---
 POKI/
 POKI.zip
+ITCH/
+ITCH.zip

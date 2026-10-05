@@ -69,7 +69,7 @@ Score.frenDeclenche()
 verifie("frénésie", Score.niveau(), 4)
 verifie("×3", Score.flowMult(), 3)
 verifie("traits pleins", Score.FREN.tr.n + Score.FREN.tr.m + Score.FREN.tr.p, 4 + 8 + 1.5)
--- on ne nourrit rien, au sol, à la croisière : PSYCHO meurt à 1,5 s, NARCISSE à 4 s, MACHIAVEL à 8 s ; la jauge passe sous 88
+-- on ne nourrit rien, au sol, à la croisière : VITESSE meurt à 1,5 s, STYLE à 4 s, RUSE à 8 s ; la jauge passe sous 88
 local t, perdu = 0, nil
 while t < 30 do
 	Score.flowTick(0.02, "drive", 1, false); t += 0.02

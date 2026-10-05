@@ -25,6 +25,18 @@ if Config.MUET_TEST then
 	g.Volume = 0
 	g.Parent = SoundService
 	muet = g
+	-- (5/10, Sacha : « enlève le son » — il entendait encore les essais) TOUT son qui apparaît dans le jeu, d'où qu'il vienne, est
+	-- rangé de force dans le groupe muet, volume à zéro
+	local function etouffer(d: Instance)
+		if d:IsA("Sound") then
+			pcall(function()
+				d.SoundGroup = g
+				d.Volume = 0
+			end)
+		end
+	end
+	for _, d in game:GetDescendants() do pcall(etouffer, d) end
+	game.DescendantAdded:Connect(function(d) pcall(etouffer, d) end)
 end
 
 local function source(nom: string): string?
@@ -75,7 +87,7 @@ end
 
 -- joue un son une fois. hauteur = PlaybackSpeed (1 = normal, 2^(n/12) = n demi-tons plus haut)
 function Sons.jouer(nom: string, hauteur: number?, volume: number?)
-	if not Sons.actif then return end
+	if not Sons.actif or muet then return end -- (la copie de test ne joue rien du tout)
 	local l = bassin(nom)
 	if not l or #l == 0 then return end
 	tours[nom] = (tours[nom] % #l) + 1
@@ -127,7 +139,7 @@ function Sons.regler(nom: string, volume: number, hauteur: number?)
 	else
 		v *= Sons.volSon * SOUS_MUS
 	end
-	s.Volume = v
+	s.Volume = muet and 0 or v
 	if hauteur then s.PlaybackSpeed = hauteur end
 end
 

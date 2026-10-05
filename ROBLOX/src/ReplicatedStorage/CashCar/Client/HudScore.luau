@@ -1,5 +1,5 @@
 -- CASH CAR — LE HUD DU SCORE (dans l'écran de course) : la bande de FLOW sous la nitro (le mot, quatre cases, « $×1,3 »),
--- les étiquettes de trait (+NARCISSE / -PSYCHO), l'emblème de la FRÉNÉSIE (trois barres N · M · P et son chrono),
+-- les étiquettes de trait (+STYLE / -VITESSE), l'emblème de la FRÉNÉSIE (trois barres N · M · P et son chrono),
 -- le compteur d'AURA et sa chaîne (les deux dernières lignes, le ×, la barre des 3,5 s), l'annonce qui claque (slam),
 -- l'éclair d'écran. Tout se lit dans Client/Score (FLOW, FREN, CHA) ; ce module ne fait qu'afficher.
 local TweenService = game:GetService("TweenService")
@@ -407,6 +407,8 @@ function HudScore.tick(dt: number, mode: string)
 	if chiffres ~= U.aura.Text then
 		U.aura.Text = chiffres
 		U.auraMot.Position = UDim2.fromOffset(#chiffres * 73 * Hud.CHASSE + 14, 26) -- (police à chasse fixe : le mot suit le chiffre)
+		-- (5/10, revue : le « +34 » du gain restait où il était né — quand l'aura gagnait un chiffre, il mordait sur le mot : « AUR+34 »)
+		U.verse.Position = UDim2.fromOffset(U.auraMot.Position.X.Offset + 4 * 30 * Hud.CHASSE + 16, U.verse.Position.Y.Offset)
 	end
 	if CH.rec > 0 then
 		local pR = math.min(1, a / CH.rec)

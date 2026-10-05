@@ -242,7 +242,7 @@ function Caisse.construire(nom: string, indice: number, ancree: boolean?, habits
 		local l = Instance.new("PointLight")
 		l.Name = "Heros"
 		l.Range = 9 * M
-		l.Brightness = 1.1
+		l.Brightness = workspace:GetAttribute("HerosK") or 1.1 -- (l'heure du ciel la règle : voir Client/Ambiance)
 		l.Color = Color3.fromRGB(255, 244, 232)
 		l.Shadows = false
 		l.Parent = a

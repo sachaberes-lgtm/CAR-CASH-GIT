@@ -35,9 +35,160 @@
   de la fenêtre : 390 de haut × la largeur (16:9 → 693 × 390), sans boîtier, sans bouton TOURNER ni numéro sous le jeu. Chez Poki le jeu
   est TOUJOURS dans un cadre : « dans la colonne » se lit à l'adresse (`colonne=1`), plus à `window.top`. La page-cadre masque son propre
   jeu par la classe `ccHors` (pas tout `body>*` : le cadre de pub que le SDK y pose doit rester visible) et ne charge le SDK qu'après.
+- **(2026-10-05, Sacha : « mets la map de la ville en premier puis nuage en deux, fais pareil pour les versions hardcore, et enlève toutes
+  les voix de cette version »)** — POKI seulement, la version principale garde NUAGES en 1er et ses voix :
+  · L'ORDRE : bloc `if(POKI)` sous `NIVEAUX`, qui ÉCHANGE les places (trouvées par id) → VILLE, NUAGES, PARIS, ORBITE, MINUIT EN VILLE,
+    L'ORAGE, PLUIE DE SATELLITES (mesuré au banc par dbgSaut). L'auto-école garde son ciel d'aurore ; `musicPremier` lit NIVEAUX[0] (la ville).
+  · PLUS AUCUNE VOIX : l'annonceur naît `dead` (annSpeak rend son texte, rien ne se charge), le « ewww » quitte DEATH_LIB, le « WOW » est
+    `dead`, les préchargements (annPreload, waPrecharge, fxPreload) les sautent, l'interrupteur VOIX et son volume sont masqués ; le
+    script ne copie ni `announcer/`, ni `eww.m4a`, ni `wow.mp3` (banc : zéro requête de voix). Les chœurs et le cri du dauphin sont de la
+    SYNTHÈSE (sons-banque) : gardés. Le script saute aussi `music/ville/ville-n1…n5` (carrière seulement).
+- **L'ÉDITION WEB pour itch.io (2026-10-05)** : `node poki-construire.js itch` → `ITCH/` + `ITCH.zip` (gitignorés) = l'édition Poki avec
+  `const POKI_SDK=false;` : aucun script de Poki chargé (`CC_PK.etat` −1, aucune pub, REJOUER direct), réglages « VERSION … · WEB ».
+  Banc : zéro requête vers poki.com/poki.io, partie → mort → REJOUER sans erreur. Sur itch.io : Kind of project = HTML, le zip « played
+  in the browser », le champ URL = l'adresse de la PAGE itch (pas le lien Vercel).
 - **Pas encore fait / à trancher** : l'auto-école parle de POUCE même au clavier chez Poki (vrai aussi dans le cadre de l'ordi de la
   version principale) ; `dark-triad.mp3` manque (404 en console, déjà vrai sur `main`) ; le compte développeur Poki, la page du jeu et
   l'envoi du zip = Sacha ; droits des musiques et noms de marques (CHAT POP-TART…) à vérifier avant publication.
+## LA VITRINE DU GARAGE (2026-10-04, copie de test de Léo — « ne mets pas direct le shop dans le garage, c'est agressif » · puis « je veux un beau point de vue sur la voiture, des boutons visibles minimalistes — menu, shop — comme avant mais un peu mieux, premium, smooth ; quand on maintient sur la voiture, ça active un inventaire comme le shop mais avec les objets possédés, entourés d'une lueur de la couleur de leur rareté »)
+- Le bouton GARAGE (accueil `mTap 'garage'`, et `#garageBtn` du menu de l'ordi) ouvre l'atelier AU CALME : `garVitrine(true)`, posée APRÈS
+  `garMode('boutique')` / `openGarage()` — ta caisse (jamais un essai), son nom, et HOME · SHOP · JOUER. Masqués (`<style id="garageVitrine">`,
+  après garageV7) : compte, rang, famille, onglets, vignettes à prix, flèches, ACHETER/ÉQUIPER, BOUTIQUE en vrai argent. En vitrine le glissé
+  TOURNE la caisse, il ne feuillette plus la gamme (`garageGo` coupé), et ne change pas la hauteur du regard.
+- **LES TOUCHES (v2)** : plus de console — HOME · SHOP · JOUER posées sur le sol (laque fine, filet de couleur dessous, arrivée en cascade,
+  `gvMonte`) ; couché, calées à droite sous le pouce. SHOP (`#gPerso`, la PIÈCE : l'argent du JEU ; c'était TUNING) déplie la console d'avant
+  (`garVitrine(false)` + `.deplie`) ; les flèches du clavier aussi. `garMode` replie TOUJOURS la vitrine : les autres chemins (VOIR une
+  récompense, l'objectif, la personnalisation, la BOUTIQUE du menu de Léo) ouvrent la boutique dépliée, sur l'objet visé. Voiles allégés.
+- **LE POINT DE VUE (v2, `garageRender`, `VITRINE_CAM`, fondu `GAR.vit`)** : caméra plus basse (hauteur de phare), regard presque à niveau,
+  objectif un peu resserré (×,9), plateau plus lent (,15 rad/s), clé et contre-jour un cran plus forts. Le RECUL SE CALCULE sur la caisse
+  (`garGabarit` : empreinte au sol et hauteur, mesurées caisse droite à l'échelle 1) : elle tient dans `fw` (,9) de la largeur LIBRE
+  (`garLibre`, tiroir ouvert compris) et `fh` de sa hauteur — MESURÉ : un recul fixe la coupait aux bords debout, de profil. Et il suit à
+  moitié (`adapt` ,5) la largeur qu'elle MONTRE à l'instant : la caméra s'approche quand elle montre l'arrière, recule de profil (travelling
+  lissé ~1 s). Réglable à chaud : `dbgInv('cam',{…})`.
+  · (même soir, Léo : « le point de vue un peu plus haut, légèrement incliné vers le bas vers la voiture, couché et debout ; debout c'est un
+    peu trop rapproché ; pas centré pile sur la voiture, un peu à gauche ») : inclinaison +0,08 rad au lieu de −0,1, hauteur d'origine, visée
+    sur la caisse (`vise` −,38 couché, +,22 debout) — on la voit d'un peu au-dessus, le plateau en ellipse ; debout `fwP` ,8 (un cran de recul) ;
+    la caisse posée à 43 % de la largeur libre (`cx`) — le cadrage se calcule sur la plus petite des deux moitiés : elle reste entière de
+    profil — et debout à 55 % de la hauteur libre (`cy`).
+- **LA MISE EN PAGE v3 (même soir, Léo : « réorganise les boutons et la place occupée sur l'écran, c'est pas beau »)** — MESURÉ sur les captures :
+  tout s'empilait dans un coin (debout ⚙ + nom + plaque des jauges à gauche, la droite vide ; couché ⚙ + plaque + astuce + touches à droite),
+  HOME et SHOP n'avaient ni la largeur ni la hauteur de JOUER. Désormais DEUX BARRES sur la même marge (16 px + zone sûre) : EN HAUT le nom à
+  gauche (il s'arrête avant le ⚙, sa taille suit la place), le ⚙ dans le coin droit (debout aussi : `#gOutils` fixe), les deux jauges en CARTES
+  égales (debout en rangée pleine largeur sous le nom, couché sur la ligne du nom entre lui et le ⚙) ; EN BAS HOME et SHOP en deux carrés
+  (pictogramme sur son mot), JOUER prend le reste, même hauteur (62 px debout, 56 couché) ; couché les touches à droite sous le pouce et
+  l'astuce à gauche, sur deux lignes (elle tient même dans les marges de l'iPhone). Cartes : argent = valeur, %, la caisse visée et son
+  prix (coche verte qui luit quand elle s'achète) ; aura = valeur, %, le rang en rose (le suivant au survol).
+- **(2026-10-05, Léo) « enlève le blase de la voiture, énorme, qui sert à rien » · « la voiture en paysage encore calée un peu plus vers le coin bas
+  gauche »** : le NOM est retiré de la vitrine (`#gCard` masqué ; il vit dans l'inventaire et la console du SHOP) — debout, les jauges montent dans
+  la barre du haut à côté du ⚙ (pourcentage lu sur la barre, chiffres serrés, compacts dès 100 000). Couché la caisse a toute la place à GAUCHE de
+  la pile du départ (`garLibre` : x1 = bord de `#gAct`, toute la hauteur), à 62 % de cette place (`cxL`) et 60 % de sa hauteur (`cyL`).
+- **LA PILE DU DÉPART (2026-10-05, Léo : « en dessous du play, insère MISSIONS, et le nom du level qui va être lancé, limite collé, de manière
+  stylée, branché énergétiquement »)** — `#gAct` devient une grille : JOUER en haut à droite ; dessous, collé, le CARTOUCHE du niveau (`#gvNiv`,
+  `gvNiveau()`) : deux conducteurs d'or où le courant MONTE vers le lingot (`gvCourant`), un flux qui court sur sa tranche (`gvFlux`), un éclair qui
+  grésille, le nom dans la couleur du monde (`GV_TEINTE`) — JOUER de l'atelier lance la partie sans fin, donc `NIVEAUX[0]` (« NIVEAU 1 · MER DE
+  NUAGES ») ou « PERMIS · AUTO-ÉCOLE » tant que le permis n'est pas passé ; debout le numéro seul dans une pastille d'or. Dessous MISSIONS
+  (`#gvMis`, vert, les trois pastilles des défis) : l'écran des missions de l'atelier, et HOME / Échap y RAMÈNENT à la vitrine (`GAR.misVit`,
+  `garMisRetour`). HOME et SHOP sur la rangée du bas, à côté de MISSIONS. L'astuce : debout au-dessus de la pile, couché dans le coin haut-gauche.
+- **LE TOUR DU GARAGE AU DOIGT, L'ENTRÉE AU REPOS (2026-10-05, Léo : « c'est avec le doigt qu'on peut bouger le garage à 360°, mais sinon centré sur
+  l'entrée, sans la porte »)** : en vitrine le glissé fait TOURNER LA VUE (le glissé fondu du menu de Léo : `GAR.vAc`, élan, tour complet, sans
+  changer la hauteur) ; le plateau continue de tourner. Au repos la caméra REGARDE L'ENTRÉE (`VC.porteY` 1,9 m) : l'ouverture et le feu restent au
+  milieu de l'image ; la caisse est posée par la PLACE de la caméra (`GAR.vD`, décalage d'azimut corrigé image après image d'après `GAR.cErr`,
+  l'écart lu par `garCadre`), plus par un décentrement en largeur (`garCadre(k, kx)` : kx = 1 − wD). Vue tournée : `wD` → 0, la visée revient
+  au-delà de la caisse. JOUER défait les deux pendant le retour au feu (`pre.vd0`, `GAR.preE`) : pas de saut au départ. Pas de retour automatique
+  (Léo l'avait retiré du menu le 30/09). ⚠ LA PORTE se LÈVE en vitrine (`garPorte` : `Pt.kv`, 1,1 s) — la porte fermée est le choix de SACHA
+  (menu, boutique) : ici seulement en vitrine, À CONFIRMER AVEC ELLE avant main. Bancs `tour.mjs` (glissé 127°, MISSIONS → HOME → vitrine, JOUER
+  depuis une vue tournée), `garfeu.mjs`, `parcours.mjs`, `inv.mjs`, `cadreinv.mjs`. sw.js → v108.
+  · (même jour, Léo : « un peu plus doux l'effet tourner dans le garage — c'est pas mal le flottement, juste ça tourne trop la tête ») en vitrine
+    le tour au doigt est ADOUCI (`VITRINE_CAM.dPx/dSuit/dElan/dSway`) : ,0042 rad par pixel au lieu de ,007 (mesuré : le même glissé tourne 60° au
+    lieu de 127°), la vue rejoint le doigt en ~0,25 s (elle flotte derrière lui), l'élan plafonné à 2,6 rad/s (7), la caméra penche 4× moins dans
+    le virage, le balancement au repos ×0,4. Le menu de Léo garde ses réglages. sw.js → v109.
+  · (même jour, Léo : « effet flottant à revoir, restructurer pour que ce soit satisfaisant — là c'est un peu brut, le mouvement caméra garage »)
+    LE TOUR RESTRUCTURÉ, en vitrine (`VITRINE_CAM.dLisse/dFrein/dElan`, commentaire au-dessus de `VITRINE_CAM`). Quatre défauts trouvés :
+    ① la vue suivait le doigt au 1er ordre (pleine vitesse d'un coup, arrêt net) → un RESSORT AMORTI CRITIQUE (`GAR.vAv`, dLisse ,35 s) : elle
+    accélère, puis se pose sans dépasser ; lâchée, elle glisse et freine (dFrein 3,5/s, élan ≤ 1,6 rad/s : un glissé moyen ajoute ~80 % du
+    geste) ; rattrapée en vol, elle ralentit sous le doigt sans revenir en arrière (cible = position + vitesse × dLisse/2) ;
+    ② la visée restait clouée sur la porte pendant le tour (elle « fouettait » de l'entrée au fond) → visée RIGIDE : la caméra regarde toujours
+    par-dessus la caisse, dans l'axe du doigt (`aV = cA − vD`) ; au repos c'est l'entrée, comme avant ;
+    ③ le zoom respirait avec l'angle du doigt → il ne suit plus que le plateau ;
+    ④ le recadrage de l'image se lissait par IMAGE (plus vite à 120 Hz, à-coups quand une image saute) → lissé dans le TEMPS (`GAR.dtR`, ~0,15 s).
+    Et le glissé qui pose la caisse à gauche (`GAR.vD`) monte en douceur avec la vitrine (gain 7 en smoothstep) : il partait net puis traînait
+    2-3 s (mesuré en paysage : écart ,031 → ,012 au même instant). Simulé à 60 i/s (pic de vitesse 42°/s pour un doigt à 57°/s, posé en ~1,8 s).
+    `dbgInv('mvt')` = [angle, vitesse, cible, décalage]. sw.js → v110.
+  · (même jour, Léo : « maintenant c'est un peu générique — fais un juste milieu entre les deux, ça manque un peu de… ») LE JUSTE MILIEU
+    v109 ↔ v110 (`VITRINE_CAM`) : ressort un peu SOUS-amorti (`dAmorti` ,72, `dLisse` ,3 s : pic 53°/s pour un doigt à 57°/s — v110 : 42 —,
+    un soupçon de rebond < 1° à la pose ; intégré en pas de 8 ms) ; la visée TRAÎNE derrière le geste (`dRegard` 3,2/s : la caisse glisse
+    un peu dans le cadre et y revient — le flottement de la v109 sans son fouet ; le glissé vD attend qu'elle ait rejoint, écart < ,03) ;
+    roulis ×(1 − `dRoulis` ,6), balancement ×(1 − `dSway` ,35), élan `dElan` 2 / `dFrein` 3. ⚠ ET UN BUG DE LA v109 : un commentaire
+    collé avait AVALÉ `GAR.swP=…` (le balancement VERTICAL de la caméra, menu compris) — rendu. sw.js → v111.
+  · (même soir, Léo : « arrête de faire tourner automatiquement le garage ; le pdv un peu plus proche ; l'effet de mouvement doit moins
+    basculer, et suivre la voiture un tout petit peu plus — pas trop ») AU REPOS LA CAMÉRA NE TOURNE PLUS D'ELLE-MÊME : balancement latéral
+    coupé en vitrine (`dSway` 1) et le glissé `vD` n'est plus un asservissement permanent mais une HYSTÉRÉSIS (`GAR.vDon` : il recadre
+    au-delà de 3 % d'écart, jusqu'à 0,6 %, puis se tait — le zoom qui respire avec le plateau le faisait tourner sans fin, lentement).
+    Mesuré au banc (`repos.mjs`, 30 s au repos) : azimut figé (couché 0,656 rad constant ; debout écart 0,002 rad). Moins de bascule :
+    balancement vertical ×,5 (`dSwayV`), roulis ×,15 (`dRoulis` ,85), rebond plus sage (`dAmorti` ,78). La visée suit un peu mieux
+    (`dRegard` 4,5 : ~0,22 s). ~10 % plus près (`fw` ,98 · `fwP` ,88 · `fh` ,88) — couché, la place à gauche de la colonne JOUER est
+    remplie (banc `bord.mjs` : à `fw` 1,1 la boîte de la caisse sort de l'écran). Le PLATEAU, lui, tourne toujours (la caisse sur
+    elle-même) — `VITRINE_CAM.rot` 0 l'arrête. sw.js → v112.
+- **L'ATELIER AÉRÉ + LE RENDU (même jour, Léo : « enlève quelques accessoires du garage, ça fait un peu rempli pour rien — les pieds tu
+  dois laisser, ça fait partie du jeu ; les billets, mes trucs de trophée, tout ça laisse ; aère un peu l'espace · travaille plus le
+  rendu »)** — `GAR_AERE` (juste avant `buildGarageRoom`) : le petit bazar ne se construit plus — cartons, bidons, fûts et jerricans de
+  la porte, cônes, seau, balai, poubelle, palettes, cric, chandelles, planche à roulettes, tabouret, poste, tasses, rallonge, clés semées,
+  batterie, bac de vidange, cales, chiffon, deux flaques, l'étagère haute du fond, le calendrier ; le rack est VIDÉ (il garde ses jantes et
+  son pneu — les tas de billets s'y posent). RESTENT : billets, affiches de records, pneus, jantes, les deux V8 (le palan, le MOTEUR SUR
+  PIED — « les pieds », lu ainsi : à confirmer), et les meubles qui portent les MISSIONS (compresseur, établi, pont, rack, distributeur :
+  `GMIS.ancres` les visent). Le code reste : **`?bazar=1` = l'ancien atelier** (à comparer). LE RENDU : une OMBRE AU PIED DES MURS
+  (bande d'encre de 2,2 m sur l'époxy, trois murs + les deux pans de façade, coins doublés — un seul matériau, aucune lumière) et un
+  VIGNETTAGE en vitrine (`#gVig`, centré sur la place de la caisse : milieu debout, bas-gauche couché ; éteint au lancement).
+- **LES JAUGES (même soir, Léo : « ça fait un peu vide, ajoute un peu de vie : jauge money, jauge aura, moyennes, colorées »)** — `#gVJ`,
+  `gvJauges(anim)` appelée par `garVitrine(true)` : l'ARGENT (vert billet, vers la prochaine caisse à vendre — `objectif()`, celle que visait
+  le profil du menu de Léo ; pleine : « À TA PORTÉE » qui luit) et l'AURA (violet → rose, le rang, vers le rang suivant, ce qu'il manque).
+  La jauge de la charte (fond d'encre, quatre bandes, curseur blanc) ; à l'entrée elles se REMPLISSENT (1,2 s), les chiffres défilent, un
+  reflet passe toutes les ~5 s, la pièce tourne, l'étoile scintille. Debout sous le nom ; couché en haut à droite (la caisse est à gauche) ;
+  masquées pendant l'inventaire. Le nom de la cible se coupe s'il le faut, jamais le prix.
+- **L'INVENTAIRE (`INV`, `invOuvre`/`invFerme`/`invRender`/`invEquipe`, `#gInv`)** : le doigt (ou la souris) TENU sur la caisse
+  (`garSurCaisse` : sa carrosserie projetée, élargie de 8 % + 10 px) — après 0,12 s un anneau de la couleur de la caisse se remplit sous le
+  doigt (`#gInvAnneau`, 0,45 s), plein il ouvre le tiroir (vibration) ; bouger de plus de 12 px annule (c'est un glissé) ; le relâcher qui suit
+  est avalé (`INV.mange`). Au clavier : I. Le tiroir (debout en bas, couché à droite) : les onglets de la console avec leur compte, et la grille
+  de ce qui est À TOI — caisses `carUnlockedVrai` (en TEST tout s'équipe, l'inventaire dit la vérité ; l'équipée y est toujours), habillages
+  possédés (d'origine compris), rangés du plus rare au plus commun, chaque tuile dans la LUEUR de sa famille (couleurs `RARETES`, force
+  `INV_LUEUR`, en rgba — pas de color-mix). Les habillages n'avaient pas de famille : `cosmRar` (d'origine = COMMUNE, ≤ 5 000 = RARE, au-delà =
+  ÉPIQUE, gagné par défi = DÉFI ; jamais LÉGENDAIRE, le rang du vrai argent) — ⚠ décision prise sans Léo, à confirmer. Toucher = ÉQUIPER tout de
+  suite (caisse : `garageSaute`, la bascule du plateau ; habillage : `shopEquip` + `buildCar`), éclair de sa couleur, coche verte. Ailes et
+  traînées se montrent sur leur onglet (traînée à ,55). Fermer : la croix, un tap dans la scène, Échap, I ; tout changement de mode le referme.
+  L'astuce « MAINTIENS LA CAISSE · INVENTAIRE » (`.aideInv`, ~9 s à chaque vitrine) jusqu'à la 1re ouverture (`SAVE.d.ast`, bit 4).
+- Vérifié (bancs `inv.mjs`, `ang.mjs`, `parcours.mjs`, `cadreinv.mjs`, scratchpad 83e03bdc) : vitrine debout/couché aux quatre angles (la
+  caisse entière), tap court et glissé n'ouvrent rien, doigt tenu → tiroir, équiper peinture et caisse, traînées, Échap, SHOP → console ;
+  accueil → JOUER → course, mort → REJOUER, mort → HOME → GARAGE → inventaire → HOME → JOUER, JOUER du garage — debout, couché et dans le
+  cadre de l'ordi (souris maintenue, touches I/Échap, clic JOUER) : 0 erreur. ⚠ Au rendu logiciel (~400 ms l'image) un glissé peut arriver
+  APRÈS la fin du délai et ouvrir le tiroir : artefact du banc (sur téléphone les mouvements arrivent toutes les 16 ms). sw.js → v104, v105, v106 (le plan v2 et les jauges), v107 (les deux barres) : mêmes parcours repassés à chaque fois, 0 erreur.
+
+## LA SESSION DE DEBUG (2026-10-05, copie de test de Léo — « au début, à CASH CAR qui explose, une musique commence très très fort, puis ça relance au niveau ciel » · « dans le lobby les boucles tournent bizarrement parfois » · « rends plus smooth la transition entre deux niveaux, avec le portail »)
+- **L'INTRO QUI REPART** (reproduit au banc : `version.json` simulé en retard) : la 1re lecture de version partait 4 s après l'ouverture
+  et « pas en course » comprenait l'intro — un toucher à 1-2 s, et la page se RECHARGEAIT ~2,5 s plus tard, pile sur l'explosion de
+  CASH CAR, puis tout recommençait (deux fois au plus : le garde-fou). Après chacun de nos pushs, Léo tombait dessus. Corrigé dans LA
+  MISE À JOUR TOUTE SEULE (voir plus bas) : lue dès l'ouverture, rechargement sur l'écran titre muet, jamais pendant l'intro, au menu
+  seulement après 45 s sans toucher. Un rechargement au menu tirait aussi un AUTRE son du lobby : c'est fini.
+- **LE DÉVERROUILLAGE MUET** (`musicDeverrouille`) : la lecture muette du 1er toucher se ROUVRE seulement une fois l'arrêt constaté (avant :
+  dans la même image que `pause()` — un lecteur lent pouvait laisser filer le morceau à plein) ; `musicJoue` démute toujours.
+- **LE LOBBY PARTAIT FORT** : `musicMenu` le lançait à ,8 × le curseur et musicTick (mode menu) le ramenait à ,5 dans la demi-seconde —
+  un départ fort puis un creux de −4 dB à chaque retour au menu. Il part de 0 et monte en ~0,4 s au niveau du menu (inchangé). iPhone :
+  volume verrouillé, rien ne change (mesuré : les deux boucles du lobby sont à −13,6/−13,8 LUFS, comme les niveaux, −13 à −15).
+- **LES BOUCLES DU LOBBY RECOUSUES** (mesuré, ffmpeg + numpy, scratchpad 83e03bdc `boucle.py`, `reps.py`, `coud.py`) : VAPEUR · SALON =
+  12 phrases de 9,6 s (A B A B…) + 16 ms MUETTES au bout ; ASCENSEUR DORÉ = 13 × 8 s, mais sa 1re phrase claquait (saut 0,11 à la couture,
+  contre 0,02 au milieu). Refaits : longueur EXACTE (12 × 9,6 s · 13 × 8 s), la 1re phrase = une phrase du MILIEU (elle porte la queue de la
+  précédente), encodés en AAC 192k AVEC DÉBORD (8192 échantillons de la fin devant, du début derrière : l'encodeur voit une boucle
+  continue), coupés sans réencoder un paquet plus tôt, et la liste d'édition MP4 (`elst`) posée à la main : 1024 échantillons sautés,
+  durée exacte (115 200 / 104 000 ms). Vérifié au décodage : la couture fin → début vaut une couture du milieu (−37,5 / −23,8 dB
+  d'écart à l'original, comme le reste du fichier). Volumes identiques (−13,9 / −13,7 LUFS). Les anciens, avec iTunSMPB, ne
+  déclaraient leur amorce (2112) qu'à la façon d'Apple. Même noms de fichiers : `harmonie.js` reste calé (même musique au même instant).
+- **LE PORTAIL EN DEUX TEMPS** (`portPasseNiveau`, `#portV`) : mesuré au banc (`dbgSaut`), construire le niveau suivant = 300-460 ms de
+  calcul, puis 1,3-2,9 s pour la 1re image (programmes) contre 0,2 s d'ordinaire : l'image restait figée sur l'ancien portail, puis tout
+  sautait sous un flash qui ne colorait que les bords. Le VOILE (cœur blanc, rose, bords violets, ,94 — ,45 en mouvement réduit) se pose
+  à l'instant du passage, la construction part deux rAF plus tard (la caisse attend à la bouche du portail, s ≤ L − 2), il tient 0,28 s
+  puis s'ouvre en 0,5 s. En VOL, la construction reste immédiate. Le temps du jeu ne ralentit pas (règle du 26/09). Et le morceau du
+  niveau suivant ENTRE en fondu (`DEPMUS`, 0,6 s) au lieu de tomber à plein (`musicSuitLieu`). Banc `portail2.mjs` : niveau 1 → 2, 0 erreur.
+- sw.js → v111.
+
 ## LA VILLE DÈS L'ENTRÉE + GLASSY PLUCKS (2026-10-04, Léo — « les niveaux villes ne sont pas tous des villes » · « la musique pour la ville, c'est GLASSY PLUCKS »)
 - MESURÉ d'abord (bancs `villes.mjs`, `cycle.mjs`, `villepos.mjs`, `citystat.mjs`, scratchpad 83e03bdc) : les 10 niveaux VILLE de la
   CARRIÈRE ont leur ville (tours tout autour dès le départ). Dans le MODE PRINCIPAL, AU-DESSUS DE LA VILLE et MINUIT EN VILLE ont la leur
@@ -343,9 +494,10 @@
   ROBLOX seul (23 publications sur 25 ce jour-là), passait pour une nouvelle version et RECHARGEAIT tous les joueurs au menu ou à l'écran
   de mort — musique coupée net, autre son du lobby tiré. L'empreinte = sha1 des fichiers de `jouer/` (jeton intact, sans CLAUDE.md /
   README / JOUER.bat ni version.json) : elle ne bouge que si le JEU bouge. Vérifié : ROBLOX modifié → même empreinte ; index.html → neuve.
-- LA MISE À JOUR TOUTE SEULE (bloc juste avant « fin ajout MOBILE / PWA ») : au lancement (+4 s), à chaque retour au premier plan et
-  toutes les 5 min, le jeu lit version.json ; en retard → il se RECHARGE dès qu'on n'est pas en course (menu, garage, écran de mort ;
-  jamais pendant le LÂCHER ni en arrière-plan), sauvegarde écrite d'abord ; sur l'ordi la page-cadre entière (`window.top`). Garde-fou :
+- LA MISE À JOUR TOUTE SEULE (bloc juste avant « fin ajout MOBILE / PWA ») : au lancement (+0,25 s — c'était +4 s, voir LA SESSION DE
+  DEBUG du 2026-10-05), à chaque retour au premier plan et toutes les 5 min, le jeu lit version.json ; en retard → il se RECHARGE : tout de
+  suite sur l'écran titre muet (`window.__intro='attente'`), JAMAIS pendant l'intro (`'joue'`, jusqu'à 1,5 s après le voile), et au menu,
+  au garage, à l'écran de mort seulement après 45 s sans toucher ou au retour d'arrière-plan (jamais pendant le LÂCHER ni en course), sauvegarde écrite d'abord ; sur l'ordi la page-cadre entière (`window.top`). Garde-fou :
   2 rechargements au plus par version et par session (`sessionStorage.ccMaj`). Copie locale (jeton intact), file://, Capacitor : rien.
 - LE NUMÉRO (les 7 premiers signes de l'empreinte) : « VERSION 506f117 » en bas des RÉGLAGES (`#mvVer`) et sous le jeu sur l'ordi (`#ccVer`), avec « · MENU LEO » / « · SANS
   CIEL » si l'adresse porte `?menu=leo` / `?chute=0` — deux joueurs comparent leurs deux écrans d'un coup d'œil. `dbgMaj()` : état.

@@ -247,10 +247,11 @@ local function teinteTick(dt: number)
 		end
 	end
 	local on = etat.nitroOn == true
-	local eT = vit and (on and (etat.bleue and 0.36 or 0.3) or (((etat.boost or 0) > 0) and 0.14 or 0)) or 0
+	-- (la lisière étant fine, elle peut être plus vive au ras du bord : 0,3 → 0,42)
+	local eT = vit and (on and (etat.bleue and 0.48 or 0.42) or (((etat.boost or 0) > 0) and 0.2 or 0)) or 0
 	-- (HUD v3, L38030) LES BORDS BATTENT À LA COULEUR DU POUVOIR ACTIF — le plus « chaud » d'abord ; la nitro, elle, garde sa teinte
 	local pw = (vit and not on) and POUVOIRS_FX[etat.pouvoir or ""] or nil
-	if pw then eT = math.max(eT, pw[2] * (0.14 + 0.12 * (0.5 + 0.5 * math.sin(os.clock() * 5)))) end
+	if pw then eT = math.max(eT, pw[2] * (0.2 + 0.16 * (0.5 + 0.5 * math.sin(os.clock() * 5)))) end -- (la lisière plus fine : un cran plus vive)
 	nfx.edge += (eT - nfx.edge) * math.min(1, dt * ((eT > nfx.edge) and 8 or 2.6))
 	local cible = (etat.bleue and Color3.fromRGB(91, 125, 255)) or (on and (etat.infini and Color3.fromRGB(157, 77, 255) or Color3.fromRGB(255, 122, 36))) or Color3.fromRGB(255, 215, 94)
 	if pw then cible = pw[1] end
@@ -1239,7 +1240,10 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 		g.Parent = f
 		table.insert(vigVit, f)
 	end
-	for _, d in { { 0, 0, 1, 0.34, 90 }, { 0, 0.66, 1, 0.34, 270 }, { 0, 0, 0.3, 1, 0 }, { 0.7, 0, 0.3, 1, 180 } } do
+	-- (5/10, revue visuelle : en bandes de 34 % qui fondaient lentement vers le centre, l'orange de la nitro posé sur le ciel noir de
+	-- l'orbite ou la vignette de vitesse donnait un voile MARRON sur toute l'image — et on tient la nitro la moitié du temps. Des
+	-- bandes deux fois plus étroites qui s'éteignent vite : une LISIÈRE brûlante au bord, l'image propre au milieu)
+	for _, d in { { 0, 0, 1, 0.2, 90 }, { 0, 0.8, 1, 0.2, 270 }, { 0, 0, 0.16, 1, 0 }, { 0.84, 0, 0.16, 1, 180 } } do
 		local f = Instance.new("Frame")
 		f.Name = "TeinteNitro"
 		f.BorderSizePixel = 0
@@ -1250,7 +1254,7 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 		f.Parent = gui
 		local g = Instance.new("UIGradient")
 		g.Rotation = d[5]
-		g.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0), NumberSequenceKeypoint.new(0.45, 0.7), NumberSequenceKeypoint.new(1, 1) })
+		g.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0), NumberSequenceKeypoint.new(0.3, 0.6), NumberSequenceKeypoint.new(0.65, 0.93), NumberSequenceKeypoint.new(1, 1) })
 		g.Parent = f
 		table.insert(teinte, f)
 	end
