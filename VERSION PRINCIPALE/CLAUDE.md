@@ -155,6 +155,33 @@
   dans `engApplique(P9)` (la course l'appelle, inchangée). `closeGarage` → `burnCoupe` (silence, plus rien). Console : `dbgBurn()` ·
   `dbgBurn(s)` (un burn-out de s secondes) · `dbgBurn(0)`. Bancs `burn.mjs` (geste réel, captures), `burnson.mjs` (son : portes 0 et 3
   ouvertes pendant, la course repart) ; `cadreinv.mjs` mis au geste neuf (souris tenue = burn-out, I/Échap, COFFRE/croix, JOUER).
+- **LE DOIGT SUR LA CAISSE, LE DÉRAPAGE, MISSIONS BRANCHÉ, LES VIGNETTES (même soir, Léo : « quand on touche la voiture et qu'on la
+  tourne, ça ne tourne pas le garage : tapotage-appui-glissade, la plateforme tourne selon la vitesse du doigt ; appuie et bouge, ça bouge
+  juste la plateforme ; seulement si on appuie longtemps puis qu'on glisse, la voiture dérape en fonction mais ne tombe jamais de la
+  plateforme · le bouton inventaire plus gros · missions branché au play plutôt que le niveau, et les niveaux affichés avec leur distance
+  et leur titre — vignette avec un fond imagé représentatif, léger, agréable, kawaii mais pas abusé, pas trop gentil non plus »)** —
+  · LE DOIGT : posé SUR la caisse (`GAR.doigt='caisse'`, garSurCaisse), il tient le PLATEAU — jamais la vue : glissé = le plateau suit
+    (,008 rad/px, son bord avant sous le doigt), lâché lancé = il FILE (`GAR.platW`, ≤ 7 rad/s, freine ×e^−1,2t), tenu = il s'arrête ;
+    posé ailleurs, la vue tourne comme avant. Le burn-out part après 0,28 s SANS bouger (0,14 s au premier jet : un glissé lent
+    devenait un burn-out).
+  · LE DÉRAPAGE (`burnDerape`) : en burn-out, le glissé fait tourner la caisse SUR le plateau (`BURN.cib`, ,009 rad/px), par un ressort
+    mou sous-amorti (ω 7, ζ ,5), autour d'un pivot vers l'avant (`drz` : l'arrière balaie), poussée dehors par sa vitesse (±,35 m) ;
+    BORNÉE (centre ≤ 4,3 m − rayon de la caisse : ses coins restent sur le disque). Lâchée, elle se recentre en gardant son cap, puis le
+    cap est VERSÉ dans le plateau (`garageAng` et `GAR.podSpin`, à l'image d'après : rien ne saute ; aussitôt au JOUER).
+  · LA PISTE DE GOMME (`burnGomme`, remplace les deux bandes) : une toile 128 × 128 sur tout le disque (`GAR.pod`, ~7 cm le texel, en
+    pixels) ; les roues arrière y déposent la gomme là où elles sont — les DONUTS se dessinent ; effacée en ~45 s (alpha −5 par seconde :
+    `destination-out` resterait bloqué par l'arrondi 8 bits).
+  · LA COLONNE (vitrine) : COFFRE sur les DEUX colonnes de gauche (pictogramme ×4) · MISSIONS BRANCHÉ sous JOUER (les deux conducteurs
+    d'or et le flux de l'ancien cartouche du niveau, la plaque d'encre, ses pastilles) · la VIGNETTE du niveau (`#gvLvl`) à côté de HOME ·
+    SHOP : numéro, titre, distance, sur un paysage en PIXEL ART 96 × 36 peint par `gvVignette` (cache GV_VIG, sujet à droite) — un
+    nuage qui sourit (NUAGES), un cœur de néon sous la pluie (VILLE), le ballon-cœur et la tour (PARIS), la planète à anneau et la
+    petite lune qui regarde (ORBITE), le nuage d'orage EN COLÈRE (ORAGE), les phares dans le noir (MINUIT), le satellite K.-O. en feu
+    (SATELLITES), le plot qui fait la tête (AUTO-ÉCOLE). LES DISTANCES (`GV_KM`) : la longueur MOYENNE des pistes, mesurée au banc
+    (`lvlL.mjs` : `dbgPas().L` × SPD) — NUAGES 8,3 · VILLE 7,9 · PARIS 7,1 · ORBITE 9,4 · ORAGE 8,5 · MINUIT 8,0 · SATELLITES 9,4 km
+    (les pistes sont tirées à chaque partie). L'astuce remonte (222 px). L'ancien `#gvNiv` est parti.
+  · ⚠ UN SECOND COMMENTAIRE MANGEUR : dans `garVitrine`, `gEl.classList.toggle('deplie',…);garLibre._r=null;` était collé au bout du
+    commentaire depuis la vitrine v2 (066332f) — rendu ; balayage du fichier (une instruction derrière `//`) : plus aucun autre.
+  Banc `geste.mjs` (lancer, glissé, appui long + glissé, hors caisse). sw.js → v114.
 - **L'ATELIER AÉRÉ + LE RENDU (même jour, Léo : « enlève quelques accessoires du garage, ça fait un peu rempli pour rien — les pieds tu
   dois laisser, ça fait partie du jeu ; les billets, mes trucs de trophée, tout ça laisse ; aère un peu l'espace · travaille plus le
   rendu »)** — `GAR_AERE` (juste avant `buildGarageRoom`) : le petit bazar ne se construit plus — cartons, bidons, fûts et jerricans de

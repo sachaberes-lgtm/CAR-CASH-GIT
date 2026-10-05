@@ -5561,41 +5561,41 @@ html body #garage.vitrine:not(.menu) #gAct{display:grid;grid-template-columns:74
 html body #garage.vitrine:not(.menu) #gAct>#gJouer{grid-column:3;grid-row:1}
 html body #garage.vitrine:not(.menu) #gAct>#gClose{grid-column:1;grid-row:3;margin-top:8px}
 html body #garage.vitrine:not(.menu) #gAct>#gPerso{grid-column:2;grid-row:3;margin-top:8px}
-#gvNiv,#gvMis,#gvCof{display:none}
-html body #garage.vitrine:not(.menu) #gAct>#gvCof{grid-column:2;grid-row:1;--nc:var(--neoM)} /* (2026-10-05) le COFFRE, à gauche de JOUER */
-html body #garage.vitrine:not(.menu) #gAct>#gvNiv{display:flex;grid-column:3;grid-row:2}
-html body #garage.vitrine:not(.menu) #gAct>#gvMis{display:flex;grid-column:3;grid-row:3;margin-top:8px}
-#gvNiv{position:relative;align-items:center;justify-content:center;gap:8px;min-width:0;height:28px;margin:12px 6px 0;padding:0 12px;box-sizing:border-box;pointer-events:none;
-  font-size:var(--f0);letter-spacing:1px;color:var(--tx);white-space:nowrap;transform:skewX(var(--sk));
-  background:linear-gradient(180deg,#1c1338,#0a0717);box-shadow:inset 0 0 0 1px rgba(255,205,90,.55),inset 0 1px 0 rgba(255,240,190,.25),0 0 16px -4px rgba(255,190,40,.65);
-  animation:gvMonte .52s var(--ease) .33s backwards}
-#gvNiv>*{transform:skewX(calc(-1 * var(--sk)))}
-#gvNiv::before,#gvNiv::after{content:'';position:absolute;top:-13px;width:4px;height:13px;background:linear-gradient(0deg,#b8790a 0%,#fff3c4 45%,#ffd75e 55%,#b8790a 100%);background-size:100% 260%;
-  box-shadow:0 0 8px #ffb83a,0 0 2px #fff;animation:gvCourant .55s linear infinite}
-#gvNiv::before{left:16%}#gvNiv::after{right:16%;animation-delay:-.27s}
+#gvNiv,#gvMis,#gvCof,#gvLvl{display:none}
+html body #garage.vitrine:not(.menu) #gAct>#gvCof{grid-column:1 / span 2;grid-row:1;--nc:var(--neoM)} /* (2026-10-05) le COFFRE, à gauche de JOUER — (même soir, « plus gros ») sur les deux colonnes */
+/* (2026-10-05, Léo : « missions branché au play plutôt que le niveau, et les niveaux affichés avec leur distance et leur titre — vignette
+   avec un fond imagé représentatif, léger, agréable, kawaii mais pas abusé, pas trop gentil non plus ») : MISSIONS prend la place BRANCHÉE
+   sous JOUER (les deux conducteurs d'or où le courant monte, le flux qui court sur sa tranche) ; le NIVEAU devient une VIGNETTE illustrée
+   (#gvLvl, rangée du bas, à côté de HOME · SHOP) — son paysage en pixel art peint par `gvVignette`, son titre, sa distance. */
+html body #garage.vitrine:not(.menu) #gAct>#gvMis{display:flex;grid-column:3;grid-row:2;margin:13px 6px 0}
+html body #garage.vitrine:not(.menu) #gAct>#gvLvl{display:block;grid-column:3;grid-row:3;margin-top:8px}
+#gvMis{--nc:var(--neoV);position:relative;flex-direction:row;align-items:center;justify-content:center;gap:10px;min-width:0;height:42px;min-height:42px;padding:0 12px;
+  font-size:var(--f1);letter-spacing:2px;color:var(--tx);white-space:nowrap;
+  background:linear-gradient(180deg,#1c1338,#0a0717);box-shadow:inset 0 0 0 1px rgba(255,205,90,.55),inset 0 1px 0 rgba(255,240,190,.25),inset 0 -2px 0 var(--nc),0 0 16px -4px rgba(255,190,40,.65);
+  text-shadow:0 1px 0 var(--txO);animation:gvMonte .52s var(--ease) .33s backwards}
+#gvMis::before,#gvMis::after{content:'';position:absolute;top:-13px;width:4px;height:13px;background:linear-gradient(0deg,#b8790a 0%,#fff3c4 45%,#ffd75e 55%,#b8790a 100%);background-size:100% 260%;
+  box-shadow:0 0 8px #ffb83a,0 0 2px #fff;animation:gvCourant .55s linear infinite;transform:skewX(calc(-1 * var(--sk)))}
+#gvMis::before{left:16%}#gvMis::after{right:16%;animation-delay:-.27s}
 @keyframes gvCourant{from{background-position:0 0}to{background-position:0 -260%}}
-#gvNiv u{position:absolute;left:0;right:0;bottom:0;height:2px;transform:none;background:linear-gradient(90deg,transparent,#fff3b0,#ffb83a,transparent) no-repeat;background-size:34% 100%;animation:gvFlux 1.5s linear infinite}
+#gvMis .gvFx{position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,transparent,#fff3b0,#ffb83a,transparent) no-repeat;background-size:34% 100%;animation:gvFlux 1.5s linear infinite}
 @keyframes gvFlux{from{background-position:-50% 0}to{background-position:150% 0}}
-#gvNiv .pxi{--pxs:1;color:#ffd75e;filter:drop-shadow(0 0 4px #ffb83a);animation:gvEclairGr 2.2s steps(1) infinite}
-@keyframes gvEclairGr{0%,40%,46%,70%,100%{opacity:1}42%,72%{opacity:.25}}
-#gvNiv b{font-weight:400;color:#ffe9a8}
-#gvNiv em{min-width:0;font-style:normal;color:var(--lc,#5ee6ff);text-shadow:0 0 8px var(--lc,#5ee6ff);overflow:hidden;text-overflow:ellipsis}
-#gvNiv em::before{content:'·';margin-right:8px;color:var(--tx3);text-shadow:none}
-@media (orientation:portrait){
-  #gvNiv{gap:7px;padding:0 10px;letter-spacing:0}
-  #gvNiv .gvNL{display:none}
-  #gvNiv b:not(:empty){display:grid;place-items:center;min-width:16px;height:16px;color:#1a1000;background:#ffd75e;box-shadow:0 0 8px rgba(255,200,60,.7)}
-  #gvNiv em::before{display:none}}
-html body #garage.vitrine:not(.menu) #gAct>#gJouer:is(:active,.appui)~#gvNiv{box-shadow:inset 0 0 0 1px #fff3c4,0 0 26px 0 rgba(255,200,60,.9)}
-#gvMis{--nc:var(--neoV);flex-direction:row;justify-content:center;gap:10px;min-width:0;height:56px;min-height:56px;padding:0 12px;font-size:var(--f1);letter-spacing:2px;color:var(--tx);
-  background:linear-gradient(180deg,rgba(30,22,62,.84),rgba(11,8,26,.88));
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.16),inset 0 0 0 1px rgba(255,255,255,.1),inset 0 -2px 0 var(--nc),0 12px 26px -12px rgba(0,0,0,.85);
-  text-shadow:0 1px 0 var(--txO);animation:gvMonte .52s var(--ease) .38s backwards}
 #gvMis .pxi{--pxs:2;color:var(--nc);filter:drop-shadow(0 0 6px var(--nc))}
-#gvMis:is(:active,.appui){transform:skewX(var(--sk)) translateY(2px);box-shadow:inset 0 0 0 1px var(--nc),inset 0 -2px 0 var(--nc),0 0 22px -6px var(--nc)}
+#gvMis:is(:active,.appui){transform:skewX(var(--sk)) translateY(2px);box-shadow:inset 0 0 0 1px #fff3c4,inset 0 -2px 0 var(--nc),0 0 26px 0 rgba(255,200,60,.9)}
+html body #garage.vitrine:not(.menu) #gAct>#gJouer:is(:active,.appui)~#gvMis{box-shadow:inset 0 0 0 1px #fff3c4,inset 0 -2px 0 var(--nc),0 0 26px 0 rgba(255,200,60,.9)}
 .gvPips{display:flex;gap:4px}
 .gvPips u{display:block;width:8px;height:8px;transform:rotate(45deg);background:#1b1433;box-shadow:inset 0 0 0 1px rgba(94,240,138,.6)}
 .gvPips u.ok{background:var(--neoV);box-shadow:0 0 8px var(--neoV)}
+/* LA VIGNETTE DU NIVEAU : le paysage (canvas 96 × 36 en gros pixels), un voile d'encre à gauche pour le texte ; le numéro dans sa pastille
+   d'or, le titre, la distance (≈, la piste est tirée à chaque partie) dans la couleur du monde (--lc). */
+#gvLvl{position:relative;min-width:0;height:56px;overflow:hidden;transform:skewX(var(--sk));pointer-events:none;
+  background:#0a0717;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14),inset 0 -2px 0 var(--lc,#5ee6ff),0 12px 26px -12px rgba(0,0,0,.85);animation:gvMonte .52s var(--ease) .38s backwards}
+#gvLvl .gvImg{position:absolute;inset:0 -8px;background-size:cover;background-position:center;image-rendering:pixelated;image-rendering:crisp-edges}
+#gvLvl::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(8,5,20,.88) 0%,rgba(8,5,20,.55) 46%,rgba(8,5,20,0) 78%)}
+#gvLvl .gvTx{position:absolute;z-index:1;left:12px;right:8px;top:50%;translate:0 -50%;display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:8px;row-gap:3px;align-items:center;
+  transform:skewX(calc(-1 * var(--sk)));font-size:var(--f0);letter-spacing:1px;white-space:nowrap}
+#gvLvl .gvN{grid-row:1 / span 2;display:grid;place-items:center;min-width:20px;height:20px;padding:0 3px;color:#1a1000;background:#ffd75e;box-shadow:0 0 8px rgba(255,200,60,.7)}
+#gvLvl .gvT{min-width:0;color:#fff;text-shadow:0 1px 0 #000,0 0 8px rgba(0,0,0,.8);overflow:hidden;text-overflow:ellipsis}
+#gvLvl .gvD{color:var(--lc,#5ee6ff);text-shadow:0 1px 0 #000,0 0 8px var(--lc,#5ee6ff)}
 html body #garage.vitrine:not(.menu) #gAct>:is(#gClose,#gPerso,#gvCof){display:flex;flex:none;flex-direction:column;justify-content:center;gap:7px;width:74px;min-width:74px;height:62px;min-height:62px;
   padding:6px 4px 3px 9px;font-size:var(--f0);letter-spacing:1px;color:var(--tx);
   background:linear-gradient(180deg,rgba(30,22,62,.84),rgba(11,8,26,.88));
@@ -5604,6 +5604,8 @@ html body #garage.vitrine:not(.menu) #gAct>:is(#gClose,#gPerso,#gvCof){display:f
 html body #garage.vitrine:not(.menu) #gAct>#gClose{--nc:#b8b0e0}
 html body #garage.vitrine:not(.menu) #gAct>#gPerso{--nc:var(--neoC)}
 html body #garage.vitrine:not(.menu) #gAct>:is(#gClose,#gPerso,#gvCof) .pxi{--pxs:3;color:var(--nc);filter:drop-shadow(0 0 6px var(--nc))}
+html body #garage.vitrine:not(.menu) #gAct>#gvCof{width:auto;min-width:0;flex-direction:row;align-items:center;justify-content:center;gap:12px;padding:0 10px;font-size:var(--f1);letter-spacing:2px}
+html body #garage.vitrine:not(.menu) #gAct>#gvCof .pxi{--pxs:4}
 html body #garage.vitrine:not(.menu) #gAct>:is(#gClose,#gPerso,#gvCof):is(:active,.appui){transform:skewX(var(--sk)) translateY(2px);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.1),inset 0 0 0 1px var(--nc),inset 0 -2px 0 var(--nc),0 0 22px -6px var(--nc)}
 html body #garage.vitrine:not(.menu) #gAct>#gJouer{flex:1;height:62px;min-height:62px}
@@ -5669,15 +5671,16 @@ html body #garage.vitrine:not(.menu):not(.inv) #gVJ{display:flex}
   html body #garage.vitrine:not(.menu) #gAct>:is(#gClose,#gPerso,#gvCof){width:62px;min-width:62px;height:46px;min-height:46px;gap:3px;padding-top:3px}
   html body #garage.vitrine:not(.menu) #gAct>:is(#gClose,#gPerso,#gvCof) .pxi{--pxs:2}
   html body #garage.vitrine:not(.menu) #gAct>#gJouer{height:50px;min-height:50px}
-  html body #garage.vitrine:not(.menu) #gAct>#gvMis{height:46px;min-height:46px}
-  html body #garage.vitrine:not(.menu) #gAct>:is(#gClose,#gPerso,#gvMis){margin-top:6px}
-  #gvNiv{height:24px;margin-top:10px}#gvNiv::before,#gvNiv::after{top:-11px;height:11px}
+  html body #garage.vitrine:not(.menu) #gAct>#gvMis{height:34px;min-height:34px;margin-top:11px}#gvMis::before,#gvMis::after{top:-11px;height:11px}
+  html body #garage.vitrine:not(.menu) #gAct>:is(#gClose,#gPerso,#gvLvl){margin-top:6px}
+  #gvLvl{height:46px}
+  html body #garage.vitrine:not(.menu) #gAct>#gvCof{width:auto;min-width:0;gap:8px}html body #garage.vitrine:not(.menu) #gAct>#gvCof .pxi{--pxs:3}
 }
 @media (prefers-reduced-motion:reduce){#gVJ,.gvL u::after,.gvA .pxi,.gvU .pxi{animation:none!important}.gvL u em{transition:none}}
 html[data-reduced-motion] #gVJ,html[data-reduced-motion] .gvL u::after,html[data-reduced-motion] .gvA .pxi,html[data-reduced-motion] .gvU .pxi{animation:none!important}
 /* L'ASTUCE : le geste dit une fois — un doigt qui appuie, un anneau qui se remplit */
 html body #garage.vitrine.aideInv:not(.menu):not(.inv) #gInvAide{display:flex}
-#gInvAide{position:absolute;z-index:2;left:50%;bottom:calc(var(--sB) + 194px);translate:-50% 0;align-items:center;gap:10px;padding:9px 14px 9px 12px;pointer-events:none;white-space:nowrap;
+#gInvAide{position:absolute;z-index:2;left:50%;bottom:calc(var(--sB) + 222px);translate:-50% 0;align-items:center;gap:10px;padding:9px 14px 9px 12px;pointer-events:none;white-space:nowrap;
   font-size:var(--f0);letter-spacing:1px;color:var(--tx2);background:linear-gradient(180deg,rgba(24,17,50,.8),rgba(10,7,24,.84));
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.1),inset 0 1px 0 rgba(255,255,255,.12),0 10px 24px -12px rgba(0,0,0,.8);
   animation:gvAide 9s var(--ease) 1.1s both}
@@ -5896,9 +5899,9 @@ html.poki [data-m="vox"],html.poki #mVolRowVox,html.poki [data-a="vox"],html.pok
         <button id="gEquip" class="pbtn pb-gold">ÉQUIPER</button>
         <button id="gJouer" class="pbtn pb-gold big"><span data-fr="JOUER">JOUER</span><i class="mChev" aria-hidden="true"><i class="pxi pxi-droite"></i><i class="pxi pxi-droite"></i><i class="pxi pxi-droite"></i></i></button>
         <!-- (2026-10-05, Léo : « en dessous du play, insère MISSIONS, et le nom du level qui va être lancé, limite collé, de manière stylée, branché énergétiquement ») LA VITRINE : voir gvNiveau -->
-        <div id="gvNiv" aria-live="polite"><u></u><i class="pxi pxi-eclair" aria-hidden="true"></i><b></b><em></em></div>
-        <button id="gvMis" class="pbtn" aria-label="Missions"><i class="pxi pxi-cible" aria-hidden="true"></i><span data-fr="MISSIONS">MISSIONS</span><b class="gvPips" aria-hidden="true"><u></u><u></u><u></u></b></button>
+        <button id="gvMis" class="pbtn" aria-label="Missions"><s class="gvFx" aria-hidden="true"></s><i class="pxi pxi-cible" aria-hidden="true"></i><span data-fr="MISSIONS">MISSIONS</span><b class="gvPips" aria-hidden="true"><u></u><u></u><u></u></b></button>
         <!-- (2026-10-05, Léo : « l'inventaire va être ajouté à côté du bouton jouer ») le COFFRE : l'inventaire (le doigt tenu sur la caisse lance désormais le BURN-OUT) -->
+        <div id="gvLvl" aria-live="polite"><i class="gvImg" aria-hidden="true"></i><span class="gvTx"><b class="gvN"></b><span class="gvT"></span><em class="gvD"></em></span></div>
         <button id="gvCof" class="pbtn" aria-label="Inventaire"><i class="pxi pxi-coffre" aria-hidden="true"></i><span data-fr="COFFRE">COFFRE</span></button>
       </div>
     </div>
@@ -36908,7 +36911,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
      comme au retour (SHOP déplie la console : on revient au cadrage de la boutique en douceur). Réglages à chaud : `VITRINE_CAM`. */
   GAR.vit=(GAR.vit||0)+((((gEl&&gEl.classList.contains('vitrine'))&&!menu9)?1:0)-(GAR.vit||0))*Math.min(1,dt*2.4);
   const VK=GAR.vit,VC=VITRINE_CAM;
-  if(!GAR.fige&&(!garageDrag||menu9||VK>.5))garageAng+=dt*(.24+(VC.rot-.24)*VK)*(1-BURN.k); // (le plateau tourne toujours : en vitrine le doigt tourne la VUE) // le tour de piste automatique, lent : on a le temps de regarder (au MENU le doigt bouge la VUE, pas le plateau : il continue de tourner)
+  if(!GAR.fige&&(!garageDrag||menu9||VK>.5))garageAng+=dt*(.24+(VC.rot-.24)*VK)*(1-BURN.k)*(garageDrag&&GAR.doigt==='caisse'?0:1);if(GAR.go)GAR.platW=0;if(!garageDrag&&GAR.platW){garageAng+=GAR.platW*dt;GAR.platW*=Math.exp(-dt*1.2);if(Math.abs(GAR.platW)<.03)GAR.platW=0;} // (même soir) le PLATEAU tenu ne tourne plus tout seul ; lancé, il file et ralentit // (le plateau tourne toujours : en vitrine le doigt tourne la VUE) // le tour de piste automatique, lent : on a le temps de regarder (au MENU le doigt bouge la VUE, pas le plateau : il continue de tourner)
   /* LE GARAGE QUI VIT (2026-09-30, Léo : « on est censé pouvoir tourner autour — soit le garage en rotation sans qu'on touche, soit
      avec le doigt on glisse et on voit légèrement ; inspire-toi de ma branche ») : LES DEUX. (1) Au repos la VUE balance doucement
      autour de la caisse — les deux sinus lents de sa branche (±~11°, ~22 s) et un souffle de hauteur ; elle s'efface dès qu'on touche
@@ -37322,7 +37325,8 @@ const PORTE_FERMEE=MENU_SACHA||/[?&]porte=1\b/.test(location.search); // (2026-1
 /* LA VITRINE (voir <style id="garageVitrine">) : le garage AU CALME — ta caisse, sans prix. `garMode` la replie toujours (tous les autres
    chemins ouvrent la boutique dépliée) ; seul le bouton GARAGE la pose, APRÈS garMode / openGarage. */
 function garVitrine(on){
-  if(!gEl)return;if(!on)invFerme(true);gEl.classList.toggle('vitrine',!!on);gEl.classList.toggle('aideInv',!!on&&!((SAVE.d.ast|0)&8)); // (v2) l'astuce du doigt tenu — (2026-10-05) celle du BURN-OUT, tant qu'il n'a jamais été lancé (bit 8)gEl.classList.toggle('deplie',!on&&gEl.classList.contains('deplie'));garLibre._r=null;
+  if(!gEl)return;if(!on)invFerme(true);gEl.classList.toggle('vitrine',!!on);gEl.classList.toggle('aideInv',!!on&&!((SAVE.d.ast|0)&8)); // (v2) l'astuce du doigt tenu — (2026-10-05) celle du BURN-OUT, tant qu'il n'a jamais été lancé (bit 8)
+  gEl.classList.toggle('deplie',!on&&gEl.classList.contains('deplie'));garLibre._r=null; // (2026-10-05) ⚠ collé au bout du commentaire depuis la vitrine v2 (066332f) : jamais exécuté — rendu
   if(on){if(SHOP.tab!=='voiture'||SHOP.prev)shopTab('voiture');const eq=equippedCar();if(garageI!==eq&&!GAR.sw)garageShow(eq);} // en vitrine : TA caisse, jamais un essai
   if(on){gvJauges(true);gvNiveau();}
 }
@@ -37330,11 +37334,92 @@ function garVitrine(on){
    (`garJouer` : CARR.actif = null) — son 1er niveau, `NIVEAUX[0]` ; tant que le permis n'est pas passé, c'est l'AUTO-ÉCOLE (tutoArme). Et les
    trois pastilles des MISSIONS (les défis relevés du carnet en cours, `misEtat`). */
 const GV_TEINTE={nuages:'#5ee6ff',ville:'#ff3ec8',paris:'#ffd75e',espace:'#b9a8ff',orage:'#8a7dff'};
-function gvNiveau(){
-  const el=$('gvNiv');if(el){const tuto=!SAVE.d.tuto,L0=NIVEAUX[0];
-    el.querySelector('b').innerHTML='<span class="gvNL">'+sansAcc(TR(tuto?'PERMIS':'NIVEAU'))+' </span>'+(tuto?'':'1'); // debout, le numéro seul dans sa pastille (le cartouche fait la largeur de JOUER)
-    const em=el.querySelector('em');em.textContent=sansAcc(TR(tuto?'AUTO-ECOLE':L0.nm));el.style.setProperty('--lc',tuto?'#7dff9b':(GV_TEINTE[L0.id]||'#5ee6ff'));}
-  const pp=$('gvMis');if(pp)try{const s9=misEtat();pp.querySelectorAll('.gvPips u').forEach(function(u,i){u.classList.toggle('ok',!!s9.ok[i]);});}catch(e){}
+/* LES VIGNETTES DES NIVEAUX (2026-10-05, Léo : « les niveaux affichés avec leur distance et leur titre — vignette avec un fond imagé
+   représentatif, léger, agréable, kawaii mais pas abusé, pas trop gentil non plus »). Un paysage en PIXEL ART de 96 × 36, peint une fois par
+   monde (cache GV_VIG), le sujet à DROITE (le texte vit à gauche, sur un voile d'encre). La touche kawaii tient en quelques pixels — et
+   n'est pas toujours aimable : un nuage qui sourit, un cœur de néon sous la pluie, un ballon-cœur près de la tour, une petite lune qui
+   regarde, un nuage d'orage EN COLÈRE, des phares dans le noir, un satellite K.-O. qui tombe en feu, un plot d'auto-école qui fait la tête.
+   LES DISTANCES (GV_KM) : la longueur MOYENNE des pistes de chaque niveau (elles sont tirées à chaque partie), mesurée au banc
+   (lvlL.mjs, `dbgPas().L` × SPD) — d'où « ≈ ». */
+const GV_VIG={},GV_KM={nuages:8.3,ville:7.9,villeN:8.0,paris:7.1,espace:9.4,espaceH:9.4,orage:8.5};
+function gvVignette(cle){
+  if(GV_VIG[cle])return GV_VIG[cle];
+  const W=96,H=36,cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');
+  let sd=1234567;const rd=function(){sd=(sd*16807)%2147483647;return sd/2147483647;};
+  const R=function(a,b,w,h,c){x.fillStyle=c;x.fillRect(a,b,w,h);};
+  const ciel=function(cols){const n=cols.length-1;for(let y=0;y<H;y++){const f=y/(H-1)*n,i=Math.min(n-1,Math.floor(f)),q=f-i;
+    for(let k=0;k<W;k++)R(k,y,1,1,cols[q>.62||(q>.38&&(k+y)%2)?i+1:i]);}};          // le ciel en BANDES, tramées à la jonction
+  const rond=function(cx,cy,r,c){for(let y=-r;y<=r;y++){const w=Math.round(Math.sqrt(Math.max(0,r*r-y*y)));R(cx-w,cy+y,2*w+1,1,c);}};
+  const nuage=function(cx,cy,s,c,o){rond(cx,cy,s,c);rond(cx-s,cy+2,Math.round(s*.7),c);rond(cx+s+1,cy+2,Math.round(s*.75),c);
+    R(cx-2*s,cy+2,4*s+2,Math.round(s*.6)+1,c);if(o)R(cx-2*s+1,cy+2+Math.round(s*.6),4*s,1,o);};
+  const yeux=function(cx,cy,c,joue){R(cx-2,cy,1,1,c);R(cx+2,cy,1,1,c);if(joue){R(cx-4,cy+1,1,1,joue);R(cx+4,cy+1,1,1,joue);}};
+  const etoiles=function(n,cols){for(let i=0;i<n;i++)R((rd()*W)|0,(rd()*H*.8)|0,1,1,cols[(rd()*cols.length)|0]);};
+  const pluie=function(n,c){for(let i=0;i<n;i++){const a=(rd()*W)|0,b=(rd()*H)|0;R(a,b,1,1,c);R(a-1,b+1,1,1,c);}};
+  const tours=function(y0,cols,fen,nb,seed){sd=seed;let px=34;while(px<W){const w=4+((rd()*6)|0),h=6+((rd()*(H-y0-2))|0);R(px,H-h,w,h,cols);
+      for(let wy=H-h+2;wy<H-1;wy+=2)for(let wx=px+1;wx<px+w-1;wx+=2)if(rd()<nb)R(wx,wy,1,1,fen[(rd()*fen.length)|0]);px+=w+1;}};
+  if(cle==='nuages'){
+    ciel(['#6fc8ff','#9fdcff','#cdeeff','#ffe4f2']);
+    rond(80,8,4,'#fff6c8');R(76,8,9,1,'#fff6c8');                                   // le soleil du matin
+    nuage(44,26,4,'#ffffff','#d9cdf2');nuage(70,22,6,'#ffffff','#d9cdf2');nuage(90,29,4,'#f6f1ff','#d9cdf2');
+    yeux(70,22,'#3a2a55','#ffa6cf');R(70,24,1,1,'#3a2a55');                          // il sourit — un peu
+    R(0,33,W,3,'#f3eeff');R(0,32,W,1,'#ff5ccf');                                     // la route néon file au-dessus de la mer de nuages
+  }else if(cle==='ville'){
+    ciel(['#1a1240','#2c1b58','#4a2a6e','#6d3478']);
+    tours(10,'#120c26',['#ffd75e','#ff6ad5','#7ff3ff'],.45,77);
+    R(84,12,1,1,'#ff3ec8');R(86,12,1,1,'#ff3ec8');R(83,13,5,1,'#ff3ec8');R(84,14,3,1,'#ff3ec8');R(85,15,1,1,'#ff3ec8'); // un cœur de néon
+    pluie(70,'rgba(150,190,255,.55)');
+  }else if(cle==='villeN'){
+    ciel(['#03020c','#07061a','#0e0b26','#1a1235']);
+    rond(84,8,5,'#fff2c0');rond(86,6,5,'#03020c');                                   // le croissant
+    tours(10,'#06040f',['#ffd75e','#ff6ad5'],.12,91);
+    for(let i=0;i<22;i++){const h=1+Math.round(i*.32),a=(.62-i*.026).toFixed(2);R(58+i,32-Math.round(h/2),1,h,'rgba(255,238,170,'+a+')');} // le faisceau des phares
+    R(46,30,12,4,'#0a0814');R(48,28,7,2,'#0a0814');R(57,31,2,1,'#fff6c8');R(46,31,1,1,'#ff2a3a');   // la caisse dans le noir : phare, feu arrière
+  }else if(cle==='paris'){
+    ciel(['#5a2f86','#c2508f','#ff8a7a','#ffc27a']);
+    rond(64,26,6,'#ffe08a');
+    const tx=78;R(tx,3,1,4,'#2a1838');for(let y=7;y<H;y++){const w=1+Math.round(Math.pow((y-7)/(H-7),1.6)*14);R(tx-w,y,2*w+1,1,'#2a1838');} // la Dame de fer
+    R(tx-6,24,13,1,'#ffb35a');R(tx-3,15,7,1,'#ffb35a');                                // ses étages allumés
+    for(let y=31;y<H;y++){const w=Math.round(5-(y-31)*.2);R(tx-w,y,2*w+1,1,'#ffc27a');} // l'arche
+    R(55,9,3,2,'#ff5c9a');R(54,10,5,1,'#ff5c9a');R(55,11,3,1,'#ff5c9a');R(56,12,1,1,'#ff5c9a');R(56,13,1,4,'#e8d8ff'); // le ballon-cœur
+  }else if(cle==='espace'){
+    ciel(['#05041a','#0b0828','#140d3a','#1c1248']);
+    etoiles(40,['#ffffff','#9ad8ff','#ffd7a0']);
+    const px=74,py=22,anneau=function(av){for(let a=0;a<64;a++){const t=a/64*Math.PI*2,s9=Math.sin(t);if((s9>0)!==av)continue; // l'anneau : la moitié de DERRIÈRE, puis celle de DEVANT
+      R(px+Math.round(Math.cos(t)*23),py+Math.round(s9*5-Math.cos(t)*3),2,1,av?'#ffe2b0':'rgba(255,215,160,.45)');}};
+    anneau(false);rond(px,py,11,'#3b2d8a');for(let y=-10;y<=10;y+=4){const w=Math.round(Math.sqrt(121-y*y));R(px-w,py+y,2*w+1,2,'#5541b8');} // la planète et ses bandes
+    rond(px-4,py-4,3,'rgba(190,175,255,.55)');anneau(true);
+    rond(46,7,3,'#e8e6ff');R(45,7,1,1,'#3a2a55');R(47,7,1,1,'#3a2a55');               // la petite lune qui regarde
+  }else if(cle==='espaceH'){
+    ciel(['#05041a','#0b0828','#140d3a','#1c1248']);
+    etoiles(34,['#ffffff','#9ad8ff']);
+    const sat=function(sx,sy,ko){for(let i=1;i<10;i++)R(sx-i,sy-i,1,1,i<4?'#ffd75e':i<7?'#ff7a2a':'rgba(255,60,40,.55)'); // la traînée de feu
+      R(sx-1,sy-1,3,3,'#c9cbd6');R(sx-5,sy,3,1,'#4a8cff');R(sx+3,sy,3,1,'#4a8cff');
+      if(ko){R(sx-1,sy-1,1,1,'#3a2a55');R(sx+1,sy-1,1,1,'#3a2a55');}};
+    sat(60,14,false);sat(86,26,true);sat(74,6,false);                                 // l'un d'eux est K.-O.
+  }else if(cle==='orage'){
+    ciel(['#100c1e','#1d1730','#2a2442','#3a3456']);
+    nuage(66,10,7,'#3b3555','#2a2442');nuage(88,13,5,'#332d4c','#2a2442');
+    R(62,9,2,1,'#fff27a');R(63,10,1,1,'#fff27a');R(69,10,1,1,'#fff27a');R(70,9,2,1,'#fff27a');   // les sourcils froncés…
+    R(63,12,1,1,'#fff27a');R(69,12,1,1,'#fff27a');                                    // …et les yeux qui brillent
+    const zx=[74,73,72,74,73,71,73];for(let i=0;i<zx.length;i++)R(zx[i],18+i*2,2,2,'#fff27a'); // l'éclair
+    pluie(60,'rgba(170,170,230,.5)');
+  }else{ // l'AUTO-ÉCOLE
+    ciel(['#7fd0ff','#b6e6ff','#dff4ff','#bff2b6']);
+    R(0,26,W,10,'#6fd27a');R(0,30,W,6,'#3c3a52');for(let k=4;k<W;k+=10)R(k,32,5,1,'#ffffff');  // la piste et ses pointillés
+    const plot=function(px,f){for(let y=0;y<7;y++){const w=Math.round(y*.6);R(px-w,22+y,2*w+1,1,y%3===1?'#ffffff':'#ff7a2a');}R(px-4,29,9,1,'#c4581e');
+      if(f){R(px-1,25,1,1,'#3a2a55');R(px+1,25,1,1,'#3a2a55');R(px-2,24,1,1,'#3a2a55');R(px+2,24,1,1,'#3a2a55');}}; // le plot qui fait la tête
+    plot(66,false);plot(80,true);plot(92,false);
+  }
+  return GV_VIG[cle]=cv.toDataURL();
+}
+function gvNiveau(){ // (même soir) la VIGNETTE du niveau qui va être lancé, et les pastilles des MISSIONS (branchées à JOUER)
+  const el=$('gvLvl');if(el){const tuto=!SAVE.d.tuto,L0=NIVEAUX[0],cle=tuto?'tuto':L0.id+(L0.nuit?'N':'')+(L0.hard?'H':''),km=tuto?0:(GV_KM[cle]||GV_KM[L0.id]||0);
+    el.querySelector('.gvN').textContent=tuto?'P':'1';
+    el.querySelector('.gvT').textContent=sansAcc(TR(tuto?'AUTO-ECOLE':L0.nm));
+    el.querySelector('.gvD').textContent=tuto?sansAcc(TR('PERMIS')):km.toFixed(1).replace('.',',')+' KM';
+    el.style.setProperty('--lc',tuto?'#7dff9b':(GV_TEINTE[L0.id]||'#5ee6ff'));
+    try{el.querySelector('.gvImg').style.backgroundImage='url('+gvVignette(cle)+')';}catch(e){}}
+  const pp=$('gvMis');if(pp)try{const s9=misEtat();pp.querySelectorAll('.gvPips u').forEach(function(u,k){u.classList.toggle('ok',!!s9.ok[k]);});}catch(e){}
 }
 try{Object.assign(I18N,{'PERMIS':'LICENSE','AUTO-ECOLE':'DRIVING SCHOOL'});}catch(e){}
 /* LES JAUGES DE LA VITRINE (voir « LES JAUGES » dans <style id="garageVitrine">) : l'ARGENT vers la prochaine caisse à vendre (`objectif()`, ce
@@ -37467,7 +37552,7 @@ function invHoldFin(){if(!INV||!INV.hold)return;INV.hold=null;cancelAnimationFra
    bouton jouer —, la voiture va booster de manière satisfaisante : c'est un burn-out, puisque sinon elle foncerait. Un effet un peu
    stylé, travaillé, design. Avec des pixels. De la transparence, parce qu'il y aura de la fumée. Maintenue longtemps, la fumée disparaît
    mais peut s'accumuler, et le joueur peut jouer avec. Accordé à ce qu'on a déjà ; si tu surpasses, encore mieux. ») =====
-   LE GESTE : le doigt TENU sur la caisse, en vitrine — 0,14 s sans bouger, et ça part ; tant qu'il tient, ça brûle. Il peut alors
+   LE GESTE : le doigt TENU sur la caisse, en vitrine — 0,28 s sans bouger (0,14 s au premier jet), et ça part ; tant qu'il tient, ça brûle. Il peut alors
    GLISSER : la vue tourne autour de la caisse qui fume (et le doigt pousse la fumée). Un tap bref reste le « tonk » de tôle. Lâché : le
    moteur retombe en pétaradant. L'INVENTAIRE a son bouton, COFFRE, à côté de JOUER (et la touche I).
    LA CAISSE : les roues ARRIÈRE patinent (les essieux soudés de l'arrière, voir ESSIEUX), l'avant reste planté ; l'arrière s'écrase, le nez
@@ -37484,7 +37569,7 @@ function invHoldFin(){if(!INV||!INV.hold)return;INV.hold=null;cancelAnimationFra
    par seconde : le « brap-brap »), le crissement de la course (skid) ; au lâcher, ses crépitements (crackle). Aucun nœud neuf : les mêmes
    chaînes, leurs portes s'ouvrent et se referment (voir LES PORTES DU GRAPHE AUDIO).
    Console : dbgBurn() → l'état · dbgBurn(s) → un burn-out de s secondes (sans doigt) · dbgBurn(0) → coupé. */
-const BURN={on:false,hold:null,bouge:false,k:0,t:0,chaud:0,rpm:0,son:false,cut:0,pops:[],fum:null,feu:null,trace:null,traceK:0,traceCar:-1,
+const BURN={on:false,hold:null,bouge:false,k:0,t:0,chaud:0,rpm:0,son:false,cut:0,pops:[],fum:null,feu:null,gom:null,yaw:0,yawV:0,cib:0,pivK:0,drz:.8,rr:2.4,
   hapT:0,auto:0,ar:[],roues:[],pots:[],corps:false,tE:0,tF:0,
   v:new THREE.Vector3(),w:new THREE.Vector3(),u:new THREE.Vector3(),r:new THREE.Vector3(),q:new THREE.Vector3()};
 const BURN_VS='attribute vec3 iP;attribute float iA;attribute float iS;attribute float iG;attribute float iSd;attribute vec3 iC;\n'+
@@ -37563,21 +37648,30 @@ function burnPrepare(){ // à chaque départ : les essieux de l'arrière, les pn
   if(!BURN.roues.length)for(const sx of [-1,1])BURN.roues.push({x:sx*G.b*.75,y:0,z:-G.a*.6,R:.4,l:.3});
   if(!BURN.ar.length)BURN.arW=wheels.filter(function(w){return w.position.z<0&&w.parent;});else BURN.arW=[];
   const px=Math.min(.42,G.b*.32);BURN.pots=[[-px,.3,-G.a+.08],[px,.3,-G.a+.08]];
-  burnTraces();
+  BURN.drz=Math.min(.9,G.a*.4);BURN.rr=Math.hypot(G.a,G.b); // le PIVOT du dérapage (vers l'avant : l'arrière balaie) · le rayon de la caisse
+  burnGommeInit();
 }
-function burnTraces(){ // les deux bandes de gomme, posées sur le plateau sous les roues arrière (elles tournent avec lui)
-  if(!GAR.pod)return;
-  if(!BURN.trace){
-    const cv=document.createElement('canvas');cv.width=16;cv.height=64;const x=cv.getContext('2d');
-    for(let j=0;j<64;j++){const f=Math.pow(Math.sin(Math.PI*j/63),.6);                // dense au milieu, qui s'efface aux deux bouts
-      for(let i=0;i<16;i++){const bord=Math.min(i,15-i)<2?.55:1,rayure=(j%6<2)?.82:1;   // la sculpture du pneu, en pixels
-        x.fillStyle='rgba(8,6,10,'+(f*bord*rayure*(.75+Math.random()*.25)).toFixed(3)+')';x.fillRect(i,j,1,1);}}
-    const tex=new THREE.CanvasTexture(cv);tex.magFilter=THREE.NearestFilter;tex.minFilter=THREE.NearestFilter;
-    const mat=new THREE.MeshBasicMaterial({map:tex,transparent:true,opacity:0,depthWrite:false,fog:false});
-    BURN.trace=[0,1].map(function(){const m=new THREE.Mesh(new THREE.PlaneGeometry(1,1),mat);m.rotation.x=-Math.PI/2;m.renderOrder=1;GAR.pod.add(m);return m;});
-    BURN.trace.mat=mat;}
-  if(BURN.traceCar!==garageI){BURN.traceCar=garageI;BURN.traceK=0;}
-  BURN.roues.slice(0,2).forEach(function(r,k){const m=BURN.trace[k];if(!m)return;m.position.set(r.x,GAR.POD+.004,r.z-r.R*.4);m.scale.set(r.l*1.15,r.R*3.4,1);});
+/* LA PISTE DE GOMME (même soir, avec le DÉRAPAGE) : une toile de 128 × 128 sur tout le plateau (un texel ≈ 7 cm : des traces en PIXELS),
+   posée sur `GAR.pod` (elle tourne avec lui) ; chaque image de burn-out, les roues arrière y déposent de la gomme là où elles SONT — sur place
+   ça noircit sous les pneus, en dérapage ça dessine les DONUTS. Elle s'efface en ~45 s (alpha décrémenté une fois par seconde : la
+   composition `destination-out` resterait bloquée par l'arrondi sur 8 bits). */
+function burnGommeInit(){
+  if(BURN.gom||!GAR.pod)return;const N=128,cv=document.createElement('canvas');cv.width=cv.height=N;const x=cv.getContext('2d');
+  const tex=new THREE.CanvasTexture(cv);tex.magFilter=THREE.NearestFilter;tex.minFilter=THREE.NearestFilter;tex.generateMipmaps=false;
+  const m=new THREE.Mesh(new THREE.CircleGeometry(4.4,48),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,fog:false,opacity:.9}));
+  m.rotation.x=-Math.PI/2;m.position.y=GAR.POD+.004;m.renderOrder=1;GAR.pod.add(m);
+  BURN.gom={cv:cv,x:x,tex:tex,m:m,N:N,sale:false,tF:0};
+}
+function burnGomme(dt){
+  const G=BURN.gom;if(!G)return;
+  if(BURN.k>.25&&!GAR.go&&BURN.roues.length){GAR.pod.updateMatrixWorld();
+    G.x.fillStyle='rgba(12,9,14,'+(.1+.14*BURN.k).toFixed(3)+')';
+    for(const r of BURN.roues){const w=burnMonde(r.x,r.y+.02,r.z,BURN.q);GAR.pod.worldToLocal(w);
+      const px=(w.x/8.8+.5)*G.N,py=(w.z/8.8+.5)*G.N,t9=Math.max(2,Math.round(r.l/.069));G.x.fillRect(Math.round(px-t9/2),Math.round(py-t9/2),t9,t9);}
+    G.sale=true;G.tex.needsUpdate=true;}
+  G.tF+=dt;if(G.sale&&G.tF>1){G.tF=0;const im=G.x.getImageData(0,0,G.N,G.N),d=im.data;let reste=0;
+    for(let i=3;i<d.length;i+=4)if(d[i]){d[i]=Math.max(0,d[i]-5);reste|=d[i];}
+    G.x.putImageData(im,0,0);G.tex.needsUpdate=true;if(!reste)G.sale=false;}
 }
 function burnPop(f){ // une PÉTARADE : du feu en pixels qui crache des pots, et une bouffée sombre
   if(!BURN.feu||!BURN.pots.length)return;
@@ -37603,6 +37697,7 @@ function burnFin(){ // le doigt se lève (ou la vitrine se ferme) : le moteur re
 }
 function burnCoupe(){ // l'atelier se ferme : silence, plus rien à l'écran
   burnFin();BURN.k=0;BURN.rpm=0;BURN.pops.length=0;
+  if(BURN.yaw){garageAng-=BURN.yaw;GAR.podSpin=(GAR.podSpin||0)-BURN.yaw;}BURN.yaw=BURN.yawV=BURN.cib=BURN.pivK=0;
   for(const F of [BURN.fum,BURN.feu])if(F){F.age.fill(1e9);burnPas(F,0,0);F.o.visible=false;}
   if(BURN.corps){carBody.rotation.set(0,0,0);carBody.position.set(0,0,0);BURN.corps=false;}
   if(AC&&BURN.son){const T=AC.currentTime;stt(gainN.gain,0,T,.06);stt(engLfoG.gain,0,T,.06);if(skidG)stt(skidG.gain,0,T,.05);BURN.son=false;}
@@ -37622,13 +37717,14 @@ function burnDoigt(cx,cy,dx,dy,souffle){ // le DOIGT dans la fumée : il la pous
 }
 function burnTick(dt){ // chaque image du garage (après la pose de la caisse, avant la caméra)
   const now=performance.now(),t=now*.001;
-  if(BURN.hold&&!BURN.on&&!BURN.bouge&&now-BURN.hold.t0>140)burnPart();
+  if(BURN.hold&&!BURN.on&&!BURN.bouge&&now-BURN.hold.t0>280)burnPart(); // (même soir) 0,28 s : un glissé lent qui démarre doucement reste le PLATEAU
   if(BURN.auto>0){BURN.auto-=dt;if(BURN.auto<=0)burnFin();}
   if(GAR.go||!gEl||!gEl.classList.contains('vitrine')||gEl.classList.contains('menu'))if(BURN.on)burnFin();
   BURN.k+=((BURN.on?1:0)-BURN.k)*Math.min(1,dt*(BURN.on?5:2.6));if(BURN.k<.002&&!BURN.on)BURN.k=0;
   if(BURN.on)BURN.t+=dt;
   BURN.chaud=Math.max(0,Math.min(1,BURN.chaud+(BURN.on?dt*.34:-dt*.22)));
   const k=BURN.k;
+  burnDerape(dt);
   // LA CAISSE
   if(k>0&&!GAR.go){
     const sp=46*k*dt;for(const E of BURN.ar)E.rotation.x+=sp;for(const w of BURN.arW)w.rotation.x+=sp; // l'arrière patine, l'avant est planté
@@ -37656,10 +37752,29 @@ function burnTick(dt){ // chaque image du garage (après la pose de la caisse, a
   while(BURN.pops.length&&now>=BURN.pops[0]){BURN.pops.shift();burnPop(.8);try{if(sfxOk()){const e=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0];crackle(Math.max(.35,e.crk));}}catch(_){}}
   if(BURN.fum)BURN.fum.o.material.uniforms.uPx.value=Math.max(2,Math.round(5*renderer.getPixelRatio()));
   for(const F of [BURN.fum,BURN.feu])if(F&&F.o.visible)burnPas(F,dt,t);
-  // LES TRACES
-  if(BURN.trace){BURN.traceK=BURN.on?Math.min(1,BURN.traceK+dt*.28):Math.max(0,BURN.traceK-dt/40);BURN.trace.mat.opacity=.62*BURN.traceK;
-    for(const m of BURN.trace)m.visible=BURN.traceK>.01;}
+  try{burnGomme(dt);}catch(e){}
   try{burnSon(dt);}catch(e){if(!burnTick._w){burnTick._w=1;console.warn('burn-out : son',e);}}
+}
+/* LE DÉRAPAGE (même soir, Léo : « seulement si on appuie longtemps sur la voiture et qu'ensuite on glisse le doigt, la voiture commence à
+   déraper en fonction, mais ne tombe jamais vraiment de la plateforme »). En burn-out, le glissé du doigt fait tourner la caisse SUR le
+   plateau (`BURN.cib`, ,009 rad par pixel, dans le sens du plateau au doigt) ; elle suit par un ressort MOU, un peu sous-amorti (ω 7, ζ ,5 :
+   elle part, dépasse, revient — ça glisse), autour d'un PIVOT vers l'avant (`drz` : l'arrière balaie, comme un donut) ; sa vitesse de
+   rotation la pousse un peu dehors (±,35 m). BORNÉE : le centre ne s'écarte jamais de plus de 4,3 m − le rayon de la caisse — ses coins
+   restent sur le disque. Lâchée, elle se RECENTRE en ~0,7 s en gardant le cap qu'on lui a donné ; puis ce cap est VERSÉ dans le plateau
+   (`garageAng` et `GAR.podSpin` bougent d'autant : à l'écran rien ne saute) — JOUER repart d'une caisse alignée. */
+function burnDerape(dt){
+  const d9=Math.min(dt,.1),n=Math.max(1,Math.ceil(d9/.008)),h=d9/n,om=7,ze=.5;
+  for(let i=0;i<n;i++){BURN.yawV+=(om*om*(BURN.cib-BURN.yaw)-2*ze*om*BURN.yawV)*h;BURN.yaw+=BURN.yawV*h;}
+  const vise=BURN.on&&BURN.bouge&&!GAR.go?1:0;BURN.pivK+=(vise-BURN.pivK)*Math.min(1,dt*(vise?6:(GAR.go?6:1.6)));
+  if(BURN.yaw||BURN.pivK>=.001){
+    const y=BURN.yaw,dz=BURN.drz,sl=Math.max(-.35,Math.min(.35,BURN.yawV*.12))*BURN.pivK;
+    let cx=BURN.pivK*(-dz*Math.sin(y))+Math.cos(y)*sl,cz=BURN.pivK*(dz-dz*Math.cos(y))-Math.sin(y)*sl;
+    const lim=Math.max(0,4.3-BURN.rr),c=Math.hypot(cx,cz);if(c>lim){const f=lim/Math.max(1e-6,c);cx*=f;cz*=f;} // jamais hors du disque
+    const r=garRot(),cr=Math.cos(r),sr=Math.sin(r);
+    carGroup.rotation.y+=y;carGroup.position.x+=cx*cr+cz*sr;carGroup.position.z+=-cx*sr+cz*cr;}
+  if(GAR.go||(!BURN.on&&BURN.pivK<.01&&Math.abs(BURN.yawV)<.02)){ // APRÈS l'avoir posée : le cap est versé dans le plateau (à l'image suivante, rien ne saute)
+    if(BURN.yaw){garageAng-=BURN.yaw;GAR.podSpin=(GAR.podSpin||0)-BURN.yaw;BURN.yaw=0;}
+    BURN.cib=0;if(GAR.go)BURN.yawV=0;}
 }
 function burnSon(dt){ // le VRAI moteur du palier, au rupteur, et le crissement de la course
   if(!AC||!osc||!gainN)return;
@@ -37683,7 +37798,7 @@ window.dbgBurn=function(s){
   if(s===0){burnFin();return 'coupé';}
   if(s>0){if(!garageOn||!gEl||!gEl.classList.contains('vitrine'))return 'pas en vitrine';burnPart();BURN.auto=+s;}
   return {on:BURN.on,k:+BURN.k.toFixed(2),t:+BURN.t.toFixed(2),chaud:+BURN.chaud.toFixed(2),rpm:+BURN.rpm.toFixed(2),fumee:BURN.fum?BURN.fum.n:0,feu:BURN.feu?BURN.feu.n:0,
-    essieuxAr:BURN.ar.length,roues:BURN.roues.length,traces:+BURN.traceK.toFixed(2),son:BURN.son};
+    essieuxAr:BURN.ar.length,roues:BURN.roues.length,cap:+BURN.yaw.toFixed(2),pivot:+BURN.pivK.toFixed(2),gomme:!!(BURN.gom&&BURN.gom.sale),plateau:+(GAR.platW||0).toFixed(2),doigt:GAR.doigt||null,son:BURN.son};
 };
 document.querySelectorAll('#gInv .ivTab').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();const c=b.getAttribute('data-c');if(!INV.on||c===INV.cat)return;
   uiPop(b);uiClic('onglet');INV.cat=c;if(c==='trainee')garageAng=3.5; /* comme la console : on regarde ce qui SORT des tuyères */
@@ -38085,6 +38200,8 @@ addEventListener('pointerdown',e=>{if(!garageOn||ecranWipe._on)return;if(e.targe
   if(!GAR.go){GAR.vAc=(GAR.vA||0)+(GAR.vAv||0)*VITRINE_CAM.dLisse/2;GAR.vW=0;GAR.pT=garagePitch;GAR.mvT=performance.now();} // (le glissé fondu) on SAISIT la vue : elle s'arrête sous le doigt
   if(CHUTE&&CHUTE.on){CHUTE.oAc=CHUTE.oA;CHUTE.oW=0;CHUTE.oPc=CHUTE.oP;CHUTE.mvT=performance.now();} // (2026-09-30) au ciel : on SAISIT l'orbite, elle s'arrête sous le doigt
   if(!GAR.sw&&!GAR.go)GAR.pressT=GAR.PRESS_D; // LE TOUCHER : la caisse accuse la pression tout de suite, avant même qu'on glisse
+  GAR.doigt=(gEl&&gEl.classList.contains('vitrine')&&!gEl.classList.contains('menu')&&!GAR.go&&!(INV&&INV.on)&&e.button<=0&&garSurCaisse(e))?'caisse':'vue'; // (même soir) SUR la caisse, le doigt tient le PLATEAU — jamais la vue
+  if(GAR.doigt==='caisse')GAR.platW=0; // le plateau lancé s'arrête sous le doigt
   burnDebut(e); // (2026-10-05) LA VITRINE : le doigt TENU sur la caisse lance le BURN-OUT (voir LE BURN-OUT) — l'inventaire a son bouton COFFRE (avant : invHoldDebut)
 });
 addEventListener('pointercancel',e=>{if(BURN.hold&&BURN.hold.id===e.pointerId)burnFin();if(e.pointerId===gpId){garageDrag=false;gpId=null;}if(INV.hold&&INV.hold.id===e.pointerId)invHoldFin();if(INV.mange===e.pointerId)INV.mange=null;});
@@ -38092,8 +38209,12 @@ addEventListener('pointerup',e=>{
   if(INV.mange!=null&&e.pointerId===INV.mange){INV.mange=null;garageDrag=false;return;} // (inventaire) le relâcher du doigt TENU n'est ni un tap ni un glissé
   if(INV.hold&&INV.hold.id===e.pointerId)invHoldFin();
   if(BURN.hold&&BURN.hold.id===e.pointerId){const b9=BURN.on,m9=BURN.bouge;burnFin(); // (BURN-OUT) le doigt se lève : le moteur retombe
-    if(b9&&!m9){garageDrag=false;GAR.tDoigt=performance.now();GAR.vW=0;return;}} // tenu sur place : ni tap ni glissé
+    if(b9&&!m9){garageDrag=false;GAR.doigt=null;GAR.tDoigt=performance.now();GAR.vW=0;return;}} // tenu sur place : ni tap ni glissé
   if(garageDrag&&e.pointerId!==gpId)return;
+  if(GAR.doigt==='caisse'&&garageDrag&&!gPince){const dx9=e.clientX-gpx0,dy9=e.clientY-gpy0; // (même soir) un glissé SUR la caisse : le plateau (ou le dérapage) — jamais l'élan de la vue
+    if(Math.abs(dx9)>=14||Math.abs(dy9)>=14||BURN.bouge){
+      if(!BURN.bouge){if(performance.now()-(GAR.mvT||0)>90)GAR.platW=0;else GAR.platW=THREE.MathUtils.clamp(GAR.platW||0,-7,7);} // lancé : le plateau file selon la vitesse du doigt
+      GAR.vW=0;GAR.tDoigt=performance.now();garageDrag=false;GAR.doigt=null;return;}}
   if(garageDrag&&!gPince){
     const dx=e.clientX-gpx0,dy=e.clientY-gpy0;
     if(Math.abs(dx)>SWIPE_PX&&Math.abs(dx)>Math.abs(dy)*1.3){if(!gEl.classList.contains('menu')&&!gEl.classList.contains('vitrine'))garageGo(dx<0?1:-1);} /* (2026-10-04) en VITRINE c'est TA caisse : le glissé la fait tourner, il ne feuillette pas la gamme */ // (2026-09-30) au MENU un glissé fait tourner le plateau, il ne change pas de caisse (c'est la BOUTIQUE qui feuillette) // glisse à GAUCHE → caisse SUIVANTE (même sens qu'un carrousel qu'on feuillette)
@@ -38102,7 +38223,7 @@ addEventListener('pointerup',e=>{
     if(performance.now()-(GAR.mvT||0)>90)GAR.vW=0;else{const m9=gEl.classList.contains('vitrine')?VITRINE_CAM.dElan:7;GAR.vW=THREE.MathUtils.clamp(GAR.vW||0,-m9,m9);} // (vitrine) un élan plafonné : le lancer glisse, il ne tourbillonne plus
     if(CHUTE&&CHUTE.on){if(performance.now()-(CHUTE.mvT||0)>90)CHUTE.oW=0;else CHUTE.oW=THREE.MathUtils.clamp(CHUTE.oW||0,-7,7);} // (2026-09-30) l'orbite du ciel : lâchée en mouvement, elle garde son élan // (le glissé fondu) doigt arrêté avant de lâcher : la vue reste ; lancé : elle file sur son élan
   }
-  garageDrag=false;
+  garageDrag=false;GAR.doigt=null;
 });
 addEventListener('pointermove',e=>{
   if(!garageDrag){ // (affiches) LE SURVOL à la souris : l'affiche s'allume, le curseur devient une main
@@ -38117,7 +38238,12 @@ addEventListener('pointermove',e=>{
     gpx=e.clientX;gpy=e.clientY;return;}
   if(GAR.go||gEl.classList.contains('missions'))return; // JOUER est parti / l'écran des MISSIONS : la vue ne se touche plus
   if(gEl&&(gEl.classList.contains('menu')||gEl.classList.contains('vitrine'))){const vit9=gEl.classList.contains('vitrine'),dA=-(e.clientX-gpx)*(vit9?VITRINE_CAM.dPx:.007),n9=performance.now(),dm=Math.max(8,n9-(GAR.mvT||n9-16))/1000;
-    GAR.vAc=(GAR.vAc!=null?GAR.vAc:(GAR.vA||0))+dA;GAR.vW=(GAR.vW||0)*.55+dA/dm*.45;GAR.mvT=n9;GAR.tDoigt=n9;if(vit9)burnDoigt(e.clientX,e.clientY,e.clientX-gpx,e.clientY-gpy,false); // (BURN-OUT) le doigt pousse la fumée // (le glissé fondu) la CIBLE suit le doigt, la vitesse du geste est retenue pour l'élan
+    if(vit9&&GAR.doigt==='caisse'){const dx9=e.clientX-gpx; /* (même soir, Léo : « quand on touche la voiture et qu'on la tourne, ça ne tourne pas le garage : appuie-glisse,
+         la plateforme tourne selon la vitesse du doigt ; appuie et bouge, ça bouge juste la plateforme ; appui long puis glissé, la voiture dérape ») */
+      if(BURN.on)BURN.cib+=dx9*.009;                                                     // en burn-out : elle DÉRAPE (voir LE DÉRAPAGE)
+      else{const da=-dx9*.008;garageAng+=da;GAR.platW=(GAR.platW||0)*.55+da/dm*.45;}     // sinon : le PLATEAU suit le doigt (son bord avant sous le doigt), l'élan est retenu
+      GAR.mvT=n9;GAR.tDoigt=n9;burnDoigt(e.clientX,e.clientY,dx9,e.clientY-gpy,false);}
+    else{GAR.vAc=(GAR.vAc!=null?GAR.vAc:(GAR.vA||0))+dA;GAR.vW=(GAR.vW||0)*.55+dA/dm*.45;GAR.mvT=n9;GAR.tDoigt=n9;if(vit9)burnDoigt(e.clientX,e.clientY,e.clientX-gpx,e.clientY-gpy,false);} // (BURN-OUT) le doigt pousse la fumée // (le glissé fondu) la CIBLE suit le doigt, la vitesse du geste est retenue pour l'élan
     if(!vit9)GAR.pT=THREE.MathUtils.clamp((GAR.pT!=null?GAR.pT:garagePitch)+(e.clientY-gpy)*.003,.08,.42);} // (2026-10-05, Léo : « c'est avec le doigt qu'on bouge le garage à 360° ») en VITRINE aussi : le tour complet de la vue, sans changer sa hauteur // (Léo : « on doit pouvoir voir derrière ») plus de borne : le tour complet // (2026-09-30, Léo) au MENU le doigt fait TOURNER LE REGARD autour de l'atelier, un peu (voir « LE GARAGE QUI VIT »)
   else{garageAng-=(e.clientX-gpx)*.01;if(!gEl.classList.contains('vitrine'))garagePitch=THREE.MathUtils.clamp(garagePitch+(e.clientY-gpy)*.006,.02,.82);} // (2026-10-04) en VITRINE le plan de présentation garde sa hauteur : le doigt tourne la caisse
   gpx=e.clientX;gpy=e.clientY;});
