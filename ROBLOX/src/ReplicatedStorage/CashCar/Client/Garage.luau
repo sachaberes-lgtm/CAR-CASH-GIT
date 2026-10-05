@@ -35,7 +35,7 @@ local Garage = { ouvert = false }
 local L = FR and {
 	voitures = "VOITURES", peinture = "PEINTURE", ailes = "AILES", trainees = "TRAINEES",
 	home = "HOME", boutique = "BOUTIQUE", jouer = "JOUER", acheter = "ACHETER", manque = "IL MANQUE",
-	equiper = "EQUIPER", verrou = "VERROUILLEE", enBoutique = "EN BOUTIQUE", aToi = "A TOI !",
+	equiper = "EQUIPER", verrou = "VERROUILLEE", enBoutique = "EN BOUTIQUE", aToi = "A TOI !", equipee = "EQUIPEE",
 	ilTeManque = "IL TE MANQUE ", bientot = "BIENTOT DISPONIBLE",
 	tout = "TOUT", aMoi = "A MOI", aAcheter = "A ACHETER", gagner = "A GAGNER", defi = "ROUE",
 	roue = "SE GAGNE A LA ROUE", carrN = "ATTRAPE-LA AU NIVEAU 10 DES NUAGES  (%d / 10)",
@@ -44,7 +44,7 @@ local L = FR and {
 } or {
 	voitures = "CARS", peinture = "PAINT", ailes = "WINGS", trainees = "TRAILS",
 	home = "HOME", boutique = "SHOP", jouer = "PLAY", acheter = "BUY", manque = "SHORT BY",
-	equiper = "EQUIP", verrou = "LOCKED", enBoutique = "IN THE SHOP", aToi = "YOURS!",
+	equiper = "EQUIP", verrou = "LOCKED", enBoutique = "IN THE SHOP", aToi = "YOURS!", equipee = "EQUIPPED",
 	ilTeManque = "SHORT BY ", bientot = "COMING SOON",
 	tout = "ALL", aMoi = "MINE", aAcheter = "FOR SALE", gagner = "EARN IT", defi = "WHEEL",
 	roue = "WON ON THE WHEEL", carrN = "CATCH HER IN CLOUDS LEVEL 10  (%d / 10)",
@@ -216,6 +216,10 @@ local NERVURE = Color3.fromRGB(74, 84, 150)
 local PLINTHE = Color3.fromRGB(26, 30, 54)
 local ACIER = Color3.fromRGB(58, 64, 92)
 local CYAN = Color3.fromRGB(95, 240, 255)
+-- (v3, 5/10) LE PLATEAU PREND LA COULEUR DE LA RARETÉ : l'anneau, le cercle, les plots, le halo au sol, le scanner et la lampe de
+-- rive glissent vers la couleur de la famille de la caisse montrée — une légendaire tourne sur de l'or, une épique sur du violet.
+-- (rien d'ajouté : les mêmes pièces, recolorées dans Garage.rendu)
+local R3: any = { plots = {}, halos = {}, teinte = CYAN }
 
 local function batir()
 	local d = Instance.new("Folder")
@@ -265,7 +269,8 @@ local function batir()
 	porte = Instance.new("Model")
 	porte.Name = "Porte"
 	for k = 0, 5 do
-		local pan = bloc("Panneau", 10, 0.78, 0.12, 0, 0.42 + k * 0.816, PROF / 2 - 0.05, Color3.fromRGB(214, 218, 230), Enum.Material.Metal, porte)
+		-- (v3 : acier brossé — à 214,218,230 la porte faisait un aplat BLANC derrière le nom de la caisse)
+		local pan = bloc("Panneau", 10, 0.78, 0.12, 0, 0.42 + k * 0.816, PROF / 2 - 0.05, Color3.fromRGB(150, 156, 184), Enum.Material.Metal, porte)
 		if k == 3 or k == 4 then
 			for _, x in { -3, 0, 3 } do
 				bloc("Hublot", 1.3, 0.26, 0.04, x, 0.42 + k * 0.816, PROF / 2 - 0.13, Color3.fromRGB(255, 120, 40), Enum.Material.Neon, porte).CastShadow = false
@@ -288,21 +293,26 @@ local function batir()
 	plateau = Instance.new("Model")
 	plateau.Name = "Plateau"
 	local anneau = cyl("Anneau", 4.47, 0.10, 0, 0.05, 0, CYAN, Enum.Material.Neon, plateau)
+	R3.anneau = anneau
 	anneau.CastShadow = false
 	local disque = cyl("Disque", 4.38, 0.12, 0, 0.06, 0, Color3.fromRGB(40, 44, 66), nil, plateau)
 	disque.Reflectance = 0.2
-	cyl("Cercle", 3.22, 0.122, 0, 0.061, 0, Color3.fromRGB(40, 150, 170), Enum.Material.Neon, plateau).CastShadow = false
+	R3.cercle = cyl("Cercle", 3.22, 0.122, 0, 0.061, 0, Color3.fromRGB(40, 150, 170), Enum.Material.Neon, plateau)
+	R3.cercle.CastShadow = false
 	cyl("Coeur", 3.18, 0.124, 0, 0.062, 0, Color3.fromRGB(34, 38, 58), nil, plateau).Reflectance = 0.2
 	for k = 0, 11 do
 		local a = k / 12 * math.pi * 2
-		bloc("Plot", 0.16, 0.03, 0.16, math.cos(a) * 4.05, 0.13, math.sin(a) * 4.05, CYAN, Enum.Material.Neon, plateau).CastShadow = false
+		local pl9 = bloc("Plot", 0.16, 0.03, 0.16, math.cos(a) * 4.05, 0.13, math.sin(a) * 4.05, CYAN, Enum.Material.Neon, plateau)
+		pl9.CastShadow = false
+		table.insert(R3.plots, pl9)
 	end
 	plateau.PrimaryPart = disque
 	plateau.Parent = d
 	-- le halo cyan qui lèche le sol autour du plateau
 	for k = 0, 2 do
 		local a = k / 3 * math.pi * 2 + 0.5
-		lampe("HaloPlateau", math.cos(a) * 5.4, 0.5, math.sin(a) * 5.4, CYAN, 0.3, 18)
+		local _, h9 = lampe("HaloPlateau", math.cos(a) * 5.4, 0.5, math.sin(a) * 5.4, CYAN, 0.3, 18)
+		table.insert(R3.halos, h9)
 	end
 	-- le SCANNER du retourneur (un disque de lumière qui monte quand on change de caisse)
 	scanner = cyl("Scanner", 3.0, 0.04, 0, 0.2, 0, CYAN, Enum.Material.Neon)
@@ -404,7 +414,10 @@ local function batir()
 	end
 	-- les deux lampes de studio : elles suivent la vue (la clé chaude, la rive cyan)
 	lampeCle = lampe("Cle", 0, 4.1, -5.2, Color3.fromRGB(255, 220, 168), 1.0, 60, true)
-	lampeRive = lampe("Rive", 0, 2.3, 6, CYAN, 0.45, 52)
+	local rive9
+	lampeRive, rive9 = lampe("Rive", 0, 2.3, 6, CYAN, 0.45, 52)
+	R3.rive = rive9
+	R3.teinte = CYAN
 	-- L'ARGENT DE L'ATELIER : le plan des tas de billets (ils se bâtissent quand le compte les demande)
 	Argent.batir(d, O, M, LARG, PROF)
 end
@@ -443,95 +456,235 @@ local function ambiance(on: boolean)
 end
 
 -- ════════════════════════════════════════════════════════════════════════════════════════════════
--- L'INTERFACE
+-- L'INTERFACE — v3 (5/10, « le design du garage n'est pas au niveau »). La disposition du web reste (la fiche en haut à gauche,
+-- la CONSOLE en bas à droite) ; tout est redessiné à la charte du menu :
+--   · ce qu'on TOUCHE est une PLAQUE PENCHÉE du kit (onglets, familles, barre d'action) — les mêmes que les tuiles de l'accueil ;
+--   · UN lingot d'or par écran : la décision quand on PEUT la prendre (ACHETER, ÉQUIPER, VOIR), sinon JOUER ;
+--   · la RARETÉ se lit partout à la même couleur — et maintenant aussi en toutes lettres (la puce de la fiche, la famille ouverte) ;
+--   · les cartes sont teintées de leur famille ; leur prix est VERT quand on peut payer, ROSE quand il manque de l'argent ;
+--   · une caisse sans photo (le budget de formes de Roblox est compté) montre sa SILHOUETTE de profil en pixels, à sa couleur.
 -- ════════════════════════════════════════════════════════════════════════════════════════════════
 local U: any = {}
 local CASH = Color3.fromRGB(125, 255, 155)
 local OR1 = Color3.fromRGB(255, 226, 122)
 local ROUGE = Color3.fromRGB(255, 74, 100)
-local ENCRE_OR = Color3.fromRGB(58, 24, 0)
--- LA CONSOLE AUX PROPORTIONS DU WEB (garage v7, 844 × 390 porté sur 720 px) : elle tient la moitié droite de l'écran. Elle est
--- dessinée à 470 × 342 puis agrandie d'un bloc (UIScale × ECH_CONSOLE) ; ses textes sont écrits en conséquence (la police pixel
--- fait 5/9 de son TextSize : voir Hud).
-local W_CONSOLE, H_CONSOLE, ECH_CONSOLE = 470, 342, 1.6
-
--- une PLAQUE de la barre d'action : un cadre (qu'on place) et un fond (qui s'enfonce)
-local STYLES = {
-	or_ = { ColorSequence.new({ ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 250, 223)), ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 208, 68)),
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(234, 147, 10)) }), C.orSh, ENCRE_OR },
-	laque = { ColorSequence.new(Color3.fromRGB(39, 32, 73), Color3.fromRGB(20, 16, 41)), C.trait, C.texte },
-	verrou = { ColorSequence.new(Color3.fromRGB(22, 20, 38), Color3.fromRGB(14, 12, 26)), Color3.fromRGB(40, 36, 66), C.terne },
-}
-local ICONES = { ["⌂"] = "maison", ["$"] = "panier" } -- (ce que la police pixel n'a pas : une icône du web)
-local function plaque(parent: Instance, nom: string): any
-	local cadre = inst("Frame", { Name = nom, BackgroundTransparency = 1 }, parent)
-	local tranche = inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = Color3.fromRGB(10, 8, 24), Size = UDim2.new(1, 0, 1, 0), Position = UDim2.fromOffset(0, 5) }, cadre)
-	local fond = inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = Color3.new(1, 1, 1), Size = UDim2.fromScale(1, 1) }, cadre)
-	local grad = inst("UIGradient", { Rotation = 90 }, fond)
-	local trait = inst("UIStroke", { Thickness = 3, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, fond)
-	local filet = inst("Frame", { BorderSizePixel = 0, Size = UDim2.new(0, 6, 1, 0) }, fond)
-	local l1 = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.PIX, Size = UDim2.new(1, -10, 0, 16), Position = UDim2.fromOffset(5, 7),
-		TextSize = 14, Text = "" }, fond)
-	local l2 = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.PIX, Size = UDim2.new(1, -10, 1, 0), Position = UDim2.fromOffset(5, 0),
-		TextSize = 16, Text = "" }, fond)
-	-- (v2, 5/10 : les libellés cernés d'encre, comme ceux des tuiles de l'accueil)
-	inst("UIStroke", { Color = C.encre, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual }, l1)
-	inst("UIStroke", { Color = C.encre, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual }, l2)
-	local b = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 5), Text = "", AutoButtonColor = false, ZIndex = 4 }, cadre)
-	local pq = { cadre = cadre, fond = fond, grad = grad, trait = trait, filet = filet, l1 = l1, l2 = l2, b = b, tranche = tranche, enfonce = false,
-		ico = nil :: Frame?, icoNom = "", icoSeule = false }
-	local function pose(bas: boolean)
-		TweenService:Create(fond, K.RAPIDE, { Position = UDim2.fromOffset(0, (bas or pq.enfonce) and 5 or 0) }):Play()
-	end
-	b.MouseButton1Down:Connect(function() pose(true) end)
-	b.MouseButton1Up:Connect(function() pose(false) end)
-	b.MouseLeave:Connect(function() pose(false) end)
-	b.Activated:Connect(function() Sons.jouer("tap") end)
-	return pq
+local ROSE_PRIX = Color3.fromRGB(255, 150, 172) -- (un prix qu'on ne peut pas encore payer : lisible, sans crier comme le rouge)
+local ENCRE_OR = Color3.fromRGB(44, 20, 2)
+-- LA CONSOLE AUX PROPORTIONS DU WEB : dessinée à 470 × 362 puis agrandie d'un bloc (UIScale × ECH_CONSOLE) ; ses textes sont écrits
+-- en conséquence (la police pixel fait 5/9 de son TextSize : voir Hud).
+local W_CONSOLE, H_CONSOLE, ECH_CONSOLE = 470, 362, 1.6
+-- LA GRILLE DE LA CONSOLE (unités de la console) : chaque rangée qu'on touche fait au moins 44 + 7 (la tranche de la plaque compte
+-- dans la cible) — sur un téléphone couché de 390 px, ~40 px réels pour les familles, 45 et plus pour tout le reste
+local Y = { ong = 14, hOng = 50, pas = 79, hPas = 44, bande = 138, hBande = 134, bar = 284, hBar = 62, ecart = 8, pente = math.tan(math.rad(12)) }
+local function ombrer(c: Color3, k: number): Color3 return Color3.new(c.R * k, c.G * k, c.B * k) end
+-- les teintes d'une plaque à partir de sa couleur (la recette de Hud : tuile) — le fond, la tranche, le biseau
+local function teintes(c: Color3): (Color3, Color3, Color3)
+	return ombrer(c, 0.34):Lerp(C.carbone, 0.42), ombrer(c, 0.16), ombrer(c, 0.72):Lerp(C.carbone, 0.2)
 end
--- style : "or_" | "laque" | "verrou" ; filet = la couleur du liseré gauche (laque) ; l1 petite ligne, l2 grande
-local function habiller(pq: any, style: string, filet: Color3?, l1: string?, l2: string, corps: number?, couleur2: Color3?)
-	local s = STYLES[style]
-	pq.grad.Color = s[1]
-	-- (v2, 5/10, Sacha : « les boutons sont super moches ») une plaque LAQUE prend la couleur de son filet (plongée dans la nuit,
-	-- éclairée en haut), cernée d'encre — HOME lavande, BOUTIQUE rose, JOUER or : on les distingue d'un coup d'œil
-	if style == "laque" and filet then
-		local fondT = Color3.new(filet.R * 0.34, filet.G * 0.34, filet.B * 0.34):Lerp(C.carbone, 0.42)
-		pq.grad.Color = ColorSequence.new(fondT:Lerp(Color3.new(1, 1, 1), 0.14), Color3.new(fondT.R * 0.8, fondT.G * 0.8, fondT.B * 0.8))
-		pq.tranche.BackgroundColor3 = Color3.new(filet.R * 0.16, filet.G * 0.16, filet.B * 0.16)
+local OR_FOND, OR_BISEAU = Color3.fromRGB(255, 190, 32), Color3.fromRGB(255, 248, 170)
+local PLAQUE_OFF = Color3.fromRGB(30, 25, 58) -- un onglet, une famille au repos
+local function vif(c: Color3): Color3 return ombrer(c, 0.62):Lerp(C.carbone, 0.25) end -- la même, allumée à sa couleur
+local NOM_RAR = FR and { commun = "COMMUN", rare = "RARE", epique = "EPIQUE", legendaire = "LEGENDAIRE", defi = "DEFI" }
+	or { commun = "COMMON", rare = "RARE", epique = "EPIC", legendaire = "LEGENDARY", defi = "CHALLENGE" }
+
+-- UNE PLAQUE PENCHÉE de la barre d'action (Hud.kit.penche) : la boîte (qu'on place), la plaque (qui s'enfonce), le bouton (il couvre
+-- aussi la tranche : la cible gagne ses 7 px) et une PILE centrée — l'icône, la petite ligne, la grande ligne.
+-- `dore` : le LINGOT (or, encre brune, le reflet qui passe) ; sinon une plaque teintée de `c`, son filet à gauche.
+local function plaqueP(parent: Instance, nom: string, c: Color3?, dore: boolean?): any
+	local fond, tranche, biseau
+	if dore then
+		fond, tranche, biseau = OR_FOND, C.orSh, OR_BISEAU
+	else
+		fond, tranche, biseau = teintes(c :: Color3)
 	end
-	pq.trait.Color = (style == "laque" and filet == ROUGE) and ROUGE or ((style == "verrou") and s[2] or C.encre)
-	pq.filet.Visible = style == "laque" and filet ~= nil
-	if filet then pq.filet.BackgroundColor3 = filet end
-	-- « ⌂ » et « $ » : la police pixel ne les a pas — une icône pixel du web à la place (au-dessus du libellé, ou seule)
-	local ico = (l1 and ICONES[l1]) or ICONES[l2]
-	local seule = ICONES[l2] ~= nil
-	if ico ~= pq.icoNom or (ico and pq.icoSeule ~= seule) then
-		if pq.ico then pq.ico:Destroy() end
-		pq.ico, pq.icoNom, pq.icoSeule = nil, ico or "", seule
-		if ico then
-			pq.ico = K.icone(pq.fond, ico, seule and 3 or 2, filet or s[3], UDim2.new(0.5, 0, seule and 0.5 or 0, seule and 0 or 8), Vector2.new(0.5, seule and 0.5 or 0))
+	local boite, plaque, b = K.penche(parent, UDim2.fromOffset(100, Y.hBar), UDim2.new(), nil, fond, (not dore) and c or nil, tranche, biseau)
+	boite.Name = nom
+	boite.Visible = false
+	b.Size = UDim2.new(1, 0, 1, 7)
+	b.ZIndex = 4
+	K.retour(b, plaque)
+	local pile = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), ZIndex = 3 }, plaque)
+	inst("UIListLayout", { FillDirection = Enum.FillDirection.Vertical, HorizontalAlignment = Enum.HorizontalAlignment.Center,
+		VerticalAlignment = Enum.VerticalAlignment.Center, Padding = UDim.new(0, 6), SortOrder = Enum.SortOrder.LayoutOrder }, pile)
+	local encre = dore and ENCRE_OR or C.texte
+	local function ligne(ordre: number): TextLabel
+		local t = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.PIXI, TextSize = 14, Text = "", TextColor3 = encre,
+			Size = UDim2.new(1, -10, 0, 12), LayoutOrder = ordre, Visible = false }, pile)
+		if not dore then inst("UIStroke", { Color = C.encre, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual }, t) end
+		return t
+	end
+	return { boite = boite, plaque = plaque, b = b, pile = pile, l1 = ligne(2), l2 = ligne(3), encre = encre, icos = {} }
+end
+-- une icône pixel dans la pile d'une plaque (rangée sous le nom « maison3 » : la maison à 3 px)
+local function icoP(pl: any, nom: string, px: number, couleur: any)
+	local f = K.icone(pl.pile, nom, px, couleur)
+	f.LayoutOrder = 1
+	f.Visible = false
+	pl.icos[nom .. px] = f
+end
+-- ce que dit une plaque : l'icône, la petite ligne, la grande (son corps, sa couleur)
+local function dire(pl: any, ico: string?, l1: string?, l2: string?, corps: number?, couleur2: Color3?)
+	for k, f in pl.icos do f.Visible = k == ico end
+	pl.l1.Visible = l1 ~= nil
+	pl.l1.Text = l1 or ""
+	pl.l1.TextSize = 12
+	pl.l1.Size = UDim2.new(1, -10, 0, 10)
+	local cs = corps or 24
+	pl.l2.Visible = l2 ~= nil
+	pl.l2.Text = l2 or ""
+	pl.l2.TextSize = cs
+	pl.l2.Size = UDim2.new(1, -10, 0, math.floor(cs * 0.8))
+	pl.l2.TextColor3 = couleur2 or pl.encre
+end
+-- le REFLET du lingot (comme Hud : lingot) — une barre de lumière en biais traverse l'or toutes les 3 s : c'est LE bouton
+local function refleter(pl: any)
+	local d = math.floor(Y.hBar * Y.pente + 0.5)
+	local clip = inst("Frame", { BackgroundTransparency = 1, ClipsDescendants = true, Size = UDim2.new(1, -d, 1, -6), Position = UDim2.fromOffset(math.floor(d / 2), 3),
+		ZIndex = 2 }, pl.plaque)
+	local r = inst("Frame", { BackgroundColor3 = Color3.new(1, 1, 1), BackgroundTransparency = 0.4, BorderSizePixel = 0, Size = UDim2.new(0, 26, 1, 8),
+		Position = UDim2.new(-0.2, 0, 0, -4), Rotation = 12 }, clip)
+	inst("UIGradient", { Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.5, 0.1), NumberSequenceKeypoint.new(1, 1) }) }, r)
+	task.spawn(function()
+		while r.Parent do
+			if pl.boite.Visible and U.racine and U.racine.Visible then
+				r.Position = UDim2.new(-0.2, 0, 0, -4)
+				TweenService:Create(r, TweenInfo.new(0.7, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), { Position = UDim2.new(1.15, 0, 0, -4) }):Play()
+			end
+			task.wait(3.2)
 		end
-	elseif pq.ico and filet then
-		K.teinter(pq.ico, filet)
+	end)
+end
+local function poser(pl: any, x: number, w: number)
+	pl.boite.Visible = true
+	pl.boite.Position = UDim2.fromOffset(x, Y.bar)
+	pl.boite.Size = UDim2.fromOffset(w, Y.hBar)
+end
+
+-- une plaque d'ONGLET ou de FAMILLE : sombre au repos, repeinte quand elle s'allume (K.repeindre) ; son contenu en pile (onglet :
+-- l'icône au-dessus du mot) ou en ligne (famille : la gemme devant le compte)
+local function plaqueO(parent: Instance, h: number, w: number, pos: UDim2, vertical: boolean): any
+	local boite, plaque, b = K.penche(parent, UDim2.fromOffset(w, h), pos, nil, PLAQUE_OFF, nil, C.encre, nil)
+	b.Size = UDim2.new(1, 0, 1, 7)
+	b.ZIndex = 4
+	K.retour(b, plaque)
+	local d = math.floor(h * Y.pente + 0.5)
+	local pile = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, -d, 1, 0), Position = UDim2.fromOffset(math.floor(d / 2), 0), ZIndex = 3 }, plaque)
+	inst("UIListLayout", { FillDirection = vertical and Enum.FillDirection.Vertical or Enum.FillDirection.Horizontal,
+		HorizontalAlignment = Enum.HorizontalAlignment.Center, VerticalAlignment = Enum.VerticalAlignment.Center,
+		Padding = UDim.new(0, vertical and 6 or 8), SortOrder = Enum.SortOrder.LayoutOrder }, pile)
+	local txt = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.PIXI, TextSize = 13, Text = "", TextColor3 = C.terne,
+		TextXAlignment = vertical and Enum.TextXAlignment.Center or Enum.TextXAlignment.Left, -- (en ligne : un débord part à droite, jamais sur la gemme)
+		AutomaticSize = vertical and Enum.AutomaticSize.None or Enum.AutomaticSize.X, Size = vertical and UDim2.new(1, 0, 0, 11) or UDim2.fromOffset(0, 11),
+		LayoutOrder = 2 }, pile)
+	inst("UIStroke", { Color = C.encre, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual }, txt)
+	return { boite = boite, plaque = plaque, b = b, pile = pile, txt = txt, allume = nil :: boolean? }
+end
+-- allumer / éteindre une plaque d'onglet ou de famille (on ne repeint que si ça change : ~40 bandes par plaque)
+local function allumer(o: any, on: boolean, fond: Color3)
+	if o.allume == on and o.fond == fond then return end
+	o.allume, o.fond = on, fond
+	K.repeindre(o.plaque, fond)
+	o.txt.TextColor3 = on and C.texte or C.texte2
+end
+-- la GEMME de rareté (un losange cerné d'encre)
+-- (dans un porteur droit : un UIListLayout rend ses enfants sans leur rotation — le losange sortait en carré)
+local function gemme(parent: Instance, c: Color3, cote: number, ordre: number?): Frame
+	local porteur = inst("Frame", { Name = "Gemme", BackgroundTransparency = 1, Size = UDim2.fromOffset(math.ceil(cote * 1.42), math.ceil(cote * 1.42)),
+		LayoutOrder = ordre or 1 }, parent)
+	local g9 = inst("Frame", { Name = "Losange", BorderSizePixel = 0, BackgroundColor3 = c, Size = UDim2.fromOffset(cote, cote), Rotation = 45,
+		AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5) }, porteur)
+	inst("UIStroke", { Color = C.encre, Thickness = 2 }, g9)
+	return g9
+end
+
+-- ── LES CARTES ──
+local FOND_CARTE = Color3.fromRGB(26, 22, 50)
+-- le fond d'une carte : la nuit en haut, sa FAMILLE qui monte du bas (plus vive sur la carte montrée)
+local function degradeCarte(c: Color3, vive: boolean): ColorSequence
+	local haut = vive and Color3.fromRGB(54, 46, 100) or FOND_CARTE
+	return ColorSequence.new({ ColorSequenceKeypoint.new(0, haut), ColorSequenceKeypoint.new(0.45, haut:Lerp(c, 0.08)),
+		ColorSequenceKeypoint.new(1, ombrer(c, vive and 0.66 or 0.44)) })
+end
+-- la PUCE d'une carte, en bas à droite : un prix, BOUTIQUE, ROUE, la coche verte (à moi) ou ÉQUIPÉE sur fond d'or
+local function puceCarte(cadre: Frame): any
+	local p = inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = C.encre, BackgroundTransparency = 0.12, AnchorPoint = Vector2.new(1, 1),
+		Position = UDim2.new(1, -4, 1, -6), Size = UDim2.fromOffset(0, 15), AutomaticSize = Enum.AutomaticSize.X, ZIndex = 3 }, cadre)
+	inst("UIPadding", { PaddingLeft = UDim.new(0, 4), PaddingRight = UDim.new(0, 3) }, p)
+	inst("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, VerticalAlignment = Enum.VerticalAlignment.Center, Padding = UDim.new(0, 3),
+		SortOrder = Enum.SortOrder.LayoutOrder }, p)
+	local coche = K.icone(p, "coche", 1, CASH)
+	coche.LayoutOrder = 1
+	local txt = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.PIX, TextSize = 11, Text = "", TextColor3 = CASH,
+		AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.fromOffset(0, 15), LayoutOrder = 2 }, p)
+	return { f = p, coche = coche, txt = txt }
+end
+local function direPuce(pc: any, txt: string?, couleur: Color3?, coche: boolean?, fond: Color3?)
+	pc.f.Visible = (txt ~= nil and txt ~= "") or coche == true
+	pc.coche.Visible = coche == true
+	pc.txt.Visible = txt ~= nil and txt ~= ""
+	pc.txt.Text = txt or ""
+	pc.txt.TextColor3 = couleur or CASH
+	pc.f.BackgroundColor3 = fond or C.encre
+	pc.f.BackgroundTransparency = fond and 0 or 0.12
+end
+
+-- LA SILHOUETTE d'une caisse sans photo : un coupé de PROFIL en pixels (nez à gauche, comme les photos), à la couleur de sa laque —
+-- la petite voiture vue de face d'avant ressemblait à un envahisseur de l'espace. # carrosserie (claire en haut, sombre en bas),
+-- w vitres, r pneus, h jantes, l phare, t feu
+local SILHOUETTE = {
+	"........######......",
+	"......##ww#wwww#....",
+	".....#www#wwwwww#...",
+	"..################..",
+	"l##################t",
+	"####rrr#######rrr###",
+	"...rrhrr.....rrhrr..",
+	"...rrhrr.....rrhrr..",
+	"....rrr.......rrr...",
+}
+local function silhouette(parent: Instance, px: number, laque: Color3, sombre: boolean): Frame
+	local f = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(20 * px, 9 * px), AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.new(0.5, 0, 0.5, -5) }, parent)
+	local k = sombre and 0.5 or 1
+	local claire, sombreC = laque:Lerp(Color3.new(1, 1, 1), 0.3), ombrer(laque, 0.62)
+	local function teinte(ch: string, y: number): Color3
+		local c
+		if ch == "#" then c = (y <= 3) and claire or ((y == 4) and laque or sombreC)
+		elseif ch == "w" then c = Color3.fromRGB(150, 220, 255)
+		elseif ch == "r" then c = Color3.fromRGB(16, 14, 28)
+		elseif ch == "h" then c = Color3.fromRGB(160, 164, 186)
+		elseif ch == "l" then c = Color3.fromRGB(255, 236, 160)
+		else c = Color3.fromRGB(255, 60, 80) end
+		return ombrer(c, k)
 	end
-	if ico and not seule then l1 = " " end -- (la place de l'icône)
-	if seule then l2 = "" end
-	pq.l1.Text = (l1 and l1 ~= " ") and l1 or ""
-	pq.l1.TextColor3 = s[3]
-	pq.l2.Text = l2
-	pq.l2.TextColor3 = couleur2 or s[3]
-	pq.l2.TextSize = corps or 16
-	pq.l2.Position = UDim2.fromOffset(5, l1 and 11 or 0)
-	pq.enfonce = style == "verrou"
-	pq.fond.Position = UDim2.fromOffset(0, pq.enfonce and 5 or 0)
+	-- l'ombre au sol, sous les roues
+	inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = C.encre, BackgroundTransparency = 0.45, Size = UDim2.fromOffset(18 * px, px),
+		Position = UDim2.fromOffset(px, 9 * px) }, f)
+	for y, ligne in SILHOUETTE do
+		local x = 1
+		while x <= #ligne do
+			local ch = string.sub(ligne, x, x)
+			if ch ~= "." then
+				local x1 = x
+				while x1 < #ligne and string.sub(ligne, x1 + 1, x1 + 1) == ch do x1 += 1 end
+				inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = teinte(ch, y - 1), Size = UDim2.fromOffset((x1 - x + 1) * px, px),
+					Position = UDim2.fromOffset((x - 1) * px, (y - 1) * px) }, f)
+				x = x1 + 1
+			else
+				x += 1
+			end
+		end
+	end
+	return f
 end
 
 local tuiles: { [number]: any } = {}
 local RESERVE = 9000 -- triangles qu'une photo ne prend jamais (la caisse du plateau en a besoin)
 local fileN = 0 -- le numéro de la file de photos en cours (changer de famille l'annule)
+local CARTE_L, CARTE_H = 106, 60
 
--- LA PHOTO d'une caisse (carPhoto du web) : trois-quarts avant, nez à gauche, objectif de 24°
+-- LA PHOTO d'une caisse (carPhoto du web) : trois-quarts avant, nez à gauche, objectif de 24° — calée un peu HAUT dans la carte
+-- (la puce du prix vit en bas à droite)
 local function photographier(t: any, i: number)
 	local m = Caisse.vignette(i)
 	if not m then return end
@@ -543,10 +696,10 @@ local function photographier(t: any, i: number)
 	local az, el = 0.82, 0.27
 	local dir = Vector3.new(-math.sin(az) * math.cos(el), math.sin(el), -math.cos(az) * math.cos(el))
 	local projete = corps.Size.Z * math.sin(az) + corps.Size.X * math.cos(az)
-	local dist = projete / 0.9 / (2 * math.tan(math.rad(12)) * (104 / 54)) + corps.Size.Z * 0.18
+	local dist = projete / 0.86 / (2 * math.tan(math.rad(12)) * (CARTE_L / CARTE_H)) + corps.Size.Z * 0.18
 	local cam = Instance.new("Camera")
 	cam.FieldOfView = 24
-	local vise = corps.Position + Vector3.new(0, -corps.Size.Y * 0.04, 0)
+	local vise = corps.Position + Vector3.new(0, -corps.Size.Y * 0.2, 0)
 	cam.CFrame = CFrame.lookAt(vise + dir * dist, vise)
 	cam.Parent = t.vp
 	t.vp.CurrentCamera = cam
@@ -560,64 +713,80 @@ local function majTuile(i: number)
 	local t = tuiles[i]
 	if not t then return end
 	local f = Catalogue[i]
-	local aMoi = possede(i)
+	local aMoi = possede(i) or f.cond.k == "depart"
 	local equipee = profil().caisse == i
-	local sombre = not aMoi and f.cond.k ~= "depart"
-	t.vp.ImageColor3 = sombre and Color3.fromRGB(120, 112, 150) or Color3.new(1, 1, 1)
+	local sombre = not aMoi
+	local vue = i == montre
+	t.vp.ImageColor3 = sombre and Color3.fromRGB(104, 96, 140) or Color3.new(1, 1, 1)
+	if t.silSombre ~= sombre then
+		if t.sil then t.sil:Destroy() end
+		t.sil = silhouette(t.pastille, 3, t.laque, sombre)
+		t.silSombre = sombre
+	end
 	t.verrou.Visible = sombre
-	t.losange.Visible = equipee
-	local etiquette, couleur = "", CASH
-	if sombre then
-		if f.cond.k == "prix" then etiquette = Hud.argent(f.cond.v)
+	if equipee then
+		direPuce(t.puce, L.equipee, ENCRE_OR, false, Color3.fromRGB(255, 199, 42))
+	elseif aMoi then
+		direPuce(t.puce, nil, nil, true)
+	elseif f.cond.k == "prix" then
 		-- (4/10, version publique : Roblox se paie en Robux — plus aucun prix en euros à l'écran ; la caisse de la boutique dit BOUTIQUE,
 		-- celle de la roue dit ROUE)
-		elseif f.cond.k == "premium" then etiquette, couleur = L.boutique, OR1
-		elseif f.cond.k == "roue" then etiquette, couleur = L.defi, OR1 end
-	elseif not equipee then
-		etiquette = L.aMoi -- (« ✓ » : un carré dans toutes les polices de Roblox)
+		direPuce(t.puce, Hud.argent(f.cond.v), (profil().compte or 0) >= f.cond.v and CASH or ROSE_PRIX)
+	elseif f.cond.k == "premium" then
+		direPuce(t.puce, L.boutique, OR1)
+	elseif f.cond.k == "roue" then
+		direPuce(t.puce, L.defi, OR1)
+	elseif f.cond.k == "aura" then
+		direPuce(t.puce, "AURA", C.lavande)
+	else
+		direPuce(t.puce, nil)
 	end
-	t.prix.Text = etiquette
-	t.prix.TextColor3 = couleur
-	t.trait.Enabled = i == montre
-	t.cadre.BackgroundColor3 = i == montre and Color3.fromRGB(52, 44, 96) or Color3.fromRGB(26, 22, 50)
+	t.trait.Color = vue and Color3.new(1, 1, 1):Lerp(t.rar, 0.3) or ombrer(t.rar, 0.5)
+	t.trait.Thickness = vue and 3 or 2
+	t.grad.Color = degradeCarte(t.rar, vue)
 end
 
 local function creerTuile(i: number, rang: number): any
 	local f = Catalogue[i]
 	local c = COULEUR_RAR[f.rar]
-	local cadre = inst("Frame", { Name = "T" .. i, BorderSizePixel = 0, BackgroundColor3 = Color3.fromRGB(26, 22, 50), LayoutOrder = rang, ClipsDescendants = true }, U.bande)
-	local trait = inst("UIStroke", { Color = c, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Enabled = false }, cadre)
+	local cadre = inst("Frame", { Name = "T" .. i, BorderSizePixel = 0, BackgroundColor3 = Color3.new(1, 1, 1), LayoutOrder = rang, ClipsDescendants = true }, U.bande)
+	local grad = inst("UIGradient", { Rotation = 90, Color = degradeCarte(c, false) }, cadre)
+	local trait = inst("UIStroke", { Color = ombrer(c, 0.5), Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, cadre)
 	local vp = inst("ViewportFrame", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Ambient = Color3.fromRGB(150, 150, 178),
 		LightColor = Color3.fromRGB(255, 244, 230) }, cadre)
-	-- en attendant la photo (ou quand le budget de formes de Roblox la refuse) : une PETITE VOITURE EN PIXELS à la couleur de sa
-	-- laque, cernée d'encre — une barre de couleur ne disait pas « une caisse » (5/10, « le garage, travaille-le »)
-	local laque = Color3.fromHex(string.format("%06x", f.laque))
-	local pastille = inst("Frame", { BackgroundTransparency = 1, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.42),
-		Size = UDim2.fromOffset(9 * 5, 9 * 5) }, cadre)
-	local ombre9 = K.icone(pastille, "voiture", 5, C.encre, UDim2.fromOffset(2, 2))
-	K.icone(pastille, "voiture", 5, { { 0.36, laque:Lerp(Color3.new(1, 1, 1), 0.35) }, { 0.75, laque }, { 1, laque:Lerp(Color3.new(0, 0, 0), 0.45) } }, UDim2.fromOffset(0, 0))
-	ombre9.Name = "Ombre"
+	-- en attendant la photo (ou quand le budget de formes de Roblox la refuse) : la SILHOUETTE (posée par majTuile)
+	local pastille = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1) }, cadre)
 	inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = c, Size = UDim2.new(1, 0, 0, 3), Position = UDim2.new(0, 0, 1, -3), ZIndex = 2 }, cadre)
-	local prix = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.PIX, TextSize = 15, Text = "", TextColor3 = CASH,
-		Size = UDim2.new(1, -6, 0, 16), Position = UDim2.new(0, 0, 1, -21), TextXAlignment = Enum.TextXAlignment.Right, ZIndex = 3 }, cadre)
-	inst("UIStroke", { Color = C.encre, Thickness = 2 }, prix)
-	local verrou = K.icone(cadre, "verrou", 1, Color3.fromRGB(190, 180, 255), UDim2.fromOffset(5, 5))
-	verrou.ZIndex = 3
-	for _, p in verrou:GetChildren() do (p :: Frame).ZIndex = 3 end
-	verrou.Visible = false
-	local losange = inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = Color3.fromRGB(255, 199, 42), Size = UDim2.fromOffset(9, 9),
-		Position = UDim2.fromOffset(7, 6), Rotation = 45, ZIndex = 3, Visible = false }, cadre)
+	local puce = puceCarte(cadre)
+	-- le cadenas : une petite plaque d'encre en haut à gauche
+	local verrou = inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = C.encre, BackgroundTransparency = 0.12, Size = UDim2.fromOffset(15, 15),
+		Position = UDim2.fromOffset(4, 4), ZIndex = 3, Visible = false }, cadre)
+	K.icone(verrou, "verrou", 1, Color3.fromRGB(200, 190, 255), UDim2.fromOffset(3, 3))
 	local b = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Text = "", ZIndex = 5 }, cadre)
-	local t = { cadre = cadre, trait = trait, vp = vp, pastille = pastille, prix = prix, verrou = verrou, losange = losange, b = b }
+	local t = { cadre = cadre, grad = grad, trait = trait, vp = vp, pastille = pastille, puce = puce, verrou = verrou, b = b, rar = c,
+		laque = Color3.fromHex(string.format("%06x", f.laque)), sil = nil :: Frame?, silSombre = nil :: boolean? }
 	b.Activated:Connect(function()
 		Sons.jouer("tap")
+		Hud.vibre(6)
 		Garage.sauter(i)
 	end)
+	-- le SURVOL (souris) : le liseré de la carte s'éclaire — on sait ce qu'on va toucher
+	b.MouseEnter:Connect(function() if i ~= montre then trait.Color = c:Lerp(Color3.new(1, 1, 1), 0.15) end end)
+	b.MouseLeave:Connect(function() majTuile(i) end)
 	return t
 end
 
--- une tuile d'HABILLAGE : le nuancier de la laque, le ruban de la traînée, le nom de l'aile
+-- une carte d'HABILLAGE : le nuancier de la laque, le ruban de la traînée, l'aile et son nom
 local tuilesH: { any } = {}
+local function majCartesHabits()
+	local cat = onglet
+	for _, t in tuilesH do
+		local vue = t.j == choisi[cat]
+		t.trait.Color = vue and Color3.new(1, 1, 1):Lerp(COUL_CAT[cat], 0.3) or ombrer(COUL_CAT[cat], 0.5)
+		t.trait.Thickness = vue and 3 or 2
+		t.grad.Color = degradeCarte(COUL_CAT[cat], vue)
+	end
+end
 local function majBandeHabits()
 	fileN += 1
 	for i, t in tuiles do
@@ -628,20 +797,25 @@ local function majBandeHabits()
 	for _, t in tuilesH do t.cadre:Destroy() end
 	table.clear(tuilesH)
 	local cat = onglet
+	local cc = COUL_CAT[cat]
 	local p = tenue()
+	local compte = profil().compte or 0
 	for j, d in HABITS[cat] do
 		if passeFiltre(cat, d) then
-			local cadre = inst("Frame", { Name = "H" .. j, BorderSizePixel = 0, BackgroundColor3 = Color3.fromRGB(26, 22, 50), LayoutOrder = j, ClipsDescendants = true }, U.bande)
-			local trait = inst("UIStroke", { Color = C.magenta, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Enabled = j == choisi[cat] }, cadre)
+			local cadre = inst("Frame", { Name = "H" .. j, BorderSizePixel = 0, BackgroundColor3 = Color3.new(1, 1, 1), LayoutOrder = j, ClipsDescendants = true }, U.bande)
+			local grad = inst("UIGradient", { Rotation = 90, Color = degradeCarte(cc, false) }, cadre)
+			local trait = inst("UIStroke", { Color = ombrer(cc, 0.5), Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, cadre)
 			if cat == "aile" then
 				-- (5/10) une aile en pixels à gauche du nom : la case disait un mot, elle montre une aile
-				local ic9 = K.icone(cadre, "aile", 3, { { 0.4, Color3.fromRGB(220, 246, 255) }, { 1, COUL_CAT.aile } }, UDim2.new(0, 8, 0.5, -8), Vector2.new(0, 0.5))
+				local ic9 = K.icone(cadre, "aile", 3, { { 0.4, Color3.fromRGB(220, 246, 255) }, { 1, cc } }, UDim2.new(0, 7, 0.5, -6), Vector2.new(0, 0.5))
 				ic9.ZIndex = 2
-				inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.PIX, TextSize = 13, TextWrapped = true, Text = FR and d.nom or d.en, TextColor3 = COUL_CAT.aile,
-					Size = UDim2.new(1, -44, 1, -18), Position = UDim2.fromOffset(40, 2), TextXAlignment = Enum.TextXAlignment.Left }, cadre)
+				inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.PIX, TextSize = 11, TextWrapped = true, Text = FR and d.nom or d.en, TextColor3 = C.texte,
+					Size = UDim2.new(1, -42, 1, -22), Position = UDim2.fromOffset(38, 3), TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 2 }, cadre)
 			else
-				local nu = inst("Frame", { BorderSizePixel = 0, Size = UDim2.new(1, -16, 0, (cat == "trainee") and 12 or 26), Position = UDim2.fromOffset(8, (cat == "trainee") and 14 or 6),
-					BackgroundColor3 = Color3.new(1, 1, 1) }, cadre)
+				-- le NUANCIER : un échantillon cerné d'encre (la traînée : un ruban qui s'efface)
+				local nu = inst("Frame", { BorderSizePixel = 0, Size = UDim2.new(1, -16, 0, (cat == "trainee") and 12 or 24), Position = UDim2.fromOffset(8, (cat == "trainee") and 14 or 7),
+					BackgroundColor3 = Color3.new(1, 1, 1), ZIndex = 2 }, cadre)
+				if cat ~= "trainee" then inst("UIStroke", { Color = C.encre, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, nu) end
 				if d.grad then
 					inst("UIGradient", { Rotation = 20, Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, d.grad[1]), ColorSequenceKeypoint.new(0.5, d.grad[2]),
 						ColorSequenceKeypoint.new(1, d.grad[3]) }) }, nu)
@@ -657,31 +831,58 @@ local function majBandeHabits()
 				end
 				if cat == "trainee" then inst("UIGradient", { Transparency = NumberSequence.new(0, 0.85) }, nu) end
 			end
-			inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = COUL_CAT[cat], Size = UDim2.new(1, 0, 0, 3), Position = UDim2.new(0, 0, 1, -3), ZIndex = 2 }, cadre)
-			local a = aHabit(cat, d)
-			local etiquette, couleur = "", CASH
-			if a then
-				etiquette = (p[cat] == d.id) and "" or L.aMoi
-			elseif d.p then
-				etiquette = Hud.argent(d.p)
-			else
-				etiquette, couleur = L.defi, OR1
-			end
-			local prix = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.PIX, TextSize = 15, Text = etiquette, TextColor3 = couleur,
-				Size = UDim2.new(1, -6, 0, 16), Position = UDim2.new(0, 0, 1, -21), TextXAlignment = Enum.TextXAlignment.Right, ZIndex = 3 }, cadre)
-			inst("UIStroke", { Color = C.encre, Thickness = 2 }, prix)
+			inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = cc, Size = UDim2.new(1, 0, 0, 3), Position = UDim2.new(0, 0, 1, -3), ZIndex = 2 }, cadre)
+			local puce = puceCarte(cadre)
 			if p[cat] == d.id then
-				inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = Color3.fromRGB(255, 199, 42), Size = UDim2.fromOffset(9, 9), Position = UDim2.new(1, -16, 1, -18), Rotation = 45, ZIndex = 3 }, cadre)
+				direPuce(puce, L.equipee, ENCRE_OR, false, Color3.fromRGB(255, 199, 42))
+			elseif aHabit(cat, d) then
+				direPuce(puce, nil, nil, true)
+			elseif d.p then
+				direPuce(puce, Hud.argent(d.p), compte >= d.p and CASH or ROSE_PRIX)
+			else
+				direPuce(puce, L.defi, OR1)
 			end
 			local b = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Text = "", ZIndex = 5 }, cadre)
 			b.Activated:Connect(function()
 				Sons.jouer("tap")
+				Hud.vibre(6)
 				Garage.essayer(cat, j)
 			end)
-			table.insert(tuilesH, { cadre = cadre, trait = trait, j = j })
+			b.MouseEnter:Connect(function() if j ~= choisi[cat] then trait.Color = cc:Lerp(Color3.new(1, 1, 1), 0.15) end end)
+			b.MouseLeave:Connect(function() majCartesHabits() end)
+			table.insert(tuilesH, { cadre = cadre, trait = trait, grad = grad, j = j })
 		end
 	end
+	majCartesHabits()
 	U.bande.CanvasPosition = Vector2.zero
+end
+
+-- LA BANDE SUIT LA CAISSE MONTRÉE : au clavier, à la manette ou au glissé, la carte de la caisse sur le plateau reste en vue (avant,
+-- la 6e d'une famille de 16 était hors de la bande et rien ne bougeait)
+local function defilerVers(i: number, anim: boolean?)
+	local t = tuiles[i]
+	if not t or onglet ~= "voiture" or i ~= montre or not Garage.ouvert then return end
+	local rang = table.find(FAMILLES[famille], i)
+	if not rang then return end
+	local fenetre = W_CONSOLE - 24
+	local s9 = U.bande.AbsoluteWindowSize.X / fenetre -- (l'échelle de la console : la toile se compte en unités de la console)
+	if s9 <= 0 then return end
+	local maxX = math.max(0, (U.bande.AbsoluteCanvasSize.X - U.bande.AbsoluteWindowSize.X) / s9)
+	local x0 = 3 + ((rang - 1) // 2) * (CARTE_L + 6)
+	local vu = U.bande.CanvasPosition.X
+	local vers = vu
+	if x0 - 3 < vu then
+		vers = x0 - 3
+	elseif x0 + CARTE_L + 3 > vu + fenetre then
+		vers = x0 + CARTE_L + 3 - fenetre
+	end
+	vers = math.clamp(vers, 0, maxX)
+	if math.abs(vers - vu) < 1 then return end
+	if anim then
+		TweenService:Create(U.bande, K.LENTE, { CanvasPosition = Vector2.new(vers, 0) }):Play()
+	else
+		U.bande.CanvasPosition = Vector2.new(vers, 0)
+	end
 end
 
 -- la bande ne montre que la famille courante ; les photos se prennent une par une (la partie coûteuse)
@@ -736,24 +937,28 @@ local function majBande()
 	end)
 end
 
-local function majPastilles()
+-- les FAMILLES (voitures) ou les FILTRES (habillages) : la famille ouverte s'élargit et dit son nom (« ◆ LEGENDAIRE 1/13 »), les
+-- autres gardent leur compte — on lit d'un coup d'œil où on est et ce qu'on possède
+local function majPastilles(anim: boolean?)
 	local voitures = onglet == "voiture"
-	for _, r in RARETES do U.pastilles[r.id].fond.Visible = voitures end
+	for _, r in RARETES do U.pastilles[r.id].boite.Visible = voitures end
 	for id, f in U.filtres do
-		f.fond.Visible = not voitures
+		f.boite.Visible = not voitures
 		if not voitures then
 			local n = 0
 			for _, d in HABITS[onglet] do
 				local a = aHabit(onglet, d)
 				if id == "tout" or (id == "moi" and a) or (id == "acheter" and not a and d.p ~= nil) then n += 1 end
 			end
-			f.txt.Text = f.nom .. " " .. n
-			local actif = id == filtre
-			f.fond.BackgroundColor3 = actif and f.c:Lerp(Color3.fromRGB(20, 16, 41), 0.72) or Color3.fromRGB(20, 16, 41)
-			f.trait.Color = actif and f.c or C.trait
+			f.txt.Text = f.nom .. "  " .. n
+			allumer(f, id == filtre, (id == filtre) and vif(f.c) or PLAQUE_OFF)
 		end
 	end
 	if not voitures then return end
+	local W = W_CONSOLE - 28
+	local large = 162
+	local etroit = (W - large - (#RARETES - 1) * 6) / (#RARETES - 1)
+	local x = 14
 	for _, r in RARETES do
 		local p = U.pastilles[r.id]
 		local a, n = 0, 0
@@ -761,11 +966,18 @@ local function majPastilles()
 			n += 1
 			if possede(i) or Catalogue[i].cond.k == "depart" then a += 1 end
 		end
-		p.txt.Text = a .. "/" .. n
 		local actif = r.id == famille
-		p.fond.BackgroundColor3 = actif and r.c:Lerp(Color3.fromRGB(20, 16, 41), 0.72) or Color3.fromRGB(20, 16, 41)
-		p.trait.Color = actif and r.c or C.trait
-		p.txt.TextColor3 = actif and C.texte or C.texte2
+		p.txt.Text = actif and (NOM_RAR[r.id] .. "  " .. a .. "/" .. n) or (a .. "/" .. n)
+		p.txt.TextSize = actif and 13 or 12
+		allumer(p, actif, actif and vif(r.c) or PLAQUE_OFF)
+		local w = actif and large or etroit
+		local pos, taille = UDim2.fromOffset(x, Y.pas), UDim2.fromOffset(w, Y.hPas)
+		if anim then
+			TweenService:Create(p.boite, K.LENTE, { Position = pos, Size = taille }):Play()
+		else
+			p.boite.Position, p.boite.Size = pos, taille
+		end
+		x += w + 6
 	end
 end
 
@@ -806,6 +1018,60 @@ local function condition(i: number): string
 	return ""
 end
 
+-- LA FICHE : la puce de rareté, le nom (blanc, son ombre portée à la couleur de la famille), sa barre, la ligne d'état
+local ficheCle = ""
+local function poserNom(nom: string, c: Color3)
+	local corps = math.clamp(math.floor(1000 / math.max(8, utf8.len(nom) or #nom)), 34, 80)
+	U.nom.Text = nom
+	U.nomOmbre.Text = nom
+	U.nom.TextSize = corps
+	U.nomOmbre.TextSize = corps
+	U.nomOmbre.TextColor3 = ombrer(c, 0.62)
+	U.barre.BackgroundColor3 = c
+	U.barreW = math.clamp(math.floor((utf8.len(nom) or #nom) * corps * Hud.CHASSE + 14), 180, 660)
+	U.barre.Size = UDim2.fromOffset(U.barreW, 6)
+end
+-- la puce : ◆ + le mot (la famille d'une caisse, ou PEINTURE / AILES / TRAINEES), sur un aplat de sa couleur
+local function poserPuce(mot: string, c: Color3)
+	U.puceTxt.Text = mot
+	U.puceGrad.Color = ColorSequence.new(c:Lerp(Color3.new(1, 1, 1), 0.28), ombrer(c, 0.78))
+	U.puceGemme.BackgroundColor3 = Color3.new(1, 1, 1):Lerp(c, 0.25)
+end
+-- l'ÉTAT, à côté du rang : À TOI (vert) ou ÉQUIPÉE (le losange d'or) — rien pour ce qu'on n'a pas
+local function poserEtat(etat: string?)
+	U.etat.Visible = etat ~= nil
+	if etat == "equipee" then
+		U.etatTxt.Text = L.equipee
+		U.etatTxt.TextColor3 = Color3.fromRGB(255, 215, 94)
+		U.etatLos.Parent.Visible = true
+		U.etatTrait.Color = Color3.fromRGB(255, 199, 42)
+	elseif etat then
+		U.etatTxt.Text = L.aMoi
+		U.etatTxt.TextColor3 = CASH
+		U.etatLos.Parent.Visible = false
+		U.etatTrait.Color = Color3.fromRGB(60, 170, 100)
+	end
+end
+-- la phrase sous le nom (police de lecture) ; `cadenas` : la petite serrure devant
+local function poserDesc(txt: string, cadenas: boolean)
+	U.desc.Text = txt
+	U.descIco.Visible = cadenas and txt ~= ""
+	U.desc.Position = UDim2.fromOffset(cadenas and 74 or 44, 258)
+end
+-- l'ENTRÉE de la fiche quand on change de caisse ou d'article : elle glisse de la gauche, le nom se lève, la barre se tire
+local function entreeFiche(cle: string)
+	if cle == ficheCle then return end
+	ficheCle = cle
+	U.fiche.Position = UDim2.fromOffset(-28, 0)
+	TweenService:Create(U.fiche, K.LENTE, { Position = UDim2.new() }):Play()
+	for _, t in { U.nom, U.nomOmbre } do
+		t.TextTransparency = 1
+		TweenService:Create(t, K.LENTE, { TextTransparency = 0 }):Play()
+	end
+	U.barre.Size = UDim2.fromOffset(0, 6)
+	TweenService:Create(U.barre, TweenInfo.new(0.32, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), { Size = UDim2.fromOffset(U.barreW or 300, 6) }):Play()
+end
+
 -- LA DÉCISION (gEtat + gPrixHtml + gActSync) : quel bouton, en or ou non
 local decision = "" -- "" | acheter | pauvre | equiper | verrou | roue | boutique | gagner
 local prixDecision = 0
@@ -813,14 +1079,14 @@ local function majFicheHabit()
 	local cat = onglet
 	local liste = HABITS[cat]
 	local d = liste[choisi[cat]]
-	local nom = FR and d.nom or d.en
-	U.nom.Text = nom
-	U.nom.TextSize = math.clamp(math.floor(1000 / math.max(8, utf8.len(nom) or #nom)), 34, 86)
-	U.barre.BackgroundColor3 = COUL_CAT[cat]
+	local nom = Hud.sansAccent(string.upper(FR and d.nom or d.en))
+	poserNom(nom, COUL_CAT[cat])
+	poserPuce(cat == "peinture" and L.peinture or (cat == "aile" and L.ailes or L.trainees), COUL_CAT[cat])
 	U.rang.Text = choisi[cat] .. " / " .. #liste
-	U.desc.Text = FR and d.d or d.dEN
 	local compte = profil().compte or 0
 	local a = aHabit(cat, d)
+	poserEtat((tenue()[cat] == d.id) and "equipee" or (a and "moi" or nil))
+	poserDesc(FR and d.d or d.dEN, false)
 	if a then
 		decision = (tenue()[cat] == d.id) and "" or "equiper"
 	elseif d.p then
@@ -829,6 +1095,57 @@ local function majFicheHabit()
 	else
 		decision = "gagner"
 	end
+	entreeFiche(cat .. ":" .. d.id)
+end
+-- LA BARRE D'ACTION : HOME · BOUTIQUE · la décision · JOUER. UN seul lingot d'or : la décision quand on PEUT la prendre (acheter,
+-- équiper, voir en boutique) — sinon c'est JOUER (une caisse trop chère ou fermée : la seule chose à faire, c'est aller gagner)
+local function majBarre()
+	local compte = profil().compte or 0
+	local P9 = U.pl
+	for _, pl in P9 do pl.boite.Visible = false end
+	local x = 14
+	local fin = W_CONSOLE - 14
+	if decision ~= "" then
+		local prenable = decision == "acheter" or decision == "equiper" or decision == "boutique"
+		poser(P9.home, x, 58)
+		dire(P9.home, "maison3")
+		x += 58 + Y.ecart
+		poser(P9.boutique, x, 58)
+		dire(P9.boutique, "panier3")
+		x += 58 + Y.ecart
+		local lDec = math.floor((fin - x - Y.ecart) * 0.57)
+		local dec = (decision == "pauvre" and P9.decRouge) or (prenable and P9.decOr) or P9.decVerrou
+		poser(dec, x, lDec)
+		x += lDec + Y.ecart
+		local jo = prenable and P9.jouerCyan or P9.jouerOr
+		poser(jo, x, fin - x)
+		dire(jo, nil, nil, L.jouer, prenable and 24 or 30)
+		if decision == "acheter" then
+			dire(dec, nil, L.acheter, Hud.argent(prixDecision), 26)
+		elseif decision == "pauvre" then
+			dire(dec, nil, L.manque, Hud.argent(prixDecision - compte), 22, ROSE_PRIX)
+		elseif decision == "equiper" then
+			dire(dec, nil, nil, L.equiper, 28)
+		elseif decision == "boutique" then
+			-- (5/10 : les légendaires se vendent en Robux — le bouton mène à la boutique, qui donne le prix)
+			dire(dec, nil, L.enBoutique, FR and "VOIR" or "VIEW", 26)
+		elseif decision == "gagner" then
+			dire(dec, "verrou2", nil, L.gagner, 15, C.texte2)
+		elseif decision == "roue" then
+			dire(dec, nil, L.gagner, L.defi, 22, OR1)
+		else
+			dire(dec, "verrou2", nil, L.verrou, 14, C.texte2)
+		end
+	else
+		poser(P9.home, x, 92)
+		dire(P9.home, "maison2", nil, L.home, 13)
+		x += 92 + Y.ecart
+		poser(P9.boutique, x, 112)
+		dire(P9.boutique, "panier2", nil, L.boutique, 13)
+		x += 112 + Y.ecart
+		poser(P9.jouerOr, x, fin - x)
+		dire(P9.jouerOr, nil, nil, L.jouer, 42)
+	end
 end
 local function majFiche()
 	if onglet ~= "voiture" then
@@ -836,70 +1153,25 @@ local function majFiche()
 	else
 		Garage.majFicheCaisse()
 	end
-	local compte = profil().compte or 0
-	local choix = decision ~= ""
-	local x = 14
-	local function placer(pq: any, l: number, visible: boolean)
-		pq.cadre.Visible = visible
-		if not visible then return end
-		pq.cadre.Position = UDim2.fromOffset(x, 262)
-		pq.cadre.Size = UDim2.fromOffset(l, 62)
-		x += l + 8
-	end
-	local reste = W_CONSOLE - 28
-	if choix then
-		placer(U.btHome, 52, true)
-		placer(U.btBoutique, 52, true)
-		reste -= (52 + 8) * 2
-		local lDec = math.floor((reste - 8) * 0.56)
-		placer(U.btDecision, lDec, true)
-		placer(U.btJouer, reste - 8 - lDec, true)
-		habiller(U.btHome, "laque", C.lavande, nil, "⌂", 22)
-		habiller(U.btBoutique, "laque", C.magenta, nil, "$", 18)
-		habiller(U.btJouer, "laque", C.cyan, nil, L.jouer, 24)
-		if decision == "acheter" then
-			habiller(U.btDecision, "or_", nil, L.acheter, Hud.argent(prixDecision), 28)
-		elseif decision == "pauvre" then
-			habiller(U.btDecision, "laque", ROUGE, L.manque, Hud.argent(prixDecision - compte), 24, ROUGE)
-		elseif decision == "equiper" then
-			habiller(U.btDecision, "or_", nil, nil, L.equiper, 30)
-		elseif decision == "boutique" then
-			-- (5/10 : les légendaires se vendent en Robux — le bouton mène à la boutique, qui donne le prix)
-			habiller(U.btDecision, "or_", nil, L.enBoutique, FR and "VOIR" or "VIEW", 26)
-		elseif decision == "gagner" then
-			habiller(U.btDecision, "verrou", nil, nil, L.gagner, 17)
-		elseif decision == "roue" then
-			habiller(U.btDecision, "verrou", nil, L.gagner, L.defi, 22)
-		else
-			habiller(U.btDecision, "verrou", nil, nil, L.verrou, 17)
-		end
-	else
-		placer(U.btHome, 76, true)
-		placer(U.btBoutique, 86, true)
-		placer(U.btDecision, 0, false)
-		placer(U.btJouer, reste - 76 - 86 - 16, true)
-		habiller(U.btHome, "laque", C.lavande, "⌂", L.home, 19)
-		habiller(U.btBoutique, "laque", C.magenta, "$", L.boutique, 16)
-		habiller(U.btJouer, "or_", nil, nil, L.jouer, 62)
-	end
+	majBarre()
 end
 function Garage.majFicheCaisse()
 	local f = Catalogue[montre]
 	local c = COULEUR_RAR[f.rar]
 	local nom = FR and f.nom or (f.en or f.nom)
 	nom = Hud.sansAccent(string.upper(nom)) -- (la police pixel n'a pas de capitales accentuées : « DOLORèS »)
-	U.nom.Text = nom
-	U.nom.TextSize = math.clamp(math.floor(1000 / math.max(8, utf8.len(nom) or #nom)), 34, 86)
-	U.barre.BackgroundColor3 = c
+	poserNom(nom, c)
+	poserPuce(NOM_RAR[f.rar] or "?", c)
 	U.rang.Text = RANG[montre] .. " / " .. #LISTE
 	local k = f.cond
 	local aMoi, ouv = gagnee(montre), ouverte(montre)
 	local test = ouv and not aMoi
-	-- la fiche n'écrit que la condition d'une caisse fermée (le prix, lui, est sur le bouton et la vignette)
+	poserEtat((profil().caisse == montre) and "equipee" or (aMoi and "moi" or nil))
+	-- la fiche n'écrit que la condition d'une caisse fermée (le prix, lui, est sur le bouton et la carte)
 	local desc = ""
-	if not aMoi and k.k ~= "prix" then desc = condition(montre) end -- (le cadenas est sur la vignette ; « 🔒 » sortait en carré)
+	if not aMoi and k.k ~= "prix" then desc = condition(montre) end
 	if test then desc = '<font color="#ffd75e">[TEST]</font> ' .. desc end
-	U.desc.Text = desc
+	poserDesc(desc, not aMoi)
 	-- le bouton
 	local compte = profil().compte or 0
 	if k.k == "prix" and not possede(montre) then
@@ -914,6 +1186,7 @@ function Garage.majFicheCaisse()
 	else
 		decision = ""
 	end
+	entreeFiche("v:" .. montre)
 end
 
 local function majAffiche()
@@ -935,7 +1208,7 @@ end
 Garage.majTout = majTout
 
 local function secouer()
-	local p0 = UDim2.new(1, -22, 1, -16)
+	local p0 = U.consoleP0
 	task.spawn(function()
 		for k = 1, 6 do
 			U.console.Position = p0 + UDim2.fromOffset((k % 2 == 0 and 1 or -1) * (7 - k), 0)
@@ -1037,9 +1310,12 @@ local function creerInterface()
 	local racine = Hud.racine
 	local g = inst("Frame", { Name = "Garage", BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Visible = false }, racine)
 	U.racine = g
-	-- les voiles : le haut et la droite s'assombrissent pour que le texte se lise (rien de flou : charte)
-	local vh = inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = Color3.fromRGB(7, 5, 15), Size = UDim2.new(1, 0, 0, 190) }, g)
-	inst("UIGradient", { Rotation = 90, Transparency = NumberSequence.new(0.15, 1) }, vh)
+	-- les voiles : le haut, la droite (sous la console) et le coin de la FICHE s'assombrissent pour que le texte se lise sur l'atelier
+	-- (la porte blanche passait derrière le nom) — rien de flou : la charte
+	-- (v3 : le voile du haut descend jusque sous la fiche — un voile en biais laissait un BORD net en travers de la caisse)
+	local vh = inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = Color3.fromRGB(8, 5, 20), Size = UDim2.new(1, 0, 0, 390) }, g)
+	inst("UIGradient", { Rotation = 90, Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.1), NumberSequenceKeypoint.new(0.5, 0.42),
+		NumberSequenceKeypoint.new(1, 1) }) }, vh)
 	local vd = inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = Color3.fromRGB(7, 5, 15), Size = UDim2.new(0, 900, 1, 0), Position = UDim2.fromScale(1, 0),
 		AnchorPoint = Vector2.new(1, 0) }, g)
 	inst("UIGradient", { Rotation = 0, Transparency = NumberSequence.new(1, 0.3) }, vd)
@@ -1054,14 +1330,47 @@ local function creerInterface()
 	U.compteEchelle = inst("UIScale", {}, U.compte)
 	U.compteCadre = cp
 
-	-- ── la FICHE : nom, barre de rareté, rang, condition ──
-	U.nom = K.texte(g, { italique = true, Text = "", TextSize = 86, TextColor3 = C.texte, Size = UDim2.fromOffset(640, 90), Position = UDim2.fromOffset(44, 102),
-		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 4 })
-	U.barre = inst("Frame", { BorderSizePixel = 0, Size = UDim2.fromOffset(440, 6), Position = UDim2.fromOffset(42, 196) }, g)
-	U.rang = K.texte(g, { Text = "", TextSize = 28, TextColor3 = C.terne, Size = UDim2.fromOffset(420, 30), Position = UDim2.fromOffset(44, 210),
-		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
-	U.desc = K.texte(g, { Text = "", RichText = true, TextSize = 20, TextColor3 = C.texte2, Size = UDim2.fromOffset(600, 120), Position = UDim2.fromOffset(44, 250),
-		TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, LineHeight = 1.4 })
+	-- ── la FICHE : la ligne de rareté, le nom et son ombre, la barre, la phrase ──
+	local fi = inst("Frame", { Name = "Fiche", BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1) }, g)
+	U.fiche = fi
+	local ligne = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(700, 36), Position = UDim2.fromOffset(44, 102) }, fi)
+	inst("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, VerticalAlignment = Enum.VerticalAlignment.Center, Padding = UDim.new(0, 14),
+		SortOrder = Enum.SortOrder.LayoutOrder }, ligne)
+	-- la PUCE de rareté : ◆ + la famille, l'encre sur un aplat de sa couleur (ce n'est pas un bouton : elle ne penche pas)
+	U.puce = inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = Color3.new(1, 1, 1), Size = UDim2.fromOffset(0, 36), AutomaticSize = Enum.AutomaticSize.X,
+		LayoutOrder = 1 }, ligne)
+	U.puceGrad = inst("UIGradient", { Rotation = 90 }, U.puce)
+	inst("UIStroke", { Color = C.encre, Thickness = 3, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, U.puce)
+	inst("UIPadding", { PaddingLeft = UDim.new(0, 12), PaddingRight = UDim.new(0, 12) }, U.puce)
+	inst("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, VerticalAlignment = Enum.VerticalAlignment.Center, Padding = UDim.new(0, 10),
+		SortOrder = Enum.SortOrder.LayoutOrder }, U.puce)
+	U.puceGemme = gemme(U.puce, Color3.new(1, 1, 1), 12, 1)
+	U.puceTxt = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.PIX, TextSize = 20, Text = "", TextColor3 = C.encre,
+		AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.fromOffset(0, 36), LayoutOrder = 2 }, U.puce)
+	U.rang = K.texte(ligne, { Text = "", TextSize = 21, TextColor3 = C.texte2, AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.fromOffset(0, 36),
+		TextWrapped = false, LayoutOrder = 2, epais = 3 })
+	U.etat = inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = C.encre, BackgroundTransparency = 0.25, Size = UDim2.fromOffset(0, 36),
+		AutomaticSize = Enum.AutomaticSize.X, LayoutOrder = 3, Visible = false }, ligne)
+	U.etatTrait = inst("UIStroke", { Color = CASH, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, U.etat)
+	inst("UIPadding", { PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 10) }, U.etat)
+	inst("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, VerticalAlignment = Enum.VerticalAlignment.Center, Padding = UDim.new(0, 9),
+		SortOrder = Enum.SortOrder.LayoutOrder }, U.etat)
+	U.etatLos = gemme(U.etat, Color3.fromRGB(255, 199, 42), 11, 1)
+	U.etatTxt = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.PIX, TextSize = 17, Text = "", TextColor3 = CASH,
+		AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.fromOffset(0, 36), LayoutOrder = 2 }, U.etat)
+	-- le NOM : blanc, cerné d'encre, et son OMBRE PORTÉE à la couleur de la famille (le relief du logo CASH CAR) ; calé par le bas
+	U.nomOmbre = K.texte(fi, { italique = true, Text = "", TextSize = 80, TextColor3 = C.trait, Size = UDim2.fromOffset(680, 92),
+		Position = UDim2.fromOffset(49, 147), TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Bottom,
+		TextWrapped = false, epais = 4, ZIndex = 1 })
+	U.nom = K.texte(fi, { italique = true, Text = "", TextSize = 80, TextColor3 = C.texte, Size = UDim2.fromOffset(680, 92),
+		Position = UDim2.fromOffset(44, 142), TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Bottom,
+		TextWrapped = false, epais = 4, ZIndex = 2 })
+	U.barre = inst("Frame", { BorderSizePixel = 0, Size = UDim2.fromOffset(440, 6), Position = UDim2.fromOffset(42, 242) }, fi)
+	inst("UIStroke", { Color = C.encre, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, U.barre)
+	inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = Color3.new(1, 1, 1), BackgroundTransparency = 0.5, Size = UDim2.new(1, 0, 0, 2) }, U.barre)
+	U.descIco = K.icone(fi, "verrou", 2, C.lavande, UDim2.fromOffset(44, 263))
+	U.desc = K.texte(fi, { FontFace = K.TXT, Text = "", RichText = true, TextSize = 25, TextColor3 = C.texte2, Size = UDim2.fromOffset(560, 96),
+		Position = UDim2.fromOffset(44, 258), TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, LineHeight = 1.05, epais = 2 })
 	U.tampon = K.texte(g, { Text = L.aToi, TextSize = 90, TextColor3 = Color3.fromRGB(255, 215, 94), Size = UDim2.fromOffset(760, 110),
 		Position = UDim2.new(0.3, 0, 0.42, 0), AnchorPoint = Vector2.new(0.5, 0.5), Rotation = -9, Visible = false, epais = 5,
 		contourCouleur = Color3.fromRGB(70, 30, 0), ZIndex = 20 })
@@ -1070,99 +1379,103 @@ local function creerInterface()
 	-- ── ⚙ ──
 	U.btReglages = K.tuile(g, "", C.cyan, UDim2.fromOffset(104, 84), UDim2.new(1, -22, 0, 20), Vector2.new(1, 0), 30, "reglages")
 
-	-- ── LA CONSOLE ──
-	local cs = K.carbone(g, UDim2.fromOffset(W_CONSOLE, H_CONSOLE), UDim2.new(1, -22, 1, -16), nil, Vector2.new(1, 1))
-	cs.Active = true -- un glissé qui commence sur la console ne fait pas tourner la caisse
+	-- ── LA CONSOLE : un panneau de LAQUE (la nuit éclairée par le haut), cerné d'encre, la livrée tricolore sur son bord, une ombre
+	-- portée dessous ; le tout dans une boîte qu'on agrandit d'un bloc ──
+	local boite = inst("Frame", { Name = "Console", BackgroundTransparency = 1, Size = UDim2.fromOffset(W_CONSOLE, H_CONSOLE),
+		Position = UDim2.new(1, -22, 1, -16), AnchorPoint = Vector2.new(1, 1) }, g)
 	-- (le web est un écran de téléphone couché, 2,16 fois plus large que haut : sur un écran d'ordinateur 16:9 la console à pleine
 	-- taille mangerait 59 % de la largeur — elle se réduit pour laisser la moitié de l'image à la caisse)
-	local echelle = inst("UIScale", { Scale = ECH_CONSOLE }, cs)
+	local echelle = inst("UIScale", { Scale = ECH_CONSOLE }, boite)
 	local function caler()
 		local large = Hud.racine.AbsoluteSize.X / math.max(0.01, Hud.racine:FindFirstChildOfClass("UIScale").Scale) -- la largeur dessinée
 		echelle.Scale = ECH_CONSOLE * math.clamp(large / 1560, 0.72, 1)
 	end
 	caler()
 	Hud.racine:GetPropertyChangedSignal("AbsoluteSize"):Connect(caler)
-	U.console = cs
-	for k, c in { C.magenta, C.cyan, C.or_ } do -- la livrée, en liseré
-		inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = c, Size = UDim2.new(k == 1 and 0.44 or 0.25, -6, 0, 3),
-			Position = UDim2.new(k == 1 and 0 or (k == 2 and 0.46 or 0.73), 0, 0, -3) }, cs)
+	U.console = boite
+	U.consoleP0 = boite.Position
+	inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = C.encre, BackgroundTransparency = 0.3, Size = UDim2.fromScale(1, 1), Position = UDim2.fromOffset(0, 7) }, boite)
+	local cs = inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = Color3.new(1, 1, 1), Size = UDim2.fromScale(1, 1), Active = true }, boite)
+	cs.Active = true -- un glissé qui commence sur la console ne fait pas tourner la caisse
+	inst("UIGradient", { Rotation = 90, Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, Color3.fromRGB(46, 38, 88)),
+		ColorSequenceKeypoint.new(0.2, Color3.fromRGB(30, 25, 60)), ColorSequenceKeypoint.new(1, Color3.fromRGB(13, 10, 28)) }) }, cs)
+	inst("UIStroke", { Color = C.encre, Thickness = 3, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, cs)
+	local liser = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, -4, 1, -4), Position = UDim2.fromOffset(2, 2) }, cs)
+	inst("UIStroke", { Color = C.trait, Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, liser)
+	for k, c in { C.magenta, C.cyan, C.or_ } do -- la livrée, sur le bord du haut
+		inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = c, Size = UDim2.new(k == 1 and 0.46 or 0.27, 0, 0, 4), Position = UDim2.fromScale(k == 1 and 0 or (k == 2 and 0.46 or 0.73), 0) }, cs)
 	end
-	-- les onglets
+	-- les onglets : VOITURES · PEINTURE · AILES · TRAINEES (l'icône au-dessus du mot ; l'onglet ouvert s'allume en rose)
 	U.onglets = {}
-	local lo = (W_CONSOLE - 28 - 12) / 4
+	local lo = (W_CONSOLE - 28 - 3 * 6) / 4
 	for k, o in { { "voiture", L.voitures, "voiture" }, { "peinture", L.peinture, "pinceau" }, { "aile", L.ailes, "aile" }, { "trainee", L.trainees, "trainee" } } do
-		local f = inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = Color3.new(1, 1, 1), Size = UDim2.fromOffset(lo, 52),
-			Position = UDim2.fromOffset(14 + (k - 1) * (lo + 4), 14) }, cs)
-		local grad = inst("UIGradient", { Rotation = 90 }, f)
-		local ico = K.icone(f, o[3], 2, C.terne, UDim2.new(0.5, 0, 0, 7), Vector2.new(0.5, 0))
-		local b = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), FontFace = K.PIX, Text = o[2], TextSize = 16,
-			TextYAlignment = Enum.TextYAlignment.Bottom, AutoButtonColor = false }, f)
-		inst("UIPadding", { PaddingBottom = UDim.new(0, 4) }, b)
-		U.onglets[o[1]] = { f = f, grad = grad, b = b, ico = ico }
-		b.Activated:Connect(function()
-			Sons.jouer("tap")
-			Garage.onglet(o[1])
-		end)
+		local p = plaqueO(cs, Y.hOng, lo, UDim2.fromOffset(14 + (k - 1) * (lo + 6), Y.ong), true)
+		p.txt.Text = o[2]
+		p.ico = K.icone(p.pile, o[3], 2, C.terne)
+		p.ico.LayoutOrder = 1
+		U.onglets[o[1]] = p
+		p.b.Activated:Connect(function() Garage.onglet(o[1]) end)
 	end
-	-- les pastilles de famille
+	-- les FAMILLES (la gemme, le compte ; celle qu'on regarde dit son nom)
 	U.pastilles = {}
-	local lp = (W_CONSOLE - 28 - 16) / 5
-	for k, r in RARETES do
-		local f = inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = Color3.fromRGB(20, 16, 41), Size = UDim2.fromOffset(lp, 36),
-			Position = UDim2.fromOffset(14 + (k - 1) * (lp + 4), 76) }, cs)
-		local trait = inst("UIStroke", { Color = C.trait, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, f)
-		inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = r.c, Size = UDim2.fromOffset(9, 9), Position = UDim2.new(0, 12, 0.5, 0),
-			AnchorPoint = Vector2.new(0.5, 0.5), Rotation = 45 }, f)
-		inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = r.c, Size = UDim2.new(1, 0, 0, 2), Position = UDim2.new(0, 0, 1, -2) }, f)
-		local txt = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.PIX, Text = "", TextSize = 17, TextColor3 = C.texte2,
-			Size = UDim2.new(1, -24, 1, 0), Position = UDim2.fromOffset(22, 0) }, f)
-		local b = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 10), Position = UDim2.fromOffset(0, -5), Text = "" }, f)
-		U.pastilles[r.id] = { fond = f, trait = trait, txt = txt }
-		b.Activated:Connect(function()
-			Sons.jouer("tap")
-			-- la pastille saute à la caisse équipée si elle est de la famille, sinon à la première
+	for _, r in RARETES do
+		local p = plaqueO(cs, Y.hPas, 70, UDim2.fromOffset(14, Y.pas), false)
+		gemme(p.pile, r.c, 10, 1)
+		U.pastilles[r.id] = p
+		p.b.Activated:Connect(function()
+			-- la famille saute à la caisse équipée si elle en est, sinon à la première
 			local eq = profil().caisse
 			local vers = (Catalogue[eq] and Catalogue[eq].rar == r.id) and eq or FAMILLES[r.id][1]
 			if vers then Garage.sauter(vers) end
 		end)
 	end
+	-- les FILTRES des habillages : tout · à moi · à acheter
 	U.filtres = {}
-	local lf = (W_CONSOLE - 28 - 8) / 3
+	local lf = (W_CONSOLE - 28 - 2 * 6) / 3
 	for k, q in { { "tout", L.tout, Color3.fromRGB(201, 189, 240) }, { "moi", L.aMoi, Color3.fromRGB(94, 227, 122) }, { "acheter", L.aAcheter, C.cyan } } do
-		local f = inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = Color3.fromRGB(20, 16, 41), Size = UDim2.fromOffset(lf, 36),
-			Position = UDim2.fromOffset(14 + (k - 1) * (lf + 4), 76), Visible = false }, cs)
-		local trait = inst("UIStroke", { Color = C.trait, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, f)
-		inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = q[3], Size = UDim2.new(1, 0, 0, 2), Position = UDim2.new(0, 0, 1, -2) }, f)
-		local txt = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.PIX, Text = q[2], TextSize = 15, TextColor3 = C.texte2, Size = UDim2.fromScale(1, 1) }, f)
-		local b = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 10), Position = UDim2.fromOffset(0, -5), Text = "" }, f)
-		U.filtres[q[1]] = { fond = f, trait = trait, txt = txt, nom = q[2], c = q[3] }
-		b.Activated:Connect(function()
-			Sons.jouer("tap")
+		local p = plaqueO(cs, Y.hPas, lf, UDim2.fromOffset(14 + (k - 1) * (lf + 6), Y.pas), false)
+		gemme(p.pile, q[3], 9, 1)
+		p.boite.Visible = false
+		p.nom, p.c = q[2], q[3]
+		U.filtres[q[1]] = p
+		p.b.Activated:Connect(function()
 			filtre = q[1]
 			majPastilles()
 			majBande()
 		end)
 	end
-	-- la bande de vignettes : deux rangées, on fait défiler
-	U.bande = inst("ScrollingFrame", { BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.fromOffset(W_CONSOLE - 28, 132),
-		Position = UDim2.fromOffset(14, 122), CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.X,
-		ScrollingDirection = Enum.ScrollingDirection.X, ScrollBarThickness = 4, ScrollBarImageColor3 = C.terne,
-		VerticalScrollBarInset = Enum.ScrollBarInset.None }, cs)
-	inst("UIGridLayout", { CellSize = UDim2.fromOffset(106, 58), CellPadding = UDim2.fromOffset(6, 6), FillDirection = Enum.FillDirection.Vertical,
+	-- la bande de cartes : deux rangées, on fait défiler (la barre de défilement sous les cartes, jamais dessus)
+	U.bande = inst("ScrollingFrame", { BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.fromOffset(W_CONSOLE - 24, Y.hBande),
+		Position = UDim2.fromOffset(12, Y.bande), CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.X,
+		ScrollingDirection = Enum.ScrollingDirection.X, ScrollBarThickness = 4, ScrollBarImageColor3 = C.terne, ScrollBarImageTransparency = 0.25,
+		HorizontalScrollBarInset = Enum.ScrollBarInset.ScrollBar, VerticalScrollBarInset = Enum.ScrollBarInset.None }, cs)
+	inst("UIGridLayout", { CellSize = UDim2.fromOffset(CARTE_L, CARTE_H), CellPadding = UDim2.fromOffset(6, 6), FillDirection = Enum.FillDirection.Vertical,
 		FillDirectionMaxCells = 2, SortOrder = Enum.SortOrder.LayoutOrder }, U.bande)
-	inst("UIPadding", { PaddingTop = UDim.new(0, 2), PaddingLeft = UDim.new(0, 2) }, U.bande)
-	-- la barre d'action
-	U.btHome = plaque(cs, "Home")
-	U.btBoutique = plaque(cs, "Boutique")
-	U.btDecision = plaque(cs, "Decision")
-	U.btJouer = plaque(cs, "Jouer")
-	U.btHome.b.Activated:Connect(function() if not Garage.lance then ctx.surHome() end end)
-	U.btBoutique.b.Activated:Connect(function()
+	inst("UIPadding", { PaddingTop = UDim.new(0, 3), PaddingLeft = UDim.new(0, 3), PaddingRight = UDim.new(0, 3) }, U.bande)
+	-- la barre d'action : des plaques penchées, chacune prête dans ses couleurs (on montre celle qu'il faut)
+	U.pl = {
+		home = plaqueP(cs, "Home", C.lavande),
+		boutique = plaqueP(cs, "Boutique", C.magenta),
+		decOr = plaqueP(cs, "Decision", nil, true),
+		decRouge = plaqueP(cs, "DecisionManque", ROUGE),
+		decVerrou = plaqueP(cs, "DecisionFermee", Color3.fromRGB(120, 110, 176)),
+		jouerOr = plaqueP(cs, "Jouer", nil, true),
+		jouerCyan = plaqueP(cs, "JouerLaque", C.cyan),
+	}
+	icoP(U.pl.home, "maison", 3, C.lavande)
+	icoP(U.pl.home, "maison", 2, C.lavande)
+	icoP(U.pl.boutique, "panier", 3, C.magenta)
+	icoP(U.pl.boutique, "panier", 2, C.magenta)
+	icoP(U.pl.decVerrou, "verrou", 2, C.lavande)
+	refleter(U.pl.decOr)
+	refleter(U.pl.jouerOr)
+	U.pl.home.b.Activated:Connect(function() if not Garage.lance then ctx.surHome() end end)
+	U.pl.boutique.b.Activated:Connect(function()
 		if Garage.lance then return end
 		if ctx.surBoutique then ctx.surBoutique() else Hud.toast(L.bientot) end
 	end)
-	U.btDecision.b.Activated:Connect(decider)
-	U.btJouer.b.Activated:Connect(function() Garage.jouer() end)
+	for _, pl in { U.pl.decOr, U.pl.decRouge, U.pl.decVerrou } do pl.b.Activated:Connect(decider) end
+	for _, pl in { U.pl.jouerOr, U.pl.jouerCyan } do pl.b.Activated:Connect(function() Garage.jouer() end) end
 	U.btReglages.Activated:Connect(function() if not Garage.lance then ctx.surReglages() end end)
 
 	-- le fondu blanc chaud du lâcher (il survit à la fermeture du garage)
@@ -1170,17 +1483,16 @@ local function creerInterface()
 		Size = UDim2.fromScale(1, 1), ZIndex = 70, Visible = false }, racine)
 end
 
+-- l'onglet ouvert s'allume en ROSE (la couleur des onglets du web), les autres restent dans la nuit
+local ONG_ON = Color3.fromRGB(214, 40, 150)
 function Garage.majOnglets()
 	for id, o in U.onglets do
 		local actif = id == onglet
-		o.grad.Color = actif and ColorSequence.new({ ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 114, 217)),
-			ColorSequenceKeypoint.new(0.5, Color3.fromRGB(224, 36, 157)), ColorSequenceKeypoint.new(1, Color3.fromRGB(192, 21, 133)) })
-			or ColorSequence.new(Color3.fromRGB(30, 25, 58), Color3.fromRGB(18, 14, 36))
-		o.b.TextColor3 = actif and C.texte or C.terne
+		allumer(o, actif, actif and ONG_ON or PLAQUE_OFF)
 		K.teinter(o.ico, actif and C.texte or C.terne)
+		o.txt.TextColor3 = actif and C.texte or C.terne
 	end
 end
-
 -- ════════════════════════════════════════════════════════════════════════════════════════════════
 -- LE PLATEAU, LE RETOURNEUR, LA VUE
 -- ════════════════════════════════════════════════════════════════════════════════════════════════
@@ -1215,8 +1527,9 @@ function Garage.sauter(i: number, direct: boolean?, force: boolean?)
 	local change = fam ~= famille
 	famille = fam
 	if change then majBande() end
-	majPastilles()
+	majPastilles(change and not direct) -- (la famille ouverte s'élargit en glissant)
 	for k in tuiles do majTuile(k) end
+	task.delay(0.06, defilerVers, i, not change) -- (après la mise en page de la grille)
 	majFiche()
 	jeton += 1
 	local n = jeton
@@ -1239,7 +1552,7 @@ function Garage.essayer(cat: string, j: number)
 	if not d then return end
 	choisi[cat] = j
 	essai[cat] = d.id
-	for _, t in tuilesH do t.trait.Enabled = t.j == j end
+	majCartesHabits()
 	majFiche()
 	if cat ~= "trainee" then Garage.sauter(montre, false, true) end
 end
@@ -1404,10 +1717,9 @@ function Garage.rendu(dt: number)
 			end
 		else
 			b.t += dt
-			local u = math.min(1, b.t / 0.72)
-			-- le déploiement dépasse un peu (≈ 12 %) puis se pose
-			local c1 = 2.2
-			local e = 1 + (c1 + 1) * (u - 1) ^ 3 + c1 * (u - 1) ^ 2
+			local u = math.min(1, b.t / 0.5)
+			-- le déploiement : vif puis posé (Quint Out — v3 : plus de rebond à chaque caisse, le rebond est gardé pour les fêtes)
+			local e = 1 - (1 - u) ^ 5
 			local ech = 0.06 + 0.94 * e
 			if vitrine then poserCaisse(vitrine, u >= 1 and 1 or ech) end
 			echelleVue = u >= 1 and 1 or ech
@@ -1429,10 +1741,31 @@ function Garage.rendu(dt: number)
 		if not okT then apercuTrainee(false, t) end
 	end
 
+	-- ── la teinte du plateau : elle glisse vers la couleur de la famille de la caisse montrée ──
+	do
+		local f9 = Catalogue[montre] or Catalogue[0]
+		local c9 = COULEUR_RAR[f9.rar] or CYAN
+		local t9 = R3.teinte :: Color3
+		if t9 ~= c9 and R3.anneau then
+			t9 = t9:Lerp(c9, math.min(1, dt * 5))
+			if math.abs(t9.R - c9.R) + math.abs(t9.G - c9.G) + math.abs(t9.B - c9.B) < 0.01 then t9 = c9 end
+			R3.teinte = t9
+			R3.anneau.Color = t9
+			R3.cercle.Color = Color3.new(t9.R * 0.55, t9.G * 0.55, t9.B * 0.55)
+			for _, p9 in R3.plots do p9.Color = t9 end
+			for _, h9 in R3.halos do h9.Color = t9 end
+			scanner.Color = t9
+			R3.rive.Color = t9:Lerp(Color3.new(1, 1, 1), 0.15)
+		end
+		-- (v3) une caisse LONGUE ouvre un peu l'objectif : le corbillard, l'Eldorado ne sortent plus du cadre en tournant
+		local k9 = math.clamp((f9.l or 4.6) / 4.8, 1, 1.16)
+		R3.fovK = (R3.fovK or 1) + (k9 - (R3.fovK or 1)) * math.min(1, dt * 3)
+	end
+
 	-- ── la vue ──
 	local vp = cam.ViewportSize
 	local aspect = vp.X / math.max(1, vp.Y)
-	local fov = 52
+	local fov = 57 * (R3.fovK or 1) -- (v3 : 52 collait la caisse aux bords de l'écran, une longue en sortait)
 	local posM: Vector3, viseM: Vector3
 	if lacher then
 		-- LE LÂCHER : la porte se lève sur le feu, la caisse s'accroupit puis fonce, la vue passe derrière elle
@@ -1456,7 +1789,7 @@ function Garage.rendu(dt: number)
 		local dep = Vector3.new(0, 1.0 + dist * math.sin(pitch), -dist * math.cos(pitch))
 		posM = dep:Lerp(Vector3.new(0, 1.72, z - 6.4), k)
 		viseM = Vector3.new(0, 1.0, 1.5):Lerp(Vector3.new(0, 1.0, z + 4), k)
-		fov = 52 + (4 + 10 * u) * k
+		fov = 57 * (R3.fovK or 1) + (4 + 10 * u) * k
 		if u > 0.86 then
 			U.fondu.Visible = true
 			U.fondu.BackgroundTransparency = 1 - math.min(1, (u - 0.86) / 0.12)
@@ -1584,10 +1917,14 @@ function Garage.ouvrir(indice: number?)
 	Garage.majOnglets()
 	montre = -1
 	famille = ""
+	ficheCle = ""
 	majCompte(true)
 	Garage.sauter(indice or profil().caisse or 0, true)
 	U.racine.Position = UDim2.fromOffset(0, 18)
 	TweenService:Create(U.racine, K.LENTE, { Position = UDim2.fromOffset(0, 0) }):Play()
+	-- (v3) la console arrive de la droite, la fiche de la gauche (entreeFiche) : l'écran se pose, il ne s'allume pas d'un coup
+	U.console.Position = U.consoleP0 + UDim2.fromOffset(70, 0)
+	TweenService:Create(U.console, TweenInfo.new(0.32, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), { Position = U.consoleP0 }):Play()
 end
 
 function Garage.fermer()
