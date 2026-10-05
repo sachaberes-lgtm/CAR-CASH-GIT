@@ -7,6 +7,29 @@
 - Les règles « SANS TOUT CASSER » (partir de `origin/main` à jour, fusionner sans jamais forcer, jeu testé sans erreur avant chaque
   push, retour arrière par Vercel) et la liste de ce que contient la référence : voir `CLAUDE.md` à la RACINE du dépôt.
 
+## LES HEURES DU TITRE — six ambiances de l'accueil au ciel (2026-10-05, session GAMEPLAY, GRAPHISME a passé la main) — Sacha : « pour l'écran d'accueil dans le ciel, fais plusieurs éclairages et ambiances à plusieurs moments de la journée : matin, midi, après-midi, golden hour, soir, nuit — il faut que toutes les ambiances soient magnifiques »
+- **L'HEURE DU TÉLÉPHONE** (`titreHeureDe`) : nuit 22 h-5 h · matin 5 h-10 h · midi 10 h-14 h · après-midi 14 h-17 h · golden hour 17 h-19 h 30 ·
+  soir 19 h 30-22 h ; relue toutes les 20 s au menu (`titreHeureTick`, en tête de chuteRender). Pour juger : `…/jouer/?heure=golden` (matin,
+  midi, aprem, golden, soir, nuit) ou `dbgHeure('nuit')` / `dbgHeure(null)` (retour à l'horloge). Aucun objet ajouté : lumière, couleurs, air.
+- **LES AMBIANCES** (`BIOMES.titreMatin … titreNuit`, juste après `BIOMES.titre`, toutes clonées du titre v3 par `titreAmb`) : le MATIN est le
+  titre v3 au bit près ; MIDI le bleu le plus profond, horizon blanc, cumulus d'un blanc franc ; APRÈS-MIDI l'horizon crème et un air tiède ;
+  GOLDEN HOUR ambre sur l'horizon, ciel lavande, mer de nuages aux sommets dorés et ombres mauves ; SOIR la bande corail sous l'indigo, les
+  premières étoiles, la lune ; NUIT un ciel d'encre étoilé, la mer de nuages argentée, plus de soleil (bioApply laissait son disque à 15 % :
+  chuteRender l'éteint quand `sunHalo` vaut 0). `BIOMES.titre` POINTE sur l'heure du moment (chuteRender la réapplique quand elle change) :
+  l'atelier des nuages (`?nuages=1`) règle donc l'heure affichée.
+- **CE QUI VA AVEC** (`TITRE_H`, près de `CHUTE_P`) : par heure, les clés de CHUTE_P (cumulus du titre K/R, mer de nuages mzT/mzO/mzH, angle
+  regard ↔ soleil `az`, lampes de la caisse `cleS` (clé, nouvelle) / `zenC` (zénith, nouvelle) / `rimC` / `kh` / `sk` / `amb` / `sol` / `sc` /
+  `sr`, `expo`) — une clé absente reprend sa valeur d'origine (`CHUTE_P0`) ; les VOILES de l'écran (`--tvC/--tvA/--tvA2` pour l'azur haut/bas,
+  `--tvB/--tvBA` pour le bandeau des boutons : la nuit est plus sombre derrière JOUER) ; la TEINTE des bancs et des filets de vent qui montent.
+- **LE CIEL POMMELÉ** (`cielMotif`, dôme) : au jour d'altitude il prend la clarté du ciel (`uJMid`) — sur un ciel de soir ou de nuit ses petits
+  nuages blancs dessinaient une GRILLE DE POINTS. Le jour : ×1, inchangé ; les ciels de nuit de la course (uJour 0) : inchangés.
+- **PIÈGES MESURÉS** (banc `heures/photo.js`, SwiftShader, l'accueil figé au même instant aux six heures, debout et couché) : aux heures sombres,
+  avec les doses du jour, la caisse n'était qu'une SILHOUETTE NOIRE (clé et ambiance relevées par heure) ; la nuit, le shader des cumulus
+  ramène le soleil au BLANC (la teinte n'y passe que si le soleil est chaud) — des nuages lunaires se font par l'OMBRE (R) plus que par la
+  lumière (K) ; la golden hour noyée dans sa brume était une nappe pêche sans relief (brume repoussée, mer contrastée).
+- VÉRIFIÉ : 0 erreur ; JOUER depuis l'accueil de NUIT → la course part (banc `heures/jouer.js`) ; 18 cumulus au titre à chaque heure.
+  ⚠ NON MESURÉ : l'iPhone (les heures n'ajoutent ni programme ni objet : seules des valeurs changent) ; l'avis de Sacha sur chaque heure.
+
 ## L'ÉDITION POKI (2026-10-04) — Sacha : « créer une version de Cash Car pour Poki game en enlevant les missions et la carrière »
 - **UN SEUL JEU** : l'édition Poki n'est pas une copie qu'on retouche. `node poki-construire.js` (racine du dépôt) fabrique `POKI/` (le
   dossier) et `POKI.zip` (à envoyer sur Poki for Developers, `index.html` à la racine) depuis CE dossier, en basculant la seule ligne

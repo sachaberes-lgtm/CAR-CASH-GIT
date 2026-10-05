@@ -2370,7 +2370,7 @@ body.touch #overlay::before{content:'';position:fixed;inset:0;z-index:-1;pointer
 body.touch #overlay::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:0;transition:opacity var(--t-slow) var(--ease);
   background:linear-gradient(180deg,rgba(7,5,15,.48) 0%,rgba(7,5,15,.12) 22%,rgba(7,5,15,0) 38%,rgba(7,5,15,0) 54%,rgba(7,5,15,.4) 70%,rgba(7,5,15,.94) 88%)} /* (2026-09-28) le haut allégé (.84 → .48) : le ciel de JOUR de l'accueil doit se voir derrière le logo */
 body.touch #overlay[data-ecran="home"]::before{opacity:0}
-body.touch.titreCiel #overlay[data-ecran="home"]::after{background:linear-gradient(180deg,rgba(4,24,62,.30) 0%,rgba(4,24,62,0) 24%,rgba(4,24,62,0) 70%,rgba(4,24,62,.50) 100%)} /* (titre v3) AU CIEL : un azur profond et léger au lieu du voile noir (il mangeait le tiers bas de l'image couchée) */
+body.touch.titreCiel #overlay[data-ecran="home"]::after{background:linear-gradient(180deg,rgba(var(--tvC,4,24,62),var(--tvA,.30)) 0%,rgba(var(--tvC,4,24,62),0) 24%,rgba(var(--tvC,4,24,62),0) 70%,rgba(var(--tvC,4,24,62),var(--tvA2,.50)) 100%)} /* (2026-10-05) les HEURES DU TITRE posent --tvC/--tvA/--tvA2 (voir TITRE_H) */ /* (titre v3) AU CIEL : un azur profond et léger au lieu du voile noir (il mangeait le tiers bas de l'image couchée) */
 body.touch #overlay[data-ecran="home"]::after{opacity:1}
 body.touch #overlay[data-ecran="dead"]::before{opacity:.9}
 @keyframes k4Voile{0%{opacity:0}100%{opacity:1}}
@@ -2900,7 +2900,7 @@ body.inGarage #hud>:not(#garage):not(#gFade){display:none!important}
 #garage.menu #gTopRow,#garage.menu #gCard,#garage.menu #gCarr,#garage.menu #gBottom,#garage.menu .gNav,#garage.menu #gOutils{display:none!important}
 #garage.menu::before{height:min(30%,230px)}
 html #garage.menu::after{top:auto;left:0;right:0;bottom:0;width:auto;height:min(28%,210px);background:linear-gradient(0deg,rgba(7,5,15,.92),rgba(7,5,15,0))}
-html #garage.menu.ciel::after{background:linear-gradient(0deg,rgba(6,28,60,.62),rgba(6,28,60,0))} /* (2026-09-30, niveau 1 v2) au CIEL, le bandeau des boutons n'est plus un noir d'atelier : l'azur profond du zénith, assez dense pour lire les plaques */
+html #garage.menu.ciel::after{background:linear-gradient(0deg,rgba(var(--tvB,6,28,60),var(--tvBA,.62)),rgba(var(--tvB,6,28,60),0))} /* (2026-09-30, niveau 1 v2) au CIEL, le bandeau des boutons n'est plus un noir d'atelier : l'azur profond du zénith, assez dense pour lire les plaques */
 html #garage.menu #gTop{position:absolute;left:0;right:0;top:0;width:auto;max-width:none;margin:0;align-items:center;padding:calc(var(--sT) + 16px) 0 0}
 html #garage.menu #gPlayMain{display:inline-flex!important;pointer-events:auto;align-self:center;margin-top:4px}
 #gProfil{position:absolute;left:calc(var(--sL) + var(--gut));top:calc(var(--sT) + 12px);display:flex;align-items:center;gap:10px;pointer-events:auto;
@@ -6776,6 +6776,7 @@ const skyDome=(function(){
       '  vec3 corps=mix(vec3(.94,.90,1.),uSunTint,.24)*mix(uSkyMul,vec3(1.),uJour)*mix(.72,1.08,lit);',   // le ventre, teinté du soleil et du biome — (2026-09-30) au jour d altitude, blanc-crème (le bleu du biome en faisait des points bleus)
       '  corps+=uSunTint*(pow(lit,3.)*smoothstep(.45,.95,dm)*.45+pow(sd,4.)*.35)*uSunHalo;', // l ourlet d or côté soleil, et à contre-jour
       '  float a=m*.7*smoothstep(.012,.055,y)*(1.-smoothstep(.62,.93,y))*exp(-t/36000.)*uMer*(1.-uSpace)*(1.-.8*uJour);',
+      '  if(uJour>.001){float jl=dot(uJMid,vec3(.3,.59,.11));corps*=mix(1.,clamp(jl*1.6+.3,0.,1.),uJour);a*=mix(1.,smoothstep(.05,.3,jl),uJour);}', /* (2026-10-05, les heures du titre) au jour d altitude le pommelé prend la clarté du CIEL : sur un ciel de nuit ses petits nuages blancs dessinaient une grille de points (le jour : inchangé, ×1) */
       '  col=mix(col,corps,a);}',
     ],
     mer:[
@@ -13720,6 +13721,36 @@ const BIO_DAY=['aube','lever','matin','midi','aprem','golden','couchant','soir',
    Lue par chuteRender seulement (`BIOMES.titre`) ; le niveau garde son 'matin'. `dbgAmb('titre',{…})` pour retoucher à chaud. */
 BIOMES.titre=JSON.parse(JSON.stringify(BIOMES.matin));
 Object.assign(BIOMES.titre,{nm:'TITRE',jZen:[.05,.27,.66],jMid:[.22,.62,.90],jHor:[.90,.95,.94],fog:[.80,.90,.96],fogN:500,fogF:5200,sunC:[1,.96,.88],sunI:1.6,hemiI:.78,expo:.94,sat:1.24,vigK:.2});
+/* LES HEURES DU TITRE (2026-10-05, Sacha : « pour l'écran d'accueil dans le ciel, fais plusieurs éclairages et ambiances à plusieurs
+   moments de la journée : matin, midi, après-midi, golden hour, soir, nuit — il faut que toutes les ambiances soient magnifiques »).
+   Six ambiances du ciel de l'accueil, toutes tirées du titre v3 (le MATIN, inchangé) : seules la lumière, les couleurs et l'air changent —
+   aucun objet de plus. L'heure est celle du TÉLÉPHONE (`titreHeureDe`) ; `?heure=midi` dans l'adresse ou `dbgHeure('nuit')` la forcent.
+   Ce que chaque heure règle à côté (cumulus du titre, mer de nuages, lampes de la caisse, voiles de l'écran) : `TITRE_H`, près de CHUTE_P. */
+function titreAmb(o){return Object.assign(JSON.parse(JSON.stringify(BIOMES.titre)),o);}
+BIOMES.titreMatin=BIOMES.titre; // le titre v3 tel quel : l'azur de Zelda, soleil dans le dos
+// MIDI : le soleil au plus haut — le bleu le plus profond au zénith, un horizon blanc, des cumulus d'un blanc franc, l'air limpide
+BIOMES.titreMidi=titreAmb({nm:'TITRE · MIDI',jZen:[.02,.19,.58],jMid:[.13,.51,.88],jHor:[.86,.93,.97],jSol:[.30,.30,.26],sunTint:[1,.98,.94],sunHalo:.55,
+  fog:[.80,.89,.97],fogN:620,fogF:6200,hemiS:[.76,.86,.98],hemiI:.82,sunC:[1,.99,.96],sunI:1.75,expo:.95,sat:1.22,con:1.3,
+  env:BIOMES.midi.env,eS1:BIOMES.midi.eS1,eS2:BIOMES.midi.eS2});
+// APRÈS-MIDI : la lumière se dore à peine, l'horizon prend une crème chaude, un voile d'air tiède au loin
+BIOMES.titreAprem=titreAmb({nm:'TITRE · APRES-MIDI',jZen:[.10,.30,.62],jMid:[.34,.60,.84],jHor:[.98,.90,.78],jSol:[.75,.45,.20],sunTint:[1,.86,.64],sunHalo:.9,
+  fog:[.90,.88,.84],fogN:520,fogF:5000,fogCj:[1,.86,.70],hemiS:[.80,.84,.96],hemiI:.74,sunC:[1,.95,.86],sunI:1.5,expo:.93,sat:1.26,hi:[.01,0,-.01],
+  env:BIOMES.aprem.env,eS1:BIOMES.aprem.eS1,eS2:BIOMES.aprem.eS2});
+// GOLDEN HOUR : le soleil rase la mer de nuages — ambre sur l'horizon, ciel lavande, cumulus pêche et or côté soleil, ombres mauves
+BIOMES.titreGolden=titreAmb({nm:'TITRE · GOLDEN HOUR',jZen:[.12,.22,.52],jMid:[.56,.52,.72],jHor:[1,.70,.42],jSol:[1.1,.52,.16],sunTint:[1,.60,.32],sunHalo:1.15,
+  fog:[.94,.72,.58],fogN:700,fogF:8000,fogCj:[1,.70,.48],fogIn:[1,.90,.82],hemiS:[.70,.68,.88],hemiG:[.55,.42,.46],hemiI:.55,sunC:[1,.72,.44],sunI:1.7,
+  expo:.9,sat:1.36,con:1.24,vigC:[.16,.07,.10],vigK:.3,hi:[.02,0,-.02],
+  env:[[0,'#2a3c78'],[.3,'#8a78a8'],[.48,'#ffb070'],[.58,'#ffd08a'],[.66,'#b08a8c'],[1,'#6a6080']],eS1:[255,200,140,.5],eS2:[160,150,220,.3]});
+// SOIR : le soleil vient de passer sous la mer — une bande corail sur l'horizon, l'indigo monte, les premières étoiles, la lune se lève
+BIOMES.titreSoir=titreAmb({nm:'TITRE · SOIR',jZen:[.05,.07,.24],jMid:[.28,.20,.44],jHor:[.94,.46,.42],jSol:[.75,.25,.20],sunTint:[.95,.45,.45],sunHalo:.4,stars:.4,moon:.8,
+  fog:[.42,.30,.44],fogN:420,fogF:4200,fogCj:[.90,.52,.55],fogIn:[.70,.60,.72],hemiS:[.42,.40,.66],hemiG:[.18,.14,.26],hemiI:.55,sunC:[.96,.60,.62],sunI:.9,
+  expo:.88,sat:1.26,con:1.22,vigC:[.06,.04,.14],vigK:.34,
+  env:[[0,'#0e1030'],[.3,'#3a2a5e'],[.48,'#c25a6a'],[.58,'#ff8a70'],[.66,'#4a3858'],[1,'#141428']],eS1:[255,150,150,.45],eS2:[120,130,220,.3]});
+// NUIT : la lune — un ciel d'encre semé d'étoiles, la mer de nuages argentée, des cumulus d'argent bleuté, pas de soleil
+BIOMES.titreNuit=titreAmb({nm:'TITRE · NUIT',jZen:[.006,.012,.045],jMid:[.025,.045,.12],jHor:[.09,.13,.25],jSol:[.04,.05,.09],sunTint:[.6,.7,1],sunHalo:0,stars:1.25,moon:1.35,city:0,
+  fog:[.06,.08,.16],fogN:500,fogF:5200,fogCj:[.30,.36,.55],fogIn:[.30,.34,.48],hemiS:[.30,.38,.60],hemiG:[.06,.08,.16],hemiI:.5,sunC:[.62,.72,1],sunI:.75,fillC:[.30,.40,.70],
+  expo:.92,sat:1.1,con:1.18,vigC:[.01,.02,.06],vigK:.42,sh:[0,.005,.03],
+  env:[[0,'#04060f'],[.3,'#0a1430'],[.48,'#24345e'],[.58,'#5a6a96'],[.66,'#121a34'],[1,'#05070f']],eS1:[180,200,255,.4],eS2:[90,110,180,.3]});
 const BIO={cur:JSON.parse(JSON.stringify(BIOMES.golden)),from:null,to:BIOMES.golden,k:1,dur:4,name:'golden'};
 function bioLerp(a,b,e,out){ // mixe deux biomes champ à champ (tableaux = composantes, nombres = scalaires)
   for(const key in b){ const bv=b[key];
@@ -36475,6 +36506,42 @@ window.dbgChute=function(o){if(o&&typeof o==='object'){if(o.NU&&CHUTE.nu){o.NU.f
   Object.assign(CHUTE_P,o);CHUTE.L=-1;}
   return {cadre:(function(){const c=menuCadre();return [+c.nx.toFixed(2),+c.ny.toFixed(2),+c.fr.toFixed(2),+c.fh.toFixed(2)];})(),ecran:(function(){const q=carGroup.position.clone().project(camera);return [+q.x.toFixed(2),+q.y.toFixed(2)];})(),orb:[+CHUTE.oA.toFixed(2),+CHUTE.oP.toFixed(2)],tris:CHUTE.nu?CHUTE.nu.reduce(function(a,c){return a+(c.m.visible&&c.m.geometry.index?c.m.geometry.index.count/3:0);},0):0,nu:CHUTE.nu?CHUTE.nu.filter(function(c){return c.m.visible;}).length:0,mz:+skyU.uMzA.value.x,ciel:document.body.classList.contains('titreCiel'),on:CHUTE.on,go:!!CHUTE.go,s:Math.round(CHUTE.s),C:CHUTE.C.toArray().map(Math.round),cam:CHUTE.cam.toArray().map(function(x){return +x.toFixed(1);}),P:CHUTE_P,
     route:(function(){try{frameAt(CHUTE.s,F);const q=F.p.clone().project(camera);return [+q.x.toFixed(2),+q.y.toFixed(2),+q.z.toFixed(3)];}catch(e){return null;}})()};};
+/* LES HEURES DU TITRE — ce que chaque heure règle à côté de son ambiance (BIOMES.titre…) : `P` = les clés de CHUTE_P (les cumulus du titre
+   K/R, la mer de nuages mzT/mzO/mzH — rgb + part —, l'angle regard ↔ soleil az, les lampes de la caisse cleS/zenC/rimC/kh/sk/amb/sol/sc/sr
+   — ⚠ banc : aux heures sombres, avec les doses du jour, la caisse n'était plus qu'une silhouette noire —, expo),
+   `v` = les voiles de l'écran (rgb, haut, bas, bandeau des boutons), `t` = la teinte des bancs et des filets de vent qui montent.
+   Une clé absente reprend la valeur d'origine (CHUTE_P0) : le MATIN est le titre v3 au bit près. */
+const CHUTE_P0=JSON.parse(JSON.stringify(CHUTE_P));
+const TITRE_MZ0=[0,0,0,0];
+const TITRE_H={
+  matin: {bio:'titreMatin', P:{mzT:TITRE_MZ0,mzO:TITRE_MZ0,mzH:TITRE_MZ0},v:['4,24,62',.30,.50,'6,28,60',.62],t:[1,1,1]},
+  midi:  {bio:'titreMidi',  P:{K:[1.04,1.12,.95,1],R:[-.25,.45,.8,1],mzT:TITRE_MZ0,mzO:[.62,.74,.90,.25],mzH:[1,1,1,.3],kh:.9},v:['2,30,80',.26,.46,'4,30,72',.6],t:[1,1,1]},
+  aprem: {bio:'titreAprem', P:{K:[1.02,1.1,1.15,1],R:[-.3,.5,.7,1],mzT:TITRE_MZ0,mzO:[.55,.60,.78,.25],mzH:[1,.95,.86,.35],kh:.7},v:['10,30,66',.30,.50,'10,30,62',.62],t:[1,.97,.92]},
+  golden:{bio:'titreGolden',P:{az:1.95,K:[1.05,1.3,1.6,1],R:[-.3,.42,.64,1],mzT:[.20,.20,.42,.55],mzO:[.30,.24,.44,.6],mzH:[1,.72,.46,.7],cleS:0xffd0a0,rimC:0xffb070,kh:.35,sk:2.1,amb:.75,sol:.9},v:['40,22,46',.30,.52,'34,18,40',.64],t:[1,.84,.70]},
+  soir:  {bio:'titreSoir',  P:{K:[1,1.15,1.5,1],R:[-.25,.5,.66,1],mzT:[.10,.09,.24,.6],mzO:[.20,.17,.34,.6],mzH:[.85,.60,.70,.6],cleS:0xffc0cc,zenC:0xa8b8ff,rimC:0x9fb4ff,kh:.5,expo:.95,sk:2.3,amb:.85,sol:.9,sc:.3,sr:1.6},v:['20,10,40',.36,.56,'18,10,36',.66],t:[.85,.66,.78]},
+  nuit:  {bio:'titreNuit',  P:{K:[.62,.72,1.3,1],R:[-.05,.65,.8,1],mzT:[.02,.03,.08,.9],mzO:[.07,.09,.18,.85],mzH:[.50,.58,.76,.85],cleS:0xb8ccff,zenC:0x8fa8ff,rimC:0x86a6ff,kh:.6,sk:2.5,amb:1,sol:1,sc:.35,sr:1.7},v:['2,6,20',.45,.65,'2,6,20',.7],t:[.34,.40,.58]}};
+const TITRE_HEURES=['matin','midi','aprem','golden','soir','nuit'];
+// l'heure du TÉLÉPHONE → l'ambiance : nuit 22 h-5 h · matin 5 h-10 h · midi 10 h-14 h · après-midi 14 h-17 h · golden hour 17 h-19 h 30 · soir 19 h 30-22 h
+function titreHeureDe(d){const h=d.getHours()+d.getMinutes()/60;return h<5?'nuit':h<10?'matin':h<14?'midi':h<17?'aprem':h<19.5?'golden':h<22?'soir':'nuit';}
+const TITRE_HF={h:null,force:null,tc:0,tcol:new THREE.Color(1,1,1)};
+{const q9=(location.search.match(/[?&]heure=([a-zé\-]+)/i)||[])[1];if(q9){const n9=q9.toLowerCase().replace('apres-midi','aprem').replace('après-midi','aprem').replace('goldenhour','golden');if(TITRE_H[n9])TITRE_HF.force=n9;}}
+function titreHeurePose(h){ // pose UNE heure : son ambiance (chuteRender la verra changer et la réappliquera), ses réglages, ses voiles, sa teinte
+  const H=TITRE_H[h];if(!H)return;TITRE_HF.h=h;
+  BIOMES.titre=BIOMES[H.bio];
+  const ks={};for(const n in TITRE_H)for(const k in TITRE_H[n].P)ks[k]=1;
+  for(const k in ks)CHUTE_P[k]=JSON.parse(JSON.stringify(H.P[k]!==undefined?H.P[k]:CHUTE_P0[k]===undefined?null:CHUTE_P0[k]));
+  CHUTE.L=-1; // l'angle regard ↔ soleil a pu changer : le regard se recalcule
+  const bs=document.body.style;bs.setProperty('--tvC',H.v[0]);bs.setProperty('--tvA',H.v[1]);bs.setProperty('--tvA2',H.v[2]);bs.setProperty('--tvB',H.v[3]);bs.setProperty('--tvBA',H.v[4]);
+  document.body.dataset.heure=h;
+  TITRE_HF.tcol.setRGB(H.t[0],H.t[1],H.t[2]);if(CHUTE.w)for(const w of CHUTE.w)w.sp.material.color.copy(TITRE_HF.tcol);
+}
+function titreHeureTick(dt){ // l'heure, relue toutes les 20 s (un menu laissé ouvert passe de l'après-midi à la golden hour)
+  TITRE_HF.tc-=dt;if(TITRE_HF.h&&TITRE_HF.tc>0)return;TITRE_HF.tc=20;
+  const h=TITRE_HF.force||titreHeureDe(new Date());if(h!==TITRE_HF.h)titreHeurePose(h);
+}
+window.dbgHeure=function(h){ // (dev) forcer une heure du titre : dbgHeure('golden') · dbgHeure(null) : l'horloge du téléphone
+  if(h!==undefined){TITRE_HF.force=h&&TITRE_H[h]?h:null;TITRE_HF.tc=0;titreHeureTick(0);}
+  return {heure:TITRE_HF.h,forcee:TITRE_HF.force,horloge:titreHeureDe(new Date()),heures:TITRE_HEURES};};
 /* LE TAPOTEMENT AU CIEL (2026-10-03, Léo : « on peut tapoter la voiture et simuler, à l'endroit tapoté, un coup qui fait légèrement
    pousser / pivoter la voiture en train de tomber dans les airs »). Le doigt lance un rayon de la caméra ; s'il touche la caisse (une
    pièce visible et opaque), le coup part de CE point, dans le sens du rayon : une poussée (le centre recule de quelques décimètres) et un
@@ -36527,10 +36594,10 @@ const CHUTE_ST={c:new THREE.Vector3(),r:new THREE.Vector3()}; // (ses vecteurs �
 function chuteStudio(C,up,P){
   const toC=CHUTE_ST.c.copy(CHUTE.cam).sub(C).normalize(),BT=BIOMES.titre||BIOMES[MENU_BIO];
   hemi.intensity=(BT.hemiI!=null?BT.hemiI:.78)*P.amb;sun.intensity=(BT.sunI!=null?BT.sunI:1.6)*P.sol; /* (sol) la force du soleil — les nuages n'en lisent que la COULEUR */ /* L'AMBIANCE BAISSÉE (amb) : c'est elle qui aplatissait — les nuages ne la lisent pas (ils prennent les COULEURS de l'hémisphère, pas son intensité) ; bioApply la repose en quittant le titre */
-  stallKey.color.setHex(0xffeedd);stallKey.intensity=P.sk*P.cle*2;stallKey.distance=40;
+  stallKey.color.setHex(P.cleS!=null?P.cleS:0xffeedd);stallKey.intensity=P.sk*P.cle*2;stallKey.distance=40; /* (les heures du titre) cleS : la clé prend la couleur de l'heure */
   CHUTE_ST.r.copy(SUN_DIR).multiplyScalar(1-P.kh).addScaledVector(AXIS_Y,P.kh).normalize(); // (kh) la clé : du côté du soleil (0) jusqu'au zénith (1)
   stallKey.position.copy(C).addScaledVector(CHUTE_ST.r,9).addScaledVector(toC,1.5);
-  carLight.color.setHex(0xe6eeff);carLight.intensity=P.sc;carLight.distance=26;carLight.position.copy(C).addScaledVector(AXIS_Y,10).addScaledVector(toC,1.5);
+  carLight.color.setHex(P.zenC!=null?P.zenC:0xe6eeff);carLight.intensity=P.sc;carLight.distance=26;carLight.position.copy(C).addScaledVector(AXIS_Y,10).addScaledVector(toC,1.5);
   trailLight.color.setHex(0xfff6ea);trailLight.intensity=P.sb;trailLight.distance=26;trailLight.position.copy(C).addScaledVector(AXIS_Y,-9).addScaledVector(toC,3);
   camera.getWorldDirection(CHUTE_ST.r).multiplyScalar(1-P.rimS).addScaledVector(SUN_DIR,P.rimS).normalize();
   stallRim.color.setHex(P.rimC);stallRim.intensity=P.rim*P.sr;stallRim.distance=40;stallRim.position.copy(C).addScaledVector(CHUTE_ST.r,7).addScaledVector(AXIS_Y,2.5);
@@ -36697,10 +36764,12 @@ function chuteLance(){ // JOUER, depuis le ciel : elle pique
 }
 function chuteRender(dt){
   if(!CHUTE.on)chuteEntre();
+  titreHeureTick(dt); /* (2026-10-05) LES HEURES DU TITRE : l'ambiance de l'heure du téléphone (voir TITRE_H) */
   CHUTE.t=CHUTE_P.fige!=null?CHUTE_P.fige:CHUTE.t+dt;const t=CHUTE.t,P=CHUTE_P,G=CHUTE.go; /* (P.fige : la caisse et la vue figées à cet instant — comparer deux réglages sur la MÊME image) */
   // LE CIEL DU JOUR DES NUAGES (celui de l'accueil d'avant : MENU_BIO), repeint si le voyage BIO est passé derrière
   {const BT=BIOMES.titre||BIOMES[MENU_BIO]; /* (titre v3) l'ambiance du titre */
-   if(!MENUV.bio||CHUTE.bioPas!==BIO.pas||CHUTE.bioT!==BT){if(!MENUV.bio||CHUTE.bioT!==BT)paintEnv(BT.env,BT.eS1,BT.eS2);MENUV.bio=true;CHUTE.bioPas=BIO.pas;CHUTE.bioT=BT;bioApply(BT);}}
+   if(!MENUV.bio||CHUTE.bioPas!==BIO.pas||CHUTE.bioT!==BT){if(!MENUV.bio||CHUTE.bioT!==BT)paintEnv(BT.env,BT.eS1,BT.eS2);MENUV.bio=true;CHUTE.bioPas=BIO.pas;CHUTE.bioT=BT;bioApply(BT);
+     if(!(BT.sunHalo>0)){sunSprite.material.opacity=0;horizonGlow.material.opacity=0;for(const r9 of RAYS)r9.material.opacity=0;}}} /* (les heures du titre) la NUIT n'a pas de soleil : bioApply laissait le disque à 15 % */
   skyU.uMer.value=1;if(P.mzA)skyU.uMzA.value.fromArray(P.mzA);if(P.mzB)skyU.uMzB.value.fromArray(P.mzB);if(P.mzT)skyU.uMzT.value.fromArray(P.mzT);if(P.mzO)skyU.uMzO.value.fromArray(P.mzO);if(P.mzH)skyU.uMzH.value.fromArray(P.mzH);if(P.merLoin)skyU.uMerLoin.value=P.merLoin; /* (titre v3) la mer de nuages du titre (rendue par chuteSort) */
   if(CHUTE.nuM){CHUTE.nuM.uniforms.uK.value.fromArray(P.K);CHUTE.nuM.uniforms.uR.value.fromArray(P.R);}
   /* (2026-09-30) LA BRUME ET L'EXPOSITION DE L'AMBIANCE : seule la course les réécrit (updateClouds) — au menu la brume restait le violet
@@ -36790,7 +36859,7 @@ function chuteRender(dt){
      pos[o+6]=x0-wx;pos[o+7]=y1;pos[o+8]=z0-wz;pos[o+9]=x0+wx;pos[o+10]=y1;pos[o+11]=z0+wz;
      const cp9=camera.position,dc9=Math.hypot(x0-cp9.x,(y0+y1)*.5-cp9.y,z0-cp9.z); /* (niveau 1 v2) un filet qui frôle la CAMÉRA devenait un rayon de lumière vertical sur tout l'écran (lu comme un bug) : il s'efface avant */
      const a=S9.a*Math.min(1,(S9.y+44)/10)*Math.min(1,(44-S9.y)/10)*(G?1.3:.3)*Math.min(1,Math.max(0,(dc9-6)/8));   // la tête du filet blanche, la queue éteinte
-     col[o]=col[o+3]=a;col[o+1]=col[o+4]=a;col[o+2]=col[o+5]=a;col[o+6]=col[o+9]=0;col[o+7]=col[o+10]=0;col[o+8]=col[o+11]=0;}
+     const tc9=TITRE_HF.tcol;col[o]=col[o+3]=a*tc9.r;col[o+1]=col[o+4]=a*tc9.g;col[o+2]=col[o+5]=a*tc9.b;col[o+6]=col[o+9]=0;col[o+7]=col[o+10]=0;col[o+8]=col[o+11]=0;}
    Fi.m.visible=true;Fi.m.geometry.attributes.position.needsUpdate=true;Fi.m.geometry.attributes.color.needsUpdate=true;}
   // LE VENT : le souffle et le sifflement de la chute (les nœuds du moteur de son, au repos hors course)
   /* (niveau 1 v2) LA CHUTE LIBRE a sa boucle (`chute.vent` : grondement, rafales, l'air qui claque sur les tôles) ; retentée tant que le son
