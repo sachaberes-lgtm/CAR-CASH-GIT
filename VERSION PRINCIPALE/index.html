@@ -36475,11 +36475,7 @@ const TITRE_H={
   nuit:  {bio:'titreNuit',  P:{K:[.62,.72,1.3,1],R:[-.05,.65,.8,1],mzT:[.02,.03,.08,.9],mzO:[.07,.09,.18,.85],mzH:[.50,.58,.76,.85],cleS:0xb8ccff,zenC:0x8fa8ff,rimC:0x86a6ff,kh:.6,sk:2.5,amb:1,sol:1,sc:.35,sr:1.7},v:['2,6,20',.45,.65,'2,6,20',.7],t:[.34,.40,.58]}};
 const TITRE_HEURES=['matin','midi','aprem','golden','soir','nuit'];
 // l'heure du TÉLÉPHONE → l'ambiance : nuit 22 h-5 h · matin 5 h-10 h · midi 10 h-14 h · après-midi 14 h-17 h · golden hour 17 h-19 h 30 · soir 19 h 30-22 h
-/* (2026-10-06, Léo : « redesigne le home : plus BLANC mais une lueur BLEUE, le ciel du home » — le soir et la nuit l'accueil devenait noir) :
-   l'accueil reste au MIDI (horizon blanc, zénith bleu profond, cumulus blancs) à toute heure. `?heure=…` / dbgHeure() forcent toujours une
-   autre heure ; TITRE_HORLOGE=true rend le choix par l'heure du téléphone. */
-const TITRE_HORLOGE=false;
-function titreHeureDe(d){if(!TITRE_HORLOGE)return 'midi';const h=d.getHours()+d.getMinutes()/60;return h<5?'nuit':h<10?'matin':h<14?'midi':h<17?'aprem':h<19.5?'golden':h<22?'soir':'nuit';}
+function titreHeureDe(d){const h=d.getHours()+d.getMinutes()/60;return h<5?'nuit':h<10?'matin':h<14?'midi':h<17?'aprem':h<19.5?'golden':h<22?'soir':'nuit';}
 const TITRE_HF={h:null,force:null,tc:0,tcol:new THREE.Color(1,1,1)};
 {const q9=(location.search.match(/[?&]heure=([a-zé\-]+)/i)||[])[1];if(q9){const n9=q9.toLowerCase().replace('apres-midi','aprem').replace('après-midi','aprem').replace('goldenhour','golden');if(TITRE_H[n9])TITRE_HF.force=n9;}}
 function titreHeurePose(h){ // pose UNE heure : son ambiance (chuteRender la verra changer et la réappliquera), ses réglages, ses voiles, sa teinte
