@@ -5577,7 +5577,7 @@ html body #garage.vitrine:not(.menu) #gName{animation:gvNom .7s var(--ease) back
    · EN BAS : HOME et SHOP en deux carrés (le pictogramme sur son mot, comme la maison de la console), JOUER prend le reste — même hauteur pour
      les trois ; couché, calée à droite sous le pouce, l'astuce à gauche sur la même ligne.
    La caisse a tout le milieu. */
-html body #garage.vitrine:not(.menu) #gOutils{position:fixed;top:calc(var(--sT) + 12px);right:calc(var(--sR) + 16px);z-index:2;flex-direction:column;align-items:flex-end;gap:8px}
+html body #garage.vitrine:not(.menu) #gOutils{position:fixed;top:calc(var(--sT) + 12px);right:calc(var(--sR) + 16px);z-index:2;flex-direction:row-reverse;align-items:center;gap:8px} /* (2026-10-05, Léo : « les settings et le HOME peuvent être mis côte à côte ») : le ⚙ garde le coin, HOME à sa gauche */
 #gvHome{display:none}
 html body #garage.vitrine:not(.menu) #gOutils>#gvHome{display:flex;--nc:#b8b0e0;color:var(--nc)}
 html body #garage.vitrine:not(.menu) #gOutils>#gvHome .pxi{filter:drop-shadow(0 0 6px var(--nc))}
@@ -5587,21 +5587,21 @@ html body #garage.vitrine:not(.menu) #gBottom{position:absolute;left:0;right:0;t
   padding:0 calc(var(--sR) + 16px) calc(var(--sB) + 16px) calc(var(--sL) + 16px);background:none;box-shadow:none;clip-path:none;gap:0;animation:none;
   transition:opacity .28s var(--ease),translate .28s var(--ease)}
 html body #garage.vitrine:not(.menu) #gBottom::before{display:none}
-html body #garage.vitrine:not(.menu) #gAct{display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);grid-template-rows:62px auto auto;column-gap:10px;row-gap:0;align-items:stretch;margin:0;width:100%;max-width:none}
+html body #garage.vitrine:not(.menu) #gAct{position:relative;display:grid;grid-template-columns:minmax(0,.83fr) minmax(0,1fr);grid-template-rows:62px auto;column-gap:10px;row-gap:0;align-items:stretch;margin:0;width:100%;max-width:none}
 /* (2026-10-05, Léo : « en dessous du play, MISSIONS, et le nom du level qui va être lancé, limite collé, stylé, branché énergétiquement ») LA PILE
    DU DÉPART : JOUER en haut, le CARTOUCHE du niveau branché dessous (deux conducteurs d'or où le courant monte, un éclair qui grésille, un flux
    qui court sur sa tranche), puis MISSIONS ; HOME et SHOP sur la rangée du bas, à côté de MISSIONS. */
-html body #garage.vitrine:not(.menu) #gAct>#gJouer{grid-column:1 / span 2;grid-row:1} /* (même soir, « enlève le bouton coffre ») JOUER sur toute la largeur */
+html body #garage.vitrine:not(.menu) #gAct>#gJouer{grid-column:2;grid-row:1} /* (même soir, « enlève le bouton coffre ») JOUER sur toute la largeur — (puis, Léo : « le PLAY était mieux plus petit, c'était mieux avec la mission branchée sur le PLAY ») : la colonne de droite, comme la v114 */
 html body #garage.vitrine:not(.menu) #gAct>#gClose{display:none!important} /* (même soir, Léo : « mets le bouton home en haut à droite avec les settings ») : voir #gvHome */
-html body #garage.vitrine:not(.menu) #gAct>#gPerso{grid-column:1;grid-row:2;margin-top:13px} /* (même soir, « le bouton shop n'est pas très grand ») : grand, à côté de MISSIONS */
-#gvNiv,#gvMis,#gvCof,#gvLvls{display:none}
+html body #garage.vitrine:not(.menu) #gAct>#gPerso{grid-column:1;grid-row:1} /* (même soir, « le bouton shop n'est pas très grand ») : grand — (puis) à gauche de JOUER, à sa hauteur */
+#gvNiv,#gvMis,#gvCof,#gvLvls,#gvLvl,#gvNivs{display:none}
 html body #garage.vitrine:not(.menu) #gAct>#gvCof{display:none!important} /* (même soir, Léo : « enlève le bouton coffre ; un bouton rouge sur la plateforme ») : voir LE BOUTON ROUGE ET SES OUTILS */ /* (2026-10-05) le COFFRE, à gauche de JOUER — (même soir, « plus gros ») sur les deux colonnes */
 /* (2026-10-05, Léo : « missions branché au play plutôt que le niveau, et les niveaux affichés avec leur distance et leur titre — vignette
    avec un fond imagé représentatif, léger, agréable, kawaii mais pas abusé, pas trop gentil non plus ») : MISSIONS prend la place BRANCHÉE
    sous JOUER (les deux conducteurs d'or où le courant monte, le flux qui court sur sa tranche) ; le NIVEAU devient une VIGNETTE illustrée
    (rangée du bas) — son paysage en pixel art peint par `gvVignette`, son titre, sa distance ; (même soir) TOUTE la suite, en bande qui défile (#gvLvls). */
-html body #garage.vitrine:not(.menu) #gAct>#gvMis{display:flex;grid-column:2;grid-row:2;margin:13px 6px 0;height:50px;min-height:50px}
-html body #garage.vitrine:not(.menu) #gAct>#gvLvls{display:flex;grid-column:1 / span 2;grid-row:3;margin-top:10px}
+html body #garage.vitrine:not(.menu) #gAct>#gvMis{display:flex;grid-column:2;grid-row:2;margin:13px 6px 0;height:46px;min-height:46px}
+html body #garage.vitrine:not(.menu) #gAct>#gvLvl{display:block;grid-column:1;grid-row:2;margin-top:13px;height:46px} /* (puis) la VIGNETTE seule, sous SHOP, à la hauteur de MISSIONS */
 #gvMis{--nc:var(--neoV);position:relative;flex-direction:row;align-items:center;justify-content:center;gap:10px;min-width:0;height:42px;min-height:42px;padding:0 12px;
   font-size:var(--f1);letter-spacing:2px;color:var(--tx);white-space:nowrap;
   background:linear-gradient(180deg,#1c1338,#0a0717);box-shadow:inset 0 0 0 1px rgba(255,205,90,.55),inset 0 1px 0 rgba(255,240,190,.25),inset 0 -2px 0 var(--nc),0 0 16px -4px rgba(255,190,40,.65);
@@ -5618,25 +5618,61 @@ html body #garage.vitrine:not(.menu) #gAct>#gJouer:is(:active,.appui)~#gvMis{box
 .gvPips{display:flex;gap:4px}
 .gvPips u{display:block;width:8px;height:8px;transform:rotate(45deg);background:#1b1433;box-shadow:inset 0 0 0 1px rgba(94,240,138,.6)}
 .gvPips u.ok{background:var(--neoV);box-shadow:0 0 8px var(--neoV)}
-/* LES VIGNETTES DES NIVEAUX (même soir, Léo : « toutes les vignettes de niveau à faire, à défiler ») : la SUITE d'une partie (l'auto-école si
-   le permis manque, puis NIVEAUX dans l'ordre), une bande qui défile au doigt (et à la molette), aimantée vignette par vignette ; la 1re —
-   celle que JOUER lance — cerclée d'or ; un niveau déjà TERMINÉ (portail franchi, `SAVE.d.ex.zones`) porte sa coche. Chaque vignette : le
-   paysage (canvas 96 × 36 en gros pixels), un voile d'encre à gauche pour le texte, le numéro dans sa pastille d'or, le titre, la distance
-   (moyenne : la piste est tirée à chaque partie) dans la couleur du monde (--lc). Le bord droit s'efface : il y a une suite. */
-#gvLvls{gap:8px;min-width:0;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;touch-action:pan-x;
-  pointer-events:auto;padding:2px 10px 6px 4px;-webkit-mask-image:linear-gradient(90deg,#000 82%,transparent);mask-image:linear-gradient(90deg,#000 82%,transparent);animation:gvMonte .52s var(--ease) .38s backwards}
-#gvLvls::-webkit-scrollbar{display:none}
-.gvV{position:relative;flex:0 0 auto;width:min(64%,230px);height:58px;overflow:hidden;scroll-snap-align:start;transform:skewX(var(--sk));
+/* LA VIGNETTE DU NIVEAU + SON TIROIR (2026-10-05, Léo, après la bande à défiler : « les niveaux, non : tu vois le niveau comme avant ; juste
+   quand tu cliques dessus, tu vois les niveaux que tu as accomplis ») — `#gvLvl` = le niveau que JOUER lance (l'auto-école tant que le permis
+   manque, sinon NIVEAUX[0]) : son paysage en pixel art (`gvVignette`), son numéro dans sa pastille d'or, son titre, sa distance (moyenne :
+   la piste est tirée à chaque partie). Une petite flèche dit qu'il s'ouvre. Touché, le TIROIR `#gvNivs` monte au-dessus de la pile : les
+   niveaux TERMINÉS (portail franchi, `SAVE.d.ex.zones` ; l'auto-école si le permis est passé), chacun sa vignette et sa coche, arrivés en
+   cascade ; dessous, le prochain à battre et ce qui reste à découvrir. Retouché, un tap ailleurs, Échap : il se referme. */
+#gvLvl{position:relative;min-width:0;overflow:hidden;transform:skewX(var(--sk));cursor:pointer;pointer-events:auto;-webkit-tap-highlight-color:transparent;
+  background:#0a0717;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14),inset 0 -2px 0 var(--lc,#5ee6ff),0 12px 26px -12px rgba(0,0,0,.85);
+  animation:gvMonte .52s var(--ease) .38s backwards;transition:box-shadow .2s var(--ease),translate .07s}
+#gvLvl[aria-expanded="true"]{box-shadow:inset 0 0 0 2px #ffd75e,inset 0 -2px 0 var(--lc,#5ee6ff),0 0 18px -4px rgba(255,200,60,.85)}
+#gvLvl:is(:active,.appui){translate:0 2px}
+#gvLvl::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(8,5,20,.78) 0%,rgba(8,5,20,.4) 46%,rgba(8,5,20,0) 74%)}
+/* (puis, Léo : « les niveaux imagés, mais un peu plus brillants ») : le paysage plus clair et plus saturé, le voile d'encre allégé, un liseré
+   de la couleur du monde qui luit, et un ÉCLAT qui balaie la vignette toutes les ~4 s */
+:is(#gvLvl,.gvV) .gvImg{filter:brightness(1.18) saturate(1.3)}
+#gvLvl{box-shadow:inset 0 0 0 1px rgba(255,255,255,.22),inset 0 -2px 0 var(--lc,#5ee6ff),0 0 14px -4px var(--lc,#5ee6ff),0 12px 26px -12px rgba(0,0,0,.85)}
+#gvLvl .gvTx::after,.gvV .gvTx::after{content:none}
+#gvLvl::before,.gvV::before{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.42) 50%,transparent 60%) no-repeat;background-size:260% 100%;animation:k4Lingot 4.2s var(--ease) 1.4s infinite}
+#gvLvl .gvOuv{position:absolute;z-index:1;top:4px;right:6px;--pxs:1;color:#fff;transform:skewX(calc(-1 * var(--sk)));animation:gvOuvBat 1.8s ease-in-out infinite}
+#gvLvl[aria-expanded="true"] .gvOuv{scale:1 -1;animation:none;color:#ffd75e}
+@keyframes gvOuvBat{0%,100%{translate:0 0;opacity:.75}50%{translate:0 -2px;opacity:1}}
+.gvV{position:relative;flex:0 0 auto;width:min(64%,230px);height:58px;overflow:hidden;transform:skewX(var(--sk));
   background:#0a0717;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14),inset 0 -2px 0 var(--lc,#5ee6ff),0 10px 22px -12px rgba(0,0,0,.85)}
 .gvV.prochain{box-shadow:inset 0 0 0 2px #ffd75e,inset 0 -2px 0 var(--lc,#5ee6ff),0 0 16px -3px rgba(255,200,60,.85)}
-.gvV .gvImg{position:absolute;inset:0 -8px;background-size:cover;background-position:center;image-rendering:pixelated;image-rendering:crisp-edges}
-.gvV::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(8,5,20,.88) 0%,rgba(8,5,20,.55) 46%,rgba(8,5,20,0) 78%)}
-.gvV .gvTx{position:absolute;z-index:1;left:12px;right:8px;top:50%;translate:0 -50%;display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:8px;row-gap:3px;align-items:center;
-  transform:skewX(calc(-1 * var(--sk)));font-size:var(--f0);letter-spacing:1px;white-space:nowrap}
-.gvV .gvN{grid-row:1 / span 2;display:grid;place-items:center;min-width:20px;height:20px;padding:0 3px;color:#1a1000;background:#ffd75e;box-shadow:0 0 8px rgba(255,200,60,.7)}
-.gvV .gvT{min-width:0;color:#fff;text-shadow:0 1px 0 #000,0 0 8px rgba(0,0,0,.8);overflow:hidden;text-overflow:ellipsis}
-.gvV .gvD{color:var(--lc,#5ee6ff);text-shadow:0 1px 0 #000,0 0 8px var(--lc,#5ee6ff)}
+:is(.gvV,#gvLvl) .gvImg{position:absolute;inset:0 -8px;background-size:cover;background-position:center;image-rendering:pixelated;image-rendering:crisp-edges}
+.gvV::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(8,5,20,.78) 0%,rgba(8,5,20,.4) 46%,rgba(8,5,20,0) 74%)}
+:is(.gvV,#gvLvl) .gvTx{position:absolute;z-index:1;left:12px;right:8px;top:50%;translate:0 -50%;display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:7px;row-gap:3px;align-items:center;
+  transform:skewX(calc(-1 * var(--sk)));font-size:var(--f0);letter-spacing:0;white-space:nowrap}
+#gvLvl .gvTx{left:10px;right:13px;column-gap:6px}
+:is(.gvV,#gvLvl) .gvN{grid-row:1 / span 2;display:grid;place-items:center;min-width:20px;height:20px;padding:0 3px;color:#1a1000;background:#ffd75e;box-shadow:0 0 8px rgba(255,200,60,.7)}
+:is(.gvV,#gvLvl) .gvT{min-width:0;color:#fff;text-shadow:0 1px 0 #000,0 0 8px rgba(0,0,0,.8);overflow:hidden;text-overflow:ellipsis}
+:is(.gvV,#gvLvl) .gvD{color:var(--lc,#5ee6ff);text-shadow:0 1px 0 #000,0 0 8px var(--lc,#5ee6ff)}
 .gvV .gvOk{position:absolute;z-index:1;top:6px;right:12px;--pxs:2;color:var(--neoV);filter:drop-shadow(0 0 5px var(--neoV));transform:skewX(calc(-1 * var(--sk)))}
+/* le TIROIR : la plaque des menus (laque, filet, coins coupés, liseré d'or à gauche), posée au-dessus de la pile, à sa largeur */
+#gvNivs{position:absolute;z-index:3;left:0;right:0;bottom:calc(100% + 14px);max-height:min(52vh,430px);overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;
+  padding:12px 12px 12px 15px;box-sizing:border-box;pointer-events:auto;transform-origin:20% 100%;scrollbar-width:none;
+  background:linear-gradient(180deg,rgba(26,19,54,.95),rgba(9,6,22,.97));
+  box-shadow:inset 3px 0 0 #ffd75e,inset 0 0 0 1px rgba(255,255,255,.12),inset 0 1px 0 rgba(255,255,255,.16),0 20px 44px -14px rgba(0,0,0,.92);
+  clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
+#gvNivs::-webkit-scrollbar{display:none}
+html body #garage.vitrine:not(.menu) #gvNivs.on{display:block;animation:gvNivsEntre .36s var(--ease) both}
+html body #garage.vitrine:not(.menu) #gvNivs.sortant{display:block;animation:gvNivsSort .17s ease-in both}
+@keyframes gvNivsEntre{from{opacity:0;translate:0 18px;scale:.94}to{opacity:1;translate:0 0;scale:1}}
+@keyframes gvNivsSort{to{opacity:0;translate:0 12px;scale:.97}}
+#gvNivs .gnH{display:flex;align-items:center;gap:9px;margin:0 0 11px;font-size:var(--f1);letter-spacing:1px;color:#fff;text-shadow:0 1px 0 #000}
+#gvNivs .gnH .pxi{--pxs:2;color:#ffd75e}
+#gvNivs .gnH em{margin-left:auto;font-style:normal;color:#1a1000;background:#ffd75e;padding:3px 6px;box-shadow:0 0 10px rgba(255,200,60,.6)}
+#gvNivs .gnG{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 10px}
+#gvNivs .gvV{width:auto;height:46px;animation:gvNivTuile .34s var(--ease) calc(var(--i,0) * 50ms + 90ms) backwards}
+@keyframes gvNivTuile{from{opacity:0;translate:0 10px}to{opacity:1;translate:0 0}}
+#gvNivs .gnP{display:flex;align-items:center;gap:8px;margin-top:11px;font-size:var(--f0);letter-spacing:1px;color:var(--tx2);white-space:nowrap;overflow:hidden}
+#gvNivs .gnP b{font-weight:400;color:#ffd75e;overflow:hidden;text-overflow:ellipsis}
+#gvNivs .gnP i{font-style:normal;margin-left:auto;color:var(--tx3)}
+#gvNivs .gnVide{font-size:var(--f0);letter-spacing:1px;line-height:1.9;color:var(--tx2);padding:2px 0 4px}
+#gvNivs .gnVide b{font-weight:400;color:#fff}
 html body #garage.vitrine:not(.menu) #gAct>:is(#gClose,#gPerso,#gvCof){display:flex;flex:none;flex-direction:column;justify-content:center;gap:7px;width:74px;min-width:74px;height:62px;min-height:62px;
   padding:6px 4px 3px 9px;font-size:var(--f0);letter-spacing:1px;color:var(--tx);
   background:linear-gradient(180deg,rgba(30,22,62,.84),rgba(11,8,26,.88));
@@ -5647,7 +5683,7 @@ html body #garage.vitrine:not(.menu) #gAct>#gPerso{--nc:var(--neoC)}
 html body #garage.vitrine:not(.menu) #gAct>:is(#gClose,#gPerso,#gvCof) .pxi{--pxs:3;color:var(--nc);filter:drop-shadow(0 0 6px var(--nc))}
 html body #garage.vitrine:not(.menu) #gAct>:is(#gvCof,#gPerso){width:auto;min-width:0;flex-direction:row;align-items:center;justify-content:center;gap:12px;padding:0 10px;font-size:var(--f1);letter-spacing:2px}
 html body #garage.vitrine:not(.menu) #gAct>:is(#gvCof,#gPerso) .pxi{--pxs:4}
-html body #garage.vitrine:not(.menu) #gAct>#gPerso{height:50px;min-height:50px}
+html body #garage.vitrine:not(.menu) #gAct>#gPerso{height:62px;min-height:62px}
 html body #garage.vitrine:not(.menu) #gAct>:is(#gClose,#gPerso,#gvCof):is(:active,.appui){transform:skewX(var(--sk)) translateY(2px);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.1),inset 0 0 0 1px var(--nc),inset 0 -2px 0 var(--nc),0 0 22px -6px var(--nc)}
 html body #garage.vitrine:not(.menu) #gAct>#gJouer{flex:1;height:62px;min-height:62px}
@@ -5662,64 +5698,88 @@ html body #garage.inv:not(.menu) #gBottom{opacity:0;translate:0 18px}
 html body #garage.inv:not(.menu) #gBottom *{pointer-events:none!important}
 html body #garage.deplie:not(.menu) #gBottom{animation:gDeplie .34s var(--ease,cubic-bezier(.32,.72,0,1)) both}
 @keyframes gDeplie{from{translate:0 24px;opacity:.35}to{translate:0 0;opacity:1}}
-/* LES JAUGES (même soir, Léo : « ça fait un peu vide, ajoute un peu de vie : jauge money, jauge aura, moyennes, colorées ») — deux CARTES
-   égales, chacune sa couleur en liseré à gauche : l'ARGENT (vert billet) vers la prochaine caisse à vendre (`objectif()`), l'AURA (violet → rose)
-   vers le rang suivant. La jauge de la charte (fond d'encre, quatre bandes, curseur blanc) ; à l'entrée elles se REMPLISSENT, les chiffres
-   défilent, un reflet passe. Masquées pendant l'inventaire. */
+/* LES JAUGES (même soir, Léo : « ça fait un peu vide, ajoute un peu de vie : jauge money, jauge aura, moyennes, colorées ») — l'ARGENT (vert
+   billet) vers la prochaine caisse à vendre (`objectif()`), l'AURA (violet → rose) vers le rang suivant.
+   v2 BRILLANTES (2026-10-05, Léo : « les jauges peuvent être des jauges brillantes, satisfaisantes, avec des mots un peu plus stylés — là c'est
+   un peu classique ») : empilées comme la barre de vie et la barre de mana d'un jeu (debout en haut à gauche, couché sous HOME · ⚙) ; une
+   ÉTIQUETTE d'arcade penchée (CASH · AURA, sa couleur en plein) ; le chiffre en quatre bandes ; la barre = un TUBE de 12 px : laque de verre
+   (lèvre blanche, reflet, ventre sombre), un courant de bandes en biais qui COULE dedans, des crans tous les 10 %, une POINTE chauffée à blanc
+   qui pulse, un éclat qui passe ; à l'entrée elle se remplit avec un léger dépassement, puis CLAQUE (éclair, le % qui saute, `.pose`) ; pleine,
+   elle bat. La ligne du dessous parle : la caisse visée et ce qui MANQUE (« ENCORE $ 1 200 », « À TA PORTÉE ! »), ton rang et le suivant.
+   Masquées pendant l'inventaire. */
 #gVJ{display:none}
 html body #garage.vitrine:not(.menu):not(.inv) #gVJ{display:flex}
-#gVJ{flex-direction:row;gap:6px;box-sizing:border-box;width:100%;margin-top:0;padding-right:54px;pointer-events:none;animation:gvJEntre .6s var(--ease) .2s backwards} /* debout : la rangée du haut, le ⚙ au bout */
+#gVJ{flex-direction:column;gap:7px;box-sizing:border-box;width:100%;margin-top:0;padding-right:118px;pointer-events:none;animation:gvJEntre .6s var(--ease) .2s backwards} /* debout : empilées en haut à gauche, HOME · ⚙ au bout de la ligne */
 @keyframes gvJEntre{from{opacity:0;translate:0 -10px}to{opacity:1;translate:0 0}}
-.gvL{flex:1 1 0;min-width:0;box-sizing:border-box;padding:9px 10px 8px 13px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;column-gap:7px;row-gap:6px;
-  background:linear-gradient(180deg,rgba(20,14,42,.86),rgba(8,6,18,.88));
-  box-shadow:inset 3px 0 0 var(--gc),inset 0 0 0 1px var(--fil),inset 0 1px 0 rgba(255,255,255,.1),0 12px 26px -14px rgba(0,0,0,.85);
+.gvL{position:relative;flex:1 1 0;min-width:0;box-sizing:border-box;padding:8px 11px 8px 13px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;column-gap:8px;row-gap:6px;
+  background:linear-gradient(180deg,rgba(26,19,54,.88),rgba(8,6,18,.9));
+  box-shadow:inset 3px 0 0 var(--gc),inset 0 0 0 1px var(--fil),inset 0 1px 0 rgba(255,255,255,.12),0 12px 26px -14px rgba(0,0,0,.85);
   clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)}
-.gvA{--gc:#5ef08a}.gvU{--gc:#c77dff}
-.gvL .pxi{--pxs:2}
-.gvL b{min-width:0;font-weight:400;font-size:var(--f2);letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.gvL .gvR{justify-self:end;font-size:var(--f0);letter-spacing:0;white-space:nowrap;text-shadow:0 1px 0 var(--txO)}
+.gvA{--gc:#5ef08a;--g0:#0b5a28;--g1:#25c25e;--g2:#7dff9b;--g3:#e2ffec}
+.gvU{--gc:#c77dff;--g0:#3c1488;--g1:#9446ff;--g2:#dc9cff;--g3:#ffe2f6}
+.gvK{display:flex;align-items:center;gap:5px;padding:3px 7px 3px 5px;font-style:normal;font-size:var(--f0);letter-spacing:1px;line-height:1;color:#0a0614;background:var(--gc);
+  transform:skewX(var(--sk));box-shadow:inset 0 1px 0 rgba(255,255,255,.6),inset 0 -2px 0 rgba(0,0,0,.25),0 0 12px -3px var(--gc)}
+.gvK>*{transform:skewX(calc(-1 * var(--sk)))}
+.gvK .pxi{--pxs:1;color:#0a0614}
+.gvA .gvK .pxi{animation:k4Piece 3.2s var(--ease) infinite}
+.gvL b{min-width:0;font-weight:400;font-size:var(--f3);letter-spacing:0;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  color:var(--g2);background:linear-gradient(180deg,#fff 0 24%,var(--g3) 24% 46%,var(--g2) 46% 74%,var(--g1) 74%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 1px 0 #05020c) drop-shadow(1px 0 0 #05020c) drop-shadow(-1px 0 0 #05020c) drop-shadow(0 0 7px var(--gc))}
+.gvL .gvR{justify-self:end;font-size:var(--f1);letter-spacing:0;white-space:nowrap;color:var(--g2);text-shadow:0 1px 0 #000,0 0 8px var(--gc)}
 .gvL .gvR .pxi{--pxs:1;display:block}
-.gvL u{grid-column:1/-1;position:relative;display:block;height:8px;overflow:hidden;background:#07050f;box-shadow:inset 0 0 0 1px rgba(255,255,255,.13),inset 0 -2px 0 rgba(0,0,0,.5)}
-.gvL u em{position:absolute;left:0;top:0;bottom:0;width:calc(var(--f,0) * 100%);transition:width 1.2s var(--ease) .35s}
-.gvL u em::after{content:'';position:absolute;right:0;top:0;bottom:0;width:2px;background:#fff;box-shadow:0 0 6px #fff}
-.gvL u::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(100deg,transparent 35%,rgba(255,255,255,.55) 48%,transparent 60%) no-repeat;background-size:240% 100%;
-  animation:k4Lingot 5.2s var(--ease) 1.8s infinite}
-.gvL .gvS{grid-column:1/-1;display:flex;gap:6px;min-width:0;font-size:var(--f0);letter-spacing:0;color:var(--tx3);white-space:nowrap}
-.gvL .gvS i{flex:1;min-width:0;font-style:normal;overflow:hidden;text-overflow:ellipsis}
-.gvL .gvS em{flex:none;font-style:normal;color:var(--tx2)}
-.gvA b{color:var(--cash);text-shadow:0 2px 0 var(--cashO),0 0 12px rgba(125,255,155,.35)}
-.gvA .pxi{color:var(--au2);animation:k4Piece 3.2s var(--ease) infinite}
-.gvA .gvR{color:#7dff9b}
-.gvA.portee .gvR{color:#0b2a14;background:#7dff9b;padding:2px;box-shadow:0 0 10px rgba(125,255,155,.6);animation:gvPortee 1.6s ease-in-out infinite}
-.gvA.portee .gvR .pxi{color:#0b2a14;animation:none}
+.gvL u{grid-column:1/-1;position:relative;display:block;height:12px;overflow:hidden;background:linear-gradient(180deg,#030208,#0e0a1e);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.15),inset 0 3px 4px rgba(0,0,0,.8),0 0 0 1px rgba(0,0,0,.6),0 0 14px -5px var(--gc)}
+.gvL u em{position:absolute;left:0;top:0;bottom:0;width:calc(var(--f,0) * 100%);transition:width 1.3s cubic-bezier(.2,1.16,.32,1) .35s;
+  background:linear-gradient(180deg,rgba(255,255,255,.9) 0 1px,rgba(255,255,255,.42) 1px 3px,rgba(255,255,255,.1) 3px 50%,rgba(0,0,0,0) 50% 70%,rgba(0,0,0,.34) 70%),
+    linear-gradient(115deg,rgba(255,255,255,0) 0 34%,rgba(255,255,255,.26) 34% 62%,rgba(255,255,255,0) 62%),
+    linear-gradient(90deg,var(--g0),var(--g1) 58%,var(--g2));
+  background-size:100% 100%,14px 100%,100% 100%;background-repeat:no-repeat,repeat-x,no-repeat;
+  box-shadow:0 0 12px -1px var(--gc);animation:gvCoule .8s linear infinite}
+@keyframes gvCoule{from{background-position:0 0,0 0,0 0}to{background-position:0 0,14px 0,0 0}}
+.gvL u em::after{content:'';position:absolute;right:-1px;top:0;bottom:0;width:3px;background:#fff;box-shadow:0 0 6px 1px #fff,0 0 14px 3px var(--g2);animation:gvPointe 1.1s ease-in-out infinite}
+@keyframes gvPointe{50%{box-shadow:0 0 9px 2px #fff,0 0 22px 5px var(--g2)}}
+.gvL u::before{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;background:repeating-linear-gradient(90deg,rgba(0,0,0,0) 0 calc(10% - 1px),rgba(3,2,8,.6) calc(10% - 1px) 10%)}
+.gvL u::after{content:'';position:absolute;inset:0;z-index:3;pointer-events:none;background:linear-gradient(100deg,transparent 38%,rgba(255,255,255,.7) 48%,transparent 58%) no-repeat;background-size:260% 100%;
+  animation:k4Lingot 3.6s var(--ease) 2.2s infinite}
+.gvL.pose u em{animation:gvCoule .8s linear infinite,gvPoseEm .6s ease-out}
+@keyframes gvPoseEm{0%{filter:brightness(2.4) saturate(1.5)}100%{filter:none}}
+.gvL.pose .gvR{animation:gvPoseR .45s var(--ease)}
+@keyframes gvPoseR{0%{scale:1.7}60%{scale:.92}100%{scale:1}}
+.gvL.pose::after{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(60% 120% at 0% 50%,var(--gc),transparent 70%);opacity:0;animation:gvPoseL .6s ease-out}
+@keyframes gvPoseL{0%{opacity:.45}100%{opacity:0}}
+.gvL .gvS{grid-column:1/-1;display:flex;align-items:center;gap:8px;min-width:0;font-size:var(--f0);letter-spacing:0;white-space:nowrap;line-height:1.2}
+.gvL .gvS i{flex:1;min-width:0;font-style:normal;overflow:hidden;text-overflow:ellipsis;color:#fff;text-shadow:0 1px 0 #000}
+.gvL .gvS i::before{content:'';display:inline-block;width:4px;height:4px;margin:0 7px 1px 1px;vertical-align:middle;background:var(--gc);box-shadow:0 0 6px var(--gc);rotate:45deg}
+.gvL .gvS em{flex:none;display:flex;align-items:center;gap:4px;font-style:normal;color:var(--g2);text-shadow:0 1px 0 #000,0 0 7px var(--gc)}
+.gvL .gvS em .pxi{--pxs:1}
+.gvU .gvS i{color:#ff9ad8;text-shadow:0 1px 0 #000,0 0 8px rgba(255,122,213,.55)}
+.gvU .gvS em{color:#d9c8ff}
+.gvA.portee .gvR{color:#0b2a14;background:#7dff9b;padding:2px;box-shadow:0 0 10px rgba(125,255,155,.6);text-shadow:none;animation:gvPortee 1.6s ease-in-out infinite}
+.gvA.portee .gvR .pxi{color:#0b2a14}
 .gvA.portee .gvS i{color:#7dff9b}
+.gvA.portee .gvS em{color:#0b2a14;background:#7dff9b;padding:2px 5px;text-shadow:none;animation:gvPortee 1.6s ease-in-out infinite}
+.gvL.plein u{animation:gvPlein 1.6s ease-in-out infinite}
 @keyframes gvPortee{50%{box-shadow:0 0 18px rgba(125,255,155,.95)}}
-.gvA u em{background:linear-gradient(180deg,#e6fff0 0 2px,#7dff9b 2px 4px,#2fd36a 4px 6px,#13853e 6px);box-shadow:0 0 10px rgba(94,240,138,.55)}
-.gvU b{color:#e2c2ff;text-shadow:0 2px 0 #2a0b4a,0 0 12px rgba(199,125,255,.4)}
-.gvU .pxi{color:#c77dff;animation:gvEtoile 2.6s ease-in-out infinite}
-@keyframes gvEtoile{50%{filter:drop-shadow(0 0 8px #e9b8ff) brightness(1.4)}}
-.gvU .gvR{color:#d6a8ff}
-.gvU .gvS i{color:#ff9ad8}
-.gvU u em{background:linear-gradient(90deg,transparent,rgba(255,154,216,.9)),linear-gradient(180deg,#f6e4ff 0 2px,#c77dff 2px 4px,#9a4dff 4px 6px,#5a1fb0 6px);box-shadow:0 0 10px rgba(199,125,255,.6)}
-@media (orientation:portrait){ /* debout la carte fait un tiers d'écran : le % se lit sur la barre, le prix au survol ; les chiffres sans espacement */
-  .gvA:not(.portee) .gvR,.gvU .gvR,.gvA .gvS em{display:none}
-  .gvL{padding:8px 8px 7px 11px;column-gap:6px}
-  .gvL b{letter-spacing:0}}
-/* COUCHÉ : une barre du haut (nom · jauges · ⚙), une barre du bas (l'astuce à gauche, les touches à droite sous le pouce) */
+@keyframes gvPlein{50%{box-shadow:inset 0 0 0 1px rgba(255,255,255,.3),inset 0 3px 4px rgba(0,0,0,.8),0 0 0 1px rgba(0,0,0,.6),0 0 20px -2px var(--gc)}}
+/* COUCHÉ : la caisse à gauche ; à droite, de haut en bas : HOME · ⚙, les deux jauges, puis la pile du départ sous le pouce */
 @media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
   html body #garage.vitrine:not(.menu) #gTop{width:calc(100% - 460px - var(--sR));padding-right:12px}
-  html body #garage.vitrine:not(.menu) #gVJ{position:fixed;top:calc(var(--sT) + 12px);right:calc(var(--sR) + 16px + 48px + 10px);width:376px;margin:0;padding:0}
-  html body #garage.vitrine:not(.menu) #gAct{width:min(440px,56%);margin:0 0 0 auto;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);grid-template-rows:50px auto auto}
-  html body #garage.vitrine:not(.menu) #gAct>:is(#gClose,#gPerso,#gvCof){width:62px;min-width:62px;height:46px;min-height:46px;gap:3px;padding-top:3px}
-  html body #garage.vitrine:not(.menu) #gAct>:is(#gClose,#gPerso,#gvCof) .pxi{--pxs:2}
+  html body #garage.vitrine:not(.menu) #gVJ{position:fixed;top:calc(var(--sT) + 12px + 44px + 8px);right:calc(var(--sR) + 16px);width:min(300px,38%);margin:0;padding:0;gap:6px}
+  .gvL{padding:6px 10px 6px 12px;row-gap:4px}
+  .gvL u{height:10px}
+  .gvL b{font-size:var(--f2)}
+  html body #garage.vitrine:not(.menu) #gAct{width:min(440px,56%);margin:0 0 0 auto;grid-template-columns:minmax(0,.83fr) minmax(0,1fr);grid-template-rows:50px auto}
   html body #garage.vitrine:not(.menu) #gAct>#gJouer{height:50px;min-height:50px}
-  html body #garage.vitrine:not(.menu) #gAct>:is(#gvMis,#gPerso){height:40px;min-height:40px;margin-top:11px}#gvMis::before,#gvMis::after{top:-11px;height:11px}
-  html body #garage.vitrine:not(.menu) #gAct>#gvLvls{margin-top:7px}
-  .gvV{height:44px}
-  html body #garage.vitrine:not(.menu) #gAct>:is(#gvCof,#gPerso){width:auto;min-width:0;height:auto;gap:9px}html body #garage.vitrine:not(.menu) #gAct>#gvCof{height:50px}html body #garage.vitrine:not(.menu) #gAct>:is(#gvCof,#gPerso) .pxi{--pxs:3}
+  html body #garage.vitrine:not(.menu) #gAct>#gPerso{width:auto;min-width:0;height:50px;min-height:50px;gap:9px}
+  html body #garage.vitrine:not(.menu) #gAct>#gPerso .pxi{--pxs:3}
+  html body #garage.vitrine:not(.menu) #gAct>:is(#gvMis,#gvLvl){height:40px;min-height:40px;margin-top:11px}#gvMis::before,#gvMis::after{top:-11px;height:11px}
+  .gvV{height:42px}
+  #gvNivs{bottom:calc(100% + 10px);max-height:calc(100vh - var(--sT) - var(--sB) - 150px);padding:10px 10px 10px 13px}
+  #gvNivs .gnH{margin-bottom:8px}
+  #gvNivs .gvV{height:40px}
 }
-@media (prefers-reduced-motion:reduce){#gVJ,.gvL u::after,.gvA .pxi,.gvU .pxi{animation:none!important}.gvL u em{transition:none}}
-html[data-reduced-motion] #gVJ,html[data-reduced-motion] .gvL u::after,html[data-reduced-motion] .gvA .pxi,html[data-reduced-motion] .gvU .pxi{animation:none!important}
+@media (prefers-reduced-motion:reduce){#gVJ,.gvL u::after,.gvL u em,.gvL u em::after,.gvA .gvK .pxi,.gvL.plein u,.gvA.portee :is(.gvR,.gvS em),#gvLvl .gvOuv,#gvNivs.on,#gvNivs .gvV,#gvLvl::before,.gvV::before{animation:none!important}.gvL u em{transition:none}}
+html[data-reduced-motion] :is(#gVJ,.gvL u::after,.gvL u em,.gvL u em::after,.gvA .gvK .pxi,.gvL.plein u,.gvA.portee .gvR,.gvA.portee .gvS em,#gvLvl .gvOuv,#gvNivs .gvV){animation:none!important}
 /* L'ASTUCE : le geste dit une fois — un doigt qui appuie, un anneau qui se remplit */
 html body #garage.vitrine.aideInv:not(.menu):not(.inv) #gInvAide{display:flex}
 #gInvAide{position:absolute;z-index:2;left:50%;bottom:calc(var(--sB) + 240px);translate:-50% 0;align-items:center;gap:10px;padding:9px 14px 9px 12px;pointer-events:none;white-space:nowrap;
@@ -5919,8 +5979,8 @@ html.sansFacile [data-m="facile"]{display:none!important}
       </div>
       <!-- (2026-10-04, Léo : « ça fait un peu vide, ajoute un peu de vie : jauge money, jauge aura, moyennes, colorées ») LA VITRINE : voir gvJauges -->
       <div id="gVJ" aria-label="Compte et aura">
-        <div class="gvL gvA"><i class="pxi pxi-piece" aria-hidden="true"></i><b>$ 0</b><small class="gvR"></small><u><em></em></u><span class="gvS"></span></div>
-        <div class="gvL gvU"><i class="pxi pxi-etoile" aria-hidden="true"></i><b>0</b><small class="gvR"></small><u><em></em></u><span class="gvS"></span></div>
+        <div class="gvL gvA"><i class="gvK" aria-hidden="true"><i class="pxi pxi-piece"></i><span data-fr="CASH">CASH</span></i><b>$ 0</b><small class="gvR"></small><u><em></em></u><span class="gvS"></span></div>
+        <div class="gvL gvU"><i class="gvK" aria-hidden="true"><i class="pxi pxi-etoile"></i><span data-fr="AURA">AURA</span></i><b>0</b><small class="gvR"></small><u><em></em></u><span class="gvS"></span></div>
       </div>
     </div>
     <div id="lbBoxG"></div>
@@ -5948,7 +6008,9 @@ html.sansFacile [data-m="facile"]{display:none!important}
         <!-- (2026-10-05, Léo : « en dessous du play, insère MISSIONS, et le nom du level qui va être lancé, limite collé, de manière stylée, branché énergétiquement ») LA VITRINE : voir gvNiveau -->
         <button id="gvMis" class="pbtn" aria-label="Missions"><s class="gvFx" aria-hidden="true"></s><i class="pxi pxi-cible" aria-hidden="true"></i><span data-fr="MISSIONS">MISSIONS</span><b class="gvPips" aria-hidden="true"><u></u><u></u><u></u></b></button>
         <!-- (2026-10-05, Léo : « l'inventaire va être ajouté à côté du bouton jouer ») le COFFRE : l'inventaire (le doigt tenu sur la caisse lance désormais le BURN-OUT) -->
-        <div id="gvLvls" aria-label="Les niveaux"></div>
+        <!-- (2026-10-05, Léo : « les niveaux, non : tu vois le niveau comme avant ; juste quand tu cliques dessus, tu vois les niveaux que tu as accomplis ») LA VIGNETTE du niveau que JOUER lance, et son TIROIR : voir gvNiveau / gvNivs -->
+        <div id="gvLvl" role="button" tabindex="0" aria-label="Les niveaux" aria-expanded="false"><i class="gvImg" aria-hidden="true"></i><span class="gvTx"><b class="gvN"></b><span class="gvT"></span><em class="gvD"></em></span><i class="gvOuv pxi pxi-haut" aria-hidden="true"></i></div>
+        <div id="gvNivs" role="dialog" aria-label="Niveaux accomplis"></div>
         <button id="gvCof" class="pbtn" aria-label="Inventaire"><i class="pxi pxi-coffre" aria-hidden="true"></i><span data-fr="COFFRE">COFFRE</span></button>
       </div>
     </div>
@@ -37529,22 +37591,54 @@ function gvVignette(cle){
   }
   return GV_VIG[cle]=cv.toDataURL();
 }
-function gvNiveau(){ // (même soir) la BANDE des vignettes — la suite d'une partie, la 1re est celle que JOUER lance — et les pastilles des MISSIONS
-  const box=$('gvLvls');if(box){const tuto=!SAVE.d.tuto,fait=Math.max(0,(SAVE.d.ex&&SAVE.d.ex.zones)|0),L=[];
-    if(tuto)L.push({cle:'tuto',n:'P',t:'AUTO-ECOLE',d:sansAcc(TR('PERMIS')),c:'#7dff9b'});
-    NIVEAUX.forEach(function(v,k){const cle=v.id+(v.nuit?'N':'')+(v.hard?'H':''),km=GV_KM[cle]||GV_KM[v.id]||0;
-      L.push({cle:cle,n:String(k+1),t:v.nm,d:km.toFixed(1).replace('.',',')+' KM',c:GV_TEINTE[v.id]||'#5ee6ff',ok:!tuto&&fait>k});});
-    let h='';for(let k=0;k<L.length;k++){const o=L[k];let im='';try{im=gvVignette(o.cle);}catch(e){}
-      h+='<div class="gvV'+(k===0?' prochain':'')+(o.ok?' fait':'')+'" style="--lc:'+o.c+'"><i class="gvImg" aria-hidden="true" style="background-image:url('+im+')"></i>'+
-        '<span class="gvTx"><b class="gvN">'+o.n+'</b><span class="gvT">'+sansAcc(TR(o.t))+'</span><em class="gvD">'+o.d+'</em></span>'+(o.ok?'<i class="gvOk pxi pxi-coche" aria-hidden="true"></i>':'')+'</div>';}
-    box.innerHTML=h;box.scrollLeft=0;}
+function gvListe(){ // la suite d'une partie : l'auto-école (tant que le permis manque, ou passée), puis NIVEAUX dans l'ordre — `ok` = terminé
+  const tuto=!SAVE.d.tuto,fait=Math.max(0,(SAVE.d.ex&&SAVE.d.ex.zones)|0),L=[];
+  if(tuto||SAVE.d.permis)L.push({cle:'tuto',n:'P',t:'AUTO-ECOLE',d:sansAcc(TR('PERMIS')),c:'#7dff9b',ok:!tuto&&!!SAVE.d.permis});
+  NIVEAUX.forEach(function(v,k){const cle=v.id+(v.nuit?'N':'')+(v.hard?'H':''),km=GV_KM[cle]||GV_KM[v.id]||0;
+    L.push({cle:cle,n:String(k+1),t:v.nm,d:km.toFixed(1).replace('.',',')+' KM',c:GV_TEINTE[v.id]||'#5ee6ff',ok:!tuto&&fait>k});});
+  return L;
+}
+function gvTuile(o,k){let im='';try{im=gvVignette(o.cle);}catch(e){}
+  return '<div class="gvV'+(o.ok?' fait':'')+'" style="--lc:'+o.c+';--i:'+k+'"><i class="gvImg" aria-hidden="true" style="background-image:url('+im+')"></i>'+
+    '<span class="gvTx"><b class="gvN">'+o.n+'</b><span class="gvT">'+sansAcc(TR(o.t))+'</span><em class="gvD">'+o.d+'</em></span>'+(o.ok?'<i class="gvOk pxi pxi-coche" aria-hidden="true"></i>':'')+'</div>';}
+function gvNiveau(){ // (2026-10-05, Léo : « le niveau comme avant ») la VIGNETTE du niveau que JOUER lance — et les pastilles des MISSIONS (branchées à JOUER)
+  const el=$('gvLvl');if(el){const tuto=!SAVE.d.tuto,L0=NIVEAUX[0],cle=tuto?'tuto':L0.id+(L0.nuit?'N':'')+(L0.hard?'H':''),km=tuto?0:(GV_KM[cle]||GV_KM[L0.id]||0);
+    el.querySelector('.gvN').textContent=tuto?'P':'1';
+    el.querySelector('.gvT').textContent=sansAcc(TR(tuto?'AUTO-ECOLE':L0.nm));
+    el.querySelector('.gvD').textContent=tuto?sansAcc(TR('PERMIS')):km.toFixed(1).replace('.',',')+' KM';
+    el.style.setProperty('--lc',tuto?'#7dff9b':(GV_TEINTE[L0.id]||'#5ee6ff'));
+    try{el.querySelector('.gvImg').style.backgroundImage='url('+gvVignette(cle)+')';}catch(e){}}
+  gvNivs(false,true);
   const pp=$('gvMis');if(pp)try{const s9=misEtat();pp.querySelectorAll('.gvPips u').forEach(function(u,k){u.classList.toggle('ok',!!s9.ok[k]);});}catch(e){}
 }
-// (même soir) la bande défile aussi à la MOLETTE (souris) ; HOME est monté en haut à droite, sous les réglages (même geste que l'ancien HOME)
-try{$('gvLvls').addEventListener('wheel',function(e){if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){e.currentTarget.scrollLeft+=e.deltaY;e.preventDefault();}},{passive:false});}catch(e){}
+/* LE TIROIR DES NIVEAUX ACCOMPLIS (`#gvNivs`) : la vignette touchée l'ouvre, retouchée (ou un tap ailleurs, Échap, HOME, SHOP, JOUER) le
+   referme. Dedans : les niveaux TERMINÉS (coche), puis le prochain à battre et ce qui reste à découvrir — ou, s'il n'y en a aucun, la phrase qui
+   dit comment en terminer un. Bâti à chaque ouverture (la sauvegarde a pu bouger depuis). */
+function gvNivs(on,sec){
+  const el=$('gvNivs'),v=$('gvLvl');if(!el)return;
+  if(on==null)on=!el.classList.contains('on');
+  if(on){if(!garageOn||GAR.go||!gEl||!gEl.classList.contains('vitrine')||gEl.classList.contains('menu')||(INV&&INV.on))return;
+    const L=gvListe(),F=L.filter(function(o){return o.ok;}),nx=L.find(function(o){return !o.ok;}),tot=L.filter(function(o){return o.cle!=='tuto';}).length,nf=F.filter(function(o){return o.cle!=='tuto';}).length;
+    let h='<div class="gnH">'+pxi('trophee')+'<span>'+sansAcc(TR('NIVEAUX ACCOMPLIS'))+'</span><em>'+nf+' / '+tot+'</em></div>';
+    if(F.length)h+='<div class="gnG">'+F.map(gvTuile).join('')+'</div>';
+    else h+='<p class="gnVide">'+sansAcc(TR('AUCUN NIVEAU TERMINE'))+'<br><b>'+sansAcc(TR('FRANCHIS TON 1ER PORTAIL'))+'</b></p>';
+    if(nx){const reste=L.filter(function(o){return !o.ok;}).length-1;
+      h+='<div class="gnP">'+pxi('droite')+'<b>'+sansAcc(TR('A BATTRE'))+' : '+nx.n+' · '+sansAcc(TR(nx.t))+'</b>'+(reste>0?'<i>+'+reste+' '+sansAcc(TR(reste>1?'A DECOUVRIR':'A DECOUVRIR1'))+'</i>':'')+'</div>';}
+    else h+='<div class="gnP">'+pxi('etoile')+'<b>'+sansAcc(TR('TOUT EST TERMINE'))+'</b></div>';
+    el.innerHTML=h;el.scrollTop=0;el.classList.remove('sortant');void el.offsetWidth;feuilleOuvre(el,'on');
+    if(v)v.setAttribute('aria-expanded','true');try{if(SONV2)sfx('ui.feuille');}catch(e){}
+  }else{if(!el.classList.contains('on'))return;if(v)v.setAttribute('aria-expanded','false');
+    if(sec){el.classList.remove('on','sortant');return;}feuilleFerme(el,'on');}
+}
+try{const v9=$('gvLvl');const go9=function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(v9);uiClic($('gvNivs').classList.contains('on')?'retour':'nav');gvNivs();};
+  v9.addEventListener('click',go9);v9.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go9(e);}});
+  addEventListener('pointerdown',function(e){const n9=$('gvNivs');if(n9&&n9.classList.contains('on')&&!(e.target.closest&&e.target.closest('#gvNivs,#gvLvl')))gvNivs(false);},true);
+  addEventListener('keydown',function(e){if(e.key==='Escape'){const n9=$('gvNivs');if(n9&&n9.classList.contains('on')){gvNivs(false);e.stopImmediatePropagation();e.preventDefault();}}},true);}catch(e){}
+// (même soir) HOME est monté en haut à droite, à côté des réglages (même geste que l'ancien HOME)
 try{const h9=$('gvHome');const go9=function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(h9);const c=$('gClose');if(c)c.click();};
   h9.addEventListener('click',go9);h9.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go9(e);}});}catch(e){}
-try{Object.assign(I18N,{'PERMIS':'LICENSE','AUTO-ECOLE':'DRIVING SCHOOL'});}catch(e){}
+try{Object.assign(I18N,{'PERMIS':'LICENSE','AUTO-ECOLE':'DRIVING SCHOOL','NIVEAUX ACCOMPLIS':'LEVELS CLEARED','AUCUN NIVEAU TERMINE':'NO LEVEL CLEARED YET','FRANCHIS TON 1ER PORTAIL':'CROSS YOUR FIRST PORTAL','A BATTRE':'NEXT UP','A DECOUVRIR':'TO DISCOVER','A DECOUVRIR1':'TO DISCOVER','TOUT EST TERMINE':'ALL CLEARED'});
+  Object.assign(I18N_ZH,{'NIVEAUX ACCOMPLIS':'已完成关卡','AUCUN NIVEAU TERMINE':'还没有完成关卡','FRANCHIS TON 1ER PORTAIL':'穿过你的第一个传送门','A BATTRE':'下一关','A DECOUVRIR':'待发现','A DECOUVRIR1':'待发现','TOUT EST TERMINE':'全部完成'});}catch(e){}
 /* LES JAUGES DE LA VITRINE (voir « LES JAUGES » dans <style id="garageVitrine">) : l'ARGENT vers la prochaine caisse à vendre (`objectif()`, ce
    que vise le menu de Léo), l'AURA vers le rang suivant. `anim` : elles partent de zéro et se remplissent, les chiffres défilent (0,9 s). */
 function gvJauges(anim){
@@ -37554,19 +37648,20 @@ function gvJauges(anim){
   const fm=function(x){return (b>=1e6||(b>=1e5&&POR>.5))?fmtC(x):CUR()+(LANG==='fr'?' ':'')+Math.round(x).toLocaleString(LOC()).replace(/[\u202f\u00a0]/g,' ');}; // (v3) chiffres complets sous le million, compacts au-delà (la carte fait une demi-largeur debout)
   const A=el.querySelector('.gvA'),U=el.querySelector('.gvU'),q=function(e,c){return e.querySelector(c);};
   const po=fA>=1&&!!o;A.classList.toggle('portee',po);if(po)q(A,'.gvR').innerHTML=pxi('coche');else q(A,'.gvR').textContent=Math.floor(fA*100)+' %'; // la caisse visée s'achète déjà : une coche qui luit, et la ligne du dessous le DIT
-  const sub=function(e,g,d){const x=q(e,'.gvS');x.innerHTML='<i></i><em></em>';x.firstChild.textContent=g;x.lastChild.textContent=d||'';};
-  sub(A,o?sansAcc(TR(o.nom)):sansAcc(TR('TOUT EST A TOI')),o?fmtC(o.prix):'');A.title=o?sansAcc(TR(po?'A TA PORTEE':'VERS'))+' '+sansAcc(TR(o.nom))+' · '+fmtC(o.prix):''; // la caisse visée et son prix (la coche dit « à ta portée ») — le nom se coupe s'il le faut, jamais le prix
+  const sub=function(e,g,d,ic){const x=q(e,'.gvS');x.innerHTML='<i></i><em></em>';x.firstChild.textContent=g;x.lastChild.textContent=d||'';if(ic)x.lastChild.insertAdjacentHTML('afterbegin',pxi(ic));};
+  sub(A,o?sansAcc(TR(o.nom)):sansAcc(TR('COLLECTION COMPLETE')),o?(po?sansAcc(TR('A TA PORTEE !')):sansAcc(TR('ENCORE'))+' '+fmtC(Math.max(0,o.prix-b))):''); // (v2) ce qui MANQUE, pas le prix : la ligne pousseA.title=o?sansAcc(TR(po?'A TA PORTEE':'VERS'))+' '+sansAcc(TR(o.nom))+' · '+fmtC(o.prix):''; // la caisse visée et son prix (la coche dit « à ta portée ») — le nom se coupe s'il le faut, jamais le prix
   q(U,'.gvR').textContent=nx?Math.floor(fU*100)+' %':'';
-  sub(U,sansAcc(auraRankName(r)),'');U.title=nx?sansAcc(TR('VERS'))+' '+sansAcc(TR(nx.n))+' · '+fmtAura(Math.max(0,nx.v-au)):''; // ton RANG, en rose ; le suivant au survol
-  const eA=q(A,'u em'),eU=q(U,'u em');
+  sub(U,sansAcc(auraRankName(r)),nx?sansAcc(TR(nx.n)):sansAcc(TR('INTOUCHABLE')),nx?'droite':null); // ton RANG en rose, le SUIVANT au boutU.title=nx?sansAcc(TR('VERS'))+' '+sansAcc(TR(nx.n))+' · '+fmtAura(Math.max(0,nx.v-au)):''; // ton RANG, en rose ; le suivant au survol
+  const eA=q(A,'u em'),eU=q(U,'u em');A.classList.toggle('plein',fA>=1);U.classList.toggle('plein',!nx);
   if(anim&&!REDUCED_MOTION){eA.style.transition=eU.style.transition='none';eA.style.setProperty('--f','0');eU.style.setProperty('--f','0');void eA.offsetWidth;eA.style.transition=eU.style.transition='';
     const t0=performance.now(),bA=q(A,'b'),bU=q(U,'b'),D=900,f9=function(){const k=Math.min(1,(performance.now()-t0-350)/D),e=k<0?0:1-Math.pow(1-k,3);
       bA.textContent=fm(b*e);bU.textContent=fmtAura(au*e);if(k<1&&gEl.classList.contains('vitrine'))requestAnimationFrame(f9);else{bA.textContent=fm(b);bU.textContent=fmtAura(au);}};
     bA.textContent=fm(0);bU.textContent=fmtAura(0);requestAnimationFrame(f9);
-    requestAnimationFrame(function(){eA.style.setProperty('--f',fA.toFixed(3));eU.style.setProperty('--f',fU.toFixed(3));});}
+    requestAnimationFrame(function(){eA.style.setProperty('--f',fA.toFixed(3));eU.style.setProperty('--f',fU.toFixed(3));});
+    A.classList.remove('pose');U.classList.remove('pose');clearTimeout(gvJauges._t);gvJauges._t=setTimeout(function(){A.classList.add('pose');U.classList.add('pose');},1650);} // (v2) la barre arrivée CLAQUE
   else{q(A,'b').textContent=fm(b);q(U,'b').textContent=fmtAura(au);eA.style.setProperty('--f',fA.toFixed(3));eU.style.setProperty('--f',fU.toFixed(3));}
 }
-try{Object.assign(I18N,{'A TA PORTEE':'AFFORDABLE','VERS':'TO','TOUT EST A TOI':'YOU OWN IT ALL','SOMMET ATTEINT':'TOP RANK','TUNING':'TUNING','SHOP':'SHOP','INVENTAIRE':'INVENTORY','MAINTIENS LA CAISSE':'HOLD YOUR CAR','OBJETS':'ITEMS','OBJET':'ITEM'});
+try{Object.assign(I18N,{'CASH':'CASH','AURA':'AURA','ENCORE':'NEED','A TA PORTEE !':'IT\'S YOURS!','COLLECTION COMPLETE':'FULL COLLECTION','INTOUCHABLE':'UNTOUCHABLE','A TA PORTEE':'AFFORDABLE','VERS':'TO','TOUT EST A TOI':'YOU OWN IT ALL','SOMMET ATTEINT':'TOP RANK','TUNING':'TUNING','SHOP':'SHOP','INVENTAIRE':'INVENTORY','MAINTIENS LA CAISSE':'HOLD YOUR CAR','OBJETS':'ITEMS','OBJET':'ITEM'});
   Object.assign(I18N_ZH,{'A TA PORTEE':'买得起','VERS':'距','TOUT EST A TOI':'全部拥有','SOMMET ATTEINT':'最高等级','SHOP':'商店','INVENTAIRE':'库存','MAINTIENS LA CAISSE':'长按你的车','OBJETS':'件物品','OBJET':'件物品'});}catch(e){}
 /* ================= L'INVENTAIRE (2026-10-04, Léo : « quand on maintient sur la voiture, ça active un inventaire comme le shop, mais avec les
    objets possédés, entourés par une lueur de la couleur de leur rareté ») =================

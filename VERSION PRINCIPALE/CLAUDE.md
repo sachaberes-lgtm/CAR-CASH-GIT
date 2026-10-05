@@ -241,6 +241,26 @@
     MISSIONS ») : `CHUTE_P.elev` −,08 → −,035 — la ligne blanche de l'horizon passe au ras du haut de MISSIONS (banc `horizon.mjs`,
     844 × 390 : y 217 → 194 ; la caisse ne bouge pas dans le cadre). Debout (`elevP`) inchangé.
   sw.js → v115.
+- **LA COLONNE v5, LA VIGNETTE ET SON TIROIR, LES JAUGES BRILLANTES (même soir, Léo : « c'était mieux avec la mission branchée sur le PLAY ;
+  le PLAY était mieux plus petit ; les settings et le HOME côte à côte ; les jauges brillantes, satisfaisantes, avec des mots un peu plus
+  stylés ; les niveaux, non : tu vois le niveau comme avant — juste quand tu cliques dessus, tu vois les niveaux que tu as accomplis » ;
+  puis « push le play branché à la mission, les niveaux imagés mais un peu plus brillants, pas défilé, home et settings côte à côte »)** —
+  · LA PILE (vitrine, deux colonnes .83 / 1) : à droite JOUER (~200 px debout, plus la pleine largeur) et MISSIONS rebranché DESSOUS (ses
+    conducteurs d'or) ; à gauche SHOP (à la hauteur de JOUER) et la VIGNETTE du niveau (à la hauteur de MISSIONS). Couché, même pile à droite.
+    La bande à défiler (`#gvLvls`) est partie.
+  · HOME · ⚙ : côte à côte en haut à droite (`#gOutils` en `row-reverse` : le ⚙ garde le coin).
+  · LA VIGNETTE (`#gvLvl`, `gvNiveau`) : le niveau que JOUER lance (l'auto-école tant que le permis manque), plus BRILLANTE (paysage ×1,18 de
+    clarté et ×1,3 de saturation, voile d'encre allégé, liseré qui luit, un éclat qui la balaie), une petite flèche dit qu'elle s'ouvre.
+    Touchée : LE TIROIR `#gvNivs` (`gvNivs()`, `gvListe()`) monte au-dessus de la pile — « NIVEAUX ACCOMPLIS n / 7 », les niveaux TERMINÉS
+    (portail franchi : `SAVE.d.ex.zones` ; l'auto-école si `SAVE.d.permis`) en vignettes cochées arrivées en cascade, puis « À BATTRE : 3 ·
+    PARIS » et « +4 À DÉCOUVRIR » (aucun terminé : « FRANCHIS TON 1ER PORTAIL »). Retouchée, un tap ailleurs, Échap : il se referme.
+    ⚠ `ex.zones` est un record de portails EN UNE PARTIE (le tiroir dit donc « jusqu'où tu es allé ») ; une partie qui commence par l'auto-école
+    compte sa piste d'école comme une zone.
+  · LES JAUGES v2 (`#gVJ`, `gvJauges`) : empilées (debout en haut à gauche, couché sous HOME · ⚙), une ÉTIQUETTE d'arcade penchée CASH / AURA,
+    le chiffre en quatre bandes, la barre en TUBE de 12 px (laque de verre, courant de bandes en biais qui coule, crans tous les 10 %, pointe
+    chauffée à blanc qui pulse, éclat ~3,6 s) ; arrivée, elle CLAQUE (`.pose` : éclair, le % qui saute) ; pleine, elle bat (`.plein`). La ligne
+    dit ce qui MANQUE : « LA HONTE · ENCORE $ 1 200 » / « À TA PORTÉE ! », « ON PARLE DE TOI ▸ RÉPUTÉ » / « INTOUCHABLE ».
+  Banc `vit6.mjs <nom> W H [zones]` (captures vitrine + tiroir, JOUER → course). sw.js → v116.
 - **L'ATELIER AÉRÉ + LE RENDU (même jour, Léo : « enlève quelques accessoires du garage, ça fait un peu rempli pour rien — les pieds tu
   dois laisser, ça fait partie du jeu ; les billets, mes trucs de trophée, tout ça laisse ; aère un peu l'espace · travaille plus le
   rendu »)** — `GAR_AERE` (juste avant `buildGarageRoom`) : le petit bazar ne se construit plus — cartons, bidons, fûts et jerricans de
