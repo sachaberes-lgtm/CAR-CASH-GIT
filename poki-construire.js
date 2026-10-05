@@ -5,8 +5,9 @@
    on les REFAIT, on ne les édite jamais (une copie gardée dans le dépôt vieillirait en silence derrière la version principale).
    Ce qu'il fait :
      · recopie le jeu SANS les notes et les outils (CLAUDE.md, README.md, JOUER.bat, l'atelier de son, le banc des sons, l'atelier des
-       nuages), sans le service worker (Poki sert ses fichiers lui-même) et sans les cinq musiques de la CARRIÈRE (ciel-n1 à n5 : seuls
-       les niveaux de la carrière les jouent — 13 Mo de moins) ;
+       nuages), sans le service worker (Poki sert ses fichiers lui-même), sans les dix musiques de la CARRIÈRE (ciel-n1 à n5 et ville-n1
+       à n5 : seuls les niveaux de la carrière les jouent — 24 Mo de moins) et sans AUCUNE VOIX (2026-10-05, Sacha : « enlève toutes les
+       voix de cette version ») : ni l'annonceur, ni le « ewww » des morts, ni le « WOW » des combos — le jeu ne les demande plus en POKI ;
      · bascule la seule ligne qui diffère, `const POKI_BUILD=false;` → true (le jeu fait le reste : voir « L'ÉDITION POKI » dans le
        <head> de index.html) ; refuse de continuer si la ligne n'est pas là exactement une fois ;
      · grave le numéro de version (le commit de VERSION PRINCIPALE) : les RÉGLAGES affichent « VERSION xxxxxxx · POKI » ;
@@ -14,7 +15,9 @@
 const fs=require('fs'),path=require('path'),cp=require('child_process');
 const SRC=path.join(__dirname,'VERSION PRINCIPALE'),DST=path.join(__dirname,'POKI'),ZIP=path.join(__dirname,'POKI.zip');
 const SAUTE=new Set(['CLAUDE.md','README.md','JOUER.bat','sw.js','sons.html','atelier-son','atelier-nuages.js']); // à la racine du jeu
-const SAUTE_REL=new Set([1,2,3,4,5].map(k=>'assets/audio/music/ciel/ciel-n'+k+'.m4a')); // la musique des niveaux 1 à 5 de la CARRIÈRE
+const SAUTE_REL=new Set([1,2,3,4,5].map(k=>'assets/audio/music/ciel/ciel-n'+k+'.m4a') // la musique des niveaux 1 à 5 de la CARRIÈRE (nuages…
+  .concat([1,2,3,4,5].map(k=>'assets/audio/music/ville/ville-n'+k+'.m4a'))                // …et ville)
+  .concat(['assets/audio/announcer','assets/audio/death/eww.m4a','assets/audio/fx/wow.mp3'])); // les VOIX (dossier entier pour l'annonceur)
 function copie(de,vers,rel){
   fs.mkdirSync(vers,{recursive:true});
   for(const n of fs.readdirSync(de)){

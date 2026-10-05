@@ -35,6 +35,14 @@
   de la fenêtre : 390 de haut × la largeur (16:9 → 693 × 390), sans boîtier, sans bouton TOURNER ni numéro sous le jeu. Chez Poki le jeu
   est TOUJOURS dans un cadre : « dans la colonne » se lit à l'adresse (`colonne=1`), plus à `window.top`. La page-cadre masque son propre
   jeu par la classe `ccHors` (pas tout `body>*` : le cadre de pub que le SDK y pose doit rester visible) et ne charge le SDK qu'après.
+- **(2026-10-05, Sacha : « mets la map de la ville en premier puis nuage en deux, fais pareil pour les versions hardcore, et enlève toutes
+  les voix de cette version »)** — POKI seulement, la version principale garde NUAGES en 1er et ses voix :
+  · L'ORDRE : bloc `if(POKI)` sous `NIVEAUX`, qui ÉCHANGE les places (trouvées par id) → VILLE, NUAGES, PARIS, ORBITE, MINUIT EN VILLE,
+    L'ORAGE, PLUIE DE SATELLITES (mesuré au banc par dbgSaut). L'auto-école garde son ciel d'aurore ; `musicPremier` lit NIVEAUX[0] (la ville).
+  · PLUS AUCUNE VOIX : l'annonceur naît `dead` (annSpeak rend son texte, rien ne se charge), le « ewww » quitte DEATH_LIB, le « WOW » est
+    `dead`, les préchargements (annPreload, waPrecharge, fxPreload) les sautent, l'interrupteur VOIX et son volume sont masqués ; le
+    script ne copie ni `announcer/`, ni `eww.m4a`, ni `wow.mp3` (banc : zéro requête de voix). Les chœurs et le cri du dauphin sont de la
+    SYNTHÈSE (sons-banque) : gardés. Le script saute aussi `music/ville/ville-n1…n5` (carrière seulement).
 - **Pas encore fait / à trancher** : l'auto-école parle de POUCE même au clavier chez Poki (vrai aussi dans le cadre de l'ordi de la
   version principale) ; `dark-triad.mp3` manque (404 en console, déjà vrai sur `main`) ; le compte développeur Poki, la page du jeu et
   l'envoi du zip = Sacha ; droits des musiques et noms de marques (CHAT POP-TART…) à vérifier avant publication.

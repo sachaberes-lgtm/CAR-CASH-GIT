@@ -5509,6 +5509,8 @@ html.poki #mHome .mMisBtn .pxi{color:var(--neoC)}
 html.poki #mHome .mMisBtn:not([data-m="garage"]),html.poki #gMisAncre,html.poki #gMis,html.poki #mMis,html.poki #misFocus,
 html.poki [data-m="carr"],html.poki #gCarr,html.poki .gLevel,html.poki #carr,
 html.poki [data-m="shop"],html.poki [data-go="shop"],html.poki .gBoutique,html.poki #mShop,html.poki #bdShop{display:none!important}
+/* (2026-10-05) PAS DE VOIX dans l'édition Poki : l'interrupteur VOIX et son curseur de volume n'ont plus rien à régler (réglages, pause, menu desktop) */
+html.poki [data-m="vox"],html.poki #mVolRowVox,html.poki [data-a="vox"],html.poki #voxBtn,html.poki [data-tg="voxBtn"],html.poki #volRowVox,html.poki #volLock{display:none!important}
 </style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
@@ -13473,6 +13475,13 @@ const NIVEAUX=[ // ⚠ ORDRE (2026-09-25 au soir, user) : « remets le niveau da
   {id:'ville', nm:'MINUIT EN VILLE',      bio:['nuitNoire'],           planete:0,   espace:0,pluie:.55,cielMusical:true,route:.42,sheen:.2,nuit:1,pr:'PLEINS PHARES'}, // (2026-09-30, Sacha) le 5e : la VILLE plus tard, après l'orage — très sombre, des PHARES PUISSANTS (id 'ville' : toute la ville suit ; `nuit` ne change que la lumière — voir « MINUIT EN VILLE »)
   {id:'espace',nm:'PLUIE DE SATELLITES',  bio:['espace'],              planete:1.35,espace:1,pluie:0,cielMusical:false,route:.38,sheen:.12,hard:1,pr:'ESQUIVE LES SATELLITES'}, // (2026-09-30, Sacha) le 6e : l'ORBITE en HARDCORE — des satellites SUR la route (voir « LA PLUIE DE SATELLITES » : orbiteBuild §0, satHard)
 ];
+/* (POKI, 2026-10-05, Sacha : « mets la map de la ville en premier puis nuage en deux, fais pareil pour les versions hardcore ») : dans
+   l'édition Poki la VILLE ouvre la partie et les NUAGES viennent en 2e ; côté hardcore, MINUIT EN VILLE passe devant L'ORAGE. On ÉCHANGE
+   les places (chaque niveau trouvé par son id, pas par sa place) : un niveau ajouté plus tard sur main garde la sienne. La version
+   principale garde son ordre (NUAGES en 1er, verdict du 25/09). L'auto-école (zone 0) garde son ciel d'aurore, quel que soit l'ordre. */
+if(POKI){const ech=function(a,b){const i=NIVEAUX.findIndex(a),j=NIVEAUX.findIndex(b);if(i>=0&&j>=0&&i<j){const t=NIVEAUX[i];NIVEAUX[i]=NIVEAUX[j];NIVEAUX[j]=t;}};
+  ech(function(n){return n.id==='nuages';},function(n){return n.id==='ville'&&!n.nuit;});
+  ech(function(n){return n.id==='orage';},function(n){return n.id==='ville'&&n.nuit;});}
 const LVL={cur:null,n:0,k:1,dur:4,paris:0,parisDe:0,parisA:0, // paris : le CIEL DE PARIS (toits bas, lueur d'or) — fondu comme la ville
  
   espace:0,espaceDe:0,espaceA:0,       // uSpace : 0 = le ciel de toujours, 1 = le noir étoilé de l'orbite
@@ -27115,7 +27124,7 @@ function waCharge(url){
     .then(function(ab){return new Promise(function(ok,ko){const p=AC.decodeAudioData(ab,ok,ko);if(p&&p.then)p.then(ok,ko);});})
     .then(function(b){WA_BUF[url]=b;}).catch(function(){delete WA_BUF[url];});}catch(e){delete WA_BUF[url];}
 }
-function waPrecharge(){try{for(const k in ANN_LIB)waCharge(ANN_DIR+ANN_LIB[k].f);for(const d of DEATH_LIB)waCharge(DEATH_DIR+d.f);waCharge(FX_DIR+FX_WOW.f);}catch(e){}}
+function waPrecharge(){try{if(!POKI){for(const k in ANN_LIB)waCharge(ANN_DIR+ANN_LIB[k].f);waCharge(FX_DIR+FX_WOW.f);}for(const d of DEATH_LIB)waCharge(DEATH_DIR+d.f);}catch(e){}} // (POKI) ni annonceur ni « WOW » : pas livrés
 function voixWA(e,prio){ // l'annonceur en WebAudio : voix + doublure démon (tierce dessous) + échos d'or 162/324 ms — même recette que les 4 <audio>
   const u9=ANN_DIR+e.f,b=WA_BUF[u9];if(!b){try{waCharge(u9);}catch(x){}return false;}if(!AC||AC.state!=='running')return false;
   try{
@@ -27947,7 +27956,11 @@ const ANN_LIB={ // first:1 partout : chaque voix se présente à sa 1re occurren
   earlyDead: {f:'early_dead.mp3',    txt:'EARLY DEAD',first:1},              // explose avant le top 5 (level<9)
   frenesie:  {f:'triple_monstre.mp3',txt:'TRIPLE MONSTRE',cd:2500,first:1},  // (2026-09-28, Sacha) la FRÉNÉSIE atteinte — À CHAQUE FOIS (forcée, voir flowAdd) ; sa propre entrée : elle ne vole pas le tirage des vrais TRIPLE MONSTRE
 };
-for(const k in ANN_LIB){const e=ANN_LIB[k];e.dead=false;e.cool=0;e.n=0;e.slot=e.first?0:Math.floor(Math.random()*3);}
+/* (POKI, 2026-10-05, Sacha : « enlève toutes les voix de cette version ») : l'édition Poki n'a PLUS AUCUNE VOIX — l'annonceur naît `dead`
+   (annSpeak rend toujours son texte, rien ne se charge ni ne se joue), le « ewww » des morts et le « WOW » des combos sont retirés plus
+   bas, l'interrupteur VOIX disparaît des réglages, et poki-construire.js ne copie même pas les fichiers. Les sons de SYNTHÈSE (chœurs,
+   cri stylisé du dauphin) ne sont pas des voix : ils restent. */
+for(const k in ANN_LIB){const e=ANN_LIB[k];e.dead=POKI;e.cool=0;e.n=0;e.slot=e.first?0:Math.floor(Math.random()*3);}
 const ANN={playing:null,queue:null,duck:false};
 function annRoll(e){ // « 1 sur 3 » : dans chaque paquet de 3 déclenchements, UNE voix, place aléatoire
   if(e.n>0&&e.n%3===0)e.slot=Math.floor(Math.random()*3);
@@ -27956,7 +27969,7 @@ function annRoll(e){ // « 1 sur 3 » : dans chaque paquet de 3 déclenchements,
   return hit;
 }
 function annPreload(){ // réchauffe le cache HTTP dès le 1er geste : la voix part sans latence
-  try{for(const k in ANN_LIB){const a=new Audio(ANN_DIR+ANN_LIB[k].f);a.preload='auto';a.load();}}catch(e){}
+  if(!POKI)try{for(const k in ANN_LIB){const a=new Audio(ANN_DIR+ANN_LIB[k].f);a.preload='auto';a.load();}}catch(e){} // (POKI) pas de voix
   deathPreload(); // …et les sons de mort avec elles : une mort qui arrive en retard ne fait pas rire
   fxPreload();    // …et les samples d'evenement : un « WOW » en retard tombe sur le combo suivant
 }
@@ -27981,6 +27994,7 @@ const DEATH_LIB=[
   {f:'eww.m4a',       v:.95, max:2.3, voix:1},  // « ewwwww » (voix TTS — placeholder) · `voix` : écarté quand l'annonceur parle
   {f:'gong.m4a',      v:.85, max:3.6}   // gong (synthèse — placeholder)
 ];
+if(POKI)for(let i=DEATH_LIB.length-1;i>=0;i--)if(DEATH_LIB[i].voix)DEATH_LIB.splice(i,1); // (POKI) pas de voix : le « ewww » part, les trois sons de synthèse restent
 let deathLast=-1,deathEls=[];
 function deathPreload(){
   try{for(const d of DEATH_LIB){const a=new Audio(DEATH_DIR+d.f);a.preload='auto';a.load();}}catch(e){}
@@ -27996,7 +28010,7 @@ function deathStop(){ // coupe net (nouvelle partie, mute) : deux morts qui se c
    en trois minutes. Deux garde-fous, donc : un SEUIL (il faut mériter le son) et une PÉRIODE
    RÉFRACTAIRE (même mérité, il ne repart pas tout de suite). Le silence est ce qui lui rend sa valeur. */
 const FX_DIR='assets/audio/fx/';
-const FX_WOW={f:'wow.mp3',v:.80,max:2.2};
+const FX_WOW={f:'wow.mp3',v:.80,max:2.2,dead:POKI}; // (POKI) pas de voix : le « WOW » se tait (fxPlay sort sur `dead`)
 /* ⚠ PAS DE VOIX ICI (2026-08-18). Les répliques parlées — « shut up and take my money », le
    « fight money » de Balrog, le medic de TF2, « loads of money » — ont été retirées : une phrase
    se reconnaît, donc elle s'use, et sur un jeu où l'argent tombe toutes les dix secondes elle finit
@@ -28015,7 +28029,7 @@ const FX_ARGENT=[
 let fxEls=[],fxArgLast=-1,fxWowCd=0,fxArgCd=0;
 function fxStop(){for(const a of fxEls){try{a.pause();}catch(e){}}fxEls.length=0;}
 function fxPreload(){try{
-  const t=[FX_WOW].concat(FX_ARGENT);
+  const t=(POKI?[]:[FX_WOW]).concat(FX_ARGENT); // (POKI) le « WOW » n'est pas livré
   for(const d of t){const a=new Audio(FX_DIR+d.f);a.preload='auto';a.load();}
 }catch(e){}}
 function fxPlay(d){ // un sample, plafonné et fondu — jamais de traîne qui mange l'événement suivant
