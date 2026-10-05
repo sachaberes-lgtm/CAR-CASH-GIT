@@ -140,7 +140,9 @@ if(POKI)(function(){
      l'iPhone) : sur l'ordi, l'écran du téléphone est un rectangle simple, sans boîtier, sans encoche ni coins arrondis, et le jeu ne
      garde pas les marges de l'encoche. `ENCOCHE_DEFAUT=true` rend le boîtier du 13 Pro par défaut ; dans l'adresse, `?encoche=1` /
      `?encoche=0` forcent l'un ou l'autre. Un vrai téléphone n'est jamais concerné (pas de cadre). */
-  var ENCOCHE_DEFAUT=false,ENC=!POKI&&(/[?&]encoche=1\b/.test(q)||(ENCOCHE_DEFAUT&&!/[?&]encoche=0\b/.test(q)));
+  /* (2026-10-06, Sacha : « remets l'encoche et le format de l'iPhone quand on lance la version main ») : le BOÎTIER du 13 Pro revient par
+     défaut — lunette, coins arrondis, encoche. L'écran nu de Léo reste à portée : `?encoche=0` dans l'adresse. */
+  var ENCOCHE_DEFAUT=true,ENC=!POKI&&(/[?&]encoche=1\b/.test(q)||(ENCOCHE_DEFAUT&&!/[?&]encoche=0\b/.test(q)));
   var PKC=POKI?window.CC_PK:null; // (POKI) le document de plus haut charge le SDK de Poki
   /* (POKI) le jeu tourne TOUJOURS dans un cadre chez Poki (leur page) : « dans la colonne » se lit à l'adresse (`colonne=1`), plus à
      `window.top`. Et pas de marges d'iPhone (`telCadre`) : la colonne de Poki est l'écran entier de leur cadre. */
