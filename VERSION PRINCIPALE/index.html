@@ -1593,6 +1593,11 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
   @keyframes pwrPuls{from{opacity:.5}to{opacity:1}}
   #flash9{position:fixed;inset:0;z-index:3;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 62%,transparent 28%,var(--ff) 100%)}
   #flash9.on{animation:flash9 .5s ease-out}
+  /* (2026-10-05, Léo : « rends plus smooth la transition entre deux niveaux, avec le portail ») LE VOILE DU PASSAGE : posé UNE image avant
+     que le niveau suivant se construise (portailPasse → portPasseNiveau), il couvre le gel de la construction et la coupe de caméra, puis
+     s'ouvre en 0,5 s sur le nouveau monde. Cœur blanc, rose du portail, bords violets. */
+  #portV{position:fixed;inset:0;z-index:3;pointer-events:none;opacity:0;
+    background:radial-gradient(circle at 50% 56%,rgba(255,246,255,1) 0,rgba(255,150,232,.97) 26%,rgba(255,79,216,.96) 48%,rgba(84,26,150,.98) 100%)}
   @keyframes flash9{0%{opacity:1}100%{opacity:0}}
   /* LES POUVOIRS ACTIFS : de vraies pastilles lumineuses, plus un chiffre en 9 px */
   #pwrChip{font-size:12px!important;margin-bottom:10px!important;text-shadow:none!important}
@@ -5520,6 +5525,12 @@ html body #garage.vitrine:not(.menu) :is(#gTabs,#gRar,#gStrip,.gNav,#gBuyRow,#gE
 html body #garage.vitrine:not(.menu)::before{height:min(24%,210px);background:linear-gradient(180deg,rgba(7,5,15,.74),rgba(7,5,15,.3) 55%,rgba(7,5,15,0))}
 html body #garage.vitrine:not(.menu)::after{height:min(26%,210px);background:linear-gradient(0deg,rgba(7,5,15,.9),rgba(7,5,15,.46) 50%,rgba(7,5,15,0))}
 html body #garage.vitrine:not(.menu) #gName::after{opacity:.75}
+/* (2026-10-05, Léo : « travaille plus le rendu ») LE VIGNETTAGE : les bords de l'image s'assombrissent doucement, l'œil va à la caisse — centré
+   sur sa place (debout au milieu, couché en bas à gauche, voir VITRINE_CAM.cx/cxL) ; seulement en vitrine, éteint au lancement */
+#gVig{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0;transition:opacity .9s var(--ease);
+  background:radial-gradient(120% 95% at 50% 52%,rgba(7,5,15,0) 48%,rgba(7,5,15,.28) 74%,rgba(7,5,15,.6) 100%)}
+@media (orientation:landscape){#gVig{background:radial-gradient(95% 125% at 34% 60%,rgba(7,5,15,0) 44%,rgba(7,5,15,.3) 72%,rgba(7,5,15,.62) 100%)}}
+html body #garage.vitrine:not(.menu):not(.quiet):not(.launching) #gVig{opacity:1}
 html body #garage.vitrine:not(.menu) #gName{animation:gvNom .7s var(--ease) backwards}
 @keyframes gvNom{from{opacity:0;translate:-18px 0}to{opacity:1;translate:0 0}}
 /* LA MISE EN PAGE v3 (même soir, Léo : « réorganise les boutons et la place occupée sur l'écran, c'est pas beau ») — MESURÉ sur les captures :
@@ -5801,6 +5812,7 @@ html.poki [data-m="shop"],html.poki [data-go="shop"],html.poki .gBoutique,html.p
   <div id="speedFx"></div>
   <div id="garage">
     <div id="gEclat" aria-hidden="true"></div>
+    <div id="gVig" aria-hidden="true"></div>
     <!-- (2026-09-30, sketch de Léo) LE GARAGE EST LE MENU : profil en haut à gauche (argent, aura), PLAY en haut au centre (#gPlayMain,
          dans #gTop), réglages en haut à droite, le socle des MISSIONS à droite de la caisse (l'étiquette suit le 3D), en bas :
          [verrouillé pour l'instant] [LEVEL] [BOUTIQUE]. La BOUTIQUE est l'ancien atelier (onglets, vignettes, achat) : `garMode`. -->
@@ -25940,6 +25952,7 @@ function musicSuitLieu(){
   if(v===musicLieu)return;
   musicLieu=v;
   if(FRENM.sw){FRENM.src='';return;} // en pleine FRÉNÉSIE : son morceau garde l'antenne — à la sortie, on reprendra sur celui du nouveau lieu
+  if(DEPMUS.on&&started&&!gameOver){DEPMUS.f0=performance.now();musicVolCour=0;} // (2026-10-05, « le passage plus smooth ») le morceau du niveau suivant ENTRE en fondu (0,6 s, sous le voile) au lieu de tomber à plein
   if(v){NIVEAU_FX=2.6;musicPlayCurrent();try{lvlBlast();}catch(e){}}
   else{try{musicNext();}catch(e){}}
 }
@@ -26028,6 +26041,7 @@ function musicJoue(){ // lance (ou relance) la lecture — un refus n'est jamais
   if(!SND.music||!musicVoulue||paused)return; // ⚠ PAS de garde `document.hidden` ici : certaines WebViews se disent « cachées » au démarrage — la musique ne partirait jamais
   const el=musicElGet();musicSession();
   try{el.volume=Math.max(0,Math.min(1,musicVolCour));}catch(e){}
+  if(el.muted)el.muted=false; // (2026-10-05) on VEUT la musique : jamais muette (le déverrouillage peut l'avoir laissée muette, voir musicDeverrouille)
   const p=el.play();
   if(p&&p.catch)p.catch(function(){musicOn=false;musicEnAttente=true;});
 }
@@ -26036,7 +26050,11 @@ function musicDeverrouille(){ // appelé à CHAQUE toucher/touche (en capture) :
   if(!musicDeverrouille._ok){musicDeverrouille._ok=true;
     if(!el.src)el.src=MUSIC.menu||musicPremier();           // le morceau de l'ACCUEIL se charge dès le 1er toucher : aucun blanc au départ — ⚠ (Léo, 2026-09-27) celui du 1er niveau s'entendait une seconde avant l'intro
     if(!musicVoulue){el.muted=true;const p=el.play();       // lancé une fois, en silence, PENDANT le geste : l'élément est libre
-      const fin=function(){if(!musicVoulue){try{el.pause();}catch(e){}}el.muted=false;};
+      /* (2026-10-05, Léo : « une musique qui commence très fort au début ») le son ne se ROUVRE qu'une fois l'arrêt CONSTATÉ : rouvert
+         dans la même image que pause(), un lecteur lent à s'arrêter (téléphone, réseau lent : la lecture muette démarre parfois en pleine
+         intro) pouvait laisser filer le morceau à plein volume. Si le menu le réclame entre-temps (musicVoulue), il se rouvre tout de suite. */
+      const fin=function(){if(musicVoulue){el.muted=false;return;}try{el.pause();}catch(e){}
+        (function ouvre(k){setTimeout(function(){if(musicVoulue||el.paused){el.muted=false;return;}try{el.pause();}catch(e){}if(k<6)ouvre(k+1);},80);})(0);}; // (k ≥ 6 : il reste MUET — musicJoue le rouvrira)
       if(p&&p.then)p.then(fin,function(){el.muted=false;musicDeverrouille._ok=false;});else fin();
       return;}
   }
@@ -26147,7 +26165,10 @@ function musicStartRun(depart){ // au début d'une partie (start / resetGame : d
 function musicMenu(){
   if(!SND.music)return;
   musicMode='menu';
-  playMusic(MUSIC.menu||musicPremier(),{loop:true,volume:musVol()*(MUSIC.menu?.8:.5),garde:true}); // l'intro a SON morceau, joué plus franchement que l'extrait d'un niveau
+  /* (2026-10-05, Léo : « une musique qui commence très fort ») le lobby partait à .8 × le curseur… et musicTick (mode menu) le ramenait à .5
+     dans la demi-seconde : un départ FORT puis un creux de −4 dB, à chaque retour au menu. Il part désormais de zéro et monte en ~0,4 s
+     jusqu'au niveau du menu (musicTick, inchangé : c'est celui qu'on entend depuis toujours). (iPhone : volume verrouillé, rien ne change.) */
+  playMusic(MUSIC.menu||musicPremier(),{loop:true,volume:0,garde:true});
 }
 function musicPlayCurrent(){
   const ouv=musicMode==='run'&&!!musicLieu;
@@ -31376,7 +31397,30 @@ function portailPasse(){
   trickMsg(pickL(ZONE_LINES)+' +'+fmtC(zb),true);
   flyCash(carGroup.position,8);
   SURV.pBase+=sP; // la course traverse le portail : les écarts restent vrais (téléportation invisible) — (2026-09-30) même franchi en vol
-  newTrack();
+  portPasseNiveau();
+}
+/* LE PASSAGE EN DEUX TEMPS (2026-10-05, Léo : « rends plus smooth la transition entre deux niveaux qui se suivent, avec le portail »).
+   MESURÉ (banc, dbgSaut) : construire le niveau suivant = 300 à 460 ms de calcul, puis la 1re image du nouveau monde 1,3 à 2,9 s (ses
+   programmes se compilent) contre 0,2 s pour une image ordinaire — sur téléphone c'est plus court, mais c'est CE gel qu'on sentait : l'image
+   restait figée sur l'ancien portail, puis tout sautait (piste, caméra, ciel, musique) sous un flash qui ne colorait que les BORDS.
+   Désormais : le VOILE (#portV) se pose à l'instant du passage, l'image est PEINTE, et la construction part à l'image d'après (deux rAF) ;
+   le voile tient ~0,28 s (la chauffe des programmes, CHAUFFE_R à +120 ms, tombe dessous) puis s'ouvre en 0,5 s. Pendant l'attente (1 à 2
+   images) la caisse reste à la bouche du portail (s ≤ L − 2 : 32 m de marge, mais à 1 900 km/h une image en avale 9). En VOL, la
+   construction reste immédiate (la chute continuerait) : le voile cache la coupe. Le temps du jeu, lui, ne ralentit JAMAIS (règle du 26/09). */
+const PORTV={el:null,att:0,n:0,tS:0};
+function portVoile(){
+  let e=PORTV.el;if(!e){e=document.createElement('div');e.id='portV';e.setAttribute('aria-hidden','true');document.body.appendChild(e);PORTV.el=e;}
+  clearTimeout(PORTV.tS);e.style.transition='none';e.style.opacity=REDUCED_MOTION?'.45':'.94';void e.offsetWidth;}
+function portVoileSort(ms){clearTimeout(PORTV.tS);PORTV.tS=setTimeout(function(){const e=PORTV.el;if(!e)return;
+  e.style.transition='opacity .5s cubic-bezier(.3,.6,.3,1)';e.style.opacity='0';},ms);}
+function portPasseNiveau(){
+  portVoile();
+  if(mode!=='drive'){PORTV.att=0;newTrack();portVoileSort(280);return;}
+  const tok=PORTV.att=++PORTV.n;
+  requestAnimationFrame(function(){requestAnimationFrame(function(){
+    if(PORTV.att!==tok)return;PORTV.att=0;
+    if(started&&!gameOver&&!PARK.on)newTrack();
+    portVoileSort(280);});});
 }
 /* L'ÉTAT DE CAMÉRA DU VOL (2026-09-28). La v2 de l'après-midi (écart tenu court, plan de trois-quarts) a été RETIRÉE le soir même :
    elle rendait la visée impossible — voir le bloc « CAMÉRA DE VOL — RETOUR À LA CAMÉRA DE POURSUITE » dans la boucle. Restent : `t`
@@ -31909,6 +31953,7 @@ function die(){
   endGame();
 }
 function resetGame(){
+  PORTV.att=0;if(PORTV.el){clearTimeout(PORTV.tS);PORTV.el.style.transition='none';PORTV.el.style.opacity='0';} // (le passage en deux temps) un passage en attente ne survit pas à la partie
   try{nitroooVide();}catch(e){} // (2026-09-29) NITROOO et le dragon ne débordent plus sur la partie suivante
   try{engBigCoupe();engBig.vu=null;}catch(e){} /* (2026-09-30) vu : la dernière carte moteur montrée — une partie neuve repart de zéro */ /* (débogage son 2026-09-29) RECOMMENCER pendant la carte MOTEUR : la visseuse et le NOUVEAU SOMMET ne sonnent plus dans la partie suivante */
   try{busPlein();}catch(e){} // (2026-09-28) filet : une partie quittée depuis la pause ne laisse jamais la sortie audio au silence
@@ -34813,6 +34858,13 @@ function garArgent(g){
 }
 window.dbgArgent=function(b){if(b!==undefined){GARG.force=b;GARG.bank=-1;garArgentMaj();}
   return GARG.mesh?{compte:GARG.force!=null?GARG.force:bank(),objets:GARG.n,max:GARG.offs.length-1,places:GARG.places,sommets:GARG.offs[Math.max(0,GARG.n)],visible:GARG.mesh.visible,ms:GARG.ms,tas:GARG.pos}:'atelier pas encore bâti';};
+/* (2026-10-05, Léo : « enlève quelques accessoires du garage, ça fait un peu rempli pour rien — les billets, mes trophées, tout ça laisse,
+   mais aère un peu l'espace ») L'ATELIER AÉRÉ : le petit bazar (cartons, bidons, fûts, jerricans, cônes, seau, balai, poubelle, palettes,
+   cric, chandelles, planche, tabouret, poste, tasses, rallonge, clés semées, batterie, vidange, deux flaques, l'étagère haute du fond) ne se
+   construit plus. RESTENT : les billets, les affiches de records, les pneus, les jantes, les deux V8 (le palan, le moteur sur pied), et les
+   meubles qui portent les MISSIONS (compresseur, établi, pont, rack — vidé, il garde ses jantes et son pneu —, distributeur). Le code est
+   gardé : `?bazar=1` rend tout l'ancien atelier (à comparer). */
+const GAR_AERE=!/[?&]bazar=1/.test(location.search);
 function buildGarageRoom(){
   const W=GAR.W,D=GAR.D,H=GAR.H,hw=W/2,hd=D/2;
   const g=new THREE.Group();g.visible=false;scene.add(g);GAR.root=g;
@@ -35180,7 +35232,7 @@ function buildGarageRoom(){
     for(let d=0;d<4;d++){const y9=.19+d*.18;cb('R',1.22,.155,.04,cx,y9,zB+.615,0,0,0,.012);
       cl('C',.011,.9,6,cx,y9+.035,zB+.66,0,0,Math.PI/2);for(const sx of [-.45,.45])cb('C',.02,.02,.04,cx+sx,y9+.035,zB+.645,0,0,0,0);
       cb('Wb',.12,.035,.005,cx-.47,y9-.03,zB+.637,0,0,0,0);}}
-  carton(-4.6,.38,zB-.1,.7,.42,.6);carton(-3.75,.38,zB+.05,.55,.3,.5,.2);bidon(-1.2,.38,zB+.1,'V');
+  if(!GAR_AERE){carton(-4.6,.38,zB-.1,.7,.42,.6);carton(-3.75,.38,zB+.05,.55,.3,.5,.2);bidon(-1.2,.38,zB+.1,'V');}
   cb('F',9.8,.14,.08,-3,1.06,zB-.73);                                                  // la lisse du fond
   cb('E',1.3,.08,.05,-.4,1.05,zB-.675,0,0,0,.01);for(let i=0;i<5;i++)cb('D',.07,.04,.01,-.9+i*.25,1.05,zB-.648,0,0,0,0);  // la multiprise
   // L'ÉTAU, mâchoires vers la salle
@@ -35195,19 +35247,19 @@ function buildGarageRoom(){
    cl('D',.018,.4,6,tx,1.41,tz,0,0,Math.PI/2);for(const sx of [-.22,.22]){cb('C',.03,.1,.04,tx+sx,1.36,tz,0,0,0,.005);cb('C',.05,.06,.02,tx+sx,1.23,tz+.215,0,0,0,.004);}
    cb('Or',.12,.05,.006,tx,1.14,tz+.203,0,0,0,0);}
   // LE POSTE qui gueule : haut-parleurs, cadran, poignée, antenne
-  {const rx9=-1.5,rz=zB-.05,fz=rz+.14;cb('N',.86,.34,.28,rx9,1.155,rz,0,0,0,.03);
+  if(!GAR_AERE){{const rx9=-1.5,rz=zB-.05,fz=rz+.14;cb('N',.86,.34,.28,rx9,1.155,rz,0,0,0,.03);
    for(const sx of [-.25,.25]){lt('C',[[.135,0],[.13,.012],[.11,.012],[.105,.004]],16,rx9+sx,1.15,fz,Math.PI/2);
      lt('D',[[.106,.006],[.04,.002],[0,.004]],16,rx9+sx,1.15,fz,Math.PI/2);cl('C',.028,.02,10,rx9+sx,1.15,fz+.01,Math.PI/2);}
    cb('G',.16,.08,.012,rx9,1.22,fz,0,0,0,.003);for(const sx of [-.04,.04])cl('C',.02,.03,10,rx9+sx,1.09,fz+.012,Math.PI/2);
    cl('C',.012,.62,6,rx9,1.385,rz,0,0,Math.PI/2);for(const sx of [-.3,.3])cl('C',.012,.07,6,rx9+sx,1.355,rz);
-   cl('C',.005,.8,4,rx9+.36,1.66,rz-.05,-.3,0,-.45);}
+   cl('C',.005,.8,4,rx9+.36,1.66,rz-.05,-.3,0,-.45);}}
   // les tasses de café froid, la paperasse, le chiffon, les clés qui traînent
-  for(const t of [[-.2,zB+.2,'E'],[.3,zB-.15,'R']]){const x9=t[0],z9=t[1];
+  if(!GAR_AERE){for(const t of [[-.2,zB+.2,'E'],[.3,zB-.15,'R']]){const x9=t[0],z9=t[1];
     lt(t[2],[[0,0],[.055,0],[.06,.005],[.062,.13],[.056,.13],[.052,.012],[0,.012]],12,x9,.98,z9);
     cl('D',.054,.004,12,x9,1.085,z9);to(t[2],.035,.009,x9+.062,1.045,z9,0,0,-Math.PI/2,4,Math.PI);}
   cb('E',.5,.018,.36,1.1,.99,zB+.1,0,.12,0,.004);cb('Wb',.46,.012,.32,1.13,1.004,zB+.12,0,-.1,0,0);
   cb('O',.34,.07,.26,1.9,1.01,zB-.1,.1,.4,.08,.03);cb('O',.26,.05,.2,1.95,1.05,zB-.05,-.2,1.1,.1,.02);
-  for(let i=0;i<5;i++){const x9=-.9+i*.22,a=.15*i-.3;cb('C',.04,.012,.3,x9,.99,zB+.5,0,a,0,.004);to('C',.035,.011,x9+Math.sin(a)*.17,.992,zB+.5+Math.cos(a)*.17,Math.PI/2,0,0,4);}
+  for(let i=0;i<5;i++){const x9=-.9+i*.22,a=.15*i-.3;cb('C',.04,.012,.3,x9,.99,zB+.5,0,a,0,.004);to('C',.035,.011,x9+Math.sin(a)*.17,.992,zB+.5+Math.cos(a)*.17,Math.PI/2,0,0,4);}}
   // LE PANNEAU PERFORÉ (texture) dans son cadre, et ses outils pendus
   flat(pegTex,-3,2.6,-hd+.18,9.6,2.6);
   cb('F',9.76,.08,.05,-3,3.94,-hd+.2,0,0,0,.01);cb('F',9.76,.08,.05,-3,1.26,-hd+.2,0,0,0,.01);
@@ -35224,16 +35276,16 @@ function buildGarageRoom(){
     for(const s of [-1,1])cb('B',.035,.42,.018,x9+s*.04,3.18,pz,0,0,s*.1,.006);
     cb('C',.05,.16,.018,x9,3.47,pz,0,0,0,.006);cl('C',.02,.03,8,x9,3.38,pz,Math.PI/2);}
   // L'ÉTAGÈRE HAUTE sur équerres : bidons d'huile étiquetés, cartons scotchés
-  cb('F',9.4,.06,.62,-3,4.35,-hd+.34,0,0,0,.01);cb('A',9.4,.08,.02,-3,4.34,-hd+.655,0,0,0,.004);
+  if(!GAR_AERE){cb('F',9.4,.06,.62,-3,4.35,-hd+.34,0,0,0,.01);cb('A',9.4,.08,.02,-3,4.34,-hd+.655,0,0,0,.004);
   for(const ex of [-7.4,-3,1.4])MK.prism('F',[[-hd+.02,4.32],[-hd+.02,3.86],[-hd+.5,4.32]],.04,ex);
   for(let i=0;i<7;i++)bidon(-6.6+i*1.15,4.38,-hd+.34,i%3?'B':'V');
-  for(let i=0;i<4;i++)carton(1.2+i*.8,4.38,-hd+.36,.66,.36+(i%2)*.08,.5);
+  for(let i=0;i<4;i++)carton(1.2+i*.8,4.38,-hd+.36,.66,.36+(i%2)*.08,.5);}
   GAR.neons.push(flat(neonTex('CASH CAR',0xff4fbf,26),-2.4,5.35,-hd+.2,7.2,2.25,0,THREE.AdditiveBlending));
   GAR.neons.push(flat(neonTex('$',0x5ff0ff,52),5.4,4.5,-hd+.2,1.9,1.9,0,THREE.AdditiveBlending));
   flat(postTex,6.9,2.9,-hd+.2,2.3,1.72);                                                // l'affiche, dans un cadre noir
   cb('N',2.42,.06,.04,6.9,3.79,-hd+.19,0,0,0,.01);cb('N',2.42,.06,.04,6.9,2.01,-hd+.19,0,0,0,.01);
   for(const s of [-1,1])cb('N',.06,1.84,.04,6.9+s*1.18,2.9,-hd+.19,0,0,0,.01);
-  flat(calTex,3.9,2.9,-hd+.2,.86,1.08);cl('C',.012,.05,6,3.9,3.5,-hd+.22,Math.PI/2);
+  if(!GAR_AERE){flat(calTex,3.9,2.9,-hd+.2,.86,1.08);cl('C',.012,.05,6,3.9,3.5,-hd+.22,Math.PI/2);}
   {const cx=8.9,cy9=3.3,cz=-hd+.2;                                                       // l'horloge
    lt('N',[[.42,0],[.42,.07],[.37,.08],[.36,.03]],24,cx,cy9,cz,Math.PI/2);lt('E',[[.36,.03],[0,.03]],24,cx,cy9,cz,Math.PI/2);
    for(let h=0;h<12;h++){const a=h/12*Math.PI*2;cb('D',.02,h%3?.04:.07,.01,cx+Math.sin(a)*.3,cy9+Math.cos(a)*.3,cz+.035,0,0,-a,0);}
@@ -35274,7 +35326,7 @@ function buildGarageRoom(){
   for(let i=0;i<5;i++)to('J',.4+i*.012,.026,-10.74+i*.045,2.5-i*.01,4.3,0,Math.PI/2,0,5);  // le tuyau d'air, enroulé au mur
   cb('F',.2,.14,.3,-10.9,2.96,4.3,0,0,0,.02);cb('F',.3,.05,.1,-10.78,2.92,4.3,0,0,0,.01);cl('Or',.025,.08,8,-10.5,2.18,4.62,0,0,.6);
   // LE CRIC ROULEUR
-  {const jx=-8.2,jz=-5.4;
+  if(!GAR_AERE){{const jx=-8.2,jz=-5.4;
    for(const s of [-.19,.19])MK.prism('R',[[jz-.65,.06],[jz+.65,.06],[jz+.65,.24],[jz-.3,.3],[jz-.65,.2]],.04,jx+s);
    cb('F',.34,.03,1.2,jx,.08,jz,0,0,0,.005);cl('C',.05,.34,10,jx,.19,jz+.1,Math.PI/2);
    seg('R',.035,[jx,.22,jz-.1],[jx,.38,jz-.72]);lt('D',[[.09,0],[.09,.03],[.07,.04],[0,.04]],12,jx,.38,jz-.74);
@@ -35297,7 +35349,7 @@ function buildGarageRoom(){
      for(const s of [-.55,0,.55])cb('W2',.1,.1,1.0,x+s,y0+.078,z,0,0,0,.008);
      for(const s of [-.43,0,.43])cb('W',1.2,.022,.14,x,y0+.011,z+s,0,0,0,.004);};
    for(let i=0;i<3;i++)palette(-9.9,i*.15,-9.4);
-   carton(-9.75,.45,-9.4,.9,.5,.8);carton(-9.65,.95,-9.35,.8,.45,.7,.1);carton(-9.55,1.4,-9.4,.6,.4,.5,-.15);}
+   carton(-9.75,.45,-9.4,.9,.5,.8);carton(-9.65,.95,-9.35,.8,.45,.7,.1);carton(-9.55,1.4,-9.4,.6,.4,.5,-.15);}}
   {const ex=-10.62,ez=-4.5;cb('F',.08,.36,.2,-10.93,2.45,ez,0,0,0,.01);cb('F',.34,.04,.22,-10.72,2.1,ez,0,0,0,.01);   // l'extincteur
    lt('R',[[0,0],[.14,0],[.15,.02],[.15,.56],[.12,.64],[.05,.68],[0,.68]],16,ex,2.12,ez);lt('Wb',[[.153,.2],[.153,.42]],16,ex,2.12,ez);
    cl('C',.035,.08,8,ex,2.84,ez);cb('N',.2,.03,.05,ex+.03,2.91,ez,0,0,-.2,.005);cb('C',.16,.03,.04,ex+.02,2.86,ez,0,0,.15,.005);
@@ -35333,10 +35385,10 @@ function buildGarageRoom(){
      cb('A',1.36,.025,4.2,rx0,y9+.055,rz0,0,0,0,.005);for(let k=0;k<6;k++)cb('F',1.36,.02,.03,rx0,y9+.03,rz0-1.8+k*.72,0,0,0,0);}
    const bac=(z9,y0,k)=>{const bf=rx0-.5;cb(k,.9,.28,.44,rx0-.05,y0+.14,z9,0,0,0,.02);cb('D',.84,.006,.38,rx0-.05,y0+.281,z9,0,0,0,0);   // le bac, sa lèvre, son étiquette
      cb(k,.06,.1,.4,bf-.02,y0+.07,z9,0,0,0,.01);cb('Wb',.005,.07,.2,bf-.003,y0+.2,z9,0,0,0,0);};
-   bac(1.9,.57,'B');bac(2.45,.57,'B');carton(rx0,.57,3.6,.9,.5,.8,.1);carton(rx0-.05,.57,4.6,.8,.42,.7);
-   for(let i=0;i<3;i++)jante(rx0,1.77+i*.1,rz0+1.2,.32,5);carton(rx0,1.72,2.05,.9,.55,.9,-.08);carton(rx0,1.72,3.0,.7,.36,.6,.12);
+   if(!GAR_AERE){bac(1.9,.57,'B');bac(2.45,.57,'B');carton(rx0,.57,3.6,.9,.5,.8,.1);carton(rx0-.05,.57,4.6,.8,.42,.7);}
+   for(let i=0;i<3;i++)jante(rx0,1.77+i*.1,rz0+1.2,.32,5);if(!GAR_AERE){carton(rx0,1.72,2.05,.9,.55,.9,-.08);carton(rx0,1.72,3.0,.7,.36,.6,.12);
    for(let i=0;i<5;i++)jerry(rx0-.1+(i%2)*.2,2.87,4.4+i*.3-.6,'V');bac(2.0,2.87,'R');bac(2.55,2.87,'B');
-   carton(rx0,4.02,1.9,.9,.5,.8);carton(rx0,4.02,2.8,.8,.4,.7,.1);carton(rx0,4.52,1.95,.7,.36,.6,-.12);pneu(rx0,4.14,4.3,.37,.235,0,.3,0);}
+   carton(rx0,4.02,1.9,.9,.5,.8);carton(rx0,4.02,2.8,.8,.4,.7,.1);carton(rx0,4.52,1.95,.7,.36,.6,-.12);}pneu(rx0,4.14,4.3,.37,.235,0,.3,0);}
   // LE DISTRIBUTEUR : caisse laquée, chapeau, cadre chromé de la vitrine, trappe, fente à pièces, pieds
   {const dx=10.3,dz=8.4,fx=9.85;
    cb('R',.9,1.94,1.5,dx,1.03,dz,0,0,0,.04);cb('N',.96,.16,1.56,dx,2.06,dz,0,0,0,.03);cb('D',.86,.06,1.44,dx,.03,dz,0,0,0,.01);
@@ -35344,23 +35396,23 @@ function buildGarageRoom(){
    cb('N',.05,.3,.74,fx-.005,.22,dz,0,0,0,.01);cb('D',.06,.12,.6,fx-.02,.2,dz,0,0,0,.006);cb('C',.02,.1,.06,fx-.01,.22,dz+.56,0,0,0,.004);
    cb('C',.012,.04,1.3,fx-.006,2.06,dz,0,0,0,0);}
   flat(vendTex,9.82,1.15,8.4,1.2,1.5,-Math.PI/2);
-  for(const p of [[7.2,9.6],[6.2,10.3],[8.2,10.4]]){lt('O',[[.26,.07],[.05,.72],[.035,.74],[0,.74]],16,p[0],0,p[1]);   // cônes de chantier
+  if(!GAR_AERE){for(const p of [[7.2,9.6],[6.2,10.3],[8.2,10.4]]){lt('O',[[.26,.07],[.05,.72],[.035,.74],[0,.74]],16,p[0],0,p[1]);   // cônes de chantier
     for(const b of [[.34,.44],[.52,.6]])lt('Wb',[[.26-(b[0]-.07)*.323+.004,b[0]],[.26-(b[1]-.07)*.323+.004,b[1]]],16,p[0],0,p[1]);
     cb('D',.62,.07,.62,p[0],.035,p[1],0,.3,0,.02);}
   {const tx=7.6,tz=-4.2;lt('B',[[0,.44],[.28,.44],[.33,.47],[.34,.52],[.3,.56],[0,.57]],16,tx,0,tz);   // le tabouret roulant
    cl('N',.05,.14,10,tx,.37,tz);cl('C',.03,.2,8,tx,.22,tz);to('C',.2,.012,tx,.26,tz,Math.PI/2,0,0,4);
    for(let i=0;i<5;i++){const a=i/5*Math.PI*2;barre('N',.04,[tx,.12,tz],[tx+Math.sin(a)*.3,.08,tz+Math.cos(a)*.3]);
-     lt('D',[[0,-.04],[.035,-.03],[.04,0],[.035,.03],[0,.04]],8,tx+Math.sin(a)*.3,.04,tz+Math.cos(a)*.3);}}
+     lt('D',[[0,-.04],[.035,-.03],[.04,0],[.035,.03],[0,.04]],8,tx+Math.sin(a)*.3,.04,tz+Math.cos(a)*.3);}}}
   for(let i=-1;i<=1;i++){cb('G',.06,1.3,2.6,hw-.16,4.6,i*4.4,0,0,0,0);                   // fenêtres hautes : verre, dormant, croisillons
     for(const s of [-1,1])cb('F',.08,1.42,.1,hw-.2,4.6,i*4.4+s*1.33,0,0,0,.01);for(const y9 of [3.93,5.27])cb('F',.08,.1,2.76,hw-.2,y9,i*4.4,0,0,0,.01);
     cb('F',.05,1.3,.05,hw-.19,4.6,i*4.4,0,0,0,0);cb('F',.05,.05,2.6,hw-.19,4.6,i*4.4,0,0,0,0);}
-  {const fut=(x,y,z,k,rx,ry,rz)=>{lt(k,[[0,0],[.4,0],[.42,.03],[.42,.97],[.4,1.0],[0,1.0]],18,x,y,z,rx,ry,rz);    // les fûts, côté porte
+  if(!GAR_AERE){{const fut=(x,y,z,k,rx,ry,rz)=>{lt(k,[[0,0],[.4,0],[.42,.03],[.42,.97],[.4,1.0],[0,1.0]],18,x,y,z,rx,ry,rz);    // les fûts, côté porte
      for(const h of [.32,.66])lt(k,[[.42,h-.03],[.44,h],[.42,h+.03]],18,x,y,z,rx,ry,rz);
      for(const h of [0,1])lt('A',[[.415,h-.012],[.43,h],[.415,h+.012]],18,x,y,z,rx,ry,rz);};
    for(let i=0;i<3;i++){const x9=-6.6+i*1.0;fut(x9,0,10.4,i===1?'V':'B');cl('Or',.05,.03,8,x9+.2,1.01,10.3);cl('Or',.035,.03,8,x9-.22,1.01,10.5);
      cb('Wb',.3,.2,.006,x9,.5,10.4-.423,0,0,0,0);}
    fut(-3.35,.42,10.4,'R',Math.PI/2,0,.1);}
-  for(let i=0;i<3;i++)jerry(-8.6+i*.44,0,9.2,'V');
+  for(let i=0;i<3;i++)jerry(-8.6+i*.44,0,9.2,'V');}
 
   // ===== LE PONT ÉLÉVATEUR : deux poteaux en U, chariots, quatre bras à tampons, traverse haute, groupe hydraulique =====
   {const lx=9.9,lz=-10.3;cb('F',.5,.04,3.0,lx,.02,lz,0,0,0,.01);
@@ -35382,7 +35434,7 @@ function buildGarageRoom(){
   // ce qu'on a posé par terre en se disant qu'on le rangerait plus tard.
   pneu(5.9,.118,3.3,.37,.235,0,0,0);jante(5.9,.285,3.3,.25,6);pneu(6.5,.118,2.62,.37,.235,0,.5,0);   // deux pneus, une jante posée dessus
   pneu(-5.4,.118,-5.6,.37,.235,0,.8,0);
-  {const a=.3;cb('R',.62,.3,.34,-5.6,.15,4.4,0,a,0,.02);cb('R',.64,.06,.36,-5.6,.33,4.4,0,a,0,.02);          // caisse à outils oubliée là
+  if(!GAR_AERE){{const a=.3;cb('R',.62,.3,.34,-5.6,.15,4.4,0,a,0,.02);cb('R',.64,.06,.36,-5.6,.33,4.4,0,a,0,.02);          // caisse à outils oubliée là
    cl('D',.016,.36,6,-5.6,.42,4.4,0,a,Math.PI/2);for(const s of [-.2,.2])cb('C',.03,.06,.03,-5.6+s*Math.cos(a),.39,4.4-s*Math.sin(a),0,a,0,.004);}
   lt('V',[[0,0],[.18,0],[.19,.015],[.19,.3],[.16,.37],[.07,.41],[0,.41]],14,6.789,.2,-3.48,0,.4,Math.PI/2);  // bidon renversé
   cb('N',.46,.3,.3,7.2,.15,1.4,0,0,0,.02);cb('D',.47,.04,.31,7.2,.32,1.4,0,0,0,.01);                          // la batterie
@@ -35398,11 +35450,11 @@ function buildGarageRoom(){
    cb('J',.16,.08,.1,pr[0],.04,pr[2],0,.3,0,.015);}
   for(let i=0;i<7;i++){const a=i*2.4,r9=5.2+((i*3)%5)*.6,x9=Math.sin(a)*r9,z9=Math.cos(a)*r9,L9=.18+(i%3)*.1;   // clés, douilles, boulons semés
     if(i%3===2)cl('C',.035,.06,8,x9,.035,z9,0,a,Math.PI/2);
-    else{cb('C',.04,.012,L9,x9,.006,z9,0,a,0,.004);to('C',.03,.01,x9+Math.sin(a)*L9/2,.01,z9+Math.cos(a)*L9/2,Math.PI/2,0,0,4);}}
+    else{cb('C',.04,.012,L9,x9,.006,z9,0,a,0,.004);to('C',.03,.01,x9+Math.sin(a)*L9/2,.01,z9+Math.cos(a)*L9/2,Math.PI/2,0,0,4);}}}
   lt('F',[[.55,0],[.55,.02],[.5,.026],[0,.026]],20,-1.6,0,-6.4);for(let i=0;i<4;i++)cb('D',.8,.01,.07,-1.6,.03,-6.75+i*.23,0,0,0,0);  // la bouche d'égout
-  for(const p of [[4.6,-5.2,2.2],[-6.2,2.2,2.6]])                          // deux flaques de plus
+  if(!GAR_AERE){for(const p of [[4.6,-5.2,2.2],[-6.2,2.2,2.6]])                          // deux flaques de plus
     add9(PL,new THREE.MeshBasicMaterial({map:oilTex,transparent:true,fog:false,depthWrite:false}),
-         p[0],.008,p[1],p[2],p[2]*.8,1).rotation.x=-Math.PI/2;
+         p[0],.008,p[1],p[2],p[2]*.8,1).rotation.x=-Math.PI/2;}
   // LE MOBILIER VERSÉ : une géométrie par matière, l'ombre cuite au pied (lpOmbre), le plancher lumineux relevé (uG)
   {const G9=MK.done(),GL={p:.22,c:.16,o:.2,s:.24,m:.16,g:.06};GAR.meubles=[];
    for(const f in G9){lpOmbre(G9[f],1.1);const mt=lpMat(f);if(mt.userData.uG)mt.userData.uG.value=GL[f]!=null?GL[f]:.2;
@@ -35415,7 +35467,8 @@ function buildGarageRoom(){
   {const F9=[[-3,zB,9.8,1.5],[-9.4,-1.6,.8,1.5],[-9.5,2.6,.9,2.1],[-9.6,-7.2,.8,.8],[-9.6,-5.1,.8,.8],[-9.4,7.4,.8,.8],[-8.9,5.6,.7,.7],
      [-9.9,-9.4,1.2,1.0],[7.7,-6.4,3.4,1.8],[9.0,-2.2,1.9,1.2],[9.6,3.4,1.5,4.4],[10.3,8.4,.9,1.5],[-5.6,10.4,3.2,1.0],[9.9,-10.3,1.2,4.0],
      [-8.2,-5.4,.6,1.4],[-8.6,1.2,.5,1.5],[7.6,-4.2,.6,.6],[-8.16,9.2,1.3,.3]],P9=[],U9=[];
-   for(const f of F9){const w9=f[2]*1.5+.4,d9b=f[3]*1.5+.4,x0=f[0]-w9/2,x1=f[0]+w9/2,z0=f[1]-d9b/2,z1=f[1]+d9b/2;
+   for(const f of F9){if(GAR_AERE&&[[-8.9,5.6],[-9.9,-9.4],[-5.6,10.4],[-8.2,-5.4],[-8.6,1.2],[7.6,-4.2],[-8.16,9.2]].some(o=>o[0]===f[0]&&o[1]===f[1]))continue; // (l'atelier aéré) plus d'ombre sans meuble
+     const w9=f[2]*1.5+.4,d9b=f[3]*1.5+.4,x0=f[0]-w9/2,x1=f[0]+w9/2,z0=f[1]-d9b/2,z1=f[1]+d9b/2;
      P9.push(x0,.009,z1, x1,.009,z1, x1,.009,z0, x0,.009,z1, x1,.009,z0, x0,.009,z0);U9.push(0,0,1,0,1,1,0,0,1,1,0,1);}
    const gA=new THREE.BufferGeometry();gA.setAttribute('position',new THREE.Float32BufferAttribute(P9,3));gA.setAttribute('uv',new THREE.Float32BufferAttribute(U9,2));
    const mA=new THREE.Mesh(gA,new THREE.MeshBasicMaterial({map:blobTex,color:0x1c0430,transparent:true,opacity:.72,fog:false,depthWrite:false}));mA.renderOrder=-1;g.add(mA);}
@@ -35555,6 +35608,15 @@ function buildGarageRoom(){
    B9.sous=nappe(haloTex,0x3fdcff,0,GAR.POD+.009,0,7.4,7.4,.22);B9.sous.rotation.x=-Math.PI/2;B9.sous.renderOrder=1;
    const solHaloTex=cvT(256,256,x=>{const gr=x.createRadialGradient(128,128,0,128,128,127);gr.addColorStop(0,'rgba(255,255,255,0)');gr.addColorStop(.66,'rgba(255,255,255,0)');
      gr.addColorStop(.72,'rgba(255,255,255,.8)');gr.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=gr;x.fillRect(0,0,256,256);});
+   /* --- (2026-10-05, Léo : « travaille plus le rendu ») L'OMBRE AU PIED DES MURS : les murs tombaient sur l'époxy sans un pli de lumière,
+      la pièce se lisait comme un décor de carton. Une bande d'encre de 2,2 m qui s'estompe vers la salle, le long des trois murs et des deux
+      pans de la façade (pas devant l'ouverture : le reflet du feu y vit) ; les coins, doublés, sont plus sombres — comme en vrai. Une
+      géométrie, une matière, aucune lumière. */
+   {const aoTex=cvT(8,64,(x,w,h)=>{const gr=x.createLinearGradient(0,0,0,h);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.3,'rgba(255,255,255,.5)');
+      gr.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=gr;x.fillRect(0,0,w,h);});
+    const mAO=new THREE.MeshBasicMaterial({map:aoTex,color:0x06030e,transparent:true,opacity:.62,fog:false,depthWrite:false}),L9=2.2,o9=hw-4.8;
+    for(const b of [[0,-hd+L9/2,W,0],[-hw+L9/2,0,D,Math.PI/2],[hw-L9/2,0,D,-Math.PI/2],[-(4.8+o9/2),hd-L9/2,o9,Math.PI],[4.8+o9/2,hd-L9/2,o9,Math.PI]]){
+      const m=add(new THREE.Mesh(PL,mAO));m.rotation.set(-Math.PI/2,b[3],0,'YXZ');m.position.set(b[0],.012,b[1]);m.scale.set(b[2],L9,1);m.renderOrder=-1;}}
    B9.solHalo=nappe(solHaloTex,0x2fb8ff,0,.016,0,13,13,.3);B9.solHalo.rotation.x=-Math.PI/2;B9.solHalo.renderOrder=-1;
    // --- LES BRAISES : 64 étincelles qui sortent du feu, montent, dérivent dans l'atelier et s'éteignent (un seul appel de dessin)
    {const N=64,pos=new Float32Array(N*3),v=new Float32Array(N*4);
@@ -35894,7 +35956,7 @@ function openGarage(quiet){
   // bioStep repeindrait le ciel du biome par-dessus l'atelier à chaque image.
   if(BIO.k<1){BIO.k=1;bioLerp(BIO.from,BIO.to,1,BIO.cur);}
   bioApply(BIOMES.atelier);MENUV.bio=false;
-  garageAng=Math.PI;garagePitch=.2;garageDist=7.8;GAR.vA=0;GAR.vAc=0;GAR.vW=0;GAR.vD=0;GAR.preE=0;GAR.pT=.2;GAR.roll=0;GAR.swK=0;GAR.fige=false; // (2026-09-30, Léo, capture de sa branche : « c'est ça que je veux ») on entre DERRIÈRE la caisse, la porte en feu au fond du cadre — le plateau la fait tourner ensuite (voir GAR_CAM_A)
+  garageAng=Math.PI;garagePitch=.2;garageDist=7.8;GAR.vA=0;GAR.vAc=0;GAR.vW=0;GAR.vD=0;GAR.preE=0;GAR.aVl=null;GAR.vAv=0;GAR.pT=.2;GAR.roll=0;GAR.swK=0;GAR.fige=false; // (2026-09-30, Léo, capture de sa branche : « c'est ça que je veux ») on entre DERRIÈRE la caisse, la porte en feu au fond du cadre — le plateau la fait tourner ensuite (voir GAR_CAM_A)
   garageShow(level||0);
   GMIS.mk=0;garMode(GAR.aMenu?'menu':'boutique');GAR.aMenu=false;
   if(GAR.aMis){GAR.aMis=false;garMode('missions');} // (2026-09-30) la porte des MISSIONS, venue d'ailleurs (écran de mort…) // (2026-09-30) ouvert par l'ACCUEIL = le menu ; par un autre chemin (mort → GARAGE, missions, objectif) = la boutique
@@ -36658,8 +36720,10 @@ function garCamA(){return GAR_CAM_A+(GAR.vA||0)+(GAR.swO||0)+(GAR.vD||0);} // (2
    · rattrapée en vol, elle ralentit sous le doigt sans revenir en arrière (la cible = la position + vitesse × dLisse/2) ;
    · la visée est RIGIDE : la caméra regarde toujours l'entrée par-dessus la caisse, elle ne fouette plus de la porte au fond pendant le tour ;
    · le glissé qui pose la caisse à gauche (vD) démarre en douceur avec la vitrine et se pose en ~1 s, au lieu de partir net et de traîner ;
+   · (même jour, « un peu générique — un juste milieu entre les deux ») : ressort un peu sous-amorti (dAmorti), visée qui traîne (dRegard),
+     un peu plus de roulis (dRoulis : ×(1 − ,6) au lieu de ×,25) et de balancement (dSway ,35), un peu plus d'élan (dElan 2, dFrein 3) ;
    · le zoom ne respire plus avec l'angle du doigt (seulement avec le plateau) ; le recadrage de l'image se lisse dans le temps, plus par image. */
-const VITRINE_CAM={dPx:.0046,dLisse:.35,dFrein:3.5,dElan:1.6,dSway:.6,porteY:1.9,fw:.9,fwP:.8,fh:.8,cx:.43,cxL:.62,cy:.55,cyL:.6,adapt:.5,p:.08,y:0,vise:-.38,viseP:.6,fov:.9,rot:.15,cle:.3,rim:.35}; // LA VITRINE v2 : la caisse tient dans fw de la largeur libre et fh de sa hauteur, inclinaison +p rad, hauteur +y m, visée +vise (+viseP debout), objectif ×fov, plateau rot rad/s, lampes +cle/+rim
+const VITRINE_CAM={dPx:.0046,dLisse:.3,dAmorti:.72,dFrein:3,dElan:2,dSway:.35,dRegard:3.2,dRoulis:.6,porteY:1.9,fw:.9,fwP:.8,fh:.8,cx:.43,cxL:.62,cy:.55,cyL:.6,adapt:.5,p:.08,y:0,vise:-.38,viseP:.6,fov:.9,rot:.15,cle:.3,rim:.35}; // LA VITRINE v2 : la caisse tient dans fw de la largeur libre et fh de sa hauteur, inclinaison +p rad, hauteur +y m, visée +vise (+viseP debout), objectif ×fov, plateau rot rad/s, lampes +cle/+rim
 /* le GABARIT de la caisse vue en tournant : R = demi-diagonale de son empreinte au sol (la plus large qu'elle montre), H = sa hauteur. Mesuré
    caisse droite et à l'échelle 1 (la bascule l'écrase, le toucher la tasse), une fois par caisse et par construction. */
 function garGabarit(){
@@ -36798,7 +36862,8 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
      derrière la caisse, face au feu, avant le lâcher (voir `GAR.go.pre`). En BOUTIQUE glisser fait toujours tourner la caisse. Le plateau
      tourne toujours. `GAR.fige` (dbgGarage) gèle tout pour les captures. */
   GAR.swK=(GAR.swK||0)+(((garageDrag||GAR.go||GAR.fige||gEl.classList.contains('missions'))?0:1)-(GAR.swK||0))*Math.min(1,dt*.7);
-  GAR.swO=(Math.sin(t9*.28)*.15+Math.sin(t9*.117+1.3)*.05)*GAR.swK*(1-VITRINE_CAM.dSway*VK); // (2026-10-05, Léo : « plus doux, ça tourne trop la tête ») en vitrine le balancement au repos est réduitGAR.swP=Math.sin(t9*.21)*.025*GAR.swK;
+  GAR.swO=(Math.sin(t9*.28)*.15+Math.sin(t9*.117+1.3)*.05)*GAR.swK*(1-VITRINE_CAM.dSway*VK); // (2026-10-05, Léo : « plus doux, ça tourne trop la tête ») en vitrine le balancement au repos est réduit
+  GAR.swP=Math.sin(t9*.21)*.025*GAR.swK; // (2026-10-05) ⚠ la v109 l'avait collé au bout du commentaire ci-dessus : la caméra avait perdu son balancement VERTICAL (menu compris)
   if(GAR.affiches)for(const a of GAR.affiches){ // LES AFFICHES (branche de Léo) : elles s'allument au survol, sautent au tap
     a.hv+=((GAR.affH===a?1:0)-a.hv)*Math.min(1,dt*8);
     if(a.pop>0)a.pop=Math.max(0,a.pop-dt);
@@ -36813,11 +36878,15 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
          vue n'est plus tirée au 1er ordre vers le doigt (elle partait à pleine vitesse au premier pixel et s'arrêtait sec) mais suit un
          ressort AMORTI CRITIQUE (le « SmoothDamp » des moteurs de jeu) : elle ACCÉLÈRE, file, puis FREINE en douceur, sans rebond, et garde sa
          vitesse quand le doigt la relâche (elle ralentit, elle ne cale pas). Temps de réponse `dLisse`. */
-      const T=VITRINE_CAM.dLisse,om=2/T,x9=om*Math.min(dt,.1),ex=1/(1+x9+.48*x9*x9+.235*x9*x9*x9),ch=vA0-cib9,tp=((GAR.vAv||0)+om*ch)*Math.min(dt,.1);
-      GAR.vAv=((GAR.vAv||0)-om*tp)*ex;GAR.vA=cib9+(ch+tp)*ex;}
+      /* (même jour, Léo : « maintenant c'est un peu générique — fais un juste milieu entre les deux ») le ressort est un peu SOUS-amorti
+         (dAmorti ,72 au lieu de 1) : la vue suit plus vivement et se pose avec un soupçon de rebond (< 1°), au lieu de s'arrêter « au cordeau ».
+         Intégré en pas de 8 ms (Euler semi-implicite : stable à toutes les cadences). */
+      const om=2/VITRINE_CAM.dLisse,z9=VITRINE_CAM.dAmorti,d9=Math.min(dt,.1),n9=Math.max(1,Math.ceil(d9/.008)),h9=d9/n9;let x9=vA0,v9=GAR.vAv||0;
+      for(let i=0;i<n9;i++){v9+=(om*om*(cib9-x9)-2*z9*om*v9)*h9;x9+=v9*h9;}
+      GAR.vAv=v9;GAR.vA=x9;}
     else{GAR.vAv=0;GAR.vA=vA0+(cib9-vA0)*kS;}
     if(menu9&&GAR.pT!=null)garagePitch+=(GAR.pT-garagePitch)*kS;
-    const w9=dt>0?(GAR.vA-vA0)/dt:0;GAR.roll=(GAR.roll||0)+(THREE.MathUtils.clamp(w9*.016*(1-.75*VK),-.04*(1-.75*VK),.04*(1-.75*VK))-(GAR.roll||0))*Math.min(1,dt*6);
+    const w9=dt>0?(GAR.vA-vA0)/dt:0;const r9=1-VITRINE_CAM.dRoulis*VK;GAR.roll=(GAR.roll||0)+(THREE.MathUtils.clamp(w9*.016*r9,-.04*r9,.04*r9)-(GAR.roll||0))*Math.min(1,dt*6);
   }else GAR.roll=(GAR.roll||0)*(1-Math.min(1,dt*6));
   // CADRAGE PORTRAIT : le `fov` de three est VERTICAL — sur un téléphone à la verticale le champ
   // horizontal s'effondre et la caisse sort du cadre par les côtés. On rouvre l'angle (FOV_K), on
@@ -36910,10 +36979,13 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
   /* (même soir, Léo : « c'est un peu brut ») LA VISÉE TOURNE D'UN BLOC AVEC LA CAMÉRA : au repos elle vise l'entrée ; quand le doigt tourne la
      vue, la visée tourne du même angle autour de la caisse (le point visé reste à la même distance, de l'autre côté) — la composition (la caisse
      en bas à gauche, le fond au milieu) ne bouge plus ; avant, la visée basculait de l'entrée vers la caisse en cours de geste : un coup de fouet. */
-  {const aV=cA-(GAR.vD||0),wD=VK*(1-(GAR.preE||0)),Lv=1.5+(GAR.D/2-1.5)*wD;GAR.wD=wD;
+  /* (même jour, « un peu générique — un juste milieu ») la visée n'est plus tout à fait rigide : elle TRAÎNE derrière le geste (dRegard /s,
+     ~0,3 s) — la caisse glisse un peu dans le cadre pendant le tour et y revient quand la vue se pose : le flottement de la v109, sans son fouet. */
+  {const aV0=cA-(GAR.vD||0);if(GAR.aVl==null||VK<.5||GAR.fige)GAR.aVl=aV0;else GAR.aVl+=(aV0-GAR.aVl)*(1-Math.exp(-dt*VITRINE_CAM.dRegard));
+   const aV=GAR.aVl,wD=VK*(1-(GAR.preE||0)),Lv=1.5+(GAR.D/2-1.5)*wD;GAR.wD=wD;
    const ty0=ay+1.0-POR*.65-vG*1.35+(VC.vise+VC.viseP*POR)*VK;
    camera.lookAt(-Math.sin(aV)*Lv,ty0+(ay+VC.porteY-ty0)*wD,-Math.cos(aV)*Lv);
-   if(wD>.5&&!garageDrag&&Math.abs(GAR.vAv||0)<.05&&!GAR.go&&!GAR.fige&&GAR.cErr!=null){const gk=Math.min(1,(wD-.5)*2);GAR.vD=THREE.MathUtils.clamp((GAR.vD||0)+GAR.cErr*Math.min(dt,.1)*7*gk*gk*(3-2*gk),-.9,.9);} // la caisse à droite de sa place → la caméra glisse (la caisse part à gauche) · (2026-10-05) gain 7 qui MONTE en douceur avec la vitrine : le glissé part sans à-coup et se pose en ~1 s (4,5 sec : il démarrait net puis traînait 2-3 s)
+   if(wD>.5&&!garageDrag&&Math.abs(GAR.vAv||0)<.05&&Math.abs(aV0-aV)<.03&&!GAR.go&&!GAR.fige&&GAR.cErr!=null){const gk=Math.min(1,(wD-.5)*2);GAR.vD=THREE.MathUtils.clamp((GAR.vD||0)+GAR.cErr*Math.min(dt,.1)*7*gk*gk*(3-2*gk),-.9,.9);} // la caisse à droite de sa place → la caméra glisse (la caisse part à gauche) · (2026-10-05) gain 7 qui MONTE en douceur avec la vitrine : le glissé part sans à-coup et se pose en ~1 s (4,5 sec : il démarrait net puis traînait 2-3 s)
    else if(VK<.02&&!GAR.go)GAR.vD=(GAR.vD||0)*(1-Math.min(1,dt*4));}
   if(GAR.roll)camera.rotateZ(GAR.roll); // (le glissé fondu) la caméra penche un peu dans le sens où elle tourne
   { // LES MISSIONS : la caméra s'élève sous la porte relevée et regarde tout l'atelier (fondu en S ; le départ la ramène, voir GAR.go.pre)
@@ -38241,7 +38313,8 @@ function loop(now){
         showMsg('✦ NOUVEAU SECTEUR','#7dffec');
         newTrack();
       }else if(!PARK.on&&portalMesh&&!CAMP.portFerme&&mode==='drive'&&(s>L-32||carGroup.position.distanceToSquared(PORTAL.c)<PORTAL.R*PORTAL.R*.9)){ // (2026-09-26) on ENTRE dans l'ovule — par la route ou par le côté (en vol : voir la branche 'fall') · (2026-09-27) fermé au niveau 10 tant que la caisse-nuage court
-        portailPasse();
+        if(PORTV.att){if(s>L-2)s=L-2;} // (le passage en deux temps) le voile est posé, la construction part à l'image suivante
+        else portailPasse();
       }
       // pads turbo
       padCd=Math.max(0,padCd-dt);
@@ -38906,7 +38979,7 @@ function loop(now){
        if(dg){loop._atk=(loop._atk||0)-dt;if(loop._atk<=0){const r9=Math.max(0,airMax()-fallTR);loop._atk=.09+.25*r9/1.5;try{if(SONV2)sfx(r9<.5?'alerte.tac':'alerte.tic');else chimeNote(noteP(r9<.5?4:2,1),0,.06,.06);}catch(e){} /* (console) un danger sonne en BOIS, jamais en cloche de récompense */hap(5);}}else loop._atk=0;}
       if(TCTL.on&&!TUTO.on&&!(SAVE.d.ast&2)){loop._astV=(loop._astV||0)+dt;if(loop._astV>1){SAVE.d.ast|=2;SAVE.mark(); // ASTUCE (une fois à vie) : l'assiette au pouce
         misBanniere('ASTUCE',TR(volSens()<0?"En l'air : pouce en HAUT = monte, en BAS = plonge.":"En l'air : pouce en HAUT = plonge, en BAS = monte."),'','eclair');}}
-      if(!PARK.on&&portalMesh&&!CAMP.portFerme&&fallPos.distanceToSquared(PORTAL.c)<PORTAL.R*PORTAL.R*.9)portailPasse(); // (2026-09-26) l'ovule traversé EN VOL — du ciel, de côté, d'en dessous
+      if(!PARK.on&&portalMesh&&!CAMP.portFerme&&fallPos.distanceToSquared(PORTAL.c)<PORTAL.R*PORTAL.R*.9&&!PORTV.att)portailPasse(); // (2026-09-26) l'ovule traversé EN VOL — du ciel, de côté, d'en dessous
       else if(PARIS.sol&&(PARIS.heurt=parisHeurt(fallPos))){airPie.style.display='none';try{dolFin();}catch(e){}shake=Math.max(shake,1.2);explode(PARIS.heurt);} // (Paris au sol) une façade, la Seine, le sol
       else if(CITY.col&&villeHeurt(fallPos)){airPie.style.display='none';try{dolFin();}catch(e){}shake=Math.max(shake,1.2);if(PARK.on)parkRespawn();else{try{villeImpact(fallPos,fallVel);}catch(e){}explode('tour');}} // (passe graphismes) l'IMPACT sur la façade, avant explode (le bouclier le laisse jouer aussi) // (2026-09-26) DANS UNE TOUR : on meurt
       else if(tryLand(dtF)){airPie.style.display='none';dolFin();dolPose();mirPose();} // posé : le total du DAUPHIN se fige et s'encaisse — (v5) et s'ÉCRIT enfin
@@ -39627,6 +39700,7 @@ renderLeaders(-1);
 (function(){ // ---------- INTRO STUDIO « 1.61 » : accumulation… battements… FISSION ----------
   const sp9=document.getElementById('splash');
   if(!sp9)return;
+  window.__intro='attente'; // (la mise à jour toute seule) l'écran titre attend son toucher : rien n'a sonné, on peut recharger
   const cv9=document.getElementById('fxCv'),ctx9=cv9.getContext('2d');
   const stage=document.getElementById('spStage'),num=document.getElementById('spNum'),
         ttl=document.getElementById('spTitle'),fl9=document.getElementById('spFlash');
@@ -39684,7 +39758,7 @@ renderLeaders(-1);
   function kd9(){if(!launched&&!done)launch();}
   addEventListener('keydown',kd9);
   function launch(){
-    if(launched||done)return;launched=true;tLaunch=performance.now();
+    if(launched||done)return;launched=true;tLaunch=performance.now();window.__intro='joue'; // l'intro passe : pas de rechargement
     ttl.classList.remove('tease');
     const nt=document.getElementById('spNote');
     if(nt)nt.style.display='none';
@@ -39874,7 +39948,7 @@ renderLeaders(-1);
   }
   requestAnimationFrame(draw9);
   function hide(){
-    if(done)return;done=true;
+    if(done)return;done=true;setTimeout(function(){window.__intro=null;},1500); // (le voile s'ouvre, la musique du lobby part : on attend encore)
     for(const t9 of timers)clearTimeout(t9);
     removeEventListener('keydown',kd9);
     if(iAC){ // fondu audio rapide puis fermeture du contexte de l'intro
@@ -40711,8 +40785,18 @@ if('serviceWorker'in navigator&&!window.Capacitor&&!POKI&&(location.protocol==='
 (function(){
   var e=document.getElementById('mvVer');if(e)e.textContent='VERSION '+CC_VER;
   if(/^__/.test(CC_BUILD)||window.Capacitor||POKI||!(location.protocol==='http:'||location.protocol==='https:')||NUAGES_LAB)return; // (l'atelier des nuages ne se recharge pas en plein réglage)
-  var neuf=null,vu=0;
-  function sur(){return(!started||gameOver)&&!document.hidden&&!(typeof GAR!=='undefined'&&GAR.go);}
+  var neuf=null,vu=0,touche=Date.now();
+  /* (2026-10-05, Léo : « au début, quand CASH CAR explose, une musique part très fort, puis ça relance au niveau ciel ») ⚠ LA MISE À JOUR
+     TOMBAIT EN PLEINE INTRO : la 1re lecture de version.json partait 4 s après l'ouverture et « pas en course » comprenait l'intro — un
+     toucher à 1-2 s, et la page se rechargeait ~2,5 s plus tard, pile sur l'explosion (reproduit au banc, version périmée simulée), puis
+     tout recommençait ; le garde-fou en permettait même DEUX. Désormais : la version se lit DÈS l'ouverture (l'écran titre attend son
+     toucher, rien n'a encore sonné : on recharge aussitôt, un clignement) ; JAMAIS pendant l'intro ; et au menu, au garage, à l'écran de
+     mort, seulement après 45 s sans toucher (ou au retour d'arrière-plan) — plus de musique coupée sous le doigt. */
+  ['pointerdown','keydown'].forEach(function(ev){addEventListener(ev,function(){touche=Date.now();},{passive:true,capture:true});});
+  function sur(){
+    if(document.hidden||(started&&!gameOver)||(typeof GAR!=='undefined'&&GAR.go))return false;
+    var ie=window.__intro;if(ie==='attente')return true;if(ie==='joue')return false; // l'écran titre muet : oui · l'intro qui passe : non
+    return Date.now()-touche>45e3;}
   function recharge(){
     try{var t=JSON.parse(sessionStorage.getItem('ccMaj')||'{}'),n=t.v===neuf?t.n|0:0;if(n>=2)return;sessionStorage.setItem('ccMaj',JSON.stringify({v:neuf,n:n+1}));}catch(_){return;}
     try{SAVE.flush();}catch(_){}
@@ -40722,9 +40806,9 @@ if('serviceWorker'in navigator&&!window.Capacitor&&!POKI&&(location.protocol==='
     fetch('version.json?t='+vu,{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(j){
       if(j&&typeof j.v==='string'&&j.v&&j.v!==CC_BUILD){neuf=j.v;if(sur())recharge();}}).catch(function(){});}
   window.dbgMaj=function(){return {build:CC_BUILD,neuf:neuf,sur:sur(),started:started,gameOver:gameOver,go:!!(typeof GAR!=='undefined'&&GAR.go),cache:document.hidden};};
-  setTimeout(verifie,4000);
+  setTimeout(verifie,250);
   setInterval(function(){if(neuf){if(sur())recharge();}else if(!document.hidden&&Date.now()-vu>3e5)verifie();},1e4);
-  document.addEventListener('visibilitychange',function(){if(!document.hidden&&Date.now()-vu>15e3)verifie();});
+  document.addEventListener('visibilitychange',function(){if(document.hidden)return;if(neuf){touche=0;if(sur())recharge();}else if(Date.now()-vu>15e3){touche=0;verifie();}}); // le retour d'arrière-plan vaut un lancement neuf
 })();
 /* ============ fin ajout MOBILE / PWA ============ */
 /* ============ LE BANC DU TÉLÉPHONE (?banc=1) — (2026-09-27, passe perf iPhone, tour 2) ============

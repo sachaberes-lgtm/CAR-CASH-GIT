@@ -102,6 +102,22 @@
     Et le glissé qui pose la caisse à gauche (`GAR.vD`) monte en douceur avec la vitrine (gain 7 en smoothstep) : il partait net puis traînait
     2-3 s (mesuré en paysage : écart ,031 → ,012 au même instant). Simulé à 60 i/s (pic de vitesse 42°/s pour un doigt à 57°/s, posé en ~1,8 s).
     `dbgInv('mvt')` = [angle, vitesse, cible, décalage]. sw.js → v110.
+  · (même jour, Léo : « maintenant c'est un peu générique — fais un juste milieu entre les deux, ça manque un peu de… ») LE JUSTE MILIEU
+    v109 ↔ v110 (`VITRINE_CAM`) : ressort un peu SOUS-amorti (`dAmorti` ,72, `dLisse` ,3 s : pic 53°/s pour un doigt à 57°/s — v110 : 42 —,
+    un soupçon de rebond < 1° à la pose ; intégré en pas de 8 ms) ; la visée TRAÎNE derrière le geste (`dRegard` 3,2/s : la caisse glisse
+    un peu dans le cadre et y revient — le flottement de la v109 sans son fouet ; le glissé vD attend qu'elle ait rejoint, écart < ,03) ;
+    roulis ×(1 − `dRoulis` ,6), balancement ×(1 − `dSway` ,35), élan `dElan` 2 / `dFrein` 3. ⚠ ET UN BUG DE LA v109 : un commentaire
+    collé avait AVALÉ `GAR.swP=…` (le balancement VERTICAL de la caméra, menu compris) — rendu. sw.js → v111.
+- **L'ATELIER AÉRÉ + LE RENDU (même jour, Léo : « enlève quelques accessoires du garage, ça fait un peu rempli pour rien — les pieds tu
+  dois laisser, ça fait partie du jeu ; les billets, mes trucs de trophée, tout ça laisse ; aère un peu l'espace · travaille plus le
+  rendu »)** — `GAR_AERE` (juste avant `buildGarageRoom`) : le petit bazar ne se construit plus — cartons, bidons, fûts et jerricans de
+  la porte, cônes, seau, balai, poubelle, palettes, cric, chandelles, planche à roulettes, tabouret, poste, tasses, rallonge, clés semées,
+  batterie, bac de vidange, cales, chiffon, deux flaques, l'étagère haute du fond, le calendrier ; le rack est VIDÉ (il garde ses jantes et
+  son pneu — les tas de billets s'y posent). RESTENT : billets, affiches de records, pneus, jantes, les deux V8 (le palan, le MOTEUR SUR
+  PIED — « les pieds », lu ainsi : à confirmer), et les meubles qui portent les MISSIONS (compresseur, établi, pont, rack, distributeur :
+  `GMIS.ancres` les visent). Le code reste : **`?bazar=1` = l'ancien atelier** (à comparer). LE RENDU : une OMBRE AU PIED DES MURS
+  (bande d'encre de 2,2 m sur l'époxy, trois murs + les deux pans de façade, coins doublés — un seul matériau, aucune lumière) et un
+  VIGNETTAGE en vitrine (`#gVig`, centré sur la place de la caisse : milieu debout, bas-gauche couché ; éteint au lancement).
 - **LES JAUGES (même soir, Léo : « ça fait un peu vide, ajoute un peu de vie : jauge money, jauge aura, moyennes, colorées »)** — `#gVJ`,
   `gvJauges(anim)` appelée par `garVitrine(true)` : l'ARGENT (vert billet, vers la prochaine caisse à vendre — `objectif()`, celle que visait
   le profil du menu de Léo ; pleine : « À TA PORTÉE » qui luit) et l'AURA (violet → rose, le rang, vers le rang suivant, ce qu'il manque).
@@ -124,6 +140,33 @@
   accueil → JOUER → course, mort → REJOUER, mort → HOME → GARAGE → inventaire → HOME → JOUER, JOUER du garage — debout, couché et dans le
   cadre de l'ordi (souris maintenue, touches I/Échap, clic JOUER) : 0 erreur. ⚠ Au rendu logiciel (~400 ms l'image) un glissé peut arriver
   APRÈS la fin du délai et ouvrir le tiroir : artefact du banc (sur téléphone les mouvements arrivent toutes les 16 ms). sw.js → v104, v105, v106 (le plan v2 et les jauges), v107 (les deux barres) : mêmes parcours repassés à chaque fois, 0 erreur.
+
+## LA SESSION DE DEBUG (2026-10-05, copie de test de Léo — « au début, à CASH CAR qui explose, une musique commence très très fort, puis ça relance au niveau ciel » · « dans le lobby les boucles tournent bizarrement parfois » · « rends plus smooth la transition entre deux niveaux, avec le portail »)
+- **L'INTRO QUI REPART** (reproduit au banc : `version.json` simulé en retard) : la 1re lecture de version partait 4 s après l'ouverture
+  et « pas en course » comprenait l'intro — un toucher à 1-2 s, et la page se RECHARGEAIT ~2,5 s plus tard, pile sur l'explosion de
+  CASH CAR, puis tout recommençait (deux fois au plus : le garde-fou). Après chacun de nos pushs, Léo tombait dessus. Corrigé dans LA
+  MISE À JOUR TOUTE SEULE (voir plus bas) : lue dès l'ouverture, rechargement sur l'écran titre muet, jamais pendant l'intro, au menu
+  seulement après 45 s sans toucher. Un rechargement au menu tirait aussi un AUTRE son du lobby : c'est fini.
+- **LE DÉVERROUILLAGE MUET** (`musicDeverrouille`) : la lecture muette du 1er toucher se ROUVRE seulement une fois l'arrêt constaté (avant :
+  dans la même image que `pause()` — un lecteur lent pouvait laisser filer le morceau à plein) ; `musicJoue` démute toujours.
+- **LE LOBBY PARTAIT FORT** : `musicMenu` le lançait à ,8 × le curseur et musicTick (mode menu) le ramenait à ,5 dans la demi-seconde —
+  un départ fort puis un creux de −4 dB à chaque retour au menu. Il part de 0 et monte en ~0,4 s au niveau du menu (inchangé). iPhone :
+  volume verrouillé, rien ne change (mesuré : les deux boucles du lobby sont à −13,6/−13,8 LUFS, comme les niveaux, −13 à −15).
+- **LES BOUCLES DU LOBBY RECOUSUES** (mesuré, ffmpeg + numpy, scratchpad 83e03bdc `boucle.py`, `reps.py`, `coud.py`) : VAPEUR · SALON =
+  12 phrases de 9,6 s (A B A B…) + 16 ms MUETTES au bout ; ASCENSEUR DORÉ = 13 × 8 s, mais sa 1re phrase claquait (saut 0,11 à la couture,
+  contre 0,02 au milieu). Refaits : longueur EXACTE (12 × 9,6 s · 13 × 8 s), la 1re phrase = une phrase du MILIEU (elle porte la queue de la
+  précédente), encodés en AAC 192k AVEC DÉBORD (8192 échantillons de la fin devant, du début derrière : l'encodeur voit une boucle
+  continue), coupés sans réencoder un paquet plus tôt, et la liste d'édition MP4 (`elst`) posée à la main : 1024 échantillons sautés,
+  durée exacte (115 200 / 104 000 ms). Vérifié au décodage : la couture fin → début vaut une couture du milieu (−37,5 / −23,8 dB
+  d'écart à l'original, comme le reste du fichier). Volumes identiques (−13,9 / −13,7 LUFS). Les anciens, avec iTunSMPB, ne
+  déclaraient leur amorce (2112) qu'à la façon d'Apple. Même noms de fichiers : `harmonie.js` reste calé (même musique au même instant).
+- **LE PORTAIL EN DEUX TEMPS** (`portPasseNiveau`, `#portV`) : mesuré au banc (`dbgSaut`), construire le niveau suivant = 300-460 ms de
+  calcul, puis 1,3-2,9 s pour la 1re image (programmes) contre 0,2 s d'ordinaire : l'image restait figée sur l'ancien portail, puis tout
+  sautait sous un flash qui ne colorait que les bords. Le VOILE (cœur blanc, rose, bords violets, ,94 — ,45 en mouvement réduit) se pose
+  à l'instant du passage, la construction part deux rAF plus tard (la caisse attend à la bouche du portail, s ≤ L − 2), il tient 0,28 s
+  puis s'ouvre en 0,5 s. En VOL, la construction reste immédiate. Le temps du jeu ne ralentit pas (règle du 26/09). Et le morceau du
+  niveau suivant ENTRE en fondu (`DEPMUS`, 0,6 s) au lieu de tomber à plein (`musicSuitLieu`). Banc `portail2.mjs` : niveau 1 → 2, 0 erreur.
+- sw.js → v111.
 
 ## LA VILLE DÈS L'ENTRÉE + GLASSY PLUCKS (2026-10-04, Léo — « les niveaux villes ne sont pas tous des villes » · « la musique pour la ville, c'est GLASSY PLUCKS »)
 - MESURÉ d'abord (bancs `villes.mjs`, `cycle.mjs`, `villepos.mjs`, `citystat.mjs`, scratchpad 83e03bdc) : les 10 niveaux VILLE de la
@@ -430,9 +473,10 @@
   ROBLOX seul (23 publications sur 25 ce jour-là), passait pour une nouvelle version et RECHARGEAIT tous les joueurs au menu ou à l'écran
   de mort — musique coupée net, autre son du lobby tiré. L'empreinte = sha1 des fichiers de `jouer/` (jeton intact, sans CLAUDE.md /
   README / JOUER.bat ni version.json) : elle ne bouge que si le JEU bouge. Vérifié : ROBLOX modifié → même empreinte ; index.html → neuve.
-- LA MISE À JOUR TOUTE SEULE (bloc juste avant « fin ajout MOBILE / PWA ») : au lancement (+4 s), à chaque retour au premier plan et
-  toutes les 5 min, le jeu lit version.json ; en retard → il se RECHARGE dès qu'on n'est pas en course (menu, garage, écran de mort ;
-  jamais pendant le LÂCHER ni en arrière-plan), sauvegarde écrite d'abord ; sur l'ordi la page-cadre entière (`window.top`). Garde-fou :
+- LA MISE À JOUR TOUTE SEULE (bloc juste avant « fin ajout MOBILE / PWA ») : au lancement (+0,25 s — c'était +4 s, voir LA SESSION DE
+  DEBUG du 2026-10-05), à chaque retour au premier plan et toutes les 5 min, le jeu lit version.json ; en retard → il se RECHARGE : tout de
+  suite sur l'écran titre muet (`window.__intro='attente'`), JAMAIS pendant l'intro (`'joue'`, jusqu'à 1,5 s après le voile), et au menu,
+  au garage, à l'écran de mort seulement après 45 s sans toucher ou au retour d'arrière-plan (jamais pendant le LÂCHER ni en course), sauvegarde écrite d'abord ; sur l'ordi la page-cadre entière (`window.top`). Garde-fou :
   2 rechargements au plus par version et par session (`sessionStorage.ccMaj`). Copie locale (jeton intact), file://, Capacitor : rien.
 - LE NUMÉRO (les 7 premiers signes de l'empreinte) : « VERSION 506f117 » en bas des RÉGLAGES (`#mvVer`) et sous le jeu sur l'ordi (`#ccVer`), avec « · MENU LEO » / « · SANS
   CIEL » si l'adresse porte `?menu=leo` / `?chute=0` — deux joueurs comparent leurs deux écrans d'un coup d'œil. `dbgMaj()` : état.
