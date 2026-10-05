@@ -6339,7 +6339,7 @@ html.sansFacile [data-m="facile"]{display:none!important}
 <!-- (2026-09-28) LA CONSOLE DE SON : la banque de sons (générée par atelier-son/cuire.js) et son lecteur. `defer` : ils ne retardent
      pas le démarrage (on n'en a besoin qu'au premier geste) ; changer `?v=` à chaque nouvelle banque (le service worker garde l'ancienne sinon). -->
 <script defer src="sons-banque.js?v=13"></script>
-<script defer src="assets/audio/music/harmonie.js?v=15"></script> <!-- (2026-10-03) l'harmonie des morceaux, temps par temps : la phrase du boost la lit (atelier-son/harmonie.py) -->
+<script defer src="assets/audio/music/harmonie.js?v=16"></script> <!-- (2026-10-03) l'harmonie des morceaux, temps par temps : la phrase du boost la lit (atelier-son/harmonie.py) -->
 <script defer src="sfx.js?v=4"></script>
 <script>
 (function(){
@@ -13291,7 +13291,7 @@ Object.assign(I18N_ZH,{"MEILLEUR": "最佳", "COMPTE": "账户"});
 /* LES CLÉS SANS LEUR SYMBOLE (2026-09-24) : les symboles de tête (✓ 🔒 ★ 📋…) sont devenus des ICÔNES PIXEL
    posées à côté du texte. Chaque clé « symbole + espace + texte » reçoit donc un ALIAS « texte » seul, qui
    traduit pareil — sans ça, retirer l'emoji d'un libellé lui aurait fait perdre sa traduction. */
-for(const [k,v] of Object.entries({"JOUER": "PLAY", "CARRIERE": "CAREER", "MODES": "MODES", "REGLAGES": "SETTINGS", "REJOUER": "PLAY AGAIN", "MEILLEUR :": "BEST:", "MEILLEUR": "BEST", "CAISSE": "CAR", "UNE SEULE VIE · TOUT LE CIEL": "ONE LIFE · THE WHOLE SKY", "AUDIO": "AUDIO", "JEU": "GAME", "SAUVEGARDE": "SAVE", "SON": "SOUND", "MUSIQUE": "MUSIC", "VOIX": "VOICE", "VOLUME": "VOLUME", "COMMANDES": "CONTROLS", "IMAGE": "GRAPHICS", "LANGUE": "LANGUAGE", "DEVISE": "CURRENCY", "COPIER MA SAUVEGARDE": "COPY MY SAVE", "RESTAURER UN CODE": "RESTORE A CODE", "EFFACER MA PROGRESSION": "ERASE MY PROGRESS", "SURVIVANT": "SURVIVOR", "PARC FREESTYLE": "FREESTYLE PARK", "BAC A SABLE": "SANDBOX", "REPRENDRE": "RESUME", "FERMER": "CLOSE", "REPLACER LA CAISSE": "RESET THE CAR", "RECOMMENCER": "RESTART", "QUITTER": "QUIT", "PAUSE": "PAUSE", "LA PARTIE": "THIS RUN", "VOLANT": "WHEEL", "FLECHES": "ARROWS", "RAPIDE": "FAST", "NETTE": "SHARP", "FIGURES": "TRICKS", "ENTRAINEMENT TERMINE": "TRAINING OVER", "NOUVEAU RECORD !": "NEW RECORD!", "MOTEUR ATTEINT": "ENGINE REACHED", "GLISSE POUR TOURNER": "SWIPE TO STEER", "glisse pour tourner · pince pour zoomer": "drag to turn · pinch to zoom", "touche CASH CAR — le son s'allume avec toi": "tap CASH CAR — sound comes alive with you", "MA SAUVEGARDE": "MY SAVE", "Garde ce code : il restaure toute ta progression.": "Keep this code: it restores all your progress.", "COPIER": "COPY", "COPIE !": "COPIED!", "RESTAURER": "RESTORE", "Colle ton code de sauvegarde.": "Paste your save code.", "ANNULER": "CANCEL", "RESTAURE — RECHARGE…": "RESTORED — RELOADING…", "CODE INVALIDE": "INVALID CODE", "TOUT EFFACER ?": "ERASE EVERYTHING?", "Records, caisses débloquées, carrière et réglages repartent de zéro.": "Records, unlocked cars, career and settings start over.", "EFFACER": "ERASE", "TERMINE LE NIVEAU": "FINISH LEVEL", "NUAGES": "SKY HIGH", "SKY HIGH": "SKY HIGH", "SKY HIGH TERMINE": "SKY HIGH COMPLETE", "De l'aurore au matin, cinq niveaux au-dessus des nuages.": "From dawn to morning, five levels above the clouds.", "VILLE": "CITY", "ESPACE": "SPACE", "10 heures du jour, de l'aurore au coucher du soleil.": "10 hours of the day, from dawn to sunset.", "Du coucher du soleil à midi, au-dessus du village caché de la pluie.": "From sunset to noon, above the hidden rain village.", "Au plus près des planètes du système solaire.": "Up close to the planets of the solar system.", "AURORE": "DAWN", "PREMIERES LUEURS": "FIRST LIGHT", "LEVER DU SOLEIL": "SUNRISE", "MATIN FRAIS": "CRISP MORNING", "MATIN": "MORNING", "MIDI": "NOON", "APRES-MIDI": "AFTERNOON", "FIN D'APRES-MIDI": "LATE AFTERNOON", "HEURE DOREE": "GOLDEN HOUR", "COUCHER DE SOLEIL": "SUNSET", "SOIREE": "EVENING", "PLUIE NEON": "NEON RAIN", "MINUIT": "MIDNIGHT", "ORAGE": "STORM", "AVANT L'AUBE": "BEFORE DAWN", "AUBE": "DAYBREAK", "LEVER": "SUNRISE", "MERCURE": "MERCURY", "VENUS": "VENUS", "TERRE": "EARTH", "LUNE": "MOON", "MARS": "MARS", "JUPITER": "JUPITER", "SATURNE": "SATURN", "URANUS": "URANUS", "NEPTUNE": "NEPTUNE", "PLUTON": "PLUTO", "Elle démarre par pitié. Fais des thunes et oublie-la vite.": "It starts out of pity. Make cash and forget it fast.", "Ça roule. Vu d'où tu viens, c'est déjà un miracle.": "It runs. Given where you're from, that's already a miracle.", "Conçue pour rouler prudemment. Toi, prudent ? On y croit fort.": "Built to drive carefully. You, careful? Sure.", "Elle ne double pas. Elle DÉPLACE.": "It doesn't overtake. It RELOCATES.", "L'écologie te fait coucou dans le rétro. T'as pas de rétro.": "Ecology waves at you in the mirror. You don't have mirrors.", "Refuse de rouler sous 200. Toi aussi, maintenant.": "Refuses to go under 200. So do you, now.", "Elle découpe les virages. Les autres les négocient.": "It carves corners. Others negotiate them.", "Ceux qui l'ont doublée en parlent encore. Ah non : personne.": "Those who passed it still talk about it. Oh wait: nobody.", "Le taureau doré. Assurance résiliée d'office.": "The golden bull. Insurance cancelled on sight.", "Le circuit appelle ça tricher. Nous, du talent.": "The track calls it cheating. We call it talent.", "Prototype d'endurance. Faite pour rouler la nuit entière.": "Endurance prototype. Built to run all night.", "La reine du ciel, et elle le sait.": "Queen of the sky, and she knows it.", "Passée au bain d'acide. Ça se voit.": "Dipped in acid. It shows.", "Personne n'a demandé pourquoi. Tout le monde a demandé comment.": "Nobody asked why. Everybody asked how.", "Au sol, il roule. En l'air, il chasse.": "On the ground, it drives. In the air, it hunts."}))if(!(k in I18N))I18N[k]=v; // la coque mobile, la carrière, les fenêtres, les fiches des caisses (2026-09-24)
+for(const [k,v] of Object.entries({"JOUER": "PLAY", "CARRIERE": "CAREER", "MODES": "MODES", "REGLAGES": "SETTINGS", "REJOUER": "PLAY AGAIN", "MEILLEUR :": "BEST:", "MEILLEUR": "BEST", "CAISSE": "CAR", "UNE SEULE VIE · TOUT LE CIEL": "ONE LIFE · THE WHOLE SKY", "AUDIO": "AUDIO", "JEU": "GAME", "SAUVEGARDE": "SAVE", "SON": "SOUND", "MUSIQUE": "MUSIC", "VOIX": "VOICE", "VOLUME": "VOLUME", "COMMANDES": "CONTROLS", "IMAGE": "GRAPHICS", "LANGUE": "LANGUAGE", "DEVISE": "CURRENCY", "COPIER MA SAUVEGARDE": "COPY MY SAVE", "RESTAURER UN CODE": "RESTORE A CODE", "EFFACER MA PROGRESSION": "ERASE MY PROGRESS", "SURVIVANT": "SURVIVOR", "PARC FREESTYLE": "FREESTYLE PARK", "BAC A SABLE": "SANDBOX", "REPRENDRE": "RESUME", "FERMER": "CLOSE", "REPLACER LA CAISSE": "RESET THE CAR", "RECOMMENCER": "RESTART", "QUITTER": "QUIT", "PAUSE": "PAUSE", "LA PARTIE": "THIS RUN", "VOLANT": "WHEEL", "FLECHES": "ARROWS", "RAPIDE": "FAST", "NETTE": "SHARP", "FIGURES": "TRICKS", "ENTRAINEMENT TERMINE": "TRAINING OVER", "NOUVEAU RECORD !": "NEW RECORD!", "MOTEUR ATTEINT": "ENGINE REACHED", "GLISSE POUR TOURNER": "SWIPE TO STEER", "glisse pour tourner · pince pour zoomer": "drag to turn · pinch to zoom", "touche CASH CAR — le son s'allume avec toi": "tap CASH CAR — sound comes alive with you", "MA SAUVEGARDE": "MY SAVE", "Garde ce code : il restaure toute ta progression.": "Keep this code: it restores all your progress.", "COPIER": "COPY", "COPIE !": "COPIED!", "RESTAURER": "RESTORE", "Colle ton code de sauvegarde.": "Paste your save code.", "ANNULER": "CANCEL", "RESTAURE — RECHARGE…": "RESTORED — RELOADING…", "CODE INVALIDE": "INVALID CODE", "TOUT EFFACER ?": "ERASE EVERYTHING?", "Records, caisses débloquées, carrière et réglages repartent de zéro.": "Records, unlocked cars, career and settings start over.", "EFFACER": "ERASE", "TERMINE LE NIVEAU": "FINISH LEVEL", "NUAGES": "SKY HIGH", "SKY HIGH": "SKY HIGH", "SKY HIGH TERMINE": "SKY HIGH COMPLETE", "De l'aurore au matin, cinq niveaux au-dessus des nuages.": "From dawn to morning, five levels above the clouds.", "Du coucher du soleil à l'orage, au-dessus du village caché de la pluie.": "From sunset to the storm, above the hidden rain village.", "VILLE": "CITY", "ESPACE": "SPACE", "10 heures du jour, de l'aurore au coucher du soleil.": "10 hours of the day, from dawn to sunset.", "Du coucher du soleil à midi, au-dessus du village caché de la pluie.": "From sunset to noon, above the hidden rain village.", "Au plus près des planètes du système solaire.": "Up close to the planets of the solar system.", "AURORE": "DAWN", "PREMIERES LUEURS": "FIRST LIGHT", "LEVER DU SOLEIL": "SUNRISE", "MATIN FRAIS": "CRISP MORNING", "MATIN": "MORNING", "MIDI": "NOON", "APRES-MIDI": "AFTERNOON", "FIN D'APRES-MIDI": "LATE AFTERNOON", "HEURE DOREE": "GOLDEN HOUR", "COUCHER DE SOLEIL": "SUNSET", "SOIREE": "EVENING", "PLUIE NEON": "NEON RAIN", "MINUIT": "MIDNIGHT", "ORAGE": "STORM", "AVANT L'AUBE": "BEFORE DAWN", "AUBE": "DAYBREAK", "LEVER": "SUNRISE", "MERCURE": "MERCURY", "VENUS": "VENUS", "TERRE": "EARTH", "LUNE": "MOON", "MARS": "MARS", "JUPITER": "JUPITER", "SATURNE": "SATURN", "URANUS": "URANUS", "NEPTUNE": "NEPTUNE", "PLUTON": "PLUTO", "Elle démarre par pitié. Fais des thunes et oublie-la vite.": "It starts out of pity. Make cash and forget it fast.", "Ça roule. Vu d'où tu viens, c'est déjà un miracle.": "It runs. Given where you're from, that's already a miracle.", "Conçue pour rouler prudemment. Toi, prudent ? On y croit fort.": "Built to drive carefully. You, careful? Sure.", "Elle ne double pas. Elle DÉPLACE.": "It doesn't overtake. It RELOCATES.", "L'écologie te fait coucou dans le rétro. T'as pas de rétro.": "Ecology waves at you in the mirror. You don't have mirrors.", "Refuse de rouler sous 200. Toi aussi, maintenant.": "Refuses to go under 200. So do you, now.", "Elle découpe les virages. Les autres les négocient.": "It carves corners. Others negotiate them.", "Ceux qui l'ont doublée en parlent encore. Ah non : personne.": "Those who passed it still talk about it. Oh wait: nobody.", "Le taureau doré. Assurance résiliée d'office.": "The golden bull. Insurance cancelled on sight.", "Le circuit appelle ça tricher. Nous, du talent.": "The track calls it cheating. We call it talent.", "Prototype d'endurance. Faite pour rouler la nuit entière.": "Endurance prototype. Built to run all night.", "La reine du ciel, et elle le sait.": "Queen of the sky, and she knows it.", "Passée au bain d'acide. Ça se voit.": "Dipped in acid. It shows.", "Personne n'a demandé pourquoi. Tout le monde a demandé comment.": "Nobody asked why. Everybody asked how.", "Au sol, il roule. En l'air, il chasse.": "On the ground, it drives. In the air, it hunts."}))if(!(k in I18N))I18N[k]=v; // la coque mobile, la carrière, les fenêtres, les fiches des caisses (2026-09-24)
 for(const D of [I18N,I18N_ZH])for(const k of Object.keys(D)){
   const m=/^[\u2190-\u2BFF\u2600-\u27BF\uD83C-\uDBFF\uDC00-\uDFFF]+\s+(.+)$/.exec(k);
   if(m&&!(m[1] in D))D[m[1]]=String(D[k]).replace(/^[\u2190-\u2BFF\u2600-\u27BF\uD83C-\uDBFF\uDC00-\uDFFF]+\s+/,'');
@@ -14845,12 +14845,12 @@ const CARRIERE=[
     /* 6 MIDI · 7 APRÈS-MIDI · 8 FIN D'APRÈS-MIDI · 9 HEURE DORÉE · 10 COUCHER (la caisse-nuage) : retirés le 2026-10-04 (genCampagne les garde) */]},
   // (2026-09-27) LA CAMPAGNE VILLE : même méthode que les NUAGES — une piste dessinée et UNE idée par niveau (camp 11 à 20, voir
   // « LA CAMPAGNE VILLE »). La ville se bâtit TOUTE SEULE autour de n'importe quel ruban (buildVoxCity) : on ne dessine que la route.
-  {id:'ville',nm:'VILLE',ic:'immeuble',desc:'Du coucher du soleil à midi, au-dessus du village caché de la pluie.',niveaux:[
+  // (2026-10-05, Léo : « enlève les 5 autres niveaux ») : la VILLE garde ses 5 premiers niveaux (ceux de NÉON COMPLÈTE 1-5) et finit à l'ORAGE
+  {id:'ville',nm:'VILLE',ic:'immeuble',desc:'Du coucher du soleil à l\'orage, au-dessus du village caché de la pluie.',niveaux:[
     {nm:'COUCHER DE SOLEIL',h:'couchant',camp:11,pr:'FAIS-TOI FLASHER'},{nm:'SOIREE',h:'soir',camp:12,pr:'SUIS LA LIGNE DE NEON'},
     {nm:'PLUIE NEON',h:'pluie',pluie:1,camp:13,pr:'LIS LES FLAQUES'},{nm:'MINUIT',h:'nuit',nuit:1,camp:14,pr:'NE FINIS PAS DERNIER'}, /* (2026-09-30) nuit:1 = le MINUIT EN VILLE du mode principal (fenêtres éteintes, phares xénon — villeApres) */
-    {nm:'ORAGE',h:'orage',pluie:1,camp:15,pr:'ESQUIVE LA FOUDRE'},{nm:'AVANT L\'AUBE',h:['nuit','aube',.5],camp:16,pr:'ROULE DANS LE NOIR'},
-    {nm:'AUBE',h:'aube',camp:17,pr:'VIDE LE FOURGON'},{nm:'LEVER',h:'lever',camp:18,pr:'SAUTE D\'UN ETAGE'},
-    {nm:'MATIN',h:'matin',camp:19,pr:'FAUFILE-TOI'},{nm:'MIDI',h:'midi',camp:20,pr:'BATS LE BANQUIER'}]},
+    {nm:'ORAGE',h:'orage',pluie:1,camp:15,pr:'ESQUIVE LA FOUDRE'}
+    /* 6 AVANT L'AUBE · 7 AUBE · 8 LEVER · 9 MATIN · 10 MIDI (le banquier) : retirés le 2026-10-05 (genCampagne les garde) */]},
   // (2026-09-28, Léo : « je veux une map ville à Paris ») PARIS LA NUIT — la route survole les toits, la Dame de fer scintille (buildParis)
   {id:'paris',nm:'PARIS',ic:'tour',desc:'De la Concorde au Sacré-Cœur : les Champs, la Seine, Montmartre.',niveaux:[
     {nm:'HEURE BLEUE',h:['aube','paris',.6],pr:'PARIS S\'ALLUME'},{nm:'CHAMP DE MARS',h:'paris',pr:'PASSE SOUS LA DAME DE FER'},
@@ -21340,7 +21340,7 @@ const CAR_UNLOCK=[
   {k:'carnet',v:6}, // LA PUCE
 /* ===== LES CONDITIONS DES 50 — FIN ===== */
   {k:'carrN',v:5}, // (2026-10-04 : les 5 niveaux de SKY HIGH) (2026-09-27) LA CAISSE-NUAGE — les dix niveaux des NUAGES (elle se gagne en l'attrapant au niveau 10)
-  {k:'carrV',v:10}, // (2026-09-27) LE LINGOT — les dix niveaux de la VILLE (il se gagne en battant le banquier au niveau 10)
+  {k:'carrV',v:5}, // (2026-10-05 : les 5 niveaux de la VILLE) (2026-09-27) LE LINGOT — les dix niveaux de la VILLE (il se gagne en battant le banquier au niveau 10)
   {p:1200000}, // (2026-10-02) L'ORIGAMI — ÉPIQUE, à l'argent : entre LA DÉESSE et L'AIGLE DE FEU
 ]
 /* (POKI) PLUS DE MISSIONS, DE CARRIÈRE NI DE BOUTIQUE : les caisses qui s'y gagnaient passent À L'ARGENT DU JEU (sinon le garage montrerait
@@ -23234,7 +23234,7 @@ function carUnlockText(i){ // ce qu'il reste à faire, en une ligne — affiché
   const v=u.v,cur=carStat(u.k);
   if(u.k==='carnet')return ['SE GAGNE EN RELEVANT 3 DEFIS', /* (2026-09-28) police pixel : pas de capitale accentuée (« DéFIS ») */'WON BY BEATING 3 CHALLENGES','完成 3 项挑战即可获得'][L];
   if(u.k==='carrN')return ['TERMINE SKY HIGH  ('+cur+' / 5)','FINISH SKY HIGH  ('+cur+' / 5)','完成 SKY HIGH  （'+cur+' / 5）'][L]; // (2026-09-27)
-  if(u.k==='carrV')return ['BATS LE BANQUIER AU NIVEAU 10 DE LA VILLE  ('+cur+' / 10)','BEAT THE BANKER IN CITY LEVEL 10  ('+cur+' / 10)','在城市第 10 关击败银行家  （'+cur+' / 10）'][L]; // (2026-09-27)
+  if(u.k==='carrV')return ['TERMINE LA VILLE  ('+cur+' / 5)','FINISH THE CITY  ('+cur+' / 5)','完成城市  （'+cur+' / 5）'][L]; // (2026-09-27)
   switch(u.k){
     case 'aura':  return [ 'RANG D\'AURA « '+auraRankName(v)+' »   (le tien : « '+auraRankName()+' »)',
                            'AURA RANK "'+auraRankName(v)+'"   (yours: "'+auraRankName()+'")', // (2026-09-28) guillemets anglais
@@ -26098,12 +26098,15 @@ let musicLieu=null; // le morceau de LIEU qui tient l'antenne (null = la radio)
 const MUSIC_CIEL=[1,2,3,4,5].map(function(k){return{titre:'CIEL · NIVEAU '+k,f:'assets/audio/music/ciel/ciel-n'+k+'.m4a'};});
 // (2026-10-05, Léo : « voilà les musiques 1 à 5 de la ville » — NÉON COMPLÈTE 1 à 5, ses boucles du Studio recréées par atelier-son/neon_ville.py :
 // 12 tours de 4 mesures qui évoluent, 96 s chacune ; avant, NÉON seule au niveau 1)
-const MUSIC_VILLE=[1,2,3,4,5].map(function(k){return{titre:'NÉON COMPLÈTE '+k,f:'assets/audio/music/ville/ville-n'+k+'.m4a'};});
+// (2026-10-05, Léo : « fais les 4 prochains niveaux en t'inspirant de la base… qu'à la cinq on ressente EXPLOSION, ARGENT, BOOMIN, LUXURY ») : 6 à 10 = la
+// suite composée (atelier-son/ville_suite.py) — PLUIE D'OR · SOUS-SOL · PENTHOUSE · CHAMBRE FORTE · CASH EXPLOSION
+const MUSIC_VILLE=['NÉON COMPLÈTE 1','NÉON COMPLÈTE 2','NÉON COMPLÈTE 3','NÉON COMPLÈTE 4','NÉON COMPLÈTE 5',"PLUIE D'OR",'SOUS-SOL','PENTHOUSE','CHAMBRE FORTE','CASH EXPLOSION']
+  .map(function(t,i){return{titre:t,f:'assets/audio/music/ville/ville-n'+(i+1)+'.m4a'};});
 const MUSIC_CIEL_TOUT={titre:'CIEL · LES 5 NIVEAUX',f:'assets/audio/music/ciel/ciel-complet.m4a'};
 function musicLieuVoulu(){
   const c=LVL.cur;if(!c)return null;
   if(c.id==='nuages'){if(c.carr){if(c.carr.i<5)return MUSIC_CIEL[c.carr.i];}else if(!c.piste)return MUSIC_CIEL_TOUT;}
-  if(c.id==='ville'&&c.carr&&c.carr.i<5)return MUSIC_VILLE[c.carr.i]; // la carrière VILLE, niveaux 1 à 5 : NÉON COMPLÈTE 1 à 5
+  if(c.id==='ville'&&c.carr&&c.carr.i<5)return MUSIC_VILLE[c.carr.i]; /* (2026-10-05, Léo : « seulement celles de mon screen » : NÉON COMPLÈTE 1-5 ; 6-10 en attente) */ // la carrière VILLE : ses dix musiques (NÉON COMPLÈTE 1-5, puis la suite)
   return MUSIC_LIEU[c.id]||null;}
 /* appelé à chaque changement de niveau (fin de `newTrack`) : change de morceau SEULEMENT si le lieu
    en réclame un autre que celui qui joue. */
@@ -31574,6 +31577,7 @@ function portailPasse(){
   const sP=survPortS(); // (2026-09-30) ce que la course du Survivant avance au passage (en vol : voir survPortS)
   if(CAMP.n===10&&CAMP.pris&&!PARK.on){campFinale();return;}
   if(!PARK.on&&CARR.actif&&LVL.cur&&LVL.cur.carr&&LVL.cur.id==='nuages'&&LVL.cur.carr.i===CARRIERE[LVL.cur.carr.b].niveaux.length-1){campFinale();return;} // (2026-10-04) SKY HIGH finit au niveau 5
+  if(!PARK.on&&CARR.actif&&LVL.cur&&LVL.cur.carr&&LVL.cur.id==='ville'&&LVL.cur.carr.i===CARRIERE[LVL.cur.carr.b].niveaux.length-1){villeFinale();return;} // (2026-10-05) la VILLE finit au niveau 5
   if(CAMP.n===20&&!PARK.on){if(!VBQ.fini)villeFinale();return;}
   if(!PARK.on&&CARR.actif&&LVL.cur&&LVL.cur.carr&&LVL.cur.id==='espace'&&LVL.cur.carr.i===9){espaceFinale();return;} // (2026-09-28) PLUTON n'avait pas de fin : le portail le rejouait à l'infini
   if(TUTO.on&&!CARR.actif&&!PARK.on){SURV.pBase+=sP;newTrack();return;} // (2026-09-28) l'auto-école ne s'échappe pas par le portail (le débutant qui n'osait pas sauter finissait la leçon dans la VILLE) : la piste d'apprentissage repart // (2026-09-27) le portail de MIDI : le premier arrivé gagne — le banquier passé avant toi, il ne mène plus nulle part // (2026-09-27) le portail du COUCHER : la campagne des NUAGES est finie, on ne va nulle part ailleurs
@@ -34579,7 +34583,7 @@ function villeFinale(){ // le portail de MIDI franchi AVANT le banquier : la VIL
   VBQ.on=false;VBQ.g.visible=false;trailStep(VBQ.tr,0,0,0,0,0,0,0);
   const zb=denom()*60*flowMult();money+=zb;levelCash+=zb;livre('$:fin',zb);try{checkUpgrade();}catch(e){} // (2026-09-29) × le FLOW : le dernier portail franchi en FRÉNÉSIE paie ×3
   try{if(SONV2)sfx('monde.fin');else{portalSnd();boostSnd(2);fanfare();}}catch(e){}flashEcran('rgba(255,215,140,.75)');hap([40,40,40,40,120]);
-  carrMarque(Math.max(0,CARRIERE.findIndex(function(B){return B.id==='ville';})),9);runStats.zones++; // les dix niveaux de la VILLE : le lingot se débloque (condition carrV)
+  {const vb9=Math.max(0,CARRIERE.findIndex(function(B){return B.id==='ville';}));carrMarque(vb9,CARRIERE[vb9].niveaux.length-1);}runStats.zones++; // les dix niveaux de la VILLE : le lingot se débloque (condition carrV)
   const ci=CARS.findIndex(function(c){return c.shape==='lingot';});
   if(ci>=0){SAVE.d.equipped=ci;level=ci;try{buildCar(CARS[ci]);}catch(e){}SAVE.flush();} // TA caisse devient le lingot (équipé : on le garde en sortant)
   CAMP.garde=true;mortCause='finVille';
@@ -40495,7 +40499,10 @@ renderLeaders(-1);
     T9(function(){beat(1.8);},2150);
     T9(fission,2650);
     T9(hide,(SAVE&&SAVE.d&&SAVE.d.tuto)?4600:6400); // (2026-09-26) 6,4 s à CHAQUE lancement : complète la 1re fois, écourtée ensuite
-    try{introSound();}catch(e){} // le son ne doit JAMAIS bloquer les visuels
+    /* (2026-10-06, Léo : « il y a encore des versions où l'intro CASH CAR qui explose : la musique commence même avant ça — il faut enlever
+       COMPLÈTEMENT toute musique qui arrive avant le ciel ») : la composition de l'intro (accords « nombre d'or », compteuse qui monte,
+       battements de cœur, sub) ne joue plus — l'intro est muette, la musique du lobby part avec le ciel (hide, 420 ms). */
+    if(INTRO_SON)try{introSound();}catch(e){} // le son ne doit JAMAIS bloquer les visuels
   }
   // PAS de lancement auto : on attend le geste (seul moyen d'avoir le son — règle navigateur).
   // ⚠ LA PLAQUE ARRIVE EN 900 ms, PAS EN 4 s. L'ancien « CLIQUE » se faisait attendre quatre secondes
@@ -40508,6 +40515,7 @@ renderLeaders(-1);
   // ---- SOUND DESIGN « 1.61 » : tout est accordé sur le NOMBRE D'OR φ=1,618 ----
   // Échelle inouïe (intervalles de φ : ni octaves ni quintes — le son littéral de 1.61),
   // compteuse à billets en guise de riser, sub qui bat à 0,618 Hz, jackpot de pièces à la fission.
+  const INTRO_SON=false; // true = l'ancienne composition de l'intro
   function introSound(){
     if(!SND.sfx||!(VOL.sfx>0))return; // mute SON : l'intro reste muette aussi — (2026-09-28) et le curseur EFFETS à zéro aussi
     try{iAC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){return;}

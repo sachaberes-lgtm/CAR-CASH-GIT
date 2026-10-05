@@ -260,7 +260,7 @@
     le chiffre en quatre bandes, la barre en TUBE de 12 px (laque de verre, courant de bandes en biais qui coule, crans tous les 10 %, pointe
     chauffée à blanc qui pulse, éclat ~3,6 s) ; arrivée, elle CLAQUE (`.pose` : éclair, le % qui saute) ; pleine, elle bat (`.plein`). La ligne
     dit ce qui MANQUE : « LA HONTE · ENCORE $ 1 200 » / « À TA PORTÉE ! », « ON PARLE DE TOI ▸ RÉPUTÉ » / « INTOUCHABLE ».
-  Banc `vit6.mjs <nom> W H [zones]` (captures vitrine + tiroir, JOUER → course). sw.js → v116.
+  Banc `vit6.mjs <nom> W H [zones]` (captures vitrine + tiroir, JOUER → course). sw.js → v116 (passé en v120 à la fusion : main était déjà en v119).
 - **L'ATELIER AÉRÉ + LE RENDU (même jour, Léo : « enlève quelques accessoires du garage, ça fait un peu rempli pour rien — les pieds tu
   dois laisser, ça fait partie du jeu ; les billets, mes trucs de trophée, tout ça laisse ; aère un peu l'espace · travaille plus le
   rendu »)** — `GAR_AERE` (juste avant `buildGarageRoom`) : le petit bazar ne se construit plus — cartons, bidons, fûts et jerricans de

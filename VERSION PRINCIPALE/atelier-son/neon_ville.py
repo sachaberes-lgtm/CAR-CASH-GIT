@@ -186,6 +186,7 @@ def rendre(D, graine):
                     pst.pose(t, NOTE_INST[ins](x, d, v, de, P), g * v, pan)
         if tr.get('pump'): pompes.append((ins, tr['pump']))
         if tr.get('rev'): (envoi_gong if ins == 'gong' else envois).append((ins, tr['rev']))
+    globals()['_kicks'] = kicks                                                         # (ville_suite.py : ses pistes neuves respirent sur les mêmes grosses caisses)
     tk = kicks if kicks else [M.t(m, p) for m in range(bars) for p in (0, 4, 8, 12)]       # sans grosse caisse : la nappe respire sur chaque temps
     for nom, pr in pompes:
         if nom in M.bus: gp = pompe(M.n, tk, pr, .16); M.bus[nom].L *= gp; M.bus[nom].R *= gp
