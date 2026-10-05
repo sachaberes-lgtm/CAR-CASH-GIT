@@ -25,8 +25,12 @@ SRC = os.path.join(os.path.dirname(os.path.dirname(ICI)), 'neon-complete-1-a-5.m
 TOURS = 12
 NOMS = {'C': 0, 'D': 2, 'E': 4, 'F': 5, 'G': 7, 'A': 9, 'B': 11}
 # le niveau d'un instrument à `vol` = REF (le mixage de Néon), et la référence de son `vol`
-BASE = {'synthbass': .36, 'sub': .28, 'juno': .42, 'rhodes': .1, 'cs80': .34, 'bell': .22, 'swell': .3, 'boomkick': .55,   # (mesuré : la 1re passe noyait
+BASE = {'synthbass': .36, 'sub': .17, 'juno': .42, 'rhodes': .1, 'cs80': .56, 'bell': .22, 'swell': .3, 'boomkick': .55,   # (mesuré : la 1re passe noyait
         'cello': .2, 'ploc': .32, 'pop': .26, 'bubble': .22, 'gong': .5}                                                      #  tout dans le grave, −45 dB d'aigus)
+# (2026-10-05, Léo : « tu as oublié un LEAD important qui donnait de la vie aux 5 niveaux ») : le cuivre CS-80 était ENTERRÉ (mesuré :
+# −10 dB sous la sous-basse aux niveaux 1-2, −22 dB aux niveaux 3-5 — leurs −11/−12 dB du Studio appliqués à la lettre). Son `vol` ne compte
+# plus qu'à 30 % (le 5 reste « joué moins fort », sans disparaître) et la sous-basse, qui écrasait tout, descend.
+VOL_K = {'cs80': .15}
 REF = {'synthbass': 0, 'sub': -18, 'juno': 0, 'rhodes': -17, 'cs80': 0, 'bell': -25, 'swell': -16, 'boomkick': -8, 'cello': 0,
        'ploc': -13, 'pop': -21, 'bubble': 0, 'gong': 0}
 
@@ -152,7 +156,7 @@ def rendre(D, graine):
     for tr in D['tracks']:
         ins = tr['inst']
         if ins in ('hiss', 'crackle'): continue
-        lg = tr.get('len', 4); cyc = bars // lg; g = BASE.get(ins, .2) * 10 ** ((tr.get('vol', REF.get(ins, 0)) - REF.get(ins, 0)) / 20)
+        lg = tr.get('len', 4); cyc = bars // lg; g = BASE.get(ins, .2) * 10 ** (VOL_K.get(ins, 1.) * (tr.get('vol', REF.get(ins, 0)) - REF.get(ins, 0)) / 20)
         P = tr; pst = M.piste(ins); act = tr.get('active'); prob = tr.get('prob', 1.); hum = tr.get('human', 0); late = tr.get('late', 0)
         for c in range(cyc):
             base = c * lg * 16 * dc; var = tirer(tr['variants'], rng)
