@@ -5587,21 +5587,28 @@ html body #garage.vitrine:not(.menu) #gBottom{position:absolute;left:0;right:0;t
   padding:0 calc(var(--sR) + 16px) calc(var(--sB) + 16px) calc(var(--sL) + 16px);background:none;box-shadow:none;clip-path:none;gap:0;animation:none;
   transition:opacity .28s var(--ease),translate .28s var(--ease)}
 html body #garage.vitrine:not(.menu) #gBottom::before{display:none}
-html body #garage.vitrine:not(.menu) #gAct{position:relative;display:grid;grid-template-columns:minmax(0,.83fr) minmax(0,1fr);grid-template-rows:62px auto;column-gap:10px;row-gap:0;align-items:stretch;margin:0;width:100%;max-width:none}
+html body #garage.vitrine:not(.menu) #gAct{position:relative;display:grid;grid-template-columns:minmax(0,.83fr) minmax(0,1fr);grid-template-rows:auto 46px auto;column-gap:10px;row-gap:0;align-items:stretch;margin:0;width:100%;max-width:none}
 /* (2026-10-05, Léo : « en dessous du play, MISSIONS, et le nom du level qui va être lancé, limite collé, stylé, branché énergétiquement ») LA PILE
    DU DÉPART : JOUER en haut, le CARTOUCHE du niveau branché dessous (deux conducteurs d'or où le courant monte, un éclair qui grésille, un flux
    qui court sur sa tranche), puis MISSIONS ; HOME et SHOP sur la rangée du bas, à côté de MISSIONS. */
-html body #garage.vitrine:not(.menu) #gAct>#gJouer{grid-column:2;grid-row:1} /* (même soir, « enlève le bouton coffre ») JOUER sur toute la largeur — (puis, Léo : « le PLAY était mieux plus petit, c'était mieux avec la mission branchée sur le PLAY ») : la colonne de droite, comme la v114 */
+html body #garage.vitrine:not(.menu) #gAct>#gJouer{grid-column:2;grid-row:2} /* (même soir, « enlève le bouton coffre ») JOUER sur toute la largeur — (puis, Léo : « le PLAY était mieux plus petit, c'était mieux avec la mission branchée sur le PLAY ») : la colonne de droite, comme la v114 */
 html body #garage.vitrine:not(.menu) #gAct>#gClose{display:none!important} /* (même soir, Léo : « mets le bouton home en haut à droite avec les settings ») : voir #gvHome */
-html body #garage.vitrine:not(.menu) #gAct>#gPerso{grid-column:1;grid-row:1} /* (même soir, « le bouton shop n'est pas très grand ») : grand — (puis) à gauche de JOUER, à sa hauteur */
+html body #garage.vitrine:not(.menu) #gAct>#gPerso{grid-column:1;grid-row:3;margin-top:13px} /* (même soir, « le bouton shop n'est pas très grand ») : grand — (puis) à gauche de JOUER, à sa hauteur */
 #gvNiv,#gvMis,#gvCof,#gvLvls,#gvLvl,#gvNivs{display:none}
 html body #garage.vitrine:not(.menu) #gAct>#gvCof{display:none!important} /* (même soir, Léo : « enlève le bouton coffre ; un bouton rouge sur la plateforme ») : voir LE BOUTON ROUGE ET SES OUTILS */ /* (2026-10-05) le COFFRE, à gauche de JOUER — (même soir, « plus gros ») sur les deux colonnes */
 /* (2026-10-05, Léo : « missions branché au play plutôt que le niveau, et les niveaux affichés avec leur distance et leur titre — vignette
    avec un fond imagé représentatif, léger, agréable, kawaii mais pas abusé, pas trop gentil non plus ») : MISSIONS prend la place BRANCHÉE
    sous JOUER (les deux conducteurs d'or où le courant monte, le flux qui court sur sa tranche) ; le NIVEAU devient une VIGNETTE illustrée
    (rangée du bas) — son paysage en pixel art peint par `gvVignette`, son titre, sa distance ; (même soir) TOUTE la suite, en bande qui défile (#gvLvls). */
-html body #garage.vitrine:not(.menu) #gAct>#gvMis{display:flex;grid-column:2;grid-row:2;margin:13px 6px 0;height:46px;min-height:46px}
-html body #garage.vitrine:not(.menu) #gAct>#gvLvl{display:block;grid-column:1;grid-row:2;margin-top:13px;height:46px} /* (puis) la VIGNETTE seule, sous SHOP, à la hauteur de MISSIONS */
+html body #garage.vitrine:not(.menu) #gAct>#gvMis{display:flex;grid-column:2;grid-row:1;margin:0 4px 8px;height:30px;min-height:30px;font-size:var(--f0);letter-spacing:1px;gap:8px} /* (puis, Léo : « mets MISSIONS en plus fin, en haut du PLAY ») : une barre fine au-dessus de JOUER, sans conducteurs */
+html body #garage.vitrine:not(.menu) #gAct>#gvLvl{display:block;grid-column:2;grid-row:3;margin-top:13px;height:46px} /* (puis, Léo : « la map branchée à la place de MISSIONS ») : sous JOUER, les deux conducteurs d'or (#gvBranche) */
+#gvBranche{display:none}
+html body #garage.vitrine:not(.menu) #gAct>#gvBranche{display:block;grid-column:2;grid-row:3;align-self:start;position:relative;height:13px;pointer-events:none;z-index:1}
+html body #garage.vitrine:not(.menu) #gAct>#gvBranche::before,html body #garage.vitrine:not(.menu) #gAct>#gvBranche::after{content:'';position:absolute;top:0;width:4px;height:100%;background:linear-gradient(0deg,#b8790a 0%,#fff3c4 45%,#ffd75e 55%,#b8790a 100%);background-size:100% 260%;
+  box-shadow:0 0 8px #ffb83a,0 0 2px #fff;animation:gvCourant .55s linear infinite}
+html body #garage.vitrine:not(.menu) #gAct>#gvBranche::before{left:18%}html body #garage.vitrine:not(.menu) #gAct>#gvBranche::after{right:18%;animation-delay:-.27s}
+html body #garage.vitrine:not(.menu) #gAct>#gvMis::before,html body #garage.vitrine:not(.menu) #gAct>#gvMis::after,html body #garage.vitrine:not(.menu) #gAct>#gvMis .gvFx{display:none}
+#gvLvl .gvFx{position:absolute;z-index:2;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,transparent,#fff3b0,#ffb83a,transparent) no-repeat;background-size:34% 100%;animation:gvFlux 1.5s linear infinite} /* (puis) la VIGNETTE seule, sous SHOP, à la hauteur de MISSIONS */
 #gvMis{--nc:var(--neoV);position:relative;flex-direction:row;align-items:center;justify-content:center;gap:10px;min-width:0;height:42px;min-height:42px;padding:0 12px;
   font-size:var(--f1);letter-spacing:2px;color:var(--tx);white-space:nowrap;
   background:linear-gradient(180deg,#1c1338,#0a0717);box-shadow:inset 0 0 0 1px rgba(255,205,90,.55),inset 0 1px 0 rgba(255,240,190,.25),inset 0 -2px 0 var(--nc),0 0 16px -4px rgba(255,190,40,.65);
@@ -5614,7 +5621,7 @@ html body #garage.vitrine:not(.menu) #gAct>#gvLvl{display:block;grid-column:1;gr
 @keyframes gvFlux{from{background-position:-50% 0}to{background-position:150% 0}}
 #gvMis .pxi{--pxs:2;color:var(--nc);filter:drop-shadow(0 0 6px var(--nc))}
 #gvMis:is(:active,.appui){transform:skewX(var(--sk)) translateY(2px);box-shadow:inset 0 0 0 1px #fff3c4,inset 0 -2px 0 var(--nc),0 0 26px 0 rgba(255,200,60,.9)}
-html body #garage.vitrine:not(.menu) #gAct>#gJouer:is(:active,.appui)~#gvMis{box-shadow:inset 0 0 0 1px #fff3c4,inset 0 -2px 0 var(--nc),0 0 26px 0 rgba(255,200,60,.9)}
+html body #garage.vitrine:not(.menu) #gAct>#gJouer:is(:active,.appui)~#gvLvl{box-shadow:inset 0 0 0 2px #fff3c4,inset 0 -2px 0 var(--lc,#5ee6ff),0 0 26px 0 rgba(255,200,60,.9)}
 .gvPips{display:flex;gap:4px}
 .gvPips u{display:block;width:8px;height:8px;transform:rotate(45deg);background:#1b1433;box-shadow:inset 0 0 0 1px rgba(94,240,138,.6)}
 .gvPips u.ok{background:var(--neoV);box-shadow:0 0 8px var(--neoV)}
@@ -5633,7 +5640,7 @@ html body #garage.vitrine:not(.menu) #gAct>#gJouer:is(:active,.appui)~#gvMis{box
 /* (puis, Léo : « les niveaux imagés, mais un peu plus brillants ») : le paysage plus clair et plus saturé, le voile d'encre allégé, un liseré
    de la couleur du monde qui luit, et un ÉCLAT qui balaie la vignette toutes les ~4 s */
 :is(#gvLvl,.gvV) .gvImg{filter:brightness(1.18) saturate(1.3)}
-#gvLvl{box-shadow:inset 0 0 0 1px rgba(255,255,255,.22),inset 0 -2px 0 var(--lc,#5ee6ff),0 0 14px -4px var(--lc,#5ee6ff),0 12px 26px -12px rgba(0,0,0,.85)}
+#gvLvl{box-shadow:inset 0 0 0 1px rgba(255,205,90,.6),inset 0 1px 0 rgba(255,240,190,.3),inset 0 -2px 0 var(--lc,#5ee6ff),0 0 16px -4px rgba(255,190,40,.7),0 12px 26px -12px rgba(0,0,0,.85)}
 #gvLvl .gvTx::after,.gvV .gvTx::after{content:none}
 #gvLvl::before,.gvV::before{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.42) 50%,transparent 60%) no-repeat;background-size:260% 100%;animation:k4Lingot 4.2s var(--ease) 1.4s infinite}
 #gvLvl .gvOuv{position:absolute;z-index:1;top:4px;right:6px;--pxs:1;color:#fff;transform:skewX(calc(-1 * var(--sk)));animation:gvOuvBat 1.8s ease-in-out infinite}
@@ -5682,11 +5689,11 @@ html body #garage.vitrine:not(.menu) #gAct>#gClose{--nc:#b8b0e0}
 html body #garage.vitrine:not(.menu) #gAct>#gPerso{--nc:var(--neoC)}
 html body #garage.vitrine:not(.menu) #gAct>:is(#gClose,#gPerso,#gvCof) .pxi{--pxs:3;color:var(--nc);filter:drop-shadow(0 0 6px var(--nc))}
 html body #garage.vitrine:not(.menu) #gAct>:is(#gvCof,#gPerso){width:auto;min-width:0;flex-direction:row;align-items:center;justify-content:center;gap:12px;padding:0 10px;font-size:var(--f1);letter-spacing:2px}
-html body #garage.vitrine:not(.menu) #gAct>:is(#gvCof,#gPerso) .pxi{--pxs:4}
-html body #garage.vitrine:not(.menu) #gAct>#gPerso{height:62px;min-height:62px}
+html body #garage.vitrine:not(.menu) #gAct>:is(#gvCof,#gPerso) .pxi{--pxs:3}
+html body #garage.vitrine:not(.menu) #gAct>#gPerso{height:46px;min-height:46px}
 html body #garage.vitrine:not(.menu) #gAct>:is(#gClose,#gPerso,#gvCof):is(:active,.appui){transform:skewX(var(--sk)) translateY(2px);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.1),inset 0 0 0 1px var(--nc),inset 0 -2px 0 var(--nc),0 0 22px -6px var(--nc)}
-html body #garage.vitrine:not(.menu) #gAct>#gJouer{flex:1;height:62px;min-height:62px}
+html body #garage.vitrine:not(.menu) #gAct>#gJouer{flex:1;height:46px;min-height:46px} /* (puis, Léo : « JOUER petit, comme le MISSIONS actuel ») */
 /* elles ARRIVENT : du sol, l'une après l'autre (propriétés individuelles : le `transform` penché de la touche reste à elle) */
 html body #garage.vitrine:not(.menu) #gAct>:is(#gClose,#gPerso,#gJouer){animation:gvMonte .52s var(--ease) backwards}
 html body #garage.vitrine:not(.menu) #gAct>#gClose{animation-delay:.12s}
@@ -5768,11 +5775,13 @@ html body #garage.vitrine:not(.menu):not(.inv) #gVJ{display:flex}
   .gvL{padding:6px 10px 6px 12px;row-gap:4px}
   .gvL u{height:10px}
   .gvL b{font-size:var(--f2)}
-  html body #garage.vitrine:not(.menu) #gAct{width:min(440px,56%);margin:0 0 0 auto;grid-template-columns:minmax(0,.83fr) minmax(0,1fr);grid-template-rows:50px auto}
-  html body #garage.vitrine:not(.menu) #gAct>#gJouer{height:50px;min-height:50px}
-  html body #garage.vitrine:not(.menu) #gAct>#gPerso{width:auto;min-width:0;height:50px;min-height:50px;gap:9px}
+  html body #garage.vitrine:not(.menu) #gAct{width:min(440px,56%);margin:0 0 0 auto;grid-template-columns:minmax(0,.83fr) minmax(0,1fr);grid-template-rows:auto 40px auto}
+  html body #garage.vitrine:not(.menu) #gAct>#gJouer{height:40px;min-height:40px}
+  html body #garage.vitrine:not(.menu) #gAct>#gvMis{height:26px;min-height:26px;margin-bottom:6px}
+  html body #garage.vitrine:not(.menu) #gAct>#gvBranche{height:11px}
+  html body #garage.vitrine:not(.menu) #gAct>#gPerso{width:auto;min-width:0;height:40px;min-height:40px;gap:9px;margin-top:11px}
   html body #garage.vitrine:not(.menu) #gAct>#gPerso .pxi{--pxs:3}
-  html body #garage.vitrine:not(.menu) #gAct>:is(#gvMis,#gvLvl){height:40px;min-height:40px;margin-top:11px}#gvMis::before,#gvMis::after{top:-11px;height:11px}
+  html body #garage.vitrine:not(.menu) #gAct>#gvLvl{height:40px;min-height:40px;margin-top:11px}
   .gvV{height:42px}
   #gvNivs{bottom:calc(100% + 10px);max-height:calc(100vh - var(--sT) - var(--sB) - 150px);padding:10px 10px 10px 13px}
   #gvNivs .gnH{margin-bottom:8px}
@@ -6009,7 +6018,8 @@ html.sansFacile [data-m="facile"]{display:none!important}
         <button id="gvMis" class="pbtn" aria-label="Missions"><s class="gvFx" aria-hidden="true"></s><i class="pxi pxi-cible" aria-hidden="true"></i><span data-fr="MISSIONS">MISSIONS</span><b class="gvPips" aria-hidden="true"><u></u><u></u><u></u></b></button>
         <!-- (2026-10-05, Léo : « l'inventaire va être ajouté à côté du bouton jouer ») le COFFRE : l'inventaire (le doigt tenu sur la caisse lance désormais le BURN-OUT) -->
         <!-- (2026-10-05, Léo : « les niveaux, non : tu vois le niveau comme avant ; juste quand tu cliques dessus, tu vois les niveaux que tu as accomplis ») LA VIGNETTE du niveau que JOUER lance, et son TIROIR : voir gvNiveau / gvNivs -->
-        <div id="gvLvl" role="button" tabindex="0" aria-label="Les niveaux" aria-expanded="false"><i class="gvImg" aria-hidden="true"></i><span class="gvTx"><b class="gvN"></b><span class="gvT"></span><em class="gvD"></em></span><i class="gvOuv pxi pxi-haut" aria-hidden="true"></i></div>
+        <i id="gvBranche" aria-hidden="true"></i><!-- (2026-10-05, Léo : « la map branchée à la place de MISSIONS ») les deux conducteurs d'or entre JOUER et la map -->
+        <div id="gvLvl" role="button" tabindex="0" aria-label="Les niveaux" aria-expanded="false"><i class="gvImg" aria-hidden="true"></i><s class="gvFx" aria-hidden="true"></s><span class="gvTx"><b class="gvN"></b><span class="gvT"></span><em class="gvD"></em></span><i class="gvOuv pxi pxi-haut" aria-hidden="true"></i></div>
         <div id="gvNivs" role="dialog" aria-label="Niveaux accomplis"></div>
         <button id="gvCof" class="pbtn" aria-label="Inventaire"><i class="pxi pxi-coffre" aria-hidden="true"></i><span data-fr="COFFRE">COFFRE</span></button>
       </div>

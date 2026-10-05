@@ -260,6 +260,10 @@
     le chiffre en quatre bandes, la barre en TUBE de 12 px (laque de verre, courant de bandes en biais qui coule, crans tous les 10 %, pointe
     chauffée à blanc qui pulse, éclat ~3,6 s) ; arrivée, elle CLAQUE (`.pose` : éclair, le % qui saute) ; pleine, elle bat (`.plein`). La ligne
     dit ce qui MANQUE : « LA HONTE · ENCORE $ 1 200 » / « À TA PORTÉE ! », « ON PARLE DE TOI ▸ RÉPUTÉ » / « INTOUCHABLE ».
+  · (même soir, Léo : « les boutons c'est bien ; juste la MAP branchée à la place de MISSIONS, MISSIONS en plus fin en haut du PLAY, SHOP à
+    côté de la map, et JOUER petit comme le MISSIONS actuel ») LA PILE v6 : à droite, de haut en bas, MISSIONS en barre fine (30 px, sans
+    conducteurs), JOUER (46 px), la MAP branchée dessous (`#gvBranche` : les deux conducteurs d'or ; liseré d'or et flux sur sa tranche ;
+    JOUER enfoncé l'allume) ; à gauche SHOP, à côté de la map. Couché : 26 / 40 / 40 px. sw.js → v121.
   Banc `vit6.mjs <nom> W H [zones]` (captures vitrine + tiroir, JOUER → course). sw.js → v116 (passé en v120 à la fusion : main était déjà en v119).
 - **L'ATELIER AÉRÉ + LE RENDU (même jour, Léo : « enlève quelques accessoires du garage, ça fait un peu rempli pour rien — les pieds tu
   dois laisser, ça fait partie du jeu ; les billets, mes trucs de trophée, tout ça laisse ; aère un peu l'espace · travaille plus le
