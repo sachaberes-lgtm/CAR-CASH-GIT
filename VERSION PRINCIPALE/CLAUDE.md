@@ -66,6 +66,26 @@
   (pictogramme sur son mot), JOUER prend le reste, même hauteur (62 px debout, 56 couché) ; couché les touches à droite sous le pouce et
   l'astuce à gauche, sur deux lignes (elle tient même dans les marges de l'iPhone). Cartes : argent = valeur, %, la caisse visée et son
   prix (coche verte qui luit quand elle s'achète) ; aura = valeur, %, le rang en rose (le suivant au survol).
+- **(2026-10-05, Léo) « enlève le blase de la voiture, énorme, qui sert à rien » · « la voiture en paysage encore calée un peu plus vers le coin bas
+  gauche »** : le NOM est retiré de la vitrine (`#gCard` masqué ; il vit dans l'inventaire et la console du SHOP) — debout, les jauges montent dans
+  la barre du haut à côté du ⚙ (pourcentage lu sur la barre, chiffres serrés, compacts dès 100 000). Couché la caisse a toute la place à GAUCHE de
+  la pile du départ (`garLibre` : x1 = bord de `#gAct`, toute la hauteur), à 62 % de cette place (`cxL`) et 60 % de sa hauteur (`cyL`).
+- **LA PILE DU DÉPART (2026-10-05, Léo : « en dessous du play, insère MISSIONS, et le nom du level qui va être lancé, limite collé, de manière
+  stylée, branché énergétiquement »)** — `#gAct` devient une grille : JOUER en haut à droite ; dessous, collé, le CARTOUCHE du niveau (`#gvNiv`,
+  `gvNiveau()`) : deux conducteurs d'or où le courant MONTE vers le lingot (`gvCourant`), un flux qui court sur sa tranche (`gvFlux`), un éclair qui
+  grésille, le nom dans la couleur du monde (`GV_TEINTE`) — JOUER de l'atelier lance la partie sans fin, donc `NIVEAUX[0]` (« NIVEAU 1 · MER DE
+  NUAGES ») ou « PERMIS · AUTO-ÉCOLE » tant que le permis n'est pas passé ; debout le numéro seul dans une pastille d'or. Dessous MISSIONS
+  (`#gvMis`, vert, les trois pastilles des défis) : l'écran des missions de l'atelier, et HOME / Échap y RAMÈNENT à la vitrine (`GAR.misVit`,
+  `garMisRetour`). HOME et SHOP sur la rangée du bas, à côté de MISSIONS. L'astuce : debout au-dessus de la pile, couché dans le coin haut-gauche.
+- **LE TOUR DU GARAGE AU DOIGT, L'ENTRÉE AU REPOS (2026-10-05, Léo : « c'est avec le doigt qu'on peut bouger le garage à 360°, mais sinon centré sur
+  l'entrée, sans la porte »)** : en vitrine le glissé fait TOURNER LA VUE (le glissé fondu du menu de Léo : `GAR.vAc`, élan, tour complet, sans
+  changer la hauteur) ; le plateau continue de tourner. Au repos la caméra REGARDE L'ENTRÉE (`VC.porteY` 1,9 m) : l'ouverture et le feu restent au
+  milieu de l'image ; la caisse est posée par la PLACE de la caméra (`GAR.vD`, décalage d'azimut corrigé image après image d'après `GAR.cErr`,
+  l'écart lu par `garCadre`), plus par un décentrement en largeur (`garCadre(k, kx)` : kx = 1 − wD). Vue tournée : `wD` → 0, la visée revient
+  au-delà de la caisse. JOUER défait les deux pendant le retour au feu (`pre.vd0`, `GAR.preE`) : pas de saut au départ. Pas de retour automatique
+  (Léo l'avait retiré du menu le 30/09). ⚠ LA PORTE se LÈVE en vitrine (`garPorte` : `Pt.kv`, 1,1 s) — la porte fermée est le choix de SACHA
+  (menu, boutique) : ici seulement en vitrine, À CONFIRMER AVEC ELLE avant main. Bancs `tour.mjs` (glissé 127°, MISSIONS → HOME → vitrine, JOUER
+  depuis une vue tournée), `garfeu.mjs`, `parcours.mjs`, `inv.mjs`, `cadreinv.mjs`. sw.js → v108.
 - **LES JAUGES (même soir, Léo : « ça fait un peu vide, ajoute un peu de vie : jauge money, jauge aura, moyennes, colorées »)** — `#gVJ`,
   `gvJauges(anim)` appelée par `garVitrine(true)` : l'ARGENT (vert billet, vers la prochaine caisse à vendre — `objectif()`, celle que visait
   le profil du menu de Léo ; pleine : « À TA PORTÉE » qui luit) et l'AURA (violet → rose, le rang, vers le rang suivant, ce qu'il manque).

@@ -5538,7 +5538,47 @@ html body #garage.vitrine:not(.menu) #gBottom{position:absolute;left:0;right:0;t
   padding:0 calc(var(--sR) + 16px) calc(var(--sB) + 16px) calc(var(--sL) + 16px);background:none;box-shadow:none;clip-path:none;gap:0;animation:none;
   transition:opacity .28s var(--ease),translate .28s var(--ease)}
 html body #garage.vitrine:not(.menu) #gBottom::before{display:none}
-html body #garage.vitrine:not(.menu) #gAct{display:flex;align-items:stretch;gap:10px;margin:0;width:100%;max-width:none}
+html body #garage.vitrine:not(.menu) #gAct{display:grid;grid-template-columns:74px 74px minmax(0,1fr);grid-template-rows:62px auto auto;column-gap:10px;row-gap:0;align-items:stretch;margin:0;width:100%;max-width:none}
+/* (2026-10-05, Léo : « en dessous du play, MISSIONS, et le nom du level qui va être lancé, limite collé, stylé, branché énergétiquement ») LA PILE
+   DU DÉPART : JOUER en haut, le CARTOUCHE du niveau branché dessous (deux conducteurs d'or où le courant monte, un éclair qui grésille, un flux
+   qui court sur sa tranche), puis MISSIONS ; HOME et SHOP sur la rangée du bas, à côté de MISSIONS. */
+html body #garage.vitrine:not(.menu) #gAct>#gJouer{grid-column:3;grid-row:1}
+html body #garage.vitrine:not(.menu) #gAct>#gClose{grid-column:1;grid-row:3;margin-top:8px}
+html body #garage.vitrine:not(.menu) #gAct>#gPerso{grid-column:2;grid-row:3;margin-top:8px}
+#gvNiv,#gvMis{display:none}
+html body #garage.vitrine:not(.menu) #gAct>#gvNiv{display:flex;grid-column:3;grid-row:2}
+html body #garage.vitrine:not(.menu) #gAct>#gvMis{display:flex;grid-column:3;grid-row:3;margin-top:8px}
+#gvNiv{position:relative;align-items:center;justify-content:center;gap:8px;min-width:0;height:28px;margin:12px 6px 0;padding:0 12px;box-sizing:border-box;pointer-events:none;
+  font-size:var(--f0);letter-spacing:1px;color:var(--tx);white-space:nowrap;transform:skewX(var(--sk));
+  background:linear-gradient(180deg,#1c1338,#0a0717);box-shadow:inset 0 0 0 1px rgba(255,205,90,.55),inset 0 1px 0 rgba(255,240,190,.25),0 0 16px -4px rgba(255,190,40,.65);
+  animation:gvMonte .52s var(--ease) .33s backwards}
+#gvNiv>*{transform:skewX(calc(-1 * var(--sk)))}
+#gvNiv::before,#gvNiv::after{content:'';position:absolute;top:-13px;width:4px;height:13px;background:linear-gradient(0deg,#b8790a 0%,#fff3c4 45%,#ffd75e 55%,#b8790a 100%);background-size:100% 260%;
+  box-shadow:0 0 8px #ffb83a,0 0 2px #fff;animation:gvCourant .55s linear infinite}
+#gvNiv::before{left:16%}#gvNiv::after{right:16%;animation-delay:-.27s}
+@keyframes gvCourant{from{background-position:0 0}to{background-position:0 -260%}}
+#gvNiv u{position:absolute;left:0;right:0;bottom:0;height:2px;transform:none;background:linear-gradient(90deg,transparent,#fff3b0,#ffb83a,transparent) no-repeat;background-size:34% 100%;animation:gvFlux 1.5s linear infinite}
+@keyframes gvFlux{from{background-position:-50% 0}to{background-position:150% 0}}
+#gvNiv .pxi{--pxs:1;color:#ffd75e;filter:drop-shadow(0 0 4px #ffb83a);animation:gvEclairGr 2.2s steps(1) infinite}
+@keyframes gvEclairGr{0%,40%,46%,70%,100%{opacity:1}42%,72%{opacity:.25}}
+#gvNiv b{font-weight:400;color:#ffe9a8}
+#gvNiv em{min-width:0;font-style:normal;color:var(--lc,#5ee6ff);text-shadow:0 0 8px var(--lc,#5ee6ff);overflow:hidden;text-overflow:ellipsis}
+#gvNiv em::before{content:'·';margin-right:8px;color:var(--tx3);text-shadow:none}
+@media (orientation:portrait){
+  #gvNiv{gap:7px;padding:0 10px;letter-spacing:0}
+  #gvNiv .gvNL{display:none}
+  #gvNiv b:not(:empty){display:grid;place-items:center;min-width:16px;height:16px;color:#1a1000;background:#ffd75e;box-shadow:0 0 8px rgba(255,200,60,.7)}
+  #gvNiv em::before{display:none}}
+html body #garage.vitrine:not(.menu) #gAct>#gJouer:is(:active,.appui)~#gvNiv{box-shadow:inset 0 0 0 1px #fff3c4,0 0 26px 0 rgba(255,200,60,.9)}
+#gvMis{--nc:var(--neoV);flex-direction:row;justify-content:center;gap:10px;min-width:0;height:56px;min-height:56px;padding:0 12px;font-size:var(--f1);letter-spacing:2px;color:var(--tx);
+  background:linear-gradient(180deg,rgba(30,22,62,.84),rgba(11,8,26,.88));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.16),inset 0 0 0 1px rgba(255,255,255,.1),inset 0 -2px 0 var(--nc),0 12px 26px -12px rgba(0,0,0,.85);
+  text-shadow:0 1px 0 var(--txO);animation:gvMonte .52s var(--ease) .38s backwards}
+#gvMis .pxi{--pxs:2;color:var(--nc);filter:drop-shadow(0 0 6px var(--nc))}
+#gvMis:is(:active,.appui){transform:skewX(var(--sk)) translateY(2px);box-shadow:inset 0 0 0 1px var(--nc),inset 0 -2px 0 var(--nc),0 0 22px -6px var(--nc)}
+.gvPips{display:flex;gap:4px}
+.gvPips u{display:block;width:8px;height:8px;transform:rotate(45deg);background:#1b1433;box-shadow:inset 0 0 0 1px rgba(94,240,138,.6)}
+.gvPips u.ok{background:var(--neoV);box-shadow:0 0 8px var(--neoV)}
 html body #garage.vitrine:not(.menu) #gAct>:is(#gClose,#gPerso){display:flex;flex:none;flex-direction:column;justify-content:center;gap:7px;width:74px;min-width:74px;height:62px;min-height:62px;
   padding:6px 4px 3px 9px;font-size:var(--f0);letter-spacing:1px;color:var(--tx);
   background:linear-gradient(180deg,rgba(30,22,62,.84),rgba(11,8,26,.88));
@@ -5608,15 +5648,19 @@ html body #garage.vitrine:not(.menu):not(.inv) #gVJ{display:flex}
 @media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
   html body #garage.vitrine:not(.menu) #gTop{width:calc(100% - 460px - var(--sR));padding-right:12px}
   html body #garage.vitrine:not(.menu) #gVJ{position:fixed;top:calc(var(--sT) + 12px);right:calc(var(--sR) + 16px + 48px + 10px);width:376px;margin:0;padding:0}
-  html body #garage.vitrine:not(.menu) #gAct{width:min(430px,54%);margin:0 0 0 auto}
-  html body #garage.vitrine:not(.menu) #gAct>:is(#gClose,#gPerso){width:70px;min-width:70px;height:56px;min-height:56px;gap:5px}
-  html body #garage.vitrine:not(.menu) #gAct>#gJouer{height:56px;min-height:56px}
+  html body #garage.vitrine:not(.menu) #gAct{width:min(430px,54%);margin:0 0 0 auto;grid-template-columns:62px 62px minmax(0,1fr);grid-template-rows:50px auto auto}
+  html body #garage.vitrine:not(.menu) #gAct>:is(#gClose,#gPerso){width:62px;min-width:62px;height:46px;min-height:46px;gap:3px;padding-top:3px}
+  html body #garage.vitrine:not(.menu) #gAct>:is(#gClose,#gPerso) .pxi{--pxs:2}
+  html body #garage.vitrine:not(.menu) #gAct>#gJouer{height:50px;min-height:50px}
+  html body #garage.vitrine:not(.menu) #gAct>#gvMis{height:46px;min-height:46px}
+  html body #garage.vitrine:not(.menu) #gAct>:is(#gClose,#gPerso,#gvMis){margin-top:6px}
+  #gvNiv{height:24px;margin-top:10px}#gvNiv::before,#gvNiv::after{top:-11px;height:11px}
 }
 @media (prefers-reduced-motion:reduce){#gVJ,.gvL u::after,.gvA .pxi,.gvU .pxi{animation:none!important}.gvL u em{transition:none}}
 html[data-reduced-motion] #gVJ,html[data-reduced-motion] .gvL u::after,html[data-reduced-motion] .gvA .pxi,html[data-reduced-motion] .gvU .pxi{animation:none!important}
 /* L'ASTUCE : le geste dit une fois — un doigt qui appuie, un anneau qui se remplit */
 html body #garage.vitrine.aideInv:not(.menu):not(.inv) #gInvAide{display:flex}
-#gInvAide{position:absolute;z-index:2;left:50%;bottom:calc(var(--sB) + 92px);translate:-50% 0;align-items:center;gap:10px;padding:9px 14px 9px 12px;pointer-events:none;white-space:nowrap;
+#gInvAide{position:absolute;z-index:2;left:50%;bottom:calc(var(--sB) + 194px);translate:-50% 0;align-items:center;gap:10px;padding:9px 14px 9px 12px;pointer-events:none;white-space:nowrap;
   font-size:var(--f0);letter-spacing:1px;color:var(--tx2);background:linear-gradient(180deg,rgba(24,17,50,.8),rgba(10,7,24,.84));
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.1),inset 0 1px 0 rgba(255,255,255,.12),0 10px 24px -12px rgba(0,0,0,.8);
   animation:gvAide 9s var(--ease) 1.1s both}
@@ -5627,7 +5671,7 @@ html body #garage.vitrine.aideInv:not(.menu):not(.inv) #gInvAide{display:flex}
 @keyframes gvDoigt{0%{scale:.5;opacity:0}30%{opacity:1}100%{scale:1.5;opacity:0}}
 @keyframes gvAide{0%{opacity:0;translate:-50% 10px}6%,88%{opacity:1;translate:-50% 0}100%{opacity:0;translate:-50% 0}}
 @media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
-  #gInvAide{left:calc(var(--sL) + 16px);right:auto;translate:0 0;bottom:calc(var(--sB) + 22px);animation-name:gvAideC;grid-template-columns:auto auto;column-gap:10px;row-gap:4px;padding:8px 14px 8px 12px}
+  #gInvAide{left:calc(var(--sL) + 16px);right:auto;translate:0 0;bottom:auto;top:calc(var(--sT) + 14px);animation-name:gvAideC;grid-template-columns:auto auto;column-gap:10px;row-gap:4px;padding:8px 14px 8px 12px}
   html body #garage.vitrine.aideInv:not(.menu):not(.inv) #gInvAide{display:grid} /* (v3) sur deux lignes : à gauche de la barre des touches, même dans les marges de l'iPhone */
   #gInvAide .ivDoigt{grid-row:1/3;align-self:center}
   #gInvAide b::before{display:none}
@@ -5831,6 +5875,9 @@ html.poki [data-m="shop"],html.poki [data-go="shop"],html.poki .gBoutique,html.p
         <div id="gBuyRow"><button id="gBuy" class="pbtn pb-gold">ACHETER</button></div>
         <button id="gEquip" class="pbtn pb-gold">ÉQUIPER</button>
         <button id="gJouer" class="pbtn pb-gold big"><span data-fr="JOUER">JOUER</span><i class="mChev" aria-hidden="true"><i class="pxi pxi-droite"></i><i class="pxi pxi-droite"></i><i class="pxi pxi-droite"></i></i></button>
+        <!-- (2026-10-05, Léo : « en dessous du play, insère MISSIONS, et le nom du level qui va être lancé, limite collé, de manière stylée, branché énergétiquement ») LA VITRINE : voir gvNiveau -->
+        <div id="gvNiv" aria-live="polite"><u></u><i class="pxi pxi-eclair" aria-hidden="true"></i><b></b><em></em></div>
+        <button id="gvMis" class="pbtn" aria-label="Missions"><i class="pxi pxi-cible" aria-hidden="true"></i><span data-fr="MISSIONS">MISSIONS</span><b class="gvPips" aria-hidden="true"><u></u><u></u><u></u></b></button>
       </div>
     </div>
     <!-- L'INVENTAIRE (2026-10-04, Léo : « quand on maintient sur la voiture, ça active un inventaire comme le shop, mais avec les objets
@@ -35560,7 +35607,8 @@ function garageLaunch(){
   GAR.vA=(GAR.vA||0)+(GAR.swO||0);GAR.swO=GAR.swP=GAR.swK=0;GAR.vW=0;
   const dv=Math.atan2(Math.sin(GAR.vA),Math.cos(GAR.vA)),dr=Math.atan2(Math.sin(garRot()),Math.cos(garRot()));GAR.vA=GAR.vAc=dv;
   const mk0=GMIS.mk>.02?GMIS.mk:0; // (missions) la vue d'ensemble redescend derrière la caisse pendant le même retour
-  const pre=(Math.abs(dv)>.12||Math.abs(garagePitch-.2)>.1||mk0)?{t:0,D:Math.max(mk0?.8:0,.25+.28*Math.max(Math.abs(dv),Math.abs(dr)*.5)),v0:dv,g0:garageAng,gd:dr,p0:garagePitch,mk0:mk0}:null;
+  const vd0=GAR.vD||0,wd0=GAR.wD||0; // (vitrine) la visée sur l'entrée et le décalage de composition se défont pendant le retour (sinon la vue sautait au départ)
+  const pre=(Math.abs(dv)>.12||Math.abs(garagePitch-.2)>.1||mk0||Math.abs(vd0)>.02||wd0>.02)?{t:0,D:Math.max(mk0?.8:0,(wd0>.02?.55:.25)+.28*Math.max(Math.abs(dv),Math.abs(dr)*.5,Math.abs(vd0))),v0:dv,g0:garageAng,gd:dr,p0:garagePitch,mk0:mk0,vd0:vd0}:null;
   GAR.go={t:0,pre:pre,p0:pre?null:camera.position.clone(),lx0:-Math.sin(garCamA())*1.5,lz0:-Math.cos(garCamA())*1.5,voile:false,quiet:gEl.classList.contains('quiet'),r0:dr}; // r0 : où le plateau l'avait tournée
   gEl.classList.add('launching');document.body.classList.remove('garMenuH'); // dès qu'on PART, la vitrine s'efface — qu'on l'ait parcourue ou pas
   if(!pre)garLacherSon();
@@ -35845,13 +35893,14 @@ function openGarage(quiet){
   // bioStep repeindrait le ciel du biome par-dessus l'atelier à chaque image.
   if(BIO.k<1){BIO.k=1;bioLerp(BIO.from,BIO.to,1,BIO.cur);}
   bioApply(BIOMES.atelier);MENUV.bio=false;
-  garageAng=Math.PI;garagePitch=.2;garageDist=7.8;GAR.vA=0;GAR.vAc=0;GAR.vW=0;GAR.pT=.2;GAR.roll=0;GAR.swK=0;GAR.fige=false; // (2026-09-30, Léo, capture de sa branche : « c'est ça que je veux ») on entre DERRIÈRE la caisse, la porte en feu au fond du cadre — le plateau la fait tourner ensuite (voir GAR_CAM_A)
+  garageAng=Math.PI;garagePitch=.2;garageDist=7.8;GAR.vA=0;GAR.vAc=0;GAR.vW=0;GAR.vD=0;GAR.preE=0;GAR.pT=.2;GAR.roll=0;GAR.swK=0;GAR.fige=false; // (2026-09-30, Léo, capture de sa branche : « c'est ça que je veux ») on entre DERRIÈRE la caisse, la porte en feu au fond du cadre — le plateau la fait tourner ensuite (voir GAR_CAM_A)
   garageShow(level||0);
   GMIS.mk=0;garMode(GAR.aMenu?'menu':'boutique');GAR.aMenu=false;
   if(GAR.aMis){GAR.aMis=false;garMode('missions');} // (2026-09-30) la porte des MISSIONS, venue d'ailleurs (écran de mort…) // (2026-09-30) ouvert par l'ACCUEIL = le menu ; par un autre chemin (mort → GARAGE, missions, objectif) = la boutique
 }
 function closeGarage(){
   invFerme(true);invHoldFin(); // (2026-10-04) l'INVENTAIRE ne survit pas à l'atelier
+  GAR.vD=0;GAR.wD=0;GAR.preE=0;GAR.misVit=false; // (2026-10-05) la composition de la vitrine repart de zéro à la prochaine visite
   chuteSort(true); // (2026-09-30) LA CHUTE : les nuages, les filets de vent et le vent s'en vont avec le menu
   try{if(openGarage._amb){openGarage._amb.stop(.35);openGarage._amb=null;}}catch(e){}
   try{if(openGarage._feu){openGarage._feu.stop(.35);openGarage._feu=null;}}catch(e){}
@@ -36190,7 +36239,11 @@ function garPortePose(e){ // la porte le long de son RAIL : montée verticale (0
     else{m.position.set(0,4.98,zD-.28-(s-5.14));m.rotation.set(-Math.PI/2,0,0);}}}
 function garPorte(dt){ // FERMÉE tant qu'on ne part pas ; le JOUER (GAR.go, retour de vue compris) l'ouvre en 0,8 s, en accélérant puis en freinant
   const Pt=GAR.porte;if(!Pt)return;
-  Pt.k=GAR.go?Math.min(1,Pt.k+dt/.8):0;garPortePose(Pt.force!=null?Pt.force:!PORTE_FERMEE?1:Pt.k*Pt.k*(3-2*Pt.k)); // (Pt.force : dbgPorte, le banc) — (Léo : « enlève la porte ») sans PORTE_FERMEE elle reste RELEVÉE sous le plafond : le feu se voit au menu
+  Pt.k=GAR.go?Math.min(1,Pt.k+dt/.8):0;
+  /* (2026-10-05, Léo : « centré sur l'entrée, sans la porte ») en VITRINE la porte se LÈVE (1,1 s) : l'entrée et le feu, en face — elle redescend
+     quand on quitte la vitrine. ⚠ la porte fermée est un choix de Sacha (menu, boutique) : ici seulement en vitrine, à confirmer avec elle. */
+  const vo9=(gEl&&gEl.classList.contains('vitrine')&&!gEl.classList.contains('menu'))?1:0;Pt.kv=(Pt.kv||0)+(vo9-(Pt.kv||0))*Math.min(1,dt*1.8);
+  const kk9=Math.max(Pt.k,Pt.kv);garPortePose(Pt.force!=null?Pt.force:!PORTE_FERMEE?1:kk9*kk9*(3-2*kk9)); // (Pt.force : dbgPorte, le banc) — (Léo : « enlève la porte ») sans PORTE_FERMEE elle reste RELEVÉE sous le plafond : le feu se voit au menu
   const F=GAR.feu,fl=F?.82+.12*Math.sin(F.t*9.1)+.06*Math.sin(F.t*23.7):1;Pt.mH.emissiveIntensity=fl*(1-Pt.e*.6); // les hublots battent avec le feu
   const B=GAR.beau;if(B){if(B.fac)B.fac.material.opacity=.2*(.15+.85*Pt.e);if(B.braises)B.braises.visible=Pt.e>.3;} // porte fermée : la lumière du feu ne passe plus qu'au ras du sol, pas de braises
 }
@@ -36593,8 +36646,8 @@ function chuteRender(dt){
    préréglages .42, 3,5 aux TRAÎNÉES, le glissé du doigt n'ont pas bougé) — il fait tourner la caisse de `GAR_CAM_A − garageAng`. */
 const GAR_CAM_A=Math.PI;
 function garRot(){return GAR_CAM_A-garageAng;}
-function garCamA(){return GAR_CAM_A+(GAR.vA||0)+(GAR.swO||0);} // (2026-09-30) l'azimut RÉEL de la caméra : l'axe + le regard du doigt + le balancement (voir « LE GARAGE QUI VIT »)
-const VITRINE_CAM={fw:.9,fwP:.8,fh:.8,cx:.43,cxL:.35,cy:.55,cyL:.6,adapt:.5,p:.08,y:0,vise:-.38,viseP:.6,fov:.9,rot:.15,cle:.3,rim:.35}; // LA VITRINE v2 : la caisse tient dans fw de la largeur libre et fh de sa hauteur, inclinaison +p rad, hauteur +y m, visée +vise (+viseP debout), objectif ×fov, plateau rot rad/s, lampes +cle/+rim
+function garCamA(){return GAR_CAM_A+(GAR.vA||0)+(GAR.swO||0)+(GAR.vD||0);} // (2026-10-05) + vD : le décalage qui pose la caisse à gauche de l'entrée (vitrine) // (2026-09-30) l'azimut RÉEL de la caméra : l'axe + le regard du doigt + le balancement (voir « LE GARAGE QUI VIT »)
+const VITRINE_CAM={porteY:1.9,fw:.9,fwP:.8,fh:.8,cx:.43,cxL:.62,cy:.55,cyL:.6,adapt:.5,p:.08,y:0,vise:-.38,viseP:.6,fov:.9,rot:.15,cle:.3,rim:.35}; // LA VITRINE v2 : la caisse tient dans fw de la largeur libre et fh de sa hauteur, inclinaison +p rad, hauteur +y m, visée +vise (+viseP debout), objectif ×fov, plateau rot rad/s, lampes +cle/+rim
 /* le GABARIT de la caisse vue en tournant : R = demi-diagonale de son empreinte au sol (la plus large qu'elle montre), H = sa hauteur. Mesuré
    caisse droite et à l'échelle 1 (la bascule l'écrase, le toucher la tasse), une fois par caisse et par construction. */
 function garGabarit(){
@@ -36718,7 +36771,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
      comme au retour (SHOP déplie la console : on revient au cadrage de la boutique en douceur). Réglages à chaud : `VITRINE_CAM`. */
   GAR.vit=(GAR.vit||0)+((((gEl&&gEl.classList.contains('vitrine'))&&!menu9)?1:0)-(GAR.vit||0))*Math.min(1,dt*2.4);
   const VK=GAR.vit,VC=VITRINE_CAM;
-  if(!GAR.fige&&(!garageDrag||menu9))garageAng+=dt*(.24+(VC.rot-.24)*VK); // le tour de piste automatique, lent : on a le temps de regarder (au MENU le doigt bouge la VUE, pas le plateau : il continue de tourner)
+  if(!GAR.fige&&(!garageDrag||menu9||VK>.5))garageAng+=dt*(.24+(VC.rot-.24)*VK); // (le plateau tourne toujours : en vitrine le doigt tourne la VUE) // le tour de piste automatique, lent : on a le temps de regarder (au MENU le doigt bouge la VUE, pas le plateau : il continue de tourner)
   /* LE GARAGE QUI VIT (2026-09-30, Léo : « on est censé pouvoir tourner autour — soit le garage en rotation sans qu'on touche, soit
      avec le doigt on glisse et on voit légèrement ; inspire-toi de ma branche ») : LES DEUX. (1) Au repos la VUE balance doucement
      autour de la caisse — les deux sinus lents de sa branche (±~11°, ~22 s) et un souffle de hauteur ; elle s'efface dès qu'on touche
@@ -36754,8 +36807,8 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
   // ================= LE LÂCHER : il prend la main sur tout le reste =================
   if(GAR.go&&GAR.go.pre){ // LE RETOUR AU FEU (voir garageLaunch) : la vue d'orbite revient dans l'axe, le plateau remet la caisse face à la porte
     const P=GAR.go.pre;P.t+=dt;const u=Math.min(1,P.t/P.D),e=u*u*u*(u*(u*6-15)+10);
-    GAR.vA=GAR.vAc=P.v0*(1-e);garageAng=P.g0+P.gd*e;garagePitch=P.p0+(.2-P.p0)*e;GAR.pT=garagePitch;GMIS.mk=(P.mk0||0)*(1-e);
-    if(u>=1){GAR.go.pre=null;GAR.vA=GAR.vAc=0;garageAng=GAR_CAM_A;GMIS.mk=0;} // (la caméra de cette image se pose dans l'axe ; le lâcher la relève à l'image suivante)
+    GAR.vA=GAR.vAc=P.v0*(1-e);garageAng=P.g0+P.gd*e;garagePitch=P.p0+(.2-P.p0)*e;GAR.pT=garagePitch;GMIS.mk=(P.mk0||0)*(1-e);GAR.vD=(P.vd0||0)*(1-e);GAR.preE=e;
+    if(u>=1){GAR.go.pre=null;GAR.vA=GAR.vAc=0;GAR.vD=0;garageAng=GAR_CAM_A;GMIS.mk=0;} // (la caméra de cette image se pose dans l'axe ; le lâcher la relève à l'image suivante)
   }else if(GAR.go){
     const G=GAR.go;
     if(!G.p0){G.p0=camera.position.clone();G.lx0=-Math.sin(garCamA())*1.5;G.lz0=-Math.cos(garCamA())*1.5;G.r0=Math.atan2(Math.sin(garRot()),Math.cos(garRot()));garLacherSon();}
@@ -36831,7 +36884,15 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
     THREE.MathUtils.clamp(Math.sin(cA)*cp,-GAR.W/2+1.2,GAR.W/2-1.2),
     THREE.MathUtils.clamp(ay+h+1.0+VC.y*VK,ay+.75,ay+GAR.H-1.05),
     THREE.MathUtils.clamp(Math.cos(cA)*cp,-GAR.D/2+1.2,GAR.D/2-1.2));
-  camera.lookAt(-Math.sin(cA)*1.5,ay+1.0-POR*.65-vG*1.35+(VC.vise+VC.viseP*POR)*VK,-Math.cos(cA)*1.5);
+  /* (2026-10-05, Léo : « c'est avec le doigt qu'on bouge le garage à 360°, mais sinon centré sur l'entrée, sans la porte ») AU REPOS la vitrine
+     REGARDE L'ENTRÉE (le centre de l'ouverture, `VC.porteY` au-dessus du sol) : elle reste au milieu de l'image ; la caisse se pose à gauche par
+     la PLACE de la caméra (`GAR.vD`, un décalage d'azimut réglé image après image pour qu'elle tombe sur `garLibre().cx`), plus par un
+     décentrement d'objectif. Le doigt fait le tour (GAR.vA) : la visée revient au-delà de la caisse (`wD` → 0 quand on regarde ailleurs). */
+  {const tx0=-Math.sin(cA)*1.5,ty0=ay+1.0-POR*.65-vG*1.35+(VC.vise+VC.viseP*POR)*VK,tz0=-Math.cos(cA)*1.5,cv=Math.max(0,Math.cos(GAR.vA||0));
+   const wD=VK*cv*cv*(1-(GAR.preE||0));GAR.wD=wD;
+   camera.lookAt(tx0*(1-wD),ty0+(ay+VC.porteY-ty0)*wD,tz0+(GAR.D/2-tz0)*wD);
+   if(wD>.5&&!garageDrag&&!GAR.go&&!GAR.fige&&GAR.cErr!=null)GAR.vD=THREE.MathUtils.clamp((GAR.vD||0)+GAR.cErr*Math.min(dt,.1)*4.5,-.9,.9); // la caisse à droite de sa place → la caméra glisse (la caisse part à gauche)
+   else if(VK<.02&&!GAR.go)GAR.vD=(GAR.vD||0)*(1-Math.min(1,dt*4));}
   if(GAR.roll)camera.rotateZ(GAR.roll); // (le glissé fondu) la caméra penche un peu dans le sens où elle tourne
   { // LES MISSIONS : la caméra s'élève sous la porte relevée et regarde tout l'atelier (fondu en S ; le départ la ramène, voir GAR.go.pre)
     if(!GAR.go)GMIS.mk+=(((gEl.classList.contains('missions'))?1:0)-GMIS.mk)*Math.min(1,dt*2.4);
@@ -36854,7 +36915,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
      d'action) : la caisse centrée passait dessous. Le même décentrement d'objectif, en largeur cette fois — l'image glisse vers la
      gauche, la caisse s'installe dans la moitié libre. Fondu comme l'autre ; zéro en portrait, à la séquence de départ, au lâcher. */
   garageRender._h=(garageRender._h||0)+(((gEl&&!gEl.classList.contains('quiet')&&!gEl.classList.contains('launching')&&VP.w>VP.h*1.25)?1:0)-(garageRender._h||0))*.12;
-  garCadre(1-(GMIS.e||0)); // (missions) le décentrement du menu s'efface pendant le vol vers la vue d'ensemble
+  garCadre(1-(GMIS.e||0),1-(GAR.wD||0)); // (missions) le décentrement du menu s'efface pendant le vol vers la vue d'ensemble · (vitrine) face à l'entrée, pas de décentrement en largeur : c'est la place de la caméra qui pose la caisse
   if(GAR.misCible)GAR.misCible.rotation.y+=dt*1.1; // la cible des missions tourne sur elle-même
   if(GMIS.holo.length)gmHoloTick(t9);
   if(gEl.classList.contains('missions'))gmSuit();
@@ -36884,16 +36945,17 @@ function garLibre(){
       else r.y1=bb.top;}                                       // sinon : les commandes en bas
     if(tb&&tb.height>0&&tb.bottom<r.y1-120)r.y0=tb.bottom;r.shop=true;    // la fiche du haut (si elle laisse de la place)
     r.vit=gEl.classList.contains('vitrine');
+    if(r.vit&&W>H*1.2){const ga=$('gAct'),gr=ga&&ga.getBoundingClientRect();if(gr&&gr.width>0&&gr.left>W*.3){r.x1=gr.left-12;r.y1=H-12;}} // (2026-10-05) couché : la pile JOUER · niveau · MISSIONS à droite, la caisse a toute la gauche
     if(INV&&INV.on){const iv=$('gInv'),ir=iv&&iv.getBoundingClientRect();     // (2026-10-04) L'INVENTAIRE ouvert : la caisse se pose au-dessus du tiroir (debout), à sa gauche (couché)
       if(ir&&ir.width>0){if(W>H*1.2&&ir.left>W*.3){r.x1=Math.min(r.x1,ir.left);r.y1=H-12;}else r.y1=Math.min(r.y1,ir.top);}}}
   const VC9=VITRINE_CAM,iv9=!!(INV&&INV.on); // (même soir, Léo : « la voiture en paysage encore calée un peu plus vers le coin bas gauche ») couché : cxL/cyL ; tiroir ouvert : au milieu de la place qui reste
   r.cx=(r.x0+r.x1)/2;if(r.vit&&!iv9)r.cx=r.x0+(r.x1-r.x0)*(VC9.cxL+(VC9.cx-VC9.cxL)*POR);r.cy=(r.y0+r.y1)/2;if(r.shop)r.cy=r.y0+(r.y1-r.y0)*(r.vit&&!iv9?(VC9.cyL+(VC9.cy-VC9.cyL)*POR):r.vit?.5:.44); /* (vitrine v2) debout la caisse se pose un peu plus BAS : le feu et la porte au-dessus, moins de sol vide dessous */ /* (garage v7) la caisse se posait BAS dans sa zone (DEBUGGING) : son centre à 44 % de la zone, pas 50 */return garLibre._r=r;
 }
-function garCadre(k){
+function garCadre(k,kx){
   const r=garLibre();camera.clearViewOffset();camera.updateMatrixWorld();
   const v=GAR._pc||(GAR._pc=new THREE.Vector3());v.set(0,GARAGE_Y+GAR.POD+.55,0).project(camera); // le centre du plateau, à mi-hauteur de caisse
-  const sx=(v.x*.5+.5)*VP.w,sy=(.5-v.y*.5)*VP.h,cl=THREE.MathUtils.clamp;
-  const dx=cl((sx-r.cx)*k,-VP.w/3,VP.w/3),dy=cl((sy-r.cy)*k,-VP.h/3,VP.h/3);
+  const sx=(v.x*.5+.5)*VP.w,sy=(.5-v.y*.5)*VP.h,cl=THREE.MathUtils.clamp;GAR.cErr=(sx-r.cx)/Math.max(1,VP.w); // (vitrine) l'écart de la caisse à sa place, lu par le décalage de caméra (GAR.vD)
+  const dx=cl((sx-r.cx)*k*(kx==null?1:kx),-VP.w/3,VP.w/3),dy=cl((sy-r.cy)*k,-VP.h/3,VP.h/3);
   GAR.cdx=(GAR.cdx||0)+(dx-(GAR.cdx||0))*.18;GAR.cdy=(GAR.cdy||0)+(dy-(GAR.cdy||0))*.18;
   if(Math.abs(GAR.cdx)<.5&&Math.abs(GAR.cdy)<.5)return;                // centré : l'objectif reste droit
   camera.setViewOffset(VP.w,VP.h,GAR.cdx,GAR.cdy,VP.w,VP.h);            // décaler l'objectif de +dx fait glisser l'image de −dx
@@ -37093,8 +37155,19 @@ const PORTE_FERMEE=MENU_SACHA||/[?&]porte=1\b/.test(location.search); // (2026-1
 function garVitrine(on){
   if(!gEl)return;if(!on)invFerme(true);gEl.classList.toggle('vitrine',!!on);gEl.classList.toggle('aideInv',!!on&&!((SAVE.d.ast|0)&4)); // (v2) l'astuce du doigt tenu, tant que l'inventaire n'a jamais été ouvertgEl.classList.toggle('deplie',!on&&gEl.classList.contains('deplie'));garLibre._r=null;
   if(on){if(SHOP.tab!=='voiture'||SHOP.prev)shopTab('voiture');const eq=equippedCar();if(garageI!==eq&&!GAR.sw)garageShow(eq);} // en vitrine : TA caisse, jamais un essai
-  if(on)gvJauges(true);
+  if(on){gvJauges(true);gvNiveau();}
 }
+/* LE CARTOUCHE DU NIVEAU (2026-10-05, Léo : « le nom du level qui va être lancé, en dessous du play ») : JOUER de l'atelier lance la partie SANS FIN
+   (`garJouer` : CARR.actif = null) — son 1er niveau, `NIVEAUX[0]` ; tant que le permis n'est pas passé, c'est l'AUTO-ÉCOLE (tutoArme). Et les
+   trois pastilles des MISSIONS (les défis relevés du carnet en cours, `misEtat`). */
+const GV_TEINTE={nuages:'#5ee6ff',ville:'#ff3ec8',paris:'#ffd75e',espace:'#b9a8ff',orage:'#8a7dff'};
+function gvNiveau(){
+  const el=$('gvNiv');if(el){const tuto=!SAVE.d.tuto,L0=NIVEAUX[0];
+    el.querySelector('b').innerHTML='<span class="gvNL">'+sansAcc(TR(tuto?'PERMIS':'NIVEAU'))+' </span>'+(tuto?'':'1'); // debout, le numéro seul dans sa pastille (le cartouche fait la largeur de JOUER)
+    const em=el.querySelector('em');em.textContent=sansAcc(TR(tuto?'AUTO-ECOLE':L0.nm));el.style.setProperty('--lc',tuto?'#7dff9b':(GV_TEINTE[L0.id]||'#5ee6ff'));}
+  const pp=$('gvMis');if(pp)try{const s9=misEtat();pp.querySelectorAll('.gvPips u').forEach(function(u,i){u.classList.toggle('ok',!!s9.ok[i]);});}catch(e){}
+}
+try{Object.assign(I18N,{'PERMIS':'LICENSE','AUTO-ECOLE':'DRIVING SCHOOL'});}catch(e){}
 /* LES JAUGES DE LA VITRINE (voir « LES JAUGES » dans <style id="garageVitrine">) : l'ARGENT vers la prochaine caisse à vendre (`objectif()`, ce
    que vise le menu de Léo), l'AURA vers le rang suivant. `anim` : elles partent de zéro et se remplissent, les chiffres défilent (0,9 s). */
 function gvJauges(anim){
@@ -37229,7 +37302,7 @@ $('ivFerme').addEventListener('click',function(e){e.stopPropagation();uiPop(e.cu
 window.dbgInv=function(a,b){if(a==='ouvre')return invOuvre();if(a==='D'){INV.D=+b||.45;return INV.D;}if(a==='cam'){Object.assign(VITRINE_CAM,b||{});return VITRINE_CAM;}if(a==='gabarit')return garGabarit();if(a==='rect'){const r=garCaisseRect();return r&&{x0:Math.round(r.x0),x1:Math.round(r.x1),y0:Math.round(r.y0),y1:Math.round(r.y1)};}if(a==='ferme'){invFerme();return true;}
   if(a==='cat'&&b){INV.cat=b;if(INV.on)invRender();return INV.cat;}
   const g=$('ivGrille');return {on:INV.on,cat:INV.cat,hold:!!INV.hold,tuiles:g?g.querySelectorAll('.ivT').length:0,eq:g?g.querySelectorAll('.ivT.eq').length:0,
-    vitrine:!!(gEl&&gEl.classList.contains('vitrine')),aide:!!(gEl&&gEl.classList.contains('aideInv')),vit:+(GAR.vit||0).toFixed(2),
+    vitrine:!!(gEl&&gEl.classList.contains('vitrine')),aide:!!(gEl&&gEl.classList.contains('aideInv')),vit:+(GAR.vit||0).toFixed(2),vD:+(GAR.vD||0).toFixed(3),wD:+(GAR.wD||0).toFixed(2),cErr:+(GAR.cErr||0).toFixed(3),porte:GAR.porte?+GAR.porte.e.toFixed(2):null,
     compte:['voiture','peinture','aile','trainee'].map(function(c){return c+':'+invListe(c).length;}).join(' ')};};
 function garMode(m){
   if(!gEl)return;invFerme(true);invHoldFin();gEl.classList.remove('vitrine','deplie','aideInv');const menu=m==='menu'||m==='missions',mis=m==='missions'; // (2026-09-30) MISSIONS = le menu, vu d'en haut, avec la constellation
@@ -37425,6 +37498,9 @@ function gmSuitS(){ // chaque image : les points sur leurs meubles, les filets d
     const inside=P[k][0]>r[0]&&P[k][0]<r[0]+r[2]&&P[k][1]>r[1]&&P[k][1]<r[1]+r[3];                            // le point sous sa propre carte : pas de filet
     pa[q++].setAttribute('d',inside?'':'M'+x.toFixed(1)+' '+y.toFixed(1)+'L'+P[k][0].toFixed(1)+' '+P[k][1].toFixed(1));}
 }
+/* (2026-10-05) MISSIONS depuis la VITRINE : l'écran des missions de l'atelier, et HOME / Échap y RAMÈNENT (pas au menu) */
+function garMisRetour(){if(GAR.misVit){GAR.misVit=false;garMode('boutique');garVitrine(true);}else garMode('menu');}
+$('gvMis').addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(e.currentTarget);uiClic('nav');GAR.misVit=true;garMode('missions');});
 function garMissionsOuvre(){ // la porte des MISSIONS, d'où qu'on vienne : l'écran de l'atelier
   if(garageOn){if(!GAR.go)garMode('missions');return;}
   if((started&&!gameOver)||pendingScore!=null)return;
@@ -37459,7 +37535,7 @@ function garAccueil(){ // appelé par le routeur à chaque arrivée sur 'home'
    el.addEventListener('keydown',function(e){if(e.code==='Enter'||e.code==='Space'){e.preventDefault();el.click();}});};
  clicM($('gReglage'),function(){uiClic('nav');ecranWipe(function(){window.__mRetour='set';closeGarage();});});   // les RÉGLAGES (retour : le menu)
  clicM($('gMisBtn'),function(){uiClic('nav');garMode('missions');});    // les MISSIONS : l'écran de l'atelier (voir « LES MISSIONS DANS L'ATELIER »)
- clicM(document.querySelector('#gmBas .gmHome'),function(){uiClic('retour');garMode('menu');});             // HOME : le menu
+ clicM(document.querySelector('#gmBas .gmHome'),function(){uiClic('retour');garMisRetour();});             // HOME : le menu (ou la VITRINE, si on en vient)
  clicM(document.querySelector('#gmBas .gmJouer'),function(e){CARR.actif=null;garJouer();});                 // JOUER : la partie sans fin, la mission suivie à l'écran
  {const nd=$('gmNoeuds');if(nd)nd.addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go)return;
    const c9=e.target.closest&&e.target.closest('.gmC');if(!c9)return;const a=GMIS.ancres[+c9.getAttribute('data-k')];if(!a)return;const s=misEtat();
@@ -37642,15 +37718,15 @@ addEventListener('pointermove',e=>{
     CHUTE.oAc+=dA;CHUTE.oW=(CHUTE.oW||0)*.55+dA/dm*.45;CHUTE.mvT=n9; /* (2026-10-03, Léo : « bloque le point de vue à ce niveau vertical : pas de haut en bas, horizontal à ce niveau-là ») le doigt ne fait plus monter ni plonger le regard : il tourne autour de la caisse, à la hauteur du menu */
     gpx=e.clientX;gpy=e.clientY;return;}
   if(GAR.go||gEl.classList.contains('missions'))return; // JOUER est parti / l'écran des MISSIONS : la vue ne se touche plus
-  if(gEl&&gEl.classList.contains('menu')){const dA=-(e.clientX-gpx)*.007,n9=performance.now(),dm=Math.max(8,n9-(GAR.mvT||n9-16))/1000;
+  if(gEl&&(gEl.classList.contains('menu')||gEl.classList.contains('vitrine'))){const vit9=gEl.classList.contains('vitrine'),dA=-(e.clientX-gpx)*.007,n9=performance.now(),dm=Math.max(8,n9-(GAR.mvT||n9-16))/1000;
     GAR.vAc=(GAR.vAc!=null?GAR.vAc:(GAR.vA||0))+dA;GAR.vW=(GAR.vW||0)*.55+dA/dm*.45;GAR.mvT=n9; // (le glissé fondu) la CIBLE suit le doigt, la vitesse du geste est retenue pour l'élan
-    GAR.pT=THREE.MathUtils.clamp((GAR.pT!=null?GAR.pT:garagePitch)+(e.clientY-gpy)*.003,.08,.42);} // (Léo : « on doit pouvoir voir derrière ») plus de borne : le tour complet // (2026-09-30, Léo) au MENU le doigt fait TOURNER LE REGARD autour de l'atelier, un peu (voir « LE GARAGE QUI VIT »)
+    if(!vit9)GAR.pT=THREE.MathUtils.clamp((GAR.pT!=null?GAR.pT:garagePitch)+(e.clientY-gpy)*.003,.08,.42);} // (2026-10-05, Léo : « c'est avec le doigt qu'on bouge le garage à 360° ») en VITRINE aussi : le tour complet de la vue, sans changer sa hauteur // (Léo : « on doit pouvoir voir derrière ») plus de borne : le tour complet // (2026-09-30, Léo) au MENU le doigt fait TOURNER LE REGARD autour de l'atelier, un peu (voir « LE GARAGE QUI VIT »)
   else{garageAng-=(e.clientX-gpx)*.01;if(!gEl.classList.contains('vitrine'))garagePitch=THREE.MathUtils.clamp(garagePitch+(e.clientY-gpy)*.006,.02,.82);} // (2026-10-04) en VITRINE le plan de présentation garde sa hauteur : le doigt tourne la caisse
   gpx=e.clientX;gpy=e.clientY;});
 // ⚠ ORBITE BORNÉE À 7,8 m : au-delà on sortait par les murs et on traversait la servante et les
 // piles de pneus. Le décor est rangé POUR ce rayon (rien de posé à moins de 8,3 m du centre).
 addEventListener('wheel',e=>{if(!garageOn)return;garageDist=THREE.MathUtils.clamp(garageDist+e.deltaY*.008,4.6,8.6);},{passive:true}); // plafond 7,8→8,6 (2026-09-05) : le zoom arrière par défaut est monté, la molette doit pouvoir suivre
-addEventListener('keydown',e=>{if(!garageOn||ecranWipe._on)return;if(INV.on){if(e.code==='Escape'||e.code==='KeyI'){e.preventDefault();invFerme();}return;}if(e.code==='KeyI'&&!e.repeat&&gEl.classList.contains('vitrine')&&!gEl.classList.contains('menu')){invOuvre();return;} /* (2026-10-04) L'INVENTAIRE au clavier : I l'ouvre, I ou Échap le referme */ if(e.code==='Escape'){const cr9=$('carr');if(cr9&&cr9.classList.contains('on'))feuilleFerme(cr9,'on');else if(!GAR.go&&gEl.classList.contains('missions'))garMode('menu');else if(!GAR.go&&!gEl.classList.contains('menu')){if(window.__mRetour)ecranWipe(closeGarage);else ecranWipe(function(){if(started&&gameOver)accueilRetour();garMode('menu');});}}else if((e.code==='ArrowLeft'||e.code==='ArrowRight')&&gEl.classList.contains('vitrine'))garVitrine(false);else if(e.code==='ArrowLeft')garageGo(-1);else if(e.code==='ArrowRight')garageGo(1);else if(e.code==='Enter'&&!e.repeat&&!document.querySelector('#modale.on,#carr.on')){e.preventDefault();garJouer();}}); // même chemin que les flèches à l'écran (boutique comprise, premium exclues) · (2026-09-29) Entrée = JOUER, comme à l'accueil
+addEventListener('keydown',e=>{if(!garageOn||ecranWipe._on)return;if(INV.on){if(e.code==='Escape'||e.code==='KeyI'){e.preventDefault();invFerme();}return;}if(e.code==='KeyI'&&!e.repeat&&gEl.classList.contains('vitrine')&&!gEl.classList.contains('menu')){invOuvre();return;} /* (2026-10-04) L'INVENTAIRE au clavier : I l'ouvre, I ou Échap le referme */ if(e.code==='Escape'){const cr9=$('carr');if(cr9&&cr9.classList.contains('on'))feuilleFerme(cr9,'on');else if(!GAR.go&&gEl.classList.contains('missions'))garMisRetour();else if(!GAR.go&&!gEl.classList.contains('menu')){if(window.__mRetour)ecranWipe(closeGarage);else ecranWipe(function(){if(started&&gameOver)accueilRetour();garMode('menu');});}}else if((e.code==='ArrowLeft'||e.code==='ArrowRight')&&gEl.classList.contains('vitrine'))garVitrine(false);else if(e.code==='ArrowLeft')garageGo(-1);else if(e.code==='ArrowRight')garageGo(1);else if(e.code==='Enter'&&!e.repeat&&!document.querySelector('#modale.on,#carr.on')){e.preventDefault();garJouer();}}); // même chemin que les flèches à l'écran (boutique comprise, premium exclues) · (2026-09-29) Entrée = JOUER, comme à l'accueil
 
 // ---------- BOUCLE ----------
 const fwdW=new THREE.Vector3(),tmp=new THREE.Vector3(),tmp2=new THREE.Vector3(),tmp3=new THREE.Vector3(),mat4=new THREE.Matrix4();
