@@ -3686,7 +3686,8 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 	if workspace:GetAttribute("DbgNitro") then Controles.nitro = true end
 	if workspace:GetAttribute("DbgInf") then pwN = math.max(pwN, 1) end -- "DbgInf" : la nitro infinie (pour regarder le dragon grandir)
 	if workspace:GetAttribute("DbgPlein") then nitroR = reservoir() end   -- "DbgPlein" : le plein à chaque image, sans le pouvoir (le dragon de FEU)
-	if mode == "charge" then return end
+	-- (5/10 : un ordre de banc arrivé pendant le chargement changeait de mode avant que la route existe — rien ne roule sans elle)
+	if mode == "charge" or not piste then return end
 	-- LE RALENTI de la frénésie : le seul ralenti du jeu
 	if mode == "drive" or mode == "fall" then dt = Score.ralentiDt(dt, enPause) end
 	if not enPause then
