@@ -194,6 +194,30 @@
   · ⚠ UN SECOND COMMENTAIRE MANGEUR : dans `garVitrine`, `gEl.classList.toggle('deplie',…);garLibre._r=null;` était collé au bout du
     commentaire depuis la vitrine v2 (066332f) — rendu ; balayage du fichier (une instruction derrière `//`) : plus aucun autre.
   Banc `geste.mjs` (lancer, glissé, appui long + glissé, hors caisse). sw.js → v114.
+- **LA COLONNE v4, LES NIVEAUX À DÉFILER, LE BOUTON ROUGE ET SES OUTILS (même soir, Léo : « toutes les vignettes de niveau, à
+  défiler · le bouton shop pas très grand · le bouton home en haut à droite avec les settings · l'inventaire plus gros » — puis « après
+  réflexion, enlève le bouton coffre ; mets un bouton rouge sur la plateforme qui tourne, à côté de la voiture ; quand on appuie, de
+  chaque côté différents outils se mettent à côté et construisent directement les objets qu'on a déjà — pas pour le shop »)** —
+  · LA COLONNE (vitrine, deux colonnes) : JOUER sur toute la largeur · SHOP en grand (pictogramme ×4) à côté de MISSIONS branché · la
+    BANDE des vignettes sur toute la largeur. HOME est monté en haut à droite, SOUS ⚙ (`#gvHome` dans `#gOutils` : le même geste que
+    `#gClose`, caché en vitrine). Le COFFRE a disparu (`#gvCof` caché ; la touche I ouvre toujours l'inventaire).
+  · LA BANDE (`#gvLvls`, `gvNiveau`) : la SUITE d'une partie — l'auto-école si le permis manque, puis NIVEAUX — une vignette par
+    niveau, défilement au doigt (aimanté, `scroll-snap`) et à la molette, bord droit qui s'efface ; la 1re (celle que JOUER lance)
+    cerclée d'or ; un niveau TERMINÉ (portail franchi : `SAVE.d.ex.zones`) porte sa coche verte.
+  · LE BOUTON ROUGE ET SES OUTILS (bloc après `dbgBurn`) : un champignon d'arcade rouge sur socle noir cerclé jaune/noir, sur le
+    plateau à l'avant droit de la caisse (`GAR.pod` : il tourne avec elle), halo qui respire ; un tap (`atlVise` : sa projection à
+    l'écran, rayon ≥ 26 px) l'enfonce et ouvre l'inventaire (`invOuvre`), un second le referme ; il s'enfonce dans le plateau pendant
+    un dérapage ou le lâcher. Deux BRAS-ROBOTS jaunes (kit des caisses : lpKit / lpMat, zéro programme neuf) sortent du plateau de
+    chaque côté à l'ouverture (0,6 s), vivent (servo, diode) et rentrent à la fermeture ; à gauche le PISTOLET À PEINTURE, à droite le
+    POSTE À SOUDER. Équiper un objet le CONSTRUIT (`atlConstruit`, ~1,1 s) : PEINTURE → le pistolet balaie dans un nuage de SA couleur ;
+    AILE → soudure, gerbes d'étincelles ; TRAÎNÉE → les deux bras aux pots ; CAISSE → les deux bras balaient (le scanner fait le
+    reste) — jets indépendants de la cadence (~70/s/bras), dans les réservoirs du burn-out. La boutique n'a pas ça (demande de Léo).
+    Console : `dbgAtelier()` · `dbgAtelier(1|0)` · `dbgAtelier('peinture'|'aile'|'trainee'|'voiture')`. Bancs `atelier.mjs`,
+    `colonne.mjs` ; `cadreinv.mjs` clique le bouton rouge (souris, dans le cadre).
+  · L'ACCUEIL COUCHÉ (« le point de vue horizontal un tout petit plus haut, ou la coupure blanc/bleu au niveau du haut de la barre
+    MISSIONS ») : `CHUTE_P.elev` −,08 → −,035 — la ligne blanche de l'horizon passe au ras du haut de MISSIONS (banc `horizon.mjs`,
+    844 × 390 : y 217 → 194 ; la caisse ne bouge pas dans le cadre). Debout (`elevP`) inchangé.
+  sw.js → v115.
 - **L'ATELIER AÉRÉ + LE RENDU (même jour, Léo : « enlève quelques accessoires du garage, ça fait un peu rempli pour rien — les pieds tu
   dois laisser, ça fait partie du jeu ; les billets, mes trucs de trophée, tout ça laisse ; aère un peu l'espace · travaille plus le
   rendu »)** — `GAR_AERE` (juste avant `buildGarageRoom`) : le petit bazar ne se construit plus — cartons, bidons, fûts et jerricans de
