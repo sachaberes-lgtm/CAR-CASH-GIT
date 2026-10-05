@@ -12512,7 +12512,7 @@ local function condition(i: number): string
 end
 
 -- LA DÉCISION (gEtat + gPrixHtml + gActSync) : quel bouton, en or ou non
-local decision = "" -- "" | acheter | pauvre | equiper | verrou | boutique | gagner
+local decision = "" -- "" | acheter | pauvre | equiper | verrou | roue | boutique | gagner
 local prixDecision = 0
 local function majFicheHabit()
 	local cat = onglet
@@ -12572,6 +12572,8 @@ local function majFiche()
 			habiller(U.btDecision, "or_", nil, L.enBoutique, FR and "BIENTOT" or "SOON", 26)
 		elseif decision == "gagner" then
 			habiller(U.btDecision, "verrou", nil, nil, L.gagner, 17)
+		elseif decision == "roue" then
+			habiller(U.btDecision, "verrou", nil, L.gagner, L.defi, 22)
 		else
 			habiller(U.btDecision, "verrou", nil, nil, L.verrou, 17)
 		end
@@ -12610,7 +12612,7 @@ function Garage.majFicheCaisse()
 	elseif k.k == "premium" and not possede(montre) and not ouv then
 		decision = "boutique"
 	elseif not ouv then
-		decision = "verrou"
+		decision = (k.k == "roue") and "roue" or "verrou" -- (une caisse de la roue dit OÙ la gagner, pas seulement « verrouillée »)
 	elseif profil().caisse ~= montre then
 		decision = "equiper"
 	else
@@ -12727,7 +12729,7 @@ local function decider()
 		else
 			secouer()
 		end
-	elseif decision == "verrou" then
+	elseif decision == "verrou" or decision == "roue" then
 		secouer()
 		Hud.toast(condition(montre), nil, "verrou")
 	elseif decision == "boutique" then
