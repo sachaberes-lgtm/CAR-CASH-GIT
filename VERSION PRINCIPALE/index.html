@@ -49,13 +49,17 @@ const EDITION='mobile';
    (chargement fini, début/fin de partie, pause pub avant REJOUER — son et clavier coupés pendant la pub), et sur l'ordi l'écran du
    téléphone couché qui REMPLIT la fenêtre de Poki (16:9) au lieu d'un téléphone posé au milieu. Voir « L'ÉDITION POKI » dans CLAUDE.md. */
 const POKI_BUILD=false;
+/* (2026-10-05, Sacha publie aussi sur itch.io) L'ÉDITION WEB = l'édition Poki SANS le kit de Poki : mêmes retraits (missions, carrière,
+   boutique, voix…), mêmes caisses à l'argent du jeu, mais aucun SDK chargé (`CC_PK` reste à l'état −1 : pas de pub, chaque appel se
+   résout tout de suite). `node poki-construire.js itch` fabrique `ITCH/` + `ITCH.zip` en basculant AUSSI cette ligne à false. */
+const POKI_SDK=true;
 const POKI=POKI_BUILD||/[?&]poki=1\b/.test(location.search);
 if(POKI)document.documentElement.classList.add('poki');
 /* LA MÊME VERSION POUR TOUT LE MONDE (2026-10-01, Léo : « trouve un moyen pour qu'on joue au même jeu, juste ») : `vercel-build.sh`
    remplace ce jeton par le commit publié et pose `version.json` à côté du jeu. Le jeu compare les deux et se recharge tout seul
    s'il est en retard (voir « LA MISE À JOUR TOUTE SEULE », près du service worker). En copie locale le jeton reste tel quel : rien ne se vérifie. */
 const CC_BUILD='__CC_BUILD__';
-const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(POKI?' · POKI':'')+(!POKI&&/[?&]menu=leo\b/.test(location.search)?' · MENU LEO':'')+(/[?&]chute=0\b/.test(location.search)?' · SANS CIEL':'');
+const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(POKI?(POKI_SDK?' · POKI':' · WEB'):'')+(!POKI&&/[?&]menu=leo\b/.test(location.search)?' · MENU LEO':'')+(/[?&]chute=0\b/.test(location.search)?' · SANS CIEL':'');
 /* LE KIT POKI (édition POKI seulement). Le document de PLUS HAUT du jeu (la page-cadre sur l'ordi, la page elle-même sur un téléphone)
    charge le SDK de Poki et porte `CC_PK` ; le jeu, dans la colonne, l'appelle par `parent.CC_PK` (même origine). Le SDK bloqué (bloqueur
    de pubs, hors ligne) ne bloque RIEN : chaque appel se résout tout de suite, sans pub. Pendant une pub, `CC_PUB` est vrai dans le
@@ -90,7 +94,8 @@ if(POKI)(function(){
       PK.veut.jeu=false;PK.jeuSync();PK.enPub=true;var coupe=false,fin=false;
       var apres=function(ok){if(fin)return;fin=true;PK.enPub=false;if(coupe)try{muet(false);}catch(e){}suite(!!ok);};
       try{PK.sdk.rewardedBreak(function(){coupe=true;try{muet(true);}catch(e){}}).then(apres,function(){apres(false);});}catch(e){apres(false);}},
-    charge:function(){if(PK.charge.f)return;PK.charge.f=1;var s=document.createElement('script');s.src='https://game-cdn.poki.com/scripts/v2/poki-sdk.js';
+    charge:function(){if(PK.charge.f)return;PK.charge.f=1;if(!POKI_SDK){PK.etat=-1;return;} // l'édition WEB (itch.io…) : pas de kit Poki
+      var s=document.createElement('script');s.src='https://game-cdn.poki.com/scripts/v2/poki-sdk.js';
       var non=function(){PK.etat=-1;};
       s.onerror=non;s.onload=function(){try{var S=window.PokiSDK;if(!S){non();return;}
         if(/[?&]pokidebug=1\b/.test(location.search))try{S.setDebug(true);}catch(e){}

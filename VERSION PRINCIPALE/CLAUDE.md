@@ -43,6 +43,10 @@
     `dead`, les préchargements (annPreload, waPrecharge, fxPreload) les sautent, l'interrupteur VOIX et son volume sont masqués ; le
     script ne copie ni `announcer/`, ni `eww.m4a`, ni `wow.mp3` (banc : zéro requête de voix). Les chœurs et le cri du dauphin sont de la
     SYNTHÈSE (sons-banque) : gardés. Le script saute aussi `music/ville/ville-n1…n5` (carrière seulement).
+- **L'ÉDITION WEB pour itch.io (2026-10-05)** : `node poki-construire.js itch` → `ITCH/` + `ITCH.zip` (gitignorés) = l'édition Poki avec
+  `const POKI_SDK=false;` : aucun script de Poki chargé (`CC_PK.etat` −1, aucune pub, REJOUER direct), réglages « VERSION … · WEB ».
+  Banc : zéro requête vers poki.com/poki.io, partie → mort → REJOUER sans erreur. Sur itch.io : Kind of project = HTML, le zip « played
+  in the browser », le champ URL = l'adresse de la PAGE itch (pas le lien Vercel).
 - **Pas encore fait / à trancher** : l'auto-école parle de POUCE même au clavier chez Poki (vrai aussi dans le cadre de l'ordi de la
   version principale) ; `dark-triad.mp3` manque (404 en console, déjà vrai sur `main`) ; le compte développeur Poki, la page du jeu et
   l'envoi du zip = Sacha ; droits des musiques et noms de marques (CHAT POP-TART…) à vérifier avant publication.
