@@ -23568,17 +23568,23 @@ local function arrivee(p: Player)
 		Revenus.arrivee(p, prof)
 	end)
 end
+-- LA MONTRE DU SERVEUR (4/10, avant publication) : quand une partie commence, le serveur le note — à la fin, il sait combien de
+-- temps elle a VRAIMENT duré, et borne le montant déclaré par le joueur (voir evFin). Une seconde chance ne relance pas la montre.
+-- (5/10 : déclarée ICI, avant le départ d'un joueur qui la vide — déclarée plus bas, elle était inconnue à cet endroit :
+-- le départ plantait AVANT la sauvegarde du profil)
+local debutCourse: { [number]: number } = {}
 Players.PlayerAdded:Connect(arrivee)
 Revenus.init({ Profils = Profils, remote = remote, compte = function(p: Player, prof: any) evRecord:FireClient(p, prof.record, prof.compte) end })
 -- en test dans Studio, le joueur peut être entré AVANT que ce script écoute : on le rattrape
 for _, p in Players:GetPlayers() do task.spawn(arrivee, p) end
 
+-- (la SAUVEGARDE d'abord : rien de ce qui suit ne doit pouvoir l'empêcher)
 Players.PlayerRemoving:Connect(function(p)
+	pcall(Profils.sauver, p)
+	Profils.oublier(p)
 	debutCourse[p.UserId] = nil
 	local m = dossier:FindFirstChild(p.Name)
 	if m then m:Destroy() end
-	Profils.sauver(p)
-	Profils.oublier(p)
 	Revenus.depart(p)
 end)
 
@@ -23596,9 +23602,6 @@ game:BindToClose(function()
 	while reste > 0 and os.clock() - t0 < 25 do task.wait(0.1) end
 end)
 
--- LA MONTRE DU SERVEUR (4/10, avant publication) : quand une partie commence, le serveur le note — à la fin, il sait combien de
--- temps elle a VRAIMENT duré, et borne le montant déclaré par le joueur (voir evFin). Une seconde chance ne relance pas la montre.
-local debutCourse: { [number]: number } = {}
 -- ce que les AUTRES doivent savoir de ma caisse : est-ce que je roule, dans quelle zone, nitro allumée ?
 evEtat.OnServerEvent:Connect(function(p, quoi, valeur)
 	if quoi == "course" and valeur == true and not debutCourse[p.UserId] then debutCourse[p.UserId] = os.clock() end
