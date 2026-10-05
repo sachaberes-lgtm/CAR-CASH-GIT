@@ -5533,7 +5533,7 @@ html body #garage.vitrine:not(.menu) #gName{animation:gvNom .7s var(--ease) back
    La caisse a tout le milieu. */
 html body #garage.vitrine:not(.menu) #gOutils{position:fixed;top:calc(var(--sT) + 12px);right:calc(var(--sR) + 16px);z-index:2}
 html body #garage.vitrine:not(.menu) #gTop{max-width:none;margin:0;padding:calc(var(--sT) + 14px) calc(var(--sR) + 16px) 0 calc(var(--sL) + 16px)}
-html body #garage.vitrine:not(.menu) #gCard{box-sizing:border-box;width:100%;padding-right:62px} /* le nom s'arrête avant le ⚙ (sa taille suit la place : 100cqw) */
+html body #garage.vitrine:not(.menu) #gCard{display:none} /* (même soir, Léo : « enlève le blase de la voiture, énorme, qui sert à rien ») — le nom vit dans l'inventaire et dans la console du SHOP */
 html body #garage.vitrine:not(.menu) #gBottom{position:absolute;left:0;right:0;top:auto;bottom:0;width:auto;max-width:none;margin:0;
   padding:0 calc(var(--sR) + 16px) calc(var(--sB) + 16px) calc(var(--sL) + 16px);background:none;box-shadow:none;clip-path:none;gap:0;animation:none;
   transition:opacity .28s var(--ease),translate .28s var(--ease)}
@@ -5567,7 +5567,7 @@ html body #garage.deplie:not(.menu) #gBottom{animation:gDeplie .34s var(--ease,c
    défilent, un reflet passe. Masquées pendant l'inventaire. */
 #gVJ{display:none}
 html body #garage.vitrine:not(.menu):not(.inv) #gVJ{display:flex}
-#gVJ{flex-direction:row;gap:8px;box-sizing:border-box;width:100%;margin-top:14px;pointer-events:none;animation:gvJEntre .6s var(--ease) .2s backwards}
+#gVJ{flex-direction:row;gap:6px;box-sizing:border-box;width:100%;margin-top:0;padding-right:54px;pointer-events:none;animation:gvJEntre .6s var(--ease) .2s backwards} /* debout : la rangée du haut, le ⚙ au bout */
 @keyframes gvJEntre{from{opacity:0;translate:0 -10px}to{opacity:1;translate:0 0}}
 .gvL{flex:1 1 0;min-width:0;box-sizing:border-box;padding:9px 10px 8px 13px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;column-gap:7px;row-gap:6px;
   background:linear-gradient(180deg,rgba(20,14,42,.86),rgba(8,6,18,.88));
@@ -5600,11 +5600,14 @@ html body #garage.vitrine:not(.menu):not(.inv) #gVJ{display:flex}
 .gvU .gvR{color:#d6a8ff}
 .gvU .gvS i{color:#ff9ad8}
 .gvU u em{background:linear-gradient(90deg,transparent,rgba(255,154,216,.9)),linear-gradient(180deg,#f6e4ff 0 2px,#c77dff 2px 4px,#9a4dff 4px 6px,#5a1fb0 6px);box-shadow:0 0 10px rgba(199,125,255,.6)}
+@media (orientation:portrait){ /* debout la carte fait un tiers d'écran : le % se lit sur la barre, le prix au survol ; les chiffres sans espacement */
+  .gvA:not(.portee) .gvR,.gvU .gvR,.gvA .gvS em{display:none}
+  .gvL{padding:8px 8px 7px 11px;column-gap:6px}
+  .gvL b{letter-spacing:0}}
 /* COUCHÉ : une barre du haut (nom · jauges · ⚙), une barre du bas (l'astuce à gauche, les touches à droite sous le pouce) */
 @media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
   html body #garage.vitrine:not(.menu) #gTop{width:calc(100% - 460px - var(--sR));padding-right:12px}
-  html body #garage.vitrine:not(.menu) #gCard{padding-right:0}
-  html body #garage.vitrine:not(.menu) #gVJ{position:fixed;top:calc(var(--sT) + 12px);right:calc(var(--sR) + 16px + 48px + 10px);width:376px;margin:0}
+  html body #garage.vitrine:not(.menu) #gVJ{position:fixed;top:calc(var(--sT) + 12px);right:calc(var(--sR) + 16px + 48px + 10px);width:376px;margin:0;padding:0}
   html body #garage.vitrine:not(.menu) #gAct{width:min(430px,54%);margin:0 0 0 auto}
   html body #garage.vitrine:not(.menu) #gAct>:is(#gClose,#gPerso){width:70px;min-width:70px;height:56px;min-height:56px;gap:5px}
   html body #garage.vitrine:not(.menu) #gAct>#gJouer{height:56px;min-height:56px}
@@ -36591,7 +36594,7 @@ function chuteRender(dt){
 const GAR_CAM_A=Math.PI;
 function garRot(){return GAR_CAM_A-garageAng;}
 function garCamA(){return GAR_CAM_A+(GAR.vA||0)+(GAR.swO||0);} // (2026-09-30) l'azimut RÉEL de la caméra : l'axe + le regard du doigt + le balancement (voir « LE GARAGE QUI VIT »)
-const VITRINE_CAM={fw:.9,fwP:.8,fh:.8,cx:.43,cy:.55,adapt:.5,p:.08,y:0,vise:-.38,viseP:.6,fov:.9,rot:.15,cle:.3,rim:.35}; // LA VITRINE v2 : la caisse tient dans fw de la largeur libre et fh de sa hauteur, inclinaison +p rad, hauteur +y m, visée +vise (+viseP debout), objectif ×fov, plateau rot rad/s, lampes +cle/+rim
+const VITRINE_CAM={fw:.9,fwP:.8,fh:.8,cx:.43,cxL:.35,cy:.55,cyL:.6,adapt:.5,p:.08,y:0,vise:-.38,viseP:.6,fov:.9,rot:.15,cle:.3,rim:.35}; // LA VITRINE v2 : la caisse tient dans fw de la largeur libre et fh de sa hauteur, inclinaison +p rad, hauteur +y m, visée +vise (+viseP debout), objectif ×fov, plateau rot rad/s, lampes +cle/+rim
 /* le GABARIT de la caisse vue en tournant : R = demi-diagonale de son empreinte au sol (la plus large qu'elle montre), H = sa hauteur. Mesuré
    caisse droite et à l'échelle 1 (la bascule l'écrase, le toucher la tasse), une fois par caisse et par construction. */
 function garGabarit(){
@@ -36883,7 +36886,8 @@ function garLibre(){
     r.vit=gEl.classList.contains('vitrine');
     if(INV&&INV.on){const iv=$('gInv'),ir=iv&&iv.getBoundingClientRect();     // (2026-10-04) L'INVENTAIRE ouvert : la caisse se pose au-dessus du tiroir (debout), à sa gauche (couché)
       if(ir&&ir.width>0){if(W>H*1.2&&ir.left>W*.3){r.x1=Math.min(r.x1,ir.left);r.y1=H-12;}else r.y1=Math.min(r.y1,ir.top);}}}
-  r.cx=(r.x0+r.x1)/2;if(r.vit)r.cx=r.x0+(r.x1-r.x0)*VITRINE_CAM.cx;r.cy=(r.y0+r.y1)/2;if(r.shop)r.cy=r.y0+(r.y1-r.y0)*(r.vit?(.5+(VITRINE_CAM.cy-.5)*POR):.44); /* (vitrine v2) debout la caisse se pose un peu plus BAS : le feu et la porte au-dessus, moins de sol vide dessous */ /* (garage v7) la caisse se posait BAS dans sa zone (DEBUGGING) : son centre à 44 % de la zone, pas 50 */return garLibre._r=r;
+  const VC9=VITRINE_CAM,iv9=!!(INV&&INV.on); // (même soir, Léo : « la voiture en paysage encore calée un peu plus vers le coin bas gauche ») couché : cxL/cyL ; tiroir ouvert : au milieu de la place qui reste
+  r.cx=(r.x0+r.x1)/2;if(r.vit&&!iv9)r.cx=r.x0+(r.x1-r.x0)*(VC9.cxL+(VC9.cx-VC9.cxL)*POR);r.cy=(r.y0+r.y1)/2;if(r.shop)r.cy=r.y0+(r.y1-r.y0)*(r.vit&&!iv9?(VC9.cyL+(VC9.cy-VC9.cyL)*POR):r.vit?.5:.44); /* (vitrine v2) debout la caisse se pose un peu plus BAS : le feu et la porte au-dessus, moins de sol vide dessous */ /* (garage v7) la caisse se posait BAS dans sa zone (DEBUGGING) : son centre à 44 % de la zone, pas 50 */return garLibre._r=r;
 }
 function garCadre(k){
   const r=garLibre();camera.clearViewOffset();camera.updateMatrixWorld();
@@ -37097,11 +37101,11 @@ function gvJauges(anim){
   const el=$('gVJ');if(!el)return;
   const b=Math.max(0,Math.floor(bank())),o=objectif(),au=Math.max(0,SAVE.d.aura||0),r=auraRank(),lo=AURA_RANKS[r].v,nx=AURA_RANKS[r+1];
   const fA=o&&o.prix?Math.max(0,Math.min(1,b/o.prix)):1,fU=nx?Math.max(0,Math.min(1,(au-lo)/(nx.v-lo))):1;
-  const fm=function(x){return b>=1e6?fmtC(x):CUR()+(LANG==='fr'?' ':'')+Math.round(x).toLocaleString(LOC()).replace(/[\u202f\u00a0]/g,' ');}; // (v3) chiffres complets sous le million, compacts au-delà (la carte fait une demi-largeur debout)
+  const fm=function(x){return (b>=1e6||(b>=1e5&&POR>.5))?fmtC(x):CUR()+(LANG==='fr'?' ':'')+Math.round(x).toLocaleString(LOC()).replace(/[\u202f\u00a0]/g,' ');}; // (v3) chiffres complets sous le million, compacts au-delà (la carte fait une demi-largeur debout)
   const A=el.querySelector('.gvA'),U=el.querySelector('.gvU'),q=function(e,c){return e.querySelector(c);};
   const po=fA>=1&&!!o;A.classList.toggle('portee',po);if(po)q(A,'.gvR').innerHTML=pxi('coche');else q(A,'.gvR').textContent=Math.floor(fA*100)+' %'; // la caisse visée s'achète déjà : une coche qui luit, et la ligne du dessous le DIT
   const sub=function(e,g,d){const x=q(e,'.gvS');x.innerHTML='<i></i><em></em>';x.firstChild.textContent=g;x.lastChild.textContent=d||'';};
-  sub(A,o?sansAcc(TR(o.nom)):sansAcc(TR('TOUT EST A TOI')),o?fmtC(o.prix):'');A.title=o?sansAcc(TR(po?'A TA PORTEE':'VERS'))+' '+sansAcc(TR(o.nom)):''; // la caisse visée et son prix (la coche dit « à ta portée ») — le nom se coupe s'il le faut, jamais le prix
+  sub(A,o?sansAcc(TR(o.nom)):sansAcc(TR('TOUT EST A TOI')),o?fmtC(o.prix):'');A.title=o?sansAcc(TR(po?'A TA PORTEE':'VERS'))+' '+sansAcc(TR(o.nom))+' · '+fmtC(o.prix):''; // la caisse visée et son prix (la coche dit « à ta portée ») — le nom se coupe s'il le faut, jamais le prix
   q(U,'.gvR').textContent=nx?Math.floor(fU*100)+' %':'';
   sub(U,sansAcc(auraRankName(r)),'');U.title=nx?sansAcc(TR('VERS'))+' '+sansAcc(TR(nx.n))+' · '+fmtAura(Math.max(0,nx.v-au)):''; // ton RANG, en rose ; le suivant au survol
   const eA=q(A,'u em'),eU=q(U,'u em');
