@@ -3652,6 +3652,12 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 			cam.CFrame = vue
 			cam.FieldOfView = workspace:GetAttribute("DbgFov") or 90
 		end
+		-- (banc, les vignettes de la page Roblox) "DbgVueCaisse" = un Vector3 en mètres DANS LE REPÈRE DE LA CAISSE (−Z = devant) : la
+		-- caméra suit la caisse à cette place et la regarde — un plan de photographe qui vole avec elle
+		if typeof(workspace:GetAttribute("DbgVueCaisse")) == "Vector3" then
+			cam.CFrame = CFrame.lookAt((carCF * CFrame.new((workspace:GetAttribute("DbgVueCaisse") :: Vector3) * M)).Position, (carCF * CFrame.new(0, 0.8 * M, 0)).Position)
+			cam.FieldOfView = workspace:GetAttribute("DbgFov") or 50
+		end
 		Mer.montrer(mode == "menu" or mode == "garage" or (piste :: any).niveau == "nuages")
 		Mer.suivre(cam.CFrame.Position, carCF.Position.Y, dt, (mode == "menu" or mode == "garage") and Config.CIEL.merMenu * (Config.CIEL.titreK or 1) * M or nil)
 		KA.Espace.tick(dt, (piste :: any).niveau == "espace" and mode ~= "menu" and mode ~= "garage", cam.CFrame, carCF)
@@ -21339,9 +21345,11 @@ Config.LIGNE = { dt = 1.2, don = 1.15, voir = 3.5 }
 -- SATELLITES, puis on recommence. Une VARIANTE (`var`) garde l'`id` de son lieu : toute la ville suit, tout le ciel de coton suit ;
 -- elle ne change que ce qui fait sa difficulté (orage : les bancs partout et l'éclair · nuit : les fenêtres éteintes et les phares ·
 -- hard : des satellites SUR la route).
+-- (5/10, Sacha : « sur la version Roblox, mets la ville avant les nuages » — la VILLE ouvre la partie ; l'auto-école, la zone 0,
+-- garde le ciel des nuages)
 Config.NIVEAUX = {
-	{ id = "nuages", nom = "MER DE NUAGES", en = "SEA OF CLOUDS" },
 	{ id = "ville", nom = "AU-DESSUS DE LA VILLE", en = "ABOVE THE CITY" },
+	{ id = "nuages", nom = "MER DE NUAGES", en = "SEA OF CLOUDS" },
 	{ id = "espace", nom = "EN ORBITE", en = "IN ORBIT" },
 	{ id = "nuages", var = "orage", nom = "L'ORAGE", en = "THE STORM" },
 	{ id = "ville", var = "nuit", nom = "MINUIT EN VILLE", en = "MIDNIGHT CITY" },
