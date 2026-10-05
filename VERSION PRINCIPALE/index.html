@@ -36647,7 +36647,10 @@ function chuteRender(dt){
 const GAR_CAM_A=Math.PI;
 function garRot(){return GAR_CAM_A-garageAng;}
 function garCamA(){return GAR_CAM_A+(GAR.vA||0)+(GAR.swO||0)+(GAR.vD||0);} // (2026-10-05) + vD : le décalage qui pose la caisse à gauche de l'entrée (vitrine) // (2026-09-30) l'azimut RÉEL de la caméra : l'axe + le regard du doigt + le balancement (voir « LE GARAGE QUI VIT »)
-const VITRINE_CAM={porteY:1.9,fw:.9,fwP:.8,fh:.8,cx:.43,cxL:.62,cy:.55,cyL:.6,adapt:.5,p:.08,y:0,vise:-.38,viseP:.6,fov:.9,rot:.15,cle:.3,rim:.35}; // LA VITRINE v2 : la caisse tient dans fw de la largeur libre et fh de sa hauteur, inclinaison +p rad, hauteur +y m, visée +vise (+viseP debout), objectif ×fov, plateau rot rad/s, lampes +cle/+rim
+/* (2026-10-05, Léo : « un peu plus doux l'effet tourner dans le garage — c'est pas mal le flottement, juste ça tourne trop la tête ») LE TOUR AU
+   DOIGT, ADOUCI en vitrine : dPx rad par pixel (,007 au menu), la vue rejoint le doigt en ~0,25 s (dSuit : constante 4/s au lieu de 12 — le
+   flottement), l'élan plafonné à dElan rad/s (7 au menu), la caméra penche quatre fois moins dans le virage, le balancement au repos ×(1 − dSway). */
+const VITRINE_CAM={dPx:.0042,dSuit:4,dElan:2.6,dSway:.6,porteY:1.9,fw:.9,fwP:.8,fh:.8,cx:.43,cxL:.62,cy:.55,cyL:.6,adapt:.5,p:.08,y:0,vise:-.38,viseP:.6,fov:.9,rot:.15,cle:.3,rim:.35}; // LA VITRINE v2 : la caisse tient dans fw de la largeur libre et fh de sa hauteur, inclinaison +p rad, hauteur +y m, visée +vise (+viseP debout), objectif ×fov, plateau rot rad/s, lampes +cle/+rim
 /* le GABARIT de la caisse vue en tournant : R = demi-diagonale de son empreinte au sol (la plus large qu'elle montre), H = sa hauteur. Mesuré
    caisse droite et à l'échelle 1 (la bascule l'écrase, le toucher la tasse), une fois par caisse et par construction. */
 function garGabarit(){
@@ -36785,7 +36788,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
      derrière la caisse, face au feu, avant le lâcher (voir `GAR.go.pre`). En BOUTIQUE glisser fait toujours tourner la caisse. Le plateau
      tourne toujours. `GAR.fige` (dbgGarage) gèle tout pour les captures. */
   GAR.swK=(GAR.swK||0)+(((garageDrag||GAR.go||GAR.fige||gEl.classList.contains('missions'))?0:1)-(GAR.swK||0))*Math.min(1,dt*.7);
-  GAR.swO=(Math.sin(t9*.28)*.15+Math.sin(t9*.117+1.3)*.05)*GAR.swK;GAR.swP=Math.sin(t9*.21)*.025*GAR.swK;
+  GAR.swO=(Math.sin(t9*.28)*.15+Math.sin(t9*.117+1.3)*.05)*GAR.swK*(1-VITRINE_CAM.dSway*VK); // (2026-10-05, Léo : « plus doux, ça tourne trop la tête ») en vitrine le balancement au repos est réduitGAR.swP=Math.sin(t9*.21)*.025*GAR.swK;
   if(GAR.affiches)for(const a of GAR.affiches){ // LES AFFICHES (branche de Léo) : elles s'allument au survol, sautent au tap
     a.hv+=((GAR.affH===a?1:0)-a.hv)*Math.min(1,dt*8);
     if(a.pop>0)a.pop=Math.max(0,a.pop-dt);
@@ -36795,10 +36798,10 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
     a.cadre.material.emissiveIntensity=.25+a.hv*.5+Math.abs(p9)*2;a.lueur.material.opacity=.3+a.hv*.25;}
   if(!GAR.fige&&!GAR.go){ // LE GLISSÉ FONDU : l'élan, puis la vue qui rejoint sa cible
     if(!garageDrag&&GAR.vW){GAR.vAc=(GAR.vAc||0)+GAR.vW*dt;GAR.vW*=Math.exp(-dt*3);if(Math.abs(GAR.vW)<.015)GAR.vW=0;}
-    const vA0=GAR.vA||0,kS=1-Math.exp(-dt*12);
+    const vA0=GAR.vA||0,kS=1-Math.exp(-dt*(12-(12-VITRINE_CAM.dSuit)*VK)); // (vitrine) la vue rejoint le doigt plus lentement : elle FLOTTE derrière lui au lieu de coller
     GAR.vA=vA0+((GAR.vAc!=null?GAR.vAc:vA0)-vA0)*kS;
     if(menu9&&GAR.pT!=null)garagePitch+=(GAR.pT-garagePitch)*kS;
-    const w9=dt>0?(GAR.vA-vA0)/dt:0;GAR.roll=(GAR.roll||0)+(THREE.MathUtils.clamp(w9*.016,-.04,.04)-(GAR.roll||0))*Math.min(1,dt*6);
+    const w9=dt>0?(GAR.vA-vA0)/dt:0;GAR.roll=(GAR.roll||0)+(THREE.MathUtils.clamp(w9*.016*(1-.75*VK),-.04*(1-.75*VK),.04*(1-.75*VK))-(GAR.roll||0))*Math.min(1,dt*6);
   }else GAR.roll=(GAR.roll||0)*(1-Math.min(1,dt*6));
   // CADRAGE PORTRAIT : le `fov` de three est VERTICAL — sur un téléphone à la verticale le champ
   // horizontal s'effondre et la caisse sort du cadre par les côtés. On rouvre l'angle (FOV_K), on
@@ -37702,7 +37705,7 @@ addEventListener('pointerup',e=>{
     const dx=e.clientX-gpx0,dy=e.clientY-gpy0;
     if(Math.abs(dx)>SWIPE_PX&&Math.abs(dx)>Math.abs(dy)*1.3){if(!gEl.classList.contains('menu')&&!gEl.classList.contains('vitrine'))garageGo(dx<0?1:-1);} /* (2026-10-04) en VITRINE c'est TA caisse : le glissé la fait tourner, il ne feuillette pas la gamme */ // (2026-09-30) au MENU un glissé fait tourner le plateau, il ne change pas de caisse (c'est la BOUTIQUE qui feuillette) // glisse à GAUCHE → caisse SUIVANTE (même sens qu'un carrousel qu'on feuillette)
     else if(Math.abs(dx)<14&&Math.abs(dy)<14){if(CHUTE&&CHUTE.on){if(!CHUTE.go)chuteTape(e);}else if(INV.on)invFerme();else{let af=null;try{af=afficheVise(e);}catch(_){}if(af)afficheTap(af);else garageImpact();}} // (2026-10-03) AU CIEL : le tap est un COUP sur la caisse en chute (chuteTape) // ni glissé ni swipe : un TAP — sur une AFFICHE elle saute (voir afficheTap), sinon la caisse encaisse (voir garageImpact)
-    if(performance.now()-(GAR.mvT||0)>90)GAR.vW=0;else GAR.vW=THREE.MathUtils.clamp(GAR.vW||0,-7,7);
+    if(performance.now()-(GAR.mvT||0)>90)GAR.vW=0;else{const m9=gEl.classList.contains('vitrine')?VITRINE_CAM.dElan:7;GAR.vW=THREE.MathUtils.clamp(GAR.vW||0,-m9,m9);} // (vitrine) un élan plafonné : le lancer glisse, il ne tourbillonne plus
     if(CHUTE&&CHUTE.on){if(performance.now()-(CHUTE.mvT||0)>90)CHUTE.oW=0;else CHUTE.oW=THREE.MathUtils.clamp(CHUTE.oW||0,-7,7);} // (2026-09-30) l'orbite du ciel : lâchée en mouvement, elle garde son élan // (le glissé fondu) doigt arrêté avant de lâcher : la vue reste ; lancé : elle file sur son élan
   }
   garageDrag=false;
@@ -37718,7 +37721,7 @@ addEventListener('pointermove',e=>{
     CHUTE.oAc+=dA;CHUTE.oW=(CHUTE.oW||0)*.55+dA/dm*.45;CHUTE.mvT=n9; /* (2026-10-03, Léo : « bloque le point de vue à ce niveau vertical : pas de haut en bas, horizontal à ce niveau-là ») le doigt ne fait plus monter ni plonger le regard : il tourne autour de la caisse, à la hauteur du menu */
     gpx=e.clientX;gpy=e.clientY;return;}
   if(GAR.go||gEl.classList.contains('missions'))return; // JOUER est parti / l'écran des MISSIONS : la vue ne se touche plus
-  if(gEl&&(gEl.classList.contains('menu')||gEl.classList.contains('vitrine'))){const vit9=gEl.classList.contains('vitrine'),dA=-(e.clientX-gpx)*.007,n9=performance.now(),dm=Math.max(8,n9-(GAR.mvT||n9-16))/1000;
+  if(gEl&&(gEl.classList.contains('menu')||gEl.classList.contains('vitrine'))){const vit9=gEl.classList.contains('vitrine'),dA=-(e.clientX-gpx)*(vit9?VITRINE_CAM.dPx:.007),n9=performance.now(),dm=Math.max(8,n9-(GAR.mvT||n9-16))/1000;
     GAR.vAc=(GAR.vAc!=null?GAR.vAc:(GAR.vA||0))+dA;GAR.vW=(GAR.vW||0)*.55+dA/dm*.45;GAR.mvT=n9; // (le glissé fondu) la CIBLE suit le doigt, la vitesse du geste est retenue pour l'élan
     if(!vit9)GAR.pT=THREE.MathUtils.clamp((GAR.pT!=null?GAR.pT:garagePitch)+(e.clientY-gpy)*.003,.08,.42);} // (2026-10-05, Léo : « c'est avec le doigt qu'on bouge le garage à 360° ») en VITRINE aussi : le tour complet de la vue, sans changer sa hauteur // (Léo : « on doit pouvoir voir derrière ») plus de borne : le tour complet // (2026-09-30, Léo) au MENU le doigt fait TOURNER LE REGARD autour de l'atelier, un peu (voir « LE GARAGE QUI VIT »)
   else{garageAng-=(e.clientX-gpx)*.01;if(!gEl.classList.contains('vitrine'))garagePitch=THREE.MathUtils.clamp(garagePitch+(e.clientY-gpy)*.006,.02,.82);} // (2026-10-04) en VITRINE le plan de présentation garde sa hauteur : le doigt tourne la caisse

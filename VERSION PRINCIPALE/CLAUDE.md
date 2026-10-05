@@ -86,6 +86,10 @@
   (Léo l'avait retiré du menu le 30/09). ⚠ LA PORTE se LÈVE en vitrine (`garPorte` : `Pt.kv`, 1,1 s) — la porte fermée est le choix de SACHA
   (menu, boutique) : ici seulement en vitrine, À CONFIRMER AVEC ELLE avant main. Bancs `tour.mjs` (glissé 127°, MISSIONS → HOME → vitrine, JOUER
   depuis une vue tournée), `garfeu.mjs`, `parcours.mjs`, `inv.mjs`, `cadreinv.mjs`. sw.js → v108.
+  · (même jour, Léo : « un peu plus doux l'effet tourner dans le garage — c'est pas mal le flottement, juste ça tourne trop la tête ») en vitrine
+    le tour au doigt est ADOUCI (`VITRINE_CAM.dPx/dSuit/dElan/dSway`) : ,0042 rad par pixel au lieu de ,007 (mesuré : le même glissé tourne 60° au
+    lieu de 127°), la vue rejoint le doigt en ~0,25 s (elle flotte derrière lui), l'élan plafonné à 2,6 rad/s (7), la caméra penche 4× moins dans
+    le virage, le balancement au repos ×0,4. Le menu de Léo garde ses réglages. sw.js → v109.
 - **LES JAUGES (même soir, Léo : « ça fait un peu vide, ajoute un peu de vie : jauge money, jauge aura, moyennes, colorées »)** — `#gVJ`,
   `gvJauges(anim)` appelée par `garVitrine(true)` : l'ARGENT (vert billet, vers la prochaine caisse à vendre — `objectif()`, celle que visait
   le profil du menu de Léo ; pleine : « À TA PORTÉE » qui luit) et l'AURA (violet → rose, le rang, vers le rang suivant, ce qu'il manque).
