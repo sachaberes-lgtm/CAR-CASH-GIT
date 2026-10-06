@@ -4,6 +4,10 @@
 L'image de référence = le sprite de 2011 EXTRUDÉ en cubes (contour noir = mur noir sur l'épaisseur, dessous bleus). Le gabarit `poptart` est
 refait EN VOXELS (10 cm, `NY_U`), chaque pièce dessinée dans SON plan (bloc « LE CHAT POP-TART EN VOXELS », juste avant `SHAPES` : dessins
 `NY_GATEAU` / `NY_SUCRE` / `NY_TETE` / `NY_QUEUE`, maillage `voxGrille()` = faces à l'air seules, fusionnées en rectangles par couleur).
+- **v6, même jour** (Léo : « enlève les côtés roses, corrige, peaufine ») : TOUT EN BISCUIT comme une vraie pop-tart — la croûte partout,
+  le GLAÇAGE seulement dessus : le pavillon (rose, éclats de sucre, cerclé de croûte) qui BOMBE d'une couche, et les coiffes des
+  rétroviseurs. La DENTELURE de la fourchette (pointillé `Q`) fait le tour de la caisse sous la ceinture, la malle a ses trous de
+  cuisson, lignes de portes en biscuit foncé. Biscuit adouci (`C` 0xf4d6a8).
 - **v5, même jour** (Léo : « retente une forme plus ambitieuse, réalisme vraie voiture, et remets le glaçage sur le toit ») : la caisse
   quitte la grille de la tête — taillée dans une grille de 5 cm (`U5`) à partir d'un VRAI profil (fonctions `yB` ceinture qui monte
   vers l'arrière, `yT` pare-brise / pavillon bombé / lunette fastback, `hC` rentré de l'habitacle, `hB` bas et épaules arrondis + coins
