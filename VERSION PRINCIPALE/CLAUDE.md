@@ -4,6 +4,14 @@
 L'image de référence = le sprite de 2011 EXTRUDÉ en cubes (contour noir = mur noir sur l'épaisseur, dessous bleus). Le gabarit `poptart` est
 refait EN VOXELS (10 cm, `NY_U`), chaque pièce dessinée dans SON plan (bloc « LE CHAT POP-TART EN VOXELS », juste avant `SHAPES` : dessins
 `NY_GATEAU` / `NY_SUCRE` / `NY_TETE` / `NY_QUEUE`, maillage `voxGrille()` = faces à l'air seules, fusionnées en rectangles par couleur).
+- **v5, même jour** (Léo : « retente une forme plus ambitieuse, réalisme vraie voiture, et remets le glaçage sur le toit ») : la caisse
+  quitte la grille de la tête — taillée dans une grille de 5 cm (`U5`) à partir d'un VRAI profil (fonctions `yB` ceinture qui monte
+  vers l'arrière, `yT` pare-brise / pavillon bombé / lunette fastback, `hC` rentré de l'habitacle, `hB` bas et épaules arrondis + coins
+  de poupe arrondis, `dans` + `coul`) : pare-brise incliné derrière la tête, pavillon au niveau de l'arête de la tête, lunette fastback,
+  malle courte à becquet, ailes avant qui embrassent la tête, rétroviseurs sur pied, lignes de portes (`Q`), diffuseur (`K`), bandeau
+  de feux. PAVILLON GLACÉ : rose aux éclats de sucre, cerclé de croûte (le dessus d'une vraie pop-tart). Flancs roses, bande de biscuit
+  sur la malle, la poupe et dessous. Vitres en APLAT sombre (`V`) avec une bande de reflet en biais (`W`) : laquées, elles renvoyaient
+  les lampes de l'atelier et sortaient couleur biscuit. Grille en clés NUMÉRIQUES (~25 000 cases), ~1 100 triangles pour la caisse.
 - **v4, même jour** (Léo : « pas d'encoches pour les roues, plus smooth, futuriste, moins cabossée ; le devant colle à la tête, pas trop
   d'espace entre l'arête du haut de la tête et le haut de la voiture ») : flancs d'un seul plan (ailes bombées, bas rentré et épaules
   en marches retirés), habitacle pleine largeur jusqu'à la tête, pavillon AU NIVEAU de l'arête du haut de la tête (les oreilles seules

@@ -16064,14 +16064,16 @@ const NY_QUEUE=[[10,['...BBB','..BGGB','BBGGB.','BGGB..','BBB...']],     // tomb
    glouton classique, plan par plan) : ~3 000 cases de chat = quelques centaines de triangles. `fk(c,axe,sens)` choisit la clé de
    chaque FACE (axe 0/1/2 = x/y/z, sens ±1, et la case elle-même) : c'est là que les dessous virent au bleu, et que la caisse prend ses ombres. Les faces vont dans un chantier `lpKit`. */
 function voxGrille(){
-  const M=new Map(),cle=(i,j,k)=>i+','+j+','+k;
+  const M=new Map(),cle=(i,j,k)=>((i+512)*1024+(j+512))*1024+(k+512); // une clé NUMÉRIQUE (la caisse fine a ~25 000 cases : les chaînes coûtaient)
   return {M,
     set(i,j,k,c){M.set(cle(i,j,k),c);},
     has(i,j,k){return M.has(cle(i,j,k));},
+    del(i,j,k){M.delete(cle(i,j,k));},
     emit(kt,u,o,fk){
-      const lo=[1e9,1e9,1e9],hi=[-1e9,-1e9,-1e9];
-      for(const q of M.keys()){const p=q.split(',');for(let a=0;a<3;a++){const v=+p[a];if(v<lo[a])lo[a]=v;if(v>hi[a])hi[a]=v;}}
-      const lit=p=>M.get(p[0]+','+p[1]+','+p[2]),p=[0,0,0],q=[0,0,0];
+      const lo=[1e9,1e9,1e9],hi=[-1e9,-1e9,-1e9],p=[0,0,0],q=[0,0,0];
+      for(const c of M.keys()){p[2]=c%1024-512;p[1]=Math.floor(c/1024)%1024-512;p[0]=Math.floor(c/1048576)-512;
+        for(let a=0;a<3;a++){if(p[a]<lo[a])lo[a]=p[a];if(p[a]>hi[a])hi[a]=p[a];}}
+      const lit=r=>M.get(cle(r[0],r[1],r[2]));
       for(let ax=0;ax<3;ax++){const a1=(ax+1)%3,a2=(ax+2)%3; // le plan de la face : a1 × a2 = ax (base directe : la face regarde DEHORS)
         const n1=hi[a1]-lo[a1]+1,n2=hi[a2]-lo[a2]+1,mask=new Array(n1*n2);
         for(const sg of [1,-1])for(let d=lo[ax];d<=hi[ax];d++){
@@ -16798,49 +16800,69 @@ const SHAPES={
        avec l'ombrage CUIT par face : la face du DESSIN pleine (dessus du gâteau, visage et nuque, flancs des pattes et de la queue),
        le dessus un cran en dessous, les autres faces deux crans. Seul le NOIR reste laqué et éclairé : c'est lui qui accroche le ciel,
        comme les murs noirs de l'image. Les aplats sont relevés de 10 % : l'ACES les ternissait. */
-    const COUL={C:0xffdcb0,K:0x9a6038,P:0xff9cf3,S:0xff3a94,G:0x8e8f99,W:0xffffff,R:0xff9aa6,u:0x1d4cb4,Y:0xffe25a,L:0x8a1424,T:0xff2a36},TEINTE=[['d',1.1],['h',1.0],['c',.86]],pal={B:{g:'g',c:0x09090e}},cc=new THREE.Color();
+    const COUL={C:0xffdcb0,K:0x9a6038,Q:0xc864bc,P:0xff9cf3,S:0xff3a94,G:0x8e8f99,W:0xffffff,R:0xff9aa6,u:0x1d4cb4,Y:0xffe25a,L:0x8a1424,T:0xff2a36},TEINTE=[['d',1.1],['h',1.0],['c',.86]],pal={B:{g:'g',c:0x09090e}},cc=new THREE.Color();
     for(const k in COUL)for(const [f,m] of TEINTE){cc.setHex(COUL[k]);cc.setRGB(Math.min(1,cc.r*m),Math.min(1,cc.g*m),Math.min(1,cc.b*m));pal[k+f]={g:'l',c:cc.getHex()};} // ⚠ r128 : getHex() ne BORNE pas — un canal à 1,1 débordait sur ses voisins (le rose sortait vert)
     /* LA CAISSE EN TEINTES (v3) : plus de contour noir sur la caisse — rose et marron « tels quels », et l'OMBRE DES FORMES en neuf
        teintes de chaque couleur. `fkC` : le dessus plein, les flancs un cran, l'avant et l'arrière deux, le dessous dans l'ombre ;
        le bas de caisse s'assombrit vers le sol ; une ARÊTE (une voisine du plan manque) prend un cran ; un CREUX (une case DEVANT la
        face, à côté) prend l'ombre portée du relief — l'occlusion des jeux en voxels, cuite une fois. */
-    const LV=[1.06,.98,.9,.82,.74,.66,.58,.5,.42],palC={B:{g:'g',c:0x09090e},V:{g:'g',c:0x1b2236}}; // V : les vitres, laquées (elles prennent le ciel)
-    for(const k of ['C','P','S','K'])LV.forEach((m,n)=>{cc.setHex(COUL[k]);cc.setRGB(Math.min(1,cc.r*m),Math.min(1,cc.g*m),Math.min(1,cc.b*m));palC[k+n]={g:'l',c:cc.getHex()};});
-    const fkC=V=>{const q=[0,0,0];return (c,ax,sg,p)=>{if(c==='V'||c==='B')return c;
+    const LV=[1.06,.98,.9,.82,.74,.66,.58,.5,.42],palC={B:{g:'g',c:0x09090e},V:{g:'l',c:0x171d31},W:{g:'l',c:0x4a5a86}}; // V : les vitres — (v5) en APLAT sombre, W leur reflet en biais : laquées, elles renvoyaient les lampes chaudes de l'atelier et sortaient couleur biscuit
+    for(const k of ['C','P','S','K','Q'])LV.forEach((m,n)=>{cc.setHex(COUL[k]);cc.setRGB(Math.min(1,cc.r*m),Math.min(1,cc.g*m),Math.min(1,cc.b*m));palC[k+n]={g:'l',c:cc.getHex()};});
+    const fkC=(V,uu)=>{const q=[0,0,0];return (c,ax,sg,p)=>{if(c==='V'||c==='W'||c==='B')return c;
       let m=ax===1?(sg>0?1:.5):(ax===0?.86:.78);
-      if(ax!==1)m*=.74+.26*Math.min(1,Math.max(0,(p[1]-5)/4));
+      if(ax!==1)m*=.74+.26*Math.min(1,Math.max(0,((p[1]+.5)*uu-.5)/.45)); // le bas de caisse s'assombrit vers le sol (en mètres : la grille peut être fine)
       const a1=(ax+1)%3,a2=(ax+2)%3;let bord=0,creux=0;
       for(let e=0;e<4;e++){const aa=e<2?a1:a2,dd=e&1?-1:1;q[0]=p[0];q[1]=p[1];q[2]=p[2];q[aa]+=dd;if(!V.has(q[0],q[1],q[2]))bord=1;q[ax]+=sg;if(V.has(q[0],q[1],q[2]))creux=1;}
       if(bord)m*=.93;if(creux)m*=.86;
       let b=0,ec=9;for(let n=0;n<LV.length;n++){const d=Math.abs(LV[n]-m);if(d<ec){ec=d;b=n;}}return c+b;};};
-    const poseC=(V,par)=>{const kt=lpKit(palC);V.emit(kt,u,o,fkC(V));const gs=kt.done();
+    const poseC=(V,par,uu,oo)=>{uu=uu||u;const kt=lpKit(palC);V.emit(kt,uu,oo||o,fkC(V,uu));const gs=kt.done();
       for(const g in gs){const m=new THREE.Mesh(gs[g],mat(g));m.userData.lp=1;par.add(m);}return par;};
-    const pose=(V,par,plan)=>{const kt=lpKit(pal); // `plan` : l'axe de la face qui porte le DESSIN (0 = flancs, 1 = dessus, 2 = avant/arrière)
-      V.emit(kt,u,o,(c,ax,sg)=>c==='B'?'B':(ax===1&&sg<0)?'uc':c+(ax===plan?'d':(ax===1?'h':'c'))); // tout ce qui regarde le SOL prend le bleu du ciel
+    const pose=(V,par,plan,uu,oo)=>{const kt=lpKit(pal); // `plan` : l'axe de la face qui porte le DESSIN (0 = flancs, 1 = dessus, 2 = avant/arrière)
+      V.emit(kt,uu||u,oo||o,(c,ax,sg)=>c==='B'?'B':(ax===1&&sg<0)?'uc':c+(ax===plan?'d':(ax===1?'h':'c'))); // tout ce qui regarde le SOL prend le bleu du ciel
       const gs=kt.done();
       for(const g in gs){const m=new THREE.Mesh(gs[g],mat(g));m.userData.lp=1;par.add(m);}return par;};
     const bloc=()=>K.add(new THREE.Group()); // ce qui BOUGE vit dans un groupe : la soudure de la caisse n'y touche pas (voir caisseSoude)
-    // 1. LA CAISSE (v4, Léo : « pas d'encoches pour les roues, plus smooth, futuriste, moins cabossée ; le devant colle à la tête, pas
-    //    trop d'espace entre l'arête du haut de la tête et le haut de la voiture »). Toujours la pop-tart sur la TRANCHE (flancs roses,
-    //    bande de biscuit du capot jusqu'au-dessous — la v3, « une mini Cooper »), mais LISSE : flancs d'un seul plan (plus d'ailes, plus
-    //    de bas rentré, plus d'épaules en marches), l'habitacle pleine largeur qui VA JUSQU'À LA TÊTE, le pavillon AU NIVEAU de l'arête
-    //    du haut de la tête (seules les oreilles dépassent), une poupe fastback en deux marches aux coins arrondis, un BANDEAU DE VITRES
-    //    laquées sans montant qui fait le tour des flancs et de la lunette (la visière des concept-cars), un petit becquet intégré.
-    {const V=voxGrille(),lay=i=>Math.abs(i)>=5?'P':'C';
-     for(let k=0;k<=19;k++)for(let j=5;j<=10;j++)for(let i=-8;i<=8;i++)V.set(i,j,k,lay(i));            // le bas de caisse et la ceinture
-     for(let k=1;k<=19;k++)for(let i=-8;i<=8;i++)V.set(i,11,k,lay(i));                                  // l'habitacle, jusqu'à la tête…
-     for(let k=2;k<=19;k++)for(let i=-8;i<=8;i++)V.set(i,12,k,lay(i));                                  // …et le pavillon, au ras de l'arête de la tête
-     for(let i=-6;i<=6;i++)V.set(i,13,2,lay(i));                                                         // le becquet : une lèvre au bout du pavillon
-     for(const sd of [-1,1])for(let j=10;j<=11;j++)for(let k=2;k<=18;k++)V.set(sd*8,j,k,'V');           // le bandeau de vitres des flancs…
-     for(let i=-6;i<=6;i++)V.set(i,11,1,'V');                                                            // …qui fait le tour par la lunette
-     for(const sd of [-1,1]){for(let j=5;j<=10;j++)V.M.delete(sd*8+','+j+',0');V.M.delete(sd*8+',11,1');V.M.delete(sd*8+',12,2');} // les coins de la poupe, arrondis
-     for(const e of [[-8,7,4],[-8,6,9],[-8,8,13],[-8,6,17],[8,8,5],[8,6,10],[8,7,15],[8,9,18],[-6,12,5],[-5,12,11],[-7,12,16],[6,12,8],[5,12,14],[7,12,4]])
-       V.set(e[0],e[1],e[2],'S');                                                                         // les éclats de sucre, semés à la main (pas en miroir)
-     poseC(V,carGroup);}
+    // 1. LA CAISSE (v5, Léo : « retente une forme plus ambitieuse, réalisme vraie voiture, et remets le glaçage sur le toit »). La
+    //    caisse quitte la grille de la tête : elle est taillée dans une grille de 5 cm (`U5`) à partir d'un VRAI profil de voiture —
+    //    ligne de ceinture qui monte vers l'arrière (le coin), pare-brise incliné qui part derrière la tête, pavillon au niveau de
+    //    l'arête du haut de la tête, lunette fastback, malle courte à becquet, poupe aux coins arrondis, rentré de l'habitacle (le
+    //    pavillon fait 1,3 m de large, la caisse 1,7), bas de caisse et épaules arrondis, ailes avant qui EMBRASSENT la tête,
+    //    rétroviseurs, lignes de portes, diffuseur. Les couleurs de la pop-tart sur la tranche : FLANCS roses, BANDE de biscuit au
+    //    milieu (malle, poupe, dessous) — et le PAVILLON GLACÉ, rose aux éclats de sucre, cerclé de croûte comme le dessus d'une vraie
+    //    pop-tart. Vitres laquées (pare-brise, latérales à montant B noir, lunette). Pas d'encoches de roues : les pattes la portent.
+    {const U5=.05,V=voxGrille(),sm=t=>{t=Math.min(1,Math.max(0,t));return t*t*(3-2*t);},hh=(i,j,k)=>{const x=Math.sin(i*12.9898+j*78.233+k*37.719)*43758.5453;return x-Math.floor(x);};
+     const yB=z=>.94+.04*Math.min(1,Math.max(0,(1-z)/2));                                        // la ceinture : 0,94 m à l'avant, 0,98 à l'arrière
+     const yT=z=>z>.72?1.12+.19*sm((1-z)/.28):z>-.3?1.31+.015*(1-Math.pow((z-.21)/.51,2)):z>-.8?yB(z)+.03+(1.31-yB(z)-.03)*sm((z+.8)/.5):-1; // pare-brise · pavillon · lunette (rien sur la malle)
+     const hC=(y,z)=>{const yb=yB(z),yt=yT(z);return .74-.12*Math.min(1,Math.max(0,(y-yb)/Math.max(.01,yt-yb)));}; // le rentré de l'habitacle
+     const hB=(y,z)=>{let h=.85;if(y<.6)h-=(.6-y)*.9;const yb=yB(z);if(y>yb-.06)h-=(y-(yb-.06))*1.5;           // le bas et l'épaule arrondis
+       if(z<-.82){const dz=-.82-z;h=Math.min(h,.67+Math.sqrt(Math.max(0,.0324-dz*dz)));}return h;};             // la poupe aux coins arrondis
+     const dans=(x,y,z)=>{const ax=Math.abs(x);if(y<.5)return 0;
+       if(z>1){const hf=z<1.2?.85:.85-(z-1.2)*.6;return z<=1.32&&ax>.76&&ax<=hf&&y<=yB(z)-.02-(z-1)*.4;} // les ailes avant, de part et d'autre de la tête
+       if(z<-1)return 0;const yb=yB(z);if(y<=yb)return ax<=hB(y,z);
+       const yt=yT(z);if(yt<0)return z<-.93&&y<=yb+.06&&ax<=.66;                                            // la malle et son becquet
+       return y<=yt&&ax<=hC(y,z);};
+     const coul=(x,y,z,i,j,k)=>{const ax=Math.abs(x),yb=yB(z);
+       if(z>1)return 'P';
+       if(y>yb){const yt=yT(z);if(yt<0)return 'C';const hc=hC(y,z),haut=yt-y<.055,cote=hc-ax<.055;
+         if(haut&&z>-.28&&z<.7){if(hc-ax<.08||z<-.22||z>.64)return 'C';return hh(i,0,k>>1)<.07?'S':'P';} // le PAVILLON GLACÉ, cerclé de croûte
+         if(z>.7&&ax<hc-.07&&yt-y<.08)return 'V';                                                          // le pare-brise
+         if(z<-.3&&ax<hc-.07&&yt-y<.08)return 'V';                                                         // la lunette
+         if(cote&&y>yb+.04&&y<yt-.05&&z<.8&&z>-.66)return z>.03&&z<.11?'B':'V';                             // les vitres latérales, le montant B
+         return 'P';}                                                                                        // les montants : glaçage
+       if(y<.6&&z<-.93&&ax<.55)return 'K';                                                                   // le diffuseur
+       if(ax<.45)return 'C';                                                                                 // la bande de biscuit
+       const cote=hB(y,z)-ax<.055;
+       if(cote&&y>.55&&y<yb-.03&&(k===14||k===-4))return 'Q';                                                // les lignes de portes
+       return cote&&hh(i,j>>1,k>>1)<.045?'S':'P';};                                                         // les flancs glacés, leurs éclats de sucre
+     for(let k=-22;k<=27;k++)for(let j=10;j<=28;j++)for(let i=-18;i<=17;i++){const x=(i+.5)*U5,y=(j+.5)*U5,z=(k+.5)*U5;
+       if(dans(x,y,z)){let c=coul(x,y,z,i,j,k);if(c==='V'&&(((k+j+(i>0?i:-i))%15+15)%15)<2)c='W';V.set(i,j,k,c);}} // le reflet du ciel : une bande en biais sur chaque vitre
+     for(const sd of [-1,1]){for(let a=0;a<2;a++)for(let j=20;j<=21;j++)for(let k=12;k<=13;k++)V.set(sd<0?-18-a:17+a,j,k,'P'); // les rétroviseurs…
+       for(let a=14;a<=16;a++)V.set(sd<0?-a-1:a,20,12,'P');}                                                                   // …sur leur pied
+     poseC(V,carGroup,U5,[0,0,0]);}
     // LES FEUX ARRIÈRE : un bandeau en saillie sur la poupe, en DEUX exemplaires (veilleuse, stop) — le stop s'allume au freinage
-    for(const vif of [0,1]){const V=voxGrille(); // (v4) un BANDEAU rouge d'un bord à l'autre — la signature lumineuse des voitures du futur
-      for(let i=-6;i<=6;i++)if(Math.abs(i)>1)V.set(i,9,-1,vif?'T':'L'); // coupé au milieu : la queue s'y accroche
-      const g=pose(V,bloc(),2);g.visible=!vif;NYAN.feux.push(g);}
+    for(const vif of [0,1]){const V=voxGrille(); // (v4) un BANDEAU rouge d'un bord à l'autre — (v5) à la grille fine, sur la poupe arrondie
+      for(let i=-13;i<=12;i++)if(i<-3||i>2)V.set(i,17,-21,vif?'T':'L'); // coupé au milieu : la queue s'y accroche
+      const g=pose(V,bloc(),2,.05,[0,0,0]);g.visible=!vif;NYAN.feux.push(g);}
     // 2. LA TÊTE : le dessin de face sur la couche avant, quatre couches derrière (gris cerclé de noir : l'arrière de la tête, vu de
     //    la poursuite, est un chat, pas un pavé noir). Cinq de profondeur : à huit, le profil n'était plus qu'un PAVÉ NOIR — l'image
     //    n'a qu'une tranche. Elle HOCHE d'un voxel.
