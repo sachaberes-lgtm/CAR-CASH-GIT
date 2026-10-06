@@ -4,6 +4,11 @@
 L'image de référence = le sprite de 2011 EXTRUDÉ en cubes (contour noir = mur noir sur l'épaisseur, dessous bleus). Le gabarit `poptart` est
 refait EN VOXELS (10 cm, `NY_U`), chaque pièce dessinée dans SON plan (bloc « LE CHAT POP-TART EN VOXELS », juste avant `SHAPES` : dessins
 `NY_GATEAU` / `NY_SUCRE` / `NY_TETE` / `NY_QUEUE`, maillage `voxGrille()` = faces à l'air seules, fusionnées en rectangles par couleur).
+- **v7, même jour** (Léo : « la tête est un peu trop épaisse ; pour l'arrière, mimétisme sur cette photo » — une GR Yaris de dos) : tête
+  sur trois couches (30 cm, la caisse avance jusqu'à 1,2 m, ailes avant de 1,2 à 1,52). Poupe de GR Yaris : pavillon long puis HAYON raide
+  (`yT`), montant C épais, HANCHES qui gonflent au-dessus des pattes arrière (lissées, sans encoche), lèvre noire au bout du pavillon,
+  grand AILERON sur deux cols de cygne (biscuit dessous, glaçage dessus, dérives noires), bandeau de feux sous le hayon avec ses blocs
+  d'angle (stop au freinage), bouclier bas NOIR, fentes verticales aux coins, deux SORTIES D'ÉCHAPPEMENT rondes (`X`). Plus de malle.
 - **v6, même jour** (Léo : « enlève les côtés roses, corrige, peaufine ») : TOUT EN BISCUIT comme une vraie pop-tart — la croûte partout,
   le GLAÇAGE seulement dessus : le pavillon (rose, éclats de sucre, cerclé de croûte) qui BOMBE d'une couche, et les coiffes des
   rétroviseurs. La DENTELURE de la fourchette (pointillé `Q`) fait le tour de la caisse sous la ceinture, la malle a ses trous de

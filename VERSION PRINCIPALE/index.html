@@ -16800,14 +16800,14 @@ const SHAPES={
        avec l'ombrage CUIT par face : la face du DESSIN pleine (dessus du gâteau, visage et nuque, flancs des pattes et de la queue),
        le dessus un cran en dessous, les autres faces deux crans. Seul le NOIR reste laqué et éclairé : c'est lui qui accroche le ciel,
        comme les murs noirs de l'image. Les aplats sont relevés de 10 % : l'ACES les ternissait. */
-    const COUL={C:0xf4d6a8,K:0x9a6038,Q:0xc9955c,P:0xff9cf3,S:0xff3a94,G:0x8e8f99,W:0xffffff,R:0xff9aa6,u:0x1d4cb4,Y:0xffe25a,L:0x8a1424,T:0xff2a36},TEINTE=[['d',1.1],['h',1.0],['c',.86]],pal={B:{g:'g',c:0x09090e}},cc=new THREE.Color();
+    const COUL={C:0xf4d6a8,K:0x9a6038,Q:0xc9955c,X:0xd2d6de,P:0xff9cf3,S:0xff3a94,G:0x8e8f99,W:0xffffff,R:0xff9aa6,u:0x1d4cb4,Y:0xffe25a,L:0x8a1424,T:0xff2a36},TEINTE=[['d',1.1],['h',1.0],['c',.86]],pal={B:{g:'g',c:0x09090e}},cc=new THREE.Color();
     for(const k in COUL)for(const [f,m] of TEINTE){cc.setHex(COUL[k]);cc.setRGB(Math.min(1,cc.r*m),Math.min(1,cc.g*m),Math.min(1,cc.b*m));pal[k+f]={g:'l',c:cc.getHex()};} // ⚠ r128 : getHex() ne BORNE pas — un canal à 1,1 débordait sur ses voisins (le rose sortait vert)
     /* LA CAISSE EN TEINTES (v3) : plus de contour noir sur la caisse — rose et marron « tels quels », et l'OMBRE DES FORMES en neuf
        teintes de chaque couleur. `fkC` : le dessus plein, les flancs un cran, l'avant et l'arrière deux, le dessous dans l'ombre ;
        le bas de caisse s'assombrit vers le sol ; une ARÊTE (une voisine du plan manque) prend un cran ; un CREUX (une case DEVANT la
        face, à côté) prend l'ombre portée du relief — l'occlusion des jeux en voxels, cuite une fois. */
     const LV=[1.06,.98,.9,.82,.74,.66,.58,.5,.42],palC={B:{g:'g',c:0x09090e},V:{g:'l',c:0x171d31},W:{g:'l',c:0x4a5a86}}; // V : les vitres — (v5) en APLAT sombre, W leur reflet en biais : laquées, elles renvoyaient les lampes chaudes de l'atelier et sortaient couleur biscuit
-    for(const k of ['C','P','S','K','Q'])LV.forEach((m,n)=>{cc.setHex(COUL[k]);cc.setRGB(Math.min(1,cc.r*m),Math.min(1,cc.g*m),Math.min(1,cc.b*m));palC[k+n]={g:'l',c:cc.getHex()};});
+    for(const k of ['C','P','S','K','Q','X'])LV.forEach((m,n)=>{cc.setHex(COUL[k]);cc.setRGB(Math.min(1,cc.r*m),Math.min(1,cc.g*m),Math.min(1,cc.b*m));palC[k+n]={g:'l',c:cc.getHex()};});
     const fkC=(V,uu)=>{const q=[0,0,0];return (c,ax,sg,p)=>{if(c==='V'||c==='W'||c==='B')return c;
       let m=ax===1?(sg>0?1:.5):(ax===0?.86:.78);
       if(ax!==1)m*=.74+.26*Math.min(1,Math.max(0,((p[1]+.5)*uu-.5)/.45)); // le bas de caisse s'assombrit vers le sol (en mètres : la grille peut être fine)
@@ -16833,41 +16833,50 @@ const SHAPES={
     //    ses trous de cuisson. Vitres en aplat (pare-brise, latérales à montant B noir, lunette). Pas d'encoches : les pattes la portent.
     {const U5=.05,V=voxGrille(),sm=t=>{t=Math.min(1,Math.max(0,t));return t*t*(3-2*t);},hh=(i,j,k)=>{const x=Math.sin(i*12.9898+j*78.233+k*37.719)*43758.5453;return x-Math.floor(x);};
      const yB=z=>.94+.04*Math.min(1,Math.max(0,(1-z)/2));                                        // la ceinture : 0,94 m à l'avant, 0,98 à l'arrière
-     const yT=z=>z>.72?1.12+.19*sm((1-z)/.28):z>-.3?1.31+.015*(1-Math.pow((z-.21)/.51,2)):z>-.8?yB(z)+.03+(1.31-yB(z)-.03)*sm((z+.8)/.5):-1; // pare-brise · pavillon · lunette (rien sur la malle)
+     const yT=z=>z>.72?1.12+.19*sm((1-z)/.28):z>-.6?1.31+.015*(1-Math.pow((z-.06)/.66,2)):z>-.9?yB(z)+.04+(1.31-yB(z)-.04)*sm((z+.9)/.3):-1; // pare-brise · pavillon long · HAYON raide (v7, la GR Yaris) — plus de malle
      const hC=(y,z)=>{const yb=yB(z),yt=yT(z);return .74-.12*Math.min(1,Math.max(0,(y-yb)/Math.max(.01,yt-yb)));}; // le rentré de l'habitacle
      const hB=(y,z)=>{let h=.85;if(y<.6)h-=(.6-y)*.9;const yb=yB(z);if(y>yb-.06)h-=(y-(yb-.06))*1.5;           // le bas et l'épaule arrondis
-       if(z<-.82){const dz=-.82-z;h=Math.min(h,.67+Math.sqrt(Math.max(0,.0324-dz*dz)));}return h;};             // la poupe aux coins arrondis
+       if(z<-.2)h+=.07*Math.max(0,1-Math.pow((z+.66)/.4,2))*sm((y-.55)/.08)*sm((yb-.02-y)/.08);              // les HANCHES de la GR Yaris : l'aile arrière gonfle, sans encoche
+       if(z<-.82){const dz=-.82-z;h=Math.min(h,.74+Math.sqrt(Math.max(0,.0324-dz*dz)));}return h;};             // la poupe aux coins arrondis
      const dans=(x,y,z)=>{const ax=Math.abs(x);if(y<.5)return 0;
-       if(z>1){const hf=z<1.2?.85:.85-(z-1.2)*.6;return z<=1.32&&ax>.76&&ax<=hf&&y<=yB(z)-.02-(z-1)*.4;} // les ailes avant, de part et d'autre de la tête
+       if(z>1.2){const hf=z<1.4?.85:.85-(z-1.4)*.6;return z<=1.52&&ax>.76&&ax<=hf&&y<=yB(z)-.02-(z-1.2)*.4;} // les ailes avant, de part et d'autre de la tête (plus fine : la caisse avance jusqu'à 1,2 m)
        if(z<-1)return 0;const yb=yB(z);if(y<=yb)return ax<=hB(y,z);
-       const yt=yT(z);if(yt<0)return z<-.93&&y<=yb+.06&&ax<=.66;                                            // la malle et son becquet
+       const yt=yT(z);if(yt<0)return 0;                                                                      // le hayon descend jusqu'au panneau arrière
        return y<=yt&&ax<=hC(y,z);};
      const coul=(x,y,z,i,j,k)=>{const ax=Math.abs(x),yb=yB(z);
        if(z>1)return 'C';
        if(y>yb){const yt=yT(z);if(yt<0)return 'C';const hc=hC(y,z),haut=yt-y<.055,cote=hc-ax<.055;
-         if(haut&&z>-.28&&z<.7){if(hc-ax<.08||z<-.22||z>.64)return 'C';return hh(i,0,k>>1)<.07?'S':'P';} // le PAVILLON GLACÉ, cerclé de croûte
+         if(haut&&z>-.58&&z<.7){if(hc-ax<.08||z<-.52||z>.64)return 'C';return hh(i,0,k>>1)<.07?'S':'P';} // le PAVILLON GLACÉ, cerclé de croûte
          if(z>.7&&ax<hc-.07&&yt-y<.08)return 'V';                                                          // le pare-brise
-         if(z<-.3&&ax<hc-.07&&yt-y<.08)return 'V';                                                         // la lunette
-         if(cote&&y>yb+.04&&y<yt-.05&&z<.8&&z>-.66)return z>.03&&z<.11?'B':'V';                             // les vitres latérales, le montant B
+         if(z<-.6&&ax<hc-.07&&yt-y<.09)return 'V';                                                         // la vitre du hayon
+         if(cote&&y>yb+.04&&y<yt-.05&&z<.8&&z>-.6)return z>.03&&z<.11?'B':'V';                              // les vitres latérales, le montant B (le montant C, épais, est de biscuit)
          return 'C';}                                                                                        // les montants : biscuit
-       if(y<.6&&z<-.93&&ax<.55)return 'K';                                                                   // le diffuseur
-       if(z<-.8&&y>yb-.05&&ax<.55&&(i&3)===1&&(k%3+3)%3===1)return 'Q';                                       // la malle : ses trous de cuisson
        const cote=hB(y,z)-ax<.055,pou=z<-.95;
+       if(pou&&y<.64)return 'B';                                                                             // le bouclier bas, NOIR (le diffuseur de la GR Yaris)
+       if(pou&&ax>.62&&ax<.76&&y<.82&&!(i&1))return 'B';                                                    // les fentes verticales des coins
+       if(z<-.88&&y>yb-.05&&ax<.55&&(i&3)===1&&(k%3+3)%3===1)return 'Q';                                      // le rebord sous le hayon : ses trous de cuisson
        if((cote||pou)&&y>yb-.1&&y<yb-.05&&((k+i)&1))return 'Q';                                              // la DENTELURE de la fourchette, tout autour (la pop-tart est pincée là)
        if(cote&&y>.55&&y<yb-.12&&(k===14||k===-4))return 'Q';                                                // les lignes de portes
        return 'C';};                                                                                         // la caisse : tout en biscuit
-     for(let k=-22;k<=27;k++)for(let j=10;j<=28;j++)for(let i=-18;i<=17;i++){const x=(i+.5)*U5,y=(j+.5)*U5,z=(k+.5)*U5;
+     for(let k=-22;k<=30;k++)for(let j=10;j<=28;j++)for(let i=-18;i<=17;i++){const x=(i+.5)*U5,y=(j+.5)*U5,z=(k+.5)*U5;
        if(dans(x,y,z)){let c=coul(x,y,z,i,j,k);if(c==='V'&&(((k+j+(i>0?i:-i))%15+15)%15)<2)c='W';V.set(i,j,k,c);}} // le reflet du ciel : une bande en biais sur chaque vitre
      for(const sd of [-1,1]){for(let a=0;a<2;a++)for(let j=20;j<=21;j++)for(let k=12;k<=13;k++)V.set(sd<0?-18-a:17+a,j,k,j===21?'P':'C'); // les rétroviseurs, coiffés de glaçage…
        for(let a=14;a<=16;a++)V.set(sd<0?-a-1:a,20,12,'C');}                                                                         // …sur leur pied
+     // (v7) LA POUPE DE LA GR YARIS : la lèvre noire au bout du pavillon, le grand AILERON sur deux cols de cygne (glacé dessus, cerclé de
+     // croûte, dérives noires), les deux SORTIES D'ÉCHAPPEMENT rondes aux coins du bouclier
+     for(let k=-14;k<=-12;k++)for(let i=-12;i<=11;i++)V.set(i,26,k,'B');
+     for(const i of [-8,7])for(let j=27;j<=28;j++)V.set(i,j,-14,'B'); // les cols de cygne
+     for(let k=-19;k<=-13;k++)for(let i=-14;i<=13;i++){V.set(i,29,k,'C');V.set(i,30,k,(i===-14||i===13||k===-19||k===-13)?'C':'P');} // biscuit dessous, glaçage dessus
+     for(const i of [-15,14])for(let j=28;j<=31;j++)for(let k=-19;k<=-13;k++)V.set(i,j,k,'B');
+     for(const c0 of [-12,11])for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++)for(const k of [-21,-22])V.set(c0+a,12+b,k,(a||b)?'X':'B');
      // LE GLAÇAGE BOMBE : une couche de plus au-dessus du pavillon, en retrait de la croûte — l'épaisseur du sucre se voit de profil
      {const L=[];for(const [cl,c] of V.M){if(c!=='P'&&c!=='S')continue;const kk=cl%1024-512,jj=Math.floor(cl/1024)%1024-512,ii=Math.floor(cl/1048576)-512;
-        if(jj>=24&&Math.abs(ii)<14&&!V.has(ii,jj+1,kk))L.push([ii,jj+1,kk,c]);}
+        if(jj>=24&&jj<=27&&Math.abs(ii)<14&&!V.has(ii,jj+1,kk))L.push([ii,jj+1,kk,c]);}
       for(const e of L)V.set(e[0],e[1],e[2],e[3]);}
      poseC(V,carGroup,U5,[0,0,0]);}
     // LES FEUX ARRIÈRE : un bandeau en saillie sur la poupe, en DEUX exemplaires (veilleuse, stop) — le stop s'allume au freinage
     for(const vif of [0,1]){const V=voxGrille(); // (v4) un BANDEAU rouge d'un bord à l'autre — (v5) à la grille fine, sur la poupe arrondie
-      for(let i=-13;i<=12;i++)if(i<-3||i>2)V.set(i,17,-21,vif?'T':'L'); // coupé au milieu : la queue s'y accroche
+      for(let i=-15;i<=14;i++){const a=i<0?-i-1:i;if(a<3)continue;V.set(i,18,-21,vif?'T':'L');if(a>=11){V.set(i,17,-21,vif?'T':'L');V.set(i,19,-21,vif?'T':'L');}} // (v7) le bandeau sous le hayon, ses blocs d'angle (la GR Yaris) — coupé au milieu pour la queue
       const g=pose(V,bloc(),2,.05,[0,0,0]);g.visible=!vif;NYAN.feux.push(g);}
     // 2. LA TÊTE : le dessin de face sur la couche avant, quatre couches derrière (gris cerclé de noir : l'arrière de la tête, vu de
     //    la poursuite, est un chat, pas un pavé noir). Cinq de profondeur : à huit, le profil n'était plus qu'un PAVÉ NOIR — l'image
@@ -16875,7 +16884,7 @@ const SHAPES={
     {const V=voxGrille(),vide=(r,c)=>r<0||r>10||c<0||c>14||NY_TETE[r][c]==='.';
      for(let r=0;r<11;r++)for(let c=0;c<15;c++){const ch=NY_TETE[r][c];if(ch==='.')continue;
        const bord=vide(r-1,c)||vide(r+1,c)||vide(r,c-1)||vide(r,c+1);
-       for(let k=20;k<=24;k++)V.set(c-7,14-r,k,k===24?ch:(bord?'B':'G'));}
+       for(let k=22;k<=24;k++)V.set(c-7,14-r,k,k===24?ch:(bord?'B':'G'));} // (v7) trois couches : à cinq, la tête était trop épaisse
      NYAN.tete=pose(V,bloc(),2);}
     // 3. LES PATTES : des blocs 4 × 4 gris, CERNÉS de noir sur chaque arête (une case noire dès qu'elle touche deux bords du bloc) —
     //    de profil comme de face, une patte grise au trait noir, celles de l'image. (Dessinées de profil seulement, vues de trois-quarts
