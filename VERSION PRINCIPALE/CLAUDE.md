@@ -1,5 +1,12 @@
 # CASH CAR — guide projet pour Claude Code
 
+## L'iPHONE PAR DÉFAUT SUR L'ORDI (2026-10-06, session GRAPHISME) — Sacha : « remets l'encoche et le format de l'iPhone quand on lance la version main »
+- `ENCOCHE_DEFAUT=true` (script du `<head>`, bloc « L'ÉCRAN NU PAR DÉFAUT ») : sur l'ordi, le jeu retrouve le BOÎTIER de l'iPhone 13 Pro —
+  lunette, coins arrondis, encoche (à gauche couché, en haut debout) — et ses marges (`html.telCadre`). Il était passé à `false` le 01/10
+  au soir (0c4df21, copie de test de Léo : « je préfère le point de vue de la 1re image », l'écran nu). L'écran nu reste à portée de Léo :
+  `?encoche=0` dans l'adresse. Vérifié (banc `cadre.js`, ordi 1280×760) : colonne 844×390, encoche 44×216 px, coins 81 px ; `?encoche=0` →
+  coins droits, pas d'encoche. Un vrai téléphone n'est pas concerné.
+
 ## ⚠ LA VERSION DE RÉFÉRENCE — LIRE EN PREMIER (2026-10-01, Léo : « toutes les discussions où j'évoque une version récente, je parle de celle-là — sans tout casser »)
 - « La version récente / la nouvelle / la dernière / la bonne » = CE jeu, sur `main`, publié à https://car-cash-git.vercel.app/jouer/.
   Son socle figé, validé par Léo en jeu le 2026-10-01 : le commit **`c02c75a`**, dit `jeu-reference-2026-10-01`. On bâtit

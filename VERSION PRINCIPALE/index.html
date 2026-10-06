@@ -55,8 +55,8 @@ const POKI_BUILD=false;
    (CrazyGames, Sacha : « prépare-moi le zip pour CrazyGames et ne mets pas de mode facile » : `FACILE_OK` faux → ni le choix du mode au
    1er JOUER, ni l'interrupteur MODE FACILE.) */
 const PORTAIL_SDK='poki';
-const POKI=POKI_BUILD||/[?&](poki|crazy)=1\b/.test(location.search);
-const PORTAIL=/[?&]crazy=1\b/.test(location.search)?'crazy':PORTAIL_SDK;
+const POKI=POKI_BUILD||/[?&](poki|crazy|playgama)=1\b/.test(location.search);
+const PORTAIL=/[?&]crazy=1\b/.test(location.search)?'crazy':/[?&]playgama=1\b/.test(location.search)?'playgama':PORTAIL_SDK;
 const FACILE_OK=!(POKI&&PORTAIL==='crazy');
 if(POKI)document.documentElement.classList.add('poki');
 if(!FACILE_OK)document.documentElement.classList.add('sansFacile');
@@ -64,7 +64,7 @@ if(!FACILE_OK)document.documentElement.classList.add('sansFacile');
    remplace ce jeton par le commit publié et pose `version.json` à côté du jeu. Le jeu compare les deux et se recharge tout seul
    s'il est en retard (voir « LA MISE À JOUR TOUTE SEULE », près du service worker). En copie locale le jeton reste tel quel : rien ne se vérifie. */
 const CC_BUILD='__CC_BUILD__';
-const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(POKI?' · '+({poki:'POKI',crazy:'CRAZYGAMES'}[PORTAIL]||'WEB'):'')+(!POKI&&/[?&]menu=leo\b/.test(location.search)?' · MENU LEO':'')+(/[?&]chute=0\b/.test(location.search)?' · SANS CIEL':'');
+const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(POKI?' · '+({poki:'POKI',crazy:'CRAZYGAMES',playgama:'PLAYGAMA'}[PORTAIL]||'WEB'):'')+(!POKI&&/[?&]menu=leo\b/.test(location.search)?' · MENU LEO':'')+(/[?&]chute=0\b/.test(location.search)?' · SANS CIEL':'');
 /* LE KIT DES PORTAILS (édition POKI seulement). Le document de PLUS HAUT du jeu (la page-cadre sur l'ordi, la page elle-même sur un
    téléphone) charge le SDK du portail et porte `CC_PK` ; le jeu, dans la colonne, l'appelle par `parent.CC_PK` (même origine). Le SDK
    bloqué (bloqueur de pubs, hors ligne, mauvais domaine) ne bloque RIEN : chaque appel se résout tout de suite, sans pub. Pendant une pub,
@@ -104,9 +104,42 @@ if(POKI)(function(){
       jeu:function(C,on){if(on)C.game.gameplayStart();else C.game.gameplayStop();},
       pub:function(C,deb,fin){C.ad.requestAd('midgame',{adStarted:deb,adFinished:fin,adError:fin});},
       bonus:function(C,deb,fin){C.ad.requestAd('rewarded',{adStarted:deb,adFinished:function(){fin(true);},adError:function(){fin(false);}});},
-      muet:function(C,f){var lis=function(s){f(!!(s&&s.muteAudio));};lis(C.game.settings);C.game.addSettingsChangeListener(lis);}}};
+      muet:function(C,f){var lis=function(s){f(!!(s&&s.muteAudio));};lis(C.game.settings);C.game.addSettingsChangeListener(lis);}},
+    /* PLAYGAMA (Bridge SDK v2, 2026-10-06 — « Playgama exige le Bridge pour chaque jeu ») : `game_ready` au menu ; une pub INTERSTITIELLE
+       avant REJOUER (Bridge tient lui-même son délai de 60 s : pas d'état dans les 2,5 s = pas de pub, la partie part) ; le son et la pause
+       que la plateforme impose ; la LANGUE de la plateforme (étape obligatoire) ; la SAUVEGARDE par `bridge.storage` (« jamais localStorage
+       seul » : le jeu garde son localStorage et le recopie dans le Bridge à chaque écriture, voir SAVE.flush). Hors de Playgama, le Bridge
+       tourne en « mock » : tout répond, rien ne s'affiche. Les noms des événements : bridge.EVENT_NAME, avec un repli sur leur valeur. */
+    playgama:{src:'https://bridge.playgama.com/v2/stable/playgama-bridge.js',
+      init:function(ok,non){var B=window.bridge;if(!B||!B.initialize)return non();B.initialize().then(function(){ok(B);},non);},
+      fini:function(B){B.platform.sendMessage('game_ready');},
+      jeu:function(){}, // (pas d'événement de partie obligatoire chez Playgama)
+      ev:function(B,k,v){return (B.EVENT_NAME&&B.EVENT_NAME[k])||v;},
+      pub:function(B,deb,fin){var A=B.advertisement,E=KITS.playgama.ev(B,'INTERSTITIAL_STATE_CHANGED','interstitial_state_changed');
+        if(!A||!A.isInterstitialSupported)return fin();
+        var vu=false,clos=false,t=null,h=function(st){if(clos)return;
+            if(st==='loading'){vu=true;clearTimeout(t);t=setTimeout(ferme,12000);}
+            else if(st==='opened'){vu=true;clearTimeout(t);t=setTimeout(ferme,120000);try{deb();}catch(e){}}
+            else if(st==='closed'||st==='failed')ferme();},
+          ferme=function(){if(clos)return;clos=true;clearTimeout(t);try{A.off(E,h);}catch(e){}fin();};
+        A.on(E,h);t=setTimeout(function(){if(!vu)ferme();},2500);
+        try{A.showInterstitial();}catch(e){ferme();}},
+      bonus:function(B,deb,fin){var A=B.advertisement,E=KITS.playgama.ev(B,'REWARDED_STATE_CHANGED','rewarded_state_changed');
+        if(!A||!A.isRewardedSupported)return fin(false);
+        var gagne=false,clos=false,t=null,h=function(st){if(clos)return;
+            if(st==='opened'){clearTimeout(t);try{deb();}catch(e){}}
+            else if(st==='rewarded')gagne=true;
+            else if(st==='closed'||st==='failed'){clos=true;clearTimeout(t);try{A.off(E,h);}catch(e){}fin(gagne);}};
+        A.on(E,h);t=setTimeout(function(){if(!clos){clos=true;try{A.off(E,h);}catch(e){}fin(false);}},15000);
+        try{A.showRewarded();}catch(e){clos=true;fin(false);}},
+      muet:function(B,f){var P=B.platform;if(P.isAudioEnabled===false)f(true);
+        P.on(KITS.playgama.ev(B,'AUDIO_STATE_CHANGED','audio_state_changed'),function(on){f(!on);});},
+      pause:function(B,f){B.platform.on(KITS.playgama.ev(B,'PAUSE_STATE_CHANGED','pause_state_changed'),function(p){f(!!p);});},
+      langue:function(B){return String(B.platform.language||'').toLowerCase().slice(0,2);},
+      lit:function(B,k){return B.storage.get([k]).then(function(d){var v=d&&d[0];return v==null?null:typeof v==='string'?v:JSON.stringify(v);});}, // (le Bridge rend parfois l'objet déjà décodé)
+      ecrit:function(B,k,v){return B.storage.set([k],[v]);}}};
   var K=KITS[PORTAIL]||null;
-  var PK=window.CC_PK={etat:0,sdk:null,portail:K?PORTAIL:'',veut:{fini:false,jeu:false},jeuEnvoye:false,finiEnvoye:false,enPub:false,muets:[],
+  var PK=window.CC_PK={etat:0,sdk:null,portail:K?PORTAIL:'',veut:{fini:false,jeu:false},jeuEnvoye:false,finiEnvoye:false,enPub:false,muets:[],pauses:[],attend:[],
     // 0 = SDK en route · 1 = prêt · -1 = absent (bloqué, mauvais domaine, ou édition sans kit) : tout se résout sans pub
     pret:function(){if(PK.veut.fini&&!PK.finiEnvoye&&PK.etat===1){PK.finiEnvoye=true;try{K.fini(PK.sdk);}catch(e){}}PK.jeuSync();},
     fini:function(){PK.veut.fini=true;PK.pret();},
@@ -123,13 +156,24 @@ if(POKI)(function(){
       PK.veut.jeu=false;PK.jeuSync();PK.enPub=true;var coupe=false,fin=false;
       var apres=function(ok){if(fin)return;fin=true;PK.enPub=false;if(coupe)try{muet(false);}catch(e){}suite(!!ok);};
       try{K.bonus(PK.sdk,function(){coupe=true;try{muet(true);}catch(e){}},apres);}catch(e){apres(false);}},
-    // le « son coupé » imposé par le portail (CrazyGames) : le jeu s'y abonne, le pilote le lui transmet dès qu'il est prêt
+    // le « son coupé » imposé par le portail (CrazyGames, Playgama) : le jeu s'y abonne, le pilote le lui transmet dès qu'il est prêt
     surMuet:function(f){PK.muets.push(f);if(PK.etat===1&&K.muet)try{K.muet(PK.sdk,f);}catch(e){}},
-    charge:function(){if(PK.charge.f)return;PK.charge.f=1;if(!K){PK.etat=-1;return;} // l'édition WEB (itch.io…) : aucun kit
+    // la PAUSE imposée par le portail (Playgama : un onglet, une pub du site…) — même abonnement
+    surPause:function(f){PK.pauses.push(f);if(PK.etat===1&&K.pause)try{K.pause(PK.sdk,f);}catch(e){}},
+    // `f(true)` quand le kit est prêt, `f(false)` s'il est absent — tout de suite si c'est déjà tranché
+    surPret:function(f){if(PK.etat!==0){try{f(PK.etat===1);}catch(e){}}else PK.attend.push(f);},
+    langue:function(){try{return PK.etat===1&&K.langue?K.langue(PK.sdk):null;}catch(e){return null;}},
+    stockage:function(){return PK.etat===1&&!!K.lit;},
+    lit:function(k){try{return PK.stockage()?K.lit(PK.sdk,k):Promise.resolve(null);}catch(e){return Promise.resolve(null);}},
+    ecrit:function(k,v){try{if(PK.stockage())K.ecrit(PK.sdk,k,v).catch(function(){});}catch(e){}},
+    tranche:function(ok){var a=PK.attend;PK.attend=[];a.forEach(function(f){try{f(ok);}catch(e){}});},
+    charge:function(){if(PK.charge.f)return;PK.charge.f=1;if(!K){PK.etat=-1;PK.tranche(false);return;} // l'édition WEB (itch.io…) : aucun kit
       var s=document.createElement('script');s.src=K.src;
-      var non=function(){PK.etat=-1;};
+      var non=function(){if(PK.etat!==0)return;PK.etat=-1;PK.tranche(false);};
       s.onerror=non;s.onload=function(){try{K.init(function(S){PK.sdk=S;PK.etat=1;
-          if(K.muet)PK.muets.forEach(function(f){try{K.muet(S,f);}catch(e){}});PK.pret();},non);}catch(e){non();}};
+          if(K.muet)PK.muets.forEach(function(f){try{K.muet(S,f);}catch(e){}});
+          if(K.pause)PK.pauses.forEach(function(f){try{K.pause(S,f);}catch(e){}});
+          PK.pret();PK.tranche(true);},non);}catch(e){non();}};
       document.head.appendChild(s);}};
   // `PK.charge()` est appelé par le script de la colonne, juste en dessous : tout de suite sur un téléphone ; sur l'ordi, une fois que la
   // page-cadre a rangé le jeu qu'elle ne fait pas tourner (sinon le cadre de pub que le SDK pose dans la page serait masqué avec lui)
@@ -140,7 +184,9 @@ if(POKI)(function(){
      l'iPhone) : sur l'ordi, l'écran du téléphone est un rectangle simple, sans boîtier, sans encoche ni coins arrondis, et le jeu ne
      garde pas les marges de l'encoche. `ENCOCHE_DEFAUT=true` rend le boîtier du 13 Pro par défaut ; dans l'adresse, `?encoche=1` /
      `?encoche=0` forcent l'un ou l'autre. Un vrai téléphone n'est jamais concerné (pas de cadre). */
-  var ENCOCHE_DEFAUT=false,ENC=!POKI&&(/[?&]encoche=1\b/.test(q)||(ENCOCHE_DEFAUT&&!/[?&]encoche=0\b/.test(q)));
+  /* (2026-10-06, Sacha : « remets l'encoche et le format de l'iPhone quand on lance la version main ») : le BOÎTIER du 13 Pro revient par
+     défaut — lunette, coins arrondis, encoche. L'écran nu de Léo reste à portée : `?encoche=0` dans l'adresse. */
+  var ENCOCHE_DEFAUT=true,ENC=!POKI&&(/[?&]encoche=1\b/.test(q)||(ENCOCHE_DEFAUT&&!/[?&]encoche=0\b/.test(q)));
   var PKC=POKI?window.CC_PK:null; // (POKI) le document de plus haut charge le SDK de Poki
   /* (POKI) le jeu tourne TOUJOURS dans un cadre chez Poki (leur page) : « dans la colonne » se lit à l'adresse (`colonne=1`), plus à
      `window.top`. Et pas de marges d'iPhone (`telCadre`) : la colonne de Poki est l'écran entier de leur cadre. */
@@ -161,7 +207,7 @@ if(POKI)(function(){
   /* (POKI) LE TÉLÉPHONE COUCHÉ QUI REMPLIT LE CADRE DE POKI : Poki veut un jeu qui couvre TOUT son cadre 16:9 (pas de bandes). La
      colonne garde la hauteur d'un téléphone couché (390) et prend la LARGEUR de la fenêtre (16:9 → 693 × 390, un téléphone 16:9
      tenu en paysage) : la même mise en page qu'un téléphone, agrandie sans bande ni boîtier. Fenêtre plus haute que large : debout. */
-  var pokiDims=function(){var a=innerWidth/Math.max(1,innerHeight);debout=a<1;
+  var pokiDims=function(){var a=Math.min(2,innerWidth/Math.max(1,innerHeight));debout=a<1; // (≤ 2:1 : au-delà, des bandes sur les côtés)
     if(debout){L=390;H=Math.max(390,Math.round(390/a));}else{H=390;L=Math.max(390,Math.round(390*a));}
     document.documentElement.classList.toggle('debout',debout);document.documentElement.classList.toggle('couche',!debout);};
   if(POKI)pokiDims();
@@ -28705,7 +28751,9 @@ const SAVE={
   },
   mark(){this.dirty=true;},
   natif:0, // (2026-09-30) le miroir natif : 0 libre · 1 suspendu (on attend la lecture du secours) · 2 restauration en cours, plus AUCUNE écriture (voir plus bas)
+  portail:0, // (édition des portails) 0 : la sauvegarde du portail n'est pas encore lue — on n'y écrit rien · 1 : chaque flush l'y recopie
   flush(){if(this.natif===2)return;try{this.d.v=this.V;const s=JSON.stringify(this.d);localStorage[this.K]=s;this.dirty=false;
+    if(this.portail===1)try{const p9=pk();if(p9)p9.ecrit(this.K,s);}catch(e){} // (Playgama) bridge.storage, le miroir
     // P0-03 : miroir natif sous Capacitor — NSUserDefaults (Preferences) survit aux purges WKWebView.
     // Le web n'a pas ce plugin : la garde saute et on reste sur localStorage seul.
     if(this.natif===0&&window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences){try{window.Capacitor.Plugins.Preferences.set({key:this.K,value:s});}catch(e){}}
@@ -28736,6 +28784,7 @@ if(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferen
     else{SAVE.natif=0;SAVE.flush();}
   }).catch(function(){});}catch(e){}
 }
+const SAVE_VIDE=(function(){try{return !localStorage[SAVE.K];}catch(e){return true;}})(); // (portails) rien en local avant ce lancement : la sauvegarde du portail peut le remplir
 SAVE.load();
 /* (2026-09-30) la partie tuée en arrière-plan vient d'être versée (SAVE.load) : le menu le DIT, une fois, à son apparition */
 Object.assign(I18N,{'PARTIE INTERROMPUE':'RUN INTERRUPTED','COPIE IMPOSSIBLE : COPIE-LE A LA MAIN':'COPY FAILED: COPY IT BY HAND','Sélectionne le code et copie-le à la main.':'Select the code and copy it by hand.'});Object.assign(I18N_ZH,{'COPIE IMPOSSIBLE : COPIE-LE A LA MAIN':'复制失败：请手动复制','Sélectionne le code et copie-le à la main.':'请选中代码并手动复制。'});Object.assign(I18N_ZH,{'PARTIE INTERROMPUE':'对局中断'});
@@ -41077,7 +41126,26 @@ function pkSilence(on){ // (CrazyGames) leur réglage « son coupé » passe ava
 }
 if(POKI){
   if(!FACILE_OK){SAVE.d.facile=0;} // (CrazyGames) pas de mode facile : le choix du 1er JOUER ne se pose plus, l'interrupteur est masqué (html.sansFacile)
-  try{const p=pk();if(p&&p.surMuet)p.surMuet(pkSilence);}catch(e){}
+  /* le SON imposé par le portail : coupé si SON réglage le dit (CrazyGames muteAudio, Playgama audio) OU s'il a mis le jeu en pause */
+  let pkMuA=false,pkMuP=false;
+  try{const p=pk();if(p&&p.surMuet)p.surMuet(function(on){pkMuA=!!on;pkSilence(pkMuA||pkMuP);});}catch(e){}
+  /* (Playgama) LA PAUSE DU PORTAIL : en pleine course on ouvre le vrai panneau de pause (REPRENDRE attend sous le pouce), et le son se tait ;
+     au retour, le son revient — la partie, elle, reprend quand le joueur touche REPRENDRE */
+  try{const p=pk();if(p&&p.surPause)p.surPause(function(on){pkMuP=!!on;
+    if(on&&started&&!gameOver&&!paused){const g=document.getElementById('tGear');if(g&&getComputedStyle(g).display!=='none')g.click();else togglePause();}
+    pkSilence(pkMuA||pkMuP);});}catch(e){}
+  /* LA LANGUE ET LA SAUVEGARDE DU PORTAIL, une fois son kit prêt. Langue : celle de la plateforme, si le joueur n'en a pas choisi une
+     dans les réglages (`ccLang`) et que le jeu la parle en entier (LANG_AUTO). Sauvegarde : rien en local à ce lancement mais une partie
+     chez le portail (autre appareil, cache vidé) → elle est semée et le jeu se recharge une fois (garde-fou : SAVE.natif=2, comme le
+     miroir natif de l'appli) ; sinon le local fait foi et part chez le portail (SAVE.portail=1, puis chaque flush). */
+  try{const p=pk();if(p&&p.surPret)p.surPret(function(ok){if(!ok)return;
+    try{const lg=p.langue();let ch=null;try{ch=localStorage.ccLang;}catch(e){}
+      if(lg&&!ch&&LANG_AUTO.indexOf(lg)>=0&&lg!==LANG){LANG=lg;applyLangDOM();}}catch(e){}
+    if(p.stockage())p.lit(SAVE.K).then(function(v){
+      if(v&&typeof v==='string'&&SAVE_VIDE&&!sessionStorage.ccPortailSeme){SAVE.natif=2;let ok9=false;
+        try{localStorage[SAVE.K]=v;ok9=localStorage[SAVE.K]===v;sessionStorage.ccPortailSeme=1;}catch(e){}
+        if(ok9){location.reload();return;}SAVE.natif=0;}
+      SAVE.portail=1;SAVE.flush();}).catch(function(){SAVE.portail=1;});});}catch(e){}
   // pas d'intro à toucher (voir le splash) : le contexte audio naît au PREMIER geste, et se réveille aux suivants
   const g9=function(){if(window.CC_PUB)return;try{if(!AC){if(typeof initAudio==='function')initAudio();}else if(SND.sfx&&!paused&&AC.state!=='running')AC.resume();}catch(e){}};
   ['pointerdown','touchend','keydown'].forEach(function(ev){addEventListener(ev,g9,{capture:true,passive:true});});
