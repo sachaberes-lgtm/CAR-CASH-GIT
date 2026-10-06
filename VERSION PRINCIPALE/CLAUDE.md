@@ -171,6 +171,132 @@
     (`dRegard` 4,5 : ~0,22 s). ~10 % plus près (`fw` ,98 · `fwP` ,88 · `fh` ,88) — couché, la place à gauche de la colonne JOUER est
     remplie (banc `bord.mjs` : à `fw` 1,1 la boîte de la caisse sort de l'écran). Le PLATEAU, lui, tourne toujours (la caisse sur
     elle-même) — `VITRINE_CAM.rot` 0 l'arrête. sw.js → v112.
+  · (même soir, Léo : « après 3 s sans action du joueur sur le joystick invisible qui gère le pdv du garage, le champ de vision se
+    replace vers la porte, agréablement ») LE RETOUR À LA PORTE (`GAR.ret`, `VITRINE_CAM.retAttente/retDuree/retPente`) : `retAttente` 3 s
+    après le dernier toucher ET l'élan retombé, la vue revient face à l'entrée par le chemin le plus court (≤ un demi-tour), courbe en S
+    (sinus) de 1,1 s + 0,9 s × angle/π (banc `retour.mjs` : 87° en ~1,6 s, puis tenue à 0). Un doigt posé la RATTRAPE (elle ralentit sous
+    lui, ~5° au banc). Arrivée, l'angle est ramené dans [−π, π] (le regard qui traîne aussi). sw.js → v113.
+- **LE BURN-OUT + LE COFFRE (même soir, Léo : « lorsque j'appuie sur la voiture, au lieu d'ouvrir l'inventaire — qui va être ajouté à côté
+  du bouton jouer —, la voiture va booster de manière satisfaisante : un burn-out, puisque sinon elle foncerait ; un effet stylé, travaillé,
+  design, avec des pixels, de la transparence, parce qu'il y aura de la fumée ; maintenue longtemps, la fumée disparaît mais peut
+  s'accumuler, et le joueur peut jouer avec ; si tu surpasses, encore mieux »)** — tout est dans le bloc « LE BURN-OUT » (après
+  `invHoldFin`). LE GESTE : le doigt TENU 0,14 s sur la caisse (vitrine) → `burnPart` ; tant qu'il tient, ça brûle ; il peut glisser
+  (la vue tourne autour de la caisse qui fume) ; un tap bref reste le « tonk » ; un tap DANS la fumée la souffle. L'inventaire a son
+  bouton **COFFRE** (`#gvCof`, icône pixel `coffre`, néon rose, colonne 2 à gauche de JOUER — le coffre de la caisse) et la touche I ;
+  l'appui long ne l'ouvre plus (`invHoldDebut` n'est plus branché). L'astuce « MAINTIENS TA CAISSE · BURN-OUT » (`#gInvAide`, bit 8 de
+  `SAVE.d.ast`) jusqu'au premier burn-out. LA CAISSE : roues ARRIÈRE seules (les `ESSIEUX` en z < 0), cul écrasé, nez levé,
+  tremblement, poupe qui chasse, plateau arrêté (`garageAng × (1 − BURN.k)`), caméra qui vibre à peine. LA FUMÉE : 320 quads
+  instanciés face caméra (pas de points WebGL : `gl_PointSize` plafonne à 64 px sur certains téléphones), dessinés en GROS PIXELS
+  d'écran de 5 px CSS (dérivées `dFdx/dFdy` : l'UV lue au centre du gros pixel — la même grille pour toutes, près ou loin), bord
+  dentelé, s'ÉMIETTE case par case en vieillissant, éclairée d'en haut, rosie près de la porte, bleuie au ras du plateau ; elle monte,
+  s'étale sous le plafond, vit 6 à 10 s (recyclée de la plus vieille). Le doigt qui glisse la POUSSE (`burnDoigt` : le rayon du doigt
+  dans la salle). LE FEU : 180 pixels additifs 3 × 3 — pétarades aux pots (rupteur, lâcher) et braises des pneus chauds (`chaud` ≥ ,45,
+  ~1,5 s). LES TRACES : deux bandes de gomme en pixels sur le plateau (`GAR.pod`), qui foncent et s'effacent en ~40 s. LE SON : le
+  VRAI moteur du palier (`ENG_SND[engTier]`, celui de la course) au RUPTEUR (~8 coupures/s), le crissement de la course (`skidG`), les
+  `crackle` au lâcher — aucun nœud neuf, leurs PORTES s'ouvrent/se ferment ; la liste des réglages des nœuds est sortie de la boucle
+  dans `engApplique(P9)` (la course l'appelle, inchangée). `closeGarage` → `burnCoupe` (silence, plus rien). Console : `dbgBurn()` ·
+  `dbgBurn(s)` (un burn-out de s secondes) · `dbgBurn(0)`. Bancs `burn.mjs` (geste réel, captures), `burnson.mjs` (son : portes 0 et 3
+  ouvertes pendant, la course repart) ; `cadreinv.mjs` mis au geste neuf (souris tenue = burn-out, I/Échap, COFFRE/croix, JOUER).
+- **LE DOIGT SUR LA CAISSE, LE DÉRAPAGE, MISSIONS BRANCHÉ, LES VIGNETTES (même soir, Léo : « quand on touche la voiture et qu'on la
+  tourne, ça ne tourne pas le garage : tapotage-appui-glissade, la plateforme tourne selon la vitesse du doigt ; appuie et bouge, ça bouge
+  juste la plateforme ; seulement si on appuie longtemps puis qu'on glisse, la voiture dérape en fonction mais ne tombe jamais de la
+  plateforme · le bouton inventaire plus gros · missions branché au play plutôt que le niveau, et les niveaux affichés avec leur distance
+  et leur titre — vignette avec un fond imagé représentatif, léger, agréable, kawaii mais pas abusé, pas trop gentil non plus »)** —
+  · LE DOIGT : posé SUR la caisse (`GAR.doigt='caisse'`, garSurCaisse), il tient le PLATEAU — jamais la vue : glissé = le plateau suit
+    (,008 rad/px, son bord avant sous le doigt), lâché lancé = il FILE (`GAR.platW`, ≤ 7 rad/s, freine ×e^−1,2t), tenu = il s'arrête ;
+    posé ailleurs, la vue tourne comme avant. Le burn-out part après 0,28 s SANS bouger (0,14 s au premier jet : un glissé lent
+    devenait un burn-out).
+  · LE DÉRAPAGE (`burnDerape`) : en burn-out, le glissé fait tourner la caisse SUR le plateau (`BURN.cib`, ,009 rad/px), par un ressort
+    mou sous-amorti (ω 7, ζ ,5), autour d'un pivot vers l'avant (`drz` : l'arrière balaie), poussée dehors par sa vitesse (±,35 m) ;
+    BORNÉE (centre ≤ 4,3 m − rayon de la caisse : ses coins restent sur le disque). Lâchée, elle se recentre en gardant son cap, puis le
+    cap est VERSÉ dans le plateau (`garageAng` et `GAR.podSpin`, à l'image d'après : rien ne saute ; aussitôt au JOUER).
+  · LA PISTE DE GOMME (`burnGomme`, remplace les deux bandes) : une toile 128 × 128 sur tout le disque (`GAR.pod`, ~7 cm le texel, en
+    pixels) ; les roues arrière y déposent la gomme là où elles sont — les DONUTS se dessinent ; effacée en ~45 s (alpha −5 par seconde :
+    `destination-out` resterait bloqué par l'arrondi 8 bits).
+  · LA COLONNE (vitrine) : COFFRE sur les DEUX colonnes de gauche (pictogramme ×4) · MISSIONS BRANCHÉ sous JOUER (les deux conducteurs
+    d'or et le flux de l'ancien cartouche du niveau, la plaque d'encre, ses pastilles) · la VIGNETTE du niveau (`#gvLvl`) à côté de HOME ·
+    SHOP : numéro, titre, distance, sur un paysage en PIXEL ART 96 × 36 peint par `gvVignette` (cache GV_VIG, sujet à droite) — un
+    nuage qui sourit (NUAGES), un cœur de néon sous la pluie (VILLE), le ballon-cœur et la tour (PARIS), la planète à anneau et la
+    petite lune qui regarde (ORBITE), le nuage d'orage EN COLÈRE (ORAGE), les phares dans le noir (MINUIT), le satellite K.-O. en feu
+    (SATELLITES), le plot qui fait la tête (AUTO-ÉCOLE). LES DISTANCES (`GV_KM`) : la longueur MOYENNE des pistes, mesurée au banc
+    (`lvlL.mjs` : `dbgPas().L` × SPD) — NUAGES 8,3 · VILLE 7,9 · PARIS 7,1 · ORBITE 9,4 · ORAGE 8,5 · MINUIT 8,0 · SATELLITES 9,4 km
+    (les pistes sont tirées à chaque partie). L'astuce remonte (222 px). L'ancien `#gvNiv` est parti.
+  · ⚠ UN SECOND COMMENTAIRE MANGEUR : dans `garVitrine`, `gEl.classList.toggle('deplie',…);garLibre._r=null;` était collé au bout du
+    commentaire depuis la vitrine v2 (066332f) — rendu ; balayage du fichier (une instruction derrière `//`) : plus aucun autre.
+  Banc `geste.mjs` (lancer, glissé, appui long + glissé, hors caisse). sw.js → v114.
+- **LA COLONNE v4, LES NIVEAUX À DÉFILER, LE BOUTON ROUGE ET SES OUTILS (même soir, Léo : « toutes les vignettes de niveau, à
+  défiler · le bouton shop pas très grand · le bouton home en haut à droite avec les settings · l'inventaire plus gros » — puis « après
+  réflexion, enlève le bouton coffre ; mets un bouton rouge sur la plateforme qui tourne, à côté de la voiture ; quand on appuie, de
+  chaque côté différents outils se mettent à côté et construisent directement les objets qu'on a déjà — pas pour le shop »)** —
+  · LA COLONNE (vitrine, deux colonnes) : JOUER sur toute la largeur · SHOP en grand (pictogramme ×4) à côté de MISSIONS branché · la
+    BANDE des vignettes sur toute la largeur. HOME est monté en haut à droite, SOUS ⚙ (`#gvHome` dans `#gOutils` : le même geste que
+    `#gClose`, caché en vitrine). Le COFFRE a disparu (`#gvCof` caché ; la touche I ouvre toujours l'inventaire).
+  · LA BANDE (`#gvLvls`, `gvNiveau`) : la SUITE d'une partie — l'auto-école si le permis manque, puis NIVEAUX — une vignette par
+    niveau, défilement au doigt (aimanté, `scroll-snap`) et à la molette, bord droit qui s'efface ; la 1re (celle que JOUER lance)
+    cerclée d'or ; un niveau TERMINÉ (portail franchi : `SAVE.d.ex.zones`) porte sa coche verte.
+  · LE BOUTON ROUGE ET SES OUTILS (bloc après `dbgBurn`) : un champignon d'arcade rouge sur socle noir cerclé jaune/noir, sur le
+    plateau à l'avant droit de la caisse (`GAR.pod` : il tourne avec elle), halo qui respire ; un tap (`atlVise` : sa projection à
+    l'écran, rayon ≥ 26 px) l'enfonce et ouvre l'inventaire (`invOuvre`), un second le referme ; il s'enfonce dans le plateau pendant
+    un dérapage ou le lâcher. Deux BRAS-ROBOTS jaunes (kit des caisses : lpKit / lpMat, zéro programme neuf) sortent du plateau de
+    chaque côté à l'ouverture (0,6 s), vivent (servo, diode) et rentrent à la fermeture ; à gauche le PISTOLET À PEINTURE, à droite le
+    POSTE À SOUDER. Équiper un objet le CONSTRUIT (`atlConstruit`, ~1,1 s) : PEINTURE → le pistolet balaie dans un nuage de SA couleur ;
+    AILE → soudure, gerbes d'étincelles ; TRAÎNÉE → les deux bras aux pots ; CAISSE → les deux bras balaient (le scanner fait le
+    reste) — jets indépendants de la cadence (~70/s/bras), dans les réservoirs du burn-out. La boutique n'a pas ça (demande de Léo).
+    Console : `dbgAtelier()` · `dbgAtelier(1|0)` · `dbgAtelier('peinture'|'aile'|'trainee'|'voiture')`. Bancs `atelier.mjs`,
+    `colonne.mjs` ; `cadreinv.mjs` clique le bouton rouge (souris, dans le cadre).
+  · L'ACCUEIL COUCHÉ (« le point de vue horizontal un tout petit plus haut, ou la coupure blanc/bleu au niveau du haut de la barre
+    MISSIONS ») : `CHUTE_P.elev` −,08 → −,035 — la ligne blanche de l'horizon passe au ras du haut de MISSIONS (banc `horizon.mjs`,
+    844 × 390 : y 217 → 194 ; la caisse ne bouge pas dans le cadre). Debout (`elevP`) inchangé.
+  sw.js → v115.
+- **LA COLONNE v5, LA VIGNETTE ET SON TIROIR, LES JAUGES BRILLANTES (même soir, Léo : « c'était mieux avec la mission branchée sur le PLAY ;
+  le PLAY était mieux plus petit ; les settings et le HOME côte à côte ; les jauges brillantes, satisfaisantes, avec des mots un peu plus
+  stylés ; les niveaux, non : tu vois le niveau comme avant — juste quand tu cliques dessus, tu vois les niveaux que tu as accomplis » ;
+  puis « push le play branché à la mission, les niveaux imagés mais un peu plus brillants, pas défilé, home et settings côte à côte »)** —
+  · LA PILE (vitrine, deux colonnes .83 / 1) : à droite JOUER (~200 px debout, plus la pleine largeur) et MISSIONS rebranché DESSOUS (ses
+    conducteurs d'or) ; à gauche SHOP (à la hauteur de JOUER) et la VIGNETTE du niveau (à la hauteur de MISSIONS). Couché, même pile à droite.
+    La bande à défiler (`#gvLvls`) est partie.
+  · HOME · ⚙ : côte à côte en haut à droite (`#gOutils` en `row-reverse` : le ⚙ garde le coin).
+  · LA VIGNETTE (`#gvLvl`, `gvNiveau`) : le niveau que JOUER lance (l'auto-école tant que le permis manque), plus BRILLANTE (paysage ×1,18 de
+    clarté et ×1,3 de saturation, voile d'encre allégé, liseré qui luit, un éclat qui la balaie), une petite flèche dit qu'elle s'ouvre.
+    Touchée : LE TIROIR `#gvNivs` (`gvNivs()`, `gvListe()`) monte au-dessus de la pile — « NIVEAUX ACCOMPLIS n / 7 », les niveaux TERMINÉS
+    (portail franchi : `SAVE.d.ex.zones` ; l'auto-école si `SAVE.d.permis`) en vignettes cochées arrivées en cascade, puis « À BATTRE : 3 ·
+    PARIS » et « +4 À DÉCOUVRIR » (aucun terminé : « FRANCHIS TON 1ER PORTAIL »). Retouchée, un tap ailleurs, Échap : il se referme.
+    ⚠ `ex.zones` est un record de portails EN UNE PARTIE (le tiroir dit donc « jusqu'où tu es allé ») ; une partie qui commence par l'auto-école
+    compte sa piste d'école comme une zone.
+  · LES JAUGES v2 (`#gVJ`, `gvJauges`) : empilées (debout en haut à gauche, couché sous HOME · ⚙), une ÉTIQUETTE d'arcade penchée CASH / AURA,
+    le chiffre en quatre bandes, la barre en TUBE de 12 px (laque de verre, courant de bandes en biais qui coule, crans tous les 10 %, pointe
+    chauffée à blanc qui pulse, éclat ~3,6 s) ; arrivée, elle CLAQUE (`.pose` : éclair, le % qui saute) ; pleine, elle bat (`.plein`). La ligne
+    dit ce qui MANQUE : « LA HONTE · ENCORE $ 1 200 » / « À TA PORTÉE ! », « ON PARLE DE TOI ▸ RÉPUTÉ » / « INTOUCHABLE ».
+  · (même soir, Léo : « les boutons c'est bien ; juste la MAP branchée à la place de MISSIONS, MISSIONS en plus fin en haut du PLAY, SHOP à
+    côté de la map, et JOUER petit comme le MISSIONS actuel ») LA PILE v6 : à droite, de haut en bas, MISSIONS en barre fine (30 px, sans
+    conducteurs), JOUER (46 px), la MAP branchée dessous (`#gvBranche` : les deux conducteurs d'or ; liseré d'or et flux sur sa tranche ;
+    JOUER enfoncé l'allume) ; à gauche SHOP, à côté de la map. Couché : 26 / 40 / 40 px. sw.js → v121.
+  · (même soir, Léo : « jauge en haut, HOME · settings à gauche en haut ») : HOME (dans le coin) puis ⚙ EN HAUT À GAUCHE (`#gOutils` ancré à
+    gauche) ; les jauges en haut à droite (debout empilées à droite de HOME · ⚙, couché dans le coin haut-droit) ; couché, l'astuce du burn-out
+    descend sous HOME · ⚙. sw.js → v122.
+  · (2026-10-06, Léo : « l'inventaire au bouton rouge, mais placé comme l'ancien truc mission vert (à enlever) ; corrige le rectangle transparent
+    buggé en haut ; HOME et settings un peu plus petits et transparents ; laisse la map branchée au PLAY, MISSIONS au-dessus ») :
+    · ⚠ LE RECTANGLE : COUCHÉ, la règle de la console (`html #garage::after` en colonne à droite : top 0, bottom 0, largeur 460) laissait
+      ses top/left/largeur au voile du BAS de la vitrine — un dégradé sombre de 439 × 101 px EN HAUT, sur la porte en feu (vrai sur main aussi
+      depuis la vitrine v2). Trouvé en masquant le canevas 3D (les pseudo-éléments ne sortent pas d'`elementsFromPoint`) ; le voile est remis
+      en bas, toute largeur.
+    · LE SOCLE VERT DES MISSIONS est retiré (`GAR.misSocle` caché ; il reste dans le menu de Léo, `?menu=leo`, où il porte l'étiquette) ;
+      LE BOUTON ROUGE prend sa place (x −2,9 · z 2,5), HORS du plateau, sur un PIED d'acier cerclé de danger, ×1,5 ; il rentre dans le sol
+      pendant un dérapage et au lâcher (`ATL.y0`) ; le doigt vise sa calotte (`atlBoutonEcran`).
+    · HOME · ⚙ : 40 × 36, verre fumé translucide (opacité ,88). sw.js → v123.
+  · (même jour, Léo : « avec le petit logo électrique, c'est mieux ») : l'ÉCLAIR du cartouche de main (`.gvEcl`, or, il grésille :
+    `gvEclairGr`) revient devant le numéro de la map branchée. sw.js → v124.
+  · (même jour, Léo : « le garage doit ressembler à ça ; exporte la fonction burn-out ; le bouton plus minimaliste, sur le côté, plus éloigné
+    de la voiture, qu'il n'ait pas à se rétracter ») : LE BOUTON ROUGE = une colonne fine d'encre, un filet de néon, la calotte rouge (plus de
+    pied de danger), ×1,6 ; posé au SOL de l'atelier à `ATL_POS` (−3,54 ; 3,54 : 5 m du centre, à 135°), au-delà de ce que la caisse balaie en
+    dérapage (≤ 4,3 m) — il ne rentre plus jamais (seulement caché hors vitrine). Place choisie en mesurant 24 positions sur le cercle de 5 m
+    (`dbgAtelier('pos',x,z)` rend sa place à l'écran) : debout (353, 383), couché (490, 193) — dans l'image, à droite de la caisse, loin des
+    jauges et de la pile. sw.js → v125.
+  · (même jour, Léo : « le point de vue couché d'avant, un peu plus éloigné, c'est mieux — celui qui n'apparaît plus ; applique-le sur main »,
+    confirmé : c'est la CAMÉRA COUCHÉE) : COUCHÉ, le recul d'avant la v112 revient — la caisse tient dans `fw` ,9 de la largeur libre et `fh` ,8 de
+    la hauteur (la v112 l'avait rapprochée de ~10 % : ,98 / ,88) ; DEBOUT inchangé (`fwP` · `fhP` ,88 — `fh` suit désormais l'orientation
+    comme `fw`). sw.js → v126.
+  Banc `vit6.mjs <nom> W H [zones]` (captures vitrine + tiroir, JOUER → course). sw.js → v116 (passé en v120 à la fusion : main était déjà en v119).
 - **L'ATELIER AÉRÉ + LE RENDU (même jour, Léo : « enlève quelques accessoires du garage, ça fait un peu rempli pour rien — les pieds tu
   dois laisser, ça fait partie du jeu ; les billets, mes trucs de trophée, tout ça laisse ; aère un peu l'espace · travaille plus le
   rendu »)** — `GAR_AERE` (juste avant `buildGarageRoom`) : le petit bazar ne se construit plus — cartons, bidons, fûts et jerricans de
