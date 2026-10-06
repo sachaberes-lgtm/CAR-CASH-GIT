@@ -38105,6 +38105,7 @@ window.dbgBurn=function(s){
    TRAÎNÉE → les deux bras aux pots, bouffées ; une CAISSE → les deux bras balaient, le scanner fait le reste. Tout est fait avec le KIT des
    caisses (lpKit / lpMat : zéro programme de plus) et les réservoirs du BURN-OUT (fumée en pixels, feu additif).
    Console : dbgAtelier() → l'état · dbgAtelier(1|0) ouvre / ferme · dbgAtelier('peinture'|'aile'|'trainee'|'voiture') → une construction. */
+const ATL_POS={x:-3.54,z:3.54}; // (2026-10-06) la place du bouton rouge, au sol de l'atelier : 5 m du centre (le disque fait 4,5 m, la caisse en dérapage ≤ 4,3), à 135° — à droite de la caisse côté porte. Mesuré (dbgAtelier('pos',x,z)) : debout (343, 388), couché (464, 190) — dans l'image, loin des jauges et de la pile
 const ATL={on:false,k:0,press:0,appui:null,btn:null,cap:null,halo:null,bras:[],mats:{},cons:0,cat:'',t:0,v:new THREE.Vector3(),w:new THREE.Vector3(),c:null};
 const ATL_PAL={R:{g:'p',c:0xd8262e},Rs:{g:'p',c:0x8e141a},N:{g:'p',c:0x1d2027},K:{g:'p',c:0x626b79},J:{g:'p',c:0xefb52a},Jf:{g:'p',c:0xb9861a},
   B:{g:'p',c:0x2f6cb8},C:{g:'c',c:0xe6e9ee},A:{g:'s',c:0x8792a4},Or:{g:'o',c:0xffc24a},Cu:{g:'o',c:0xd9824a},V:{g:'p',c:0x2f9e63}};
@@ -38112,22 +38113,18 @@ function atlMat(f){return ATL.mats[f]||(ATL.mats[f]=lpMat(f));}
 function atlPiece(fn){const K=lpKit(ATL_PAL);fn(K);const G=K.done(),g=new THREE.Group();for(const f in G)g.add(new THREE.Mesh(G[f],atlMat(f)));return g;}
 function atlBuild(){
   if(ATL.btn||!GAR.pod)return;
-  // LE BOUTON : socle, cerclage de danger, champignon (la calotte bouge seule), halo
+  /* LE BOUTON (2026-10-06, Léo : « un bouton plus minimaliste, sur le côté, plus éloigné de la voiture, qu'il n'ait pas à se rétracter ») :
+     une colonne fine d'encre, un filet de néon rouge, la calotte rouge — rien d'autre. Posé HORS du plateau, au-delà de ce que la caisse
+     balaie en dérapage (≤ 4,3 m du centre ; le disque fait 4,5 m) : il ne rentre plus jamais. Sa place : `ATL_POS` (réglable à chaud :
+     dbgAtelier('pos', x, z)). */
   const b=new THREE.Group();
-  b.add(atlPiece(function(K){K.cyl('N',.34,.1,8,0,.05,0,'y',.38);K.cyl('K',.3,.04,8,0,.12,0,'y');
-    for(let i=0;i<8;i++){const a=i/8*Math.PI*2;K.box(i%2?'J':'N',.2,.03,.07,Math.sin(a)*.27,.15,Math.cos(a)*.27,0,a,0);} // jaune et noir
-    K.cyl('A',.2,.06,12,0,.17,0,'y');}));
-  const cap=atlPiece(function(K){K.lathe('R',[[0,0],[.2,0],[.2,.05],[.17,.11],[.1,.15],[0,.16]],14,0,0,0,'y');K.cyl('Rs',.205,.02,14,0,.01,0,'y');});
-  cap.position.y=.2;b.add(cap);
-  const halo=new THREE.Mesh(new THREE.RingGeometry(.3,.46,24),new THREE.MeshBasicMaterial({color:0xff3a3a,transparent:true,opacity:.4,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}));
-  halo.rotation.x=-Math.PI/2;halo.position.y=.02;b.add(halo);
-  /* (2026-10-06, Léo : « l'inventaire au bouton rouge, mais placé comme l'ancien truc mission vert ») : à la place du socle des missions
-     (x −2,9 · z 2,5 : à droite de la caisse, côté porte), HORS du plateau, juché sur un PIED (colonne d'acier cerclée de danger, 0,55 m)
-     et 1,5 fois plus gros — on le voit de loin, comme le socle ; dans le menu de Léo (où le socle reste) il passe en miroir. */
-  const pied=atlPiece(function(K){K.cyl('N',.3,.08,8,0,.04,0,'y',.36);K.cyl('K',.2,.5,8,0,.33,0,'y',.24);
-    for(let i=0;i<6;i++)K.cyl(i%2?'J':'N',.215,.06,8,0,.16+i*.06,0,'y');K.cyl('N',.26,.05,8,0,.6,0,'y');});
-  b.children.forEach(function(o){o.position.y+=.62;});b.add(pied);b.scale.setScalar(1.5);
-  b.position.set(MENU_SACHA?-2.9:2.9,GAR.POD,2.5);GAR.pod.parent.add(b);ATL.btn=b;ATL.cap=cap;ATL.halo=halo;ATL.y0=GAR.POD;
+  b.add(atlPiece(function(K){K.cyl('N',.2,.04,10,0,.02,0,'y',.22);K.cyl('N',.075,.5,8,0,.29,0,'y',.09);K.cyl('N',.17,.04,10,0,.56,0,'y',.15);}));
+  const neon=new THREE.Mesh(new THREE.CylinderGeometry(.155,.155,.012,16),new THREE.MeshBasicMaterial({color:0xff3a3a,fog:false}));neon.position.y=.585;b.add(neon);
+  const cap=atlPiece(function(K){K.lathe('R',[[0,0],[.15,0],[.15,.035],[.12,.08],[.06,.11],[0,.115]],14,0,0,0,'y');});
+  cap.position.y=.59;b.add(cap);
+  const halo=new THREE.Mesh(new THREE.RingGeometry(.2,.3,24),new THREE.MeshBasicMaterial({color:0xff3a3a,transparent:true,opacity:.4,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}));
+  halo.rotation.x=-Math.PI/2;halo.position.y=.6;b.add(halo);b.scale.setScalar(1.6);
+  b.position.set((MENU_SACHA?1:-1)*ATL_POS.x,0,ATL_POS.z);GAR.pod.parent.add(b);ATL.btn=b;ATL.cap=cap;ATL.halo=halo;ATL.y0=0;
   // LES DEUX BRAS : pied, colonne, épaule → bras → coude → avant-bras → l'outil
   for(const s of [1,-1]){
     const rig=new THREE.Group(),pied=atlPiece(function(K){K.cyl('N',.3,.12,8,0,.06,0,'y',.34);K.cyl('J',.2,.7,8,0,.47,0,'y',.22);K.cyl('Jf',.23,.06,8,0,.83,0,'y');
@@ -38149,9 +38146,9 @@ function atlBuild(){
   }
 }
 function atlBoutonEcran(){ // où est le bouton à l'écran (px) et son rayon — pour le doigt
-  if(!ATL.btn||!ATL.btn.visible||ATL.btn.position.y<ATL.y0-.1)return null;
-  ATL.btn.updateMatrixWorld(true);ATL.cap.getWorldPosition(ATL.v);ATL.v.y+=.12;const d=camera.position.distanceTo(ATL.v);ATL.v.project(camera);if(ATL.v.z>1)return null; // (2026-10-06) la CALOTTE, où qu'elle soit (sur son pied)
-  const r=.62/(d*Math.tan(camera.fov*Math.PI/360))*VP.h*.5;return {x:(ATL.v.x*.5+.5)*VP.w,y:(.5-ATL.v.y*.5)*VP.h,r:Math.max(26,r)};
+  if(!ATL.btn||!ATL.btn.visible)return null;
+  ATL.btn.updateMatrixWorld(true);ATL.cap.getWorldPosition(ATL.v);ATL.v.y+=.08;const d=camera.position.distanceTo(ATL.v);ATL.v.project(camera);if(ATL.v.z>1)return null; // (2026-10-06) la CALOTTE, où qu'elle soit (sur son pied)
+  const r=.5/(d*Math.tan(camera.fov*Math.PI/360))*VP.h*.5;return {x:(ATL.v.x*.5+.5)*VP.w,y:(.5-ATL.v.y*.5)*VP.h,r:Math.max(26,r)};
 }
 function atlVise(e){if(!garageOn||GAR.go||!gEl||!gEl.classList.contains('vitrine')||gEl.classList.contains('menu')||e.button>0)return false;
   const B=atlBoutonEcran();return !!B&&Math.hypot(e.clientX-B.x,e.clientY-B.y)<B.r;}
@@ -38166,9 +38163,8 @@ function atlTick(dt){
   const G=garGabarit(),vit=!!(gEl&&gEl.classList.contains('vitrine')&&!gEl.classList.contains('menu')),t=performance.now()*.001;
   // le bouton : sur son pied, à la place de l'ancien socle des missions ; il respire, s'enfonce sous le doigt, et RENTRE dans le sol pendant un
   // dérapage (la caisse balaie jusqu'au bord du plateau) ou un lâcher
-  const cache=!vit||GAR.go||BURN.pivK>.08;ATL.btn.visible=garageOn;
-  const yb=ATL.y0-(cache?1.35:0);ATL.btn.position.y+=(yb-ATL.btn.position.y)*Math.min(1,dt*8);
-  ATL.press=Math.max(0,ATL.press-dt*3.2);const ap=ATL.appui!=null?1:0;ATL.cap.position.y=.82-.06*Math.max(ap,Math.sin(Math.min(1,ATL.press)*Math.PI*.5));
+  ATL.btn.visible=garageOn&&vit; // (2026-10-06) hors de portée de la caisse : il ne rentre plus, il n'existe qu'en vitrine
+  ATL.press=Math.max(0,ATL.press-dt*3.2);const ap=ATL.appui!=null?1:0;ATL.cap.position.y=.59-.04*Math.max(ap,Math.sin(Math.min(1,ATL.press)*Math.PI*.5));
   ATL.halo.material.opacity=(.22+.18*Math.sin(t*3.4))*(INV.on?.4:1)+ATL.press*.5;ATL.halo.scale.setScalar(1+.06*Math.sin(t*3.4)+ATL.press*.25);
   // les bras : ils sortent avec l'inventaire
   const cib=vit&&INV.on&&!GAR.go?1:0;ATL.k+=(cib-ATL.k)*Math.min(1,dt*(cib?4.5:5.5));if(ATL.k<.002)ATL.k=0;
@@ -38198,8 +38194,9 @@ function atlTick(dt){
   }
   if(BURN.fum&&BURN.fum.o.visible&&!BURN.k)burnPas(BURN.fum,dt,t);if(BURN.feu&&BURN.feu.o.visible&&!BURN.k)burnPas(BURN.feu,dt,t); // (le burn-out les fait déjà vivre)
 }
-window.dbgAtelier=function(a){
-  if(a===1)invOuvre();else if(a===0)invFerme();else if(typeof a==='string')atlConstruit(a);
+window.dbgAtelier=function(a,x,z){
+  if(a==='pos'){ATL_POS.x=x;ATL_POS.z=z;if(ATL.btn)ATL.btn.position.set((MENU_SACHA?1:-1)*x,0,z);}
+  else if(a===1)invOuvre();else if(a===0)invFerme();else if(typeof a==='string')atlConstruit(a);
   const B=atlBoutonEcran();return {inventaire:!!INV.on,bras:+ATL.k.toFixed(2),construit:+ATL.cons.toFixed(2),cat:ATL.cat,bouton:B?[Math.round(B.x),Math.round(B.y),Math.round(B.r)]:null};
 };
 document.querySelectorAll('#gInv .ivTab').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();const c=b.getAttribute('data-c');if(!INV.on||c===INV.cat)return;

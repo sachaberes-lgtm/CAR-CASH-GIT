@@ -286,6 +286,12 @@
     · HOME · ⚙ : 40 × 36, verre fumé translucide (opacité ,88). sw.js → v123.
   · (même jour, Léo : « avec le petit logo électrique, c'est mieux ») : l'ÉCLAIR du cartouche de main (`.gvEcl`, or, il grésille :
     `gvEclairGr`) revient devant le numéro de la map branchée. sw.js → v124.
+  · (même jour, Léo : « le garage doit ressembler à ça ; exporte la fonction burn-out ; le bouton plus minimaliste, sur le côté, plus éloigné
+    de la voiture, qu'il n'ait pas à se rétracter ») : LE BOUTON ROUGE = une colonne fine d'encre, un filet de néon, la calotte rouge (plus de
+    pied de danger), ×1,6 ; posé au SOL de l'atelier à `ATL_POS` (−3,54 ; 3,54 : 5 m du centre, à 135°), au-delà de ce que la caisse balaie en
+    dérapage (≤ 4,3 m) — il ne rentre plus jamais (seulement caché hors vitrine). Place choisie en mesurant 24 positions sur le cercle de 5 m
+    (`dbgAtelier('pos',x,z)` rend sa place à l'écran) : debout (353, 383), couché (490, 193) — dans l'image, à droite de la caisse, loin des
+    jauges et de la pile. Le point de vue couché de la branche (un peu plus loin que main) est gardé (Léo : « c'est mieux »). sw.js → v125.
   Banc `vit6.mjs <nom> W H [zones]` (captures vitrine + tiroir, JOUER → course). sw.js → v116 (passé en v120 à la fusion : main était déjà en v119).
 - **L'ATELIER AÉRÉ + LE RENDU (même jour, Léo : « enlève quelques accessoires du garage, ça fait un peu rempli pour rien — les pieds tu
   dois laisser, ça fait partie du jeu ; les billets, mes trucs de trophée, tout ça laisse ; aère un peu l'espace · travaille plus le
