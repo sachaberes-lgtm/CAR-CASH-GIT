@@ -26247,20 +26247,66 @@ const MUSIC_FILT_OPEN=20000; // …et s'ouvre en grand quand on booste (approche
    toucher suivant la relance si elle s'est tue (refus, interruption, appel, retour d'arrière-plan). */
 let musicVoulue=false,musicEnAttente=false,musicVolCible=1,musicVolCour=1,musicAnaEl=null;
 const MUSIC_PASSIF={passive:true,capture:true};
+/* LE RELAIS DE BOUCLE (2026-10-06, Léo : « les musiques ne tournent pas bien en boucle, ça fait des cuts »). MESURÉ dans Chrome : au
+   rebouclage d'un <audio loop>, le lecteur glisse 50 à 85 ms de SILENCE (CIEL 1 : 53 ms, VILLE 1 : 85 ms) — les fichiers, eux, sont
+   sans blanc (vérifié au décodage). La musique ne passe toujours PAS par Web Audio (voir « LA MUSIQUE v4 ») : DEUX lecteurs <audio>,
+   libérés au même premier toucher. Quand le morceau qui boucle arrive à ~6 s de sa fin, le second se cale au début du même fichier ;
+   à `lead` de la fin, il PART et devient `musicEl` (le volume, l'analyse, tout le suit) ; le premier finit ses dernières millisecondes
+   sans reboucler, puis redevient le lecteur de réserve. La boucle native reste le filet : relais pas prêt (réserve jamais libérée,
+   fichier pas chargé, morceau changé entre-temps), elle fait comme avant. `MUSIC_RELAIS.on=false` = avant. Console : `dbgRelais()`. */
+const MUSIC_RELAIS={on:true,lead:.03,el2:null,libre:false,prep:false,arme:0,n:0,rate:0};
+function musicElNeuf(id){
+  const el=document.createElement('audio');el.id=id;el.preload='auto';
+  el.setAttribute('playsinline','');el.setAttribute('webkit-playsinline','');el.style.display='none';
+  document.body.appendChild(el);
+  // ⚠ chaque événement ne compte que pour le lecteur EN SERVICE (`musicEl`) : la réserve qui finit sa queue ou s'arrête ne dit rien
+  el.addEventListener('ended',function(){if(el!==musicEl){musicRelaisRange(el);return;}if(musicMode==='run'&&!musicLieu)musicNext();}); // la radio enchaîne (les morceaux de LIEU bouclent)
+  el.addEventListener('playing',function(){if(el!==musicEl)return;musicOn=true;musicEnAttente=false;musicAnalyse();});
+  el.addEventListener('pause',function(){if(el!==musicEl)return;musicOn=false;});
+  el.addEventListener('error',function(){if(el!==musicEl)return;if(FRENM.sw){frenMusRate();return;} // le morceau de la TRIADE manque : on repart sur la radio, surmultipliée
+    console.warn('musique : fichier illisible',el.currentSrc||el.src);
+    if(musicMode==='run'&&!musicLieu)setTimeout(musicNext,400);});
+  return el;
+}
 function musicElGet(){
-  if(!musicEl){
-    musicEl=document.createElement('audio');musicEl.id='musique';musicEl.preload='auto';
-    musicEl.setAttribute('playsinline','');musicEl.setAttribute('webkit-playsinline','');musicEl.style.display='none';
-    document.body.appendChild(musicEl);
-    musicEl.addEventListener('ended',function(){if(musicMode==='run'&&!musicLieu)musicNext();}); // la radio enchaîne (les morceaux de LIEU bouclent)
-    musicEl.addEventListener('playing',function(){musicOn=true;musicEnAttente=false;musicAnalyse();});
-    musicEl.addEventListener('pause',function(){musicOn=false;});
-    musicEl.addEventListener('error',function(){if(FRENM.sw){frenMusRate();return;} // le morceau de la TRIADE manque : on repart sur la radio, surmultipliée
-      console.warn('musique : fichier illisible',musicEl.currentSrc||musicEl.src);
-      if(musicMode==='run'&&!musicLieu)setTimeout(musicNext,400);});
-  }
+  if(!musicEl){musicEl=musicElNeuf('musique');
+    try{MUSIC_RELAIS.el2=musicElNeuf('musique2');}catch(e){MUSIC_RELAIS.el2=null;}
+    setInterval(function(){try{musicRelaisTick();}catch(e){}},100);}
   return musicEl;
 }
+function musicRelaisLibere(){ // au 1er toucher, PENDANT le geste : la réserve joue un instant, muette, puis s'arrête — elle pourra partir seule plus tard
+  const R=MUSIC_RELAIS,e2=R.el2;if(!e2||R.libre||R._essai)return;R._essai=true;
+  try{e2.muted=true;if(!e2.src)e2.src=musicEl.src||MUSIC.menu||musicPremier();const p=e2.play();
+    const fin=function(){try{e2.pause();e2.currentTime=0;}catch(e){}R.libre=true;
+      if(musicVoulue&&SND.music&&musicEl&&musicEl.paused)musicJoue();}; // (si le système n'autorise qu'un lecteur à la fois, la musique reprend)
+    if(p&&p.then)p.then(fin,function(er){R._essai=false;R.err=String(er);});else fin();}catch(e){R._essai=false;R.err=String(e);}
+}
+function musicRelaisRange(el){try{el.pause();el.loop=true;el.currentTime=0;}catch(e){}}
+function musicRelaisTick(){
+  const R=MUSIC_RELAIS,a=musicEl,b=R.el2;
+  if(!R.on||!R.libre||!a||!b||!a.loop||a.paused||!musicVoulue||document.hidden||paused)return;
+  const d=a.duration;if(!(d>10)||!isFinite(d))return;
+  const reste=d-a.currentTime;
+  if(reste>6.5){R.prep=false;return;}
+  if(!R.prep){R.prep=true; // la réserve se cale au début du MÊME fichier
+    try{if(b.src!==a.src)b.src=a.src;b.loop=true;b.muted=true;b.pause();b.currentTime=0;}catch(e){}}
+  if(reste<.45&&!R.arme)R.arme=setTimeout(musicRelaisPasse,Math.max(0,(reste-R.lead)*1000));
+}
+function musicRelaisPasse(){
+  const R=MUSIC_RELAIS,a=musicEl,b=R.el2;R.arme=0;R.prep=false;
+  if(!a||!b||a.paused||!a.loop||b.src!==a.src||b.readyState<3||document.hidden||paused||!(a.duration-a.currentTime<.3)){R.rate++;return;} // pas prêt : la boucle native fera le tour
+  try{
+    b.volume=a.volume;b.playbackRate=a.playbackRate;b.preservesPitch=a.preservesPitch;b.webkitPreservesPitch=a.webkitPreservesPitch;
+    b.muted=a.muted;b.loop=true;
+    a.loop=false;                    // l'ancien finit ses dernières millisecondes et s'arrête de lui-même (« ended », rangé)
+    musicEl=b;R.el2=a;R.n++;          // ⚠ AVANT play() : son « playing » rebranche l'analyse sur le bon lecteur
+    const p=b.play();if(p&&p.catch)p.catch(function(){ // refusé : on rend la main à l'ancien, qui reboucle comme avant
+      if(musicEl===b){musicEl=a;R.el2=b;try{a.loop=true;if(a.paused)a.play();}catch(e){}musicRelaisRange(b);R.rate++;}});
+  }catch(e){}
+}
+window.dbgRelais=function(on){if(on===0||on===1)MUSIC_RELAIS.on=!!on;const R=MUSIC_RELAIS;
+  return{on:R.on,libre:R.libre,err:R.err||null,relais:R.n,rates:R.rate,prep:R.prep,enService:musicEl&&musicEl.id,
+    reste:musicEl&&musicEl.duration?+(musicEl.duration-musicEl.currentTime).toFixed(2):null};};
 function musicPremier(){const n0=NIVEAUX[0],l=n0&&MUSIC_LIEU[n0.id];return l?l.f:(MUSIC_TRACKS[0]||{}).f;} // le morceau du 1er niveau
 /* (2026-09-28) 'playback' SEULEMENT SI LA MUSIQUE JOUE. Sur iOS 17+, une session 'playback' COUPE l'appli audio du joueur : celui
    qui éteint notre MUSIQUE pour écouter son Spotify se le faisait couper par le jeu à chaque toucher. MUSIQUE coupée → 'ambient'
@@ -26276,6 +26322,7 @@ function musicJoue(){ // lance (ou relance) la lecture — un refus n'est jamais
 }
 function musicDeverrouille(){ // appelé à CHAQUE toucher/touche (en capture) : le 1er libère le lecteur, les suivants relancent si besoin
   const el=musicElGet();musicSession();
+  try{musicRelaisLibere();}catch(e){} // (LE RELAIS DE BOUCLE) la réserve se libère au même geste
   if(!musicDeverrouille._ok){musicDeverrouille._ok=true;
     if(!el.src)el.src=MUSIC.menu||musicPremier();           // le morceau de l'ACCUEIL se charge dès le 1er toucher : aucun blanc au départ — ⚠ (Léo, 2026-09-27) celui du 1er niveau s'entendait une seconde avant l'intro
     if(!musicVoulue){el.muted=true;const p=el.play();       // lancé une fois, en silence, PENDANT le geste : l'élément est libre
