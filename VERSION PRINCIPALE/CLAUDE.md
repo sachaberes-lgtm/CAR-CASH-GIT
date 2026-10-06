@@ -4,6 +4,14 @@
 L'image de référence = le sprite de 2011 EXTRUDÉ en cubes (contour noir = mur noir sur l'épaisseur, dessous bleus). Le gabarit `poptart` est
 refait EN VOXELS (10 cm, `NY_U`), chaque pièce dessinée dans SON plan (bloc « LE CHAT POP-TART EN VOXELS », juste avant `SHAPES` : dessins
 `NY_GATEAU` / `NY_SUCRE` / `NY_TETE` / `NY_QUEUE`, maillage `voxGrille()` = faces à l'air seules, fusionnées en rectangles par couleur).
+- **v3, même jour** (Léo : « le biscuit a pivoté de sens — derrière la tête une forme de mini Cooper sport, deux couches de glaçage, une
+  droite une gauche, qui englobent les détails, et le biscuit au milieu, du capot jusqu'au-dessous ; un petit aileron ; marron et rose
+  tels quels avec quelques teintes pour l'ombre des formes ; la tête telle quelle, sans les phares jaunes ») : la pop-tart est posée sur
+  la TRANCHE — FLANCS roses (glaçage, éclats de sucre), BANDE de biscuit au milieu sur le capot, le pavillon, la poupe et dessous (la
+  bande de capot d'une Mini Cooper S). Bas de caisse pleine largeur aux épaules arrondies et au bas rentré, AILES bombées au-dessus des
+  pattes, habitacle rentré, pare-brise en escalier, vitres laquées (`V`, montant central), lunette, becquet de pavillon, bouclier arrière
+  marron foncé (`K`), feux en saillie. PLUS DE CONTOUR NOIR sur la caisse : l'ombre des formes en neuf TEINTES (`fkC`, `poseC` : dessous,
+  bas de caisse, arêtes, creux). Phares jaunes et bouclier avant retirés. (Le caisson à contour noir de la v2 est dans l'historique.)
 - **v2, même jour** (Léo : « plus carré le dos, plus voiture le corps, les jambes bougent selon comment tu accélères » · « enlève aussi
   l'arc-en-ciel, le burn-out fait des pixels multicolores qui scintillent, fumée grise ») :
   · LE CAISSON : la pop-tart devient une caisse de 50 cm, coins CARRÉS, flancs et poupe en croûte cernés de noir sur chaque arête,
