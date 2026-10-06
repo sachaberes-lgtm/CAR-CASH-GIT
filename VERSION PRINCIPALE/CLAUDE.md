@@ -1,5 +1,22 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LE CIEL DE L'ÉCRAN TITRE v4 (2026-10-06, session GRAPHISME) — Sacha : « le ciel est toujours moche dans l'écran d'accueil, refonte visuelle totale, surtout ce motif de merde dans le ciel »
+- LE DIAGNOSTIC (planche des six heures, `titre2.js` + `dbgHeure`) : le ciel du titre était un ASSEMBLAGE des couches du niveau — le
+  dégradé à paliers, la lueur d'horizon, la mer `merZ` à taches (un papier peint), le POMMELÉ `cielMotif` (les rangées de tirets en
+  quinconce : LE « motif »), plus le sprite `horizonGlow` qui dessinait une RAYURE dure sur l'horizon, et les bancs-sprites flous
+  (`CHUTE.w`) qui faisaient des taches. Golden et soir en aplats orange / magenta.
+- LA COUCHE `K.titre` / `cielTitre` (dôme, passes PLEINE et LISSE, après le soleil) REMPLACE tout ça au titre seulement (`skyU.uTi.x` = 1
+  posé par chuteRender, 0 par chuteSort : en course rien ne change — vérifié, 0 programme lié en course) : dégradé sans palier
+  (horizon → milieu → zénith), l'air épais large sur l'horizon, la lueur du côté du soleil, des CIRRUS (longues mèches au vent, du bruit
+  `vfbm` étiré en biais — jamais une grille), et une MER DE NUAGES en dômes francs (sommets au soleil, creux bleus — pas de mer laiteuse,
+  refusée le 26/09) qui se FOND dans la couleur de l'horizon au lieu de la croiser. La brume des cumulus 3D prend la même couleur
+  d'horizon (les lointains s'y noient).
+- `TITRE_CIEL` (près de TITRE_H) : la palette par heure — z/m/h (zénith, milieu, horizon), s (lueur du soleil), mh/mo (mer au soleil, à
+  l'ombre), c/ca (cirrus, leur part), hz (distance de la brume). `titreCiel(on)` la pose. Au titre : `horizonGlow`, `sunSprite`, `RAYS`
+  et les bancs-sprites `CHUTE.w` éteints (`CHUTE_P.cielT` 1, `CHUTE_P.voiles` 0). Le pommelé reste dans le NIVEAU NUAGES (demandé le 30/09).
+- Hook : `dbgChute()` rend `titreCiel` (1 au titre, 0 ailleurs). Bancs (scratchpad GRAPHISME) : `titre2.js` (planche, `--ui`, `--debout`),
+  `titre4.js` (menu → course), `tour.js`.
+
 ## LE CHAT POP-TART EN VOXELS (2026-10-06, Léo : « focus sur la Nyan Cat, je mise tout sur cette image, fais-en une voiture — impressionne-moi sur le mimétisme et l'adaptation »)
 L'image de référence = le sprite de 2011 EXTRUDÉ en cubes (contour noir = mur noir sur l'épaisseur, dessous bleus). Le gabarit `poptart` est
 refait EN VOXELS (10 cm, `NY_U`), chaque pièce dessinée dans SON plan (bloc « LE CHAT POP-TART EN VOXELS », juste avant `SHAPES` : dessins
