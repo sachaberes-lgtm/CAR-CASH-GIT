@@ -26035,7 +26035,7 @@ function musicSuitLieu(){
   if(v===musicLieu)return;
   musicLieu=v;
   if(FRENM.sw){FRENM.src='';return;} // en pleine FRÉNÉSIE : son morceau garde l'antenne — à la sortie, on reprendra sur celui du nouveau lieu
-  if(DEPMUS.on&&started&&!gameOver){DEPMUS.f0=performance.now();musicVolCour=0;} // (2026-10-05, « le passage plus smooth ») le morceau du niveau suivant ENTRE en fondu (0,6 s, sous le voile) au lieu de tomber à plein
+  if(DEPMUS.on&&started&&!gameOver){DEPMUS.f0=performance.now();DEPMUS.dur=0;musicVolCour=0;} // (2026-10-05, « le passage plus smooth ») le morceau du niveau suivant ENTRE en fondu (0,6 s, sous le voile) au lieu de tomber à plein
   if(v){NIVEAU_FX=2.6;musicPlayCurrent();try{lvlBlast();}catch(e){}}
   else{try{musicNext();}catch(e){}}
 }
@@ -26230,14 +26230,14 @@ function stopMusic(){musicVoulue=false;if(musicEl){try{musicEl.pause();}catch(e)
    voiture booste, pour tous les niveaux ») : le son de transition `depart.envol` (1,55 s de montée AVANT la musique) est RETIRÉ — la
    musique n'attend plus rien. NE PAS remettre de son ni de délai entre le départ et la musique.
    ⚠ iPhone : le volume d'un <audio> y est en lecture seule (VOL_LOCKED) — ni fondu du lobby ni fondu d'entrée. `DEPMUS.on=false` = avant. */
-const DEPMUS={on:true,fondu:.6,f0:-1,sort:0}; // sort : l'instant du REJOUER (le lobby de l'écran de mort s'efface sous le fondu au noir)
+const DEPMUS={on:true,fondu:.6,fonduDep:1.3,dur:0,f0:-1,sort:0}; // sort : l'instant du REJOUER (le lobby de l'écran de mort s'efface sous le fondu au noir)
 function musicStartRun(depart){ // au début d'une partie (start / resetGame : depart = vrai) — et quand on rallume la MUSIQUE en course
   DEPMUS.f0=-1;DEPMUS.sort=0;
   if(!SND.music||!MUSIC_TRACKS.length)return;
   musicCur=musicPickNext(-1);          // nouvelle partie = une piste tirée au hasard dans la radio…
   musicLieu=musicLieuVoulu();          // …mais le MONDE a peut-être sa propre musique (voir MUSIC_LIEU)
   musicMode='run';NIVEAU_FX=0;
-  if(depart&&DEPMUS.on){DEPMUS.f0=performance.now();musicVolCour=0;} // (LE DÉPART EN MUSIQUE) elle part tout de suite, en fondu (musicJoue pose le volume 0 avant de lancer)
+  if(depart&&DEPMUS.on){DEPMUS.f0=performance.now();DEPMUS.dur=DEPMUS.fonduDep;musicVolCour=0;} // (LE DÉPART EN MUSIQUE) elle part tout de suite, en fondu (musicJoue pose le volume 0 avant de lancer)
   musicPlayCurrent();
   /* LE LEVER DE PISTE : le décor repart de zéro et remonte avec le morceau, le métronome est remis à plat. */
   LVLFX.k=0;LVLFX.spin=0;LVLFX.flip=LVLFX.flipTo=0;LVLFX.dir=1;
@@ -26524,10 +26524,13 @@ function musicTick(dt,mvt){
   try{distTick(dt);}catch(e){}
   if(musicMode==='run')musicVolCible=musVol()*(.62+.38*musicBoostEnv)*mDuck*(1-.3*Math.min(1,DIST.env));   // à l'arrêt un peu plus bas, lancé à plein
   else if(musicMode==='menu'){musicVolCible=musVol()*.5*mDuck;                   // le menu : en fond
-    if(DEPMUS.on&&GAR.go)musicVolCible*=Math.max(0,1-(GAR.go.t||0)/1.5);          // (LE DÉPART EN MUSIQUE) il s'EFFACE pendant le piqué de JOUER…
-    if(DEPMUS.sort){const d9=performance.now()-DEPMUS.sort;if(d9>3000)DEPMUS.sort=0;else musicVolCible*=Math.max(0,1-d9/350);}} // …et sous le fondu au noir du REJOUER
-  if(DEPMUS.f0>=0&&musicMode==='run'){const k9=(performance.now()-DEPMUS.f0)/(DEPMUS.fondu*1000); // (LE DÉPART EN MUSIQUE) l'entrée en fondu : une courbe en S, pas le ressort ordinaire (il bondissait de 0 à 60 % en 0,15 s)
-    if(k9>=1)DEPMUS.f0=-1;else musicVolCour=musicVolCible*k9*k9*(3-2*k9);}
+    if(DEPMUS.on&&GAR.go){const k9=Math.min(1,(GAR.go.t||0)/(GAR.go.chute?1.75:1.7));musicVolCible*=Math.cos(k9*1.5708);musicVolCour=Math.min(musicVolCour,musicVolCible);} // (LE DÉPART EN MUSIQUE) il s'EFFACE pendant le piqué de JOUER… — (2026-10-06, Léo : « smooth la transition lobby → niveau ») en COSINUS sur toute la durée du piqué (1,75 s), posé à l'image : il touche zéro PILE quand la course part (avant : droite sur 1,5 s, un trou de 0,25 s puis le niveau)
+    if(DEPMUS.sort){const d9=performance.now()-DEPMUS.sort;if(d9>3000)DEPMUS.sort=0;else{const k9=Math.min(1,d9/350);musicVolCible*=Math.cos(k9*1.5708);musicVolCour=Math.min(musicVolCour,musicVolCible);}}} // …et sous le fondu au noir du REJOUER
+  if(DEPMUS.f0>=0&&musicMode==='run'){const k9=(performance.now()-DEPMUS.f0)/((DEPMUS.dur||DEPMUS.fondu)*1000); // (LE DÉPART EN MUSIQUE) l'entrée en fondu : une courbe, pas le ressort ordinaire (il bondissait de 0 à 60 % en 0,15 s)
+    /* (2026-10-06, Léo : « smooth la transition lobby → niveau ») la courbe en S partait trop lentement juste après la sortie du lobby
+       (un creux qu'on entendait) : au départ c'est un SINUS (puissance constante avec le cosinus du lobby : la même énergie de part et
+       d'autre de la coupure), sur 1,3 s ; aux portails, la courbe en S de 0,6 s d'avant. */
+    if(k9>=1){DEPMUS.f0=-1;DEPMUS.dur=0;}else musicVolCour=musicVolCible*(DEPMUS.dur?Math.sin(k9*1.5708):k9*k9*(3-2*k9));}
   if(musicMode!=='none'){if(!(DEPMUS.f0>=0))musicVolCour+=(musicVolCible-musicVolCour)*Math.min(1,dt*6);
     if(musicEl&&!musicEl.paused&&!VOL_LOCKED){try{const v9=Math.max(0,Math.min(1,musicVolCour));if(Math.abs(musicEl.volume-v9)>.002)musicEl.volume=v9;}catch(e){}}}
   // BOOST : le morceau S'AMPLIFIE — bass boost + chorus qui épaissit (distinct du filtre-mouvement)
