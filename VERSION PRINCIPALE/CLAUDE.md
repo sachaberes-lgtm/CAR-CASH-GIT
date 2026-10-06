@@ -117,6 +117,40 @@ refait EN VOXELS (10 cm, `NY_U`), chaque pièce dessinée dans SON plan (bloc «
 - Les règles « SANS TOUT CASSER » (partir de `origin/main` à jour, fusionner sans jamais forcer, jeu testé sans erreur avant chaque
   push, retour arrière par Vercel) et la liste de ce que contient la référence : voir `CLAUDE.md` à la RACINE du dépôt.
 
+## LE GARAGE, HUB DES TROIS + LA CONSOLE DE SACHA REVENUE (2026-10-06, session GAMEPLAY) — Sacha : « j'aime pas les modifs que Léo a faites dans le garage concernant les boutons et l'UHD : garde les améliorations du garage 3D puis remets mes boutons et affichage » · « tu peux garder son bouton inventaire, mais retravaille-le dans la DA du reste du jeu » · « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage doit servir de hub aux 3 — mets-toi dans la peau d'un designer UX/UI senior »
+- **LA CONSOLE DE SACHA PAR DÉFAUT** : la VITRINE de Léo (barre du bas, jauges CASH/AURA, MISSIONS sous JOUER, vignette du niveau) ne s'ouvre plus
+  qu'avec `?menu=leo` (`if(!MENU_SACHA)garVitrine(true)` aux trois portes : bouton GARAGE, retour des missions, routeur). Par défaut :
+  la console d'avant (compteur, ⚙ en pixel — `pxi('reglages')` remplace le boulon SVG quand `MENU_SACHA` —, fiche, onglets, vignettes,
+  HOME · BOUTIQUE · JOUER). Le 3D de Léo reste (atelier, flammes, plateau, burn-out, inventaire).
+- **`garAtelierLibre()`** : « l'atelier est libre » = garage ouvert, ni menu ni missions, et (vitrine OU `MENU_SACHA`). Le burn-out (doigt
+  tenu sur la caisse), le bouton de l'inventaire et la touche I passent par elle — ils ne vivaient que dans la vitrine.
+- **LA BORNE DE L'INVENTAIRE** (`atlBuild`, ex-champignon rouge) : socle d'encre cerclé d'or, colonne, anneau de néon cyan, chapeau à
+  facettes rose (`ATL_PAL.Ro/Rf`), halo rose, et le COFFRE en pixels (`PXI_G.coffre`, or sur ombre d'encre, `NearestFilter`) qui flotte
+  au-dessus (`ATL.ico`, il respire, s'enfonce à l'appui, pâlit quand l'inventaire est ouvert). Même sprite que les icônes de l'interface.
+- **L'ACCUEIL** (`html.hub` = `HUB` = `MENU_SACHA && !POKI`) : une seule rangée — la PORTE DU GARAGE (l'ancienne porte des MISSIONS,
+  réécrite au démarrage : `data-m="garage"`, cyan) + la BOUTIQUE en carré magenta (sa pastille NEW suit) + le ⚙. La rangée des tuiles
+  (GARAGE · CARRIÈRE · BOUTIQUE) est masquée. La porte montre ce qu'il y a derrière : après un filet, la CIBLE des missions avec ses trois
+  cases (le même `#mMisPips`, rempli par le même code) et le TROPHÉE de la carrière — le joueur qui cherche ses missions les voit.
+  `#bdGar` (ce qui s'achète) est déplacée sur la porte. Le ciel gagne une rangée.
+- **LA BARRE DU HUB** (`#gHub`, niveau body, z 82 : AU-DESSUS de la feuille `#carr` z 80) : ATELIER · MISSIONS · CARRIÈRE, au MÊME
+  endroit sur les trois pages (la mémoire du pouce). Debout : en bas, pleine largeur ; couché : en bas à GAUCHE sous la caisse (la colonne
+  de droite garde la console, HOME et JOUER). Penchée (`--sk`) comme tout ce qui se touche, jamais d'or (l'or = JOUER). Un onglet = sa
+  couleur (`--hc` : atelier magenta comme la console, missions vert comme leurs cases, carrière cyan comme ses mondes) ; l'actif s'allume
+  (trait de néon en haut, fond teinté, icône colorée), les autres se taisent en lilas. Les trois cases des défis vivent aussi sur l'onglet.
+  - `hubCtx()` = l'onglet où l'on est ('' hors hub) : feuille carrière ouverte → `carr`, atelier en missions → `mis`, atelier hors menu →
+    `atl`. `hubSync()` tourne à chaque image de `garageRender` et à la fermeture de l'atelier ; elle n'écrit dans la page que si l'état
+    CHANGE. `html.hubOn` = on est dans le hub (chaque page laisse sa place : `#gBottom`, `#gmBas`, le pied de `#carr`) ; `#gHub.cache`
+    (lancement, inventaire, sourdine) la fait glisser sans que la mise en page saute.
+  - `hubVa(t)` : la carrière est la feuille `#carr` posée PAR-DESSUS l'atelier (qui reste ouvert dessous) ; missions et atelier sont des
+    modes de l'atelier (`garMode`). Re-toucher CARRIÈRE depuis la grille d'un monde remonte aux mondes (comme un onglet iOS).
+  - Ouverte du hub, la carrière remplace son RETOUR par **HOME** (`data-c="maison"` → `hubMaison()` = le chemin de la maison de l'atelier) :
+    on ne « revient » pas d'un onglet, on en change. Elle se joue en touchant un monde (pas de second JOUER : deux JOUER qui ne lancent
+    pas la même chose sur un écran, c'est un piège). Ailleurs (écran de mort…), la feuille garde son RETOUR.
+  - Couché, la carte RÉCOMPENSE des missions (coin bas-gauche) se pose au-dessus de la barre (`gmPlace`).
+  - Hook : `dbgHub()` (hub, ctx, on, cache, rectangle de la barre). Banc : `scratchpad/garage/hub.js` (accueil, trois onglets, grille,
+    lancement d'un monde depuis la carrière, debout + couché ; `leo` = contrôle de `?menu=leo`).
+- **Inchangés** : `?menu=leo` (sa vitrine, son accueil avec MISSIONS et CARRIÈRE), l'édition Poki (`HUB` faux), l'écran de mort.
+
 ## LES HEURES DU TITRE — six ambiances de l'accueil au ciel (2026-10-05, session GAMEPLAY, GRAPHISME a passé la main) — Sacha : « pour l'écran d'accueil dans le ciel, fais plusieurs éclairages et ambiances à plusieurs moments de la journée : matin, midi, après-midi, golden hour, soir, nuit — il faut que toutes les ambiances soient magnifiques »
 - **L'HEURE DU TÉLÉPHONE** (`titreHeureDe`) : nuit 22 h-5 h · matin 5 h-10 h · midi 10 h-14 h · après-midi 14 h-17 h · golden hour 17 h-19 h 30 ·
   soir 19 h 30-22 h ; relue toutes les 20 s au menu (`titreHeureTick`, en tête de chuteRender). Pour juger : `…/jouer/?heure=golden` (matin,
