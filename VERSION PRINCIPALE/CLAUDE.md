@@ -347,7 +347,7 @@ en rectangles par couleur, ~quelques centaines de triangles) :
   · (même jour, Léo : « les jauges un peu plus belles et scintillantes, juteuses plutôt que rétrogaming ; coupe le bouton shop, il faut qu'il
     soit visible, attrayant, et ajoute à gauche, inséré en petit, un home » puis « retire celui d'en haut, et mets un boulon 3D à la place du
     setting ») :
-    · LES JAUGES v3 — JUTEUSES (`#gVJ`, même `gvJauges`) : cartes ARRONDIES en verre fumé teinté de leur couleur ; chiffres, étiquette et lignes
+    · ⚠ REMPLACÉES LE MÊME JOUR par la v4 (Léo : « pas ouf les trucs juicy », voir L'ÉNERGIE plus bas) — LES JAUGES v3 — JUTEUSES (`#gVJ`, même `gvJauges`) : cartes ARRONDIES en verre fumé teinté de leur couleur ; chiffres, étiquette et lignes
       en police RONDE épaisse (`--gvF` : SF Pro Rounded sur l'iPhone, repli Arial Rounded / Nunito / Segoe UI / system-ui — ⚠ aucune police
       téléchargée, le jeu reste hors ligne) ; la barre est un TUBE DE GÉLATINE (pilule creusée, jus de sa couleur qui coule, reflet de bonbon
       dessus, PERLE de lumière au bout qui respire, quatre ÉTINCELLES `<s>` qui s'allument une à une dans le jus, éclat qui balaie ; une
@@ -369,6 +369,31 @@ en rectangles par couleur, ~quelques centaines de triangles) :
     Bancs (scratchpad 83e03bdc) : `zoom127.mjs` (gros plans ×3 du boulon, des jauges, du SHOP ; `BK=` l'argent), `btn127.mjs` (vrais clics :
     HOME du bas → accueil, boulon → réglages, SHOP → console, JOUER → course), `parcours`, `cadreinv` (cadre de l'ordi) : 0 erreur, debout,
     couché et dans le cadre. sw.js → v129 (main avait pris la v128 pour le CHAT POP-TART en voxels, fusionné ici).
+  · (même jour, Léo : « pas ouf les trucs juicy ; réfléchis à un plan pour bien placer les jauges en haut, une structure avec les settings bien mis
+    et les jauges bien placées, agréable à l'œil mais qui ne cache pas trop le décor ; puis redesign-les selon l'emplacement : jauge énergétique
+    intense plutôt que juicy Roblox ; une barre money sur le total jamais atteint — plus tu dépasses ton record, plus la jauge est dure à remplir,
+    mais elle reste remplie tant qu'on y est ; impressionne-moi ») LES JAUGES v4 — L'ÉNERGIE :
+    · LE PLAN : UNE BANDE EN HAUT, sans carte. Le boulon (⚙) à gauche, CENTRÉ sur les jauges (debout `#gOutils` top sT+28, couché sT+6) ; les
+      jauges à sa droite — debout l'une sous l'autre (~90 px de haut au lieu de 175 : la porte en feu et le plafond restent visibles), couché
+      côte à côte sur une ligne en haut à droite (min(580 px, 68 %)). Rien d'opaque : un voile qui descend du bord (`#gTop::before`, 120 px debout,
+      82 couché). Chaque jauge = une ligne (étiquette · chiffre · statut) + son tube.
+    · LE TUBE D'ÉNERGIE (`GVE`, `gveDessine`, `gveAvance`, `gveBoucle` ; un `<canvas class="gvC">` par jauge, 20 px de haut, ×2 au plus) :
+      tube de verre noir de 9 px ; dedans le PLASMA de sa couleur (`GVE_COL` : vert acide pour l'argent, violet → rose pour l'aura), trois
+      filaments qui ondulent et COULENT vers la tête, des pulsations qui la rejoignent, un cœur blanc ; la TÊTE incandescente (éclat en
+      croix) lance des ÉTINCELLES ; des ARCS ÉLECTRIQUES claquent le long de l'énergie ; PLEINE elle SURCHARGE (arcs hors du tube, bord qui
+      pulse, deux fois plus d'étincelles). Dessiné seulement vitrine à l'écran (garage ouvert, ni inventaire ni menu, page visible) ; la
+      boucle s'arrête avec l'atelier. « Réduire les animations » : jauge posée, ni arcs ni étincelles. Texte en italique CONDENSÉ (course :
+      Avenir Next Condensed sur l'iPhone, Bahnschrift sur Windows), le chiffre blanc qui irradie sa couleur, accents rendus.
+    · L'ARGENT CONTRE LE RECORD DE FORTUNE : `SAVE.d.bankMax` = le plus haut total jamais tenu par la banque, relevé à CHAQUE entrée d'argent
+      (`bankMaxMaj()` : fin de partie, défis, permis, partie interrompue — un achat juste après une partie ne l'efface pas) ; un joueur d'avant
+      démarre à son sommet (`san` : jamais sous la banque). La jauge = banque ÷ record : à ton sommet elle est PLEINE (« SOMMET ») et le reste tant
+      que tu y es ; tu dépenses, elle baisse (« RECORD $ 30 k ») — plus ton record est haut, plus elle est dure à remplir. RECORD BATTU depuis la
+      dernière visite (`SAVE.d.bankMaxVu`, le record que la jauge a déjà fêté) : elle se charge jusqu'à l'ANCIEN record, y BUTE (une barrière qui
+      grésille ~0,5 s), puis la fait SAUTER (éclats, éclair) — « RECORD ! +$ 9 k » qui clignote. L'aura : le rang suivant (« ▸ RÉPUTÉ 44 % »).
+      L'info « une caisse est à ta portée » (l'ancienne ligne de la jauge) passe sur le SHOP : une pastille verte (`#gPerso[data-portee]`).
+    · Console : `dbgJauge(banque, record, recordDéjàVu)` — `dbgJauge(30000,30000,21000)` rejoue le record battu.
+    Banc `zoom128.mjs` (scratchpad 83e03bdc : la bande, la séquence charge → barrière → explosion → pleine, la jauge après une dépense ; rendu 3D
+    coupé pendant la séquence). sw.js → v130.
   Banc `vit6.mjs <nom> W H [zones]` (captures vitrine + tiroir, JOUER → course). sw.js → v116 (passé en v120 à la fusion : main était déjà en v119).
 - **L'ATELIER AÉRÉ + LE RENDU (même jour, Léo : « enlève quelques accessoires du garage, ça fait un peu rempli pour rien — les pieds tu
   dois laisser, ça fait partie du jeu ; les billets, mes trucs de trophée, tout ça laisse ; aère un peu l'espace · travaille plus le

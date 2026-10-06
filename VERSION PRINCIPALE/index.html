@@ -5803,83 +5803,57 @@ html body #garage.deplie:not(.menu) #gBottom{animation:gDeplie .34s var(--ease,c
    elle bat. La ligne du dessous parle : la caisse visée et ce qui MANQUE (« ENCORE $ 1 200 », « À TA PORTÉE ! »), ton rang et le suivant.
    Masquées pendant l'inventaire. */
 #gVJ{display:none}
-html body #garage.vitrine:not(.menu):not(.inv) #gVJ{display:flex}
-/* LES JAUGES v3 — JUTEUSES (2026-10-06, Léo : « les jauges un peu plus belles et scintillantes, juteuses plutôt que rétrogaming ») : la carte
-   s'arrondit (verre fumé teinté de sa couleur), les chiffres passent en police RONDE épaisse (SF Pro Rounded sur l'iPhone : `--gvF`), la barre
-   devient un TUBE DE GÉLATINE — une pilule creusée où coule un jus de sa couleur, un reflet de bonbon sur le dessus, une perle de lumière au
-   bout qui respire, des ÉTINCELLES qui s'allument une à une dans le jus, un éclat qui balaie ; la pièce d'or et l'étoile sont dessinées (plus de
-   pixels), la pièce tourne sur elle-même. Plus de crans tous les 10 %. Mêmes données (`gvJauges`), mêmes états (.pose, .plein, .portee). */
-#gVJ{flex-direction:column;gap:8px;box-sizing:border-box;width:100%;margin-top:0;padding-left:58px;padding-right:0;pointer-events:none;animation:gvJEntre .6s var(--ease) .2s backwards} /* debout : empilées en haut, le boulon (⚙) au bout de la ligne */
+html body #garage.vitrine:not(.menu):not(.inv) #gVJ{display:grid}
+/* LES JAUGES v4 — L'ÉNERGIE (2026-10-06, Léo : « pas ouf les trucs juicy ; réfléchis à un plan pour bien placer les jauges en haut, une structure
+   avec les settings bien mis et les jauges bien placées, agréable à l'œil mais qui ne cache pas trop le décor ; puis redesign-les selon
+   l'emplacement : jauge énergétique intense plutôt que juicy Roblox ; une barre money sur le total jamais atteint — plus tu dépasses ton record,
+   plus la jauge est dure à remplir, mais elle reste remplie tant qu'on y est ; impressionne-moi »).
+   · LE PLAN : UNE BANDE EN HAUT, sans carte — le boulon (⚙) à gauche, centré sur les jauges ; les jauges à sa droite, debout l'une sous l'autre
+     (~85 px de haut au lieu de 175), couché côte à côte sur une seule ligne. Rien d'opaque : un voile qui descend du bord (`#gTop::before`)
+     suffit à les lire, le plafond et la porte restent visibles.
+   · LA JAUGE : un TUBE D'ÉNERGIE dessiné en direct (`<canvas class="gvC">`, `gveDessine`) — plasma qui coule vers la tête, cœur blanc, tête
+     incandescente qui lance des étincelles, ARCS ÉLECTRIQUES qui claquent ; pleine, elle SURCHARGE (arcs hors du tube, bord qui pulse). Le
+     texte en italique condensé (course), le chiffre blanc qui irradie sa couleur.
+   · L'ARGENT = TA FORTUNE CONTRE TON RECORD (`SAVE.d.bankMax`, le plus haut total jamais atteint) : à ton sommet elle est PLEINE et le reste
+     tant que tu y es ; tu dépenses, elle baisse — et plus ton record est haut, plus elle est dure à remplir. Record battu depuis la dernière
+     visite (`bankMaxVu`) : elle se charge jusqu'à l'ANCIEN record, y bute (une barrière qui grésille), puis la fait sauter. */
+html body #garage.vitrine:not(.menu) #gVJ{position:fixed;z-index:2;top:calc(var(--sT) + 10px);left:calc(var(--sL) + 76px);right:calc(var(--sR) + 16px);width:auto;margin:0;padding:0;
+  grid-template-columns:minmax(0,1fr);row-gap:7px;pointer-events:none;animation:gvJEntre .6s var(--ease) .2s backwards}
 @keyframes gvJEntre{from{opacity:0;translate:0 -10px}to{opacity:1;translate:0 0}}
-.gvL{--gvF:ui-rounded,"SF Pro Rounded","Arial Rounded MT Bold","Varela Round","Nunito","Segoe UI",system-ui,-apple-system,sans-serif;
-  position:relative;flex:1 1 0;min-width:0;box-sizing:border-box;padding:8px 12px 9px 9px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;column-gap:8px;row-gap:6px;
-  font-family:var(--gvF);border-radius:16px;
-  background:radial-gradient(130% 100% at 0% 0%,var(--gw) 0%,rgba(0,0,0,0) 62%),linear-gradient(180deg,rgba(40,30,88,.86),rgba(12,8,30,.9));
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.24),inset 0 0 0 1px rgba(255,255,255,.1),0 0 0 1px rgba(0,0,0,.5),0 0 20px -7px var(--gc),0 12px 24px -14px rgba(0,0,0,.9)}
-.gvA{--gc:#4dff7c;--gw:rgba(77,255,124,.2);--g0:#0b7a31;--g1:#27d35d;--g2:#94ffa6;--g3:#ecfff0}
-.gvU{--gc:#c77dff;--gw:rgba(214,120,255,.22);--g0:#5a1aa8;--g1:#a84cff;--g2:#f39aff;--g3:#ffe9fc}
-.gvK{display:flex;align-items:center;gap:5px;padding:3px 9px 3px 3px;border-radius:999px;font-style:normal;font:900 11px/1 var(--gvF);letter-spacing:.7px;color:#fff;
-  background:linear-gradient(180deg,var(--g2) 0%,var(--g1) 52%,var(--g0) 100%);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.75),inset 0 -2px 0 rgba(0,0,0,.22),0 0 12px -2px var(--gc),0 2px 0 rgba(0,0,0,.45);text-shadow:0 1px 0 rgba(0,0,0,.5)}
-.gvK .pxi{display:none}
+html body #garage.vitrine:not(.menu):not(.inv) #gTop::before{content:'';position:fixed;left:0;right:0;top:0;height:calc(var(--sT) + 120px);pointer-events:none;z-index:0;
+  background:linear-gradient(180deg,rgba(5,3,12,.74) 0%,rgba(5,3,12,.4) 50%,rgba(5,3,12,0) 100%)}
+html body #garage.vitrine:not(.menu) #gOutils{top:calc(var(--sT) + 28px)} /* le boulon centré sur la pile des deux jauges */
+.gvL{--gvF:"Avenir Next Condensed","Bahnschrift","Barlow Condensed","Roboto Condensed","Arial Narrow","DejaVu Sans Condensed","Helvetica Neue",Arial,sans-serif;
+  position:relative;min-width:0;display:grid;grid-template-columns:auto auto minmax(0,1fr);align-items:baseline;column-gap:8px;font-family:var(--gvF);font-stretch:condensed}
+.gvA{--gc:#35ff86;--gh:#b4ffcf}
+.gvU{--gc:#c46bff;--gh:#ffc6f5}
+.gvK{font-style:italic;font-weight:800;font-size:11px;line-height:1;letter-spacing:2.4px;color:var(--gc);text-shadow:0 0 8px var(--gc),0 1px 0 #000,0 0 3px #000}
+.gvL b{font-style:italic;font-weight:800;font-size:19px;line-height:1;letter-spacing:.4px;white-space:nowrap;font-variant-numeric:tabular-nums;color:#fff;
+  text-shadow:0 0 12px var(--gc),0 0 3px var(--gc),0 1px 0 #000,0 0 5px rgba(0,0,0,.9)}
+.gvL .gvR{justify-self:end;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-style:italic;font-weight:700;font-size:11px;line-height:1.2;letter-spacing:1.5px;
+  color:var(--gh);text-shadow:0 1px 0 #000,0 0 3px rgba(0,0,0,.85),0 0 9px var(--gc)}
+.gvL .gvR em{font-style:italic;color:#fff;letter-spacing:.6px}
+.gvC{grid-column:1/-1;display:block;width:100%;height:20px;margin-top:1px}
+.gvL.sommet .gvR{color:#fff;animation:gvSommet 1.4s ease-in-out infinite}
+@keyframes gvSommet{50%{text-shadow:0 1px 0 #000,0 0 14px var(--gc),0 0 4px #fff}}
+.gvL.casse .gvR{animation:gvCasse .5s steps(2) 4,gvSommet 1.4s ease-in-out 2s infinite}
+@keyframes gvCasse{50%{color:var(--gc);text-shadow:0 0 18px #fff,0 0 6px var(--gc)}}
+.gvL.casse b{animation:gvCasseB .7s var(--ease)}
+@keyframes gvCasseB{0%{scale:1.35;text-shadow:0 0 22px #fff,0 0 8px var(--gc)}100%{scale:1}}
+/* (le SHOP l'annonce) une caisse est à ta portée : une pastille verte sur le bouton */
+html body #garage.vitrine:not(.menu) #gAct>#gPerso[data-portee]::before{content:'';position:absolute;top:-6px;left:-5px;width:13px;height:13px;border-radius:50%;z-index:2;
+  background:radial-gradient(circle at 40% 35%,#eaffef,#4dff8a 55%,#14a84a);box-shadow:0 0 0 2px #2a0326,0 0 12px #4dff8a;transform:skewX(calc(-1 * var(--sk)));animation:gvPortee 1.6s ease-in-out infinite}
+@keyframes gvPortee{50%{box-shadow:0 0 0 2px #2a0326,0 0 20px #8dffb0;scale:1.12}}
 .gvIco{flex:none;display:block;width:17px;height:17px;background:center/contain no-repeat}
 .gvPiece{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3CradialGradient id='a' cx='38%25' cy='32%25' r='72%25'%3E%3Cstop offset='0' stop-color='%23fffbd8'/%3E%3Cstop offset='.42' stop-color='%23ffd640'/%3E%3Cstop offset='1' stop-color='%23d98400'/%3E%3C/radialGradient%3E%3ClinearGradient id='b' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23ffeb8a'/%3E%3Cstop offset='1' stop-color='%23a85800'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='16' cy='16.6' r='15' fill='%235c2c00'/%3E%3Ccircle cx='16' cy='16' r='14.2' fill='url(%23b)'/%3E%3Ccircle cx='16' cy='16' r='11.2' fill='url(%23a)' stroke='%23c77400' stroke-width='1'/%3E%3Cpath d='M20.2 11.6c-1-1.3-2.5-2-4.2-2-2.3 0-3.9 1.1-3.9 2.8 0 3.9 8 2.3 8 6.4 0 1.9-1.8 3.1-4.1 3.1-1.9 0-3.4-.7-4.4-2' fill='none' stroke='%23a35600' stroke-width='2.3' stroke-linecap='round'/%3E%3Cpath d='M16 7.4v17.2' stroke='%23a35600' stroke-width='2.1' stroke-linecap='round'/%3E%3Cellipse cx='11.6' cy='9.4' rx='4.6' ry='2.2' fill='%23fff' opacity='.75' transform='rotate(-32 11.6 9.4)'/%3E%3C/svg%3E");animation:gvPieceTourne 4.2s var(--ease) 1.4s infinite}
-.gvEtoile{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='s' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23fff2fd'/%3E%3Cstop offset='.42' stop-color='%23ff8cf0'/%3E%3Cstop offset='1' stop-color='%238a2be2'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M16 2.4l4 8.2 9 1.2-6.6 6.3 1.7 8.9L16 22.7l-8.1 4.3 1.7-8.9L3 11.8l9-1.2z' fill='url(%23s)' stroke='%233e0d63' stroke-width='1.7' stroke-linejoin='round'/%3E%3Cpath d='M11.6 11.2l2.9-.5 1.4-3.1' fill='none' stroke='%23fff' stroke-width='1.7' stroke-linecap='round' opacity='.9'/%3E%3C/svg%3E");animation:gvEtoileBat 2.6s ease-in-out infinite}
 @keyframes gvPieceTourne{0%,70%{scale:1 1}78%{scale:-1 1}86%,100%{scale:1 1}}
-@keyframes gvEtoileBat{50%{scale:1.16;rotate:12deg;filter:drop-shadow(0 0 4px #ffb8f6)}}
-.gvL b{min-width:0;font:900 20px/1.15 var(--gvF);letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums;
-  color:#fff;background:linear-gradient(180deg,#fff 0 42%,var(--g3) 56%,var(--g2) 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
-  filter:drop-shadow(0 2px 0 rgba(0,0,0,.65)) drop-shadow(0 0 7px var(--gc))}
-.gvL .gvR{justify-self:end;font:800 13px/1 var(--gvF);letter-spacing:.2px;white-space:nowrap;color:var(--g3);text-shadow:0 1px 0 rgba(0,0,0,.7),0 0 9px var(--gc)}
-.gvL .gvR .gvOk{display:block;width:16px;height:16px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M4 10.5l4 4 8-9' fill='none' stroke='%230b3a18' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat}
-.gvL u{grid-column:1/-1;position:relative;display:block;height:14px;border-radius:999px;overflow:hidden;
-  background:linear-gradient(180deg,rgba(0,0,0,.6),rgba(26,18,56,.75));
-  box-shadow:inset 0 2px 4px rgba(0,0,0,.75),inset 0 -1px 0 rgba(255,255,255,.14),0 0 0 1px rgba(0,0,0,.55),0 0 0 2px rgba(255,255,255,.07),0 0 14px -6px var(--gc)}
-.gvL u em{position:absolute;left:2px;top:2px;bottom:2px;width:calc(var(--f,0) * (100% - 4px));border-radius:999px;overflow:hidden;
-  transition:width 1.3s cubic-bezier(.2,1.16,.32,1) .35s;
-  background:linear-gradient(118deg,rgba(255,255,255,0) 0 32%,rgba(255,255,255,.26) 42%,rgba(255,255,255,0) 52%) 0 0/34px 100% repeat-x,
-    linear-gradient(90deg,var(--g0),var(--g1) 55%,var(--g2));
-  box-shadow:inset 0 -2px 2px rgba(0,0,0,.28),inset 0 0 0 1px rgba(255,255,255,.2),0 0 10px -1px var(--gc);animation:gvCoule 1.5s linear infinite}
-@keyframes gvCoule{from{background-position:0 0,0 0}to{background-position:34px 0,0 0}}
-.gvL u em::before{content:'';position:absolute;left:4px;right:4px;top:1px;height:42%;border-radius:999px;background:linear-gradient(180deg,rgba(255,255,255,.9),rgba(255,255,255,.12));pointer-events:none}
-.gvL u em::after{content:'';position:absolute;right:1px;top:50%;width:8px;height:8px;margin-top:-4px;border-radius:50%;
-  background:radial-gradient(circle at 42% 38%,#fff 0 34%,var(--g3) 58%,rgba(255,255,255,0) 74%);box-shadow:0 0 8px 2px var(--g2);animation:gvPointe 1.2s ease-in-out infinite}
-@keyframes gvPointe{50%{scale:1.35;box-shadow:0 0 12px 4px var(--g2)}}
-.gvL u em s{position:absolute;top:50%;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cdefs%3E%3CradialGradient id='g'%3E%3Cstop offset='0' stop-color='%23fff' stop-opacity='.9'/%3E%3Cstop offset='1' stop-color='%23fff' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='10' cy='10' r='9' fill='url(%23g)'/%3E%3Cpath d='M10 0.5L11.4 8.6 19.5 10 11.4 11.4 10 19.5 8.6 11.4 0.5 10 8.6 8.6z' fill='%23fff'/%3E%3C/svg%3E") center/contain no-repeat;opacity:0;scale:.2;animation:gvEtin 2.4s ease-in-out infinite}
-.gvL u em s:nth-child(1){left:16%}.gvL u em s:nth-child(2){left:41%;animation-delay:.6s}.gvL u em s:nth-child(3){left:64%;animation-delay:1.2s}.gvL u em s:nth-child(4){left:86%;animation-delay:1.8s}
-@keyframes gvEtin{0%,55%,100%{opacity:0;scale:.2;rotate:0deg}68%{opacity:1;scale:1.15;rotate:45deg}82%{opacity:.5;scale:.7;rotate:80deg}}
-.gvL u::after{content:'';position:absolute;inset:0;z-index:3;pointer-events:none;border-radius:inherit;background:linear-gradient(100deg,transparent 38%,rgba(255,255,255,.75) 48%,transparent 58%) no-repeat;background-size:260% 100%;
-  animation:k4Lingot 3.6s var(--ease) 2.2s infinite}
-.gvL::before{content:'';position:absolute;z-index:4;top:5px;left:46%;width:12px;height:12px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cdefs%3E%3CradialGradient id='g'%3E%3Cstop offset='0' stop-color='%23fff' stop-opacity='.9'/%3E%3Cstop offset='1' stop-color='%23fff' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='10' cy='10' r='9' fill='url(%23g)'/%3E%3Cpath d='M10 0.5L11.4 8.6 19.5 10 11.4 11.4 10 19.5 8.6 11.4 0.5 10 8.6 8.6z' fill='%23fff'/%3E%3C/svg%3E") center/contain no-repeat;opacity:0;pointer-events:none;animation:gvEtinCarte 5.2s ease-in-out infinite}
-.gvU::before{animation-delay:2.6s;left:58%}
-@keyframes gvEtinCarte{0%,40%,100%{opacity:0;scale:.2;translate:0 0}48%{opacity:1;scale:1.2;rotate:45deg}56%{opacity:0;scale:.3}60%{translate:38px 14px}68%{opacity:0;scale:.2;translate:38px 14px}76%{opacity:.9;scale:1;rotate:90deg;translate:38px 14px}84%{opacity:0;scale:.3;translate:38px 14px}}
-.gvL.pose u em{animation:gvCoule 1.5s linear infinite,gvPoseEm .6s ease-out}
-@keyframes gvPoseEm{0%{filter:brightness(2.4) saturate(1.5)}100%{filter:none}}
-.gvL.pose u em s{animation:gvEtinPose .7s ease-out,gvEtin 2.4s ease-in-out .7s infinite}
-@keyframes gvEtinPose{0%{opacity:0;scale:.2}35%{opacity:1;scale:1.5;rotate:45deg}100%{opacity:0;scale:.4;rotate:90deg}}
-.gvL.pose .gvR{animation:gvPoseR .45s var(--ease)}
-@keyframes gvPoseR{0%{scale:1.7}60%{scale:.92}100%{scale:1}}
-.gvL.pose::after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:radial-gradient(60% 120% at 0% 50%,var(--gc),transparent 70%);opacity:0;animation:gvPoseL .6s ease-out}
-@keyframes gvPoseL{0%{opacity:.45}100%{opacity:0}}
-.gvL .gvS{grid-column:1/-1;display:flex;align-items:center;gap:8px;min-width:0;font:800 10.5px/1.2 var(--gvF);letter-spacing:.5px;white-space:nowrap;text-transform:uppercase}
-.gvL .gvS>i{flex:1;min-width:0;font-style:normal;overflow:hidden;text-overflow:ellipsis;color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.8)}
-.gvL .gvS>i::before{content:'';display:inline-block;width:6px;height:6px;margin:0 6px 1px 1px;vertical-align:middle;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff,var(--g2) 60%,var(--g1));box-shadow:0 0 6px var(--gc)}
-.gvL .gvS em{flex:none;display:flex;align-items:center;gap:3px;padding:2px 8px;border-radius:999px;font-style:normal;color:var(--g3);background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);text-shadow:0 1px 0 rgba(0,0,0,.7),0 0 7px var(--gc)}
-.gvL .gvS em .gvFl{flex:none;display:block;width:10px;height:10px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M7 4l6 6-6 6' fill='none' stroke='%23e9d9ff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat}
-.gvU .gvS>i{color:#ffa8df;text-shadow:0 1px 0 rgba(0,0,0,.8),0 0 8px rgba(255,122,213,.55)}
-.gvU .gvS em{color:#ecdcff}
-.gvA.portee .gvR{padding:3px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#eaffef,#7dff9b 55%,#27c25b);box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 0 12px rgba(125,255,155,.7);text-shadow:none;animation:gvPortee 1.6s ease-in-out infinite}
-.gvA.portee .gvS>i{color:#a6ffb5}
-.gvA.portee .gvS em{color:#0b3a18;background:linear-gradient(180deg,#d4ffdc,#7dff9b 55%,#2fd463);box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 0 10px rgba(125,255,155,.6);text-shadow:none;animation:gvPortee 1.6s ease-in-out infinite}
-.gvL.plein u{animation:gvPlein 1.6s ease-in-out infinite}
-@keyframes gvPortee{50%{box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 0 20px rgba(125,255,155,.95);scale:1.05}}
-@keyframes gvPlein{50%{box-shadow:inset 0 2px 4px rgba(0,0,0,.75),inset 0 -1px 0 rgba(255,255,255,.2),0 0 0 1px rgba(0,0,0,.55),0 0 0 2px rgba(255,255,255,.14),0 0 22px -2px var(--gc)}}
 /* COUCHÉ : la caisse à gauche ; à droite, de haut en bas : HOME · ⚙, les deux jauges, puis la pile du départ sous le pouce */
 @media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
   html body #garage.vitrine:not(.menu) #gTop{width:calc(100% - 460px - var(--sR));padding-right:12px}
-  html body #garage.vitrine:not(.menu) #gVJ{position:fixed;top:calc(var(--sT) + 12px);right:calc(var(--sR) + 16px);width:min(300px,38%);margin:0;padding:0;gap:6px} /* (puis, Léo : « les jauges en haut ») : le coin haut-droit, HOME · ⚙ sont partis à gauche */
-  .gvL{padding:6px 11px 7px 8px;row-gap:5px;border-radius:14px}
-  .gvL u{height:12px}
+  html body #garage.vitrine:not(.menu) #gVJ{left:auto;right:calc(var(--sR) + 16px);width:min(580px,68%);grid-template-columns:repeat(2,minmax(0,1fr));column-gap:22px}
+  .gvK{letter-spacing:1.6px}
+  html body #garage.vitrine:not(.menu):not(.inv) #gTop::before{height:calc(var(--sT) + 82px)}
+  html body #garage.vitrine:not(.menu) #gOutils{top:calc(var(--sT) + 6px)} /* (puis, Léo : « les jauges en haut ») : le coin haut-droit, HOME · ⚙ sont partis à gauche */
   .gvL b{font-size:17px}
   html body #garage.vitrine:not(.menu) #gAct{width:min(440px,56%);margin:0 0 0 auto;grid-template-columns:minmax(0,.83fr) minmax(0,1fr);grid-template-rows:auto 40px auto}
   html body #garage.vitrine:not(.menu) #gAct>#gJouer{height:40px;min-height:40px}
@@ -6097,8 +6071,8 @@ html.sansFacile [data-m="facile"]{display:none!important}
       </div>
       <!-- (2026-10-04, Léo : « ça fait un peu vide, ajoute un peu de vie : jauge money, jauge aura, moyennes, colorées ») LA VITRINE : voir gvJauges -->
       <div id="gVJ" aria-label="Compte et aura">
-        <div class="gvL gvA"><i class="gvK" aria-hidden="true"><i class="gvIco gvPiece"></i><span data-fr="CASH">CASH</span></i><b>$ 0</b><small class="gvR"></small><u><em><s></s><s></s><s></s><s></s></em></u><span class="gvS"></span></div>
-        <div class="gvL gvU"><i class="gvK" aria-hidden="true"><i class="gvIco gvEtoile"></i><span data-fr="AURA">AURA</span></i><b>0</b><small class="gvR"></small><u><em><s></s><s></s><s></s><s></s></em></u><span class="gvS"></span></div>
+        <div class="gvL gvA"><i class="gvK" data-fr="CASH">CASH</i><b>$ 0</b><small class="gvR"></small><canvas class="gvC" aria-hidden="true"></canvas></div>
+        <div class="gvL gvU"><i class="gvK" data-fr="AURA">AURA</i><b>0</b><small class="gvR"></small><canvas class="gvC" aria-hidden="true"></canvas></div>
       </div>
     </div>
     <div id="lbBoxG"></div>
@@ -22758,7 +22732,7 @@ function misTick(dt){ // appelée par la boucle : les contrats se cochent EN DIR
   for(let i=0;i<3;i++){if(s.ok[i])continue;const m=c.m[i],v9=misVal(m.k);
     if(v9>s.best[i]){s.best[i]=Math.min(m.v,v9);SAVE.mark();} // (2026-09-28) LE MEILLEUR ESSAI : la jauge de l'écran MISSIONS (une partie, jamais un cumul)
     if(v9>=m.v){
-      s.ok[i]=1;SAVE.d.bank=Math.min(1e30,bank()+m.p);MIS_NEW.push(i);
+      s.ok[i]=1;SAVE.d.bank=Math.min(1e30,bank()+m.p);bankMaxMaj();MIS_NEW.push(i);
       misBanniere('DÉFI RÉUSSI',misTxt(m,true),'+'+fmtC(m.p),'coche');
       try{if(!SONV2)fxArgent();}catch(e){}hap([12,40,18]); /* (débogage son 2026-09-29) le son (ui.mission) part quand la bannière S'AFFICHE : misBanMontre */
       SAVE.flush();
@@ -22773,7 +22747,7 @@ function misFin(){
   const s=misEtat();if(!(s.ok[0]&&s.ok[1]&&s.ok[2]))return null;
   const c=carnet(s.n),r=c.r;
   if(r.cat){const o=SAVE.d.shop.own;const k=r.cat+':'+r.id;if(o.indexOf(k)<0)o.push(k);}
-  if(r.cash)SAVE.d.bank=Math.min(1e30,bank()+r.cash);
+  if(r.cash){SAVE.d.bank=Math.min(1e30,bank()+r.cash);bankMaxMaj();}
   const out={n:s.n+1,nom:misRecompense(c),car:r.car,cat:r.cat,id:r.id};
   s.n++;s.ok=[0,0,0];s.best=[0,0,0];s.f=-1;SAVE.flush(); // (2026-09-30) carnet neuf : plus de mission suivie
   return out;
@@ -23439,7 +23413,7 @@ function tutoFin(passe){
   if(TUTO.pa){TUTO.pa=0;if(pwrAirT>0){pwrAirT=0;if(mode==='fall'){fallT=0;fallTR=0;airFlash=.6;}}}
   SAVE.d.tuto=1;
   if(!passe){const paye=!SAVE.d.permis; // (2026-09-28) la prime du permis ne se verse qu'UNE fois : REVOIR L'AUTO-ÉCOLE ne doit pas devenir un robinet à 500
-    if(paye){SAVE.d.permis=1;SAVE.d.bank=Math.min(1e30,bank()+500);}
+    if(paye){SAVE.d.permis=1;SAVE.d.bank=Math.min(1e30,bank()+500);bankMaxMaj();}
     /* (2026-09-29, audit des 10 premières minutes) LE PERMIS SE FÊTE : c'était une bannière du haut de 1,8 s, la même qu'un défi. La grande
        annonce du centre (tenue 1,6 s, les cartes retenues pendant la leçon attendent derrière), puis — à la 1re fois — ce qui vient de
        changer : le joueur sort d'une leçon où il ne pouvait pas mourir et où le vol était infini. */
@@ -29073,6 +29047,7 @@ const SAVE={
     c.tuto=d.tuto===0?0:(d.tuto||c.ex.runs>0)?1:0;c.permis=d.permis?1:0; /* (2026-09-28) un 0 ÉCRIT est respecté : c'est « REVOIR L'AUTO-ÉCOLE » (le « qui a déjà joué » ne vaut que pour les sauvegardes d'avant l'auto-école, sans champ) · `permis` : la prime de 500 déjà versée (une seule fois) */ c.shopVu=d.shopVu?1:0;c.ast=Math.max(0,Math.min(255,Math.round(+d.ast)||0)); // `ast` : les ASTUCES déjà montrées (bits : 1 drift, 2 assiette en vol) // (2026-09-25) la pastille NEW de la boutique ne s'allume que tant qu'on n'y est jamais entré // qui a déjà joué ne refait pas la partie guidée
     c.aura=Math.max(0,Math.min(1e12,Math.round(+d.aura)||0));
     c.auraMax=Math.max(0,Math.min(1e12,Math.round(+d.auraMax)||0));
+    c.bankMax=Math.max(c.bank||0,Math.min(1e30,Math.round(+d.bankMax)||0));c.bankMaxVu=Math.max(0,Math.min(c.bankMax,Math.round(+d.bankMaxVu)||0)); // (2026-10-06) LE RECORD DE FORTUNE (la jauge d'argent) : jamais sous la banque ; vu = celui que la jauge a déjà fêté
     c.frenRec=Math.max(0,Math.min(3600,Math.round((+d.frenRec||0)*10)/10)); // (v3) le record de frénésie, borné à une heure
     // (2026-09-30) LA PARTIE INTERROMPUE (voir enCoursPose) : bornée comme les exploits — un code importé ne remplit pas la banque par ce biais
     if(d.enCours&&typeof d.enCours==='object'){const e=d.enCours,n=(k,hi)=>Math.min(hi,Math.max(0,Math.round(+e[k])||0));
@@ -29124,7 +29099,7 @@ const SAVE={
        sur le disque en même temps. `repris` : ce qui vient d'être versé (le toast du menu, dbgEnCours). */
     const ec=this.d.enCours;
     if(ec){delete this.d.enCours;const x=this.d.ex,L=this.d.leaders;
-      this.d.bank=Math.min(1e30,this.d.bank+ec.v);
+      this.d.bank=Math.min(1e30,this.d.bank+ec.v);if(this.d.bank>(this.d.bankMax||0))this.d.bankMax=this.d.bank;
       this.d.aura=(this.d.aura||0)+ec.a;this.d.auraMax=Math.max(this.d.auraMax||0,ec.a);
       x.eng=Math.max(x.eng,ec.e);x.tricks+=ec.tr;x.gaps+=ec.ga;x.bumps+=ec.bu;x.surv+=ec.sv;
       x.zones=Math.max(x.zones,ec.zo);x.chain=Math.max(x.chain,ec.ch);x.kmh=Math.max(x.kmh,ec.km);x.runs++;
@@ -32551,7 +32526,7 @@ function commitExploits(){
      donc mourir en vol la perd, exactement comme avant. La banque ne rachète pas le bank-or-bust,
      elle en est la conséquence logique. */
   const vire=Math.max(0,money-START_CASH);
-  SAVE.d.bank=Math.min(1e30,bank()+vire);
+  SAVE.d.bank=Math.min(1e30,bank()+vire);bankMaxMaj();
   const rangAvant=auraRank();
   if(!lecon){SAVE.d.aura=(SAVE.d.aura||0)+Math.round(auraRun);
   SAVE.d.auraMax=Math.max(SAVE.d.auraMax||0,Math.round(auraRun));} // le MAX d'une partie : c'est LUI qu'on affiche comme objectif
@@ -37989,29 +37964,108 @@ try{Object.assign(I18N,{'PERMIS':'LICENSE','AUTO-ECOLE':'DRIVING SCHOOL','NIVEAU
   Object.assign(I18N_ZH,{'NIVEAUX ACCOMPLIS':'已完成关卡','AUCUN NIVEAU TERMINE':'还没有完成关卡','FRANCHIS TON 1ER PORTAIL':'穿过你的第一个传送门','A BATTRE':'下一关','A DECOUVRIR':'待发现','A DECOUVRIR1':'待发现','TOUT EST TERMINE':'全部完成'});}catch(e){}
 /* LES JAUGES DE LA VITRINE (voir « LES JAUGES » dans <style id="garageVitrine">) : l'ARGENT vers la prochaine caisse à vendre (`objectif()`, ce
    que vise le menu de Léo), l'AURA vers le rang suivant. `anim` : elles partent de zéro et se remplissent, les chiffres défilent (0,9 s). */
+/* LE RECORD DE FORTUNE (2026-10-06, Léo : « une barre money sur le total jamais atteint ») : `SAVE.d.bankMax` = le plus haut total que la banque
+   ait jamais tenu, relevé à CHAQUE entrée d'argent (fin de partie, défis, permis, partie interrompue) — pas seulement au garage : un achat fait
+   juste après une partie ne doit pas l'effacer. `bankMaxVu` = le record que la jauge a déjà montré (pour fêter celui qu'on vient de battre). */
+function bankMaxMaj(){const b=bank();if(b>(SAVE.d.bankMax||0))SAVE.d.bankMax=b;}
 function gvJauges(anim){
   const el=$('gVJ');if(!el)return;
-  const b=Math.max(0,Math.floor(bank())),o=objectif(),au=Math.max(0,SAVE.d.aura||0),r=auraRank(),lo=AURA_RANKS[r].v,nx=AURA_RANKS[r+1];
-  const fA=o&&o.prix?Math.max(0,Math.min(1,b/o.prix)):1,fU=nx?Math.max(0,Math.min(1,(au-lo)/(nx.v-lo))):1;
-  const fm=function(x){return (b>=1e6||(b>=1e5&&POR>.5))?fmtC(x):CUR()+(LANG==='fr'?' ':'')+Math.round(x).toLocaleString(LOC()).replace(/[\u202f\u00a0]/g,' ');}; // (v3) chiffres complets sous le million, compacts au-delà (la carte fait une demi-largeur debout)
-  const A=el.querySelector('.gvA'),U=el.querySelector('.gvU'),q=function(e,c){return e.querySelector(c);};
-  const po=fA>=1&&!!o;A.classList.toggle('portee',po);if(po)q(A,'.gvR').innerHTML='<i class="gvOk"></i>';else q(A,'.gvR').textContent=Math.floor(fA*100)+' %'; // la caisse visée s'achète déjà : une coche qui luit, et la ligne du dessous le DIT
-  const sub=function(e,g,d,ic){const x=q(e,'.gvS');x.innerHTML='<i></i><em></em>';x.firstChild.textContent=g;x.lastChild.textContent=d||'';if(ic)x.lastChild.insertAdjacentHTML('afterbegin','<i class="gvFl"></i>');};const ac=function(t,fr){return LANG==='fr'?(fr||t):TR(t);}; // (v3, police ronde) en français les ACCENTS reviennent : TR les retire pour la police pixel
-  sub(A,o?ac(o.nom):ac('COLLECTION COMPLETE','COLLECTION COMPLÈTE'),o?(po?ac('A TA PORTEE !','À TA PORTÉE !'):ac('ENCORE')+' '+fmtC(Math.max(0,o.prix-b))):''); /* (v2) ce qui MANQUE, pas le prix : la ligne pousse */
-  A.title=o?sansAcc(TR(po?'A TA PORTEE':'VERS'))+' '+sansAcc(TR(o.nom))+' · '+fmtC(o.prix):''; // la caisse visée et son prix (la coche dit « à ta portée ») — le nom se coupe s'il le faut, jamais le prix
-  q(U,'.gvR').textContent=nx?Math.floor(fU*100)+' %':'';
-  sub(U,ac(AURA_RANKS[r].n),nx?ac(nx.n):ac('INTOUCHABLE'),nx?'droite':null); /* ton RANG en rose, le SUIVANT au bout */
-  U.title=nx?sansAcc(TR('VERS'))+' '+sansAcc(TR(nx.n))+' · '+fmtAura(Math.max(0,nx.v-au)):''; // ton RANG, en rose ; le suivant au survol
-  const eA=q(A,'u em'),eU=q(U,'u em');A.classList.toggle('plein',fA>=1);U.classList.toggle('plein',!nx);
-  if(anim&&!REDUCED_MOTION){eA.style.transition=eU.style.transition='none';eA.style.setProperty('--f','0');eU.style.setProperty('--f','0');void eA.offsetWidth;eA.style.transition=eU.style.transition='';
-    const t0=performance.now(),bA=q(A,'b'),bU=q(U,'b'),D=900,f9=function(){const k=Math.min(1,(performance.now()-t0-350)/D),e=k<0?0:1-Math.pow(1-k,3);
+  bankMaxMaj();
+  const b=Math.max(0,Math.floor(bank())),R=Math.max(0,Math.floor(SAVE.d.bankMax||0)),Rvu=Math.floor(SAVE.d.bankMaxVu||0),au=Math.max(0,SAVE.d.aura||0),r=auraRank(),lo=AURA_RANKS[r].v,nx=AURA_RANKS[r+1];
+  const fA=R>0?Math.max(0,Math.min(1,b/R)):0,fU=nx?Math.max(0,Math.min(1,(au-lo)/(nx.v-lo))):1,casse=!!anim&&Rvu>0&&R>Rvu&&b>=R;
+  if(R!==Rvu){SAVE.d.bankMaxVu=R;SAVE.mark();}
+  const ac=function(t,fr){return LANG==='fr'?(fr||t):TR(t);}; // la police condensée a les accents : en français ils reviennent (TR les retire pour la police pixel)
+  const fm=function(x){return (b>=1e6||(b>=1e5&&POR>.5))?fmtC(x):CUR()+(LANG==='fr'?' ':'')+Math.round(x).toLocaleString(LOC()).replace(/[  ]/g,' ');};
+  const A=el.querySelector('.gvA'),U=el.querySelector('.gvU'),q=function(e,c){return e.querySelector(c);},rA=q(A,'.gvR'),rU=q(U,'.gvR');
+  const plein=R>0&&b>=R;A.classList.toggle('sommet',plein&&!casse);A.classList.remove('casse');
+  rA.innerHTML='';if(casse){rA.textContent=ac('RECORD !','RECORD !')+' ';const e9=document.createElement('em');e9.textContent='+'+fmtC(R-Rvu);rA.appendChild(e9);}
+  else if(plein)rA.textContent=ac('SOMMET');
+  else{rA.textContent=ac('RECORD')+' ';const e9=document.createElement('em');e9.textContent=fmtC(R);rA.appendChild(e9);}
+  rU.innerHTML='';if(nx){rU.textContent='▸ '+ac(nx.n)+' ';const e9=document.createElement('em');e9.textContent=Math.floor(fU*100)+' %';rU.appendChild(e9);}else rU.textContent=ac('INTOUCHABLE');
+  U.classList.toggle('sommet',!nx);
+  A.title=ac('RECORD')+' '+fmtC(R);U.title=ac(AURA_RANKS[r].n)+(nx?' → '+ac(nx.n)+' · '+fmtAura(Math.max(0,nx.v-au)):'');
+  const o=objectif(),pe=$('gPerso');if(pe)pe.toggleAttribute('data-portee',!!(o&&o.prix&&b>=o.prix)); // une caisse est à ta portée : le SHOP le dit
+  gveInit();const BA=GVE.bars[0],BU=GVE.bars[1];BA.cible=fA;BU.cible=fU;
+  if(anim&&!REDUCED_MOTION){
+    BA.fS=BU.fS=0;BA.seq={t:-.3,m:casse?Math.max(.04,Math.min(.96,Rvu/R)):null,fin:fA,boum:false};BU.seq={t:-.45,m:null,fin:fU,boum:false};
+    if(casse)setTimeout(function(){if(gEl.classList.contains('vitrine'))A.classList.add('casse');},1650);
+    const t0=performance.now(),bA=q(A,'b'),bU=q(U,'b'),D=1100,f9=function(){const k=Math.min(1,(performance.now()-t0-300)/D),e=k<0?0:1-Math.pow(1-k,3);
       bA.textContent=fm(b*e);bU.textContent=fmtAura(au*e);if(k<1&&gEl.classList.contains('vitrine'))requestAnimationFrame(f9);else{bA.textContent=fm(b);bU.textContent=fmtAura(au);}};
-    bA.textContent=fm(0);bU.textContent=fmtAura(0);requestAnimationFrame(f9);
-    requestAnimationFrame(function(){eA.style.setProperty('--f',fA.toFixed(3));eU.style.setProperty('--f',fU.toFixed(3));});
-    A.classList.remove('pose');U.classList.remove('pose');clearTimeout(gvJauges._t);gvJauges._t=setTimeout(function(){A.classList.add('pose');U.classList.add('pose');},1650);} // (v2) la barre arrivée CLAQUE
-  else{q(A,'b').textContent=fm(b);q(U,'b').textContent=fmtAura(au);eA.style.setProperty('--f',fA.toFixed(3));eU.style.setProperty('--f',fU.toFixed(3));}
+    bA.textContent=fm(0);bU.textContent=fmtAura(0);requestAnimationFrame(f9);}
+  else{q(A,'b').textContent=fm(b);q(U,'b').textContent=fmtAura(au);if(REDUCED_MOTION){BA.fS=fA;BU.fS=fU;}}
+  if(!GVE.raf)GVE.raf=requestAnimationFrame(gveBoucle);
 }
-try{Object.assign(I18N,{'CASH':'CASH','AURA':'AURA','ENCORE':'NEED','A TA PORTEE !':'IT\'S YOURS!','COLLECTION COMPLETE':'FULL COLLECTION','INTOUCHABLE':'UNTOUCHABLE','A TA PORTEE':'AFFORDABLE','VERS':'TO','TOUT EST A TOI':'YOU OWN IT ALL','SOMMET ATTEINT':'TOP RANK','TUNING':'TUNING','SHOP':'SHOP','INVENTAIRE':'INVENTORY','MAINTIENS LA CAISSE':'HOLD YOUR CAR','OBJETS':'ITEMS','OBJET':'ITEM'});
+/* LE TUBE D'ÉNERGIE (v4) — dessiné en direct sur un petit canevas par jauge, seulement quand la vitrine est à l'écran. Un tube de verre noir ;
+   dedans le PLASMA de sa couleur (dégradé qui chauffe vers la tête), trois filaments qui ondulent et COULENT vers la tête, des pulsations qui
+   la rejoignent, un cœur blanc ; la TÊTE incandescente (éclat en croix) lance des ÉTINCELLES ; des ARCS ÉLECTRIQUES claquent le long de
+   l'énergie. PLEINE (ton sommet) elle SURCHARGE : arcs hors du tube, bord qui pulse, deux fois plus d'étincelles. La SÉQUENCE d'entrée la
+   charge (1 s) ; record battu : elle se charge jusqu'à l'ancien record, y BUTE (une barrière qui grésille), puis la fait SAUTER (éclats,
+   éclair). « Réduire les animations » : la jauge est posée, sans arcs ni étincelles. Coût : deux canevas de ~300 × 18 px, < 1 ms par image. */
+const GVE={bars:[],raf:0,last:0,k:0};
+const GVE_COL={A:{d:[4,64,34],m:[22,214,104],h:[150,255,192],c:[236,255,244]},U:{d:[54,14,128],m:[168,66,255],h:[255,138,234],c:[255,240,255]}};
+function gveInit(){if(GVE.bars.length)return;const el=$('gVJ');if(!el)return;
+  [['.gvA','A'],['.gvU','U']].forEach(function(z){const cv=el.querySelector(z[0]+' .gvC');if(!cv)return;
+    GVE.bars.push({cv:cv,ctx:cv.getContext('2d'),K:GVE_COL[z[1]],fS:0,cible:0,seq:null,sp:[],arcs:[],w:0,h:0,d:1,emit:0,fl:0});});}
+function gveTaille(B){const r=B.cv.getBoundingClientRect(),d=Math.min(2,window.devicePixelRatio||1),w=Math.round(r.width*d),h=Math.round(r.height*d);
+  if(w>0&&(w!==B.cv.width||h!==B.cv.height)){B.cv.width=w;B.cv.height=h;}B.w=r.width;B.h=r.height;B.d=d;}
+function gveRgba(c,a){return 'rgba('+c[0]+','+c[1]+','+c[2]+','+(a<0?0:a>1?1:a).toFixed(3)+')';}
+function gveTube(c,x,y,w,h){const r=h/2;c.beginPath();c.moveTo(x+r,y);c.lineTo(x+w-r,y);c.arc(x+w-r,y+r,r,-Math.PI/2,Math.PI/2);c.lineTo(x+r,y+h);c.arc(x+r,y+r,r,Math.PI/2,Math.PI*1.5);c.closePath();}
+function gveAvance(B,dt){const S=B.seq;
+  if(!S){B.fS+=(B.cible-B.fS)*(1-Math.exp(-dt*5));return;}
+  S.t+=dt;const t=S.t,e=function(u){u=Math.max(0,Math.min(1,u));return 1-Math.pow(1-u,3);};
+  if(S.m==null){B.fS=S.fin*e(t/1);if(t>=1)B.seq=null;return;}
+  if(t<.95)B.fS=S.m*e(t/.95);                                                     // la charge jusqu'à l'ancien record
+  else if(t<1.45)B.fS=S.m+Math.sin((t-.95)*60)*.004;                              // elle BUTE : la barrière grésille
+  else{if(!S.boum){S.boum=true;B.fl=1;const x=B.x0+(B.x1-B.x0)*S.m;for(let i=0;i<34;i++){const a=Math.random()*Math.PI*2,v=40+Math.random()*150;B.sp.push({x:x,y:B.h/2,vx:Math.cos(a)*v,vy:Math.sin(a)*v*.6,l:.35+Math.random()*.45,l0:.8,eclat:1});}}
+    B.fS=S.m+(S.fin-S.m)*e((t-1.45)/.35);if(t>=1.8)B.seq=null;}}                  // elle la fait SAUTER
+function gveDessine(B,t,dt){
+  const c=B.ctx,w=B.w,h=B.h,K=B.K;if(!w||!h)return;
+  c.setTransform(B.d,0,0,B.d,0,0);c.clearRect(0,0,w,h);c.globalCompositeOperation='source-over';
+  const y0=h/2,th=9,r=th/2,x0=r+1,x1=w-r-1;B.x0=x0;B.x1=x1;const fS=Math.max(0,Math.min(1,B.fS)),fx=x0+(x1-x0)*fS,plein=fS>.996,calme=REDUCED_MOTION,pz=.5+.5*Math.sin(t*5.2);
+  gveTube(c,x0-r,y0-r,x1-x0+th,th);c.fillStyle='rgba(3,2,10,.82)';c.fill();
+  c.lineWidth=1;c.strokeStyle=plein?gveRgba(K.h,.45+.4*pz):'rgba(255,255,255,.17)';c.stroke();
+  if(plein&&!calme){c.globalCompositeOperation='lighter';c.lineWidth=3;c.strokeStyle=gveRgba(K.m,.12+.14*pz);gveTube(c,x0-r-1,y0-r-1,x1-x0+th+2,th+2);c.stroke();c.globalCompositeOperation='source-over';}
+  if(fS>.002){
+    c.save();gveTube(c,x0-r,y0-r,x1-x0+th,th);c.clip();
+    const g=c.createLinearGradient(x0,0,fx+r,0);g.addColorStop(0,gveRgba(K.d,.95));g.addColorStop(.62,gveRgba(K.m,.98));g.addColorStop(1,gveRgba(K.h,1));
+    c.fillStyle=g;c.fillRect(x0-r,y0-r,fx-x0+r+r,th);
+    c.globalCompositeOperation='lighter';
+    if(!calme)for(let i=0;i<3;i++){c.beginPath();for(let x=x0;x<=fx+.1;x+=3){const y=y0+Math.sin(x*.11*(1+i*.31)-t*(9+i*4)+i*2.1)*(1.3+i*.45)*(.55+.45*Math.sin(x*.027+t*(1.7+i*.5)+i));if(x===x0)c.moveTo(x,y);else c.lineTo(x,y);}
+      c.strokeStyle=gveRgba(K.h,.34);c.lineWidth=1.2;c.stroke();}
+    if(!calme)for(let i=0;i<4;i++){const u=(t*.85+i/4)%1,px=x0+(fx-x0)*u*u,rg=c.createRadialGradient(px,y0,0,px,y0,11);rg.addColorStop(0,gveRgba(K.c,.6*u));rg.addColorStop(1,gveRgba(K.c,0));c.fillStyle=rg;c.fillRect(px-11,y0-r,22,th);}
+    const gc=c.createLinearGradient(x0,0,fx,0);gc.addColorStop(0,gveRgba(K.c,.12));gc.addColorStop(1,gveRgba(K.c,.95));c.strokeStyle=gc;c.lineWidth=1.3;c.beginPath();c.moveTo(x0,y0);c.lineTo(fx,y0);c.stroke();
+    c.restore();
+    c.globalCompositeOperation='lighter';
+    const hr=(plein?14:10)+(calme?0:pz*2),rh=c.createRadialGradient(fx,y0,0,fx,y0,hr);rh.addColorStop(0,gveRgba(K.c,.95));rh.addColorStop(.35,gveRgba(K.h,.55));rh.addColorStop(1,gveRgba(K.m,0));
+    c.fillStyle=rh;c.fillRect(fx-hr,y0-hr,hr*2,hr*2);
+    c.lineWidth=1;c.strokeStyle=gveRgba(K.c,.6);c.beginPath();c.moveTo(fx-(plein?22:15),y0);c.lineTo(fx+(plein?22:15),y0);c.stroke();
+    c.strokeStyle=gveRgba(K.c,.35);c.beginPath();c.moveTo(fx,y0-(plein?8:6));c.lineTo(fx,y0+(plein?8:6));c.stroke();
+    if(!calme){ // les ÉTINCELLES de la tête
+      B.emit+=dt*(plein?64:30)*Math.min(1,fS*6);while(B.emit>=1){B.emit--;B.sp.push({x:fx-1,y:y0+(Math.random()-.5)*4,vx:-(25+Math.random()*95),vy:(Math.random()-.5)*(plein?90:50),l:.22+Math.random()*.38,l0:.6});}
+      // les ARCS : ils claquent le long de l'énergie (pleine : ils sortent du tube)
+      if(Math.random()<dt*(plein?7:2.4*Math.min(1,fS*1.5))&&fx-x0>14){const a=x0+Math.random()*(fx-x0-12),L=14+Math.random()*34;B.arcs.push({a:a,b:Math.min(fx,a+L),l:.08+Math.random()*.07,amp:plein?h/2-1:r+2.5});}}
+  }
+  // l'ancien record : la BARRIÈRE (pendant la séquence du record battu)
+  if(B.seq&&B.seq.m!=null&&!B.seq.boum){const mx=x0+(x1-x0)*B.seq.m,k=B.seq.t>.95?.6+.4*Math.random():.5;c.globalCompositeOperation='lighter';
+    c.strokeStyle=gveRgba(K.c,k);c.lineWidth=2;c.beginPath();c.moveTo(mx,1);c.lineTo(mx,h-1);c.stroke();c.strokeStyle=gveRgba(K.h,.35*k);c.lineWidth=6;c.stroke();
+    if(B.seq.t>.95&&Math.random()<.5)B.arcs.push({a:mx-10,b:mx+1,l:.06,amp:h/2-1});}
+  c.globalCompositeOperation='lighter';
+  for(let i=B.arcs.length-1;i>=0;i--){const A=B.arcs[i];A.l-=dt;if(A.l<=0){B.arcs.splice(i,1);continue;}
+    c.beginPath();c.moveTo(A.a,y0);for(let x=A.a+3;x<A.b;x+=3)c.lineTo(x,y0+(Math.random()*2-1)*A.amp);c.lineTo(A.b,y0);
+    c.strokeStyle=gveRgba(K.h,.3);c.lineWidth=3;c.stroke();c.strokeStyle=gveRgba(K.c,.95);c.lineWidth=1;c.stroke();}
+  for(let i=B.sp.length-1;i>=0;i--){const p=B.sp[i];p.l-=dt;if(p.l<=0){B.sp.splice(i,1);continue;}p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.96;p.vy*=.94;
+    const a=Math.min(1,p.l/p.l0)*(p.eclat?1:.9),s=p.eclat?2.2:1.6;c.fillStyle=gveRgba(p.eclat?K.c:K.h,a);c.fillRect(p.x-s/2,p.y-s/2,s,s);}
+  if(B.sp.length>160)B.sp.splice(0,B.sp.length-160);
+  if(B.fl>0){c.fillStyle=gveRgba(K.c,B.fl*.5);c.fillRect(0,0,w,h);B.fl=Math.max(0,B.fl-dt*3);} // l'ÉCLAIR du record qui saute
+  c.globalCompositeOperation='source-over';
+}
+function gveBoucle(n){GVE.raf=0;if(!garageOn)return;
+  const dt=Math.min(.05,Math.max(0,(n-(GVE.last||n))/1000));GVE.last=n;
+  const vis=!!(gEl&&gEl.classList.contains('vitrine')&&!gEl.classList.contains('menu')&&!gEl.classList.contains('inv')&&!document.hidden);
+  if(vis){if(!(GVE.k++%30))GVE.bars.forEach(gveTaille);const t=n/1000;GVE.bars.forEach(function(B){gveAvance(B,dt);gveDessine(B,t,dt);});}
+  GVE.raf=requestAnimationFrame(gveBoucle);}
+window.dbgJauge=function(b,R,Rvu){if(b!=null)SAVE.d.bank=b;if(R!=null)SAVE.d.bankMax=R;if(Rvu!=null)SAVE.d.bankMaxVu=Rvu;gvJauges(true);return {bank:bank(),record:SAVE.d.bankMax,vu:SAVE.d.bankMaxVu};}; // (banc) dbgJauge(bank, record, recordDéjàVu) — dbgJauge(30000,30000,20000) rejoue le record battu
+try{Object.assign(I18N,{'SOMMET':'PEAK','RECORD !':'RECORD!','CASH':'CASH','AURA':'AURA','ENCORE':'NEED','A TA PORTEE !':'IT\'S YOURS!','COLLECTION COMPLETE':'FULL COLLECTION','INTOUCHABLE':'UNTOUCHABLE','A TA PORTEE':'AFFORDABLE','VERS':'TO','TOUT EST A TOI':'YOU OWN IT ALL','SOMMET ATTEINT':'TOP RANK','TUNING':'TUNING','SHOP':'SHOP','INVENTAIRE':'INVENTORY','MAINTIENS LA CAISSE':'HOLD YOUR CAR','OBJETS':'ITEMS','OBJET':'ITEM'});
   Object.assign(I18N_ZH,{'A TA PORTEE':'买得起','VERS':'距','TOUT EST A TOI':'全部拥有','SOMMET ATTEINT':'最高等级','SHOP':'商店','INVENTAIRE':'库存','MAINTIENS LA CAISSE':'长按你的车','OBJETS':'件物品','OBJET':'件物品'});}catch(e){}
 /* ================= LE BOULON (2026-10-06, Léo : « mets un boulon 3D à la place du setting ») =================
    Le ⚙ de l'atelier devient un BOULON en vraie 3D : l'écrou (un prisme hexagonal) sur sa rondelle, la vis filetée qui dépasse, vu d'au-dessus (44°), redessiné à
