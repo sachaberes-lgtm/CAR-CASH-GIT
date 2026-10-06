@@ -371,6 +371,95 @@ refait EN VOXELS (10 cm, `NY_U`), chaque pièce dessinée dans SON plan (bloc «
     confirmé : c'est la CAMÉRA COUCHÉE) : COUCHÉ, le recul d'avant la v112 revient — la caisse tient dans `fw` ,9 de la largeur libre et `fh` ,8 de
     la hauteur (la v112 l'avait rapprochée de ~10 % : ,98 / ,88) ; DEBOUT inchangé (`fwP` · `fhP` ,88 — `fh` suit désormais l'orientation
     comme `fw`). sw.js → v126.
+  · (même jour, Léo : « parfois pour se replacer l'écran a des petits déclics qui se voient corrigés ; rends smooth le fait de bouger dans le
+    garage ; ne casse pas les fonctions voiture ») LA CAMÉRA SANS DÉCLIC. MESURÉ d'abord (banc `lisse/cam.mjs` du scratchpad 83e03bdc : la
+    caméra rejouée image par image sur une horloge FIGÉE à 60 i/s — `requestAnimationFrame` et `performance.now` remplacés, rendu coupé —,
+    l'accélération à l'écran de 18 points visibles, `lisse/ana.mjs`) : chaque déclic était un mouvement qui PARTAIT À PLEINE VITESSE dans une
+    seule image. Cinq sources, cinq corrections, toutes par `garRessort(o,kx,kv,cible,om,dt)` (juste avant `garCamA`) : un ressort amorti
+    CRITIQUE en solution exacte — la vitesse est continue, il part de zéro, ne dépasse jamais, stable à toutes les cadences :
+    · le recadrage `GAR.vD` (la caisse posée à gauche de l'entrée) était un asservissement du 1er ordre allumé d'un coup : il partait à pleine
+      vitesse (debout, la caisse passait de 0,7 à 1,6 px/image d'une image à l'autre juste après le RETOUR À LA PORTE, quand la visée finissait
+      de rattraper) et s'arrêtait net à 0,6 %. Il devient un ressort (`GAR.vDv`, raideur `VITRINE_CAM.dRecadre` 3,6 : ~1 s pour se poser) ;
+      l'hystérésis 3 % / 0,6 % (Léo : « arrête de faire tourner le garage ») est GARDÉE, mais elle, la vue qui tourne encore, la visée qui
+      traîne et le doigt ne font plus que monter ou descendre son POIDS `GAR.vDw` — jamais sa vitesse. Cible = l'écart ÷ ce qu'un radian de vD
+      déplace la caisse à l'écran (la géométrie de la vue) ;
+    · le décentrement de l'image (`garCadre`, `GAR.cdx/cdy` + `cvx/cvy`) : ouvrir l'INVENTAIRE déplace la place de la caisse de ~180 px, l'image
+      sautait de 20 px en UNE image (21 px/image² debout) → elle glisse en ~0,5 s (2) ;
+    · le recul (`GAR.dVs` + `dVv`, ~1,1 s comme avant) et l'entrée vitrine ⇄ boutique (`GAR.vit` + `vitV`) : même ressort, même durée ;
+    · l'objectif avançait par CRANS (seuil de 0,01° : le zoom lent ne bougeait qu'une image sur deux, le bord de l'image tremblait) → 1e-4 ;
+    · le tremblement du BURN-OUT tiré au hasard à chaque image (il grésillait, deux fois plus vite à 120 Hz) → bruit LISSE 7-13 Hz, même
+      amplitude ; et le RETOUR À LA PORTE reprend la vitesse qu'avait encore la vue (`GAR.ret.v0`) au lieu de repartir de zéro.
+    MESURÉ APRÈS (pire accélération à l'écran, px/image², debout · couché) : inventaire 21 → 2 · 5,4 → 0,5 ; burn-out 4,4 → 1,5 (moyenne 0,68 →
+    0,16) · 2,8 → 0,9 ; repos 0,12 → 0,09 · 0,54 → 0,50. Restent les ~3-5 px/image² du RETOUR À LA PORTE en plein virage (la vue pivote à
+    ~80°/s : un mouvement continu, pas un à-coup — sa vitesse est celle que Léo a validée en v113). LES FONCTIONS VOITURE NE BOUGENT PAS :
+    banc `lisse/fct.mjs` (gestes au pas fixe, la même séquence sur `main` et sur la neuve, debout et couché) — lancer du plateau 2,53 rad/s,
+    burn-out, dérapage (cap 1,06, reversé à 0), tour de vue, retour porte, bouton rouge, JOUER : mêmes valeurs ; seul vD diffère. ⚠ Le banc en
+    temps réel (`geste.mjs`) est trop BRUITÉ pour un A/B (sur `main` lui-même l'élan du plateau sortait de −0,4 à −5,6) : comparer au pas fixe.
+    Sonde : `dbgInv('etat')` (vA, vAv, vD, vDv, écart, hystérésis, retour, recul, décentrement, burn-out, inventaire, vitrine). sw.js → v127.
+  · (même jour, Léo : « les jauges un peu plus belles et scintillantes, juteuses plutôt que rétrogaming ; coupe le bouton shop, il faut qu'il
+    soit visible, attrayant, et ajoute à gauche, inséré en petit, un home » puis « retire celui d'en haut, et mets un boulon 3D à la place du
+    setting ») :
+    · ⚠ REMPLACÉES LE MÊME JOUR par la v4 (Léo : « pas ouf les trucs juicy », voir L'ÉNERGIE plus bas) — LES JAUGES v3 — JUTEUSES (`#gVJ`, même `gvJauges`) : cartes ARRONDIES en verre fumé teinté de leur couleur ; chiffres, étiquette et lignes
+      en police RONDE épaisse (`--gvF` : SF Pro Rounded sur l'iPhone, repli Arial Rounded / Nunito / Segoe UI / system-ui — ⚠ aucune police
+      téléchargée, le jeu reste hors ligne) ; la barre est un TUBE DE GÉLATINE (pilule creusée, jus de sa couleur qui coule, reflet de bonbon
+      dessus, PERLE de lumière au bout qui respire, quatre ÉTINCELLES `<s>` qui s'allument une à une dans le jus, éclat qui balaie ; une
+      étincelle passe aussi sur la carte) ; la PIÈCE d'or et l'ÉTOILE sont dessinées en SVG (`.gvPiece`, `.gvEtoile` — la pièce tourne, l'étoile
+      bat) ; la coche et la flèche aussi (`.gvOk`, `.gvFl`). Plus de crans tous les 10 %. En français les ACCENTS reviennent (« À TA PORTÉE ! »,
+      « RÉPUTÉ » : `ac()` dans gvJauges — TR les retire pour la police pixel). Au passage, deux « commentaires mangeurs » rendus : les
+      infobulles `A.title` / `U.title` étaient collées au bout d'un `//` depuis la v2.
+    · LE SHOP COUPÉ, LE PETIT HOME : la case du SHOP est coupée en deux — à gauche un petit HOME carré (`#gClose`, la maison seule, verre
+      fumé : le geste de la console), à droite le SHOP en BONBON (laque rose framboise, reflet `k4Lingot` qui passe, tranche épaisse, la pièce
+      d'or dessinée, une étincelle au coin). Le HOME du haut (`#gvHome`) est RETIRÉ.
+    · LE BOULON (`BOULON`, `boulonDessine`, `boulonVisse`) : le ⚙ de l'atelier (`#gOutils [data-go="set"]`, mêmes réglages) est un BOULON en
+      vraie 3D — l'écrou (prisme hexagonal) sur sa rondelle, la vis filetée qui dépasse, vu à 44° d'au-dessus, redessiné en SVG à chaque pas de
+      rotation (les pans tournés vers nous, chacun éclairé par la clé de l'atelier, filet cyan à droite, lueur rose dessous, contour d'encre).
+      Il se VISSE d'un sixième de tour toutes les 5-8 s (rebond de cliquet) et d'un tour complet au toucher ; immobile en « réduire les
+      animations ». En vitrine il flotte seul en haut à gauche, sans plaque (1er jet : une rondelle trop large, il se lisait comme une soucoupe —
+      la vis qui dépasse fait le boulon).
+    · Deux règles `html[data-reduced-motion] :is(…::after…)` étaient INVALIDES (un pseudo-élément ne peut pas entrer dans `:is()` : toute la
+      règle saute) — écrites en liste.
+    Bancs (scratchpad 83e03bdc) : `zoom127.mjs` (gros plans ×3 du boulon, des jauges, du SHOP ; `BK=` l'argent), `btn127.mjs` (vrais clics :
+    HOME du bas → accueil, boulon → réglages, SHOP → console, JOUER → course), `parcours`, `cadreinv` (cadre de l'ordi) : 0 erreur, debout,
+    couché et dans le cadre. sw.js → v129 (main avait pris la v128 pour le CHAT POP-TART en voxels, fusionné ici).
+  · (même jour, Léo : « pas ouf les trucs juicy ; réfléchis à un plan pour bien placer les jauges en haut, une structure avec les settings bien mis
+    et les jauges bien placées, agréable à l'œil mais qui ne cache pas trop le décor ; puis redesign-les selon l'emplacement : jauge énergétique
+    intense plutôt que juicy Roblox ; une barre money sur le total jamais atteint — plus tu dépasses ton record, plus la jauge est dure à remplir,
+    mais elle reste remplie tant qu'on y est ; impressionne-moi ») LES JAUGES v4 — L'ÉNERGIE :
+    · ⚠ PLAN REMPLACÉ LE MÊME JOUR (voir « comme sur la photo » juste après) — LE PLAN : UNE BANDE EN HAUT, sans carte. Le boulon (⚙) à gauche, CENTRÉ sur les jauges (debout `#gOutils` top sT+28, couché sT+6) ; les
+      jauges à sa droite — debout l'une sous l'autre (~90 px de haut au lieu de 175 : la porte en feu et le plafond restent visibles), couché
+      côte à côte sur une ligne en haut à droite (min(580 px, 68 %)). Rien d'opaque : un voile qui descend du bord (`#gTop::before`, 120 px debout,
+      82 couché). Chaque jauge = une ligne (étiquette · chiffre · statut) + son tube.
+    · LE TUBE D'ÉNERGIE (`GVE`, `gveDessine`, `gveAvance`, `gveBoucle` ; un `<canvas class="gvC">` par jauge, 20 px de haut, ×2 au plus) :
+      tube de verre noir de 9 px ; dedans le PLASMA de sa couleur (`GVE_COL` : vert acide pour l'argent, violet → rose pour l'aura), trois
+      filaments qui ondulent et COULENT vers la tête, des pulsations qui la rejoignent, un cœur blanc ; la TÊTE incandescente (éclat en
+      croix) lance des ÉTINCELLES ; des ARCS ÉLECTRIQUES claquent le long de l'énergie ; PLEINE elle SURCHARGE (arcs hors du tube, bord qui
+      pulse, deux fois plus d'étincelles). Dessiné seulement vitrine à l'écran (garage ouvert, ni inventaire ni menu, page visible) ; la
+      boucle s'arrête avec l'atelier. « Réduire les animations » : jauge posée, ni arcs ni étincelles. Texte en italique CONDENSÉ (course :
+      Avenir Next Condensed sur l'iPhone, Bahnschrift sur Windows), le chiffre blanc qui irradie sa couleur, accents rendus.
+    · L'ARGENT CONTRE LE RECORD DE FORTUNE : `SAVE.d.bankMax` = le plus haut total jamais tenu par la banque, relevé à CHAQUE entrée d'argent
+      (`bankMaxMaj()` : fin de partie, défis, permis, partie interrompue — un achat juste après une partie ne l'efface pas) ; un joueur d'avant
+      démarre à son sommet (`san` : jamais sous la banque). La jauge = banque ÷ record : à ton sommet elle est PLEINE (« SOMMET ») et le reste tant
+      que tu y es ; tu dépenses, elle baisse (« RECORD $ 30 k ») — plus ton record est haut, plus elle est dure à remplir. RECORD BATTU depuis la
+      dernière visite (`SAVE.d.bankMaxVu`, le record que la jauge a déjà fêté) : elle se charge jusqu'à l'ANCIEN record, y BUTE (une barrière qui
+      grésille ~0,5 s), puis la fait SAUTER (éclats, éclair) — « RECORD ! +$ 9 k » qui clignote. L'aura : le rang suivant (« ▸ RÉPUTÉ 44 % »).
+      L'info « une caisse est à ta portée » (l'ancienne ligne de la jauge) passe sur le SHOP : une pastille verte (`#gPerso[data-portee]`).
+    · Console : `dbgJauge(banque, record, recordDéjàVu)` — `dbgJauge(30000,30000,21000)` rejoue le record battu.
+    Banc `zoom128.mjs` (scratchpad 83e03bdc : la bande, la séquence charge → barrière → explosion → pleine, la jauge après une dépense ; rendu 3D
+    coupé pendant la séquence). sw.js → v130, puis v131 à la fusion du chat pop-tart v2 de main (v129 là-bas).
+  · (même jour, Léo, sur une capture du garage de main : « remets HOME · setting au même endroit et les jauges qui se chevauchent comme sur la
+    photo ») LA MISE EN PAGE DE LA PHOTO, les tubes d'énergie gardés :
+    · HOME (`#gvHome`) REVIENT en haut à gauche, à côté du boulon (qui garde la place du ⚙), à sa hauteur d'origine (`#gOutils`, sT+12, debout
+      comme couché). Le petit HOME inséré dans le SHOP (`#gAct>#gClose`) REPART (deux HOME = un de trop) : le SHOP rose reprend toute sa case.
+    · Les deux jauges reprennent leurs CARTES, EMPILÉES (`#gVJ` : une colonne, 6 px entre les deux) : debout à droite du HOME · boulon
+      (left sL+114), couché dans le coin haut-droit (min(330 px, 40 %)). La carte : laque sombre, coins coupés, filet de sa couleur à gauche ;
+      dedans la ligne étiquette · chiffre · statut et le TUBE D'ÉNERGIE de la v4 (inchangé, record battu compris). Le voile du haut
+      (`#gTop::before`) est retiré : les cartes portent leur fond. Debout la carte est étroite : lettres un peu serrées pour que « RECORD ! +$ 9 k »
+      tienne en entier.
+    · ⚠ Piège rencontré : remplacer la 1re ligne d'une règle CSS sur plusieurs lignes laisse sa fin (« …backwards} ») orpheline — elle avale la
+      règle suivante sans erreur visible (ici les cartes et la police des jauges). Contrôle : compter les accolades de chaque `<style>` (jamais
+      de profondeur négative).
+    Bancs (scratchpad 83e03bdc) : `zoom128.mjs` P/L, `btn127.mjs` (clic réel sur le HOME du HAUT désormais), `parcours`, `cadreinv` : 0 erreur.
+    sw.js → v132, puis v134 à la fusion du chat pop-tart v3 → v6 de main (v133 là-bas).
   Banc `vit6.mjs <nom> W H [zones]` (captures vitrine + tiroir, JOUER → course). sw.js → v116 (passé en v120 à la fusion : main était déjà en v119).
 - **L'ATELIER AÉRÉ + LE RENDU (même jour, Léo : « enlève quelques accessoires du garage, ça fait un peu rempli pour rien — les pieds tu
   dois laisser, ça fait partie du jeu ; les billets, mes trucs de trophée, tout ça laisse ; aère un peu l'espace · travaille plus le
