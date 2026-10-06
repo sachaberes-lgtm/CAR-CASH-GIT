@@ -4,6 +4,10 @@
 L'image de référence = le sprite de 2011 EXTRUDÉ en cubes (contour noir = mur noir sur l'épaisseur, dessous bleus). Le gabarit `poptart` est
 refait EN VOXELS (10 cm, `NY_U`), chaque pièce dessinée dans SON plan (bloc « LE CHAT POP-TART EN VOXELS », juste avant `SHAPES` : dessins
 `NY_GATEAU` / `NY_SUCRE` / `NY_TETE` / `NY_QUEUE`, maillage `voxGrille()` = faces à l'air seules, fusionnées en rectangles par couleur).
+- **v8, même jour** (Léo : « plus arrondie, comme une voiture moderne ») : plus d'arêtes en biseau — bas de caisse et épaule en QUARTS
+  D'ELLIPSE (`hB`), habitacle bombé (rentré en courbe, bord de pavillon arrondi, `hC`), pavillon bombé en travers (`yTx`), coins de
+  poupe à grand rayon en plan (32 cm, `plan`), lunette qui s'enroule, panneau arrière arrondi en haut et en bas (`dans`). La peau est lue
+  sur la forme (`!dans(...)` : flanc, poupe) et les feux et les échappements sont posés SUR la poupe arrondie (`kArr`).
 - **v7, même jour** (Léo : « la tête est un peu trop épaisse ; pour l'arrière, mimétisme sur cette photo » — une GR Yaris de dos) : tête
   sur trois couches (30 cm, la caisse avance jusqu'à 1,2 m, ailes avant de 1,2 à 1,52). Poupe de GR Yaris : pavillon long puis HAYON raide
   (`yT`), montant C épais, HANCHES qui gonflent au-dessus des pattes arrière (lissées, sans encoche), lèvre noire au bout du pavillon,
