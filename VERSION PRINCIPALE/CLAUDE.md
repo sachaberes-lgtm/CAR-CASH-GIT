@@ -296,6 +296,31 @@
     confirmé : c'est la CAMÉRA COUCHÉE) : COUCHÉ, le recul d'avant la v112 revient — la caisse tient dans `fw` ,9 de la largeur libre et `fh` ,8 de
     la hauteur (la v112 l'avait rapprochée de ~10 % : ,98 / ,88) ; DEBOUT inchangé (`fwP` · `fhP` ,88 — `fh` suit désormais l'orientation
     comme `fw`). sw.js → v126.
+  · (même jour, Léo : « parfois pour se replacer l'écran a des petits déclics qui se voient corrigés ; rends smooth le fait de bouger dans le
+    garage ; ne casse pas les fonctions voiture ») LA CAMÉRA SANS DÉCLIC. MESURÉ d'abord (banc `lisse/cam.mjs` du scratchpad 83e03bdc : la
+    caméra rejouée image par image sur une horloge FIGÉE à 60 i/s — `requestAnimationFrame` et `performance.now` remplacés, rendu coupé —,
+    l'accélération à l'écran de 18 points visibles, `lisse/ana.mjs`) : chaque déclic était un mouvement qui PARTAIT À PLEINE VITESSE dans une
+    seule image. Cinq sources, cinq corrections, toutes par `garRessort(o,kx,kv,cible,om,dt)` (juste avant `garCamA`) : un ressort amorti
+    CRITIQUE en solution exacte — la vitesse est continue, il part de zéro, ne dépasse jamais, stable à toutes les cadences :
+    · le recadrage `GAR.vD` (la caisse posée à gauche de l'entrée) était un asservissement du 1er ordre allumé d'un coup : il partait à pleine
+      vitesse (debout, la caisse passait de 0,7 à 1,6 px/image d'une image à l'autre juste après le RETOUR À LA PORTE, quand la visée finissait
+      de rattraper) et s'arrêtait net à 0,6 %. Il devient un ressort (`GAR.vDv`, raideur `VITRINE_CAM.dRecadre` 3,6 : ~1 s pour se poser) ;
+      l'hystérésis 3 % / 0,6 % (Léo : « arrête de faire tourner le garage ») est GARDÉE, mais elle, la vue qui tourne encore, la visée qui
+      traîne et le doigt ne font plus que monter ou descendre son POIDS `GAR.vDw` — jamais sa vitesse. Cible = l'écart ÷ ce qu'un radian de vD
+      déplace la caisse à l'écran (la géométrie de la vue) ;
+    · le décentrement de l'image (`garCadre`, `GAR.cdx/cdy` + `cvx/cvy`) : ouvrir l'INVENTAIRE déplace la place de la caisse de ~180 px, l'image
+      sautait de 20 px en UNE image (21 px/image² debout) → elle glisse en ~0,5 s (2) ;
+    · le recul (`GAR.dVs` + `dVv`, ~1,1 s comme avant) et l'entrée vitrine ⇄ boutique (`GAR.vit` + `vitV`) : même ressort, même durée ;
+    · l'objectif avançait par CRANS (seuil de 0,01° : le zoom lent ne bougeait qu'une image sur deux, le bord de l'image tremblait) → 1e-4 ;
+    · le tremblement du BURN-OUT tiré au hasard à chaque image (il grésillait, deux fois plus vite à 120 Hz) → bruit LISSE 7-13 Hz, même
+      amplitude ; et le RETOUR À LA PORTE reprend la vitesse qu'avait encore la vue (`GAR.ret.v0`) au lieu de repartir de zéro.
+    MESURÉ APRÈS (pire accélération à l'écran, px/image², debout · couché) : inventaire 21 → 2 · 5,4 → 0,5 ; burn-out 4,4 → 1,5 (moyenne 0,68 →
+    0,16) · 2,8 → 0,9 ; repos 0,12 → 0,09 · 0,54 → 0,50. Restent les ~3-5 px/image² du RETOUR À LA PORTE en plein virage (la vue pivote à
+    ~80°/s : un mouvement continu, pas un à-coup — sa vitesse est celle que Léo a validée en v113). LES FONCTIONS VOITURE NE BOUGENT PAS :
+    banc `lisse/fct.mjs` (gestes au pas fixe, la même séquence sur `main` et sur la neuve, debout et couché) — lancer du plateau 2,53 rad/s,
+    burn-out, dérapage (cap 1,06, reversé à 0), tour de vue, retour porte, bouton rouge, JOUER : mêmes valeurs ; seul vD diffère. ⚠ Le banc en
+    temps réel (`geste.mjs`) est trop BRUITÉ pour un A/B (sur `main` lui-même l'élan du plateau sortait de −0,4 à −5,6) : comparer au pas fixe.
+    Sonde : `dbgInv('etat')` (vA, vAv, vD, vDv, écart, hystérésis, retour, recul, décentrement, burn-out, inventaire, vitrine). sw.js → v127.
   Banc `vit6.mjs <nom> W H [zones]` (captures vitrine + tiroir, JOUER → course). sw.js → v116 (passé en v120 à la fusion : main était déjà en v119).
 - **L'ATELIER AÉRÉ + LE RENDU (même jour, Léo : « enlève quelques accessoires du garage, ça fait un peu rempli pour rien — les pieds tu
   dois laisser, ça fait partie du jeu ; les billets, mes trucs de trophée, tout ça laisse ; aère un peu l'espace · travaille plus le
