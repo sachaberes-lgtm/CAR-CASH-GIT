@@ -25,6 +25,23 @@
 - Hook : `dbgChute()` rend `titreCiel` (1 au titre, 0 ailleurs). Bancs (scratchpad GRAPHISME) : `titre2.js` (planche, `--ui`, `--debout`),
   `titre4.js` (menu → course), `tour.js`.
 
+## ATCHOUM (2026-10-06, Léo : « la voiture tuning McQueen orange qui crache du feu et éternue des flammes, elle ressemble un peu à la cabossée »)
+Caisse n° 70 (ajoutée EN DERNIER dans CARS : aucun index ne bouge), RARE, à l'argent (`{p:150000}`), gabarit `SHAPES.atchoum` (kit low-poly,
+juste après `SHAPES.origami`). Un STOCK-CAR de piste ovale en orange laqué — la silhouette seulement : ni nom, ni numéro, ni regard sur le
+pare-brise (droits). TUNÉ : ailes élargies au-dessus des roues (`XW`), jupes noires, lame avant, écope de capot, aileron sur montants, pots
+latéraux devant les roues arrière + deux sorties sous la poupe (fiche `pots`, 4). CABOSSÉ comme LA HONTE : `creux` pousse CHAQUE sommet
+après le chantier (`P.done` enveloppé, normales recalculées) — aile avant droite, custode gauche, capot froissé en vagues, coup de poing sur
+le toit, coin de poupe ; aile avant gauche en APPRÊT gris, plaques de rouille, scotch en croix sur un phare, pare-chocs arrière de travers,
+rétro gauche rouillé. FLAMMES de hot-rod peintes case par case (4 cm) sur les portières, quatre langues qui montent et s'effilent (bord rouge,
+cœur jaune) : `peint` pose chaque case SUR la tôle (`cote` lit la section au point près, décollée de 6 mm) — elles s'enfoncent avec elle.
+LE FEU (`ATCH`, `atchTick`, appelé après `nyanTick`) : ELLE CRACHE (en course, toutes les 0,4-1,4 s, une langue de feu sort d'un pot au
+hasard, en plus du retour de flamme et de la nitro) et ELLE ÉTERNUE (toutes les 3-7,5 s : le nez se lève 0,4 s, puis ATCHOUM — le nez
+pique, une gerbe de flammes et de braises part droit devant du museau, la caisse la rattrape ; « ATCHOUM ! » au-dessus d'elle ; son
+`sfx('caisse.atchoum')` À CUIRE par la session SON, repli `noiseBurst`). Au GARAGE elle éternue aussi (atchTick y fait vivre les trois
+réserves de flammes, la boucle ne le fait qu'en course ; pas de coup de nez : la boucle ne repose pas `carBody` au garage). Bancs :
+`dbgAtch('feu')` (un éternuement), `dbgAtch('pas',dt)` (fait vivre les flammes) ; `dbgNyan('photo',a,d,h)` + `dbgNyan('cliche')` valent
+désormais pour toute caisse.
+
 ## LE CHAT POP-TART EN VOXELS (2026-10-06, Léo : « focus sur la Nyan Cat, je mise tout sur cette image, fais-en une voiture — impressionne-moi sur le mimétisme et l'adaptation »)
 L'image de référence = le sprite de 2011 EXTRUDÉ en cubes (contour noir = mur noir sur l'épaisseur, dessous bleus). Le gabarit `poptart` est
 refait EN VOXELS (10 cm, `NY_U`), chaque pièce dessinée dans SON plan (bloc « LE CHAT POP-TART EN VOXELS », juste avant `SHAPES` : dessins

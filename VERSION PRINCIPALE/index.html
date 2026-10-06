@@ -12991,6 +12991,11 @@ const CARS=[
  {name:'L\'ORIGAMI',shape:'origami',color:0xc9cdd2,accent:0x16181c,maxKmh:380,accel:42,turn:2.6,h:1.79,w:2.03,l:5.68,spoiler:0,rar:'epique',
   fx:{jet:0xa8dcff,core:0xffffff,trail:[.62,1.08,1.5],light:0x9fd4ff},
   desc:'Une feuille d\'inox, sept plis, zéro courbe. Vitres incassables, paraît-il : on a essayé avec une boule, on n\'en parle plus.'},
+ // (2026-10-06) ATCHOUM — Léo : « la voiture tuning McQueen orange qui crache du feu et éternue des flammes, elle ressemble un peu à la
+ // cabossée ». Un stock-car de piste ovale, tuné et cabossé (voir SHAPES.atchoum) ; son feu : ATCH / atchTick. Ajoutée EN DERNIER.
+ {name:'ATCHOUM',shape:'atchoum',color:0xff9020,accent:0x141417,maxKmh:300,accel:34,turn:2.7,h:1.24,w:1.95,l:4.32,spoiler:0,rar:'rare',
+  fx:{jet:0xff7a24,core:0xffe08a,trail:[1.5,.62,.18],light:0xff8030},
+  desc:'Elle a pris froid au dernier tour : depuis, elle éternue du feu. Ne reste jamais devant elle.'},
 ];
 // ---- VALEUR D'UNE PIÈCE — UNE ENTRÉE PAR PALIER MOTEUR (30) ---------------------------------
 // ⚠ Cette table est indexée par `engTier` depuis que les PIÈCES portent la progression, mais elle
@@ -13438,6 +13443,12 @@ Object.assign(I18N,{
 Object.assign(I18N,{
  "L'ORIGAMI":"THE ORIGAMI",
  "Une feuille d'inox, sept plis, zéro courbe. Vitres incassables, paraît-il : on a essayé avec une boule, on n'en parle plus.":"One sheet of stainless steel, seven folds, zero curves. Unbreakable windows, they say: we tried with a steel ball, we don't talk about it."
+});
+// (2026-10-06) ATCHOUM
+Object.assign(I18N,{
+ "ATCHOUM":"ACHOO",
+ "Elle a pris froid au dernier tour : depuis, elle éternue du feu. Ne reste jamais devant elle.":"She caught a cold on the last lap: now she sneezes fire. Never stay in front of her.",
+ "ATCHOUM !":"ACHOO!",
 });
 // (2026-09-29) les chaînes visibles qui manquaient
 Object.assign(I18N,{
@@ -15393,7 +15404,7 @@ function nyanPixNitro(dt,k){ // la course : la poupe crache des pixels, ~150 par
    la queue alterne ses deux dessins, la tête hoche d'un voxel à 142 à la noire (le tempo du morceau d'origine) — TOUT en pas
    entiers (son allure suit l'accélération, voir plus bas). Et ses PIXELS de course vivent ici (voir NY_PIX). */
 function nyanTick(dt){
-  if(NYAN.photo&&NYAN.on){const f=NYAN.photo,r=carGroup.rotation.y+f.a; // (banc) dbgNyan('photo',a,d,h) : a = angle autour de la caisse (0 = de face)
+  if(NYAN.photo){const f=NYAN.photo,r=carGroup.rotation.y+f.a; // (banc) dbgNyan('photo',a,d,h) — vaut pour toute caisse : a = angle autour de la caisse (0 = de face)
     camera.position.set(carGroup.position.x+Math.sin(r)*f.d,carGroup.position.y+f.h,carGroup.position.z+Math.cos(r)*f.d);
     camera.lookAt(carGroup.position.x,carGroup.position.y+.7,carGroup.position.z);camera.updateMatrixWorld();
     if(camera.view&&camera.view.enabled){NYAN.vue=Object.assign({},camera.view);camera.clearViewOffset();}} // l'objectif décentré de l'atelier : rendu en sortant
@@ -15434,13 +15445,56 @@ function nyanTick(dt){
   if(NYAN.tete)NYAN.tete.position.y=hb*NY_U;
 }
 window.dbgNyan=function(c,a,d,h){if(c==='tick'){if(d)for(const w of wheels)w.rotation.x+=d;nyanTick(a||1/60);c='allure';} // (banc, v13) une image de l'allure à la main, les roues tournées de `d` rad : le panneau caché ne fait pas tourner la boucle
-  if(c==='allure')return {allure:NYAN.allure,acc:+NYAN.acc.toFixed(1),v:+NYAN.v0.toFixed(0),pattes:NYAN.pattes.map(g=>+(g.position.z/NY_PATTE).toFixed(0)),stop:!!(NYAN.feux[1]&&NYAN.feux[1].visible)};if(c==='cliche'){if(NYAN.photo&&NYAN.on){const f=NYAN.photo,r=carGroup.rotation.y+f.a; // (banc) l'image rendue ET lue dans le même instant (le tampon WebGL est vidé entre deux images)
+  if(c==='allure')return {allure:NYAN.allure,acc:+NYAN.acc.toFixed(1),v:+NYAN.v0.toFixed(0),pattes:NYAN.pattes.map(g=>+(g.position.z/NY_PATTE).toFixed(0)),stop:!!(NYAN.feux[1]&&NYAN.feux[1].visible)};if(c==='cliche'){if(NYAN.photo){const f=NYAN.photo,r=carGroup.rotation.y+f.a; // (banc) l'image rendue ET lue dans le même instant (le tampon WebGL est vidé entre deux images)
     camera.position.set(carGroup.position.x+Math.sin(r)*f.d,carGroup.position.y+f.h,carGroup.position.z+Math.cos(r)*f.d);
     camera.lookAt(carGroup.position.x,carGroup.position.y+.7,carGroup.position.z);camera.updateMatrixWorld();if(camera.view&&camera.view.enabled)camera.clearViewOffset();}
   if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return renderer.domElement.toDataURL('image/png');}if(c==='mats'){const L=[];carGroup.traverse(o=>{if(!o.isMesh)return;const m=o.material,ca=o.geometry.attributes.color;
   L.push({t:m.type,g:m.userData&&m.userData.g,col:m.color?m.color.getHexString():null,vc:m.vertexColors,c0:ca?[ca.getX(0),ca.getY(0),ca.getZ(0)].map(v=>+v.toFixed(2)):null,n:o.geometry.attributes.position.count,soude:o.userData.soude||0,prog:!!m.onBeforeCompile&&m.onBeforeCompile!==THREE.Material.prototype.onBeforeCompile});});return L;}if(c==='photo'){NYAN.photo=a==null?null:{a:a,d:d||6,h:h==null?1.6:h};
   if(!NYAN.photo&&NYAN.vue){const v=NYAN.vue;camera.setViewOffset(v.fullWidth,v.fullHeight,v.offsetX,v.offsetY,v.width,v.height);NYAN.vue=null;}return NYAN.photo;}return {on:NYAN.on,pas:NYAN.pas,hoche:NYAN.hb,volK:+NYAN.volK.toFixed(2),pixels:NYAN.pix?NYAN.pix.n:0,
   pattes:NYAN.pattes.length,queue:NYAN.queue.length};};
+/* ATCHOUM — LE FEU (2026-10-06, Léo : « elle crache du feu et éternue des flammes »). Deux gestes, en course seulement (les réserves
+   de particules ne vivent que là) :
+   · ELLE CRACHE : toutes les 0,4-1,4 s dès qu'elle roule, une langue de feu courte sort d'un de ses pots au hasard (les deux pots
+     latéraux devant les roues arrière, les deux sorties sous le pare-chocs) — en plus du retour de flamme au lâcher et de la nitro ;
+   · ELLE ÉTERNUE : toutes les 3-7,5 s, elle prend sa respiration (le nez se lève 0,4 s) puis ATCHOUM — le nez pique, et une gerbe de
+     flammes part DROIT DEVANT du museau ; la caisse, plus rapide, la rattrape et la traverse. « ATCHOUM ! » au-dessus d'elle, un souffle.
+   Le corps se penche par-dessus la pose de la boucle (elle repose `carBody` à chaque image : rien ne s'accumule). */
+const ATCH={on:false,t:4,ph:0,k:0,n:0,crache:1,P:new THREE.Vector3(),F:new THREE.Vector3(),R:new THREE.Vector3(),H:new THREE.Vector3(),V:new THREE.Vector3(),Z:new THREE.Vector3(),N:new THREE.Vector3(0,.47,2.2)};
+const VIT_EXV=()=>EXV; // la vitesse monde de la caisse (déclarée plus bas)
+function atchFeu(course){
+  const P=ATCH.P,F=ATCH.F,R=ATCH.R,H=ATCH.H,EXV=course?ATCH.V:ATCH.Z;potMonde(ATCH.N,P);if(course)ATCH.V.copy(VIT_EXV()); // au garage, la caisse est à l'arrêt
+  for(let i=0;i<30;i++){const s9=11+Math.random()*13,a=(Math.random()-.5)*5,b=(Math.random()-.25)*3.4;
+    spawnP(flames,P.x,P.y,P.z,EXV.x+F.x*s9+R.x*a+H.x*b,EXV.y+F.y*s9+R.y*a+H.y*b,EXV.z+F.z*s9+R.z*a+H.z*b,.22+Math.random()*.25);}
+  for(let i=0;i<12;i++){const s9=9+Math.random()*9,a=(Math.random()-.5)*2.4,b=(Math.random()-.3)*1.8;
+    spawnP(flameCore,P.x,P.y,P.z,EXV.x+F.x*s9+R.x*a+H.x*b,EXV.y+F.y*s9+R.y*a+H.y*b,EXV.z+F.z*s9+R.z*a+H.z*b,.16+Math.random()*.16);}
+  for(let i=0;i<14;i++){const s9=6+Math.random()*10,a=(Math.random()-.5)*6;
+    spawnP(embers,P.x,P.y,P.z,EXV.x+F.x*s9+R.x*a+H.x*(2+Math.random()*4),EXV.y+F.y*s9+R.y*a+H.y*(2+Math.random()*4),EXV.z+F.z*s9+R.z*a+H.z*(2+Math.random()*4),.3+Math.random()*.3);}
+  if(course){popTexte(TR('ATCHOUM !'),'#ffb030',0);hap&&hap(18);}
+  if(!(typeof sfx==='function'&&sfx('caisse.atchoum')))noiseBurst(.2,.09,620); // (son à cuire par la session SON : « caisse.atchoum »)
+}
+window.dbgAtch=function(c,dt){ // (banc) 'feu' : un éternuement tout de suite · 'pas' : fait vivre les flammes de `dt` s
+  if(c==='feu'){ATCH.F.set(0,0,1).applyQuaternion(carGroup.quaternion);ATCH.R.set(1,0,0).applyQuaternion(carGroup.quaternion);ATCH.H.set(0,1,0).applyQuaternion(carGroup.quaternion);atchFeu(false);}
+  if(c==='pas')for(const q of [flames,flameCore,embers])updatePool(q,dt||.03,q===embers?4.5:1);
+  return {on:ATCH.on,t:+ATCH.t.toFixed(2),ph:ATCH.ph};};
+function atchTick(dt){
+  if(!ATCH.on)return;
+  const course=running&&!gameOver&&!paused&&mode!=='boom'&&!garageOn,vitrine=garageOn&&!running; // au garage aussi elle éternue (la vitrine)
+  if(!course&&!vitrine){ATCH.ph=0;ATCH.k=0;return;}
+  const F=ATCH.F.set(0,0,1).applyQuaternion(carGroup.quaternion);ATCH.R.set(1,0,0).applyQuaternion(carGroup.quaternion);ATCH.H.set(0,1,0).applyQuaternion(carGroup.quaternion);
+  if(vitrine)for(const q of [flames,flameCore,embers])updatePool(q,dt,q===embers?4.5:1); // (en course la boucle les fait vivre ; au garage, c'est elle)
+  if(course&&(ATCH.crache-=dt)<=0){ATCH.crache=.4+Math.random();                          // ELLE CRACHE
+    if(vKmh()>25&&CAR_POTS.length){const P=ATCH.P;potMonde(CAR_POTS[(Math.random()*CAR_POTS.length)|0],P);
+      for(let i=0;i<5;i++)spawnP(flames,P.x,P.y,P.z,EXV.x-F.x*(5+Math.random()*7)+(Math.random()-.5)*1.6,EXV.y+Math.random()*1.3,EXV.z-F.z*(5+Math.random()*7)+(Math.random()-.5)*1.6,.08+Math.random()*.09);
+      spawnP(flameCore,P.x,P.y,P.z,EXV.x-F.x*8,EXV.y+.4,EXV.z-F.z*8,.07);
+      if(Math.random()<.6)spawnP(embers,P.x,P.y,P.z,EXV.x-F.x*4+(Math.random()-.5)*3,EXV.y+1.5+Math.random()*2,EXV.z-F.z*4+(Math.random()-.5)*3,.25);}}
+  ATCH.t-=dt;                                                                               // ELLE ÉTERNUE
+  if(ATCH.ph===0&&ATCH.t<=.4)ATCH.ph=1;
+  const corps=course&&mode==='drive'; // (la boucle repose `carBody` à chaque image en course ; au garage on n'y touche pas)
+  if(ATCH.ph===1){ATCH.k=Math.min(1,ATCH.k+dt/.4);if(corps)carBody.rotation.x-=.07*ATCH.k*ATCH.k; // la respiration : le nez se lève
+    if(ATCH.t<=0){ATCH.ph=2;ATCH.n=.32;atchFeu(course);}}
+  else if(ATCH.ph===2){ATCH.n-=dt;if(corps)carBody.rotation.x+=.1*Math.sin(Math.max(0,ATCH.n/.32)*Math.PI); // ATCHOUM : le nez pique
+    if(ATCH.n<=0){ATCH.ph=0;ATCH.k=0;ATCH.t=3+Math.random()*4.5;}}
+}
 const TR_PJ=new THREE.Vector3(),TR_Q=new THREE.Vector3(),TR_CUT={a:.08,b:.26}; // (2026-09-29) la projection d'un point du ruban, le point où on le COUPE, et la descente à l'écran tolérée (voir « plus de fils de marionnette »)
 function trailStep(tr,px,py,pz,cr,cg,cb,k,wMul){
   if(k<.03){tr.m.visible=false;tr.init=false;return;}
@@ -20211,6 +20265,90 @@ SHAPES.origami=function(K){
   return {hl:[.70,.865,ZN+.03],tl:[.80,1.168,ZT-.03],wx:.86,wzF:ZF,wzR:-ZR,pots:[[.52,.47,-2.83],[-.52,.47,-2.83]],
           lpw:{R:R,w:.30,style:'plis',n:7,jante:0x8d939b,accent:0x1b1d21,fond:0x0e0f12}};
 };
+/* ============================================================================================
+   ATCHOUM (2026-10-06, Léo : « la voiture tuning McQueen orange qui crache du feu et éternue des flammes, elle ressemble un peu à la
+   cabossée ») — un STOCK-CAR de piste ovale : long capot qui plonge, pare-brise couché, toit court, lunette en pente douce, malle
+   courte, gros aileron. La silhouette seulement — ni nom, ni numéro, ni regard sur le pare-brise. TUNÉ : ailes élargies au-dessus des
+   roues, jupes noires, lame avant, écope de capot, aileron sur montants, pots latéraux devant les roues arrière, deux sorties sous le
+   pare-chocs. CABOSSÉ comme LA HONTE : la tôle est vraiment ENFONCÉE (aile avant droite, custode gauche, capot froissé, coup de poing
+   sur le toit, coin du pare-chocs — `creux`, appliqué à chaque sommet après le chantier), une PORTIÈRE GAUCHE EN APPRÊT GRIS récupérée à
+   la casse, des plaques de ROUILLE, du scotch en croix sur un phare, le pare-chocs arrière de travers, un rétro rouillé. Les FLAMMES de
+   hot-rod sont peintes sur les ailes avant case par case (4 cm), POSÉES SUR LA TÔLE (`peint` lit la section au point près) et enfoncées
+   avec elle. Le feu qu'elle crache et ses éternuements : voir ATCH / atchTick.
+   ========================================================================================== */
+SHAPES.atchoum=function(K){
+  ATCH.on=true;
+  const U=LPU,R=.34,ZF=1.38,ZR=-1.32,ZN=2.16,ZT=-2.16;
+  const P=K.kit({p:{g:'p',c:0xff9020},Y:{g:'p',c:0xffe23a,f:0},F:{g:'p',c:0xe8261a,f:0},G:{g:'s',c:0xb9bdc3},R:{g:'s',c:0x6a3216},
+    k:{g:'m',c:0x141417},K:{g:'g',c:0x0c0d10},g:{g:'g',c:0x182230},c:{g:'c',c:0xd9dde3},W:{g:'l',c:0xfff1c8},L:{g:'l',c:0xff2030}});
+  const bosse=d=>Math.max(0,1-d*d);
+  const T=z=>U.lin([[ZT,.84],[-2.02,.93],[-1.45,.95],[-.72,1.21],[.02,1.23],[.78,.88],[1.98,.74],[ZN,.62]],z), // le DESSUS : malle, lunette, toit, pare-brise, capot
+        Bt=z=>U.lin([[ZT,.80],[-1.45,.85],[.78,.84],[1.98,.70],[ZN,.57]],z),                                  // l'ÉPAULE
+        XW=z=>U.lin([[ZT,.86],[-1.98,.95],[1.92,.95],[ZN,.80]],z)+.05*(bosse((z-ZF)/.62)+bosse((z-ZR)/.62)); // la demi-largeur, AILES ÉLARGIES
+  const AR=[[0,2*R+.07],[R*.55,2*R+.05],[R*.92,R*1.35],[R+.11,.24]];                                         // l'arche hexagonale
+  const zs=[ZT,-2.08,-2.02,-1.75,-1.45,-1.1,-.72,-.45,-.2,.02,.3,.55,.78,1.0,1.98,2.08,ZN];
+  for(const w of [ZF,ZR])for(const d of [R*.55,R*.92,R+.11])zs.push(w-d,w+d);
+  for(const z of [1.5,1.6,1.7,1.8,-.9,-1.0,-1.2,-.35,-.25,1.15,1.3])zs.push(z);                              // de quoi FROISSER la tôle là où elle est enfoncée
+  zs.sort((a,b)=>a-b);
+  const S=z=>{const yb=U.arch(z,[ZF,ZR],AR,.24),xw=XW(z),t=T(z),b=Bt(z),h=Math.max(0,t-b-.03),g=Math.min(1,h/.2);
+    const y2=Math.max(yb+.03,.32),y3=Math.max(y2+.03,.55),y4=Math.max(y3+.03,b);
+    return [[0,yb],[xw-.08,yb],[xw,y2],[xw+.02,y3],[xw-.03,y4],[xw-.10,y4+.03],[xw-.17-.10*g,y4+.03+h*.45],[.62-.06*g,Math.max(t-.02*g,y4+.04)],[0,Math.max(t,y4+.04)+.015]];};
+  P.loft(zs,S,(j,z)=>{
+    if(j<0)return 'p';
+    if(j<=1)return 'k';                                                         // le dessous, la JUPE noire
+    if(j<=4||z<=-1.42||z>=.76)return 'p';                                       // flancs, épaules, capot, malle
+    if(j===7)return ((z>.1&&z<.74)||z<-.76)?'g':'p';                            // pare-brise, lunette ; le toit
+    return (z>.66||z<-1.02||(z>-.22&&z<-.12))?'p':'g';});                       // les vitres latérales, montants de carrosserie
+  // ---- CE QUI SE PEINT SUR LA TÔLE : une case de 4 cm posée SUR le flanc (la section lue au point près), décollée de 6 mm ----
+  const cote=(z,y)=>{const q=S(z);if(y<q[2][1])return -1;for(let i=2;i<5;i++){const a=q[i],b=q[i+1];if(y<=b[1]){const t=(y-a[1])/((b[1]-a[1])||1);return a[0]+(b[0]-a[0])*t;}}return -1;};
+  const peint=(k,sd,z0,y0,c)=>{const q=[[z0,y0],[z0+c,y0],[z0+c,y0+c],[z0,y0+c]].map(([z,y])=>{const x=cote(z,y);return x<0?null:[sd*(x+.006),y,z];});
+    if(q.some(v=>!v))return;if(sd>0){P.tri(k,q[0],q[2],q[1]);P.tri(k,q[0],q[3],q[2]);}else{P.tri(k,q[0],q[1],q[2]);P.tri(k,q[0],q[2],q[3]);}};
+  const LANG=[[.44,1.15],[.53,1.6],[.62,1.3],[.71,.85]];                        // quatre LANGUES de feu : hauteur au départ, longueur
+  const flamme=(z,y)=>{const d=.98-z;if(d<0)return 0;let r=0;                   // nées derrière la roue avant, elles filent sur la portière · 1 = le bord rouge, 2 = le cœur jaune
+    for(const [y0,Lg] of LANG){if(d>Lg)continue;const yc=y0+.12*d/Lg,u=Math.abs(y-yc)/.07;  // elle MONTE en filant vers l'arrière
+      const lu=Lg*(1-Math.pow(u,1.6));if(u>=1)continue;if(d<lu)r=Math.max(r,(u<.5&&d<lu*.72)?2:1);}                      // et s'effile en pointe
+    return r;};
+  const rouille=[[-1,-.86,.40,.09],[-1,-1.92,.48,.07],[-1,-.3,.36,.06],[1,-1.02,.38,.08],[1,-2.0,.52,.06],[1,1.9,.40,.05]];
+  for(const sd of [-1,1])for(let z=-2.1;z<2.1;z+=.04)for(let y=.30;y<.86;y+=.04){const zc=z+.02,yc=y+.02;
+    if(sd<0&&zc>1.0&&zc<2.08&&yc>.30&&yc<.84){peint('G',sd,z,y,.04);continue;}  // l'AILE AVANT GAUCHE de la casse, en apprêt
+    if(rouille.some(r=>r[0]===sd&&Math.hypot((zc-r[1])/r[3],(yc-r[2])/(r[3]*.8))<1+.25*Math.sin(zc*61+yc*37))){peint('R',sd,z,y,.04);continue;}
+    const f=flamme(zc,yc);if(f)peint(f===2?'Y':'F',sd,z,y,.04);}
+  // ---- LE NEZ : la bouche, les phares (un scotché en croix), la lame ----
+  P.box('K',1.12,.15,.02,0,.41,ZN+.006);P.box('k',1.2,.03,.03,0,.335,ZN+.01);
+  for(const sd of [-1,1])P.box('W',.30,.09,.02,sd*.52,.535,ZN+.008);
+  P.box('c',.30,.025,.012,.52,.535,ZN+.02,0,0,.42);P.box('c',.30,.025,.012,.52,.535,ZN+.022,0,0,-.42); // le scotch
+  P.box('k',1.7,.03,.26,0,.24,ZN-.03);                                          // la lame
+  // ---- LE CAPOT : l'écope ----
+  P.box('K',.46,.075,.52,0,T(1.25)+.035,1.25,.12,0,0);P.box('k',.40,.05,.02,0,T(1.0)+.05,.99);
+  // ---- LES RÉTROS (le gauche rouillé) ----
+  for(const sd of [-1,1]){P.box(sd<0?'R':'p',.1,.075,.14,sd*.86,Bt(.62)+.12,.62);P.box('k',.11,.025,.04,sd*.80,Bt(.62)+.08,.62);}
+  // ---- LES POTS LATÉRAUX (devant les roues arrière) et les sorties sous la poupe ----
+  for(const sd of [-1,1]){P.cyl('c',.05,.52,8,sd*.97,.29,-.56,'z');P.cyl('k',.036,.524,8,sd*.97,.29,-.56,'z');
+    P.cyl('c',.058,.16,8,sd*.42,.30,ZT-.05,'z');P.cyl('k',.042,.165,8,sd*.42,.30,ZT-.05,'z');}
+  // ---- LA POUPE : feux, diffuseur, le pare-chocs DE TRAVERS ----
+  for(const sd of [-1,1])P.box('L',.32,.085,.02,sd*.58,.66,ZT-.008);
+  P.box('k',1.74,.10,.14,0,.30,ZT-.04,0,0,.06);                                // il pend d'un côté
+  // ---- L'AILERON sur montants ----
+  const yA=T(-1.92);
+  for(const sd of [-1,1]){P.box('K',.05,.22,.08,sd*.55,yA+.11,-1.92);P.box('K',.03,.2,.40,sd*.91,yA+.24,-1.96);}
+  P.box('K',1.8,.04,.34,0,yA+.24,-1.96,-.08,0,0);
+  // ---- LA TÔLE ENFONCÉE : chaque sommet de la caisse (peintures comprises) poussé par les coups, puis les facettes recalculées ----
+  const creux=(x,y,z,o)=>{const f=(cz,cy,r,zz,yy)=>{const d=Math.hypot((zz-cz)/r,(yy-cy)/(r*.8));return d<1?Math.pow(1-d*d,2):0;};
+    o[0]=o[1]=o[2]=0;
+    if(x>.3)o[0]-=.12*f(1.62,.60,.36,z,y);                                      // l'aile avant droite
+    if(x<-.3)o[0]+=.10*f(-1.0,.62,.38,z,y);                                     // la custode gauche
+    if(y>.7&&z>1.0&&z<1.9)o[1]-=.055*Math.max(0,1-Math.abs(z-1.45)/.45)*Math.max(0,1-Math.abs(x-.15)/.5)*(.55+.45*Math.sin(z*38)); // le capot froissé
+    if(y>1.1)o[1]-=.05*f(-.3,.15,.36,z,x);                                      // le coup de poing sur le toit
+    if(z<-2.0&&x<-.2&&y<.62)o[2]+=.05*Math.min(1,(-.2-x)/.6);};                // le coin de la poupe
+  const fin=P.done,o9=[0,0,0];
+  P.done=()=>{const gs=fin();for(const g in gs){const a=gs[g].attributes.position.array;
+    for(let i=0;i<a.length;i+=3){creux(a[i],a[i+1],a[i+2],o9);a[i]+=o9[0];a[i+1]+=o9[1];a[i+2]+=o9[2];}
+    gs[g].attributes.position.needsUpdate=true;gs[g].computeVertexNormals();}return gs;};
+  K.commit(P);
+  return {hl:[.52,.535,ZN+.03],tl:[.58,.66,ZT-.03],wx:.82,wzF:ZF,wzR:-ZR,
+          pots:[[.97,.29,-.83],[-.97,.29,-.83],[.42,.30,ZT-.14],[-.42,.30,ZT-.14]],
+          lpw:{R:R,w:.26,style:'multi',jante:0x26282d,accent:0xff9020}};
+};
 const CAR_VIEUX=[]; // les matières de la caisse d'avant : libérées à la construction suivante
 /* LA CAISSE NE DÉTRUIT PLUS SES PROGRAMMES (2026-09-28, chasse aux gels) — three DÉTRUIT un programme quand la dernière matière qui s'en
    sert est libérée. Le sursis d'une construction (`CAR_VIEUX`) suffisait tant que la caisse était DESSINÉE entre deux constructions ; le
@@ -20398,6 +20536,7 @@ function buildCar(spec){
   // y remettre ce reset effaçait l'aileron que le gabarit venait tout juste d'enregistrer, et il
   // ne se déployait jamais. Tout ce qu'un GABARIT peut remplir doit être vidé AVANT qu'il ne tourne.
   carFins.length=0;
+  ATCH.on=false;ATCH.ph=0;ATCH.k=0;ATCH.t=3+Math.random()*2; // (2026-10-06) ATCHOUM s'allume dans son gabarit
   NYAN.on=false;NYAN.tete=null;NYAN.pattes.length=0;NYAN.queue.length=0;NYAN.feux.length=0;NYAN.pas=-1;NYAN.hb=-1; // (2026-10-06) le chat pop-tart remplit ses pièces animées pendant son gabarit
   HALO.h.length=0;HALO.t.length=0;ROUES.flou=null; // (2026-09-26) halos et flou de jante de l'ancienne caisse
   const lvl=CARS.indexOf(spec),wreck=lvl===0;
@@ -21843,6 +21982,7 @@ const CAR_UNLOCK=[
   {k:'carrN',v:5}, // (2026-10-04 : les 5 niveaux de SKY HIGH) (2026-09-27) LA CAISSE-NUAGE — les dix niveaux des NUAGES (elle se gagne en l'attrapant au niveau 10)
   {k:'carrV',v:5}, // (2026-10-05 : les 5 niveaux de la VILLE) (2026-09-27) LE LINGOT — les dix niveaux de la VILLE (il se gagne en battant le banquier au niveau 10)
   {p:1200000}, // (2026-10-02) L'ORIGAMI — ÉPIQUE, à l'argent : entre LA DÉESSE et L'AIGLE DE FEU
+  {p:150000}, // (2026-10-06) ATCHOUM — RARE, à l'argent
 ]
 /* (POKI) PLUS DE MISSIONS, DE CARRIÈRE NI DE BOUTIQUE : les caisses qui s'y gagnaient passent À L'ARGENT DU JEU (sinon le garage montrerait
    des caisses qu'on ne peut plus avoir). Les prix prolongent la gamme : les carnets là où ils tombaient dans la progression (LA BULLE
@@ -41037,7 +41177,8 @@ function loop(now){
   if(garageOn)garageRender(dt);
   else if(!started||MENUV.retour)menuVitrine(dt); else if(MENUV.bio)menuVitrineFin(); // L'ACCUEIL (au couchant — rendu au niveau dès qu'on le quitte) : la caisse en vitrine sur la route de la ville // GARAGE : place la caisse + oriente la caméra AVANT que le ciel suive
   else if(stallOn)stallRender(dt); // ÉTAL : même showroom, mais c'est un fruit qui tourne
-  try{nyanTick(dt);}catch(e){loopWarn(32,'chat pop-tart',e);} // (2026-10-06) le pas du GIF et l'arc-en-ciel du chat (voir nyanTick)
+  try{nyanTick(dt);}catch(e){loopWarn(32,'chat pop-tart',e);}
+  try{atchTick(dt);}catch(e){loopWarn(4096,'atchoum',e);} // (2026-10-06) ATCHOUM crache et éternue (voir atchTick) // (2026-10-06) le pas du GIF et l'arc-en-ciel du chat (voir nyanTick)
   skyDome.position.copy(camera.position);
   skyU.uTime.value=t;
   skyU.uVille.value=LVL.ville;skyU.uParis.value=LVL.paris;skyU.uPluie.value=LVL.pluie;skyU.uFogCol.value.copy(scene.fog.color);skyU.uCam.value.copy(camera.position); // LE CIEL DE LA VILLE
