@@ -321,6 +321,31 @@
     burn-out, dérapage (cap 1,06, reversé à 0), tour de vue, retour porte, bouton rouge, JOUER : mêmes valeurs ; seul vD diffère. ⚠ Le banc en
     temps réel (`geste.mjs`) est trop BRUITÉ pour un A/B (sur `main` lui-même l'élan du plateau sortait de −0,4 à −5,6) : comparer au pas fixe.
     Sonde : `dbgInv('etat')` (vA, vAv, vD, vDv, écart, hystérésis, retour, recul, décentrement, burn-out, inventaire, vitrine). sw.js → v127.
+  · (même jour, Léo : « les jauges un peu plus belles et scintillantes, juteuses plutôt que rétrogaming ; coupe le bouton shop, il faut qu'il
+    soit visible, attrayant, et ajoute à gauche, inséré en petit, un home » puis « retire celui d'en haut, et mets un boulon 3D à la place du
+    setting ») :
+    · LES JAUGES v3 — JUTEUSES (`#gVJ`, même `gvJauges`) : cartes ARRONDIES en verre fumé teinté de leur couleur ; chiffres, étiquette et lignes
+      en police RONDE épaisse (`--gvF` : SF Pro Rounded sur l'iPhone, repli Arial Rounded / Nunito / Segoe UI / system-ui — ⚠ aucune police
+      téléchargée, le jeu reste hors ligne) ; la barre est un TUBE DE GÉLATINE (pilule creusée, jus de sa couleur qui coule, reflet de bonbon
+      dessus, PERLE de lumière au bout qui respire, quatre ÉTINCELLES `<s>` qui s'allument une à une dans le jus, éclat qui balaie ; une
+      étincelle passe aussi sur la carte) ; la PIÈCE d'or et l'ÉTOILE sont dessinées en SVG (`.gvPiece`, `.gvEtoile` — la pièce tourne, l'étoile
+      bat) ; la coche et la flèche aussi (`.gvOk`, `.gvFl`). Plus de crans tous les 10 %. En français les ACCENTS reviennent (« À TA PORTÉE ! »,
+      « RÉPUTÉ » : `ac()` dans gvJauges — TR les retire pour la police pixel). Au passage, deux « commentaires mangeurs » rendus : les
+      infobulles `A.title` / `U.title` étaient collées au bout d'un `//` depuis la v2.
+    · LE SHOP COUPÉ, LE PETIT HOME : la case du SHOP est coupée en deux — à gauche un petit HOME carré (`#gClose`, la maison seule, verre
+      fumé : le geste de la console), à droite le SHOP en BONBON (laque rose framboise, reflet `k4Lingot` qui passe, tranche épaisse, la pièce
+      d'or dessinée, une étincelle au coin). Le HOME du haut (`#gvHome`) est RETIRÉ.
+    · LE BOULON (`BOULON`, `boulonDessine`, `boulonVisse`) : le ⚙ de l'atelier (`#gOutils [data-go="set"]`, mêmes réglages) est un BOULON en
+      vraie 3D — l'écrou (prisme hexagonal) sur sa rondelle, la vis filetée qui dépasse, vu à 44° d'au-dessus, redessiné en SVG à chaque pas de
+      rotation (les pans tournés vers nous, chacun éclairé par la clé de l'atelier, filet cyan à droite, lueur rose dessous, contour d'encre).
+      Il se VISSE d'un sixième de tour toutes les 5-8 s (rebond de cliquet) et d'un tour complet au toucher ; immobile en « réduire les
+      animations ». En vitrine il flotte seul en haut à gauche, sans plaque (1er jet : une rondelle trop large, il se lisait comme une soucoupe —
+      la vis qui dépasse fait le boulon).
+    · Deux règles `html[data-reduced-motion] :is(…::after…)` étaient INVALIDES (un pseudo-élément ne peut pas entrer dans `:is()` : toute la
+      règle saute) — écrites en liste.
+    Bancs (scratchpad 83e03bdc) : `zoom127.mjs` (gros plans ×3 du boulon, des jauges, du SHOP ; `BK=` l'argent), `btn127.mjs` (vrais clics :
+    HOME du bas → accueil, boulon → réglages, SHOP → console, JOUER → course), `parcours`, `cadreinv` (cadre de l'ordi) : 0 erreur, debout,
+    couché et dans le cadre. sw.js → v128.
   Banc `vit6.mjs <nom> W H [zones]` (captures vitrine + tiroir, JOUER → course). sw.js → v116 (passé en v120 à la fusion : main était déjà en v119).
 - **L'ATELIER AÉRÉ + LE RENDU (même jour, Léo : « enlève quelques accessoires du garage, ça fait un peu rempli pour rien — les pieds tu
   dois laisser, ça fait partie du jeu ; les billets, mes trucs de trophée, tout ça laisse ; aère un peu l'espace · travaille plus le
