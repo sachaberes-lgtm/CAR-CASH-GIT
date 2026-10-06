@@ -6178,13 +6178,16 @@ local V3 = Vector3.new
 local HEURES: { [string]: any } = {
 	matin = {
 		brume = RGB(246, 238, 222), loin = RGB(96, 156, 240), eclat = 0.2, voile = 0.4, densite = 0.034, -- (mesuré : à voile 0,9 le ciel du matin sortait BLANC ; le web a un zénith azur profond)
-		soleil = Color3.new(1, 0.97, 0.93), ext = RGB(235, 230, 245), teinte = RGB(255, 250, 244), sat = 0.38, con = 0.3, expo = -0.08,
-		S = V3(300, 280, 248), OH = V3(186, 184, 236), OB = V3(160, 156, 222), mer = Color3.new(1, 1, 1), -- (5/10 : la face au soleil dorée, l'ombre mauve)
+		soleil = Color3.new(1, 0.97, 0.93), ext = RGB(220, 218, 238), teinte = RGB(255, 250, 244), sat = 0.38, con = 0.34, expo = -0.08,
+		S = V3(300, 280, 248), OH = V3(186, 184, 236), OB = V3(160, 156, 222), mer = Color3.new(1, 1, 1), env = { 0.3, 0.5 }, -- (5/10 : la face au soleil dorée, l'ombre mauve)
+		-- (6/10, banc des graphismes : l'ambiance un cran plus basse, le contraste un cran plus haut — les ombres se creusent, la laque fonce ;
+		-- le reflet du ciel sur les laques à 0,5 — à 0,75 l'azur délavait l'orange de la caisse en pêche, comme au titre)
 	},
 	midi = {
 		brume = RGB(236, 240, 236), loin = RGB(72, 140, 244), eclat = 0.15, voile = 0.3, densite = 0.032,
-		soleil = Color3.new(1, 0.99, 0.96), ext = RGB(232, 234, 250), teinte = RGB(252, 252, 255), sat = 0.36, con = 0.3, expo = -0.05,
-		S = V3(300, 286, 256), OH = V3(184, 188, 244), OB = V3(156, 160, 230), mer = Color3.new(1, 1, 1), -- (5/10 : un soleil plus chaud sur le coton)
+		soleil = Color3.new(1, 0.99, 0.96), ext = RGB(222, 224, 244), teinte = RGB(252, 252, 255), sat = 0.36, con = 0.33, expo = -0.1,
+		S = V3(276, 264, 242), OH = V3(184, 188, 244), OB = V3(156, 160, 230), mer = Color3.new(1, 1, 1), env = { 0.3, 0.5 }, -- (5/10 : un soleil plus chaud sur le coton)
+		-- (6/10, banc : face au soleil de midi les cumulus sortaient BLANC PUR, sans un pli — leur face au soleil baisse d'un dixième)
 	},
 	-- LE TITRE (BIOMES.titre du web) : le matin poussé vers l'écran titre de Zelda — azur profond, horizon presque blanc, brume très loin
 	-- (3/10, mesuré au banc : à densité 0,03 la brume de Roblox EFFAÇAIT tout le décor du titre — les 18 cumulus, à 2-7 km de la
@@ -6192,13 +6195,17 @@ local HEURES: { [string]: any } = {
 	-- 0,01 la mer et les cumulus reviennent, comme sur le web)
 	titre = {
 		brume = RGB(226, 238, 250), loin = RGB(70, 140, 235), eclat = 0.1, voile = 0.25, densite = 0.01,
-		soleil = Color3.new(1, 0.96, 0.88), ext = RGB(235, 232, 246), teinte = RGB(255, 252, 248), sat = 0.34, con = 0.22, expo = -0.04,
-		S = V3(286, 280, 268), OH = V3(176, 194, 242), OB = V3(152, 168, 228), mer = Color3.new(1, 1, 1),
+		-- (6/10, banc des graphismes, deux séries A/B : sous une ambiance presque blanche et le reflet du ciel à 0,75, la caisse du menu
+		-- sortait SAUMON PASTEL (219,88,55) ; ambiance lavande plus basse, reflet du ciel au quart, exposition − 0,14, contraste + 0,08 :
+		-- la laque redevient un orange franc, le ciel s'approfondit ; les cumulus, eux, sont repeints plus clairs d'autant — ils
+		-- gardent leur blanc —, et la mer de nuages prend un bleu de glacier au lieu d'un blanc brûlé)
+		soleil = Color3.new(1, 0.96, 0.88), ext = RGB(178, 180, 212), teinte = RGB(255, 250, 250), sat = 0.38, con = 0.3, expo = -0.18,
+		S = V3(316, 306, 288), OH = V3(186, 202, 248), OB = V3(162, 176, 236), mer = RGB(226, 234, 255), env = { 0.25, 0.3 },
 	},
 	aprem = {
 		brume = RGB(255, 214, 168), loin = RGB(84, 128, 220), eclat = 1.0, voile = 0.9, densite = 0.046,
-		soleil = Color3.new(1, 0.88, 0.72), ext = RGB(236, 222, 232), teinte = RGB(255, 244, 232), sat = 0.42, con = 0.32, expo = -0.1,
-		S = V3(292, 246, 198), OH = V3(162, 168, 226), OB = V3(136, 140, 206), mer = Color3.new(1, 0.93, 0.86),
+		soleil = Color3.new(1, 0.88, 0.72), ext = RGB(228, 214, 228), teinte = RGB(255, 244, 232), sat = 0.42, con = 0.34, expo = -0.1,
+		S = V3(292, 246, 198), OH = V3(162, 168, 226), OB = V3(136, 140, 206), mer = Color3.new(1, 0.93, 0.86), env = { 0.3, 0.5 },
 	},
 	-- ── LA PLUIE NÉON (BIOMES.pluie, L13084) : le ciel du niveau VILLE — un plafond ardoise bas et mouillé, ni soleil ni étoiles, une
 	-- brume VIOLETTE qui avale le lointain, et toute la couleur qui vient d'en bas : remplissage cyan, contre-jour MAGENTA.
@@ -6212,8 +6219,12 @@ local HEURES: { [string]: any } = {
 		-- violette (150,50,170) à saturation 0,5 donnait un ciel OUTREMER (45,0,241). Une brume ROSE (190,80,140), une saturation de
 		-- 0,25 et une exposition un cran plus bas rendent le violet profond du web (50,6,114 au zénith)
 		brume = RGB(190, 80, 140), loin = RGB(120, 50, 100), eclat = 0, voile = 10, densite = 0.26,
-		soleil = RGB(255, 96, 190), ext = RGB(235, 225, 250), teinte = RGB(238, 226, 255), sat = 0.25, con = 0.28, expo = -0.1,
+		soleil = RGB(255, 96, 190), ext = RGB(235, 225, 250), teinte = RGB(238, 226, 255), sat = 0.25, con = 0.34, expo = -0.1,
 		S = V3(282, 272, 254), OH = V3(182, 194, 238), OB = V3(158, 168, 224), mer = Color3.new(1, 1, 1),
+		-- (6/10, banc des graphismes) LE NÉON QUI BAVE : un bloom plus large et plus bas — les enseignes, les rails et les fenêtres
+		-- s'auréolent dans la pluie ; et le dessous de la caisse prend le MAGENTA qui remonte du bitume mouillé (le voile, lui, ne
+		-- dessine aucun dégradé dans un ciel de nuit : 3,5, 6 ou 10, même aplat violet)
+		bloom = { 0.75, 32, 1.1 }, bas = RGB(255, 70, 190),
 	},
 	-- ── L'ORBITE (BIOMES.espace, L13063) : pas de ciel — « le NOIR COMPLET : zéro étoile, zéro lune, zéro halo solaire » ; UN soleil
 	-- blanc et dur ; le dessous éclairé par le bleu de la Terre.
@@ -6222,10 +6233,14 @@ local HEURES: { [string]: any } = {
 	espace = {
 		-- (mesuré : sous une ambiance bleu Terre (40,64,132) à saturation 0,4, le bitume sortait BLEU ÉLECTRIQUE (5,10,190) ; le web est
 		-- un indigo violacé (50,45,130) — l'ambiance garde du rouge, l'étalonnage sature moitié moins)
-		noir = true, etoiles = 0, lum = 2.6, amb = RGB(70, 62, 120),
+		-- (6/10, banc des graphismes) LE SOLEIL DUR : l'ambiance baisse d'un quart, le soleil monte, le contraste aussi — les faces à
+		-- l'ombre de la caisse et des satellites tombent dans le noir comme sur une photo d'orbite, et la route (Construction : un
+		-- indigo violacé au lieu du bleu électrique) ne brille plus comme un néon. Le bloom auréole les rails cyan.
+		noir = true, etoiles = 0, lum = 2.9, amb = RGB(54, 50, 96),
 		brume = RGB(0, 0, 0), loin = RGB(0, 0, 0), eclat = 0, voile = 0, densite = 0,
-		soleil = Color3.new(1, 0.97, 0.92), ext = RGB(80, 84, 150), teinte = RGB(246, 248, 255), sat = 0.2, con = 0.34, expo = -0.1,
+		soleil = Color3.new(1, 0.97, 0.92), ext = RGB(60, 64, 120), teinte = RGB(246, 248, 255), sat = 0.2, con = 0.44, expo = -0.1,
 		S = V3(282, 272, 254), OH = V3(182, 194, 238), OB = V3(158, 168, 224), mer = Color3.new(1, 1, 1),
+		bloom = { 0.55, 28, 1.2 },
 	},
 }
 -- ── LA TEMPÊTE (BIOMES.tempete, L13162) : le ciel de L'ORAGE — les nuages du niveau 1 dans le noir : ardoise au zénith, une brume
@@ -6235,9 +6250,13 @@ HEURES.tempete = {
 	-- (mesuré au banc, 2/10) une brume ardoise (58,62,96) à densité 0,5 noyait tout dans un bleu outremer, nuages compris : le web
 	-- montre des nuages GRIS-LAVANDE sur un indigo violacé. La brume part donc vers le ROSE (Roblox lui retire son rouge), la densité
 	-- tombe à 0,3, et la caisse garde une vraie lumière (elle est claire sur le web)
-	sansSoleil = true, etoiles = 0, lum = 1.0, amb = RGB(118, 116, 170),
+	-- (6/10, banc des graphismes) L'ORAGE PASSE À LA NUIT : sous l'horloge du jour, même sans soleil, Roblox éclairait la brume —
+	-- un orage LAVANDE PÂLE, délavé, la mer de nuages blanche dessous. À minuit (`nuit`) la brume s'éteint : ciel d'ardoise
+	-- violacée, route d'encre, nuages gris-lavande dans le noir ; l'ambiance et l'exposition remontent pour garder la route lisible
+	-- et la lampe du héros (1,2) garde la caisse claire.
+	sansSoleil = true, nuit = true, etoiles = 0, lum = 0.6, amb = RGB(150, 146, 190), heros = 1.2,
 	brume = RGB(160, 96, 124), loin = RGB(96, 60, 88), eclat = 0, voile = 10, densite = 0.3,
-	soleil = Color3.new(0.66, 0.70, 0.92), ext = RGB(180, 176, 220), teinte = Color3.new(1, 1, 1), sat = 0.1, con = 0.2, expo = -0.05,
+	soleil = Color3.new(0.66, 0.70, 0.92), ext = RGB(170, 166, 210), teinte = Color3.new(1, 1, 1), sat = 0.1, con = 0.24, expo = 0.15,
 	S = V3(214, 208, 238), OH = V3(120, 118, 166), OB = V3(62, 58, 98), mer = Color3.new(0.42, 0.40, 0.56),
 }
 -- ── MINUIT (BIOMES.nuitNoire, L13175) : la PLUIE NÉON trois heures plus tard. Le ciel presque noir, quelques étoiles, une brume
@@ -6249,6 +6268,8 @@ HEURES.minuit = {
 	brume = RGB(60, 30, 70), loin = RGB(30, 14, 40), eclat = 0, voile = 6, densite = 0.3,
 	soleil = RGB(120, 140, 220), ext = RGB(170, 164, 196), teinte = RGB(236, 232, 255), sat = 0.28, con = 0.15, expo = 0.25,
 	S = V3(282, 272, 254), OH = V3(182, 194, 238), OB = V3(158, 168, 224), mer = Color3.new(1, 1, 1),
+	-- (6/10) les fenêtres qui restent et les enseignes qui couvent s'auréolent ; le dessous de la caisse prend le rose des néons
+	bloom = { 0.6, 30, 1.2 }, bas = RGB(200, 60, 180),
 }
 local ORDRE = { "matin", "midi", "aprem" }
 local FACES = { "SkyboxBk", "SkyboxDn", "SkyboxFt", "SkyboxLf", "SkyboxRt", "SkyboxUp" }
@@ -6269,6 +6290,12 @@ local ECLAT = { sat = 0.12, con = 0.08, voile = 0.55, eblouit = 0.5 }
 -- jour, ajoutée au soleil, elle délavait la laque en PÊCHE — elle se fait discrète
 local HEROS = { pluie = 1.1, minuit = 1.3, tempete = 1.0, espace = 0.6 }
 local HEROS_JOUR = 0.3
+-- LE POST-TRAITEMENT DE L'HEURE (5/10, Sacha : « améliore les graphismes au max ») : chaque heure règle aussi le BLOOM (`bloom` =
+-- intensité, taille, seuil), les RAYONS du soleil (`rayons` = intensité, étalement — éteints quand le soleil n'est pas là : sinon
+-- ils dessinaient un halo blanc dans le noir de l'orbite et dans le ciel bouché de l'orage), le REFLET DU CIEL (`env` = diffus,
+-- spéculaire) et la teinte des faces TOURNÉES À L'OPPOSÉ de la lumière (`bas` : ColorShift_Bottom — la nuit, c'est le néon d'en
+-- bas qui remonte sur la carrosserie). Sans clé : les valeurs de Ciel.poser.
+local BLOOM0, RAYONS0, ENV0, BAS0 = { 0.36, 24, 1.5 }, { 0.1, 0.55 }, { 0.3, 0.75 }, Color3.fromRGB(150, 135, 205)
 function Ambiance.poser(nom: string, duree: number?)
 	local H = HEURES[nom]
 	if not H or nom == courante then return end
@@ -6276,21 +6303,33 @@ function Ambiance.poser(nom: string, duree: number?)
 	local atm = Lighting:FindFirstChild("Altitude")
 	local cc = Lighting:FindFirstChild("Etalonnage")
 	local info = TweenInfo.new(math.max(0.01, duree or 1.2), Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
-	local kH = HEROS[nom] or HEROS_JOUR
+	local kH = H.heros or HEROS[nom] or HEROS_JOUR
 	workspace:SetAttribute("HerosK", kH)
 	local mc = workspace:FindFirstChild("MaCaisse")
 	local lh = mc and mc:FindFirstChild("Heros", true)
 	if lh and lh:IsA("PointLight") then TweenService:Create(lh, info, { Brightness = kH }):Play() end
+	local jour = not (H.nuit or H.noir or H.sansSoleil)
 	if atm then
-		local jour = not (H.nuit or H.noir or H.sansSoleil)
 		TweenService:Create(atm, info, { Color = H.brume, Decay = H.loin, Glare = H.eclat * (jour and ECLAT.eblouit or 1),
 			Haze = H.voile * (jour and ECLAT.voile or 1), Density = H.densite }):Play()
 	end
 	if cc then
 		TweenService:Create(cc, info, { TintColor = H.teinte, Saturation = H.sat + ECLAT.sat, Contrast = H.con + ECLAT.con }):Play()
 	end
+	local env = H.env or ENV0
 	TweenService:Create(Lighting, info, { ColorShift_Top = H.soleil, OutdoorAmbient = H.ext, ExposureCompensation = H.expo,
-		Brightness = H.lum or 1.2, Ambient = H.amb or Config.CIEL.ambiance }):Play()
+		Brightness = H.lum or 1.2, Ambient = H.amb or Config.CIEL.ambiance, ColorShift_Bottom = H.bas or BAS0,
+		EnvironmentDiffuseScale = env[1], EnvironmentSpecularScale = env[2] }):Play()
+	local bloom = Lighting:FindFirstChildOfClass("BloomEffect")
+	if bloom then
+		local b = H.bloom or BLOOM0
+		TweenService:Create(bloom, info, { Intensity = b[1], Size = b[2], Threshold = b[3] }):Play()
+	end
+	local rays = Lighting:FindFirstChildOfClass("SunRaysEffect")
+	if rays then
+		local r = H.rayons or RAYONS0
+		TweenService:Create(rays, info, { Intensity = jour and r[1] or 0, Spread = r[2] }):Play()
+	end
 	-- le JOUR ou la NUIT : l'horloge bascule à mi-fondu (le ciel noir de la ville et de l'orbite, sans soleil ni lune de Roblox)
 	local ciel = Lighting:FindFirstChild("CielCashCar")
 	task.delay((duree or 1.2) * 0.5, function()
@@ -6305,7 +6344,7 @@ function Ambiance.poser(nom: string, duree: number?)
 				FACES_JOUR = {}
 				for _, f in FACES do FACES_JOUR[f] = (ciel :: any)[f] end
 			end
-			for _, f in FACES do (ciel :: any)[f] = H.noir and NOIR or FACES_JOUR[f] end
+			for _, f in FACES do (ciel :: any)[f] = (H.noir or H.fond == "noir") and NOIR or FACES_JOUR[f] end
 		end
 	end)
 	-- les nuages changent de palette à mi-fondu (le web passe par le sombre au portail : on ne voit pas la bascule)
@@ -6361,6 +6400,40 @@ function Ambiance.init()
 	workspace:GetAttributeChangedSignal("DbgHeure"):Connect(function()
 		local v = workspace:GetAttribute("DbgHeure")
 		if type(v) == "string" then Ambiance.poser(v, 0.4) end
+	end)
+	-- (mise au point, le banc des graphismes) workspace:SetAttribute("DbgAmb", '{"sat":0.3,"S":[300,280,250],"brume":[200,180,255]}') :
+	-- l'heure en cours RETOUCHÉE en direct (couleurs en 0-255, la palette des nuages en Vector3) — pour régler une heure au banc sans
+	-- reconstruire ; "" rend l'heure d'origine
+	local COUL = { brume = true, loin = true, soleil = true, ext = true, teinte = true, amb = true, mer = true, bas = true }
+	local origine = ""
+	workspace:GetAttributeChangedSignal("DbgAmb"):Connect(function()
+		local v = workspace:GetAttribute("DbgAmb")
+		if courante ~= "dbg" then origine = courante end
+		local B = HEURES[origine]
+		if not B then return end
+		if type(v) ~= "string" or v == "" then
+			courante = ""
+			Ambiance.poser(origine, 0.05)
+			return
+		end
+		local ok, t = pcall(function() return game:GetService("HttpService"):JSONDecode(v) end)
+		if not ok or type(t) ~= "table" then
+			warn("[CashCar] DbgAmb illisible : " .. tostring(t))
+			return
+		end
+		local H = table.clone(B)
+		for k, x in t do
+			if type(x) == "table" and #x == 3 and (k == "S" or k == "OH" or k == "OB") then
+				H[k] = V3(x[1], x[2], x[3])
+			elseif type(x) == "table" and #x == 3 and COUL[k] then
+				H[k] = RGB(x[1], x[2], x[3])
+			else
+				H[k] = x
+			end
+		end
+		HEURES.dbg = H
+		courante = ""
+		Ambiance.poser("dbg", 0.05)
 	end)
 end
 
@@ -7990,9 +8063,14 @@ local REFLET = 0.02
 local HABITS: { [string]: any } = {
 	-- (5/10, Sacha : « prends des libertés pour la map ») le bitume des NUAGES s'assombrit — un violet profond qui fait ressortir la
 	-- caisse orange et le coton blanc — et la lueur cyan des rails saigne deux fois plus loin sur la route, comme en ville
-	nuages = { accent = R.neon, bitume = Color3.fromRGB(56, 50, 96), nappe = 2.4, nappeK = 0.5 },
+	-- (6/10, banc des graphismes, Sacha : « améliore les graphismes au max ») mesuré à l'écran, ce violet sortait BLEU ROI
+	-- (45,42,188) : le ciel, l'ambiance et la saturation de l'étalonnage lui mangeaient son rouge — une nappe d'eau, pas une route.
+	-- Plus de rouge, moins de bleu dans la matière : à l'écran un VIOLET PROFOND (celui de la fin d'après-midi), qui se détache du
+	-- ciel cyan, du coton lavande et de la caisse orange.
+	nuages = { accent = R.neon, bitume = Color3.fromRGB(70, 46, 86), nappe = 2.4, nappeK = 0.5 },
 	ville = { accent = Color3.fromRGB(242, 74, 160), bitume = Color3.fromRGB(40, 34, 80), nappe = 3.35, nappeK = 0.62, reflets = 1 },
-	espace = { accent = Color3.fromRGB(94, 230, 255), bitume = Color3.fromRGB(62, 52, 118), nappe = 1.15, nappeK = 0.36 },
+	-- (6/10) l'orbite : sous le soleil dur (Ambiance), un INDIGO violacé — le bleu électrique d'avant luisait comme un néon sur le noir
+	espace = { accent = Color3.fromRGB(94, 230, 255), bitume = Color3.fromRGB(64, 44, 92), nappe = 1.15, nappeK = 0.36 },
 }
 -- les VARIANTES : L'ORAGE prend le violet électrique de l'éclair (0x8a7dff) sur un bitume mouillé ; à MINUIT EN VILLE les néons de la
 -- route tombent à 40 % (villeApres) ; la PLUIE DE SATELLITES garde l'habit de l'orbite
@@ -8004,17 +8082,22 @@ HABITS.nuit = { accent = Color3.fromRGB(190, 58, 126), bitume = Color3.fromRGB(3
 -- points de plus par face — la dalle triplait, et quatre zones gardées en réserve vidaient le budget de maillages : la ville
 -- qui se préparait pendant le niveau NUAGES perdait ses fenêtres. Mesuré au banc, 2/10.)
 local nappes: { [any]: any } = {}
+local peindreNappe: (h: any, im: any) -> boolean
 local function imageNappe(h: any): any?
 	if nappes[h] ~= nil then return nappes[h] or nil end
 	nappes[h] = false
+	local ok, im = pcall(function() return AssetServiceR:CreateEditableImage({ Size = Vector2.new(128, h.reflets and 256 or 128) }) end)
+	if not ok or not im then return nil end
+	nappes[h] = peindreNappe(h, im) and im or false
+	return nappes[h] or nil
+end
+peindreNappe = function(h: any, im: any): boolean
 	-- LE BITUME MOUILLÉ DE LA VILLE (L9725 : « sous la pluie, la route n'était qu'un aplat violet : c'est pourtant LA surface qui fait
 	-- une nuit de pluie ») : `reflets` → l'image fait 96 m de long et porte des TRAÎNÉES de néon (magenta, cyan, ambre des fenêtres),
 	-- étirées dans le sens de la route comme des enseignes renvoyées par l'eau. Roblox ne reflète que le ciel : ces reflets sont
 	-- peints, pas calculés — mais en roulant, c'est bien une route qui brille.
 	-- (4/10 : toutes les routes ont une LONGUEUR d'image — 96 m — pour porter la matière du bitume, voir plus bas)
 	local N, H = 128, h.reflets and 256 or 128
-	local ok, im = pcall(function() return AssetServiceR:CreateEditableImage({ Size = Vector2.new(N, H) }) end)
-	if not ok or not im then return nil end
 	local px = table.create(N * H * 3, 0)
 	for x = 0, N - 1 do
 		local d = math.min(x + 0.5, N - x - 0.5) / N * 2 * RH -- (mètres depuis le bord le plus proche)
@@ -8085,10 +8168,23 @@ local function imageNappe(h: any): any?
 		for j = 1, 3 do buffer.writeu8(b, i * 4 + j - 1, math.clamp(math.floor(px[i * 3 + j] * 255 + 0.5), 0, 255)) end
 		buffer.writeu8(b, i * 4 + 3, 255)
 	end
-	local ok2 = pcall(function() im:WritePixelsBuffer(Vector2.zero, Vector2.new(N, H), b) end)
-	nappes[h] = ok2 and im or false
-	return nappes[h] or nil
+	return (pcall(function() im:WritePixelsBuffer(Vector2.zero, Vector2.new(N, H), b) end))
 end
+-- (mise au point, le banc des graphismes) workspace:SetAttribute("DbgBitume", '{"niveau":"nuages","bitume":[60,56,80],"nappeK":0.5}') :
+-- l'habit d'un niveau RETOUCHÉ et son image REPEINTE en place — toutes les dalles qui la portent changent sur-le-champ
+workspace:GetAttributeChangedSignal("DbgBitume"):Connect(function()
+	local v = workspace:GetAttribute("DbgBitume")
+	if type(v) ~= "string" or v == "" then return end
+	local ok, t = pcall(function() return game:GetService("HttpService"):JSONDecode(v) end)
+	if not ok or type(t) ~= "table" then return end
+	local h = HABITS[t.niveau or "nuages"]
+	if not h then return end
+	for k, x in t do
+		if k ~= "niveau" and k ~= "reflets" then h[k] = (type(x) == "table") and Color3.fromRGB(x[1], x[2], x[3]) or x end
+	end
+	local im = nappes[h]
+	if im then peindreNappe(h, im) end
+end)
 modeleCoin.Reflectance = REFLET -- (le BITUME GLACÉ du jeu web : sombre de près, il prend le ciel et les nuages en rasant — sans reflet, un trou noir)
 
 -- (rec : une pièce de DÉCOR, reprise au recyclage quand la zone est oubliée — voir Client/Recyclage)

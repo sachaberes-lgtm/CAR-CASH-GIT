@@ -38,9 +38,14 @@ local REFLET = 0.02
 local HABITS: { [string]: any } = {
 	-- (5/10, Sacha : « prends des libertés pour la map ») le bitume des NUAGES s'assombrit — un violet profond qui fait ressortir la
 	-- caisse orange et le coton blanc — et la lueur cyan des rails saigne deux fois plus loin sur la route, comme en ville
-	nuages = { accent = R.neon, bitume = Color3.fromRGB(56, 50, 96), nappe = 2.4, nappeK = 0.5 },
+	-- (6/10, banc des graphismes, Sacha : « améliore les graphismes au max ») mesuré à l'écran, ce violet sortait BLEU ROI
+	-- (45,42,188) : le ciel, l'ambiance et la saturation de l'étalonnage lui mangeaient son rouge — une nappe d'eau, pas une route.
+	-- Plus de rouge, moins de bleu dans la matière : à l'écran un VIOLET PROFOND (celui de la fin d'après-midi), qui se détache du
+	-- ciel cyan, du coton lavande et de la caisse orange.
+	nuages = { accent = R.neon, bitume = Color3.fromRGB(70, 46, 86), nappe = 2.4, nappeK = 0.5 },
 	ville = { accent = Color3.fromRGB(242, 74, 160), bitume = Color3.fromRGB(40, 34, 80), nappe = 3.35, nappeK = 0.62, reflets = 1 },
-	espace = { accent = Color3.fromRGB(94, 230, 255), bitume = Color3.fromRGB(62, 52, 118), nappe = 1.15, nappeK = 0.36 },
+	-- (6/10) l'orbite : sous le soleil dur (Ambiance), un INDIGO violacé — le bleu électrique d'avant luisait comme un néon sur le noir
+	espace = { accent = Color3.fromRGB(94, 230, 255), bitume = Color3.fromRGB(64, 44, 92), nappe = 1.15, nappeK = 0.36 },
 }
 -- les VARIANTES : L'ORAGE prend le violet électrique de l'éclair (0x8a7dff) sur un bitume mouillé ; à MINUIT EN VILLE les néons de la
 -- route tombent à 40 % (villeApres) ; la PLUIE DE SATELLITES garde l'habit de l'orbite
@@ -52,17 +57,22 @@ HABITS.nuit = { accent = Color3.fromRGB(190, 58, 126), bitume = Color3.fromRGB(3
 -- points de plus par face — la dalle triplait, et quatre zones gardées en réserve vidaient le budget de maillages : la ville
 -- qui se préparait pendant le niveau NUAGES perdait ses fenêtres. Mesuré au banc, 2/10.)
 local nappes: { [any]: any } = {}
+local peindreNappe: (h: any, im: any) -> boolean
 local function imageNappe(h: any): any?
 	if nappes[h] ~= nil then return nappes[h] or nil end
 	nappes[h] = false
+	local ok, im = pcall(function() return AssetServiceR:CreateEditableImage({ Size = Vector2.new(128, h.reflets and 256 or 128) }) end)
+	if not ok or not im then return nil end
+	nappes[h] = peindreNappe(h, im) and im or false
+	return nappes[h] or nil
+end
+peindreNappe = function(h: any, im: any): boolean
 	-- LE BITUME MOUILLÉ DE LA VILLE (L9725 : « sous la pluie, la route n'était qu'un aplat violet : c'est pourtant LA surface qui fait
 	-- une nuit de pluie ») : `reflets` → l'image fait 96 m de long et porte des TRAÎNÉES de néon (magenta, cyan, ambre des fenêtres),
 	-- étirées dans le sens de la route comme des enseignes renvoyées par l'eau. Roblox ne reflète que le ciel : ces reflets sont
 	-- peints, pas calculés — mais en roulant, c'est bien une route qui brille.
 	-- (4/10 : toutes les routes ont une LONGUEUR d'image — 96 m — pour porter la matière du bitume, voir plus bas)
 	local N, H = 128, h.reflets and 256 or 128
-	local ok, im = pcall(function() return AssetServiceR:CreateEditableImage({ Size = Vector2.new(N, H) }) end)
-	if not ok or not im then return nil end
 	local px = table.create(N * H * 3, 0)
 	for x = 0, N - 1 do
 		local d = math.min(x + 0.5, N - x - 0.5) / N * 2 * RH -- (mètres depuis le bord le plus proche)
@@ -133,10 +143,23 @@ local function imageNappe(h: any): any?
 		for j = 1, 3 do buffer.writeu8(b, i * 4 + j - 1, math.clamp(math.floor(px[i * 3 + j] * 255 + 0.5), 0, 255)) end
 		buffer.writeu8(b, i * 4 + 3, 255)
 	end
-	local ok2 = pcall(function() im:WritePixelsBuffer(Vector2.zero, Vector2.new(N, H), b) end)
-	nappes[h] = ok2 and im or false
-	return nappes[h] or nil
+	return (pcall(function() im:WritePixelsBuffer(Vector2.zero, Vector2.new(N, H), b) end))
 end
+-- (mise au point, le banc des graphismes) workspace:SetAttribute("DbgBitume", '{"niveau":"nuages","bitume":[60,56,80],"nappeK":0.5}') :
+-- l'habit d'un niveau RETOUCHÉ et son image REPEINTE en place — toutes les dalles qui la portent changent sur-le-champ
+workspace:GetAttributeChangedSignal("DbgBitume"):Connect(function()
+	local v = workspace:GetAttribute("DbgBitume")
+	if type(v) ~= "string" or v == "" then return end
+	local ok, t = pcall(function() return game:GetService("HttpService"):JSONDecode(v) end)
+	if not ok or type(t) ~= "table" then return end
+	local h = HABITS[t.niveau or "nuages"]
+	if not h then return end
+	for k, x in t do
+		if k ~= "niveau" and k ~= "reflets" then h[k] = (type(x) == "table") and Color3.fromRGB(x[1], x[2], x[3]) or x end
+	end
+	local im = nappes[h]
+	if im then peindreNappe(h, im) end
+end)
 modeleCoin.Reflectance = REFLET -- (le BITUME GLACÉ du jeu web : sombre de près, il prend le ciel et les nuages en rasant — sans reflet, un trou noir)
 
 -- (rec : une pièce de DÉCOR, reprise au recyclage quand la zone est oubliée — voir Client/Recyclage)

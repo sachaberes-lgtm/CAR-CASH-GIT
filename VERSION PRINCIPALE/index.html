@@ -5877,6 +5877,16 @@ html body #garage.vitrine.aideInv:not(.menu):not(.inv) #gInvAide{display:flex}
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.1),inset 0 1px 0 rgba(255,255,255,.12),0 10px 24px -12px rgba(0,0,0,.8);
   animation:gvAide 9s var(--ease) 1.1s both}
 #gInvAide b{font-weight:400;color:#fff;letter-spacing:1px}
+/* LES GESTES DU BURN-OUT (2026-10-06) : « DONUT ×n » jaillit au-dessus de la caisse et s'envole — la voix du HUD (contour d'encre) */
+#gBurnTxt{position:fixed;left:50%;top:40%;z-index:61;pointer-events:none;font-family:var(--pix);font-size:15px;letter-spacing:2px;white-space:nowrap;color:var(--bc,#ffd75e);opacity:0;translate:-50% -100%;
+  text-shadow:2px 0 0 #1c0430,-2px 0 0 #1c0430,0 2px 0 #1c0430,0 -2px 0 #1c0430,2px 2px 0 #1c0430,-2px 2px 0 #1c0430,2px -2px 0 #1c0430,-2px -2px 0 #1c0430,0 4px 0 #1c0430,0 0 14px var(--bc,#ffd75e)}
+#gBurnTxt.lent{font-size:10px;letter-spacing:1px}
+#gBurnTxt.on{animation:gBurnTxt 1.15s var(--ease) both}#gBurnTxt.on2{animation:gBurnTxt2 1.15s var(--ease) both}
+#gBurnTxt.lent.on{animation:gBurnTxt 2.6s var(--ease) both}#gBurnTxt.lent.on2{animation:gBurnTxt2 2.6s var(--ease) both}
+#gBurnTxt.calme.on,#gBurnTxt.calme.on2{animation:gBurnTxtC 1.4s linear both}
+@keyframes gBurnTxt{0%{opacity:0;scale:1.8}12%{opacity:1;scale:.92}22%{scale:1.05}32%{scale:1;translate:-50% -100%}72%{opacity:1}100%{opacity:0;translate:-50% -190%}}
+@keyframes gBurnTxt2{0%{opacity:0;scale:1.8}12%{opacity:1;scale:.92}22%{scale:1.05}32%{scale:1;translate:-50% -100%}72%{opacity:1}100%{opacity:0;translate:-50% -190%}}
+@keyframes gBurnTxtC{0%,100%{opacity:0}15%,75%{opacity:1}}
 #gInvAide b::before{content:'·';margin-right:8px;color:var(--tx3)}
 #gInvAide .ivDoigt{position:relative;width:12px;height:12px;flex:none;border-radius:50%;background:#fff;box-shadow:0 0 8px #fff}
 #gInvAide .ivDoigt::after{content:'';position:absolute;inset:-6px;border-radius:50%;box-shadow:0 0 0 2px rgba(255,255,255,.75);animation:gvDoigt 1.6s var(--ease) infinite}
@@ -36807,7 +36817,8 @@ function openGarage(quiet){
   garageAng=Math.PI;garagePitch=.2;garageDist=7.8;GAR.vA=0;GAR.vAc=0;GAR.vW=0;GAR.vD=0;GAR.vDv=0;GAR.vDw=0;GAR.preE=0;GAR.aVl=null;GAR.vAv=0;GAR.vDon=true;GAR.ret=null;GAR.tDoigt=0;GAR.pT=.2;GAR.roll=0;GAR.swK=0;GAR.fige=false; // (2026-09-30, Léo, capture de sa branche : « c'est ça que je veux ») on entre DERRIÈRE la caisse, la porte en feu au fond du cadre — le plateau la fait tourner ensuite (voir GAR_CAM_A)
   garageShow(level||0);
   GMIS.mk=0;garMode(GAR.aMenu?'menu':'boutique');GAR.aMenu=false;
-  if(GAR.aMis){GAR.aMis=false;garMode('missions');} // (2026-09-30) la porte des MISSIONS, venue d'ailleurs (écran de mort…) // (2026-09-30) ouvert par l'ACCUEIL = le menu ; par un autre chemin (mort → GARAGE, missions, objectif) = la boutique
+  if(GAR.aMis){GAR.aMis=false;garMode('missions');}
+  GAR.vueT=0;GAR.vueNeuve=true; // (2026-10-06) LA MISE EN PLACE : l'atelier qui s'ouvre pose son plan d'un coup (voir garageRender) — (2026-09-30) la porte des MISSIONS, venue d'ailleurs (écran de mort…) // (2026-09-30) ouvert par l'ACCUEIL = le menu ; par un autre chemin (mort → GARAGE, missions, objectif) = la boutique
 }
 function closeGarage(){
   try{burnCoupe();}catch(e){} // (2026-10-05) le burn-out ne survit pas à l'atelier
@@ -37154,7 +37165,7 @@ function garPorte(dt){ // FERMÉE tant qu'on ne part pas ; le JOUER (GAR.go, ret
   Pt.k=GAR.go?Math.min(1,Pt.k+dt/.8):0;
   /* (2026-10-05, Léo : « centré sur l'entrée, sans la porte ») en VITRINE la porte se LÈVE (1,1 s) : l'entrée et le feu, en face — elle redescend
      quand on quitte la vitrine. ⚠ la porte fermée est un choix de Sacha (menu, boutique) : ici seulement en vitrine, à confirmer avec elle. */
-  const vo9=(gEl&&gEl.classList.contains('vitrine')&&!gEl.classList.contains('menu'))?1:0;Pt.kv=(Pt.kv||0)+(vo9-(Pt.kv||0))*Math.min(1,dt*1.8);
+  const vo9=(gEl&&gEl.classList.contains('vitrine')&&!gEl.classList.contains('menu'))?1:0;Pt.kv= /* (2026-10-06) ⚠ la vitrine SEULE : dans la console de Sacha la vue de Léo regarde la porte FERMÉE (son choix, voir garVueLeo) */(Pt.kv||0)+(vo9-(Pt.kv||0))*Math.min(1,dt*1.8);
   const kk9=Math.max(Pt.k,Pt.kv);garPortePose(Pt.force!=null?Pt.force:!PORTE_FERMEE?1:kk9*kk9*(3-2*kk9)); // (Pt.force : dbgPorte, le banc) — (Léo : « enlève la porte ») sans PORTE_FERMEE elle reste RELEVÉE sous le plafond : le feu se voit au menu
   const F=GAR.feu,fl=F?.82+.12*Math.sin(F.t*9.1)+.06*Math.sin(F.t*23.7):1;Pt.mH.emissiveIntensity=fl*(1-Pt.e*.6); // les hublots battent avec le feu
   const B=GAR.beau;if(B){if(B.fac)B.fac.material.opacity=.2*(.15+.85*Pt.e);if(B.braises)B.braises.visible=Pt.e>.3;} // porte fermée : la lumière du feu ne passe plus qu'au ras du sol, pas de braises
@@ -37677,7 +37688,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
      avec les flammes — la caisse se découpe sur le rideau de feu, bordée d'orange. Dos à la porte, il redevient le cyan d'avant. */
   {const cA9=garCamA(),wF=Math.max(0,-Math.cos(cA9))*(.25+.75*(GAR.porte?Math.max(0,GAR.porte.e):1)),fl9=1+.13*Math.sin(t9*9.1)+.08*Math.sin(t9*23.7);
    stallKey.position.set(Math.sin(cA9+.72)*5.2,ay+4.1,Math.cos(cA9+.72)*5.2);
-   stallRim.color.setRGB(.44+.56*wF,.82-.42*wF,1-.86*wF);stallRim.intensity=(.5+.6*wF)*(wF>0?fl9:1)+VITRINE_CAM.rim*(GAR.vit||0);stallRim.distance=26;stallKey.intensity+=VITRINE_CAM.cle*(GAR.vit||0); // (vitrine v2) la clé et le contre-jour montent d'un cran : la caisse se DÉTACHE
+   stallRim.color.setRGB(.44+.56*wF,.82-.42*wF,1-.86*wF);garRessort(GAR,'vitL','vitLv',GAR.vit||0,4.8,dt);stallRim.intensity=(.5+.6*wF)*(wF>0?fl9:1)+VITRINE_CAM.rim*(GAR.vitL||0);stallRim.distance=26;stallKey.intensity+=VITRINE_CAM.cle*(GAR.vitL||0); /* (LA MISE EN PLACE) les lampes gardent leur FONDU quand le plan se pose d'un coup (`vitL`) */ // (vitrine v2) la clé et le contre-jour montent d'un cran : la caisse se DÉTACHE
    stallRim.position.set(Math.sin(cA9+Math.PI+.35)*6,ay+2.3,Math.cos(cA9+Math.PI+.35)*6);}
   // LE TUBE AU MAUVAIS STARTER : un néon sur six grésille. C'est ce seul détail qui fait passer le
   // décor de « maquette bien rangée » à « garage » — un atelier neuf, ça n'existe pas.
@@ -37763,7 +37774,20 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
      descend vers la hauteur des phares, se rapproche, l'objectif se resserre (un peu de téléobjectif : la caisse se tasse moins, elle a du
      poids), la visée remonte (le regard presque à niveau) et le plateau tourne plus lentement — `GAR.vit` (0 → 1) fond le tout, à l'aller
      comme au retour (SHOP déplie la console : on revient au cadrage de la boutique en douceur). Réglages à chaud : `VITRINE_CAM`. */
-  garRessort(GAR,'vit','vitV',((gEl&&gEl.classList.contains('vitrine'))&&!menu9)?1:0,4.8,dt);if(GAR.vit<0||GAR.vit>1){GAR.vit=Math.min(1,Math.max(0,GAR.vit));GAR.vitV=0;} // (2026-10-06) le fondu vitrine ⇄ boutique en RESSORT : il partait à pleine vitesse (1er ordre ×2,4/s) — la caméra, l'objectif et le recul démarraient d'un coup
+  /* LA MISE EN PLACE (2026-10-06, Léo : « corrige le bug de mise en point »). MESURÉ : la porte GARAGE de l'accueil passe l'atelier du menu
+     à la console SOUS le volet, mais le plan se réglait ensuite à vue — 3 s de ressorts après le lever du volet (la caméra tournait de 38°,
+     reculait de 8,8 à 11 m, l'image glissait de 88 px). Désormais, quand la vue de Léo s'allume pendant que l'écran est CACHÉ (volet, ou
+     atelier qui vient de s'ouvrir), le plan est RÉSOLU sur-le-champ : six passes de garageRender(0) (rien n'avance, rien n'est dessiné) où
+     fondu, recul, décalage de caméra et décentrement d'image prennent leur valeur au lieu de la rejoindre (`GAR.vuePose`), puis une image
+     de plus pour affiner. Le volet se lève sur un plan déjà posé. Une entrée À VUE (MISSIONS → ATELIER, sans volet) garde son vol. */
+  {if(!garageRender._cale&&GAR.vuePose>0)GAR.vuePose--;
+   const vT=garVueLeo()?1:0;
+   const vu9=!(ecranWipe._on||GAR.vueNeuve)&&(GMIS.mk||0)>.02; // À VUE : le retour des MISSIONS (le vol de la vue d'ensemble est en cours)
+   if(vT&&!GAR.vueT&&(ecranWipe._on||GAR.vueNeuve||vu9)&&!garageRender._cale){GAR.vueT=1;GAR.vuePose=2;garLibre._r=null;GAR.ret=null;GAR.vAv=0;GAR.vDon=true;
+     const mk9=GMIS.mk;if(vu9)GMIS.mk=0; // le plan de l'ATELIER se résout sans la vue d'ensemble (elle fausse l'écart mesuré) ; le vol de retour se pose ensuite DESSUS, d'un seul mouvement
+     garageRender._cale=true;try{for(let i=0;i<6;i++)garageRender(0);}finally{garageRender._cale=false;if(vu9){GMIS.mk=mk9;GAR.vuePose=0;GAR.vDw=0;GAR.vDv=0;}}}
+   if(!garageRender._cale){GAR.vueT=vT;GAR.vueNeuve=false;}}
+  if(GAR.vuePose){GAR.vit=1;GAR.vitV=0;}else garRessort(GAR,'vit','vitV',garVueLeo()?1:0,4.8,dt); /* (2026-10-06) LA VUE DE LÉO : la vitrine OU la console de Sacha (voir garVueLeo) */if(GAR.vit<0||GAR.vit>1){GAR.vit=Math.min(1,Math.max(0,GAR.vit));GAR.vitV=0;} // (2026-10-06) le fondu vitrine ⇄ boutique en RESSORT : il partait à pleine vitesse (1er ordre ×2,4/s) — la caméra, l'objectif et le recul démarraient d'un coup
   const VK=GAR.vit,VC=VITRINE_CAM;
   if(!GAR.fige&&(!garageDrag||menu9||VK>.5))garageAng+=dt*(.24+(VC.rot-.24)*VK)*(1-BURN.k)*(garageDrag&&GAR.doigt==='caisse'?0:1);if(GAR.go)GAR.platW=0;if(!garageDrag&&GAR.platW){garageAng+=GAR.platW*dt;GAR.platW*=Math.exp(-dt*1.2);if(Math.abs(GAR.platW)<.03)GAR.platW=0;} // (même soir) le PLATEAU tenu ne tourne plus tout seul ; lancé, il file et ralentit // (le plateau tourne toujours : en vitrine le doigt tourne la VUE) // le tour de piste automatique, lent : on a le temps de regarder (au MENU le doigt bouge la VUE, pas le plateau : il continue de tourner)
   /* LE GARAGE QUI VIT (2026-09-30, Léo : « on est censé pouvoir tourner autour — soit le garage en rotation sans qu'on touche, soit
@@ -37875,7 +37899,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
   let dG0=garageDist*(1+POR*.34)*(1+vG*.12)*(gEl&&gEl.classList.contains('menu')?.8+.02*POR:1); // (debout ×.82 et plus de recul pour la bande de vignettes : la caisse de PROFIL — le plateau la tourne — tient encore dans la largeur) // (2026-09-30) au MENU il n'y a plus d'onglets en bas : la caméra s'approche, la caisse est le sujet
   // (2026-09-26, audit rendu) le recul pouvait atteindre ~12 m alors que rien de haut n'est garanti libre au-delà de 8,3 m : la caméra
   // traversait le décor. On plafonne le rayon HORIZONTAL à 8 m et on rend le cadrage par l'objectif (même taille de caisse à l'écran).
-  const cA=garCamA(),cPit=garagePitch+(GAR.swP||0)+VC.p*VK;
+  const cA=garCamA(),cPit=garagePitch+(GAR.swP||0)+VC.p*VK;GAR.vDcam=GAR.vD||0; // (LA MISE EN PLACE) le décalage avec lequel la caméra est posée À CETTE IMAGE (l'écart mesuré par garCadre est le sien)
   /* (vitrine v2) LE RECUL SE CALCULE SUR LA CAISSE : le plateau la montre de dos (2 m de large) puis de PROFIL (jusqu'à 6 m) — un recul fixe
      la coupait aux bords debout (mesuré : 30 px de chaque côté à 3/4). On fait comme un plateau photo : le rayon de son empreinte au sol
      (`garGabarit`, l'empreinte la plus large qu'elle montre en tournant) doit tenir dans `fw` de la largeur LIBRE (garLibre : tiroir ouvert
@@ -37889,7 +37913,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
       q=carGroup.rotation.y-(GAR_CAM_A+(GAR.vD||0)),sq=Math.abs(Math.sin(q)),cq=Math.abs(Math.cos(q)),
       w=G.a*sq+G.b*cq,pr=G.a*cq+G.b*sq,wE=G.R+(w-G.R)*VC.adapt,pE=G.R+(pr-G.R)*VC.adapt,
       dW=wE/(fw*zw*th)+pE,dH=(G.H*.5+pE*Math.sin(Math.max(.05,cPit))+.25)/((VC.fh+(VC.fhP-VC.fh)*POR)*zh*tv)+pE, /* (2026-10-06, Léo : « le point de vue couché d'avant, un peu plus éloigné, c'est mieux ») couché : fw ,9 · fh ,8, le recul d'avant la v112 ; debout inchangé (fwP · fhP ,88) */dV=Math.max(dW,dH,3.2);
-    if(GAR.dVs)garRessort(GAR,'dVs','dVv',dV,1.8,dt);else{GAR.dVs=dV;GAR.dVv=0;}dG0=dG0*(1-VK)+GAR.dVs*VK;} /* (2026-10-06) le recul en RESSORT (même retard, ~1,1 s) : l'inventaire qui s'ouvre changeait la place libre d'un coup, le travelling partait à pleine vitesse */ /* (même soir) le zoom ne dépend plus de l'angle du DOIGT (il zoomait pendant le glissé) : seulement de la caisse qui tourne, vue de la place de repos ; lissé ~1,1 s */
+    if(GAR.dVs&&!GAR.vuePose)garRessort(GAR,'dVs','dVv',dV,1.8,dt);else{GAR.dVs=dV;GAR.dVv=0;}dG0=dG0*(1-VK)+GAR.dVs*VK;} /* (2026-10-06) le recul en RESSORT (même retard, ~1,1 s) : l'inventaire qui s'ouvre changeait la place libre d'un coup, le travelling partait à pleine vitesse */ /* (même soir) le zoom ne dépend plus de l'angle du DOIGT (il zoomait pendant le glissé) : seulement de la caisse qui tourne, vue de la place de repos ; lissé ~1,1 s */
   const capH=8+2.5*Math.pow(Math.max(0,-Math.cos(cA)),2); // (2026-09-30, le tour complet) 10,5 m seulement dans l'axe libre (côté établi) ; ailleurs le décor est rangé pour 8 m (la règle des 8,3 m)
   const dG=Math.min(dG0,capH/Math.max(.2,Math.cos(garagePitch))); // (2026-09-29) 8 → 10,5 m : la caméra est FIXE, dans l'axe libre de l'atelier (côté établi) — elle recule au lieu d'ouvrir l'objectif jusqu'à ~87° (« l'effet loupe »)
   if(dG<dG0)fovG=Math.min(88,2*Math.atan(Math.tan(fovG*Math.PI/360)*dG0/dG)*180/Math.PI);
@@ -37911,10 +37935,10 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
      en bas à gauche, le fond au milieu) ne bouge plus ; avant, la visée basculait de l'entrée vers la caisse en cours de geste : un coup de fouet. */
   /* (même jour, « un peu générique — un juste milieu ») la visée n'est plus tout à fait rigide : elle TRAÎNE derrière le geste (dRegard /s,
      ~0,3 s) — la caisse glisse un peu dans le cadre pendant le tour et y revient quand la vue se pose : le flottement de la v109, sans son fouet. */
-  {const aV0=cA-(GAR.vD||0);if(GAR.aVl==null||VK<.5||GAR.fige)GAR.aVl=aV0;else GAR.aVl+=(aV0-GAR.aVl)*(1-Math.exp(-dt*VITRINE_CAM.dRegard));
+  {const aV0=cA-(GAR.vD||0);if(GAR.aVl==null||VK<.5||GAR.fige||GAR.vuePose)GAR.aVl=aV0;else GAR.aVl+=(aV0-GAR.aVl)*(1-Math.exp(-dt*VITRINE_CAM.dRegard));
    const aV=GAR.aVl,wD=VK*(1-(GAR.preE||0)),Lv=1.5+(GAR.D/2-1.5)*wD;GAR.wD=wD;
    const ty0=ay+1.0-POR*.65-vG*1.35+(VC.vise+VC.viseP*POR)*VK;
-   camera.lookAt(-Math.sin(aV)*Lv,ty0+(ay+VC.porteY-ty0)*wD,-Math.cos(aV)*Lv);
+   (GAR.lk||(GAR.lk=new THREE.Vector3())).set(-Math.sin(aV)*Lv,ty0+(ay+VC.porteY-ty0)*wD,-Math.cos(aV)*Lv);camera.lookAt(GAR.lk); // (LA MISE EN PLACE) le point visé est gardé : le vol des MISSIONS part de LUI
    const e9=Math.abs(GAR.cErr||0);if(e9>.03)GAR.vDon=true;else if(e9<.006)GAR.vDon=false; /* (même soir, Léo : « arrête de faire tourner automatiquement le garage ») le glissé ne court plus après les petits écarts (le zoom qui respire avec le plateau le faisait tourner sans fin, lentement) : il recadre au-delà de 3 % de l'écran, jusqu'à 0,6 %, puis se tait */
    /* (2026-10-06, Léo : « parfois pour se replacer l'écran a des petits déclics qui se voient corrigés ») LE RECADRAGE EN DOUCEUR. Mesuré au banc
       (lisse/cam.mjs) : vD était un asservissement du 1er ordre ALLUMÉ d'un coup — il partait à pleine vitesse (debout, la caisse passait de 0,7 à
@@ -37922,12 +37946,13 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
       (`GAR.vDv`, sa vitesse, toujours continue ; ~1 s pour se poser) ; ce qui l'allume ou l'éteint (l'hystérésis, la vue qui tourne encore, la
       visée qui traîne, le doigt) ne fait que monter ou descendre son POIDS `GAR.vDw` — jamais sa vitesse. Sa cible : l'écart mesuré ÷ ce qu'un
       radian de vD déplace la caisse à l'écran (`S9`, la géométrie de la vue : la visée à Lv derrière la caisse, la caméra à cp devant). */
-   if(GAR.go||GAR.fige||VK<.02){GAR.vDv=0;GAR.vDw=0;if(VK<.02&&!GAR.go)GAR.vD=(GAR.vD||0)*(1-Math.min(1,dt*4));}
+   if(GAR.go||GAR.fige||VK<.02){GAR.vDv=0;GAR.vDw=0;if(VK<.02&&!GAR.go&&!gEl.classList.contains('missions'))GAR.vD=(GAR.vD||0)*(1-Math.min(1,dt*4));} // (2026-10-06, LA MISE EN PLACE) aux MISSIONS le décalage est GARDÉ : la vue d'ensemble ne le lit pas, et le retour à l'atelier se pose sur le bon plan (il se réglait 2-3 s après, 36° à vue)
    else{const ss=(a,b,x)=>{const t=Math.min(1,Math.max(0,(x-a)/(b-a)));return t*t*(3-2*t);};
-     const cib=(GAR.vDon&&!garageDrag&&GAR.cErr!=null?1:0)*ss(.5,1,wD)*(1-ss(.03,.1,Math.abs(GAR.vAv||0)))*(1-ss(.02,.06,Math.abs(aV0-aV)));
+     const cib=(GAR.vDon&&!garageDrag&&GAR.cErr!=null&&!((GMIS.e||0)>.005)?1:0)*ss(.5,1,wD)*(1-ss(.03,.1,Math.abs(GAR.vAv||0)))*(1-ss(.02,.06,Math.abs(aV0-aV))); // (LA MISE EN PLACE) pas pendant le vol des MISSIONS : la caméra y est mêlée à la vue d'ensemble, l'écart mesuré ne veut rien dire (il envoyait vD en butée)
      GAR.vDw=(GAR.vDw||0)+(cib-(GAR.vDw||0))*Math.min(1,dt*5);
      const S9=Math.min(2,Math.max(.15,(Lv/(Math.max(.5,cp)+Lv))/(2*Math.tan(camera.fov*Math.PI/360)*VP.w/Math.max(1,VP.h)))),om=VITRINE_CAM.dRecadre,
        d9=Math.min(dt,.1),n9=Math.max(1,Math.ceil(d9/.008)),h9=d9/n9,x0=GAR.vD||0,c9=x0+(GAR.cErr||0)/S9;let x9=x0,v9=GAR.vDv||0;
+     if(GAR.vuePose){x9=(GAR.cErrVD!=null?GAR.cErrVD:x0)+(GAR.cErr||0)/S9;v9=0;GAR.vDw=1;}else /* (pas c9 : l'écart a été mesuré avec la caméra de l'image d'avant — repartir de vD le comptait deux fois, la pose oscillait) */ // (LA MISE EN PLACE) l'écran est caché : la caméra prend sa place, elle ne la rejoint pas
      for(let i=0;i<n9;i++){v9+=(GAR.vDw*om*om*(c9-x9)-2*om*v9)*h9;x9+=v9*h9;} // la caisse à droite de sa place → la caméra glisse (la caisse part à gauche)
      GAR.vD=THREE.MathUtils.clamp(x9,-.9,.9);GAR.vDv=x9===GAR.vD?v9:0;}}
   if(GAR.roll)camera.rotateZ(GAR.roll);
@@ -37935,7 +37960,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
   { // LES MISSIONS : la caméra s'élève sous la porte relevée et regarde tout l'atelier (fondu en S ; le départ la ramène, voir GAR.go.pre)
     if(!GAR.go)GMIS.mk+=(((gEl.classList.contains('missions'))?1:0)-GMIS.mk)*Math.min(1,dt*2.4);
     const u9=Math.min(1,Math.max(0,GMIS.mk)),e=u9*u9*u9*(u9*(u9*6-15)+10);GMIS.e=e;
-    if(e>.0005){const tx=-Math.sin(cA)*1.5,ty=ay+1.0-POR*.65-vG*1.35,tz=-Math.cos(cA)*1.5,cp9=camera.position;
+    if(e>.0005){const L9=GAR.lk,tx=L9?L9.x:-Math.sin(cA)*1.5,ty=L9?L9.y:ay+1.0-POR*.65-vG*1.35,tz=L9?L9.z:-Math.cos(cA)*1.5,cp9=camera.position; /* (2026-10-06, LA MISE EN PLACE) le vol part du VRAI regard de l'atelier : il visait la caisse (le regard d'avant la vitrine) — au retour, la visée sautait de la caisse à la porte quand le vol s'achevait (le « déclic ») */
       cp9.set(cp9.x+(0-cp9.x)*e,cp9.y+(ay+4.4-cp9.y)*e,cp9.z+(11-cp9.z)*e); // ⚠ y 4,4 : les panneaux de la porte relevée sont empilés à 4,92-5,05 m
       camera.up.set(0,1,0);camera.lookAt(tx*(1-e),ty+(ay+.6-ty)*e,tz+(-3.6-tz)*e);if(GAR.roll)camera.rotateZ(GAR.roll*(1-e));
       const fM=camera.fov+((POR>.5?66:58)*FOV_K-camera.fov)*e;if(Math.abs(camera.fov-fM)>.01){camera.fov=fM;camera.updateProjectionMatrix();}}
@@ -37982,19 +38007,20 @@ function garLibre(){
       if(bb.left>W*.3&&(bb.height>H*.6||W>H*1.2))r.x1=bb.left; // téléphone couché : la colonne à droite — (garage v6) la CONSOLE n'en prend plus toute la hauteur
       else r.y1=bb.top;}                                       // sinon : les commandes en bas
     if(tb&&tb.height>0&&tb.bottom<r.y1-120)r.y0=tb.bottom;r.shop=true;    // la fiche du haut (si elle laisse de la place)
-    r.vit=gEl.classList.contains('vitrine');
+    r.vit=gEl.classList.contains('vitrine');r.leo=garVueLeo(); // (2026-10-06) r.leo : la composition de la vitrine (la caisse décalée, l'entrée au milieu) — aussi dans la console de Sacha
+    if(r.leo&&!r.vit&&W>H*1.2&&document.documentElement.classList.contains('hubOn')){const hb=$('gHub'),hr=hb&&hb.getBoundingClientRect();if(hr&&hr.height>0&&hr.left<W*.3)r.y1=Math.min(r.y1,hb.offsetTop-8);} // couché, la barre du HUB tient le bas à gauche : la caisse se pose au-dessus — sa place FINALE (offsetTop ignore le glissé d'entrée `hubMonte`, qui faisait bouger le cadrage)
     if(r.vit&&W>H*1.2){const ga=$('gAct'),gr=ga&&ga.getBoundingClientRect();if(gr&&gr.width>0&&gr.left>W*.3){r.x1=gr.left-12;r.y1=H-12;}} // (2026-10-05) couché : la pile JOUER · niveau · MISSIONS à droite, la caisse a toute la gauche
     if(INV&&INV.on){const iv=$('gInv'),ir=iv&&iv.getBoundingClientRect();     // (2026-10-04) L'INVENTAIRE ouvert : la caisse se pose au-dessus du tiroir (debout), à sa gauche (couché)
       if(ir&&ir.width>0){if(W>H*1.2&&ir.left>W*.3){r.x1=Math.min(r.x1,ir.left);r.y1=H-12;}else r.y1=Math.min(r.y1,ir.top);}}}
   const VC9=VITRINE_CAM,iv9=!!(INV&&INV.on); // (même soir, Léo : « la voiture en paysage encore calée un peu plus vers le coin bas gauche ») couché : cxL/cyL ; tiroir ouvert : au milieu de la place qui reste
-  r.cx=(r.x0+r.x1)/2;if(r.vit&&!iv9)r.cx=r.x0+(r.x1-r.x0)*(VC9.cxL+(VC9.cx-VC9.cxL)*POR);r.cy=(r.y0+r.y1)/2;if(r.shop)r.cy=r.y0+(r.y1-r.y0)*(r.vit&&!iv9?(VC9.cyL+(VC9.cy-VC9.cyL)*POR):r.vit?.5:.44); /* (vitrine v2) debout la caisse se pose un peu plus BAS : le feu et la porte au-dessus, moins de sol vide dessous */ /* (garage v7) la caisse se posait BAS dans sa zone (DEBUGGING) : son centre à 44 % de la zone, pas 50 */return garLibre._r=r;
+  r.cx=(r.x0+r.x1)/2;if(r.leo&&!iv9)r.cx=r.x0+(r.x1-r.x0)*(VC9.cxL+(VC9.cx-VC9.cxL)*POR);r.cy=(r.y0+r.y1)/2;if(r.shop)r.cy=r.y0+(r.y1-r.y0)*(r.leo&&!iv9?(VC9.cyL+(VC9.cy-VC9.cyL)*POR):r.leo?.5:.44); /* (vitrine v2) debout la caisse se pose un peu plus BAS : le feu et la porte au-dessus, moins de sol vide dessous */ /* (garage v7) la caisse se posait BAS dans sa zone (DEBUGGING) : son centre à 44 % de la zone, pas 50 */return garLibre._r=r;
 }
 function garCadre(k,kx){
   const r=garLibre();camera.clearViewOffset();camera.updateMatrixWorld();
   const v=GAR._pc||(GAR._pc=new THREE.Vector3());v.set(0,GARAGE_Y+GAR.POD+.55,0).project(camera); // le centre du plateau, à mi-hauteur de caisse
-  const sx=(v.x*.5+.5)*VP.w,sy=(.5-v.y*.5)*VP.h,cl=THREE.MathUtils.clamp;GAR.cErr=(sx-r.cx)/Math.max(1,VP.w); // (vitrine) l'écart de la caisse à sa place, lu par le décalage de caméra (GAR.vD)
+  const sx=(v.x*.5+.5)*VP.w,sy=(.5-v.y*.5)*VP.h,cl=THREE.MathUtils.clamp;GAR.cErr=(sx-r.cx)/Math.max(1,VP.w);GAR.cErrVD=GAR.vDcam; // (vitrine) l'écart de la caisse à sa place, lu par le décalage de caméra (GAR.vD)
   const dx=cl((sx-r.cx)*k*(kx==null?1:kx),-VP.w/3,VP.w/3),dy=cl((sy-r.cy)*k,-VP.h/3,VP.h/3);
-  const dt9=Math.min(.1,GAR.dtR||.016);garRessort(GAR,'cdx','cvx',dx,7,dt9);garRessort(GAR,'cdy','cvy',dy,7,dt9); // (2026-10-05) lissé dans le TEMPS, plus image par image · (2026-10-06) en RESSORT : l'inventaire qui s'ouvre déplaçait la place de la caisse de ~180 px, l'image partait de 20 px en UNE image (mesuré) — elle glisse maintenant en ~0,5 s
+  const dt9=Math.min(.1,GAR.dtR||.016);if(GAR.vuePose){GAR.cdx=dx;GAR.cdy=dy;GAR.cvx=GAR.cvy=0;}else{garRessort(GAR,'cdx','cvx',dx,7,dt9);garRessort(GAR,'cdy','cvy',dy,7,dt9);} /* (LA MISE EN PLACE) posé d'un coup quand l'écran est caché */ // (2026-10-05) lissé dans le TEMPS, plus image par image · (2026-10-06) en RESSORT : l'inventaire qui s'ouvre déplaçait la place de la caisse de ~180 px, l'image partait de 20 px en UNE image (mesuré) — elle glisse maintenant en ~0,5 s
   if(Math.abs(GAR.cdx)<.5&&Math.abs(GAR.cdy)<.5)return;                // centré : l'objectif reste droit
   camera.setViewOffset(VP.w,VP.h,GAR.cdx,GAR.cdy,VP.w,VP.h);            // décaler l'objectif de +dx fait glisser l'image de −dx
 }
@@ -38247,6 +38273,13 @@ const PORTE_FERMEE=MENU_SACHA||/[?&]porte=1\b/.test(location.search); // (2026-1
    caméra sans déclic, le BURN-OUT au doigt tenu sur la caisse, le BOUTON INVENTAIRE et ses bras-robots — `garAtelierLibre()` dit quand
    l'atelier est à toi (la vitrine chez Léo, la console chez Sacha). */
 function garAtelierLibre(){return !!(gEl&&garageOn&&!gEl.classList.contains('menu')&&!gEl.classList.contains('missions')&&(gEl.classList.contains('vitrine')||MENU_SACHA));}
+/* LA VUE DE LÉO DANS LA CONSOLE DE SACHA (2026-10-06, Léo : « sans changer le garage de Sacha, remets le beau point de vue — l'angle travaillé,
+   légèrement éloigné, vers la porte —, le glissé et le burn-out »). La console (ses boutons, sa fiche, ses onglets, la barre du HUB) ne bouge
+   pas d'un pixel ; seule la 3D derrière reprend ce que la vitrine faisait : la caméra de présentation (`VITRINE_CAM` : recul calculé sur la
+   caisse, regard sur l'entrée, porte relevée sur le feu, retour à la porte après 3 s), le GLISSÉ en ressort (le doigt hors de la caisse tourne
+   la vue, sur la caisse il tient le plateau) et le BURN-OUT complet (dérapage, DONUT au doigt, coup de gaz). `garVueLeo()` dit quand : l'atelier
+   est libre (voir garAtelierLibre), hors du départ direct de l'accueil (`quiet` : le JOUER de l'accueil reste celui de Sacha). */
+function garVueLeo(){return garAtelierLibre()&&!gEl.classList.contains('quiet');}
 function garVitrine(on){
   if(!gEl)return;if(!on)invFerme(true);gEl.classList.toggle('vitrine',!!on);gEl.classList.toggle('aideInv',!!on&&!((SAVE.d.ast|0)&8)); // (v2) l'astuce du doigt tenu — (2026-10-05) celle du BURN-OUT, tant qu'il n'a jamais été lancé (bit 8)
   gEl.classList.toggle('deplie',!on&&gEl.classList.contains('deplie'));garLibre._r=null; // (2026-10-05) ⚠ collé au bout du commentaire depuis la vitrine v2 (066332f) : jamais exécuté — rendu
@@ -38668,9 +38701,20 @@ function invHoldFin(){if(!INV||!INV.hold)return;INV.hold=null;cancelAnimationFra
    LE SON : le VRAI moteur du palier (ENG_SND — chaque palier son timbre, celui de la course) poussé au RUPTEUR (l'allumage coupe ~8 fois
    par seconde : le « brap-brap »), le crissement de la course (skid) ; au lâcher, ses crépitements (crackle). Aucun nœud neuf : les mêmes
    chaînes, leurs portes s'ouvrent et se referment (voir LES PORTES DU GRAPHE AUDIO).
-   Console : dbgBurn() → l'état · dbgBurn(s) → un burn-out de s secondes (sans doigt) · dbgBurn(0) → coupé. */
+   LES GESTES (2026-10-06, Léo : « qu'on puisse plus instinctivement faire des donuts avec le doigt ; certaines formes peuvent faire autre
+   chose, sans trop abuser, léger mais fun » — « dommage qu'il manque le tour complet » — puis, sur un 1er essai en joystick qui tournait
+   tout seul : « c'est avec le DOIGT qu'on doit faire le donut, pas un automatisme ») : en burn-out, autour de la caisse, le doigt est un
+   VOLANT qu'on fait tourner. L'angle qu'il balaie autour du milieu du plateau (à l'écran), la caisse le prend — un tour de doigt = un tour
+   de caisse, aussi vite qu'on tourne, aussi longtemps qu'on veut : LE DONUT. Rien ne tourne si le doigt ne tourne pas. Près du centre
+   (l'angle s'y affole), le glissé reprend la main : la caisse dérape d'autant, comme avant. Chaque tour complet se fête (« DONUT ×n », un
+   anneau de fumée, une pétarade) et la gomme dessine ses cercles sur le plateau. Une pichenette vers le HAUT : LE COUP DE GAZ (le nez se
+   lève, le moteur hurle, les pots crachent). Une fois, tant qu'aucun donut n'a tourné, si le burn-out tient sans bouger : « TOURNE AUTOUR ·
+   DONUT ».
+   Console : dbgBurn() → l'état · dbgBurn(s) → un burn-out de s secondes (sans doigt) · dbgBurn(0) → coupé · dbgBurn('gaz') → un coup de gaz. */
 const BURN={on:false,hold:null,bouge:false,k:0,t:0,chaud:0,rpm:0,son:false,cut:0,pops:[],fum:null,feu:null,gom:null,yaw:0,yawV:0,cib:0,pivK:0,drz:.8,rr:2.4,
   hapT:0,auto:0,ar:[],roues:[],pots:[],corps:false,tE:0,tF:0,
+  don:0,donK:0,donM:0,acc:0,n:0,nT:0,scx:0,scy:0,fA:null,fR:0,gaz:0,gazT:0,upT:0,upD:0,upX:0,aideT:0, // LE DONUT AU DOIGT, LE COUP DE GAZ (voir LES GESTES DU BURN-OUT)
+  c:new THREE.Vector3(),
   v:new THREE.Vector3(),w:new THREE.Vector3(),u:new THREE.Vector3(),r:new THREE.Vector3(),q:new THREE.Vector3()};
 const BURN_VS='attribute vec3 iP;attribute float iA;attribute float iS;attribute float iG;attribute float iSd;attribute vec3 iC;\n'+
   'varying vec2 vUv;varying float vA;varying float vG;varying float vSd;varying vec3 vC;varying float vY;\n'+
@@ -38791,6 +38835,7 @@ function burnDebut(e){ // pointerdown : le doigt se pose sur la caisse
 }
 function burnPart(){ // ça part : le doigt a tenu
   if(BURN.on)return;burnPrepare();BURN.on=true;BURN.t=0;BURN.pops.length=0;BURN.corps=true;
+  BURN.don=BURN.acc=BURN.n=BURN.gaz=BURN.upT=0;BURN.fA=null;try{burnCentre();}catch(_){} // le centre du VOLANT du doigt : le milieu du plateau, à l'écran
   hap([14,30,10]);
   if(!((SAVE.d.ast|0)&8)){SAVE.d.ast=(SAVE.d.ast|0)|8;try{SAVE.mark();}catch(_){}if(gEl)gEl.classList.remove('aideInv');} // l'astuce a servi
 }
@@ -38801,6 +38846,7 @@ function burnFin(){ // le doigt se lève (ou la vitrine se ferme) : le moteur re
 function burnCoupe(){ // l'atelier se ferme : silence, plus rien à l'écran
   burnFin();BURN.k=0;BURN.rpm=0;BURN.pops.length=0;
   if(BURN.yaw){garageAng-=BURN.yaw;GAR.podSpin=(GAR.podSpin||0)-BURN.yaw;}BURN.yaw=BURN.yawV=BURN.cib=BURN.pivK=0;
+  BURN.don=BURN.donK=BURN.donM=BURN.gaz=BURN.acc=BURN.n=0;const bt=document.getElementById('gBurnTxt');if(bt)bt.classList.remove('on','on2');
   for(const F of [BURN.fum,BURN.feu,BURN.pix])if(F){F.age.fill(1e9);burnPas(F,0,0);F.o.visible=false;}
   if(BURN.corps){carBody.rotation.set(0,0,0);carBody.position.set(0,0,0);BURN.corps=false;}
   if(AC&&BURN.son){const T=AC.currentTime;stt(gainN.gain,0,T,.06);stt(engLfoG.gain,0,T,.06);if(skidG)stt(skidG.gain,0,T,.05);BURN.son=false;}
@@ -38818,6 +38864,61 @@ function burnDoigt(cx,cy,dx,dy,souffle){ // le DOIGT dans la fumée : il la pous
     else{const k=f*t*tg*9;F.V[j]+=(R.x*dx-U.x*dy)*k;F.V[j+1]+=(R.y*dx-U.y*dy)*k;F.V[j+2]+=(R.z*dx-U.z*dy)*k;}}
   return touche>0;
 }
+/* LES GESTES DU BURN-OUT (2026-10-06, voir l'en-tête). LE VOLANT DU DOIGT : le doigt tourne autour du milieu du plateau (`burnCentre`, posé
+   au départ du burn-out — la vue ne bouge pas tant que le doigt tient la caisse) ; l'angle balayé passe tel quel dans le cap visé (`cib`, le
+   ressort du dérapage le suit : ça glisse, ça dépasse un peu). Sous `DON.mort` px du centre l'angle ne compte pas (il s'affole), plein à
+   `DON.plein` px ; entre les deux, et dedans, le glissé horizontal d'avant (,009 rad par pixel) prend le relais.
+   (même soir, Léo : « moins rapide ») un tour de doigt = `gain` tour de caisse, et le volant ne prend jamais plus de `avance` rad
+   d'avance sur la caisse (ce qui dépasse est perdu, rien ne tourne après le doigt) : avec le ressort (ω 7) ça plafonne la rotation à
+   ~avance × 7 rad/s — un tour en ~1,6 s, quelle que soit la vitesse du doigt. Le dérapage au glissé n'est pas bridé. */
+const DON={mort:24,plein:64,gain:.6,avance:.55};
+function burnCentre(){ // le centre du VOLANT : le milieu du plateau, à mi-hauteur de caisse, à l'écran
+  const v=BURN.c;if(GAR.pod)GAR.pod.getWorldPosition(v);else carGroup.getWorldPosition(v);v.y=GARAGE_Y+.55;v.project(camera);
+  BURN.scx=(v.x*.5+.5)*VP.w;BURN.scy=(.5-v.y*.5)*VP.h;
+}
+function burnGeste(dx,dy,cx,cy){ // le doigt bouge pendant le burn-out (dx, dy : depuis le mouvement d'avant ; cx, cy : où il est)
+  const n=performance.now(),rx=cx-BURN.scx,ry=cy-BURN.scy,r=Math.hypot(rx,ry),a=Math.atan2(ry,rx);
+  const w=BURN.fA==null?0:Math.max(0,Math.min(1,(Math.min(r,BURN.fR)-DON.mort)/(DON.plein-DON.mort)));
+  const dA=BURN.fA==null?0:Math.atan2(Math.sin(a-BURN.fA),Math.cos(a-BURN.fA));BURN.fA=a;BURN.fR=r;
+  let v=-dA*w*DON.gain;const e=BURN.cib-BURN.yaw;                                     // le doigt dans le sens des aiguilles (à l'écran) = la caisse aussi, vue d'en haut
+  if(v>0)v=Math.max(0,Math.min(v,DON.avance-e));else if(v<0)v=Math.min(0,Math.max(v,-DON.avance-e)); // le volant bridé : jamais plus de `avance` rad devant la caisse
+  BURN.cib+=v+dx*.009*(1-w);                                                            // près du centre : le glissé d'avant
+  if(dy<0&&-dy>=Math.abs(dx)*.8){if(!BURN.upT||n-BURN.upT>200){BURN.upT=n;BURN.upD=BURN.upX=0;} // LE COUP DE GAZ : une pichenette vers le HAUT —
+    BURN.upD-=dy;BURN.upX+=Math.abs(dx);                                                // 55 px en moins de 0,18 s, presque à la verticale, pas en plein donut
+    if(BURN.upD>=55&&n-BURN.upT<=180&&BURN.upX<BURN.upD*.6&&BURN.donK<.15&&n>BURN.gazT){BURN.gazT=n+450;BURN.upT=0;burnGaz();}}
+  else BURN.upT=0;
+}
+function burnGaz(){ // LE COUP DE GAZ : le nez se lève, le régime saute, les pots crachent trois fois
+  const n=performance.now();BURN.gaz=1;BURN.rpm=Math.min(.98,BURN.rpm+.1);BURN.pops.push(n+20,n+130,n+280);BURN.pops.sort(function(a,b){return a-b;});hap([22,40,16]);
+}
+function burnTxt(txt,col,lent){ // un mot qui jaillit au-dessus de la caisse, et s'envole
+  let e=document.getElementById('gBurnTxt');
+  if(!e){e=document.createElement('div');e.id='gBurnTxt';e.setAttribute('aria-hidden','true');document.body.appendChild(e);}
+  let r=null;try{r=garCaisseRect();}catch(_){}
+  const x=r?(r.x0+r.x1)/2:VP.w/2,y=r?Math.max(40,r.y0-8):VP.h*.4;
+  e.textContent=TR(txt);e.style.setProperty('--bc',col||'#ffd75e');e.style.left=Math.round(Math.max(60,Math.min(VP.w-60,x)))+'px';e.style.top=Math.round(y)+'px';
+  e.classList.toggle('lent',!!lent);e.classList.toggle('calme',!!REDUCED_MOTION);
+  const k=burnTxt._k=!burnTxt._k;e.classList.remove(k?'on':'on2');e.classList.add(k?'on2':'on'); // deux animations jumelles : relance sans remise en page
+}
+function burnAnneau(f){ // un ANNEAU de fumée qui s'ouvre autour de la caisse
+  const F=BURN.fum;if(!F)return;const c=BURN.c;carGroup.updateMatrixWorld();carGroup.getWorldPosition(c);
+  const N=Math.round(16*f),R=BURN.rr*.65;
+  for(let i=0;i<N;i++){const a=(i+Math.random()*.4)/N*Math.PI*2,ca=Math.cos(a),sa=Math.sin(a),v=(2.4+Math.random()*1.2)*f;
+    burnEmet(F,c.x+ca*R,GARAGE_Y+.3,c.z+sa*R,ca*v,.12+Math.random()*.3,sa*v,3+Math.random()*1.6,.38,1.2+.4*f,.24,.8,.78,.88);}
+}
+function burnBravo(){ // un tour complet : le mot, l'anneau, la pétarade, le pouce
+  const n=performance.now();
+  {burnTxt(BURN.n>1?TR('DONUT')+' ×'+BURN.n:'DONUT !','#ffd75e');burnAnneau(.8);BURN.pops.push(n+30);hap([10,24,10]);
+    if(!((SAVE.d.ast|0)&16)){SAVE.d.ast=(SAVE.d.ast|0)|16;try{SAVE.mark();}catch(_){}}} // le 1er donut : l'astuce a servi
+  BURN.pops.sort(function(a,b){return a-b;});
+}
+function burnTours(dt){ // compte les tours complets du donut (dans un sens : repartir dans l'autre recommence le compte)
+  if(BURN.donK>.12){const sg=Math.sign(BURN.don);if(BURN.acc&&Math.sign(BURN.acc)!==sg){BURN.acc=0;BURN.n=0;}
+    BURN.acc+=BURN.yawV*dt;BURN.nT=0;
+    if(Math.abs(BURN.acc)>=2*Math.PI){BURN.acc-=sg*2*Math.PI;BURN.n++;burnBravo();}}
+  else{BURN.nT+=dt;if(BURN.nT>.9){BURN.acc=0;BURN.n=0;}}
+}
+Object.assign(I18N,{'DONUT !':'DONUT!','TOURNE AUTOUR · DONUT':'CIRCLE AROUND · DONUT'});
 function burnTick(dt){ // chaque image du garage (après la pose de la caisse, avant la caméra)
   const now=performance.now(),t=now*.001;
   if(BURN.hold&&!BURN.on&&!BURN.bouge&&now-BURN.hold.t0>280)burnPart(); // (même soir) 0,28 s : un glissé lent qui démarre doucement reste le PLATEAU
@@ -38825,15 +38926,17 @@ function burnTick(dt){ // chaque image du garage (après la pose de la caisse, a
   if(GAR.go||!garAtelierLibre())if(BURN.on)burnFin();
   BURN.k+=((BURN.on?1:0)-BURN.k)*Math.min(1,dt*(BURN.on?5:2.6));if(BURN.k<.002&&!BURN.on)BURN.k=0;
   if(BURN.on)BURN.t+=dt;
-  BURN.chaud=Math.max(0,Math.min(1,BURN.chaud+(BURN.on?dt*.34:-dt*.22)));
+  BURN.chaud=Math.max(0,Math.min(1,BURN.chaud+(BURN.on?dt*.34*(1+.6*BURN.donK):-dt*.22))); // (gestes) le donut chauffe les gommes plus vite
+  BURN.gaz=Math.max(0,BURN.gaz-dt*1.6);
+  if(BURN.on&&!BURN.bouge&&BURN.t>1.4&&!BURN.aideT&&!((SAVE.d.ast|0)&16)){BURN.aideT=1;burnTxt('TOURNE AUTOUR · DONUT','#b9a8ff',true);} // l'astuce, une fois par session, tant qu'aucun donut n'a tourné
   const k=BURN.k;
-  burnDerape(dt);
+  burnDerape(dt);burnTours(dt);
   // LA CAISSE
   if(k>0&&!GAR.go){
     const sp=46*k*dt;for(const E of BURN.ar)E.rotation.x+=sp;for(const w of BURN.arW)w.rotation.x+=sp; // l'arrière patine, l'avant est planté
     const tr=REDUCED_MOTION?.3:1;
-    carBody.rotation.x=-.042*k+Math.sin(t*37)*.004*k*tr;               // le cul s'écrase, le nez se lève
-    carBody.rotation.z=Math.sin(t*29+1.3)*.007*k*tr;                    // elle tremble sur ses pneus
+    carBody.rotation.x=-(.042+.085*BURN.gaz)*k+Math.sin(t*37)*.004*k*tr; // le cul s'écrase, le nez se lève (le COUP DE GAZ le lève plus haut)
+    carBody.rotation.z=Math.sin(t*29+1.3)*.007*k*tr+.03*BURN.donK*Math.sign(BURN.don)*k*tr; // elle tremble sur ses pneus — et penche vers l'extérieur du donut
     carBody.position.y=-.025*k+(Math.random()-.5)*.012*k*tr;
     carGroup.rotation.y+=Math.sin(t*2.3+Math.sin(t*5.1))*.036*k*tr;     // la poupe chasse
     BURN.corps=true;
@@ -38843,7 +38946,7 @@ function burnTick(dt){ // chaque image du garage (après la pose de la caisse, a
   if(k>.02&&BURN.fum&&!GAR.go){
     carGroup.updateMatrixWorld();
     const ry=carGroup.rotation.y,fx=Math.sin(ry),fz=Math.cos(ry);
-    BURN.tE+=dt*k*(46+70*BURN.chaud);
+    BURN.tE+=dt*k*(46+70*BURN.chaud)*(1+.35*BURN.donK+.8*BURN.gaz); // (gestes) un peu plus en donut, une bouffée au coup de gaz — pas plus : le réservoir (320) se recycle déjà en ~3 s
     while(BURN.tE>=1){BURN.tE-=1;const r=BURN.roues[(Math.random()*BURN.roues.length)|0],o=burnMonde(r.x+(Math.random()-.5)*r.l,r.y+.08,r.z-r.R*.55,BURN.q),
         sd=r.x<0?-1:1,sx=fz*sd,sz=-fx*sd,v=1.5+Math.random()*1.7,l=Math.random()*.9,gr=.84+Math.random()*.12;
       burnEmet(BURN.fum,o.x,o.y,o.z,-fx*v+sx*l,.25+Math.random()*.75,-fz*v+sz*l,5.8+Math.random()*4.2,.34+Math.random()*.24,1.05+Math.random()*.5+.45*BURN.chaud,
@@ -38871,10 +38974,14 @@ function burnTick(dt){ // chaque image du garage (après la pose de la caisse, a
 function burnDerape(dt){
   const d9=Math.min(dt,.1),n=Math.max(1,Math.ceil(d9/.008)),h=d9/n,om=7,ze=.5;
   for(let i=0;i<n;i++){BURN.yawV+=(om*om*(BURN.cib-BURN.yaw)-2*ze*om*BURN.yawV)*h;BURN.yaw+=BURN.yawV*h;}
+  if(Math.abs(BURN.yaw)>Math.PI){const s2=2*Math.PI*Math.round(BURN.yaw/(2*Math.PI));BURN.yaw-=s2;BURN.cib-=s2;} // (le donut) les tours se replient : la caisse est la même, le cap versé au plateau reste court
+  BURN.don+=(BURN.yawV-BURN.don)*Math.min(1,dt*3); // (le donut) la vitesse de rotation que le DOIGT donne, lissée — elle règle fumée, penché, son, et le compte des tours
+  BURN.donK=BURN.on?Math.max(0,Math.min(1,(Math.abs(BURN.don)-.8)/2.2)):Math.max(0,BURN.donK-dt*2); // (moins rapide) à fond dès 3 rad/s
+  BURN.donM+=((BURN.donK>.35?1:BURN.donK<.15?0:BURN.donM)-BURN.donM)*Math.min(1,dt*1.5); // en donut, le pivot glisse vers le CENTRE du plateau (debout, la caisse sortait du cadre)
   const vise=BURN.on&&BURN.bouge&&!GAR.go?1:0;BURN.pivK+=(vise-BURN.pivK)*Math.min(1,dt*(vise?6:(GAR.go?6:1.6)));
   if(BURN.yaw||BURN.pivK>=.001){
     const y=BURN.yaw,dz=BURN.drz,sl=Math.max(-.35,Math.min(.35,BURN.yawV*.12))*BURN.pivK;
-    let cx=BURN.pivK*(-dz*Math.sin(y))+Math.cos(y)*sl,cz=BURN.pivK*(dz-dz*Math.cos(y))-Math.sin(y)*sl;
+    let cx=BURN.pivK*(-dz*Math.sin(y))+Math.cos(y)*sl,cz=BURN.pivK*(dz*(1-BURN.donM)-dz*Math.cos(y))-Math.sin(y)*sl; // le pivot : devant la caisse (le dérapage), au centre du plateau (le donut)
     const lim=Math.max(0,4.3-BURN.rr),c=Math.hypot(cx,cz);if(c>lim){const f=lim/Math.max(1e-6,c);cx*=f;cz*=f;} // jamais hors du disque
     const r=garRot(),cr=Math.cos(r),sr=Math.sin(r);
     carGroup.rotation.y+=y;carGroup.position.x+=cx*cr+cz*sr;carGroup.position.z+=-cx*sr+cz*cr;}
@@ -38888,7 +38995,7 @@ function burnSon(dt){ // le VRAI moteur du palier, au rupteur, et le crissement 
   if(!vivant||!sfxOk()){if(BURN.son){BURN.son=false;const T=AC.currentTime;stt(gainN.gain,0,T,.12);stt(engLfoG.gain,0,T,.12);if(skidG)stt(skidG.gain,0,T,.08);}return;}
   BURN.son=true;
   if(engLvl!==engTier)engSetTier(engTier);
-  const e=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0],cib=BURN.on?.86:0;
+  const e=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0],cib=BURN.on?Math.min(.98,.86+.06*BURN.donK+.1*BURN.gaz):0; // (gestes) le donut et le coup de gaz montent dans les tours
   BURN.rpm+=(cib-BURN.rpm)*Math.min(1,dt*(cib>BURN.rpm?5.5:2.2));
   let rpm=BURN.rpm,cut=0;
   if(BURN.on&&BURN.t>.9){cut=Math.sin(BURN.t*2*Math.PI*8.2)>.35?1:0;rpm-=cut*.06;}   // LE RUPTEUR : l'allumage coupe, le régime bégaie
@@ -38896,15 +39003,16 @@ function burnSon(dt){ // le VRAI moteur du palier, au rupteur, et le crissement 
   BURN.cut=cut;
   engApplique(engSndParams(e,{rpm:rpm,charge:BURN.on?(cut?.35:.92):0,ovr:BURN.on?0:Math.min(1,BURN.rpm*1.8),drift:0,nA:0,thr:BURN.on&&!cut?1:0,
     vsp:.6*BURN.k,wob:0,boost:false,cloudIn:0,dk:1,nB:TEL_NATIF?1:0,gE:VOL_LOCKED?1:.72,lpMin:TEL_NATIF?700:0}));
-  if(skidG){const T=AC.currentTime,sk=BURN.k*(.75+.25*Math.sin(BURN.t*3.1)),sq=1050+380*BURN.chaud+110*Math.sin(BURN.t*1.7);
-    stt(skidG.gain,Math.min(.17,.13*sk),T,.05);stt(skF1.frequency,sq,T,.06);stt(skF2.frequency,sq*1.56,T,.06);
+  if(skidG){const T=AC.currentTime,sk=BURN.k*(.75+.25*Math.sin(BURN.t*3.1))*(1+.45*BURN.donK),sq=1050+380*BURN.chaud+110*Math.sin(BURN.t*1.7)+140*BURN.donK; // (le donut) la gomme crie plus fort et plus haut
+    stt(skidG.gain,Math.min(.2,.13*sk),T,.05);stt(skF1.frequency,sq,T,.06);stt(skF2.frequency,sq*1.56,T,.06);
     if(skD1)stt(skD1.gain,60+120*BURN.k,T,.1);if(skD2)stt(skD2.gain,90+180*BURN.k,T,.1);if(skLfo)stt(skLfo.frequency,13+5*BURN.chaud,T,.1);}
 }
 window.dbgBurn=function(s){
   if(s===0){burnFin();return 'coupé';}
-  if(s>0){if(!garageOn||!gEl||!gEl.classList.contains('vitrine'))return 'pas en vitrine';burnPart();BURN.auto=+s;}
+  if(s==='gaz'){if(!garAtelierLibre())return 'atelier pas libre';if(!BURN.on){burnPart();BURN.auto=2;}burnGaz();}
+  if(s>0){if(!garAtelierLibre())return 'atelier pas libre';burnPart();BURN.auto=+s;}
   return {on:BURN.on,k:+BURN.k.toFixed(2),t:+BURN.t.toFixed(2),chaud:+BURN.chaud.toFixed(2),rpm:+BURN.rpm.toFixed(2),fumee:BURN.fum?BURN.fum.n:0,feu:BURN.feu?BURN.feu.n:0,
-    essieuxAr:BURN.ar.length,roues:BURN.roues.length,cap:+BURN.yaw.toFixed(2),pivot:+BURN.pivK.toFixed(2),gomme:!!(BURN.gom&&BURN.gom.sale),plateau:+(GAR.platW||0).toFixed(2),doigt:GAR.doigt||null,son:BURN.son};
+    essieuxAr:BURN.ar.length,roues:BURN.roues.length,cap:+BURN.yaw.toFixed(2),pivot:+BURN.pivK.toFixed(2),donut:+BURN.don.toFixed(2),tours:BURN.n,centre:[Math.round(BURN.scx),Math.round(BURN.scy)],gaz:+BURN.gaz.toFixed(2),gomme:!!(BURN.gom&&BURN.gom.sale),plateau:+(GAR.platW||0).toFixed(2),doigt:GAR.doigt||null,son:BURN.son};
 };
 /* ===== LE BOUTON ROUGE ET SES OUTILS (2026-10-05, Léo : « enlève le bouton coffre ; mets un bouton rouge sur la plateforme qui tourne, à
    côté de la voiture ; quand on appuie, de chaque côté, différents outils se mettent à côté et construisent directement les objets qu'on a
@@ -39032,7 +39140,7 @@ $('ivGrille').addEventListener('click',function(e){const t=e.target.closest('.iv
 $('ivFerme').addEventListener('click',function(e){e.stopPropagation();uiPop(e.currentTarget);uiClic('retour');invFerme();});
 window.dbgInv=function(a,b){if(a==='ouvre')return invOuvre();if(a==='D'){INV.D=+b||.45;return INV.D;}if(a==='cam'){Object.assign(VITRINE_CAM,b||{});return VITRINE_CAM;}if(a==='gabarit')return garGabarit();if(a==='rect'){const r=garCaisseRect();return r&&{x0:Math.round(r.x0),x1:Math.round(r.x1),y0:Math.round(r.y0),y1:Math.round(r.y1)};}if(a==='ferme'){invFerme();return true;}
   if(a==='mvt')return [GAR.vA||0,GAR.vAv||0,GAR.vAc||0,GAR.vD||0]; // (2026-10-05) le banc du tour au doigt : angle, vitesse, cible, décalage
-  if(a==='etat')return {vA:GAR.vA||0,vAv:GAR.vAv||0,vD:GAR.vD||0,vDv:GAR.vDv||0,e:GAR.cErr||0,on:GAR.vDon?1:0,ret:GAR.ret?1:0,dV:GAR.dVs||0,cx:GAR.cdx||0,cy:GAR.cdy||0,b:BURN.k||0,inv:INV.on?1:0,vit:GAR.vit||0}; // (2026-10-06) le banc de la caméra image par image (lisse.mjs)
+  if(a==='etat')return {vA:GAR.vA||0,vAv:GAR.vAv||0,vD:GAR.vD||0,vDv:GAR.vDv||0,e:GAR.cErr||0,on:GAR.vDon?1:0,ret:GAR.ret?1:0,dV:GAR.dVs||0,cx:GAR.cdx||0,cy:GAR.cdy||0,b:BURN.k||0,inv:INV.on?1:0,vit:GAR.vit||0,gm:GMIS.e||0,vDw:GAR.vDw||0,pose:GAR.vuePose||0}; // (2026-10-06) le banc de la caméra image par image (lisse.mjs)
   if(a==='cat'&&b){INV.cat=b;if(INV.on)invRender();return INV.cat;}
   const g=$('ivGrille');return {on:INV.on,cat:INV.cat,hold:!!INV.hold,tuiles:g?g.querySelectorAll('.ivT').length:0,eq:g?g.querySelectorAll('.ivT.eq').length:0,
     vitrine:!!(gEl&&gEl.classList.contains('vitrine')),aide:!!(gEl&&gEl.classList.contains('aideInv')),vit:+(GAR.vit||0).toFixed(2),vD:+(GAR.vD||0).toFixed(3),wD:+(GAR.wD||0).toFixed(2),cErr:+(GAR.cErr||0).toFixed(3),porte:GAR.porte?+GAR.porte.e.toFixed(2):null,
@@ -39416,7 +39524,7 @@ $('gNext').addEventListener('click',e=>{e.stopPropagation();uiPop(e.currentTarge
 // qu'admirer la caisse (l'orbite reste, rien ne change) ; au-dessus, dans une direction nettement
 // plus horizontale que verticale, on COMMIT le changement de caisse — `garageGo()`, la même fonction
 // que les flèches ◀▶, avec la même animation de retourneur.
-const SWIPE_PX=64;
+const SWIPE_PX=64; // (2026-10-06) plus lu : le glissé ne change plus de caisse (voir le pointerup plus bas)
 /* (2026-09-29, audit de sortie) UN SEUL DOIGT fait tourner l'atelier : le 2e (le pincement) écrasait le point de départ, l'orbite sautait
    d'un doigt à l'autre, et au relâcher le premier comptait pour un glissé — la caisse changeait. Rien ne passe à travers le voile. */
 let gpId=null,gPince=false;
@@ -39429,7 +39537,7 @@ addEventListener('pointerdown',e=>{if(!garageOn||ecranWipe._on)return;if(e.targe
   if(!GAR.go){GAR.vAc=(GAR.vA||0)+(GAR.vAv||0)*VITRINE_CAM.dLisse/2;GAR.vW=0;GAR.pT=garagePitch;GAR.mvT=performance.now();} // (le glissé fondu) on SAISIT la vue : elle s'arrête sous le doigt
   if(CHUTE&&CHUTE.on){CHUTE.oAc=CHUTE.oA;CHUTE.oW=0;CHUTE.oPc=CHUTE.oP;CHUTE.mvT=performance.now();} // (2026-09-30) au ciel : on SAISIT l'orbite, elle s'arrête sous le doigt
   if(!GAR.sw&&!GAR.go)GAR.pressT=GAR.PRESS_D; // LE TOUCHER : la caisse accuse la pression tout de suite, avant même qu'on glisse
-  GAR.doigt=(gEl&&gEl.classList.contains('vitrine')&&!gEl.classList.contains('menu')&&!GAR.go&&!(INV&&INV.on)&&e.button<=0&&garSurCaisse(e))?'caisse':'vue'; // (même soir) SUR la caisse, le doigt tient le PLATEAU — jamais la vue
+  GAR.doigt=(garVueLeo()&&!GAR.go&&!(INV&&INV.on)&&e.button<=0&&garSurCaisse(e))?'caisse':'vue'; /* (2026-10-06) LA VUE DE LÉO : aussi dans la console de Sacha */ // (même soir) SUR la caisse, le doigt tient le PLATEAU — jamais la vue
   if(GAR.doigt==='caisse')GAR.platW=0; // le plateau lancé s'arrête sous le doigt
   burnDebut(e); // (2026-10-05) LA VITRINE : le doigt TENU sur la caisse lance le BURN-OUT (voir LE BURN-OUT) — l'inventaire a son bouton COFFRE (avant : invHoldDebut)
 });
@@ -39447,10 +39555,12 @@ addEventListener('pointerup',e=>{
       GAR.vW=0;GAR.tDoigt=performance.now();garageDrag=false;GAR.doigt=null;return;}}
   if(garageDrag&&!gPince){
     const dx=e.clientX-gpx0,dy=e.clientY-gpy0;
-    if(Math.abs(dx)>SWIPE_PX&&Math.abs(dx)>Math.abs(dy)*1.3){if(!gEl.classList.contains('menu')&&!gEl.classList.contains('vitrine'))garageGo(dx<0?1:-1);} /* (2026-10-04) en VITRINE c'est TA caisse : le glissé la fait tourner, il ne feuillette pas la gamme */ // (2026-09-30) au MENU un glissé fait tourner le plateau, il ne change pas de caisse (c'est la BOUTIQUE qui feuillette) // glisse à GAUCHE → caisse SUIVANTE (même sens qu'un carrousel qu'on feuillette)
-    else if(Math.abs(dx)<14&&Math.abs(dy)<14){if(CHUTE&&CHUTE.on){if(!CHUTE.go)chuteTape(e);}else if(INV.on)invFerme();else{let af=null;try{af=afficheVise(e);}catch(_){}if(af)afficheTap(af);else if(!garSurCaisse(e)&&burnDoigt(e.clientX,e.clientY,0,0,true))hap(6);else garageImpact();}} // (2026-10-03) AU CIEL : le tap est un COUP sur la caisse en chute (chuteTape) // ni glissé ni swipe : un TAP — sur une AFFICHE elle saute (voir afficheTap), sinon la caisse encaisse (voir garageImpact)
+    /* (2026-10-06, Léo : « quand on tourne la voiture dans la boutique, ça fait changer de voiture ») le glissé ne feuillette PLUS nulle part —
+       ni au menu, ni en vitrine, ni dans la BOUTIQUE : il fait tourner la caisse, point. On change de caisse aux flèches ◀ ▶, aux vignettes
+       ou au clavier (← →). Avant : un glissé de plus de SWIPE_PX à l'horizontale appelait garageGo au lâcher, même pour admirer la caisse. */
+    if(Math.abs(dx)<14&&Math.abs(dy)<14){if(CHUTE&&CHUTE.on){if(!CHUTE.go)chuteTape(e);}else if(INV.on)invFerme();else{let af=null;try{af=afficheVise(e);}catch(_){}if(af)afficheTap(af);else if(!garSurCaisse(e)&&burnDoigt(e.clientX,e.clientY,0,0,true))hap(6);else garageImpact();}} // (2026-10-03) AU CIEL : le tap est un COUP sur la caisse en chute (chuteTape) // ni glissé ni swipe : un TAP — sur une AFFICHE elle saute (voir afficheTap), sinon la caisse encaisse (voir garageImpact)
     GAR.tDoigt=performance.now(); // (LE RETOUR À LA PORTE) les 3 s partent du LÂCHER (et l'élan doit être retombé)
-    if(performance.now()-(GAR.mvT||0)>90)GAR.vW=0;else{const m9=gEl.classList.contains('vitrine')?VITRINE_CAM.dElan:7;GAR.vW=THREE.MathUtils.clamp(GAR.vW||0,-m9,m9);} // (vitrine) un élan plafonné : le lancer glisse, il ne tourbillonne plus
+    if(performance.now()-(GAR.mvT||0)>90)GAR.vW=0;else{const m9=garVueLeo()?VITRINE_CAM.dElan:7;GAR.vW=THREE.MathUtils.clamp(GAR.vW||0,-m9,m9);} // (vitrine) un élan plafonné : le lancer glisse, il ne tourbillonne plus
     if(CHUTE&&CHUTE.on){if(performance.now()-(CHUTE.mvT||0)>90)CHUTE.oW=0;else CHUTE.oW=THREE.MathUtils.clamp(CHUTE.oW||0,-7,7);} // (2026-09-30) l'orbite du ciel : lâchée en mouvement, elle garde son élan // (le glissé fondu) doigt arrêté avant de lâcher : la vue reste ; lancé : elle file sur son élan
   }
   garageDrag=false;GAR.doigt=null;
@@ -39467,10 +39577,11 @@ addEventListener('pointermove',e=>{
     CHUTE.oAc+=dA;CHUTE.oW=(CHUTE.oW||0)*.55+dA/dm*.45;CHUTE.mvT=n9; /* (2026-10-03, Léo : « bloque le point de vue à ce niveau vertical : pas de haut en bas, horizontal à ce niveau-là ») le doigt ne fait plus monter ni plonger le regard : il tourne autour de la caisse, à la hauteur du menu */
     gpx=e.clientX;gpy=e.clientY;return;}
   if(GAR.go||gEl.classList.contains('missions'))return; // JOUER est parti / l'écran des MISSIONS : la vue ne se touche plus
-  if(gEl&&(gEl.classList.contains('menu')||gEl.classList.contains('vitrine'))){const vit9=gEl.classList.contains('vitrine'),dA=-(e.clientX-gpx)*(vit9?VITRINE_CAM.dPx:.007),n9=performance.now(),dm=Math.max(8,n9-(GAR.mvT||n9-16))/1000;
+  const leo9=garVueLeo(); // (2026-10-06) LA VUE DE LÉO : le glissé de la vitrine, aussi dans la console de Sacha
+  if(gEl&&(gEl.classList.contains('menu')||leo9)){const vit9=leo9,dA=-(e.clientX-gpx)*(vit9?VITRINE_CAM.dPx:.007),n9=performance.now(),dm=Math.max(8,n9-(GAR.mvT||n9-16))/1000;
     if(vit9&&GAR.doigt==='caisse'){const dx9=e.clientX-gpx; /* (même soir, Léo : « quand on touche la voiture et qu'on la tourne, ça ne tourne pas le garage : appuie-glisse,
          la plateforme tourne selon la vitesse du doigt ; appuie et bouge, ça bouge juste la plateforme ; appui long puis glissé, la voiture dérape ») */
-      if(BURN.on)BURN.cib+=dx9*.009;                                                     // en burn-out : elle DÉRAPE (voir LE DÉRAPAGE)
+      if(BURN.on)burnGeste(dx9,e.clientY-gpy,e.clientX,e.clientY);                              // en burn-out : elle DÉRAPE, le doigt qui tourne autour la fait tourner — LE DONUT (voir LES GESTES DU BURN-OUT)
       else{const da=-dx9*.008;garageAng+=da;GAR.platW=(GAR.platW||0)*.55+da/dm*.45;}     // sinon : le PLATEAU suit le doigt (son bord avant sous le doigt), l'élan est retenu
       GAR.mvT=n9;GAR.tDoigt=n9;burnDoigt(e.clientX,e.clientY,dx9,e.clientY-gpy,false);}
     else{GAR.vAc=(GAR.vAc!=null?GAR.vAc:(GAR.vA||0))+dA;GAR.vW=(GAR.vW||0)*.55+dA/dm*.45;GAR.mvT=n9;GAR.tDoigt=n9;if(vit9)burnDoigt(e.clientX,e.clientY,e.clientX-gpx,e.clientY-gpy,false);} // (BURN-OUT) le doigt pousse la fumée // (le glissé fondu) la CIBLE suit le doigt, la vitesse du geste est retenue pour l'élan
