@@ -1,5 +1,22 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LA GAMME RESSERRÉE — LA FICHE DES VOITURES (2026-10-06/07, Léo : `fiche-voitures-cash-car.txt`, « applique les changements »)
+43 caisses jouables (+ L'ORIGAMI et ATCHOUM, absentes de la fiche : inchangées) → au garage COMMUNES 1 · RARES 15 · ÉPIQUES 7 · LÉGENDES 8 ·
+DÉFIS 14. Tout est dans `CARS` (`retire:1`, `rar:`) et `CAR_UNLOCK` (prix, conditions, commentaires datés) ; aucune ligne ôtée (les index
+de sauvegarde ne bougent pas).
+- **25 SUPPRIMÉES** = `retire:1` (19 nouvelles + les 6 de Sacha ; LA PIZZA EXPRESS en sort) : hors garage, hors boutique (`shopRender` saute
+  désormais les retirées), remboursées au chargement par `san` au prix de `CAR_UNLOCK` (gardé exprès) — MESURÉ : SA MAJESTÉ + LA POSTIÈRE +
+  L'ÉTALON possédées → +561 500 $, la caisse équipée retombe en LA HONTE.
+- **Familles déplacées** : CORBILLARD, CHARGEUR 69, QUEUE DE CANARD, CHAUVE-SOURIS, ZED → RARE ; ACIDE → ÉPIQUE à 750 000 $ ; FÉLINE et
+  PIZZA EXPRESS → LÉGENDAIRE (1,61 € · 161,00 €). Prix : CAÏD 50 k, BAVAROISE 42 k, SILENCIEUSE 90 k, CORBILLARD 300 k, AIGLE DE FEU 1 M,
+  ROSSO 40 2,5 M ; CHAT POP-TART 4,20 €, TRÔNE CENTRAL et SPECTRE 1,61 €, MUR DU SON 0,99 €.
+- **Deux nouvelles conditions** : `k:'bientot'` (LA RAIE, COMÈTE, REQUIN — défi « à définir » : verrouillées, « DEFI A VENIR ») et
+  `k:'pubs'` (L'ÉTERNELLE, 100 pubs : `SAVE.d.ex.pubs`, borné dans `san`, +1 quand une pub DÉMARRE dans `pkPasse` — seule l'édition des
+  portails a des pubs). `carUnlockedVrai` : une caisse ACHETÉE avant de devenir un défi reste à toi (`carOwned` d'abord).
+- ⚠ Pas touché : CAISSE-NUAGE et LINGOT restent à 5 niveaux (la fiche dit 10, sans le compter comme un changement) ; la vitrine de la
+  boutique barre toujours « 9,99 € −50 % » au-dessus des 4,20 € du CHAT POP-TART ; sur POKI les légendaires deviennent des prix
+  (161 € → ~74 M $ pour LA PIZZA EXPRESS, formule du bloc POKI).
+
 ## LE CIEL DE L'ÉCRAN TITRE v4 (2026-10-06, session GRAPHISME) — Sacha : « le ciel est toujours moche dans l'écran d'accueil, refonte visuelle totale, surtout ce motif de merde dans le ciel »
 - LE DIAGNOSTIC (planche des six heures, `titre2.js` + `dbgHeure`) : le ciel du titre était un ASSEMBLAGE des couches du niveau — le
   dégradé à paliers, la lueur d'horizon, la mer `merZ` à taches (un papier peint), le POMMELÉ `cielMotif` (les rangées de tirets en
