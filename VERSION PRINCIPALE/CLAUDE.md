@@ -4,6 +4,32 @@
 L'image de référence = le sprite de 2011 EXTRUDÉ en cubes (contour noir = mur noir sur l'épaisseur, dessous bleus). Le gabarit `poptart` est
 refait EN VOXELS (10 cm, `NY_U`), chaque pièce dessinée dans SON plan (bloc « LE CHAT POP-TART EN VOXELS », juste avant `SHAPES` : dessins
 `NY_GATEAU` / `NY_SUCRE` / `NY_TETE` / `NY_QUEUE`, maillage `voxGrille()` = faces à l'air seules, fusionnées en rectangles par couleur).
+- **v6, même jour** (Léo : « enlève les côtés roses, corrige, peaufine ») : TOUT EN BISCUIT comme une vraie pop-tart — la croûte partout,
+  le GLAÇAGE seulement dessus : le pavillon (rose, éclats de sucre, cerclé de croûte) qui BOMBE d'une couche, et les coiffes des
+  rétroviseurs. La DENTELURE de la fourchette (pointillé `Q`) fait le tour de la caisse sous la ceinture, la malle a ses trous de
+  cuisson, lignes de portes en biscuit foncé. Biscuit adouci (`C` 0xf4d6a8).
+- **v5, même jour** (Léo : « retente une forme plus ambitieuse, réalisme vraie voiture, et remets le glaçage sur le toit ») : la caisse
+  quitte la grille de la tête — taillée dans une grille de 5 cm (`U5`) à partir d'un VRAI profil (fonctions `yB` ceinture qui monte
+  vers l'arrière, `yT` pare-brise / pavillon bombé / lunette fastback, `hC` rentré de l'habitacle, `hB` bas et épaules arrondis + coins
+  de poupe arrondis, `dans` + `coul`) : pare-brise incliné derrière la tête, pavillon au niveau de l'arête de la tête, lunette fastback,
+  malle courte à becquet, ailes avant qui embrassent la tête, rétroviseurs sur pied, lignes de portes (`Q`), diffuseur (`K`), bandeau
+  de feux. PAVILLON GLACÉ : rose aux éclats de sucre, cerclé de croûte (le dessus d'une vraie pop-tart). Flancs roses, bande de biscuit
+  sur la malle, la poupe et dessous. Vitres en APLAT sombre (`V`) avec une bande de reflet en biais (`W`) : laquées, elles renvoyaient
+  les lampes de l'atelier et sortaient couleur biscuit. Grille en clés NUMÉRIQUES (~25 000 cases), ~1 100 triangles pour la caisse.
+- **v4, même jour** (Léo : « pas d'encoches pour les roues, plus smooth, futuriste, moins cabossée ; le devant colle à la tête, pas trop
+  d'espace entre l'arête du haut de la tête et le haut de la voiture ») : flancs d'un seul plan (ailes bombées, bas rentré et épaules
+  en marches retirés), habitacle pleine largeur jusqu'à la tête, pavillon AU NIVEAU de l'arête du haut de la tête (les oreilles seules
+  dépassent), poupe fastback en deux marches aux coins arrondis, BANDEAU DE VITRES sans montant (flancs + lunette), petit becquet
+  intégré, BANDEAU de feux rouge sur la poupe (coupé au milieu pour la queue ; stop au freinage). Teintes adoucies (arêtes ×.93,
+  creux ×.86). La queue n'a plus de colonne k 0 (elle traversait la poupe : faces confondues). Le bouclier arrière est retiré.
+- **v3, même jour** (Léo : « le biscuit a pivoté de sens — derrière la tête une forme de mini Cooper sport, deux couches de glaçage, une
+  droite une gauche, qui englobent les détails, et le biscuit au milieu, du capot jusqu'au-dessous ; un petit aileron ; marron et rose
+  tels quels avec quelques teintes pour l'ombre des formes ; la tête telle quelle, sans les phares jaunes ») : la pop-tart est posée sur
+  la TRANCHE — FLANCS roses (glaçage, éclats de sucre), BANDE de biscuit au milieu sur le capot, le pavillon, la poupe et dessous (la
+  bande de capot d'une Mini Cooper S). Bas de caisse pleine largeur aux épaules arrondies et au bas rentré, AILES bombées au-dessus des
+  pattes, habitacle rentré, pare-brise en escalier, vitres laquées (`V`, montant central), lunette, becquet de pavillon, bouclier arrière
+  marron foncé (`K`), feux en saillie. PLUS DE CONTOUR NOIR sur la caisse : l'ombre des formes en neuf TEINTES (`fkC`, `poseC` : dessous,
+  bas de caisse, arêtes, creux). Phares jaunes et bouclier avant retirés. (Le caisson à contour noir de la v2 est dans l'historique.)
 - **v2, même jour** (Léo : « plus carré le dos, plus voiture le corps, les jambes bougent selon comment tu accélères » · « enlève aussi
   l'arc-en-ciel, le burn-out fait des pixels multicolores qui scintillent, fumée grise ») :
   · LE CAISSON : la pop-tart devient une caisse de 50 cm, coins CARRÉS, flancs et poupe en croûte cernés de noir sur chaque arête,
@@ -410,7 +436,7 @@ refait EN VOXELS (10 cm, `NY_U`), chaque pièce dessinée dans SON plan (bloc «
       règle suivante sans erreur visible (ici les cartes et la police des jauges). Contrôle : compter les accolades de chaque `<style>` (jamais
       de profondeur négative).
     Bancs (scratchpad 83e03bdc) : `zoom128.mjs` P/L, `btn127.mjs` (clic réel sur le HOME du HAUT désormais), `parcours`, `cadreinv` : 0 erreur.
-    sw.js → v132.
+    sw.js → v132, puis v134 à la fusion du chat pop-tart v3 → v6 de main (v133 là-bas).
   Banc `vit6.mjs <nom> W H [zones]` (captures vitrine + tiroir, JOUER → course). sw.js → v116 (passé en v120 à la fusion : main était déjà en v119).
 - **L'ATELIER AÉRÉ + LE RENDU (même jour, Léo : « enlève quelques accessoires du garage, ça fait un peu rempli pour rien — les pieds tu
   dois laisser, ça fait partie du jeu ; les billets, mes trucs de trophée, tout ça laisse ; aère un peu l'espace · travaille plus le
