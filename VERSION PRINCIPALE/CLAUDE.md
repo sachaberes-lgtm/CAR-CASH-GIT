@@ -4,6 +4,12 @@
 L'image de référence = le sprite de 2011 EXTRUDÉ en cubes (contour noir = mur noir sur l'épaisseur, dessous bleus). Le gabarit `poptart` est
 refait EN VOXELS (10 cm, `NY_U`), chaque pièce dessinée dans SON plan (bloc « LE CHAT POP-TART EN VOXELS », juste avant `SHAPES` : dessins
 `NY_GATEAU` / `NY_SUCRE` / `NY_TETE` / `NY_QUEUE`, maillage `voxGrille()` = faces à l'air seules, fusionnées en rectangles par couleur).
+- **v4, même jour** (Léo : « pas d'encoches pour les roues, plus smooth, futuriste, moins cabossée ; le devant colle à la tête, pas trop
+  d'espace entre l'arête du haut de la tête et le haut de la voiture ») : flancs d'un seul plan (ailes bombées, bas rentré et épaules
+  en marches retirés), habitacle pleine largeur jusqu'à la tête, pavillon AU NIVEAU de l'arête du haut de la tête (les oreilles seules
+  dépassent), poupe fastback en deux marches aux coins arrondis, BANDEAU DE VITRES sans montant (flancs + lunette), petit becquet
+  intégré, BANDEAU de feux rouge sur la poupe (coupé au milieu pour la queue ; stop au freinage). Teintes adoucies (arêtes ×.93,
+  creux ×.86). La queue n'a plus de colonne k 0 (elle traversait la poupe : faces confondues). Le bouclier arrière est retiré.
 - **v3, même jour** (Léo : « le biscuit a pivoté de sens — derrière la tête une forme de mini Cooper sport, deux couches de glaçage, une
   droite une gauche, qui englobent les détails, et le biscuit au milieu, du capot jusqu'au-dessous ; un petit aileron ; marron et rose
   tels quels avec quelques teintes pour l'ombre des formes ; la tête telle quelle, sans les phares jaunes ») : la pop-tart est posée sur

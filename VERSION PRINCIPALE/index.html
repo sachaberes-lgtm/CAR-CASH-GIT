@@ -12706,7 +12706,7 @@ const CARS=[
   desc:'Inox brossé, portes papillon. À 88 à l\'heure elle remonte le temps, paraît-il. Toi, tu vas plus vite.'},
  // ---- LES CAISSES PREMIUM (2026-09-25) : la gamme des 15 retrouvée, en BOUTIQUE (vrai argent). Hors du garage tant
  // qu'elles ne sont pas achetées (voir `garageListe`). Fiches reprises de la branche `appstore-backlog`, emojis retirés.
- {name:'CHAT POP-TART',   shape:'poptart', color:0xf6b98a,accent:0xf78fb8,maxKmh:560,accel:64,turn:3.2, h:1.5,w:1.9,l:3.0,spoiler:0, // (2026-10-06) en voxels : 1,7 × 3 m, oreilles à 1,5 m — plus de bandes néon (`glow`) : elles barraient les murs noirs
+ {name:'CHAT POP-TART',   shape:'poptart', color:0xf6b98a,accent:0xf78fb8,maxKmh:560,accel:64,turn:3.2, h:1.5,w:1.7,l:3.0,spoiler:0, // (2026-10-06) en voxels : 1,7 × 3 m, oreilles à 1,5 m — plus de bandes néon (`glow`) : elles barraient les murs noirs
   fx:{jet:0xff64d2,core:0xffd8f2,trail:[1.5,.35,1.1],light:0xff5ec8}, // (v2) plus d'arc-en-ciel : ses PIXELS multicolores (NY_PIX), à la nitro et en vol
   desc:'Une pâtisserie industrielle avec une tête de chat et quatre roulettes. Personne n\'a demandé pourquoi. Tout le monde a demandé comment.'},
  {name:'REQUIN',          shape:'requin',  color:0x3a6ea8,accent:0xdfe9f2,maxKmh:600,accel:68,turn:3.22,h:.95,w:1.98,l:3.3,spoiler:0,glow:0x9adfff,
@@ -16811,7 +16811,7 @@ const SHAPES={
       if(ax!==1)m*=.74+.26*Math.min(1,Math.max(0,(p[1]-5)/4));
       const a1=(ax+1)%3,a2=(ax+2)%3;let bord=0,creux=0;
       for(let e=0;e<4;e++){const aa=e<2?a1:a2,dd=e&1?-1:1;q[0]=p[0];q[1]=p[1];q[2]=p[2];q[aa]+=dd;if(!V.has(q[0],q[1],q[2]))bord=1;q[ax]+=sg;if(V.has(q[0],q[1],q[2]))creux=1;}
-      if(bord)m*=.87;if(creux)m*=.78;
+      if(bord)m*=.93;if(creux)m*=.86;
       let b=0,ec=9;for(let n=0;n<LV.length;n++){const d=Math.abs(LV[n]-m);if(d<ec){ec=d;b=n;}}return c+b;};};
     const poseC=(V,par)=>{const kt=lpKit(palC);V.emit(kt,u,o,fkC(V));const gs=kt.done();
       for(const g in gs){const m=new THREE.Mesh(gs[g],mat(g));m.userData.lp=1;par.add(m);}return par;};
@@ -16820,32 +16820,26 @@ const SHAPES={
       const gs=kt.done();
       for(const g in gs){const m=new THREE.Mesh(gs[g],mat(g));m.userData.lp=1;par.add(m);}return par;};
     const bloc=()=>K.add(new THREE.Group()); // ce qui BOUGE vit dans un groupe : la soudure de la caisse n'y touche pas (voir caisseSoude)
-    // 1. LA CAISSE (v3, Léo : « le biscuit a pivoté de sens — derrière la tête, une forme de mini Cooper sport, deux couches de glaçage,
-    //    une droite une gauche, qui englobent les détails de la voiture, et le biscuit au milieu, du capot jusqu'au-dessous ; un petit
-    //    aileron ; la tête telle quelle, sans les phares jaunes »). La pop-tart est posée sur la TRANCHE : ses deux faces glacées
-    //    deviennent les FLANCS (roses, éclats de sucre), sa croûte la BANDE du milieu qui court sur le capot, le pavillon, la poupe et
-    //    SOUS la caisse — la bande de capot d'une Mini Cooper S. Bas de caisse pleine largeur, habitacle rentré d'une case, pare-brise
-    //    en escalier, vitres laquées (latérales à montant central, pare-brise, lunette), pavillon qui déborde en BECQUET au-dessus de la
-    //    lunette, bouclier arrière marron foncé. Les teintes dessinent l'ombre (voir fkC).
-    {const V=voxGrille(),lay=i=>Math.abs(i)>=5?'P':'C',kAv=[16,15,14];
-     for(let k=0;k<=19;k++)for(let j=5;j<=9;j++)for(let i=-8;i<=8;i++)V.set(i,j,k,lay(i));            // le bas de caisse, capot compris
-     for(let j=10;j<=12;j++)for(let k=1;k<=kAv[j-10];k++)for(let i=-7;i<=7;i++)V.set(i,j,k,lay(i));     // l'habitacle (le pare-brise recule d'une case par rangée)
-     for(let k=0;k<=14;k++)for(let i=-7;i<=7;i++)V.set(i,13,k,lay(i));                                   // le pavillon…
-     for(let i=-6;i<=6;i++)V.set(i,14,0,lay(i));                                                         // …et la lèvre du becquet
-     for(const sd of [-1,1])for(let j=11;j<=12;j++)for(let k=3;k<=13;k++)if(k!==8)V.set(sd*7,j,k,'V');   // les vitres latérales, montant au milieu
-     for(let j=11;j<=12;j++)for(let i=-6;i<=6;i++){V.set(i,j,kAv[j-10],'V');V.set(i,j,1,'V');}           // le pare-brise, la lunette
-     for(const e of [[-8,7,3],[-8,6,8],[-8,8,12],[-8,6,16],[8,8,4],[8,6,9],[8,7,14],[8,8,18],[-6,13,4],[-5,13,10],[6,13,7],[5,13,12],[-6,9,18],[6,9,17],[-7,10,15],[7,10,2]])
+    // 1. LA CAISSE (v4, Léo : « pas d'encoches pour les roues, plus smooth, futuriste, moins cabossée ; le devant colle à la tête, pas
+    //    trop d'espace entre l'arête du haut de la tête et le haut de la voiture »). Toujours la pop-tart sur la TRANCHE (flancs roses,
+    //    bande de biscuit du capot jusqu'au-dessous — la v3, « une mini Cooper »), mais LISSE : flancs d'un seul plan (plus d'ailes, plus
+    //    de bas rentré, plus d'épaules en marches), l'habitacle pleine largeur qui VA JUSQU'À LA TÊTE, le pavillon AU NIVEAU de l'arête
+    //    du haut de la tête (seules les oreilles dépassent), une poupe fastback en deux marches aux coins arrondis, un BANDEAU DE VITRES
+    //    laquées sans montant qui fait le tour des flancs et de la lunette (la visière des concept-cars), un petit becquet intégré.
+    {const V=voxGrille(),lay=i=>Math.abs(i)>=5?'P':'C';
+     for(let k=0;k<=19;k++)for(let j=5;j<=10;j++)for(let i=-8;i<=8;i++)V.set(i,j,k,lay(i));            // le bas de caisse et la ceinture
+     for(let k=1;k<=19;k++)for(let i=-8;i<=8;i++)V.set(i,11,k,lay(i));                                  // l'habitacle, jusqu'à la tête…
+     for(let k=2;k<=19;k++)for(let i=-8;i<=8;i++)V.set(i,12,k,lay(i));                                  // …et le pavillon, au ras de l'arête de la tête
+     for(let i=-6;i<=6;i++)V.set(i,13,2,lay(i));                                                         // le becquet : une lèvre au bout du pavillon
+     for(const sd of [-1,1])for(let j=10;j<=11;j++)for(let k=2;k<=18;k++)V.set(sd*8,j,k,'V');           // le bandeau de vitres des flancs…
+     for(let i=-6;i<=6;i++)V.set(i,11,1,'V');                                                            // …qui fait le tour par la lunette
+     for(const sd of [-1,1]){for(let j=5;j<=10;j++)V.M.delete(sd*8+','+j+',0');V.M.delete(sd*8+',11,1');V.M.delete(sd*8+',12,2');} // les coins de la poupe, arrondis
+     for(const e of [[-8,7,4],[-8,6,9],[-8,8,13],[-8,6,17],[8,8,5],[8,6,10],[8,7,15],[8,9,18],[-6,12,5],[-5,12,11],[-7,12,16],[6,12,8],[5,12,14],[7,12,4]])
        V.set(e[0],e[1],e[2],'S');                                                                         // les éclats de sucre, semés à la main (pas en miroir)
-     for(let i=-8;i<=8;i++)V.set(i,5,-1,'K');                                                           // le bouclier arrière
-     // LE VOLUME : les épaules s'arrondissent (l'arête haute du bas de caisse tombe), le bas de caisse rentre d'une case, et les
-     // AILES BOMBENT d'une case au-dessus des pattes — la caisse se pose sur ses roues comme une Mini, plus comme un pavé
-     for(const sd of [-1,1])for(let k=0;k<=19;k++){V.M.delete(sd*8+',9,'+k);V.M.delete(sd*8+',5,'+k);}
-     for(const sd of [-1,1])for(const [k0,k1] of [[0,5],[14,19]])for(let k=k0;k<=k1;k++)for(let j=6;j<=8;j++)V.set(sd*9,j,k,(k===k0||k===k1)&&j===8?'P':'P');
-     for(const sd of [-1,1])for(const [k0,k1] of [[0,5],[14,19]]){V.M.delete(sd*9+',8,'+k0);V.M.delete(sd*9+',8,'+k1);} // l'aile s'arrondit à ses deux bouts
      poseC(V,carGroup);}
-    // LES FEUX ARRIÈRE : deux optiques en saillie sur la poupe, en DEUX exemplaires (veilleuse, stop) — le stop s'allume au freinage
-    for(const vif of [0,1]){const V=voxGrille();
-      for(const sd of [-1,1])for(let x=6;x<=7;x++)for(let j=7;j<=8;j++)V.set(sd*x,j,-1,vif?'T':'L');
+    // LES FEUX ARRIÈRE : un bandeau en saillie sur la poupe, en DEUX exemplaires (veilleuse, stop) — le stop s'allume au freinage
+    for(const vif of [0,1]){const V=voxGrille(); // (v4) un BANDEAU rouge d'un bord à l'autre — la signature lumineuse des voitures du futur
+      for(let i=-6;i<=6;i++)if(Math.abs(i)>1)V.set(i,9,-1,vif?'T':'L'); // coupé au milieu : la queue s'y accroche
       const g=pose(V,bloc(),2);g.visible=!vif;NYAN.feux.push(g);}
     // 2. LA TÊTE : le dessin de face sur la couche avant, quatre couches derrière (gris cerclé de noir : l'arrière de la tête, vu de
     //    la poursuite, est un chat, pas un pavé noir). Cinq de profondeur : à huit, le profil n'était plus qu'un PAVÉ NOIR — l'image
@@ -16865,7 +16859,7 @@ const SHAPES={
       NYAN.pattes.push(pose(V,bloc(),0));}
     // 4. LA QUEUE, de profil : DEUX dessins (tombante, relevée) qui alternent — le battement du GIF, pas une rotation
     for(const [jh,L] of NY_QUEUE){const V=voxGrille();
-      for(let a=0;a<L.length;a++)for(let b=0;b<6;b++){const c=L[a][b];if(c!=='.')for(let i=-1;i<=1;i++)V.set(i,jh-a,b-5,c);}
+      for(let a=0;a<L.length;a++)for(let b=0;b<5;b++){const c=L[a][b];if(c!=='.')for(let i=-1;i<=1;i++)V.set(i,jh-a,b-5,c);} // (v4) sans sa colonne k 0 : elle s'accroche à la poupe sans la traverser
       NYAN.queue.push(pose(V,bloc(),0));}
     NYAN.queue[1].visible=false;NYAN.arc.set(0,.75,-1.0);
     // LA FICHE : roulettes pixel sous les pattes (voie ±0,55 m) ; pas de halos (phares et feux sont des voxels, l'arc-en-ciel est sa
