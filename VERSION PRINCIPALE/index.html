@@ -15290,23 +15290,32 @@ function nyanTick(dt){
   const v=running&&!gameOver?vKmh():0,ac=dt>1e-4?(v-NYAN.v0)/dt:0; // (la vitesse affichée, `speedKmh`, est locale à la boucle)
   NYAN.v0=v;NYAN.acc+=(Math.max(-500,Math.min(500,ac))-NYAN.acc)*Math.min(1,dt*5);
   const enCourse=running&&!gameOver,frein=enCourse&&!vole&&v>15&&(NYAN.acc<-30||keys.ArrowDown||keys.KeyS);
-  let al,r=0;
-  if(vole){al='vol';r=14;}
-  else if(!enCourse){al='trot';r=4.5;}
+  let al;
+  if(vole)al='vol';
+  else if(!enCourse)al='garage';
   else if(frein)al='frein';
   else if(v<4&&NYAN.acc<8)al='arret';
-  else{r=Math.min(20,1.5+v/55+Math.max(0,NYAN.acc)/14+(nitroOn?4:0));al=(NYAN.acc>32||nitroOn)?'sprint':'course';} // la NITRO : toujours le sprint
-  NYAN.ph+=dt*r;NYAN.bat+=dt*142/60;
-  const st=Math.floor(NYAN.ph)&3,hb=Math.floor(NYAN.bat)&1;
-  if(st===NYAN.pas&&hb===NYAN.hb&&al===NYAN.allure)return;
-  NYAN.pas=st;NYAN.hb=hb;NYAN.allure=al;
-  const Z=[0,1,0,-1],amp=al==='sprint'?2:1;
-  for(let i=0;i<NYAN.pattes.length;i++)NYAN.pattes[i].position.z=(al==='frein'?1:al==='arret'?0:Z[(st+((i===0||i===3)?0:2))&3]*amp)*NY_U;
-  if(NYAN.queue.length===2){const h=al==='sprint'?1:al==='frein'||al==='arret'?0:(st>>1)&1;NYAN.queue[0].visible=!h;NYAN.queue[1].visible=!!h;}
+  else al=(NYAN.acc>32||nitroOn)?'sprint':'course'; // la NITRO : toujours le sprint
+  /* (v13, Léo : « les pattes bougent en fonction de comment les roues tournent, que ça fasse le geste de la Nyan Cat ») CHAQUE PATTE
+     SUIT SA ROUE (même ordre : AVG, AVD, ARG, ARD) : un cran par QUART DE TOUR, la patte tourne en rond comme une bielle, les diagonales en
+     opposition (le trot). La roue est la vérité : arrêtée, la patte se fige ; au burn-out l'arrière patine — les pattes arrière
+     courent sur place, celles de devant restent plantées ; en vol elles ralentissent avec les roues. La cadence est bornée par
+     celle des roues (pas d'image borné à .3 rad, voir carVit) : au plus ~11 pas/s, l'œil suit. Au freinage, les quatre se plantent. */
+  NYAN.bat+=dt*142/60;
+  const hb=Math.floor(NYAN.bat)&1,q=Math.PI/2,st=NYAN.st||(NYAN.st=[0,0,0,0]);let cle=0;
+  for(let i=0;i<4;i++){const w=wheels[i];st[i]=w?((Math.floor(w.rotation.x/q)%4)+4)%4:0;cle=cle*4+st[i];}
+  if(cle===NYAN.pas&&hb===NYAN.hb&&al===NYAN.allure)return;
+  NYAN.pas=cle;NYAN.hb=hb;NYAN.allure=al;
+  const Z=[1,0,-1,0],Y=[0,1,0,-1]; // le tour de la bielle, par crans : devant, en haut, derrière, en bas
+  for(let i=0;i<NYAN.pattes.length;i++){const s9=(st[i]+((i===0||i===3)?0:2))&3,g=NYAN.pattes[i];
+    if(al==='frein')g.position.set(0,0,NY_PATTE);else g.position.set(0,Y[s9]*NY_PATTE,Z[s9]*NY_PATTE);}
+  if(NYAN.queue.length===2){const h=al==='sprint'||al==='vol'?1:al==='frein'?0:(al==='course')?(st[2]>>1)&1:(Math.floor(NYAN.bat/2)&1); // à l'arrêt elle bat doucement
+    NYAN.queue[0].visible=!h;NYAN.queue[1].visible=!!h;}
   if(NYAN.feux.length===2){NYAN.feux[0].visible=!frein;NYAN.feux[1].visible=frein;}
   if(NYAN.tete)NYAN.tete.position.y=hb*NY_U;
 }
-window.dbgNyan=function(c,a,d,h){if(c==='allure')return {allure:NYAN.allure,acc:+NYAN.acc.toFixed(1),v:+NYAN.v0.toFixed(0),pattes:NYAN.pattes.map(g=>+(g.position.z/NY_U).toFixed(0)),stop:!!(NYAN.feux[1]&&NYAN.feux[1].visible)};if(c==='cliche'){if(NYAN.photo&&NYAN.on){const f=NYAN.photo,r=carGroup.rotation.y+f.a; // (banc) l'image rendue ET lue dans le même instant (le tampon WebGL est vidé entre deux images)
+window.dbgNyan=function(c,a,d,h){if(c==='tick'){if(d)for(const w of wheels)w.rotation.x+=d;nyanTick(a||1/60);c='allure';} // (banc, v13) une image de l'allure à la main, les roues tournées de `d` rad : le panneau caché ne fait pas tourner la boucle
+  if(c==='allure')return {allure:NYAN.allure,acc:+NYAN.acc.toFixed(1),v:+NYAN.v0.toFixed(0),pattes:NYAN.pattes.map(g=>+(g.position.z/NY_PATTE).toFixed(0)),stop:!!(NYAN.feux[1]&&NYAN.feux[1].visible)};if(c==='cliche'){if(NYAN.photo&&NYAN.on){const f=NYAN.photo,r=carGroup.rotation.y+f.a; // (banc) l'image rendue ET lue dans le même instant (le tampon WebGL est vidé entre deux images)
     camera.position.set(carGroup.position.x+Math.sin(r)*f.d,carGroup.position.y+f.h,carGroup.position.z+Math.cos(r)*f.d);
     camera.lookAt(carGroup.position.x,carGroup.position.y+.7,carGroup.position.z);camera.updateMatrixWorld();if(camera.view&&camera.view.enabled)camera.clearViewOffset();}
   if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return renderer.domElement.toDataURL('image/png');}if(c==='mats'){const L=[];carGroup.traverse(o=>{if(!o.isMesh)return;const m=o.material,ca=o.geometry.attributes.color;
@@ -16067,6 +16076,7 @@ function lpWheel(o){
    la tête hoche d'un voxel sur le tempo — et à la nitro, des pixels multicolores qui scintillent (voir NY_PIX). Unité `NY_U` = 10 cm ; repère
    caisse : i → x (centré), j → y (sol = 0), k → z (k = 10 ↔ z = 0, l'avant en +z). Console : `dbgNyan()`. */
 const NY_U=.1;
+const NY_PATTE=.05,NY_BAS=.25; // (v13) la case des pattes (accrochées aux roues) — c'est aussi un cran de leur tour · la descente de la caisse sur ses roues
 const NY_P=.086; // (v12) LE PIXEL DU DESSIN : la tête et la pop-tart du pavillon ont la même case (une seule image, pas deux)
 /* (v12) LA POP-TART DU PAVILLON, de l'arrière (rangée 0) vers l'avant : `.` biscuit, `f` glaçage, `s` vermicelle — les coins du glaçage
    en ESCALIER et les vermicelles semés comme sur l'image (une case chacun). */
@@ -16162,7 +16172,8 @@ function nyLaque(){
    centre. Même contrat que les roues du kit : axe x, la boucle la fait tourner par `rotation.x`. */
 function lpRoulette(o){
   const R=o.R,n=7,v=2*R/n,nx=Math.max(1,Math.round(o.w/v)),V=voxGrille(),
-        D=['..kkk..','.kkkkk.','kkmmmkk','kkmwmkk','kkmmmkk','.kkkkk.','..kkk..'],
+        D=['..kkk..','.kmmmk.','kmkkkmk','kmkwkmk','kmkkkmk','.kmmmk.','..kkk..'], // (v13) une JANTE grise en anneau : elle se voit autour de la patte accrochée au moyeu, dans le passage noir
+
         K=lpKit({k:{g:'g',c:0x09090e},m:{g:'l',c:0x9a9ba3},w:{g:'l',c:0xffffff}});
   for(let a=0;a<n;a++)for(let b=0;b<n;b++){const c=D[a][b];if(c!=='.')for(let x=0;x<nx;x++)V.set(x,n-1-a,b,c);}
   V.emit(K,v,[-nx*v/2,-R,-R],c=>c);
@@ -16858,7 +16869,7 @@ const SHAPES={
   //     couché en châssis, la tête dressée à l'avant, pattes et queue dessinées de profil, quatre roulettes pixel.
   //     (L'ancien — pavé texturé, boule de tête, oreilles en cônes — est dans l'historique git, avant ce commit.)
   poptart(K){
-    NYAN.on=true;
+    NYAN.on=true;const n0=carGroup.children.length;
     const u=NY_U,o=[-u/2,0,-10*u],mats={},mat=g=>mats[g]||(mats[g]=g==='nyl'?nyLaque():lpMat(g)); // une matière par famille pour TOUT le chat
     /* ⚠ LES COULEURS NE PRENNENT PAS LA LUMIÈRE (2026-10-06, mesuré en course). Un gris NEUTRE renvoie fidèlement toutes les lumières
        colorées du niveau : la tête passait VERTE aux NUAGES, ROSE sous le baiser magenta, BEIGE sous la lampe chaude de l'atelier,
@@ -16890,16 +16901,27 @@ const SHAPES={
      const yT=z=>z>1.2?-1:z>.9?1.12+.19*sm((1.2-z)/.3):z>-.6?1.31+.015*(1-Math.pow((z-.15)/.75,2)):z>-.9?yB(z)+.04+(1.31-yB(z)-.04)*sm((z+.9)/.3):-1; // pare-brise · pavillon · hayon
      const sx=z=>z<-.7?.62+.38*Math.sqrt(Math.max(0,1-Math.pow((-.7-z)/.3,2))):z>1.3?.86+.14*Math.sqrt(Math.max(0,1-Math.pow((z-1.3)/.15,2))):1; // les coins en plan (pris en quelques facettes)
      const ha=z=>.07*Math.max(0,1-Math.pow((z+.62)/.38,2));                                       // les hanches
-     const S=z=>{const yb=yB(z),t0=yT(z),yt=t0<0?yb+.006:t0,g=yt-yb,h=ha(z),wt=z<-.6?1-.25*sm((-.6-z)/.3):1,s=sx(z);
-       return [[0,.5],[.6,.5],[.79,.55],[.835,.6],[.86+h,.71],[.865+h,.79],[.83+h*.4,.89],[.785,yb],           // fond, chanfrein, bas de caisse, plan de porte, ARÊTE, épaule
-               [.75*wt,yb+.45*g],[.665*wt,yt-.045],[.6*wt,yt-.008],[.56*wt,yt+.024],[.3*wt,yt+.036],[0,yt+.04]] // vitrage, rail de pavillon, marche du glaçage, pavillon
+     // (v13) LES PASSAGES DE ROUE — les pattes y logent (voir 3.) : une ouverture en demi-cercle facetté (centre, demi-longueur) jusqu'à
+     // 0,74 m, juste sous l'arête ; dedans, la paroi du passage à 0,55 m de l'axe et le dessous de l'aile, en noir
+     const ARC=[[.95,.32],[-.45,.32]],AH=.28,XIN=.55;
+     const arc=z=>{for(const [c,a] of ARC){const d=(z-c)/a;if(Math.abs(d)<=1)return .5+AH*Math.sqrt(Math.max(0,1-d*d));}return -1;};
+     const arcD=z=>{let m=9;for(const [c,a] of ARC)m=Math.min(m,Math.abs(z-c)-a);return m;}; // < 0 dans l'arche, 0-1,6 cm : son bord franc
+     const S=(z,sansArc)=>{const yb=yB(z),t0=yT(z),yt=t0<0?yb+.006:t0,g=yt-yb,h=ha(z),wt=z<-.6?1-.25*sm((-.6-z)/.3):1,s=sx(z),ta=sansArc?-1:arc(z);
+       const lo=[[.6,.5],[.79,.55],[.835,.6],[.86+h,.71]];                                              // fond, chanfrein, bas de caisse, plan de porte
+       let xo=.865+h;for(let n=0;n<3;n++)if(ta<=lo[n+1][1]){xo=lo[n][0]+(lo[n+1][0]-lo[n][0])*(ta-lo[n][1])/(lo[n+1][1]-lo[n][1]);break;} // la peau de la caisse à la hauteur de l'arche
+       return [[0,.5]].concat(ta<0?lo:[[XIN,.5],[XIN,ta],[xo,ta],ta<.71?lo[3]:[xo,ta]]).concat(            // — ou le PASSAGE : paroi, dessous d'aile, la peau qui reprend au bord de l'arche (pas d'arête qui dépasse)
+               [[.865+h,.79],[.83+h*.4,.89],[.785,yb],                                                          // ARÊTE, épaule
+               [.75*wt,yb+.45*g],[.665*wt,yt-.045],[.6*wt,yt-.008],[.56*wt,yt+.024],[.3*wt,yt+.036],[0,yt+.04]]) // vitrage, rail de pavillon, marche du glaçage, pavillon
          .map(p=>[p[0]*s,p[1]]);};
      // des stations COMPTÉES (les cassures du profil, les coins pris en trois facettes) : chaque facette est voulue
-     const zs=[-1,-.985,-.95,-.88,-.78,-.66,-.6,-.55,-.42,-.28,-.15,0,.03,.11,.3,.5,.7,.86,.95,1.05,1.15,1.2,1.3,1.4,1.45];
+     const zs=[-1,-.985,-.95,-.88,-.78,-.66,-.6,-.42,-.28,-.15,0,.03,.11,.3,.5,.7,.95,1.05,1.15,1.2,1.3,1.4,1.45];
+     for(const [c,a] of ARC)for(const f of [-1.044,-1,-.7071,-.38,0,.38,.7071,1,1.044])zs.push(c+f*a); // l'arche en six facettes, ses deux bords francs
+     zs.sort((a,b)=>a-b);
      const kt=lpKit({b:{g:'p',c:NY_COUL.b},f:{g:'p',c:NY_COUL.f,f:0},s:{g:'p',c:NY_COUL.s,f:0},v:{g:'p',c:NY_COUL.v,f:0},k:{g:'m',c:0x131317},c:{g:'c',c:0xd8dce4},e:{g:'l',c:0xa01424}});
      kt.loft(zs,S,(j,z)=>{
        if(j<0)return 'b';                                                                         // les bouchons (la poupe ; le nez est dans la tête)
        if(j===0)return 'k';                                                                       // le dessous
+       {const ad=arcD(z);if((j<=2&&ad<0)||(j<=3&&ad>=0&&ad<.016))return 'k';}                    // (v13) le PASSAGE DE ROUE : paroi, dessous d'aile, bords francs — noirs
        if(j<=6)return 'b';                                                                        // (v11) TOUT LE BAS EN BISCUIT : chanfrein, bas de caisse, bouclier, portes, arête, épaule
        if(yT(z)<0)return 'b';                                                                     // capot et plage arrière
        if(z>.9||z<-.6||j<=8)return 'v';                                                           // pare-brise, vitre du hayon, vitres latérales — montants en verre fumé : le pavillon flotte
@@ -16936,7 +16958,7 @@ const SHAPES={
      // dans le dessin, est cerné de noir — la tête, les pattes et la queue l'étaient (leurs cases du bord), la caisse non : deux mondes.
      // Une coque RETOURNÉE (faces arrière seules) gonflée le long des normales MOYENNÉES par sommet : on ne la voit qu'au bord de la
      // silhouette, un trait de 4,5 cm, comme le contour d'un sprite. Un dessin, une matière nue ; l'explosion ne l'arrache pas.
-     {const ko=lpKit({o:{g:'m',c:0}});ko.loft(zs,S,()=>'o');ko.box('o',1.42,.035,.26,0,1.47,-.76);
+     {const ko=lpKit({o:{g:'m',c:0}});ko.loft(zs,z=>S(z,1),()=>'o');ko.box('o',1.42,.035,.26,0,1.47,-.76);
       const g=ko.done().m,p=g.attributes.position.array,N=new Map(),cle=i=>Math.round(p[i]*1e4)+','+Math.round(p[i+1]*1e4)+','+Math.round(p[i+2]*1e4);
       for(let i=0;i<p.length;i+=9){const ux=p[i+3]-p[i],uy=p[i+4]-p[i+1],uz=p[i+5]-p[i+2],vx=p[i+6]-p[i],vy=p[i+7]-p[i+1],vz=p[i+8]-p[i+2];
         const nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx;
@@ -16964,23 +16986,29 @@ const SHAPES={
        const bord=vide(r-1,c)||vide(r+1,c)||vide(r,c-1)||vide(r,c+1);
        for(let k=22;k<=24;k++)V.set(c-7,14-r,k,k===24?ch:(bord&&k===22?'B':'G'));} // (v7) trois couches : à cinq, la tête était trop épaisse
      NYAN.tete=pose(V,bloc(),2,uT,[-uT/2,.4-4*uT,1.5-25*uT]);}
-    // 3. LES PATTES : des blocs 4 × 4 gris, CERNÉS de noir sur chaque arête (une case noire dès qu'elle touche deux bords du bloc) —
-    //    de profil comme de face, une patte grise au trait noir, celles de l'image. (Dessinées de profil seulement, vues de trois-quarts
-    //    elles n'étaient que des pavés noirs.) Dans l'ordre AVG, AVD, ARG, ARD : elles courent SELON L'ACCÉLÉRATION (voir nyanTick).
-    for(const [k0,j0,j1] of [[16,2,4],[1,2,4]])for(const sd of [-1,1]){const V=voxGrille(); // (v3) l'essieu avant sous le capot, juste derrière la tête
-      for(let x=4;x<=7;x++)for(let j=j0;j<=j1;j++)for(let k=k0;k<k0+4;k++){
-        const bx=x===4||x===7,bz=k===k0||k===k0+3,by=j===j0;
-        V.set(sd*x,j,k,((bx&&bz)||(bx&&by)||(bz&&by))?'B':'G');}
-      NYAN.pattes.push(pose(V,bloc(),0));}
-    // 4. LA QUEUE, de profil : DEUX dessins (tombante, relevée) qui alternent — le battement du GIF, pas une rotation
+    // 3. LA QUEUE, de profil : DEUX dessins (tombante, relevée) qui alternent — le battement du GIF, pas une rotation
     for(const [jh,L] of NY_QUEUE){const V=voxGrille();
-      for(let a=0;a<L.length;a++)for(let b=0;b<5;b++){const c=L[a][b];if(c!=='.')for(let i=-1;i<=1;i++)V.set(i,jh-a,b-5,i===0&&c==='B'?'G':c);} // (v4) sans sa colonne k 0 : elle s'accroche à la poupe sans la traverser · (v12) la tranche du MILIEU grise : de dos, un trait noir de chaque côté, plus un pavé noir
+      for(let a=0;a<L.length;a++)for(let b=0;b<5;b++){const c=L[a][b];if(c!=='.')for(let i=-1;i<=1;i++)V.set(i,jh-a,b-5,i===0&&c==='B'?'G':c);} // (v4) sans sa colonne k 0 : elle s'accroche à la poupe sans la traverser · (v12) la tranche du MILIEU grise : de dos, gris cerné de noir
       NYAN.queue.push(pose(V,bloc(),0));}
-    NYAN.queue[1].visible=false;NYAN.arc.set(0,.75,-1.0);
+    NYAN.queue[1].visible=false;NYAN.arc.set(0,.75-NY_BAS,-1.0);
+    // 4. LA CAISSE DESCEND SUR SES ROUES (v13) : tout ce qui précède a été dessiné 25 cm plus haut (la caisse flottait sur ses pattes) —
+    //    une voiture pose sur ses roues, dans ses passages. On descend la caisse, la tête, la queue et les feux d'un bloc.
+    for(let n=n0;n<carGroup.children.length;n++)carGroup.children[n].traverse(o=>{if(o.isMesh)o.geometry.translate(0,-NY_BAS,0);});
+    // 5. LES PATTES (v13, Léo : « les jambes deviennent les encoches — pas trop sur le côté, insérées dans la voiture, mais qu'on les
+    //    voie ; dedans, les roues ; les pattes bougent selon comment les roues tournent, que ça fasse le geste de la Nyan Cat ») : le
+    //    JOUET À TIRER. Dans chaque passage de roue, une roue pixel de 40 cm, et sur sa face extérieure, au ras de la caisse, une patte
+    //    de l'image (grise cernée de noir, 20 × 40 cm en cases de 5) qui descend de l'aile jusqu'au moyeu, accrochée à la roue comme
+    //    une bielle : quand la roue tourne, la patte tourne en rond par crans — le geste de la course. Ordre AVG, AVD, ARG, ARD (celui
+    //    des roues) : chacune suit SA roue (voir nyanTick).
+    for(const zc of [.95,-.45])for(const sd of [-1,1]){const V=voxGrille(),U=NY_PATTE,NX=2,NY=8,NZ=4;
+      for(let x=0;x<NX;x++)for(let j=0;j<NY;j++)for(let k=0;k<NZ;k++){
+        const bx=x===0||x===NX-1,by=j===0||j===NY-1,bz=k===0||k===NZ-1;
+        V.set(x,j,k,((bx&&by)||(bx&&bz)||(by&&bz))?'B':'G');}
+      NYAN.pattes.push(pose(V,bloc(),0,U,[sd>0?.78:-.78-NX*U,.14,zc-NZ*U/2]));}
     // LA FICHE : roulettes pixel sous les pattes (voie ±0,55 m) ; pas de halos (phares et feux sont des voxels, l'arc-en-ciel est sa
     // lumière) ; ni flamme de réacteur (`tuyeres:0`) : sa nitro, c'est l'arc-en-ciel et les étoiles, nés au milieu de la poupe.
-    return {hl:[.5,.45,2.5],tl:[.65,.8,-1.1],lpw:{R:.13,w:.2,style:'pixel'},wx:.55,wzF:.8,wzR:.7,wy:0,
-            split:0,skirt:0,sp:0,doors:0,wings:'none',glowF:0,halos:0,tuyeres:0,pots:[[0,.75,-1.03]]};
+    return {hl:[.5,.45,2.5],tl:[.65,.8-NY_BAS,-1.1],lpw:{R:.2,w:.2,style:'pixel'},wx:.7,wzF:.95,wzR:.45,wy:0, // (v13) les roues sous les pattes, au centre des passages
+            split:0,skirt:0,sp:0,doors:0,wings:'none',glowF:0,halos:0,tuyeres:0,pots:[[0,.75-NY_BAS,-1.03]]};
   },
   // 15. LE REQUIN — bulle de verre sur un corps rond, museau de grand blanc, et QUATRE BRAS
   //     D'HÉLICES repliés dans les flancs au sol / déployés en vol. Les bras réutilisent les

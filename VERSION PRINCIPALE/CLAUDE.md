@@ -4,6 +4,19 @@
 L'image de référence = le sprite de 2011 EXTRUDÉ en cubes (contour noir = mur noir sur l'épaisseur, dessous bleus). Le gabarit `poptart` est
 refait EN VOXELS (10 cm, `NY_U`), chaque pièce dessinée dans SON plan (bloc « LE CHAT POP-TART EN VOXELS », juste avant `SHAPES` : dessins
 `NY_GATEAU` / `NY_SUCRE` / `NY_TETE` / `NY_QUEUE`, maillage `voxGrille()` = faces à l'air seules, fusionnées en rectangles par couleur).
+- **v13, même jour** (Léo, après une version tout en cubes commencée puis ABANDONNÉE à sa demande — « oublie, c'est bien le nouveau
+  design ; juste les jambes deviennent les encoches qu'on avait enlevées, pas trop sur le côté, insérées dans la voiture mais visibles ;
+  dedans, des roues ; les pattes bougent selon comment les roues tournent, le geste de la Nyan Cat ») : LA CAISSE DESCEND SUR SES ROUES
+  (`NY_BAS` 0,25 m : tout ce que dessine `poptart` est translaté d'un bloc à la fin — elle flottait sur ses pattes) ; deux PASSAGES DE
+  ROUE par flanc dans la section du loft (`ARC` centres 0,95 / −0,45, demi-longueur 0,32, `AH` 0,28, paroi `XIN` 0,55 ; la peau reprend
+  au bord de l'arche — pas d'arête qui dépasse ; paroi, dessous d'aile et bords en noir ; le trait noir est gonflé sur la caisse SANS
+  ses passages, sinon il faisait des éclats) ; roues pixel de 40 cm à JANTE grise en anneau (visible dans le passage noir). LES PATTES
+  = un JOUET À TIRER : une patte de l'image (grise cernée de noir, 20 × 40 cm, cases `NY_PATTE` 5 cm) sur la face extérieure de chaque
+  roue, au ras de la caisse, de l'aile au moyeu, qui TOURNE EN ROND PAR CRANS avec sa roue (devant · haut · derrière · bas, un cran par
+  quart de tour, diagonales en opposition) — chacune suit SA roue (ordre AVG, AVD, ARG, ARD = celui de `wheels`) : arrêtée, elle se fige ;
+  au burn-out les pattes arrière courent, l'avant reste planté ; cadence bornée par le pas des roues (≤ ~11 crans/s) ; au frein les
+  quatre se plantent devant. Banc : `dbgNyan('tick', dt, dθ)` (une image de l'allure, roues tournées de dθ — la boucle ne tourne pas
+  dans un panneau caché).
 - **v12, même jour** (Léo : « pas mal — mieux mimer, genre copier, et merger mieux les deux : plus homogène, moins Frankenstein ») :
   UNE SEULE IMAGE au lieu d'un sprite collé sur une voiture. (1) Le PIXEL COMMUN `NY_P` (8,6 cm) : la tête ET le pavillon. (2) LE PAVILLON
   EST LA POP-TART DE L'IMAGE (`NY_TOIT`, 11 × 15 cases) : biscuit au bord, glaçage aux coins en ESCALIER, vermicelles en cases un cran plus
