@@ -125,6 +125,30 @@ refait EN VOXELS (10 cm, `NY_U`), chaque pièce dessinée dans SON plan (bloc «
 - Les règles « SANS TOUT CASSER » (partir de `origin/main` à jour, fusionner sans jamais forcer, jeu testé sans erreur avant chaque
   push, retour arrière par Vercel) et la liste de ce que contient la référence : voir `CLAUDE.md` à la RACINE du dépôt.
 
+## LA VUE DE LÉO DANS LA CONSOLE DE SACHA + LE DONUT + LE GLISSÉ QUI NE CHANGE PLUS DE CAISSE (2026-10-06, Léo : « sans changer le garage de Sacha, remets le beau point de vue — l'angle travaillé, légèrement éloigné, vers la porte —, le glissé et le burn-out, et fusionne avec la nouvelle surface de Sacha »)
+- **Ce qui ne bouge pas** : TOUT le DOM de Sacha — la console (compteur, nom, ⚙ en pixel, onglets, familles, vignettes, HOME · BOUTIQUE ·
+  JOUER), la barre du HUB (ATELIER · MISSIONS · CARRIÈRE), l'accueil (GARAGE · BOUTIQUE · ⚙ · JOUER), le JOUER de l'accueil (la chute du ciel).
+- **`garVueLeo()`** (juste après `garAtelierLibre`) = `garAtelierLibre() && !quiet` : l'atelier est à toi (vitrine de Léo OU console de
+  Sacha, ni menu ni missions), hors du départ direct. Elle remplace le test de la classe `vitrine` aux seuls endroits de la 3D et du doigt :
+  · LA CAMÉRA : le fondu `GAR.vit` (donc tout `VITRINE_CAM` : recul calculé sur la caisse, regard sur l'entrée `porteY`, caisse posée par la
+    place de la caméra `GAR.vD`, plateau lent, lampes un cran plus fortes, retour à la porte après 3 s) ; `openGarage` pose `GAR.vit` d'emblée
+    quand `MENU_SACHA` (pas de travelling depuis l'ancien cadrage à l'entrée) ;
+  · LA PORTE reste FERMÉE dans la console (choix tranché de Sacha, règle 4 du CLAUDE.md racine) : la vue regarde la porte, ses hublots
+    et le feu derrière ; elle ne se lève qu'en vitrine (`?menu=leo`, `vo9` dans garPorte) ;
+  · LE CADRAGE : `garLibre` porte `r.leo` (la composition de la vitrine : `cx/cxL`, `cy/cyL`) à côté de `r.vit` (le DOM de la vitrine :
+    la pile `#gAct`) ; couché, la barre du HUB en bas à gauche borne la place de la caisse (elle se pose au-dessus) ;
+  · LE DOIGT : sur la caisse il tient le PLATEAU (`GAR.doigt='caisse'`), ailleurs il tourne la VUE en ressort (`VITRINE_CAM.dPx`, élan
+    plafonné `dElan`) ; tenu sur la caisse = le BURN-OUT complet (dérapage, DONUT, coup de gaz) ; `dbgBurn` accepte la console.
+- **LE DONUT AU DOIGT** (branche `boutique-tourner`, fusionnée) : en burn-out, le doigt qui tourne autour du milieu du plateau la fait
+  tourner (`burnGeste`, `DON` : ,6 tour de caisse par tour de doigt, plafonné ~1 tour / 1,6 s ; tours fêtés « DONUT ×n », anneau de fumée,
+  pétarade ; pichenette vers le haut = COUP DE GAZ `burnGaz` ; astuce une fois « TOURNE AUTOUR · DONUT », bit 16 de `SAVE.d.ast`).
+- **LE GLISSÉ NE CHANGE PLUS DE CAISSE** (même branche) : nulle part (menu, vitrine, boutique) — on change aux vignettes, aux flèches,
+  au clavier. `SWIPE_PX` n'est plus lu.
+- Vérifié au banc (cadre à `requestAnimationFrame` minuté, le panneau du navigateur étant masqué ; captures du canvas) : couché 844×390 et
+  debout 390×844 — console intacte, caisse dans la place libre, la porte au milieu ; glissé → vue −1,56 rad avec élan, retour à la porte à 3,6 s,
+  posée à 6 s ; burn-out + 2,5 tours de doigt → 1 DONUT compté, 320 fumées ; vignette (THE YELLOW CAB) → cadrée ; MISSIONS (vit 0) → ATELIER
+  (vit 1) ; JOUER du garage → retour au feu → lâcher → course ; JOUER de l'accueil inchangé. 0 erreur. sw.js → v141.
+
 ## LE GARAGE, HUB DES TROIS + LA CONSOLE DE SACHA REVENUE (2026-10-06, session GAMEPLAY) — Sacha : « j'aime pas les modifs que Léo a faites dans le garage concernant les boutons et l'UHD : garde les améliorations du garage 3D puis remets mes boutons et affichage » · « tu peux garder son bouton inventaire, mais retravaille-le dans la DA du reste du jeu » · « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage doit servir de hub aux 3 — mets-toi dans la peau d'un designer UX/UI senior »
 - **LA CONSOLE DE SACHA PAR DÉFAUT** : la VITRINE de Léo (barre du bas, jauges CASH/AURA, MISSIONS sous JOUER, vignette du niveau) ne s'ouvre plus
   qu'avec `?menu=leo` (`if(!MENU_SACHA)garVitrine(true)` aux trois portes : bouton GARAGE, retour des missions, routeur). Par défaut :
