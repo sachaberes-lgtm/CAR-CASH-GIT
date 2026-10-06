@@ -14,6 +14,14 @@
 - `TITRE_CIEL` (près de TITRE_H) : la palette par heure — z/m/h (zénith, milieu, horizon), s (lueur du soleil), mh/mo (mer au soleil, à
   l'ombre), c/ca (cirrus, leur part), hz (distance de la brume). `titreCiel(on)` la pose. Au titre : `horizonGlow`, `sunSprite`, `RAYS`
   et les bancs-sprites `CHUTE.w` éteints (`CHUTE_P.cielT` 1, `CHUTE_P.voiles` 0). Le pommelé reste dans le NIVEAU NUAGES (demandé le 30/09).
+- v5/v6 (même jour, Sacha : « peut mieux faire, fais 100 × mieux ») — essayé puis JETÉ : des tours peintes dans le dôme (des montagnes de
+  glace pixelisées), un bruit « billow » sur la mer (des rayures de champ de neige), des cumulonimbus 3D à 5 km (des CHAMPIGNONS atomiques),
+  un halo (bloom) fort (tout délavé, la caisse fantôme), un « canyon » de gros cumulus (hors cadre avec cette plongée). GARDÉ : la mer de
+  nuages en champ de HAUTEUR (`tH`) éclairé par sa pente et OMBRÉ par ses voisins (4 pas vers le soleil), de grandes ondulations ; six
+  cumulus bourgeonnants 3D à 8-9 km sur l'horizon (immobiles, noyés dans l'air : `CHUTE_P.brumeT` 2,2 recule la brume au titre) ; MOINS de
+  cumulus au premier plan (la mer respire) ; et LE SOLEIL DE TROIS-QUARTS le jour (`TITRE_H` az 1,8 matin/midi, 1,75 après-midi : la lueur de
+  l'horizon côté soleil, les cumulus modelés, la caisse éclairée). Au coucher et la nuit, soleil dans le dos (golden 1,95, soir/nuit 2,35) :
+  de côté, la caisse passait à contre-jour, noire. K/R du titre par heure dans TITRE_H (lisière et vapeur relevées).
 - Hook : `dbgChute()` rend `titreCiel` (1 au titre, 0 ailleurs). Bancs (scratchpad GRAPHISME) : `titre2.js` (planche, `--ui`, `--debout`),
   `titre4.js` (menu → course), `tour.js`.
 

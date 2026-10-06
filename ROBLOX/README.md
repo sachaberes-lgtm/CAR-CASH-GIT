@@ -15,13 +15,16 @@ avec le nom du script et la ligne. Copie-les à Claude.
 
 ## Le mettre en ligne sur Roblox — la check-list (dans l'ordre)
 
+👉 **Pour viser le haut des classements** (ouvrir le jeu aux moins de 16 ans, vignettes, langues, notifications, pub…) :
+lire **`PLAN-TOP1.md`** — la recherche du 6/10, avec ce que TOI seul peux régler dans le Creator Hub.
+
 Le jeu est PRÊT À PUBLIER (4/10) : réglages de test coupés, aucun prix en euros, aucune marque déposée dans les noms, les chances
 de la roue affichées, l'argent de fin de partie borné par le serveur (anti-triche), la sauvegarde sûre. Ce qui reste, c'est TON
 compte Roblox qui le fait — Claude ne publie pas à ta place :
 
 1. **Ton compte** : vérifié par pièce d'identité (13 ans ou plus) — Roblox l'exige pour les formes 3D que le jeu fabrique par code.
 2. **Studio → Fichier → Publier sur Roblox** (File → Publish to Roblox) → « Créer une nouvelle expérience », nom `CASH CAR`,
-   genre Course.
+   genre : voir **`PLAN-TOP1.md`** (recommandé : Obby & Platformer → Runner ; on ne peut le changer qu'une fois tous les 3 mois).
 3. **Studio → Paramètres du jeu → Sécurité** : cocher **« Activer l'accès de Studio aux services API »** (sauvegarde,
    classement) et **« Autoriser les API de maillage et d'image »** (Allow Mesh & Image APIs — sans ça, ni caisses ni nuages).
    Sauvegarder.
@@ -32,7 +35,9 @@ compte Roblox qui le fait — Claude ne publie pas à ta place :
    - **Places → Icône et vignettes** : glisser **`publication/icone-512.png`** et les cinq vignettes `vignette-*.png` ;
    - **Appareils** : ordinateur, téléphone, tablette, console (tout est jouable : clavier, tactile, manette) ;
    - **Places → Nombre de joueurs max** : 12 conseillé (chacun voit les caisses des autres sur sa route) ;
-   - **Localisation** : langue source Français, ajouter Anglais (le jeu suit la langue du joueur tout seul).
+   - **Localisation** : langue source **Anglais** (pas Français : c'est l'anglais que voient tous les non-francophones), le
+     français en traduction manuelle, et la traduction automatique du NOM et de la DESCRIPTION dans toutes les langues — détail
+     dans **`PLAN-TOP1.md`**, partie A, point 3.
 5. (Optionnel, pour gagner des Robux) créer les passes, produits et badges — voir « Gagner de l'argent avec le jeu » plus bas —
    et recopier leurs numéros dans `Config.REVENUS`, puis `node ROBLOX/construire.js` et republier.
 6. **Rendre l'expérience Publique** (Paramètres de base → Public) quand tu es prêt.
