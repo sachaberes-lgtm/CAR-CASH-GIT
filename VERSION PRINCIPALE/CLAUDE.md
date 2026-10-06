@@ -284,6 +284,8 @@
       LE BOUTON ROUGE prend sa place (x −2,9 · z 2,5), HORS du plateau, sur un PIED d'acier cerclé de danger, ×1,5 ; il rentre dans le sol
       pendant un dérapage et au lâcher (`ATL.y0`) ; le doigt vise sa calotte (`atlBoutonEcran`).
     · HOME · ⚙ : 40 × 36, verre fumé translucide (opacité ,88). sw.js → v123.
+  · (même jour, Léo : « avec le petit logo électrique, c'est mieux ») : l'ÉCLAIR du cartouche de main (`.gvEcl`, or, il grésille :
+    `gvEclairGr`) revient devant le numéro de la map branchée. sw.js → v124.
   Banc `vit6.mjs <nom> W H [zones]` (captures vitrine + tiroir, JOUER → course). sw.js → v116 (passé en v120 à la fusion : main était déjà en v119).
 - **L'ATELIER AÉRÉ + LE RENDU (même jour, Léo : « enlève quelques accessoires du garage, ça fait un peu rempli pour rien — les pieds tu
   dois laisser, ça fait partie du jeu ; les billets, mes trucs de trophée, tout ça laisse ; aère un peu l'espace · travaille plus le

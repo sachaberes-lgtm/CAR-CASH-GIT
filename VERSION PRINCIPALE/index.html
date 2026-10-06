@@ -5704,7 +5704,11 @@ html body #garage.vitrine:not(.menu) #gAct>#gJouer:is(:active,.appui)~#gvLvl{box
 .gvV::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(8,5,20,.78) 0%,rgba(8,5,20,.4) 46%,rgba(8,5,20,0) 74%)}
 :is(.gvV,#gvLvl) .gvTx{position:absolute;z-index:1;left:12px;right:8px;top:50%;translate:0 -50%;display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:7px;row-gap:3px;align-items:center;
   transform:skewX(calc(-1 * var(--sk)));font-size:var(--f0);letter-spacing:0;white-space:nowrap}
-#gvLvl .gvTx{left:10px;right:13px;column-gap:6px}
+#gvLvl .gvTx{left:10px;right:13px;column-gap:6px;grid-template-columns:auto auto minmax(0,1fr)}
+#gvLvl .gvTx>:is(.gvT,.gvD){grid-column:3}
+/* (2026-10-06, Léo : « avec le petit logo électrique, c'est mieux ») l'ÉCLAIR du cartouche de main, devant le numéro : or, il GRÉSILLE */
+#gvLvl .gvEcl{grid-row:1 / span 2;--pxs:1;color:#ffd75e;animation:gvEclairGr 2.2s steps(1) infinite}
+@keyframes gvEclairGr{0%,40%,46%,70%,100%{opacity:1}42%,72%{opacity:.25}}
 :is(.gvV,#gvLvl) .gvN{grid-row:1 / span 2;display:grid;place-items:center;min-width:20px;height:20px;padding:0 3px;color:#1a1000;background:#ffd75e;box-shadow:0 0 8px rgba(255,200,60,.7)}
 :is(.gvV,#gvLvl) .gvT{min-width:0;color:#fff;text-shadow:0 1px 0 #000,0 0 8px rgba(0,0,0,.8);overflow:hidden;text-overflow:ellipsis}
 :is(.gvV,#gvLvl) .gvD{color:var(--lc,#5ee6ff);text-shadow:0 1px 0 #000,0 0 8px var(--lc,#5ee6ff)}
@@ -5838,7 +5842,7 @@ html body #garage.vitrine:not(.menu):not(.inv) #gVJ{display:flex}
   #gvNivs .gnH{margin-bottom:8px}
   #gvNivs .gvV{height:40px}
 }
-@media (prefers-reduced-motion:reduce){#gVJ,.gvL u::after,.gvL u em,.gvL u em::after,.gvA .gvK .pxi,.gvL.plein u,.gvA.portee :is(.gvR,.gvS em),#gvLvl .gvOuv,#gvNivs.on,#gvNivs .gvV,#gvLvl::before,.gvV::before{animation:none!important}.gvL u em{transition:none}}
+@media (prefers-reduced-motion:reduce){#gVJ,.gvL u::after,.gvL u em,.gvL u em::after,.gvA .gvK .pxi,.gvL.plein u,.gvA.portee :is(.gvR,.gvS em),#gvLvl .gvOuv,#gvNivs.on,#gvNivs .gvV,#gvLvl::before,.gvV::before,#gvLvl .gvEcl{animation:none!important}.gvL u em{transition:none}}
 html[data-reduced-motion] :is(#gVJ,.gvL u::after,.gvL u em,.gvL u em::after,.gvA .gvK .pxi,.gvL.plein u,.gvA.portee .gvR,.gvA.portee .gvS em,#gvLvl .gvOuv,#gvNivs .gvV){animation:none!important}
 /* L'ASTUCE : le geste dit une fois — un doigt qui appuie, un anneau qui se remplit */
 html body #garage.vitrine.aideInv:not(.menu):not(.inv) #gInvAide{display:flex}
@@ -6070,7 +6074,7 @@ html.sansFacile [data-m="facile"]{display:none!important}
         <!-- (2026-10-05, Léo : « l'inventaire va être ajouté à côté du bouton jouer ») le COFFRE : l'inventaire (le doigt tenu sur la caisse lance désormais le BURN-OUT) -->
         <!-- (2026-10-05, Léo : « les niveaux, non : tu vois le niveau comme avant ; juste quand tu cliques dessus, tu vois les niveaux que tu as accomplis ») LA VIGNETTE du niveau que JOUER lance, et son TIROIR : voir gvNiveau / gvNivs -->
         <i id="gvBranche" aria-hidden="true"></i><!-- (2026-10-05, Léo : « la map branchée à la place de MISSIONS ») les deux conducteurs d'or entre JOUER et la map -->
-        <div id="gvLvl" role="button" tabindex="0" aria-label="Les niveaux" aria-expanded="false"><i class="gvImg" aria-hidden="true"></i><s class="gvFx" aria-hidden="true"></s><span class="gvTx"><b class="gvN"></b><span class="gvT"></span><em class="gvD"></em></span><i class="gvOuv pxi pxi-haut" aria-hidden="true"></i></div>
+        <div id="gvLvl" role="button" tabindex="0" aria-label="Les niveaux" aria-expanded="false"><i class="gvImg" aria-hidden="true"></i><s class="gvFx" aria-hidden="true"></s><span class="gvTx"><i class="gvEcl pxi pxi-eclair" aria-hidden="true"></i><b class="gvN"></b><span class="gvT"></span><em class="gvD"></em></span><i class="gvOuv pxi pxi-haut" aria-hidden="true"></i></div>
         <div id="gvNivs" role="dialog" aria-label="Niveaux accomplis"></div>
         <button id="gvCof" class="pbtn" aria-label="Inventaire"><i class="pxi pxi-coffre" aria-hidden="true"></i><span data-fr="COFFRE">COFFRE</span></button>
       </div>
