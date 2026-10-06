@@ -6635,7 +6635,7 @@ const skyU={uTime:{value:0},uSunDir:{value:SUN_DIR},
   uVille:{value:0},uPluie:{value:0},uFogCol:{value:new THREE.Color(0x331f48)},uCam:{value:new THREE.Vector3()},
   uVilleY:{value:0},uParis:{value:0},uParisT:{value:0}, // (2026-09-28) uParis : le ciel de PARIS (toits bas à l'horizon, lueur d'or) au lieu des tours de la ville
   // (2026-09-26) la SKYLINE descend à l'altitude de la ville (en sinus d'élévation) : la route spirale AU-DESSUS des toits
-  uTi:{value:new THREE.Vector4(0,0,0,1)},uTZen:{value:new THREE.Vector3()},uTMid:{value:new THREE.Vector3()},uTHor:{value:new THREE.Vector3()},uTSol:{value:new THREE.Vector3()},uTMerH:{value:new THREE.Vector3()},uTMerO:{value:new THREE.Vector3()},uTCir:{value:new THREE.Vector3()}, // (titre v4) LE CIEL DE L'ÉCRAN TITRE (cielTitre) — uTi.x = 0 hors du titre : rien ne change en course
+  uTi:{value:new THREE.Vector4(0,0,0,1)},uTi2:{value:new THREE.Vector4(0,0,.35,0)},uTZen:{value:new THREE.Vector3()},uTMid:{value:new THREE.Vector3()},uTHor:{value:new THREE.Vector3()},uTSol:{value:new THREE.Vector3()},uTMerH:{value:new THREE.Vector3()},uTMerO:{value:new THREE.Vector3()},uTCir:{value:new THREE.Vector3()}, // (titre v4) LE CIEL DE L'ÉCRAN TITRE (cielTitre) — uTi.x = 0 hors du titre : rien ne change en course
   uMzA:{value:new THREE.Vector4(760,.8,15,.25)},uMzB:{value:new THREE.Vector4(.20,.16,.26,.8)},uMzT:{value:new THREE.Vector4(0,0,0,0)},uMzO:{value:new THREE.Vector4(0,0,0,0)},uMzH:{value:new THREE.Vector4(0,0,0,0)}, /* ⚠ (0,0,0,0) ÉCRIT : un Vector4() vide vaut (0,0,0,1) — la part 1 peignait toute la mer en NOIR (vu par Léo au menu de sa copie). */ /* (2026-10-03, atelier des nuages : « une fonction pour altérer le ciel en bas ») les COULEURS de la mer de nuages forcées — trous, ombres, dômes : rgb + part (w) ; w = 0 partout = la mer d'avant au bit près */ // (2026-09-30, niveau 1 v2) LA MER SCULPTÉE : échelle des cellules, part « gonflée », franchise de la lumière, remous · couverture, fermeture au loin, creux, clarté des trouées
   uVG:{value:0}, /* (2026-10-01, Sacha : « enlève tous les trucs Van Gogh ») la touche Van Gogh est RETIRÉE du ciel comme des nuages : plus aucun shader ne lit cet uniforme — l'objet reste, inerte, pour qu'un code qui l'écrirait encore ne plante pas */
   uJour:{value:0},uMerLoin:{value:16000},uJZen:{value:new THREE.Vector3()},uJMid:{value:new THREE.Vector3()},uJHor:{value:new THREE.Vector3()},uJSol:{value:new THREE.Vector3()}, // (2026-09-30) LE JOUR D'ALTITUDE (voir cielJour) : 0 = le ciel d'avant
@@ -7022,25 +7022,38 @@ const skyDome=(function(){
        bruit, jamais une grille), et une mer de nuages SOYEUSE (grandes ondulations douces, éclairées du côté du soleil) qui se FOND dans la
        couleur de l'horizon au lieu de la croiser. Une palette par heure (TITRE_CIEL). uTi : x allumée, y cirrus, w distance de la brume. */
     titre:[
-      'uniform vec4 uTi;uniform vec3 uTZen,uTMid,uTHor,uTSol,uTMerH,uTMerO,uTCir;',
+      'uniform vec4 uTi,uTi2;uniform vec3 uTZen,uTMid,uTHor,uTSol,uTMerH,uTMerO,uTCir;',
+      'float tH(vec2 p,float fp){float s=0.,a=.55,f=1.;for(int i=0;i<4;i++){float k=1.-smoothstep(.3,.8,fp*f);s+=a*(k*vn(p)+(1.-k)*.5);p=p*2.07+vec2(5.3,1.7);a*=.45;f*=2.07;}return s;}', // (titre v6) le champ de hauteur de la mer
       'void cielTitre(inout vec3 col,vec3 d,float y,float sd){',
       '  float yp=max(y,0.),sv=max(sd,0.);',
       '  vec3 c=mix(mix(uTHor,uTMid,smoothstep(0.,.30,yp)),uTZen,smoothstep(.12,.95,yp));',          // le dégradé, sans palier
       '  c=mix(c,uTHor*1.04,exp(-yp*9.)*.35);',                                                      // l air épais, large, sur l horizon
       '  c+=uTSol*(pow(sv,3.)*.65*exp(-yp*2.5)+pow(sv,24.)*.6);',                                    // la lueur du côté du soleil
+      '  if(uTi2.y>.001&&sv>.2){vec3 u1=normalize(cross(uSunDir,vec3(0.,1.,0.))),u2=cross(u1,uSunDir),v=d-uSunDir*sd;',   // LES RAYONS : des faisceaux autour du soleil, qui respirent
+      '    float ang=atan(dot(v,u2),dot(v,u1)),rr=vfbm(vec2(ang*7.,uTime*.03))*.6+vfbm(vec2(ang*19.,uTime*.05+3.))*.4;',
+      '    c+=uTSol*smoothstep(.45,.8,rr)*pow(sv,6.)*uTi2.y*(1.-smoothstep(0.,.5,yp));}',
       '  if(uTi.y>.001&&y>.02){float t=3200./y;vec2 p=(d.xz*t+uCam.xz*.3)/5200.+vec2(uTime*.004,uTime*.0015);',
-      '    vec2 r=vec2(p.x*.82-p.y*.57,p.x*.57+p.y*.82);',                                              // le vent, en biais
+      '    vec2 r=vec2(p.x*.82-p.y*.57,p.x*.57+p.y*.82);',                                              // les cirrus : le vent, en biais
       '    float n=vfbm(vec2(r.x*.45,r.y*2.6)+1.7)*.7+vfbm(r*3.1+5.3)*.3;',                              // de longues mèches, effilochées
       '    float k=smoothstep(.52,.78,n)*smoothstep(.02,.16,y)*(1.-smoothstep(.55,.92,y))*exp(-t/60000.);',
       '    c=mix(c,uTCir*(.85+.35*sv*sv),k*uTi.y);}',
-      '  if(y<0.){float yy=min(y,-.0008),t=700./(-yy);',                                               // le plancher de nuages, ~700 m sous la caisse
-      '    vec2 p=d.xz*t+uCam.xz+vec2(uTime*5.,uTime*2.),q=p/2000.;',
-      '    float fp=t*.0016/max(-yy,.02)/2000.*MER_FPK;',
-      '    vec2 sx=normalize(uSunDir.xz+vec2(1e-4));vec2 n2=mfbm2(q,q+sx*.035,fp);',
-      '    float lit=clamp(.5+(n2.x-n2.y)*7.,0.,1.),bil=smoothstep(.25,.7,n2.x);',
-      '    vec3 m=mix(uTMerO,uTMerH,clamp(lit*.55+bil*.6-.05,0.,1.))+uTSol*pow(sv,3.)*.25;',   // des dômes francs : sommets au soleil, creux bleus (pas de mer laiteuse)
-      '    m=mix(m,uTHor,(1.-exp(-t/(9000.*uTi.w)))*.85);',                                             // la perspective aérienne
-      '    c=mix(m,c,smoothstep(-.035,0.,y));}',                                                         // le plancher REJOINT l horizon (pas de rayure)
+      /* (titre v6) LA MER DE NUAGES AUX OMBRES PORTÉES — un champ de HAUTEUR (des sommets ronds de ~1,5 km, un bourgeonnement plus fin), éclairé
+         par sa pente côté soleil ET ombré par les sommets voisins : quatre pas vers le soleil, bas sur l'horizon, et toute crête plus haute que
+         le rayon y projette son ombre — les longues ombres bleues des levers de soleil au-dessus des nuages. Les octaves trop fines pour le
+         pixel s'effacent (tH). La lisière des sommets prend la lumière (le rebord translucide), et tout se noie dans l'air vers l'horizon. */
+      '  if(y<0.){float yy=min(y,-.0008),t=700./(-yy);',
+      '    vec2 p=d.xz*t+uCam.xz+vec2(uTime*5.,uTime*2.),q=p/1500.;',
+      '    float fp=t*.0016/max(-yy,.02)/1500.*MER_FPK;',
+      '    vec2 sx=normalize(uSunDir.xz+vec2(1e-4));float tg=max(uSunDir.y,.04)/length(uSunDir.xz+vec2(1e-4));',
+      '    float h0=tH(q,fp),h1=tH(q+sx*.02,fp);',
+      '    float sh=1.;for(int i=1;i<5;i++){float fi=float(i)*.11;float hs=tH(q+sx*fi,fp);sh=min(sh,clamp(1.-(hs-h0-fi*tg*1.4)*9.,0.,1.));}',
+      '    float lit=clamp(.5+(h1-h0)*16.,0.,1.)*mix(.25,1.,sh);',
+      '    float top=smoothstep(.45,.75,h0),creux=smoothstep(.15,.45,h0);',
+      '    vec3 m=mix(uTMerO*mix(1.-uTi2.z,1.,creux),uTMerH,lit*.8+top*.2);',
+      '    m+=uTMerH*pow(1.-lit,3.)*top*.12;',                                                            // le rebord translucide des sommets à contre-jour
+      '    m+=uTSol*pow(sv,3.)*.35*lit;',
+      '    m=mix(m,uTHor,(1.-exp(-t/(9000.*uTi.w)))*.85);',                                               // la perspective aérienne
+      '    c=mix(m,c,smoothstep(-.035,0.,y));}',                                                          // la mer REJOINT l horizon (pas de rayure)
       '  col=mix(col,c,uTi.x);}'],
     jour:[
       /* (2026-09-30) LE JOUR D ALTITUDE : la lueur chaude du soleil sur l horizon — large, basse, comme l air épais de Zelda au-dessus
@@ -36996,7 +37009,7 @@ window.dbgFeu=function(on){const F=GAR.feu;if(!F)return null;if(on!=null&&GAR.fe
 var CHUTE={G:new THREE.Vector3(),nu:null,oA:0,oAc:0,oW:0,oP:0,oPc:0,mvT:0,on:false,t:0,go:null,L:-1,s:0,C:new THREE.Vector3(),cam:new THREE.Vector3(),f:new THREE.Vector3(),fh:new THREE.Vector3(),lh:new THREE.Vector3(),
   q:new THREE.Quaternion(),m:new THREE.Matrix4(),v1:new THREE.Vector3(),v2:new THREE.Vector3(),v3:new THREE.Vector3(),w:null,fil:null,voile:null,bioPas:-1,vent:false,entree:0};
 const CHUTE_OK=!/[?&]chute=0\b/.test(location.search); // (et seulement avec les boutons de Sacha : le menu de Léo, ?menu=leo, garde son atelier — son étiquette MISSIONS vit sur le socle)
-const CHUTE_P={cielT:1,voiles:0,elevP:.06,studio:1,amb:.55,sol:.7,sk:1.6,kh:.75,sc:.12,sb:0,sr:1.35,fige:null, /* (2026-10-03) LE MODELÉ DE LA CAISSE, choisi sur planche (banc studio.mjs, f1) : voir chuteStudio */cleC:0xfff1dc,rimC:0xbfe4ff,rim:1.1,rimS:0,lampe:1,az:2.35,cote:0,nuages:1,K:[1.02,1.08,1.1,1],R:[-.3,.5,.72,1],mzA:[1500,.8,9,.2],mzB:null,gite:-.45,coton:0,cle:.5,brume:1,expo:1,trainee:0,alt:900,avant:-1700,pitch:.62,roule:.12,cap:.28,elev:-.035, /* (titre v3) voir « L'ÉCRAN TITRE v3 » : alt = au-dessus du SOMMET de la piste, az = l'angle regard ↔ soleil, cote = la piste décalée à droite de la caisse (couché), nuages = les cumulus du titre */ /* (niveau 1 v2) pitch .22 → .55, elev .22 → .30 : à plat, elle PLANAIT ; le nez piqué vers la mer, on la voit TOMBER */vit:14,echelle:1,taille:.82,sol:.3,sous:70,plancher:0}; // (2026-09-30, le JOUR D'ALTITUDE) de très haut au-dessus de TOUT le monde du niveau : les cumulus deviennent un champ de nuages sous la caisse, la mer à perte de vue ; plus de traînée orange ni de plancher peint ; brume repoussée, exposition et clé baissées (l'image sortait délavée) // (choisi aux captures : l'horizon et la mer de nuages dans l'image, le soleil de côté devant — sa lueur rose-or sur l'horizon)
+const CHUTE_P={cielT:1,voiles:0,brumeT:2.2,elevP:.06,studio:1,amb:.55,sol:.7,sk:1.6,kh:.75,sc:.12,sb:0,sr:1.35,fige:null, /* (2026-10-03) LE MODELÉ DE LA CAISSE, choisi sur planche (banc studio.mjs, f1) : voir chuteStudio */cleC:0xfff1dc,rimC:0xbfe4ff,rim:1.1,rimS:0,lampe:1,az:2.35,cote:0,nuages:1,K:[1.02,1.08,1.1,1],R:[-.3,.5,.72,1],mzA:[1500,.8,9,.2],mzB:null,gite:-.45,coton:0,cle:.5,brume:1,expo:1,trainee:0,alt:900,avant:-1700,pitch:.62,roule:.12,cap:.28,elev:-.035, /* (titre v3) voir « L'ÉCRAN TITRE v3 » : alt = au-dessus du SOMMET de la piste, az = l'angle regard ↔ soleil, cote = la piste décalée à droite de la caisse (couché), nuages = les cumulus du titre */ /* (niveau 1 v2) pitch .22 → .55, elev .22 → .30 : à plat, elle PLANAIT ; le nez piqué vers la mer, on la voit TOMBER */vit:14,echelle:1,taille:.82,sol:.3,sous:70,plancher:0}; // (2026-09-30, le JOUR D'ALTITUDE) de très haut au-dessus de TOUT le monde du niveau : les cumulus deviennent un champ de nuages sous la caisse, la mer à perte de vue ; plus de traînée orange ni de plancher peint ; brume repoussée, exposition et clé baissées (l'image sortait délavée) // (choisi aux captures : l'horizon et la mer de nuages dans l'image, le soleil de côté devant — sa lueur rose-or sur l'horizon)
 window.dbgChute=function(o){if(o&&typeof o==='object'){if(o.NU&&CHUTE.nu){o.NU.forEach(function(d,i){const c=CHUTE.nu[i];if(!c||!d)return;c.a=d[0];c.b=d[1];c.r=d[2];c.v=d[4];c.y=d[5];c.m.scale.set(d[2],d[2],d[2]);const dd=Math.hypot(d[0],d[1]);c.lo=-(1.2*dd+1.3*d[2]);c.hi=.1*dd+1.3*d[2];c.off=false;});for(let i=o.NU.length;i<CHUTE.nu.length;i++)CHUTE.nu[i].off=true;o=Object.assign({},o);delete o.NU;} /* (banc) NU : rejouer la disposition des cumulus du titre sans recharger */
   Object.assign(CHUTE_P,o);CHUTE.L=-1;}
   return {titreCiel:+skyU.uTi.value.x,cadre:(function(){const c=menuCadre();return [+c.nx.toFixed(2),+c.ny.toFixed(2),+c.fr.toFixed(2),+c.fh.toFixed(2)];})(),ecran:(function(){const q=carGroup.position.clone().project(camera);return [+q.x.toFixed(2),+q.y.toFixed(2)];})(),orb:[+CHUTE.oA.toFixed(2),+CHUTE.oP.toFixed(2)],tris:CHUTE.nu?CHUTE.nu.reduce(function(a,c){return a+(c.m.visible&&c.m.geometry.index?c.m.geometry.index.count/3:0);},0):0,nu:CHUTE.nu?CHUTE.nu.filter(function(c){return c.m.visible;}).length:0,mz:+skyU.uMzA.value.x,ciel:document.body.classList.contains('titreCiel'),on:CHUTE.on,go:!!CHUTE.go,s:Math.round(CHUTE.s),C:CHUTE.C.toArray().map(Math.round),cam:CHUTE.cam.toArray().map(function(x){return +x.toFixed(1);}),P:CHUTE_P,
@@ -37009,23 +37022,23 @@ window.dbgChute=function(o){if(o&&typeof o==='object'){if(o.NU&&CHUTE.nu){o.NU.f
 const CHUTE_P0=JSON.parse(JSON.stringify(CHUTE_P));
 const TITRE_MZ0=[0,0,0,0];
 const TITRE_H={
-  matin: {bio:'titreMatin', P:{mzT:TITRE_MZ0,mzO:TITRE_MZ0,mzH:TITRE_MZ0},v:['4,24,62',.30,.50,'6,28,60',.62],t:[1,1,1]},
-  midi:  {bio:'titreMidi',  P:{K:[1.04,1.12,.95,1],R:[-.25,.45,.8,1],mzT:TITRE_MZ0,mzO:[.62,.74,.90,.25],mzH:[1,1,1,.3],kh:.9},v:['2,30,80',.26,.46,'4,30,72',.6],t:[1,1,1]},
-  aprem: {bio:'titreAprem', P:{K:[1.02,1.1,1.15,1],R:[-.3,.5,.7,1],mzT:TITRE_MZ0,mzO:[.55,.60,.78,.25],mzH:[1,.95,.86,.35],kh:.7},v:['10,30,66',.30,.50,'10,30,62',.62],t:[1,.97,.92]},
-  golden:{bio:'titreGolden',P:{az:1.95,K:[1.05,1.3,1.6,1],R:[-.3,.42,.64,1],mzT:[.20,.20,.42,.55],mzO:[.30,.24,.44,.6],mzH:[1,.72,.46,.7],cleS:0xffd0a0,rimC:0xffb070,kh:.35,sk:2.1,amb:.75,sol:.9},v:['40,22,46',.30,.52,'34,18,40',.64],t:[1,.84,.70]},
-  soir:  {bio:'titreSoir',  P:{K:[1,1.15,1.5,1],R:[-.25,.5,.66,1],mzT:[.10,.09,.24,.6],mzO:[.20,.17,.34,.6],mzH:[.85,.60,.70,.6],cleS:0xffc0cc,zenC:0xa8b8ff,rimC:0x9fb4ff,kh:.5,expo:.95,sk:2.3,amb:.85,sol:.9,sc:.3,sr:1.6},v:['20,10,40',.36,.56,'18,10,36',.66],t:[.85,.66,.78]},
-  nuit:  {bio:'titreNuit',  P:{K:[.62,.72,1.3,1],R:[-.05,.65,.8,1],mzT:[.02,.03,.08,.9],mzO:[.07,.09,.18,.85],mzH:[.50,.58,.76,.85],cleS:0xb8ccff,zenC:0x8fa8ff,rimC:0x86a6ff,kh:.6,sk:2.5,amb:1,sol:1,sc:.35,sr:1.7},v:['2,6,20',.45,.65,'2,6,20',.7],t:[.34,.40,.58]}};
+  matin: {bio:'titreMatin', P:{az:1.8,K:[1.05,1.2,1.5,1.6],R:[-.4,.45,.85,1],mzT:TITRE_MZ0,mzO:TITRE_MZ0,mzH:TITRE_MZ0},v:['4,24,62',.30,.50,'6,28,60',.62],t:[1,1,1]},
+  midi:  {bio:'titreMidi',  P:{az:1.8,K:[1.05,1.18,1.4,1.6],R:[-.4,.45,.85,1],mzT:TITRE_MZ0,mzO:[.62,.74,.90,.25],mzH:[1,1,1,.3],kh:.9},v:['2,30,80',.26,.46,'4,30,72',.6],t:[1,1,1]},
+  aprem: {bio:'titreAprem', P:{az:1.75,K:[1.04,1.15,1.5,1.6],R:[-.38,.47,.8,1],mzT:TITRE_MZ0,mzO:[.55,.60,.78,.25],mzH:[1,.95,.86,.35],kh:.7},v:['10,30,66',.30,.50,'10,30,62',.62],t:[1,.97,.92]},
+  golden:{bio:'titreGolden',P:{az:1.95,K:[1.05,1.3,1.8,1.6],R:[-.35,.42,.75,1],mzT:[.20,.20,.42,.55],mzO:[.30,.24,.44,.6],mzH:[1,.72,.46,.7],cleS:0xffd0a0,rimC:0xffb070,kh:.35,sk:2.1,amb:.75,sol:.9},v:['40,22,46',.30,.52,'34,18,40',.64],t:[1,.84,.70]},
+  soir:  {bio:'titreSoir',  P:{K:[1,1.15,1.6,1.6],R:[-.3,.5,.72,1],mzT:[.10,.09,.24,.6],mzO:[.20,.17,.34,.6],mzH:[.85,.60,.70,.6],cleS:0xffc0cc,zenC:0xa8b8ff,rimC:0x9fb4ff,kh:.5,expo:.95,sk:2.3,amb:.85,sol:.9,sc:.3,sr:1.6},v:['20,10,40',.36,.56,'18,10,36',.66],t:[.85,.66,.78]},
+  nuit:  {bio:'titreNuit',  P:{K:[.62,.72,1.3,1.4],R:[-.05,.65,.8,1],mzT:[.02,.03,.08,.9],mzO:[.07,.09,.18,.85],mzH:[.50,.58,.76,.85],cleS:0xb8ccff,zenC:0x8fa8ff,rimC:0x86a6ff,kh:.6,sk:2.5,amb:1,sol:1,sc:.35,sr:1.7},v:['2,6,20',.45,.65,'2,6,20',.7],t:[.34,.40,.58]}};
 const TITRE_HEURES=['matin','midi','aprem','golden','soir','nuit'];
 /* (titre v4) LA PALETTE DU CIEL DU TITRE, par heure — z zénith, m milieu, h horizon (aussi la brume des cumulus : les lointains s'y
    fondent), s lueur du soleil, mh/mo la mer de nuages au soleil/à l'ombre, c les cirrus, ca leur part, hz la distance de la brume. */
 const TITRE_CIEL={
-  matin: {z:[.10,.33,.70],m:[.36,.66,.90],h:[.86,.92,.95],s:[.50,.43,.31],mh:[1,.98,.95],mo:[.48,.62,.84],c:[.96,.97,.99],ca:.35,hz:1},
-  midi:  {z:[.04,.24,.62],m:[.24,.56,.88],h:[.80,.89,.96],s:[.30,.29,.26],mh:[1.02,1.01,1],mo:[.46,.60,.86],c:[1,1,1],ca:.25,hz:1.1},
-  aprem: {z:[.12,.30,.62],m:[.44,.64,.84],h:[.95,.90,.82],s:[.50,.40,.28],mh:[1,.95,.88],mo:[.50,.55,.76],c:[1,.96,.92],ca:.4,hz:1},
-  golden:{z:[.12,.22,.50],m:[.56,.58,.74],h:[.96,.84,.70],s:[.42,.26,.12],mh:[1,.84,.66],mo:[.42,.42,.62],c:[1,.82,.66],ca:.5,hz:.9},
-  soir:  {z:[.04,.07,.22],m:[.20,.20,.44],h:[.66,.48,.56],s:[.28,.14,.15],mh:[.70,.58,.70],mo:[.18,.19,.36],c:[.88,.60,.66],ca:.45,hz:.85},
-  nuit:  {z:[.010,.016,.045],m:[.03,.05,.12],h:[.10,.14,.26],s:[.04,.06,.12],mh:[.34,.42,.62],mo:[.05,.07,.15],c:[.35,.42,.60],ca:.2,hz:.8}};
-function titreCiel(on){const U=skyU,T=TITRE_CIEL[TITRE_HF.h]||TITRE_CIEL.matin;U.uTi.value.set(on?1:0,T.ca,0,T.hz);if(!on)return T;
+  matin: {tw:.9,ry:.3,cr:.38,z:[.10,.33,.70],m:[.36,.66,.90],h:[.86,.92,.95],s:[.50,.43,.31],mh:[1,.98,.95],mo:[.48,.62,.84],c:[.96,.97,.99],ca:.35,hz:1},
+  midi:  {tw:.75,ry:.2,cr:.4,z:[.04,.24,.62],m:[.24,.56,.88],h:[.80,.89,.96],s:[.30,.29,.26],mh:[1.02,1.01,1],mo:[.46,.60,.86],c:[1,1,1],ca:.25,hz:1.1},
+  aprem: {tw:1,ry:.4,cr:.38,z:[.12,.30,.62],m:[.44,.64,.84],h:[.95,.90,.82],s:[.50,.40,.28],mh:[1,.95,.88],mo:[.50,.55,.76],c:[1,.96,.92],ca:.4,hz:1},
+  golden:{tw:1,ry:.7,cr:.34,z:[.12,.22,.50],m:[.56,.58,.74],h:[.96,.84,.70],s:[.42,.26,.12],mh:[1,.84,.66],mo:[.42,.42,.62],c:[1,.82,.66],ca:.5,hz:.9},
+  soir:  {tw:1,ry:.45,cr:.36,z:[.04,.07,.22],m:[.20,.20,.44],h:[.66,.48,.56],s:[.28,.14,.15],mh:[.70,.58,.70],mo:[.18,.19,.36],c:[.88,.60,.66],ca:.45,hz:.85},
+  nuit:  {tw:.85,ry:0,cr:.45,z:[.010,.016,.045],m:[.03,.05,.12],h:[.10,.14,.26],s:[.04,.06,.12],mh:[.34,.42,.62],mo:[.05,.07,.15],c:[.35,.42,.60],ca:.2,hz:.8}};
+function titreCiel(on){const U=skyU,T=TITRE_CIEL[TITRE_HF.h]||TITRE_CIEL.matin;U.uTi.value.set(on?1:0,T.ca,0,T.hz);U.uTi2.value.set(T.tw||0,T.ry||0,T.cr||.35,0);if(!on)return T;
   U.uTZen.value.fromArray(T.z);U.uTMid.value.fromArray(T.m);U.uTHor.value.fromArray(T.h);U.uTSol.value.fromArray(T.s);
   U.uTMerH.value.fromArray(T.mh);U.uTMerO.value.fromArray(T.mo);U.uTCir.value.fromArray(T.c);return T;}
 // l'heure du TÉLÉPHONE → l'ambiance : nuit 22 h-5 h · matin 5 h-10 h · midi 10 h-14 h · après-midi 14 h-17 h · golden hour 17 h-19 h 30 · soir 19 h 30-22 h
@@ -37141,16 +37154,20 @@ function chuteNuageTex(){ // un banc de cumulus peint une fois : des boules douc
    minute) et renaissent sous le cadre. `CHUTE_NU` : [droite, devant, rayon, gabarit, vitesse, hauteur de départ] en mètres. */
 const CHUTE_NU=[
   // devant (vus debout comme couché)
-  [  60,1700,260,0,1,-900],[-160, 700,110,1,1,-420],[  50, 330, 34,2,1,-230],[ 150,1000,150,3,1,-640],[ -60,2600,340,4,1,-1250],[ -30, 480, 55,3,1,-120],
+  // (titre v6) MOINS de cumulus au premier plan : la mer de nuages RESPIRE (une douzaine de « pommes de terre » mangeaient l'image)
+  [  60,1700,230,0,.6,-900],[-160, 700,110,1,1,-420],[  50, 330, 30,2,1,-230],[ 150,1000,140,3,.8,-640],[ -60,2600,300,4,.4,-1250],[ -30, 480, 50,3,1,-160],
   // à droite (couché : derrière le titre et les boutons)
-  [ 900,1500,260,0,1,-760],[ 520, 760,110,1,1,-500],[1500,1700,280,4,1,-800],[ 300, 460, 50,2,1,-330],[1050, 700,100,3,1,-420],[ 800,2600,360,4,1,-1150],
+  [ 900,1500,240,0,.6,-760],[1500,1700,260,4,.5,-800],[ 800,2600,330,4,.4,-1150],
   // à gauche et tout autour (l'orbite au doigt ne tombe jamais sur un ciel vide)
-  [-600,1300,160,0,1,-700],[-1000,400,140,1,1,-380],[-700,-600,150,3,1,-450],[ 300,-1000,180,0,1,-520],[1200,-400,160,1,1,-330],[-200,-1500,220,4,1,-640]];
+  [-600,1300,160,0,1,-700],[-1000,400,140,1,1,-380],[-700,-600,150,3,1,-450],[ 300,-1000,180,0,1,-520],[1200,-400,160,1,1,-330],[-200,-1500,220,4,1,-640],
+  // (titre v5) LES TOURS DE L'HORIZON : de grands cumulus bourgeonnants à 8-9 km, posés sur la mer, immobiles, noyés dans l'air — l'ÉCHELLE
+  // du ciel (essayé : des cumulonimbus à 5 km = des CHAMPIGNONS atomiques qui mangeaient le cadre ; pas d'enclume ici)
+  [ 500,8600,560,4,0,-250],[3000,8200,620,6,0,-300],[-1800,8000,480,5,0,-330],[7500,7800,650,4,0,-250],[11000,6000,520,6,0,-330],[1500,9100,700,5,0,-200]];
 /* LES FORMES D'ABORD (titre v3) : les surfaces fines des cinq gabarits du titre sont demandées à l'ouvrier AU CHARGEMENT DU SCRIPT, avant
    les 96 finesses du ciel de coton (cotonInit, au premier newTrack) — sinon elles attendaient 10 à 15 s derrière elles, et le titre
    montrait pendant ce temps des ÉBAUCHES en grappes de boules. Aucune ébauche ici : un cumulus du titre n'existe à l'image que fini. */
 function chuteFormes(){
-  if(CHUTE.geo||!NUAGE8)return;const rg=mulberry32(0xC4A5),G9=[['mediocris',3],['humilis',3],['humilis',2],['mediocris',2],['congestus',3]],geo=[];
+  if(CHUTE.geo||!NUAGE8)return;const rg=mulberry32(0xC4A5),G9=[['mediocris',3],['humilis',3],['humilis',2],['mediocris',2],['congestus',3],['mediocris',3],['congestus',3]],geo=[];
   for(const q of G9){const S=cumulus8(q[0],rg);S.seed=Math.floor(rg()*997);const dyU=-(S.base+S.top)*.5,e={g:null};geo.push(e);
     nuage8Async(S,N8_FIN[q[1]],function(r9){const g2=cotonBuf(r9);g2.translate(0,dyU,0);g2.computeBoundingSphere();e.g=g2;
       if(CHUTE.nu)for(const c of CHUTE.nu)if(c.e===e)c.m.geometry=g2;});}
@@ -37281,7 +37298,7 @@ function chuteRender(dt){
   if(CHUTE.nuM){CHUTE.nuM.uniforms.uK.value.fromArray(P.K);CHUTE.nuM.uniforms.uR.value.fromArray(P.R);}
   /* (2026-09-30) LA BRUME ET L'EXPOSITION DE L'AMBIANCE : seule la course les réécrit (updateClouds) — au menu la brume restait le violet
      de départ du jeu (#5e3254) et l'exposition .71 : la mer de nuages et les cumulus s'y noyaient en violet. chuteSort rend celles d'avant. */
-  if(scene.fog){scene.fog.color.copy(FOG_BASE);scene.fog.near=FOG_N*P.brume;scene.fog.far=FOG_F*P.brume;skyU.uFogCol.value.copy(FOG_BASE);} // (P.brume : de là-haut, la brume s'éloigne — la mer de nuages fait sa propre perspective)
+  if(scene.fog){const bz9=P.brume*(P.cielT?P.brumeT:1);scene.fog.color.copy(FOG_BASE);scene.fog.near=FOG_N*bz9;scene.fog.far=FOG_F*bz9; /* (titre v5) la brume recule : les tours de l'horizon, à 5 km, restent lisibles */skyU.uFogCol.value.copy(FOG_BASE);} // (P.brume : de là-haut, la brume s'éloigne — la mer de nuages fait sa propre perspective)
   if(acesPass)acesPass.uniforms.uExposure.value=POST_EXPO*P.expo;
   {const T9=titreCiel(!!P.cielT);if(P.cielT&&scene.fog)scene.fog.color.fromArray(T9.h);} /* (titre v4) le ciel du titre, et la brume des cumulus = son horizon */
   if(GAR.root&&GAR.root.visible)GAR.root.visible=false;
