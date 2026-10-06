@@ -2,26 +2,29 @@
 
 ## LE CHAT POP-TART EN VOXELS (2026-10-06, Léo : « focus sur la Nyan Cat, je mise tout sur cette image, fais-en une voiture — impressionne-moi sur le mimétisme et l'adaptation »)
 L'image de référence = le sprite de 2011 EXTRUDÉ en cubes (contour noir = mur noir sur l'épaisseur, dessous bleus). Le gabarit `poptart` est
-refait EN VOXELS (10 cm, `NY_U`), même grammaire au pixel près, chaque pièce dessinée dans SON plan (bloc « LE CHAT POP-TART EN VOXELS »,
-juste avant `SHAPES` : dessins `NY_GATEAU` / `NY_SUCRE` / `NY_TETE` / `NY_QUEUE`, maillage `voxGrille()` = faces à l'air seules, fusionnées
-en rectangles par couleur, ~quelques centaines de triangles) :
-- le GÂTEAU couché = le châssis (croûte, glaçage BOMBÉ d'une couche, éclats de sucre dessus ; murs noirs) · la TÊTE dressée à l'avant,
-  visage devant (5 de profondeur : à 8 le profil n'était qu'un pavé noir) · PATTES = blocs gris cernés de noir sur chaque arête · QUEUE
-  de profil, DEUX dessins qui alternent · quatre ROULETTES pixel (`lpWheel` style `pixel` → `lpRoulette`, sans flou de jante).
-- ⚠ les couleurs sont SANS LUMIÈRE (famille `l`, ombrage cuit par face : face du dessin pleine, dessus un cran, le reste deux) : un gris
-  neutre éclairé passait VERT aux nuages, ROSE sous le baiser magenta, ORANGE face au feu de l'atelier. Seul le NOIR est laqué (`g`).
-  ⚠ r128 : `Color.getHex()` ne borne pas — un canal > 1 déborde sur ses voisins (le rose sortait vert).
-- fiche : `halos:0` (ni phares ni feux), `tuyeres:0` (pas de flamme de réacteur : sa nitro, c'est l'arc-en-ciel), `pots` au milieu de
-  la tranche arrière ; spec 1,7 × 3 m, h 1,5, `glow` retiré, `fx.nyan:1`.
-- L'ARC-EN-CIEL EN ESCALIER (`NYARC`, `NY_ARC`, `nyanArcPas`/`nyanArcDessine`) : six barres PLEINES (mélange normal, alpha par sommet —
-  l'additif devenait pastel sur le ciel clair), points POSÉS à pas fixe dans le monde (numéro de série → chaque tronçon garde sa marche,
-  rien ne clignote), décrochements nets. Allumé à la NITRO **et en VOL** (`NYAN.volK` — le chat de l'image vole), éteint en réserve
-  bleue / nitro infinie comme toute signature. Remplace le sillage pour cette caisse. Au GARAGE il est tendu derrière la caisse et son
-  escalier défile (`nyanArcGarage`), effacé quand il pointerait sur l'objectif, cédé à l'aperçu des traînées. ÉTOILES pixel (`NYETO`).
-- LE PAS DU GIF (`nyanTick`, après le rendu de l'atelier/vitrine) : pattes qui pédalent d'un voxel en diagonale, queue qui alterne, tête
-  qui hoche d'un voxel à 142 à la noire — tout en pas entiers. Compilé au menu (`chauffeDivers`).
-- Console : `dbgNyan()` (état) · `dbgNyan('photo',a,d,h)` (caméra posée autour de la caisse, a = 0 de face ; `null` rend la main) ·
-  `dbgNyan('mats')` · `dbgNyan('cliche')` (rend l'image et la lit dans le même instant → dataURL PNG). ⚠ Le nom « CHAT POP-TART » et la ressemblance restent dans la liste « droits » (Nyan Cat appartient à son auteur).
+refait EN VOXELS (10 cm, `NY_U`), chaque pièce dessinée dans SON plan (bloc « LE CHAT POP-TART EN VOXELS », juste avant `SHAPES` : dessins
+`NY_GATEAU` / `NY_SUCRE` / `NY_TETE` / `NY_QUEUE`, maillage `voxGrille()` = faces à l'air seules, fusionnées en rectangles par couleur).
+- **v2, même jour** (Léo : « plus carré le dos, plus voiture le corps, les jambes bougent selon comment tu accélères » · « enlève aussi
+  l'arc-en-ciel, le burn-out fait des pixels multicolores qui scintillent, fumée grise ») :
+  · LE CAISSON : la pop-tart devient une caisse de 50 cm, coins CARRÉS, flancs et poupe en croûte cernés de noir sur chaque arête,
+    glaçage bombé + éclats de sucre dessus ; bouclier arrière, deux FEUX en saillie (veilleuse / STOP au freinage, `NYAN.feux`),
+    bouclier avant sous le menton avec deux PHARES jaunes, AILERON au glaçage rose. Tête dressée à l'avant (visage devant, 5 de
+    profondeur), pattes = blocs gris cernés de noir, queue à deux dessins, roulettes pixel (`lpWheel` style `pixel` → `lpRoulette`).
+  · L'ALLURE (`nyanTick`) suit l'ACCÉLÉRATION (km/h/s lissée, `NYAN.acc`) : ARRÊT pattes posées · COURSE cadence ∝ vitesse + accélération ·
+    SPRINT (forte poussée ou nitro) foulée de deux voxels, queue dressée · FREIN les quatre pattes plantées en avant, queue basse, stops
+    allumés · VOL elles pédalent · garage : trot. Tête qui hoche à 142 à la noire. Tout en pas entiers.
+  · PLUS D'ARC-EN-CIEL (ruban et étoiles retirés). LES PIXELS (`NY_PIX`, six couleurs + blanc, une case sur cinq s'éteint à chaque
+    image = le scintillement) : en COURSE ils jaillissent de la poupe à la nitro et en vol (`nyanPixNitro`/`nyanPixPas`, pool `burnPool`
+    en mélange normal, compilé au menu) ; au GARAGE, pendant le BURN-OUT, ils remplacent le feu (`BURN.pix`, additif) dans la fumée grise.
+    Une traînée de la boutique équipée reprend la main (`FX_EFF`).
+- ⚠ les couleurs sont SANS LUMIÈRE (famille `l`, ombrage cuit par face) : un gris neutre éclairé passait VERT aux nuages, ROSE sous le
+  baiser magenta, ORANGE face au feu de l'atelier. Seul le NOIR est laqué (`g`). ⚠ r128 : `Color.getHex()` ne borne pas — un canal > 1
+  déborde sur ses voisins (le rose sortait vert).
+- fiche : `halos:0`, `tuyeres:0` (pas de flamme de réacteur), `pots` au milieu de la poupe ; spec 1,7 × 3 m, h 1,5, `glow` retiré.
+- Console : `dbgNyan()` · `dbgNyan('allure')` (allure, accélération, pattes, stops) · `dbgNyan('photo',a,d,h)` (caméra posée autour de la
+  caisse, a = 0 de face ; `null` rend la main) · `dbgNyan('cliche')` (rend l'image et la lit dans le même instant → dataURL PNG) ·
+  `dbgNyan('mats')` · `dbgBurn(s)`. ⚠ Le nom « CHAT POP-TART » et la ressemblance restent dans la liste « droits » (Nyan Cat appartient
+  à son auteur).
 
 ## L'iPHONE PAR DÉFAUT SUR L'ORDI (2026-10-06, session GRAPHISME) — Sacha : « remets l'encoche et le format de l'iPhone quand on lance la version main »
 - `ENCOCHE_DEFAUT=true` (script du `<head>`, bloc « L'ÉCRAN NU PAR DÉFAUT ») : sur l'ordi, le jeu retrouve le BOÎTIER de l'iPhone 13 Pro —

@@ -12707,7 +12707,7 @@ const CARS=[
  // ---- LES CAISSES PREMIUM (2026-09-25) : la gamme des 15 retrouvée, en BOUTIQUE (vrai argent). Hors du garage tant
  // qu'elles ne sont pas achetées (voir `garageListe`). Fiches reprises de la branche `appstore-backlog`, emojis retirés.
  {name:'CHAT POP-TART',   shape:'poptart', color:0xf6b98a,accent:0xf78fb8,maxKmh:560,accel:64,turn:3.2, h:1.5,w:1.7,l:3.0,spoiler:0, // (2026-10-06) en voxels : 1,7 × 3 m, oreilles à 1,5 m — plus de bandes néon (`glow`) : elles barraient les murs noirs
-  fx:{jet:0xff64d2,core:0xffd8f2,trail:[1.5,.35,1.1],light:0xff5ec8,rainbow:1,nyan:1}, // `nyan` : l'arc-en-ciel EN ESCALIER (NYARC), à la nitro et en vol
+  fx:{jet:0xff64d2,core:0xffd8f2,trail:[1.5,.35,1.1],light:0xff5ec8}, // (v2) plus d'arc-en-ciel : ses PIXELS multicolores (NY_PIX), à la nitro et en vol
   desc:'Une pâtisserie industrielle avec une tête de chat et quatre roulettes. Personne n\'a demandé pourquoi. Tout le monde a demandé comment.'},
  {name:'REQUIN',          shape:'requin',  color:0x3a6ea8,accent:0xdfe9f2,maxKmh:600,accel:68,turn:3.22,h:.95,w:1.98,l:3.3,spoiler:0,glow:0x9adfff,
   fx:{jet:0x86f2ff,core:0xffffff,trail:[.42,1.30,1.45],light:0x62d8ff,spray:1},
@@ -15215,134 +15215,78 @@ function rainbowStep(px,py,pz,k,t){
 }
 
 const rbD=new THREE.Vector3(),rbS=new THREE.Vector3(),rbV=new THREE.Vector3();
-/* ---- L'ARC-EN-CIEL DU CHAT, EN ESCALIER (2026-10-06) -------------------------------------------------------------------------
-   Celui de l'image n'est ni un ruban qui ondule ni une lueur : SIX BARRES PLEINES (rouge, orange, jaune, vert, bleu, violet) posées
-   en TRONÇONS qui montent et descendent d'un cran, comme des marches. Trois règles pour l'avoir à l'identique :
-   1. les points sont POSÉS dans le monde à pas FIXE (`NY_ARC.pas`), pas à chaque image : chaque point garde son numéro de série, et
-      chaque tronçon de `NY_ARC.marche` points garde SA marche — rien ne clignote quand le ruban avance, l'escalier reste où il a été
-      posé, comme le ruban du GIF qui défile derrière le chat ;
-   2. une marche = un DÉCROCHEMENT NET : chaque quadrilatère a ses propres sommets (le GPU n'a rien à interpoler entre deux marches) ;
-   3. de la MATIÈRE, pas de la lumière : mélange normal et alpha PAR SOMMET (couleur RGBA) — l'additif devenait pastel sur le ciel
-      clair des NUAGES. Les couleurs passent 1 : le bloom leur rend la lueur de l'image.
-   Il s'allume à la NITRO comme toutes les signatures — et en VOL : le chat de l'image vole, l'arc-en-ciel, c'est son vol.
-   Au GARAGE, il est tendu derrière la caisse et son escalier défile vers l'arrière : c'est l'image, sur le plateau. */
-const NY_ARC={N:60,pas:.42,marche:3,W:.74,amp:.12,
-  B:[[1.3,.08,.10],[1.3,.62,.04],[1.25,1.2,.08],[.30,1.2,.06],[.06,.62,1.3],[.50,.24,1.3]]}; // rouge orange jaune vert bleu violet
-const NYARC=(function(){
-  const N=NY_ARC.N,nb=NY_ARC.B.length,nv=(N-1)*nb*4,g=new THREE.BufferGeometry(),pos=new Float32Array(nv*3),col=new Float32Array(nv*4),idx=[];
-  for(let q=0;q<(N-1)*nb;q++){const a=q*4;idx.push(a,a+1,a+2,a,a+2,a+3);}
-  g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('color',new THREE.BufferAttribute(col,4));g.setIndex(idx);
-  const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,depthWrite:false,side:THREE.DoubleSide,fog:false}));
-  m.frustumCulled=false;m.visible=false;m.renderOrder=2;scene.add(m);
-  const P=[],S=[];for(let i=0;i<N;i++){P.push({p:new THREE.Vector3(),n:0});S.push(new THREE.Vector3());}
-  return {m,pos,col,P,S,s0:new THREE.Vector3(1,0,0),init:false,serie:0,mene:false,k:0};
-})();
-function nyanArcPas(px,py,pz,k){ // EN COURSE : la tête du ruban colle au gâteau, les points se POSENT tous les `pas` mètres
-  const A=NYARC,P=A.P,N=NY_ARC.N,sp=NY_ARC.pas;
-  if(k<.03){if(A.m.visible)A.m.visible=false;A.init=false;return;}
-  let dx=px-P[1].p.x,dy=py-P[1].p.y,dz=pz-P[1].p.z,d=Math.sqrt(dx*dx+dy*dy+dz*dz);
-  if(!A.init||d>40){for(let i=0;i<N;i++){P[i].p.set(px,py,pz);P[i].n=A.serie-i;}A.init=true;d=0;} // réveil ou saut (replacement) : pas de ruban tendu depuis l'ancien point
-  for(let g9=0;d>=sp&&g9<32;g9++){const q=P.pop(),f=sp/d; // à 500 km/h, plusieurs points par image
-    q.p.set(P[1].p.x+dx*f,P[1].p.y+dy*f,P[1].p.z+dz*f);q.n=++A.serie;P.splice(1,0,q);
-    dx=px-q.p.x;dy=py-q.p.y;dz=pz-q.p.z;d=Math.sqrt(dx*dx+dy*dy+dz*dz);}
-  P[0].p.set(px,py,pz);P[0].n=A.serie+1;
-  nyanArcDessine(k,2.4,3,1); // fondu plus court que les rubans : derrière la caisse, c'est LUI qu'on doit voir filer vers le bas de l'écran
+/* ---- LES PIXELS DU CHAT (v2, 2026-10-06, Léo : « enlève aussi l'arc-en-ciel ; le burn-out de la Nyan Cat fait des pixels
+   multicolores qui scintillent, fumée grise ») ---------------------------------------------------------------------------------
+   Le ruban d'arc-en-ciel (et ses étoiles) est RETIRÉ. La signature du chat devient des PIXELS aux six couleurs de l'arc-en-ciel (et
+   un peu de blanc) qui SCINTILLENT — une case sur cinq s'éteint à chaque image, au hasard :
+   · au GARAGE, pendant le BURN-OUT, ils giclent des roues et des pots à la place du feu, dans la fumée grise (voir `BURN.pix`) ;
+   · en COURSE, ils jaillissent de la poupe à la NITRO et en VOL (la caisse ne crache pas de flamme : `tuyeres:0`).
+   Mêmes quads et même programme que le feu du burn-out (`burnPool`, compilé au menu) ; en course en mélange NORMAL (sur le ciel
+   clair, l'additif devenait pastel), au garage en additif (la salle est sombre, ils y brillent). */
+const NY_PIX=[[1,.1,.12],[1,.55,.05],[1,.92,.1],[.25,.95,.2],[.1,.6,1],[.55,.25,1]],NY_BLANC=[1,1,1]; // rouge orange jaune vert bleu violet
+const NY_V=new THREE.Vector3();
+function nyanPixC(){return Math.random()<.12?NY_BLANC:NY_PIX[(Math.random()*6)|0];}
+function nyanPixPool(){if(!NYAN.pix)NYAN.pix=burnPool(240,false,BURN_FS_FEU);return NYAN.pix;} // ⚠ jamais à l'init : BURN_FS_FEU est déclaré plus bas
+function nyanPixPas(dt){ // la course : les pixels ralentissent (ils restent derrière), retombent à peine, et scintillent
+  const F=NYAN.pix;if(!F||!F.o.visible||dt<=0)return;let n=0;const dr=Math.exp(-dt*1.6);
+  for(let i=0;i<F.N;i++){const j=i*3;if(F.age[i]>=F.life[i]){if(F.P[j+1]>-1e3){F.P[j+1]=-1e4;F.A[i]=0;}continue;}
+    n++;const g=Math.min(1,(F.age[i]+=dt)/F.life[i]);
+    F.V[j]*=dr;F.V[j+1]=F.V[j+1]*dr-2.2*dt;F.V[j+2]*=dr;
+    F.P[j]+=F.V[j]*dt;F.P[j+1]+=F.V[j+1]*dt;F.P[j+2]+=F.V[j+2]*dt;F.G[i]=g;F.S[i]=F.s0[i];
+    F.A[i]=(Math.random()<.2?0:1)*Math.pow(1-g,.7)*F.op[i];F.C[j]=F.c0[j];F.C[j+1]=F.c0[j+1];F.C[j+2]=F.c0[j+2];}
+  F.n=n;const at=F.g.attributes;at.iP.needsUpdate=at.iA.needsUpdate=at.iS.needsUpdate=at.iG.needsUpdate=at.iC.needsUpdate=true;
+  if(!n)F.o.visible=false;
 }
-function nyanArcDessine(k,nf0,nf1,lg){ // les six barres, tronçon par tronçon — nf0/nf1 : le fondu près de l'objectif (m) · lg : la part du ruban dessinée
-  const A=NYARC,P=A.P,N=NY_ARC.N,B=NY_ARC.B,nb=B.length,W=NY_ARC.W,amp=NY_ARC.amp,mc=NY_ARC.marche,S=A.S,X=A.pos,C=A.col,nq=Math.max(2,Math.round((N-1)*lg));
-  for(let i=0;i<N;i++){ // le travers de chaque point : face à l'objectif (une BANNIÈRE qu'on voit toujours de face)
-    const p=P[i].p;rbD.subVectors(P[Math.max(i-1,0)].p,P[Math.min(i+1,N-1)].p);rbV.subVectors(p,camera.position);S[i].crossVectors(rbD,rbV);
-    const l2=S[i].lengthSq();if(l2>1e-9)S[i].multiplyScalar(1/Math.sqrt(l2));else S[i].copy(i?S[i-1]:A.s0);
-    if(i){if(S[i].dot(S[i-1])<0)S[i].negate();} // le ruban ne se retourne pas en chemin
-    else{if(Math.abs(S[0].y)>.25?S[0].y>0:S[0].dot(A.s0)<0)S[0].negate();A.s0.copy(S[0]);} // vu de côté : le ROUGE EN HAUT (l'image) ; vu de derrière : le côté d'avant
-  }
-  let v=0;
-  for(let i=0;i<N-1;i++){
-    const p0=P[i].p,p1=P[i+1].p,s0=S[i],s1=S[i+1];
-    const mar=((Math.floor(P[i+1].n/mc)&1)?1:-1)*amp; // la MARCHE du tronçon : le numéro de série du point posé, jamais l'indice (sinon tout clignote)
-    const age=i/(nq-1);let f=i>=nq?0:(1-age*age*age)*k;
-    rbV.subVectors(p0,camera.position);f*=Math.min(1,Math.max(0,(rbV.length()-nf0)/nf1)); // près de l'objectif il s'efface (la poursuite roule DANS le ruban)
-    if(p0.distanceToSquared(p1)<1e-6)f=0;
-    for(let b=0;b<nb;b++){
-      const o0=(b/nb-.5)*2*W+mar,o1=((b+1)/nb-.5)*2*W+mar,c=B[b];
-      for(let e=0;e<4;e++){const pp=(e===1||e===2)?p1:p0,ss=(e===1||e===2)?s1:s0,oo=(e<2)?o0:o1,j=v*3,jc=v*4;
-        X[j]=pp.x+ss.x*oo;X[j+1]=pp.y+ss.y*oo;X[j+2]=pp.z+ss.z*oo;C[jc]=c[0];C[jc+1]=c[1];C[jc+2]=c[2];C[jc+3]=f;v++;}
-    }
-  }
-  A.m.visible=true;A.m.geometry.attributes.position.needsUpdate=true;A.m.geometry.attributes.color.needsUpdate=true;
-}
-const NY_V=new THREE.Vector3(),NY_V2=new THREE.Vector3();
-function nyanArcGarage(t){ // AU GARAGE : le ruban de l'image, tendu derrière la caisse (repère caisse), l'escalier qui défile vers l'arrière
-  const A=NYARC,P=A.P,N=NY_ARC.N,sp=NY_ARC.pas,n0=Math.floor(t*8);
-  for(let i=0;i<N;i++){NY_V.set(NYAN.arc.x,NYAN.arc.y,NYAN.arc.z-i*sp);potMonde(NY_V,P[i].p);P[i].n=1e6-i+n0;}
-  A.init=false; // en sortant de l'atelier, la course repose ses propres points
-  NY_V.subVectors(P[1].p,P[0].p).normalize();NY_V2.subVectors(camera.position,P[0].p).normalize();
-  const c9=NY_V.dot(NY_V2),k=Math.min(1,Math.max(0,(.8-c9)/.45)); // vu de DOS, le ruban fonçait sur l'objectif et couvrait le plateau : il s'efface
-  if(k<.03){A.m.visible=false;return 0;}
-  nyanArcDessine(k,1,1.4,.42);return k;
-}
-/* LES ÉTOILES de l'image : des scintillements PIXEL qui naissent autour du ruban — quatre dessins (point, croix, grande croix,
-   pointes seules), jamais lissés (NearestFilter). 20 sprites créés ici, cachés : zéro coût tant que le chat ne vole pas. */
-const NYETO=(function(){
-  const F=[['.......','.......','.......','...#...','.......','.......','.......'],
-           ['.......','.......','...#...','..###..','...#...','.......','.......'],
-           ['...#...','...#...','...#...','###.###','...#...','...#...','...#...'],
-           ['...#...','.......','.......','#.....#','.......','.......','...#...']];
-  const tex=F.map(L=>{const c=document.createElement('canvas');c.width=c.height=7;const x=c.getContext('2d');x.fillStyle='#fff';
-    for(let y=0;y<7;y++)for(let i=0;i<7;i++)if(L[y][i]==='#')x.fillRect(i,y,1,1);
-    const t=new THREE.CanvasTexture(c);t.magFilter=THREE.NearestFilter;t.minFilter=THREE.NearestFilter;t.generateMipmaps=false;return t;});
-  const S=[];for(let i=0;i<20;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:tex[0],color:0xffffff,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));
-    s.visible=false;s.renderOrder=3;s.userData.v=0;s.userData.z=1;scene.add(s);S.push(s);}
-  return {tex,S,t:0,i:0};
-})();
-function nyanEtoiles(dt,k){
-  const E=NYETO,A=NYARC;
-  if(k>.25&&A.m.visible&&dt>0){E.t-=dt;
-    while(E.t<0){E.t+=.07;const s=E.S[E.i];E.i=(E.i+1)%E.S.length;
-      const i=2+((Math.random()*(NY_ARC.N*.45))|0),sd=Math.random()<.5?-1:1;
-      s.position.copy(A.P[i].p).addScaledVector(A.S[i],sd*(NY_ARC.W+.3+Math.random()*1.5));s.position.y+=(Math.random()-.3)*1.2;
-      s.userData.v=0;s.userData.z=.45+Math.random()*.45;s.visible=true;}}
-  for(const s of E.S){if(!s.visible)continue;const v=(s.userData.v+=dt);if(v>.62){s.visible=false;continue;}
-    const fr=Math.min(3,(v/.155)|0);if(s.material.map!==E.tex[fr])s.material.map=E.tex[fr];
-    const z=s.userData.z*(fr?1:.6);s.scale.set(z,z,1);s.material.opacity=Math.min(1,(.62-v)/.12);}
+function nyanPixNitro(dt,k){ // la course : la poupe crache des pixels, ~150 par seconde à pleine nitro, avec l'élan de la caisse
+  NYAN.pixT+=dt*150*k;if(NYAN.pixT<1)return;const F=nyanPixPool();
+  while(NYAN.pixT>=1){NYAN.pixT-=1;NY_V.set((Math.random()-.5)*1.4,.55+Math.random()*.4,-1.05);potMonde(NY_V,tmp2);
+    const c=nyanPixC(),v=3+Math.random()*6;
+    burnEmet(F,tmp2.x,tmp2.y,tmp2.z,EXV.x*.88-hsF.x*v+(Math.random()-.5)*2.4,EXV.y*.88-hsF.y*v+Math.random()*1.6,EXV.z*.88-hsF.z*v+(Math.random()-.5)*2.4,
+      .45+Math.random()*.4,.1+Math.random()*.08,0,1,c[0],c[1],c[2]);}
 }
 /* LE PAS DU GIF (appelé à chaque image, après le rendu de l'atelier / de la vitrine) : les pattes pédalent en diagonale d'un voxel,
    la queue alterne ses deux dessins, la tête hoche d'un voxel à 142 à la noire (le tempo du morceau d'origine) — TOUT en pas
-   entiers. Il trottine au garage, galope à fond de train, pédale en vol. Et l'arc-en-ciel : la course le mène (voir le bloc des
-   traînées) ; au garage c'est ici qu'on le tend ; ailleurs on l'éteint. */
+   entiers (son allure suit l'accélération, voir plus bas). Et ses PIXELS de course vivent ici (voir NY_PIX). */
 function nyanTick(dt){
   if(NYAN.photo&&NYAN.on){const f=NYAN.photo,r=carGroup.rotation.y+f.a; // (banc) dbgNyan('photo',a,d,h) : a = angle autour de la caisse (0 = de face)
     camera.position.set(carGroup.position.x+Math.sin(r)*f.d,carGroup.position.y+f.h,carGroup.position.z+Math.cos(r)*f.d);
     camera.lookAt(carGroup.position.x,carGroup.position.y+.7,carGroup.position.z);camera.updateMatrixWorld();
     if(camera.view&&camera.view.enabled){NYAN.vue=Object.assign({},camera.view);camera.clearViewOffset();}} // l'objectif décentré de l'atelier : rendu en sortant
-  const A=NYARC,vole=NYAN.on&&running&&!gameOver&&mode==='fall';
+  const vole=NYAN.on&&running&&!gameOver&&mode==='fall';
   NYAN.volK+=((vole?1:0)-NYAN.volK)*Math.min(1,dt*(vole?7:3));
-  let k9=0;
-  const fx9=FX_EFF||(CARS[carGroup.userData.lvl]||{}).fx||{};
-  if(NYAN.on&&garageOn&&!(chuteVoulue()||CHUTE.go||CHUTE.on)&&fx9.nyan&&fx9.rainbow&&SHOP.tab!=='trainee'&&!(INV&&INV.on&&INV.cat==='trainee')){k9=nyanArcGarage(performance.now()*.001);} // (l'aperçu des traînées de la boutique a la main)
-  else if(A.mene)k9=A.k;
-  else if(A.m.visible&&!(paused&&running&&!gameOver)){A.m.visible=false;A.init=false;}
-  A.mene=false;
   const fige=paused&&running&&!gameOver;
-  nyanEtoiles(fige?0:dt,k9);
+  nyanPixPas(fige?0:dt);
   if(!NYAN.on||fige||(running&&mode==='boom'))return;
-  const v=running&&!gameOver?vKmh():0; // (la vitesse affichée, `speedKmh`, est locale à la boucle)
-  NYAN.ph+=dt*(vole?14:running&&!gameOver?6+Math.min(10,v/40):4.5);NYAN.bat+=dt*142/60;
+  /* (v2, Léo : « les jambes bougent en fonction de comment tu accélères ») L'ALLURE suit l'ACCÉLÉRATION (km/h par seconde, lissée) :
+     à l'ARRÊT les pattes se posent · en COURSE la cadence suit la vitesse et MONTE avec l'accélération · en SPRINT (forte poussée,
+     nitro) la foulée double (deux voxels) et la queue se dresse au vent · au FREINAGE plus de foulée : les quatre pattes se
+     plantent en avant, la queue tombe, les feux stop s'allument · en VOL elles pédalent dans le vide. Au garage il trottine. */
+  const v=running&&!gameOver?vKmh():0,ac=dt>1e-4?(v-NYAN.v0)/dt:0; // (la vitesse affichée, `speedKmh`, est locale à la boucle)
+  NYAN.v0=v;NYAN.acc+=(Math.max(-500,Math.min(500,ac))-NYAN.acc)*Math.min(1,dt*5);
+  const enCourse=running&&!gameOver,frein=enCourse&&!vole&&v>15&&(NYAN.acc<-30||keys.ArrowDown||keys.KeyS);
+  let al,r=0;
+  if(vole){al='vol';r=14;}
+  else if(!enCourse){al='trot';r=4.5;}
+  else if(frein)al='frein';
+  else if(v<4&&NYAN.acc<8)al='arret';
+  else{r=Math.min(20,1.5+v/55+Math.max(0,NYAN.acc)/14+(nitroOn?4:0));al=(NYAN.acc>32||nitroOn)?'sprint':'course';} // la NITRO : toujours le sprint
+  NYAN.ph+=dt*r;NYAN.bat+=dt*142/60;
   const st=Math.floor(NYAN.ph)&3,hb=Math.floor(NYAN.bat)&1;
-  if(st===NYAN.pas&&hb===NYAN.hb)return;
-  NYAN.pas=st;NYAN.hb=hb;
-  const Z=[0,1,0,-1];
-  for(let i=0;i<NYAN.pattes.length;i++)NYAN.pattes[i].position.z=Z[(st+((i===0||i===3)?0:2))&3]*NY_U;
-  if(NYAN.queue.length===2){const h=(st>>1)&1;NYAN.queue[0].visible=!h;NYAN.queue[1].visible=!!h;}
+  if(st===NYAN.pas&&hb===NYAN.hb&&al===NYAN.allure)return;
+  NYAN.pas=st;NYAN.hb=hb;NYAN.allure=al;
+  const Z=[0,1,0,-1],amp=al==='sprint'?2:1;
+  for(let i=0;i<NYAN.pattes.length;i++)NYAN.pattes[i].position.z=(al==='frein'?1:al==='arret'?0:Z[(st+((i===0||i===3)?0:2))&3]*amp)*NY_U;
+  if(NYAN.queue.length===2){const h=al==='sprint'?1:al==='frein'||al==='arret'?0:(st>>1)&1;NYAN.queue[0].visible=!h;NYAN.queue[1].visible=!!h;}
+  if(NYAN.feux.length===2){NYAN.feux[0].visible=!frein;NYAN.feux[1].visible=frein;}
   if(NYAN.tete)NYAN.tete.position.y=hb*NY_U;
 }
-window.dbgNyan=function(c,a,d,h){if(c==='cliche'){if(NYAN.photo&&NYAN.on){const f=NYAN.photo,r=carGroup.rotation.y+f.a; // (banc) l'image rendue ET lue dans le même instant (le tampon WebGL est vidé entre deux images)
+window.dbgNyan=function(c,a,d,h){if(c==='allure')return {allure:NYAN.allure,acc:+NYAN.acc.toFixed(1),v:+NYAN.v0.toFixed(0),pattes:NYAN.pattes.map(g=>+(g.position.z/NY_U).toFixed(0)),stop:!!(NYAN.feux[1]&&NYAN.feux[1].visible)};if(c==='cliche'){if(NYAN.photo&&NYAN.on){const f=NYAN.photo,r=carGroup.rotation.y+f.a; // (banc) l'image rendue ET lue dans le même instant (le tampon WebGL est vidé entre deux images)
     camera.position.set(carGroup.position.x+Math.sin(r)*f.d,carGroup.position.y+f.h,carGroup.position.z+Math.cos(r)*f.d);
     camera.lookAt(carGroup.position.x,carGroup.position.y+.7,carGroup.position.z);camera.updateMatrixWorld();if(camera.view&&camera.view.enabled)camera.clearViewOffset();}
   if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return renderer.domElement.toDataURL('image/png');}if(c==='mats'){const L=[];carGroup.traverse(o=>{if(!o.isMesh)return;const m=o.material,ca=o.geometry.attributes.color;
   L.push({t:m.type,g:m.userData&&m.userData.g,col:m.color?m.color.getHexString():null,vc:m.vertexColors,c0:ca?[ca.getX(0),ca.getY(0),ca.getZ(0)].map(v=>+v.toFixed(2)):null,n:o.geometry.attributes.position.count,soude:o.userData.soude||0,prog:!!m.onBeforeCompile&&m.onBeforeCompile!==THREE.Material.prototype.onBeforeCompile});});return L;}if(c==='photo'){NYAN.photo=a==null?null:{a:a,d:d||6,h:h==null?1.6:h};
-  if(!NYAN.photo&&NYAN.vue){const v=NYAN.vue;camera.setViewOffset(v.fullWidth,v.fullHeight,v.offsetX,v.offsetY,v.width,v.height);NYAN.vue=null;}return NYAN.photo;}return {on:NYAN.on,pas:NYAN.pas,hoche:NYAN.hb,volK:+NYAN.volK.toFixed(2),arc:NYARC.m.visible,k:+NYARC.k.toFixed(2),
-  serie:NYARC.serie,etoiles:NYETO.S.filter(s=>s.visible).length,pattes:NYAN.pattes.length,queue:NYAN.queue.length};};
+  if(!NYAN.photo&&NYAN.vue){const v=NYAN.vue;camera.setViewOffset(v.fullWidth,v.fullHeight,v.offsetX,v.offsetY,v.width,v.height);NYAN.vue=null;}return NYAN.photo;}return {on:NYAN.on,pas:NYAN.pas,hoche:NYAN.hb,volK:+NYAN.volK.toFixed(2),pixels:NYAN.pix?NYAN.pix.n:0,
+  pattes:NYAN.pattes.length,queue:NYAN.queue.length};};
 const TR_PJ=new THREE.Vector3(),TR_Q=new THREE.Vector3(),TR_CUT={a:.08,b:.26}; // (2026-09-29) la projection d'un point du ruban, le point où on le COUPE, et la descente à l'écran tolérée (voir « plus de fils de marionnette »)
 function trailStep(tr,px,py,pz,cr,cg,cb,k,wMul){
   if(k<.03){tr.m.visible=false;tr.init=false;return;}
@@ -16094,11 +16038,11 @@ function lpWheel(o){
    · les PATTES et la QUEUE restent dessinées DE PROFIL : vue de côté, la caisse EST le chat de l'image ;
    · les quatre pattes finissent sur des ROULETTES pixel — le chat fait du roller, c'est ça la voiture.
    L'animation est celle du GIF, en PAS ENTIERS, jamais interpolée : les pattes pédalent d'un voxel, la queue bat entre deux dessins,
-   la tête hoche d'un voxel sur le tempo — et l'arc-en-ciel en escalier sort du gâteau (voir NYARC). Unité `NY_U` = 10 cm ; repère
+   la tête hoche d'un voxel sur le tempo — et à la nitro, des pixels multicolores qui scintillent (voir NY_PIX). Unité `NY_U` = 10 cm ; repère
    caisse : i → x (centré), j → y (sol = 0), k → z (k = 10 ↔ z = 0, l'avant en +z). Console : `dbgNyan()`. */
 const NY_U=.1;
-const NYAN={on:false,tete:null,pattes:[],queue:[],arc:new THREE.Vector3(0,.75,-1),ph:0,pas:-1,bat:0,hb:-1,volK:0};
-const NY_GATEAU=(function(){const L=['..BBBBBBBBBBBBBBBBBB..','.BCCCCCCCCCCCCCCCCCCB.','BCCCCCCCCCCCCCCCCCCCCB','BCCCPPPPPPPPPPPPPPCCCB'];
+const NYAN={on:false,tete:null,pattes:[],queue:[],feux:[],pix:null,pixT:0,arc:new THREE.Vector3(0,.75,-1),ph:0,pas:-1,bat:0,hb:-1,volK:0,v0:0,acc:0,allure:''};
+const NY_GATEAU=(function(){const L=['BBBBBBBBBBBBBBBBBBBBBB','BCCCCCCCCCCCCCCCCCCCCB','BCCCCCCCCCCCCCCCCCCCCB','BCCCPPPPPPPPPPPPPPCCCB']; // (v2) coins CARRÉS : un caisson de voiture, plus une galette — le glaçage garde ses coins arrondis
   for(let i=0;i<9;i++)L.push('BCCPPPPPPPPPPPPPPPPCCB');
   return L.concat(L.slice(0,4).reverse());})(); // vu du DESSUS : une rangée par i (−8 … 8), une colonne par k (0 = l'arrière … 21 = l'avant)
 const NY_SUCRE=[[-4,5],[-5,11],[-2,8],[-3,14],[0,4],[-1,12],[1,9],[1,16],[3,6],[2,13],[4,10],[5,15]]; // les éclats de sucre (i, k)
@@ -16114,8 +16058,8 @@ const NY_TETE=[ // de FACE, rangée du haut d'abord (j = 14 − rangée) — W :
  'BRRGBBBBBBBGRRB',
  '.BGGGGGGGGGGGB.',
  '..BBBBBBBBBBB..'];
-const NY_QUEUE=[[8,['...BBB','..BGGB','BBGGB.','BGGB..','BBB...']],     // tombante (colonnes k −5 … 0, rangée du haut = j 8)
-                [10,['BBB...','BGGB..','BBGGB.','.BBGGB','...BBB']]];  // relevée (rangée du haut = j 10)
+const NY_QUEUE=[[9,['...BBB','..BGGB','BBGGB.','BGGB..','BBB...']],     // tombante (colonnes k −5 … 0, rangée du haut = j 9)
+                [11,['BBB...','BGGB..','BBGGB.','.BBGGB','...BBB']]];  // relevée (rangée du haut = j 11)
 /* LA GRILLE DE VOXELS : une clé de palette par case → seules les faces À L'AIR libre, fusionnées en RECTANGLES par couleur (le
    glouton classique, plan par plan) : ~3 000 cases de chat = quelques centaines de triangles. `fk(c,axe,sens)` choisit la clé de
    chaque FACE (axe 0/1/2 = x/y/z, sens ±1) : c'est là que les dessous virent au bleu. Les faces vont dans un chantier `lpKit`. */
@@ -16853,21 +16797,33 @@ const SHAPES={
        avec l'ombrage CUIT par face : la face du DESSIN pleine (dessus du gâteau, visage et nuque, flancs des pattes et de la queue),
        le dessus un cran en dessous, les autres faces deux crans. Seul le NOIR reste laqué et éclairé : c'est lui qui accroche le ciel,
        comme les murs noirs de l'image. Les aplats sont relevés de 10 % : l'ACES les ternissait. */
-    const COUL={C:0xffcf98,P:0xff9cf3,S:0xff3a94,G:0x8e8f99,W:0xffffff,R:0xff9aa6,u:0x1d4cb4},TEINTE=[['d',1.1],['h',1.0],['c',.86]],pal={B:{g:'g',c:0x09090e}},cc=new THREE.Color();
+    const COUL={C:0xffdcb0,P:0xff9cf3,S:0xff3a94,G:0x8e8f99,W:0xffffff,R:0xff9aa6,u:0x1d4cb4,Y:0xffe25a,L:0x8a1424,T:0xff2a36},TEINTE=[['d',1.1],['h',1.0],['c',.86]],pal={B:{g:'g',c:0x09090e}},cc=new THREE.Color();
     for(const k in COUL)for(const [f,m] of TEINTE){cc.setHex(COUL[k]);cc.setRGB(Math.min(1,cc.r*m),Math.min(1,cc.g*m),Math.min(1,cc.b*m));pal[k+f]={g:'l',c:cc.getHex()};} // ⚠ r128 : getHex() ne BORNE pas — un canal à 1,1 débordait sur ses voisins (le rose sortait vert)
     const pose=(V,par,plan)=>{const kt=lpKit(pal); // `plan` : l'axe de la face qui porte le DESSIN (0 = flancs, 1 = dessus, 2 = avant/arrière)
       V.emit(kt,u,o,(c,ax,sg)=>c==='B'?'B':(ax===1&&sg<0)?'uc':c+(ax===plan?'d':(ax===1?'h':'c'))); // tout ce qui regarde le SOL prend le bleu du ciel
       const gs=kt.done();
       for(const g in gs){const m=new THREE.Mesh(gs[g],mat(g));m.userData.lp=1;par.add(m);}return par;};
     const bloc=()=>K.add(new THREE.Group()); // ce qui BOUGE vit dans un groupe : la soudure de la caisse n'y touche pas (voir caisseSoude)
-    // 1. LE GÂTEAU : trois couches ; la dernière porte la croûte, les autres sont du contour — les murs noirs de l'image — et le
-    //    GLAÇAGE BOMBE d'une couche au-dessus de la croûte, comme sur une vraie pop-tart : vue de côté (la vitrine, la carrière, la
-    //    chute du menu filment bas), la caisse n'était plus qu'un mur noir ; le liseré rose de la tranche du glaçage la signe.
+    // 1. LE CAISSON (v2, Léo : « plus carré le dos, plus voiture le corps ») : la pop-tart devient une CAISSE — cinq couches (50 cm),
+    //    coins carrés, flancs et poupe en CROÛTE cernés de noir sur chaque arête (le bas de caisse, les montants, la ceinture du
+    //    dessus) : une carrosserie peinte, plus une planche noire sur pattes. Le dessus garde la croûte, et le GLAÇAGE BOMBE d'une
+    //    couche au-dessus avec ses éclats de sucre.
     {const V=voxGrille();
-     for(let r=0;r<17;r++)for(let k=0;k<22;k++){const c=NY_GATEAU[r][k];if(c==='.')continue;
-       for(let j=6;j<=8;j++)V.set(r-8,j,k,j===8?(c==='P'?'C':c):'B');if(c==='P')V.set(r-8,9,k,'P');}
-     for(const e of NY_SUCRE)V.set(e[0],9,e[1],'S');
+     for(let r=0;r<17;r++)for(let k=0;k<22;k++){const c=NY_GATEAU[r][k],i=r-8;
+       for(let j=5;j<=9;j++)V.set(i,j,k,j===9?(c==='P'?'C':c):(j===5||((i===-8||i===8)&&(k===0||k===21)))?'B':'C');
+       if(c==='P')V.set(i,10,k,'P');}
+     for(const e of NY_SUCRE)V.set(e[0],10,e[1],'S');
+     // le BOUCLIER ARRIÈRE (une barre noire en saillie) et, devant, le bouclier sous le menton avec ses deux PHARES jaunes
+     for(let i=-8;i<=8;i++)V.set(i,5,-1,'B');
+     for(let i=-6;i<=6;i++)V.set(i,4,25,Math.abs(i)>=5?'Y':'B');
+     // l'AILERON : deux montants, un plan au glaçage rose cerclé de noir — le signe « voiture » qui se lit de la poursuite
+     for(const sd of [-1,1])for(let j=10;j<=11;j++)V.set(sd*5,j,1,'B');
+     for(let i=-7;i<=7;i++)for(let k=0;k<=2;k++)V.set(i,12,k,(k===1&&Math.abs(i)<7)?'P':'B');
      pose(V,carGroup,1);}
+    // LES FEUX ARRIÈRE : deux optiques en saillie sur la poupe, en DEUX exemplaires (veilleuse, stop) — le stop s'allume au freinage
+    for(const vif of [0,1]){const V=voxGrille();
+      for(const sd of [-1,1])for(let x=6;x<=7;x++)for(let j=7;j<=8;j++)V.set(sd*x,j,-1,vif?'T':'L');
+      const g=pose(V,bloc(),2);g.visible=!vif;NYAN.feux.push(g);}
     // 2. LA TÊTE : le dessin de face sur la couche avant, quatre couches derrière (gris cerclé de noir : l'arrière de la tête, vu de
     //    la poursuite, est un chat, pas un pavé noir). Cinq de profondeur : à huit, le profil n'était plus qu'un PAVÉ NOIR — l'image
     //    n'a qu'une tranche. Elle HOCHE d'un voxel.
@@ -16878,8 +16834,8 @@ const SHAPES={
      NYAN.tete=pose(V,bloc(),2);}
     // 3. LES PATTES : des blocs 4 × 4 gris, CERNÉS de noir sur chaque arête (une case noire dès qu'elle touche deux bords du bloc) —
     //    de profil comme de face, une patte grise au trait noir, celles de l'image. (Dessinées de profil seulement, vues de trois-quarts
-    //    elles n'étaient que des pavés noirs.) Dans l'ordre AVG, AVD, ARG, ARD : elles PÉDALENT en diagonale (voir nyanTick).
-    for(const [k0,j0,j1] of [[20,2,3],[1,2,5]])for(const sd of [-1,1]){const V=voxGrille();
+    //    elles n'étaient que des pavés noirs.) Dans l'ordre AVG, AVD, ARG, ARD : elles courent SELON L'ACCÉLÉRATION (voir nyanTick).
+    for(const [k0,j0,j1] of [[17,2,4],[1,2,4]])for(const sd of [-1,1]){const V=voxGrille(); // (v2) l'essieu avant sous le caisson, juste derrière la tête : trois rangées de patte visibles devant aussi
       for(let x=4;x<=7;x++)for(let j=j0;j<=j1;j++)for(let k=k0;k<k0+4;k++){
         const bx=x===4||x===7,bz=k===k0||k===k0+3,by=j===j0;
         V.set(sd*x,j,k,((bx&&bz)||(bx&&by)||(bz&&by))?'B':'G');}
@@ -16889,10 +16845,9 @@ const SHAPES={
       for(let a=0;a<L.length;a++)for(let b=0;b<6;b++){const c=L[a][b];if(c!=='.')for(let i=-1;i<=1;i++)V.set(i,jh-a,b-5,c);}
       NYAN.queue.push(pose(V,bloc(),0));}
     NYAN.queue[1].visible=false;NYAN.arc.set(0,.75,-1.0);
-    // LA FICHE : roulettes pixel sous les pattes (voie ±0,55 m ; sous la tête devant, sous le gâteau derrière) ; ni phares ni feux (un
-    // chat n'a pas de halo : l'arc-en-ciel est sa lumière) ; ni flamme de réacteur (`tuyeres:0`) : sa nitro, c'est l'arc-en-ciel et
-    // les étoiles, nés au milieu de la tranche arrière.
-    return {hl:[.5,.32,1.5],tl:[.5,.75,-1.02],lpw:{R:.13,w:.2,style:'pixel'},wx:.55,wzF:1.2,wzR:.7,wy:0,
+    // LA FICHE : roulettes pixel sous les pattes (voie ±0,55 m) ; pas de halos (phares et feux sont des voxels, l'arc-en-ciel est sa
+    // lumière) ; ni flamme de réacteur (`tuyeres:0`) : sa nitro, c'est l'arc-en-ciel et les étoiles, nés au milieu de la poupe.
+    return {hl:[.5,.45,2.5],tl:[.65,.8,-1.1],lpw:{R:.13,w:.2,style:'pixel'},wx:.55,wzF:.9,wzR:.7,wy:0,
             split:0,skirt:0,sp:0,doors:0,wings:'none',glowF:0,halos:0,tuyeres:0,pots:[[0,.75,-1.03]]};
   },
   // 15. LE REQUIN — bulle de verre sur un corps rond, museau de grand blanc, et QUATRE BRAS
@@ -20164,7 +20119,7 @@ function buildCar(spec){
   // y remettre ce reset effaçait l'aileron que le gabarit venait tout juste d'enregistrer, et il
   // ne se déployait jamais. Tout ce qu'un GABARIT peut remplir doit être vidé AVANT qu'il ne tourne.
   carFins.length=0;
-  NYAN.on=false;NYAN.tete=null;NYAN.pattes.length=0;NYAN.queue.length=0;NYAN.pas=-1;NYAN.hb=-1; // (2026-10-06) le chat pop-tart remplit ses pièces animées pendant son gabarit
+  NYAN.on=false;NYAN.tete=null;NYAN.pattes.length=0;NYAN.queue.length=0;NYAN.feux.length=0;NYAN.pas=-1;NYAN.hb=-1; // (2026-10-06) le chat pop-tart remplit ses pièces animées pendant son gabarit
   HALO.h.length=0;HALO.t.length=0;ROUES.flou=null; // (2026-09-26) halos et flou de jante de l'ancienne caisse
   const lvl=CARS.indexOf(spec),wreck=lvl===0;
   // brillance qui explose avec le niveau — l'épave est mate et rouillée
@@ -20720,7 +20675,7 @@ function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image
   function(){try{parisChauffe();}catch(e){console.warn('parisChauffe',e);}}, // (2026-09-30) PARIS : ses matières compilées au menu (16 programmes de moins au portail)
   function(){cratInit();renderer.initTexture(CRAT.tex);renderer.initTexture(CRAT.halo);for(const t9 of DEB.tex)renderer.initTexture(t9);}, // (2026-09-28) + les trois textures de la pluie de DÉBRIS // (2026-09-27) le cratère du MÉTÉORE : ses matières sont compilées juste en dessous, ses textures montées ici
   function(){campChauffe();},
-  function(){NYARC.m.visible=NYETO.S[0].visible=true;chauffeRendu([NYARC.m,NYETO.S[0]]);NYARC.m.visible=NYETO.S[0].visible=false;}, // (2026-10-06) l'arc-en-ciel du chat (couleur RGBA : un programme à lui) et ses étoiles, compilés au menu // (2026-09-27) la caisse-nuage et la police de la campagne compilées AU MENU — jamais au départ du niveau 5 ou 10
+  function(){const F=nyanPixPool();F.o.visible=true;chauffeRendu([F.o]);F.o.visible=false;}, // (2026-10-06) les PIXELS du chat (le programme du feu du burn-out) compilés au menu
   function(){if(!TRACE.pos)traceInit();const p=mkPigeon();scene.add(p);renderer.compile(scene,camera);scene.remove(p);},
   function(){const L9=[];for(let i=0;i<FRUIT_DEFS.length;i++){const m=mkFruit(i);scene.add(m);L9.push(m);}const pd=new THREE.Mesh(padGeo,PAD_MAT);scene.add(pd);L9.push(pd); // (2026-09-29) LA LIGNE PARFAITE pose ses fruits et ses pads EN COURSE : leurs programmes et leurs géométries sont prêts dès le menu
     chauffeRendu(L9);for(const m of L9)scene.remove(m);},
@@ -31148,7 +31103,7 @@ function dolHudTick(dt){ // gate de course, quel que soit le mode
     dolHudAtt=0;dolHudT-=dt;if(dolHudT<=0)dolHudOff();}
 }
 function respawn(){
-  for(const t9 of SILS)t9.init=false;rainbow.init=false;NYARC.init=false; // (2026-09-26) pas de ruban tendu jusqu'au point de replacement
+  for(const t9 of SILS)t9.init=false;rainbow.init=false; // (2026-09-26) pas de ruban tendu jusqu'au point de replacement
   LIGNE.sPk=null;LIGNE.sPd=LIGNE.sPd0=s; // (LIGNE PARFAITE, audit GAMEPLAY) le balayage de trajet repart d'ici : sinon il ramassait, sans contact, l'objet qu'on venait de rater
   dolKill(); // (dauphin v3) replacer, repartir, recommencer : l'étiquette s'éteint, rien n'est versé
   momT=0; // (momentum v2) repartir = réserve vide
@@ -32364,7 +32319,7 @@ function traceTick(actif){
 function newTrack(){
   PADCH.sL=0; /* (LE TRAIN DE BOOSTS) il traverse le portail — mais les pads de la nouvelle piste comptent dès son début */
   traceVide(); // (2026-09-26) les traces de pneus restent sur l'ancienne route
-  for(const t9 of SILS)t9.init=false;rainbow.init=false;NYARC.init=false; // (2026-09-26) sinon le ruban de nitro se tendait de l'ancien ovule à la nouvelle piste
+  for(const t9 of SILS)t9.init=false;rainbow.init=false; // (2026-09-26) sinon le ruban de nitro se tendait de l'ancien ovule à la nouvelle piste
   loop._rebuildT=performance.now();loop._rebuildD=3500; // la construction d'une zone fait un pic : la qualité auto ne doit pas le prendre pour de la faiblesse
   CHAUFFE_R.t=performance.now()+120; // (tour 2) la nouvelle piste, sa ville, ses nuages : dessinés une fois hors écran dans la foulée (voir chauffeRendu)
   let sd=(Math.random()*1e9)|0;
@@ -38112,7 +38067,7 @@ function burnPas(F,dt,t){ // fait vivre un réservoir : âge, mouvement, taille,
     const j=i*3;if(F.age[i]>=F.life[i]){if(F.P[j+1]>-1e3){F.P[j+1]=-1e4;F.A[i]=0;}continue;}
     n++;const a=F.age[i]+=dt,g=Math.min(1,a/F.life[i]);
     let vx=F.V[j]*dr,vy=F.V[j+1],vz=F.V[j+2]*dr;
-    if(F.feu)vy=vy*dr-5.5*dt;                                         // les braises retombent
+    if(F.feu)vy=vy*dr-(F.arc?1.6:5.5)*dt;                             // les braises retombent (les pixels du chat flottent)
     else{vy+=(.38-vy)*Math.min(1,dt*.7);                              // la fumée MONTE, sans se presser
       vx+=Math.sin(t*.8+F.S[i]*3.1+F.P[j+1]*.9+i)*.34*dt;vz+=Math.cos(t*.67+i*.37+F.P[j]*.7)*.34*dt;} // et tourbillonne
     let x=F.P[j]+vx*dt,y=F.P[j+1]+vy*dt,z=F.P[j+2]+vz*dt;
@@ -38121,7 +38076,8 @@ function burnPas(F,dt,t){ // fait vivre un réservoir : âge, mouvement, taille,
     if(x>hw||x<-hw){x=Math.max(-hw,Math.min(hw,x));vx*=-.3;}
     if(z>hd||z<-hd){z=Math.max(-hd,Math.min(hd,z));vz*=-.3;}
     F.P[j]=x;F.P[j+1]=y;F.P[j+2]=z;F.V[j]=vx;F.V[j+1]=vy;F.V[j+2]=vz;F.G[i]=g;
-    if(F.feu){F.S[i]=F.s0[i]*(1-.5*g);F.A[i]=Math.pow(1-g,1.4)*F.op[i];
+    if(F.arc){F.S[i]=F.s0[i];F.A[i]=(Math.random()<.2?0:1)*Math.pow(1-g,.7)*F.op[i];F.C[j]=F.c0[j];F.C[j+1]=F.c0[j+1];F.C[j+2]=F.c0[j+2];} // le chat : ils SCINTILLENT et gardent leur couleur
+    else if(F.feu){F.S[i]=F.s0[i]*(1-.5*g);F.A[i]=Math.pow(1-g,1.4)*F.op[i];
       F.C[j]=F.c0[j]+(1-F.c0[j])*g*.2;F.C[j+1]=F.c0[j+1]*(1-.75*g);F.C[j+2]=F.c0[j+2]*(1-.9*g);}   // blanc-jaune → orange → rouge
     else{F.S[i]=F.s0[i]+(F.s1[i]-F.s0[i])*(1-Math.exp(-a*.55));
       F.A[i]=Math.min(1,a/.25)*Math.pow(1-g,1.3)*F.op[i];
@@ -38135,6 +38091,7 @@ function burnPas(F,dt,t){ // fait vivre un réservoir : âge, mouvement, taille,
 function burnMonde(x,y,z,out){out.set(x,y,z);carGroup.localToWorld(out);return out;} // un point de la caisse, dans la salle
 function burnPrepare(){ // à chaque départ : les essieux de l'arrière, les pneus, les pots — la caisse a pu changer
   if(!BURN.fum){BURN.fum=burnPool(320,false,BURN_FS_FUM);BURN.feu=burnPool(180,true,BURN_FS_FEU);}
+  if(!BURN.pix){BURN.pix=burnPool(260,true,BURN_FS_FEU);BURN.pix.arc=true;} // (2026-10-06) les PIXELS du chat pop-tart (voir NY_PIX)
   BURN.ar=ESSIEUX.filter(function(E){return E.position.z<0;});
   BURN.roues=[];
   for(const w of wheels)if(w.position.z<0)BURN.roues.push({x:w.position.x,y:w.position.y-(w.userData.R||.4),z:w.position.z,R:w.userData.R||.4,l:w.userData.large||.3});
@@ -38172,6 +38129,7 @@ function burnPop(f){ // une PÉTARADE : du feu en pixels qui crache des pots, et
   const fw=BURN.u.set(Math.sin(carGroup.rotation.y),0,Math.cos(carGroup.rotation.y));
   for(const p of BURN.pots){const o=burnMonde(p[0],p[1],p[2],BURN.q);
     const n=Math.round(10+14*f);for(let i=0;i<n;i++){const v=3+Math.random()*5*f;
+      if(NYAN.on&&BURN.pix){const c=nyanPixC();burnEmet(BURN.pix,o.x,o.y,o.z,-fw.x*v+(Math.random()-.5)*2,.4+Math.random()*1.6,-fw.z*v+(Math.random()-.5)*2,.4+Math.random()*.45,.07+Math.random()*.06,0,1,c[0],c[1],c[2]);continue;} // le chat pétarade en PIXELS
       burnEmet(BURN.feu,o.x,o.y,o.z,-fw.x*v+(Math.random()-.5)*1.6,.3+Math.random()*1.3,-fw.z*v+(Math.random()-.5)*1.6,.2+Math.random()*.26,.12+Math.random()*.12,0,1,1,.86+Math.random()*.14,.5+Math.random()*.35);}
     burnEmet(BURN.fum,o.x,o.y,o.z,-fw.x*1.4,.3,-fw.z*1.4,2.8+Math.random()*1.5,.28,.8,.3,.42,.4,.47);}
 }
@@ -38192,7 +38150,7 @@ function burnFin(){ // le doigt se lève (ou la vitrine se ferme) : le moteur re
 function burnCoupe(){ // l'atelier se ferme : silence, plus rien à l'écran
   burnFin();BURN.k=0;BURN.rpm=0;BURN.pops.length=0;
   if(BURN.yaw){garageAng-=BURN.yaw;GAR.podSpin=(GAR.podSpin||0)-BURN.yaw;}BURN.yaw=BURN.yawV=BURN.cib=BURN.pivK=0;
-  for(const F of [BURN.fum,BURN.feu])if(F){F.age.fill(1e9);burnPas(F,0,0);F.o.visible=false;}
+  for(const F of [BURN.fum,BURN.feu,BURN.pix])if(F){F.age.fill(1e9);burnPas(F,0,0);F.o.visible=false;}
   if(BURN.corps){carBody.rotation.set(0,0,0);carBody.position.set(0,0,0);BURN.corps=false;}
   if(AC&&BURN.son){const T=AC.currentTime;stt(gainN.gain,0,T,.06);stt(engLfoG.gain,0,T,.06);if(skidG)stt(skidG.gain,0,T,.05);BURN.son=false;}
 }
@@ -38239,13 +38197,16 @@ function burnTick(dt){ // chaque image du garage (après la pose de la caisse, a
         sd=r.x<0?-1:1,sx=fz*sd,sz=-fx*sd,v=1.5+Math.random()*1.7,l=Math.random()*.9,gr=.84+Math.random()*.12;
       burnEmet(BURN.fum,o.x,o.y,o.z,-fx*v+sx*l,.25+Math.random()*.75,-fz*v+sz*l,5.8+Math.random()*4.2,.34+Math.random()*.24,1.05+Math.random()*.5+.45*BURN.chaud,
         .2+Math.random()*.16,gr*.86,gr*.84,gr*.93);}
-    BURN.tF+=dt*k*(BURN.chaud>.45?(BURN.chaud-.45)*70:0);
+    if(NYAN.on&&BURN.pix){BURN.tP=(BURN.tP||0)+dt*k*(110+90*BURN.chaud); // (2026-10-06) LE CHAT : à la place des braises, les roues giclent des PIXELS multicolores qui scintillent
+      while(BURN.tP>=1){BURN.tP-=1;const r=BURN.roues[(Math.random()*BURN.roues.length)|0],o=burnMonde(r.x+(Math.random()-.5)*r.l,r.y+.1,r.z-r.R*.5,BURN.q),v=1.5+Math.random()*3,c=nyanPixC();
+        burnEmet(BURN.pix,o.x,o.y,o.z,-fx*v+(Math.random()-.5)*2.2,.8+Math.random()*2.4,-fz*v+(Math.random()-.5)*2.2,.6+Math.random()*.7,.09+Math.random()*.08,0,1,c[0],c[1],c[2]);}}
+    BURN.tF+=dt*k*(BURN.chaud>.45&&!NYAN.on?(BURN.chaud-.45)*70:0);
     while(BURN.tF>=1){BURN.tF-=1;const r=BURN.roues[(Math.random()*BURN.roues.length)|0],o=burnMonde(r.x,r.y+.05,r.z-r.R*.3,BURN.q),v=2+Math.random()*4;
       burnEmet(BURN.feu,o.x,o.y,o.z,-fx*v+(Math.random()-.5)*2,1+Math.random()*2.2,-fz*v+(Math.random()-.5)*2,.35+Math.random()*.4,.05+Math.random()*.05,0,1,1,.5+Math.random()*.4,.15);}
   }
   while(BURN.pops.length&&now>=BURN.pops[0]){BURN.pops.shift();burnPop(.8);try{if(sfxOk()){const e=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0];crackle(Math.max(.35,e.crk));}}catch(_){}}
   if(BURN.fum)BURN.fum.o.material.uniforms.uPx.value=Math.max(2,Math.round(5*renderer.getPixelRatio()));
-  for(const F of [BURN.fum,BURN.feu])if(F&&F.o.visible)burnPas(F,dt,t);
+  for(const F of [BURN.fum,BURN.feu,BURN.pix])if(F&&F.o.visible)burnPas(F,dt,t);
   try{burnGomme(dt);}catch(e){}
   try{burnSon(dt);}catch(e){if(!burnTick._w){burnTick._w=1;console.warn('burn-out : son',e);}}
 }
@@ -38394,7 +38355,7 @@ function atlTick(dt){
       else{burnEmet(BURN.feu,ATL.w.x,ATL.w.y,ATL.w.z,(Math.random()-.5)*2,.6+Math.random()*1.4,(Math.random()-.5)*2,.25+Math.random()*.25,.05+Math.random()*.04,0,.6,.95,1,.4);
         if(ATL.cat!=='voiture'&&Math.random()<.4)burnEmet(BURN.fum,ATL.w.x,ATL.w.y,ATL.w.z,(Math.random()-.5)*.8,.4,(Math.random()-.5)*.8,1.4,.12,.45,.3,.8,.82,.9);}}
   }
-  if(BURN.fum&&BURN.fum.o.visible&&!BURN.k)burnPas(BURN.fum,dt,t);if(BURN.feu&&BURN.feu.o.visible&&!BURN.k)burnPas(BURN.feu,dt,t); // (le burn-out les fait déjà vivre)
+  if(BURN.fum&&BURN.fum.o.visible&&!BURN.k)burnPas(BURN.fum,dt,t);if(BURN.feu&&BURN.feu.o.visible&&!BURN.k)burnPas(BURN.feu,dt,t);if(BURN.pix&&BURN.pix.o.visible&&!BURN.k)burnPas(BURN.pix,dt,t); // (le burn-out les fait déjà vivre)
 }
 window.dbgAtelier=function(a,x,z){
   if(a==='pos'){ATL_POS.x=x;ATL_POS.z=z;if(ATL.btn)ATL.btn.position.set((MENU_SACHA?1:-1)*x,0,z);}
@@ -40217,16 +40178,15 @@ function loop(now){
     { // (2026-09-29, sillage v4) UN SILLAGE PAR POT, né dans sa bouche (les mêmes points que les plumes) — un pot : un sillage plus large ; 3-4 pots : un peu plus fins et moins vifs (ils s'additionnent)
       const np9=Math.min(4,CAR_POTS.length),wu9=np9===1?SIL.un:np9>=3?.85:1,ku9=(np9>=3?.8:1)*.74; // ×.74 (2026-09-25) : additif + bloom, le ruban de nitro faisait un faisceau AVEUGLANT sur la route
       for(let i9=0;i9<4;i9++){
-        if(i9<np9){potMonde(CAR_POTS[i9],tmp2);sillageStep(SILS[i9],tmp2.x,tmp2.y,tmp2.z,tcr*ku9,tcg*ku9,tcb*ku9,(FXT&&FXT.nyan&&FXT.rainbow&&NYAN.on)?0:trailK,tw9,dt,wu9);} // (2026-10-06) le chat : l'arc-en-ciel EST son sillage
+        if(i9<np9){potMonde(CAR_POTS[i9],tmp2);sillageStep(SILS[i9],tmp2.x,tmp2.y,tmp2.z,tcr*ku9,tcg*ku9,tcb*ku9,(NYAN.on&&!FX_EFF)?0:trailK,tw9,dt,wu9);} // (2026-10-06) le chat : ses pixels SONT son sillage
         else sillageStep(SILS[i9],0,0,0,0,0,0,0,1,dt);} // un pot de moins (changement de caisse) : ce sillage s'éteint
     }
     // L'ARC-EN-CIEL EST LA TRAÎNÉE DE NITRO DE CETTE CAISSE — pas un décor permanent. Il suit donc
     // `trailK`, exactement comme les rubans des autres : il se déclenche à l'appui, s'éteint en
     // douceur, et le joueur le MÉRITE. (Première version : toujours visible dès qu'on roulait ;
     // le user a tranché — les effets spéciaux de caisse sont des effets de nitro.)
-    if(FXT&&FXT.rainbow&&FXT.nyan&&NYAN.on){ // (2026-10-06) LE CHAT : l'arc-en-ciel EN ESCALIER de l'image — à la nitro ET en vol (voir NYARC)
-      const rk=(mode==='boom'||nitroBlue||pwrNitroT>0)?0:Math.max(trailK,NYAN.volK);
-      potMonde(NYAN.arc,tmp2);nyanArcPas(tmp2.x,tmp2.y,tmp2.z,rk);NYARC.mene=true;NYARC.k=rk;
+    if(NYAN.on&&!FX_EFF){ // (2026-10-06, v2) LE CHAT : des PIXELS multicolores qui scintillent, à la nitro ET en vol (voir NY_PIX) — une traînée de la boutique reprend la main
+      nyanPixNitro(dt,(mode==='boom'||nitroBlue||pwrNitroT>0)?0:Math.max(trailK,NYAN.volK*.7));
       if(rainbow.m.visible){rainbow.m.visible=false;rainbow.init=false;}
     }else if(FXT&&FXT.rainbow){
       // ⚠ ET IL S'EFFACE EN RÉSERVE BLEUE, comme la plume. Sinon la caisse continue d'arborer ses
