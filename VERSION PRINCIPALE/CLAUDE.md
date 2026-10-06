@@ -376,7 +376,7 @@ refait EN VOXELS (10 cm, `NY_U`), chaque pièce dessinée dans SON plan (bloc «
     et les jauges bien placées, agréable à l'œil mais qui ne cache pas trop le décor ; puis redesign-les selon l'emplacement : jauge énergétique
     intense plutôt que juicy Roblox ; une barre money sur le total jamais atteint — plus tu dépasses ton record, plus la jauge est dure à remplir,
     mais elle reste remplie tant qu'on y est ; impressionne-moi ») LES JAUGES v4 — L'ÉNERGIE :
-    · LE PLAN : UNE BANDE EN HAUT, sans carte. Le boulon (⚙) à gauche, CENTRÉ sur les jauges (debout `#gOutils` top sT+28, couché sT+6) ; les
+    · ⚠ PLAN REMPLACÉ LE MÊME JOUR (voir « comme sur la photo » juste après) — LE PLAN : UNE BANDE EN HAUT, sans carte. Le boulon (⚙) à gauche, CENTRÉ sur les jauges (debout `#gOutils` top sT+28, couché sT+6) ; les
       jauges à sa droite — debout l'une sous l'autre (~90 px de haut au lieu de 175 : la porte en feu et le plafond restent visibles), couché
       côte à côte sur une ligne en haut à droite (min(580 px, 68 %)). Rien d'opaque : un voile qui descend du bord (`#gTop::before`, 120 px debout,
       82 couché). Chaque jauge = une ligne (étiquette · chiffre · statut) + son tube.
@@ -397,6 +397,20 @@ refait EN VOXELS (10 cm, `NY_U`), chaque pièce dessinée dans SON plan (bloc «
     · Console : `dbgJauge(banque, record, recordDéjàVu)` — `dbgJauge(30000,30000,21000)` rejoue le record battu.
     Banc `zoom128.mjs` (scratchpad 83e03bdc : la bande, la séquence charge → barrière → explosion → pleine, la jauge après une dépense ; rendu 3D
     coupé pendant la séquence). sw.js → v130, puis v131 à la fusion du chat pop-tart v2 de main (v129 là-bas).
+  · (même jour, Léo, sur une capture du garage de main : « remets HOME · setting au même endroit et les jauges qui se chevauchent comme sur la
+    photo ») LA MISE EN PAGE DE LA PHOTO, les tubes d'énergie gardés :
+    · HOME (`#gvHome`) REVIENT en haut à gauche, à côté du boulon (qui garde la place du ⚙), à sa hauteur d'origine (`#gOutils`, sT+12, debout
+      comme couché). Le petit HOME inséré dans le SHOP (`#gAct>#gClose`) REPART (deux HOME = un de trop) : le SHOP rose reprend toute sa case.
+    · Les deux jauges reprennent leurs CARTES, EMPILÉES (`#gVJ` : une colonne, 6 px entre les deux) : debout à droite du HOME · boulon
+      (left sL+114), couché dans le coin haut-droit (min(330 px, 40 %)). La carte : laque sombre, coins coupés, filet de sa couleur à gauche ;
+      dedans la ligne étiquette · chiffre · statut et le TUBE D'ÉNERGIE de la v4 (inchangé, record battu compris). Le voile du haut
+      (`#gTop::before`) est retiré : les cartes portent leur fond. Debout la carte est étroite : lettres un peu serrées pour que « RECORD ! +$ 9 k »
+      tienne en entier.
+    · ⚠ Piège rencontré : remplacer la 1re ligne d'une règle CSS sur plusieurs lignes laisse sa fin (« …backwards} ») orpheline — elle avale la
+      règle suivante sans erreur visible (ici les cartes et la police des jauges). Contrôle : compter les accolades de chaque `<style>` (jamais
+      de profondeur négative).
+    Bancs (scratchpad 83e03bdc) : `zoom128.mjs` P/L, `btn127.mjs` (clic réel sur le HOME du HAUT désormais), `parcours`, `cadreinv` : 0 erreur.
+    sw.js → v132.
   Banc `vit6.mjs <nom> W H [zones]` (captures vitrine + tiroir, JOUER → course). sw.js → v116 (passé en v120 à la fusion : main était déjà en v119).
 - **L'ATELIER AÉRÉ + LE RENDU (même jour, Léo : « enlève quelques accessoires du garage, ça fait un peu rempli pour rien — les pieds tu
   dois laisser, ça fait partie du jeu ; les billets, mes trucs de trophée, tout ça laisse ; aère un peu l'espace · travaille plus le

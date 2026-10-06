@@ -5625,7 +5625,7 @@ html body #garage.vitrine:not(.menu) #gName{animation:gvNom .7s var(--ease) back
    La caisse a tout le milieu. */
 html body #garage.vitrine:not(.menu) #gOutils{position:fixed;top:calc(var(--sT) + 12px);left:calc(var(--sL) + 16px);right:auto;z-index:2;flex-direction:row-reverse;align-items:center;gap:8px} /* (puis, Léo : « HOME · settings à gauche en haut ») : HOME dans le coin, le ⚙ à sa droite */ /* (2026-10-05, Léo : « les settings et le HOME peuvent être mis côte à côte ») : le ⚙ garde le coin, HOME à sa gauche */
 #gvHome{display:none}
-html body #garage.vitrine:not(.menu) #gOutils>#gvHome{display:none!important} /* (2026-10-06, Léo : « retire celui d'en haut ») : le HOME est en bas, inséré dans le SHOP (voir LE SHOP COUPÉ) */
+html body #garage.vitrine:not(.menu) #gOutils>#gvHome{display:flex;--nc:#b8b0e0;color:var(--nc)} /* (2026-10-06, Léo : « retire celui d'en haut » puis, sur une capture, « remets HOME · settings au même endroit ») : HOME de nouveau dans le coin haut-gauche, le boulon à sa droite */
 /* (2026-10-06, Léo : « HOME et settings un peu plus petits et transparents ») : des pastilles de verre fumé, le pictogramme seul se détache */
 html body #garage.vitrine:not(.menu) #gOutils>.pbtn{width:40px;min-width:40px;height:36px;min-height:36px;background:linear-gradient(180deg,rgba(46,36,88,.42),rgba(10,7,24,.38));
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.2),inset 0 1px 0 rgba(255,255,255,.18),0 6px 14px -8px rgba(0,0,0,.6);opacity:.88}
@@ -5758,15 +5758,13 @@ html body #garage.vitrine:not(.menu) #gAct>#gJouer{animation:gvMonte .52s var(--
 /* LE SHOP COUPÉ, LE PETIT HOME (2026-10-06, Léo : « coupe le bouton shop, il faut qu'il soit visible, attrayant, et ajoute à gauche, inséré en
    petit, un home » puis « retire celui d'en haut ») : la case du SHOP est coupée en deux — à gauche un petit HOME carré (verre fumé, la maison
    seule : `#gClose`, le geste de la console), à droite le SHOP en BONBON : laque rose framboise, reflet qui passe, tranche épaisse, la pièce
-   d'or dessinée qui tourne, une étincelle qui s'allume au coin. Le HOME du haut (#gvHome) est retiré. Ni or (JOUER est le lingot), ni pixel
+   d'or dessinée qui tourne, une étincelle qui s'allume au coin. Le HOME du haut (#gvHome) était retiré — REVENU le même jour (capture de Léo), le petit HOME repart. Ni or (JOUER est le lingot), ni pixel
    dans la pièce (celle des jauges). */
-html body #garage.vitrine:not(.menu) #gAct>#gClose{display:flex!important;grid-column:1;grid-row:3;justify-self:start;align-self:start;width:46px;min-width:46px;height:46px;min-height:46px;margin-top:13px;padding:0;gap:0;
-  --nc:#d6ceff;background:linear-gradient(180deg,rgba(56,44,112,.78),rgba(14,10,32,.84));
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.24),inset 0 0 0 1px rgba(255,255,255,.14),0 0 0 1px rgba(0,0,0,.55),0 4px 0 0 rgba(10,7,24,.9),0 12px 20px -10px rgba(0,0,0,.85)}
+html body #garage.vitrine:not(.menu) #gAct>#gClose{display:none!important} /* (même jour) le HOME revenu en haut, le petit HOME inséré dans le SHOP repart (deux HOME = un de trop) ; pour le remettre : display:flex, grid-column:1, grid-row:3, 46 × 46, et la marge gauche du SHOP */
 html body #garage.vitrine:not(.menu) #gAct>#gClose>span{display:none}
 html body #garage.vitrine:not(.menu) #gAct>#gClose .pxi{--pxs:2;filter:drop-shadow(0 0 5px rgba(214,206,255,.6))}
 #gPerso .gvIco{display:none}
-html body #garage.vitrine:not(.menu) #gAct>#gPerso{--nc:#ff6ad8;margin:13px 0 0 54px;gap:8px;padding:0 10px;color:#fff;
+html body #garage.vitrine:not(.menu) #gAct>#gPerso{--nc:#ff6ad8;margin:13px 0 0 0;gap:8px;padding:0 10px;color:#fff;
   background:linear-gradient(105deg,transparent 0 38%,rgba(255,255,255,.62) 46%,rgba(255,255,255,0) 54%) no-repeat,
     linear-gradient(180deg,#ffb8f0 0%,#ff62d4 22%,#ee30b8 55%,#a8128f 86%,#d93cbd 100%);
   background-size:250% 100%,auto;background-position:180% 0,0 0;
@@ -5784,9 +5782,9 @@ html body #garage.vitrine:not(.menu) #gAct>#gClose:is(:active,.appui){transform:
 /* LE BOULON (2026-10-06, Léo : « mets un boulon 3D à la place du setting ») : le ⚙ de l'atelier est une tête de boulon dessinée en 3D (voir
    `boulonDessine`) ; en vitrine il flotte seul en haut à gauche, sans plaque. */
 .boulon{display:block;width:30px;height:30px;overflow:visible}
-html body #garage.vitrine:not(.menu) #gOutils>[data-go="set"]{width:48px;min-width:48px;height:46px;min-height:46px;padding:0;background:none;box-shadow:none;transform:none;opacity:1}
+html body #garage.vitrine:not(.menu) #gOutils>[data-go="set"]{width:44px;min-width:44px;height:44px;min-height:44px;padding:0;background:none;box-shadow:none;transform:none;opacity:1}
 html body #garage.vitrine:not(.menu) #gOutils>[data-go="set"]::before,html body #garage.vitrine:not(.menu) #gOutils>[data-go="set"]::after{display:none}
-html body #garage.vitrine:not(.menu) #gOutils>[data-go="set"] .boulon{width:46px;height:46px;filter:drop-shadow(0 3px 3px rgba(0,0,0,.6))}
+html body #garage.vitrine:not(.menu) #gOutils>[data-go="set"] .boulon{width:44px;height:44px;filter:drop-shadow(0 3px 3px rgba(0,0,0,.6))}
 html body #garage.vitrine:not(.menu) #gOutils>[data-go="set"]:is(:active,.appui){transform:translateY(2px) scale(.93);translate:none}
 /* le tiroir ouvert : la barre s'efface (le tiroir est le sujet) */
 html body #garage.inv:not(.menu) #gBottom{opacity:0;translate:0 18px}
@@ -5817,18 +5815,19 @@ html body #garage.vitrine:not(.menu):not(.inv) #gVJ{display:grid}
    · L'ARGENT = TA FORTUNE CONTRE TON RECORD (`SAVE.d.bankMax`, le plus haut total jamais atteint) : à ton sommet elle est PLEINE et le reste
      tant que tu y es ; tu dépenses, elle baisse — et plus ton record est haut, plus elle est dure à remplir. Record battu depuis la dernière
      visite (`bankMaxVu`) : elle se charge jusqu'à l'ANCIEN record, y bute (une barrière qui grésille), puis la fait sauter. */
-html body #garage.vitrine:not(.menu) #gVJ{position:fixed;z-index:2;top:calc(var(--sT) + 10px);left:calc(var(--sL) + 76px);right:calc(var(--sR) + 16px);width:auto;margin:0;padding:0;
-  grid-template-columns:minmax(0,1fr);row-gap:7px;pointer-events:none;animation:gvJEntre .6s var(--ease) .2s backwards}
+html body #garage.vitrine:not(.menu) #gVJ{position:fixed;z-index:2;top:calc(var(--sT) + 12px);left:calc(var(--sL) + 114px);right:calc(var(--sR) + 16px);width:auto;margin:0;padding:0;grid-template-columns:minmax(0,1fr);row-gap:6px;pointer-events:none;animation:gvJEntre .6s var(--ease) .2s backwards} /* (même jour, Léo, capture : « les jauges qui se chevauchent comme sur la photo ») : empilées en cartes, à droite de HOME · boulon */
 @keyframes gvJEntre{from{opacity:0;translate:0 -10px}to{opacity:1;translate:0 0}}
-html body #garage.vitrine:not(.menu):not(.inv) #gTop::before{content:'';position:fixed;left:0;right:0;top:0;height:calc(var(--sT) + 120px);pointer-events:none;z-index:0;
-  background:linear-gradient(180deg,rgba(5,3,12,.74) 0%,rgba(5,3,12,.4) 50%,rgba(5,3,12,0) 100%)}
-html body #garage.vitrine:not(.menu) #gOutils{top:calc(var(--sT) + 28px)} /* le boulon centré sur la pile des deux jauges */
+/* (le voile du haut de la v4 est retiré : les jauges ont repris leurs cartes) */
+/* HOME · boulon : à leur place d'origine (top sT + 12, voir #gOutils plus haut) */
 .gvL{--gvF:"Avenir Next Condensed","Bahnschrift","Barlow Condensed","Roboto Condensed","Arial Narrow","DejaVu Sans Condensed","Helvetica Neue",Arial,sans-serif;
-  position:relative;min-width:0;display:grid;grid-template-columns:auto auto minmax(0,1fr);align-items:baseline;column-gap:8px;font-family:var(--gvF);font-stretch:condensed}
+  position:relative;min-width:0;display:grid;grid-template-columns:auto auto minmax(0,1fr);align-items:baseline;column-gap:8px;font-family:var(--gvF);font-stretch:condensed;
+  padding:7px 11px 4px 13px;background:linear-gradient(180deg,rgba(24,17,52,.84),rgba(7,5,16,.88));
+  box-shadow:inset 3px 0 0 var(--gc),inset 0 0 0 1px rgba(255,255,255,.1),inset 0 1px 0 rgba(255,255,255,.12),0 0 18px -8px var(--gc),0 12px 24px -14px rgba(0,0,0,.85);
+  clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)} /* la CARTE de la capture : laque sombre, coins coupés, filet de sa couleur à gauche */
 .gvA{--gc:#35ff86;--gh:#b4ffcf}
 .gvU{--gc:#c46bff;--gh:#ffc6f5}
 .gvK{font-style:italic;font-weight:800;font-size:11px;line-height:1;letter-spacing:2.4px;color:var(--gc);text-shadow:0 0 8px var(--gc),0 1px 0 #000,0 0 3px #000}
-.gvL b{font-style:italic;font-weight:800;font-size:19px;line-height:1;letter-spacing:.4px;white-space:nowrap;font-variant-numeric:tabular-nums;color:#fff;
+.gvL b{font-style:italic;font-weight:800;font-size:18px;line-height:1;letter-spacing:.4px;white-space:nowrap;font-variant-numeric:tabular-nums;color:#fff;
   text-shadow:0 0 12px var(--gc),0 0 3px var(--gc),0 1px 0 #000,0 0 5px rgba(0,0,0,.9)}
 .gvL .gvR{justify-self:end;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-style:italic;font-weight:700;font-size:11px;line-height:1.2;letter-spacing:1.5px;
   color:var(--gh);text-shadow:0 1px 0 #000,0 0 3px rgba(0,0,0,.85),0 0 9px var(--gc)}
@@ -5837,6 +5836,7 @@ html body #garage.vitrine:not(.menu) #gOutils{top:calc(var(--sT) + 28px)} /* le 
 .gvL.sommet .gvR{color:#fff;animation:gvSommet 1.4s ease-in-out infinite}
 @keyframes gvSommet{50%{text-shadow:0 1px 0 #000,0 0 14px var(--gc),0 0 4px #fff}}
 .gvL.casse .gvR{animation:gvCasse .5s steps(2) 4,gvSommet 1.4s ease-in-out 2s infinite}
+.gvK{letter-spacing:1.6px}.gvL .gvR{letter-spacing:.9px}.gvL{column-gap:6px} /* debout, la carte est étroite : « RECORD ! +$ 9 k » doit tenir en entier */
 @keyframes gvCasse{50%{color:var(--gc);text-shadow:0 0 18px #fff,0 0 6px var(--gc)}}
 .gvL.casse b{animation:gvCasseB .7s var(--ease)}
 @keyframes gvCasseB{0%{scale:1.35;text-shadow:0 0 22px #fff,0 0 8px var(--gc)}100%{scale:1}}
@@ -5850,10 +5850,9 @@ html body #garage.vitrine:not(.menu) #gAct>#gPerso[data-portee]::before{content:
 /* COUCHÉ : la caisse à gauche ; à droite, de haut en bas : HOME · ⚙, les deux jauges, puis la pile du départ sous le pouce */
 @media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
   html body #garage.vitrine:not(.menu) #gTop{width:calc(100% - 460px - var(--sR));padding-right:12px}
-  html body #garage.vitrine:not(.menu) #gVJ{left:auto;right:calc(var(--sR) + 16px);width:min(580px,68%);grid-template-columns:repeat(2,minmax(0,1fr));column-gap:22px}
-  .gvK{letter-spacing:1.6px}
-  html body #garage.vitrine:not(.menu):not(.inv) #gTop::before{height:calc(var(--sT) + 82px)}
-  html body #garage.vitrine:not(.menu) #gOutils{top:calc(var(--sT) + 6px)} /* (puis, Léo : « les jauges en haut ») : le coin haut-droit, HOME · ⚙ sont partis à gauche */
+  html body #garage.vitrine:not(.menu) #gVJ{left:auto;right:calc(var(--sR) + 16px);width:min(330px,40%)}
+  .gvK{letter-spacing:1.8px}.gvL .gvR{letter-spacing:1.5px}.gvL{column-gap:8px}
+  /* HOME · boulon : coin haut-gauche, comme debout */ /* (puis, Léo : « les jauges en haut ») : le coin haut-droit, HOME · ⚙ sont partis à gauche */
   .gvL b{font-size:17px}
   html body #garage.vitrine:not(.menu) #gAct{width:min(440px,56%);margin:0 0 0 auto;grid-template-columns:minmax(0,.83fr) minmax(0,1fr);grid-template-rows:auto 40px auto}
   html body #garage.vitrine:not(.menu) #gAct>#gJouer{height:40px;min-height:40px}
@@ -5862,7 +5861,6 @@ html body #garage.vitrine:not(.menu) #gAct>#gPerso[data-portee]::before{content:
   html body #garage.vitrine:not(.menu) #gAct>#gPerso{width:auto;min-width:0;height:40px;min-height:40px;gap:9px;margin-top:11px}
   html body #garage.vitrine:not(.menu) #gAct>#gPerso .pxi{--pxs:3}
   html body #garage.vitrine:not(.menu) #gAct>#gClose{width:40px;min-width:40px;height:40px;min-height:40px;margin-top:11px}
-  html body #garage.vitrine:not(.menu) #gAct>#gPerso{margin-left:48px}
   html body #garage.vitrine:not(.menu) #gAct>#gvLvl{height:40px;min-height:40px;margin-top:11px}
   .gvV{height:42px}
   #gvNivs{bottom:calc(100% + 10px);max-height:calc(100vh - var(--sT) - var(--sB) - 150px);padding:10px 10px 10px 13px}
