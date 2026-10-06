@@ -139,6 +139,21 @@ refait EN VOXELS (10 cm, `NY_U`), chaque pièce dessinée dans SON plan (bloc «
     la pile `#gAct`) ; couché, la barre du HUB en bas à gauche borne la place de la caisse (elle se pose au-dessus) ;
   · LE DOIGT : sur la caisse il tient le PLATEAU (`GAR.doigt='caisse'`), ailleurs il tourne la VUE en ressort (`VITRINE_CAM.dPx`, élan
     plafonné `dElan`) ; tenu sur la caisse = le BURN-OUT complet (dérapage, DONUT, coup de gaz) ; `dbgBurn` accepte la console.
+- **LA MISE EN PLACE (même soir, Léo : « corrige le bug de mise en point »)** — MESURÉ : la porte GARAGE de l'accueil passe l'atelier du menu
+  à la console SOUS le volet (`garMode`, pas `openGarage`), puis le plan se réglait À VUE pendant ~3 s (caméra qui tourne de 38°, recule
+  de 8,8 à 11 m, image qui glisse de 88 px) ; au retour des MISSIONS, la visée sautait de la caisse à la porte à la fin du vol et le
+  recadrage repartait 2-3 s. Désormais :
+  · quand la vue s'allume l'écran CACHÉ (`ecranWipe._on`, ou `GAR.vueNeuve` posé par openGarage), garageRender se rappelle six fois à
+    `dt = 0` (`garageRender._cale`) avec `GAR.vuePose` : fondu `vit`, recul `dVs`, regard `aVl`, décalage `vD` et décentrement `cdx/cdy`
+    PRENNENT leur valeur au lieu de la rejoindre ; le volet se lève sur le plan posé (écart 0,0001, plus rien ne bouge ensuite) ;
+  · ⚠ l'écart mesuré par garCadre est celui de la caméra de l'image d'AVANT : la pose repart de `GAR.cErrVD` (le vD avec lequel il a été
+    mesuré, `GAR.vDcam`) — repartir de vD comptait la correction deux fois (la 1re version oscillait 0 → ,63 → ,9 → ,6 → ,31) ;
+  · au retour des MISSIONS (à vue), le plan de l'atelier est résolu au toucher (`GMIS.mk` mis à 0 le temps des passes), puis le vol se pose
+    DESSUS : il part du VRAI point visé (`GAR.lk`, plus du regard centré sur la caisse), le recadrage attend la fin du vol (`GMIS.e`), et
+    vD est GARDÉ pendant les missions (il s'effaçait) ; les lampes gardent leur fondu (`GAR.vitL`) ;
+  · couché, la barre du HUB est lue à sa place FINALE (`offsetTop` : son entrée `hubMonte` glisse de 14 px, le cadrage la suivait).
+  · Relevé au banc : la vitrine de `?menu=leo` finit en butée (vD ,9, écart ,03) sur 844 × 390 — DÉJÀ le cas sur main, elle y arrive
+    désormais d'un coup au lieu de 2 s de rotation. `dbgInv('etat')` rend aussi `gm` (GMIS.e), `vDw`, `pose`. sw.js → v142.
 - **LE DONUT AU DOIGT** (branche `boutique-tourner`, fusionnée) : en burn-out, le doigt qui tourne autour du milieu du plateau la fait
   tourner (`burnGeste`, `DON` : ,6 tour de caisse par tour de doigt, plafonné ~1 tour / 1,6 s ; tours fêtés « DONUT ×n », anneau de fumée,
   pétarade ; pichenette vers le haut = COUP DE GAZ `burnGaz` ; astuce une fois « TOURNE AUTOUR · DONUT », bit 16 de `SAVE.d.ast`).

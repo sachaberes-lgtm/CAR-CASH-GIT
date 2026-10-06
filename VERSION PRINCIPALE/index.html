@@ -36613,7 +36613,7 @@ function openGarage(quiet){
   garageShow(level||0);
   GMIS.mk=0;garMode(GAR.aMenu?'menu':'boutique');GAR.aMenu=false;
   if(GAR.aMis){GAR.aMis=false;garMode('missions');}
-  if(MENU_SACHA){GAR.vit=garVueLeo()?1:0;GAR.vitV=0;} // (2026-10-06) LA VUE DE LÉO : l'atelier s'ouvre DÉJÀ sur elle (pas de travelling depuis l'ancien cadrage) — (2026-09-30) la porte des MISSIONS, venue d'ailleurs (écran de mort…) // (2026-09-30) ouvert par l'ACCUEIL = le menu ; par un autre chemin (mort → GARAGE, missions, objectif) = la boutique
+  GAR.vueT=0;GAR.vueNeuve=true; // (2026-10-06) LA MISE EN PLACE : l'atelier qui s'ouvre pose son plan d'un coup (voir garageRender) — (2026-09-30) la porte des MISSIONS, venue d'ailleurs (écran de mort…) // (2026-09-30) ouvert par l'ACCUEIL = le menu ; par un autre chemin (mort → GARAGE, missions, objectif) = la boutique
 }
 function closeGarage(){
   try{burnCoupe();}catch(e){} // (2026-10-05) le burn-out ne survit pas à l'atelier
@@ -37483,7 +37483,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
      avec les flammes — la caisse se découpe sur le rideau de feu, bordée d'orange. Dos à la porte, il redevient le cyan d'avant. */
   {const cA9=garCamA(),wF=Math.max(0,-Math.cos(cA9))*(.25+.75*(GAR.porte?Math.max(0,GAR.porte.e):1)),fl9=1+.13*Math.sin(t9*9.1)+.08*Math.sin(t9*23.7);
    stallKey.position.set(Math.sin(cA9+.72)*5.2,ay+4.1,Math.cos(cA9+.72)*5.2);
-   stallRim.color.setRGB(.44+.56*wF,.82-.42*wF,1-.86*wF);stallRim.intensity=(.5+.6*wF)*(wF>0?fl9:1)+VITRINE_CAM.rim*(GAR.vit||0);stallRim.distance=26;stallKey.intensity+=VITRINE_CAM.cle*(GAR.vit||0); // (vitrine v2) la clé et le contre-jour montent d'un cran : la caisse se DÉTACHE
+   stallRim.color.setRGB(.44+.56*wF,.82-.42*wF,1-.86*wF);garRessort(GAR,'vitL','vitLv',GAR.vit||0,4.8,dt);stallRim.intensity=(.5+.6*wF)*(wF>0?fl9:1)+VITRINE_CAM.rim*(GAR.vitL||0);stallRim.distance=26;stallKey.intensity+=VITRINE_CAM.cle*(GAR.vitL||0); /* (LA MISE EN PLACE) les lampes gardent leur FONDU quand le plan se pose d'un coup (`vitL`) */ // (vitrine v2) la clé et le contre-jour montent d'un cran : la caisse se DÉTACHE
    stallRim.position.set(Math.sin(cA9+Math.PI+.35)*6,ay+2.3,Math.cos(cA9+Math.PI+.35)*6);}
   // LE TUBE AU MAUVAIS STARTER : un néon sur six grésille. C'est ce seul détail qui fait passer le
   // décor de « maquette bien rangée » à « garage » — un atelier neuf, ça n'existe pas.
@@ -37569,7 +37569,20 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
      descend vers la hauteur des phares, se rapproche, l'objectif se resserre (un peu de téléobjectif : la caisse se tasse moins, elle a du
      poids), la visée remonte (le regard presque à niveau) et le plateau tourne plus lentement — `GAR.vit` (0 → 1) fond le tout, à l'aller
      comme au retour (SHOP déplie la console : on revient au cadrage de la boutique en douceur). Réglages à chaud : `VITRINE_CAM`. */
-  garRessort(GAR,'vit','vitV',garVueLeo()?1:0,4.8,dt); /* (2026-10-06) LA VUE DE LÉO : la vitrine OU la console de Sacha (voir garVueLeo) */if(GAR.vit<0||GAR.vit>1){GAR.vit=Math.min(1,Math.max(0,GAR.vit));GAR.vitV=0;} // (2026-10-06) le fondu vitrine ⇄ boutique en RESSORT : il partait à pleine vitesse (1er ordre ×2,4/s) — la caméra, l'objectif et le recul démarraient d'un coup
+  /* LA MISE EN PLACE (2026-10-06, Léo : « corrige le bug de mise en point »). MESURÉ : la porte GARAGE de l'accueil passe l'atelier du menu
+     à la console SOUS le volet, mais le plan se réglait ensuite à vue — 3 s de ressorts après le lever du volet (la caméra tournait de 38°,
+     reculait de 8,8 à 11 m, l'image glissait de 88 px). Désormais, quand la vue de Léo s'allume pendant que l'écran est CACHÉ (volet, ou
+     atelier qui vient de s'ouvrir), le plan est RÉSOLU sur-le-champ : six passes de garageRender(0) (rien n'avance, rien n'est dessiné) où
+     fondu, recul, décalage de caméra et décentrement d'image prennent leur valeur au lieu de la rejoindre (`GAR.vuePose`), puis une image
+     de plus pour affiner. Le volet se lève sur un plan déjà posé. Une entrée À VUE (MISSIONS → ATELIER, sans volet) garde son vol. */
+  {if(!garageRender._cale&&GAR.vuePose>0)GAR.vuePose--;
+   const vT=garVueLeo()?1:0;
+   const vu9=!(ecranWipe._on||GAR.vueNeuve)&&(GMIS.mk||0)>.02; // À VUE : le retour des MISSIONS (le vol de la vue d'ensemble est en cours)
+   if(vT&&!GAR.vueT&&(ecranWipe._on||GAR.vueNeuve||vu9)&&!garageRender._cale){GAR.vueT=1;GAR.vuePose=2;garLibre._r=null;GAR.ret=null;GAR.vAv=0;GAR.vDon=true;
+     const mk9=GMIS.mk;if(vu9)GMIS.mk=0; // le plan de l'ATELIER se résout sans la vue d'ensemble (elle fausse l'écart mesuré) ; le vol de retour se pose ensuite DESSUS, d'un seul mouvement
+     garageRender._cale=true;try{for(let i=0;i<6;i++)garageRender(0);}finally{garageRender._cale=false;if(vu9){GMIS.mk=mk9;GAR.vuePose=0;GAR.vDw=0;GAR.vDv=0;}}}
+   if(!garageRender._cale){GAR.vueT=vT;GAR.vueNeuve=false;}}
+  if(GAR.vuePose){GAR.vit=1;GAR.vitV=0;}else garRessort(GAR,'vit','vitV',garVueLeo()?1:0,4.8,dt); /* (2026-10-06) LA VUE DE LÉO : la vitrine OU la console de Sacha (voir garVueLeo) */if(GAR.vit<0||GAR.vit>1){GAR.vit=Math.min(1,Math.max(0,GAR.vit));GAR.vitV=0;} // (2026-10-06) le fondu vitrine ⇄ boutique en RESSORT : il partait à pleine vitesse (1er ordre ×2,4/s) — la caméra, l'objectif et le recul démarraient d'un coup
   const VK=GAR.vit,VC=VITRINE_CAM;
   if(!GAR.fige&&(!garageDrag||menu9||VK>.5))garageAng+=dt*(.24+(VC.rot-.24)*VK)*(1-BURN.k)*(garageDrag&&GAR.doigt==='caisse'?0:1);if(GAR.go)GAR.platW=0;if(!garageDrag&&GAR.platW){garageAng+=GAR.platW*dt;GAR.platW*=Math.exp(-dt*1.2);if(Math.abs(GAR.platW)<.03)GAR.platW=0;} // (même soir) le PLATEAU tenu ne tourne plus tout seul ; lancé, il file et ralentit // (le plateau tourne toujours : en vitrine le doigt tourne la VUE) // le tour de piste automatique, lent : on a le temps de regarder (au MENU le doigt bouge la VUE, pas le plateau : il continue de tourner)
   /* LE GARAGE QUI VIT (2026-09-30, Léo : « on est censé pouvoir tourner autour — soit le garage en rotation sans qu'on touche, soit
@@ -37681,7 +37694,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
   let dG0=garageDist*(1+POR*.34)*(1+vG*.12)*(gEl&&gEl.classList.contains('menu')?.8+.02*POR:1); // (debout ×.82 et plus de recul pour la bande de vignettes : la caisse de PROFIL — le plateau la tourne — tient encore dans la largeur) // (2026-09-30) au MENU il n'y a plus d'onglets en bas : la caméra s'approche, la caisse est le sujet
   // (2026-09-26, audit rendu) le recul pouvait atteindre ~12 m alors que rien de haut n'est garanti libre au-delà de 8,3 m : la caméra
   // traversait le décor. On plafonne le rayon HORIZONTAL à 8 m et on rend le cadrage par l'objectif (même taille de caisse à l'écran).
-  const cA=garCamA(),cPit=garagePitch+(GAR.swP||0)+VC.p*VK;
+  const cA=garCamA(),cPit=garagePitch+(GAR.swP||0)+VC.p*VK;GAR.vDcam=GAR.vD||0; // (LA MISE EN PLACE) le décalage avec lequel la caméra est posée À CETTE IMAGE (l'écart mesuré par garCadre est le sien)
   /* (vitrine v2) LE RECUL SE CALCULE SUR LA CAISSE : le plateau la montre de dos (2 m de large) puis de PROFIL (jusqu'à 6 m) — un recul fixe
      la coupait aux bords debout (mesuré : 30 px de chaque côté à 3/4). On fait comme un plateau photo : le rayon de son empreinte au sol
      (`garGabarit`, l'empreinte la plus large qu'elle montre en tournant) doit tenir dans `fw` de la largeur LIBRE (garLibre : tiroir ouvert
@@ -37695,7 +37708,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
       q=carGroup.rotation.y-(GAR_CAM_A+(GAR.vD||0)),sq=Math.abs(Math.sin(q)),cq=Math.abs(Math.cos(q)),
       w=G.a*sq+G.b*cq,pr=G.a*cq+G.b*sq,wE=G.R+(w-G.R)*VC.adapt,pE=G.R+(pr-G.R)*VC.adapt,
       dW=wE/(fw*zw*th)+pE,dH=(G.H*.5+pE*Math.sin(Math.max(.05,cPit))+.25)/((VC.fh+(VC.fhP-VC.fh)*POR)*zh*tv)+pE, /* (2026-10-06, Léo : « le point de vue couché d'avant, un peu plus éloigné, c'est mieux ») couché : fw ,9 · fh ,8, le recul d'avant la v112 ; debout inchangé (fwP · fhP ,88) */dV=Math.max(dW,dH,3.2);
-    if(GAR.dVs)garRessort(GAR,'dVs','dVv',dV,1.8,dt);else{GAR.dVs=dV;GAR.dVv=0;}dG0=dG0*(1-VK)+GAR.dVs*VK;} /* (2026-10-06) le recul en RESSORT (même retard, ~1,1 s) : l'inventaire qui s'ouvre changeait la place libre d'un coup, le travelling partait à pleine vitesse */ /* (même soir) le zoom ne dépend plus de l'angle du DOIGT (il zoomait pendant le glissé) : seulement de la caisse qui tourne, vue de la place de repos ; lissé ~1,1 s */
+    if(GAR.dVs&&!GAR.vuePose)garRessort(GAR,'dVs','dVv',dV,1.8,dt);else{GAR.dVs=dV;GAR.dVv=0;}dG0=dG0*(1-VK)+GAR.dVs*VK;} /* (2026-10-06) le recul en RESSORT (même retard, ~1,1 s) : l'inventaire qui s'ouvre changeait la place libre d'un coup, le travelling partait à pleine vitesse */ /* (même soir) le zoom ne dépend plus de l'angle du DOIGT (il zoomait pendant le glissé) : seulement de la caisse qui tourne, vue de la place de repos ; lissé ~1,1 s */
   const capH=8+2.5*Math.pow(Math.max(0,-Math.cos(cA)),2); // (2026-09-30, le tour complet) 10,5 m seulement dans l'axe libre (côté établi) ; ailleurs le décor est rangé pour 8 m (la règle des 8,3 m)
   const dG=Math.min(dG0,capH/Math.max(.2,Math.cos(garagePitch))); // (2026-09-29) 8 → 10,5 m : la caméra est FIXE, dans l'axe libre de l'atelier (côté établi) — elle recule au lieu d'ouvrir l'objectif jusqu'à ~87° (« l'effet loupe »)
   if(dG<dG0)fovG=Math.min(88,2*Math.atan(Math.tan(fovG*Math.PI/360)*dG0/dG)*180/Math.PI);
@@ -37717,10 +37730,10 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
      en bas à gauche, le fond au milieu) ne bouge plus ; avant, la visée basculait de l'entrée vers la caisse en cours de geste : un coup de fouet. */
   /* (même jour, « un peu générique — un juste milieu ») la visée n'est plus tout à fait rigide : elle TRAÎNE derrière le geste (dRegard /s,
      ~0,3 s) — la caisse glisse un peu dans le cadre pendant le tour et y revient quand la vue se pose : le flottement de la v109, sans son fouet. */
-  {const aV0=cA-(GAR.vD||0);if(GAR.aVl==null||VK<.5||GAR.fige)GAR.aVl=aV0;else GAR.aVl+=(aV0-GAR.aVl)*(1-Math.exp(-dt*VITRINE_CAM.dRegard));
+  {const aV0=cA-(GAR.vD||0);if(GAR.aVl==null||VK<.5||GAR.fige||GAR.vuePose)GAR.aVl=aV0;else GAR.aVl+=(aV0-GAR.aVl)*(1-Math.exp(-dt*VITRINE_CAM.dRegard));
    const aV=GAR.aVl,wD=VK*(1-(GAR.preE||0)),Lv=1.5+(GAR.D/2-1.5)*wD;GAR.wD=wD;
    const ty0=ay+1.0-POR*.65-vG*1.35+(VC.vise+VC.viseP*POR)*VK;
-   camera.lookAt(-Math.sin(aV)*Lv,ty0+(ay+VC.porteY-ty0)*wD,-Math.cos(aV)*Lv);
+   (GAR.lk||(GAR.lk=new THREE.Vector3())).set(-Math.sin(aV)*Lv,ty0+(ay+VC.porteY-ty0)*wD,-Math.cos(aV)*Lv);camera.lookAt(GAR.lk); // (LA MISE EN PLACE) le point visé est gardé : le vol des MISSIONS part de LUI
    const e9=Math.abs(GAR.cErr||0);if(e9>.03)GAR.vDon=true;else if(e9<.006)GAR.vDon=false; /* (même soir, Léo : « arrête de faire tourner automatiquement le garage ») le glissé ne court plus après les petits écarts (le zoom qui respire avec le plateau le faisait tourner sans fin, lentement) : il recadre au-delà de 3 % de l'écran, jusqu'à 0,6 %, puis se tait */
    /* (2026-10-06, Léo : « parfois pour se replacer l'écran a des petits déclics qui se voient corrigés ») LE RECADRAGE EN DOUCEUR. Mesuré au banc
       (lisse/cam.mjs) : vD était un asservissement du 1er ordre ALLUMÉ d'un coup — il partait à pleine vitesse (debout, la caisse passait de 0,7 à
@@ -37728,12 +37741,13 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
       (`GAR.vDv`, sa vitesse, toujours continue ; ~1 s pour se poser) ; ce qui l'allume ou l'éteint (l'hystérésis, la vue qui tourne encore, la
       visée qui traîne, le doigt) ne fait que monter ou descendre son POIDS `GAR.vDw` — jamais sa vitesse. Sa cible : l'écart mesuré ÷ ce qu'un
       radian de vD déplace la caisse à l'écran (`S9`, la géométrie de la vue : la visée à Lv derrière la caisse, la caméra à cp devant). */
-   if(GAR.go||GAR.fige||VK<.02){GAR.vDv=0;GAR.vDw=0;if(VK<.02&&!GAR.go)GAR.vD=(GAR.vD||0)*(1-Math.min(1,dt*4));}
+   if(GAR.go||GAR.fige||VK<.02){GAR.vDv=0;GAR.vDw=0;if(VK<.02&&!GAR.go&&!gEl.classList.contains('missions'))GAR.vD=(GAR.vD||0)*(1-Math.min(1,dt*4));} // (2026-10-06, LA MISE EN PLACE) aux MISSIONS le décalage est GARDÉ : la vue d'ensemble ne le lit pas, et le retour à l'atelier se pose sur le bon plan (il se réglait 2-3 s après, 36° à vue)
    else{const ss=(a,b,x)=>{const t=Math.min(1,Math.max(0,(x-a)/(b-a)));return t*t*(3-2*t);};
-     const cib=(GAR.vDon&&!garageDrag&&GAR.cErr!=null?1:0)*ss(.5,1,wD)*(1-ss(.03,.1,Math.abs(GAR.vAv||0)))*(1-ss(.02,.06,Math.abs(aV0-aV)));
+     const cib=(GAR.vDon&&!garageDrag&&GAR.cErr!=null&&!((GMIS.e||0)>.005)?1:0)*ss(.5,1,wD)*(1-ss(.03,.1,Math.abs(GAR.vAv||0)))*(1-ss(.02,.06,Math.abs(aV0-aV))); // (LA MISE EN PLACE) pas pendant le vol des MISSIONS : la caméra y est mêlée à la vue d'ensemble, l'écart mesuré ne veut rien dire (il envoyait vD en butée)
      GAR.vDw=(GAR.vDw||0)+(cib-(GAR.vDw||0))*Math.min(1,dt*5);
      const S9=Math.min(2,Math.max(.15,(Lv/(Math.max(.5,cp)+Lv))/(2*Math.tan(camera.fov*Math.PI/360)*VP.w/Math.max(1,VP.h)))),om=VITRINE_CAM.dRecadre,
        d9=Math.min(dt,.1),n9=Math.max(1,Math.ceil(d9/.008)),h9=d9/n9,x0=GAR.vD||0,c9=x0+(GAR.cErr||0)/S9;let x9=x0,v9=GAR.vDv||0;
+     if(GAR.vuePose){x9=(GAR.cErrVD!=null?GAR.cErrVD:x0)+(GAR.cErr||0)/S9;v9=0;GAR.vDw=1;}else /* (pas c9 : l'écart a été mesuré avec la caméra de l'image d'avant — repartir de vD le comptait deux fois, la pose oscillait) */ // (LA MISE EN PLACE) l'écran est caché : la caméra prend sa place, elle ne la rejoint pas
      for(let i=0;i<n9;i++){v9+=(GAR.vDw*om*om*(c9-x9)-2*om*v9)*h9;x9+=v9*h9;} // la caisse à droite de sa place → la caméra glisse (la caisse part à gauche)
      GAR.vD=THREE.MathUtils.clamp(x9,-.9,.9);GAR.vDv=x9===GAR.vD?v9:0;}}
   if(GAR.roll)camera.rotateZ(GAR.roll);
@@ -37741,7 +37755,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
   { // LES MISSIONS : la caméra s'élève sous la porte relevée et regarde tout l'atelier (fondu en S ; le départ la ramène, voir GAR.go.pre)
     if(!GAR.go)GMIS.mk+=(((gEl.classList.contains('missions'))?1:0)-GMIS.mk)*Math.min(1,dt*2.4);
     const u9=Math.min(1,Math.max(0,GMIS.mk)),e=u9*u9*u9*(u9*(u9*6-15)+10);GMIS.e=e;
-    if(e>.0005){const tx=-Math.sin(cA)*1.5,ty=ay+1.0-POR*.65-vG*1.35,tz=-Math.cos(cA)*1.5,cp9=camera.position;
+    if(e>.0005){const L9=GAR.lk,tx=L9?L9.x:-Math.sin(cA)*1.5,ty=L9?L9.y:ay+1.0-POR*.65-vG*1.35,tz=L9?L9.z:-Math.cos(cA)*1.5,cp9=camera.position; /* (2026-10-06, LA MISE EN PLACE) le vol part du VRAI regard de l'atelier : il visait la caisse (le regard d'avant la vitrine) — au retour, la visée sautait de la caisse à la porte quand le vol s'achevait (le « déclic ») */
       cp9.set(cp9.x+(0-cp9.x)*e,cp9.y+(ay+4.4-cp9.y)*e,cp9.z+(11-cp9.z)*e); // ⚠ y 4,4 : les panneaux de la porte relevée sont empilés à 4,92-5,05 m
       camera.up.set(0,1,0);camera.lookAt(tx*(1-e),ty+(ay+.6-ty)*e,tz+(-3.6-tz)*e);if(GAR.roll)camera.rotateZ(GAR.roll*(1-e));
       const fM=camera.fov+((POR>.5?66:58)*FOV_K-camera.fov)*e;if(Math.abs(camera.fov-fM)>.01){camera.fov=fM;camera.updateProjectionMatrix();}}
@@ -37789,7 +37803,7 @@ function garLibre(){
       else r.y1=bb.top;}                                       // sinon : les commandes en bas
     if(tb&&tb.height>0&&tb.bottom<r.y1-120)r.y0=tb.bottom;r.shop=true;    // la fiche du haut (si elle laisse de la place)
     r.vit=gEl.classList.contains('vitrine');r.leo=garVueLeo(); // (2026-10-06) r.leo : la composition de la vitrine (la caisse décalée, l'entrée au milieu) — aussi dans la console de Sacha
-    if(r.leo&&!r.vit&&W>H*1.2&&document.documentElement.classList.contains('hubOn')){const hb=$('gHub'),hr=hb&&hb.getBoundingClientRect();if(hr&&hr.height>0&&hr.left<W*.3)r.y1=Math.min(r.y1,hr.top-8);} // couché, la barre du HUB tient le bas à gauche : la caisse se pose au-dessus
+    if(r.leo&&!r.vit&&W>H*1.2&&document.documentElement.classList.contains('hubOn')){const hb=$('gHub'),hr=hb&&hb.getBoundingClientRect();if(hr&&hr.height>0&&hr.left<W*.3)r.y1=Math.min(r.y1,hb.offsetTop-8);} // couché, la barre du HUB tient le bas à gauche : la caisse se pose au-dessus — sa place FINALE (offsetTop ignore le glissé d'entrée `hubMonte`, qui faisait bouger le cadrage)
     if(r.vit&&W>H*1.2){const ga=$('gAct'),gr=ga&&ga.getBoundingClientRect();if(gr&&gr.width>0&&gr.left>W*.3){r.x1=gr.left-12;r.y1=H-12;}} // (2026-10-05) couché : la pile JOUER · niveau · MISSIONS à droite, la caisse a toute la gauche
     if(INV&&INV.on){const iv=$('gInv'),ir=iv&&iv.getBoundingClientRect();     // (2026-10-04) L'INVENTAIRE ouvert : la caisse se pose au-dessus du tiroir (debout), à sa gauche (couché)
       if(ir&&ir.width>0){if(W>H*1.2&&ir.left>W*.3){r.x1=Math.min(r.x1,ir.left);r.y1=H-12;}else r.y1=Math.min(r.y1,ir.top);}}}
@@ -37799,9 +37813,9 @@ function garLibre(){
 function garCadre(k,kx){
   const r=garLibre();camera.clearViewOffset();camera.updateMatrixWorld();
   const v=GAR._pc||(GAR._pc=new THREE.Vector3());v.set(0,GARAGE_Y+GAR.POD+.55,0).project(camera); // le centre du plateau, à mi-hauteur de caisse
-  const sx=(v.x*.5+.5)*VP.w,sy=(.5-v.y*.5)*VP.h,cl=THREE.MathUtils.clamp;GAR.cErr=(sx-r.cx)/Math.max(1,VP.w); // (vitrine) l'écart de la caisse à sa place, lu par le décalage de caméra (GAR.vD)
+  const sx=(v.x*.5+.5)*VP.w,sy=(.5-v.y*.5)*VP.h,cl=THREE.MathUtils.clamp;GAR.cErr=(sx-r.cx)/Math.max(1,VP.w);GAR.cErrVD=GAR.vDcam; // (vitrine) l'écart de la caisse à sa place, lu par le décalage de caméra (GAR.vD)
   const dx=cl((sx-r.cx)*k*(kx==null?1:kx),-VP.w/3,VP.w/3),dy=cl((sy-r.cy)*k,-VP.h/3,VP.h/3);
-  const dt9=Math.min(.1,GAR.dtR||.016);garRessort(GAR,'cdx','cvx',dx,7,dt9);garRessort(GAR,'cdy','cvy',dy,7,dt9); // (2026-10-05) lissé dans le TEMPS, plus image par image · (2026-10-06) en RESSORT : l'inventaire qui s'ouvre déplaçait la place de la caisse de ~180 px, l'image partait de 20 px en UNE image (mesuré) — elle glisse maintenant en ~0,5 s
+  const dt9=Math.min(.1,GAR.dtR||.016);if(GAR.vuePose){GAR.cdx=dx;GAR.cdy=dy;GAR.cvx=GAR.cvy=0;}else{garRessort(GAR,'cdx','cvx',dx,7,dt9);garRessort(GAR,'cdy','cvy',dy,7,dt9);} /* (LA MISE EN PLACE) posé d'un coup quand l'écran est caché */ // (2026-10-05) lissé dans le TEMPS, plus image par image · (2026-10-06) en RESSORT : l'inventaire qui s'ouvre déplaçait la place de la caisse de ~180 px, l'image partait de 20 px en UNE image (mesuré) — elle glisse maintenant en ~0,5 s
   if(Math.abs(GAR.cdx)<.5&&Math.abs(GAR.cdy)<.5)return;                // centré : l'objectif reste droit
   camera.setViewOffset(VP.w,VP.h,GAR.cdx,GAR.cdy,VP.w,VP.h);            // décaler l'objectif de +dx fait glisser l'image de −dx
 }
@@ -38921,7 +38935,7 @@ $('ivGrille').addEventListener('click',function(e){const t=e.target.closest('.iv
 $('ivFerme').addEventListener('click',function(e){e.stopPropagation();uiPop(e.currentTarget);uiClic('retour');invFerme();});
 window.dbgInv=function(a,b){if(a==='ouvre')return invOuvre();if(a==='D'){INV.D=+b||.45;return INV.D;}if(a==='cam'){Object.assign(VITRINE_CAM,b||{});return VITRINE_CAM;}if(a==='gabarit')return garGabarit();if(a==='rect'){const r=garCaisseRect();return r&&{x0:Math.round(r.x0),x1:Math.round(r.x1),y0:Math.round(r.y0),y1:Math.round(r.y1)};}if(a==='ferme'){invFerme();return true;}
   if(a==='mvt')return [GAR.vA||0,GAR.vAv||0,GAR.vAc||0,GAR.vD||0]; // (2026-10-05) le banc du tour au doigt : angle, vitesse, cible, décalage
-  if(a==='etat')return {vA:GAR.vA||0,vAv:GAR.vAv||0,vD:GAR.vD||0,vDv:GAR.vDv||0,e:GAR.cErr||0,on:GAR.vDon?1:0,ret:GAR.ret?1:0,dV:GAR.dVs||0,cx:GAR.cdx||0,cy:GAR.cdy||0,b:BURN.k||0,inv:INV.on?1:0,vit:GAR.vit||0}; // (2026-10-06) le banc de la caméra image par image (lisse.mjs)
+  if(a==='etat')return {vA:GAR.vA||0,vAv:GAR.vAv||0,vD:GAR.vD||0,vDv:GAR.vDv||0,e:GAR.cErr||0,on:GAR.vDon?1:0,ret:GAR.ret?1:0,dV:GAR.dVs||0,cx:GAR.cdx||0,cy:GAR.cdy||0,b:BURN.k||0,inv:INV.on?1:0,vit:GAR.vit||0,gm:GMIS.e||0,vDw:GAR.vDw||0,pose:GAR.vuePose||0}; // (2026-10-06) le banc de la caméra image par image (lisse.mjs)
   if(a==='cat'&&b){INV.cat=b;if(INV.on)invRender();return INV.cat;}
   const g=$('ivGrille');return {on:INV.on,cat:INV.cat,hold:!!INV.hold,tuiles:g?g.querySelectorAll('.ivT').length:0,eq:g?g.querySelectorAll('.ivT.eq').length:0,
     vitrine:!!(gEl&&gEl.classList.contains('vitrine')),aide:!!(gEl&&gEl.classList.contains('aideInv')),vit:+(GAR.vit||0).toFixed(2),vD:+(GAR.vD||0).toFixed(3),wD:+(GAR.wD||0).toFixed(2),cErr:+(GAR.cErr||0).toFixed(3),porte:GAR.porte?+GAR.porte.e.toFixed(2):null,
