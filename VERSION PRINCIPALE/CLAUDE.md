@@ -4,6 +4,17 @@
 L'image de référence = le sprite de 2011 EXTRUDÉ en cubes (contour noir = mur noir sur l'épaisseur, dessous bleus). Le gabarit `poptart` est
 refait EN VOXELS (10 cm, `NY_U`), chaque pièce dessinée dans SON plan (bloc « LE CHAT POP-TART EN VOXELS », juste avant `SHAPES` : dessins
 `NY_GATEAU` / `NY_SUCRE` / `NY_TETE` / `NY_QUEUE`, maillage `voxGrille()` = faces à l'air seules, fusionnées en rectangles par couleur).
+- **v11, même jour** (Léo : « le biscuit, ce sont les portes et le bas de la voiture ; enlève les petits carrés marron ; un beau beige
+  marron, appétissant, mais glossy métallique comme une voiture ; par-dessus, le glaçage ; la tête un peu énorme, ou trop larges les côtés
+  noirs — on y est presque ») : TOUT LE BAS EN BISCUIT (chanfrein, bas de caisse, bouclier, portes : plus de noir dessous, plus de lignes
+  de portes), biscuit `NY_COUL.b` 0xd0b092 ; le flanc NU (ni prise d'air, poignées, ouïes, trappe, rétroviseurs, lame avant) ; ceinture
+  0,98-1,01 m (portes plus hautes, vitrage moins haut) ; vitres et montants en verre fumé bleu nuit (laquées, elles sortaient noires et
+  renvoyaient l'orange de l'atelier) ; le glaçage cerné d'un LISERÉ DE BISCUIT sur le pavillon et le capot. LA LAQUE `nyLaque` : couleur
+  toujours cuite et sans lumière, et un studio DESSINÉ dans le shader en repère CAMÉRA (horizon renvoyé, flop du métallisé — pleine de face,
+  sombre en fuyant —, deux boîtes à lumière, une rampe au plafond, vernis blanc en rasant) : brillante sous toutes les lumières, sans
+  changer de teinte. Un seul programme (MeshBasic + onBeforeCompile), compilé au garage. TÊTE en cases de 8,6 cm (1,29 m de large dans une
+  caisse de 1,73 : les ailes avant dépassent, les oreilles au ras du pavillon, nez toujours à 1,5 m) et GRISE cernée de noir sur ses arêtes
+  (comme les pattes) au lieu d'un flanc noir de 30 cm.
 - **v10, même jour** (Léo : « trop simple, on dirait un donut sur les bords, et on perd le côté poly ») : retour au POLY de la gamme —
   loft à stations COMPTÉES (28 : les cassures du profil, les coins en trois facettes) et section à ARÊTES VIVES (bas de caisse noir,
   plan de porte, arête de caractère, épaule biseautée, ceinture, vitrage, rail de pavillon noir, marche du glaçage, pavillon), normales
