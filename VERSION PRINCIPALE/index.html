@@ -16067,6 +16067,24 @@ function lpWheel(o){
    la tête hoche d'un voxel sur le tempo — et à la nitro, des pixels multicolores qui scintillent (voir NY_PIX). Unité `NY_U` = 10 cm ; repère
    caisse : i → x (centré), j → y (sol = 0), k → z (k = 10 ↔ z = 0, l'avant en +z). Console : `dbgNyan()`. */
 const NY_U=.1;
+const NY_P=.086; // (v12) LE PIXEL DU DESSIN : la tête et la pop-tart du pavillon ont la même case (une seule image, pas deux)
+/* (v12) LA POP-TART DU PAVILLON, de l'arrière (rangée 0) vers l'avant : `.` biscuit, `f` glaçage, `s` vermicelle — les coins du glaçage
+   en ESCALIER et les vermicelles semés comme sur l'image (une case chacun). */
+const NY_TOIT=['..fffffff..',
+               '.fffsffffs.',
+               'fffffffffff',
+               'fsfffffsfff',
+               'ffffsffffff',
+               'ffffffffsff',
+               'fffsfffffff',
+               'ffffffsffff',
+               'fsfffffffff',
+               'ffffsffffsf',
+               'fffffffffff',
+               'ffsffffsfff',
+               'fffffffffff',
+               '.ffffsffff.',
+               '..fffffff..'];
 const NYAN={on:false,tete:null,pattes:[],queue:[],feux:[],pix:null,pixT:0,arc:new THREE.Vector3(0,.75,-1),ph:0,pas:-1,bat:0,hb:-1,volK:0,v0:0,acc:0,allure:''};
 const NY_GATEAU=(function(){const L=['BBBBBBBBBBBBBBBBBBBBBB','BCCCCCCCCCCCCCCCCCCCCB','BCCCCCCCCCCCCCCCCCCCCB','BCCCPPPPPPPPPPPPPPCCCB']; // (v2) coins CARRÉS : un caisson de voiture, plus une galette — le glaçage garde ses coins arrondis
   for(let i=0;i<9;i++)L.push('BCCPPPPPPPPPPPPPPPPCCB');
@@ -16849,8 +16867,8 @@ const SHAPES={
        avec l'ombrage CUIT par face : la face du DESSIN pleine (dessus du gâteau, visage et nuque, flancs des pattes et de la queue),
        le dessus un cran en dessous, les autres faces deux crans. Seul le NOIR reste laqué et éclairé : c'est lui qui accroche le ciel,
        comme les murs noirs de l'image. Les aplats sont relevés de 10 % : l'ACES les ternissait. */
-    const COUL={C:0xf4d6a8,K:0x9a6038,Q:0xc9955c,X:0xd2d6de,P:0xff9cf3,S:0xff3a94,G:0x8e8f99,W:0xffffff,R:0xff9aa6,u:0x1d4cb4,Y:0xffe25a,L:0x8a1424,T:0xff2a36},TEINTE=[['d',1.1],['h',1.0],['c',.86]],pal={B:{g:'g',c:0x09090e}},cc=new THREE.Color();
-    for(const k in COUL)for(const [f,m] of TEINTE){cc.setHex(COUL[k]);cc.setRGB(Math.min(1,cc.r*m),Math.min(1,cc.g*m),Math.min(1,cc.b*m));pal[k+f]={g:'l',c:cc.getHex()};} // ⚠ r128 : getHex() ne BORNE pas — un canal à 1,1 débordait sur ses voisins (le rose sortait vert)
+    const COUL={C:0xf4d6a8,K:0x9a6038,Q:0xc9955c,X:0xd2d6de,P:0xff9cf3,S:0xff3a94,G:0x8e8f99,W:0xffffff,R:0xff9aa6,u:0x1d4cb4,Y:0xffe25a,L:0x8a1424,T:0xff2a36},TEINTE=[['d',1.1],['h',1.0],['c',.86]],pal={B:{g:'nyl',c:0x14141c}},cc=new THREE.Color();
+    for(const k in COUL)for(const [f,m] of TEINTE){cc.setHex(COUL[k]);cc.setRGB(Math.min(1,cc.r*m),Math.min(1,cc.g*m),Math.min(1,cc.b*m));pal[k+f]={g:'nyl',c:cc.getHex()};} // (v12) la LAQUE de la caisse sur tous les pixels : une seule matière, un seul brillant · ⚠ r128 : getHex() ne BORNE pas — un canal à 1,1 débordait sur ses voisins (le rose sortait vert)
     const pose=(V,par,plan,uu,oo)=>{const kt=lpKit(pal); // `plan` : l'axe de la face qui porte le DESSIN (0 = flancs, 1 = dessus, 2 = avant/arrière)
       V.emit(kt,uu||u,oo||o,(c,ax,sg)=>c==='B'?'B':(ax===1&&sg<0)?'uc':c+(ax===plan?'d':(ax===1?'h':'c'))); // tout ce qui regarde le SOL prend le bleu du ciel
       const gs=kt.done();
@@ -16883,12 +16901,16 @@ const SHAPES={
        if(j<0)return 'b';                                                                         // les bouchons (la poupe ; le nez est dans la tête)
        if(j===0)return 'k';                                                                       // le dessous
        if(j<=6)return 'b';                                                                        // (v11) TOUT LE BAS EN BISCUIT : chanfrein, bas de caisse, bouclier, portes, arête, épaule
-       if(yT(z)<0)return j>=10&&z>0?'f':'b';                                                      // le capot : le glaçage cerné de biscuit (la plage arrière, 10 cm, reste biscuit)
+       if(yT(z)<0)return 'b';                                                                     // capot et plage arrière
        if(z>.9||z<-.6||j<=8)return 'v';                                                           // pare-brise, vitre du hayon, vitres latérales — montants en verre fumé : le pavillon flotte
-       return j===9?'b':'f';});                                                                   // le liseré de BISCUIT autour du pavillon, puis le GLAÇAGE (sa marche, le dessus)
-     // les VERMICELLES : de vrais bâtonnets posés sur le glaçage, en tous sens
-     for(let n=0;n<46;n++){const x=(hh(n,1)-.5)*.86,z=-.5+hh(n,2)*1.3,yt=yT(z);if(yt<0||z>.86)continue;
-       kt.box('s',.055,.014,.014,x,yt+.036-.02*Math.pow(Math.abs(x)/.56,2)+.008,z,0,hh(n,3)*Math.PI,0);}
+       return 'b';});                                                                             // le pavillon en BISCUIT : la pop-tart en pixels se pose dessus (voir NY_TOIT)
+     // (v12, Léo : « mieux mimer, copier ») LA POP-TART DE L'IMAGE SUR LE PAVILLON, dans le pixel de la tête : le glaçage aux coins en
+     // escalier, les vermicelles en cases (un cran plus hauts), le biscuit qui fait le bord — vu de la poursuite, c'est le dessin. Chaque
+     // rangée suit le bombé du pavillon (une course de cases de même couleur = un pavé).
+     {const P=NY_P,NC=NY_TOIT[0].length,NR=NY_TOIT.length,x0=-NC*P/2,z0=.8-NR*P;
+      for(let r=0;r<NR;r++){const L=NY_TOIT[r],zc=z0+(r+.5)*P,yt=yT(zc);
+        for(let c=0;c<NC;){const ch=L[c];if(ch==='.'){c++;continue;}let n=1;while(c+n<NC&&L[c+n]===ch)n++;
+          const y0=yt+.022,y1=yt+(ch==='s'?.07:.058);kt.box(ch,n*P,y1-y0,P,x0+(c+n/2)*P,(y0+y1)/2,zc);c+=n;}}}
      // (v11) le flanc NU — ni prise d'air, ni poignées, ni ouïes, ni trappe, ni rétroviseurs : sur le biscuit, c'étaient des petits
      // carrés sombres ; la laque et les facettes font le dessin. Reste l'aileron requin.
      kt.prism('k',[[-.45,yT(-.45)+.04],[-.3,yT(-.3)+.04],[-.43,yT(-.45)+.12]],.03,0);
@@ -16898,7 +16920,7 @@ const SHAPES={
        kt.cyl('c',.055,.1,8,sd*.5,.6,-1.04,'z');kt.cyl('k',.04,.104,8,sd*.5,.6,-1.04,'z');}
      // l'AILERON sur cols de cygne (biscuit dessous, glaçage dessus, dérives noires) et la lèvre du pavillon
      kt.box('b',1.42,.035,.26,0,1.47,-.76);kt.box('f',1.34,.02,.2,0,1.495,-.76);
-     for(const sd of [-1,1]){kt.box('k',.025,.15,.32,sd*.72,1.45,-.77);kt.box('k',.04,.17,.05,sd*.32,1.39,-.665,-.35,0,0);}
+     for(const sd of [-1,1]){kt.box('b',.025,.15,.32,sd*.72,1.45,-.77);kt.box('k',.04,.17,.05,sd*.32,1.39,-.665,-.35,0,0);} // (v12) dérives en biscuit : l'aileron est une petite pop-tart
      kt.box('k',1,.025,.1,0,1.325,-.625,.2,0,0);
      /* ⚠ LA LUMIÈRE EST CUITE PAR FACETTE dans la peinture (biscuit, glaçage, vermicelles) : laquée et éclairée, la caisse virait ORANGE à
         l'atelier (la lampe chaude, le rideau de feu). Une clé fixe (haut, avant, gauche), le ciel par le dessus, un lustre sur ce qui
@@ -16910,6 +16932,20 @@ const SHAPES={
          for(let i=0;i<n.length;i+=3){const d=Math.max(0,n[i]*.33+n[i+1]*.82+n[i+2]*.47),k=.55+.42*d+.08*n[i+1]+.1*Math.pow(Math.max(0,n[i+1]),6);c[i]*=k;c[i+1]*=k;c[i+2]*=k;}
          m9='nyl';}
        const m=new THREE.Mesh(gs[g],mat(m9));m.userData.lp=1;carGroup.add(m);}
+     // (v12, Léo : « merge mieux les deux, plus homogène, moins Frankenstein ») LE TRAIT NOIR DE L'IMAGE autour de la caisse : tout,
+     // dans le dessin, est cerné de noir — la tête, les pattes et la queue l'étaient (leurs cases du bord), la caisse non : deux mondes.
+     // Une coque RETOURNÉE (faces arrière seules) gonflée le long des normales MOYENNÉES par sommet : on ne la voit qu'au bord de la
+     // silhouette, un trait de 4,5 cm, comme le contour d'un sprite. Un dessin, une matière nue ; l'explosion ne l'arrache pas.
+     {const ko=lpKit({o:{g:'m',c:0}});ko.loft(zs,S,()=>'o');ko.box('o',1.42,.035,.26,0,1.47,-.76);
+      const g=ko.done().m,p=g.attributes.position.array,N=new Map(),cle=i=>Math.round(p[i]*1e4)+','+Math.round(p[i+1]*1e4)+','+Math.round(p[i+2]*1e4);
+      for(let i=0;i<p.length;i+=9){const ux=p[i+3]-p[i],uy=p[i+4]-p[i+1],uz=p[i+5]-p[i+2],vx=p[i+6]-p[i],vy=p[i+7]-p[i+1],vz=p[i+8]-p[i+2];
+        const nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx;
+        for(let v=0;v<9;v+=3){const k=cle(i+v),a=N.get(k);if(a){a[0]+=nx;a[1]+=ny;a[2]+=nz;}else N.set(k,[nx,ny,nz]);}}
+      const e=.045,q=new Float32Array(p.length);
+      for(let i=0;i<p.length;i+=3){const a=N.get(cle(i)),l=Math.hypot(a[0],a[1],a[2])||1;q[i]=p[i]+a[0]/l*e;q[i+1]=p[i+1]+a[1]/l*e;q[i+2]=p[i+2]+a[2]/l*e;}
+      g.dispose();const hg=new THREE.BufferGeometry();hg.setAttribute('position',new THREE.BufferAttribute(q,3));
+      const hm=new THREE.Mesh(hg,mats.trait||(mats.trait=new THREE.MeshBasicMaterial({color:0x07060c,side:THREE.BackSide})));
+      hm.userData.lp=1;hm.userData.contour=1;hm.userData.noShadow=true;carGroup.add(hm);}
      // LES FEUX ARRIÈRE, en DEUX exemplaires (veilleuse, stop — le stop s'allume au freinage) : le bandeau sous le hayon, coupé au milieu
      // pour la queue, ses blocs d'angle qui s'enroulent sur la poupe, et le troisième feu stop sous la lèvre du pavillon
      for(const vif of [0,1]){const kf=lpKit({r:{g:'l',c:vif?0xff2a36:0x8a1424}});
@@ -16923,7 +16959,7 @@ const SHAPES={
     //    côtés noirs ») : cases de 8,6 cm au lieu de 10 — 1,29 m de large dans une caisse de 1,73 (les ailes avant dépassent de chaque
     //    côté), les oreilles au ras du pavillon, le nez toujours à 1,5 m — et un bloc GRIS cerné de noir sur ses arêtes, comme les
     //    pattes : de profil, un trait noir devant, un derrière, plus un flanc noir de 30 cm.
-    {const V=voxGrille(),vide=(r,c)=>r<0||r>10||c<0||c>14||NY_TETE[r][c]==='.',uT=.086;
+    {const V=voxGrille(),vide=(r,c)=>r<0||r>10||c<0||c>14||NY_TETE[r][c]==='.',uT=NY_P;
      for(let r=0;r<11;r++)for(let c=0;c<15;c++){const ch=NY_TETE[r][c];if(ch==='.')continue;
        const bord=vide(r-1,c)||vide(r+1,c)||vide(r,c-1)||vide(r,c+1);
        for(let k=22;k<=24;k++)V.set(c-7,14-r,k,k===24?ch:(bord&&k===22?'B':'G'));} // (v7) trois couches : à cinq, la tête était trop épaisse
@@ -16938,7 +16974,7 @@ const SHAPES={
       NYAN.pattes.push(pose(V,bloc(),0));}
     // 4. LA QUEUE, de profil : DEUX dessins (tombante, relevée) qui alternent — le battement du GIF, pas une rotation
     for(const [jh,L] of NY_QUEUE){const V=voxGrille();
-      for(let a=0;a<L.length;a++)for(let b=0;b<5;b++){const c=L[a][b];if(c!=='.')for(let i=-1;i<=1;i++)V.set(i,jh-a,b-5,c);} // (v4) sans sa colonne k 0 : elle s'accroche à la poupe sans la traverser
+      for(let a=0;a<L.length;a++)for(let b=0;b<5;b++){const c=L[a][b];if(c!=='.')for(let i=-1;i<=1;i++)V.set(i,jh-a,b-5,i===0&&c==='B'?'G':c);} // (v4) sans sa colonne k 0 : elle s'accroche à la poupe sans la traverser · (v12) la tranche du MILIEU grise : de dos, un trait noir de chaque côté, plus un pavé noir
       NYAN.queue.push(pose(V,bloc(),0));}
     NYAN.queue[1].visible=false;NYAN.arc.set(0,.75,-1.0);
     // LA FICHE : roulettes pixel sous les pattes (voie ±0,55 m) ; pas de halos (phares et feux sont des voxels, l'arc-en-ciel est sa
@@ -25729,6 +25765,7 @@ function explode(cause){
     if(np9>=9)break;
     if(!(ch.isMesh||ch.isGroup))continue;
     if(ch.geometry&&ch.geometry.type==='PlaneGeometry')continue; // pas l'underglow
+    if(ch.userData&&ch.userData.contour)continue;                 // ni le trait noir du chat pop-tart (une coque vide)
     if(Math.random()<.35)continue;
     np9++;
     const d=ch.clone();

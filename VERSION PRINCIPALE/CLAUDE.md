@@ -4,6 +4,14 @@
 L'image de référence = le sprite de 2011 EXTRUDÉ en cubes (contour noir = mur noir sur l'épaisseur, dessous bleus). Le gabarit `poptart` est
 refait EN VOXELS (10 cm, `NY_U`), chaque pièce dessinée dans SON plan (bloc « LE CHAT POP-TART EN VOXELS », juste avant `SHAPES` : dessins
 `NY_GATEAU` / `NY_SUCRE` / `NY_TETE` / `NY_QUEUE`, maillage `voxGrille()` = faces à l'air seules, fusionnées en rectangles par couleur).
+- **v12, même jour** (Léo : « pas mal — mieux mimer, genre copier, et merger mieux les deux : plus homogène, moins Frankenstein ») :
+  UNE SEULE IMAGE au lieu d'un sprite collé sur une voiture. (1) Le PIXEL COMMUN `NY_P` (8,6 cm) : la tête ET le pavillon. (2) LE PAVILLON
+  EST LA POP-TART DE L'IMAGE (`NY_TOIT`, 11 × 15 cases) : biscuit au bord, glaçage aux coins en ESCALIER, vermicelles en cases un cran plus
+  hautes, chaque rangée suit le bombé (les bâtonnets au hasard sont retirés ; capot en biscuit). (3) LE TRAIT NOIR de l'image autour de
+  la caisse : coque RETOURNÉE (BackSide) gonflée de 4,5 cm sur les normales moyennées par sommet (loft + aileron), `userData.contour` —
+  l'explosion ne l'arrache pas. (4) LA LAQUE `nyLaque` sur tous les pixels du chat (tête, pattes, queue, noirs compris) : un seul
+  brillant. (5) Plus de pavés noirs rapportés : la tranche du milieu de la queue est grise (de dos, gris cerné de noir), les dérives
+  de l'aileron en biscuit.
 - **v11, même jour** (Léo : « le biscuit, ce sont les portes et le bas de la voiture ; enlève les petits carrés marron ; un beau beige
   marron, appétissant, mais glossy métallique comme une voiture ; par-dessus, le glaçage ; la tête un peu énorme, ou trop larges les côtés
   noirs — on y est presque ») : TOUT LE BAS EN BISCUIT (chanfrein, bas de caisse, bouclier, portes : plus de noir dessous, plus de lignes
