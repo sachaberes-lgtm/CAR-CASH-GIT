@@ -291,7 +291,11 @@
     pied de danger), ×1,6 ; posé au SOL de l'atelier à `ATL_POS` (−3,54 ; 3,54 : 5 m du centre, à 135°), au-delà de ce que la caisse balaie en
     dérapage (≤ 4,3 m) — il ne rentre plus jamais (seulement caché hors vitrine). Place choisie en mesurant 24 positions sur le cercle de 5 m
     (`dbgAtelier('pos',x,z)` rend sa place à l'écran) : debout (353, 383), couché (490, 193) — dans l'image, à droite de la caisse, loin des
-    jauges et de la pile. Le point de vue couché de la branche (un peu plus loin que main) est gardé (Léo : « c'est mieux »). sw.js → v125.
+    jauges et de la pile. sw.js → v125.
+  · (même jour, Léo : « le point de vue couché d'avant, un peu plus éloigné, c'est mieux — celui qui n'apparaît plus ; applique-le sur main »,
+    confirmé : c'est la CAMÉRA COUCHÉE) : COUCHÉ, le recul d'avant la v112 revient — la caisse tient dans `fw` ,9 de la largeur libre et `fh` ,8 de
+    la hauteur (la v112 l'avait rapprochée de ~10 % : ,98 / ,88) ; DEBOUT inchangé (`fwP` · `fhP` ,88 — `fh` suit désormais l'orientation
+    comme `fw`). sw.js → v126.
   Banc `vit6.mjs <nom> W H [zones]` (captures vitrine + tiroir, JOUER → course). sw.js → v116 (passé en v120 à la fusion : main était déjà en v119).
 - **L'ATELIER AÉRÉ + LE RENDU (même jour, Léo : « enlève quelques accessoires du garage, ça fait un peu rempli pour rien — les pieds tu
   dois laisser, ça fait partie du jeu ; les billets, mes trucs de trophée, tout ça laisse ; aère un peu l'espace · travaille plus le
