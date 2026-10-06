@@ -274,6 +274,16 @@
   · (même soir, Léo : « jauge en haut, HOME · settings à gauche en haut ») : HOME (dans le coin) puis ⚙ EN HAUT À GAUCHE (`#gOutils` ancré à
     gauche) ; les jauges en haut à droite (debout empilées à droite de HOME · ⚙, couché dans le coin haut-droit) ; couché, l'astuce du burn-out
     descend sous HOME · ⚙. sw.js → v122.
+  · (2026-10-06, Léo : « l'inventaire au bouton rouge, mais placé comme l'ancien truc mission vert (à enlever) ; corrige le rectangle transparent
+    buggé en haut ; HOME et settings un peu plus petits et transparents ; laisse la map branchée au PLAY, MISSIONS au-dessus ») :
+    · ⚠ LE RECTANGLE : COUCHÉ, la règle de la console (`html #garage::after` en colonne à droite : top 0, bottom 0, largeur 460) laissait
+      ses top/left/largeur au voile du BAS de la vitrine — un dégradé sombre de 439 × 101 px EN HAUT, sur la porte en feu (vrai sur main aussi
+      depuis la vitrine v2). Trouvé en masquant le canevas 3D (les pseudo-éléments ne sortent pas d'`elementsFromPoint`) ; le voile est remis
+      en bas, toute largeur.
+    · LE SOCLE VERT DES MISSIONS est retiré (`GAR.misSocle` caché ; il reste dans le menu de Léo, `?menu=leo`, où il porte l'étiquette) ;
+      LE BOUTON ROUGE prend sa place (x −2,9 · z 2,5), HORS du plateau, sur un PIED d'acier cerclé de danger, ×1,5 ; il rentre dans le sol
+      pendant un dérapage et au lâcher (`ATL.y0`) ; le doigt vise sa calotte (`atlBoutonEcran`).
+    · HOME · ⚙ : 40 × 36, verre fumé translucide (opacité ,88). sw.js → v123.
   Banc `vit6.mjs <nom> W H [zones]` (captures vitrine + tiroir, JOUER → course). sw.js → v116 (passé en v120 à la fusion : main était déjà en v119).
 - **L'ATELIER AÉRÉ + LE RENDU (même jour, Léo : « enlève quelques accessoires du garage, ça fait un peu rempli pour rien — les pieds tu
   dois laisser, ça fait partie du jeu ; les billets, mes trucs de trophée, tout ça laisse ; aère un peu l'espace · travaille plus le
