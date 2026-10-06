@@ -125,6 +125,17 @@ refait EN VOXELS (10 cm, `NY_U`), chaque pièce dessinée dans SON plan (bloc «
 - Les règles « SANS TOUT CASSER » (partir de `origin/main` à jour, fusionner sans jamais forcer, jeu testé sans erreur avant chaque
   push, retour arrière par Vercel) et la liste de ce que contient la référence : voir `CLAUDE.md` à la RACINE du dépôt.
 
+## LA CONSOLE EN VERRE (2026-10-06, Léo : « essaie le truc où on peut acheter les voitures un peu plus transparent, pour qu'on puisse aussi apprécier le garage »)
+- `<style id="consoleVerre">` (juste avant `<style id="poki">`) : le DESSIN de la console de Sacha ne bouge pas (place, coins coupés, filet,
+  livrée, touches pleines HOME · BOUTIQUE · JOUER) ; seuls ses FONDS deviennent translucides — la plaque (`--verreH` ,38 en haut →
+  `--verreB` ,62 en bas, au lieu de `--laqueP` opaque), la barre des onglets (,5), les puces des familles (,5), les vignettes (,42 → ,58).
+- ⚠ LES VOILES D'ATELIER : sous la console, `#garage::after` était presque NOIR (couché : colonne de droite à 96 % ; debout : bas d'écran
+  à 97 %) et `#garage::before` à 88-90 % en haut — la console translucide ne laissait voir que lui. Allégés dans la console seulement
+  (`#garage:not(.menu):not(.vitrine)`) : haut ,72 → ,34 → 0, bas ,66 → ,4 → 0, couché colonne ,56 → ,36 → 0. Menu et vitrine inchangés.
+- Pas de `backdrop-filter` (coût sur téléphone, proscrit par la charte). Vérifié en vraies captures (panneau du navigateur affiché),
+  couché et debout : les murs, la porte, le sol et le bidon passent à travers ; onglets, prix et vignettes restent lisibles. sw.js → v143.
+  Pour régler : `--verreH/--verreB` (plaque) et les trois dégradés des voiles, dans ce bloc.
+
 ## LA VUE DE LÉO DANS LA CONSOLE DE SACHA + LE DONUT + LE GLISSÉ QUI NE CHANGE PLUS DE CAISSE (2026-10-06, Léo : « sans changer le garage de Sacha, remets le beau point de vue — l'angle travaillé, légèrement éloigné, vers la porte —, le glissé et le burn-out, et fusionne avec la nouvelle surface de Sacha »)
 - **Ce qui ne bouge pas** : TOUT le DOM de Sacha — la console (compteur, nom, ⚙ en pixel, onglets, familles, vignettes, HOME · BOUTIQUE ·
   JOUER), la barre du HUB (ATELIER · MISSIONS · CARRIÈRE), l'accueil (GARAGE · BOUTIQUE · ⚙ · JOUER), le JOUER de l'accueil (la chute du ciel).

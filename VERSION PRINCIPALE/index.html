@@ -6053,6 +6053,26 @@ html.hub #mHome .mHubPorte .mBadge{top:-10px;right:-8px;transform:scale(.86);tra
 @media (prefers-reduced-motion:reduce){html.hubOn #gHub{animation:none;transition:none}.ghT,.ghT::before{transition:none}}
 html[data-reduced-motion="1"] #gHub{animation:none!important;transition:none!important}
 </style>
+<style id="consoleVerre">
+/* LA CONSOLE EN VERRE (2026-10-06, Léo : « le truc où on peut acheter les voitures, un peu plus transparent, pour qu'on puisse aussi
+   apprécier le garage »). Le dessin de la console de Sacha ne bouge pas (place, coins coupés, filet, livrée, touches) : seuls ses FONDS
+   laissent passer l'atelier — la console, la barre des onglets, les puces des familles, les vignettes. Les touches HOME · BOUTIQUE ·
+   JOUER restent pleines (on les touche, elles doivent se lire d'un coup d'œil). Pas de flou d'arrière-plan : `backdrop-filter` coûte
+   trop cher sur téléphone (et la charte le proscrit). Deux réglages : `--verreH` (le haut de la plaque) et `--verreB` (le bas). */
+:root{--verreH:.38;--verreB:.62}
+html body #garage:not(.menu) #gBottom{background:linear-gradient(180deg,rgba(26,21,50,var(--verreH)) 0%,rgba(20,15,40,calc((var(--verreH) + var(--verreB)) / 2)) 52%,rgba(15,12,32,var(--verreB)) 100%)}
+html body #garage:not(.menu) #gTabs{background:linear-gradient(180deg,rgba(11,8,24,.5),rgba(17,13,34,.5))}
+html body #garage:not(.menu) .gR:not(.on){background:rgba(12,9,25,.5)}
+html body #garage:not(.menu) .gR.on{background:color-mix(in srgb,var(--rc) 24%,rgba(12,9,25,.55))}
+html body #garage:not(.menu) .gT{background:radial-gradient(ellipse at 50% 85%,color-mix(in srgb,var(--rc) 32%,transparent),transparent 70%),linear-gradient(180deg,rgba(26,21,50,.42),rgba(15,12,32,.58))}
+/* LES VOILES D'ATELIER sous la console : ils assuraient la lecture sur n'importe quel fond, mais côté console le voile était presque noir
+   (96-97 %) — la console translucide ne laissait voir… que lui. Allégés ici (la console garde sa propre laque) ; menu et vitrine inchangés. */
+html body #garage:not(.menu):not(.vitrine)::before{background:linear-gradient(180deg,rgba(7,5,15,.72),rgba(7,5,15,.34) 55%,rgba(7,5,15,0))}
+html body #garage:not(.menu):not(.vitrine)::after{background:linear-gradient(0deg,rgba(7,5,15,.66),rgba(7,5,15,.4) 52%,rgba(7,5,15,0))}
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html body #garage:not(.menu):not(.vitrine)::after{background:linear-gradient(270deg,rgba(7,5,15,.56),rgba(7,5,15,.36) 70%,rgba(7,5,15,0))}
+}
+</style>
 <style id="poki">
 /* L'ÉDITION POKI (2026-10-04) — tout est sous `html.poki` : sans elle, rien ici ne s'applique. Ce qui n'existe pas chez Poki disparaît
    de l'écran : les MISSIONS (porte de l'accueil, socle et écran de l'atelier, écran #mMis, mission suivie en course), la CARRIÈRE (tuile,
