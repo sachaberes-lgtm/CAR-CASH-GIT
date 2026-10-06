@@ -16091,17 +16091,6 @@ function voxGrille(){
       }
     }};
 }
-/* LES NORMALES LISSÉES (2026-10-06, le chat pop-tart v9) : le kit rend des facettes à normale PLATE ; ici chaque sommet prend la moyenne des
-   normales des facettes qui le partagent ET qui regardent à peu près du même côté (`cosMin`) — la tôle se lit lisse, une vraie arête
-   (le panneau arrière contre les flancs, une vitre contre un montant d'une autre famille) reste vive. */
-function lisseNormales(g,cosMin){
-  const p=g.attributes.position.array,n=g.attributes.normal.array,N=p.length/3,M=new Map(),out=new Float32Array(n.length);
-  for(let i=0;i<N;i++){const k=Math.round(p[i*3]*2e3)+','+Math.round(p[i*3+1]*2e3)+','+Math.round(p[i*3+2]*2e3);let L=M.get(k);if(!L)M.set(k,L=[]);L.push(i);}
-  for(const L of M.values())for(const i of L){let x=0,y=0,z=0;
-    for(const j of L)if(n[i*3]*n[j*3]+n[i*3+1]*n[j*3+1]+n[i*3+2]*n[j*3+2]>=cosMin){x+=n[j*3];y+=n[j*3+1];z+=n[j*3+2];}
-    const l=Math.hypot(x,y,z)||1;out[i*3]=x/l;out[i*3+1]=y/l;out[i*3+2]=z/l;}
-  g.setAttribute('normal',new THREE.BufferAttribute(out,3));
-}
 /* LA ROULETTE PIXEL (le chat pop-tart) : un disque en escalier de 7 × 7 — pneu noir laqué, moyeu gris chat, un point blanc au
    centre. Même contrat que les roues du kit : axe x, la boucle la fait tourner par `rotation.x`. */
 function lpRoulette(o){
@@ -16818,64 +16807,74 @@ const SHAPES={
       const gs=kt.done();
       for(const g in gs){const m=new THREE.Mesh(gs[g],mat(g));m.userData.lp=1;par.add(m);}return par;};
     const bloc=()=>K.add(new THREE.Group()); // ce qui BOUGE vit dans un groupe : la soudure de la caisse n'y touche pas (voir caisseSoude)
-    // 1. LA CAISSE (v9, Léo : « les côtés, bof : on ne ressent pas la smoothness, ça fait jeu pixel — je veux une bête de voiture »). Les
-    //    cubes quittent la carrosserie : elle est LOFTÉE (le loft du kit : ~55 stations × 16 points de section) et LAQUÉE comme les caisses
-    //    de la gamme, normales LISSÉES entre facettes voisines (`lisseNormales` : les arêtes vives restent vives) — la tôle se lit d'un
-    //    trait. Le dessin des versions d'avant est gardé : pare-brise derrière la tête, pavillon au ras de l'arête de la tête, hayon raide
-    //    de GR Yaris, montant C épais, hanches gonflées sans encoche, coins de poupe à grand rayon, aileron sur cols de cygne, bandeau de
-    //    feux et blocs d'angle qui s'enroulent, bouclier noir, deux échappements. La pop-tart aussi : biscuit laqué, GLAÇAGE rose en
-    //    relief sur le pavillon (sa marche se voit de profil) semé de vrais VERMICELLES en bâtonnets. La tête (le sprite), les pattes et
-    //    la queue restent en pixels : c'est le chat.
+    // 1. LA CAISSE (v10, Léo : « trop simple, on dirait un donut sur les bords, et on perd le côté poly »). La v9 était lisse et bouffie : on
+    //    revient au POLY de la gamme — de GRANDES FACETTES franches à normale plate, chacune son ton (la lumière cuite par facette : l'art
+    //    low-poly, et le biscuit reste biscuit sous toutes les lumières) — mais une caisse DESSINÉE : section à arêtes vives (bas de caisse
+    //    noir, plan de porte, ARÊTE DE CARACTÈRE sur tout le flanc, épaule biseautée, ceinture, vitrage, rail de pavillon noir, marche du
+    //    glaçage, pavillon), pavillon FLOTTANT (montants noirs), hanches facettées de GR Yaris, prise d'air sur la hanche, poignées, trappe
+    //    à essence, ouïes d'aile avant, lame avant, aileron requin, troisième feu stop, catadioptres. Profil, poupe et aileron des versions
+    //    d'avant ; glaçage et vermicelles sur le pavillon. La tête, les pattes et la queue restent en pixels.
     {const sm=t=>{t=Math.min(1,Math.max(0,t));return t*t*(3-2*t);},hh=(a,b)=>{const x=Math.sin(a*12.9898+b*78.233)*43758.5453;return x-Math.floor(x);};
      const yB=z=>.94+.04*Math.min(1,Math.max(0,(1-z)/2));                                         // la ceinture : 0,94 m à l'avant, 0,98 à l'arrière
      const yT=z=>z>1.2?-1:z>.9?1.12+.19*sm((1.2-z)/.3):z>-.6?1.31+.015*(1-Math.pow((z-.15)/.75,2)):z>-.9?yB(z)+.04+(1.31-yB(z)-.04)*sm((z+.9)/.3):-1; // pare-brise · pavillon · hayon
-     const sx=z=>z<-.7?.62+.38*Math.sqrt(Math.max(0,1-Math.pow((-.7-z)/.3,2))):z>1.3?.86+.14*Math.sqrt(Math.max(0,1-Math.pow((z-1.3)/.15,2))):1; // les coins en plan
-     const S=z=>{const yb=yB(z),t0=yT(z),yt=t0<0?yb+.006:t0,g=yt-yb,ha=.07*Math.max(0,1-Math.pow((z+.62)/.38,2)),wt=z<-.6?1-.25*sm((-.6-z)/.3):1,s=sx(z);
-       return [[0,.5],[.5,.5],[.7,.515],[.8,.56],[.845+ha,.64],[.855+ha,.72],[.845+ha*.8,.8],[.81,.88],[.77,yb],              // bas de caisse, hanches, épaule
-               [.745*wt,yb+.25*g],[.7*wt,yb+.55*g],[.64*wt,yb+.8*g],[.57*wt,yt-.02],[.53*wt,yt+.012],[.3*wt,yt+.03],[0,yt+.035]] // habitacle bombé, rebord, marche du glaçage, pavillon
+     const sx=z=>z<-.7?.62+.38*Math.sqrt(Math.max(0,1-Math.pow((-.7-z)/.3,2))):z>1.3?.86+.14*Math.sqrt(Math.max(0,1-Math.pow((z-1.3)/.15,2))):1; // les coins en plan (pris en quelques facettes)
+     const ha=z=>.07*Math.max(0,1-Math.pow((z+.62)/.38,2));                                       // les hanches
+     const S=z=>{const yb=yB(z),t0=yT(z),yt=t0<0?yb+.006:t0,g=yt-yb,h=ha(z),wt=z<-.6?1-.25*sm((-.6-z)/.3):1,s=sx(z);
+       return [[0,.5],[.6,.5],[.79,.55],[.835,.6],[.86+h,.71],[.865+h,.79],[.83+h*.4,.89],[.785,yb],           // fond, chanfrein, bas de caisse, plan de porte, ARÊTE, épaule
+               [.75*wt,yb+.45*g],[.665*wt,yt-.045],[.6*wt,yt-.008],[.56*wt,yt+.024],[.3*wt,yt+.036],[0,yt+.04]] // vitrage, rail de pavillon, marche du glaçage, pavillon
          .map(p=>[p[0]*s,p[1]]);};
-     const zs=[];for(let z=-1;z<1.451;z+=.05)zs.push(+z.toFixed(3));
-     for(const z of [-.995,-.985,-.97,-.935,-.875,-.625,-.575,-.155,-.145,.03,.11,.745,.755,.88,.92,1.19,1.21,1.33,1.37,1.41,1.43,1.44,1.45])zs.push(z);
-     zs.sort((a,b)=>a-b);for(let i=zs.length-1;i>0;i--)if(zs[i]-zs[i-1]<.004)zs.splice(i,1);
-     const kt=lpKit({b:{g:'p',c:0xeac58f},d:{g:'p',c:0xb4875a},f:{g:'p',c:0xff8fe6,f:0},s:{g:'p',c:0xff2f8a,f:0},v:{g:'g',c:0x0b0f1c},k:{g:'m',c:0x141418},c:{g:'c',c:0xd8dce4}});
+     // des stations COMPTÉES (les cassures du profil, les coins pris en trois facettes) : chaque facette est voulue
+     const zs=[-1,-.985,-.95,-.88,-.78,-.66,-.6,-.55,-.42,-.28,-.155,-.145,0,.03,.11,.3,.5,.7,.745,.755,.86,.95,1.05,1.15,1.2,1.3,1.4,1.45];
+     const kt=lpKit({b:{g:'p',c:0xeac58f},d:{g:'p',c:0xb4875a},f:{g:'p',c:0xff8fe6,f:0},s:{g:'p',c:0xff2f8a,f:0},v:{g:'g',c:0x1e3152},k:{g:'m',c:0x131317},c:{g:'c',c:0xd8dce4},e:{g:'l',c:0xa01424}});
      kt.loft(zs,S,(j,z)=>{
        if(j<0)return 'b';                                                                         // les bouchons (la poupe ; le nez est dans la tête)
-       if(j<=7){if(z<-.88&&j<=3)return 'k';                                                        // le bouclier bas, noir
-         if(j>=3&&((z>.745&&z<.755)||(z>-.155&&z<-.145)))return 'd';                               // les lignes de portes
+       if(j<=2)return 'k';                                                                        // le fond, le chanfrein, le BAS DE CAISSE noir
+       if(j<=6){if(z<-.88&&j<=3)return 'k';                                                        // le bouclier bas, noir
+         if((z>.745&&z<.755)||(z>-.155&&z<-.145))return 'd';                                        // les lignes de portes
          return 'b';}
        if(yT(z)<0)return 'b';
-       if(z>.9||z<-.6)return j>=10?'v':'b';                                                        // pare-brise et vitre du hayon (montants A et C en biscuit)
-       if(j<=10)return (z>-.55&&z<.86)?((z>.03&&z<.11)?'k':'v'):'b';                                // les vitres latérales, le montant B noir
-       return j===11?'b':'f';});                                                                   // le rebord en croûte, puis le GLAÇAGE (sa marche, le dessus)
+       if(z>.9)return j>=9?'v':'k';                                                               // le pare-brise, ses montants A noirs
+       if(z<-.6)return j>=9?'v':'k';                                                              // la vitre du hayon, ses montants C noirs
+       if(j<=8)return (z>-.55&&z<.86)?((z>.03&&z<.11)?'k':'v'):'k';                                // les vitres latérales, montants noirs (le pavillon flotte)
+       return j===9?'k':'f';});                                                                   // le rail de pavillon noir, puis le GLAÇAGE (sa marche, le dessus)
      // les VERMICELLES : de vrais bâtonnets posés sur le glaçage, en tous sens
      for(let n=0;n<46;n++){const x=(hh(n,1)-.5)*.86,z=-.5+hh(n,2)*1.3,yt=yT(z);if(yt<0||z>.86)continue;
-       kt.box('s',.055,.014,.014,x,yt+.035-.023*Math.pow(Math.abs(x)/.53,2)+.008,z,0,hh(n,3)*Math.PI,0);}
-     // le bouclier : diffuseur à ailettes, fentes des coins, deux sorties d'échappement
+       kt.box('s',.055,.014,.014,x,yt+.036-.02*Math.pow(Math.abs(x)/.56,2)+.008,z,0,hh(n,3)*Math.PI,0);}
+     // les détails du flanc : prise d'air de hanche, poignées, trappe à essence, ouïes d'aile avant ; la lame avant ; l'aileron requin
+     for(const sd of [-1,1]){const xv=.865+ha(-.32);
+       for(let a=0;a<3;a++)kt.box('k',.014,.05,.2,sd*(xv+.006),.73+a*.03,-.32-a*.015,-.28,0,0);
+       kt.box('k',.012,.025,.1,sd*.872,.84,.3);
+       for(let a=0;a<3;a++)kt.box('k',.012,.07,.025,sd*.842,.78,1.27+a*.05);}
+     kt.cyl('d',.045,.012,8,-.888-ha(-.45)*.4,.83,-.45,'x');
+     kt.box('k',1.7,.03,.3,0,.405,1.38);
+     kt.prism('k',[[-.45,yT(-.45)+.04],[-.3,yT(-.3)+.04],[-.43,yT(-.45)+.12]],.03,0);
+     // le bouclier : diffuseur à ailettes, fentes des coins, catadioptres, deux sorties d'échappement
      kt.box('k',1,.09,.06,0,.555,-1.01);for(let f=-2;f<=2;f++)kt.box('k',.02,.08,.1,f*.18,.56,-1.03);
-     for(const sd of [-1,1]){for(let a=0;a<3;a++)kt.box('k',.018,.13,.02,sd*(.38+a*.045),.71,-1.005);
-       kt.cyl('c',.055,.1,12,sd*.5,.6,-1.04,'z');kt.cyl('k',.04,.104,12,sd*.5,.6,-1.04,'z');}
+     for(const sd of [-1,1]){for(let a=0;a<3;a++)kt.box('k',.018,.13,.02,sd*(.38+a*.045),.71,-1.005);kt.box('e',.1,.025,.012,sd*.42,.62,-1.008);
+       kt.cyl('c',.055,.1,8,sd*.5,.6,-1.04,'z');kt.cyl('k',.04,.104,8,sd*.5,.6,-1.04,'z');}
      // l'AILERON sur cols de cygne (biscuit dessous, glaçage dessus, dérives noires) et la lèvre du pavillon
      kt.box('b',1.42,.035,.26,0,1.47,-.76);kt.box('f',1.34,.02,.2,0,1.495,-.76);
      for(const sd of [-1,1]){kt.box('k',.025,.15,.32,sd*.72,1.45,-.77);kt.box('k',.04,.17,.05,sd*.32,1.39,-.665,-.35,0,0);}
      kt.box('k',1,.025,.1,0,1.325,-.625,.2,0,0);
-     // les RÉTROVISEURS (coque biscuit, coiffe de glaçage)
+     // les RÉTROVISEURS (coque biscuit, coiffe de glaçage, bras noir)
      for(const sd of [-1,1]){kt.box('b',.1,.07,.14,sd*.87,1.03,.66);kt.box('f',.1,.02,.14,sd*.87,1.075,.66);kt.box('k',.12,.025,.04,sd*.79,1,.66);}
+     /* ⚠ LA LUMIÈRE EST CUITE PAR FACETTE dans la peinture (biscuit, glaçage, vermicelles) : laquée et éclairée, la caisse virait ORANGE à
+        l'atelier (la lampe chaude, le rideau de feu). Une clé fixe (haut, avant, gauche), le ciel par le dessus, un lustre sur ce qui
+        regarde le ciel — sur la normale PLATE de chaque facette : chaque pan a son ton, l'art low-poly. Noirs, vitres, chromes et
+        catadioptres gardent leur matière. */
      const gs=kt.done();
-     /* ⚠ LA LUMIÈRE EST CUITE dans la peinture (biscuit, glaçage, vermicelles) : laquée et éclairée, la caisse virait ORANGE à l'atelier (la
-        lampe chaude, le rideau de feu derrière la porte) — le gris de la tête faisait pareil. Une clé fixe (haut, avant, gauche), le ciel
-        par le dessus, un lustre sur ce qui regarde le ciel, sur les normales LISSÉES : les formes se lisent rondes, le biscuit reste
-        biscuit sous toutes les lumières. Vitres, noirs et chromes gardent leur matière (ils renvoient le décor). */
-     for(const g in gs){lisseNormales(gs[g],.62);lpOmbre(gs[g],1.5);let m9=g;
+     for(const g in gs){if(g!=='l')lpOmbre(gs[g],1.5);let m9=g;
        if(g==='p'){const n=gs[g].attributes.normal.array,c=gs[g].attributes.color.array;
-         for(let i=0;i<n.length;i+=3){const d=Math.max(0,n[i]*.33+n[i+1]*.82+n[i+2]*.47),k=.6+.36*d+.1*n[i+1]+.14*Math.pow(Math.max(0,n[i+1]),10);c[i]*=k;c[i+1]*=k;c[i+2]*=k;}
+         for(let i=0;i<n.length;i+=3){const d=Math.max(0,n[i]*.33+n[i+1]*.82+n[i+2]*.47),k=.55+.42*d+.08*n[i+1]+.1*Math.pow(Math.max(0,n[i+1]),6);c[i]*=k;c[i+1]*=k;c[i+2]*=k;}
          m9='l';}
        const m=new THREE.Mesh(gs[g],mat(m9));m.userData.lp=1;carGroup.add(m);}
      // LES FEUX ARRIÈRE, en DEUX exemplaires (veilleuse, stop — le stop s'allume au freinage) : le bandeau sous le hayon, coupé au milieu
-     // pour la queue, ses blocs d'angle qui s'enroulent sur la poupe arrondie
+     // pour la queue, ses blocs d'angle qui s'enroulent sur la poupe, et le troisième feu stop sous la lèvre du pavillon
      for(const vif of [0,1]){const kf=lpKit({r:{g:'l',c:vif?0xff2a36:0x8a1424}});
        for(const sd of [-1,1]){kf.box('r',.34,.035,.02,sd*.33,.915,-1.012);kf.box('r',.12,.08,.025,sd*.47,.905,-1.01);
-         let zp=-1,xp=S(-1)[7][0];for(const z of [-.975,-.94,-.89]){const x=S(z)[7][0];
+         let zp=-1,xp=S(-1)[6][0];for(const z of [-.985,-.95,-.88]){const x=S(z)[6][0];
            kf.box('r',.025,.075,Math.hypot(z-zp,x-xp)+.01,sd*((x+xp)/2+.012),.905,(z+zp)/2,0,sd*Math.atan2(x-xp,z-zp),0);zp=z;xp=x;}}
+       kf.box('r',.3,.02,.02,0,1.305,-.68);
        const g9=bloc(),gf=kf.done();for(const g in gf){const m=new THREE.Mesh(gf[g],mat(g));m.userData.lp=1;g9.add(m);}g9.visible=!vif;NYAN.feux.push(g9);}}
     // 2. LA TÊTE : le dessin de face sur la couche avant, quatre couches derrière (gris cerclé de noir : l'arrière de la tête, vu de
     //    la poursuite, est un chat, pas un pavé noir). Cinq de profondeur : à huit, le profil n'était plus qu'un PAVÉ NOIR — l'image

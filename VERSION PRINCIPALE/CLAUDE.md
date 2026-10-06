@@ -4,6 +4,12 @@
 L'image de référence = le sprite de 2011 EXTRUDÉ en cubes (contour noir = mur noir sur l'épaisseur, dessous bleus). Le gabarit `poptart` est
 refait EN VOXELS (10 cm, `NY_U`), chaque pièce dessinée dans SON plan (bloc « LE CHAT POP-TART EN VOXELS », juste avant `SHAPES` : dessins
 `NY_GATEAU` / `NY_SUCRE` / `NY_TETE` / `NY_QUEUE`, maillage `voxGrille()` = faces à l'air seules, fusionnées en rectangles par couleur).
+- **v10, même jour** (Léo : « trop simple, on dirait un donut sur les bords, et on perd le côté poly ») : retour au POLY de la gamme —
+  loft à stations COMPTÉES (28 : les cassures du profil, les coins en trois facettes) et section à ARÊTES VIVES (bas de caisse noir,
+  plan de porte, arête de caractère, épaule biseautée, ceinture, vitrage, rail de pavillon noir, marche du glaçage, pavillon), normales
+  PLATES, lumière cuite PAR FACETTE (chaque pan son ton, le biscuit stable sous toutes les lumières). Pavillon FLOTTANT (montants A/B/C
+  noirs), vitres bleu nuit, prise d'air de hanche, poignées, trappe à essence, ouïes d'aile avant, lame avant, aileron requin, troisième
+  feu stop (dans les feux : il s'allume au freinage), catadioptres. `lisseNormales` (v9) retirée.
 - **v9, même jour** (Léo : « les côtés, bof : on ne ressent pas la smoothness, ça fait jeu pixel — je veux une bête de voiture ») : la
   carrosserie quitte les cubes — LOFTÉE (le loft du kit, ~55 stations × 16 points de section `S(z)`, profil `yT`, plan `sx`, hanches)
   avec normales LISSÉES (`lisseNormales`, seuil ~50° : les vraies arêtes restent vives) et la LUMIÈRE CUITE dans la peinture (clé fixe
