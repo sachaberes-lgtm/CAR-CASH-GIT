@@ -4,6 +4,14 @@
 L'image de référence = le sprite de 2011 EXTRUDÉ en cubes (contour noir = mur noir sur l'épaisseur, dessous bleus). Le gabarit `poptart` est
 refait EN VOXELS (10 cm, `NY_U`), chaque pièce dessinée dans SON plan (bloc « LE CHAT POP-TART EN VOXELS », juste avant `SHAPES` : dessins
 `NY_GATEAU` / `NY_SUCRE` / `NY_TETE` / `NY_QUEUE`, maillage `voxGrille()` = faces à l'air seules, fusionnées en rectangles par couleur).
+- **v9, même jour** (Léo : « les côtés, bof : on ne ressent pas la smoothness, ça fait jeu pixel — je veux une bête de voiture ») : la
+  carrosserie quitte les cubes — LOFTÉE (le loft du kit, ~55 stations × 16 points de section `S(z)`, profil `yT`, plan `sx`, hanches)
+  avec normales LISSÉES (`lisseNormales`, seuil ~50° : les vraies arêtes restent vives) et la LUMIÈRE CUITE dans la peinture (clé fixe
+  + ciel + lustre, rendue en famille `l`) — laquée et éclairée, elle virait orange à l'atelier. Vitres, noirs, chromes gardent leur
+  matière. Glaçage rose en relief sur le pavillon (sa marche dans la section) et de vrais VERMICELLES en bâtonnets ; aileron, lèvre,
+  diffuseur à ailettes, fentes, échappements, rétroviseurs en pièces du kit ; feux posés sur la poupe arrondie. La tête, les pattes et
+  la queue restent en pixels. ~5 000 triangles pour la caisse. (Les grilles `voxGrille` ne servent plus qu'à la tête, aux pattes, à la
+  queue et aux roulettes.)
 - **v8, même jour** (Léo : « plus arrondie, comme une voiture moderne ») : plus d'arêtes en biseau — bas de caisse et épaule en QUARTS
   D'ELLIPSE (`hB`), habitacle bombé (rentré en courbe, bord de pavillon arrondi, `hC`), pavillon bombé en travers (`yTx`), coins de
   poupe à grand rayon en plan (32 cm, `plan`), lunette qui s'enroule, panneau arrière arrondi en haut et en bas (`dans`). La peau est lue
