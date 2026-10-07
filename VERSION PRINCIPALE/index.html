@@ -5527,6 +5527,26 @@ html body #garage:not(.menu) #gAct{margin:0}
   html body #garage:not(.menu) #gStrip{grid-template-rows:50px}
 }
 </style>
+<style id="lueurs">
+/* LES LUEURS DE LA BOUTIQUE (2026-10-07, Léo : « une lueur derrière chaque voiture, de la couleur de sa rareté ; au lieu de les cacher —
+   on les montre dans tous les cas quand on appuie dessus. Les banderoles lumineuses créent un trop gros contraste, trop d'informations
+   visuelles ; des petites lueurs, ça fait le style. Le reste, touche pas ») — les vignettes des VOITURES seulement (les habillages gardent
+   leur nuancier) :
+   · la caisse à vendre se montre EN COULEURS (elle était éteinte : luminosité ,42, saturation ,35) — le cadenas et le prix disent qu'elle
+     n'est pas à toi ;
+   · plus de liseré de couleur sous chaque vignette (la « banderole ») : un filet neutre, et DERRIÈRE la caisse une lueur douce de la couleur
+     de sa famille (`.gTl`, --rg/--rg2 posés par garageFamilles, d'autant plus forte que la famille est rare) ;
+   · la vignette choisie : le cadre à la couleur de la famille et sa lueur qui s'ouvre. */
+.gT .gTl{position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.85;
+  background:radial-gradient(44% 52% at 50% 44%,var(--rg,transparent) 0,transparent 100%);transition:opacity var(--t-fast) var(--ease),scale var(--t-fast) var(--ease)}
+.gT.on .gTl{opacity:1;scale:1.18}
+html body #garage #gStrip .gT[data-car]{background:var(--laqueP);box-shadow:inset 0 0 0 1px var(--fil),0 0 0 1px var(--anneau),0 5px 0 1px var(--anneau)}
+html body #garage #gStrip .gT[data-car].on{box-shadow:inset 0 0 0 2px var(--rc),0 0 0 1px var(--anneau),0 5px 0 1px var(--anneau),0 0 18px var(--rg,transparent)}
+/* la lueur ÉPOUSE la caisse (l'ombre portée de la photo, sans décalage, à la couleur de la famille) — l'ombre de contact de la photo
+   s'allume aussi : un néon sous la caisse */
+html body #garage #gStrip .gT[data-car] img,html body #garage #gStrip .gT[data-car].lock img{filter:drop-shadow(0 0 4px var(--rg2,transparent))}
+html body #garage #gStrip .gT[data-car].on img{filter:drop-shadow(0 0 6px var(--rg2,transparent))}
+</style>
 <style id="accueilCiel">
 /* L'ACCUEIL CONTEMPLATIF (2026-09-30, nuit — Sacha : « prends le bouton sans fond JOUER de Léo et remplace le mien pour laisser plus
    d'espace au ciel ; réduis aussi la taille des boutons pour que ce soit plus contemplatif »). UNE couche, ici, par-dessus toutes les
@@ -36820,10 +36840,12 @@ function garageFamilles(r){
   const L=rarListe(r),ri=rarInfo(r),own=L.filter(carUnlockedVrai).length; // (charte v4) posséder une caisse de plus REFAIT la bande (elle gardait son cadenas après l'achat)
   const mk9=(function(){try{const s=misEtat();return s.n+':'+s.ok.join('');}catch(e){return '';}})(); // (2026-09-29) les défis relevés changent la vignette de la caisse en jeu
   if(st._r!==r||st._n!==L.length||st._eq!==eq||st._o!==own||st._m!==mk9){st._r=r;st._n=L.length;st._eq=eq;st._o=own;st._m=mk9;
+    const lu9={commun:.35,rare:.6,epique:.82,defi:.7,legendaire:1}[r]||.5, // (2026-10-07, Léo) LA LUEUR de la famille : plus elle est rare, plus elle brille — les crans de l'inventaire (INV_LUEUR)
+      lg9=';--rg:'+invRgba(ri.c,.22+.28*lu9)+';--rg2:'+invRgba(ri.c,.55+.4*lu9); // en rgba, pas de color-mix (les vieux iPhone, voir hudDA §7)
     st.innerHTML=L.map(function(i){const u=CAR_UNLOCK[i],ouv=carUnlockedVrai(i);
       const et=ouv?(i===eq?'':pxi('coche')):(u&&u.p?fmtC(u.p):u&&u.eur?eurTxt(u.eur):u&&u.k==='carnet'?gDefiEt(u.v):''); // (la police pixel n'a pas de ✓ : l'icône pixel) · (2026-09-29) la caisse des MISSIONS en cours dit où on en est : « 1 / 3 »
-      return '<div class="gT'+(ouv?'':' lock')+(i===eq?' eq':'')+'" data-car="'+i+'" role="button" aria-label="'+String(CARS[i].name).replace(/"/g,'')+'" style="--rc:'+ri.c+'">'
-        +'<i class="gTv"></i><em'+(!ouv&&u&&!u.p&&u.eur?' class="eur"':!ouv&&u&&u.k==='carnet'?' class="def"':'')+'>'+et+'</em></div>';}).join(''); // (charte v5) l'argent du JEU en vert billet, le vrai argent (€) en or
+      return '<div class="gT'+(ouv?'':' lock')+(i===eq?' eq':'')+'" data-car="'+i+'" role="button" aria-label="'+String(CARS[i].name).replace(/"/g,'')+'" style="--rc:'+ri.c+lg9+'">'
+        +'<i class="gTl"></i><i class="gTv"></i><em'+(!ouv&&u&&!u.p&&u.eur?' class="eur"':!ouv&&u&&u.k==='carnet'?' class="def"':'')+'>'+et+'</em></div>';}).join(''); // (charte v5) l'argent du JEU en vert billet, le vrai argent (€) en or
     st.querySelectorAll('.gT').forEach(function(el){const i=+el.getAttribute('data-car');
       photoFile(i,function(url){const v=el.querySelector('.gTv');if(v)v.remove();if(!el.querySelector('img')){const im=document.createElement('img');im.alt='';im.src=url;el.insertBefore(im,el.firstChild);}});});}
   st.querySelectorAll('.gT').forEach(function(el){el.classList.toggle('on',+el.getAttribute('data-car')===garageI);});

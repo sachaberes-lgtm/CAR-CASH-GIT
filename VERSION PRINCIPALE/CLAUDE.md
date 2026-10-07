@@ -1,5 +1,16 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LES LUEURS DE LA BOUTIQUE (2026-10-07, Léo : « une lueur derrière chaque voiture dans la boutique, de la couleur de la rareté ; au lieu de les cacher — on les montre dans tous les cas quand on appuie dessus. Les banderoles lumineuses créent un trop gros contraste, trop d'informations visuelles ; des petites lueurs, ça fait le style. Le reste, touche pas »)
+- La « boutique » = la bande des VIGNETTES DE VOITURES du garage (`#gStrip`, `garageFamilles`) ; les habillages (peinture, ailes, traînées)
+  et la vitrine en € de l'accueil (`#mShop`) n'ont pas bougé. Tout le CSS est dans `<style id="lueurs">` (juste avant `accueilCiel`).
+- Une caisse à vendre se montre EN COULEURS (`.gT.lock img` l'éteignait : luminosité ,42, saturation ,35) ; le cadenas et le prix restent.
+- Plus de liseré de couleur sous chaque vignette (`inset 0 -3px 0 --rc` de la console) : un filet neutre. À la place, la LUEUR de la
+  famille : une ombre portée sans décalage autour de la photo (`drop-shadow(0 0 4px --rg2)`, 6 px sur la vignette choisie — elle épouse
+  la caisse et allume son ombre de contact) + un halo doux derrière (`<i class="gTl">`). `--rg`/`--rg2` sont posés en rgba par
+  garageFamilles (`invRgba`, pas de color-mix), d'autant plus forts que la famille est rare (les crans de `INV_LUEUR` de l'inventaire).
+- La vignette choisie garde son cadre de la couleur de la famille (2 px) et sa lueur s'ouvre. Banc : Chrome sans fenêtre, vrais clics
+  (vignette à vendre touchée → la caisse vient sur le plateau, PEINTURE, JOUER → course), couché et debout, 0 erreur. sw.js → v157.
+
 ## LE BURN-OUT v2 — LE FOUET ET LE VOLANT (2026-10-07, Léo : « corrige l'effet burn-out : refabrique une version avec le drift plus fun, un donut satisfaisant à faire, et le maintien du burn sur place mieux fait » · puis « en fait un mélange entre le premier burn-out hyper dynamique et cool qui ne sortait jamais du cercle, et celui où on peut avec le doigt faire un donut complet »)
 - **MESURÉ AVANT** (banc au vrai geste souris, debout 390 × 844) : un tour de doigt = 0,6 tour de caisse, l'excédent jeté (`avance` ,55) — la
   caisse décrochait du doigt, ~4 s par tour ; en donut elle passait SOUS la console (la caméra ne reculait pas) ; sur place le tremblement
