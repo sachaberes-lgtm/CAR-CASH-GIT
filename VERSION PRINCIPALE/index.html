@@ -15585,7 +15585,7 @@ window.dbgNyan=function(c,a,d,h){if(c==='tick'){if(d)for(const w of wheels)w.rot
    · ELLE ÉTERNUE : toutes les 3-7,5 s, elle prend sa respiration (le nez se lève 0,4 s) puis ATCHOUM — le nez pique, et une gerbe de
      flammes part DROIT DEVANT du museau ; la caisse, plus rapide, la rattrape et la traverse. « ATCHOUM ! » au-dessus d'elle, un souffle.
    Le corps se penche par-dessus la pose de la boucle (elle repose `carBody` à chaque image : rien ne s'accumule). */
-const ATCH={on:false,t:4,ph:0,k:0,n:0,crache:1,P:new THREE.Vector3(),F:new THREE.Vector3(),R:new THREE.Vector3(),H:new THREE.Vector3(),V:new THREE.Vector3(),Z:new THREE.Vector3(),N:new THREE.Vector3(0,.47,2.2)};
+const ATCH={on:false,reste:0,t:4,ph:0,k:0,n:0,crache:1,P:new THREE.Vector3(),F:new THREE.Vector3(),R:new THREE.Vector3(),H:new THREE.Vector3(),V:new THREE.Vector3(),Z:new THREE.Vector3(),N:new THREE.Vector3(0,.47,2.2)};
 const VIT_EXV=()=>EXV; // la vitesse monde de la caisse (déclarée plus bas)
 function atchFeu(course){
   const P=ATCH.P,F=ATCH.F,R=ATCH.R,H=ATCH.H,EXV=course?ATCH.V:ATCH.Z;potMonde(ATCH.N,P);if(course)ATCH.V.copy(VIT_EXV()); // au garage, la caisse est à l'arrêt
@@ -15595,7 +15595,7 @@ function atchFeu(course){
     spawnP(flameCore,P.x,P.y,P.z,EXV.x+F.x*s9+R.x*a+H.x*b,EXV.y+F.y*s9+R.y*a+H.y*b,EXV.z+F.z*s9+R.z*a+H.z*b,.16+Math.random()*.16);}
   for(let i=0;i<14;i++){const s9=6+Math.random()*10,a=(Math.random()-.5)*6;
     spawnP(embers,P.x,P.y,P.z,EXV.x+F.x*s9+R.x*a+H.x*(2+Math.random()*4),EXV.y+F.y*s9+R.y*a+H.y*(2+Math.random()*4),EXV.z+F.z*s9+R.z*a+H.z*(2+Math.random()*4),.3+Math.random()*.3);}
-  if(course){popTexte(TR('ATCHOUM !'),'#ffb030',0);hap&&hap(18);}
+  if(course){popTexte(TR('ATCHOUM !'),'#ffb030',0);hap&&hap(18);}else ATCH.reste=2.5; // (audit) au garage : ses flammes vivent encore 2,5 s, même si on change de caisse
   if(!(typeof sfx==='function'&&sfx('caisse.atchoum')))noiseBurst(.2,.09,620); // (son à cuire par la session SON : « caisse.atchoum »)
 }
 window.dbgAtch=function(c,dt){ // (banc) 'feu' : un éternuement tout de suite · 'pas' : fait vivre les flammes de `dt` s
@@ -15603,7 +15603,7 @@ window.dbgAtch=function(c,dt){ // (banc) 'feu' : un éternuement tout de suite �
   if(c==='pas')for(const q of [flames,flameCore,embers])updatePool(q,dt||.03,q===embers?4.5:1);
   return {on:ATCH.on,t:+ATCH.t.toFixed(2),ph:ATCH.ph};};
 function atchTick(dt){
-  if(!ATCH.on)return;
+  if(!ATCH.on){if(ATCH.reste>0){ATCH.reste-=dt;if(garageOn&&!running)for(const q of [flames,flameCore,embers])updatePool(q,dt,q===embers?4.5:1);}return;} /* (2026-10-07, audit) on a changé de caisse au garage : ses dernières flammes finissent leur vie au lieu de rester plantées */
   const course=running&&!gameOver&&!paused&&mode!=='boom'&&!garageOn,vitrine=garageOn&&!running; // au garage aussi elle éternue (la vitrine)
   if(!course&&!vitrine){ATCH.ph=0;ATCH.k=0;return;}
   const F=ATCH.F.set(0,0,1).applyQuaternion(carGroup.quaternion);ATCH.R.set(1,0,0).applyQuaternion(carGroup.quaternion);ATCH.H.set(0,1,0).applyQuaternion(carGroup.quaternion);
@@ -30301,8 +30301,8 @@ function instruCoupe(d){
   try{if(AC&&INSTRU.sortie){const p=INSTRU.sortie.gain,T=AC.currentTime+(d||0);p.cancelScheduledValues(T);p.setTargetAtTime(0,T,.012);INSTRU.ferme=1;}}catch(e){}}
 function instruPlanifie(){ // regard d'avance de 120 ms : les notes tombent pile, même si une image tousse
   if(!AC){clearInterval(INSTRU.iv);INSTRU.iv=0;return;}
-  if(paused&&!INSTRU.essai){instruCoupe(0);return;} /* (2026-10-07) en pause : la phrase est coupée, pas laissée en suspens (voir instruCoupe) */
-  if(INSTRU.tient&&(gameOver||paused||mode==='boom'||(!INSTRU.essai&&!instruMusiqueOk())))instruOff(); // (la musique change de map : la phrase se termine)      // la partie s'arrête : la phrase se termine
+  if(paused&&!INSTRU.essai){instruCoupe(0);loop._iW=false;return;} /* (2026-10-07) en pause : la phrase est coupée, pas laissée en suspens (voir instruCoupe) — (audit) et le doigt encore posé la relance à la reprise (loop._iW) */
+  if(INSTRU.tient&&(gameOver||paused||mode==='boom'||(!INSTRU.essai&&!instruMusiqueOk()))){instruOff();loop._iW=false;} // (la musique change de map : la phrase se termine)      // la partie s'arrête : la phrase se termine
   if(!INSTRU.essai){if(INSTRU.H!==instruH())instruTempo();else instruHorloge();}        // le morceau a changé ? on relit sa fiche ; sinon on se recale
   const fin=INSTRU.essai?1e9:AC.currentTime+.12;
   while(INSTRU.tNote<fin){
@@ -38794,6 +38794,7 @@ function invRender(){
 }
 function invOuvre(){
   if(!INV||INV.on||GAR.go||!garAtelierLibre())return false;
+  if(SHOP.tab!=='voiture'||SHOP.prev)shopTab('voiture');{const eq=equippedCar();if(GAR.sw&&!GAR.sw.fait)GAR.sw.to=eq;else if(garageI!==eq)garageShow(eq);} /* (2026-10-07, audit avant publication ; une bascule en cours vise désormais TA caisse) l'inventaire équipe TA caisse : la fiche revient sur elle (sinon le plateau montrait la caisse équipée sous le nom et le prix d'une autre) */
   INV.on=true;if(!((SAVE.d.ast|0)&4)){SAVE.d.ast=(SAVE.d.ast|0)|4;SAVE.mark();}
   gEl.classList.remove('aideInv');gEl.classList.add('inv');garLibre._r=null;
   const g=$('ivGrille');if(g){g._k=null;g.scrollTop=0;}invRender();
@@ -38958,7 +38959,7 @@ function burnPrepare(){ // à chaque départ : les essieux de l'arrière, les pn
   for(const w of wheels)if(w.position.z<0)BURN.roues.push({x:w.position.x,y:w.position.y-(w.userData.R||.4),z:w.position.z,R:w.userData.R||.4,l:w.userData.large||.3});
   const G=garGabarit();
   if(!BURN.roues.length)for(const sx of [-1,1])BURN.roues.push({x:sx*G.b*.75,y:0,z:-G.a*.6,R:.4,l:.3});
-  if(!BURN.ar.length)BURN.arW=wheels.filter(function(w){return w.position.z<0&&w.parent;});else BURN.arW=[];
+  BURN.arW=wheels.filter(function(w){return w.position.z<0&&(w.parent||BURN.ar.length);}); /* (2026-10-07, audit) avec les essieux soudés, les roues d'ORIGINE (hors scène) tournent aussi : les pattes du chat pop-tart les lisent (nyanTick) */
   const px=Math.min(.42,G.b*.32);BURN.pots=[[-px,.3,-G.a+.08],[px,.3,-G.a+.08]];
   BURN.drz=Math.min(.9,G.a*.4);BURN.rr=Math.hypot(G.a,G.b); // le PIVOT du dérapage (vers l'avant : l'arrière balaie) · le rayon de la caisse
   burnGommeInit();
@@ -39085,6 +39086,7 @@ function burnTours(dt){ // compte les tours complets du donut (dans un sens : re
   else{BURN.nT+=dt;if(BURN.nT>.9){BURN.acc=0;BURN.n=0;}}
 }
 Object.assign(I18N,{'DONUT !':'DONUT!','TOURNE AUTOUR · DONUT':'CIRCLE AROUND · DONUT'});
+Object.assign(I18N_ZH,{'DONUT !':'甜甜圈！','TOURNE AUTOUR · DONUT':'绕圈 · 甜甜圈','ATCHOUM !':'阿嚏！','ATCHOUM':'阿嚏','SOMMET':'巅峰','INTOUCHABLE':'无人能及'}); // (2026-10-07, audit) le chinois qui manquait
 function burnTick(dt){ // chaque image du garage (après la pose de la caisse, avant la caméra)
   const now=performance.now(),t=now*.001;
   if(BURN.hold&&!BURN.on&&!BURN.bouge&&now-BURN.hold.t0>280)burnPart(); // (même soir) 0,28 s : un glissé lent qui démarre doucement reste le PLATEAU
@@ -39328,8 +39330,8 @@ function garMenuMaj(){ // le profil (argent, aura), le niveau de la carrière, l
   const gu=$('gpAur');if(gu)gu.textContent=fmtAura(au);
   const gr=$('gpRang');if(gr)gr.textContent=auraRankName(r);
   const uf=$('gpAurF');if(uf)uf.style.width=pc(nx?(au-lo)/(nx.v-lo):1);                // la jauge d'aura : vers le rang suivant
-  let w=0;for(let k=0;k<CARRIERE.length;k++){w=k;if(carrFait(k)<10)break;}              // le monde en cours de la CARRIÈRE
-  GAR.lvlW=w;const n=Math.min(10,carrFait(w)+1);
+  let w=0;for(let k=0;k<CARRIERE.length;k++){w=k;if(carrFait(k)<CARRIERE[k].niveaux.length)break;} /* (2026-10-07, audit) chaque monde a SON nombre de niveaux (5 ou 10) */              // le monde en cours de la CARRIÈRE
+  GAR.lvlW=w;const n=Math.min(CARRIERE[w].niveaux.length,carrFait(w)+1);
   const gn=$('glN');if(gn)gn.textContent=TR('NIVEAU')+' '+n;
   const gm=$('glM');if(gm)gm.textContent=sansAcc(TR(CARRIERE[w].nm));
   const pp=$('gMisPips'),s9=misEtat();if(pp)pp.querySelectorAll('u').forEach(function(u,i){u.classList.toggle('ok',!!s9.ok[i]);});
@@ -40069,7 +40071,7 @@ function loop(now){
     if(wantN&&!loop._nvW&&!nitroOn&&mode!=='boom'){try{if(SONV2)sfx('nitro.vide');else noiseBurst(.04,.06,2500);}catch(e){}hap(6);} // (2026-09-26, audit son) NITRO À VIDE : un « tchk » sec — l'appui répond toujours
     loop._nvW=wantN;
     const doigtN=!!(keys.ShiftLeft||keys.ShiftRight||keys.Space); // (2026-10-03, Léo) la phrase ne répond qu'au VRAI doigt : ni le boost de départ (startBoostT), ni le pilote auto
-    if(doigtN!==!!loop._iW){loop._iW=doigtN;try{if(doigtN&&mode!=='boom'&&!gameOver)instruOn();else instruOff();}catch(e){}} // (2026-10-03) LA PHRASE DU BOOST suit le DOIGT, pas la flamme (le réservoir vide la coupait)
+    {const iV=doigtN&&mode!=='boom'&&!gameOver;if(iV!==!!loop._iW){loop._iW=iV;try{if(iV)instruOn();else instruOff();}catch(e){}}} /* (2026-10-07, audit) on retient ce qu'on JOUE, pas le doigt : mort doigt posé, la partie suivante rejoue au 1er appui */ // (2026-10-03) LA PHRASE DU BOOST suit le DOIGT, pas la flamme (le réservoir vide la coupait)
     if(nitroOn&&pwrNitroT<=0&&!PARK.on&&startBoostT<=0){
       let take=tk9; /* (LA LOI DU RÉSERVOIR) NITROOO ne dure 2× qu'AU SOL */ // (v3, Sacha : « en frénésie le nitro baisse 2× plus lentement ») · (2026-09-30, HAUTE VITESSE) NITROOO aussi : réservoir plein, sans rien ramasser, il restait 0,5 s de NITROOO au moteur 1 (0 palier) et 2,5 s au moteur max (2) ; ×0,5 pendant NTR.on → 1,3 s (1 palier) et 6,6 s (6, +88 %). PAS cumulé avec la frénésie (×0,25 : 0,05/s net, une nitro quasi infinie)
       if(LIVRE.on)livre(mode==='fall'?'n-:vol':'n-:sol',Math.min(take,nitroR+nitroX));

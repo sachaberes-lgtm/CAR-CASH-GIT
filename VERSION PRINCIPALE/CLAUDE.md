@@ -262,6 +262,23 @@ refait EN VOXELS (10 cm, `NY_U`), chaque pièce dessinée dans SON plan (bloc «
   posée à 6 s ; burn-out + 2,5 tours de doigt → 1 DONUT compté, 320 fumées ; vignette (THE YELLOW CAB) → cadrée ; MISSIONS (vit 0) → ATELIER
   (vit 1) ; JOUER du garage → retour au feu → lâcher → course ; JOUER de l'accueil inchangé. 0 erreur. sw.js → v141.
 
+## L'AUDIT AVANT PUBLICATION, ZONE GAMEPLAY (2026-10-07) — la campagne de debug de GRAPHISME (« on publie le jeu bientôt »)
+- **Inventaire** (`invOuvre`) : il s'ouvre sur TA caisse. Feuilleter ◀▶ jusqu'à une caisse X puis équiper un habillage reconstruisait la
+  caisse équipée sous la fiche de X. Remise à plat comme `garMode('menu')` ; une BASCULE en cours (`GAR.sw`, 1 s) voit sa cible
+  remplacée par la caisse équipée (`GAR.sw.to`), sinon `garageShow`. Contre-banc `scratchpad/garage/audit.js`.
+- **Chat pop-tart au burn-out** : les pattes lisent les roues d'ORIGINE (`wheels[]`, hors scène quand les essieux sont soudés) ;
+  `BURN.arW` les fait tourner aussi, et elles courent désormais sur place.
+- **ATCHOUM** : au garage, c'est `atchTick` qui fait vivre ses flammes ; changer de caisse les laissait plantées. `ATCH.reste`
+  (2,5 s après un éternuement au garage) les laisse finir leur vie.
+- **La phrase du boost** : `loop._iW` retient ce qu'on JOUE (doigt ET partie vivante), plus le doigt seul, et la pause le remet à faux
+  (`instruPlanifie`). Une mort ou une pause doigt posé ne rend plus muet le 1er appui suivant.
+- **?menu=leo** (`garMenuMaj`) : `carrFait(k) < CARRIERE[k].niveaux.length` (SKY HIGH et VILLE ont 5 niveaux : on lisait « NIVEAU 6 »).
+- **Chinois** : DONUT, TOURNE AUTOUR · DONUT, ATCHOUM (!), SOMMET, INTOUCHABLE.
+- Relevés NON corrigés car voulus : l'aura à x = −4 px (c'est l'entrée `hmGauche`), `#engBig` × bandeaux (cachés sous `ebOn`, de retour
+  pendant la plongée), `.avTot` × `#avCh` couché (`avVole`, la chaîne encaissée monte dans le total).
+- **À trancher par Sacha et Léo** (relevés de l'audit) : L'ÉTERNELLE (100 pubs) n'avance que sur les portails ; REQUIN, COMÈTE et LA RAIE
+  (`bientot`) n'ont pas de prix POKI ; LA PIZZA EXPRESS ~74 M$ sur POKI ; les premium retirées sont remboursées 0 $ par `san`.
+
 ## LE JUS v7 — LA ROUTE DÉGAGÉE (2026-10-07, session GAMEPLAY) — Sacha : « améliore la visibilité de la route, notamment en enlevant les taches de fruit écrasé du milieu de l'écran »
 - La v6 (30/09, « gros et dérangeant ») jetait EXPRÈS 35 % des taches sur la caisse et la route, 45 % n'importe où. Désormais AUCUNE
   tache ne se pose dans la ZONE DE LA ROUTE : `JUS_ZONE` = une ellipse autour de la caisse et de la route devant elle (centre ½ W ×
