@@ -8,12 +8,13 @@
   éclairage de sphère) puis une en bouffées pixel rondes ont précédé — voici ce qui reste :
   · LE RENDU (`burnCubes`, `FUMC`) : chaque bouffée = un BLOC de cubes (le principal + deux satellites plus petits et plus pâles), ombrés
     comme les flammes de la porte (dessus clair, flancs, dessous sombre), sur une GRILLE de 10 cm, taille par CRANS de 6 cm, par BANDES
-    d'opacité (6 instanciations de la matière des cubes de la porte, en transparent : même programme — mesuré, 0 compilé). LA BRUME =
-    le HALO de chaque bloc : un cube ×`FUMC.haloK` (2) autour du principal, dans une 2e série de 6 bandes à `FUMC.halo` (,24) de l'opacité
-    (`C.H`, dessinées avant les cubes, même programme) — le côté vaporeux, sans rien de rond ; LE VOILE (`BURN.voile`) = de grands cubes
-    pâles et leur halo ; LES GRAINS (`BURN.grain`) = de petits cubes BLANCS, plus pleins, ni bleuis par le sol ni rougis par les feux.
-    Les réservoirs de fumée, de voile et de grains ne sont plus que des DONNÉES (`burnPoolDonnees` : aucun maillage, aucun programme) ; une
-    version parallèle (un shader de cubes à halo par bouffée, `burnPoolCube`) a été fondue dans celle-ci le même soir.
+    d'opacité (6 instanciations de la matière des cubes de la porte, en transparent : même programme — mesuré, 0 compilé). (même soir,
+    Léo : « refais des petits cubes, la brume réaliste ça casse mon délire ») TOUT en PETITS cubes de 10 à 34 cm (`FUMC.petit`, `FUMC.k` ×
+    la taille de la bouffée) : une bouffée = une GRAPPE de quatre (le principal, trois autour, plus petits, les deux derniers plus pâles) ;
+    LE VOILE (`BURN.voile`) = trois petits cubes pâles écartés ; LES GRAINS (`BURN.grain`) = de petits cubes BLANCS, plus pleins, ni bleuis
+    par le sol ni rougis par les feux. ⚠ Écartés le même soir : la BRUME en halos (un grand cube très pâle autour de chaque bloc) et les
+    grands cubes du voile — « ça casse le délire ». Les réservoirs de fumée, de voile et de grains ne sont que des DONNÉES
+    (`burnPoolDonnees` : aucun maillage, aucun programme).
     LE FEU DES POTS = les CUBES DE FEU de la porte (cube plein ombré + halo additif ×1,9), nés 32 cm derrière les pots.
   · LE MOUVEMENT (`burnPas`) : la fumée SUIT un courant — une fonction de courant à deux échelles qui glissent (il tourne, il ne converge
     nulle part : pas d'amas) ; au ras du sol elle s'écarte doucement de la caisse ; le DONUT fait tournoyer l'air (`BURN.tourb`) ; la

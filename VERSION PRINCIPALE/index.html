@@ -39024,9 +39024,10 @@ function burnPas(F,dt,t){ // fait vivre un réservoir : âge, mouvement, taille,
    satellites plus petits et plus pâles, à l'écart (la bouffée se lit en blocs) — ombrés comme les flammes de la porte (dessus clair, flancs,
    dessous sombre), posés sur une GRILLE de 10 cm (ils sautent de case en case), leur taille par CRANS de 6 cm ; ils grossissent puis
    s'effacent par BANDES d'opacité (`FUMC.bandes` : une instanciation par bande, la matière des cubes de la porte en transparent — même
-   programme, rien de compilé). Les GRAINS sont de petits cubes blancs (la bande la plus pleine). LA BRUME : chaque bloc a son HALO — un cube
-   ×`FUMC.haloK` très pâle autour de lui (2e série de bandes `C.H`, même matière) ; LE VOILE : de grands cubes pâles et leur halo — plus rien de rond. LE FEU DES POTS = les CUBES DE FEU de la porte (le cube plein ombré + son halo additif ×1,9). */
-const FUMC={N:2400,pas:.1,cran:.06,bandes:[.72,.5,.34,.22,.13,.07],seuils:[.6,.42,.28,.17,.1,.045],halo:.24,haloK:2}; // (même soir) `halo` × l'opacité de la bande, `haloK` × la taille du cube principal : LA BRUME autour de chaque bloc
+   programme, rien de compilé). Les GRAINS sont de petits cubes blancs (la bande la plus pleine). (même soir, Léo : « refais des petits cubes, la
+   brume réaliste ça casse mon délire ») TOUT est en PETITS cubes (10-34 cm, `FUMC.petit`) : une bouffée = une grappe de quatre, le voile = trois
+   petits cubes pâles ; les halos de brume (les grands cubes très pâles) sont retirés. LE FEU DES POTS = les CUBES DE FEU de la porte (le cube plein ombré + son halo additif ×1,9). */
+const FUMC={N:2400,pas:.1,cran:.06,bandes:[.72,.5,.34,.22,.13,.07],seuils:[.6,.42,.28,.17,.1,.045],petit:.34,k:.24}; // (même soir, Léo : « refais des petits cubes, la brume réaliste ça casse mon délire ») `petit` m : la taille max d'un cube ; `k` × la taille de la bouffée
 function burnCubesInit(){
   if(BURN.cub)return;
   const bx=new THREE.BoxGeometry(1,1,1),ps=bx.attributes.position,nm=bx.attributes.normal,cl=new Float32Array(ps.count*3);
@@ -39034,36 +39035,33 @@ function burnCubesInit(){
   bx.setAttribute('color',new THREE.BufferAttribute(cl,3));
   const M=[];for(let b=0;b<FUMC.bandes.length;b++){const im=new THREE.InstancedMesh(bx,new THREE.MeshBasicMaterial({vertexColors:true,fog:false,toneMapped:false,transparent:true,opacity:FUMC.bandes[b],depthWrite:false}),FUMC.N);
     im.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(FUMC.N*3),3);im.count=0;im.frustumCulled=false;im.renderOrder=8;im.visible=false;scene.add(im);M.push(im);}
-  const H=[];for(let b=0;b<FUMC.bandes.length;b++){const ih=new THREE.InstancedMesh(bx,new THREE.MeshBasicMaterial({vertexColors:true,fog:false,toneMapped:false,transparent:true,opacity:FUMC.bandes[b]*FUMC.halo,depthWrite:false}),FUMC.N>>1); // LA BRUME : les halos, très pâles
-    ih.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array((FUMC.N>>1)*3),3);ih.count=0;ih.frustumCulled=false;ih.renderOrder=7.9;ih.visible=false;scene.add(ih);H.push(ih);}
   const NF=500,A=new THREE.InstancedMesh(bx,new THREE.MeshBasicMaterial({vertexColors:true,fog:false,toneMapped:false}),NF),
     B=new THREE.InstancedMesh(new THREE.BoxGeometry(1.9,1.9,1.9),new THREE.MeshBasicMaterial({fog:false,toneMapped:false,transparent:true,opacity:.17,blending:THREE.AdditiveBlending,depthWrite:false}),NF);
   A.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(NF*3),3);B.instanceMatrix=A.instanceMatrix;B.instanceColor=A.instanceColor; // le halo suit le cube : mêmes tampons
   A.count=B.count=0;A.frustumCulled=B.frustumCulled=false;B.renderOrder=9;A.visible=B.visible=false;scene.add(A);scene.add(B);
-  BURN.cub={M:M,n:new Int32Array(M.length),H:H,nh:new Int32Array(H.length),A:A,B:B,NF:NF,m:new THREE.Matrix4()};
+  BURN.cub={M:M,n:new Int32Array(M.length),A:A,B:B,NF:NF,m:new THREE.Matrix4()};
 }
-function burnCubesCache(){const C=BURN.cub;if(!C)return;for(const im of C.M.concat(C.H)){im.count=0;im.visible=false;}C.A.count=C.B.count=0;C.A.visible=C.B.visible=false;}
+function burnCubesCache(){const C=BURN.cub;if(!C)return;for(const im of C.M){im.count=0;im.visible=false;}C.A.count=C.B.count=0;C.A.visible=C.B.visible=false;}
 function burnCubes(){ // chaque image : les bouffées vivantes → des blocs de cubes, par bandes d'opacité ; le feu → les cubes de la porte
   if(!BURN.fum)return;burnCubesInit();
-  const C=BURN.cub,Q=FUMC,m=C.m,n=C.n,nh=C.nh,pas=Q.pas,cr=Q.cran,s9=Q.seuils,nb=C.M.length;n.fill(0);nh.fill(0);
+  const C=BURN.cub,Q=FUMC,m=C.m,n=C.n,pas=Q.pas,cr=Q.cran,s9=Q.seuils,nb=C.M.length;n.fill(0);
   const put=function(b,x,y,z,s,r,g,bl){if(b<0||b>=nb)return;const im=C.M[b],k=n[b];if(k>=Q.N)return;
     const S=Math.max(cr,Math.round(s/cr)*cr);m.makeScale(S,S,S);const e=m.elements;e[12]=Math.round(x/pas)*pas;e[13]=Math.round(y/pas)*pas;e[14]=Math.round(z/pas)*pas;
     im.setMatrixAt(k,m);const ca=im.instanceColor.array;ca[k*3]=r;ca[k*3+1]=g;ca[k*3+2]=bl;n[b]=k+1;};
-  const brume=function(b,x,y,z,s,r,g,bl){if(b<0||b>=nb)return;const ih=C.H[b],k=nh[b];if(k>=(Q.N>>1))return; // LA BRUME : un grand cube très pâle autour du bloc, sur la même grille
-    const S=Math.max(cr,Math.round(s/cr)*cr);m.makeScale(S,S,S);const e=m.elements;e[12]=Math.round(x/pas)*pas;e[13]=Math.round(y/pas)*pas;e[14]=Math.round(z/pas)*pas;
-    ih.setMatrixAt(k,m);const ca=ih.instanceColor.array;ca[k*3]=r;ca[k*3+1]=g;ca[k*3+2]=bl;nh[b]=k+1;};
   for(const F of [BURN.voile,BURN.fum,BURN.grain]){if(!F||!F.o.visible)continue;
     const sd=F.g.attributes.iSd.array;
     for(let i=0;i<F.N;i++){if(F.age[i]>=F.life[i])continue;const a=F.A[i];let b=-1;for(let q=0;q<s9.length;q++)if(a>s9[q]){b=q;break;}if(b<0)continue;
       const j=i*3,x=F.P[j],y=F.P[j+1],z=F.P[j+2],s=F.S[i],r=F.C[j],g=F.C[j+1],bl=F.C[j+2];
       if(F.grain){put(b,x,y,z,s*.8,r,g,bl);continue;}                      // un GRAIN : un petit cube blanc
-      if(F.voile){put(b,x,y,z,s*.3,r,g,bl);brume(b,x,y,z,s*.3*Q.haloK,r,g,bl);continue;} // LE VOILE : un grand cube pâle, et sa brume
-      put(b,x,y,z,s*.38,r,g,bl);brume(b,x,y,z,s*.38*Q.haloK,r,g,bl);      // le cube principal, et sa BRUME
-      const q=sd[i],a1=q*6.283,a2=a1+2.4,o=s*.32;                           // deux satellites, à l'écart, plus petits et plus pâles
-      put(b+1,x+Math.cos(a1)*o,y+o*.4*Math.sin(q*13.7),z+Math.sin(a1)*o,s*.28,r,g,bl);
-      put(b+1,x+Math.cos(a2)*o*.9,y-o*.3,z+Math.sin(a2)*o*.9,s*.22,r,g,bl);}}
-  for(let b=0;b<nb;b++){const im=C.M[b];im.count=n[b];im.visible=n[b]>0;if(n[b]){im.instanceMatrix.needsUpdate=true;im.instanceColor.needsUpdate=true;}
-    const ih=C.H[b];ih.count=nh[b];ih.visible=nh[b]>0;if(nh[b]){ih.instanceMatrix.needsUpdate=true;ih.instanceColor.needsUpdate=true;}}
+      const c0=Math.min(Q.petit,s*Q.k),q=sd[i],a1=q*6.283;               // (même soir) des PETITS cubes : 10 à 34 cm, comme les flammes de la porte
+      if(F.voile){const o=s*.4;                                          // LE VOILE : trois petits cubes pâles, écartés
+        put(b,x,y,z,c0*.9,r,g,bl);put(b+1,x+Math.cos(a1)*o,y+o*.2,z+Math.sin(a1)*o,c0*.7,r,g,bl);put(b+1,x+Math.cos(a1+2.1)*o,y-o*.15,z+Math.sin(a1+2.1)*o,c0*.6,r,g,bl);continue;}
+      const o=s*.36;                                                      // une GRAPPE de quatre petits cubes : le principal et trois autour, plus petits, les derniers plus pâles
+      put(b,x,y,z,c0,r,g,bl);
+      put(b,x+Math.cos(a1)*o,y+o*.45*Math.sin(q*13.7),z+Math.sin(a1)*o,c0*.8,r,g,bl);
+      put(b+1,x+Math.cos(a1+2.1)*o*.9,y-o*.3,z+Math.sin(a1+2.1)*o*.9,c0*.66,r,g,bl);
+      put(b+1,x+Math.cos(a1+4.2)*o*.8,y+o*.6,z+Math.sin(a1+4.2)*o*.8,c0*.55,r,g,bl);}}
+  for(let b=0;b<nb;b++){const im=C.M[b];im.count=n[b];im.visible=n[b]>0;if(n[b]){im.instanceMatrix.needsUpdate=true;im.instanceColor.needsUpdate=true;}}
   const F=BURN.feu;let k=0;
   if(F){F.o.material.visible=false;const ca=C.A.instanceColor.array;
     if(F.o.visible)for(let i=0;i<F.N&&k<C.NF;i++){if(F.age[i]>=F.life[i]||F.A[i]<.12)continue;const j=i*3,S=Math.max(.06,Math.round(F.S[i]*.5/.06)*.06); // il s'éteint par crans, comme la porte
