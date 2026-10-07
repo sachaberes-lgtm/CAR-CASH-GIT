@@ -39512,10 +39512,18 @@ function burnRoues(dt){ // où sont les roues arrière (dans la salle) et à que
     if(P.ok&&dt>0){P.v.subVectors(o,P.p).divideScalar(dt);const s=P.v.length();if(s>16)P.v.multiplyScalar(16/s);}else P.v.set(0,0,0);
     P.p.copy(o);P.ok=true;}
 }
+const BURN_GLISSE=24; // (même nuit, Léo : « il n'y a plus de burn-out ») tenu 1,5 s, un pouce posé GLISSE de plus de 12 px (~2 mm : la pulpe s'écrase, le pouce roule) — le jeu y voyait un glissé du plateau et le burn-out ne partait jamais. Pendant la charge on tolère 24 px ; une fois parti, 12 px font toujours « le doigt bouge »
 const BURN_TENU=1500; // (2026-10-07, nuit, Léo : « ajoute 500 millisecondes de maintien requis pour démarrer le burn-out », puis « le temps de maintien déclencheur du burn-out : 1,5 s ») — 280 ms → 500 → 1 500 ; la mise en régime (`pre` : le moteur monte, le cul s'écrase) monte sur les 3/4 de l'attente : on SENT que ça charge
+function burnAnneau1(now){ // (même nuit) L'ANNEAU DE CHARGE : 1,5 s, c'est long sans rien voir — un anneau de feu se remplit sous le doigt (l'anneau du coffre, `#gInvAnneau`, qui dormait), et ÉCLATE quand ça part
+  const H=BURN.hold,a=$('gInvAnneau');if(!a)return;
+  const p=H&&!BURN.on&&!BURN.bouge&&!H.non&&now-H.t0>150?Math.min(1,(now-H.t0-150)/(BURN_TENU-150)):-1;
+  if(p>=0){if(!BURN.anP){a.style.translate=H.x+'px '+H.y+'px';a.style.setProperty('--rc','#ffe7a3');a.classList.remove('part');a.classList.add('on');BURN.anP=1;}a.style.setProperty('--p',p.toFixed(3));}
+  else if(BURN.anP){a.classList.remove('on');if(BURN.on)a.classList.add('part');BURN.anP=0;}
+}
 function burnTick(dt){ // chaque image du garage (après la pose de la caisse, avant la caméra)
   const now=performance.now(),t=now*.001,d0=dt>0;
   if(BURN.hold&&!BURN.on&&!BURN.bouge&&now-BURN.hold.t0>BURN_TENU){if(!BURN.hold.non)burnPart();else if(!BURN.hold.dit){BURN.hold.dit=1;burnRefus();}} // (même soir) 0,28 s, (nuit) 1,5 s : un glissé lent qui démarre doucement reste le PLATEAU
+  burnAnneau1(now);                                                       // l'anneau de charge sous le doigt
   if(BURN.auto>0&&d0){BURN.auto-=dt;if(BURN.autoW)burnVolant(BURN.autoW*dt);if(BURN.auto<=0)burnFin();} // (le banc) un doigt qui tourne à autoW rad/s
   if(GAR.go||!garAtelierLibre())if(BURN.on)burnFin();
   /* (v2) LA MISE EN RÉGIME : pendant l'appui, avant que ça parte, le moteur monte et la caisse s'assoit — le doigt glisse : tout retombe */
@@ -40194,7 +40202,7 @@ addEventListener('pointermove',e=>{
     return;}
   if(e.pointerId!==gpId||gPince)return;
   if(INV.hold&&INV.hold.id===e.pointerId&&Math.hypot(e.clientX-INV.hold.x,e.clientY-INV.hold.y)>12)invHoldFin(); // il GLISSE : ce n'est pas le geste tenu, la caisse tourne
-  if(BURN.hold&&BURN.hold.id===e.pointerId&&Math.hypot(e.clientX-BURN.hold.x,e.clientY-BURN.hold.y)>12){if(BURN.on)BURN.bouge=true;else BURN.hold=null;} // (BURN-OUT) avant le départ : c'est un glissé · en route : la vue tourne autour de la caisse qui fume
+  if(BURN.hold&&BURN.hold.id===e.pointerId&&Math.hypot(e.clientX-BURN.hold.x,e.clientY-BURN.hold.y)>(BURN.on?12:BURN_GLISSE)){if(BURN.on)BURN.bouge=true;else BURN.hold=null;} // (BURN-OUT) avant le départ : c'est un glissé · en route : la vue tourne autour de la caisse qui fume
   if(CHUTE&&CHUTE.on&&!CHUTE.go&&CHUTE_TAP.tient){chuteTourne(e);gpx=e.clientX;gpy=e.clientY;return;} // (2026-10-07, LA CAISSE AU DOIGT v2) le glissé parti de la caisse la fait TOURNER, pas la vue
   if(CHUTE&&CHUTE.on&&!CHUTE.go){const n9=performance.now(),dm=Math.max(8,n9-(CHUTE.mvT||n9-16))/1000,dA=-(e.clientX-gpx)*.008; // (2026-09-30) AU CIEL : le glissé fait tourner le regard autour de la caisse (voir « L'ORBITE AU DOIGT »)
     CHUTE.oAc+=dA;CHUTE.oW=(CHUTE.oW||0)*.55+dA/dm*.45;CHUTE.mvT=n9;if(Math.abs(e.clientX-gpx)>=2)CHUTE.tSens=dA>0?1:-1; /* (le tour sans fin) lâchée, elle repart dans le sens où le doigt l'a tournée */ /* (2026-10-03, Léo : « bloque le point de vue à ce niveau vertical : pas de haut en bas, horizontal à ce niveau-là ») le doigt ne fait plus monter ni plonger le regard : il tourne autour de la caisse, à la hauteur du menu */

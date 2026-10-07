@@ -6,6 +6,16 @@ avant d'y toucher. `ROBLOX/` est un autre jeu, le portage Roblox : un commit ROB
 Poki. `node poki-construire.js [crazy|itch]` en tire `POKI/`+`POKI.zip`, `CRAZY/`+`CRAZY.zip` (CrazyGames) ou `ITCH/`+`ITCH.zip` (itch.io, sans kit) — ignorés par git, à refaire après chaque changement du jeu ; `?poki=1` (`?crazy=1`)
 la montre sur n'importe quelle copie. Le détail : « L'ÉDITION POKI » dans `VERSION PRINCIPALE/CLAUDE.md`.
 
+## ⚠ LE BURN-OUT EST À LÉO (2026-10-07, Léo : « quand Sacha fait des trucs qui suppriment mes changements, code un truc qui bloque ; remets mon burn-out »)
+- Le BURN-OUT du garage (doigt tenu 1,5 s sur la caisse : fumée en cubes, donut au doigt, fouet, anneau de charge — `BURN`, `DON`,
+  `burnPart`, `burnGeste`, `burnDyn`, `burnCubes`, `BURN_TENU`…) est le travail de LÉO. **On ne le supprime pas, on ne le remplace pas, on
+  ne l'écrase pas en fusionnant une vieille copie.** Pour le changer : demander à Léo d'abord. En cas de conflit de fusion dans ce bloc,
+  garder la version de `main` (celle de Léo).
+- **DEUX GARDES** : (1) `garde-burnout.sh` (racine) — appelé en premier par `vercel-build.sh` : une version sans le burn-out n'est PAS
+  publiée, la construction Vercel échoue et le site garde la version d'avant (rien n'est perdu ; `GARDE_BURNOUT=0` dans les variables de
+  Vercel la coupe). (2) sur l'ordi de Léo, le crochet `pre-push` du dépôt (partagé par tous les worktrees `CAR-*`) refuse une poussée sur
+  `main` sans le burn-out (`git push --no-verify` pour passer outre). Vérifier à la main : `sh garde-burnout.sh`.
+
 ## LA VERSION DE RÉFÉRENCE (2026-10-01, Léo : « toutes les discussions où j'évoque une version récente, je parle de celle-là — et qu'on soit à jour avec ça, sans tout casser, parce que la dernière fois ça a tout cassé »)
 - Quand Léo (ou Sacha) dit « la version récente », « la nouvelle version », « la dernière », « celle de ce soir » ou « la bonne », il parle
   du JEU WEB DE `main`, dossier `VERSION PRINCIPALE/`. C'est celui que Vercel publie à chaque push sur `main` :
