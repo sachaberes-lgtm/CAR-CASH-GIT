@@ -10567,6 +10567,12 @@ function traitMat(m,minPx,pal){
   return m;
 }
 let LIGNE_TEX=null;
+/* (2026-10-07) LES TIRETS FILENT : la ligne centrale a un tiret tous les ~31 m. À 30 images par seconde (l'iPhone bride), passé ~1 100 km/h
+   la caisse avance d'un tiers de période par image et les tirets se mettent à BÉGAYER (ils semblent ralentir, puis sauter — l'effet de la
+   roue de charrette) : la sensation de vitesse s'effondre pile quand elle devrait exploser. Le tiret s'étire désormais de ce que la route
+   parcourt pendant UNE image (`LIGNE_U.uFile`, en part de période, écrite par la boucle : vitesse × durée de l'image ÷ période, plafond .42) :
+   quatre lectures de la carte le long de la route. Lent → rien ne change ; vite → des traits qui filent, comme sur une photo à la pose. */
+const LIGNE_U={uFile:{value:0}},LIGNE_PER={v:30};
 function ligneMat(){ // la peinture de la ligne centrale : tirets dans une texture mipmappée (voir buildTrack) — texture unique, matériau par piste
   if(!LIGNE_TEX){const cv=document.createElement('canvas');cv.width=4;cv.height=64;const c=cv.getContext('2d');
     c.fillStyle='#fff';c.fillRect(0,1,4,27);c.globalAlpha=.5;c.fillRect(0,0,4,1);c.fillRect(0,28,4,1); // 7/16 de tiret, bouts adoucis d'un texel
@@ -10574,7 +10580,13 @@ function ligneMat(){ // la peinture de la ligne centrale : tirets dans une textu
     LIGNE_TEX.anisotropy=Math.min(IS_MOBILE?4:8,renderer.capabilities.getMaxAnisotropy());} // vue RASANTE : sans anisotropie, la carte réduite gommerait les tirets dès 30 m
   // (2026-09-26, vague 2) la peinture passe du SODIUM doré (0xffc978) au BLANC lavande : sous le grade, les tirets se lisaient ORANGE,
   // une rangée de fausses pièces au milieu de la route. L'or ne sert qu'à ce qui rapporte ; la peinture n'est que de la peinture.
-  return traitMat(new THREE.MeshBasicMaterial({map:LIGNE_TEX,color:0xe4ddff,transparent:true,opacity:.5,depthWrite:false,side:THREE.DoubleSide,polygonOffsetFactor:-1,polygonOffsetUnits:-1}),1.2,2);
+  const m9=traitMat(new THREE.MeshBasicMaterial({map:LIGNE_TEX,color:0xe4ddff,transparent:true,opacity:.5,depthWrite:false,side:THREE.DoubleSide,polygonOffsetFactor:-1,polygonOffsetUnits:-1}),1.2,2);
+  const ob9=m9.onBeforeCompile;m9.onBeforeCompile=function(sh){ob9(sh);sh.uniforms.uFile9=LIGNE_U.uFile;
+    sh.fragmentShader='uniform float uFile9;\n'+sh.fragmentShader.replace('#include <map_fragment>',
+      '{vec4 texelColor=(texture2D(map,vUv+vec2(0.,uFile9*.375))+texture2D(map,vUv+vec2(0.,uFile9*.125))+texture2D(map,vUv-vec2(0.,uFile9*.125))+texture2D(map,vUv-vec2(0.,uFile9*.375)))*.25;'+
+      'texelColor=mapTexelToLinear(texelColor);diffuseColor*=texelColor;}');};
+  m9.customProgramCacheKey=function(){return 'ligneFile';}; /* (sa propre clé : le trait de même réglage n'a pas le filé) */
+  return m9;
 }
 /* LES TRANCHES S'ALLUMENT (2026-09-26) — la dalle fait 2,6 m d'épaisseur, et ses flancs n'étaient qu'un bandeau violet-noir : vu d'avion
    (vol libre, plongeons, les étages de la spirale de la VILLE), le ruban se perdait dans la nuit des tours. Chaque flanc porte désormais
@@ -10936,7 +10948,7 @@ function buildTrack(seed){
      d'une texture MIPMAPPÉE : de près des tirets nets en perspective, au loin la carte réduite en fait d'elle-même un filet continu et
      plus doux — plus de clignotement. Même rythme qu'avant (7 points de tiret sur 16), mêmes trous, zéro rnd(). */
   (function(){
-    const nL9=2*Math.ceil(NP/2)*2,lp=new Float32Array(nL9*3),ll=new Float32Array(nL9*3),lu=new Float32Array(nL9*2),sp9=L/Math.max(1,NP-1),per=16*sp9;let q3=0,q2=0; // (chasse aux gels) écrits en place
+    const nL9=2*Math.ceil(NP/2)*2,lp=new Float32Array(nL9*3),ll=new Float32Array(nL9*3),lu=new Float32Array(nL9*2),sp9=L/Math.max(1,NP-1),per=16*sp9;LIGNE_PER.v=per; /* (LES TIRETS FILENT) la période, pour le filé */let q3=0,q2=0; // (chasse aux gels) écrits en place
     for(const fy of [.05,-THICK-.05]){let acc=0;
       for(let i=0;i<NP;i+=2){if(i>0)acc+=pts[i].distanceTo(pts[i-2]);
         const p2=pts[i],nn=Nn[i],b=B[i];
@@ -28035,7 +28047,7 @@ let engPre=null,engPost=null,engEq=null,engFmt=null,engTickG=null,engTickO=null,
     transO=null,transG=null,diffO=null,diffG=null,pinkG=null,ovrF=null,ovrG=null;
 let MASTER=null,BUSOUT=null,engMix=null,engSub=null,engSubG=null,engNzF=null,engNzG=null,engShaper=null,engLfo=null,engLfoG=null,engWhine=null,engWhineG=null,
     skF1=null,skF2=null,skLfo=null,skD1=null,skD2=null,jcFb=null,jcDep=null,jetDist=null,jrG=null,jrF=null,jrDep=null;
-let engLvl=-1,engGear=1,engRpm=0,engShiftT=0,engWasUp=false,nA=0,duckT=0;
+let engLvl=-1,engGear=1,engRpm=0,engShiftT=0,engWasUp=false,nA=0,duckT=0;const LANCEE={a:[0,0,0]}; /* (2026-10-07) les paliers d'élan déjà sonnés (voir « LA LANCÉE S'ENTEND ») */
 // MOTEURS v2 : un VRAI moteur par caisse. La fréquence fondamentale = fréquence d'explosion
 // (rpm/60 × cylindres/2) → i (Hz au ralenti) + r (plage jusqu'au rupteur). h = les harmoniques
 // (le TIMBRE : V8 rond, 4-pattes rageur, V12 hurleur), sub = le grave poitrine, dr = grain de
@@ -39950,6 +39962,7 @@ function loop(now){
   if(PERF_MON)perfMonTick(now,rawMs);
   lvlStep(dt);routeTick(); // NIVEAUX : le noir de l'orbite, la planète et la pluie suivent le même fondu — AVANT bioStep, qui lit LVL.espace
   bioStep(dt); // BIOMES : le voyage d'ambiance avance même au menu/en pause de jeu (c'est le ciel qui vit, pas la sim)
+  if(mode!=='drive'||!running||gameOver)LIGNE_U.uFile.value*=Math.max(0,1-dt*6); /* (LES TIRETS FILENT) hors de la route, le filé retombe : pas de tirets flous au menu */
   if(parkGrassMat)parkGrassMat.uniforms.uTime.value=now*.001; // l'herbe longue du parc ondule au vent (now : dispo avant `const t`)
   cityTick(dt,camera.position.y); // LA VILLE : son altitude court après la caméra (hors gate de sim — le décor vit au menu, comme le ciel)
   try{portesTick();}catch(e){} // (optimisation) les chaînes muettes se débranchent, les chaînes appelées se rebranchent
@@ -40162,6 +40175,7 @@ function loop(now){
       boost=Math.max(0,boost-dt);
       speedKmh=Math.abs(vF)*3.6*SPD*spdMult;
       vpalTick(speedKmh); // (2026-09-28) les PALIERS DE VITESSE : chaque centaine franchie se crie (écran nu : pas de compteur sur téléphone)
+      {const f9=Math.min(.42,speedKmh/3.6*Math.max(dt,1/120)/Math.max(1,LIGNE_PER.v));LIGNE_U.uFile.value+=(f9-LIGNE_U.uFile.value)*Math.min(1,dt*12);} /* (LES TIRETS FILENT) la route parcourue pendant cette image, en part de période */
       // PURE SPEED → NITROOO (2026-09-29) : 2 s (NTR_T) de nitro soutenu sur la route, au-delà de 55 % de la vmax du moteur (voir le bloc NITROOO)
       if(nitroOn&&startBoostT<=0&&speedKmh>Math.min(400,vmaxShow()*.55)){ // (le boost de DÉPART tient la touche à la place du joueur : il ne compte pas)
         pureT+=dt;
@@ -41006,7 +41020,10 @@ function loop(now){
       nitroLight.color.setHex(0xff5a1e);nitroLight.position.copy(carGroup.position).addScaledVector(hsF,CARS[level].l*.5).addScaledVector(hsU,.9);
       nitroLight.intensity=Math.max(nitroLight.intensity,3.4*ORBFX.feu*(.8+.2*Math.sin(t*37)));}
     // PLUME DE RÉACTEUR : court au filage, long et affûté à la nitro — flicker haute fréquence, la flamme VIT
-    const jTgt=(mode==='boom')?0:((nitroOn?(nitroBlue?1.35:1.05):((mode!=='drive'||loop._wasUp)&&Math.abs(speedKmh)>20?.34:0))+(boost>0?.4:0));
+    /* (2026-10-07) LA LANCÉE SE VOIT : tenir sa ligne remplit l'élan (`momT`, jusqu'à ×2,8 de reprise) — un mécanisme invisible jusqu'ici. Au sol,
+       la plume de croisière (.34) s'allonge avec lui jusqu'à .56 : on VOIT la caisse se charger quand on conduit propre, et retomber au coup de volant. */
+    const lanc9=mode==='drive'&&!nitroOn?THREE.MathUtils.clamp(momT/4.2,0,1):0;
+    const jTgt=(mode==='boom')?0:((nitroOn?(nitroBlue?1.35:1.05):((mode!=='drive'||loop._wasUp)&&Math.abs(speedKmh)>20?.34+.22*lanc9*lanc9:0))+(boost>0?.4:0));
     JETS.k+=(jTgt-JETS.k)*Math.min(1,dt*11);
     if(JETS.shells.length){
       const jOn=JETS.k>.05,fl9=.82+.18*Math.sin(t*57+Math.sin(t*33)*2.1);
@@ -41188,6 +41205,11 @@ function loop(now){
            n'est pas une palette, c'est un tableau de nombres. */
         const P9=engSndParams(eng,{rpm:engRpm,charge:charge9,ovr:ovr9,drift:drift9,nA:nA,thr:thr,
           vsp:Math.min(1.15,spd3/Math.max(1,vmaxShow())),wob:wob,boost:boost>0,cloudIn:cloudInS,dk:dk,nB:TEL_NATIF?1:0,gE:VOL_LOCKED?1:.72,lpMin:TEL_NATIF?700:0});
+        /* (2026-10-07) LA LANCÉE S'ENTEND : l'élan GONFLE le ventre du moteur (sub + corps, jusqu'à +35 % / +12 %) — jamais sa note (le « moustique ») ;
+           et chaque palier d'élan (1,5 · 3 · 4,2 s de ligne tenue) allume un CYLINDRE (`moteur.cylindre`, un degré plus haut à chaque palier), réarmé
+           seulement quand l'élan est retombé de 0,8 s sous le palier : conduire propre a un rythme qu'on entend. */
+        {const m9=THREE.MathUtils.clamp(momT/4.2,0,1);P9.subG*=1+.35*m9;P9.mix*=1+.12*m9;
+         const L9=LANCEE;for(let k9=0;k9<3;k9++){const sx9=[1.5,3,4.2][k9];if(!L9.a[k9]&&momT>=sx9&&running&&!gameOver){L9.a[k9]=1;if(SONV2&&thr)try{sfx('moteur.cylindre',{st:sonPd(2+k9*2),vol:-4});}catch(e){}if(k9===2)hap(6);}else if(L9.a[k9]&&momT<sx9-.8)L9.a[k9]=0;}}
         engApplique(P9); // (2026-10-05) les réglages appliqués aux nœuds : partagés avec le BURN-OUT du garage
       }else if(gainN){
         // en vol : un souffle de moteur résiduel ; MORT ('boom') : coupé NET — et on retombe au
@@ -41210,12 +41232,19 @@ function loop(now){
       }
       if(windG){
         // MORT ('boom') : coupé NET — sinon spd3 (=speedKmh figé au crash) laisse le vent souffler à fond pour toujours
-        stt(windG.gain,mode==='boom'?0:Math.min(.05,spd3*.0001+(mode==='fall'?.018:0)+cloudInS*.02)*dk*(SONV2?1-Math.min(1,LVL.espace):1),AC.currentTime,mode==='boom'?.08:.15); // coef ÷2 (SPD .25→.5 : spd3 a doublé) — le vent garde sa montée progressive au lieu de saturer dès le mid-game
+        /* (2026-10-07, Sacha : « des moyens soft pour augmenter la sensation de vitesse ») LE VENT NE PLAFONNE PLUS : il saturait à 500 km/h
+           (gain .05) — au-delà, l'oreille ne recevait plus rien de la vitesse (le moteur, lui, s'arrête à la croisière : sa note ne doit pas
+           monter, Sacha l'avait trouvé « moustique »). Il continue en LOGARITHME jusqu'à 1 800 km/h (.05 → .075 : l'oreille entend les
+           rapports, pas les écarts) et, passé la croisière, il RAFALE : deux ondes lentes (2,1 et 3,3 Hz) qui creusent jusqu'à 22 % — l'air
+           qui frappe la carrosserie. Sous 500 km/h, rien ne change. */
+        {const vg9=spd3<500?spd3*.0001:.05+.025*Math.log(spd3/500)/Math.log(3.6),vC9=Math.max(1,vCroisiere()),rf9=.22*THREE.MathUtils.clamp((spd3-vC9)/vC9,0,1)*(mode==='drive'?1:.5),
+               raf9=1+rf9*(.6*Math.sin(t*13.19)+.4*Math.sin(t*20.73+1.7));
+         stt(windG.gain,mode==='boom'?0:Math.min(.075,vg9+(mode==='fall'?.018:0)+cloudInS*.02)*raf9*dk*(SONV2?1-Math.min(1,LVL.espace):1),AC.currentTime,mode==='boom'?.08:rf9>.01?.06:.15);} // coef ÷2 (SPD .25→.5 : spd3 a doublé) — le vent garde sa montée progressive au lieu de saturer dès le mid-game
         stt(windF.frequency,Math.min(16000,(280+spd3*1.25)*(1-.6*cloudInS)+(mode==='fall'?260:0)),AC.currentTime,.15); // ⚠ plafonné : au-delà de 24 kHz le navigateur crachait un avertissement PAR IMAGE // le nuage étouffe le vent, l'air libre l'aère (coef ÷2 : même pitch au même état-caisse)
       }
       if(whG){ // sifflement d'air : la signature des vitesses folles (>330 km/h)
         // MORT : coupé NET (même piège que le vent : sinon le sifflement reste bloqué à fond après le crash)
-        stt(whG.gain,mode==='boom'?0:Math.min(.06,Math.max(0,(spd3-560)/4400))*(1-.7*cloudInS)*(1-.5*nA)*dk*(SONV2?1-Math.min(1,LVL.espace):1),AC.currentTime,mode==='boom'?.08:.12); // seuil+pente ×2 (SPD .25→.5 : spd3 a doublé) — le sifflement reste la signature des VITESSES FOLLES, pas un fond permanent
+        stt(whG.gain,mode==='boom'?0:(spd3<824?Math.max(0,(spd3-560)/4400):Math.min(.085,.06+.025*Math.log(spd3/824)/Math.log(2.2)))*(1-.7*cloudInS)*(1-.5*nA)*dk*(SONV2?1-Math.min(1,LVL.espace):1),AC.currentTime,mode==='boom'?.08:.12); /* (2026-10-07) le sifflement, saturé à 824 km/h, continue lui aussi (logarithme, .085 à 1 800) */ // seuil+pente ×2 (SPD .25→.5 : spd3 a doublé) — le sifflement reste la signature des VITESSES FOLLES, pas un fond permanent
         stt(whF.frequency,2000+spd3*1.2,AC.currentTime,.1); // coef ÷2 : même pitch au même état-caisse
       }
       if(cloudInS>.45&&!loop._cldWas&&!SONV2)noiseBurst(.45,.08,520); // percée dans la ouate : fwoosh de coton

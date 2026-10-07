@@ -1047,6 +1047,22 @@ refait EN VOXELS (10 cm, `NY_U`), chaque pièce dessinée dans SON plan (bloc «
 - MESURÉ (banc `maj.mjs` sur une copie construite par vercel-build.sh, servie en local) : même version → aucun rechargement ; nouvelle
   version au menu → rechargé (2 fois au plus) ; publiée en pleine course → rien pendant 30 s de course, rechargé juste après la mort.
 - ⚠ Un appareil qui tourne une version d'AVANT ce mécanisme doit être rechargé une fois à la main (ou l'appli fermée/rouverte).
+## LA VITESSE QU'ON SENT (2026-10-07, session SON — Sacha : « des moyens soft pour augmenter la sensation de vitesse et rendre la conduite un peu plus addictive »)
+Règle tenue : AUCUN élément ajouté, aucun texte — on règle ce qui existe. Trois plafonds mesurés à la lecture : le VENT saturait à 500 km/h, le
+SIFFLEMENT à 824 km/h, la note du MOTEUR s'arrête à la croisière (et ne doit pas monter : « moustique ») → passé 800 km/h l'oreille ne recevait plus
+rien de la vitesse. Et les tirets de la ligne centrale (un tous les ~31 m) BÉGAYAIENT à 30 i/s passé ~1 100 km/h (roue de charrette).
+- **LE VENT NE PLAFONNE PLUS** (bloc audio, `windG`/`whG`) : identique sous 500 km/h ; au-delà, logarithme (.05 → .075 à 1 800 km/h) ; passé
+  la croisière (`vCroisiere()`), RAFALES : deux sinus lents (2,1 / 3,3 Hz) qui creusent jusqu'à 22 % (moitié en vol). Le sifflement continue
+  pareil au-delà de 824 km/h (.06 → .085).
+- **LES TIRETS FILENT** (`ligneMat`, `LIGNE_U.uFile`, `LIGNE_PER`) : le tiret est moyenné sur 4 lectures le long de la route, étalées sur ce
+  que la caisse parcourt en UNE image (vitesse × dt ÷ période, plafond .42) ; écrit dans la conduite, retombe à 0 hors de la route (tête de
+  `loop`). Clé de programme propre `ligneFile` : un programme de plus AU DÉPART, zéro en course (mesuré).
+- **LA LANCÉE SE VOIT ET S'ENTEND** (`momT`, la réserve d'élan — jusqu'à ×2,8 de reprise, invisible jusqu'ici) : au sol, la plume de
+  croisière s'allonge de .34 à .56 (`lanc9` dans `jTgt`) ; le VENTRE du moteur gonfle (sub +35 %, corps +12 %, jamais la note) ; trois
+  paliers (1,5 · 3 · 4,2 s de ligne tenue) sonnent chacun un `moteur.cylindre` qui monte d'un degré (`LANCEE.a`, réarmé quand l'élan est
+  retombé 0,8 s sous le palier), le dernier avec une petite vibration `hap(6)`. Retirer le carillon = supprimer la boucle `L9` du bloc moteur.
+- Vérifié : un passage court muet (SwiftShader, son du jeu allumé) — 0 erreur, 0 exception de boucle, 0 programme compilé en course.
+  À juger À L'OREILLE et à l'œil par Sacha (rafales, carillon d'élan).
 ## LA POSE DÉBOGUÉE (2026-10-01, session SON — Sacha : « il y a des bugs quand on essaye de se poser sur la route, lance des debug » ; GRAPHISME, auteur du bord v2, a passé la plume sur tryLand / la caméra de pose)
 - **LE BANC DES POSES** (scratchpad f6f592c0/da) : `dbgPose({s|ds|cherche:'plat'|'droit'|'montee'|'descente'|'virage', h, lat, vT, vB, vN, face})` lâche la caisse au-dessus de la route avec ses vitesses dans le repère de la dalle ; `window.__poseJ` = le journal des poses (hauteur de déclaration, point, vitesses, face). `pose-banc.js` : 144 lâchers (12 cas × 4 terrains × 3 vitesses) avancés à 1/60 s par `dbgStep` — ⚠ le banc coupe le rendu (`rdr.render` vide : 2 ms le pas au lieu de 50), neutralise `requestAnimationFrame` (chaque dbgStep relançait une chaîne rAF de plus : après 4 000 pas la page gelait, un FAUX gel du jeu) et fait avancer `performance.now` de 16 ms par pas (les « reprises » de caméra se jugent en temps réel). `pose-cam.js` (caméra image par image autour de la pose), `pose-cote.js` (retour par le côté à différentes hauteurs, `GRAINE=n` fixe la piste), `pose-trace.js`, `fumee-pose.js` (vrai jeu).
 - **1. LA POSE SANS SAUT** : la pose est déclarée dès 3 m au-dessus de la dalle et la conduite posait la caisse SUR le bitume à l'image suivante — 2,1 à 2,6 m de descente en UNE image, gerbe et choc partis en l'air. La hauteur qui reste devient un saut de conduite (`hopY/hopV`), et gerbe, choc, secousse, tassement, gomme partent AU CONTACT (`POSE_F`). Posée sous le niveau (lèvre, plan percé) : elle remonte par `levreY`. La règle de pose ne change pas.
