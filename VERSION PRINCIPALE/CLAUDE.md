@@ -239,6 +239,12 @@ refait EN VOXELS (10 cm, `NY_U`), chaque pièce dessinée dans SON plan (bloc «
   (GARAGE · CARRIÈRE · BOUTIQUE) est masquée. La porte montre ce qu'il y a derrière : après un filet, la CIBLE des missions avec ses trois
   cases (le même `#mMisPips`, rempli par le même code) et le TROPHÉE de la carrière — le joueur qui cherche ses missions les voit.
   `#bdGar` (ce qui s'achète) est déplacée sur la porte. Le ciel gagne une rangée.
+  **7/10, Sacha : « le bouton garage doit être simplifié, avec juste l'inscription GARAGE dessus »** → la porte ne porte plus que le mot
+  GARAGE, centré (`--f4`) : plus d'icône, plus d'aperçu cible/cases/trophée (`#mMisPips` n'est plus dans le DOM de l'accueil, son code
+  de remplissage est gardé par un `if`). La pastille `#bdGar` reste à cheval sur le bord, comme sur l'ancienne tuile.
+- **LE SON DE L'INTRO « 1.61 » REVIENT** (7/10, Sacha : « pour l'animation 1.61 au début, il n'y a plus le son ») : `INTRO_SON=true`.
+  Léo l'avait coupé la nuit du 6/10 (c135414, « plus aucune musique avant le ciel »). La musique du LOBBY part toujours avec le ciel ;
+  la composition de l'intro (contexte audio à elle, fondu à `hide`) suit l'interrupteur SON et le curseur EFFETS. `false` = l'intro muette.
 - **LA BARRE DU HUB** (`#gHub`, niveau body, z 82 : AU-DESSUS de la feuille `#carr` z 80) : ATELIER · MISSIONS · CARRIÈRE, au MÊME
   endroit sur les trois pages (la mémoire du pouce). Debout : en bas, pleine largeur ; couché : en bas à GAUCHE sous la caisse (la colonne
   de droite garde la console, HOME et JOUER). Penchée (`--sk`) comme tout ce qui se touche, jamais d'or (l'or = JOUER). Un onglet = sa
