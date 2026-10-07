@@ -1,5 +1,26 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LE BURN-OUT RÉALISTE (2026-10-07, soir, Léo : « rends-le le plus réaliste, esthétique et mouvement ») — par-dessus le BURN-OUT v2 ci-dessous, le geste ne change pas
+- **LA FUMÉE** (`BURN_FS_FUM`) : plus de cases pixel — chaque bouffée est une BOULE MOLLE creusée de volutes (bruit cuit une fois,
+  `burnBruitTex` 64 × 64, lu à deux échelles qui glissent avec `uT`), éclairée comme une sphère par la lampe du plafond ; vieille, elle se
+  défait en filaments. Physique (`burnPas`) : freinée vite par l'air (1,9/s), elle monte à la chaleur, GONFLE vite puis lentement et se
+  DILUE en gonflant (épaisse au pneu, voile plus loin). Moins de bouffées, plus grosses et blanches, jetées en arrière et sur les côtés au
+  ras du sol. LE VOILE (`BURN.voile`, 40 nappes de 4-6 m, 9-12 s, même programme) remplit l'atelier. La grille pixel d'avant : `BURN_PX`.
+- **LES FEUX STOP** : au burn-out on tient le frein — `carVit` allume les feux (`BURN.feuxK`), et la fumée qui passe à moins de 1,7 m
+  des feux (`BURN.feuxW`, les halos `HALO.t`) rougit.
+- **LA GOMME** (`burnGomme`) : toile 256 × 256 filtrée en douceur ; chaque pneu arrière dépose trois filets (ses sculptures) en segments,
+  étirés sur la longueur de la bande de roulement — sur place une TACHE noire, en donut l'ANNEAU noir autour de la caisse. La trace orange
+  qui refroidissait est coupée (`BURN_TRACE_CHAUDE`).
+- **LE MOUVEMENT** : `DON.om` 6,5, `ze` ,62 (le fouet garde un petit dépassement, plus de « boing »), rotation plafonnée à `wmax` 5,2 rad/s
+  et `amax` 42 rad/s² (un donut tenu ~4,2 rad/s) ; le nez se lève moins (~2,4°) ; le COUPLE du moteur vrille la caisse d'un côté ; elle
+  tire à peine sur ses freins (1-2 cm) ; le cul danse AUTOUR DES ROUES AVANT (plantées) ; les roues avant ROULENT du chemin que le donut
+  leur fait faire (`BURN.av`) ; les roues arrière ont leur FLOU de jante (`burnFlou` : une copie des seuls disques arrière de `ROUES.flou`,
+  même programme). LE LÂCHER : plus de bond — les gaz coupés, le cul remonte, le nez pique un peu, elle se pose.
+- **RETIRÉS (pas réalistes)** : les étincelles bleu → or → rose et l'arc `drift.charge` des paliers, les braises des pneus
+  (`BURN_ETINC_ON` false : les paliers ne se sentent plus qu'au pouce). Le feu des POTS reste, en lueur molle (`BURN_FS_FLAMME`) ; les
+  pixels du chat pop-tart gardent leur shader.
+- Vérifié au banc (vrais gestes souris, debout) : tenu, fouet, donut 3 tours puis l'anneau noir sur le plateau, 0 erreur. sw.js → v157.
+
 ## LE BURN-OUT v2 — LE FOUET ET LE VOLANT (2026-10-07, Léo : « corrige l'effet burn-out : refabrique une version avec le drift plus fun, un donut satisfaisant à faire, et le maintien du burn sur place mieux fait » · puis « en fait un mélange entre le premier burn-out hyper dynamique et cool qui ne sortait jamais du cercle, et celui où on peut avec le doigt faire un donut complet »)
 - **MESURÉ AVANT** (banc au vrai geste souris, debout 390 × 844) : un tour de doigt = 0,6 tour de caisse, l'excédent jeté (`avance` ,55) — la
   caisse décrochait du doigt, ~4 s par tour ; en donut elle passait SOUS la console (la caméra ne reculait pas) ; sur place le tremblement
