@@ -26879,7 +26879,7 @@ const MUSIC_VILLE=['NÉON COMPLÈTE 1','NÉON COMPLÈTE 2','NÉON COMPLÈTE 3','
 const MUSIC_CIEL_TOUT={titre:'CIEL · LES 5 NIVEAUX',f:'assets/audio/music/ciel/ciel-complet.m4a'};
 function musicLieuVoulu(){
   const c=LVL.cur;if(!c)return null;
-  if(c.id==='nuages'){if(c.carr){if(c.carr.i<5)return MUSIC_CIEL[c.carr.i];}else if(!c.piste)return MUSIC_CIEL_TOUT;}
+  if(c.id==='nuages'){if(c.carr){if(c.carr.i<5)return MUSIC_CIEL[c.carr.i];}else if(!c.piste)return MUSIC_CIEL_TOUT;else if(c.piste==='tuto')return MUSIC_CIEL[0];} /* (2026-10-07, audit GRAPHISME) l'AUTO-ÉCOLE (1re partie d'un joueur neuf) retombait sur NOITE DE VELOCIDADE : elle joue le CIEL niveau 1, comme la carrière */
   if(c.id==='ville'&&c.carr&&c.carr.i<5)return MUSIC_VILLE[c.carr.i]; /* (2026-10-05, Léo : « seulement celles de mon screen » : NÉON COMPLÈTE 1-5 ; 6-10 en attente) */ // la carrière VILLE : ses dix musiques (NÉON COMPLÈTE 1-5, puis la suite)
   return MUSIC_LIEU[c.id]||null;}
 /* appelé à chaque changement de niveau (fin de `newTrack`) : change de morceau SEULEMENT si le lieu
@@ -27014,7 +27014,7 @@ function musicAnalyse(){
     musicAnaEl=AC.createMediaStreamSource(st);
     if(!musicAna){musicAna=AC.createAnalyser();musicAna.fftSize=256;musicAna.smoothingTimeConstant=.55;musicData=new Uint8Array(musicAna.frequencyBinCount);}
     musicAnaEl.connect(musicAna); // l'analyseur n'a pas de sortie : rien de ce qui passe ici ne s'entend
-    distPrete();if(DIST.in)musicAnaEl.connect(DIST.in); // (2026-10-03) …et la DISTORSION DU BOOST (sa sortie à elle s'entend, voir plus haut)
+    if(DIST.on){distPrete();if(DIST.in)musicAnaEl.connect(DIST.in);} // (2026-10-03) …et la DISTORSION DU BOOST (sa sortie à elle s'entend, voir plus haut) — (2026-10-07, audit GRAPHISME) seulement si elle est ALLUMÉE : coupée, son sur-échantillonnage 4x tournait sur la musique pour rien
   }catch(e){}
 }
 /* LA DISTORSION DU BOOST (2026-10-03, Léo : « au lieu de modifier la vitesse — ça fait bizarre, ça coupe — fabrique un effet de
@@ -27058,7 +27058,7 @@ function distTick(dt){
   const cible=Math.max(0,DIST.env)*.85*musVol();
   if(Math.abs((DIST._g||0)-cible)>.002){DIST._g=cible;try{DIST.wet.gain.setTargetAtTime(cible,AC.currentTime,.03);}catch(e){}}
 }
-window.dbgDisto=function(a){if(a===0||a===1)DIST.on=!!a;return{on:DIST.on,branchee:!!DIST.in,copieDuSon:!!musicAnaEl,niveau:+DIST.env.toFixed(2),
+window.dbgDisto=function(a){if(a===0||a===1)DIST.on=!!a;if(a===1&&musicAnaEl&&AC){distPrete();try{if(DIST.in)musicAnaEl.connect(DIST.in);}catch(e){}}return{on:DIST.on,branchee:!!DIST.in,copieDuSon:!!musicAnaEl,niveau:+DIST.env.toFixed(2),
   vitesse:+flowVitN().toFixed(2),nitro:!!nitroOn,boost:+Math.min(1,boost).toFixed(2)};};
 function musicGraph(){} // (v4 : plus de graphe Web Audio pour la bande-son — gardée vide pour les anciens appelants)
 function playMusic(url,opt){opt=opt||{};
@@ -30192,31 +30192,32 @@ function instruRacine(tons){ // la fondamentale probable : une note dont la quin
 function instruBus(){
   if(INSTRU.bus||!AC||!MASTER)return INSTRU.bus;
   const g=AC.createGain();g.gain.value=1;
+  const so9=AC.createGain();so9.gain.value=1;so9.connect(MASTER);INSTRU.sortie=so9; /* (2026-10-07) LA PORTE de l'instrument : tout ce qu'il joue sort par là (voir instruCoupe) */
   const cp=AC.createDynamicsCompressor();cp.threshold.value=-20;cp.ratio.value=3;cp.attack.value=.008;cp.release.value=.18;cp.knee.value=12;
   const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1600;lp.Q.value=.5;
   const hp=AC.createBiquadFilter();hp.type='highpass';hp.frequency.value=160;
   const sec=AC.createGain();sec.gain.value=1.05;                                         // (Léo : « plus fondu et effacé ») −3,5 dB sec, la salle porte le reste
-  g.connect(cp);cp.connect(hp);hp.connect(lp);lp.connect(sec);sec.connect(MASTER);
+  g.connect(cp);cp.connect(hp);hp.connect(lp);lp.connect(sec);sec.connect(so9);
   try{ // LA SALLE : du bruit qui s'éteint, assombri avec le temps (calculé une fois, 1,8 s)
     const n=Math.floor(AC.sampleRate*1.8),ir=AC.createBuffer(2,n,AC.sampleRate);
     for(let c=0;c<2;c++){const d=ir.getChannelData(c);let lo=0;for(let i=0;i<n;i++){const x=i/n,a=Math.pow(1-x,3.2),k=.25+.7*x;lo+=(Math.random()*2-1-lo)*(1-k);d[i]=lo*a*(i<AC.sampleRate*.012?i/(AC.sampleRate*.012):1);}}
-    const cv=AC.createConvolver();cv.buffer=ir;const rv=AC.createGain();rv.gain.value=.55;const pd=AC.createDelay(.2);pd.delayTime.value=.035;INSTRU.salle=pd;const rh=AC.createBiquadFilter();rh.type='highpass';rh.frequency.value=320;lp.connect(rh);rh.connect(pd); /* la salle ne prend plus le grave (la « résonance ») */pd.connect(cv);cv.connect(rv);rv.connect(MASTER); // pré-délai 35 ms : l'attaque de chaque note passe AVANT la salle
+    const cv=AC.createConvolver();cv.buffer=ir;const rv=AC.createGain();rv.gain.value=.55;const pd=AC.createDelay(.2);pd.delayTime.value=.035;INSTRU.salle=pd;const rh=AC.createBiquadFilter();rh.type='highpass';rh.frequency.value=320;lp.connect(rh);rh.connect(pd); /* la salle ne prend plus le grave (la « résonance ») */pd.connect(cv);cv.connect(rv);rv.connect(so9); // pré-délai 35 ms : l'attaque de chaque note passe AVANT la salle
   }catch(e){}
   try{ // L'ÉCHO PING-PONG en croche pointée, recalé sur le tempo à chaque appui (instruTempo)
     const dL=AC.createDelay(2),dR=AC.createDelay(2),fb=AC.createGain(),df=AC.createBiquadFilter(),mg=AC.createChannelMerger(2),eg=AC.createGain();
     df.type='lowpass';df.frequency.value=1300;const dh=AC.createBiquadFilter();dh.type='highpass';dh.frequency.value=300;fb.gain.value=.3;eg.gain.value=.26;
-    lp.connect(dh);dh.connect(df);df.connect(dL);dL.connect(dR);dR.connect(fb);fb.connect(dL);dL.connect(mg,0,0);dR.connect(mg,0,1);mg.connect(eg);eg.connect(MASTER);
+    lp.connect(dh);dh.connect(df);df.connect(dL);dL.connect(dR);dR.connect(fb);fb.connect(dL);dL.connect(mg,0,0);dR.connect(mg,0,1);mg.connect(eg);eg.connect(so9);
     INSTRU.dL=dL;INSTRU.dR=dR;
   }catch(e){}
   try{ // (2026-10-03, Léo : « à chaque note un peu plus d'individualité, fais-les ressortir un peu du fondu ») LE CONTOUR : l'attaque de chaque
     // touche (un « tine » d'harmoniques, 40 ms) passe à côté du filtre sombre, de la salle et de l'écho — la note se dessine, le halo reste.
     const ct=AC.createGain();ct.gain.value=1;const ch=AC.createBiquadFilter();ch.type='bandpass';ch.frequency.value=2600;ch.Q.value=.7;
-    ct.connect(ch);ch.connect(MASTER);INSTRU.contour=ct;
+    ct.connect(ch);ch.connect(so9);INSTRU.contour=ct;
   }catch(e){}
   try{ // LE BUS ÉTINCELLE (la 4e mesure et après) : clair, aéré — pas le filtre sombre ; un peu de salle
     const eb=AC.createGain();eb.gain.value=1;const eh=AC.createBiquadFilter();eh.type='highpass';eh.frequency.value=350;
     const el=AC.createBiquadFilter();el.type='lowpass';el.frequency.value=7000;const es=AC.createGain();es.gain.value=.5;
-    eb.connect(eh);eh.connect(el);el.connect(MASTER);el.connect(es);if(INSTRU.salle)es.connect(INSTRU.salle);INSTRU.etin=eb;
+    eb.connect(eh);eh.connect(el);el.connect(so9);el.connect(es);if(INSTRU.salle)es.connect(INSTRU.salle);INSTRU.etin=eb;
   }catch(e){}
   INSTRU.bus=g;return g;
 }
@@ -30290,8 +30291,17 @@ function instruMelodie(k,tons){ // la note de mélodie (MIDI) de la croche k, ou
   }
   INSTRU.mel=n;return n;
 }
+/* (2026-10-07, audit GRAPHISME : « des ting ressortent pendant le 3-2-1 après une pause ») LA PAUSE COUPE LA PHRASE. Avant, la pause la
+   « lâchait » comme un doigt levé (4 à 7 notes de queue) : mais le contexte audio s'endort 70 ms plus tard, l'horloge se fige avec les notes
+   déjà posées, l'écho et la salle pleins — et tout repartait au 3-2-1. Désormais : file vidée, minuterie arrêtée, et la PORTE de l'instrument
+   (`INSTRU.sortie`) se ferme en même temps que la sortie du jeu ; elle ne se rouvre qu'au prochain appui de nitro (instruOn), quand les
+   restes figés ont eu le temps de s'éteindre derrière elle. */
+function instruCoupe(d){
+  INSTRU.queue=0;INSTRU.tient=false;clearTimeout(INSTRU.att);if(INSTRU.iv){clearInterval(INSTRU.iv);INSTRU.iv=0;}
+  try{if(AC&&INSTRU.sortie){const p=INSTRU.sortie.gain,T=AC.currentTime+(d||0);p.cancelScheduledValues(T);p.setTargetAtTime(0,T,.012);INSTRU.ferme=1;}}catch(e){}}
 function instruPlanifie(){ // regard d'avance de 120 ms : les notes tombent pile, même si une image tousse
   if(!AC){clearInterval(INSTRU.iv);INSTRU.iv=0;return;}
+  if(paused&&!INSTRU.essai){instruCoupe(0);return;} /* (2026-10-07) en pause : la phrase est coupée, pas laissée en suspens (voir instruCoupe) */
   if(INSTRU.tient&&(gameOver||paused||mode==='boom'||(!INSTRU.essai&&!instruMusiqueOk())))instruOff(); // (la musique change de map : la phrase se termine)      // la partie s'arrête : la phrase se termine
   if(!INSTRU.essai){if(INSTRU.H!==instruH())instruTempo();else instruHorloge();}        // le morceau a changé ? on relit sa fiche ; sinon on se recale
   const fin=INSTRU.essai?1e9:AC.currentTime+.12;
@@ -30345,7 +30355,7 @@ function instruOn(){
 function instruDemarre(){
   if(!AC||paused)return;
   const t=performance.now(),neuve=t-INSTRU.tDer>2500&&!INSTRU.iv;INSTRU.tDer=t;
-  instruTempo();instruBus();instruEcho();INSTRU.tient=true;INSTRU.vel=1;INSTRU.acc=0;INSTRU.n=0;INSTRU.intro=3;if(neuve||!INSTRU.iv)INSTRU.monte=0;
+  instruTempo();instruBus();instruEcho();if(INSTRU.ferme&&INSTRU.sortie){try{const p=INSTRU.sortie.gain;p.cancelScheduledValues(AC.currentTime);p.setTargetAtTime(1,AC.currentTime,.01);}catch(e){}INSTRU.ferme=0;} /* (2026-10-07) la porte se rouvre à l'appui */INSTRU.tient=true;INSTRU.vel=1;INSTRU.acc=0;INSTRU.n=0;INSTRU.intro=3;if(neuve||!INSTRU.iv)INSTRU.monte=0;
   if(neuve){INSTRU.k=0;INSTRU.mel=67;INSTRU.tNote=instruGrille(AC.currentTime+.005);}  // une phrase NEUVE (silence de 2,5 s)
   else if(!INSTRU.iv){INSTRU.tNote=instruGrille(Math.max(AC.currentTime+.005,INSTRU.der+.09));} // elle REPREND où elle en était
   if(INSTRU.tNote-AC.currentTime>.5)INSTRU.tNote=instruGrille(AC.currentTime+.005);   // garde-fou (horloges qui ont dérivé)
@@ -41961,7 +41971,7 @@ function togglePause(){ if(!started||gameOver)return;
        d'autant plus tard. Le JEU est gelé tout de suite (paused) et les boucles (moteur, vent, nitro…) sont coupées net juste au-dessus :
        pendant ces 0,42 s ne sonnent que les sons ponctuels déjà partis. Une reprise dans l'intervalle annule tout
        (busPlein efface la rampe programmée, clearTimeout la suspension). Onglet caché (retour d'appli) : ni son ni délai. */
-      let d9=0;try{if(SONV2&&!document.hidden)d9=.42;if(SONV2){window.CCSON.annuleFutur(d9);window.CCSON.stopJeu();}}catch(e){} /* (débogage son 2026-09-29) les queues longues (explosion, fanfare, scène moteur) ne repartent plus pendant le 3-2-1 */
+      let d9=0;try{if(SONV2&&!document.hidden)d9=.42;if(SONV2){window.CCSON.annuleFutur(d9);window.CCSON.stopJeu();}}catch(e){}try{instruCoupe(0);}catch(e){} /* (2026-10-07) la phrase du nitro se tait TOUT DE SUITE (le clic ⏸ et la feuille, eux, sonnent jusqu'au bout) */ /* (débogage son 2026-09-29) les queues longues (explosion, fanfare, scène moteur) ne repartent plus pendant le 3-2-1 */
       if(BUSOUT)BUSOUT.gain.setTargetAtTime(0,T8+d9,.012);togglePause._t=setTimeout(function(){try{if(paused&&AC.state==='running')AC.suspend();}catch(e){}},70+d9*1000);}
     else{busPlein();if(SND.sfx)AC.resume();} } }catch(e){}
   if(paused){annStop();fxStop();deathStop();} // (2026-09-26) les voix et les samples sont des HTMLAudio : suspendre le contexte ne les arrêtait pas — (2026-09-28) le son de MORT non plus : une pause pendant l'explosion le laissait hurler par-dessus le panneau
