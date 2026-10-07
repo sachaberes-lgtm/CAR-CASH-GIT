@@ -224,6 +224,17 @@ refait EN VOXELS (10 cm, `NY_U`), chaque pièce dessinée dans SON plan (bloc «
   posée à 6 s ; burn-out + 2,5 tours de doigt → 1 DONUT compté, 320 fumées ; vignette (THE YELLOW CAB) → cadrée ; MISSIONS (vit 0) → ATELIER
   (vit 1) ; JOUER du garage → retour au feu → lâcher → course ; JOUER de l'accueil inchangé. 0 erreur. sw.js → v141.
 
+## LA CARRIÈRE v2 + PLUS DE DÉFI « POSE PARFAITE » (2026-10-07, session GAMEPLAY) — Sacha : « dans l'écran carrière c'est mal fait, notamment la mauvaise police ; aussi pas besoin de mettre autant de texte » · « enlève les défis pose parfaite »
+- **LA CARRIÈRE v2** (`<style id="carriereV2">` + la carte de `carrVue`) : la description de chaque monde (un paragraphe `.mmD` en police
+  SYSTÈME — la « mauvaise police », seul texte non pixel de l'écran) est retirée. Une carte = son ciel (bandeau 46 px), son nom, son
+  compteur « 0 / 5 ▸ » (ouvre la grille), et un pied `.carrPied` : la jauge + « ▶ NIVEAU n » en or (la carte entière lance ce niveau).
+  Debout, les quatre mondes tiennent sur un écran sans défiler (mesuré : cartes 90→630 px sur 844, HOME à 654). Couché, la jauge
+  passe sur sa ligne. Banc : `scratchpad/garage/carr.js` (mondes + grille, debout + couché, liste des polices affichées).
+- **PLUS AUCUN DÉFI « POSE(S) PARFAITE(S) »** (après la mission 3 du 4/10) : carnet 2 → BRÛLE 10 S DE NITRO, carnet LA 63 → TIENS 3 MIN,
+  carnet LA 62 → 45 S DE NITRO (mêmes primes). La suite sans fin garde la case `perfect` dans son pool (la retirer rebattrait TOUS les
+  carnets en cours : le tirage se fait par position) mais ne la tire plus jamais (`c.k!=='perfect'`). La pose parfaite elle-même
+  (zoom, aura, nitro) ne change pas : seuls les CONTRATS sont partis.
+
 ## LE GARAGE, HUB DES TROIS + LA CONSOLE DE SACHA REVENUE (2026-10-06, session GAMEPLAY) — Sacha : « j'aime pas les modifs que Léo a faites dans le garage concernant les boutons et l'UHD : garde les améliorations du garage 3D puis remets mes boutons et affichage » · « tu peux garder son bouton inventaire, mais retravaille-le dans la DA du reste du jeu » · « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage doit servir de hub aux 3 — mets-toi dans la peau d'un designer UX/UI senior »
 - **LA CONSOLE DE SACHA PAR DÉFAUT** : la VITRINE de Léo (barre du bas, jauges CASH/AURA, MISSIONS sous JOUER, vignette du niveau) ne s'ouvre plus
   qu'avec `?menu=leo` (`if(!MENU_SACHA)garVitrine(true)` aux trois portes : bouton GARAGE, retour des missions, routeur). Par défaut :

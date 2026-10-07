@@ -6046,6 +6046,25 @@ html.hub #mHome .mHubPorte .mBadge{top:-10px;right:-8px;transform:scale(.86);tra
 @media (prefers-reduced-motion:reduce){html.hubOn #gHub{animation:none;transition:none}.ghT,.ghT::before{transition:none}}
 html[data-reduced-motion="1"] #gHub{animation:none!important;transition:none!important}
 </style>
+<style id="carriereV2">
+/* LA CARRIÈRE v2 (2026-10-07, Sacha : « dans l'écran carrière c'est mal fait, notamment la mauvaise police ; pas besoin de mettre
+   autant de texte »). La description de chaque monde (un paragraphe en police SYSTÈME, le seul texte de l'écran hors pixel) est partie ;
+   une carte = son ciel, son nom, sa progression (« 0 / 5 ▸ » ouvre les niveaux) et LE niveau qu'elle lance (« ▶ NIVEAU 1 », en or : la
+   carte entière se touche). Cartes resserrées : les quatre mondes tiennent sur un écran debout, sans défiler. */
+#carr .carrBiome{padding:60px 16px 14px 20px;gap:12px;margin:0 0 12px}
+#carr .carrBiome::before{height:46px}
+#carr .carrBiome .mmD,#carr .carrBiome .carrAct{display:none}
+#carr .carrBiome .mmT{font-size:var(--f3)}
+#carr .carrBiome .mmT .mmP{height:30px}
+.carrPied{display:flex;align-items:center;flex-wrap:wrap;gap:10px 14px}
+.carrPied .carrJauge{flex:1 1 96px;min-width:96px}
+.carrPied .carrGo{flex:none;font-size:var(--f1);letter-spacing:1px}
+.carrPied .carrGo .pxi{--pxs:1}
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  #carr .carrBiome{padding-top:58px}
+  .carrPied .carrJauge{flex-basis:100%}
+}
+</style>
 <style id="poki">
 /* L'ÉDITION POKI (2026-10-04) — tout est sous `html.poki` : sans elle, rien ici ne s'applique. Ce qui n'existe pas chez Poki disparaît
    de l'écran : les MISSIONS (porte de l'accueil, socle et écran de l'atelier, écran #mMis, mission suivie en course), la CARRIÈRE (tuile,
@@ -15142,7 +15161,7 @@ function carrVue(bi){
          LANCE son niveau en cours (le prochain à finir) ; la grille des dix reste derrière le petit bouton NIVEAUX */
       const nx=Math.min(B.niveaux.length-1,f);
       h+='<div class="mMode carrBiome" data-c="monde" data-b="'+k+'" data-i="'+nx+'" data-id="'+B.id+'" role="button"><div class="mmT"><span>'+pxi(B.ic)+' '+TR(B.nm)+'</span><span class="mmP carrNivs" data-c="biome" data-b="'+k+'" role="button" aria-label="'+TR('NIVEAUX')+'">'+f+' / '+B.niveaux.length+'</span></div>'
-        +'<div class="carrAct"><span class="carrGo">'+pxi('droite')+' '+TR('JOUER')+' · '+TR('NIVEAU')+' '+(nx+1)+'</span></div><div class="mmD">'+TR(B.desc)+'</div><div class="carrJauge"><i style="width:'+Math.round(f*100/B.niveaux.length)+'%"></i></div></div>';}); // (la ligne JOUER juste sous le titre : couché, une longue description la poussait sous le RETOUR) // le compteur « 0 / 10 ▸ » ouvre la grille des dix
+        +'<div class="carrPied"><div class="carrJauge"><i style="width:'+Math.round(f*100/B.niveaux.length)+'%"></i></div><span class="carrGo">'+pxi('droite')+' '+TR('NIVEAU')+' '+(nx+1)+'</span></div></div>'; /* (2026-10-07, Sacha : « mauvaise police, pas besoin d'autant de texte ») plus de description : le nom, la progression, le niveau à jouer */}); // (la ligne JOUER juste sous le titre : couché, une longue description la poussait sous le RETOUR) // le compteur « 0 / 10 ▸ » ouvre la grille des dix
   }else{
     const f=carrFait(bi);h+='<div class="carrGrille">';
     CARRIERE[bi].niveaux.forEach(function(N,i){const ok=TEST_CARRIERE||i<=f; // (2026-09-27) version TEST : tous les niveaux se lancent (la couleur dit toujours la vraie progression)
@@ -23059,15 +23078,15 @@ function misVal(k){ // la valeur COURANTE d'un critère, dans la partie en cours
    magot), 4-5) l'endurance et le style. Les seuils sont calés sur le pilote automatique (`dbgAuto`). */
 const CARNETS=[
   {r:{car:6},m:[{k:'coins',v:25,p:300},{k:'fruits',v:4,p:300},{k:'cash',v:1000,p:400}]},
-  {r:{car:7},m:[{k:'tricks',v:2,p:600},{k:'perfect',v:1,p:600},{k:'kmh',v:672,p:600}]}, // 672 = 700 × 0,96 (SPD .5 → .4 → .48 : −20 % puis +20 %)
+  {r:{car:7},m:[{k:'tricks',v:2,p:600},{k:'nitro',v:10,p:600},{k:'kmh',v:672,p:600}]}, /* (2026-10-07, Sacha : « enlève les défis pose parfaite ») UNE POSE PARFAITE → 10 s de nitro (même prime) */ // 672 = 700 × 0,96 (SPD .5 → .4 → .48 : −20 % puis +20 %)
   {r:{car:8},m:[{k:'zones',v:1,p:1500},{k:GAP_ON?'gaps':'chain',v:GAP_ON?1:3,p:1500},{k:'cash',v:20000,p:2000}]}, // (2026-09-26) sans catapultes (GAP_ON), un gap est IMPOSSIBLE : le contrat bloquait toute la suite
   {r:{cat:'peinture',id:'or'},m:[{k:'survie',v:150,p:4000},{k:'tricks',v:8,p:4000},{k:'cash',v:100000,p:5000}]},
   {r:{cat:'trainee',id:'arcenciel'},m:[{k:'zones',v:2,p:8000},{k:'chain',v:4,p:8000},{k:'coins',v:80,p:8000}]}, /* (2026-10-04, Sacha : « enlève la mission 3 pose parfaite ») le DÉFI 3 de ce carnet était « 3 POSES PARFAITES » : 80 pièces en une partie à la place (même prime) */
 /* ===== LES CARNETS DES 50 — DÉBUT ===== */
   {r:{car:65},m:[{k:'tricks',v:10,p:10000},{k:'coins',v:120,p:10000},{k:'zones',v:2,p:12000}]},
-  {r:{car:63},m:[{k:'perfect',v:5,p:15000},{k:'kmh',v:900,p:15000},{k:'chain',v:6,p:18000}]},
+  {r:{car:63},m:[{k:'survie',v:180,p:15000},{k:'kmh',v:900,p:15000},{k:'chain',v:6,p:18000}]}, /* (2026-10-07) 5 POSES PARFAITES → tiens 3 min */
   {r:{car:64},m:[{k:'zones',v:3,p:25000},{k:'fruits',v:12,p:25000},{k:'cash',v:500000,p:30000}]},
-  {r:{car:62},m:[{k:'tricks',v:20,p:40000},{k:'perfect',v:10,p:40000},{k:'zones',v:4,p:50000}]},
+  {r:{car:62},m:[{k:'tricks',v:20,p:40000},{k:'nitro',v:45,p:40000},{k:'zones',v:4,p:50000}]}, /* (2026-10-07) 10 POSES PARFAITES → 45 s de nitro */
 /* ===== LES CARNETS DES 50 — FIN ===== */
 ];
 /* (vague 3, 2026-09-27) LES CONTRATS À LA NOUVELLE ÉCHELLE — convertis À LA LECTURE (les carnets 6-9 sont régénérés par
@@ -23097,7 +23116,7 @@ function carnetBrut(n){ // au-delà des carnets écrits : une suite SANS FIN, ti
     {k:'survie',v:M(420,150+30*l)},{k:'chain',v:M(8,4+l)},{k:'nitro',v:M(60,20+5*l)}].filter(function(x){return GAP_ON||x.k!=='gaps';}); // jamais de mission impossible
   const m=[];let h=(Math.imul(n,2654435761)>>>0)||1;
   while(m.length<3){h=(Math.imul(h,1103515245)+12345)>>>0;const c=POOL[(h>>>8)%POOL.length];
-    if(!m.some(x=>x.k===c.k))m.push({k:c.k,v:c.v,p:pr});}
+    if(c.k!=='perfect'&&!m.some(x=>x.k===c.k))m.push({k:c.k,v:c.v,p:pr});} /* (2026-10-07, Sacha) plus de défi POSE PARFAITE : la case reste dans le pool (la retirer rebattrait tous les carnets en cours), elle n'est plus tirée */
   return {r:{cash:pr*2},m:m};
 }
 function misDuree(s){s=Math.round(s);return s>=60?(Math.floor(s/60)+' MIN'+(s%60?' '+String(s%60).padStart(2,'0'):'')):s+' S';}
