@@ -1,5 +1,22 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LA CAISSE AU DOIGT, AU CIEL — v2 « TRASH » (2026-10-07, Léo : « dans le menu ciel la voiture doit pouvoir être tournée, tapée, balancée ; le clic sur elle doit être plus trash »)
+- Remplace LE TAPOTEMENT AU CIEL du 03/10 (bloc « LA CAISSE AU DOIGT, AU CIEL » avant `chuteStudio` ; mêmes points d'entrée `chuteTape` /
+  `chuteTapeTick`, + `chuteVise`, `chutePrend`, `chuteTourne`, `chuteLache`, branchés dans les pointerdown/move/up/cancel du garage).
+- TAPÉE : poussée dans le sens du doigt ET de côté (repoussée au loin seulement, elle rapetissait), couple r × F, une part de CHAOS ;
+  éclat, gerbe d'étincelles (`sparkGold`), poussière, 16 MORCEAUX DE TÔLE à la couleur de la pièce touchée (couleur de sommet × matière)
+  que l'air emporte vers le haut ; secousse + coup de zoom de la caméra ; `pose.choc` + `debris.tole` (+ `pose.lourde` dès le 3e coup),
+  vibration. COMBO : coups à moins de 0,7 s → ×1 → ×2,75. Mesuré : un coup ≈ 28° de vrille, une rafale de 5 ≈ 130° et ~3,7 m de poussée.
+- TOURNÉE : un glissé qui PART de la caisse la fait tourner comme une boule (et la tire un peu, ressort vers le doigt) ; ailleurs le
+  glissé fait toujours tourner la vue (et LE TOUR SANS FIN reprend après). BALANCÉE : lâchée en mouvement, elle garde l'élan du doigt —
+  toupie (~9 rad/s mesurés) de deux-trois tours, puis le ressort la rattrape.
+- La rotation est un QUATERNION (`CHUTE_TAP.Q`) ramené par le plus court chemin (pas de « détorsion » après trois tours) ; au-dessus de
+  `WL` rad/s le ressort et l'amorti se relâchent (la toupie). Le rebond du VENTRE (`chuteStudio`, `ve`) lit le dessous TOURNÉ.
+- Zéro programme compilé au premier coup (mesuré 142 → 142) : morceaux en Phong nus, éclat et étincelles déjà dans le jeu. Au menu,
+  `chuteTapeTick` fait vivre `sparkGold` et `dust` (la boucle de course ne tourne pas) ; `chuteSort` range l'éclat et les morceaux.
+- Réglages `CHUTE_TAP` (V 7,5 · W 5 · WMAX 16 · CHAOS 5 · K/C 12/2,4 · KR/CR 16/1,9 · WL 3 · TR/TT le doigt). Console : `dbgTape()`
+  (coups, combo, poussée, pivot, toupie, morceaux, centre à l'écran), `dbgTape('coup')` frappe le centre. sw.js → v160.
+
 ## LE TOUR SANS FIN DE L'ÉCRAN TITRE (2026-10-07, Léo : « l'écran menu ciel, dans le même angle, tourne en 360 constamment — pas trop rapide, faut pas que ce soit vomitif, plutôt lent ; on doit pouvoir tourner la voiture ; faut que ça ait l'air d'être en chute »)
 - Le regard fait le tour complet de la caisse qui tombe, à la HAUTEUR du menu (`CHUTE.oP` ne bouge pas) : un tour en `CHUTE_P.tour` = 75 s
   (~4,8°/s), le caméraman de chute libre qui spirale autour d'elle pendant que l'air et les cumulus montent. C'est L'ORBITE AU DOIGT (bloc
