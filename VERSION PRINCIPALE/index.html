@@ -27580,15 +27580,17 @@ window.dbgSfx=function(quoi){
 };
 /* `dbgJus(n)` — gicle n taches de jus sur l'objectif, sans avoir a croquer un fruit. Rend la part
    d'ecran reellement repeinte : c'est la seule mesure qui reponde a « on ne le voit pas ». */
-window.dbgJus=function(n,col,gel){
-  juiceScreen(col==null?0xff3ec8:col,1.2,n||5);
+window.dbgJus=function(n,col,gel,u){ // (v7) n = 0 : l'objectif est ESSUYÉ · u : chaque tache avancée à cette fraction de sa vie, glissade au bout
+  if(n===0){for(const j of JUS)j.toile.pris=false;JUS.length=0;}else juiceScreen(col==null?0xff3ec8:col,1.2,n||5);
   if(gel)for(const j of JUS)j.vie=40; // FIGÉ : les taches vivent 1,2 s, trop court pour une capture
-  juiceScreenTick(.05);
+  if(u!=null)for(const j of JUS){j.t=u*j.vie;j.gy=j.gm;}
+  juiceScreenTick(u!=null?.0001:.05);
   let pct=null;
   try{const d=juiceCx.getImageData(0,0,juiceCv.width,juiceCv.height).data;
-    let p=0,t=0;for(let i=3;i<d.length;i+=4*13){t++;if(d[i]>12)p++;}
-    pct=+(100*p/t).toFixed(1);}catch(e){}
-  return {taches:JUS.length,partDEcranPeinte:pct+' %',canvas:[juiceCv.width,juiceCv.height]};
+    let p=0,t=0,pz=0,tz=0;const W9=juiceCv.width,H9=juiceCv.height;
+    for(let i=3;i<d.length;i+=4*13){t++;const q=(i-3)>>2,x9=q%W9,y9=(q/W9)|0,z9=!jusHors(x9,y9,0,W9,H9);if(z9)tz++;if(d[i]>12){p++;if(z9)pz++;}}
+    pct=+(100*p/t).toFixed(1);dbgJus.route=tz?+(100*pz/tz).toFixed(1):0;}catch(e){}
+  return {taches:JUS.length,partDEcranPeinte:pct+' %',partDeLaRoute:dbgJus.route+' %',canvas:[juiceCv.width,juiceCv.height]}; // (v7) la ROUTE : visée 0
 };
 /* `dbgRadio()` — l'état de la radio (pas `dbgMusic`, déjà pris par le debug audio-réactif du ciel
    plus bas dans le fichier — même piège que `dbgSfx`/`dbgFx` documenté ailleurs). `dbgRadio(1)`
@@ -31224,6 +31226,14 @@ function crunchSfx(rang){
    · OÙ : 35 % tombent EXPRÈS sur la zone de conduite (la caisse et la route devant elle), 45 % n'importe où, 20 % dans la couronne ;
    · 10 à la fois au plus (8), vie 1,3-2 s (0,9-1,4), pleines .93 les premiers 55 % (.86 / 40 %) ;
    · elles GLISSENT : passé 0,3 s, la goutte descend l'écran (12-34 px/s, par pas de 4 px) — du jus qui coule sur la vitre. */
+/* LE JUS v7 — LA ROUTE DÉGAGÉE (2026-10-07, Sacha : « améliore la visibilité de la route, notamment en enlevant les taches de fruit écrasé
+   du milieu de l'écran »). La v6 en jetait EXPRÈS 35 % sur la caisse et la route (et 45 % n'importe où) : la route était sous le jus.
+   Désormais AUCUNE tache ne se pose dans la ZONE DE LA ROUTE (`JUS_ZONE` : une ellipse autour de la caisse et de la route devant elle,
+   centrée (½ W, 0,56 H), demi-axes 0,33 W × 0,37 H, élargie du rayon de la goutte) : elles vivent sur les BORDS et dans les coins.
+   Elles gardent leur taille (v6) et leur dessin, mais ni leur glissade ni leur coulure n'entrent dans la zone (`gm`, coulure raccourcie).
+   `dbgJus` rend aussi la part de la zone repeinte (visée : 0). */
+const JUS_ZONE={cx:.5,cy:.56,a:.33,b:.37};
+function jusHors(x,y,m,W,H){const ex=(x-W*JUS_ZONE.cx)/(W*JUS_ZONE.a+m),ey=(y-H*JUS_ZONE.cy)/(H*JUS_ZONE.b+m);return ex*ex+ey*ey>1;} // le point (x, y), gonflé de m px, est-il HORS de la route ?
 const JUS_N=240,JUS=[],JUS_PX=4,JUS_TOILE=[],JUS_BLANC=new THREE.Color(1,1,1),JUS_ENCRE='#1c0430',JUS_M=new Uint8Array(JUS_N*JUS_N);let JUS_IM=null; // masque et pixels de brouillon RÉUTILISÉS (JUS_N cellules = la plus grande goutte)
 function jusToile(){ // une toile libre de la réserve (15 au plus : la file plafonne à 14 taches)
   for(const t of JUS_TOILE)if(!t.pris){t.pris=true;return t;}
@@ -31242,11 +31252,13 @@ function juiceScreen(col,power,n){
     const R=Math.min(112,(B9*.1+Math.random()*B9*.1)*(.8+power*.45)),coul=R*(.5+Math.random()*.9); // (v6) ~45-90 px, plafond 112 — (v5) ×1,7 — (v4) ÷3
     /* (v3b, Sacha : « pouvoir apparaître partout sur l'écran ») PARTOUT, uniformément : plus d'ellipse centrale interdite ni de bande du
        haut (elles repoussaient tout sur les côtés). Le HUD est dessiné PAR-DESSUS le jus, rien de ce qu'on lit n'est jamais caché. */
-    let x=Math.random()*W,y=Math.random()*H; // (v4) hors de la ZONE DE CONDUITE : l'ellipse de la caisse et de la route devant elle (8 essais, puis la couronne)
-    const o9=Math.random();
-    if(o9<.35){const a9=Math.random()*6.2832,r9=Math.sqrt(Math.random());x=W*.5+Math.cos(a9)*W*.3*r9;y=H*.6+Math.sin(a9)*H*.24*r9;} // (v6) 35 % EXPRÈS sur la caisse et la route : ça gêne
-    else if(o9>.8)for(let t9=0;t9<8;t9++){const ex=(x-W*.5)/(W*.36+R),ey=(y-H*.6)/(H*.32+R);if(ex*ex+ey*ey>1)break;x=Math.random()*W;y=Math.random()*H; // (v5) 55 % tombent PARTOUT, route comprise : ça gêne
-      if(t9===7){const a9=Math.random()*6.2832;x=W*.5+Math.cos(a9)*(W*.36+R)*1.05;y=H*.6+Math.sin(a9)*(H*.32+R)*1.05;}}
+    let x=0,y=0,hors=false; // (v7) JAMAIS sur la route : hors de JUS_ZONE (le corps : rayon bruité jusqu'à ~1,2 R ; les satellites qui tomberaient dedans sont retirés plus bas)
+    for(let t9=0;t9<24&&!hors;t9++){x=Math.random()*W;y=Math.random()*H;hors=jusHors(x,y,R*1.2,W,H);}
+    if(!hors){ // filet (mesuré : ~1 tirage sur 100 debout) : la bande du HAUT si elle existe (debout), sinon les bandes des CÔTÉS (couché) — sinon au ras du haut
+      const hb=H*(JUS_ZONE.cy-JUS_ZONE.b)-R*1.2,lb=W*(JUS_ZONE.cx-JUS_ZONE.a)-R*1.2;
+      if(hb>0){x=Math.random()*W;y=Math.random()*hb;}else if(lb>0){x=Math.random()<.5?Math.random()*lb:W-Math.random()*lb;y=Math.random()*H;}else{x=Math.random()*W;y=-R*.4;}}
+    const vie9=1.3+Math.random()*.7,gl9=12+Math.random()*22;let gm=0; // (v7) la GLISSADE s'arrête avant la route
+    for(let d9=JUS_PX;d9<=gl9*vie9;d9+=JUS_PX){if(!jusHors(x,y+d9,R*1.2,W,H))break;gm=d9;}
     // (vague 2) des GOUTTES, plus des flaques (l'ancien montait à 100 px, satellites jusqu'à 2,7 R) — la taille (v3) est tirée plus haut
     if(JUS.length>=10){const v=JUS.shift();v.toile.pris=false;} // (v6) 10 — (v5) 8 // plafond (v4 : 6 — c'était 14 ; à 20 taches, mesuré, 76 % de l'écran était repeint)
     const t=jusToile(),C=JUS_PX/2; // la toile est en CELLULES de 2 px : le liseré fait une cellule, la forme se pose par blocs de deux (4 px)
@@ -31254,6 +31266,7 @@ function juiceScreen(col,power,n){
     if(t.cv.width!==Nw||t.cv.height!==Nh){t.cv.width=Nw;t.cv.height=Nh;}else t.x.clearRect(0,0,Nw,Nh);
     const N=9+((Math.random()*5)|0),pts=[];for(let i=0;i<N;i++)pts.push(R*(.62+Math.random()*.55)); // rayon BRUITÉ : c'est ça, une éclaboussure
     const sat=[];for(let i=0,ns=3+((Math.random()*3)|0);i<ns;i++)sat.push({a:Math.random()*6.2832,d:R*(1.25+Math.random()*.7),r:R*(.12+Math.random()*.12)});
+    for(let i=sat.length-1;i>=0;i--){const s9=sat[i],sx=x+Math.cos(s9.a)*s9.d,sy=y+Math.sin(s9.a)*s9.d;if(!jusHors(sx,sy,s9.r,W,H)||!jusHors(sx,sy+gm,s9.r,W,H))sat.splice(i,1);} // (v7) pas une gouttelette sur la route, même après la glissade
     const dedans=function(px,py){ // px, py : décalage au centre, en pixels écran
       const a=(Math.atan2(py,px)+6.2832)%6.2832,f=a/6.2832*N,i0=f|0,w=f-i0;
       if(Math.hypot(px,py)<pts[i0%N]*(1-w)+pts[(i0+1)%N]*w)return true;
@@ -31273,8 +31286,10 @@ function juiceScreen(col,power,n){
       if(bord){d[o]=28;d[o+1]=4;d[o+2]=48;d[o+3]=255;}else if(refl){d[o]=d[o+1]=d[o+2]=255;d[o+3]=255;}
       else if(coeur){d[o]=kR;d[o+1]=kG;d[o+2]=kB;d[o+3]=230;}else{d[o]=cR;d[o+1]=cG;d[o+2]=cB;d[o+3]=240;}} // (v3) corps .94, cœur .9
     t.x.putImageData(JUS_IM,0,0,0,0,Nw,Nw);
+    const coulOk=function(c){for(let d9=R*1.1;d9<=R*1.2+c*1.6;d9+=JUS_PX*2)if(!jusHors(x,y+gm+d9,R*.25,W,H))return false;return true;}; // TOUTE la coulure (elle pourrait traverser la zone, les deux bouts dehors)
+    let coul9=coul;while(coul9>JUS_PX&&!coulOk(coul9))coul9*=.75;if(!coulOk(coul9))coul9=0; /* (v7, mesuré : la coulure part du BAS du corps, jusqu à ~1,2 R) */ // …et la COULURE aussi (elle pend de ~0,9 R sous le centre)
     JUS.push({x:Math.round(x/JUS_PX)*JUS_PX,y:Math.round(y/JUS_PX)*JUS_PX,r:R,ext:ext,toile:t,c:corps,bas:bas,Lc:0,
-      t:0,vie:1.3+Math.random()*.7,coul:coul,gl:12+Math.random()*22,gy:0}); // (v6) 1,3-2 s, et elle GLISSE (gl px/s) — (v5) 0,9-1,4 s — (v4) 0,7-1,1 s
+      t:0,vie:vie9,coul:coul9,gl:gl9,gy:0,gm:gm}); // (v6) 1,3-2 s, et elle GLISSE (gl px/s) — (v5) 0,9-1,4 s — (v4) 0,7-1,1 s — (v7) gm : jusqu'au bord de la route
   }
 }
 function juiceScreenTick(dt){
@@ -31295,7 +31310,7 @@ function juiceScreenTick(dt){
     /* la goutte GRANDIT d'un coup puis s'efface. ⚠ LE GONFLEMENT EST EN SECONDES ABSOLUES, pas en fraction de vie : une projection
        arrive TOUJOURS en 90 ms. (vague 2) Il se fait par PALIERS (½, ¾, plein) : jamais de pixels de travers. */
     const g=j.t<.03?.5:j.t<.06?.75:1,e=j.ext*g;
-    if(j.t>.3)j.gy+=j.gl*dt; // (v6) le jus GLISSE sur la vitre — par pas de 4 px (jamais de pixel de travers)
+    if(j.t>.3)j.gy=Math.min(j.gm,j.gy+j.gl*dt); // (v6) le jus GLISSE sur la vitre — par pas de 4 px (jamais de pixel de travers) — (v7) jamais jusqu'à la route
     juiceCx.globalAlpha=(u<.55?1:Math.pow((1-u)/.45,1.5))*.93; /* (v6) pleine .93 les premiers 55 % */ /* (v5) pleine .86 les premiers 40 % */ // (v4) pleine .8 le premier tiers, puis elle s'efface // (v3, Sacha : « plus opaques ») pleine .9 la 1re moitié de sa vie, puis elle s'efface — c'était ≤ .55 en fondu dès l'impact
     juiceCx.drawImage(tc.cv,j.x-e,j.y+Math.floor(j.gy/JUS_PX)*JUS_PX-e,e*2,e*2*tc.cv.height/tc.cv.width);
   }

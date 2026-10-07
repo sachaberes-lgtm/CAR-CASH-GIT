@@ -241,6 +241,18 @@ refait EN VOXELS (10 cm, `NY_U`), chaque pièce dessinée dans SON plan (bloc «
   posée à 6 s ; burn-out + 2,5 tours de doigt → 1 DONUT compté, 320 fumées ; vignette (THE YELLOW CAB) → cadrée ; MISSIONS (vit 0) → ATELIER
   (vit 1) ; JOUER du garage → retour au feu → lâcher → course ; JOUER de l'accueil inchangé. 0 erreur. sw.js → v141.
 
+## LE JUS v7 — LA ROUTE DÉGAGÉE (2026-10-07, session GAMEPLAY) — Sacha : « améliore la visibilité de la route, notamment en enlevant les taches de fruit écrasé du milieu de l'écran »
+- La v6 (30/09, « gros et dérangeant ») jetait EXPRÈS 35 % des taches sur la caisse et la route, 45 % n'importe où. Désormais AUCUNE
+  tache ne se pose dans la ZONE DE LA ROUTE : `JUS_ZONE` = une ellipse autour de la caisse et de la route devant elle (centre ½ W ×
+  0,56 H, demi-axes 0,33 W × 0,37 H), testée par `jusHors(x,y,marge,W,H)`. Placement : 24 essais au hasard hors de la zone (le corps
+  gonflé de 1,2 R), sinon (~1 fois sur 100 debout) dans la bande du haut, ou celles des côtés couché. Les GOUTTELETTES satellites qui tomberaient dedans sont retirées ;
+  la GLISSADE s'arrête au bord de la zone (`gm`, calculée à la naissance) ; la COULURE est raccourcie si elle y pendrait, testée sur TOUTE sa longueur (elle part du
+  bas du corps, ~1,2 R sous le centre).
+- Taille, dessin, nombre (10 à la fois) et durée de la v6 inchangés : elles restent grosses, mais sur les BORDS et dans le ciel.
+- `dbgJus(n,col,gel,u)` : `n=0` essuie l'objectif, `n=-1` n'ajoute rien, `u` avance chaque tache à cette fraction de sa vie (glissade
+  au bout) ; il rend aussi `partDeLaRoute` (visée 0). Banc : `scratchpad/garage/jus7.js` (12 rafales de 10, à la naissance et à .55 de
+  la vie, debout + couché ; mesuré : 0 % à la naissance, 0,1 % glissées/coulées debout, 0 % couché).
+
 ## PLUS AUCUNE VOIX (2026-10-07, session GAMEPLAY) — Sacha : « masque complètement du code de main toutes les voix »
 - `SANS_VOIX` (posé juste après `POKI`, classe `html.sansVoix`) : la coupure de l'édition Poki vaut PARTOUT. L'annonceur naît `dead`
   (`annSpeak` rend toujours son texte, rien ne se charge ni ne se joue), le « ewww » des morts (`DEATH_LIB` à `voix:1`) et le « WOW »
