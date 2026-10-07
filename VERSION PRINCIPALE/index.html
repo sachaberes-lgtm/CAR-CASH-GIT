@@ -278,7 +278,10 @@ if(POKI)(function(){
     if(!POKI){ // (POKI) ni numéro de version sous le jeu, ni bouton TOURNER : la fenêtre de Poki décide de la forme
     var vv=document.createElement('div');vv.id='ccVer';vv.textContent='VERSION '+CC_VER;document.body.appendChild(vv); // à comparer d'un coup d'œil avec les réglages du téléphone
     var tb=document.createElement('button');tb.id='tourne';tb.type='button';document.body.appendChild(tb);
-    var tLbl=function(){tb.textContent=debout?'\u21bb  PAYSAGE':'\u21bb  PORTRAIT';tb.setAttribute('aria-label',debout?'Tenir le téléphone couché':'Tenir le téléphone debout');};
+    var tLbl=function(){var lg9='';try{lg9=localStorage.ccLang||'';}catch(e){}var en=lg9?lg9!=='fr':!/^fr/i.test(navigator.language||'fr'); /* (2026-10-07) la langue CHOISIE d'abord, comme l'écran de crash */
+      tb.textContent=debout?(en?'\u21bb  LANDSCAPE':'\u21bb  PAYSAGE'):'\u21bb  PORTRAIT';var a9=debout?'Tenir le téléphone couché':'Tenir le téléphone debout';
+      tb.dataset.frAria=a9;tb.setAttribute('aria-label',en?(debout?'Hold the phone sideways':'Hold the phone upright'):a9);};
+    window.__tourneLbl=tLbl; /* applyLangDOM le rappelle quand on change de langue */
     tLbl();
     tb.addEventListener('click',function(e){e.stopPropagation();debout=!debout;L=debout?390:844;H=debout?844:390;
       document.documentElement.classList.toggle('debout',debout);document.documentElement.classList.toggle('couche',!debout);
@@ -13213,7 +13216,7 @@ const I18N={
  // ---- moteurs ----
  'MOTEUR ROUILLÉ':'RUSTY ENGINE','BICYLINDRE':'TWIN-CYLINDER','3 CYLINDRES':'3-CYLINDER','4 EN LIGNE':'INLINE-4',
  '4 SOUPAPES':'FOUR-VALVE','4 EN LIGNE TURBO':'TURBO INLINE-4','5 CYLINDRES':'5-CYLINDER','V6 BITURBO':'TWIN-TURBO V6',
- 'BOXER À PLAT':'FLAT BOXER','V8 ATMO':'NAT-ASPIRATED V8','V8 COMPRESSÉ':'SUPERCHARGED V8','QUADRITURBO':'QUAD-TURBO',
+ 'BOXER À PLAT':'FLAT BOXER','V8 ATMO':'NA V8','V8 COMPRESSÉ':'SUPERCHARGED V8','QUADRITURBO':'QUAD-TURBO',
  'ROTATIF TRIPLE':'TRIPLE ROTARY','TURBINE À GAZ':'GAS TURBINE','TURBINE À PLASMA':'PLASMA TURBINE',
  'STATORÉACTEUR':'RAMJET','PULSORÉACTEUR':'PULSEJET','RÉACTEUR NUCLÉAIRE':'NUCLEAR REACTOR','CŒUR À FUSION':'FUSION CORE',
  'MOTEUR À DISTORSION':'WARP DRIVE','COMÈTE':'COMET','TROU NOIR':'BLACK HOLE',
@@ -13370,8 +13373,8 @@ Object.assign(I18N_ZH,{'NITRO INFINIE — 9 s À FOND !':'无限氮气 — 全�
   'SAUVE !':'得救！','LE BOUCLIER A CEDE':'护盾碎了','LE BOUCLIER T\'A SAUVE':'护盾救了你','DEMOLI':'撞飞',
   'SANS FAUTE':'完美连续','SERIE CASSEE':'连击中断','MIRACULE':'奇迹','MIRACULE !':'奇迹！','RECORD DE VITESSE':'速度纪录','SÉRIE COMPLÈTE':'整组收集'});
 Object.assign(I18N,{"MISSIONS":"MISSIONS","MENU":"MENU","HOME":"HOME","ATELIER":"WORKSHOP","LES TROIS DEFIS":"THE THREE CHALLENGES",
-  "DEFI":"CHALLENGE","REUSSI":"DONE","SUIVI EN COURSE":"TRACKED IN RACE","MEILLEUR ESSAI":"BEST RUN","RECOMPENSE":"REWARD","ENSUITE":"NEXT","CARNET":"BOOK",
-  "CHAQUE DEFI EN UNE PARTIE":"EACH CHALLENGE IN ONE RUN","SUIVI":"TRACKING","TOUCHE UN DEFI POUR LE SUIVRE EN COURSE":"TAP A CHALLENGE TO TRACK IT IN RACE","LES 3 DEFIS D'ABORD":"THE 3 CHALLENGES FIRST"}); // (2026-09-30) l'écran MISSIONS de l'atelier // (2026-09-28) la porte et l'écran des MISSIONS, la sortie MENU de l'écran de mort
+  "DEFI":"CHALLENGE","REUSSI":"DONE","SUIVI EN COURSE":"TRACKED","MEILLEUR ESSAI":"BEST RUN","RECOMPENSE":"REWARD","ENSUITE":"NEXT","CARNET":"SET",
+  "CHAQUE DEFI EN UNE PARTIE":"EACH CHALLENGE IN ONE RUN","SUIVI":"TRACKING","TOUCHE UN DEFI POUR LE SUIVRE EN COURSE":"TAP A CHALLENGE TO TRACK IT","LES 3 DEFIS D'ABORD":"THE 3 CHALLENGES FIRST"}); // (2026-09-30) l'écran MISSIONS de l'atelier // (2026-09-28) la porte et l'écran des MISSIONS, la sortie MENU de l'écran de mort
 Object.assign(I18N_ZH,{"MISSIONS":"任务","MENU":"菜单","HOME":"主页","ATELIER":"改装","LES TROIS DEFIS":"三项挑战",
   "DEFI":"挑战","REUSSI":"完成","SUIVI EN COURSE":"比赛中追踪","MEILLEUR ESSAI":"最佳一局","RECOMPENSE":"奖励","ENSUITE":"下一个","CARNET":"任务册",
   "CHAQUE DEFI EN UNE PARTIE":"每项挑战须单局完成","SUIVI":"追踪中","TOUCHE UN DEFI POUR LE SUIVRE EN COURSE":"点击挑战，在比赛中追踪","LES 3 DEFIS D'ABORD":"先完成 3 项挑战"});
@@ -13595,6 +13598,7 @@ function modeLbl(){
   if(sb)sb.innerHTML=pxi('drapeau')+' '+TR('Survivant')+' · '+(SURV.armed?TR('on'):TR('off'));
 }
 function applyLangDOM(){
+  try{const w9=window.parent||window;if(w9.__tourneLbl)w9.__tourneLbl();}catch(e){} // (2026-10-07) le bouton TOURNER de la colonne PC suit la langue (il vit dans la page CADRE : le jeu tourne dans l'iframe)
   try{for(const e of document.querySelectorAll('[aria-label]')){if(e.dataset.frAria===undefined)e.dataset.frAria=e.getAttribute('aria-label');e.setAttribute('aria-label',LANG==='fr'?e.dataset.frAria:TR(e.dataset.frAria));}}catch(e){} // (2026-09-29) VoiceOver : « Back », plus « Retour », pour un joueur anglais
   try{document.documentElement.lang=LANG==='zh'?'zh-Hans':LANG;}catch(e){} // (2026-09-28) VoiceOver lisait l'anglais avec la voix française (<html lang="fr"> ne bougeait jamais)
   try{for(const k in PWR_DEFS)PWR_DEFS[k].icoDessine();}catch(e){} // (pouvoirs v2) l'étiquette des cristaux suit la langue (PWR_DEFS n'existe pas encore au tout premier appel : ignoré, il se dessine à sa naissance)
@@ -35697,6 +35701,15 @@ function affichesMaj(){
    l'appelait, et son lanceur de rayon n'existait pas. Branché : bâti avec l'atelier (buildGarageRoom → chauffé au menu avec lui),
    repeint à chaque ouverture (openGarage), survol souris + tap (les écouteurs de l'atelier), respiration dans garageRender.
    Sans niveau choisi au garage (GSEL n'existe pas sur main), l'affiche PERSO montre les records de toujours. */
+/* (2026-10-07, campagne de debug avant publication) LES AFFICHES EN ANGLAIS — elles passaient bien par TR, mais aucune de leurs clés
+   n'était au dictionnaire : l'atelier anglais affichait « RECORD PERSO / MEILLEURE PARTIE ». Avec, les étiquettes VoiceOver (aria-label,
+   traduites par applyLangDOM) qui lisaient « Accueil », « Boutique »... en français. Le chinois retombe sur l'anglais (voir TR). */
+try{Object.assign(I18N,{'RECORD|PERSO':'PERSONAL|BEST','RECORDS|MONDIAUX':'WORLD|RECORDS','SANS FIN':'ENDLESS','AURA RECORD':'BEST AURA',
+  'STATUT':'STATUS','TERMINE':'CLEARED','A TERMINER':'TO CLEAR','VERROUILLE':'LOCKED','MEILLEURE PARTIE':'BEST RUN','AURA MAX':'MAX AURA',
+  'PALIER MOTEUR':'ENGINE TIER','VITESSE MAX':'TOP SPEED','BIENTOT EN LIGNE':'COMING SOON','TES RECORDS : BIENTOT EN DETAIL':'YOUR RECORDS: DETAILS SOON',
+  'CLASSEMENT MONDIAL : BIENTOT EN LIGNE':'WORLD RANKING: COMING SOON',
+  'Accueil':'Home','Boutique':'Shop','Bientôt':'Coming soon','Niveau':'Level','Compte et aura':'Account and aura','Les niveaux':'Levels',
+  'Niveaux accomplis':'Levels cleared','Inventaire':'Inventory','Tenir le téléphone couché':'Hold the phone sideways','Tenir le téléphone debout':'Hold the phone upright'});}catch(e){}
 const shopRay=new THREE.Raycaster(),shopNdc=new THREE.Vector2();
 window.dbgAffiche=function(k){GAR.dbgAff=k||null;return GAR.affiches?GAR.affiches.map(a=>a.k):null;}; // 'perso' | 'monde' : la caméra face à l'affiche ; rien = rend la main
 function afficheVise(e){ // l'affiche sous le pointeur — sauf si la caisse est devant
@@ -37364,7 +37377,7 @@ window.dbgFeu=function(on){const F=GAR.feu;if(!F)return null;if(on!=null&&GAR.fe
 var CHUTE={G:new THREE.Vector3(),nu:null,oA:0,oAc:0,oW:0,oP:0,oPc:0,mvT:0,on:false,t:0,go:null,L:-1,s:0,C:new THREE.Vector3(),cam:new THREE.Vector3(),f:new THREE.Vector3(),fh:new THREE.Vector3(),lh:new THREE.Vector3(),
   q:new THREE.Quaternion(),m:new THREE.Matrix4(),v1:new THREE.Vector3(),v2:new THREE.Vector3(),v3:new THREE.Vector3(),w:null,fil:null,voile:null,bioPas:-1,vent:false,entree:0};
 const CHUTE_OK=!/[?&]chute=0\b/.test(location.search); // (et seulement avec les boutons de Sacha : le menu de Léo, ?menu=leo, garde son atelier — son étiquette MISSIONS vit sur le socle)
-const CHUTE_P={cielT:1,voiles:0,brumeT:2.2,elevP:.06,studio:1,amb:.55,sol:.7,sk:1.6,kh:.75,sc:.12,sb:0,sr:1.35,fige:null, /* (2026-10-03) LE MODELÉ DE LA CAISSE, choisi sur planche (banc studio.mjs, f1) : voir chuteStudio */cleC:0xfff1dc,rimC:0xbfe4ff,rim:1.1,rimS:0,lampe:1,az:2.35,cote:0,nuages:1,K:[1.02,1.08,1.1,1],R:[-.3,.5,.72,1],mzA:[1500,.8,9,.2],mzB:null,gite:-.45,coton:0,cle:.5,brume:1,expo:1,trainee:0,alt:900,avant:-1700,pitch:.62,roule:.12,cap:.28,elev:.015, /* (titre v3) voir « L'ÉCRAN TITRE v3 » : alt = au-dessus du SOMMET de la piste, az = l'angle regard ↔ soleil, cote = la piste décalée à droite de la caisse (couché), nuages = les cumulus du titre */ /* (niveau 1 v2) pitch .22 → .55, elev .22 → .30 : à plat, elle PLANAIT ; le nez piqué vers la mer, on la voit TOMBER */vit:14,echelle:1,taille:.82,sol:.3,sous:70,plancher:0}; // (2026-09-30, le JOUR D'ALTITUDE) de très haut au-dessus de TOUT le monde du niveau : les cumulus deviennent un champ de nuages sous la caisse, la mer à perte de vue ; plus de traînée orange ni de plancher peint ; brume repoussée, exposition et clé baissées (l'image sortait délavée) // (choisi aux captures : l'horizon et la mer de nuages dans l'image, le soleil de côté devant — sa lueur rose-or sur l'horizon)
+const CHUTE_P={cielT:1,voiles:0,brumeT:2.2,elevP:.06,studio:1,amb:.55,sk:1.6,kh:.75,sc:.12,sb:0,sr:1.35,fige:null, /* (2026-10-03) LE MODELÉ DE LA CAISSE, choisi sur planche (banc studio.mjs, f1) : voir chuteStudio */cleC:0xfff1dc,rimC:0xbfe4ff,rim:1.1,rimS:0,lampe:1,az:2.35,cote:0,nuages:1,K:[1.02,1.08,1.1,1],R:[-.3,.5,.72,1],mzA:[1500,.8,9,.2],mzB:null,gite:-.45,coton:0,cle:.5,brume:1,expo:1,trainee:0,alt:900,avant:-1700,pitch:.62,roule:.12,cap:.28,elev:.015, /* (titre v3) voir « L'ÉCRAN TITRE v3 » : alt = au-dessus du SOMMET de la piste, az = l'angle regard ↔ soleil, cote = la piste décalée à droite de la caisse (couché), nuages = les cumulus du titre */ /* (niveau 1 v2) pitch .22 → .55, elev .22 → .30 : à plat, elle PLANAIT ; le nez piqué vers la mer, on la voit TOMBER */vit:14,echelle:1,taille:.82,sol:.3,sous:70,plancher:0}; // (2026-09-30, le JOUR D'ALTITUDE) de très haut au-dessus de TOUT le monde du niveau : les cumulus deviennent un champ de nuages sous la caisse, la mer à perte de vue ; plus de traînée orange ni de plancher peint ; brume repoussée, exposition et clé baissées (l'image sortait délavée) // (choisi aux captures : l'horizon et la mer de nuages dans l'image, le soleil de côté devant — sa lueur rose-or sur l'horizon)
 window.dbgChute=function(o){if(o&&typeof o==='object'){if(o.NU&&CHUTE.nu){o.NU.forEach(function(d,i){const c=CHUTE.nu[i];if(!c||!d)return;c.a=d[0];c.b=d[1];c.r=d[2];c.v=d[4];c.y=d[5];c.m.scale.set(d[2],d[2],d[2]);const dd=Math.hypot(d[0],d[1]);c.lo=-(1.2*dd+1.3*d[2]);c.hi=.1*dd+1.3*d[2];c.off=false;});for(let i=o.NU.length;i<CHUTE.nu.length;i++)CHUTE.nu[i].off=true;o=Object.assign({},o);delete o.NU;} /* (banc) NU : rejouer la disposition des cumulus du titre sans recharger */
   Object.assign(CHUTE_P,o);CHUTE.L=-1;}
   return {titreCiel:+skyU.uTi.value.x,cadre:(function(){const c=menuCadre();return [+c.nx.toFixed(2),+c.ny.toFixed(2),+c.fr.toFixed(2),+c.fh.toFixed(2)];})(),ecran:(function(){const q=carGroup.position.clone().project(camera);return [+q.x.toFixed(2),+q.y.toFixed(2)];})(),orb:[+CHUTE.oA.toFixed(2),+CHUTE.oP.toFixed(2)],tris:CHUTE.nu?CHUTE.nu.reduce(function(a,c){return a+(c.m.visible&&c.m.geometry.index?c.m.geometry.index.count/3:0);},0):0,nu:CHUTE.nu?CHUTE.nu.filter(function(c){return c.m.visible;}).length:0,mz:+skyU.uMzA.value.x,ciel:document.body.classList.contains('titreCiel'),on:CHUTE.on,go:!!CHUTE.go,s:Math.round(CHUTE.s),C:CHUTE.C.toArray().map(Math.round),cam:CHUTE.cam.toArray().map(function(x){return +x.toFixed(1);}),P:CHUTE_P,
@@ -37517,7 +37530,10 @@ const CHUTE_NU=[
   [-600,1300,160,0,1,-700],[-1000,400,140,1,1,-380],[-700,-600,150,3,1,-450],[ 300,-1000,180,0,1,-520],[1200,-400,160,1,1,-330],[-200,-1500,220,4,1,-640],
   // (titre v5) LES TOURS DE L'HORIZON : de grands cumulus bourgeonnants à 8-9 km, posés sur la mer, immobiles, noyés dans l'air — l'ÉCHELLE
   // du ciel (essayé : des cumulonimbus à 5 km = des CHAMPIGNONS atomiques qui mangeaient le cadre ; pas d'enclume ici)
-  [ 500,8600,560,4,0,-250],[3000,8200,620,6,0,-300],[-1800,8000,480,5,0,-330],[7500,7800,650,4,0,-250],[11000,6000,520,6,0,-330],[1500,9100,700,5,0,-200]];
+  [ 500,8600,560,4,0,-250],[3000,8200,620,6,0,-300],[-1800,8000,480,5,0,-330],
+  // (2026-10-07, campagne de debug) deux tours étaient posées à 10,8 et 12,5 km — AU-DELÀ du plan lointain (camera.far 9800) : jamais
+  // dessinées, juste payées. Retirées. Le 7e champ (2) rend leurs deux tirages de rotation : la tour de face garde EXACTEMENT sa silhouette.
+  [1500,9100,700,5,0,-200,2]];
 /* LES FORMES D'ABORD (titre v3) : les surfaces fines des cinq gabarits du titre sont demandées à l'ouvrier AU CHARGEMENT DU SCRIPT, avant
    les 96 finesses du ciel de coton (cotonInit, au premier newTrack) — sinon elles attendaient 10 à 15 s derrière elles, et le titre
    montrait pendant ce temps des ÉBAUCHES en grappes de boules. Aucune ébauche ici : un cumulus du titre n'existe à l'image que fini. */
@@ -37535,7 +37551,8 @@ function chuteCumulus(){
   const m0=nuage8Solo(),mT=m0.clone();mT.uniforms=Object.assign({},m0.uniforms,{uK:{value:new THREE.Vector4().fromArray(CHUTE_P.K)},uR:{value:new THREE.Vector4().fromArray(CHUTE_P.R)}});
   mT.defines={};mT.customProgramCacheKey=function(){return 'nuage8solo';};CHUTE.nuM=mT;
   const N=[];
-  for(const d of CHUTE_NU){const e=geo[d[3]],m=new THREE.Mesh(e.g||vide,mT);m.visible=false;m.castShadow=false;m.receiveShadow=false;
+  for(const d of CHUTE_NU){if(d[6])for(let k9=0;k9<d[6];k9++)rg(); /* (7e champ) des tirages sautés : voir les tours de l'horizon */
+    const e=geo[d[3]],m=new THREE.Mesh(e.g||vide,mT);m.visible=false;m.castShadow=false;m.receiveShadow=false;
     m.scale.set(d[2],d[2],d[2]);m.rotation.y=rg()*6.2832;scene.add(m);const dd=Math.hypot(d[0],d[1]);
     N.push({m:m,e:e,a:d[0],b:d[1],r:d[2],v:d[4],y:d[5],lo:-(1.2*dd+1.3*d[2]),hi:.1*dd+1.3*d[2]});}
   CHUTE.nu=N;
@@ -37612,7 +37629,8 @@ function chuteVoileEl(){ // le banc de nuage traversé au JOUER : un voile blanc
 }
 function chuteEntre(){ // de l'atelier (ou de rien) au ciel
   if(!CHUTE.lc)CHUTE.lc=new THREE.Color();CHUTE.lc.copy(carLight.color);CHUTE_TAP.p.set(0,0,0);CHUTE_TAP.v.set(0,0,0);CHUTE_TAP.r.set(0,0,0);CHUTE_TAP.w.set(0,0,0);
-  CHUTE.on=true;CHUTE.t=0;CHUTE.bioPas=-1;CHUTE.bioT=null;document.body.classList.add('titreCiel');if(!CHUTE.mz)CHUTE.mz=[skyU.uMzA.value.clone(),skyU.uMzB.value.clone(),skyU.uMzT.value.clone(),skyU.uMzO.value.clone(),skyU.uMzH.value.clone(),skyU.uMerLoin.value];CHUTE.oA=CHUTE.oAc=CHUTE.oW=CHUTE.oP=CHUTE.oPc=0; // (2026-09-30) l'orbite repart du plan de face
+  CHUTE.on=true;CHUTE.t=0;CHUTE.sndT=0;TITRE_HF.tc=0;CHUTE.bioPas=-1;CHUTE.bioT=null; /* (2026-10-07) sndT et tc vivaient sur l'horloge d'AVANT (CHUTE.t repart de 0) : le vent restait muet et l'heure périmée jusqu'à 20 s */
+  document.body.classList.add('titreCiel');if(!CHUTE.mz)CHUTE.mz=[skyU.uMzA.value.clone(),skyU.uMzB.value.clone(),skyU.uMzT.value.clone(),skyU.uMzO.value.clone(),skyU.uMzH.value.clone(),skyU.uMerLoin.value];CHUTE.oA=CHUTE.oAc=CHUTE.oW=CHUTE.oP=CHUTE.oPc=0; // (2026-09-30) l'orbite repart du plan de face
   if(!CHUTE.av)CHUTE.av={c:new THREE.Color()};CHUTE.av.e=acesPass?acesPass.uniforms.uExposure.value:null;if(scene.fog){CHUTE.av.c.copy(scene.fog.color);CHUTE.av.n=scene.fog.near;CHUTE.av.f=scene.fog.far;} // (2026-09-30) l'exposition et la brume d'avant (l'atelier les retrouve)
   if(!CHUTE.w)chuteMonte();
   if(GAR.root)GAR.root.visible=false;garageFloor.visible=false;gEl.classList.add('ciel'); /* (niveau 1 v2) le bandeau du bas prend l'azur profond du ciel (voir #garage.menu.ciel::after) */
@@ -38538,7 +38556,7 @@ function gvNivs(on,sec){
     if(F.length)h+='<div class="gnG">'+F.map(gvTuile).join('')+'</div>';
     else h+='<p class="gnVide">'+sansAcc(TR('AUCUN NIVEAU TERMINE'))+'<br><b>'+sansAcc(TR('FRANCHIS TON 1ER PORTAIL'))+'</b></p>';
     if(nx){const reste=L.filter(function(o){return !o.ok;}).length-1;
-      h+='<div class="gnP">'+pxi('droite')+'<b>'+sansAcc(TR('A BATTRE'))+' : '+nx.n+' · '+sansAcc(TR(nx.t))+'</b>'+(reste>0?'<i>+'+reste+' '+sansAcc(TR(reste>1?'A DECOUVRIR':'A DECOUVRIR1'))+'</i>':'')+'</div>';}
+      h+='<div class="gnP">'+pxi('droite')+'<b>'+sansAcc(TR('A BATTRE'))+' : '+nx.n+' · '+sansAcc(TR(nx.t))+'</b>'+(reste>0?'<i>+'+reste+' '+sansAcc(TR('A DECOUVRIR'))+'</i>':'')+'</div>';}
     else h+='<div class="gnP">'+pxi('etoile')+'<b>'+sansAcc(TR('TOUT EST TERMINE'))+'</b></div>';
     el.innerHTML=h;el.scrollTop=0;el.classList.remove('sortant');void el.offsetWidth;feuilleOuvre(el,'on');
     if(v)v.setAttribute('aria-expanded','true');try{if(SONV2)sfx('ui.feuille');}catch(e){}
@@ -39383,7 +39401,7 @@ function gmRender(vu){ // vu : l'écran est déjà là (un défi coché) — les
   GMIS.paths=[].slice.call(sv.querySelectorAll('path'));GMIS.sz=GMIS.cards.map(function(c9){return [c9.offsetWidth||150,c9.offsetHeight||60];});
   GMIS.last=null;
   const sous=$('gmSous');if(sous)sous.textContent=TR('CARNET')+' '+(s.n+1)+' · '+TR('CHAQUE DEFI EN UNE PARTIE');
-  const aide=$('gmAide');if(aide)aide.textContent=s.f>=0?TR('SUIVI')+' : '+misTxt(c.m[s.f]):TR('TOUCHE UN DEFI POUR LE SUIVRE EN COURSE');
+  const aide=$('gmAide');if(aide)aide.textContent=s.f>=0?TR('SUIVI')+(LANG==='fr'?' : ':': ')+misTxt(c.m[s.f]):TR('TOUCHE UN DEFI POUR LE SUIVRE EN COURSE');
 }
 function gmSuit(){ // chaque image : les points sur leurs meubles, les cartes à côté (écartées, dans l'écran), les fils
   if(MENU_SACHA)return gmSuitS();
@@ -39434,7 +39452,7 @@ function gmRenderS(vu){ // (Sacha, f474c51) l'écran MISSIONS RANGÉ — voir ME
   GMIS.paths=[].slice.call(sv.querySelectorAll('path'));
   GMIS.last=null;GMIS.lw=0; // les cases se recalculent (nouvelles cartes, nouveaux textes)
   const sous=$('gmSous');if(sous)sous.textContent=TR('CARNET')+' '+(s.n+1)+' · '+TR('CHAQUE DEFI EN UNE PARTIE');
-  const aide=$('gmAide');if(aide)aide.textContent=s.f>=0?TR('SUIVI')+' : '+misTxt(c.m[s.f]):TR('TOUCHE UN DEFI POUR LE SUIVRE EN COURSE');
+  const aide=$('gmAide');if(aide)aide.textContent=s.f>=0?TR('SUIVI')+(LANG==='fr'?' : ':': ')+misTxt(c.m[s.f]):TR('TOUCHE UN DEFI POUR LE SUIVRE EN COURSE');
 }
 /* LES CASES (2026-09-30, Sacha : « missions, c'est pas mal mais un peu brouillon »). Les cartes flottaient À CÔTÉ de leur meuble et
    s'écartaient les unes des autres (8 passes) : elles se chevauchaient quand même, le fil de la constellation les traversait, deux cartes
@@ -42397,7 +42415,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       {const CAUSES={air:"TROP LONGTEMPS EN L'AIR : POSE-TOI AVANT",vide:'TOMBE DANS LE VIDE',tour:'ENCASTRE DANS UNE TOUR',sat:'PERCUTE PAR UN SATELLITE',arret:"6 S A L'ARRET : ROULE OU CREVE",police:'DERNIER DE LA MEUTE',
          feu:'CRIBLE PAR LA POLICE',facade:'ENCASTRE DANS UNE FACADE',seine:'A LA SEINE !',sol:'ECRASE SUR LE PAVE',seme:"LA CAISSE-NUAGE T'A SEME",devant:"TU L'AS DOUBLEE — IL FALLAIT LA SUIVRE",finNuages:'LA CAISSE-NUAGE EST A TOI',banquier:"LE BANQUIER T'A BATTU",finVille:'LE LINGOT EST A TOI',finEspace:'LE SYSTEME SOLAIRE EST A TOI'}; // (2026-09-27) les fins de la CAMPAGNE
        const mc9=$t('mCause'),k9=SANDBOX?'':(CAUSES[mortCause]||'');if(mc9){mc9.textContent=k9?TR(k9):'';mc9.style.display=k9?'':'none';mc9.style.color=(mortCause==='finNuages'||mortCause==='finVille'||mortCause==='finEspace')?'#ffe7a8':'';}}
-      if(mortCause==='finNuages'||mortCause==='finVille'||mortCause==='finEspace'){ot.textContent=TR(mortCause==='finEspace'?'ESPACE TERMINE':mortCause==='finVille'?'VILLE TERMINEE':'SKY HIGH TERMINES');ot.style.color='var(--neoV)';if(mCompteSon._fin!==TCTL.mortT){mCompteSon._fin=TCTL.mortT;setTimeout(function(){try{pixBurst(ot,40);}catch(e){}},700);}} // (2026-09-27) la campagne est FINIE : l'enseigne le dit en or
+      if(mortCause==='finNuages'||mortCause==='finVille'||mortCause==='finEspace'){ot.textContent=TR(mortCause==='finEspace'?'ESPACE TERMINE':mortCause==='finVille'?'VILLE TERMINEE':'SKY HIGH TERMINE');ot.style.color='var(--neoV)';if(mCompteSon._fin!==TCTL.mortT){mCompteSon._fin=TCTL.mortT;setTimeout(function(){try{pixBurst(ot,40);}catch(e){}},700);}} // (2026-09-27) la campagne est FINIE : l'enseigne le dit en or
       mCompteSon(recT);
       // Ce qui se gagne DANS une partie, c'est le MOTEUR (la caisse, elle, se choisit au garage) :
       // c'est donc lui qu'on montre en fin de run, pas un palier de voiture qui ne veut plus rien dire.

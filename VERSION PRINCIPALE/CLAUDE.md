@@ -1,5 +1,26 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LA CAMPAGNE DE DEBUG AVANT PUBLICATION (2026-10-07, session GRAPHISME — Sacha : « on publie le jeu bientôt, lance une série de debug »)
+Bancs (un Chrome à la fois, son coupé) + 3 auditeurs en lecture seule. **Aucun crash, 0 erreur JS** sur : bug.js (120 s FR debout, EN couché),
+robuste.js (pause, arrière-plan, rotation, double appui REJOUER), fuite.js (6 parties : tas +2 Mo, 142 programmes stables), caisses.js
+(les 70 caisses : dragon de NITROOO visible au sol et en vol), le parcours du titre.
+- **Faux positifs à ne pas re-chasser** : le -4 px de `#auraV2`/`#avRec` = l'entrée `hmGauche` (0,55 s au départ) ; `#engBig` × `#slam9`/
+  `#misBan`, `#dolHud` × `#lvlBan`, `.avTot` × `#avCh` = voulus (GAMEPLAY) ; `#mDead.on` pendant la course = la coque est cachée avec
+  `#overlay` ; LA HUIT « invisible » = `retire:1` ; « TROP LONGTEMPS EN L'AIR » = les sauts forcés du banc ; le 404 = `dark-triad.mp3`
+  (sondé par `frenMusSonde`, repli prévu).
+- **Corrigé** : `/jouer` sans barre finale (Vercel redirige vers `/jouer/` — sinon `vendor/three.min.js` cherché à la racine, jeu mort) ;
+  l'atelier de son et `sons.html` ne partent plus en ligne ; `sw.js` ne range que les réponses 200 ; la licence OFL de Press Start 2P
+  (`assets/fonts/OFL.txt`, exigée par la licence) ; l'anglais : « SKY HIGH TERMINES » (clé fausse), les affiches RECORD de l'atelier,
+  « +1 A DECOUVRIR1 » en français, « TRACKING : », BOOK → SET, NA V8, les `aria-label` (Accueil, Boutique…), le bouton TOURNER de la
+  colonne PC (suit la langue, rappelé par `applyLangDOM` dans la page CADRE) ; le titre : deux tours au-delà de `camera.far` retirées
+  (7e champ de `CHUTE_NU` = tirages sautés, la tour de face garde sa silhouette), `CHUTE.sndT`/`TITRE_HF.tc` remis à 0 dans `chuteEntre`,
+  clé `sol` en double dans `CHUTE_P` (la morte ôtée, rendu inchangé).
+- **À trancher par Sacha (rien n'a été changé)** : `TEST_CAISSES=!POKI` et `TEST_CARRIERE=true` (tout est ouvert, pastille « TEST ») ; la
+  boutique (`shopPaye` refuse, « 9,99 € −50 % » barré écrit en dur) ; le chinois dans le cycle de langues (411 entrées sur 1 071 sans
+  traduction) ; L'ÉTERNELLE (100 pubs) et les `bientot` impossibles hors portails ; les droits (sons, noms de caisses, chat pop-tart) ;
+  le build App Store doit graver la version (sinon « VERSION LOCALE » dans les réglages : seuls Vercel et Poki le font).
+- Le vérificateur de syntaxe doit BLANCHIR les commentaires HTML : un « <script> » cité dans un commentaire (l. ~2138) avale le bloc suivant.
+
 ## LA GAMME RESSERRÉE — LA FICHE DES VOITURES (2026-10-06/07, Léo : `fiche-voitures-cash-car.txt`, « applique les changements »)
 43 caisses jouables (+ L'ORIGAMI et ATCHOUM, absentes de la fiche : inchangées) → au garage COMMUNES 1 · RARES 15 · ÉPIQUES 7 · LÉGENDES 8 ·
 DÉFIS 14. Tout est dans `CARS` (`retire:1`, `rar:`) et `CAR_UNLOCK` (prix, conditions, commentaires datés) ; aucune ligne ôtée (les index
