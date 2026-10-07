@@ -1,7 +1,7 @@
 # CASH CAR — guide projet pour Claude Code
 
 ## ⚠ LE BURN-OUT EST À LÉO (2026-10-07, Léo : « quand Sacha fait des trucs qui suppriment mes changements, code un truc qui bloque ; remets mon burn-out »)
-- Le BURN-OUT du garage (doigt tenu 1,5 s sur la caisse : fumée en cubes, donut au doigt, fouet, anneau de charge — `BURN`, `DON`,
+- Le BURN-OUT du garage (doigt tenu 1 s sur la caisse : fumée en cubes, donut au doigt, fouet — `BURN`, `DON`,
   `burnPart`, `burnGeste`, `burnDyn`, `burnCubes`, `BURN_TENU`…) est le travail de LÉO. **On ne le supprime pas, on ne le remplace pas, on
   ne l'écrase pas en fusionnant une vieille copie.** Pour le changer : demander à Léo d'abord. En cas de conflit de fusion dans ce bloc,
   garder la version de `main` (celle de Léo).
@@ -10,8 +10,9 @@
   Vercel la coupe). (2) sur l'ordi de Léo, le crochet `pre-push` du dépôt (partagé par tous les worktrees `CAR-*`) refuse une poussée sur
   `main` sans le burn-out (`git push --no-verify` pour passer outre). Vérifier à la main : `sh garde-burnout.sh`.
 
-## LE BURN-OUT SUIT LE DOIGT + 1,5 s DE MAINTIEN (2026-10-07, nuit, Léo : « ajoute 500 millisecondes de maintien requis pour démarrer le burn-out » · « il faut que ça suive plus le doigt ou le curseur, plus comme avant » · puis « la vitesse du donut évolue proportionnellement à la vitesse du doigt, et le temps de maintien déclencheur du burn-out : 1,5 s »)
-- **1,5 s** (dernier mot) : `BURN_TENU` 1500. Banc : tenu 0,4 · 1,2 · 1,38 s → rien ; 1,68 s → ça part (départ mesuré à 1,51-1,55 s).
+## LE BURN-OUT SUIT LE DOIGT + 1 s DE MAINTIEN (2026-10-07, nuit, Léo : « ajoute 500 millisecondes de maintien requis pour démarrer le burn-out » · « il faut que ça suive plus le doigt ou le curseur, plus comme avant » · puis « la vitesse du donut évolue proportionnellement à la vitesse du doigt, et le temps de maintien déclencheur du burn-out : 1,5 s »)
+- **1 s** (dernier mot, Léo : « réduis à 1 s et enlève le cercle jauge ») : `BURN_TENU` 1000 — l'anneau de charge est RETIRÉ (`burnAnneau1`
+  supprimé, `#gInvAnneau` redort). Avant, à 1,5 s : `BURN_TENU` 1500. Banc : tenu 0,4 · 1,2 · 1,38 s → rien ; 1,68 s → ça part (départ mesuré à 1,51-1,55 s).
 - **LE POUCE QUI GLISSE + L'ANNEAU DE CHARGE** (même nuit, Léo : « il n'y a plus de burn-out » — le code était bien en ligne, il partait à
   la souris) : tenu 1,5 s, un pouce posé glisse de plus de 12 px (la pulpe s'écrase, le pouce roule) → le jeu y voyait un glissé du
   plateau et ne partait jamais. Pendant la charge on tolère `BURN_GLISSE` 24 px (une fois parti, 12 px = « le doigt bouge »). Et 1,5 s

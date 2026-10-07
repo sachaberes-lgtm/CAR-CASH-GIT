@@ -17,7 +17,7 @@ done
 if [ -n "$MANQUE" ]; then
   echo "
   ✋ LE BURN-OUT DE LÉO A DISPARU de $F — il manque :$MANQUE
-  Ce commit a supprimé ou écrasé le burn-out du garage (doigt tenu 1,5 s sur la caisse, fumée en cubes, donut au doigt).
+  Ce commit a supprimé ou écrasé le burn-out du garage (doigt tenu 1 s sur la caisse, fumée en cubes, donut au doigt).
   Le remettre : git checkout <dernier commit qui l'avait> -- \"VERSION PRINCIPALE/index.html\" (ou refusionner en gardant ce bloc),
   et en parler à Léo avant de le changer. Voir « LE BURN-OUT EST À LÉO » dans CLAUDE.md.
 "

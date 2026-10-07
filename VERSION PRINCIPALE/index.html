@@ -39043,7 +39043,7 @@ function invHoldFin(){if(!INV||!INV.hold)return;INV.hold=null;cancelAnimationFra
    bouton jouer —, la voiture va booster de manière satisfaisante : c'est un burn-out, puisque sinon elle foncerait. Un effet un peu
    stylé, travaillé, design. Avec des pixels. De la transparence, parce qu'il y aura de la fumée. Maintenue longtemps, la fumée disparaît
    mais peut s'accumuler, et le joueur peut jouer avec. Accordé à ce qu'on a déjà ; si tu surpasses, encore mieux. ») =====
-   LE GESTE : le doigt TENU sur la caisse, en vitrine — 1,5 s sans bouger (`BURN_TENU` ; 0,28 s jusqu'au 07/10 au soir, 0,14 s au premier jet), et ça part ; tant qu'il tient, ça brûle. Il peut alors
+   LE GESTE : le doigt TENU sur la caisse, en vitrine — 1 s sans bouger (`BURN_TENU` ; 0,28 s jusqu'au 07/10 au soir, 0,14 s au premier jet), et ça part ; tant qu'il tient, ça brûle. Il peut alors
    GLISSER : la vue tourne autour de la caisse qui fume (et le doigt pousse la fumée). Un tap bref reste le « tonk » de tôle. Lâché : le
    moteur retombe en pétaradant. L'INVENTAIRE a son bouton, COFFRE, à côté de JOUER (et la touche I).
    LA CAISSE : les roues ARRIÈRE patinent (les essieux soudés de l'arrière, voir ESSIEUX), l'avant reste planté ; l'arrière s'écrase, le nez
@@ -39512,18 +39512,11 @@ function burnRoues(dt){ // où sont les roues arrière (dans la salle) et à que
     if(P.ok&&dt>0){P.v.subVectors(o,P.p).divideScalar(dt);const s=P.v.length();if(s>16)P.v.multiplyScalar(16/s);}else P.v.set(0,0,0);
     P.p.copy(o);P.ok=true;}
 }
-const BURN_GLISSE=24; // (même nuit, Léo : « il n'y a plus de burn-out ») tenu 1,5 s, un pouce posé GLISSE de plus de 12 px (~2 mm : la pulpe s'écrase, le pouce roule) — le jeu y voyait un glissé du plateau et le burn-out ne partait jamais. Pendant la charge on tolère 24 px ; une fois parti, 12 px font toujours « le doigt bouge »
-const BURN_TENU=1500; // (2026-10-07, nuit, Léo : « ajoute 500 millisecondes de maintien requis pour démarrer le burn-out », puis « le temps de maintien déclencheur du burn-out : 1,5 s ») — 280 ms → 500 → 1 500 ; la mise en régime (`pre` : le moteur monte, le cul s'écrase) monte sur les 3/4 de l'attente : on SENT que ça charge
-function burnAnneau1(now){ // (même nuit) L'ANNEAU DE CHARGE : 1,5 s, c'est long sans rien voir — un anneau de feu se remplit sous le doigt (l'anneau du coffre, `#gInvAnneau`, qui dormait), et ÉCLATE quand ça part
-  const H=BURN.hold,a=$('gInvAnneau');if(!a)return;
-  const p=H&&!BURN.on&&!BURN.bouge&&!H.non&&now-H.t0>150?Math.min(1,(now-H.t0-150)/(BURN_TENU-150)):-1;
-  if(p>=0){if(!BURN.anP){a.style.translate=H.x+'px '+H.y+'px';a.style.setProperty('--rc','#ffe7a3');a.classList.remove('part');a.classList.add('on');BURN.anP=1;}a.style.setProperty('--p',p.toFixed(3));}
-  else if(BURN.anP){a.classList.remove('on');if(BURN.on)a.classList.add('part');BURN.anP=0;}
-}
+const BURN_GLISSE=24; // (même nuit, Léo : « il n'y a plus de burn-out ») tenu 1 à 1,5 s, un pouce posé GLISSE de plus de 12 px (~2 mm : la pulpe s'écrase, le pouce roule) — le jeu y voyait un glissé du plateau et le burn-out ne partait jamais. Pendant la charge on tolère 24 px ; une fois parti, 12 px font toujours « le doigt bouge »
+const BURN_TENU=1000; // (2026-10-07, nuit, Léo : « ajoute 500 millisecondes de maintien requis pour démarrer le burn-out », puis « le temps de maintien déclencheur du burn-out : 1,5 s », puis « réduis à 1 s ») — 280 ms → 500 → 1 500 → 1 000 ; la mise en régime (`pre` : le moteur monte, le cul s'écrase) monte sur les 3/4 de l'attente : on SENT que ça charge
 function burnTick(dt){ // chaque image du garage (après la pose de la caisse, avant la caméra)
   const now=performance.now(),t=now*.001,d0=dt>0;
-  if(BURN.hold&&!BURN.on&&!BURN.bouge&&now-BURN.hold.t0>BURN_TENU){if(!BURN.hold.non)burnPart();else if(!BURN.hold.dit){BURN.hold.dit=1;burnRefus();}} // (même soir) 0,28 s, (nuit) 1,5 s : un glissé lent qui démarre doucement reste le PLATEAU
-  burnAnneau1(now);                                                       // l'anneau de charge sous le doigt
+  if(BURN.hold&&!BURN.on&&!BURN.bouge&&now-BURN.hold.t0>BURN_TENU){if(!BURN.hold.non)burnPart();else if(!BURN.hold.dit){BURN.hold.dit=1;burnRefus();}} // (même soir) 0,28 s, (nuit) 1 s : un glissé lent qui démarre doucement reste le PLATEAU
   if(BURN.auto>0&&d0){BURN.auto-=dt;if(BURN.autoW)burnVolant(BURN.autoW*dt);if(BURN.auto<=0)burnFin();} // (le banc) un doigt qui tourne à autoW rad/s
   if(GAR.go||!garAtelierLibre())if(BURN.on)burnFin();
   /* (v2) LA MISE EN RÉGIME : pendant l'appui, avant que ça parte, le moteur monte et la caisse s'assoit — le doigt glisse : tout retombe */
