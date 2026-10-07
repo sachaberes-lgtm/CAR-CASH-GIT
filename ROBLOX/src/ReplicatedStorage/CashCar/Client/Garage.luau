@@ -475,12 +475,15 @@ local ENCRE_OR = Color3.fromRGB(44, 20, 2)
 local W_CONSOLE, H_CONSOLE, ECH_CONSOLE = 470, 362, 1.6
 -- LA GRILLE DE LA CONSOLE (unités de la console) : chaque rangée qu'on touche fait au moins 44 + 7 (la tranche de la plaque compte
 -- dans la cible) — sur un téléphone couché de 390 px, ~40 px réels pour les familles, 45 et plus pour tout le reste
-local Y = { ong = 14, hOng = 50, pas = 79, hPas = 44, bande = 138, hBande = 134, bar = 284, hBar = 62, ecart = 8, pente = math.tan(math.rad(12)) }
+-- (v4, 6/10) les familles 44 → 46 de haut, et leur cible déborde de 4 en haut (la tranche en bas) : 40 → 45 px réels sur un téléphone
+local Y = { ong = 14, hOng = 50, pas = 80, hPas = 46, bande = 138, hBande = 134, bar = 284, hBar = 62, ecart = 8, pente = math.tan(math.rad(12)) }
 local function ombrer(c: Color3, k: number): Color3 return Color3.new(c.R * k, c.G * k, c.B * k) end
 -- les teintes d'une plaque à partir de sa couleur (la recette de Hud : tuile) — le fond, la tranche, le biseau
+-- (v4 : la tranche n'est plus presque noire — la couleur profonde de la plaque, comme les tuiles du kit)
 local function teintes(c: Color3): (Color3, Color3, Color3)
-	return ombrer(c, 0.34):Lerp(C.carbone, 0.42), ombrer(c, 0.16), ombrer(c, 0.72):Lerp(C.carbone, 0.2)
+	return ombrer(c, 0.34):Lerp(C.carbone, 0.42), ombrer(c, 0.44), ombrer(c, 0.72):Lerp(C.carbone, 0.2)
 end
+local TRANCHE_OFF = Color3.fromRGB(16, 12, 36) -- la tranche d'un onglet, d'une famille au repos
 local OR_FOND, OR_BISEAU = Color3.fromRGB(255, 190, 32), Color3.fromRGB(255, 248, 170)
 local PLAQUE_OFF = Color3.fromRGB(30, 25, 58) -- un onglet, une famille au repos
 local function vif(c: Color3): Color3 return ombrer(c, 0.62):Lerp(C.carbone, 0.25) end -- la même, allumée à sa couleur
@@ -503,7 +506,11 @@ local function plaqueP(parent: Instance, nom: string, c: Color3?, dore: boolean?
 	b.Size = UDim2.new(1, 0, 1, 7)
 	b.ZIndex = 4
 	K.retour(b, plaque)
-	local pile = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), ZIndex = 3 }, plaque)
+	-- (v4) la pile se centre sur la FACE penchée, pas sur la boîte (moins la pente, et le filet à gauche) : dans les plaques étroites
+	-- de HOME et BOUTIQUE (58), la maison et le panier mordaient sur le filet — mesuré au banc
+	local d = math.floor(Y.hBar * Y.pente + 0.5)
+	local dec = dore and 0 or 5
+	local pile = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, -d - dec, 1, 0), Position = UDim2.fromOffset(math.floor(d / 2) + dec, 0), ZIndex = 3 }, plaque)
 	inst("UIListLayout", { FillDirection = Enum.FillDirection.Vertical, HorizontalAlignment = Enum.HorizontalAlignment.Center,
 		VerticalAlignment = Enum.VerticalAlignment.Center, Padding = UDim.new(0, 6), SortOrder = Enum.SortOrder.LayoutOrder }, pile)
 	local encre = dore and ENCRE_OR or C.texte
@@ -517,7 +524,7 @@ local function plaqueP(parent: Instance, nom: string, c: Color3?, dore: boolean?
 end
 -- une icône pixel dans la pile d'une plaque (rangée sous le nom « maison3 » : la maison à 3 px)
 local function icoP(pl: any, nom: string, px: number, couleur: any)
-	local f = K.icone(pl.pile, nom, px, couleur)
+	local f = K.iconeRelief(pl.pile, nom, px, couleur) -- (v4 : en relief, avec son ombre — un picto cyan sur une plaque cyan se détache)
 	f.LayoutOrder = 1
 	f.Visible = false
 	pl.icos[nom .. px] = f
@@ -563,8 +570,12 @@ end
 -- une plaque d'ONGLET ou de FAMILLE : sombre au repos, repeinte quand elle s'allume (K.repeindre) ; son contenu en pile (onglet :
 -- l'icône au-dessus du mot) ou en ligne (famille : la gemme devant le compte)
 local function plaqueO(parent: Instance, h: number, w: number, pos: UDim2, vertical: boolean): any
-	local boite, plaque, b = K.penche(parent, UDim2.fromOffset(w, h), pos, nil, PLAQUE_OFF, nil, C.encre, nil)
-	b.Size = UDim2.new(1, 0, 1, 7)
+	local boite, plaque, b = K.penche(parent, UDim2.fromOffset(w, h), pos, nil, PLAQUE_OFF, nil, TRANCHE_OFF, nil)
+	-- (la cible couvre la tranche ; une famille, plus basse, déborde aussi de 4 en haut — jamais sur la rangée des onglets)
+	if vertical then b.Size = UDim2.new(1, 0, 1, 7) else
+		b.Size = UDim2.new(1, 0, 1, 11)
+		b.Position = UDim2.fromOffset(0, -4)
+	end
 	b.ZIndex = 4
 	K.retour(b, plaque)
 	local d = math.floor(h * Y.pente + 0.5)
@@ -584,6 +595,9 @@ local function allumer(o: any, on: boolean, fond: Color3)
 	if o.allume == on and o.fond == fond then return end
 	o.allume, o.fond = on, fond
 	K.repeindre(o.plaque, fond)
+	-- (v4) la tranche s'allume avec la face : l'onglet ouvert, la famille regardée sont des touches de LEUR couleur, épaisses
+	local tr = o.boite:FindFirstChild("Tranche")
+	if tr then (tr :: Frame).BackgroundColor3 = on and ombrer(fond, 0.62) or TRANCHE_OFF end
 	o.txt.TextColor3 = on and C.texte or C.texte2
 end
 -- la GEMME de rareté (un losange cerné d'encre)
@@ -1411,7 +1425,7 @@ local function creerInterface()
 	for k, o in { { "voiture", L.voitures, "voiture" }, { "peinture", L.peinture, "pinceau" }, { "aile", L.ailes, "aile" }, { "trainee", L.trainees, "trainee" } } do
 		local p = plaqueO(cs, Y.hOng, lo, UDim2.fromOffset(14 + (k - 1) * (lo + 6), Y.ong), true)
 		p.txt.Text = o[2]
-		p.ico = K.icone(p.pile, o[3], 2, C.terne)
+		p.ico = K.iconeRelief(p.pile, o[3], 2, C.terne)
 		p.ico.LayoutOrder = 1
 		U.onglets[o[1]] = p
 		p.b.Activated:Connect(function() Garage.onglet(o[1]) end)
@@ -1489,7 +1503,7 @@ function Garage.majOnglets()
 	for id, o in U.onglets do
 		local actif = id == onglet
 		allumer(o, actif, actif and ONG_ON or PLAQUE_OFF)
-		K.teinter(o.ico, actif and C.texte or C.terne)
+		K.teinter(o.ico, K.bandes(actif and C.texte or C.terne))
 		o.txt.TextColor3 = actif and C.texte or C.terne
 	end
 end

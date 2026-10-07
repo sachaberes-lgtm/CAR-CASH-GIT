@@ -13235,12 +13235,15 @@ local ENCRE_OR = Color3.fromRGB(44, 20, 2)
 local W_CONSOLE, H_CONSOLE, ECH_CONSOLE = 470, 362, 1.6
 -- LA GRILLE DE LA CONSOLE (unités de la console) : chaque rangée qu'on touche fait au moins 44 + 7 (la tranche de la plaque compte
 -- dans la cible) — sur un téléphone couché de 390 px, ~40 px réels pour les familles, 45 et plus pour tout le reste
-local Y = { ong = 14, hOng = 50, pas = 79, hPas = 44, bande = 138, hBande = 134, bar = 284, hBar = 62, ecart = 8, pente = math.tan(math.rad(12)) }
+-- (v4, 6/10) les familles 44 → 46 de haut, et leur cible déborde de 4 en haut (la tranche en bas) : 40 → 45 px réels sur un téléphone
+local Y = { ong = 14, hOng = 50, pas = 80, hPas = 46, bande = 138, hBande = 134, bar = 284, hBar = 62, ecart = 8, pente = math.tan(math.rad(12)) }
 local function ombrer(c: Color3, k: number): Color3 return Color3.new(c.R * k, c.G * k, c.B * k) end
 -- les teintes d'une plaque à partir de sa couleur (la recette de Hud : tuile) — le fond, la tranche, le biseau
+-- (v4 : la tranche n'est plus presque noire — la couleur profonde de la plaque, comme les tuiles du kit)
 local function teintes(c: Color3): (Color3, Color3, Color3)
-	return ombrer(c, 0.34):Lerp(C.carbone, 0.42), ombrer(c, 0.16), ombrer(c, 0.72):Lerp(C.carbone, 0.2)
+	return ombrer(c, 0.34):Lerp(C.carbone, 0.42), ombrer(c, 0.44), ombrer(c, 0.72):Lerp(C.carbone, 0.2)
 end
+local TRANCHE_OFF = Color3.fromRGB(16, 12, 36) -- la tranche d'un onglet, d'une famille au repos
 local OR_FOND, OR_BISEAU = Color3.fromRGB(255, 190, 32), Color3.fromRGB(255, 248, 170)
 local PLAQUE_OFF = Color3.fromRGB(30, 25, 58) -- un onglet, une famille au repos
 local function vif(c: Color3): Color3 return ombrer(c, 0.62):Lerp(C.carbone, 0.25) end -- la même, allumée à sa couleur
@@ -13263,7 +13266,11 @@ local function plaqueP(parent: Instance, nom: string, c: Color3?, dore: boolean?
 	b.Size = UDim2.new(1, 0, 1, 7)
 	b.ZIndex = 4
 	K.retour(b, plaque)
-	local pile = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), ZIndex = 3 }, plaque)
+	-- (v4) la pile se centre sur la FACE penchée, pas sur la boîte (moins la pente, et le filet à gauche) : dans les plaques étroites
+	-- de HOME et BOUTIQUE (58), la maison et le panier mordaient sur le filet — mesuré au banc
+	local d = math.floor(Y.hBar * Y.pente + 0.5)
+	local dec = dore and 0 or 5
+	local pile = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, -d - dec, 1, 0), Position = UDim2.fromOffset(math.floor(d / 2) + dec, 0), ZIndex = 3 }, plaque)
 	inst("UIListLayout", { FillDirection = Enum.FillDirection.Vertical, HorizontalAlignment = Enum.HorizontalAlignment.Center,
 		VerticalAlignment = Enum.VerticalAlignment.Center, Padding = UDim.new(0, 6), SortOrder = Enum.SortOrder.LayoutOrder }, pile)
 	local encre = dore and ENCRE_OR or C.texte
@@ -13277,7 +13284,7 @@ local function plaqueP(parent: Instance, nom: string, c: Color3?, dore: boolean?
 end
 -- une icône pixel dans la pile d'une plaque (rangée sous le nom « maison3 » : la maison à 3 px)
 local function icoP(pl: any, nom: string, px: number, couleur: any)
-	local f = K.icone(pl.pile, nom, px, couleur)
+	local f = K.iconeRelief(pl.pile, nom, px, couleur) -- (v4 : en relief, avec son ombre — un picto cyan sur une plaque cyan se détache)
 	f.LayoutOrder = 1
 	f.Visible = false
 	pl.icos[nom .. px] = f
@@ -13323,8 +13330,12 @@ end
 -- une plaque d'ONGLET ou de FAMILLE : sombre au repos, repeinte quand elle s'allume (K.repeindre) ; son contenu en pile (onglet :
 -- l'icône au-dessus du mot) ou en ligne (famille : la gemme devant le compte)
 local function plaqueO(parent: Instance, h: number, w: number, pos: UDim2, vertical: boolean): any
-	local boite, plaque, b = K.penche(parent, UDim2.fromOffset(w, h), pos, nil, PLAQUE_OFF, nil, C.encre, nil)
-	b.Size = UDim2.new(1, 0, 1, 7)
+	local boite, plaque, b = K.penche(parent, UDim2.fromOffset(w, h), pos, nil, PLAQUE_OFF, nil, TRANCHE_OFF, nil)
+	-- (la cible couvre la tranche ; une famille, plus basse, déborde aussi de 4 en haut — jamais sur la rangée des onglets)
+	if vertical then b.Size = UDim2.new(1, 0, 1, 7) else
+		b.Size = UDim2.new(1, 0, 1, 11)
+		b.Position = UDim2.fromOffset(0, -4)
+	end
 	b.ZIndex = 4
 	K.retour(b, plaque)
 	local d = math.floor(h * Y.pente + 0.5)
@@ -13344,6 +13355,9 @@ local function allumer(o: any, on: boolean, fond: Color3)
 	if o.allume == on and o.fond == fond then return end
 	o.allume, o.fond = on, fond
 	K.repeindre(o.plaque, fond)
+	-- (v4) la tranche s'allume avec la face : l'onglet ouvert, la famille regardée sont des touches de LEUR couleur, épaisses
+	local tr = o.boite:FindFirstChild("Tranche")
+	if tr then (tr :: Frame).BackgroundColor3 = on and ombrer(fond, 0.62) or TRANCHE_OFF end
 	o.txt.TextColor3 = on and C.texte or C.texte2
 end
 -- la GEMME de rareté (un losange cerné d'encre)
@@ -14171,7 +14185,7 @@ local function creerInterface()
 	for k, o in { { "voiture", L.voitures, "voiture" }, { "peinture", L.peinture, "pinceau" }, { "aile", L.ailes, "aile" }, { "trainee", L.trainees, "trainee" } } do
 		local p = plaqueO(cs, Y.hOng, lo, UDim2.fromOffset(14 + (k - 1) * (lo + 6), Y.ong), true)
 		p.txt.Text = o[2]
-		p.ico = K.icone(p.pile, o[3], 2, C.terne)
+		p.ico = K.iconeRelief(p.pile, o[3], 2, C.terne)
 		p.ico.LayoutOrder = 1
 		U.onglets[o[1]] = p
 		p.b.Activated:Connect(function() Garage.onglet(o[1]) end)
@@ -14249,7 +14263,7 @@ function Garage.majOnglets()
 	for id, o in U.onglets do
 		local actif = id == onglet
 		allumer(o, actif, actif and ONG_ON or PLAQUE_OFF)
-		K.teinter(o.ico, actif and C.texte or C.terne)
+		K.teinter(o.ico, K.bandes(actif and C.texte or C.terne))
 		o.txt.TextColor3 = actif and C.texte or C.terne
 	end
 end
@@ -14963,6 +14977,12 @@ local function carbone(parent: Instance, taille: UDim2, pos: UDim2, filet: Color
 	if filet then
 		inst("Frame", { Name = "Filet", BackgroundColor3 = filet, BorderSizePixel = 0, Size = UDim2.new(0, 6, 1, 0) }, f)
 	end
+	-- (v4) SON OMBRE PORTÉE : deux bandes d'encre translucides, à droite et dessous, AU-DELÀ du contour (des enfants du panneau : elles
+	-- le suivent quand il glisse) — comme les plaques, le panneau se détache du décor
+	inst("Frame", { Name = "OmbreD", BackgroundColor3 = C.encre, BackgroundTransparency = 0.5, BorderSizePixel = 0, Size = UDim2.new(0, 6, 1, 3),
+		Position = UDim2.new(1, 3, 0, 6) }, f)
+	inst("Frame", { Name = "OmbreB", BackgroundColor3 = C.encre, BackgroundTransparency = 0.5, BorderSizePixel = 0, Size = UDim2.new(1, -3, 0, 6),
+		Position = UDim2.new(0, 6, 1, 3) }, f)
 	return f
 end
 
@@ -14993,31 +15013,59 @@ local function empiler(f: Instance, base: number)
 	end
 end
 
+-- ── LA LAQUE QUI BRILLE (v4, 6/10 — 2e passe : « améliore encore les boutons ») ──
+-- Mesuré au banc : des faces boueuses (l'or noyé dans le carbone sortait KAKI, le cyan en pétrole éteint, la lavande en gris), un
+-- relief si doux qu'on lisait des aplats. La couleur d'une face est désormais d'abord POUSSÉE (saturation et lumière : jamais
+-- délavée — les gris, eux, restent gris), puis peinte en deux temps comme une laque sous un néon : le REFLET en haut (éclairci,
+-- franc) et l'OMBRE en bas (qui plonge). La coupure entre les deux est NETTE — une bande de pixels, pas un fondu : c'est le brillant
+-- des boutons d'arcade. Tout passe par ici (création, repeindre, survol, appui) : un seul endroit pour la lumière.
+local function ombrer(c: Color3, k: number): Color3 return Color3.new(c.R * k, c.G * k, c.B * k) end
+local function vif(c: Color3): Color3
+	local h, s, v = c:ToHSV()
+	local u = math.clamp((s - 0.28) / 0.32, 0, 1)
+	u = u * u * (3 - 2 * u) -- (sous 28 % de saturation, un gris reste un gris : l'état ÉTEINT doit se lire éteint)
+	return Color3.fromHSV(h, s + (1 - (1 - s) ^ 1.5 - s) * u, math.min(1, v * 1.22))
+end
+local REFLET = 0.44 -- la part haute de la face qui prend le reflet
+local function relief(c: Color3, k: number): Color3
+	local f = vif(c)
+	local _, _, v = f:ToHSV()
+	if k < REFLET then
+		return f:Lerp(Color3.new(1, 1, 1), (0.1 + 0.15 * v) * (1 - 0.4 * k / REFLET))
+	end
+	return ombrer(f, 0.93 - 0.25 * (k - REFLET) / (1 - REFLET))
+end
+-- la face d'une plaque, à sa couleur du moment (attribut « fond ») : au repos, SURVOLÉE (plus claire) ou ENFONCÉE (dans l'ombre)
+local function peindreFace(plaque: Instance, etat: string?)
+	local fond = plaque:GetAttribute("fond")
+	if typeof(fond) ~= "Color3" then return end
+	local f = fond :: Color3
+	if etat == "survol" then f = f:Lerp(Color3.new(1, 1, 1), 0.13) elseif etat == "bas" then f = ombrer(f, 0.84) end
+	for _, d in plaque:GetDescendants() do
+		if d.Name == "c" and d:IsA("Frame") then d.BackgroundColor3 = relief(f, d:GetAttribute("k") or 0) end
+	end
+end
+
 -- LE RETOUR D'APPUI (charte : « chaque appui répond ») : la plaque S'ENFONCE dans sa tranche sous le doigt ; à la souris, elle
 -- se SOULÈVE d'un cran et s'éclaire quand on la survole (un bouton de PC qui ne réagit pas au survol a l'air mort). Le survol
 -- n'existe qu'à la souris : sur un téléphone, il resterait collé après le tap.
+-- (v4) l'enfoncement mange TOUTE la tranche (il n'en descendait que la moitié : on ne sentait pas la touche aller au fond), en 60 ms,
+-- et la face passe dans l'ombre le temps de l'appui ; elle remonte en douceur (Quint) — jamais de rebond sur un simple appui.
 local function souris(): boolean
 	local t = UserInputService:GetLastInputType()
 	return t == Enum.UserInputType.MouseMovement or t == Enum.UserInputType.MouseButton1 or t == Enum.UserInputType.MouseButton2
 		or t == Enum.UserInputType.MouseWheel
 end
-local function eclairer(plaque: Instance, on: boolean)
-	local fond = plaque:GetAttribute("fond")
-	if typeof(fond) ~= "Color3" then return end
-	local f = on and (fond :: Color3):Lerp(Color3.new(1, 1, 1), 0.12) or fond
-	for _, d in plaque:GetDescendants() do
-		if d.Name == "c" and d:IsA("Frame") then
-			local k = d:GetAttribute("k") or 0
-			d.BackgroundColor3 = f:Lerp(Color3.new(1, 1, 1), 0.14):Lerp(Color3.new(f.R * 0.8, f.G * 0.8, f.B * 0.8), k)
-		end
-	end
-end
+local APPUI = TweenInfo.new(0.06, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+local RELACHE = TweenInfo.new(0.12, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
 local function retour(b: GuiButton, cible: GuiObject)
 	local p0 = cible.Position
 	local bas, survol = false, false
 	local function poser()
-		local dy = bas and 4 or (survol and -2 or 0)
-		TweenService:Create(cible, RAPIDE, { Position = p0 + UDim2.fromOffset(0, dy) }):Play()
+		local T = cible:GetAttribute("tranche")
+		local dy = bas and ((type(T) == "number" and T or 6) - 1) or (survol and -3 or 0)
+		TweenService:Create(cible, bas and APPUI or RELACHE, { Position = p0 + UDim2.fromOffset(0, dy) }):Play()
+		peindreFace(cible, (bas and "bas") or (survol and "survol") or nil)
 	end
 	b.MouseButton1Down:Connect(function()
 		bas = true
@@ -15030,19 +15078,62 @@ local function retour(b: GuiButton, cible: GuiObject)
 	b.MouseEnter:Connect(function()
 		if not souris() then return end
 		survol = true
-		eclairer(cible, true)
 		poser()
 	end)
 	b.MouseLeave:Connect(function()
-		bas = false
-		if survol then eclairer(cible, false) end
-		survol = false
+		bas, survol = false, false
 		poser()
 	end)
 	b.Activated:Connect(function()
 		Sons.jouer("tap")
 		Hud.vibre(6)
 	end)
+end
+
+-- (v4) L'OMBRE DU MOT : sous un libellé blanc cerné d'encre, son double d'encre 3 px plus bas — le mot a du relief, il se lit sur
+-- n'importe quel ciel (la recette des chiffres des grands jeux Roblox). Le double suit tout ce qu'on fait au mot : texte, corps,
+-- question de confirmation (TextScaled), marges de la tuile, visibilité, fondu. Le mot doit être au rang 2 au moins (l'ombre passe
+-- juste dessous, au-dessus de la face). Les couleurs du texte riche n'y passent pas : une ombre est d'encre.
+local OMBRE_TXT = { "TextSize", "TextScaled", "RichText", "FontFace", "TextXAlignment", "TextYAlignment", "TextWrapped", "LineHeight",
+	"Visible", "TextTransparency", "Size", "AnchorPoint" }
+local function ombreTexte(t: TextLabel | TextButton, dx: number?, dy: number?, couleur: Color3?): TextLabel
+	local o = inst("TextLabel", { Name = "OmbreTxt", BackgroundTransparency = 1, TextColor3 = couleur or C.encre }, t.Parent)
+	local st = t:FindFirstChildOfClass("UIStroke")
+	if st then inst("UIStroke", { Color = couleur or C.encre, Thickness = st.Thickness, ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual }, o) end
+	local function texte9() o.Text = (string.gsub(t.Text, '%s*color="[^"]*"', "")) end
+	texte9()
+	t:GetPropertyChangedSignal("Text"):Connect(texte9)
+	for _, p in OMBRE_TXT do
+		(o :: any)[p] = (t :: any)[p]
+		t:GetPropertyChangedSignal(p):Connect(function() (o :: any)[p] = (t :: any)[p] end)
+	end
+	local function placer() o.Position = t.Position + UDim2.fromOffset(dx or 0, dy or 3) end
+	placer()
+	t:GetPropertyChangedSignal("Position"):Connect(placer)
+	-- (le rang est verrouillé des DEUX côtés : `empiler` relève tout un écran d'un bloc, et selon l'ordre où il passe, l'ombre
+	-- finissait 20 rangs AU-DESSUS de son mot — mesuré au banc : les tuiles de la pause n'étaient plus que des pavés noirs)
+	local function rang() if o.ZIndex ~= t.ZIndex - 1 then o.ZIndex = t.ZIndex - 1 end end
+	rang()
+	t:GetPropertyChangedSignal("ZIndex"):Connect(rang)
+	o:GetPropertyChangedSignal("ZIndex"):Connect(rang)
+	local function marges(p: Instance)
+		if not p:IsA("UIPadding") then return end
+		local q = inst("UIPadding", {}, o)
+		local function sync() q.PaddingLeft, q.PaddingRight, q.PaddingTop, q.PaddingBottom = p.PaddingLeft, p.PaddingRight, p.PaddingTop, p.PaddingBottom end
+		sync()
+		p.Changed:Connect(sync)
+		p.AncestryChanged:Connect(function() if p.Parent ~= t then q:Destroy() end end)
+	end
+	for _, p in t:GetChildren() do marges(p) end
+	t.ChildAdded:Connect(marges)
+	return o
+end
+-- (v4) LA CIBLE DU POUCE : la zone qu'on touche grandit en HAUT et en BAS d'autant (la tranche comprise) — le dessin ne bouge pas
+-- d'un pixel (le mot reste centré, les marges d'une tuile « v » sont en part de la hauteur). Pour une plaque trop basse pour les
+-- 44 px d'un téléphone couché (une racine à ×0,49 : une plaque de 82 n'en faisait que 40).
+local function cible(b: GuiObject, e: number)
+	b.Size = UDim2.new(b.Size.X.Scale, b.Size.X.Offset, b.Size.Y.Scale, b.Size.Y.Offset + 2 * e)
+	b.Position = b.Position - UDim2.fromOffset(0, e)
 end
 
 -- ── L'HAPTIQUE (hap du web) : UN seul endroit, et il écoute l'interrupteur VIBRATIONS. `ms` : la durée du coup (6 un appui,
@@ -15074,13 +15165,24 @@ local CRAN = 4 -- hauteur d'une bande (px de l'interface)
 -- DÉGRADÉ de lumière (la bande du haut éclairée, celle du bas dans l'ombre — la plaque a du volume), un filet plus large, une
 -- tranche plus épaisse et cernée. Chaque bande retient sa place (attribut « k », 0 en haut, 1 en bas) : repeindre garde le relief.
 local CONTOUR = 3
-local function ombrer(c: Color3, k: number): Color3 return Color3.new(c.R * k, c.G * k, c.B * k) end
-local function relief(c: Color3, k: number): Color3 return c:Lerp(Color3.new(1, 1, 1), 0.14):Lerp(ombrer(c, 0.8), k) end
+-- (v4) LA TRANCHE A UNE ÉPAISSEUR (≈ 10 % de la hauteur, de 5 à 11 px) : la tranche de 8 px passait à moitié sous le contour du bas,
+-- il en restait un trait de 4 px presque noir — on ne voyait pas une touche, on voyait une étiquette. Elle prend désormais la
+-- couleur profonde de la plaque (un bleu canard sous le cyan, un brun d'or sous le lingot), et un dégradé la fait plonger vers le
+-- bas. L'OMBRE PORTÉE : toute la silhouette (contour et tranche compris) recopiée en encre translucide, 5 px plus bas et à droite
+-- — la plaque se détache du ciel bleu de l'accueil comme de la nuit de la ville.
+-- (mesuré : à 50 % d'encre l'ombre disparaissait sur le ciel pâle de l'accueil — 68 %, 6 px plus bas)
+local OMBRE_X, OMBRE_Y, OMBRE_A = 5, 6, 0.32
+local function epaisseur(Hh: number): number return math.clamp(math.floor(Hh * 0.09 + 0.5), 5, 10) end
 -- rend le conteneur (à placer), la plaque (ce qui s'enfonce) et le bouton
 local function penche(parent: Instance, taille: UDim2, pos: UDim2, ancre: Vector2?, fond: Color3, filet: Color3?, tranche: Color3, lisere: Color3?): (Frame, Frame, TextButton)
 	local boite = inst("Frame", { BackgroundTransparency = 1, Size = taille, Position = pos, AnchorPoint = ancre or Vector2.zero }, parent)
-	local tr = inst("Frame", { BackgroundColor3 = tranche, BorderSizePixel = 0 }, boite)
+	-- (l'ombre vit dans un cadre TRANSPARENT : Client/Roue repeint tous les cadres frères de la plaque — il croit n'y trouver que la
+	-- tranche — et ne touche ainsi que ce fond invisible)
+	local ombre = inst("Frame", { Name = "Ombre", BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1) }, boite)
+	local tr = inst("Frame", { Name = "Tranche", BackgroundColor3 = tranche, BorderSizePixel = 0 }, boite)
 	inst("UIStroke", { Color = C.encre, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, tr)
+	-- (un dégradé MULTIPLIE la couleur : quelle que soit la teinte qu'on lui donne ensuite, la tranche s'assombrit vers le bas)
+	inst("UIGradient", { Rotation = 90, Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.fromRGB(178, 178, 178)) }, tr)
 	local plaque = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1) }, boite)
 	plaque:SetAttribute("fond", fond) -- (le survol éclaire la face à partir de sa couleur du moment — voir `eclairer`)
 	local contour = inst("Frame", { Name = "Contour", BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1) }, plaque)
@@ -15123,8 +15225,24 @@ local function penche(parent: Instance, taille: UDim2, pos: UDim2, ancre: Vector
 			end
 			if filetC then inst("Frame", { Name = "f", BackgroundColor3 = filetC, BorderSizePixel = 0, Size = UDim2.new(0, 7, 1, 0) }, bande) end
 		end
-		tr.Size = UDim2.new(1, -d, 0, 8)
-		tr.Position = UDim2.new(0, 0, 1, -1)
+		-- la tranche : sous le contour du bas, T px visibles ; un pixel plus large de chaque côté (son trait d'encre tombe sur celui
+		-- de la plaque)
+		local T = epaisseur(Hh)
+		plaque:SetAttribute("tranche", T)
+		tr.Size = UDim2.new(1, -d + 2, 0, CONTOUR + T)
+		tr.Position = UDim2.fromOffset(-1, Hh)
+		-- l'ombre portée, en bandes de 8 px (une ombre translucide se moque de l'escalier fin des pixels)
+		ombre:ClearAllChildren()
+		local yMax = Hh + CONTOUR + T + 2
+		local y = -CONTOUR
+		while y < yMax do
+			local h = math.min(8, yMax - y)
+			local ym = y + h / 2
+			local x = (ym < Hh) and math.floor((Hh - ym) * PENTE + 0.5) or 0
+			inst("Frame", { BackgroundColor3 = C.encre, BackgroundTransparency = OMBRE_A, BorderSizePixel = 0, Size = UDim2.new(1, -d + 2 * CONTOUR, 0, h),
+				Position = UDim2.fromOffset(x - CONTOUR + OMBRE_X, y + OMBRE_Y) }, ombre)
+			y += h
+		end
 	end
 	batir()
 	if taille.Y.Scale ~= 0 then boite:GetPropertyChangedSignal("AbsoluteSize"):Connect(batir) end
@@ -15151,28 +15269,49 @@ local function couleurLigne(bandes: any, y: number): Color3
 	end
 	return bandes[#bandes][2]
 end
-local function icone(parent: Instance, nom: string, px: number, bandes: any, pos: UDim2?, ancre: Vector2?): Frame
+-- `ombre` (v4) : l'icône porte son OMBRE d'encre, décalée de `ombre` px en bas à droite — dessinée AVANT ses pixels (à rang égal,
+-- le dernier venu passe devant), sans attribut « y » (teinter ne la repeint pas) : un picto cyan sur une plaque cyan se détache.
+local function iconeBase(parent: Instance, nom: string, px: number, bandes: any, pos: UDim2?, ancre: Vector2?, ombre: number?): Frame
 	local f = inst("Frame", { Name = "Icone", BackgroundTransparency = 1, Size = UDim2.fromOffset(9 * px, 9 * px), Position = pos or UDim2.new(),
 		AnchorPoint = ancre or Vector2.zero }, parent)
-	local y = 0
 	-- (un nom du carnet d'icônes, ou une grille écrite sur place : « ....#....|… »)
-	for ligne in string.gmatch(string.find(nom, "|", 1, true) and nom or (Icones[nom] or Icones.croix), "[^|]+") do
-		local x = 1
-		while x <= 9 do
-			if string.sub(ligne, x, x) == "#" then
-				local x1 = x
-				while x1 < 9 and string.sub(ligne, x1 + 1, x1 + 1) == "#" do x1 += 1 end
-				local p = inst("Frame", { BackgroundColor3 = couleurLigne(bandes, y), BorderSizePixel = 0, Size = UDim2.fromOffset((x1 - x + 1) * px, px),
-					Position = UDim2.fromOffset((x - 1) * px, y * px) }, f)
-				p:SetAttribute("y", y)
-				x = x1 + 1
-			else
-				x += 1
+	local grille = string.find(nom, "|", 1, true) and nom or (Icones[nom] or Icones.croix)
+	for passe = (ombre and 1 or 2), 2 do
+		local y = 0
+		for ligne in string.gmatch(grille, "[^|]+") do
+			local x = 1
+			while x <= 9 do
+				if string.sub(ligne, x, x) == "#" then
+					local x1 = x
+					while x1 < 9 and string.sub(ligne, x1 + 1, x1 + 1) == "#" do x1 += 1 end
+					if passe == 1 then
+						inst("Frame", { Name = "o", BackgroundColor3 = C.encre, BackgroundTransparency = 0.2, BorderSizePixel = 0, Size = UDim2.fromOffset((x1 - x + 1) * px, px),
+							Position = UDim2.fromOffset((x - 1) * px + (ombre :: number), y * px + (ombre :: number)) }, f)
+					else
+						local p = inst("Frame", { BackgroundColor3 = couleurLigne(bandes, y), BorderSizePixel = 0, Size = UDim2.fromOffset((x1 - x + 1) * px, px),
+							Position = UDim2.fromOffset((x - 1) * px, y * px) }, f)
+						p:SetAttribute("y", y)
+					end
+					x = x1 + 1
+				else
+					x += 1
+				end
 			end
+			y += 1
 		end
-		y += 1
 	end
 	return f
+end
+local function icone(parent: Instance, nom: string, px: number, bandes: any, pos: UDim2?, ancre: Vector2?): Frame
+	return iconeBase(parent, nom, px, bandes, pos, ancre, nil)
+end
+-- les trois bandes d'une icône d'une seule couleur (lèvre claire, plein, ombre) — le relief des icônes du HUD, pas un aplat
+local function bandesDe(c: Color3): any
+	return { { 0.3, c:Lerp(Color3.new(1, 1, 1), 0.5) }, { 0.72, c }, { 1, ombrer(c, 0.7) } }
+end
+-- (v4) l'icône d'un BOUTON : en relief (trois bandes) et avec son ombre d'encre
+local function iconeRelief(parent: Instance, nom: string, px: number, couleur: any, pos: UDim2?, ancre: Vector2?): Frame
+	return iconeBase(parent, nom, px, typeof(couleur) == "Color3" and bandesDe(couleur) or couleur, pos, ancre, math.max(2, math.floor(px * 0.6 + 0.5)))
 end
 local function teinter(f: Instance, bandes: any)
 	for _, p in f:GetChildren() do
@@ -15243,8 +15382,10 @@ end
 -- les COULEURS d'une tuile, tirées de son filet : la face (le filet plongé dans la nuit), la tranche, le liseré du haut
 -- (v3, 5/10) : la face était le filet à 34 % noyé à 42 % dans le carbone — sur le ciel bleu de l'accueil, cinq plaques boueuses.
 -- Elle garde désormais la moitié de sa couleur (saturée, jamais délavée), et son liseré est le filet presque plein : un reflet net.
+-- (v4) la face garde la recette d'avant (Client/Revenus la refait pour repeindre son cadeau : elles doivent rester sœurs) — c'est
+-- `relief` qui la rend vive ; la TRANCHE, elle, n'est plus presque noire : la couleur profonde du filet
 local function teintesTuile(filet: Color3): (Color3, Color3, Color3)
-	return ombrer(filet, 0.5):Lerp(C.carbone, 0.3), ombrer(filet, 0.16), ombrer(filet, 0.95)
+	return ombrer(filet, 0.5):Lerp(C.carbone, 0.3), ombrer(filet, 0.4), ombrer(filet, 0.95)
 end
 local TUILES = setmetatable({}, { __mode = "k" }) :: { [TextButton]: any }
 local function tuile(parent: Instance, libelle: string, filet: Color3, taille: UDim2, pos: UDim2, ancre: Vector2?, corps: number?, ico: string?, pose: string?): TextButton
@@ -15255,35 +15396,41 @@ local function tuile(parent: Instance, libelle: string, filet: Color3, taille: U
 	local cs = corps or 16
 	b.Text = libelle
 	b.TextSize = cs
+	b.ZIndex = 3 -- (le mot au rang 3, son ombre au 2, la face et l'icône au 1)
 	inst("UIStroke", { Color = C.encre, Thickness = 3, ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual }, b)
 	TUILES[b] = { plaque = plaque, filet = filet }
 	if ico then
+		-- (v4) les icônes en RELIEF, avec leur ombre, et un cran plus grandes : « g » 36 → 45 px dans une tuile de 90, « h » 27 → 45 ;
+		-- jamais plus de 60 % de la hauteur de la plaque
 		local em = cs * CH -- la hauteur d'un caractère
+		local Hp = (taille.Y.Offset > 0) and taille.Y.Offset or 80
+		local pxMax = math.max(2, math.floor(Hp * 0.6 / 9))
 		if libelle == "" then
-			icone(plaque, ico, math.max(2, math.floor(cs / 6 + 0.5)), filet, UDim2.fromScale(0.5, 0.5), Vector2.new(0.5, 0.5))
+			iconeRelief(plaque, ico, math.min(pxMax, math.max(2, math.floor(cs / 6 + 0.5))), filet, UDim2.new(0.5, -2, 0.5, -1), Vector2.new(0.5, 0.5))
 		elseif pose == "v" then
-			local px = math.max(2, math.floor(em * 0.36 + 0.5))
+			local px = math.min(pxMax, math.max(2, math.floor(em * 0.36 + 0.5)))
 			local ecart = math.floor(em * 0.55)
 			local total = 9 * px + ecart + em
-			icone(plaque, ico, px, filet, UDim2.new(0.5, 0, 0.5, -total / 2), Vector2.new(0.5, 0))
+			iconeRelief(plaque, ico, px, filet, UDim2.new(0.5, 0, 0.5, -total / 2), Vector2.new(0.5, 0))
 			b.TextYAlignment = Enum.TextYAlignment.Top
 			inst("UIPadding", { PaddingTop = UDim.new(0.5, math.floor(-total / 2 + 9 * px + ecart - (cs - em) / 2)) }, b)
 		elseif pose == "g" then
 			-- (v3 : l'icône calée à gauche faisait 18 px dans une tuile de 64 — un pixel par case de plus, elle se reconnaît)
-			local px = math.max(3, math.floor(em * 0.24 + 0.5))
-			icone(plaque, ico, px, filet, UDim2.new(0, 32, 0.5, 0), Vector2.new(0, 0.5))
+			local px = math.min(pxMax, math.max(3, math.floor(em * 0.3 + 0.5)))
+			iconeRelief(plaque, ico, px, filet, UDim2.new(0, 30, 0.5, -1), Vector2.new(0, 0.5))
 			b.TextXAlignment = Enum.TextXAlignment.Left
-			inst("UIPadding", { PaddingLeft = UDim.new(0, 32 + 9 * px + math.floor(em * 0.7)) }, b)
+			inst("UIPadding", { PaddingLeft = UDim.new(0, 30 + 9 * px + math.floor(em * 0.7)) }, b)
 		else
 			-- (la police pixel est à chasse fixe : la largeur du libellé se calcule)
-			local px = math.max(2, math.floor(em * 0.19 + 0.5))
+			local px = math.min(pxMax, math.max(3, math.floor(em * 0.3 + 0.5)))
 			local ecart = math.floor(em * 0.7)
 			local large = 9 * px + ecart + utf8.len(libelle) * em
-			icone(plaque, ico, px, filet, UDim2.new(0.5, -large / 2, 0.5, 0), Vector2.new(0, 0.5))
+			iconeRelief(plaque, ico, px, filet, UDim2.new(0.5, -large / 2, 0.5, -1), Vector2.new(0, 0.5))
 			inst("UIPadding", { PaddingLeft = UDim.new(0, 9 * px + ecart) }, b)
 		end
 		TUILES[b].ico = plaque:FindFirstChild("Icone")
 	end
+	ombreTexte(b)
 	retour(b, plaque)
 	ajuster(b, 16, true)
 	return b
@@ -15293,11 +15440,13 @@ local function allumer(b: TextButton, on: boolean)
 	local t = TUILES[b]
 	if not t then return end
 	local filet = on and t.filet or C.terne
-	local fondT, _, lisereT = teintesTuile(filet)
+	local fondT, trancheT, lisereT = teintesTuile(filet)
 	repeindre(t.plaque, fondT, filet)
 	local l = t.plaque:FindFirstChild("l", true)
 	if l then (l :: Frame).BackgroundColor3 = lisereT end
-	if t.ico then teinter(t.ico, filet) end
+	local tr = t.plaque.Parent and t.plaque.Parent:FindFirstChild("Tranche")
+	if tr then (tr :: Frame).BackgroundColor3 = trancheT end
+	if t.ico then teinter(t.ico, bandesDe(filet)) end
 	b.TextColor3 = on and C.texte or C.texte2
 end
 
@@ -15345,13 +15494,16 @@ end
 local function boutonRetour(parent: Instance): TextButton
 	local fondR, trancheR, lisereR = teintesTuile(C.cyan)
 	local _, plaque, b = penche(parent, UDim2.fromOffset(290, 104), UDim2.new(0, 60, 1, -34), Vector2.new(0, 1), fondR, C.cyan, trancheR, lisereR)
-	icone(plaque, "gauche", 4, C.cyan, UDim2.new(0, 56, 0.5, 0), Vector2.new(0, 0.5))
+	iconeRelief(plaque, "gauche", 5, C.cyan, UDim2.new(0, 46, 0.5, -1), Vector2.new(0, 0.5))
 	b.Text = T.retour
 	b.TextSize = 32
+	b.ZIndex = 3
 	b.TextXAlignment = Enum.TextXAlignment.Left
 	inst("UIPadding", { PaddingLeft = UDim.new(0, 112) }, b)
-	inst("UIStroke", { Color = C.encre, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual }, b)
+	inst("UIStroke", { Color = C.encre, Thickness = 3, ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual }, b)
+	ombreTexte(b)
 	retour(b, plaque)
+	ajuster(b, 16, true)
 	return b
 end
 
@@ -15359,6 +15511,8 @@ end
 Hud.kit = { inst = inst, texte = texte, degrade = degrade, carbone = carbone, tuile = tuile, lingot = lingot, retour = retour,
 	penche = penche, repeindre = repeindre, icone = icone, teinter = teinter, jauge = jauge, boutonRetour = boutonRetour,
 	allumer = allumer, ajuster = ajuster, lisere = lisere,
+	-- (v4, 6/10) l'icône d'un bouton (relief + ombre), l'ombre d'un mot, la cible du pouce agrandie, les trois bandes d'une couleur
+	iconeRelief = iconeRelief, ombreTexte = ombreTexte, cible = cible, bandes = bandesDe,
 	PIX = PIX, PIXI = PIXI, TXT = TXT, RAPIDE = RAPIDE, LENTE = LENTE }
 
 -- ── les formats d'argent (fmtC, L12383) ──
@@ -15426,6 +15580,7 @@ local ECLAIR = {
 
 -- ════════════════════════════════════════════════════════════════════════════════════════════════
 local gui: ScreenGui
+local chatAvant: any = nil -- la fenêtre de chat, coupée pendant le chargement (voir Hud.creer, Hud.ecran)
 local E = {} -- les éléments qu'on met à jour
 Hud.E = E
 
@@ -15436,6 +15591,15 @@ function Hud.creer()
 		ScreenInsets = Enum.ScreenInsets.CoreUISafeInsets, DisplayOrder = 5,
 	}, pg)
 	local tactile = Config.TACTILE_TEST == true or (UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled)
+	-- (7/10) LA FENÊTRE DE CHAT de Roblox s'affichait PAR-DESSUS le chargement (« Dans le chat, /? … ») : on la coupe le temps du
+	-- chargement — fenêtre et barre de saisie — et on la rend telle qu'elle était dès qu'on quitte l'écran (Hud.ecran)
+	pcall(function()
+		local TCS = game:GetService("TextChatService")
+		local fen, barre = TCS:FindFirstChildOfClass("ChatWindowConfiguration"), TCS:FindFirstChildOfClass("ChatInputBarConfiguration")
+		chatAvant = { fen = fen, fenOn = fen and fen.Enabled, barre = barre, barreOn = barre and barre.Enabled }
+		if fen then fen.Enabled = false end
+		if barre then barre.Enabled = false end
+	end)
 	-- tout est dessiné pour un écran de 720 px de haut : une RACINE de 1/k de l'écran, agrandie k fois
 	local racine = inst("Frame", { Name = "Racine", BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1) }, gui)
 	Hud.racine = racine -- les autres écrans (garage…) se posent dans la même racine mise à l'échelle
@@ -15470,35 +15634,76 @@ function Hud.creer()
 	local gStick = inst("ScreenGui", { Name = "CashCarStick", ResetOnSpawn = false, IgnoreGuiInset = true,
 		ScreenInsets = Enum.ScreenInsets.None, DisplayOrder = 6 }, pg)
 
-	-- ══ CHARGEMENT v3 (5/10, Sacha : « l'écran de chargement est super moche ») ══
-	-- Le COUCHANT RÉTRO du jeu (le ciel violet qui rougit vers l'horizon, le soleil à bandes, la grille néon qui file vers lui), le
-	-- GRAND logo de l'accueil, une BARRE qui avance, une ASTUCE qui change toutes les 3 s. Tout en cadres : rien à charger.
-	-- (v3) mesuré au banc : la grille partait À L'ENVERS (les lignes tournaient autour de leur milieu : elles se rejoignaient en bas de
-	-- l'écran au lieu de l'horizon), les bandes du soleil dépassaient du disque, la barre et l'astuce se lisaient À TRAVERS la grille,
-	-- le logo s'affichait une seconde dans la police de secours, et la bande des boutons de Roblox montrait le ciel bleu du jeu.
+	-- ══ CHARGEMENT v4 (7/10, Sacha : « l'écran de chargement est quand même assez moche ») ══
+	-- Un écran de chargement de jeu du TOP : une scène, pas une page. Le COUCHANT RÉTRO du jeu en entier — un ciel de nuit qui rougit
+	-- vers l'horizon et ses ÉTOILES qui scintillent (une filante de temps en temps), le SOLEIL à bandes derrière deux chaînes de
+	-- MONTAGNES en pixels cernées de néon, la GRILLE qui file vers nous, la ROUTE de CASH CAR entre ses deux néons roses, ses tirets
+	-- d'or qui défilent, et dessus LA CAISSE vue de dos (feux rouges, deux flammes de nitro qui crépitent, elle tangue sur sa ligne).
+	-- Le logo respire et un reflet d'or le traverse ; la barre et l'astuce sont posées sur un bandeau d'encre (rien ne se lit à
+	-- travers la grille).
+	-- (v4) LE CIEL TIENT SUR TOUS LES ÉCRANS : les repères du dégradé étaient comptés pour une racine de 720 px de haut ; sur un grand
+	-- écran (la racine plafonne son échelle à ×2 : au-delà de 1 476 px de haut elle grandit) l'horizon rose tombait à côté du soleil.
+	-- Désormais le ciel, le sol et leurs jupes sont trois cadres en PART de l'écran : l'horizon est à 56 % quelle que soit la hauteur ;
+	-- le sol (grille, route) se dessine jusqu'à 600 px sous l'horizon et se coupe au bord. La largeur, elle, est libre : tout se
+	-- centre, les montagnes se placent en part de la largeur (un 1,44:1 comme un téléphone couché).
+	-- Rien de lourd : des cadres plats, bâtis une fois ; UNE boucle par image, qui dort dès que l'écran est caché.
 	local JUPE = 400 -- (le fond déborde de la racine de chaque côté : la bande du haut et les bords de l'encoche sont couverts)
+	local HZ = 0.56  -- l'horizon, en part de la hauteur
+	local LOGO_Y = 0.19
+	E.chargeLogoY = LOGO_Y
 	E.charge = inst("Frame", { Name = "Charge", BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), ZIndex = 50 }, racine)
+	local vieCharge: any = {} -- ce qui bouge (la boucle de vie, plus bas)
 	do
-		local fond = inst("Frame", { Name = "Jupe", BackgroundColor3 = Color3.new(1, 1, 1), BorderSizePixel = 0, Size = UDim2.new(1, 2 * JUPE, 1, 2 * JUPE),
-			Position = UDim2.fromOffset(-JUPE, -JUPE), ZIndex = 50 }, E.charge)
-		-- (les repères du ciel sont donnés en part de l'ÉCRAN, ramenés à la jupe qui le déborde)
-		local function kp(s: number, c: Color3) return ColorSequenceKeypoint.new(math.clamp((s * 720 + JUPE) / (720 + 2 * JUPE), 0, 1), c) end
-		inst("UIGradient", { Rotation = 90, Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, Color3.fromRGB(8, 4, 26)),
-			kp(0, Color3.fromRGB(12, 6, 34)), kp(0.42, Color3.fromRGB(58, 14, 86)), kp(0.6, Color3.fromRGB(176, 40, 116)), kp(0.628, Color3.fromRGB(232, 70, 136)),
-			kp(0.632, Color3.fromRGB(30, 8, 52)), kp(1, Color3.fromRGB(10, 4, 24)), ColorSequenceKeypoint.new(1, Color3.fromRGB(6, 2, 16)) }) }, fond)
-		-- le HALO du couchant : des disques roses emboîtés derrière le soleil, coupés net à l'horizon
-		local ciel = inst("Frame", { BackgroundTransparency = 1, ClipsDescendants = true, Size = UDim2.new(1, 0, 0.63, JUPE), Position = UDim2.fromOffset(0, -JUPE), ZIndex = 50 }, E.charge)
-		for k = 1, 4 do
-			local d = 900 - k * 150
-			local h = inst("Frame", { BackgroundColor3 = Color3.fromRGB(255, 70 + k * 18, 160 - k * 10), BackgroundTransparency = 0.9 - k * 0.012, BorderSizePixel = 0,
-				Size = UDim2.fromOffset(d, d), Position = UDim2.new(0.5, 0, 1, 0), AnchorPoint = Vector2.new(0.5, 0.5), ZIndex = 50 }, ciel)
-			inst("UICorner", { CornerRadius = UDim.new(0.5, 0) }, h)
+		local CIEL_HAUT, SOL_BAS = Color3.fromRGB(6, 3, 24), Color3.fromRGB(5, 2, 14)
+		-- le CIEL : un dégradé en part de sa propre hauteur (du zénith indigo au corail de l'horizon), sa jupe au-dessus
+		inst("Frame", { Name = "JupeHaut", BackgroundColor3 = CIEL_HAUT, BorderSizePixel = 0, Size = UDim2.new(1, 2 * JUPE, 0, JUPE), Position = UDim2.fromOffset(-JUPE, -JUPE), ZIndex = 50 }, E.charge)
+		local ciel = inst("Frame", { Name = "Ciel", BackgroundColor3 = Color3.new(1, 1, 1), BorderSizePixel = 0, Size = UDim2.new(1, 2 * JUPE, HZ, 0), Position = UDim2.fromOffset(-JUPE, 0), ZIndex = 50 }, E.charge)
+		inst("UIGradient", { Rotation = 90, Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, CIEL_HAUT), ColorSequenceKeypoint.new(0.34, Color3.fromRGB(26, 9, 64)),
+			ColorSequenceKeypoint.new(0.6, Color3.fromRGB(78, 18, 104)), ColorSequenceKeypoint.new(0.8, Color3.fromRGB(176, 38, 124)), ColorSequenceKeypoint.new(0.94, Color3.fromRGB(246, 84, 136)),
+			ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 150, 150)) }) }, ciel)
+		-- le SOL : la nuit violette, plus claire au ras de l'horizon (la ville sous la mer de nuages), sa jupe dessous
+		local sol = inst("Frame", { Name = "Sol", BackgroundColor3 = Color3.new(1, 1, 1), BorderSizePixel = 0, Size = UDim2.new(1, 2 * JUPE, 1 - HZ, 0), Position = UDim2.new(0, -JUPE, HZ, 0), ZIndex = 50 }, E.charge)
+		inst("UIGradient", { Rotation = 90, Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, Color3.fromRGB(58, 10, 74)), ColorSequenceKeypoint.new(0.1, Color3.fromRGB(26, 6, 46)),
+			ColorSequenceKeypoint.new(0.5, Color3.fromRGB(12, 4, 28)), ColorSequenceKeypoint.new(1, SOL_BAS) }) }, sol)
+		inst("Frame", { Name = "JupeBas", BackgroundColor3 = SOL_BAS, BorderSizePixel = 0, Size = UDim2.new(1, 2 * JUPE, 0, JUPE), Position = UDim2.new(0, -JUPE, 1, 0), ZIndex = 50 }, E.charge)
+		-- les ÉTOILES : des pixels de 2 à 4 px (et quelques ÉCLATS en croix), semés une fois (une graine fixe : le même ciel à chaque
+		-- lancement), qui scintillent chacune à son rythme ; aucune sous la bande rose du bas du ciel
+		local rng = Random.new(161)
+		vieCharge.etoiles = {}
+		for k = 1, 56 do
+			local x, y = rng:NextNumber(0.01, 0.99), rng:NextNumber(0.02, HZ * 0.62)
+			local eclat = k <= 7
+			local s = eclat and 4 or ((rng:NextNumber() < 0.3) and 3 or 2)
+			local c = ({ Color3.new(1, 1, 1), Color3.fromRGB(170, 236, 255), Color3.fromRGB(255, 196, 240), Color3.fromRGB(255, 236, 170) })[rng:NextInteger(1, 4)]
+			local f = inst("Frame", { BackgroundColor3 = c, BorderSizePixel = 0, Size = UDim2.fromOffset(s, s), Position = UDim2.fromScale(x, y), AnchorPoint = Vector2.new(0.5, 0.5), ZIndex = 50 }, E.charge)
+			local branches = {}
+			if eclat then
+				-- (un éclat : une croix de pixels autour du cœur — les branches battent avec lui)
+				for _, d9 in { Vector2.new(1, 0), Vector2.new(-1, 0), Vector2.new(0, 1), Vector2.new(0, -1) } do
+					table.insert(branches, inst("Frame", { BackgroundColor3 = c, BorderSizePixel = 0, Size = UDim2.fromOffset(d9.X ~= 0 and 6 or 2, d9.Y ~= 0 and 6 or 2),
+						Position = UDim2.new(0.5, d9.X * 5, 0.5, d9.Y * 5), AnchorPoint = Vector2.new(0.5, 0.5), ZIndex = 50 }, f))
+				end
+			end
+			vieCharge.etoiles[k] = { f = f, b = branches, w = rng:NextNumber(1.2, 3.4), ph = rng:NextNumber(0, 6.283), base = eclat and 0 or rng:NextNumber(0.05, 0.4) }
 		end
-		-- le SOLEIL à bandes, posé sur l'horizon (63 % de la hauteur) : des tranches de 4 px de la largeur exacte du disque — un rond de
-		-- pixel art — et des coupes de plus en plus larges vers le bas (le ciel se voit à travers, comme sur les pochettes de 1986)
-		local R = 152
-		local sol = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(2 * R, R), Position = UDim2.fromScale(0.5, 0.63), AnchorPoint = Vector2.new(0.5, 1), ZIndex = 50 }, E.charge)
-		-- (les coupes en part de la hauteur du soleil : de plus en plus larges, les bandes de plus en plus fines)
+		-- l'ÉTOILE FILANTE : un trait qui file en biais toutes les ~4 s
+		vieCharge.filante = inst("Frame", { BackgroundColor3 = Color3.new(1, 1, 1), BorderSizePixel = 0, Size = UDim2.fromOffset(90, 2), Rotation = 18, AnchorPoint = Vector2.new(1, 0.5),
+			BackgroundTransparency = 1, ZIndex = 50 }, E.charge)
+		inst("UIGradient", { Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(1, 0) }) }, vieCharge.filante)
+		-- le HALO du couchant : des disques roses emboîtés derrière le soleil, coupés net à l'horizon (ils respirent)
+		local halo = inst("Frame", { BackgroundTransparency = 1, ClipsDescendants = true, Size = UDim2.new(1, 0, HZ, 0), ZIndex = 50 }, E.charge)
+		vieCharge.halo = {}
+		for k = 1, 4 do
+			local d = 940 - k * 160
+			local h = inst("Frame", { BackgroundColor3 = Color3.fromRGB(255, 70 + k * 20, 160 - k * 12), BackgroundTransparency = 0.88 - k * 0.012, BorderSizePixel = 0,
+				Size = UDim2.fromOffset(d, d), Position = UDim2.fromScale(0.5, 1), AnchorPoint = Vector2.new(0.5, 0.5), ZIndex = 50 }, halo)
+			inst("UICorner", { CornerRadius = UDim.new(0.5, 0) }, h)
+			vieCharge.halo[k] = h
+		end
+		-- le SOLEIL à bandes, posé sur l'horizon : des tranches de 4 px de la largeur exacte du disque — un rond de pixel art — et des
+		-- coupes de plus en plus larges vers le bas (le ciel se voit à travers, comme sur les pochettes de 1986)
+		local R = 142
+		local soleil = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(2 * R, R), Position = UDim2.fromScale(0.5, HZ), AnchorPoint = Vector2.new(0.5, 1), ZIndex = 50 }, E.charge)
 		local COUPES = { { 0.47, 0.5 }, { 0.58, 0.61 }, { 0.68, 0.73 }, { 0.78, 0.83 }, { 0.87, 0.94 }, { 0.965, 2 } }
 		for y = 0, R - 4, 4 do
 			local yc = y + 2
@@ -15507,43 +15712,155 @@ function Hud.creer()
 			if not coupe then
 				local dy = R - yc
 				local w = 2 * math.floor(math.sqrt(math.max(0, R * R - dy * dy)) + 0.5) -- (la corde ENTIÈRE : deux demi-cordes)
-				inst("Frame", { BackgroundColor3 = Color3.fromRGB(255, 232, 96):Lerp(Color3.fromRGB(255, 56, 150), (yc / R) ^ 1.3), BorderSizePixel = 0,
-					Size = UDim2.fromOffset(w, 4), Position = UDim2.new(0.5, 0, 0, y), AnchorPoint = Vector2.new(0.5, 0), ZIndex = 50 }, sol)
+				inst("Frame", { BackgroundColor3 = Color3.fromRGB(255, 236, 110):Lerp(Color3.fromRGB(255, 52, 150), (yc / R) ^ 1.3), BorderSizePixel = 0,
+					Size = UDim2.fromOffset(w, 4), Position = UDim2.new(0.5, 0, 0, y), AnchorPoint = Vector2.new(0.5, 0), ZIndex = 50 }, soleil)
 			end
 		end
-		-- la GRILLE : des lignes qui partent TOUTES du point de fuite (caché juste derrière l'horizon) et s'ouvrent vers le bas, et des
-		-- traverses qui filent vers nous (le sol défile). Chaque ligne tourne autour de son MILIEU (c'est ainsi que Roblox fait tourner un
-		-- cadre) : on la pose donc au milieu du segment point de fuite → bord bas, à la bonne longueur et au bon angle.
-		local GW, GH, VY = 3600, math.floor(0.37 * 720) + JUPE, -70
-		local grille = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(GW, GH), Position = UDim2.fromScale(0.5, 0.63), AnchorPoint = Vector2.new(0.5, 0),
-			ZIndex = 50, ClipsDescendants = true }, E.charge)
-		for k = -16, 16 do
-			local dx, dy = k * 150, GH - VY
-			local L = math.sqrt(dx * dx + dy * dy)
-			inst("Frame", { BackgroundColor3 = Color3.fromRGB(255, 62, 200), BackgroundTransparency = 0.2 + math.min(0.5, math.abs(k) * 0.03), BorderSizePixel = 0,
-				AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.fromOffset(2, L), Position = UDim2.fromOffset(GW / 2 + dx / 2, VY + dy / 2),
-				Rotation = -math.deg(math.atan2(dx, dy)), ZIndex = 50 }, grille)
+		-- les MONTAGNES : deux chaînes en pixels de part et d'autre du soleil (en part de la largeur : elles s'écartent sur un écran
+		-- large, se resserrent sur un 4:3), le corps dans la nuit, les flancs cernés d'un filet de néon rose — elles passent DEVANT le
+		-- bas du soleil, comme sur toutes les pochettes synthwave
+		local CORPS_M, NEON_M, CRETE = Color3.fromRGB(34, 10, 58), Color3.fromRGB(255, 92, 196), Color3.fromRGB(120, 230, 255)
+		for _, m in { { 0.05, 78 }, { 0.15, 112 }, { 0.27, 64 }, { 0.36, 40 }, { 0.64, 46 }, { 0.74, 70 }, { 0.86, 104 }, { 0.96, 72 } } do
+			local hM = m[2]
+			local montagne = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(0, 0), Position = UDim2.fromScale(m[1], HZ), ZIndex = 50 }, E.charge)
+			local n = math.floor(hM / 6)
+			for j = 0, n - 1 do
+				local yb = -(j + 1) * 6 -- (le haut de la rangée, compté depuis l'horizon)
+				local demi = math.max(3, math.floor((n - j) / n * hM * 1.55 + 0.5))
+				inst("Frame", { BackgroundColor3 = CORPS_M, BorderSizePixel = 0, Size = UDim2.fromOffset(2 * demi, 6), Position = UDim2.fromOffset(-demi, yb), ZIndex = 50 }, montagne)
+				local c9 = (j >= n - 2) and CRETE or NEON_M
+				inst("Frame", { BackgroundColor3 = c9, BorderSizePixel = 0, Size = UDim2.fromOffset(4, 6), Position = UDim2.fromOffset(-demi, yb), ZIndex = 50 }, montagne)
+				inst("Frame", { BackgroundColor3 = c9, BorderSizePixel = 0, Size = UDim2.fromOffset(4, 6), Position = UDim2.fromOffset(demi - 4, yb), ZIndex = 50 }, montagne)
+			end
 		end
-		E.chargeTraverses = {}
-		for k = 1, 8 do
-			E.chargeTraverses[k] = inst("Frame", { BackgroundColor3 = Color3.fromRGB(0, 234, 255), BackgroundTransparency = 0.35, BorderSizePixel = 0,
+		-- la brume de l'horizon : un trait de lumière rose et sa lueur au-dessus
+		local lueur = inst("Frame", { BackgroundColor3 = Color3.fromRGB(255, 120, 200), BorderSizePixel = 0, Size = UDim2.new(1, 2 * JUPE, 0, 26), Position = UDim2.new(0, -JUPE, HZ, -26), ZIndex = 50 }, E.charge)
+		inst("UIGradient", { Rotation = 90, Transparency = NumberSequence.new(1, 0.55) }, lueur)
+		inst("Frame", { BackgroundColor3 = Color3.fromRGB(255, 190, 230), BorderSizePixel = 0, Size = UDim2.new(1, 2 * JUPE, 0, 3), Position = UDim2.new(0, -JUPE, HZ, -1), ZIndex = 50 }, E.charge)
+		-- la GRILLE et la ROUTE, dans le cadre du sol (coupé à son bord). Les lignes partent TOUTES du point de fuite (40 px au-dessus de
+		-- l'horizon, caché par le ciel) ; les deux lignes de part et d'autre de la route sont ses NÉONS. Chaque ligne tourne autour de
+		-- son milieu (c'est ainsi que Roblox fait tourner un cadre) : on la pose au milieu de son segment, à sa longueur, à son angle.
+		local GW, VY, REF = 3600, -40, 288 -- (REF : la profondeur de référence du sol, 40 % d'une racine de 720)
+		local grille = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.new(0, GW, 1 - HZ, 0), Position = UDim2.fromScale(0.5, HZ), AnchorPoint = Vector2.new(0.5, 0),
+			ZIndex = 50, ClipsDescendants = true }, E.charge)
+		local function rayon(xBas: number, ep: number, c: Color3, tr9: number): Frame
+			-- une ligne du point de fuite vers (xBas, REF), prolongée jusqu'à 900 px de long
+			local dx, dy = xBas, REF - VY
+			local L0 = math.sqrt(dx * dx + dy * dy)
+			local L = 900
+			local ux, uy = dx / L0, dy / L0
+			return inst("Frame", { BackgroundColor3 = c, BackgroundTransparency = tr9, BorderSizePixel = 0, AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.fromOffset(ep, L),
+				Position = UDim2.fromOffset(GW / 2 + ux * L / 2, VY + uy * L / 2), Rotation = -math.deg(math.atan2(dx, dy)), ZIndex = 50 }, grille)
+		end
+		-- les TRAVERSES (le sol qui défile, posées à chaque image) — AVANT la route : elle passe dessus, le bitume n'a pas de grille
+		vieCharge.traverses = {}
+		for k = 1, 10 do
+			vieCharge.traverses[k] = inst("Frame", { BackgroundColor3 = Color3.fromRGB(0, 234, 255), BackgroundTransparency = 0.4, BorderSizePixel = 0,
 				Size = UDim2.new(1, 0, 0, 2), ZIndex = 50 }, grille)
 		end
-		-- la brume de l'horizon : un trait de lumière rose qui fond le soleil dans la grille
-		inst("Frame", { BackgroundColor3 = Color3.fromRGB(255, 140, 210), BackgroundTransparency = 0.2, BorderSizePixel = 0, Size = UDim2.new(1, 2 * JUPE, 0, 3),
-			Position = UDim2.new(0, -JUPE, 0.63, -1), ZIndex = 50 }, E.charge)
-		-- le BANDEAU d'encre sous la barre : la grille ne passe plus à travers les mots (la même bande que la bannière de niveau)
-		local bande = inst("Frame", { BackgroundColor3 = C.encre, BackgroundTransparency = 0, BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 190),
-			Position = UDim2.fromScale(0, 0.8), AnchorPoint = Vector2.new(0, 0.5), ZIndex = 51 }, E.charge)
-		inst("UIGradient", { Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.22, 0.32),
-			NumberSequenceKeypoint.new(0.78, 0.32), NumberSequenceKeypoint.new(1, 1) }) }, bande)
+		-- la ROUTE : le bitume entre les deux néons, en bandes de 6 px (sa demi-largeur suit la perspective), jusqu'à 600 px de fond
+		local ROUTE = 2 * 150 -- (la route va de la ligne -2 à la ligne +2 de la grille)
+		for y = 0, 600, 6 do
+			local demi = ROUTE * (y + 3 - VY) / (REF - VY)
+			inst("Frame", { BackgroundColor3 = Color3.fromRGB(30, 14, 52):Lerp(Color3.fromRGB(16, 8, 30), math.min(1, y / REF)), BorderSizePixel = 0,
+				Size = UDim2.fromOffset(math.floor(2 * demi + 0.5), 6), Position = UDim2.fromOffset(math.floor(GW / 2 - demi + 0.5), y), ZIndex = 50 }, grille)
+		end
+		for k = -16, 16 do
+			if math.abs(k) > 2 then
+				rayon(k * 150, 2, Color3.fromRGB(255, 62, 200), 0.25 + math.min(0.5, math.abs(k) * 0.03))
+			end
+		end
+		-- (les néons de la route : un trait large et translucide, et son cœur franc)
+		for _, s9 in { -1, 1 } do
+			rayon(s9 * ROUTE, 9, Color3.fromRGB(255, 80, 200), 0.6)
+			rayon(s9 * ROUTE, 3, Color3.fromRGB(255, 200, 240), 0)
+		end
+		-- les TIRETS d'or au milieu de la route (posés à chaque image)
+		vieCharge.tirets = {}
+		for k = 1, 7 do
+			vieCharge.tirets[k] = inst("Frame", { BackgroundColor3 = Color3.fromRGB(255, 214, 90), BorderSizePixel = 0, AnchorPoint = Vector2.new(0.5, 0), ZIndex = 50 }, grille)
+		end
+		vieCharge.grille = grille
+		-- LA CAISSE, vue de dos, sur la route : une grille de pixels (b carrosserie, B bas de caisse, w lunette, R/r feux, p plaque,
+		-- k pneus et pare-chocs, x sorties d'échappement) ; son ombre dessous, la lueur de ses feux, ses deux flammes de nitro
+		local CAISSE = {
+			".........bbbbbbbbbb.........",
+			"........bwwwwwwwwwwb........",
+			".......bwwwwwwwwwwwwb.......",
+			"......bbbbbbbbbbbbbbbb......",
+			"...bbbbbbbbbbbbbbbbbbbbbb...",
+			"..bbbbbbbbbbbbbbbbbbbbbbbb..",
+			".bRRRRRRrbbbbbbbbbbrRRRRRRb.",
+			".bRRRRRRrbbbppppbbbrRRRRRRb.",
+			".BBBBBBBBBBBppppBBBBBBBBBBB.",
+			".BBBBBBBBBBBBBBBBBBBBBBBBBB.",
+			".kkkkBBBBBBBBBBBBBBBBBBkkkk.",
+			".kkkk.xx............xx.kkkk.",
+			".kkkk..................kkkk.",
+		}
+		local PXC = 6
+		local LAQUE = Color3.fromRGB(255, 92, 52)
+		local caisse = inst("Frame", { Name = "Caisse", BackgroundTransparency = 1, Size = UDim2.fromOffset(28 * PXC, 13 * PXC), AnchorPoint = Vector2.new(0.5, 1),
+			Position = UDim2.new(0.5, 0, HZ, 150), ZIndex = 50 }, E.charge)
+		local ombreC = inst("Frame", { BackgroundColor3 = C.encre, BackgroundTransparency = 0.35, BorderSizePixel = 0, Size = UDim2.new(1, 24, 0, 16), Position = UDim2.new(0.5, 0, 1, -6),
+			AnchorPoint = Vector2.new(0.5, 0), ZIndex = 50 }, caisse)
+		inst("UICorner", { CornerRadius = UDim.new(0.5, 0) }, ombreC)
+		-- (la lueur des feux sur la caisse et la route : deux nappes rouges translucides derrière les blocs de feux)
+		for _, x9 in { 1, 19 } do
+			local g9 = inst("Frame", { BackgroundColor3 = Color3.fromRGB(255, 40, 80), BackgroundTransparency = 0.6, BorderSizePixel = 0, Size = UDim2.fromOffset(8 * PXC + 16, 2 * PXC + 16),
+				Position = UDim2.fromOffset(x9 * PXC - 8, 6 * PXC - 8), ZIndex = 50 }, caisse)
+			inst("UICorner", { CornerRadius = UDim.new(0.5, 0) }, g9)
+		end
+		local function teinteC(ch: string, y: number): Color3
+			if ch == "b" then return LAQUE:Lerp(Color3.new(1, 1, 1), (y <= 3) and 0.28 or 0.1) end
+			if ch == "B" then return ombrer(LAQUE, 0.62) end
+			if ch == "w" then return (y == 1) and Color3.fromRGB(110, 120, 220) or Color3.fromRGB(34, 26, 84) end
+			if ch == "R" then return Color3.fromRGB(255, 52, 84) end
+			if ch == "r" then return Color3.fromRGB(170, 14, 44) end
+			if ch == "p" then return Color3.fromRGB(255, 215, 94) end
+			if ch == "x" then return Color3.fromRGB(120, 120, 140) end
+			return Color3.fromRGB(14, 10, 24)
+		end
+		for y, ligne in CAISSE do
+			local x = 1
+			while x <= #ligne do
+				local ch = string.sub(ligne, x, x)
+				if ch ~= "." then
+					local x1 = x
+					while x1 < #ligne and string.sub(ligne, x1 + 1, x1 + 1) == ch do x1 += 1 end
+					inst("Frame", { BackgroundColor3 = teinteC(ch, y - 1), BorderSizePixel = 0, Size = UDim2.fromOffset((x1 - x + 1) * PXC, PXC),
+						Position = UDim2.fromOffset((x - 1) * PXC, (y - 1) * PXC), ZIndex = 50 }, caisse)
+					x = x1 + 1
+				else
+					x += 1
+				end
+			end
+		end
+		-- les FLAMMES : sous chaque sortie, un dard de pixels (cœur jaune, robe orange) et sa lueur — deux formes qui alternent
+		vieCharge.flammes = {}
+		for _, x9 in { 6, 20 } do
+			local fl = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(2 * PXC, 3 * PXC), Position = UDim2.fromOffset(x9 * PXC, 12 * PXC), ZIndex = 50 }, caisse)
+			local lu = inst("Frame", { BackgroundColor3 = Color3.fromRGB(255, 140, 40), BackgroundTransparency = 0.55, BorderSizePixel = 0, Size = UDim2.fromOffset(4 * PXC, 4 * PXC),
+				Position = UDim2.fromOffset(-PXC, -PXC), ZIndex = 50 }, fl)
+			inst("UICorner", { CornerRadius = UDim.new(0.5, 0) }, lu)
+			local robe = inst("Frame", { BackgroundColor3 = Color3.fromRGB(255, 126, 30), BorderSizePixel = 0, Size = UDim2.fromOffset(2 * PXC, 2 * PXC), ZIndex = 50 }, fl)
+			local coeur = inst("Frame", { BackgroundColor3 = Color3.fromRGB(255, 240, 150), BorderSizePixel = 0, Size = UDim2.fromOffset(PXC, PXC), Position = UDim2.fromOffset(math.floor(PXC / 2), 0), ZIndex = 50 }, fl)
+			table.insert(vieCharge.flammes, { lu = lu, robe = robe, coeur = coeur })
+		end
+		vieCharge.caisse = caisse
+		-- le BANDEAU d'encre sous la barre : la grille et la route ne passent plus à travers les mots
+		local bande = inst("Frame", { BackgroundColor3 = C.encre, BorderSizePixel = 0, Size = UDim2.new(1, 2 * JUPE, 0, 150 + JUPE), Position = UDim2.new(0, -JUPE, 1, -150),
+			ZIndex = 51 }, E.charge)
+		inst("UIGradient", { Rotation = 90, Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.04, 0.3),
+			NumberSequenceKeypoint.new(0.2, 0.14), NumberSequenceKeypoint.new(1, 0.14) }) }, bande)
 	end
 	-- le LOGO de l'accueil, en grand (les deux mots en or et en rose, la barre des trois néons)
 	-- (Roblox plafonne un texte à 100 px : le logo est écrit à 100, puis grandi d'un bloc ×1,7 par une boîte qui le porte — l'intro du
 	-- studio, elle, fait battre le logo par sa propre échelle)
-	local boiteLogo = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(460, 130), Position = UDim2.fromScale(0.5, 0.3), AnchorPoint = Vector2.new(0.5, 0.5), ZIndex = 51 }, E.charge)
-	inst("UIScale", { Scale = 1.7 }, boiteLogo)
+	local boiteLogo = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(460, 130), Position = UDim2.fromScale(0.5, LOGO_Y), AnchorPoint = Vector2.new(0.5, 0.5), ZIndex = 51 }, E.charge)
+	vieCharge.logoK = inst("UIScale", { Scale = 1.7 }, boiteLogo)
 	local lg = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), ZIndex = 51 }, boiteLogo)
+	vieCharge.reflets = {}
 	do
 		local function mot(txt: string, x: number, bas: Color3)
 			local o = texte(lg, { Text = txt, TextSize = 100, TextColor3 = Color3.fromRGB(90, 40, 10), Size = UDim2.fromOffset(260, 104),
@@ -15555,6 +15872,13 @@ function Hud.creer()
 			-- (le LOGO est la seule dérogation de la charte au texte en dégradé : c'est une image de marque)
 			inst("UIGradient", { Rotation = 90, Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 246, 180)),
 				ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 196, 40)), ColorSequenceKeypoint.new(1, bas) }) }, t)
+			-- (v4) LE REFLET D'OR : un double blanc du mot, transparent sauf une bande en biais qui le traverse (la boucle fait glisser
+			-- son dégradé)
+			local r9 = texte(lg, { Text = txt, TextSize = 100, TextColor3 = Color3.fromRGB(255, 252, 230), Size = UDim2.fromOffset(260, 104),
+				Position = UDim2.new(0.5, x, 0, 0), AnchorPoint = Vector2.new(0.5, 0), TextWrapped = false, contour = false, italique = true, ZIndex = 53 })
+			table.insert(vieCharge.reflets, inst("UIGradient", { Rotation = 24, Offset = Vector2.new(-1, 0), Transparency = NumberSequence.new({
+				NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.42, 1), NumberSequenceKeypoint.new(0.5, 0.15), NumberSequenceKeypoint.new(0.58, 1),
+				NumberSequenceKeypoint.new(1, 1) }) }, r9))
 		end
 		-- (un caractère pixel fait 5/9 de son corps : CASH ≈ 222 px, CAR ≈ 167 px, 22 px entre les deux — comme à l'accueil)
 		mot("CASH", -94, Color3.fromRGB(255, 150, 30))
@@ -15568,17 +15892,30 @@ function Hud.creer()
 	end
 	E.chargeLogo = lg
 	E.chargeEchelle = inst("UIScale", {}, lg)
-	-- la BARRE de chargement : LA jauge du jeu (la barre NITRO, en or), et la ligne d'état dessous
-	E.chargeBloc = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(660, 130), Position = UDim2.fromScale(0.5, 0.8), AnchorPoint = Vector2.new(0.5, 0.5), ZIndex = 52 }, E.charge)
-	E.chargeJ = jauge(E.chargeBloc, UDim2.new(1, 0, 0, 34), UDim2.fromOffset(0, 0), nil, 5, 4)
+	-- la BARRE de chargement (LA jauge du jeu, la barre NITRO, en or) sur le bandeau : l'état au-dessus, l'astuce dessous
+	E.chargeBloc = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(640, 30), Position = UDim2.new(0.5, 0, 1, -82), AnchorPoint = Vector2.new(0.5, 0.5), ZIndex = 52 }, E.charge)
+	E.chargeJ = jauge(E.chargeBloc, UDim2.new(1, 0, 0, 30), UDim2.fromOffset(0, 0), nil, 5, 4)
 	E.chargeJ.regler(0, "or_", 0)
 	-- (l'état : calé à GAUCHE sur la place de la phrase sans ses points — les points qui défilent ne font plus danser la ligne ; hors du
 	-- bloc de la barre : après l'intro, le chargement peut encore parler sans elle)
-	local largeEtat = math.floor(utf8.len(T.chargement) * 26 * CH + 0.5)
-	E.chargeTxt = texte(E.charge, { Text = T.chargement, TextSize = 26, TextColor3 = C.texte, Position = UDim2.new(0.5, -largeEtat / 2, 0.8, -20),
-		Size = UDim2.fromOffset(largeEtat + 120, 30), ZIndex = 53, TextWrapped = false, TextXAlignment = Enum.TextXAlignment.Left, epais = 3 })
-	E.chargeAstuce = inst("TextLabel", { BackgroundTransparency = 1, FontFace = TXT, TextSize = 26, TextColor3 = C.texte2, Text = "", TextWrapped = true,
-		Size = UDim2.new(1, 0, 0, 56), Position = UDim2.fromOffset(0, 84), ZIndex = 52 }, E.chargeBloc)
+	local largeEtat = math.floor(utf8.len(T.chargement) * 24 * CH + 0.5)
+	E.chargeTxt = texte(E.charge, { Text = T.chargement, TextSize = 24, TextColor3 = C.texte, Position = UDim2.new(0.5, -largeEtat / 2, 1, -132),
+		Size = UDim2.fromOffset(largeEtat + 120, 28), ZIndex = 53, TextWrapped = false, TextXAlignment = Enum.TextXAlignment.Left, epais = 3 })
+	-- (l'astuce : le mot ASTUCE dans sa pastille cyan, la phrase en lettres de lecture à côté — une ligne centrée sous la barre ; le
+	-- pixel glissé dans un texte riche se lisait « AS TUCE »)
+	do
+		local ligneA = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, -40, 0, 34), Position = UDim2.new(0, 20, 1, -46), ZIndex = 53 }, E.charge)
+		inst("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, HorizontalAlignment = Enum.HorizontalAlignment.Center,
+			VerticalAlignment = Enum.VerticalAlignment.Center, Padding = UDim.new(0, 14), SortOrder = Enum.SortOrder.LayoutOrder }, ligneA)
+		-- (en lettres de lecture : en pixel, le T de la police laisse un trou, on lisait « AS TUCE »)
+		local tag = texte(ligneA, { Text = FR and "ASTUCE" or "TIP", TextSize = 22, FontFace = TXT, TextColor3 = C.encre, BackgroundColor3 = C.cyan, BackgroundTransparency = 0,
+			AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.fromOffset(0, 28), TextWrapped = false, contour = false, LayoutOrder = 1, ZIndex = 53 })
+		inst("UIPadding", { PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 8) }, tag)
+		inst("UIStroke", { Color = C.encre, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, tag)
+		E.chargeAstuce = inst("TextLabel", { BackgroundTransparency = 1, FontFace = TXT, TextSize = 26, TextColor3 = C.texte2, Text = "", TextWrapped = false,
+			AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.fromOffset(0, 34), LayoutOrder = 2, ZIndex = 53 }, ligneA)
+		inst("UIStroke", { Color = C.encre, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual }, E.chargeAstuce)
+	end
 	-- (la police pixel arrive une seconde APRÈS le premier affichage : le logo et l'état restent cachés jusqu'à ce qu'elle soit là —
 	-- au plus 2,5 s, ensuite on montre quoi qu'il arrive)
 	do
@@ -15595,32 +15932,116 @@ function Hud.creer()
 			local aCharger = { E.chargeTxt, E.chargeAstuce }
 			for _, d in lg:GetDescendants() do if d:IsA("TextLabel") then table.insert(aCharger, d) end end
 			pcall(function() game:GetService("ContentProvider"):PreloadAsync(aCharger) end)
+			-- (7/10, mesuré au banc : PreloadAsync rend la main AVANT la police — le logo s'affichait une image en lettres fines. Mesurer un
+			-- texte dans la police, lui, attend qu'elle soit chargée.)
+			pcall(function()
+				for _, f9 in { PIX, PIXI } do
+					local q = Instance.new("GetTextBoundsParams")
+					q.Text, q.Font, q.Size, q.Width = "CASH CAR", f9, 40, 2000
+					game:GetService("TextService"):GetTextBoundsAsync(q)
+				end
+			end)
 			montrer()
 		end)
 		task.delay(2.5, montrer)
 	end
-	-- la vie de l'écran : la barre avance (vite puis de plus en plus lentement — elle ne s'arrête jamais avant la fin), la grille défile,
-	-- l'astuce change
+	-- LA VIE DE L'ÉCRAN, une seule boucle (elle dort dès que l'écran est caché) : la barre avance (vite puis de plus en plus lentement —
+	-- elle ne s'arrête jamais avant la fin), le sol et les tirets défilent, les étoiles scintillent, une filante passe, le halo et le
+	-- logo respirent, son reflet d'or le traverse, la caisse tangue sur sa ligne et ses flammes crépitent ; l'astuce change
 	do
 		local ASTUCES = FR and { "Sors par le BORD de la route : tu t'envoles.", "Tiens la NITRO en l'air pour planer plus loin.",
 			"Pose-toi en douceur : une pose PARFAITE paie plus.", "La ROUE : un tour gratuit toutes les 4 heures.",
-			"Reviens chaque jour : le CADEAU DU JOUR grossit.", "Plus le moteur monte, plus chaque piece vaut cher." }
+			"Reviens chaque jour : le CADEAU DU JOUR grossit.", "Plus le moteur monte, plus chaque pièce vaut cher." }
 			or { "Drive off the EDGE of the road: you take off.", "Hold NITRO in the air to glide further.",
 			"Land softly: a PERFECT landing pays more.", "THE WHEEL: a free spin every 4 hours.",
 			"Come back every day: the DAILY GIFT grows.", "The bigger the engine, the more every coin is worth." }
 		local t0 = os.clock()
+		local fil = { att = 1.4, t = 9, x = 0.5, y = 0.1 }
+		local chatT = 0
 		local cn: RBXScriptConnection
-		cn = RunService.RenderStepped:Connect(function()
+		cn = RunService.RenderStepped:Connect(function(dt)
 			if not E.charge.Parent then cn:Disconnect() return end
 			if not E.charge.Visible then return end
 			local t = os.clock() - t0
-			if E.chargeBloc.Visible then E.chargeJ.regler(math.min(0.97, 1 - math.exp(-t / 3.2)), "or_", 0) end
-			for k, tr9 in E.chargeTraverses do
-				local u = ((k - 1) / #E.chargeTraverses + t * 0.35) % 1
-				tr9.Position = UDim2.fromOffset(0, math.floor(u * u * 300 / 2) * 2) -- (de 2 px en 2 px : le pixel ne glisse pas)
-				tr9.BackgroundTransparency = 0.88 - 0.6 * u
+			-- (mesuré au banc : la fenêtre de chat de Roblox se monte APRÈS nous et s'ouvrait quand même pendant la première seconde — tant
+			-- que le chargement est là, on la recoupe tous les dixièmes ; ses réglages d'origine sont notés à la première rencontre)
+			chatT -= dt
+			if chatAvant and chatT <= 0 then
+				chatT = 0.1
+				pcall(function()
+					local TCS = game:GetService("TextChatService")
+					local ca = chatAvant :: any
+					if not ca.fen then
+						ca.fen = TCS:FindFirstChildOfClass("ChatWindowConfiguration")
+						if ca.fen then ca.fenOn = ca.fen.Enabled end
+					end
+					if not ca.barre then
+						ca.barre = TCS:FindFirstChildOfClass("ChatInputBarConfiguration")
+						if ca.barre then ca.barreOn = ca.barre.Enabled end
+					end
+					if ca.fen and ca.fen.Enabled then ca.fen.Enabled = false end
+					if ca.barre and ca.barre.Enabled then ca.barre.Enabled = false end
+					game:GetService("StarterGui"):SetCoreGuiEnabled(Enum.CoreGuiType.Chat, false)
+				end)
 			end
-			local i = math.floor(t / 3.2) % #ASTUCES + 1
+			if E.chargeBloc.Visible then E.chargeJ.regler(math.min(0.97, 1 - math.exp(-t / 3.2)), "or_", 0) end
+			-- (la profondeur VISIBLE du sol, en px de l'interface : la racine est mise à l'échelle)
+			local k9 = math.max(0.01, echelle.Scale)
+			local gh = vieCharge.grille.AbsoluteSize.Y / k9
+			for k, tr9 in vieCharge.traverses do
+				local u = ((k - 1) / #vieCharge.traverses + t * 0.42) % 1
+				tr9.Position = UDim2.fromOffset(0, math.floor(u * u * gh / 2) * 2) -- (de 2 px en 2 px : le pixel ne glisse pas)
+				tr9.BackgroundTransparency = 0.9 - 0.6 * u
+			end
+			for k, ti in vieCharge.tirets do
+				local u = ((k - 1) / #vieCharge.tirets + t * 0.42) % 1
+				local y = math.floor(u * u * gh / 2) * 2
+				local p9 = (y + 40) / 328 -- (la perspective de la route : 1 au bord bas de référence)
+				ti.Position = UDim2.new(0.5, 0, 0, y)
+				ti.Size = UDim2.fromOffset(math.max(2, math.floor(3 + 9 * p9 + 0.5)), math.max(2, math.floor(4 + 30 * p9 ^ 1.5 + 0.5)))
+				ti.BackgroundTransparency = math.max(0, 0.5 - u * 1.2)
+			end
+			-- les étoiles (trois paliers de lumière : le pixel scintille par crans, il ne fond pas)
+			for _, e9 in vieCharge.etoiles do
+				local s = math.sin(t * e9.w + e9.ph)
+				local a = (s > 0.55) and e9.base or ((s > -0.4) and (e9.base + 0.35) or (e9.base + 0.62))
+				e9.f.BackgroundTransparency = a
+				for _, b9 in e9.b do b9.BackgroundTransparency = math.min(1, a + 0.2 + ((s > 0.8) and 0 or 0.5)) end
+			end
+			-- l'étoile filante
+			fil.att -= dt
+			local fi = vieCharge.filante
+			if fil.att <= 0 then
+				fil.att, fil.t = 3.6 + math.random() * 2.4, 0
+				fil.x, fil.y = 0.15 + math.random() * 0.6, 0.04 + math.random() * 0.14
+			end
+			if fil.t < 0.7 then
+				fil.t += dt
+				fi.Position = UDim2.new(fil.x, fil.t * 520, fil.y, fil.t * 170)
+				fi.BackgroundTransparency = (fil.t < 0.15) and (1 - fil.t / 0.15) or math.min(1, (fil.t - 0.15) / 0.55)
+			elseif fi.BackgroundTransparency < 1 then
+				fi.BackgroundTransparency = 1
+			end
+			-- le halo du couchant et le logo respirent
+			local r = 0.5 + 0.5 * math.sin(t * 1.6)
+			for k, h9 in vieCharge.halo do h9.BackgroundTransparency = 0.9 - k * 0.012 - 0.03 * r end
+			vieCharge.logoK.Scale = 1.7 * (1 + 0.018 * math.sin(t * 2.1))
+			-- le reflet d'or traverse le logo toutes les 3,2 s (0,8 s de passage)
+			local ph = (t % 3.2) / 0.8
+			local off = (ph < 1) and (-1 + 2 * ph) or 1
+			for _, g9 in vieCharge.reflets do g9.Offset = Vector2.new(off, 0) end
+			-- la caisse : elle tangue d'un bord à l'autre de sa voie (en crans de 2 px) et la route la secoue ; ses flammes crépitent
+			local x9 = math.floor(math.sin(t * 0.9) * 26 / 2) * 2
+			local y9 = (math.sin(t * 23) > 0.6) and -2 or 0
+			vieCharge.caisse.Position = UDim2.new(0.5, x9, HZ, 150 + y9)
+			local tic = math.floor(t * 16) % 2 == 0
+			for i9, f9 in vieCharge.flammes do
+				local long = (tic == (i9 == 1))
+				f9.robe.Size = UDim2.fromOffset(12, long and 18 or 10)
+				f9.coeur.Size = UDim2.fromOffset(6, long and 10 or 6)
+				f9.lu.BackgroundTransparency = long and 0.45 or 0.65
+			end
+			local i = math.floor(t / 3.6) % #ASTUCES + 1
 			if E.chargeAstuce.Text ~= ASTUCES[i] then E.chargeAstuce.Text = ASTUCES[i] end
 		end)
 	end
@@ -15666,7 +16087,7 @@ function Hud.creer()
 	-- (v3, 5/10) la colonne vit dans un CADRE calé en bas à droite — mêmes positions qu'avant, comptées depuis le même coin. Sur un
 	-- écran moins allongé (un iPad 4:3, un portable 16:10) elle se resserre d'un bloc vers son coin au lieu de passer sous la pile
 	-- de l'accueil (en bas à gauche) : à 960 px de large, LA ROUE recouvrait PREMIUM et INVITER.
-	local col = inst("Frame", { Name = "Colonne", BackgroundTransparency = 1, Size = UDim2.fromOffset(668, 380), Position = UDim2.fromScale(1, 1),
+	local col = inst("Frame", { Name = "Colonne", BackgroundTransparency = 1, Size = UDim2.fromOffset(668, 392), Position = UDim2.fromScale(1, 1),
 		AnchorPoint = Vector2.new(1, 1) }, menu)
 	do
 		local sc = inst("UIScale", {}, col)
@@ -15678,20 +16099,26 @@ function Hud.creer()
 		menu:GetPropertyChangedSignal("AbsoluteSize"):Connect(serrer)
 		serrer()
 	end
-	E.btRoue = tuile(col, T.roue, C.or_, UDim2.fromOffset(510, 94), UDim2.new(1, -668, 1, -366), nil, 39,
+	-- (v4) LA ROUE passe à l'ORANGE du couchant : en or noyé dans la nuit, sa face sortait KAKI, et elle faisait deux plaques d'or
+	-- l'une au-dessus de l'autre avec JOUER (la charte : l'or = UN lingot)
+	E.btRoue = tuile(col, T.roue, C.orange, UDim2.fromOffset(510, 94), UDim2.new(1, -668, 1, -384), nil, 39,
 		"..#####..|.#..#..#.|#.#.#.#.#|#..###..#|#########|#..###..#|#.#.#.#.#|.#..#..#.|..#####..", "g")
 	-- (à droite de la tuile : « x2 » en or quand des tours attendent, sinon le compte à rebours du prochain tour gratuit)
 	E.roueInfo = texte(E.btRoue.Parent :: Instance, { Text = "", TextSize = 26, TextColor3 = C.terne, Size = UDim2.fromOffset(170, 40),
 		Position = UDim2.new(1, -40, 0.5, 0), AnchorPoint = Vector2.new(1, 0.5), TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false, epais = 3 })
 	E.misPips = {}
-	E.btReglages = tuile(col, "", C.cyan, UDim2.fromOffset(104, 94), UDim2.new(1, -148, 1, -366), nil, 34, "reglages")
-	E.btGarage = tuile(col, T.garage, C.cyan, UDim2.fromOffset(307, 112), UDim2.new(1, -668, 1, -258), nil, 34, "voiture", "v")
-	E.btBoutique = tuile(col, T.boutique, C.magenta, UDim2.fromOffset(307, 112), UDim2.new(1, -352, 1, -258), nil, 34, "panier", "v")
+	E.btReglages = tuile(col, "", C.cyan, UDim2.fromOffset(104, 94), UDim2.new(1, -148, 1, -384), nil, 34, "reglages")
+	E.btGarage = tuile(col, T.garage, C.cyan, UDim2.fromOffset(307, 106), UDim2.new(1, -668, 1, -264), nil, 34, "voiture", "v")
+	E.btBoutique = tuile(col, T.boutique, C.magenta, UDim2.fromOffset(307, 106), UDim2.new(1, -352, 1, -264), nil, 34, "panier", "v")
 	-- LES PASTILLES (#bdGar, #bdShop, L5623) : le GARAGE dit combien de choses la banque peut s'offrir (caisses et habillages — tout
 	-- ce qui s'achète en argent du jeu est au garage) ; la BOUTIQUE dit NEW tant qu'on n'y est jamais allé
 	-- (v3) un AUTOCOLLANT de pixel collé sur le coin de la plaque : carré (pas d'arrondi — la charte), cerné d'encre, une lèvre claire en
 	-- haut, et un battement lent qui appelle l'œil sans crier
 	local function pastille(tuile9: TextButton, fond: Color3): TextLabel
+		-- (v4) l'autocollant a son OMBRE portée, comme les plaques (un cadre d'encre posé AVANT lui : il passe dessous) — elle bat et
+		-- s'allume avec lui
+		local om = inst("Frame", { Name = "OmbrePastille", BackgroundColor3 = C.encre, BackgroundTransparency = 0.45, BorderSizePixel = 0, Size = UDim2.fromOffset(62, 42),
+			Position = UDim2.new(1, 17, 0, -16), AnchorPoint = Vector2.new(1, 0), Visible = false, ZIndex = 8 }, tuile9.Parent :: Instance)
 		local l = texte(tuile9.Parent :: Instance, { Text = "", TextSize = 20, TextColor3 = Color3.new(1, 1, 1), BackgroundColor3 = fond, BackgroundTransparency = 0,
 			Size = UDim2.fromOffset(56, 36), Position = UDim2.new(1, 10, 0, -18), AnchorPoint = Vector2.new(1, 0), TextWrapped = false, Visible = false, ZIndex = 8,
 			epais = 2, contourCouleur = ombrer(fond, 0.35) })
@@ -15699,7 +16126,17 @@ function Hud.creer()
 		inst("Frame", { Name = "Levre", BackgroundColor3 = fond:Lerp(Color3.new(1, 1, 1), 0.4), BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 3), ZIndex = 8 }, l)
 		inst("Frame", { Name = "Ourlet", BackgroundColor3 = ombrer(fond, 0.6), BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 3), Position = UDim2.new(0, 0, 1, -3), ZIndex = 8 }, l)
 		local sc = inst("UIScale", {}, l)
-		TweenService:Create(sc, TweenInfo.new(0.75, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), { Scale = 1.1 }):Play()
+		local sc2 = inst("UIScale", {}, om)
+		for _, s9 in { sc, sc2 } do
+			TweenService:Create(s9, TweenInfo.new(0.75, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), { Scale = 1.1 }):Play()
+		end
+		-- (le cadre suit la largeur et la visibilité de son autocollant : « NEW », « 12 »…)
+		local function suivre()
+			om.Visible = l.Visible
+			om.Size = UDim2.fromOffset(l.Size.X.Offset + 6, l.Size.Y.Offset + 6)
+		end
+		l:GetPropertyChangedSignal("Visible"):Connect(suivre)
+		l:GetPropertyChangedSignal("Size"):Connect(suivre)
 		return l
 	end
 	E.bdGar = pastille(E.btGarage, C.rouge)
@@ -15730,16 +16167,19 @@ function Hud.creer()
 	E.aura = texte(aura, { Text = T.aura, TextSize = 15, TextColor3 = Color3.fromRGB(255, 200, 250), TextXAlignment = Enum.TextXAlignment.Left,
 		Size = UDim2.new(1, -46, 1, 0), Position = UDim2.fromOffset(46, 0) })
 	-- en haut à droite : la pause cyan (penchée), l'argent, le chrono d'air
-	local _, pauseP, pauseB = penche(hud, UDim2.fromOffset(102, 92), UDim2.new(1, -22, 0, 15), Vector2.new(1, 0), hx("14c8e6"), nil, hx("06304a"), hx("9ff4ff"))
-	icone(pauseP, "pause", 5, { { 0.5, hx("0a4a66") }, { 1, hx("06304a") } }, UDim2.fromScale(0.5, 0.5), Vector2.new(0.5, 0.5))
+	local _, pauseP, pauseB = penche(hud, UDim2.fromOffset(102, 92), UDim2.new(1, -22, 0, 15), Vector2.new(1, 0), hx("14c8e6"), nil, hx("0a5a78"), hx("c8faff"))
+	icone(pauseP, "pause", 5, { { 0.5, hx("0a4a66") }, { 1, hx("06304a") } }, UDim2.new(0.5, -2, 0.5, -1), Vector2.new(0.5, 0.5))
 	E.btPause = pauseB
 	retour(E.btPause, pauseP)
 	E.coeurs = texte(hud, { Text = "", RichText = true, TextSize = 30, TextColor3 = C.rouge, Size = UDim2.fromOffset(140, 36),
 		Position = UDim2.new(1, -136, 0, 40), AnchorPoint = Vector2.new(1, 0), TextXAlignment = Enum.TextXAlignment.Right, FontFace = TXT, Visible = false })
 	E.argent = texte(hud, { Text = "", RichText = true, TextSize = 55, TextColor3 = C.vert, Size = UDim2.new(0, 560, 0, 58),
 		Position = UDim2.new(1, -22, 0, 116), AnchorPoint = Vector2.new(1, 0), TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false,
-		epais = 4, contourCouleur = hx("04200f") })
+		epais = 4, contourCouleur = hx("04200f"), ZIndex = 2 })
 	E.argentEchelle = inst("UIScale", {}, E.argent)
+	-- (v4) le compteur a son OMBRE (4 px d'encre dessous) : sur le ciel clair des nuages, le vert cerné se lisait plat
+	E.argentOmbre = ombreTexte(E.argent, 0, 4, hx("04200f"))
+	E.argentOmbreEchelle = inst("UIScale", {}, E.argentOmbre)
 	-- (#cashHud .chD) chaque gain s'additionne dans un « +$ » sous le compteur tant que ça tombe (1,8 s après le dernier) — « ×3 » et
 	-- l'or en frénésie
 	E.argentPlus = texte(hud, { Text = "", RichText = true, TextSize = 24, TextColor3 = C.vert, Size = UDim2.new(0, 560, 0, 28), Position = UDim2.new(1, -22, 0, 174),
@@ -15851,20 +16291,26 @@ function Hud.creer()
 	end
 	-- PASSER : une touche penchée cyan, petite (on la trouve, elle ne vole pas la vedette à la consigne). Le pilote y écrit
 	-- « PASSER » puis « VRAIMENT ? » en rouge.
-	E.btPasser = tuile(E.coach, "", C.cyan, UDim2.fromOffset(186, 54), UDim2.new(1, -16, 0, 12), Vector2.new(1, 0), 20)
+	E.btPasser = tuile(E.coach, "", C.cyan, UDim2.fromOffset(186, 58), UDim2.new(1, -16, 0, 12), Vector2.new(1, 0), 22)
+	cible(E.btPasser, 16) -- (v4 : 54 px dessinés = 26 px réels sur un téléphone couché ; la zone touchée en fait 90, le dessin ne change pas)
 	-- le bouton NITRO (en bas à droite, comme sur le web — souris et doigt)
 	-- une touche PENCHÉE, sœur de la pause : l'éclair de la barre, le mot, et SA jauge (la même recette que la barre)
 	-- (v3) la face prend la TEINTE de la poussée (orange au repos, bleue sur la réserve, violette en nitro infinie) au lieu d'un carbone
 	-- presque noir : c'est le bouton qu'on presse le plus du jeu, il doit se voir du coin de l'œil
-	local _, nbP, nbB = penche(hud, UDim2.fromOffset(184, 156), UDim2.new(1, -26, 1, -28), Vector2.new(1, 1), C.carbone:Lerp(FAM.nitro[2], 0.2), FAM.nitro[2],
-		C.encre, FAM.nitro[1])
+	-- (v4) la face n'est plus un carbone à peine rougi (mesuré : un brun-gris éteint, le bouton le plus pressé du jeu se perdait dans
+	-- la route) : la recette des tuiles, à la couleur de la poussée — un orange brûlé laqué qui S'EMBRASE à l'appui (Hud.nitro)
+	local _, nbP, nbB = penche(hud, UDim2.fromOffset(184, 156), UDim2.new(1, -26, 1, -28), Vector2.new(1, 1), ombrer(FAM.nitro[2], 0.62):Lerp(C.carbone, 0.2), FAM.nitro[2],
+		ombrer(FAM.nitro[2], 0.36), FAM.nitro[1])
 	E.nitroPlaque = nbP
+	E.nitroTranche = (nbP.Parent :: Instance):FindFirstChild("Tranche")
 	E.nitroLisere = nbP:FindFirstChild("l", true)
-	E.nitroBtIco = icone(nbP, "eclair", 7, ECLAIR.nitro, UDim2.new(0.5, 0, 0, 14), Vector2.new(0.5, 0))
-	texte(nbP, { Text = T.nitro, TextSize = 30, Size = UDim2.new(1, 0, 0, 32), Position = UDim2.fromOffset(0, 82), contourCouleur = hx("431600"), epais = 3, TextWrapped = false })
+	E.nitroBtIco = iconeRelief(nbP, "eclair", 7, ECLAIR.nitro, UDim2.new(0.5, -2, 0, 12), Vector2.new(0.5, 0))
+	local motN = texte(nbP, { Text = T.nitro, TextSize = 30, Size = UDim2.new(1, 0, 0, 32), Position = UDim2.fromOffset(0, 82), contourCouleur = hx("431600"), epais = 3,
+		TextWrapped = false, ZIndex = 3 })
+	ombreTexte(motN, 0, 3, hx("2a0c00"))
 	E.nitroMini = jauge(nbP, UDim2.fromOffset(132, 20), UDim2.new(0.5, -6, 1, -16), Vector2.new(0.5, 1), 3, 2)
 	E.btNitro = nbB
-	nbB.ZIndex = 3
+	nbB.ZIndex = 4
 	-- (L1243) L'APPEL : pendant les étapes NITRO de l'auto-école, un anneau d'or bat autour du bouton — c'est LUI qu'il faut presser
 	E.nitroAppel = inst("Frame", { Name = "Appel", BackgroundTransparency = 1, Size = UDim2.fromOffset(204, 176), Position = UDim2.new(1, -16, 1, -18),
 		AnchorPoint = Vector2.new(1, 1), Visible = false, ZIndex = 4 }, hud)
@@ -15912,7 +16358,10 @@ function Hud.creer()
 	-- (v3, 5/10) le titre a la signature des écrans du jeu (italique, la barre des trois néons dessous) ; CHAQUE tuile a son icône
 	-- à gauche et son mot centré dans la place qui reste (SON et MUSIQUE n'en avaient pas : deux familles de boutons dans un panneau) ;
 	-- SON OFF / MUSIQUE OFF passent au gris — l'état se voit avant de se lire.
-	local pan = carbone(voile, UDim2.fromOffset(760, 606), UDim2.fromScale(0.5, 0.5), C.cyan, Vector2.new(0.5, 0.5))
+	-- (v4, 6/10) mesuré : des tuiles de 82 et 72 (40 et 35 px réels sur un téléphone couché — sous les 44 du pouce), quatre corps de
+	-- texte différents dans un même panneau (28, 24, 22, 16). Trois rangées de 90, UN corps (30, 28 pour la ligne longue — `ajuster` resserre s'il le faut),
+	-- et la zone qu'on touche déborde de 8 px en haut et en bas (le dessin ne bouge pas).
+	local pan = carbone(voile, UDim2.fromOffset(760, 640), UDim2.fromScale(0.5, 0.5), C.cyan, Vector2.new(0.5, 0.5))
 	E.pausePan = pan
 	E.pauseTitre = texte(pan, { Text = T.pause, TextSize = 60, TextColor3 = C.texte, Size = UDim2.new(1, 0, 0, 62), Position = UDim2.fromOffset(0, 22), TextWrapped = false,
 		epais = 4, italique = true })
@@ -15924,17 +16373,18 @@ function Hud.creer()
 		b.TextXAlignment = Enum.TextXAlignment.Center
 		return b
 	end
-	E.btSonP = centre(tuile(pan, T.son, C.cyan, UDim2.fromOffset(330, 82), UDim2.new(0.5, -10, 0, 152), Vector2.new(1, 0), 28, "son", "g"))
-	E.btMusP = centre(tuile(pan, T.musique, C.cyan, UDim2.fromOffset(330, 82), UDim2.new(0.5, 10, 0, 152), Vector2.new(0, 0), 28, "musique", "g"))
-	E.btRecom = centre(tuile(pan, T.recommencer, C.magenta, UDim2.fromOffset(330, 82), UDim2.new(0.5, -10, 0, 248), Vector2.new(1, 0), 24, "rejouer", "g"))
-	E.btMenuP = centre(tuile(pan, T.quitter, C.rouge, UDim2.fromOffset(330, 82), UDim2.new(0.5, 10, 0, 248), Vector2.new(0, 0), 28, "quitter", "g")) -- (L5774 : QUITTER, rouge — elle VERSE les gains et ouvre l'écran de fin)
+	E.btSonP = centre(tuile(pan, T.son, C.cyan, UDim2.fromOffset(340, 90), UDim2.new(0.5, -10, 0, 150), Vector2.new(1, 0), 30, "son", "g"))
+	E.btMusP = centre(tuile(pan, T.musique, C.cyan, UDim2.fromOffset(340, 90), UDim2.new(0.5, 10, 0, 150), Vector2.new(0, 0), 30, "musique", "g"))
+	E.btRecom = centre(tuile(pan, T.recommencer, C.magenta, UDim2.fromOffset(340, 90), UDim2.new(0.5, -10, 0, 264), Vector2.new(1, 0), 30, "rejouer", "g"))
+	E.btMenuP = centre(tuile(pan, T.quitter, C.rouge, UDim2.fromOffset(340, 90), UDim2.new(0.5, 10, 0, 264), Vector2.new(0, 0), 30, "quitter", "g")) -- (L5774 : QUITTER, rouge — elle VERSE les gains et ouvre l'écran de fin)
 	if Config.FACILE_ACTIF then
-		E.btFacile = centre(tuile(pan, T.facile, C.vert, UDim2.fromOffset(330, 72), UDim2.new(0.5, -10, 0, 344), Vector2.new(1, 0), 22, "coeur", "g"))
-		E.btPouceP = centre(tuile(pan, T.pouce, C.cyan, UDim2.fromOffset(330, 72), UDim2.new(0.5, 10, 0, 344), Vector2.new(0, 0), 16, "aile", "g"))
+		E.btFacile = centre(tuile(pan, T.facile, C.vert, UDim2.fromOffset(340, 90), UDim2.new(0.5, -10, 0, 378), Vector2.new(1, 0), 28, "coeur", "g"))
+		E.btPouceP = centre(tuile(pan, T.pouce, C.cyan, UDim2.fromOffset(340, 90), UDim2.new(0.5, 10, 0, 378), Vector2.new(0, 0), 28, "aile", "g"))
 	else
-		E.btFacile = centre(tuile(pan, T.facile, C.vert, UDim2.fromOffset(680, 72), UDim2.new(0.5, 0, 0, 344), Vector2.new(0.5, 0), 26, "coeur", "g"))
-		E.btPouceP = centre(tuile(pan, T.pouce, C.cyan, UDim2.fromOffset(680, 72), UDim2.new(0.5, 0, 0, 344), Vector2.new(0.5, 0), 26, "aile", "g"))
+		E.btFacile = centre(tuile(pan, T.facile, C.vert, UDim2.fromOffset(700, 90), UDim2.new(0.5, 0, 0, 378), Vector2.new(0.5, 0), 28, "coeur", "g"))
+		E.btPouceP = centre(tuile(pan, T.pouce, C.cyan, UDim2.fromOffset(700, 90), UDim2.new(0.5, 0, 0, 378), Vector2.new(0.5, 0), 28, "aile", "g"))
 	end
+	for _, b9 in { E.btSonP, E.btMusP, E.btRecom, E.btMenuP, E.btFacile, E.btPouceP } do cible(b9, 8) end
 	-- (le pilote écrit « SON ON » / « SON OFF » : la tuile s'éteint d'elle-même au mot OFF)
 	for _, b9 in { E.btSonP, E.btMusP, E.btFacile } do
 		b9:GetPropertyChangedSignal("Text"):Connect(function() allumer(b9, not string.find(b9.Text, "OFF", 1, true)) end)
@@ -15985,15 +16435,16 @@ function Hud.creer()
 		local case = inst("Frame", { BackgroundColor3 = C.nuit, BorderSizePixel = 0, Size = UDim2.fromOffset(60, 60), Position = UDim2.new(0, 26, 0.5, 0), AnchorPoint = Vector2.new(0, 0.5) }, l)
 		inst("UIStroke", { Color = C.encre, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, case)
 		lisere(case, Color3.fromRGB(70, 66, 130), Color3.fromRGB(20, 14, 44))
-		local ic = icone(case, ico, 4, C.cyan, UDim2.fromScale(0.5, 0.5), Vector2.new(0.5, 0.5))
+		local ic = iconeRelief(case, ico, 4, C.cyan, UDim2.new(0.5, -1, 0.5, -1), Vector2.new(0.5, 0.5)) -- (v4 : en relief, avec son ombre)
 		local droite = (genre == "action") and 64 or ((genre == "valeur") and 64 or 196)
 		local lib = texte(l, { Text = libelle, TextSize = 30, TextColor3 = C.texte, Size = UDim2.new(1, -106 - droite, 0, 34), Position = UDim2.new(0, 106, 0.5, 0),
 			AnchorPoint = Vector2.new(0, 0.5), TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 3, ajuste = 0 })
 		local o: any = { ico = ic }
+		-- (v4) la flèche des lignes d'action : 27 → 36 px, en relief — on voit de loin que la ligne MÈNE quelque part
 		if genre == "action" then
-			icone(l, "droite", 3, C.cyan, UDim2.new(1, -30, 0.5, 0), Vector2.new(1, 0.5))
+			o.fleche = iconeRelief(l, "droite", 4, C.cyan, UDim2.new(1, -30, 0.5, -1), Vector2.new(1, 0.5))
 		elseif genre == "valeur" then
-			icone(l, "droite", 3, C.cyan, UDim2.new(1, -30, 0.5, 0), Vector2.new(1, 0.5))
+			o.fleche = iconeRelief(l, "droite", 4, C.cyan, UDim2.new(1, -30, 0.5, -1), Vector2.new(1, 0.5))
 			-- (le libellé en haut, la valeur dessous : « POUCE HAUT EN VOL » garde toute la largeur de la ligne)
 			lib.Position = UDim2.new(0, 106, 0.5, -15)
 			o.valeur = texte(l, { Text = "", TextSize = 24, italique = true, TextColor3 = C.cyan, Size = UDim2.new(1, -106 - droite, 0, 28), Position = UDim2.new(0, 106, 0.5, 19),
@@ -16092,7 +16543,8 @@ function Hud.creer()
 	-- (L5718) EFFACER MA PROGRESSION — en rouge, tout en bas, et il faut toucher DEUX fois
 	ligne(cj, "effacer", "croix", FR and "EFFACER MA PROGRESSION" or "ERASE MY PROGRESS", "action")
 	E.rg.effacer.lib.TextColor3 = C.rouge
-	teinter(E.rg.effacer.ico, C.rouge)
+	teinter(E.rg.effacer.ico, bandesDe(C.rouge))
+	if E.rg.effacer.fleche then teinter(E.rg.effacer.fleche, bandesDe(C.rouge)) end
 	E.rgRetour = boutonRetour(reg)
 	empiler(reg, 22)
 
@@ -16252,8 +16704,10 @@ function Hud.creer()
 		E.mStats[i] = { v, l }
 		if i > 1 then inst("Frame", { BackgroundColor3 = C.encre, BackgroundTransparency = 0.3, BorderSizePixel = 0, Size = UDim2.new(0, 2, 0.66, 0), Position = UDim2.fromScale(0, 0.17) }, col) end
 	end
-	E.btBoutiqueM = tuile(mort, T.boutique, C.magenta, UDim2.new(0.2125, 0, 0, 88), UDim2.new(0.535, 0, 0, 480), nil, 30, "panier")
-	E.btReglM = tuile(mort, T.reglages, C.cyan, UDim2.new(0.2125, 0, 0, 88), UDim2.new(0.7575, 0, 0, 480), nil, 30, "reglages")
+	E.btBoutiqueM = tuile(mort, T.boutique, C.magenta, UDim2.new(0.2125, 0, 0, 86), UDim2.new(0.535, 0, 0, 474), nil, 30, "panier")
+	E.btReglM = tuile(mort, T.reglages, C.cyan, UDim2.new(0.2125, 0, 0, 86), UDim2.new(0.7575, 0, 0, 474), nil, 30, "reglages")
+	cible(E.btBoutiqueM, 5) -- (86 → 96 sous le pouce : 47 px réels sur un téléphone couché)
+	cible(E.btReglM, 5)
 	-- (HOME : l'icône AU-DESSUS du mot, comme GARAGE et BOUTIQUE à l'accueil — côte à côte, sur un iPad, ils ne tenaient plus dans
 	-- sa largeur et le mot tombait à 9 px)
 	E.btMenuM = tuile(mort, T.menu, C.lavande, UDim2.new(0.125, 0, 0, 104), UDim2.new(0.535, 0, 0, 588), nil, 28, "maison", "v")
@@ -16269,6 +16723,14 @@ function Hud.creer()
 
 	-- (banc) workspace:SetAttribute("DbgAstuce", os.clock()) : la carte d'astuce, 6 s — pour la photographier en course
 	workspace:GetAttributeChangedSignal("DbgAstuce"):Connect(function() Hud.astuce(T.astuces[1], 6) end)
+	-- (banc) workspace:SetAttribute("DbgCharge", true) : l'écran de chargement revient par-dessus tout, logo, barre et état compris —
+	-- pour le photographier à loisir et dans tous les formats (au banc il ne dure que deux secondes) ; nil le referme
+	workspace:GetAttributeChangedSignal("DbgCharge"):Connect(function()
+		local on = workspace:GetAttribute("DbgCharge") == true
+		E.charge.Visible = on
+		E.chargeLogo.Visible, E.chargeBloc.Visible, E.chargeTxt.Visible = on, on, on
+		if on then E.chargeTxt.Text = T.chargement .. ".." end
+	end)
 
 	Hud.brancherTactile()
 	return gui
@@ -16286,10 +16748,13 @@ function Hud.nitro(a: number, b: number, infini: boolean, appuye: boolean)
 	if cle == nEtat then return end
 	nEtat = cle
 	local nc = (infini and FAM.violet[2]) or (bleu and FAM.bleu[2]) or (sec and FAM.rouge[2]) or FAM.nitro[2]
-	-- APPUYÉ : la touche descend de son épaisseur et la face S'EMBRASE à la couleur de la poussée
-	repeindre(E.nitroPlaque, C.carbone:Lerp(nc, appuye and 0.55 or 0.2), nc)
+	-- APPUYÉ : la touche descend de TOUTE son épaisseur et la face S'EMBRASE à la couleur de la poussée ; la tranche prend la couleur
+	-- profonde de la poussée (bleue sur la réserve, violette en nitro infinie, rouge à sec)
+	repeindre(E.nitroPlaque, appuye and ombrer(nc, 0.86) or ombrer(nc, 0.62):Lerp(C.carbone, 0.2), nc)
 	if E.nitroLisere then E.nitroLisere.BackgroundColor3 = nc:Lerp(Color3.new(1, 1, 1), 0.45) end
-	E.nitroPlaque.Position = UDim2.fromOffset(0, appuye and 5 or 0)
+	if E.nitroTranche then E.nitroTranche.BackgroundColor3 = ombrer(nc, 0.36) end
+	local T = E.nitroPlaque:GetAttribute("tranche")
+	E.nitroPlaque.Position = UDim2.fromOffset(0, appuye and ((type(T) == "number" and T or 6) - 1) or 0)
 	local ecl = appuye and ECLAIR.feu or (infini and ECLAIR.violet or ECLAIR.nitro)
 	teinter(E.nitroBtIco, ecl)
 	teinter(E.nitroIco, infini and ECLAIR.violet or ECLAIR.nitro)
@@ -16333,7 +16798,7 @@ function Hud.pouvoirs(liste: { { any } }, sousChrono: boolean)
 				Position = UDim2.new(1, 0, 0, (i - 1) * (hP + 10)), AnchorPoint = Vector2.new(1, 0) }, E.pouvoirs)
 			inst("UIStroke", { Color = C.encre, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, p) -- (cernée d'encre, comme toutes les plaques)
 			local bande = inst("Frame", { BackgroundColor3 = pc, BorderSizePixel = 0, Size = UDim2.new(0, 5, 1, 0) }, p)
-			icone(p, PW_ICO[q[1]] or "etoile", petit and 4 or 5, pc, UDim2.new(0, 18, 0.5, -4), Vector2.new(0, 0.5))
+			iconeRelief(p, PW_ICO[q[1]] or "etoile", petit and 4 or 5, pc, UDim2.new(0, 18, 0.5, -5), Vector2.new(0, 0.5))
 			texte(p, { Text = Hud.sansAccent(FR and def.nom or def.nomEN), TextSize = petit and 15 or 18, TextColor3 = C.texte, Size = UDim2.new(1, -78, 0, 20),
 				Position = UDim2.fromOffset(74, petit and 5 or 9), TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
 			local s = texte(p, { Text = "", TextSize = petit and 26 or 36, TextColor3 = pc, Size = UDim2.new(1, -78, 0, 38),
@@ -16423,7 +16888,7 @@ function Hud.reglage(cle: string, on: boolean)
 	if o.levre then o.levre.BackgroundColor3 = on and Color3.fromRGB(200, 252, 255) or Color3.fromRGB(110, 100, 170) end
 	if o.ourlet then o.ourlet.BackgroundColor3 = on and Color3.fromRGB(0, 120, 150) or Color3.fromRGB(34, 28, 64) end
 	if o.piste then o.piste.BackgroundColor3 = on and Color3.fromRGB(0, 50, 72) or C.nuit end
-	teinter(o.ico, on and C.cyan or C.terne)
+	teinter(o.ico, bandesDe(on and C.cyan or C.terne))
 end
 
 -- les trois cases du bouton MISSIONS : n défis tenus sur trois
@@ -16459,7 +16924,7 @@ function Hud.toast(txt: string, couleur: Color3?, ico: string?)
 		E.toastIco = nil
 	end
 	if ico then
-		local f = icone(E.toast, ico, 4, couleur or C.texte, UDim2.new(0, 22, 0.5, 0), Vector2.new(0, 0.5))
+		local f = iconeRelief(E.toast, ico, 4, couleur or C.texte, UDim2.new(0, 22, 0.5, -1), Vector2.new(0, 0.5)) -- (v4 : en relief, avec son ombre)
 		f.ZIndex = 82
 		for _, q in f:GetChildren() do (q :: Frame).ZIndex = 82 end
 		E.toastIco = f
@@ -16536,6 +17001,15 @@ end
 local courant = ""
 function Hud.ecran(nom: string)
 	courant = nom
+	-- (le chargement est fini : la fenêtre de chat revient comme elle était)
+	if nom ~= "charge" and chatAvant then
+		local c9 = chatAvant
+		chatAvant = nil
+		pcall(function()
+			if c9.fen and c9.fenOn ~= nil then c9.fen.Enabled = c9.fenOn end
+			if c9.barre and c9.barreOn ~= nil then c9.barre.Enabled = c9.barreOn end
+		end)
+	end
 	E.charge.Visible = nom == "charge"
 	E.menu.Visible = nom == "menu"
 	E.hud.Visible = nom == "course" or nom == "pause"
@@ -16696,8 +17170,10 @@ function Hud.cashMaj(v: number, plus: string?, x3: boolean, frappe: boolean)
 		E.argent.Text = t
 	end
 	if frappe then
-		E.argentEchelle.Scale = 1.12
-		TweenService:Create(E.argentEchelle, RAPIDE, { Scale = 1 }):Play()
+		for _, sc in { E.argentEchelle, E.argentOmbreEchelle } do
+			sc.Scale = 1.12
+			TweenService:Create(sc, RAPIDE, { Scale = 1 }):Play()
+		end
 	end
 	local p = plus or ""
 	if p ~= cashPlus then
@@ -16772,10 +17248,11 @@ function Hud.introStudio()
 	E.chargeBloc.Visible = false
 	E.chargeJ.regler(1, "or_", 0)
 	-- (l'éclair couvre aussi la jupe : la bande des boutons de Roblox blanchit avec le reste)
+	local LY = E.chargeLogoY or 0.3 -- (la hauteur du logo : tout part de lui)
 	local fl = inst("Frame", { BackgroundColor3 = Color3.fromRGB(255, 240, 200), BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.new(1, 800, 1, 800),
 		Position = UDim2.fromOffset(-400, -400), ZIndex = 58 }, ch)
 	local function onde(r1: number, ep: number, c: Color3, d: number)
-		local o = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(40, 40), Position = UDim2.fromScale(0.5, 0.3), AnchorPoint = Vector2.new(0.5, 0.5), ZIndex = 52 }, ch)
+		local o = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(40, 40), Position = UDim2.fromScale(0.5, LY), AnchorPoint = Vector2.new(0.5, 0.5), ZIndex = 52 }, ch)
 		inst("UICorner", { CornerRadius = UDim.new(0.5, 0) }, o)
 		local st = inst("UIStroke", { Color = c, Thickness = ep, Transparency = 0.2 }, o)
 		local ti = TweenInfo.new(d, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
@@ -16803,10 +17280,10 @@ function Hud.introStudio()
 		local sy = SYM[math.random(1, #SYM)]
 		local a, v = math.random() * 6.283, 220 + math.random() * 700
 		local l = inst("TextLabel", { BackgroundTransparency = 1, FontFace = TXT, Text = sy[1], TextColor3 = Color3.fromHex(sy[2]), TextSize = 26 + math.random() * 44,
-			Size = UDim2.fromOffset(80, 80), Position = UDim2.fromScale(0.5, 0.3), AnchorPoint = Vector2.new(0.5, 0.5), Rotation = math.random() * 360, ZIndex = 53 }, ch)
+			Size = UDim2.fromOffset(80, 80), Position = UDim2.fromScale(0.5, LY), AnchorPoint = Vector2.new(0.5, 0.5), Rotation = math.random() * 360, ZIndex = 53 }, ch)
 		local d = 1.5 + math.random() * 0.9
 		TweenService:Create(l, TweenInfo.new(d, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-			Position = UDim2.new(0.5, math.cos(a) * v, 0.3, math.sin(a) * v * 0.72), Rotation = l.Rotation + (math.random() - 0.5) * 300, TextTransparency = 1 }):Play()
+			Position = UDim2.new(0.5, math.cos(a) * v, LY, math.sin(a) * v * 0.72), Rotation = l.Rotation + (math.random() - 0.5) * 300, TextTransparency = 1 }):Play()
 		task.delay(d + 0.05, function() l:Destroy() end)
 	end
 	for i = 0, 2 do onde(1600 - i * 300, 7 - i * 2, (i == 1) and Color3.fromRGB(255, 120, 180) or Color3.fromRGB(255, 224, 150), 0.9) end
@@ -16814,7 +17291,7 @@ function Hud.introStudio()
 	TweenService:Create(fl, TweenInfo.new(0.25), { BackgroundTransparency = 1 }):Play()
 	task.wait(0.17)
 	-- LA SIGNATURE se lève à la place du titre
-	local sig = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(700, 140), Position = UDim2.fromScale(0.5, 0.3), AnchorPoint = Vector2.new(0.5, 0.5), ZIndex = 54 }, ch)
+	local sig = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(700, 140), Position = UDim2.fromScale(0.5, LY), AnchorPoint = Vector2.new(0.5, 0.5), ZIndex = 54 }, ch)
 	local sc = inst("UIScale", { Scale = 0.7 }, sig)
 	local n1 = texte(sig, { Text = "1.61", TextSize = 96, TextColor3 = C.or_, Size = UDim2.new(1, 0, 0, 100), Position = UDim2.fromOffset(0, 0), ZIndex = 55, epais = 5, TextTransparency = 1 })
 	local n2 = texte(sig, { Text = "GAMES", TextSize = 30, TextColor3 = C.texte, Size = UDim2.new(1, 0, 0, 34), Position = UDim2.fromOffset(0, 104), ZIndex = 55, epais = 3, TextTransparency = 1 })
@@ -16830,10 +17307,10 @@ function Hud.introStudio()
 		end
 	end
 	for _ = 1, 10 do -- (la scène tremble sous la détonation)
-		sig.Position = UDim2.new(0.5, (math.random() - 0.5) * 16, 0.3, (math.random() - 0.5) * 16)
+		sig.Position = UDim2.new(0.5, (math.random() - 0.5) * 16, LY, (math.random() - 0.5) * 16)
 		task.wait(0.034)
 	end
-	sig.Position = UDim2.fromScale(0.5, 0.3)
+	sig.Position = UDim2.fromScale(0.5, LY)
 	task.wait(1.8)
 	-- …et elle s'EFFACE
 	local to = TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
