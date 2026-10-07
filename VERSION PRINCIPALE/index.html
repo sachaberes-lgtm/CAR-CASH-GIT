@@ -5474,11 +5474,11 @@ html body #garage:not(.menu) #gLvl{order:2;margin-top:8px;font-size:var(--f0);le
 html body #garage:not(.menu) #gDesc{order:3}
 /* LA CONSOLE : une seule plaque pour tout ce qu'on touche */
 html body #garage:not(.menu) #gBottom{box-sizing:border-box;width:calc(100% - var(--sL) - var(--sR) - 20px);max-width:560px;margin:0 auto calc(var(--sB) + 10px);
-  padding:15px 12px 12px;gap:12px;background:var(--laqueP);
+  padding:15px 12px 12px;gap:12px;background:linear-gradient(180deg,rgba(26,21,50,.7) 0%,rgba(20,15,40,.7) 52%,rgba(15,12,32,.7) 100%); /* (2026-10-07, Léo : « rendre un tout petit peu transparente la zone gris-violet derrière PLAY, les voitures, PAINT, WINGS — qu'on voie un peu plus le garage derrière ») la laque du panneau (--laqueP) à 70 % ; sans flou (pas de backdrop-filter sur téléphone) */
   box-shadow:inset 0 0 0 1px var(--fil),0 22px 40px -14px rgba(0,0,0,.75);
   clip-path:polygon(var(--coupe) 0,100% 0,100% calc(100% - var(--coupe)),calc(100% - var(--coupe)) 100%,0 100%,0 var(--coupe))}
 html body #garage:not(.menu) #gBottom::before{content:'';position:absolute;left:calc(var(--coupe) + 4px);right:18px;top:0;height:3px;background:var(--livree);opacity:.9;pointer-events:none}
-html body #garage:not(.menu) #gTabs{margin:0}
+html body #garage:not(.menu) #gTabs{margin:0;background:linear-gradient(180deg,rgba(11,8,24,.77),rgba(17,13,34,.77))} /* (2026-10-07) le creux des onglets suit le panneau devenu translucide */
 /* LES PUCES : cinq, sur une ligne, à parts égales — la couleur dit la famille, le chiffre dit ce qui est à toi */
 html body #garage:not(.menu) #gRar{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:6px;overflow:visible;margin:0;padding:0;-webkit-mask:none;mask:none}
 html body #garage:not(.menu) .gR{min-width:0;height:34px;justify-content:center;gap:8px;padding:0 4px;letter-spacing:0;white-space:nowrap;color:var(--tx3);transform:skewX(var(--sk));
