@@ -46,6 +46,28 @@ désormais pour toute caisse.
 L'image de référence = le sprite de 2011 EXTRUDÉ en cubes (contour noir = mur noir sur l'épaisseur, dessous bleus). Le gabarit `poptart` est
 refait EN VOXELS (10 cm, `NY_U`), chaque pièce dessinée dans SON plan (bloc « LE CHAT POP-TART EN VOXELS », juste avant `SHAPES` : dessins
 `NY_GATEAU` / `NY_SUCRE` / `NY_TETE` / `NY_QUEUE`, maillage `voxGrille()` = faces à l'air seules, fusionnées en rectangles par couleur).
+- **L'ARC-EN-CIEL EN CUBES DE FEU (2026-10-07, Léo : « le boost de la Nyan Cat avec la méthode des flammes de la porte — les cubes,
+  la transparence, l'accumulation —, un arc-en-ciel complet en vagues de pixels qui changent de taille, toute la traînée comme le vrai
+  Nyan » puis « greffe-le, pas aussi plat ; boost arc-en-ciel ; burn-out scintillements arc-en-ciel ; adapté à la nouvelle voiture »)** :
+  le ruban à six bandes lisses (retiré le 06/10) est remplacé — même objet `rainbow`, même `rainbowStep`, bloc « L'ARC-EN-CIEL DU CHAT
+  POP-TART, EN CUBES DE FEU » après `mkSillage`. C'est la matière de `FEU_CUBES` : une TRANCHE de six cubes de 30 cm (une bande = un
+  cube, 1,8 m = la carrure de la pop-tart) tous les 30 cm de chemin, posée dans le monde, née à `NYAN.arc` (la poupe, à mi-hauteur) ;
+  cubes aux faces ombrées cuites (dessus 1, −Z ,6, flancs ,78, +Z ,5, dessous ,42 — plus tranché que la porte : sous le ciel clair il
+  faut lire des blocs) + HALO (le même cube ×1,5, additif, opacité ,075 — ×1,9 à ,17 noyait tout sous le ciel ; l'opacité n'entre pas
+  dans le programme), matrices et couleurs PARTAGÉES : là où les cubes s'entassent la lumière s'accumule. Mêmes réglages de matière que
+  les cubes de la porte : 0 programme en plus (mesuré : 153 → 153). Le FEU : chaque tranche vieillit (`ARC_VIE` 1,15 s, ou le bout de la
+  traînée `ARC_NS` 52) — cœur blanc à la poupe, plein, braise ; taille par crans `ARC_TAILLE` (celle de la porte) ; les cubes s'émiettent
+  un à un (tirage fixé par tranche). Les VAGUES : escalier du Nyan (demi-cube, tronçons de 4 tranches, bascule 7×/s), HOULES qui
+  grossissent les cubes (×1,2 / ×1,42, elles referment le joint de ×,84), banderole qui lève/plonge (±50 cm) et SERPENTE (±42 cm) par
+  demi-cubes. PAS PLAT : la tranche se tourne vers l'objectif autour du chemin (rouge EN HAUT vu de côté, signe global `sg`, couchée à
+  plat quand on regarde pile dans l'axe), mais chaque cube reste DEBOUT dans le repère de la caisse. ÉTINCELLES : petits cubes de la
+  bande qui sautent hors des rangs (`arcEmet`, ~48/s), scintillent, s'effacent près de l'objectif. Branché : le chat (`NYAN.on`) à la
+  nitro ET en vol (`max(trailK, volK×,7)`), ses pixels `nyanPixNitro` gardés à ×,45 ; la traînée ARC-EN-CIEL de la boutique sur toute
+  caisse ; jamais en réserve bleue ni en nitro infinie (les sillages reviennent, des SIGNAUX). BOOST : le reflet `nitroLight` et l'onde /
+  les bords de l'image (`NFX.cT`) tournent dans l'arc-en-ciel. GARAGE : `rainbowApercu` dans `trailApercu` (traînée essayée, traînée
+  d'origine du chat) et AU BURN-OUT (il suit la caisse dans le donut) ; les pixels arc-en-ciel du burn-out ×2 en nombre et en taille,
+  ils montent (`BURN.pix` 520). `rainbowCoupe()` dans respawn/newTrack/endGame. Coût ~0,06 ms/image. Hooks `dbgArc()`, `('pose')`
+  (photo après `dbgView`), `('banc')`, `('obj')`.
 - **v13, même jour** (Léo, après une version tout en cubes commencée puis ABANDONNÉE à sa demande — « oublie, c'est bien le nouveau
   design ; juste les jambes deviennent les encoches qu'on avait enlevées, pas trop sur le côté, insérées dans la voiture mais visibles ;
   dedans, des roues ; les pattes bougent selon comment les roues tournent, le geste de la Nyan Cat ») : LA CAISSE DESCEND SUR SES ROUES

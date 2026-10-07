@@ -12861,7 +12861,7 @@ const CARS=[
  // ---- LES CAISSES PREMIUM (2026-09-25) : la gamme des 15 retrouvée, en BOUTIQUE (vrai argent). Hors du garage tant
  // qu'elles ne sont pas achetées (voir `garageListe`). Fiches reprises de la branche `appstore-backlog`, emojis retirés.
  {name:'CHAT POP-TART',   shape:'poptart', color:0xf6b98a,accent:0xf78fb8,maxKmh:560,accel:64,turn:3.2, h:1.5,w:1.7,l:3.0,spoiler:0, // (2026-10-06) en voxels : 1,7 × 3 m, oreilles à 1,5 m — plus de bandes néon (`glow`) : elles barraient les murs noirs
-  fx:{jet:0xff64d2,core:0xffd8f2,trail:[1.5,.35,1.1],light:0xff5ec8}, // (v2) plus d'arc-en-ciel : ses PIXELS multicolores (NY_PIX), à la nitro et en vol
+  fx:{jet:0xff64d2,core:0xffd8f2,trail:[1.5,.35,1.1],light:0xff5ec8}, // (2026-10-07) son arc-en-ciel EN FEU DE PIXELS (voir ARC_*) + ses pixels qui scintillent (NY_PIX), à la nitro et en vol — branché par NYAN.on
   desc:'Une pâtisserie industrielle avec une tête de chat et quatre roulettes. Personne n\'a demandé pourquoi. Tout le monde a demandé comment.'},
  {name:'REQUIN',          shape:'requin',  color:0x3a6ea8,accent:0xdfe9f2,maxKmh:600,accel:68,turn:3.22,h:.95,w:1.98,l:3.3,spoiler:0,glow:0x9adfff,
   fx:{jet:0x86f2ff,core:0xffffff,trail:[.42,1.30,1.45],light:0x62d8ff,spray:1},
@@ -15310,75 +15310,155 @@ function mkSillage(){
   return {m,pos,col,X:F(),Y:F(),Z:F(),T:F(),K:F(),CR:F(),CG:F(),CB:F(),n:0,emit:false,clk:0,init:false,cut:SIL.cutB,g:0,tOff:0,long:0,dOk:false,dX:0,dY:0,dZ:-1};
 }
 const SILS=[mkSillage(),mkSillage(),mkSillage(),mkSillage()],trailL=SILS[0],trailR=SILS[1];let trailK=0; // (2026-09-29) les sillages DU JOUEUR, un par pot (4 au plus, comme les plumes) ; mkTrail/trailStep restent ceux de la meute, du fantôme et du fourgon
-/* ---- L'ARC-EN-CIEL DU CHAT POP-TART -----------------------------------------------------------
-   ⚠ POURQUOI UN RUBAN À PART. Les traînées normales n'ont que DEUX sommets en travers : entre eux
-   le GPU interpole en ligne droite, donc un dégradé rouge→violet passe par un mauve boueux au lieu
-   de traverser le jaune, le vert et le cyan. Un arc-en-ciel a besoin de bandes RÉELLES : ce ruban-ci
-   a donc RB_ROWS sommets en travers, chacun avec SA couleur fixe. C'est la seule façon d'obtenir
-   les six barres nettes de la référence plutôt qu'un dégradé sale.
-   Il ne sert qu'aux caisses qui déclarent `fx.rainbow` — sinon il reste invisible et ne coûte rien. */
-// ⚠ DEUX SOMMETS PAR BANDE, PAS UN. Avec une rangée par couleur, le GPU dégrade du rouge vers
-// l'orange vers le jaune… et on obtient un joli dégradé — qui n'est PAS un arc-en-ciel de Nyan Cat.
-// Ce qu'il faut, ce sont six barres FRANCHES : on double donc chaque rangée (haut et bas de bande
-// portent la MÊME couleur), et l'interpolation n'a plus nulle part où baver.
-const RB_BANDS=[[1.35,.18,.20],[1.35,.62,.10],[1.32,1.18,.16],[.26,1.20,.30],[.20,.66,1.35],[.72,.30,1.35]];
-const RB_ROWS=RB_BANDS.length*2;
+/* ---- L'ARC-EN-CIEL DU CHAT POP-TART, EN CUBES DE FEU (2026-10-07, Léo : « le boost de la Nyan Cat avec la méthode des flammes de la
+   porte — les cubes, la transparence, l'accumulation —, un arc-en-ciel COMPLET en vagues de pixels qui changent de taille, toute la
+   traînée comme le vrai Nyan Cat », puis « greffe-le, mais pas aussi plat ; adapté à la nouvelle voiture »).
+   Le ruban à six bandes lisses d'avant (retiré du chat le 06/10) revient fait de la MATIÈRE DES FLAMMES DE LA PORTE (`FEU_CUBES`) :
+   · DES CUBES, PAS UN RUBAN : six bandes d'UN cube chacune (30 cm : 6 × 30 = 1,8 m, la carrure de la pop-tart), une TRANCHE de six cubes
+     tous les 30 cm de chemin. Chaque cube est le bloc de la porte — faces ombrées comme un jeu de cubes (dessus clair, flancs, dessous
+     sombre), couleurs au-delà de 1 que le halo du post attrape — et son HALO (le même cube ×1,9, additif, translucide), qui partage ses
+     matrices et ses couleurs : là où les cubes s'entassent, la lumière S'ACCUMULE. Mêmes matières que la porte : zéro programme en plus.
+   · LE FEU : une tranche NAÎT à la poupe chauffée à blanc, puis vieillit — sa couleur passe du cœur blanc au plein puis à la braise, ses
+     cubes FONDENT par crans (la taille de la porte : 1 · ,95 · ,84 · ,7 · ,55 · ,38) et S'ÉMIETTENT un à un : la queue part en braises. Nitro
+     lâchée, plus rien ne naît et ce qui reste brûle sur place. Des ÉTINCELLES (des petits cubes de la bande) sautent hors des rangs.
+   · LES VAGUES DU NYAN : l'ESCALIER (tronçons de quatre tranches, un demi-cube plus haut une fois sur deux, qui bascule ~7 fois par seconde),
+     des HOULES qui partent de la caisse et GROSSISSENT les cubes sur leur passage (des vagues de pixels qui changent de taille), et la
+     banderole qui lève, plonge et serpente — par demi-cubes : les cubes sautent de case en case, comme ceux de la porte.
+   · POSÉE DANS LE MONDE : la traînée reste où le chat l'a semée ; sa tranche se tourne vers l'objectif autour de l'axe du chemin (rouge EN
+     HAUT vu de côté, comme le vrai Nyan Cat ; vue de derrière, six bandes côte à côte). Près de l'objectif, les cubes s'effacent. */
+const ARC_C=.3,ARC_D=.3,ARC_NS=52,ARC_NE=120,ARC_VIE=1.15,ARC_N=ARC_NS*6+ARC_NE;
+const ARC_COL=[[1.75,.16,.2],[1.8,.72,.06],[1.7,1.5,.14],[.34,1.6,.22],[.14,.66,1.85],[.82,.3,1.85]]; // rouge orange jaune vert bleu violet — au-delà de 1, comme le feu de la porte
+const ARC_TAILLE=[1,.95,.84,.7,.55,.38],ARC_SEUIL=[.1,.3,.5,.66,.82]; // la taille fond par crans avec l'âge (la porte)
 const rainbow=(function(){
-  const g=new THREE.BufferGeometry();
-  const pos=new Float32Array(TRAIL_N*RB_ROWS*3),col=new Float32Array(TRAIL_N*RB_ROWS*3);
-  g.setAttribute('position',new THREE.BufferAttribute(pos,3));
-  g.setAttribute('color',new THREE.BufferAttribute(col,3));
-  const idx=[];
-  for(let i=0;i<TRAIL_N-1;i++)for(let r=0;r<RB_ROWS-1;r+=2){ // on ne referme que l'INTÉRIEUR des bandes
-    const a=i*RB_ROWS+r,b=a+RB_ROWS;idx.push(a,b,a+1,b,b+1,a+1);}
-  g.setIndex(idx);
-  const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,
-    blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false}));
-  m.frustumCulled=false;m.visible=false;m.renderOrder=2;scene.add(m);
-  const hist=[];for(let i=0;i<TRAIL_N;i++)hist.push(new THREE.Vector3());
-  return {m,pos,col,hist,init:false};
+  const bx=new THREE.BoxGeometry(1,1,1),ps=bx.attributes.position,nm=bx.attributes.normal,cl=new Float32Array(ps.count*3);
+  for(let i=0;i<ps.count;i++){const ny=nm.getY(i),nz=nm.getZ(i),v=ny>.5?1:ny<-.5?.42:nz<-.5?.6:nz>.5?.5:.78;cl[i*3]=cl[i*3+1]=cl[i*3+2]=v;} // l'ombrage de la porte, face par face — plus tranché : sur le ciel clair et vue d'en haut (le dessus et la face −Z), il faut LIRE un bloc
+  bx.setAttribute('color',new THREE.BufferAttribute(cl,3));
+  const A=new THREE.InstancedMesh(bx,new THREE.MeshBasicMaterial({vertexColors:true,fog:false,toneMapped:false}),ARC_N); // ⚠ les réglages EXACTS des cubes de la porte : même programme
+  const B=new THREE.InstancedMesh(new THREE.BoxGeometry(1.5,1.5,1.5),new THREE.MeshBasicMaterial({fog:false,toneMapped:false,transparent:true,opacity:.075,
+    blending:THREE.AdditiveBlending,depthWrite:false}),ARC_N); // le HALO (×1,5, .075 : la porte est dans un atelier SOMBRE — sous le ciel, ×1,9 à .17 noyait les cubes dans un brouillard pastel ; l'opacité n'entre pas dans le programme)
+  A.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(ARC_N*3),3);
+  A.instanceMatrix.setUsage(THREE.DynamicDrawUsage);A.instanceColor.setUsage(THREE.DynamicDrawUsage);
+  B.instanceMatrix=A.instanceMatrix;B.instanceColor=A.instanceColor;                    // le halo suit le cube : mêmes tampons
+  A.count=B.count=0;A.frustumCulled=B.frustumCulled=false;A.visible=B.visible=false;B.renderOrder=2;scene.add(A);scene.add(B);
+  const P=[];for(let i=0;i<ARC_NS;i++)P.push(new THREE.Vector3());
+  return {m:A,h:B,P,age:new Float32Array(ARC_NS),k0:new Float32Array(ARC_NS),id:new Int32Array(ARC_NS),nid:0,
+    e:new Float32Array(ARC_NE*10),ne:0,eT:0,init:false,ph:0,phT:0,sg:1,ms:0,ech:1,ond:1,lim:ARC_NS,apercu:false,dPv:0,tPv:0,vie:false,
+    up:new THREE.Vector3(0,1,0),dr:new THREE.Vector3(1,0,0),M:new THREE.Matrix4(),S:new THREE.Vector3(),Y:new THREE.Vector3(),Z:new THREE.Vector3(),C:new THREE.Vector3()};
 })();
-const rbU=new THREE.Vector3();
-function rainbowStep(px,py,pz,k,t){
-  const tr=rainbow;
-  if(k<.03){tr.m.visible=false;tr.init=false;return;}
-  const h=tr.hist;
-  if(!tr.init){for(const q of h)q.set(px,py,pz);tr.init=true;}
-  const tail=h.pop();tail.set(px,py,pz);h.unshift(tail);
-  const P=tr.pos,C=tr.col;
-  for(let i=0;i<TRAIL_N;i++){
-    const p=h[i],pn=h[Math.min(i+1,TRAIL_N-1)],pp=h[Math.max(i-1,0)];
-    rbD.subVectors(pn,pp);rbV.subVectors(p,camera.position);
-    rbS.crossVectors(rbD,rbV);
-    const l2=rbS.lengthSq();
-    if(l2>1e-9)rbS.multiplyScalar(1/Math.sqrt(l2));else rbS.set(0,0,0);
-    rbU.crossVectors(rbS,rbD);                             // la normale du ruban : l'axe de l'ONDULATION
-    const lu=rbU.lengthSq();if(lu>1e-9)rbU.multiplyScalar(1/Math.sqrt(lu));else rbU.set(0,1,0);
-    const age=i/(TRAIL_N-1);
-    // LARGEUR CONSTANTE : le ruban de Nyan Cat est une BANNIÈRE, pas une flamme. L'effiler par
-    // l'arrière (ce que fait une traînée de réacteur) lui donnait une pointe de comète — joli,
-    // mais ce n'est plus la référence. Il ne perd que son opacité, jamais sa largeur.
-    const W=1.28;
-    // L'ONDULATION : dans l'animation d'origine la bannière ROULE. Une sinusoïde qui remonte le
-    // ruban suffit, et c'est elle qui transforme une planche plate en tissu qui claque au vent.
-    const wav=Math.sin(t*7.5-i*.62)*.30*(1-age*.25);
-    let f=(1-age*age)*k;
-    const dC=rbV.length();
-    f*=Math.min(1,Math.max(0,(dC-3.2)/4.2));               // même fondu près caméra que les rubans
-    for(let r=0;r<RB_ROWS;r++){
-      const band=r>>1,edge=r&1;                            // deux sommets par bande = bords FRANCS
-      const o=((band+edge)/RB_BANDS.length-.5)*2*W,j=(i*RB_ROWS+r)*3;
-      P[j]  =p.x+rbS.x*o+rbU.x*wav;
-      P[j+1]=p.y+rbS.y*o+rbU.y*wav;
-      P[j+2]=p.z+rbS.z*o+rbU.z*wav;
-      const c=RB_BANDS[band];
-      C[j]=c[0]*f;C[j+1]=c[1]*f;C[j+2]=c[2]*f;
-    }
-  }
-  tr.m.visible=true;
-  tr.m.geometry.attributes.position.needsUpdate=true;
-  tr.m.geometry.attributes.color.needsUpdate=true;
+const arcV1=new THREE.Vector3(),arcV2=new THREE.Vector3(),arcV3=new THREE.Vector3();
+function arcVis(v){rainbow.m.visible=rainbow.h.visible=v;}
+function arcQ(x,h){return Math.round(x/h)*h;} // une case de la grille
+function arcH(a,b){return (Math.imul(a*73^b*151,-1640531535)>>>24)/256;} // un tirage FIXÉ par (tranche, bande) : un cube s'émiette toujours au même endroit
+function arcHoule(i,t){const s=Math.sin((i/21-t*1.15)*6.2832);return s>0?s*s:0;} // une HOULE toutes les 21 tranches (6,3 m), qui part de la caisse à ~7 m/s
+function arcNait(i,k){const R=rainbow;R.age[i]=0;R.k0[i]=k;R.id[i]=R.nid=(R.nid+1)&0xffffff;}
+function arcEtincelle(px,py,pz,b,vx,vy,vz){ // un petit cube de la bande qui saute hors des rangs, monte, fond et scintille
+  const R=rainbow;if(R.ne>=ARC_NE)return;const o=R.ne*10;R.ne++;
+  R.e[o]=px;R.e[o+1]=py;R.e[o+2]=pz;R.e[o+3]=vx;R.e[o+4]=vy;R.e[o+5]=vz;R.e[o+6]=0;R.e[o+7]=.45+Math.random()*.45;R.e[o+8]=b;R.e[o+9]=.35+Math.random()*.3;
 }
+/* LA POSE : chaque tranche se tourne vers l'objectif autour de l'axe du chemin (S = la direction des bandes), lève, plonge, serpente, et
+   pose ses six cubes ; les étincelles vivent par-dessus. `cam` = l'objectif du rendu ; R.up / R.dr = le toit et le flanc de la caisse. */
+function arcPose(cx,cy,cz,cam,t,dt){
+  const R=rainbow,P=R.P,U=R.up,Dr=R.dr,M=R.M,S=R.S,Y=R.Y,Z=R.Z,me=M.elements,col=R.m.instanceColor.array,c=ARC_C*R.ech,hc=c*.5;
+  /* LE SENS DES BANDES : le rouge va vers le toit de la caisse + un peu de son flanc — vu de côté il est EN HAUT, vu de derrière toujours
+     du même côté. UN signe pour toute la traînée (pris à un mètre de la tête), retourné seulement quand il est franchement faux. */
+  {const i=Math.min(4,ARC_NS-2);arcV1.subVectors(P[i+1],P[i-1]);if(arcV1.lengthSq()<1e-8)arcV1.set(cx,cy,cz);
+    arcV2.subVectors(P[i],cam.position);arcV3.crossVectors(arcV1,arcV2);const l=arcV3.length();
+    if(l>1e-7&&(arcV3.x*(U.x-.3*Dr.x)+arcV3.y*(U.y-.3*Dr.y)+arcV3.z*(U.z-.3*Dr.z))/l*R.sg>.15)R.sg=-R.sg;} // (le rouge = la bande 0, côté −S)
+  let n=0;const L=R.lim;
+  for(let i=0;i<L;i++){
+    const k0=R.k0[i];if(k0<.03)continue;
+    const vi=Math.max(R.age[i]/ARC_VIE,i/L);if(vi>=1)continue;        // l'âge, ou le bout de la traînée : ce qui fond le plus vite gagne
+    const p=P[i];arcV1.subVectors(P[Math.min(i+1,ARC_NS-1)],P[Math.max(i-1,0)]);
+    if(arcV1.lengthSq()<1e-8)arcV1.set(cx,cy,cz);arcV1.normalize();
+    arcV2.subVectors(p,cam.position);const dC=arcV2.length();
+    const fC=THREE.MathUtils.smoothstep(dC,1.3,2.8);if(fC<=0)continue; // sous l'objectif, les cubes s'effacent
+    S.crossVectors(arcV1,arcV2);const l=S.length();if(l<1e-7)continue;S.multiplyScalar(R.sg/l);
+    {const sa=l/dC;if(sa<.4){const w9=Math.max(0,(sa-.12)/.28);       // l'objectif PILE dans l'axe du chemin : la tranche n'a plus de « côté » et se dressait en colonne —
+      Y.copy(Dr).addScaledVector(arcV1,-arcV1.dot(Dr)).normalize();S.multiplyScalar(w9).addScaledVector(Y,1-w9).normalize();}} // elle se couche à plat, les six bandes côte à côte
+    /* LE CUBE reste DEBOUT dans le repère de la caisse (il ne se tourne pas avec les bandes) : dessus = le toit (la face claire), la face
+       −Z regarde la queue — là où est la caméra de poursuite (la 2e plus claire) ; (X, Y, Z) direct : pas de miroir, pas de faces retournées */
+    Z.copy(arcV1).negate();Y.copy(U).addScaledVector(arcV1,-arcV1.dot(U));if(Y.lengthSq()<1e-6)Y.set(0,1,0);Y.normalize();arcV3.crossVectors(Y,Z);
+    const id=R.id[i];                                                   // les ondulations par DEMI-CUBES : ils sautent de case en case
+    const on=arcQ(R.ond*.5*Math.min(1,i/5)*Math.sin(i*.37-t*4.6),hc),ol=arcQ(R.ond*.42*Math.min(1,i/7)*Math.sin(i*.25-t*3.7+1.3),hc);
+    const st=(((id>>2)+R.ph)&1)*hc*(R.sg>0?1:-1);                       // l'ESCALIER du Nyan : un demi-cube, une tranche sur deux de quatre, qui bascule
+    const ho=arcHoule(i,t),gro=ho>.66?1.42:ho>.25?1.2:1;                // la HOULE : les cubes grossissent par crans sur son passage
+    const ba=vi<ARC_SEUIL[0]?0:vi<ARC_SEUIL[1]?1:vi<ARC_SEUIL[2]?2:vi<ARC_SEUIL[3]?3:vi<ARC_SEUIL[4]?4:5;
+    const sz0=c*.84*ARC_TAILLE[ba]*gro*fC*(.6+.4*Math.min(1,k0*1.5)),eclat=ba===0?.3:0,K=ba<2?1.08:ba<4?.92:.62; // ×.84 : un JOINT entre les cubes (on lit des blocs) — la houle le referme en passant
+    for(let b=0;b<6;b++){
+      if(ba>=2&&arcH(id,b)<(vi-.4)*1.25)continue;                       // ils s'ÉMIETTENT un à un en vieillissant
+      const off=(b-2.5)*c+st,sz=sz0*(.93+.14*arcH(id,b+7));
+      const x=p.x+U.x*on+Dr.x*ol+S.x*off,y=p.y+U.y*on+Dr.y*ol+S.y*off,z=p.z+U.z*on+Dr.z*ol+S.z*off;
+      me[0]=arcV3.x*sz;me[1]=arcV3.y*sz;me[2]=arcV3.z*sz;me[4]=Y.x*sz;me[5]=Y.y*sz;me[6]=Y.z*sz;me[8]=Z.x*sz;me[9]=Z.y*sz;me[10]=Z.z*sz;
+      me[3]=me[7]=me[11]=0;me[12]=x;me[13]=y;me[14]=z;me[15]=1;R.m.setMatrixAt(n,M);
+      const C9=ARC_COL[b],j=n*3;                                        // la couleur de la BANDE, chauffée à blanc à la poupe, en braise au bout
+      col[j]=(C9[0]+(2.1-C9[0])*eclat)*K;col[j+1]=(C9[1]+(1.9-C9[1])*eclat)*K;col[j+2]=(C9[2]+(1.7-C9[2])*eclat)*K;
+      if(++n>=ARC_NS*6)break;}
+    if(n>=ARC_NS*6)break;}
+  // LES ÉTINCELLES : elles montent, ralentissent, fondent et SCINTILLENT (une sur cinq s'éteint à chaque image)
+  const dr=Math.exp(-dt*1.8);
+  for(let i=0;i<R.ne;i++){const o=i*10;R.e[o+6]+=dt;
+    if(R.e[o+6]>=R.e[o+7]){R.ne--;if(i<R.ne){R.e.copyWithin(o,R.ne*10,R.ne*10+10);i--;}continue;}
+    R.e[o+3]*=dr;R.e[o+4]=R.e[o+4]*dr+1.1*dt;R.e[o+5]*=dr;
+    R.e[o]+=R.e[o+3]*dt;R.e[o+1]+=R.e[o+4]*dt;R.e[o+2]+=R.e[o+5]*dt;
+    if(Math.random()<.2)continue;
+    const dx9=R.e[o]-cam.position.x,dy9=R.e[o+1]-cam.position.y,dz9=R.e[o+2]-cam.position.z,fe=THREE.MathUtils.smoothstep(Math.sqrt(dx9*dx9+dy9*dy9+dz9*dz9),1.6,4);if(fe<=0)continue; // une étincelle qui frôle l'objectif ne bouche pas l'écran
+    const g=R.e[o+6]/R.e[o+7],sz=c*R.e[o+9]*(g<.5?1:g<.8?.7:.4)*R.ech*fe;
+    me[0]=sz;me[1]=me[2]=me[4]=0;me[5]=sz;me[6]=me[8]=me[9]=0;me[10]=sz;me[12]=R.e[o];me[13]=R.e[o+1];me[14]=R.e[o+2];
+    R.m.setMatrixAt(n,M);const C9=ARC_COL[R.e[o+8]|0],j=n*3,K=g<.3?1.25:1;col[j]=C9[0]*K;col[j+1]=C9[1]*K;col[j+2]=C9[2]*K;n++;}
+  R.m.count=R.h.count=n;R.m.instanceMatrix.needsUpdate=true;R.m.instanceColor.needsUpdate=true;
+  return n;
+}
+function arcEmet(dt,k,vx,vy,vz){ // les étincelles naissent dans les tranches jeunes, à la poupe — avec l'élan du chemin
+  const R=rainbow;if(k<.05)return;R.eT+=dt*48*k;
+  while(R.eT>=1){R.eT-=1;const i=(Math.random()*Math.min(6,R.lim))|0,p=R.P[i],b=(Math.random()*6)|0,off=(b-2.5)*ARC_C*R.ech;
+    arcEtincelle(p.x+R.S.x*off,p.y+R.S.y*off+.1,p.z+R.S.z*off,b,vx+(Math.random()-.5)*2.4,1+Math.random()*2.2,vz+(Math.random()-.5)*2.4);}
+}
+function arcAvance(dt){const R=rainbow;for(let i=0;i<ARC_NS;i++)R.age[i]+=dt;R.phT+=dt;if(R.phT>=.14){R.phT=0;R.ph^=1;}} // l'escalier bascule ~7 fois par seconde
+function rainbowCoupe(){const R=rainbow;R.init=false;arcVis(false);R.k0.fill(0);R.ne=0;R.m.count=R.h.count=0;} // replacement, piste neuve, fin de partie : plus rien ne traîne
+function rainbowStep(px,py,pz,k,t,dt,fx,fy,fz){
+  const R=rainbow,P=R.P,t0=performance.now();dt=dt||0;
+  if(R.apercu)return; // l'aperçu du garage a la main
+  if(!R.init){if(k<.03){arcVis(false);return;}for(const q of P)q.set(px,py,pz);R.k0.fill(0);R.ne=0;R.init=true;}
+  P[0].set(px,py,pz);R.k0[0]=k;R.age[0]=0;                          // la tête colle à la poupe, toujours neuve
+  arcV1.subVectors(P[0],P[1]);let L=arcV1.length(),n=0;
+  if(L>40){for(const q of P)q.set(px,py,pz);R.k0.fill(0);L=0;}       // téléportée (portail, replacement) : pas de pont de cubes jusqu'ici
+  if(L>=ARC_D){arcV1.multiplyScalar(1/L);
+    while(L>=ARC_D&&n<ARC_NS){const v=P[ARC_NS-1];                  // une tranche tous les 30 cm, posée EXACTEMENT sur le chemin
+      for(let i=ARC_NS-1;i>1;i--){P[i]=P[i-1];R.age[i]=R.age[i-1];R.k0[i]=R.k0[i-1];R.id[i]=R.id[i-1];}
+      v.copy(P[2]).addScaledVector(arcV1,ARC_D);P[1]=v;arcNait(1,k);L-=ARC_D;n++;}}
+  arcAvance(dt);
+  R.lim=ARC_NS;R.ech=1;R.ond=1;R.up.copy(hsU);R.dr.copy(hsR);
+  arcEmet(dt,k,EXV.x*.6,EXV.y*.6,EXV.z*.6);
+  const nv=arcPose(fx==null?0:fx,fy==null?0:fy,fz==null?1:fz,camera,t,dt);
+  if(k<.03&&nv===0){arcVis(false);R.init=false;return;}
+  arcVis(true);
+  R.ms=R.ms*.95+(performance.now()-t0)*.05;                         // (dbgArc) ce que coûte l'arc-en-ciel à chaque image
+}
+/* L'APERÇU AU GARAGE (traînées de l'inventaire / de la boutique, et le BURN-OUT du chat) : la caisse ne bouge pas, donc on lui dessine un
+   CHEMIN de 9 m qui ondule derrière elle, et des tranches y naissent comme si elle roulait à 14 m/s — l'arc-en-ciel sort de la poupe et
+   file vers le fond, et suit la caisse quand elle tourne (le donut). */
+function rainbowApercu(dt,on,cam,k9){
+  const R=rainbow;
+  if(!on){if(R.apercu){R.apercu=false;rainbowCoupe();}return;}
+  if(!R.apercu){R.apercu=true;R.k0.fill(0);R.ne=0;R.dPv=0;R.tPv=0;R.age.fill(9);}
+  R.tPv+=dt;const sp=CARS[garageI]||CARS[0],T=R.tPv,z0=NYAN.on?NYAN.arc.z:-(sp.l/2+.18),y0=NYAN.on?NYAN.arc.y:.62,kk=k9==null?1:k9;
+  R.dPv+=dt*14;while(R.dPv>=ARC_D){R.dPv-=ARC_D;for(let i=ARC_NS-1;i>1;i--){R.age[i]=R.age[i-1];R.k0[i]=R.k0[i-1];R.id[i]=R.id[i-1];}arcNait(1,kk);} // la grille de tranches glisse comme si elle roulait
+  R.k0[0]=kk;R.age[0]=0;
+  for(let i=0;i<ARC_NS;i++){const u=Math.min(1,i/30),j=Math.min(i,30)+R.dPv/ARC_D;             // 30 tranches = 9 m : le chemin, lui, ne bouge pas
+    R.P[i].set(Math.sin(j*.21-T*2.4)*.4*u,y0+u*.2,z0-j*ARC_D);carGroup.localToWorld(R.P[i]);}
+  arcAvance(dt);
+  R.up.set(0,1,0).applyQuaternion(carGroup.quaternion);R.dr.set(1,0,0).applyQuaternion(carGroup.quaternion);
+  R.lim=30;R.ech=.62;R.ond=.7; // ×.62 : de trois-quarts, à quelques mètres, la banderole garde la carrure du chat
+  arcEmet(dt,kk*.6,0,0,0);
+  arcPose(0,0,1,cam||camera,T,dt);arcVis(true);
+}
+window.dbgArc=function(q){const R=rainbow;
+  if(q==='obj')return R; // (banc) l'objet lui-même
+  if(q==='banc'){const T=performance.now.bind(performance),t9=T()*.001;for(let i=0;i<ARC_NS;i++){R.k0[i]=1;R.age[i]=i*.01;}let a9=T();for(let i=0;i<60;i++)arcPose(0,0,1,camera,t9+i*.016,.016);return {pose:(T()-a9)/60,cubes:R.m.count};} // (banc) ms par image, traînée pleine
+  if(q==='pose'){const t9=performance.now()*.001;R.up.copy(hsU);R.dr.copy(hsR);arcPose(0,0,1,camera,t9,0);} // (photo) la traînée se tourne vers l'objectif de `dbgView` — en pause elle regardait encore la caméra de poursuite
+  let vv=0;for(let i=0;i<ARC_NS;i++)if(R.k0[i]>=.03&&R.age[i]<ARC_VIE)vv++;
+  return {visible:R.m.visible,init:R.init,apercu:R.apercu,cubes:R.m.count,tranchesVives:vv,etincelles:R.ne,ms:+R.ms.toFixed(3),sens:R.sg,
+    tete:R.P[0].toArray().map(v=>+v.toFixed(1)),queue:R.P[ARC_NS-1].toArray().map(v=>+v.toFixed(1))};};
 
 const rbD=new THREE.Vector3(),rbS=new THREE.Vector3(),rbV=new THREE.Vector3();
 /* ---- LES PIXELS DU CHAT (v2, 2026-10-06, Léo : « enlève aussi l'arc-en-ciel ; le burn-out de la Nyan Cat fait des pixels
@@ -30253,7 +30333,9 @@ function nfxTick(dt){ // chaque image (après hsF/hsU) : l'onde, la teinte des b
   // LES BORDS DE L'IMAGE prennent la couleur de la poussée — orange feu, bleu réserve, or du pad turbo (plus discret)
   const eT=vit?(nitroOn?(nitroBlue?.36:.3):(boost>0?.14:0)):0;
   NFX.edge+=(eT-NFX.edge)*Math.min(1,dt*(eT>NFX.edge?8:2.6));
-  NFX.cT.setHex(nitroBlue?0x5b7dff:(nitroOn?(pwrNitroT>0?NINF.jet:0xff7a24):0xffd75e));NFX.col.lerp(NFX.cT,Math.min(1,dt*12));
+  NFX.cT.setHex(nitroBlue?0x5b7dff:(nitroOn?(pwrNitroT>0?NINF.jet:0xff7a24):0xffd75e));
+  if(NYAN.on&&!FX_EFF&&nitroOn&&!nitroBlue&&!(pwrNitroT>0))NFX.cT.setHSL((performance.now()*.00045)%1,1,.58); // (2026-10-07) LE BOOST DU CHAT : l'onde et les bords de l'image tournent dans l'arc-en-ciel
+  NFX.col.lerp(NFX.cT,Math.min(1,dt*12));
   if(acesPass){const U=acesPass.uniforms,b9=NFX.dbgB==null?1:NFX.dbgB;
     U.uNit.value.set(NFX.col.r,NFX.col.g,NFX.col.b,NFX.edge*(REDUCED_MOTION?.5:1)*b9);
     U.uNitF.value=vit?NFX.ign*NFX.ign*NFX.ignK*(REDUCED_MOTION?.25:.7)*b9:0;} // le COUP : un éclair de couleur sur tout le cadre, parti en ~0,3 s
@@ -31534,7 +31616,7 @@ function dolHudTick(dt){ // gate de course, quel que soit le mode
     dolHudAtt=0;dolHudT-=dt;if(dolHudT<=0)dolHudOff();}
 }
 function respawn(){
-  for(const t9 of SILS)t9.init=false;rainbow.init=false; // (2026-09-26) pas de ruban tendu jusqu'au point de replacement
+  for(const t9 of SILS)t9.init=false;rainbowCoupe(); // (2026-09-26) pas de ruban tendu jusqu'au point de replacement
   LIGNE.sPk=null;LIGNE.sPd=LIGNE.sPd0=s; // (LIGNE PARFAITE, audit GAMEPLAY) le balayage de trajet repart d'ici : sinon il ramassait, sans contact, l'objet qu'on venait de rater
   dolKill(); // (dauphin v3) replacer, repartir, recommencer : l'étiquette s'éteint, rien n'est versé
   momT=0; // (momentum v2) repartir = réserve vide
@@ -32750,7 +32832,7 @@ function traceTick(actif){
 function newTrack(){
   PADCH.sL=0; /* (LE TRAIN DE BOOSTS) il traverse le portail — mais les pads de la nouvelle piste comptent dès son début */
   traceVide(); // (2026-09-26) les traces de pneus restent sur l'ancienne route
-  for(const t9 of SILS)t9.init=false;rainbow.init=false; // (2026-09-26) sinon le ruban de nitro se tendait de l'ancien ovule à la nouvelle piste
+  for(const t9 of SILS)t9.init=false;rainbowCoupe(); // (2026-09-26) sinon le ruban de nitro se tendait de l'ancien ovule à la nouvelle piste
   loop._rebuildT=performance.now();loop._rebuildD=3500; // la construction d'une zone fait un pic : la qualité auto ne doit pas le prendre pour de la faiblesse
   CHAUFFE_R.t=performance.now()+120; // (tour 2) la nouvelle piste, sa ville, ses nuages : dessinés une fois hors écran dans la foulée (voir chauffeRendu)
   let sd=(Math.random()*1e9)|0;
@@ -32932,6 +33014,7 @@ function endGame(){
   if(mode!=='boom'&&!CAMP.garde)mortCause=''; // (2026-09-26) QUITTER n'est pas une mort : pas la cause de la partie d'avant · (2026-09-27) sauf une fin de CAMPAGNE (semé, terminé) qui pose la sienne
   if(CARR.actif&&LVL.cur&&LVL.cur.carr&&LVL.cur.carr.b===CARR.actif.b)CARR.actif.i=LVL.cur.carr.i; // (2026-09-27) REJOUER repart du niveau où l'on s'est arrêté, pas du premier de la série
   try{campStop();}catch(e){} // (2026-09-27) tirs, fumée, éclairs, halos : rien ne reste figé derrière l'écran de fin
+  try{rainbowCoupe();}catch(e){} // (2026-10-07) l'arc-en-ciel de pixels brûle encore pendant l'explosion : la boucle s'arrête ici, il ne doit pas rester figé
   try{if(CHA.n&&mode==='drive')chaineEncaisse();}catch(e){} // (2026-09-26) la chaîne d'aura ouverte est encaissée, pas oubliée
   gameOver=true;airPie.style.display='none';chainHud.style.opacity=0;caseHud.style.opacity=0;
   musicStop(true);setTimeout(function(){if(gameOver)musicMenu();},1400); // TAPE-STOP de fin, puis la musique du menu revient, étouffée
@@ -36856,6 +36939,9 @@ function closeGarage(){
    traînée essayée (arc-en-ciel compris), additifs et fondus au bout — seulement dans l'onglet TRAÎNÉES. */
 const TRPV={r:[],t:0,v1:new THREE.Vector3(),c:new THREE.Color()};
 function trailApercu(dt,on,k9){ // k9 (2026-09-30, LA CHUTE) : l'intensité, 1 par défaut
+  {const d9=on?cosmSur('trainee'):null,a9=!!(d9&&(d9.rainbow||(d9.id==='nitro'&&NYAN.on))), // (2026-10-07) l'ARC-EN-CIEL s'essaie en vrai : le feu de pixels de la course — celui de la boutique, ou la traînée d'origine du chat
+         bk9=(NYAN.on&&garageOn&&BURN.k>.03)?BURN.k:0; // …et au BURN-OUT le chat boost sur place : son arc-en-ciel sort de la poupe et suit la caisse dans le donut
+   rainbowApercu(dt,a9||bk9>0,camera,Math.max(a9?(k9==null?1:k9):0,bk9));if(a9)on=false;}
   if(!on){for(const r of TRPV.r)r.m.visible=false;return;}
   const N=36;
   if(!TRPV.r.length)for(let k=0;k<2;k++){
@@ -38786,7 +38872,7 @@ function burnPas(F,dt,t){ // fait vivre un réservoir : âge, mouvement, taille,
 function burnMonde(x,y,z,out){out.set(x,y,z);carGroup.localToWorld(out);return out;} // un point de la caisse, dans la salle
 function burnPrepare(){ // à chaque départ : les essieux de l'arrière, les pneus, les pots — la caisse a pu changer
   if(!BURN.fum){BURN.fum=burnPool(320,false,BURN_FS_FUM);BURN.feu=burnPool(180,true,BURN_FS_FEU);}
-  if(!BURN.pix){BURN.pix=burnPool(260,true,BURN_FS_FEU);BURN.pix.arc=true;} // (2026-10-06) les PIXELS du chat pop-tart (voir NY_PIX)
+  if(!BURN.pix){BURN.pix=burnPool(520,true,BURN_FS_FEU);BURN.pix.arc=true;} // (2026-10-06) les PIXELS du chat pop-tart (voir NY_PIX) — 520 (2026-10-07) : au burn-out il en vit ~450
   BURN.ar=ESSIEUX.filter(function(E){return E.position.z<0;});
   BURN.roues=[];
   for(const w of wheels)if(w.position.z<0)BURN.roues.push({x:w.position.x,y:w.position.y-(w.userData.R||.4),z:w.position.z,R:w.userData.R||.4,l:w.userData.large||.3});
@@ -38951,9 +39037,9 @@ function burnTick(dt){ // chaque image du garage (après la pose de la caisse, a
         sd=r.x<0?-1:1,sx=fz*sd,sz=-fx*sd,v=1.5+Math.random()*1.7,l=Math.random()*.9,gr=.84+Math.random()*.12;
       burnEmet(BURN.fum,o.x,o.y,o.z,-fx*v+sx*l,.25+Math.random()*.75,-fz*v+sz*l,5.8+Math.random()*4.2,.34+Math.random()*.24,1.05+Math.random()*.5+.45*BURN.chaud,
         .2+Math.random()*.16,gr*.86,gr*.84,gr*.93);}
-    if(NYAN.on&&BURN.pix){BURN.tP=(BURN.tP||0)+dt*k*(110+90*BURN.chaud); // (2026-10-06) LE CHAT : à la place des braises, les roues giclent des PIXELS multicolores qui scintillent
+    if(NYAN.on&&BURN.pix){BURN.tP=(BURN.tP||0)+dt*k*(240+170*BURN.chaud); // (2026-10-06) LE CHAT : à la place des braises, les roues giclent des PIXELS multicolores qui scintillent — (2026-10-07, Léo : « burn-out, scintillements arc-en-ciel ») deux fois plus, deux fois plus gros, ils MONTENT dans la fumée
       while(BURN.tP>=1){BURN.tP-=1;const r=BURN.roues[(Math.random()*BURN.roues.length)|0],o=burnMonde(r.x+(Math.random()-.5)*r.l,r.y+.1,r.z-r.R*.5,BURN.q),v=1.5+Math.random()*3,c=nyanPixC();
-        burnEmet(BURN.pix,o.x,o.y,o.z,-fx*v+(Math.random()-.5)*2.2,.8+Math.random()*2.4,-fz*v+(Math.random()-.5)*2.2,.6+Math.random()*.7,.09+Math.random()*.08,0,1,c[0],c[1],c[2]);}}
+        burnEmet(BURN.pix,o.x,o.y,o.z,-fx*v+(Math.random()-.5)*2.6,1.2+Math.random()*3.2,-fz*v+(Math.random()-.5)*2.6,.8+Math.random()*.9,.15+Math.random()*.14,0,1,c[0],c[1],c[2]);}}
     BURN.tF+=dt*k*(BURN.chaud>.45&&!NYAN.on?(BURN.chaud-.45)*70:0);
     while(BURN.tF>=1){BURN.tF-=1;const r=BURN.roues[(Math.random()*BURN.roues.length)|0],o=burnMonde(r.x,r.y+.05,r.z-r.R*.3,BURN.q),v=2+Math.random()*4;
       burnEmet(BURN.feu,o.x,o.y,o.z,-fx*v+(Math.random()-.5)*2,1+Math.random()*2.2,-fz*v+(Math.random()-.5)*2,.35+Math.random()*.4,.05+Math.random()*.05,0,1,1,.5+Math.random()*.4,.15);}
@@ -40890,6 +40976,7 @@ function loop(now){
      if(nitroOn)nitroLight.color.setHex(nitroBlue?0x5b7dff:(pwrNitroT>0?NINF.lum:(fxL!=null?fxL:0xff7a24))); // orange nitro / bleu réserve (mêmes teintes que les particules) / VIOLET de la nitro infinie
      else if(boost>0)nitroLight.color.setHex(fxL!=null?fxL:0xffd75e); // pad turbo : coup d'or (vague 3 : l'or de la bible)
      else nitroLight.color.setHex(0xf21808);} // repos : rouge feux arrière PROFOND (la signature ne vit qu'à la nitro)
+    if(NYAN.on&&!FX_EFF&&(nitroOn||boost>0)&&!nitroBlue&&!(pwrNitroT>0))nitroLight.color.setHSL((t*.55)%1,1,.6); // (2026-10-07) LE BOOST DU CHAT : son reflet passe par toutes les couleurs de l'arc-en-ciel
     if(ORBFX.feu>0&&mode!=='boom'){ // (2026-09-28) LA RENTRÉE EN FEU : le reflet quitte les pots pour le NEZ, rouge-orange, fort et vacillant — la caisse brûle
       nitroLight.color.setHex(0xff5a1e);nitroLight.position.copy(carGroup.position).addScaledVector(hsF,CARS[level].l*.5).addScaledVector(hsU,.9);
       nitroLight.intensity=Math.max(nitroLight.intensity,3.4*ORBFX.feu*(.8+.2*Math.sin(t*37)));}
@@ -40954,25 +41041,25 @@ function loop(now){
     const tw9=nitroOn?1.3+NFX.ign*NFX.ignK*.7:1; // (vague 3) à la nitro le sillage s'épaissit (et gicle à l'allumage — la tête seulement, voir sillageStep)
     { // (2026-09-29, sillage v4) UN SILLAGE PAR POT, né dans sa bouche (les mêmes points que les plumes) — un pot : un sillage plus large ; 3-4 pots : un peu plus fins et moins vifs (ils s'additionnent)
       const np9=Math.min(4,CAR_POTS.length),wu9=np9===1?SIL.un:np9>=3?.85:1,ku9=(np9>=3?.8:1)*.74; // ×.74 (2026-09-25) : additif + bloom, le ruban de nitro faisait un faisceau AVEUGLANT sur la route
+      const arc9=(NYAN.on&&!FX_EFF)||!!(FXT&&FXT.rainbow),sig9=nitroBlue||pwrNitroT>0; // (2026-10-07) l'ARC-EN-CIEL EST la traînée : les sillages se taisent — ils reviennent en réserve bleue et en nitro infinie (des SIGNAUX)
       for(let i9=0;i9<4;i9++){
-        if(i9<np9){potMonde(CAR_POTS[i9],tmp2);sillageStep(SILS[i9],tmp2.x,tmp2.y,tmp2.z,tcr*ku9,tcg*ku9,tcb*ku9,(NYAN.on&&!FX_EFF)?0:trailK,tw9,dt,wu9);} // (2026-10-06) le chat : ses pixels SONT son sillage
+        if(i9<np9){potMonde(CAR_POTS[i9],tmp2);sillageStep(SILS[i9],tmp2.x,tmp2.y,tmp2.z,tcr*ku9,tcg*ku9,tcb*ku9,(arc9&&!sig9)?0:trailK,tw9,dt,wu9);} // (2026-10-07) le chat, ou la traînée ARC-EN-CIEL : l'arc-en-ciel EST le sillage
         else sillageStep(SILS[i9],0,0,0,0,0,0,0,1,dt);} // un pot de moins (changement de caisse) : ce sillage s'éteint
     }
     // L'ARC-EN-CIEL EST LA TRAÎNÉE DE NITRO DE CETTE CAISSE — pas un décor permanent. Il suit donc
     // `trailK`, exactement comme les rubans des autres : il se déclenche à l'appui, s'éteint en
     // douceur, et le joueur le MÉRITE. (Première version : toujours visible dès qu'on roulait ;
     // le user a tranché — les effets spéciaux de caisse sont des effets de nitro.)
-    if(NYAN.on&&!FX_EFF){ // (2026-10-06, v2) LE CHAT : des PIXELS multicolores qui scintillent, à la nitro ET en vol (voir NY_PIX) — une traînée de la boutique reprend la main
-      nyanPixNitro(dt,(mode==='boom'||nitroBlue||pwrNitroT>0)?0:Math.max(trailK,NYAN.volK*.7));
-      if(rainbow.m.visible){rainbow.m.visible=false;rainbow.init=false;}
-    }else if(FXT&&FXT.rainbow){
-      // ⚠ ET IL S'EFFACE EN RÉSERVE BLEUE, comme la plume. Sinon la caisse continue d'arborer ses
-      // six couleurs pendant que les rubans passent au bleu : le joueur voit deux messages
-      // contradictoires et le signal « tu tapes dans la réserve » se perd dans la fête.
-      const rk=(mode==='boom'||nitroBlue||pwrNitroT>0)?0:trailK;
-      potMonde(CAR_POT_C,tmp2).addScaledVector(hsU,.19); // (2026-09-26) il naît au-dessus des pots
-      rainbowStep(tmp2.x,tmp2.y,tmp2.z,rk,t);
-    }else if(rainbow.m.visible){rainbow.m.visible=false;rainbow.init=false;}
+    { // (2026-10-07) L'ARC-EN-CIEL EN FEU DE PIXELS (voir ARC_*) : le CHAT à la nitro ET en vol (comme ses pixels), ou toute caisse qui porte la
+      // traînée ARC-EN-CIEL de la boutique, à la nitro. ⚠ Il s'efface en réserve bleue et en nitro infinie, comme la plume : sinon la caisse
+      // arborerait ses six couleurs pendant que le reste dit « tu tapes dans la réserve » — deux messages, et le signal se perd dans la fête.
+      const nyan9=NYAN.on&&!FX_EFF,arcOn9=nyan9||!!(FXT&&FXT.rainbow);
+      if(arcOn9){const rk=(mode==='boom'||nitroBlue||pwrNitroT>0)?0:(nyan9?Math.max(trailK,NYAN.volK*.7):trailK);
+        if(nyan9)nyanPixNitro(dt,rk*.45); // ses PIXELS scintillent toujours autour, moins nombreux : l'arc-en-ciel mène
+        if(nyan9)potMonde(NYAN.arc,tmp2);else potMonde(CAR_POT_C,tmp2).addScaledVector(hsU,.19); // le chat : la poupe de la pop-tart, à mi-hauteur
+        rainbowStep(tmp2.x,tmp2.y,tmp2.z,rk,t,dt,-hsF.x,-hsF.y,-hsF.z);
+      }else if(rainbow.m.visible&&!rainbow.apercu)rainbowCoupe();
+    }
     // LA GERBE D'EAU : la caisse qui déclare `fx.spray` ne crache pas du feu mais de l'EAU. On sème
     // à la tuyère, en cône, avec une composante latérale franche — une gerbe s'ÉVASE, un jet de
     // réacteur non. Comme le reste des signatures : uniquement sous poussée, jamais en réserve bleue.
