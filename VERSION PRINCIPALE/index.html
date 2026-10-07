@@ -39080,10 +39080,20 @@ function burnBouffee(n){ // une BOUFFÉE d'un coup aux deux roues arrière (le d
       v=.8+Math.random()*1.6,l=1+Math.random()*1.8,gr=.86+Math.random()*.1;
     burnEmet(BURN.fum,o.x,o.y,o.z,-fx*v+fz*sd*l,.1+Math.random()*.35,-fz*v-fx*sd*l,3.2+Math.random()*1.6,.4+Math.random()*.2,1.3+Math.random()*.5,.26+Math.random()*.12,gr*.88,gr*.86,gr*.94);}
 }
+/* (2026-10-07, Léo : « il n'y a que les voitures qu'on possède qui peuvent faire le burn-out ; celles qu'on ne possède pas, on n'a pas le
+   droit : les roues ne sont pas encore à nous ») — la caisse du plateau doit être À TOI (`carUnlockedVrai` : achetée, gagnée — en TEST
+   tout s'équipe, mais ça ne la rend pas à toi) ou celle que tu as ÉQUIPÉE (hors TEST, l'équipée est toujours à toi). Sinon le doigt tenu
+   ne fait pas partir le moteur : le cadenas parle (toast, refus, le bouton d'achat se secoue) et le relâcher est avalé. */
+try{Object.assign(I18N,{'PAS ENCORE À TOI':'NOT YOURS YET'});Object.assign(I18N_ZH,{'PAS ENCORE À TOI':'还不是你的'});}catch(e){}
+function burnPermis(){const i=garageI|0;return carUnlockedVrai(i)||i===equippedCar();}
+function burnRefus(){ // le doigt a tenu sur une caisse qui n'est pas à toi
+  uiClic('refus');toast(pxi('verrou')+' '+TR('PAS ENCORE À TOI'));
+  const b=[$('gBuy'),$('gEquip')].find(function(x){return x&&x.offsetParent;});if(b)gSecoue(b);else hap([8,40,8]);
+}
 function burnDebut(e){ // pointerdown : le doigt se pose sur la caisse
   if(BURN.hold||GAR.go||GAR.sw||!garAtelierLibre()||(INV&&INV.on))return; /* (2026-10-06) aussi dans la console de Sacha */
   if(e.button>0||!garSurCaisse(e))return;
-  BURN.hold={id:e.pointerId,x:e.clientX,y:e.clientY,t0:performance.now()};BURN.bouge=false;
+  BURN.hold={id:e.pointerId,x:e.clientX,y:e.clientY,t0:performance.now(),non:!burnPermis()};BURN.bouge=false; // (2026-10-07) `non` : pas à toi, pas de burn-out
 }
 function burnPart(){ // ça part : le doigt a tenu
   if(BURN.on)return;burnPrepare();BURN.on=true;BURN.t=0;BURN.pops.length=0;BURN.corps=true;
@@ -39211,11 +39221,11 @@ function burnRoues(dt){ // où sont les roues arrière (dans la salle) et à que
 }
 function burnTick(dt){ // chaque image du garage (après la pose de la caisse, avant la caméra)
   const now=performance.now(),t=now*.001,d0=dt>0;
-  if(BURN.hold&&!BURN.on&&!BURN.bouge&&now-BURN.hold.t0>280)burnPart(); // (même soir) 0,28 s : un glissé lent qui démarre doucement reste le PLATEAU
+  if(BURN.hold&&!BURN.on&&!BURN.bouge&&now-BURN.hold.t0>280){if(!BURN.hold.non)burnPart();else if(!BURN.hold.dit){BURN.hold.dit=1;burnRefus();}} // (même soir) 0,28 s : un glissé lent qui démarre doucement reste le PLATEAU
   if(BURN.auto>0&&d0){BURN.auto-=dt;if(BURN.autoW)burnVolant(BURN.autoW*dt);if(BURN.auto<=0)burnFin();} // (le banc) un doigt qui tourne à autoW rad/s
   if(GAR.go||!garAtelierLibre())if(BURN.on)burnFin();
   /* (v2) LA MISE EN RÉGIME : pendant l'appui, avant que ça parte, le moteur monte et la caisse s'assoit — le doigt glisse : tout retombe */
-  if(BURN.hold&&!BURN.on&&!BURN.bouge)BURN.pre=Math.max(BURN.pre,Math.min(1,Math.max(0,(now-BURN.hold.t0-70)/210)));else if(d0)BURN.pre=Math.max(0,BURN.pre-dt*4);
+  if(BURN.hold&&!BURN.on&&!BURN.bouge&&!BURN.hold.non)BURN.pre=Math.max(BURN.pre,Math.min(1,Math.max(0,(now-BURN.hold.t0-70)/210)));else if(d0)BURN.pre=Math.max(0,BURN.pre-dt*4);
   if(d0){BURN.k+=((BURN.on?1:0)-BURN.k)*Math.min(1,dt*(BURN.on?5:2.6));if(BURN.k<.002&&!BURN.on)BURN.k=0;
     if(BURN.on)BURN.t+=dt;
     BURN.chaud=Math.max(0,Math.min(1,BURN.chaud+(BURN.on?dt*.38*(1+.6*BURN.donK):-dt*.22))); // (gestes) le donut chauffe les gommes plus vite
@@ -39297,6 +39307,7 @@ function burnSon(dt){ // le VRAI moteur du palier, au rupteur, et le crissement 
 }
 window.dbgBurn=function(s,a,b){
   if(s===0){burnFin();return 'coupé';}
+  if(s==='permis'){let r=null;try{r=garCaisseRect();}catch(_){}return {caisse:garageI,permis:burnPermis(),rect:r};} // (2026-10-07) la caisse du plateau peut-elle brûler ? et où est-elle à l'écran (le banc y pose le doigt)
   if(s==='gaz'){if(!garAtelierLibre())return 'atelier pas libre';if(!BURN.on){burnPart();BURN.auto=2;}burnGaz();}
   if(s==='tourne'){if(!garAtelierLibre())return 'atelier pas libre';if(!BURN.on)burnPart();BURN.bouge=true;BURN.auto=b>0?+b:3;BURN.autoW=a!=null?+a:3;} // (v2) un doigt qui tourne sans doigt (le banc) : w rad/s pendant s secondes
   if(s>0){if(!garAtelierLibre())return 'atelier pas libre';burnPart();BURN.auto=+s;BURN.autoW=0;}
@@ -39837,8 +39848,8 @@ addEventListener('pointerup',e=>{
   if(ATL.appui!=null&&ATL.appui===e.pointerId){ATL.appui=null;atlPresse();return;} // (même soir) le BOUTON ROUGE relâché : l'inventaire et ses outils
   if(INV.mange!=null&&e.pointerId===INV.mange){INV.mange=null;garageDrag=false;return;} // (inventaire) le relâcher du doigt TENU n'est ni un tap ni un glissé
   if(INV.hold&&INV.hold.id===e.pointerId)invHoldFin();
-  if(BURN.hold&&BURN.hold.id===e.pointerId){const b9=BURN.on,m9=BURN.bouge;burnFin(); // (BURN-OUT) le doigt se lève : le moteur retombe
-    if(b9&&(!m9||!gEl.classList.contains('vitrine'))){garageDrag=false;GAR.doigt=null;GAR.tDoigt=performance.now();GAR.vW=0;return;}} // tenu sur place : ni tap ni glissé — (2026-10-06) dans la console de Sacha, un burn-out relâché ne change JAMAIS de caisse
+  if(BURN.hold&&BURN.hold.id===e.pointerId){const b9=BURN.on,m9=BURN.bouge,r9=BURN.hold.dit;burnFin(); // (BURN-OUT) le doigt se lève : le moteur retombe
+    if(r9||b9&&(!m9||!gEl.classList.contains('vitrine'))){garageDrag=false;GAR.doigt=null;GAR.tDoigt=performance.now();GAR.vW=0;return;}} // tenu sur place : ni tap ni glissé — (2026-10-06) dans la console de Sacha, un burn-out relâché ne change JAMAIS de caisse
   if(garageDrag&&e.pointerId!==gpId)return;
   if(GAR.doigt==='caisse'&&garageDrag&&!gPince){const dx9=e.clientX-gpx0,dy9=e.clientY-gpy0; // (même soir) un glissé SUR la caisse : le plateau (ou le dérapage) — jamais l'élan de la vue
     if(Math.abs(dx9)>=14||Math.abs(dy9)>=14||BURN.bouge){
