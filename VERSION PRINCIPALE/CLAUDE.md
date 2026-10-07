@@ -19,7 +19,25 @@
 - Console : `dbgCarriere()` rend aussi `sel` et `play` ({b,i} ou « sans fin »). Vérifié au banc (Chrome sans fenêtre, muet, vrais clics,
   couché et debout, FR/EN) : choix du niveau 3 → atelier « SKY HIGH 3 » → JOUER = niveau 3 ; portail puis mort au 4 → l'accueil dit
   « SKY HIGH 4 » et PLAY relance le 4 ; MISSIONS → carte VILLE → JOUER des missions = VILLE 1 ; joueur neuf → question du mode puis
-  AURORE avec l'auto-école ; Survivant armé → partie sans fin ; même musique que la carrière ; 0 erreur. sw.js → v159.
+  AURORE avec l'auto-école ; Survivant armé → partie sans fin ; même musique que la carrière ; 0 erreur. sw.js → v160 (v159 = le tour sans fin de l'écran titre, fusionné).
+## LE TOUR SANS FIN DE L'ÉCRAN TITRE (2026-10-07, Léo : « l'écran menu ciel, dans le même angle, tourne en 360 constamment — pas trop rapide, faut pas que ce soit vomitif, plutôt lent ; on doit pouvoir tourner la voiture ; faut que ça ait l'air d'être en chute »)
+- Le regard fait le tour complet de la caisse qui tombe, à la HAUTEUR du menu (`CHUTE.oP` ne bouge pas) : un tour en `CHUTE_P.tour` = 75 s
+  (~4,8°/s), le caméraman de chute libre qui spirale autour d'elle pendant que l'air et les cumulus montent. C'est L'ORBITE AU DOIGT (bloc
+  « LE TOUR SANS FIN » dans `chuteRender`) avec un plancher de vitesse : le doigt la SAISIT (elle s'arrête dessous, `CHUTE.tk` = 0), la
+  LANCE (l'élan retombe vers le tour lent), et lâchée elle repart en douceur (~3 s) dans le SENS où le doigt l'a tournée (`CHUTE.tSens`).
+  Coupé sous « Réduire les animations » (lu en direct), avec `P.fige` (image figée des bancs) et dans l'atelier des nuages (`?nuages=1`).
+- La caisse reste lisible à TOUS les angles (planche des 8 angles × matin/soir/nuit, couché et debout) : de l'autre côté du soleil la face
+  vue n'avait plus que l'ambiance baissée du 03/10 → une silhouette noire sur un tiers du tour ; de derrière, la caisse qui pique du nez
+  montre son VENTRE (châssis brun). `chuteStudio` : `cj` (0 au plan de face, 1 quand la caméra regarde le soleil) rend un peu d'ambiance et
+  allume le REBOND (`trailLight`, à la couleur de la mer de nuages de l'heure, `cjF` 1,2) côté caméra presque à hauteur ; `ve` (la part du
+  dessous tournée vers la caméra, `vb` ,8) le passe sous la caisse. Au plan de face cj = ve = 0 : le modelé d'avant au bit près.
+  ⚠ La clé `stallKey` est ÉTEINTE au ciel au premier lancement (atelierLampes ne l'allume qu'en passant par l'atelier) : ne pas compter
+  dessus — elle tourne quand même avec le regard (`CHUTE.oA`), pour le cas où elle est allumée.
+- JOUER part de n'importe quel angle : la caméra rejoint « derrière elle » EN TOURNANT autour de la caisse (cap, hauteur, distance
+  interpolés) — la ligne droite d'avant traversait la caisse quand on partait du côté opposé. Même arrivée.
+- Console : `dbgChute({tour:0})` arrête le tour, `dbgChute({tour:0,orb:a})` pose le regard à l'angle a (rad), `dbgChute().lum` = [cj, ve].
+  Banc : Chrome sans fenêtre + CDP (vrais glissés : saisi 0, lancé −2,3 → −0,08 rad/s, lâché arrêté → repart dans le sens du doigt ;
+  JOUER depuis 1,6 · 3,2 · 4,8 rad → course, 0 erreur). sw.js → v159.
 
 ## LES LUEURS DE LA BOUTIQUE (2026-10-07, Léo : « une lueur derrière chaque voiture dans la boutique, de la couleur de la rareté ; au lieu de les cacher — on les montre dans tous les cas quand on appuie dessus. Les banderoles lumineuses créent un trop gros contraste, trop d'informations visuelles ; des petites lueurs, ça fait le style. Le reste, touche pas »)
 - La « boutique » = la bande des VIGNETTES DE VOITURES du garage (`#gStrip`, `garageFamilles`) ; les habillages (peinture, ailes, traînées)

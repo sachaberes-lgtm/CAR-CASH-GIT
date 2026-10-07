@@ -10,7 +10,7 @@
 local UserInputService = game:GetService("UserInputService")
 
 local Controles = {
-	volant = 0, assiette = 0, nitro = false, frein = false,
+	volant = 0, assiette = 0, nitro = false, frein = false, tireBas = false,
 	tactile = { actif = false, x = 0, y = 0, nitro = false },
 	surPause = nil :: (() -> ())?,
 	-- POUCE HAUT EN VOL (volSens du web) : 1 = PLONGE (pouce en haut = le nez plonge), −1 = MONTE. Le clavier et la manette ne changent pas.
@@ -43,8 +43,28 @@ UserInputService.InputBegan:Connect(function(io, gp)
 	if gp and io.UserInputType == Enum.UserInputType.Keyboard then return end -- on tape dans le chat
 	tenues[io.KeyCode] = true
 end)
+-- (6/10) LE BOUTON NITRO NE RESTE PLUS COINCÉ : un doigt (ou la souris) qui GLISSE hors du bouton avant de se lever ne déclenche
+-- pas l'InputEnded du bouton (Roblox ne le donne qu'au-dessus de lui) — la nitro restait tenue, réacteur allumé, jusqu'au
+-- prochain appui. On suit ici chaque doigt posé sur le bouton jusqu'à son VRAI lever, où qu'il ait glissé.
+local doigtsNitro: { [InputObject]: boolean } = {}
+function Controles.brancherNitro(b: GuiObject)
+	b.InputBegan:Connect(function(io)
+		if io.UserInputType == Enum.UserInputType.Touch or io.UserInputType == Enum.UserInputType.MouseButton1 then doigtsNitro[io] = true end
+	end)
+end
 UserInputService.InputEnded:Connect(function(io)
 	tenues[io.KeyCode] = nil
+	local souris = io.UserInputType == Enum.UserInputType.MouseButton1
+	if doigtsNitro[io] or souris then
+		local avant = next(doigtsNitro) ~= nil
+		doigtsNitro[io] = nil
+		if souris then -- (la souris : son objet d'entrée n'est pas toujours le même d'un clic à l'autre)
+			for k in doigtsNitro do
+				if k.UserInputType == Enum.UserInputType.MouseButton1 then doigtsNitro[k] = nil end
+			end
+		end
+		if avant and next(doigtsNitro) == nil then Controles.tactile.nitro = false end
+	end
 end)
 UserInputService.InputChanged:Connect(function(io)
 	if io.KeyCode == Enum.KeyCode.Thumbstick1 then
@@ -55,9 +75,16 @@ UserInputService.InputChanged:Connect(function(io)
 		pad.l2 = io.Position.Z > 0.3
 	end
 end)
-UserInputService.WindowFocusReleased:Connect(function()
+-- (6/10) la manette aussi se relâche : une gâchette R2 (nitro) ou un stick tenus au moment d'un alt-tab ou d'une manette débranchée
+-- restaient « tenus » pour toujours (la caisse braquait seule, la nitro brûlait seule)
+local function relache()
 	table.clear(tenues) -- on a changé de fenêtre : plus aucune touche n'est tenue
-end)
+	pad.x, pad.y, pad.r2, pad.l2 = 0, 0, false, false
+	table.clear(doigtsNitro)
+	Controles.tactile.nitro = false
+end
+UserInputService.WindowFocusReleased:Connect(relache)
+UserInputService.GamepadDisconnected:Connect(relache)
 
 local function zm(v: number, z: number): number -- zone morte + courbe douce (1,35 comme le volant tactile du jeu web)
 	local a = math.abs(v)
@@ -83,6 +110,9 @@ function Controles.lire()
 	Controles.assiette = math.clamp(a, -1, 1)
 	Controles.nitro = un(N) or pad.r2 or t.nitro
 	Controles.frein = un(B) or un(F) or pad.l2 or (t.actif and t.y < -0.65)
+	-- (6/10) LE GESTE DU DRIFT au pouce (tireBas, DRIFT_PX = 34,9 px du web) : le pouce tiré à mi-course vers le bas, en braquant,
+	-- suffit à décrocher — on le confondait avec le FREIN (≈ 50 px), et le drift tactile demandait un pouce tiré presque jusqu'en bas
+	Controles.tireBas = t.actif and t.y < -0.34
 end
 
 return Controles

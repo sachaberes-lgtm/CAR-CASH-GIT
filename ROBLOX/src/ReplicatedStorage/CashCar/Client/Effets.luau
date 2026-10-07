@@ -62,10 +62,10 @@ local cam = workspace.CurrentCamera
 -- etire = une étincelle qui file le long de sa vitesse · caisse = le bassin part avec la caisse
 type Regle = { tex: string, c: any, t: number, a: { number }, op: number, add: boolean, acc: number?, frein: number?, etire: boolean?,
 	caisse: boolean?, vie: { number }, nb: number?, eclat: number? }
-type Bassin = { e: { ParticleEmitter }, a: { Attachment }, i: number }
+type Bassin = { e: { ParticleEmitter }, a: { Attachment }, i: number, vie: NumberRange }
 local BASSINS: { [string]: Bassin } = {}
 local function bassin(nom: string, g: Regle)
-	local b: Bassin = { e = {}, a = {}, i = 0 }
+	local b: Bassin = { e = {}, a = {}, i = 0, vie = NumberRange.new(g.vie[1], g.vie[2]) }
 	for k = 1, g.nb or 4 do
 		local a = Instance.new("Attachment")
 		a.Name = nom .. k
@@ -123,7 +123,9 @@ local function jet(nom: string, pos: Vector3, haut: Vector3, n: number, v0: numb
 	a.WorldCFrame = CFrame.fromMatrix(pos, droite.Unit, up)
 	e.Speed = NumberRange.new(v0 * M, v1 * M)
 	e.SpreadAngle = Vector2.new(cone, cone)
-	if vie0 then e.Lifetime = NumberRange.new(vie0, vie1 or vie0) end
+	-- (6/10) la durée imposée ne vaut que pour CE jet : elle restait écrite dans l'émetteur, et les jets suivants du bassin (la
+	-- poussière du décollage après un cratère de météore, les étincelles d'or après un palier de moteur) en héritaient
+	e.Lifetime = vie0 and NumberRange.new(vie0, vie1 or vie0) or b.vie
 	e:Emit(math.floor(n + 0.5))
 end
 Effets.jet = jet
@@ -1078,7 +1080,12 @@ local function continuTick(dt: number)
 	end
 	-- la pluie de devises : un seuil d'argent, qui s'éloigne (× 2,6) à chaque averse
 	if (etat.mode == "drive" or etat.mode == "fall") and (etat.argent or 0) >= pluie.seuil then
-		pluie.seuil *= 2.6
+		-- (6/10) un gros gain qui saute plusieurs seuils d'un coup lançait une averse à CHAQUE image (le son et le texte en rafale) :
+		-- le seuil passe tous les paliers franchis, l'averse tombe une fois
+		for _ = 1, 60 do
+			if (etat.argent or 0) < pluie.seuil then break end
+			pluie.seuil *= 2.6
+		end
 		pluieLance()
 	end
 end
@@ -1400,6 +1407,7 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 		end
 	end)
 	RunService.Heartbeat:Connect(function(dt: number)
+		if etat.pause then return end -- (6/10) les bouts de tôle se figent avec la pause, comme le reste
 		for _, q in TOLE do
 			if q.vie > 0 then
 				q.vie -= dt
@@ -1441,6 +1449,12 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 		pluie.seuil, pluie.t = 1000, 0
 		palier.t = 99
 		boom.t = 99
+		-- (6/10) la lueur de l'explosion ne s'éteint qu'au bout de 1,5 s (explosionTick) — et boom.t = 99 coupe ce compte : l'explosion
+		-- passée d'un tap puis REJOUER aussitôt laissait une lumière orange allumée À VIE là où la caisse était morte
+		if lueur then
+			lueur.Enabled = false
+			lueur.Brightness = 0
+		end
 		rafale.n = 0
 		for _, t in taches do
 			t.im:Destroy()
