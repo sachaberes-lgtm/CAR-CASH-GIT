@@ -15,8 +15,28 @@
 - Zéro programme compilé au premier coup (mesuré 142 → 142) : morceaux en Phong nus, éclat et étincelles déjà dans le jeu. Au menu,
   `chuteTapeTick` fait vivre `sparkGold` et `dust` (la boucle de course ne tourne pas) ; `chuteSort` range l'éclat et les morceaux.
 - Réglages `CHUTE_TAP` (V 7,5 · W 5 · WMAX 16 · CHAOS 5 · K/C 12/2,4 · KR/CR 16/1,9 · WL 3 · TR/TT le doigt). Console : `dbgTape()`
-  (coups, combo, poussée, pivot, toupie, morceaux, centre à l'écran), `dbgTape('coup')` frappe le centre. sw.js → v160.
+  (coups, combo, poussée, pivot, toupie, morceaux, centre à l'écran), `dbgTape('coup')` frappe le centre. sw.js → v161 (v160 = LE NIVEAU DES PLAY, poussé en même temps).
 
+## LE NIVEAU DES PLAY (2026-10-07, Léo : « quand j'appuie directement sur PLAY, ça me lance dans une map avec un son qui n'est pas celui de la carrière ; le PLAY du garage lance le dernier niveau de carrière auquel on a joué ; on peut aussi sélectionner un niveau dans la carrière puis retourner au garage — choisir une map, au lieu de lancer directement »)
+- **LA CAUSE** (mesuré au banc) : le PLAY de l'accueil, le JOUER de l'atelier et celui des MISSIONS posaient `CARR.actif=null` = la partie
+  SANS FIN (NUAGES niveau 1 « LES NUAGES CACHENT LES VIRAGES », musique `ciel-complet.m4a` « CIEL · LES 5 NIVEAUX ») ; la carrière joue
+  le niveau et SA musique (`ciel-n3.m4a` « CIEL · NIVEAU 3 »…).
+- **`SAVE.d.carrSel`** {id du monde, i} (gardé par `san`, rangé par `id` comme `SAVE.d.carr`) = la map des PLAY. `carrJouer()` la lance
+  par `carrLancer` — le MÊME départ que la carrière (voile, piste du niveau reconstruite dessous, musique, lâcher). Posée par
+  `carrLancerSous`, `endGame` (le niveau où la partie s'arrête : après des portails, c'est le suivant), les fins de monde (le monde
+  suivant, comme REJOUER) et `carrChoisit`. Rien de posé : le niveau en cours du 1er monde. Auto-école en attente (1re partie, REVOIR
+  L'AUTO-ÉCOLE) : AURORE, qui l'arme elle-même. `carrSel()` revérifie tout contre `CARRIERE`.
+- **LA CARRIÈRE CHOISIT** : au garage du hub, toucher un niveau ou la carte d'un monde = `carrChoisit` (toast « SKY HIGH 3 · LEVER DU
+  SOLEIL », la feuille se ferme, l'onglet MISSIONS rend l'ATELIER) ; elle ne lance plus. La carte d'un monde montre le niveau choisi
+  s'il est chez elle ; pastille JOUER (`.carrSel`) sur la carte et sur la case. Hors du hub (`?menu=leo`), le toucher lance comme avant.
+- **LA PETITE LIGNE** sous les PLAY (`.playNiv`, `carrPlayMaj` : à l'ouverture du garage, à chaque pose, à la langue, aux modes) dit la
+  map lancée (« SKY HIGH 3 », « VILLE 2 »).
+- **LA PARTIE SANS FIN RESTE** à qui l'a demandée (`carrPlayOk()`) : PARC ou SURVIVANT armés dans MODES (choisir une map de carrière les
+  désarme), Poki (pas de carrière), la vitrine `?menu=leo` (sa vignette dit le niveau sans fin). REJOUER ne change pas.
+- Console : `dbgCarriere()` rend aussi `sel` et `play` ({b,i} ou « sans fin »). Vérifié au banc (Chrome sans fenêtre, muet, vrais clics,
+  couché et debout, FR/EN) : choix du niveau 3 → atelier « SKY HIGH 3 » → JOUER = niveau 3 ; portail puis mort au 4 → l'accueil dit
+  « SKY HIGH 4 » et PLAY relance le 4 ; MISSIONS → carte VILLE → JOUER des missions = VILLE 1 ; joueur neuf → question du mode puis
+  AURORE avec l'auto-école ; Survivant armé → partie sans fin ; même musique que la carrière ; 0 erreur. sw.js → v160 (v159 = le tour sans fin de l'écran titre, fusionné).
 ## LE TOUR SANS FIN DE L'ÉCRAN TITRE (2026-10-07, Léo : « l'écran menu ciel, dans le même angle, tourne en 360 constamment — pas trop rapide, faut pas que ce soit vomitif, plutôt lent ; on doit pouvoir tourner la voiture ; faut que ça ait l'air d'être en chute »)
 - Le regard fait le tour complet de la caisse qui tombe, à la HAUTEUR du menu (`CHUTE.oP` ne bouge pas) : un tour en `CHUTE_P.tour` = 75 s
   (~4,8°/s), le caméraman de chute libre qui spirale autour d'elle pendant que l'air et les cumulus montent. C'est L'ORBITE AU DOIGT (bloc
