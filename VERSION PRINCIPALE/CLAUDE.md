@@ -28,7 +28,44 @@
 - Console : `dbgBurn()` (état : cap, cib, w, donM, tours, palier, pivot, cad, Rs, pre, corps) · `dbgBurn('tourne',w,s)` (un doigt qui tourne
   à w rad/s pendant s secondes). Vérifié au banc (Chrome sans fenêtre, vrais gestes souris, debout et couché) : fouet, donut au doigt
   (2 tours comptés là où l'ancien en comptait 1), la caisse dans le cercle et au-dessus de la console, burn-out puis JOUER → course, 0 erreur.
-  sw.js → v150.
+  sw.js → v156.
+## LA CAMPAGNE DE DEBUG AVANT PUBLICATION (2026-10-07, session GRAPHISME — Sacha : « on publie le jeu bientôt, lance une série de debug »)
+Bancs (un Chrome à la fois, son coupé) + 3 auditeurs en lecture seule. **Aucun crash, 0 erreur JS** sur : bug.js (120 s FR debout, EN couché),
+robuste.js (pause, arrière-plan, rotation, double appui REJOUER), fuite.js (6 parties : tas +2 Mo, 142 programmes stables), caisses.js
+(les 70 caisses : dragon de NITROOO visible au sol et en vol), le parcours du titre.
+- **Faux positifs à ne pas re-chasser** : le -4 px de `#auraV2`/`#avRec` = l'entrée `hmGauche` (0,55 s au départ) ; `#engBig` × `#slam9`/
+  `#misBan`, `#dolHud` × `#lvlBan`, `.avTot` × `#avCh` = voulus (GAMEPLAY) ; `#mDead.on` pendant la course = la coque est cachée avec
+  `#overlay` ; LA HUIT « invisible » = `retire:1` ; « TROP LONGTEMPS EN L'AIR » = les sauts forcés du banc ; le 404 = `dark-triad.mp3`
+  (sondé par `frenMusSonde`, repli prévu).
+- **Corrigé** : `/jouer` sans barre finale (Vercel redirige vers `/jouer/` — sinon `vendor/three.min.js` cherché à la racine, jeu mort) ;
+  l'atelier de son et `sons.html` ne partent plus en ligne ; `sw.js` ne range que les réponses 200 ; la licence OFL de Press Start 2P
+  (`assets/fonts/OFL.txt`, exigée par la licence) ; l'anglais : « SKY HIGH TERMINES » (clé fausse), les affiches RECORD de l'atelier,
+  « +1 A DECOUVRIR1 » en français, « TRACKING : », BOOK → SET, NA V8, les `aria-label` (Accueil, Boutique…), le bouton TOURNER de la
+  colonne PC (suit la langue, rappelé par `applyLangDOM` dans la page CADRE) ; le titre : deux tours au-delà de `camera.far` retirées
+  (7e champ de `CHUTE_NU` = tirages sautés, la tour de face garde sa silhouette), `CHUTE.sndT`/`TITRE_HF.tc` remis à 0 dans `chuteEntre`,
+  clé `sol` en double dans `CHUTE_P` (la morte ôtée, rendu inchangé).
+- **À trancher par Sacha (rien n'a été changé)** : `TEST_CAISSES=!POKI` et `TEST_CARRIERE=true` (tout est ouvert, pastille « TEST ») ; la
+  boutique (`shopPaye` refuse, « 9,99 € −50 % » barré écrit en dur) ; le chinois dans le cycle de langues (411 entrées sur 1 071 sans
+  traduction) ; L'ÉTERNELLE (100 pubs) et les `bientot` impossibles hors portails ; les droits (sons, noms de caisses, chat pop-tart) ;
+  le build App Store doit graver la version (sinon « VERSION LOCALE » dans les réglages : seuls Vercel et Poki le font).
+- Le vérificateur de syntaxe doit BLANCHIR les commentaires HTML : un « <script> » cité dans un commentaire (l. ~2138) avale le bloc suivant.
+
+## LA GAMME RESSERRÉE — LA FICHE DES VOITURES (2026-10-06/07, Léo : `fiche-voitures-cash-car.txt`, « applique les changements »)
+43 caisses jouables (+ L'ORIGAMI et ATCHOUM, absentes de la fiche : inchangées) → au garage COMMUNES 1 · RARES 15 · ÉPIQUES 7 · LÉGENDES 8 ·
+DÉFIS 14. Tout est dans `CARS` (`retire:1`, `rar:`) et `CAR_UNLOCK` (prix, conditions, commentaires datés) ; aucune ligne ôtée (les index
+de sauvegarde ne bougent pas).
+- **25 SUPPRIMÉES** = `retire:1` (19 nouvelles + les 6 de Sacha ; LA PIZZA EXPRESS en sort) : hors garage, hors boutique (`shopRender` saute
+  désormais les retirées), remboursées au chargement par `san` au prix de `CAR_UNLOCK` (gardé exprès) — MESURÉ : SA MAJESTÉ + LA POSTIÈRE +
+  L'ÉTALON possédées → +561 500 $, la caisse équipée retombe en LA HONTE.
+- **Familles déplacées** : CORBILLARD, CHARGEUR 69, QUEUE DE CANARD, CHAUVE-SOURIS, ZED → RARE ; ACIDE → ÉPIQUE à 750 000 $ ; FÉLINE et
+  PIZZA EXPRESS → LÉGENDAIRE (1,61 € · 161,00 €). Prix : CAÏD 50 k, BAVAROISE 42 k, SILENCIEUSE 90 k, CORBILLARD 300 k, AIGLE DE FEU 1 M,
+  ROSSO 40 2,5 M ; CHAT POP-TART 4,20 €, TRÔNE CENTRAL et SPECTRE 1,61 €, MUR DU SON 0,99 €.
+- **Deux nouvelles conditions** : `k:'bientot'` (LA RAIE, COMÈTE, REQUIN — défi « à définir » : verrouillées, « DEFI A VENIR ») et
+  `k:'pubs'` (L'ÉTERNELLE, 100 pubs : `SAVE.d.ex.pubs`, borné dans `san`, +1 quand une pub DÉMARRE dans `pkPasse` — seule l'édition des
+  portails a des pubs). `carUnlockedVrai` : une caisse ACHETÉE avant de devenir un défi reste à toi (`carOwned` d'abord).
+- ⚠ Pas touché : CAISSE-NUAGE et LINGOT restent à 5 niveaux (la fiche dit 10, sans le compter comme un changement) ; la vitrine de la
+  boutique barre toujours « 9,99 € −50 % » au-dessus des 4,20 € du CHAT POP-TART ; sur POKI les légendaires deviennent des prix
+  (161 € → ~74 M $ pour LA PIZZA EXPRESS, formule du bloc POKI).
 
 ## LE CIEL DE L'ÉCRAN TITRE v4 (2026-10-06, session GRAPHISME) — Sacha : « le ciel est toujours moche dans l'écran d'accueil, refonte visuelle totale, surtout ce motif de merde dans le ciel »
 - LE DIAGNOSTIC (planche des six heures, `titre2.js` + `dbgHeure`) : le ciel du titre était un ASSEMBLAGE des couches du niveau — le
@@ -253,6 +290,35 @@ refait EN VOXELS (10 cm, `NY_U`), chaque pièce dessinée dans SON plan (bloc «
   debout 390×844 — console intacte, caisse dans la place libre, la porte au milieu ; glissé → vue −1,56 rad avec élan, retour à la porte à 3,6 s,
   posée à 6 s ; burn-out + 2,5 tours de doigt → 1 DONUT compté, 320 fumées ; vignette (THE YELLOW CAB) → cadrée ; MISSIONS (vit 0) → ATELIER
   (vit 1) ; JOUER du garage → retour au feu → lâcher → course ; JOUER de l'accueil inchangé. 0 erreur. sw.js → v141.
+
+## L'AUDIT AVANT PUBLICATION, ZONE GAMEPLAY (2026-10-07) — la campagne de debug de GRAPHISME (« on publie le jeu bientôt »)
+- **Inventaire** (`invOuvre`) : il s'ouvre sur TA caisse. Feuilleter ◀▶ jusqu'à une caisse X puis équiper un habillage reconstruisait la
+  caisse équipée sous la fiche de X. Remise à plat comme `garMode('menu')` ; une BASCULE en cours (`GAR.sw`, 1 s) voit sa cible
+  remplacée par la caisse équipée (`GAR.sw.to`), sinon `garageShow`. Contre-banc `scratchpad/garage/audit.js`.
+- **Chat pop-tart au burn-out** : les pattes lisent les roues d'ORIGINE (`wheels[]`, hors scène quand les essieux sont soudés) ;
+  `BURN.arW` les fait tourner aussi, et elles courent désormais sur place.
+- **ATCHOUM** : au garage, c'est `atchTick` qui fait vivre ses flammes ; changer de caisse les laissait plantées. `ATCH.reste`
+  (2,5 s après un éternuement au garage) les laisse finir leur vie.
+- **La phrase du boost** : `loop._iW` retient ce qu'on JOUE (doigt ET partie vivante), plus le doigt seul, et la pause le remet à faux
+  (`instruPlanifie`). Une mort ou une pause doigt posé ne rend plus muet le 1er appui suivant.
+- **?menu=leo** (`garMenuMaj`) : `carrFait(k) < CARRIERE[k].niveaux.length` (SKY HIGH et VILLE ont 5 niveaux : on lisait « NIVEAU 6 »).
+- **Chinois** : DONUT, TOURNE AUTOUR · DONUT, ATCHOUM (!), SOMMET, INTOUCHABLE.
+- Relevés NON corrigés car voulus : l'aura à x = −4 px (c'est l'entrée `hmGauche`), `#engBig` × bandeaux (cachés sous `ebOn`, de retour
+  pendant la plongée), `.avTot` × `#avCh` couché (`avVole`, la chaîne encaissée monte dans le total).
+- **À trancher par Sacha et Léo** (relevés de l'audit) : L'ÉTERNELLE (100 pubs) n'avance que sur les portails ; REQUIN, COMÈTE et LA RAIE
+  (`bientot`) n'ont pas de prix POKI ; LA PIZZA EXPRESS ~74 M$ sur POKI ; les premium retirées sont remboursées 0 $ par `san`.
+
+## LE JUS v7 — LA ROUTE DÉGAGÉE (2026-10-07, session GAMEPLAY) — Sacha : « améliore la visibilité de la route, notamment en enlevant les taches de fruit écrasé du milieu de l'écran »
+- La v6 (30/09, « gros et dérangeant ») jetait EXPRÈS 35 % des taches sur la caisse et la route, 45 % n'importe où. Désormais AUCUNE
+  tache ne se pose dans la ZONE DE LA ROUTE : `JUS_ZONE` = une ellipse autour de la caisse et de la route devant elle (centre ½ W ×
+  0,56 H, demi-axes 0,33 W × 0,37 H), testée par `jusHors(x,y,marge,W,H)`. Placement : 24 essais au hasard hors de la zone (le corps
+  gonflé de 1,2 R), sinon (~1 fois sur 100 debout) dans la bande du haut, ou celles des côtés couché. Les GOUTTELETTES satellites qui tomberaient dedans sont retirées ;
+  la GLISSADE s'arrête au bord de la zone (`gm`, calculée à la naissance) ; la COULURE est raccourcie si elle y pendrait, testée sur TOUTE sa longueur (elle part du
+  bas du corps, ~1,2 R sous le centre).
+- Taille, dessin, nombre (10 à la fois) et durée de la v6 inchangés : elles restent grosses, mais sur les BORDS et dans le ciel.
+- `dbgJus(n,col,gel,u)` : `n=0` essuie l'objectif, `n=-1` n'ajoute rien, `u` avance chaque tache à cette fraction de sa vie (glissade
+  au bout) ; il rend aussi `partDeLaRoute` (visée 0). Banc : `scratchpad/garage/jus7.js` (12 rafales de 10, à la naissance et à .55 de
+  la vie, debout + couché ; mesuré : 0 % à la naissance, 0,1 % glissées/coulées debout, 0 % couché).
 
 ## PLUS AUCUNE VOIX (2026-10-07, session GAMEPLAY) — Sacha : « masque complètement du code de main toutes les voix »
 - `SANS_VOIX` (posé juste après `POKI`, classe `html.sansVoix`) : la coupure de l'édition Poki vaut PARTOUT. L'annonceur naît `dead`
@@ -1060,6 +1126,22 @@ refait EN VOXELS (10 cm, `NY_U`), chaque pièce dessinée dans SON plan (bloc «
 - MESURÉ (banc `maj.mjs` sur une copie construite par vercel-build.sh, servie en local) : même version → aucun rechargement ; nouvelle
   version au menu → rechargé (2 fois au plus) ; publiée en pleine course → rien pendant 30 s de course, rechargé juste après la mort.
 - ⚠ Un appareil qui tourne une version d'AVANT ce mécanisme doit être rechargé une fois à la main (ou l'appli fermée/rouverte).
+## LA VITESSE QU'ON SENT (2026-10-07, session SON — Sacha : « des moyens soft pour augmenter la sensation de vitesse et rendre la conduite un peu plus addictive »)
+Règle tenue : AUCUN élément ajouté, aucun texte — on règle ce qui existe. Trois plafonds mesurés à la lecture : le VENT saturait à 500 km/h, le
+SIFFLEMENT à 824 km/h, la note du MOTEUR s'arrête à la croisière (et ne doit pas monter : « moustique ») → passé 800 km/h l'oreille ne recevait plus
+rien de la vitesse. Et les tirets de la ligne centrale (un tous les ~31 m) BÉGAYAIENT à 30 i/s passé ~1 100 km/h (roue de charrette).
+- **LE VENT NE PLAFONNE PLUS** (bloc audio, `windG`/`whG`) : identique sous 500 km/h ; au-delà, logarithme (.05 → .075 à 1 800 km/h) ; passé
+  la croisière (`vCroisiere()`), RAFALES : deux sinus lents (2,1 / 3,3 Hz) qui creusent jusqu'à 22 % (moitié en vol). Le sifflement continue
+  pareil au-delà de 824 km/h (.06 → .085).
+- **LES TIRETS FILENT** (`ligneMat`, `LIGNE_U.uFile`, `LIGNE_PER`) : le tiret est moyenné sur 4 lectures le long de la route, étalées sur ce
+  que la caisse parcourt en UNE image (vitesse × dt ÷ période, plafond .42) ; écrit dans la conduite, retombe à 0 hors de la route (tête de
+  `loop`). Clé de programme propre `ligneFile` : un programme de plus AU DÉPART, zéro en course (mesuré).
+- **LA LANCÉE SE VOIT ET S'ENTEND** (`momT`, la réserve d'élan — jusqu'à ×2,8 de reprise, invisible jusqu'ici) : au sol, la plume de
+  croisière s'allonge de .34 à .56 (`lanc9` dans `jTgt`) ; le VENTRE du moteur gonfle (sub +35 %, corps +12 %, jamais la note) ; trois
+  paliers (1,5 · 3 · 4,2 s de ligne tenue) sonnent chacun un `moteur.cylindre` qui monte d'un degré (`LANCEE.a`, réarmé quand l'élan est
+  retombé 0,8 s sous le palier), le dernier avec une petite vibration `hap(6)`. Retirer le carillon = supprimer la boucle `L9` du bloc moteur.
+- Vérifié : un passage court muet (SwiftShader, son du jeu allumé) — 0 erreur, 0 exception de boucle, 0 programme compilé en course.
+  À juger À L'OREILLE et à l'œil par Sacha (rafales, carillon d'élan).
 ## LA POSE DÉBOGUÉE (2026-10-01, session SON — Sacha : « il y a des bugs quand on essaye de se poser sur la route, lance des debug » ; GRAPHISME, auteur du bord v2, a passé la plume sur tryLand / la caméra de pose)
 - **LE BANC DES POSES** (scratchpad f6f592c0/da) : `dbgPose({s|ds|cherche:'plat'|'droit'|'montee'|'descente'|'virage', h, lat, vT, vB, vN, face})` lâche la caisse au-dessus de la route avec ses vitesses dans le repère de la dalle ; `window.__poseJ` = le journal des poses (hauteur de déclaration, point, vitesses, face). `pose-banc.js` : 144 lâchers (12 cas × 4 terrains × 3 vitesses) avancés à 1/60 s par `dbgStep` — ⚠ le banc coupe le rendu (`rdr.render` vide : 2 ms le pas au lieu de 50), neutralise `requestAnimationFrame` (chaque dbgStep relançait une chaîne rAF de plus : après 4 000 pas la page gelait, un FAUX gel du jeu) et fait avancer `performance.now` de 16 ms par pas (les « reprises » de caméra se jugent en temps réel). `pose-cam.js` (caméra image par image autour de la pose), `pose-cote.js` (retour par le côté à différentes hauteurs, `GRAINE=n` fixe la piste), `pose-trace.js`, `fumee-pose.js` (vrai jeu).
 - **1. LA POSE SANS SAUT** : la pose est déclarée dès 3 m au-dessus de la dalle et la conduite posait la caisse SUR le bitume à l'image suivante — 2,1 à 2,6 m de descente en UNE image, gerbe et choc partis en l'air. La hauteur qui reste devient un saut de conduite (`hopY/hopV`), et gerbe, choc, secousse, tassement, gomme partent AU CONTACT (`POSE_F`). Posée sous le niveau (lèvre, plan percé) : elle remonte par `levreY`. La règle de pose ne change pas.
