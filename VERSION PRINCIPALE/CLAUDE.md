@@ -1,11 +1,19 @@
 # CASH CAR — guide projet pour Claude Code
 
 ## LE BURN-OUT RÉALISTE (2026-10-07, soir, Léo : « rends-le le plus réaliste, esthétique et mouvement ») — par-dessus le BURN-OUT v2 ci-dessous, le geste ne change pas
-- **LA FUMÉE** (`BURN_FS_FUM`) : plus de cases pixel — chaque bouffée est une BOULE MOLLE creusée de volutes (bruit cuit une fois,
-  `burnBruitTex` 64 × 64, lu à deux échelles qui glissent avec `uT`), éclairée comme une sphère par la lampe du plafond ; vieille, elle se
-  défait en filaments. Physique (`burnPas`) : freinée vite par l'air (1,9/s), elle monte à la chaleur, GONFLE vite puis lentement et se
-  DILUE en gonflant (épaisse au pneu, voile plus loin). Moins de bouffées, plus grosses et blanches, jetées en arrière et sur les côtés au
-  ras du sol. LE VOILE (`BURN.voile`, 40 nappes de 4-6 m, 9-12 s, même programme) remplit l'atelier. La grille pixel d'avant : `BURN_PX`.
+- **LA FUMÉE — LES PIXELS RESTENT, LE RÉALISME EST DANS LE MOUVEMENT** (même soir, Léo : « il ne faut pas enlever les pixels, ils étaient très
+  beaux ; le réalisme de la fluidité, peut-être ; le doigt qui fait le donut ne doit pas pousser la fumée, mais ensuite, si on tapote l'écran,
+  oui ; la fumée peut durer un peu plus longtemps ») — une version en volumes lisses (bruit cuit, éclairage de sphère) a vécu une heure ; le
+  shader d'origine `BURN_FS_FUM` est revenu tel quel. Dans `burnPas` : freinée vite par l'air (1,9/s), elle monte à la chaleur, GONFLE vite
+  puis lentement et se DILUE en gonflant ; les TOURBILLONS sont un champ de l'ESPACE à deux échelles (des bouffées voisines bougent ensemble :
+  elle coule comme un fluide), et le DONUT fait tournoyer l'air autour de lui (`BURN.tourb`, `BURN.cW`). Moins de bouffées, plus grosses,
+  jetées en arrière et sur les côtés au ras du sol ; LE VOILE (`BURN.voile`, 48 nappes de 4-6 m, 12-16 s, même programme) remplit l'atelier.
+  ELLE DURE : chaque bouffée vit ~10 s, le réservoir passe à 480 ; pendant le burn il se recycle au débit — `BURN.horiz` (480 ÷ débit) est cet
+  horizon, une bouffée qui l'approche s'efface ; le débit coupé, l'horizon recule avec le temps : la fumée traîne ~9 s après le lâcher.
+  ⚠ BUG CORRIGÉ (présent sur main) : `atlTick` refaisait vivre les réservoirs quand BURN.k retombait à 0 — avec burnTick, la fumée
+  VIEILLISSAIT DEUX FOIS PLUS VITE après le lâcher. Seul burnTick les fait vivre, à chaque image du garage.
+  LE DOIGT : celui qui fait le geste (burn, fouet, donut, plateau) ne pousse plus la fumée ; un TAP ensuite la SOUFFLE (plus fort : 5,4 au
+  lieu de 3,2), partout — sur la caisse aussi, qui encaisse en plus son « tonk ».
 - **LES FEUX STOP** : au burn-out on tient le frein — `carVit` allume les feux (`BURN.feuxK`), et la fumée qui passe à moins de 1,7 m
   des feux (`BURN.feuxW`, les halos `HALO.t`) rougit.
 - **LA GOMME** (`burnGomme`) : toile 256 × 256 filtrée en douceur ; chaque pneu arrière dépose trois filets (ses sculptures) en segments,
@@ -19,7 +27,8 @@
 - **RETIRÉS (pas réalistes)** : les étincelles bleu → or → rose et l'arc `drift.charge` des paliers, les braises des pneus
   (`BURN_ETINC_ON` false : les paliers ne se sentent plus qu'au pouce). Le feu des POTS reste, en lueur molle (`BURN_FS_FLAMME`) ; les
   pixels du chat pop-tart gardent leur shader.
-- Vérifié au banc (vrais gestes souris, debout) : tenu, fouet, donut 3 tours puis l'anneau noir sur le plateau, 0 erreur. sw.js → v157.
+- Vérifié au banc (vrais gestes souris, debout et couché) : tenu, fouet, donut 3 tours puis l'anneau noir sur le plateau, la fumée encore
+  là 6 s après le lâcher (232 bouffées sur 439), un tap qui la chasse, burn-out puis JOUER → course ; 0 erreur. sw.js → v157.
 
 ## LE BURN-OUT v2 — LE FOUET ET LE VOLANT (2026-10-07, Léo : « corrige l'effet burn-out : refabrique une version avec le drift plus fun, un donut satisfaisant à faire, et le maintien du burn sur place mieux fait » · puis « en fait un mélange entre le premier burn-out hyper dynamique et cool qui ne sortait jamais du cercle, et celui où on peut avec le doigt faire un donut complet »)
 - **MESURÉ AVANT** (banc au vrai geste souris, debout 390 × 844) : un tour de doigt = 0,6 tour de caisse, l'excédent jeté (`avance` ,55) — la

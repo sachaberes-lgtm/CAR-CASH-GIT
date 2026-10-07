@@ -38910,7 +38910,7 @@ const BURN={on:false,hold:null,bouge:false,k:0,t:0,chaud:0,rpm:0,son:false,cut:0
   hapT:0,auto:0,autoW:0,ar:[],roues:[],pots:[],corps:false,tE:0,tF:0,tS:0,tP:0,
   don:0,donK:0,donM:0,acc:0,n:0,nT:0,scx:0,scy:0,fA:null,fR:0,gaz:0,gazT:0,upT:0,upD:0,upX:0,aideT:0, // LE DONUT AU DOIGT, LE COUP DE GAZ (voir LES GESTES DU BURN-OUT)
   cib:0,pivK:0,drz:.8,Rs:3,cad:0,pre:0,bp:0,bpv:0,ro:0,rov:0,lz:0,lzv:0,kick:0,lvl:0,chT:0,ke:0,rp:[],gp:[], // (v2) le volant, le pivot, la caméra, les ressorts de la caisse
-  feuxW:[],feuxK:0,voile:null,tV:0,av:[],avW:[],avZ:1.2,avY:.4,avR:.4,avP:new THREE.Vector3(),avOk:false,flou:null,flouSrc:null, // (réaliste) les feux stop, le voile, les roues avant qui roulent, le flou des roues arrière
+  feuxW:[],feuxK:0,tourb:0,horiz:1e9,emet:0,cW:new THREE.Vector3(),voile:null,tV:0,av:[],avW:[],avZ:1.2,avY:.4,avR:.4,avP:new THREE.Vector3(),avOk:false,flou:null,flouSrc:null, // (réaliste) les feux stop, le voile, les roues avant qui roulent, le flou des roues arrière
   c:new THREE.Vector3(),
   v:new THREE.Vector3(),w:new THREE.Vector3(),u:new THREE.Vector3(),r:new THREE.Vector3(),q:new THREE.Vector3()};
 /* LES RÉGLAGES DU GESTE (v3) : `mort`/`plein` (px) — sous `mort` du milieu du plateau l'angle du doigt ne compte pas (il s'affole), plein à
@@ -38924,36 +38924,23 @@ const BURN_ETINC_ON=false; // (réaliste) un pneu ne fait pas d'étincelles : le
 const BURN_VS='attribute vec3 iP;attribute float iA;attribute float iS;attribute float iG;attribute float iSd;attribute vec3 iC;\n'+
   'varying vec2 vUv;varying float vA;varying float vG;varying float vSd;varying vec3 vC;varying float vY;\n'+
   'void main(){vec4 mv=modelViewMatrix*vec4(iP,1.);mv.xy+=position.xy*iS;gl_Position=projectionMatrix*mv;vUv=uv;vA=iA;vG=iG;vSd=iSd;vC=iC;vY=iP.y;}';
-/* LA FUMÉE RÉALISTE (2026-10-07, Léo : « rends-le le plus réaliste, esthétique et mouvement ») : chaque bouffée est une BOULE MOLLE creusée
-   de VOLUTES — un bruit cuit une fois (`burnBruitTex`, 64 × 64, qui se répète), lu à deux échelles qui glissent lentement (`uT`) —, éclairée
-   comme une sphère par la lampe du plafond (un peu de face : son ventre reste dans l'ombre), les volutes prennent la lumière ; en vieillissant
-   elle se DÉFAIT en filaments (le seuil monte avec l'âge `vG`) au lieu de s'émietter en cases. Au ras du sol, l'anneau du plateau la bleuit.
-   L'ancienne grille d'écran (gros pixels de `uPx` px) reste derrière `BURN_PX` (0 = coupée). */
-const BURN_FS_FUM='uniform float uY0;uniform vec3 uBleu;uniform float uPx;uniform sampler2D uN;uniform float uT;\n'+
+/* LA GRILLE D'ÉCRAN : chaque bouffée est dessinée en GROS PIXELS de `uPx` pixels d'écran (5 px CSS), les MÊMES pour toutes, près ou
+   loin — la fumée se lit comme du pixel art, pas comme des tampons flous. On lit l'UV au CENTRE du gros pixel (dérivées : dFdx/dFdy), le
+   bruit reste celui de la bouffée (6 × 6 cases) : rien ne scintille quand elle bouge. (2026-10-07, soir, Léo : « il ne faut pas enlever les
+   pixels, ils étaient très beaux ; le réalisme, c'est la fluidité ») — une version en volumes lisses a vécu une heure ; les PIXELS restent,
+   le réalisme est passé dans le MOUVEMENT (voir burnPas). */
+const BURN_FS_FUM='uniform float uY0;uniform vec3 uBleu;uniform float uPx;\n'+
   'varying vec2 vUv;varying float vA;varying float vG;varying float vSd;varying vec3 vC;varying float vY;\n'+
+  'float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7))+vSd*91.7)*43758.5453);}\n'+
   'void main(){if(vA<.003)discard;\n'+
-  ' vec2 u=vUv;if(uPx>1.5){vec2 fc=(floor(gl_FragCoord.xy/uPx)+.5)*uPx-gl_FragCoord.xy;u+=dFdx(vUv)*fc.x+dFdy(vUv)*fc.y;}\n'+
-  ' vec2 p=u*2.-1.;float r2=dot(p,p);if(r2>1.)discard;\n'+
-  ' vec2 o=vec2(vSd*7.31,vSd*3.17);\n'+
-  ' float n=texture2D(uN,u*.5+o+vec2(0.,-uT*.02)).r*.62+texture2D(uN,u*1.15+o.yx+vec2(uT*.015,0.)).r*.38;\n'+ // les volutes
-  ' float d=smoothstep(.1+.55*vG,.75,(1.-r2)*(.5+n));\n'+         // une boule molle, creusée ; vieille, elle se défait en filaments
-  ' if(d<.004)discard;\n'+
-  ' float l=.5+.5*max(dot(vec3(p,sqrt(1.-r2)),vec3(-.3,.8,.52)),0.);l*=.78+.34*n;\n'+ // la lampe du plafond, un peu de face ; les volutes prennent la lumière
-  ' vec3 col=vC*l;\n'+
-  ' float yb=clamp(1.-(vY-uY0)/1.7,0.,1.);col=mix(col,uBleu*.85,yb*.3*(1.-u.y*.6));\n'+ // au ras du sol, l'anneau du plateau la bleuit
-  ' gl_FragColor=vec4(col,vA*d);}';
-const BURN_PX=0; // la grille pixel d'avant (5 = des cases de 5 px CSS) — 0 : la fumée réaliste
-let BURN_BRUIT=null;
-function burnBruitTex(){ // le BRUIT des volutes : trois octaves de bruit lissé qui se répète (64 × 64), cuites une fois
-  if(BURN_BRUIT)return BURN_BRUIT;const N=64,acc=new Float32Array(N*N),d=new Uint8Array(N*N*4);
-  for(const o of [[4,.5],[8,.3],[16,.2]]){const g=o[0],w=o[1],Rn=new Float32Array(g*g);for(let i=0;i<Rn.length;i++)Rn[i]=Math.random();
-    for(let y=0;y<N;y++)for(let x=0;x<N;x++){const fx=x/N*g,fy=y/N*g,x0=fx|0,y0=fy|0,tx=fx-x0,ty=fy-y0,sx=tx*tx*(3-2*tx),sy=ty*ty*(3-2*ty),x1=(x0+1)%g,y1=(y0+1)%g;
-      acc[y*N+x]+=w*((Rn[y0*g+x0]*(1-sx)+Rn[y0*g+x1]*sx)*(1-sy)+(Rn[y1*g+x0]*(1-sx)+Rn[y1*g+x1]*sx)*sy);}}
-  let lo=1e9,hi=-1e9;for(let i=0;i<acc.length;i++){lo=Math.min(lo,acc[i]);hi=Math.max(hi,acc[i]);}
-  for(let i=0;i<N*N;i++){const v=Math.round((acc[i]-lo)/Math.max(1e-6,hi-lo)*255);d[i*4]=d[i*4+1]=d[i*4+2]=v;d[i*4+3]=255;}
-  const tx=new THREE.DataTexture(d,N,N,THREE.RGBAFormat);tx.wrapS=tx.wrapT=THREE.RepeatWrapping;tx.magFilter=tx.minFilter=THREE.LinearFilter;tx.needsUpdate=true;
-  return BURN_BRUIT=tx;
-}
+  ' vec2 fc=(floor(gl_FragCoord.xy/uPx)+.5)*uPx-gl_FragCoord.xy;vec2 u=vUv+dFdx(vUv)*fc.x+dFdy(vUv)*fc.y;\n'+
+  ' const float G=6.;vec2 c=floor(u*G);float d=length(u-.5)*2.;float r=h(c);\n'+
+  ' if(d>.7+.3*r)discard;\n'+                       // le bord dentelé : une bouffée ronde, en cases
+  ' if(r<vG*vG*.9)discard;\n'+                      // elle s'émiette case par case en vieillissant
+  ' float dens=(1.-d*d*.55)*(.8+.2*h(c+7.3));\n'+
+  ' vec3 col=vC*(.74+.34*u.y);\n'+                  // la lumière vient d'en haut
+  ' float yb=clamp(1.-(vY-uY0)/1.7,0.,1.);col=mix(col,uBleu,yb*.32*(1.-u.y*.6));\n'+ // au ras du sol, l'anneau du plateau la bleuit
+  ' gl_FragColor=vec4(col,vA*dens);}';
 const BURN_FS_FLAMME='varying vec2 vUv;varying float vA;varying float vG;varying float vSd;varying vec3 vC;varying float vY;\n'+ // (réaliste) le FEU des pots : une lueur molle, cœur blanc
   'void main(){if(vA<.003)discard;vec2 p=vUv*2.-1.;float r2=dot(p,p);if(r2>1.)discard;float c=1.-r2;c*=c;gl_FragColor=vec4(mix(vC,vec3(1.,.95,.85),c*c*.6)*c*1.3,vA*c);}';
 const BURN_FS_FEU='varying vec2 vUv;varying float vA;varying float vG;varying float vSd;varying vec3 vC;varying float vY;\n'+
@@ -38966,7 +38953,7 @@ function burnPool(N,additif,frag){
   const ia=function(a,n){const x=new THREE.InstancedBufferAttribute(a,n);x.setUsage(THREE.DynamicDrawUsage);return x;};
   g.setAttribute('iP',ia(P,3));g.setAttribute('iA',ia(A,1));g.setAttribute('iS',ia(S,1));g.setAttribute('iG',ia(G,1));
   g.setAttribute('iSd',new THREE.InstancedBufferAttribute(Sd,1));g.setAttribute('iC',ia(C,3));g.instanceCount=N;
-  const m=new THREE.ShaderMaterial({uniforms:{uY0:{value:GARAGE_Y},uBleu:{value:new THREE.Color(.34,.8,1)},uPx:{value:5},uN:{value:burnBruitTex()},uT:{value:0}},vertexShader:BURN_VS,fragmentShader:frag,
+  const m=new THREE.ShaderMaterial({uniforms:{uY0:{value:GARAGE_Y},uBleu:{value:new THREE.Color(.34,.8,1)},uPx:{value:5}},vertexShader:BURN_VS,fragmentShader:frag,
     transparent:true,depthWrite:false,blending:additif?THREE.AdditiveBlending:THREE.NormalBlending,extensions:{derivatives:true}});
   const o=new THREE.Mesh(g,m);o.frustumCulled=false;o.renderOrder=additif?9:8;o.visible=false;scene.add(o);
   return {o:o,g:g,N:N,P:P,A:A,S:S,G:G,C:C,V:new Float32Array(N*3),age:new Float32Array(N).fill(1e9),life:new Float32Array(N).fill(1),
@@ -38985,8 +38972,13 @@ function burnPas(F,dt,t){ // fait vivre un réservoir : âge, mouvement, taille,
     n++;const a=F.age[i]+=dt,g=Math.min(1,a/F.life[i]);
     let vx=F.V[j]*dr,vy=F.V[j+1],vz=F.V[j+2]*dr;
     if(F.feu)vy=vy*dr-(F.arc?1.6:5.5)*dt;                             // les braises retombent (les pixels du chat flottent)
-    else{vy+=((F.voile?.1:.42)-vy)*Math.min(1,dt*.8);                // la fumée MONTE à la chaleur, sans se presser (le voile flotte)
-      vx+=Math.sin(t*.8+F.S[i]*1.7+F.P[j+1]*.9+i)*.7*dt;vz+=Math.cos(t*.67+i*.37+F.P[j]*.7)*.7*dt;} // et tourbillonne
+    else{const px=F.P[j],py=F.P[j+1],pz=F.P[j+2];
+      vy+=((F.voile?.1:.42)-vy)*Math.min(1,dt*.8)+Math.sin(t*.6+px*.7+pz*.6)*.25*dt; // la fumée MONTE à la chaleur, sans se presser (le voile flotte)
+      /* (2026-10-07, soir, « le réalisme de la fluidité ») les TOURBILLONS sont un champ de l'ESPACE (deux échelles qui dérivent), plus un
+         tremblement propre à chaque bouffée : des bouffées voisines bougent ENSEMBLE, la fumée coule comme un fluide */
+      vx+=(Math.sin(t*.5+pz*.9+py*.6)+.5*Math.sin(t*1.1+pz*2.3-py*1.7))*.55*dt;vz+=(Math.cos(t*.45+px*.8-py*.5)+.5*Math.cos(t*.9-px*2.1+py*1.5))*.55*dt;
+      if(BURN.tourb){const ex=px-BURN.cW.x,ez=pz-BURN.cW.z,rr=Math.hypot(ex,ez); // le DONUT fait tournoyer l'air autour de lui : la fumée l'accompagne en volute
+        if(rr>.3&&rr<6){const ac=BURN.tourb*(1-rr/6)*(py<GARAGE_Y+2?1:.4)*dt/rr;vx+=ez*ac;vz-=ex*ac;}}}
     let x=F.P[j]+vx*dt,y=F.P[j+1]+vy*dt,z=F.P[j+2]+vz*dt;
     if(y>yMax){y=yMax;if(vy>0)vy=0;vx+=x*.05*dt;vz+=z*.05*dt;}         // sous le plafond, elle s'étale
     if(y<ay+.04){y=ay+.04;if(vy<0)vy*=F.feu?-.35:0;}
@@ -38998,6 +38990,7 @@ function burnPas(F,dt,t){ // fait vivre un réservoir : âge, mouvement, taille,
       F.C[j]=F.c0[j]+(1-F.c0[j])*g*.2;F.C[j+1]=F.c0[j+1]*(1-.75*g);F.C[j+2]=F.c0[j+2]*(1-.9*g);}   // blanc-jaune → orange → rouge
     else{const s=F.s0[i]+(F.s1[i]-F.s0[i])*(1-Math.exp(-a*1.25))+.1*a;F.S[i]=s;     // (réaliste) elle GONFLE vite à la sortie du pneu, puis lentement
       F.A[i]=Math.min(1,a/.18)*Math.pow(1-g,1.15)*F.op[i]*Math.min(1,1.6*Math.pow(F.s0[i]/s,.55)); // …et se DILUE en gonflant : épaisse au pneu, un voile plus loin
+      if(F===BURN.fum&&BURN.horiz<1e8&&a>.7*BURN.horiz)F.A[i]*=Math.max(0,1-(a-.7*BURN.horiz)/(.3*BURN.horiz)); // près d'être recyclée : elle s'efface
       const w=Math.max(0,Math.min(1,(z-4)/8))*.5;                     // près de la porte, le feu la rosit
       let cr=F.c0[j]+(1-F.c0[j])*w,cg=F.c0[j+1]+(.6-F.c0[j+1])*w,cb=F.c0[j+2]+(.46-F.c0[j+2])*w;
       if(BURN.feuxK>.01){let f=0;for(const L of BURN.feuxW){const ex=x-L.x,ey=y-L.y,ez=z-L.z;f=Math.max(f,1-Math.sqrt(ex*ex+ey*ey+ez*ez)/1.7);} // (réaliste) les FEUX STOP la rougissent derrière la caisse
@@ -39013,10 +39006,13 @@ function burnRes(o,kx,kv,c,om,ze,dt){ // un RESSORT sous-amorti (la caisse tangu
   const n=Math.max(1,Math.ceil(dt/.008)),h=dt/n;let x=o[kx],v=o[kv];for(let i=0;i<n;i++){v+=(om*om*(c-x)-2*ze*om*v)*h;x+=v*h;}o[kx]=x;o[kv]=v;
 }
 function burnBruit(t,a,b,p){return Math.sin(t*a+p)*.62+Math.sin(t*b+p*2.3+1.1)*.38;} // un bruit LISSE (deux sinus incommensurables)
-function burnVie(debit){const N=BURN.fum?BURN.fum.N:320;return Math.max(3,Math.min(9,N/Math.max(1,debit)));} // une bouffée meurt avant que le réservoir la recycle
+/* (soir, Léo : « la fumée peut durer un peu plus longtemps ») chaque bouffée vit ~10 s ; mais le réservoir se RECYCLE au débit du burn
+   (480 ÷ débit) : `BURN.horiz` est cet horizon, et une bouffée qui l'approche s'efface (burnPas) au lieu de disparaître d'un coup. Le
+   débit coupé, l'horizon recule aussi vite que le temps passe : ce qui reste vit sa vie entière — la fumée traîne ~10 s après le lâcher. */
+function burnVie(debit,dt){const N=BURN.fum?BURN.fum.N:480;BURN.horiz=Math.min(BURN.horiz+dt,.95*N/Math.max(1,debit));BURN.emet=1;return 10;} // une bouffée meurt avant que le réservoir la recycle
 function garBurnR(x){const c=BURN.cad||0;return c>.001?x+(Math.max(x,BURN.Rs*.92)-x)*c:x;} // (v2) le recul de l'atelier : en donut, le cercle balayé tient dans la place libre
 function burnPrepare(){ // à chaque départ : les essieux de l'arrière, les pneus, les pots — la caisse a pu changer
-  if(!BURN.fum){BURN.fum=burnPool(320,false,BURN_FS_FUM);BURN.feu=burnPool(180,true,BURN_FS_FLAMME);} // (réaliste) le feu des pots en lueur molle
+  if(!BURN.fum){BURN.fum=burnPool(480,false,BURN_FS_FUM);BURN.feu=burnPool(180,true,BURN_FS_FLAMME);} // (réaliste) le feu des pots en lueur molle · (soir) 480 bouffées : elle DURE plus longtemps
   if(!BURN.pix){BURN.pix=burnPool(520,true,BURN_FS_FEU);BURN.pix.arc=true;} // (2026-10-06) les PIXELS du chat pop-tart (voir NY_PIX) — 520 (2026-10-07) : au burn-out il en vit ~450
   BURN.ar=ESSIEUX.filter(function(E){return E.position.z<0;});
   BURN.roues=[];
@@ -39028,7 +39024,7 @@ function burnPrepare(){ // à chaque départ : les essieux de l'arrière, les pn
   BURN.drz=Math.min(.9,G.a*.4);BURN.rr=Math.hypot(G.a,G.b);             // le PIVOT du dérapage (vers l'avant : l'arrière balaie) · le rayon de la caisse
   BURN.Rs=Math.hypot(BURN.drz+G.a,G.b)+.2;                              // (v2) le cercle que balaie son coin arrière, en donut (pivot au milieu du plateau, glissé compris)
   BURN.rp.length=0;BURN.gp.length=0;                                     // les roues repartent sans « image d'avant »
-  if(!BURN.voile){BURN.voile=burnPool(40,false,BURN_FS_FUM);BURN.voile.voile=true;} // (réaliste) LE VOILE : de grandes nappes lentes qui remplissent l'atelier (même programme que la fumée)
+  if(!BURN.voile){BURN.voile=burnPool(48,false,BURN_FS_FUM);BURN.voile.voile=true;} // (réaliste) LE VOILE : de grandes nappes lentes qui remplissent l'atelier (même programme que la fumée)
   BURN.av=ESSIEUX.filter(function(E){return E.position.z>0;});BURN.avW=wheels.filter(function(w){return w.position.z>0&&(w.parent||BURN.av.length);}); // les roues AVANT : elles roulent quand la caisse tourne
   {const f=wheels.find(function(w){return w.position.z>0;});BURN.avZ=f?f.position.z:G.a*.6;BURN.avY=f?f.position.y:.4;BURN.avR=f&&f.userData.R||.4;}BURN.avOk=false;
   try{burnFlou();}catch(_){}
@@ -39099,7 +39095,7 @@ function burnBouffee(n){ // une BOUFFÉE d'un coup aux deux roues arrière (le d
   const ry=carGroup.rotation.y,fx=Math.sin(ry),fz=Math.cos(ry);
   for(let i=0;i<n;i++){const r=BURN.roues[i%BURN.roues.length],o=burnMonde(r.x+(Math.random()-.5)*r.l,r.y+.08,r.z-r.R*.4,BURN.q),sd=r.x<0?-1:1,
       v=1+Math.random()*2,l=1+Math.random()*2,gr=.88+Math.random()*.09;
-    burnEmet(BURN.fum,o.x,o.y,o.z,-fx*v+fz*sd*l,.05+Math.random()*.3,-fz*v-fx*sd*l,3.4+Math.random()*1.6,.45+Math.random()*.2,1.7+Math.random()*.6,.36+Math.random()*.12,gr*.97,gr*.96,gr);}
+    burnEmet(BURN.fum,o.x,o.y,o.z,-fx*v+fz*sd*l,.05+Math.random()*.3,-fz*v-fx*sd*l,3.4+Math.random()*1.6,.45+Math.random()*.2,1.7+Math.random()*.6,.36+Math.random()*.12,gr*.92,gr*.9,gr*.97);}
 }
 function burnDebut(e){ // pointerdown : le doigt se pose sur la caisse
   if(BURN.hold||GAR.go||GAR.sw||!garAtelierLibre()||(INV&&INV.on))return; /* (2026-10-06) aussi dans la console de Sacha */
@@ -39126,7 +39122,7 @@ function burnCoupe(){ // l'atelier se ferme : silence, plus rien à l'écran
   BURN.bp=BURN.bpv=BURN.ro=BURN.rov=BURN.lz=BURN.lzv=BURN.kick=BURN.cad=BURN.ke=BURN.lvl=0;
   BURN.don=BURN.donK=BURN.donM=BURN.gaz=BURN.acc=BURN.n=0;const bt=document.getElementById('gBurnTxt');if(bt)bt.classList.remove('on','on2');
   for(const F of [BURN.fum,BURN.feu,BURN.pix,BURN.voile])if(F){F.age.fill(1e9);burnPas(F,0,0);F.o.visible=false;}
-  if(BURN.flou)BURN.flou.visible=false;BURN.feuxK=0;BURN.avOk=false;
+  if(BURN.flou)BURN.flou.visible=false;BURN.feuxK=0;BURN.tourb=0;BURN.avOk=false;
   if(BURN.corps){carBody.rotation.set(0,0,0);carBody.position.set(0,0,0);BURN.corps=false;}
   if(AC&&BURN.son){const T=AC.currentTime;stt(gainN.gain,0,T,.06);stt(engLfoG.gain,0,T,.06);if(skidG)stt(skidG.gain,0,T,.05);BURN.son=false;}
 }
@@ -39139,7 +39135,7 @@ function burnDoigt(cx,cy,dx,dy,souffle){ // le DOIGT dans la fumée : il la pous
     const px=F.P[j]-o.x,py=F.P[j+1]-o.y,pz=F.P[j+2]-o.z,t=px*v.x+py*v.y+pz*v.z;if(t<.4)continue;
     const qx=px-v.x*t,qy=py-v.y*t,qz=pz-v.z*t,d=Math.sqrt(qx*qx+qy*qy+qz*qz),rad=.9+.09*t+F.S[i]*.5;if(d>rad)continue;
     const f=1-d/rad;touche++;
-    if(souffle){const k=3.2*f/Math.max(.05,d);F.V[j]+=qx*k+v.x*f*1.8;F.V[j+1]+=qy*k+v.y*f*1.8+.4*f;F.V[j+2]+=qz*k+v.z*f*1.8;}
+    if(souffle){const k=5.4*f/Math.max(.05,d);F.V[j]+=qx*k+v.x*f*2.6;F.V[j+1]+=qy*k+v.y*f*2.6+.7*f;F.V[j+2]+=qz*k+v.z*f*2.6;} // (soir) un souffle plus franc : la fumée est freinée plus vite qu'avant
     else{const k=f*t*tg*9;F.V[j]+=(R.x*dx-U.x*dy)*k;F.V[j+1]+=(R.y*dx-U.y*dy)*k;F.V[j+2]+=(R.z*dx-U.z*dy)*k;}}
   return touche>0;
 }
@@ -39278,6 +39274,7 @@ function burnTick(dt){ // chaque image du garage (après la pose de la caisse, a
   }else{BURN.avOk=false;if(BURN.corps){carBody.rotation.set(0,0,0);carBody.position.set(0,0,0);BURN.corps=false;}}
   /* (réaliste) LES FEUX STOP : le pied sur le frein, ils s'allument (carVit) et rougissent la fumée derrière la caisse (burnPas) · LE FLOU des roues
      arrière qui patinent */
+  BURN.tourb=GAR.go?0:BURN.don*.55;if(BURN.tourb&&GAR.pod)GAR.pod.getWorldPosition(BURN.cW); // le tourbillon du donut (rad/s × ,55 m/s² au centre)
   BURN.feuxK=GAR.go?0:k;if(BURN.feuxK>.01){if(BURN.feuxW.length!==HALO.t.length){BURN.feuxW.length=0;for(let i=0;i<HALO.t.length;i++)BURN.feuxW.push(new THREE.Vector3());}
     for(let i=0;i<HALO.t.length;i++)HALO.t[i].getWorldPosition(BURN.feuxW[i]);}
   if(BURN.flou){const fo=GAR.go?0:.42*k;BURN.flou.material.opacity=fo;BURN.flou.visible=fo>.02;}
@@ -39285,15 +39282,15 @@ function burnTick(dt){ // chaque image du garage (après la pose de la caisse, a
   // LA FUMÉE, LE FEU, LES ÉTINCELLES
   if(ke>.02&&BURN.fum&&!GAR.go&&BURN.roues.length){
     carGroup.updateMatrixWorld();burnRoues(dt);
-    const ry=carGroup.rotation.y,fx=Math.sin(ry),fz=Math.cos(ry),deb=ke*(26+34*BURN.chaud+30*BURN.donK)*(1+.6*BURN.gaz),vie=burnVie(deb);
+    const ry=carGroup.rotation.y,fx=Math.sin(ry),fz=Math.cos(ry),deb=ke*(22+28*BURN.chaud+20*BURN.donK)*(1+.5*BURN.gaz),vie=burnVie(deb,dt);
     BURN.tE+=dt*deb; // (réaliste) moins de bouffées, plus GROSSES et plus denses : des volumes, plus un semis ; la vie suit le débit
     while(BURN.tE>=1){BURN.tE-=1;const i=(Math.random()*BURN.roues.length)|0,r=BURN.roues[i],P=BURN.rp[i],o=burnMonde(r.x+(Math.random()-.5)*r.l,r.y+.06,r.z-r.R*.4,BURN.q),
         sd=r.x<0?-1:1,v=1.4+Math.random()*1.8,l=.6+Math.random()*1.3,gr=.88+Math.random()*.09;
-      burnEmet(BURN.fum,o.x,o.y,o.z,P.v.x*.45-fx*v+fz*sd*l,.05+Math.random()*.3,P.v.z*.45-fz*v-fx*sd*l,vie*(.85+Math.random()*.3),.35+Math.random()*.2,1.5+Math.random()*.6+.7*BURN.chaud,
-        .3+Math.random()*.18,gr*.97,gr*.96,gr);} // le pneu la JETTE en arrière et sur les côtés, au ras du sol, avec la vitesse de la roue (les volutes du donut) ; blanche, la gomme brûlée
+      burnEmet(BURN.fum,o.x,o.y,o.z,P.v.x*.45-fx*v+fz*sd*l,.05+Math.random()*.3,P.v.z*.45-fz*v-fx*sd*l,vie*(.9+Math.random()*.1),.38+Math.random()*.2,1.7+Math.random()*.6+.7*BURN.chaud,
+        .3+Math.random()*.18,gr*.92,gr*.9,gr*.97);} // le pneu la JETTE en arrière et sur les côtés, au ras du sol, avec la vitesse de la roue (les volutes du donut) ; blanche, la gomme brûlée
     BURN.tV+=dt*ke*(1.6+2*BURN.chaud); // LE VOILE : de grandes nappes lentes qui s'élèvent autour de la caisse et restent (le garage se remplit)
     while(BURN.tV>=1&&BURN.voile){BURN.tV-=1;const a=Math.random()*Math.PI*2,q=1+Math.random()*2.2,o=burnMonde(Math.cos(a)*q,.5+Math.random()*.8,-1-Math.random()*1.5+Math.sin(a)*q*.6,BURN.q),gr=.84+Math.random()*.08;
-      burnEmet(BURN.voile,o.x,o.y,o.z,(Math.random()-.5)*.6,.05+Math.random()*.15,(Math.random()-.5)*.6,9+Math.random()*3,1.6+Math.random()*.6,4+Math.random()*1.5,.07+.05*BURN.chaud,gr*.97,gr*.96,gr);}
+      burnEmet(BURN.voile,o.x,o.y,o.z,(Math.random()-.5)*.6,.05+Math.random()*.15,(Math.random()-.5)*.6,12+Math.random()*4,1.6+Math.random()*.6,4+Math.random()*1.5,.07+.05*BURN.chaud,gr*.92,gr*.9,gr*.97);}
     if(NYAN.on&&BURN.pix){BURN.tP+=dt*ke*(240+170*BURN.chaud); // (2026-10-06) LE CHAT : à la place des braises, les roues giclent des PIXELS multicolores qui scintillent — (2026-10-07, Léo : « burn-out, scintillements arc-en-ciel ») deux fois plus, deux fois plus gros, ils MONTENT dans la fumée
       while(BURN.tP>=1){BURN.tP-=1;const i=(Math.random()*BURN.roues.length)|0,r=BURN.roues[i],P=BURN.rp[i],o=burnMonde(r.x+(Math.random()-.5)*r.l,r.y+.1,r.z-r.R*.5,BURN.q),v=1.5+Math.random()*3,c=nyanPixC();
         burnEmet(BURN.pix,o.x,o.y,o.z,P.v.x*.5-fx*v+(Math.random()-.5)*2.6,1.2+Math.random()*3.2,P.v.z*.5-fz*v+(Math.random()-.5)*2.6,.8+Math.random()*.9,.15+Math.random()*.14,0,1,c[0],c[1],c[2]);}}
@@ -39306,8 +39303,9 @@ function burnTick(dt){ // chaque image du garage (après la pose de la caisse, a
           burnEmet(BURN.feu,o.x,o.y,o.z,P.v.x*.7+(Math.random()-.5)*2.4,.8+Math.random()*2.4,P.v.z*.7+(Math.random()-.5)*2.4,.25+Math.random()*.3,.06+Math.random()*.05,0,1,C[0],C[1],C[2]);}}
       else BURN.tS=0;}
   }else{BURN.tS=0;for(const P of BURN.rp)if(P)P.ok=false;}
+  if(!BURN.emet&&BURN.horiz<1e8)BURN.horiz+=dt;BURN.emet=0; // le débit coupé : l'horizon recule avec le temps
   while(BURN.pops.length&&now>=BURN.pops[0]){BURN.pops.shift();burnPop(.8);try{if(sfxOk()){const e=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0];crackle(Math.max(.35,e.crk));}}catch(_){}}
-  for(const F of [BURN.fum,BURN.voile])if(F){const U=F.o.material.uniforms;U.uPx.value=BURN_PX?Math.max(2,Math.round(BURN_PX*renderer.getPixelRatio())):0;U.uT.value=t%1000;} // (réaliste) la grille pixel coupée ; les volutes glissent
+  {const px9=Math.max(2,Math.round(5*renderer.getPixelRatio()));for(const F of [BURN.fum,BURN.voile])if(F)F.o.material.uniforms.uPx.value=px9;} // les gros pixels : 5 px CSS
   for(const F of [BURN.fum,BURN.feu,BURN.pix,BURN.voile])if(F&&F.o.visible)burnPas(F,dt,t);
   try{burnGomme(dt);}catch(e){}
   try{burnSon(dt);}catch(e){if(!burnTick._w){burnTick._w=1;console.warn('burn-out : son',e);}}
@@ -39446,14 +39444,14 @@ function atlTick(dt){
     A.eA=(A.eA||0)+(cons>0&&k>.3?dt*70*Math.max(.35,cons):0);let n9=0;while(A.eA>=1&&n9<8){A.eA-=1;n9++;} // ~70 jets par seconde et par bras, quelle que soit la cadence
     for(let q9=0;q9<n9;q9++){A.tete.updateMatrixWorld(true);ATL.w.set(0,.36,0);A.tete.localToWorld(ATL.w); // la BUSE (au bout de l'outil)
       const dx9=carGroup.position.x-ATL.w.x,dz9=carGroup.position.z-ATL.w.z,dn=Math.max(.3,Math.hypot(dx9,dz9)),ux=dx9/dn*1.4,uz=dz9/dn*1.4; // vers la caisse
-      if(!BURN.fum){BURN.fum=burnPool(320,false,BURN_FS_FUM);BURN.feu=burnPool(180,true,BURN_FS_FLAMME);}
+      if(!BURN.fum){BURN.fum=burnPool(480,false,BURN_FS_FUM);BURN.feu=burnPool(180,true,BURN_FS_FLAMME);}
       if(ATL.cat==='peinture'&&A.s>0){const c=ATL.c||{r:.9,g:.4,b:.7};
         burnEmet(BURN.fum,ATL.w.x,ATL.w.y,ATL.w.z,ux+(Math.random()-.5)*.8,-.4+(Math.random()-.5)*.5,uz+(Math.random()-.5)*.8,1.6+Math.random(),.14,.55,.42,c.r,c.g,c.b);}
       else if(ATL.cat==='aile'&&A.s<0){for(let i=0;i<3;i++)burnEmet(BURN.feu,ATL.w.x,ATL.w.y,ATL.w.z,ux*.6+(Math.random()-.5)*3.4,1+Math.random()*2.8,uz*.6+(Math.random()-.5)*3.4,.3+Math.random()*.4,.08+Math.random()*.07,0,1,1,.75+Math.random()*.25,.45);}
       else{burnEmet(BURN.feu,ATL.w.x,ATL.w.y,ATL.w.z,(Math.random()-.5)*2,.6+Math.random()*1.4,(Math.random()-.5)*2,.25+Math.random()*.25,.05+Math.random()*.04,0,.6,.95,1,.4);
         if(ATL.cat!=='voiture'&&Math.random()<.4)burnEmet(BURN.fum,ATL.w.x,ATL.w.y,ATL.w.z,(Math.random()-.5)*.8,.4,(Math.random()-.5)*.8,1.4,.12,.45,.3,.8,.82,.9);}}
   }
-  if(BURN.fum&&BURN.fum.o.visible&&!BURN.k)burnPas(BURN.fum,dt,t);if(BURN.feu&&BURN.feu.o.visible&&!BURN.k)burnPas(BURN.feu,dt,t);if(BURN.pix&&BURN.pix.o.visible&&!BURN.k)burnPas(BURN.pix,dt,t); // (le burn-out les fait déjà vivre)
+  /* (2026-10-07, soir) plus de burnPas ici : burnTick fait vivre les réservoirs à CHAQUE image du garage — burn-out ou pas. Les deux à la fois (quand BURN.k retombait à 0), la fumée VIEILLISSAIT DEUX FOIS PLUS VITE après le lâcher. */
 }
 window.dbgAtelier=function(a,x,z){
   if(a==='pos'){ATL_POS.x=x;ATL_POS.z=z;if(ATL.btn)ATL.btn.position.set((MENU_SACHA?1:-1)*x,0,z);}
@@ -39885,7 +39883,7 @@ addEventListener('pointerup',e=>{
     /* (2026-10-06, Léo : « quand on tourne la voiture dans la boutique, ça fait changer de voiture ») le glissé ne feuillette PLUS nulle part —
        ni au menu, ni en vitrine, ni dans la BOUTIQUE : il fait tourner la caisse, point. On change de caisse aux flèches ◀ ▶, aux vignettes
        ou au clavier (← →). Avant : un glissé de plus de SWIPE_PX à l'horizontale appelait garageGo au lâcher, même pour admirer la caisse. */
-    if(Math.abs(dx)<14&&Math.abs(dy)<14){if(CHUTE&&CHUTE.on){if(!CHUTE.go)chuteTape(e);}else if(INV.on)invFerme();else{let af=null;try{af=afficheVise(e);}catch(_){}if(af)afficheTap(af);else if(!garSurCaisse(e)&&burnDoigt(e.clientX,e.clientY,0,0,true))hap(6);else garageImpact();}} // (2026-10-03) AU CIEL : le tap est un COUP sur la caisse en chute (chuteTape) // ni glissé ni swipe : un TAP — sur une AFFICHE elle saute (voir afficheTap), sinon la caisse encaisse (voir garageImpact)
+    if(Math.abs(dx)<14&&Math.abs(dy)<14){if(CHUTE&&CHUTE.on){if(!CHUTE.go)chuteTape(e);}else if(INV.on)invFerme();else{let af=null;try{af=afficheVise(e);}catch(_){}if(af)afficheTap(af);else{const sf9=burnDoigt(e.clientX,e.clientY,0,0,true);if(sf9)hap(6);if(!sf9||garSurCaisse(e))garageImpact();}}} // (2026-10-03) AU CIEL : le tap est un COUP sur la caisse en chute (chuteTape) // ni glissé ni swipe : un TAP — sur une AFFICHE elle saute (voir afficheTap), sinon la caisse encaisse (voir garageImpact)
     GAR.tDoigt=performance.now(); // (LE RETOUR À LA PORTE) les 3 s partent du LÂCHER (et l'élan doit être retombé)
     if(performance.now()-(GAR.mvT||0)>90)GAR.vW=0;else{const m9=garVueLeo()?VITRINE_CAM.dElan:7;GAR.vW=THREE.MathUtils.clamp(GAR.vW||0,-m9,m9);} // (vitrine) un élan plafonné : le lancer glisse, il ne tourbillonne plus
     if(CHUTE&&CHUTE.on){if(performance.now()-(CHUTE.mvT||0)>90)CHUTE.oW=0;else CHUTE.oW=THREE.MathUtils.clamp(CHUTE.oW||0,-7,7);} // (2026-09-30) l'orbite du ciel : lâchée en mouvement, elle garde son élan // (le glissé fondu) doigt arrêté avant de lâcher : la vue reste ; lancé : elle file sur son élan
@@ -39910,7 +39908,7 @@ addEventListener('pointermove',e=>{
          la plateforme tourne selon la vitesse du doigt ; appuie et bouge, ça bouge juste la plateforme ; appui long puis glissé, la voiture dérape ») */
       if(BURN.on)burnGeste(dx9,e.clientY-gpy,e.clientX,e.clientY);                              // en burn-out : elle DÉRAPE, le doigt qui tourne autour la fait tourner — LE DONUT (voir LES GESTES DU BURN-OUT)
       else{const da=-dx9*.008;garageAng+=da;GAR.platW=(GAR.platW||0)*.55+da/dm*.45;}     // sinon : le PLATEAU suit le doigt (son bord avant sous le doigt), l'élan est retenu
-      GAR.mvT=n9;GAR.tDoigt=n9;burnDoigt(e.clientX,e.clientY,dx9,e.clientY-gpy,false);}
+      GAR.mvT=n9;GAR.tDoigt=n9;} // (2026-10-07, soir, Léo : « le doigt qui fait le geste ne doit pas pousser la fumée ») plus de burnDoigt ici : seul le TAP la souffle
     else{GAR.vAc=(GAR.vAc!=null?GAR.vAc:(GAR.vA||0))+dA;GAR.vW=(GAR.vW||0)*.55+dA/dm*.45;GAR.mvT=n9;GAR.tDoigt=n9;if(vit9)burnDoigt(e.clientX,e.clientY,e.clientX-gpx,e.clientY-gpy,false);} // (BURN-OUT) le doigt pousse la fumée // (le glissé fondu) la CIBLE suit le doigt, la vitesse du geste est retenue pour l'élan
     if(!vit9)GAR.pT=THREE.MathUtils.clamp((GAR.pT!=null?GAR.pT:garagePitch)+(e.clientY-gpy)*.003,.08,.42);} // (2026-10-05, Léo : « c'est avec le doigt qu'on bouge le garage à 360° ») en VITRINE aussi : le tour complet de la vue, sans changer sa hauteur // (Léo : « on doit pouvoir voir derrière ») plus de borne : le tour complet // (2026-09-30, Léo) au MENU le doigt fait TOURNER LE REGARD autour de l'atelier, un peu (voir « LE GARAGE QUI VIT »)
   else{garageAng-=(e.clientX-gpx)*.01;if(!gEl.classList.contains('vitrine'))garagePitch=THREE.MathUtils.clamp(garagePitch+(e.clientY-gpy)*.006,.02,.82);} // (2026-10-04) en VITRINE le plan de présentation garde sa hauteur : le doigt tourne la caisse
