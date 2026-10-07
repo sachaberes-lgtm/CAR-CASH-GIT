@@ -8,6 +8,16 @@
       "source": "/",
       "destination": "/jouer/",
       "permanent": false
+    },
+    {
+      "source": "/jouer",
+      "destination": "/jouer/",
+      "permanent": false
+    },
+    {
+      "source": "/demo",
+      "destination": "/demo/",
+      "permanent": false
     }
   ],
   "headers": [
