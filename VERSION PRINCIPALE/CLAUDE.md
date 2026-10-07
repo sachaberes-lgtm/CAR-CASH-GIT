@@ -1,6 +1,16 @@
 # CASH CAR — guide projet pour Claude Code
 
-## LE BURN-OUT SUIT LE DOIGT + 0,5 s DE MAINTIEN (2026-10-07, nuit, Léo : « ajoute 500 millisecondes de maintien requis pour démarrer le burn-out » · « il faut que ça suive plus le doigt ou le curseur, plus comme avant »)
+## LE BURN-OUT SUIT LE DOIGT + 1,5 s DE MAINTIEN (2026-10-07, nuit, Léo : « ajoute 500 millisecondes de maintien requis pour démarrer le burn-out » · « il faut que ça suive plus le doigt ou le curseur, plus comme avant » · puis « la vitesse du donut évolue proportionnellement à la vitesse du doigt, et le temps de maintien déclencheur du burn-out : 1,5 s »)
+- **1,5 s** (dernier mot) : `BURN_TENU` 1500. Banc : tenu 0,4 · 1,2 · 1,38 s → rien ; 1,68 s → ça part (départ mesuré à 1,51-1,55 s).
+- **LE DONUT À LA VITESSE DU DOIGT** (`burnGeste`, lecture (2)) : le doigt qui tourne SUR LUI-MÊME ailleurs qu'autour d'elle (un petit
+  cercle, n'importe où, même sur la caisse) la fait tourner dans son sens à `DON.kv` = 1/70 rad par px parcouru — la vitesse du donut est
+  PROPORTIONNELLE à celle du doigt, quelle que soit la taille du cercle (avant : un tour par cercle, un minuscule cercle lent = une toupie).
+  Qui mène : `BURN.sT` (le trait tourne, chaque pas plafonné à ,35 rad : un coin n'est pas un cercle) et `BURN.sAu` (le doigt tourne
+  AUTOUR du plateau) sur ~0,3 s → `BURN.mc` (« ailleurs ») ; autour d'elle, c'est toujours le volant qui la fait suivre le doigt.
+  `dbgBurn().geste` = {tourne, ailleurs}. `wmax` 11 → 14 rad/s, `amax` 140 → 170. MESURÉ (banc `vitesse.py`, debout et couché) :
+  doigt à 200 · 300 · 400 · 600 · 800 px/s → donut 2,7 · 4,2 · 5,2-5,7 · 7,8-8,5 · 10,6 rad/s ; cercles de 8, 15, 25, 40 px → même vitesse.
+  Autour d'elle (`suivi.py`) : part « ailleurs » 0, retard 1-5° à 4 rad/s. Fouet 160 px → 80°, il revient.
+- (le 0,5 s d'abord, remplacé par le 1,5 s ci-dessus)
 - **0,5 s** : `BURN_TENU` (500, juste avant `burnTick`) remplace les 280 ms ; la mise en régime (`BURN.pre`) monte sur les 3/4 de l'attente.
   Un tap plus court reste le « tonk » de tôle ; un glissé de plus de 12 px avant 0,5 s reste le plateau.
 - **MESURÉ AVANT** (banc `suivi.py` : le doigt tourne autour du milieu du plateau à vitesse connue, la caisse lue par `dbgBurn()`) :
@@ -16,7 +26,7 @@
   rien ne tourne longtemps après le doigt).
 - **MESURÉ APRÈS** (debout 390 × 844, souris réelle) : autour d'elle à 2 · 4 · 8 rad/s → 4° · 3° · 4° de retard, elle s'arrête à 7-9° du
   doigt ; petits cercles 8 · 14 · 20 · 40 px → 0,8 à 0,95 tour par cercle ; fouet 160 px → 80°, dépasse de 23° et revient ; départ du
-  burn-out à 0,52 s de maintien. sw.js → v162.
+  burn-out à 0,52 s de maintien. sw.js → v162 ; avec le 1,5 s et la vitesse du doigt → v163.
 
 ## LE BURN-OUT RÉALISTE (2026-10-07, soir, Léo : « rends-le le plus réaliste, esthétique et mouvement ») — par-dessus le BURN-OUT v2 ci-dessous, le geste ne change pas
 - **LA FUMÉE EN CUBES — LA BRUME ET LES FLAMMES DE LA PORTE** (même soir, Léo, en plusieurs retouches : « ne pas enlever les pixels » ·
