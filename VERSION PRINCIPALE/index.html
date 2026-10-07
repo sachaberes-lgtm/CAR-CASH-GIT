@@ -59,6 +59,12 @@ const POKI=POKI_BUILD||/[?&](poki|crazy|playgama)=1\b/.test(location.search);
 const PORTAIL=/[?&]crazy=1\b/.test(location.search)?'crazy':/[?&]playgama=1\b/.test(location.search)?'playgama':PORTAIL_SDK;
 const FACILE_OK=!(POKI&&PORTAIL==='crazy');
 if(POKI)document.documentElement.classList.add('poki');
+/* PLUS AUCUNE VOIX (2026-10-07, Sacha : « masque complètement du code de main toutes les voix ») : la coupure de l'édition Poki vaut
+   désormais PARTOUT — l'annonceur naît `dead` (annSpeak rend toujours son texte, rien ne se charge ni ne se joue), le « ewww » des morts
+   et le « WOW » des combos sont retirés, l'interrupteur VOIX et son curseur disparaissent des réglages. Les fichiers restent dans le
+   dépôt ; les sons de SYNTHÈSE (chœurs, cri stylisé du dauphin, intro 1.61) ne sont pas des voix : ils restent. `?voix=1` les rend. */
+const SANS_VOIX=POKI||!/[?&]voix=1\b/.test(location.search);
+if(SANS_VOIX)document.documentElement.classList.add('sansVoix');
 if(!FACILE_OK)document.documentElement.classList.add('sansFacile');
 /* LA MÊME VERSION POUR TOUT LE MONDE (2026-10-01, Léo : « trouve un moyen pour qu'on joue au même jeu, juste ») : `vercel-build.sh`
    remplace ce jeton par le commit publié et pose `version.json` à côté du jeu. Le jeu compare les deux et se recharge tout seul
@@ -6080,6 +6086,8 @@ html.poki [data-m="carr"],html.poki #gCarr,html.poki .gLevel,html.poki #carr,
 html.poki [data-m="shop"],html.poki [data-go="shop"],html.poki .gBoutique,html.poki #mShop,html.poki #bdShop{display:none!important}
 /* (2026-10-05) PAS DE VOIX dans l'édition Poki : l'interrupteur VOIX et son curseur de volume n'ont plus rien à régler (réglages, pause, menu desktop) */
 html.poki [data-m="vox"],html.poki #mVolRowVox,html.poki [data-a="vox"],html.poki #voxBtn,html.poki [data-tg="voxBtn"],html.poki #volRowVox,html.poki #volLock{display:none!important}
+/* (2026-10-07, Sacha) plus de voix nulle part : les mêmes réglages disparaissent de la version principale (voir SANS_VOIX) */
+html.sansVoix [data-m="vox"],html.sansVoix #mVolRowVox,html.sansVoix [data-a="vox"],html.sansVoix #voxBtn,html.sansVoix [data-tg="voxBtn"],html.sansVoix #volRowVox,html.sansVoix #volLock{display:none!important}
 /* (2026-10-05) la VITRINE de l'atelier (nouvelle barre du bas, session de Léo) a sa propre porte MISSIONS sous JOUER (#gvMis) : masquée aussi.
    Le cartouche du niveau (#gvNiv) reste : il dit le 1er niveau de la partie sans fin (NIVEAUX[0], la ville ici). */
 html.poki #gvMis{display:none!important}
@@ -28366,7 +28374,7 @@ function waCharge(url){
     .then(function(ab){return new Promise(function(ok,ko){const p=AC.decodeAudioData(ab,ok,ko);if(p&&p.then)p.then(ok,ko);});})
     .then(function(b){WA_BUF[url]=b;}).catch(function(){delete WA_BUF[url];});}catch(e){delete WA_BUF[url];}
 }
-function waPrecharge(){try{if(!POKI){for(const k in ANN_LIB)waCharge(ANN_DIR+ANN_LIB[k].f);waCharge(FX_DIR+FX_WOW.f);}for(const d of DEATH_LIB)waCharge(DEATH_DIR+d.f);}catch(e){}} // (POKI) ni annonceur ni « WOW » : pas livrés
+function waPrecharge(){try{if(!SANS_VOIX){for(const k in ANN_LIB)waCharge(ANN_DIR+ANN_LIB[k].f);waCharge(FX_DIR+FX_WOW.f);}for(const d of DEATH_LIB)waCharge(DEATH_DIR+d.f);}catch(e){}} // (POKI) ni annonceur ni « WOW » : pas livrés
 function voixWA(e,prio){ // l'annonceur en WebAudio : voix + doublure démon (tierce dessous) + échos d'or 162/324 ms — même recette que les 4 <audio>
   const u9=ANN_DIR+e.f,b=WA_BUF[u9];if(!b){try{waCharge(u9);}catch(x){}return false;}if(!AC||AC.state!=='running')return false;
   try{
@@ -29202,7 +29210,7 @@ const ANN_LIB={ // first:1 partout : chaque voix se présente à sa 1re occurren
    (annSpeak rend toujours son texte, rien ne se charge ni ne se joue), le « ewww » des morts et le « WOW » des combos sont retirés plus
    bas, l'interrupteur VOIX disparaît des réglages, et poki-construire.js ne copie même pas les fichiers. Les sons de SYNTHÈSE (chœurs,
    cri stylisé du dauphin) ne sont pas des voix : ils restent. */
-for(const k in ANN_LIB){const e=ANN_LIB[k];e.dead=POKI;e.cool=0;e.n=0;e.slot=e.first?0:Math.floor(Math.random()*3);}
+for(const k in ANN_LIB){const e=ANN_LIB[k];e.dead=SANS_VOIX;e.cool=0;e.n=0;e.slot=e.first?0:Math.floor(Math.random()*3);}
 const ANN={playing:null,queue:null,duck:false};
 function annRoll(e){ // « 1 sur 3 » : dans chaque paquet de 3 déclenchements, UNE voix, place aléatoire
   if(e.n>0&&e.n%3===0)e.slot=Math.floor(Math.random()*3);
@@ -29211,7 +29219,7 @@ function annRoll(e){ // « 1 sur 3 » : dans chaque paquet de 3 déclenchements,
   return hit;
 }
 function annPreload(){ // réchauffe le cache HTTP dès le 1er geste : la voix part sans latence
-  if(!POKI)try{for(const k in ANN_LIB){const a=new Audio(ANN_DIR+ANN_LIB[k].f);a.preload='auto';a.load();}}catch(e){} // (POKI) pas de voix
+  if(!SANS_VOIX)try{for(const k in ANN_LIB){const a=new Audio(ANN_DIR+ANN_LIB[k].f);a.preload='auto';a.load();}}catch(e){} // (POKI) pas de voix
   deathPreload(); // …et les sons de mort avec elles : une mort qui arrive en retard ne fait pas rire
   fxPreload();    // …et les samples d'evenement : un « WOW » en retard tombe sur le combo suivant
 }
@@ -29236,7 +29244,7 @@ const DEATH_LIB=[
   {f:'eww.m4a',       v:.95, max:2.3, voix:1},  // « ewwwww » (voix TTS — placeholder) · `voix` : écarté quand l'annonceur parle
   {f:'gong.m4a',      v:.85, max:3.6}   // gong (synthèse — placeholder)
 ];
-if(POKI)for(let i=DEATH_LIB.length-1;i>=0;i--)if(DEATH_LIB[i].voix)DEATH_LIB.splice(i,1); // (POKI) pas de voix : le « ewww » part, les trois sons de synthèse restent
+if(SANS_VOIX)for(let i=DEATH_LIB.length-1;i>=0;i--)if(DEATH_LIB[i].voix)DEATH_LIB.splice(i,1); // (POKI) pas de voix : le « ewww » part, les trois sons de synthèse restent
 let deathLast=-1,deathEls=[];
 function deathPreload(){
   try{for(const d of DEATH_LIB){const a=new Audio(DEATH_DIR+d.f);a.preload='auto';a.load();}}catch(e){}
@@ -29252,7 +29260,7 @@ function deathStop(){ // coupe net (nouvelle partie, mute) : deux morts qui se c
    en trois minutes. Deux garde-fous, donc : un SEUIL (il faut mériter le son) et une PÉRIODE
    RÉFRACTAIRE (même mérité, il ne repart pas tout de suite). Le silence est ce qui lui rend sa valeur. */
 const FX_DIR='assets/audio/fx/';
-const FX_WOW={f:'wow.mp3',v:.80,max:2.2,dead:POKI}; // (POKI) pas de voix : le « WOW » se tait (fxPlay sort sur `dead`)
+const FX_WOW={f:'wow.mp3',v:.80,max:2.2,dead:SANS_VOIX}; // (POKI) pas de voix : le « WOW » se tait (fxPlay sort sur `dead`)
 /* ⚠ PAS DE VOIX ICI (2026-08-18). Les répliques parlées — « shut up and take my money », le
    « fight money » de Balrog, le medic de TF2, « loads of money » — ont été retirées : une phrase
    se reconnaît, donc elle s'use, et sur un jeu où l'argent tombe toutes les dix secondes elle finit
@@ -29271,7 +29279,7 @@ const FX_ARGENT=[
 let fxEls=[],fxArgLast=-1,fxWowCd=0,fxArgCd=0;
 function fxStop(){for(const a of fxEls){try{a.pause();}catch(e){}}fxEls.length=0;}
 function fxPreload(){try{
-  const t=(POKI?[]:[FX_WOW]).concat(FX_ARGENT); // (POKI) le « WOW » n'est pas livré
+  const t=(SANS_VOIX?[]:[FX_WOW]).concat(FX_ARGENT); // (POKI) le « WOW » n'est pas livré
   for(const d of t){const a=new Audio(FX_DIR+d.f);a.preload='auto';a.load();}
 }catch(e){}}
 function fxPlay(d){ // un sample, plafonné et fondu — jamais de traîne qui mange l'événement suivant

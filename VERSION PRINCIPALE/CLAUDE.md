@@ -224,6 +224,14 @@ refait EN VOXELS (10 cm, `NY_U`), chaque pièce dessinée dans SON plan (bloc «
   posée à 6 s ; burn-out + 2,5 tours de doigt → 1 DONUT compté, 320 fumées ; vignette (THE YELLOW CAB) → cadrée ; MISSIONS (vit 0) → ATELIER
   (vit 1) ; JOUER du garage → retour au feu → lâcher → course ; JOUER de l'accueil inchangé. 0 erreur. sw.js → v141.
 
+## PLUS AUCUNE VOIX (2026-10-07, session GAMEPLAY) — Sacha : « masque complètement du code de main toutes les voix »
+- `SANS_VOIX` (posé juste après `POKI`, classe `html.sansVoix`) : la coupure de l'édition Poki vaut PARTOUT. L'annonceur naît `dead`
+  (`annSpeak` rend toujours son texte, rien ne se charge ni ne se joue), le « ewww » des morts (`DEATH_LIB` à `voix:1`) et le « WOW »
+  (`FX_WOW.dead`) sont retirés, rien n'est préchargé (`waPrecharge`, la boucle `new Audio`), et l'interrupteur VOIX + son curseur
+  disparaissent des réglages (mêmes sélecteurs que `html.poki`). Les fichiers restent dans le dépôt ; les sons de synthèse (chœurs, cri
+  du dauphin, intro 1.61) ne sont pas des voix. `?voix=1` les rend. Banc : `scratchpad/garage/voix.js` (sauvegarde son + voix ALLUMÉS,
+  liste des fichiers audio demandés : 0 voix, interrupteur absent, partie lancée).
+
 ## LA CARRIÈRE v2 + PLUS DE DÉFI « POSE PARFAITE » (2026-10-07, session GAMEPLAY) — Sacha : « dans l'écran carrière c'est mal fait, notamment la mauvaise police ; aussi pas besoin de mettre autant de texte » · « enlève les défis pose parfaite »
 - **LA CARRIÈRE v2** (`<style id="carriereV2">` + la carte de `carrVue`) : la description de chaque monde (un paragraphe `.mmD` en police
   SYSTÈME — la « mauvaise police », seul texte non pixel de l'écran) est retirée. Une carte = son ciel (bandeau 46 px), son nom, son
