@@ -38897,7 +38897,7 @@ function invHoldFin(){if(!INV||!INV.hold)return;INV.hold=null;cancelAnimationFra
    bouton jouer —, la voiture va booster de manière satisfaisante : c'est un burn-out, puisque sinon elle foncerait. Un effet un peu
    stylé, travaillé, design. Avec des pixels. De la transparence, parce qu'il y aura de la fumée. Maintenue longtemps, la fumée disparaît
    mais peut s'accumuler, et le joueur peut jouer avec. Accordé à ce qu'on a déjà ; si tu surpasses, encore mieux. ») =====
-   LE GESTE : le doigt TENU sur la caisse, en vitrine — 0,28 s sans bouger (0,14 s au premier jet), et ça part ; tant qu'il tient, ça brûle. Il peut alors
+   LE GESTE : le doigt TENU sur la caisse, en vitrine — 0,5 s sans bouger (`BURN_TENU` ; 0,28 s jusqu'au 07/10 au soir, 0,14 s au premier jet), et ça part ; tant qu'il tient, ça brûle. Il peut alors
    GLISSER : la vue tourne autour de la caisse qui fume (et le doigt pousse la fumée). Un tap bref reste le « tonk » de tôle. Lâché : le
    moteur retombe en pétaradant. L'INVENTAIRE a son bouton, COFFRE, à côté de JOUER (et la touche I).
    LA CAISSE : les roues ARRIÈRE patinent (les essieux soudés de l'arrière, voir ESSIEUX), l'avant reste planté ; l'arrière s'écrase, le nez
@@ -38961,7 +38961,7 @@ const BURN={on:false,hold:null,bouge:false,k:0,t:0,chaud:0,rpm:0,son:false,cut:0
 /* LES RÉGLAGES DU GESTE : le VOLANT — un tour du TRAIT du doigt = `gain` tour de caisse (voir LE CERCLE DU DOIGT), jamais plus de `avance`
    rad d'avance ; le FOUET — le glissé horizontal, `derape` rad par px, sans borne. Le RESSORT qui tire la caisse vers ce cap : `om`
    (raideur), `ze` (amortissement). `pitch` rad de hauteur prise par la vue en donut ; `paliers` rad/s ; `vmax` normalise le penché. */
-const DON={gain:1,avance:6.9,derape:.009,om:6.5,ze:.62,wmax:5.2,amax:42,pitch:.06,paliers:[2.4,3.6,4.8],vmax:5.2}; /* (réaliste, même soir) ω 7 → 6,5, ζ ,5 → ,62 : elle fouette encore mais avec du POIDS (un seul petit dépassement, plus de « boing ») ; la rotation plafonnée à `wmax` rad/s et l'accélération à `amax` rad/s² (un glissé de tout l'écran faisait 8 rad/s, une toupie) — un donut tenu tourne jusqu'à 5,2 rad/s ; (soir) `avance` ,8 → 6,9 rad (~1,1 tour) : un cercle du doigt n'est plus perdu s'il va plus vite qu'elle, elle le rattrape */
+const DON={mort:16,plein:44,gain:1,avance:1.6,derape:.009,om:8,ze:.62,wmax:11,amax:140,pitch:.06,paliers:[2.4,3.6,4.8],vmax:5.2}; /* (2026-10-07, nuit, Léo : « il faut que ça suive plus le doigt ou le curseur, plus comme avant ») MESURÉ avant : un doigt qui tourne autour de la caisse à 8 rad/s la laissait 217° derrière en moyenne (plafond 5,2 rad/s, elle rattrapait sur ~1 tour d'avance) ; à 4 rad/s, 34° de retard et 60° d'écart quand le doigt s'arrête. Désormais : `mort`/`plein` 16/44 px (le volant autour du plateau revient, comme avant — 24/64 en v2), ω 8 / ζ ,62 + l’ANTICIPATION (le ressort vise aussi la VITESSE du doigt : plus de retard en rotation tenue, le poids reste dans l'arrêt), `wmax` 11 rad/s, `amax` 140, `avance` 1,6 rad (ce qui dépasse est perdu : rien ne tourne longtemps après le doigt) */ /* AVANT — (réaliste, même soir) ω 7 → 6,5, ζ ,5 → ,62 : elle fouette encore mais avec du POIDS (un seul petit dépassement, plus de « boing ») ; la rotation plafonnée à `wmax` rad/s et l'accélération à `amax` rad/s² (un glissé de tout l'écran faisait 8 rad/s, une toupie) — un donut tenu tourne jusqu'à 5,2 rad/s ; (soir) `avance` ,8 → 6,9 rad (~1,1 tour) : un cercle du doigt n'est plus perdu s'il va plus vite qu'elle, elle le rattrape */
 const BURN_ETINC=[[.42,.66,1],[1,.84,.32],[1,.42,.86]]; // les paliers du dérapage : les couleurs du drift de la course
 const BURN_ETINC_ON=false; // (réaliste) un pneu ne fait pas d'étincelles : les paliers ne se sentent plus qu'au pouce
 const BURN_VS='attribute vec3 iP;attribute float iA;attribute float iS;attribute float iG;attribute float iSd;attribute vec3 iC;\n'+
@@ -39206,7 +39206,7 @@ function burnDebut(e){ // pointerdown : le doigt se pose sur la caisse
 }
 function burnPart(){ // ça part : le doigt a tenu
   if(BURN.on)return;burnPrepare();BURN.on=true;BURN.t=0;BURN.pops.length=0;BURN.corps=true;
-  BURN.acc=BURN.n=BURN.gaz=BURN.upT=0;BURN.fA=null;BURN.tx=null;BURN.th=null;BURN.tour=0;BURN.lvl=0;BURN.chT=0;try{burnCentre();}catch(_){} // le centre du VOLANT du doigt : le milieu du plateau, à l'écran
+  BURN.acc=BURN.n=BURN.gaz=BURN.upT=0;BURN.fA=null;BURN.tx=null;BURN.th=null;BURN.sT=BURN.kc=0;BURN.lvl=0;BURN.chT=0;try{burnCentre();}catch(_){} // le centre du VOLANT du doigt : le milieu du plateau, à l'écran
   /* (v2) LE DÉPART : l'embrayage lâché — le cul plonge sur ses ressorts, le régime saute, une bouffée sort des deux roues, deux pétarades, la caméra encaisse */
   BURN.bpv-=REDUCED_MOTION?.3:.9;BURN.kick=REDUCED_MOTION?0:1;BURN.rpm=Math.max(BURN.rpm,.55);
   try{burnBouffee(16);}catch(_){}const n=performance.now();BURN.pops.push(n+60,n+200);
@@ -39268,20 +39268,36 @@ function burnVolant(v){ // le volant bridé : jamais plus de `avance` rad devant
    demi-tour, > 126°) n'est pas un virage. LE FOUET (le glissé horizontal) s'éteint tant que le trait TOURNE (`BURN.tour` : la somme des
    virages des ~0,2 dernières secondes) — sinon la caisse suivait la gauche et la droite du cercle. Un tour de doigt trop vite pour elle
    n'est pas perdu : jusqu'à `DON.avance` (~1,1 tour) d'avance, elle le rattrape à `wmax`. */
+/* LE DOIGT QU'ELLE SUIT (2026-10-07, nuit, Léo : « il faut que ça suive plus le doigt ou le curseur, plus comme avant »). Les deux lectures
+   du doigt, MÉLANGÉES : (1) le VOLANT d'avant — l'angle du doigt AUTOUR DU MILIEU DU PLATEAU, tour pour tour (le bout de la caisse le plus
+   près du doigt le suit ; près du milieu, sous `DON.plein` px, l'angle ne veut plus rien dire et la direction du trait le remplace) ;
+   (2) le CERCLE DU DOIGT — la direction du trait (un cercle tracé n'importe où, même minuscule, fait un tour). Qui mène ? Si le trait
+   TOURNE (`BURN.sT` : plus de ~,25 rad sur les ~0,2 dernières secondes), c'est un cercle : le trait (`k` → 1, lissé sur 0,15 s, jugé AVANT
+   le pas — un coin du trait n'est pas un cercle) ; sinon le volant : un trait qui passe, un arc lent, un aller-retour, elle les suit à la
+   trace. Autour d'elle les deux comptent pareil (un tour de doigt = un tour de caisse). Le FOUET (le glissé horizontal) reste ce qui ne
+   tourne ni autour d'elle ni sur lui-même. MESURÉ (banc `suivi.py`, debout 390 × 844) : doigt qui tourne autour à 4 / 8 rad/s → 3° / 4° de
+   retard (34° / 217° avant), elle s'arrête à 7-9° du doigt (60° avant) ; petits cercles de 8 à 40 px → 0,8 à 0,95 tour par cercle. */
 function burnGeste(dx,dy,cx,cy){ // le doigt bouge pendant le burn-out (dx, dy : depuis le mouvement d'avant ; cx, cy : où il est)
-  const n=performance.now();
+  const n=performance.now();try{burnCentre();}catch(_){} // le milieu du plateau à l'écran (la caméra recule pendant le donut)
+  const rx=cx-BURN.scx,ry=cy-BURN.scy,r=Math.hypot(rx,ry),a=Math.atan2(ry,rx);
+  const w=BURN.fA==null?0:Math.max(0,Math.min(1,(Math.min(r,BURN.fR)-DON.mort)/(DON.plein-DON.mort)));
+  const dA=BURN.fA==null?0:Math.atan2(Math.sin(a-BURN.fA),Math.cos(a-BURN.fA));BURN.fA=a;BURN.fR=r;
+  const tg=Math.min(1,Math.abs(dA)*r/Math.max(1e-3,Math.hypot(dx,dy)));   // la part du geste qui TOURNE autour du plateau
   if(BURN.tx==null){BURN.tx=cx;BURN.ty=cy;BURN.th=null;}
   const sx=cx-BURN.tx,sy=cy-BURN.ty;let dT=0;
   if(sx*sx+sy*sy>=16){const h=Math.atan2(sy,sx);                         // LE TRAIT, tous les 4 px
     if(BURN.th!=null){dT=Math.atan2(Math.sin(h-BURN.th),Math.cos(h-BURN.th));if(Math.abs(dT)>2.2)dT=0;} // un aller-retour n'est pas un virage
     BURN.th=h;BURN.tx=cx;BURN.ty=cy;}
-  const dtm=Math.min(.25,(n-(BURN.tT||n))/1000);BURN.tT=n;BURN.tour=(BURN.tour||0)*Math.exp(-dtm/.2)+Math.abs(dT); // est-ce qu'il TOURNE ?
-  const wc=Math.max(0,Math.min(1,(BURN.tour-.25)/.5));
-  if(dT)burnVolant(-dT*DON.gain);                                        // LE DONUT : la caisse tourne autant que le trait
-  BURN.cib+=dx*DON.derape*(1-wc);                                        // LE FOUET : ce qui va tout droit — éteint pendant que le trait tourne
+  const dtm=Math.min(.25,(n-(BURN.tT||n))/1000),e9=Math.exp(-dtm/.2);BURN.tT=n;
+  BURN.sT=(BURN.sT||0)*e9;                                              // de combien le trait a tourné sur ~0,2 s
+  BURN.kc=(BURN.kc||0)+(Math.max(0,Math.min(1,(Math.abs(BURN.sT)-.25)/.35))-(BURN.kc||0))*Math.min(1,dtm/.15); // 1 : le doigt TOURNE — le trait mène (jugé AVANT ce pas : un coin n'est pas un cercle)
+  const k=BURN.kc;
+  BURN.sT+=dT;
+  const v=-((1-k)*(dA*w+dT*(1-w))+k*dT)*DON.gain;if(v)burnVolant(v);     // le doigt dans le sens des aiguilles (à l'écran) = la caisse aussi, vue d'en haut ; près du milieu, où l'angle ne veut rien dire, le trait le remplace
+  BURN.cib+=dx*DON.derape*(1-w*tg)*(1-k);                                // LE FOUET : ce qui reste du glissé — et tout, près du centre
   if(dy<0&&-dy>=Math.abs(dx)*.8){if(!BURN.upT||n-BURN.upT>200){BURN.upT=n;BURN.upD=BURN.upX=0;} // LE COUP DE GAZ : une pichenette vers le HAUT —
     BURN.upD-=dy;BURN.upX+=Math.abs(dx);                                                // 55 px en moins de 0,18 s, presque à la verticale, pas en plein donut
-    if(BURN.upD>=55&&n-BURN.upT<=180&&BURN.upX<BURN.upD*.6&&BURN.donK<.15&&wc<.3&&n>BURN.gazT){BURN.gazT=n+450;BURN.upT=0;burnGaz();}}
+    if(BURN.upD>=55&&n-BURN.upT<=180&&BURN.upX<BURN.upD*.6&&BURN.donK<.15&&k<.3&&n>BURN.gazT){BURN.gazT=n+450;BURN.upT=0;burnGaz();}}
   else BURN.upT=0;
 }
 function burnGaz(){ // LE COUP DE GAZ : le nez se lève, le régime saute, les pots crachent trois fois
@@ -39326,7 +39342,8 @@ Object.assign(I18N,{'DONUT !':'DONUT!','TOURNE AUTOUR · DONUT':'CIRCLE AROUND �
 Object.assign(I18N_ZH,{'DONUT !':'甜甜圈！','TOURNE AUTOUR · DONUT':'绕圈 · 甜甜圈','PNEUS CHAUDS !':'轮胎发烫！','ATCHOUM !':'阿嚏！','ATCHOUM':'阿嚏','SOMMET':'巅峰','INTOUCHABLE':'无人能及'}); // (2026-10-07, audit) le chinois qui manquait
 function burnDyn(dt){ // (v3) LE RESSORT vers le cap du doigt, le donut, le pivot, le cap versé au plateau
   const d9=Math.min(dt,.1),n=Math.max(1,Math.ceil(d9/.008)),h=d9/n,om=DON.om,ze=DON.ze;
-  for(let i=0;i<n;i++){const ac=Math.max(-DON.amax,Math.min(DON.amax,om*om*(BURN.cib-BURN.yaw)-2*ze*om*BURN.yawV));BURN.yawV=Math.max(-DON.wmax,Math.min(DON.wmax,BURN.yawV+ac*h));BURN.yaw+=BURN.yawV*h;} // (réaliste) une caisse a une inertie : vitesse et accélération plafonnées
+  const cv=BURN.cibP==null?0:(BURN.cib-BURN.cibP)/Math.max(1e-3,d9);BURN.cibV=(BURN.cibV||0)+(Math.max(-DON.wmax,Math.min(DON.wmax,cv))-(BURN.cibV||0))*Math.min(1,d9/.05); // (nuit) la VITESSE du doigt, lissée sur 50 ms
+  for(let i=0;i<n;i++){const ac=Math.max(-DON.amax,Math.min(DON.amax,om*om*(BURN.cib-BURN.yaw)+2*ze*om*(BURN.cibV-BURN.yawV)));BURN.yawV=Math.max(-DON.wmax,Math.min(DON.wmax,BURN.yawV+ac*h));BURN.yaw+=BURN.yawV*h;} // (réaliste) une caisse a une inertie : vitesse et accélération plafonnées
   if(Math.abs(BURN.yaw)>Math.PI){const s2=2*Math.PI*Math.round(BURN.yaw/(2*Math.PI));BURN.yaw-=s2;BURN.cib-=s2;} // les tours se replient : la caisse est la même
   BURN.don+=(BURN.yawV-BURN.don)*Math.min(1,dt*3);                                         // la rotation lissée : fumée, penché, son, et le compte des tours
   BURN.donK=BURN.on?Math.max(0,Math.min(1,(Math.abs(BURN.don)-.8)/2.2)):Math.max(0,BURN.donK-dt*2);
@@ -39334,7 +39351,8 @@ function burnDyn(dt){ // (v3) LE RESSORT vers le cap du doigt, le donut, le pivo
   const vise=BURN.on&&BURN.bouge&&!GAR.go?1:0;BURN.pivK+=(vise-BURN.pivK)*Math.min(1,dt*(vise?6:(GAR.go?6:1.6)));if(!vise&&BURN.pivK<1e-3)BURN.pivK=0;
   if(GAR.go||(!BURN.on&&!BURN.hold&&BURN.pivK<.01&&Math.abs(BURN.yawV)<.02)){ // APRÈS l'avoir posée : le cap est versé dans le plateau (rien ne saute)
     if(BURN.yaw){garageAng-=BURN.yaw;GAR.podSpin=(GAR.podSpin||0)-BURN.yaw;BURN.yaw=0;}
-    BURN.cib=0;if(GAR.go||Math.abs(BURN.yawV)<.02)BURN.yawV=0;}
+    BURN.cib=0;BURN.cibV=0;if(GAR.go||Math.abs(BURN.yawV)<.02)BURN.yawV=0;}
+  BURN.cibP=BURN.cib;                                                                       // (nuit) d'où partira la vitesse du doigt à l'image suivante
 }
 function burnRoues(dt){ // où sont les roues arrière (dans la salle) et à quelle VITESSE elles vont — la fumée et les étincelles la gardent
   for(let i=0;i<BURN.roues.length;i++){const r=BURN.roues[i],o=burnMonde(r.x,r.y+.06,r.z,BURN.q);let P=BURN.rp[i];
@@ -39342,13 +39360,14 @@ function burnRoues(dt){ // où sont les roues arrière (dans la salle) et à que
     if(P.ok&&dt>0){P.v.subVectors(o,P.p).divideScalar(dt);const s=P.v.length();if(s>16)P.v.multiplyScalar(16/s);}else P.v.set(0,0,0);
     P.p.copy(o);P.ok=true;}
 }
+const BURN_TENU=500; // (2026-10-07, nuit, Léo : « ajoute 500 millisecondes de maintien requis pour démarrer le burn-out ») — c'était 280 ms ; la mise en régime (`pre`) monte sur les 3/4 de l'attente
 function burnTick(dt){ // chaque image du garage (après la pose de la caisse, avant la caméra)
   const now=performance.now(),t=now*.001,d0=dt>0;
-  if(BURN.hold&&!BURN.on&&!BURN.bouge&&now-BURN.hold.t0>280){if(!BURN.hold.non)burnPart();else if(!BURN.hold.dit){BURN.hold.dit=1;burnRefus();}} // (même soir) 0,28 s : un glissé lent qui démarre doucement reste le PLATEAU
+  if(BURN.hold&&!BURN.on&&!BURN.bouge&&now-BURN.hold.t0>BURN_TENU){if(!BURN.hold.non)burnPart();else if(!BURN.hold.dit){BURN.hold.dit=1;burnRefus();}} // (même soir) 0,28 s, (nuit) 0,5 s : un glissé lent qui démarre doucement reste le PLATEAU
   if(BURN.auto>0&&d0){BURN.auto-=dt;if(BURN.autoW)burnVolant(BURN.autoW*dt);if(BURN.auto<=0)burnFin();} // (le banc) un doigt qui tourne à autoW rad/s
   if(GAR.go||!garAtelierLibre())if(BURN.on)burnFin();
   /* (v2) LA MISE EN RÉGIME : pendant l'appui, avant que ça parte, le moteur monte et la caisse s'assoit — le doigt glisse : tout retombe */
-  if(BURN.hold&&!BURN.on&&!BURN.bouge&&!BURN.hold.non)BURN.pre=Math.max(BURN.pre,Math.min(1,Math.max(0,(now-BURN.hold.t0-70)/210)));else if(d0)BURN.pre=Math.max(0,BURN.pre-dt*4);
+  if(BURN.hold&&!BURN.on&&!BURN.bouge&&!BURN.hold.non)BURN.pre=Math.max(BURN.pre,Math.min(1,Math.max(0,(now-BURN.hold.t0-BURN_TENU*.25)/(BURN_TENU*.75))));else if(d0)BURN.pre=Math.max(0,BURN.pre-dt*4);
   if(d0){BURN.k+=((BURN.on?1:0)-BURN.k)*Math.min(1,dt*(BURN.on?5:2.6));if(BURN.k<.002&&!BURN.on)BURN.k=0;
     if(BURN.on)BURN.t+=dt;
     BURN.chaud=Math.max(0,Math.min(1,BURN.chaud+(BURN.on?dt*.38*(1+.6*BURN.donK):-dt*.22))); // (gestes) le donut chauffe les gommes plus vite
