@@ -1,5 +1,23 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LE BURN-OUT SUIT LE DOIGT + 0,5 s DE MAINTIEN (2026-10-07, nuit, Léo : « ajoute 500 millisecondes de maintien requis pour démarrer le burn-out » · « il faut que ça suive plus le doigt ou le curseur, plus comme avant »)
+- **0,5 s** : `BURN_TENU` (500, juste avant `burnTick`) remplace les 280 ms ; la mise en régime (`BURN.pre`) monte sur les 3/4 de l'attente.
+  Un tap plus court reste le « tonk » de tôle ; un glissé de plus de 12 px avant 0,5 s reste le plateau.
+- **MESURÉ AVANT** (banc `suivi.py` : le doigt tourne autour du milieu du plateau à vitesse connue, la caisse lue par `dbgBurn()`) :
+  à 4 rad/s, 34° de retard et 60° d'écart quand le doigt s'arrête ; à 8 rad/s, **217° de retard** (plafond 5,2 rad/s, elle rattrapait
+  sur ~1 tour d'avance). Le cercle « au trait » comptait aussi les coins du trait : elle finissait souvent à côté du doigt.
+- **LE DOIGT QU'ELLE SUIT** (`burnGeste`) : le VOLANT d'avant revient — l'angle du doigt autour du milieu du plateau (`burnCentre`,
+  recalculé à chaque mouvement : la caméra recule en donut), mort sous `DON.mort` 16 px, plein à `DON.plein` 44 px (24/64 en v2) ; près du
+  milieu la DIRECTION DU TRAIT remplace l'angle. Le CERCLE DU DOIGT reste : quand le trait TOURNE (`BURN.sT`, > ~,25 rad sur ~0,2 s), il
+  mène (`BURN.kc`, lissé 0,15 s, jugé AVANT le pas : un coin n'est pas un cercle) — un petit cercle n'importe où fait un tour. Le FOUET =
+  `dx·derape·(1−w·tg)·(1−k)` (la formule v2).
+- **LE RESSORT ANTICIPE** (`burnDyn`) : il vise le cap ET la vitesse du doigt (`BURN.cibV`, lissée 50 ms) — plus de retard en rotation
+  tenue, le poids reste dans l'arrêt. `DON` : ω 8, ζ ,62, `wmax` 11 rad/s, `amax` 140, `avance` 1,6 rad (ce qui dépasse est perdu :
+  rien ne tourne longtemps après le doigt).
+- **MESURÉ APRÈS** (debout 390 × 844, souris réelle) : autour d'elle à 2 · 4 · 8 rad/s → 4° · 3° · 4° de retard, elle s'arrête à 7-9° du
+  doigt ; petits cercles 8 · 14 · 20 · 40 px → 0,8 à 0,95 tour par cercle ; fouet 160 px → 80°, dépasse de 23° et revient ; départ du
+  burn-out à 0,52 s de maintien. sw.js → v162.
+
 ## LE BURN-OUT RÉALISTE (2026-10-07, soir, Léo : « rends-le le plus réaliste, esthétique et mouvement ») — par-dessus le BURN-OUT v2 ci-dessous, le geste ne change pas
 - **LA FUMÉE EN CUBES — LA BRUME ET LES FLAMMES DE LA PORTE** (même soir, Léo, en plusieurs retouches : « ne pas enlever les pixels » ·
   « le réalisme de la fluidité » · « un tout petit peu de cubes pixel blancs, transparents » · « qu'elle se répande un peu partout, sans
@@ -46,6 +64,43 @@
 - Vérifié au banc (vrais gestes souris, debout et couché) : tenu, fouet, donut 3 tours puis l'anneau noir sur le plateau, la fumée encore
   là 6 s après le lâcher, un tap qui la chasse, les cercles de toutes tailles, burn-out puis JOUER → course ; 0 erreur, 0 programme compilé
   au 1er burn-out (142 → 142), 60 i/s pendant le burn (banc Mac). sw.js → v157.
+## LA CAISSE AU DOIGT, AU CIEL — v2 « TRASH » (2026-10-07, Léo : « dans le menu ciel la voiture doit pouvoir être tournée, tapée, balancée ; le clic sur elle doit être plus trash »)
+- Remplace LE TAPOTEMENT AU CIEL du 03/10 (bloc « LA CAISSE AU DOIGT, AU CIEL » avant `chuteStudio` ; mêmes points d'entrée `chuteTape` /
+  `chuteTapeTick`, + `chuteVise`, `chutePrend`, `chuteTourne`, `chuteLache`, branchés dans les pointerdown/move/up/cancel du garage).
+- TAPÉE : poussée dans le sens du doigt ET de côté (repoussée au loin seulement, elle rapetissait), couple r × F, une part de CHAOS ;
+  éclat, gerbe d'étincelles (`sparkGold`), poussière, 16 MORCEAUX DE TÔLE à la couleur de la pièce touchée (couleur de sommet × matière)
+  que l'air emporte vers le haut ; secousse + coup de zoom de la caméra ; `pose.choc` + `debris.tole` (+ `pose.lourde` dès le 3e coup),
+  vibration. COMBO : coups à moins de 0,7 s → ×1 → ×2,75. Mesuré : un coup ≈ 28° de vrille, une rafale de 5 ≈ 130° et ~3,7 m de poussée.
+- TOURNÉE : un glissé qui PART de la caisse la fait tourner comme une boule (et la tire un peu, ressort vers le doigt) ; ailleurs le
+  glissé fait toujours tourner la vue (et LE TOUR SANS FIN reprend après). BALANCÉE : lâchée en mouvement, elle garde l'élan du doigt —
+  toupie (~9 rad/s mesurés) de deux-trois tours, puis le ressort la rattrape.
+- La rotation est un QUATERNION (`CHUTE_TAP.Q`) ramené par le plus court chemin (pas de « détorsion » après trois tours) ; au-dessus de
+  `WL` rad/s le ressort et l'amorti se relâchent (la toupie). Le rebond du VENTRE (`chuteStudio`, `ve`) lit le dessous TOURNÉ.
+- Zéro programme compilé au premier coup (mesuré 142 → 142) : morceaux en Phong nus, éclat et étincelles déjà dans le jeu. Au menu,
+  `chuteTapeTick` fait vivre `sparkGold` et `dust` (la boucle de course ne tourne pas) ; `chuteSort` range l'éclat et les morceaux.
+- Réglages `CHUTE_TAP` (V 7,5 · W 5 · WMAX 16 · CHAOS 5 · K/C 12/2,4 · KR/CR 16/1,9 · WL 3 · TR/TT le doigt). Console : `dbgTape()`
+  (coups, combo, poussée, pivot, toupie, morceaux, centre à l'écran), `dbgTape('coup')` frappe le centre. sw.js → v161 (v160 = LE NIVEAU DES PLAY, poussé en même temps).
+
+## LE NIVEAU DES PLAY (2026-10-07, Léo : « quand j'appuie directement sur PLAY, ça me lance dans une map avec un son qui n'est pas celui de la carrière ; le PLAY du garage lance le dernier niveau de carrière auquel on a joué ; on peut aussi sélectionner un niveau dans la carrière puis retourner au garage — choisir une map, au lieu de lancer directement »)
+- **LA CAUSE** (mesuré au banc) : le PLAY de l'accueil, le JOUER de l'atelier et celui des MISSIONS posaient `CARR.actif=null` = la partie
+  SANS FIN (NUAGES niveau 1 « LES NUAGES CACHENT LES VIRAGES », musique `ciel-complet.m4a` « CIEL · LES 5 NIVEAUX ») ; la carrière joue
+  le niveau et SA musique (`ciel-n3.m4a` « CIEL · NIVEAU 3 »…).
+- **`SAVE.d.carrSel`** {id du monde, i} (gardé par `san`, rangé par `id` comme `SAVE.d.carr`) = la map des PLAY. `carrJouer()` la lance
+  par `carrLancer` — le MÊME départ que la carrière (voile, piste du niveau reconstruite dessous, musique, lâcher). Posée par
+  `carrLancerSous`, `endGame` (le niveau où la partie s'arrête : après des portails, c'est le suivant), les fins de monde (le monde
+  suivant, comme REJOUER) et `carrChoisit`. Rien de posé : le niveau en cours du 1er monde. Auto-école en attente (1re partie, REVOIR
+  L'AUTO-ÉCOLE) : AURORE, qui l'arme elle-même. `carrSel()` revérifie tout contre `CARRIERE`.
+- **LA CARRIÈRE CHOISIT** : au garage du hub, toucher un niveau ou la carte d'un monde = `carrChoisit` (toast « SKY HIGH 3 · LEVER DU
+  SOLEIL », la feuille se ferme, l'onglet MISSIONS rend l'ATELIER) ; elle ne lance plus. La carte d'un monde montre le niveau choisi
+  s'il est chez elle ; pastille JOUER (`.carrSel`) sur la carte et sur la case. Hors du hub (`?menu=leo`), le toucher lance comme avant.
+- **LA PETITE LIGNE** sous les PLAY (`.playNiv`, `carrPlayMaj` : à l'ouverture du garage, à chaque pose, à la langue, aux modes) dit la
+  map lancée (« SKY HIGH 3 », « VILLE 2 »).
+- **LA PARTIE SANS FIN RESTE** à qui l'a demandée (`carrPlayOk()`) : PARC ou SURVIVANT armés dans MODES (choisir une map de carrière les
+  désarme), Poki (pas de carrière), la vitrine `?menu=leo` (sa vignette dit le niveau sans fin). REJOUER ne change pas.
+- Console : `dbgCarriere()` rend aussi `sel` et `play` ({b,i} ou « sans fin »). Vérifié au banc (Chrome sans fenêtre, muet, vrais clics,
+  couché et debout, FR/EN) : choix du niveau 3 → atelier « SKY HIGH 3 » → JOUER = niveau 3 ; portail puis mort au 4 → l'accueil dit
+  « SKY HIGH 4 » et PLAY relance le 4 ; MISSIONS → carte VILLE → JOUER des missions = VILLE 1 ; joueur neuf → question du mode puis
+  AURORE avec l'auto-école ; Survivant armé → partie sans fin ; même musique que la carrière ; 0 erreur. sw.js → v160 (v159 = le tour sans fin de l'écran titre, fusionné).
 ## LE TOUR SANS FIN DE L'ÉCRAN TITRE (2026-10-07, Léo : « l'écran menu ciel, dans le même angle, tourne en 360 constamment — pas trop rapide, faut pas que ce soit vomitif, plutôt lent ; on doit pouvoir tourner la voiture ; faut que ça ait l'air d'être en chute »)
 - Le regard fait le tour complet de la caisse qui tombe, à la HAUTEUR du menu (`CHUTE.oP` ne bouge pas) : un tour en `CHUTE_P.tour` = 75 s
   (~4,8°/s), le caméraman de chute libre qui spirale autour d'elle pendant que l'air et les cumulus montent. C'est L'ORBITE AU DOIGT (bloc

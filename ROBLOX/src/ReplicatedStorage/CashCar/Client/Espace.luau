@@ -293,6 +293,14 @@ function Espace.batir(piste: any, dossier: Instance, graine: number, ceder: (() 
 			local f = F[math.clamp(math.floor(s9 / DSm) + 1, 1, NP)]
 			local b, n, t = f.RightVector, f.UpVector, f.LookVector
 			local W: Vector3, U: Vector3, T: Vector3
+			-- (7/10, chasse aux bugs) un panneau posé AU RAS de la route, penché de 28° avec une demi-aile de 10 m, plantait le bout de
+			-- son aile 3,5 m SOUS la dalle : il la perçait et dépassait dessous. L'inclinaison est bornée pour que le bout de l'aile
+			-- s'enfonce au plus dans l'ÉPAISSEUR de la dalle (0,5 m avant d'en sortir) — le panneau garde son air couché sur la route
+			-- (le tirage au sort ne change pas : la piste en aval reste la même)
+			if k == 0 and h < 5 then
+				local lim = math.asin(math.clamp((h + Config.THICK - 0.5) / rad, 0, 1))
+				al = math.clamp(al, -lim, lim)
+			end
 			if k == 0 then -- le panneau : ailes en travers, penché autour de la route
 				W, U, T = (b * math.cos(al) + n * math.sin(al)).Unit, (n * math.cos(al) - b * math.sin(al)).Unit, t
 			else -- l'étage : couché, un peu de biais

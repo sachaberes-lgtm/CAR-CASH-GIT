@@ -161,6 +161,11 @@ evEtat.OnServerEvent:Connect(function(p, quoi, valeur)
 		debutCourse[p.UserId] = os.clock()
 		Revenus.debut(p) -- (la partie part-elle SANS AIDE ? le TOP 10 n'inscrit que celles-là)
 		Analytique.debut(p)
+	elseif quoi == "recommence" and debutCourse[p.UserId] then
+		-- RECOMMENCER (pause) : la partie abandonnée ne verse rien et n'envoie pas de fin — la montre et l'état « sans aide » repartent
+		-- ici. (Un tricheur qui en abuserait ne ferait que raccourcir sa propre montre, donc baisser son plafond.)
+		debutCourse[p.UserId] = os.clock()
+		Revenus.debut(p)
 	end
 	local m = dossier:FindFirstChild(p.Name)
 	if not m then return end

@@ -6093,6 +6093,19 @@ html[data-reduced-motion="1"] #gHub{animation:none!important;transition:none!imp
   #carr .carrBiome{padding-top:58px}
   .carrPied .carrJauge{flex-basis:100%}
 }
+/* LE NIVEAU DES PLAY (2026-10-07, Léo : « choisir une map au lieu de lancer directement ») — voir carrSel/carrChoisit. La map que lancent
+   les PLAY se lit à deux endroits : en petit sous le mot JOUER (accueil et atelier, `.playNiv`, posée par carrPlayMaj) et, dans la
+   carrière, une pastille JOUER sur la carte de son monde et sur sa case (`.carrSel`). */
+#gJouer .playNiv,#mHome .mPlay .playNiv{position:absolute;left:4px;right:4px;text-align:center;font-family:var(--pix);font-size:8px;line-height:1;
+  letter-spacing:1px;white-space:nowrap;overflow:hidden;pointer-events:none}
+#gJouer .playNiv{bottom:6px;color:currentColor;opacity:.8}
+#gJouer.aNiv>span{translate:0 -5px}
+#mHome .mPlay.mMot.aNiv{position:relative}
+#mHome .mPlay .playNiv{bottom:-2px;color:#ffe9a0;text-shadow:0 1px 0 #3a1d00,1px 0 0 #3a1d00,-1px 0 0 #3a1d00,0 -1px 0 #3a1d00}
+#carr .carrSel{display:inline-block;font-style:normal;font-family:var(--pix);font-size:8px;line-height:1;letter-spacing:1px;padding:3px 5px 2px;
+  background:#fff3c4;color:#1c0430;box-shadow:0 0 10px rgba(255,215,94,.7)}
+#carr .carrNiv .carrSel{position:absolute;z-index:2;top:-8px;right:10px} /* à cheval sur le bord haut, comme la pastille NEW de la boutique : debout, la case est étroite et son numéro est centré */
+#carr .carrPied .carrSel{flex:none}
 </style>
 <style id="poki">
 /* L'ÉDITION POKI (2026-10-04) — tout est sous `html.poki` : sans elle, rien ici ne s'applique. Ce qui n'existe pas chez Poki disparaît
@@ -13616,6 +13629,7 @@ function modeLbl(){
   const pb=$('parkBtn'),sb=$('survBtn');
   if(pb)pb.innerHTML=pxi('rampe')+' '+TR('Freestyle')+' · '+(PARK.on?TR('on'):TR('off'));
   if(sb)sb.innerHTML=pxi('drapeau')+' '+TR('Survivant')+' · '+(SURV.armed?TR('on'):TR('off'));
+  try{carrPlayMaj();}catch(e){} // (2026-10-07) parc ou Survivant armés : les PLAY repassent en partie sans fin, leur petite ligne s'efface
 }
 function applyLangDOM(){
   try{const w9=window.parent||window;if(w9.__tourneLbl)w9.__tourneLbl();}catch(e){} // (2026-10-07) le bouton TOURNER de la colonne PC suit la langue (il vit dans la page CADRE : le jeu tourne dans l'iframe)
@@ -15199,17 +15213,20 @@ function carrCiel(N){const hx9=function(c){return '#'+(c|0).toString(16).padStar
 function carrVue(bi){
   const el=document.getElementById('carr');if(!el)return;
   let h='<div class="carrIn"><div class="mHead"><h3>'+TR(bi==null?'CARRIERE':CARRIERE[bi].nm)+'</h3></div>';
+  const sel=HUB?carrSel():null; // (2026-10-07) LE NIVEAU DES PLAY : la carte de son monde et sa case le portent (classe .choisi)
   if(bi==null){
     CARRIERE.forEach(function(B,k){const f=carrFait(k);
       /* (2026-09-30, Léo : « quand je choisis une map, ça ne lance pas la partie, il faut revenir en arrière ») la carte d'un MONDE
-         LANCE son niveau en cours (le prochain à finir) ; la grille des dix reste derrière le petit bouton NIVEAUX */
-      const nx=Math.min(B.niveaux.length-1,f);
-      h+='<div class="mMode carrBiome" data-c="monde" data-b="'+k+'" data-i="'+nx+'" data-id="'+B.id+'" role="button"><div class="mmT"><span>'+pxi(B.ic)+' '+TR(B.nm)+'</span><span class="mmP carrNivs" data-c="biome" data-b="'+k+'" role="button" aria-label="'+TR('NIVEAUX')+'">'+f+' / '+B.niveaux.length+'</span></div>'
-        +'<div class="carrPied"><div class="carrJauge"><i style="width:'+Math.round(f*100/B.niveaux.length)+'%"></i></div><span class="carrGo">'+pxi('droite')+' '+TR('NIVEAU')+' '+(nx+1)+'</span></div></div>'; /* (2026-10-07, Sacha : « mauvaise police, pas besoin d'autant de texte ») plus de description : le nom, la progression, le niveau à jouer */}); // (la ligne JOUER juste sous le titre : couché, une longue description la poussait sous le RETOUR) // le compteur « 0 / 10 ▸ » ouvre la grille des dix
+         LANCE son niveau en cours (le prochain à finir) ; la grille des dix reste derrière le petit bouton NIVEAUX
+         (2026-10-07, Léo : « choisir une map au lieu de lancer directement ») au garage, elle le CHOISIT (carrChoisit) — et si la map des
+         PLAY est dans ce monde, c'est ELLE que la carte montre */
+      const ch=!!sel&&sel.b===k,nx=ch?sel.i:Math.min(B.niveaux.length-1,f);
+      h+='<div class="mMode carrBiome'+(ch?' choisi':'')+'" data-c="monde" data-b="'+k+'" data-i="'+nx+'" data-id="'+B.id+'" role="button"><div class="mmT"><span>'+pxi(B.ic)+' '+TR(B.nm)+'</span><span class="mmP carrNivs" data-c="biome" data-b="'+k+'" role="button" aria-label="'+TR('NIVEAUX')+'">'+f+' / '+B.niveaux.length+'</span></div>'
+        +'<div class="carrPied"><div class="carrJauge"><i style="width:'+Math.round(f*100/B.niveaux.length)+'%"></i></div><span class="carrGo">'+pxi('droite')+' '+TR('NIVEAU')+' '+(nx+1)+'</span>'+(ch?'<i class="carrSel">'+TR('JOUER')+'</i>':'')+'</div></div>'; /* (2026-10-07, Sacha : « mauvaise police, pas besoin d'autant de texte ») plus de description : le nom, la progression, le niveau à jouer */}); // (la ligne JOUER juste sous le titre : couché, une longue description la poussait sous le RETOUR) // le compteur « 0 / 10 ▸ » ouvre la grille des dix
   }else{
     const f=carrFait(bi);h+='<div class="carrGrille">';
     CARRIERE[bi].niveaux.forEach(function(N,i){const ok=TEST_CARRIERE||i<=f; // (2026-09-27) version TEST : tous les niveaux se lancent (la couleur dit toujours la vraie progression)
-      h+='<div class="pbtn '+(i<f?'pb-green':i===f?'pb-gold':ok?'pb-cyan':'pb-cyan off')+' carrNiv" data-c="'+(ok?'niveau':'verrou')+'" data-b="'+bi+'" data-i="'+i+'" style="--sky:'+carrCiel(N)+'" role="button" aria-label="'+(LANG==='en'?'Level ':LANG==='zh'?'关卡 ':'Niveau ')+(i+1)+(ok?'':(LANG==='en'?' locked':LANG==='zh'?' 未解锁':' verrouillé'))+'"><b>'+(ok?String(i+1).padStart(2,'0'):pxi('verrou')+'<small>'+String(i+1).padStart(2,'0')+'</small>')+'</b><span><i class="nwB">'+insec(TR(N.nm))+'</i></span></div>';}); // (2026-09-30, revue) « D'APRES-MIDI » reste d'un bloc (nwB : le span est en flex, voir i.nwB)
+      h+='<div class="pbtn '+(i<f?'pb-green':i===f?'pb-gold':ok?'pb-cyan':'pb-cyan off')+' carrNiv'+(sel&&sel.b===bi&&sel.i===i?' choisi':'')+'" data-c="'+(ok?'niveau':'verrou')+'" data-b="'+bi+'" data-i="'+i+'" style="--sky:'+carrCiel(N)+'" role="button" aria-label="'+(LANG==='en'?'Level ':LANG==='zh'?'关卡 ':'Niveau ')+(i+1)+(ok?'':(LANG==='en'?' locked':LANG==='zh'?' 未解锁':' verrouillé'))+'"><b>'+(ok?String(i+1).padStart(2,'0'):pxi('verrou')+'<small>'+String(i+1).padStart(2,'0')+'</small>')+'</b><span><i class="nwB">'+insec(TR(N.nm))+'</i></span>'+(sel&&sel.b===bi&&sel.i===i?'<i class="carrSel">'+TR('JOUER')+'</i>':'')+'</div>';}); // (2026-09-30, revue) « D'APRES-MIDI » reste d'un bloc (nwB : le span est en flex, voir i.nwB)
     h+='</div>';
   }
   if(bi==null&&HUB&&garageOn&&!(started&&!gameOver))h+='<div class="mDock"><div class="pbtn mBack" data-c="maison" role="button" aria-label="Accueil">'+pxi('maison')+'<span>'+TR('HOME')+'</span></div></div>'; else // (2026-10-06) LE HUB : la carrière est un onglet du garage — sa sortie est la MAISON
@@ -15231,7 +15248,7 @@ function carrLancer(bi,i){
   ecranWipe(function(){carrLancerSous(bi,i);},function(){garageLaunch();});
 }
 function carrLancerSous(bi,i){
-  CARR.actif={b:bi,i:i};
+  CARR.actif={b:bi,i:i};carrSelPose(bi,i); // (2026-10-07) le niveau lancé devient celui des PLAY (voir « LE NIVEAU DES PLAY »)
   if(PARK.on){PARK.on=false;try{modeLbl();}catch(e){}} // (2026-09-27) la carrière passe devant le parc freestyle : sinon lvlChoisir rendait le parc, jamais le niveau
   /* (2026-09-28) PASSER PAR LA CARRIÈRE EN PREMIER SAUTAIT L'AUTO-ÉCOLE : le niveau 1 (AURORE) roule sur la piste d'apprentissage, mais
      sans le coach. Jamais faite → on l'arme ici, avec les mêmes refus que tutoArme (sans son rebuildMenuScene : celui d'en dessous suffit). */
@@ -15243,7 +15260,46 @@ function carrLancerSous(bi,i){
 // les chemins qui relancent sans passer par la mort (panneau ⏸, bouton du desktop). ⚠ pas dans resetGame : carrLancer y passe
 // aussi, et on écraserait le niveau que le joueur vient de choisir par celui de la partie d'avant.
 function carrIci(){if(CARR.actif&&LVL.cur&&LVL.cur.carr&&LVL.cur.carr.b===CARR.actif.b)CARR.actif.i=LVL.cur.carr.i;}
-window.dbgCarriere=function(){return {actif:CARR.actif,progression:SAVE.d.carr||{}};};
+/* LE NIVEAU DES PLAY (2026-10-07, Léo : « quand j'appuie directement sur PLAY, ça me lance dans une map avec un son qui n'est pas celui
+   qu'on retrouve depuis la carrière ; le PLAY du garage lance le dernier niveau de carrière auquel on a joué ; on peut aussi sélectionner
+   un niveau dans la carrière puis retourner au garage — choisir une map, au lieu de lancer directement »).
+   · `SAVE.d.carrSel` {id du monde, i} = le niveau que lancent le PLAY de l'accueil, le JOUER de l'atelier et celui des MISSIONS — par le
+     MÊME départ que la carrière (`carrLancer` : le voile, la piste du niveau reconstruite dessous, la musique du niveau, puis le lâcher).
+     Rangé par `id` comme `SAVE.d.carr` : l'ordre des mondes peut bouger.
+   · Il suit le joueur : `carrLancerSous` (le niveau qu'on vient de lancer), `endGame` (celui où la partie s'est arrêtée : on a pu passer
+     des portails), les fins de monde (le monde suivant, comme REJOUER), et un toucher dans la carrière (`carrChoisit`).
+   · Rien de choisi : le niveau en cours du 1er monde (celui de sa carte). L'auto-école qui attend (1re partie, REVOIR L'AUTO-ÉCOLE) :
+     AURORE, le niveau 1, qui l'arme lui-même (carrLancerSous) — l'ancien JOUER l'armait par tutoArme.
+   · La partie sans fin d'avant reste à qui l'a demandée : le PARC ou le SURVIVANT armés dans MODES, Poki (pas de carrière) et la vitrine
+     `?menu=leo` (sa vignette dit le niveau sans fin) — `carrPlayOk()`. */
+function carrPlayOk(){return HUB&&!PARK.on&&!SURV.armed;}
+function carrSelPose(bi,i){const B=CARRIERE[bi];if(!B||!B.niveaux[i])return;const s=SAVE.d.carrSel;
+  if(!(s&&s.id===B.id&&s.i===i)){SAVE.d.carrSel={id:B.id,i:i};SAVE.mark();}
+  carrPlayMaj();}
+function carrSel(){ // {b,i} : le niveau que lancent les PLAY
+  if(!SAVE.d.tuto&&!SANDBOX&&CARRIERE[0].niveaux[0].piste==='tuto')return {b:0,i:0};
+  const s=SAVE.d.carrSel,b=s?CARRIERE.findIndex(function(B){return B.id===s.id;}):-1;
+  if(b>=0&&CARRIERE[b].niveaux[s.i]&&(TEST_CARRIERE||s.i<=carrFait(b)))return {b:b,i:s.i};
+  return {b:0,i:Math.min(CARRIERE[0].niveaux.length-1,carrFait(0))};}
+function carrJouer(){ // le PLAY de l'accueil et du garage
+  if(pendingScore!=null)return; // un nom en cours de saisie (comme playViaGarage)
+  const s=carrSel();carrLancer(s.b,s.i);}
+function carrChoisit(bi,i){ // un toucher dans la carrière CHOISIT la map et rend la main au garage, où PLAY la lance
+  const B=CARRIERE[bi];if(!B||!B.niveaux[i])return;
+  if(PARK.on){PARK.on=false;try{modeLbl();}catch(e){}} // choisir une map de carrière, c'est quitter le parc et le Survivant armés : PLAY la lancera
+  if(SURV.armed){SURV.armed=false;try{modeLbl();}catch(e){}}
+  carrSelPose(bi,i);SAVE.flush();
+  toast(pxi('coche')+' '+TR(B.nm)+' '+(i+1)+' · '+TR(B.niveaux[i].nm));
+  if(garageOn&&gEl&&gEl.classList.contains('missions'))garMode('boutique'); // ouverte de l'onglet MISSIONS : on revient à l'ATELIER, son JOUER sous le pouce
+  feuilleFerme(document.getElementById('carr'),'on');
+  try{hubSync();}catch(e){}}
+function carrPlayNom(){const s=carrSel();return TR(CARRIERE[s.b].nm)+' '+(s.i+1);}
+function carrPlayMaj(){ // la petite ligne sous les PLAY : la map qu'ils lancent (vide quand ils lancent la partie sans fin)
+  const t=carrPlayOk()?carrPlayNom():'';
+  for(const el of [document.querySelector('#mHome .mPlay'),document.getElementById('gJouer')]){if(!el)continue;
+    let s=el.querySelector('.playNiv');if(!s){if(!t)continue;s=document.createElement('small');s.className='playNiv';s.setAttribute('aria-hidden','true');el.appendChild(s);}
+    if(s.textContent!==t)s.textContent=t;el.classList.toggle('aNiv',!!t);}}
+window.dbgCarriere=function(){return {actif:CARR.actif,progression:SAVE.d.carr||{},sel:SAVE.d.carrSel||null,play:carrPlayOk()?carrSel():'sans fin'};};
 window.dbgVilleEntree=function(){return {marque:!!VILLE_ENTREE,troncons:CITY.entree,metres:CITY.entree?CITY.entree.map(function(i){return Math.round(i*L/(NP-1));}):null,alt:CITY.entree?CITY.entree.map(function(i){return Math.round(pts[i].y);}):null,depart:NP?Math.round(pts[0].y):null};}; // (banc) l'entrée surélevée de la ville : où finit la droite, où finit la rampe
 window.dbgNiveau=function(){return LVL.cur?{niveau:LVL.n,lieu:LVL.cur.id,ciel:BIO.name,largeurRoute:+(ROAD_HALF*2).toFixed(1),uSpace:+LVL.espace.toFixed(2),
   planete:+LVL.planete.toFixed(2),ville:!!CITY.root,nuages:CLOUDS.length,nuit:+LVL.nuit.toFixed(2),hard:!!LVL.cur.hard,graine:LVL.cur.graine|0,pr:LVL.cur.pr||''}:'parc freestyle (pas de niveaux)';}; // (2026-09-30) + nuit, hard, graine, promesse : le banc de la carrière
@@ -29505,6 +29561,7 @@ const SAVE={
     if(d.vol&&typeof d.vol==='object'){const q=(k,dv)=>{const x=+d.vol[k];return isFinite(x)?Math.min(1,Math.max(0,x)):dv;};
       c.vol={mus:q('mus',.62),sfx:q('sfx',1),vox:q('vox',1)};}
     c.tctl=(d.tctl==='pad')?'pad':'stick';c.q=(d.q==='net')?'net':'fast';c.sand=(d.sand===true);c.carr={};if(d.carr&&typeof d.carr==='object')for(const k of ['nuages','ville','espace','paris'])c.carr[k]=Math.max(0,Math.min(10,d.carr[k]|0)); // réglages MOBILE
+    if(d.carrSel&&typeof d.carrSel==='object'&&['nuages','ville','espace','paris'].includes(d.carrSel.id))c.carrSel={id:d.carrSel.id,i:Math.max(0,Math.min(9,d.carrSel.i|0))}; // (2026-10-07) LE NIVEAU DES PLAY (carrSel le revérifie contre la carrière)
     if(Array.isArray(d.fruits))c.fruits=d.fruits.slice(0,32).filter(e=>e&&typeof e.n==='string').map(e=>({ // réglages de l'ÉTAL (bornés : un import bidon ne casse rien)
       n:e.n.slice(0,24),
       b:THREE.MathUtils.clamp(isFinite(+e.b)?+e.b:.5,0,2),
@@ -33100,6 +33157,7 @@ function endGame(){
   if(FLOW.lv===4)frenFin(true); // (v3) une frénésie encore en cours (QUITTER, fin de campagne) compte pour l'écran de fin et le record
   if(mode!=='boom'&&!CAMP.garde)mortCause=''; // (2026-09-26) QUITTER n'est pas une mort : pas la cause de la partie d'avant · (2026-09-27) sauf une fin de CAMPAGNE (semé, terminé) qui pose la sienne
   if(CARR.actif&&LVL.cur&&LVL.cur.carr&&LVL.cur.carr.b===CARR.actif.b)CARR.actif.i=LVL.cur.carr.i; // (2026-09-27) REJOUER repart du niveau où l'on s'est arrêté, pas du premier de la série
+  try{if(CARR.actif&&LVL.cur&&LVL.cur.carr)carrSelPose(LVL.cur.carr.b,LVL.cur.carr.i);}catch(e){} // (2026-10-07) …et les PLAY du menu aussi : « le dernier niveau de carrière auquel on a joué »
   try{campStop();}catch(e){} // (2026-09-27) tirs, fumée, éclairs, halos : rien ne reste figé derrière l'écran de fin
   try{rainbowCoupe();}catch(e){} // (2026-10-07) l'arc-en-ciel de pixels brûle encore pendant l'explosion : la boucle s'arrête ici, il ne doit pas rester figé
   try{if(CHA.n&&mode==='drive')chaineEncaisse();}catch(e){} // (2026-09-26) la chaîne d'aura ouverte est encaissée, pas oubliée
@@ -34455,6 +34513,7 @@ function campFinale(){ // le portail du COUCHER : les NUAGES sont finis
   CAMP.garde=true;mortCause='finNuages';
   endGame();
   CARR.actif={b:Math.max(0,CARRIERE.findIndex(function(B){return B.id==='ville';})),i:0}; // (2026-09-28) REJOUER ouvre la VILLE (il relançait la chasse de la caisse-nuage qu'on conduit déjà)
+  carrSelPose(CARR.actif.b,0); // (2026-10-07) les PLAY du menu aussi
 }
 function espaceFinale(){ // (2026-09-28) le portail de PLUTON : l'ESPACE est fini — même cérémonie que les NUAGES et la VILLE
   const zb=denom()*60*flowMult();money+=zb;levelCash+=zb;livre('$:fin',zb);try{checkUpgrade();}catch(e){} // (2026-09-29) × le FLOW : le dernier portail franchi en FRÉNÉSIE paie ×3
@@ -35415,6 +35474,7 @@ function villeFinale(){ // le portail de MIDI franchi AVANT le banquier : la VIL
   CAMP.garde=true;mortCause='finVille';
   endGame();
   CARR.actif={b:Math.max(0,CARRIERE.findIndex(function(B){return B.id==='espace';})),i:0}; // (2026-09-28) REJOUER ouvre l'ESPACE (il relançait le banquier)
+  carrSelPose(CARR.actif.b,0); // (2026-10-07) les PLAY du menu aussi
 }
 // ============ 8 · LES ÉTAGES : les colonnes de lumière ============
 // Les gués de ouate des NUAGES n'existent pas en ville (zéro nuage) : à leur place, six COLONNES montent du fond du canyon entre les
@@ -36985,6 +37045,7 @@ function openGarage(quiet){
   try{if(SONV2&&!openGarage._amb)openGarage._amb=sfx('garage.ambiance',{loop:true});}catch(e){} // (console de son) l'ATELIER a sa voix : néons, tube qui grésille, la ville au loin
   try{if(SONV2&&!openGarage._feu)openGarage._feu=sfx('garage.feu',{loop:true});}catch(e){} // (2026-09-29) …et la porte BRÛLE : le rideau de flammes gronde et crépite (il monte pendant le lâcher, voir garFeu)
   garageOn=true;gEl.classList.add('on');gEl.classList.toggle('quiet',!!quiet);overlay.style.display='none';document.body.classList.add('inGarage');
+  try{carrPlayMaj();}catch(e){} // (2026-10-07) la map que lance JOUER, à jour (progression, auto-école) — « LE NIVEAU DES PLAY »
   if(pigGroup)pigGroup.visible=false;
   if(!GAR.root)buildGarageRoom();   // L'ATELIER se bâtit à la PREMIÈRE visite : zéro coût pour qui n'y entre jamais
   GAR.root.visible=true;
@@ -37462,44 +37523,124 @@ function titreHeureTick(dt){ // l'heure, relue toutes les 20 s (un menu laissé 
 window.dbgHeure=function(h){ // (dev) forcer une heure du titre : dbgHeure('golden') · dbgHeure(null) : l'horloge du téléphone
   if(h!==undefined){TITRE_HF.force=h&&TITRE_H[h]?h:null;TITRE_HF.tc=0;titreHeureTick(0);}
   return {heure:TITRE_HF.h,forcee:TITRE_HF.force,horloge:titreHeureDe(new Date()),heures:TITRE_HEURES};};
-/* LE TAPOTEMENT AU CIEL (2026-10-03, Léo : « on peut tapoter la voiture et simuler, à l'endroit tapoté, un coup qui fait légèrement
-   pousser / pivoter la voiture en train de tomber dans les airs »). Le doigt lance un rayon de la caméra ; s'il touche la caisse (une
-   pièce visible et opaque), le coup part de CE point, dans le sens du rayon : une poussée (le centre recule de quelques décimètres) et un
-   couple r × F (taper le nez la fait tourner autrement que taper l'aile) — puis deux ressorts amortis la ramènent, en deux ou trois
-   balancements, comme une caisse en chute libre secouée par l'air. Un éclat à l'endroit du coup, le « toc » de tôle de l'atelier, une
-   vibration. Réglages : CHUTE_TAP (V poussée m/s, W pivot rad/s par m, K/C ressort et amorti, KR/CR pour la rotation). */
-const CHUTE_TAP={p:new THREE.Vector3(),v:new THREE.Vector3(),r:new THREE.Vector3(),w:new THREE.Vector3(),q:new THREE.Quaternion(),
-  ray:new THREE.Raycaster(),nd:new THREE.Vector2(),a:new THREE.Vector3(),o:new THREE.Vector3(),fl:null,flT:9,
-  V:1.8,W:.5,WMAX:1.3,K:13,C:2.6,KR:15,CR:2.3,n:0};
-window.dbgTape=function(){const T=CHUTE_TAP;return {coups:T.n,pousse:+T.p.length().toFixed(3),pivot:+(T.r.length()*57.3).toFixed(1)};}; // (dev) l'état du coup : nombre, poussée (m), pivot (°)
+/* LA CAISSE AU DOIGT, AU CIEL — v2 « TRASH » (2026-10-07, Léo : « dans le menu ciel la voiture doit pouvoir être tournée, tapée, balancée ;
+   le clic sur elle doit être plus trash ») — remplace LE TAPOTEMENT AU CIEL du 03/10 (mêmes points d'entrée : chuteTape, chuteTapeTick).
+   · TAPÉE (un tap SUR la caisse) : le COUP part du point touché, dans le sens du rayon — une vraie poussée (V), le couple r × F (W : taper
+     le nez ne la fait pas tourner comme taper l'aile) et une part de CHAOS (deux coups ne tombent jamais pareil). Au point d'impact : l'éclat,
+     une gerbe d'ÉTINCELLES, des MORCEAUX DE TÔLE à ses couleurs qui s'arrachent et que l'air emporte vers le haut (elle tombe, eux freinent) ;
+     la caméra encaisse (secousse + coup de zoom), la tôle craque (pose.choc + debris.tole, pose.lourde quand ça s'emballe), le téléphone vibre.
+     LE COMBO : des coups rapprochés (< 0,7 s) frappent de plus en plus fort (×1 → ×2,75) — tapée en rafale, elle part en vrille.
+   · TOURNÉE (un glissé qui PART de la caisse — ailleurs le glissé fait toujours tourner la vue) : elle tourne sous le doigt comme une boule
+     (gauche-droite autour de la verticale de l'écran, haut-bas autour de son horizontale) et se laisse un peu tirer.
+   · BALANCÉE (lâchée en mouvement) : elle garde l'élan du doigt — elle part en toupie et file dans le sens du lancer.
+   · LE RETOUR : deux ressorts. La position revient (K/C). La rotation est un QUATERNION (plus un vecteur) : on peut lui faire faire trois
+     tours, elle ne les « détord » pas — elle revient par le plus court chemin à son attitude de chute. Tant qu'elle tourne vite (> WL rad/s)
+     le ressort la LÂCHE (toupie libre), puis il la rattrape en deux ou trois balancements.
+   Rien de neuf à compiler : les morceaux sont des Phong nus (le programme des éclats), étincelles et éclat sont ceux du jeu.
+   Réglages : CHUTE_TAP (V/W/WMAX/CHAOS le coup, K/C/KR/CR les ressorts, WL la toupie, TR/TT le doigt). dbgTape() : l'état ; dbgTape('coup')
+   frappe la caisse en son centre (banc). */
+const CHUTE_TAP={p:new THREE.Vector3(),v:new THREE.Vector3(),Q:new THREE.Quaternion(),w:new THREE.Vector3(),q:new THREE.Quaternion(),
+  ray:new THREE.Raycaster(),nd:new THREE.Vector2(),a:new THREE.Vector3(),b:new THREE.Vector3(),o:new THREE.Vector3(),n9:new THREE.Vector3(),
+  cR:new THREE.Vector3(),cU:new THREE.Vector3(),pT:new THREE.Vector3(),col:new THREE.Color(),fl:null,flT:9,flS:1,
+  V:7.5,W:5,WMAX:16,CHAOS:5,K:12,C:2.4,KR:16,CR:1.9,WL:3,TR:.011,TT:.012,PMAX:4.5,
+  n:0,combo:0,cT:-9,sh:0,deb:null,debM:null,tient:null};
+window.dbgTape=function(k){const T=CHUTE_TAP; // (dev) l'état du coup — dbgTape('coup') : un coup au centre de la caisse (banc)
+  if(k==='coup'){const r=renderer.domElement.getBoundingClientRect(),q=(CHUTE.ctr||carGroup.position).clone().project(camera);
+    return chuteTape({clientX:r.left+(q.x+1)/2*r.width,clientY:r.top+(1-q.y)/2*r.height});}
+  let qw=Math.abs(T.Q.w);return {coups:T.n,combo:T.combo,pousse:+T.p.length().toFixed(2),pivot:+(2*Math.acos(Math.min(1,qw))*57.3).toFixed(1),toupie:+T.w.length().toFixed(2),secousse:+T.sh.toFixed(2),
+    morceaux:T.deb?T.deb.filter(function(d){return d.m.visible;}).length:0,tient:T.tient?(T.tient.drag?'tourne':'pose'):null,
+    centre:(function(){const r=renderer.domElement.getBoundingClientRect(),q=(CHUTE.ctr||carGroup.position).clone().project(camera);return [Math.round(r.left+(q.x+1)/2*r.width),Math.round(r.top+(1-q.y)/2*r.height)];})()};}; // centre : le centre de la caisse à l'écran (px)
 function chuteVisible(o){for(let x=o;x;x=x.parent)if(!x.visible)return false;return true;}
-function chuteTape(e){
-  if(!CHUTE.on||CHUTE.go||!carGroup.visible)return false;
-  const T=CHUTE_TAP;T.nd.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);
+function chuteVise(e){ // le rayon du doigt : la 1re pièce VISIBLE et opaque de la caisse, ou rien
+  if(!CHUTE.on||CHUTE.go||!carGroup.visible)return null;
+  const T=CHUTE_TAP,r=renderer.domElement.getBoundingClientRect();T.nd.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1);
   camera.updateMatrixWorld();T.ray.setFromCamera(T.nd,camera);
-  let h=null;for(const x of T.ray.intersectObject(carGroup,true)){const m=x.object.material;
-    if(!x.object.isMesh||!chuteVisible(x.object))continue;if(m&&(m.blending===THREE.AdditiveBlending||(m.transparent&&m.opacity<.5)))continue;h=x;break;}
-  if(!h)return false;
-  const d=T.ray.ray.direction,c=CHUTE.ctr||carGroup.position;
-  T.v.addScaledVector(d,T.V);if(T.v.length()>T.V*2)T.v.setLength(T.V*2);                     // la poussée, dans le sens du doigt
-  T.a.subVectors(h.point,c).cross(d).multiplyScalar(T.W);T.w.add(T.a);if(T.w.length()>T.WMAX)T.w.setLength(T.WMAX); // le pivot : r × F
+  for(const x of T.ray.intersectObject(carGroup,true)){const m=x.object.material;
+    if(!x.object.isMesh||!chuteVisible(x.object))continue;if(m&&(m.blending===THREE.AdditiveBlending||(m.transparent&&m.opacity<.5)))continue;return x;}
+  return null;
+}
+function chuteAxes(){const T=CHUTE_TAP;T.cR.set(1,0,0).applyQuaternion(camera.quaternion);T.cU.set(0,1,0).applyQuaternion(camera.quaternion);} // la droite et le haut de l'ÉCRAN, dans le monde
+function chuteDebris(){ // les morceaux de tôle (une fois) : 16 boîtes sur UNE géométrie, trois Phong nus (sa couleur, son accent, le noir du dessous)
+  const T=CHUTE_TAP;if(T.deb)return;const g=new THREE.BoxGeometry(1,1,1);g.userData.partage=true;
+  T.debM=[new THREE.MeshPhongMaterial({color:0xff5a2a,shininess:80,specular:0x777777}),new THREE.MeshPhongMaterial({color:0xffffff,shininess:80,specular:0x777777}),new THREE.MeshPhongMaterial({color:0x17151c,shininess:30,specular:0x333333})];
+  T.deb=[];for(let i=0;i<16;i++){const m=new THREE.Mesh(g,T.debM[i%3]);m.visible=false;m.castShadow=m.receiveShadow=false;scene.add(m);
+    T.deb.push({m:m,v:new THREE.Vector3(),w:new THREE.Vector3(),t:0,vie:1,s:new THREE.Vector3()});}
+  T.di=0;
+}
+function chuteTape(e){ // TAPÉE : le coup
+  const h=chuteVise(e);if(!h)return false;
+  const T=CHUTE_TAP,d=T.ray.ray.direction,c=CHUTE.ctr||carGroup.position,now=performance.now()/1000;
+  T.combo=now-T.cT<.7?Math.min(6,T.combo+1):1;T.cT=now;const mu=1+.35*(T.combo-1);  // LE COMBO : ×1 → ×2,75
+  chuteAxes();const lt=(Math.random()-.5)*2,lu=Math.random()*.8-.2;                       // la poussée : dans le sens du doigt, et DE CÔTÉ (repoussée au loin seulement, elle rapetissait)
+  T.v.addScaledVector(d,T.V*mu*.5).addScaledVector(T.cR,T.V*mu*.5*lt).addScaledVector(T.cU,T.V*mu*.5*lu);if(T.v.length()>T.V*3)T.v.setLength(T.V*3);
+  T.a.subVectors(h.point,c).cross(d).multiplyScalar(T.W*mu);T.w.add(T.a);                  // le pivot : r × F
+  T.w.x+=(Math.random()-.5)*T.CHAOS*mu;T.w.y+=(Math.random()-.5)*T.CHAOS*mu;T.w.z+=(Math.random()-.5)*T.CHAOS*mu; // le chaos
+  if(T.w.length()>T.WMAX)T.w.setLength(T.WMAX);
+  T.sh=Math.min(1.6,T.sh+.55*mu);                                                         // la caméra encaisse
+  // la normale de la face touchée (dans le monde), pour faire gicler étincelles et morceaux
+  const n=T.n9;if(h.face)n.copy(h.face.normal).transformDirection(h.object.matrixWorld);else n.copy(d).negate();if(n.dot(d)>0)n.negate();
   if(!T.fl){const cv=document.createElement('canvas');cv.width=cv.height=64;const x=cv.getContext('2d'),g=x.createRadialGradient(32,32,0,32,32,32);
     g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.25,'rgba(255,240,200,.85)');g.addColorStop(1,'rgba(255,210,140,0)');x.fillStyle=g;x.fillRect(0,0,64,64);
     T.fl=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthTest:false,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}));
     T.fl.renderOrder=999;T.fl.visible=false;scene.add(T.fl);}
-  T.fl.position.copy(h.point).addScaledVector(d,-.15);T.flT=0;T.fl.visible=true;T.n++;
-  try{if(SONV2)sfx('garage.tole');else{chimeNote(340,0,.05,.10);noiseBurst(.14,.05,1400);}}catch(_){} /* le « toc » de tôle de l'atelier */
-  try{hap(14);}catch(_){}
+  T.fl.position.copy(h.point).addScaledVector(d,-.15);T.flT=0;T.flS=1+.4*(mu-1);T.fl.visible=true;T.n++;
+  const P=h.point,ns=Math.round(16*mu);                                                    // LES ÉTINCELLES
+  for(let i=0;i<ns;i++){const s=5+Math.random()*9*mu;
+    spawnP(sparkGold,P.x,P.y,P.z,n.x*s+(Math.random()-.5)*8,n.y*s+(Math.random()-.5)*8+2,n.z*s+(Math.random()-.5)*8,.25+Math.random()*.45);}
+  for(let i=0;i<3+mu*2;i++)spawnP(dust,P.x,P.y,P.z,n.x*2+(Math.random()-.5)*2,n.y*2+(Math.random()-.5)*2,n.z*2+(Math.random()-.5)*2,.5+Math.random()*.5); // la poussière de peinture
+  chuteDebris();const sp=CARS[garageI]||CARS[0];                                         // LES MORCEAUX DE TÔLE, à ses couleurs
+  {const M9=Array.isArray(h.object.material)?h.object.material[0]:h.object.material,G9=h.object.geometry,ca=G9&&G9.attributes&&G9.attributes.color; // la couleur de la PIÈCE touchée (sa couleur de sommet × sa matière)
+   if(M9&&M9.color)T.debM[0].color.copy(M9.color);else T.debM[0].color.setHex(sp.color!=null?sp.color:0xff5a2a);
+   if(ca&&h.face&&M9&&M9.vertexColors){const i9=h.face.a;T.col.setRGB(ca.getX(i9),ca.getY(i9),ca.getZ(i9));T.debM[0].color.multiply(T.col);}
+   T.debM[1].color.setHex(sp.accent!=null?sp.accent:0xdddddd);}
+  const nd=Math.min(T.deb.length,Math.round(2+1.6*mu));
+  for(let i=0;i<nd;i++){const D=T.deb[T.di];T.di=(T.di+1)%T.deb.length;const sp9=3+Math.random()*5*mu,m=D.m;
+    m.position.copy(P).addScaledVector(n,.05);D.v.set(n.x*sp9+(Math.random()-.5)*5,n.y*sp9+(Math.random()-.5)*5+1.5,n.z*sp9+(Math.random()-.5)*5);
+    D.w.set((Math.random()-.5)*16,(Math.random()-.5)*16,(Math.random()-.5)*16);m.rotation.set(Math.random()*6,Math.random()*6,Math.random()*6);
+    const k9=.5+Math.random()*.8;D.s.set(.34*k9,.05+.05*Math.random(),.24*k9);m.scale.copy(D.s);D.t=0;D.vie=1.3+Math.random()*.9;m.visible=true;}
+  try{if(SONV2){sfx('pose.choc',{vol:-2+3*Math.min(1,mu-1)});sfx('debris.tole',{vol:2,t:.03});if(T.combo>=3)sfx('pose.lourde',{vol:-4,t:.02});}else{chimeNote(340,0,.05,.10);noiseBurst(.18,.08,900);}}catch(_){} /* la tôle qui encaisse — de plus en plus lourd */
+  try{hap(T.combo>=3?[30,20,40]:[22,15,18]);}catch(_){}
   return true;
 }
-function chuteTapeTick(dt,C,up,sc){ // les deux ressorts (poussée, pivot) et l'éclat ; la caisse tourne autour de son CENTRE (C), pas de son origine
-  const T=CHUTE_TAP,k=Math.min(dt,.05);CHUTE.ctr=C;
-  T.v.addScaledVector(T.p,-T.K*k).multiplyScalar(Math.exp(-T.C*k));T.p.addScaledVector(T.v,k);
-  T.w.addScaledVector(T.r,-T.KR*k).multiplyScalar(Math.exp(-T.CR*k));T.r.addScaledVector(T.w,k);
-  if(T.fl&&T.fl.visible){T.flT+=dt;const u=T.flT/.32;if(u>=1)T.fl.visible=false;else{T.fl.material.opacity=1-u;const s9=(.35+u*1.1)*sc;T.fl.scale.set(s9,s9,1);}}
-  if(T.p.lengthSq()+T.r.lengthSq()<1e-8&&T.v.lengthSq()+T.w.lengthSq()<1e-8)return;
-  const a=T.r.length();if(a>1e-6){T.q.setFromAxisAngle(T.a.copy(T.r).divideScalar(a),a);carGroup.quaternion.premultiply(T.q);}else T.q.identity();
-  T.o.copy(up).multiplyScalar(-.45*sc).applyQuaternion(T.q);carGroup.position.copy(C).add(T.o).add(T.p);
+function chutePrend(e){ // le doigt se pose : SUR la caisse, il la tient (sinon : la vue, comme avant)
+  const T=CHUTE_TAP;T.tient=null;if(!chuteVise(e))return false;
+  T.tient={id:e.pointerId,x0:e.clientX,y0:e.clientY,x:e.clientX,y:e.clientY,t:performance.now(),vx:0,vy:0,drag:false,wR:new THREE.Vector3()};return true;
+}
+function chuteTourne(e){ // le doigt glisse sur la caisse : elle tourne comme une boule et se laisse tirer
+  const T=CHUTE_TAP,H=T.tient;if(!H)return;const dx=e.clientX-H.x,dy=e.clientY-H.y,n9=performance.now(),dm=Math.max(8,n9-H.t)/1000;
+  if(!H.drag&&Math.hypot(e.clientX-H.x0,e.clientY-H.y0)>=14)H.drag=true;
+  chuteAxes();
+  if(H.drag&&(dx||dy)){T.q.setFromAxisAngle(T.cU,dx*T.TR);T.Q.premultiply(T.q);T.q.setFromAxisAngle(T.cR,dy*T.TR);T.Q.premultiply(T.q);T.Q.normalize();
+    T.a.copy(T.cU).multiplyScalar(dx*T.TR/dm).addScaledVector(T.cR,dy*T.TR/dm);H.wR.multiplyScalar(.5).addScaledVector(T.a,.5);T.w.set(0,0,0);}
+  H.vx=H.vx*.5+dx/dm*.5;H.vy=H.vy*.5+dy/dm*.5;H.x=e.clientX;H.y=e.clientY;H.t=n9;
+  T.pT.copy(T.cR).multiplyScalar((H.x-H.x0)*T.TT).addScaledVector(T.cU,-(H.y-H.y0)*T.TT);if(T.pT.length()>2.5)T.pT.setLength(2.5);
+}
+function chuteLache(){ // le doigt se lève après un glissé : BALANCÉE — elle garde l'élan du doigt
+  const T=CHUTE_TAP,H=T.tient;T.tient=null;if(!H||!H.drag)return;
+  if(performance.now()-H.t>90){T.w.set(0,0,0);return;}                                   // le doigt s'était arrêté : elle revient d'elle-même
+  T.w.copy(H.wR);if(T.w.length()>T.WMAX)T.w.setLength(T.WMAX);
+  chuteAxes();T.v.addScaledVector(T.cR,H.vx*T.TT*.9).addScaledVector(T.cU,-H.vy*T.TT*.9);if(T.v.length()>T.V*3)T.v.setLength(T.V*3);
+  if(T.w.length()>4)try{if(SONV2)sfx('debris.tole',{vol:-6,rate:.8});hap(10);}catch(_){}
+}
+function chuteTapeTick(dt,C,up,sc){ // les deux ressorts, l'éclat, les morceaux, les étincelles ; la caisse tourne autour de son CENTRE (C), pas de son origine
+  const T=CHUTE_TAP,k=Math.min(dt,.05),H=T.tient,tient=!!(H&&H.drag);CHUTE.ctr=C;
+  if(tient){T.v.addScaledVector(T.a.subVectors(T.p,T.pT),-T.K*1.8*k).multiplyScalar(Math.exp(-T.C*2*k));}   // tenue : elle suit le doigt, en ressort
+  else T.v.addScaledVector(T.p,-T.K*k).multiplyScalar(Math.exp(-T.C*k));
+  T.p.addScaledVector(T.v,k);if(T.p.length()>T.PMAX)T.p.setLength(T.PMAX);
+  if(!tient){let qw=T.Q.w,s9=1;if(qw<0){s9=-1;qw=-qw;}const sn=Math.sqrt(Math.max(0,1-qw*qw)),an=2*Math.atan2(sn,qw); // l'écart à l'attitude de chute, par le plus court chemin
+    if(sn>1e-7)T.a.set(T.Q.x*s9,T.Q.y*s9,T.Q.z*s9).multiplyScalar(an/sn);else T.a.set(0,0,0);
+    const wl=T.w.length()/T.WL,kr=T.KR/(1+wl*wl);                                      // toupie : tant qu'elle tourne vite, le ressort la lâche
+    T.w.addScaledVector(T.a,-kr*k).multiplyScalar(Math.exp(-T.CR*(.35+.65/(1+wl*wl))*k)); // (lancée, l'air la freine moins : deux ou trois tours de toupie)
+    const wa=T.w.length()*k;if(wa>1e-8){T.q.setFromAxisAngle(T.b.copy(T.w).divideScalar(T.w.length()),wa);T.Q.premultiply(T.q).normalize();}}
+  T.sh*=Math.exp(-dt*5.5);if(T.sh<.003)T.sh=0;
+  if(T.fl&&T.fl.visible){T.flT+=dt;const u=T.flT/.32;if(u>=1)T.fl.visible=false;else{T.fl.material.opacity=1-u;const s9=(.5+u*1.9)*sc*T.flS;T.fl.scale.set(s9,s9,1);}}
+  if(T.deb)for(const D of T.deb){if(!D.m.visible)continue;D.t+=dt;if(D.t>=D.vie){D.m.visible=false;continue;} // les morceaux : l'air les emporte vers le HAUT (elle tombe, eux freinent)
+    D.v.multiplyScalar(Math.exp(-dt*.9));D.v.y+=9*dt;D.m.position.addScaledVector(D.v,dt);D.m.rotation.x+=D.w.x*dt;D.m.rotation.y+=D.w.y*dt;D.m.rotation.z+=D.w.z*dt;
+    const f9=Math.min(1,(D.vie-D.t)/.35);D.m.scale.copy(D.s).multiplyScalar(f9);}
+  if(!(running&&!paused&&!gameOver)){updatePool(sparkGold,dt,3);updatePool(dust,dt,2);}  // au menu, la boucle de course ne les fait pas vivre
+  if(!tient&&T.p.lengthSq()+T.v.lengthSq()+T.w.lengthSq()<1e-8&&1-Math.abs(T.Q.w)<1e-10){T.Q.identity();return;}
+  carGroup.quaternion.premultiply(T.Q);
+  T.o.copy(up).multiplyScalar(-.45*sc).applyQuaternion(T.Q);carGroup.position.copy(C).add(T.o).add(T.p);
 }
 /* LE MODELÉ DE LA CAISSE AU TITRE (2026-10-03, Léo : « travailler encore plus en profondeur le shading de la caisse, sans faire trop »).
    MESURÉ avant : deux lampes posées SUR la caméra (la clé et la lampe de caisse) éclairaient toutes les faces vues de face d'un même
@@ -37510,7 +37651,7 @@ function chuteTapeTick(dt,C,up,sc){ // les deux ressorts (poussée, pivot) et l'
    ZÉNITH froid léger (`sc`) · le CONTRE-JOUR qui la détoure (`sr`). Banc studio.mjs (planches A/B, `dbgChute({fige})`) : f1 retenu, un cran plus clair (amb .55, sol .7, sk 1.6 : à .5/.6 la caisse tirait au brun dans le menu entier).
    ⚠ Le REBOND par en dessous (`sb`, la lampe trailLight) blanchissait les vitres latérales et les pneus (le reflet d'une lampe basse) : 0.
    Doses modérées : du volume, pas un effet. P.studio = 0 : l'éclairage d'avant. */
-const CHUTE_ST={c:new THREE.Vector3(),r:new THREE.Vector3()}; // (ses vecteurs à lui : CHUTE.v1 est le HAUT de la caisse, encore lu après)
+const CHUTE_ST={c:new THREE.Vector3(),r:new THREE.Vector3(),u:new THREE.Vector3()}; // (ses vecteurs à lui : CHUTE.v1 est le HAUT de la caisse, encore lu après)
 function chuteStudio(C,up,P){
   const toC=CHUTE_ST.c.copy(CHUTE.cam).sub(C).normalize(),BT=BIOMES.titre||BIOMES[MENU_BIO];
   /* (2026-10-07, LE TOUR SANS FIN) À CONTRE-JOUR : le regard qui fait le tour passe du côté opposé au soleil, et la face vue n'était plus
@@ -37528,7 +37669,7 @@ function chuteStudio(C,up,P){
   /* (le tour sans fin) LE VENTRE : de derrière, la caisse qui pique du nez montre son DESSOUS — un châssis sombre qu'aucune lampe d'en haut
      ne touche (une plaque brune sur 3 vues sur 8). La mer de nuages en dessous, au soleil, le renvoie : le rebond (`sb`, éteint au plan de
      face où il blanchissait vitres et pneus) monte avec `ve` = la part du dessous tournée vers la caméra, à la couleur de la mer de l'heure. */
-  const ve=THREE.MathUtils.clamp(-(up.x*toC.x+up.y*toC.y+up.z*toC.z)*1.8,0,1)*(P.vb!=null?P.vb:0),fc=cj*(P.cjF!=null?P.cjF:0),fi=Math.max(ve,fc); /* fc : À CONTRE-JOUR, le même rebond éclaire le flanc vu (presque à hauteur : la gîte le tourne vers le bas) — la clé (stallKey) n'est allumée au ciel qu'après un passage par l'atelier : on ne compte pas dessus */
+  const uq=CHUTE_ST.u.copy(up).applyQuaternion(CHUTE_TAP.Q),ve=THREE.MathUtils.clamp(-(uq.x*toC.x+uq.y*toC.y+uq.z*toC.z)*1.8,0,1)*(P.vb!=null?P.vb:0),fc=cj*(P.cjF!=null?P.cjF:0),fi=Math.max(ve,fc); /* fc : À CONTRE-JOUR, le même rebond éclaire le flanc vu (presque à hauteur : la gîte le tourne vers le bas) — la clé (stallKey) n'est allumée au ciel qu'après un passage par l'atelier : on ne compte pas dessus */
   CHUTE.lum9=[+cj.toFixed(2),+ve.toFixed(2)];if(fi>0){const T9=TITRE_CIEL[TITRE_HF.h]||TITRE_CIEL.matin;trailLight.color.setRGB(T9.mh[0],T9.mh[1],T9.mh[2]);}else trailLight.color.setHex(0xfff6ea);
   trailLight.intensity=P.sb+fi;trailLight.distance=26;if(fi>0){const wv=ve/(ve+fc+1e-6);trailLight.position.copy(C).addScaledVector(AXIS_Y,-2-7*wv).addScaledVector(toC,6);}else trailLight.position.copy(C).addScaledVector(AXIS_Y,-9).addScaledVector(toC,3);
   camera.getWorldDirection(CHUTE_ST.r).multiplyScalar(1-P.rimS).addScaledVector(SUN_DIR,P.rimS).normalize();
@@ -37672,7 +37813,7 @@ function chuteVoileEl(){ // le banc de nuage traversé au JOUER : un voile blanc
   document.body.appendChild(e);CHUTE.voile=e;return e;
 }
 function chuteEntre(){ // de l'atelier (ou de rien) au ciel
-  if(!CHUTE.lc)CHUTE.lc=new THREE.Color();CHUTE.lc.copy(carLight.color);CHUTE_TAP.p.set(0,0,0);CHUTE_TAP.v.set(0,0,0);CHUTE_TAP.r.set(0,0,0);CHUTE_TAP.w.set(0,0,0);
+  if(!CHUTE.lc)CHUTE.lc=new THREE.Color();CHUTE.lc.copy(carLight.color);CHUTE_TAP.p.set(0,0,0);CHUTE_TAP.v.set(0,0,0);CHUTE_TAP.Q.identity();CHUTE_TAP.w.set(0,0,0);CHUTE_TAP.tient=null;CHUTE_TAP.sh=0;
   CHUTE.on=true;CHUTE.t=0;CHUTE.sndT=0;TITRE_HF.tc=0;CHUTE.bioPas=-1;CHUTE.bioT=null; /* (2026-10-07) sndT et tc vivaient sur l'horloge d'AVANT (CHUTE.t repart de 0) : le vent restait muet et l'heure périmée jusqu'à 20 s */
   document.body.classList.add('titreCiel');if(!CHUTE.mz)CHUTE.mz=[skyU.uMzA.value.clone(),skyU.uMzB.value.clone(),skyU.uMzT.value.clone(),skyU.uMzO.value.clone(),skyU.uMzH.value.clone(),skyU.uMerLoin.value];CHUTE.oA=CHUTE.oAc=CHUTE.oW=CHUTE.oP=CHUTE.oPc=0;CHUTE.tk=0; // (2026-09-30) l'orbite repart du plan de face — (LE TOUR SANS FIN) et le tour lent s'y engage en douceur
   if(!CHUTE.av)CHUTE.av={c:new THREE.Color()};CHUTE.av.e=acesPass?acesPass.uniforms.uExposure.value:null;if(scene.fog){CHUTE.av.c.copy(scene.fog.color);CHUTE.av.n=scene.fog.near;CHUTE.av.f=scene.fog.far;} // (2026-09-30) l'exposition et la brume d'avant (l'atelier les retrouve)
@@ -37688,6 +37829,7 @@ function chuteSort(ferme){ // on quitte le ciel : l'atelier (boutique, missions)
   if(CHUTE.snd){try{CHUTE.snd.stop(ferme?.5:.3);}catch(e){}CHUTE.snd=null;} /* (niveau 1 v2) la chute libre se tait */
   trailLight.intensity=0;if(CHUTE.lc)carLight.color.copy(CHUTE.lc);{const BT=BIOMES.titre||BIOMES[MENU_BIO];if(BT.hemiI!=null)hemi.intensity=BT.hemiI;if(BT.sunI!=null)sun.intensity=BT.sunI;} // (2026-10-03) le studio du titre rend l'ambiance (il la baisse sur la caisse), puis la lumière du rebond (à 0 partout ailleurs) et la couleur de la lampe de caisse
   if(CHUTE.w)for(const w of CHUTE.w){w.sp.visible=false;}
+  {const T9=CHUTE_TAP;T9.tient=null;T9.sh=0;if(T9.fl)T9.fl.visible=false;if(T9.deb)for(const D of T9.deb)D.m.visible=false;} // (la caisse au doigt v2) l'éclat et les morceaux de tôle restent au ciel
   if(CHUTE.fil)CHUTE.fil.m.visible=false;
   if(CHUTE.sol)for(const sp of CHUTE.sol)sp.visible=false;
   trailApercu(0,false);
@@ -37699,6 +37841,7 @@ function chuteSort(ferme){ // on quitte le ciel : l'atelier (boutique, missions)
   try{if(SONV2&&!openGarage._amb)openGarage._amb=sfx('garage.ambiance',{loop:true});if(SONV2&&!openGarage._feu)openGarage._feu=sfx('garage.feu',{loop:true});}catch(e){}
 }
 function chuteLance(){ // JOUER, depuis le ciel : elle pique
+  CHUTE_TAP.tient=null; // (la caisse au doigt v2) un doigt qui la tenait la lâche
   CHUTE.go=GAR.go={t:0,chute:true,son:false,voile:false};
   gEl.classList.add('launching');document.body.classList.remove('garMenuH');
   garLacherSon();
@@ -37779,6 +37922,8 @@ function chuteRender(dt){
      Il tourne autour de la VERTICALE DU MONDE (÷ cos de la plongée : la caisse garde sa place à l'écran). */
   {const k=G?1-Math.min(1,u/.5):1,ce9=Math.max(.5,Math.cos(el9));camera.rotateOnWorldAxis(AXIS_Y,Math.atan(nx*tH)/ce9*k);camera.rotateX(-Math.atan(Cd.ny*tV)*k);}   // la caisse glisse dans la zone libre
   if(G&&u>.2){const a=(u-.2)*.9;camera.position.x+=(Math.random()-.5)*.08*a;camera.position.y+=(Math.random()-.5)*.08*a;} // l'air qui cogne
+  if(CHUTE_TAP.sh>0){const k9=CHUTE_TAP.sh;camera.position.x+=(Math.random()-.5)*.5*k9;camera.position.y+=(Math.random()-.5)*.5*k9;camera.position.z+=(Math.random()-.5)*.5*k9;camera.rotateZ((Math.random()-.5)*.06*k9); // (LA CAISSE AU DOIGT v2) le coup secoue la caméra…
+    camera.fov=fov0-5*Math.min(1,k9);camera.updateProjectionMatrix();} // …et la fait cogner d'un coup de zoom (la ligne du champ, plus haut, le rend à l'image suivante)
   camera.updateMatrixWorld();
   // LA LUMIÈRE : le soleil du ciel fait le gros ; une clé douce du côté caméra, un contre-jour bleu ciel qui détoure la caisse
   if(P.studio){chuteStudio(C,up,P);}else{trailLight.intensity=0;if(CHUTE.lc)carLight.color.copy(CHUTE.lc);{const BT=BIOMES.titre||BIOMES[MENU_BIO];if(BT.hemiI!=null)hemi.intensity=BT.hemiI;if(BT.sunI!=null)sun.intensity=BT.sunI;} // (2026-10-03) LE MODELÉ DE LA CAISSE (voir chuteStudio) ; P.studio = 0 : l'éclairage d'avant
@@ -38395,10 +38540,11 @@ function garJouer(e){
   const el=$('gJouer');uiPop(el);uiClic();try{pixBurst(el,16);}catch(x){}
   const part=function(){
     if(!garageOn||GAR.go)return;
-    CARR.actif=null;
     if(SHOP.tab==='voiture'){if(!carUnlocked(garageI))garageShow(equippedCar());}
     else if(SHOP.prev&&!shopOwned(SHOP.prev.cat,COSM[SHOP.prev.cat][SHOP.prev.i].id)){shopTab('voiture');garageShow(equippedCar());}
-    goImmersive();tutoArme();garageLaunch();};
+    goImmersive();
+    if(carrPlayOk()){carrJouer();return;} // (2026-10-07, Léo) LE NIVEAU DES PLAY : la map de la carrière, par son départ (le voile, la piste du niveau, sa musique)
+    CARR.actif=null;tutoArme();garageLaunch();};
   if(SAVE.d.facile==null&&!SAVE.d.tuto)facChoix().then(part);else part();
 }
 $('gJouer').addEventListener('click',garJouer);
@@ -39848,7 +39994,7 @@ function garAccueil(){ // appelé par le routeur à chaque arrivée sur 'home'
  clicM($('gReglage'),function(){uiClic('nav');ecranWipe(function(){window.__mRetour='set';closeGarage();});});   // les RÉGLAGES (retour : le menu)
  clicM($('gMisBtn'),function(){uiClic('nav');garMode('missions');});    // les MISSIONS : l'écran de l'atelier (voir « LES MISSIONS DANS L'ATELIER »)
  clicM(document.querySelector('#gmBas .gmHome'),function(){uiClic('retour');garMisRetour();});             // HOME : le menu (ou la VITRINE, si on en vient)
- clicM(document.querySelector('#gmBas .gmJouer'),function(e){CARR.actif=null;garJouer();});                 // JOUER : la partie sans fin, la mission suivie à l'écran
+ clicM(document.querySelector('#gmBas .gmJouer'),function(e){garJouer();});                 // JOUER : la map des PLAY (voir « LE NIVEAU DES PLAY » ; la partie sans fin hors du hub), la mission suivie à l'écran
  {const nd=$('gmNoeuds');if(nd)nd.addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go)return;
    const c9=e.target.closest&&e.target.closest('.gmC');if(!c9)return;const a=GMIS.ancres[+c9.getAttribute('data-k')];if(!a)return;const s=misEtat();
    if(a.k==='d'){if(s.ok[a.i]){uiClic('refus');return;}s.f=s.f===a.i?-1:a.i;SAVE.flush();uiClic(s.f>=0?'on':'off');hap(10);gmRender(true);
@@ -39932,7 +40078,8 @@ buildPlayWord();
    cède la place à .mMot ; le routeur de l'accueil (data-m="play") reste le même : même départ, même son, même haptique. */
 function mPlayMot(){const el=document.querySelector('#mHome .mPlay');if(!el)return;
   el.classList.remove('pbtn','pb-gold','big','wide');el.classList.add('mMot');el.setAttribute('aria-label',TR('JOUER'));el.innerHTML='';
-  for(const ch of TR('JOUER')){const sp=document.createElement('span');sp.className='lg gold';sp.setAttribute('data-t',ch);sp.textContent=ch;el.appendChild(sp);}}
+  for(const ch of TR('JOUER')){const sp=document.createElement('span');sp.className='lg gold';sp.setAttribute('data-t',ch);sp.textContent=ch;el.appendChild(sp);}
+  try{carrPlayMaj();}catch(e){}} // (2026-10-07) la map que lance PLAY, en petit dessous (« LE NIVEAU DES PLAY »)
 function mPlayVague(x){const el=document.querySelector('#mHome .mPlay.mMot');if(!el)return;const L9=el.querySelectorAll('.lg');if(!L9.length)return;
   if(x==null){const r0=el.getBoundingClientRect();x=(r0.left+r0.right)/2;}
   L9.forEach(function(l){const r=l.getBoundingClientRect();l.classList.remove('pxScale');l.style.animationDelay='';void l.offsetWidth;l.style.animationDelay=Math.min(240,Math.abs((r.left+r.right)/2-x)*1.1).toFixed(0)+'ms';l.classList.add('pxScale');});}
@@ -39959,7 +40106,7 @@ function playWordWave(clickX){
   });
 }
 $('gPlayMain').addEventListener('click',function(e){
-  e.stopPropagation();CARR.actif=null; // le PLAY du garage = la partie sans fin
+  e.stopPropagation(); // le PLAY du garage : garJouer décide (la map des PLAY au hub, la partie sans fin dans la vitrine ?menu=leo)
   playWordWave(e.clientX); // ⚠ (2026-09-25) cet appel était COLLÉ au commentaire ci-dessus : la vague ne partait jamais
   setTimeout(garJouer,260); // (2026-09-30) le même départ que le JOUER du bas : 1er JOUER → le mode, caisse à l'essai → la tienne, auto-école
 });
@@ -39979,7 +40126,7 @@ $('carr').addEventListener('click',function(e){ // un seul écouteur pour tout l
   if(c==='fermer')feuilleFerme($('carr'),'on');
   else if(c==='biomes')carrVue(null);
   else if(c==='biome')carrVue(b);
-  else if(c==='niveau'||c==='monde')carrLancer(b,i); // (2026-09-30) la carte d'un monde lance son niveau en cours
+  else if(c==='niveau'||c==='monde'){if(HUB&&garageOn&&!(started&&!gameOver))carrChoisit(b,i);else carrLancer(b,i);} // (2026-09-30) la carte d'un monde lance son niveau en cours — (2026-10-07, Léo) au garage du hub, elle le CHOISIT : PLAY le lancera (voir « LE NIVEAU DES PLAY »)
   else if(c==='verrou'){ // un niveau fermé RÉPOND : il secoue et dit ce qu'il attend
     el.classList.remove('secoue');void el.offsetWidth;el.classList.add('secoue');uiClic('refus'); // (2026-09-28, charte règle 8) il secouait en silence : le clic et la vibration disent « reçu, mais non »
     toast(pxi('verrou')+' '+TR('TERMINE LE NIVEAU')+' '+(carrFait(b)+1));return; } // (2026-09-28) le PROCHAIN niveau à finir — `i` (l'index tapé) disait « 4 » pour le 5e avec zéro niveau fini
@@ -40004,13 +40151,13 @@ addEventListener('pointerdown',e=>{if(!garageOn||ecranWipe._on)return;if(e.targe
   if(GAR.swK){GAR.vA=(GAR.vA||0)+(GAR.swO||0);garagePitch=THREE.MathUtils.clamp(garagePitch+(GAR.swP||0),.02,.82);GAR.swO=GAR.swP=GAR.swK=0;} // (2026-09-30) le balancement est VERSÉ dans le regard : pas de saut sous le doigt
   GAR.ret=null;GAR.tDoigt=performance.now(); // (LE RETOUR À LA PORTE) le doigt reprend la main, le compte à rebours repart
   if(!GAR.go){GAR.vAc=(GAR.vA||0)+(GAR.vAv||0)*VITRINE_CAM.dLisse/2;GAR.vW=0;GAR.pT=garagePitch;GAR.mvT=performance.now();} // (le glissé fondu) on SAISIT la vue : elle s'arrête sous le doigt
-  if(CHUTE&&CHUTE.on){CHUTE.oAc=CHUTE.oA;CHUTE.oW=0;CHUTE.tk=0;CHUTE.oPc=CHUTE.oP;CHUTE.mvT=performance.now();} // (2026-09-30) au ciel : on SAISIT l'orbite, elle s'arrête sous le doigt
+  if(CHUTE&&CHUTE.on){CHUTE.oAc=CHUTE.oA;CHUTE.oW=0;CHUTE.tk=0;CHUTE.oPc=CHUTE.oP;CHUTE.mvT=performance.now();if(!CHUTE.go)chutePrend(e);} /* (2026-10-07, LA CAISSE AU DOIGT v2) posé SUR la caisse, le doigt la tient */ // (2026-09-30) au ciel : on SAISIT l'orbite, elle s'arrête sous le doigt
   if(!GAR.sw&&!GAR.go)GAR.pressT=GAR.PRESS_D; // LE TOUCHER : la caisse accuse la pression tout de suite, avant même qu'on glisse
   GAR.doigt=(garVueLeo()&&!GAR.go&&!(INV&&INV.on)&&e.button<=0&&garSurCaisse(e))?'caisse':'vue'; /* (2026-10-06) LA VUE DE LÉO : aussi dans la console de Sacha */ // (même soir) SUR la caisse, le doigt tient le PLATEAU — jamais la vue
   if(GAR.doigt==='caisse')GAR.platW=0; // le plateau lancé s'arrête sous le doigt
   burnDebut(e); // (2026-10-05) LA VITRINE : le doigt TENU sur la caisse lance le BURN-OUT (voir LE BURN-OUT) — l'inventaire a son bouton COFFRE (avant : invHoldDebut)
 });
-addEventListener('pointercancel',e=>{if(ATL.appui===e.pointerId)ATL.appui=null;if(BURN.hold&&BURN.hold.id===e.pointerId)burnFin();if(e.pointerId===gpId){garageDrag=false;gpId=null;}if(INV.hold&&INV.hold.id===e.pointerId)invHoldFin();if(INV.mange===e.pointerId)INV.mange=null;});
+addEventListener('pointercancel',e=>{if(ATL.appui===e.pointerId)ATL.appui=null;if(BURN.hold&&BURN.hold.id===e.pointerId)burnFin();if(e.pointerId===gpId){garageDrag=false;gpId=null;CHUTE_TAP.tient=null;}if(INV.hold&&INV.hold.id===e.pointerId)invHoldFin();if(INV.mange===e.pointerId)INV.mange=null;});
 addEventListener('pointerup',e=>{
   if(ATL.appui!=null&&ATL.appui===e.pointerId){ATL.appui=null;atlPresse();return;} // (même soir) le BOUTON ROUGE relâché : l'inventaire et ses outils
   if(INV.mange!=null&&e.pointerId===INV.mange){INV.mange=null;garageDrag=false;return;} // (inventaire) le relâcher du doigt TENU n'est ni un tap ni un glissé
@@ -40030,7 +40177,7 @@ addEventListener('pointerup',e=>{
     if(Math.abs(dx)<14&&Math.abs(dy)<14){if(CHUTE&&CHUTE.on){if(!CHUTE.go)chuteTape(e);}else if(INV.on)invFerme();else{let af=null;try{af=afficheVise(e);}catch(_){}if(af)afficheTap(af);else{const sf9=burnDoigt(e.clientX,e.clientY,0,0,true);if(sf9)hap(6);if(!sf9||garSurCaisse(e))garageImpact();}}} // (2026-10-03) AU CIEL : le tap est un COUP sur la caisse en chute (chuteTape) // ni glissé ni swipe : un TAP — sur une AFFICHE elle saute (voir afficheTap), sinon la caisse encaisse (voir garageImpact)
     GAR.tDoigt=performance.now(); // (LE RETOUR À LA PORTE) les 3 s partent du LÂCHER (et l'élan doit être retombé)
     if(performance.now()-(GAR.mvT||0)>90)GAR.vW=0;else{const m9=garVueLeo()?VITRINE_CAM.dElan:7;GAR.vW=THREE.MathUtils.clamp(GAR.vW||0,-m9,m9);} // (vitrine) un élan plafonné : le lancer glisse, il ne tourbillonne plus
-    if(CHUTE&&CHUTE.on){if(performance.now()-(CHUTE.mvT||0)>90)CHUTE.oW=0;else{CHUTE.oW=THREE.MathUtils.clamp(CHUTE.oW||0,-7,7);if(Math.abs(CHUTE.oW)>.05){CHUTE.tSens=Math.sign(CHUTE.oW);CHUTE.tk=1;}}} /* (LE TOUR SANS FIN) lancée, l'élan retombe sur le tour lent, dans le sens du lancer */ // (2026-09-30) l'orbite du ciel : lâchée en mouvement, elle garde son élan // (le glissé fondu) doigt arrêté avant de lâcher : la vue reste ; lancé : elle file sur son élan
+    if(CHUTE&&CHUTE.on&&CHUTE_TAP.tient){chuteLache();CHUTE.oW=0;}else if(CHUTE&&CHUTE.on){if(performance.now()-(CHUTE.mvT||0)>90)CHUTE.oW=0;else{CHUTE.oW=THREE.MathUtils.clamp(CHUTE.oW||0,-7,7);if(Math.abs(CHUTE.oW)>.05){CHUTE.tSens=Math.sign(CHUTE.oW);CHUTE.tk=1;}}} /* (LE TOUR SANS FIN) lancée, l'élan retombe sur le tour lent, dans le sens du lancer */ // (2026-09-30) l'orbite du ciel : lâchée en mouvement, elle garde son élan // (le glissé fondu) doigt arrêté avant de lâcher : la vue reste ; lancé : elle file sur son élan
   }
   garageDrag=false;GAR.doigt=null;
 });
@@ -40042,6 +40189,7 @@ addEventListener('pointermove',e=>{
   if(e.pointerId!==gpId||gPince)return;
   if(INV.hold&&INV.hold.id===e.pointerId&&Math.hypot(e.clientX-INV.hold.x,e.clientY-INV.hold.y)>12)invHoldFin(); // il GLISSE : ce n'est pas le geste tenu, la caisse tourne
   if(BURN.hold&&BURN.hold.id===e.pointerId&&Math.hypot(e.clientX-BURN.hold.x,e.clientY-BURN.hold.y)>12){if(BURN.on)BURN.bouge=true;else BURN.hold=null;} // (BURN-OUT) avant le départ : c'est un glissé · en route : la vue tourne autour de la caisse qui fume
+  if(CHUTE&&CHUTE.on&&!CHUTE.go&&CHUTE_TAP.tient){chuteTourne(e);gpx=e.clientX;gpy=e.clientY;return;} // (2026-10-07, LA CAISSE AU DOIGT v2) le glissé parti de la caisse la fait TOURNER, pas la vue
   if(CHUTE&&CHUTE.on&&!CHUTE.go){const n9=performance.now(),dm=Math.max(8,n9-(CHUTE.mvT||n9-16))/1000,dA=-(e.clientX-gpx)*.008; // (2026-09-30) AU CIEL : le glissé fait tourner le regard autour de la caisse (voir « L'ORBITE AU DOIGT »)
     CHUTE.oAc+=dA;CHUTE.oW=(CHUTE.oW||0)*.55+dA/dm*.45;CHUTE.mvT=n9;if(Math.abs(e.clientX-gpx)>=2)CHUTE.tSens=dA>0?1:-1; /* (le tour sans fin) lâchée, elle repart dans le sens où le doigt l'a tournée */ /* (2026-10-03, Léo : « bloque le point de vue à ce niveau vertical : pas de haut en bas, horizontal à ce niveau-là ») le doigt ne fait plus monter ni plonger le regard : il tourne autour de la caisse, à la hauteur du menu */
     gpx=e.clientX;gpy=e.clientY;return;}
@@ -42820,7 +42968,9 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   function mTap(a,el){
     if(a!=='snd')uiClic(mRole9(a));uiPop(el);if(a==='play'||a==='replay')pixBurst(el,16); // chaque bouton REBONDIT ; JOUER lâche une gerbe — (2026-09-28) SON : le clic part APRÈS la bascule (plus bas)
     if(a==='replay'&&started&&gameOver){ const r9=function(){ DEPMUS.sort=performance.now(); goImmersive(); ecranWipe(function(){ if(started&&gameOver){ if(!CARR.actif)tutoArme(); resetGame(); } }); }; if(pkPasse(r9))r9(); } // (POKI) pkPasse : la pause pub avant de rejouer // REJOUER : tout de suite, sans repasser par l'atelier — mais par un fondu (la piste neuve se construit DESSOUS) · (2026-09-28) tutoArme : « REVOIR L'AUTO-ÉCOLE » promet le PROCHAIN départ, REJOUER compris (sans effet si elle est déjà faite ; pas en carrière : son niveau passe devant la piste d'apprentissage)
-    else if(a==='play'||a==='replay'){ if(a==='play')CARR.actif=null;
+    else if(a==='play'&&carrPlayOk()){ const go9=function(){goImmersive();carrJouer();}; // (2026-10-07, Léo) LE NIVEAU DES PLAY : la map de la carrière (la dernière jouée, ou choisie), par le départ de la carrière — sa musique comprise
+      if(SAVE.d.facile==null&&!SAVE.d.tuto)facChoix().then(go9);else go9(); } // le 1er JOUER demande toujours le mode
+    else if(a==='play'||a==='replay'){ if(a==='play')CARR.actif=null; // la partie sans fin : parc, Survivant armé, Poki, ?menu=leo (carrPlayOk)
       if(a==='play'&&SAVE.d.facile==null&&!SAVE.d.tuto){facChoix().then(function(){goImmersive();playViaGarage(true);});} // (2026-09-29) le 1er JOUER demande le mode
       else{goImmersive(); playViaGarage(true);} } // 1re partie = AUTO-ÉCOLE : tutoArme passe SOUS le voile (la reconstruction de la piste figeait le bouton avant qu'il monte)
     else if(a==='tuto'){ SAVE.d.tuto=0;SAVE.flush();toast(pxi('coche')+' '+TR('L\'AUTO-ÉCOLE T\'ATTEND AU PROCHAIN JOUER')); }
