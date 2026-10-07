@@ -288,7 +288,10 @@ local function fusion(liste: { any }, echelle: number, teinte: ((Color3) -> Colo
 	local okP, mp = pcall(function()
 		return AssetService:CreateMeshPartAsync(Content.fromObject(em), { CollisionFidelity = Enum.CollisionFidelity.Box })
 	end)
-	if not okP or not mp then return nil, Vector3.zero end
+	if not okP or not mp then
+		pcall(function() em:Destroy() end) -- (6/10) refusé (le budget est plein) : l'atelier est RENDU, sinon il pèse jusqu'au ramasse-miettes et le suivant est refusé aussi
+		return nil, Vector3.zero
+	end
 	mp.Anchored = true
 	mp.CanCollide = false
 	mp.CanQuery = false
@@ -317,6 +320,7 @@ local function piece(d: { v: string, t: string }, echelle: number, opt: Options?
 	end)
 	if not ok or not mp then
 		warn("[CashCar] maillage refusé : " .. tostring(mp))
+		pcall(function() em:Destroy() end) -- (6/10) l'atelier refusé est rendu tout de suite (le budget est déjà plein)
 		return nil, Vector3.zero
 	end
 	mp.Anchored = false
@@ -366,7 +370,10 @@ local function brut(tris: { { any } }): (MeshPart?, Vector3, Vector3)
 	local okP, mp = pcall(function()
 		return AssetService:CreateMeshPartAsync(Content.fromObject(em), { CollisionFidelity = Enum.CollisionFidelity.Box })
 	end)
-	if not okP or not mp then return nil, Vector3.zero, Vector3.zero end
+	if not okP or not mp then
+		pcall(function() em:Destroy() end) -- (6/10) refusé : l'atelier est rendu (voir plus haut)
+		return nil, Vector3.zero, Vector3.zero
+	end
 	mp.Anchored = true
 	mp.CanCollide = false
 	mp.CanQuery = false

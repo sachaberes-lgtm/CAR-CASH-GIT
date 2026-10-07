@@ -128,17 +128,25 @@ end
 -- ── la réserve : le moteur du prochain palier, bâti d'avance ──
 local prets: { [number]: Model } = {}
 local enCours: { [number]: boolean } = {}
+-- (6/10) un OUBLI rattrape aussi les moteurs EN COURS de construction : celui que la mort lançait (le palier suivant) finissait
+-- après la photo de l'écran de fin et restait bâti — un moteur de trop (3 000 à 6 000 triangles) jusqu'à la partie suivante
+local genP, gardeP = 0, nil :: number?
 local function preparer(i: number)
 	if not Liste[i] or prets[i] or enCours[i] then return end
 	enCours[i] = true
+	local g = genP
 	task.spawn(function()
 		local ok, m = pcall(construire, i)
 		enCours[i] = nil
-		if ok and m then prets[i] = m end
+		if ok and m then
+			if g == genP or i == gardeP then prets[i] = m else Maillage.rendre(m) end
+		end
 	end)
 end
 -- UN SEUL moteur bâti à la fois : Roblox ne donne que ~68 000 triangles à tout ce qui est bâti par code
 local function oublier(sauf: number?)
+	genP += 1
+	gardeP = sauf
 	for i, m in prets do
 		if i ~= sauf then
 			Maillage.rendre(m)

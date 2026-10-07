@@ -76,7 +76,7 @@ end
 -- ════════ l'état ════════
 local FLOW = { v = 0, lv = 0, idle = 0, vit = 1, revele = false, lentVu = false, nit = false, psyT = 0, lent9 = false, psyOk = false, reste = 9 }
 local FREN = { t = 0, rec = false, tr = { n = 0, m = 0, p = 0 }, k = 3, dit = { n = false, m = false, p = false }, ditT = 0,
-	arme = false, coup = false, butin = 0, vu = false, record = 0, nb = 0, max = 0 }
+	arme = false, coup = false, butin = 0, vu = false, record = 0, nb = 0, max = 0, on = false }
 local CHA = { pts = 0, x = 0, fam = {} :: { [string]: number }, n = 0, t = 0, age = 0, liste = {} :: { string }, rec = 0, recB = false, xMax = 0 }
 local ETAT = { enCours = false, mode = "drive", aura = 0, auraX2 = false, tuto = false }
 local RALENTI = { t = 0, d = 2.7, k = 0.3 }
@@ -180,7 +180,11 @@ Score.frenTrait = frenTrait
 
 local function frenFin(mort: boolean)
 	local t = FREN.t
-	if t <= 0 then return end
+	-- (6/10) une frénésie partie et finie dans la MÊME image (posée sur un satellite de la PLUIE, morte aussitôt) n'avait pas
+	-- encore compté une image (FREN.t = 0) : on sortait ici sans couper la musique emballée (× 1,06 sur les parties suivantes)
+	-- ni rendre la main au HUD. Le drapeau dit si elle est vraiment en cours.
+	if not FREN.on then return end
+	FREN.on = false
 	FREN.t = 0
 	if not mort then Score.dire.son("frenesie.sort") end
 	FREN.max = math.max(FREN.max, t)
@@ -208,7 +212,7 @@ local function flowReset()
 end
 
 local function frenDebut()
-	FREN.t, FREN.butin, FREN.rec = 0, 0, false
+	FREN.t, FREN.butin, FREN.rec, FREN.on = 0, 0, false, true
 	FREN.nb += 1
 	FREN.tr.n, FREN.tr.m, FREN.tr.p = F2.triade.n, F2.triade.m, F2.triade.p -- les trois traits partent PLEINS
 	FREN.k = 3
@@ -710,7 +714,9 @@ function Score.debut(record: number?, frenRec: number?, tuto: boolean?)
 	flowReset()
 	chaReset()
 	CHA.rec, CHA.recB, CHA.xMax = record or 0, false, 0
-	FREN.record = frenRec or FREN.record
+	-- (6/10) le record de la session ne recule pas : REJOUER avant que le profil à jour revienne du serveur repassait l'ancien
+	-- record (« RECORD DE FRÉNÉSIE ! » criait une seconde fois pour le même temps)
+	FREN.record = math.max(FREN.record, frenRec or 0)
 	FREN.nb, FREN.max = 0, 0
 	SFA.n = 0
 	Score.dolKill()
@@ -727,7 +733,9 @@ end
 -- la fin de partie : une chaîne ouverte ne s'encaisse que si on est au sol. Rend l'aura de la partie.
 function Score.fin(auSol: boolean): number
 	if CHA.n > 0 and auSol then chaineEncaisse() end
-	frenFin(true)
+	-- (6/10) le FLOW retombe avec la partie (frenFin compris) : QUITTER en pleine frénésie laissait le « ×3 » armé jusqu'à la
+	-- partie suivante (Score.frenesie() vrai au menu)
+	flowReset()
 	ETAT.enCours = false
 	return ETAT.aura
 end

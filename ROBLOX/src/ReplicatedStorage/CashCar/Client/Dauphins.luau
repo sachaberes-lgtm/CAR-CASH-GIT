@@ -126,7 +126,13 @@ local function tick(dt: number)
 	local e = Bus.etat()
 	local S = Score.DOL
 	if not e.carCF then return end
-	if e.pause then return end
+	if e.pause then
+		-- (6/10) les particules de Roblox ne connaissent pas la pause : le sillage rose CRACHAIT sur place sous le panneau
+		if D.pret then
+			for _, u in D.d do u.sillage.Enabled = false end
+		end
+		return
+	end
 	-- (mise au point) workspace:SetAttribute("DbgDauphins", true) : le banc nage tant que l'attribut tient, sans attendre un vol
 	if workspace:GetAttribute("DbgDauphins") then
 		D.dbgT = (D.dbgT or 0) + dt

@@ -480,7 +480,16 @@ function HudScore.fren(etat: string)
 		TweenService:Create(U.triade, K.LENTE, { Position = UDim2.fromOffset(26, 436) }):Play()
 	elseif etat == "fin" then
 		U.triade.Visible = false
+		HudScore.titreCoupe()
 	end
+end
+-- (6/10) LE TITRE TRIPLE MONSTER SE TAIT avec la frénésie (une mort dans ses 2,7 s, RECOMMENCER, une nouvelle partie) : il
+-- continuait par-dessus l'explosion ou dans la partie suivante, et sa priorité (9) avalait les annonces de la reprise —
+-- « UN COEUR = UNE VIE » ne s'affichait pas
+function HudScore.titreCoupe()
+	ftN += 1
+	if FT then FT.g.Visible = false end
+	if slamPrio >= 9 then slamFin, slamPrio = 0, 0 end
 end
 
 -- (le nom des figures de la chaîne : « VIRAGE SERRE +31 » → le nom en blanc, « +31 » en or)
@@ -675,6 +684,8 @@ function HudScore.raz()
 	auraVue = 0
 	U.auraVu = nil
 	U.triade.Visible = false
+	HudScore.titreCoupe()
+	slamFin, slamPrio = 0, 0
 	duoTexte(U.slam, "")
 	U.slamSub.Text = ""
 	for _, g in U.tags do
