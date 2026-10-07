@@ -1,5 +1,35 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LE BURN-OUT v2 — LE FOUET ET LE VOLANT (2026-10-07, Léo : « corrige l'effet burn-out : refabrique une version avec le drift plus fun, un donut satisfaisant à faire, et le maintien du burn sur place mieux fait » · puis « en fait un mélange entre le premier burn-out hyper dynamique et cool qui ne sortait jamais du cercle, et celui où on peut avec le doigt faire un donut complet »)
+- **MESURÉ AVANT** (banc au vrai geste souris, debout 390 × 844) : un tour de doigt = 0,6 tour de caisse, l'excédent jeté (`avance` ,55) — la
+  caisse décrochait du doigt, ~4 s par tour ; en donut elle passait SOUS la console (la caméra ne reculait pas) ; sur place le tremblement
+  était tiré au hasard à chaque image, rien pendant les 0,28 s d'appui, le lâcher ne faisait que pétarader. Tout est dans le bloc « LE BURN-OUT ».
+- **LE MOUVEMENT = LE PREMIER DÉRAPAGE + LE DONUT AU DOIGT** (`burnVolant`, `burnGeste`, `burnDyn`, réglages `DON`) : le doigt pose un CAP
+  (`BURN.cib`), la caisse le rejoint par le RESSORT du premier dérapage (ω 7, ζ ,5 : elle fouette, dépasse, revient) autour de son pivot
+  court (`drz` ≤ ,9 m) — elle reste dans le cercle. Le glissé horizontal pousse le cap d'un coup, SANS borne (,009 rad/px : 160 px = 1,44 rad,
+  pointes mesurées 4,6-7,8 rad/s) ; le doigt qui TOURNE autour du plateau le fait tourner tour pour tour (`gain` 1, ≤ `avance` ,8 rad
+  d'avance : un donut tenu plafonne à ~5,6 rad/s). Le partage se fait sur la part TANGENTIELLE du geste (`tg`) : ce qui tourne autour du
+  plateau va au volant, ce qui s'en éloigne ou s'en approche reste au fouet (sinon un glissé qui partait du centre se faisait avaler).
+  ⚠ Écartée le même jour : une version à INERTIE (le doigt donnait une vitesse, tête-à-queue au lâcher, centre du donut à côté de la roue
+  intérieure) — elle sortait la caisse vers le bord.
+- **LA CAMÉRA CADRE LE DONUT** : `BURN.cad` (= `donM`, lissé) fait entrer le cercle balayé `BURN.Rs` dans la place libre (`garBurnR` sur
+  `wE`/`pE` du recul de garageRender) et la vue prend `DON.pitch` (,06 rad) de hauteur ; la secousse suit la chaleur et le donut.
+- **LE DONUT** : « DONUT ×n » (or, orange dès ×3, rose dès ×5), anneau de fumée centré sur le donut et qui TOURNE, `sfx('fig.vrille',{st:n})`,
+  dès ×3 le feu aux pots. LA GOMME CHAUDE : une 2e toile additive sur le plateau (même programme que la gomme noire) où la trace est orange et
+  refroidit en ~1,2 s ; les deux tracées en SEGMENTS (image d'avant → image) au lieu de points.
+- **LE DÉRAPAGE** : la caisse penche vers l'extérieur et tangue sur ses ressorts (`bp`/`ro`, `burnRes`), la fumée part avec la VITESSE des
+  roues (`burnRoues`), le crissement monte avec la rotation, et trois PALIERS (`burnPalier`, 2,4 · 3,6 · 4,8 rad/s) font jaillir les
+  étincelles du drift de la course (bleu → or → rose) avec `sfx('drift.charge',{st})`.
+- **SUR PLACE** : LA MISE EN RÉGIME pendant l'appui (`BURN.pre` : le moteur monte, la caisse s'assoit ; un glissé et tout retombe) ; LE
+  DÉPART (le cul plonge sur ses ressorts, une bouffée aux deux roues, deux pétarades, la caméra encaisse `BURN.kick`) ; LA TENUE (la caisse
+  tire sur ses freins `lz`, le cul danse en bruit lisse `burnBruit`, les gommes chauffent, la fumée roule sur les côtés et rosit, puis une
+  fois « PNEUS CHAUDS ! » et le feu aux pots — seulement tenu sans bouger) ; la vie des bouffées suit le débit (`burnVie`) ; LE LÂCHER : la
+  caisse BONDIT et se pose, d'autant plus que ça a duré.
+- Console : `dbgBurn()` (état : cap, cib, w, donM, tours, palier, pivot, cad, Rs, pre, corps) · `dbgBurn('tourne',w,s)` (un doigt qui tourne
+  à w rad/s pendant s secondes). Vérifié au banc (Chrome sans fenêtre, vrais gestes souris, debout et couché) : fouet, donut au doigt
+  (2 tours comptés là où l'ancien en comptait 1), la caisse dans le cercle et au-dessus de la console, burn-out puis JOUER → course, 0 erreur.
+  sw.js → v150.
+
 ## LE CIEL DE L'ÉCRAN TITRE v4 (2026-10-06, session GRAPHISME) — Sacha : « le ciel est toujours moche dans l'écran d'accueil, refonte visuelle totale, surtout ce motif de merde dans le ciel »
 - LE DIAGNOSTIC (planche des six heures, `titre2.js` + `dbgHeure`) : le ciel du titre était un ASSEMBLAGE des couches du niveau — le
   dégradé à paliers, la lueur d'horizon, la mer `merZ` à taches (un papier peint), le POMMELÉ `cielMotif` (les rangées de tirets en
