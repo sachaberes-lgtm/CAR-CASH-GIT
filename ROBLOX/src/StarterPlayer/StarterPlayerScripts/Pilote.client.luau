@@ -103,19 +103,6 @@ caisse.Parent = workspace
 local racine = caisse.PrimaryPart :: BasePart
 local flammes, trainees, reflet = poignees.flammes, poignees.trainees, poignees.reflet
 local visibleCaisse = true
--- changer de caisse (le garage) : on rebâtit la mienne, au même endroit
-local function changerCaisse(indice: number)
-	local ancienne = caisse
-	local nouvelle, pg = Caisse.construire("MaCaisse", indice, true, profil.porte)
-	-- ⚠ PivotTo, pas « racine.CFrame = » : hors du monde, bouger la racine ne déplace pas les pièces soudées
-	-- (la soudure se recale à l'arrivée et la carrosserie reste plantée à l'origine : une caisse invisible)
-	nouvelle:PivotTo((ancienne.PrimaryPart :: BasePart).CFrame)
-	nouvelle.Parent = workspace
-	caisse, poignees, racine = nouvelle, pg, nouvelle.PrimaryPart :: BasePart
-	flammes, trainees, reflet = pg.flammes, pg.trainees, pg.reflet
-	Caisse.rendre(ancienne) -- (et ses maillages : le budget de triangles de Roblox)
-	visibleCaisse = true
-end
 local function montrerCaisse(oui: boolean)
 	if visibleCaisse == oui then return end
 	visibleCaisse = oui
@@ -125,6 +112,33 @@ local function montrerCaisse(oui: boolean)
 	for _, f in flammes do f.Enabled = oui end
 	for _, t in trainees do if not oui then t.Enabled = false end end
 	if poignees.heros then poignees.heros.Enabled = oui end -- (la lampe du héros s'éteint avec la caisse)
+end
+
+-- changer de caisse (le garage) : on rebâtit la mienne, au même endroit
+local function changerCaisse(indice: number)
+	-- (6/10) LA DERNIÈRE DEMANDE GAGNE : la construction CÈDE la main (les maillages de Roblox) — deux choix rapprochés au garage
+	-- (la manette, une peinture puis une caisse) lançaient deux constructions qui tenaient la MÊME ancienne caisse ; la première la
+	-- détruisait, la seconde plantait dessus et restait dans le monde (une caisse fantôme, son budget de triangles jamais rendu)
+	KA.caisseGen = (KA.caisseGen or 0) + 1
+	local gen = KA.caisseGen
+	local nouvelle, pg = Caisse.construire("MaCaisse", indice, true, profil.porte)
+	if gen ~= KA.caisseGen then
+		Caisse.rendre(nouvelle)
+		return
+	end
+	local ancienne = caisse
+	-- (6/10) une caisse CACHÉE le reste (l'épave à l'écran de fin : une caisse gagnée à LA ROUE depuis cet écran apparaissait
+	-- intacte au milieu du cratère)
+	local cachee = not visibleCaisse
+	-- ⚠ PivotTo, pas « racine.CFrame = » : hors du monde, bouger la racine ne déplace pas les pièces soudées
+	-- (la soudure se recale à l'arrivée et la carrosserie reste plantée à l'origine : une caisse invisible)
+	nouvelle:PivotTo((ancienne.PrimaryPart :: BasePart).CFrame)
+	nouvelle.Parent = workspace
+	caisse, poignees, racine = nouvelle, pg, nouvelle.PrimaryPart :: BasePart
+	flammes, trainees, reflet = pg.flammes, pg.trainees, pg.reflet
+	Caisse.rendre(ancienne) -- (et ses maillages : le budget de triangles de Roblox)
+	visibleCaisse = true
+	if cachee then montrerCaisse(false) end
 end
 
 local record, compte, meilleurAura = 0, 0, 0
@@ -163,6 +177,43 @@ local function cleObj(v: Vector3): number
 	return (math.floor(v.X / CEL_OBJ) + 4096) * 67108864 + (math.floor(v.Y / CEL_OBJ) + 4096) * 8192 + (math.floor(v.Z / CEL_OBJ) + 4096)
 end
 
+-- (banc, 6/10) LES CROISEMENTS DE LA PISTE — workspace « DbgQA » : deux morceaux de route (à plus de 120 m l'un de l'autre le long
+-- du ruban) dont les dalles se TOUCHENT presque (moins de l'épaisseur + 3 m d'écart vertical, l'axe de l'un dans la largeur de
+-- l'autre) : la caisse y traverserait une dalle. Écrit dans la Sortie à la construction de la zone.
+KA.qaPiste = function(p: any, z: number, ceder: () -> ())
+	local CEL, g, F, n = p.cellule, p.grille, p.F, p.n
+	local rM = 30 * M
+	local vus9, l9, nb = {}, {}, 0
+	for i = 1, n, 2 do
+		local f = F[i]
+		local q = f.Position
+		for cx = math.floor((q.X - rM) / CEL), math.floor((q.X + rM) / CEL) do
+			for cy = math.floor((q.Y - rM) / CEL), math.floor((q.Y + rM) / CEL) do
+				for cz = math.floor((q.Z - rM) / CEL), math.floor((q.Z + rM) / CEL) do
+					local l = g[(cx + 4096) * 67108864 + (cy + 4096) * 8192 + (cz + 4096)]
+					if l then
+						for _, j in l do
+							if math.abs(i - j) > 60 then
+								local d = F[j].Position - q
+								local dy, dx, dz = d:Dot(f.UpVector) / M, d:Dot(f.RightVector) / M, d:Dot(f.LookVector) / M
+								if math.abs(dy) < THICK + 3 and math.abs(dx) < RH and math.abs(dz) < RH then
+									local k = math.floor(i / 25) * 100000 + math.floor(j / 25)
+									if not vus9[k] then
+										vus9[k] = true
+										nb += 1
+										if #l9 < 6 then table.insert(l9, string.format("s%d~s%d dy=%.1f dx=%.0f", (i - 1) * p.DS / M, (j - 1) * p.DS / M, dy, dx)) end
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+		if i % 400 == 1 then ceder() end
+	end
+	warn(string.format("[CashCar] QA PISTE zone=%d niveau=%s %s : %d croisement(s) au ras %s", z, tostring(p.niveau), tostring(p.archetype), nb, table.concat(l9, " | ")))
+end
 -- (la zone 0 est la piste DESSINÉE de l'auto-école)
 local function preparer(z: number, depart: CFrame?): Zone
 	if ZONES[z] then return ZONES[z] end
@@ -182,6 +233,7 @@ local function preparer(z: number, depart: CFrame?): Zone
 			moteur = { lv = 1 + math.clamp((vw - 70) / 140 * 1.4, 0, 3.4), str = math.clamp(math.sqrt(MOT[t1 + 1][2] * late9(t1)), 1, 2.1) }
 		end
 		local p = Piste.generer(graine, math.max(1, z), depart, ceder, z == 0, (profil.stats and profil.stats.parties) or nil, moteur)
+		if workspace:GetAttribute("DbgQA") then pcall(KA.qaPiste, p, z, ceder) end -- (banc : les croisements de la piste)
 		local d = Instance.new("Folder")
 		d.Name = "Zone" .. z
 		Construction.route(p, d, ceder)
@@ -672,6 +724,8 @@ local function decoller(impU: number, impF: number, bord: boolean?)
 	V.fallT, V.fallTR, V.yawAcc, V.demiTours, V.nitroAirT, V.nitroAirTenue, V.sideCd, V.bounceN = 0, 0, 0, 0, 0, 0, 0, 0
 	V.fallVH0 = -1 -- le plafond horizontal se relève à la 1re image de vol
 	V.volT, V.nitT = 0, 0
+	V.qaDit = nil -- (le guetteur du banc parle une fois par vol)
+	V.curNear = false -- (6/10 : le radar repart de zéro — la 1re image du vol lisait celui du vol d'AVANT : la face des pièces, le miraculé)
 	G.driftOn, G.driftC, G.driftLv, yawR, G.slipB, G.carRoll, G.rollV, G.levreY = false, 0, 0, 0, 0, 0, 0, 0
 	G.virT, G.virC, G.virD, G.virPaye = 0, 0, false, false -- un virage quitté par le bord ne paie pas la fronde
 	G.froleN, G.froleT = 0, 0
@@ -706,6 +760,11 @@ local function replacer()
 	s = math.clamp(G.safeS - 8, 0, piste.len / M - 80)
 	lat, psi, yawR, side, vA = 0, 0, 0, 1, 26
 	G.slipB, G.carRoll, G.rollV, G.levreY = 0, 0, 0, 0
+	-- (6/10) la caisse repart NETTE : un petit saut de pose en cours (hopY) la faisait rebondir à la réapparition, un drift chargé
+	-- lâchait son mini-turbo au premier relâcher
+	G.hopY, G.hopV, G.choc, G.driftOn, G.driftC, G.driftLv = 0, 0, 0, false, 0, 0
+	G.qaExcuse = os.clock() + 0.2 -- (banc : un replacement n'est pas un saut de caméra)
+	G.sillagesNets()
 	mode = "drive"
 	Score.ETAT.mode = "drive"
 	V.bascOn = false
@@ -714,6 +773,11 @@ local function replacer()
 	carCF = repere(s, 1)
 	secousse = math.max(secousse, 0.5)
 	E.air.Visible = false
+end
+-- (6/10) LES SILLAGES NE TRAVERSENT PAS LE MONDE : un portail (la caisse remonte de 2 à 5 km d'un coup) ou un replacement tiraient
+-- un trait de feu de 100 m entre l'ancienne place et la nouvelle (Trail.MaxLength), nitro allumée — on les efface au saut
+function G.sillagesNets()
+	for _, t in trainees do pcall(function() t:Clear() end) end
 end
 -- LES TROIS VIES du mode FACILE (facileSauve, L23506) : le vide et le chrono d'air pardonnent deux fois
 function G.facileSauve(cause: string): boolean
@@ -926,7 +990,9 @@ local function exploser(cause: string)
 	-- (banc) workspace:SetAttribute("DbgImmortel", true) : la caisse ne meurt pas — replacée sur la route, la cause écrite dans la
 	-- Sortie. Pour laisser tourner une partie de plusieurs minutes à travers tous les niveaux.
 	if workspace:GetAttribute("DbgImmortel") then
-		warn(string.format("[CashCar] IMMORTEL %s zone=%d s=%d kmh=%d mode=%s", cause, zoneN, s, kmh(), mode))
+		-- (6/10) le RADAR au moment de la mort : une mort « air » au ras de la route (|h| < 3 m, dans sa largeur) est un bug de pose
+		warn(string.format("[CashCar] IMMORTEL %s zone=%d s=%d side=%d kmh=%d mode=%s radar=%s h=%.1f lat=%.1f t=%.1f fallT=%.2f air=%.2f decol=%d", cause, zoneN, s, side, kmh(), mode,
+			tostring(V.curNear), V.curH, V.curLat, V.curT, V.fallT, V.fallTR, V.sDecol))
 		replacer()
 		return
 	end
@@ -941,7 +1007,9 @@ local function exploser(cause: string)
 	Score.ETAT.mode = "boom"
 	boomT = 0
 	nitroOn = false
-	NTR.on, NTR.boost = false, 0
+	-- (6/10) l'intensité du dragon (NTR.k) ne retombe que dans G.nitroooTick, qui ne tourne qu'en course : morte en pleine NITROOO,
+	-- la caisse laissait son DRAGON battre des ailes au-dessus de l'épave, sur l'écran de fin, puis autour de la caisse du menu
+	NTR.on, NTR.boost, NTR.k, NTR.kc, NTR.t = false, 0, 0, 0, 0
 	-- les éclats de carrosserie (pièces locales, rendues au bout de 2,5 s) — le feu, les ondes, les billets : Client/Effets
 	for _, e in eclats do e.p:Destroy() end
 	table.clear(eclats)
@@ -1027,6 +1095,7 @@ local function atterrir(face: number, latX: number, sX: number, hR: number?)
 		-- (les astuces « sors par le bord » et « chaque pièce fait monter ton moteur » n'existent pas dans le jeu web : retirées)
 		return
 	end
+	G.qaPose = os.clock() + 0.15 -- (banc : la caisse se remet à plat à la pose, comme sur le web — pas une secousse)
 	local cf = repere(s, side)
 	local T_, B, N = cf.LookVector, cf.RightVector, cf.UpVector
 	local vm = vitMult()
@@ -1175,6 +1244,7 @@ end
 
 -- la LÈVRE raccroche (levreRattrape, L30613) : la caisse qui bascule revient d'elle-même sur la route, −6 %
 function G.levreRattrape(j: number, latOff: number, hOff: number, tOff: number)
+	G.qaPose = os.clock() + 0.15 -- (banc : voir atterrir)
 	local F = piste.F[j]
 	local vm = vitMult()
 	local vTan = fallVel:Dot(F.LookVector) / vm
@@ -1218,6 +1288,56 @@ function G.autour(pos: Vector3, rayonM: number, out: { number }): { number }
 	end
 	return out
 end
+-- (banc, 6/10) LE GUETTEUR — workspace « DbgQA » = true : chaque image de course, ce qui ne doit JAMAIS arriver s'écrit dans la
+-- Sortie (« [CashCar] QA … », une fois par vol) : une caisse DANS l'épaisseur de la dalle (une traversée ratée), une position qui
+-- n'est plus un nombre, un vol qui dépasse son chrono sans exploser. La chasse aux bugs du banc le lit.
+function G.qa()
+	local q = carCF.Position
+	if q.X ~= q.X or q.Y ~= q.Y or q.Z ~= q.Z or vA ~= vA or s ~= s or lat ~= lat or fallPos.Y ~= fallPos.Y then
+		if not G.qaNaN then
+			G.qaNaN = true
+			warn(string.format("[CashCar] QA NaN mode=%s zone=%d s=%s lat=%s vA=%s", mode, zoneN, tostring(s), tostring(lat), tostring(vA)))
+		end
+		return
+	end
+	if mode ~= "fall" or intro or V.qaDit then return end
+	if V.curNear and math.abs(V.curLat) < RH - 1 and math.abs(V.curT) < 2 and V.curH < -0.4 and V.curH > -THICK + 0.4 then
+		V.qaDit = true
+		warn(string.format("[CashCar] QA DANS LA DALLE zone=%d decol=%d sDalle=%d h=%.2f lat=%.1f t=%.1f fallT=%.2f volT=%.2f vel=(%.1f,%.1f,%.1f) basc=%s",
+			zoneN, V.sDecol, ((V.curJ or 1) - 1) * piste.DS / M, V.curH, V.curLat, V.curT, V.fallT, V.volT, fallVel.X, fallVel.Y, fallVel.Z, tostring(V.bascOn)))
+	elseif V.fallTR > airMax() + 0.5 and pwA <= 0 then
+		V.qaDit = true
+		warn(string.format("[CashCar] QA VOL SANS FIN zone=%d decol=%d air=%.2f", zoneN, V.sDecol, V.fallTR))
+	end
+end
+-- (banc, 6/10) …et LA CAMÉRA QUI SAUTE : d'une image à l'autre, le regard qui tourne de plus de 15° ou la caméra qui bouge de
+-- plus de 3 m PAR RAPPORT À LA CAISSE (un portail ou un replacement l'excusent : G.qaExcuse)
+function G.qaCam()
+	local c9 = cam.CFrame
+	local Q = G.qaC
+	local course = (mode == "drive" or mode == "fall") and not enPause
+	if Q and course and Q.mode ~= nil and os.clock() > (G.qaExcuse or 0) then
+		local ang = math.deg(math.acos(math.clamp(c9.LookVector:Dot(Q.lk), -1, 1)))
+		local rel = ((c9.Position - Q.p) - (carCF.Position - Q.car)).Magnitude / M
+		if (ang > 15 or rel > 3) and os.clock() > (Q.dit or 0) then
+			Q.dit = os.clock() + 0.5
+			warn(string.format("[CashCar] QA CAMERA SAUT %.0f° %.1f m mode=%s (avant %s) zone=%d s=%d side=%d kmh=%d", ang, rel, mode, Q.mode, zoneN, s, side, kmh()))
+		end
+		-- …et LA CAISSE QUI TREMBLE au sol : son toit qui bascule de plus de 10° d'une image à l'autre PAR RAPPORT À LA ROUTE (roulis,
+		-- tangage, marche — la route qui tourne sous elle ne compte pas)
+		if mode == "drive" and Q.mode == "drive" and Q.upR and os.clock() > (G.qaPose or 0) then
+			local upR = repere(s, side):VectorToObjectSpace(carCF.UpVector)
+			local angC = math.deg(math.acos(math.clamp(upR:Dot(Q.upR), -1, 1)))
+			if angC > 10 and os.clock() > (Q.ditC or 0) then
+				Q.ditC = os.clock() + 0.5
+				warn(string.format("[CashCar] QA CAISSE SECOUSSE %.0f° zone=%d s=%d side=%d lat=%.1f kmh=%d hop=%.2f levre=%.2f sus=%.2f", angC, zoneN, s, side, lat, kmh(),
+					G.hopY, G.levreY, G.susY or 0))
+			end
+		end
+	end
+	G.qaC = { lk = c9.LookVector, p = c9.Position, car = carCF.Position, upR = (mode == "drive") and repere(s, side):VectorToObjectSpace(carCF.UpVector) or nil,
+		mode = course and mode or nil, dit = Q and Q.dit or 0, ditC = Q and Q.ditC or 0 }
+end
 -- (banc) le JOURNAL DU BORD : pendant 4 s après un « DbgOuvre bord… », chaque décision du bord s'écrit dans la Sortie
 function G.dbgNote(quoi: string, h: number, l: number, vB: number)
 	if os.clock() > (G.dbgBordT or 0) then return end
@@ -1242,6 +1362,7 @@ function G.dbgBord(h: number, vB: number?, vN: number?)
 	flyU, flyAv = cf.UpVector, fallVel.Unit -- (à l'endroit, même lâchée depuis le dessous de la dalle)
 	V.fallT, V.fallTR, V.volT, V.fallVH0, V.fallStartSide, V.fallUnder = 1, 1, 1, -1, 1, false
 	G.dbgBordT = os.clock() + 4
+	G.qaExcuse = os.clock() + 0.2
 	warn(string.format("[CashCar] BORD : lachee a %.1f m de l'axe, h=%.2f m, vB=%d vers la route, vN=%d", RH + poignees.fiche.w * 0.5 + 1, h, vB or 20, vN or 0))
 end
 -- (banc, 5/10) « DbgOuvre » = "bordL" : LA BASCULE — la caisse passe le bord (la vraie sortie, decoller(…, bord)), file 0,3 s vers le
@@ -1254,6 +1375,7 @@ function G.dbgBascule()
 	local B = repere(s, 1).RightVector
 	fallVel += B * (sg * 3 - fallVel:Dot(B)) -- (vers le vide, 3 en travers)
 	G.dbgBordT = os.clock() + 4
+	G.qaExcuse = os.clock() + 0.2
 	warn("[CashCar] BORD : bascule par le bord, retour vers la route dans 0,3 s")
 	task.delay(0.3, function()
 		if mode == "fall" and V.bascOn then fallVel += B * (-sg * 3 - fallVel:Dot(B)) end -- (on braque : elle revient)
@@ -1278,6 +1400,7 @@ function G.essayerAtterrir(dt: number)
 		if d < dProche then proche, dProche = j, d end
 	end
 	V.curNear = proche ~= nil and dProche < 48 * M
+	V.curJ = proche
 	if V.curNear and proche then
 		local F = piste.F[proche]
 		local lc = F:PointToObjectSpace(pos)
@@ -1549,7 +1672,7 @@ local function balEcart(so: number, w: number, sA: number, sB: number, lA: numbe
 end
 
 -- les plots volants (un plot percuté part devant, rebondit, se replie)
-local volants: { { p: BasePart, v: Vector3, r: Vector3, vie: number } } = {}
+local volants: { { p: BasePart, o: any, v: Vector3, r: Vector3, vie: number } } = {}
 function G.obstacles(dt: number, cf: CFrame)
 	-- les PLOTS (choc, frôlé) et les FLAQUES, sur la face où l'on roule — balayés : rien ne passe à travers
 	local objs = zone.objets :: { any }
@@ -1576,7 +1699,7 @@ function G.obstacles(dt: number, cf: CFrame)
 					local v = cf.LookVector * math.max(8, math.abs(vA) * 0.55) + cf.RightVector * ((dl > 0 and -1 or 1) * (2 + math.random() * 4))
 						+ cf.UpVector * (5 + math.random() * 5)
 					o.p:SetAttribute("Rec", nil) -- (un plot qui vole ne rejoint jamais le recyclage : il pourrait être repris en plein vol)
-					table.insert(volants, { p = o.p, v = v * M * 0.6, r = Vector3.new(math.random() * 16 - 8, 0, math.random() * 16 - 8), vie = 1.6 })
+					table.insert(volants, { p = o.p, o = o, v = v * M * 0.6, r = Vector3.new(math.random() * 16 - 8, 0, math.random() * 16 - 8), vie = 1.6 })
 					vA *= 0.985
 					secousse = math.max(secousse, 0.14)
 					Score.flowFaute("n", 0, 0.25)
@@ -1775,6 +1898,10 @@ end
 function G.satHard()
 	local l = (zone :: any).sats
 	if not l or #l == 0 or graceT > 0 or intro then return end
+	-- (6/10) LE DESSOUS DE LA DALLE RESTE LIBRE (Client/Espace : « le raccourci des voltigeurs ») — mais la boîte d'un Starlink penché
+	-- de plus de ~20°, marges comprises, descendait jusqu'à la caisse qui roule SOUS la dalle : on y mourait sans rien toucher de
+	-- visible. Tous les satellites sont posés sur la route ou au-dessus : une caisse sous la dalle n'en heurte aucun.
+	if (mode == "drive" and side < 0) or (mode == "fall" and V.curNear and V.curH < -THICK * 0.5 and math.abs(V.curLat) < RH + 2) then return end
 	local P = carCF.Position / M
 	for _, o in l do
 		if not o.fait then
@@ -1866,6 +1993,9 @@ local function objets(dt: number, pos: Vector3, t: number)
 	local objs = zone.objets :: { any }
 	-- les pièces proches tournent (les autres dorment : zéro coût)
 	local sM = s * M
+	-- (6/10) le curseur RECULE avec la caisse : une caisse replacée en arrière (cœur, mode facile, longue route sous la dalle avant
+	-- la mort) roulait ensuite sur des plots et des pads FANTÔMES — ils étaient derrière le curseur, G.obstacles ne les voyait plus
+	while oi > 1 and objs[oi - 1] and objs[oi - 1].o.s >= sM - 60 * M do oi -= 1 end
 	while oi <= #objs and objs[oi].o.s < sM - 60 * M do oi += 1 end
 	local ang = CFrame.Angles(0, t * 2.5, 0)
 	for k = oi, #objs do
@@ -1915,14 +2045,25 @@ local function objets(dt: number, pos: Vector3, t: number)
 			end
 		end
 	end
-	-- les plots percutés volent 1,6 s
+	G.volantsTick(dt)
+end
+-- les plots percutés volent 1,6 s (aussi pendant l'explosion : ils restaient FIGÉS en l'air devant la caméra de mort)
+function G.volantsTick(dt: number)
 	for i = #volants, 1, -1 do
 		local v = volants[i]
+		if v.o and not v.o.touche then
+			-- (6/10) REMIS EN PLACE pendant son vol (une nouvelle partie, la piste d'école qui boucle sur elle-même) : on le lâche — le
+			-- finir l'aurait caché, et la partie suivante roulait dans un plot INVISIBLE mais bien là
+			table.remove(volants, i)
+			continue
+		end
 		v.vie -= dt
 		v.v -= Vector3.new(0, 24 * M * dt, 0)
 		v.p.CFrame = (v.p.CFrame + v.v * dt) * CFrame.Angles(v.r.X * dt, 0, v.r.Z * dt)
 		if v.vie <= 0 then
-			v.p.Parent = nil
+			-- (6/10) sa zone a pu être OUBLIÉE au portail entre-temps (un plot percuté dans les 1,6 s d'avant) : la pièce est détruite,
+			-- son Parent verrouillé — l'écrire levait une erreur à CHAQUE image, et l'entrée ne quittait jamais la liste
+			if v.p.Parent then v.p.Parent = nil end
 			table.remove(volants, i)
 		end
 	end
@@ -2068,6 +2209,8 @@ local function passerPortail(): boolean
 		if gagne >= 60 then G.raccourci(gagne) elseif gagne >= 25 then Score.frenTrait("m", gagne / 60) end
 	end
 	G.distAvant += longueur
+	G.qaExcuse = os.clock() + 0.2 -- (banc : le portail n'est pas un saut de caméra)
+	G.sillagesNets()
 	local ancienne = zoneN
 	local lieuAvant = (piste :: any).niveau
 	-- le saut vertical entre la sortie et le départ remonté : caisse, vol et caméra bougent ensemble
@@ -2081,6 +2224,10 @@ local function passerPortail(): boolean
 	s -= longueur
 	sPrev -= longueur
 	V.flowS0 -= longueur
+	-- (6/10) le point de réapparition sûr passe le portail avec la caisse : il gardait l'abscisse de la zone d'AVANT (≈ 9 km) tant
+	-- que la caisse n'avait pas roulé à plat, au milieu, dans l'axe — passé le portail au bord ou de travers puis tombé, on était
+	-- replacé (cœur, mode facile) près de la FIN de la zone neuve, toute la zone sautée
+	G.safeS = math.max(0, G.safeS - longueur)
 	G.padSL = 0 -- le train de boosts TRAVERSE le portail
 	G.lgS, G.lgK, G.lgV, G.lgAcc = 240, 0, 0, 20 -- la ligne parfaite repart avec la piste
 	if not ecole then
@@ -2111,6 +2258,8 @@ local function passerPortail(): boolean
 		Bus.emit("flash", Color3.fromRGB(255, 79, 216), 0.6, 0.5)
 	end
 	if not ecole then oublier(ancienne) end
+	-- (6/10) le cratère d'une tour (une caisse sauvée par un CŒUR, puis le portail) restait à flotter dans le vide où était la ville
+	if not ecole then KA.Impact.fin() end
 	-- L'ORBITE A SES PORTES (orbWarp, orbFeu, L29789) : on n'arrive plus dans l'espace par un simple fondu. ENTRÉE = un TUNNEL DE
 	-- DISTORSION (1,9 s : le champ se déchire, des traits de lumière filent, éclair bleu à l'entrée et à la sortie du tunnel) ;
 	-- SORTIE = une RENTRÉE ATMOSPHÉRIQUE EN FEU (2,6 s : la caisse retombe dans le ciel enveloppée de plasma, ça tremble)
@@ -2161,6 +2310,7 @@ function G.driftTick(dt: number, on: boolean)
 			if G.driftLv == 3 then HudScore.flash("#ff5ec8", 0.35) end
 			Sons.vrai(({ "turboMini", "turboSuper", "turboUltra" })[math.clamp(G.driftLv, 1, 3)], nil, nil, "fronde", Sons.demiTons(G.driftLv * 3))
 			Score.gesteMuet(({ "MINI-TURBO", "SUPER TURBO", "ULTRA TURBO" })[G.driftLv], ({ 50, 100, 180 })[G.driftLv], "drift")
+			if workspace:GetAttribute("DbgQA") then warn(string.format("[CashCar] QA DRIFT turbo niveau %d apres %.2f s, vA=%d", G.driftLv, G.driftC, vA)) end
 			if G.driftLv >= Score.F2.decl.drift and Score.frenPeut() then Score.frenDeclenche() end -- (en ville, le drift déclenche)
 		end
 		G.driftC, G.driftLv = 0, 0
@@ -2204,8 +2354,9 @@ function G.etapeSol(dt: number)
 	steerS += (Controles.volant - steerS) * math.min(1, dt * 18)
 	-- LE DRIFT (conduite v6) : tirer le frein en braquant fort, à bonne vitesse
 	local vitOk = math.abs(vA) > maxSp * 0.42
-	if not intro and vitOk and frein and math.abs(steerS) > 0.35 then G.driftOn = true
-	elseif not vitOk or not frein or math.abs(steerS) < 0.2 then G.driftOn = false end
+	local geste = frein or Controles.tireBas == true -- (au pouce : le geste du drift, plus court que celui du frein — voir Controles)
+	if not intro and vitOk and geste and math.abs(steerS) > 0.35 then G.driftOn = true
+	elseif not vitOk or not geste or math.abs(steerS) < 0.2 then G.driftOn = false end
 	G.driftTick(dt, G.driftOn)
 	-- L'ASTUCE DU DRIFT (L36750 ; audit UX du 26/09 : « le geste du drift n'était enseigné nulle part ») : 1,2 s de braquage à fond
 	-- à bonne vitesse sans jamais avoir drifté → on le dit, une fois dans la vie. Le joueur qui drifte tout seul ne la verra jamais.
@@ -2259,6 +2410,13 @@ function G.etapeSol(dt: number)
 	local vL = vA * math.sin(cap)
 	lat += vL * dt * SPD * vm
 	s += vA * math.cos(cap) * dt * SPD * vm
+	-- (6/10) LE DÉBUT DE LA ROUTE est un butoir : en marche arrière au départ d'une zone (le frein tenu), `s` filait sous zéro pendant
+	-- que la caisse restait clouée au premier mètre (le repère s'y arrête) — elle semblait coincée, et devait remonter tout ce
+	-- recul invisible avant de rebouger
+	if s < 0 then
+		s = 0
+		if vA < 0 then vA = 0 end
+	end
 	-- la route tourne SOUS la caisse
 	local cf2 = repere(s, side)
 	local dyaw = -(T_:Cross(cf2.LookVector)):Dot(cf2.UpVector)
@@ -2375,7 +2533,9 @@ function G.etapeSol(dt: number)
 	G.carRoll = math.clamp(G.carRoll + G.rollV * d, -0.42, 0.42)
 	G.levreY *= math.exp(-16 * dt)
 	if math.abs(G.levreY) < 0.005 then G.levreY = 0 end
-	if G.hopY > 0 then
+	-- (6/10, `hopY>0||hopV!==0` du web, L37720) un saut qui PART du sol (le débris de l'orbite qui soulève la caisse : hopV posé, hopY
+	-- à 0) ne démarrait jamais — la caisse touchée restait collée au bitume, la vitesse du saut en attente jusqu'à la pose suivante
+	if G.hopY > 0 or G.hopV > 0 then
 		G.hopY += G.hopV * dt
 		G.hopV -= 26 * G.gK() * dt
 		if G.hopY <= 0 then -- le CONTACT
@@ -2531,9 +2691,16 @@ function G.etapeAir(dt: number)
 	if u.Magnitude > 1e-3 then flyU = u.Unit end
 	droite = flyAv:Cross(flyU)
 	if intro then
-		carCF = CFrame.new(fallPos * M) * menuRot -- la CHUTE du départ garde la pose du menu
+		-- la CHUTE du départ garde la pose du menu… (6/10) et se REDRESSE sur les 30 derniers mètres : le nez restait piqué à 38° et la
+		-- caisse se remettait à plat d'un coup en touchant la route — un à-coup de 39° à chaque départ (mesuré au banc)
+		local k9 = (V.curNear and V.curH > 0) and math.clamp(1 - (V.curH - 1) / 30, 0, 1) or 0
+		local rot = (k9 > 0) and menuRot:Lerp(repere(s, 1).Rotation, k9 * k9 * (3 - 2 * k9)) or menuRot
+		carCF = CFrame.new(fallPos * M) * rot
 	elseif droite.Magnitude > 1e-3 then
-		carCF = CFrame.fromMatrix(fallPos * M, droite.Unit, flyU) * CFrame.Angles(0, 0, V.airRoll)
+		-- (6/10, `carGroup.quaternion.slerp(qTmp, dt*8)` du web, L38299) la caisse REJOINT son attitude de vol en ~0,15 s : posée d'un
+		-- coup, elle claquait au décollage de tout son drift (le nez glissé jusqu'à 24°, l'arrière chassé de 18°) et de son tangage
+		local cible = CFrame.fromMatrix(Vector3.zero, droite.Unit, flyU) * CFrame.Angles(0, 0, V.airRoll)
+		carCF = CFrame.new(fallPos * M) * carCF.Rotation:Lerp(cible, math.min(1, dt * 8))
 	else
 		carCF = CFrame.new(fallPos * M) * carCF.Rotation
 	end
@@ -2647,7 +2814,15 @@ local ARC_EN_CIEL = ColorSequence.new({ ColorSequenceKeypoint.new(0, Color3.from
 	ColorSequenceKeypoint.new(0.4, Color3.fromRGB(110, 255, 90)), ColorSequenceKeypoint.new(0.6, Color3.fromRGB(60, 220, 255)),
 	ColorSequenceKeypoint.new(0.8, Color3.fromRGB(110, 90, 255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 70, 220)) })
 function G.habiller(dt: number)
-	if mode == "boom" or mode == "mort" or mode == "charge" then return end
+	-- (6/10) LES BOUCLES DE SON ne se réglaient QUE plus bas, et l'on sortait ici dès l'explosion : moteur, nitro, vent, crissement
+	-- gardaient leur dernier volume pendant toute la boule de feu ET l'écran de fin, et la musique du LOBBY prévue à l'écran de fin
+	-- ne venait jamais (le morceau de course continuait). Elles vivent désormais à part (G.boucles), réglées dans tous les modes.
+	-- (Le chargement reste muet : le morceau de l'accueil doit PARTIR avec le ciel, pas tourner en silence depuis le lancement.)
+	if mode == "charge" then return end
+	if mode == "boom" or mode == "mort" then
+		G.boucles(dt)
+		return
+	end
 	racine.CFrame = carCF
 	local feu = nitroOn or boost > 0 or NTR.boost > 0
 	-- la couleur du feu (les teintes de la bible du web) : violet de la nitro infinie, bleu de la réserve, orange de la nitro, or du pad
@@ -2688,12 +2863,19 @@ function G.habiller(dt: number)
 	Caisse.rouler(poignees, vA * SPD * M * dt, (mode == "drive") and (G.susY or 0) or 0)
 	KA.refletK += ((nitroOn and 1.6 or (boost > 0 and 0.9 or 0)) - KA.refletK) * math.min(1, dt * 8)
 	reflet.Brightness = KA.refletK
-	-- les boucles de son
+	G.boucles(dt)
+end
+-- les boucles de son (dans TOUS les modes : voir G.habiller). (6/10, togglePause du web L39437 : « LES BOUCLES SE TAISENT AVEC LA
+-- PAUSE ») en pause, le moteur, la nitro et le vent se taisent — ils rugissaient sur une image arrêtée ; la caisse explosée n'a
+-- plus de moteur. La musique, elle, continue (on règle son volume depuis la pause).
+function G.boucles(dt: number)
 	local k = kmh()
 	local r = math.clamp(k / math.max(1, vmaxShow() * 1.55), 0, 1.6)
 	local atelier = mode == "garage"
-	Sons.regler("moteur", atelier and 0.05 or ((mode == "menu") and 0.12 or 0.32), 0.7 + r * 1.1 + (nitroOn and 0.1 or 0))
-	Sons.regler("nitro", nitroOn and 0.45 or 0)
+	local vit = not enPause and (mode == "drive" or mode == "fall" or mode == "menu" or atelier)
+	G.volMoteur = (not vit and 0) or (atelier and 0.05) or ((mode == "menu") and 0.12 or 0.32) -- (lu par le banc : Bus.etat().volMoteur)
+	Sons.regler("moteur", G.volMoteur, 0.7 + r * 1.1 + (nitroOn and 0.1 or 0))
+	Sons.regler("nitro", (vit and nitroOn) and 0.45 or 0)
 	-- LE CRISSEMENT (L38020) : une ZONE MORTE — il signale LA LIMITE, pas la conduite normale ; il monte avec la glisse et la vitesse,
 	-- et sa hauteur aussi (900 Hz + la glisse + la vitesse)
 	do
@@ -2721,7 +2903,7 @@ function G.habiller(dt: number)
 	end
 	-- (L36604 : `nuages.ambiance` est l'air d'un LIEU — la mer de nuages. En ville et en orbite il ne reste que le souffle de la vitesse)
 	local air = (piste and (piste :: any).niveau ~= "nuages" and mode ~= "menu") and 0.4 or 1
-	Sons.regler("ventAltitude", atelier and 0 or ((mode == "fall") and math.min(0.7, 0.25 + fallVel.Magnitude * 0.004) or 0.08 + r * 0.1) * air)
+	Sons.regler("ventAltitude", (atelier or not vit) and 0 or ((mode == "fall") and math.min(0.7, 0.25 + fallVel.Magnitude * 0.004) or 0.08 + r * 0.1) * air)
 	-- LA MUSIQUE SUIT LE LIEU (MUSIC_LIEU, L25333) : CIEL · LES 5 NIVEAUX aux nuages (3/10, avant NOITE DE VELOCIDADE), NOCTURNAL
 	-- GROOVE en ville, un morceau de LOBBY à l'accueil (garage, écran de fin), SWAG CASH CAR dans l'orage, la radio en orbite. Un morceau de lieu qui n'est pas importé laisse l'antenne à
 	-- `musique`. On passe de l'un à l'autre en fondu (1,2 s) ; chacun garde son fil, on ne le relance pas à chaque portail.
@@ -2761,7 +2943,7 @@ function G.habiller(dt: number)
 		end
 	end
 	-- (L36600) le silence habité de l'orbite : une ambiance en boucle, seulement là-haut
-	Sons.regler("espaceAmbiance", (G.gK() < 1 and (mode == "drive" or mode == "fall")) and 0.22 or 0)
+	Sons.regler("espaceAmbiance", (vit and G.gK() < 1 and (mode == "drive" or mode == "fall")) and 0.22 or 0)
 end
 
 -- ════════ le HUD ════════
@@ -2919,7 +3101,8 @@ local function nouvellePartie()
 	G.coeurs = FAC.coeurs
 	G.safeS = S_CHUTE
 	G.lgS, G.lgK, G.lgV, G.lgAcc = 240, 0, 0, 20
-	for _, v in volants do v.p.Parent = nil end
+	-- (6/10) les plots encore en vol sont LÂCHÉS, pas cachés : remettreObjets vient de reposer ceux de la zone de départ (les cacher
+	-- ici laissait un plot invisible mais percutable sur la route) ; ceux des autres zones se reposent quand on y entre
 	table.clear(volants)
 	Score.debut(meilleurAura, profil.frenRec or 0)
 	HudScore.raz()
@@ -2940,6 +3123,7 @@ local function nouvellePartie()
 	V.fallVH0 = horiz(fallVel)
 	V.bascOn, V.bascDir, V.airRoll, V.nAirTenu, V.kickT = false, 1, 0, false, 0
 	V.fallUnder, V.fallStartSide, V.flowS0, V.flowP0 = false, 1, s, fallPos
+	V.curNear = false -- (le radar de la partie d'avant ne redresse pas la chute du départ)
 	V.chainVal, V.chainMult, V.chainN, V.bigA, V.monstre = 0, 1, 0, false, false
 	table.clear(vus)
 	V.sDecol = s
@@ -2953,6 +3137,12 @@ end
 
 local function finPartie()
 	mode = "mort"
+	-- (6/10) QUITTER depuis la pause arrive ici sans passer par l'explosion : la nitro restait « allumée » (le dragon de NITROOO
+	-- autour de la caisse jusqu'à l'écran de fin et au menu, une bouffée de flamme au départ suivant) et le serveur croyait la
+	-- partie EN COURS — les autres joueurs voyaient notre caisse figée sur leur route, réacteur allumé, tout l'écran de fin
+	nitroOn, nitroBleue = false, false
+	NTR.on, NTR.boost, NTR.k, NTR.kc, NTR.t = false, 0, 0, 0, 0
+	evEtat:FireServer("course", false)
 	aura = Score.fin(false)
 	local dist = G.distAvant + math.max(0, s)
 	local rec = argent > record and argent > Config.CASH_DEPART + 0.5 -- (partieRecord, L24610 : au moins 0,50 $ gagnés)
@@ -3307,6 +3497,7 @@ function G.confirme(b: TextButton, quoi: string, question: string, libelle: stri
 	return false
 end
 Controles.surPause = basculerPause
+if E.btNitro then Controles.brancherNitro(E.btNitro) end -- (le bouton NITRO se relâche même quand le doigt a glissé dehors)
 E.btPause.Activated:Connect(basculerPause)
 local retourReglages = "menu"
 -- (L39202) REVOIR L'AUTO-ÉCOLE dit « +$500 » tant que le permis n'a pas été payé
@@ -3344,6 +3535,7 @@ workspace:GetAttributeChangedSignal("DbgOuvre"):Connect(function()
 	elseif string.sub(v, 1, 7) == "portail" then
 		-- (banc) saute au pied du portail : pour voir un changement de niveau sans rouler toute la zone
 		if mode == "drive" then
+			G.qaExcuse = os.clock() + 0.2
 			s = piste.len / M - ((string.sub(v, 8, 8) == "L") and 520 or 70) -- (« portailL… » : de LOIN, pour le voir venir)
 			sPrev = s
 			lat = 0
@@ -3377,6 +3569,8 @@ workspace:GetAttributeChangedSignal("DbgOuvre"):Connect(function()
 		G.boutique.dbg(string.sub(v, 7)) -- (banc) « achat:2 » ouvre la fenêtre d'achat de la 2e case, « achat:oui » presse ACHETER
 	elseif string.sub(v, 1, 7) == "quitter" then
 		G.quitterPause() -- (banc) QUITTER de la pause (« quitter1 », « quitter2 » : la question, puis la confirmation)
+	elseif v == "qapiste" then
+		if piste then task.spawn(function() pcall(KA.qaPiste, piste, zoneN, function() task.wait() end) end) end -- (banc : les croisements de la piste en cours)
 	elseif v == "frenesie" then
 		if mode == "drive" or mode == "fall" then Score.dbgFren() end
 	elseif v == "menu" then
@@ -3517,6 +3711,7 @@ do
 			return
 		end
 		record, compte, meilleurAura, G.kmhRecord = 0, 0, 0, 0
+		Score.FREN.record = 0 -- (le record de frénésie de la session part avec le reste : Score.debut ne le fait plus reculer)
 		lireProfil(prof)
 		Garage.majProfil()
 		if not ZONES[0] then preparer(0, nil) end
@@ -3588,40 +3783,58 @@ function G.lisserDoubles(dt: number)
 		end
 	end
 end
-task.spawn(function()
-	while true do
-		for _, m in dossierCaisses:GetChildren() do
-			if m ~= caisseServeur and m:IsA("Model") and m.PrimaryPart then
-				local d = doubles[m]
-				if not d then
-					cacher(m)
-					local ind = m:GetAttribute("Caisse") or 0
-					local porte = { peinture = m:GetAttribute("Peinture"), aile = m:GetAttribute("Aile"), trainee = m:GetAttribute("Trainee") }
-					local c, pg = Caisse.construire("Autre", ind, true, porte)
-					c:PivotTo(m.PrimaryPart.CFrame)
-					G.nomDouble(c, m)
-					c.Parent = workspace
-					d = { m = m, c = c, pg = pg, ind = ind, cle = tostring(porte.peinture) .. tostring(porte.aile) }
-					doubles[m] = d
-				elseif d.ind ~= (m:GetAttribute("Caisse") or 0) or d.cle ~= tostring(m:GetAttribute("Peinture")) .. tostring(m:GetAttribute("Aile")) then
-					-- il a changé de caisse au garage : on redessine son double
-					Caisse.rendre(d.c)
-					doubles[m] = nil
+-- (6/10) chaque tour est sous pcall : une seule caisse étrange (une valeur d'attribut inattendue, une caisse qui part pendant
+-- qu'on la bâtit) arrêtait cette boucle pour toute la session — les autres joueurs se figeaient sur notre route
+function G.tourDoubles()
+	for _, m in dossierCaisses:GetChildren() do
+		if m ~= caisseServeur and m:IsA("Model") and m.PrimaryPart then
+			local d = doubles[m]
+			if not d then
+				cacher(m)
+				local ind = m:GetAttribute("Caisse") or 0
+				local porte = { peinture = m:GetAttribute("Peinture"), aile = m:GetAttribute("Aile"), trainee = m:GetAttribute("Trainee") }
+				local c, pg = Caisse.construire("Autre", ind, true, porte)
+				-- (6/10) la construction CÈDE la main : un joueur parti entre-temps laissait sa caisse à moitié née hors du monde, jamais
+				-- rendue (ses triangles comptés pour toujours)
+				if not m.Parent or not m.PrimaryPart then
+					Caisse.rendre(c)
 					continue
 				end
-				local voir = m:GetAttribute("EnCourse") == true and (m:GetAttribute("Zone") or 1) == zoneN
-				if d.vu ~= voir then
-					d.vu = voir
-					for _, p in d.c:GetDescendants() do
-						if p:IsA("BasePart") then p.LocalTransparencyModifier = voir and 0 or 1 end
-					end
-					if voir then d.c.PrimaryPart.CFrame = G.poseDouble(m) end
-					local nom9 = d.c.PrimaryPart and d.c.PrimaryPart:FindFirstChild("Nom")
-					if nom9 then (nom9 :: BillboardGui).Enabled = voir end -- (son nom part avec sa caisse)
-				end
-				local nitro = voir and m:GetAttribute("Nitro") == true
-				Caisse.feu(d.pg, nitro, nitro and 110 or 0, Color3.fromRGB(255, 122, 36))
+				c:PivotTo(m.PrimaryPart.CFrame)
+				G.nomDouble(c, m)
+				c.Parent = workspace
+				d = { m = m, c = c, pg = pg, ind = ind, cle = tostring(porte.peinture) .. tostring(porte.aile) }
+				doubles[m] = d
+			elseif d.ind ~= (m:GetAttribute("Caisse") or 0) or d.cle ~= tostring(m:GetAttribute("Peinture")) .. tostring(m:GetAttribute("Aile")) then
+				-- il a changé de caisse au garage : on redessine son double
+				Caisse.rendre(d.c)
+				doubles[m] = nil
+				continue
 			end
+			local voir = m:GetAttribute("EnCourse") == true and (m:GetAttribute("Zone") or 1) == zoneN
+			if d.vu ~= voir then
+				d.vu = voir
+				for _, p in d.c:GetDescendants() do
+					if p:IsA("BasePart") then p.LocalTransparencyModifier = voir and 0 or 1 end
+				end
+				-- (6/10) …ses AILES restent rentrées (elles naissent déployées, cachées : les rallumer toutes les déployait à vie — le
+				-- serveur ne dit pas quand l'autre vole)
+				if voir then Caisse.deployer(d.pg, 0) end
+				if voir then d.c.PrimaryPart.CFrame = G.poseDouble(m) end
+				local nom9 = d.c.PrimaryPart and d.c.PrimaryPart:FindFirstChild("Nom")
+				if nom9 then (nom9 :: BillboardGui).Enabled = voir end -- (son nom part avec sa caisse)
+			end
+			local nitro = voir and m:GetAttribute("Nitro") == true
+			Caisse.feu(d.pg, nitro, nitro and 110 or 0, Color3.fromRGB(255, 122, 36))
+		end
+	end
+end
+task.spawn(function()
+	while true do
+		local ok, err = pcall(G.tourDoubles)
+		if not ok and not G.doubleErr then
+			G.doubleErr = true
+			warn("[CashCar] les autres caisses : " .. tostring(err))
 		end
 		task.wait(0.25)
 	end
@@ -3638,6 +3851,7 @@ Bus.etat = function()
 		zone = zoneN, figures = stats.figures, carCF = carCF, chainMult = V.chainMult, chainVal = V.chainVal, frein = Controles.frein,
 		driftOn = G.driftOn, driftLv = G.driftLv, glisse = (mode == "drive") and G.fumee == true, nuage = ((mode == "drive" or mode == "fall") and G.nuageIn) or 0,
 		ntr = NTR, infini = pwN > 0, fiche = poignees.fiche, bleue = nitroBleue, boost = boost,
+		volMoteur = G.volMoteur, musique = G.musVeut, -- (banc : ce que les boucles de son reçoivent)
 	}
 end
 Bus.agir.encaisser = encaisser
@@ -3684,6 +3898,13 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 		end
 	end
 	if workspace:GetAttribute("DbgNitro") then Controles.nitro = true end
+	-- (banc, 6/10) LE POUCE DU BANC : "DbgVolant" = -1…1 tient le volant (le pilote automatique se tait), "DbgFrein" = true tient le
+	-- frein (le DRIFT, avec le volant) — pour essayer la conduite comme un joueur, au clavier près
+	do
+		local dv = workspace:GetAttribute("DbgVolant")
+		if type(dv) == "number" then Controles.volant = math.clamp(dv, -1, 1) end
+		if workspace:GetAttribute("DbgFrein") then Controles.frein = true end
+	end
 	if workspace:GetAttribute("DbgInf") then pwN = math.max(pwN, 1) end -- "DbgInf" : la nitro infinie (pour regarder le dragon grandir)
 	if workspace:GetAttribute("DbgPlein") then nitroR = reservoir() end   -- "DbgPlein" : le plein à chaque image, sans le pouvoir (le dragon de FEU)
 	-- (5/10 : un ordre de banc arrivé pendant le chargement changeait de mode avant que la route existe — rien ne roule sans elle)
@@ -3721,6 +3942,7 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 			G.comboT -= dt
 			if G.comboT <= 0 then combo = 0 end
 			if mode == "drive" then G.etapeSol(dt) else G.etapeAir(dt) end
+			if workspace:GetAttribute("DbgQA") then G.qa() end -- (banc : le guetteur, voir G.qa)
 			if mode == "drive" or mode == "fall" then
 				objets(dt, carCF.Position, os.clock())
 				-- LES NUAGES : ils ne font que BLOQUER LA VUE ; un banc percuté au sol éclate, le percer à l'aveugle paie du flow
@@ -3757,6 +3979,7 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 		elseif mode == "boom" then
 			boomT += dt
 			secousse = math.max(secousse, boomT < 0.1 and 1.2 or 0)
+			G.volantsTick(dt)
 			-- LE CŒUR À LA MORT (voir Client/Revenus) : la carte s'ouvre quand la boule de feu retombe ; tant qu'elle est ouverte, la
 			-- fin de partie attend sa réponse (G.seconde : nil = pas proposée, true = ouverte, false = refusée). Avec des cœurs en
 			-- réserve (G.coeurOffre, posé par G.coeurSauve) elle propose d'en UTILISER un ; sans, d'en acheter un.
@@ -3795,6 +4018,7 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 		end
 		G.habiller(dt)
 		if mode == "garage" then Garage.rendu(dtBrut) else G.camera(dt) end
+		if workspace:GetAttribute("DbgQA") then G.qaCam() end -- (banc : la caméra qui saute, voir G.qaCam)
 		local vue = workspace:GetAttribute("DbgVue") -- (mise au point) une vue imposée depuis la console de Studio
 		if vue then
 			cam.CFrame = vue
@@ -3882,6 +4106,11 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 			-- n'ont pas la même route. Chez l'autre, la caisse se pose sur SA route, à la même distance, au même écart.)
 			evPos:FireServer(carCF, s, repere(s, 1):ToObjectSpace(carCF))
 		end
+	else
+		-- (6/10) EN PAUSE tout ce bloc dort — et avec lui les boucles de son, qui gardaient leur volume du moment : la nitro tenue
+		-- au moment de la pause rugissait sous le panneau, et SON OFF ou les curseurs de la pause ne les touchaient qu'à la reprise
+		G.boucles(dt)
+		KA.Camera.tenir() -- (la caméra dort : ses horloges tiennent, la reprise ne passe pas pour un retour de vol)
 	end
 	G.hud(dt)
 end)

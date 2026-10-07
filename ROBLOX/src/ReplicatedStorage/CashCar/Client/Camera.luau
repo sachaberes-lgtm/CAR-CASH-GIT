@@ -27,6 +27,13 @@ local REGARD = { k = 0.45, min = 35, max = 90, por = 0.3 }
 local TAILLE = { fovMax = 125, genou = 6, recMax = 0.6 }
 local HEROS = { ref = 86, dMin = 0.88, dMax = 1, kick = 16, accK = 200, tau = 0.6, boost = 0.2, bas = 0.08, vise = 1.2, recP = 1.1, fovMaxL = 112, genouL = 8 }
 local SECOUSSE_V = 0.45 -- CAM_SHAKE_V
+-- (6/10) LA REPRISE (après un vol, la mort, le menu) se lisait au CHRONOMÈTRE : plus de 0,15 s entre deux images = « on reprend ».
+-- Une image qui tousse (un portail, le ramasse-miettes, un téléphone bridé) ou la PAUSE la déclenchaient à tort : le cabrage
+-- anticipé retombait d'un coup à zéro, le retard latéral et la visée se recalaient — la caméra SAUTAIT. Les vraies reprises sont
+-- désormais dites par les changements de caméra eux-mêmes (route ↔ vol ↔ mort) ; le chronomètre ne garde que les longues
+-- absences (le garage, le menu), et la pause tient les horloges (Camera.tenir).
+local REPRISE = 0.5
+local JAMAIS = -1e9
 
 -- l'état (une seule caméra : celle du joueur)
 local S = {
@@ -111,13 +118,13 @@ function Camera.route(dt: number, X: Route, camPos: Vector3): (Vector3, Vector3,
 	-- derrière un axe MI-ROUTE MI-CAISSE
 	local camD = T:Lerp(fwd, 0.55).Unit
 	-- le retard latéral (~0,22 s), plafonné à 30 % du recul
-	if S.camLat == nil or now - S.tLat > 0.15 then S.camLat = X.lat end
+	if S.camLat == nil or now - S.tLat > REPRISE then S.camLat = X.lat end
 	S.tLat = now
 	S.camLat = (S.camLat :: number) + (X.lat - (S.camLat :: number)) * (1 - math.exp(-dt / 0.22))
 	local cLag = math.clamp((S.camLat :: number) - X.lat, -camBack * 0.3, camBack * 0.3)
 	local cible = (-camD * camBack + N * camH + B * cLag) * M
 	-- l'écart repart de la caméra RÉELLE à chaque reprise de conduite (après un vol, le garage, un replacement)
-	if now - S.tRoute > 0.15 then
+	if now - S.tRoute > REPRISE then
 		local prev = S.carPrev
 		S.off = camPos - ((prev and (prev - p).Magnitude < 30 * M) and prev or p)
 		S.phi = 0
@@ -142,7 +149,7 @@ function Camera.route(dt: number, X: Route, camPos: Vector3): (Vector3, Vector3,
 		v = v:Lerp(pr, kV) - p
 		-- la visée reprend en douceur après un vol (×2,2/s), et retrouve son régime (×9/s) en 0,6 s
 		S.viseR = math.min(1, S.viseR + dt / 0.6)
-		local saut = now - S.tVise > 0.2
+		local saut = now - S.tVise > REPRISE
 		S.tVise = now
 		if not S.vise or saut then
 			S.vise = v
@@ -161,6 +168,7 @@ function Camera.route(dt: number, X: Route, camPos: Vector3): (Vector3, Vector3,
 		S.phi += (visee - S.phi) * (1 - math.exp(-dt / ROUTE.LISSE))
 		local axe = T:Cross(N)
 		if axe.Magnitude > 1e-4 and math.abs(S.phi) > 1e-5 then
+			S.axePhi = axe.Unit -- (le vol le garde : voir Camera.vol)
 			local q = CFrame.fromAxisAngle(axe.Unit, S.phi)
 			pos = p + q:VectorToWorldSpace(pos - p)
 			vise = p + q:VectorToWorldSpace(vise - p)
@@ -181,7 +189,7 @@ function Camera.route(dt: number, X: Route, camPos: Vector3): (Vector3, Vector3,
 	local fmax, genou = (POR > 0.5) and TAILLE.fovMax or HEROS.fovMaxL, (POR > 0.5) and TAILLE.genou or HEROS.genouL
 	local K = fmax - genou
 	fovT = ((f0 <= K) and f0 or (K + genou * (1 - math.exp(-(f0 - K) / genou)))) + (fovT - f0)
-	if now - S.tFov > 0.15 then S.fovB = S.fov end -- le champ de base repart du vrai champ à chaque reprise
+	if now - S.tFov > REPRISE then S.fovB = S.fov end -- le champ de base repart du vrai champ à chaque reprise
 	S.tFov = now
 	if S.nitroAvant and not X.nitroOn then S.nitroOff = 1.2 end -- à l'extinction de la nitro, le champ RETOMBE en douceur
 	S.nitroAvant = X.nitroOn
@@ -189,7 +197,17 @@ function Camera.route(dt: number, X: Route, camPos: Vector3): (Vector3, Vector3,
 	S.fovB += (fovT - S.fovB) * math.min(1, dt * ((S.nitroOff > 0 and fovT < S.fovB) and 2.4 or 6))
 	S.zoom = math.max(0, S.zoom - dt * 2)
 	S.fov = math.max(20, S.fovB - 24 * S.zoom * S.zoom)
+	S.tVol = JAMAIS -- (le prochain vol sera une vraie reprise : sa 1re image, sa taille mesurée)
 	return pos, vise, up, S.fov
+end
+
+-- (6/10) LA PAUSE TIENT LES HORLOGES : la caméra dort sous le panneau ; sans ça, la reprise du 3-2-1 passait pour un retour de vol
+-- (le cabrage anticipé retombait à zéro d'un coup, la visée se recalait : un à-coup à chaque pause)
+function Camera.tenir()
+	local now = os.clock()
+	for _, k in { "tRoute", "tLat", "tVise", "tFov", "tVol" } do
+		if now - S[k] < REPRISE then S[k] = now end
+	end
 end
 
 -- les secousses de la ROUTE : des COUPS en sinus désaccordés (plus de neige au hasard), et le frisson de la vitesse
@@ -222,7 +240,7 @@ function Camera.vol(dt: number, X: Vol, camPos: Vector3): (Vector3, Vector3, Vec
 	local now = os.clock()
 	local p = X.carCF.Position
 	local big = math.clamp((X.fallT - 0.5) / 2.2, 0, 1) -- 0 au décollage → 1 sur un gros air
-	if now - S.tVol > 0.15 then
+	if now - S.tVol > REPRISE then
 		-- 1re image du vol : la TAILLE de la caisse à l'écran, mesurée à l'instant du décollage
 		S.zoom = 0
 		S.airT = 0
@@ -247,12 +265,21 @@ function Camera.vol(dt: number, X: Vol, camPos: Vector3): (Vector3, Vector3, Vec
 	-- la visée de conduite fond vers la caisse en ~0,4 s ; à la pose elle repartira en douceur
 	S.viseR = 0
 	S.carPrev = p
-	local saut = now - S.tVise > 0.2
+	local saut = now - S.tVise > REPRISE
 	S.tVise = now
-	if S.vise then
-		S.vise = saut and Vector3.zero or (S.vise :: Vector3) * math.exp(-dt * 5)
-	end
+	-- (6/10) la visée NAÎT ici si la caméra n'a encore jamais roulé (la chute du tout premier départ de la session) : restée vide, la
+	-- 1re image de route la posait d'un coup 8,5 m devant la caisse — le regard sautait de 58° à la pose (mesuré au banc)
+	S.vise = (saut or not S.vise) and Vector3.zero or (S.vise :: Vector3) * math.exp(-dt * 5)
 	local vise = p + (S.vise or Vector3.zero)
+	-- (6/10) LE CABRAGE ANTICIPÉ DE LA ROUTE S'ÉTEINT EN DOUCEUR : il faisait pivoter la visée et le haut autour de la caisse (jusqu'à
+	-- 22-24°) et le vol repartait de la visée NON pivotée — au décollage d'une crête ou d'un creux, le regard sautait d'un coup (19°
+	-- mesurés au banc). Il retombe ici à zéro en ~0,2 s.
+	if math.abs(S.phi) > 1e-4 and S.axePhi then
+		S.phi *= math.exp(-dt / ROUTE.LISSE)
+		local q = CFrame.fromAxisAngle(S.axePhi, S.phi)
+		vise = p + q:VectorToWorldSpace(vise - p)
+		up = q:VectorToWorldSpace(up)
+	end
 	-- le champ se resserre avec l'ampleur du saut (76° petit air → 54° gros air) ; la nitro l'ouvre
 	local fovAir = fovPor(76 - big * 22 + X.punch + (X.nitroOn and (X.bleue and 18 or 13) or 0))
 	if S.nitroAvant and not X.nitroOn then S.nitroOff = 1.2 end
@@ -260,6 +287,7 @@ function Camera.vol(dt: number, X: Vol, camPos: Vector3): (Vector3, Vector3, Vec
 	S.nitroOff = math.max(0, S.nitroOff - dt)
 	S.fov += (fovAir - S.fov) * math.min(1, dt * ((S.nitroOff > 0 and fovAir < S.fov) and 2 or 4))
 	S.fovB = S.fov
+	S.tRoute, S.tLat = JAMAIS, JAMAIS -- (la prochaine image de route sera une vraie reprise : l'écart repart de la caméra réelle)
 	return pos, vise, up, S.fov
 end
 function Camera.secousseVol(t: number, secousse: number, X: Vol): Vector3
@@ -288,6 +316,7 @@ function Camera.mort(dt: number, centre: Vector3, boomT: number, camPos: Vector3
 		S.boomOff = d
 	end
 	S.boomT = boomT
+	S.tRoute, S.tLat, S.tVol, S.tVise = JAMAIS, JAMAIS, JAMAIS, JAMAIS -- (après la mort : une vraie reprise, quoi qu'il arrive)
 	local u = math.clamp(boomT / 0.55, 0, 1)
 	local e = 1 - (1 - u) ^ 3
 	local dist = 14 + 3 * math.clamp((boomT - 0.55) / 1.25, 0, 1)
