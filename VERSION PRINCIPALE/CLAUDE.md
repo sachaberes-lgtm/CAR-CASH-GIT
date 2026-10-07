@@ -8,9 +8,12 @@
   éclairage de sphère) puis une en bouffées pixel rondes ont précédé — voici ce qui reste :
   · LE RENDU (`burnCubes`, `FUMC`) : chaque bouffée = un BLOC de cubes (le principal + deux satellites plus petits et plus pâles), ombrés
     comme les flammes de la porte (dessus clair, flancs, dessous sombre), sur une GRILLE de 10 cm, taille par CRANS de 6 cm, par BANDES
-    d'opacité (6 instanciations de la matière des cubes de la porte, en transparent : même programme — mesuré, 0 compilé). LA BRUME
-    (`BURN.voile`) = de grands cubes très pâles ; LES GRAINS (`BURN.grain`) = de petits cubes BLANCS, plus pleins, ni bleuis par le sol ni
-    rougis par les feux. Les quads ronds de ces réservoirs ne sont plus dessinés (`material.visible=false`) : ils ne servent qu'à la vie.
+    d'opacité (6 instanciations de la matière des cubes de la porte, en transparent : même programme — mesuré, 0 compilé). LA BRUME =
+    le HALO de chaque bloc : un cube ×`FUMC.haloK` (2) autour du principal, dans une 2e série de 6 bandes à `FUMC.halo` (,24) de l'opacité
+    (`C.H`, dessinées avant les cubes, même programme) — le côté vaporeux, sans rien de rond ; LE VOILE (`BURN.voile`) = de grands cubes
+    pâles et leur halo ; LES GRAINS (`BURN.grain`) = de petits cubes BLANCS, plus pleins, ni bleuis par le sol ni rougis par les feux.
+    Les réservoirs de fumée, de voile et de grains ne sont plus que des DONNÉES (`burnPoolDonnees` : aucun maillage, aucun programme) ; une
+    version parallèle (un shader de cubes à halo par bouffée, `burnPoolCube`) a été fondue dans celle-ci le même soir.
     LE FEU DES POTS = les CUBES DE FEU de la porte (cube plein ombré + halo additif ×1,9), nés 32 cm derrière les pots.
   · LE MOUVEMENT (`burnPas`) : la fumée SUIT un courant — une fonction de courant à deux échelles qui glissent (il tourne, il ne converge
     nulle part : pas d'amas) ; au ras du sol elle s'écarte doucement de la caisse ; le DONUT fait tournoyer l'air (`BURN.tourb`) ; la
@@ -42,6 +45,23 @@
 - Vérifié au banc (vrais gestes souris, debout et couché) : tenu, fouet, donut 3 tours puis l'anneau noir sur le plateau, la fumée encore
   là 6 s après le lâcher, un tap qui la chasse, les cercles de toutes tailles, burn-out puis JOUER → course ; 0 erreur, 0 programme compilé
   au 1er burn-out (142 → 142), 60 i/s pendant le burn (banc Mac). sw.js → v157.
+## LES LUEURS DE LA BOUTIQUE (2026-10-07, Léo : « une lueur derrière chaque voiture dans la boutique, de la couleur de la rareté ; au lieu de les cacher — on les montre dans tous les cas quand on appuie dessus. Les banderoles lumineuses créent un trop gros contraste, trop d'informations visuelles ; des petites lueurs, ça fait le style. Le reste, touche pas »)
+- La « boutique » = la bande des VIGNETTES DE VOITURES du garage (`#gStrip`, `garageFamilles`) ; les habillages (peinture, ailes, traînées)
+  et la vitrine en € de l'accueil (`#mShop`) n'ont pas bougé. Tout le CSS est dans `<style id="lueurs">` (juste avant `accueilCiel`).
+- Une caisse à vendre se montre EN COULEURS (`.gT.lock img` l'éteignait : luminosité ,42, saturation ,35) ; le cadenas et le prix restent.
+- Plus de liseré de couleur sous chaque vignette (`inset 0 -3px 0 --rc` de la console) : un filet neutre. À la place, la LUEUR de la
+  famille : une ombre portée sans décalage autour de la photo (`drop-shadow(0 0 4px --rg2)`, 6 px sur la vignette choisie — elle épouse
+  la caisse et allume son ombre de contact) + un halo doux derrière (`<i class="gTl">`). `--rg`/`--rg2` sont posés en rgba par
+  garageFamilles (`invRgba`, pas de color-mix), d'autant plus forts que la famille est rare (les crans de `INV_LUEUR` de l'inventaire).
+- La vignette choisie garde son cadre de la couleur de la famille (2 px) et sa lueur s'ouvre. Banc : Chrome sans fenêtre, vrais clics
+  (vignette à vendre touchée → la caisse vient sur le plateau, PEINTURE, JOUER → course), couché et debout, 0 erreur. sw.js → v157.
+- **LE BURN-OUT SEULEMENT SUR TA CAISSE** (même soir, Léo : « il n'y a que les voitures qu'on possède qui peuvent faire le burn-out ; celles
+  qu'on ne possède pas, on n'a pas le droit, les roues ne sont pas encore à nous ») : `burnPermis()` = la caisse du plateau est à toi
+  (`carUnlockedVrai`) OU c'est ton équipée (en TEST tout s'équipe ; hors TEST l'équipée est toujours à toi). Sinon le doigt tenu
+  (`BURN.hold.non`) ne met pas le moteur en régime ; à 0,28 s `burnRefus()` : « PAS ENCORE À TOI » (toast, son de refus), le bouton
+  d'achat (#gBuy, sinon #gEquip) se secoue ; le relâcher est avalé (ni tap ni coup sur la caisse). Glisser reste tourner le plateau.
+  Banc : `dbgBurn('permis')` (caisse, permis, rectangle à l'écran). Vérifié aux vrais appuis tenus : équipée → burn-out ; rare pas achetée
+  → refus ; tap court → rien ; retour sur l'équipée → burn-out. sw.js → v158.
 
 ## LE BURN-OUT v2 — LE FOUET ET LE VOLANT (2026-10-07, Léo : « corrige l'effet burn-out : refabrique une version avec le drift plus fun, un donut satisfaisant à faire, et le maintien du burn sur place mieux fait » · puis « en fait un mélange entre le premier burn-out hyper dynamique et cool qui ne sortait jamais du cercle, et celui où on peut avec le doigt faire un donut complet »)
 - **MESURÉ AVANT** (banc au vrai geste souris, debout 390 × 844) : un tour de doigt = 0,6 tour de caisse, l'excédent jeté (`avance` ,55) — la
