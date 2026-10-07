@@ -6093,6 +6093,19 @@ html[data-reduced-motion="1"] #gHub{animation:none!important;transition:none!imp
   #carr .carrBiome{padding-top:58px}
   .carrPied .carrJauge{flex-basis:100%}
 }
+/* LE NIVEAU DES PLAY (2026-10-07, Léo : « choisir une map au lieu de lancer directement ») — voir carrSel/carrChoisit. La map que lancent
+   les PLAY se lit à deux endroits : en petit sous le mot JOUER (accueil et atelier, `.playNiv`, posée par carrPlayMaj) et, dans la
+   carrière, une pastille JOUER sur la carte de son monde et sur sa case (`.carrSel`). */
+#gJouer .playNiv,#mHome .mPlay .playNiv{position:absolute;left:4px;right:4px;text-align:center;font-family:var(--pix);font-size:8px;line-height:1;
+  letter-spacing:1px;white-space:nowrap;overflow:hidden;pointer-events:none}
+#gJouer .playNiv{bottom:6px;color:currentColor;opacity:.8}
+#gJouer.aNiv>span{translate:0 -5px}
+#mHome .mPlay.mMot.aNiv{position:relative}
+#mHome .mPlay .playNiv{bottom:-2px;color:#ffe9a0;text-shadow:0 1px 0 #3a1d00,1px 0 0 #3a1d00,-1px 0 0 #3a1d00,0 -1px 0 #3a1d00}
+#carr .carrSel{display:inline-block;font-style:normal;font-family:var(--pix);font-size:8px;line-height:1;letter-spacing:1px;padding:3px 5px 2px;
+  background:#fff3c4;color:#1c0430;box-shadow:0 0 10px rgba(255,215,94,.7)}
+#carr .carrNiv .carrSel{position:absolute;z-index:2;top:-8px;right:10px} /* à cheval sur le bord haut, comme la pastille NEW de la boutique : debout, la case est étroite et son numéro est centré */
+#carr .carrPied .carrSel{flex:none}
 </style>
 <style id="poki">
 /* L'ÉDITION POKI (2026-10-04) — tout est sous `html.poki` : sans elle, rien ici ne s'applique. Ce qui n'existe pas chez Poki disparaît
@@ -13616,6 +13629,7 @@ function modeLbl(){
   const pb=$('parkBtn'),sb=$('survBtn');
   if(pb)pb.innerHTML=pxi('rampe')+' '+TR('Freestyle')+' · '+(PARK.on?TR('on'):TR('off'));
   if(sb)sb.innerHTML=pxi('drapeau')+' '+TR('Survivant')+' · '+(SURV.armed?TR('on'):TR('off'));
+  try{carrPlayMaj();}catch(e){} // (2026-10-07) parc ou Survivant armés : les PLAY repassent en partie sans fin, leur petite ligne s'efface
 }
 function applyLangDOM(){
   try{const w9=window.parent||window;if(w9.__tourneLbl)w9.__tourneLbl();}catch(e){} // (2026-10-07) le bouton TOURNER de la colonne PC suit la langue (il vit dans la page CADRE : le jeu tourne dans l'iframe)
@@ -15199,17 +15213,20 @@ function carrCiel(N){const hx9=function(c){return '#'+(c|0).toString(16).padStar
 function carrVue(bi){
   const el=document.getElementById('carr');if(!el)return;
   let h='<div class="carrIn"><div class="mHead"><h3>'+TR(bi==null?'CARRIERE':CARRIERE[bi].nm)+'</h3></div>';
+  const sel=HUB?carrSel():null; // (2026-10-07) LE NIVEAU DES PLAY : la carte de son monde et sa case le portent (classe .choisi)
   if(bi==null){
     CARRIERE.forEach(function(B,k){const f=carrFait(k);
       /* (2026-09-30, Léo : « quand je choisis une map, ça ne lance pas la partie, il faut revenir en arrière ») la carte d'un MONDE
-         LANCE son niveau en cours (le prochain à finir) ; la grille des dix reste derrière le petit bouton NIVEAUX */
-      const nx=Math.min(B.niveaux.length-1,f);
-      h+='<div class="mMode carrBiome" data-c="monde" data-b="'+k+'" data-i="'+nx+'" data-id="'+B.id+'" role="button"><div class="mmT"><span>'+pxi(B.ic)+' '+TR(B.nm)+'</span><span class="mmP carrNivs" data-c="biome" data-b="'+k+'" role="button" aria-label="'+TR('NIVEAUX')+'">'+f+' / '+B.niveaux.length+'</span></div>'
-        +'<div class="carrPied"><div class="carrJauge"><i style="width:'+Math.round(f*100/B.niveaux.length)+'%"></i></div><span class="carrGo">'+pxi('droite')+' '+TR('NIVEAU')+' '+(nx+1)+'</span></div></div>'; /* (2026-10-07, Sacha : « mauvaise police, pas besoin d'autant de texte ») plus de description : le nom, la progression, le niveau à jouer */}); // (la ligne JOUER juste sous le titre : couché, une longue description la poussait sous le RETOUR) // le compteur « 0 / 10 ▸ » ouvre la grille des dix
+         LANCE son niveau en cours (le prochain à finir) ; la grille des dix reste derrière le petit bouton NIVEAUX
+         (2026-10-07, Léo : « choisir une map au lieu de lancer directement ») au garage, elle le CHOISIT (carrChoisit) — et si la map des
+         PLAY est dans ce monde, c'est ELLE que la carte montre */
+      const ch=!!sel&&sel.b===k,nx=ch?sel.i:Math.min(B.niveaux.length-1,f);
+      h+='<div class="mMode carrBiome'+(ch?' choisi':'')+'" data-c="monde" data-b="'+k+'" data-i="'+nx+'" data-id="'+B.id+'" role="button"><div class="mmT"><span>'+pxi(B.ic)+' '+TR(B.nm)+'</span><span class="mmP carrNivs" data-c="biome" data-b="'+k+'" role="button" aria-label="'+TR('NIVEAUX')+'">'+f+' / '+B.niveaux.length+'</span></div>'
+        +'<div class="carrPied"><div class="carrJauge"><i style="width:'+Math.round(f*100/B.niveaux.length)+'%"></i></div><span class="carrGo">'+pxi('droite')+' '+TR('NIVEAU')+' '+(nx+1)+'</span>'+(ch?'<i class="carrSel">'+TR('JOUER')+'</i>':'')+'</div></div>'; /* (2026-10-07, Sacha : « mauvaise police, pas besoin d'autant de texte ») plus de description : le nom, la progression, le niveau à jouer */}); // (la ligne JOUER juste sous le titre : couché, une longue description la poussait sous le RETOUR) // le compteur « 0 / 10 ▸ » ouvre la grille des dix
   }else{
     const f=carrFait(bi);h+='<div class="carrGrille">';
     CARRIERE[bi].niveaux.forEach(function(N,i){const ok=TEST_CARRIERE||i<=f; // (2026-09-27) version TEST : tous les niveaux se lancent (la couleur dit toujours la vraie progression)
-      h+='<div class="pbtn '+(i<f?'pb-green':i===f?'pb-gold':ok?'pb-cyan':'pb-cyan off')+' carrNiv" data-c="'+(ok?'niveau':'verrou')+'" data-b="'+bi+'" data-i="'+i+'" style="--sky:'+carrCiel(N)+'" role="button" aria-label="'+(LANG==='en'?'Level ':LANG==='zh'?'关卡 ':'Niveau ')+(i+1)+(ok?'':(LANG==='en'?' locked':LANG==='zh'?' 未解锁':' verrouillé'))+'"><b>'+(ok?String(i+1).padStart(2,'0'):pxi('verrou')+'<small>'+String(i+1).padStart(2,'0')+'</small>')+'</b><span><i class="nwB">'+insec(TR(N.nm))+'</i></span></div>';}); // (2026-09-30, revue) « D'APRES-MIDI » reste d'un bloc (nwB : le span est en flex, voir i.nwB)
+      h+='<div class="pbtn '+(i<f?'pb-green':i===f?'pb-gold':ok?'pb-cyan':'pb-cyan off')+' carrNiv'+(sel&&sel.b===bi&&sel.i===i?' choisi':'')+'" data-c="'+(ok?'niveau':'verrou')+'" data-b="'+bi+'" data-i="'+i+'" style="--sky:'+carrCiel(N)+'" role="button" aria-label="'+(LANG==='en'?'Level ':LANG==='zh'?'关卡 ':'Niveau ')+(i+1)+(ok?'':(LANG==='en'?' locked':LANG==='zh'?' 未解锁':' verrouillé'))+'"><b>'+(ok?String(i+1).padStart(2,'0'):pxi('verrou')+'<small>'+String(i+1).padStart(2,'0')+'</small>')+'</b><span><i class="nwB">'+insec(TR(N.nm))+'</i></span>'+(sel&&sel.b===bi&&sel.i===i?'<i class="carrSel">'+TR('JOUER')+'</i>':'')+'</div>';}); // (2026-09-30, revue) « D'APRES-MIDI » reste d'un bloc (nwB : le span est en flex, voir i.nwB)
     h+='</div>';
   }
   if(bi==null&&HUB&&garageOn&&!(started&&!gameOver))h+='<div class="mDock"><div class="pbtn mBack" data-c="maison" role="button" aria-label="Accueil">'+pxi('maison')+'<span>'+TR('HOME')+'</span></div></div>'; else // (2026-10-06) LE HUB : la carrière est un onglet du garage — sa sortie est la MAISON
@@ -15231,7 +15248,7 @@ function carrLancer(bi,i){
   ecranWipe(function(){carrLancerSous(bi,i);},function(){garageLaunch();});
 }
 function carrLancerSous(bi,i){
-  CARR.actif={b:bi,i:i};
+  CARR.actif={b:bi,i:i};carrSelPose(bi,i); // (2026-10-07) le niveau lancé devient celui des PLAY (voir « LE NIVEAU DES PLAY »)
   if(PARK.on){PARK.on=false;try{modeLbl();}catch(e){}} // (2026-09-27) la carrière passe devant le parc freestyle : sinon lvlChoisir rendait le parc, jamais le niveau
   /* (2026-09-28) PASSER PAR LA CARRIÈRE EN PREMIER SAUTAIT L'AUTO-ÉCOLE : le niveau 1 (AURORE) roule sur la piste d'apprentissage, mais
      sans le coach. Jamais faite → on l'arme ici, avec les mêmes refus que tutoArme (sans son rebuildMenuScene : celui d'en dessous suffit). */
@@ -15243,7 +15260,46 @@ function carrLancerSous(bi,i){
 // les chemins qui relancent sans passer par la mort (panneau ⏸, bouton du desktop). ⚠ pas dans resetGame : carrLancer y passe
 // aussi, et on écraserait le niveau que le joueur vient de choisir par celui de la partie d'avant.
 function carrIci(){if(CARR.actif&&LVL.cur&&LVL.cur.carr&&LVL.cur.carr.b===CARR.actif.b)CARR.actif.i=LVL.cur.carr.i;}
-window.dbgCarriere=function(){return {actif:CARR.actif,progression:SAVE.d.carr||{}};};
+/* LE NIVEAU DES PLAY (2026-10-07, Léo : « quand j'appuie directement sur PLAY, ça me lance dans une map avec un son qui n'est pas celui
+   qu'on retrouve depuis la carrière ; le PLAY du garage lance le dernier niveau de carrière auquel on a joué ; on peut aussi sélectionner
+   un niveau dans la carrière puis retourner au garage — choisir une map, au lieu de lancer directement »).
+   · `SAVE.d.carrSel` {id du monde, i} = le niveau que lancent le PLAY de l'accueil, le JOUER de l'atelier et celui des MISSIONS — par le
+     MÊME départ que la carrière (`carrLancer` : le voile, la piste du niveau reconstruite dessous, la musique du niveau, puis le lâcher).
+     Rangé par `id` comme `SAVE.d.carr` : l'ordre des mondes peut bouger.
+   · Il suit le joueur : `carrLancerSous` (le niveau qu'on vient de lancer), `endGame` (celui où la partie s'est arrêtée : on a pu passer
+     des portails), les fins de monde (le monde suivant, comme REJOUER), et un toucher dans la carrière (`carrChoisit`).
+   · Rien de choisi : le niveau en cours du 1er monde (celui de sa carte). L'auto-école qui attend (1re partie, REVOIR L'AUTO-ÉCOLE) :
+     AURORE, le niveau 1, qui l'arme lui-même (carrLancerSous) — l'ancien JOUER l'armait par tutoArme.
+   · La partie sans fin d'avant reste à qui l'a demandée : le PARC ou le SURVIVANT armés dans MODES, Poki (pas de carrière) et la vitrine
+     `?menu=leo` (sa vignette dit le niveau sans fin) — `carrPlayOk()`. */
+function carrPlayOk(){return HUB&&!PARK.on&&!SURV.armed;}
+function carrSelPose(bi,i){const B=CARRIERE[bi];if(!B||!B.niveaux[i])return;const s=SAVE.d.carrSel;
+  if(!(s&&s.id===B.id&&s.i===i)){SAVE.d.carrSel={id:B.id,i:i};SAVE.mark();}
+  carrPlayMaj();}
+function carrSel(){ // {b,i} : le niveau que lancent les PLAY
+  if(!SAVE.d.tuto&&!SANDBOX&&CARRIERE[0].niveaux[0].piste==='tuto')return {b:0,i:0};
+  const s=SAVE.d.carrSel,b=s?CARRIERE.findIndex(function(B){return B.id===s.id;}):-1;
+  if(b>=0&&CARRIERE[b].niveaux[s.i]&&(TEST_CARRIERE||s.i<=carrFait(b)))return {b:b,i:s.i};
+  return {b:0,i:Math.min(CARRIERE[0].niveaux.length-1,carrFait(0))};}
+function carrJouer(){ // le PLAY de l'accueil et du garage
+  if(pendingScore!=null)return; // un nom en cours de saisie (comme playViaGarage)
+  const s=carrSel();carrLancer(s.b,s.i);}
+function carrChoisit(bi,i){ // un toucher dans la carrière CHOISIT la map et rend la main au garage, où PLAY la lance
+  const B=CARRIERE[bi];if(!B||!B.niveaux[i])return;
+  if(PARK.on){PARK.on=false;try{modeLbl();}catch(e){}} // choisir une map de carrière, c'est quitter le parc et le Survivant armés : PLAY la lancera
+  if(SURV.armed){SURV.armed=false;try{modeLbl();}catch(e){}}
+  carrSelPose(bi,i);SAVE.flush();
+  toast(pxi('coche')+' '+TR(B.nm)+' '+(i+1)+' · '+TR(B.niveaux[i].nm));
+  if(garageOn&&gEl&&gEl.classList.contains('missions'))garMode('boutique'); // ouverte de l'onglet MISSIONS : on revient à l'ATELIER, son JOUER sous le pouce
+  feuilleFerme(document.getElementById('carr'),'on');
+  try{hubSync();}catch(e){}}
+function carrPlayNom(){const s=carrSel();return TR(CARRIERE[s.b].nm)+' '+(s.i+1);}
+function carrPlayMaj(){ // la petite ligne sous les PLAY : la map qu'ils lancent (vide quand ils lancent la partie sans fin)
+  const t=carrPlayOk()?carrPlayNom():'';
+  for(const el of [document.querySelector('#mHome .mPlay'),document.getElementById('gJouer')]){if(!el)continue;
+    let s=el.querySelector('.playNiv');if(!s){if(!t)continue;s=document.createElement('small');s.className='playNiv';s.setAttribute('aria-hidden','true');el.appendChild(s);}
+    if(s.textContent!==t)s.textContent=t;el.classList.toggle('aNiv',!!t);}}
+window.dbgCarriere=function(){return {actif:CARR.actif,progression:SAVE.d.carr||{},sel:SAVE.d.carrSel||null,play:carrPlayOk()?carrSel():'sans fin'};};
 window.dbgVilleEntree=function(){return {marque:!!VILLE_ENTREE,troncons:CITY.entree,metres:CITY.entree?CITY.entree.map(function(i){return Math.round(i*L/(NP-1));}):null,alt:CITY.entree?CITY.entree.map(function(i){return Math.round(pts[i].y);}):null,depart:NP?Math.round(pts[0].y):null};}; // (banc) l'entrée surélevée de la ville : où finit la droite, où finit la rampe
 window.dbgNiveau=function(){return LVL.cur?{niveau:LVL.n,lieu:LVL.cur.id,ciel:BIO.name,largeurRoute:+(ROAD_HALF*2).toFixed(1),uSpace:+LVL.espace.toFixed(2),
   planete:+LVL.planete.toFixed(2),ville:!!CITY.root,nuages:CLOUDS.length,nuit:+LVL.nuit.toFixed(2),hard:!!LVL.cur.hard,graine:LVL.cur.graine|0,pr:LVL.cur.pr||''}:'parc freestyle (pas de niveaux)';}; // (2026-09-30) + nuit, hard, graine, promesse : le banc de la carrière
@@ -29505,6 +29561,7 @@ const SAVE={
     if(d.vol&&typeof d.vol==='object'){const q=(k,dv)=>{const x=+d.vol[k];return isFinite(x)?Math.min(1,Math.max(0,x)):dv;};
       c.vol={mus:q('mus',.62),sfx:q('sfx',1),vox:q('vox',1)};}
     c.tctl=(d.tctl==='pad')?'pad':'stick';c.q=(d.q==='net')?'net':'fast';c.sand=(d.sand===true);c.carr={};if(d.carr&&typeof d.carr==='object')for(const k of ['nuages','ville','espace','paris'])c.carr[k]=Math.max(0,Math.min(10,d.carr[k]|0)); // réglages MOBILE
+    if(d.carrSel&&typeof d.carrSel==='object'&&['nuages','ville','espace','paris'].includes(d.carrSel.id))c.carrSel={id:d.carrSel.id,i:Math.max(0,Math.min(9,d.carrSel.i|0))}; // (2026-10-07) LE NIVEAU DES PLAY (carrSel le revérifie contre la carrière)
     if(Array.isArray(d.fruits))c.fruits=d.fruits.slice(0,32).filter(e=>e&&typeof e.n==='string').map(e=>({ // réglages de l'ÉTAL (bornés : un import bidon ne casse rien)
       n:e.n.slice(0,24),
       b:THREE.MathUtils.clamp(isFinite(+e.b)?+e.b:.5,0,2),
@@ -33100,6 +33157,7 @@ function endGame(){
   if(FLOW.lv===4)frenFin(true); // (v3) une frénésie encore en cours (QUITTER, fin de campagne) compte pour l'écran de fin et le record
   if(mode!=='boom'&&!CAMP.garde)mortCause=''; // (2026-09-26) QUITTER n'est pas une mort : pas la cause de la partie d'avant · (2026-09-27) sauf une fin de CAMPAGNE (semé, terminé) qui pose la sienne
   if(CARR.actif&&LVL.cur&&LVL.cur.carr&&LVL.cur.carr.b===CARR.actif.b)CARR.actif.i=LVL.cur.carr.i; // (2026-09-27) REJOUER repart du niveau où l'on s'est arrêté, pas du premier de la série
+  try{if(CARR.actif&&LVL.cur&&LVL.cur.carr)carrSelPose(LVL.cur.carr.b,LVL.cur.carr.i);}catch(e){} // (2026-10-07) …et les PLAY du menu aussi : « le dernier niveau de carrière auquel on a joué »
   try{campStop();}catch(e){} // (2026-09-27) tirs, fumée, éclairs, halos : rien ne reste figé derrière l'écran de fin
   try{rainbowCoupe();}catch(e){} // (2026-10-07) l'arc-en-ciel de pixels brûle encore pendant l'explosion : la boucle s'arrête ici, il ne doit pas rester figé
   try{if(CHA.n&&mode==='drive')chaineEncaisse();}catch(e){} // (2026-09-26) la chaîne d'aura ouverte est encaissée, pas oubliée
@@ -34455,6 +34513,7 @@ function campFinale(){ // le portail du COUCHER : les NUAGES sont finis
   CAMP.garde=true;mortCause='finNuages';
   endGame();
   CARR.actif={b:Math.max(0,CARRIERE.findIndex(function(B){return B.id==='ville';})),i:0}; // (2026-09-28) REJOUER ouvre la VILLE (il relançait la chasse de la caisse-nuage qu'on conduit déjà)
+  carrSelPose(CARR.actif.b,0); // (2026-10-07) les PLAY du menu aussi
 }
 function espaceFinale(){ // (2026-09-28) le portail de PLUTON : l'ESPACE est fini — même cérémonie que les NUAGES et la VILLE
   const zb=denom()*60*flowMult();money+=zb;levelCash+=zb;livre('$:fin',zb);try{checkUpgrade();}catch(e){} // (2026-09-29) × le FLOW : le dernier portail franchi en FRÉNÉSIE paie ×3
@@ -35415,6 +35474,7 @@ function villeFinale(){ // le portail de MIDI franchi AVANT le banquier : la VIL
   CAMP.garde=true;mortCause='finVille';
   endGame();
   CARR.actif={b:Math.max(0,CARRIERE.findIndex(function(B){return B.id==='espace';})),i:0}; // (2026-09-28) REJOUER ouvre l'ESPACE (il relançait le banquier)
+  carrSelPose(CARR.actif.b,0); // (2026-10-07) les PLAY du menu aussi
 }
 // ============ 8 · LES ÉTAGES : les colonnes de lumière ============
 // Les gués de ouate des NUAGES n'existent pas en ville (zéro nuage) : à leur place, six COLONNES montent du fond du canyon entre les
@@ -36985,6 +37045,7 @@ function openGarage(quiet){
   try{if(SONV2&&!openGarage._amb)openGarage._amb=sfx('garage.ambiance',{loop:true});}catch(e){} // (console de son) l'ATELIER a sa voix : néons, tube qui grésille, la ville au loin
   try{if(SONV2&&!openGarage._feu)openGarage._feu=sfx('garage.feu',{loop:true});}catch(e){} // (2026-09-29) …et la porte BRÛLE : le rideau de flammes gronde et crépite (il monte pendant le lâcher, voir garFeu)
   garageOn=true;gEl.classList.add('on');gEl.classList.toggle('quiet',!!quiet);overlay.style.display='none';document.body.classList.add('inGarage');
+  try{carrPlayMaj();}catch(e){} // (2026-10-07) la map que lance JOUER, à jour (progression, auto-école) — « LE NIVEAU DES PLAY »
   if(pigGroup)pigGroup.visible=false;
   if(!GAR.root)buildGarageRoom();   // L'ATELIER se bâtit à la PREMIÈRE visite : zéro coût pour qui n'y entre jamais
   GAR.root.visible=true;
@@ -38372,10 +38433,11 @@ function garJouer(e){
   const el=$('gJouer');uiPop(el);uiClic();try{pixBurst(el,16);}catch(x){}
   const part=function(){
     if(!garageOn||GAR.go)return;
-    CARR.actif=null;
     if(SHOP.tab==='voiture'){if(!carUnlocked(garageI))garageShow(equippedCar());}
     else if(SHOP.prev&&!shopOwned(SHOP.prev.cat,COSM[SHOP.prev.cat][SHOP.prev.i].id)){shopTab('voiture');garageShow(equippedCar());}
-    goImmersive();tutoArme();garageLaunch();};
+    goImmersive();
+    if(carrPlayOk()){carrJouer();return;} // (2026-10-07, Léo) LE NIVEAU DES PLAY : la map de la carrière, par son départ (le voile, la piste du niveau, sa musique)
+    CARR.actif=null;tutoArme();garageLaunch();};
   if(SAVE.d.facile==null&&!SAVE.d.tuto)facChoix().then(part);else part();
 }
 $('gJouer').addEventListener('click',garJouer);
@@ -39681,7 +39743,7 @@ function garAccueil(){ // appelé par le routeur à chaque arrivée sur 'home'
  clicM($('gReglage'),function(){uiClic('nav');ecranWipe(function(){window.__mRetour='set';closeGarage();});});   // les RÉGLAGES (retour : le menu)
  clicM($('gMisBtn'),function(){uiClic('nav');garMode('missions');});    // les MISSIONS : l'écran de l'atelier (voir « LES MISSIONS DANS L'ATELIER »)
  clicM(document.querySelector('#gmBas .gmHome'),function(){uiClic('retour');garMisRetour();});             // HOME : le menu (ou la VITRINE, si on en vient)
- clicM(document.querySelector('#gmBas .gmJouer'),function(e){CARR.actif=null;garJouer();});                 // JOUER : la partie sans fin, la mission suivie à l'écran
+ clicM(document.querySelector('#gmBas .gmJouer'),function(e){garJouer();});                 // JOUER : la map des PLAY (voir « LE NIVEAU DES PLAY » ; la partie sans fin hors du hub), la mission suivie à l'écran
  {const nd=$('gmNoeuds');if(nd)nd.addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go)return;
    const c9=e.target.closest&&e.target.closest('.gmC');if(!c9)return;const a=GMIS.ancres[+c9.getAttribute('data-k')];if(!a)return;const s=misEtat();
    if(a.k==='d'){if(s.ok[a.i]){uiClic('refus');return;}s.f=s.f===a.i?-1:a.i;SAVE.flush();uiClic(s.f>=0?'on':'off');hap(10);gmRender(true);
@@ -39765,7 +39827,8 @@ buildPlayWord();
    cède la place à .mMot ; le routeur de l'accueil (data-m="play") reste le même : même départ, même son, même haptique. */
 function mPlayMot(){const el=document.querySelector('#mHome .mPlay');if(!el)return;
   el.classList.remove('pbtn','pb-gold','big','wide');el.classList.add('mMot');el.setAttribute('aria-label',TR('JOUER'));el.innerHTML='';
-  for(const ch of TR('JOUER')){const sp=document.createElement('span');sp.className='lg gold';sp.setAttribute('data-t',ch);sp.textContent=ch;el.appendChild(sp);}}
+  for(const ch of TR('JOUER')){const sp=document.createElement('span');sp.className='lg gold';sp.setAttribute('data-t',ch);sp.textContent=ch;el.appendChild(sp);}
+  try{carrPlayMaj();}catch(e){}} // (2026-10-07) la map que lance PLAY, en petit dessous (« LE NIVEAU DES PLAY »)
 function mPlayVague(x){const el=document.querySelector('#mHome .mPlay.mMot');if(!el)return;const L9=el.querySelectorAll('.lg');if(!L9.length)return;
   if(x==null){const r0=el.getBoundingClientRect();x=(r0.left+r0.right)/2;}
   L9.forEach(function(l){const r=l.getBoundingClientRect();l.classList.remove('pxScale');l.style.animationDelay='';void l.offsetWidth;l.style.animationDelay=Math.min(240,Math.abs((r.left+r.right)/2-x)*1.1).toFixed(0)+'ms';l.classList.add('pxScale');});}
@@ -39792,7 +39855,7 @@ function playWordWave(clickX){
   });
 }
 $('gPlayMain').addEventListener('click',function(e){
-  e.stopPropagation();CARR.actif=null; // le PLAY du garage = la partie sans fin
+  e.stopPropagation(); // le PLAY du garage : garJouer décide (la map des PLAY au hub, la partie sans fin dans la vitrine ?menu=leo)
   playWordWave(e.clientX); // ⚠ (2026-09-25) cet appel était COLLÉ au commentaire ci-dessus : la vague ne partait jamais
   setTimeout(garJouer,260); // (2026-09-30) le même départ que le JOUER du bas : 1er JOUER → le mode, caisse à l'essai → la tienne, auto-école
 });
@@ -39812,7 +39875,7 @@ $('carr').addEventListener('click',function(e){ // un seul écouteur pour tout l
   if(c==='fermer')feuilleFerme($('carr'),'on');
   else if(c==='biomes')carrVue(null);
   else if(c==='biome')carrVue(b);
-  else if(c==='niveau'||c==='monde')carrLancer(b,i); // (2026-09-30) la carte d'un monde lance son niveau en cours
+  else if(c==='niveau'||c==='monde'){if(HUB&&garageOn&&!(started&&!gameOver))carrChoisit(b,i);else carrLancer(b,i);} // (2026-09-30) la carte d'un monde lance son niveau en cours — (2026-10-07, Léo) au garage du hub, elle le CHOISIT : PLAY le lancera (voir « LE NIVEAU DES PLAY »)
   else if(c==='verrou'){ // un niveau fermé RÉPOND : il secoue et dit ce qu'il attend
     el.classList.remove('secoue');void el.offsetWidth;el.classList.add('secoue');uiClic('refus'); // (2026-09-28, charte règle 8) il secouait en silence : le clic et la vibration disent « reçu, mais non »
     toast(pxi('verrou')+' '+TR('TERMINE LE NIVEAU')+' '+(carrFait(b)+1));return; } // (2026-09-28) le PROCHAIN niveau à finir — `i` (l'index tapé) disait « 4 » pour le 5e avec zéro niveau fini
@@ -42653,7 +42716,9 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   function mTap(a,el){
     if(a!=='snd')uiClic(mRole9(a));uiPop(el);if(a==='play'||a==='replay')pixBurst(el,16); // chaque bouton REBONDIT ; JOUER lâche une gerbe — (2026-09-28) SON : le clic part APRÈS la bascule (plus bas)
     if(a==='replay'&&started&&gameOver){ const r9=function(){ DEPMUS.sort=performance.now(); goImmersive(); ecranWipe(function(){ if(started&&gameOver){ if(!CARR.actif)tutoArme(); resetGame(); } }); }; if(pkPasse(r9))r9(); } // (POKI) pkPasse : la pause pub avant de rejouer // REJOUER : tout de suite, sans repasser par l'atelier — mais par un fondu (la piste neuve se construit DESSOUS) · (2026-09-28) tutoArme : « REVOIR L'AUTO-ÉCOLE » promet le PROCHAIN départ, REJOUER compris (sans effet si elle est déjà faite ; pas en carrière : son niveau passe devant la piste d'apprentissage)
-    else if(a==='play'||a==='replay'){ if(a==='play')CARR.actif=null;
+    else if(a==='play'&&carrPlayOk()){ const go9=function(){goImmersive();carrJouer();}; // (2026-10-07, Léo) LE NIVEAU DES PLAY : la map de la carrière (la dernière jouée, ou choisie), par le départ de la carrière — sa musique comprise
+      if(SAVE.d.facile==null&&!SAVE.d.tuto)facChoix().then(go9);else go9(); } // le 1er JOUER demande toujours le mode
+    else if(a==='play'||a==='replay'){ if(a==='play')CARR.actif=null; // la partie sans fin : parc, Survivant armé, Poki, ?menu=leo (carrPlayOk)
       if(a==='play'&&SAVE.d.facile==null&&!SAVE.d.tuto){facChoix().then(function(){goImmersive();playViaGarage(true);});} // (2026-09-29) le 1er JOUER demande le mode
       else{goImmersive(); playViaGarage(true);} } // 1re partie = AUTO-ÉCOLE : tutoArme passe SOUS le voile (la reconstruction de la piste figeait le bouton avant qu'il monte)
     else if(a==='tuto'){ SAVE.d.tuto=0;SAVE.flush();toast(pxi('coche')+' '+TR('L\'AUTO-ÉCOLE T\'ATTEND AU PROCHAIN JOUER')); }
