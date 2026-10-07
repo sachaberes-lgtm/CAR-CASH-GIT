@@ -3603,6 +3603,9 @@ E.btRecom.Activated:Connect(function()
 	if not G.confirme(E.btRecom, "recom", tr("SUR ? GAINS PERDUS", "SURE? GAINS LOST"), T.recommencer) then return end
 	enPause = false
 	Score.fin(false)
+	-- (7/10) le serveur repart de zéro lui aussi : sa montre (le plafond anti-triche) et l'état « sans aide » du TOP 10 — sans ce mot,
+	-- la partie neuve héritait de l'heure et des aides de celle qu'on abandonne
+	evEtat:FireServer("recommence")
 	nouvellePartie()
 end)
 function G.quitterPause() -- (nommée : le banc la presse aussi, « DbgOuvre quitter » deux fois = la question puis la confirmation)

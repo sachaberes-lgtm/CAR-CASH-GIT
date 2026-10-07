@@ -3603,6 +3603,9 @@ E.btRecom.Activated:Connect(function()
 	if not G.confirme(E.btRecom, "recom", tr("SUR ? GAINS PERDUS", "SURE? GAINS LOST"), T.recommencer) then return end
 	enPause = false
 	Score.fin(false)
+	-- (7/10) le serveur repart de zéro lui aussi : sa montre (le plafond anti-triche) et l'état « sans aide » du TOP 10 — sans ce mot,
+	-- la partie neuve héritait de l'heure et des aides de celle qu'on abandonne
+	evEtat:FireServer("recommence")
 	nouvellePartie()
 end)
 function G.quitterPause() -- (nommée : le banc la presse aussi, « DbgOuvre quitter » deux fois = la question puis la confirmation)
@@ -12457,6 +12460,14 @@ function Espace.batir(piste: any, dossier: Instance, graine: number, ceder: (() 
 			local f = F[math.clamp(math.floor(s9 / DSm) + 1, 1, NP)]
 			local b, n, t = f.RightVector, f.UpVector, f.LookVector
 			local W: Vector3, U: Vector3, T: Vector3
+			-- (7/10, chasse aux bugs) un panneau posé AU RAS de la route, penché de 28° avec une demi-aile de 10 m, plantait le bout de
+			-- son aile 3,5 m SOUS la dalle : il la perçait et dépassait dessous. L'inclinaison est bornée pour que le bout de l'aile
+			-- s'enfonce au plus dans l'ÉPAISSEUR de la dalle (0,5 m avant d'en sortir) — le panneau garde son air couché sur la route
+			-- (le tirage au sort ne change pas : la piste en aval reste la même)
+			if k == 0 and h < 5 then
+				local lim = math.asin(math.clamp((h + Config.THICK - 0.5) / rad, 0, 1))
+				al = math.clamp(al, -lim, lim)
+			end
 			if k == 0 then -- le panneau : ailes en travers, penché autour de la route
 				W, U, T = (b * math.cos(al) + n * math.sin(al)).Unit, (n * math.cos(al) - b * math.sin(al)).Unit, t
 			else -- l'étage : couché, un peu de biais
@@ -27992,6 +28003,11 @@ evEtat.OnServerEvent:Connect(function(p, quoi, valeur)
 		debutCourse[p.UserId] = os.clock()
 		Revenus.debut(p) -- (la partie part-elle SANS AIDE ? le TOP 10 n'inscrit que celles-là)
 		Analytique.debut(p)
+	elseif quoi == "recommence" and debutCourse[p.UserId] then
+		-- RECOMMENCER (pause) : la partie abandonnée ne verse rien et n'envoie pas de fin — la montre et l'état « sans aide » repartent
+		-- ici. (Un tricheur qui en abuserait ne ferait que raccourcir sa propre montre, donc baisser son plafond.)
+		debutCourse[p.UserId] = os.clock()
+		Revenus.debut(p)
 	end
 	local m = dossier:FindFirstChild(p.Name)
 	if not m then return end
