@@ -30,7 +30,9 @@ const OU={poki:'Poki for Developers',crazy:'CrazyGames (developer.crazygames.com
   playgama:'Playgama (developer.playgama.com)'}[ED];
 const SRC=path.join(__dirname,'VERSION PRINCIPALE'),DST=path.join(__dirname,NOM),ZIP=path.join(__dirname,NOM+'.zip');
 const SAUTE=new Set(['CLAUDE.md','README.md','JOUER.bat','sw.js','sons.html','atelier-son','atelier-nuages.js']); // à la racine du jeu
-const SAUTE_REL=new Set([1,2,3,4,5].map(k=>'assets/audio/music/ciel/ciel-n'+k+'.m4a') // la musique des niveaux 1 à 5 de la CARRIÈRE (nuages…
+// (2026-10-08) ciel-n1 RESTE : depuis le 7/10 l'AUTO-ÉCOLE (la 1re partie d'un joueur neuf) la joue (musicLieuVoulu, piste 'tuto') —
+// retirée, la toute première partie d'un portail tournait sans musique (404 « fichier illisible », vu au banc Playgama)
+const SAUTE_REL=new Set([2,3,4,5].map(k=>'assets/audio/music/ciel/ciel-n'+k+'.m4a') // la musique des niveaux 2 à 5 de la CARRIÈRE (nuages…
   .concat(['assets/audio/music/ville'])                 // …et le dossier ENTIER de la ville : NÉON COMPLÈTE 1-10, que la carrière seule joue (musicLieuVoulu)
   .concat(['assets/audio/announcer','assets/audio/death/eww.m4a','assets/audio/fx/wow.mp3'])); // les VOIX (dossier entier pour l'annonceur)
 function copie(de,vers,rel){
