@@ -41542,20 +41542,20 @@ function loop(now){
     // CAPACITÉ MOTEUR : la réserve de nitro s'élargit avec le palier (2,0 → 3,6 au réacteur)
     const NRMAX=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2;
     {const av9=nitroR;nitroR=Math.min(NRMAX,nitroR+NITRO2.regen*dt);if(LIVRE.on)livre('n+:seule',nitroR-av9);}
-    if(pwrNitroT>0||PARK.on)nitroR=NRMAX; // NITRO INFINIE : jauge pleine, rien ne se consomme (pouvoir, parc freestyle — plus le départ : 2026-10-08, ce n'est pas de la nitro) — pleine = la capacité du MOTEUR (à 2 en dur, la jauge restait à 55 % au palier max)
-    {const fu9=nitroR>=NRMAX-.001,d9=nitroR-(loop._nR==null?nitroR:loop._nR);if(SONV2&&fu9&&loop._nFu===false&&d9<.06&&!(pwrNitroT>0||PARK.on)&&started&&!gameOver)sfx('nitro.pleine');loop._nFu=fu9;loop._nR=nitroR;} // (console de son) PLEINE : ding au franchissement — pas sous nitro infinie, ni quand un plein OFFERT (saut > .06 : portail, pose, bump, fruit) l'a remplie, il a son glouglou
+    if(pwrNitroT>0||PARK.on||startBoostT>0)nitroR=NRMAX; // NITRO INFINIE : jauge pleine, rien ne se consomme (pouvoir, parc freestyle, OU l'élan du départ — 2026-10-08 : le départ ne fait plus de nitro tout seul, mais une nitro APPUYÉE pendant ses 3 s reste offerte : sinon, tenue dès le départ, la jauge tombait à sec en 2,6 s et la nitro se coupait en PANNE SÈCHE) — pleine = la capacité du MOTEUR (à 2 en dur, la jauge restait à 55 % au palier max)
+    {const fu9=nitroR>=NRMAX-.001,d9=nitroR-(loop._nR==null?nitroR:loop._nR);if(SONV2&&fu9&&loop._nFu===false&&d9<.06&&!(pwrNitroT>0||PARK.on||startBoostT>0)&&started&&!gameOver)sfx('nitro.pleine');loop._nFu=fu9;loop._nR=nitroR;} // (console de son) PLEINE : ding au franchissement — pas sous nitro infinie, ni quand un plein OFFERT (saut > .06 : portail, pose, bump, fruit) l'a remplie, il a son glouglou
     const wantN=keys.ShiftLeft||keys.ShiftRight||keys.Space||(DBG_AUTO.on&&(DBG_AUTO.nit===1||(DBG_AUTO.nit===2&&mode==='fall')||(DBG_AUTO.nit===3&&mode==='drive'))); // (2026-10-08, Léo : « l'accélération du début n'est pas du boost, c'est de la vitesse ; enlève tout ce qui a rapport au nitro ») le départ ne tient PLUS la touche : il pousse la caisse (voir `startBoostT` dans la conduite), sans flamme, ni son, ni traînée
     /* (2026-10-01, LA LOI DU RÉSERVOIR, loi 0) À SEC : le réacteur tenait tant qu'il restait plus de ,005 dans la jauge — or elle se refait
        de ,2 × dt à chaque image : sous ~40 images/s (dt > ,025 : un iPhone bridé à 30 i/s) la recharge d'UNE image suffisait, et le nitro
        tenu ne s'éteignait JAMAIS, jauge vide (poussée, NITROOO, PSYCHO, flow gelé). Il tient désormais tant que la jauge PAIE l'image. */
-    const tk9=pwrNitroT>0||PARK.on?0:nitroConsoDe(dt,FLOW2.fren.nitro,FLOW.lv===4,NTR.on,mode==='fall');
+    const tk9=pwrNitroT>0||PARK.on||startBoostT>0?0:nitroConsoDe(dt,FLOW2.fren.nitro,FLOW.lv===4,NTR.on,mode==='fall');
     nitroOn=wantN&&nitroTientDe(nitroR+nitroX,tk9,nitroOn); // hystérésis anti-clignotement (il se rallume à ,3)
     if(LIVRE.on){LIVRE.t+=dt;if(nitroOn)LIVRE.tN+=dt;if(mode==='fall')LIVRE.tV+=dt;}
     if(wantN&&!loop._nvW&&!nitroOn&&mode!=='boom'){try{if(SONV2)sfx('nitro.vide');else noiseBurst(.04,.06,2500);}catch(e){}hap(6);} // (2026-09-26, audit son) NITRO À VIDE : un « tchk » sec — l'appui répond toujours
     loop._nvW=wantN;
     const doigtN=!!(keys.ShiftLeft||keys.ShiftRight||keys.Space); // (2026-10-03, Léo) la phrase ne répond qu'au VRAI doigt : ni le boost de départ (startBoostT), ni le pilote auto
     {const iV=doigtN&&mode!=='boom'&&!gameOver;if(iV!==!!loop._iW){loop._iW=iV;try{if(iV)instruOn();else instruOff();}catch(e){}}} /* (2026-10-07, audit) on retient ce qu'on JOUE, pas le doigt : mort doigt posé, la partie suivante rejoue au 1er appui */ // (2026-10-03) LA PHRASE DU BOOST suit le DOIGT, pas la flamme (le réservoir vide la coupait)
-    if(nitroOn&&pwrNitroT<=0&&!PARK.on){
+    if(nitroOn&&pwrNitroT<=0&&!PARK.on&&startBoostT<=0){
       let take=tk9; /* (LA LOI DU RÉSERVOIR) NITROOO ne dure 2× qu'AU SOL */ // (v3, Sacha : « en frénésie le nitro baisse 2× plus lentement ») · (2026-09-30, HAUTE VITESSE) NITROOO aussi : réservoir plein, sans rien ramasser, il restait 0,5 s de NITROOO au moteur 1 (0 palier) et 2,5 s au moteur max (2) ; ×0,5 pendant NTR.on → 1,3 s (1 palier) et 6,6 s (6, +88 %). PAS cumulé avec la frénésie (×0,25 : 0,05/s net, une nitro quasi infinie)
       if(LIVRE.on)livre(mode==='fall'?'n-:vol':'n-:sol',Math.min(take,nitroR+nitroX));
       if(nitroR>=take)nitroR-=take;
@@ -41706,7 +41706,7 @@ function loop(now){
       vpalTick(speedKmh); // (2026-09-28) les PALIERS DE VITESSE : chaque centaine franchie se crie (écran nu : pas de compteur sur téléphone)
       {const f9=Math.min(.42,speedKmh/3.6*Math.max(dt,1/120)/Math.max(1,LIGNE_PER.v));LIGNE_U.uFile.value+=(f9-LIGNE_U.uFile.value)*Math.min(1,dt*12);} /* (LES TIRETS FILENT) la route parcourue pendant cette image, en part de période */
       // PURE SPEED → NITROOO (2026-09-29) : 2 s (NTR_T) de nitro soutenu sur la route, au-delà de 55 % de la vmax du moteur (voir le bloc NITROOO)
-      if(nitroOn&&speedKmh>Math.min(400,vmaxShow()*.55)){ // (le boost de DÉPART tient la touche à la place du joueur : il ne compte pas)
+      if(nitroOn&&startBoostT<=0&&speedKmh>Math.min(400,vmaxShow()*.55)){ /* (2026-10-08, Léo : « au début, un bruit assourdissant, du bruit puis de l'aigu ») pendant l'ÉLAN du départ, la vitesse pure ne compte toujours pas : depuis 4cb8f85 le boost tenu dès le départ lançait NITROOO à ~1,9 s (le mur d'air + le cuivre qui monte de `vitesse.pure`) */
         pureT+=dt;
         if(pureT>NTR_T&&pureArmed){pureArmed=false;if(!NTR.on){annSpeak('pureSpeed',2);trickMsg('NITROOO !',3);if(SONV2&&BTEST!=='nitrooo0')sfx('vitesse.pure',{st:sonPd(0),vol:-8});else noiseBurst(.5,.12,1200); // (2026-09-29) une NITROOO qui continue depuis le vol ne se réannonce ni ne se repaie
           chaineAura('NITROOO',120,'pure',false,SONV2);}pureNext=pureT+2;nitroooPart();
