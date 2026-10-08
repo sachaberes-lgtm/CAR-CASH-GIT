@@ -17,7 +17,22 @@
 - Vu, pas touché : les vignettes du garage (`carPhoto`, ~100 ms chacune à la 1re visite : rendu ×2, lecture, retouche pixel par pixel,
   `toDataURL`) ; le ramasse-miettes (~8,6 Mo/s jetés en course, une pause de ~37 ms toutes les ~15 s : three.js et la boucle géante).
   Et ce jour-là le Mac avait une charge de 47 : sept Chrome de banc d'autres sessions tournaient depuis des heures — fermer ses bancs.
-  sw.js → v186.
+  sw.js → v188.
+
+## LE SQUALE (2026-10-08, Léo) — la voiture requin, caisse ajoutée EN DERNIER (après ATCHOUM), RARE 120 000 $, `SHAPES.squale`
+Fabriquée avec Léo dans le VOITURE MAKER (worktree `CAR-maker`, branche `voiture-maker` : la plateforme podium + requêtes, pas sur main).
+Partie de son sketch du garage (IMG_5559 : la caisse au sourire en dents de requin), puis d'une photo de grand requin blanc gueule
+ouverte (« voilà l'effet recherché, couleurs pareil, mais en mode GTR »).
+- LA CAISSE : grand coupé de sport (l 4,5, roues R .41, ailes élargies, malle haute, COUDE de la vitre arrière, quatre feux ronds, quatre
+  sorties, aileron sur la malle aux flasques en queue de requin) — l'esprit d'une GT japonaise, aucun nom ni insigne de marque. Museau
+  relevé (face avant ~1,06 m) ; aileron dorsal sur le toit ; NAGEOIRES PECTORALES à la place des rétros ; cinq ouïes derrière la roue avant.
+- LES COULEURS DU REQUIN : gris ardoise dégradé (`grad`, plus sombre au dos), ventre blanc qui remonte en pointe vers le museau ; vernis
+  dur réglé sur SA matière seulement (`K.mats.p` — K expose `mats`, lpMat garde `userData.uV`).
+- LA GUEULE : une BANDE DROITE qui fait toute la face avant, tourne le coin et file sur les flancs jusqu'à l'aile avant en s'effilant
+  (`srf(s,y,off)` pose tout sur la caisse le long de `s` ; UNE normale qui tourne au coin, `Nn`, pour que les couches ne se croisent pas ;
+  `cote2` lit aussi le chanfrein du bas de caisse). Grande OUVERTE : lèvre de PEAU blanche fondue dans la caisse, gencive rose en retrait,
+  gorge rouge sombre et fond noir, trois rangées de crocs éparpillés (hasard fixe `hh`), aucun à cheval sur le coin, ceux du flanc à l'échelle.
+- LES YEUX : phares en amande effilés vers le nez, œil noir brillant + éclat, trait de LED (`lamps:0`, `halos:0` : ni boîte ni halo devant).
 
 ## JOUER = LE MODE CLASSIQUE (2026-10-08, session GRAPHISME — Sacha : « maintenant quand on clique sur le bouton jouer on lance les niveaux au lieu de lancer le mode classique »)
 « LE NIVEAU DES PLAY » (Léo, 7/10, 3d72bd6 — plus bas) faisait lancer la carrière par le PLAY de l'accueil, le JOUER de l'atelier et celui
@@ -173,6 +188,22 @@ LES BOUTONS DE SACHA ») : **PLAY/JOUER = la partie sans fin, et toucher un nive
   haut) et les fait VIEILLIR (`vieillit` ,45 × la vie qui leur reste × la force) : elles s'éclaircissent et s'émiettent. Un tap sur la caisse
   reste un coup (`garageImpact`), sur le bouton rouge l'inventaire. MESURÉ (`dbgBurn('autour',[x,y],45)` : opacité de la fumée à l'écran
   autour du point) : avec tap 18,5 → 3,1 en ,3 s → ,8 en ,8 s ; sans tap 16-21 au même moment. sw.js → v184.
+- **LA CHARGE, LA NITRO, LA MARCHE ARRIÈRE** (même soir, Léo : « dès qu'on appuie longtemps, ça fait le burn, même quand on tourne la
+  voiture — ça prend un tout petit peu plus de temps mais ça se voit et se ressent plus ; ajoute en reculant et la nitro ») —
+  · `BURN_TENU` 800 → 950 ms, et le maintien n'est plus annulé quand le doigt glisse (le plateau tourne sous le doigt pendant la charge ;
+    parti en tournant, le doigt DÉRAPE aussitôt). Sauf sur une caisse pas à toi (sinon « PAS ENCORE À TOI » à chaque tour de plateau).
+  · LA CHARGE (`BURN.chg`, le dernier ¾ du maintien) : `BURN.k` monte à ,42 (elle tremble, les pneus patinent et fument, feux stop), le
+    moteur monte (`burnSon`), des tics de vibration de plus en plus serrés ; au départ une pétarade et un anneau de fumée.
+  · NITRO et MARCHE ARRIÈRE (`BURN_NITRO`, `burnNitroTick`, `burnBtnsVoir`) : deux touches penchées `#gBurnBtns` (#gbRecul cyan,
+    #gbNitro orange) pendant le burn-out, sous le pouce droit (debout : au-dessus de PLAY ; couché : en bas à droite) ; clavier ESPACE / N
+    et ↓ / R / S (en CAPTURE : un bouton resté sous le focus ne prend pas l'espace). NITRO : feu des pots (bleu/orange), fumée ×1,6,
+    pneus plus vite, moteur au plafond, elle tourne plus fort et BONDIT devant (le ressort du doigt se relâche, ×(1 − ,78)) ; boostSnd à
+    l'appui, pétarade au lâcher. MARCHE ARRIÈRE : roues à l'envers, fumée vers l'AVANT, elle RECULE (seule exception), le pivot passe
+    DERRIÈRE et la glisse s'inverse (donut en marche arrière) — la balade absorbe le changement de pivot (pas de saut).
+  · MESURÉ : départ à ,96 s immobile, ,97 s en tournant, un glissé de ,6 s ne part pas ; NITRO 0,9 s → +1,6 m devant, 0 → 50-80 flammes ;
+    marche arrière au 2e doigt (tactile CDP) → −1,86 m, ≤ 1,7 m/s, sans à-coup, revient au lâcher ; marche arrière en plein donut : vitesse
+    max 5,3-6,4 m/s (5,0 sans) — pas de saut ; 0 programme compilé. ⚠ Banc tactile : `touchEnd` avec la liste des doigts QUI SE LÈVENT
+    (un `touchMove` sans le doigt ne le lève pas). sw.js → v187.
 - Les réservoirs se créent dans `burnPools()`, appelé par la CHAUFFE DE L'ATELIER (`atelierChauffe` les compile avec lui : rien au 1er
   burn-out) et par l'atelier du bouton rouge (`atlTick`).
 - RETIRÉ (dans l'historique, dernier état `d6fea98`) : fumée en volumes/cubes de la porte, voile, jet sous la roue, poids (`DON_POIDS`),
