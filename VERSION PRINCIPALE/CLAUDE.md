@@ -413,6 +413,18 @@ LES BOUTONS DE SACHA ») : **PLAY/JOUER = la partie sans fin, et toucher un nive
   couché et debout, FR/EN) : choix du niveau 3 → atelier « SKY HIGH 3 » → JOUER = niveau 3 ; portail puis mort au 4 → l'accueil dit
   « SKY HIGH 4 » et PLAY relance le 4 ; MISSIONS → carte VILLE → JOUER des missions = VILLE 1 ; joueur neuf → question du mode puis
   AURORE avec l'auto-école ; Survivant armé → partie sans fin ; même musique que la carrière ; 0 erreur. sw.js → v160 (v159 = le tour sans fin de l'écran titre, fusionné).
+## LE CIEL NE SE TOUCHE PLUS · LE SENS DU TOUR · LA CAISSE SE TIRE PLUS LOIN (2026-10-08, Léo : « on ne doit plus pouvoir toucher le ciel avec les doigts ; ça tourne dans le sens dans lequel ça devrait tourner, selon les sciences esthétiques, du sens ; on devrait pouvoir amener la voiture plus loin avec le curseur, sans trop de contrôle, comme maintenant »)
+- LE CIEL : le doigt ne saisit plus le TOUR SANS FIN, ne le lance plus, ne l'inverse plus ; un doigt posé (sur la caisse) ne l'arrête plus
+  (`if(!garageDrag)` retiré du tour). Le doigt garde la CAISSE : la taper, la tourner, la tirer, la balancer. Le tour garde ses 75 s et sa
+  mise en route douce (`tk`). MESURÉ (vrais glissés souris) : glissé franc de 300 px sur le ciel → l'orbite avance de 0,100 rad en 1,19 s,
+  exactement le tour seul (avant : +3,75 rad) ; doigt tenu 1,5 s → le tour continue (avant : arrêté).
+- LE SENS (`CHUTE_P.sens` +1, remplace `CHUTE.tSens` que le doigt changeait) : le décor lointain glisse vers la GAUCHE (mesuré sur un
+  point du décor à 1,7 km) — la caisse, nez à droite, a l'air d'avancer vers la droite : sens de lecture (Maass & Russo 2003), images
+  orientées vers la droite préférées (Chokron & De Agostini 2000), travelling qui suit un sujet allant à droite ; vu d'en haut, le sens
+  des aiguilles d'une montre.
+- LA CAISSE TIRÉE : butée ÉLASTIQUE `PL·tanh(l/PL)` (PL 5,5 m) au lieu du mur à 2,5 m, `PMAX` 4,5 → 7 ; mêmes 0,012 m par pixel, même
+  ressort qui suit le doigt avec son retard (pas plus de contrôle). Mesuré : 2,2 · 3,3 · 4,3 m pour 250 · 400 · 600 px (avant : bloquée à
+  2,5 m dès ~210 px), et elle revient quand on la lâche. Coup et PLAY inchangés, 0 erreur. sw.js → v199.
 ## LA CAISSE EN DIAGONALE À L'ÉCRAN TITRE (2026-10-08, Léo : « dans le menu ciel du début la voiture nous tourne trop le dos » → « un peu de profil » → « non, plus diagonale, qu'on voie un peu l'avant et le profil » ; « l'angle, parfait »)
 - MESURÉ avant (planche de 8 angles du tour, couché 844 × 390 et debout 390 × 844) : la caisse était FIXE dans le monde et le regard en
   faisait le tour — feux arrière et dessous la MOITIÉ du tour (0° → 180°), de face seulement entre ~225° et ~325°.
