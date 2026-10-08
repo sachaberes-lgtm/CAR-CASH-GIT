@@ -50,6 +50,14 @@ LES BOUTONS DE SACHA ») : **PLAY/JOUER = la partie sans fin, et toucher un nive
   5 passes de contraintes, chaque nœud freiné par l'air ; 8 maillons, un sur deux tourné d'un quart — elle fouette, ondule, pend).
   L'élan vers le HAUT est divisé par 2,5 (`richVise` : l'air les emporte déjà). Mesuré : 145 programmes, aucun compilé au coup ;
   16,7 ms/image avec 66 objets ; 1,5-2,5 s à l'image. « Une mia » a été compris « une liasse ».
+- **v3 (2026-10-08, Léo : « une montre et des jetons de casino ; respecte bien la taille et la différence de chaque objet »)** : MONTRE fermée
+  (`richMontreGeo`, un atlas : cadran bleu soleillé, index et aiguilles d'or à 10 h 10, guichet de date, lunette cannelée, couronne,
+  cornes, bracelet d'or à trois rangs de maillons qui fait le tour sous le boîtier — `richFusionUV` garde les uv par pièce) ; JETONS DE
+  CASINO (`richJetonGeo`, Ø 39 mm × 3,3 mm, 5 couleurs-valeurs 5 · 25 · 100 · 500 · 1000, plots blancs sur la face et la tranche, la
+  matière SOUPLE sans pli : terre cuite mate). LES TAILLES suivent UNE règle (commentaire de `RICH_T`) : taille à l'écran = 1,05 m ×
+  (taille réelle ÷ 15,6 cm)^0,55, plafonnée ~1,2 m — la 2 € plus grande que la 1 €, le jeton plus grand que la pièce, la carte plus petite
+  que le billet, la liasse = le billet, gemmes et pépites petites (variées), chaque fruit à SA taille (`RICH_FRUIT_R` : la myrtille ne
+  fait plus la pastèque). Mesuré : 145 programmes, 0 compilé au coup, 62 objets en l'air sans erreur. sw.js → v174.
 
 ## LE SON PARASITE DU DÉPART DES NUAGES (2026-10-08, Léo : « la première map, quand je démarre, il y a un son hyper chelou, un son parasite — enlève ; vérifie pour les autres »)
 - **C'ÉTAIT `nuages.ambiance`** (la boucle « LA MER DE NUAGES A SON AIR » du 30/09 : souffle d'altitude, rafales, harpe éolienne), lancée au
