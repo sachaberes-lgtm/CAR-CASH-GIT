@@ -57,7 +57,7 @@ LES BOUTONS DE SACHA ») : **PLAY/JOUER = la partie sans fin, et toucher un nive
   matière SOUPLE sans pli : terre cuite mate). LES TAILLES suivent UNE règle (commentaire de `RICH_T`) : taille à l'écran = 1,05 m ×
   (taille réelle ÷ 15,6 cm)^0,55, plafonnée ~1,2 m — la 2 € plus grande que la 1 €, le jeton plus grand que la pièce, la carte plus petite
   que le billet, la liasse = le billet, gemmes et pépites petites (variées), chaque fruit à SA taille (`RICH_FRUIT_R` : la myrtille ne
-  fait plus la pastèque). Mesuré : 145 programmes, 0 compilé au coup, 62 objets en l'air sans erreur. sw.js → v173.
+  fait plus la pastèque). Mesuré : 145 programmes, 0 compilé au coup, 62 objets en l'air sans erreur. sw.js → v174.
 
 ## LE SON PARASITE DU DÉPART DES NUAGES (2026-10-08, Léo : « la première map, quand je démarre, il y a un son hyper chelou, un son parasite — enlève ; vérifie pour les autres »)
 - **C'ÉTAIT `nuages.ambiance`** (la boucle « LA MER DE NUAGES A SON AIR » du 30/09 : souffle d'altitude, rafales, harpe éolienne), lancée au
