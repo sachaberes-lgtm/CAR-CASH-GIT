@@ -107,6 +107,15 @@ LES BOUTONS DE SACHA ») : **PLAY/JOUER = la partie sans fin, et toucher un nive
   proche) et les ENTRAÎNE à `BURN_CAISSE.suit` (65 %) de sa vitesse à cet endroit (glissement + rotation ω × r) ; `pousse` 3,5. Mesuré
   (`dbgBurn('fumee')`) : en donut la fumée proche tourne dans le sens de la caisse à ~1,7-2,9 m/s (w 3-5 rad/s) ; à 100 % elle collait
   (~4-5 m/s). Les matières du burn-out se compilent à la 1re image du garage (`BURN.pret`) : la chauffe de l’atelier au menu ne tourne plus sur l’écran titre de la chute (mesuré). sw.js → v176.
+- **LA FUMÉE QUI S'EFFACE + LE PIVOT DE DEVANT** (même jour, Léo : « à un certain niveau de fumée il y en a qui disparaît très rapidement —
+  équilibre : pas mal de fumée, mais pas trop facile de tout remplir » · « dans le premier essai la voiture s'éloignait un peu sur le bord,
+  c'était stylé ») — (1) `BURN_FUM.N` 320 → 520 et L'HORIZON (`BURN.deb` débit lissé, `BURN.hor` ≈ ,92 N / débit, plus court vite, plus
+  long lentement) : passé 60 % de l'horizon une bouffée s'efface, elle n'est plus visible quand le réservoir la reprend. MESURÉ (banc
+  `fum2.py`, `dbgBurn('fumee').brusques` = bouffées encore visibles reprises d'un coup, 5 s de donut) : 828 → 0 ; ~517 bouffées au plus fort
+  (horizon ~4 s), 320 avant. (2) `DON_PIV` : en donut le pivot ne glisse plus qu'au quart vers le centre (`donMax` ,25, c'était 1), glisse
+  ,35 → ,55 m ; la vue recule d'après `BURN.donH`, `BURN.Rs` = le cercle le plus large balayé. Écart max de la caisse au centre du plateau
+  en donut 1,29 → 1,73 m (`dbgBurn('fumee').ecart`). Couché, elle passe derrière le panneau de la console ~13 % du donut (11 % avant).
+  sw.js → v177.
 - Les réservoirs se créent dans `burnPools()`, appelé par la CHAUFFE DE L'ATELIER (`atelierChauffe` les compile avec lui : rien au 1er
   burn-out) et par l'atelier du bouton rouge (`atlTick`).
 - RETIRÉ (dans l'historique, dernier état `d6fea98`) : fumée en volumes/cubes de la porte, voile, jet sous la roue, poids (`DON_POIDS`),
