@@ -21218,7 +21218,8 @@ function atelierChauffe(){ // vrai si elle a travaillé à cette image (la chauf
     if(f&&f.check&&atelierChauffe.n<150&&!f.check('26px "Press Start 2P"')){if(atelierChauffe.n===1&&f.load)f.load('26px "Press Start 2P"').catch(function(){});return false;} // 2,5 s au plus
     try{buildGarageRoom();}catch(e){console.warn('atelier',e);GAR.chaud=true;}
     return true;}
-  GAR.chaud=true;chauffeRendu([GAR.root]);return true;
+  GAR.chaud=true;let q9=[GAR.root];try{q9=q9.concat(burnPools());}catch(e){} // (2026-10-08) les réservoirs du burn-out (la fumée en pixels…) compilés avec l'atelier : rien au 1er burn-out
+  chauffeRendu(q9);return true;
 }
 /* UNE ÉTAPE DE CHAUFFE EST UN CHARGEMENT, PAS UNE LENTEUR (2026-09-28, chasse aux gels). Sur iPhone chaque étape (un moteur compilé, une
    fournée de programmes) dure 30 à 250 ms : une trentaine d'images d'affilée au menu, passé les 3,5 s de grâce du chargement, et la
@@ -39532,11 +39533,24 @@ function invHoldTick(){
   INV.raf=requestAnimationFrame(invHoldTick);
 }
 function invHoldFin(){if(!INV||!INV.hold)return;INV.hold=null;cancelAnimationFrame(INV.raf);const a=$('gInvAnneau');if(a)a.classList.remove('on');}
-/* ===== LE BURN-OUT (2026-10-05, Léo : « lorsque j'appuie sur la voiture, au lieu d'ouvrir l'inventaire — qui va être ajouté à côté du
+/* ===== LE PREMIER BURN-OUT, REVENU (2026-10-08, Léo : « reviens sur le premier burn-out, celui où on ne pouvait pas faire de donuts ;
+   reviens sur celui-là et laisse-moi juste faire des donuts avec lui aussi ; reviens sur les premiers petits carrés transparents ; si tu y
+   arrives, intègre quelques cubes blancs comme tu as fait là ; remets-le sur le main — la fumée ET le mouvement, les deux »). Ce bloc est
+   celui du 05/10 au soir (commit 683984d : la fumée en GROS PIXELS transparents qui s'émiettent, le dérapage au ressort vif ω 7 / ζ ,5, la
+   poupe qui chasse, la gomme en pixels, le rupteur), RECOPIÉ tel quel. Ce qui s'y ajoute, et rien d'autre :
+   · LES DONUTS (voir LE DOIGT QU'ELLE SUIT, plus bas) : le doigt qui tourne autour d'elle la fait tourner tour pour tour, un petit cercle
+     n'importe où aussi (à la vitesse du doigt) ; le ressort d'origine les suit ; en donut le pivot glisse au milieu du plateau, la vue
+     recule pour le cadrer ; « DONUT ×n » et un anneau de fumée à chaque tour ;
+   · QUELQUES CUBES BLANCS (`burnCubes`) : de petits cubes pixel blancs, translucides, dans la fumée ;
+   · ce qui a été réglé depuis et qui n'est ni la fumée ni le mouvement : 0,8 s de maintien (`BURN_TENU`), le pouce qui peut glisser
+     pendant la charge (`BURN_GLISSE`), « PAS ENCORE À TOI », la console de Sacha (`garAtelierLibre`), les feux stop, les pixels du chat.
+   Tout le reste du burn-out d'après le 05/10 (fumée en volumes puis en cubes, voile, jet sous la roue, poids, flou des roues…) est dans
+   l'historique git (dernier état : commit d6fea98).
+   ----- LE BURN-OUT (2026-10-05, Léo : « lorsque j'appuie sur la voiture, au lieu d'ouvrir l'inventaire — qui va être ajouté à côté du
    bouton jouer —, la voiture va booster de manière satisfaisante : c'est un burn-out, puisque sinon elle foncerait. Un effet un peu
    stylé, travaillé, design. Avec des pixels. De la transparence, parce qu'il y aura de la fumée. Maintenue longtemps, la fumée disparaît
    mais peut s'accumuler, et le joueur peut jouer avec. Accordé à ce qu'on a déjà ; si tu surpasses, encore mieux. ») =====
-   LE GESTE : le doigt TENU sur la caisse, en vitrine — 0,8 s sans bouger (`BURN_TENU` ; 0,28 s jusqu'au 07/10 au soir, 0,14 s au premier jet), et ça part ; tant qu'il tient, ça brûle. Il peut alors
+   LE GESTE : le doigt TENU sur la caisse, en vitrine — 0,28 s sans bouger (0,14 s au premier jet), et ça part ; tant qu'il tient, ça brûle. Il peut alors
    GLISSER : la vue tourne autour de la caisse qui fume (et le doigt pousse la fumée). Un tap bref reste le « tonk » de tôle. Lâché : le
    moteur retombe en pétaradant. L'INVENTAIRE a son bouton, COFFRE, à côté de JOUER (et la touche I).
    LA CAISSE : les roues ARRIÈRE patinent (les essieux soudés de l'arrière, voir ESSIEUX), l'avant reste planté ; l'arrière s'écrase, le nez
@@ -39552,70 +39566,33 @@ function invHoldFin(){if(!INV||!INV.hold)return;INV.hold=null;cancelAnimationFra
    LE SON : le VRAI moteur du palier (ENG_SND — chaque palier son timbre, celui de la course) poussé au RUPTEUR (l'allumage coupe ~8 fois
    par seconde : le « brap-brap »), le crissement de la course (skid) ; au lâcher, ses crépitements (crackle). Aucun nœud neuf : les mêmes
    chaînes, leurs portes s'ouvrent et se referment (voir LES PORTES DU GRAPHE AUDIO).
-   LES GESTES (2026-10-06, Léo : « qu'on puisse plus instinctivement faire des donuts avec le doigt ; certaines formes peuvent faire autre
-   chose, sans trop abuser, léger mais fun » — « dommage qu'il manque le tour complet » — puis, sur un 1er essai en joystick qui tournait
-   tout seul : « c'est avec le DOIGT qu'on doit faire le donut, pas un automatisme ») : en burn-out, autour de la caisse, le doigt est un
-   VOLANT qu'on fait tourner. L'angle qu'il balaie autour du milieu du plateau (à l'écran), la caisse le prend — un tour de doigt = un tour
-   de caisse, aussi vite qu'on tourne, aussi longtemps qu'on veut : LE DONUT. Rien ne tourne si le doigt ne tourne pas. Près du centre
-   (l'angle s'y affole), le glissé reprend la main : la caisse dérape d'autant, comme avant. Chaque tour complet se fête (« DONUT ×n », un
-   anneau de fumée, une pétarade) et la gomme dessine ses cercles sur le plateau. Une pichenette vers le HAUT : LE COUP DE GAZ (le nez se
-   lève, le moteur hurle, les pots crachent). Une fois, tant qu'aucun donut n'a tourné, si le burn-out tient sans bouger : « TOURNE AUTOUR ·
-   DONUT ».
-   Console : dbgBurn() → l'état · dbgBurn(s) → un burn-out de s secondes (sans doigt) · dbgBurn(0) → coupé · dbgBurn('gaz') → un coup de gaz. */
-/* ===== LE BURN-OUT v2 (2026-10-07, Léo : « corrige l'effet burn-out : récupère et refabrique une version avec le drift plus fun, un donut
-   satisfaisant à faire, et le maintien du burn sur place mieux fait »). MESURÉ AVANT (banc au vrai geste, debout 390 × 844) : un tour de doigt
-   ne donnait que 0,6 tour de caisse et l'excédent était jeté (`avance`) — la caisse décrochait du doigt, ~4 s par tour ; en donut elle
-   balayait un cercle plus grand qu'elle sans que la caméra recule : elle passait SOUS la console ; sur place, le tremblement était tiré au
-   hasard à chaque image (il grésillait), rien ne se passait pendant les 0,28 s d'appui, et le lâcher ne faisait que pétarader.
-   · LE MOUVEMENT (v3, même jour, Léo : « en fait un mélange entre le premier burn-out hyper dynamique et cool qui ne sortait jamais du
-     cercle, et celui où on peut avec le doigt faire un donut complet ») : le doigt pose un CAP, la caisse le rejoint par le RESSORT du
-     premier dérapage (elle fouette, dépasse, revient), autour de son pivot court — elle reste dans le cercle ; le glissé horizontal le
-     pousse d'un coup, sans borne ; le doigt qui TOURNE autour du plateau le fait tourner tour pour tour (un tour de doigt = un tour de
-     caisse, le nez suit le doigt, jusqu'à ~5,6 rad/s). Voir LE VOLANT + LE RESSORT (`burnVolant`, `burnDyn`). Une 1re version de ce jour,
-     à INERTIE (le doigt donnait une vitesse, tête-à-queue au lâcher, centre du donut à côté de la roue intérieure), a été remplacée par
-     celle-ci : elle sortait la caisse vers le bord.
-   · LA CAMÉRA CADRE LE DONUT (`BURN.cad`, lu par `garBurnR` dans le recul de garageRender) : en donut, le cercle balayé (`BURN.Rs`) tient dans
-     la place libre comme la caisse au repos — la vue recule et prend un peu de hauteur (`DON.pitch`) pour montrer les cercles de gomme.
-   · LE DÉRAPAGE (« plus fun ») : la caisse PENCHE vers l'extérieur et tangue sur ses ressorts, la fumée part avec la vitesse des roues (des
-     volutes qui tournent), le crissement monte avec la rotation, et trois PALIERS (`burnPalier`) font jaillir des roues les étincelles du
-     drift de la course (bleu → or → rose) avec `drift.charge`.
-   · LE DONUT (« satisfaisant ») : chaque tour se fête (« DONUT ×n », un anneau de fumée qui tourne et grandit, une pétarade, `fig.vrille` dont
-     la note monte, la vibration) ; dès ×3 les pots crachent du feu. LA GOMME CHAUDE (`BURN.gom.h*`) : les roues arrière laissent une traînée
-     orange qui REFROIDIT en ~1,2 s (rouge, puis plus rien) par-dessus la gomme noire — on voit le cercle se dessiner. Les traces sont des
-     SEGMENTS (de l'image d'avant à celle-ci) : à pleine rotation le cul parcourt ~30 cm par image, les points faisaient des pointillés.
-   · SUR PLACE (« mieux fait ») : LA MISE EN RÉGIME pendant l'appui (`BURN.pre` : le moteur monte, la caisse s'assoit ; le doigt glisse, tout
-     retombe) ; LE DÉPART (l'embrayage lâché : le cul plonge sur ses ressorts, une bouffée sort des deux roues, deux pétarades, la caméra
-     encaisse — `BURN.kick`) ; LA TENUE : la caisse TIRE sur ses freins (elle avance et revient de quelques cm), le cul danse (bruit lisse,
-     plus de hasard par image), les gommes chauffent (la fumée s'épaissit et rosit, braises, puis une fois « PNEUS CHAUDS ! » et le feu aux
-     pots) ; la fumée roule au ras du sol sur les côtés avant de monter ; sa durée de vie suit le débit (`burnVie` : une bouffée meurt avant
-     d'être recyclée — elle disparaissait encore visible) ; LE LÂCHER : la caisse BONDIT et se pose (`BURN.lz`), d'autant plus que ça a duré.
-   Console : dbgBurn() · dbgBurn(s) · dbgBurn(0) · dbgBurn('gaz') · dbgBurn('tourne',w,s) → s secondes de rotation à w rad/s, sans doigt. */
-const BURN={on:false,hold:null,bouge:false,k:0,t:0,chaud:0,rpm:0,son:false,cut:0,pops:[],fum:null,feu:null,gom:null,yaw:0,yawV:0,rr:2.4,
-  hapT:0,auto:0,autoW:0,ar:[],roues:[],pots:[],corps:false,tE:0,tF:0,tS:0,tP:0,
-  don:0,donK:0,donM:0,acc:0,n:0,nT:0,scx:0,scy:0,fA:null,fR:0,gaz:0,gazT:0,upT:0,upD:0,upX:0,aideT:0, // LE DONUT AU DOIGT, LE COUP DE GAZ (voir LES GESTES DU BURN-OUT)
-  cib:0,pivK:0,drz:.8,Rs:3,cad:0,pre:0,bp:0,bpv:0,ro:0,rov:0,lz:0,lzv:0,kick:0,lvl:0,chT:0,ke:0,rp:[],gp:[], // (v2) le volant, le pivot, la caméra, les ressorts de la caisse
-  feuxW:[],feuxK:0,tourb:0,horiz:1e9,emet:0,grain:null,tG:0,cW:new THREE.Vector3(),voile:null,tV:0,av:[],avW:[],avZ:1.2,avY:.4,avR:.4,avP:new THREE.Vector3(),avOk:false,flou:null,flouSrc:null, // (réaliste) les feux stop, le voile, les roues avant qui roulent, le flou des roues arrière
+   Console : dbgBurn() → l'état · dbgBurn(s) → un burn-out de s secondes (sans doigt) · dbgBurn(0) → coupé. */
+const BURN={on:false,hold:null,bouge:false,k:0,t:0,chaud:0,rpm:0,son:false,cut:0,pops:[],fum:null,feu:null,gom:null,yaw:0,yawV:0,cib:0,pivK:0,drz:.8,rr:2.4,
+  hapT:0,auto:0,autoW:0,ar:[],roues:[],pots:[],corps:false,tE:0,tF:0,tP:0,
+  don:0,donK:0,donM:0,acc:0,n:0,nT:0,scx:0,scy:0,fA:null,fR:0,tx:null,ty:0,th:null,tT:0,sT:0,sAu:0,kc:0,mc:0,aideT:0,cad:0,Rs:3, // (2026-10-08) LE DONUT AU DOIGT
+  kick:0,feuxK:0,pix:null,gr:null, // ce que le reste du jeu lit (la caméra, les feux stop, le chat) · les cubes blancs
   c:new THREE.Vector3(),
   v:new THREE.Vector3(),w:new THREE.Vector3(),u:new THREE.Vector3(),r:new THREE.Vector3(),q:new THREE.Vector3()};
-/* LES RÉGLAGES DU GESTE : le VOLANT — un tour du TRAIT du doigt = `gain` tour de caisse (voir LE CERCLE DU DOIGT), jamais plus de `avance`
-   rad d'avance ; le FOUET — le glissé horizontal, `derape` rad par px, sans borne. Le RESSORT qui tire la caisse vers ce cap : `om`
-   (raideur), `ze` (amortissement). `pitch` rad de hauteur prise par la vue en donut ; `paliers` rad/s ; `vmax` normalise le penché. */
-const DON_POIDS={om:6,ze:.7,ff:.85,wmax:11,amax:28}; /* (2026-10-08, Léo : « moins intense le suivi du doigt de la voiture : pour tourner, dans la vraie vie, c'est un peu plus long ») LE POIDS. MESURÉ avant (ω 8, ζ ,62, anticipation pleine, 14 rad/s, 170 rad/s²) : elle prenait la vitesse du doigt en 0,15 s et s'arrêtait en 0,12 s — une plume. Désormais ω 6, ζ ,7 (plus de « boing »), l'anticipation à 70 % (`ff` : un petit retard reste), `amax` 30 rad/s² (elle met le temps de lancer ses 1,5 t et de les arrêter), `wmax` 11 */
-const DON={mort:16,plein:44,gain:1,kv:1/70,avance:2.6,derape:.009,om:DON_POIDS.om,ze:DON_POIDS.ze,ff:DON_POIDS.ff,wmax:DON_POIDS.wmax,amax:DON_POIDS.amax,pitch:.06,paliers:[2.4,3.6,4.8],vmax:5.2}; /* (2026-10-07, nuit, Léo : « il faut que ça suive plus le doigt ou le curseur, plus comme avant ») MESURÉ avant : un doigt qui tourne autour de la caisse à 8 rad/s la laissait 217° derrière en moyenne (plafond 5,2 rad/s, elle rattrapait sur ~1 tour d'avance) ; à 4 rad/s, 34° de retard et 60° d'écart quand le doigt s'arrête. Désormais : `mort`/`plein` 16/44 px (le volant autour du plateau revient, comme avant — 24/64 en v2), ω 8 / ζ ,62 + l’ANTICIPATION (le ressort vise aussi la VITESSE du doigt : plus de retard en rotation tenue, le poids reste dans l'arrêt), `wmax` 11 rad/s (puis 14 : la vitesse du doigt), `amax` 140 (puis 170), `kv` (le donut à la vitesse du doigt : 1/70 rad par px, ~0,9 tour/s à 400 px/s), `avance` 1,6 rad (ce qui dépasse est perdu : rien ne tourne longtemps après le doigt) */ /* AVANT — (réaliste, même soir) ω 7 → 6,5, ζ ,5 → ,62 : elle fouette encore mais avec du POIDS (un seul petit dépassement, plus de « boing ») ; la rotation plafonnée à `wmax` rad/s et l'accélération à `amax` rad/s² (un glissé de tout l'écran faisait 8 rad/s, une toupie) — un donut tenu tourne jusqu'à 5,2 rad/s ; (soir) `avance` ,8 → 6,9 rad (~1,1 tour) : un cercle du doigt n'est plus perdu s'il va plus vite qu'elle, elle le rattrape */
-const BURN_ETINC=[[.42,.66,1],[1,.84,.32],[1,.42,.86]]; // les paliers du dérapage : les couleurs du drift de la course
-const BURN_ETINC_ON=false; // (réaliste) un pneu ne fait pas d'étincelles : les paliers ne se sentent plus qu'au pouce
 const BURN_VS='attribute vec3 iP;attribute float iA;attribute float iS;attribute float iG;attribute float iSd;attribute vec3 iC;\n'+
   'varying vec2 vUv;varying float vA;varying float vG;varying float vSd;varying vec3 vC;varying float vY;\n'+
   'void main(){vec4 mv=modelViewMatrix*vec4(iP,1.);mv.xy+=position.xy*iS;gl_Position=projectionMatrix*mv;vUv=uv;vA=iA;vG=iG;vSd=iSd;vC=iC;vY=iP.y;}';
-const BURN_FS_FLAMME='varying vec2 vUv;varying float vA;varying float vG;varying float vSd;varying vec3 vC;varying float vY;\n'+ // (réaliste) le FEU des pots : une lueur molle, cœur blanc
-  'void main(){if(vA<.003)discard;vec2 p=vUv*2.-1.;float r2=dot(p,p);if(r2>1.)discard;float c=1.-r2;c*=c;gl_FragColor=vec4(mix(vC,vec3(1.,.95,.85),c*c*.6)*c*1.3,vA*c);}';
+/* LA GRILLE D'ÉCRAN : chaque bouffée est dessinée en GROS PIXELS de `uPx` pixels d'écran (5 px CSS), les MÊMES pour toutes, près ou
+   loin — la fumée se lit comme du pixel art, pas comme des tampons flous. On lit l'UV au CENTRE du gros pixel (dérivées : dFdx/dFdy), le
+   bruit reste celui de la bouffée (6 × 6 cases) : rien ne scintille quand elle bouge. */
+const BURN_FS_FUM='uniform float uY0;uniform vec3 uBleu;uniform float uPx;\n'+
+  'varying vec2 vUv;varying float vA;varying float vG;varying float vSd;varying vec3 vC;varying float vY;\n'+
+  'float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7))+vSd*91.7)*43758.5453);}\n'+
+  'void main(){if(vA<.003)discard;\n'+
+  ' vec2 fc=(floor(gl_FragCoord.xy/uPx)+.5)*uPx-gl_FragCoord.xy;vec2 u=vUv+dFdx(vUv)*fc.x+dFdy(vUv)*fc.y;\n'+
+  ' const float G=6.;vec2 c=floor(u*G);float d=length(u-.5)*2.;float r=h(c);\n'+
+  ' if(d>.7+.3*r)discard;\n'+                       // le bord dentelé : une bouffée ronde, en cases
+  ' if(r<vG*vG*.9)discard;\n'+                      // elle s'émiette case par case en vieillissant
+  ' float dens=(1.-d*d*.55)*(.8+.2*h(c+7.3));\n'+
+  ' vec3 col=vC*(.74+.34*u.y);\n'+                  // la lumière vient d'en haut
+  ' float yb=clamp(1.-(vY-uY0)/1.7,0.,1.);col=mix(col,uBleu,yb*.32*(1.-u.y*.6));\n'+ // au ras du sol, l'anneau du plateau la bleuit
+  ' gl_FragColor=vec4(col,vA*dens);}';
 const BURN_FS_FEU='varying vec2 vUv;varying float vA;varying float vG;varying float vSd;varying vec3 vC;varying float vY;\n'+
   'void main(){if(vA<.003)discard;vec2 c=floor(vUv*3.);float e=(c.x==1.&&c.y==1.)?1.:.5;gl_FragColor=vec4(vC*e,vA*e);}';
-function burnPoolDonnees(N){ // un réservoir de bouffées SANS dessin propre (la fumée, le voile, les grains) : burnCubes les dessine en CUBES
-  const P=new Float32Array(N*3),Sd=new Float32Array(N),u={};for(let i=0;i<N;i++){P[i*3+1]=-1e4;Sd[i]=Math.random();}
-  return {o:{visible:false},g:{attributes:{iP:u,iA:u,iS:u,iG:u,iC:u,iSd:{array:Sd}}},N:N,P:P,A:new Float32Array(N),S:new Float32Array(N),G:new Float32Array(N),C:new Float32Array(N*3),
-    V:new Float32Array(N*3),age:new Float32Array(N).fill(1e9),life:new Float32Array(N).fill(1),s0:new Float32Array(N),s1:new Float32Array(N),op:new Float32Array(N),c0:new Float32Array(N*3),i:0,n:0,feu:false,cube:true};
-}
 function burnPool(N,additif,frag){
   const base=new THREE.PlaneGeometry(1,1),g=new THREE.InstancedBufferGeometry();
   g.index=base.index;g.setAttribute('position',base.attributes.position);g.setAttribute('uv',base.attributes.uv);
@@ -39637,27 +39614,14 @@ function burnEmet(F,x,y,z,vx,vy,vz,life,s0,s1,op,r,gg,b){
 }
 function burnPas(F,dt,t){ // fait vivre un réservoir : âge, mouvement, taille, opacité, couleur — rend le nombre de vivants
   const ay=GARAGE_Y,yMax=ay+GAR.H-.45,hw=GAR.W/2-.5,hd=GAR.D/2-.4;let n=0;
-  const dr=Math.exp(-dt*(F.feu?2.4:F.voile?.6:1.9)); // (réaliste) la fumée jetée par le pneu est freinée vite par l'air
+  const dr=Math.exp(-dt*(F.feu?2.4:1.15));
   for(let i=0;i<F.N;i++){
     const j=i*3;if(F.age[i]>=F.life[i]){if(F.P[j+1]>-1e3){F.P[j+1]=-1e4;F.A[i]=0;}continue;}
     n++;const a=F.age[i]+=dt,g=Math.min(1,a/F.life[i]);
     let vx=F.V[j]*dr,vy=F.V[j+1],vz=F.V[j+2]*dr;
     if(F.feu)vy=vy*dr-(F.arc?1.6:5.5)*dt;                             // les braises retombent (les pixels du chat flottent)
-    else{const px=F.P[j],py=F.P[j+1],pz=F.P[j+2],hy=py-ay;
-      /* (2026-10-07, soir, Léo : « qu'elle soit davantage fluide, qu'elle se répande un peu partout comme de la fumée, sans prendre tout
-         l'espace ») LE COURANT : la fumée ne s'agite plus, elle SUIT un écoulement — sa vitesse rejoint celle du courant (le jet du pneu
-         s'éteint en ~0,6 s). Le courant horizontal dérive d'une FONCTION DE COURANT (deux échelles qui glissent) : il tourne, il ne
-         converge nulle part — la fumée coule en volutes sans s'agglutiner. */
-      const a1=.55*px+.3*t,b1=.6*pz-.25*t,a2=1.3*px-.4*t+.8*py,b2=1.1*pz+.35*t,FL=F.voile?.25:F.grain?.5:.4;
-      let fx=(.6*Math.sin(a1)*Math.cos(b1)+.55*Math.sin(a2)*Math.cos(b2))*FL,fz=-(.55*Math.cos(a1)*Math.sin(b1)+.65*Math.cos(a2)*Math.sin(b2))*FL;
-      const ex=px-BURN.cW.x,ez=pz-BURN.cW.z,rr=Math.hypot(ex,ez)+1e-3,bas=Math.max(0,1-hy/2.5),fr=.2*Math.max(0,1-rr/7)*bas;
-      fx+=ex/rr*fr;fz+=ez/rr*fr;                                       // ELLE SE RÉPAND : au ras du sol, elle s'écarte doucement de la caisse
-      if(BURN.tourb&&rr<6){const vt=BURN.tourb*(1-rr/6)*(hy<2?1:.4)*Math.min(1,rr/.8);fx+=ez/rr*vt;fz-=ex/rr*vt;} // le DONUT fait tournoyer l'air
-      let ent=0;if(BURN.ke>.05)for(const Q of BURN.rp)if(Q&&Q.ok){const qx=px-Q.p.x,qy=py-Q.p.y,qz=pz-Q.p.z,d2=qx*qx+qy*qy+qz*qz; // la caisse qui balaie l'ENTRAÎNE
-        if(d2<2.25){const e=1-Math.sqrt(d2)/1.5;fx+=(Q.v.x*.8-fx)*e;fz+=(Q.v.z*.8-fz)*e;ent=Math.max(ent,e);}}
-      const dr9=Math.exp(-dt*((F.voile?.5:F.grain?1.2:1.6)+5*ent));vx=fx+(F.V[j]-fx)*dr9;vz=fz+(F.V[j+2]-fz)*dr9;
-      const vyT=Math.max(-.04,Math.min(.4,(F.voile?.08:.4)*(1-hy/(F.voile?1.8:2.2))))+.1*Math.sin(t*.6+px*.7+pz*.6); // elle MONTE à la chaleur jusqu'à ~2,2 m, puis S'ÉTALE en nappe : le haut de l'atelier reste clair
-      vy=F.V[j+1]+(vyT-F.V[j+1])*Math.min(1,dt*1.1);}
+    else{vy+=(.38-vy)*Math.min(1,dt*.7);                              // la fumée MONTE, sans se presser
+      vx+=Math.sin(t*.8+F.S[i]*3.1+F.P[j+1]*.9+i)*.34*dt;vz+=Math.cos(t*.67+i*.37+F.P[j]*.7)*.34*dt;} // et tourbillonne
     let x=F.P[j]+vx*dt,y=F.P[j+1]+vy*dt,z=F.P[j+2]+vz*dt;
     if(y>yMax){y=yMax;if(vy>0)vy=0;vx+=x*.05*dt;vz+=z*.05*dt;}         // sous le plafond, elle s'étale
     if(y<ay+.04){y=ay+.04;if(vy<0)vy*=F.feu?-.35:0;}
@@ -39667,185 +39631,68 @@ function burnPas(F,dt,t){ // fait vivre un réservoir : âge, mouvement, taille,
     if(F.arc){F.S[i]=F.s0[i];F.A[i]=(Math.random()<.2?0:1)*Math.pow(1-g,.7)*F.op[i];F.C[j]=F.c0[j];F.C[j+1]=F.c0[j+1];F.C[j+2]=F.c0[j+2];} // le chat : ils SCINTILLENT et gardent leur couleur
     else if(F.feu){F.S[i]=F.s0[i]*(1-.5*g);F.A[i]=Math.pow(1-g,1.4)*F.op[i];
       F.C[j]=F.c0[j]+(1-F.c0[j])*g*.2;F.C[j+1]=F.c0[j+1]*(1-.75*g);F.C[j+2]=F.c0[j+2]*(1-.9*g);}   // blanc-jaune → orange → rouge
-    else{const s=(F.s0[i]+(F.s1[i]-F.s0[i])*(1-Math.exp(-a*1.25))+(F.grain?0:.06*a))*(F.cube&&g>.7?Math.max(.35,1-(g-.7)/.3*.65):1);F.S[i]=s; /* (cubes) dans le dernier tiers de sa vie, le cube FOND (par crans : la grille) */   /* (soir) les GRAINS gardent leur taille de cube */     // (réaliste) elle GONFLE vite à la sortie du pneu, puis lentement
-      F.A[i]=Math.min(1,a/.18)*Math.pow(1-g,1.15)*F.op[i]*Math.min(1,1.7*Math.pow(F.s0[i]/s,.75)); // …et se DILUE en gonflant : épaisse au pneu, un voile plus loin
-      if(F===BURN.fum&&BURN.horiz<1e8&&a>.7*BURN.horiz)F.A[i]*=Math.max(0,1-(a-.7*BURN.horiz)/(.3*BURN.horiz)); // près d'être recyclée : elle s'efface
+    else{F.S[i]=F.s0[i]+(F.s1[i]-F.s0[i])*(1-Math.exp(-a*.55));
+      F.A[i]=Math.min(1,a/.25)*Math.pow(1-g,1.3)*F.op[i];
       const w=Math.max(0,Math.min(1,(z-4)/8))*.5;                     // près de la porte, le feu la rosit
-      let cr=F.c0[j]+(1-F.c0[j])*w,cg=F.c0[j+1]+(.6-F.c0[j+1])*w,cb=F.c0[j+2]+(.46-F.c0[j+2])*w;
-      if(BURN.feuxK>.01){let f=0;for(const L of BURN.feuxW){const ex=x-L.x,ey=y-L.y,ez=z-L.z;f=Math.max(f,1-Math.sqrt(ex*ex+ey*ey+ez*ez)/1.4);} // (réaliste) les FEUX STOP la rougissent derrière la caisse
-        if(f>0){f*=f*BURN.feuxK*.22;cr+=(1-cr)*f;cg+=(.16-cg)*f;cb+=(.13-cb)*f;}}
-      if(F.grain){cr=F.c0[j];cg=F.c0[j+1];cb=F.c0[j+2];} // …ni le rose de la porte, ni le rouge des feux : des grains BLANCS
-      F.C[j]=cr;F.C[j+1]=cg;F.C[j+2]=cb;}
+      F.C[j]=F.c0[j]+(1-F.c0[j])*w;F.C[j+1]=F.c0[j+1]+(.6-F.c0[j+1])*w;F.C[j+2]=F.c0[j+2]+(.46-F.c0[j+2])*w;}
   }
   F.n=n;const at=F.g.attributes;at.iP.needsUpdate=true;at.iA.needsUpdate=true;at.iS.needsUpdate=true;at.iG.needsUpdate=true;at.iC.needsUpdate=true;
   if(!n)F.o.visible=false;
   return n;
 }
-/* LA FUMÉE EN CUBES (2026-10-07, soir, Léo : « fais un mélange entre la technique de brume et les flammes de la porte — je n'ai absolument
-   pas de la brume comme ça, ronde : c'est beaucoup trop rond »). La fumée garde sa vie (burnPas : le courant, la nappe, le souffle du tap, la
-   caisse qui l'entraîne) mais ne se DESSINE plus en bouffées rondes : chaque bouffée devient un BLOC de cubes — le cube principal et deux
-   satellites plus petits et plus pâles, à l'écart (la bouffée se lit en blocs) — ombrés comme les flammes de la porte (dessus clair, flancs,
-   dessous sombre), posés sur une GRILLE de 10 cm (ils sautent de case en case), leur taille par CRANS de 6 cm ; ils grossissent puis
-   s'effacent par BANDES d'opacité (`FUMC.bandes` : une instanciation par bande, la matière des cubes de la porte en transparent — même
-   programme, rien de compilé). Les GRAINS sont de petits cubes blancs (la bande la plus pleine). (même soir, Léo : « refais des petits cubes, la
-   brume réaliste ça casse mon délire ») TOUT est en PETITS cubes (10-34 cm, `FUMC.petit`) : une bouffée = une grappe de quatre, le voile = trois
-   petits cubes pâles ; les halos de brume (les grands cubes très pâles) sont retirés. LE FEU DES POTS = les CUBES DE FEU de la porte (le cube plein ombré + son halo additif ×1,9). */
-const FUMC={N:2400,pas:.1,cran:.06,bandes:[.72,.5,.34,.22,.13,.07],seuils:[.6,.42,.28,.17,.1,.045],petit:.34,k:.24}; // (même soir, Léo : « refais des petits cubes, la brume réaliste ça casse mon délire ») `petit` m : la taille max d'un cube ; `k` × la taille de la bouffée
-/* LA FUMÉE COMME LES FLAMMES DE LA PORTE (2026-10-08, Léo : « la fumée encore plus comme les flammes de la porte »). Ce qui fait les cubes de
-   la porte (FEU_CUBES) : UN cube par flamme (pas une grappe), 34 cm, posé sur une GRILLE d'un demi-cube (il SAUTE de case en case), qui
-   RÉTRÉCIT par crans en vieillissant (`taille`) et change de couleur par BANDES d'âge (`pal`) — les plus jeunes au-delà de 1, le halo du post
-   les attrape. La fumée prend la même grammaire : chaque bouffée = un cube de `c` × sa taille d'âge × sa graine (jet sous la roue plus
-   petit, bouffées plus grosses), sa couleur fumée × l'éclat de sa bande (blanc éclatant → gris lavande), la grille = la moitié du cube ; elle
-   s'efface toujours par bandes d'opacité (`FUMC.bandes`). Une bouffée n'étant plus qu'un cube, le réservoir passe à `N` et les débits
-   doublent. Le VOILE et les GRAINS ne changent pas. */
-const FUMP={N:900,c:.34,taille:[1,.95,.84,.7,.55,.38],age:[.8,.62,.44,.27,.12],lum:[1.2,1.08,.97,.88,.8,.72]};
-function burnCubesInit(){
-  if(BURN.cub)return;
-  const bx=new THREE.BoxGeometry(1,1,1),ps=bx.attributes.position,nm=bx.attributes.normal,cl=new Float32Array(ps.count*3);
-  for(let i=0;i<ps.count;i++){const v=nm.getY(i)>.5?1:nm.getY(i)<-.5?.56:Math.abs(nm.getX(i))>.5?.76:.88;cl[i*3]=cl[i*3+1]=cl[i*3+2]=v;} // dessus clair, flancs, dessous sombre
-  bx.setAttribute('color',new THREE.BufferAttribute(cl,3));
-  const M=[];for(let b=0;b<FUMC.bandes.length;b++){const im=new THREE.InstancedMesh(bx,new THREE.MeshBasicMaterial({vertexColors:true,fog:false,toneMapped:false,transparent:true,opacity:FUMC.bandes[b],depthWrite:false}),FUMC.N);
-    im.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(FUMC.N*3),3);im.count=0;im.frustumCulled=false;im.renderOrder=8;im.visible=false;scene.add(im);M.push(im);}
-  const NF=500,A=new THREE.InstancedMesh(bx,new THREE.MeshBasicMaterial({vertexColors:true,fog:false,toneMapped:false}),NF),
-    B=new THREE.InstancedMesh(new THREE.BoxGeometry(1.9,1.9,1.9),new THREE.MeshBasicMaterial({fog:false,toneMapped:false,transparent:true,opacity:.17,blending:THREE.AdditiveBlending,depthWrite:false}),NF);
-  A.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(NF*3),3);B.instanceMatrix=A.instanceMatrix;B.instanceColor=A.instanceColor; // le halo suit le cube : mêmes tampons
-  A.count=B.count=0;A.frustumCulled=B.frustumCulled=false;B.renderOrder=9;A.visible=B.visible=false;scene.add(A);scene.add(B);
-  BURN.cub={M:M,n:new Int32Array(M.length),A:A,B:B,NF:NF,m:new THREE.Matrix4()};
-}
-function burnCubesCache(){const C=BURN.cub;if(!C)return;for(const im of C.M){im.count=0;im.visible=false;}C.A.count=C.B.count=0;C.A.visible=C.B.visible=false;}
-function burnCubes(){ // chaque image : les bouffées vivantes → des blocs de cubes, par bandes d'opacité ; le feu → les cubes de la porte
-  if(!BURN.fum)return;burnCubesInit();
-  const C=BURN.cub,Q=FUMC,m=C.m,n=C.n,pas=Q.pas,cr=Q.cran,s9=Q.seuils,nb=C.M.length;n.fill(0);
-  const put=function(b,x,y,z,s,r,g,bl){if(b<0||b>=nb)return;const im=C.M[b],k=n[b];if(k>=Q.N)return;
-    const S=Math.max(cr,Math.round(s/cr)*cr);m.makeScale(S,S,S);const e=m.elements;e[12]=Math.round(x/pas)*pas;e[13]=Math.round(y/pas)*pas;e[14]=Math.round(z/pas)*pas;
-    im.setMatrixAt(k,m);const ca=im.instanceColor.array;ca[k*3]=r;ca[k*3+1]=g;ca[k*3+2]=bl;n[b]=k+1;};
-  for(const F of [BURN.voile,BURN.fum,BURN.grain]){if(!F||!F.o.visible)continue;
-    const sd=F.g.attributes.iSd.array;
-    for(let i=0;i<F.N;i++){if(F.age[i]>=F.life[i])continue;const a=F.A[i];let b=-1;for(let q=0;q<s9.length;q++)if(a>s9[q]){b=q;break;}if(b<0)continue;
-      const j=i*3,x=F.P[j],y=F.P[j+1],z=F.P[j+2],s=F.S[i],r=F.C[j],g=F.C[j+1],bl=F.C[j+2];
-      if(F.grain){put(b,x,y,z,s*.8,r,g,bl);continue;}                      // un GRAIN : un petit cube blanc
-      if(F===BURN.fum){const P9=FUMP,ra=1-F.age[i]/F.life[i],ba=ra>P9.age[0]?0:ra>P9.age[1]?1:ra>P9.age[2]?2:ra>P9.age[3]?3:ra>P9.age[4]?4:5, // (2026-10-08) UN cube, à la manière de la porte
-          S=P9.c*P9.taille[ba]*Math.max(.5,Math.min(1.15,F.s0[i]/.36)),L=P9.lum[ba],gp=Math.max(.05,Math.round(S*.5/.05)*.05),im=C.M[b],kk=n[b];
-        if(kk<Q.N){m.makeScale(S,S,S);const e=m.elements;e[12]=Math.round(x/gp)*gp;e[13]=Math.round(y/gp)*gp;e[14]=Math.round(z/gp)*gp; // la grille d'un DEMI-cube : il saute
-          im.setMatrixAt(kk,m);const ca=im.instanceColor.array;ca[kk*3]=r*L;ca[kk*3+1]=g*L;ca[kk*3+2]=bl*L;n[b]=kk+1;}
-        continue;}
-      const c0=Math.min(Q.petit,s*Q.k),q=sd[i],a1=q*6.283;               // (même soir) des PETITS cubes : 10 à 34 cm, comme les flammes de la porte
-      if(F.voile){const o=s*.4;                                          // LE VOILE : trois petits cubes pâles, écartés
-        put(b,x,y,z,c0*.9,r,g,bl);put(b+1,x+Math.cos(a1)*o,y+o*.2,z+Math.sin(a1)*o,c0*.7,r,g,bl);put(b+1,x+Math.cos(a1+2.1)*o,y-o*.15,z+Math.sin(a1+2.1)*o,c0*.6,r,g,bl);continue;}
-      const o=s*.36;                                                      // une GRAPPE de quatre petits cubes : le principal et trois autour, plus petits, les derniers plus pâles
-      put(b,x,y,z,c0,r,g,bl);
-      put(b,x+Math.cos(a1)*o,y+o*.45*Math.sin(q*13.7),z+Math.sin(a1)*o,c0*.8,r,g,bl);
-      put(b+1,x+Math.cos(a1+2.1)*o*.9,y-o*.3,z+Math.sin(a1+2.1)*o*.9,c0*.66,r,g,bl);
-      put(b+1,x+Math.cos(a1+4.2)*o*.8,y+o*.6,z+Math.sin(a1+4.2)*o*.8,c0*.55,r,g,bl);}}
-  for(let b=0;b<nb;b++){const im=C.M[b];im.count=n[b];im.visible=n[b]>0;if(n[b]){im.instanceMatrix.needsUpdate=true;im.instanceColor.needsUpdate=true;}}
-  const F=BURN.feu;let k=0;
-  if(F){F.o.material.visible=false;const ca=C.A.instanceColor.array;
-    if(F.o.visible)for(let i=0;i<F.N&&k<C.NF;i++){if(F.age[i]>=F.life[i]||F.A[i]<.12)continue;const j=i*3,S=Math.max(.06,Math.round(F.S[i]*.5/.06)*.06); // il s'éteint par crans, comme la porte
-      m.makeScale(S,S,S);const e=m.elements;e[12]=Math.round(F.P[j]/.1)*.1;e[13]=Math.round(F.P[j+1]/.1)*.1;e[14]=Math.round(F.P[j+2]/.1)*.1;C.A.setMatrixAt(k,m);
-      const f=1.2+.8*F.A[i];ca[k*3]=F.C[j]*f;ca[k*3+1]=F.C[j+1]*f;ca[k*3+2]=F.C[j+2]*f;k++;}}
-  C.A.count=C.B.count=k;C.A.visible=C.B.visible=k>0;if(k){C.A.instanceMatrix.needsUpdate=true;C.A.instanceColor.needsUpdate=true;}
-}
 function burnMonde(x,y,z,out){out.set(x,y,z);carGroup.localToWorld(out);return out;} // un point de la caisse, dans la salle
-function burnRes(o,kx,kv,c,om,ze,dt){ // un RESSORT sous-amorti (la caisse tangue) — pas fixe de 8 ms, stable à toutes les cadences
-  const n=Math.max(1,Math.ceil(dt/.008)),h=dt/n;let x=o[kx],v=o[kv];for(let i=0;i<n;i++){v+=(om*om*(c-x)-2*ze*om*v)*h;x+=v*h;}o[kx]=x;o[kv]=v;
+function burnPools(){ // les réservoirs (la fumée en pixels, le feu, les pixels du chat, les cubes blancs) — créés par la chauffe de l'atelier : rien ne compile au 1er burn-out
+  if(!BURN.fum){BURN.fum=burnPool(320,false,BURN_FS_FUM);BURN.feu=burnPool(180,true,BURN_FS_FEU);}
+  if(!BURN.pix){BURN.pix=burnPool(520,true,BURN_FS_FEU);BURN.pix.arc=true;} // (2026-10-06) les PIXELS du chat pop-tart (voir NY_PIX)
+  burnCubesInit();
+  return [BURN.fum.o,BURN.feu.o,BURN.pix.o,BURN.gr.im];
 }
-function burnBruit(t,a,b,p){return Math.sin(t*a+p)*.62+Math.sin(t*b+p*2.3+1.1)*.38;} // un bruit LISSE (deux sinus incommensurables)
-/* (soir, Léo : « la fumée peut durer un peu plus longtemps ») chaque bouffée vit ~10 s ; mais le réservoir se RECYCLE au débit du burn
-   (480 ÷ débit) : `BURN.horiz` est cet horizon, et une bouffée qui l'approche s'efface (burnPas) au lieu de disparaître d'un coup. Le
-   débit coupé, l'horizon recule aussi vite que le temps passe : ce qui reste vit sa vie entière — la fumée traîne ~10 s après le lâcher. */
-function burnVie(debit,dt){const N=BURN.fum?BURN.fum.N:480;BURN.horiz=Math.min(BURN.horiz+dt,.95*N/Math.max(1,debit));BURN.emet=1;return 10;} // une bouffée meurt avant que le réservoir la recycle
-function garBurnR(x){const c=BURN.cad||0;return c>.001?x+(Math.max(x,BURN.Rs*.92)-x)*c:x;} // (v2) le recul de l'atelier : en donut, le cercle balayé tient dans la place libre
 function burnPrepare(){ // à chaque départ : les essieux de l'arrière, les pneus, les pots — la caisse a pu changer
-  if(!BURN.fum){BURN.fum=burnPoolDonnees(FUMP.N);BURN.feu=burnPool(180,true,BURN_FS_FLAMME);} // (réaliste) le feu des pots en lueur molle · (soir) 480 bouffées : elle DURE plus longtemps · (2026-10-08) 900 : une bouffée = UN cube, comme la porte
-  if(!BURN.pix){BURN.pix=burnPool(520,true,BURN_FS_FEU);BURN.pix.arc=true;} // (2026-10-06) les PIXELS du chat pop-tart (voir NY_PIX) — 520 (2026-10-07) : au burn-out il en vit ~450
+  burnPools();
   BURN.ar=ESSIEUX.filter(function(E){return E.position.z<0;});
   BURN.roues=[];
   for(const w of wheels)if(w.position.z<0)BURN.roues.push({x:w.position.x,y:w.position.y-(w.userData.R||.4),z:w.position.z,R:w.userData.R||.4,l:w.userData.large||.3});
   const G=garGabarit();
   if(!BURN.roues.length)for(const sx of [-1,1])BURN.roues.push({x:sx*G.b*.75,y:0,z:-G.a*.6,R:.4,l:.3});
-  BURN.arW=wheels.filter(function(w){return w.position.z<0&&(w.parent||BURN.ar.length);}); /* (2026-10-07, audit) avec les essieux soudés, les roues d'ORIGINE (hors scène) tournent aussi : les pattes du chat pop-tart les lisent (nyanTick) */
+  if(!BURN.ar.length)BURN.arW=wheels.filter(function(w){return w.position.z<0&&w.parent;});else BURN.arW=[];
   const px=Math.min(.42,G.b*.32);BURN.pots=[[-px,.3,-G.a+.08],[px,.3,-G.a+.08]];
-  BURN.drz=Math.min(.9,G.a*.4);BURN.rr=Math.hypot(G.a,G.b);             // le PIVOT du dérapage (vers l'avant : l'arrière balaie) · le rayon de la caisse
-  BURN.Rs=Math.hypot(BURN.drz+G.a,G.b)+.2;                              // (v2) le cercle que balaie son coin arrière, en donut (pivot au milieu du plateau, glissé compris)
-  BURN.rp.length=0;BURN.gp.length=0;                                     // les roues repartent sans « image d'avant »
-  if(!BURN.voile){BURN.voile=burnPoolDonnees(48);BURN.voile.voile=true;}
-  if(!BURN.grain){BURN.grain=burnPoolDonnees(160);BURN.grain.grain=true;} // (soir, Léo : « un tout petit peu de cubes pixel, blancs, transparents ») LES GRAINS : de petits cubes BLANCS
-  BURN.av=ESSIEUX.filter(function(E){return E.position.z>0;});BURN.avW=wheels.filter(function(w){return w.position.z>0&&(w.parent||BURN.av.length);}); // les roues AVANT : elles roulent quand la caisse tourne
-  {const f=wheels.find(function(w){return w.position.z>0;});BURN.avZ=f?f.position.z:G.a*.6;BURN.avY=f?f.position.y:.4;BURN.avR=f&&f.userData.R||.4;}BURN.avOk=false;
-  try{burnFlou();}catch(_){}
+  BURN.drz=Math.min(.9,G.a*.4);BURN.rr=Math.hypot(G.a,G.b); // le PIVOT du dérapage (vers l'avant : l'arrière balaie) · le rayon de la caisse
+  BURN.Rs=Math.hypot(BURN.drz+G.a,G.b)+.2;                              // (le donut) le cercle que balaie son coin arrière — la vue recule pour le cadrer (`garBurnR`)
   burnGommeInit();
-}
-/* LE FLOU DES ROUES ARRIÈRE (réaliste) : la caisse a un disque de flou de jante pour ses QUATRE roues (`ROUES.flou`, un seul maillage, que la
-   course règle sur sa vitesse et que le garage laisse éteint) ; au burn-out seules les roues arrière patinent — on en tire une copie qui ne
-   garde que leurs triangles (z < 0), avec une copie de sa matière (même programme : rien de compilé), allumée par BURN.k. */
-function burnFlou(){
-  const src=ROUES.flou;if(BURN.flouSrc===src)return;BURN.flouSrc=src;
-  if(BURN.flou){if(BURN.flou.parent)BURN.flou.parent.remove(BURN.flou);BURN.flou.geometry.dispose();BURN.flou=null;}
-  if(!src)return;const P=src.geometry.attributes.position.array,U=src.geometry.attributes.uv.array,p=[],u=[];
-  for(let i=0;i<P.length;i+=9)if(P[i+2]<0&&P[i+5]<0&&P[i+8]<0){for(let k=0;k<9;k++)p.push(P[i+k]);const j=i/3*2;for(let k=0;k<6;k++)u.push(U[j+k]);}
-  if(!p.length)return;
-  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(p,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(u,2));
-  const m=src.material.clone();m.opacity=0;const f=new THREE.Mesh(g,m);f.userData.lp=1;f.userData.sol=1;f.userData.noShadow=true;f.visible=false;f.renderOrder=1;
-  carGroup.add(f);BURN.flou=f;
 }
 /* LA PISTE DE GOMME (même soir, avec le DÉRAPAGE) : une toile de 128 × 128 sur tout le plateau (un texel ≈ 7 cm : des traces en PIXELS),
    posée sur `GAR.pod` (elle tourne avec lui) ; chaque image de burn-out, les roues arrière y déposent de la gomme là où elles SONT — sur place
    ça noircit sous les pneus, en dérapage ça dessine les DONUTS. Elle s'efface en ~45 s (alpha décrémenté une fois par seconde : la
-   composition `destination-out` resterait bloquée par l'arrondi sur 8 bits). (v2) Par-dessus, LA GOMME CHAUDE : une 2e toile en mélange
-   ADDITIF (même programme que la 1re : rien de compilé) où la trace est orange et refroidit en ~1,2 s ; toutes deux tracées en SEGMENTS. */
-const BURN_TRACE_CHAUDE=false; // (réaliste, même soir) la trace orange qui refroidissait est coupée : un pneu ne laisse que du NOIR
+   composition `destination-out` resterait bloquée par l'arrondi sur 8 bits). */
 function burnGommeInit(){
-  if(BURN.gom||!GAR.pod)return;const N=256; // (réaliste) 256 × 256 (un texel ≈ 3,4 cm), filtrée en douceur : des traces, plus des cases
-  const toile=function(add,op,y,ro){const cv=document.createElement('canvas');cv.width=cv.height=N;const x=cv.getContext('2d',{willReadFrequently:true});x.lineCap='round';
-    const tex=new THREE.CanvasTexture(cv);tex.magFilter=THREE.LinearFilter;tex.minFilter=THREE.LinearFilter;tex.generateMipmaps=false;
-    const m=new THREE.Mesh(new THREE.CircleGeometry(4.4,48),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,fog:false,opacity:op,blending:add?THREE.AdditiveBlending:THREE.NormalBlending}));
-    m.rotation.x=-Math.PI/2;m.position.y=GAR.POD+y;m.renderOrder=ro;GAR.pod.add(m);return {cv:cv,x:x,tex:tex,m:m};};
-  const a=toile(false,.92,.004,1),b=BURN_TRACE_CHAUDE?toile(true,1,.007,2):null;
-  BURN.gom={cv:a.cv,x:a.x,tex:a.tex,m:a.m,N:N,sale:false,tF:0,hx:b&&b.x,htex:b&&b.tex,hm:b&&b.m,chaud:false,tH:0};
+  if(BURN.gom||!GAR.pod)return;const N=128,cv=document.createElement('canvas');cv.width=cv.height=N;const x=cv.getContext('2d');
+  const tex=new THREE.CanvasTexture(cv);tex.magFilter=THREE.NearestFilter;tex.minFilter=THREE.NearestFilter;tex.generateMipmaps=false;
+  const m=new THREE.Mesh(new THREE.CircleGeometry(4.4,48),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,fog:false,opacity:.9}));
+  m.rotation.x=-Math.PI/2;m.position.y=GAR.POD+.004;m.renderOrder=1;GAR.pod.add(m);
+  BURN.gom={cv:cv,x:x,tex:tex,m:m,N:N,sale:false,tF:0};
 }
-function burnGomme(dt){ // chaque pneu arrière dépose TROIS filets de gomme (ses sculptures) en SEGMENTS, de l'image d'avant à celle-ci ; sur place, la tache noircit
+function burnGomme(dt){
   const G=BURN.gom;if(!G)return;
-  if(BURN.ke>.2&&!GAR.go&&BURN.roues.length){GAR.pod.updateMatrixWorld();
-    const K=G.N/8.8,a=.09+.13*BURN.ke,x=G.x,hot=BURN_TRACE_CHAUDE?Math.max(BURN.chaud*.55,Math.min(1,(Math.abs(BURN.yawV)-.6)/2)):0;
-    for(let i=0;i<BURN.roues.length;i++){const r=BURN.roues[i],w=burnMonde(r.x,r.y+.02,r.z,BURN.q);GAR.pod.worldToLocal(w);
-      const px=(w.x/8.8+.5)*G.N,py=(w.z/8.8+.5)*G.N,l=burnMonde(r.x+.5,r.y+.02,r.z,BURN.r);GAR.pod.worldToLocal(l);
-      let lx=l.x-w.x,lz=l.z-w.z;const ln=Math.hypot(lx,lz)||1;lx/=ln;lz/=ln;                // le travers du pneu, sur le plateau
-      const fx=-lz,fz=lx,pl=K*.13;                                                       // son axe, et la demi-longueur de la bande de roulement : sur place, une TACHE, plus un point
-      const tw=Math.max(2,r.l*K),g=BURN.gp[i],x0=g&&g.ok&&Math.hypot(px-g.x,py-g.y)<30?g.x:px,y0=g&&g.ok&&Math.hypot(px-g.x,py-g.y)<30?g.y:py;
-      x.lineWidth=tw*.3;
-      for(let s=-1;s<=1;s++){const ox=lx*s*tw*.32,oy=lz*s*tw*.32;x.strokeStyle='rgba(10,9,12,'+(a*(s?.8:1)).toFixed(3)+')';
-        x.beginPath();x.moveTo(x0+ox-fx*pl,y0+oy-fz*pl);x.lineTo(px+ox+fx*pl,py+oy+fz*pl);x.stroke();
-        if(hot>.12){G.hx.lineWidth=tw*.3;G.hx.strokeStyle='rgba(255,'+(105+Math.round(70*hot))+',40,'+(.22+.4*hot).toFixed(3)+')';G.hx.beginPath();G.hx.moveTo(x0+ox,y0+oy);G.hx.lineTo(px+ox+.01,py+oy);G.hx.stroke();}}
-      if(g){g.x=px;g.y=py;g.ok=true;}else BURN.gp[i]={x:px,y:py,ok:true};}
-    G.sale=true;G.tex.needsUpdate=true;if(hot>.12){G.chaud=true;G.htex.needsUpdate=true;}}
-  else for(const g of BURN.gp)if(g)g.ok=false;
+  if(BURN.k>.25&&!GAR.go&&BURN.roues.length){GAR.pod.updateMatrixWorld();
+    G.x.fillStyle='rgba(12,9,14,'+(.1+.14*BURN.k).toFixed(3)+')';
+    for(const r of BURN.roues){const w=burnMonde(r.x,r.y+.02,r.z,BURN.q);GAR.pod.worldToLocal(w);
+      const px=(w.x/8.8+.5)*G.N,py=(w.z/8.8+.5)*G.N,t9=Math.max(2,Math.round(r.l/.069));G.x.fillRect(Math.round(px-t9/2),Math.round(py-t9/2),t9,t9);}
+    G.sale=true;G.tex.needsUpdate=true;}
   G.tF+=dt;if(G.sale&&G.tF>1){G.tF=0;const im=G.x.getImageData(0,0,G.N,G.N),d=im.data;let reste=0;
-    for(let i=3;i<d.length;i+=4)if(d[i]){d[i]=Math.max(0,d[i]-4);reste|=d[i];}
+    for(let i=3;i<d.length;i+=4)if(d[i]){d[i]=Math.max(0,d[i]-5);reste|=d[i];}
     G.x.putImageData(im,0,0);G.tex.needsUpdate=true;if(!reste)G.sale=false;}
-  if(G.hx){G.tH+=dt;if(G.chaud&&G.tH>.08){G.tH=0;const im=G.hx.getImageData(0,0,G.N,G.N),d=im.data;let reste=0; // la gomme chaude REFROIDIT : elle pâlit et rougit
-    for(let i=0;i<d.length;i+=4)if(d[i+3]){d[i+3]=Math.max(0,d[i+3]-19);d[i+1]=(d[i+1]*.84)|0;reste|=d[i+3];}
-    G.hx.putImageData(im,0,0);G.htex.needsUpdate=true;if(!reste)G.chaud=false;}}
 }
 function burnPop(f){ // une PÉTARADE : du feu en pixels qui crache des pots, et une bouffée sombre
   if(!BURN.feu||!BURN.pots.length)return;
   const fw=BURN.u.set(Math.sin(carGroup.rotation.y),0,Math.cos(carGroup.rotation.y));
-  for(const p of BURN.pots){const o=burnMonde(p[0],p[1],p[2]-.32,BURN.q); // (soir) née 32 cm derrière le pot : la lueur ne coupe plus la carrosserie (elle sortait en « C »)
+  for(const p of BURN.pots){const o=burnMonde(p[0],p[1],p[2],BURN.q);
     const n=Math.round(10+14*f);for(let i=0;i<n;i++){const v=3+Math.random()*5*f;
       if(NYAN.on&&BURN.pix){const c=nyanPixC();burnEmet(BURN.pix,o.x,o.y,o.z,-fw.x*v+(Math.random()-.5)*2,.4+Math.random()*1.6,-fw.z*v+(Math.random()-.5)*2,.4+Math.random()*.45,.07+Math.random()*.06,0,1,c[0],c[1],c[2]);continue;} // le chat pétarade en PIXELS
-      burnEmet(BURN.feu,o.x,o.y,o.z,-fw.x*v+(Math.random()-.5)*1.6,.3+Math.random()*1.3,-fw.z*v+(Math.random()-.5)*1.6,.16+Math.random()*.22,.22+Math.random()*.22,0,1,1,.78+Math.random()*.16,.42+Math.random()*.3);} // (réaliste) des langues de feu molles, plus grosses
+      burnEmet(BURN.feu,o.x,o.y,o.z,-fw.x*v+(Math.random()-.5)*1.6,.3+Math.random()*1.3,-fw.z*v+(Math.random()-.5)*1.6,.2+Math.random()*.26,.12+Math.random()*.12,0,1,1,.86+Math.random()*.14,.5+Math.random()*.35);}
     burnEmet(BURN.fum,o.x,o.y,o.z,-fw.x*1.4,.3,-fw.z*1.4,2.8+Math.random()*1.5,.28,.8,.3,.42,.4,.47);}
 }
-function burnBouffee(n){ // une BOUFFÉE d'un coup aux deux roues arrière (le départ, le lâcher)
-  if(!BURN.fum||!BURN.roues.length)return;carGroup.updateMatrixWorld();
-  const ry=carGroup.rotation.y,fx=Math.sin(ry),fz=Math.cos(ry);
-  for(let i=0;i<n;i++){const r=BURN.roues[i%BURN.roues.length],o=burnMonde(r.x+(Math.random()-.5)*r.l,r.y+.08,r.z-r.R*.4,BURN.q),sd=r.x<0?-1:1,
-      v=1+Math.random()*2,l=1+Math.random()*2,gr=.88+Math.random()*.09;
-    burnEmet(BURN.fum,o.x,o.y,o.z,-fx*v+fz*sd*l,.05+Math.random()*.3,-fz*v-fx*sd*l,3.4+Math.random()*1.6,.45+Math.random()*.2,1.7+Math.random()*.6,.36+Math.random()*.12,gr*.92,gr*.9,gr*.97);}
-}
-/* (2026-10-07, Léo : « il n'y a que les voitures qu'on possède qui peuvent faire le burn-out ; celles qu'on ne possède pas, on n'a pas le
-   droit : les roues ne sont pas encore à nous ») — la caisse du plateau doit être À TOI (`carUnlockedVrai` : achetée, gagnée — en TEST
-   tout s'équipe, mais ça ne la rend pas à toi) ou celle que tu as ÉQUIPÉE (hors TEST, l'équipée est toujours à toi). Sinon le doigt tenu
-   ne fait pas partir le moteur : le cadenas parle (toast, refus, le bouton d'achat se secoue) et le relâcher est avalé. */
+/* (2026-10-07, Léo : « il n'y a que les voitures qu'on possède qui peuvent faire le burn-out ») — la caisse du plateau doit être À TOI ou
+   celle que tu as ÉQUIPÉE ; sinon le doigt tenu ne fait pas partir le moteur : le cadenas parle et le relâcher est avalé. */
 try{Object.assign(I18N,{'PAS ENCORE À TOI':'NOT YOURS YET'});Object.assign(I18N_ZH,{'PAS ENCORE À TOI':'还不是你的'});}catch(e){}
 function burnPermis(){const i=garageI|0;return carUnlockedVrai(i)||i===equippedCar();}
 function burnRefus(){ // le doigt a tenu sur une caisse qui n'est pas à toi
@@ -39855,30 +39702,24 @@ function burnRefus(){ // le doigt a tenu sur une caisse qui n'est pas à toi
 function burnDebut(e){ // pointerdown : le doigt se pose sur la caisse
   if(BURN.hold||GAR.go||GAR.sw||!garAtelierLibre()||(INV&&INV.on))return; /* (2026-10-06) aussi dans la console de Sacha */
   if(e.button>0||!garSurCaisse(e))return;
-  BURN.hold={id:e.pointerId,x:e.clientX,y:e.clientY,t0:performance.now(),non:!burnPermis()};BURN.bouge=false; // (2026-10-07) `non` : pas à toi, pas de burn-out
+  BURN.hold={id:e.pointerId,x:e.clientX,y:e.clientY,t0:performance.now(),non:!burnPermis()};BURN.bouge=false; // `non` : pas à toi, pas de burn-out
 }
 function burnPart(){ // ça part : le doigt a tenu
   if(BURN.on)return;burnPrepare();BURN.on=true;BURN.t=0;BURN.pops.length=0;BURN.corps=true;
-  BURN.acc=BURN.n=BURN.gaz=BURN.upT=0;BURN.fA=null;BURN.tx=null;BURN.th=null;BURN.sT=BURN.sAu=BURN.kc=BURN.mc=0;BURN.lvl=0;BURN.chT=0;try{burnCentre();}catch(_){} // le centre du VOLANT du doigt : le milieu du plateau, à l'écran
-  /* (v2) LE DÉPART : l'embrayage lâché — le cul plonge sur ses ressorts, le régime saute, une bouffée sort des deux roues, deux pétarades, la caméra encaisse */
-  BURN.bpv-=REDUCED_MOTION?.3:.9;BURN.kick=REDUCED_MOTION?0:1;BURN.rpm=Math.max(BURN.rpm,.55);
-  try{burnBouffee(16);}catch(_){}const n=performance.now();BURN.pops.push(n+60,n+200);
+  BURN.acc=BURN.n=0;BURN.fA=null;BURN.tx=null;BURN.th=null;BURN.sT=BURN.sAu=BURN.kc=BURN.mc=0;try{burnCentre();}catch(_){} // (le donut) le centre du VOLANT du doigt : le milieu du plateau, à l'écran
   hap([14,30,10]);
   if(!((SAVE.d.ast|0)&8)){SAVE.d.ast=(SAVE.d.ast|0)|8;try{SAVE.mark();}catch(_){}if(gEl)gEl.classList.remove('aideInv');} // l'astuce a servi
 }
 function burnFin(){ // le doigt se lève (ou la vitrine se ferme) : le moteur retombe en pétaradant
   const etait=BURN.on;BURN.hold=null;BURN.on=false;BURN.auto=0;BURN.autoW=0;
-  if(etait){const n=performance.now(),f=Math.min(1,BURN.t/2);BURN.pops=[n+70,n+250,n+450,n+720].slice(0,2+Math.round(2*Math.min(1,BURN.t/1.5)));
-    if(!GAR.go&&!REDUCED_MOTION)BURN.bpv+=.25+.25*f;try{burnBouffee(Math.round(5+7*f));}catch(_){}} // (réaliste) LE LÂCHER : les gaz coupés, le cul remonte et le nez pique un peu, puis elle se pose (le « bond » de la v2 est retiré : une caisse qu'on lâche ne saute pas)
+  if(etait){const n=performance.now();BURN.pops=[n+70,n+250,n+450,n+720].slice(0,2+Math.round(2*Math.min(1,BURN.t/1.5)));}
 }
 function burnCoupe(){ // l'atelier se ferme : silence, plus rien à l'écran
-  burnFin();BURN.k=0;BURN.rpm=0;BURN.pops.length=0;BURN.pre=0;
+  burnFin();BURN.k=0;BURN.rpm=0;BURN.pops.length=0;
   if(BURN.yaw){garageAng-=BURN.yaw;GAR.podSpin=(GAR.podSpin||0)-BURN.yaw;}BURN.yaw=BURN.yawV=BURN.cib=BURN.pivK=0;
-  BURN.bp=BURN.bpv=BURN.ro=BURN.rov=BURN.lz=BURN.lzv=BURN.kick=BURN.cad=BURN.ke=BURN.lvl=0;
-  BURN.don=BURN.donK=BURN.donM=BURN.gaz=BURN.acc=BURN.n=0;const bt=document.getElementById('gBurnTxt');if(bt)bt.classList.remove('on','on2');
-  for(const F of [BURN.fum,BURN.feu,BURN.pix,BURN.voile,BURN.grain])if(F){F.age.fill(1e9);burnPas(F,0,0);F.o.visible=false;}
-  burnCubesCache();
-  if(BURN.flou)BURN.flou.visible=false;BURN.feuxK=0;BURN.tourb=0;BURN.avOk=false;
+  BURN.don=BURN.donK=BURN.donM=BURN.acc=BURN.n=BURN.cad=BURN.feuxK=0;const bt=document.getElementById('gBurnTxt');if(bt)bt.classList.remove('on','on2');
+  for(const F of [BURN.fum,BURN.feu,BURN.pix])if(F){F.age.fill(1e9);burnPas(F,0,0);F.o.visible=false;}
+  if(BURN.gr){BURN.gr.age.fill(1e9);BURN.gr.im.count=0;BURN.gr.im.visible=false;}
   if(BURN.corps){carBody.rotation.set(0,0,0);carBody.position.set(0,0,0);BURN.corps=false;}
   if(AC&&BURN.son){const T=AC.currentTime;stt(gainN.gain,0,T,.06);stt(engLfoG.gain,0,T,.06);if(skidG)stt(skidG.gain,0,T,.05);BURN.son=false;}
 }
@@ -39891,50 +39732,28 @@ function burnDoigt(cx,cy,dx,dy,souffle){ // le DOIGT dans la fumée : il la pous
     const px=F.P[j]-o.x,py=F.P[j+1]-o.y,pz=F.P[j+2]-o.z,t=px*v.x+py*v.y+pz*v.z;if(t<.4)continue;
     const qx=px-v.x*t,qy=py-v.y*t,qz=pz-v.z*t,d=Math.sqrt(qx*qx+qy*qy+qz*qz),rad=.9+.09*t+F.S[i]*.5;if(d>rad)continue;
     const f=1-d/rad;touche++;
-    if(souffle){const k=5.4*f/Math.max(.05,d);F.V[j]+=qx*k+v.x*f*2.6;F.V[j+1]+=qy*k+v.y*f*2.6+.7*f;F.V[j+2]+=qz*k+v.z*f*2.6;} // (soir) un souffle plus franc : la fumée est freinée plus vite qu'avant
+    if(souffle){const k=3.2*f/Math.max(.05,d);F.V[j]+=qx*k+v.x*f*1.8;F.V[j+1]+=qy*k+v.y*f*1.8+.4*f;F.V[j+2]+=qz*k+v.z*f*1.8;}
     else{const k=f*t*tg*9;F.V[j]+=(R.x*dx-U.x*dy)*k;F.V[j+1]+=(R.y*dx-U.y*dy)*k;F.V[j+2]+=(R.z*dx-U.z*dy)*k;}}
   return touche>0;
 }
-/* LES GESTES DU BURN-OUT (2026-10-06, voir l'en-tête ; v3 : voir LE VOLANT + LE RESSORT ; le soir : voir LE CERCLE DU DOIGT). `burnCentre`
-   pose encore le milieu du plateau à l'écran (dbgBurn 'centre', le banc) ; le geste, lui, ne lit plus que le TRAIT du doigt. */
+/* LE DOIGT QU'ELLE SUIT — LES DONUTS (2026-10-08, sur le premier burn-out ; même lecture du doigt que la veille). Trois lectures du doigt,
+   mélangées : (1) LE VOLANT — l'angle du doigt AUTOUR DU MILIEU DU PLATEAU, tour pour tour (le bout de la caisse le plus près du doigt le
+   suit ; près du milieu, sous `DON.plein` px, la direction du trait le remplace) ; (2) LE DONUT À LA VITESSE DU DOIGT — le doigt qui tourne
+   SUR LUI-MÊME ailleurs (un petit cercle, n'importe où) la fait tourner dans son sens à `DON.kv` rad par px parcouru ; (3) LE GLISSÉ
+   D'ORIGINE (,009 rad par px, `DON.derape`) — ce qui ne tourne ni autour d'elle ni sur lui-même : le dérapage du premier burn-out. Le doigt
+   ne pose qu'un CAP (`BURN.cib`) : c'est le ressort d'origine (burnDerape) qui la fait tourner, part, dépasse et revient. */
+const BURN_GLISSE=24; // tenu 0,8 s, un pouce posé GLISSE de plus de 12 px : pendant la charge on tolère 24 px (une fois parti, 12 px = « le doigt bouge »)
+const BURN_TENU=800;  // (Léo, 2026-10-07/08) le maintien qui déclenche le burn-out : 280 ms → 500 → 1 500 → 1 000 → 800
+const DON={mort:16,plein:44,gain:1,kv:1/70,avance:1.6,derape:.009,pitch:.06};
 function burnCentre(){ // le centre du VOLANT : le milieu du plateau, à mi-hauteur de caisse, à l'écran
   const v=BURN.c;if(GAR.pod)GAR.pod.getWorldPosition(v);else carGroup.getWorldPosition(v);v.y=GARAGE_Y+.55;v.project(camera);
   BURN.scx=(v.x*.5+.5)*VP.w;BURN.scy=(.5-v.y*.5)*VP.h;
 }
-/* LE VOLANT + LE RESSORT (v3, Léo : « en fait un mélange entre le premier burn-out hyper dynamique et cool, qui ne sortait jamais du cercle,
-   et celui où on peut avec le doigt faire un donut complet »). Le doigt pose un CAP (`BURN.cib`) — le glissé horizontal d'un coup, sans
-   borne (le fouet du premier dérapage) ; le doigt qui tourne autour du milieu du plateau, tour pour tour (`DON.gain` 1 : le nez suit le
-   doigt), sans jamais plus de `DON.avance` d'avance (`burnVolant`). La caisse rejoint ce cap par un RESSORT sous-amorti (ω 7, ζ ,5 : elle
-   part, dépasse, revient — le premier dérapage), autour d'un PIVOT court vers l'avant (`drz` ≤ ,9 m : l'arrière balaie, elle reste dans le
-   cercle) ; sa vitesse la pousse un peu dehors (±,35 m) ; en donut tenu (`donM`) le pivot glisse au milieu du plateau. BORNÉE : le centre
-   ne s'écarte jamais de plus de 4,3 m − le rayon de la caisse. Lâchée, elle finit son élan sur le ressort, se RECENTRE en ~0,7 s en gardant
-   son cap, puis ce cap est VERSÉ dans le plateau (à l'écran rien ne saute). */
-function burnVolant(v){ // le volant bridé : jamais plus de `avance` rad devant la caisse (ce qui dépasse est perdu, rien ne tourne après le doigt)
+function burnVolant(v){ // le volant bridé : jamais plus de `avance` rad devant la caisse (ce qui dépasse est perdu, rien ne tourne longtemps après le doigt)
   const e=BURN.cib-BURN.yaw;if(v>0)v=Math.max(0,Math.min(v,DON.avance-e));else if(v<0)v=Math.min(0,Math.max(v,-DON.avance-e));BURN.cib+=v;
 }
-/* LE CERCLE DU DOIGT (2026-10-07, soir, Léo : « ce n'est pas en faisant un cercle parfait qu'on fait un donut, c'est juste en faisant un
-   cercle : si je fais un cercle très fin, la voiture doit faire un tour complet — actuellement elle bloque parce qu'elle suit la droite ou la
-   gauche »). AVANT : l'angle du doigt AUTOUR DU MILIEU DU PLATEAU — un petit cercle tracé ailleurs ne faisait qu'un va-et-vient, que le
-   fouet traduisait en gauche-droite. DÉSORMAIS la caisse lit la DIRECTION DU TRAIT : on rééchantillonne le doigt tous les 4 px (un pouce
-   tremble), chaque virage du trait tourne la caisse d'autant — un cercle, grand ou minuscule, où qu'il soit, fait tourner le trait d'un tour :
-   la caisse fait UN TOUR (sous le doigt dans le sens des aiguilles = la caisse aussi, vue d'en haut). Un ALLER-RETOUR (le trait qui fait
-   demi-tour, > 126°) n'est pas un virage. LE FOUET (le glissé horizontal) s'éteint tant que le trait TOURNE (`BURN.tour` : la somme des
-   virages des ~0,2 dernières secondes) — sinon la caisse suivait la gauche et la droite du cercle. Un tour de doigt trop vite pour elle
-   n'est pas perdu : jusqu'à `DON.avance` (~1,1 tour) d'avance, elle le rattrape à `wmax`. */
-/* LE DOIGT QU'ELLE SUIT (2026-10-07, nuit, Léo : « il faut que ça suive plus le doigt ou le curseur, plus comme avant »), PUIS LA VITESSE DU
-   DOIGT (même nuit : « la vitesse du donut évolue proportionnellement à la vitesse du doigt »). Trois lectures du doigt, MÉLANGÉES :
-   (1) LE VOLANT — l'angle du doigt AUTOUR DU MILIEU DU PLATEAU, tour pour tour (le bout de la caisse le plus près du doigt le suit ; près du
-   milieu, sous `DON.plein` px, l'angle ne veut plus rien dire et la direction du trait le remplace) : un trait qui passe, un arc, un
-   aller-retour, un cercle AUTOUR d'elle — elle suit le doigt à la trace (donc aussi vite que lui) ;
-   (2) LE DONUT À LA VITESSE DU DOIGT — le doigt qui tourne SUR LUI-MÊME ailleurs (un petit cercle, n'importe où) : elle tourne dans son
-   sens, à `DON.kv` rad par px parcouru — deux fois plus vite le doigt, deux fois plus vite le donut, quelle que soit la taille du cercle
-   (avant : un tour par cercle, si bien qu'un tout petit cercle tracé lentement la faisait tourner comme une toupie) ;
-   (3) LE FOUET — le glissé horizontal, ce qui ne tourne pas du tout.
-   Qui mène ? Sur ~0,3 s : le trait TOURNE-t-il (`BURN.sT`, chaque pas compté au plus ,35 rad : un coin n'est pas un cercle) ? et le doigt
-   tourne-t-il AUTOUR d'elle (`BURN.sAu`, l'angle autour du plateau, comparé au trait) ? Tourne + ailleurs = (2) (`BURN.mc`, lissé, jugé
-   AVANT le pas) ; sinon (1). MESURES : voir CLAUDE.md, « LE BURN-OUT SUIT LE DOIGT ». */
 function burnGeste(dx,dy,cx,cy){ // le doigt bouge pendant le burn-out (dx, dy : depuis le mouvement d'avant ; cx, cy : où il est)
-  const n=performance.now();try{burnCentre();}catch(_){} // le milieu du plateau à l'écran (la caméra recule pendant le donut)
+  const n=performance.now();try{burnCentre();}catch(_){} // le milieu du plateau à l'écran (la vue recule pendant le donut)
   const rx=cx-BURN.scx,ry=cy-BURN.scy,r=Math.hypot(rx,ry),a=Math.atan2(ry,rx);
   const w=BURN.fA==null?0:Math.max(0,Math.min(1,(Math.min(r,BURN.fR)-DON.mort)/(DON.plein-DON.mort)));
   const dA=BURN.fA==null?0:Math.atan2(Math.sin(a-BURN.fA),Math.cos(a-BURN.fA));BURN.fA=a;BURN.fR=r;
@@ -39945,23 +39764,16 @@ function burnGeste(dx,dy,cx,cy){ // le doigt bouge pendant le burn-out (dx, dy :
     if(BURN.th!=null){dT=Math.atan2(Math.sin(h-BURN.th),Math.cos(h-BURN.th));if(Math.abs(dT)>2.2)dT=0;} // un aller-retour n'est pas un virage
     BURN.th=h;BURN.tx=cx;BURN.ty=cy;}
   const dtm=Math.min(.25,(n-(BURN.tT||n))/1000),e9=Math.exp(-dtm/.3);BURN.tT=n;
-  BURN.sT=(BURN.sT||0)*e9;BURN.sAu=(BURN.sAu||0)*e9;const aT=Math.abs(BURN.sT); // ce que le trait a tourné, et le doigt autour d'elle, sur ~0,3 s
-  const kT=Math.max(0,Math.min(1,(aT-.45)/.4));                          // le trait TOURNE
-  const gT=aT>.05?Math.max(0,Math.min(1,(Math.abs(BURN.sAu)/aT-.35)/.4)):1; // … et c'est AUTOUR d'elle
-  BURN.kc=(BURN.kc||0)+(kT-(BURN.kc||0))*Math.min(1,dtm/.12);BURN.mc=(BURN.mc||0)+(kT*(1-gT)-(BURN.mc||0))*Math.min(1,dtm/.12); // jugés AVANT ce pas
+  BURN.sT*=e9;BURN.sAu*=e9;const aT=Math.abs(BURN.sT);                    // ce que le trait a tourné, et le doigt autour d'elle, sur ~0,3 s
+  const kT=Math.max(0,Math.min(1,(aT-.45)/.4)),gT=aT>.05?Math.max(0,Math.min(1,(Math.abs(BURN.sAu)/aT-.35)/.4)):1; // le trait TOURNE · … autour d'elle
+  BURN.kc+=(kT-BURN.kc)*Math.min(1,dtm/.12);BURN.mc+=(kT*(1-gT)-BURN.mc)*Math.min(1,dtm/.12); // jugés AVANT ce pas (un coin n'est pas un cercle)
   const k=BURN.kc,m=BURN.mc;
   BURN.sT+=Math.max(-.35,Math.min(.35,dT));BURN.sAu+=dA;
-  const P=dA*w+dT*(1-w),S=(BURN.sT<0?-1:1)*ds*DON.kv;                     // (1) le doigt qu'elle suit · (2) la vitesse du doigt
+  const P=dA*w+dT*(1-w),S=(BURN.sT<0?-1:1)*ds*DON.kv;                     // (1) le volant · (2) la vitesse du doigt
   const v=-((1-m)*P+m*S)*DON.gain;if(v)burnVolant(v);                     // le doigt dans le sens des aiguilles (à l'écran) = la caisse aussi, vue d'en haut
-  BURN.cib+=dx*DON.derape*(1-w*tg)*(1-k);                                // (3) LE FOUET : ce qui reste du glissé — et tout, près du centre
-  if(dy<0&&-dy>=Math.abs(dx)*.8){if(!BURN.upT||n-BURN.upT>200){BURN.upT=n;BURN.upD=BURN.upX=0;} // LE COUP DE GAZ : une pichenette vers le HAUT —
-    BURN.upD-=dy;BURN.upX+=Math.abs(dx);                                                // 55 px en moins de 0,18 s, presque à la verticale, pas en plein donut
-    if(BURN.upD>=55&&n-BURN.upT<=180&&BURN.upX<BURN.upD*.6&&BURN.donK<.15&&k<.3&&n>BURN.gazT){BURN.gazT=n+450;BURN.upT=0;burnGaz();}}
-  else BURN.upT=0;
+  BURN.cib+=dx*DON.derape*(1-w*tg)*(1-k);                                // (3) LE GLISSÉ D'ORIGINE : elle DÉRAPE — et tout, près du centre
 }
-function burnGaz(){ // LE COUP DE GAZ : le nez se lève, le régime saute, les pots crachent trois fois
-  const n=performance.now();BURN.gaz=1;BURN.rpm=Math.min(.98,BURN.rpm+.1);BURN.bpv-=REDUCED_MOTION?.2:.6;BURN.pops.push(n+20,n+130,n+280);BURN.pops.sort(function(a,b){return a-b;});hap([22,40,16]);
-}
+function garBurnR(x){const c=BURN.cad||0;return c>.001?x+(Math.max(x,BURN.Rs*.92)-x)*c:x;} // le recul de l'atelier : en donut, le cercle balayé tient dans la place libre
 function burnTxt(txt,col,lent){ // un mot qui jaillit au-dessus de la caisse, et s'envole
   let e=document.getElementById('gBurnTxt');
   if(!e){e=document.createElement('div');e.id='gBurnTxt';e.setAttribute('aria-hidden','true');document.body.appendChild(e);}
@@ -39971,18 +39783,15 @@ function burnTxt(txt,col,lent){ // un mot qui jaillit au-dessus de la caisse, et
   e.classList.toggle('lent',!!lent);e.classList.toggle('calme',!!REDUCED_MOTION);
   const k=burnTxt._k=!burnTxt._k;e.classList.remove(k?'on':'on2');e.classList.add(k?'on2':'on'); // deux animations jumelles : relance sans remise en page
 }
-function burnAnneau(f){ // un ANNEAU de fumée qui s'ouvre autour du donut — (v2) centré sur le cercle balayé, et il TOURNE dans le sens du donut
-  const F=BURN.fum;if(!F)return;const c=BURN.c,m=BURN.donM;carGroup.updateMatrixWorld();carGroup.getWorldPosition(c);
-  if(GAR.pod&&m>.05){const p=GAR.pod.getWorldPosition(BURN.v);c.x+=(p.x-c.x)*m;c.z+=(p.z-c.z)*m;}
-  const N=Math.round(16*f),R=BURN.rr*.65+(BURN.Rs*.8-BURN.rr*.65)*m,sg=-(Math.sign(BURN.don)||1);
-  for(let i=0;i<N;i++){const a=(i+Math.random()*.4)/N*Math.PI*2,ca=Math.cos(a),sa=Math.sin(a),v=(2.2+Math.random()*1.2)*f,vt=1.6*f*sg;
-    burnEmet(F,c.x+ca*R,GARAGE_Y+.3,c.z+sa*R,ca*v-sa*vt,.12+Math.random()*.3,sa*v+ca*vt,3+Math.random()*1.6,.38,1.2+.4*f,.24,.8,.78,.88);}
+function burnAnneau(f){ // un ANNEAU de fumée en pixels qui s'ouvre autour de la caisse
+  const F=BURN.fum;if(!F)return;const c=BURN.c;carGroup.updateMatrixWorld();carGroup.getWorldPosition(c);
+  const N=Math.round(16*f),R=BURN.rr*.65;
+  for(let i=0;i<N;i++){const a=(i+Math.random()*.4)/N*Math.PI*2,ca=Math.cos(a),sa=Math.sin(a),v=(2.4+Math.random()*1.2)*f;
+    burnEmet(F,c.x+ca*R,GARAGE_Y+.3,c.z+sa*R,ca*v,.12+Math.random()*.3,sa*v,3+Math.random()*1.6,.38,1.2+.4*f,.24,.8,.78,.88);}
 }
-function burnBravo(){ // un tour complet : le mot, l'anneau, la pétarade, la note qui monte, le pouce
+function burnBravo(){ // un tour complet : le mot, l'anneau, la pétarade, le pouce
   const n=performance.now(),N=BURN.n;
-  burnTxt(N>1?TR('DONUT')+' ×'+N:'DONUT !',N>=5?'#ff7ad9':N>=3?'#ff9a3c':'#ffd75e');burnAnneau(Math.min(1.5,.75+.12*N));BURN.pops.push(n+30);if(N>=3)BURN.pops.push(n+120,n+230); // dès ×3 : le feu aux pots
-  try{if(sfxOk()&&typeof sfx==='function')sfx('fig.vrille',{st:Math.min(9,N)});}catch(_){}
-  hap(N>=3?[12,26,12,26,16]:[10,24,10]);
+  burnTxt(N>1?TR('DONUT')+' ×'+N:'DONUT !',N>=5?'#ff7ad9':N>=3?'#ff9a3c':'#ffd75e');burnAnneau(Math.min(1.5,.75+.12*N));BURN.pops.push(n+30);hap([10,24,10]);
   if(!((SAVE.d.ast|0)&16)){SAVE.d.ast=(SAVE.d.ast|0)|16;try{SAVE.mark();}catch(_){}} // le 1er donut : l'astuce a servi
   BURN.pops.sort(function(a,b){return a-b;});
 }
@@ -39992,163 +39801,137 @@ function burnTours(dt){ // compte les tours complets du donut (dans un sens : re
     if(Math.abs(BURN.acc)>=2*Math.PI){BURN.acc-=sg*2*Math.PI;BURN.n++;burnBravo();}}
   else{BURN.nT+=dt;if(BURN.nT>.9){BURN.acc=0;BURN.n=0;}}
 }
-function burnPalier(){ // (v2) LES PALIERS DU DÉRAPAGE : la rotation passe 2,2 · 3,2 · 4,1 rad/s — la note monte, la vibration
-  const aw=Math.abs(BURN.yawV),P=DON.paliers;let l=0;for(let i=0;i<3;i++)if(aw>=P[i]-(BURN.lvl>i?.35:0))l=i+1;
-  if(l>BURN.lvl&&BURN.on){if(BURN_ETINC_ON)try{if(sfxOk()&&typeof sfx==='function')sfx('drift.charge',{st:l*2});}catch(_){}hap(l>2?[8,18,8]:7);} // (réaliste) l'arc électrique du drift suit les étincelles : coupé
-  BURN.lvl=l;
+Object.assign(I18N,{'DONUT !':'DONUT!','TOURNE AUTOUR · DONUT':'CIRCLE AROUND · DONUT'});
+Object.assign(I18N_ZH,{'DONUT !':'甜甜圈！','TOURNE AUTOUR · DONUT':'绕圈 · 甜甜圈'});
+/* QUELQUES CUBES BLANCS (2026-10-08, Léo : « si tu y arrives, intègre quelques cubes blancs comme tu as fait là ») : de petits cubes pixel
+   BLANCS, translucides (8-13 cm, ombrés comme les flammes de la porte : dessus clair, flancs, dessous sombre — la même matière, rien de
+   compilé), posés sur une grille de 10 cm. Ils naissent aux pneus et DANS la fumée en pixels (sur une bouffée vivante, avec sa vitesse),
+   montent avec elle et fondent par crans. Quelques-uns : ~14 par seconde au plus fort. */
+function burnCubesInit(){
+  if(BURN.gr)return;const N=160,bx=new THREE.BoxGeometry(1,1,1),ps=bx.attributes.position,nm=bx.attributes.normal,cl=new Float32Array(ps.count*3);
+  for(let i=0;i<ps.count;i++){const v=nm.getY(i)>.5?1:nm.getY(i)<-.5?.56:Math.abs(nm.getX(i))>.5?.76:.88;cl[i*3]=cl[i*3+1]=cl[i*3+2]=v;}
+  bx.setAttribute('color',new THREE.BufferAttribute(cl,3));
+  const im=new THREE.InstancedMesh(bx,new THREE.MeshBasicMaterial({vertexColors:true,fog:false,toneMapped:false,transparent:true,opacity:.55,depthWrite:false}),N);
+  im.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(N*3),3);im.count=0;im.frustumCulled=false;im.renderOrder=8;im.visible=false;scene.add(im);
+  BURN.gr={im:im,N:N,P:new Float32Array(N*3),V:new Float32Array(N*3),age:new Float32Array(N).fill(1e9),life:new Float32Array(N).fill(1),s:new Float32Array(N),i:0,t:0,m:new THREE.Matrix4()};
 }
-Object.assign(I18N,{'DONUT !':'DONUT!','TOURNE AUTOUR · DONUT':'CIRCLE AROUND · DONUT','PNEUS CHAUDS !':'HOT TIRES!'});
-Object.assign(I18N_ZH,{'DONUT !':'甜甜圈！','TOURNE AUTOUR · DONUT':'绕圈 · 甜甜圈','PNEUS CHAUDS !':'轮胎发烫！','ATCHOUM !':'阿嚏！','ATCHOUM':'阿嚏','SOMMET':'巅峰','INTOUCHABLE':'无人能及'}); // (2026-10-07, audit) le chinois qui manquait
-function burnDyn(dt){ // (v3) LE RESSORT vers le cap du doigt, le donut, le pivot, le cap versé au plateau
-  const d9=Math.min(dt,.1),n=Math.max(1,Math.ceil(d9/.008)),h=d9/n,om=DON.om,ze=DON.ze;
-  const cv=BURN.cibP==null?0:(BURN.cib-BURN.cibP)/Math.max(1e-3,d9);BURN.cibV=(BURN.cibV||0)+(Math.max(-DON.wmax,Math.min(DON.wmax,cv))-(BURN.cibV||0))*Math.min(1,d9/.05); // (nuit) la VITESSE du doigt, lissée sur 50 ms
-  for(let i=0;i<n;i++){const ac=Math.max(-DON.amax,Math.min(DON.amax,om*om*(BURN.cib-BURN.yaw)+2*ze*om*(DON.ff*BURN.cibV-BURN.yawV)));BURN.yawV=Math.max(-DON.wmax,Math.min(DON.wmax,BURN.yawV+ac*h));BURN.yaw+=BURN.yawV*h;} // (réaliste) une caisse a une inertie : vitesse et accélération plafonnées
-  if(Math.abs(BURN.yaw)>Math.PI){const s2=2*Math.PI*Math.round(BURN.yaw/(2*Math.PI));BURN.yaw-=s2;BURN.cib-=s2;} // les tours se replient : la caisse est la même
-  BURN.don+=(BURN.yawV-BURN.don)*Math.min(1,dt*3);                                         // la rotation lissée : fumée, penché, son, et le compte des tours
-  BURN.donK=BURN.on?Math.max(0,Math.min(1,(Math.abs(BURN.don)-.8)/2.2)):Math.max(0,BURN.donK-dt*2);
-  BURN.donM+=((BURN.donK>.35?1:BURN.donK<.15?0:BURN.donM)-BURN.donM)*Math.min(1,dt*1.5);if(BURN.donM<1e-3&&BURN.donK<.15)BURN.donM=0; // en donut, le pivot glisse au CENTRE du plateau
-  const vise=BURN.on&&BURN.bouge&&!GAR.go?1:0;BURN.pivK+=(vise-BURN.pivK)*Math.min(1,dt*(vise?6:(GAR.go?6:1.6)));if(!vise&&BURN.pivK<1e-3)BURN.pivK=0;
-  if(GAR.go||(!BURN.on&&!BURN.hold&&BURN.pivK<.01&&Math.abs(BURN.yawV)<.02)){ // APRÈS l'avoir posée : le cap est versé dans le plateau (rien ne saute)
-    if(BURN.yaw){garageAng-=BURN.yaw;GAR.podSpin=(GAR.podSpin||0)-BURN.yaw;BURN.yaw=0;}
-    BURN.cib=0;BURN.cibV=0;if(GAR.go||Math.abs(BURN.yawV)<.02)BURN.yawV=0;}
-  BURN.cibP=BURN.cib;                                                                       // (nuit) d'où partira la vitesse du doigt à l'image suivante
+function burnCubes(dt,t){
+  const G=BURN.gr,F=BURN.fum;if(!G)return;
+  if(dt>0&&!GAR.go&&F){G.t+=dt*(BURN.k*14+Math.min(3,F.n/90));
+    while(G.t>=1){G.t-=1;let x,y,z,vx,vy,vz;
+      if(Math.random()<.5&&F.n){const q=(Math.random()*F.N)|0;if(!(F.age[q]<F.life[q]&&F.age[q]>.4))continue;const j=q*3; // dans la fumée, avec elle
+        x=F.P[j]+(Math.random()-.5)*.6;y=F.P[j+1]+(Math.random()-.5)*.4;z=F.P[j+2]+(Math.random()-.5)*.6;vx=F.V[j];vy=F.V[j+1];vz=F.V[j+2];}
+      else if(BURN.k>.05&&BURN.roues.length){const r=BURN.roues[(Math.random()*BURN.roues.length)|0],o=burnMonde(r.x+(Math.random()-.5)*r.l,r.y+.1,r.z-r.R*.5,BURN.q),ry=carGroup.rotation.y,v=1+Math.random()*1.5; // aux pneus
+        x=o.x;y=o.y;z=o.z;vx=-Math.sin(ry)*v+(Math.random()-.5);vy=.25+Math.random()*.45;vz=-Math.cos(ry)*v+(Math.random()-.5);}
+      else continue;
+      const i=G.i;G.i=(G.i+1)%G.N;const j=i*3;G.P[j]=x;G.P[j+1]=y;G.P[j+2]=z;G.V[j]=vx;G.V[j+1]=vy;G.V[j+2]=vz;G.age[i]=0;G.life[i]=2.5+Math.random()*2.5;G.s[i]=.08+Math.random()*.05;}}
+  const ay=GARAGE_Y,yMax=ay+GAR.H-.45,dr=Math.exp(-dt*1.15),m=G.m,col=G.im.instanceColor.array;let n=0;
+  for(let i=0;i<G.N;i++){if(G.age[i]>=G.life[i])continue;const j=i*3,a=G.age[i]+=dt,g=a/G.life[i];if(g>=1)continue;
+    let vx=G.V[j]*dr,vy=G.V[j+1],vz=G.V[j+2]*dr;vy+=(.38-vy)*Math.min(1,dt*.7);vx+=Math.sin(t*.8+i)*.34*dt;vz+=Math.cos(t*.67+i*.37)*.34*dt; // comme la fumée : elle monte, elle tourbillonne
+    let x=G.P[j]+vx*dt,y=Math.min(yMax,Math.max(ay+.04,G.P[j+1]+vy*dt)),z=G.P[j+2]+vz*dt;G.P[j]=x;G.P[j+1]=y;G.P[j+2]=z;G.V[j]=vx;G.V[j+1]=vy;G.V[j+2]=vz;
+    const S=G.s[i]*(g>.65?(g>.85?.45:.72):1);                             // il FOND par crans
+    m.makeScale(S,S,S);const e=m.elements;e[12]=Math.round(x/.1)*.1;e[13]=Math.round(y/.1)*.1;e[14]=Math.round(z/.1)*.1;G.im.setMatrixAt(n,m); // sur la grille de 10 cm : il saute de case en case
+    col[n*3]=col[n*3+1]=1.22;col[n*3+2]=1.25;n++;}
+  G.im.count=n;G.im.visible=n>0;if(n){G.im.instanceMatrix.needsUpdate=true;G.im.instanceColor.needsUpdate=true;}
 }
-function burnRoues(dt){ // où sont les roues arrière (dans la salle) et à quelle VITESSE elles vont — la fumée et les étincelles la gardent
-  for(let i=0;i<BURN.roues.length;i++){const r=BURN.roues[i],o=burnMonde(r.x,r.y+.06,r.z,BURN.q);let P=BURN.rp[i];
-    if(!P)P=BURN.rp[i]={p:new THREE.Vector3(),v:new THREE.Vector3(),ok:false};
-    if(P.ok&&dt>0){P.v.subVectors(o,P.p).divideScalar(dt);const s=P.v.length();if(s>16)P.v.multiplyScalar(16/s);}else P.v.set(0,0,0);
-    P.p.copy(o);P.ok=true;}
-}
-const BURN_GLISSE=24; // (même nuit, Léo : « il n'y a plus de burn-out ») tenu 1 à 1,5 s, un pouce posé GLISSE de plus de 12 px (~2 mm : la pulpe s'écrase, le pouce roule) — le jeu y voyait un glissé du plateau et le burn-out ne partait jamais. Pendant la charge on tolère 24 px ; une fois parti, 12 px font toujours « le doigt bouge »
-const BURN_TENU=800; // (2026-10-07, nuit, Léo : « ajoute 500 millisecondes de maintien requis pour démarrer le burn-out », puis « le temps de maintien déclencheur du burn-out : 1,5 s », puis « réduis à 1 s », puis « 0,8 s ») — 280 ms → 500 → 1 500 → 1 000 → 800 ; la mise en régime (`pre` : le moteur monte, le cul s'écrase) monte sur les 3/4 de l'attente : on SENT que ça charge
 function burnTick(dt){ // chaque image du garage (après la pose de la caisse, avant la caméra)
-  const now=performance.now(),t=now*.001,d0=dt>0;
-  if(BURN.hold&&!BURN.on&&!BURN.bouge&&now-BURN.hold.t0>BURN_TENU){if(!BURN.hold.non)burnPart();else if(!BURN.hold.dit){BURN.hold.dit=1;burnRefus();}} // (même soir) 0,28 s, (nuit) 0,8 s : un glissé lent qui démarre doucement reste le PLATEAU
-  if(BURN.auto>0&&d0){BURN.auto-=dt;if(BURN.autoW)burnVolant(BURN.autoW*dt);if(BURN.auto<=0)burnFin();} // (le banc) un doigt qui tourne à autoW rad/s
+  const now=performance.now(),t=now*.001;
+  if(BURN.hold&&!BURN.on&&!BURN.bouge&&now-BURN.hold.t0>BURN_TENU){if(!BURN.hold.non)burnPart();else if(!BURN.hold.dit){BURN.hold.dit=1;burnRefus();}} // (même soir) 0,28 s, (2026-10-08) 0,8 s : un glissé lent qui démarre doucement reste le PLATEAU
+  if(BURN.auto>0&&dt>0){BURN.auto-=dt;if(BURN.autoW)burnVolant(BURN.autoW*dt);if(BURN.auto<=0)burnFin();} // (le banc) un doigt qui tourne à autoW rad/s
   if(GAR.go||!garAtelierLibre())if(BURN.on)burnFin();
-  /* (v2) LA MISE EN RÉGIME : pendant l'appui, avant que ça parte, le moteur monte et la caisse s'assoit — le doigt glisse : tout retombe */
-  if(BURN.hold&&!BURN.on&&!BURN.bouge&&!BURN.hold.non)BURN.pre=Math.max(BURN.pre,Math.min(1,Math.max(0,(now-BURN.hold.t0-BURN_TENU*.25)/(BURN_TENU*.75))));else if(d0)BURN.pre=Math.max(0,BURN.pre-dt*4);
-  if(d0){BURN.k+=((BURN.on?1:0)-BURN.k)*Math.min(1,dt*(BURN.on?5:2.6));if(BURN.k<.002&&!BURN.on)BURN.k=0;
-    if(BURN.on)BURN.t+=dt;
-    BURN.chaud=Math.max(0,Math.min(1,BURN.chaud+(BURN.on?dt*.38*(1+.6*BURN.donK):-dt*.22))); // (gestes) le donut chauffe les gommes plus vite
-    BURN.gaz=Math.max(0,BURN.gaz-dt*1.6);BURN.kick*=Math.exp(-dt*9);
-    if(BURN.on&&!BURN.bouge&&BURN.t>1.4&&!BURN.aideT&&!((SAVE.d.ast|0)&16)){BURN.aideT=1;burnTxt('TOURNE AUTOUR · DONUT','#b9a8ff',true);} // l'astuce, une fois par session, tant qu'aucun donut n'a tourné
-    if(BURN.on&&!BURN.bouge&&!BURN.chT&&BURN.chaud>=.98&&BURN.t>2.4){BURN.chT=1;burnTxt('PNEUS CHAUDS !','#ff9a3c');BURN.pops.push(now+20,now+150,now+310);BURN.pops.sort(function(a,b){return a-b;});hap([10,20,10,20,14]);} // (v2) la tenue a sa récompense, une fois
-    burnDyn(dt);burnTours(dt);burnPalier();
-    BURN.cad+=(((BURN.on||Math.abs(BURN.yawV)>1)&&!GAR.go?BURN.donM:0)-BURN.cad)*Math.min(1,dt*2.2);if(BURN.cad<1e-3)BURN.cad=0;}
-  const k=BURN.k,ke=Math.max(k,Math.min(1,Math.abs(BURN.yawV)/3)*.9);BURN.ke=ke; // (v2) la fumée continue tant que la caisse glisse (le tête-à-queue)
-  // LA CAISSE : la pose sur le plateau (cap, pivot, bond du lâcher), puis le corps sur ses ressorts
-  const vit=k>0||BURN.pre>0||BURN.yaw||BURN.yawV||BURN.pivK||Math.abs(BURN.bp)+Math.abs(BURN.ro)+Math.abs(BURN.lz)>1e-4||Math.abs(BURN.bpv)+Math.abs(BURN.rov)+Math.abs(BURN.lzv)>1e-3;
-  if(vit){
-    const tr=REDUCED_MOTION?.3:1,d9=Math.min(dt,.05);
-    if(d0){
-      burnRes(BURN,'bp','bpv',(-(.028+.014*BURN.chaud)*k-.07*BURN.gaz*k-.018*BURN.pre-.01*BURN.donK)*(GAR.go?0:1),10,.42,d9); // le cul s'écrase, le nez se lève (le coup de gaz plus haut) — il TANGUE
-      burnRes(BURN,'ro','rov',GAR.go?0:(.06*Math.max(-1,Math.min(1,BURN.yawV/DON.vmax))-.014*k)*tr,8,.45,d9);                // il penche vers l'extérieur de la rotation — (réaliste) et le COUPLE du moteur le vrille d'un côté
-      burnRes(BURN,'lz','lzv',BURN.on&&!GAR.go?.016*k*(.55+.45*burnBruit(t,1.7,2.9,.4))*tr:0,6.5,.7,d9);                    // elle TIRE sur ses freins (un ou deux cm : l'avant est bloqué)
-      if(Math.abs(BURN.bp)+Math.abs(BURN.bpv)<1e-5)BURN.bp=BURN.bpv=0;if(Math.abs(BURN.ro)+Math.abs(BURN.rov)<1e-5)BURN.ro=BURN.rov=0;if(Math.abs(BURN.lz)+Math.abs(BURN.lzv)<1e-5)BURN.lz=BURN.lzv=0;}
-    const y=BURN.yaw,dz=BURN.drz,P=BURN.pivK,sl=Math.max(-.35,Math.min(.35,BURN.yawV*.12))*P; // (v3) LE PIVOT du premier dérapage : devant la caisse, au centre du plateau en donut
-    let cx=P*(-dz*Math.sin(y))+Math.cos(y)*sl,cz=P*(dz*(1-BURN.donM)-dz*Math.cos(y))-Math.sin(y)*sl;
-    const lim=Math.max(0,4.3-BURN.rr),c9=Math.hypot(cx,cz);if(c9>lim){const f=lim/Math.max(1e-6,c9);cx*=f;cz*=f;} // jamais hors du cercle
-    const fi=.04*k*(1-.8*BURN.donK)*burnBruit(t,2.3,3.7,0)*tr,zF=BURN.avZ;    // le cul DANSE (bruit lisse) — (réaliste) autour des roues AVANT, plantées
-    cx+=zF*(Math.sin(y)-Math.sin(y+fi));cz+=zF*(Math.cos(y)-Math.cos(y+fi));
-    const ox=cx+BURN.lz*Math.sin(y),oz=cz+BURN.lz*Math.cos(y),r=garRot(),cr=Math.cos(r),sr=Math.sin(r);
-    carGroup.rotation.y+=y+fi;
-    carGroup.position.x+=ox*cr+oz*sr;carGroup.position.z+=-ox*sr+oz*cr;
-    if(!GAR.go){const vb=k*tr*(1+.5*BURN.chaud);
-      for(const E of BURN.ar)E.rotation.x+=46*k*dt;for(const w of BURN.arW)w.rotation.x+=46*k*dt; // l'arrière patine, l'avant est planté
-      if(d0){carGroup.updateMatrixWorld();const o=burnMonde(0,BURN.avY,BURN.avZ,BURN.u); // (réaliste) les roues AVANT roulent du chemin qu'elles font (le donut les promène)
-        if(BURN.avOk){const ry=carGroup.rotation.y,a=Math.max(-.6,Math.min(.6,((o.x-BURN.avP.x)*Math.sin(ry)+(o.z-BURN.avP.z)*Math.cos(ry))/BURN.avR));
-          if(a){for(const E of BURN.av)E.rotation.x+=a;for(const w of BURN.avW)w.rotation.x+=a;}}
-        BURN.avP.copy(o);BURN.avOk=true;}
-      carBody.rotation.x=BURN.bp+burnBruit(t,41.3,67.9,.3)*.004*vb;            // le moteur la secoue (bruit LISSE : plus de tirage au hasard par image)
-      carBody.rotation.z=BURN.ro+burnBruit(t,33.7,58.1,1.9)*.006*vb;
-      carBody.position.y=-.025*k-.012*BURN.pre+burnBruit(t,49.9,77.3,.8)*.005*vb;BURN.corps=true;}
-    else if(BURN.corps){carBody.rotation.set(0,0,0);carBody.position.set(0,0,0);BURN.corps=false;}
-    if(BURN.on&&!REDUCED_MOTION&&now>BURN.hapT){BURN.hapT=now+150-60*BURN.donK;hap(4);}
-  }else{BURN.avOk=false;if(BURN.corps){carBody.rotation.set(0,0,0);carBody.position.set(0,0,0);BURN.corps=false;}}
-  /* (réaliste) LES FEUX STOP : le pied sur le frein, ils s'allument (carVit) et rougissent la fumée derrière la caisse (burnPas) · LE FLOU des roues
-     arrière qui patinent */
-  BURN.tourb=GAR.go?0:BURN.don*.35;if(GAR.pod)GAR.pod.getWorldPosition(BURN.cW); // le tourbillon du donut (rad/s × ,35 → m/s autour de la caisse) · le centre d'où la fumée se répand
-  BURN.feuxK=GAR.go?0:k;if(BURN.feuxK>.01){if(BURN.feuxW.length!==HALO.t.length){BURN.feuxW.length=0;for(let i=0;i<HALO.t.length;i++)BURN.feuxW.push(new THREE.Vector3());}
-    for(let i=0;i<HALO.t.length;i++)HALO.t[i].getWorldPosition(BURN.feuxW[i]);}
-  if(BURN.flou){const fo=GAR.go?0:.42*k;BURN.flou.material.opacity=fo;BURN.flou.visible=fo>.02;}
-  if(!d0)return;
-  // LA FUMÉE, LE FEU, LES ÉTINCELLES
-  if(ke>.02&&BURN.fum&&!GAR.go&&BURN.roues.length){
-    carGroup.updateMatrixWorld();burnRoues(dt);
-    const ry=carGroup.rotation.y,fx=Math.sin(ry),fz=Math.cos(ry),deb=ke*(34+36*BURN.chaud+16*BURN.donK)*(1+.5*BURN.gaz),jd=ke*(34+26*BURN.chaud+14*BURN.donK)*(1+.4*BURN.gaz),vie=burnVie(deb+jd,dt); // (2026-10-08) ×2 : une bouffée = un cube · le jet sous la roue ×1,7 de plus (« un peu plus de fumée sous la roue »)
-    BURN.tE+=dt*deb; // (réaliste) moins de bouffées, plus GROSSES et plus denses : des volumes, plus un semis ; la vie suit le débit
-    while(BURN.tE>=1){BURN.tE-=1;const i=(Math.random()*BURN.roues.length)|0,r=BURN.roues[i],P=BURN.rp[i],o=burnMonde(r.x+(Math.random()-.5)*r.l,r.y+.06,r.z-r.R*.4,BURN.q),
-        sd=r.x<0?-1:1,v=1.4+Math.random()*1.8,l=.6+Math.random()*1.3,gr=.88+Math.random()*.09;
-      burnEmet(BURN.fum,o.x,o.y,o.z,P.v.x*.45-fx*v+fz*sd*l,.05+Math.random()*.3,P.v.z*.45-fz*v-fx*sd*l,vie*(.9+Math.random()*.1),.28+Math.random()*.14,.85+Math.random()*.35+.35*BURN.chaud,
-        .3+Math.random()*.14,gr*.92,gr*.9,gr*.97);} // le pneu la JETTE en arrière et sur les côtés, au ras du sol, avec la vitesse de la roue (les volutes du donut) ; blanche, la gomme brûlée
-    BURN.tJ=(BURN.tJ||0)+dt*jd; /* (2026-10-08, Léo : « rajoute un peu de fumée qui part de l'arrière, d'en dessous de la roue qui tourne ») LE JET
-       SOUS LA ROUE : là où le pneu touche le sol, derrière l'essieu, la gomme crache un jet bas et rapide vers l'arrière (3,6-6,2 m/s, à peine
-       levé), de petites bouffées serrées qui grossissent en ralentissant et rejoignent le nuage — on voit d'où sort la fumée. */
-    while(BURN.tJ>=1){BURN.tJ-=1;const i=(Math.random()*BURN.roues.length)|0,r=BURN.roues[i],P=BURN.rp[i],o=burnMonde(r.x+(Math.random()-.5)*r.l*.7,r.y+.03,r.z-r.R*.85,BURN.q),
-        sd=r.x<0?-1:1,v=3.6+Math.random()*2.6,l=Math.random()*.5,gr=.9+Math.random()*.08;
-      burnEmet(BURN.fum,o.x,o.y,o.z,P.v.x*.4-fx*v+fz*sd*l,.03+Math.random()*.14,P.v.z*.4-fz*v-fx*sd*l,2+Math.random()*1.6,.2+Math.random()*.08,.7+Math.random()*.35,
-        .4+Math.random()*.1,gr*.93,gr*.91,gr*.98);}
-    BURN.tV+=dt*ke*(.8+.9*BURN.chaud); // LE VOILE : de grandes nappes lentes qui s'élèvent autour de la caisse et restent (le garage se remplit)
-    while(BURN.tV>=1&&BURN.voile){BURN.tV-=1;const a=Math.random()*Math.PI*2,q=1+Math.random()*2.2,o=burnMonde(Math.cos(a)*q,.6+Math.random()*1,-1-Math.random()*1.5+Math.sin(a)*q*.6,BURN.q),gr=.84+Math.random()*.08;
-      burnEmet(BURN.voile,o.x,o.y,o.z,(Math.random()-.5)*.6,.05+Math.random()*.15,(Math.random()-.5)*.6,11+Math.random()*3,1.4+Math.random()*.5,3.2+Math.random()*1.2,.07+.03*BURN.chaud,gr*.92,gr*.9,gr*.97);}
-    if(NYAN.on&&BURN.pix){BURN.tP+=dt*ke*(240+170*BURN.chaud); // (2026-10-06) LE CHAT : à la place des braises, les roues giclent des PIXELS multicolores qui scintillent — (2026-10-07, Léo : « burn-out, scintillements arc-en-ciel ») deux fois plus, deux fois plus gros, ils MONTENT dans la fumée
-      while(BURN.tP>=1){BURN.tP-=1;const i=(Math.random()*BURN.roues.length)|0,r=BURN.roues[i],P=BURN.rp[i],o=burnMonde(r.x+(Math.random()-.5)*r.l,r.y+.1,r.z-r.R*.5,BURN.q),v=1.5+Math.random()*3,c=nyanPixC();
-        burnEmet(BURN.pix,o.x,o.y,o.z,P.v.x*.5-fx*v+(Math.random()-.5)*2.6,1.2+Math.random()*3.2,P.v.z*.5-fz*v+(Math.random()-.5)*2.6,.8+Math.random()*.9,.15+Math.random()*.14,0,1,c[0],c[1],c[2]);}}
-    else{
-      BURN.tF+=BURN_ETINC_ON?dt*k*(BURN.chaud>.45?(BURN.chaud-.45)*70:0):0;   // les braises des gommes chaudes — (réaliste) coupées avec les étincelles : un pneu fume, il ne brûle pas
-      while(BURN.tF>=1){BURN.tF-=1;const i=(Math.random()*BURN.roues.length)|0,r=BURN.roues[i],P=BURN.rp[i],o=burnMonde(r.x,r.y+.05,r.z-r.R*.3,BURN.q),v=2+Math.random()*4;
-        burnEmet(BURN.feu,o.x,o.y,o.z,P.v.x*.5-fx*v+(Math.random()-.5)*2,1+Math.random()*2.2,P.v.z*.5-fz*v+(Math.random()-.5)*2,.35+Math.random()*.4,.05+Math.random()*.05,0,1,1,.5+Math.random()*.4,.15);}
-      if(BURN.lvl&&BURN_ETINC_ON){const C=BURN_ETINC[BURN.lvl-1];BURN.tS+=dt*(26+18*BURN.lvl); // (v2) LES PALIERS DU DÉRAPAGE : les étincelles du drift, à la couleur du palier
-        while(BURN.tS>=1){BURN.tS-=1;const i=(Math.random()*BURN.roues.length)|0,r=BURN.roues[i],P=BURN.rp[i],o=burnMonde(r.x+(Math.random()-.5)*r.l,r.y+.04,r.z-r.R*.2,BURN.q);
-          burnEmet(BURN.feu,o.x,o.y,o.z,P.v.x*.7+(Math.random()-.5)*2.4,.8+Math.random()*2.4,P.v.z*.7+(Math.random()-.5)*2.4,.25+Math.random()*.3,.06+Math.random()*.05,0,1,C[0],C[1],C[2]);}}
-      else BURN.tS=0;}
-  }else{BURN.tS=0;for(const P of BURN.rp)if(P)P.ok=false;}
-  if(!BURN.emet&&BURN.horiz<1e8)BURN.horiz+=dt;BURN.emet=0; // le débit coupé : l'horizon recule avec le temps
-  /* LES GRAINS (soir) : de petits cubes pixel BLANCS, translucides — un peu plus blancs que la fumée, ils lui donnent son grain. Ils naissent
-     aux pneus et DANS le nuage (sur une bouffée vivante, avec sa vitesse), suivent le même courant ; après le lâcher, un filet tant qu'il
-     reste de la fumée. Un tout petit peu : ~16 par seconde au plus fort. */
-  if(BURN.grain&&BURN.fum&&!GAR.go){const Fu=BURN.fum;BURN.tG+=dt*(BURN.ke*16+Math.min(4,Fu.n/60));
-    while(BURN.tG>=1){BURN.tG-=1;let fait=false;
-      if(Math.random()<.55){const q=(Math.random()*Fu.N)|0;if(Fu.age[q]<Fu.life[q]&&Fu.age[q]>.4){const j=q*3;
-        burnEmet(BURN.grain,Fu.P[j]+(Math.random()-.5)*.7,Fu.P[j+1]+(Math.random()-.5)*.4,Fu.P[j+2]+(Math.random()-.5)*.7,Fu.V[j],Fu.V[j+1],Fu.V[j+2],2.5+Math.random()*2.5,.08+Math.random()*.05,.1+Math.random()*.06,.55+Math.random()*.25,1.22,1.22,1.25);fait=true;}}
-      if(!fait&&BURN.ke>.05&&BURN.roues.length){const i=(Math.random()*BURN.roues.length)|0,r=BURN.roues[i],P=BURN.rp[i];if(P&&P.ok){const o=burnMonde(r.x+(Math.random()-.5)*r.l,r.y+.1,r.z-r.R*.4,BURN.q),ry=carGroup.rotation.y,v=1+Math.random()*1.5;
-        burnEmet(BURN.grain,o.x,o.y,o.z,P.v.x*.45-Math.sin(ry)*v+(Math.random()-.5),.2+Math.random()*.4,P.v.z*.45-Math.cos(ry)*v+(Math.random()-.5),2.5+Math.random()*2.5,.08+Math.random()*.05,.1+Math.random()*.06,.55+Math.random()*.25,1.22,1.22,1.25);}}}}
+  BURN.k+=((BURN.on?1:0)-BURN.k)*Math.min(1,dt*(BURN.on?5:2.6));if(BURN.k<.002&&!BURN.on)BURN.k=0;
+  if(BURN.on)BURN.t+=dt;
+  BURN.chaud=Math.max(0,Math.min(1,BURN.chaud+(BURN.on?dt*.34:-dt*.22)));
+  const k=BURN.k;
+  burnDerape(dt);try{burnTours(dt);}catch(_){}
+  if(BURN.on&&!BURN.bouge&&BURN.t>1.4&&!BURN.aideT&&!((SAVE.d.ast|0)&16)){BURN.aideT=1;burnTxt('TOURNE AUTOUR · DONUT','#b9a8ff',true);} // l'astuce, une fois par session, tant qu'aucun donut n'a tourné
+  BURN.cad+=(((BURN.on||Math.abs(BURN.yawV)>1)&&!GAR.go?BURN.donM:0)-BURN.cad)*Math.min(1,dt*2.2);if(BURN.cad<1e-3)BURN.cad=0; // en donut, la vue recule (garBurnR)
+  BURN.feuxK=GAR.go?0:k;                                                  // on tient le frein : les feux stop s'allument (carVit)
+  // LA CAISSE
+  if(k>0&&!GAR.go){
+    const sp=46*k*dt;for(const E of BURN.ar)E.rotation.x+=sp;for(const w of BURN.arW)w.rotation.x+=sp; // l'arrière patine, l'avant est planté
+    const tr=REDUCED_MOTION?.3:1;
+    carBody.rotation.x=-.042*k+Math.sin(t*37)*.004*k*tr;               // le cul s'écrase, le nez se lève
+    carBody.rotation.z=Math.sin(t*29+1.3)*.007*k*tr;                    // elle tremble sur ses pneus
+    carBody.position.y=-.025*k+(Math.random()-.5)*.012*k*tr;
+    carGroup.rotation.y+=Math.sin(t*2.3+Math.sin(t*5.1))*.036*k*tr;     // la poupe chasse
+    BURN.corps=true;
+    if(BURN.on&&!REDUCED_MOTION&&now>BURN.hapT){BURN.hapT=now+150;hap(4);}
+  }else if(BURN.corps){carBody.rotation.set(0,0,0);carBody.position.set(0,0,0);BURN.corps=false;}
+  // LA FUMÉE ET LE FEU
+  if(k>.02&&BURN.fum&&!GAR.go){
+    carGroup.updateMatrixWorld();
+    const ry=carGroup.rotation.y,fx=Math.sin(ry),fz=Math.cos(ry);
+    BURN.tE+=dt*k*(46+70*BURN.chaud);
+    while(BURN.tE>=1){BURN.tE-=1;const r=BURN.roues[(Math.random()*BURN.roues.length)|0],o=burnMonde(r.x+(Math.random()-.5)*r.l,r.y+.08,r.z-r.R*.55,BURN.q),
+        sd=r.x<0?-1:1,sx=fz*sd,sz=-fx*sd,v=1.5+Math.random()*1.7,l=Math.random()*.9,gr=.84+Math.random()*.12;
+      burnEmet(BURN.fum,o.x,o.y,o.z,-fx*v+sx*l,.25+Math.random()*.75,-fz*v+sz*l,5.8+Math.random()*4.2,.34+Math.random()*.24,1.05+Math.random()*.5+.45*BURN.chaud,
+        .2+Math.random()*.16,gr*.86,gr*.84,gr*.93);}
+    if(NYAN.on&&BURN.pix){BURN.tP+=dt*k*(240+170*BURN.chaud); // (2026-10-06) LE CHAT : à la place des braises, les roues giclent des PIXELS multicolores qui scintillent
+      while(BURN.tP>=1){BURN.tP-=1;const r=BURN.roues[(Math.random()*BURN.roues.length)|0],o=burnMonde(r.x+(Math.random()-.5)*r.l,r.y+.1,r.z-r.R*.5,BURN.q),v=1.5+Math.random()*3,c=nyanPixC();
+        burnEmet(BURN.pix,o.x,o.y,o.z,-fx*v+(Math.random()-.5)*2.6,1.2+Math.random()*3.2,-fz*v+(Math.random()-.5)*2.6,.8+Math.random()*.9,.15+Math.random()*.14,0,1,c[0],c[1],c[2]);}}
+    else BURN.tF+=dt*k*(BURN.chaud>.45?(BURN.chaud-.45)*70:0);
+    while(BURN.tF>=1){BURN.tF-=1;const r=BURN.roues[(Math.random()*BURN.roues.length)|0],o=burnMonde(r.x,r.y+.05,r.z-r.R*.3,BURN.q),v=2+Math.random()*4;
+      burnEmet(BURN.feu,o.x,o.y,o.z,-fx*v+(Math.random()-.5)*2,1+Math.random()*2.2,-fz*v+(Math.random()-.5)*2,.35+Math.random()*.4,.05+Math.random()*.05,0,1,1,.5+Math.random()*.4,.15);}
+  }
   while(BURN.pops.length&&now>=BURN.pops[0]){BURN.pops.shift();burnPop(.8);try{if(sfxOk()){const e=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0];crackle(Math.max(.35,e.crk));}}catch(_){}}
-  for(const F of [BURN.fum,BURN.feu,BURN.pix,BURN.voile,BURN.grain])if(F&&F.o.visible)burnPas(F,dt,t);
-  try{burnCubes();}catch(e){if(!burnTick._c){burnTick._c=1;console.warn('burn-out : cubes',e);}} // LA FUMÉE EN CUBES
+  if(BURN.fum)BURN.fum.o.material.uniforms.uPx.value=Math.max(2,Math.round(5*renderer.getPixelRatio()));
+  for(const F of [BURN.fum,BURN.feu,BURN.pix])if(F&&F.o.visible)burnPas(F,dt,t);
+  try{burnCubes(dt,t);}catch(e){if(!burnTick._c){burnTick._c=1;console.warn('burn-out : cubes',e);}} // quelques cubes blancs
   try{burnGomme(dt);}catch(e){}
   try{burnSon(dt);}catch(e){if(!burnTick._w){burnTick._w=1;console.warn('burn-out : son',e);}}
 }
+/* LE DÉRAPAGE (même soir, Léo : « seulement si on appuie longtemps sur la voiture et qu'ensuite on glisse le doigt, la voiture commence à
+   déraper en fonction, mais ne tombe jamais vraiment de la plateforme »). En burn-out, le glissé du doigt fait tourner la caisse SUR le
+   plateau (`BURN.cib`, ,009 rad par pixel, dans le sens du plateau au doigt) ; elle suit par un ressort MOU, un peu sous-amorti (ω 7, ζ ,5 :
+   elle part, dépasse, revient — ça glisse), autour d'un PIVOT vers l'avant (`drz` : l'arrière balaie, comme un donut) ; sa vitesse de
+   rotation la pousse un peu dehors (±,35 m). BORNÉE : le centre ne s'écarte jamais de plus de 4,3 m − le rayon de la caisse — ses coins
+   restent sur le disque. Lâchée, elle se RECENTRE en ~0,7 s en gardant le cap qu'on lui a donné ; puis ce cap est VERSÉ dans le plateau
+   (`garageAng` et `GAR.podSpin` bougent d'autant : à l'écran rien ne saute) — JOUER repart d'une caisse alignée. */
+function burnDerape(dt){
+  const d9=Math.min(dt,.1),n=Math.max(1,Math.ceil(d9/.008)),h=d9/n,om=7,ze=.5;
+  for(let i=0;i<n;i++){BURN.yawV+=(om*om*(BURN.cib-BURN.yaw)-2*ze*om*BURN.yawV)*h;BURN.yaw+=BURN.yawV*h;}
+  if(Math.abs(BURN.yaw)>Math.PI){const s2=2*Math.PI*Math.round(BURN.yaw/(2*Math.PI));BURN.yaw-=s2;BURN.cib-=s2;} // (le donut) les tours se replient : la caisse est la même
+  BURN.don+=(BURN.yawV-BURN.don)*Math.min(1,dt*3);                       // (le donut) la rotation lissée : le compte des tours, la vue
+  BURN.donK=BURN.on?Math.max(0,Math.min(1,(Math.abs(BURN.don)-.8)/2.2)):Math.max(0,BURN.donK-dt*2);
+  BURN.donM+=((BURN.donK>.35?1:BURN.donK<.15?0:BURN.donM)-BURN.donM)*Math.min(1,dt*1.5);if(BURN.donM<1e-3&&BURN.donK<.15)BURN.donM=0; // en donut, le pivot glisse au CENTRE du plateau
+  const vise=BURN.on&&BURN.bouge&&!GAR.go?1:0;BURN.pivK+=(vise-BURN.pivK)*Math.min(1,dt*(vise?6:(GAR.go?6:1.6)));
+  if(BURN.yaw||BURN.pivK>=.001){
+    const y=BURN.yaw,dz=BURN.drz,sl=Math.max(-.35,Math.min(.35,BURN.yawV*.12))*BURN.pivK;
+    let cx=BURN.pivK*(-dz*Math.sin(y))+Math.cos(y)*sl,cz=BURN.pivK*(dz*(1-BURN.donM)-dz*Math.cos(y))-Math.sin(y)*sl; // le pivot : devant la caisse (le dérapage), au centre du plateau (le donut)
+    const lim=Math.max(0,4.3-BURN.rr),c=Math.hypot(cx,cz);if(c>lim){const f=lim/Math.max(1e-6,c);cx*=f;cz*=f;} // jamais hors du disque
+    const r=garRot(),cr=Math.cos(r),sr=Math.sin(r);
+    carGroup.rotation.y+=y;carGroup.position.x+=cx*cr+cz*sr;carGroup.position.z+=-cx*sr+cz*cr;}
+  if(GAR.go||(!BURN.on&&BURN.pivK<.01&&Math.abs(BURN.yawV)<.02)){ // APRÈS l'avoir posée : le cap est versé dans le plateau (à l'image suivante, rien ne saute)
+    if(BURN.yaw){garageAng-=BURN.yaw;GAR.podSpin=(GAR.podSpin||0)-BURN.yaw;BURN.yaw=0;}
+    BURN.cib=0;if(GAR.go)BURN.yawV=0;}
+}
 function burnSon(dt){ // le VRAI moteur du palier, au rupteur, et le crissement de la course
   if(!AC||!osc||!gainN)return;
-  const vivant=BURN.k>.004||BURN.rpm>.03||BURN.pre>.01||BURN.ke>.05;
+  const vivant=BURN.k>.004||BURN.rpm>.03;
   if(!vivant||!sfxOk()){if(BURN.son){BURN.son=false;const T=AC.currentTime;stt(gainN.gain,0,T,.12);stt(engLfoG.gain,0,T,.12);if(skidG)stt(skidG.gain,0,T,.08);}return;}
   BURN.son=true;
   if(engLvl!==engTier)engSetTier(engTier);
-  const e=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0],cib=BURN.on?Math.min(.98,.84+.05*BURN.donK+.04*BURN.chaud+.1*BURN.gaz):.42*BURN.pre; // (gestes) le donut et le coup de gaz montent dans les tours · (v2) la MISE EN RÉGIME sous le doigt
+  const e=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0],cib=BURN.on?.86:0;
   BURN.rpm+=(cib-BURN.rpm)*Math.min(1,dt*(cib>BURN.rpm?5.5:2.2));
   let rpm=BURN.rpm,cut=0;
   if(BURN.on&&BURN.t>.9){cut=Math.sin(BURN.t*2*Math.PI*8.2)>.35?1:0;rpm-=cut*.06;}   // LE RUPTEUR : l'allumage coupe, le régime bégaie
-  if(cut&&!BURN.cut&&Math.random()<.2+.4*Math.max(0,BURN.chaud-.7)/.3){try{crackle(Math.max(.25,e.crk*.6));}catch(_){}burnPop(.45+.3*Math.max(0,BURN.chaud-.7)/.3);} // (v2) gommes chaudes : il pétarade plus, et plus fort
+  if(cut&&!BURN.cut&&Math.random()<.2){try{crackle(Math.max(.25,e.crk*.6));}catch(_){}burnPop(.45);}
   BURN.cut=cut;
-  const g9=BURN.on||BURN.pre>.01;
-  engApplique(engSndParams(e,{rpm:rpm,charge:BURN.on?(cut?.35:.92):BURN.pre*.6,ovr:g9?0:Math.min(1,BURN.rpm*1.8),drift:0,nA:0,thr:g9&&!cut?1:0,
+  engApplique(engSndParams(e,{rpm:rpm,charge:BURN.on?(cut?.35:.92):0,ovr:BURN.on?0:Math.min(1,BURN.rpm*1.8),drift:0,nA:0,thr:BURN.on&&!cut?1:0,
     vsp:.6*BURN.k,wob:0,boost:false,cloudIn:0,dk:1,nB:TEL_NATIF?1:0,gE:VOL_LOCKED?1:.72,lpMin:TEL_NATIF?700:0}));
-  if(skidG){const T=AC.currentTime,aw=Math.min(1,Math.abs(BURN.yawV)/DON.vmax),sk=BURN.ke*(.75+.25*Math.sin(BURN.t*3.1))*(1+.5*BURN.donK+.3*aw),sq=1050+380*BURN.chaud+110*Math.sin(BURN.t*1.7)+140*BURN.donK+160*aw; // (le donut) la gomme crie plus fort et plus haut — (v2) avec la rotation, et pendant le tête-à-queue
-    stt(skidG.gain,Math.min(.2,.13*sk),T,.05);stt(skF1.frequency,sq,T,.06);stt(skF2.frequency,sq*1.56,T,.06);
-    if(skD1)stt(skD1.gain,60+120*BURN.ke,T,.1);if(skD2)stt(skD2.gain,90+180*BURN.ke,T,.1);if(skLfo)stt(skLfo.frequency,13+5*BURN.chaud,T,.1);}
+  if(skidG){const T=AC.currentTime,sk=BURN.k*(.75+.25*Math.sin(BURN.t*3.1)),sq=1050+380*BURN.chaud+110*Math.sin(BURN.t*1.7);
+    stt(skidG.gain,Math.min(.17,.13*sk),T,.05);stt(skF1.frequency,sq,T,.06);stt(skF2.frequency,sq*1.56,T,.06);
+    if(skD1)stt(skD1.gain,60+120*BURN.k,T,.1);if(skD2)stt(skD2.gain,90+180*BURN.k,T,.1);if(skLfo)stt(skLfo.frequency,13+5*BURN.chaud,T,.1);}
 }
 window.dbgBurn=function(s,a,b){
   if(s===0){burnFin();return 'coupé';}
-  if(s==='permis'){let r=null;try{r=garCaisseRect();}catch(_){}return {caisse:garageI,permis:burnPermis(),rect:r};} // (2026-10-07) la caisse du plateau peut-elle brûler ? et où est-elle à l'écran (le banc y pose le doigt)
-  if(s==='gaz'){if(!garAtelierLibre())return 'atelier pas libre';if(!BURN.on){burnPart();BURN.auto=2;}burnGaz();}
-  if(s==='tourne'){if(!garAtelierLibre())return 'atelier pas libre';if(!BURN.on)burnPart();BURN.bouge=true;BURN.auto=b>0?+b:3;BURN.autoW=a!=null?+a:3;} // (v2) un doigt qui tourne sans doigt (le banc) : w rad/s pendant s secondes
+  if(s==='permis'){let r=null;try{r=garCaisseRect();}catch(_){}return {caisse:garageI,permis:burnPermis(),rect:r};}
+  if(s==='tourne'){if(!garAtelierLibre())return 'atelier pas libre';if(!BURN.on)burnPart();BURN.bouge=true;BURN.auto=b>0?+b:3;BURN.autoW=a!=null?+a:3;} // un doigt qui tourne sans doigt : a rad/s pendant b secondes
   if(s>0){if(!garAtelierLibre())return 'atelier pas libre';burnPart();BURN.auto=+s;BURN.autoW=0;}
   return {on:BURN.on,k:+BURN.k.toFixed(2),t:+BURN.t.toFixed(2),chaud:+BURN.chaud.toFixed(2),rpm:+BURN.rpm.toFixed(2),fumee:BURN.fum?BURN.fum.n:0,feu:BURN.feu?BURN.feu.n:0,
     essieuxAr:BURN.ar.length,roues:BURN.roues.length,cap:+BURN.yaw.toFixed(2),cib:+BURN.cib.toFixed(2),w:+BURN.yawV.toFixed(2),donut:+BURN.don.toFixed(2),donM:+BURN.donM.toFixed(2),tours:BURN.n,
-    palier:BURN.lvl,pivot:+BURN.pivK.toFixed(2),cad:+BURN.cad.toFixed(2),Rs:+BURN.Rs.toFixed(2),pre:+BURN.pre.toFixed(2),corps:[+BURN.bp.toFixed(3),+BURN.ro.toFixed(3),+BURN.lz.toFixed(3)],
-    centre:[Math.round(BURN.scx),Math.round(BURN.scy)],geste:{tourne:+(BURN.kc||0).toFixed(2),ailleurs:+(BURN.mc||0).toFixed(2)},gaz:+BURN.gaz.toFixed(2),grains:BURN.grain?BURN.grain.n:0,voile:BURN.voile?BURN.voile.n:0,gomme:!!(BURN.gom&&BURN.gom.sale),gommeChaude:!!(BURN.gom&&BURN.gom.chaud),plateau:+(GAR.platW||0).toFixed(2),doigt:GAR.doigt||null,son:BURN.son};
+    pivot:+BURN.pivK.toFixed(2),cad:+BURN.cad.toFixed(2),centre:[Math.round(BURN.scx),Math.round(BURN.scy)],geste:{tourne:+BURN.kc.toFixed(2),ailleurs:+BURN.mc.toFixed(2)},cubes:BURN.gr?BURN.gr.im.count:0,gomme:!!(BURN.gom&&BURN.gom.sale),plateau:+(GAR.platW||0).toFixed(2),doigt:GAR.doigt||null,son:BURN.son};
 };
 /* ===== LE BOUTON ROUGE ET SES OUTILS (2026-10-05, Léo : « enlève le bouton coffre ; mets un bouton rouge sur la plateforme qui tourne, à
    côté de la voiture ; quand on appuie, de chaque côté, différents outils se mettent à côté et construisent directement les objets qu'on a
@@ -40255,7 +40038,7 @@ function atlTick(dt){
     A.eA=(A.eA||0)+(cons>0&&k>.3?dt*70*Math.max(.35,cons):0);let n9=0;while(A.eA>=1&&n9<8){A.eA-=1;n9++;} // ~70 jets par seconde et par bras, quelle que soit la cadence
     for(let q9=0;q9<n9;q9++){A.tete.updateMatrixWorld(true);ATL.w.set(0,.36,0);A.tete.localToWorld(ATL.w); // la BUSE (au bout de l'outil)
       const dx9=carGroup.position.x-ATL.w.x,dz9=carGroup.position.z-ATL.w.z,dn=Math.max(.3,Math.hypot(dx9,dz9)),ux=dx9/dn*1.4,uz=dz9/dn*1.4; // vers la caisse
-      if(!BURN.fum){BURN.fum=burnPoolDonnees(FUMP.N);BURN.feu=burnPool(180,true,BURN_FS_FLAMME);}
+      burnPools();
       if(ATL.cat==='peinture'&&A.s>0){const c=ATL.c||{r:.9,g:.4,b:.7};
         burnEmet(BURN.fum,ATL.w.x,ATL.w.y,ATL.w.z,ux+(Math.random()-.5)*.8,-.4+(Math.random()-.5)*.5,uz+(Math.random()-.5)*.8,1.6+Math.random(),.14,.55,.42,c.r,c.g,c.b);}
       else if(ATL.cat==='aile'&&A.s<0){for(let i=0;i<3;i++)burnEmet(BURN.feu,ATL.w.x,ATL.w.y,ATL.w.z,ux*.6+(Math.random()-.5)*3.4,1+Math.random()*2.8,uz*.6+(Math.random()-.5)*3.4,.3+Math.random()*.4,.08+Math.random()*.07,0,1,1,.75+Math.random()*.25,.45);}
