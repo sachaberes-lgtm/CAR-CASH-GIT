@@ -39927,7 +39927,8 @@ function burnCubes(){ // chaque image : les cubes DE la fumée, tirés des bouff
    caisse) ; (2) elle les ENTRAÎNE — la vitesse de la carrosserie à cet endroit (son glissement + sa ROTATION : ω × r, plus vive au bout de la
    caisse qu'au pivot) passe dans la bouffée : en dérapage la poupe la balaie, en donut la caisse la fait tourner autour d'elle. Les cubes
    du volume suivent leurs bouffées. */
-const BURN_CAISSE={suit:.65,pousse:3.5}; // (même jour, Léo : « pas autant que le doigt, mais assez pour que ça ait du dynamisme ») la fumée prend 65 % de la vitesse de la carrosserie (elle la balaie sans la coller), et en est écartée en douceur
+const BURN_CAISSE={suit:.65,pousse:3.5};
+const BURN_NUAGE={arriere:4,v0:2.2,v1:2,cote:.55}; // (2026-10-08, Léo : « le nuage plus orienté vers l'arrière, mais c'est bien un peu sur le côté ») MESURÉ avant : les jeunes bouffées filaient à 1,7 m/s sur le côté pour 0,55 vers l'arrière (la caisse les sortait par ses flancs, les roues y sont) — à l'arrière de la caisse la sortie penche ×4 vers l'arrière ; au pneu, lancées à 2,2-4,2 m/s vers l'arrière et ≤ ,55 m/s sur le côté (c'était 1,5-3,2 et ≤ ,9) // (même jour, Léo : « pas autant que le doigt, mais assez pour que ça ait du dynamisme ») la fumée prend 65 % de la vitesse de la carrosserie (elle la balaie sans la coller), et en est écartée en douceur
 function burnCaisse(dt){
   const F=BURN.fum;if(!F||!F.o.visible||!(dt>0)||!carGroup.visible)return;
   carGroup.updateMatrixWorld();const p=carGroup.getWorldPosition(BURN.w),ry=carGroup.rotation.y;
@@ -39941,7 +39942,8 @@ function burnCaisse(dt){
     if(dx*dx+dz*dz>R2||F.P[j+1]>ht)continue;
     const lx=dx*c-dz*sn,lz=dx*sn+dz*c,qx=hb-Math.abs(lx),qz=ha-Math.abs(lz);if(qx<=0||qz<=0)continue; // dehors : rien
     const f=Math.min(1,Math.min(qx,qz)/m);                                 // enfoncée de combien
-    let nx,nz;if(qx<qz){const sg=lx<0?-1:1;nx=sg*c;nz=-sg*sn;}else{const sg=lz<0?-1:1;nx=sg*sn;nz=sg*c;} // la face la plus proche (vers le monde)
+    const wx=1/(qx+.05),wz=(lz<0?BURN_NUAGE.arriere:1)/(qz+.05),sx=lx<0?-1:1,sz=lz<0?-1:1,nl=Math.hypot(wx,wz); // la face la plus proche — et, à l'ARRIÈRE de la caisse, surtout l'arrière (le nuage part derrière)
+    const nx=(sx*wx*c+sz*wz*sn)/nl,nz=(-sx*wx*sn+sz*wz*c)/nl;              // (repère caisse → salle)
     const cvx=(vx+w*dz)*K9.suit,cvz=(vz-w*dx)*K9.suit;                       // la carrosserie à cet endroit : glissement + rotation (ω × r) — la fumée en prend une PART
     const pu=(1.2+.35*Math.hypot(cvx,cvz))*f;                               // (1) elle l'écarte
     F.V[j]+=(cvx-F.V[j])*ke*f+nx*pu*ke*K9.pousse;F.V[j+2]+=(cvz-F.V[j+2])*ke*f+nz*pu*ke*K9.pousse; // (2) elle l'entraîne
@@ -39978,7 +39980,7 @@ function burnTick(dt){ // chaque image du garage (après la pose de la caisse, a
     const ry=carGroup.rotation.y,fx=Math.sin(ry),fz=Math.cos(ry);
     BURN.tE+=dt*k*(46+70*BURN.chaud);BURN.deb=(BURN.deb||0)+(k*(46+70*BURN.chaud)-(BURN.deb||0))*Math.min(1,dt*2); // le débit lissé (l'horizon)
     while(BURN.tE>=1){BURN.tE-=1;const r=BURN.roues[(Math.random()*BURN.roues.length)|0],o=burnMonde(r.x+(Math.random()-.5)*r.l,r.y+.08,r.z-r.R*.55,BURN.q),
-        sd=r.x<0?-1:1,sx=fz*sd,sz=-fx*sd,v=1.5+Math.random()*1.7,l=Math.random()*.9,gr=.84+Math.random()*.12;
+        sd=r.x<0?-1:1,sx=fz*sd,sz=-fx*sd,v=BURN_NUAGE.v0+Math.random()*BURN_NUAGE.v1,l=Math.random()*BURN_NUAGE.cote,gr=.84+Math.random()*.12; // (2026-10-08) plus vers l'arrière, un peu sur le côté
       burnEmet(BURN.fum,o.x,o.y,o.z,-fx*v+sx*l,.25+Math.random()*.75,-fz*v+sz*l,5.8+Math.random()*4.2,.34+Math.random()*.24,1.05+Math.random()*.5+.45*BURN.chaud,
         .2+Math.random()*.16,gr*.86,gr*.84,gr*.93);}
     if(NYAN.on&&BURN.pix){BURN.tP+=dt*k*(240+170*BURN.chaud); // (2026-10-06) LE CHAT : à la place des braises, les roues giclent des PIXELS multicolores qui scintillent
@@ -40054,8 +40056,8 @@ window.dbgBurn=function(s,a,b){
   if(s==='fumee'){const F=BURN.fum,p=carGroup.getWorldPosition(new THREE.Vector3());let n=0,vt=0,dans=0;let G=null;try{G=garGabarit();}catch(_){} // (le banc) la fumée autour de la caisse : tourne-t-elle avec elle ? en reste-t-il DANS la caisse ?
     if(F)for(let i=0;i<F.N;i++){if(F.age[i]>=F.life[i])continue;const j=i*3,dx=F.P[j]-p.x,dz=F.P[j+2]-p.z,r=Math.hypot(dx,dz);if(r>3.5||r<.2||F.P[j+1]>p.y+2)continue;n++;vt+=(F.V[j]*dz-F.V[j+2]*dx)/r;
       if(G){const c=Math.cos(carGroup.rotation.y),sn=Math.sin(carGroup.rotation.y),lx=dx*c-dz*sn,lz=dx*sn+dz*c;if(Math.abs(lx)<G.b&&Math.abs(lz)<G.a&&F.P[j+1]<p.y+(G.H||1.3))dans++;}}
-    const pc=GAR.pod?GAR.pod.getWorldPosition(new THREE.Vector3()):p;
-    return {proches:n,tourne:n?+(vt/n).toFixed(2):0,dansLaCaisse:dans,w:+BURN.yawV.toFixed(2),brusques:BURN.brusque|0,vivantes:F?F.n:0,horizon:+(BURN.hor||0).toFixed(1),ecart:+Math.hypot(p.x-pc.x,p.z-pc.z).toFixed(2)};}
+    const pc=GAR.pod?GAR.pod.getWorldPosition(new THREE.Vector3()):p;let nj=0,ar=0,co=0;{const c=Math.cos(carGroup.rotation.y),sn=Math.sin(carGroup.rotation.y);if(F)for(let i=0;i<F.N;i++){if(F.age[i]>=F.life[i]||F.age[i]>1.2)continue;const j=i*3,vlx=F.V[j]*c-F.V[j+2]*sn,vlz=F.V[j]*sn+F.V[j+2]*c;nj++;ar+=-vlz;co+=Math.abs(vlx);}}
+    return {proches:n,tourne:n?+(vt/n).toFixed(2):0,dansLaCaisse:dans,w:+BURN.yawV.toFixed(2),jeunes:nj,versArriere:nj?+(ar/nj).toFixed(2):0,surLeCote:nj?+(co/nj).toFixed(2):0,brusques:BURN.brusque|0,vivantes:F?F.n:0,horizon:+(BURN.hor||0).toFixed(1),ecart:+Math.hypot(p.x-pc.x,p.z-pc.z).toFixed(2)};}
   if(s==='tourne'){if(!garAtelierLibre())return 'atelier pas libre';if(!BURN.on)burnPart();BURN.bouge=true;BURN.auto=b>0?+b:3;BURN.autoW=a!=null?+a:3;} // un doigt qui tourne sans doigt : a rad/s pendant b secondes
   if(s>0){if(!garAtelierLibre())return 'atelier pas libre';burnPart();BURN.auto=+s;BURN.autoW=0;}
   return {on:BURN.on,k:+BURN.k.toFixed(2),t:+BURN.t.toFixed(2),chaud:+BURN.chaud.toFixed(2),rpm:+BURN.rpm.toFixed(2),fumee:BURN.fum?BURN.fum.n:0,feu:BURN.feu?BURN.feu.n:0,

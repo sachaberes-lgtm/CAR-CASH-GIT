@@ -116,6 +116,10 @@ LES BOUTONS DE SACHA ») : **PLAY/JOUER = la partie sans fin, et toucher un nive
   ,35 → ,55 m ; la vue recule d'après `BURN.donH`, `BURN.Rs` = le cercle le plus large balayé. Écart max de la caisse au centre du plateau
   en donut 1,29 → 1,73 m (`dbgBurn('fumee').ecart`). Couché, elle passe derrière le panneau de la console ~13 % du donut (11 % avant).
   sw.js → v177.
+- **LE NUAGE VERS L'ARRIÈRE** (même jour, Léo : « le nuage plus orienté vers l'arrière, mais c'est bien un peu sur le côté ») — `BURN_NUAGE` :
+  à l'arrière de la caisse, `burnCaisse` fait sortir la fumée surtout par l'ARRIÈRE (le poids de la face arrière ×4 ; avant : la face la plus
+  proche, presque toujours un flanc — les roues y sont) ; aux pneus, lancée à 2,2-4,2 m/s vers l'arrière, ≤ ,55 m/s sur le côté (1,5-3,2 / ,9).
+  MESURÉ (`dbgBurn('fumee')`, jeunes bouffées < 1,2 s, burn-out tenu) : vers l'arrière ,55 → 2,4 m/s, sur le côté 1,7 → ,77 m/s. sw.js → v178.
 - Les réservoirs se créent dans `burnPools()`, appelé par la CHAUFFE DE L'ATELIER (`atelierChauffe` les compile avec lui : rien au 1er
   burn-out) et par l'atelier du bouton rouge (`atlTick`).
 - RETIRÉ (dans l'historique, dernier état `d6fea98`) : fumée en volumes/cubes de la porte, voile, jet sous la roue, poids (`DON_POIDS`),
