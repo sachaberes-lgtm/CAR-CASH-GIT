@@ -53,6 +53,11 @@ ouverte (« voilà l'effet recherché, couleurs pareil, mais en mode GTR »).
   · l'intérieur ROUGE du côté de la gueule ne fait plus que le coin (z > ZN − 0,20, flanc SM = XF + .18) ; derrière, la peau étirée est GRISE ;
   · L'AVANT RACCOURCI : dans le pli (`P.done`), passé l'arche arrière (Z0 = ZR + R + .13) tout se resserre de KZ .75 en longueur puis la caisse
     est recentrée (DZ .38) — `MZ(z)` ; roues, phares, pots suivent ; fiche `l:3.75`.
+  · (Léo : « remplis intelligemment l'encoche vide : lisse mais en relief, une tête de requin ») LE CRÂNE : le capot plongeait en V entre
+    le museau relevé et le toit — une coque lisse le comble (superellipse, pied noyé dans le capot), du pavillon (z .27) au rostre (z 1,80),
+    une ligne à peine bombée, une ÉCHINE douce au milieu ; vers l'arrière elle devient VITRE (le pare-brise remonte en visière), l'échine
+    grise par-dessus. Dessinée en coordonnées FINALES : chaque sommet est DÉPLIÉ (`deplie`, inverse du pli par point fixe) avant d'être
+    versé, le pli le remet en place — la recette pour poser n'importe quoi sur la tête relevée.
 
 ## JOUER = LE MODE CLASSIQUE (2026-10-08, session GRAPHISME — Sacha : « maintenant quand on clique sur le bouton jouer on lance les niveaux au lieu de lancer le mode classique »)
 « LE NIVEAU DES PLAY » (Léo, 7/10, 3d72bd6 — plus bas) faisait lancer la carrière par le PLAY de l'accueil, le JOUER de l'atelier et celui

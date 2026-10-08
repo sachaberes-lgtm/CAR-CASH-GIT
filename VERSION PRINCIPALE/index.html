@@ -20868,6 +20868,37 @@ SHAPES.squale=function(K){
   // (Léo : « la voiture doit être plus courte ») L'AVANT RACCOURCI : passé l'arche arrière (Z0), tout se resserre de KZ en longueur
   //   (habitacle, capot, gueule, museau), puis la caisse est recentrée (DZ) — posé avec le pli, sur chaque sommet ; roues, phares, pots suivent
   const Z0=ZR+R+.13,KZ=.75,DZ=.38,MZ=z=>(z>Z0?Z0+(z-Z0)*KZ:z)+DZ;
+  { // (Léo : « remplis intelligemment l'encoche vide : quelque chose de lisse, mais en relief, une tête de requin ») LE CRÂNE :
+    // entre le museau relevé et le toit, le capot plongeait en V jusqu'au pare-brise — une coque lisse le comble : le dessus de la tête du
+    // requin, qui file du rostre au pavillon d'une seule ligne (le profil du croquis), une arête douce au milieu (l'échine) ; vers l'arrière
+    // elle devient VITRE (le pare-brise remonte en visière sur la tête), l'échine grise filant par-dessus. Dessinée en coordonnées FINALES
+    // (après le pli) : chaque sommet est DÉPLIÉ (`deplie`, point fixe) avant d'être versé — le pli le remet exactement en place.
+    const s3=t=>t<=0?0:t>=1?1:t*t*(3-2*t),c01=v=>v<0?0:v>1?1:v,thz=z=>TH*s3((z-ZH)/(ZN-ZH)),
+      plie=(y,z)=>{if(y<=YS||z<=ZH)return [y,z];const th=thz(z),c9=Math.cos(th),s9=Math.sin(th),dy=y-YS,dz=z-ZH;return [YS+dy*c9+dz*s9,ZH-dy*s9+dz*c9];},
+      deplie=(y,z)=>{if(z<=ZH||y<=YS)return [y,z];const dy1=y-YS,dz1=z-ZH;let zz=z;
+        for(let k=0;k<30;k++){const th=thz(zz);zz=ZH+dz1*Math.cos(th)+dy1*Math.sin(th);}
+        const th=thz(zz);return [YS-dz1*Math.sin(th)+dy1*Math.cos(th),zz];},
+      V3=(x,y,z)=>{const q=deplie(y,z);return [x,q[0],q[1]];};
+    const HD=[];for(let i=0;i<=30;i++){const z=ZH+(ZN-ZH)*i/30,p=plie(T(z)-.03,z);HD.push([p[1],p[0]]);} // le capot plié, vu de profil : [z final, y final]
+    const yX=(q,x)=>{for(let i=7;i<9;i++){const A=q[i],B=q[i+1];if(x>=B[0]&&x<=A[0]){const t=(x-A[0])/((B[0]-A[0])||1);return A[1]+(B[1]-A[1])*t;}}return x>q[7][0]?q[7][1]:q[9][1];};
+    const Z1=.27,Z2=1.80,NA=18,
+      yHaut=z=>{const u=c01((z-Z1)/(Z2-Z1));return 1.372+(1.528-1.372)*s3(u)+.045*Math.sin(Math.PI*u);},   // la ligne du crâne : du pavillon au rostre, à peine bombée
+      Wd=z=>{const u=c01((z-Z1)/(Z2-Z1));return .50+.13*s3(u);},
+      yBas=(z,x)=>z<=ZH?yX(S(z),x)-.05:U.lin(HD,z)-.08,                          // le pied : noyé dans le capot (ou le toit) au-dessous
+      crete=z=>.022*s3((z-.55)/.5)*(1-s3((z-1.62)/.18));                           // l'échine, qui naît sur la visière et meurt dans le rostre
+    const anneau=z=>{const W=Wd(z),yt=yHaut(z),yb=Math.min(yt-.01,yBas(z,W)),q=[];
+      for(let m=0;m<=NA;m++){const a=(-14+208*m/NA)*Math.PI/180,c9=Math.cos(a),s9=Math.sin(a),x=W*Math.sign(c9)*Math.pow(Math.abs(c9),2/2.5);
+        let y=yb+(yt-yb)*Math.sign(s9)*Math.pow(Math.abs(s9),2/2.5);y+=crete(z)*Math.max(0,1-Math.abs(x)/(.22*W));q.push([x,y,z]);}
+      return q;};
+    const zsC=[];for(let z=Z1;z<Z2-1e-6;z+=.05)zsC.push(z);zsC.push(Z2);
+    let r0=anneau(zsC[0]);
+    {const C=[0,(r0[NA/2][1]+yBas(Z1,0))/2,Z1];for(let m=0;m<NA;m++)P.tri('p',V3(...C),V3(...r0[m+1]),V3(...r0[m]));} // le bout arrière, fermé
+    for(let i=1;i<zsC.length;i++){const r1=anneau(zsC[i]),zm=(zsC[i-1]+zsC[i])/2;
+      for(let m=0;m<NA;m++){const am=-14+208*(m+.5)/NA,dos=Math.abs(am-90)<16,k=(!dos&&zm<.86)?'g':'p';
+        P.tri(k,V3(...r0[m]),V3(...r1[m]),V3(...r1[m+1]));P.tri(k,V3(...r0[m]),V3(...r1[m+1]),V3(...r0[m+1]));}
+      r0=r1;}
+    {const C=[0,(r0[NA/2][1]+r0[0][1])/2,Z2];for(let m=0;m<NA;m++)P.tri('p',V3(...C),V3(...r0[m]),V3(...r0[m+1]));} // le bout avant, fondu dans le rostre
+  }
   { // LE PLI DE LA MÂCHOIRE : chaque sommet au-dessus de la fente et devant la charnière tourne autour de (YS, ZH), d'autant plus qu'il est près du nez
     const ss=t=>t<=0?0:t>=1?1:t*t*(3-2*t),fin=P.done;
     P.done=()=>{const gs=fin();for(const k9 in gs){const a=gs[k9].attributes.position.array;
