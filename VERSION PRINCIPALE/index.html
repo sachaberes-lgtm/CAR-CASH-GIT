@@ -39742,7 +39742,7 @@ function burnMonde(x,y,z,out){out.set(x,y,z);carGroup.localToWorld(out);return o
    combien de temps une bouffée sera reprise (`BURN.hor` ≈ ,92 N / débit — il raccourcit vite, s'allonge lentement) ; passé 60 % de cet
    horizon elle s'EFFACE, et n'est plus là quand on la reprend. Au repos du pied, l'horizon dépasse sa vie : rien ne change. Au plus fort, ~4 s
    de fumée visible : beaucoup, sans remplir tout l'atelier. */
-const BURN_FUM={N:520};
+const BURN_FUM={N:680,deb:[60,90]}; // (2026-10-08, Léo : « un peu plus de fumée ») débit ×1,3 (46 + 70·chaud → 60 + 90·chaud bouffées/s) ET réservoir ×1,3 (520 → 680) : ~30 % de fumée en plus à l'écran, le même horizon (~4 s au plus fort) — pas plus facile de remplir l'atelier
 function burnPools(){ // les réservoirs (la fumée en pixels, le feu, les pixels du chat, les cubes blancs) — créés par la chauffe de l'atelier : rien ne compile au 1er burn-out
   if(!BURN.fum){BURN.fum=burnPool(BURN_FUM.N,false,BURN_FS_FUM);BURN.feu=burnPool(180,true,BURN_FS_FEU);}
   if(!BURN.pix){BURN.pix=burnPool(520,true,BURN_FS_FEU);BURN.pix.arc=true;} // (2026-10-06) les PIXELS du chat pop-tart (voir NY_PIX)
@@ -39945,7 +39945,7 @@ function burnCubes(){ // chaque image : les cubes DE la fumée, tirés des bouff
    caisse qu'au pivot) passe dans la bouffée : en dérapage la poupe la balaie, en donut la caisse la fait tourner autour d'elle. Les cubes
    du volume suivent leurs bouffées. */
 const BURN_CAISSE={suit:.65,pousse:3.5};
-const BURN_NUAGE={arriere:4,v0:2.2,v1:2,cote:.55}; // (2026-10-08, Léo : « le nuage plus orienté vers l'arrière, mais c'est bien un peu sur le côté ») MESURÉ avant : les jeunes bouffées filaient à 1,7 m/s sur le côté pour 0,55 vers l'arrière (la caisse les sortait par ses flancs, les roues y sont) — à l'arrière de la caisse la sortie penche ×4 vers l'arrière ; au pneu, lancées à 2,2-4,2 m/s vers l'arrière et ≤ ,55 m/s sur le côté (c'était 1,5-3,2 et ≤ ,9) // (même jour, Léo : « pas autant que le doigt, mais assez pour que ça ait du dynamisme ») la fumée prend 65 % de la vitesse de la carrosserie (elle la balaie sans la coller), et en est écartée en douceur
+const BURN_NUAGE={arriere:3,v0:2.2,v1:2,cote:.7,flanc:.3,fa0:.3,fa1:1.1,fc0:1.4,fc1:1.6}; // (même soir, Léo : « de la fumée aussi sur le côté ») 30 % des bouffées sortent PAR LE FLANC de leur roue (1,4-3 m/s vers l'extérieur, ,3-1,4 vers l'arrière : deux panaches de côté, comme un vrai burn-out), les autres comme avant (côté ≤ ,7), et la poupe ne pousse plus que ×3 vers l'arrière (×4). Avant : (2026-10-08, Léo : « le nuage plus orienté vers l'arrière, mais c'est bien un peu sur le côté ») MESURÉ avant : les jeunes bouffées filaient à 1,7 m/s sur le côté pour 0,55 vers l'arrière (la caisse les sortait par ses flancs, les roues y sont) — à l'arrière de la caisse la sortie penche ×4 vers l'arrière ; au pneu, lancées à 2,2-4,2 m/s vers l'arrière et ≤ ,55 m/s sur le côté (c'était 1,5-3,2 et ≤ ,9) // (même jour, Léo : « pas autant que le doigt, mais assez pour que ça ait du dynamisme ») la fumée prend 65 % de la vitesse de la carrosserie (elle la balaie sans la coller), et en est écartée en douceur
 function burnCaisse(dt){
   const F=BURN.fum;if(!F||!F.o.visible||!(dt>0)||!carGroup.visible)return;
   carGroup.updateMatrixWorld();const p=carGroup.getWorldPosition(BURN.w),ry=carGroup.rotation.y;
@@ -39995,9 +39995,10 @@ function burnTick(dt){ // chaque image du garage (après la pose de la caisse, a
   if(k>.02&&BURN.fum&&!GAR.go){
     carGroup.updateMatrixWorld();
     const ry=carGroup.rotation.y,fx=Math.sin(ry),fz=Math.cos(ry);
-    BURN.tE+=dt*k*(46+70*BURN.chaud);BURN.deb=(BURN.deb||0)+(k*(46+70*BURN.chaud)-(BURN.deb||0))*Math.min(1,dt*2); // le débit lissé (l'horizon)
+    const db9=BURN_FUM.deb[0]+BURN_FUM.deb[1]*BURN.chaud;BURN.tE+=dt*k*db9;BURN.deb=(BURN.deb||0)+(k*db9-(BURN.deb||0))*Math.min(1,dt*2); // le débit lissé (l'horizon)
     while(BURN.tE>=1){BURN.tE-=1;const r=BURN.roues[(Math.random()*BURN.roues.length)|0],o=burnMonde(r.x+(Math.random()-.5)*r.l,r.y+.08,r.z-r.R*.55,BURN.q),
-        sd=r.x<0?-1:1,sx=fz*sd,sz=-fx*sd,v=BURN_NUAGE.v0+Math.random()*BURN_NUAGE.v1,l=Math.random()*BURN_NUAGE.cote,gr=.84+Math.random()*.12; // (2026-10-08) plus vers l'arrière, un peu sur le côté
+        sd=r.x<0?-1:1,sx=fz*sd,sz=-fx*sd,N9=BURN_NUAGE,fl=Math.random()<N9.flanc,                // (2026-10-08) plus vers l'arrière, un peu sur le côté — et une part qui sort PAR LE FLANC
+        v=fl?N9.fa0+Math.random()*N9.fa1:N9.v0+Math.random()*N9.v1,l=fl?N9.fc0+Math.random()*N9.fc1:Math.random()*N9.cote,gr=.84+Math.random()*.12;
       burnEmet(BURN.fum,o.x,o.y,o.z,-fx*v+sx*l,.25+Math.random()*.75,-fz*v+sz*l,5.8+Math.random()*4.2,.34+Math.random()*.24,1.05+Math.random()*.5+.45*BURN.chaud,
         .2+Math.random()*.16,gr*.86,gr*.84,gr*.93);}
     if(NYAN.on&&BURN.pix){BURN.tP+=dt*k*(240+170*BURN.chaud); // (2026-10-06) LE CHAT : à la place des braises, les roues giclent des PIXELS multicolores qui scintillent
@@ -40019,7 +40020,7 @@ function burnTick(dt){ // chaque image du garage (après la pose de la caisse, a
 }
 /* LE DÉRAPAGE (même soir, Léo : « seulement si on appuie longtemps sur la voiture et qu'ensuite on glisse le doigt, la voiture commence à
    déraper en fonction, mais ne tombe jamais vraiment de la plateforme »). En burn-out, le glissé du doigt fait tourner la caisse SUR le
-   plateau (`BURN.cib`, ,009 rad par pixel, dans le sens du plateau au doigt) ; elle suit par un ressort MOU, un peu sous-amorti (ω 7, ζ ,5 :
+   plateau (`BURN.cib`, ,009 rad par pixel, dans le sens du plateau au doigt) ; elle suit par un ressort MOU, un peu sous-amorti (ω 7 — 9 depuis le 08/10, `BURN_RESSORT` —, ζ ,5 :
    elle part, dépasse, revient — ça glisse), autour d'un PIVOT vers l'avant (`drz` : l'arrière balaie, comme un donut) ; sa vitesse de
    rotation la pousse un peu dehors (±,35 m). BORNÉE : le centre ne s'écarte jamais de plus de 4,3 m − le rayon de la caisse — ses coins
    restent sur le disque. Lâchée, elle se RECENTRE en ~0,7 s en gardant le cap qu'on lui a donné ; puis ce cap est VERSÉ dans le plateau
@@ -40030,8 +40031,9 @@ function burnTick(dt){ // chaque image du garage (après la pose de la caisse, a
    restait au milieu). Désormais il n'y glisse qu'au quart (`DON_PIV.donMax`), la vitesse la pousse un peu plus dehors (`glisse` ,35 → ,55 m),
    et la vue recule d'après l'état « donut » (`donH`) pour la garder dans le cadre (`BURN.Rs`). La borne du disque reste (4,3 m − son rayon). */
 const DON_PIV={donMax:.25,glisse:.55,kGlisse:.16};
+const BURN_RESSORT={om:9,ze:.5}; // (2026-10-08, Léo : « la voiture qui suit encore un peu plus ») le ressort qui tire la caisse vers le doigt, ω 7 → 9 : MESURÉ, un doigt qui tourne à 3 rad/s la traînait de 27° (48° à 6 rad/s) — désormais ~20° (~37°), la mise en route plus vive ; même amorti (ζ ,5 : elle dépasse un peu, ça glisse)
 function burnDerape(dt){
-  const d9=Math.min(dt,.1),n=Math.max(1,Math.ceil(d9/.008)),h=d9/n,om=7,ze=.5;
+  const d9=Math.min(dt,.1),n=Math.max(1,Math.ceil(d9/.008)),h=d9/n,om=BURN_RESSORT.om,ze=BURN_RESSORT.ze;
   for(let i=0;i<n;i++){BURN.yawV+=(om*om*(BURN.cib-BURN.yaw)-2*ze*om*BURN.yawV)*h;BURN.yaw+=BURN.yawV*h;}
   if(Math.abs(BURN.yaw)>Math.PI){const s2=2*Math.PI*Math.round(BURN.yaw/(2*Math.PI));BURN.yaw-=s2;BURN.cib-=s2;} // (le donut) les tours se replient : la caisse est la même
   BURN.don+=(BURN.yawV-BURN.don)*Math.min(1,dt*3);                       // (le donut) la rotation lissée : le compte des tours, la vue

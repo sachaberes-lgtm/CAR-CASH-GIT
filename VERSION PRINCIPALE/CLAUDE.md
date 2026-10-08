@@ -120,6 +120,13 @@ LES BOUTONS DE SACHA ») : **PLAY/JOUER = la partie sans fin, et toucher un nive
   à l'arrière de la caisse, `burnCaisse` fait sortir la fumée surtout par l'ARRIÈRE (le poids de la face arrière ×4 ; avant : la face la plus
   proche, presque toujours un flanc — les roues y sont) ; aux pneus, lancée à 2,2-4,2 m/s vers l'arrière, ≤ ,55 m/s sur le côté (1,5-3,2 / ,9).
   MESURÉ (`dbgBurn('fumee')`, jeunes bouffées < 1,2 s, burn-out tenu) : vers l'arrière ,55 → 2,4 m/s, sur le côté 1,7 → ,77 m/s. sw.js → v178.
+- **PLUS DE FUMÉE, AUSSI SUR LE CÔTÉ, ET LA CAISSE QUI SUIT PLUS** (même soir, Léo : « fumée aussi sur le côté » puis « un peu plus de
+  fumée et la voiture qui suit encore un peu plus ») — `BURN_FUM` {N 520 → 680, débit 46 + 70·chaud → 60 + 90·chaud} : ~30 % de fumée en
+  plus, le même horizon (~4,2 s au plus fort, l'atelier ne se remplit pas) ; `BURN_NUAGE` : 30 % des bouffées sortent PAR LE FLANC de leur
+  roue (`flanc`, 1,4-3 m/s vers l'extérieur, ,3-1,4 vers l'arrière), les autres ≤ ,7 m/s de côté, la poupe ×3 vers l'arrière (×4) ;
+  `BURN_RESSORT` {om 7 → 9, ze ,5} : le ressort qui tire la caisse vers le doigt. MESURÉ : bouffées vivantes au burn-out tenu 483 → 680,
+  jeunes bouffées 2,37 → 1,93 m/s vers l'arrière et ,79 → 1,17 m/s de côté, zéro reprise d'un coup ; doigt en cercle à 3 rad/s : retard
+  27° → 20° (6 rad/s : 48° → 33°), mêmes tours que le doigt ; ~0,1 ms/image pour tout le burn-out ; 0 programme compilé. sw.js → v180.
 - Les réservoirs se créent dans `burnPools()`, appelé par la CHAUFFE DE L'ATELIER (`atelierChauffe` les compile avec lui : rien au 1er
   burn-out) et par l'atelier du bouton rouge (`atlTick`).
 - RETIRÉ (dans l'historique, dernier état `d6fea98`) : fumée en volumes/cubes de la porte, voile, jet sous la roue, poids (`DON_POIDS`),
