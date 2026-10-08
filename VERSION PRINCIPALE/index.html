@@ -8107,7 +8107,7 @@ function carVit(dt){
   if(!running||garageOn||boom)ROUES.v=0;
   else if(!paused&&mode!=='drive')ROUES.v*=Math.exp(-dt*.7);
   if(!paused&&wheels.length){
-    const R0=wheels[0].userData.R||.45,pas=Math.max(-.3,Math.min(.3,ROUES.v/R0*dt));
+    const R0=wheels[wheels.length-1].userData.R||.45,pas=Math.max(-.3,Math.min(.3,ROUES.v/R0*dt));
     if(pas){for(const w of wheels)w.rotation.x+=pas;for(const e of ESSIEUX)e.rotation.x+=pas;} // (2026-09-27) les roues d'origine (hors scène, lues ailleurs) + les essieux soudés qu'on VOIT
   }
   const nuit=Math.max(LVL.pluie||0,LVL.espace||0,(LVL.paris||0)*Math.min(1,PSU.uT.value)); // (Paris) la nuit, la lampe de carrosserie reste
@@ -13137,7 +13137,7 @@ const CARS=[
   desc:'Elle a pris froid au dernier tour : depuis, elle éternue du feu. Ne reste jamais devant elle.'},
  // (2026-10-08) LE SQUALE — Léo : la voiture au sourire de requin de son sketch du garage, bleu clair, sportive, carrée aux angles
  // arrondis, les phares en yeux (voir SHAPES.squale). Ajoutée EN DERNIER (les index de sauvegarde ne bougent pas).
- {name:'SQUALE',shape:'squale',color:0x5e666d,accent:0x2a3036,maxKmh:340,accel:40,turn:2.7,h:1.38,w:2.10,l:4.50,spoiler:0,rar:'rare',
+ {name:'SQUALE',shape:'squale',color:0x5e666d,accent:0x2a3036,maxKmh:340,accel:40,turn:2.7,h:1.38,w:2.10,l:3.75,spoiler:0,rar:'rare',
   fx:{jet:0xbfe4ff,core:0xffffff,trail:[.75,.85,.95],light:0xcfe8ff},
   desc:'Toujours le sourire. Surtout quand elle te double.'},
 ];
@@ -20683,7 +20683,7 @@ SHAPES.squale=function(K){
      entre les deux mâchoires. Tout est construit fermé, puis plié d'un coup au moment de poser la caisse (voir P.done, avant K.commit). */
   const YS=.52,ZH=1.25,TH=.62;
   const P=K.kit({p:{g:'p',c:0x5e666d,grad:[0x7e868c,0x5e666d,0x41484e]},b:{g:'p',c:0xf3f2ee,f:0},n:{g:'p',c:0x2a3036,f:0},
-    k:{g:'m',c:0x15171c},g:{g:'g',c:0x161c26},G:{g:'g',c:0x0b0c10},K:{g:'m',c:0x3a0a12},J:{g:'m',c:0x120306},T:{g:'m',c:0x6e1a26},Q:{g:'m',c:0x4a1018},R:{g:'p',c:0xd8707c,f:0},d:{g:'p',c:0xf5f2ea,f:0},e:{g:'p',c:0xe2d9c4,f:0},
+    k:{g:'m',c:0x15171c},g:{g:'g',c:0x161c26},G:{g:'g',c:0x0b0c10},N:{g:'m',c:0x1d2126},K:{g:'m',c:0x3a0a12},J:{g:'m',c:0x120306},T:{g:'m',c:0x6e1a26},Q:{g:'m',c:0x4a1018},R:{g:'p',c:0xd8707c,f:0},d:{g:'p',c:0xf5f2ea,f:0},e:{g:'p',c:0xe2d9c4,f:0},
     W:{g:'l',c:0xfffdf7},I:{g:'g',c:0x050608},L:{g:'l',c:0xff2236},c:{g:'c',c:0xd9dde3}});
   const bosse=d=>Math.max(0,1-d*d);
   const T=z=>U.lin([[ZT,.92],[-2.18,1.02],[-1.95,1.06],[-1.55,1.09],[-1.05,1.31],[-.35,1.38],[.25,1.37],[.80,1.09],[1.0,1.08],[1.9,1.07],[2.15,1.06],[ZN,1.03]],z),
@@ -20701,7 +20701,8 @@ SHAPES.squale=function(K){
     if(j===-1)return 'X';                                                         // la face avant : posée à la main (la gueule s'ouvre au milieu)
     if(j<0)return 'p';
     if(j===0)return 'k';
-    if((j===3||j===2)&&z>1.9)return 'K';                                                   // (Léo : « des dents sur le côté de la mâchoire, cachées par du blanc parasite ») la peau étirée entre les mâchoires = l'INTÉRIEUR de la gueule
+    if((j===3||j===2)&&z>ZN-.20)return 'K';                                       // (Léo : « le truc rouge, rapetisse-le : il y a de la peau, mais elle ne fait pas cette longueur ») l'intérieur rouge, court, au coin de la gueule
+    if(j===3&&z>1.88)return 'p';                                                  // …derrière, la peau étirée est GRISE (la joue du requin)                                                   // (Léo : « des dents sur le côté de la mâchoire, cachées par du blanc parasite ») la peau étirée entre les mâchoires = l'INTÉRIEUR de la gueule
     if(j<=3)return 'b';                                                           // le VENTRE blanc (deux bandes : la fente passe entre elles)
     if(j<=5||z<=-1.55||z>=.80)return 'p';                                         // flancs, épaules, capot, malle
     const pil=z>-.27&&z<-.17;                                                     // le montant du milieu
@@ -20726,7 +20727,7 @@ SHAPES.squale=function(K){
   // ⚠ (bug des « éclats en étoile ») `cote` ne lit le flanc qu'au-dessus de son chanfrein bas (il rend −1 dessous) : les crocs du bas, plus
   //   bas que lui, voyaient leurs points RETOURNÉS de l'autre côté. `cote2` suit aussi le chanfrein du bas de caisse.
   const cote2=(z,y)=>{const q=S(z);for(let i=1;i<5;i++){const a=q[i],c=q[i+1];if(y<=c[1]){if(y<a[1])return a[0];const t=(y-a[1])/((c[1]-a[1])||1);return a[0]+(c[0]-a[0])*t;}}return q[5][0];};
-  const YC=.52,XF=cote2(ZN,YC),SM=XF+.31,BL=.06,GL=.058;
+  const YC=.52,XF=cote2(ZN,YC),SM=XF+.18,BL=.06,GL=.058;
   const Bp=(s9,y)=>{const a=Math.abs(s9),sg=s9<0?-1:1,xe=cote2(ZN,y);if(a<=XF)return [s9*Math.min(1,xe/XF),y,ZN];const z=ZN-(a-XF);return [sg*cote2(z,y),y,z];};
   const Nn=s9=>{const a=Math.abs(s9),sg=s9<0?-1:1,t=Math.max(0,Math.min(1,(a-(XF-BL))/(2*BL))),nx=sg*t,nz=1-t,l=Math.hypot(nx,nz);return [nx/l,nz/l];};
   const srf=(s9,y,off)=>{const b=Bp(s9,y),n=Nn(s9);return [b[0]+n[0]*off,y,b[2]+n[1]*off];};
@@ -20819,20 +20820,37 @@ SHAPES.squale=function(K){
   for(const sd of [-1,1]){P.box('n',.05,.20,.08,sd*.52,yA+.10,-1.98);
     P.prism('n',[[-1.84,yA+.16],[-2.06,yA+.22],[-2.24,yA+.38],[-2.18,yA+.22],[-2.24,yA+.10],[-2.06,yA+.14]],.03,sd*.93);}
   P.box('n',1.88,.04,.32,0,yA+.22,-2.06,-.07,0,0);
+  { // (Léo : « voiture à deux roues — ou une roue en dessous qu'on ne voit pas devant ; mets une petite nageoire à la place ») LA JUPE D'AILE :
+    // le passage de roue avant est FERMÉ par un panneau blanc affleurant le flanc (la roue reste dessous, rentrée : `wxF`), cerné d'un
+    // joint sombre, et une petite NAGEOIRE pectorale en part, couchée vers l'arrière, à la place de la roue.
+    const zA=ZF-(R+.12),zB=ZF+(R+.12),yBas=z=>.07+.10*Math.pow(Math.abs(z-ZF)/(R+.12),3);let pr=null;
+    for(let z=zA;z<=zB+1e-6;z+=.04){const q=S(Math.min(z,zB)),x=q[2][0]-.012,yt=q[2][1],A=[x,yBas(z),z],B=[x,yt,z],C=[x+.004,yt-.035,z],D=[x+.004,yt-.012,z];
+      if(pr){for(const sd of [-1,1]){const f=p=>[sd*p[0],p[1],p[2]];P.tri('b',f(pr[0]),f(A),f(pr[1]));P.tri('b',f(A),f(B),f(pr[1]));
+        P.tri('N',f(pr[2]),f(C),f(pr[3]));P.tri('N',f(C),f(D),f(pr[3]));}}pr=[A,B,C,D];}
+    const NG=[[1.03,ZF+.20],[1.20,ZF+.02],[1.40,ZF-.44],[1.15,ZF-.24],[1.03,ZF-.12]],ny=x=>.42-(x-1.03)*.55,ep=x=>.012+.05*Math.max(0,1-(x-1.03)/.37);
+    for(const sd of [-1,1]){const H9=NG.map(([x,z])=>[sd*x,ny(x)+ep(x)/2,z]),B9=NG.map(([x,z])=>[sd*x,ny(x)-ep(x)/2,z]);
+      for(let i=1;i<NG.length-1;i++){P.tri('p',H9[0],H9[i],H9[i+1]);P.tri('b',B9[0],B9[i+1],B9[i]);}
+      for(let i=0;i<NG.length;i++){const j=(i+1)%NG.length;P.tri('p',H9[i],B9[i],B9[j]);P.tri('p',H9[i],B9[j],H9[j]);}}
+  }
+  P.box('b',1.58,.17,ZN-.05-(ZF-.46),0,.145,(ZN-.05+ZF-.46)/2);                   // LE VENTRE de l'avant, à 7 cm du sol, entre les jupes : on ne voit rien de la roue
+  // (Léo : « la voiture doit être plus courte ») L'AVANT RACCOURCI : passé l'arche arrière (Z0), tout se resserre de KZ en longueur
+  //   (habitacle, capot, gueule, museau), puis la caisse est recentrée (DZ) — posé avec le pli, sur chaque sommet ; roues, phares, pots suivent
+  const Z0=ZR+R+.13,KZ=.75,DZ=.38,MZ=z=>(z>Z0?Z0+(z-Z0)*KZ:z)+DZ;
   { // LE PLI DE LA MÂCHOIRE : chaque sommet au-dessus de la fente et devant la charnière tourne autour de (YS, ZH), d'autant plus qu'il est près du nez
     const ss=t=>t<=0?0:t>=1?1:t*t*(3-2*t),fin=P.done;
     P.done=()=>{const gs=fin();for(const k9 in gs){const a=gs[k9].attributes.position.array;
-      for(let i=0;i<a.length;i+=3){const y=a[i+1],z=a[i+2];if(y<=YS||z<=ZH)continue;
-        const th=TH*ss((z-ZH)/(ZN-ZH)),c9=Math.cos(th),s9=Math.sin(th),dy=y-YS,dz=z-ZH;a[i+1]=YS+dy*c9+dz*s9;a[i+2]=ZH-dy*s9+dz*c9;}
+      for(let i=0;i<a.length;i+=3){const y=a[i+1],z=a[i+2];
+        if(y>YS&&z>ZH){const th=TH*ss((z-ZH)/(ZN-ZH)),c9=Math.cos(th),s9=Math.sin(th),dy=y-YS,dz=z-ZH;a[i+1]=YS+dy*c9+dz*s9;a[i+2]=ZH-dy*s9+dz*c9;}
+        a[i+2]=MZ(a[i+2]);}
       gs[k9].attributes.position.needsUpdate=true;gs[k9].computeVertexNormals();}return gs;};
   }
   K.commit(P);
   // LE VERNIS : dur et franc, sur la matière de cette caisse seulement (K.mats)
   {const mP=K.mats&&K.mats.p;if(mP){mP.shininess=86;mP.specular.setHex(0x8c8c8c);mP.reflectivity=.36;
     if(mP.userData.uG)mP.userData.uG.value=.035;if(mP.userData.uV)mP.userData.uV.value.set(.40,1.8,3,.30);}}
-  return {hl:[.70,.937,ZN+.03],tl:[.55,.83,ZT-.03],lamps:0,pipes:0,halos:0, // les yeux SONT les phares : ni boîte blanche ni halo devant eux
-          wx:.88,wzF:ZF,wzR:-ZR,
-          pots:[[.30,.30,ZT-.14],[-.30,.30,ZT-.14],[.46,.30,ZT-.14],[-.46,.30,ZT-.14]],
+  return {hl:[.70,.937,MZ(ZN+.03)],tl:[.55,.83,MZ(ZT-.03)],lamps:0,pipes:0,halos:0, // les yeux SONT les phares : ni boîte blanche ni halo devant eux
+          wx:.88,wxF:.58,wRF:.45,wzF:MZ(ZF),wzR:-MZ(ZR),                                // la roue avant rentrée sous la jupe
+          pots:[[.30,.30,MZ(ZT-.14)],[-.30,.30,MZ(ZT-.14)],[.46,.30,MZ(ZT-.14)],[-.46,.30,MZ(ZT-.14)]],
           lpw:{R:R,w:.36,style:'rayons',n:6,jante:0x2b2e34,accent:0x2b2e34}};
 };
 const CAR_VIEUX=[]; // les matières de la caisse d'avant : libérées à la construction suivante
@@ -21178,9 +21196,10 @@ function buildCar(spec){
     for(const sxz of [[-1,1],[1,1],[-1,-1],[1,-1]]){
       const w=new THREE.Group();
       for(const g in gs){const m=new THREE.Mesh(gs[g],lpMatC(g));m.userData.lp=1;w.add(m);}
-      if(sxz[0]<0)w.scale.x=-1;w.userData.large=W9.w; // (2026-09-26) la largeur du pneu : les traces la reprennent
-      w.userData.R=W9.R; // (2026-09-26) le rayon : la boucle fait tourner la roue à sa VRAIE vitesse (v / R)
-      w.position.set(sxz[0]*A.wx,W9.R+A.wy,sxz[1]>0?(A.wzF!=null?A.wzF:A.wz):-(A.wzR!=null?A.wzR:A.wz));
+      const kF=sxz[1]>0&&A.wRF?A.wRF:1; // `wRF` : les roues AVANT réduites (SQUALE : petites, rentrées sous la jupe — on ne les voit pas)
+      w.scale.set((sxz[0]<0?-1:1)*kF,kF,kF);w.userData.large=W9.w*kF; // (2026-09-26) la largeur du pneu : les traces la reprennent
+      w.userData.R=W9.R*kF; // (2026-09-26) le rayon : la boucle fait tourner la roue à sa VRAIE vitesse (v / R)
+      w.position.set(sxz[0]*(sxz[1]>0&&A.wxF!=null?A.wxF:A.wx),W9.R*kF+A.wy,sxz[1]>0?(A.wzF!=null?A.wzF:A.wz):-(A.wzR!=null?A.wzR:A.wz)); // `wxF` : la voie avant (SQUALE : roues rentrées sous la jupe)
       carGroup.add(w);wheels.push(w);
     }
   }else{
@@ -21209,8 +21228,8 @@ function buildCar(spec){
    else if(!wreck){fx9=A.wx+.2*A.wr;r9=.40*A.wr*.62;}
    if(fx9!=null&&wheels.length){
      const cg=new THREE.CircleGeometry(1,20).toNonIndexed(),cp=cg.attributes.position.array,cu=cg.attributes.uv.array,P=[],U=[];
-     for(const w of wheels){const sd=w.position.x>0?1:-1,x9=sd*fx9,y9=w.position.y,z9=w.position.z;
-       for(let i=0;i<cp.length;i+=3)P.push(x9,y9+cp[i+1]*r9,z9-sd*cp[i]*r9); // le disque XY tourné de ±90° autour de Y : sa face regarde DEHORS
+     for(const w of wheels){const sd=w.position.x>0?1:-1,x9=sd*(fx9-A.wx+Math.abs(w.position.x)),y9=w.position.y,z9=w.position.z; // le disque suit SA roue (voie avant ≠ arrière)
+       const r8=r9*(A.lpw&&w.userData.R?w.userData.R/A.lpw.R:1);for(let i=0;i<cp.length;i+=3)P.push(x9,y9+cp[i+1]*r8,z9-sd*cp[i]*r8); // le disque XY tourné de ±90° autour de Y : sa face regarde DEHORS
        for(let i=0;i<cu.length;i++)U.push(cu[i]);}
      cg.dispose();
      const g9=new THREE.BufferGeometry();g9.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g9.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));
@@ -21323,7 +21342,7 @@ function buildCar(spec){
   if(FACETTE.on&&(FACET_SHAPES[shape]||spec.facette))facetteCaisse(); // (2026-09-29) les classiques de la boutique, taillées en facettes comme la gamme (voir facetteCaisse)
   // LA CARROSSERIE PENCHE (voir carBody) : on y range tout, sauf les roues et ce qui épouse le bitume (néon, flaques)
   for(const ch of carGroup.children.slice())if(wheels.indexOf(ch)<0&&!(ch.userData&&ch.userData.sol))carBody.add(ch);
-  carGroup.add(carBody);carBody.rotation.set(0,0,0);carBody.position.set(0,0,0);carBody.userData.pivY=wheels.length?wheels[0].position.y:.45; // pivot = hauteur des moyeux (⚠ pas de carRoll9=0 ici : buildCar tourne AVANT leur déclaration — zone morte)
+  carGroup.add(carBody);carBody.rotation.set(0,0,0);carBody.position.set(0,0,0);carBody.userData.pivY=wheels.length?wheels[wheels.length-1].position.y:.45; // pivot = hauteur des moyeux (⚠ pas de carRoll9=0 ici : buildCar tourne AVANT leur déclaration — zone morte)
   carGroup.traverse(o9=>{if(o9.isMesh&&!o9.userData.noShadow)o9.castShadow=true;}); // toute la caisse porte son ombre LONGUE — sauf la nappe néon (un carré d'ombre, non merci)
   caisseSoude(); // (2026-09-27, passe perf iPhone) ce qui ne bouge jamais est soudé par matière — voir « LA CAISSE EN UN MINIMUM DE DESSINS »
 }

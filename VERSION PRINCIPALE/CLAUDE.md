@@ -43,6 +43,16 @@ ouverte (« voilà l'effet recherché, couleurs pareil, mais en mode GTR »).
   mâchoires (bandes j=2/3 devant z 1,9) devient l'intérieur rouge (`K`), et une rangée SERRÉE de crocs court le long des deux bords du
   flanc (pas 6,2 cm + une petite rangée derrière) — ⚠ aucun croc ne passe la fente YS (le pli l'étirerait : `L` borné à yi − YS).
   Il y a eu d'autres essais dans le maker (gorge en tube, croquis, grand blanc qui jaillit, refait de zéro) : Léo a choisi CELLE-CI.
+  (Léo : « voiture à deux roues, ou une roue en dessous qu'on ne voit pas devant ; une petite nageoire à la place de la roue ; le truc rouge,
+  rapetisse-le : il y a de la peau mais elle ne fait pas cette longueur ; la voiture plus courte, garde tout l'aspect travaillé ») :
+  · LA JUPE D'AILE : le passage de roue avant est fermé par un panneau blanc affleurant le flanc (joint sombre `N` autour), une petite
+    NAGEOIRE pectorale en part, et un VENTRE blanc ferme le dessous de l'avant à 7 cm du sol. Les roues avant existent toujours (traces,
+    empreinte, burn-out) mais réduites et rentrées : deux options de `buildCar`, `wRF` (échelle des roues AVANT, .45) et `wxF` (voie avant,
+    .58) — le disque de flou de jante suit SA roue ; le rayon qui fait tourner les roues et le pivot du roulis se lisent désormais sur une
+    roue ARRIÈRE (`wheels[wheels.length-1]` : identique pour toutes les autres caisses, quatre roues égales).
+  · l'intérieur ROUGE du côté de la gueule ne fait plus que le coin (z > ZN − 0,20, flanc SM = XF + .18) ; derrière, la peau étirée est GRISE ;
+  · L'AVANT RACCOURCI : dans le pli (`P.done`), passé l'arche arrière (Z0 = ZR + R + .13) tout se resserre de KZ .75 en longueur puis la caisse
+    est recentrée (DZ .38) — `MZ(z)` ; roues, phares, pots suivent ; fiche `l:3.75`.
 
 ## JOUER = LE MODE CLASSIQUE (2026-10-08, session GRAPHISME — Sacha : « maintenant quand on clique sur le bouton jouer on lance les niveaux au lieu de lancer le mode classique »)
 « LE NIVEAU DES PLAY » (Léo, 7/10, 3d72bd6 — plus bas) faisait lancer la carrière par le PLAY de l'accueil, le JOUER de l'atelier et celui
