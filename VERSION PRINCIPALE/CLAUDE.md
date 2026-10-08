@@ -40,6 +40,16 @@ LES BOUTONS DE SACHA ») : **PLAY/JOUER = la partie sans fin, et toucher un nive
 - Console : `dbgRiche()` (coups, gains, presque, jackpots, à l'image, objets) · `dbgRiche('jackpot'|'gros'|'bon'|'petit'|'presque'|'rien')`
   impose le prochain coup · `dbgRiche('pluie',taille)` · `dbgRiche('voir','diamant',n)` · `dbgRiche('vitrine')` (un de chaque, figés,
   `dbgRiche('vitrine',0)` les relâche). sw.js → v169.
+- **v2 (2026-10-08, Léo : « rubis, carte bancaire noire, une chaîne en or si la physique suit, émeraude, une liasse, une bouteille de
+  champagne, un crâne 3D de temps en temps ; c'est super, peut-être juste un peu grand : réduis un poil ») : toutes les tailles ×0,85 ;
+  RUBIS (taille brillant, le programme du diamant teinté), ÉMERAUDE (taille émeraude : table rectangulaire, gradins, culasse en carène),
+  CARTE NOIRE (métal brossé, puce d'or, numéro en relief, verso à piste — elle tourne sur un diamètre et flashe comme une pièce), LIASSE
+  (le billet du dessus, sa bande « $ 10 000 », les feuilles sur la tranche — elle ne plie pas), CHAMPAGNE (verre vert, étiquette, coiffe
+  dorée), CRÂNE D'OR aux yeux de rubis (rare : gros 2, jackpot 4, et 4 % de chance à chaque gain ; il part le regard vers la caméra et
+  tourne sur lui-même — en culbute on ne voyait que sa nuque), CHAÎNE D'OR (`richChaine` / `richChaineTick` : 9 nœuds à distance fixe,
+  5 passes de contraintes, chaque nœud freiné par l'air ; 8 maillons, un sur deux tourné d'un quart — elle fouette, ondule, pend).
+  L'élan vers le HAUT est divisé par 2,5 (`richVise` : l'air les emporte déjà). Mesuré : 145 programmes, aucun compilé au coup ;
+  16,7 ms/image avec 66 objets ; 1,5-2,5 s à l'image. « Une mia » a été compris « une liasse ».
 
 ## LE SON PARASITE DU DÉPART DES NUAGES (2026-10-08, Léo : « la première map, quand je démarre, il y a un son hyper chelou, un son parasite — enlève ; vérifie pour les autres »)
 - **C'ÉTAIT `nuages.ambiance`** (la boucle « LA MER DE NUAGES A SON AIR » du 30/09 : souffle d'altitude, rafales, harpe éolienne), lancée au

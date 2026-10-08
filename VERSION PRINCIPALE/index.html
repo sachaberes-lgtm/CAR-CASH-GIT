@@ -37677,24 +37677,35 @@ const RICH={pret:false,chauffe:0,objs:[],libres:{},sp:null,fl:[],gl:[],sec:0,cha
   H:new THREE.Vector3(),cam:new THREE.Vector3(),eu:new THREE.Euler()};
 const RICH_U={uSunDir:{value:new THREE.Vector3().copy(SUN_DIR)},uSunCol:{value:new THREE.Color()},uSky:{value:new THREE.Color()},uGnd:{value:new THREE.Color()},
   uEnv:{value:envTex},uT:{value:0}};
-// les objets : kd = freinage par l'air (1/s), fl = papillonnement (m/s²), s = taille (m — à l'échelle ARCADE : vus à 10 m, une vraie pièce faisait 13 px), w = rotation (rad/s), v = élan au départ (m/s), vie (s)
+// les objets : kd = freinage par l'air (1/s), fl = papillonnement (m/s²), s = taille (m — à l'échelle ARCADE : vus à 10 m, une vraie pièce faisait 13 px ;
+// (2026-10-08, Léo : « peut-être juste un peu grand ») réduite d'un cran, ×0,85), w = rotation (rad/s), v = élan au départ (m/s), vie (s) ;
+// flip = l'axe de la face (la pièce et la carte tournent sur un DIAMÈTRE : elles « flashent ») ; nl = les facettes qui renvoient le soleil (le bling) ;
+// gem = une gemme (scintille toujours un peu) ; gc = la teinte de son éclat
+const RICH_GEM_NL=[[0,1,0],[.6,.55,.58],[-.7,.5,.3],[.2,.45,-.85],[-.3,-.7,.6]],RICH_OR_NL=[[0,1,0],[.7,.4,.5],[-.6,.5,-.4],[.2,-.6,.7]],RICH_FACE_Y=[[0,1,0],[0,-1,0]];
 const RICH_T={
-  billet:{kd:2.4,fl:5,s:[1.2,1.55],w:[2,6],v:[3,6],vie:[2.8,3.8]},
-  trefle:{kd:2.6,fl:4,s:[.7,.9],w:[2,6],v:[3,6],vie:[2.6,3.4]},
-  piece2:{kd:.8,fl:.6,s:[.36,.4],w:[11,20],v:[4,8],vie:[2.4,3.2],piece:1},
-  piece1:{kd:.8,fl:.6,s:[.34,.38],w:[11,20],v:[4,8],vie:[2.4,3.2],piece:1},
-  piece50:{kd:.8,fl:.6,s:[.32,.36],w:[11,20],v:[4,8],vie:[2.4,3.2],piece:1},
-  btc:{kd:.75,fl:.5,s:[.4,.46],w:[9,17],v:[4,8],vie:[2.6,3.4],piece:1},
-  or:{kd:.5,fl:0,s:[.16,.42],w:[3,9],v:[5,9],vie:[2.4,3.4]},
-  lingot:{kd:.55,fl:0,s:[.55,.75],w:[3,7],v:[4,8],vie:[2.4,3.4]},
-  diamant:{kd:.55,fl:0,s:[.22,.5],w:[3,8],v:[5,9],vie:[2.6,3.6]},
-  fruit:{kd:1,fl:.4,s:[.3,.42],w:[3,7],v:[3,6],vie:[2.4,3.2]}}; // (fruit : s = son RAYON en mètres — chaque fruit est ramené à sa sphère, la pastèque n'écrase plus le cadre)
-const RICH_CAP={billet:16,trefle:6,piece2:8,piece1:8,piece50:8,btc:7,or:14,lingot:5,diamant:12,fruit:8};
+  billet:{kd:2.4,fl:5,s:[1.02,1.32],w:[2,6],v:[3,6],vie:[2.8,3.8]},
+  liasse:{kd:.9,fl:.3,s:[.72,.88],w:[3,7],v:[4,7],vie:[2.6,3.4]},
+  carte:{kd:1.5,fl:3,s:[.56,.66],w:[7,14],v:[4,8],vie:[2.6,3.4],flip:'z',nl:[[0,0,1],[0,0,-1]],gc:[1,1,1]},
+  trefle:{kd:2.6,fl:4,s:[.6,.76],w:[2,6],v:[3,6],vie:[2.6,3.4]},
+  piece2:{kd:.8,fl:.6,s:[.31,.34],w:[11,20],v:[4,8],vie:[2.4,3.2],flip:'y',nl:RICH_FACE_Y},
+  piece1:{kd:.8,fl:.6,s:[.29,.32],w:[11,20],v:[4,8],vie:[2.4,3.2],flip:'y',nl:RICH_FACE_Y},
+  piece50:{kd:.8,fl:.6,s:[.27,.3],w:[11,20],v:[4,8],vie:[2.4,3.2],flip:'y',nl:RICH_FACE_Y},
+  btc:{kd:.75,fl:.5,s:[.34,.39],w:[9,17],v:[4,8],vie:[2.6,3.4],flip:'y',nl:RICH_FACE_Y},
+  or:{kd:.5,fl:0,s:[.14,.36],w:[3,9],v:[5,9],vie:[2.4,3.4],nl:RICH_OR_NL},
+  lingot:{kd:.55,fl:0,s:[.47,.64],w:[3,7],v:[4,8],vie:[2.4,3.4],nl:RICH_OR_NL},
+  chaine:{kd:1.1,s:[1.15,1.4],v:[4,7],vie:[2.8,3.6]}, // la CHAÎNE a sa propre physique (richChaine) : s = sa longueur
+  diamant:{kd:.55,fl:0,s:[.19,.42],w:[3,8],v:[5,9],vie:[2.6,3.6],nl:RICH_GEM_NL,gem:1,gc:[.95,.97,1]},
+  rubis:{kd:.55,fl:0,s:[.16,.3],w:[3,8],v:[5,9],vie:[2.6,3.6],nl:RICH_GEM_NL,gem:1,gc:[1,.5,.58]},
+  emeraude:{kd:.55,fl:0,s:[.18,.3],w:[3,8],v:[5,9],vie:[2.6,3.6],nl:[[0,1,0],[.55,.55,0],[-.55,.55,0],[0,.5,.7],[0,-.6,.6]],gem:1,gc:[.6,1,.72]},
+  champagne:{kd:.7,fl:0,s:[.4,.46],w:[3,7],v:[4,7],vie:[2.6,3.4]},
+  crane:{kd:.6,fl:0,s:[.34,.4],w:[2,4],v:[4,7],vie:[3,3.8],nl:[[0,1,0],[.5,.6,.6],[-.5,.6,.6]],face:1}, // face : il part le regard vers la caméra et tourne sur lui-même (en culbute, on ne voyait que sa nuque)
+  fruit:{kd:1,fl:.4,s:[.26,.36],w:[3,7],v:[3,6],vie:[2.4,3.2]}}; // (fruit : s = son RAYON en mètres — chaque fruit est ramené à sa sphère, la pastèque n'écrase plus le cadre)
+const RICH_CAP={billet:16,liasse:6,carte:6,trefle:6,piece2:8,piece1:8,piece50:8,btc:7,or:14,lingot:5,diamant:12,rubis:8,emeraude:8,champagne:4,crane:2,fruit:8}; // (la chaîne : son pool à elle, RICH.ch)
 const RICH_TIER={ // la taille de la gerbe : combien, et quoi (poids)
-  petit:  {n:[3,6],  fl:.75,w:{billet:24,piece2:12,piece1:12,piece50:12,fruit:20,trefle:8,or:12}},
-  bon:    {n:[7,11], fl:1,  w:{billet:30,piece2:8,piece1:8,piece50:6,or:18,lingot:4,fruit:9,trefle:5,btc:7,diamant:5}},
-  gros:   {n:[12,18],fl:1.3,w:{billet:24,or:20,lingot:6,piece2:6,piece1:6,piece50:4,btc:12,diamant:14,trefle:4,fruit:4}},
-  jackpot:{n:[26,36],fl:1.8,w:{billet:24,or:18,lingot:8,diamant:20,btc:12,piece2:5,piece1:5,piece50:3,trefle:5,fruit:4}}};
+  petit:  {n:[3,6],  fl:.75,w:{billet:22,piece2:11,piece1:11,piece50:10,fruit:17,trefle:7,or:10,carte:4,rubis:3,emeraude:3,liasse:4}},
+  bon:    {n:[7,11], fl:1,  w:{billet:26,piece2:7,piece1:7,piece50:5,or:15,lingot:4,fruit:8,trefle:4,btc:6,diamant:5,rubis:5,emeraude:5,carte:6,liasse:6,champagne:4,chaine:3}},
+  gros:   {n:[12,18],fl:1.3,w:{billet:20,or:16,lingot:6,piece2:5,piece1:5,piece50:3,btc:10,diamant:12,rubis:8,emeraude:8,carte:7,liasse:8,champagne:5,chaine:6,crane:2,trefle:3,fruit:3}},
+  jackpot:{n:[26,36],fl:1.8,w:{billet:20,or:15,lingot:7,diamant:16,rubis:10,emeraude:10,btc:10,carte:6,liasse:8,champagne:6,chaine:6,crane:4,piece2:4,piece1:4,piece50:2,trefle:4,fruit:3}}};
 
 // ---- LES PROGRAMMES ----
 const RICH_VS=['varying vec3 vN;varying vec3 vP;varying vec2 vUv;uniform float uT;uniform float uBend;',
@@ -37833,6 +37844,62 @@ function richPiece(){ // la pièce : un cylindre ; ses deux faces lisent les deu
     if(G9.materialIndex===0)uv.setXY(i,.004,.5);else if(G9.materialIndex===1)uv.setXY(i,uv.getX(i)*.5,uv.getY(i));else uv.setXY(i,.5+uv.getX(i)*.5,uv.getY(i));}}
   g.clearGroups();return g;}
 
+function richRond(x,a,b,w,h,r){x.beginPath();x.moveTo(a+r,b);x.arcTo(a+w,b,a+w,b+h,r);x.arcTo(a+w,b+h,a,b+h,r);x.arcTo(a,b+h,a,b,r);x.arcTo(a,b,a+w,b,r);x.closePath();}
+function richTexCarte(){return richCv(512,656,function(x){ // la carte NOIRE : recto (0-322) et verso (334-656), un trait noir entre les deux (la tranche y lit sa couleur)
+  x.fillStyle='#08080b';x.fillRect(0,0,512,656);
+  const face=function(y0,dos){const G=x.createLinearGradient(0,y0,512,y0+322);G.addColorStop(0,'#17171d');G.addColorStop(.5,'#0b0b10');G.addColorStop(1,'#1b1b23');x.fillStyle=G;x.fillRect(0,y0,512,322);
+    x.strokeStyle='rgba(255,255,255,.035)';x.lineWidth=1;for(let i=-322;i<512;i+=5){x.beginPath();x.moveTo(i,y0+322);x.lineTo(i+322,y0);x.stroke();} // le métal BROSSÉ
+    if(!dos){const cg=x.createLinearGradient(52,y0+112,116,y0+160);cg.addColorStop(0,'#fff0b5');cg.addColorStop(1,'#b8892c');x.fillStyle=cg;richRond(x,52,y0+110,66,50,9);x.fill(); // la puce
+      x.strokeStyle='rgba(90,60,10,.7)';x.lineWidth=2;x.beginPath();x.moveTo(52,y0+135);x.lineTo(118,y0+135);x.moveTo(74,y0+110);x.lineTo(74,y0+160);x.moveTo(96,y0+110);x.lineTo(96,y0+160);x.stroke();
+      x.strokeStyle='rgba(225,228,235,.75)';x.lineWidth=3;for(let k=0;k<3;k++){x.beginPath();x.arc(150,y0+135,10+k*9,-.7,.7);x.stroke();} // sans contact
+      x.font='bold 30px Helvetica,Arial,sans-serif';x.textBaseline='middle';x.fillStyle='#dfe2ea';x.fillText('CASH CAR',36,y0+58);
+      x.textAlign='right';x.font='bold 17px Helvetica,Arial,sans-serif';x.fillStyle='#a7adb8';x.fillText('BLACK',476,y0+58);x.textAlign='left';
+      x.font='bold 30px "Courier New",monospace';x.fillStyle='rgba(0,0,0,.8)';x.fillText('4000 1234 5678 9010',38,y0+218);x.fillStyle='#d9dce4';x.fillText('4000 1234 5678 9010',36,y0+215); // en RELIEF
+      x.font='15px Helvetica,Arial,sans-serif';x.fillStyle='#b9bec8';x.fillText('L. CASH',38,y0+272);x.fillText('12/99',250,y0+272);
+      x.globalAlpha=.9;x.fillStyle='#d9a63a';x.beginPath();x.arc(420,y0+266,24,0,6.2832);x.fill();x.fillStyle='#c9ccd4';x.beginPath();x.arc(450,y0+266,24,0,6.2832);x.fill();x.globalAlpha=1;}
+    else{x.fillStyle='#232328';x.fillRect(0,y0+30,512,58);x.fillStyle='#ddd8cb';x.fillRect(36,y0+120,300,40);x.font='bold 18px "Courier New",monospace';x.fillStyle='#444';x.fillText('777',300,y0+142);
+      const H=x.createLinearGradient(380,0,470,0);H.addColorStop(0,'#ff9ad8');H.addColorStop(.5,'#8ffcff');H.addColorStop(1,'#fff08a');x.fillStyle=H;x.globalAlpha=.75;x.beginPath();x.arc(425,y0+250,34,0,6.2832);x.fill();x.globalAlpha=1;}};
+  face(0,false);face(334,true);});}
+function richCarteGeo(){const g=new THREE.BoxGeometry(1,.63,.018),uv=g.attributes.uv;
+  for(const G9 of g.groups)for(let k=G9.start;k<G9.start+G9.count;k++){const i=g.index.getX(k),u=uv.getX(i),v=uv.getY(i);
+    if(G9.materialIndex===4)uv.setXY(i,u,.509+v*.491);else if(G9.materialIndex===5)uv.setXY(i,u,v*.491);else uv.setXY(i,.5,.5);}
+  g.clearGroups();return g;}
+function richTexLiasse(){const b=RICH.texBillet.image;return richCv(512,512,function(x){ // la LIASSE : le billet du dessus et sa BANDE ; les feuilles empilées sur la tranche
+  x.drawImage(b,0,0,512,236);x.fillStyle='#efe6cf';x.fillRect(228,0,56,236);x.fillStyle='rgba(150,110,40,.6)';x.fillRect(228,0,3,236);x.fillRect(281,0,3,236);
+  x.save();x.translate(256,118);x.rotate(-Math.PI/2);x.font='bold 22px Helvetica,Arial,sans-serif';x.fillStyle='#7a5a1a';x.textAlign='center';x.textBaseline='middle';x.fillText('$ 10 000',0,0);x.restore();
+  for(let y=256;y<512;y+=4){x.fillStyle=(y/4)%2?'#cfe9e1':'#0c5a66';x.fillRect(0,y,512,4);}x.fillStyle='#efe6cf';x.fillRect(228,256,56,256);});}
+function richLiasseGeo(){const g=new THREE.BoxGeometry(1,.46,.12),uv=g.attributes.uv;
+  for(const G9 of g.groups)for(let k=G9.start;k<G9.start+G9.count;k++){const i=g.index.getX(k),u=uv.getX(i),v=uv.getY(i);
+    if(G9.materialIndex>=4)uv.setXY(i,u,.539+v*.461);else if(G9.materialIndex>=2)uv.setXY(i,u,v*.5);else uv.setXY(i,.04+v*.12,u*.5);} // les grandes tranches portent la bande ; sur toutes, les feuilles s'empilent dans l'épaisseur
+  g.clearGroups();return g;}
+function richTexChampagne(){return richCv(128,512,function(x){const Y=function(v){return (1-v)*512;}; // la bouteille, de bas (v 0) en haut (v 1)
+  x.fillStyle='#062a12';x.fillRect(0,0,128,512);x.fillStyle='rgba(140,210,160,.22)';x.fillRect(22,Y(.72),7,Y(.06)-Y(.72)); // le verre vert et son reflet
+  x.fillStyle='#efe3c2';x.fillRect(0,Y(.46),74,Y(.22)-Y(.46));x.fillStyle='#c9a24a';x.fillRect(0,Y(.46),74,6);x.fillRect(0,Y(.22)-6,74,6);x.fillRect(30,Y(.38),16,Y(.3)-Y(.38)); // l'étiquette
+  const G=x.createLinearGradient(0,0,128,0);G.addColorStop(0,'#b8862c');G.addColorStop(.45,'#ffe6a0');G.addColorStop(1,'#a87a22');x.fillStyle=G;x.fillRect(0,0,128,Y(.71)); // la COIFFE dorée
+  x.fillStyle='rgba(90,60,10,.35)';for(let i=0;i<14;i++)x.fillRect(Math.random()*128,Math.random()*Y(.8),2,30+Math.random()*60);
+  x.fillStyle='#efe3c2';x.fillRect(0,Y(.71),128,8);});}
+function richChampagneGeo(){const P=[[0,0],[.33,0],[.36,.03],[.37,.08],[.37,.6],[.34,.7],[.24,.82],[.15,.92],[.13,1],[.13,1.16],[.145,1.18],[.145,1.27],[.1,1.3],[0,1.3]].map(function(a){return new THREE.Vector2(a[0],a[1]);});
+  const g=new THREE.LatheGeometry(P,14),p=g.attributes.position,uv=g.attributes.uv;for(let i=0;i<p.count;i++)uv.setY(i,p.getY(i)/1.3);g.translate(0,-.62,0);g.computeVertexNormals();return g;}
+function richEmeraude(){ // la taille ÉMERAUDE : table rectangulaire, gradins, rondiste octogonal allongé, culasse en carène
+  const oct=function(w,l,c,y){return [[-w+c,y,-l],[w-c,y,-l],[w,y,-l+c],[w,y,l-c],[w-c,y,l],[-w+c,y,l],[-w,y,l-c],[-w,y,-l+c]];};
+  const T=oct(.5,.78,.16,.32),S=oct(.78,1.06,.24,.16),G=oct(.9,1.2,.28,0),B=oct(.55,.85,.18,-.32),K0=[0,-.62,-.45],K1=[0,-.62,.45];
+  const P=[],tri=function(a,b,c){P.push(a[0],a[1],a[2],b[0],b[1],b[2],c[0],c[1],c[2]);},quad=function(a,b,c,d){tri(a,b,c);tri(a,c,d);};
+  for(let i=0;i<8;i++)tri([0,.32,0],T[i],T[(i+1)%8]);
+  for(let i=0;i<8;i++){const j=(i+1)%8;quad(T[i],S[i],S[j],T[j]);quad(S[i],G[i],G[j],S[j]);quad(G[i],B[i],B[j],G[j]);}
+  tri(B[0],B[1],K0);tri(B[1],B[2],K0);quad(B[2],B[3],K1,K0);tri(B[3],B[4],K1);tri(B[4],B[5],K1);tri(B[5],B[6],K1);quad(B[6],B[7],K0,K1);tri(B[7],B[0],K0);
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(P),3));g.scale(.72,1,.72);return richPlat(g);}
+function richFusion(L){ // des primitives (géométrie, matrice) → UNE géométrie non indexée, normales plates (chaque primitive garde son sens)
+  let n=0;const parts=[];for(const e of L){const gg=e[0].index?e[0].toNonIndexed():e[0].clone();gg.applyMatrix4(e[1]);parts.push(gg);n+=gg.attributes.position.count;e[0].dispose();}
+  const pos=new Float32Array(n*3);let o=0;for(const gg of parts){pos.set(gg.attributes.position.array,o);o+=gg.attributes.position.array.length;gg.dispose();}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.computeVertexNormals();g.setAttribute('uv',new THREE.BufferAttribute(new Float32Array(n*2).fill(.5),2));return g;}
+function richM4(x,y,z,sx,sy,sz){return new THREE.Matrix4().compose(new THREE.Vector3(x,y,z),new THREE.Quaternion(),new THREE.Vector3(sx,sy==null?sx:sy,sz==null?sx:sz));}
+function richCraneGeo(){ // le CRÂNE d'or : la voûte, la face, les pommettes, la mâchoire, les dents ; à part, en noir : les orbites et le nez
+  const I=function(r,d){return new THREE.IcosahedronGeometry(r,d);},B=function(a,b,c){return new THREE.BoxGeometry(a,b,c);};
+  const or=[[I(1,1),richM4(0,.28,-.08,.92,.86,1.05)],[I(1,1),richM4(0,-.16,.36,.62,.52,.52)],[I(.3,0),richM4(.42,-.12,.42,1)],[I(.3,0),richM4(-.42,-.12,.42,1)],
+    [B(.78,.24,.5),richM4(0,-.6,.3,1)],[I(.22,0),richM4(0,-.66,.56,1.2,.8,.8)]];
+  for(let i=0;i<6;i++){const x=-.25+i*.1;or.push([B(.085,.13,.08),richM4(x,-.42,.82,1)]);or.push([B(.085,.11,.08),richM4(x,-.53,.74,1)]);}
+  const noir=[[I(.21,1),richM4(.27,-.02,.78,1,.9,.6)],[I(.21,1),richM4(-.27,-.02,.78,1,.9,.6)],[new THREE.ConeGeometry(.1,.22,3),richM4(0,-.22,.8,1)]];
+  return {or:richFusion(or),noir:richFusion(noir)};}
 function richInit(){
   if(RICH.pret)return;RICH.pret=true;
   const M={},Gm={};
@@ -37840,16 +37907,28 @@ function richInit(){
   M.piece2=metal(richTexPiece('2'),110);M.piece1=metal(richTexPiece('1'),110);M.piece50=metal(richTexPiece('50'),110);M.btc=metal(richTexBtc(),100);
   M.or=metal(richTexUni('#ffb52e'),140);M.lingot=metal(richTexUni('#ffbd3d'),170); // l'or : un jaune profond (F0 de l'or ≈ 1 · .71 · .29), c'est le reflet qui l'éclaire
   M.diamant=richMat(RICH_FS_GEMME,{uTint:{value:new THREE.Color(1,1,1)}});
-  M.billet=richMat(RICH_FS_SOUPLE,{uMap:{value:richTexBillet()},uSheen:{value:new THREE.Color(.49,1,.62)},uSheenK:{value:.5},uBend:{value:.75}},{SOUPLE:1},THREE.DoubleSide);
+  RICH.texBillet=richTexBillet();
+  M.billet=richMat(RICH_FS_SOUPLE,{uMap:{value:RICH.texBillet},uSheen:{value:new THREE.Color(.49,1,.62)},uSheenK:{value:.5},uBend:{value:.75}},{SOUPLE:1},THREE.DoubleSide);
   M.trefle=richMat(RICH_FS_SOUPLE,{uMap:{value:richTexTrefle()},uSheen:{value:new THREE.Color(.55,1,.5)},uSheenK:{value:.35},uBend:{value:.7}},{SOUPLE:1},THREE.DoubleSide);
+  M.rubis=richMat(RICH_FS_GEMME,{uTint:{value:new THREE.Color(1,.06,.16)}});M.emeraude=richMat(RICH_FS_GEMME,{uTint:{value:new THREE.Color(.08,.9,.38)}}); // les gemmes de couleur : le programme du diamant, teinté
+  M.carte=metal(richTexCarte(),130);M.champagne=metal(richTexChampagne(),90);M.noir=metal(richTexUni('#16121c'),60);
+  M.liasse=richMat(RICH_FS_SOUPLE,{uMap:{value:richTexLiasse()},uSheen:{value:new THREE.Color(.49,1,.62)},uSheenK:{value:.2},uBend:{value:0}},{SOUPLE:1},THREE.DoubleSide); // la liasse ne plie pas
   Gm.piece=richPiece();Gm.billet=new THREE.PlaneGeometry(1,.46,10,3);Gm.trefle=new THREE.PlaneGeometry(1,1,6,6);
+  Gm.carte=richCarteGeo();Gm.liasse=richLiasseGeo();Gm.champagne=richChampagneGeo();Gm.emeraude=richEmeraude();Gm.crane=richCraneGeo();
   Gm.or=[richPepite(1),richPepite(2),richPepite(3)];Gm.lingot=richLingot();Gm.diamant=richDiamant();
   RICH.M=M;RICH.G=Gm;
   for(const t in RICH_CAP){RICH.libres[t]=[];for(let i=0;i<RICH_CAP[t];i++){let m;
       if(t==='fruit'){const fg=fruitGeo(i%FRUIT_DEFS.length);m=new THREE.Mesh(fg,FRUIT_MAT);} // les fruits de la piste, leur matière (déjà compilée)
-      else{const g=t==='or'?Gm.or[i%3]:t.indexOf('piece')===0||t==='btc'?Gm.piece:Gm[t];m=new THREE.Mesh(g,M[t]);}
+      else if(t==='crane'){m=new THREE.Group();m.add(new THREE.Mesh(Gm.crane.or,M.or),new THREE.Mesh(Gm.crane.noir,M.noir)); // le crâne : or, orbites noires, deux RUBIS pour yeux
+        for(const sx of [-1,1]){const e=new THREE.Mesh(Gm.diamant,M.rubis);e.position.set(.27*sx,-.02,.9);e.rotation.x=Math.PI/2;e.scale.setScalar(.12);m.add(e);}
+        m.traverse(function(c){c.frustumCulled=false;c.castShadow=c.receiveShadow=false;});}
+      else{const g=t==='or'?Gm.or[i%3]:t.indexOf('piece')===0||t==='btc'?Gm.piece:t==='rubis'?Gm.diamant:Gm[t];m=new THREE.Mesh(g,M[t]);}
       m.visible=false;m.castShadow=m.receiveShadow=false;m.frustumCulled=false;scene.add(m);
       RICH.libres[t].push({m:m,t:t,v:new THREE.Vector3(),w:new THREE.Vector3(),age:0,vie:1,s:1,ph:0,fd:0,nl:null,gl:null,on:false});}}
+  // LES CHAÎNES D'OR : 9 nœuds, 8 maillons (des tores étirés, un sur deux tourné d'un quart), la physique d'une vraie chaîne (richChaine)
+  const tg=new THREE.TorusGeometry(1,.36,6,14);tg.scale(1.4,1,1);RICH.ch=[];
+  for(let c=0;c<3;c++){const K=9,L=[];for(let j=0;j<K-1;j++){const m=new THREE.Mesh(tg,M.or);m.visible=false;m.frustumCulled=false;m.castShadow=m.receiveShadow=false;scene.add(m);L.push(m);}
+    RICH.ch.push({K:K,links:L,P:new Float32Array(K*3),Pp:new Float32Array(K*3),V:new Float32Array(K*3),kd:new Float32Array(K),on:false,age:0,vie:1,L:.15,gl:null});}
   // les éclats (bling) et la flamme : des sprites (programme déjà là), chacun sa matière (son opacité, sa teinte, sa rotation)
   const st=richTexEtoile(),ft=richTexFlamme();RICH.texEt=st;
   for(let i=0;i<26;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:st,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}));s.visible=false;s.renderOrder=6;scene.add(s);RICH.gl.push({s:s,o:null});}
@@ -37867,6 +37946,7 @@ function richInit(){
 function richChauffeTick(C){
   if(!RICH.chauffe)return;RICH.chauffe--;const on=RICH.chauffe>0;
   for(const t in RICH.libres){const o=RICH.libres[t][0];if(o.on)continue;o.m.visible=on;if(on){o.m.position.copy(C);o.m.scale.setScalar(1e-4);}}
+  if(RICH.ch){const c=RICH.ch[0];if(!c.on)for(const m of c.links){m.visible=on;if(on){m.position.copy(C);m.scale.setScalar(1e-4);}}}
   if(RICH.sp){RICH.sp.m.visible=on||RICH.sp.vivant>0;}
 }
 
@@ -37883,23 +37963,57 @@ function richTire(mu,combo){
 function richPioche(W){let s=0;for(const k in W)s+=W[k];let r=Math.random()*s;for(const k in W){if(r<W[k])return k;r-=W[k];}return 'billet';}
 function richSort(t){const L=RICH.libres[t];let best=null;for(const o of L){if(!o.on)return o;if(!best||o.age/o.vie>best.age/best.vie)best=o;}return best;} // un libre, sinon le plus vieux
 function richLance(t,P,n,d,delai,kv){
+  if(t==='chaine'){richChaine(P,n,d,delai,kv);return;}
   const o=richSort(t);if(!o)return;const D=RICH_T[t],rr=(a)=>a[0]+Math.random()*(a[1]-a[0]),m=o.m;
   if(t==='fruit'){const k9=Math.floor(Math.random()*FRUIT_DEFS.length),g9=fruitGeo(k9);if(!g9.boundingSphere)g9.computeBoundingSphere();m.geometry=g9;o.fr=1/Math.max(.05,g9.boundingSphere.radius);}else o.fr=1;
   o.on=true;o.age=-delai;o.vie=rr(D.vie);o.s=rr(D.s);o.ph=Math.random()*6.28;o.fd=Math.random()*6.28;
   const sp=rr(D.v)*(kv||1);RICH.v1.set(Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize();
   o.v.copy(n).multiplyScalar(sp).addScaledVector(RICH.v1,sp*.6).addScaledVector(d,-sp*.15);
-  {const kl=Math.min(1,camera.aspect*1.1);RICH.v2.set(1,0,0).applyQuaternion(camera.quaternion);o.v.addScaledVector(RICH.v2,-o.v.dot(RICH.v2)*(1-kl)*.85);o.v.multiplyScalar(.78+.22*kl);
-   camera.getWorldDirection(RICH.v2);const vf=o.v.dot(RICH.v2);if(vf<0)o.v.addScaledVector(RICH.v2,-vf*.65);} // …et presque rien VERS l'objectif (de près, une myrtille couvrait l'écran) // DEBOUT, l'écran est étroit : la gerbe s'ouvre moins sur les côtés (elle sortait du cadre en 0,4 s)
+  richVise(o.v); // …et presque rien VERS l'objectif (de près, une myrtille couvrait l'écran) // DEBOUT, l'écran est étroit : la gerbe s'ouvre moins sur les côtés (elle sortait du cadre en 0,4 s)
   m.position.copy(P).addScaledVector(n,.12).addScaledVector(RICH.v1,.15);
   m.quaternion.setFromEuler(RICH.eu.set(Math.random()*6.28,Math.random()*6.28,Math.random()*6.28));
-  const ws=rr(D.w);if(D.piece){RICH.v2.set(Math.cos(o.ph),0,Math.sin(o.ph)).applyQuaternion(m.quaternion);o.w.copy(RICH.v2).multiplyScalar(ws);} // la pièce tourne sur un DIAMÈTRE : elle « flashe »
+  const ws=rr(D.w);if(D.flip){if(D.flip==='y')RICH.v2.set(Math.cos(o.ph),0,Math.sin(o.ph));else RICH.v2.set(Math.cos(o.ph),Math.sin(o.ph),0);RICH.v2.applyQuaternion(m.quaternion);o.w.copy(RICH.v2).multiplyScalar(ws);} // la pièce (et la carte) tourne sur un DIAMÈTRE : elle « flashe »
+  else if(D.face){m.lookAt(camera.position);m.rotateY((Math.random()-.5)*.8);o.w.set((Math.random()-.5)*.6,(Math.random()<.5?-1:1)*ws,(Math.random()-.5)*.6);} // le crâne : il te regarde, puis tourne sur lui-même
   else o.w.set(Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize().multiplyScalar(ws);
   // les facettes qui peuvent renvoyer le soleil (repère de l'objet)
-  o.nl=D.piece?[[0,1,0],[0,-1,0]]:t==='diamant'?[[0,1,0],[.6,.55,.58],[-.7,.5,.3],[.2,.45,-.85],[-.3,-.7,.6]]:t==='or'||t==='lingot'?[[0,1,0],[.7,.4,.5],[-.6,.5,-.4],[.2,-.6,.7]]:null;
-  if(o.nl&&!o.gl){for(const g of RICH.gl)if(!g.o){g.o=o;o.gl=g;g.s.material.rotation=Math.random()*3;g.s.material.color.setRGB(t==='diamant'?.95:1,t==='diamant'?.97:.9,t==='diamant'?1:.68);break;}}
+  o.nl=D.nl||null;const gc=D.gc||[1,.9,.68];
+  if(o.nl&&!o.gl){for(const g of RICH.gl)if(!g.o){g.o=o;o.gl=g;g.s.material.rotation=Math.random()*3;g.s.material.color.setRGB(gc[0],gc[1],gc[2]);break;}}
   m.visible=false;m.scale.setScalar(1e-4);
   if(t==='trefle')RICH.chance=2; // le trèfle porte chance
 }
+function richVise(v){ // l'élan, recadré : DEBOUT (écran étroit) la gerbe s'ouvre moins sur les côtés (elle sortait du cadre en 0,4 s), et presque rien ne part VERS l'objectif (de près, une myrtille couvrait l'écran)
+  const kl=Math.min(1,camera.aspect*1.1);RICH.v2.set(1,0,0).applyQuaternion(camera.quaternion);v.addScaledVector(RICH.v2,-v.dot(RICH.v2)*(1-kl)*.85);v.multiplyScalar(.78+.22*kl);
+  camera.getWorldDirection(RICH.v2);const vf=v.dot(RICH.v2);if(vf<0)v.addScaledVector(RICH.v2,-vf*.65);
+  if(v.y>0)v.y*=.4;} // …et peu vers le HAUT : l'air les y emporte déjà (un coup sur le toit vidait le cadre en une demi-seconde)
+function richChaine(P,n,d,delai,kv){ // LA CHAÎNE D'OR : des nœuds reliés à distance fixe (contraintes), chacun freiné par l'air — elle fouette, se tord, ondule
+  let C=null;for(const c of RICH.ch)if(!c.on){C=c;break;}if(!C){C=RICH.ch[0];for(const c of RICH.ch)if(c.age/c.vie>C.age/C.vie)C=c;}
+  const D=RICH_T.chaine,rr=function(a){return a[0]+Math.random()*(a[1]-a[0]);},K=C.K;C.on=true;C.age=-delai;C.vie=rr(D.vie);C.L=rr(D.s)/(K-1);
+  const sp=rr(D.v)*(kv||1);RICH.v3.set(Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize();
+  const base=RICH.v2.copy(n).multiplyScalar(sp).addScaledVector(RICH.v3,sp*.5);richVise(base);const bx=base.x,by=base.y,bz=base.z;
+  const dir=RICH.v1.set(Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize(),ax=RICH.v3.set(Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize().cross(dir).normalize(),om=4+Math.random()*6;
+  for(let i=0;i<K;i++){const u=i-(K-1)/2,i3=i*3;C.P[i3]=P.x+n.x*.15+dir.x*u*C.L;C.P[i3+1]=P.y+n.y*.15+dir.y*u*C.L;C.P[i3+2]=P.z+n.z*.15+dir.z*u*C.L;
+    C.V[i3]=bx+ax.x*u*C.L*om+(Math.random()-.5);C.V[i3+1]=by+ax.y*u*C.L*om+(Math.random()-.5);C.V[i3+2]=bz+ax.z*u*C.L*om+(Math.random()-.5);C.kd[i]=D.kd*(.8+Math.random()*.4);}
+  for(const m of C.links){m.visible=false;m.scale.setScalar(1e-4);}
+  if(!C.gl){for(const g of RICH.gl)if(!g.o){g.o=C;C.gl=g;g.s.material.rotation=Math.random()*3;g.s.material.color.setRGB(1,.9,.68);break;}}
+}
+const RICH_X=new THREE.Vector3(1,0,0),RICH_QR=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),Math.PI/2);
+function richChaineTick(dt,cp){
+  for(const C of RICH.ch){if(!C.on)continue;C.age+=dt;if(C.age<0)continue;
+    if(C.age>=C.vie){C.on=false;for(const m of C.links)m.visible=false;if(C.gl){C.gl.s.visible=false;C.gl.o=null;C.gl=null;}continue;}
+    const K=C.K,P=C.P,V=C.V,Pp=C.Pp,k=Math.min(dt,.05),W=RICH.W;
+    if(!RICH.gel){for(let i=0;i<K;i++){const i3=i*3,kd=C.kd[i]*k;Pp[i3]=P[i3];Pp[i3+1]=P[i3+1];Pp[i3+2]=P[i3+2];
+        V[i3]-=V[i3]*kd;V[i3+1]+=(W-V[i3+1])*kd;V[i3+2]-=V[i3+2]*kd;P[i3]+=V[i3]*k;P[i3+1]+=V[i3+1]*k;P[i3+2]+=V[i3+2]*k;}}
+    for(let it=0;it<5;it++)for(let i=0;i<K-1;i++){const a=i*3,b=a+3,dx=P[b]-P[a],dy=P[b+1]-P[a+1],dz=P[b+2]-P[a+2],l=Math.hypot(dx,dy,dz)||1e-6,f=(l-C.L)/l*.5; // les maillons ne s'étirent pas
+      P[a]+=dx*f;P[a+1]+=dy*f;P[a+2]+=dz*f;P[b]-=dx*f;P[b+1]-=dy*f;P[b+2]-=dz*f;}
+    if(!RICH.gel)for(let i=0;i<K*3;i++)V[i]=(P[i]-Pp[i])/k;                                    // la vitesse = ce que la chaîne a VRAIMENT fait
+    const a9=C.age,pop=a9<.14?(function(u){return 1+2.2*(u-1)*(u-1)*(u-1)+1.2*(u-1)*(u-1);})(a9/.14):1,fin=Math.min(1,(C.vie-a9)/.4),mi=(K>>1)*3;
+    const dc=Math.hypot(P[mi]-cp.x,P[mi+1]-cp.y,P[mi+2]-cp.z),pres=Math.min(1,Math.max(0,(dc-2.2)/2.6)),sc=C.L*1.32/3.52*pop*fin*pres;
+    for(let j=0;j<K-1;j++){const m=C.links[j],a=j*3;m.position.set((P[a]+P[a+3])*.5,(P[a+1]+P[a+4])*.5,(P[a+2]+P[a+5])*.5);
+      RICH.v1.set(P[a+3]-P[a],P[a+4]-P[a+1],P[a+5]-P[a+2]).normalize();m.quaternion.setFromUnitVectors(RICH_X,RICH.v1);if(j&1)m.quaternion.multiply(RICH_QR); // un maillon sur deux, tourné d'un quart
+      m.scale.setScalar(Math.max(1e-4,sc));m.visible=pres>0;}
+    if(C.gl){const m=C.links[(K>>1)-1];RICH.cam.copy(cp).sub(m.position).normalize();RICH.H.copy(SUN_DIR).add(RICH.cam).normalize();RICH.v2.set(0,0,1).applyQuaternion(m.quaternion); // le maillon du milieu qui renvoie le soleil
+      const g=Math.pow(Math.abs(RICH.v2.dot(RICH.H)),90)*pres,s=C.gl.s;if(g>.04){s.visible=true;s.position.copy(m.position).addScaledVector(RICH.cam,.2);const sz=C.L*fin*6*(.45+g*1.1);s.scale.set(sz,sz,1);s.material.opacity=Math.min(1,g*1.4)*fin;}else s.visible=false;}
+  }}
 function richFlamme(P,n,k,or){ // le jet : bref, léger, quelques bouffées qui s'ouvrent et montent
   const nb=Math.round(5+4*k);
   for(let i=0;i<nb;i++){let f=null;for(const x of RICH.fl)if(x.age>=x.vie){f=x;break;}if(!f)break;
@@ -37936,6 +38050,7 @@ function richCoup(P,n,d,mu,combo){
     richFlamme(P9,n9,T9.fl,r==='jackpot'||r==='gros');richEtincelles(P9,n9,d9,Math.round(12*T9.fl),1);
     const nb=T9.n[0]+Math.floor(Math.random()*(T9.n[1]-T9.n[0]+1)),etal=r==='jackpot'?.38:r==='gros'?.22:.12;
     for(let i=0;i<nb;i++)richLance(richPioche(T9.w),P9,n9,d9,Math.random()*etal,r==='jackpot'?1.2:1);
+    if(Math.random()<.04)richLance('crane',P9,n9,d9,etal*.5,1); // de temps en temps, un CRÂNE d'or aux yeux de rubis
     if(SONV2){if(r==='petit'){sfx('fourgon.billets',{vol:3});sfx('piece',{st:2,vol:-4,t:.05});}
       else if(r==='bon'){sfx('piece.recolte',{vol:-1});sfx('fourgon.billets',{vol:2,t:.06});}
       else if(r==='gros')sfx('argent.gros');
@@ -37945,10 +38060,12 @@ function richCoup(P,n,d,mu,combo){
 }
 window.dbgRiche=function(k,t){
   if(k==='vitrine'){if(!RICH.pret||!CHUTE.on)return 'pas au ciel';RICH.gel=t!==0; // (banc) la VITRINE : un de chaque, alignés devant la caméra, figés (ils tournent seulement) — dbgRiche('vitrine',0) les relâche
-    if(!RICH.gel)return 'relâchés';const C=CHUTE.ctr||carGroup.position,L=['billet','trefle','piece2','piece1','piece50','btc','or','lingot','diamant','fruit'];camera.getWorldDirection(RICH.v3);
+    if(!RICH.gel)return 'relâchés';const C=CHUTE.ctr||carGroup.position,L=['billet','liasse','carte','trefle','piece2','piece1','piece50','btc','or','lingot','diamant','rubis','emeraude','champagne','crane','fruit'];camera.getWorldDirection(RICH.v3);
     const rt=new THREE.Vector3(1,0,0).applyQuaternion(camera.quaternion),up=new THREE.Vector3(0,1,0).applyQuaternion(camera.quaternion);
-    L.forEach(function(ty,i){const o=richSort(ty);richLance(ty,C,RICH.v3.clone().negate(),RICH.v3,0,1);const P=C.clone().addScaledVector(rt,((i%5)-2)*1.15).addScaledVector(up,(i<5?.7:-.7));
-      o.m.position.copy(P);o.v.set(0,0,0);o.vie=1e4;o.age=.2;o.w.multiplyScalar(.15);});return L.length;}
+    L.forEach(function(ty,i){const o=richSort(ty);richLance(ty,C,RICH.v3.clone().negate(),RICH.v3,0,1);const P=C.clone().addScaledVector(rt,((i%6)-2.5)*.95).addScaledVector(up,(1-Math.floor(i/6))*.8);
+      o.m.position.copy(P);o.v.set(0,0,0);o.vie=1e4;o.age=.2;o.w.multiplyScalar(.15);});
+    {const P=C.clone().addScaledVector(rt,2.2).addScaledVector(up,-.8);richChaine(P,RICH.v3.clone().negate(),RICH.v3,0,0);const c=RICH.ch.find(function(x){return x.on;});if(c){c.vie=1e4;c.age=.2;}} // et une chaîne, pendue (figée : seules les contraintes jouent)
+    return L.length+1;}
   if(k==='voir'){if(!RICH.pret||!CHUTE.on)return 'pas au ciel';const C=CHUTE.ctr||carGroup.position;camera.getWorldDirection(RICH.v3); // (banc) voir('diamant', n) : n objets d'un type, lancés vers la caméra
     const P9=C.clone().addScaledVector(RICH.v3,-1.4),n9=RICH.v3.clone().negate();for(let i=0;i<(arguments[2]||6);i++)richLance(t,P9,n9,RICH.v3,i*.05,.5);return t;}
   if(k==='pluie'){if(!RICH.pret||!CHUTE.on)return 'pas au ciel';const C=CHUTE.ctr||carGroup.position;camera.getWorldDirection(RICH.v3);
@@ -37976,11 +38093,11 @@ function richTick(dt,C){
     m.scale.setScalar(Math.max(1e-4,o.s*o.fr*pop*fin*pres));m.visible=pres>0;
     if(o.gl){ // LE BLING : une facette qui renvoie le soleil vers l'œil
       RICH.cam.copy(cp).sub(m.position).normalize();RICH.H.copy(SUN_DIR).add(RICH.cam).normalize();let g=0;
-      for(const nl of o.nl){RICH.v2.set(nl[0],nl[1],nl[2]).applyQuaternion(m.quaternion);const c=RICH.v2.dot(RICH.H);if(c>0)g=Math.max(g,Math.pow(c,t==='diamant'?60:110));
-        RICH.v2.negate();const c2=RICH.v2.dot(RICH.H);if(D.piece&&c2>0)g=Math.max(g,Math.pow(c2,110));}
-      if(t==='diamant')g=Math.max(g,.18+.18*Math.sin(o.age*23+o.ph)); // le diamant vit toujours un peu
-      const s=o.gl.s;g*=pres;if(g>.04){s.visible=true;s.position.copy(m.position).addScaledVector(RICH.cam,o.s*1.1);const sz=o.s*fin*(t==='diamant'?3.4:2.6)*(.45+g*1.1);s.scale.set(sz,sz,1);s.material.opacity=Math.min(1,g*1.4)*fin;}
+      for(const nl of o.nl){RICH.v2.set(nl[0],nl[1],nl[2]).applyQuaternion(m.quaternion);const c=RICH.v2.dot(RICH.H);if(c>0)g=Math.max(g,Math.pow(c,D.gem?60:110));}
+      if(D.gem)g=Math.max(g,.18+.18*Math.sin(o.age*23+o.ph)); // la gemme vit toujours un peu
+      const s=o.gl.s;g*=pres;if(g>.04){s.visible=true;s.position.copy(m.position).addScaledVector(RICH.cam,o.s*1.1);const sz=o.s*fin*(D.gem?3.4:2.6)*(.45+g*1.1);s.scale.set(sz,sz,1);s.material.opacity=Math.min(1,g*1.4)*fin;}
       else s.visible=false;}}}
+  richChaineTick(dt,cp); // les chaînes d'or
   // la flamme
   for(const f of RICH.fl){if(f.age>=f.vie){if(f.s.visible)f.s.visible=false;continue;}f.age+=dt;if(f.age<0)continue;const u=f.age/f.vie;if(u>=1){f.s.visible=false;continue;}
     f.v.multiplyScalar(Math.exp(-dt*4));f.v.y+=6*dt;f.p.addScaledVector(f.v,dt);const s=f.s;s.visible=true;s.position.copy(f.p);
@@ -38008,6 +38125,7 @@ function richTick(dt,C){
 }
 function richRange(){ // on quitte le ciel : tout se range
   if(!RICH.pret)return;for(const t in RICH.libres)for(const o of RICH.libres[t]){o.on=false;o.m.visible=false;if(o.gl){o.gl.s.visible=false;o.gl.o=null;o.gl=null;}}
+  if(RICH.ch)for(const c of RICH.ch){c.on=false;for(const m of c.links)m.visible=false;if(c.gl){c.gl.s.visible=false;c.gl.o=null;c.gl=null;}}
   for(const f of RICH.fl){f.age=f.vie=1;f.s.visible=false;}if(RICH.sp){RICH.sp.L.fill(0);RICH.sp.m.visible=false;RICH.sp.vivant=0;}
 }
 /* LE MODELÉ DE LA CAISSE AU TITRE (2026-10-03, Léo : « travailler encore plus en profondeur le shading de la caisse, sans faire trop »).
