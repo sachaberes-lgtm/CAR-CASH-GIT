@@ -13041,6 +13041,8 @@ function jadeChauffe(){ // une instance de chaque matière, compilée hors écra
     g.traverse(function(o){o.frustumCulled=false;});scene.add(g);renderer.compile(scene,camera);scene.remove(g);}catch(e){console.warn('jadeChauffe',e);}
 }
 window.dbgJade=function(){return Object.assign({},JADE.n,{tri:{ms:JT.n?+(JT.ms/JT.n).toFixed(3):0,envois:JT.up},visibles:JADE.fam.map(function(F){return F.im.count;}),grues:GRUE.L.length,balade:BALADE,niveau:LVL.cur&&LVL.cur.id,err:window.__jadeErr?String(window.__jadeErr):null});};
+window.dbgJadeAller=function(k,d){const P=k==='pont'?JADE.pont:JADE.porte;if(!P||!started||gameOver)return 'non';if(paused)togglePause(); // (dev) la caisse d m avant un monument, sur la route
+  s=Math.max(0,P.i/(NP-1)*L-(d||350));lat=0;psi=0;prevTvalid=false;mode='drive';return Math.round(s);};
 window.dbgGrues=function(){grueVol();return GRUE.L.length;}; // (dev) un vol de grues, tout de suite, devant la caisse
 window.dbgJadeHeurt=function(o){if(!JADE.col)return null;if(o!=='test')return jadeHeurt(carGroup.position); // (banc) 'test' : des points connus dedans / dehors
   const V=new THREE.Vector3(),r={pilDedans:0,pilDehors:0,n:0};
