@@ -37677,35 +37677,43 @@ const RICH={pret:false,chauffe:0,objs:[],libres:{},sp:null,fl:[],gl:[],sec:0,cha
   H:new THREE.Vector3(),cam:new THREE.Vector3(),eu:new THREE.Euler()};
 const RICH_U={uSunDir:{value:new THREE.Vector3().copy(SUN_DIR)},uSunCol:{value:new THREE.Color()},uSky:{value:new THREE.Color()},uGnd:{value:new THREE.Color()},
   uEnv:{value:envTex},uT:{value:0}};
-// les objets : kd = freinage par l'air (1/s), fl = papillonnement (m/s²), s = taille (m — à l'échelle ARCADE : vus à 10 m, une vraie pièce faisait 13 px ;
-// (2026-10-08, Léo : « peut-être juste un peu grand ») réduite d'un cran, ×0,85), w = rotation (rad/s), v = élan au départ (m/s), vie (s) ;
-// flip = l'axe de la face (la pièce et la carte tournent sur un DIAMÈTRE : elles « flashent ») ; nl = les facettes qui renvoient le soleil (le bling) ;
-// gem = une gemme (scintille toujours un peu) ; gc = la teinte de son éclat
+// les objets : kd = freinage par l'air (1/s), fl = papillonnement (m/s²), w = rotation (rad/s), v = élan au départ (m/s), vie (s) ;
+// flip = l'axe de la face (la pièce, le jeton et la carte tournent sur un DIAMÈTRE : ils « flashent ») ; nl = les facettes qui renvoient le
+// soleil (le bling) ; gem = une gemme (scintille toujours un peu) ; gc = la teinte de son éclat.
+// s = LA TAILLE (2026-10-08, Léo : « respecte bien la taille et la différence de chaque objet ») : la VRAIE taille de chaque objet, passée
+// par UNE règle — taille à l'écran = 1,05 m × (taille réelle ÷ 15,6 cm)^0,55, le billet faisant 1,05 m (la puissance resserre l'écart, sans
+// quoi un diamant ne ferait qu'un pixel) ; plafonnée à ~1,2 m (la bouteille, le crâne, la pastèque, la chaîne). Donc : une pièce de 2 € est
+// plus grande qu'une de 1 € (25,75 / 23,25 mm), un jeton (39 mm) plus grand qu'une pièce, la carte (85,6 mm) plus petite que le billet,
+// la liasse a la taille du billet, les gemmes et les pépites sont petites (et de tailles variées), chaque fruit a la sienne (la myrtille
+// ne fait plus la taille de la pastèque). Les unités de s suivent la forme de chaque objet (rayon d'une pièce, longueur d'un billet…).
 const RICH_GEM_NL=[[0,1,0],[.6,.55,.58],[-.7,.5,.3],[.2,.45,-.85],[-.3,-.7,.6]],RICH_OR_NL=[[0,1,0],[.7,.4,.5],[-.6,.5,-.4],[.2,-.6,.7]],RICH_FACE_Y=[[0,1,0],[0,-1,0]];
+const RICH_FRUIT_R=[.34,.57,.41,.36,.13,.6]; // le RAYON (m) de chaque fruit, dans l'ordre de FRUIT_DEFS : pêche plate 7 cm, banane 18, grenade 10, orange 8, myrtille 1,2, pastèque 30 (plafonnée)
 const RICH_T={
-  billet:{kd:2.4,fl:5,s:[1.02,1.32],w:[2,6],v:[3,6],vie:[2.8,3.8]},
-  liasse:{kd:.9,fl:.3,s:[.72,.88],w:[3,7],v:[4,7],vie:[2.6,3.4]},
-  carte:{kd:1.5,fl:3,s:[.56,.66],w:[7,14],v:[4,8],vie:[2.6,3.4],flip:'z',nl:[[0,0,1],[0,0,-1]],gc:[1,1,1]},
-  trefle:{kd:2.6,fl:4,s:[.6,.76],w:[2,6],v:[3,6],vie:[2.6,3.4]},
-  piece2:{kd:.8,fl:.6,s:[.31,.34],w:[11,20],v:[4,8],vie:[2.4,3.2],flip:'y',nl:RICH_FACE_Y},
-  piece1:{kd:.8,fl:.6,s:[.29,.32],w:[11,20],v:[4,8],vie:[2.4,3.2],flip:'y',nl:RICH_FACE_Y},
-  piece50:{kd:.8,fl:.6,s:[.27,.3],w:[11,20],v:[4,8],vie:[2.4,3.2],flip:'y',nl:RICH_FACE_Y},
-  btc:{kd:.75,fl:.5,s:[.34,.39],w:[9,17],v:[4,8],vie:[2.6,3.4],flip:'y',nl:RICH_FACE_Y},
-  or:{kd:.5,fl:0,s:[.14,.36],w:[3,9],v:[5,9],vie:[2.4,3.4],nl:RICH_OR_NL},
-  lingot:{kd:.55,fl:0,s:[.47,.64],w:[3,7],v:[4,8],vie:[2.4,3.4],nl:RICH_OR_NL},
-  chaine:{kd:1.1,s:[1.15,1.4],v:[4,7],vie:[2.8,3.6]}, // la CHAÎNE a sa propre physique (richChaine) : s = sa longueur
-  diamant:{kd:.55,fl:0,s:[.19,.42],w:[3,8],v:[5,9],vie:[2.6,3.6],nl:RICH_GEM_NL,gem:1,gc:[.95,.97,1]},
-  rubis:{kd:.55,fl:0,s:[.16,.3],w:[3,8],v:[5,9],vie:[2.6,3.6],nl:RICH_GEM_NL,gem:1,gc:[1,.5,.58]},
-  emeraude:{kd:.55,fl:0,s:[.18,.3],w:[3,8],v:[5,9],vie:[2.6,3.6],nl:[[0,1,0],[.55,.55,0],[-.55,.55,0],[0,.5,.7],[0,-.6,.6]],gem:1,gc:[.6,1,.72]},
-  champagne:{kd:.7,fl:0,s:[.4,.46],w:[3,7],v:[4,7],vie:[2.6,3.4]},
-  crane:{kd:.6,fl:0,s:[.34,.4],w:[2,4],v:[4,7],vie:[3,3.8],nl:[[0,1,0],[.5,.6,.6],[-.5,.6,.6]],face:1}, // face : il part le regard vers la caméra et tourne sur lui-même (en culbute, on ne voyait que sa nuque)
-  fruit:{kd:1,fl:.4,s:[.26,.36],w:[3,7],v:[3,6],vie:[2.4,3.2]}}; // (fruit : s = son RAYON en mètres — chaque fruit est ramené à sa sphère, la pastèque n'écrase plus le cadre)
-const RICH_CAP={billet:16,liasse:6,carte:6,trefle:6,piece2:8,piece1:8,piece50:8,btc:7,or:14,lingot:5,diamant:12,rubis:8,emeraude:8,champagne:4,crane:2,fruit:8}; // (la chaîne : son pool à elle, RICH.ch)
+  billet:{kd:2.4,fl:5,s:[1,1.1],w:[2,6],v:[3,6],vie:[2.8,3.8]},                              // 156 × 66 mm → 1,05 m (s = sa longueur)
+  liasse:{kd:.9,fl:.3,s:[1,1.1],w:[3,7],v:[4,7],vie:[2.6,3.4]},                              // le billet, en paquet
+  carte:{kd:1.5,fl:3,s:[.74,.77],w:[7,14],v:[4,8],vie:[2.6,3.4],flip:'z',nl:[[0,0,1],[0,0,-1]],gc:[1,1,1]}, // 85,6 × 54 mm → 0,75 m
+  trefle:{kd:2.6,fl:4,s:[.44,.5],w:[2,6],v:[3,6],vie:[2.6,3.4]},                            // 3 cm → 0,42 m
+  piece2:{kd:.8,fl:.6,s:[.193,.2],w:[11,20],v:[4,8],vie:[2.4,3.2],flip:'y',nl:RICH_FACE_Y},  // 2 € : Ø 25,75 mm → 0,39 m (s = son rayon)
+  piece1:{kd:.8,fl:.6,s:[.18,.187],w:[11,20],v:[4,8],vie:[2.4,3.2],flip:'y',nl:RICH_FACE_Y}, // 1 € : Ø 23,25 mm → 0,37 m
+  piece50:{kd:.8,fl:.6,s:[.185,.192],w:[11,20],v:[4,8],vie:[2.4,3.2],flip:'y',nl:RICH_FACE_Y}, // 50 c : Ø 24,25 mm → 0,38 m
+  jeton:{kd:.85,fl:.6,s:[.24,.25],w:[10,18],v:[4,8],vie:[2.4,3.2],flip:'y'},                 // jeton de casino : Ø 39 mm → 0,49 m
+  btc:{kd:.75,fl:.5,s:[.245,.26],w:[9,17],v:[4,8],vie:[2.6,3.4],flip:'y',nl:RICH_FACE_Y},    // la pièce-souvenir : Ø 40 mm → 0,5 m
+  montre:{kd:.7,fl:0,s:[.19,.2],w:[3,7],v:[4,8],vie:[2.6,3.4],nl:[[0,1,0],[0,.7,.7],[0,.7,-.7]],gc:[1,.95,.8]}, // la montre fermée : 6,5 cm de tour → 0,65 m
+  or:{kd:.5,fl:0,s:[.11,.21],w:[3,9],v:[5,9],vie:[2.4,3.4],nl:RICH_OR_NL},                   // pépites de 1 à 3 cm → 0,23 à 0,42 m
+  lingot:{kd:.55,fl:0,s:[.56,.88],w:[3,7],v:[4,8],vie:[2.4,3.4],nl:RICH_OR_NL},              // de 100 g (5 cm) à 1 kg (11,6 cm)
+  chaine:{kd:1.1,s:[1.3,1.45],v:[4,7],vie:[2.8,3.6]},                                        // le collier de 50 cm, plafonné (s = sa longueur)
+  diamant:{kd:.55,fl:0,s:[.08,.13],w:[3,8],v:[5,9],vie:[2.6,3.6],nl:RICH_GEM_NL,gem:1,gc:[.95,.97,1]}, // 5 à 12 mm → 0,16 à 0,26 m
+  rubis:{kd:.55,fl:0,s:[.085,.13],w:[3,8],v:[5,9],vie:[2.6,3.6],nl:RICH_GEM_NL,gem:1,gc:[1,.5,.58]},
+  emeraude:{kd:.55,fl:0,s:[.12,.17],w:[3,8],v:[5,9],vie:[2.6,3.6],nl:[[0,1,0],[.55,.55,0],[-.55,.55,0],[0,.5,.7],[0,-.6,.6]],gem:1,gc:[.6,1,.72]},
+  champagne:{kd:.7,fl:0,s:[.9,.93],w:[3,7],v:[4,7],vie:[2.6,3.4]},                          // 30 cm → plafonnée à 1,2 m
+  crane:{kd:.6,fl:0,s:[.52,.54],w:[2,4],v:[4,7],vie:[3,3.8],nl:[[0,1,0],[.5,.6,.6],[-.5,.6,.6]],face:1}, // 20 cm → plafonné à 1,05 m — face : il part le regard vers la caméra et tourne sur lui-même
+  fruit:{kd:1,fl:.4,s:[.94,1.06],w:[3,7],v:[3,6],vie:[2.4,3.2]}}; // fruit : s = un écart autour de SON rayon (RICH_FRUIT_R)
+const RICH_CAP={billet:16,liasse:6,carte:6,trefle:6,jeton:12,montre:4,piece2:8,piece1:8,piece50:8,btc:7,or:14,lingot:5,diamant:12,rubis:8,emeraude:8,champagne:4,crane:2,fruit:8}; // (la chaîne : son pool à elle, RICH.ch)
 const RICH_TIER={ // la taille de la gerbe : combien, et quoi (poids)
-  petit:  {n:[3,6],  fl:.75,w:{billet:22,piece2:11,piece1:11,piece50:10,fruit:17,trefle:7,or:10,carte:4,rubis:3,emeraude:3,liasse:4}},
-  bon:    {n:[7,11], fl:1,  w:{billet:26,piece2:7,piece1:7,piece50:5,or:15,lingot:4,fruit:8,trefle:4,btc:6,diamant:5,rubis:5,emeraude:5,carte:6,liasse:6,champagne:4,chaine:3}},
-  gros:   {n:[12,18],fl:1.3,w:{billet:20,or:16,lingot:6,piece2:5,piece1:5,piece50:3,btc:10,diamant:12,rubis:8,emeraude:8,carte:7,liasse:8,champagne:5,chaine:6,crane:2,trefle:3,fruit:3}},
-  jackpot:{n:[26,36],fl:1.8,w:{billet:20,or:15,lingot:7,diamant:16,rubis:10,emeraude:10,btc:10,carte:6,liasse:8,champagne:6,chaine:6,crane:4,piece2:4,piece1:4,piece50:2,trefle:4,fruit:3}}};
+  petit:  {n:[3,6],  fl:.75,w:{billet:22,piece2:11,piece1:11,piece50:10,jeton:9,fruit:17,trefle:7,or:10,carte:4,rubis:3,emeraude:3,liasse:4,montre:1}},
+  bon:    {n:[7,11], fl:1,  w:{jeton:9,montre:3,billet:26,piece2:7,piece1:7,piece50:5,or:15,lingot:4,fruit:8,trefle:4,btc:6,diamant:5,rubis:5,emeraude:5,carte:6,liasse:6,champagne:4,chaine:3}},
+  gros:   {n:[12,18],fl:1.3,w:{jeton:8,montre:5,billet:20,or:16,lingot:6,piece2:5,piece1:5,piece50:3,btc:10,diamant:12,rubis:8,emeraude:8,carte:7,liasse:8,champagne:5,chaine:6,crane:2,trefle:3,fruit:3}},
+  jackpot:{n:[26,36],fl:1.8,w:{jeton:8,montre:6,billet:20,or:15,lingot:7,diamant:16,rubis:10,emeraude:10,btc:10,carte:6,liasse:8,champagne:6,chaine:6,crane:4,piece2:4,piece1:4,piece50:2,trefle:4,fruit:3}}};
 
 // ---- LES PROGRAMMES ----
 const RICH_VS=['varying vec3 vN;varying vec3 vP;varying vec2 vUv;uniform float uT;uniform float uBend;',
@@ -37900,6 +37908,53 @@ function richCraneGeo(){ // le CRÂNE d'or : la voûte, la face, les pommettes, 
   for(let i=0;i<6;i++){const x=-.25+i*.1;or.push([B(.085,.13,.08),richM4(x,-.42,.82,1)]);or.push([B(.085,.11,.08),richM4(x,-.53,.74,1)]);}
   const noir=[[I(.21,1),richM4(.27,-.02,.78,1,.9,.6)],[I(.21,1),richM4(-.27,-.02,.78,1,.9,.6)],[new THREE.ConeGeometry(.1,.22,3),richM4(0,-.22,.8,1)]];
   return {or:richFusion(or),noir:richFusion(noir)};}
+function richTexMontre(){return richCv(512,512,function(x){ // l'atlas de la MONTRE : le cadran (en haut à gauche), l'or (en haut à droite), le bracelet à maillons (en bas)
+  x.fillStyle='#e8b33a';x.fillRect(0,0,512,512);const Go=x.createLinearGradient(256,0,512,256);Go.addColorStop(0,'#ffe9a8');Go.addColorStop(1,'#c58b22');x.fillStyle=Go;x.fillRect(256,0,256,256);
+  const c=128;x.fillStyle='#d9a63a';x.beginPath();x.arc(c,c,127,0,6.2832);x.fill();                                   // la lunette
+  for(let i=0;i<60;i++){const a=i/60*6.2832;x.strokeStyle=i%2?'rgba(120,80,15,.5)':'rgba(255,240,190,.6)';x.lineWidth=3;x.beginPath();x.moveTo(c+Math.cos(a)*112,c+Math.sin(a)*112);x.lineTo(c+Math.cos(a)*127,c+Math.sin(a)*127);x.stroke();} // cannelée
+  const D=x.createRadialGradient(c-20,c-26,8,c,c,110);D.addColorStop(0,'#2c5bb8');D.addColorStop(.7,'#0f2a66');D.addColorStop(1,'#081a44');x.fillStyle=D;x.beginPath();x.arc(c,c,110,0,6.2832);x.fill(); // le cadran BLEU soleillé
+  x.strokeStyle='rgba(255,255,255,.06)';x.lineWidth=1;for(let i=0;i<90;i++){const a=i/90*6.2832;x.beginPath();x.moveTo(c,c);x.lineTo(c+Math.cos(a)*110,c+Math.sin(a)*110);x.stroke();}
+  for(let h=0;h<12;h++){const a=h/12*6.2832-Math.PI/2;x.save();x.translate(c+Math.cos(a)*88,c+Math.sin(a)*88);x.rotate(a+Math.PI/2);x.fillStyle='#ffdf8a'; // les index d'or
+    if(h===0){x.beginPath();x.moveTo(-10,-10);x.lineTo(10,-10);x.lineTo(0,8);x.fill();}else if(h===3){}else x.fillRect(-4,-11,8,22);x.restore();}
+  x.fillStyle='#f4f0e6';x.fillRect(c+66,c-9,24,18);x.font='bold 15px Helvetica,Arial,sans-serif';x.fillStyle='#111';x.textAlign='center';x.textBaseline='middle';x.fillText('8',c+78,c+1); // le guichet de la date
+  x.font='bold 13px Helvetica,Arial,sans-serif';x.fillStyle='#ffe9b0';x.fillText('CASH CAR',c,c-42);x.font='9px Helvetica,Arial,sans-serif';x.fillText('AUTOMATIC',c,c+44);
+  const aig=function(a,l,w){x.save();x.translate(c,c);x.rotate(a);x.fillStyle='#ffe28f';x.beginPath();x.moveTo(-w,6);x.lineTo(0,-l);x.lineTo(w,6);x.fill();x.restore();};
+  aig(-Math.PI/3,54,6);aig(Math.PI/3,82,4.5); // 10 h 10 (0 = midi, dans le sens des aiguilles)
+  x.fillStyle='#ffe28f';x.beginPath();x.arc(c,c,7,0,6.2832);x.fill();
+  const B=x.createLinearGradient(0,400,0,502);B.addColorStop(0,'#c48c26');B.addColorStop(.5,'#ffe7a0');B.addColorStop(1,'#b47c1e');x.fillStyle=B;x.fillRect(0,399,512,104); // le bracelet
+  x.fillStyle='rgba(90,55,8,.75)';for(let i=0;i<34;i++)x.fillRect(i*512/34,399,3,104);x.fillRect(0,432,512,3);x.fillRect(0,468,512,3); // les maillons : trois rangs (le maillon central bombé)
+});}
+function richFusionUV(L){ // comme richFusion, mais chaque primitive garde ses uv, recalées par sa fonction (l'atlas)
+  let n=0;const parts=[];for(const e of L){const gg=e[0].index?e[0].toNonIndexed():e[0].clone();gg.applyMatrix4(e[1]);const uv=gg.attributes.uv;if(e[2])for(let i=0;i<uv.count;i++){const r=e[2](uv.getX(i),uv.getY(i),i,gg);uv.setXY(i,r[0],r[1]);}
+    parts.push(gg);n+=gg.attributes.position.count;e[0].dispose();}
+  const pos=new Float32Array(n*3),uvs=new Float32Array(n*2);let o=0,u=0;for(const gg of parts){pos.set(gg.attributes.position.array,o);o+=gg.attributes.position.array.length;uvs.set(gg.attributes.uv.array,u);u+=gg.attributes.uv.array.length;gg.dispose();}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('uv',new THREE.BufferAttribute(uvs,2));g.computeVertexNormals();return g;}
+function richMontreGeo(){ // la MONTRE fermée : le boîtier (cadran sur le dessus, couronne à 3 h, cornes), la lunette, le bracelet qui fait le tour sous le boîtier
+  const OR=function(){return [.875,.875];},M=function(x,y,z,rx,ry,rz){return new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(rx||0,ry||0,rz||0)).setPosition(x,y,z);};
+  const boite=new THREE.CylinderGeometry(1,1,.42,32,1),gr=boite.groups,cap=new Uint8Array(boite.attributes.uv.count);
+  for(const G9 of gr)for(let k=G9.start;k<G9.start+G9.count;k++)cap[boite.index.getX(k)]=G9.materialIndex; // (avant de perdre l'index : qui est le DESSUS)
+  const ni=boite.toNonIndexed(),capN=new Uint8Array(ni.attributes.uv.count);{const ix=boite.index;for(let k=0;k<ix.count;k++)capN[k]=cap[ix.getX(k)];}boite.dispose();
+  const R=1.828,c=-1.47,a0=129*Math.PI/180,arc=(360-78)*Math.PI/180;
+  const bande=new THREE.TorusGeometry(R,.1,6,40,arc);bande.rotateZ(a0);bande.rotateY(-Math.PI/2);bande.scale(5.5,1,1);bande.translate(0,c,0);
+  const L=[[ni,new THREE.Matrix4(),function(u,v,i){return capN[i]===1?[u*.5,.5+v*.5]:OR();}],
+    [new THREE.TorusGeometry(1,.12,6,32),M(0,.2,0,Math.PI/2),OR],                                      // la lunette
+    [new THREE.CylinderGeometry(.16,.16,.22,10),M(1.08,0,0,0,0,Math.PI/2),OR],                        // la couronne
+    [bande,new THREE.Matrix4(),function(u,v){return [u,.02+v*.2];}]];                                // le bracelet : les maillons courent le long
+  for(const sx of [-.5,.5])for(const sz of [-1.02,1.02])L.push([new THREE.BoxGeometry(.24,.28,.36),M(sx,-.04,sz),OR]); // les cornes
+  return richFusionUV(L);}
+function richTexJeton(col,val){return richCv(512,288,function(x){ // un JETON : ses deux faces (0-256) et sa tranche (260-288)
+  x.fillStyle=col;x.fillRect(0,0,512,288);
+  for(const cx of [128,384]){x.fillStyle=col;x.beginPath();x.arc(cx,128,127,0,6.2832);x.fill();
+    x.fillStyle='#f4f1ea';for(let k=0;k<8;k++){x.save();x.translate(cx,128);x.rotate(k/8*6.2832);x.fillRect(-13,-127,26,26);x.restore();} // les plots blancs du bord
+    x.fillStyle='rgba(255,255,255,.14)';x.beginPath();x.arc(cx,128,84,0,6.2832);x.fill();
+    x.strokeStyle='#f4f1ea';x.lineWidth=4;x.setLineDash([10,8]);x.beginPath();x.arc(cx,128,80,0,6.2832);x.stroke();x.setLineDash([]);
+    x.fillStyle='#fff';x.font='bold '+(val.length>3?40:52)+'px Helvetica,Arial,sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText(val,cx,120);
+    x.font='bold 13px Helvetica,Arial,sans-serif';x.fillStyle='rgba(255,255,255,.85)';x.fillText('CASH CAR',cx,160);}
+  x.fillStyle='#f4f1ea';for(let k=0;k<8;k++)x.fillRect(k*64+25,260,14,28);});} // la tranche : les mêmes plots
+function richJetonGeo(){const g=new THREE.CylinderGeometry(1,1,.17,32,1),uv=g.attributes.uv; // Ø 39 mm × 3,3 mm
+  for(const G9 of g.groups)for(let k=G9.start;k<G9.start+G9.count;k++){const i=g.index.getX(k),u=uv.getX(i),v=uv.getY(i);
+    if(G9.materialIndex===0)uv.setXY(i,u,v*.097);else if(G9.materialIndex===1)uv.setXY(i,u*.5,.111+v*.889);else uv.setXY(i,.5+u*.5,.111+v*.889);}
+  g.clearGroups();return g;}
 function richInit(){
   if(RICH.pret)return;RICH.pret=true;
   const M={},Gm={};
@@ -37911,10 +37966,12 @@ function richInit(){
   M.billet=richMat(RICH_FS_SOUPLE,{uMap:{value:RICH.texBillet},uSheen:{value:new THREE.Color(.49,1,.62)},uSheenK:{value:.5},uBend:{value:.75}},{SOUPLE:1},THREE.DoubleSide);
   M.trefle=richMat(RICH_FS_SOUPLE,{uMap:{value:richTexTrefle()},uSheen:{value:new THREE.Color(.55,1,.5)},uSheenK:{value:.35},uBend:{value:.7}},{SOUPLE:1},THREE.DoubleSide);
   M.rubis=richMat(RICH_FS_GEMME,{uTint:{value:new THREE.Color(1,.06,.16)}});M.emeraude=richMat(RICH_FS_GEMME,{uTint:{value:new THREE.Color(.08,.9,.38)}}); // les gemmes de couleur : le programme du diamant, teinté
+  M.montre=metal(richTexMontre(),150);
+  M.jetons=[['#c61b2c','5'],['#1d8f3a','25'],['#18181d','100'],['#6a2a9a','500'],['#e09a12','1000']].map(function(J){return richMat(RICH_FS_SOUPLE,{uMap:{value:richTexJeton(J[0],J[1])},uSheen:{value:new THREE.Color(1,1,1)},uSheenK:{value:.28},uBend:{value:0}},{SOUPLE:1},THREE.DoubleSide);}); // la terre cuite des jetons : mate, un peu de lustre
   M.carte=metal(richTexCarte(),130);M.champagne=metal(richTexChampagne(),90);M.noir=metal(richTexUni('#16121c'),60);
   M.liasse=richMat(RICH_FS_SOUPLE,{uMap:{value:richTexLiasse()},uSheen:{value:new THREE.Color(.49,1,.62)},uSheenK:{value:.2},uBend:{value:0}},{SOUPLE:1},THREE.DoubleSide); // la liasse ne plie pas
   Gm.piece=richPiece();Gm.billet=new THREE.PlaneGeometry(1,.46,10,3);Gm.trefle=new THREE.PlaneGeometry(1,1,6,6);
-  Gm.carte=richCarteGeo();Gm.liasse=richLiasseGeo();Gm.champagne=richChampagneGeo();Gm.emeraude=richEmeraude();Gm.crane=richCraneGeo();
+  Gm.carte=richCarteGeo();Gm.liasse=richLiasseGeo();Gm.champagne=richChampagneGeo();Gm.emeraude=richEmeraude();Gm.crane=richCraneGeo();Gm.montre=richMontreGeo();Gm.jeton=richJetonGeo();
   Gm.or=[richPepite(1),richPepite(2),richPepite(3)];Gm.lingot=richLingot();Gm.diamant=richDiamant();
   RICH.M=M;RICH.G=Gm;
   for(const t in RICH_CAP){RICH.libres[t]=[];for(let i=0;i<RICH_CAP[t];i++){let m;
@@ -37922,6 +37979,7 @@ function richInit(){
       else if(t==='crane'){m=new THREE.Group();m.add(new THREE.Mesh(Gm.crane.or,M.or),new THREE.Mesh(Gm.crane.noir,M.noir)); // le crâne : or, orbites noires, deux RUBIS pour yeux
         for(const sx of [-1,1]){const e=new THREE.Mesh(Gm.diamant,M.rubis);e.position.set(.27*sx,-.02,.9);e.rotation.x=Math.PI/2;e.scale.setScalar(.12);m.add(e);}
         m.traverse(function(c){c.frustumCulled=false;c.castShadow=c.receiveShadow=false;});}
+      else if(t==='jeton')m=new THREE.Mesh(Gm.jeton,M.jetons[i%M.jetons.length]);
       else{const g=t==='or'?Gm.or[i%3]:t.indexOf('piece')===0||t==='btc'?Gm.piece:t==='rubis'?Gm.diamant:Gm[t];m=new THREE.Mesh(g,M[t]);}
       m.visible=false;m.castShadow=m.receiveShadow=false;m.frustumCulled=false;scene.add(m);
       RICH.libres[t].push({m:m,t:t,v:new THREE.Vector3(),w:new THREE.Vector3(),age:0,vie:1,s:1,ph:0,fd:0,nl:null,gl:null,on:false});}}
@@ -37965,7 +38023,8 @@ function richSort(t){const L=RICH.libres[t];let best=null;for(const o of L){if(!
 function richLance(t,P,n,d,delai,kv){
   if(t==='chaine'){richChaine(P,n,d,delai,kv);return;}
   const o=richSort(t);if(!o)return;const D=RICH_T[t],rr=(a)=>a[0]+Math.random()*(a[1]-a[0]),m=o.m;
-  if(t==='fruit'){const k9=Math.floor(Math.random()*FRUIT_DEFS.length),g9=fruitGeo(k9);if(!g9.boundingSphere)g9.computeBoundingSphere();m.geometry=g9;o.fr=1/Math.max(.05,g9.boundingSphere.radius);}else o.fr=1;
+  if(t==='fruit'){const k9=Math.floor(Math.random()*FRUIT_DEFS.length),g9=fruitGeo(k9);if(!g9.boundingSphere)g9.computeBoundingSphere();m.geometry=g9;o.fr=(RICH_FRUIT_R[k9]||.35)/Math.max(.05,g9.boundingSphere.radius);}else o.fr=1; // chaque fruit à SA taille
+  if(t==='jeton')m.material=RICH.M.jetons[Math.floor(Math.random()*RICH.M.jetons.length)]; // une couleur, une valeur
   o.on=true;o.age=-delai;o.vie=rr(D.vie);o.s=rr(D.s);o.ph=Math.random()*6.28;o.fd=Math.random()*6.28;
   const sp=rr(D.v)*(kv||1);RICH.v1.set(Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize();
   o.v.copy(n).multiplyScalar(sp).addScaledVector(RICH.v1,sp*.6).addScaledVector(d,-sp*.15);
@@ -38060,11 +38119,11 @@ function richCoup(P,n,d,mu,combo){
 }
 window.dbgRiche=function(k,t){
   if(k==='vitrine'){if(!RICH.pret||!CHUTE.on)return 'pas au ciel';RICH.gel=t!==0; // (banc) la VITRINE : un de chaque, alignés devant la caméra, figés (ils tournent seulement) — dbgRiche('vitrine',0) les relâche
-    if(!RICH.gel)return 'relâchés';const C=CHUTE.ctr||carGroup.position,L=['billet','liasse','carte','trefle','piece2','piece1','piece50','btc','or','lingot','diamant','rubis','emeraude','champagne','crane','fruit'];camera.getWorldDirection(RICH.v3);
+    if(!RICH.gel)return 'relâchés';const C=CHUTE.ctr||carGroup.position,L=['billet','liasse','carte','montre','trefle','piece2','piece1','piece50','jeton','btc','or','lingot','diamant','rubis','emeraude','champagne','crane','fruit'];camera.getWorldDirection(RICH.v3);
     const rt=new THREE.Vector3(1,0,0).applyQuaternion(camera.quaternion),up=new THREE.Vector3(0,1,0).applyQuaternion(camera.quaternion);
     L.forEach(function(ty,i){const o=richSort(ty);richLance(ty,C,RICH.v3.clone().negate(),RICH.v3,0,1);const P=C.clone().addScaledVector(rt,((i%6)-2.5)*.95).addScaledVector(up,(1-Math.floor(i/6))*.8);
       o.m.position.copy(P);o.v.set(0,0,0);o.vie=1e4;o.age=.2;o.w.multiplyScalar(.15);});
-    {const P=C.clone().addScaledVector(rt,2.2).addScaledVector(up,-.8);richChaine(P,RICH.v3.clone().negate(),RICH.v3,0,0);const c=RICH.ch.find(function(x){return x.on;});if(c){c.vie=1e4;c.age=.2;}} // et une chaîne, pendue (figée : seules les contraintes jouent)
+    {const P=C.clone().addScaledVector(rt,3.3).addScaledVector(up,0);richChaine(P,RICH.v3.clone().negate(),RICH.v3,0,0);const c=RICH.ch.find(function(x){return x.on;});if(c){c.vie=1e4;c.age=.2;}} // et une chaîne, pendue (figée : seules les contraintes jouent)
     return L.length+1;}
   if(k==='voir'){if(!RICH.pret||!CHUTE.on)return 'pas au ciel';const C=CHUTE.ctr||carGroup.position;camera.getWorldDirection(RICH.v3); // (banc) voir('diamant', n) : n objets d'un type, lancés vers la caméra
     const P9=C.clone().addScaledVector(RICH.v3,-1.4),n9=RICH.v3.clone().negate();for(let i=0;i<(arguments[2]||6);i++)richLance(t,P9,n9,RICH.v3,i*.05,.5);return t;}
