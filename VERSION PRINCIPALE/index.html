@@ -15622,6 +15622,11 @@ function nyanPixNitro(dt,k){ // la course : la poupe crache des pixels, ~150 par
 /* LE PAS DU GIF (appelé à chaque image, après le rendu de l'atelier / de la vitrine) : les pattes pédalent en diagonale d'un voxel,
    la queue alterne ses deux dessins, la tête hoche d'un voxel à 142 à la noire (le tempo du morceau d'origine) — TOUT en pas
    entiers (son allure suit l'accélération, voir plus bas). Et ses PIXELS de course vivent ici (voir NY_PIX). */
+function nyRoue(w){ /* (2026-10-08) l'angle de la roue qu'on VOIT. Depuis la soudure des caisses (voir ESSIEUX), les `wheels` sont des
+  FANTÔMES hors scène : les pattes suivaient leur angle, pas celui des roulettes à l'écran — au burn-out du garage seul l'essieu arrière
+  patine (BURN.ar), et les pattes arrière restaient plantées pendant que leurs roues tournaient dessous. */
+  if(!w.parent)for(const E of ESSIEUX)if(Math.abs(E.position.z-w.position.z)<1e-4&&Math.abs(E.position.y-w.position.y)<1e-4)return E.rotation.x;
+  return w.rotation.x;}
 function nyanTick(dt){
   if(NYAN.photo){const f=NYAN.photo,r=carGroup.rotation.y+f.a; // (banc) dbgNyan('photo',a,d,h) — vaut pour toute caisse : a = angle autour de la caisse (0 = de face)
     camera.position.set(carGroup.position.x+Math.sin(r)*f.d,carGroup.position.y+f.h,carGroup.position.z+Math.cos(r)*f.d);
@@ -15652,7 +15657,7 @@ function nyanTick(dt){
      celle des roues (pas d'image borné à .3 rad, voir carVit) : au plus ~11 pas/s, l'œil suit. Au freinage, les quatre se plantent. */
   NYAN.bat+=dt*142/60;
   const hb=Math.floor(NYAN.bat)&1,q=Math.PI/2,st=NYAN.st||(NYAN.st=[0,0,0,0]);let cle=0;
-  for(let i=0;i<4;i++){const w=wheels[i];st[i]=w?((Math.floor(w.rotation.x/q)%4)+4)%4:0;cle=cle*4+st[i];}
+  for(let i=0;i<4;i++){const w=wheels[i];st[i]=w?((Math.floor(nyRoue(w)/q)%4)+4)%4:0;cle=cle*4+st[i];}
   if(cle===NYAN.pas&&hb===NYAN.hb&&al===NYAN.allure)return;
   NYAN.pas=cle;NYAN.hb=hb;NYAN.allure=al;
   const Z=[1,0,-1,0],Y=[0,1,0,-1]; // le tour de la bielle, par crans : devant, en haut, derrière, en bas
@@ -15663,7 +15668,7 @@ function nyanTick(dt){
   if(NYAN.feux.length===2){NYAN.feux[0].visible=!frein;NYAN.feux[1].visible=frein;}
   if(NYAN.tete)NYAN.tete.position.y=hb*NY_U;
 }
-window.dbgNyan=function(c,a,d,h){if(c==='tick'){if(d)for(const w of wheels)w.rotation.x+=d;nyanTick(a||1/60);c='allure';} // (banc, v13) une image de l'allure à la main, les roues tournées de `d` rad : le panneau caché ne fait pas tourner la boucle
+window.dbgNyan=function(c,a,d,h){if(c==='tick'){if(d){for(const w of wheels)w.rotation.x+=d;for(const e of ESSIEUX)e.rotation.x+=d;}nyanTick(a||1/60);c='allure';} // (banc, v13) une image de l'allure à la main, les roues tournées de `d` rad : le panneau caché ne fait pas tourner la boucle
   if(c==='allure')return {allure:NYAN.allure,acc:+NYAN.acc.toFixed(1),v:+NYAN.v0.toFixed(0),pattes:NYAN.pattes.map(g=>+(g.position.z/NY_PATTE).toFixed(0)),stop:!!(NYAN.feux[1]&&NYAN.feux[1].visible)};if(c==='cliche'){if(NYAN.photo){const f=NYAN.photo,r=carGroup.rotation.y+f.a; // (banc) l'image rendue ET lue dans le même instant (le tampon WebGL est vidé entre deux images)
     camera.position.set(carGroup.position.x+Math.sin(r)*f.d,carGroup.position.y+f.h,carGroup.position.z+Math.cos(r)*f.d);
     camera.lookAt(carGroup.position.x,carGroup.position.y+.7,carGroup.position.z);camera.updateMatrixWorld();if(camera.view&&camera.view.enabled)camera.clearViewOffset();}
@@ -16457,8 +16462,11 @@ function lpWheel(o){
 /* ---- LE CHAT POP-TART EN VOXELS (2026-10-06, Léo : « je mise tout sur cette image, fais-en une voiture — impressionne-moi sur le
    mimétisme et l'adaptation ») ------------------------------------------------------------------------------------------------
    L'IMAGE est un sprite de 2011 EXTRUDÉ en cubes : chaque pixel devient un voxel, le contour noir devient un MUR noir sur toute
-   l'épaisseur, et tout ce qui regarde vers le bas prend le BLEU du ciel (dessous des pattes, du gâteau, de la tête). On garde cette
-   grammaire au pixel près — mais une voiture n'est pas un sprite de profil : pour chaque pièce, il a fallu choisir LE PLAN du dessin.
+   l'épaisseur, et tout ce qui regarde vers le bas prenait le BLEU du ciel (dessous des pattes, du gâteau, de la tête) — (2026-10-08,
+   Léo : « corrige les bugs en dessous de la voiture ») il est NOIR comme le châssis : l'écran titre fait tourner la caisse dans le
+   ciel et la montre par en dessous, où le bleu ne restait que sur la couche du milieu de la tête et de la queue — des rayures bleues
+   entre deux bandes noires, lues comme des trous dans la caisse. On garde cette grammaire au pixel près — mais une voiture n'est pas
+   un sprite de profil : pour chaque pièce, il a fallu choisir LE PLAN du dessin.
    · le GÂTEAU se couche, c'est le châssis : croûte, glaçage et éclats de sucre DESSUS (la caméra de poursuite voit le dessus), murs
      noirs sur la tranche — l'épaisseur noire de l'image ;
    · la TÊTE se dresse à l'avant, visage DEVANT : il regarde la route, et au garage (trois-quarts avant) c'est lui qu'on voit ;
@@ -17270,10 +17278,10 @@ const SHAPES={
        avec l'ombrage CUIT par face : la face du DESSIN pleine (dessus du gâteau, visage et nuque, flancs des pattes et de la queue),
        le dessus un cran en dessous, les autres faces deux crans. Seul le NOIR reste laqué et éclairé : c'est lui qui accroche le ciel,
        comme les murs noirs de l'image. Les aplats sont relevés de 10 % : l'ACES les ternissait. */
-    const COUL={C:0xf4d6a8,K:0x9a6038,Q:0xc9955c,X:0xd2d6de,P:0xff9cf3,S:0xff3a94,G:0x8e8f99,W:0xffffff,R:0xff9aa6,u:0x1d4cb4,Y:0xffe25a,L:0x8a1424,T:0xff2a36},TEINTE=[['d',1.1],['h',1.0],['c',.86]],pal={B:{g:'nyl',c:0x14141c}},cc=new THREE.Color();
+    const COUL={C:0xf4d6a8,K:0x9a6038,Q:0xc9955c,X:0xd2d6de,P:0xff9cf3,S:0xff3a94,G:0x8e8f99,W:0xffffff,R:0xff9aa6,Y:0xffe25a,L:0x8a1424,T:0xff2a36},TEINTE=[['d',1.1],['h',1.0],['c',.86]],pal={B:{g:'nyl',c:0x14141c}},cc=new THREE.Color();
     for(const k in COUL)for(const [f,m] of TEINTE){cc.setHex(COUL[k]);cc.setRGB(Math.min(1,cc.r*m),Math.min(1,cc.g*m),Math.min(1,cc.b*m));pal[k+f]={g:'nyl',c:cc.getHex()};} // (v12) la LAQUE de la caisse sur tous les pixels : une seule matière, un seul brillant · ⚠ r128 : getHex() ne BORNE pas — un canal à 1,1 débordait sur ses voisins (le rose sortait vert)
     const pose=(V,par,plan,uu,oo)=>{const kt=lpKit(pal); // `plan` : l'axe de la face qui porte le DESSIN (0 = flancs, 1 = dessus, 2 = avant/arrière)
-      V.emit(kt,uu||u,oo||o,(c,ax,sg)=>c==='B'?'B':(ax===1&&sg<0)?'uc':c+(ax===plan?'d':(ax===1?'h':'c'))); // tout ce qui regarde le SOL prend le bleu du ciel
+      V.emit(kt,uu||u,oo||o,(c,ax,sg)=>(c==='B'||(ax===1&&sg<0))?'B':c+(ax===plan?'d':(ax===1?'h':'c'))); // tout ce qui regarde le SOL est noir, comme le dessous du châssis (le bleu du ciel y faisait des rayures)
       const gs=kt.done();
       for(const g in gs){const m=new THREE.Mesh(gs[g],mat(g));m.userData.lp=1;par.add(m);}return par;};
     const bloc=()=>K.add(new THREE.Group()); // ce qui BOUGE vit dans un groupe : la soudure de la caisse n'y touche pas (voir caisseSoude)
