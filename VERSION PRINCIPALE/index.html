@@ -39826,9 +39826,10 @@ function burnCoupe(){ // l'atelier se ferme : silence, plus rien à l'écran
   if(BURN.corps){carBody.rotation.set(0,0,0);carBody.position.set(0,0,0);BURN.corps=false;}
   if(AC&&BURN.son){const T=AC.currentTime;stt(gainN.gain,0,T,.06);stt(engLfoG.gain,0,T,.06);if(skidG)stt(skidG.gain,0,T,.05);BURN.son=false;}
 }
-const BURN_DOIGT=false; // (2026-10-08, Léo : « ce n'est plus le doigt qui agit sur la fumée, mais bien la voiture elle-même ») le doigt ne la pousse plus, le tap ne la souffle plus (`true` les rend) — voir LA CAISSE DANS LA FUMÉE
+const BURN_DOIGT=false; // (2026-10-08, Léo : « ce n'est plus le doigt qui agit sur la fumée, mais bien la voiture elle-même ») le GLISSÉ ne la pousse plus (`true` le rend) — voir LA CAISSE DANS LA FUMÉE
+const BURN_SOUFFLE={on:true,vieillit:.45}; // (même soir, Léo : « quand on tapote avec le doigt, ça disperse la fumée ») le TAP revient seul : il souffle la fumée sous le doigt (elle s'écarte du point touché, file un peu vers le fond, monte) et la DISPERSE — chaque bouffée touchée avance vers la fin de sa vie de `vieillit` × ce qui lui reste (× la force du coup) : elle s'éclaircit et s'émiette au lieu de seulement bouger
 function burnDoigt(cx,cy,dx,dy,souffle){ // le DOIGT dans la fumée : il la pousse (glissé) ou la souffle (tap)
-  if(!BURN_DOIGT)return false;
+  if(souffle?!BURN_SOUFFLE.on:!BURN_DOIGT)return false;
   const F=BURN.fum;if(!F||!F.n)return false;
   const o=camera.position,v=BURN.v.set(cx/VP.w*2-1,-(cy/VP.h)*2+1,.5).unproject(camera).sub(o).normalize();
   const R=BURN.r.setFromMatrixColumn(camera.matrixWorld,0),U=BURN.w.setFromMatrixColumn(camera.matrixWorld,1);
@@ -39837,7 +39838,7 @@ function burnDoigt(cx,cy,dx,dy,souffle){ // le DOIGT dans la fumée : il la pous
     const px=F.P[j]-o.x,py=F.P[j+1]-o.y,pz=F.P[j+2]-o.z,t=px*v.x+py*v.y+pz*v.z;if(t<.4)continue;
     const qx=px-v.x*t,qy=py-v.y*t,qz=pz-v.z*t,d=Math.sqrt(qx*qx+qy*qy+qz*qz),rad=.9+.09*t+F.S[i]*.5;if(d>rad)continue;
     const f=1-d/rad;touche++;
-    if(souffle){const k=3.2*f/Math.max(.05,d);F.V[j]+=qx*k+v.x*f*1.8;F.V[j+1]+=qy*k+v.y*f*1.8+.4*f;F.V[j+2]+=qz*k+v.z*f*1.8;}
+    if(souffle){const k=3.2*f/Math.max(.05,d);F.V[j]+=qx*k+v.x*f*1.8;F.V[j+1]+=qy*k+v.y*f*1.8+.4*f;F.V[j+2]+=qz*k+v.z*f*1.8;F.age[i]+=(F.life[i]-F.age[i])*BURN_SOUFFLE.vieillit*f;}
     else{const k=f*t*tg*9;F.V[j]+=(R.x*dx-U.x*dy)*k;F.V[j+1]+=(R.y*dx-U.y*dy)*k;F.V[j+2]+=(R.z*dx-U.z*dy)*k;}}
   return touche>0;
 }
@@ -40111,6 +40112,10 @@ window.dbgBurn=function(s,a,b){
     const pc=GAR.pod?GAR.pod.getWorldPosition(new THREE.Vector3()):p;let nj=0,ar=0,co=0;{const c=Math.cos(carGroup.rotation.y),sn=Math.sin(carGroup.rotation.y);if(F)for(let i=0;i<F.N;i++){if(F.age[i]>=F.life[i]||F.age[i]>1.2)continue;const j=i*3,vlx=F.V[j]*c-F.V[j+2]*sn,vlz=F.V[j]*sn+F.V[j+2]*c;nj++;ar+=-vlz;co+=Math.abs(vlx);}}
     return {proches:n,tourne:n?+(vt/n).toFixed(2):0,dansLaCaisse:dans,w:+BURN.yawV.toFixed(2),jeunes:nj,versArriere:nj?+(ar/nj).toFixed(2):0,surLeCote:nj?+(co/nj).toFixed(2):0,brusques:BURN.brusque|0,vivantes:F?F.n:0,horizon:+(BURN.hor||0).toFixed(1),ecart:+Math.hypot(p.x-pc.x,p.z-pc.z).toFixed(2)};}
   if(s==='mesure'){if(a){BURN.mes={n:0,rec:0,recMax:0,v:0,vMax:0,a:[],px:null};return 'go';}const M=BURN.mes;if(!M||!M.n)return null;const A=M.a.slice().sort(function(x,y){return x-y;});BURN.mes=null;return {recul:+(M.rec/M.n).toFixed(2),reculMax:+M.recMax.toFixed(2),vit:+(M.v/M.n).toFixed(2),vitMax:+M.vMax.toFixed(2),acc90:Math.round(A[(A.length*.9)|0]||0),images:M.n};}
+  if(s==='autour'){const F=BURN.fum,R=b||50,v=new THREE.Vector3();let n=0,al=0,bx=0,by=0,bn=0; // (le banc) la fumée À L'ÉCRAN autour du point (x, y) de a : combien de bouffées, leur opacité ; et où est la plus dense
+    if(F)for(let i=0;i<F.N;i++){if(F.age[i]>=F.life[i]||F.A[i]<.03)continue;const j=i*3;v.set(F.P[j],F.P[j+1],F.P[j+2]).project(camera);if(v.z>1)continue;const x=(v.x*.5+.5)*VP.w,y=(.5-v.y*.5)*VP.h;
+      if(a&&Math.hypot(x-a[0],y-a[1])<R){n++;al+=F.A[i];}bx+=x*F.A[i];by+=y*F.A[i];bn+=F.A[i];}
+    return {n:n,opacite:+al.toFixed(2),centre:bn?[Math.round(bx/bn),Math.round(by/bn)]:null};}
   if(s==='ressort'){if(a!=null)BURN_RESSORT.om=+a;if(b!=null)BURN_RESSORT.ze=+b;return Object.assign({},BURN_RESSORT);} // (le banc) le ressort du doigt à chaud
   if(s==='balade'){if(a!=null)BURN_BALADE.suit=+a;if(b!=null)BURN_BALADE.pousse=+b;return Object.assign({},BURN_BALADE);} // (le banc) régler la balade à chaud : dbgBurn('balade',0,0) = le pivot fixe d'avant
   if(s==='tourne'){if(!garAtelierLibre())return 'atelier pas libre';if(!BURN.on)burnPart();BURN.bouge=true;BURN.auto=b>0?+b:3;BURN.autoW=a!=null?+a:3;} // un doigt qui tourne sans doigt : a rad/s pendant b secondes

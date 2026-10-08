@@ -149,6 +149,11 @@ LES BOUTONS DE SACHA ») : **PLAY/JOUER = la partie sans fin, et toucher un nive
   suit ,4 → ,33, ω 3,2 → 2,9 (elle chasse un peu moins le doigt, un peu plus lourde). Toujours aucun recul (cercle, zigzag, lent : ≤ ,01 m/s
   en moyenne). ⚠ Le banc headless est trop bruité pour départager 7/8/9 au degré près (mêmes réglages : 26-36°) : se fier au calcul.
   `dbgBurn('ressort',om,ze)` règle à chaud. sw.js → v183.
+- **LE TAP DISPERSE LA FUMÉE** (même soir, Léo : « quand on tapote avec le doigt, ça disperse la fumée ») — `BURN_SOUFFLE` : le tap (pas
+  le glissé, toujours coupé par `BURN_DOIGT`) souffle les bouffées sous le doigt (`burnDoigt(…,true)` : écartées du point, vers le fond, vers le
+  haut) et les fait VIEILLIR (`vieillit` ,45 × la vie qui leur reste × la force) : elles s'éclaircissent et s'émiettent. Un tap sur la caisse
+  reste un coup (`garageImpact`), sur le bouton rouge l'inventaire. MESURÉ (`dbgBurn('autour',[x,y],45)` : opacité de la fumée à l'écran
+  autour du point) : avec tap 18,5 → 3,1 en ,3 s → ,8 en ,8 s ; sans tap 16-21 au même moment. sw.js → v184.
 - Les réservoirs se créent dans `burnPools()`, appelé par la CHAUFFE DE L'ATELIER (`atelierChauffe` les compile avec lui : rien au 1er
   burn-out) et par l'atelier du bouton rouge (`atlTick`).
 - RETIRÉ (dans l'historique, dernier état `d6fea98`) : fumée en volumes/cubes de la porte, voile, jet sous la roue, poids (`DON_POIDS`),
