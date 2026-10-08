@@ -40321,7 +40321,7 @@ function burnNitroTick(dt,now){
       burnEmet(BURN.feu,o.x,o.y,o.z,-fx*v+(Math.random()-.5)*1.2,.2+Math.random()*.9,-fz*v+(Math.random()-.5)*1.2,.16+Math.random()*.22,.14+Math.random()*.14,0,1,bl?.45:1,bl?.6:.62+Math.random()*.35,bl?1:.2);}
     if(!REDUCED_MOTION&&now>BURN.hapT){BURN.hapT=now+90;hap(5);}}
 }
-const BURN_BALADE={suit:.33,om:2.9,ze:.8,pousse:2.2,rebond:0,bord:4.3,vmax:2.2}; // (même soir, Léo : « faut pas qu'elle recule non plus, là c'est trop violent ») ω 4,2 → 3,2, ζ ,5 → ,8 (plus de dépassement), suit ,5 → ,4, pousse 3,2 → 2,2, plus de rebond, vitesse ≤ 2,2 m/s — et JAMAIS vers l'arrière de la caisse ; puis (« le juste milieu ») suit ,4 → ,33, ω 3,2 → 2,9 : elle chasse un peu moins le doigt, un peu plus lourde
+const BURN_BALADE={recentre:.9,tauR:.8,revient:.5,suit:.33,om:2.9, /* (même soir, Léo : « pourquoi la voiture s'avance sans cesse devant pendant le burn-out ») MESURÉ : 1-1,3 m vers l'avant en 3 s de balancé ou de donut, même sans poussée, sans doigt-cible, sans cliquet — c'est le PIVOT DEVANT : tournée de y, son centre passe à dz(1 − cos y) devant (,9 m à 90°, 1,8 m retournée). Le pivot reste devant (l'arrière balaie sur le moment), mais la balade le RAMÈNE : la cible retranche `recentre` × ce décalage moyen sur `tauR` s, et elle peut y revenir à `revient` m/s vers son arrière (sinon « elle ne recule jamais » bloquait le retour : un cliquet vers l'avant) */ ze:.8,pousse:2.2,rebond:0,bord:4.3,vmax:2.2}; // (même soir, Léo : « faut pas qu'elle recule non plus, là c'est trop violent ») ω 4,2 → 3,2, ζ ,5 → ,8 (plus de dépassement), suit ,5 → ,4, pousse 3,2 → 2,2, plus de rebond, vitesse ≤ 2,2 m/s — et JAMAIS vers l'arrière de la caisse ; puis (« le juste milieu ») suit ,4 → ,33, ω 3,2 → 2,9 : elle chasse un peu moins le doigt, un peu plus lourde
 function burnBord(cx,cz,y){ // de combien rapprocher le centre (cx, cz) pour que les 4 coins de la caisse (cap y) restent à `bord` m du centre du plateau
   const a=BURN.ga||2.2,b=BURN.gb||1,R=BURN_BALADE.bord,co=Math.cos(y),si=Math.sin(y);
   const loin=function(f){let m=0;for(let i=0;i<4;i++){const x=(i&1?b:-b),z=(i&2?a:-a),px=f*cx+x*co+z*si,pz=f*cz-x*si+z*co,d=px*px+pz*pz;if(d>m)m=d;}return Math.sqrt(m);};
@@ -40339,17 +40339,21 @@ function burnDerape(dt){
   const vise=BURN.on&&(BURN.bouge||BURN.nk>.05||BURN.rk>.05)&&!GAR.go?1:0; /* (2026-10-08) la NITRO et la MARCHE ARRIÈRE la font bouger même doigt immobile */BURN.pivK+=(vise-BURN.pivK)*Math.min(1,dt*(vise?6:(GAR.go?6:1.6)));
   {const B9=BURN_BALADE,lq=Math.max(0,B9.bord-(BURN.gb||1));let tx=0,tz=0;                // LA BALADE : le pivot voyage
     if(vise&&BURN.fsOk){tx=BURN.fsx*B9.suit;tz=BURN.fsz*B9.suit;const tl=Math.hypot(tx,tz);if(tl>lq){tx*=lq/tl;tz*=lq/tl;}}
+    {const kR=Math.min(1,dt/B9.tauR);BURN.swAx=(BURN.swAx||0)+((BURN.swX||0)-(BURN.swAx||0))*kR;BURN.swAz=(BURN.swAz||0)+((BURN.swZ||0)-(BURN.swAz||0))*kR; // le décalage MOYEN du pivot devant…
+      if(vise){tx-=B9.recentre*BURN.swAx;tz-=B9.recentre*BURN.swAz;}}                                                                         // …que la balade efface
     const N9=BURN_NITRO,tw=B9.pousse*Math.min(1,Math.abs(BURN.yawV)/4),ac=vise?(tw*(1+N9.tourne*BURN.nk)+N9.pousse*BURN.nk)*(1-BURN.rk)-BURN.rk*(N9.recul+N9.pousse*BURN.nk):0, // la NITRO pousse devant, la MARCHE ARRIÈRE tire derrière
       ax=Math.sin(BURN.yaw)*ac,az=Math.cos(BURN.yaw)*ac,lch=Math.max(BURN.nk,BURN.rk),om=B9.om*(1-N9.lache*lch),ze=B9.ze,vm=B9.vmax*(1+N9.vit*BURN.nk); // (le ressort du doigt se relâche : elle file vraiment, puis revient)
     const fx=Math.sin(BURN.yaw),fz=Math.cos(BURN.yaw);
     for(let i=0;i<n;i++){BURN.qvx+=(om*om*(tx-BURN.qx)-2*ze*om*BURN.qvx+ax)*h;BURN.qvz+=(om*om*(tz-BURN.qz)-2*ze*om*BURN.qvz+az)*h;
-      if(vise){const vf=BURN.qvx*fx+BURN.qvz*fz;if(vf<0&&BURN.rk<.3){BURN.qvx-=vf*fx;BURN.qvz-=vf*fz;}                 // elle ne RECULE jamais : ce qui partirait vers son arrière est perdu (elle glisse de côté, ou avance)
+      if(vise){const vf=BURN.qvx*fx+BURN.qvz*fz,rm=-(B9.revient||0);if(vf<rm&&BURN.rk<.3){BURN.qvx-=(vf-rm)*fx;BURN.qvz-=(vf-rm)*fz;}                 // elle ne RECULE jamais : ce qui partirait vers son arrière est perdu (elle glisse de côté, ou avance)
         const vq=Math.hypot(BURN.qvx,BURN.qvz);if(vq>vm){BURN.qvx*=vm/vq;BURN.qvz*=vm/vq;}}
       BURN.qx+=BURN.qvx*h;BURN.qz+=BURN.qvz*h;}}
   if(BURN.yaw||BURN.pivK>=.001){
     const y=BURN.yaw,ar9=1-2*BURN.rk,dz=BURN.drz*ar9,s0=-Math.max(-DON_PIV.glisse,Math.min(DON_PIV.glisse,BURN.yawV*DON_PIV.kGlisse))*BURN.pivK,sl=s0*ar9; // (2026-10-08) EN MARCHE ARRIÈRE le pivot passe DERRIÈRE (c'est l'avant qui balaie) et la glisse s'inverse : elle tourne en reculant
     if(BURN.dzP!=null&&BURN.pivK>.05){const d9=dz-BURN.dzP,e9=s0*(ar9-(1-2*BURN.rkP)),pk=BURN.pivK;BURN.qx+=(d9*Math.sin(y)-e9*Math.cos(y)/pk);BURN.qz-=(d9*((1-BURN.donM)-Math.cos(y))-e9*Math.sin(y)/pk);} // le pivot change de bout SANS que la caisse saute : la balade absorbe le déplacement
     BURN.dzP=dz;BURN.rkP=BURN.rk; // (2026-10-08, Léo : « faut pas qu'elle recule ») la glisse de l'AUTRE côté du pivot : avant, ce décalage qui tourne avec la caisse la faisait partir EN MARCHE ARRIÈRE autour du cercle (glisse × rotation : 5,6 m/s en arrière à 10 rad/s) ; de ce côté-ci elle AVANCE et c'est l'arrière qui décroche — un vrai donut
+    BURN.swX=-dz*Math.sin(y);BURN.swZ=dz*(1-BURN.donM)-dz*Math.cos(y);                                             // (le décalage du pivot devant, pour le recentrage)
+    BURN.sl9=sl;
     let cx=BURN.pivK*(BURN.qx-dz*Math.sin(y))+Math.cos(y)*sl,cz=BURN.pivK*(BURN.qz+dz*(1-BURN.donM)-dz*Math.cos(y))-Math.sin(y)*sl; // le pivot : devant la caisse (le dérapage), au centre du plateau (le donut) — et là où la balade l'a emmené
     const c=Math.hypot(cx,cz),f9=burnBord(cx,cz,y);if(f9<1){cx*=f9;cz*=f9; // jamais hors du disque — ses QUATRE COINS (pas le cercle qui l'entoure : de côté elle va ~2,5 m au lieu de 1,74) : elle RENCONTRE le bord
       const ux=cx/Math.max(1e-6,c*f9),uz=cz/Math.max(1e-6,c*f9),vr=BURN.qvx*ux+BURN.qvz*uz;if(vr>0){const k9=1+BURN_BALADE.rebond;BURN.qvx-=k9*vr*ux;BURN.qvz-=k9*vr*uz;}
@@ -40360,7 +40364,7 @@ function burnDerape(dt){
     carGroup.rotation.y+=y;carGroup.position.x+=cx*cr+cz*sr;carGroup.position.z+=-cx*sr+cz*cr;}
   if(GAR.go||(!BURN.on&&BURN.pivK<.01&&Math.abs(BURN.yawV)<.02)){ // APRÈS l'avoir posée : le cap est versé dans le plateau (à l'image suivante, rien ne saute)
     if(BURN.yaw){garageAng-=BURN.yaw;GAR.podSpin=(GAR.podSpin||0)-BURN.yaw;BURN.yaw=0;}
-    BURN.cib=0;if(GAR.go)BURN.yawV=0;BURN.qx=BURN.qz=BURN.qvx=BURN.qvz=0;BURN.dzP=null;}
+    BURN.cib=0;if(GAR.go)BURN.yawV=0;BURN.qx=BURN.qz=BURN.qvx=BURN.qvz=0;BURN.dzP=null;BURN.swX=BURN.swZ=BURN.swAx=BURN.swAz=0;}
 }
 function burnSon(dt){ // le VRAI moteur du palier, au rupteur, et le crissement de la course
   if(!AC||!osc||!gainN)return;
@@ -40394,12 +40398,12 @@ window.dbgBurn=function(s,a,b){
       if(a&&Math.hypot(x-a[0],y-a[1])<R){n++;al+=F.A[i];}bx+=x*F.A[i];by+=y*F.A[i];bn+=F.A[i];}
     return {n:n,opacite:+al.toFixed(2),centre:bn?[Math.round(bx/bn),Math.round(by/bn)]:null};}
   if(s==='ressort'){if(a!=null)BURN_RESSORT.om=+a;if(b!=null)BURN_RESSORT.ze=+b;return Object.assign({},BURN_RESSORT);} // (le banc) le ressort du doigt à chaud
-  if(s==='balade'){if(a!=null)BURN_BALADE.suit=+a;if(b!=null)BURN_BALADE.pousse=+b;return Object.assign({},BURN_BALADE);} // (le banc) régler la balade à chaud : dbgBurn('balade',0,0) = le pivot fixe d'avant
+  if(s==='balade'){if(a&&typeof a==='object'){Object.assign(BURN_BALADE,a);return Object.assign({},BURN_BALADE);}if(a!=null)BURN_BALADE.suit=+a;if(b!=null)BURN_BALADE.pousse=+b;return Object.assign({},BURN_BALADE);} // (le banc) régler la balade à chaud : dbgBurn('balade',0,0) = le pivot fixe d'avant
   if(s==='tourne'){if(!garAtelierLibre())return 'atelier pas libre';if(!BURN.on)burnPart();BURN.bouge=true;BURN.auto=b>0?+b:3;BURN.autoW=a!=null?+a:3;} // un doigt qui tourne sans doigt : a rad/s pendant b secondes
   if(s>0){if(!garAtelierLibre())return 'atelier pas libre';burnPart();BURN.auto=+s;BURN.autoW=0;}
   return {on:BURN.on,k:+BURN.k.toFixed(2),t:+BURN.t.toFixed(2),chaud:+BURN.chaud.toFixed(2),rpm:+BURN.rpm.toFixed(2),fumee:BURN.fum?BURN.fum.n:0,feu:BURN.feu?BURN.feu.n:0,
     essieuxAr:BURN.ar.length,roues:BURN.roues.length,cap:+BURN.yaw.toFixed(2),cib:+BURN.cib.toFixed(2),w:+BURN.yawV.toFixed(2),donut:+BURN.don.toFixed(2),donM:+BURN.donM.toFixed(2),tours:BURN.n,
-    pivot:+BURN.pivK.toFixed(2),balade:[+BURN.qx.toFixed(2),+BURN.qz.toFixed(2)],pos:(function(){const a=carGroup.getWorldPosition(new THREE.Vector3()),b=GAR.pod?GAR.pod.getWorldPosition(new THREE.Vector3()):a,r=garRot(),cr=Math.cos(r),sr=Math.sin(r),dx=a.x-b.x,dz=a.z-b.z;return [+(dx*cr-dz*sr).toFixed(2),+(dx*sr+dz*cr).toFixed(2)];})(),cad:+BURN.cad.toFixed(2),centre:[Math.round(BURN.scx),Math.round(BURN.scy)],geste:{tourne:+BURN.kc.toFixed(2),ailleurs:+BURN.mc.toFixed(2)},cubes:BURN.gr?BURN.gr.M.reduce(function(a,im){return a+im.count;},0):0,gomme:!!(BURN.gom&&BURN.gom.sale),plateau:+(GAR.platW||0).toFixed(2),doigt:GAR.doigt||null,son:BURN.son};
+    pivot:+BURN.pivK.toFixed(2),balade:[+BURN.qx.toFixed(2),+BURN.qz.toFixed(2)],sw:[+(BURN.swAx||0).toFixed(2),+(BURN.swAz||0).toFixed(2)],swI:[+(BURN.swX||0).toFixed(2),+(BURN.swZ||0).toFixed(2)],sl9:+(BURN.sl9||0).toFixed(2),pos:(function(){const a=carGroup.getWorldPosition(new THREE.Vector3()),b=GAR.pod?GAR.pod.getWorldPosition(new THREE.Vector3()):a,r=garRot(),cr=Math.cos(r),sr=Math.sin(r),dx=a.x-b.x,dz=a.z-b.z;return [+(dx*cr-dz*sr).toFixed(2),+(dx*sr+dz*cr).toFixed(2)];})(),cad:+BURN.cad.toFixed(2),centre:[Math.round(BURN.scx),Math.round(BURN.scy)],geste:{tourne:+BURN.kc.toFixed(2),ailleurs:+BURN.mc.toFixed(2)},cubes:BURN.gr?BURN.gr.M.reduce(function(a,im){return a+im.count;},0):0,gomme:!!(BURN.gom&&BURN.gom.sale),plateau:+(GAR.platW||0).toFixed(2),doigt:GAR.doigt||null,son:BURN.son};
 };
 /* ===== LE BOUTON ROUGE ET SES OUTILS (2026-10-05, Léo : « enlève le bouton coffre ; mets un bouton rouge sur la plateforme qui tourne, à
    côté de la voiture ; quand on appuie, de chaque côté, différents outils se mettent à côté et construisent directement les objets qu'on a
