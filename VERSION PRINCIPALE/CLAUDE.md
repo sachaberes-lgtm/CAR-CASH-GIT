@@ -58,6 +58,22 @@ ouverte (« voilà l'effet recherché, couleurs pareil, mais en mode GTR »).
     une ligne à peine bombée, une ÉCHINE douce au milieu ; vers l'arrière elle devient VITRE (le pare-brise remonte en visière), l'échine
     grise par-dessus. Dessinée en coordonnées FINALES : chaque sommet est DÉPLIÉ (`deplie`, inverse du pli par point fixe) avant d'être
     versé, le pli le remet en place — la recette pour poser n'importe quoi sur la tête relevée.
+  · (Léo : « dans l'air on voit le dessous de la voiture : fais un dessous stylé — une GRANDE ROUE, le ventre du requin, et les deux
+    derrière ») LE DESSOUS, en coordonnées FINALES (`Zp` = l'inverse du raccourci), bloc « LE DESSOUS » juste avant le pli :
+    UNE seule roue avant, AU MILIEU, ×1,46 (R .60), crampons, jante blanc os, bande claire sur la bande de roulement (z .65, juste après le
+    ventre) — options de `buildCar` : `w1F` (la place de gauche garde un moyeu VIDE : `wheels` reste à quatre pour l'empreinte, les traces,
+    le burn-out ; ce moyeu sans pièce ne se soude pas ni ne reçoit de flou), `lpwF` (ce qui change sur cette roue), et `lpWheel({deux})`
+    (tambour fermé, jante sur les DEUX faces). La roue tourne à SA vitesse (v / R de chaque roue) ; l'empreinte lit la voie de chaque essieu.
+    LE VENTRE : coque blanche de 17 cm d'une jupe à l'autre, du menton jusque derrière la roue où elle remonte se fondre dans le plancher
+    (le plancher du loft est blanc, sombre dans les passages arrière, OUVERT au-dessus de la roue) ; au milieu un CANAL remonté de 10 cm
+    (marches sombres) où la roue dépasse de 16 cm — les bords restent bas : de côté elle ne se voit pas, le menton la cache de face. La
+    FENTE (lèvre de peau blanche + joint, comme la gueule) ouvre sur un puits en ARCHE qui épouse la roue (7 cm) et LUIT rouge sombre
+    (`H`, matière sans lumière : la roue s'y découpe en ombre chinoise) ; la voûte perce le capot DANS le crâne (creux, opaque). ⚠ le haut
+    de l'arche est dans la zone du pli : ses sommets sont DÉPLIÉS (`dep`) — et rien ne peut se poser dans le « coin » ouvert entre les
+    mâchoires (pas d'antécédent) : la roue est donc assez en arrière (z .65) pour que le puits n'y entre pas. Puis la LIGNE LATÉRALE (deux
+    filets sombres qui se resserrent vers la queue), les NAGEOIRES PELVIENNES devant les roues arrière, une plaque blanche entre les roues
+    arrière (deux poches sombres) avec la NAGEOIRE ANALE en quille, et quatre lames de diffuseur (la fourche de la queue). Banc :
+    `dessous.py` (la caisse remise droite, retournée ou pas, photographiée par `dbgView`), `vol3.py` (photo en plein vol, en course).
 
 ## JOUER = LE MODE CLASSIQUE (2026-10-08, session GRAPHISME — Sacha : « maintenant quand on clique sur le bouton jouer on lance les niveaux au lieu de lancer le mode classique »)
 « LE NIVEAU DES PLAY » (Léo, 7/10, 3d72bd6 — plus bas) faisait lancer la carrière par le PLAY de l'accueil, le JOUER de l'atelier et celui

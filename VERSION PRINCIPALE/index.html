@@ -8037,8 +8037,8 @@ function emprPeint(){
   if(!EMPR.cv){EMPR.cv=document.createElement('canvas');EMPR.cv.width=64;EMPR.cv.height=128;EMPR.tex=new THREE.CanvasTexture(EMPR.cv);}
   const sp=CARS[carGroup.userData.lvl]||CARS[0];
   let wx=sp.w*.42,wzF=sp.l*.32,wzR=sp.l*.32,tw=.3;
-  if(wheels.length>=4){wx=Math.abs(wheels[1].position.x);wzF=Math.abs(wheels[1].position.z);wzR=Math.abs(wheels[3].position.z);tw=wheels[0].userData.large||.3;}
-  const BW=Math.max(sp.w,2*wx+tw)*.5,BL=Math.max(sp.l*.5,Math.max(wzF,wzR)+.35);           // demi-empreinte de la caisse
+  let wxR=wx;if(wheels.length>=4){wx=Math.abs(wheels[1].position.x);wxR=Math.abs(wheels[3].position.x);wzF=Math.abs(wheels[1].position.z);wzR=Math.abs(wheels[3].position.z);tw=wheels[0].userData.large||.3;} // (2026-10-08) la voie de CHAQUE essieu (SQUALE : la roue unique du milieu)
+  const BW=Math.max(sp.w,2*Math.max(wx,wxR)+tw)*.5,BL=Math.max(sp.l*.5,Math.max(wzF,wzR)+.35);           // demi-empreinte de la caisse
   EMPR.PW=2*BW+1.3;EMPR.PL=2*BL+1.5;                                                         // + la pénombre tout autour
   const c=EMPR.cv.getContext('2d'),im=c.createImageData(64,128),D=im.data,rc=Math.min(BW,.55);
   for(let j=0;j<128;j++)for(let i=0;i<64;i++){
@@ -8046,7 +8046,7 @@ function emprPeint(){
     const qx=Math.abs(x)-(BW-rc),qz=Math.abs(z)-(BL-rc);                                      // distance signée au rectangle aux coins ronds
     const dd=Math.hypot(Math.max(qx,0),Math.max(qz,0))+Math.min(Math.max(qx,qz),0)-rc;
     const t=Math.min(1,Math.max(0,(dd+.3)/.9));let a=.46*(1-t*t*(3-2*t));                     // le corps : plein dessous, fondu sur ~90 cm
-    const zw=z>0?wzF:wzR,ex=(Math.abs(x)-wx)/(tw*.9),ez=(Math.abs(z)-zw)/.55;                // les quatre appuis
+    const zw=z>0?wzF:wzR,ex=(Math.abs(x)-(z>0?wx:wxR))/(tw*.9),ez=(Math.abs(z)-zw)/.55;                // les quatre appuis
     a=1-(1-a)*(1-.5*Math.exp(-(ex*ex+ez*ez)*1.6));
     const o=(j*64+i)*4;D[o]=D[o+1]=D[o+2]=255;D[o+3]=Math.round(a*255); // (vague 2) blanc : l'encre vient de la matière (voir contactShadow)
   }
@@ -8108,7 +8108,7 @@ function carVit(dt){
   else if(!paused&&mode!=='drive')ROUES.v*=Math.exp(-dt*.7);
   if(!paused&&wheels.length){
     const R0=wheels[wheels.length-1].userData.R||.45,pas=Math.max(-.3,Math.min(.3,ROUES.v/R0*dt));
-    if(pas){for(const w of wheels)w.rotation.x+=pas;for(const e of ESSIEUX)e.rotation.x+=pas;} // (2026-09-27) les roues d'origine (hors scène, lues ailleurs) + les essieux soudés qu'on VOIT
+    if(pas){for(const w of wheels)w.rotation.x+=pas*R0/(w.userData.R||R0);for(const e of ESSIEUX)e.rotation.x+=pas;} // (2026-09-27) les roues d'origine (hors scène, lues ailleurs) + les essieux soudés qu'on VOIT
   }
   const nuit=Math.max(LVL.pluie||0,LVL.espace||0,(LVL.paris||0)*Math.min(1,PSU.uT.value)); // (Paris) la nuit, la lampe de carrosserie reste
   /* LA LAMPE DE CARROSSERIE SE RETIRE AU SOLEIL (2026-09-26, vague 2). `carLight` (blanche, 3 m au-dessus du toit) est la clé de la caisse
@@ -16502,36 +16502,41 @@ function lpOmbre(geo,H){
 function lpWheel(o){
   if(o.style==='nyan')return {}; // (2026-10-08) le chat pop-tart dessine ses roues lui-même (voir « LES ROUES PIXEL » dans son gabarit) : ici, des moyeux VIDES qui portent l'angle
   const R=o.R,hw=o.w/2,K=lpKit({k:{g:'m',c:o.pneu||0x16171a},w:{g:'s',c:0xf4f1ea},
-    c:{g:'c',c:o.jante||0xe6e9ee},d:{g:'m',c:o.fond||0x1b1c21},o:{g:'o',c:0xffc24a},a:{g:'p',c:o.accent||0xe6e9ee,f:0}});
+    c:{g:'c',c:o.jante||0xe6e9ee},d:{g:'m',c:o.fond||0x1b1c21},o:{g:'o',c:0xffc24a},a:{g:'p',c:o.accent||0xe6e9ee,f:0},b:{g:'p',c:o.bande||0xffffff,f:0}});
   K.lathe('k',[[R*.64,-hw],[R*.88,-hw],[R,-hw*.55],[R,hw*.55],[R*.88,hw],[R*.64,hw]],16,0,0,0,'x');
   if(o.crampons)for(let i=0;i<14;i++){const a=i/14*Math.PI*2;
     K.box('k',o.w*.84,.05,.11,0,Math.sin(a)*R,Math.cos(a)*R,Math.PI/2-a);}
-  if(o.blanc)K.lathe('w',[[R*.70,hw+.004],[R*.86,hw+.004]],16,0,0,0,'x');
-  const fx=hw-.035;                                           // le plan de la jante, en retrait du pneu
-  K.lathe('d',[[R*.64,-hw+.02],[R*.64,fx-.05],[0,fx-.05]],16,0,0,0,'x'); // fût + fond sombre
+  if(o.bande)K.lathe('b',[[R+.004,-hw*.16],[R+.004,hw*.16]],16,0,0,0,'x'); // (2026-10-08, SQUALE) une BANDE claire au milieu de la bande de roulement : vue d'en dessous, la roue se lit
+  const fx0=hw-.035,FACES=o.deux?[1,-1]:[1];                 // le plan de la jante, en retrait du pneu
+  // (2026-10-08, SQUALE) `deux` : la roue du MILIEU, qu'on voit des deux côtés — un tambour FERMÉ et une jante sur CHAQUE face (miroir en x)
+  if(o.deux)K.lathe('d',[[0,-(fx0-.05)],[R*.64,-(fx0-.05)],[R*.64,fx0-.05],[0,fx0-.05]],16,0,0,0,'x');
+  else K.lathe('d',[[R*.64,-hw+.02],[R*.64,fx0-.05],[0,fx0-.05]],16,0,0,0,'x'); // fût + fond sombre
+  for(const e of FACES){const fx=e*fx0;
+  if(o.blanc)K.lathe('w',[[R*.70,e*(hw+.004)],[R*.86,e*(hw+.004)]],16,0,0,0,'x');
   if(o.style==='cadran'){
     K.lathe('c',[[R*.64,fx],[0,fx]],16,0,0,0,'x');
-    for(let h=0;h<5;h++){const a=h/5*Math.PI*2;K.cyl('d',R*.13,.012,8,fx+.004,Math.sin(a)*R*.40,Math.cos(a)*R*.40,'x');}
+    for(let h=0;h<5;h++){const a=h/5*Math.PI*2;K.cyl('d',R*.13,.012,8,fx+e*.004,Math.sin(a)*R*.40,Math.cos(a)*R*.40,'x');}
   }else if(o.style==='enjoliveur'){
-    K.lathe('c',[[R*.64,fx],[R*.52,fx+.025],[R*.24,fx+.055],[0,fx+.06]],16,0,0,0,'x');
-    K.cyl('o',R*.13,.02,8,fx+.064,0,0,'x');
+    K.lathe('c',[[R*.64,fx],[R*.52,fx+e*.025],[R*.24,fx+e*.055],[0,fx+e*.06]],16,0,0,0,'x');
+    K.cyl('o',R*.13,.02,8,fx+e*.064,0,0,'x');
   }else if(o.style==='plis'){
     // (2026-10-02, L'ORIGAMI) LE FLASQUE PLIÉ : un disque plein, `n` plis en étoile — une crête, un creux, et chaque pan attrape SA
     // lumière (un pan sur deux en `jante`, l'autre en `accent` : la roue qui tourne se lit). Les pointes débordent sur le flanc du pneu.
     // ⚠ rien ne dépasse fx + 0,022 : le flou de jante (voir ROUES.flou) se pose à fx + 0,024, par-dessus.
-    const n=o.n||7,N=n*2,r=R*.64,ct=[fx+.012,0,0],pt=(a,rr,x)=>[x,Math.sin(a)*rr,Math.cos(a)*rr];
+    const n=o.n||7,N=n*2,r=R*.64,ct=[fx+e*.012,0,0],pt=(a,rr,x)=>[x,Math.sin(a)*rr,Math.cos(a)*rr];
     for(let s=0;s<N;s++){const a0=s/N*Math.PI*2,a1=(s+1)/N*Math.PI*2;
-      K.tri(s%2?'a':'c',ct,pt(a0,r,s%2?fx-.006:fx+.02),pt(a1,r,s%2?fx+.02:fx-.006));}
+      K.tri(s%2?'a':'c',ct,pt(a0,r,s%2?fx-e*.006:fx+e*.02),pt(a1,r,s%2?fx+e*.02:fx-e*.006));}
     for(let s=0;s<n;s++){const a=s/n*Math.PI*2,d=Math.PI/N*.62;
-      K.tri('a',pt(a-d,R*.655,hw+.004),pt(a+d,R*.655,hw+.004),pt(a,R*.85,hw+.004));}
-    K.cyl('d',R*.10,.012,7,fx+.016,0,0,'x');                                // le cache-moyeu
+      K.tri('a',pt(a-d,R*.655,e*(hw+.004)),pt(a+d,R*.655,e*(hw+.004)),pt(a,R*.85,e*(hw+.004)));}
+    K.cyl('d',R*.10,.012,7,fx+e*.016,0,0,'x');                                // le cache-moyeu
   }else{
     const n=o.n||5,multi=o.style==='multi';
     K.lathe('c',[[R*.64,fx],[R*.55,fx]],16,0,0,0,'x');                     // la lèvre
     for(let s=0;s<n;s++){const a=s/n*Math.PI*2;
-      K.box(multi?'c':'a',.03,R*.46,multi?R*.07:R*.13,fx-.012,Math.sin(a)*R*.33,Math.cos(a)*R*.33,-a);}
+      K.box(multi?'c':'a',.03,R*.46,multi?R*.07:R*.13,fx-e*.012,Math.sin(a)*R*.33,Math.cos(a)*R*.33,-a);}
   }
-  if(o.style!=='enjoliveur'&&o.style!=='plis')K.cyl('c',R*.16,.05,8,fx-.01,0,0,'x'); // le moyeu
+  if(o.style!=='enjoliveur'&&o.style!=='plis')K.cyl('c',R*.16,.05,8,fx-e*.01,0,0,'x'); // le moyeu
+  }
   return K.done();
 }
 /* ---- LES 6 SILHOUETTES (LA HONTE + LES CINQ, 2026-09-24) ---------------------------------------
@@ -20715,7 +20720,7 @@ SHAPES.squale=function(K){
      entre les deux mâchoires. Tout est construit fermé, puis plié d'un coup au moment de poser la caisse (voir P.done, avant K.commit). */
   const YS=.52,ZH=1.25,TH=.62;
   const P=K.kit({p:{g:'p',c:0x5e666d,grad:[0x7e868c,0x5e666d,0x41484e]},b:{g:'p',c:0xf3f2ee,f:0},n:{g:'p',c:0x2a3036,f:0},
-    k:{g:'m',c:0x15171c},g:{g:'g',c:0x161c26},G:{g:'g',c:0x0b0c10},N:{g:'m',c:0x1d2126},K:{g:'m',c:0x3a0a12},J:{g:'m',c:0x120306},T:{g:'m',c:0x6e1a26},Q:{g:'m',c:0x4a1018},R:{g:'p',c:0xd8707c,f:0},d:{g:'p',c:0xf5f2ea,f:0},e:{g:'p',c:0xe2d9c4,f:0},
+    k:{g:'m',c:0x15171c},H:{g:'l',c:0x5a0c18,f:0},g:{g:'g',c:0x161c26},G:{g:'g',c:0x0b0c10},N:{g:'m',c:0x1d2126},K:{g:'m',c:0x3a0a12},J:{g:'m',c:0x120306},T:{g:'m',c:0x6e1a26},Q:{g:'m',c:0x4a1018},R:{g:'p',c:0xd8707c,f:0},d:{g:'p',c:0xf5f2ea,f:0},e:{g:'p',c:0xe2d9c4,f:0},
     W:{g:'l',c:0xfffdf7},I:{g:'g',c:0x050608},L:{g:'l',c:0xff2236},c:{g:'c',c:0xd9dde3}});
   const bosse=d=>Math.max(0,1-d*d);
   const T=z=>U.lin([[ZT,.92],[-2.18,1.02],[-1.95,1.06],[-1.55,1.09],[-1.05,1.31],[-.35,1.38],[.25,1.37],[.80,1.09],[1.0,1.08],[1.9,1.07],[2.15,1.06],[ZN,1.03]],z),
@@ -20732,7 +20737,7 @@ SHAPES.squale=function(K){
   P.loft(zs,S,(j,z)=>{
     if(j===-1)return 'X';                                                         // la face avant : posée à la main (la gueule s'ouvre au milieu)
     if(j<0)return 'p';
-    if(j===0)return 'k';
+    if(j===0)return (z>-.30&&z<1.50)?'X':Math.abs(z-ZR)<R+.12?'k':'b';           // (Léo : « le dessous, on le voit en l'air ») le plancher = le VENTRE blanc ; sombre dans les passages arrière ; OUVERT au-dessus de la grande roue (le ventre et son puits, plus bas, le referment)
     if((j===3||j===2)&&z>ZN-.20)return 'K';                                       // (Léo : « le truc rouge, rapetisse-le : il y a de la peau, mais elle ne fait pas cette longueur ») l'intérieur rouge, court, au coin de la gueule
     if(j===3&&z>1.88)return 'p';                                                  // …derrière, la peau étirée est GRISE (la joue du requin)                                                   // (Léo : « des dents sur le côté de la mâchoire, cachées par du blanc parasite ») la peau étirée entre les mâchoires = l'INTÉRIEUR de la gueule
     if(j<=3)return 'b';                                                           // le VENTRE blanc (deux bandes : la fente passe entre elles)
@@ -20864,7 +20869,6 @@ SHAPES.squale=function(K){
       for(let i=1;i<NG.length-1;i++){P.tri('p',H9[0],H9[i],H9[i+1]);P.tri('b',B9[0],B9[i+1],B9[i]);}
       for(let i=0;i<NG.length;i++){const j=(i+1)%NG.length;P.tri('p',H9[i],B9[i],B9[j]);P.tri('p',H9[i],B9[j],H9[j]);}}
   }
-  P.box('b',1.58,.17,ZN-.05-(ZF-.46),0,.145,(ZN-.05+ZF-.46)/2);                   // LE VENTRE de l'avant, à 7 cm du sol, entre les jupes : on ne voit rien de la roue
   // (Léo : « la voiture doit être plus courte ») L'AVANT RACCOURCI : passé l'arche arrière (Z0), tout se resserre de KZ en longueur
   //   (habitacle, capot, gueule, museau), puis la caisse est recentrée (DZ) — posé avec le pli, sur chaque sommet ; roues, phares, pots suivent
   const Z0=ZR+R+.13,KZ=.75,DZ=.38,MZ=z=>(z>Z0?Z0+(z-Z0)*KZ:z)+DZ;
@@ -20899,6 +20903,70 @@ SHAPES.squale=function(K){
       r0=r1;}
     {const C=[0,(r0[NA/2][1]+r0[0][1])/2,Z2];for(let m=0;m<NA;m++)P.tri('p',V3(...C),V3(...r0[m]),V3(...r0[m+1]));} // le bout avant, fondu dans le rostre
   }
+  { // (2026-10-08, Léo : « dans l'air on voit le dessous de la voiture : fais un dessous stylé — une GRANDE ROUE, le ventre du requin, et les
+    //  deux derrière ») LE DESSOUS. Dessiné en coordonnées FINALES (après le raccourci : `Zp` rend la station d'origine, le pli ne touche
+    //  rien sous la fente de la gueule). D'avant en arrière, vu d'en dessous :
+    //  · LE VENTRE : une coque blanche de 17 cm, d'une jupe à l'autre, du menton jusque derrière la roue, où elle remonte en douceur se
+    //    fondre dans le plancher (blanc lui aussi) ; au milieu, un CANAL remonté de 10 cm (marches sombres) où la roue dépasse de 16 cm —
+    //    les bords, eux, restent bas : de côté on ne la voit pas, et le menton la cache de face ;
+    //  · LA GRANDE ROUE (une seule, au milieu, ×1,46, crampons, jante blanc os : `w1F`, `lpwF`), juste après le ventre, sort d'une FENTE bordée d'une
+    //    lèvre de peau blanche et d'un joint sombre ; le puits qui l'abrite LUIT rouge sombre comme la gorge (la roue s'y découpe en
+    //    ombre chinoise) et l'épouse en arche. Son haut traverse le capot DANS le crâne (creux, opaque) : la roue ne se voit que dessous.
+    //    De côté, le ventre la cache : à peine 6 cm ;
+    //  · la LIGNE LATÉRALE : deux filets sombres qui filent vers la queue en se resserrant ;
+    //  · les NAGEOIRES PELVIENNES, couchées vers l'arrière, juste devant les roues arrière ;
+    //  · entre les roues arrière, une plaque blanche (les roues dans deux poches sombres) et, au milieu, la NAGEOIRE ANALE en quille ;
+    //  · au bout, le diffuseur : quatre lames sombres, la fourche de la queue.
+    const Zp=zf=>{const z=zf-DZ;return z>Z0?Z0+(z-Z0)/KZ:z;},s3=t=>t<=0?0:t>=1?1:t*t*(3-2*t),q4=(k,a,b,c,d)=>{P.tri(k,a,b,c);P.tri(k,a,c,d);};
+    const V=(x,y,zf)=>[x,y,Zp(zf)];
+    const RW=R*1.46,ZC=.65,RA=RW+.07,WX=.52,WV=.34,XC=.66,S0=ZC-RA,S1=ZC+RA,ZV0=-.32,ZV1=-.11,ZFR=MZ(ZN-.05),YT=.235,YV0=.06,YC=.16,LW=.05,LH=.022,
+      yB=zf=>YT-(YT-YV0)*s3((zf-ZV0)/(ZV1-ZV0)),xo=zf=>S(Zp(zf))[2][0]-.025,
+      yC=zf=>Math.max(yB(zf),YC-(YC-YV0)*s3((zf-S1-.05)/.20));                     // LE CANAL : le milieu du ventre remonte de 10 cm autour de la roue
+    const zf9=[];for(let z=ZV0;z<ZFR-1e-6;z+=.04)zf9.push(z);zf9.push(S0,S1,S1+.05,S1+.25,ZFR);zf9.sort((a,b)=>a-b);
+    const ZF9=zf9.filter((z,i)=>i===0||z-zf9[i-1]>.004);
+    for(let i=1;i<ZF9.length;i++){const za=ZF9[i-1],zb=ZF9[i],ya=yB(za),yb=yB(zb),ca=yC(za),cb=yC(zb),xa=xo(za),xb=xo(zb),fente=za>=S0-1e-6&&zb<=S1+1e-6;
+      for(const e of [-1,1]){
+        q4('b',V(e*XC,ya,za),V(e*xa,ya,za),V(e*xb,yb,zb),V(e*XC,yb,zb));                                 // les BORDS du ventre (bas : de côté, ils cachent la roue)
+        if(fente)q4('b',V(e*WX,ca,za),V(e*XC,ca,za),V(e*XC,cb,zb),V(e*WX,cb,zb));                      // le canal, de part et d'autre de la fente
+        else if(e>0)q4('b',V(-XC,ca,za),V(XC,ca,za),V(XC,cb,zb),V(-XC,cb,zb));                         // …ou d'un bord à l'autre
+        if(ca-ya>1e-4||cb-yb>1e-4)q4('N',V(e*XC,ya,za),V(e*XC,ca,za),V(e*XC,cb,zb),V(e*XC,yb,zb));      // les marches du canal (sombres : un trait net vu d'en dessous)
+        q4('b',V(e*xa,ya,za),V(e*xa,YT,za),V(e*xb,YT,zb),V(e*xb,yb,zb));}}                             // le flanc du ventre
+    {const x=xo(ZFR);q4('b',V(-x,YV0,ZFR),V(x,YV0,ZFR),V(x,YT,ZFR),V(-x,YT,ZFR));}                    // le menton
+    // LA FENTE : le puits en ARCHE qui épouse la roue (7 cm autour), lumineux ; la lèvre de peau qui jaillit de 2 cm, le joint affleurant.
+    // ⚠ le haut de l'arche passe dans la zone du PLI (au-dessus de la fente, devant la charnière) : chaque sommet y est DÉPLIÉ (point fixe,
+    //   comme le crâne) pour que le pli le remette exactement autour de la roue, qui, elle, ne se plie pas.
+    const thz=z=>TH*s3((z-ZH)/(ZN-ZH)),dep=(y,z)=>{if(z<=ZH||y<=YS)return [y,z];const dy1=y-YS,dz1=z-ZH;let zz=z;
+        for(let k=0;k<30;k++){const th=thz(zz);zz=ZH+dz1*Math.cos(th)+dy1*Math.sin(th);}
+        const th=thz(zz),y0=YS-dz1*Math.sin(th)+dy1*Math.cos(th);return y0>YS?[y0,zz]:[y,z];},
+      VW=(x,y,zf)=>{const q=dep(y,Zp(zf));return [x,q[0],q[1]];};
+    // la fente est large (on voit les flancs et la jante de la roue) ; au-dessus du moyeu les parois se resserrent (WV) : la voûte qui
+    // perce le capot reste DANS le crâne
+    const yLv=YC-LH,yA=zf=>RW+Math.sqrt(Math.max(0,RA*RA-(zf-ZC)*(zf-ZC))),NA9=22;
+    for(let i=0;i<NA9;i++){const za=S0+(S1-S0)*i/NA9,zb=S0+(S1-S0)*(i+1)/NA9;
+      q4('H',VW(-WV,yA(za),za),VW(WV,yA(za),za),VW(WV,yA(zb),zb),VW(-WV,yA(zb),zb));                     // la voûte
+      for(const e of [-1,1]){q4('H',VW(e*WX,RW,za),VW(e*WX,RW,zb),VW(e*WV,yA(zb),zb),VW(e*WV,yA(za),za)); // les parois : en haut, elles se resserrent…
+        if(i===0)q4('H',VW(e*WX,yLv,S0),VW(e*WX,yLv,S1),VW(e*WX,RW,S1),VW(e*WX,RW,S0));}}                 // …en bas, droites
+    for(const z of [S0,S1])q4('H',VW(-WX,yLv,z),VW(WX,yLv,z),VW(WX,RW,z),VW(-WX,RW,z));                  // les bouts de la fente
+    { // la lèvre : un cadre autour de la fente (dessous plat, biseau vers le ventre), puis le joint
+      const ring=(d,y)=>[[-WX-d,S0-d],[WX+d,S0-d],[WX+d,S1+d],[-WX-d,S1+d]].map(([x,z])=>V(x,y,z));
+      const A=ring(0,yLv),B=ring(LW,yLv),C=ring(LW+.02,YC-.001),D=ring(LW+.02,YC-.002),E=ring(LW+.034,YC-.002);
+      for(let i=0;i<4;i++){const j=(i+1)%4;q4('b',A[i],A[j],B[j],B[i]);q4('b',B[i],B[j],C[j],C[i]);q4('G',D[i],D[j],E[j],E[i]);}}
+    // LA LIGNE LATÉRALE : deux filets sombres, sur le ventre, le plancher puis la plaque arrière, qui se resserrent vers la queue
+    const xl=zf=>U.lin([[-1.50,.42],[-.32,.70],[1.70,.76]],zf),yS=zf=>zf>=ZV0?yB(zf):(Math.abs(Zp(zf)-ZR)<.50?.218:.22);
+    for(let z=-1.50;z<1.70-1e-6;z+=.04){const za=z,zb=Math.min(1.70,z+.04);
+      for(const e of [-1,1])q4('N',V(e*(xl(za)-.011),yS(za)-.003,za),V(e*(xl(za)+.011),yS(za)-.003,za),V(e*(xl(zb)+.011),yS(zb)-.003,zb),V(e*(xl(zb)-.011),yS(zb)-.003,zb));}
+    // LES NAGEOIRES : une lame triangulaire épaisse (racine A-B collée au dessous, pointe C), décollée de `ep` en x
+    const fin=(k,A,B,C,ep)=>{const o=p=>[p[0]+ep,p[1],p[2]],A2=o(A),B2=o(B),C2=o(C);
+      P.tri(k,A,B,C);P.tri(k,A2,C2,B2);q4(k,A,A2,B2,B);q4(k,B,B2,C2,C);q4(k,C,C2,A2,A);};
+    for(const e of [-1,1])fin('p',V(e*.30,.221,-.40),V(e*.30,.221,-.74),V(e*.47,.105,-.82),-.009);       // les pelviennes, écartées
+    { // entre les roues arrière : la plaque blanche, les deux poches sombres, la quille
+      const zA=ZR-.50,zB=ZR+.50,XP=.62;
+      q4('b',[-XP,.218,zA],[XP,.218,zA],[XP,.218,zB],[-XP,.218,zB]);
+      for(let z=zA;z<zB-1e-6;z+=.04){const z2=Math.min(zB,z+.04),h=v=>U.arch(v,[ZR],AR,.22)-.005;
+        for(const e of [-1,1])q4('k',[e*XP,.218,z],[e*XP,.218,z2],[e*XP,h(z2),z2],[e*XP,h(z),z]);}
+      fin('p',V(-.016,.219,-1.00),V(-.016,.219,-1.40),V(-.016,.125,-1.50),.032);}                         // la nageoire anale, en quille
+    for(const x of [-.40,-.16,.16,.40])fin('k',V(x-.01,.219,-1.53),V(x-.01,.219,-1.87),V(x-.01,.13,-1.87),.02); // le diffuseur : la fourche de la queue
+  }
   { // LE PLI DE LA MÂCHOIRE : chaque sommet au-dessus de la fente et devant la charnière tourne autour de (YS, ZH), d'autant plus qu'il est près du nez
     const ss=t=>t<=0?0:t>=1?1:t*t*(3-2*t),fin=P.done;
     P.done=()=>{const gs=fin();for(const k9 in gs){const a=gs[k9].attributes.position.array;
@@ -20912,7 +20980,7 @@ SHAPES.squale=function(K){
   {const mP=K.mats&&K.mats.p;if(mP){mP.shininess=86;mP.specular.setHex(0x8c8c8c);mP.reflectivity=.36;
     if(mP.userData.uG)mP.userData.uG.value=.035;if(mP.userData.uV)mP.userData.uV.value.set(.40,1.8,3,.30);}}
   return {hl:[.70,.937,MZ(ZN+.03)],tl:[.55,.83,MZ(ZT-.03)],lamps:0,pipes:0,halos:0, // les yeux SONT les phares : ni boîte blanche ni halo devant eux
-          wx:.88,wxF:.58,wRF:.45,wzF:MZ(ZF),wzR:-MZ(ZR),                                // la roue avant rentrée sous la jupe
+          wx:.88,w1F:1,wRF:1.46,wzF:.65,wzR:-MZ(ZR),lpwF:{crampons:1,bande:0xe9e4da,jante:0xe9e4da,accent:0xe9e4da},                  // UNE grande roue avant, au milieu, sous le ventre (voir LE DESSOUS)
           pots:[[.30,.30,MZ(ZT-.14)],[-.30,.30,MZ(ZT-.14)],[.46,.30,MZ(ZT-.14)],[-.46,.30,MZ(ZT-.14)]],
           lpw:{R:R,w:.36,style:'rayons',n:6,jante:0x2b2e34,accent:0x2b2e34}};
 };
@@ -21255,14 +21323,16 @@ function buildCar(spec){
     // ROUES DU KIT : la géométrie est calculée UNE fois et partagée par les quatre. La jante est
     // dessinée sur la face +X : les roues de gauche (x<0) sont posées en MIROIR (scale.x −1, three
     // retourne l'ordre des faces tout seul). La boucle les fait tourner par `rotation.x`, l'essieu.
-    const W9=A.lpw,gs=lpWheel(W9);
+    const W9=A.lpw,gs=lpWheel(W9),gs1=A.w1F?lpWheel(Object.assign({},W9,A.lpwF||{},{deux:1})):null; // `lpwF` : ce qui change sur la roue du milieu (SQUALE : crampons)
     for(const sxz of [[-1,1],[1,1],[-1,-1],[1,-1]]){
-      const w=new THREE.Group();
-      for(const g in gs){const m=new THREE.Mesh(gs[g],lpMatC(g));m.userData.lp=1;w.add(m);}
-      const kF=sxz[1]>0&&A.wRF?A.wRF:1; // `wRF` : les roues AVANT réduites (SQUALE : petites, rentrées sous la jupe — on ne les voit pas)
-      w.scale.set((sxz[0]<0?-1:1)*kF,kF,kF);w.userData.large=W9.w*kF; // (2026-09-26) la largeur du pneu : les traces la reprennent
+      const w=new THREE.Group(),seule=gs1&&sxz[1]>0; // `w1F` (2026-10-08, SQUALE) : UNE seule roue avant, AU MILIEU, jante des deux côtés — la
+      if(!(seule&&sxz[0]<0)){const g9=seule?gs1:gs;  // place de gauche garde un moyeu VIDE (rien à dessiner) : `wheels` reste à quatre, comme
+        for(const g in g9){const m=new THREE.Mesh(g9[g],lpMatC(g));m.userData.lp=1;w.add(m);}} // le lisent l'empreinte, les traces, le burn-out
+      const kF=sxz[1]>0&&A.wRF?A.wRF:1; // `wRF` : l'échelle des roues AVANT (SQUALE : la grande roue du milieu)
+      w.scale.set((sxz[0]<0&&!seule?-1:1)*kF,kF,kF);w.userData.large=W9.w*kF; // (2026-09-26) la largeur du pneu : les traces la reprennent
       w.userData.R=W9.R*kF; // (2026-09-26) le rayon : la boucle fait tourner la roue à sa VRAIE vitesse (v / R)
-      w.position.set(sxz[0]*(sxz[1]>0&&A.wxF!=null?A.wxF:A.wx),W9.R*kF+A.wy,sxz[1]>0?(A.wzF!=null?A.wzF:A.wz):-(A.wzR!=null?A.wzR:A.wz)); // `wxF` : la voie avant (SQUALE : roues rentrées sous la jupe)
+      if(seule)w.userData.deux=1;
+      w.position.set(seule?0:sxz[0]*(sxz[1]>0&&A.wxF!=null?A.wxF:A.wx),W9.R*kF+A.wy,sxz[1]>0?(A.wzF!=null?A.wzF:A.wz):-(A.wzR!=null?A.wzR:A.wz)); // `wxF` : la voie avant
       carGroup.add(w);wheels.push(w);
     }
   }else{
@@ -21291,9 +21361,11 @@ function buildCar(spec){
    else if(!wreck){fx9=A.wx+.2*A.wr;r9=.40*A.wr*.62;}
    if(fx9!=null&&wheels.length){
      const cg=new THREE.CircleGeometry(1,20).toNonIndexed(),cp=cg.attributes.position.array,cu=cg.attributes.uv.array,P=[],U=[];
-     for(const w of wheels){const sd=w.position.x>0?1:-1,x9=sd*(fx9-A.wx+Math.abs(w.position.x)),y9=w.position.y,z9=w.position.z; // le disque suit SA roue (voie avant ≠ arrière)
-       const r8=r9*(A.lpw&&w.userData.R?w.userData.R/A.lpw.R:1);for(let i=0;i<cp.length;i+=3)P.push(x9,y9+cp[i+1]*r8,z9-sd*cp[i]*r8); // le disque XY tourné de ±90° autour de Y : sa face regarde DEHORS
-       for(let i=0;i<cu.length;i++)U.push(cu[i]);}
+     for(const w of wheels){if(!w.children.length&&A.lpw)continue; // (le moyeu vide de la roue unique)
+       const k8=A.lpw&&w.userData.R?w.userData.R/A.lpw.R:1,r8=r9*k8,y9=w.position.y,z9=w.position.z;
+       for(const sd of w.userData.deux?[1,-1]:[w.position.x>0?1:-1]){const x9=sd*((fx9-A.wx)*k8+Math.abs(w.position.x)); // le disque suit SA roue (voie, échelle) ; la roue du milieu en a deux
+         for(let i=0;i<cp.length;i+=3)P.push(x9,y9+cp[i+1]*r8,z9-sd*cp[i]*r8); // le disque XY tourné de ±90° autour de Y : sa face regarde DEHORS
+         for(let i=0;i<cu.length;i++)U.push(cu[i]);}}
      cg.dispose();
      const g9=new THREE.BufferGeometry();g9.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g9.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));
      // (2026-09-26, vague 2) LE FLOU PREND LA COULEUR DE LA JANTE : la texture est un gris clair commun à toutes — sur une jante noire ou
