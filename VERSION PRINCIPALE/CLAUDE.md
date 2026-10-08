@@ -393,6 +393,16 @@ LES BOUTONS DE SACHA ») : **PLAY/JOUER = la partie sans fin, et toucher un nive
   couché et debout, FR/EN) : choix du niveau 3 → atelier « SKY HIGH 3 » → JOUER = niveau 3 ; portail puis mort au 4 → l'accueil dit
   « SKY HIGH 4 » et PLAY relance le 4 ; MISSIONS → carte VILLE → JOUER des missions = VILLE 1 ; joueur neuf → question du mode puis
   AURORE avec l'auto-école ; Survivant armé → partie sans fin ; même musique que la carrière ; 0 erreur. sw.js → v160 (v159 = le tour sans fin de l'écran titre, fusionné).
+## LA CAISSE EN DIAGONALE À L'ÉCRAN TITRE (2026-10-08, Léo : « dans le menu ciel du début la voiture nous tourne trop le dos » → « un peu de profil » → « non, plus diagonale, qu'on voie un peu l'avant et le profil » ; « l'angle, parfait »)
+- MESURÉ avant (planche de 8 angles du tour, couché 844 × 390 et debout 390 × 844) : la caisse était FIXE dans le monde et le regard en
+  faisait le tour — feux arrière et dessous la MOITIÉ du tour (0° → 180°), de face seulement entre ~225° et ~325°.
+- Le regard garde son TOUR SANS FIN (le ciel, le soleil, les cumulus tournent comme avant, le doigt le fait tourner aussi), mais la caisse
+  PIVOTE avec lui : son cap (`CHUTE.fh`) tourne de `oA − h`, où `h = CHUTE_P.face + faceA·sin(oA)` est l'angle d'où on la voit — `face`
+  −0,785 (315° : trois-quarts avant nez à droite, l'avant ET le flanc ; choisi sur planche, 295° = trop de face, 335° et plus = trop de
+  profil), `faceA` ,21 (±12° : 303° ↔ 327°, un aller-retour par tour). Bloc « LA CAISSE EN DIAGONALE » juste après le calcul de `CHUTE.fh`
+  dans `chuteRender`. Au piqué (JOUER) le tour s'arrête, son cap aussi : la caméra passe derrière elle comme avant.
+- `dbgChute({face:null})` = la caisse fixe d'avant (A/B) ; `dbgChute({orb:a,tour:0})` montre alors la vue `h(a)`. Mis au point sur la
+  branche `menu-tour-doux` (tour constant), greffé SEUL sur main avec la chute libre (Léo : « push seulement l'angle et la physique de chute »).
 ## LA CHUTE LIBRE RÉALISTE DE L'ÉCRAN TITRE (2026-10-08, Léo : « la voiture doit avoir davantage un effet de chute libre réaliste »)
 - MESURÉ avant (film de 24 images) : quatre sinus purs (un balancement de manège, régulier), la caisse CLOUÉE au centre de l'image (la
   caméra visait le même point qu'elle), les roues à 7 rad/s comme si elle roulait encore. Bloc « LA CHUTE LIBRE RÉALISTE » juste avant `chuteRender`.
