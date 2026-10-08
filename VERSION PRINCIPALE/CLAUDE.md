@@ -1,5 +1,24 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LA SONDE QUI NE FIGE PLUS (2026-10-08, Léo : « le jeu bug un peu quand je le lance, pas que au lancement il rame — trouve une solution qui ne touche pas au graphique ni à la qualité »)
+- MESURÉ (Chrome sans fenêtre sur le Mac M2 de Léo, course au pilote auto, trace + appels WebGL chronométrés) : les à-coups de 35-120 ms
+  en course venaient de `qlSonde` — la SONDE de la règle de qualité (28/09, faite pour l'iPhone bridé à 30 i/s). Quand des images ratent,
+  elle lisait 1 pixel (`readPixels`) cinq images de suite : le processeur ATTEND la puce à chaque fois. 15 lectures, 510 ms gelés en 40 s ;
+  sur une machine chargée elle se réveille plus souvent et aggrave l'à-coup qu'elle mesure.
+- Désormais, là où le navigateur a `EXT_disjoint_timer_query_webgl2` (Chrome, Edge, Android — présent sur le Mac M2), la PUCE se
+  chronomètre (`qlSondeDebut` en tête de `loop` ouvre une requête TIME_ELAPSED, `qlSonde` la ferme, le résultat est relu quelques images
+  plus tard par `setTimeout`) : coût = processeur (début → fin de boucle) + puce. Même seuil 14,5 ms, même décision. Safari / iPhone (pas
+  de chrono) : l'ancienne lecture synchrone, INCHANGÉE. Une puce qui ne rend jamais son chrono (5 échecs) → retour à l'ancienne sonde.
+- A/B dans la même partie (`dbgSonde('sync')` = l'ancienne, `dbgSonde(1)` = la nouvelle) : au calme l'ancienne lit 5-12 ms, la nouvelle
+  3-7 (processeur ~2 + puce ~2) — même verdict. Sous processeur ralenti ×3 : original 5-10 lectures bloquantes, corrigé ZÉRO. Aucun
+  pixel ne change (aucune matière, aucun réglage d'image touché). `dbgSonde()` lit la dernière série (`mesures`, `cpuGpu`, `chrono`).
+- ⚠ Écarté : une barrière `fenceSync` guettée entre deux tâches — plus de gel, mais le signal « fini » arrive en retard dans Chrome
+  (~21 ms lus au calme contre ~8) : la règle aurait baissé la netteté à tort.
+- Vu, pas touché : les vignettes du garage (`carPhoto`, ~100 ms chacune à la 1re visite : rendu ×2, lecture, retouche pixel par pixel,
+  `toDataURL`) ; le ramasse-miettes (~8,6 Mo/s jetés en course, une pause de ~37 ms toutes les ~15 s : three.js et la boucle géante).
+  Et ce jour-là le Mac avait une charge de 47 : sept Chrome de banc d'autres sessions tournaient depuis des heures — fermer ses bancs.
+  sw.js → v188.
+
 ## LE SQUALE (2026-10-08, Léo) — la voiture requin, caisse ajoutée EN DERNIER (après ATCHOUM), RARE 120 000 $, `SHAPES.squale`
 Fabriquée avec Léo dans le VOITURE MAKER (worktree `CAR-maker`, branche `voiture-maker` : la plateforme podium + requêtes, pas sur main).
 Partie de son sketch du garage (IMG_5559 : la caisse au sourire en dents de requin), puis d'une photo de grand requin blanc gueule
