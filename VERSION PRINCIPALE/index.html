@@ -221,7 +221,8 @@ if(POKI)(function(){
     if(POKI){for(var k=document.body.children,i=0;i<k.length;i++)k[i].classList.add('ccHors'); // le jeu que la page-cadre ne fait pas tourner
       if(PKC)PKC.charge();} // …et seulement maintenant le SDK : ce qu'il posera dans la page reste visible (le cadre de pub)
     var f=document.createElement('iframe'),u=location.href.split('#')[0];
-    f.id='colonne';f.title='CASH CAR';f.setAttribute('allow','autoplay; fullscreen; gamepad');f.setAttribute('allowfullscreen','');
+    f.id='colonne';f.setAttribute('aria-label','CASH CAR'); // (2026-10-08, Léo : « c'est un peu goofy ici ») le NOM du cadre sans `title` : un title affichait l'infobulle grise « CASH CAR » dès que la souris s'arrêtait sur le jeu
+    f.setAttribute('allow','autoplay; fullscreen; gamepad');f.setAttribute('allowfullscreen','');
     f.src=u+(u.indexOf('?')<0?'?':'&')+'colonne=1';
     f.style.width=L+'px';f.style.height=H+'px';
     /* LE CORPS DU TÉLÉPHONE (2026-10-01, Léo : « le truc iPhone c'est mal mis ») : l'écran collait aux bords de la fenêtre (une
