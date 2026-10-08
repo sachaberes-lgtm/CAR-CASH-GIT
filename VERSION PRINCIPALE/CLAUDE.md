@@ -53,14 +53,31 @@ LES BOUTONS DE SACHA ») : **PLAY/JOUER = la partie sans fin, et toucher un nive
   brun, pops, sifflet du turbo, PSSHT à la fin), le claquement du logo, la bannière du niveau. sw.js → v166.
 
 ## ⚠ LE BURN-OUT EST À LÉO (2026-10-07, Léo : « quand Sacha fait des trucs qui suppriment mes changements, code un truc qui bloque ; remets mon burn-out »)
-- Le BURN-OUT du garage (doigt tenu 0,8 s sur la caisse : fumée en cubes, donut au doigt, fouet — `BURN`, `DON`,
-  `burnPart`, `burnGeste`, `burnDyn`, `burnCubes`, `BURN_TENU`…) est le travail de LÉO. **On ne le supprime pas, on ne le remplace pas, on
+- Le BURN-OUT du garage (doigt tenu 0,8 s sur la caisse : le PREMIER burn-out — fumée en gros pixels, dérapage au ressort —, donut au doigt, cubes
+  blancs — `BURN`, `DON`, `burnPart`, `burnGeste`, `burnDerape`, `burnCubes`, `BURN_TENU`, `BURN_FS_FUM`…) est le travail de LÉO. **On ne le supprime pas, on ne le remplace pas, on
   ne l'écrase pas en fusionnant une vieille copie.** Pour le changer : demander à Léo d'abord. En cas de conflit de fusion dans ce bloc,
   garder la version de `main` (celle de Léo).
 - **DEUX GARDES** : (1) `garde-burnout.sh` (racine) — appelé en premier par `vercel-build.sh` : une version sans le burn-out n'est PAS
   publiée, la construction Vercel échoue et le site garde la version d'avant (rien n'est perdu ; `GARDE_BURNOUT=0` dans les variables de
   Vercel la coupe). (2) sur l'ordi de Léo, le crochet `pre-push` du dépôt (partagé par tous les worktrees `CAR-*`) refuse une poussée sur
   `main` sans le burn-out (`git push --no-verify` pour passer outre). Vérifier à la main : `sh garde-burnout.sh`.
+
+## LE PREMIER BURN-OUT, REVENU — AVEC LES DONUTS (2026-10-08, Léo : « reviens sur le premier burn-out, celui où on ne pouvait pas faire de donuts, et laisse-moi juste faire des donuts avec lui ; reviens sur les premiers petits carrés transparents ; si tu y arrives, quelques cubes blancs ; la fumée ET le mouvement, les deux, sur le main »)
+- Le bloc du burn-out est REDEVENU celui du 05/10 au soir (commit `683984d`, 252 lignes recopiées) : la fumée en GROS PIXELS transparents
+  (`BURN_FS_FUM` : grille 6 × 6, bords dentelés, elle s'émiette case par case ; 320 bouffées qui montent, tourbillonnent, s'étalent sous le
+  plafond), le feu en pixels additifs 3 × 3 (`BURN_FS_FEU`), la gomme en pixels sur le plateau, le rupteur ; le MOUVEMENT d'origine
+  (`burnDerape` : ressort ω 7 / ζ ,5, pivot devant la caisse, bornée au disque, la poupe qui chasse, le cul qui s'écrase).
+- AJOUTÉ (rien d'autre) : les DONUTS — `burnGeste` (le volant autour du plateau + le petit cercle à la vitesse du doigt + le glissé
+  d'origine ,009 rad/px) pose le cap, le ressort d'origine suit ; en donut le pivot glisse au centre et la vue recule (`garBurnR`, `BURN.cad`) ;
+  « DONUT ×n » + anneau de fumée ; QUELQUES CUBES BLANCS (`burnCubes` : ~14/s au plus fort, 8-13 cm, translucides, aux pneus et dans la
+  fumée, la matière des cubes de la porte). Gardé de ce qui a été réglé depuis (ni fumée ni mouvement) : `BURN_TENU` 800, `BURN_GLISSE` 24,
+  « PAS ENCORE À TOI », la console de Sacha (`garAtelierLibre`), les feux stop (`BURN.feuxK`), les pixels du chat (`BURN.pix`).
+- Les réservoirs se créent dans `burnPools()`, appelé par la CHAUFFE DE L'ATELIER (`atelierChauffe` les compile avec lui : rien au 1er
+  burn-out) et par l'atelier du bouton rouge (`atlTick`).
+- RETIRÉ (dans l'historique, dernier état `d6fea98`) : fumée en volumes/cubes de la porte, voile, jet sous la roue, poids (`DON_POIDS`),
+  flou des roues, roues avant qui roulent, traces chaudes, coup de gaz, paliers du dérapage. Les sections ci-dessous les décrivent encore.
+- MESURÉ (vrais gestes) : départ à 0,8 s ; doigt autour à 4 rad/s → 40° de retard (le ressort d'origine, sans anticipation), elle finit à
+  7° du doigt ; DONUT compté ; fumée 320 bouffées, ~55 cubes blancs en donut ; PLAY lance la course. sw.js → v171.
 
 ## LE BURN-OUT SUIT LE DOIGT + 0,8 s DE MAINTIEN (2026-10-07, nuit, Léo : « ajoute 500 millisecondes de maintien requis pour démarrer le burn-out » · « il faut que ça suive plus le doigt ou le curseur, plus comme avant » · puis « la vitesse du donut évolue proportionnellement à la vitesse du doigt, et le temps de maintien déclencheur du burn-out : 1,5 s »)
 - **LA FUMÉE COMME LA PORTE + LA PORTE ROUVERTE** (2026-10-08, Léo : « un peu plus de fumée sous la roue, la fumée encore plus comme les
