@@ -40316,7 +40316,7 @@ const BURN_RESSORT={om:8,ze:.5,genou:4,frein:40}; // (même soir, Léo : « moin
    · MARCHE ARRIÈRE (`BURN.rk`) : les roues tournent à l'envers et soufflent la fumée vers l'AVANT, elle RECULE (`recul` m/s² — seule
      exception à « elle ne recule jamais »), le pivot passe derrière (c'est l'avant qui balaie : le donut en marche arrière). Les deux
      ensemble : elle recule fort. Le ressort du doigt se relâche pendant l'une ou l'autre : elle file, puis revient sous le doigt. */
-const BURN_NITRO={fumee:.6,tourne:.2,pousse:1.8,recul:1.7,vit:.3,feu:110,lache:.45}; // (même soir, Léo : « reviens sur celle d'avant, juste un peu moins violent, et le suivi moins dénaturé ») MESURÉ en v187 (pousse 3, recul 2,6, vit ,7, ressort relâché ×(1 − ,78), tour ajouté au CAP) : la NITRO jetait la caisse à 7-8 m/s jusqu'au bord, et après elle la caisse restait décalée de ~100° sur le doigt (le tour en plus s'ajoutait pour de bon au cap visé) — désormais `tourne` = une AVANCE passagère (rad, `BURN.nAv`) qui retombe au lâcher, poussées et vitesse plus douces, le ressort du doigt ne se relâche plus que de `lache`
+const BURN_NITRO={fumee:.6,tourne:.2,pousse:1.8,recul:1.7,vit:.3,feu:110,lache:.45,boutons:false}; // (même soir, Léo : « enlève les boutons ») plus de touches à l'écran (`boutons` : true les rend) — restent ESPACE / N et ↓ / R au clavier // (même soir, Léo : « reviens sur celle d'avant, juste un peu moins violent, et le suivi moins dénaturé ») MESURÉ en v187 (pousse 3, recul 2,6, vit ,7, ressort relâché ×(1 − ,78), tour ajouté au CAP) : la NITRO jetait la caisse à 7-8 m/s jusqu'au bord, et après elle la caisse restait décalée de ~100° sur le doigt (le tour en plus s'ajoutait pour de bon au cap visé) — désormais `tourne` = une AVANCE passagère (rad, `BURN.nAv`) qui retombe au lâcher, poussées et vitesse plus douces, le ressort du doigt ne se relâche plus que de `lache`
 function burnBtnsVoir(on){
   let b=BURN.btn;
   if(!b){if(!on)return;b=BURN.btn=document.createElement('div');b.id='gBurnBtns';b.setAttribute('aria-hidden','true');if(!TEL_NATIF)b.classList.add('clavier');
@@ -40339,7 +40339,7 @@ addEventListener('keyup',function(e){
   else if(e.code==='ArrowDown'||e.code==='KeyR'||e.code==='KeyS'){BURN.recul=false;const el=BURN.btn&&BURN.btn.querySelector('#gbRecul');if(el&&el._p==null)el.classList.remove('on');}},true);
 try{Object.assign(I18N,{'ARRIERE':'REVERSE','ESPACE':'SPACE'});Object.assign(I18N_ZH,{'ARRIERE':'倒车','ESPACE':'空格'});}catch(e){}
 function burnNitroTick(dt,now){
-  burnBtnsVoir(BURN.on&&!GAR.go);
+  burnBtnsVoir(BURN_NITRO.boutons&&BURN.on&&!GAR.go);
   const n0=BURN.nk>.5,nv=BURN.on&&BURN.nitro&&!GAR.go?1:0,rv=BURN.on&&BURN.recul&&!GAR.go?1:0;
   BURN.nk+=(nv-BURN.nk)*Math.min(1,dt*(nv?8:3.5));BURN.rk+=(rv-BURN.rk)*Math.min(1,dt*(rv?4:3));
   if(BURN.nk<.002&&!nv)BURN.nk=0;if(BURN.rk<.002&&!rv)BURN.rk=0;

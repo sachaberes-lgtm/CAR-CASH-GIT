@@ -216,6 +216,8 @@ LES BOUTONS DE SACHA ») : **PLAY/JOUER = la partie sans fin, et toucher un nive
   4 rad/s, un frein progressif sur l'excès de rotation (dans le ressort du doigt) ; le doigt plus rapide : ce qui dépasse est perdu
   (`DON.avance`). `DON_PIV.glisse` ,55 → ,42. MESURÉ (doigt en cercle) : 11 rad/s → caisse 10,8 → 5,1 rad/s, balayage du centre max 13,7 →
   7,3 m/s, à-coups p90 153 → 43 m/s² ; 7 rad/s → 7,2 → 5,1 ; sous 4 rad/s inchangé (tour pour tour).
+- **PLUS DE TOUCHES À L'ÉCRAN** (même soir, Léo : « enlève les boutons ») — `BURN_NITRO.boutons` false : `#gBurnBtns` n'est plus créé. La NITRO
+  et la MARCHE ARRIÈRE restent au CLAVIER (ESPACE / N, ↓ / R / S) ; sur téléphone elles ne se déclenchent plus. sw.js → v193.
 - Les réservoirs se créent dans `burnPools()`, appelé par la CHAUFFE DE L'ATELIER (`atelierChauffe` les compile avec lui : rien au 1er
   burn-out) et par l'atelier du bouton rouge (`atlTick`).
 - RETIRÉ (dans l'historique, dernier état `d6fea98`) : fumée en volumes/cubes de la porte, voile, jet sous la roue, poids (`DON_POIDS`),
