@@ -38758,6 +38758,7 @@ function chuteEntre(){ // de l'atelier (ou de rien) au ciel
 }
 function chuteSort(ferme){ // on quitte le ciel : l'atelier (boutique, missions) ou la course (ferme)
   if(!CHUTE.on&&!CHUTE.go)return;
+  if(CHUTE.corps){carBody.position.set(0,0,0);carBody.rotation.set(0,0,0);CHUTE.corps=false;} // (LA CHUTE LIBRE RÉALISTE) la carrosserie se repose sur ses ressorts
   CHUTE.on=false;CHUTE.go=null;titreCiel(false);gEl.classList.remove('ciel');document.body.classList.remove('titreCiel');if(CHUTE.mz){skyU.uMzA.value.copy(CHUTE.mz[0]);skyU.uMzB.value.copy(CHUTE.mz[1]);skyU.uMzT.value.copy(CHUTE.mz[2]);skyU.uMzO.value.copy(CHUTE.mz[3]);skyU.uMzH.value.copy(CHUTE.mz[4]);skyU.uMerLoin.value=CHUTE.mz[5];}if(COTON.root)COTON.root.visible=COTON.n>0;if(CHUTE.nu)for(const c of CHUTE.nu)c.m.visible=false; /* (titre v3) les cumulus du titre se rangent */
   if(CHUTE.snd){try{CHUTE.snd.stop(ferme?.5:.3);}catch(e){}CHUTE.snd=null;} /* (niveau 1 v2) la chute libre se tait */
   trailLight.intensity=0;if(CHUTE.lc)carLight.color.copy(CHUTE.lc);{const BT=BIOMES.titre||BIOMES[MENU_BIO];if(BT.hemiI!=null)hemi.intensity=BT.hemiI;if(BT.sunI!=null)sun.intensity=BT.sunI;} // (2026-10-03) le studio du titre rend l'ambiance (il la baisse sur la caisse), puis la lumière du rebond (à 0 partout ailleurs) et la couleur de la lampe de caisse
@@ -38779,6 +38780,24 @@ function chuteLance(){ // JOUER, depuis le ciel : elle pique
   gEl.classList.add('launching');document.body.classList.remove('garMenuH');
   garLacherSon();
 }
+/* LA CHUTE LIBRE RÉALISTE (2026-10-08, Léo : « la voiture doit avoir davantage un effet de chute libre réaliste »). MESURÉ avant (film de
+   24 images) : quatre sinus purs (tangage .9 et 2,3 rad/s, roulis .53 et 1,7) — un balancement de manège, régulier, prévisible ; la caisse
+   CLOUÉE au centre de l'image (la caméra visait le même point qu'elle) ; les roues à 7 rad/s, comme si elle roulait encore. Une caisse
+   qui tombe à sa vitesse limite, c'est autre chose :
+   · L'AIR LA BALLOTTE PAR RAFALES (`chuteRafale` : 0 → 1, une bourrasque toutes les 5 à 10 s) : tangage de fléchette (le nez, plus lourd,
+     revient vers le bas et dépasse), roulis qui se cherche, lacet qui dérive — du BRUIT LISSE (`chuteBr`), pas des sinus : rien ne se répète.
+   · LE TREMBLEMENT DU VENT : une vibration rapide (9-13 Hz) de la caisse, plus forte dans la rafale.
+   · ELLE FLOTTE DANS LE CADRE : deux corps qui tombent ne restent pas collés — la caméra vise une ancre lisse, la caisse dérive autour
+     (±25-30 cm) et tressaute ; la vue, elle, garde son tour.
+   · LES SUSPENSIONS DÉTENDUES : plus rien ne pèse sur les ressorts — la carrosserie se soulève de ses roues (`det` m) et tressaute dessus.
+   · LES ROUES EN ROUE LIBRE : le vent les fait tourner lentement, chacune à son rythme (`roue` rad/s) ; au piqué de JOUER, elles s'emballent.
+   Tout est une fonction de `t` (CHUTE.t) : `dbgChute({fige})` fige aussi la chute. `dbgChute({cl:0})` = le balancement d'avant (A/B),
+   `cl` dose le tout (1 = le réglage choisi). « Réduire les animations » : ni tremblement ni tressaut. */
+function chuteH(i){let h=Math.imul(i^0x9E3779B9,0x85EBCA6B);h^=h>>>13;h=Math.imul(h,0xC2B2AE35);h^=h>>>16;return (h>>>0)/2147483648-1;} // un nombre au hasard FIXE par entier, dans [−1, 1]
+function chuteBr(x,k){x+=k*71.37;const i=Math.floor(x),f=x-i,u=f*f*f*(f*(f*6-15)+10),a=chuteH(i+k*7919);return a+(chuteH(i+1+k*7919)-a)*u;} // bruit lisse (quintique : la vitesse ne casse jamais), canal k
+function chuteBr2(x,k){return (chuteBr(x,k)+.5*chuteBr(x*2.07+5.3,k+40))/1.5;} // deux octaves
+function chuteRafale(t){const g=chuteBr(t*.16,90)*.6+chuteBr(t*.41,91)*.4;return THREE.MathUtils.smoothstep(g,-.15,.55);} // 0 → 1 : la bourrasque
+const CHUTE_CL={pa:.09,po:.065,ra:.2,ya:.14,tr:.02,dx:.35,dy:.35,sh:.05,det:.075,ressort:.022,cass:.03,roue:1.1}; /* pa/po tangage lent/oscillation de fléchette (rad), ra roulis, ya lacet, tr tremblement, dx/dy dérive dans le cadre (m), sh tressaut (m), det soulèvement des ressorts (m), ressort tressaut sur les roues (m), cass la carrosserie qui bascule sur ses ressorts (rad), roue rad/s */
 function chuteRender(dt){
   if(!CHUTE.on)chuteEntre();
   titreHeureTick(dt); /* (2026-10-05) LES HEURES DU TITRE : l'ambiance de l'heure du téléphone (voir TITRE_H) */
@@ -38803,20 +38822,35 @@ function chuteRender(dt){
   {const ct9=P.cote*(camera.aspect>1?1:.12);CHUTE.C.set(CHUTE.G.x-lh.x*P.avant+lh.z*ct9,CHUTE.G.y+P.alt,CHUTE.G.z-lh.z*P.avant-lh.x*ct9);} // (titre v3) au-dessus du sommet de la piste, en retrait ; la piste un peu à DROITE de la caisse (couché : la caisse est à gauche)
   // LE CAP : de trois-quarts, vers la droite de l'écran et vers la route (P.cap) — le nez plonge de P.pitch
   const rx=-lz,rz=lx;                                                             // la droite de l'écran (regard × haut) : le nez pique vers la DROITE, la traînée file en haut à gauche
-  CHUTE.fh.set(rx*Math.cos(P.cap)+lx*Math.sin(P.cap),0,rz*Math.cos(P.cap)+lz*Math.sin(P.cap)).normalize();
-  let u=0,pi=P.pitch+.06*Math.sin(t*.9)+.03*Math.sin(t*2.3),ro=(P.gite||0)+P.roule*Math.sin(t*.53)+.07*Math.sin(t*1.7),dy=0,fwd=0; /* (titre v3) P.gite : elle montre son TOIT à la caméra */
+  const cl=P.cl!=null?+P.cl:1,K=CHUTE_CL,raf=chuteRafale(t),vib=document.documentElement.getAttribute('data-reduced-motion')!=='1'?cl:0; /* (LA CHUTE LIBRE RÉALISTE) la rafale du moment, et le tremblement (coupé sous « Réduire les animations ») */
+  const ya=cl*K.ya*chuteBr2(t*.11,4)+vib*K.tr*.6*(.3+.7*raf)*chuteBr(t*9.3,24),cap9=P.cap+ya; // le lacet dérive (la caisse se cherche une route dans l'air)
+  CHUTE.fh.set(rx*Math.cos(cap9)+lx*Math.sin(cap9),0,rz*Math.cos(cap9)+lz*Math.sin(cap9)).normalize();
+  let u=0,pi,ro,dy=0,fwd=0; /* (titre v3) P.gite : elle montre son TOIT à la caméra */
+  if(cl>0){const fl=Math.sin(t*2.05+2.2*chuteBr(t*.13,3))*(.35+.65*raf); // la FLÉCHETTE : le nez lourd revient vers le bas et dépasse, plus fort dans la rafale
+    pi=P.pitch+cl*(K.pa*chuteBr2(t*.19,1)+K.po*fl)+vib*K.tr*(.3+.7*raf)*chuteBr(t*11.1,21);
+    ro=(P.gite||0)+cl*K.ra*chuteBr2(t*.23,2)+cl*.04*Math.sin(t*1.45+1.7*chuteBr(t*.17,5))*(.4+.6*raf)+vib*K.tr*1.3*(.3+.7*raf)*chuteBr(t*12.7,22);}
+  else{pi=P.pitch+.06*Math.sin(t*.9)+.03*Math.sin(t*2.3);ro=(P.gite||0)+P.roule*Math.sin(t*.53)+.07*Math.sin(t*1.7);} // (cl 0) le balancement d'avant
   if(G){G.t+=dt;u=Math.min(1,G.t/1.75);const e=u*u*(3-2*u);
     pi+=(1.3-pi)*Math.min(1,u/.3);ro*=1-e;                                         // le nez PLONGE
     dy=-Math.pow(u,2.3)*150;fwd=Math.pow(u,2)*25;}                                 // elle accélère vers la route
   const f=CHUTE.f.copy(CHUTE.fh).multiplyScalar(Math.cos(pi));f.y=-Math.sin(pi);f.normalize();
-  const C=CHUTE.v3.copy(CHUTE.C).addScaledVector(CHUTE.fh,fwd);C.y+=dy+Math.sin(t*2.1)*.12;C.x+=Math.sin(t*1.3)*.1;
+  const C=CHUTE.v3.copy(CHUTE.C).addScaledVector(CHUTE.fh,fwd);C.y+=dy; // L'ANCRE de la caméra : lisse (la caméra la vise)
+  const Ck=CHUTE.ck||(CHUTE.ck=new THREE.Vector3());Ck.copy(C);           // LA CAISSE : elle flotte autour de l'ancre (LA CHUTE LIBRE RÉALISTE)
+  if(cl>0){const sh9=vib*K.sh*(.25+.75*raf)*(1+u*2);
+    Ck.x+=cl*K.dx*chuteBr2(t*.15,6)+sh9*chuteBr(t*10.3,26);Ck.y+=cl*K.dy*chuteBr2(t*.18,7)+sh9*chuteBr(t*9.1,27);Ck.z+=cl*K.dx*chuteBr2(t*.14,8)+sh9*chuteBr(t*11.7,28);}
+  else{Ck.y+=Math.sin(t*2.1)*.12;Ck.x+=Math.sin(t*1.3)*.1;}
   // l'assiette : axes de la caisse (x = haut × avant, y = haut, z = avant), le roulis autour de l'avant
   const up=CHUTE.v1.set(0,1,0).addScaledVector(f,-f.y).normalize(),sd=CHUTE.v2.crossVectors(up,f).normalize();
   const cr=Math.cos(ro),sr=Math.sin(ro);const ux=up.x*cr+sd.x*sr,uy=up.y*cr+sd.y*sr,uz=up.z*cr+sd.z*sr;up.set(ux,uy,uz);sd.crossVectors(up,f).normalize();
   CHUTE.m.makeBasis(sd,up,f);carGroup.quaternion.setFromRotationMatrix(CHUTE.m);
   const sp=CARS[garageI]||CARS[0],sc=P.echelle;carGroup.scale.set(sc,sc,sc);
-  carGroup.position.copy(C).addScaledVector(up,-.45*sc);carGroup.visible=P.caisse!==0;chuteTapeTick(dt,C,up,sc); /* (2026-10-03) le coup du tapotement : poussée et pivot autour du CENTRE, qui reviennent en ressort */ /* (atelier des nuages) P.caisse = 0 : les nuages seuls */   // (le centre de la caisse, pas ses roues, sur l'ancre)
-  for(const w of wheels)w.rotation.x+=dt*(7+u*30);for(const e of ESSIEUX)e.rotation.x+=dt*(7+u*30); // les roues tournent dans le vide
+  carGroup.position.copy(Ck).addScaledVector(up,-.45*sc);carGroup.visible=P.caisse!==0;chuteTapeTick(dt,Ck,up,sc); /* (2026-10-03) le coup du tapotement : poussée et pivot autour du CENTRE, qui reviennent en ressort */ /* (atelier des nuages) P.caisse = 0 : les nuages seuls */   // (le centre de la caisse, pas ses roues, sur l'ancre)
+  if(cl>0){ // (LA CHUTE LIBRE RÉALISTE) LES ROUES EN ROUE LIBRE : le vent les fait tourner lentement, chacune à son rythme ; au piqué, elles s'emballent
+    for(let i=0;i<wheels.length;i++)wheels[i].rotation.x+=dt*(K.roue*cl*(1+.9*chuteBr(t*.27,30+(i>>1)))+u*30);
+    for(let i=0;i<ESSIEUX.length;i++)ESSIEUX[i].rotation.x+=dt*(K.roue*cl*(1+.9*chuteBr(t*.27,30+i))+u*30);
+    /* LES SUSPENSIONS DÉTENDUES : rien ne pèse sur les ressorts — la carrosserie se soulève de ses roues et tressaute dessus, bascule un peu */
+    const rs9=vib*(.35+.65*raf);carBody.position.set(0,K.det*cl+K.ressort*rs9*chuteBr(t*3.4,31),0);carBody.rotation.set(K.cass*rs9*chuteBr(t*2.7,32),0,K.cass*1.2*rs9*chuteBr(t*3.1,33));CHUTE.corps=true;}
+  else{for(const w of wheels)w.rotation.x+=dt*(7+u*30);for(const e of ESSIEUX)e.rotation.x+=dt*(7+u*30);if(CHUTE.corps){carBody.position.set(0,0,0);carBody.rotation.set(0,0,0);CHUTE.corps=false;}} // les roues tournent dans le vide
   // LA CAMÉRA : dans l'axe de la route, un peu au-dessus, la caisse dans la place libre (menuCadre)
   const Cd=menuCadre(),R9=.5*Math.hypot(sp.l||4.2,sp.w||1.9,(sp.h||.8)+.6)*sc,fov0=G?44+26*u*u:44;
   const nx=Cd.nx+(camera.aspect<1?-.07:0); // debout « un peu à gauche » (Sacha) — à −0,16 la caisse plongeante du titre v3 (vue de trois-quarts dessus) touchait le bord gauche de l'écran (31 px, banc cadrage.mjs) : −0,07 la garde un rien à gauche du milieu
@@ -38859,10 +38893,10 @@ function chuteRender(dt){
     camera.fov=fov0-5*Math.min(1,k9);camera.updateProjectionMatrix();} // …et la fait cogner d'un coup de zoom (la ligne du champ, plus haut, le rend à l'image suivante)
   camera.updateMatrixWorld();
   // LA LUMIÈRE : le soleil du ciel fait le gros ; une clé douce du côté caméra, un contre-jour bleu ciel qui détoure la caisse
-  if(P.studio){chuteStudio(C,up,P);}else{trailLight.intensity=0;if(CHUTE.lc)carLight.color.copy(CHUTE.lc);{const BT=BIOMES.titre||BIOMES[MENU_BIO];if(BT.hemiI!=null)hemi.intensity=BT.hemiI;if(BT.sunI!=null)sun.intensity=BT.sunI;} // (2026-10-03) LE MODELÉ DE LA CAISSE (voir chuteStudio) ; P.studio = 0 : l'éclairage d'avant
+  if(P.studio){chuteStudio(Ck,up,P);}else{trailLight.intensity=0;if(CHUTE.lc)carLight.color.copy(CHUTE.lc);{const BT=BIOMES.titre||BIOMES[MENU_BIO];if(BT.hemiI!=null)hemi.intensity=BT.hemiI;if(BT.sunI!=null)sun.intensity=BT.sunI;} // (2026-10-03) LE MODELÉ DE LA CAISSE (voir chuteStudio) ; P.studio = 0 : l'éclairage d'avant
   stallKey.color.setHex(P.cleC);stallKey.intensity=.9*P.cle;stallKey.distance=60;stallKey.position.copy(CHUTE.cam).addScaledVector(up,4);
   camera.getWorldDirection(CHUTE.v2).multiplyScalar(1-P.rimS).addScaledVector(SUN_DIR,P.rimS).normalize();
-  stallRim.color.setHex(P.rimC);stallRim.intensity=P.rim;stallRim.distance=40;stallRim.position.copy(C).addScaledVector(CHUTE.v2,7).addScaledVector(up,2.5);
+  stallRim.color.setHex(P.rimC);stallRim.intensity=P.rim;stallRim.distance=40;stallRim.position.copy(Ck).addScaledVector(CHUTE.v2,7).addScaledVector(up,2.5);
   carLight.position.copy(CHUTE.cam).addScaledVector(up,2.5);carLight.intensity=1.6*P.cle*P.lampe;carLight.distance=60;}
   headSpot.intensity=0;if(CARPOOL.head)CARPOOL.head.visible=false; // en plein jour, en l'air : ni phares (leur tache bleue sur les nuages au piqué), ni la nappe de 15 m des faisceaux (un plan qui flotte devant le nez)
   {const s9=!P.cielT;sunSprite.visible=s9&&sunSprite.material.opacity>.02;horizonGlow.visible=s9&&horizonGlow.material.opacity>.02;for(const r9 of RAYS)r9.visible=s9&&r9.material.opacity>.002;} /* (titre v4) le sprite de lueur d horizon dessinait la RAYURE : le ciel du titre fait sa lumière lui-même */

@@ -393,6 +393,20 @@ LES BOUTONS DE SACHA ») : **PLAY/JOUER = la partie sans fin, et toucher un nive
   couché et debout, FR/EN) : choix du niveau 3 → atelier « SKY HIGH 3 » → JOUER = niveau 3 ; portail puis mort au 4 → l'accueil dit
   « SKY HIGH 4 » et PLAY relance le 4 ; MISSIONS → carte VILLE → JOUER des missions = VILLE 1 ; joueur neuf → question du mode puis
   AURORE avec l'auto-école ; Survivant armé → partie sans fin ; même musique que la carrière ; 0 erreur. sw.js → v160 (v159 = le tour sans fin de l'écran titre, fusionné).
+## LA CHUTE LIBRE RÉALISTE DE L'ÉCRAN TITRE (2026-10-08, Léo : « la voiture doit avoir davantage un effet de chute libre réaliste »)
+- MESURÉ avant (film de 24 images) : quatre sinus purs (un balancement de manège, régulier), la caisse CLOUÉE au centre de l'image (la
+  caméra visait le même point qu'elle), les roues à 7 rad/s comme si elle roulait encore. Bloc « LA CHUTE LIBRE RÉALISTE » juste avant `chuteRender`.
+- L'AIR LA BALLOTTE PAR RAFALES : `chuteRafale(t)` (0 → 1, une bourrasque toutes les 5 à 10 s, ~40 % du temps au-dessus de ½) ;
+  tangage de FLÉCHETTE (le nez lourd revient vers le bas et dépasse, ±7°), roulis qui se cherche (±11°), lacet qui dérive (±6°) —
+  du bruit lisse `chuteBr`/`chuteBr2` (quintique, deux octaves), rien ne se répète. Un TREMBLEMENT rapide (9-13 Hz, ~1°) dans la rafale.
+- ELLE FLOTTE DANS LE CADRE : la caméra vise une ANCRE lisse (`C`), la caisse (`CHUTE.ck`) dérive autour (±35 cm, ~20 px couché) et
+  tressaute ; le tour de la vue n'en est pas touché. La lumière (`chuteStudio`, le contre-jour) et le coup (`chuteTapeTick`) suivent la caisse.
+- LES SUSPENSIONS DÉTENDUES : la carrosserie (`carBody`) se soulève de 7,5 cm sur ses roues et y tressaute (`CHUTE.corps`, rendue à zéro
+  par `chuteSort`). LES ROUES EN ROUE LIBRE : ~1,1 rad/s, chaque essieu à son rythme ; au piqué de JOUER elles s'emballent comme avant.
+- Réglages `CHUTE_CL` (pa/po tangage, ra roulis, ya lacet, tr tremblement, dx/dy dérive, sh tressaut, det ressorts, roue). Tout est une
+  fonction de `CHUTE.t` (`dbgChute({fige})` fige aussi la chute). `dbgChute({cl:0})` = le balancement d'avant (A/B), `cl` dose le tout.
+  « Réduire les animations » : ni tremblement ni tressaut. Vérifié au banc : 0 erreur, coup et tour au doigt OK, PLAY → piqué → course. Greffée seule sur main le 08/10 au soir (sans le
+  TOUR CONSTANT de la même branche : main garde son TOUR SANS FIN).
 ## LE TOUR SANS FIN DE L'ÉCRAN TITRE (2026-10-07, Léo : « l'écran menu ciel, dans le même angle, tourne en 360 constamment — pas trop rapide, faut pas que ce soit vomitif, plutôt lent ; on doit pouvoir tourner la voiture ; faut que ça ait l'air d'être en chute »)
 - Le regard fait le tour complet de la caisse qui tombe, à la HAUTEUR du menu (`CHUTE.oP` ne bouge pas) : un tour en `CHUTE_P.tour` = 75 s
   (~4,8°/s), le caméraman de chute libre qui spirale autour d'elle pendant que l'air et les cumulus montent. C'est L'ORBITE AU DOIGT (bloc
