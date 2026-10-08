@@ -42396,11 +42396,15 @@ function loop(now){
     // `trailK`, exactement comme les rubans des autres : il se déclenche à l'appui, s'éteint en
     // douceur, et le joueur le MÉRITE. (Première version : toujours visible dès qu'on roulait ;
     // le user a tranché — les effets spéciaux de caisse sont des effets de nitro.)
-    { // (2026-10-07) L'ARC-EN-CIEL EN FEU DE PIXELS (voir ARC_*) : le CHAT à la nitro ET en vol (comme ses pixels), ou toute caisse qui porte la
+    { // (2026-10-07) L'ARC-EN-CIEL EN FEU DE PIXELS (voir ARC_*) : le CHAT à la nitro (et plus en vol : 2026-10-08), ou toute caisse qui porte la
       // traînée ARC-EN-CIEL de la boutique, à la nitro. ⚠ Il s'efface en réserve bleue et en nitro infinie, comme la plume : sinon la caisse
       // arborerait ses six couleurs pendant que le reste dit « tu tapes dans la réserve » — deux messages, et le signal se perd dans la fête.
       const nyan9=NYAN.on&&!FX_EFF,arcOn9=nyan9||!!(FXT&&FXT.rainbow);
-      if(arcOn9){const rk=(mode==='boom'||nitroBlue||pwrNitroT>0)?0:(nyan9?Math.max(trailK,NYAN.volK*.7):trailK);
+      /* (2026-10-08, Léo : « l'arc-en-ciel ne se déclenche qu'à la NITRO, pas aux boosts au sol ») il a SA propre intensité, branchée sur la
+         seule nitro (au sol comme en l'air) : `trailK` s'allumait à moitié sur une plaque turbo et dans le boost qui suit la nitro, et le
+         chat le sortait aussi en vol. S'allume sec, s'éteint en ~0,5 s (l'extinction : il raccourcit en étincelles, voir rainbowStep). */
+      loop._arcK=(loop._arcK||0)+((nitroOn&&mode!=='boom'?1:0)-(loop._arcK||0))*Math.min(1,dt*(nitroOn?16:6));
+      if(arcOn9){const rk=(mode==='boom'||nitroBlue||pwrNitroT>0)?0:loop._arcK;
         if(nyan9)nyanPixNitro(dt,rk*.45); // ses PIXELS scintillent toujours autour, moins nombreux : l'arc-en-ciel mène
         if(nyan9)potMonde(NYAN.arc,tmp2);else potMonde(CAR_POT_C,tmp2).addScaledVector(hsU,.19); // le chat : la poupe de la pop-tart, à mi-hauteur
         rainbowStep(tmp2.x,tmp2.y,tmp2.z,rk,t,dt,-hsF.x,-hsF.y,-hsF.z);
