@@ -5933,6 +5933,22 @@ html body #garage.vitrine.aideInv:not(.menu):not(.inv) #gInvAide{display:flex}
 @keyframes gBurnTxt{0%{opacity:0;scale:1.8}12%{opacity:1;scale:.92}22%{scale:1.05}32%{scale:1;translate:-50% -100%}72%{opacity:1}100%{opacity:0;translate:-50% -190%}}
 @keyframes gBurnTxt2{0%{opacity:0;scale:1.8}12%{opacity:1;scale:.92}22%{scale:1.05}32%{scale:1;translate:-50% -100%}72%{opacity:1}100%{opacity:0;translate:-50% -190%}}
 @keyframes gBurnTxtC{0%,100%{opacity:0}15%,75%{opacity:1}}
+/* LA NITRO ET LA MARCHE ARRIÈRE (2026-10-08) : deux touches penchées (on les TOUCHE) sous le pouce droit, le temps du burn-out */
+#gBurnBtns{position:fixed;z-index:86;right:calc(var(--sR,0px) + 12px);top:calc(var(--sT,0px) + 196px);display:flex;flex-direction:column;gap:10px;opacity:0;pointer-events:none;translate:28px 0; /* (même soir, Léo : « sans les boutons qui cachent la boutique ») sur la VUE, plus sur la console : debout au bord droit sous le titre, couché au bord gauche */
+  transition:opacity .16s,translate .28s var(--ease)}
+#gBurnBtns.on{opacity:1;pointer-events:auto;translate:0 0}
+#gBurnBtns .gbB{--nc:#ff7a24;width:66px;height:54px;padding:0;border:0;border-radius:0;transform:skewX(-11deg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
+  font-family:var(--pix);font-size:9px;letter-spacing:1px;color:#fff;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;
+  background:var(--laque,none),linear-gradient(#2a1e46,#120b22);box-shadow:inset 3px 0 0 var(--nc),inset 0 1px 0 rgba(255,255,255,.16),0 0 0 1px rgba(3,1,9,.92),0 5px 0 #0a0818;
+  transition:translate .07s,box-shadow .07s,background .07s}
+#gBurnBtns #gbRecul{--nc:#5ee6ff}
+#gBurnBtns .gbB .pxi{--pxs:2;color:var(--nc)}
+#gBurnBtns .gbB small{display:none;font-size:7px;color:rgba(255,255,255,.55);letter-spacing:1px}
+#gBurnBtns.clavier .gbB small{display:block}
+#gBurnBtns .gbB.on{translate:0 4px;box-shadow:inset 3px 0 0 var(--nc),inset 0 1px 0 rgba(255,255,255,.3),0 0 0 1px rgba(3,1,9,.92),0 1px 0 #0a0818,0 0 22px var(--nc)}
+#gBurnBtns #gbNitro.on{background:linear-gradient(#ffb15c,#d4470e)}#gBurnBtns #gbNitro.on .pxi{color:#fff}
+#gBurnBtns #gbRecul.on{background:linear-gradient(#7af0ff,#1a7fa0)}#gBurnBtns #gbRecul.on .pxi{color:#fff}
+@media (orientation:landscape) and (max-height:540px){#gBurnBtns{top:calc(var(--sT,0px) + 128px);right:auto;left:calc(var(--sL,0px) + 16px);translate:-28px 0}#gBurnBtns.on{translate:0 0}}
 #gInvAide b::before{content:'·';margin-right:8px;color:var(--tx3)}
 #gInvAide .ivDoigt{position:relative;width:12px;height:12px;flex:none;border-radius:50%;background:#fff;box-shadow:0 0 8px #fff}
 #gInvAide .ivDoigt::after{content:'';position:absolute;inset:-6px;border-radius:50%;box-shadow:0 0 0 2px rgba(255,255,255,.75);animation:gvDoigt 1.6s var(--ease) infinite}
@@ -8372,7 +8388,7 @@ let QUAL_LOW=false,QUAL_MED=IS_MOBILE||IS_LOW_END; // (lus par dbgPerf : MED = u
    imposé) ; on remonte d'UN cran après ~4,5 s de marge (< 17,8 ms ou cadence 30 Hz) ; un cran remonté qui retombe en < 6 s
    devient un MUR pendant 45 s. `dbgPin(true)` fige l'échelle ; `dbgQual(k)` la force (banc) ; `?perf=1` l'affiche à l'écran. */
 const QLR={a:new Float32Array(60),s:new Float32Array(60),i:0,n:0,p50:16,p75:16,p90:16, // (tour 2) les 60 dernières durées d'image, et leurs centiles
-  t0:0,sN:0,sA:[],vrai:0,vraiT:0,px:new Uint8Array(4)}; // (tour 2) LA SONDE : le vrai coût d'une image (voir qlSonde)
+  t0:0,sN:0,sA:[],vrai:0,vraiT:0,px:new Uint8Array(4),S:{pend:0},dern:null,cg:null,sync:0}; // (tour 2) LA SONDE : le vrai coût d'une image (voir qlSonde) ; sync = banc seulement (dbgSonde('sync') rejoue l'ancienne sonde bloquante)
 /* LA SONDE (2026-09-28) — MESURÉ SUR L'IPHONE 13 PRO DE SACHA (banc ?banc=1, reçu par mail) : une image lui coûte 8 à 13 ms en NETTE,
    mais l'écran n'en montre que 30 par seconde, PILE, partout — même à DPR 1,0. Ce n'était pas le jeu qui ramait : c'était l'iPhone qui
    bridait Safari à 30 i/s (mode économie d'énergie, ou surchauffe). Et la règle de qualité, qui ne voyait que « 33 ms par image »,
@@ -8380,9 +8396,36 @@ const QLR={a:new Float32Array(60),s:new Float32Array(60),i:0,n:0,p50:16,p75:16,p
    images synchronisées (un `readPixels` d'un pixel oblige le processeur à attendre la puce : le temps mesuré est ce que coûte vraiment
    l'image, hors de la grille de l'écran). Sous 14,5 ms, le téléphone POURRAIT tenir 60 i/s : c'est l'écran qui bride, on ne touche à rien
    (et on remonte ce qui aurait été baissé). La sonde ne tourne que quand des images sont ratées, au plus toutes les 8 s. */
-function qlSonde(){ try{ const g9=renderer.getContext();renderer.setRenderTarget(null);g9.readPixels(0,0,1,1,g9.RGBA,g9.UNSIGNED_BYTE,QLR.px);
-  QLR.sA.push(performance.now()-QLR.t0);
-  if(--QLR.sN<=0){const s9=QLR.sA.slice().sort((a,c)=>a-c);QLR.vrai=s9[s9.length>>1];QLR.vraiT=performance.now();QLR.sA.length=0;} }catch(e){QLR.sN=0;} }
+/* (2026-10-08, Léo : « le jeu rame ») LA SONDE NE FIGE PLUS L'IMAGE — là où la puce a un CHRONOMÈTRE. MESURÉ au banc (course de 40 s,
+   Chrome sur Mac M2) : chaque `readPixels` de la sonde obligeait le processeur à ATTENDRE que la puce ait tout fini — 15 lectures, 510 ms
+   de jeu gelé, jusqu'à 120 ms d'un coup. Et elle ne se réveille que quand des images sont déjà ratées : sur une machine chargée, elle
+   aggravait l'à-coup qu'elle venait mesurer. Là où le navigateur offre `EXT_disjoint_timer_query_webgl2` (Chrome, Edge, Android), la
+   puce chronomètre elle-même son travail de l'image (une requête TIME_ELAPSED autour de la boucle) et rend le résultat quelques images
+   plus tard, sans que personne n'attende ; le coût de l'image = le travail du processeur (début → fin de la boucle) + celui de la puce.
+   Même seuil (14,5 ms), même décision, zéro gel. Ailleurs (Safari, iPhone) : l'ancienne lecture synchrone, INCHANGÉE.
+   ⚠ Essayé d'abord : une barrière (`fenceSync`) guettée entre deux tâches — plus de gel, mais le signal « fini » arrive en retard dans
+   Chrome : ~21 ms lus au calme là où l'ancienne sonde lisait ~8 → la règle aurait baissé la netteté à tort. Écarté. Aucun pixel ne change. */
+const QLT={ext:null,ok:undefined,q:null,rate:0};
+function qlChrono(g9){ if(QLT.ok===undefined){try{QLT.ext=renderer.capabilities.isWebGL2?g9.getExtension('EXT_disjoint_timer_query_webgl2'):null;}catch(e){QLT.ext=null;}QLT.ok=!!QLT.ext;}
+  return QLT.ok&&!QLR.sync;}
+function qlSondeArme(){QLR.sN=5;QLR.sA.length=0;QLR.S={pend:0};} // une SÉRIE : cinq images mesurées
+function qlSondeFin(){ if(QLR.sN<=0&&QLR.S.pend<=0&&QLR.sA.length){const s9=QLR.sA.slice().sort((a,c)=>a-c);QLR.dern=s9;QLR.vrai=s9[s9.length>>1];QLR.vraiT=performance.now();QLR.sA.length=0;}}
+function qlSondeDebut(){ // en TÊTE de boucle, sonde armée : la puce déclenche son chrono
+  try{const g9=renderer.getContext();if(!qlChrono(g9))return;
+    if(QLT.q){g9.endQuery(QLT.ext.TIME_ELAPSED_EXT);g9.deleteQuery(QLT.q);QLT.q=null;} // l'image d'avant s'est interrompue (erreur avalée) : ce chrono-là ne vaut rien
+    const q=g9.createQuery();if(!q)return;g9.beginQuery(QLT.ext.TIME_ELAPSED_EXT,q);QLT.q=q;}
+  catch(e){QLT.ok=false;QLT.q=null;}}
+function qlSonde(){ try{ const g9=renderer.getContext();
+  if(QLT.q){const q=QLT.q,S=QLR.S,cpu=performance.now()-QLR.t0,t1=performance.now();QLT.q=null;g9.endQuery(QLT.ext.TIME_ELAPSED_EXT);QLR.sN--;S.pend++;
+    const pas=function(){let av=false;try{av=g9.getQueryParameter(q,g9.QUERY_RESULT_AVAILABLE);}catch(e){}
+      if(!av&&performance.now()-t1<1500){setTimeout(pas,8);return;} // le résultat arrive quelques images plus tard : on repasse, sans attendre
+      let gpu=null;try{if(av&&!g9.getParameter(QLT.ext.GPU_DISJOINT_EXT))gpu=g9.getQueryParameter(q,g9.QUERY_RESULT)/1e6;g9.deleteQuery(q);}catch(e){}
+      S.pend--;if(gpu==null&&++QLT.rate>=5)QLT.ok=false; // une puce qui ne rend jamais son chrono : retour à l'ancienne sonde
+      if(S!==QLR.S)return;if(gpu!=null){QLR.sA.push(Math.min(120,cpu+gpu));(QLR.cg||(QLR.cg=[])).push([+cpu.toFixed(1),+gpu.toFixed(1)]);if(QLR.cg.length>10)QLR.cg.shift();}qlSondeFin();};
+    setTimeout(pas,8);return;}
+  if(qlChrono(g9))return; // chrono pas encore lancé (la sonde vient d'être armée en cours d'image) : il partira à l'image suivante
+  renderer.setRenderTarget(null);g9.readPixels(0,0,1,1,g9.RGBA,g9.UNSIGNED_BYTE,QLR.px);QLR.sN--;QLR.sA.push(performance.now()-QLR.t0);qlSondeFin();
+  }catch(e){QLR.sN=0;try{if(QLT.q){renderer.getContext().endQuery(QLT.ext.TIME_ELAPSED_EXT);QLT.q=null;}}catch(e2){QLT.ok=false;}} }
 const QL={k:0,mur:0,murT:0,roseT:0,up:0,efT:0,effondre:false,fr:0,N_EFF:5,ombre0:sun.shadow.mapSize.x,essai:null,plafK:0,plafT:0,
   nom:['ombre en vol ½','ombre 768','bloom ¾','ombre 512','flou radial']};
 /* (2026-09-27, tour 2 — « on repasse en mode pixel assez vite après avoir lancé ») LE MODE PIXEL, C'ÉTAIT LE PLANCHER : sous l'effondrement,
@@ -8444,6 +8487,7 @@ window.dbgGfx=function(o){
     if(o.trame!=null&&acesPass)acesPass.uniforms.uTrame.value=o.trame?1/255:0;
     if(o.pique!=null&&acesPass){RESPIN=true;acesPass.uniforms.uSharp.value=+o.pique;}}
   return {coeur:GFX_U.uCoeur.value,glace:+ROAD_U.uGlace.value.toFixed(3),trame:acesPass?+(acesPass.uniforms.uTrame.value*255).toFixed(2):null,pique:acesPass?+acesPass.uniforms.uSharp.value.toFixed(3):null,dpr:curDPR,natif:devicePixelRatio};};
+window.dbgSonde=function(go){if(go){QLR.sync=go==='sync'?1:0;qlSondeArme();}return {vrai:+QLR.vrai.toFixed(2),age:QLR.vraiT?Math.round(performance.now()-QLR.vraiT):null,mesures:QLR.dern&&QLR.dern.map(function(x){return +x.toFixed(1);}),cpuGpu:QLR.cg,chrono:!!QLT.ok,sN:QLR.sN,enRoute:QLR.S.pend};}; // (banc) dbgSonde(1) lance la sonde, dbgSonde() la lit
 window.dbgQual=function(k){ if(k!=null){qlPose(k);RESPIN=true;} const b=qlBornes(); // dbgQual(k) force le cran k ET fige (dbgPin(false) relâche)
   const al=[];for(let i=0;i<QL.N_EFF&&i<QL.k;i++)al.push(QL.nom[i]);
   return {k:QL.k,kNet:b.kNet,kMax:b.kMax,plancher:+b.pl.toFixed(2),dpr:+curDPR.toFixed(3),effondre:QL.effondre,mur:(QL.murT&&performance.now()-QL.murT<45000)?QL.mur:0,
@@ -13091,6 +13135,11 @@ const CARS=[
  {name:'ATCHOUM',shape:'atchoum',color:0xff9020,accent:0x141417,maxKmh:300,accel:34,turn:2.7,h:1.24,w:1.95,l:4.32,spoiler:0,rar:'rare',
   fx:{jet:0xff7a24,core:0xffe08a,trail:[1.5,.62,.18],light:0xff8030},
   desc:'Elle a pris froid au dernier tour : depuis, elle éternue du feu. Ne reste jamais devant elle.'},
+ // (2026-10-08) LE SQUALE — Léo : la voiture au sourire de requin de son sketch du garage, bleu clair, sportive, carrée aux angles
+ // arrondis, les phares en yeux (voir SHAPES.squale). Ajoutée EN DERNIER (les index de sauvegarde ne bougent pas).
+ {name:'SQUALE',shape:'squale',color:0x5e666d,accent:0x2a3036,maxKmh:340,accel:40,turn:2.7,h:1.38,w:2.10,l:4.50,spoiler:0,rar:'rare',
+  fx:{jet:0xbfe4ff,core:0xffffff,trail:[.75,.85,.95],light:0xcfe8ff},
+  desc:'Toujours le sourire. Surtout quand elle te double.'},
 ];
 // ---- VALEUR D'UNE PIÈCE — UNE ENTRÉE PAR PALIER MOTEUR (30) ---------------------------------
 // ⚠ Cette table est indexée par `engTier` depuis que les PIÈCES portent la progression, mais elle
@@ -13544,6 +13593,11 @@ Object.assign(I18N,{
  "ATCHOUM":"ACHOO",
  "Elle a pris froid au dernier tour : depuis, elle éternue du feu. Ne reste jamais devant elle.":"She caught a cold on the last lap: now she sneezes fire. Never stay in front of her.",
  "ATCHOUM !":"ACHOO!",
+});
+// (2026-10-08) LE SQUALE
+Object.assign(I18N,{
+ "SQUALE":"SHARKY",
+ "Toujours le sourire. Surtout quand elle te double.":"Always smiling. Especially when she passes you.",
 });
 // (2026-09-29) les chaînes visibles qui manquaient
 Object.assign(I18N,{
@@ -16312,7 +16366,7 @@ function lpMat(g){
       .replace('#include <dithering_fragment>',RIM_GLSL('uCj')+ // le liseré, contre-jour compris (voir RIM_GLSL)
         'gl_FragColor.rgb+=uRimC*rimF*uRimStr*.6+vColor*uGlow;\n#include <dithering_fragment>');
   };
-  m.userData.lp=1;m.userData.g=g;m.userData.uG=uG;return m; // `g` : la famille de matière (le banc des laques y reconnaît la tôle) · `uG` : le plancher lumineux (l'atelier le relève pour ses meubles)
+  m.userData.lp=1;m.userData.g=g;m.userData.uG=uG;m.userData.uV=uV;return m; // `g` : la famille de matière (le banc des laques y reconnaît la tôle) · `uG` : le plancher lumineux (l'atelier le relève pour ses meubles)
 }
 /* L'ATELIER. `pal` : clé → {g: matière, c: couleur, f: 0 pour couper le fondu vertical}.
    Toutes les pièces sont versées dans des tampons par matière, à facettes (non indexé) ; `done()`
@@ -20606,6 +20660,136 @@ SHAPES.atchoum=function(K){
           pots:[[.97,.29,-.83],[-.97,.29,-.83],[.42,.30,ZT-.14],[-.42,.30,ZT-.14]],
           lpw:{R:R,w:.26,style:'multi',jante:0x26282d,accent:0xff9020}};
 };
+/* LE SQUALE (2026-10-08, Léo) — HISTOIRE : né du sketch du garage de Léo (IMG_5559 : la caisse au sourire en dents de requin), d'abord
+   un petit coupé carré bleu clair à la gueule calquée sur le dessin, puis (même jour, Léo, une PHOTO de grand requin blanc gueule ouverte :
+   « voilà l'effet recherché, couleurs pareil, mais en mode GTR ») : LE GRAND BLANC EN GRAND TOURISME.
+   · LA CAISSE : un grand coupé de sport japonais — long capot, ailes larges sur grosses roues, toit qui file vers une malle HAUTE, le coude
+     de la vitre arrière (la vitre du bas va plus loin que celle du haut), quatre feux RONDS, quatre sorties, l'aileron sur la malle.
+     (Aucun nom ni insigne de marque : l'esprit seulement.)
+   · LES COULEURS DU REQUIN : gris ardoise dessus, plus sombre vers le dos ; VENTRE BLANC qui remonte sur les flancs et autour de la gueule
+     (sur la face avant, le blanc monte en pointe vers le museau, comme sur la photo) ; gencives roses, gorge rouge sombre, dents blanches.
+   · LA GUEULE OUVERTE (la grande calandre) : mâchoire du haut presque droite, celle du bas en U, coins qui remontent ; lèvre de peau blanche
+     en relief ; onze dents en haut plantées dans la gencive, pointe en bas ; neuf en bas, couchées vers l'intérieur selon le U ; les plus
+     grandes au milieu. Chaque dent est une pyramide à facettes (le relief).
+   · LES YEUX : les phares en amande, effilés vers le nez, et dedans l'ŒIL NOIR du requin, brillant, avec son éclat.
+   · Gardés du dessin et des retouches : l'aileron dorsal sur le toit, les nageoires pectorales en guise de rétros, les trois ouïes (la
+     prise d'air derrière la roue avant), l'aileron arrière aux flasques en queue, le vernis dur (K.mats.p). */
+SHAPES.squale=function(K){
+  const U=LPU,R=.41,ZF=1.40,ZR=-1.38,ZN=2.25,ZT=-2.25;
+  const P=K.kit({p:{g:'p',c:0x5e666d,grad:[0x7e868c,0x5e666d,0x41484e]},b:{g:'p',c:0xf3f2ee,f:0},n:{g:'p',c:0x2a3036,f:0},
+    k:{g:'m',c:0x15171c},g:{g:'g',c:0x161c26},G:{g:'g',c:0x0b0c10},K:{g:'m',c:0x3a0a12},J:{g:'m',c:0x120306},R:{g:'p',c:0xd8707c,f:0},d:{g:'p',c:0xf5f2ea,f:0},e:{g:'p',c:0xe2d9c4,f:0},
+    W:{g:'l',c:0xfffdf7},I:{g:'g',c:0x050608},L:{g:'l',c:0xff2236},c:{g:'c',c:0xd9dde3}});
+  const bosse=d=>Math.max(0,1-d*d);
+  const T=z=>U.lin([[ZT,.92],[-2.18,1.02],[-1.95,1.06],[-1.55,1.09],[-1.05,1.31],[-.35,1.38],[.25,1.37],[.80,1.09],[1.0,1.08],[1.9,1.07],[2.15,1.06],[ZN,1.03]],z),
+        Bt=z=>U.lin([[ZT,.86],[-1.9,1.0],[-1.3,1.0],[.8,1.02],[1.9,1.01],[ZN,.98]],z),
+        XW=z=>U.lin([[ZT,.90],[-2.0,1.0],[1.95,.99],[ZN,.88]],z)+.07*(bosse((z-ZF)/.66)+bosse((z-ZR)/.66)),
+        YV=z=>U.lin([[ZT,.50],[-1.0,.54],[1.0,.60],[ZN,.66]],z);                                     // la ligne du VENTRE blanc
+  const AR=[[0,2*R+.08],[R*.6,2*R+.05],[R*.95,R*1.35],[R+.12,.22]];
+  const zs=[ZT,-2.20,-2.18,-1.95,-1.75,-1.55,-1.30,-1.07,-1.05,-.87,-.85,-.6,-.35,-.27,-.17,.05,.25,.5,.66,.72,.80,1.0,1.3,1.6,1.9,2.05,2.15,2.21,ZN];
+  for(const w of [ZF,ZR])for(const d of [R*.6,R*.95,R+.12])zs.push(w-d,w+d);
+  zs.sort((a,b)=>a-b);
+  const S=z=>{const yb=U.arch(z,[ZF,ZR],AR,.22),xw=XW(z),t=T(z),b=Bt(z),h=Math.max(0,t-b-.03),g=Math.min(1,h/.2);
+    const y2=Math.max(yb+.07,.33),y3=Math.max(y2+.03,YV(z)),y4=Math.max(y3+.03,b);
+    return [[0,yb],[xw-.11,yb],[xw-.01,y2],[xw+.02,y3],[xw-.02,y4],[xw-.12,y4+.05],[xw-.21-.10*g,y4+.05+h*.62],[.60-.07*g,Math.max(t-.03*g,y4+.06)],[0,Math.max(t,y4+.06)+.015]];};
+  P.loft(zs,S,(j,z)=>{
+    if(j<0)return 'p';
+    if(j===0)return 'k';
+    if(j<=2)return 'b';                                                           // le VENTRE blanc
+    if(j<=4||z<=-1.55||z>=.80)return 'p';                                         // flancs, épaules, capot, malle
+    const pil=z>-.27&&z<-.17;                                                     // le montant du milieu
+    if(j===7)return ((z>.27&&z<.78)||(z<-1.07&&z>-1.53))?'g':'p';                 // pare-brise, lunette ; le toit
+    if(j===6)return (z>-.85&&z<.66&&!pil)?'g':'p';                                // la vitre, en haut…
+    return (z>-1.05&&z<.70&&!pil)?'g':'p';});                                     // …et en bas, qui va plus loin : le COUDE de la vitre arrière
+  // ---- CE QUI SE POSE SUR LE FLANC (cases lues sur la section, décollées de 6 mm) ----
+  const cote=(z,y)=>{const q=S(z);if(y<q[2][1])return -1;for(let i=2;i<5;i++){const a=q[i],c=q[i+1];if(y<=c[1]){const t=(y-a[1])/((c[1]-a[1])||1);return a[0]+(c[0]-a[0])*t;}}return -1;};
+  const peint=(k,sd,z0,y0,c)=>{const q=[[z0,y0],[z0+c,y0],[z0+c,y0+c],[z0,y0+c]].map(([z,y])=>{const x=cote(z,y);return x<0?null:[sd*(x+.006),y,z];});
+    if(q.some(v=>!v))return;if(sd>0){P.tri(k,q[0],q[2],q[1]);P.tri(k,q[0],q[3],q[2]);}else{P.tri(k,q[0],q[1],q[2]);P.tri(k,q[0],q[2],q[3]);}};
+  for(const sd of [-1,1])for(let z=.12;z<.94;z+=.03)for(let y=.46;y<.98;y+=.03){const zc=z+.015,yc=y+.015; // LES OUÏES (la prise d'air derrière la roue avant)
+    for(let i=0;i<5;i++){const z0=.82-i*.12,L9=.24+i*.045,d=zc-(z0-(yc-.52)*.25);if(Math.abs(d)<.032&&yc>.52-i*.01&&yc<.52+L9){peint('n',sd,z,y,.03);break;}}}
+  for(const sd of [-1,1])for(let z=-1.62;z<.80;z+=.02)peint('c',sd,z,.935,.02);  // le jonc chromé sur la ligne de caisse
+  // ---- LA FACE AVANT : le VENTRE BLANC qui monte en pointe vers le museau ----
+  {const q=S(ZN),cut=.875,dr=[];for(let i=0;i<q.length;i++){const p=q[i];if(p[1]<=cut){dr.push(p);continue;}const a=q[i-1],t=(cut-a[1])/((p[1]-a[1])||1);dr.push([a[0]+(p[0]-a[0])*t,cut]);break;}
+   const pts=dr.concat([[.30,.88],[0,.925],[-.30,.88]],dr.slice(1).reverse().map(p=>[-p[0],p[1]]));P.plate('b',pts,.004,ZN);}
+  // ---- LA GUEULE (même soir, Léo : « la bouche prend sur les côtés, pas un sourire, plus comme BAPE », puis « un peu buggée ; les dents
+  //      encore plus requin, nombreuses, calées, éparpillées ») : une BANDE DROITE qui fait toute la face avant, tourne le coin et file sur
+  //      les flancs jusqu'à l'aile avant en s'effilant. Tout est posé SUR la caisse le long de `s` : la face avant tant que |s| ≤ XF (le bord
+  //      lu sur la section), puis le flanc (`cote`), en reculant d'autant. ⚠ LE BUG DU COIN : chaque couche était décalée le long de SA
+  //      normale (z sur l'avant, x sur le flanc) et elles se croisaient au coin — désormais UNE normale qui tourne en douceur sur ±6 cm
+  //      autour du coin (`Nn`), la même pour toutes les couches : elles restent parallèles.
+  //      LES DENTS : deux rangées, une quarantaine de crocs devant et autant de petits derrière, tailles, inclinaisons et places tirées
+  //      (hasard FIXE) — calés dans une LÈVRE de gencive épaisse (5 cm de relief, cernée de noir) d'où ils sortent, comme sur la photo.
+  // ⚠ (bug des « éclats en étoile ») `cote` ne lit le flanc qu'au-dessus de son chanfrein bas (il rend −1 dessous) : les crocs du bas, plus
+  //   bas que lui, voyaient leurs points RETOURNÉS de l'autre côté. `cote2` suit aussi le chanfrein du bas de caisse.
+  const cote2=(z,y)=>{const q=S(z);for(let i=1;i<5;i++){const a=q[i],c=q[i+1];if(y<=c[1]){if(y<a[1])return a[0];const t=(y-a[1])/((c[1]-a[1])||1);return a[0]+(c[0]-a[0])*t;}}return q[5][0];};
+  const YC=.52,XF=cote2(ZN,YC),SM=XF+.31,BL=.06,GL=.058;
+  const Bp=(s9,y)=>{const a=Math.abs(s9),sg=s9<0?-1:1,xe=cote2(ZN,y);if(a<=XF)return [s9*Math.min(1,xe/XF),y,ZN];const z=ZN-(a-XF);return [sg*cote2(z,y),y,z];};
+  const Nn=s9=>{const a=Math.abs(s9),sg=s9<0?-1:1,t=Math.max(0,Math.min(1,(a-(XF-BL))/(2*BL))),nx=sg*t,nz=1-t,l=Math.hypot(nx,nz);return [nx/l,nz/l];};
+  const srf=(s9,y,off)=>{const b=Bp(s9,y),n=Nn(s9);return [b[0]+n[0]*off,y,b[2]+n[1]*off];};
+  const HB=s9=>{const a=Math.abs(s9);return a<=XF?.30:.30-.16*Math.min(1,(a-XF)/(SM-XF));}; // (« plus grande, ouverte ») du bas du bouclier jusque sous les yeux // la demi-hauteur : droite sur l'avant, effilée sur le flanc
+  const st=.03,quad=(k,a,b,c,d)=>{P.tri(k,a,b,c);P.tri(k,a,c,d);};
+  const bande=(k,f0,f1,off,sA,sB)=>{for(let a=sA;a<sB-1e-6;a+=st){const b=Math.min(sB,a+st);quad(k,srf(a,f0(a),off),srf(b,f0(b),off),srf(b,f1(b),off),srf(a,f1(a),off));}};
+  const jupe=(k,f,off,sA,sB)=>{for(let a=sA;a<sB-1e-6;a+=st){const b=Math.min(sB,a+st);quad(k,srf(a,f(a),0),srf(b,f(b),0),srf(b,f(b),off),srf(a,f(a),off));}};
+  const yH=x=>YC+HB(x),yL=x=>YC-HB(x),LV=.045;                                // (« exagère ») la lèvre JAILLIT de 9 cm
+  bande('K',yL,yH,.006,-SM,SM);                                                  // la gorge
+  bande('J',x=>yL(x)+GL+.045,x=>yH(x)-GL-.055,.007,-SM+.06,SM-.06);            // et son fond, plus noir : la gueule a de la PROFONDEUR
+  // LES CROCS (sous la lèvre) : place, taille, penchant tirés au hasard FIXE
+  const hh=(i,k)=>{const v=Math.sin(i*12.9898+k*78.233)*43758.5453;return v-Math.floor(v);};
+  const croc=(k,b0,b1,t,o0,oA)=>{const mx=(b0[0]+b1[0])/2,my=(b0[1]+b1[1])/2,A=srf(mx+(t[0]-mx)*.3,my+(t[1]-my)*.3,oA),B0=srf(b0[0],b0[1],o0),B1=srf(b1[0],b1[1],o0),T9=srf(t[0],t[1],o0+.006);
+    P.tri(k,B0,T9,A);P.tri(k,T9,B1,A);P.tri(k,B1,B0,A);};
+  const PAS=.13;
+  for(let r=0;r<3;r++)for(let i=-11;i<=11;i++)for(const haut of [1,0]){        // (« exagère ») trois rangées · r=0 : les grands crocs devant · r=1 : la rangée de derrière, plus petite, entre eux
+    const id=i*6+haut*3+r,big=1,c=(i+(haut?.5:0)+(r===1?.5:r===2?.25:0))*PAS+(hh(id,1)-.5)*.045;let w=(r===0?.085:r===1?.055:.035)*(.8+.45*hh(id,2))*big; // quelques ÉNORMES crocs parmi les autres
+    const ec=Math.abs(c)>XF?HB(c)/HB(0):1;w*=ec;                                // sur le flanc la gueule s'effile : les dents aussi (une grosse y paraissait de travers)
+    if(Math.abs(c)+w>SM-.035)continue;
+    if(Math.abs(Math.abs(c)-XF)<w+.03)continue;                                  // (Léo : « une dent chelou sur les côtés ») aucune dent À CHEVAL sur le coin : elle s'y pliait en deux
+    const yi=haut?yH(c)-GL:yL(c)+GL,ou=yH(c)-yL(c)-2*GL,L=ou*(r===0?(haut?.37:.29):r===1?.22:.13)*(.78+.44*hh(id,3))*big*ec,pen=(hh(id,4)-.5)*w*(ec<1?.4:1.4); // (« ouvre un peu la bouche ») plus courts : la gueule béante entre eux — OUVERTE : les crocs du haut et du bas ne se touchent plus
+    const yb=haut?yi+.022:yi-.022,yt=haut?yi-L:yi+L;
+    croc(r?'e':'d',[c-w,yb],[c+w,yb],[c+pen,yt],r===0?.012:r===1?.009:.007,r===0?.046:r===1?.034:.022);} // (« merge ») ils restent DANS la bouche
+  // (Léo : « enlève les énormes, gênantes ; la compo de la bouche grande ouverte ; merge voiture ») — plus de sabres ni de crocs géants ;
+  //   la bouche se FOND dans la caisse : la lèvre devient un bourrelet de PEAU (le blanc du ventre) qui sort à peine (4,5 cm), cerné d'un
+  //   joint sombre affleurant comme une ligne de carrosserie, et la gencive passe EN RETRAIT derrière elle.
+  const jupe2=(k,f,o0,o1,sA,sB)=>{for(let a=sA;a<sB-1e-6;a+=st){const b=Math.min(sB,a+st);quad(k,srf(a,f(a),o0),srf(b,f(b),o0),srf(b,f(b),o1),srf(a,f(a),o1));}};
+  const LP=.035,GO=.022;                                                         // LP : la largeur de la lèvre · GO : la gencive, en retrait
+  bande('R',x=>yH(x)-GL,x=>yH(x)-.012,GO,-SM,SM);bande('R',x=>yL(x)+.012,x=>yL(x)+GL,GO,-SM,SM);
+  bande('b',x=>yH(x)-.012,x=>yH(x)+LP,LV,-SM,SM);bande('b',x=>yL(x)-LP,x=>yL(x)+.012,LV,-SM,SM); // la lèvre de peau
+  jupe('b',x=>yH(x)+LP,LV,-SM,SM);jupe('b',x=>yL(x)-LP,LV,-SM,SM);              // elle naît de la caisse (dehors)…
+  jupe2('b',x=>yH(x)-.012,GO,LV,-SM,SM);jupe2('b',x=>yL(x)+.012,GO,LV,-SM,SM);  // …et plonge vers la gencive (dedans)
+  for(const e of [-1,1]){const a=e<0?-SM-LP:SM,b=e<0?-SM:SM+LP;bande('b',x=>yL(x)-LP,x=>yH(x)+LP,LV,a,b);} // les commissures
+  bande('G',x=>yH(x)+LP,x=>yH(x)+LP+.012,.003,-SM-LP,SM+LP);bande('G',x=>yL(x)-LP-.012,x=>yL(x)-LP,.003,-SM-LP,SM+LP); // le joint, affleurant
+  // ---- LES YEUX : les phares en amande, effilés vers le nez, et l'ŒIL NOIR du requin ----
+  for(const sd of [-1,1]){const HL=[[.38,.928],[.62,.894],[.86,.906],[.89,.98],[.70,.996],[.48,.972]].map(([x,y])=>[sd*x,y]);
+    const cx=sd*.66,cy=.945,gros=HL.map(([x,y])=>[cx+(x-cx)*1.12,cy+(y-cy)*1.3]);
+    P.plate('G',gros,.008,ZN);P.plate('g',HL,.010,ZN+.002);                       // le boîtier noir laqué, le verre fumé
+    P.plate('W',[[sd*.49,.964],[sd*.86,.969],[sd*.86,.980],[sd*.49,.975]],.008,ZN+.006); // le trait de LED, en haut
+    const ell=(x,y,r,n)=>{const q=[];for(let i=0;i<n;i++){const a=i/n*Math.PI*2;q.push([x+Math.cos(a)*r,y+Math.sin(a)*r]);}return q;};
+    P.plate('I',ell(sd*.70,.937,.052,14),.010,ZN+.006);P.plate('W',ell(sd*.718,.953,.012,8),.006,ZN+.012);} // (« merge ») plus de sourcils : ils dépassaient du coin de la face comme des bâtons // (« encore ») le SOURCIL : une barre épaisse qui plonge vers le nez // l'œil, et son éclat
+  P.box('k',1.70,.035,.26,0,.18,ZN-.05);                                        // la lame sous le menton
+  // ---- L'AILERON DORSAL sur le toit, couché vers l'arrière ----
+  P.prism('p',[[-.10,1.35],[-.40,1.55],[-.66,1.80],[-1.06,2.08],[-.98,1.80],[-.92,1.52],[-.90,1.35]],.085,0);
+  // ---- LES NAGEOIRES PECTORALES, en guise de rétros (dessus couleur caisse, dessous gris nuit) ----
+  {const NG=[[.94,.98],[1.40,.38],[1.22,.46],[1.06,.51],[.94,.55]],ny=x=>1.005-(x-.94)*.36,ep=x=>.012+.07*Math.max(0,1-(x-.94)/.46); // épaisse à la racine, effilée au bout : on la lit de profil
+   for(const sd of [-1,1]){const H9=NG.map(([x,z])=>[sd*x,ny(x)+ep(x)/2,z]),B9=NG.map(([x,z])=>[sd*x,ny(x)-ep(x)/2,z]);
+     for(let i=1;i<NG.length-1;i++){P.tri('p',H9[0],H9[i],H9[i+1]);P.tri('n',B9[0],B9[i+1],B9[i]);}
+     for(let i=0;i<NG.length;i++){const j=(i+1)%NG.length;P.tri('n',H9[i],B9[i],B9[j]);P.tri('n',H9[i],B9[j],H9[j]);}}}
+  // ---- LA POUPE : quatre feux RONDS, le diffuseur, quatre sorties ----
+  {const ell=(x,y,r,n)=>{const q=[];for(let i=0;i<n;i++){const a=i/n*Math.PI*2;q.push([x+Math.cos(a)*r,y+Math.sin(a)*r]);}return q;};
+   for(const sd of [-1,1])for(const x of [.42,.68]){P.plate('G',ell(sd*x,.83,.098,16),.008,ZT-.012);P.plate('L',ell(sd*x,.83,.074,16),.008,ZT-.018);}}
+  P.box('k',1.62,.13,.14,0,.30,ZT-.04);
+  for(const sd of [-1,1])for(const x of [.30,.46]){P.cyl('c',.05,.16,8,sd*x,.30,ZT-.06,'z');P.cyl('k',.036,.165,8,sd*x,.30,ZT-.06,'z');}
+  // ---- L'AILERON sur la malle, ses flasques taillés en QUEUE de requin ----
+  const yA=T(-2.02);
+  for(const sd of [-1,1]){P.box('n',.05,.20,.08,sd*.52,yA+.10,-1.98);
+    P.prism('n',[[-1.84,yA+.16],[-2.06,yA+.22],[-2.24,yA+.38],[-2.18,yA+.22],[-2.24,yA+.10],[-2.06,yA+.14]],.03,sd*.93);}
+  P.box('n',1.88,.04,.32,0,yA+.22,-2.06,-.07,0,0);
+  K.commit(P);
+  // LE VERNIS : dur et franc, sur la matière de cette caisse seulement (K.mats)
+  {const mP=K.mats&&K.mats.p;if(mP){mP.shininess=86;mP.specular.setHex(0x8c8c8c);mP.reflectivity=.36;
+    if(mP.userData.uG)mP.userData.uG.value=.035;if(mP.userData.uV)mP.userData.uV.value.set(.40,1.8,3,.30);}}
+  return {hl:[.70,.937,ZN+.03],tl:[.55,.83,ZT-.03],lamps:0,pipes:0,halos:0, // les yeux SONT les phares : ni boîte blanche ni halo devant eux
+          wx:.88,wzF:ZF,wzR:-ZR,
+          pots:[[.30,.30,ZT-.14],[-.30,.30,ZT-.14],[.46,.30,ZT-.14],[-.46,.30,ZT-.14]],
+          lpw:{R:R,w:.36,style:'rayons',n:6,jante:0x2b2e34,accent:0x2b2e34}};
+};
 const CAR_VIEUX=[]; // les matières de la caisse d'avant : libérées à la construction suivante
 /* LA CAISSE NE DÉTRUIT PLUS SES PROGRAMMES (2026-09-28, chasse aux gels) — three DÉTRUIT un programme quand la dernière matière qui s'en
    sert est libérée. Le sursis d'une construction (`CAR_VIEUX`) suffisait tant que la caisse était DESSINÉE entre deux constructions ; le
@@ -20839,7 +21023,7 @@ function buildCar(spec){
   const commit=kt=>{const gs=kt.done();for(const g in gs){gs[g].computeBoundingBox();lpZmin=Math.min(lpZmin,gs[g].boundingBox.min.z);
     if(g!=='l')lpOmbre(gs[g],H9); // (2026-09-26, vague 2) l'ombre cuite (voir lpOmbre) — les feux émettent, ils n'en prennent pas
     const m=new THREE.Mesh(gs[g],lpMatC(g));m.userData.lp=1;add(m);}if(kt.prims)for(const p of kt.prims)lpPrims.push(p);};
-  const K={W:W9,H:H9,L:L9,y0:y0,spec:spec,wreck:wreck,add:add,box:box,prof:prof,cyl:cyl,sph:sph,con:con,kit:kit,commit:commit,
+  const K={W:W9,H:H9,L:L9,y0:y0,spec:spec,wreck:wreck,add:add,box:box,prof:prof,cyl:cyl,sph:sph,con:con,kit:kit,commit:commit,mats:lpM, // mats : les matières posées (un gabarit peut régler SON vernis, voir le SQUALE)
            body:bodyM,acc:accM,glass:glassM,chrome:chromeM,dark:darkM,rust:rustM};
   // LE GABARIT EST DÉCLARÉ PAR LA CAISSE, jamais deviné. Le repli sur 'gt' n'est pas une règle de
   // secours confortable : c'est un filet pour qu'une fiche mal saisie se voie tout de suite à l'écran
@@ -22245,6 +22429,7 @@ const CAR_UNLOCK=[
   {k:'carrV',v:5}, // (2026-10-05 : les 5 niveaux de la VILLE) (2026-09-27) LE LINGOT — les dix niveaux de la VILLE (il se gagne en battant le banquier au niveau 10)
   {p:1200000}, // (2026-10-02) L'ORIGAMI — ÉPIQUE, à l'argent : entre LA DÉESSE et L'AIGLE DE FEU
   {p:150000}, // (2026-10-06) ATCHOUM — RARE, à l'argent
+  {p:120000}, // (2026-10-08) LE SQUALE — RARE, à l'argent
 ]
 /* (POKI) PLUS DE MISSIONS, DE CARRIÈRE NI DE BOUTIQUE : les caisses qui s'y gagnaient passent À L'ARGENT DU JEU (sinon le garage montrerait
    des caisses qu'on ne peut plus avoir). Les prix prolongent la gamme : les carnets là où ils tombaient dans la progression (LA BULLE
@@ -39701,7 +39886,8 @@ function invHoldFin(){if(!INV||!INV.hold)return;INV.hold=null;cancelAnimationFra
 const BURN={on:false,hold:null,bouge:false,k:0,t:0,chaud:0,rpm:0,son:false,cut:0,pops:[],fum:null,feu:null,gom:null,yaw:0,yawV:0,cib:0,pivK:0,drz:.8,rr:2.4,
   hapT:0,auto:0,autoW:0,ar:[],roues:[],pots:[],corps:false,tE:0,tF:0,tP:0,
   don:0,donK:0,donM:0,acc:0,n:0,nT:0,scx:0,scy:0,fA:null,fR:0,tx:null,ty:0,th:null,tT:0,sT:0,sAu:0,kc:0,mc:0,aideT:0,cad:0,Rs:3, // (2026-10-08) LE DONUT AU DOIGT
-  qx:0,qz:0,qvx:0,qvz:0,fsx:0,fsz:0,fsOk:false,sv:null,so:null,sp:null, // (2026-10-08) LA CAISSE SE BALADE : où elle est partie sur le plateau, sa vitesse, le doigt au sol
+  qx:0,qz:0,qvx:0,qvz:0,fsx:0,fsz:0,fsOk:false,sv:null,so:null,sp:null,
+  chg:0,nitro:false,recul:false,nk:0,rk:0,rkP:0,dzP:null,nE:0,btn:null, // (2026-10-08) LA CHARGE qui se voit · LA NITRO et LA MARCHE ARRIÈRE (boutons, clavier) // (2026-10-08) LA CAISSE SE BALADE : où elle est partie sur le plateau, sa vitesse, le doigt au sol
   kick:0,feuxK:0,pix:null,gr:null, // ce que le reste du jeu lit (la caméra, les feux stop, le chat) · les cubes blancs
   c:new THREE.Vector3(),
   v:new THREE.Vector3(),w:new THREE.Vector3(),u:new THREE.Vector3(),r:new THREE.Vector3(),q:new THREE.Vector3()};
@@ -39848,16 +40034,16 @@ function burnDebut(e){ // pointerdown : le doigt se pose sur la caisse
 function burnPart(){ // ça part : le doigt a tenu
   if(BURN.on)return;burnPrepare();BURN.on=true;BURN.t=0;BURN.pops.length=0;BURN.corps=true;
   BURN.acc=BURN.n=0;BURN.fA=null;BURN.tx=null;BURN.th=null;BURN.sT=BURN.sAu=BURN.kc=BURN.mc=0;BURN.fsOk=false;if(BURN.pivK<.01)BURN.qx=BURN.qz=BURN.qvx=BURN.qvz=0;try{burnCentre();}catch(_){} // (le donut) le centre du VOLANT du doigt : le milieu du plateau, à l'écran
-  hap([14,30,10]);
+  hap([14,30,10]);try{burnPop(.75);burnAnneau(.5);}catch(_){} // (2026-10-08) le départ se VOIT : une pétarade et un anneau de fumée
   if(!((SAVE.d.ast|0)&8)){SAVE.d.ast=(SAVE.d.ast|0)|8;try{SAVE.mark();}catch(_){}if(gEl)gEl.classList.remove('aideInv');} // l'astuce a servi
 }
 function burnFin(){ // le doigt se lève (ou la vitrine se ferme) : le moteur retombe en pétaradant
-  const etait=BURN.on;BURN.hold=null;BURN.on=false;BURN.auto=0;BURN.autoW=0;
+  const etait=BURN.on;BURN.hold=null;BURN.on=false;BURN.auto=0;BURN.autoW=0;BURN.nitro=BURN.recul=false;
   if(etait){const n=performance.now();BURN.pops=[n+70,n+250,n+450,n+720].slice(0,2+Math.round(2*Math.min(1,BURN.t/1.5)));}
 }
 function burnCoupe(){ // l'atelier se ferme : silence, plus rien à l'écran
   burnFin();BURN.k=0;BURN.rpm=0;BURN.pops.length=0;
-  if(BURN.yaw){garageAng-=BURN.yaw;GAR.podSpin=(GAR.podSpin||0)-BURN.yaw;}BURN.yaw=BURN.yawV=BURN.cib=BURN.pivK=0;BURN.qx=BURN.qz=BURN.qvx=BURN.qvz=0;
+  if(BURN.yaw){garageAng-=BURN.yaw;GAR.podSpin=(GAR.podSpin||0)-BURN.yaw;}BURN.yaw=BURN.yawV=BURN.cib=BURN.pivK=0;BURN.qx=BURN.qz=BURN.qvx=BURN.qvz=0;BURN.chg=BURN.nk=BURN.rk=0;BURN.dzP=null;burnBtnsVoir(false);
   BURN.don=BURN.donK=BURN.donM=BURN.acc=BURN.n=BURN.cad=BURN.feuxK=0;const bt=document.getElementById('gBurnTxt');if(bt)bt.classList.remove('on','on2');
   for(const F of [BURN.fum,BURN.feu,BURN.pix])if(F){F.age.fill(1e9);burnPas(F,0,0);F.o.visible=false;}
   if(BURN.gr)for(const im of BURN.gr.M){im.count=0;im.visible=false;}
@@ -39887,7 +40073,7 @@ function burnDoigt(cx,cy,dx,dy,souffle){ // le DOIGT dans la fumée : il la pous
    D'ORIGINE (,009 rad par px, `DON.derape`) — ce qui ne tourne ni autour d'elle ni sur lui-même : le dérapage du premier burn-out. Le doigt
    ne pose qu'un CAP (`BURN.cib`) : c'est le ressort d'origine (burnDerape) qui la fait tourner, part, dépasse et revient. */
 const BURN_GLISSE=24; // tenu 0,8 s, un pouce posé GLISSE de plus de 12 px : pendant la charge on tolère 24 px (une fois parti, 12 px = « le doigt bouge »)
-const BURN_TENU=800;  // (Léo, 2026-10-07/08) le maintien qui déclenche le burn-out : 280 ms → 500 → 1 500 → 1 000 → 800
+const BURN_TENU=950;  // (Léo, 2026-10-07/08) le maintien qui déclenche le burn-out : 280 ms → 500 → 1 500 → 1 000 → 800 → 950 (même soir, Léo : « dès qu'on appuie longtemps, ça fait le burn, même quand on tourne la voiture — ça prend un tout petit peu plus de temps, mais ça se voit et se ressent plus » : voir LA CHARGE)
 const DON={mort:16,plein:44,gain:1,kv:1/70,avance:1.6,derape:.009,pitch:.06};
 function burnCentre(){ // le centre du VOLANT : le milieu du plateau, à mi-hauteur de caisse, à l'écran
   const v=BURN.c;if(GAR.pod)GAR.pod.getWorldPosition(v);else carGroup.getWorldPosition(v);v.y=GARAGE_Y+.55;v.project(camera);
@@ -40015,20 +40201,24 @@ function burnCaisse(dt){
 function burnTick(dt){ // chaque image du garage (après la pose de la caisse, avant la caméra)
   const now=performance.now(),t=now*.001;
   if(!BURN.pret){BURN.pret=true;try{chauffeRendu(burnPools());}catch(e){}} // (2026-10-08) à la 1re image du garage : la fumée en pixels et ses cubes compilés pendant l'entrée — la chauffe de l'atelier au menu ne tourne plus toujours (mesuré : jamais sur l'écran titre de la chute), et le 1er burn-out compilait
-  if(BURN.hold&&!BURN.on&&!BURN.bouge&&now-BURN.hold.t0>BURN_TENU){if(!BURN.hold.non)burnPart();else if(!BURN.hold.dit){BURN.hold.dit=1;burnRefus();}} // (même soir) 0,28 s, (2026-10-08) 0,8 s : un glissé lent qui démarre doucement reste le PLATEAU
+  if(BURN.hold&&!BURN.on&&!BURN.bouge&&now-BURN.hold.t0>BURN_TENU){if(!BURN.hold.non){const b9=!!BURN.hold.bouge;burnPart();if(b9){BURN.bouge=true;GAR.platW=0;}}else if(!BURN.hold.dit){BURN.hold.dit=1;burnRefus();}} // (2026-10-08) parti en tournant le plateau : le doigt qui bouge DÉRAPE aussitôt
+  {const c9=BURN.hold&&!BURN.on&&!BURN.hold.non&&!GAR.go?Math.max(0,Math.min(1,(now-BURN.hold.t0-BURN_TENU*.25)/(BURN_TENU*.75))):0; // LA CHARGE : le dernier ¾ du maintien, le moteur monte
+    BURN.chg=c9>BURN.chg?c9:BURN.chg+(c9-BURN.chg)*Math.min(1,dt*6);
+    if(c9>0&&!REDUCED_MOTION&&now>BURN.hapT){BURN.hapT=now+200-130*c9;hap(c9>.7?6:3);}}   // le pouce la sent venir : des tics de plus en plus serrés // (même soir) 0,28 s, (2026-10-08) 0,8 s : un glissé lent qui démarre doucement reste le PLATEAU
   if(BURN.auto>0&&dt>0){BURN.auto-=dt;if(BURN.autoW)burnVolant(BURN.autoW*dt);if(BURN.auto<=0)burnFin();} // (le banc) un doigt qui tourne à autoW rad/s
   if(GAR.go||!garAtelierLibre())if(BURN.on)burnFin();
-  BURN.k+=((BURN.on?1:0)-BURN.k)*Math.min(1,dt*(BURN.on?5:2.6));if(BURN.k<.002&&!BURN.on)BURN.k=0;
+  {const kc=BURN.on?1:BURN.chg*.42;BURN.k+=(kc-BURN.k)*Math.min(1,dt*(kc>BURN.k?5:2.6));if(BURN.k<.002&&!BURN.on&&!BURN.chg)BURN.k=0;} // (la charge) elle tremble déjà, les pneus patinent et fument un peu, les feux stop s'allument
+  burnNitroTick(dt,now);
   if(BURN.on)BURN.t+=dt;
   BURN.chaud=Math.max(0,Math.min(1,BURN.chaud+(BURN.on?dt*.34:-dt*.22)));
   const k=BURN.k;
   burnDerape(dt);try{burnTours(dt);}catch(_){}
   if(BURN.on&&!BURN.bouge&&BURN.t>1.4&&!BURN.aideT&&!((SAVE.d.ast|0)&16)){BURN.aideT=1;burnTxt('TOURNE AUTOUR · DONUT','#b9a8ff',true);} // l'astuce, une fois par session, tant qu'aucun donut n'a tourné
-  BURN.cad+=(((BURN.on||Math.abs(BURN.yawV)>1)&&!GAR.go?Math.max(BURN.donH||0,Math.min(1,BURN.pivK*Math.hypot(BURN.qx,BURN.qz)/1.2)):0)-BURN.cad)*Math.min(1,dt*2.2);if(BURN.cad<1e-3)BURN.cad=0; // en donut, la vue recule (garBurnR)
+  BURN.cad+=(((BURN.on||Math.abs(BURN.yawV)>1)&&!GAR.go?Math.max(BURN.donH||0,Math.min(1,BURN.pivK*Math.hypot(BURN.qx,BURN.qz)/1.2)):0)-BURN.cad)*Math.min(1,dt*(BURN.nk>.05||BURN.rk>.05?4.5:2.2)); /* (la nitro) elle bondit vers l'objectif : la vue recule aussi vite */if(BURN.cad<1e-3)BURN.cad=0; // en donut, la vue recule (garBurnR)
   BURN.feuxK=GAR.go?0:k;                                                  // on tient le frein : les feux stop s'allument (carVit)
   // LA CAISSE
   if(k>0&&!GAR.go){
-    const sp=46*k*dt;for(const E of BURN.ar)E.rotation.x+=sp;for(const w of BURN.arW)w.rotation.x+=sp; // l'arrière patine, l'avant est planté
+    const sp=46*k*dt*(1+.6*BURN.nk)*(1-2*BURN.rk);for(const E of BURN.ar)E.rotation.x+=sp;for(const w of BURN.arW)w.rotation.x+=sp; // l'arrière patine, l'avant est planté — plus vite à la NITRO, à l'envers en MARCHE ARRIÈRE
     const tr=REDUCED_MOTION?.3:1;
     carBody.rotation.x=-.042*k+Math.sin(t*37)*.004*k*tr;               // le cul s'écrase, le nez se lève
     carBody.rotation.z=Math.sin(t*29+1.3)*.007*k*tr;                    // elle tremble sur ses pneus
@@ -40041,11 +40231,11 @@ function burnTick(dt){ // chaque image du garage (après la pose de la caisse, a
   if(k>.02&&BURN.fum&&!GAR.go){
     carGroup.updateMatrixWorld();
     const ry=carGroup.rotation.y,fx=Math.sin(ry),fz=Math.cos(ry);
-    const db9=BURN_FUM.deb[0]+BURN_FUM.deb[1]*BURN.chaud;BURN.tE+=dt*k*db9;BURN.deb=(BURN.deb||0)+(k*db9-(BURN.deb||0))*Math.min(1,dt*2); // le débit lissé (l'horizon)
+    const db9=(BURN_FUM.deb[0]+BURN_FUM.deb[1]*BURN.chaud)*(1+BURN_NITRO.fumee*BURN.nk),av9=1-2*BURN.rk;BURN.tE+=dt*k*db9;BURN.deb=(BURN.deb||0)+(k*db9-(BURN.deb||0))*Math.min(1,dt*2); // le débit lissé (l'horizon)
     while(BURN.tE>=1){BURN.tE-=1;const r=BURN.roues[(Math.random()*BURN.roues.length)|0],o=burnMonde(r.x+(Math.random()-.5)*r.l,r.y+.08,r.z-r.R*.55,BURN.q),
         sd=r.x<0?-1:1,sx=fz*sd,sz=-fx*sd,N9=BURN_NUAGE,fl=Math.random()<N9.flanc,                // (2026-10-08) plus vers l'arrière, un peu sur le côté — et une part qui sort PAR LE FLANC
         v=fl?N9.fa0+Math.random()*N9.fa1:N9.v0+Math.random()*N9.v1,l=fl?N9.fc0+Math.random()*N9.fc1:Math.random()*N9.cote,gr=.84+Math.random()*.12;
-      burnEmet(BURN.fum,o.x,o.y,o.z,-fx*v+sx*l,.25+Math.random()*.75,-fz*v+sz*l,5.8+Math.random()*4.2,.34+Math.random()*.24,1.05+Math.random()*.5+.45*BURN.chaud,
+      burnEmet(BURN.fum,o.x,o.y,o.z,-fx*v*av9+sx*l,.25+Math.random()*.75,-fz*v*av9+sz*l,5.8+Math.random()*4.2,.34+Math.random()*.24,1.05+Math.random()*.5+.45*BURN.chaud,
         .2+Math.random()*.16,gr*.86,gr*.84,gr*.93);}
     if(NYAN.on&&BURN.pix){BURN.tP+=dt*k*(240+170*BURN.chaud); // (2026-10-06) LE CHAT : à la place des braises, les roues giclent des PIXELS multicolores qui scintillent
       while(BURN.tP>=1){BURN.tP-=1;const r=BURN.roues[(Math.random()*BURN.roues.length)|0],o=burnMonde(r.x+(Math.random()-.5)*r.l,r.y+.1,r.z-r.R*.5,BURN.q),v=1.5+Math.random()*3,c=nyanPixC();
@@ -40086,6 +40276,51 @@ const BURN_RESSORT={om:8,ze:.5};
    POUSSENT dans son axe d'autant plus qu'elle tourne (`pousse` m/s², pleine à 4 rad/s) : le donut MARCHE, il ne reste plus sur place ;
    (3) au bord du plateau elle RENCONTRE le bord, y perd sa vitesse vers l'extérieur et en rebondit un peu (`rebond`). Tenue sans bouger :
    elle reste sur place (le burn-out d'origine). Lâchée : elle revient au centre avec le reste (`pivK`). */
+/* LA NITRO ET LA MARCHE ARRIÈRE (2026-10-08, Léo : « ajoute dans les capacités du burn-out : en reculant, et la nitro »). Pendant le
+   burn-out, deux touches tenues (l'autre pouce, comme NITRO en course ; au clavier ESPACE / N et ↓ / R) :
+   · NITRO (`BURN.nk`, lissé) : le feu SORT DES POTS (bleu au cœur, orange au bout), la fumée ×(1 + `fumee`), les pneus patinent plus vite,
+     le moteur au plafond, elle tourne plus fort (`tourne`) et BONDIT devant (`pousse` m/s², vitesse ×(1 + `vit`)) ; à l'appui un coup de
+     souffle (boostSnd), au lâcher la pétarade.
+   · MARCHE ARRIÈRE (`BURN.rk`) : les roues tournent à l'envers et soufflent la fumée vers l'AVANT, elle RECULE (`recul` m/s² — seule
+     exception à « elle ne recule jamais »), le pivot passe derrière (c'est l'avant qui balaie : le donut en marche arrière). Les deux
+     ensemble : elle recule fort. Le ressort du doigt se relâche pendant l'une ou l'autre : elle file, puis revient sous le doigt. */
+const BURN_NITRO={fumee:.6,tourne:.2,pousse:1.8,recul:1.7,vit:.3,feu:110,lache:.45}; // (même soir, Léo : « reviens sur celle d'avant, juste un peu moins violent, et le suivi moins dénaturé ») MESURÉ en v187 (pousse 3, recul 2,6, vit ,7, ressort relâché ×(1 − ,78), tour ajouté au CAP) : la NITRO jetait la caisse à 7-8 m/s jusqu'au bord, et après elle la caisse restait décalée de ~100° sur le doigt (le tour en plus s'ajoutait pour de bon au cap visé) — désormais `tourne` = une AVANCE passagère (rad, `BURN.nAv`) qui retombe au lâcher, poussées et vitesse plus douces, le ressort du doigt ne se relâche plus que de `lache`
+function burnBtnsVoir(on){
+  let b=BURN.btn;
+  if(!b){if(!on)return;b=BURN.btn=document.createElement('div');b.id='gBurnBtns';b.setAttribute('aria-hidden','true');if(!TEL_NATIF)b.classList.add('clavier');
+    b.innerHTML='<button type="button" class="gbB" id="gbRecul"><i class="pxi pxi-bas"></i><span data-fr="ARRIERE">'+TR('ARRIERE')+'</span><small>R</small></button>'+
+      '<button type="button" class="gbB" id="gbNitro"><i class="pxi pxi-eclair"></i><span>NITRO</span><small>'+TR('ESPACE')+'</small></button>';
+    document.body.appendChild(b);
+    for(const [id,k] of [['gbNitro','nitro'],['gbRecul','recul']]){const el=b.querySelector('#'+id);
+      const fin=function(e){if(el._p!=null&&e.pointerId===el._p){el._p=null;BURN[k]=false;el.classList.remove('on');}};
+      el.addEventListener('pointerdown',function(e){e.stopPropagation();e.preventDefault();if(!BURN.on)return;el._p=e.pointerId;try{el.setPointerCapture(e.pointerId);}catch(_){}BURN[k]=true;el.classList.add('on');});
+      el.addEventListener('pointerup',fin);el.addEventListener('pointercancel',fin);el.addEventListener('lostpointercapture',fin);
+      el.addEventListener('click',function(e){e.stopPropagation();});}}
+  if(b._on!==on){b._on=on;b.classList.toggle('on',on);if(!on)for(const el of b.children){el._p=null;el.classList.remove('on');}}
+}
+addEventListener('keydown',function(e){if(!garageOn||!BURN.on)return; // (en CAPTURE : un bouton du garage resté sous le focus ne prend pas l'ESPACE)
+  const n9=e.code==='Space'||e.code==='KeyN',r9=e.code==='ArrowDown'||e.code==='KeyR'||e.code==='KeyS';if(!n9&&!r9)return;e.preventDefault();e.stopPropagation();if(e.repeat)return;
+  if(n9)BURN.nitro=true;else BURN.recul=true;
+  const el=BURN.btn&&BURN.btn.querySelector(n9?'#gbNitro':'#gbRecul');if(el)el.classList.add('on');},true);
+addEventListener('keyup',function(e){
+  if(e.code==='Space'||e.code==='KeyN'){BURN.nitro=false;const el=BURN.btn&&BURN.btn.querySelector('#gbNitro');if(el&&el._p==null)el.classList.remove('on');}
+  else if(e.code==='ArrowDown'||e.code==='KeyR'||e.code==='KeyS'){BURN.recul=false;const el=BURN.btn&&BURN.btn.querySelector('#gbRecul');if(el&&el._p==null)el.classList.remove('on');}},true);
+try{Object.assign(I18N,{'ARRIERE':'REVERSE','ESPACE':'SPACE'});Object.assign(I18N_ZH,{'ARRIERE':'倒车','ESPACE':'空格'});}catch(e){}
+function burnNitroTick(dt,now){
+  burnBtnsVoir(BURN.on&&!GAR.go);
+  const n0=BURN.nk>.5,nv=BURN.on&&BURN.nitro&&!GAR.go?1:0,rv=BURN.on&&BURN.recul&&!GAR.go?1:0;
+  BURN.nk+=(nv-BURN.nk)*Math.min(1,dt*(nv?8:3.5));BURN.rk+=(rv-BURN.rk)*Math.min(1,dt*(rv?4:3));
+  if(BURN.nk<.002&&!nv)BURN.nk=0;if(BURN.rk<.002&&!rv)BURN.rk=0;
+  if(nv&&!BURN.nwas){BURN.nwas=true;BURN.chaud=Math.max(BURN.chaud,.75);try{burnPop(1.2);}catch(_){}try{if(sfxOk())boostSnd(1.15);}catch(_){}hap([12,20,14]);}
+  else if(!nv&&BURN.nwas){BURN.nwas=false;const n=now;BURN.pops.push(n+60,n+210,n+400);BURN.pops.sort(function(a,b){return a-b;});}
+  if(BURN.nk>.03&&nv)BURN.chaud=Math.min(1,BURN.chaud+dt*.8);
+  {const av=BURN.on&&Math.abs(BURN.don)>.5?Math.sign(BURN.don)*BURN_NITRO.tourne*BURN.nk:0;BURN.nAv=(BURN.nAv||0)+(av-(BURN.nAv||0))*Math.min(1,dt*4);} // elle tourne un peu DEVANT le doigt — une avance qui retombe (jamais ajoutée au cap visé : le doigt reste le maître)
+  if(BURN.nk>.02&&BURN.feu&&BURN.pots.length&&!GAR.go){const ry=carGroup.rotation.y,fx=Math.sin(ry),fz=Math.cos(ry);carGroup.updateMatrixWorld(); // LE FEU DES POTS
+    BURN.nE+=dt*BURN_NITRO.feu*BURN.nk;
+    while(BURN.nE>=1){BURN.nE-=1;const p=BURN.pots[(Math.random()*BURN.pots.length)|0],o=burnMonde(p[0],p[1],p[2],BURN.q),v=5+Math.random()*6,bl=Math.random()<.35;
+      burnEmet(BURN.feu,o.x,o.y,o.z,-fx*v+(Math.random()-.5)*1.2,.2+Math.random()*.9,-fz*v+(Math.random()-.5)*1.2,.16+Math.random()*.22,.14+Math.random()*.14,0,1,bl?.45:1,bl?.6:.62+Math.random()*.35,bl?1:.2);}
+    if(!REDUCED_MOTION&&now>BURN.hapT){BURN.hapT=now+90;hap(5);}}
+}
 const BURN_BALADE={suit:.33,om:2.9,ze:.8,pousse:2.2,rebond:0,bord:4.3,vmax:2.2}; // (même soir, Léo : « faut pas qu'elle recule non plus, là c'est trop violent ») ω 4,2 → 3,2, ζ ,5 → ,8 (plus de dépassement), suit ,5 → ,4, pousse 3,2 → 2,2, plus de rebond, vitesse ≤ 2,2 m/s — et JAMAIS vers l'arrière de la caisse ; puis (« le juste milieu ») suit ,4 → ,33, ω 3,2 → 2,9 : elle chasse un peu moins le doigt, un peu plus lourde
 function burnBord(cx,cz,y){ // de combien rapprocher le centre (cx, cz) pour que les 4 coins de la caisse (cap y) restent à `bord` m du centre du plateau
   const a=BURN.ga||2.2,b=BURN.gb||1,R=BURN_BALADE.bord,co=Math.cos(y),si=Math.sin(y);
@@ -40094,23 +40329,26 @@ function burnBord(cx,cz,y){ // de combien rapprocher le centre (cx, cz) pour que
 } // (2026-10-08, Léo : « la voiture qui suit encore un peu plus ») le ressort qui tire la caisse vers le doigt, ω 7 → 9 : MESURÉ, un doigt qui tourne à 3 rad/s la traînait de 27° (48° à 6 rad/s) — à ω 9, ~20° (~33°) ; puis (même soir, Léo : « ça suit presque TROP — le juste milieu entre satisfaisant et maniable ») ω 8 : le juste milieu entre 7 et 9 ; même amorti (ζ ,5 : elle dépasse un peu, ça glisse)
 function burnDerape(dt){
   const d9=Math.min(dt,.1),n=Math.max(1,Math.ceil(d9/.008)),h=d9/n,om=BURN_RESSORT.om,ze=BURN_RESSORT.ze;
-  for(let i=0;i<n;i++){BURN.yawV+=(om*om*(BURN.cib-BURN.yaw)-2*ze*om*BURN.yawV)*h;BURN.yaw+=BURN.yawV*h;}
+  for(let i=0;i<n;i++){BURN.yawV+=(om*om*(BURN.cib+(BURN.nAv||0)-BURN.yaw)-2*ze*om*BURN.yawV)*h;BURN.yaw+=BURN.yawV*h;}
   if(Math.abs(BURN.yaw)>Math.PI){const s2=2*Math.PI*Math.round(BURN.yaw/(2*Math.PI));BURN.yaw-=s2;BURN.cib-=s2;} // (le donut) les tours se replient : la caisse est la même
   BURN.don+=(BURN.yawV-BURN.don)*Math.min(1,dt*3);                       // (le donut) la rotation lissée : le compte des tours, la vue
   BURN.donK=BURN.on?Math.max(0,Math.min(1,(Math.abs(BURN.don)-.8)/2.2)):Math.max(0,BURN.donK-dt*2);
   BURN.donH=BURN.donH||0;BURN.donH+=((BURN.donK>.35?1:BURN.donK<.15?0:BURN.donH)-BURN.donH)*Math.min(1,dt*1.5);if(BURN.donH<1e-3&&BURN.donK<.15)BURN.donH=0; // l'état « donut » (la vue)
   BURN.donM=BURN.donH*DON_PIV.donMax;                                    // en donut, le pivot ne glisse plus qu'au QUART vers le centre : elle s'éloigne sur le bord
-  const vise=BURN.on&&BURN.bouge&&!GAR.go?1:0;BURN.pivK+=(vise-BURN.pivK)*Math.min(1,dt*(vise?6:(GAR.go?6:1.6)));
+  const vise=BURN.on&&(BURN.bouge||BURN.nk>.05||BURN.rk>.05)&&!GAR.go?1:0; /* (2026-10-08) la NITRO et la MARCHE ARRIÈRE la font bouger même doigt immobile */BURN.pivK+=(vise-BURN.pivK)*Math.min(1,dt*(vise?6:(GAR.go?6:1.6)));
   {const B9=BURN_BALADE,lq=Math.max(0,B9.bord-(BURN.gb||1));let tx=0,tz=0;                // LA BALADE : le pivot voyage
     if(vise&&BURN.fsOk){tx=BURN.fsx*B9.suit;tz=BURN.fsz*B9.suit;const tl=Math.hypot(tx,tz);if(tl>lq){tx*=lq/tl;tz*=lq/tl;}}
-    const ac=vise?B9.pousse*Math.min(1,Math.abs(BURN.yawV)/4):0,ax=Math.sin(BURN.yaw)*ac,az=Math.cos(BURN.yaw)*ac,om=B9.om,ze=B9.ze;
+    const N9=BURN_NITRO,tw=B9.pousse*Math.min(1,Math.abs(BURN.yawV)/4),ac=vise?(tw*(1+N9.tourne*BURN.nk)+N9.pousse*BURN.nk)*(1-BURN.rk)-BURN.rk*(N9.recul+N9.pousse*BURN.nk):0, // la NITRO pousse devant, la MARCHE ARRIÈRE tire derrière
+      ax=Math.sin(BURN.yaw)*ac,az=Math.cos(BURN.yaw)*ac,lch=Math.max(BURN.nk,BURN.rk),om=B9.om*(1-N9.lache*lch),ze=B9.ze,vm=B9.vmax*(1+N9.vit*BURN.nk); // (le ressort du doigt se relâche : elle file vraiment, puis revient)
     const fx=Math.sin(BURN.yaw),fz=Math.cos(BURN.yaw);
     for(let i=0;i<n;i++){BURN.qvx+=(om*om*(tx-BURN.qx)-2*ze*om*BURN.qvx+ax)*h;BURN.qvz+=(om*om*(tz-BURN.qz)-2*ze*om*BURN.qvz+az)*h;
-      if(vise){const vf=BURN.qvx*fx+BURN.qvz*fz;if(vf<0){BURN.qvx-=vf*fx;BURN.qvz-=vf*fz;}                 // elle ne RECULE jamais : ce qui partirait vers son arrière est perdu (elle glisse de côté, ou avance)
-        const vq=Math.hypot(BURN.qvx,BURN.qvz);if(vq>B9.vmax){BURN.qvx*=B9.vmax/vq;BURN.qvz*=B9.vmax/vq;}}
+      if(vise){const vf=BURN.qvx*fx+BURN.qvz*fz;if(vf<0&&BURN.rk<.3){BURN.qvx-=vf*fx;BURN.qvz-=vf*fz;}                 // elle ne RECULE jamais : ce qui partirait vers son arrière est perdu (elle glisse de côté, ou avance)
+        const vq=Math.hypot(BURN.qvx,BURN.qvz);if(vq>vm){BURN.qvx*=vm/vq;BURN.qvz*=vm/vq;}}
       BURN.qx+=BURN.qvx*h;BURN.qz+=BURN.qvz*h;}}
   if(BURN.yaw||BURN.pivK>=.001){
-    const y=BURN.yaw,dz=BURN.drz,sl=-Math.max(-DON_PIV.glisse,Math.min(DON_PIV.glisse,BURN.yawV*DON_PIV.kGlisse))*BURN.pivK; // (2026-10-08, Léo : « faut pas qu'elle recule ») la glisse de l'AUTRE côté du pivot : avant, ce décalage qui tourne avec la caisse la faisait partir EN MARCHE ARRIÈRE autour du cercle (glisse × rotation : 5,6 m/s en arrière à 10 rad/s) ; de ce côté-ci elle AVANCE et c'est l'arrière qui décroche — un vrai donut
+    const y=BURN.yaw,ar9=1-2*BURN.rk,dz=BURN.drz*ar9,s0=-Math.max(-DON_PIV.glisse,Math.min(DON_PIV.glisse,BURN.yawV*DON_PIV.kGlisse))*BURN.pivK,sl=s0*ar9; // (2026-10-08) EN MARCHE ARRIÈRE le pivot passe DERRIÈRE (c'est l'avant qui balaie) et la glisse s'inverse : elle tourne en reculant
+    if(BURN.dzP!=null&&BURN.pivK>.05){const d9=dz-BURN.dzP,e9=s0*(ar9-(1-2*BURN.rkP)),pk=BURN.pivK;BURN.qx+=(d9*Math.sin(y)-e9*Math.cos(y)/pk);BURN.qz-=(d9*((1-BURN.donM)-Math.cos(y))-e9*Math.sin(y)/pk);} // le pivot change de bout SANS que la caisse saute : la balade absorbe le déplacement
+    BURN.dzP=dz;BURN.rkP=BURN.rk; // (2026-10-08, Léo : « faut pas qu'elle recule ») la glisse de l'AUTRE côté du pivot : avant, ce décalage qui tourne avec la caisse la faisait partir EN MARCHE ARRIÈRE autour du cercle (glisse × rotation : 5,6 m/s en arrière à 10 rad/s) ; de ce côté-ci elle AVANCE et c'est l'arrière qui décroche — un vrai donut
     let cx=BURN.pivK*(BURN.qx-dz*Math.sin(y))+Math.cos(y)*sl,cz=BURN.pivK*(BURN.qz+dz*(1-BURN.donM)-dz*Math.cos(y))-Math.sin(y)*sl; // le pivot : devant la caisse (le dérapage), au centre du plateau (le donut) — et là où la balade l'a emmené
     const c=Math.hypot(cx,cz),f9=burnBord(cx,cz,y);if(f9<1){cx*=f9;cz*=f9; // jamais hors du disque — ses QUATRE COINS (pas le cercle qui l'entoure : de côté elle va ~2,5 m au lieu de 1,74) : elle RENCONTRE le bord
       const ux=cx/Math.max(1e-6,c*f9),uz=cz/Math.max(1e-6,c*f9),vr=BURN.qvx*ux+BURN.qvz*uz;if(vr>0){const k9=1+BURN_BALADE.rebond;BURN.qvx-=k9*vr*ux;BURN.qvz-=k9*vr*uz;}
@@ -40121,21 +40359,21 @@ function burnDerape(dt){
     carGroup.rotation.y+=y;carGroup.position.x+=cx*cr+cz*sr;carGroup.position.z+=-cx*sr+cz*cr;}
   if(GAR.go||(!BURN.on&&BURN.pivK<.01&&Math.abs(BURN.yawV)<.02)){ // APRÈS l'avoir posée : le cap est versé dans le plateau (à l'image suivante, rien ne saute)
     if(BURN.yaw){garageAng-=BURN.yaw;GAR.podSpin=(GAR.podSpin||0)-BURN.yaw;BURN.yaw=0;}
-    BURN.cib=0;if(GAR.go)BURN.yawV=0;BURN.qx=BURN.qz=BURN.qvx=BURN.qvz=0;}
+    BURN.cib=0;if(GAR.go)BURN.yawV=0;BURN.qx=BURN.qz=BURN.qvx=BURN.qvz=0;BURN.dzP=null;}
 }
 function burnSon(dt){ // le VRAI moteur du palier, au rupteur, et le crissement de la course
   if(!AC||!osc||!gainN)return;
-  const vivant=BURN.k>.004||BURN.rpm>.03;
+  const vivant=BURN.k>.004||BURN.rpm>.03||BURN.chg>0;
   if(!vivant||!sfxOk()){if(BURN.son){BURN.son=false;const T=AC.currentTime;stt(gainN.gain,0,T,.12);stt(engLfoG.gain,0,T,.12);if(skidG)stt(skidG.gain,0,T,.08);}return;}
   BURN.son=true;
   if(engLvl!==engTier)engSetTier(engTier);
-  const e=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0],cib=BURN.on?.86:0;
+  const e=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0],cib=BURN.on?.86+.12*BURN.nk-.08*BURN.rk:BURN.chg*.6; // (la charge) le moteur MONTE avant de partir · (la nitro) au plafond
   BURN.rpm+=(cib-BURN.rpm)*Math.min(1,dt*(cib>BURN.rpm?5.5:2.2));
   let rpm=BURN.rpm,cut=0;
   if(BURN.on&&BURN.t>.9){cut=Math.sin(BURN.t*2*Math.PI*8.2)>.35?1:0;rpm-=cut*.06;}   // LE RUPTEUR : l'allumage coupe, le régime bégaie
   if(cut&&!BURN.cut&&Math.random()<.2){try{crackle(Math.max(.25,e.crk*.6));}catch(_){}burnPop(.45);}
   BURN.cut=cut;
-  engApplique(engSndParams(e,{rpm:rpm,charge:BURN.on?(cut?.35:.92):0,ovr:BURN.on?0:Math.min(1,BURN.rpm*1.8),drift:0,nA:0,thr:BURN.on&&!cut?1:0,
+  engApplique(engSndParams(e,{rpm:rpm,charge:BURN.on?(cut?.35:.92):BURN.chg*.85,ovr:BURN.on||BURN.chg>.05?0:Math.min(1,BURN.rpm*1.8),drift:0,nA:BURN.nk,thr:(BURN.on&&!cut)||BURN.chg>.1?1:0,
     vsp:.6*BURN.k,wob:0,boost:false,cloudIn:0,dk:1,nB:TEL_NATIF?1:0,gE:VOL_LOCKED?1:.72,lpMin:TEL_NATIF?700:0}));
   if(skidG){const T=AC.currentTime,sk=BURN.k*(.75+.25*Math.sin(BURN.t*3.1)),sq=1050+380*BURN.chaud+110*Math.sin(BURN.t*1.7);
     stt(skidG.gain,Math.min(.17,.13*sk),T,.05);stt(skF1.frequency,sq,T,.06);stt(skF2.frequency,sq*1.56,T,.06);
@@ -40677,7 +40915,7 @@ const SWIPE_PX=64; // (2026-10-06) plus lu : le glissé ne change plus de caisse
 /* (2026-09-29, audit de sortie) UN SEUL DOIGT fait tourner l'atelier : le 2e (le pincement) écrasait le point de départ, l'orbite sautait
    d'un doigt à l'autre, et au relâcher le premier comptait pour un glissé — la caisse changeait. Rien ne passe à travers le voile. */
 let gpId=null,gPince=false;
-addEventListener('pointerdown',e=>{if(!garageOn||ecranWipe._on)return;if(e.target.closest&&e.target.closest('#gTop,#gBottom,#gMenu,#gMis .gmC,#gmBas,#wipe,#carr,#modale,[data-m],#gInv,#gHub'))return;
+addEventListener('pointerdown',e=>{if(!garageOn||ecranWipe._on)return;if(e.target.closest&&e.target.closest('#gTop,#gBottom,#gMenu,#gMis .gmC,#gmBas,#wipe,#carr,#modale,[data-m],#gInv,#gHub,#gBurnBtns'))return;
   if(!garageDrag&&atlVise(e)){ATL.appui=e.pointerId;return;} // (même soir) LE BOUTON ROUGE du plateau : ni vue ni plateau, il s'enfonce // (2026-09-30) [data-m] : un bouton de l'accueil n'est pas un glissé · (2026-10-04) le tiroir de l'INVENTAIRE non plus
   if(garageDrag){gPince=true;return;}
   garageDrag=true;gpId=e.pointerId;gPince=false;gpx=gpx0=e.clientX;gpy=gpy0=e.clientY;
@@ -40721,7 +40959,7 @@ addEventListener('pointermove',e=>{
     return;}
   if(e.pointerId!==gpId||gPince)return;
   if(INV.hold&&INV.hold.id===e.pointerId&&Math.hypot(e.clientX-INV.hold.x,e.clientY-INV.hold.y)>12)invHoldFin(); // il GLISSE : ce n'est pas le geste tenu, la caisse tourne
-  if(BURN.hold&&BURN.hold.id===e.pointerId&&Math.hypot(e.clientX-BURN.hold.x,e.clientY-BURN.hold.y)>(BURN.on?12:BURN_GLISSE)){if(BURN.on)BURN.bouge=true;else BURN.hold=null;} // (BURN-OUT) avant le départ : c'est un glissé · en route : la vue tourne autour de la caisse qui fume
+  if(BURN.hold&&BURN.hold.id===e.pointerId&&Math.hypot(e.clientX-BURN.hold.x,e.clientY-BURN.hold.y)>(BURN.on?12:BURN_GLISSE)){if(BURN.on)BURN.bouge=true;else if(BURN.hold.non)BURN.hold=null;else BURN.hold.bouge=1;} // (BURN-OUT) avant le départ : le plateau tourne sous le doigt, et la CHARGE continue (2026-10-08 : avant, un glissé l'annulait) — sauf sur une caisse pas à toi (pas de « PAS ENCORE À TOI » à chaque tour de plateau) · en route : elle dérape
   if(CHUTE&&CHUTE.on&&!CHUTE.go&&CHUTE_TAP.tient){chuteTourne(e);gpx=e.clientX;gpy=e.clientY;return;} // (2026-10-07, LA CAISSE AU DOIGT v2) le glissé parti de la caisse la fait TOURNER, pas la vue
   if(CHUTE&&CHUTE.on&&!CHUTE.go){const n9=performance.now(),dm=Math.max(8,n9-(CHUTE.mvT||n9-16))/1000,dA=-(e.clientX-gpx)*.008; // (2026-09-30) AU CIEL : le glissé fait tourner le regard autour de la caisse (voir « L'ORBITE AU DOIGT »)
     CHUTE.oAc+=dA;CHUTE.oW=(CHUTE.oW||0)*.55+dA/dm*.45;CHUTE.mvT=n9;if(Math.abs(e.clientX-gpx)>=2)CHUTE.tSens=dA>0?1:-1; /* (le tour sans fin) lâchée, elle repart dans le sens où le doigt l'a tournée */ /* (2026-10-03, Léo : « bloque le point de vue à ce niveau vertical : pas de haut en bas, horizontal à ce niveau-là ») le doigt ne fait plus monter ni plonger le regard : il tourne autour de la caisse, à la hauteur du menu */
@@ -40914,6 +41152,7 @@ function loop(now){
   requestAnimationFrame(loop);
   if(BANC_ON)BANC_T0=performance.now(); // (banc ?banc=1) début de l'image chronométrée
   QLR.t0=performance.now(); // (tour 2) début de l'image, pour la sonde de la règle de qualité
+  if(QLR.sN>0)qlSondeDebut(); // (2026-10-08) sonde armée : la puce chronomètre l'image (voir qlSonde)
   // ⚠ dt JAMAIS NÉGATIF (2026-09-25) : l'horodatage de rAF est celui du DÉBUT de l'image, et `last` peut avoir été posé
   // par `performance.now()` un peu plus tard (reprise d'onglet, pas-à-pas) — un dt < 0 rendait négatif le rayon
   // des taches de jus, et `arc()` lève alors une IndexSizeError qui cassait l'image entière (mesuré).
@@ -40970,7 +41209,7 @@ function loop(now){
        floute pas l'image pour rien. */
     if(QL.essai&&now-QL.essai.t>3300){const e9=QL.essai;QL.essai=null;
       if(QLR.p50>e9.p50-1.5&&QLR.p75>e9.p75-1.5&&(loop._ms||16)>e9.ms*.92){QL.plafK=e9.k0;QL.plafT=now;QL.up=0;qlPose(e9.k0);}}
-    else if(calme9&&tire9&&QL.k<qb9.kMax&&!QL.essai&&!(QLR.vraiT&&now-QLR.vraiT<8000)){QLR.sN=5;QLR.sA.length=0;QL.up=0;} // d'abord la SONDE : on décidera au pas suivant
+    else if(calme9&&tire9&&QL.k<qb9.kMax&&!QL.essai&&!(QLR.vraiT&&now-QLR.vraiT<8000)){qlSondeArme();QL.up=0;} // d'abord la SONDE : on décidera au pas suivant
     else if(calme9&&tire9&&QL.k<qb9.kMax&&!QL.essai&&QLR.vrai<14.5){QL.bride=now;QL.up++; // l'ÉCRAN bride (économie d'énergie, chaleur) : on ne sacrifie rien…
       if(QL.k>0&&QL.up>=3){QL.up=0;QL.effondre=false;qlPose(QL.k-1);}} // …et ce qui aurait été baissé remonte
     else if(calme9&&tire9&&QL.k<qb9.kMax&&!QL.essai){
