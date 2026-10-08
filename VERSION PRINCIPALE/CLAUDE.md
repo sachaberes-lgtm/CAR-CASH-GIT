@@ -127,6 +127,16 @@ LES BOUTONS DE SACHA ») : **PLAY/JOUER = la partie sans fin, et toucher un nive
   `BURN_RESSORT` {om 7 → 9, ze ,5} : le ressort qui tire la caisse vers le doigt. MESURÉ : bouffées vivantes au burn-out tenu 483 → 680,
   jeunes bouffées 2,37 → 1,93 m/s vers l'arrière et ,79 → 1,17 m/s de côté, zéro reprise d'un coup ; doigt en cercle à 3 rad/s : retard
   27° → 20° (6 rad/s : 48° → 33°), mêmes tours que le doigt ; ~0,1 ms/image pour tout le burn-out ; 0 programme compilé. sw.js → v180.
+- **LA CAISSE SE BALADE** (même soir, Léo : « quand on le fait vite, ça fait un peu générique, la même chose » · « la voiture ne se balade
+  plus assez ») — MESURÉ avant : six gestes rapides (cercle, petits cercles, zigzag, huit, fouet, gribouillis) touchaient tous le même bord
+  (1,74 m) autour d'un pivot FIXE ,9 m devant la caisse : un seul cercle. `BURN_BALADE` : le pivot VOYAGE (`BURN.qx/qz`, ressort lourd ω 4,2
+  ζ ,5) vers la moitié (`suit`) du point où le doigt touche le plateau (`burnSol`, rayon depuis la caméra, à mi-hauteur de caisse), les roues
+  arrière le POUSSENT dans l'axe tant qu'elle tourne (`pousse` 3,2 m/s², pleine à 4 rad/s), il rebondit au bord (`rebond` ,35). La borne
+  compte les QUATRE COINS (`burnBord`, ≤ `bord` 4,3 m) au lieu du cercle qui entoure la caisse : de côté elle va jusqu'à ~2,5 m. Tenue sans
+  bouger : sur place ; lâchée : retour au centre (`pivK`). La vue recule aussi d'après l'éloignement. MESURÉ (8 gestes, cases de 40 cm
+  visitées par le centre) : 13-22 → 18-33, chaque geste a son propre centre de gravité ; cercle lent : étalement ,98 → 1,62 m, jusqu'à 2,37 m ;
+  couché, caisse derrière la console 9 % → 1 % du temps. `dbgBurn('balade',suit,pousse)` règle à chaud (`0,0` = le pivot fixe d'avant),
+  `dbgBurn().pos`/`.balade`. sw.js → v181.
 - Les réservoirs se créent dans `burnPools()`, appelé par la CHAUFFE DE L'ATELIER (`atelierChauffe` les compile avec lui : rien au 1er
   burn-out) et par l'atelier du bouton rouge (`atlTick`).
 - RETIRÉ (dans l'historique, dernier état `d6fea98`) : fumée en volumes/cubes de la porte, voile, jet sous la roue, poids (`DON_POIDS`),

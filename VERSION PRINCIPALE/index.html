@@ -39663,6 +39663,7 @@ function invHoldFin(){if(!INV||!INV.hold)return;INV.hold=null;cancelAnimationFra
 const BURN={on:false,hold:null,bouge:false,k:0,t:0,chaud:0,rpm:0,son:false,cut:0,pops:[],fum:null,feu:null,gom:null,yaw:0,yawV:0,cib:0,pivK:0,drz:.8,rr:2.4,
   hapT:0,auto:0,autoW:0,ar:[],roues:[],pots:[],corps:false,tE:0,tF:0,tP:0,
   don:0,donK:0,donM:0,acc:0,n:0,nT:0,scx:0,scy:0,fA:null,fR:0,tx:null,ty:0,th:null,tT:0,sT:0,sAu:0,kc:0,mc:0,aideT:0,cad:0,Rs:3, // (2026-10-08) LE DONUT AU DOIGT
+  qx:0,qz:0,qvx:0,qvz:0,fsx:0,fsz:0,fsOk:false,sv:null,so:null,sp:null, // (2026-10-08) LA CAISSE SE BALADE : où elle est partie sur le plateau, sa vitesse, le doigt au sol
   kick:0,feuxK:0,pix:null,gr:null, // ce que le reste du jeu lit (la caméra, les feux stop, le chat) · les cubes blancs
   c:new THREE.Vector3(),
   v:new THREE.Vector3(),w:new THREE.Vector3(),u:new THREE.Vector3(),r:new THREE.Vector3(),q:new THREE.Vector3()};
@@ -39758,7 +39759,7 @@ function burnPrepare(){ // à chaque départ : les essieux de l'arrière, les pn
   if(!BURN.roues.length)for(const sx of [-1,1])BURN.roues.push({x:sx*G.b*.75,y:0,z:-G.a*.6,R:.4,l:.3});
   if(!BURN.ar.length)BURN.arW=wheels.filter(function(w){return w.position.z<0&&w.parent;});else BURN.arW=[];
   const px=Math.min(.42,G.b*.32);BURN.pots=[[-px,.3,-G.a+.08],[px,.3,-G.a+.08]];
-  BURN.drz=Math.min(.9,G.a*.4);BURN.rr=Math.hypot(G.a,G.b); // le PIVOT du dérapage (vers l'avant : l'arrière balaie) · le rayon de la caisse
+  BURN.drz=Math.min(.9,G.a*.4);BURN.rr=Math.hypot(G.a,G.b);BURN.ga=G.a;BURN.gb=G.b; // le PIVOT du dérapage (vers l'avant : l'arrière balaie) · le rayon de la caisse
   BURN.Rs=Math.min(4.4,BURN.drz*(2-DON_PIV.donMax)+DON_PIV.glisse+BURN.rr+.2); // (le donut) le cercle le plus large que balaie un coin (pivot devant, glisse comprise) — la vue recule pour le cadrer (`garBurnR`)
   burnGommeInit();
 }
@@ -39808,7 +39809,7 @@ function burnDebut(e){ // pointerdown : le doigt se pose sur la caisse
 }
 function burnPart(){ // ça part : le doigt a tenu
   if(BURN.on)return;burnPrepare();BURN.on=true;BURN.t=0;BURN.pops.length=0;BURN.corps=true;
-  BURN.acc=BURN.n=0;BURN.fA=null;BURN.tx=null;BURN.th=null;BURN.sT=BURN.sAu=BURN.kc=BURN.mc=0;try{burnCentre();}catch(_){} // (le donut) le centre du VOLANT du doigt : le milieu du plateau, à l'écran
+  BURN.acc=BURN.n=0;BURN.fA=null;BURN.tx=null;BURN.th=null;BURN.sT=BURN.sAu=BURN.kc=BURN.mc=0;BURN.fsOk=false;if(BURN.pivK<.01)BURN.qx=BURN.qz=BURN.qvx=BURN.qvz=0;try{burnCentre();}catch(_){} // (le donut) le centre du VOLANT du doigt : le milieu du plateau, à l'écran
   hap([14,30,10]);
   if(!((SAVE.d.ast|0)&8)){SAVE.d.ast=(SAVE.d.ast|0)|8;try{SAVE.mark();}catch(_){}if(gEl)gEl.classList.remove('aideInv');} // l'astuce a servi
 }
@@ -39818,7 +39819,7 @@ function burnFin(){ // le doigt se lève (ou la vitrine se ferme) : le moteur re
 }
 function burnCoupe(){ // l'atelier se ferme : silence, plus rien à l'écran
   burnFin();BURN.k=0;BURN.rpm=0;BURN.pops.length=0;
-  if(BURN.yaw){garageAng-=BURN.yaw;GAR.podSpin=(GAR.podSpin||0)-BURN.yaw;}BURN.yaw=BURN.yawV=BURN.cib=BURN.pivK=0;
+  if(BURN.yaw){garageAng-=BURN.yaw;GAR.podSpin=(GAR.podSpin||0)-BURN.yaw;}BURN.yaw=BURN.yawV=BURN.cib=BURN.pivK=0;BURN.qx=BURN.qz=BURN.qvx=BURN.qvz=0;
   BURN.don=BURN.donK=BURN.donM=BURN.acc=BURN.n=BURN.cad=BURN.feuxK=0;const bt=document.getElementById('gBurnTxt');if(bt)bt.classList.remove('on','on2');
   for(const F of [BURN.fum,BURN.feu,BURN.pix])if(F){F.age.fill(1e9);burnPas(F,0,0);F.o.visible=false;}
   if(BURN.gr)for(const im of BURN.gr.M){im.count=0;im.visible=false;}
@@ -39856,8 +39857,14 @@ function burnCentre(){ // le centre du VOLANT : le milieu du plateau, à mi-haut
 function burnVolant(v){ // le volant bridé : jamais plus de `avance` rad devant la caisse (ce qui dépasse est perdu, rien ne tourne longtemps après le doigt)
   const e=BURN.cib-BURN.yaw;if(v>0)v=Math.max(0,Math.min(v,DON.avance-e));else if(v<0)v=Math.min(0,Math.max(v,-DON.avance-e));BURN.cib+=v;
 }
+function burnSol(cx,cy){ // (2026-10-08) où le doigt touche le PLATEAU (à mi-hauteur de caisse), dans le repère de la caisse au repos (celui de `burnDerape`)
+  const v=BURN.sv||(BURN.sv=new THREE.Vector3()),o=BURN.so||(BURN.so=new THREE.Vector3()),p=BURN.sp||(BURN.sp=new THREE.Vector3());
+  v.set(cx/VP.w*2-1,1-cy/VP.h*2,.5).unproject(camera);camera.getWorldPosition(o);v.sub(o);if(v.y>-1e-4||!GAR.pod)return;
+  const t=(GARAGE_Y+.55-o.y)/v.y;GAR.pod.getWorldPosition(p);const dx=o.x+v.x*t-p.x,dz=o.z+v.z*t-p.z,r=garRot(),cr=Math.cos(r),sr=Math.sin(r);
+  BURN.fsx=dx*cr-dz*sr;BURN.fsz=dx*sr+dz*cr;BURN.fsOk=true;
+}
 function burnGeste(dx,dy,cx,cy){ // le doigt bouge pendant le burn-out (dx, dy : depuis le mouvement d'avant ; cx, cy : où il est)
-  const n=performance.now();try{burnCentre();}catch(_){} // le milieu du plateau à l'écran (la vue recule pendant le donut)
+  const n=performance.now();try{burnCentre();burnSol(cx,cy);}catch(_){} // le milieu du plateau à l'écran (la vue recule pendant le donut)
   const rx=cx-BURN.scx,ry=cy-BURN.scy,r=Math.hypot(rx,ry),a=Math.atan2(ry,rx);
   const w=BURN.fA==null?0:Math.max(0,Math.min(1,(Math.min(r,BURN.fR)-DON.mort)/(DON.plein-DON.mort)));
   const dA=BURN.fA==null?0:Math.atan2(Math.sin(a-BURN.fA),Math.cos(a-BURN.fA));BURN.fA=a;BURN.fR=r;
@@ -39978,7 +39985,7 @@ function burnTick(dt){ // chaque image du garage (après la pose de la caisse, a
   const k=BURN.k;
   burnDerape(dt);try{burnTours(dt);}catch(_){}
   if(BURN.on&&!BURN.bouge&&BURN.t>1.4&&!BURN.aideT&&!((SAVE.d.ast|0)&16)){BURN.aideT=1;burnTxt('TOURNE AUTOUR · DONUT','#b9a8ff',true);} // l'astuce, une fois par session, tant qu'aucun donut n'a tourné
-  BURN.cad+=(((BURN.on||Math.abs(BURN.yawV)>1)&&!GAR.go?(BURN.donH||0):0)-BURN.cad)*Math.min(1,dt*2.2);if(BURN.cad<1e-3)BURN.cad=0; // en donut, la vue recule (garBurnR)
+  BURN.cad+=(((BURN.on||Math.abs(BURN.yawV)>1)&&!GAR.go?Math.max(BURN.donH||0,Math.min(1,BURN.pivK*Math.hypot(BURN.qx,BURN.qz)/1.2)):0)-BURN.cad)*Math.min(1,dt*2.2);if(BURN.cad<1e-3)BURN.cad=0; // en donut, la vue recule (garBurnR)
   BURN.feuxK=GAR.go?0:k;                                                  // on tient le frein : les feux stop s'allument (carVit)
   // LA CAISSE
   if(k>0&&!GAR.go){
@@ -40031,7 +40038,21 @@ function burnTick(dt){ // chaque image du garage (après la pose de la caisse, a
    restait au milieu). Désormais il n'y glisse qu'au quart (`DON_PIV.donMax`), la vitesse la pousse un peu plus dehors (`glisse` ,35 → ,55 m),
    et la vue recule d'après l'état « donut » (`donH`) pour la garder dans le cadre (`BURN.Rs`). La borne du disque reste (4,3 m − son rayon). */
 const DON_PIV={donMax:.25,glisse:.55,kGlisse:.16};
-const BURN_RESSORT={om:9,ze:.5}; // (2026-10-08, Léo : « la voiture qui suit encore un peu plus ») le ressort qui tire la caisse vers le doigt, ω 7 → 9 : MESURÉ, un doigt qui tourne à 3 rad/s la traînait de 27° (48° à 6 rad/s) — désormais ~20° (~37°), la mise en route plus vive ; même amorti (ζ ,5 : elle dépasse un peu, ça glisse)
+const BURN_RESSORT={om:9,ze:.5};
+/* LA CAISSE SE BALADE (2026-10-08, Léo : « quand on le fait vite, ça fait un peu générique, un peu la même chose » · « la voiture ne se
+   balade plus assez avec le burn-out »). MESURÉ avant : six gestes rapides (cercle, petits cercles, zigzag, huit, fouet, gribouillis) — la
+   caisse tournait autour d'un pivot FIXE (,9 m devant elle) et touchait chaque fois le même bord (1,74 m du centre) : un seul cercle,
+   quel que soit le geste. Désormais le pivot VOYAGE (`BURN.qx/qz`, un ressort lourd, ω `om`, ζ `ze`) : (1) vers la MOITIÉ (`suit`) de
+   l'endroit où le doigt touche le plateau (`burnSol`) — on l'emmène où on veut, elle traîne et glisse derrière ; (2) les roues arrière la
+   POUSSENT dans son axe d'autant plus qu'elle tourne (`pousse` m/s², pleine à 4 rad/s) : le donut MARCHE, il ne reste plus sur place ;
+   (3) au bord du plateau elle RENCONTRE le bord, y perd sa vitesse vers l'extérieur et en rebondit un peu (`rebond`). Tenue sans bouger :
+   elle reste sur place (le burn-out d'origine). Lâchée : elle revient au centre avec le reste (`pivK`). */
+const BURN_BALADE={suit:.5,om:4.2,ze:.5,pousse:3.2,rebond:.35,bord:4.3};
+function burnBord(cx,cz,y){ // de combien rapprocher le centre (cx, cz) pour que les 4 coins de la caisse (cap y) restent à `bord` m du centre du plateau
+  const a=BURN.ga||2.2,b=BURN.gb||1,R=BURN_BALADE.bord,co=Math.cos(y),si=Math.sin(y);
+  const loin=function(f){let m=0;for(let i=0;i<4;i++){const x=(i&1?b:-b),z=(i&2?a:-a),px=f*cx+x*co+z*si,pz=f*cz-x*si+z*co,d=px*px+pz*pz;if(d>m)m=d;}return Math.sqrt(m);};
+  if(loin(1)<=R)return 1;if(loin(0)>R)return 0;let lo=0,hi=1;for(let k=0;k<9;k++){const md=(lo+hi)/2;if(loin(md)<=R)lo=md;else hi=md;}return lo;
+} // (2026-10-08, Léo : « la voiture qui suit encore un peu plus ») le ressort qui tire la caisse vers le doigt, ω 7 → 9 : MESURÉ, un doigt qui tourne à 3 rad/s la traînait de 27° (48° à 6 rad/s) — désormais ~20° (~37°), la mise en route plus vive ; même amorti (ζ ,5 : elle dépasse un peu, ça glisse)
 function burnDerape(dt){
   const d9=Math.min(dt,.1),n=Math.max(1,Math.ceil(d9/.008)),h=d9/n,om=BURN_RESSORT.om,ze=BURN_RESSORT.ze;
   for(let i=0;i<n;i++){BURN.yawV+=(om*om*(BURN.cib-BURN.yaw)-2*ze*om*BURN.yawV)*h;BURN.yaw+=BURN.yawV*h;}
@@ -40041,15 +40062,21 @@ function burnDerape(dt){
   BURN.donH=BURN.donH||0;BURN.donH+=((BURN.donK>.35?1:BURN.donK<.15?0:BURN.donH)-BURN.donH)*Math.min(1,dt*1.5);if(BURN.donH<1e-3&&BURN.donK<.15)BURN.donH=0; // l'état « donut » (la vue)
   BURN.donM=BURN.donH*DON_PIV.donMax;                                    // en donut, le pivot ne glisse plus qu'au QUART vers le centre : elle s'éloigne sur le bord
   const vise=BURN.on&&BURN.bouge&&!GAR.go?1:0;BURN.pivK+=(vise-BURN.pivK)*Math.min(1,dt*(vise?6:(GAR.go?6:1.6)));
+  {const B9=BURN_BALADE,lq=Math.max(0,B9.bord-(BURN.gb||1));let tx=0,tz=0;                // LA BALADE : le pivot voyage
+    if(vise&&BURN.fsOk){tx=BURN.fsx*B9.suit;tz=BURN.fsz*B9.suit;const tl=Math.hypot(tx,tz);if(tl>lq){tx*=lq/tl;tz*=lq/tl;}}
+    const ac=vise?B9.pousse*Math.min(1,Math.abs(BURN.yawV)/4):0,ax=Math.sin(BURN.yaw)*ac,az=Math.cos(BURN.yaw)*ac,om=B9.om,ze=B9.ze;
+    for(let i=0;i<n;i++){BURN.qvx+=(om*om*(tx-BURN.qx)-2*ze*om*BURN.qvx+ax)*h;BURN.qvz+=(om*om*(tz-BURN.qz)-2*ze*om*BURN.qvz+az)*h;BURN.qx+=BURN.qvx*h;BURN.qz+=BURN.qvz*h;}}
   if(BURN.yaw||BURN.pivK>=.001){
     const y=BURN.yaw,dz=BURN.drz,sl=Math.max(-DON_PIV.glisse,Math.min(DON_PIV.glisse,BURN.yawV*DON_PIV.kGlisse))*BURN.pivK;
-    let cx=BURN.pivK*(-dz*Math.sin(y))+Math.cos(y)*sl,cz=BURN.pivK*(dz*(1-BURN.donM)-dz*Math.cos(y))-Math.sin(y)*sl; // le pivot : devant la caisse (le dérapage), au centre du plateau (le donut)
-    const lim=Math.max(0,4.3-BURN.rr),c=Math.hypot(cx,cz);if(c>lim){const f=lim/Math.max(1e-6,c);cx*=f;cz*=f;} // jamais hors du disque
+    let cx=BURN.pivK*(BURN.qx-dz*Math.sin(y))+Math.cos(y)*sl,cz=BURN.pivK*(BURN.qz+dz*(1-BURN.donM)-dz*Math.cos(y))-Math.sin(y)*sl; // le pivot : devant la caisse (le dérapage), au centre du plateau (le donut) — et là où la balade l'a emmené
+    const c=Math.hypot(cx,cz),f9=burnBord(cx,cz,y);if(f9<1){cx*=f9;cz*=f9; // jamais hors du disque — ses QUATRE COINS (pas le cercle qui l'entoure : de côté elle va ~2,5 m au lieu de 1,74) : elle RENCONTRE le bord
+      const ux=cx/Math.max(1e-6,c*f9),uz=cz/Math.max(1e-6,c*f9),vr=BURN.qvx*ux+BURN.qvz*uz;if(vr>0){const k9=1+BURN_BALADE.rebond;BURN.qvx-=k9*vr*ux;BURN.qvz-=k9*vr*uz;}
+      const ex=c*(1-f9)/Math.max(.05,BURN.pivK);BURN.qx-=ux*ex*.5;BURN.qz-=uz*ex*.5;} // (et la balade n'insiste pas dehors)
     const r=garRot(),cr=Math.cos(r),sr=Math.sin(r);
     carGroup.rotation.y+=y;carGroup.position.x+=cx*cr+cz*sr;carGroup.position.z+=-cx*sr+cz*cr;}
   if(GAR.go||(!BURN.on&&BURN.pivK<.01&&Math.abs(BURN.yawV)<.02)){ // APRÈS l'avoir posée : le cap est versé dans le plateau (à l'image suivante, rien ne saute)
     if(BURN.yaw){garageAng-=BURN.yaw;GAR.podSpin=(GAR.podSpin||0)-BURN.yaw;BURN.yaw=0;}
-    BURN.cib=0;if(GAR.go)BURN.yawV=0;}
+    BURN.cib=0;if(GAR.go)BURN.yawV=0;BURN.qx=BURN.qz=BURN.qvx=BURN.qvz=0;}
 }
 function burnSon(dt){ // le VRAI moteur du palier, au rupteur, et le crissement de la course
   if(!AC||!osc||!gainN)return;
@@ -40077,11 +40104,12 @@ window.dbgBurn=function(s,a,b){
       if(G){const c=Math.cos(carGroup.rotation.y),sn=Math.sin(carGroup.rotation.y),lx=dx*c-dz*sn,lz=dx*sn+dz*c;if(Math.abs(lx)<G.b&&Math.abs(lz)<G.a&&F.P[j+1]<p.y+(G.H||1.3))dans++;}}
     const pc=GAR.pod?GAR.pod.getWorldPosition(new THREE.Vector3()):p;let nj=0,ar=0,co=0;{const c=Math.cos(carGroup.rotation.y),sn=Math.sin(carGroup.rotation.y);if(F)for(let i=0;i<F.N;i++){if(F.age[i]>=F.life[i]||F.age[i]>1.2)continue;const j=i*3,vlx=F.V[j]*c-F.V[j+2]*sn,vlz=F.V[j]*sn+F.V[j+2]*c;nj++;ar+=-vlz;co+=Math.abs(vlx);}}
     return {proches:n,tourne:n?+(vt/n).toFixed(2):0,dansLaCaisse:dans,w:+BURN.yawV.toFixed(2),jeunes:nj,versArriere:nj?+(ar/nj).toFixed(2):0,surLeCote:nj?+(co/nj).toFixed(2):0,brusques:BURN.brusque|0,vivantes:F?F.n:0,horizon:+(BURN.hor||0).toFixed(1),ecart:+Math.hypot(p.x-pc.x,p.z-pc.z).toFixed(2)};}
+  if(s==='balade'){if(a!=null)BURN_BALADE.suit=+a;if(b!=null)BURN_BALADE.pousse=+b;return Object.assign({},BURN_BALADE);} // (le banc) régler la balade à chaud : dbgBurn('balade',0,0) = le pivot fixe d'avant
   if(s==='tourne'){if(!garAtelierLibre())return 'atelier pas libre';if(!BURN.on)burnPart();BURN.bouge=true;BURN.auto=b>0?+b:3;BURN.autoW=a!=null?+a:3;} // un doigt qui tourne sans doigt : a rad/s pendant b secondes
   if(s>0){if(!garAtelierLibre())return 'atelier pas libre';burnPart();BURN.auto=+s;BURN.autoW=0;}
   return {on:BURN.on,k:+BURN.k.toFixed(2),t:+BURN.t.toFixed(2),chaud:+BURN.chaud.toFixed(2),rpm:+BURN.rpm.toFixed(2),fumee:BURN.fum?BURN.fum.n:0,feu:BURN.feu?BURN.feu.n:0,
     essieuxAr:BURN.ar.length,roues:BURN.roues.length,cap:+BURN.yaw.toFixed(2),cib:+BURN.cib.toFixed(2),w:+BURN.yawV.toFixed(2),donut:+BURN.don.toFixed(2),donM:+BURN.donM.toFixed(2),tours:BURN.n,
-    pivot:+BURN.pivK.toFixed(2),cad:+BURN.cad.toFixed(2),centre:[Math.round(BURN.scx),Math.round(BURN.scy)],geste:{tourne:+BURN.kc.toFixed(2),ailleurs:+BURN.mc.toFixed(2)},cubes:BURN.gr?BURN.gr.M.reduce(function(a,im){return a+im.count;},0):0,gomme:!!(BURN.gom&&BURN.gom.sale),plateau:+(GAR.platW||0).toFixed(2),doigt:GAR.doigt||null,son:BURN.son};
+    pivot:+BURN.pivK.toFixed(2),balade:[+BURN.qx.toFixed(2),+BURN.qz.toFixed(2)],pos:(function(){const a=carGroup.getWorldPosition(new THREE.Vector3()),b=GAR.pod?GAR.pod.getWorldPosition(new THREE.Vector3()):a,r=garRot(),cr=Math.cos(r),sr=Math.sin(r),dx=a.x-b.x,dz=a.z-b.z;return [+(dx*cr-dz*sr).toFixed(2),+(dx*sr+dz*cr).toFixed(2)];})(),cad:+BURN.cad.toFixed(2),centre:[Math.round(BURN.scx),Math.round(BURN.scy)],geste:{tourne:+BURN.kc.toFixed(2),ailleurs:+BURN.mc.toFixed(2)},cubes:BURN.gr?BURN.gr.M.reduce(function(a,im){return a+im.count;},0):0,gomme:!!(BURN.gom&&BURN.gom.sale),plateau:+(GAR.platW||0).toFixed(2),doigt:GAR.doigt||null,son:BURN.son};
 };
 /* ===== LE BOUTON ROUGE ET SES OUTILS (2026-10-05, Léo : « enlève le bouton coffre ; mets un bouton rouge sur la plateforme qui tourne, à
    côté de la voiture ; quand on appuie, de chaque côté, différents outils se mettent à côté et construisent directement les objets qu'on a
