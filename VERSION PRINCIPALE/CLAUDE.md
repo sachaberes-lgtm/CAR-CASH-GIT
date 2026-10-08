@@ -1,5 +1,20 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LE SQUALE (2026-10-08, Léo) — la voiture requin, caisse ajoutée EN DERNIER (après ATCHOUM), RARE 120 000 $, `SHAPES.squale`
+Fabriquée avec Léo dans le VOITURE MAKER (worktree `CAR-maker`, branche `voiture-maker` : la plateforme podium + requêtes, pas sur main).
+Partie de son sketch du garage (IMG_5559 : la caisse au sourire en dents de requin), puis d'une photo de grand requin blanc gueule
+ouverte (« voilà l'effet recherché, couleurs pareil, mais en mode GTR »).
+- LA CAISSE : grand coupé de sport (l 4,5, roues R .41, ailes élargies, malle haute, COUDE de la vitre arrière, quatre feux ronds, quatre
+  sorties, aileron sur la malle aux flasques en queue de requin) — l'esprit d'une GT japonaise, aucun nom ni insigne de marque. Museau
+  relevé (face avant ~1,06 m) ; aileron dorsal sur le toit ; NAGEOIRES PECTORALES à la place des rétros ; cinq ouïes derrière la roue avant.
+- LES COULEURS DU REQUIN : gris ardoise dégradé (`grad`, plus sombre au dos), ventre blanc qui remonte en pointe vers le museau ; vernis
+  dur réglé sur SA matière seulement (`K.mats.p` — K expose `mats`, lpMat garde `userData.uV`).
+- LA GUEULE : une BANDE DROITE qui fait toute la face avant, tourne le coin et file sur les flancs jusqu'à l'aile avant en s'effilant
+  (`srf(s,y,off)` pose tout sur la caisse le long de `s` ; UNE normale qui tourne au coin, `Nn`, pour que les couches ne se croisent pas ;
+  `cote2` lit aussi le chanfrein du bas de caisse). Grande OUVERTE : lèvre de PEAU blanche fondue dans la caisse, gencive rose en retrait,
+  gorge rouge sombre et fond noir, trois rangées de crocs éparpillés (hasard fixe `hh`), aucun à cheval sur le coin, ceux du flanc à l'échelle.
+- LES YEUX : phares en amande effilés vers le nez, œil noir brillant + éclat, trait de LED (`lamps:0`, `halos:0` : ni boîte ni halo devant).
+
 ## JOUER = LE MODE CLASSIQUE (2026-10-08, session GRAPHISME — Sacha : « maintenant quand on clique sur le bouton jouer on lance les niveaux au lieu de lancer le mode classique »)
 « LE NIVEAU DES PLAY » (Léo, 7/10, 3d72bd6 — plus bas) faisait lancer la carrière par le PLAY de l'accueil, le JOUER de l'atelier et celui
 des MISSIONS, et la CARRIÈRE choisissait au lieu de lancer. Sacha tranche pour SA version (celle par défaut, voir « LE MENU = LE GARAGE +
