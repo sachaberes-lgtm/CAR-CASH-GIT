@@ -87,6 +87,12 @@ LES BOUTONS DE SACHA ») : **PLAY/JOUER = la partie sans fin, et toucher un nive
   `BURN_CUB.par` (3) cubes DANS sa boule (écarts tirés de sa graine : ils bougent avec elle), à SA couleur (rose de la porte, bleu du plateau
   au ras du sol), à SA transparence (5 bandes d'opacité selon son alpha), à sa taille (≤ 30 cm, grille de 6 cm), et ils s'émiettent avec
   elle (même règle que ses cases). ~560 cubes tenu, ~920 en donut. sw.js → v173.
+- **LA CAISSE POUSSE LA FUMÉE, PLUS LE DOIGT** (même jour, Léo : « ce n'est plus le doigt qui agit sur la fumée, mais bien la voiture elle-même »
+  — « pas autant que le doigt, mais assez pour que ça ait du dynamisme ») : `BURN_DOIGT` false (le glissé ne pousse plus, le tap ne souffle
+  plus ; `true` les rend). `burnCaisse` : la carrosserie (boîte `garGabarit` + 35 cm) ÉCARTE les bouffées qui y entrent (par la face la plus
+  proche) et les ENTRAÎNE à `BURN_CAISSE.suit` (65 %) de sa vitesse à cet endroit (glissement + rotation ω × r) ; `pousse` 3,5. Mesuré
+  (`dbgBurn('fumee')`) : en donut la fumée proche tourne dans le sens de la caisse à ~1,7-2,9 m/s (w 3-5 rad/s) ; à 100 % elle collait
+  (~4-5 m/s). sw.js → v175.
 - Les réservoirs se créent dans `burnPools()`, appelé par la CHAUFFE DE L'ATELIER (`atelierChauffe` les compile avec lui : rien au 1er
   burn-out) et par l'atelier du bouton rouge (`atlTick`).
 - RETIRÉ (dans l'historique, dernier état `d6fea98`) : fumée en volumes/cubes de la porte, voile, jet sous la roue, poids (`DON_POIDS`),
