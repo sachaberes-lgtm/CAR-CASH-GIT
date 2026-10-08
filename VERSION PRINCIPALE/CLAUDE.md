@@ -1,5 +1,35 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LA PLUIE DE RICHESSE — LA CAISSE QUI CRACHE (2026-10-08, Léo : « des billets bleu turquoise foncé au reflet vert fluo, des pièces comme les euros français, des bitcoins, de l'or, des diamants, des trèfles à quatre feuilles, des fruits — le tap trash sur la voiture peut provoquer un petit jet de flamme et des étincelles qui les projettent, pas toujours, juste assez pour qu'on ait envie de le refaire ; inspire-toi des études sur le cerveau, effort / réconfort ; les étincelles étaient brutes, naïves : fais mieux »)
+- Bloc « LA PLUIE DE RICHESSE » juste avant `chuteStudio` ; branché par `richCoup` (dans `chuteTape`, à la place des gerbes sparkGold/dust),
+  `richTick` (dans `chuteTapeTick`, avant son retour anticipé), `richInit` (fin de `chuteMonte` : compilé sous l'écran titre), `richRange`
+  (`chuteSort`). Écran titre seulement.
+- LA LOI DU GAIN (`richTire`) : base .36 + .07 par cran de combo, +.18 deux coups après un TRÈFLE, garanti après 3 coups secs. MESURÉ (vrais
+  clics) : coups isolés → 45 % de gains (18/40), 9 « presque » ; en rafale → 83 %. Taille tirée : petit 3-6 / bon 7-11 / gros 12-18 /
+  jackpot 26-36 objets, l'effort (combo) déplace les poids vers le haut. « Presque » (38 % des coups secs) : une seule pièce s'échappe
+  mollement. 80 ms de souffle entre le coup et la gerbe. Sources : Fiorillo-Tobler-Schultz 2003 (incertitude max à p = .5), Schultz
+  (erreur de prédiction), Clark 2009 (near-miss), Knutson 2001 (anticipation), Inzlicht 2018 (l'effort ajoute de la valeur).
+- LES OBJETS (`RICH_T`, tailles ARCADE : vue à 10 m une vraie pièce faisait 13 px) : billet « CASH CAR 100 » (canvas, turquoise foncé,
+  guilloche, rosace, bande holographique), 2 € / 1 € (bimétal, arbre dans l'hexagone + RF, chiffre frappé au revers, 12 étoiles), 50 c,
+  bitcoin (disque orange, ₿, crénelage), pépites (icosaèdres cabossés) et petits lingots, diamants taille brillant, trèfle (découpe
+  alpha), fruits de la piste (fruitGeo / FRUIT_MAT, ramenés à leur sphère). Pools `RICH_CAP` (~96 maillages, créés une fois).
+- TROIS PROGRAMMES : MÉTAL (reflet d'un STUDIO de bijoutier à contraste franc — sol, horizon, bandes de lumière — mêlé au vrai ciel,
+  Fresnel, deux spéculaires), GEMME (réfraction R/V/B après un rebond intérieur sur le studio : facettes noir/blanc et FEU aux bords),
+  SOUPLE (billet/trèfle : le papier ondule au vertex shader, reflet vert fluo qui glisse). Mesuré : 145-146 programmes au menu, 0 compilé
+  au coup ni au PLAY. Fluide : 16,7 ms/image pendant deux jackpots d'affilée (Mac du banc).
+- L'AIR (`RICH.W` 3 m/s qui remonte, `kd` par objet) : billet et trèfle planent et papillonnent, les pièces tournent sur un diamètre, l'or
+  et le diamant filent plus loin. Mesuré : ~2 s à l'image, debout comme couché. Debout la gerbe s'ouvre moins sur les côtés ; presque
+  rien ne part vers l'objectif et ce qui s'en approche à moins de ~4 m s'efface.
+- LE BLING : un éclat en étoile quand une facette (`nl`, repère de l'objet) renvoie le soleil vers l'œil — calculé, pas tiré.
+- LES ÉTINCELLES v2 : traits de métal en fusion (blanc → jaune → orange → rouge), longueur = vitesse, freinés par l'air, 22 % ÉCLATENT en
+  deux, s'éteignent en fondu ; le maillage des filets de vent (0 compilé). L'éclat d'impact est une ÉTOILE nette (plus la boule floue).
+  LA FLAMME : 5-12 bouffées additives, brèves, légères ; dorée sur gros et jackpot.
+- Sons (banque existante) : presque `piece` · petit `fourgon.billets`+`piece` · bon `piece.recolte` · gros `argent.gros` · jackpot
+  `fig.jackpot`+`pluie.billets` ; vibrations ; le jackpot secoue la caméra.
+- Console : `dbgRiche()` (coups, gains, presque, jackpots, à l'image, objets) · `dbgRiche('jackpot'|'gros'|'bon'|'petit'|'presque'|'rien')`
+  impose le prochain coup · `dbgRiche('pluie',taille)` · `dbgRiche('voir','diamant',n)` · `dbgRiche('vitrine')` (un de chaque, figés,
+  `dbgRiche('vitrine',0)` les relâche). sw.js → v169.
+
 ## LE SON PARASITE DU DÉPART DES NUAGES (2026-10-08, Léo : « la première map, quand je démarre, il y a un son hyper chelou, un son parasite — enlève ; vérifie pour les autres »)
 - **C'ÉTAIT `nuages.ambiance`** (la boucle « LA MER DE NUAGES A SON AIR » du 30/09 : souffle d'altitude, rafales, harpe éolienne), lancée au
   départ de chaque course du monde NUAGES (SKY HIGH 1-5, l'auto-école, la partie sans fin) et jamais arrêtée. MESURÉ au banc (Chrome sans

@@ -37580,15 +37580,13 @@ function chuteTape(e){ // TAPÉE : le coup
   T.sh=Math.min(1.6,T.sh+.55*mu);                                                         // la caméra encaisse
   // la normale de la face touchée (dans le monde), pour faire gicler étincelles et morceaux
   const n=T.n9;if(h.face)n.copy(h.face.normal).transformDirection(h.object.matrixWorld);else n.copy(d).negate();if(n.dot(d)>0)n.negate();
+  if(!T.fl&&RICH.texEt){T.fl=new THREE.Sprite(new THREE.SpriteMaterial({map:RICH.texEt,transparent:true,depthTest:false,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}));T.fl.renderOrder=999;T.fl.visible=false;scene.add(T.fl);} // (2026-10-08) l'éclat d'impact : une ÉTOILE nette (la boule floue faisait « naïf »)
   if(!T.fl){const cv=document.createElement('canvas');cv.width=cv.height=64;const x=cv.getContext('2d'),g=x.createRadialGradient(32,32,0,32,32,32);
     g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.25,'rgba(255,240,200,.85)');g.addColorStop(1,'rgba(255,210,140,0)');x.fillStyle=g;x.fillRect(0,0,64,64);
     T.fl=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthTest:false,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}));
     T.fl.renderOrder=999;T.fl.visible=false;scene.add(T.fl);}
-  T.fl.position.copy(h.point).addScaledVector(d,-.15);T.flT=0;T.flS=1+.4*(mu-1);T.fl.visible=true;T.n++;
-  const P=h.point,ns=Math.round(16*mu);                                                    // LES ÉTINCELLES
-  for(let i=0;i<ns;i++){const s=5+Math.random()*9*mu;
-    spawnP(sparkGold,P.x,P.y,P.z,n.x*s+(Math.random()-.5)*8,n.y*s+(Math.random()-.5)*8+2,n.z*s+(Math.random()-.5)*8,.25+Math.random()*.45);}
-  for(let i=0;i<3+mu*2;i++)spawnP(dust,P.x,P.y,P.z,n.x*2+(Math.random()-.5)*2,n.y*2+(Math.random()-.5)*2,n.z*2+(Math.random()-.5)*2,.5+Math.random()*.5); // la poussière de peinture
+  T.fl.position.copy(h.point).addScaledVector(d,-.15);T.flT=0;T.flS=1+.4*(mu-1);T.fl.visible=true;T.fl.material.rotation=Math.random()*3;T.n++;
+  const P=h.point;richCoup(P,n,d,mu,T.combo); // (2026-10-08) LES ÉTINCELLES v2 et LA PLUIE DE RICHESSE (voir ce bloc) — les gerbes sparkGold/dust d'avant, « brutes, naïves », sont retirées
   chuteDebris();const sp=CARS[garageI]||CARS[0];                                         // LES MORCEAUX DE TÔLE, à ses couleurs
   {const M9=Array.isArray(h.object.material)?h.object.material[0]:h.object.material,G9=h.object.geometry,ca=G9&&G9.attributes&&G9.attributes.color; // la couleur de la PIÈCE touchée (sa couleur de sommet × sa matière)
    if(M9&&M9.color)T.debM[0].color.copy(M9.color);else T.debM[0].color.setHex(sp.color!=null?sp.color:0xff5a2a);
@@ -37634,14 +37632,382 @@ function chuteTapeTick(dt,C,up,sc){ // les deux ressorts, l'éclat, les morceaux
     T.w.addScaledVector(T.a,-kr*k).multiplyScalar(Math.exp(-T.CR*(.35+.65/(1+wl*wl))*k)); // (lancée, l'air la freine moins : deux ou trois tours de toupie)
     const wa=T.w.length()*k;if(wa>1e-8){T.q.setFromAxisAngle(T.b.copy(T.w).divideScalar(T.w.length()),wa);T.Q.premultiply(T.q).normalize();}}
   T.sh*=Math.exp(-dt*5.5);if(T.sh<.003)T.sh=0;
-  if(T.fl&&T.fl.visible){T.flT+=dt;const u=T.flT/.32;if(u>=1)T.fl.visible=false;else{T.fl.material.opacity=1-u;const s9=(.5+u*1.9)*sc*T.flS;T.fl.scale.set(s9,s9,1);}}
+  if(T.fl&&T.fl.visible){T.flT+=dt;const u=T.flT/.22;if(u>=1)T.fl.visible=false;else{T.fl.material.opacity=(1-u)*(1-u);const s9=(1.1+u*1.4)*sc*T.flS;T.fl.scale.set(s9,s9,1);}} // l'étoile s'ouvre et meurt vite
   if(T.deb)for(const D of T.deb){if(!D.m.visible)continue;D.t+=dt;if(D.t>=D.vie){D.m.visible=false;continue;} // les morceaux : l'air les emporte vers le HAUT (elle tombe, eux freinent)
     D.v.multiplyScalar(Math.exp(-dt*.9));D.v.y+=9*dt;D.m.position.addScaledVector(D.v,dt);D.m.rotation.x+=D.w.x*dt;D.m.rotation.y+=D.w.y*dt;D.m.rotation.z+=D.w.z*dt;
     const f9=Math.min(1,(D.vie-D.t)/.35);D.m.scale.copy(D.s).multiplyScalar(f9);}
   if(!(running&&!paused&&!gameOver)){updatePool(sparkGold,dt,3);updatePool(dust,dt,2);}  // au menu, la boucle de course ne les fait pas vivre
+  richTick(dt,C); // (2026-10-08) LA PLUIE DE RICHESSE : objets, étincelles, flamme, éclats
   if(!tient&&T.p.lengthSq()+T.v.lengthSq()+T.w.lengthSq()<1e-8&&1-Math.abs(T.Q.w)<1e-10){T.Q.identity();return;}
   carGroup.quaternion.premultiply(T.Q);
   T.o.copy(up).multiplyScalar(-.45*sc).applyQuaternion(T.Q);carGroup.position.copy(C).add(T.o).add(T.p);
+}
+/* LA PLUIE DE RICHESSE — LA CAISSE QUI CRACHE (2026-10-08, Léo : « des billets (bleu turquoise foncé, léger reflet en dégradé vert clair
+   fluo), des pièces comme les euros français, des bitcoins, de l'or (bouts de taille variée, luisants, bling), des diamants (taille variée,
+   très beaux), des trèfles à quatre feuilles, des fruits ; le tap trash sur la voiture peut provoquer un petit jet de flamme très léger et
+   des étincelles qui projettent ces objets au hasard — pas toujours, juste assez pour qu'on ait envie de le refaire ; inspire-toi des études
+   sur le cerveau, effort / réconfort ; les étincelles d'avant étaient brutes, naïves, gamines : fais mieux »).
+   LE CERVEAU (on s'en sert pour le plaisir du geste — aucun argent réel n'est en jeu, rien ne s'achète) :
+   · Fiorillo, Tobler & Schultz 2003 (Science) : l'activité soutenue des neurones à dopamine est MAXIMALE quand la récompense a une chance
+     sur deux (l'incertitude la plus forte) → un coup seul paie une fois sur deux environ (mesuré), jamais à coup sûr.
+   · Schultz 1997-98 : la dopamine suit l'ÉCART à la prédiction, une récompense prévisible ne fait plus rien → la TAILLE est tirée elle
+     aussi (petit / bon / gros / jackpot) et la composition change à chaque gerbe (un diamant, ça surprend).
+   · Clark et al. 2009 (Neuron) : le PRESQUE (near-miss) recrute les circuits du gain et donne envie de rejouer, surtout quand c'est nous
+     qui agissons → un coup sec sur trois laisse échapper une seule pièce, un éclat — presque.
+   · Knutson et al. 2001 : l'ANTICIPATION d'un gain allume le noyau accumbens ; Inzlicht et al. 2018 (« effort paradox ») : l'EFFORT ajoute
+     de la valeur → le COMBO (coups rapprochés) fait monter la chance ET la taille, ses étincelles chauffent jusqu'au blanc-or ; 80 ms de
+     souffle entre le coup et la gerbe (le temps que ça monte).
+   · Pas d'extinction : après 3 coups secs d'affilée, le suivant paie. Le TRÈFLE porte chance : il en sort un, les deux coups suivants +18 %.
+   LA MATIÈRE — trois programmes à soi, compilés une fois à l'arrivée au ciel (sous l'écran titre) : le MÉTAL (pièces, bitcoin, or : le
+   ciel reflété teinté par le métal, Fresnel, deux éclats spéculaires), la GEMME (le diamant : réfraction dispersée R/V/B après un rebond
+   intérieur, feu arc-en-ciel par facette, reflet), le SOUPLE (billet et trèfle : le papier ondule, un reflet vert fluo glisse dessus). Les
+   fruits sont ceux de la piste (fruitGeo / FRUIT_MAT, déjà compilés).
+   L'AIR : la caisse tombe, l'air remonte autour d'elle (RICH.W m/s) — chaque objet freine selon sa forme : le billet et le trèfle planent
+   et papillonnent, la pièce tourbillonne sur sa tranche, l'or et le diamant, denses, filent plus loin avant d'être emportés.
+   LE BLING : un éclat en étoile quand une FACETTE renvoie le soleil vers l'œil (calculé, pas tiré au sort) — la pièce qui flashe en
+   tournant, le diamant qui scintille.
+   LES ÉTINCELLES v2 : des traits de métal en fusion qui REFROIDISSENT (blanc → jaune → orange → rouge sombre), allongés par leur vitesse,
+   freinés par l'air, dont certains ÉCLATENT en deux (la meule) — même programme que les filets de vent (0 compilé).
+   LA FLAMME : un jet bref et léger au point d'impact — le signal du gain (dorée au jackpot).
+   Console : dbgRiche() l'état · dbgRiche('jackpot'|'gros'|'bon'|'petit'|'presque'|'rien') impose le prochain coup · dbgRiche('pluie',t)
+   fait cracher la caisse sans coup (t = la taille). */
+const RICH={pret:false,chauffe:0,objs:[],libres:{},sp:null,fl:[],gl:[],sec:0,chance:0,force:null,attente:[],
+  n:{coups:0,gains:0,presque:0,jackpot:0},W:3,v1:new THREE.Vector3(),v2:new THREE.Vector3(),v3:new THREE.Vector3(),q:new THREE.Quaternion(),
+  H:new THREE.Vector3(),cam:new THREE.Vector3(),eu:new THREE.Euler()};
+const RICH_U={uSunDir:{value:new THREE.Vector3().copy(SUN_DIR)},uSunCol:{value:new THREE.Color()},uSky:{value:new THREE.Color()},uGnd:{value:new THREE.Color()},
+  uEnv:{value:envTex},uT:{value:0}};
+// les objets : kd = freinage par l'air (1/s), fl = papillonnement (m/s²), s = taille (m — à l'échelle ARCADE : vus à 10 m, une vraie pièce faisait 13 px), w = rotation (rad/s), v = élan au départ (m/s), vie (s)
+const RICH_T={
+  billet:{kd:2.4,fl:5,s:[1.2,1.55],w:[2,6],v:[3,6],vie:[2.8,3.8]},
+  trefle:{kd:2.6,fl:4,s:[.7,.9],w:[2,6],v:[3,6],vie:[2.6,3.4]},
+  piece2:{kd:.8,fl:.6,s:[.36,.4],w:[11,20],v:[4,8],vie:[2.4,3.2],piece:1},
+  piece1:{kd:.8,fl:.6,s:[.34,.38],w:[11,20],v:[4,8],vie:[2.4,3.2],piece:1},
+  piece50:{kd:.8,fl:.6,s:[.32,.36],w:[11,20],v:[4,8],vie:[2.4,3.2],piece:1},
+  btc:{kd:.75,fl:.5,s:[.4,.46],w:[9,17],v:[4,8],vie:[2.6,3.4],piece:1},
+  or:{kd:.5,fl:0,s:[.16,.42],w:[3,9],v:[5,9],vie:[2.4,3.4]},
+  lingot:{kd:.55,fl:0,s:[.55,.75],w:[3,7],v:[4,8],vie:[2.4,3.4]},
+  diamant:{kd:.55,fl:0,s:[.22,.5],w:[3,8],v:[5,9],vie:[2.6,3.6]},
+  fruit:{kd:1,fl:.4,s:[.3,.42],w:[3,7],v:[3,6],vie:[2.4,3.2]}}; // (fruit : s = son RAYON en mètres — chaque fruit est ramené à sa sphère, la pastèque n'écrase plus le cadre)
+const RICH_CAP={billet:16,trefle:6,piece2:8,piece1:8,piece50:8,btc:7,or:14,lingot:5,diamant:12,fruit:8};
+const RICH_TIER={ // la taille de la gerbe : combien, et quoi (poids)
+  petit:  {n:[3,6],  fl:.75,w:{billet:24,piece2:12,piece1:12,piece50:12,fruit:20,trefle:8,or:12}},
+  bon:    {n:[7,11], fl:1,  w:{billet:30,piece2:8,piece1:8,piece50:6,or:18,lingot:4,fruit:9,trefle:5,btc:7,diamant:5}},
+  gros:   {n:[12,18],fl:1.3,w:{billet:24,or:20,lingot:6,piece2:6,piece1:6,piece50:4,btc:12,diamant:14,trefle:4,fruit:4}},
+  jackpot:{n:[26,36],fl:1.8,w:{billet:24,or:18,lingot:8,diamant:20,btc:12,piece2:5,piece1:5,piece50:3,trefle:5,fruit:4}}};
+
+// ---- LES PROGRAMMES ----
+const RICH_VS=['varying vec3 vN;varying vec3 vP;varying vec2 vUv;uniform float uT;uniform float uBend;',
+  'void main(){vec3 p=position;vec3 nn=normal;',
+  '#ifdef SOUPLE',
+  ' float ph=dot(modelMatrix[3].xyz,vec3(.9,1.3,.7))+uT*7.;float a=uBend*.07,b=uBend*.035;', // le papier ONDULE (la phase suit sa place : chaque billet bat à son rythme)
+  ' p.z+=sin(p.x*3.2+ph)*a+sin(p.y*5.+ph*1.4)*b;',
+  ' nn=normalize(vec3(-cos(p.x*3.2+ph)*a*3.2,-cos(p.y*5.+ph*1.4)*b*5.,1.));',
+  '#endif',
+  ' vec4 w=modelMatrix*vec4(p,1.);vP=w.xyz;vN=normalize(mat3(modelMatrix)*nn);vUv=uv;gl_Position=projectionMatrix*viewMatrix*w;}'].join('\n');
+const RICH_STUDIO=['vec3 studio(vec3 r,float fl){', // LE STUDIO DU BIJOUTIER : un reflet à contraste franc (sol sombre, horizon gris, ciel clair, une bande de lumière, des boîtes à lumière) — c'est le contraste qui fait le « bling », le ciel réel n'en a pas
+  ' float y=r.y,a=atan(r.z,r.x);vec3 c=mix(vec3(.04,.035,.05)+fl,vec3(.42,.42,.47)+fl*.5,smoothstep(-.4,.04,y));c=mix(c,vec3(1.45),smoothstep(.06,.6,y));',
+  ' c+=vec3(1.3)*smoothstep(.07,0.,abs(y-.2));c+=vec3(1.4)*pow(max(0.,cos(a*3.)),36.)*smoothstep(.12,.6,y);return c;}'].join('\n');
+const RICH_FS_METAL=['uniform sampler2D uMap;uniform samplerCube uEnv;uniform vec3 uSunDir;uniform vec3 uSunCol;uniform vec3 uSky;uniform vec3 uGnd;uniform float uShin;',
+  'varying vec3 vN;varying vec3 vP;varying vec2 vUv;',RICH_STUDIO,
+  'void main(){vec3 N=normalize(vN),V=normalize(cameraPosition-vP);',
+  ' vec3 F0=texture2D(uMap,vUv).rgb;',
+  ' vec3 R=reflect(-V,N);vec3 env=textureCube(uEnv,vec3(-R.x,R.y,R.z)).rgb;',
+  ' float ndv=max(dot(N,V),0.),fr=pow(1.-ndv,5.);vec3 F=F0+(vec3(1.)-F0)*fr*.5;',
+  ' vec3 L=normalize(uSunDir),H=normalize(L+V),H2=normalize(normalize(V+vec3(.3,.9,.2))+V);',
+  ' float s1=pow(max(dot(N,H),0.),uShin),s2=pow(max(dot(N,H2),0.),uShin*.7);',
+  ' vec3 rfl=mix(studio(R,.24),env*1.15,.3);', // le studio d'abord, un peu du vrai ciel (l'heure se lit encore sur l'or)
+  ' vec3 c=F*(rfl+mix(uGnd,uSky,N.y*.5+.5)*.18)+F*(uSunCol*s1*2.4+vec3(s2)*1.6);',
+  ' gl_FragColor=vec4(c,1.);}'].join('\n');
+const RICH_FS_GEMME=['uniform samplerCube uEnv;uniform vec3 uSunDir;uniform vec3 uSunCol;uniform vec3 uTint;',
+  'varying vec3 vN;varying vec3 vP;varying vec2 vUv;',RICH_STUDIO,
+  'vec3 cube(vec3 d){return textureCube(uEnv,vec3(-d.x,d.y,d.z)).rgb;}',
+  'void main(){vec3 N=normalize(vN),V=normalize(cameraPosition-vP),I=-V;float ndv=max(dot(N,V),0.);',
+  ' vec3 hN=normalize(vec3(sin(dot(N,vec3(12.9,78.2,37.7))*43.7),cos(dot(N,vec3(39.3,11.1,83.7))*17.3),sin(dot(N,vec3(73.1,52.2,9.4))*29.1)));', // la facette du FOND, propre à chaque facette vue
+  ' vec3 tr=reflect(refract(I,N,.405),hN),tg=reflect(refract(I,N,.413),hN),tb=reflect(refract(I,N,.421),hN);', // l'indice du diamant, un peu différent par couleur : la DISPERSION — elle ne se voit qu'aux bords des bandes du studio (le FEU, là où il est dans un vrai diamant)
+  ' vec3 rf=vec3(studio(tr,0.).r,studio(tg,0.).g,studio(tb,0.).b)*1.15+cube(tg)*.12;',
+  ' vec3 Rl=reflect(I,N);float fr=.1+.9*pow(1.-ndv,4.);',
+  ' vec3 L=normalize(uSunDir),H=normalize(L+V),H2=normalize(normalize(V+vec3(.3,.9,.2))+V);',
+  ' float sp=pow(max(dot(N,H),0.),200.)*8.+pow(max(dot(N,H2),0.),120.)*3.;',
+  ' vec3 c=mix(rf*uTint,studio(Rl,0.)*.8+cube(Rl)*.4,fr)+uSunCol*sp+vec3(sp*.4);',
+  ' gl_FragColor=vec4(c,1.);}'].join('\n');
+const RICH_FS_SOUPLE=['uniform sampler2D uMap;uniform vec3 uSunDir;uniform vec3 uSunCol;uniform vec3 uSky;uniform vec3 uGnd;uniform vec3 uSheen;uniform float uSheenK;uniform float uT;',
+  'varying vec3 vN;varying vec3 vP;varying vec2 vUv;',
+  'void main(){vec2 uv=gl_FrontFacing?vUv:vec2(1.-vUv.x,vUv.y);vec4 tx=texture2D(uMap,uv);if(tx.a<.5)discard;',
+  ' vec3 N=normalize(vN);if(!gl_FrontFacing)N=-N;vec3 V=normalize(cameraPosition-vP),L=normalize(uSunDir);',
+  ' float nl=dot(N,L),df=max(nl,0.)*.75+abs(nl)*.25;', // le papier laisse passer un peu de jour
+  ' vec3 hc=mix(uGnd,uSky,N.y*.5+.5);vec3 c=tx.rgb*(hc*.75+uSunCol*df*.6+.2);',
+  ' float ndv=abs(dot(N,V)),sw=fract(uv.x*.8+uv.y*.5-uT*.32+dot(vP,vec3(.05)));', // le reflet qui GLISSE en dégradé
+  ' float band=smoothstep(0.,.35,sw)*smoothstep(.8,.35,sw);',
+  ' c+=uSheen*(pow(1.-ndv,2.)*.55+band*.4)*uSheenK;',
+  ' vec3 H=normalize(L+V);c+=uSunCol*pow(max(dot(N,H),0.),36.)*.3*uSheenK;',
+  ' gl_FragColor=vec4(c,1.);}'].join('\n');
+function richMat(fs,u,defs,side){const U=Object.assign({},RICH_U,u||{});return new THREE.ShaderMaterial({uniforms:U,vertexShader:RICH_VS,fragmentShader:fs,defines:defs||{},side:side||THREE.FrontSide,fog:false,lights:false});}
+
+// ---- LES DESSINS (canvas) ----
+function richCv(w,h,fn){const cv=document.createElement('canvas');cv.width=w;cv.height=h;const x=cv.getContext('2d');fn(x,w,h);const t=new THREE.CanvasTexture(cv);t.anisotropy=4;return t;}
+function richEtoile(x,cx,cy,r){x.beginPath();for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,rr=i%2?r*.42:r;x.lineTo(cx+Math.cos(a)*rr,cy+Math.sin(a)*rr);}x.closePath();x.fill();}
+function richFace(x,cx,cy,R,ext,int,face,val){ // une face d'euro : la couronne (12 étoiles), le cœur ; face 0 = côté France (l'arbre dans l'hexagone, RF), 1 = côté commun (le chiffre)
+  const g=(r,c0,c1)=>{const G=x.createRadialGradient(cx-r*.35,cy-r*.4,r*.1,cx,cy,r);G.addColorStop(0,c0);G.addColorStop(1,c1);return G;};
+  x.fillStyle=g(R,ext[0],ext[1]);x.beginPath();x.arc(cx,cy,R,0,6.2832);x.fill();
+  x.strokeStyle='rgba(60,40,10,.45)';x.lineWidth=R*.03;x.beginPath();x.arc(cx,cy,R*.97,0,6.2832);x.stroke();
+  x.fillStyle='rgba(70,50,20,.5)';for(let i=0;i<12;i++){const a=i/12*6.2832-Math.PI/2;richEtoile(x,cx+Math.cos(a)*R*.86,cy+Math.sin(a)*R*.86,R*.055);}
+  const r=int?R*.7:R*.78;
+  if(int){x.fillStyle=g(r,int[0],int[1]);x.beginPath();x.arc(cx,cy,r,0,6.2832);x.fill();x.strokeStyle='rgba(40,30,10,.5)';x.lineWidth=R*.025;x.stroke();}
+  const enc='rgba(60,42,12,.62)',lum='rgba(255,250,230,.55)';
+  if(face===0){ // l'arbre de vie dans l'hexagone, R F
+    x.lineWidth=R*.03;x.strokeStyle=enc;x.beginPath();for(let i=0;i<=6;i++){const a=i/6*6.2832+Math.PI/6;x.lineTo(cx+Math.cos(a)*r*.82,cy+Math.sin(a)*r*.82);}x.stroke();
+    x.fillStyle=enc;x.fillRect(cx-r*.05,cy-r*.05,r*.1,r*.6);
+    for(let i=0;i<70;i++){const a=Math.random()*6.2832,d=Math.sqrt(Math.random())*r*.48;x.beginPath();x.arc(cx+Math.cos(a)*d,cy-r*.18+Math.sin(a)*d*.8,r*.035,0,6.2832);x.fill();}
+    x.fillStyle=lum;for(let i=0;i<30;i++){const a=Math.random()*6.2832,d=Math.sqrt(Math.random())*r*.45;x.fillRect(cx+Math.cos(a)*d-1,cy-r*.2+Math.sin(a)*d*.8-1,2,2);}
+    x.font='bold '+Math.round(r*.32)+'px Georgia,serif';x.textAlign='center';x.textBaseline='middle';x.fillStyle=enc;x.fillText('R',cx-r*.5,cy+r*.35);x.fillText('F',cx+r*.5,cy+r*.35);
+  }else{ // le chiffre, frappé (ombre puis lumière décalées)
+    x.font='bold '+Math.round(r*(val.length>1?.8:1.05))+'px Helvetica,Arial,sans-serif';x.textAlign='center';x.textBaseline='middle';
+    x.fillStyle=enc;x.fillText(val,cx+r*.04,cy-r*.04+r*.05);x.fillStyle=lum;x.fillText(val,cx-r*.02,cy-r*.1+r*.05);
+    x.font='bold '+Math.round(r*.2)+'px Helvetica,Arial,sans-serif';x.fillStyle=enc;x.fillText(val.length>1?'EURO CENT':'EURO',cx,cy+r*.62);
+    x.strokeStyle='rgba(60,42,12,.25)';x.lineWidth=1.5;for(let i=-3;i<=3;i++){x.beginPath();x.moveTo(cx-r*.95,cy+i*r*.22);x.lineTo(cx+r*.95,cy+i*r*.22);x.stroke();}
+  }
+}
+const RICH_ARG=['#f4f6fa','#9da3ad'],RICH_OR=['#fff0b0','#c08a2a'],RICH_ORN=['#fbe7a0','#b88a30']; // l'argent (cupronickel), l'or nordique du 1/2 €, celui des centimes
+function richTexPiece(k){return richCv(512,256,function(x){
+  const P=k==='2'?[RICH_ARG,RICH_OR]:k==='1'?[RICH_OR,RICH_ARG]:[RICH_ORN,null];
+  x.fillStyle=P[0][1];x.fillRect(0,0,512,256); // le fond = le métal de la tranche (la tranche y lit sa couleur)
+  richFace(x,128,128,124,P[0],P[1],0,'');richFace(x,384,128,124,P[0],P[1],1,k==='50'?'50':k);});}
+function richTexBtc(){return richCv(512,256,function(x){x.fillStyle='#c8902e';x.fillRect(0,0,512,256);
+  for(const cx of [128,384]){const G=x.createRadialGradient(cx-40,88,10,cx,128,124);G.addColorStop(0,'#fff1b8');G.addColorStop(1,'#b47c22');x.fillStyle=G;x.beginPath();x.arc(cx,128,124,0,6.2832);x.fill();
+    x.strokeStyle='rgba(90,55,10,.55)';x.lineWidth=3;for(let i=0;i<72;i++){const a=i/72*6.2832;x.beginPath();x.moveTo(cx+Math.cos(a)*112,128+Math.sin(a)*112);x.lineTo(cx+Math.cos(a)*121,128+Math.sin(a)*121);x.stroke();} // le crénelage
+    const O=x.createRadialGradient(cx-25,105,8,cx,128,98);O.addColorStop(0,'#ffb347');O.addColorStop(1,'#e2760c');x.fillStyle=O;x.beginPath();x.arc(cx,128,98,0,6.2832);x.fill();
+    x.save();x.translate(cx,128);x.rotate(.24);x.fillStyle='#fff';x.font='bold 128px Helvetica,Arial,sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText('B',4,6);
+    x.fillRect(-22,-72,11,26);x.fillRect(4,-72,11,26);x.fillRect(-22,46,11,26);x.fillRect(4,46,11,26);x.restore();}});} // ₿ : le B et ses deux barres
+function richTexUni(c){return richCv(4,4,function(x){x.fillStyle=c;x.fillRect(0,0,4,4);});}
+function richTexBillet(){return richCv(512,236,function(x,w,h){
+  const G=x.createLinearGradient(0,0,w,h);G.addColorStop(0,'#08414d');G.addColorStop(.55,'#0c5f6c');G.addColorStop(1,'#0a4a57');x.fillStyle=G;x.fillRect(0,0,w,h);
+  x.strokeStyle='rgba(120,255,210,.10)';x.lineWidth=1;for(let k=0;k<26;k++){x.beginPath();for(let i=0;i<=w;i+=6){x.lineTo(i,h/2+Math.sin(i*.03+k*.5)*h*.42*Math.sin(k*.21+1));}x.stroke();} // la guilloche
+  x.strokeStyle='rgba(160,255,220,.35)';x.lineWidth=3;x.strokeRect(10,10,w-20,h-20);x.lineWidth=1;x.strokeRect(18,18,w-36,h-36);
+  for(let i=0;i<14;i++){x.strokeStyle='rgba(120,255,200,'+(.07+i*.012)+')';x.beginPath();x.ellipse(118,118,62-i*4,62-i*4,0,0,6.2832);x.stroke();} // la rosace
+  x.fillStyle='rgba(200,255,235,.85)';x.font='bold 60px Helvetica,Arial,sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText('$',118,120);
+  x.font='bold 46px Helvetica,Arial,sans-serif';x.fillStyle='rgba(215,255,240,.9)';x.textAlign='left';x.fillText('100',30,48);x.textAlign='right';x.fillText('100',w-30,h-44);
+  x.font='bold 22px Helvetica,Arial,sans-serif';x.textAlign='center';x.fillStyle='rgba(205,255,235,.8)';x.fillText('CASH CAR',w*.6,h*.42);
+  x.font='11px Helvetica,Arial,sans-serif';x.fillStyle='rgba(160,255,220,.5)';x.fillText('BANQUE CENTRALE DU CIEL · CENT DOLLARS',w*.6,h*.56);
+  const B=x.createLinearGradient(w*.78,0,w*.86,0);B.addColorStop(0,'rgba(125,255,170,0)');B.addColorStop(.5,'rgba(150,255,180,.55)');B.addColorStop(1,'rgba(125,255,170,0)');x.fillStyle=B;x.fillRect(w*.78,0,w*.08,h);}); // la bande holographique
+}
+function richTexTrefle(){return richCv(256,256,function(x){x.clearRect(0,0,256,256);
+  x.strokeStyle='#2f7a2a';x.lineWidth=9;x.lineCap='round';x.beginPath();x.moveTo(128,132);x.quadraticCurveTo(150,190,132,248);x.stroke(); // la tige
+  for(let i=0;i<4;i++){x.save();x.translate(128,128);x.rotate(i*Math.PI/2+Math.PI/4);
+    const G=x.createLinearGradient(0,0,0,-110);G.addColorStop(0,'#1f6f2a');G.addColorStop(1,'#4fbf4a');x.fillStyle=G;
+    x.beginPath();x.moveTo(0,-4);x.bezierCurveTo(-62,-34,-58,-112,-16,-108);x.bezierCurveTo(-6,-106,0,-96,0,-88);x.bezierCurveTo(0,-96,6,-106,16,-108);x.bezierCurveTo(58,-112,62,-34,0,-4);x.fill(); // un cœur
+    x.strokeStyle='rgba(225,255,215,.55)';x.lineWidth=5;x.beginPath();x.moveTo(-22,-62);x.lineTo(0,-46);x.lineTo(22,-62);x.stroke(); // le chevron pâle
+    x.strokeStyle='rgba(20,70,25,.45)';x.lineWidth=2;x.beginPath();x.moveTo(0,-6);x.lineTo(0,-84);x.stroke();x.restore();}});}
+function richTexEtoile(){return richCv(128,128,function(x){x.clearRect(0,0,128,128);
+  const C=x.createRadialGradient(64,64,0,64,64,22);C.addColorStop(0,'rgba(255,255,255,1)');C.addColorStop(.4,'rgba(255,250,235,.55)');C.addColorStop(1,'rgba(255,240,210,0)');x.fillStyle=C;x.fillRect(0,0,128,128);
+  for(const [a,l,w] of [[0,62,3.2],[Math.PI/2,62,3.2],[Math.PI/4,30,1.8],[-Math.PI/4,30,1.8]]){x.save();x.translate(64,64);x.rotate(a);
+    const g=x.createLinearGradient(-l,0,l,0);g.addColorStop(0,'rgba(255,255,255,0)');g.addColorStop(.5,'rgba(255,255,255,1)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;
+    x.beginPath();x.moveTo(-l,0);x.lineTo(0,-w);x.lineTo(l,0);x.lineTo(0,w);x.fill();x.restore();}});} // l'éclat : quatre branches fines et un cœur doux
+function richTexFlamme(){return richCv(128,128,function(x){x.clearRect(0,0,128,128);
+  const G=x.createRadialGradient(64,64,0,64,64,62);G.addColorStop(0,'rgba(255,250,235,1)');G.addColorStop(.25,'rgba(255,214,140,.75)');G.addColorStop(.55,'rgba(255,128,40,.3)');G.addColorStop(1,'rgba(200,40,10,0)');
+  x.fillStyle=G;x.fillRect(0,0,128,128);});}
+
+// ---- LES FORMES ----
+function richPlat(g){ // non indexée, normales PLATES tournées vers l'extérieur, uv au centre (le métal uni)
+  const ng=g.index?g.toNonIndexed():g,p=ng.attributes.position.array,a=new THREE.Vector3(),b=new THREE.Vector3(),c=new THREE.Vector3(),m=new THREE.Vector3();
+  for(let i=0;i<p.length;i+=9){a.fromArray(p,i);b.fromArray(p,i+3);c.fromArray(p,i+6);m.copy(a).add(b).add(c);
+    const n=b.clone().sub(a).cross(c.clone().sub(a));if(n.dot(m)<0){p[i+3]=c.x;p[i+4]=c.y;p[i+5]=c.z;p[i+6]=b.x;p[i+7]=b.y;p[i+8]=b.z;}}
+  ng.computeVertexNormals();const uv=new Float32Array(p.length/3*2).fill(.5);ng.setAttribute('uv',new THREE.BufferAttribute(uv,2));if(ng!==g)g.dispose();return ng;}
+function richPepite(k){ // une pépite : un icosaèdre cabossé (le même creux pour le même sommet : pas de fissure)
+  const g=new THREE.IcosahedronGeometry(1,1),p=g.attributes.position,v=new THREE.Vector3();
+  for(let i=0;i<p.count;i++){v.fromBufferAttribute(p,i);const h=Math.sin(v.x*12.9+v.y*78.2+v.z*37.7+k*9.1)*43758.5453,r=.72+.42*(h-Math.floor(h));v.multiplyScalar(r);v.y*=.68;p.setXYZ(i,v.x,v.y,v.z);}
+  return richPlat(g);}
+function richLingot(){const g=new THREE.BoxGeometry(1,.42,.5),p=g.attributes.position;for(let i=0;i<p.count;i++)if(p.getY(i)>0){p.setX(i,p.getX(i)*.78);p.setZ(i,p.getZ(i)*.7);}return richPlat(g);}
+function richDiamant(){ // la taille BRILLANT : la table, la couronne (8 + 16 facettes), le rondiste, la culasse jusqu'à la pointe
+  const T=[],G=[],P=[],tY=.3,tR=.54,n=8;
+  for(let i=0;i<n;i++){const a=i/n*6.2832;T.push([Math.cos(a)*tR,tY,Math.sin(a)*tR]);}
+  for(let i=0;i<2*n;i++){const a=i/(2*n)*6.2832;G.push([Math.cos(a),0,Math.sin(a)]);}
+  const ctr=[0,tY,0],cu=[0,-.95,0],tri=(a,b,c)=>P.push(...a,...b,...c);
+  for(let i=0;i<n;i++){const t0=T[i],t1=T[(i+1)%n],g0=G[2*i],gm=G[2*i+1],g1=G[(2*i+2)%(2*n)]; // la table, puis la couronne : t0 au-dessus de g0, t1 au-dessus de g1
+    tri(ctr,t0,t1);tri(t0,g0,gm);tri(t0,gm,t1);tri(t1,gm,g1);}
+  for(let i=0;i<2*n;i++){const g0=G[i],g1=G[(i+1)%(2*n)],mid=[(g0[0]+g1[0])*.5*.6,-.42,(g0[2]+g1[2])*.5*.6];tri(g0,g1,mid);tri(g0,mid,cu);tri(mid,g1,cu);}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(P),3));return richPlat(g);}
+function richPiece(){ // la pièce : un cylindre ; ses deux faces lisent les deux moitiés de l'image, la tranche lit le fond (son métal)
+  const g=new THREE.CylinderGeometry(1,1,.09,32,1),uv=g.attributes.uv,gr=g.groups;
+  for(const G9 of gr){for(let k=G9.start;k<G9.start+G9.count;k++){const i=g.index.getX(k);
+    if(G9.materialIndex===0)uv.setXY(i,.004,.5);else if(G9.materialIndex===1)uv.setXY(i,uv.getX(i)*.5,uv.getY(i));else uv.setXY(i,.5+uv.getX(i)*.5,uv.getY(i));}}
+  g.clearGroups();return g;}
+
+function richInit(){
+  if(RICH.pret)return;RICH.pret=true;
+  const M={},Gm={};
+  const metal=function(tex,shin){return richMat(RICH_FS_METAL,{uMap:{value:tex},uShin:{value:shin||90}});};
+  M.piece2=metal(richTexPiece('2'),110);M.piece1=metal(richTexPiece('1'),110);M.piece50=metal(richTexPiece('50'),110);M.btc=metal(richTexBtc(),100);
+  M.or=metal(richTexUni('#ffb52e'),140);M.lingot=metal(richTexUni('#ffbd3d'),170); // l'or : un jaune profond (F0 de l'or ≈ 1 · .71 · .29), c'est le reflet qui l'éclaire
+  M.diamant=richMat(RICH_FS_GEMME,{uTint:{value:new THREE.Color(1,1,1)}});
+  M.billet=richMat(RICH_FS_SOUPLE,{uMap:{value:richTexBillet()},uSheen:{value:new THREE.Color(.49,1,.62)},uSheenK:{value:.5},uBend:{value:.75}},{SOUPLE:1},THREE.DoubleSide);
+  M.trefle=richMat(RICH_FS_SOUPLE,{uMap:{value:richTexTrefle()},uSheen:{value:new THREE.Color(.55,1,.5)},uSheenK:{value:.35},uBend:{value:.7}},{SOUPLE:1},THREE.DoubleSide);
+  Gm.piece=richPiece();Gm.billet=new THREE.PlaneGeometry(1,.46,10,3);Gm.trefle=new THREE.PlaneGeometry(1,1,6,6);
+  Gm.or=[richPepite(1),richPepite(2),richPepite(3)];Gm.lingot=richLingot();Gm.diamant=richDiamant();
+  RICH.M=M;RICH.G=Gm;
+  for(const t in RICH_CAP){RICH.libres[t]=[];for(let i=0;i<RICH_CAP[t];i++){let m;
+      if(t==='fruit'){const fg=fruitGeo(i%FRUIT_DEFS.length);m=new THREE.Mesh(fg,FRUIT_MAT);} // les fruits de la piste, leur matière (déjà compilée)
+      else{const g=t==='or'?Gm.or[i%3]:t.indexOf('piece')===0||t==='btc'?Gm.piece:Gm[t];m=new THREE.Mesh(g,M[t]);}
+      m.visible=false;m.castShadow=m.receiveShadow=false;m.frustumCulled=false;scene.add(m);
+      RICH.libres[t].push({m:m,t:t,v:new THREE.Vector3(),w:new THREE.Vector3(),age:0,vie:1,s:1,ph:0,fd:0,nl:null,gl:null,on:false});}}
+  // les éclats (bling) et la flamme : des sprites (programme déjà là), chacun sa matière (son opacité, sa teinte, sa rotation)
+  const st=richTexEtoile(),ft=richTexFlamme();RICH.texEt=st;
+  for(let i=0;i<26;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:st,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}));s.visible=false;s.renderOrder=6;scene.add(s);RICH.gl.push({s:s,o:null});}
+  for(let i=0;i<18;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:ft,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}));s.visible=false;s.renderOrder=5;scene.add(s);
+    RICH.fl.push({s:s,p:new THREE.Vector3(),v:new THREE.Vector3(),age:9,vie:1,r0:.2,r1:1,c:new THREE.Color()});}
+  // LES ÉTINCELLES v2 : un maillage de traits (le programme des filets de vent)
+  const N=200,g=new THREE.BufferGeometry(),pos=new Float32Array(N*12),col=new Float32Array(N*12),idx=[];
+  for(let i=0;i<N;i++){const a=i*4;idx.push(a,a+1,a+2,a+1,a+3,a+2);}
+  g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('color',new THREE.BufferAttribute(col,3));g.setIndex(idx);
+  const sm=new THREE.Mesh(g,new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false}));
+  sm.frustumCulled=false;sm.renderOrder=7;sm.visible=false;scene.add(sm);
+  RICH.sp={m:sm,pos:pos,col:col,n:N,P:new Float32Array(N*3),V:new Float32Array(N*3),L:new Float32Array(N),L0:new Float32Array(N),Hh:new Float32Array(N),Wd:new Float32Array(N),K:new Uint8Array(N),i:0,vivant:0};
+  RICH.chauffe=3; // trois images : un exemplaire de chaque, minuscule, devant la caméra — les programmes se compilent sous l'écran titre
+}
+function richChauffeTick(C){
+  if(!RICH.chauffe)return;RICH.chauffe--;const on=RICH.chauffe>0;
+  for(const t in RICH.libres){const o=RICH.libres[t][0];if(o.on)continue;o.m.visible=on;if(on){o.m.position.copy(C);o.m.scale.setScalar(1e-4);}}
+  if(RICH.sp){RICH.sp.m.visible=on||RICH.sp.vivant>0;}
+}
+
+// ---- LE TIRAGE ----
+function richTire(mu,combo){
+  const R=RICH;R.n.coups++;
+  if(R.force){const f=R.force;R.force=null;if(f==='rien'||f==='presque'){R.sec++;}else R.sec=0;return f;}
+  let p=.36+.07*(combo-1)+(R.chance>0?.18:0);if(R.chance>0)R.chance--;  // ~1 sur 2 AU FINAL (Fiorillo 2003 : base .36 + le filet des 3 coups secs + le trèfle ≈ .5 mesuré) ; l'effort (le combo) et le trèfle font monter
+  if(R.sec>=3)p=1;                                                      // pas d'extinction : la 4e fois, ça paie
+  if(Math.random()>=p){R.sec++;return Math.random()<.38?'presque':'rien';}
+  R.sec=0;const e=Math.min(1,(combo-1)/5),w=[.68-.34*e,.24+.12*e,.065+.12*e,.015+.06*e];// l'effort fait aussi monter la TAILLE
+  let r=Math.random()*(w[0]+w[1]+w[2]+w[3]);const k=['petit','bon','gros','jackpot'];for(let i=0;i<4;i++){if(r<w[i])return k[i];r-=w[i];}return 'petit';
+}
+function richPioche(W){let s=0;for(const k in W)s+=W[k];let r=Math.random()*s;for(const k in W){if(r<W[k])return k;r-=W[k];}return 'billet';}
+function richSort(t){const L=RICH.libres[t];let best=null;for(const o of L){if(!o.on)return o;if(!best||o.age/o.vie>best.age/best.vie)best=o;}return best;} // un libre, sinon le plus vieux
+function richLance(t,P,n,d,delai,kv){
+  const o=richSort(t);if(!o)return;const D=RICH_T[t],rr=(a)=>a[0]+Math.random()*(a[1]-a[0]),m=o.m;
+  if(t==='fruit'){const k9=Math.floor(Math.random()*FRUIT_DEFS.length),g9=fruitGeo(k9);if(!g9.boundingSphere)g9.computeBoundingSphere();m.geometry=g9;o.fr=1/Math.max(.05,g9.boundingSphere.radius);}else o.fr=1;
+  o.on=true;o.age=-delai;o.vie=rr(D.vie);o.s=rr(D.s);o.ph=Math.random()*6.28;o.fd=Math.random()*6.28;
+  const sp=rr(D.v)*(kv||1);RICH.v1.set(Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize();
+  o.v.copy(n).multiplyScalar(sp).addScaledVector(RICH.v1,sp*.6).addScaledVector(d,-sp*.15);
+  {const kl=Math.min(1,camera.aspect*1.1);RICH.v2.set(1,0,0).applyQuaternion(camera.quaternion);o.v.addScaledVector(RICH.v2,-o.v.dot(RICH.v2)*(1-kl)*.85);o.v.multiplyScalar(.78+.22*kl);
+   camera.getWorldDirection(RICH.v2);const vf=o.v.dot(RICH.v2);if(vf<0)o.v.addScaledVector(RICH.v2,-vf*.65);} // …et presque rien VERS l'objectif (de près, une myrtille couvrait l'écran) // DEBOUT, l'écran est étroit : la gerbe s'ouvre moins sur les côtés (elle sortait du cadre en 0,4 s)
+  m.position.copy(P).addScaledVector(n,.12).addScaledVector(RICH.v1,.15);
+  m.quaternion.setFromEuler(RICH.eu.set(Math.random()*6.28,Math.random()*6.28,Math.random()*6.28));
+  const ws=rr(D.w);if(D.piece){RICH.v2.set(Math.cos(o.ph),0,Math.sin(o.ph)).applyQuaternion(m.quaternion);o.w.copy(RICH.v2).multiplyScalar(ws);} // la pièce tourne sur un DIAMÈTRE : elle « flashe »
+  else o.w.set(Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize().multiplyScalar(ws);
+  // les facettes qui peuvent renvoyer le soleil (repère de l'objet)
+  o.nl=D.piece?[[0,1,0],[0,-1,0]]:t==='diamant'?[[0,1,0],[.6,.55,.58],[-.7,.5,.3],[.2,.45,-.85],[-.3,-.7,.6]]:t==='or'||t==='lingot'?[[0,1,0],[.7,.4,.5],[-.6,.5,-.4],[.2,-.6,.7]]:null;
+  if(o.nl&&!o.gl){for(const g of RICH.gl)if(!g.o){g.o=o;o.gl=g;g.s.material.rotation=Math.random()*3;g.s.material.color.setRGB(t==='diamant'?.95:1,t==='diamant'?.97:.9,t==='diamant'?1:.68);break;}}
+  m.visible=false;m.scale.setScalar(1e-4);
+  if(t==='trefle')RICH.chance=2; // le trèfle porte chance
+}
+function richFlamme(P,n,k,or){ // le jet : bref, léger, quelques bouffées qui s'ouvrent et montent
+  const nb=Math.round(5+4*k);
+  for(let i=0;i<nb;i++){let f=null;for(const x of RICH.fl)if(x.age>=x.vie){f=x;break;}if(!f)break;
+    const u=i/nb;f.p.copy(P).addScaledVector(n,.05+u*.5*k);f.v.copy(n).multiplyScalar((2.5+Math.random()*3)*k).add(RICH.v1.set((Math.random()-.5)*1.2,.8+Math.random(),(Math.random()-.5)*1.2));
+    f.age=-u*.05;f.vie=.2+Math.random()*.16+.05*k;f.r0=(.12+.1*u)*k;f.r1=(.5+.5*u)*k;
+    if(or)f.c.setRGB(1,.82,.42);else f.c.setRGB(1,.62+.2*Math.random(),.32);f.s.visible=false;}
+}
+function richEtincelles(P,n,d,nb,heat){ // la gerbe : un cône autour du rebond, quelques-unes rasent la tôle
+  const S=RICH.sp;if(!S)return;RICH.v2.copy(d).reflect(n);
+  for(let k=0;k<nb;k++){const i=S.i;S.i=(S.i+1)%S.n;const tang=Math.random()<.25;
+    RICH.v1.set(Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize();
+    if(tang)RICH.v1.addScaledVector(n,-RICH.v1.dot(n)).normalize();else RICH.v1.multiplyScalar(.75).add(RICH.v2).add(n).normalize();
+    const sp=(tang?9:12)+Math.random()*(tang?12:20);
+    S.P[i*3]=P.x;S.P[i*3+1]=P.y;S.P[i*3+2]=P.z;S.V[i*3]=RICH.v1.x*sp;S.V[i*3+1]=RICH.v1.y*sp;S.V[i*3+2]=RICH.v1.z*sp;
+    const vie=.25+Math.random()*.45*(.7+heat*.5);S.L[i]=vie;S.L0[i]=vie;S.Hh[i]=Math.min(1.2,.85+Math.random()*.25+heat*.25);S.Wd[i]=.008+Math.random()*.012;S.K[i]=Math.random()<.22?1:0;}
+  S.m.visible=true;
+}
+function richTemp(T,o,k){ // le métal qui refroidit : blanc → jaune → orange → rouge sombre (k = la lumière, au-delà de 1 le halo s'en mêle)
+  let r,g,b;if(T>.82){r=1;g=1;b=.85+.15*(T-.82)/.18;}else if(T>.58){const u=(T-.58)/.24;r=1;g=.72+.28*u;b=.3+.55*u;}
+  else if(T>.3){const u=(T-.3)/.28;r=1;g=.32+.4*u;b=.06+.24*u;}else{const u=Math.max(0,T/.3);r=.15+.85*u;g=.03+.29*u;b=.01+.05*u;}
+  o[0]=r*k;o[1]=g*k;o[2]=b*k;}
+const RICH_C=[0,0,0];
+// ---- LE COUP (appelé par chuteTape) ----
+function richCoup(P,n,d,mu,combo){
+  if(!RICH.pret)return;const heat=Math.min(1,(combo-1)/4);                    // l'anticipation : le combo CHAUFFE les étincelles
+  richEtincelles(P,n,d,Math.round(18+10*mu),heat);
+  const r=richTire(mu,combo);RICH.last=r;
+  if(r==='rien')return;
+  const P9=P.clone(),n9=n.clone(),d9=d.clone();
+  if(r==='presque'){RICH.n.presque++;                                          // presque : une seule pièce s'échappe, mollement
+    setTimeout(function(){try{if(!CHUTE.on)return;richLance(['piece2','piece1','piece50'][Math.floor(Math.random()*3)],P9,n9,d9,0,.55);if(SONV2)sfx('piece',{st:Math.floor(Math.random()*3),vol:-7});}catch(e){}},90);return;}
+  const T9=RICH_TIER[r];RICH.n.gains++;if(r==='jackpot')RICH.n.jackpot++;
+  setTimeout(function(){try{if(!CHUTE.on)return;                              // 80 ms : le souffle, puis la flamme crache
+    richFlamme(P9,n9,T9.fl,r==='jackpot'||r==='gros');richEtincelles(P9,n9,d9,Math.round(12*T9.fl),1);
+    const nb=T9.n[0]+Math.floor(Math.random()*(T9.n[1]-T9.n[0]+1)),etal=r==='jackpot'?.38:r==='gros'?.22:.12;
+    for(let i=0;i<nb;i++)richLance(richPioche(T9.w),P9,n9,d9,Math.random()*etal,r==='jackpot'?1.2:1);
+    if(SONV2){if(r==='petit'){sfx('fourgon.billets',{vol:3});sfx('piece',{st:2,vol:-4,t:.05});}
+      else if(r==='bon'){sfx('piece.recolte',{vol:-1});sfx('fourgon.billets',{vol:2,t:.06});}
+      else if(r==='gros')sfx('argent.gros');
+      else{sfx('fig.jackpot');sfx('pluie.billets',{t:.25,vol:-3});}}
+    if(r==='jackpot'){CHUTE_TAP.sh=Math.min(1.8,CHUTE_TAP.sh+.8);try{hap([20,30,20,30,60]);}catch(e){}}else if(r==='gros'){try{hap([16,24,30]);}catch(e){}}
+  }catch(e){}},80);
+}
+window.dbgRiche=function(k,t){
+  if(k==='vitrine'){if(!RICH.pret||!CHUTE.on)return 'pas au ciel';RICH.gel=t!==0; // (banc) la VITRINE : un de chaque, alignés devant la caméra, figés (ils tournent seulement) — dbgRiche('vitrine',0) les relâche
+    if(!RICH.gel)return 'relâchés';const C=CHUTE.ctr||carGroup.position,L=['billet','trefle','piece2','piece1','piece50','btc','or','lingot','diamant','fruit'];camera.getWorldDirection(RICH.v3);
+    const rt=new THREE.Vector3(1,0,0).applyQuaternion(camera.quaternion),up=new THREE.Vector3(0,1,0).applyQuaternion(camera.quaternion);
+    L.forEach(function(ty,i){const o=richSort(ty);richLance(ty,C,RICH.v3.clone().negate(),RICH.v3,0,1);const P=C.clone().addScaledVector(rt,((i%5)-2)*1.15).addScaledVector(up,(i<5?.7:-.7));
+      o.m.position.copy(P);o.v.set(0,0,0);o.vie=1e4;o.age=.2;o.w.multiplyScalar(.15);});return L.length;}
+  if(k==='voir'){if(!RICH.pret||!CHUTE.on)return 'pas au ciel';const C=CHUTE.ctr||carGroup.position;camera.getWorldDirection(RICH.v3); // (banc) voir('diamant', n) : n objets d'un type, lancés vers la caméra
+    const P9=C.clone().addScaledVector(RICH.v3,-1.4),n9=RICH.v3.clone().negate();for(let i=0;i<(arguments[2]||6);i++)richLance(t,P9,n9,RICH.v3,i*.05,.5);return t;}
+  if(k==='pluie'){if(!RICH.pret||!CHUTE.on)return 'pas au ciel';const C=CHUTE.ctr||carGroup.position;camera.getWorldDirection(RICH.v3);
+    RICH.force=t||'gros';richCoup(C.clone().addScaledVector(RICH.v3,-1.2),RICH.v3.clone().negate(),RICH.v3.clone(),1,1);return RICH.last;}
+  if(k)RICH.force=k;
+  return {pret:RICH.pret,coups:RICH.n.coups,gains:RICH.n.gains,presque:RICH.n.presque,jackpots:RICH.n.jackpot,secs:RICH.sec,chance:RICH.chance,dernier:RICH.last||null,impose:RICH.force,
+    cadre:(function(){let n=0;for(const t in RICH.libres)for(const o of RICH.libres[t])if(o.on&&o.age>=0){RICH.v3.copy(o.m.position).project(camera);if(Math.abs(RICH.v3.x)<1&&Math.abs(RICH.v3.y)<1&&RICH.v3.z<1)n++;}return n;})(), // combien sont À L'IMAGE
+    etincelles:RICH.sp?RICH.sp.vivant:0,objets:(function(){let n=0;for(const t in RICH.libres)for(const o of RICH.libres[t])if(o.on)n++;return n;})()};};
+// ---- CHAQUE IMAGE (appelé par chuteTapeTick) ----
+function richTick(dt,C){
+  if(!RICH.pret)return;richChauffeTick(C);
+  const U=RICH_U,cp=camera.position;U.uT.value+=dt;U.uSunDir.value.copy(SUN_DIR);U.uSunCol.value.copy(sun.color).multiplyScalar(Math.max(.6,sun.intensity));
+  U.uSky.value.copy(hemi.color).multiplyScalar(hemi.intensity);U.uGnd.value.copy(hemi.groundColor).multiplyScalar(hemi.intensity);U.uEnv.value=envTex;
+  // les objets
+  for(const t in RICH.libres){const D=RICH_T[t];for(const o of RICH.libres[t]){if(!o.on)continue;const m=o.m;
+    o.age+=dt;if(o.age<0)continue;if(o.age>=o.vie){o.on=false;m.visible=false;if(o.gl){o.gl.s.visible=false;o.gl.o=null;o.gl=null;}continue;}
+    if(RICH.gel){const wl=o.w.length();if(wl>1e-4){RICH.q.setFromAxisAngle(RICH.v1.copy(o.w).divideScalar(wl),wl*dt);m.quaternion.premultiply(RICH.q);}m.scale.setScalar(o.s*o.fr);m.visible=true;}
+    else{const k=Math.min(dt,.05);o.v.x+=D.kd*(0-o.v.x)*k;o.v.y+=D.kd*(RICH.W-o.v.y)*k;o.v.z+=D.kd*(0-o.v.z)*k;                // l'air qui remonte (la caisse tombe)
+    if(D.fl){const f=Math.sin(o.age*6.3+o.ph)*D.fl;o.v.x+=Math.cos(o.fd+o.age*.7)*f*k;o.v.z+=Math.sin(o.fd+o.age*.7)*f*k;o.v.y+=Math.cos(o.age*12.6+o.ph)*D.fl*.35*k;} // il PAPILLONNE
+    m.position.addScaledVector(o.v,dt);
+    const wl=o.w.length();if(wl>1e-4){RICH.q.setFromAxisAngle(RICH.v1.copy(o.w).divideScalar(wl),wl*dt);m.quaternion.premultiply(RICH.q);}
+    if(D.fl)o.w.multiplyScalar(Math.exp(-dt*.4)).addScaledVector(RICH.v1.set(Math.random()-.5,Math.random()-.5,Math.random()-.5),D.fl*.9*k); // le billet bascule au gré de l'air
+    }const a9=o.age,pop=a9<.14?(function(u){return 1+2.2*(u-1)*(u-1)*(u-1)+1.2*(u-1)*(u-1);})(a9/.14):1,fin=Math.min(1,(o.vie-a9)/.4); // il JAILLIT (petit dépassement), puis s'efface
+    const dc=m.position.distanceTo(cp),pres=Math.min(1,Math.max(0,(dc-2.2)/2.6)); // trop près de l'objectif : il s'efface (comme les nuages)
+    m.scale.setScalar(Math.max(1e-4,o.s*o.fr*pop*fin*pres));m.visible=pres>0;
+    if(o.gl){ // LE BLING : une facette qui renvoie le soleil vers l'œil
+      RICH.cam.copy(cp).sub(m.position).normalize();RICH.H.copy(SUN_DIR).add(RICH.cam).normalize();let g=0;
+      for(const nl of o.nl){RICH.v2.set(nl[0],nl[1],nl[2]).applyQuaternion(m.quaternion);const c=RICH.v2.dot(RICH.H);if(c>0)g=Math.max(g,Math.pow(c,t==='diamant'?60:110));
+        RICH.v2.negate();const c2=RICH.v2.dot(RICH.H);if(D.piece&&c2>0)g=Math.max(g,Math.pow(c2,110));}
+      if(t==='diamant')g=Math.max(g,.18+.18*Math.sin(o.age*23+o.ph)); // le diamant vit toujours un peu
+      const s=o.gl.s;g*=pres;if(g>.04){s.visible=true;s.position.copy(m.position).addScaledVector(RICH.cam,o.s*1.1);const sz=o.s*fin*(t==='diamant'?3.4:2.6)*(.45+g*1.1);s.scale.set(sz,sz,1);s.material.opacity=Math.min(1,g*1.4)*fin;}
+      else s.visible=false;}}}
+  // la flamme
+  for(const f of RICH.fl){if(f.age>=f.vie){if(f.s.visible)f.s.visible=false;continue;}f.age+=dt;if(f.age<0)continue;const u=f.age/f.vie;if(u>=1){f.s.visible=false;continue;}
+    f.v.multiplyScalar(Math.exp(-dt*4));f.v.y+=6*dt;f.p.addScaledVector(f.v,dt);const s=f.s;s.visible=true;s.position.copy(f.p);
+    const r=f.r0+(f.r1-f.r0)*(1-(1-u)*(1-u));s.scale.set(r,r,1);s.material.opacity=.6*Math.sin(Math.PI*Math.min(1,u*1.4))*(1-u*.4);
+    s.material.color.copy(f.c).multiplyScalar(1-.45*u);}
+  // les étincelles
+  const S=RICH.sp;if(S&&S.m.visible&&!RICH.chauffe){let viv=0;const pos=S.pos,col=S.col,cpx=cp.x,cpy=cp.y,cpz=cp.z,kd=Math.exp(-dt*2.6);
+    for(let i=0;i<S.n;i++){const o=i*12;
+      if(S.L[i]<=0){if(col[o]||col[o+1]||col[o+3]){for(let j=0;j<12;j++)col[o+j]=0;}continue;}
+      S.L[i]-=dt;viv++;const i3=i*3;let vx=S.V[i3]*kd,vy=S.V[i3+1]*kd+4*dt,vz=S.V[i3+2]*kd;S.V[i3]=vx;S.V[i3+1]=vy;S.V[i3+2]=vz;
+      const px=S.P[i3]+=vx*dt,py=S.P[i3+1]+=vy*dt,pz=S.P[i3+2]+=vz*dt;
+      const u=Math.max(0,S.L[i]/S.L0[i]);
+      if(S.K[i]&&u<.55){S.K[i]=0;for(let c=0;c<2;c++){const j=S.i;S.i=(S.i+1)%S.n;if(j===i)continue;const a=(c?1:-1)*(.3+Math.random()*.3); // ÇA ÉCLATE en deux, comme sous la meule
+          S.P[j*3]=px;S.P[j*3+1]=py;S.P[j*3+2]=pz;S.V[j*3]=(vx*Math.cos(a)-vz*Math.sin(a))*.75;S.V[j*3+1]=vy*.75+(Math.random()-.5)*3;S.V[j*3+2]=(vx*Math.sin(a)+vz*Math.cos(a))*.75;
+          S.L[j]=S.L[i]*.8;S.L0[j]=S.L[j];S.Hh[j]=S.Hh[i]*u;S.Wd[j]=S.Wd[i]*.7;S.K[j]=0;}}
+      const sp=Math.hypot(vx,vy,vz)||1,len=Math.min(.9,sp*.03+.04),dx=vx/sp,dy=vy/sp,dz=vz/sp;     // le trait : sa longueur = sa vitesse (le filé)
+      let ax=cpx-px,ay=cpy-py,az=cpz-pz;const al=Math.hypot(ax,ay,az)||1;ax/=al;ay/=al;az/=al;
+      let sx=dy*az-dz*ay,sy=dz*ax-dx*az,sz=dx*ay-dy*ax;const sl=Math.hypot(sx,sy,sz)||1,T=S.Hh[i]*(.3+.7*Math.sqrt(u)),w=S.Wd[i]*(.6+.4*u),fo=Math.min(1,u*4);sx*=w/sl;sy*=w/sl;sz*=w/sl; // le métal reste chaud, puis s'éteint en FONDU (plus de tirets rouges qui traînent)
+      const tx=px-dx*len,ty=py-dy*len,tz=pz-dz*len;
+      pos[o]=px-sx;pos[o+1]=py-sy;pos[o+2]=pz-sz;pos[o+3]=px+sx;pos[o+4]=py+sy;pos[o+5]=pz+sz;
+      pos[o+6]=tx-sx*.3;pos[o+7]=ty-sy*.3;pos[o+8]=tz-sz*.3;pos[o+9]=tx+sx*.3;pos[o+10]=ty+sy*.3;pos[o+11]=tz+sz*.3;
+      richTemp(T,RICH_C,1.8*fo*(.78+.22*Math.sin(S.L[i]*90+i)));col[o]=col[o+3]=RICH_C[0];col[o+1]=col[o+4]=RICH_C[1];col[o+2]=col[o+5]=RICH_C[2]; // la tête : la chaleur (qui scintille un peu)
+      richTemp(T*.75,RICH_C,.42*fo);col[o+6]=col[o+9]=RICH_C[0];col[o+7]=col[o+10]=RICH_C[1];col[o+8]=col[o+11]=RICH_C[2];}                         // la queue : déjà plus froide
+    S.vivant=viv;S.m.geometry.attributes.position.needsUpdate=true;S.m.geometry.attributes.color.needsUpdate=true;if(!viv)S.m.visible=false;}
+}
+function richRange(){ // on quitte le ciel : tout se range
+  if(!RICH.pret)return;for(const t in RICH.libres)for(const o of RICH.libres[t]){o.on=false;o.m.visible=false;if(o.gl){o.gl.s.visible=false;o.gl.o=null;o.gl=null;}}
+  for(const f of RICH.fl){f.age=f.vie=1;f.s.visible=false;}if(RICH.sp){RICH.sp.L.fill(0);RICH.sp.m.visible=false;RICH.sp.vivant=0;}
 }
 /* LE MODELÉ DE LA CAISSE AU TITRE (2026-10-03, Léo : « travailler encore plus en profondeur le shading de la caisse, sans faire trop »).
    MESURÉ avant : deux lampes posées SUR la caméra (la clé et la lampe de caisse) éclairaient toutes les faces vues de face d'un même
@@ -37800,6 +38166,7 @@ function chuteMonte(){ // les bancs de nuage et les filets de vent (une fois)
   m.frustumCulled=false;m.renderOrder=5;m.visible=false;scene.add(m);
   const S=[];for(let i=0;i<N;i++){S.push({x:0,y:0,z:0,l:1,v:1,w:.06,a:1});chuteFilNeuf(S[i],true);}
   CHUTE.fil={m:m,pos:pos,col:col,S:S};
+  try{richInit();}catch(e){console.warn('pluie de richesse',e);} // (2026-10-08) ses programmes se compilent ici, sous l'écran titre
 }
 function chuteNuageNeuf(w,partout){ // un banc naît sous la caisse, à l'écart de l'axe caméra → caisse
   const a=Math.random()*6.2832,r=9+Math.pow(Math.random(),.7)*52;
@@ -37830,7 +38197,7 @@ function chuteSort(ferme){ // on quitte le ciel : l'atelier (boutique, missions)
   if(CHUTE.snd){try{CHUTE.snd.stop(ferme?.5:.3);}catch(e){}CHUTE.snd=null;} /* (niveau 1 v2) la chute libre se tait */
   trailLight.intensity=0;if(CHUTE.lc)carLight.color.copy(CHUTE.lc);{const BT=BIOMES.titre||BIOMES[MENU_BIO];if(BT.hemiI!=null)hemi.intensity=BT.hemiI;if(BT.sunI!=null)sun.intensity=BT.sunI;} // (2026-10-03) le studio du titre rend l'ambiance (il la baisse sur la caisse), puis la lumière du rebond (à 0 partout ailleurs) et la couleur de la lampe de caisse
   if(CHUTE.w)for(const w of CHUTE.w){w.sp.visible=false;}
-  {const T9=CHUTE_TAP;T9.tient=null;T9.sh=0;if(T9.fl)T9.fl.visible=false;if(T9.deb)for(const D of T9.deb)D.m.visible=false;} // (la caisse au doigt v2) l'éclat et les morceaux de tôle restent au ciel
+  {const T9=CHUTE_TAP;T9.tient=null;T9.sh=0;if(T9.fl)T9.fl.visible=false;if(T9.deb)for(const D of T9.deb)D.m.visible=false;}richRange(); // (la caisse au doigt v2) l'éclat et les morceaux de tôle restent au ciel
   if(CHUTE.fil)CHUTE.fil.m.visible=false;
   if(CHUTE.sol)for(const sp of CHUTE.sol)sp.visible=false;
   trailApercu(0,false);
