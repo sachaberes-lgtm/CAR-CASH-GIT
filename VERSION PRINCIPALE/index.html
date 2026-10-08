@@ -38620,7 +38620,8 @@ window.dbgHub=function(){const el=$('gHub'),r=el&&el.getBoundingClientRect();ret
 document.documentElement.classList.toggle('misS',MENU_SACHA); // l'écran MISSIONS de Sacha : ses règles CSS vivent sous html.misS
 /* (même soir, Léo : « enlève la porte ») la porte FERMÉE au menu (Sacha, b8e7ce7) va avec SA version : par défaut (ou ?porte=1) elle
    descend au menu et s'ouvre au JOUER ; avec ?menu=leo elle reste RELEVÉE sous le plafond (l'image d'avant : le feu se voit dès le menu). */
-const PORTE_FERMEE=MENU_SACHA||/[?&]porte=1\b/.test(location.search); // (2026-10-04) Léo l'avait enlevée le matin, puis : « remets une porte maintenant que les flammes sont plus jolies » — la porte fermée de Sacha revient (voir LA PORTE v2)
+const PORTE_FERMEE=/[?&]porte=1\b/.test(location.search); // (2026-10-08, Léo : « rouvre la porte en flammes ») la porte de Sacha ne ferme plus le garage : le rideau de feu brûle, grand ouvert, derrière la caisse — `?porte=1` la remet fermée (elle s'ouvrait au JOUER).
+/* AVANT le 08/10 : PORTE_FERMEE=MENU_SACHA||?porte=1 */ // (2026-10-04) Léo l'avait enlevée le matin, puis : « remets une porte maintenant que les flammes sont plus jolies » — la porte fermée de Sacha revient (voir LA PORTE v2)
 /* LA VITRINE (voir <style id="garageVitrine">) : le garage AU CALME — ta caisse, sans prix. `garMode` la replie toujours (tous les autres
    chemins ouvrent la boutique dépliée) ; seul le bouton GARAGE la pose, APRÈS garMode / openGarage.
    ⚠ LE GARAGE DE SACHA (2026-10-06, Sacha : « j'aime pas les modifs que Léo a faites dans le garage concernant les boutons et le HUD ; garde
@@ -39199,6 +39200,14 @@ function burnPas(F,dt,t){ // fait vivre un réservoir : âge, mouvement, taille,
    brume réaliste ça casse mon délire ») TOUT est en PETITS cubes (10-34 cm, `FUMC.petit`) : une bouffée = une grappe de quatre, le voile = trois
    petits cubes pâles ; les halos de brume (les grands cubes très pâles) sont retirés. LE FEU DES POTS = les CUBES DE FEU de la porte (le cube plein ombré + son halo additif ×1,9). */
 const FUMC={N:2400,pas:.1,cran:.06,bandes:[.72,.5,.34,.22,.13,.07],seuils:[.6,.42,.28,.17,.1,.045],petit:.34,k:.24}; // (même soir, Léo : « refais des petits cubes, la brume réaliste ça casse mon délire ») `petit` m : la taille max d'un cube ; `k` × la taille de la bouffée
+/* LA FUMÉE COMME LES FLAMMES DE LA PORTE (2026-10-08, Léo : « la fumée encore plus comme les flammes de la porte »). Ce qui fait les cubes de
+   la porte (FEU_CUBES) : UN cube par flamme (pas une grappe), 34 cm, posé sur une GRILLE d'un demi-cube (il SAUTE de case en case), qui
+   RÉTRÉCIT par crans en vieillissant (`taille`) et change de couleur par BANDES d'âge (`pal`) — les plus jeunes au-delà de 1, le halo du post
+   les attrape. La fumée prend la même grammaire : chaque bouffée = un cube de `c` × sa taille d'âge × sa graine (jet sous la roue plus
+   petit, bouffées plus grosses), sa couleur fumée × l'éclat de sa bande (blanc éclatant → gris lavande), la grille = la moitié du cube ; elle
+   s'efface toujours par bandes d'opacité (`FUMC.bandes`). Une bouffée n'étant plus qu'un cube, le réservoir passe à `N` et les débits
+   doublent. Le VOILE et les GRAINS ne changent pas. */
+const FUMP={N:900,c:.34,taille:[1,.95,.84,.7,.55,.38],age:[.8,.62,.44,.27,.12],lum:[1.2,1.08,.97,.88,.8,.72]};
 function burnCubesInit(){
   if(BURN.cub)return;
   const bx=new THREE.BoxGeometry(1,1,1),ps=bx.attributes.position,nm=bx.attributes.normal,cl=new Float32Array(ps.count*3);
@@ -39224,6 +39233,11 @@ function burnCubes(){ // chaque image : les bouffées vivantes → des blocs de 
     for(let i=0;i<F.N;i++){if(F.age[i]>=F.life[i])continue;const a=F.A[i];let b=-1;for(let q=0;q<s9.length;q++)if(a>s9[q]){b=q;break;}if(b<0)continue;
       const j=i*3,x=F.P[j],y=F.P[j+1],z=F.P[j+2],s=F.S[i],r=F.C[j],g=F.C[j+1],bl=F.C[j+2];
       if(F.grain){put(b,x,y,z,s*.8,r,g,bl);continue;}                      // un GRAIN : un petit cube blanc
+      if(F===BURN.fum){const P9=FUMP,ra=1-F.age[i]/F.life[i],ba=ra>P9.age[0]?0:ra>P9.age[1]?1:ra>P9.age[2]?2:ra>P9.age[3]?3:ra>P9.age[4]?4:5, // (2026-10-08) UN cube, à la manière de la porte
+          S=P9.c*P9.taille[ba]*Math.max(.5,Math.min(1.15,F.s0[i]/.36)),L=P9.lum[ba],gp=Math.max(.05,Math.round(S*.5/.05)*.05),im=C.M[b],kk=n[b];
+        if(kk<Q.N){m.makeScale(S,S,S);const e=m.elements;e[12]=Math.round(x/gp)*gp;e[13]=Math.round(y/gp)*gp;e[14]=Math.round(z/gp)*gp; // la grille d'un DEMI-cube : il saute
+          im.setMatrixAt(kk,m);const ca=im.instanceColor.array;ca[kk*3]=r*L;ca[kk*3+1]=g*L;ca[kk*3+2]=bl*L;n[b]=kk+1;}
+        continue;}
       const c0=Math.min(Q.petit,s*Q.k),q=sd[i],a1=q*6.283;               // (même soir) des PETITS cubes : 10 à 34 cm, comme les flammes de la porte
       if(F.voile){const o=s*.4;                                          // LE VOILE : trois petits cubes pâles, écartés
         put(b,x,y,z,c0*.9,r,g,bl);put(b+1,x+Math.cos(a1)*o,y+o*.2,z+Math.sin(a1)*o,c0*.7,r,g,bl);put(b+1,x+Math.cos(a1+2.1)*o,y-o*.15,z+Math.sin(a1+2.1)*o,c0*.6,r,g,bl);continue;}
@@ -39251,7 +39265,7 @@ function burnBruit(t,a,b,p){return Math.sin(t*a+p)*.62+Math.sin(t*b+p*2.3+1.1)*.
 function burnVie(debit,dt){const N=BURN.fum?BURN.fum.N:480;BURN.horiz=Math.min(BURN.horiz+dt,.95*N/Math.max(1,debit));BURN.emet=1;return 10;} // une bouffée meurt avant que le réservoir la recycle
 function garBurnR(x){const c=BURN.cad||0;return c>.001?x+(Math.max(x,BURN.Rs*.92)-x)*c:x;} // (v2) le recul de l'atelier : en donut, le cercle balayé tient dans la place libre
 function burnPrepare(){ // à chaque départ : les essieux de l'arrière, les pneus, les pots — la caisse a pu changer
-  if(!BURN.fum){BURN.fum=burnPoolDonnees(480);BURN.feu=burnPool(180,true,BURN_FS_FLAMME);} // (réaliste) le feu des pots en lueur molle · (soir) 480 bouffées : elle DURE plus longtemps
+  if(!BURN.fum){BURN.fum=burnPoolDonnees(FUMP.N);BURN.feu=burnPool(180,true,BURN_FS_FLAMME);} // (réaliste) le feu des pots en lueur molle · (soir) 480 bouffées : elle DURE plus longtemps · (2026-10-08) 900 : une bouffée = UN cube, comme la porte
   if(!BURN.pix){BURN.pix=burnPool(520,true,BURN_FS_FEU);BURN.pix.arc=true;} // (2026-10-06) les PIXELS du chat pop-tart (voir NY_PIX) — 520 (2026-10-07) : au burn-out il en vit ~450
   BURN.ar=ESSIEUX.filter(function(E){return E.position.z<0;});
   BURN.roues=[];
@@ -39571,7 +39585,7 @@ function burnTick(dt){ // chaque image du garage (après la pose de la caisse, a
   // LA FUMÉE, LE FEU, LES ÉTINCELLES
   if(ke>.02&&BURN.fum&&!GAR.go&&BURN.roues.length){
     carGroup.updateMatrixWorld();burnRoues(dt);
-    const ry=carGroup.rotation.y,fx=Math.sin(ry),fz=Math.cos(ry),deb=ke*(17+18*BURN.chaud+8*BURN.donK)*(1+.5*BURN.gaz),jd=ke*(10+8*BURN.chaud+5*BURN.donK)*(1+.4*BURN.gaz),vie=burnVie(deb+jd,dt);
+    const ry=carGroup.rotation.y,fx=Math.sin(ry),fz=Math.cos(ry),deb=ke*(34+36*BURN.chaud+16*BURN.donK)*(1+.5*BURN.gaz),jd=ke*(34+26*BURN.chaud+14*BURN.donK)*(1+.4*BURN.gaz),vie=burnVie(deb+jd,dt); // (2026-10-08) ×2 : une bouffée = un cube · le jet sous la roue ×1,7 de plus (« un peu plus de fumée sous la roue »)
     BURN.tE+=dt*deb; // (réaliste) moins de bouffées, plus GROSSES et plus denses : des volumes, plus un semis ; la vie suit le débit
     while(BURN.tE>=1){BURN.tE-=1;const i=(Math.random()*BURN.roues.length)|0,r=BURN.roues[i],P=BURN.rp[i],o=burnMonde(r.x+(Math.random()-.5)*r.l,r.y+.06,r.z-r.R*.4,BURN.q),
         sd=r.x<0?-1:1,v=1.4+Math.random()*1.8,l=.6+Math.random()*1.3,gr=.88+Math.random()*.09;
@@ -39582,8 +39596,8 @@ function burnTick(dt){ // chaque image du garage (après la pose de la caisse, a
        levé), de petites bouffées serrées qui grossissent en ralentissant et rejoignent le nuage — on voit d'où sort la fumée. */
     while(BURN.tJ>=1){BURN.tJ-=1;const i=(Math.random()*BURN.roues.length)|0,r=BURN.roues[i],P=BURN.rp[i],o=burnMonde(r.x+(Math.random()-.5)*r.l*.7,r.y+.03,r.z-r.R*.85,BURN.q),
         sd=r.x<0?-1:1,v=3.6+Math.random()*2.6,l=Math.random()*.5,gr=.9+Math.random()*.08;
-      burnEmet(BURN.fum,o.x,o.y,o.z,P.v.x*.4-fx*v+fz*sd*l,.03+Math.random()*.14,P.v.z*.4-fz*v-fx*sd*l,1.8+Math.random()*1.4,.12+Math.random()*.06,.7+Math.random()*.35,
-        .34+Math.random()*.1,gr*.93,gr*.91,gr*.98);}
+      burnEmet(BURN.fum,o.x,o.y,o.z,P.v.x*.4-fx*v+fz*sd*l,.03+Math.random()*.14,P.v.z*.4-fz*v-fx*sd*l,2+Math.random()*1.6,.2+Math.random()*.08,.7+Math.random()*.35,
+        .4+Math.random()*.1,gr*.93,gr*.91,gr*.98);}
     BURN.tV+=dt*ke*(.8+.9*BURN.chaud); // LE VOILE : de grandes nappes lentes qui s'élèvent autour de la caisse et restent (le garage se remplit)
     while(BURN.tV>=1&&BURN.voile){BURN.tV-=1;const a=Math.random()*Math.PI*2,q=1+Math.random()*2.2,o=burnMonde(Math.cos(a)*q,.6+Math.random()*1,-1-Math.random()*1.5+Math.sin(a)*q*.6,BURN.q),gr=.84+Math.random()*.08;
       burnEmet(BURN.voile,o.x,o.y,o.z,(Math.random()-.5)*.6,.05+Math.random()*.15,(Math.random()-.5)*.6,11+Math.random()*3,1.4+Math.random()*.5,3.2+Math.random()*1.2,.07+.03*BURN.chaud,gr*.92,gr*.9,gr*.97);}
@@ -39750,7 +39764,7 @@ function atlTick(dt){
     A.eA=(A.eA||0)+(cons>0&&k>.3?dt*70*Math.max(.35,cons):0);let n9=0;while(A.eA>=1&&n9<8){A.eA-=1;n9++;} // ~70 jets par seconde et par bras, quelle que soit la cadence
     for(let q9=0;q9<n9;q9++){A.tete.updateMatrixWorld(true);ATL.w.set(0,.36,0);A.tete.localToWorld(ATL.w); // la BUSE (au bout de l'outil)
       const dx9=carGroup.position.x-ATL.w.x,dz9=carGroup.position.z-ATL.w.z,dn=Math.max(.3,Math.hypot(dx9,dz9)),ux=dx9/dn*1.4,uz=dz9/dn*1.4; // vers la caisse
-      if(!BURN.fum){BURN.fum=burnPoolDonnees(480);BURN.feu=burnPool(180,true,BURN_FS_FLAMME);}
+      if(!BURN.fum){BURN.fum=burnPoolDonnees(FUMP.N);BURN.feu=burnPool(180,true,BURN_FS_FLAMME);}
       if(ATL.cat==='peinture'&&A.s>0){const c=ATL.c||{r:.9,g:.4,b:.7};
         burnEmet(BURN.fum,ATL.w.x,ATL.w.y,ATL.w.z,ux+(Math.random()-.5)*.8,-.4+(Math.random()-.5)*.5,uz+(Math.random()-.5)*.8,1.6+Math.random(),.14,.55,.42,c.r,c.g,c.b);}
       else if(ATL.cat==='aile'&&A.s<0){for(let i=0;i<3;i++)burnEmet(BURN.feu,ATL.w.x,ATL.w.y,ATL.w.z,ux*.6+(Math.random()-.5)*3.4,1+Math.random()*2.8,uz*.6+(Math.random()-.5)*3.4,.3+Math.random()*.4,.08+Math.random()*.07,0,1,1,.75+Math.random()*.25,.45);}

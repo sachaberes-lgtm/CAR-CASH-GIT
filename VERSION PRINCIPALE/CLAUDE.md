@@ -22,6 +22,14 @@
   `main` sans le burn-out (`git push --no-verify` pour passer outre). Vérifier à la main : `sh garde-burnout.sh`.
 
 ## LE BURN-OUT SUIT LE DOIGT + 0,8 s DE MAINTIEN (2026-10-07, nuit, Léo : « ajoute 500 millisecondes de maintien requis pour démarrer le burn-out » · « il faut que ça suive plus le doigt ou le curseur, plus comme avant » · puis « la vitesse du donut évolue proportionnellement à la vitesse du doigt, et le temps de maintien déclencheur du burn-out : 1,5 s »)
+- **LA FUMÉE COMME LA PORTE + LA PORTE ROUVERTE** (2026-10-08, Léo : « un peu plus de fumée sous la roue, la fumée encore plus comme les
+  flammes de la porte, rouvre la porte en flammes ») — (1) `FUMP` (dans `burnCubes`) : chaque bouffée de `BURN.fum` = UN cube à la manière de
+  `FEU_CUBES` — 34 cm × la taille de sa BANDE D'ÂGE (`taille` : il rétrécit par crans) × sa graine (jet plus petit), couleur fumée × l'éclat
+  de la bande (`lum` 1,2 → ,72 : les plus jeunes passent 1, le halo du post les attrape), posé sur une grille d'un DEMI-cube (il saute de
+  case en case) ; les bandes d'opacité restent. Réservoir 480 → 900, débits ×2 (une bouffée = un cube au lieu d'une grappe de quatre) ;
+  le jet sous la roue ×3,4 et plus gros. Coût mesuré (profileur, machine chargée) : `burnPas` ~15 → ~30-35 ms/s (≈ 0,5 ms par image).
+  (2) `PORTE_FERMEE` = `?porte=1` seulement (c'était aussi `MENU_SACHA`) : le garage s'ouvre sur le rideau de feu, la caisse y entre au
+  JOUER comme avant. Banc : nouveau joueur → PLAY → « PICK YOUR MODE » → NORMAL → la course part.
 - **LE JET SOUS LA ROUE + LE POIDS** (2026-10-08, Léo : « rajoute un peu de fumée qui part de l'arrière, d'en dessous de la roue qui tourne ;
   moins intense le suivi du doigt : pour tourner, dans la vraie vie, c'est un peu plus long ») — (1) `BURN.tJ` : là où le pneu touche le
   sol, derrière l'essieu (`r.z − 0,85·R`, 3 cm du sol), un jet bas et rapide vers l'arrière (3,6-6,2 m/s, +la vitesse de la roue), petites
