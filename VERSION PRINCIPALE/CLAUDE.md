@@ -67,13 +67,17 @@ ouverte (« voilà l'effet recherché, couleurs pareil, mais en mode GTR »).
     LE VENTRE : coque blanche de 17 cm d'une jupe à l'autre, du menton jusque derrière la roue où elle remonte se fondre dans le plancher
     (le plancher du loft est blanc, sombre dans les passages arrière, OUVERT au-dessus de la roue) ; au milieu un CANAL remonté de 10 cm
     (marches sombres) où la roue dépasse de 16 cm — les bords restent bas : de côté elle ne se voit pas, le menton la cache de face. La
-    FENTE (lèvre de peau blanche + joint, comme la gueule) ouvre sur un puits en ARCHE qui épouse la roue (7 cm) et LUIT rouge sombre
-    (`H`, matière sans lumière : la roue s'y découpe en ombre chinoise) ; la voûte perce le capot DANS le crâne (creux, opaque). ⚠ le haut
+    FENTE (lèvre de peau blanche + joint, comme la gueule) ouvre sur un puits en ARCHE qui épouse la roue (7 cm), BLANC comme le ventre
+    (Léo : « pas rouge le dessous » — la roue noire s'y découpe) ; la voûte perce le capot DANS le crâne (creux, opaque). ⚠ le haut
     de l'arche est dans la zone du pli : ses sommets sont DÉPLIÉS (`dep`) — et rien ne peut se poser dans le « coin » ouvert entre les
     mâchoires (pas d'antécédent) : la roue est donc assez en arrière (z .65) pour que le puits n'y entre pas. Puis la LIGNE LATÉRALE (deux
     filets sombres qui se resserrent vers la queue), les NAGEOIRES PELVIENNES devant les roues arrière, une plaque blanche entre les roues
     arrière (deux poches sombres) avec la NAGEOIRE ANALE en quille, et quatre lames de diffuseur (la fourche de la queue). Banc :
     `dessous.py` (la caisse remise droite, retournée ou pas, photographiée par `dbgView`), `vol3.py` (photo en plein vol, en course).
+  · (Léo : « trouve une manière adaptée de rejoindre le nez aux lèvres, bizarrement séparés ») LE NEZ SORT DE LA LÈVRE : le rostre était
+    un œuf posé sur l'étagère de la lèvre du haut. Près de la face, la moitié basse de ses anneaux devient un CONGÉ (`CG`, mélangé par `w`
+    jusqu'à 55 % de sa longueur) : du flanc du nez la peau s'évase et descend se fondre dans la lèvre — fond enfoncé à mi-hauteur du
+    bourrelet (`YN`), coins étalés jusqu'à `WF` .66, sous les yeux (qui restent visibles). Le dessus du nez ne bouge pas.
 
 ## JOUER = LE MODE CLASSIQUE (2026-10-08, session GRAPHISME — Sacha : « maintenant quand on clique sur le bouton jouer on lance les niveaux au lieu de lancer le mode classique »)
 « LE NIVEAU DES PLAY » (Léo, 7/10, 3d72bd6 — plus bas) faisait lancer la carrière par le PLAY de l'accueil, le JOUER de l'atelier et celui

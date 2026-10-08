@@ -20720,7 +20720,7 @@ SHAPES.squale=function(K){
      entre les deux mâchoires. Tout est construit fermé, puis plié d'un coup au moment de poser la caisse (voir P.done, avant K.commit). */
   const YS=.52,ZH=1.25,TH=.62;
   const P=K.kit({p:{g:'p',c:0x5e666d,grad:[0x7e868c,0x5e666d,0x41484e]},b:{g:'p',c:0xf3f2ee,f:0},n:{g:'p',c:0x2a3036,f:0},
-    k:{g:'m',c:0x15171c},H:{g:'l',c:0x5a0c18,f:0},g:{g:'g',c:0x161c26},G:{g:'g',c:0x0b0c10},N:{g:'m',c:0x1d2126},K:{g:'m',c:0x3a0a12},J:{g:'m',c:0x120306},T:{g:'m',c:0x6e1a26},Q:{g:'m',c:0x4a1018},R:{g:'p',c:0xd8707c,f:0},d:{g:'p',c:0xf5f2ea,f:0},e:{g:'p',c:0xe2d9c4,f:0},
+    k:{g:'m',c:0x15171c},g:{g:'g',c:0x161c26},G:{g:'g',c:0x0b0c10},N:{g:'m',c:0x1d2126},K:{g:'m',c:0x3a0a12},J:{g:'m',c:0x120306},T:{g:'m',c:0x6e1a26},Q:{g:'m',c:0x4a1018},R:{g:'p',c:0xd8707c,f:0},d:{g:'p',c:0xf5f2ea,f:0},e:{g:'p',c:0xe2d9c4,f:0},
     W:{g:'l',c:0xfffdf7},I:{g:'g',c:0x050608},L:{g:'l',c:0xff2236},c:{g:'c',c:0xd9dde3}});
   const bosse=d=>Math.max(0,1-d*d);
   const T=z=>U.lin([[ZT,.92],[-2.18,1.02],[-1.95,1.06],[-1.55,1.09],[-1.05,1.31],[-.35,1.38],[.25,1.37],[.80,1.09],[1.0,1.08],[1.9,1.07],[2.15,1.06],[ZN,1.03]],z),
@@ -20830,9 +20830,18 @@ SHAPES.squale=function(K){
     P.plate('I',ell(sd*.625,.937,.042,14),.010,ZN+.006);P.plate('W',ell(sd*.636,.951,.010,8),.006,ZN+.012);} // (« merge ») plus de sourcils : ils dépassaient du coin de la face comme des bâtons // (« encore ») le SOURCIL : une barre épaisse qui plonge vers le nez // l'œil, et son éclat
   { // (« plus pointu, comme un requin blanc ») LE ROSTRE : un nez en ogive qui part du haut de la face, au-dessus de la gueule, et s'avance de
     // 45 cm jusqu'à une pointe arrondie — dessus gris, dessous blanc (le contre-ombrage) ; il est de la mâchoire du haut (il se relève avec elle)
-    const NR=12,NM=16,A=.47,B=.094,C0=.966,C1=.79,LR=.56,ring=t=>{const f=Math.pow(Math.max(0,1-t*t),.55),bo=Math.sin(Math.PI*Math.min(1,t*1.25)),
+    const NR=12,NM=16,A=.47,B=.094,C0=.966,C1=.79,LR=.56,YN=yH(0)+.004,WF=.66,ring=t=>{const f=Math.pow(Math.max(0,1-t*t),.55),bo=Math.sin(Math.PI*Math.min(1,t*1.25)),
       z=ZN+.002+LR*t,c=C0+(C1-C0)*t,q=[];                                       // une OGIVE : elle gonfle devant la face puis s'effile ; pointée vers le bas au repos,
-      for(let m=0;m<NM;m++){const ph=m/NM*Math.PI*2;q.push([Math.cos(ph)*A*f*(1+.18*bo),c+Math.sin(ph)*B*f*(1+.95*bo),z]);}return q;}; // elle vise DEVANT quand la gueule s'ouvre
+      // (Léo : « rejoins le nez aux lèvres, bizarrement séparés ») LE NEZ SORT DE LA LÈVRE : près de la face (`w` → 1), la moitié basse
+      // de l'anneau devient un CONGÉ — du flanc du nez, la peau s'évase et descend se fondre dans la lèvre du haut (fond enfoncé à mi-hauteur
+      // du bourrelet, coins étalés jusqu'à WF, sous les yeux) ; il rejoint l'ogive à 55 % de sa longueur. Le haut ne bouge pas.
+      const w=1-(t<=0?0:t>=.55?1:(t/.55)*(t/.55)*(3-2*t/.55)),ax=A*f*(1+.18*bo),byE=B*f*(1+.95*bo),
+        CG=[[ax,c],[ax+.04,YN+.035],[WF,YN+.008],[WF*.55,YN],[0,YN]];                // le congé, du flanc au milieu (u = 0 → 1)
+      for(let m=0;m<NM;m++){const ph=m/NM*Math.PI*2,cs=Math.cos(ph),sn=Math.sin(ph);
+        if(sn>=-1e-9){q.push([cs*ax,c+sn*byE,z]);continue;}
+        const u=(ph<Math.PI*1.5?ph-Math.PI:Math.PI*2-ph)/(Math.PI/2)*4,i9=Math.min(3,Math.floor(u)),r9=u-i9,P0=CG[i9],P1=CG[i9+1],
+          xf=P0[0]+(P1[0]-P0[0])*r9,yf=P0[1]+(P1[1]-P0[1])*r9;
+        q.push([cs*ax*(1-w)+(cs<0?-1:1)*xf*w,(c+sn*byE)*(1-w)+yf*w,z]);}return q;}; // elle vise DEVANT quand la gueule s'ouvre
     let r0=ring(0);
     for(let n=1;n<=NR;n++){const r1=ring(n/NR);
       for(let m=0;m<NM;m++){const m2=(m+1)%NM,ph=(m+.5)/NM*Math.PI*2,k=Math.sin(ph)>-.15?'p':'b';
@@ -20910,8 +20919,8 @@ SHAPES.squale=function(K){
     //    fondre dans le plancher (blanc lui aussi) ; au milieu, un CANAL remonté de 10 cm (marches sombres) où la roue dépasse de 16 cm —
     //    les bords, eux, restent bas : de côté on ne la voit pas, et le menton la cache de face ;
     //  · LA GRANDE ROUE (une seule, au milieu, ×1,46, crampons, jante blanc os : `w1F`, `lpwF`), juste après le ventre, sort d'une FENTE bordée d'une
-    //    lèvre de peau blanche et d'un joint sombre ; le puits qui l'abrite LUIT rouge sombre comme la gorge (la roue s'y découpe en
-    //    ombre chinoise) et l'épouse en arche. Son haut traverse le capot DANS le crâne (creux, opaque) : la roue ne se voit que dessous.
+    //    lèvre de peau blanche et d'un joint sombre ; le puits qui l'abrite est BLANC comme le ventre (Léo : « pas rouge le dessous » ;
+    //    la roue noire s'y découpe en ombre chinoise) et l'épouse en arche. Son haut traverse le capot DANS le crâne (creux, opaque) : la roue ne se voit que dessous.
     //    De côté, le ventre la cache : à peine 6 cm ;
     //  · la LIGNE LATÉRALE : deux filets sombres qui filent vers la queue en se resserrant ;
     //  · les NAGEOIRES PELVIENNES, couchées vers l'arrière, juste devant les roues arrière ;
@@ -20932,7 +20941,7 @@ SHAPES.squale=function(K){
         if(ca-ya>1e-4||cb-yb>1e-4)q4('N',V(e*XC,ya,za),V(e*XC,ca,za),V(e*XC,cb,zb),V(e*XC,yb,zb));      // les marches du canal (sombres : un trait net vu d'en dessous)
         q4('b',V(e*xa,ya,za),V(e*xa,YT,za),V(e*xb,YT,zb),V(e*xb,yb,zb));}}                             // le flanc du ventre
     {const x=xo(ZFR);q4('b',V(-x,YV0,ZFR),V(x,YV0,ZFR),V(x,YT,ZFR),V(-x,YT,ZFR));}                    // le menton
-    // LA FENTE : le puits en ARCHE qui épouse la roue (7 cm autour), lumineux ; la lèvre de peau qui jaillit de 2 cm, le joint affleurant.
+    // LA FENTE : le puits en ARCHE qui épouse la roue (7 cm autour), blanc ; la lèvre de peau qui jaillit de 2 cm, le joint affleurant.
     // ⚠ le haut de l'arche passe dans la zone du PLI (au-dessus de la fente, devant la charnière) : chaque sommet y est DÉPLIÉ (point fixe,
     //   comme le crâne) pour que le pli le remette exactement autour de la roue, qui, elle, ne se plie pas.
     const thz=z=>TH*s3((z-ZH)/(ZN-ZH)),dep=(y,z)=>{if(z<=ZH||y<=YS)return [y,z];const dy1=y-YS,dz1=z-ZH;let zz=z;
@@ -20943,10 +20952,10 @@ SHAPES.squale=function(K){
     // perce le capot reste DANS le crâne
     const yLv=YC-LH,yA=zf=>RW+Math.sqrt(Math.max(0,RA*RA-(zf-ZC)*(zf-ZC))),NA9=22;
     for(let i=0;i<NA9;i++){const za=S0+(S1-S0)*i/NA9,zb=S0+(S1-S0)*(i+1)/NA9;
-      q4('H',VW(-WV,yA(za),za),VW(WV,yA(za),za),VW(WV,yA(zb),zb),VW(-WV,yA(zb),zb));                     // la voûte
-      for(const e of [-1,1]){q4('H',VW(e*WX,RW,za),VW(e*WX,RW,zb),VW(e*WV,yA(zb),zb),VW(e*WV,yA(za),za)); // les parois : en haut, elles se resserrent…
-        if(i===0)q4('H',VW(e*WX,yLv,S0),VW(e*WX,yLv,S1),VW(e*WX,RW,S1),VW(e*WX,RW,S0));}}                 // …en bas, droites
-    for(const z of [S0,S1])q4('H',VW(-WX,yLv,z),VW(WX,yLv,z),VW(WX,RW,z),VW(-WX,RW,z));                  // les bouts de la fente
+      q4('b',VW(-WV,yA(za),za),VW(WV,yA(za),za),VW(WV,yA(zb),zb),VW(-WV,yA(zb),zb));                     // la voûte
+      for(const e of [-1,1]){q4('b',VW(e*WX,RW,za),VW(e*WX,RW,zb),VW(e*WV,yA(zb),zb),VW(e*WV,yA(za),za)); // les parois : en haut, elles se resserrent…
+        if(i===0)q4('b',VW(e*WX,yLv,S0),VW(e*WX,yLv,S1),VW(e*WX,RW,S1),VW(e*WX,RW,S0));}}                 // …en bas, droites
+    for(const z of [S0,S1])q4('b',VW(-WX,yLv,z),VW(WX,yLv,z),VW(WX,RW,z),VW(-WX,RW,z));                  // les bouts de la fente
     { // la lèvre : un cadre autour de la fente (dessous plat, biseau vers le ventre), puis le joint
       const ring=(d,y)=>[[-WX-d,S0-d],[WX+d,S0-d],[WX+d,S1+d],[-WX-d,S1+d]].map(([x,z])=>V(x,y,z));
       const A=ring(0,yLv),B=ring(LW,yLv),C=ring(LW+.02,YC-.001),D=ring(LW+.02,YC-.002),E=ring(LW+.034,YC-.002);
