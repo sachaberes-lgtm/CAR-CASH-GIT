@@ -8372,7 +8372,7 @@ let QUAL_LOW=false,QUAL_MED=IS_MOBILE||IS_LOW_END; // (lus par dbgPerf : MED = u
    imposé) ; on remonte d'UN cran après ~4,5 s de marge (< 17,8 ms ou cadence 30 Hz) ; un cran remonté qui retombe en < 6 s
    devient un MUR pendant 45 s. `dbgPin(true)` fige l'échelle ; `dbgQual(k)` la force (banc) ; `?perf=1` l'affiche à l'écran. */
 const QLR={a:new Float32Array(60),s:new Float32Array(60),i:0,n:0,p50:16,p75:16,p90:16, // (tour 2) les 60 dernières durées d'image, et leurs centiles
-  t0:0,sN:0,sA:[],vrai:0,vraiT:0,px:new Uint8Array(4)}; // (tour 2) LA SONDE : le vrai coût d'une image (voir qlSonde)
+  t0:0,sN:0,sA:[],vrai:0,vraiT:0,px:new Uint8Array(4),S:{pend:0},dern:null,cg:null,sync:0}; // (tour 2) LA SONDE : le vrai coût d'une image (voir qlSonde) ; sync = banc seulement (dbgSonde('sync') rejoue l'ancienne sonde bloquante)
 /* LA SONDE (2026-09-28) — MESURÉ SUR L'IPHONE 13 PRO DE SACHA (banc ?banc=1, reçu par mail) : une image lui coûte 8 à 13 ms en NETTE,
    mais l'écran n'en montre que 30 par seconde, PILE, partout — même à DPR 1,0. Ce n'était pas le jeu qui ramait : c'était l'iPhone qui
    bridait Safari à 30 i/s (mode économie d'énergie, ou surchauffe). Et la règle de qualité, qui ne voyait que « 33 ms par image »,
@@ -8380,9 +8380,36 @@ const QLR={a:new Float32Array(60),s:new Float32Array(60),i:0,n:0,p50:16,p75:16,p
    images synchronisées (un `readPixels` d'un pixel oblige le processeur à attendre la puce : le temps mesuré est ce que coûte vraiment
    l'image, hors de la grille de l'écran). Sous 14,5 ms, le téléphone POURRAIT tenir 60 i/s : c'est l'écran qui bride, on ne touche à rien
    (et on remonte ce qui aurait été baissé). La sonde ne tourne que quand des images sont ratées, au plus toutes les 8 s. */
-function qlSonde(){ try{ const g9=renderer.getContext();renderer.setRenderTarget(null);g9.readPixels(0,0,1,1,g9.RGBA,g9.UNSIGNED_BYTE,QLR.px);
-  QLR.sA.push(performance.now()-QLR.t0);
-  if(--QLR.sN<=0){const s9=QLR.sA.slice().sort((a,c)=>a-c);QLR.vrai=s9[s9.length>>1];QLR.vraiT=performance.now();QLR.sA.length=0;} }catch(e){QLR.sN=0;} }
+/* (2026-10-08, Léo : « le jeu rame ») LA SONDE NE FIGE PLUS L'IMAGE — là où la puce a un CHRONOMÈTRE. MESURÉ au banc (course de 40 s,
+   Chrome sur Mac M2) : chaque `readPixels` de la sonde obligeait le processeur à ATTENDRE que la puce ait tout fini — 15 lectures, 510 ms
+   de jeu gelé, jusqu'à 120 ms d'un coup. Et elle ne se réveille que quand des images sont déjà ratées : sur une machine chargée, elle
+   aggravait l'à-coup qu'elle venait mesurer. Là où le navigateur offre `EXT_disjoint_timer_query_webgl2` (Chrome, Edge, Android), la
+   puce chronomètre elle-même son travail de l'image (une requête TIME_ELAPSED autour de la boucle) et rend le résultat quelques images
+   plus tard, sans que personne n'attende ; le coût de l'image = le travail du processeur (début → fin de la boucle) + celui de la puce.
+   Même seuil (14,5 ms), même décision, zéro gel. Ailleurs (Safari, iPhone) : l'ancienne lecture synchrone, INCHANGÉE.
+   ⚠ Essayé d'abord : une barrière (`fenceSync`) guettée entre deux tâches — plus de gel, mais le signal « fini » arrive en retard dans
+   Chrome : ~21 ms lus au calme là où l'ancienne sonde lisait ~8 → la règle aurait baissé la netteté à tort. Écarté. Aucun pixel ne change. */
+const QLT={ext:null,ok:undefined,q:null,rate:0};
+function qlChrono(g9){ if(QLT.ok===undefined){try{QLT.ext=renderer.capabilities.isWebGL2?g9.getExtension('EXT_disjoint_timer_query_webgl2'):null;}catch(e){QLT.ext=null;}QLT.ok=!!QLT.ext;}
+  return QLT.ok&&!QLR.sync;}
+function qlSondeArme(){QLR.sN=5;QLR.sA.length=0;QLR.S={pend:0};} // une SÉRIE : cinq images mesurées
+function qlSondeFin(){ if(QLR.sN<=0&&QLR.S.pend<=0&&QLR.sA.length){const s9=QLR.sA.slice().sort((a,c)=>a-c);QLR.dern=s9;QLR.vrai=s9[s9.length>>1];QLR.vraiT=performance.now();QLR.sA.length=0;}}
+function qlSondeDebut(){ // en TÊTE de boucle, sonde armée : la puce déclenche son chrono
+  try{const g9=renderer.getContext();if(!qlChrono(g9))return;
+    if(QLT.q){g9.endQuery(QLT.ext.TIME_ELAPSED_EXT);g9.deleteQuery(QLT.q);QLT.q=null;} // l'image d'avant s'est interrompue (erreur avalée) : ce chrono-là ne vaut rien
+    const q=g9.createQuery();if(!q)return;g9.beginQuery(QLT.ext.TIME_ELAPSED_EXT,q);QLT.q=q;}
+  catch(e){QLT.ok=false;QLT.q=null;}}
+function qlSonde(){ try{ const g9=renderer.getContext();
+  if(QLT.q){const q=QLT.q,S=QLR.S,cpu=performance.now()-QLR.t0,t1=performance.now();QLT.q=null;g9.endQuery(QLT.ext.TIME_ELAPSED_EXT);QLR.sN--;S.pend++;
+    const pas=function(){let av=false;try{av=g9.getQueryParameter(q,g9.QUERY_RESULT_AVAILABLE);}catch(e){}
+      if(!av&&performance.now()-t1<1500){setTimeout(pas,8);return;} // le résultat arrive quelques images plus tard : on repasse, sans attendre
+      let gpu=null;try{if(av&&!g9.getParameter(QLT.ext.GPU_DISJOINT_EXT))gpu=g9.getQueryParameter(q,g9.QUERY_RESULT)/1e6;g9.deleteQuery(q);}catch(e){}
+      S.pend--;if(gpu==null&&++QLT.rate>=5)QLT.ok=false; // une puce qui ne rend jamais son chrono : retour à l'ancienne sonde
+      if(S!==QLR.S)return;if(gpu!=null){QLR.sA.push(Math.min(120,cpu+gpu));(QLR.cg||(QLR.cg=[])).push([+cpu.toFixed(1),+gpu.toFixed(1)]);if(QLR.cg.length>10)QLR.cg.shift();}qlSondeFin();};
+    setTimeout(pas,8);return;}
+  if(qlChrono(g9))return; // chrono pas encore lancé (la sonde vient d'être armée en cours d'image) : il partira à l'image suivante
+  renderer.setRenderTarget(null);g9.readPixels(0,0,1,1,g9.RGBA,g9.UNSIGNED_BYTE,QLR.px);QLR.sN--;QLR.sA.push(performance.now()-QLR.t0);qlSondeFin();
+  }catch(e){QLR.sN=0;try{if(QLT.q){renderer.getContext().endQuery(QLT.ext.TIME_ELAPSED_EXT);QLT.q=null;}}catch(e2){QLT.ok=false;}} }
 const QL={k:0,mur:0,murT:0,roseT:0,up:0,efT:0,effondre:false,fr:0,N_EFF:5,ombre0:sun.shadow.mapSize.x,essai:null,plafK:0,plafT:0,
   nom:['ombre en vol ½','ombre 768','bloom ¾','ombre 512','flou radial']};
 /* (2026-09-27, tour 2 — « on repasse en mode pixel assez vite après avoir lancé ») LE MODE PIXEL, C'ÉTAIT LE PLANCHER : sous l'effondrement,
@@ -8444,6 +8471,7 @@ window.dbgGfx=function(o){
     if(o.trame!=null&&acesPass)acesPass.uniforms.uTrame.value=o.trame?1/255:0;
     if(o.pique!=null&&acesPass){RESPIN=true;acesPass.uniforms.uSharp.value=+o.pique;}}
   return {coeur:GFX_U.uCoeur.value,glace:+ROAD_U.uGlace.value.toFixed(3),trame:acesPass?+(acesPass.uniforms.uTrame.value*255).toFixed(2):null,pique:acesPass?+acesPass.uniforms.uSharp.value.toFixed(3):null,dpr:curDPR,natif:devicePixelRatio};};
+window.dbgSonde=function(go){if(go){QLR.sync=go==='sync'?1:0;qlSondeArme();}return {vrai:+QLR.vrai.toFixed(2),age:QLR.vraiT?Math.round(performance.now()-QLR.vraiT):null,mesures:QLR.dern&&QLR.dern.map(function(x){return +x.toFixed(1);}),cpuGpu:QLR.cg,chrono:!!QLT.ok,sN:QLR.sN,enRoute:QLR.S.pend};}; // (banc) dbgSonde(1) lance la sonde, dbgSonde() la lit
 window.dbgQual=function(k){ if(k!=null){qlPose(k);RESPIN=true;} const b=qlBornes(); // dbgQual(k) force le cran k ET fige (dbgPin(false) relâche)
   const al=[];for(let i=0;i<QL.N_EFF&&i<QL.k;i++)al.push(QL.nom[i]);
   return {k:QL.k,kNet:b.kNet,kMax:b.kMax,plancher:+b.pl.toFixed(2),dpr:+curDPR.toFixed(3),effondre:QL.effondre,mur:(QL.murT&&performance.now()-QL.murT<45000)?QL.mur:0,
@@ -40884,6 +40912,7 @@ function loop(now){
   requestAnimationFrame(loop);
   if(BANC_ON)BANC_T0=performance.now(); // (banc ?banc=1) début de l'image chronométrée
   QLR.t0=performance.now(); // (tour 2) début de l'image, pour la sonde de la règle de qualité
+  if(QLR.sN>0)qlSondeDebut(); // (2026-10-08) sonde armée : la puce chronomètre l'image (voir qlSonde)
   // ⚠ dt JAMAIS NÉGATIF (2026-09-25) : l'horodatage de rAF est celui du DÉBUT de l'image, et `last` peut avoir été posé
   // par `performance.now()` un peu plus tard (reprise d'onglet, pas-à-pas) — un dt < 0 rendait négatif le rayon
   // des taches de jus, et `arc()` lève alors une IndexSizeError qui cassait l'image entière (mesuré).
@@ -40940,7 +40969,7 @@ function loop(now){
        floute pas l'image pour rien. */
     if(QL.essai&&now-QL.essai.t>3300){const e9=QL.essai;QL.essai=null;
       if(QLR.p50>e9.p50-1.5&&QLR.p75>e9.p75-1.5&&(loop._ms||16)>e9.ms*.92){QL.plafK=e9.k0;QL.plafT=now;QL.up=0;qlPose(e9.k0);}}
-    else if(calme9&&tire9&&QL.k<qb9.kMax&&!QL.essai&&!(QLR.vraiT&&now-QLR.vraiT<8000)){QLR.sN=5;QLR.sA.length=0;QL.up=0;} // d'abord la SONDE : on décidera au pas suivant
+    else if(calme9&&tire9&&QL.k<qb9.kMax&&!QL.essai&&!(QLR.vraiT&&now-QLR.vraiT<8000)){qlSondeArme();QL.up=0;} // d'abord la SONDE : on décidera au pas suivant
     else if(calme9&&tire9&&QL.k<qb9.kMax&&!QL.essai&&QLR.vrai<14.5){QL.bride=now;QL.up++; // l'ÉCRAN bride (économie d'énergie, chaleur) : on ne sacrifie rien…
       if(QL.k>0&&QL.up>=3){QL.up=0;QL.effondre=false;qlPose(QL.k-1);}} // …et ce qui aurait été baissé remonte
     else if(calme9&&tire9&&QL.k<qb9.kMax&&!QL.essai){
