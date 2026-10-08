@@ -52,7 +52,7 @@ ouverte (« voilà l'effet recherché, couleurs pareil, mais en mode GTR »).
     roue ARRIÈRE (`wheels[wheels.length-1]` : identique pour toutes les autres caisses, quatre roues égales).
   · l'intérieur ROUGE du côté de la gueule ne fait plus que le coin (z > ZN − 0,20, flanc SM = XF + .18) ; derrière, la peau étirée est GRISE ;
   · L'AVANT RACCOURCI : dans le pli (`P.done`), passé l'arche arrière (Z0 = ZR + R + .13) tout se resserre de KZ .75 en longueur puis la caisse
-    est recentrée (DZ .38) — `MZ(z)` ; roues, phares, pots suivent ; fiche `l:3.75`.
+    est recentrée (DZ .38) — `MZ(z)` ; roues, phares, pots suivent ; fiche `l:3.75` (4,5 depuis le ×1,2).
   · (Léo : « remplis intelligemment l'encoche vide : lisse mais en relief, une tête de requin ») LE CRÂNE : le capot plongeait en V entre
     le museau relevé et le toit — une coque lisse le comble (superellipse, pied noyé dans le capot), du pavillon (z .27) au rostre (z 1,80),
     une ligne à peine bombée, une ÉCHINE douce au milieu ; vers l'arrière elle devient VITRE (le pare-brise remonte en visière), l'échine
@@ -78,6 +78,14 @@ ouverte (« voilà l'effet recherché, couleurs pareil, mais en mode GTR »).
     un œuf posé sur l'étagère de la lèvre du haut. Près de la face, la moitié basse de ses anneaux devient un CONGÉ (`CG`, mélangé par `w`
     jusqu'à 55 % de sa longueur) : du flanc du nez la peau s'évase et descend se fondre dans la lèvre — fond enfoncé à mi-hauteur du
     bourrelet (`YN`), coins étalés jusqu'à `WF` .66, sous les yeux (qui restent visibles). Le dessus du nez ne bouge pas.
+  · (Léo : « la vitre, pas très cohérent — petit détail pour perfectionner ») LES VITRES : la visière du crâne était hachée de DENTS de
+    reflets claires et d'éclats triangulaires — (1) le coin du pare-brise et de la vitre du haut (x .53) dépassait de 2,5 cm de chaque côté
+    de la visière : au-dessus de l'habitacle le crâne s'élargit (`Wd` ≥ .585 jusqu'à z .78) ; (2) les facettes vrillées (l'habitacle plonge
+    vers le capot) renvoyaient chacune le ciel à sa façon : la visière, le pare-brise, la lunette et les vitres latérales sont en verre LISSE
+    (`V`, teinte exacte 0x171d27 sans fondu — le kit range par FAMILLE, on la reconnaît à sa teinte ; normales moyennées à la fin du pli).
+    ⚠ banc : le profil Chrome du banc a le service worker du jeu — `Network.setBypassServiceWorker` sinon on photographie une VIEILLE copie.
+  · (Léo : « la voiture doit être plus grosse ») ×1,2 en entier (`SC`, appliqué au bout du pli, sur chaque sommet) ; la fiche suit (phares,
+    feux, pots, voies, roues `lpw` R .49), et CARS `h:1.66,w:2.52,l:4.5` (caméra des caisses hautes, empreinte).
 
 ## JOUER = LE MODE CLASSIQUE (2026-10-08, session GRAPHISME — Sacha : « maintenant quand on clique sur le bouton jouer on lance les niveaux au lieu de lancer le mode classique »)
 « LE NIVEAU DES PLAY » (Léo, 7/10, 3d72bd6 — plus bas) faisait lancer la carrière par le PLAY de l'accueil, le JOUER de l'atelier et celui

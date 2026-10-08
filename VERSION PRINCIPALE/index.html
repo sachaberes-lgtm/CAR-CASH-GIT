@@ -13138,7 +13138,7 @@ const CARS=[
   desc:'Elle a pris froid au dernier tour : depuis, elle éternue du feu. Ne reste jamais devant elle.'},
  // (2026-10-08) LE SQUALE — Léo : la voiture au sourire de requin de son sketch du garage, bleu clair, sportive, carrée aux angles
  // arrondis, les phares en yeux (voir SHAPES.squale). Ajoutée EN DERNIER (les index de sauvegarde ne bougent pas).
- {name:'SQUALE',shape:'squale',color:0x5e666d,accent:0x2a3036,maxKmh:340,accel:40,turn:2.7,h:1.38,w:2.10,l:3.75,spoiler:0,rar:'rare',
+ {name:'SQUALE',shape:'squale',color:0x5e666d,accent:0x2a3036,maxKmh:340,accel:40,turn:2.7,h:1.66,w:2.52,l:4.5,spoiler:0,rar:'rare',
   fx:{jet:0xbfe4ff,core:0xffffff,trail:[.75,.85,.95],light:0xcfe8ff},
   desc:'Toujours le sourire. Surtout quand elle te double.'},
 ];
@@ -20720,8 +20720,9 @@ SHAPES.squale=function(K){
      Ce qui chevauche la fente s'ÉTIRE (la peau des joues, la gorge) et une vraie CAVITÉ (plancher, palais, joues, fond de gorge) se tend
      entre les deux mâchoires. Tout est construit fermé, puis plié d'un coup au moment de poser la caisse (voir P.done, avant K.commit). */
   const YS=.52,ZH=1.25,TH=.62;
+  const SC=1.2; // (Léo : « la voiture doit être plus grosse ») TOUTE la caisse ×1,2, posée d'un coup avec le pli (fin de P.done) ; roues, phares, feux, pots suivent dans la fiche
   const P=K.kit({p:{g:'p',c:0x5e666d,grad:[0x7e868c,0x5e666d,0x41484e]},b:{g:'p',c:0xf3f2ee,f:0},n:{g:'p',c:0x2a3036,f:0},
-    k:{g:'m',c:0x15171c},g:{g:'g',c:0x161c26},G:{g:'g',c:0x0b0c10},N:{g:'m',c:0x1d2126},K:{g:'m',c:0x3a0a12},J:{g:'m',c:0x120306},T:{g:'m',c:0x6e1a26},Q:{g:'m',c:0x4a1018},R:{g:'p',c:0xd8707c,f:0},d:{g:'p',c:0xf5f2ea,f:0},e:{g:'p',c:0xe2d9c4,f:0},
+    k:{g:'m',c:0x15171c},V:{g:'g',c:0x171d27,f:0},g:{g:'g',c:0x161c26},G:{g:'g',c:0x0b0c10},N:{g:'m',c:0x1d2126},K:{g:'m',c:0x3a0a12},J:{g:'m',c:0x120306},T:{g:'m',c:0x6e1a26},Q:{g:'m',c:0x4a1018},R:{g:'p',c:0xd8707c,f:0},d:{g:'p',c:0xf5f2ea,f:0},e:{g:'p',c:0xe2d9c4,f:0},
     W:{g:'l',c:0xfffdf7},I:{g:'g',c:0x050608},L:{g:'l',c:0xff2236},c:{g:'c',c:0xd9dde3}});
   const bosse=d=>Math.max(0,1-d*d);
   const T=z=>U.lin([[ZT,.92],[-2.18,1.02],[-1.95,1.06],[-1.55,1.09],[-1.05,1.31],[-.35,1.38],[.25,1.37],[.80,1.09],[1.0,1.08],[1.9,1.07],[2.15,1.06],[ZN,1.03]],z),
@@ -20744,9 +20745,9 @@ SHAPES.squale=function(K){
     if(j<=3)return 'b';                                                           // le VENTRE blanc (deux bandes : la fente passe entre elles)
     if(j<=5||z<=-1.55||z>=.80)return 'p';                                         // flancs, épaules, capot, malle
     const pil=z>-.27&&z<-.17;                                                     // le montant du milieu
-    if(j===8)return ((z>.27&&z<.78)||(z<-1.07&&z>-1.53))?'g':'p';                 // pare-brise, lunette ; le toit
-    if(j===7)return (z>-.85&&z<.66&&!pil)?'g':'p';                                // la vitre, en haut…
-    return (z>-1.05&&z<.70&&!pil)?'g':'p';});                                     // …et en bas, qui va plus loin : le COUDE de la vitre arrière
+    if(j===8)return ((z>.27&&z<.78)||(z<-1.07&&z>-1.53))?'V':'p';                 // pare-brise, lunette ; le toit (verre LISSE `V` : voir le pli)
+    if(j===7)return (z>-.85&&z<.66&&!pil)?'V':'p';                                // la vitre, en haut… (lisse : ses grandes facettes vrillées faisaient des éclats)
+    return (z>-1.05&&z<.70&&!pil)?'V':'p';});                                     // …et en bas, qui va plus loin : le COUDE de la vitre arrière (lisse aussi)
   // ---- CE QUI SE POSE SUR LE FLANC (cases lues sur la section, décollées de 6 mm) ----
   const cote=(z,y)=>{const q=S(z);if(y<q[2][1])return -1;for(let i=2;i<6;i++){const a=q[i],c=q[i+1];if(y<=c[1]){const t=(y-a[1])/((c[1]-a[1])||1);return a[0]+(c[0]-a[0])*t;}}return -1;};
   const peint=(k,sd,z0,y0,c)=>{const q=[[z0,y0],[z0+c,y0],[z0+c,y0+c],[z0,y0+c]].map(([z,y])=>{const x=cote(z,y);return x<0?null:[sd*(x+.006),y,z];});
@@ -20897,7 +20898,7 @@ SHAPES.squale=function(K){
     const yX=(q,x)=>{for(let i=7;i<9;i++){const A=q[i],B=q[i+1];if(x>=B[0]&&x<=A[0]){const t=(x-A[0])/((B[0]-A[0])||1);return A[1]+(B[1]-A[1])*t;}}return x>q[7][0]?q[7][1]:q[9][1];};
     const Z1=.27,Z2=1.80,NA=18,
       yHaut=z=>{const u=c01((z-Z1)/(Z2-Z1));return 1.372+(1.528-1.372)*s3(u)+.045*Math.sin(Math.PI*u);},   // la ligne du crâne : du pavillon au rostre, à peine bombée
-      Wd=z=>{const u=c01((z-Z1)/(Z2-Z1));return .50+.13*s3(u);},
+      Wd=z=>{const u=c01((z-Z1)/(Z2-Z1));return Math.max(.50+.13*s3(u),.585*(1-s3((z-.78)/.20)));}, // (Léo : « la vitre, pas très cohérent ») au-dessus de l'habitacle, le coin du pare-brise et de la vitre du haut (x .53) dépassait de 2,5 cm de chaque côté de la visière : ses facettes la perçaient en DENTS claires — le crâne s'y élargit et le couvre
       yBas=(z,x)=>z<=ZH?yX(S(z),x)-.05:U.lin(HD,z)-.08,                          // le pied : noyé dans le capot (ou le toit) au-dessous
       crete=z=>.022*s3((z-.55)/.5)*(1-s3((z-1.62)/.18));                           // l'échine, qui naît sur la visière et meurt dans le rostre
     const anneau=z=>{const W=Wd(z),yt=yHaut(z),yb=Math.min(yt-.01,yBas(z,W)),q=[];
@@ -20908,7 +20909,7 @@ SHAPES.squale=function(K){
     let r0=anneau(zsC[0]);
     {const C=[0,(r0[NA/2][1]+yBas(Z1,0))/2,Z1];for(let m=0;m<NA;m++)P.tri('p',V3(...C),V3(...r0[m+1]),V3(...r0[m]));} // le bout arrière, fermé
     for(let i=1;i<zsC.length;i++){const r1=anneau(zsC[i]),zm=(zsC[i-1]+zsC[i])/2;
-      for(let m=0;m<NA;m++){const am=-14+208*(m+.5)/NA,dos=Math.abs(am-90)<16,k=(!dos&&zm<.86)?'g':'p';
+      for(let m=0;m<NA;m++){const am=-14+208*(m+.5)/NA,dos=Math.abs(am-90)<16,k=(!dos&&zm<.86)?'V':'p';
         P.tri(k,V3(...r0[m]),V3(...r1[m]),V3(...r1[m+1]));P.tri(k,V3(...r0[m]),V3(...r1[m+1]),V3(...r0[m+1]));}
       r0=r1;}
     {const C=[0,(r0[NA/2][1]+r0[0][1])/2,Z2];for(let m=0;m<NA;m++)P.tri('p',V3(...C),V3(...r0[m]),V3(...r0[m+1]));} // le bout avant, fondu dans le rostre
@@ -20982,17 +20983,28 @@ SHAPES.squale=function(K){
     P.done=()=>{const gs=fin();for(const k9 in gs){const a=gs[k9].attributes.position.array;
       for(let i=0;i<a.length;i+=3){const y=a[i+1],z=a[i+2];
         if(y>YS&&z>ZH){const th=TH*ss((z-ZH)/(ZN-ZH)),c9=Math.cos(th),s9=Math.sin(th),dy=y-YS,dz=z-ZH;a[i+1]=YS+dy*c9+dz*s9;a[i+2]=ZH-dy*s9+dz*c9;}
-        a[i+2]=MZ(a[i+2]);}
-      gs[k9].attributes.position.needsUpdate=true;gs[k9].computeVertexNormals();}return gs;};
+        a[i+2]=MZ(a[i+2]);a[i]*=SC;a[i+1]*=SC;a[i+2]*=SC;}
+      gs[k9].attributes.position.needsUpdate=true;gs[k9].computeVertexNormals();}
+      // (Léo : « la vitre, pas très cohérent ») LA VISIÈRE DU CRÂNE en normales LISSES : à facettes, chaque triangle vrillé de la coque
+      // renvoyait le ciel à sa façon — des DENTS de reflets claires sur la vitre noire. Lissée, elle se lit comme UNE vitre. Le kit range
+      // par FAMILLE (elle partage le verre des vitres) : on la reconnaît à sa teinte exacte (`V`, sans fondu). Le haut des vitres latérales,
+      // le pare-brise, la lunette et les vitres du bas aussi (là où l'habitacle plonge vers le capot, leurs facettes vrillées faisaient des éclats).
+      if(gs.g&&gs.g.attributes.color){const a=gs.g.attributes.position.array,n=gs.g.attributes.normal.array,cl=gs.g.attributes.color.array,M=new Map(),
+          T9=[0x17/255,0x1d/255,0x27/255],est=i=>Math.abs(cl[i]-T9[0])<2e-3&&Math.abs(cl[i+1]-T9[1])<2e-3&&Math.abs(cl[i+2]-T9[2])<2e-3,
+          cle=i=>Math.round(a[i]*1e4)+','+Math.round(a[i+1]*1e4)+','+Math.round(a[i+2]*1e4);
+        for(let i=0;i<a.length;i+=3)if(est(i)){const c9=cle(i);let v=M.get(c9);if(!v)M.set(c9,v=[0,0,0]);v[0]+=n[i];v[1]+=n[i+1];v[2]+=n[i+2];}
+        for(let i=0;i<a.length;i+=3)if(est(i)){const v=M.get(cle(i)),l=Math.hypot(v[0],v[1],v[2])||1;n[i]=v[0]/l;n[i+1]=v[1]/l;n[i+2]=v[2]/l;}
+        gs.g.attributes.normal.needsUpdate=true;}
+      return gs;};
   }
   K.commit(P);
   // LE VERNIS : dur et franc, sur la matière de cette caisse seulement (K.mats)
   {const mP=K.mats&&K.mats.p;if(mP){mP.shininess=86;mP.specular.setHex(0x8c8c8c);mP.reflectivity=.36;
     if(mP.userData.uG)mP.userData.uG.value=.035;if(mP.userData.uV)mP.userData.uV.value.set(.40,1.8,3,.30);}}
-  return {hl:[.70,.937,MZ(ZN+.03)],tl:[.55,.83,MZ(ZT-.03)],lamps:0,pipes:0,halos:0, // les yeux SONT les phares : ni boîte blanche ni halo devant eux
-          wx:.88,w1F:1,wRF:1.46,wzF:.65,wzR:-MZ(ZR),lpwF:{crampons:1,bande:0xe9e4da,jante:0xe9e4da,accent:0xe9e4da},                  // UNE grande roue avant, au milieu, sous le ventre (voir LE DESSOUS)
-          pots:[[.30,.30,MZ(ZT-.14)],[-.30,.30,MZ(ZT-.14)],[.46,.30,MZ(ZT-.14)],[-.46,.30,MZ(ZT-.14)]],
-          lpw:{R:R,w:.36,style:'rayons',n:6,jante:0x2b2e34,accent:0x2b2e34}};
+  return {hl:[.70*SC,.937*SC,MZ(ZN+.03)*SC],tl:[.55*SC,.83*SC,MZ(ZT-.03)*SC],lamps:0,pipes:0,halos:0, // les yeux SONT les phares : ni boîte blanche ni halo devant eux
+          wx:.88*SC,w1F:1,wRF:1.46,wzF:.65*SC,wzR:-MZ(ZR)*SC,lpwF:{crampons:1,bande:0xe9e4da,jante:0xe9e4da,accent:0xe9e4da},                  // UNE grande roue avant, au milieu, sous le ventre (voir LE DESSOUS)
+          pots:[[.30,.30,MZ(ZT-.14)],[-.30,.30,MZ(ZT-.14)],[.46,.30,MZ(ZT-.14)],[-.46,.30,MZ(ZT-.14)]].map(q=>q.map(v=>v*SC)),
+          lpw:{R:R*SC,w:.36*SC,style:'rayons',n:6,jante:0x2b2e34,accent:0x2b2e34}};
 };
 const CAR_VIEUX=[]; // les matières de la caisse d'avant : libérées à la construction suivante
 /* LA CAISSE NE DÉTRUIT PLUS SES PROGRAMMES (2026-09-28, chasse aux gels) — three DÉTRUIT un programme quand la dernière matière qui s'en
