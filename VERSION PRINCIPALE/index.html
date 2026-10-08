@@ -39923,6 +39923,7 @@ function burnCaisse(dt){
 }
 function burnTick(dt){ // chaque image du garage (après la pose de la caisse, avant la caméra)
   const now=performance.now(),t=now*.001;
+  if(!BURN.pret){BURN.pret=true;try{chauffeRendu(burnPools());}catch(e){}} // (2026-10-08) à la 1re image du garage : la fumée en pixels et ses cubes compilés pendant l'entrée — la chauffe de l'atelier au menu ne tourne plus toujours (mesuré : jamais sur l'écran titre de la chute), et le 1er burn-out compilait
   if(BURN.hold&&!BURN.on&&!BURN.bouge&&now-BURN.hold.t0>BURN_TENU){if(!BURN.hold.non)burnPart();else if(!BURN.hold.dit){BURN.hold.dit=1;burnRefus();}} // (même soir) 0,28 s, (2026-10-08) 0,8 s : un glissé lent qui démarre doucement reste le PLATEAU
   if(BURN.auto>0&&dt>0){BURN.auto-=dt;if(BURN.autoW)burnVolant(BURN.autoW*dt);if(BURN.auto<=0)burnFin();} // (le banc) un doigt qui tourne à autoW rad/s
   if(GAR.go||!garAtelierLibre())if(BURN.on)burnFin();

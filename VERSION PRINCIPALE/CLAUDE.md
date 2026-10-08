@@ -100,7 +100,7 @@ LES BOUTONS DE SACHA ») : **PLAY/JOUER = la partie sans fin, et toucher un nive
   plus ; `true` les rend). `burnCaisse` : la carrosserie (boîte `garGabarit` + 35 cm) ÉCARTE les bouffées qui y entrent (par la face la plus
   proche) et les ENTRAÎNE à `BURN_CAISSE.suit` (65 %) de sa vitesse à cet endroit (glissement + rotation ω × r) ; `pousse` 3,5. Mesuré
   (`dbgBurn('fumee')`) : en donut la fumée proche tourne dans le sens de la caisse à ~1,7-2,9 m/s (w 3-5 rad/s) ; à 100 % elle collait
-  (~4-5 m/s). sw.js → v175.
+  (~4-5 m/s). Les matières du burn-out se compilent à la 1re image du garage (`BURN.pret`) : la chauffe de l’atelier au menu ne tourne plus sur l’écran titre de la chute (mesuré). sw.js → v175.
 - Les réservoirs se créent dans `burnPools()`, appelé par la CHAUFFE DE L'ATELIER (`atelierChauffe` les compile avec lui : rien au 1er
   burn-out) et par l'atelier du bouton rouge (`atlTick`).
 - RETIRÉ (dans l'historique, dernier état `d6fea98`) : fumée en volumes/cubes de la porte, voile, jet sous la roue, poids (`DON_POIDS`),
