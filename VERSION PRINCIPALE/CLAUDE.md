@@ -218,6 +218,16 @@ LES BOUTONS DE SACHA ») : **PLAY/JOUER = la partie sans fin, et toucher un nive
   7,3 m/s, à-coups p90 153 → 43 m/s² ; 7 rad/s → 7,2 → 5,1 ; sous 4 rad/s inchangé (tour pour tour).
 - **PLUS DE TOUCHES À L'ÉCRAN** (même soir, Léo : « enlève les boutons ») — `BURN_NITRO.boutons` false : `#gBurnBtns` n'est plus créé. La NITRO
   et la MARCHE ARRIÈRE restent au CLAVIER (ESPACE / N, ↓ / R / S) ; sur téléphone elles ne se déclenchent plus. sw.js → v193.
+- **ELLE NE S'AVANCE PLUS SANS CESSE** (même soir, Léo : « pourquoi la voiture s'avance sans cesse devant pendant le burn-out ») — MESURÉ
+  (`avance.py` : la position dans le repère de la caisse au repos, +z = là où elle regarde au départ = vers la caméra) : 1-1,3 m vers
+  l'avant en 3 s de balancé ou de donut, et pas à cause de la balade (poussée, doigt-cible, cliquet coupés : pareil) — c'est le PIVOT DEVANT :
+  tournée de y, son centre est à dz(1 − cos y) devant (,9 m à 90°, 1,8 m retournée), et elle n'est presque jamais droite. `BURN_BALADE`
+  {recentre ,9, tauR ,8, revient ,5} : la cible de la balade retranche ,9 × le décalage MOYEN du pivot (filtré sur ,8 s, `BURN.swAx/swAz`) —
+  l'arrière balaie toujours sur le moment, puis elle revient ; et la balade peut reculer de ,5 m/s au plus (« elle ne recule jamais » faisait
+  CLIQUET : le retour était bloqué). Recul pendant un balancé : ,04 m/s en moyenne (,5 max). ⚠ Les moyennes « vers l'avant » sur 1 s sont
+  très bruitées (elles suivent l'angle du geste) : 3 essais au moins, ou lire `dbgBurn().sw`/`.balade`. `dbgBurn('balade',{…})` règle à chaud.
+  ⚠ BANC : d'autres sessions ouvrent leurs onglets dans un Chrome de banc partagé (le 9351) — mon propre Chrome sur le 9467, onglet choisi
+  par son URL (8841). sw.js → v194.
 - Les réservoirs se créent dans `burnPools()`, appelé par la CHAUFFE DE L'ATELIER (`atelierChauffe` les compile avec lui : rien au 1er
   burn-out) et par l'atelier du bouton rouge (`atlTick`).
 - RETIRÉ (dans l'historique, dernier état `d6fea98`) : fumée en volumes/cubes de la porte, voile, jet sous la roue, poids (`DON_POIDS`),
