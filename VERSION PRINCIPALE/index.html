@@ -27162,6 +27162,7 @@ function stopMusic(){musicVoulue=false;if(musicEl){try{musicEl.pause();}catch(e)
    musique n'attend plus rien. NE PAS remettre de son ni de délai entre le départ et la musique.
    ⚠ iPhone : le volume d'un <audio> y est en lecture seule (VOL_LOCKED) — ni fondu du lobby ni fondu d'entrée. `DEPMUS.on=false` = avant. */
 const DEPMUS={on:true,fondu:.6,f0:-1,sort:0}; // sort : l'instant du REJOUER (le lobby de l'écran de mort s'efface sous le fondu au noir)
+const NUAGES_AMB=false; // (2026-10-08, Léo : « au départ de la première map, un son parasite — enlève ») l'ambiance de la MER DE NUAGES en course (`nuages.ambiance` : souffle, rafales, harpe éolienne) se tait — true la rend (voir « LA MER DE NUAGES A SON AIR » dans la boucle)
 function musicStartRun(depart){ // au début d'une partie (start / resetGame : depart = vrai) — et quand on rallume la MUSIQUE en course
   DEPMUS.f0=-1;DEPMUS.sort=0;
   if(!SND.music||!MUSIC_TRACKS.length)return;
@@ -40472,8 +40473,13 @@ function loop(now){
     if(v9&&!loop._vide&&now>(loop._videT||0)){loop._videT=now+500;loop._vide=sfx('espace.ambiance',{loop:true,vol:-24});if(loop._vide)loop._vide.gain(0,.8);}
     else if(!v9&&loop._vide){loop._vide.stop(.5);loop._vide=null;}
     /* (2026-09-30, niveau 1) LA MER DE NUAGES A SON AIR : l'altitude qui respire, des rafales lointaines, la harpe éolienne dans la tonalité
-       (`nuages.ambiance`, bus d'ambiance). C'est le LIEU — le vent de la vitesse reste windG/whG. Dans un nuage, l'air se ferme (−7 dB). */
-    const n9=LVL.cur&&LVL.cur.id==='nuages'&&LVL.espace<.5&&started&&running&&!paused&&!gameOver&&!garageOn&&!(CHUTE&&CHUTE.on)&&mode!=='boom';
+       (`nuages.ambiance`, bus d'ambiance). C'est le LIEU — le vent de la vitesse reste windG/whG. Dans un nuage, l'air se ferme (−7 dB).
+       ⚠ (2026-10-08, Léo : « la première map, quand je démarre, il y a un son hyper chelou, un son parasite — enlève ; vérifie pour les
+       autres ») : c'était ELLE. MESURÉ (banc muet, départ de SKY HIGH 1) : la musique du CIEL n'a presque rien au-dessus de 3 kHz, et
+       son souffle y passait 11 à 26 dB AU-DESSUS de la musique (3-12 kHz) + les sifflets de la harpe à 1-3 kHz — un bruit de fond qui
+       arrive avec le départ et ne repart plus, dans tout le monde NUAGES (SKY HIGH 1-5, l'auto-école, la partie sans fin). La VILLE n'a
+       pas d'ambiance ; celle de l'ESPACE (bourdon grave) ne change rien d'audible sous sa musique. `NUAGES_AMB=true` la rend. */
+    const n9=NUAGES_AMB&&LVL.cur&&LVL.cur.id==='nuages'&&LVL.espace<.5&&started&&running&&!paused&&!gameOver&&!garageOn&&!(CHUTE&&CHUTE.on)&&mode!=='boom';
     if(n9&&!loop._nua&&now>(loop._nuaT||0)){loop._nuaT=now+600;loop._nua=sfx('nuages.ambiance',{loop:true,vol:-24});loop._nuaG=null;}
     else if(!n9&&loop._nua){loop._nua.stop(.7);loop._nua=null;}
     if(loop._nua){const g9=cloudInS>.4?-7:0;if(g9!==loop._nuaG){loop._nua.gain(g9,loop._nuaG==null?1.2:.25);loop._nuaG=g9;}}

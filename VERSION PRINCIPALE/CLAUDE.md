@@ -1,5 +1,16 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LE SON PARASITE DU DÉPART DES NUAGES (2026-10-08, Léo : « la première map, quand je démarre, il y a un son hyper chelou, un son parasite — enlève ; vérifie pour les autres »)
+- **C'ÉTAIT `nuages.ambiance`** (la boucle « LA MER DE NUAGES A SON AIR » du 30/09 : souffle d'altitude, rafales, harpe éolienne), lancée au
+  départ de chaque course du monde NUAGES (SKY HIGH 1-5, l'auto-école, la partie sans fin) et jamais arrêtée. MESURÉ au banc (Chrome sans
+  fenêtre, muet, vrai clic sur PLAY, sortie des effets et musique enregistrées, comparées bande par bande avec et sans elle) : la musique du
+  CIEL n'a presque rien au-dessus de 3 kHz ; le souffle y passait 11 dB (3-6 kHz) à 26 dB (6-12 kHz) AU-DESSUS d'elle, et les sifflets de la
+  harpe (1-3 kHz) à son niveau — un bruit de fond qui arrive avec le départ. Sans elle, les aigus des effets retombent au niveau de la musique.
+- **COUPÉE** : `const NUAGES_AMB=false` (juste après `DEPMUS`) — `true` la rend. La recette reste dans la banque.
+- **LES AUTRES MAPS** : la VILLE n'a pas d'ambiance de lieu ; celle de l'ESPACE (`espace.ambiance`, bourdon grave) ne change rien d'audible
+  sous ADDICTIVE LOOP (mesuré, ±1 dB). Le reste du départ est commun à toutes les maps et inchangé : les 3 s de nitro offerte (grondement
+  brun, pops, sifflet du turbo, PSSHT à la fin), le claquement du logo, la bannière du niveau. sw.js → v166.
+
 ## ⚠ LE BURN-OUT EST À LÉO (2026-10-07, Léo : « quand Sacha fait des trucs qui suppriment mes changements, code un truc qui bloque ; remets mon burn-out »)
 - Le BURN-OUT du garage (doigt tenu 0,8 s sur la caisse : fumée en cubes, donut au doigt, fouet — `BURN`, `DON`,
   `burnPart`, `burnGeste`, `burnDyn`, `burnCubes`, `BURN_TENU`…) est le travail de LÉO. **On ne le supprime pas, on ne le remplace pas, on
@@ -1513,7 +1524,7 @@ rien de la vitesse. Et les tirets de la ligne centrale (un tous les ~31 m) BÉGA
 - **LA ROUTE** : `ROUTE_JOUR` [.86,.94,.86] (était [1,1.12,.88]) — le ruban le plus sombre de l'image, la caisse orange se lit contre lui (contraste caisse/entourage 26-31 → 27-40 au départ).
 - **PAS DE « 1.61 » AU JOUR** : les chiffres d'or du soleil ×(1−uJour) (les autres niveaux les gardent).
 - **LE MENU CHUTE** : pose piquée (`CHUTE_P.pitch` .55, `elev` .30 : elle TOMBE au lieu de planer), COTON caché au menu (chuteRender / rendu par chuteSort), filets de vent effacés près de la caméra, bandeau du bas en azur profond (`#garage.menu.ciel::after`), son `chute.vent` (boucle : grondement, rafales, l'air qui claque sur les tôles ; +4 dB et ×1,25 au piqué de JOUER).
-- **LE SON DU NIVEAU** : `nuages.ambiance` en course au niveau NUAGES (l'air d'altitude, rafales lointaines, harpe éolienne dans la tonalité ; −7 dB dans un nuage). sons-banque.js?v=11.
+- **LE SON DU NIVEAU** : `nuages.ambiance` en course au niveau NUAGES (l'air d'altitude, rafales lointaines, harpe éolienne dans la tonalité ; −7 dB dans un nuage). sons-banque.js?v=11. ⚠ COUPÉE le 2026-10-08 (« son parasite », voir en tête : `NUAGES_AMB`).
 
 ## LE JOUR D'ALTITUDE — LE NIVEAU NUAGES ET LE MENU REFAITS (2026-09-30, soir, session GAMEPLAY) — Sacha, capture du menu CHUTE + image de Zelda : Tears of the Kingdom : « c'est vilain, refonte totale, refonte également du niveau dans les nuages, ambiance haut de gamme GTA 6, toute l'ambiance de cet écran doit être refaite et parfaite » · « vilain garçon si tu rajoutes pas un moyen de déplacer la caméra autour de la voiture avec le doigt »
 - PARTAGE (accord des sessions) : GAMEPLAY = SEUL écrivain de l'IMAGE du niveau NUAGES et du menu CHUTE (ciel, lumière, brume, étalonnage,
