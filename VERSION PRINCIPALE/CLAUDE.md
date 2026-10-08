@@ -33,7 +33,7 @@ ouverte (« voilà l'effet recherché, couleurs pareil, mais en mode GTR »).
   `cote2` lit aussi le chanfrein du bas de caisse). Grande OUVERTE : lèvre de PEAU blanche fondue dans la caisse, gencive rose en retrait,
   gorge rouge sombre et fond noir, trois rangées de crocs éparpillés (hasard fixe `hh`), aucun à cheval sur le coin, ceux du flanc à l'échelle.
 - LES YEUX : phares en amande effilés vers le nez, œil noir brillant + éclat, trait de LED (`lamps:0`, `halos:0` : ni boîte ni halo devant).
-- (v195, Léo : « plus ouverte, abuse — comme si la voiture était cassée, mais c'est une bouche ouverte ») LA MÂCHOIRE QUI SE FEND : tout
+- (v196, Léo : « plus ouverte, abuse — comme si la voiture était cassée, mais c'est une bouche ouverte ») LA MÂCHOIRE QUI SE FEND : tout
   est construit fermé puis PLIÉ dans `P.done` (juste avant `K.commit`) — chaque sommet au-dessus de la fente (YS .52) et devant la charnière
   (ZH 1.25) tourne autour de (YS, ZH), l'angle croissant de 0 à TH (.62 rad ≈ 35°) vers le nez : capot, museau, yeux, crocs du haut se
   relèvent ; le bouclier et les crocs du bas restent. La face avant de la loft est sautée ('X') et reposée en deux plaques (`coupe`), une
