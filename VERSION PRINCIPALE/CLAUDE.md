@@ -137,6 +137,13 @@ LES BOUTONS DE SACHA ») : **PLAY/JOUER = la partie sans fin, et toucher un nive
   visitées par le centre) : 13-22 → 18-33, chaque geste a son propre centre de gravité ; cercle lent : étalement ,98 → 1,62 m, jusqu'à 2,37 m ;
   couché, caisse derrière la console 9 % → 1 % du temps. `dbgBurn('balade',suit,pousse)` règle à chaud (`0,0` = le pivot fixe d'avant),
   `dbgBurn().pos`/`.balade`. sw.js → v181.
+- **ELLE NE RECULE PLUS** (même soir, Léo : « faut pas qu'elle recule non plus, là c'est trop violent ») — MESURÉ image par image
+  (`dbgBurn('mesure',1)` puis `dbgBurn('mesure')` : vitesse du centre le long de son axe) : en cercle rapide la caisse partait EN ARRIÈRE à
+  5,6 m/s même pivot fixe — la glisse (`DON_PIV.glisse`, le décalage qui tourne avec elle) était du mauvais côté du pivot : glisse × rotation
+  = marche arrière. Retournée (`sl` = −…) : elle AVANCE et l'arrière décroche, un vrai donut. La balade ne recule jamais (la part de sa
+  vitesse vers l'arrière de la caisse est perdue), plus douce (`BURN_BALADE` ω 3,2, ζ ,8, suit ,4, pousse 2,2, plus de rebond, ≤ 2,2 m/s).
+  Recul moyen : cercle rapide 7,7 → 0 m/s, cercle lent ,38 → 0, doigt vers le haut ,56 → ,05 ; zigzag ,2 (pointes au changement de sens).
+  sw.js → v182.
 - Les réservoirs se créent dans `burnPools()`, appelé par la CHAUFFE DE L'ATELIER (`atelierChauffe` les compile avec lui : rien au 1er
   burn-out) et par l'atelier du bouton rouge (`atlTick`).
 - RETIRÉ (dans l'historique, dernier état `d6fea98`) : fumée en volumes/cubes de la porte, voile, jet sous la roue, poids (`DON_POIDS`),

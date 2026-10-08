@@ -40047,7 +40047,7 @@ const BURN_RESSORT={om:9,ze:.5};
    POUSSENT dans son axe d'autant plus qu'elle tourne (`pousse` m/s², pleine à 4 rad/s) : le donut MARCHE, il ne reste plus sur place ;
    (3) au bord du plateau elle RENCONTRE le bord, y perd sa vitesse vers l'extérieur et en rebondit un peu (`rebond`). Tenue sans bouger :
    elle reste sur place (le burn-out d'origine). Lâchée : elle revient au centre avec le reste (`pivK`). */
-const BURN_BALADE={suit:.5,om:4.2,ze:.5,pousse:3.2,rebond:.35,bord:4.3};
+const BURN_BALADE={suit:.4,om:3.2,ze:.8,pousse:2.2,rebond:0,bord:4.3,vmax:2.2}; // (même soir, Léo : « faut pas qu'elle recule non plus, là c'est trop violent ») ω 4,2 → 3,2, ζ ,5 → ,8 (plus de dépassement), suit ,5 → ,4, pousse 3,2 → 2,2, plus de rebond, vitesse ≤ 2,2 m/s — et JAMAIS vers l'arrière de la caisse
 function burnBord(cx,cz,y){ // de combien rapprocher le centre (cx, cz) pour que les 4 coins de la caisse (cap y) restent à `bord` m du centre du plateau
   const a=BURN.ga||2.2,b=BURN.gb||1,R=BURN_BALADE.bord,co=Math.cos(y),si=Math.sin(y);
   const loin=function(f){let m=0;for(let i=0;i<4;i++){const x=(i&1?b:-b),z=(i&2?a:-a),px=f*cx+x*co+z*si,pz=f*cz-x*si+z*co,d=px*px+pz*pz;if(d>m)m=d;}return Math.sqrt(m);};
@@ -40065,13 +40065,19 @@ function burnDerape(dt){
   {const B9=BURN_BALADE,lq=Math.max(0,B9.bord-(BURN.gb||1));let tx=0,tz=0;                // LA BALADE : le pivot voyage
     if(vise&&BURN.fsOk){tx=BURN.fsx*B9.suit;tz=BURN.fsz*B9.suit;const tl=Math.hypot(tx,tz);if(tl>lq){tx*=lq/tl;tz*=lq/tl;}}
     const ac=vise?B9.pousse*Math.min(1,Math.abs(BURN.yawV)/4):0,ax=Math.sin(BURN.yaw)*ac,az=Math.cos(BURN.yaw)*ac,om=B9.om,ze=B9.ze;
-    for(let i=0;i<n;i++){BURN.qvx+=(om*om*(tx-BURN.qx)-2*ze*om*BURN.qvx+ax)*h;BURN.qvz+=(om*om*(tz-BURN.qz)-2*ze*om*BURN.qvz+az)*h;BURN.qx+=BURN.qvx*h;BURN.qz+=BURN.qvz*h;}}
+    const fx=Math.sin(BURN.yaw),fz=Math.cos(BURN.yaw);
+    for(let i=0;i<n;i++){BURN.qvx+=(om*om*(tx-BURN.qx)-2*ze*om*BURN.qvx+ax)*h;BURN.qvz+=(om*om*(tz-BURN.qz)-2*ze*om*BURN.qvz+az)*h;
+      if(vise){const vf=BURN.qvx*fx+BURN.qvz*fz;if(vf<0){BURN.qvx-=vf*fx;BURN.qvz-=vf*fz;}                 // elle ne RECULE jamais : ce qui partirait vers son arrière est perdu (elle glisse de côté, ou avance)
+        const vq=Math.hypot(BURN.qvx,BURN.qvz);if(vq>B9.vmax){BURN.qvx*=B9.vmax/vq;BURN.qvz*=B9.vmax/vq;}}
+      BURN.qx+=BURN.qvx*h;BURN.qz+=BURN.qvz*h;}}
   if(BURN.yaw||BURN.pivK>=.001){
-    const y=BURN.yaw,dz=BURN.drz,sl=Math.max(-DON_PIV.glisse,Math.min(DON_PIV.glisse,BURN.yawV*DON_PIV.kGlisse))*BURN.pivK;
+    const y=BURN.yaw,dz=BURN.drz,sl=-Math.max(-DON_PIV.glisse,Math.min(DON_PIV.glisse,BURN.yawV*DON_PIV.kGlisse))*BURN.pivK; // (2026-10-08, Léo : « faut pas qu'elle recule ») la glisse de l'AUTRE côté du pivot : avant, ce décalage qui tourne avec la caisse la faisait partir EN MARCHE ARRIÈRE autour du cercle (glisse × rotation : 5,6 m/s en arrière à 10 rad/s) ; de ce côté-ci elle AVANCE et c'est l'arrière qui décroche — un vrai donut
     let cx=BURN.pivK*(BURN.qx-dz*Math.sin(y))+Math.cos(y)*sl,cz=BURN.pivK*(BURN.qz+dz*(1-BURN.donM)-dz*Math.cos(y))-Math.sin(y)*sl; // le pivot : devant la caisse (le dérapage), au centre du plateau (le donut) — et là où la balade l'a emmené
     const c=Math.hypot(cx,cz),f9=burnBord(cx,cz,y);if(f9<1){cx*=f9;cz*=f9; // jamais hors du disque — ses QUATRE COINS (pas le cercle qui l'entoure : de côté elle va ~2,5 m au lieu de 1,74) : elle RENCONTRE le bord
       const ux=cx/Math.max(1e-6,c*f9),uz=cz/Math.max(1e-6,c*f9),vr=BURN.qvx*ux+BURN.qvz*uz;if(vr>0){const k9=1+BURN_BALADE.rebond;BURN.qvx-=k9*vr*ux;BURN.qvz-=k9*vr*uz;}
       const ex=c*(1-f9)/Math.max(.05,BURN.pivK);BURN.qx-=ux*ex*.5;BURN.qz-=uz*ex*.5;} // (et la balade n'insiste pas dehors)
+    if(BURN.mes&&BURN.on){const M=BURN.mes;if(M.px!=null&&dt>0){const ym=M.py+Math.atan2(Math.sin(y-M.py),Math.cos(y-M.py))/2,vx=(cx-M.px)/dt,vz=(cz-M.pz)/dt,vf=vx*Math.sin(ym)+vz*Math.cos(ym),v=Math.hypot(vx,vz); // (le banc) recule-t-elle ? est-ce brutal ?
+      M.n++;M.rec+=Math.max(0,-vf);M.recMax=Math.max(M.recMax,-vf);M.v+=v;M.vMax=Math.max(M.vMax,v);if(M.pv!=null)M.a.push(Math.hypot(vx-M.pvx,vz-M.pvz)/dt);M.pv=v;M.pvx=vx;M.pvz=vz;}M.px=cx;M.pz=cz;M.py=y;}
     const r=garRot(),cr=Math.cos(r),sr=Math.sin(r);
     carGroup.rotation.y+=y;carGroup.position.x+=cx*cr+cz*sr;carGroup.position.z+=-cx*sr+cz*cr;}
   if(GAR.go||(!BURN.on&&BURN.pivK<.01&&Math.abs(BURN.yawV)<.02)){ // APRÈS l'avoir posée : le cap est versé dans le plateau (à l'image suivante, rien ne saute)
@@ -40104,6 +40110,7 @@ window.dbgBurn=function(s,a,b){
       if(G){const c=Math.cos(carGroup.rotation.y),sn=Math.sin(carGroup.rotation.y),lx=dx*c-dz*sn,lz=dx*sn+dz*c;if(Math.abs(lx)<G.b&&Math.abs(lz)<G.a&&F.P[j+1]<p.y+(G.H||1.3))dans++;}}
     const pc=GAR.pod?GAR.pod.getWorldPosition(new THREE.Vector3()):p;let nj=0,ar=0,co=0;{const c=Math.cos(carGroup.rotation.y),sn=Math.sin(carGroup.rotation.y);if(F)for(let i=0;i<F.N;i++){if(F.age[i]>=F.life[i]||F.age[i]>1.2)continue;const j=i*3,vlx=F.V[j]*c-F.V[j+2]*sn,vlz=F.V[j]*sn+F.V[j+2]*c;nj++;ar+=-vlz;co+=Math.abs(vlx);}}
     return {proches:n,tourne:n?+(vt/n).toFixed(2):0,dansLaCaisse:dans,w:+BURN.yawV.toFixed(2),jeunes:nj,versArriere:nj?+(ar/nj).toFixed(2):0,surLeCote:nj?+(co/nj).toFixed(2):0,brusques:BURN.brusque|0,vivantes:F?F.n:0,horizon:+(BURN.hor||0).toFixed(1),ecart:+Math.hypot(p.x-pc.x,p.z-pc.z).toFixed(2)};}
+  if(s==='mesure'){if(a){BURN.mes={n:0,rec:0,recMax:0,v:0,vMax:0,a:[],px:null};return 'go';}const M=BURN.mes;if(!M||!M.n)return null;const A=M.a.slice().sort(function(x,y){return x-y;});BURN.mes=null;return {recul:+(M.rec/M.n).toFixed(2),reculMax:+M.recMax.toFixed(2),vit:+(M.v/M.n).toFixed(2),vitMax:+M.vMax.toFixed(2),acc90:Math.round(A[(A.length*.9)|0]||0),images:M.n};}
   if(s==='balade'){if(a!=null)BURN_BALADE.suit=+a;if(b!=null)BURN_BALADE.pousse=+b;return Object.assign({},BURN_BALADE);} // (le banc) régler la balade à chaud : dbgBurn('balade',0,0) = le pivot fixe d'avant
   if(s==='tourne'){if(!garAtelierLibre())return 'atelier pas libre';if(!BURN.on)burnPart();BURN.bouge=true;BURN.auto=b>0?+b:3;BURN.autoW=a!=null?+a:3;} // un doigt qui tourne sans doigt : a rad/s pendant b secondes
   if(s>0){if(!garAtelierLibre())return 'atelier pas libre';burnPart();BURN.auto=+s;BURN.autoW=0;}
