@@ -30787,8 +30787,11 @@ const INSTRU_TENIR=.22;
    turbo) · nitrooo0 (les sons de NITROOO muets). */
 const INSTRU_MEL=false; // (2026-10-03, Léo : « j'aime que la partie qui fait ding ding ding ; il y en a une autre, assourdissante, qui ne colle pas à la musique, retire-la ») : la MÉLODIE (Rhodes dans la salle, puis étincelle) est retirée — il ne reste que le TING de l'arpège
 const BTEST=(function(){try{return new URLSearchParams(location.search).get('boost')||'';}catch(e){return '';}})();
-function instruMusiqueOk(){ // la phrase du boost n'existe que sur la musique pour laquelle elle est dessinée : CIEL · NIVEAU 1 à 5
-  return !!(musicEl&&musicEl.src&&/\/ciel-n[1-5]\.m4a/.test(musicEl.src));
+function instruMusiqueOk(){ // la phrase du boost n'existe que sur la musique pour laquelle elle est dessinée : le CIEL (niveaux 1 à 5, et le morceau entier)
+  /* (2026-10-08, Léo : « les boosts n'ont plus leur musique ») depuis 822cdf9, PLAY lance la partie SANS FIN, qui joue le CIEL ENTIER
+     (`ciel-complet.m4a`, MUSIC_CIEL_TOUT) : le garde-fou ne connaissait que ciel-n1…n5, la phrase se taisait à chaque boost. Le morceau
+     entier a sa fiche dans harmonie.js (tempo, notes temps par temps) : la phrase y reste accordée comme sur les niveaux. */
+  return !!(musicEl&&musicEl.src&&/\/ciel-(n[1-5]|complet)\.m4a/.test(musicEl.src));
 }
 function instruOn(){
   if(!INSTRU.on||!AC||!SND.sfx||(AC.state!=='running'&&!INSTRU.essai)||paused)return; // (2026-10-03, Léo) un VRAI appui pendant le boost de départ lance la phrase (le départ seul, lui, ne la lance jamais : elle lit le doigt)
