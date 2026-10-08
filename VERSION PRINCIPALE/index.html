@@ -39600,7 +39600,7 @@ function invHoldFin(){if(!INV||!INV.hold)return;INV.hold=null;cancelAnimationFra
    · LES DONUTS (voir LE DOIGT QU'ELLE SUIT, plus bas) : le doigt qui tourne autour d'elle la fait tourner tour pour tour, un petit cercle
      n'importe où aussi (à la vitesse du doigt) ; le ressort d'origine les suit ; en donut le pivot glisse au milieu du plateau, la vue
      recule pour le cadrer ; « DONUT ×n » et un anneau de fumée à chaque tour ;
-   · QUELQUES CUBES BLANCS (`burnCubes`) : de petits cubes pixel blancs, translucides, dans la fumée ;
+   · LE VOLUME DE LA FUMÉE (`burnCubes`) : chaque bouffée en pixels porte en elle quelques petits cubes, à sa couleur et sa transparence ;
    · ce qui a été réglé depuis et qui n'est ni la fumée ni le mouvement : 0,8 s de maintien (`BURN_TENU`), le pouce qui peut glisser
      pendant la charge (`BURN_GLISSE`), « PAS ENCORE À TOI », la console de Sacha (`garAtelierLibre`), les feux stop, les pixels du chat.
    Tout le reste du burn-out d'après le 05/10 (fumée en volumes puis en cubes, voile, jet sous la roue, poids, flou des roues…) est dans
@@ -39704,7 +39704,7 @@ function burnPools(){ // les réservoirs (la fumée en pixels, le feu, les pixel
   if(!BURN.fum){BURN.fum=burnPool(320,false,BURN_FS_FUM);BURN.feu=burnPool(180,true,BURN_FS_FEU);}
   if(!BURN.pix){BURN.pix=burnPool(520,true,BURN_FS_FEU);BURN.pix.arc=true;} // (2026-10-06) les PIXELS du chat pop-tart (voir NY_PIX)
   burnCubesInit();
-  return [BURN.fum.o,BURN.feu.o,BURN.pix.o,BURN.gr.im];
+  return [BURN.fum.o,BURN.feu.o,BURN.pix.o].concat(BURN.gr.M);
 }
 function burnPrepare(){ // à chaque départ : les essieux de l'arrière, les pneus, les pots — la caisse a pu changer
   burnPools();
@@ -39778,7 +39778,7 @@ function burnCoupe(){ // l'atelier se ferme : silence, plus rien à l'écran
   if(BURN.yaw){garageAng-=BURN.yaw;GAR.podSpin=(GAR.podSpin||0)-BURN.yaw;}BURN.yaw=BURN.yawV=BURN.cib=BURN.pivK=0;
   BURN.don=BURN.donK=BURN.donM=BURN.acc=BURN.n=BURN.cad=BURN.feuxK=0;const bt=document.getElementById('gBurnTxt');if(bt)bt.classList.remove('on','on2');
   for(const F of [BURN.fum,BURN.feu,BURN.pix])if(F){F.age.fill(1e9);burnPas(F,0,0);F.o.visible=false;}
-  if(BURN.gr){BURN.gr.age.fill(1e9);BURN.gr.im.count=0;BURN.gr.im.visible=false;}
+  if(BURN.gr)for(const im of BURN.gr.M){im.count=0;im.visible=false;}
   if(BURN.corps){carBody.rotation.set(0,0,0);carBody.position.set(0,0,0);BURN.corps=false;}
   if(AC&&BURN.son){const T=AC.currentTime;stt(gainN.gain,0,T,.06);stt(engLfoG.gain,0,T,.06);if(skidG)stt(skidG.gain,0,T,.05);BURN.son=false;}
 }
@@ -39862,36 +39862,36 @@ function burnTours(dt){ // compte les tours complets du donut (dans un sens : re
 }
 Object.assign(I18N,{'DONUT !':'DONUT!','TOURNE AUTOUR · DONUT':'CIRCLE AROUND · DONUT'});
 Object.assign(I18N_ZH,{'DONUT !':'甜甜圈！','TOURNE AUTOUR · DONUT':'绕圈 · 甜甜圈'});
-/* QUELQUES CUBES BLANCS (2026-10-08, Léo : « si tu y arrives, intègre quelques cubes blancs comme tu as fait là ») : de petits cubes pixel
-   BLANCS, translucides (8-13 cm, ombrés comme les flammes de la porte : dessus clair, flancs, dessous sombre — la même matière, rien de
-   compilé), posés sur une grille de 10 cm. Ils naissent aux pneus et DANS la fumée en pixels (sur une bouffée vivante, avec sa vitesse),
-   montent avec elle et fondent par crans. Quelques-uns : ~14 par seconde au plus fort. */
+/* LE VOLUME DE LA FUMÉE (2026-10-08, Léo : « les cubes blancs ne doivent pas être une entité séparée de la première fumée : qu'ils
+   l'ENRICHISSENT, pour lui donner du volume — sinon ça fait deux fumées différentes ; une seule, avec les deux »). Les cubes n'ont plus de
+   vie à eux : chaque image, chaque BOUFFÉE en pixels vivante porte en elle `BURN_CUB.par` petits cubes — placés DANS sa boule (des
+   écarts tirés de sa graine, donc fixes pour elle : ils bougent avec elle), à SA couleur (le rose de la porte, le bleu du plateau au ras du
+   sol compris), à SA transparence (une bande d'opacité par cran de son alpha) et à sa taille (un cinquième de la bouffée, ≤ 30 cm, sur une
+   grille de 6 cm : des pixels en volume) ; quand la bouffée s'ÉMIETTE case par case, ses cubes s'en vont avec elle, par la même règle
+   (hachage < âge² × ,9). Ombrés comme les flammes de la porte (dessus clair, flancs, dessous sombre) : la lumière d'en haut de la fumée.
+   La même matière que les cubes de la porte : rien de compilé. */
+const BURN_CUB={par:3,N:700,bandes:[.36,.26,.18,.12,.07],seuils:[.27,.19,.13,.085,.045],taille:[.24,.19,.15]};
 function burnCubesInit(){
-  if(BURN.gr)return;const N=160,bx=new THREE.BoxGeometry(1,1,1),ps=bx.attributes.position,nm=bx.attributes.normal,cl=new Float32Array(ps.count*3);
-  for(let i=0;i<ps.count;i++){const v=nm.getY(i)>.5?1:nm.getY(i)<-.5?.56:Math.abs(nm.getX(i))>.5?.76:.88;cl[i*3]=cl[i*3+1]=cl[i*3+2]=v;}
+  if(BURN.gr)return;const bx=new THREE.BoxGeometry(1,1,1),ps=bx.attributes.position,nm=bx.attributes.normal,cl=new Float32Array(ps.count*3);
+  for(let i=0;i<ps.count;i++){const v=nm.getY(i)>.5?1.06:nm.getY(i)<-.5?.6:Math.abs(nm.getX(i))>.5?.8:.9;cl[i*3]=cl[i*3+1]=cl[i*3+2]=v;}
   bx.setAttribute('color',new THREE.BufferAttribute(cl,3));
-  const im=new THREE.InstancedMesh(bx,new THREE.MeshBasicMaterial({vertexColors:true,fog:false,toneMapped:false,transparent:true,opacity:.55,depthWrite:false}),N);
-  im.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(N*3),3);im.count=0;im.frustumCulled=false;im.renderOrder=8;im.visible=false;scene.add(im);
-  BURN.gr={im:im,N:N,P:new Float32Array(N*3),V:new Float32Array(N*3),age:new Float32Array(N).fill(1e9),life:new Float32Array(N).fill(1),s:new Float32Array(N),i:0,t:0,m:new THREE.Matrix4()};
+  const M=[];for(const op of BURN_CUB.bandes){const im=new THREE.InstancedMesh(bx,new THREE.MeshBasicMaterial({vertexColors:true,fog:false,toneMapped:false,transparent:true,opacity:op,depthWrite:false}),BURN_CUB.N);
+    im.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(BURN_CUB.N*3),3);im.count=0;im.frustumCulled=false;im.renderOrder=8;im.visible=false;scene.add(im);M.push(im);}
+  BURN.gr={M:M,n:new Int32Array(M.length),m:new THREE.Matrix4()};
 }
-function burnCubes(dt,t){
-  const G=BURN.gr,F=BURN.fum;if(!G)return;
-  if(dt>0&&!GAR.go&&F){G.t+=dt*(BURN.k*14+Math.min(3,F.n/90));
-    while(G.t>=1){G.t-=1;let x,y,z,vx,vy,vz;
-      if(Math.random()<.5&&F.n){const q=(Math.random()*F.N)|0;if(!(F.age[q]<F.life[q]&&F.age[q]>.4))continue;const j=q*3; // dans la fumée, avec elle
-        x=F.P[j]+(Math.random()-.5)*.6;y=F.P[j+1]+(Math.random()-.5)*.4;z=F.P[j+2]+(Math.random()-.5)*.6;vx=F.V[j];vy=F.V[j+1];vz=F.V[j+2];}
-      else if(BURN.k>.05&&BURN.roues.length){const r=BURN.roues[(Math.random()*BURN.roues.length)|0],o=burnMonde(r.x+(Math.random()-.5)*r.l,r.y+.1,r.z-r.R*.5,BURN.q),ry=carGroup.rotation.y,v=1+Math.random()*1.5; // aux pneus
-        x=o.x;y=o.y;z=o.z;vx=-Math.sin(ry)*v+(Math.random()-.5);vy=.25+Math.random()*.45;vz=-Math.cos(ry)*v+(Math.random()-.5);}
-      else continue;
-      const i=G.i;G.i=(G.i+1)%G.N;const j=i*3;G.P[j]=x;G.P[j+1]=y;G.P[j+2]=z;G.V[j]=vx;G.V[j+1]=vy;G.V[j+2]=vz;G.age[i]=0;G.life[i]=2.5+Math.random()*2.5;G.s[i]=.08+Math.random()*.05;}}
-  const ay=GARAGE_Y,yMax=ay+GAR.H-.45,dr=Math.exp(-dt*1.15),m=G.m,col=G.im.instanceColor.array;let n=0;
-  for(let i=0;i<G.N;i++){if(G.age[i]>=G.life[i])continue;const j=i*3,a=G.age[i]+=dt,g=a/G.life[i];if(g>=1)continue;
-    let vx=G.V[j]*dr,vy=G.V[j+1],vz=G.V[j+2]*dr;vy+=(.38-vy)*Math.min(1,dt*.7);vx+=Math.sin(t*.8+i)*.34*dt;vz+=Math.cos(t*.67+i*.37)*.34*dt; // comme la fumée : elle monte, elle tourbillonne
-    let x=G.P[j]+vx*dt,y=Math.min(yMax,Math.max(ay+.04,G.P[j+1]+vy*dt)),z=G.P[j+2]+vz*dt;G.P[j]=x;G.P[j+1]=y;G.P[j+2]=z;G.V[j]=vx;G.V[j+1]=vy;G.V[j+2]=vz;
-    const S=G.s[i]*(g>.65?(g>.85?.45:.72):1);                             // il FOND par crans
-    m.makeScale(S,S,S);const e=m.elements;e[12]=Math.round(x/.1)*.1;e[13]=Math.round(y/.1)*.1;e[14]=Math.round(z/.1)*.1;G.im.setMatrixAt(n,m); // sur la grille de 10 cm : il saute de case en case
-    col[n*3]=col[n*3+1]=1.22;col[n*3+2]=1.25;n++;}
-  G.im.count=n;G.im.visible=n>0;if(n){G.im.instanceMatrix.needsUpdate=true;G.im.instanceColor.needsUpdate=true;}
+function burnCubes(){ // chaque image : les cubes DE la fumée, tirés des bouffées vivantes
+  const G=BURN.gr,F=BURN.fum;if(!G)return;const Q=BURN_CUB,n=G.n,m=G.m,nb=G.M.length,y0=GARAGE_Y;n.fill(0);
+  if(F&&F.o.visible){const sd=F.g.attributes.iSd.array;
+    for(let i=0;i<F.N;i++){if(F.age[i]>=F.life[i])continue;const A=F.A[i];let b=-1;for(let q=0;q<nb;q++)if(A>Q.seuils[q]){b=q;break;}if(b<0)continue;
+      const j=i*3,s=F.S[i],g=F.G[i],q=sd[i],yb=Math.max(0,Math.min(1,1-(F.P[j+1]-y0)/1.7))*.28;
+      const r=F.C[j]+(.34-F.C[j])*yb,gg=F.C[j+1]+(.8-F.C[j+1])*yb,bl=F.C[j+2]+(1-F.C[j+2])*yb; // sa couleur (au ras du sol, le bleu du plateau)
+      for(let c=0;c<Q.par;c++){let h=Math.sin(q*91.7+c*12.9898)*43758.5453;h-=Math.floor(h);if(h<g*g*.9)continue; // il s'émiette AVEC elle
+        const a1=q*6.283+c*2.094,rr=s*(.08+.17*((h*7.3)%1)),S=Math.min(.3,s*Q.taille[c]),gp=.06;
+        const x=F.P[j]+Math.cos(a1)*rr,y=F.P[j+1]+(((h*3.1)%1)-.45)*s*.3,z=F.P[j+2]+Math.sin(a1)*rr;
+        const bb=Math.min(nb-1,b+(c>1?1:0)),im=G.M[bb],k=n[bb];if(k>=Q.N)continue;            // le plus petit, un cran plus pâle
+        m.makeScale(S,S,S);const e=m.elements;e[12]=Math.round(x/gp)*gp;e[13]=Math.round(y/gp)*gp;e[14]=Math.round(z/gp)*gp;im.setMatrixAt(k,m);
+        const ca=im.instanceColor.array;ca[k*3]=r;ca[k*3+1]=gg;ca[k*3+2]=bl;n[bb]=k+1;}}}
+  for(let b=0;b<nb;b++){const im=G.M[b];im.count=n[b];im.visible=n[b]>0;if(n[b]){im.instanceMatrix.needsUpdate=true;im.instanceColor.needsUpdate=true;}}
 }
 function burnTick(dt){ // chaque image du garage (après la pose de la caisse, avant la caméra)
   const now=performance.now(),t=now*.001;
@@ -39936,7 +39936,7 @@ function burnTick(dt){ // chaque image du garage (après la pose de la caisse, a
   while(BURN.pops.length&&now>=BURN.pops[0]){BURN.pops.shift();burnPop(.8);try{if(sfxOk()){const e=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0];crackle(Math.max(.35,e.crk));}}catch(_){}}
   if(BURN.fum)BURN.fum.o.material.uniforms.uPx.value=Math.max(2,Math.round(5*renderer.getPixelRatio()));
   for(const F of [BURN.fum,BURN.feu,BURN.pix])if(F&&F.o.visible)burnPas(F,dt,t);
-  try{burnCubes(dt,t);}catch(e){if(!burnTick._c){burnTick._c=1;console.warn('burn-out : cubes',e);}} // quelques cubes blancs
+  try{burnCubes();}catch(e){if(!burnTick._c){burnTick._c=1;console.warn('burn-out : cubes',e);}} // le VOLUME de la fumée : ses cubes
   try{burnGomme(dt);}catch(e){}
   try{burnSon(dt);}catch(e){if(!burnTick._w){burnTick._w=1;console.warn('burn-out : son',e);}}
 }
@@ -39990,7 +39990,7 @@ window.dbgBurn=function(s,a,b){
   if(s>0){if(!garAtelierLibre())return 'atelier pas libre';burnPart();BURN.auto=+s;BURN.autoW=0;}
   return {on:BURN.on,k:+BURN.k.toFixed(2),t:+BURN.t.toFixed(2),chaud:+BURN.chaud.toFixed(2),rpm:+BURN.rpm.toFixed(2),fumee:BURN.fum?BURN.fum.n:0,feu:BURN.feu?BURN.feu.n:0,
     essieuxAr:BURN.ar.length,roues:BURN.roues.length,cap:+BURN.yaw.toFixed(2),cib:+BURN.cib.toFixed(2),w:+BURN.yawV.toFixed(2),donut:+BURN.don.toFixed(2),donM:+BURN.donM.toFixed(2),tours:BURN.n,
-    pivot:+BURN.pivK.toFixed(2),cad:+BURN.cad.toFixed(2),centre:[Math.round(BURN.scx),Math.round(BURN.scy)],geste:{tourne:+BURN.kc.toFixed(2),ailleurs:+BURN.mc.toFixed(2)},cubes:BURN.gr?BURN.gr.im.count:0,gomme:!!(BURN.gom&&BURN.gom.sale),plateau:+(GAR.platW||0).toFixed(2),doigt:GAR.doigt||null,son:BURN.son};
+    pivot:+BURN.pivK.toFixed(2),cad:+BURN.cad.toFixed(2),centre:[Math.round(BURN.scx),Math.round(BURN.scy)],geste:{tourne:+BURN.kc.toFixed(2),ailleurs:+BURN.mc.toFixed(2)},cubes:BURN.gr?BURN.gr.M.reduce(function(a,im){return a+im.count;},0):0,gomme:!!(BURN.gom&&BURN.gom.sale),plateau:+(GAR.platW||0).toFixed(2),doigt:GAR.doigt||null,son:BURN.son};
 };
 /* ===== LE BOUTON ROUGE ET SES OUTILS (2026-10-05, Léo : « enlève le bouton coffre ; mets un bouton rouge sur la plateforme qui tourne, à
    côté de la voiture ; quand on appuie, de chaque côté, différents outils se mettent à côté et construisent directement les objets qu'on a
