@@ -40038,7 +40038,7 @@ function burnTick(dt){ // chaque image du garage (après la pose de la caisse, a
    restait au milieu). Désormais il n'y glisse qu'au quart (`DON_PIV.donMax`), la vitesse la pousse un peu plus dehors (`glisse` ,35 → ,55 m),
    et la vue recule d'après l'état « donut » (`donH`) pour la garder dans le cadre (`BURN.Rs`). La borne du disque reste (4,3 m − son rayon). */
 const DON_PIV={donMax:.25,glisse:.55,kGlisse:.16};
-const BURN_RESSORT={om:9,ze:.5};
+const BURN_RESSORT={om:8,ze:.5};
 /* LA CAISSE SE BALADE (2026-10-08, Léo : « quand on le fait vite, ça fait un peu générique, un peu la même chose » · « la voiture ne se
    balade plus assez avec le burn-out »). MESURÉ avant : six gestes rapides (cercle, petits cercles, zigzag, huit, fouet, gribouillis) — la
    caisse tournait autour d'un pivot FIXE (,9 m devant elle) et touchait chaque fois le même bord (1,74 m du centre) : un seul cercle,
@@ -40047,12 +40047,12 @@ const BURN_RESSORT={om:9,ze:.5};
    POUSSENT dans son axe d'autant plus qu'elle tourne (`pousse` m/s², pleine à 4 rad/s) : le donut MARCHE, il ne reste plus sur place ;
    (3) au bord du plateau elle RENCONTRE le bord, y perd sa vitesse vers l'extérieur et en rebondit un peu (`rebond`). Tenue sans bouger :
    elle reste sur place (le burn-out d'origine). Lâchée : elle revient au centre avec le reste (`pivK`). */
-const BURN_BALADE={suit:.4,om:3.2,ze:.8,pousse:2.2,rebond:0,bord:4.3,vmax:2.2}; // (même soir, Léo : « faut pas qu'elle recule non plus, là c'est trop violent ») ω 4,2 → 3,2, ζ ,5 → ,8 (plus de dépassement), suit ,5 → ,4, pousse 3,2 → 2,2, plus de rebond, vitesse ≤ 2,2 m/s — et JAMAIS vers l'arrière de la caisse
+const BURN_BALADE={suit:.33,om:2.9,ze:.8,pousse:2.2,rebond:0,bord:4.3,vmax:2.2}; // (même soir, Léo : « faut pas qu'elle recule non plus, là c'est trop violent ») ω 4,2 → 3,2, ζ ,5 → ,8 (plus de dépassement), suit ,5 → ,4, pousse 3,2 → 2,2, plus de rebond, vitesse ≤ 2,2 m/s — et JAMAIS vers l'arrière de la caisse ; puis (« le juste milieu ») suit ,4 → ,33, ω 3,2 → 2,9 : elle chasse un peu moins le doigt, un peu plus lourde
 function burnBord(cx,cz,y){ // de combien rapprocher le centre (cx, cz) pour que les 4 coins de la caisse (cap y) restent à `bord` m du centre du plateau
   const a=BURN.ga||2.2,b=BURN.gb||1,R=BURN_BALADE.bord,co=Math.cos(y),si=Math.sin(y);
   const loin=function(f){let m=0;for(let i=0;i<4;i++){const x=(i&1?b:-b),z=(i&2?a:-a),px=f*cx+x*co+z*si,pz=f*cz-x*si+z*co,d=px*px+pz*pz;if(d>m)m=d;}return Math.sqrt(m);};
   if(loin(1)<=R)return 1;if(loin(0)>R)return 0;let lo=0,hi=1;for(let k=0;k<9;k++){const md=(lo+hi)/2;if(loin(md)<=R)lo=md;else hi=md;}return lo;
-} // (2026-10-08, Léo : « la voiture qui suit encore un peu plus ») le ressort qui tire la caisse vers le doigt, ω 7 → 9 : MESURÉ, un doigt qui tourne à 3 rad/s la traînait de 27° (48° à 6 rad/s) — désormais ~20° (~37°), la mise en route plus vive ; même amorti (ζ ,5 : elle dépasse un peu, ça glisse)
+} // (2026-10-08, Léo : « la voiture qui suit encore un peu plus ») le ressort qui tire la caisse vers le doigt, ω 7 → 9 : MESURÉ, un doigt qui tourne à 3 rad/s la traînait de 27° (48° à 6 rad/s) — à ω 9, ~20° (~33°) ; puis (même soir, Léo : « ça suit presque TROP — le juste milieu entre satisfaisant et maniable ») ω 8 : le juste milieu entre 7 et 9 ; même amorti (ζ ,5 : elle dépasse un peu, ça glisse)
 function burnDerape(dt){
   const d9=Math.min(dt,.1),n=Math.max(1,Math.ceil(d9/.008)),h=d9/n,om=BURN_RESSORT.om,ze=BURN_RESSORT.ze;
   for(let i=0;i<n;i++){BURN.yawV+=(om*om*(BURN.cib-BURN.yaw)-2*ze*om*BURN.yawV)*h;BURN.yaw+=BURN.yawV*h;}
@@ -40111,6 +40111,7 @@ window.dbgBurn=function(s,a,b){
     const pc=GAR.pod?GAR.pod.getWorldPosition(new THREE.Vector3()):p;let nj=0,ar=0,co=0;{const c=Math.cos(carGroup.rotation.y),sn=Math.sin(carGroup.rotation.y);if(F)for(let i=0;i<F.N;i++){if(F.age[i]>=F.life[i]||F.age[i]>1.2)continue;const j=i*3,vlx=F.V[j]*c-F.V[j+2]*sn,vlz=F.V[j]*sn+F.V[j+2]*c;nj++;ar+=-vlz;co+=Math.abs(vlx);}}
     return {proches:n,tourne:n?+(vt/n).toFixed(2):0,dansLaCaisse:dans,w:+BURN.yawV.toFixed(2),jeunes:nj,versArriere:nj?+(ar/nj).toFixed(2):0,surLeCote:nj?+(co/nj).toFixed(2):0,brusques:BURN.brusque|0,vivantes:F?F.n:0,horizon:+(BURN.hor||0).toFixed(1),ecart:+Math.hypot(p.x-pc.x,p.z-pc.z).toFixed(2)};}
   if(s==='mesure'){if(a){BURN.mes={n:0,rec:0,recMax:0,v:0,vMax:0,a:[],px:null};return 'go';}const M=BURN.mes;if(!M||!M.n)return null;const A=M.a.slice().sort(function(x,y){return x-y;});BURN.mes=null;return {recul:+(M.rec/M.n).toFixed(2),reculMax:+M.recMax.toFixed(2),vit:+(M.v/M.n).toFixed(2),vitMax:+M.vMax.toFixed(2),acc90:Math.round(A[(A.length*.9)|0]||0),images:M.n};}
+  if(s==='ressort'){if(a!=null)BURN_RESSORT.om=+a;if(b!=null)BURN_RESSORT.ze=+b;return Object.assign({},BURN_RESSORT);} // (le banc) le ressort du doigt à chaud
   if(s==='balade'){if(a!=null)BURN_BALADE.suit=+a;if(b!=null)BURN_BALADE.pousse=+b;return Object.assign({},BURN_BALADE);} // (le banc) régler la balade à chaud : dbgBurn('balade',0,0) = le pivot fixe d'avant
   if(s==='tourne'){if(!garAtelierLibre())return 'atelier pas libre';if(!BURN.on)burnPart();BURN.bouge=true;BURN.auto=b>0?+b:3;BURN.autoW=a!=null?+a:3;} // un doigt qui tourne sans doigt : a rad/s pendant b secondes
   if(s>0){if(!garAtelierLibre())return 'atelier pas libre';burnPart();BURN.auto=+s;BURN.autoW=0;}

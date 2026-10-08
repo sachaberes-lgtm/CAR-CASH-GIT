@@ -144,6 +144,11 @@ LES BOUTONS DE SACHA ») : **PLAY/JOUER = la partie sans fin, et toucher un nive
   vitesse vers l'arrière de la caisse est perdue), plus douce (`BURN_BALADE` ω 3,2, ζ ,8, suit ,4, pousse 2,2, plus de rebond, ≤ 2,2 m/s).
   Recul moyen : cercle rapide 7,7 → 0 m/s, cercle lent ,38 → 0, doigt vers le haut ,56 → ,05 ; zigzag ,2 (pointes au changement de sens).
   sw.js → v182.
+- **LE JUSTE MILIEU** (même soir, Léo : « ça suit presque trop, cherche le juste milieu entre satisfaisant et maniable ») —
+  `BURN_RESSORT.om` 9 → 8 (entre l'ancien 7 et 9 : retard en régime 2ζW/ω ≈ 21° à 3 rad/s, contre 19° à 9 et 25° à 7), `BURN_BALADE`
+  suit ,4 → ,33, ω 3,2 → 2,9 (elle chasse un peu moins le doigt, un peu plus lourde). Toujours aucun recul (cercle, zigzag, lent : ≤ ,01 m/s
+  en moyenne). ⚠ Le banc headless est trop bruité pour départager 7/8/9 au degré près (mêmes réglages : 26-36°) : se fier au calcul.
+  `dbgBurn('ressort',om,ze)` règle à chaud. sw.js → v183.
 - Les réservoirs se créent dans `burnPools()`, appelé par la CHAUFFE DE L'ATELIER (`atelierChauffe` les compile avec lui : rien au 1er
   burn-out) et par l'atelier du bouton rouge (`atlTick`).
 - RETIRÉ (dans l'historique, dernier état `d6fea98`) : fumée en volumes/cubes de la porte, voile, jet sous la roue, poids (`DON_POIDS`),
