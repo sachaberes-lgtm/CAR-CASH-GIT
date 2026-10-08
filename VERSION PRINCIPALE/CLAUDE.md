@@ -33,6 +33,16 @@ ouverte (« voilà l'effet recherché, couleurs pareil, mais en mode GTR »).
   `cote2` lit aussi le chanfrein du bas de caisse). Grande OUVERTE : lèvre de PEAU blanche fondue dans la caisse, gencive rose en retrait,
   gorge rouge sombre et fond noir, trois rangées de crocs éparpillés (hasard fixe `hh`), aucun à cheval sur le coin, ceux du flanc à l'échelle.
 - LES YEUX : phares en amande effilés vers le nez, œil noir brillant + éclat, trait de LED (`lamps:0`, `halos:0` : ni boîte ni halo devant).
+- (v195, Léo : « plus ouverte, abuse — comme si la voiture était cassée, mais c'est une bouche ouverte ») LA MÂCHOIRE QUI SE FEND : tout
+  est construit fermé puis PLIÉ dans `P.done` (juste avant `K.commit`) — chaque sommet au-dessus de la fente (YS .52) et devant la charnière
+  (ZH 1.25) tourne autour de (YS, ZH), l'angle croissant de 0 à TH (.62 rad ≈ 35°) vers le nez : capot, museau, yeux, crocs du haut se
+  relèvent ; le bouclier et les crocs du bas restent. La face avant de la loft est sautée ('X') et reposée en deux plaques (`coupe`), une
+  CAVITÉ (plancher, palais, joues, fond noir `J`) se tend entre les mâchoires. Museau rond vu de dessus (XW .99 → .77, chanfreins `kn`),
+  le ROSTRE (une ogive grise / dessous blanc au-dessus de la gueule, pointée vers le bas au repos pour viser devant une fois pliée), les
+  yeux sur les côtés de la tête. (Léo : « des dents sur le côté de la mâchoire, cachées par du blanc parasite ») la peau étirée entre les
+  mâchoires (bandes j=2/3 devant z 1,9) devient l'intérieur rouge (`K`), et une rangée SERRÉE de crocs court le long des deux bords du
+  flanc (pas 6,2 cm + une petite rangée derrière) — ⚠ aucun croc ne passe la fente YS (le pli l'étirerait : `L` borné à yi − YS).
+  Il y a eu d'autres essais dans le maker (gorge en tube, croquis, grand blanc qui jaillit, refait de zéro) : Léo a choisi CELLE-CI.
 
 ## JOUER = LE MODE CLASSIQUE (2026-10-08, session GRAPHISME — Sacha : « maintenant quand on clique sur le bouton jouer on lance les niveaux au lieu de lancer le mode classique »)
 « LE NIVEAU DES PLAY » (Léo, 7/10, 3d72bd6 — plus bas) faisait lancer la carrière par le PLAY de l'accueil, le JOUER de l'atelier et celui

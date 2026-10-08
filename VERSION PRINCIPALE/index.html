@@ -20676,40 +20676,45 @@ SHAPES.atchoum=function(K){
      prise d'air derrière la roue avant), l'aileron arrière aux flasques en queue, le vernis dur (K.mats.p). */
 SHAPES.squale=function(K){
   const U=LPU,R=.41,ZF=1.40,ZR=-1.38,ZN=2.25,ZT=-2.25;
+  /* (2026-10-08, Léo : « la bouche plus ouverte, abuse encore plus — comme si la voiture était cassée, mais c'est une bouche ouverte »)
+     LA MÂCHOIRE : l'avant se FEND à hauteur de bouche (YS) — tout ce qui est au-dessus et devant la charnière (ZH) se relève en pliant comme
+     une tôle froissée (l'angle croît de 0 à TH vers le nez) : capot, museau, yeux, crocs du haut ; le bas (bouclier, crocs du bas) reste.
+     Ce qui chevauche la fente s'ÉTIRE (la peau des joues, la gorge) et une vraie CAVITÉ (plancher, palais, joues, fond de gorge) se tend
+     entre les deux mâchoires. Tout est construit fermé, puis plié d'un coup au moment de poser la caisse (voir P.done, avant K.commit). */
+  const YS=.52,ZH=1.25,TH=.62;
   const P=K.kit({p:{g:'p',c:0x5e666d,grad:[0x7e868c,0x5e666d,0x41484e]},b:{g:'p',c:0xf3f2ee,f:0},n:{g:'p',c:0x2a3036,f:0},
-    k:{g:'m',c:0x15171c},g:{g:'g',c:0x161c26},G:{g:'g',c:0x0b0c10},K:{g:'m',c:0x3a0a12},J:{g:'m',c:0x120306},R:{g:'p',c:0xd8707c,f:0},d:{g:'p',c:0xf5f2ea,f:0},e:{g:'p',c:0xe2d9c4,f:0},
+    k:{g:'m',c:0x15171c},g:{g:'g',c:0x161c26},G:{g:'g',c:0x0b0c10},K:{g:'m',c:0x3a0a12},J:{g:'m',c:0x120306},T:{g:'m',c:0x6e1a26},Q:{g:'m',c:0x4a1018},R:{g:'p',c:0xd8707c,f:0},d:{g:'p',c:0xf5f2ea,f:0},e:{g:'p',c:0xe2d9c4,f:0},
     W:{g:'l',c:0xfffdf7},I:{g:'g',c:0x050608},L:{g:'l',c:0xff2236},c:{g:'c',c:0xd9dde3}});
   const bosse=d=>Math.max(0,1-d*d);
   const T=z=>U.lin([[ZT,.92],[-2.18,1.02],[-1.95,1.06],[-1.55,1.09],[-1.05,1.31],[-.35,1.38],[.25,1.37],[.80,1.09],[1.0,1.08],[1.9,1.07],[2.15,1.06],[ZN,1.03]],z),
         Bt=z=>U.lin([[ZT,.86],[-1.9,1.0],[-1.3,1.0],[.8,1.02],[1.9,1.01],[ZN,.98]],z),
-        XW=z=>U.lin([[ZT,.90],[-2.0,1.0],[1.95,.99],[ZN,.88]],z)+.07*(bosse((z-ZF)/.66)+bosse((z-ZR)/.66)),
+        XW=z=>U.lin([[ZT,.90],[-2.0,1.0],[1.95,.99],[2.05,.96],[2.13,.91],[2.20,.84],[ZN,.77]],z)+.07*(bosse((z-ZF)/.66)+bosse((z-ZR)/.66)),
         YV=z=>U.lin([[ZT,.50],[-1.0,.54],[1.0,.60],[ZN,.66]],z);                                     // la ligne du VENTRE blanc
   const AR=[[0,2*R+.08],[R*.6,2*R+.05],[R*.95,R*1.35],[R+.12,.22]];
-  const zs=[ZT,-2.20,-2.18,-1.95,-1.75,-1.55,-1.30,-1.07,-1.05,-.87,-.85,-.6,-.35,-.27,-.17,.05,.25,.5,.66,.72,.80,1.0,1.3,1.6,1.9,2.05,2.15,2.21,ZN];
+  const zs=[ZT,-2.20,-2.18,-1.95,-1.75,-1.55,-1.30,-1.07,-1.05,-.87,-.85,-.6,-.35,-.27,-.17,.05,.25,.5,.66,.72,.80,1.0,1.3,1.6,1.9,2.0,2.05,2.10,2.13,2.17,2.20,2.225,ZN];
   for(const w of [ZF,ZR])for(const d of [R*.6,R*.95,R+.12])zs.push(w-d,w+d);
   zs.sort((a,b)=>a-b);
-  const S=z=>{const yb=U.arch(z,[ZF,ZR],AR,.22),xw=XW(z),t=T(z),b=Bt(z),h=Math.max(0,t-b-.03),g=Math.min(1,h/.2);
-    const y2=Math.max(yb+.07,.33),y3=Math.max(y2+.03,YV(z)),y4=Math.max(y3+.03,b);
-    return [[0,yb],[xw-.11,yb],[xw-.01,y2],[xw+.02,y3],[xw-.02,y4],[xw-.12,y4+.05],[xw-.21-.10*g,y4+.05+h*.62],[.60-.07*g,Math.max(t-.03*g,y4+.06)],[0,Math.max(t,y4+.06)+.015]];};
+  const S=z=>{const yb=U.arch(z,[ZF,ZR],AR,.22),xw=XW(z),t=T(z),b=Bt(z),h=Math.max(0,t-b-.03),g=Math.min(1,h/.2),kn=Math.max(0,Math.min(1,(z-1.9)/(ZN-1.9)));
+    const y2=Math.max(yb+.07,.33),y3=Math.max(y2+.03,YV(z)),y4=Math.max(y3+.03,b),ys=Math.min(y3,Math.max(y2,YS)),xs=xw-.01+.03*(ys-y2)/((y3-y2)||1);
+    return [[0,yb],[xw-.11-.10*kn,yb],[xw-.01-.03*kn,y2+.03*kn],[xs,ys],[xw+.02,y3],[xw-.02-.06*kn,y4-.03*kn],[xw-.12-.14*kn,y4+.05],[xw-.21-.10*g,y4+.05+h*.62],[.60-.07*g,Math.max(t-.03*g,y4+.06)],[0,Math.max(t,y4+.06)+.015]];};
   P.loft(zs,S,(j,z)=>{
+    if(j===-1)return 'X';                                                         // la face avant : posée à la main (la gueule s'ouvre au milieu)
     if(j<0)return 'p';
     if(j===0)return 'k';
-    if(j<=2)return 'b';                                                           // le VENTRE blanc
-    if(j<=4||z<=-1.55||z>=.80)return 'p';                                         // flancs, épaules, capot, malle
+    if((j===3||j===2)&&z>1.9)return 'K';                                                   // (Léo : « des dents sur le côté de la mâchoire, cachées par du blanc parasite ») la peau étirée entre les mâchoires = l'INTÉRIEUR de la gueule
+    if(j<=3)return 'b';                                                           // le VENTRE blanc (deux bandes : la fente passe entre elles)
+    if(j<=5||z<=-1.55||z>=.80)return 'p';                                         // flancs, épaules, capot, malle
     const pil=z>-.27&&z<-.17;                                                     // le montant du milieu
-    if(j===7)return ((z>.27&&z<.78)||(z<-1.07&&z>-1.53))?'g':'p';                 // pare-brise, lunette ; le toit
-    if(j===6)return (z>-.85&&z<.66&&!pil)?'g':'p';                                // la vitre, en haut…
+    if(j===8)return ((z>.27&&z<.78)||(z<-1.07&&z>-1.53))?'g':'p';                 // pare-brise, lunette ; le toit
+    if(j===7)return (z>-.85&&z<.66&&!pil)?'g':'p';                                // la vitre, en haut…
     return (z>-1.05&&z<.70&&!pil)?'g':'p';});                                     // …et en bas, qui va plus loin : le COUDE de la vitre arrière
   // ---- CE QUI SE POSE SUR LE FLANC (cases lues sur la section, décollées de 6 mm) ----
-  const cote=(z,y)=>{const q=S(z);if(y<q[2][1])return -1;for(let i=2;i<5;i++){const a=q[i],c=q[i+1];if(y<=c[1]){const t=(y-a[1])/((c[1]-a[1])||1);return a[0]+(c[0]-a[0])*t;}}return -1;};
+  const cote=(z,y)=>{const q=S(z);if(y<q[2][1])return -1;for(let i=2;i<6;i++){const a=q[i],c=q[i+1];if(y<=c[1]){const t=(y-a[1])/((c[1]-a[1])||1);return a[0]+(c[0]-a[0])*t;}}return -1;};
   const peint=(k,sd,z0,y0,c)=>{const q=[[z0,y0],[z0+c,y0],[z0+c,y0+c],[z0,y0+c]].map(([z,y])=>{const x=cote(z,y);return x<0?null:[sd*(x+.006),y,z];});
     if(q.some(v=>!v))return;if(sd>0){P.tri(k,q[0],q[2],q[1]);P.tri(k,q[0],q[3],q[2]);}else{P.tri(k,q[0],q[1],q[2]);P.tri(k,q[0],q[2],q[3]);}};
   for(const sd of [-1,1])for(let z=.12;z<.94;z+=.03)for(let y=.46;y<.98;y+=.03){const zc=z+.015,yc=y+.015; // LES OUÏES (la prise d'air derrière la roue avant)
     for(let i=0;i<5;i++){const z0=.82-i*.12,L9=.24+i*.045,d=zc-(z0-(yc-.52)*.25);if(Math.abs(d)<.032&&yc>.52-i*.01&&yc<.52+L9){peint('n',sd,z,y,.03);break;}}}
   for(const sd of [-1,1])for(let z=-1.62;z<.80;z+=.02)peint('c',sd,z,.935,.02);  // le jonc chromé sur la ligne de caisse
-  // ---- LA FACE AVANT : le VENTRE BLANC qui monte en pointe vers le museau ----
-  {const q=S(ZN),cut=.875,dr=[];for(let i=0;i<q.length;i++){const p=q[i];if(p[1]<=cut){dr.push(p);continue;}const a=q[i-1],t=(cut-a[1])/((p[1]-a[1])||1);dr.push([a[0]+(p[0]-a[0])*t,cut]);break;}
-   const pts=dr.concat([[.30,.88],[0,.925],[-.30,.88]],dr.slice(1).reverse().map(p=>[-p[0],p[1]]));P.plate('b',pts,.004,ZN);}
   // ---- LA GUEULE (même soir, Léo : « la bouche prend sur les côtés, pas un sourire, plus comme BAPE », puis « un peu buggée ; les dents
   //      encore plus requin, nombreuses, calées, éparpillées ») : une BANDE DROITE qui fait toute la face avant, tourne le coin et file sur
   //      les flancs jusqu'à l'aile avant en s'effilant. Tout est posé SUR la caisse le long de `s` : la face avant tant que |s| ≤ XF (le bord
@@ -20730,8 +20735,15 @@ SHAPES.squale=function(K){
   const bande=(k,f0,f1,off,sA,sB)=>{for(let a=sA;a<sB-1e-6;a+=st){const b=Math.min(sB,a+st);quad(k,srf(a,f0(a),off),srf(b,f0(b),off),srf(b,f1(b),off),srf(a,f1(a),off));}};
   const jupe=(k,f,off,sA,sB)=>{for(let a=sA;a<sB-1e-6;a+=st){const b=Math.min(sB,a+st);quad(k,srf(a,f(a),0),srf(b,f(b),0),srf(b,f(b),off),srf(a,f(a),off));}};
   const yH=x=>YC+HB(x),yL=x=>YC-HB(x),LV=.045;                                // (« exagère ») la lèvre JAILLIT de 9 cm
-  bande('K',yL,yH,.006,-SM,SM);                                                  // la gorge
-  bande('J',x=>yL(x)+GL+.045,x=>yH(x)-GL-.055,.007,-SM+.06,SM-.06);            // et son fond, plus noir : la gueule a de la PROFONDEUR
+  bande('K',yL,yH,.006,-SM,-XF);bande('K',yL,yH,.006,XF,SM);                    // la gorge des commissures (elle s'étire quand la gueule s'ouvre)
+  { // LA CAVITÉ, derrière la face : plancher (reste), palais (se relève), joues et fond de gorge (s'étirent entre les deux)
+    const xc=XF-.03,zf=ZN+.003,zb=1.96,yF=yL(0)+GL-.006,yR=yH(0)-GL+.006,NV=6;
+    quad('T',[-xc,yF,zb],[xc,yF,zb],[xc,yF,zf],[-xc,yF,zf]);                     // le plancher (la langue, les gencives du bas)
+    quad('Q',[-xc,yR,zf],[xc,yR,zf],[xc,yR,zb],[-xc,yR,zb]);                     // le palais
+    for(let v=0;v<NV;v++){const ya=yF+(yR-yF)*v/NV,yb9=yF+(yR-yF)*(v+1)/NV;
+      quad('J',[-xc,ya,zb],[xc,ya,zb],[xc,yb9,zb],[-xc,yb9,zb]);                 // le fond de la gorge
+      for(const e of [-1,1])quad('K',[e*xc,ya,zf],[e*xc,ya,zb],[e*xc,yb9,zb],[e*xc,yb9,zf]);} // les joues
+  }
   // LES CROCS (sous la lèvre) : place, taille, penchant tirés au hasard FIXE
   const hh=(i,k)=>{const v=Math.sin(i*12.9898+k*78.233)*43758.5453;return v-Math.floor(v);};
   const croc=(k,b0,b1,t,o0,oA)=>{const mx=(b0[0]+b1[0])/2,my=(b0[1]+b1[1])/2,A=srf(mx+(t[0]-mx)*.3,my+(t[1]-my)*.3,oA),B0=srf(b0[0],b0[1],o0),B1=srf(b1[0],b1[1],o0),T9=srf(t[0],t[1],o0+.006);
@@ -20739,17 +20751,32 @@ SHAPES.squale=function(K){
   const PAS=.13;
   for(let r=0;r<3;r++)for(let i=-11;i<=11;i++)for(const haut of [1,0]){        // (« exagère ») trois rangées · r=0 : les grands crocs devant · r=1 : la rangée de derrière, plus petite, entre eux
     const id=i*6+haut*3+r,big=1,c=(i+(haut?.5:0)+(r===1?.5:r===2?.25:0))*PAS+(hh(id,1)-.5)*.045;let w=(r===0?.085:r===1?.055:.035)*(.8+.45*hh(id,2))*big; // quelques ÉNORMES crocs parmi les autres
-    const ec=Math.abs(c)>XF?HB(c)/HB(0):1;w*=ec;                                // sur le flanc la gueule s'effile : les dents aussi (une grosse y paraissait de travers)
-    if(Math.abs(c)+w>SM-.035)continue;
+    const ec=Math.abs(c)>XF?.55+.45*HB(c)/HB(0):1;w*=ec;                        // sur le flanc la gueule s'effile ; les crocs du côté restent FRANCS (Léo : « rajoute des dents sur le côté »)
+    if(Math.abs(c)+w>SM-.035||Math.abs(c)>XF)continue;                           // (le flanc a sa propre rangée, plus serrée : voir plus bas)
     if(Math.abs(Math.abs(c)-XF)<w+.03)continue;                                  // (Léo : « une dent chelou sur les côtés ») aucune dent À CHEVAL sur le coin : elle s'y pliait en deux
-    const yi=haut?yH(c)-GL:yL(c)+GL,ou=yH(c)-yL(c)-2*GL,L=ou*(r===0?(haut?.37:.29):r===1?.22:.13)*(.78+.44*hh(id,3))*big*ec,pen=(hh(id,4)-.5)*w*(ec<1?.4:1.4); // (« ouvre un peu la bouche ») plus courts : la gueule béante entre eux — OUVERTE : les crocs du haut et du bas ne se touchent plus
+    const yi=haut?yH(c)-GL:yL(c)+GL,ou=yH(c)-yL(c)-2*GL,L=Math.min(ou*(r===0?(haut?.37:.29):r===1?.22:.13)*(.78+.44*hh(id,3))*big*ec,haut?yi-YS-.008:YS-yi-.008),pen=(hh(id,4)-.5)*w*(ec<1?.4:1.4); // (« ouvre un peu la bouche ») plus courts : la gueule béante entre eux — OUVERTE : les crocs du haut et du bas ne se touchent plus
     const yb=haut?yi+.022:yi-.022,yt=haut?yi-L:yi+L;
     croc(r?'e':'d',[c-w,yb],[c+w,yb],[c+pen,yt],r===0?.012:r===1?.009:.007,r===0?.046:r===1?.034:.022);} // (« merge ») ils restent DANS la bouche
+  // (Léo : « rajoute des dents sur le côté de la mâchoire ») LES CROCS DU CÔTÉ : une rangée serrée le long des deux bords du flanc, du coin
+  //   jusqu'au fond de la gueule, qui raccourcissent avec elle — et une petite rangée derrière ; aucun ne passe la fente (le pli l'étirerait)
+  for(const sd of [-1,1])for(let r=0;r<2;r++)for(let k=0;;k++){const c=sd*(XF+.07+(k+(r?.5:0))*.062),a=Math.abs(c);if(a>SM-.04)break;
+    for(const haut of [1,0]){const id=900+k*7+haut*3+r+(sd>0?50:0),e9=HB(c)/HB(0),w=(r?.022:.034)*(.85+.3*hh(id,2))*(.7+.3*e9);
+      const yi=haut?yH(c)-GL:yL(c)+GL,Lm=haut?yi-YS-.008:YS-yi-.008,L=Math.min(Lm,(r?.07:.13)*(.75+.5*hh(id,3))*(.6+.4*e9));if(L<.02)continue;
+      const yb=haut?yi+.022:yi-.022,yt=haut?yi-L:yi+L,pen=-sd*w*.35;              // la pointe couchée vers le fond de la gueule
+      croc(r?'e':'d',[c-w,yb],[c+w,yb],[c+pen,yt],r?.009:.012,r?.034:.046);}}
   // (Léo : « enlève les énormes, gênantes ; la compo de la bouche grande ouverte ; merge voiture ») — plus de sabres ni de crocs géants ;
   //   la bouche se FOND dans la caisse : la lèvre devient un bourrelet de PEAU (le blanc du ventre) qui sort à peine (4,5 cm), cerné d'un
   //   joint sombre affleurant comme une ligne de carrosserie, et la gencive passe EN RETRAIT derrière elle.
   const jupe2=(k,f,o0,o1,sA,sB)=>{for(let a=sA;a<sB-1e-6;a+=st){const b=Math.min(sB,a+st);quad(k,srf(a,f(a),o0),srf(b,f(b),o0),srf(b,f(b),o1),srf(a,f(a),o1));}};
   const LP=.035,GO=.022;                                                         // LP : la largeur de la lèvre · GO : la gencive, en retrait
+  { // LA FACE AVANT, en deux : sous la gueule et au-dessus (le blanc du ventre monte en pointe vers le museau)
+    const q=S(ZN),tour=q.concat(q.slice(1,-1).reverse().map(p=>[-p[0],p[1]]));
+    const coupe=(pl,y0,y1)=>{let o=pl;for(const [lim,dess] of [[y0,1],[y1,-1]]){const r=[];for(let i=0;i<o.length;i++){const A=o[i],B=o[(i+1)%o.length],ia=(A[1]-lim)*dess>=0,ib=(B[1]-lim)*dess>=0;
+      if(ia)r.push(A);if(ia!==ib){const t=(lim-A[1])/((B[1]-A[1])||1);r.push([A[0]+(B[0]-A[0])*t,lim]);}}o=r;}return o;};
+    const yLo=yL(0)-LP-.012,yHo=yH(0)+LP+.012,pose=(k,pl,ep,z)=>{if(pl.length>=3)P.plate(k,pl,ep,z);};
+    pose('b',coupe(tour,-9,yLo),.003,ZN);
+    pose('p',coupe(tour,yHo,9),.002,ZN);pose('b',coupe(tour,yHo,.875),.003,ZN+.001);P.plate('b',[[.30,.875],[0,.925],[-.30,.875]],.003,ZN+.001);
+  }
   bande('R',x=>yH(x)-GL,x=>yH(x)-.012,GO,-SM,SM);bande('R',x=>yL(x)+.012,x=>yL(x)+GL,GO,-SM,SM);
   bande('b',x=>yH(x)-.012,x=>yH(x)+LP,LV,-SM,SM);bande('b',x=>yL(x)-LP,x=>yL(x)+.012,LV,-SM,SM); // la lèvre de peau
   jupe('b',x=>yH(x)+LP,LV,-SM,SM);jupe('b',x=>yL(x)-LP,LV,-SM,SM);              // elle naît de la caisse (dehors)…
@@ -20757,13 +20784,24 @@ SHAPES.squale=function(K){
   for(const e of [-1,1]){const a=e<0?-SM-LP:SM,b=e<0?-SM:SM+LP;bande('b',x=>yL(x)-LP,x=>yH(x)+LP,LV,a,b);} // les commissures
   bande('G',x=>yH(x)+LP,x=>yH(x)+LP+.012,.003,-SM-LP,SM+LP);bande('G',x=>yL(x)-LP-.012,x=>yL(x)-LP,.003,-SM-LP,SM+LP); // le joint, affleurant
   // ---- LES YEUX : les phares en amande, effilés vers le nez, et l'ŒIL NOIR du requin ----
-  for(const sd of [-1,1]){const HL=[[.38,.928],[.62,.894],[.86,.906],[.89,.98],[.70,.996],[.48,.972]].map(([x,y])=>[sd*x,y]);
-    const cx=sd*.66,cy=.945,gros=HL.map(([x,y])=>[cx+(x-cx)*1.12,cy+(y-cy)*1.3]);
+  for(const sd of [-1,1]){const HL=[[.38,.928],[.62,.894],[.86,.906],[.89,.98],[.70,.996],[.48,.972]].map(([x,y])=>[sd*(.50+(x-.38)/.51*.20),y]); // (« plus pointu ») les yeux sur les CÔTÉS de la tête, le rostre au milieu // (museau plus étroit) les yeux se resserrent
+    const cx=sd*.60,cy=.945,gros=HL.map(([x,y])=>[cx+(x-cx)*1.12,cy+(y-cy)*1.3]);
     P.plate('G',gros,.008,ZN);P.plate('g',HL,.010,ZN+.002);                       // le boîtier noir laqué, le verre fumé
-    P.plate('W',[[sd*.49,.964],[sd*.86,.969],[sd*.86,.980],[sd*.49,.975]],.008,ZN+.006); // le trait de LED, en haut
+    P.plate('W',[[sd*.543,.964],[sd*.688,.969],[sd*.688,.980],[sd*.543,.975]],.008,ZN+.006); // le trait de LED, en haut
     const ell=(x,y,r,n)=>{const q=[];for(let i=0;i<n;i++){const a=i/n*Math.PI*2;q.push([x+Math.cos(a)*r,y+Math.sin(a)*r]);}return q;};
-    P.plate('I',ell(sd*.70,.937,.052,14),.010,ZN+.006);P.plate('W',ell(sd*.718,.953,.012,8),.006,ZN+.012);} // (« merge ») plus de sourcils : ils dépassaient du coin de la face comme des bâtons // (« encore ») le SOURCIL : une barre épaisse qui plonge vers le nez // l'œil, et son éclat
-  P.box('k',1.70,.035,.26,0,.18,ZN-.05);                                        // la lame sous le menton
+    P.plate('I',ell(sd*.625,.937,.042,14),.010,ZN+.006);P.plate('W',ell(sd*.636,.951,.010,8),.006,ZN+.012);} // (« merge ») plus de sourcils : ils dépassaient du coin de la face comme des bâtons // (« encore ») le SOURCIL : une barre épaisse qui plonge vers le nez // l'œil, et son éclat
+  { // (« plus pointu, comme un requin blanc ») LE ROSTRE : un nez en ogive qui part du haut de la face, au-dessus de la gueule, et s'avance de
+    // 45 cm jusqu'à une pointe arrondie — dessus gris, dessous blanc (le contre-ombrage) ; il est de la mâchoire du haut (il se relève avec elle)
+    const NR=12,NM=16,A=.47,B=.094,C0=.966,C1=.79,LR=.56,ring=t=>{const f=Math.pow(Math.max(0,1-t*t),.55),bo=Math.sin(Math.PI*Math.min(1,t*1.25)),
+      z=ZN+.002+LR*t,c=C0+(C1-C0)*t,q=[];                                       // une OGIVE : elle gonfle devant la face puis s'effile ; pointée vers le bas au repos,
+      for(let m=0;m<NM;m++){const ph=m/NM*Math.PI*2;q.push([Math.cos(ph)*A*f*(1+.18*bo),c+Math.sin(ph)*B*f*(1+.95*bo),z]);}return q;}; // elle vise DEVANT quand la gueule s'ouvre
+    let r0=ring(0);
+    for(let n=1;n<=NR;n++){const r1=ring(n/NR);
+      for(let m=0;m<NM;m++){const m2=(m+1)%NM,ph=(m+.5)/NM*Math.PI*2,k=Math.sin(ph)>-.15?'p':'b';
+        if(n<NR)quad(k,r0[m],r0[m2],r1[m2],r1[m]);else P.tri(k,r0[m],r0[m2],r1[0]);}
+      r0=r1;}
+  }
+  P.box('k',1.36,.035,.24,0,.18,ZN-.06);                                         // la lame sous le menton, à la largeur du museau resserré                                        // la lame sous le menton
   // ---- L'AILERON DORSAL sur le toit, couché vers l'arrière ----
   P.prism('p',[[-.10,1.35],[-.40,1.55],[-.66,1.80],[-1.06,2.08],[-.98,1.80],[-.92,1.52],[-.90,1.35]],.085,0);
   // ---- LES NAGEOIRES PECTORALES, en guise de rétros (dessus couleur caisse, dessous gris nuit) ----
@@ -20781,6 +20819,13 @@ SHAPES.squale=function(K){
   for(const sd of [-1,1]){P.box('n',.05,.20,.08,sd*.52,yA+.10,-1.98);
     P.prism('n',[[-1.84,yA+.16],[-2.06,yA+.22],[-2.24,yA+.38],[-2.18,yA+.22],[-2.24,yA+.10],[-2.06,yA+.14]],.03,sd*.93);}
   P.box('n',1.88,.04,.32,0,yA+.22,-2.06,-.07,0,0);
+  { // LE PLI DE LA MÂCHOIRE : chaque sommet au-dessus de la fente et devant la charnière tourne autour de (YS, ZH), d'autant plus qu'il est près du nez
+    const ss=t=>t<=0?0:t>=1?1:t*t*(3-2*t),fin=P.done;
+    P.done=()=>{const gs=fin();for(const k9 in gs){const a=gs[k9].attributes.position.array;
+      for(let i=0;i<a.length;i+=3){const y=a[i+1],z=a[i+2];if(y<=YS||z<=ZH)continue;
+        const th=TH*ss((z-ZH)/(ZN-ZH)),c9=Math.cos(th),s9=Math.sin(th),dy=y-YS,dz=z-ZH;a[i+1]=YS+dy*c9+dz*s9;a[i+2]=ZH-dy*s9+dz*c9;}
+      gs[k9].attributes.position.needsUpdate=true;gs[k9].computeVertexNormals();}return gs;};
+  }
   K.commit(P);
   // LE VERNIS : dur et franc, sur la matière de cette caisse seulement (K.mats)
   {const mP=K.mats&&K.mats.p;if(mP){mP.shininess=86;mP.specular.setHex(0x8c8c8c);mP.reflectivity=.36;
