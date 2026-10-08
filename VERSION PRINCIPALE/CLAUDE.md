@@ -1,5 +1,16 @@
 # CASH CAR — guide projet pour Claude Code
 
+## JOUER = LE MODE CLASSIQUE (2026-10-08, session GRAPHISME — Sacha : « maintenant quand on clique sur le bouton jouer on lance les niveaux au lieu de lancer le mode classique »)
+« LE NIVEAU DES PLAY » (Léo, 7/10, 3d72bd6 — plus bas) faisait lancer la carrière par le PLAY de l'accueil, le JOUER de l'atelier et celui
+des MISSIONS, et la CARRIÈRE choisissait au lieu de lancer. Sacha tranche pour SA version (celle par défaut, voir « LE MENU = LE GARAGE +
+LES BOUTONS DE SACHA ») : **PLAY/JOUER = la partie sans fin, et toucher un niveau dans CARRIÈRE le lance**, comme avant le 7/10.
+- Rien n'est retiré : tout le travail de Léo vit derrière **`?play=carriere`** dans l'adresse (`PLAY_CARR`, à côté de `HUB`). Il coupe les
+  quatre portes : `carrPlayOk()`, le toucher de la carrière (`carrChoisit` ou `carrLancer`), la carte qui porte le niveau choisi
+  (`.choisi`/`.carrSel`), et la petite ligne sous PLAY (`carrPlayMaj` suit `carrPlayOk`). `SAVE.d.carrSel` reste tenu.
+- Banc (Chrome sans fenêtre, muet, vrais appuis, couché) : défaut → PLAY = sans fin, JOUER du garage = sans fin, CARRIÈRE niveau 2 =
+  SKY HIGH 2 lancé ; `?play=carriere` → PLAY = SKY HIGH 1 de la carrière, le toucher choisit sans lancer. 0 erreur.
+- ⚠ Ne pas rallumer PLAY_CARR par défaut sans que Sacha l'ait dit.
+
 ## LA PLUIE DE RICHESSE — LA CAISSE QUI CRACHE (2026-10-08, Léo : « des billets bleu turquoise foncé au reflet vert fluo, des pièces comme les euros français, des bitcoins, de l'or, des diamants, des trèfles à quatre feuilles, des fruits — le tap trash sur la voiture peut provoquer un petit jet de flamme et des étincelles qui les projettent, pas toujours, juste assez pour qu'on ait envie de le refaire ; inspire-toi des études sur le cerveau, effort / réconfort ; les étincelles étaient brutes, naïves : fais mieux »)
 - Bloc « LA PLUIE DE RICHESSE » juste avant `chuteStudio` ; branché par `richCoup` (dans `chuteTape`, à la place des gerbes sparkGold/dust),
   `richTick` (dans `chuteTapeTick`, avant son retour anticipé), `richInit` (fin de `chuteMonte` : compilé sous l'écran titre), `richRange`

@@ -15213,7 +15213,7 @@ function carrCiel(N){const hx9=function(c){return '#'+(c|0).toString(16).padStar
 function carrVue(bi){
   const el=document.getElementById('carr');if(!el)return;
   let h='<div class="carrIn"><div class="mHead"><h3>'+TR(bi==null?'CARRIERE':CARRIERE[bi].nm)+'</h3></div>';
-  const sel=HUB?carrSel():null; // (2026-10-07) LE NIVEAU DES PLAY : la carte de son monde et sa case le portent (classe .choisi)
+  const sel=PLAY_CARR&&HUB?carrSel():null; // (2026-10-07) LE NIVEAU DES PLAY — (2026-10-08) seulement avec ?play=carriere (PLAY_CARR) : la carte de son monde et sa case le portent (classe .choisi)
   if(bi==null){
     CARRIERE.forEach(function(B,k){const f=carrFait(k);
       /* (2026-09-30, Léo : « quand je choisis une map, ça ne lance pas la partie, il faut revenir en arrière ») la carte d'un MONDE
@@ -15272,7 +15272,7 @@ function carrIci(){if(CARR.actif&&LVL.cur&&LVL.cur.carr&&LVL.cur.carr.b===CARR.a
      AURORE, le niveau 1, qui l'arme lui-même (carrLancerSous) — l'ancien JOUER l'armait par tutoArme.
    · La partie sans fin d'avant reste à qui l'a demandée : le PARC ou le SURVIVANT armés dans MODES, Poki (pas de carrière) et la vitrine
      `?menu=leo` (sa vignette dit le niveau sans fin) — `carrPlayOk()`. */
-function carrPlayOk(){return HUB&&!PARK.on&&!SURV.armed;}
+function carrPlayOk(){return PLAY_CARR&&HUB&&!PARK.on&&!SURV.armed;} /* (2026-10-08) éteint par défaut : voir PLAY_CARR */
 function carrSelPose(bi,i){const B=CARRIERE[bi];if(!B||!B.niveaux[i])return;const s=SAVE.d.carrSel;
   if(!(s&&s.id===B.id&&s.i===i)){SAVE.d.carrSel={id:B.id,i:i};SAVE.mark();}
   carrPlayMaj();}
@@ -38946,6 +38946,12 @@ const MENU_SACHA=POKI||!/[?&]menu=leo\b/.test(location.search); // (POKI) toujou
      remplace son RETOUR par HOME — on ne « revient » pas d'un onglet, on en change.
    · ?menu=leo (sa vitrine) et Poki (pas de missions ni de carrière) : rien ne change. */
 const HUB=MENU_SACHA&&!POKI;
+/* (2026-10-08, Sacha : « maintenant quand on clique sur JOUER on lance les niveaux au lieu de lancer le mode classique ») LE PLAY REDEVIENT
+   LE MODE CLASSIQUE (la partie sans fin), et la CARRIÈRE relance ses niveaux au toucher, comme avant le 7/10. « LE NIVEAU DES PLAY » de
+   Léo (PLAY = la map de carrière choisie, la carrière qui CHOISIT au lieu de lancer, la pastille JOUER, la petite ligne sous PLAY) est
+   gardé entier derrière `?play=carriere` dans l'adresse : PLAY_CARR coupe ses quatre portes (carrPlayOk, le toucher de la carrière,
+   la carte qui porte le niveau choisi, carrPlayMaj qui suit carrPlayOk). SAVE.d.carrSel continue d'être tenu : rien ne se perd. */
+const PLAY_CARR=/[?&]play=carriere\b/.test(location.search);
 if(HUB){document.documentElement.classList.add('hub');
   try{const hm=$('mHome'),ou=hm&&hm.querySelector('.mOutils'),mb=ou&&ou.querySelector('.mMisBtn'),ge=ou&&ou.querySelector('.mGear'),
       sh=hm&&hm.querySelector('.mIcons [data-m="shop"]'),bd=$('bdGar');
@@ -40523,7 +40529,7 @@ $('carr').addEventListener('click',function(e){ // un seul écouteur pour tout l
   if(c==='fermer')feuilleFerme($('carr'),'on');
   else if(c==='biomes')carrVue(null);
   else if(c==='biome')carrVue(b);
-  else if(c==='niveau'||c==='monde'){if(HUB&&garageOn&&!(started&&!gameOver))carrChoisit(b,i);else carrLancer(b,i);} // (2026-09-30) la carte d'un monde lance son niveau en cours — (2026-10-07, Léo) au garage du hub, elle le CHOISIT : PLAY le lancera (voir « LE NIVEAU DES PLAY »)
+  else if(c==='niveau'||c==='monde'){if(PLAY_CARR&&HUB&&garageOn&&!(started&&!gameOver))carrChoisit(b,i);else carrLancer(b,i);} /* (2026-10-08, Sacha) le toucher relance le niveau, sauf ?play=carriere */ // (2026-09-30) la carte d'un monde lance son niveau en cours — (2026-10-07, Léo) au garage du hub, elle le CHOISIT : PLAY le lancera (voir « LE NIVEAU DES PLAY »)
   else if(c==='verrou'){ // un niveau fermé RÉPOND : il secoue et dit ce qu'il attend
     el.classList.remove('secoue');void el.offsetWidth;el.classList.add('secoue');uiClic('refus'); // (2026-09-28, charte règle 8) il secouait en silence : le clic et la vibration disent « reçu, mais non »
     toast(pxi('verrou')+' '+TR('TERMINE LE NIVEAU')+' '+(carrFait(b)+1));return; } // (2026-09-28) le PROCHAIN niveau à finir — `i` (l'index tapé) disait « 4 » pour le 5e avec zéro niveau fini
