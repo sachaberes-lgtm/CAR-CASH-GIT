@@ -15509,7 +15509,7 @@ const SILS=[mkSillage(),mkSillage(),mkSillage(),mkSillage()],trailL=SILS[0],trai
      banderole qui lève, plonge et serpente — par demi-cubes : les cubes sautent de case en case, comme ceux de la porte.
    · POSÉE DANS LE MONDE : la traînée reste où le chat l'a semée ; sa tranche se tourne vers l'objectif autour de l'axe du chemin (rouge EN
      HAUT vu de côté, comme le vrai Nyan Cat ; vue de derrière, six bandes côte à côte). Près de l'objectif, les cubes s'effacent. */
-const ARC_C=.3,ARC_D=.3,ARC_NS=52,ARC_NE=120,ARC_VIE=1.15,ARC_N=ARC_NS*6+ARC_NE;
+const ARC_C=.3,ARC_D=.3,ARC_NS=52,ARC_NE=360,ARC_VIE=1.15,ARC_N=ARC_NS*6+ARC_NE;
 const ARC_COL=[[1.75,.16,.2],[1.8,.72,.06],[1.7,1.5,.14],[.34,1.6,.22],[.14,.66,1.85],[.82,.3,1.85]]; // rouge orange jaune vert bleu violet — au-delà de 1, comme le feu de la porte
 const ARC_TAILLE=[1,.95,.84,.7,.55,.38],ARC_SEUIL=[.1,.3,.5,.66,.82]; // la taille fond par crans avec l'âge (la porte)
 const rainbow=(function(){
@@ -15524,7 +15524,7 @@ const rainbow=(function(){
   B.instanceMatrix=A.instanceMatrix;B.instanceColor=A.instanceColor;                    // le halo suit le cube : mêmes tampons
   A.count=B.count=0;A.frustumCulled=B.frustumCulled=false;A.visible=B.visible=false;B.renderOrder=2;scene.add(A);scene.add(B);
   const P=[];for(let i=0;i<ARC_NS;i++)P.push(new THREE.Vector3());
-  return {m:A,h:B,P,age:new Float32Array(ARC_NS),k0:new Float32Array(ARC_NS),id:new Int32Array(ARC_NS),nid:0,
+  return {m:A,h:B,P,age:new Float32Array(ARC_NS),k0:new Float32Array(ARC_NS),id:new Int32Array(ARC_NS),vp:new Float32Array(ARC_NS),nid:0,emet:false,fade:false,kp:0,ev:new THREE.Vector3(),
     e:new Float32Array(ARC_NE*10),ne:0,eT:0,init:false,ph:0,phT:0,sg:1,ms:0,ech:1,ond:1,lim:ARC_NS,apercu:false,dPv:0,tPv:0,vie:false,
     up:new THREE.Vector3(0,1,0),dr:new THREE.Vector3(1,0,0),M:new THREE.Matrix4(),S:new THREE.Vector3(),Y:new THREE.Vector3(),Z:new THREE.Vector3(),C:new THREE.Vector3()};
 })();
@@ -15533,10 +15533,21 @@ function arcVis(v){rainbow.m.visible=rainbow.h.visible=v;}
 function arcQ(x,h){return Math.round(x/h)*h;} // une case de la grille
 function arcH(a,b){return (Math.imul(a*73^b*151,-1640531535)>>>24)/256;} // un tirage FIXÉ par (tranche, bande) : un cube s'émiette toujours au même endroit
 function arcHoule(i,t){const s=Math.sin((i/21-t*1.15)*6.2832);return s>0?s*s:0;} // une HOULE toutes les 21 tranches (6,3 m), qui part de la caisse à ~7 m/s
-function arcNait(i,k){const R=rainbow;R.age[i]=0;R.k0[i]=k;R.id[i]=R.nid=(R.nid+1)&0xffffff;}
-function arcEtincelle(px,py,pz,b,vx,vy,vz){ // un petit cube de la bande qui saute hors des rangs, monte, fond et scintille
+function arcNait(i,k){const R=rainbow;R.age[i]=0;R.k0[i]=k;R.vp[i]=0;R.id[i]=R.nid=(R.nid+1)&0xffffff;}
+function arcGlisse(){const R=rainbow;for(let i=ARC_NS-1;i>1;i--){R.age[i]=R.age[i-1];R.k0[i]=R.k0[i-1];R.id[i]=R.id[i-1];R.vp[i]=R.vp[i-1];}} // la traînée recule d'une tranche (la 1 se libère)
+function arcEtincelle(px,py,pz,b,vx,vy,vz,sz,vie){ // un petit cube de la bande qui saute hors des rangs, monte, fond et scintille
   const R=rainbow;if(R.ne>=ARC_NE)return;const o=R.ne*10;R.ne++;
-  R.e[o]=px;R.e[o+1]=py;R.e[o+2]=pz;R.e[o+3]=vx;R.e[o+4]=vy;R.e[o+5]=vz;R.e[o+6]=0;R.e[o+7]=.45+Math.random()*.45;R.e[o+8]=b;R.e[o+9]=.35+Math.random()*.3;
+  R.e[o]=px;R.e[o+1]=py;R.e[o+2]=pz;R.e[o+3]=vx;R.e[o+4]=vy;R.e[o+5]=vz;R.e[o+6]=0;R.e[o+7]=vie||.45+Math.random()*.45;R.e[o+8]=b;R.e[o+9]=sz||.35+Math.random()*.3;
+}
+/* (2026-10-08, Léo : « travaille l'intro et l'outro du trail arc-en-ciel, il disparaît bizarrement — inspire-toi des petites étincelles
+   multicolores ») LA GERBE : quand la traînée NAÎT (et quand elle s'éteint), la poupe lâche un bouquet de ces étincelles, toutes les
+   bandes mêlées — vers l'arrière, un peu vers le haut, ouvert comme une poignée de confettis. (ax, ay, az) = l'arrière de la caisse,
+   (vx, vy, vz) = l'élan qu'elles emportent. */
+function arcGerbe(px,py,pz,nb,ax,ay,az,vx,vy,vz){
+  const U=rainbow.up;
+  for(let i=0;i<nb;i++){const b=i%6,f=1.5+Math.random()*3.5,h=.8+Math.random()*2.2;
+    arcEtincelle(px+(Math.random()-.5)*.5,py+(Math.random()-.5)*.3,pz+(Math.random()-.5)*.5,b,
+      vx+ax*f+U.x*h+(Math.random()-.5)*3.4,vy+ay*f+U.y*h+(Math.random()-.5)*3.4,vz+az*f+U.z*h+(Math.random()-.5)*3.4,.5+Math.random()*.4,.55+Math.random()*.5);}
 }
 /* LA POSE : chaque tranche se tourne vers l'objectif autour de l'axe du chemin (S = la direction des bandes), lève, plonge, serpente, et
    pose ses six cubes ; les étincelles vivent par-dessus. `cam` = l'objectif du rendu ; R.up / R.dr = le toit et le flanc de la caisse. */
@@ -15550,8 +15561,10 @@ function arcPose(cx,cy,cz,cam,t,dt){
   let n=0;const L=R.lim;
   for(let i=0;i<L;i++){
     const k0=R.k0[i];if(k0<.03)continue;
-    const vi=Math.max(R.age[i]/ARC_VIE,i/L);if(vi>=1)continue;        // l'âge, ou le bout de la traînée : ce qui fond le plus vite gagne
-    const p=P[i];arcV1.subVectors(P[Math.min(i+1,ARC_NS-1)],P[Math.max(i-1,0)]);
+    const vi=Math.max(R.age[i]/ARC_VIE,i/L),v0=R.vp[i],meurt=vi>=1;R.vp[i]=vi; // l'âge, ou le bout de la traînée : ce qui fond le plus vite gagne
+    if(meurt&&v0>=1)continue;                                         // morte depuis une image : il n'en reste rien (ses cubes sont partis en étincelles)
+    const p=P[i],pa=P[Math.max(i-1,0)],pb=P[Math.min(i+1,ARC_NS-1)];  // (2026-10-08) la direction du chemin ignore un TROU (la nitro reprise plus loin, la tête qui file pendant l'extinction)
+    arcV1.subVectors(pb.distanceToSquared(p)>ARC_D*ARC_D*6?p:pb,pa.distanceToSquared(p)>ARC_D*ARC_D*6?p:pa);
     if(arcV1.lengthSq()<1e-8)arcV1.set(cx,cy,cz);arcV1.normalize();
     arcV2.subVectors(p,cam.position);const dC=arcV2.length();
     const fC=THREE.MathUtils.smoothstep(dC,1.3,2.8);if(fC<=0)continue; // sous l'objectif, les cubes s'effacent
@@ -15566,11 +15579,16 @@ function arcPose(cx,cy,cz,cam,t,dt){
     const st=(((id>>2)+R.ph)&1)*hc*(R.sg>0?1:-1);                       // l'ESCALIER du Nyan : un demi-cube, une tranche sur deux de quatre, qui bascule
     const ho=arcHoule(i,t),gro=ho>.66?1.42:ho>.25?1.2:1;                // la HOULE : les cubes grossissent par crans sur son passage
     const ba=vi<ARC_SEUIL[0]?0:vi<ARC_SEUIL[1]?1:vi<ARC_SEUIL[2]?2:vi<ARC_SEUIL[3]?3:vi<ARC_SEUIL[4]?4:5;
-    const sz0=c*.84*ARC_TAILLE[ba]*gro*fC*(.6+.4*Math.min(1,k0*1.5)),eclat=ba===0?.3:0,K=ba<2?1.08:ba<4?.92:.62; // ×.84 : un JOINT entre les cubes (on lit des blocs) — la houle le referme en passant
+    const sz0=c*.84*ARC_TAILLE[ba]*gro*fC,eclat=ba===0?.3:0,K=ba<2?1.08:ba<4?.92:.62; // ×.84 : un JOINT entre les cubes (on lit des blocs) — la houle le referme en passant
     for(let b=0;b<6;b++){
-      if(ba>=2&&arcH(id,b)<(vi-.4)*1.25)continue;                       // ils s'ÉMIETTENT un à un en vieillissant
-      const off=(b-2.5)*c+st,sz=sz0*(.93+.14*arcH(id,b+7));
+      const th=.4+arcH(id,b)/1.25,off=(b-2.5)*c+st;                     // ils s'ÉMIETTENT un à un en vieillissant : ce cube-ci, passé l'âge `th`
       const x=p.x+U.x*on+Dr.x*ol+S.x*off,y=p.y+U.y*on+Dr.y*ol+S.y*off,z=p.z+U.z*on+Dr.z*ol+S.z*off;
+      if(meurt||vi>th){                                                 // (2026-10-08) …et le cube qui meurt PART EN ÉTINCELLE de sa couleur : la traînée
+        if(v0<=th&&Math.random()<(R.fade?.75:.1))arcEtincelle(x,y,z,b,R.ev.x+U.x*(.6+Math.random())+S.x*(b-2.5)*.3+(Math.random()-.5)*1.4, // ne disparaît plus, elle se dissout en confettis qui montent et scintillent
+          R.ev.y+U.y*(.6+Math.random())+S.y*(b-2.5)*.3+(Math.random()-.5)*1.4,R.ev.z+U.z*(.6+Math.random())+S.z*(b-2.5)*.3+(Math.random()-.5)*1.4,.55+Math.random()*.3,.45+Math.random()*.5);
+        continue;} // (en pleine émission, la queue qui s'émiette n'en lâche qu'une sur dix : la réserve d'étincelles reste pour l'extinction ;
+                   // elles emportent une part de l'élan de la caisse `R.ev` — sinon la caméra de poursuite les dépasse avant qu'on les voie)
+      const sz=sz0*(.93+.14*arcH(id,b+7));
       me[0]=arcV3.x*sz;me[1]=arcV3.y*sz;me[2]=arcV3.z*sz;me[4]=Y.x*sz;me[5]=Y.y*sz;me[6]=Y.z*sz;me[8]=Z.x*sz;me[9]=Z.y*sz;me[10]=Z.z*sz;
       me[3]=me[7]=me[11]=0;me[12]=x;me[13]=y;me[14]=z;me[15]=1;R.m.setMatrixAt(n,M);
       const C9=ARC_COL[b],j=n*3;                                        // la couleur de la BANDE, chauffée à blanc à la poupe, en braise au bout
@@ -15597,23 +15615,34 @@ function arcEmet(dt,k,vx,vy,vz){ // les étincelles naissent dans les tranches j
     arcEtincelle(p.x+R.S.x*off,p.y+R.S.y*off+.1,p.z+R.S.z*off,b,vx+(Math.random()-.5)*2.4,1+Math.random()*2.2,vz+(Math.random()-.5)*2.4);}
 }
 function arcAvance(dt){const R=rainbow;for(let i=0;i<ARC_NS;i++)R.age[i]+=dt;R.phT+=dt;if(R.phT>=.14){R.phT=0;R.ph^=1;}} // l'escalier bascule ~7 fois par seconde
-function rainbowCoupe(){const R=rainbow;R.init=false;arcVis(false);R.k0.fill(0);R.ne=0;R.m.count=R.h.count=0;} // replacement, piste neuve, fin de partie : plus rien ne traîne
+function rainbowCoupe(){const R=rainbow;R.init=false;R.emet=false;arcVis(false);R.k0.fill(0);R.vp.fill(0);R.ne=0;R.m.count=R.h.count=0;} // replacement, piste neuve, fin de partie : plus rien ne traîne
 function rainbowStep(px,py,pz,k,t,dt,fx,fy,fz){
   const R=rainbow,P=R.P,t0=performance.now();dt=dt||0;
   if(R.apercu)return; // l'aperçu du garage a la main
-  if(!R.init){if(k<.03){arcVis(false);return;}for(const q of P)q.set(px,py,pz);R.k0.fill(0);R.ne=0;R.init=true;}
+  const emet=k>=.03;
+  if(!R.init){if(!emet){arcVis(false);return;}for(const q of P)q.set(px,py,pz);R.k0.fill(0);R.vp.fill(0);R.ne=0;R.init=true;R.emet=false;R.kp=0;}
   P[0].set(px,py,pz);R.k0[0]=k;R.age[0]=0;                          // la tête colle à la poupe, toujours neuve
   arcV1.subVectors(P[0],P[1]);let L=arcV1.length(),n=0;
-  if(L>40){for(const q of P)q.set(px,py,pz);R.k0.fill(0);L=0;}       // téléportée (portail, replacement) : pas de pont de cubes jusqu'ici
-  if(L>=ARC_D){arcV1.multiplyScalar(1/L);
+  if(emet&&R.emet&&L>40){for(const q of P)q.set(px,py,pz);R.k0.fill(0);L=0;} // téléportée EN PLEINE ÉMISSION : pas de pont de cubes jusqu'ici (portail et replacement la coupent déjà, voir rainbowCoupe)
+  /* (2026-10-08, Léo : « il disparaît bizarrement ») ÉTEINTE, LA TRAÎNÉE NE RECULE PLUS : des tranches invisibles continuaient de naître à
+     la poupe et poussaient ce qui restait hors de ses 52 places, et la queue (déjà rétrécie à 60 %) sautait d'un coup. Ce qui reste brûle
+     sur place et part en étincelles. Reprise plus loin (la caisse a filé) : une tranche vide fait le TROU — pas de pont de cubes. */
+  if(emet&&!R.emet&&L>ARC_D*2.5){const v=P[ARC_NS-1];arcGlisse();for(let i=ARC_NS-1;i>1;i--)P[i]=P[i-1];v.copy(P[0]);P[1]=v;arcNait(1,0);L=0;}
+  if(emet&&L>=ARC_D){arcV1.multiplyScalar(1/L);
     while(L>=ARC_D&&n<ARC_NS){const v=P[ARC_NS-1];                  // une tranche tous les 30 cm, posée EXACTEMENT sur le chemin
-      for(let i=ARC_NS-1;i>1;i--){P[i]=P[i-1];R.age[i]=R.age[i-1];R.k0[i]=R.k0[i-1];R.id[i]=R.id[i-1];}
+      arcGlisse();for(let i=ARC_NS-1;i>1;i--)P[i]=P[i-1];
       v.copy(P[2]).addScaledVector(arcV1,ARC_D);P[1]=v;arcNait(1,k);L-=ARC_D;n++;}}
   arcAvance(dt);
-  R.lim=ARC_NS;R.ech=1;R.ond=1;R.up.copy(hsU);R.dr.copy(hsR);
+  /* L'INTENSITÉ FAIT LA LONGUEUR (2026-10-08) : la caméra de poursuite dépasse en un clin d'œil ce qui reste derrière — une traînée qui
+     s'éteint doit s'éteindre ACCROCHÉE à la caisse. Elle RACCOURCIT donc depuis le bout vers la poupe (ses cubes, pleins, partent en
+     étincelles au fur et à mesure), et naît en s'allongeant depuis la poupe ; à mi-intensité (le boost qui suit la nitro), une traînée
+     moitié moins longue. */
+  R.lim=emet?Math.max(2,Math.round(ARC_NS*Math.min(1,k*1.25))):1;R.ech=1;R.ond=1;R.up.copy(hsU);R.dr.copy(hsR);
+  R.fade=!emet||k<R.kp-1e-4;R.kp=k;R.ev.set(EXV.x*.7,EXV.y*.7,EXV.z*.7);
+  if(emet!==R.emet){R.emet=emet;arcGerbe(px,py,pz,emet?30:16,fx==null?0:fx,fy==null?0:fy,fz==null?-1:fz,EXV.x*.8,EXV.y*.8,EXV.z*.8);} // la GERBE : la traînée naît d'un bouquet d'étincelles, et s'éteint dans un plus petit
   arcEmet(dt,k,EXV.x*.6,EXV.y*.6,EXV.z*.6);
   const nv=arcPose(fx==null?0:fx,fy==null?0:fy,fz==null?1:fz,camera,t,dt);
-  if(k<.03&&nv===0){arcVis(false);R.init=false;return;}
+  if(!emet&&nv===0){arcVis(false);R.init=false;return;}            // la dernière étincelle est éteinte
   arcVis(true);
   R.ms=R.ms*.95+(performance.now()-t0)*.05;                         // (dbgArc) ce que coûte l'arc-en-ciel à chaque image
 }
@@ -15622,18 +15651,21 @@ function rainbowStep(px,py,pz,k,t,dt,fx,fy,fz){
    file vers le fond, et suit la caisse quand elle tourne (le donut). */
 function rainbowApercu(dt,on,cam,k9){
   const R=rainbow;
-  if(!on){if(R.apercu){R.apercu=false;rainbowCoupe();}return;}
-  if(!R.apercu){R.apercu=true;R.k0.fill(0);R.ne=0;R.dPv=0;R.tPv=0;R.age.fill(9);}
-  R.tPv+=dt;const sp=CARS[garageI]||CARS[0],T=R.tPv,z0=NYAN.on?NYAN.arc.z:-(sp.l/2+.18),y0=NYAN.on?NYAN.arc.y:.62,kk=k9==null?1:k9;
-  R.dPv+=dt*14;while(R.dPv>=ARC_D){R.dPv-=ARC_D;for(let i=ARC_NS-1;i>1;i--){R.age[i]=R.age[i-1];R.k0[i]=R.k0[i-1];R.id[i]=R.id[i-1];}arcNait(1,kk);} // la grille de tranches glisse comme si elle roulait
+  if(!on){if(!R.apercu)return;if(!dt){R.apercu=false;rainbowCoupe();return;}} // (2026-10-08) on QUITTE l'écran (dt = 0) : coupé net ; sinon (fin du burn-out, autre traînée essayée) elle s'éteint en étincelles
+  if(!R.apercu){R.apercu=true;R.k0.fill(0);R.vp.fill(0);R.ne=0;R.dPv=0;R.tPv=0;R.age.fill(9);R.emet=false;}
+  R.tPv+=dt;const sp=CARS[garageI]||CARS[0],T=R.tPv,z0=NYAN.on?NYAN.arc.z:-(sp.l/2+.18),y0=NYAN.on?NYAN.arc.y:.62,kk=on?(k9==null?1:k9):0;
+  R.dPv+=dt*14;while(R.dPv>=ARC_D){R.dPv-=ARC_D;arcGlisse();arcNait(1,kk);} // la grille de tranches glisse comme si elle roulait
   R.k0[0]=kk;R.age[0]=0;
   for(let i=0;i<ARC_NS;i++){const u=Math.min(1,i/30),j=Math.min(i,30)+R.dPv/ARC_D;             // 30 tranches = 9 m : le chemin, lui, ne bouge pas
     R.P[i].set(Math.sin(j*.21-T*2.4)*.4*u,y0+u*.2,z0-j*ARC_D);carGroup.localToWorld(R.P[i]);}
   arcAvance(dt);
   R.up.set(0,1,0).applyQuaternion(carGroup.quaternion);R.dr.set(1,0,0).applyQuaternion(carGroup.quaternion);
-  R.lim=30;R.ech=.62;R.ond=.7; // ×.62 : de trois-quarts, à quelques mètres, la banderole garde la carrure du chat
+  R.lim=Math.max(2,Math.round(30*Math.min(1,kk*1.25)));R.ech=.62;R.ond=.7; // ×.62 : de trois-quarts, à quelques mètres, la banderole garde la carrure du chat · (2026-10-08) la longueur suit l'intensité
+  R.fade=kk<R.kp-1e-4||!on;R.kp=kk;R.ev.set(0,0,0);
+  {const em=kk>=.03;if(em!==R.emet){R.emet=em;arcV2.set(0,0,-1).applyQuaternion(carGroup.quaternion);arcGerbe(R.P[0].x,R.P[0].y,R.P[0].z,em?18:10,arcV2.x*.6,arcV2.y*.6,arcV2.z*.6,0,0,0);}} // la gerbe, à l'échelle du garage
   arcEmet(dt,kk*.6,0,0,0);
-  arcPose(0,0,1,cam||camera,T,dt);arcVis(true);
+  const nv=arcPose(0,0,1,cam||camera,T,dt);arcVis(true);
+  if(!on&&nv===0){R.apercu=false;rainbowCoupe();} // tout est parti en étincelles : l'aperçu rend la main
 }
 window.dbgArc=function(q){const R=rainbow;
   if(q==='obj')return R; // (banc) l'objet lui-même
