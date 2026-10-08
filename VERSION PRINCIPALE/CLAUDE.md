@@ -169,22 +169,13 @@ LES BOUTONS DE SACHA ») : **PLAY/JOUER = la partie sans fin, et toucher un nive
   haut) et les fait VIEILLIR (`vieillit` ,45 × la vie qui leur reste × la force) : elles s'éclaircissent et s'émiettent. Un tap sur la caisse
   reste un coup (`garageImpact`), sur le bouton rouge l'inventaire. MESURÉ (`dbgBurn('autour',[x,y],45)` : opacité de la fumée à l'écran
   autour du point) : avec tap 18,5 → 3,1 en ,3 s → ,8 en ,8 s ; sans tap 16-21 au même moment. sw.js → v184.
-- **LA CHARGE, LA NITRO, LA MARCHE ARRIÈRE** (même soir, Léo : « dès qu'on appuie longtemps, ça fait le burn, même quand on tourne la
-  voiture — ça prend un tout petit peu plus de temps mais ça se voit et se ressent plus ; ajoute en reculant et la nitro ») —
-  · `BURN_TENU` 800 → 950 ms, et le maintien n'est plus annulé quand le doigt glisse (le plateau tourne sous le doigt pendant la charge ;
-    parti en tournant, le doigt DÉRAPE aussitôt). Sauf sur une caisse pas à toi (sinon « PAS ENCORE À TOI » à chaque tour de plateau).
-  · LA CHARGE (`BURN.chg`, le dernier ¾ du maintien) : `BURN.k` monte à ,42 (elle tremble, les pneus patinent et fument, feux stop), le
-    moteur monte (`burnSon`), des tics de vibration de plus en plus serrés ; au départ une pétarade et un anneau de fumée.
-  · NITRO et MARCHE ARRIÈRE (`BURN_NITRO`, `burnNitroTick`, `burnBtnsVoir`) : deux touches penchées `#gBurnBtns` (#gbRecul cyan,
-    #gbNitro orange) pendant le burn-out, sous le pouce droit (debout : au-dessus de PLAY ; couché : en bas à droite) ; clavier ESPACE / N
-    et ↓ / R / S (en CAPTURE : un bouton resté sous le focus ne prend pas l'espace). NITRO : feu des pots (bleu/orange), fumée ×1,6,
-    pneus plus vite, moteur au plafond, elle tourne plus fort et BONDIT devant (le ressort du doigt se relâche, ×(1 − ,78)) ; boostSnd à
-    l'appui, pétarade au lâcher. MARCHE ARRIÈRE : roues à l'envers, fumée vers l'AVANT, elle RECULE (seule exception), le pivot passe
-    DERRIÈRE et la glisse s'inverse (donut en marche arrière) — la balade absorbe le changement de pivot (pas de saut).
-  · MESURÉ : départ à ,96 s immobile, ,97 s en tournant, un glissé de ,6 s ne part pas ; NITRO 0,9 s → +1,6 m devant, 0 → 50-80 flammes ;
-    marche arrière au 2e doigt (tactile CDP) → −1,86 m, ≤ 1,7 m/s, sans à-coup, revient au lâcher ; marche arrière en plein donut : vitesse
-    max 5,3-6,4 m/s (5,0 sans) — pas de saut ; 0 programme compilé. ⚠ Banc tactile : `touchEnd` avec la liste des doigts QUI SE LÈVENT
-    (un `touchMove` sans le doigt ne le lève pas). sw.js → v187.
+- **ESSAYÉ PUIS RETIRÉ (v187, commit 2678186)** : l'appui long qui part même en tournant la caisse (0,95 s), la CHARGE (moteur qui monte,
+  tremblement, tics), les touches NITRO et MARCHE ARRIÈRE au 2e pouce. Léo : « reviens sur le truc d'avant en gardant la fumée qui sort
+  d'en dessous » (celle de la marche arrière) → `git revert`, maintien 0,8 s doigt immobile ; GARDÉ : `BURN_NUAGE.dessous` (25 %) — des
+  bouffées partent vers l'AVANT sous la caisse, doucement (,6-2 m/s, ≤ 1,2 de côté ; à 35 % et 2,2-4,2 m/s elles venaient sur l'objectif),
+  et la carrosserie les fait ressortir par en dessous. ⚠ Une caisse cachée par la fumée au burn-out tenu dépend surtout de l'ANGLE (après un
+  burn-out elle garde son cap : arrière vers la caméra, le nuage principal vient sur nous) — même image avec `dessous` 0
+  (`dbgBurn('nuage',{dessous:0})` règle à chaud). sw.js → v189.
 - Les réservoirs se créent dans `burnPools()`, appelé par la CHAUFFE DE L'ATELIER (`atelierChauffe` les compile avec lui : rien au 1er
   burn-out) et par l'atelier du bouton rouge (`atlTick`).
 - RETIRÉ (dans l'historique, dernier état `d6fea98`) : fumée en volumes/cubes de la porte, voile, jet sous la roue, poids (`DON_POIDS`),
