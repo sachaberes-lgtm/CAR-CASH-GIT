@@ -45,7 +45,7 @@ LES BOUTONS DE SACHA ») : **PLAY/JOUER = la partie sans fin, et toucher un nive
   RUBIS (taille brillant, le programme du diamant teinté), ÉMERAUDE (taille émeraude : table rectangulaire, gradins, culasse en carène),
   CARTE NOIRE (métal brossé, puce d'or, numéro en relief, verso à piste — elle tourne sur un diamètre et flashe comme une pièce), LIASSE
   (le billet du dessus, sa bande « $ 10 000 », les feuilles sur la tranche — elle ne plie pas), CHAMPAGNE (verre vert, étiquette, coiffe
-  dorée), CRÂNE D'OR aux yeux de rubis (rare : gros 2, jackpot 4, et 4 % de chance à chaque gain ; il part le regard vers la caméra et
+  dorée), CRÂNE (rare : gros 2, jackpot 4, — voir v4 : pastel, orbites creuses — et 4 % de chance à chaque gain ; il part le regard vers la caméra et
   tourne sur lui-même — en culbute on ne voyait que sa nuque), CHAÎNE D'OR (`richChaine` / `richChaineTick` : 9 nœuds à distance fixe,
   5 passes de contraintes, chaque nœud freiné par l'air ; 8 maillons, un sur deux tourné d'un quart — elle fouette, ondule, pend).
   L'élan vers le HAUT est divisé par 2,5 (`richVise` : l'air les emporte déjà). Mesuré : 145 programmes, aucun compilé au coup ;
@@ -58,6 +58,12 @@ LES BOUTONS DE SACHA ») : **PLAY/JOUER = la partie sans fin, et toucher un nive
   (taille réelle ÷ 15,6 cm)^0,55, plafonnée ~1,2 m — la 2 € plus grande que la 1 €, le jeton plus grand que la pièce, la carte plus petite
   que le billet, la liasse = le billet, gemmes et pépites petites (variées), chaque fruit à SA taille (`RICH_FRUIT_R` : la myrtille ne
   fait plus la pastèque). Mesuré : 145 programmes, 0 compilé au coup, 62 objets en l'air sans erreur. sw.js → v174.
+- **v4 — LES CRÂNES (2026-10-08, Léo : « crâne de différentes couleurs, et plus petit » · « pastel » · « des yeux en creux, pas de pierre,
+  réaliste »)** : `richCraneGeo` refait — la voûte RECULÉE (elle ne bouche plus la face), arcades sourcilières, pommettes, bords externes
+  des orbites, cloison du nez, maxillaire, mandibule et ses branches, menton, deux rangées de dents en arc ; les ORBITES, le NEZ (cœur
+  renversé) et la bouche sont de vraies OUVERTURES entre ces os, avec un creux sombre posé plus loin derrière (plus de rubis). Six
+  PASTELS nacrés (`M.cranes` : rose, menthe, lavande, ciel, pêche, citron — le métal du studio teinté, l'éclat à sa teinte), tirés au
+  lancer. Plus petit : 0,5-0,6 m (était ~1 m). `dbgRiche('cranes')` aligne les six ; `dbgRiche('cranes','pres')` à 5 m de l'objectif. sw.js → v175.
 
 ## LE SON PARASITE DU DÉPART DES NUAGES (2026-10-08, Léo : « la première map, quand je démarre, il y a un son hyper chelou, un son parasite — enlève ; vérifie pour les autres »)
 - **C'ÉTAIT `nuages.ambiance`** (la boucle « LA MER DE NUAGES A SON AIR » du 30/09 : souffle d'altitude, rafales, harpe éolienne), lancée au
@@ -100,7 +106,7 @@ LES BOUTONS DE SACHA ») : **PLAY/JOUER = la partie sans fin, et toucher un nive
   plus ; `true` les rend). `burnCaisse` : la carrosserie (boîte `garGabarit` + 35 cm) ÉCARTE les bouffées qui y entrent (par la face la plus
   proche) et les ENTRAÎNE à `BURN_CAISSE.suit` (65 %) de sa vitesse à cet endroit (glissement + rotation ω × r) ; `pousse` 3,5. Mesuré
   (`dbgBurn('fumee')`) : en donut la fumée proche tourne dans le sens de la caisse à ~1,7-2,9 m/s (w 3-5 rad/s) ; à 100 % elle collait
-  (~4-5 m/s). Les matières du burn-out se compilent à la 1re image du garage (`BURN.pret`) : la chauffe de l’atelier au menu ne tourne plus sur l’écran titre de la chute (mesuré). sw.js → v175.
+  (~4-5 m/s). Les matières du burn-out se compilent à la 1re image du garage (`BURN.pret`) : la chauffe de l’atelier au menu ne tourne plus sur l’écran titre de la chute (mesuré). sw.js → v176.
 - Les réservoirs se créent dans `burnPools()`, appelé par la CHAUFFE DE L'ATELIER (`atelierChauffe` les compile avec lui : rien au 1er
   burn-out) et par l'atelier du bouton rouge (`atlTick`).
 - RETIRÉ (dans l'historique, dernier état `d6fea98`) : fumée en volumes/cubes de la porte, voile, jet sous la roue, poids (`DON_POIDS`),

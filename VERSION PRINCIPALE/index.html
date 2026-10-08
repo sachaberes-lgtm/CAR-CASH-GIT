@@ -37706,9 +37706,9 @@ const RICH_T={
   rubis:{kd:.55,fl:0,s:[.085,.13],w:[3,8],v:[5,9],vie:[2.6,3.6],nl:RICH_GEM_NL,gem:1,gc:[1,.5,.58]},
   emeraude:{kd:.55,fl:0,s:[.12,.17],w:[3,8],v:[5,9],vie:[2.6,3.6],nl:[[0,1,0],[.55,.55,0],[-.55,.55,0],[0,.5,.7],[0,-.6,.6]],gem:1,gc:[.6,1,.72]},
   champagne:{kd:.7,fl:0,s:[.9,.93],w:[3,7],v:[4,7],vie:[2.6,3.4]},                          // 30 cm → plafonnée à 1,2 m
-  crane:{kd:.6,fl:0,s:[.52,.54],w:[2,4],v:[4,7],vie:[3,3.8],nl:[[0,1,0],[.5,.6,.6],[-.5,.6,.6]],face:1}, // 20 cm → plafonné à 1,05 m — face : il part le regard vers la caméra et tourne sur lui-même
+  crane:{kd:.6,fl:0,s:[.24,.29],w:[2,4],v:[4,7],vie:[3,3.8],nl:[[0,1,0],[.5,.6,.6],[-.5,.6,.6]],face:1}, // un crâne de collection, 0,5-0,6 m (Léo : « plus petit ») — face : il part le regard vers la caméra et tourne sur lui-même
   fruit:{kd:1,fl:.4,s:[.94,1.06],w:[3,7],v:[3,6],vie:[2.4,3.2]}}; // fruit : s = un écart autour de SON rayon (RICH_FRUIT_R)
-const RICH_CAP={billet:16,liasse:6,carte:6,trefle:6,jeton:12,montre:4,piece2:8,piece1:8,piece50:8,btc:7,or:14,lingot:5,diamant:12,rubis:8,emeraude:8,champagne:4,crane:2,fruit:8}; // (la chaîne : son pool à elle, RICH.ch)
+const RICH_CAP={billet:16,liasse:6,carte:6,trefle:6,jeton:12,montre:4,piece2:8,piece1:8,piece50:8,btc:7,or:14,lingot:5,diamant:12,rubis:8,emeraude:8,champagne:4,crane:6,fruit:8}; // (la chaîne : son pool à elle, RICH.ch)
 const RICH_TIER={ // la taille de la gerbe : combien, et quoi (poids)
   petit:  {n:[3,6],  fl:.75,w:{billet:22,piece2:11,piece1:11,piece50:10,jeton:9,fruit:17,trefle:7,or:10,carte:4,rubis:3,emeraude:3,liasse:4,montre:1}},
   bon:    {n:[7,11], fl:1,  w:{jeton:9,montre:3,billet:26,piece2:7,piece1:7,piece50:5,or:15,lingot:4,fruit:8,trefle:4,btc:6,diamant:5,rubis:5,emeraude:5,carte:6,liasse:6,champagne:4,chaine:3}},
@@ -37901,13 +37901,24 @@ function richFusion(L){ // des primitives (géométrie, matrice) → UNE géomé
   const pos=new Float32Array(n*3);let o=0;for(const gg of parts){pos.set(gg.attributes.position.array,o);o+=gg.attributes.position.array.length;gg.dispose();}
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.computeVertexNormals();g.setAttribute('uv',new THREE.BufferAttribute(new Float32Array(n*2).fill(.5),2));return g;}
 function richM4(x,y,z,sx,sy,sz){return new THREE.Matrix4().compose(new THREE.Vector3(x,y,z),new THREE.Quaternion(),new THREE.Vector3(sx,sy==null?sx:sy,sz==null?sx:sz));}
-function richCraneGeo(){ // le CRÂNE d'or : la voûte, la face, les pommettes, la mâchoire, les dents ; à part, en noir : les orbites et le nez
+function richCraneGeo(){ // (2026-10-08, Léo : « des crânes pastel, plus petits, les yeux en creux, pas de pierre, réaliste ») LE CRÂNE :
+  // la voûte (reculée : elle ne bouche pas la face), les arcades sourcilières, les pommettes, les bords externes des orbites, la cloison du
+  // nez, le maxillaire et ses dents, la mandibule (ses branches, ses dents, le menton). Les ORBITES, le NEZ et la bouche sont de VRAIES
+  // ouvertures entre ces os : derrière, un creux sombre posé plus loin (« noir ») — on voit le relief, pas une pastille.
   const I=function(r,d){return new THREE.IcosahedronGeometry(r,d);},B=function(a,b,c){return new THREE.BoxGeometry(a,b,c);};
-  const or=[[I(1,1),richM4(0,.28,-.08,.92,.86,1.05)],[I(1,1),richM4(0,-.16,.36,.62,.52,.52)],[I(.3,0),richM4(.42,-.12,.42,1)],[I(.3,0),richM4(-.42,-.12,.42,1)],
-    [B(.78,.24,.5),richM4(0,-.6,.3,1)],[I(.22,0),richM4(0,-.66,.56,1.2,.8,.8)]];
-  for(let i=0;i<6;i++){const x=-.25+i*.1;or.push([B(.085,.13,.08),richM4(x,-.42,.82,1)]);or.push([B(.085,.11,.08),richM4(x,-.53,.74,1)]);}
-  const noir=[[I(.21,1),richM4(.27,-.02,.78,1,.9,.6)],[I(.21,1),richM4(-.27,-.02,.78,1,.9,.6)],[new THREE.ConeGeometry(.1,.22,3),richM4(0,-.22,.8,1)]];
-  return {or:richFusion(or),noir:richFusion(noir)};}
+  const os=[[I(1,2),richM4(0,.38,-.32,.95,.9,1)],                                                    // la voûte
+    [I(1,1),richM4(0,.32,.62,.66,.1,.2)],                                                             // les arcades sourcilières
+    [I(1,1),richM4(.42,-.3,.56,.22,.12,.22)],[I(1,1),richM4(-.42,-.3,.56,.22,.12,.22)],              // les pommettes
+    [I(1,1),richM4(.6,0,.42,.11,.3,.2)],[I(1,1),richM4(-.6,0,.42,.11,.3,.2)],                        // le bord externe des orbites
+    [I(1,1),richM4(0,.04,.66,.07,.2,.12)],                                                            // la cloison du nez
+    [I(1,1),richM4(0,-.38,.46,.42,.16,.32)],                                                          // le maxillaire
+    [I(1,1),richM4(0,-.7,.36,.38,.12,.34)],[I(1,1),richM4(0,-.8,.6,.17,.09,.12)],                     // la mandibule, le menton
+    [B(.1,.32,.2),richM4(.38,-.5,.18,1)],[B(.1,.32,.2),richM4(-.38,-.5,.18,1)]];                      // ses branches
+  for(let k=0;k<8;k++){const x=-.245+k*.07,z=.74-x*x*1.1;os.push([B(.06,.1,.07),richM4(x,-.47,z,1)]);os.push([B(.06,.08,.07),richM4(x*.9,-.575,z-.06,1)]);} // les dents, en arc
+  const noir=[[I(1,2),richM4(.29,.03,.5,.22,.22,.15)],[I(1,2),richM4(-.29,.03,.5,.22,.22,.15)],     // le fond des orbites
+    [I(1,1),richM4(.045,-.17,.64,.06,.1,.06)],[I(1,1),richM4(-.045,-.17,.64,.06,.1,.06)],[new THREE.ConeGeometry(.07,.16,3),richM4(0,-.1,.64,1)], // le nez (un cœur renversé)
+    [B(.55,.16,.06),richM4(0,-.52,.58,1)]];                                                           // l'ombre de la bouche, entre les dents
+  return {or:richFusion(os),noir:richFusion(noir)};}
 function richTexMontre(){return richCv(512,512,function(x){ // l'atlas de la MONTRE : le cadran (en haut à gauche), l'or (en haut à droite), le bracelet à maillons (en bas)
   x.fillStyle='#e8b33a';x.fillRect(0,0,512,512);const Go=x.createLinearGradient(256,0,512,256);Go.addColorStop(0,'#ffe9a8');Go.addColorStop(1,'#c58b22');x.fillStyle=Go;x.fillRect(256,0,256,256);
   const c=128;x.fillStyle='#d9a63a';x.beginPath();x.arc(c,c,127,0,6.2832);x.fill();                                   // la lunette
@@ -37967,6 +37978,7 @@ function richInit(){
   M.trefle=richMat(RICH_FS_SOUPLE,{uMap:{value:richTexTrefle()},uSheen:{value:new THREE.Color(.55,1,.5)},uSheenK:{value:.35},uBend:{value:.7}},{SOUPLE:1},THREE.DoubleSide);
   M.rubis=richMat(RICH_FS_GEMME,{uTint:{value:new THREE.Color(1,.06,.16)}});M.emeraude=richMat(RICH_FS_GEMME,{uTint:{value:new THREE.Color(.08,.9,.38)}}); // les gemmes de couleur : le programme du diamant, teinté
   M.montre=metal(richTexMontre(),150);
+  M.cranes=[['#ffcbe0',[1,.85,.92]],['#c4f5e1',[.85,1,.93]],['#ddd2ff',[.9,.87,1]],['#c9e6ff',[.86,.93,1]],['#ffdac6',[1,.9,.84]],['#fff4c4',[1,1,.86]]].map(function(P){const m9=metal(richTexUni(P[0]),130);m9.userData.gc=P[1];return m9;}); // les CRÂNES PASTEL : rose, menthe, lavande, ciel, pêche, citron — une laque nacrée (le métal du studio, teinté)
   M.jetons=[['#c61b2c','5'],['#1d8f3a','25'],['#18181d','100'],['#6a2a9a','500'],['#e09a12','1000']].map(function(J){return richMat(RICH_FS_SOUPLE,{uMap:{value:richTexJeton(J[0],J[1])},uSheen:{value:new THREE.Color(1,1,1)},uSheenK:{value:.28},uBend:{value:0}},{SOUPLE:1},THREE.DoubleSide);}); // la terre cuite des jetons : mate, un peu de lustre
   M.carte=metal(richTexCarte(),130);M.champagne=metal(richTexChampagne(),90);M.noir=metal(richTexUni('#16121c'),60);
   M.liasse=richMat(RICH_FS_SOUPLE,{uMap:{value:richTexLiasse()},uSheen:{value:new THREE.Color(.49,1,.62)},uSheenK:{value:.2},uBend:{value:0}},{SOUPLE:1},THREE.DoubleSide); // la liasse ne plie pas
@@ -37976,8 +37988,7 @@ function richInit(){
   RICH.M=M;RICH.G=Gm;
   for(const t in RICH_CAP){RICH.libres[t]=[];for(let i=0;i<RICH_CAP[t];i++){let m;
       if(t==='fruit'){const fg=fruitGeo(i%FRUIT_DEFS.length);m=new THREE.Mesh(fg,FRUIT_MAT);} // les fruits de la piste, leur matière (déjà compilée)
-      else if(t==='crane'){m=new THREE.Group();m.add(new THREE.Mesh(Gm.crane.or,M.or),new THREE.Mesh(Gm.crane.noir,M.noir)); // le crâne : or, orbites noires, deux RUBIS pour yeux
-        for(const sx of [-1,1]){const e=new THREE.Mesh(Gm.diamant,M.rubis);e.position.set(.27*sx,-.02,.9);e.rotation.x=Math.PI/2;e.scale.setScalar(.12);m.add(e);}
+      else if(t==='crane'){m=new THREE.Group();m.add(new THREE.Mesh(Gm.crane.or,M.cranes[i%M.cranes.length]),new THREE.Mesh(Gm.crane.noir,M.noir)); // le crâne : les os (pastel), les creux (sombres)
         m.traverse(function(c){c.frustumCulled=false;c.castShadow=c.receiveShadow=false;});}
       else if(t==='jeton')m=new THREE.Mesh(Gm.jeton,M.jetons[i%M.jetons.length]);
       else{const g=t==='or'?Gm.or[i%3]:t.indexOf('piece')===0||t==='btc'?Gm.piece:t==='rubis'?Gm.diamant:Gm[t];m=new THREE.Mesh(g,M[t]);}
@@ -38035,8 +38046,10 @@ function richLance(t,P,n,d,delai,kv){
   else if(D.face){m.lookAt(camera.position);m.rotateY((Math.random()-.5)*.8);o.w.set((Math.random()-.5)*.6,(Math.random()<.5?-1:1)*ws,(Math.random()-.5)*.6);} // le crâne : il te regarde, puis tourne sur lui-même
   else o.w.set(Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize().multiplyScalar(ws);
   // les facettes qui peuvent renvoyer le soleil (repère de l'objet)
-  o.nl=D.nl||null;const gc=D.gc||[1,.9,.68];
-  if(o.nl&&!o.gl){for(const g of RICH.gl)if(!g.o){g.o=o;o.gl=g;g.s.material.rotation=Math.random()*3;g.s.material.color.setRGB(gc[0],gc[1],gc[2]);break;}}
+  o.nl=D.nl||null;let gc=D.gc||[1,.9,.68];
+  if(t==='crane'){const mc=RICH.M.cranes[Math.floor(Math.random()*RICH.M.cranes.length)];m.children[0].material=mc;gc=mc.userData.gc;} // un pastel au hasard, son éclat à sa teinte
+  if(o.nl&&!o.gl){for(const g of RICH.gl)if(!g.o){g.o=o;o.gl=g;break;}}
+  if(o.gl){o.gl.s.material.rotation=Math.random()*3;o.gl.s.material.color.setRGB(gc[0],gc[1],gc[2]);}
   m.visible=false;m.scale.setScalar(1e-4);
   if(t==='trefle')RICH.chance=2; // le trèfle porte chance
 }
@@ -38109,7 +38122,7 @@ function richCoup(P,n,d,mu,combo){
     richFlamme(P9,n9,T9.fl,r==='jackpot'||r==='gros');richEtincelles(P9,n9,d9,Math.round(12*T9.fl),1);
     const nb=T9.n[0]+Math.floor(Math.random()*(T9.n[1]-T9.n[0]+1)),etal=r==='jackpot'?.38:r==='gros'?.22:.12;
     for(let i=0;i<nb;i++)richLance(richPioche(T9.w),P9,n9,d9,Math.random()*etal,r==='jackpot'?1.2:1);
-    if(Math.random()<.04)richLance('crane',P9,n9,d9,etal*.5,1); // de temps en temps, un CRÂNE d'or aux yeux de rubis
+    if(Math.random()<.04)richLance('crane',P9,n9,d9,etal*.5,1); // de temps en temps, un CRÂNE pastel
     if(SONV2){if(r==='petit'){sfx('fourgon.billets',{vol:3});sfx('piece',{st:2,vol:-4,t:.05});}
       else if(r==='bon'){sfx('piece.recolte',{vol:-1});sfx('fourgon.billets',{vol:2,t:.06});}
       else if(r==='gros')sfx('argent.gros');
@@ -38125,6 +38138,10 @@ window.dbgRiche=function(k,t){
       o.m.position.copy(P);o.v.set(0,0,0);o.vie=1e4;o.age=.2;o.w.multiplyScalar(.15);});
     {const P=C.clone().addScaledVector(rt,3.3).addScaledVector(up,0);richChaine(P,RICH.v3.clone().negate(),RICH.v3,0,0);const c=RICH.ch.find(function(x){return x.on;});if(c){c.vie=1e4;c.age=.2;}} // et une chaîne, pendue (figée : seules les contraintes jouent)
     return L.length+1;}
+  if(k==='cranes'){if(!RICH.pret||!CHUTE.on)return 'pas au ciel';RICH.gel=true;const C=CHUTE.ctr||carGroup.position;camera.getWorldDirection(RICH.v3); // (banc) les six pastels côte à côte, face à la caméra, figés
+    const rt=new THREE.Vector3(1,0,0).applyQuaternion(camera.quaternion);RICH.M.cranes.forEach(function(mc,i){const o=richSort('crane');richLance('crane',C,RICH.v3.clone().negate(),RICH.v3,0,1);
+      o.m.children[0].material=mc;if(t==='pres')o.m.position.copy(camera.position).addScaledVector(RICH.v3,5.2).addScaledVector(rt,(i-2.5)*.95);else o.m.position.copy(C).addScaledVector(rt,(i-2.5)*.75); // 'pres' : à 5 m de l'objectif, pour les regarder de près
+      o.m.lookAt(camera.position);o.v.set(0,0,0);o.w.set(0,.25,0);o.vie=1e4;o.age=.2;o.s=t==='pres'?.34:.28;});return RICH.M.cranes.length;}
   if(k==='voir'){if(!RICH.pret||!CHUTE.on)return 'pas au ciel';const C=CHUTE.ctr||carGroup.position;camera.getWorldDirection(RICH.v3); // (banc) voir('diamant', n) : n objets d'un type, lancés vers la caméra
     const P9=C.clone().addScaledVector(RICH.v3,-1.4),n9=RICH.v3.clone().negate();for(let i=0;i<(arguments[2]||6);i++)richLance(t,P9,n9,RICH.v3,i*.05,.5);return t;}
   if(k==='pluie'){if(!RICH.pret||!CHUTE.on)return 'pas au ciel';const C=CHUTE.ctr||carGroup.position;camera.getWorldDirection(RICH.v3);
