@@ -22,6 +22,17 @@ d'aller dans cette map avec une voiture, la mobilité comme le main, mais seulem
   dans la brume), tri par quartiers de 360 m (`jadeTri`, chaîné sur onBeforeRender), `jadeTick`, `jadeHeurt` (en vol : pilier, muraille,
   arche → `explode('pic')`), `grueTick` (des vols de GRUES en V). Ciel : `BIOMES.jade` + la couche `COUCHES.jade` du dôme (`jadeCiel` :
   rouleau peint, 4 rangées de monts, mer de nuages en plan ; `uJade`, programme PLEIN forcé). Route : `ROUTE_JADE` (gris de pierre), rails jade.
+- **v2 EN CUBES** (même jour, Léo : « couleurs plus similaires à l'image, et les montagnes fabriquées en pixels, comme du Minecraft art
+  mais plus beau ») : toute la pierre est bâtie en CUBES de `VX` = 6 m. `voxPilier` (10 gabarits `JADE_TPL`, bâtis couche par couche :
+  corniches, cannelures, herbe sur ce qui regarde le ciel, touffes de feuillage, buissons accrochés, coulées de rouille), `voxMesh`
+  (maillage GLOUTON + occlusion aux coins façon « smooth lighting »), `voxDemi` (deux niveaux de détail, cubes de 12 et 24 m — bandes
+  `JADE_LOD`), pins en cubes de 2 m (`voxPin`), pavillons en cubes de 1,5 m (`voxPavillon`), la Porte et le Pont en grilles de cubes
+  (`jadeRepere`). Piliers posés sur la trame du monde, rotations par quarts de tour. Matière `JADE_VOX_VS/FS` : texture PIXEL calculée
+  (8 × 8 texels par face), strates par couche du monde, biseau des blocs, lumière « de bloc », détail fondu au loin. Collision = les
+  cubes (`jadePilierDans`, `jadeDansGrille`, 5 points de caisse). Ciel : les rangées de monts EN PIXELS (trame `.0045` rad). Couleurs
+  recalées sur les photos (brume blanc-bleuté, lumière diffuse, grès gris pâle, verts francs, rouille saumon). MESURÉ : 60 i/s, ~420 000
+  triangles et ~33 appels de rendu visibles, construction ~0,3 s (dont 0,16 s de gabarits, une fois par session) ; `dbgJadeHeurt('test')`
+  sur 3 vallées : cubes durs, arche et dessous du pont libres, AUCUN point de la route (dessus ni dessous) dans un cube.
 - Mesuré (Chrome sans fenêtre du Mac) : 60 i/s, construction 16-28 ms, tri ~0,03 ms ; collisions (`dbgJadeHeurt('test')`, 3 vallées) :
   piliers durs, arche et dessous du pont libres, AUCUN point de la route dans la pierre. Console : `dbgJade()`, `dbgJadeVue('route'|'porte'|
   'pont'|'haut'|'loin'|'grue',d,h,cap)` (photo figée), `dbgGrues()`. sw.js → v203.

@@ -7075,7 +7075,7 @@ const skyDome=(function(){
       '    if(r3<.16)continue;',                                            // des trouées dans la rangée
       '    float cx=float(k)+(r2-.5)*.6,top=mix(h0,h1,r2*r2*.6+r1*.4),w=w0*(.40+.85*r1)*k2;',
       '    float e=clamp((y-h0*.2)/max(top-h0*.2,1e-4),0.,1.),wr=w*(1.-.38*e*e)*(1.+.12*sin(y*900.+i2*3.1));', // il s AFFINE en montant, ses flancs ondulent
-      '    float dx=abs(f-cx)*k2,tp=top-wr*.85*pow(min(1.,dx/max(wr,1e-5)),2.2);',                         // le sommet BOMBÉ (la forêt sur la tête)
+      '    float dx=abs(f-cx)*k2,tp=floor((top-wr*.85*pow(min(1.,dx/max(wr,1e-5)),2.2))/.0045)*.0045;',                         // le sommet BOMBÉ (la forêt sur la tête)
       '    c=max(c,clamp((wr-dx)/uJPx+.5,0.,1.)*clamp((tp-y)/uJPx+.5,0.,1.));}',
       '  return c;}',
       'vec3 jadeCiel(vec3 d){',
@@ -7085,12 +7085,12 @@ const skyDome=(function(){
       '  c=mix(c,uJdS*1.35+vec3(.25),smoothstep(.99950,.99972,sd));',     // le disque : pâle, comme sur la soie
       '  if(y>.012&&y<.4){float t=1.0/y;vec2 p=d.xz*t*1.05+vec2(uTime*.003,0.);', // les voiles de lavis, étirés
       '    float n=vfbm(vec2(p.x*.55,p.y*2.4)+3.7);c=mix(c,mix(uJdH,vec3(1.),.35),smoothstep(.56,.86,n)*.42*smoothstep(.012,.06,y)*(1.-smoothstep(.22,.4,y)));}',
-      '  vec3 B=uJdB;',
-      '  {float h=.004+.13*pow(jCrete(az,1.7),2.4),cv=clamp((h-y)/uJPx+.5,0.,1.);', // 0 : les grands pics, au fond
+      '  vec3 B=uJdB;float ps=.0045,azq=(floor(az/ps)+.5)*ps;',             // (v2, Léo : « en pixels ») la TRAME des monts : un pixel = .0045 rad
+      '  {float h=floor((.004+.13*pow(jCrete(azq,1.7),2.4))/ps)*ps,cv=clamp((h-y)/uJPx+.5,0.,1.);', // 0 : les grands pics, au fond
       '   vec3 m=mix(B,uJdR,.16);m=mix(m,B,smoothstep(h*.6,-.01,y)*.8);c=mix(c,m,cv);}',
-      '  {float cv=jPeigne(az,y,170.,3.3,.008,.052,.26);vec3 m=mix(B,uJdR,.27);m=mix(m,B,smoothstep(.034,-.004,y)*.85);c=mix(c,m,cv);}',
-      '  {float cv=jPeigne(az,y,104.,7.9,.012,.078,.24);vec3 m=mix(B,uJdR,.39);m=mix(m,B,smoothstep(.05,-.004,y)*.85);c=mix(c,m,cv);}',
-      '  {float cv=jPeigne(az,y,62.,11.2,.018,.108,.22);vec3 m=mix(B,uJdR,.52);m=mix(m,B,smoothstep(.07,-.004,y)*.85);c=mix(c,m,cv);}',
+      '  {float cv=jPeigne(azq,y,170.,3.3,.008,.052,.26);vec3 m=mix(B,uJdR,.27);m=mix(m,B,smoothstep(.034,-.004,y)*.85);c=mix(c,m,cv);}',
+      '  {float cv=jPeigne(azq,y,104.,7.9,.012,.078,.24);vec3 m=mix(B,uJdR,.39);m=mix(m,B,smoothstep(.05,-.004,y)*.85);c=mix(c,m,cv);}',
+      '  {float cv=jPeigne(azq,y,62.,11.2,.018,.108,.22);vec3 m=mix(B,uJdR,.52);m=mix(m,B,smoothstep(.07,-.004,y)*.85);c=mix(c,m,cv);}',
       '  if(y<0.){float t=(uCam.y-uJMerY)/max(-y,.0004);',                  // LA MER DE NUAGES
       '    vec2 p=(d.xz*t+uCam.xz)*.0019+vec2(uTime*.005,uTime*.0018);',
       '    float n=vfbm(p+.7*vec2(vn(p*.6+3.1),vn(p*.6-1.7)));',
@@ -10756,7 +10756,7 @@ function trancheMat(){
 }
 const ROUTE_JOUR=[.86,.94,.86]; /* (niveau 1 v2) [1,1.12,.88] → plus SOMBRE : au banc le bitume du midi sortait gris clair (L* ~55), au niveau des nuages — la route doit être le ruban le plus sombre de l'image pour que la caisse orange et le ciel clair se lisent contre elle (L10 26 → 10) */ // (2026-09-30) la teinte du bitume au jour d'altitude (× la base violette 0x322e40 → un anthracite à peine bleuté)
 const GLACE={k:1,nuages:.45,espace:.5};
-const ROUTE_JADE=[.92,1.06,.80]; // (2026-10-09) LES PICS DE JADE : le bitume en gris de pierre (× la base violette) // (passe graphismes mobile) la part du ciel dans le bitume sec, par niveau (la VILLE a son eau) — `dbgGfx({glace:0})` = l'ancien bitume
+const ROUTE_JADE=[.95,1.04,.86]; // (2026-10-09) LES PICS DE JADE : le bitume en gris de pierre (× la base violette) // (passe graphismes mobile) la part du ciel dans le bitume sec, par niveau (la VILLE a son eau) — `dbgGfx({glace:0})` = l'ancien bitume
 const _px9=new THREE.Vector2();
 function routeTick(){ // le bitume suit le NIVEAU (fondu du portail : LVL.route / LVL.sheen, voir lvlStep)
   renderer.getDrawingBufferSize(_px9);TRAIT_U.uPx.value=2*Math.tan(camera.fov*Math.PI/360)/Math.max(1,_px9.y); // la taille d'un pixel à 1 m (suit le FOV de vol et la résolution adaptative)
@@ -12506,26 +12506,19 @@ window.dbgParisVue=function(k,d,h){const Q=PARIS.Q;if(!Q)return 'pas de Paris';i
 /* ======================= LES PICS DE JADE — LA MAP DE LÉO (2026-10-09) =======================
    Léo, trois images (les piliers de grès de Zhangjiajie couronnés de pins, un pic du Huangshan peint aux bleus-verts minéraux sur une
    mer de nuages, les mêmes piliers noyés de brume) : « travaille sur une nouvelle map inspirée de ça, vas-y à fond » — puis : « donne-moi
-   la capacité d'aller dans cette map avec une voiture, la mobilité comme le main, mais seulement ça : pas de jeu, que la voiture dans la map ».
+   la capacité d'aller dans cette map avec une voiture, la mobilité comme le main, mais seulement ça : pas de jeu, que la voiture dans la map »
+   — puis (v2) : « couleurs plus similaires à l'image, et les montagnes fabriquées en pixels, comme du Minecraft art mais plus beau ».
    → `?map=jade` (voir BALADE) : la caisse, sa conduite telle quelle, et la map. Ni pièces, ni plots, ni score, ni HUD ; la mort n'est qu'un
      replacement (le bac à sable). Le portail mène à une autre vallée de la même map (nouvelle graine).
    · LA ROUTE (`genJade`) : un ruban suspendu qui serpente ENTRE les piliers — grands virages (R 280-700 m), pentes douces, aucun trou,
      aucun looping ; deux droites gardées pour les deux monuments.
-   · LES PILIERS (`buildJade`) : des colonnes de grès de 300 à 1 100 m qui montent d'une mer de nuages — trois rangs le long de la route
-     (en touffes de 1 à 4, comme sur la photo), une forêt de pierre au large jusqu'à la brume. Quatre gabarits taillés (colonne, aiguille,
-     gradins, tête large) en facettes plates (la DA poly), une matière à eux : strates horizontales ocre et gris, coulures, mousse sur les
-     faces qui regardent le ciel, le pied qui se noie dans la brume. RÈGLE D'OR (comme les tours de la ville) : aucun pilier ne touche la
-     route — celui qui la croiserait passe SOUS elle (son sommet 45 m sous la dalle : la face du dessous reste roulable).
-   · LES PINS du Huangshan (plateaux de branches horizontaux, tronc qui se tord) sur les sommets et sur les corniches, des PAVILLONS
-     vermillon sur quelques sommets, des NAPPES DE BRUME qui flottent entre les piliers.
-   · LA PORTE DU CIEL (le trou de la montagne de Tianmen) : une muraille de pierre de ~1 km en travers de la route, que la route traverse
-     par une arche de 170 m ; LE PONT DU CIEL (le « premier pont sous le ciel » de Zhangjiajie) : une arche naturelle entre deux piliers,
-     95 m au-dessus de la route.
-   · LE CIEL (dôme, `jadeCiel`) : un rouleau peint — horizon crème, lavis jade, le soleil pâle, quatre rangées de monts (crêtes du Huangshan
-     au fond, peignes de piliers devant), chacune le pied dans la brume, et sous l'horizon la MER DE NUAGES (un plan, parallaxe vraie).
-   · EN VOL, les piliers, la muraille et le pont sont DURS (`jadeHeurt`). Coût : ~5 appels de rendu pour les piliers, 2 pour les pins et
-     pavillons, 1 pour la brume ; tri par quartiers de 360 m à chaque rendu (`jadeTri`), au-delà de la brume rien n'est envoyé.
-   Console : `dbgJade()` (comptes, ms), `dbgJadeVue(k)` (photo d'un monument : 'porte', 'pont', 'route', 'haut'). */
+   · LES PILIERS, LA PORTE DU CIEL (le trou de Tianmen), LE PONT DU CIEL (l'arche de Zhangjiajie) : EN CUBES — voir « EN CUBES » plus bas.
+     RÈGLE D'OR (comme les tours de la ville) : aucun pilier ne touche la route — celui qui la croiserait passe SOUS elle (sommet 45 m sous
+     la dalle : la face du dessous reste roulable).
+   · LE CIEL (dôme, `jadeCiel`) : horizon pâle, bleu de brume, soleil voilé, quatre rangées de monts EN PIXELS (les crêtes au fond, des
+     peignes de piliers devant), chacune le pied dans la brume, et sous l'horizon la MER DE NUAGES (un plan, parallaxe vraie).
+   · Les nappes de BRUME restent douces, des vols de GRUES traversent la vallée.
+   Console : `dbgJade()`, `dbgJadeVue(k)` ('route' 'porte' 'pont' 'haut' 'loin' 'grue'), `dbgJadeAller('porte'|'pont')`, `dbgJadeHeurt('test')`. */
 const BALADE_MOTEUR=(/[?&]moteur=(\d+)/.exec(location.search)||[0,8])[1]|0; // (BALADE) le moteur de la balade : sans pièces il ne monterait jamais — un V6 biturbo par défaut, `?moteur=n` pour un autre palier
 const NIV_JADE={id:'jade',nm:'PICS DE JADE',bio:['jade'],planete:0,espace:0,pluie:0,cielMusical:false,route:.42,sheen:.16,piste:'jade',pr:''};
 const JADE={root:null,Q:null,fam:[],col:null,porte:null,pont:null,brume:null,n:{},ms:0,merY:-420,t:0,sig:0,geos:null,cl:null};
@@ -12573,31 +12566,6 @@ function genJade(rnd){
   JADE.Q=Q;
   return ctrl;
 }
-/* ---- LES GABARITS (unité : rayon ~1, hauteur 0 → 1 ; l'instance les étire à r × H × r) ---- */
-function jadePilierGeo(kind,nS,nR,graine){
-  const r=mulberry32(graine),pos=[],idx=[],ang=[],rad=[],ringS=[];
-  for(let j=0;j<nS;j++){ang.push((j+(r()-.5)*.55)/nS*Math.PI*2);rad.push(.78+r()*.42);}
-  for(let k=0;k<2+((r()*2)|0);k++)rad[(r()*nS)|0]*=.68+r()*.12; // les CANNELURES : deux ou trois crevasses qui descendent toute la paroi
-  let ox=0,oz=0,rw=0;
-  for(let i=0;i<=nR;i++){
-    const v=i===nR?1:i/nR+(i>0?(r()-.5)*.45/nR:0);let s;
-    rw=rw*.7+(r()-.5)*.16;                                        // une marche au hasard : le profil ondule sans se répéter
-    if(kind===0)s=1+rw-(r()<.18?.09:0);                           // la COLONNE : droite, quelques creux
-    else if(kind===1)s=1.16-.40*v+.08*(r()-.5);                   // l'AIGUILLE : elle s'affine vers le ciel
-    else if(kind===2)s=(i%3===2?.82:1.02)+.07*(r()-.5);           // les GRADINS : des corniches où les pins s'accrochent
-    else s=.86+.26*Math.sin(v*2.9+.4)+.06*(r()-.5);               // la TÊTE LARGE : le haut plus ventru que le pied
-    if(i>0){ox+=(r()-.5)*.07;oz+=(r()-.5)*.07;}
-    ringS.push(s);
-    for(let j=0;j<nS;j++){const rr=rad[j]*s*(1+(r()-.5)*.16);pos.push(Math.cos(ang[j])*rr+ox,v,Math.sin(ang[j])*rr+oz);}}
-  for(let i=0;i<nR;i++)for(let j=0;j<nS;j++){const a=i*nS+j,b=i*nS+(j+1)%nS,c=a+nS,d=b+nS;idx.push(a,c,b,b,c,d);}
-  // LE SOMMET : une épaule rentrée puis un dôme bas (la terre et les pins) — en unités de HAUTEUR, donc minuscules
-  const top=nR*nS,sh=pos.length/3;
-  for(let j=0;j<nS;j++){const x=pos[(top+j)*3],z=pos[(top+j)*3+2];pos.push(ox+(x-ox)*.80,1.004,oz+(z-oz)*.80);}
-  const ci=pos.length/3;pos.push(ox+(r()-.5)*.12,1.009,oz+(r()-.5)*.12);
-  for(let j=0;j<nS;j++){const a=top+j,b=top+(j+1)%nS,c=sh+j,d=sh+(j+1)%nS;idx.push(a,c,b,b,c,d,c,ci,d);}
-  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeBoundingSphere();
-  return {g:g,smax:Math.max.apply(null,ringS)*1.18,top:{x:ox,z:oz,s:ringS[nR]}};
-}
 // les petits volumes colorés (pins, pavillons) : un tableau de sommets + une couleur par sommet, sans index (facettes)
 function jadeKit(){const P=[],C=[];
   const tri=(a,b,c,ca,cb,cc)=>{P.push(a[0],a[1],a[2],b[0],b[1],b[2],c[0],c[1],c[2]);C.push(ca[0],ca[1],ca[2],(cb||ca)[0],(cb||ca)[1],(cb||ca)[2],(cc||ca)[0],(cc||ca)[1],(cc||ca)[2]);};
@@ -12617,113 +12585,190 @@ function jadeKit(){const P=[],C=[];
       f([x0,y1,z0],[x0,y1,z1],[x1,y1,z1],[x1,y1,z0],T9);f([x0,y0,z1],[x1,y0,z1],[x1,y1,z1],[x0,y1,z1],col);f([x1,y0,z0],[x0,y0,z0],[x0,y1,z0],[x1,y1,z0],col);
       f([x1,y0,z1],[x1,y0,z0],[x1,y1,z0],[x1,y1,z1],col);f([x0,y0,z0],[x0,y0,z1],[x0,y1,z1],[x0,y1,z0],col);},
     geo:function(){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('aCol',new THREE.Float32BufferAttribute(C,3));g.computeBoundingSphere();return g;}};}
-/* LE PIN DU HUANGSHAN : un tronc qui se tord, des PLATEAUX d'aiguilles horizontaux, l'un qui part loin sur le côté (le « pin qui accueille »). */
-function jadePinGeo(v){const K=jadeKit(),rg=mulberry32(0x9A1E+v*977);
-  const tr=[.33,.25,.20],vH=[.15,.33,.21],vC=[.20,.40,.24],vB=[.08,.17,.10],vR=[.26,.44,.25];
-  const lx=(rg()-.5)*.25,lz=(rg()-.5)*.25,p0=[0,-.08,0],p1=[lx*.4,.35,lz*.4],p2=[lx,.62,lz],p3=[lx*.7+(rg()-.5)*.1,.9,lz*.7];
-  K.tube(p0,p1,.055,.04,5,tr);K.tube(p1,p2,.04,.03,5,tr);K.tube(p2,p3,.03,.016,4,tr);
-  const pads=v===2?[[.38,.62,.28],[.62,.48,.22],[.86,.30,.17]]:[[.50,.46,.22],[.70,.40,.19],[.88,.26,.15]];
-  for(let k=0;k<pads.length;k++){const q=pads[k],an=rg()*6.283,o=k===0&&v!==1?.32:.12*rg();
-    const c=[lx*q[0]+Math.cos(an)*o,q[0],lz*q[0]+Math.sin(an)*o];
-    if(k===0&&v!==1)K.tube([lx*q[0]*.9,q[0]-.04,lz*q[0]*.9],[c[0],c[1]-.02,c[2]],.022,.012,4,tr); // la grande branche qui part
-    K.plateau(c,q[1],q[1]*(.7+rg()*.3),.07+.03*rg(),7,vH,vB,vR,rg);
-    K.plateau([c[0]+(rg()-.5)*q[1]*.6,c[1]+.06,c[2]+(rg()-.5)*q[1]*.6],q[1]*.55,q[1]*.45,.05,6,vC,vB,vR,rg);}
-  return K.geo();}
-/* LA TOUFFE : trois à cinq boules taillées (icosaèdres aplatis) soudées — la masse verte des sommets et des corniches. */
-function jadeTouffeGeo(v){const K=jadeKit(),rg=mulberry32(0xB05+v*313),P0=new THREE.IcosahedronGeometry(1,0).toNonIndexed().attributes.position.array,n=3+v;
-  for(let k=0;k<n;k++){const cx=(rg()-.5)*1.2,cz=(rg()-.5)*1.2,cy=rg()*.3,sx=.42+rg()*.36,sy=.30+rg()*.26,sz=.42+rg()*.36,t=rg();
-    const cH=[.10+.07*t,.19+.08*t,.08+.03*t],cB=[.045,.085,.045];
-    for(let i=0;i<P0.length;i+=9){const ty=(P0[i+1]+P0[i+4]+P0[i+7])/3,col=ty>.15?cH:ty>-.3?[(cH[0]+cB[0])/2,(cH[1]+cB[1])/2,(cH[2]+cB[2])/2]:cB;
-      K.tri([cx+P0[i]*sx,cy+P0[i+1]*sy,cz+P0[i+2]*sz],[cx+P0[i+3]*sx,cy+P0[i+4]*sy,cz+P0[i+5]*sz],[cx+P0[i+6]*sx,cy+P0[i+7]*sy,cz+P0[i+8]*sz],col);}}
-  return K.geo();}
-/* LE PAVILLON : socle de pierre, quatre colonnes vermillon, deux toits aux coins relevés, l'épi d'or. ~10 m à l'échelle 1. */
-function jadePavillonGeo(){const K=jadeKit(),rg=mulberry32(0x7A55);
-  const pierre=[.55,.52,.47],ver=[.78,.22,.14],verS=[.55,.14,.10],toit=[.20,.27,.26],toitD=[.12,.16,.17],or=[.95,.72,.30];
-  K.boite([0,0,0],9,1.1,9,pierre,[.62,.6,.55]);
-  for(const sx of [-1,1])for(const sz of [-1,1])K.tube([sx*3.2,1.1,sz*3.2],[sx*3.2,5.4,sz*3.2],.32,.3,6,ver);
-  K.boite([0,5.2,0],7.4,.7,7.4,verS,ver);
-  const toitF=(y,w,h,rel)=>{const c=[[-w,y+rel,-w],[w,y+rel,-w],[w,y+rel,w],[-w,y+rel,w]],m=[[0,y,-w*.92],[w*.92,y,0],[0,y,w*.92],[-w*.92,y,0]],a=[0,y+h,0];
-    for(let k=0;k<4;k++){const c0=c[k],c1=c[(k+1)%4],mm=m[k];K.tri(a,mm,c0,toit,toitD,toitD);K.tri(a,c1,mm,toit,toitD,toitD);K.tri(c0,mm,[mm[0]*.9,y-.6,mm[2]*.9],toitD);K.tri(mm,c1,[mm[0]*.9,y-.6,mm[2]*.9],toitD);}};
-  toitF(5.9,6.4,2.4,.9);K.boite([0,7.7,0],4.6,1.4,4.6,verS,ver);toitF(9.0,4.2,2.2,.7);K.tube([0,11,0],[0,12.6,0],.35,.08,5,or);
-  return K.geo();}
-/* ---- LA MATIÈRE (une seule famille de programmes) : normales PLATES tirées des dérivées (la DA poly, quelle que soit l'échelle de
-   l'instance), soleil + ciel + sol + remplissage comme une Lambert, la brume de three, et le pied qui se noie dans la mer de nuages.
-   PILIER : la roche est peinte ici (strates, coulures, mousse) ; COULEUR : les pins et les pavillons portent leur couleur (aCol). ---- */
-const JADE_VS=[
-  'attribute vec4 aJ;varying vec3 vW;varying vec3 vO;varying vec4 vJ;',
-  '#ifdef JCOL',
-  'attribute vec3 aCol;varying vec3 vC;uniform float uTime;',
-  '#endif',
+/* ======================= LES PICS DE JADE v2 — EN CUBES (2026-10-09, Léo) =======================
+   Léo, sur la v1 (piliers lisses à facettes) : « couleurs plus similaires à l'image, et les montagnes fabriquées en pixels pour donner
+   plus de réalisme — comme du Minecraft art, mais plus beau ». Tout ce qui est pierre est désormais BÂTI EN CUBES sur une même trame :
+   · VX = 6 m, LE CUBE de la map : piliers, muraille de la Porte, arche du Pont. Les piliers sont posés sur la trame du monde (positions
+     et hauteurs alignées, rotations par quarts de tour) : leurs strates tombent aux mêmes hauteurs d'un pilier à l'autre.
+   · LES GABARITS (`voxPilier`) : dix piliers bâtis couche par couche (des tronçons de section constante — les corniches de Zhangjiajie —,
+     cannelures, une marche au hasard du profil, la tête qui dérive), de l'HERBE sur tout ce qui regarde le ciel, des TOUFFES de feuillage
+     en cubes sur les sommets et les corniches, des buissons accrochés aux parois, des TRAÎNÉES de rouille (les coulées orangées de la
+     photo). Trois niveaux de détail (cube de 6, 12, 24 m) tirés de la même grille.
+   · LE MAILLAGE (`voxMesh`) : glouton (les faces voisines de même matière et de même ombre se fondent en un seul rectangle) avec
+     l'OCCLUSION aux coins (le « smooth lighting » de Minecraft : le creux d'une corniche s'assombrit), diagonale choisie selon l'ombre.
+   · LA MATIÈRE (`JADE_VOX`) : chaque face porte une TEXTURE PIXEL calculée (8 × 8 texels par cube : grain, fissures, l'herbe qui
+     déborde sur le haut des côtés), les strates suivent la couche du monde, la lumière du niveau (soleil, ciel, sol, remplissage) +
+     l'ombre des coins + le biseau des cubes ; le détail se fond au loin (plus de scintillement) ; le pied se noie dans la brume.
+   · LES PINS du Huangshan en petits cubes de 2 m (`voxPin`, trois modèles : tronc qui se tord, plateaux d'aiguilles), les PAVILLONS en
+     cubes de 1,5 m (`voxPavillon`). Les nappes de BRUME restent douces (la photo), les GRUES aussi.
+   ⚠ La collision lit les CUBES (`jadeHeurt` → la grille du gabarit, du mur, de l'arche) : ce qu'on voit est ce qui arrête.
+   Console : `dbgJade()` (comptes, triangles visibles), `dbgJadeVue(k)`, `dbgJadeHeurt('test')`. */
+const VX=6;
+const JM={roche:1,rouille:2,herbe:3,feuille:4,bois:5,laque:6,tuile:7,or:8,pierre:9};
+function voxG(nx,ny,nz){return {nx:nx,ny:ny,nz:nz,d:new Uint8Array(nx*ny*nz)};}
+function voxAt(G,x,y,z){return (x<0||y<0||z<0||x>=G.nx||y>=G.ny||z>=G.nz)?0:G.d[x+G.nx*(z+G.nz*y)];}
+function voxSet(G,x,y,z,m){if(x>=0&&y>=0&&z>=0&&x<G.nx&&y<G.ny&&z<G.nz)G.d[x+G.nx*(z+G.nz*y)]=m;}
+/* LE MAILLAGE GLOUTON — pour chaque axe et chaque sens, plan par plan : un masque des faces (matière + ombre des 4 coins), puis les plus
+   grands rectangles identiques. Sortie : position (en cubes), normale, aM (matière), aAO (0 = coin enfoui, 1 = à l'air). */
+function voxMesh(G){
+  const dims=[G.nx,G.ny,G.nz],P=[],Nm=[],Ma=[],Ao=[],I=[],at=[0,0,0],q=[0,0,0];
+  const sol=(a,b,c)=>voxAt(G,a,b,c)>0;
+  for(let d=0;d<3;d++){const u=(d+1)%3,v=(d+2)%3,nu=dims[u],nv=dims[v],mask=new Int32Array(nu*nv);
+    for(const sg of [1,-1])for(let x=0;x<=dims[d];x++){
+      let n=0;const xi=sg>0?x-1:x,xo=sg>0?x:x-1;
+      for(let j=0;j<nv;j++)for(let i=0;i<nu;i++,n++){
+        at[d]=xi;at[u]=i;at[v]=j;const m=voxAt(G,at[0],at[1],at[2]);if(!m){mask[n]=0;continue;}
+        at[d]=xo;if(voxAt(G,at[0],at[1],at[2])){mask[n]=0;continue;}
+        let key=m;const co=[[-1,-1],[1,-1],[1,1],[-1,1]];
+        for(let c=0;c<4;c++){q[d]=xo;q[u]=i+co[c][0];q[v]=j;const s1=sol(q[0],q[1],q[2])?1:0;q[u]=i;q[v]=j+co[c][1];const s2=sol(q[0],q[1],q[2])?1:0;
+          q[u]=i+co[c][0];q[v]=j+co[c][1];const cc=sol(q[0],q[1],q[2])?1:0;key|=(s1&&s2?0:3-(s1+s2+cc))<<(8+c*2);}
+        mask[n]=key|(1<<20);}
+      n=0;
+      for(let j=0;j<nv;j++)for(let i=0;i<nu;){const c=mask[n];if(!c){i++;n++;continue;}
+        let w=1;while(i+w<nu&&mask[n+w]===c)w++;
+        let h=1;grand:while(j+h<nv){for(let k=0;k<w;k++)if(mask[n+k+h*nu]!==c)break grand;h++;}
+        const base=P.length/3,m=c&255,a=[(c>>8)&3,(c>>10)&3,(c>>12)&3,(c>>14)&3];
+        const crn=[[i,j],[i+w,j],[i+w,j+h],[i,j+h]];
+        for(let k=0;k<4;k++){q[d]=x;q[u]=crn[k][0];q[v]=crn[k][1];P.push(q[0],q[1],q[2]);const nn=[0,0,0];nn[d]=sg;Nm.push(nn[0],nn[1],nn[2]);Ma.push(m);Ao.push(a[k]/3);}
+        const fl=a[0]+a[2]<a[1]+a[3]; // la diagonale suit l'ombre (sinon un coin sombre s'étire en losange)
+        let t=fl?[1,2,3,1,3,0]:[0,1,2,0,2,3];if(sg<0)t=[t[0],t[2],t[1],t[3],t[5],t[4]];
+        for(const e of t)I.push(base+e);
+        for(let l=0;l<h;l++)for(let k=0;k<w;k++)mask[n+k+l*nu]=0;
+        i+=w;n+=w;}}}
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(Nm,3));
+  g.setAttribute('aM',new THREE.Float32BufferAttribute(Ma,1));g.setAttribute('aAO',new THREE.Float32BufferAttribute(Ao,1));
+  g.setIndex(P.length/3>65535?new THREE.Uint32BufferAttribute(I,1):new THREE.Uint16BufferAttribute(I,1));g.computeBoundingSphere();
+  return g;
+}
+// UN NIVEAU DE DÉTAIL : la grille divisée par 2 (un cube plein si 3 de ses 8 enfants le sont ; la vie l'emporte en haut)
+function voxDemi(G){const H=voxG(Math.ceil(G.nx/2),Math.ceil(G.ny/2),Math.ceil(G.nz/2));
+  for(let y=0;y<H.ny;y++)for(let z=0;z<H.nz;z++)for(let x=0;x<H.nx;x++){let n=0,v=0,r=0;
+    for(let k=0;k<8;k++){const m=voxAt(G,2*x+(k&1),2*y+((k>>1)&1),2*z+(k>>2));if(m){n++;if(m===JM.feuille||m===JM.herbe)v++;else if(m===JM.rouille)r++;}}
+    if(n>=3)H.d[x+H.nx*(z+H.nz*y)]=v>=2?(v>=n-1?JM.feuille:JM.herbe):r>=3?JM.rouille:JM.roche;}
+  return H;}
+/* UN PILIER EN CUBES — R : rayon moyen (cubes), H : hauteur (cubes), kind : 0 colonne · 1 aiguille · 2 gradins · 3 tête large */
+function voxPilier(R,H,kind,graine){
+  const rg=mulberry32(graine),M=2*Math.ceil((R*1.55+2)/2),N=2*M,G=voxG(N,H+5,N);
+  const harm=[];for(let k=2;k<=5;k++)harm.push([k,(.05+rg()*.11)*(k===2?1.35:1),rg()*6.283]);
+  const can=[];for(let k=0,nc=2+((rg()*2.6)|0);k<nc;k++)can.push([rg()*6.283,.18+rg()*.2,.22+rg()*.2]); // les CANNELURES
+  const tr=[];for(let k=0,nt=1+((rg()*2.4)|0);k<nt;k++)tr.push([rg()*6.283,.12+rg()*.14,(.3+rg()*.6)*H,(.15+rg()*.3)*H]); // les TRAÎNÉES de rouille : angle, demi-largeur, haut, longueur
+  let y=0,cx=M,cz=M,rw=0;
+  while(y<H){const deep=y<H*.38,h=deep?9+((rg()*9)|0):2+((rg()*5)|0),v=(y+h/2)/H;
+    rw=rw*.6+(rg()-.5)*.17;let s;
+    if(kind===0)s=1+rw;else if(kind===1)s=1.14-.44*v+rw*.6;else if(kind===2)s=(((y/3)|0)%2?.82:1)+rw*.5;else s=.86+.34*v*v+rw*.5;
+    if(!deep){cx=Math.max(M-R*.25,Math.min(M+R*.25,cx+(rg()-.5)*.7));cz=Math.max(M-R*.25,Math.min(M+R*.25,cz+(rg()-.5)*.7));}
+    const rr=Math.max(1.15,R*s),y1=Math.min(H,y+h);
+    for(let i=0;i<N;i++)for(let j=0;j<N;j++){const dx=i+.5-cx,dz=j+.5-cz,d=Math.hypot(dx,dz),an=Math.atan2(dz,dx);
+      let f=1;for(const hq of harm)f+=hq[1]*Math.cos(hq[0]*an+hq[2]);
+      for(const c of can){const da=Math.abs(((an-c[0])%6.2832+9.4248)%6.2832-3.1416);if(da<c[1])f-=c[2]*(1-da/c[1]);}
+      if(d<rr*f)for(let yy=y;yy<y1;yy++)G.d[i+N*(j+N*yy)]=JM.roche;}
+    y=y1;}
+  // LA RUILLE : les coulées orangées, sur la peau, en bandes verticales
+  for(let yy=0;yy<H;yy++)for(let i=0;i<N;i++)for(let j=0;j<N;j++){const k0=i+N*(j+N*yy);if(G.d[k0]!==JM.roche)continue;
+    if(voxAt(G,i+1,yy,j)&&voxAt(G,i-1,yy,j)&&voxAt(G,i,yy,j+1)&&voxAt(G,i,yy,j-1))continue; // pas sur la peau
+    const an=Math.atan2(j+.5-M,i+.5-M);
+    for(const t of tr){const da=Math.abs(((an-t[0])%6.2832+9.4248)%6.2832-3.1416);if(da<t[1]&&yy<t[2]&&yy>t[2]-t[3]&&rg()<.9){G.d[k0]=JM.rouille;break;}}}
+  // LA VIE : l'herbe sur ce qui regarde le ciel (au-dessus du tiers bas), des touffes de feuillage, des buissons accrochés à la paroi
+  const tops=[],cor=[];
+  for(let yy=Math.floor(H*.3);yy<H;yy++)for(let i=0;i<N;i++)for(let j=0;j<N;j++){const k0=i+N*(j+N*yy),m=G.d[k0];if(!m||m===JM.feuille||voxAt(G,i,yy+1,j))continue;
+    G.d[k0]=JM.herbe;(yy>=H-1?tops:cor).push([i,yy,j]);}
+  const touffe=(i,yy,j,p)=>{if(rg()>p)return;voxSet(G,i,yy+1,j,JM.feuille);if(rg()<.45)voxSet(G,i,yy+2,j,JM.feuille);
+    for(const o of [[1,0],[-1,0],[0,1],[0,-1]])if(rg()<.35&&!voxAt(G,i+o[0],yy+1,j+o[1]))voxSet(G,i+o[0],yy+1,j+o[1],JM.feuille);};
+  for(const c of tops)touffe(c[0],c[1],c[2],.5);
+  for(const c of cor)touffe(c[0],c[1],c[2],.42);
+  for(let yy=Math.floor(H*.45);yy<H-1;yy++)for(let i=0;i<N;i++)for(let j=0;j<N;j++){if(!voxAt(G,i,yy,j)||rg()>.03)continue; // accrochés à la paroi
+    const o=[[1,0],[-1,0],[0,1],[0,-1]][(rg()*4)|0];if(voxAt(G,i+o[0],yy,j+o[1]))continue;
+    voxSet(G,i+o[0],yy,j+o[1],JM.feuille);if(rg()<.5)voxSet(G,i+o[0],yy+1,j+o[1],JM.feuille);if(rg()<.3)voxSet(G,i+o[0],yy-1,j+o[1],JM.feuille);}
+  let yTop=0,rmax=0;for(let yy=0;yy<G.ny;yy++)for(let i=0;i<N;i++)for(let j=0;j<N;j++)if(G.d[i+N*(j+N*yy)]){yTop=Math.max(yTop,yy+1);rmax=Math.max(rmax,Math.hypot(i+.5-M,j+.5-M)+.71);}
+  const G1=voxDemi(G),G2=voxDemi(G1);
+  return {G:G,M:M,H:H,yTop:yTop,rmax:rmax,tops:tops.filter(function(c){return !voxAt(G,c[0],c[1]+1,c[2]);}),geo:[voxMesh(G),voxMesh(G1),voxMesh(G2)]};
+}
+/* LE PIN DU HUANGSHAN en cubes de 2 m (grille 13 × 15 × 13) : un tronc de bois qui se tord, des PLATEAUX d'aiguilles horizontaux,
+   l'un qui part loin sur le côté. LE PAVILLON en cubes de 1,5 m : socle de pierre, colonnes vermillon, deux toits aux coins relevés, l'épi d'or. */
+function voxPin(v){const rg=mulberry32(0x9A1E+v*977),G=voxG(13,15,13);let x=6,z=6;
+  const h=9+((rg()*4)|0),dx=rg()<.5?1:-1,dz=rg()<.5?1:-1;
+  for(let y=0;y<h;y++){voxSet(G,Math.round(x),y,Math.round(z),JM.bois);if(y>2&&rg()<.4)x+=dx*.6;if(y>4&&rg()<.3)z+=dz*.5;x=Math.max(2,Math.min(10,x));z=Math.max(2,Math.min(10,z));}
+  const pad=(cx,cy,cz,rx,rz)=>{for(let i=0;i<13;i++)for(let j=0;j<13;j++){const e=((i-cx)/rx)**2+((j-cz)/rz)**2;if(e<1-rg()*.25){voxSet(G,i,cy,j,JM.feuille);if(e<.35&&rg()<.7)voxSet(G,i,cy+1,j,JM.feuille);}}};
+  const tx=Math.round(x),tz=Math.round(z);
+  pad(tx,h,tz,2.6,2.2);pad(tx-dx*2,h-3,tz+dz,3.4,2.6);
+  if(v!==1){const bx=tx+dx*3,bz=tz-dz*2;for(let k=0;k<3;k++)voxSet(G,tx+Math.round(dx*k),h-5,tz-Math.round(dz*k*.6),JM.bois);pad(bx,h-5,bz,3.6,2.4);} // la grande branche qui part
+  else pad(tx,h-5,tz,4,3.4);
+  return voxMesh(G);}
+function voxPavillon(){const G=voxG(11,13,11);
+  for(let i=0;i<11;i++)for(let j=0;j<11;j++){voxSet(G,i,0,j,JM.pierre);if(i>0&&i<10&&j>0&&j<10)voxSet(G,i,1,j,JM.pierre);}
+  for(const i of [2,8])for(const j of [2,8])for(let y=2;y<6;y++)voxSet(G,i,y,j,JM.laque);
+  for(let i=1;i<10;i++)for(let j=1;j<10;j++)if(i===1||i===9||j===1||j===9)voxSet(G,i,6,j,JM.laque);
+  const toit=(y,a,b)=>{for(let i=a;i<=b;i++)for(let j=a;j<=b;j++)voxSet(G,i,y,j,JM.tuile);for(const c of [[a,a],[a,b],[b,a],[b,b]])voxSet(G,c[0],y+1,c[1],JM.tuile);}; // les coins RELEVÉS
+  toit(7,0,10);toit(8,2,8);for(let i=3;i<=7;i++)for(let j=3;j<=7;j++)voxSet(G,i,9,j,JM.tuile);
+  for(let y=9;y<11;y++)for(let i=4;i<=6;i++)for(let j=4;j<=6;j++)if(y===9||(i===5&&j===5))voxSet(G,i,y,j,y===9?JM.laque:JM.tuile);
+  toit(11,3,7);voxSet(G,5,12,5,JM.or);
+  return voxMesh(G);}
+/* ---- LA MATIÈRE DES CUBES ---- */
+const JADE_VOX_VS=[
+  'attribute float aM,aAO;attribute vec4 aJ;varying vec3 vW,vO,vN,vNo;varying float vM,vAO;varying vec4 vJ;',
   '#include <fog_pars_vertex>',
   'void main(){',
-  '  vec4 p0=vec4(position,1.);',
-  '#ifdef JCOL',
-  '  vC=aCol;',
-  '#endif',
   '#ifdef USE_INSTANCING',
-  '  vec4 wp=modelMatrix*instanceMatrix*p0;',
+  '  mat4 mw=modelMatrix*instanceMatrix;',
   '#else',
-  '  vec4 wp=modelMatrix*p0;',
+  '  mat4 mw=modelMatrix;',
   '#endif',
-  '#ifdef JCOL',
-  '  float sw=max(position.y-.3,0.)*aJ.w;wp.x+=sin(uTime*.9+wp.z*.05)*sw*sw*1.6;wp.z+=cos(uTime*.7+wp.x*.05)*sw*sw*1.1;', // le vent dans les plateaux (aJ.w : 1 pour un pin, 0 pour un pavillon)
-  '#endif',
-  '  vW=wp.xyz;vO=position;vJ=aJ;',
+  '  vec4 wp=mw*vec4(position,1.);vW=wp.xyz;vO=position;vNo=normal;vN=normalize(mat3(mw)*normal);vM=aM;vAO=aAO;vJ=aJ;',
   '  vec4 mvPosition=viewMatrix*wp;gl_Position=projectionMatrix*mvPosition;',
   '#include <fog_vertex>',
   '}'].join('\n');
-const JADE_FS=[
-  'uniform vec3 uSunDir,uSunC,uSky,uGnd,uFillD,uFillC,uMist;uniform float uMerY,uY0,uYH;',
-  'varying vec3 vW;varying vec3 vO;varying vec4 vJ;',
-  '#ifdef JCOL',
-  'varying vec3 vC;',
-  '#endif',
+const JADE_VOX_FS=[
+  'uniform vec3 uSunDir,uSunC,uSky,uGnd,uFillD,uFillC,uMist;uniform float uMerY,uVX;',
+  'varying vec3 vW,vO,vN,vNo;varying float vM,vAO;varying vec4 vJ;',
   '#include <fog_pars_fragment>',
-  'float jh3(vec3 p){p=fract(p*.1031);p+=dot(p,p.yzx+33.33);return fract((p.x+p.y)*p.z);}',
-  'float jn3(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);',
-  '  return mix(mix(mix(jh3(i),jh3(i+vec3(1,0,0)),f.x),mix(jh3(i+vec3(0,1,0)),jh3(i+vec3(1,1,0)),f.x),f.y),',
-  '             mix(mix(jh3(i+vec3(0,0,1)),jh3(i+vec3(1,0,1)),f.x),mix(jh3(i+vec3(0,1,1)),jh3(i+vec3(1,1,1)),f.x),f.y),f.z);}',
+  'float hv(vec3 p){p=fract(p*vec3(.1031,.1030,.0973));p+=dot(p,p.yxz+33.33);return fract((p.x+p.y)*p.z);}',
   'void main(){',
-  '  vec3 dx=dFdx(vW),dy=dFdy(vW);vec3 N=normalize(cross(dx,dy));', // ⚠ dérivées hors de toute branche
-  '#ifdef JCOL',
-  '  vec3 alb=vC;',
-  '#else',
-  '  float sd=vJ.x*97.,yy=vW.y+sd*13.,an=atan(vO.z,vO.x);',
-  '  float hv=clamp((vW.y-uY0)/uYH,0.,1.);',
-  '#ifdef USE_INSTANCING',
-  '  hv=vO.y;',
-  '#endif',
-  // le GRÈS : gris chaud, chaque pilier sa nuance (vJ.z)
-  '  vec3 alb=mix(vec3(.42,.41,.38),vec3(.50,.45,.39),vJ.z);',
-  // LES COULURES : de longues traînées verticales (l eau qui descend la paroi) — c est elles qui font la falaise
-  '  float co=jn3(vec3(an*5.+sd,vW.y*.0055,sd)),co2=jn3(vec3(an*15.+sd*2.,vW.y*.022,sd+4.));',
-  '  alb*=.66+.46*smoothstep(.12,.88,co)*(.78+.22*co2);',
-  // LES STRATES : des bancs plus pâles ou plus chauds, une fissure fine entre deux
-  '  float b1=jn3(vec3(yy*.028,sd,0.)),b2=jn3(vec3(yy*.009,sd*1.7,3.));',
-  '  alb=mix(alb,alb*vec3(1.13,1.05,.93),smoothstep(.55,.85,b1)*.55);alb=mix(alb,alb*vec3(1.08,1.06,1.03),smoothstep(.6,.9,b2)*.5);',
-  '  float fi=abs(fract(yy*.045+b1*.9)-.5);alb*=mix(.80,1.,smoothstep(0.,.05,fi));',
-  // la ROUILLE du fer, par plaques, dans le bas
-  '  alb=mix(alb,vec3(.50,.36,.25),smoothstep(.64,.82,jn3(vW*.011+sd))*(1.-smoothstep(.25,.6,hv))*.45);',
-  // LA VIE : ce qui regarde le ciel, des touffes accrochées (plus on monte, plus il y en a), en verts de pin sombres
-  '  float up=smoothstep(.42,.80,N.y),cl=jn3(vW*.042+sd),cl2=jn3(vW*.14+sd*3.);',
-  '  float tf=smoothstep(.50,.66,cl*.72+cl2*.28)*smoothstep(.18,.90,hv);',
-  '#ifndef USE_INSTANCING',
-  '  tf*=.35;',
-  '#endif',
-  '  float veg=max(up,tf)*vJ.y;',
-  '  vec3 vert=mix(vec3(.065,.12,.07),vec3(.16,.25,.12),cl2);',
-  '  alb=mix(alb,vert,veg);',
-  '#endif',
-  '  float dif=max(dot(N,uSunDir),0.),fl=max(dot(N,-uFillD),0.);',
-  '  vec3 col=alb*(mix(uGnd,uSky,N.y*.5+.5)+uSunC*dif+uFillC*fl);',
-  // LE PIED DANS LA BRUME : plus on descend vers la mer de nuages, plus la pierre se fond dans son blanc
-  '  float hm=smoothstep(uMerY+300.,uMerY+10.,vW.y);col=mix(col,uMist,hm*hm*(3.-2.*hm));',
+  '  vec3 an=abs(vNo);vec2 uv=an.x>.5?vO.zy:(an.y>.5?vO.xz:vO.xy);', // le plan de la face (en cubes)
+  '  vec2 fw=fwidth(uv);float px=max(fw.x,fw.y);',                     // ⚠ dérivées hors de toute branche
+  '  float det=1.-smoothstep(.05,.22,px),detV=1.-smoothstep(.45,1.6,px);', // le détail du texel, puis celui du cube, se fondent au loin
+  '  vec3 vox=floor(vO-vNo*.5+.001),t=vec3(floor(fract(uv)*8.),0.);vec2 f=fract(uv);',
+  '  float sd=vJ.x*71.3,lay=floor(vW.y/uVX-vN.y*.5+.001);',
+  '  float hT=hv(vox*1.7+t*13.1+sd),hC=hv(vox+sd),hA=hv(vec3(floor(lay/2.),sd*.01,3.)),hB=hv(vec3(floor(lay/5.),7.,sd*.02));',
+  '  int m=int(vM+.5);vec3 alb;',
+  // la ROCHE : gris pâle, gris chaud, beige rosé par strates (la couche du monde), un cube un peu plus clair ou plus sombre que l autre
+  '  vec3 roc=mix(vec3(.66,.66,.62),vec3(.57,.57,.54),hA);roc=mix(roc,vec3(.68,.63,.56),step(.74,hB)*.45);roc=mix(roc,vec3(.45,.47,.44),step(hB,.14)*.6);', // le GRÈS des photos : gris pâle, quelques bancs beiges, quelques bancs sombres
+  '  roc*=.93+.12*hC*detV;',
+  '  if(m==1){alb=roc*(.94+.10*hT*det);if(hT<.045)alb*=mix(1.,.78,det);}',
+  // la ROUILLE : les coulées orangées et saumon, striées à la verticale
+  '  else if(m==2){float st=hv(vec3(vox.x*3.+t.x,vox.z*3.+t.x,sd));alb=mix(vec3(.68,.52,.40),roc,st*.55)*(.92+.12*hT*det);}',
+  // l HERBE : dessus vert vif moucheté de jaune-vert ; sur les côtés elle déborde sur le haut du cube, en dents
+  '  else if(m==3){vec3 g=mix(vec3(.26,.46,.15),vec3(.40,.58,.20),hT*det);g=mix(g,vec3(.17,.32,.12),step(hT,.18)*det);',
+  '    if(an.y>.5)alb=g;else{float fr=f.y>.68-.22*hv(vec3(vox.x+t.x,vox.z+t.x,sd))?1.:0.;alb=mix(roc*(.9+.12*hT*det),g,mix(.35,fr,det));}}',
+  // le FEUILLAGE : des verts profonds, des taches claires, quelques trous d ombre
+  '  else if(m==4){float hc=hv(vox+sd*.3);alb=mix(vec3(.12,.26,.10),vec3(.27,.45,.16),hT*det)*(.85+.3*hc*detV);if(hT>.86)alb=mix(alb,vec3(.44,.60,.22),det);if(hT<.14)alb*=mix(1.,.55,det);}',
+  '  else if(m==5)alb=mix(vec3(.30,.22,.16),vec3(.40,.30,.21),step(.5,hv(vec3(t.x,vox.y,sd)))*det);', // le bois
+  '  else if(m==6)alb=vec3(.70,.16,.10)*(.9+.12*hT*det);',            // la laque vermillon
+  '  else if(m==7)alb=mix(vec3(.15,.24,.24),vec3(.22,.33,.32),step(.5,fract(t.x*.5))*det);', // les tuiles
+  '  else if(m==8)alb=vec3(.92,.70,.28);',                            // l or
+  '  else alb=vec3(.74,.71,.64)*(.94+.1*hT*det);',                     // la pierre claire
+  // LE BISEAU : le haut de chaque cube accroche la lumière, le bas se creuse — la trame des blocs se lit (comme dans Minecraft), en doux
+  '  if(an.y<.5){alb*=1.+(.07*step(.875,f.y)-.06*step(f.y,.125))*det;}else alb*=1.-.05*(step(f.x,.125)+step(f.y,.125))*det;',
+  '  float dif=max(dot(vN,uSunDir),0.),fl=max(dot(vN,-uFillD),0.);',
+  '  float fs=vN.y>.5?1.:(vN.y<-.5?.62:(abs(vN.x)>.5?.88:.78));',  // la lumière « de bloc » : dessus franc, côtés un cran plus bas
+  '  float ao=mix(.38,1.,vAO);ao=mix(1.,ao,.35+.65*detV);',
+  '  vec3 col=alb*((mix(uGnd,uSky,vN.y*.5+.5)*fs)*ao+uSunC*dif*(.55+.45*ao)+uFillC*fl*ao);',
+  '  float hm=smoothstep(uMerY+300.,uMerY+10.,vW.y);col=mix(col,uMist,hm*hm*(3.-2.*hm));', // le pied dans la brume
   '  gl_FragColor=vec4(col,1.);',
   '#include <fog_fragment>',
   '}'].join('\n');
-function jadeMat(defs,u){const m=new THREE.ShaderMaterial({uniforms:Object.assign(THREE.UniformsUtils.clone(THREE.UniformsLib.fog),u||JADE_U),defines:defs||{},vertexShader:JADE_VS,fragmentShader:JADE_FS,fog:true,extensions:{derivatives:true}});m.dispose=function(){};return m;}
-const JADE_M={pil:null,col:null};
-function jadeMats(){if(JADE_M.pil)return JADE_M;JADE_M.pil=jadeMat({});JADE_M.col=jadeMat({JCOL:''});return JADE_M;}
+const JADE_VU={uVX:{value:VX}};
+function jadeVoxMat(){const m=new THREE.ShaderMaterial({uniforms:Object.assign(THREE.UniformsUtils.clone(THREE.UniformsLib.fog),JADE_U,JADE_VU),
+  vertexShader:JADE_VOX_VS,fragmentShader:JADE_VOX_FS,fog:true,extensions:{derivatives:true}});m.dispose=function(){};return m;}
+const JADE_M={vox:null,voxM:null};
+function jadeMats(){if(!JADE_M.vox){JADE_M.vox=jadeVoxMat();JADE_M.voxM=jadeVoxMat();}return JADE_M;} // vox : en instances · voxM : un maillage seul (la muraille, l'arche) — un programme chacun
+/* LES GABARITS : bâtis une fois par session (~10 piliers + 3 pins + 1 pavillon) */
+const JADE_TPL=[[2.4,1],[3,0],[3.5,2],[4,3],[4.6,0],[5.2,1],[5.8,2],[6.6,3],[7.6,0],[9,2]];
+function jadeGabarits(){if(JADE.geos)return JADE.geos;const t0=performance.now();
+  const p=JADE_TPL.map(function(q,k){return voxPilier(q[0],172,q[1],0x51A0+k*131);});
+  JADE.geos={p:p,pin:[0,1,2].map(voxPin),pav:voxPavillon(),ms:Math.round(performance.now()-t0)};return JADE.geos;}
+// le gabarit dont le rayon (en m) colle au mieux
+function jadeTplDe(r){let bi=0,bd=1e9;for(let k=0;k<JADE_TPL.length;k++){const d=Math.abs(JADE_TPL[k][0]*VX-r);if(d<bd){bd=d;bi=k;}}return bi;}
 /* LA BRUME QUI FLOTTE : des nappes en billboard (face caméra), un bruit doux dans le shader, un dessus éclairé, un ventre lavande ;
    elles s'effacent près de l'objectif (pas de voile plein écran quand on les traverse) et au loin dans la brume de three. */
 const JADE_BRUME_M=(function(){const m=new THREE.ShaderMaterial({transparent:true,depthWrite:false,fog:true,
@@ -12743,15 +12788,18 @@ const JADE_BRUME_M=(function(){const m=new THREE.ShaderMaterial({transparent:tru
     '  gl_FragColor=vec4(col,a);','#include <fog_fragment>','}'].join('\n')});
   m.dispose=function(){};return m;})();
 /* ---- LA CONSTRUCTION ---- */
+const JADE_LOD=(function(){const k=TEL_NATIF?.8:1;return {d0:560*k,pin:820*k,pav:1250*k,d1:1450*k};})(); // les distances (m) : cube de 6 → 12 m, pins, pavillons, cube de 12 → 24 m
+function jadeBande(d){const L9=JADE_LOD;return d<L9.d0?0:d<L9.pin?1:d<L9.pav?2:d<L9.d1?3:4;}
+function jadeMatPilier(q,k){ // la matrice d'un pilier (gabarit q[5], quart de tour q[6]) à son niveau de détail k (0, 1, 2)
+  const T=JADE.geos.p[q[5]],e=1<<k,m=new THREE.Matrix4().makeTranslation(q[0],q[3],q[1]);
+  m.multiply(new THREE.Matrix4().makeRotationY(q[6]*Math.PI/2)).multiply(new THREE.Matrix4().makeScale(VX*e,VX*e,VX*e)).multiply(new THREE.Matrix4().makeTranslation(-T.M/e,0,-T.M/e));
+  return m;}
 function buildJade(seed){
-  for(const F of JADE.fam){F.im.dispose();const g9=F.im.geometry;for(const k in g9.attributes)if(k!=='aJ')g9.deleteAttribute(k);g9.setIndex(null);g9.dispose();}JADE.fam=[];JADE.col=null;JADE.porte=null;JADE.pont=null;JADE.brume=null;JADE.cl=null;JADE.sig=0;
+  for(const F of JADE.fam){F.im.dispose();const g9=F.im.geometry;for(const k in g9.attributes)if(k!=='aJ')g9.deleteAttribute(k);g9.setIndex(null);g9.dispose();}JADE.fam=[];JADE.col=null;JADE.porte=null;JADE.pont=null;JADE.brume=null;JADE.sig=0;
   if(JADE.root){for(const o of JADE.root.children)if(o.userData.jeter&&o.geometry)o.geometry.dispose();JADE.root=null;}
   if(PARK.on||!LVL.cur||LVL.cur.piste!=='jade'||!(NP>1))return;
-  const t00=performance.now(),M9=jadeMats(),jr=mulberry32((seed^0x1ADE5EED)>>>0),Q=JADE.Q||{};
+  const t00=performance.now(),M9=jadeMats(),G=jadeGabarits(),jr=mulberry32((seed^0x1ADE5EED)>>>0),Q=JADE.Q||{};
   const root=new THREE.Group();root.matrixAutoUpdate=false;scene.add(root);JADE.root=root;trackMeshes.push(root);
-  if(!JADE.geos){JADE.geos={p:[0,1,2,3].map(k=>jadePilierGeo(k,10,16,0x51A0+k*131)),f:jadePilierGeo(0,6,4,0x51F0),
-    pin:[0,1,2].map(jadePinGeo),tou:[0,1].map(jadeTouffeGeo),pav:jadePavillonGeo()};}
-  const G=JADE.geos;
   let yMin=1e9,yMax=-1e9;for(let i=0;i<NP;i+=4){if(pts[i].y<yMin)yMin=pts[i].y;if(pts[i].y>yMax)yMax=pts[i].y;}
   JADE.merY=yMin-330;JADE_U.uMerY.value=JADE.merY;
   const yBase=JADE.merY-260;
@@ -12760,201 +12808,172 @@ function buildJade(seed){
   for(let i=0;i<NP;i+=pas){const p=pts[i],k=Math.floor(p.x/HB)+','+Math.floor(p.z/HB);let a=grille.get(k);if(!a)grille.set(k,a=[]);a.push(i);}
   const proches=(x,z,R,cb)=>{const r=Math.ceil(R/HB),bx=Math.floor(x/HB),bz=Math.floor(z/HB);
     for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){const a=grille.get((bx+dx)+','+(bz+dz));if(a)for(let j=0;j<a.length;j++)cb(a[j]);}};
-  // LES MONUMENTS (repères du tracé → leur place sur la piste réelle)
   const sDe=v=>{let bi=0,bd=1e18;for(let i=0;i<NP;i+=2){const d=pts[i].distanceToSquared(v);if(d<bd){bd=d;bi=i;}}return bi;};
-  const zonesNu=[]; // là où rien d'autre ne se pose (x, z, rayon)
-  let iPorte=-1,iPont=-1;
-  if(Q.porte0&&Q.porte1){iPorte=Math.round((sDe(Q.porte0.p)+sDe(Q.porte1.p))/2);}
-  if(Q.pont0&&Q.pont1){iPont=Math.round((sDe(Q.pont0.p)+sDe(Q.pont1.p))/2);}
-  // ---- LES PILIERS ----
-  const PIL=[],PG=new Map(),PGC=120; // [x, z, r, yb, yt, var, seed, vert, hue, distance à la route] · PG : la grille des piliers déjà posés
+  const zonesNu=[];let iPorte=-1,iPont=-1;
+  if(Q.porte0&&Q.porte1)iPorte=Math.round((sDe(Q.porte0.p)+sDe(Q.porte1.p))/2);
+  if(Q.pont0&&Q.pont1)iPont=Math.round((sDe(Q.pont0.p)+sDe(Q.pont1.p))/2);
+  // ---- LES PILIERS : [x, z, rayon (m), y du gabarit (pied), y du sommet, gabarit, quart de tour, graine, distance à la route] ----
+  const PIL=[],PG=new Map(),PGC=120,snap=v=>Math.round(v/VX)*VX;
   const pgVois=(x,z,cb)=>{const bx=Math.floor(x/PGC),bz=Math.floor(z/PGC);for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++){const a=PG.get((bx+dx)+','+(bz+dz));if(a)for(const q of a)if(cb(q))return true;}return false;};
   const tente=(cx,cz,r,yt,vert,dR,libre)=>{
-    if(!libre)for(const z of zonesNu)if(Math.hypot(cx-z[0],cz-z[1])<z[2]+r)return false;
-    let yb=yBase-jr()*120,ok=true;
-    const clr=r*1.2+ROAD_HALF+20;
+    const t=jadeTplDe(r),T=G.p[t],rm=T.rmax*VX;cx=snap(cx);cz=snap(cz);
+    if(!libre)for(const z of zonesNu)if(Math.hypot(cx-z[0],cz-z[1])<z[2]+rm)return false;
+    const clr=rm+ROAD_HALF+18;
     proches(cx,cz,clr,function(i){const p=pts[i];if(Math.hypot(p.x-cx,p.z-cz)>clr)return;if(yt>p.y-45)yt=p.y-45;}); // la RÈGLE D'OR : il passe SOUS la dalle
-    if(yt-yb<180)return false;
-    if(pgVois(cx,cz,function(q){return Math.hypot(q[0]-cx,q[1]-cz)<(q[2]+r)*.92;}))return false; // pas deux piliers l'un dans l'autre
-    const q9=[cx,cz,r,yb,yt,(jr()*4)|0,jr(),vert,jr(),dR];PIL.push(q9);const kk=Math.floor(cx/PGC)+','+Math.floor(cz/PGC);let a9=PG.get(kk);if(!a9)PG.set(kk,a9=[]);a9.push(q9);return true;};
+    yt=Math.floor(yt/VX)*VX;if(yt<JADE.merY+70)return false; // (noyé dans la brume : rien à voir)
+    if(pgVois(cx,cz,function(q){return Math.hypot(q[0]-cx,q[1]-cz)<(q[2]+rm)*.9;}))return false; // pas deux piliers l'un dans l'autre
+    const q9=[cx,cz,rm,yt-T.yTop*VX,yt,t,(jr()*4)|0,jr(),dR];PIL.push(q9);const kk=Math.floor(cx/PGC)+','+Math.floor(cz/PGC);let a9=PG.get(kk);if(!a9)PG.set(kk,a9=[]);a9.push(q9);return true;};
   const touffe=(cx,cz,r0,yN,hMin,hMax,n,vert,dR)=>{let ok=0;
     for(let k=0;k<n;k++){const r=r0*(.55+jr()*.6),an=jr()*6.283,dd=k===0?0:(r0+r)*(.9+jr()*.5);
-      const x=cx+Math.cos(an)*dd,z=cz+Math.sin(an)*dd,h=hMin+(hMax-hMin)*Math.pow(jr(),.8);
-      if(tente(x,z,r,yN+h,vert,dR+dd))ok++;}
+      if(tente(cx+Math.cos(an)*dd,cz+Math.sin(an)*dd,r,yN+hMin+(hMax-hMin)*Math.pow(jr(),.8),vert,dR+dd))ok++;}
     return ok;};
-  // la PORTE DU CIEL et le PONT DU CIEL d'abord : ils réservent leur place
-  if(iPorte>0){const p=pts[iPorte],t=T[iPorte],b=B[iPorte];zonesNu.push([p.x,p.z,140]);
-    for(let k=-6;k<=6;k++)zonesNu.push([p.x+b.x*k*85,p.z+b.z*k*85,95]);}
-  if(iPont>0){const p=pts[iPont],t=T[iPont];for(let k=-3;k<=3;k++)zonesNu.push([p.x+t.x*k*70,p.z+t.z*k*70,ROAD_HALF+(k===0?30:70)]);} // le Pont se lit de loin : rien de proche autour
-  // TROIS RANGS LE LONG DU RUBAN (en touffes), des deux côtés — l'écartement suit la piste, pas une grille
-  const MOB=IS_MOBILE?.7:1,pasR=Math.max(1,Math.round(46/(L/(NP-1))));
-  const RANGS=[[ROAD_HALF+38,90,.27,9,30,-150,260,2],[170,200,.38,12,42,-200,330,3],[380,420,.46,16,60,-260,380,4]];
+  if(iPorte>0){const p=pts[iPorte],b=B[iPorte];zonesNu.push([p.x,p.z,140]);for(let k=-6;k<=6;k++)zonesNu.push([p.x+b.x*k*85,p.z+b.z*k*85,95]);}
+  if(iPont>0){const p=pts[iPont],t=T[iPont];for(let k=-3;k<=3;k++)zonesNu.push([p.x+t.x*k*70,p.z+t.z*k*70,ROAD_HALF+(k===0?30:70)]);}
+  const MOB=TEL_NATIF?.7:1,pasR=Math.max(1,Math.round(46/(L/(NP-1))));
+  const RANGS=[[ROAD_HALF+38,90,.27,13,34,-150,260,2],[170,200,.38,15,44,-200,330,3],[380,420,.46,18,58,-260,380,4]];
   for(let i=Math.round(120/(L/(NP-1)));i<NP;i+=pasR){const t9=T[i],hl=Math.hypot(t9.x,t9.z);if(hl<.5)continue;
     const px=-t9.z/hl,pz=t9.x/hl;
     for(const sg of [-1,1])for(const R of RANGS){if(jr()>R[2]*MOB)continue;
       const r=R[3]+jr()*(R[4]-R[3]),lat=R[0]+r+jr()*R[1],al=(jr()-.5)*40;
       touffe(pts[i].x+px*sg*lat+t9.x/hl*al,pts[i].z+pz*sg*lat+t9.z/hl*al,r,pts[i].y,R[5],R[6],1+((jr()*R[7])|0),1,lat);}}
-  // AU LARGE : la forêt de pierre, par cases, jusqu'à la brume
-  {const S=230,Rmax=IS_MOBILE?2100:2500,m=new Map(),pasC=Math.max(1,Math.round(S*.7/(L/(NP-1))));
+  {const S=230,Rmax=TEL_NATIF?2100:2500,m=new Map(),pasC=Math.max(1,Math.round(S*.7/(L/(NP-1))));
    for(let i=0;i<NP;i+=pasC){const cx0=Math.round(pts[i].x/S),cz0=Math.round(pts[i].z/S),rr=Math.ceil(Rmax/S);
      for(let dx=-rr;dx<=rr;dx++)for(let dz=-rr;dz<=rr;dz++){const gx=(cx0+dx)*S,gz=(cz0+dz)*S,d=Math.hypot(gx-pts[i].x,gz-pts[i].z);if(d>Rmax)continue;
        const k=(cx0+dx)+','+(cz0+dz),o=m.get(k);if(!o||d<o[0])m.set(k,[d,i,gx,gz]);}}
    for(const v of m.values()){if(v[0]<700||jr()>.55*MOB)continue;
-     const cx=v[2]+(jr()-.5)*S*.7,cz=v[3]+(jr()-.5)*S*.7,r=22+jr()*48;
-     touffe(cx,cz,r,pts[v[1]].y,-260,420,1+((jr()*4)|0),.85,v[0]);}}
-  // ---- LA PORTE DU CIEL (Tianmen) : une muraille percée, en travers de la route ----
-  if(iPorte>0){try{jadePorte(root,iPorte,yBase,jr,M9,function(x,z,r,yt){return tente(x,z,r,yt,1,60,true);});}catch(e){console.warn('porte',e);JADE.porte=null;}}
-  // ---- LE PONT DU CIEL : deux piliers et une arche de pierre, 95 m au-dessus de la route ----
-  if(iPont>0){try{jadePont(root,iPont,yBase,jr,M9,PIL);}catch(e){console.warn('pont',e);JADE.pont=null;}}
-  // ---- LES PINS, LES PAVILLONS ----
-  const PINS=[[],[],[]],PAV=[],TOU=[[],[]];
-  const Mx=new THREE.Matrix4(),Qx=new THREE.Quaternion(),Px=new THREE.Vector3(),Sx=new THREE.Vector3(),Ex=new THREE.Euler();
-  for(let k=0;k<PIL.length;k++){const q=PIL[k],d=q[9];if(!(d<(IS_MOBILE?650:950)))continue;
-    const gi=G.p[q[5]].top,H=q[4]-q[3],cx=q[0]+gi.x*q[2],cz=q[1]+gi.z*q[2],rt=q[2]*gi.s*.62;
-    // UN PAVILLON sur quelques sommets larges, pas trop loin de la route
-    if(PAV.length<14&&q[2]>16&&d<520&&jr()<.16){const s=1.1+q[2]/40;Ex.set(0,jr()*6.283,0);Qx.setFromEuler(Ex);Px.set(cx,q[4]+H*.006,cz);Sx.set(s,s,s);Mx.compose(Px,Qx,Sx);PAV.push(Mx.toArray());}
-    // la COURONNE : des touffes qui couvrent la tête du pilier, des pins qui en sortent
-    const nt=Math.min(7,1+Math.round(q[2]/7));
-    for(let j=0;j<nt;j++){const an=jr()*6.283,rr=Math.sqrt(jr())*rt*1.05,s=5+jr()*6+q[2]*.08;
-      Ex.set(0,jr()*6.283,0);Qx.setFromEuler(Ex);Px.set(cx+Math.cos(an)*rr,q[4]+H*.003,cz+Math.sin(an)*rr);Sx.set(s,s*.8,s);Mx.compose(Px,Qx,Sx);TOU[(jr()*2)|0].push(Mx.toArray());}
-    // les touffes ACCROCHÉES à la paroi, plus nombreuses vers le haut
-    const nw=(jr()*6.5)|0;
-    for(let j=0;j<nw;j++){const an=jr()*6.283,v=.45+Math.sqrt(jr())*.5,s=4+jr()*5;
-      Ex.set(0,jr()*6.283,0);Qx.setFromEuler(Ex);Px.set(q[0]+Math.cos(an)*q[2]*.9,q[3]+H*v,q[1]+Math.sin(an)*q[2]*.9);Sx.set(s,s*.7,s);Mx.compose(Px,Qx,Sx);TOU[(jr()*2)|0].push(Mx.toArray());}
-    const n=Math.min(4,1+Math.round(q[2]/12));
-    for(let j=0;j<n;j++){const an=jr()*6.283,rr=Math.sqrt(jr())*rt,s=8+jr()*9;
-      Ex.set((jr()-.5)*.2,jr()*6.283,(jr()-.5)*.2);Qx.setFromEuler(Ex);Px.set(cx+Math.cos(an)*rr,q[4]+H*.004,cz+Math.sin(an)*rr);Sx.set(s,s,s);Mx.compose(Px,Qx,Sx);PINS[(jr()*3)|0].push(Mx.toArray());}
-    // les pins des CORNICHES : penchés vers le vide, sur le flanc haut
-    const nc=jr()<.6?1+((jr()*2.4)|0):0;
-    for(let j=0;j<nc;j++){const an=jr()*6.283,v=.55+jr()*.4,s=6+jr()*7,rr=q[2]*.93;
-      Ex.set(Math.cos(an)*.55,0,-Math.sin(an)*.55,'XYZ');Qx.setFromEuler(Ex);Px.set(q[0]+Math.cos(an)*rr,q[3]+H*v,q[1]+Math.sin(an)*rr);Sx.set(s,s,s);Mx.compose(Px,Qx,Sx);PINS[2].push(Mx.toArray());}}
-  if(JADE.pont&&JADE.pont.pins)for(const m of JADE.pont.pins)PINS[(jr()*3)|0].push(m);
+     touffe(v[2]+(jr()-.5)*S*.7,v[3]+(jr()-.5)*S*.7,22+jr()*36,pts[v[1]].y,-260,420,1+((jr()*4)|0),.85,v[0]);}}
+  const ARBRES=[[],[],[]],PAV=[];
+  if(iPorte>0){try{jadePorte(root,iPorte,jr,M9,function(x,z,r,yt){return tente(x,z,r,yt,1,60,true);});}catch(e){console.warn('porte',e);JADE.porte=null;}}
+  if(iPont>0){try{jadePont(root,iPont,jr,M9,PIL,ARBRES);}catch(e){console.warn('pont',e);JADE.pont=null;}}
+  // ---- LES PINS (en cubes de 2 m) sur les sommets et les corniches, LES PAVILLONS ----
+  const V3=new THREE.Vector3(),mP=new THREE.Matrix4(),mA=new THREE.Matrix4();
+  const arbre=(dest,x,y,z,rot,s,c)=>{mA.makeTranslation(x,y,z).multiply(new THREE.Matrix4().makeRotationY(rot*Math.PI/2)).multiply(new THREE.Matrix4().makeScale(s,s,s)).multiply(new THREE.Matrix4().makeTranslation(-c,0,-c));dest.push(mA.toArray());};
+  for(const q of PIL){const d=q[8];if(!(d<(TEL_NATIF?650:950)))continue;const T=G.p[q[5]];if(!T.tops.length)continue;
+    mP.copy(jadeMatPilier(q,0));
+    const nA=Math.min(5,1+((T.rmax/2.6)|0));
+    for(let k=0;k<nA;k++){if(jr()<.25)continue;const c=T.tops[(jr()*T.tops.length)|0];V3.set(c[0]+.5,c[1]+1,c[2]+.5).applyMatrix4(mP);arbre(ARBRES[(jr()*3)|0],V3.x,V3.y,V3.z,(jr()*4)|0,VX/3,6.5);}
+    if(PAV.length<14&&q[5]>=4&&d<520&&jr()<.2){let bc=null,bd=1e9;for(const c of T.tops){const e=Math.hypot(c[0]+.5-T.M,c[2]+.5-T.M);if(e<bd){bd=e;bc=c;}}
+      if(bc){V3.set(bc[0]+.5,bc[1]+1,bc[2]+.5).applyMatrix4(mP);arbre(PAV,V3.x,V3.y,V3.z,(jr()*4)|0,1.5,5.5);}}}
   // ---- LA POSE : par QUARTIERS de 360 m (le tri, c'est jadeTri) ----
   const QC=360,quart=new Map(),qDe=(x,z)=>{const k=Math.floor(x/QC)+','+Math.floor(z/QC);let o=quart.get(k);if(!o)quart.set(k,o={k:quart.size,x0:1e9,x1:-1e9,y0:1e9,y1:-1e9,z0:1e9,z1:-1e9});return o;};
-  const ext=(o,x,y,z,r)=>{o.x0=Math.min(o.x0,x-r);o.x1=Math.max(o.x1,x+r);o.y0=Math.min(o.y0,y);o.y1=Math.max(o.y1,y+r*.2);o.z0=Math.min(o.z0,z-r);o.z1=Math.max(o.z1,z+r);};
-  const famille=(geo,mat,items,lod)=>{ // items : [{q:quartier, m:matrice(16), j:[4]}] → rangés par quartier
-    items.sort(function(a,b){return a.q.k-b.q.k;});
-    const n=items.length,F={n:n,M:new Float32Array(n*16),J:new Float32Array(n*4),r:new Map(),lod:lod,geo:geo,fin:0};
-    let a=0;for(let i=0;i<n;i++){const it=items[i];F.M.set(it.m,i*16);F.J.set(it.j,i*4);
-      if(i===n-1||items[i+1].q!==it.q){F.r.set(it.q.k,[a,i+1]);a=i+1;}}
-    F.im=new THREE.InstancedMesh(geo,mat,Math.max(1,n));F.im.frustumCulled=false;F.im.matrixAutoUpdate=false;
-    F.aJ=new THREE.InstancedBufferAttribute(new Float32Array(Math.max(1,n)*4),4);F.aJ.setUsage(THREE.DynamicDrawUsage);geo.setAttribute('aJ',F.aJ); // ⚠ la géométrie est PARTAGÉE entre familles du même gabarit : chaque famille a la sienne (voir plus bas)
-    F.im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);F.im.count=0;root.add(F.im);JADE.fam.push(F);return F;};
-  const itP=[[],[],[],[]],itF=[],itPin=[[],[],[]],itPav=[],itTou=[[],[]];
-  for(const q of PIL){const H=q[4]-q[3],o=qDe(q[0],q[1]);ext(o,q[0],q[3],q[1],q[2]*1.3);o.y1=Math.max(o.y1,q[4]+30);
-    Ex.set(0,q[6]*6.283,0);Qx.setFromEuler(Ex);Px.set(q[0],q[3],q[1]);Sx.set(q[2],H,q[2]);Mx.compose(Px,Qx,Sx);const m=Mx.toArray(),j=[q[6],q[7],q[8],0];
-    itP[q[5]].push({q:o,m:m,j:j});itF.push({q:o,m:m,j:j});}
-  const ajoute=(liste,dest,w)=>{for(const m of liste){const o=qDe(m[12],m[14]);ext(o,m[12],m[13]-20,m[14],30);o.y1=Math.max(o.y1,m[13]+40);dest.push({q:o,m:m,j:[0,1,0,w]});}};
-  for(let v=0;v<3;v++)ajoute(PINS[v],itPin[v],1);for(let v=0;v<2;v++)ajoute(TOU[v],itTou[v],.35);ajoute(PAV,itPav,0);
-  // une géométrie par famille (l'attribut aJ est par instance et propre à chaque InstancedMesh) : on CLONE le gabarit (tampons partagés, attributs à part)
+  const ext=(o,x,y0,y1,z,r)=>{o.x0=Math.min(o.x0,x-r);o.x1=Math.max(o.x1,x+r);o.y0=Math.min(o.y0,y0);o.y1=Math.max(o.y1,y1);o.z0=Math.min(o.z0,z-r);o.z1=Math.max(o.z1,z+r);};
   const vue=g=>{const c=new THREE.BufferGeometry();for(const k in g.attributes)if(k!=='aJ')c.setAttribute(k,g.attributes[k]);if(g.index)c.setIndex(g.index);c.boundingSphere=g.boundingSphere;return c;};
-  for(let k=0;k<4;k++)if(itP[k].length)famille(vue(G.p[k].g),M9.pil,itP[k],0);
-  if(itF.length)famille(vue(G.f.g),M9.pil,itF,1);
-  for(let v=0;v<3;v++)if(itPin[v].length)famille(vue(G.pin[v]),M9.col,itPin[v],2);
-  for(let v=0;v<2;v++)if(itTou[v].length)famille(vue(G.tou[v]),M9.col,itTou[v],2);
-  if(itPav.length)famille(vue(G.pav),M9.col,itPav,3);
+  const famille=(geo,mat,items,b0,b1)=>{if(!items.length)return;
+    items.sort(function(a,b){return a.q.k-b.q.k;});
+    const n=items.length,F={n:n,M:new Float32Array(n*16),J:new Float32Array(n*4),r:new Map(),b0:b0,b1:b1,tri:(geo.index?geo.index.count:geo.attributes.position.count)/3};
+    let a=0;for(let i=0;i<n;i++){const it=items[i];F.M.set(it.m,i*16);F.J.set(it.j,i*4);if(i===n-1||items[i+1].q!==it.q){F.r.set(it.q.k,[a,i+1]);a=i+1;}}
+    const g=vue(geo);F.im=new THREE.InstancedMesh(g,mat,n);F.im.frustumCulled=false;F.im.matrixAutoUpdate=false;
+    F.aJ=new THREE.InstancedBufferAttribute(new Float32Array(n*4),4);F.aJ.setUsage(THREE.DynamicDrawUsage);g.setAttribute('aJ',F.aJ);
+    F.im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);F.im.count=0;root.add(F.im);JADE.fam.push(F);};
+  const parT=JADE_TPL.map(function(){return [[],[],[]];});
+  for(const q of PIL){const o=qDe(q[0],q[1]);ext(o,q[0],Math.max(q[3],JADE.merY-60),q[4]+20,q[1],q[2]);
+    for(let k=0;k<3;k++)parT[q[5]][k].push({q:o,m:jadeMatPilier(q,k).toArray(),j:[q[7],0,0,0]});}
+  const it=(liste)=>liste.map(function(m){const o=qDe(m[12],m[14]);ext(o,m[12],m[13]-5,m[13]+35,m[14],20);return {q:o,m:m,j:[jr(),0,0,0]};});
+  for(let t=0;t<JADE_TPL.length;t++){famille(G.p[t].geo[0],M9.vox,parT[t][0],0,0);famille(G.p[t].geo[1],M9.vox,parT[t][1],1,3);famille(G.p[t].geo[2],M9.vox,parT[t][2],4,4);}
+  for(let v=0;v<3;v++)famille(G.pin[v],M9.vox,it(ARBRES[v]),0,1);
+  famille(G.pav,M9.vox,it(PAV),0,2);
   JADE.quart=[];for(const o of quart.values())JADE.quart[o.k]={c:new THREE.Vector3((o.x0+o.x1)/2,(o.y0+o.y1)/2,(o.z0+o.z1)/2),r:Math.hypot(o.x1-o.x0,o.y1-o.y0,o.z1-o.z0)/2+10};
-  // ---- LA GRILLE DES CHOCS (cases de 80 m) ----
+  // ---- LA GRILLE DES CHOCS (cases de 80 m) — chaque pilier y est inscrit dans son cercle ; le test final lit SES cubes ----
   {const CG=80,g9=new Map();
-   PIL.forEach(function(q,k){const re=q[2]*G.p[q[5]].smax+1;for(let gx=Math.floor((q[0]-re)/CG);gx<=Math.floor((q[0]+re)/CG);gx++)for(let gz=Math.floor((q[1]-re)/CG);gz<=Math.floor((q[1]+re)/CG);gz++){const kk=gx+','+gz;let a=g9.get(kk);if(!a)g9.set(kk,a=[]);a.push(k);}});
-   JADE.col={g:g9,CG:CG,P:PIL.map(function(q){return [q[0],q[1],q[2]*G.p[q[5]].smax*.86,q[3],q[4]+(q[4]-q[3])*.009];})};}
+   PIL.forEach(function(q,k){const re=q[2]+2;for(let gx=Math.floor((q[0]-re)/CG);gx<=Math.floor((q[0]+re)/CG);gx++)for(let gz=Math.floor((q[1]-re)/CG);gz<=Math.floor((q[1]+re)/CG);gz++){const kk=gx+','+gz;let a=g9.get(kk);if(!a)g9.set(kk,a=[]);a.push(k);}});
+   JADE.col={g:g9,CG:CG,P:PIL};}
   // ---- LA BRUME QUI FLOTTE ----
-  {const n0=IS_MOBILE?150:240,it=[],ib=[];const pasB=Math.max(1,Math.floor(NP/n0));
+  {const n0=TEL_NATIF?150:240,itb=[],ib=[],Mx=new THREE.Matrix4();const pasB=Math.max(1,Math.floor(NP/n0));
    for(let i=0;i<NP;i+=pasB){const t9=T[i],hl=Math.hypot(t9.x,t9.z)||1,px=-t9.z/hl,pz=t9.x/hl;
      for(let k=0;k<2;k++){const sg=jr()<.5?-1:1,lat=ROAD_HALF+60+Math.pow(jr(),1.4)*700,w=140+jr()*320,low=jr()<.45;
        const y=low?JADE.merY+30+jr()*120:pts[i].y-200+jr()*230;
-       it.push(pts[i].x+px*sg*lat+(jr()-.5)*120,y,pts[i].z+pz*sg*lat+(jr()-.5)*120);ib.push(w*(low?1.8:1),w*(low?.42:.3),jr(),low?.75:.38+jr()*.3);}}
-   const n=it.length/3,geo=new THREE.PlaneGeometry(1,1),im=new THREE.InstancedMesh(geo,JADE_BRUME_M,n);
-   for(let k=0;k<n;k++){Mx.makeTranslation(it[k*3],it[k*3+1],it[k*3+2]);im.setMatrixAt(k,Mx);}
+       itb.push(pts[i].x+px*sg*lat+(jr()-.5)*120,y,pts[i].z+pz*sg*lat+(jr()-.5)*120);ib.push(w*(low?1.8:1),w*(low?.42:.3),jr(),low?.75:.38+jr()*.3);}}
+   const n=itb.length/3,geo=new THREE.PlaneGeometry(1,1),im=new THREE.InstancedMesh(geo,JADE_BRUME_M,n);
+   for(let k=0;k<n;k++){Mx.makeTranslation(itb[k*3],itb[k*3+1],itb[k*3+2]);im.setMatrixAt(k,Mx);}
    geo.setAttribute('aB',new THREE.InstancedBufferAttribute(new Float32Array(ib),4));im.userData.jeter=true;
    im.frustumCulled=false;im.renderOrder=4;root.add(im);JADE.brume=im;}
-  JADE.n={piliers:PIL.length,pins:PINS[0].length+PINS[1].length+PINS[2].length,touffes:TOU[0].length+TOU[1].length,pavillons:PAV.length,brume:JADE.brume?JADE.brume.count:0,quartiers:JADE.quart.length,
-    porte:!!JADE.porte,pont:!!JADE.pont,ms:Math.round(performance.now()-t00),L:Math.round(L),merY:Math.round(JADE.merY)};
+  JADE.n={piliers:PIL.length,pins:ARBRES[0].length+ARBRES[1].length+ARBRES[2].length,pavillons:PAV.length,brume:JADE.brume?JADE.brume.count:0,quartiers:JADE.quart.length,
+    porte:!!JADE.porte,pont:!!JADE.pont,ms:Math.round(performance.now()-t00),gabaritsMs:G.ms,L:Math.round(L),merY:Math.round(JADE.merY),
+    triGabarits:G.p.map(function(T){return T.geo.map(function(g){return g.index.count/3;});})};
 }
-/* LA PORTE DU CIEL — une muraille (THREE.Shape percée, extrudée) posée en travers de la route, l'arche centrée sur elle. Sa largeur se
-   rogne de chaque côté tant qu'un autre tronçon de la route passerait dans son épaisseur. */
-function jadePorte(root,i0,yBase,jr,M9,pose){
-  const p=pts[i0],t=new THREE.Vector3(T[i0].x,0,T[i0].z).normalize(),b=new THREE.Vector3(-t.z,0,t.x),D=170;
-  let wG=560,wD=560; // les deux ailes de la muraille (le long de b), rognées si la route y repasse
+/* une GRILLE posée dans un repère (o : coin, axes x = b, y = haut, z = −t ; en cubes de VX) — la muraille, l'arche */
+function jadeRepere(o,b,t){const m=new THREE.Matrix4(),z=t.clone().negate();
+  m.set(b.x*VX,0,z.x*VX,o.x, b.y*VX,VX,z.y*VX,o.y, b.z*VX,0,z.z*VX,o.z, 0,0,0,1);return m;}
+function jadeDansGrille(R,p){const dx=p.x-R.o.x,dy=p.y-R.o.y,dz=p.z-R.o.z; // un point du monde est-il dans un cube de cette grille ?
+  return voxAt(R.G,Math.floor((dx*R.b.x+dz*R.b.z)/VX),Math.floor(dy/VX),Math.floor(-(dx*R.t.x+dz*R.t.z)/VX))>0;}
+/* LA PORTE DU CIEL — la muraille percée d'une arche (176 m), en cubes : faces bosselées, crête en pitons, rouille, herbe, touffes ; rognée
+   si la route repasse derrière ; un massif de piliers en cubes soudé à ses deux faces. */
+function jadePorte(root,i0,jr,M9,pose){
+  const p=pts[i0],t=new THREE.Vector3(T[i0].x,0,T[i0].z).normalize(),b=new THREE.Vector3(-t.z,0,t.x),D=168;
+  let wG=560,wD=560;
   for(let i=0;i<NP;i+=4){if(Math.abs(i-i0)<Math.round(420/(L/(NP-1))))continue;const q=pts[i],dx=q.x-p.x,dz=q.z-p.z,u=dx*t.x+dz*t.z,v=dx*b.x+dz*b.z;
     if(Math.abs(u)>D/2+ROAD_HALF+40)continue;if(v>0)wD=Math.min(wD,v-ROAD_HALF-50);else wG=Math.min(wG,-v-ROAD_HALF-50);}
-  if(wG<180||wD<180)return; // pas la place : pas de porte dans cette vallée
-  const y0=p.y,hb=y0-55,ht=y0+215,hw=88,top=y0+520; // le trou : 176 m de large, de 55 m sous la route à 215 m au-dessus
-  const sh=new THREE.Shape();
-  // le contour : le pied dans la brume, une crête déchiquetée (deux épaules, un sommet)
-  sh.moveTo(-wG,yBase-y0);
-  const nC=34,ph=[jr()*6.28,jr()*6.28,jr()*6.28],crete=f=>{const cr=Math.sin(f*Math.PI);return (top-y0)*(.62+.38*Math.sqrt(cr))-(1-cr)*90+
+  if(wG<180||wD<180)return;
+  wG=Math.floor(wG/VX)*VX;wD=Math.floor(wD/VX)*VX;
+  const y0=p.y,hb=-55,ht=215,hw=88,top=520,W=wG+wD,ab=ht-hw*.9;
+  const ph=[jr()*6.28,jr()*6.28,jr()*6.28],crete=f=>{const cr=Math.sin(f*Math.PI);return top*(.62+.38*Math.sqrt(cr))-(1-cr)*90+
       70*Math.pow(Math.abs(Math.sin(f*5.1+ph[0])),2.5)+35*Math.sin(f*13.7+ph[1])+18*Math.sin(f*31.+ph[2]);};
-  for(let k=0;k<=nC;k++){const f=k/nC;sh.lineTo(-wG+(wG+wD)*f,crete(f)+(jr()-.5)*14);}
-  sh.lineTo(wD,yBase-y0);sh.lineTo(-wG,yBase-y0);
-  const tr=new THREE.Path();const nA=22;
-  tr.moveTo(-hw,hb-y0);tr.lineTo(hw,hb-y0);
-  for(let k=0;k<=nA;k++){const a=k/nA*Math.PI,ir=1+(jr()-.5)*.06;tr.lineTo(Math.cos(a)*hw*ir,(ht-y0-hw*.9)+Math.sin(a)*hw*.9*ir+(hb-y0)*0);}
-  tr.lineTo(-hw,hb-y0);
-  // les montants du trou montent droits jusqu'à la voûte
-  sh.holes.push(tr);
-  const g=new THREE.ExtrudeGeometry(sh,{depth:D,bevelEnabled:false,curveSegments:1,steps:3});
-  g.translate(0,0,-D/2);
-  // la pierre n'est pas lisse : chaque sommet bouge selon SA position (les copies d'un même point bougent pareil — aucune fente)
-  const pa=g.attributes.position,hh=(x,y,z)=>{const s=Math.sin(x*12.9898+y*78.233+z*37.719)*43758.5453;return s-Math.floor(s);};
-  for(let k=0;k<pa.count;k++){const x=pa.getX(k),y=pa.getY(k),z=pa.getZ(k),dans=Math.abs(x)<hw+12&&y<ht-y0+12&&y>hb-y0-12;const a=dans?4:14;
-    pa.setXYZ(k,x+(hh(x,y,z)-.5)*a,y+(hh(y,z,x)-.5)*a*.6,z+(hh(z,x,y)-.5)*a);}
-  g.computeBoundingSphere();
-  const mat=jadeMat({},Object.assign({},JADE_U,{uY0:{value:yBase},uYH:{value:top-yBase}}));
-  const m=new THREE.Mesh(g,mat);m.userData.jeter=true;
-  m.matrixAutoUpdate=false;m.matrix.makeBasis(b,new THREE.Vector3(0,1,0),t.clone().negate());m.matrix.setPosition(p.x,y0,p.z);m.matrixWorldNeedsUpdate=true;
-  {const aJ=new Float32Array(pa.count*4);for(let k=0;k<pa.count;k++){aJ[k*4]=.37;aJ[k*4+1]=1;aJ[k*4+2]=.5;}g.setAttribute('aJ',new THREE.BufferAttribute(aJ,4));}
-  root.add(m);
-  JADE.porte={c:new THREE.Vector3(p.x,y0,p.z),t:t,b:b,D:D,wG:wG,wD:wD,hb:hb,ht:ht,hw:hw,top:top,yb:yBase,sh:sh.getPoints(),m:m,i:i0};
-  // LE MASSIF : des piliers soudés aux deux faces de la muraille (à moitié dedans) — la paroi n'est plus un décor plat, et la crête
-  // devient une couronne de pitons ; deux JAMBAGES plus gros encadrent l'arche
+  const yLow=Math.floor((JADE.merY-50)/VX)*VX,oy=yLow,nx=Math.round(W/VX),nz=Math.round(D/VX),ny=Math.ceil((y0+top+130-yLow)/VX);
+  const G=voxG(nx,ny,nz),sd=jr()*100;
+  const vn=(a,c)=>{const i=Math.floor(a),j=Math.floor(c),fa=a-i,fc=c-j,h=(x,y)=>{const s=Math.sin(x*127.1+y*311.7+sd)*43758.5453;return s-Math.floor(s);};
+    const u=fa*fa*(3-2*fa),w=fc*fc*(3-2*fc);return (h(i,j)*(1-u)+h(i+1,j)*u)*(1-w)+(h(i,j+1)*(1-u)+h(i+1,j+1)*u)*w;};
+  const cretes=new Float32Array(nx);for(let x=0;x<nx;x++)cretes[x]=crete((x+.5)/nx)+(jr()-.5)*10;
+  for(let x=0;x<nx;x++){const v=-wG+(x+.5)*VX;for(let y=0;y<ny;y++){const yr=oy+(y+.5)*VX-y0;if(yr>cretes[x])break;
+    if(Math.abs(v)<hw&&yr>hb&&(yr<ab||(v/hw)**2+((yr-ab)/(hw*.9))**2<1))continue; // L'ARCHE
+    const f0=vn(x*.14,y*.11)*3.2+vn(x*.05+9,y*.04)*2.4,f1=vn(x*.14+40,y*.11+7)*3.2+vn(x*.05+19,y*.04+3)*2.4; // les faces BOSSELÉES
+    for(let z=Math.floor(f0);z<nz-Math.floor(f1);z++)G.d[x+nx*(z+nz*y)]=JM.roche;}}
+  // la peau : rouille en coulées, herbe sur ce qui regarde le ciel, touffes, buissons accrochés
+  for(let x=0;x<nx;x++){const ru=vn(x*.3,3.3)>.83;
+    for(let y=0;y<ny;y++)for(let z=0;z<nz;z++){const k0=x+nx*(z+nz*y);if(G.d[k0]!==JM.roche)continue;
+      const yr=oy+(y+.5)*VX-y0;
+      if(!voxAt(G,x,y+1,z)&&yr>-60){G.d[k0]=JM.herbe;if(jr()<.38){voxSet(G,x,y+1,z,JM.feuille);if(jr()<.4)voxSet(G,x,y+2,z,JM.feuille);}continue;}
+      if(ru&&(!voxAt(G,x,y,z-1)||!voxAt(G,x,y,z+1))&&jr()<.9)G.d[k0]=JM.rouille;
+      else if(yr>40&&jr()<.012){const o=voxAt(G,x,y,z-1)?1:-1;if(!voxAt(G,x,y,z+o)){voxSet(G,x,y,z+o,JM.feuille);if(jr()<.5)voxSet(G,x,y+1,z+o,JM.feuille);}}}}
+  const o=p.clone().addScaledVector(b,-wG).addScaledVector(t,D/2);o.y=oy;
+  const g=voxMesh(G),m=new THREE.Mesh(g,M9.voxM);m.userData.jeter=true;
+  {const aJ=new Float32Array(g.attributes.position.count*4).fill(.37);g.setAttribute('aJ',new THREE.BufferAttribute(aJ,4));}
+  m.matrixAutoUpdate=false;m.matrix.copy(jadeRepere(o,b,t));m.matrixWorldNeedsUpdate=true;root.add(m);
+  JADE.porte={c:new THREE.Vector3(p.x,y0,p.z),t:t,b:b,D:D,hw:hw,hb:y0+hb,ht:y0+ht,G:G,o:o,i:i0,tri:g.index.count/3};
   if(pose){for(const sg of [-1,1]){const W9=sg<0?wG:wD;
-      for(const fa of [-1,1])pose(p.x+b.x*sg*(hw+58)+t.x*fa*(D*.5-20),p.z+b.z*sg*(hw+58)+t.z*fa*(D*.5-20),46,y0+crete(.5+sg*(hw+58)/(wG+wD))+40+jr()*80);
-      for(let v=hw+130;v<W9-40;v+=70+jr()*60)for(const fa of [-1,1])if(jr()<.8){const r=34+jr()*40,f=(v*sg+wG)/(wG+wD);
+      for(const fa of [-1,1])pose(p.x+b.x*sg*(hw+58)+t.x*fa*(D*.5-20),p.z+b.z*sg*(hw+58)+t.z*fa*(D*.5-20),46,y0+crete(.5+sg*(hw+58)/W)+40+jr()*80);
+      for(let v=hw+130;v<W9-40;v+=70+jr()*60)for(const fa of [-1,1])if(jr()<.8){const r=30+jr()*34,f=(v*sg+wG)/W;
         pose(p.x+b.x*sg*v+t.x*fa*(D*.5-r*.35),p.z+b.z*sg*v+t.z*fa*(D*.5-r*.35),r,y0+crete(f)-60+jr()*170);}}}
 }
-/* LE PONT DU CIEL — l'arche naturelle de Zhangjiajie : deux piliers de part et d'autre, une dalle de pierre qui les relie. */
-function jadePont(root,i0,yBase,jr,M9,PIL){
+/* LE PONT DU CIEL — deux piliers en cubes, une arche de cubes qui les relie (72-150 m au-dessus de la route), herbe, touffes et pins dessus. */
+function jadePont(root,i0,jr,M9,PIL,ARBRES){
   const p=pts[i0],t=new THREE.Vector3(T[i0].x,0,T[i0].z).normalize(),b=new THREE.Vector3(-t.z,0,t.x),y0=p.y;
-  const ec=ROAD_HALF+66,rP=44,yT=y0+205;
-  // les deux piliers : poussés tels quels dans la liste (la règle d'or est déjà tenue : ils sont à 62 m du bord)
-  for(const sg of [-1,1])PIL.push([p.x+b.x*sg*ec,p.z+b.z*sg*ec,rP,yBase-40,yT+(sg>0?24:0),2,jr(),1,jr(),ec]);
-  // l'arche : un profil (en travers de la route) extrudé le long de la route
-  const D=68,sh=new THREE.Shape(),xa=ec+rP*.3,PR={b0:72,bC:104,t0:132,tC:150}; // le profil : dessous (bord → milieu), dessus (bord → milieu), au-dessus de la route
+  const ec=ROAD_HALF+66,G9=JADE.geos,tp=jadeTplDe(42),Tp=G9.p[tp];
+  for(const sg of [-1,1]){const cx=Math.round((p.x+b.x*sg*ec)/VX)*VX,cz=Math.round((p.z+b.z*sg*ec)/VX)*VX,yt=Math.floor((y0+205+(sg>0?24:0))/VX)*VX;
+    PIL.push([cx,cz,Tp.rmax*VX,yt-Tp.yTop*VX,yt,tp,(jr()*4)|0,jr(),ec]);}
+  const xa=Math.ceil((ec+12)/VX)*VX,D=66,PR={b0:72,bC:104,t0:132,tC:150};
   const yB=f=>PR.b0+(PR.bC-PR.b0)*Math.sin(f*Math.PI),yH=f=>PR.t0+(PR.tC-PR.t0)*Math.pow(Math.sin(f*Math.PI),.6);
-  sh.moveTo(-xa,yB(0));
-  const n=18;for(let k=0;k<=n;k++){const f=k/n;sh.lineTo(-xa+2*xa*f,yH(f)+(jr()-.5)*5);}
-  for(let k=n;k>=0;k--){const f=k/n;sh.lineTo(-xa+2*xa*f,yB(f)+(jr()-.5)*5);}
-  const g=new THREE.ExtrudeGeometry(sh,{depth:D,bevelEnabled:false,curveSegments:1,steps:2});g.translate(0,0,-D/2);
-  const pa=g.attributes.position,hh=(x,y,z)=>{const s=Math.sin(x*12.9898+y*78.233+z*37.719)*43758.5453;return s-Math.floor(s);};
-  for(let k=0;k<pa.count;k++){const x=pa.getX(k),y=pa.getY(k),z=pa.getZ(k);pa.setXYZ(k,x+(hh(x,y,z)-.5)*5,y+(hh(y,z,x)-.5)*3,z+(hh(z,x,y)-.5)*7);}
-  {const aJ=new Float32Array(pa.count*4);for(let k=0;k<pa.count;k++){aJ[k*4]=.81;aJ[k*4+1]=1;aJ[k*4+2]=.4;}g.setAttribute('aJ',new THREE.BufferAttribute(aJ,4));}
-  g.computeBoundingSphere();
-  const mat=jadeMat({},Object.assign({},JADE_U,{uY0:{value:y0+60},uYH:{value:95}}));
-  const m=new THREE.Mesh(g,mat);m.userData.jeter=true;m.matrixAutoUpdate=false;m.matrix.makeBasis(b,new THREE.Vector3(0,1,0),t.clone().negate());m.matrix.setPosition(p.x,y0,p.z);m.matrixWorldNeedsUpdate=true;
-  root.add(m);
-  // des pins sur la dalle
-  const pins=[],Mx=new THREE.Matrix4(),Qx=new THREE.Quaternion(),Sx=new THREE.Vector3(),Px=new THREE.Vector3();
-  for(let k=0;k<14;k++){const x=(jr()-.5)*xa*1.6,z=(jr()-.5)*D*.7,s=7+jr()*7;Qx.setFromAxisAngle(new THREE.Vector3(0,1,0),jr()*6.28);
-    Px.set(p.x+b.x*x+t.x*z,y0+yH(x/xa*.5+.5)-3,p.z+b.z*x+t.z*z);Sx.set(s,s,s);Mx.compose(Px,Qx,Sx);pins.push(Mx.toArray());}
-  JADE.pont={c:new THREE.Vector3(p.x,y0,p.z),t:t,b:b,D:D,xa:xa,yB:yB,yH:yH,m:m,pins:pins,i:i0};
+  const oy=Math.floor((y0+PR.b0-12)/VX)*VX,nx=Math.round(2*xa/VX),nz=Math.round(D/VX),ny=Math.ceil((y0+PR.tC+20-oy)/VX),G=voxG(nx,ny,nz);
+  for(let x=0;x<nx;x++){const f=(x+.5)/nx,a=yB(f)+(jr()-.5)*5,c=yH(f)+(jr()-.5)*5;
+    for(let y=0;y<ny;y++){const yr=oy+(y+.5)*VX-y0;if(yr<a||yr>c)continue;for(let z=0;z<nz;z++){if((z===0||z===nz-1)&&jr()<.3)continue;G.d[x+nx*(z+nz*y)]=JM.roche;}}}
+  const tops=[];
+  for(let x=0;x<nx;x++)for(let y=0;y<ny;y++)for(let z=0;z<nz;z++){const k0=x+nx*(z+nz*y);if(G.d[k0]!==JM.roche)continue;
+    if(!voxAt(G,x,y+1,z)){G.d[k0]=JM.herbe;if(jr()<.3)voxSet(G,x,y+1,z,JM.feuille);else tops.push([x,y,z]);}
+    else if((!voxAt(G,x,y,z-1)||!voxAt(G,x,y,z+1))&&x%7===3&&jr()<.8)G.d[k0]=JM.rouille;}
+  const o=p.clone().addScaledVector(b,-xa).addScaledVector(t,D/2);o.y=oy;
+  const g=voxMesh(G),m=new THREE.Mesh(g,M9.voxM);m.userData.jeter=true;
+  {const aJ=new Float32Array(g.attributes.position.count*4).fill(.81);g.setAttribute('aJ',new THREE.BufferAttribute(aJ,4));}
+  const Mr=jadeRepere(o,b,t);m.matrixAutoUpdate=false;m.matrix.copy(Mr);m.matrixWorldNeedsUpdate=true;root.add(m);
+  const V3=new THREE.Vector3(),mA=new THREE.Matrix4();
+  for(let k=0;k<12&&tops.length;k++){const c=tops[(jr()*tops.length)|0];V3.set(c[0]+.5,c[1]+1,c[2]+.5).applyMatrix4(Mr);
+    mA.makeTranslation(V3.x,V3.y,V3.z).multiply(new THREE.Matrix4().makeRotationY(((jr()*4)|0)*Math.PI/2)).multiply(new THREE.Matrix4().makeScale(VX/3,VX/3,VX/3)).multiply(new THREE.Matrix4().makeTranslation(-6.5,0,-6.5));
+    ARBRES[(jr()*3)|0].push(mA.toArray());}
+  JADE.pont={c:new THREE.Vector3(p.x,y0,p.z),t:t,b:b,D:D,xa:xa,yB:yB,yH:yH,G:G,o:o,i:i0,tri:g.index.count/3};
 }
-/* ---- LE TRI : à chaque rendu (chaîné sur scene.onBeforeRender), les quartiers dans le champ et en deçà de la brume ; près (< 1 300 m)
-   les gabarits taillés, au-delà le gabarit léger ; les pins jusqu'à 1 000 m. Les tampons ne repartent que si la liste a changé. ---- */
-const JT={fr:new THREE.Frustum(),pv:new THREE.Matrix4(),vis:null,near:1300,pin:1000,ms:0,n:0,up:0};
+/* ---- LE TRI : à chaque rendu (chaîné sur scene.onBeforeRender), les quartiers dans le champ et en deçà de la brume, chacun à sa BANDE
+   de distance (jadeBande) ; chaque famille dessine les bandes qui sont les siennes. Les tampons ne repartent que si la liste a changé. ---- */
+const JT={fr:new THREE.Frustum(),pv:new THREE.Matrix4(),vis:null,ms:0,n:0,up:0};
 function jadeTri(cam){
   if(!JADE.root||!JADE.quart||!JADE.fam.length)return;const t0=performance.now();
   JT.fr.setFromProjectionMatrix(JT.pv.multiplyMatrices(cam.projectionMatrix,cam.matrixWorldInverse));
   const f=scene.fog,ff=(f&&f.isFog)?f.far:9000,cp=cam.position,Qs=JADE.quart,S=JT._s||(JT._s=new THREE.Sphere());
-  if(!JT.vis||JT.vis.length!==Qs.length)JT.vis=new Uint8Array(Qs.length);
+  if(!JT.vis||JT.vis.length!==Qs.length)JT.vis=new Int8Array(Qs.length);
   let sig=7;
-  for(let k=0;k<Qs.length;k++){const q=Qs[k];S.center.copy(q.c);S.radius=q.r;let v=0;
-    if(JT.fr.intersectsSphere(S)){const d=cp.distanceTo(q.c)-q.r;if(d<ff+60)v=d<JT.pin?3:d<JT.near?2:1;}
-    JT.vis[k]=v;if(v)sig=(Math.imul(sig,31)+k*4+v)|0;}
+  for(let k=0;k<Qs.length;k++){const q=Qs[k];S.center.copy(q.c);S.radius=q.r;let v=-1;
+    if(JT.fr.intersectsSphere(S)){const d=Math.max(0,cp.distanceTo(q.c)-q.r);if(d<ff+60)v=jadeBande(d);}
+    JT.vis[k]=v;if(v>=0)sig=(Math.imul(sig,31)+k*8+v+1)|0;}
   if(sig!==JADE.sig){JADE.sig=sig;JT.up++;
     for(const F of JADE.fam){let w=0;const A=F.im.instanceMatrix.array,J=F.aJ.array;
-      for(const [k,r] of F.r){const v=JT.vis[k];if(!v)continue;
-        if(F.lod===0&&v<2)continue;if(F.lod===1&&v!==1)continue;if(F.lod>=2&&v<3)continue;
+      for(const [k,r] of F.r){const v=JT.vis[k];if(v<F.b0||v>F.b1)continue;
         A.set(F.M.subarray(r[0]*16,r[1]*16),w*16);J.set(F.J.subarray(r[0]*4,r[1]*4),w*4);w+=r[1]-r[0];}
       F.im.count=w;F.im.instanceMatrix.needsUpdate=true;F.aJ.needsUpdate=true;}}
   JT.ms+=performance.now()-t0;JT.n++;
@@ -13016,43 +13035,47 @@ function grueTick(dt){
     b.wr.rotation.z=a;b.wl.rotation.z=-a;
     if(b.life<=0){scene.remove(b.g);GRUE.L.splice(i,1);}}
 }
-/* ---- EN VOL : le pilier, la muraille, l'arche sont DURS ---- */
+/* ---- EN VOL : les CUBES sont durs — le pilier (la grille de son gabarit, au quart de tour près), la muraille, l'arche. La caisse
+   compte pour cinq points (son centre et ±1,4 m de chaque côté). ---- */
+const JH=[[0,0],[1.4,0],[-1.4,0],[0,1.4],[0,-1.4]];
+function jadePilierDans(q,x,y,z){const Tq=JADE.geos.p[q[5]],a=-q[6]*Math.PI/2,c=Math.round(Math.cos(a)),s=Math.round(Math.sin(a)),lx=(x-q[0])/VX,lz=(z-q[1])/VX;
+  return voxAt(Tq.G,Math.floor(lx*c+lz*s+Tq.M),Math.floor((y-q[3])/VX),Math.floor(-lx*s+lz*c+Tq.M))>0;}
 function jadeHeurt(p){
   const C=JADE.col;if(!C||!JADE.root)return false;
-  const a=C.g.get(Math.floor(p.x/C.CG)+','+Math.floor(p.z/C.CG));
-  if(a)for(let j=0;j<a.length;j++){const q=C.P[a[j]];if(p.y<q[3]||p.y>q[4]+1)continue;if(Math.hypot(p.x-q[0],p.z-q[1])<q[2]+.9)return true;}
-  const P=JADE.porte;if(P){const dx=p.x-P.c.x,dz=p.z-P.c.z,u=dx*P.t.x+dz*P.t.z;
-    if(Math.abs(u)<P.D/2+1){const v=dx*P.b.x+dz*P.b.z,yr=p.y-P.c.y;
-      if(v>-P.wG&&v<P.wD&&p.y<P.top+80){ // dans l'épaisseur de la muraille : est-on dans l'arche ?
-        const dansTrou=Math.abs(v)<P.hw-2&&yr>P.hb-P.c.y+2&&(yr<P.ht-P.c.y-P.hw*.9||Math.hypot(v/P.hw,(yr-(P.ht-P.c.y-P.hw*.9))/(P.hw*.9))<.97);
-        if(!dansTrou){let dedans=false;const S9=P.sh;for(let i=0,j=S9.length-1;i<S9.length;j=i++){const xi=S9[i].x,yi=S9[i].y,xj=S9[j].x,yj=S9[j].y;if(((yi>yr)!==(yj>yr))&&(v<(xj-xi)*(yr-yi)/(yj-yi)+xi))dedans=!dedans;}if(dedans)return true;}}}}
-  const B9=JADE.pont;if(B9){const dx=p.x-B9.c.x,dz=p.z-B9.c.z,u=dx*B9.t.x+dz*B9.t.z,v=dx*B9.b.x+dz*B9.b.z;
-    if(Math.abs(u)<B9.D/2+1&&Math.abs(v)<B9.xa){const f=(v+B9.xa)/(2*B9.xa),yr=p.y-B9.c.y; // le profil de l'arche, comme sa forme (voir jadePont)
-      if(yr>B9.yB(f)-1.5&&yr<B9.yH(f)+3)return true;}}
+  for(const o of JH){const x=p.x+o[0],z=p.z+o[1];
+    const a=C.g.get(Math.floor(x/C.CG)+','+Math.floor(z/C.CG));
+    if(a)for(let j=0;j<a.length;j++){const q=C.P[a[j]];if(p.y<q[3]||p.y>q[4]+VX*3)continue;const dx=x-q[0],dz=z-q[1];if(dx*dx+dz*dz>(q[2]+1)*(q[2]+1))continue;
+      if(jadePilierDans(q,x,p.y,z))return true;}
+    V9J.set(x,p.y,z);
+    if(JADE.porte&&jadeDansGrille(JADE.porte,V9J))return true;
+    if(JADE.pont&&jadeDansGrille(JADE.pont,V9J))return true;}
   return false;
 }
+const V9J=new THREE.Vector3();
 function jadeChauffe(){ // une instance de chaque matière, compilée hors écran (la balade arrive directement dans la map : c'est surtout un filet)
-  try{const M9=jadeMats(),g=new THREE.Group(),bx=new THREE.BoxGeometry(1,1,1);bx.setAttribute('aJ',new THREE.InstancedBufferAttribute(new Float32Array(4),4));
-    const i1=new THREE.InstancedMesh(bx,M9.pil,1);i1.setMatrixAt(0,new THREE.Matrix4());g.add(i1);
-    const b2=bx.clone();b2.setAttribute('aCol',new THREE.Float32BufferAttribute(new Float32Array(b2.attributes.position.count*3),3));b2.setAttribute('aJ',new THREE.InstancedBufferAttribute(new Float32Array(4),4));
-    const i2=new THREE.InstancedMesh(b2,M9.col,1);i2.setMatrixAt(0,new THREE.Matrix4());g.add(i2);
-    const b3=bx.clone();b3.setAttribute('aJ',new THREE.Float32BufferAttribute(new Float32Array(b3.attributes.position.count*4),4));g.add(new THREE.Mesh(b3,jadeMat({})));
+  try{const M9=jadeMats(),g=new THREE.Group(),G=voxG(1,1,1);G.d[0]=1;const bx=voxMesh(G);
+    const b1=bx.clone();b1.setAttribute('aJ',new THREE.InstancedBufferAttribute(new Float32Array(4),4));const i1=new THREE.InstancedMesh(b1,M9.vox,1);i1.setMatrixAt(0,new THREE.Matrix4());g.add(i1);
+    const b2=bx.clone();b2.setAttribute('aJ',new THREE.Float32BufferAttribute(new Float32Array(b2.attributes.position.count*4),4));g.add(new THREE.Mesh(b2,M9.voxM));
     const pl=new THREE.PlaneGeometry(1,1);pl.setAttribute('aB',new THREE.InstancedBufferAttribute(new Float32Array(4),4));const i3=new THREE.InstancedMesh(pl,JADE_BRUME_M,1);i3.setMatrixAt(0,new THREE.Matrix4());g.add(i3);
     g.traverse(function(o){o.frustumCulled=false;});scene.add(g);renderer.compile(scene,camera);scene.remove(g);}catch(e){console.warn('jadeChauffe',e);}
 }
-window.dbgJade=function(){return Object.assign({},JADE.n,{tri:{ms:JT.n?+(JT.ms/JT.n).toFixed(3):0,envois:JT.up},visibles:JADE.fam.map(function(F){return F.im.count;}),grues:GRUE.L.length,balade:BALADE,niveau:LVL.cur&&LVL.cur.id,err:window.__jadeErr?String(window.__jadeErr):null});};
+window.dbgJade=function(){let tri=0;for(const F of JADE.fam)tri+=F.im.count*F.tri;
+  return Object.assign({},JADE.n,{triangles:Math.round(tri)+(JADE.porte?JADE.porte.tri:0)+(JADE.pont?JADE.pont.tri:0),appels:JADE.fam.filter(function(F){return F.im.count>0;}).length,
+    tri:{ms:JT.n?+(JT.ms/JT.n).toFixed(3):0,envois:JT.up},grues:GRUE.L.length,balade:BALADE,niveau:LVL.cur&&LVL.cur.id,err:window.__jadeErr?String(window.__jadeErr):null});};
 window.dbgJadeAller=function(k,d){const P=k==='pont'?JADE.pont:JADE.porte;if(!P||!started||gameOver)return 'non';if(paused)togglePause(); // (dev) la caisse d m avant un monument, sur la route
   s=Math.max(0,P.i/(NP-1)*L-(d||350));lat=0;psi=0;prevTvalid=false;mode='drive';return Math.round(s);};
 window.dbgGrues=function(){grueVol();return GRUE.L.length;}; // (dev) un vol de grues, tout de suite, devant la caisse
 window.dbgJadeHeurt=function(o){if(!JADE.col)return null;if(o!=='test')return jadeHeurt(carGroup.position); // (banc) 'test' : des points connus dedans / dehors
-  const V=new THREE.Vector3(),r={pilDedans:0,pilDehors:0,n:0};
-  for(let k=0;k<JADE.col.P.length;k+=Math.max(1,(JADE.col.P.length/40)|0)){const q=JADE.col.P[k];r.n++;
-    V.set(q[0],(q[3]+q[4])/2,q[1]);if(jadeHeurt(V))r.pilDedans++;V.set(q[0]+q[2]*3+20,(q[3]+q[4])/2,q[1]);if(!jadeHeurt(V))r.pilDehors++;}
-  const P=JADE.porte;if(P){V.copy(P.c);V.y+=60;r.porteTrou=!jadeHeurt(V);V.copy(P.c).addScaledVector(P.b,P.hw+150);V.y+=60;r.porteMur=jadeHeurt(V);
-    V.copy(P.c).addScaledVector(P.t,P.D);V.y+=60;r.porteDevant=!jadeHeurt(V);}
+  const V=new THREE.Vector3(),r={pilDedans:0,pilDehors:0,n:0},P=JADE.col.P;
+  for(let k=0;k<P.length;k+=Math.max(1,(P.length/40)|0)){const q=P[k],Tq=JADE.geos.p[q[5]];r.n++;
+    // un cube PLEIN du gabarit (à mi-hauteur), ramené dans le monde : il doit être dur ; à 3 rayons de là, l'air
+    let c=null;const y=Math.floor(Tq.yTop*.6);for(let i=0;i<Tq.G.nx&&!c;i++)for(let j=0;j<Tq.G.nz;j++)if(voxAt(Tq.G,i,y,j)===JM.roche){c=[i,j];break;}
+    if(c){V.set(c[0]+.5,y+.5,c[1]+.5).applyMatrix4(jadeMatPilier(q,0));if(jadePilierDans(q,V.x,V.y,V.z))r.pilDedans++;}
+    V.set(q[0]+q[2]*3+20,(q[3]+q[4])/2,q[1]);if(!jadeHeurt(V))r.pilDehors++;}
+  const Po=JADE.porte;if(Po){V.copy(Po.c);V.y+=60;r.porteTrou=!jadeHeurt(V);V.copy(Po.c).addScaledVector(Po.b,Po.hw+150);V.y+=60;r.porteMur=jadeHeurt(V);
+    V.copy(Po.c).addScaledVector(Po.t,Po.D);V.y+=60;r.porteDevant=!jadeHeurt(V);}
   const B9=JADE.pont;if(B9){V.copy(B9.c);V.y+=40;r.pontDessous=!jadeHeurt(V);V.copy(B9.c);V.y+=(B9.yB(.5)+B9.yH(.5))/2;r.pontDalle=jadeHeurt(V);}
-  V.copy(pts[(NP/2)|0]);V.y+=2;r.routeLibre=!jadeHeurt(V);
-  let routeTouche=0;for(let i=0;i<NP;i+=7){V.copy(pts[i]);V.y+=1.5;if(jadeHeurt(V))routeTouche++;}r.routeTouche=routeTouche; // la RÈGLE D'OR : aucun point de la route dans la pierre
+  let routeTouche=0;for(let i=0;i<NP;i+=7){V.copy(pts[i]);V.y+=1.5;if(jadeHeurt(V))routeTouche++;V.copy(pts[i]).addScaledVector(Nn[i],-THICK-1.5);if(jadeHeurt(V))routeTouche++;}r.routeTouche=routeTouche; // la RÈGLE D'OR : aucun point de la route (dessus ni dessous) dans la pierre
   return r;};
 // `dbgJadeVue(k,d,h)` (dev) : MODE PHOTO — 'route' (derrière la caisse, haut), 'porte', 'pont', 'haut' (vue plongeante), 'loin'
 window.dbgJadeVue=function(k,d,h,cap){if(!JADE.root)return 'pas de map';
@@ -13088,7 +13111,6 @@ function baladeDepart(){
   setTimeout(tente,900);
 }
 addEventListener('load',function(){setTimeout(baladeDepart,0);});
-
 function buildVoxCity(seed,accC){
   for(const F of CITY.fam||[])for(const x of [F.im,F.imL])x.dispose(); // (passe perf) les tampons d'instances de l'ancienne ville (les géométries sont parties avec trackMeshes)
   CITY.root=null;CITY.n={};CITY.col=null;CITY.ens=[];CITY.imC=CITY.imN=null;CITY.fam=null;CITY.lampes=null;villeImpactFin(); // (l'ancien cratère s'éteint avec son quartier)
@@ -14768,16 +14790,16 @@ Object.assign(BIOMES.tempete,{daCon:0,daExpo:1.12,daWbN:.5,daSh:.35});Object.ass
 /* LES PICS DE JADE (2026-10-09, Léo) — l'air d'un rouleau peint : un soleil bas et doux (or pâle), une brume crème-jade qui avale le
    lointain à ~2,5 km (les piliers s'y fondent, le ciel peint prend le relais), un ciel clair, un remplissage vert-de-gris. Étalonnage doux
    (la couche DA en retrait : les verts et les gris du lavis, pas le split teal/orange). */
-BIOMES.jade={nm:'PICS DE JADE',skyMul:[1,1,1],skyLift:[0,0,0],sunTint:[1,.86,.62],sunHalo:0,city:0,stars:0,moon:0,
-  fog:[.80,.82,.77],fogN:180,fogF:2500,
-  hemiS:[.80,.88,.90],hemiG:[.30,.33,.25],hemiI:.80, sunC:[1,.87,.68],sunI:1.30,
-  fillC:[.48,.60,.66],fillI:.16, kickC:[1,.86,.70],kickI:.05,
-  volSun:[1.9,1.75,1.5],volSky:[.62,.72,.78],volGnd:[.30,.34,.30],volAmb:.8,
-  expo:.95,sat:.90,
-  env:[[0,'#7fa2b0'],[.3,'#b4c8c4'],[.48,'#e8e2cc'],[.58,'#f0e4c4'],[.66,'#8a9a88'],[1,'#4a5a4c']],eS1:[255,240,210,.45],eS2:[170,210,200,.30],
-  wb:[1,1,1],sh:[0,.008,.006],hi:[.025,.015,0],con:1.06,bloomS:.40,bloomT:.92,vigK:.30,vigC:[.10,.12,.10],rimK:0,rimS:.42,fogIn:[.86,.88,.84],fogCj:[.94,.84,.66],
-  daCon:.55,daExpo:1,daWbN:1,daSh:.35,daHi:.35,
-  jdZ:[.40,.56,.66],jdH:[.93,.90,.80],jdR:[.18,.26,.25],jdB:[.86,.87,.82],jdS:[1,.86,.62]};
+BIOMES.jade={nm:'PICS DE JADE',skyMul:[1,1,1],skyLift:[0,0,0],sunTint:[1,.95,.86],sunHalo:0,city:0,stars:0,moon:0,
+  fog:[.76,.85,.86],fogN:200,fogF:2500,  /* (v2, Léo : « couleurs plus similaires à l'image ») : l'air des photos — une brume blanc-bleuté, une lumière DIFFUSE (ciel fort, soleil voilé) */
+  hemiS:[.82,.90,.96],hemiG:[.36,.42,.33],hemiI:1.0, sunC:[1,.97,.92],sunI:1.0,
+  fillC:[.55,.66,.70],fillI:.12, kickC:[1,.92,.80],kickI:.04,
+  volSun:[1.9,1.85,1.7],volSky:[.70,.80,.86],volGnd:[.32,.38,.32],volAmb:.85,
+  expo:.98,sat:1.0,
+  env:[[0,'#8fb4c4'],[.3,'#bfd2d6'],[.48,'#e4ecea'],[.58,'#eef0e6'],[.66,'#8a9a8c'],[1,'#4a5a4c']],eS1:[245,248,240,.45],eS2:[170,210,215,.30],
+  wb:[1,1,1],sh:[0,.006,.008],hi:[.012,.01,0],con:1.05,bloomS:.36,bloomT:.93,vigK:.26,vigC:[.10,.13,.13],rimK:0,rimS:.38,fogIn:[.88,.92,.92],fogCj:[.92,.90,.82],
+  daCon:.55,daExpo:1,daWbN:1,daSh:.25,daHi:.2,
+  jdZ:[.52,.70,.82],jdH:[.84,.90,.91],jdR:[.36,.47,.48],jdB:[.90,.93,.93],jdS:[1,.96,.86]};
 for(const k9 in BIOMES)for(const f9 in BIO_ETAL0)if(BIOMES[k9][f9]==null)BIOMES[k9][f9]=JSON.parse(JSON.stringify(BIO_ETAL0[f9]));
 // Le tirage du jour, dans l'ordre des heures (+ l'ORAGE en joker météo) — la NUIT ne se tire pas,
 // elle se MÉRITE (3 portails). 9 ambiances en rotation : deux parties ne se ressemblent plus.
