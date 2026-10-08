@@ -212,6 +212,10 @@ LES BOUTONS DE SACHA ») : **PLAY/JOUER = la partie sans fin, et toucher un nive
     (`BURN.nAv`, ,2 rad, ajoutée à la cible du ressort, jamais au cap) qui retombe au lâcher ; pousse 3 → 1,8, recul 2,6 → 1,7, vit ,7 → ,3,
     ressort du doigt relâché de `lache` ,45 (,78). Après la nitro : 8-10° du doigt (au lieu de ~100°) ; NITRO 5,1-5,5 m/s, ARRIÈRE 3,2-4.
     Les deux touches quittent la console : sur la VUE, en colonne, debout au bord droit sous le titre, couché au bord gauche. sw.js → v190.
+- **DES DONUTS MOINS VIOLENTS** (même soir, Léo : « moins violent, les tours de donuts ») — `BURN_RESSORT` {genou 4, frein 40} : au-delà de
+  4 rad/s, un frein progressif sur l'excès de rotation (dans le ressort du doigt) ; le doigt plus rapide : ce qui dépasse est perdu
+  (`DON.avance`). `DON_PIV.glisse` ,55 → ,42. MESURÉ (doigt en cercle) : 11 rad/s → caisse 10,8 → 5,1 rad/s, balayage du centre max 13,7 →
+  7,3 m/s, à-coups p90 153 → 43 m/s² ; 7 rad/s → 7,2 → 5,1 ; sous 4 rad/s inchangé (tour pour tour).
 - Les réservoirs se créent dans `burnPools()`, appelé par la CHAUFFE DE L'ATELIER (`atelierChauffe` les compile avec lui : rien au 1er
   burn-out) et par l'atelier du bouton rouge (`atlTick`).
 - RETIRÉ (dans l'historique, dernier état `d6fea98`) : fumée en volumes/cubes de la porte, voile, jet sous la roue, poids (`DON_POIDS`),

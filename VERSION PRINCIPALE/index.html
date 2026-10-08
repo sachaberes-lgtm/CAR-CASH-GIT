@@ -40236,8 +40236,8 @@ function burnTick(dt){ // chaque image du garage (après la pose de la caisse, a
    ce point et part vers le bord (jusqu'à ~2·`drz`, ~1,8 m). Les donuts l'avaient fait glisser au CENTRE du plateau (`donM` → 1 : la caisse
    restait au milieu). Désormais il n'y glisse qu'au quart (`DON_PIV.donMax`), la vitesse la pousse un peu plus dehors (`glisse` ,35 → ,55 m),
    et la vue recule d'après l'état « donut » (`donH`) pour la garder dans le cadre (`BURN.Rs`). La borne du disque reste (4,3 m − son rayon). */
-const DON_PIV={donMax:.25,glisse:.55,kGlisse:.16};
-const BURN_RESSORT={om:8,ze:.5};
+const DON_PIV={donMax:.25,glisse:.42,kGlisse:.16}; // glisse ,55 → ,42 (même soir : des donuts moins violents)
+const BURN_RESSORT={om:8,ze:.5,genou:4,frein:40}; // (même soir, Léo : « moins violent, les tours de donuts ») au-delà de `genou` rad/s un FREIN progressif (`frein` /s sur l'excès) : MESURÉ avant, un doigt rapide la faisait tourner à 11 rad/s (près de 2 tours/s), le centre balayant à 12-14 m/s ; le doigt plus vite que ça : ce qui dépasse est perdu (`DON.avance`)
 /* LA CAISSE SE BALADE (2026-10-08, Léo : « quand on le fait vite, ça fait un peu générique, un peu la même chose » · « la voiture ne se
    balade plus assez avec le burn-out »). MESURÉ avant : six gestes rapides (cercle, petits cercles, zigzag, huit, fouet, gribouillis) — la
    caisse tournait autour d'un pivot FIXE (,9 m devant elle) et touchait chaque fois le même bord (1,74 m du centre) : un seul cercle,
@@ -40299,7 +40299,8 @@ function burnBord(cx,cz,y){ // de combien rapprocher le centre (cx, cz) pour que
 } // (2026-10-08, Léo : « la voiture qui suit encore un peu plus ») le ressort qui tire la caisse vers le doigt, ω 7 → 9 : MESURÉ, un doigt qui tourne à 3 rad/s la traînait de 27° (48° à 6 rad/s) — à ω 9, ~20° (~33°) ; puis (même soir, Léo : « ça suit presque TROP — le juste milieu entre satisfaisant et maniable ») ω 8 : le juste milieu entre 7 et 9 ; même amorti (ζ ,5 : elle dépasse un peu, ça glisse)
 function burnDerape(dt){
   const d9=Math.min(dt,.1),n=Math.max(1,Math.ceil(d9/.008)),h=d9/n,om=BURN_RESSORT.om,ze=BURN_RESSORT.ze;
-  for(let i=0;i<n;i++){BURN.yawV+=(om*om*(BURN.cib+(BURN.nAv||0)-BURN.yaw)-2*ze*om*BURN.yawV)*h;BURN.yaw+=BURN.yawV*h;}
+  const gn=BURN_RESSORT.genou,fr=BURN_RESSORT.frein;
+  for(let i=0;i<n;i++){BURN.yawV+=(om*om*(BURN.cib+(BURN.nAv||0)-BURN.yaw)-2*ze*om*BURN.yawV)*h;const ex=Math.abs(BURN.yawV)-gn;if(ex>0)BURN.yawV-=Math.sign(BURN.yawV)*ex*Math.min(1,fr*h);BURN.yaw+=BURN.yawV*h;} // (les donuts) le frein au-delà du genou
   if(Math.abs(BURN.yaw)>Math.PI){const s2=2*Math.PI*Math.round(BURN.yaw/(2*Math.PI));BURN.yaw-=s2;BURN.cib-=s2;} // (le donut) les tours se replient : la caisse est la même
   BURN.don+=(BURN.yawV-BURN.don)*Math.min(1,dt*3);                       // (le donut) la rotation lissée : le compte des tours, la vue
   BURN.donK=BURN.on?Math.max(0,Math.min(1,(Math.abs(BURN.don)-.8)/2.2)):Math.max(0,BURN.donK-dt*2);
