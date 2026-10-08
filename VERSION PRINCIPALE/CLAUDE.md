@@ -1,5 +1,31 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LES PICS DE JADE + LA BALADE `?map=jade` (2026-10-09, Léo, branche `map-jade`, worktree `~/Downloads/CAR-jade`)
+Léo, trois images (les piliers de grès de Zhangjiajie couronnés de pins, un pic du Huangshan peint aux bleus-verts minéraux sur une mer de
+nuages, les mêmes piliers noyés de brume) : « travaille sur une nouvelle map inspirée de ça, vas-y à fond » — puis « donne-moi la capacité
+d'aller dans cette map avec une voiture, la mobilité comme le main, mais seulement ça : pas de jeu, que la voiture dans la map ».
+- **LA BALADE** (`BALADE`, posé après `IS_MOBILE` ; `?map=jade` ou `?balade=1`, marche aussi dans le cadre iPhone de l'ordi) : l'intro
+  s'efface seule, le PLAY part tout seul (`baladeDepart` → `playViaGarage`, le vrai départ : le piqué depuis le ciel), `lvlChoisir` rend
+  toujours `NIV_JADE` (chaque portail = une autre vallée, graine neuve). Rien sur la route (`spawnPickups` sort, `LIGNE.on` faux, pads /
+  flaques / plots sautés par `JADE9` dans buildTrack, pas de pigeons), le HUD du jeu masqué (`BALADE_CSS` : il reste la nitro, ⏸, le volant),
+  le bac à sable (`SANDBOX=BALADE` : une mort = un replacement), ni chrono de vol ni mort à l'arrêt, la nitro se recharge seule, le moteur
+  fixé (`BALADE_MOTEUR`, V6 biturbo = 8, `?moteur=n`), RIEN n'est écrit (`SAVE.flush/mark` neutralisés, leçon et question du mode sautées),
+  pas de rechargement automatique. ⚠ Le jeu normal n'est pas touché (tout est gardé par `BALADE` ou `piste==='jade'`), et la map n'est PAS
+  dans le cycle des niveaux ni dans la carrière (à décider avec Léo / Sacha).
+- **LA MAP** (bloc « LES PICS DE JADE », juste avant `buildVoxCity`) : `genJade(rnd)` (le ruban qui serpente, R 280-700 m, cap ±85°,
+  relief doux, aplani sous les monuments) ; `buildJade(seed)` (appelée en fin de buildTrack) : ~1 200 PILIERS (4 gabarits taillés à
+  cannelures + 1 léger au loin, trois rangs en touffes le long de la route + la forêt au large jusqu'à 2,5 km), ~1 800 PINS du Huangshan
+  (plateaux d'aiguilles), ~3 000 TOUFFES (couronnes et parois), 14 PAVILLONS vermillon, ~300 nappes de BRUME en billboard. RÈGLE D'OR : un
+  pilier qui croiserait la route passe 45 m SOUS la dalle. LA PORTE DU CIEL (`jadePorte` : muraille percée — Shape + Extrude — d'une arche
+  de 176 m, rognée si la route repasse derrière, + un massif de piliers soudés) et LE PONT DU CIEL (`jadePont` : arche naturelle 72-150 m
+  au-dessus de la route, entre deux piliers). Matière à elle (`JADE_VS/FS`, normales plates par dérivées, strates, coulures, mousse, le pied
+  dans la brume), tri par quartiers de 360 m (`jadeTri`, chaîné sur onBeforeRender), `jadeTick`, `jadeHeurt` (en vol : pilier, muraille,
+  arche → `explode('pic')`), `grueTick` (des vols de GRUES en V). Ciel : `BIOMES.jade` + la couche `COUCHES.jade` du dôme (`jadeCiel` :
+  rouleau peint, 4 rangées de monts, mer de nuages en plan ; `uJade`, programme PLEIN forcé). Route : `ROUTE_JADE` (gris de pierre), rails jade.
+- Mesuré (Chrome sans fenêtre du Mac) : 60 i/s, construction 16-28 ms, tri ~0,03 ms ; collisions (`dbgJadeHeurt('test')`, 3 vallées) :
+  piliers durs, arche et dessous du pont libres, AUCUN point de la route dans la pierre. Console : `dbgJade()`, `dbgJadeVue('route'|'porte'|
+  'pont'|'haut'|'loin'|'grue',d,h,cap)` (photo figée), `dbgGrues()`. sw.js → v203.
+
 ## LA SONDE QUI NE FIGE PLUS (2026-10-08, Léo : « le jeu bug un peu quand je le lance, pas que au lancement il rame — trouve une solution qui ne touche pas au graphique ni à la qualité »)
 - MESURÉ (Chrome sans fenêtre sur le Mac M2 de Léo, course au pilote auto, trace + appels WebGL chronométrés) : les à-coups de 35-120 ms
   en course venaient de `qlSonde` — la SONDE de la règle de qualité (28/09, faite pour l'iPhone bridé à 30 i/s). Quand des images ratent,
