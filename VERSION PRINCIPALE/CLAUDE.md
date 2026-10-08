@@ -82,6 +82,11 @@ LES BOUTONS DE SACHA ») : **PLAY/JOUER = la partie sans fin, et toucher un nive
   « DONUT ×n » + anneau de fumée ; QUELQUES CUBES BLANCS (`burnCubes` : ~14/s au plus fort, 8-13 cm, translucides, aux pneus et dans la
   fumée, la matière des cubes de la porte). Gardé de ce qui a été réglé depuis (ni fumée ni mouvement) : `BURN_TENU` 800, `BURN_GLISSE` 24,
   « PAS ENCORE À TOI », la console de Sacha (`garAtelierLibre`), les feux stop (`BURN.feuxK`), les pixels du chat (`BURN.pix`).
+- **UNE SEULE FUMÉE** (même jour, Léo : « les cubes blancs ne doivent pas être une entité séparée de la première fumée : qu'ils l'enrichissent
+  pour lui donner du volume — une seule, avec les deux ») : `burnCubes` n'a plus de particules à lui — chaque bouffée en pixels vivante porte
+  `BURN_CUB.par` (3) cubes DANS sa boule (écarts tirés de sa graine : ils bougent avec elle), à SA couleur (rose de la porte, bleu du plateau
+  au ras du sol), à SA transparence (5 bandes d'opacité selon son alpha), à sa taille (≤ 30 cm, grille de 6 cm), et ils s'émiettent avec
+  elle (même règle que ses cases). ~560 cubes tenu, ~920 en donut. sw.js → v173.
 - Les réservoirs se créent dans `burnPools()`, appelé par la CHAUFFE DE L'ATELIER (`atelierChauffe` les compile avec lui : rien au 1er
   burn-out) et par l'atelier du bouton rouge (`atlTick`).
 - RETIRÉ (dans l'historique, dernier état `d6fea98`) : fumée en volumes/cubes de la porte, voile, jet sous la roue, poids (`DON_POIDS`),
