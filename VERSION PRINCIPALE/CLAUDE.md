@@ -52,7 +52,14 @@
   `main` sans le burn-out (`git push --no-verify` pour passer outre). Vérifier à la main : `sh garde-burnout.sh`.
 
 ## LE BURN-OUT SUIT LE DOIGT + 0,8 s DE MAINTIEN (2026-10-07, nuit, Léo : « ajoute 500 millisecondes de maintien requis pour démarrer le burn-out » · « il faut que ça suive plus le doigt ou le curseur, plus comme avant » · puis « la vitesse du donut évolue proportionnellement à la vitesse du doigt, et le temps de maintien déclencheur du burn-out : 1,5 s »)
-- **0,8 s** (dernier mot, Léo : « 0,8 s ») : `BURN_TENU` 800. Avant : **1 s** (« réduis à 1 s et enlève le cercle jauge ») : `BURN_TENU` 1000 — l'anneau de charge est RETIRÉ (`burnAnneau1`
+- **LE JET SOUS LA ROUE + LE POIDS** (2026-10-08, Léo : « rajoute un peu de fumée qui part de l'arrière, d'en dessous de la roue qui tourne ;
+  moins intense le suivi du doigt : pour tourner, dans la vraie vie, c'est un peu plus long ») — (1) `BURN.tJ` : là où le pneu touche le
+  sol, derrière l'essieu (`r.z − 0,85·R`, 3 cm du sol), un jet bas et rapide vers l'arrière (3,6-6,2 m/s, +la vitesse de la roue), petites
+  bouffées (12-18 cm → 70-105 cm) de 1,8-3,2 s dans le même réservoir `BURN.fum` (son débit compté dans `burnVie`). 60 i/s pendant le
+  donut, 0 programme. (2) `DON_POIDS` (juste avant `DON`) : ω 6, ζ ,7, anticipation 85 % (`DON.ff`), `amax` 28 rad/s², `wmax` 11,
+  `avance` 1,6 → 2,6 (le retard plus grand ne perd plus le tour). MESURÉ (`suivi.py`, doigt autour à 5 rad/s, 3 passes) : elle prend la
+  vitesse du doigt en 0,24-0,33 s (0,15 avant), s'arrête en 0,22-0,26 s (0,12-0,16), 17-38° de retard (3-4°), finit à 10-19° du doigt.
+- **0,8 s** (Léo : « 0,8 s ») : `BURN_TENU` 800. Avant : **1 s** (« réduis à 1 s et enlève le cercle jauge ») : `BURN_TENU` 1000 — l'anneau de charge est RETIRÉ (`burnAnneau1`
   supprimé, `#gInvAnneau` redort). Avant, à 1,5 s : `BURN_TENU` 1500. Banc : tenu 0,4 · 1,2 · 1,38 s → rien ; 1,68 s → ça part (départ mesuré à 1,51-1,55 s).
 - **LE POUCE QUI GLISSE + L'ANNEAU DE CHARGE** (même nuit, Léo : « il n'y a plus de burn-out » — le code était bien en ligne, il partait à
   la souris) : tenu 1,5 s, un pouce posé glisse de plus de 12 px (la pulpe s'écrase, le pouce roule) → le jeu y voyait un glissé du
