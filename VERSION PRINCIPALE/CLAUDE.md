@@ -1,5 +1,19 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LE POUCE ORPHELIN (2026-10-09, Sacha : « quand on saute dans le vide vite, des fois le joystick disparaît et on peut plus contrôler la voiture »)
+- REPRODUIT au banc (Chrome sans fenêtre, tactile, vrais appuis) : mort rapide dans le vide → REJOUER → pouce posé à gauche pendant le
+  VOLET (`ecranWipe`, ≈ 0,3 s : `#wipe.in` prend le doigt). Un doigt appartient à l'élément où il s'est POSÉ : ce pouce n'était jamais
+  celui du volant — pas d'anneau, braquage 0 pendant toute la partie (4,5 s de glissé mesurées sans un degré), la caisse filait tout droit
+  dans le vide tant qu'on ne relevait pas le pouce. Même piège au 1er JOUER (pouce posé pendant le lâcher : il tombe sur le canvas).
+- Correctif (bloc du VOLANT, après `stUp`) : le volant suit SON doigt par l'identifiant, où qu'il ait commencé (touchmove/touchend/
+  touchcancel sur `window` en capture) ; `stAdopte` donne le volant à un doigt posé dans la zone `#tSteer` qui n'appartient à aucun bouton de
+  course (`stLibre` : `.tbtn`, `#tNitroZone`, `#tSet`, `#modale`) — à `cc:jeu` (la course part : le pouce qui attendait est pris tout de
+  suite) et à chaque événement tactile (`stDoigts` = la liste `touches` du dernier événement). Pas pendant l'explosion (un pouce qui y
+  repose ne la passe pas). Même filet à la souris (le cadre de l'ordi : bouton enfoncé pendant le volet).
+- Banc après correctif : REJOUER + pouce à 0 et 100 ms → volant pris (couché ET debout) ; 1er JOUER pouce posé pendant le lâcher → pris au
+  départ ; NITRO seule (même glissée à gauche) ne vole jamais le volant ; deux doigts à gauche : le 1er garde le volant ; souris pendant le
+  volet → prise ; parties normale et FACILE inchangées ; 0 erreur. sw.js → v209.
+
 ## LE DAUPHIN DE RÊVE + LA BOÎTE À DAUPHINS (2026-10-09, Léo : « retouchons les dauphins, envoie-moi dans une boîte blanche avec les dauphins, on va les design » — puis une image de grand dauphin pastel : « travaille encore plus dur »)
 - **LA BOÎTE** : `boite-dauphins.html` (à côté d'index.html, servie par `python3 -m http.server`, jamais en double-clic). Elle LIT et exécute le
   VRAI bloc du jeu (de `const DOL_L=` à `const dolphinRig=`) et le RELIT ~1 fois/s : une retouche du dauphin dans index.html apparaît sans

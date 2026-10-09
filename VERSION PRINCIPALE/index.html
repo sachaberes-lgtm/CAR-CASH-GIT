@@ -43856,21 +43856,51 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
         if(tient){boomSkip();return;} }
       const t=e.changedTouches[0]; stDown(t.identifier,t.clientX,t.clientY);
     },{passive:false});
-    sz.addEventListener('touchmove',function(e){
-      if(e.cancelable)e.preventDefault();
-      if(!TCTL.act)return;
+    sz.addEventListener('touchmove',function(e){ if(e.cancelable)e.preventDefault(); },{passive:false}); // (le pouce, lui, est suivi plus bas, où qu'il se soit posé)
+    /* (2026-10-09, Sacha : « quand on saute dans le vide vite, des fois le joystick disparaît et on peut plus contrôler la voiture »)
+       LE POUCE ORPHELIN. Un doigt appartient pour toujours à l'élément où il s'est POSÉ. Mort rapide → REJOUER → pouce posé à gauche
+       pendant le VOLET (≈ 0,3 s, `#wipe` intercepte le doigt), ou pendant le lâcher du tout premier JOUER (le pouce tombe sur le canvas,
+       les commandes ne sont pas encore là) : ce doigt n'était JAMAIS celui du volant — pas d'anneau, braquage 0 toute la partie, la caisse
+       filait tout droit dans le vide jusqu'à ce qu'on relève le pouce (banc : 4,5 s de pouce glissé sans un degré de braquage).
+       Désormais, en course, un doigt posé dans la zone du volant qui n'appartient à aucun bouton de course (NITRO, pause) DEVIENT le
+       volant : dès que la course part (`cc:jeu`) s'il est déjà là, sinon au premier événement tactile — et le volant suit son doigt par
+       son IDENTIFIANT, où qu'il ait commencé. Même filet si l'anneau s'est éteint sous un pouce toujours posé. Pas pendant
+       l'explosion : un pouce qui y repose ne la passe pas (la passer reste un nouvel appui). `stDoigts` = les doigts sur le verre au
+       dernier événement tactile (la liste `touches` du navigateur, recopiée : rien à oublier au lever). */
+    let stDoigts=[];
+    const stNote=function(e){ stDoigts=[]; for(let i=0;i<e.touches.length;i++){const t=e.touches[i];stDoigts.push({id:t.identifier,x:t.clientX,y:t.clientY,tg:t.target});} };
+    const stLibre=function(tg){ return !(tg&&tg.closest&&tg.closest('.tbtn,#tNitroZone,#tSet,#modale')); }; // le doigt d'un bouton de course (NITRO, pause) reste à son bouton — le menu, lui, est caché en course
+    const stAdopte=function(){
+      if(TCTL.act||TCTL.pad||!started||gameOver||mode==='boom')return;
+      let r=null;
+      for(const d of stDoigts){
+        if(!stLibre(d.tg))continue; // (un doigt qui se pose SUR le volant est pris ici puis repris, à l'identique, par son propre touchstart)
+        if(!r)r=sz.getBoundingClientRect();
+        if(d.x<r.left||d.x>r.right||d.y<r.top||d.y>r.bottom)continue;
+        stDown(d.id,d.x,d.y);return; }
+    };
+    addEventListener('visibilitychange',function(){if(document.hidden)stDoigts=[];}); // l'appli passe derrière : des levers peuvent se perdre, la liste repart vide
+    document.addEventListener('cc:jeu',stAdopte); // la course part (JOUER, REJOUER) : le pouce qui attendait sur le verre prend le volant tout de suite
+    addEventListener('touchstart',function(e){ stNote(e); stAdopte(); },{capture:true,passive:true});
+    addEventListener('touchmove',function(e){
+      stNote(e);
+      if(TCTL.pad)return;
+      if(!TCTL.act){stAdopte();return;}
       for(let i=0;i<e.changedTouches.length;i++){ const t=e.changedTouches[i];
-        if(t.identifier===TCTL.id)stMove(t.clientX,t.clientY); }
-    },{passive:false});
+        if(t.identifier===TCTL.id){if(e.cancelable)e.preventDefault();stMove(t.clientX,t.clientY);} }
+    },{capture:true,passive:false});
     const stEnd=function(e){
+      stNote(e);
       if(!TCTL.act)return;
       for(let i=0;i<e.changedTouches.length;i++)if(e.changedTouches[i].identifier===TCTL.id)stUp();
     };
-    sz.addEventListener('touchend',stEnd,{passive:false});
-    sz.addEventListener('touchcancel',stEnd,{passive:false});
+    addEventListener('touchend',stEnd,{capture:true,passive:true});
+    addEventListener('touchcancel',stEnd,{capture:true,passive:true});
     // repli SOURIS : on attrape sur le volant, on suit et on lâche PARTOUT (le curseur sort vite de la zone)
     sz.addEventListener('mousedown',function(e){ if(TCTL.pad||e.button!==0)return; e.preventDefault(); stDown('souris',e.clientX,e.clientY); });
-    addEventListener('mousemove',function(e){ if(TCTL.act&&TCTL.id==='souris')stMove(e.clientX,e.clientY); });
+    addEventListener('mousemove',function(e){ if(TCTL.act&&TCTL.id==='souris')stMove(e.clientX,e.clientY);
+      else if(!TCTL.act&&!TCTL.pad&&(e.buttons&1)&&!(e.sourceCapabilities&&e.sourceCapabilities.firesTouchEvents)&&started&&!gameOver&&mode!=='boom'&&stLibre(e.target)){ // (2026-10-09) le même pouce orphelin, à la souris (le cadre de l'ordi)
+        const r=sz.getBoundingClientRect(); if(e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom)stDown('souris',e.clientX,e.clientY); } });
     addEventListener('mouseup',function(){ if(TCTL.act&&TCTL.id==='souris')stUp(); });
   }
   // ---- LE BOUTON DE RÉGLAGES : UN SEUL. Il ouvre le panneau — et OUVRIR MET EN PAUSE
