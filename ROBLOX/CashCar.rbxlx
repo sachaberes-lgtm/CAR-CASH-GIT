@@ -764,6 +764,7 @@ local function replacer()
 	-- lâchait son mini-turbo au premier relâcher
 	G.hopY, G.hopV, G.choc, G.driftOn, G.driftC, G.driftLv = 0, 0, 0, false, 0, 0
 	G.qaExcuse = os.clock() + 0.2 -- (banc : un replacement n'est pas un saut de caméra)
+	G.qaRepl = true -- (banc : … ni une pose)
 	G.sillagesNets()
 	mode = "drive"
 	Score.ETAT.mode = "drive"
@@ -1300,7 +1301,35 @@ function G.qa()
 		end
 		return
 	end
+	-- (9/10) LA POSE À TRAVERS : à l'image de la pose, la caisse était (à l'image d'avant) de l'AUTRE côté de la dalle — et chaque
+	-- pose s'écrit (« QA POSE », le banc des lâchers les compte)
+	if mode == "drive" and G.qaM == "fall" and not G.qaIntro and not G.qaRepl then
+		if G.qaE and G.qaE ~= side then
+			warn(string.format("[CashCar] QA POSE A TRAVERS LA DALLE venue de %s, posee %s zone=%d s=%d lat=%.1f", (G.qaE > 0) and "DESSUS" or "DESSOUS",
+				(side > 0) and "DESSUS" or "DESSOUS", zoneN, s, lat))
+		end
+		warn(string.format("[CashCar] QA POSE face=%d zone=%d s=%d lat=%.1f vA=%d", side, zoneN, s, lat, vA))
+	end
+	G.qaM, G.qaIntro, G.qaRepl = mode, intro, nil
+	if mode ~= "fall" then G.qaE, G.qaJ, G.dbgNit = nil, nil, nil end
 	if mode ~= "fall" or intro or V.qaDit then return end
+	-- (9/10) LA TRAVERSÉE : d'une image à l'autre, la caisse est passée du dessus de SA tranche de dalle au dessous (ou l'inverse), dans
+	-- la largeur, sans s'y poser (un autre étage de route — l'échantillon le plus proche qui saute — remet le guetteur à zéro)
+	if V.curNear and V.curJ then
+		if G.qaJ and math.abs(V.curJ - G.qaJ) > 40 then G.qaE = nil end
+		G.qaJ = V.curJ
+		local e9 = nil
+		if math.abs(V.curLat) < RH - 0.5 and math.abs(V.curT) < 2.5 then
+			if V.curH > 0 then e9 = 1 elseif V.curH < -THICK then e9 = -1 end
+		end
+		if e9 and G.qaE and e9 ~= G.qaE then
+			V.qaDit = true
+			warn(string.format("[CashCar] QA TRAVERSEE de la dalle zone=%d decol=%d sDalle=%d h=%.2f lat=%.1f fallT=%.2f vel=(%.1f,%.1f,%.1f)",
+				zoneN, V.sDecol, (V.curJ - 1) * piste.DS / M, V.curH, V.curLat, V.fallT, fallVel.X, fallVel.Y, fallVel.Z))
+			return
+		end
+		if e9 then G.qaE = e9 elseif math.abs(V.curLat) >= RH + 0.5 or V.curH > 6 or V.curH < -THICK - 6 then G.qaE = nil end
+	end
 	if V.curNear and math.abs(V.curLat) < RH - 1 and math.abs(V.curT) < 2 and V.curH < -0.4 and V.curH > -THICK + 0.4 then
 		V.qaDit = true
 		warn(string.format("[CashCar] QA DANS LA DALLE zone=%d decol=%d sDalle=%d h=%.2f lat=%.1f t=%.1f fallT=%.2f volT=%.2f vel=(%.1f,%.1f,%.1f) basc=%s",
@@ -1382,6 +1411,76 @@ function G.dbgBascule()
 	end)
 end
 
+-- (banc, 9/10) LES LÂCHERS — « DbgOuvre » = "lacher<genre>" en conduite : la caisse est lâchée en vol autour de la dalle, 60 à 260 m
+-- devant (six fois sur dix dans le virage le plus serré des 400 m qui viennent), comme le banc hors ligne des poses : "dessus"
+-- (au-dessus, en piqué), "dessous" (sous la dalle, qui remonte, nitro tenue), "tranche" (à côté du flanc, qui y revient), "rase"
+-- (au ras d'une face), "vite" (très grande vitesse, en piqué ou en chandelle), "mix" (au hasard), et les trois PIÈGES du banc hors
+-- ligne ("piege1" à "piege3", voir plus bas) où l'ancienne pose se trompait 2 à 5 fois sur 100 à 20 images/s. Ce qui arrive ensuite, le guetteur
+-- DbgQA l'écrit (« QA POSE », « QA TRAVERSEE », « QA DANS LA DALLE », « QA POSE A TRAVERS LA DALLE »).
+function G.dbgLacher(genre: string)
+	if mode ~= "drive" or intro then return end
+	local L = piste.len / M
+	local function r(a: number, b: number): number return a + math.random() * (b - a) end
+	if genre == "mix" then genre = ({ "dessus", "dessous", "tranche", "rase", "vite" })[math.random(1, 5)] end
+	local sx = math.min(s + r(60, 260), L - 30)
+	if math.random() < 0.6 then
+		local kb = -1
+		for k = 0, 80 do
+			local s1 = s + 60 + k * 5
+			if s1 > L - 30 then break end
+			local a, b = repere(s1 - 3, 1).LookVector, repere(s1 + 3, 1).LookVector
+			local ah, bh = Vector3.new(a.X, 0, a.Z), Vector3.new(b.X, 0, b.Z)
+			if ah.Magnitude > 1e-3 and bh.Magnitude > 1e-3 then
+				local c = math.acos(math.clamp(ah.Unit:Dot(bh.Unit), -1, 1))
+				if c > kb then kb, sx = c, s1 end
+			end
+		end
+	end
+	local cf = repere(sx, 1)
+	local T_, B, N = cf.LookVector, cf.RightVector, cf.UpVector
+	local lat0, h0, vT, vB, vN, nit = 0, 0, r(40, 600), 0, 0, false
+	local sg = (math.random() < 0.5) and -1 or 1
+	if genre == "dessus" then
+		lat0, h0, vB, vN = r(-RH - 6, RH + 6), r(0.3, 20), r(-80, 80), r(-300, 10)
+	elseif genre == "dessous" then
+		lat0, h0, vB, vN, nit = r(-RH - 6, RH + 6), -THICK - r(0.3, 20), r(-80, 80), r(0, 300), math.random() < 0.7
+	elseif genre == "tranche" then
+		lat0, h0, vB, vN = sg * (RH + r(0.3, 10)), r(-THICK - 2, 1.5), -sg * r(0.3, 80), r(-40, 40)
+	elseif genre == "rase" then
+		lat0, vB = r(-RH + 1, RH - 1), r(-20, 20)
+		if math.random() < 0.5 then h0, vN = r(0.05, 3), r(-6, 6) else h0, vN, nit = -THICK - r(0.05, 3), r(-6, 6), true end
+	elseif genre == "piege1" then -- sous le niveau de la dalle, à côté, qui y remonte en filant vers elle
+		lat0, h0, vT, vB, vN = sg * (RH + r(3, 6)), -THICK - r(1, 2.5), r(50, 600), -sg * r(50, 90), r(15, 35)
+	elseif genre == "piege2" then -- au ras SOUS la dalle, nitro tenue, vite : la route qui se creuse sous un long pas
+		lat0, h0, vT, vB, vN, nit = r(-RH + 2, RH - 2), -THICK - r(0.05, 0.6), r(400, 800), r(-20, 20), r(-5, 2), true
+	elseif genre == "piege3" then -- en piqué près du bord en filant vers l'axe : le BUMP qui prenait la place d'une pose
+		lat0, h0, vT, vB, vN = sg * (RH + r(0, 3)), r(5, 18), r(400, 1500), -sg * r(40, 130), r(-600, -150)
+	else -- "vite"
+		lat0, vT, vB = r(-RH - 4, RH + 4), r(300, 1600), r(-150, 150)
+		if math.random() < 0.4 then h0, vN, nit = -THICK - r(0.5, 30), r(50, 600), true else h0, vN = r(0.5, 30), r(-600, -50) end
+	end
+	local avant9 = carCF.Position
+	decoller(0, 1)
+	fallPos = cf.Position / M + B * lat0 + N * h0
+	fallVel = T_ * vT + B * vB + N * vN
+	prevPos = fallPos
+	flyAv = fallVel.Unit
+	flyU = N - flyAv * N:Dot(flyAv)
+	flyU = (flyU.Magnitude > 1e-3) and flyU.Unit or N
+	local f0 = r(0.3, 2.5)
+	V.fallT, V.fallTR, V.volT, V.fallVH0 = f0, f0, f0, -1
+	V.sDecol, V.flowS0, V.flowP0 = sx, sx, fallPos
+	carCF = CFrame.new(fallPos * M) * CFrame.fromMatrix(Vector3.zero, flyAv:Cross(flyU).Unit, flyU)
+	if KA.pos and KA.vise then -- (la caméra saute avec elle, comme au portail)
+		KA.pos += carCF.Position - avant9
+		KA.vise += carCF.Position - avant9
+	end
+	G.sillagesNets()
+	G.dbgNit = nit or nil
+	G.qaExcuse = os.clock() + 0.3
+	warn(string.format("[CashCar] LACHER %s zone=%d s=%d lat=%.1f h=%.1f vT=%d vB=%d vN=%d nitro=%s", genre, zoneN, sx, lat0, h0, vT, vB, vN, tostring(nit)))
+end
+
 function G.essayerAtterrir(dt: number)
 	local pos = fallPos * M
 	local prev = prevPos * M
@@ -1394,21 +1493,29 @@ function G.essayerAtterrir(dt: number)
 	-- hors des 27 cases une fois sur deux et le web, lui, cherche sur TOUTE la piste (dalleProche, L31233). Le dauphin compte
 	-- jusqu'à 40 m au-dessus de la dalle, à 25 m de l'axe (DOL_HMAX, L30253) : 48 m ; la physique du bord garde ses 40 m (L31244).
 	local proche, dProche = nil, math.huge
+	-- (9/10) …et le point de piste le plus proche de la caisse À L'IMAGE D'AVANT : chaque bout du pas se lit dans SA tranche de dalle
+	-- (voir G.passage)
+	local procheA, dA = nil, math.huge
 	local liste = G.autour(pos, 48, voisins)
 	for _, j in liste do
-		local d = (piste.F[j].Position - pos).Magnitude
+		local Fp = piste.F[j].Position
+		local d = (Fp - pos).Magnitude
 		if d < dProche then proche, dProche = j, d end
+		d = (Fp - prev).Magnitude
+		if d < dA then procheA, dA = j, d end
 	end
 	V.curNear = proche ~= nil and dProche < 48 * M
 	V.curJ = proche
+	local hOff, latOff, tOff, vN, vB, prevL = 0, 0, 0, 0, 0, 0
+	local N, B = Vector3.yAxis, Vector3.xAxis
 	if V.curNear and proche then
 		local F = piste.F[proche]
 		local lc = F:PointToObjectSpace(pos)
-		local hOff, latOff, tOff = lc.Y / M, lc.X / M, -lc.Z / M
+		hOff, latOff, tOff = lc.Y / M, lc.X / M, -lc.Z / M
 		V.curH, V.curLat, V.curT = hOff, latOff, tOff
-		local N, B = F.UpVector, F.RightVector
-		local vN, vB = fallVel:Dot(N), fallVel:Dot(B)
-		local prevL = latOff - vB * dt * SPD
+		N, B = F.UpVector, F.RightVector
+		vN, vB = fallVel:Dot(N), fallVel:Dot(B)
+		prevL = latOff - vB * dt * SPD
 		-- le SERPENT : passer SOUS la dalle, dans sa largeur
 		if dProche < 40 * M and not V.fallUnder and math.abs(latOff) < RH and ((V.fallStartSide > 0 and hOff < -THICK - 1) or (V.fallStartSide <= 0 and hOff > 1)) then V.fallUnder = true end
 		if V.bascOn and V.fallStartSide > 0 and not intro and dProche < 40 * M then
@@ -1430,6 +1537,28 @@ function G.essayerAtterrir(dt: number)
 				return
 			end
 		end
+	end
+	local marge = facile() and FAC.bord or 0
+	-- (5/10) …pas de TRAVERSÉE dans le premier dixième du vol (le web : fallT > .1, L31313) : la caisse qui sort en RASANT le bord
+	-- extérieur d'un virage (1-2 cm par image) est encore « dans la largeur » pour l'échantillon voisin — reposée à la 1re image,
+	-- ressortie à la suivante, reposée… collée au bord. Compté en temps de VOL (volT) : un bump ou un pouvoir qui rendent fallT ne
+	-- rouvrent pas ce trou.
+	local percee = V.volT > 0.1 or intro
+	-- (9/10) LE PASSAGE D'ABORD (vidéo de Sacha, 9/10 : « des fois on traverse la route ») : si le pas de l'image a percé une FACE de
+	-- la dalle dans sa largeur, c'est une pose — AVANT la tranche (le BUMP ne lisait que la position d'arrivée : une caisse qui
+	-- piquait sur le bitume près du bord en filant de côté était « renvoyée par la tranche » à travers la route) et avant les
+	-- fenêtres de proximité (elles comparaient les distances À L'ARRIVÉE : passée sous la dalle en remontant, la caisse finissait
+	-- plus près du dessus que du dessous… et se posait DESSUS). Le premier passage le long du pas gagne. (Mesuré au banc hors
+	-- ligne, 6 000 lâchers sur les six niveaux : voir le rapport du 9/10.)
+	if percee then
+		local fP, lP, sP, hP = G.passage(liste, proche, procheA, pos, prev, vol, DSm, marge)
+		if fP ~= 0 then
+			G.dbgNote((fP > 0) and "POSE DESSUS (passage)" or "POSE DESSOUS (passage)", hP, lP, 0)
+			atterrir(fP, lP, sP, hP)
+			return
+		end
+	end
+	if V.curNear and proche then
 		-- (c) le BUMP sur la tranche de la dalle
 		local sgL = math.sign(latOff)
 		-- (LA POSE DÉBOGUÉE, web 2026-10-01) le mur invisible du bord : le bump partait jusqu'à 2,6 m AVANT la tranche et 80 cm
@@ -1471,59 +1600,142 @@ function G.essayerAtterrir(dt: number)
 			return
 		end
 	end
-	-- ── (d) la POSE : le point EXACT où la trajectoire traverse le plan de la route ──
+	-- ── (d) la POSE DE PRÈS : la caisse arrive à moins de 3 m au-dessus du bitume (ou sous la face du dessous) sans s'en éloigner ──
+	-- (les traversées du plan de la route, elles, sont prises plus haut : G.passage)
 	local bestFace, bestLat, bestS, bestD, trouve, bestH = 1, 0, 0, math.huge, false, 0
-	local marge = facile() and FAC.bord or 0
-	for _, j in liste do
-		local F = piste.F[j]
-		local lc = F:PointToObjectSpace(pos)
-		local lp = F:PointToObjectSpace(prev)
-		local h, hp = lc.Y / M, lp.Y / M
-		local la, z = lc.X / M, -lc.Z / M
-		local vN = fallVel:Dot(F.UpVector)
-		-- (5/10) le point le plus PROCHE (le bestI du web, L31233) est TOUJOURS candidat : au bord EXTÉRIEUR d'une épingle les
-		-- échantillons s'écartent (2 m sur l'axe, jusqu'à 3,8 m à 28 m de l'axe dans un rayon de 32 m) et aucun n'était à moins
-		-- de 1,2 m de la caisse — elle traversait la route (mesuré : 1 pose sur 5 au bord extérieur d'une épingle)
-		local zMax = (j == proche) and 3 or DSm * 0.6
-		local tranche = zMax + vol
-		-- (5/10) …et pas de TRAVERSÉE dans le premier dixième du vol (le web : fallT > .1, L31313) : la caisse qui sort en RASANT le
-		-- bord extérieur d'un virage (1-2 cm par image) est encore « dans la largeur » pour l'échantillon voisin — reposée à la
-		-- 1re image, ressortie à la suivante, reposée… collée au bord. Compté en temps de VOL (volT) : un bump ou un pouvoir qui
-		-- rendent fallT ne rouvrent pas ce trou.
-		local percee = V.volT > 0.1 or intro
-		if math.abs(z) <= tranche then
-			-- la face du DESSUS
-			local ok, lx, zx = false, la, z
-			if percee and hp >= 0 and h < 0 then
-				local t = hp / (hp - h)
-				lx = (lp.X + (lc.X - lp.X) * t) / M
-				zx = -(lp.Z + (lc.Z - lp.Z) * t) / M
-				ok = math.abs(zx) <= zMax
-			elseif V.fallT > 0.35 and h > -1.2 and h < 3 and vN < 4.5 and math.abs(z) <= zMax then
-				ok = true
-			end
-			if ok and math.abs(lx) < RH + marge and math.abs(h) < bestD then
-				bestFace, bestLat, bestS, bestD, trouve, bestH = 1, lx, (j - 1) * DSm + zx, math.abs(h), true, h
-			end
-			-- la face du DESSOUS (on s'y colle en remontant)
-			local ok2, lx2, zx2 = false, la, z
-			if percee and hp <= -THICK and h > -THICK then
-				local t = (hp + THICK) / (hp - h)
-				lx2 = (lp.X + (lc.X - lp.X) * t) / M
-				zx2 = -(lp.Z + (lc.Z - lp.Z) * t) / M
-				ok2 = math.abs(zx2) <= zMax
-			elseif V.fallT > 0.35 and h > -THICK - 3 and h < -THICK + 1.2 and vN > -4.5 and math.abs(z) <= zMax then
-				ok2 = true
-			end
-			if ok2 and math.abs(lx2) < RH + marge and math.abs(h + THICK) < bestD then
-				bestFace, bestLat, bestS, bestD, trouve, bestH = -1, lx2, (j - 1) * DSm + zx2, math.abs(h + THICK), true, -THICK - h
+	if V.fallT > 0.35 then
+		for _, j in liste do
+			local F = piste.F[j]
+			local lc = F:PointToObjectSpace(pos)
+			local h = lc.Y / M
+			-- (5/10) le point le plus PROCHE (le bestI du web, L31233) est TOUJOURS candidat : au bord EXTÉRIEUR d'une épingle les
+			-- échantillons s'écartent (2 m sur l'axe, jusqu'à 3,8 m à 28 m de l'axe dans un rayon de 32 m)
+			if (h > -1.2 and h < 3) or (h > -THICK - 3 and h < -THICK + 1.2) then
+				local la, z = lc.X / M, -lc.Z / M
+				local zMax = (j == proche) and 3 or DSm * 0.6
+				if math.abs(z) <= zMax and math.abs(la) < RH + marge then
+					local vN9 = fallVel:Dot(F.UpVector)
+					-- la face du DESSUS
+					if h > -1.2 and h < 3 and vN9 < 4.5 and math.abs(h) < bestD then
+						bestFace, bestLat, bestS, bestD, trouve, bestH = 1, la, (j - 1) * DSm + z, math.abs(h), true, h
+					end
+					-- la face du DESSOUS (on s'y colle en remontant)
+					if h > -THICK - 3 and h < -THICK + 1.2 and vN9 > -4.5 and math.abs(h + THICK) < bestD then
+						bestFace, bestLat, bestS, bestD, trouve, bestH = -1, la, (j - 1) * DSm + z, math.abs(h + THICK), true, -THICK - h
+					end
+				end
 			end
 		end
 	end
 	if trouve then
 		G.dbgNote((bestFace > 0) and "POSE DESSUS" or "POSE DESSOUS", bestH, bestLat, 0)
 		atterrir(bestFace, bestLat, bestS, bestH)
+		return
 	end
+	-- (e) LA DALLE EST PLEINE (9/10) : rien n'a pris la caisse et la voilà DANS l'épaisseur de la dalle — entrée par le flanc trop
+	-- doucement pour un BUMP (moins de 3 en travers), pendant les 0,35 s qui suivent un bump, ou trop tôt pour les fenêtres de pose.
+	-- Elle filait au travers et ressortait de l'autre côté (mesuré : ressortie SUR la route après un bump à l'intérieur d'un virage).
+	-- (Pas pendant la BASCULE : le sursis la tient à 35 cm au plus sous la lèvre, c'est voulu, et les fenêtres de pose la prennent.)
+	if V.curNear and proche and not intro and not V.bascOn then G.dallePleine(proche, procheA, demi, DSm) end
+end
+-- (9/10) LE PASSAGE : le pas de l'image (prev → pos, en studs) a-t-il percé la face du DESSUS en descendant, ou celle du DESSOUS en
+-- montant, dans la largeur de la route ? Rend la face (0 = non), lat (repère du dessus), s, et la hauteur au bout du pas. Deux
+-- lectures, le premier passage le long du pas gagne :
+--   1. plan par plan (comme avant), mais la TRANCHE d'un échantillon est aussi large que l'écart à ses voisins À CETTE DISTANCE DE
+--      L'AXE : au bord EXTÉRIEUR d'un virage serré les échantillons s'écartent jusqu'à 3,8 m, et un passage tombé entre deux
+--      (à plus de 1,2 m de chacun) n'était vu par personne — à grande vitesse, ou à 30 images/s, la caisse traversait ;
+--   2. chaque bout du pas dans SA tranche de dalle (le point de piste le plus proche de chacun) : une route qui se creuse ou se
+--      bombe sous un long pas met les deux bouts du même côté du plan de chaque échantillon pris seul — la caisse sous la dalle
+--      se retrouvait DEDANS sans avoir « traversé » aucun plan.
+function G.passage(liste: { number }, proche: number?, procheA: number?, pos: Vector3, prev: Vector3, vol: number, DSm: number, marge: number): (number, number, number, number)
+	local F = piste.F
+	local tBest, fB, lB, sB, hB = 2, 0, 0, 0, 0
+	for _, j in liste do
+		local Fj = F[j]
+		local lc = Fj:PointToObjectSpace(pos)
+		local lp = Fj:PointToObjectSpace(prev)
+		local h, hp = lc.Y / M, lp.Y / M
+		local bas = hp >= 0 and h < 0 -- la face du DESSUS, en descendant
+		local haut = hp <= -THICK and h > -THICK -- la face du DESSOUS, en montant
+		if bas or haut then
+			local t = bas and (hp / (hp - h)) or ((hp + THICK) / (hp - h))
+			if t < tBest then
+				local lx = (lp.X + (lc.X - lp.X) * t) / M
+				local zx = -(lp.Z + (lc.Z - lp.Z) * t) / M
+				if math.abs(lx) < RH + marge and math.abs(zx) <= G.demiTranche(j, lx, proche, DSm) then
+					tBest, fB, lB, sB, hB = t, bas and 1 or -1, lx, (j - 1) * DSm + zx, bas and h or (-THICK - h)
+				end
+			end
+		end
+	end
+	if procheA and proche and math.abs(procheA - proche) <= vol / DSm * 1.5 + 4 then
+		local lA = F[procheA]:PointToObjectSpace(prev)
+		local lB9 = F[proche]:PointToObjectSpace(pos)
+		local hA, h9 = lA.Y / M, lB9.Y / M
+		local bas = hA >= 0 and h9 < 0
+		local haut = hA <= -THICK and h9 > -THICK
+		if bas or haut then
+			local t = bas and (hA / (hA - h9)) or ((hA + THICK) / (hA - h9))
+			if t < tBest then
+				-- (le point de passage, relu dans SA tranche : sur un long pas dans un virage, l'interpolation des deux bouts s'écarte
+				-- de la route de plus d'un mètre)
+				local X = prev + (pos - prev) * t
+				local k, dk = proche, math.huge
+				for j = math.max(1, math.min(procheA, proche) - 3), math.min(piste.n, math.max(procheA, proche) + 3) do
+					local d = (F[j].Position - X).Magnitude
+					if d < dk then k, dk = j, d end
+				end
+				local lX = F[k]:PointToObjectSpace(X)
+				local lx = lX.X / M
+				if math.abs(lx) < RH + marge then
+					tBest, fB, lB, sB, hB = t, bas and 1 or -1, lx, (k - 1) * DSm - lX.Z / M, bas and h9 or (-THICK - h9)
+				end
+			end
+		end
+	end
+	if tBest > 1 then return 0, 0, 0, 0 end
+	return fB, lB, math.clamp(sB, 0, piste.len / M - 1), hB
+end
+-- la demi-largeur (le long de la route) de la tranche de l'échantillon j, à lx m de l'axe : 60 % de l'écart à ses voisins à cette
+-- distance de l'axe (1,2 m sur l'axe, comme avant ; jusqu'à 2,3 m au bord extérieur d'une épingle) — 3 m pour le plus proche
+function G.demiTranche(j: number, lx: number, proche: number?, DSm: number): number
+	if j == proche then return 3 end
+	local F = piste.F
+	local p = F[j].Position + F[j].RightVector * (lx * M)
+	local e = DSm
+	if F[j + 1] then e = math.max(e, (F[j + 1].Position + F[j + 1].RightVector * (lx * M) - p).Magnitude / M) end
+	if j > 1 then e = math.max(e, (p - (F[j - 1].Position + F[j - 1].RightVector * (lx * M))).Magnitude / M) end
+	return 0.6 * e
+end
+-- (9/10) LA DALLE EST PLEINE : la caisse en vol est DANS l'épaisseur de la dalle (sa tranche, dans la largeur). Entrée par le FLANC :
+-- c'est la tranche qu'elle touche — la lèvre la pose au bord si ses roues sont à moins de 45 cm sous le bitume (la même règle que
+-- la tranche, plus haut), sinon elle est remise CONTRE la tranche et glisse le long (rien n'est payé : le BUMP, lui, a ses 3 de
+-- vitesse en travers). Venue d'ailleurs (un passage que rien n'a vu, ou déjà dedans) : posée sur la face la plus proche.
+function G.dallePleine(j: number, jA: number?, demi: number, DSm: number)
+	local F = piste.F[j]
+	local lc = F:PointToObjectSpace(fallPos * M)
+	local h, la, z = lc.Y / M, lc.X / M, -lc.Z / M
+	if math.abs(la) >= RH or h >= 0 or h <= -THICK or math.abs(z) > 3 then return end
+	local lA = la
+	if jA then lA = piste.F[jA]:PointToObjectSpace(prevPos * M).X / M end
+	if math.abs(lA) >= RH then
+		local sg = (lA >= 0) and 1 or -1
+		local B = F.RightVector
+		if h > -0.45 and V.fallT > 0.35 and fallVel:Dot(F.UpVector) < 4.5 then
+			G.dbgNote("POSE PAR LA LEVRE (flanc)", h, la, fallVel:Dot(B))
+			atterrir(1, sg * (RH - 0.05), (j - 1) * DSm + math.clamp(z, -2, 2), h)
+			return
+		end
+		fallPos += B * (sg * (RH + demi) - la)
+		local vB = fallVel:Dot(B)
+		if vB * sg < 0 then fallVel -= B * vB end
+		V.curLat = sg * (RH + demi) -- (le radar suit : la caisse est dehors)
+		G.dbgNote("CONTRE LA TRANCHE", h, la, vB)
+		return
+	end
+	local s9 = math.clamp((j - 1) * DSm + z, 0, piste.len / M - 1)
+	G.dbgNote("DANS LA DALLE : posee sur la face la plus proche", h, la, 0)
+	if h > -THICK * 0.5 then atterrir(1, la, s9, h) else atterrir(-1, la, s9, -THICK - h) end
 end
 
 -- ════════ les pouvoirs v2 (pwrPrend, L23479) : le même pouvoir se CUMULE (plafond 2 × sa durée) ════════
@@ -3554,6 +3766,8 @@ workspace:GetAttributeChangedSignal("DbgOuvre"):Connect(function()
 	elseif string.sub(v, 1, 4) == "saut" then
 		-- (banc) un saut franc, tout de suite : pour photographier ce qui ne vit qu'en vol (le viseur, la jauge, les figures)
 		if mode == "drive" then decoller(tonumber(string.sub(v, 5, 6)) or 45, 1) end -- ("saut20…" : la poussée, sur deux chiffres)
+	elseif string.sub(v, 1, 6) == "lacher" then
+		G.dbgLacher(string.sub(v, 7)) -- (banc, 9/10) un lâcher autour de la dalle (voir G.dbgLacher)
 	elseif string.sub(v, 1, 5) == "bordL" then
 		G.dbgBascule() -- (banc, 5/10) la sortie par le bord, puis le retour : la LÈVRE raccroche (voir G.dbgBascule)
 	elseif string.sub(v, 1, 4) == "bord" then
@@ -3887,7 +4101,8 @@ Bus.agir.exploser = function(cause: string) exploser(cause) end
 
 -- ════════ LA BOUCLE ════════
 RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, function(dtBrut)
-	local dt = math.min(dtBrut, 1 / 20)
+	-- ("DbgDt", banc 9/10) le pas de la simulation imposé (1/30, 1/20 : un téléphone qui rame) — le monde va plus vite que l'horloge
+	local dt = workspace:GetAttribute("DbgDt") or math.min(dtBrut, 1 / 20)
 	Controles.lire()
 	-- (mise au point, depuis la console de Studio) workspace:SetAttribute("DbgAuto", true) : un pilote automatique tient le
 	-- milieu de la route ; "DbgNitro" : il tient la nitro. Rien de tout ça n'existe pour un joueur.
@@ -3900,7 +4115,7 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 			psi *= math.max(0, 1 - dt * 8)
 		end
 	end
-	if workspace:GetAttribute("DbgNitro") then Controles.nitro = true end
+	if workspace:GetAttribute("DbgNitro") or G.dbgNit then Controles.nitro = true end
 	-- (banc, 6/10) LE POUCE DU BANC : "DbgVolant" = -1…1 tient le volant (le pilote automatique se tait), "DbgFrein" = true tient le
 	-- frein (le DRIFT, avec le volant) — pour essayer la conduite comme un joueur, au clavier près
 	do
