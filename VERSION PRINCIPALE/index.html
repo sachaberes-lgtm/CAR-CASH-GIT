@@ -12990,7 +12990,7 @@ const CARS=[
   desc:'Inox brossé, portes papillon. À 88 à l\'heure elle remonte le temps, paraît-il. Toi, tu vas plus vite.'},
  // ---- LES CAISSES PREMIUM (2026-09-25) : la gamme des 15 retrouvée, en BOUTIQUE (vrai argent). Hors du garage tant
  // qu'elles ne sont pas achetées (voir `garageListe`). Fiches reprises de la branche `appstore-backlog`, emojis retirés.
- {name:'CHAT POP-TART',   shape:'poptart', color:0xf6b98a,accent:0xf78fb8,maxKmh:560,accel:64,turn:3.2, h:1.14,w:1.5,l:2.4,spoiler:0, // (2026-10-09) la mini de rallye : plus basse, plus large (h 1,2 · w 1,36 avant)
+ {name:'CHAT POP-TART',   shape:'poptart', color:0xf6b98a,accent:0xf78fb8,maxKmh:560,accel:64,turn:3.2, h:1.22,w:1.7,l:2.58,spoiler:0, // (2026-10-09) plus volumineuse : ×,86, ailes +12 cm (h 1,14 · w 1,5 · l 2,4 avant) · la mini de rallye : plus basse, plus large (h 1,2 · w 1,36 avant)
   // (2026-10-09, Léo, fiche de la salle blanche) « plus petite » : tout le chat ×NY_K (,8) — h 1,5 · w 1,7 · l 3,0 avant
   // (2026-10-06) en voxels : 1,7 × 3 m, oreilles à 1,5 m — plus de bandes néon (`glow`) : elles barraient les murs noirs
   fx:{jet:0xff64d2,core:0xffd8f2,trail:[1.5,.35,1.1],light:0xff5ec8}, // (2026-10-07) son arc-en-ciel EN FEU DE PIXELS (voir ARC_*) + ses pixels qui scintillent (NY_PIX), à la nitro et en vol — branché par NYAN.on
@@ -16572,7 +16572,7 @@ function lpWheel(o){
    la tête hoche d'un voxel sur le tempo — et à la nitro, des pixels multicolores qui scintillent (voir NY_PIX). Unité `NY_U` = 10 cm ; repère
    caisse : i → x (centré), j → y (sol = 0), k → z (k = 10 ↔ z = 0, l'avant en +z). Console : `dbgNyan()`. */
 const NY_U=.1;
-const NY_K=.8; // (2026-10-09, Léo, fiche de la salle blanche) « la nyan cat : plus petite » — TOUT le chat ×,8 à la fin de son gabarit (géométries et positions) ; les crans de l'animation suivent (pattes, hochement)
+const NY_K=.86; // (2026-10-09, Léo : « rends-la un peu plus volumineuse ») ,8 → ,86 · (2026-10-09, Léo, fiche de la salle blanche) « la nyan cat : plus petite » — TOUT le chat ×,8 à la fin de son gabarit (géométries et positions) ; les crans de l'animation suivent (pattes, hochement)
 const NY_PATTE=.05,NY_BAS=.33; // (v13) la case des pattes (accrochées aux roues) — c'est aussi un cran de leur tour · la descente de la caisse sur ses roues — (2026-10-09, Léo : « la nyan cat doit faire plus voiture de rallye, genre mini rally : plus au ras du sol, moins voiture de ville ») ,25 → ,33 : le pneu rentre dans l'aile
 /* (2026-10-09, Léo : « la nyan cat doit faire plus voiture de rallye, genre mini rally : plus au ras du sol, moins voiture de ville »)
    LA MINI DE RALLYE : une déformation CONTINUE de toute la caisse (coque, pop-tart du pavillon, aileron, feux, trait noir — jamais la tête,
@@ -16583,12 +16583,12 @@ const NY_PATTE=.05,NY_BAS=.33; // (v13) la case des pattes (accrochées aux roue
    · les JUPES qui descendent de 7 cm (tout ce qui est sous ,62 m s'étire vers le sol).
    Continue = rien ne se décolle (l'aileron reste sur ses cols de cygne, la pop-tart sur son pavillon, le trait noir sur la coque). Avec la
    descente NY_BAS et la voie élargie NY_VOIE (,7 → ,76 : roues, pattes, ancrages), la caisse est basse, large, sur ses roues. */
-const NY_TASSE=.74,NY_AILE=.08,NY_VOIE=.76;
+const NY_TASSE=.84,NY_AILE=.12,NY_VOIE=.79; // (2026-10-09, Léo : « rends-la un peu plus volumineuse ») moins tassée (,74 → ,84 ; vers la poupe ,56 → ,70), ailes plus gonflées (+8 → +12 cm), voie ,76 → ,79 : la roue remplit l'aile
 function nyRallye(g){const a=g.attributes.position.array,sm=t=>{t=Math.min(1,Math.max(0,t));return t*t*(3-2*t);};
   for(let i=0;i<a.length;i+=3){const x=a[i],y=a[i+1],z=a[i+2];let b=0;
     for(const zc of [.95,-.45])b=Math.max(b,sm((1-Math.abs(z-zc)/.62)/.4));        // au-dessus des roues, et le fondu vers la porte
     a[i]=x+Math.sign(x)*NY_AILE*b*sm((Math.abs(x)-.45)/.3)*sm((.98-y)/.14);        // les ailes (ni le plancher, ni au-dessus de la ceinture)
-    a[i+1]=y>.9?.9+(y-.9)*(NY_TASSE-.1*(.8-z)):y-.07*sm((.62-y)/.12);}            // le pavillon tassé, qui PLONGE vers l'arrière (hayon de rallye) · les jupes vers le sol
+    a[i+1]=y>.9?.9+(y-.9)*(NY_TASSE-.08*(.8-z)):y-.07*sm((.62-y)/.12);}            // le pavillon tassé, qui PLONGE vers l'arrière (hayon de rallye) · les jupes vers le sol
     // ⚠ la pente est LINÉAIRE en z : une face plane le reste (les grands pavés de glaçage du pavillon ne couvrent qu'avec leurs 4 coins —
     //   une pente courbe faisait passer le pavillon au travers, une bande de biscuit en travers du rose)
   g.attributes.position.needsUpdate=true;g.computeVertexNormals();return g;}
