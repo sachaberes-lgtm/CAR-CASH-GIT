@@ -1499,7 +1499,9 @@ function Hud.creer()
 	E.coachGeste = inst("Frame", { Name = "Geste", BackgroundTransparency = 1, ClipsDescendants = true, Size = UDim2.new(1, -52, 0, 44),
 		Position = UDim2.fromOffset(26, 130) }, E.coach)
 	E.coachGestes = {}
-	for _, g in { { "glisse", "pouce", Color3.new(1, 1, 1) }, { "nitro", "eclair", hx("ff8d2e") }, { "bord", "droite", Color3.new(1, 1, 1) }, { "pose", "cible", hx("7dff9a") } } do
+	-- (9/10) « fleches » : la démo de l'étape TOURNE au clavier (◀ ▶) — le pouce qui glisse est une aide AU DOIGT, voir `doigtActif`
+	for _, g in { { "glisse", "pouce", Color3.new(1, 1, 1) }, { "fleches", "fleches", Color3.new(1, 1, 1) }, { "nitro", "eclair", hx("ff8d2e") },
+		{ "bord", "droite", Color3.new(1, 1, 1) }, { "pose", "cible", hx("7dff9a") } } do
 		local f = icone(E.coachGeste, g[2], 4, g[3], UDim2.new(0.5, 0, 0, 22), Vector2.new(0.5, 0.5))
 		f.Visible = false
 		E.coachGestes[g[1]] = { f = f, k = inst("UIScale", {}, f) }
@@ -1532,6 +1534,14 @@ function Hud.creer()
 	E.nitroMini = jauge(nbP, UDim2.fromOffset(132, 20), UDim2.new(0.5, -6, 1, -16), Vector2.new(0.5, 1), 3, 2)
 	E.btNitro = nbB
 	nbB.ZIndex = 4
+	-- (9/10, parcours) LA TOUCHE DU CLAVIER : à l'ordinateur, rien ne disait que la NITRO est la barre ESPACE (l'auto-école dit « maintiens
+	-- NITRO », l'anneau désigne le bouton à cliquer). Une étiquette de touche, une capsule d'encre posée au-dessus du bouton, tant que le
+	-- joueur est au clavier ou à la souris — jamais au doigt ni à la manette (voir `majAidesDoigt`).
+	E.nitroTouche = texte(hud, { Text = FR and "ESPACE" or "SPACE", TextSize = 16, TextColor3 = C.texte2, BackgroundColor3 = C.encre, BackgroundTransparency = 0.15,
+		Size = UDim2.fromOffset(math.floor(6 * 16 * CH + 24), 28), Position = UDim2.new(1, -104, 1, -194), AnchorPoint = Vector2.new(0.5, 1), TextWrapped = false,
+		contour = false, Visible = false })
+	inst("UIStroke", { Color = hx("8a5a2a"), Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, E.nitroTouche)
+	inst("Frame", { BackgroundColor3 = hx("8a5a2a"), BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 3), Position = UDim2.new(0, 0, 1, -3) }, E.nitroTouche) -- (le bas de la capsule : une touche)
 	-- (L1243) L'APPEL : pendant les étapes NITRO de l'auto-école, un anneau d'or bat autour du bouton — c'est LUI qu'il faut presser
 	E.nitroAppel = inst("Frame", { Name = "Appel", BackgroundTransparency = 1, Size = UDim2.fromOffset(204, 176), Position = UDim2.new(1, -16, 1, -18),
 		AnchorPoint = Vector2.new(1, 1), Visible = false, ZIndex = 4 }, hud)
@@ -2153,6 +2163,9 @@ function Hud.toast(txt: string, couleur: Color3?, ico: string?)
 	-- (le texte part APRÈS l'icône et garde la même marge à droite : il chevauchait l'icône quand il remplissait la ligne)
 	E.toastTxt.Position = UDim2.fromOffset(ico and 70 or 16, 0)
 	E.toastTxt.Size = UDim2.new(1, ico and -86 or -32, 1, 0)
+	-- (9/10, parcours) le bandeau prend la LARGEUR DE SON TEXTE (la police pixel est à chasse fixe) : à 780 px pour trois mots, il
+	-- couvrait le compte du garage et la barre de nitro sur un écran 16:9
+	E.toast.Size = UDim2.fromOffset(math.clamp(math.floor((utf8.len(txt) or #txt) * 22 * CH + (ico and 100 or 48)), 360, 780), 66)
 	E.toastTxt.Text = txt
 	E.toastTxt.TextColor3 = couleur or C.texte
 	E.toast.Visible = true
@@ -2165,6 +2178,30 @@ function Hud.toast(txt: string, couleur: Color3?, ico: string?)
 	end)
 end
 
+-- ── LES AIDES AU DOIGT (9/10, Sacha : « laisse ça que pour la version mobile ») : « GLISSE POUR TOURNER » et l'anneau du volant ne
+-- s'affichent que si le joueur se sert VRAIMENT du doigt (sa dernière entrée est un toucher — un PC à écran tactile qu'on pilote au
+-- clavier n'en voit rien) ; une souris ou une touche les cache aussitôt, et après le premier braquage au doigt elles ne reviennent
+-- plus. Le volant, lui, marche toujours (il ne dépend que de Hud.tactile). Le banc TACTILE=1 les force. ──
+local aideFaite = false
+local function doigtActif(): boolean
+	return Config.TACTILE_TEST == true or UserInputService:GetLastInputType() == Enum.UserInputType.Touch
+end
+Hud.doigtActif = doigtActif
+local function majAidesDoigt()
+	if not E.glisseTxt then return end
+	local on = doigtActif() and not aideFaite
+	if E.glisseTxt.Visible ~= on then E.glisseTxt.Visible = on end
+	if E.volantInvite.Visible ~= on then E.volantInvite.Visible = on end
+	-- (la touche ESPACE du bouton NITRO : au clavier et à la souris seulement)
+	if E.nitroTouche then
+		local t = UserInputService:GetLastInputType()
+		local clavier = not doigtActif() and (t == Enum.UserInputType.Keyboard or t == Enum.UserInputType.MouseMovement
+			or t == Enum.UserInputType.MouseButton1 or t == Enum.UserInputType.MouseButton2 or t == Enum.UserInputType.MouseWheel
+			or t == Enum.UserInputType.TextInput or t == Enum.UserInputType.Focus or t == Enum.UserInputType.None)
+		if E.nitroTouche.Visible ~= clavier then E.nitroTouche.Visible = clavier end
+	end
+end
+UserInputService.LastInputTypeChanged:Connect(majAidesDoigt)
 -- ── le volant tactile : la moitié gauche de l'écran, le stick NAÎT sous le pouce et le suit ──
 local doigt: InputObject? = nil
 local origine = Vector2.zero
@@ -2188,8 +2225,8 @@ function Hud.brancherTactile()
 		local cam = workspace.CurrentCamera
 		if io.Position.X > cam.ViewportSize.X * 0.5 then return end
 		doigt = io
-		E.glisseTxt.Visible = false -- (L907 : la consigne est dite UNE fois — au premier braquage elle s'efface pour de bon)
-		E.volantInvite.Visible = false -- (et l'anneau d'invitation avec elle)
+		aideFaite = true -- (L907 : la consigne est dite UNE fois — au premier braquage elle s'efface pour de bon, l'anneau avec elle)
+		majAidesDoigt()
 		origine = Vector2.new(io.Position.X, io.Position.Y)
 		t.actif = true
 		t.x, t.y = 0, 0
@@ -2238,6 +2275,7 @@ function Hud.ecran(nom: string)
 	E.reglages.Visible = nom == "reglages"
 	E.mort.Visible = nom == "mort"
 	E.tactile.Visible = Hud.tactile and nom == "course"
+	majAidesDoigt()
 	if nom == "menu" and Hud.surMenu then Hud.surMenu() end
 	if nom ~= "course" then
 		doigt = nil
@@ -2279,7 +2317,31 @@ local popPrio, popPrioFin = 0, 0
 -- titre (« SERIE COMPLETE x17 » sur « NOUVEAU SOMMET ») — il attend qu'elle finisse ; le plus important de l'attente passe ensuite
 local carteFin = 0
 local enAttente: { any }? = nil
-Bus.on("moteur", function() carteFin = os.clock() + 1.7 end)
+local popVu: { any }? = nil -- (le texte du centre affiché en ce moment : txt, couleur, taille, priorité)
+Bus.on("moteur", function()
+	carteFin = os.clock() + 1.7
+	-- (9/10, banc du parcours) les premières pièces du départ font monter le moteur PENDANT le logo CASH CAR : « NOUVEAU SOMMET ·
+	-- BICYLINDRE » sortait à moitié caché derrière lui. La carte parle seule : le logo s'efface (0,2 s) pour lui laisser la place.
+	if Hud.logoFin then Hud.logoFin() end
+	-- (9/10, banc du parcours) la pièce qui fait monter le moteur paie AUSSI sa récolte : « RECOLTE x5 +20 » s'écrivait une image
+	-- AVANT la carte, et restait 1,3 s en travers de « 3 CYLINDRES ». Un texte déjà à l'écran se range dans l'attente : il revient
+	-- quand la carte a parlé.
+	local q = popVu
+	if q and E.pop and E.pop.Text ~= "" and os.clock() < popFin then
+		E.pop.Text = ""
+		if not enAttente or (q[4] or 0) >= (enAttente[4] or 0) then
+			local deja = enAttente ~= nil
+			enAttente = q
+			if not deja then
+				task.delay(1.75, function()
+					local r = enAttente
+					enAttente = nil
+					if r and E.hud.Visible then Hud.pop(r[1], r[2], r[3], r[4]) end
+				end)
+			end
+		end
+	end
+end)
 Bus.on("mort", function() carteFin, enAttente = 0, nil end)
 function Hud.pop(txt: string, couleur: Color3?, taille: number?, prio: number?)
 	local p9, t9 = prio or 0, os.clock()
@@ -2297,6 +2359,7 @@ function Hud.pop(txt: string, couleur: Color3?, taille: number?, prio: number?)
 	end
 	if p9 < popPrio and t9 < popPrioFin then return end
 	popPrio, popPrioFin = p9, t9 + 0.65
+	popVu = { txt, couleur, taille, p9 }
 	E.pop.Text = txt
 	E.pop.TextColor3 = couleur or C.or_
 	E.pop.TextSize = taille or 22
@@ -2316,6 +2379,8 @@ function Hud.grand(txt: string, couleur: Color3?, duree: number?, taille: number
 	grandFin = os.clock() + (duree or 0.8)
 	-- le bandeau : seulement pour un NOM (le compte à rebours, lui, passe une taille et reste nu)
 	local bande = taille == nil
+	-- (9/10, banc) le nom du niveau arrive quand le logo du départ s'efface : pendant ses 0,3 s de fondu, les deux se chevauchaient
+	if bande and Hud.logoFin then Hud.logoFin() end
 	E.grandBande.BackgroundTransparency = bande and 0 or 1
 	for _, f9 in E.grandBande:GetChildren() do
 		if f9:IsA("Frame") then f9.BackgroundTransparency = bande and 0 or 1 end
@@ -2356,6 +2421,20 @@ function Hud.logoDepart()
 		for _, h in E.logoHalo do TweenService:Create(h, sortie, { BackgroundTransparency = 1 }):Play() end
 		task.delay(0.32, function() if n == logoN then E.logo.Visible = false end end)
 	end)
+end
+-- le logo du départ s'efface plus tôt (la carte moteur arrive pendant qu'il est à l'écran)
+function Hud.logoFin()
+	if not E.logo or not E.logo.Visible then return end
+	logoN += 1
+	local n = logoN
+	local sortie = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+	for _, t in E.logoMots do
+		TweenService:Create(t, sortie, { TextTransparency = 1 }):Play()
+		local st = t:FindFirstChildOfClass("UIStroke")
+		if st then TweenService:Create(st, sortie, { Transparency = 1 }):Play() end
+	end
+	for _, h in E.logoHalo do TweenService:Create(h, sortie, { BackgroundTransparency = 1 }):Play() end
+	task.delay(0.22, function() if n == logoN then E.logo.Visible = false end end)
 end
 -- (une mort, un retour au menu : ni le logo ni la carte d'astuce ne restent plantés sur l'écran de fin ou la partie d'après)
 function Hud.logoCache()
@@ -2420,6 +2499,7 @@ end
 -- coCible ,8 s ×4) — appelée à chaque image tant que la carte est là
 function Hud.coachGeste(nom: string?)
 	local t = os.clock()
+	if nom == "glisse" and not doigtActif() then nom = "fleches" end -- (au clavier : ◀ ▶, pas un pouce)
 	for k, g in E.coachGestes do
 		local on = k == nom
 		if g.f.Visible ~= on then g.f.Visible = on end
@@ -2428,6 +2508,9 @@ function Hud.coachGeste(nom: string?)
 			if k == "glisse" then
 				local u = math.floor((t % 1.6) / 1.6 * 16) / 16
 				x = -110 + 220 * (1 - math.abs(1 - 2 * u))
+			elseif k == "fleches" then
+				local u = math.floor((t % 1.6) / 1.6 * 8) / 8 -- (la paire de flèches va d'un bord à l'autre, en crans)
+				x = -60 + 120 * (1 - math.abs(1 - 2 * u))
 			elseif k == "nitro" then
 				y = (t % 0.5 < 0.25) and 0 or 7
 			elseif k == "bord" then

@@ -442,7 +442,13 @@ local LMIN = 1400 -- la largeur de dessin minimale (un écran plus étroit — 1
 local function creer()
 	local v = inst("Frame", { Name = "Roue", BackgroundColor3 = BLANC, BackgroundTransparency = 0.02, BorderSizePixel = 0, Size = UDim2.fromScale(1, 1),
 		Visible = false, Active = true, ZIndex = 42 }, Hud.racine)
-	K.degrade(v, RGB(64, 18, 84), RGB(10, 6, 26), 80)
+	-- (9/10, banc du parcours) LA JUPE : le fond déborde de 400 px de chaque côté — sans elle, la bande des boutons de Roblox, en haut,
+	-- laissait voir le CIEL CLAIR de l'accueil au-dessus de la roue (le voile s'arrêtait sous elle). Le dégradé et le fondu d'entrée
+	-- passent sur elle ; le voile garde sa taille (Roue.placer mesure l'écran sur lui).
+	v.BackgroundTransparency = 1
+	U.jupe = inst("Frame", { Name = "Jupe", BackgroundColor3 = BLANC, BackgroundTransparency = 0.02, BorderSizePixel = 0, Size = UDim2.new(1, 800, 1, 800),
+		Position = UDim2.fromOffset(-400, -400), ZIndex = 0 }, v)
+	K.degrade(U.jupe, RGB(64, 18, 84), RGB(10, 6, 26), 80)
 	inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Text = "", AutoButtonColor = false }, v) -- (le voile avale les clics)
 	U.voile = v
 	local sc = inst("Frame", { Name = "Scene", BackgroundTransparency = 1, Size = UDim2.fromOffset(LMIN, 720), AnchorPoint = Vector2.new(0.5, 0.5),
@@ -501,6 +507,9 @@ local function creer()
 	-- les CHANCES (règle de Roblox pour tout lot tiré au hasard qu'on peut payer en Robux : les afficher AVANT l'achat)
 	U.chancesBt = K.tuile(g, tr("VOIR LES CHANCES", "SEE THE ODDS"), C.cyan, UDim2.fromOffset(320, 60), UDim2.new(0, 66, 1, -164), Vector2.new(0, 1), 19)
 	U.chancesBoite = U.chancesBt.Parent.Parent
+	-- (9/10, parcours) les CIBLES DU POUCE : une plaque de 60 ne faisait que 29 px réels sur un téléphone couché (la racine × 0,49) — la
+	-- zone qu'on touche déborde en haut et en bas (le dessin ne bouge pas), sans mordre sur RETOUR ni sur le lingot
+	K.cible(U.chancesBt, 15)
 	U.chancesBt.Activated:Connect(function() Roue.chances(true) end)
 	U.retour = K.boutonRetour(g)
 	U.retour.Activated:Connect(function()
@@ -525,6 +534,7 @@ local function creer()
 	U.basEtat = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1) }, d)
 	U.acheter = K.tuile(U.basEtat, tr("+3 TOURS", "+3 SPINS"), C.magenta, UDim2.fromOffset(360, 66), UDim2.new(0, 0, 1, -176), Vector2.new(0, 1), 20, "panier")
 	U.acheterBoite = U.acheter.Parent.Parent
+	K.cible(U.acheter, 12)
 	U.acheter.Activated:Connect(function()
 		local id = R.produits.tours3
 		if type(id) == "number" and id > 0 then pcall(function() MarketplaceService:PromptProductPurchase(joueur, id) end) end
@@ -542,6 +552,7 @@ local function creer()
 	U.basGain = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Visible = false }, d)
 	U.gVendre = K.tuile(U.basGain, "", C.cyan, UDim2.fromOffset(360, 76), UDim2.new(0, 0, 1, -176), Vector2.new(0, 1), 21)
 	U.gVendreBoite = U.gVendre.Parent.Parent
+	K.cible(U.gVendre, 7)
 	U.gGarder = K.lingot(U.basGain, tr("LA GARDER", "KEEP IT"), UDim2.fromOffset(360, 112), UDim2.new(0, 0, 1, -36), Vector2.new(0, 1), 40)
 	U.gGarder.Activated:Connect(function()
 		if U.res and U.res.caisse then Roue.choisir(true) else Roue.retourEtat() end
@@ -621,6 +632,7 @@ local function creer()
 			Position = UDim2.new(1, -40, 0, y), AnchorPoint = Vector2.new(1, 0), TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false })
 	end
 	local okC = K.tuile(tb, "OK", C.cyan, UDim2.fromOffset(200, 60), UDim2.new(0.5, 0, 1, -22), Vector2.new(0.5, 1), 24)
+	K.cible(okC, 15)
 	okC.Activated:Connect(function() Roue.chances(false) end)
 
 	-- la mise en page suit l'écran (rotation du téléphone, fenêtre redimensionnée)
@@ -1043,8 +1055,8 @@ function Roue.ouvrir()
 	Roue.placer()
 	Sons.vrai("uiModale", nil, nil, "tap", 1.1, 0.5)
 	-- l'entrée : le fond tombe, la roue arrive en grandissant, les colonnes glissent depuis leur bord
-	U.voile.BackgroundTransparency = 1
-	tw(U.voile, 0.25, { BackgroundTransparency = 0.02 })
+	U.jupe.BackgroundTransparency = 1
+	tw(U.jupe, 0.25, { BackgroundTransparency = 0.02 })
 	U.roueEchelle.Scale = 0.8
 	tw(U.roueEchelle, 0.5, { Scale = 1 }, Enum.EasingStyle.Quint)
 	U.gauche.Position = UDim2.fromOffset(-50, 0)

@@ -45,6 +45,10 @@ const blocs = [
   L[ligne('function lingotGeo(')],
   bloc('SHAPES.lingot=', '};', true),                                           // le lingot
   bloc('SHAPES.origami=', '};', true),                                          // L'ORIGAMI (2/10) : son gabarit vit APRÈS la gamme des 50
+  bloc('SHAPES.atchoum=', '};', true),                                          // (9/10) ATCHOUM et le SQUALE de Léo, ajoutées en dernier
+  bloc('SHAPES.squale=', '};', true),
+  bloc('const NY_U=', 'const SHAPES={', false),                                 // (9/10) LE CHAT EN VOXELS : ses pixels, sa pop-tart, sa tête, NYAN
+  L[ligne('const ATCH=')],                                                      //        celui d'ATCHOUM range ses pots de flammes dans ATCH
   `return {CARS,CAR_UNLOCK,carRar,SHAPES,lpKit,lpWheel,lpOmbre,carProfile,SPH9,FACET_SHAPES,geoFacette,
     monte:function(g){carGroup=g;}};`,
 ];
@@ -245,41 +249,69 @@ const n4 = x => Math.round(x * 1e4) / 1e4;
 const rox = p => '{ ' + [-p[0], p[1], -p[2]].map(n4).join(', ') + ' }'; // repère du jeu → repère Roblox
 const hex = c => '0x' + (c >>> 0).toString(16).padStart(6, '0');
 fs.mkdirSync(path.join(SORTIE, 'Formes'), { recursive: true });
-for (const f of fs.readdirSync(path.join(SORTIE, 'Formes'))) fs.unlinkSync(path.join(SORTIE, 'Formes', f));
+// (9/10) les anciennes formes ne sont plus effacées d'avance : une forme GARDÉE (voir ficheGardee) doit survivre ; celles d'aucune
+// caisse du catalogue sont retirées à la fin
+const FORMES_AVANT = fs.readdirSync(path.join(SORTIE, 'Formes'));
 // ── LA VERSION ROBLOX (4/10) : ce qui diffère du jeu web, appliqué À LA CUISSON pour survivre à la prochaine ──
 //   · missions et carrière n'existent pas sur Roblox : leurs caisses (carnets, campagne) se gagnent à la ROUE ;
 //   · un jeu Roblox public ne cite aucune marque déposée : ces noms affichés (et une description) sont changés.
-const ROBLOX_ROUE = ['carnet', 'carrN', 'carrV'];
+// (9/10) + 'pubs' : L'ÉTERNELLE se gagne sur le web en regardant 100 pubs — Roblox n'a pas de pubs : elle rejoint les exclusives
+// de la ROUE. Et LE DRAGON D'OR (Sacha, 9/10 : « après 1 semaine de connexion quotidienne, les joueurs gagnent la voiture dragon
+// d'or ») n'est plus en vente : c'est le cadeau du 7e JOUR d'affilée (cond.k = "jour7", accordé par Revenus.cadeauJour).
+const ROBLOX_ROUE = ['carnet', 'carrN', 'carrV', 'pubs'];
+const ROBLOX_JOUR7 = ["LE DRAGON D'OR"];
 const ROBLOX_NOMS = { 'CHAT POP-TART': ['CHAT ARC-EN-CIEL', 'RAINBOW CAT'], 'LE MANS 24': ['ENDURANCE 24', 'ENDURANCE 24'],
   'LE QUATTRO': ['LE RALLYE', 'THE RALLY'], 'LA STRATOS': ['LE BISEAU', 'THE WEDGE'] };
 const ROBLOX_DESC = [['une Ferrari', 'une supercar'], ['a Ferrari', 'a supercar']];
 const ROBLOX_DESC_EN = [['bonnet', 'hood'], ['colour', 'color']]; // (l'anglais : américain partout — « bonnet » est aussi un mot français)
-const fiches = []; let totalT = 0, totalK = 0, totalP = 0; const erreurs = [];
+const fiches = []; let totalT = 0, totalK = 0, totalP = 0; const erreurs = [], gardees = [];
+// (9/10) LA FORME PRÉCÉDENTE GARDÉE : une caisse qui ne se cuit plus (gabarit qui dépend d'un morceau du web pas encore lu ici) ou
+// dont le module dépasserait ce que Roblox accepte (le CHAT en voxels de Léo, 6/10 : 467 000 caractères) garde sur Roblox son
+// ancienne forme ET son ancienne fiche (cotes, ancrages) — seuls son nom, sa rareté, sa condition et son retrait suivent le web.
+// Avant, elle DISPARAISSAIT du catalogue (son indice de sauvegarde avec elle).
+const ANCIEN = fs.existsSync(path.join(SORTIE, 'Catalogue.luau')) ? fs.readFileSync(path.join(SORTIE, 'Catalogue.luau'), 'utf8') : '';
+function ficheGardee(i, cond, rar, retire) {
+  const a = ANCIEN.search(new RegExp('^\\t\\[' + i + '\\] = ', 'm'));
+  if (a < 0) return null;
+  const reste = ANCIEN.slice(a + 1), b = reste.search(/^\t\[\d+\] = |^\}/m);
+  let f = ANCIEN.slice(a, a + 1 + b).replace(/\s+$/, '');
+  f = f.replace(/cond = \{[^}]*\}/, 'cond = ' + cond).replace(/rar = "[^"]*"/, 'rar = ' + q(rar)).replace(', retire = true', '');
+  if (retire) f = f.replace(/(, gabarit = "[^"]*")/, '$1, retire = true');
+  return f;
+}
 for (let i = 0; i < CARS.length; i++) {
+  // la condition d'abord : elle suit TOUJOURS le web, même quand la forme ne se cuit pas
+  const u = CAR_UNLOCK[i] || null;
+  let cond = '{ k = "depart" }';
+  if (u) cond = u.p != null ? '{ k = "prix", v = ' + u.p + ' }' : '{ k = ' + q(u.k) + (u.v != null ? ', v = ' + u.v : '') + (u.eur ? ', eur = ' + q(u.eur) : '') + ' }';
+  if (u && ROBLOX_ROUE.includes(u.k)) cond = '{ k = "roue" }';
+  if (ROBLOX_JOUR7.includes(CARS[i].name)) cond = '{ k = "jour7" }';
+  const rar = G.carRar ? G.carRar(i) : 'commun';
+  const garder = (pourquoi) => {
+    const f = ficheGardee(i, cond, rar, CARS[i].retire);
+    if (f) { fiches.push(f); gardees.push(i + ' ' + CARS[i].name + ' : ' + pourquoi + ' — forme et fiche précédentes gardées'); }
+    else erreurs.push(i + ' ' + CARS[i].name + ' : ' + pourquoi);
+  };
   let a, corps, roue;
   try {
     a = assemble(i);
     const am = assemble(i, true); // la même, laque en blanc : le masque de la peinture
     corps = triangles(a.grp, am.grp); roue = triangles(a.roue, am.roue);
-  } catch (e) { erreurs.push(i + ' ' + CARS[i].name + ' : ' + e.message); continue; }
+  } catch (e) { garder(e.message); continue; }
   let src = '-- CASH CAR — ' + a.spec.name + ' (caisse ' + i + ', gabarit ' + a.spec.shape + ') — CUIT par outils/cuire-caisses.js, ne pas éditer.\nreturn {\n\tcorps = {\n';
   let nt = 0, peints = 0;
   for (const g of Object.keys(corps)) { const e = encode(corps[g]); nt += e.nt; peints += e.peints; src += '\t\t' + g + ' = { v = "' + e.v + '", t = "' + e.t + '" },\n'; }
   src += '\t},\n\troue = {\n';
   for (const g of Object.keys(roue)) { const e = encode(roue[g]); nt += e.nt * 4; src += '\t\t' + g + ' = { v = "' + e.v + '", t = "' + e.t + '" },\n'; }
   src += '\t},\n}\n';
-  if (src.length > 195000) erreurs.push(i + ' ' + a.spec.name + ' : module trop gros (' + src.length + ' caractères)');
+  if (src.length > 195000) { garder('module trop gros (' + src.length + ' caractères)'); continue; }
   fs.writeFileSync(path.join(SORTIE, 'Formes', 'F' + String(i).padStart(2, '0') + '.luau'), src);
   totalT += nt; totalK += src.length; totalP += peints ? 1 : 0;
   // la fiche
-  const s = a.spec, u = CAR_UNLOCK[i] || null, gL = a.pots.filter(p => p[0] < -.05), dR = a.pots.filter(p => p[0] > .05);
+  const s = a.spec, gL = a.pots.filter(p => p[0] < -.05), dR = a.pots.filter(p => p[0] > .05);
   const moy = l => { const zm = Math.min(...l.map(p => p[2])); const k = l.filter(p => p[2] < zm + .25); return [0, 1, 2].map(j => k.reduce((t, p) => t + p[j], 0) / k.length); };
   const centre = [0, 1, 2].map(j => a.pots.reduce((t, p) => t + p[j], 0) / a.pots.length);
-  let cond = '{ k = "depart" }';
-  if (u) cond = u.p != null ? '{ k = "prix", v = ' + u.p + ' }' : '{ k = ' + q(u.k) + (u.v != null ? ', v = ' + u.v : '') + (u.eur ? ', eur = ' + q(u.eur) : '') + ' }';
-  if (u && ROBLOX_ROUE.includes(u.k)) cond = '{ k = "roue" }';
   const nomR = ROBLOX_NOMS[s.name], descR = (t, L = ROBLOX_DESC) => L.reduce((a, r) => a.split(r[0]).join(r[1]), t || '');
-  const rar = G.carRar ? G.carRar(i) : 'commun';
   const fx = s.fx ? '{ ' + ['jet', 'core', 'light'].filter(k => s.fx[k] != null).map(k => k + ' = ' + hex(s.fx[k])).concat(s.fx.trail ? ['trainee = { ' + s.fx.trail.join(', ') + ' }'] : [], s.fx.rainbow ? ['arcenciel = true'] : []).join(', ') + ' }' : 'nil';
   fiches.push('\t[' + i + '] = { nom = ' + q(nomR ? nomR[0] : s.name) + ', en = ' + q(nomR ? nomR[1] : (en(s.name) || s.name)) + ', rar = ' + q(rar) + ', gabarit = ' + q(s.shape) + (s.retire ? ', retire = true' : '') + ', cond = ' + cond +
     ',\n\t\tlaque = ' + hex(s.color) + ', accent = ' + hex(s.accent) + ', w = ' + s.w + ', h = ' + s.h + ', l = ' + s.l + ', kmh = ' + s.maxKmh + ', triangles = ' + nt +
@@ -294,11 +326,15 @@ function y0c(s) { return .35 + s.h * .78; }
 const cat = '-- CASH CAR — LE CATALOGUE DES ' + CARS.length + ' CAISSES — CUIT par outils/cuire-caisses.js depuis VERSION PRINCIPALE/index.html, ne pas éditer.\n' +
   '-- Indices du jeu web (0 = LA HONTE) : ce sont ceux des sauvegardes, ils ne bougent jamais.\n' +
   '-- Repère : nez vers −Z, droite du pilote +X, mètres. cond.k : depart · prix (v = $) · aura (rang) · roue (EXCLUSIVE de la ROUE : les\n' +
-  '-- anciennes caisses des carnets et de la campagne — missions et carrière n\'existent pas sur Roblox) · premium (argent réel).\n' +
+  '-- anciennes caisses des carnets et de la campagne, et L\'ÉTERNELLE des pubs) · premium (en Robux, boutique) · jour7 (LE DRAGON D\'OR :\n' +
+  '-- le cadeau du 7e jour de connexion d\'affilée) · bientot (défi à venir sur le web : ne se gagne pas encore).\n' +
   '-- (version publique Roblox : les noms affichés ne citent aucune marque déposée — voir ROBLOX_NOMS dans outils/cuire-caisses.js)\n' +
   '-- roues = { x, y, z, miroir, rayon } · trainees = un point par ruban de nitro · ailes = panneaux | helices | none (ce que le gabarit déploie en vol).\n' +
   'return {\n' + fiches.join('\n') + '\n}\n';
 fs.writeFileSync(path.join(SORTIE, 'Catalogue.luau'), cat);
 console.log(totalP + ' caisses ont une laque à peindre');
 console.log(CARS.length + ' caisses cuites : ' + totalT + ' triangles, ' + (totalK / 1024).toFixed(0) + ' Ko de formes, catalogue ' + (cat.length / 1024).toFixed(0) + ' Ko');
+{ const vivantes = new Set(fiches.map(f => 'F' + String(+f.match(/^\t\[(\d+)\]/)[1]).padStart(2, '0') + '.luau'));
+  for (const f of FORMES_AVANT) if (!vivantes.has(f)) fs.unlinkSync(path.join(SORTIE, 'Formes', f)); }
+if (gardees.length) console.log('FORMES PRÉCÉDENTES GARDÉES :\n  ' + gardees.join('\n  '));
 if (erreurs.length) { console.log('ERREURS :\n  ' + erreurs.join('\n  ')); process.exit(1); }

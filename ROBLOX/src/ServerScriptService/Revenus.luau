@@ -135,6 +135,8 @@ local function etatJour(p: Player, prof: any)
 	local serie = dispo and ((prof.jour == auj - 1) and prof.serie + 1 or 1) or prof.serie
 	p:SetAttribute("JourDispo", dispo)
 	p:SetAttribute("Serie", serie)
+	-- (9/10) LE DRAGON D'OR du 7e jour : déjà à lui ? (la case 7 du calendrier montre la caisse tant qu'il ne l'a pas)
+	p:SetAttribute("Jour7Pris", R.jour7 == nil or table.find(prof.caisses, R.jour7) ~= nil)
 end
 local function gainJour(p: Player, serie: number): number
 	local g = R.jour[((serie - 1) % #R.jour) + 1]
@@ -395,9 +397,22 @@ function Revenus.init(c: any)
 		local g = gainJour(p, prof.serie)
 		prof.compte += g
 		An.argent(p, g, prof.compte, An.T.cadeau, "cadeauJour")
+		-- LE 7e JOUR D'AFFILÉE (9/10, Sacha) : LE DRAGON D'OR rejoint le garage, en plus du montant — une fois (déjà à soi : le montant
+		-- seul). Rangé, pas équipé d'office : le joueur la choisit au garage (comme une caisse achetée).
+		local dragon = R.jour7
+		local gagne = prof.serie % 7 == 0 and dragon ~= nil and Catalogue[dragon] ~= nil and not Catalogue[dragon].retire
+			and not table.find(prof.caisses, dragon)
+		if gagne then
+			table.insert(prof.caisses, dragon)
+			An.evenement(p, "Jour7Dragon")
+		end
 		etatJour(p, prof)
 		if prof.serie >= 7 then badge(p, "serie7") end
 		dire(p, "jour", g)
+		if gagne then
+			ctx.Profils.pousser(p) -- (le garage du joueur la voit tout de suite)
+			task.delay(1.2, function() dire(p, "caisse", nil, tostring(dragon)) end) -- (le bandeau de la caisse après celui du montant)
+		end
 		ctx.compte(p, prof)
 		return true
 	end

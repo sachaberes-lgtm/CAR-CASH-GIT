@@ -144,8 +144,10 @@ end
 local gen: { [Instance]: number } = {}
 local function fenetre(nom: string, W: number, H: number, accent: Color3?): (Frame, Frame, UIScale, TextButton)
 	local acc = accent or OR1
-	local v = inst("Frame", { Name = nom, BackgroundColor3 = Color3.fromRGB(6, 4, 16), BackgroundTransparency = 0.32, Size = UDim2.fromScale(1, 1),
-		Visible = false, Active = true, ZIndex = 40 }, Hud.racine)
+	-- (9/10, banc du parcours) le voile DÉBORDE de 400 px de chaque côté (la jupe des écrans de Hud) : il s'arrêtait sous la bande des
+	-- boutons de Roblox, et une bande de ciel clair restait allumée au-dessus de la fenêtre. Son milieu ne bouge pas : la carte non plus.
+	local v = inst("Frame", { Name = nom, BackgroundColor3 = Color3.fromRGB(6, 4, 16), BackgroundTransparency = 0.32, Size = UDim2.new(1, 800, 1, 800),
+		Position = UDim2.fromOffset(-400, -400), Visible = false, Active = true, ZIndex = 40 }, Hud.racine)
 	local fond = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Text = "", AutoButtonColor = false }, v)
 	local boite = inst("Frame", { Name = "Boite", BackgroundTransparency = 1, Size = UDim2.fromOffset(W, H), AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.new(0.5, 0, 0.5, -4) }, v)
@@ -241,20 +243,24 @@ local function peindre(k: any, i: number, etat: string, vip: number)
 	k.j.TextColor3 = ici and Color3.fromRGB(96, 44, 4) or (fait and C.menthe or (roi and OR1 or C.terne))
 	local sj = k.j:FindFirstChildOfClass("UIStroke")
 	if sj then sj.Enabled = not ici end
-	-- l'icône : la coche quand c'est pris, sinon le cadeau (ou le trophée) dans la couleur de son état
-	k.cad.Visible = not fait
+	-- l'icône : la coche quand c'est pris, sinon le cadeau (ou le trophée) dans la couleur de son état — (9/10) au 7e jour, LE DRAGON
+	-- D'OR tant qu'il n'est pas au garage : la caisse prend la place du trophée, son nom celle du montant
+	local dragon = roi and k.voit ~= nil and not attr("Jour7Pris")
+	local ico = dragon and k.voit or k.cad
+	k.cad.Visible = not fait and not dragon
+	if k.voit then k.voit.Visible = not fait and dragon end
 	k.coche.Visible = fait
 	if ici then
-		K.teinter(k.cad, roi and { { 0.3, BLANC }, { 0.7, Color3.fromRGB(176, 70, 220) }, { 1, Color3.fromRGB(96, 22, 140) } }
+		K.teinter(ico, roi and { { 0.3, BLANC }, { 0.7, Color3.fromRGB(176, 70, 220) }, { 1, Color3.fromRGB(96, 22, 140) } }
 			or { { 0.24, BLANC }, { 0.5, Color3.fromRGB(255, 118, 190) }, { 1, Color3.fromRGB(206, 30, 104) } })
 	elseif not fait then
-		K.teinter(k.cad, roi and { { 0.3, Color3.fromRGB(255, 246, 180) }, { 0.7, Color3.fromRGB(255, 200, 40) }, { 1, Color3.fromRGB(214, 128, 0) } }
+		K.teinter(ico, roi and { { 0.3, Color3.fromRGB(255, 246, 180) }, { 0.7, Color3.fromRGB(255, 200, 40) }, { 1, Color3.fromRGB(214, 128, 0) } }
 			or bandes(Color3.fromRGB(176, 168, 248)))
 	end
 	-- le montant, sur son bandeau
 	k.bande.BackgroundColor3 = ici and Color3.fromRGB(120, 58, 0) or (fait and Color3.fromRGB(4, 30, 14) or ENCRE)
 	k.bande.BackgroundTransparency = ici and 0.1 or 0.35
-	k.m.Text = fait and tr("PRIS", "TAKEN") or Hud.argent(R.jour[i] * vip)
+	k.m.Text = fait and tr("PRIS", "TAKEN") or (dragon and tr("DRAGON D'OR", "GOLD DRAGON") or Hud.argent(R.jour[i] * vip))
 	k.m.TextSize = math.min(roi and 24 or 22, math.floor((k.w - 14) / math.max(1, utf8.len(k.m.Text) * CH)))
 	k.m.TextColor3 = ici and Color3.fromRGB(255, 246, 206) or (fait and C.menthe or (roi and OR1 or C.texte))
 	-- le halo d'or : aujourd'hui seulement (la boucle le fait respirer)
@@ -302,12 +308,15 @@ local function creerJour()
 		local cad = K.icone(f, (i == 7) and "trophee" or "cadeau", px, C.texte2, UDim2.new(0.5, 0, 0, 84), Vector2.new(0.5, 0.5))
 		local coche = K.icone(f, "coche", 6, bandes(C.menthe), UDim2.new(0.5, 0, 0, 84), Vector2.new(0.5, 0.5))
 		coche.Visible = false
+		-- (9/10) la case 7 porte aussi LA CAISSE (le DRAGON D'OR) : peindre() choisit entre elle et le trophée
+		local voit = (i == 7) and K.icone(f, "voiture", 7, C.texte2, UDim2.new(0.5, 0, 0, 84), Vector2.new(0.5, 0.5)) or nil
+		if voit then voit.Visible = false end
 		local bande = inst("Frame", { BackgroundColor3 = ENCRE, BackgroundTransparency = 0.35, BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 42),
 			Position = UDim2.new(0, 0, 1, -42) }, f)
 		local m = texte(bande, { Text = "", TextSize = 22, Size = UDim2.new(1, -10, 1, 0), Position = UDim2.fromOffset(5, 0), TextWrapped = false,
 			epais = 3 })
 		U.jCases[i] = { h = h, base = base, sc = sc9, halo = halo, ep = ep, f = f, grad = grad, st = st, bis = bis, j = j, cad = cad, coche = coche,
-			bande = bande, m = m, w = Wi }
+			voit = voit, bande = bande, m = m, w = Wi }
 	end
 	-- (la case d'aujourd'hui respire, son halo bat avec elle — rien ne tourne quand la fenêtre est fermée)
 	RunService.RenderStepped:Connect(function()
@@ -327,17 +336,23 @@ local function majJour()
 	local auj = ((serie - 1) % 7) + 1
 	local vip = attr("VIP") and 2 or 1
 	local nb = '<font color="#ffd75e">' .. serie .. "</font>"
-	U.jSous.Text = (serie > 1) and tr("Jour " .. nb .. " d'affilée — reviens demain : ça monte encore.",
-		"Day " .. nb .. " in a row — come back tomorrow: it keeps growing.")
+	local dragon = not attr("Jour7Pris")
+	local d7 = '<font color="#ffd75e">' .. tr("LE DRAGON D'OR", "THE GOLDEN DRAGON") .. "</font>"
+	U.jSous.Text = (serie > 1) and (dragon and tr("Jour " .. nb .. " d'affilée — au 7e jour, " .. d7 .. " est à toi.",
+		"Day " .. nb .. " in a row — on day 7, " .. d7 .. " is yours.")
+		or tr("Jour " .. nb .. " d'affilée — reviens demain : ça monte encore.", "Day " .. nb .. " in a row — come back tomorrow: it keeps growing."))
+		or (dragon and tr("Reviens 7 jours de suite : " .. d7 .. " t'attend. Rate un jour, et ça repart.",
+		"Come back 7 days in a row: " .. d7 .. " awaits. Miss a day and it starts over.")
 		or tr("Reviens chaque jour : le cadeau monte. Rate un jour, et ça repart du début.",
-		"Come back every day: the gift grows. Miss a day and it starts over.")
+		"Come back every day: the gift grows. Miss a day and it starts over."))
 	U.jIci = auj
 	U.jVipK = vip
 	for i, k in U.jCases do
 		peindre(k, i, (i < auj) and "fait" or ((i == auj) and "ici" or "avenir"), vip)
 	end
 	U.jVip.Visible = vip > 1
-	U.jPrendre.Text = tr("PRENDRE  ", "CLAIM  ") .. Hud.argent(R.jour[auj] * vip)
+	U.jPrendre.Text = (auj == 7 and dragon) and tr("PRENDRE LE DRAGON", "CLAIM THE DRAGON")
+		or (tr("PRENDRE  ", "CLAIM  ") .. Hud.argent(R.jour[auj] * vip))
 end
 local function ouvrirJour()
 	majJour()
@@ -380,6 +395,9 @@ end
 -- trop étroit pour elle à côté de JOUER (une tablette 4:3), elle se range en COLONNE contre le bord.
 local TW, TH, GAP = 104, 92, 10
 local AMI = ".###.....|#####....|#####..#.|.###..###|.......#.|.###.....|#####....|#####....|#####...." -- (un ami, et le « + »)
+-- (9/10, parcours) la pièce ROBUX : un hexagone et son carré — la tuile ROBUX portait le PANIER, le même que BOUTIQUE juste à côté :
+-- deux paniers sur l'accueil, et on ne savait pas lequel prendre
+local ROBUX_ICO = "...###...|.#######.|##.....##|##.###.##|##.#.#.##|##.###.##|##.....##|.#######.|...###..."
 local function puce(ico: string, filet: Color3): (TextButton, Frame)
 	local b = K.tuile(U.pile, " ", filet, UDim2.fromOffset(TW, TH), UDim2.new(0, 0, 1, 0), Vector2.new(0, 1), 20)
 	b.TextScaled = false
@@ -428,7 +446,15 @@ local function creerPile()
 	U.temps, U.tempsIco = puce("cadeau", C.orange)
 	U.tempsEtat = false
 	U.temps.TextColor3 = C.texte2
+	-- (9/10, parcours) la tuile ne disait que « 4:43 » : un nouveau venu ne savait pas ce qui arrivait. Le mot nomme la chose (CADEAU),
+	-- la pastille dit quand (comme les primes des tuiles voisines) ; prêt, la tuile passe à l'or et dit son montant
+	U.tempsP = pastille(U.temps.Parent.Parent :: Instance, Color3.fromRGB(150, 70, 0), 16)
 	U.temps.Activated:Connect(function()
+		if not U.tempsPret and U.tempsReste then
+			-- (un appui trop tôt ne tombait dans rien : il dit maintenant quand le cadeau sera là)
+			Hud.toast(tr("TON CADEAU ARRIVE DANS ", "YOUR GIFT ARRIVES IN ") .. U.tempsReste, OR1, "cadeau")
+			return
+		end
 		if not U.tempsPret or U.tOccupe then return end
 		U.tOccupe = true
 		ctx.action("cadeauTemps")
@@ -436,7 +462,7 @@ local function creerPile()
 	end)
 	-- LA BOUTIQUE ROBUX (Sacha, 5/10 : « fais de ce jeu une usine à fric ») : un raccourci vers les offres en Robux, en tête de la
 	-- boutique — ×2 ARGENT, NITRO INFINIE, LES CŒURS
-	U.robux = puce("panier", C.vert)
+	U.robux = puce(ROBUX_ICO, C.vert)
 	libelle(U.robux, "ROBUX")
 	U.robux.Activated:Connect(function()
 		if ctx and ctx.boutique then ctx.boutique() end
@@ -493,10 +519,15 @@ local function majPile()
 		local reste = mn * 60 - (workspace:GetServerTimeNow() - debut)
 		g *= attr("VIP") and 2 or 1
 		pret = reste <= 0
-		libelle(U.temps, pret and ("+" .. Hud.argent(g)) or mmss(reste))
+		U.tempsReste = (not pret) and mmss(reste) or nil
+		libelle(U.temps, pret and ("+" .. Hud.argent(g)) or tr("CADEAU", "GIFT"))
 	else
+		U.tempsReste = nil
 		libelle(U.temps, tr("CADEAU", "GIFT"))
 	end
+	local pf = U.tempsP.Parent :: Frame
+	if pf.Visible ~= (U.tempsReste ~= nil) then pf.Visible = U.tempsReste ~= nil end
+	if U.tempsReste then ecrirePastille(U.tempsP, U.tempsReste) end
 	U.tempsPret = pret
 	-- prêt : la tuile passe à l'OR (filet, icône, montant) et se dandine, pour qu'on vienne la chercher
 	if U.tempsEtat ~= pret then
@@ -581,6 +612,7 @@ local function creerClassement()
 		Text = tr("Fais une partie sans aide : ton record y entre.", "Play a run with no help: your record goes in."),
 		Size = UDim2.new(1, -80, 0, 30), Position = UDim2.fromOffset(40, 184) }, U.cVide)
 	local ok = K.tuile(c, T_OK, C.cyan, UDim2.fromOffset(240, 66), UDim2.new(0.5, 0, 1, -22), Vector2.new(0.5, 1), 26)
+	K.cible(ok, 12) -- (9/10 : 66 dessinés = 32 px réels sur un téléphone couché ; la zone touchée en fait 90)
 	ok.Activated:Connect(function() fermer(v, sc) end)
 	U.classeV = v
 end
@@ -637,6 +669,7 @@ local function creerSeconde()
 	U.sJauge = K.jauge(c, UDim2.new(1, -252, 0, 22), UDim2.fromOffset(208, 216), nil, 4, 3)
 	U.sOui = K.lingot(c, tr("CONTINUER", "CONTINUE"), UDim2.new(0.58, -44, 0, 92), UDim2.new(0, 44, 1, -34), Vector2.new(0, 1), 34)
 	U.sNon = K.tuile(c, tr("NON MERCI", "NO THANKS"), C.cyan, UDim2.new(0.42, -44, 0, 76), UDim2.new(1, -44, 1, -42), Vector2.new(1, 1), 22)
+	K.cible(U.sNon, 7)
 	-- le cœur bat (deux coups, un silence)
 	RunService.RenderStepped:Connect(function()
 		if not v.Visible then return end

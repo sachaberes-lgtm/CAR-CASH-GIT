@@ -1,5 +1,89 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LE DAUPHIN DE RÊVE + LA BOÎTE À DAUPHINS (2026-10-09, Léo : « retouchons les dauphins, envoie-moi dans une boîte blanche avec les dauphins, on va les design » — puis une image de grand dauphin pastel : « travaille encore plus dur »)
+- **LA BOÎTE** : `boite-dauphins.html` (à côté d'index.html, servie par `python3 -m http.server`, jamais en double-clic). Elle LIT et exécute le
+  VRAI bloc du jeu (de `const DOL_L=` à `const dolphinRig=`) et le RELIT ~1 fois/s : une retouche du dauphin dans index.html apparaît sans
+  recharger (« Nouveau dessin » ; une erreur garde l'ancien et s'affiche en rouge, comme les erreurs de shader). Elle se recharge seule si
+  elle-même change. Vues UN DAUPHIN (nage sur place, ombre) · LE BANC (chorégraphie recopiée d'`updateDolphins`). Interrupteurs Surface,
+  Au ras, Dark triad (`dolNoirMaj` du jeu), Ralenti, Figé, Ciel rêve (le fond pastel de la référence, gerbes et étoiles en lumière).
+  ⚠ Étalonnée COMME LE JEU : ACES + `filter:saturate(1.4)` (POST_SAT) — sans ça, le pastel réglé dans la boîte sortait violet électrique en
+  course. Sur blanc, gerbes et étoiles sont peintes en couleur (en jeu elles sont additives). Une clé de programme par dessin (three garde
+  le programme d'une clé connue). `?vue=banc&noir=1&reve=1&yaw=&pitch=&dist=` pour une vue d'entrée.
+- **LE DAUPHIN** (bloc « LE DAUPHIN DE RÊVE » avant `const DOL_L`) : grand dauphin LISSE (profil `DOL_PR` en courbe monotone, 56 anneaux ×
+  28 pans, section qui se pince en carènes vers la queue, nez arrondi), nageoires en profils d'aile NACA lissés (dorsale en faucille,
+  pectorales en pagaie, caudale à encoche). La PEAU est peinte au pixel (`dolPeau`, attribut `aRb` = u, t, partie) : cape ardoise qui
+  plonge sous la dorsale, flancs gris glacé, ventre nacré, gorge rose, commissure, évent, œil + reflet ; NACRE pastel selon le regard,
+  liseré irisé (`uRimA/uRimB`), PAILLETTES qui scintillent (cases de 3 cm, horloge = `uDol.y`). Palette DOUCE exprès (×1,4 en course).
+  Sillage en ÉTOILES (`DOL_ETOILE`, nées le long du corps, taille .5·kT). ~5 100 triangles par dauphin (six : ~31 k), un programme `dauphin5`.
+  Dark triad : robe noire vernie, paillettes et liseré rouges (inchangé côté jeu).
+- **v2 « PLUS RÉEL » puis EN MINUSCULES CUBES** (même jour, Léo : « ils sont un peu fantômes, je le veux plus réel » · « fais-le en minuscules
+  cubes pour rajouter du réalisme » + deux dauphins à l'aérographe) : (1) SA LUMIÈRE (`DOL_U.uLum`, posée par updateDolphins = le haut du
+  banc, un peu vers la caméra ; `uScene` .5 = la part des lumières du niveau qu'il garde) — le ciel du jeu l'éclairait de partout pareil, il
+  se fondait dedans ; reflet mouillé serré, emissive .15, plus de nacre (un reflet de ciel aux angles rasants), liseré seulement AU RAS
+  (`uRimK` > 1,2). (2) Palette de l'AÉROGRAPHE : dos ardoise bleu nuit, bande violette sous la cape, reflets d'eau cyan dessous, ventre
+  bleu pâle, + marbrure, griffures claires, trait œil → pectorale. (3) LES CUBES (`dolCubes(src,h)`) : la surface lisse est échantillonnée,
+  chaque case touchée = un cube, dehors rempli depuis un coin, seules les faces qui donnent dehors ; chaque cube porte le centre de sa case
+  (`aLp` : une couleur, la nage le déplace d'un bloc, l'eau le coupe entier) ; biseau sombre aux arêtes + nuance par cube ; quelques cubes
+  qui scintillent. `DOL_VOX` .026 (≈ 24 800 triangles) et `DOL_VOX_L` .045 (≈ 8 000) : updateDolphins prend les FINS seulement quand le
+  dauphin fait plus de 260 px à l'écran. `DOL_VOX=0` rend le dauphin lisse.
+- **TROIS DAUPHINS EN FORMATION** (même jour, Léo : « moins de dauphins, animations plus jolies ») : `DOL_BANC` = 3 (au lieu de 6, `DOL_PAS` 1 s,
+  l'aura ×1,375 par dauphin en plus : le plafond ×1,75 ne bouge pas). Même tempo pour les trois, chacun `lag` de cycle derrière le chef (une
+  vague qui saute), plongée de durée fixe (`DOL_CYCLE` 1,6), celui qui rejoint attend sa place, une vrille sur quatre et jamais deux à la
+  fois, et au sommet il tourne la tête vers la caméra (on le voit de trois-quarts). Le bond royal part au 3e.
+- **LES SEPT CHORÉS** (même jour, Léo : « donne-leur plusieurs chorés possibles ») : `DOL_CHORE` (dans le bloc lu par la boîte) — LA VAGUE ·
+  L'UNISSON (en diagonale, vrilles ensemble) · LES CISEAUX (deux qui se croisent, le 3e jaillit à la verticale en double vrille) · LE
+  SAUTE-MOUTON (le grand passe au-dessus du petit) · L'ÉTOILE (trois directions, dont un qui vient vers la caméra) · L'ESCALIER (de plus en
+  plus haut, le dernier vrille) · LA FONTAINE (sauts verticaux qui tournent). Par dauphin : x0 → x1 (demi-largeurs), z0 → z1 (m, vers la
+  caméra +), hauteur `a`, retard `lag`, tours forcés `v` ; par choré : chance de vrille `vr`, `sync`. La pose = `dolChorePose` (⚠ PAS
+  `dolPose` : ce nom est déjà celui de l'encaissement du dauphin à la pose — une 2e déclaration l'écrasait). Le jeu en tire une par
+  apparition du banc (jamais deux fois la même de suite) ; `dbgDolphins(sec,nb,ch)` en force une (index ou nom, null = hasard). La boîte :
+  rangée des chorés en vue LE BANC (« Au hasard » = une nouvelle tous les 3 sauts du chef, chaque dauphin l'adopte en replongeant).
+- **LE BANC LONGE LA ROUTE** (même jour, Léo : « ils ne peuvent pas aller de la droite vers la gauche… celles qui viennent du milieu vont
+  transpercer la route ») : plus aucune traversée ni sortie au milieu. Les chorés sont refaites DE PART ET D'AUTRE de la route, sauts LE
+  LONG d'elle : L'ESCORTE · L'UNISSON · LE MIROIR · LE SAUTE-MOUTON · LE CROISEMENT (deux viennent vers la caméra) · L'ÉVENTAIL (ils
+  s'écartent en diagonale) · L'ESCALIER · LA FONTAINE. Par dauphin : côté `s`, distance au BORD x0 → x1 (m × taille), saut z0 → z1 (en W,
+  + devant). updateDolphins mesure l'axe de la route en x du banc (`dolXR` : FDOL.p au sol, `pts[tryLand._bi]` en vol), R = ROAD_HALF + 2,
+  et pose le banc assez loin pour que les deux bords tiennent dans l'écran (portée en mètres FIXES — liée à la taille, elle s'emballait).
+  ⚠ Poussé ainsi sur main (v209), « ça bug » : calé sur la caisse puis sur la route, le banc sortait de l'écran en vol (la caméra de vol
+  plonge vers la caisse) et l'aura montait pour rien. CORRIGÉ : le banc vit dans le repère de la CAMÉRA (24 m devant elle, collé à l'écran),
+  les dauphins sautent sur les CÔTÉS de l'écran (R = 38 % de la demi-largeur, écarts en `ku` jusqu'au bord), dans la profondeur ; la route la
+  plus proche (dalleProche + frameAt) donne sa hauteur et le banc monte au-dessus (ou descend sous elle) pour que la tranche de leurs sauts
+  ne la touche jamais (`dolHY`). Saut le plus long : jamais à moins de 10 m de l'objectif. La boîte dessine une route (repère, pas à l'échelle). `dbgDauphin('ecran')` :
+  où sont les dauphins à l'écran (−1…1) et à quelle distance.
+## LA SALLE BLANCHE (2026-10-09, Léo : « une sublime voiture dans une salle blanche, que je peux tourner, avec une petite rangée de toutes les voitures qu'on a — pas les enlevées — qu'on glisse dans différentes raretés ; télécharger une liste écrite de tout ce qu'on a dit dessus »)
+- `salle-blanche.html` (outil, à côté d'index.html, à servir : `python3 -m http.server 8975` puis /salle-blanche.html). RIEN n'est recopié :
+  elle LIT index.html et exécute les vrais constructeurs (même liste de blocs que `ROBLOX/outils/cuire-caisses.js` + `MATV` pour les vraies
+  peaux) ; seules les matières sont refaites en PBR de studio (laque vernie, chrome, verre). Les 46 jouables (`retire:1` exclues).
+- Rendu : tonemapping LINÉAIRE (l'ACES décolorait les laques : ROSSO 40 saumon), murs de l'environnement gris + boîtes à lumière fortes,
+  ombre VSM douce + ombre de contact, sol ÉTALONNÉ au pixel (`etalonne`) pour avoir le blanc du fond : salle infinie, pas d'horizon.
+- Rangée : couloirs COMMUNES · RARES · ÉPIQUES · LÉGENDAIRES · DÉFIS · À RETIRER ; glisser = trait d'insertion (rien ne bouge avant de
+  lâcher), clic = la voiture en grand ; prix modifiable et notes par voiture, notes générales ; tout en localStorage (`cashcar.salleBlanche.v1`).
+- « Télécharger la fiche » = `fiche-voitures-cash-car-AAAA-MM-JJ.txt`, au format de la fiche du 6/10 (familles dans le nouvel ordre, notes
+  sous chaque voiture, NOTES GÉNÉRALES, CHANGEMENTS PAR RAPPORT AU JEU) — c'est ce fichier qu'on donne à Claude pour l'appliquer au jeu.
+  Console : `dbgSalle.lum({…})` règle la lumière à chaud, `dbgSalle.fiche()`, `dbgSalle.ratees()`.
+- **LE TOUCHER + LE JOURNAL (9/10, Léo : « quand j'appuie sur les voitures, leur réaction — sinon juste l'effet clic » · « sauvegarder
+  tous les changements faits à la main par moi »)** : un TAP sur la caisse (ni glissé ni pincement ; le double-clic ne recadre plus) =
+  l'effet clic de l'écran titre en studio (recul + saut + bascule en ressorts, étincelles orange, tôle à la couleur de la pièce qui rebondit
+  sur le sol, secousse, sons du jeu via sfx.js — bouton son ; combo < 0,7 s) ; ATCHOUM éternue (feu au point ATCH.N, « ATCHOUM ! ») ; le
+  CHAT lâche son arc-en-ciel en pixels (il monte au-dessus de la poupe : droit vers l'arrière, la caisse le cachait). ⚠ InstancedMesh :
+  créer `instanceColor` AVANT `count=0` (setColorAt le crée à la taille de count → tampon vide, INVALID_OPERATION, rien ne s'affiche).
+  JOURNAL `ETAT.journal` : chaque geste à la main (rareté, place, prix, note, notes générales, retour au jeu, fiche téléchargée) avec son
+  heure, jamais effacé, section « CE QUE J'AI FAIT À LA MAIN » de la fiche, historique sous le bouton ; une sauvegarde d'avant le journal
+  le commence par la fiche du 9/10. Écrit aussi à la fermeture (pagehide). Corrigé : changer de voiture en écrivant une note la laissait
+  affichée — et la suite partait sur la voiture suivante (`choisir` clôt le champ d'abord).
+- **LA 1re FICHE APPLIQUÉE (9/10, Léo : « à retenir pour la liste et pour le main tant que je dis pas "c'est dégueu" »)** :
+  L'AIGLE DE FEU → RARE 800 000 $ ; LE SQUALE → ÉPIQUE 700 000 $ ; ATCHOUM → ÉPIQUE 900 000 $ (« des prix qui collent à mon ordre » :
+  le garage range chaque famille par prix). ATCHOUM : un V8 À COMPRESSEUR sort du capot à la place de l'écope (kit à part, posé après
+  `creux`). LA TAURINE : des CORNES de toro derrière les phares à cils (tube de Bézier à 7 pans, ivoire, pointe noire). CHAT POP-TART
+  ×`NY_K` (,8) : géométries + positions à la fin du gabarit, crans de l'animation ×NY_K, fiche h/w/l. Le SQUALE n'avait rien dans le
+  jeu : c'était la SALLE (pièces du kit peintes d'un seul côté, roues sans `w1F`/`wxF`/`wRF`) — corrigée. ⚠ `ROBLOX/outils/cuire-caisses.js`
+  a les deux mêmes oublis (vignettes et formes Roblox du SQUALE).
+- **LE CHAT EN MINI DE RALLYE (9/10, Léo : « plus voiture de rallye, genre mini rally : plus au ras du sol, moins voiture de ville »)** :
+  `nyRallye` déforme d'un bloc la coque, la pop-tart, l'aileron, les feux et le trait noir (pavillon tassé ×,74 → ×,56 vers la poupe,
+  pente LINÉAIRE en z pour garder les pavés de glaçage plans ; ailes +8 cm au-dessus des roues ; jupes −7 cm) ; `NY_BAS` ,25 → ,33 (le
+  pneu rentre dans l'aile), `NY_VOIE` ,76 (roues, pattes, ancrages) ; équipement posé hors déformation : lame, longue-portée jaunes,
+  bavettes (la plaque « 61 » des portières : retirée le jour même, Léo). Puis « un peu plus volumineuse » : NY_K ,86, NY_TASSE ,84 (pente ,08), NY_AILE ,12, NY_VOIE ,79. L'ancienne version : `index-avant-rallye` n'est pas gardée — `git show 386bace:"VERSION PRINCIPALE/index.html"`.
+
 ## LA SONDE QUI NE FIGE PLUS (2026-10-08, Léo : « le jeu bug un peu quand je le lance, pas que au lancement il rame — trouve une solution qui ne touche pas au graphique ni à la qualité »)
 - MESURÉ (Chrome sans fenêtre sur le Mac M2 de Léo, course au pilote auto, trace + appels WebGL chronométrés) : les à-coups de 35-120 ms
   en course venaient de `qlSonde` — la SONDE de la règle de qualité (28/09, faite pour l'iPhone bridé à 30 i/s). Quand des images ratent,

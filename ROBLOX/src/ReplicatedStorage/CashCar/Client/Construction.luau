@@ -591,19 +591,47 @@ end
 
 -- ── LES FRUITS (FRUIT_DEFS, L20222 — cuits : Objets.fruits) : un maillage à facettes par fruit ──
 local modelesFruit: { [number]: any } = {}
+-- (9/10, Sacha : « augmente la luminosité des fruits sur la route ») Le web rend 32 % de la couleur d'un fruit SANS lumière (LP_MAT.f,
+-- gl .32 : « un bleu roi sort noir » sinon) ; Roblox n'a pas ce plancher, et la nuit de la ville avalait les fruits — mesuré au banc
+-- (DbgVueFruit), la myrtille sortait NOIRE. Deux gestes pour le rendre :
+-- · L'ÉCLAT : chaque facette relevée vers 0,98 de valeur (×2,4 au plus, l'ordre des teintes gardé : l'ombre reste plus sombre que
+--   la lumière) et sa saturation poussée ; plus de reflet (il grisait la peau en renvoyant le ciel) ;
+-- · LA COQUE DE NÉON : le même maillage, 6 % plus grand, en néon à 80 % transparent, soudé au fruit — la part « sans lumière » du
+--   web, qui fait briller le fruit de loin sans noyer ses facettes (à 72 % on ne lisait plus qu'une tache). Elle part avec lui
+--   quand on le croque (Parent = nil) et suit son battement (soudure).
+local function eclatAuPlus(c: Color3, plafond: number): Color3
+	local mx = math.max(c.R, c.G, c.B, 0.001)
+	local f = math.clamp(0.98 / mx, 1, plafond)
+	local h, s, v = Color3.new(math.min(1, c.R * f), math.min(1, c.G * f), math.min(1, c.B * f)):ToHSV()
+	return Color3.fromHSV(h, 1 - (1 - s) ^ 1.5, v)
+end
+local function eclatFruit(c: Color3): Color3 return eclatAuPlus(c, 2.4) end
+-- (banc) les fruits posés sur la route, pour DbgVueFruit (table faible : un fruit ramassé s'en va tout seul)
+local fruitsPoses: { [BasePart]: { i: number, face: number } } = setmetatable({}, { __mode = "k" }) :: any
 local function fruitModele(i: number): { p: BasePart, dy: number }?
 	local m = modelesFruit[i]
 	if m ~= nil then return m or nil end
 	modelesFruit[i] = false
 	local d = Objets.fruits[i]
 	if not d then return nil end
-	local mp, centre = Maillage.piece(d, M)
+	local mp, centre = Maillage.piece(d, M, { teinte = eclatFruit })
 	if not mp then return nil end
 	mp.Anchored = true
 	mp.Massless = false
 	mp.CastShadow = false
 	mp.Material = Enum.Material.SmoothPlastic
-	mp.Reflectance = 0.06
+	mp.Reflectance = 0
+	local coque = mp:Clone()
+	coque.Name = "Coque"
+	coque.Material = Enum.Material.Neon
+	coque.Transparency = 0.8
+	coque.Size = mp.Size * 1.06
+	coque.Anchored, coque.Massless, coque.CanCollide, coque.CanQuery, coque.CanTouch = false, true, false, false, false
+	coque.CFrame = mp.CFrame
+	local w = Instance.new("WeldConstraint")
+	w.Part0, w.Part1 = mp, coque
+	w.Parent = coque
+	coque.Parent = mp
 	local r = { p = mp, dy = centre.Y }
 	modelesFruit[i] = r
 	return r
@@ -742,6 +770,7 @@ function Construction.unObjet(piste: Piste.Piste, o: Piste.Objet, dossier: Insta
 		p = fm.p:Clone()
 		p.CFrame = CFrame.fromMatrix(pos + f.UpVector * fm.dy, f.RightVector, f.UpVector)
 		p.Parent = dossier
+		fruitsPoses[p] = { i = o.fruit or 1, face = o.face or 1 }
 	elseif o.kind == "fruit" then
 		-- (secours, si Roblox refuse les maillages : une boule à sa couleur et sa feuille)
 		local fd = Config.FRUITS[o.fruit or 1]
@@ -853,6 +882,80 @@ function Construction.nuages(piste: Piste.Piste, dossier: Instance, graine: numb
 		end
 		if ceder then ceder() end
 	end
+end
+
+-- ── (banc, 9/10) "DbgVueFruit" = une distance en mètres : la caméra se pose à cette distance du prochain fruit (dessus de la route)
+-- et le regarde ; à sa gauche, le MÊME fruit aux couleurs brutes du web, sans coque (l'avant) — l'avant/après sous la même lumière,
+-- dans la même photo. Rien de tout ça n'existe sans l'attribut.
+do
+	local RunService = game:GetService("RunService")
+	local vise: BasePart? = nil
+	local ecart = Vector3.zero
+	local temoins: { Instance } = {}
+	local function nettoie()
+		for _, t in temoins do t:Destroy() end
+		table.clear(temoins)
+	end
+	local function etiquette(p: BasePart, mot: string)
+		local bb = Instance.new("BillboardGui")
+		bb.Size = UDim2.fromOffset(160, 40)
+		bb.StudsOffsetWorldSpace = Vector3.new(0, p.Size.Y * 0.7, 0)
+		bb.AlwaysOnTop = true
+		local t = Instance.new("TextLabel")
+		t.Size = UDim2.fromScale(1, 1)
+		t.BackgroundTransparency = 1
+		t.Text = mot
+		t.TextScaled = true
+		t.Font = Enum.Font.GothamBold
+		t.TextColor3 = Color3.new(1, 1, 1)
+		t.TextStrokeTransparency = 0
+		t.Parent = bb
+		bb.Parent = p
+		table.insert(temoins, bb)
+	end
+	local function temoin(i: number, teinte: ((Color3) -> Color3)?, cf: CFrame, mot: string): BasePart?
+		local mp, centre = Maillage.piece(Objets.fruits[i], M, teinte and { teinte = teinte } or nil)
+		if not mp then return nil end
+		mp.Anchored, mp.CanCollide, mp.CanQuery, mp.CastShadow = true, false, false, false
+		mp.Material = Enum.Material.SmoothPlastic
+		mp.Reflectance = teinte and 0 or 0.06
+		mp.CFrame = cf * CFrame.new(0, centre.Y - (fruitModele(i) :: any).dy, 0)
+		mp.Parent = workspace
+		etiquette(mp, mot)
+		table.insert(temoins, mp)
+		return mp
+	end
+	workspace:GetAttributeChangedSignal("DbgVueFruit"):Connect(function()
+		RunService:UnbindFromRenderStep("CashCarDbgFruit")
+		vise = nil
+		nettoie()
+		local d = workspace:GetAttribute("DbgVueFruit")
+		if type(d) ~= "number" then return end
+		-- après la caméra du jeu (Pilote : Camera + 1) : la vue imposée a le dernier mot
+		RunService:BindToRenderStep("CashCarDbgFruit", Enum.RenderPriority.Camera.Value + 2, function()
+			local cam = workspace.CurrentCamera
+			if not (vise and vise.Parent) then
+				nettoie()
+				vise = nil
+				local best = math.huge
+				for p, info in fruitsPoses do
+					local v = p.Position - cam.CFrame.Position
+					if info.face == 1 and p.Parent and v:Dot(cam.CFrame.LookVector) > 0 and v.Magnitude < best then best, vise = v.Magnitude, p end
+				end
+				local p = vise
+				if not p then return end
+				local info = fruitsPoses[p]
+				ecart = (cam.CFrame.Position - p.Position).Unit * d * M
+				local cf = p.CFrame
+				local pas = (fruitModele(info.i) :: any).p.Size.X * 1.5
+				etiquette(p, "ACTUEL")
+				temoin(info.i, nil, cf * CFrame.new(-pas, 0, 0), "AVANT")
+			end
+			local p = vise :: BasePart
+			cam.CFrame = CFrame.lookAt(p.Position + ecart, p.Position - p.CFrame.RightVector * ((fruitModele(fruitsPoses[p].i) :: any).p.Size.X * 0.75))
+			cam.FieldOfView = 50
+		end)
+	end)
 end
 
 return Construction

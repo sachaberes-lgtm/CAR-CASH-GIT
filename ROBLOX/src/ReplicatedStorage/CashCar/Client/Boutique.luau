@@ -1,203 +1,1111 @@
--- CASH CAR — LA BOUTIQUE (l'écran #mShop du jeu web) : ce qui s'achète avec de l'argent réel. La page défile, de haut en bas :
---   · LE KIT DU PILOTE (5/10, lot 2) : la carte dorée « OFFRE DE BIENVENUE » — 50 000 $, 3 cœurs, la traînée POUDRE D'OR — tant
---     qu'il n'est pas acheté (une fois par compte) ;
---   · LES OFFRES EN ROBUX (Sacha, 5/10 : « fais de ce jeu une usine à fric ») — ×2 ARGENT, NITRO INFINIE, les CŒURS (1, 5 ou 15) —
---     et VIP, 3 TOURS DE ROUE quand ils existent (les tours : seulement là où Roblox permet de vendre du hasard, et on les achète
---     dans LA ROUE, qui montre ses chances) ;
---   · L'ARGENT (5/10, lot 2) : cinq packs de $ pour le compte ;
---   · la vitrine des CAISSES LÉGENDAIRES : à gauche la caisse À LA UNE, à droite la grille — chacune s'achète UNE fois (produit de
---     Roblox ; « A TOI ! » ensuite, le garage la montre comme à soi).
--- RETOUR reste en bas à gauche. Tout prix est LU sur Roblox (Revenus.prix) — jamais écrit ici ; un numéro encore à 0 dans
--- Config.REVENUS : la carte dit BIENTOT et ne vend rien. (5/10 : plus de « −50 % » — un rabais sans prix barré réel est interdit.)
--- Les photos sont de vraies caisses 3D (Caisse.vignette) : bâties une par une à l'ouverture, RENDUES à la fermeture (le budget de
--- triangles de Roblox est compté) ; si le budget refuse, la case garde sa pastille de couleur.
+-- CASH CAR — LA BOUTIQUE v2 (9/10, Sacha : « je t'ai demandé 100 fois de prendre des initiatives pour travailler la boutique et
+-- l'expérience utilisateur ») : ce qui s'achète en Robux, rangé comme dans les boutiques du haut des classements Roblox.
+--   · à GAUCHE, LE RAIL : quatre onglets — OFFRES · CAISSES · ARGENT · AVANTAGES — et RETOUR dessous, à sa place de toujours. Tout
+--     ce qui sert à naviguer vit sous le pouce gauche, rien ne se pose sur la page. Un onglet fait GLISSER la page jusqu'à sa
+--     section ; l'onglet allumé suit la page quand on la fait défiler au doigt (une seule page, un seul défilement) ;
+--   · en HAUT à droite, ce qu'on a : le compte en $ et les cœurs en réserve (on lit en haut, on touche en bas) ;
+--   · LA PAGE : 1. OFFRES — UNE grande carte, la meilleure offre du moment : le KIT DU PILOTE tant qu'il n'est pas pris (ce qu'il
+--     contient en trois tuiles, son prix, UN lingot d'or), sinon le premier passe qu'on n'a pas (×2 ARGENT, puis NITRO INFINIE,
+--     puis VIP s'il existe) ; tout est à soi : la section s'efface ; 2. CAISSES — les légendaires EN GRAND, chacune avec son
+--     TIRAGE DE BOUTIQUE (576 × 320, bord anticrénelé, éclairage de studio : Caisse.vignetteHD — sa vraie forme, ses vraies couleurs,
+--     lisse), la une en pleine largeur ; le bouton de la carte, c'est son prix ; toucher la caisse la fait SORTIR de la page (la
+--     fenêtre d'achat, en grand : la VRAIE caisse en 3D, sur un plateau qui tourne, qu'on fait pivoter au doigt) ; 3. ARGENT — cinq packs :
+--     le montant en vert, une pile de pièces qui grandit avec le pack, le prix sur le bouton ; 4. AVANTAGES — les passes (×2
+--     ARGENT, NITRO INFINIE, VIP), 3 TOURS DE ROUE quand ils existent, puis les CŒURS (1, 5, 15).
+-- L'HONNÊTETÉ (règles de Roblox) : un prix affiché est celui que Roblox rend pour CE joueur (Revenus.prix : prix régional, remise
+-- Plus). Un objet pas encore créé (numéro à 0 dans Config.REVENUS) reste visible, en terne : BIENTOT et son prix CONSEILLÉ — rien
+-- ne se vend. « BONUS +x % » et « MEILLEURE AFFAIRE » ne s'écrivent que s'ils sont VRAIS, calculés sur les prix lus sur Roblox ;
+-- aucun minuteur, aucun stock, aucun rabais, aucun « POPULAIRE » (pas de chiffres de vente pour le dire).
+-- Le chemin de l'achat ne change pas : MarketplaceService (PromptProductPurchase / PromptGamePassPurchase), le serveur accorde
+-- (ServerScriptService/Revenus, `recevoir`). Les 3 TOURS s'achètent dans LA ROUE, qui montre ses chances avant (hasard payant), et
+-- leur carte se cache là où Roblox interdit de vendre du hasard (PolicyService).
+-- Aucune caisse 3D bâtie pour les CARTES : ce sont des images (le budget de maillages de Roblox reste au garage). UNE seule caisse 3D
+-- vit dans la boutique : celle de la fenêtre d'achat ouverte — bâtie à l'ouverture, RENDUE à la fermeture. Les tirages de boutique
+-- (720 Ko de mémoire chacun) se décodent à l'ouverture de la boutique et se relâchent à sa fermeture : rien ne reste en course.
+-- (banc, Studio seulement) workspace « DbgBoutiqueIds » = true : chaque objet fait comme s'il existait, au prix conseillé (pris pour
+-- le vrai : les étiquettes se calculent) ; un achat écrit « [boutique] fenetre d'achat » dans la Sortie au lieu d'appeler Roblox.
 local TweenService = game:GetService("TweenService")
 local MarketplaceService = game:GetService("MarketplaceService")
 local PolicyService = game:GetService("PolicyService")
+local RunService = game:GetService("RunService")
+local UIS = game:GetService("UserInputService") -- (le glisser qui fait tourner la caisse de la fenêtre d'achat)
 local joueur = game:GetService("Players").LocalPlayer
-local CC = script.Parent.Parent -- (le dossier CashCar : Profil, ProfilMaj — les caisses légendaires déjà à soi)
+local CC = script.Parent.Parent -- (le dossier CashCar : Profil, ProfilMaj — les caisses légendaires déjà à soi, le compte)
 local Hud = require(script.Parent:WaitForChild("Hud"))
 local Roue = require(script.Parent:WaitForChild("Roue")) -- (la carte 3 TOURS mène à LA ROUE : ses chances s'y lisent avant l'achat)
 local Sons = require(script.Parent:WaitForChild("Sons"))
-local Caisse = require(script.Parent.Parent:WaitForChild("Caisse"))
-local Maillage = require(script.Parent:WaitForChild("Maillage"))
-local Config = require(script.Parent.Parent:WaitForChild("Config"))
+local Caisse = require(CC:WaitForChild("Caisse"))
+local Config = require(CC:WaitForChild("Config"))
 local Revenus = require(script.Parent:WaitForChild("Revenus")) -- (les prix lus sur Roblox, le stock de cœurs)
+local Maillage = require(script.Parent:WaitForChild("Maillage")) -- (le budget de triangles : la caisse 3D de la fenêtre d'achat le demande avant de se bâtir)
 local Catalogue = Caisse.Catalogue
 local K, C = Hud.kit, Hud.C
 local inst = K.inst
 local FR = Hud.FR
+local CH = Hud.CHASSE
+local R = Config.REVENUS
+local STUDIO = RunService:IsStudio()
 
 local Boutique = { ouvert = false }
-local U: any = {}
+local U: any = { sections = {}, onglets = {} }
 local ctx: any = nil
 local depuis = "menu"
-local fileN = 0
 local UNE = 9 -- la caisse à la une : le CHAT ARC-EN-CIEL
 local OR1 = Color3.fromRGB(255, 215, 94)
+local BLANC = Color3.new(1, 1, 1)
+local VIOLET = Color3.fromRGB(176, 107, 255)
+local RATIO = 80 / 144 -- (la vignette dessinée fait 144 × 80 ; le tirage de boutique, 576 × 320 : le même cadre)
+local GAUCHE = Enum.TextXAlignment.Left
+local BORD = Enum.ApplyStrokeMode.Border
 
 local function tr(fr: string, en: string): string return FR and fr or en end
+local function ombrer(c: Color3, k: number): Color3 return Color3.new(c.R * k, c.G * k, c.B * k) end
+local function ecrire(t: any, txt: string) if t.Text ~= txt then t.Text = txt end end
+local function nomCaisse(i: number): string
+	local f = Catalogue[i]
+	return Hud.sansAccent(string.upper(FR and f.nom or (f.en or f.nom)))
+end
 local RARETE = { legendaire = { "LEGENDAIRE", "LEGENDARY", Color3.fromRGB(255, 215, 94) }, epique = { "EPIQUE", "EPIC", Color3.fromRGB(199, 125, 255) },
 	rare = { "RARE", "RARE", Color3.fromRGB(77, 184, 255) } }
 
--- la liste : tout ce qui est « premium » dans le catalogue, dans l'ordre de ses indices, la une à part
-local LISTE: { number } = {}
-for i = 0, 200 do
-	local f = Catalogue[i]
-	if f and f.cond and f.cond.k == "premium" and i ~= UNE then table.insert(LISTE, i) end
-end
-
--- LA PHOTO d'une caisse (carPhoto du web) : trois-quarts avant, nez à gauche
-local function photographier(vp: ViewportFrame, i: number, zoom: number): Model?
-	local m = Caisse.vignette(i)
-	if not m then return nil end
-	local corps = m.PrimaryPart :: BasePart
-	local az, el = 0.82, 0.27
-	local dir = Vector3.new(-math.sin(az) * math.cos(el), math.sin(el), -math.cos(az) * math.cos(el))
-	local projete = corps.Size.Z * math.sin(az) + corps.Size.X * math.cos(az)
-	local dist = projete / 0.9 / (2 * math.tan(math.rad(12)) * zoom) + corps.Size.Z * 0.18
-	local cam = Instance.new("Camera")
-	cam.FieldOfView = 24
-	local vise = corps.Position + Vector3.new(0, -corps.Size.Y * 0.04, 0)
-	cam.CFrame = CFrame.lookAt(vise + dir * dist, vise)
-	cam.Parent = vp
-	vp.CurrentCamera = cam
-	vp.LightDirection = (-dir * 0.5 + Vector3.new(0.5, -1, 0.2)).Unit
-	m.Parent = vp
-	return m
-end
-
--- la plaque « BIENTOT » : le cadenas et le mot, cernés d'or
-local function bientot(parent: Instance, pos: UDim2, ancre: Vector2?, corps: number)
-	local p = inst("Frame", { BackgroundColor3 = Color3.fromRGB(16, 12, 30), BorderSizePixel = 0, Size = UDim2.fromOffset(corps * 6.4, corps * 1.9), Position = pos,
-		AnchorPoint = ancre or Vector2.zero }, parent)
-	inst("UIStroke", { Color = OR1, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, p)
-	inst("Frame", { BackgroundColor3 = OR1, BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 3), Position = UDim2.new(0, 0, 1, -3) }, p)
-	K.icone(p, "verrou", math.max(1, math.floor(corps / 12)), OR1, UDim2.new(0, 12, 0.5, 0), Vector2.new(0, 0.5))
-	K.texte(p, { Text = tr("BIENTOT", "SOON"), TextSize = corps, TextColor3 = OR1, Size = UDim2.new(1, -40, 1, 0), Position = UDim2.fromOffset(36, 0), TextWrapped = false })
-end
-
--- ── LES CAISSES LÉGENDAIRES EN ROBUX (5/10, lot 2) : un PRODUIT par caisse (Config.REVENUS.caisses), achat UNIQUE tenu par le
--- profil — la boutique suit le profil (Profil, puis chaque ProfilMaj) pour savoir lesquelles sont déjà à soi ──
-local R = Config.REVENUS
-local PR: any = { caisses = {} }
+-- ════════ LES ARTICLES : un numéro (Config.REVENUS), un prix lu sur Roblox, un prix CONSEILLÉ ════════
+-- Les prix conseillés vivent dans Config.REVENUS (prixConseilles ; prixCaisses pour les caisses, que le garage affiche aussi) : un seul
+-- endroit. Ils ne servent qu'à dire, en terne, ce que coûtera un objet pas encore créé : dès que le numéro existe, c'est le prix de
+-- Roblox, et rien d'autre, qui s'écrit.
+local CONSEIL = R.prixConseilles or { passes = {}, produits = {}, argent = {} }
 local function idDe(t: any, cle: any): number
 	local id = t and t[cle]
 	return (type(id) == "number" and id > 0) and id or 0
 end
-local function idCaisse(i: number): number return idDe(R.caisses, i) end
-local function possedeCaisse(i: number): boolean
-	return type(PR.caisses) == "table" and table.find(PR.caisses, i) ~= nil
+local function sim(): boolean return STUDIO and workspace:GetAttribute("DbgBoutiqueIds") == true end
+local ART: { [string]: any } = {}
+local function article(cle: string, passe: boolean, lire: () -> number, conseil: number?)
+	ART[cle] = { cle = cle, passe = passe, lire = lire, conseil = conseil }
 end
--- le prix d'un produit (ou d'un passe), lu sur Roblox : « R$ 399 », ou "" tant qu'il n'est pas connu
-local function prixTxt(id: number, passe: boolean): string
-	if id <= 0 then return "" end
-	local p = Revenus.prix(id, passe)
-	return p and Revenus.robux(p) or ""
+for nom in R.passes do article(nom, true, function() return idDe(R.passes, nom) end, CONSEIL.passes[nom]) end
+for nom in R.produits do article(nom, false, function() return idDe(R.produits, nom) end, CONSEIL.produits[nom]) end
+-- (les packs d'argent s'appellent « pack1 »… « pack5 » : « argent2 » est déjà le passe x2 ARGENT — mesuré au banc, le 2e pack prenait
+-- sa place et la carte x2 ARGENT affichait le prix du pack)
+for k, a in R.argent do article("pack" .. k, false, function() return idDe(a, "id") end, CONSEIL.argent[k]) end
+for i in R.caisses do article("caisse" .. i, false, function() return idDe(R.caisses, i) end, R.prixCaisses and R.prixCaisses[i]) end
+
+-- le numéro : > 0 le vrai, 0 pas encore créé, -1 un faux numéro du banc
+local function idArt(a: any): number
+	local id = a.lire()
+	if id <= 0 and sim() then return -1 end
+	return id
 end
-local function ecrire(t: TextLabel | TextButton, txt: string)
-	if t.Text ~= txt then t.Text = txt end
+local function vendable(a: any): boolean return idArt(a) ~= 0 end
+-- le prix, et s'il est VRAI (lu sur Roblox pour ce joueur — ou simulé au banc). Le numéro existe mais Roblox n'a pas encore
+-- répondu : pas de prix (jamais un prix inventé entre-temps). Pas de numéro : le prix conseillé, qui n'est PAS vrai.
+local function prixArt(a: any): (number?, boolean)
+	local id = idArt(a)
+	if id == -1 then return a.conseil, a.conseil ~= nil end
+	if id > 0 then
+		local p = Revenus.prix(id, a.passe)
+		return p, p ~= nil
+	end
+	return a.conseil, false
 end
--- LA PLAQUE D'ÉTAT d'une caisse de la vitrine (la plaque BIENTOT, devenue vivante) : BIENTOT (pas encore de numéro) · son PRIX en
--- Robux (à vendre) · A TOI ! (achetée, en vert)
-local function plaqueEtat(parent: Instance, pos: UDim2, ancre: Vector2?, corps: number): any
-	local p = inst("Frame", { BackgroundColor3 = Color3.fromRGB(16, 12, 30), BorderSizePixel = 0, Size = UDim2.fromOffset(corps * 6.4, corps * 1.9), Position = pos,
-		AnchorPoint = ancre or Vector2.zero }, parent)
-	local trait = inst("UIStroke", { Color = OR1, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, p)
-	local bas = inst("Frame", { BackgroundColor3 = OR1, BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 3), Position = UDim2.new(0, 0, 1, -3) }, p)
-	local px = math.max(1, math.floor(corps / 12))
-	local icos = {
-		bientot = K.icone(p, "verrou", px, OR1, UDim2.new(0, 12, 0.5, 0), Vector2.new(0, 0.5)),
-		prix = K.icone(p, "panier", px, OR1, UDim2.new(0, 12, 0.5, 0), Vector2.new(0, 0.5)),
-		aToi = K.icone(p, "coche", px, C.vert, UDim2.new(0, 12, 0.5, 0), Vector2.new(0, 0.5)),
-	}
-	local t = K.texte(p, { Text = "", TextSize = corps, TextColor3 = OR1, Size = UDim2.new(1, -40, 1, 0), Position = UDim2.fromOffset(36, 0), TextWrapped = false })
-	local o: any = { etat = "" }
+local function robux(n: number?): string return n and ("R$ " .. Hud.entier(n)) or "" end
+
+-- ce qu'on possède : un passe (attribut posé par le serveur), une caisse (le profil), le kit (attribut KitPris)
+local PR: any = { caisses = {} }
+local ATTR = { argent2 = "Argent2", nitroInfini = "NitroPasse", vip = "VIP" }
+local function possede(a: any): boolean
+	if a.passe then return joueur:GetAttribute(ATTR[a.cle] or "?") == true end
+	local i = tonumber(string.match(a.cle, "^caisse(%d+)$"))
+	if i then return type(PR.caisses) == "table" and table.find(PR.caisses, i) ~= nil end
+	if a.cle == "kit" then return joueur:GetAttribute("KitPris") == true end
+	return false
+end
+-- l'ÉTAT d'un article et le mot de son bouton : « possede » (A TOI / ACTIF), « acheter » (son prix), « bientot » (pas encore en vente :
+-- BIENTOT et le prix conseillé, en terne)
+local function etatDe(a: any, motPossede: string?): (string, string)
+	if possede(a) then return "possede", motPossede or tr("A TOI", "YOURS") end
+	local p, vrai = prixArt(a)
+	if not vendable(a) then return "bientot", tr("BIENTOT", "SOON") .. (p and ("   " .. robux(p)) or "") end
+	return "acheter", (vrai and p) and robux(p) or tr("ACHETER", "BUY")
+end
+
+-- ════════ ACHETER (le circuit de toujours : la fenêtre de Roblox ; le serveur accorde) ════════
+local function refus(txt: string?)
+	Sons.vrai("uiRefus", nil, nil, "tap", 0.8)
+	Hud.vibre(10)
+	Hud.toast(txt or tr("BIENTOT : CET ARTICLE ARRIVE TRES VITE", "SOON: THIS ITEM IS ON ITS WAY"), C.texte2, "verrou")
+end
+local function acheter(a: any)
+	if possede(a) then
+		local car = string.sub(a.cle, 1, 6) == "caisse"
+		Hud.toast(car and tr("DEJA A TOI : ELLE T'ATTEND AU GARAGE", "ALREADY YOURS: IT'S IN YOUR GARAGE")
+			or tr("DEJA A TOI : C'EST ACTIF", "ALREADY YOURS: IT'S ACTIVE"), C.vert, "coche")
+		return
+	end
+	local id = idArt(a)
+	if id == 0 then
+		refus()
+		return
+	end
+	if a.cle == "tours3" then
+		-- (hasard payant : les chances se lisent AVANT l'achat — on l'achète dans LA ROUE, qui les montre ; elle vit à l'accueil et
+		-- à l'écran de fin)
+		if depuis == "garage" then
+			Hud.toast(tr("LA ROUE T'ATTEND A L'ACCUEIL", "THE WHEEL IS ON THE HOME SCREEN"), OR1, "etoile")
+			return
+		end
+		Boutique.fermer()
+		Roue.ouvrir()
+		return
+	end
+	if id == -1 then
+		warn("[boutique] fenetre d'achat Roblox (banc) : " .. (a.passe and "passe " or "produit ") .. a.cle)
+		return
+	end
+	if a.passe then
+		pcall(function() MarketplaceService:PromptGamePassPurchase(joueur, id) end)
+	else
+		pcall(function() MarketplaceService:PromptProductPurchase(joueur, id) end)
+	end
+end
+
+-- ════════ LES PIÈCES DU DÉCOR (au kit de Hud) ════════
+-- une PUCE : un aplat, son mot d'encre — la largeur suit le mot (la police pixel est à chasse fixe)
+local function puce(parent: Instance, txt: string, fond: Color3, corps: number, pos: UDim2, ancre: Vector2?, encre: Color3?, trait: Color3?): (Frame, TextLabel)
+	local p = inst("Frame", { Name = "Puce", BackgroundColor3 = fond, BorderSizePixel = 0, Position = pos, AnchorPoint = ancre or Vector2.zero }, parent)
+	inst("UIStroke", { Color = trait or C.encre, Thickness = 2, ApplyStrokeMode = BORD }, p)
+	local t = K.texte(p, { Text = "", TextSize = corps, TextColor3 = encre or C.encre, Size = UDim2.fromScale(1, 1), TextWrapped = false, contour = false })
+	local function taille() p.Size = UDim2.fromOffset(math.floor((utf8.len(t.Text) or 0) * corps * CH + corps * 1.5), math.floor(corps * 1.9)) end
+	t:GetPropertyChangedSignal("Text"):Connect(taille)
+	t.Text = txt
+	taille()
+	return p, t
+end
+-- l'EN-TÊTE d'une section : le titre penché, son filet de couleur, une phrase qui dit ce qu'on y trouve
+local function entete(parent: Instance, titre: string, sous: string?, couleur: Color3, y: number?): (Frame, TextLabel?)
+	local f = inst("Frame", { Name = "Entete", BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, sous and 88 or 54), Position = UDim2.fromOffset(0, y or 0) }, parent)
+	K.texte(f, { italique = true, Text = titre, TextSize = 32, TextColor3 = C.texte, Size = UDim2.new(1, 0, 0, 36), TextXAlignment = GAUCHE, TextWrapped = false, epais = 3 })
+	inst("Frame", { BackgroundColor3 = couleur, BorderSizePixel = 0, Size = UDim2.fromOffset(96, 6), Position = UDim2.fromOffset(2, 44) }, f)
+	inst("Frame", { BackgroundColor3 = ombrer(couleur, 0.55), BorderSizePixel = 0, Size = UDim2.fromOffset(34, 6), Position = UDim2.fromOffset(106, 44) }, f)
+	local s: TextLabel? = nil
+	if sous then
+		s = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.TXT, TextSize = 22, TextColor3 = C.texte2, Text = sous, TextXAlignment = GAUCHE,
+			TextWrapped = true, Size = UDim2.new(1, 0, 0, 30), Position = UDim2.fromOffset(0, 56) }, f)
+	end
+	return f, s
+end
+-- une CARTE : la boîte (placée par la mise en page) et sa plaque (ce qui s'enfonce sous le doigt) — laque teintée de la couleur de
+-- l'article, trait d'accent, bande du haut, reflet sur le premier tiers, ombre portée. `touchable` : toute la carte se touche.
+local function carte(parent: Instance, accent: Color3, touchable: boolean): any
+	local boite = inst("Frame", { Name = "Carte", BackgroundTransparency = 1, Size = UDim2.fromOffset(200, 200) }, parent)
+	inst("Frame", { Name = "Ombre", BackgroundColor3 = C.encre, BackgroundTransparency = 0.45, BorderSizePixel = 0, Size = UDim2.fromScale(1, 1),
+		Position = UDim2.fromOffset(7, 8) }, boite)
+	local p = inst("Frame", { Name = "Plaque", BackgroundColor3 = BLANC, BorderSizePixel = 0, Size = UDim2.fromScale(1, 1) }, boite)
+	local grad = inst("UIGradient", { Rotation = 90, Color = ColorSequence.new(Color3.fromRGB(42, 26, 78):Lerp(accent, 0.24), Color3.fromRGB(14, 10, 32)) }, p)
+	local trait = inst("UIStroke", { Color = accent, Thickness = 3, ApplyStrokeMode = BORD }, p)
+	local bande = inst("Frame", { Name = "Bande", BackgroundColor3 = accent, BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 6) }, p)
+	local reflet = inst("Frame", { Name = "Reflet", BackgroundColor3 = BLANC, BackgroundTransparency = 0.94, BorderSizePixel = 0, Size = UDim2.fromScale(1, 0.3),
+		Position = UDim2.fromOffset(0, 6) }, p)
+	inst("UIGradient", { Rotation = 90, Transparency = NumberSequence.new(0, 1) }, reflet)
+	local o: any = { boite = boite, p = p, trait = trait, bande = bande, grad = grad }
+	if touchable then
+		o.b = inst("TextButton", { Name = "Toucher", BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Text = "", AutoButtonColor = false, ZIndex = 8 }, p)
+		K.retour(o.b, p) -- (la carte s'enfonce sous le doigt, se soulève sous la souris ; un clic, une vibration)
+	end
+	return o
+end
+-- REPEINDRE une tuile du kit dans une autre couleur (la recette de Hud, teintesTuile : la face = la couleur à moitié dans la nuit, le
+-- liseré du haut presque plein, la tranche profonde)
+local function teindre(b: TextButton, f: Color3)
+	local plaque = b.Parent :: Instance
+	K.repeindre(plaque, ombrer(f, 0.5):Lerp(C.carbone, 0.3), f)
+	local l = plaque:FindFirstChild("l", true)
+	if l then (l :: Frame).BackgroundColor3 = ombrer(f, 0.95) end
+	local tr9 = plaque.Parent and plaque.Parent:FindFirstChild("Tranche")
+	if tr9 then (tr9 :: Frame).BackgroundColor3 = ombrer(f, 0.4) end
+end
+-- LE BOUTON D'UNE CARTE : une tuile penchée à la couleur de l'article, dont le mot est son PRIX ; elle passe au vert (A TOI, ACTIF)
+-- ou au terne (BIENTOT). La cible du pouce déborde du dessin (44 px réels sur un téléphone couché, où la racine est à ×0,46).
+local function bouton(parent: Instance, couleur: Color3, taille: UDim2, pos: UDim2, ancre: Vector2?, corps: number): any
+	local b = K.tuile(parent, "", couleur, taille, pos, ancre, corps)
+	K.cible(b, 10)
+	local o: any = { b = b, boite = (b.Parent :: Instance).Parent, c = couleur, etat = "" }
+	o.boite.ZIndex = 9 -- (au-dessus de la carte qui se touche)
 	function o.regler(etat: string, txt: string)
 		if o.etat ~= etat then
 			o.etat = etat
-			local col = (etat == "aToi") and C.vert or OR1
-			for k, f in icos do f.Visible = k == etat end
-			trait.Color, bas.BackgroundColor3, t.TextColor3 = col, col, col
+			teindre(b, (etat == "acheter" and o.c) or (etat == "possede" and C.vert) or C.terne)
+			b.TextColor3 = (etat == "bientot") and C.texte2 or C.texte
 		end
-		ecrire(t, txt)
+		ecrire(b, txt)
 	end
-	o.regler("bientot", tr("BIENTOT", "SOON"))
 	return o
 end
-local function etatCaisse(i: number): (string, string)
-	if possedeCaisse(i) then return "aToi", tr("A TOI !", "YOURS!") end
-	local id = idCaisse(i)
-	if id <= 0 then return "bientot", tr("BIENTOT", "SOON") end
-	local p = prixTxt(id, false)
-	return "prix", (p ~= "") and p or tr("ACHETER", "BUY")
+-- LE PLATEAU sous une caisse : une flaque de lumière à la couleur de sa rareté, l'ombre au sol et un filet de néon, fondus sur les
+-- bords (au banc, la pilule cernée d'avant se lisait comme un bouton) — rend la flaque et le filet, pour les repeindre
+local FONDU = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.5, 0), NumberSequenceKeypoint.new(1, 1) })
+local function plateau(parent: Instance, cercle: Color3): (Frame, Frame)
+	-- (le projecteur : une nappe de lumière derrière la caisse, fondue en haut et en bas)
+	local spot = inst("Frame", { Name = "Spot", BackgroundColor3 = cercle, BackgroundTransparency = 0.8, BorderSizePixel = 0, AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.52), Size = UDim2.fromScale(0.96, 0.84) }, parent)
+	inst("UICorner", { CornerRadius = UDim.new(0.5, 0) }, spot)
+	inst("UIGradient", { Rotation = 90, Transparency = FONDU }, spot)
+	local halo = inst("Frame", { Name = "Halo", BackgroundColor3 = cercle, BackgroundTransparency = 0.6, BorderSizePixel = 0, AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.86), Size = UDim2.fromScale(1.02, 0.22) }, parent)
+	inst("UICorner", { CornerRadius = UDim.new(0.5, 0) }, halo)
+	inst("UIGradient", { Transparency = FONDU }, halo)
+	local ombre = inst("Frame", { Name = "Ombre", BackgroundColor3 = C.encre, BackgroundTransparency = 0.3, BorderSizePixel = 0, AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.88), Size = UDim2.fromScale(0.74, 0.1) }, parent)
+	inst("UICorner", { CornerRadius = UDim.new(0.5, 0) }, ombre)
+	inst("UIGradient", { Transparency = FONDU }, ombre)
+	local filet = inst("Frame", { Name = "Filet", BackgroundColor3 = cercle, BorderSizePixel = 0, AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.97), Size = UDim2.new(0.92, 0, 0, 3) }, parent)
+	inst("UIGradient", { Transparency = FONDU }, filet)
+	return halo, filet
+end
+-- LA VIGNETTE d'une caisse, posée sur un plateau cerclé de la couleur de sa rareté (le plateau du garage). (9/10, Sacha, capture à
+-- l'appui : « il faut un aperçu des vraies voitures » — la vignette du garage, 144 × 80 en gros pixels, s'étirait sur 480 unités.)
+-- L'image : le TIRAGE DE BOUTIQUE (Caisse.vignetteHD, 576 × 320, lisse) dès qu'il est décodé — à l'ouverture de la boutique, une caisse
+-- par image (voir chargerHD) ; en attendant (et une fois la boutique fermée), la vignette du garage, lissée elle aussi. Sans aucune
+-- image (API d'images refusées) : sa silhouette pixel à sa couleur.
+local VIGN: { any } = {} -- toutes les vignettes de la page (la une d'abord) : le tirage de boutique s'y pose en passant
+local function poserImage(v: any)
+	local ei = v.hd or v.ei
+	v.img.Visible = ei ~= nil
+	if ei then v.img.ImageContent = Content.fromObject(ei) else v.img.ImageContent = Content.none end
+	if v.sil then v.sil.Visible = ei == nil end
+end
+local function vignette(parent: Instance, i: number, cercle: Color3): any
+	local f = Catalogue[i]
+	local cadre = inst("Frame", { Name = "Vignette", BackgroundTransparency = 1, Size = UDim2.fromOffset(144, 80) }, parent)
+	plateau(cadre, cercle)
+	local ei = Caisse.vignetteImage(i)
+	local img = inst("ImageLabel", { Name = "Image", BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), ScaleType = Enum.ScaleType.Fit,
+		ZIndex = 2 }, cadre) -- (le rééchantillonnage par défaut : la caisse est LISSE, plus en pavés)
+	local v: any = { i = i, cadre = cadre, img = img, ei = ei, hd = nil }
+	if not ei then
+		v.sil = K.iconeRelief(cadre, "voiture", 8, Color3.fromHex(string.format("%06x", f.laque)), UDim2.fromScale(0.5, 0.45), Vector2.new(0.5, 0.5))
+	end
+	poserImage(v)
+	table.insert(VIGN, v)
+	return v
+end
+-- une PILE d'icônes qui grandit avec le pack (pièces pour l'argent, cœurs pour les cœurs) : rangées du bas vers le haut
+local PILES = { { 1 }, { 2 }, { 2, 1 }, { 3, 2 }, { 3, 2, 1 } }
+local function pile(parent: Instance, ico: string, couleur: Color3, n: number): Frame
+	local f = inst("Frame", { Name = "Pile", BackgroundTransparency = 1, Size = UDim2.fromOffset(170, 112), AnchorPoint = Vector2.new(0.5, 0) }, parent)
+	local px, pas = 5, 40
+	for r, nb in PILES[math.clamp(n, 1, #PILES)] do
+		local y = 112 - 45 - (r - 1) * 30
+		local x0 = 85 - ((nb - 1) * pas + 45) / 2
+		for j = 0, nb - 1 do
+			local ic = K.iconeRelief(f, ico, px, couleur, UDim2.fromOffset(x0 + j * pas, y))
+			ic.ZIndex = r
+		end
+	end
+	return f
 end
 
-local cases: { any } = {}
--- ════════ LA FENÊTRE D'ACHAT (shopPop, L22245 ; Sacha, 1/10 : « il faut que la fenêtre de la voiture sorte de la page en mode
--- pop-up pour valider la transaction ») ════════
--- Toucher une caisse de la vitrine la fait SORTIR de la grille : sa carte quitte sa place (un trou reste), grandit et vient se poser
--- au centre sur un voile — même photo (la caisse 3D de la case y passe : aucun maillage de plus), même nom — avec la rareté, sa
--- phrase, UN lingot d'or (ACHETER + son prix en Robux) et ANNULER. Fermer (ANNULER, le voile, RETOUR) la renvoie À SA PLACE par le
--- même chemin. (5/10, lot 2) ACHETER ouvre la fenêtre d'achat de Roblox (le produit de la caisse) ; le serveur la range au profil
--- (ProcessReceipt) et la fenêtre dit « A TOI ! ». Sans numéro dans Config.REVENUS.caisses : ACHETER le DIT (« BIENTOT DISPONIBLE »)
--- et ne donne jamais rien.
-local SP: any = { on = false }
+-- ════════ 1. OFFRES — LE HÉROS : la première chose vue ════════
+-- Le KIT DU PILOTE tant qu'il n'est pas pris (une fois par compte : 50 000 $, 3 cœurs, la traînée POUDRE D'OR), sinon le premier
+-- passe qu'on n'a pas. À droite, le prix en grand et UN lingot d'or — le seul de l'écran : c'est LA décision de la page. Pas encore en
+-- vente : le lingot laisse la place à une plaque terne BIENTOT (un bouton d'or qui ne vend rien serait un leurre).
+local PASSES = {
+	argent2 = { ico = "piece", c = OR1, titre = { "x2 ARGENT", "x2 CASH" },
+		txt = { "Tout l'argent de tes parties compte DOUBLE. Pour toujours.", "All the cash from your runs counts DOUBLE. Forever." } },
+	-- (NitroPasse : le passe est à soi — NitroInfini, lui, dit s'il AGIT : son interrupteur est dans les RÉGLAGES)
+	nitroInfini = { ico = "flamme", c = VIOLET, titre = { "NITRO INFINIE", "INFINITE NITRO" },
+		txt = { "La jauge ne se vide JAMAIS : nitro à fond, tout le temps. Elle se coupe dans les réglages.",
+			"The gauge NEVER empties: full nitro, all the time. Switch it off in the settings." } },
+	vip = { ico = "etoile", c = C.cyan, titre = { "VIP", "VIP" },
+		txt = { "Cadeaux du jour et de temps de jeu DOUBLÉS, et ton nom en or au-dessus de ta caisse.",
+			"Daily and playtime gifts DOUBLED, and your name in gold above your car." } },
+}
+local ORDRE_PASSES = { "argent2", "nitroInfini", "vip" }
+local HE: any = { kind = nil }
+local H_HEROS = 304
+local function choixHeros(): string?
+	if joueur:GetAttribute("KitPris") ~= true then return "kit" end
+	for _, cle in ORDRE_PASSES do
+		local a = ART[cle]
+		if a and not possede(a) and (cle ~= "vip" or vendable(a)) then return cle end
+	end
+	return nil
+end
+local function creerHeros(page: Instance): any
+	local s = inst("Frame", { Name = "Offres", BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, H_HEROS) }, page)
+	local c = carte(s, OR1, false)
+	c.boite.Size = UDim2.fromScale(1, 1)
+	HE.c = c
+	-- ── le KIT : la puce, le nom, la phrase, puis ce qu'il contient en trois tuiles ──
+	local kit = inst("Frame", { Name = "Kit", BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1) }, c.p)
+	HE.kit = kit
+	puce(kit, tr("OFFRE DE BIENVENUE", "WELCOME OFFER"), OR1, 17, UDim2.fromOffset(26, 24))
+	HE.kitTitre = K.texte(kit, { italique = true, Text = tr("KIT DU PILOTE", "DRIVER'S KIT"), TextSize = 46, TextColor3 = OR1, Size = UDim2.fromOffset(500, 52),
+		Position = UDim2.fromOffset(24, 64), TextXAlignment = GAUCHE, TextWrapped = false, epais = 4, ajuste = 6 })
+	HE.kitPhrase = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.TXT, TextSize = 22, TextColor3 = C.texte2, TextXAlignment = GAUCHE,
+		Text = tr("Tout pour bien démarrer, en un seul achat.", "Everything to get going, in one purchase."), Size = UDim2.fromOffset(500, 26),
+		Position = UDim2.fromOffset(26, 118) }, kit)
+	local kt = R.kit
+	local nomHabit, catHabit = "?", "trainee"
+	do
+		local cat, hid = string.match(kt.habit or "", "^(%w+):(%w+)$")
+		catHabit = cat or catHabit
+		for _, d in (cat and Config.HABITS[cat]) or {} do
+			if d.id == hid then nomHabit = Hud.sansAccent(string.upper(FR and d.nom or (d.en or d.nom))) end
+		end
+	end
+	local MOT_CAT = { trainee = { "LA TRAINEE", "THE TRAIL" }, peinture = { "LA PEINTURE", "THE PAINT" }, aile = { "LES AILES", "THE WINGS" } }
+	local mot = MOT_CAT[catHabit] or MOT_CAT.trainee
+	HE.tuiles = {}
+	for j, it in {
+		{ ico = "piece", c = C.menthe, v = Hud.compte(kt.argent), sous = tr("SUR TON COMPTE", "TO YOUR ACCOUNT") },
+		{ ico = "coeur", c = C.rouge, v = kt.coeurs .. tr(" COEURS", " HEARTS"), sous = tr("UNE VIE CHACUN", "ONE LIFE EACH") },
+		{ ico = (catHabit == "trainee") and "trainee" or "pinceau", c = OR1, v = nomHabit, sous = tr(mot[1] .. ", AU GARAGE", mot[2] .. ", IN YOUR GARAGE") },
+	} do
+		local t = inst("Frame", { Name = "Contenu" .. j, BackgroundColor3 = C.encre, BackgroundTransparency = 0.35, BorderSizePixel = 0, Size = UDim2.fromOffset(150, 132) }, kit)
+		inst("UIStroke", { Color = it.c, Thickness = 2, ApplyStrokeMode = BORD }, t)
+		inst("Frame", { BackgroundColor3 = it.c, BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 4) }, t)
+		K.iconeRelief(t, it.ico, 6, it.c, UDim2.new(0.5, 0, 0, 14), Vector2.new(0.5, 0))
+		K.texte(t, { Text = it.v, TextSize = 24, TextColor3 = it.c, Size = UDim2.new(1, -12, 0, 28), Position = UDim2.fromOffset(6, 74), TextWrapped = false, epais = 3, ajuste = 4 })
+		local sous = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.TXT, TextSize = 18, TextColor3 = C.texte2, Text = it.sous, TextScaled = true,
+			Size = UDim2.new(1, -12, 0, 20), Position = UDim2.fromOffset(6, 104) }, t)
+		inst("UITextSizeConstraint", { MaxTextSize = 18, MinTextSize = 12 }, sous)
+		table.insert(HE.tuiles, t)
+		if j < 3 then
+			-- le « + » entre deux tuiles : ce qu'on obtient s'ADDITIONNE
+			local plus = K.texte(kit, { Text = "+", TextSize = 30, TextColor3 = OR1, Size = UDim2.fromOffset(24, 30), TextWrapped = false, epais = 3 })
+			plus.Name = "Plus" .. j
+		end
+	end
+	-- ── un PASSE : son icône en grand, son nom, ce qu'il fait ──
+	local ps = inst("Frame", { Name = "Passe", BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Visible = false }, c.p)
+	HE.passe = ps
+	HE.pPuce = puce(ps, tr("A LA UNE", "FEATURED"), OR1, 17, UDim2.fromOffset(26, 24))
+	HE.pIcone = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(117, 117), Position = UDim2.fromOffset(30, 92) }, ps)
+	HE.pTitre = K.texte(ps, { italique = true, Text = "", TextSize = 46, TextColor3 = OR1, Size = UDim2.fromOffset(500, 52), Position = UDim2.fromOffset(176, 86),
+		TextXAlignment = GAUCHE, TextWrapped = false, epais = 4, ajuste = 6 })
+	HE.pTxt = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.TXT, TextSize = 24, TextColor3 = C.texte, TextXAlignment = GAUCHE,
+		TextYAlignment = Enum.TextYAlignment.Top, TextWrapped = true, Text = "", Size = UDim2.fromOffset(500, 90), Position = UDim2.fromOffset(178, 146) }, ps)
+	-- ── à droite : le PRIX en grand, la note, et LE lingot (ou la plaque BIENTOT) ──
+	HE.prix = K.texte(c.p, { Text = "", TextSize = 50, TextColor3 = OR1, Size = UDim2.fromOffset(300, 56), Position = UDim2.new(1, -28, 0, 44),
+		AnchorPoint = Vector2.new(1, 0), TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false, epais = 4 })
+	HE.note = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.TXT, TextSize = 20, TextColor3 = C.texte2, TextXAlignment = Enum.TextXAlignment.Right,
+		Text = "", Size = UDim2.fromOffset(300, 24), Position = UDim2.new(1, -30, 0, 106), AnchorPoint = Vector2.new(1, 0) }, c.p)
+	HE.lingot = K.lingot(c.p, tr("ACHETER", "BUY"), UDim2.fromOffset(300, 96), UDim2.new(1, -30, 1, -30), Vector2.new(1, 1), 36)
+	K.cible(HE.lingot, 4)
+	HE.lingot.Activated:Connect(function() if HE.kind then acheter(ART[HE.kind]) end end)
+	HE.bientot = bouton(c.p, C.terne, UDim2.fromOffset(300, 86), UDim2.new(1, -30, 1, -34), Vector2.new(1, 1), 24)
+	HE.bientot.b.Activated:Connect(function() if HE.kind then acheter(ART[HE.kind]) end end)
+	HE.cadre = s
+	return s
+end
+-- le héros prend son contenu (kit ou passe) et sa couleur
+local function heros(kind: string)
+	if HE.kind == kind then return end
+	HE.kind = kind
+	local kit = kind == "kit"
+	HE.kit.Visible, HE.passe.Visible = kit, not kit
+	local col = OR1
+	if not kit then
+		local d = PASSES[kind]
+		col = d.c
+		HE.pTitre.Text, HE.pTitre.TextColor3 = tr(d.titre[1], d.titre[2]), d.c
+		HE.pTxt.Text = tr(d.txt[1], d.txt[2])
+		HE.pIcone:ClearAllChildren()
+		K.iconeRelief(HE.pIcone, d.ico, 13, d.c)
+		HE.pPuce.BackgroundColor3 = d.c
+	end
+	HE.c.trait.Color, HE.c.bande.BackgroundColor3 = col, col
+	HE.c.grad.Color = kit and ColorSequence.new(Color3.fromRGB(120, 78, 16), Color3.fromRGB(44, 18, 46))
+		or ColorSequence.new(Color3.fromRGB(40, 24, 74):Lerp(col, 0.32), Color3.fromRGB(14, 10, 32))
+	HE.note.Text = kit and tr("Une seule fois par compte.", "Once per account.") or tr("Achat unique : à toi pour toujours.", "One-time purchase: yours forever.")
+end
+local function placerHeros(cw: number): number
+	-- la colonne de gauche : ce qui reste à gauche du prix et du lingot
+	local L = cw - 26 - 300 - 30 - 30
+	HE.kitTitre.Size = UDim2.fromOffset(L, 52)
+	HE.kitPhrase.Size = UDim2.fromOffset(L, 26)
+	local g9 = 26 -- (l'écart entre deux tuiles, où se pose le « + »)
+	local tw = math.floor((L - 2 * g9) / 3)
+	for j, t in HE.tuiles do
+		t.Position = UDim2.fromOffset(26 + (j - 1) * (tw + g9), 152)
+		t.Size = UDim2.fromOffset(tw, 128)
+		local plus = HE.kit:FindFirstChild("Plus" .. j)
+		if plus then plus.Position = UDim2.fromOffset(26 + j * (tw + g9) - g9 / 2 - 12, 200) end
+	end
+	HE.pTitre.Size = UDim2.fromOffset(L - 150, 52)
+	HE.pTxt.Size = UDim2.fromOffset(L - 152, 110)
+	return H_HEROS
+end
+local function majHeros()
+	local kind = HE.kind
+	if not kind then return end
+	local a = ART[kind]
+	local p, vrai = prixArt(a)
+	local ok = vendable(a)
+	HE.lingot.Parent.Parent.Visible = ok
+	HE.bientot.boite.Visible = not ok
+	if not ok then HE.bientot.regler("bientot", tr("BIENTOT", "SOON")) end
+	ecrire(HE.prix, (p and (vrai or not ok)) and robux(p) or "")
+	HE.prix.TextColor3 = ok and OR1 or C.terne
+end
+
+-- ════════ 2. CAISSES — les légendaires en grand ════════
+-- La une (le CHAT ARC-EN-CIEL) en pleine largeur, puis la grille, de la moins chère à la plus chère (on entre par le petit prix).
+-- Les caisses RETIRÉES du catalogue (FORMULE OR, ENDURANCE 24, EL PATRON — `retire`) ne se vendent plus : elles ne s'affichent pas.
+local LISTE: { number } = {}
+for i = 0, 200 do
+	local f = Catalogue[i]
+	if f and f.cond and f.cond.k == "premium" and not f.retire and i ~= UNE then table.insert(LISTE, i) end
+end
+table.sort(LISTE, function(a, b)
+	local pa, pb = (R.prixCaisses and R.prixCaisses[a]) or 0, (R.prixCaisses and R.prixCaisses[b]) or 0
+	if pa ~= pb then return pa < pb end
+	return a < b
+end)
+local CA: any = { cartes = {} }
+local function creerCaisse(parent: Instance, i: number, une: boolean): any
+	local f = Catalogue[i]
+	local rr = RARETE[f.rar] or RARETE.legendaire
+	local c = carte(parent, une and C.magenta or rr[3], true)
+	if not une then c.grad.Color = ColorSequence.new(Color3.fromRGB(58, 30, 98), Color3.fromRGB(16, 10, 36)) end
+	local o: any = { i = i, c = c, une = une, a = ART["caisse" .. i], rar = rr }
+	o.v = vignette(c.p, i, rr[3])
+	o.rare = puce(c.p, tr(rr[1], rr[2]), C.encre, une and 17 or 15, UDim2.fromOffset(0, 0), nil, rr[3], rr[3])
+	if une then o.unePuce = puce(c.p, tr("A LA UNE", "FEATURED"), C.magenta, 18, UDim2.fromOffset(24, 24)) end
+	o.nom = K.texte(c.p, { Text = nomCaisse(i), TextSize = une and 40 or 26, TextColor3 = C.texte, TextXAlignment = GAUCHE, TextWrapped = false,
+		epais = 3, ajuste = 6 })
+	o.nom.ZIndex = 2
+	if une then
+		o.desc = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.TXT, TextSize = 22, TextColor3 = C.texte2, TextWrapped = true, Text = FR and (f.desc or "") or (f.descEN or f.desc or ""),
+			TextXAlignment = GAUCHE, TextYAlignment = Enum.TextYAlignment.Top, TextScaled = true }, c.p)
+		inst("UITextSizeConstraint", { MaxTextSize = 22, MinTextSize = 15 }, o.desc)
+	end
+	o.bt = bouton(c.p, C.magenta, UDim2.fromOffset(300, une and 82 or 76), UDim2.new(), nil, une and 26 or 24)
+	-- le PRIX achète (la fenêtre de Roblox confirme toujours) ; la caisse elle-même ouvre sa fiche, en grand
+	o.bt.b.Activated:Connect(function() acheter(o.a) end)
+	c.b.Activated:Connect(function() Boutique.pop(o) end)
+	return o
+end
+local function placerCaisse(o: any, w: number, h: number)
+	local c = o.c
+	c.boite.Size = UDim2.fromOffset(w, h)
+	if o.une then
+		local iw = math.min(math.floor(w * 0.5), 480)
+		local ih = math.floor(iw * RATIO)
+		o.v.cadre.Size = UDim2.fromOffset(iw, ih)
+		o.v.cadre.Position = UDim2.fromOffset(22, math.floor((h - ih) / 2) + 18)
+		local x0 = 22 + iw + 34
+		local rw = w - x0 - 28
+		o.rare.Position = UDim2.fromOffset(x0, 34)
+		o.nom.Position, o.nom.Size = UDim2.fromOffset(x0, 80), UDim2.fromOffset(rw, 46)
+		o.desc.Position, o.desc.Size = UDim2.fromOffset(x0, 136), UDim2.fromOffset(rw, h - 136 - 126)
+		o.bt.boite.Size = UDim2.fromOffset(math.min(rw, 340), 82)
+		o.bt.boite.Position, o.bt.boite.AnchorPoint = UDim2.new(1, -28, 1, -30), Vector2.new(1, 1)
+	else
+		local iw = w - 32
+		local ih = math.floor(iw * RATIO)
+		o.rare.Position = UDim2.fromOffset(18, 20)
+		o.v.cadre.Size = UDim2.fromOffset(iw, ih)
+		o.v.cadre.Position = UDim2.fromOffset(16, 46)
+		o.nom.Position, o.nom.Size = UDim2.fromOffset(18, 46 + ih + 10), UDim2.fromOffset(w - 36, 32)
+		o.bt.boite.Size = UDim2.fromOffset(w - 36, 76)
+		o.bt.boite.Position, o.bt.boite.AnchorPoint = UDim2.new(0, 16, 1, -22), Vector2.new(0, 1)
+	end
+end
+local function creerCaisses(page: Instance): Frame
+	local s = inst("Frame", { Name = "Caisses", BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 100) }, page)
+	entete(s, tr("CAISSES LEGENDAIRES", "LEGENDARY CARS"), tr("Achat unique, à toi pour toujours. Purement cosmétique : la vitesse vient du moteur.",
+		"One-time purchase, yours forever. Purely cosmetic: speed comes from the engine."), C.magenta)
+	CA.une = creerCaisse(s, UNE, true)
+	for rang, i in LISTE do CA.cartes[rang] = creerCaisse(s, i, false) end
+	CA.cadre = s
+	return s
+end
+local function placerCaisses(cw: number): number
+	local y = 104
+	placerCaisse(CA.une, cw, 340)
+	CA.une.c.boite.Position = UDim2.fromOffset(0, y)
+	y += 340 + 30
+	local gap = 26
+	local cols = math.max(2, math.floor((cw + gap) / (370 + gap)))
+	local w = math.floor((cw - gap * (cols - 1)) / cols)
+	local h = math.floor((w - 32) * RATIO) + 46 + 10 + 32 + 22 + 76 + 22
+	for rang, o in CA.cartes do
+		local col, lig = (rang - 1) % cols, (rang - 1) // cols
+		placerCaisse(o, w, h)
+		o.c.boite.Position = UDim2.fromOffset(col * (w + gap), y + lig * (h + gap))
+	end
+	local lignes = math.ceil(#CA.cartes / cols)
+	return y + lignes * h + math.max(0, lignes - 1) * gap
+end
+local function majCaisses()
+	for _, o in { CA.une, table.unpack(CA.cartes) } do
+		o.bt.regler(etatDe(o.a, tr("A TOI", "YOURS")))
+		-- (à soi : la carte passe au vert — elle t'attend au garage)
+		local moi = o.bt.etat == "possede"
+		local col = moi and C.vert or (o.une and C.magenta or o.rar[3])
+		if o.c.trait.Color ~= col then o.c.trait.Color, o.c.bande.BackgroundColor3 = col, col end
+	end
+end
+
+-- ════════ 3. ARGENT — cinq packs de $ (Config.REVENUS.argent — les montants se règlent là-bas) ════════
+-- Le montant en grand et en vert, une pile de pièces qui grandit avec le pack, le prix sur le bouton. « BONUS +x % » : le $ par Robux
+-- du pack comparé à celui du plus petit, sur les prix que Roblox rend pour CE joueur ; « MEILLEURE AFFAIRE » : le pack qui donne le
+-- plus de $ par Robux — seulement si TOUS les prix sont connus et qu'il bat le suivant d'au moins 5 %.
+local AR: any = { cartes = {} }
+local MENTHE = C.menthe
+local function creerArgent(page: Instance): Frame
+	local s = inst("Frame", { Name = "Argent", BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 100) }, page)
+	entete(s, tr("PACKS D'ARGENT", "CASH PACKS"), tr("Versé sur ton compte tout de suite : de quoi t'offrir une caisse au garage.",
+		"Paid into your account right away: enough to treat yourself to a car in the garage."), MENTHE)
+	for k, a in R.argent do
+		local c = carte(s, MENTHE, true)
+		c.grad.Color = ColorSequence.new(Color3.fromRGB(24, 64, 54), Color3.fromRGB(12, 16, 32))
+		local o: any = { k = k, c = c, a = ART["pack" .. k], v = a.v }
+		o.pile = pile(c.p, "piece", OR1, k)
+		o.montant = K.texte(c.p, { Text = Hud.compte(a.v), TextSize = 30, TextColor3 = MENTHE, Size = UDim2.new(1, -24, 0, 36), TextWrapped = false, epais = 3, ajuste = 4 })
+		o.bonus = puce(c.p, "", MENTHE, 16, UDim2.new(0.5, 0, 0, 0), Vector2.new(0.5, 0))
+		o.bonus.Visible = false
+		o.meilleur = puce(c.p, tr("MEILLEURE AFFAIRE", "BEST VALUE"), OR1, 15, UDim2.new(0.5, 0, 0, 0), Vector2.new(0.5, 0.5))
+		o.meilleur.ZIndex = 10
+		o.meilleur.Visible = false
+		o.bt = bouton(c.p, MENTHE, UDim2.fromOffset(200, 76), UDim2.new(), nil, 24)
+		o.bt.b.Activated:Connect(function() acheter(o.a) end)
+		c.b.Activated:Connect(function() acheter(o.a) end)
+		AR.cartes[k] = o
+	end
+	AR.cadre = s
+	return s
+end
+local function placerArgent(cw: number): number
+	local y = 104
+	local gap = 22
+	local n = #AR.cartes
+	local cols = (cw >= 1180) and n or math.min(n, 3)
+	local w = math.floor((cw - gap * (cols - 1)) / cols)
+	local h = 330
+	for k, o in AR.cartes do
+		local col, lig = (k - 1) % cols, (k - 1) // cols
+		-- (la dernière rangée, incomplète, se centre)
+		local dansRang = math.min(cols, n - lig * cols)
+		local x0 = math.floor((cw - (dansRang * w + (dansRang - 1) * gap)) / 2)
+		o.c.boite.Size = UDim2.fromOffset(w, h)
+		o.c.boite.Position = UDim2.fromOffset(x0 + col * (w + gap), y + 14 + lig * (h + gap + 14))
+		o.pile.Position = UDim2.new(0.5, 0, 0, 30)
+		o.montant.Position = UDim2.fromOffset(12, 152)
+		o.bonus.Position = UDim2.new(0.5, 0, 0, 196)
+		o.bt.boite.Size = UDim2.fromOffset(w - 32, 76)
+		o.bt.boite.Position, o.bt.boite.AnchorPoint = UDim2.new(0, 16, 1, -20), Vector2.new(0, 1)
+	end
+	local lignes = math.ceil(n / cols)
+	return y + 14 + lignes * h + (lignes - 1) * (gap + 14)
+end
+local function majArgent()
+	-- le $ par Robux de chaque pack, sur les VRAIS prix seulement
+	local r: { [number]: number } = {}
+	local tous = true
+	for k, o in AR.cartes do
+		o.bt.regler(etatDe(o.a))
+		local p, vrai = prixArt(o.a)
+		if vrai and p and p > 0 then r[k] = o.v / p else tous = false end
+	end
+	local best, r1, r2 = nil, 0, 0
+	for k, x in r do
+		if x > r1 then best, r1, r2 = k, x, r1 elseif x > r2 then r2 = x end
+	end
+	for k, o in AR.cartes do
+		local pct = (r[1] and r[k] and k > 1) and math.floor((r[k] / r[1] - 1) * 100 + 0.5) or 0
+		o.bonus.Visible = pct >= 5
+		if pct >= 5 then ecrire(o.bonus:FindFirstChildOfClass("TextLabel"), "BONUS +" .. pct .. tr(" %", "%")) end
+		o.meilleur.Visible = tous and best == k and r2 > 0 and r1 >= r2 * 1.05
+	end
+end
+
+-- ════════ 4. AVANTAGES — les passes, la roue, les cœurs ════════
+local AV: any = { passes = {}, coeurs = {} }
+local function creerPasse(parent: Instance, cle: string): any
+	local d = PASSES[cle] or { ico = "etoile", c = C.magenta, titre = { "3 TOURS DE ROUE", "3 WHEEL SPINS" },
+		txt = { "Trois tours de LA ROUE : argent, habillages, caisses exclusives. Les chances s'affichent dans LA ROUE.",
+			"Three spins of THE WHEEL at once: cash, skins, exclusive cars. The odds are shown in THE WHEEL." } }
+	local roue = cle == "tours3"
+	local col = roue and C.magenta or d.c
+	local c = carte(parent, col, true)
+	local o: any = { cle = cle, c = c, a = ART[cle], roue = roue }
+	local ico = roue and "..#####..|.#..#..#.|#.#.#.#.#|#..###..#|#########|#..###..#|#.#.#.#.#|.#..#..#.|..#####.." or d.ico -- (la roue de l'accueil)
+	K.iconeRelief(c.p, ico, 8, col, UDim2.fromOffset(22, 26))
+	o.tag = puce(c.p, roue and "x3" or tr("A VIE", "FOREVER"), col, 16, UDim2.new(1, -20, 0, 26), Vector2.new(1, 0))
+	o.nom = K.texte(c.p, { italique = true, Text = tr(d.titre[1], d.titre[2]), TextSize = 30, TextColor3 = C.texte, Position = UDim2.fromOffset(20, 112),
+		TextXAlignment = GAUCHE, TextWrapped = false, epais = 3, ajuste = 6 })
+	o.txt = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.TXT, TextSize = 20, TextColor3 = C.texte2, TextWrapped = true, Text = tr(d.txt[1], d.txt[2]),
+		TextXAlignment = GAUCHE, TextYAlignment = Enum.TextYAlignment.Top, Position = UDim2.fromOffset(20, 156), TextScaled = true }, c.p)
+	inst("UITextSizeConstraint", { MaxTextSize = 20, MinTextSize = 14 }, o.txt)
+	o.bt = bouton(c.p, col, UDim2.fromOffset(200, 76), UDim2.new(), nil, 24)
+	o.bt.b.Activated:Connect(function() acheter(o.a) end)
+	c.b.Activated:Connect(function() acheter(o.a) end)
+	return o
+end
+local NB_COEURS = { "coeur", "coeur5", "coeur15" }
+local function creerAvantages(page: Instance): Frame
+	local s = inst("Frame", { Name = "Avantages", BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 100) }, page)
+	entete(s, tr("AVANTAGES A VIE", "LIFETIME PERKS"), tr("Achetés une fois, à toi pour toujours.", "Buy once, yours forever."), C.cyan)
+	for _, cle in { "argent2", "nitroInfini", "vip", "tours3" } do
+		if ART[cle] then table.insert(AV.passes, creerPasse(s, cle)) end
+	end
+	-- les CŒURS : leur en-tête dit ce qu'est un cœur et combien on en a (la police du texte sait dessiner « ♥ », pas la police pixel)
+	AV.coeursTete, AV.stock = entete(s, tr("COEURS", "HEARTS"), "", C.rouge)
+	for j, q in NB_COEURS do
+		if ART[q] then
+			local c = carte(s, C.rouge, true)
+			c.grad.Color = ColorSequence.new(Color3.fromRGB(78, 22, 50), Color3.fromRGB(14, 10, 32))
+			local n = R.coeursPar[q] or 1
+			local o: any = { q = q, n = n, c = c, a = ART[q] }
+			o.pile = pile(c.p, "coeur", C.rouge, ({ 1, 3, 5 })[j] or 1)
+			o.nom = K.texte(c.p, { Text = n .. tr((n > 1) and " COEURS" or " COEUR", (n > 1) and " HEARTS" or " HEART"), TextSize = 28, TextColor3 = C.rouge,
+				Size = UDim2.new(1, -24, 0, 34), TextWrapped = false, epais = 3, ajuste = 4 })
+			o.bonus = puce(c.p, "", C.rouge, 16, UDim2.new(0.5, 0, 0, 0), Vector2.new(0.5, 0))
+			o.bonus.Visible = false
+			o.bt = bouton(c.p, C.rouge, UDim2.fromOffset(200, 76), UDim2.new(), nil, 24)
+			o.bt.b.Activated:Connect(function() acheter(o.a) end)
+			c.b.Activated:Connect(function() acheter(o.a) end)
+			table.insert(AV.coeurs, o)
+		end
+	end
+	AV.cadre = s
+	return s
+end
+-- une carte d'avantage se montre ? (VIP, 3 TOURS : seulement s'ils existent ; 3 TOURS : seulement là où le hasard payant est permis)
+local OF: any = { hasardOK = false, n = 0 }
+local function passeVisible(o: any): boolean
+	if o.cle == "vip" or o.roue then
+		if not vendable(o.a) then return false end
+		if o.roue and not OF.hasardOK then return false end
+	end
+	return true
+end
+local function placerAvantages(cw: number): number
+	local y = 104
+	local vis = {}
+	for _, o in AV.passes do
+		o.c.boite.Visible = passeVisible(o)
+		if o.c.boite.Visible then table.insert(vis, o) end
+	end
+	local gap = 22
+	local n = math.max(1, #vis)
+	local cols = n
+	if (cw - gap * (n - 1)) / n < 230 then cols = math.ceil(n / 2) end
+	local w = math.floor((cw - gap * (cols - 1)) / cols)
+	for j, o in vis do
+		local col, lig = (j - 1) % cols, (j - 1) // cols
+		o.c.boite.Size = UDim2.fromOffset(w, 330)
+		o.c.boite.Position = UDim2.fromOffset(col * (w + gap), y + lig * (330 + gap))
+		o.nom.Size = UDim2.fromOffset(w - 40, 36)
+		o.txt.Size = UDim2.fromOffset(w - 40, 64)
+		o.bt.boite.Size = UDim2.fromOffset(w - 32, 76)
+		o.bt.boite.Position, o.bt.boite.AnchorPoint = UDim2.new(0, 16, 1, -20), Vector2.new(0, 1)
+	end
+	local lignes = math.ceil(n / cols)
+	y += lignes * 330 + (lignes - 1) * gap + 48
+	AV.coeursTete.Position = UDim2.fromOffset(0, y)
+	y += 104
+	local m = #AV.coeurs
+	local wc = math.floor((cw - gap * (m - 1)) / math.max(1, m))
+	for j, o in AV.coeurs do
+		o.c.boite.Size = UDim2.fromOffset(wc, 330)
+		o.c.boite.Position = UDim2.fromOffset((j - 1) * (wc + gap), y)
+		o.pile.Position = UDim2.new(0.5, 0, 0, 26)
+		o.nom.Position = UDim2.fromOffset(12, 146)
+		o.bonus.Position = UDim2.new(0.5, 0, 0, 190)
+		o.bt.boite.Size = UDim2.fromOffset(wc - 32, 76)
+		o.bt.boite.Position, o.bt.boite.AnchorPoint = UDim2.new(0, 16, 1, -20), Vector2.new(0, 1)
+	end
+	return y + 330
+end
+local function majAvantages()
+	for _, o in AV.passes do
+		local e, t = etatDe(o.a, tr("ACTIF", "ACTIVE"))
+		-- (la roue : on l'achète DANS la roue — le bouton y mène, et dit son prix)
+		if o.roue and e == "acheter" then t = tr("LA ROUE", "THE WHEEL") .. "   " .. t end
+		o.bt.regler(e, t)
+		local col = (e == "possede") and C.vert or (o.roue and C.magenta or PASSES[o.cle].c)
+		if o.c.trait.Color ~= col then o.c.trait.Color, o.c.bande.BackgroundColor3 = col, col end
+	end
+	local nC = Revenus.coeurs()
+	if AV.stock then
+		ecrire(AV.stock, tr("Un cœur = une vie : quand ta caisse explose, tu repars là où tu étais.   Tu en as : ♥ " .. nC,
+			"One heart = one life: when your car blows up, you carry on right where you were.   You have: ♥ " .. nC))
+	end
+	-- le BONUS des packs de cœurs : les cœurs par Robux, comparés au cœur seul (sur les vrais prix)
+	local p1, v1 = nil, false
+	if ART.coeur then p1, v1 = prixArt(ART.coeur) end
+	for _, o in AV.coeurs do
+		o.bt.regler(etatDe(o.a))
+		local p, vrai = prixArt(o.a)
+		local pct = (v1 and vrai and p1 and p and p > 0 and o.n > 1) and math.floor(((o.n / p) / (1 / p1) - 1) * 100 + 0.5) or 0
+		o.bonus.Visible = pct >= 5
+		if pct >= 5 then ecrire(o.bonus:FindFirstChildOfClass("TextLabel"), "BONUS +" .. pct .. tr(" %", "%")) end
+	end
+end
+
+-- ════════ LA FENÊTRE D'ACHAT D'UNE CAISSE (shopPop du web ; Sacha, 1/10 : « il faut que la fenêtre de la voiture sorte de la page
+-- en mode pop-up pour valider la transaction ») ════════
+-- Toucher une caisse la fait SORTIR de la page : sa carte quitte sa place (un trou reste), grandit et vient se poser au centre sur
+-- un voile — LA VRAIE CAISSE EN 3D sur son plateau tournant (voir LA VITRINE 3D plus bas), la rareté, le nom, sa phrase, ce qu'elle est
+-- (cosmétique), UN lingot d'or (ACHETER) et FERMER. Fermer (FERMER, le voile, RETOUR) la renvoie À SA PLACE par le même chemin. Déjà à
+-- soi : une plaque verte A TOI ; pas encore en vente : une plaque terne BIENTOT — jamais un lingot qui ne vend rien.
+-- (9/10, Sacha : « quand on clique dessus on peut les voir bien ») la fenêtre a grandi (760 × 628 → 900 × 680) : la scène fait toute
+-- sa largeur, 844 × 340.
+local EL0 = 0.25 -- l'assiette d'arrivée de la caméra (un peu plus bas que les photos du garage, 0,27 : la caisse prend plus de place
+-- que son plateau)
+local SP: any = { on = false, jeton = 0, az = 0, el = EL0, vAz = 0 }
+local FW, FH = 900, 680
+local SCENE_H = 340
+
+-- ════════ LA VITRINE 3D DE LA FENÊTRE D'ACHAT ════════
+-- La caisse entière en UN maillage (Caisse.vignette : celle que le garage et LA ROUE photographient — mêmes triangles, mêmes couleurs
+-- que sur la route), dans un ViewportFrame : posée sur un PLATEAU de carbone cerclé d'un jonc de néon à la couleur de sa rareté, elle
+-- tourne doucement ; on la fait pivoter au doigt ou à la souris (glisser à gauche, à droite ; en haut, en bas pour la voir de plus haut
+-- ou de plus bas), elle garde son élan quand on lâche, puis le plateau reprend sa ronde. La caméra est cadrée sur la boîte de la caisse
+-- sous TOUS ses angles et sur le bord du plateau : quel que soit l'angle, rien ne sort du cadre, et le cadre ne respire pas pendant la
+-- ronde (premier essai, sur le cylindre qui enveloppait tout : la caisse n'occupait qu'un tiers de la scène). Une seule caisse 3D à la fois, RENDUE (son
+-- maillage rendu au budget de Roblox) dès que la fenêtre se ferme. Le budget trop juste, ou Roblox qui refuse le maillage : la fenêtre
+-- garde le tirage de boutique, qui flotte au-dessus du plateau (le repli d'avant).
+local VUE_AMB, VUE_LUM = Color3.fromRGB(150, 150, 178), Color3.fromRGB(255, 244, 230) -- (la lumière des photos du garage)
+local AUTO = 0.38 -- la ronde du plateau (radians par seconde : un tour en 16 s)
+local EL_MIN, EL_MAX = 0.06, 0.72 -- l'assiette de la caméra : du ras du plateau à la vue plongeante
+local AZ0 = math.pi - 0.82 -- l'angle d'arrivée : le trois-quarts avant des photos du garage, nez à gauche
+local CARBONE3D = Color3.fromRGB(30, 24, 52)
+local function creerVue(scene: Instance)
+	local vue = inst("ViewportFrame", { Name = "Vue3D", BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Ambient = VUE_AMB, LightColor = VUE_LUM,
+		ImageTransparency = 1, Visible = false, Active = true, ZIndex = 3 }, scene)
+	local cam = Instance.new("Camera")
+	cam.FieldOfView = 24
+	cam.Parent = vue
+	vue.CurrentCamera = cam
+	-- le PLATEAU : bâti une fois (des pièces simples : aucun maillage, aucun budget), mis à l'échelle de chaque caisse
+	local plat = Instance.new("Model")
+	plat.Name = "Plateau"
+	local function piece(nom: string, forme: Enum.PartType, couleur: Color3, matiere: Enum.Material): Part
+		local p = Instance.new("Part")
+		p.Name = nom
+		p.Shape = forme
+		p.Anchored = true
+		p.CanCollide = false
+		p.CanQuery = false
+		p.CanTouch = false
+		p.CastShadow = false
+		p.Color = couleur
+		p.Material = matiere
+		p.TopSurface, p.BottomSurface = Enum.SurfaceType.Smooth, Enum.SurfaceType.Smooth
+		p.Parent = plat
+		return p
+	end
+	local disque = piece("Disque", Enum.PartType.Cylinder, CARBONE3D, Enum.Material.SmoothPlastic)
+	local jonc = piece("Jonc", Enum.PartType.Cylinder, OR1, Enum.Material.Neon)
+	-- douze repères sur le pourtour : on VOIT le plateau tourner (une caisse vue de face semble sinon immobile)
+	local reperes = {}
+	for k = 1, 12 do
+		reperes[k] = piece("Repere", Enum.PartType.Block, Color3.fromRGB(74, 62, 120), Enum.Material.SmoothPlastic)
+	end
+	plat.PrimaryPart = disque
+	plat.Parent = vue
+	-- l'OMBRE de la caisse sur le plateau (une ellipse sombre : le ViewportFrame ne projette pas d'ombre)
+	local ombre = piece("Ombre", Enum.PartType.Block, C.encre, Enum.Material.SmoothPlastic)
+	ombre.Transparency = 0.35
+	local sm = Instance.new("SpecialMesh")
+	sm.MeshType = Enum.MeshType.Sphere
+	sm.Parent = ombre
+	ombre.Parent = vue
+	SP.vue, SP.cam, SP.plat, SP.disque, SP.jonc, SP.reperes, SP.ombre = vue, cam, plat, disque, jonc, reperes, ombre
+end
+-- le plateau et l'ombre à la mesure de la caisse (R = le rayon du cylindre qui l'enveloppe)
+local function cadrerPlateau(R: number, sz: Vector3)
+	local ep = math.max(0.05, R * 0.07)
+	SP.disque.Size = Vector3.new(ep, R * 2, R * 2)
+	SP.jonc.Size = Vector3.new(ep * 0.8, R * 2.05, R * 2.05)
+	for _, p in SP.reperes do p.Size = Vector3.new(R * 0.025, ep * 0.2, R * 0.1) end
+	SP.ombre.Size = Vector3.new(sz.X * 1.08, 0.02, sz.Z * 1.04)
+	-- LES POINTS À GARDER DANS LE CADRE : les huit coins de la boîte de la caisse sous 24 angles (elle tourne : tous les angles
+	-- comptent, sinon le cadre respire pendant la ronde) et le bord du plateau, dessus et dessous
+	local pts = {}
+	local cy = SP.decal.Y
+	for k = 0, 23 do
+		local r = CFrame.Angles(0, k * math.pi / 12, 0)
+		for _, sx in { -0.5, 0.5 } do
+			for _, sy in { -0.5, 0.5 } do
+				for _, sz9 in { -0.5, 0.5 } do table.insert(pts, r * Vector3.new(sz.X * sx, cy + sz.Y * sy, sz.Z * sz9)) end
+			end
+		end
+	end
+	for k = 0, 23 do
+		local a = k * math.pi / 12
+		for _, y in { 0, -ep } do table.insert(pts, Vector3.new(math.cos(a) * R * 1.03, y, math.sin(a) * R * 1.03)) end
+	end
+	SP.pts, SP.cle = pts, nil
+end
+-- LE CADRAGE (objectif de 24°, comme les photos du garage) : pour l'assiette `el` et la forme de la scène, le recul juste nécessaire
+-- pour que TOUS les points tiennent dans le cadre (avec un peu d'air), et la visée qui centre l'ensemble à l'écran. Recalculé seulement
+-- quand l'assiette ou la scène changent.
+local TV = math.tan(math.rad(12))
+local function cadrer(el: number, A: number)
+	if SP.cle and SP.cleEl == el and math.abs(SP.cleA - A) < 0.002 then return end
+	SP.cle, SP.cleEl, SP.cleA = true, el, A
+	local dir = Vector3.new(0, math.sin(el), math.cos(el))
+	local haut = Vector3.new(0, math.cos(el), -math.sin(el))
+	local mv, mh = 0.9, 0.94 -- (l'air autour : la puce de rareté en haut, l'astuce en bas)
+	-- la visée : le milieu de l'étendue verticale vue de très loin, puis une correction de perspective (le devant du plateau, plus
+	-- près, descend plus bas à l'écran que le toit ne monte)
+	local lo, hi = math.huge, -math.huge
+	for _, p in SP.pts do
+		local y = p:Dot(haut)
+		lo, hi = math.min(lo, y), math.max(hi, y)
+	end
+	local ty = (lo + hi) / 2 / math.cos(el)
+	local d = 0
+	for passe = 1, 3 do
+		local T = Vector3.new(0, ty, 0)
+		d = 0
+		for _, p in SP.pts do
+			local q = p - T
+			local long = q:Dot(dir)
+			d = math.max(d, long + math.abs(q:Dot(haut)) / (TV * mv), long + math.abs(q.X) / (TV * A * mh))
+		end
+		if passe == 3 then break end -- (le dernier recul est pris sur la dernière visée)
+		local bas, sommet = math.huge, -math.huge
+		for _, p in SP.pts do
+			local q = p - T
+			local t = q:Dot(haut) / (d - q:Dot(dir))
+			bas, sommet = math.min(bas, t), math.max(sommet, t)
+		end
+		ty += (bas + sommet) / 2 * d / math.cos(el)
+	end
+	SP.cible, SP.d = Vector3.new(0, ty, 0), d
+end
+-- la pose de chaque image : la caisse, son plateau et son ombre tournés de SP.az ; la caméra au cadrage de l'assiette
+local function poserVue()
+	local corps = SP.corps
+	if not corps or not corps.Parent then return end
+	local rot = CFrame.Angles(0, SP.az, 0)
+	corps.CFrame = rot * CFrame.new(SP.decal)
+	local R = SP.R
+	local ep = SP.disque.Size.X
+	SP.disque.CFrame = rot * CFrame.new(0, -ep / 2, 0) * CFrame.Angles(0, 0, math.pi / 2)
+	SP.jonc.CFrame = rot * CFrame.new(0, -ep * 0.62, 0) * CFrame.Angles(0, 0, math.pi / 2)
+	for k, p in SP.reperes do
+		p.CFrame = rot * CFrame.Angles(0, k * math.pi / 6, 0) * CFrame.new(0, 0, R * 0.9) * CFrame.new(0, ep * 0.1 - 0.001, 0)
+	end
+	SP.ombre.CFrame = rot * CFrame.new(SP.decal.X, 0.012, SP.decal.Z)
+	local el = SP.el
+	local taille = SP.vue.AbsoluteSize
+	cadrer(el, (taille.X > 10 and taille.Y > 10) and taille.X / taille.Y or (FW - 56) / SCENE_H)
+	local dir = Vector3.new(0, math.sin(el), math.cos(el))
+	SP.cam.CFrame = CFrame.lookAt(SP.cible + dir * SP.d, SP.cible)
+	SP.vue.LightDirection = (-dir * 0.5 + Vector3.new(0.5, -1, 0.2)).Unit -- (la lampe des photos du garage : en haut à gauche, côté caméra)
+end
+-- le GLISSER (doigt ou souris, en pixels d'écran) : toute la largeur de la scène fait presque un tour ; l'élan se mesure au passage
+function SP.glisser(dx: number, dy: number)
+	if not SP.corps then return end
+	local taille = SP.vue.AbsoluteSize
+	local da = dx / math.max(80, taille.X) * 5.6
+	SP.az += da
+	SP.el = math.clamp(SP.el + dy / math.max(40, taille.Y) * 0.9, EL_MIN, EL_MAX)
+	local t = os.clock()
+	local dt = math.clamp(t - (SP.tG or t), 1 / 240, 0.1)
+	SP.tG = t
+	SP.vAz = SP.vAz * 0.5 + math.clamp(da / dt, -9, 9) * 0.5
+	if not SP.aTourne then
+		SP.aTourne = true
+		TweenService:Create(SP.astuce, K.LENTE, { TextTransparency = 1 }):Play() -- (on a compris : l'astuce s'efface)
+	end
+	poserVue()
+end
+-- chaque image, fenêtre ouverte avec sa caisse 3D : la ronde (et l'élan du dernier glisser, qui s'éteint)
+local function tourner(dt: number)
+	if not SP.corps then return end
+	if not SP.tient and not SP.fige then
+		SP.vAz *= math.exp(-dt * 3.2)
+		local k = math.clamp((os.clock() - (SP.lache or 0) - 1) / 1.2, 0, 1) -- (lâchée : une seconde de répit, puis la ronde revient)
+		SP.az += (SP.vAz + AUTO * k) * dt
+	end
+	poserVue()
+end
+-- la caisse 3D arrive (bâtie à part : l'ouverture ne l'attend pas) : elle prend la place du tirage, en fondu
+local function montrerVue(m: Model, i: number)
+	local corps = m.PrimaryPart :: BasePart
+	local sz, ce = corps.Size, corps.Position
+	SP.modele, SP.corps = m, corps
+	SP.decal = Vector3.new(0, ce.Y, 0) -- (la caisse tourne autour du centre de sa boîte, les roues au ras du plateau)
+	SP.R = math.sqrt(sz.X * sz.X + sz.Z * sz.Z) / 2 * 1.05 + 0.05
+	SP.haut = ce.Y + sz.Y / 2
+	cadrerPlateau(SP.R, sz)
+	m.Parent = SP.vue
+	SP.az, SP.el, SP.vAz, SP.tient, SP.lache, SP.fige = AZ0, EL0, 0, nil, nil, nil
+	poserVue()
+	SP.vue.Visible = true
+	SP.vue.ImageTransparency = 1
+	TweenService:Create(SP.vue, K.LENTE, { ImageTransparency = 0 }):Play()
+	TweenService:Create(SP.image, K.LENTE, { ImageTransparency = 1 }):Play()
+	for _, n in { "Halo", "Ombre", "Filet" } do -- (le plateau dessiné laisse la place au vrai)
+		local f = SP.scene:FindFirstChild(n)
+		if f then (f :: GuiObject).Visible = false end
+	end
+	SP.astuce.TextTransparency = 0
+	SP.astuce.Visible = true
+	SP.aTourne = false
+	if SP.boucle then SP.boucle:Disconnect() end
+	SP.boucle = RunService.RenderStepped:Connect(tourner)
+	SP.i3 = i
+end
+-- la caisse 3D s'en va : son maillage est RENDU au budget, la scène revient au tirage
+local function rendreVue()
+	SP.jeton += 1 -- (une caisse encore en chantier sera rendue à son arrivée)
+	if SP.boucle then
+		SP.boucle:Disconnect()
+		SP.boucle = nil
+	end
+	if SP.modele then
+		Caisse.rendre(SP.modele)
+		SP.modele, SP.corps = nil, nil
+	end
+	SP.tient, SP.i3 = nil, nil
+	SP.vue.Visible = false
+	SP.astuce.Visible = false
+	SP.image.ImageTransparency = 0
+	for _, n in { "Halo", "Ombre", "Filet" } do
+		local f = SP.scene:FindFirstChild(n)
+		if f then (f :: GuiObject).Visible = true end
+	end
+end
+-- bâtir la caisse 3D de la fenêtre (à part : CreateMeshPartAsync attend) — seulement s'il reste au budget de quoi la bâtir avec de la
+-- marge (le garage peut avoir sa vitrine sur le plateau) ; sinon, ou si Roblox refuse : le tirage reste
+local function batirVue(i: number)
+	SP.jeton += 1
+	local j = SP.jeton
+	task.spawn(function()
+		local besoin = (Catalogue[i].triangles or 3000) + 1500
+		local m = nil
+		if Maillage.libre() >= besoin and not SP.sans3d then m = Caisse.vignette(i) end
+		if SP.jeton ~= j or not SP.on then
+			if m then Caisse.rendre(m) end
+			return
+		end
+		if not m then
+			warn(string.format("[boutique] caisse 3D %d refusee (budget : %d libres pour %d) : la fenetre garde le tirage", i, Maillage.libre(), besoin))
+			return
+		end
+		montrerVue(m, i)
+	end)
+end
+
 local function creerFenetre(g: Instance)
 	local v = inst("Frame", { Name = "Fenetre", BackgroundColor3 = Color3.fromRGB(6, 4, 16), BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1),
-		Visible = false, Active = true }, g)
+		Visible = false, Active = true, ZIndex = 40 }, g)
 	local fond = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Text = "", AutoButtonColor = false }, v)
 	fond.Activated:Connect(function() Boutique.popFerme() end) -- (le VOILE ferme)
-	local W, H = 620, 600
-	local c = inst("Frame", { Name = "Carte", BackgroundColor3 = Color3.new(1, 1, 1), BorderSizePixel = 0, Size = UDim2.fromOffset(W, H),
-		AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Active = true }, v)
-	K.degrade(c, Color3.fromRGB(58, 26, 92), Color3.fromRGB(20, 12, 42), 90)
-	SP.trait = inst("UIStroke", { Color = OR1, Thickness = 3, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, c)
+	local c = inst("Frame", { Name = "Carte", BackgroundColor3 = BLANC, BorderSizePixel = 0, Size = UDim2.fromOffset(FW, FH), AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.5), Active = true, ZIndex = 2 }, v)
+	K.degrade(c, Color3.fromRGB(58, 26, 92), Color3.fromRGB(18, 10, 38), 90)
+	SP.trait = inst("UIStroke", { Color = OR1, Thickness = 3, ApplyStrokeMode = BORD }, c)
 	SP.bande = inst("Frame", { BackgroundColor3 = OR1, BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 6) }, c)
 	SP.echelle = inst("UIScale", {}, c)
-	SP.rare = K.texte(c, { Text = "", TextSize = 22, TextColor3 = OR1, Size = UDim2.fromOffset(300, 26), Position = UDim2.fromOffset(24, 22),
-		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
-	-- (5/10 : le badge « −50 % » est PARTI — une remise permanente, sans prix barré réel, est un faux rabais : interdit par Roblox)
-	SP.vue = inst("ViewportFrame", { BackgroundTransparency = 1, Size = UDim2.new(1, -40, 0, 250), Position = UDim2.fromOffset(20, 56),
-		Ambient = Color3.fromRGB(104, 100, 128), LightColor = Color3.fromRGB(226, 216, 204) }, c)
-	SP.pastille = inst("Frame", { BorderSizePixel = 0, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromOffset(150, 42) }, SP.vue)
-	SP.nom = K.texte(c, { Text = "", TextSize = 46, TextColor3 = C.texte, Size = UDim2.new(1, -48, 0, 52), Position = UDim2.fromOffset(24, 312),
-		TextXAlignment = Enum.TextXAlignment.Left, TextScaled = true, epais = 4 })
-	inst("UITextSizeConstraint", { MaxTextSize = 46, MinTextSize = 18 }, SP.nom)
+	-- LA SCÈNE, toute la largeur : le projecteur et le plateau dessinés, le tirage de boutique (qui flotte tant que la caisse 3D n'est
+	-- pas là — ou si elle est refusée), la vitrine 3D par-dessus
+	SP.scene = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(FW - 56, SCENE_H), Position = UDim2.new(0.5, 0, 0, 40), AnchorPoint = Vector2.new(0.5, 0) }, c)
+	SP.halo, SP.filet = plateau(SP.scene, OR1)
+	-- LE PROJECTEUR : une lueur RONDE à la couleur de la rareté, fondue dans tous les sens (l'ovale dessiné du plateau des cartes, à
+	-- cette taille, se lisait comme une pilule aux bords francs) — une petite image de 64 × 64 calculée ici, étirée et lissée ; refusée,
+	-- l'ovale reste
+	do
+		local okL, lueur = pcall(function() return game:GetService("AssetService"):CreateEditableImage({ Size = Vector2.new(64, 64) }) end)
+		if okL and lueur then
+			local b = buffer.create(64 * 64 * 4)
+			for y = 0, 63 do
+				for x = 0, 63 do
+					local dx, dy = (x + 0.5) / 32 - 1, (y + 0.5) / 32 - 1
+					local r = math.min(1, math.sqrt(dx * dx + dy * dy))
+					local a = (1 - r * r) ^ 2 * 0.34
+					buffer.writeu32(b, (y * 64 + x) * 4, 255 + 255 * 256 + 255 * 65536 + math.floor(a * 255 + 0.5) * 16777216)
+				end
+			end
+			if pcall(function() lueur:WritePixelsBuffer(Vector2.zero, Vector2.new(64, 64), b) end) then
+				SP.lueur = inst("ImageLabel", { Name = "Lueur", BackgroundTransparency = 1, Size = UDim2.fromScale(1.02, 1.12), Position = UDim2.fromScale(0.5, 0.5),
+					AnchorPoint = Vector2.new(0.5, 0.5), ImageColor3 = OR1, ImageContent = Content.fromObject(lueur) }, SP.scene)
+				local spot = SP.scene:FindFirstChild("Spot")
+				if spot then (spot :: GuiObject).Visible = false end
+			else
+				lueur:Destroy()
+			end
+		end
+	end
+	SP.image = inst("ImageLabel", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), ScaleType = Enum.ScaleType.Fit, ZIndex = 2 }, SP.scene)
+	creerVue(SP.scene)
+	-- l'astuce : on peut la faire tourner (elle s'efface au premier glisser)
+	SP.astuce = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.TXT, TextSize = 19, TextColor3 = C.terne, Text = tr("Glisse pour la faire tourner", "Drag to spin it"),
+		TextXAlignment = Enum.TextXAlignment.Right, Size = UDim2.fromOffset(360, 24), Position = UDim2.new(1, -6, 1, -26), AnchorPoint = Vector2.new(1, 0),
+		Visible = false, ZIndex = 4 }, SP.scene)
+	-- le glisser : il naît sur la scène, puis suit le doigt (ou la souris) partout jusqu'au lâcher
+	SP.vue.InputBegan:Connect(function(io: InputObject)
+		local t = io.UserInputType
+		if SP.corps and (t == Enum.UserInputType.MouseButton1 or t == Enum.UserInputType.Touch) then
+			SP.tient, SP.px, SP.vAz, SP.tG, SP.fige = io, io.Position, 0, os.clock(), nil
+		end
+	end)
+	UIS.InputChanged:Connect(function(io: InputObject)
+		local tn = SP.tient
+		if not tn then return end
+		local suit = (tn.UserInputType == Enum.UserInputType.Touch and io == tn)
+			or (tn.UserInputType == Enum.UserInputType.MouseButton1 and io.UserInputType == Enum.UserInputType.MouseMovement)
+		if not suit then return end
+		local d = io.Position - SP.px
+		SP.px = io.Position
+		SP.glisser(d.X, d.Y)
+	end)
+	UIS.InputEnded:Connect(function(io: InputObject)
+		local tn = SP.tient
+		if tn and (io == tn or (tn.UserInputType == Enum.UserInputType.MouseButton1 and io.UserInputType == Enum.UserInputType.MouseButton1)) then
+			SP.tient = nil
+			SP.lache = os.clock()
+			-- (lâchée sans élan — un doigt qui s'arrête avant de quitter l'écran — : pas de lancer fantôme)
+			if os.clock() - (SP.tG or 0) > 0.12 then SP.vAz = 0 end
+		end
+	end)
+	SP.rare, SP.rareT = puce(c, "", C.encre, 17, UDim2.fromOffset(28, 24), nil, OR1, OR1)
+	SP.rare.ZIndex = 5
+	SP.nom = K.texte(c, { Text = "", TextSize = 42, TextColor3 = C.texte, Size = UDim2.new(1, -56, 0, 50), Position = UDim2.fromOffset(28, 388),
+		TextXAlignment = GAUCHE, TextWrapped = false, epais = 4, ajuste = 6 })
 	SP.desc = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.TXT, TextSize = 22, TextColor3 = C.texte2, TextWrapped = true, Text = "",
-		TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, Size = UDim2.new(1, -48, 0, 78), Position = UDim2.fromOffset(24, 372),
-		TextScaled = true }, c)
-	inst("UITextSizeConstraint", { MaxTextSize = 22, MinTextSize = 13 }, SP.desc)
-	-- UN lingot d'or (ACHETER), ANNULER en cyan à côté — deux décisions, une seule dorée (la charte)
-	SP.oui = K.lingot(c, tr("ACHETER", "BUY"), UDim2.new(0.56, -30, 0, 84), UDim2.new(0, 24, 1, -58), Vector2.new(0, 1), 40)
-	SP.non = K.tuile(c, tr("ANNULER", "CANCEL"), C.cyan, UDim2.new(0.44, -30, 0, 72), UDim2.new(1, -24, 1, -64), Vector2.new(1, 1), 24, "gauche")
-	SP.note = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.TXT, TextSize = 17, TextColor3 = C.terne, TextWrapped = true, Text = "",
-		Size = UDim2.new(1, -48, 0, 40), Position = UDim2.new(0, 24, 1, -48), TextXAlignment = Enum.TextXAlignment.Left }, c)
+		TextXAlignment = GAUCHE, TextYAlignment = Enum.TextYAlignment.Top, Size = UDim2.new(1, -56, 0, 52), Position = UDim2.fromOffset(28, 442), TextScaled = true }, c)
+	inst("UITextSizeConstraint", { MaxTextSize = 22, MinTextSize = 15 }, SP.desc)
+	SP.note = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.TXT, TextSize = 19, TextColor3 = C.terne, TextWrapped = true, Text = "",
+		TextXAlignment = GAUCHE, TextYAlignment = Enum.TextYAlignment.Top, Size = UDim2.new(1, -56, 0, 44), Position = UDim2.fromOffset(28, 498), TextScaled = true }, c)
+	inst("UITextSizeConstraint", { MaxTextSize = 19, MinTextSize = 14 }, SP.note)
+	-- UN lingot d'or (ACHETER + le prix) — ou, à la même place, la plaque A TOI / BIENTOT ; FERMER en cyan à côté
+	SP.oui = K.lingot(c, tr("ACHETER", "BUY"), UDim2.new(0.58, -34, 0, 92), UDim2.new(0, 28, 1, -26), Vector2.new(0, 1), 34)
+	K.cible(SP.oui, 6)
+	SP.etat = bouton(c, C.terne, UDim2.new(0.58, -34, 0, 84), UDim2.new(0, 28, 1, -30), Vector2.new(0, 1), 24)
+	SP.non = K.tuile(c, tr("FERMER", "CLOSE"), C.cyan, UDim2.new(0.42, -30, 0, 84), UDim2.new(1, -28, 1, -30), Vector2.new(1, 1), 24, "croix", "g")
+	K.cible(SP.non, 6)
 	SP.acheter = function()
 		if not SP.on or SP.anim then return end
-		local i = SP.i
-		-- déjà à soi : rien à racheter
-		if possedeCaisse(i) then
+		local a = SP.o and SP.o.a
+		if not a then return end
+		if possede(a) then
 			Hud.toast(tr("DEJA A TOI : ELLE T'ATTEND AU GARAGE", "ALREADY YOURS: IT'S IN YOUR GARAGE"), C.vert, "coche")
 			return
 		end
-		-- le produit existe : la fenêtre d'achat de Roblox (le serveur accorde — ProcessReceipt — et range la caisse au profil)
-		local id = idCaisse(i)
-		if id > 0 then
-			pcall(function() MarketplaceService:PromptProductPurchase(joueur, id) end)
+		if vendable(a) then
+			acheter(a)
 			SP.note.Text = tr("Confirme dans la fenêtre de Roblox : la caisse arrive aussitôt dans ton garage.",
 				"Confirm in Roblox's window: the car lands in your garage right away.")
 			SP.note.TextColor3 = C.texte2
 			return
 		end
-		-- pas encore de numéro : on le DIT, dans la fenêtre, et rien n'est donné
+		-- pas encore en vente : on le DIT, dans la fenêtre, et rien n'est donné (un refus se sent : la carte tremble)
 		Sons.vrai("uiRefus", nil, nil, "tap", 0.8)
 		Hud.vibre(10)
-		SP.oui.TextScaled = true
-		SP.oui.Text = tr("BIENTOT DISPONIBLE", "COMING SOON")
-		SP.note.Text = tr("Les achats arrivent très bientôt.", "Purchases are coming very soon.") -- (le jeu est publié : plus de « à la sortie »)
+		SP.note.Text = tr("Cette caisse arrive très bientôt en boutique.", "This car is coming to the shop very soon.")
 		SP.note.TextColor3 = OR1
-		task.spawn(function() -- (un refus se sent : la carte tremble)
+		task.spawn(function()
 			for k = 1, 6 do
 				c.Position = UDim2.new(0.5, ((k % 2 == 0) and 1 or -1) * (7 - k), 0.5, 0)
 				task.wait(0.035)
@@ -206,70 +1114,67 @@ local function creerFenetre(g: Instance)
 		end)
 	end
 	SP.oui.Activated:Connect(SP.acheter)
+	SP.etat.b.Activated:Connect(SP.acheter)
 	SP.non.Activated:Connect(function() Boutique.popFerme() end)
-	-- l'état du lingot, tenu à jour tant que la fenêtre est ouverte : le prix qui arrive de Roblox, la caisse qui vient d'être achetée
-	-- (sans numéro, on n'y touche pas : « BIENTOT DISPONIBLE » reste écrit après l'appui)
+	-- l'état de la fenêtre, tenu à jour tant qu'elle est ouverte : le prix qui arrive de Roblox, la caisse qui vient d'être achetée
 	function SP.maj()
-		local i = SP.i
-		if possedeCaisse(i) then
-			SP.oui.TextSize = 40
-			ecrire(SP.oui, tr("A TOI !", "YOURS!"))
-			ecrire(SP.note, tr("Elle t'attend au garage : équipe-la et roule.", "It's waiting in your garage: equip it and drive."))
+		local a = SP.o and SP.o.a
+		if not a then return end
+		local e, t = etatDe(a, tr("A TOI : AU GARAGE", "YOURS: IN THE GARAGE"))
+		SP.oui.Parent.Parent.Visible = e == "acheter"
+		SP.etat.boite.Visible = e ~= "acheter"
+		if e == "acheter" then
+			ecrire(SP.oui, tr("ACHETER", "BUY") .. ((string.sub(t, 1, 2) == "R$") and ("  " .. t) or ""))
+		else
+			SP.etat.regler(e, t)
+		end
+		if e == "possede" and SP.note.TextColor3 ~= C.vert then
+			SP.note.Text = tr("Elle t'attend au garage : équipe-la et roule.", "It's waiting in your garage: equip it and drive.")
 			SP.note.TextColor3 = C.vert
-		elseif idCaisse(i) > 0 then
-			local p = prixTxt(idCaisse(i), false)
-			SP.oui.TextSize = (p ~= "") and 30 or 40
-			ecrire(SP.oui, tr("ACHETER", "BUY") .. ((p ~= "") and ("  " .. p) or ""))
 		end
 	end
-	for _, o in v:GetDescendants() do
-		if o:IsA("GuiObject") then o.ZIndex = 30 end
-	end
-	v.ZIndex = 30
 	SP.voile, SP.carte = v, c
-	SP.trou = inst("Frame", { Name = "Trou", BackgroundColor3 = Color3.fromRGB(10, 7, 22), BorderSizePixel = 0, Size = UDim2.fromScale(1, 1), Visible = false, ZIndex = 29 })
-	inst("UIStroke", { Color = C.trait, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, SP.trou)
+	SP.trou = inst("Frame", { Name = "Trou", BackgroundColor3 = Color3.fromRGB(10, 7, 22), BorderSizePixel = 0, Size = UDim2.fromScale(1, 1), Visible = false, ZIndex = 20 })
+	inst("UIStroke", { Color = C.trait, Thickness = 2, ApplyStrokeMode = BORD }, SP.trou)
 end
--- l'écart entre la case (à l'écran) et la carte posée au centre, en unités de l'interface : d'où elle part, où elle rentre
+-- l'écart entre la carte (à l'écran) et la fenêtre posée au centre, en unités de l'interface : d'où elle part, où elle rentre
 local function viser(src: GuiObject): (UDim2, number)
-	local k = math.max(0.1, SP.carte.AbsoluteSize.X / (620 * SP.echelle.Scale)) -- (l'échelle de la racine de l'interface)
+	local k = math.max(0.1, SP.carte.AbsoluteSize.X / (FW * SP.echelle.Scale)) -- (l'échelle de la racine de l'interface)
 	local vC = SP.voile.AbsolutePosition + SP.voile.AbsoluteSize / 2
 	local sC = src.AbsolutePosition + src.AbsoluteSize / 2
 	local d = (sC - vC) / k
-	return UDim2.new(0.5, d.X, 0.5, d.Y), math.min(1, src.AbsoluteSize.X / k / 620)
+	return UDim2.new(0.5, d.X, 0.5, d.Y), math.min(1, src.AbsoluteSize.X / k / FW)
 end
 local TI = TweenInfo.new(0.42, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
-function Boutique.pop(src: GuiObject, i: number, vp: ViewportFrame, pastille: Frame)
-	if SP.on or not SP.carte then return end
-	local f = Catalogue[i]
+local FLOTTE = TweenInfo.new(1.6, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true)
+function Boutique.pop(o: any)
+	if SP.on or not SP.carte or not o then return end
+	local f = Catalogue[o.i]
 	if not f then return end
-	SP.on, SP.anim, SP.src, SP.vp, SP.i = true, true, src, vp, i
-	local r = RARETE[f.rar] or RARETE.legendaire
-	SP.rare.Text, SP.rare.TextColor3 = tr(r[1], r[2]), r[3]
-	SP.trait.Color, SP.bande.BackgroundColor3 = r[3], r[3]
-	SP.nom.Text = Hud.sansAccent(string.upper(FR and f.nom or (f.en or f.nom)))
+	local src = o.c.boite
+	SP.on, SP.anim, SP.src, SP.o = true, true, src, o
+	local r = o.rar
+	SP.rareT.Text, SP.rareT.TextColor3 = tr(r[1], r[2]), r[3]
+	SP.rare.UIStroke.Color = r[3]
+	SP.trait.Color, SP.bande.BackgroundColor3, SP.halo.BackgroundColor3, SP.filet.BackgroundColor3 = r[3], r[3], r[3], r[3]
+	SP.jonc.Color = r[3] -- (le jonc de néon du plateau 3D)
+	if SP.lueur then SP.lueur.ImageColor3 = r[3] end
+	SP.nom.Text = nomCaisse(o.i)
 	SP.desc.Text = FR and (f.desc or "") or (f.descEN or f.desc or "")
-	SP.oui.TextScaled = false
-	SP.oui.TextSize = 40
-	SP.oui.Text = tr("ACHETER", "BUY")
-	SP.note.Text = tr("Achat unique, avec tes Robux. À toi pour toujours.", "One-time purchase with your Robux. Yours forever.")
+	SP.note.Text = tr("Achat unique, avec tes Robux : à toi pour toujours. Purement cosmétique — la vitesse vient du moteur.",
+		"One-time purchase with your Robux: yours forever. Purely cosmetic — speed comes from the engine.")
 	SP.note.TextColor3 = C.terne
+	-- le TIRAGE de boutique en attendant la caisse 3D (ou à sa place si elle est refusée) : il FLOTTE au-dessus de son plateau
+	local ei = o.v.hd or o.v.ei
+	SP.image.ImageContent = ei and Content.fromObject(ei) or Content.none
+	SP.image.ImageTransparency = 0
 	SP.maj()
-	-- la photo : la caisse 3D de la case passe dans la fenêtre (avec sa caméra), sinon sa pastille de couleur
-	SP.modele = vp:FindFirstChildOfClass("Model")
-	if SP.modele and vp.CurrentCamera then
-		SP.cam = vp.CurrentCamera:Clone()
-		SP.cam.Parent = SP.vue
-		SP.vue.CurrentCamera = SP.cam
-		SP.vue.LightDirection = vp.LightDirection
-		SP.modele.Parent = SP.vue
-		SP.pastille.Visible = false
-	else
-		SP.modele = nil
-		SP.pastille.Visible = true
-		SP.pastille.BackgroundColor3 = pastille.BackgroundColor3
-	end
-	-- LA CARTE SORT DE LA PAGE : posée au centre, puis partie de la place de la case
+	SP.image.Position = UDim2.fromOffset(0, 4)
+	SP.flotte = TweenService:Create(SP.image, FLOTTE, { Position = UDim2.fromOffset(0, -6) })
+	SP.flotte:Play()
+	-- LA VRAIE CAISSE, en 3D : bâtie à part, elle prend la place du tirage dès qu'elle est là
+	batirVue(o.i)
+	-- LA CARTE SORT DE LA PAGE : posée au centre, puis partie de la place de la carte
 	SP.voile.Visible = true
 	SP.voile.BackgroundTransparency = 1
 	SP.echelle.Scale = 1
@@ -280,7 +1185,7 @@ function Boutique.pop(src: GuiObject, i: number, vp: ViewportFrame, pastille: Fr
 	SP.trou.Visible = true
 	Sons.vrai("uiModale", nil, nil, "tap", 1.1, 0.5)
 	Hud.vibre(8)
-	TweenService:Create(SP.voile, TI, { BackgroundTransparency = 0.32 }):Play()
+	TweenService:Create(SP.voile, TI, { BackgroundTransparency = 0.3 }):Play()
 	TweenService:Create(SP.echelle, TI, { Scale = 1 }):Play()
 	local tw = TweenService:Create(SP.carte, TI, { Position = UDim2.fromScale(0.5, 0.5) })
 	tw.Completed:Once(function() SP.anim = false end)
@@ -288,21 +1193,24 @@ function Boutique.pop(src: GuiObject, i: number, vp: ViewportFrame, pastille: Fr
 end
 -- elle rentre à sa place, par le même chemin (vite = sans le trajet : la boutique se ferme)
 local function rentre()
-	if SP.modele and SP.vp then SP.modele.Parent = SP.vp end
-	if SP.cam then
-		SP.cam:Destroy()
-		SP.cam = nil
+	if SP.flotte then
+		SP.flotte:Cancel()
+		SP.flotte = nil
 	end
-	SP.modele = nil
+	rendreVue() -- (la caisse 3D part avec la fenêtre : son maillage est rendu au budget)
 	SP.trou.Visible = false
 	SP.voile.Visible = false
-	SP.on, SP.anim = false, false
+	SP.on, SP.anim, SP.o = false, false, nil
 end
 function Boutique.popFerme(vite: boolean?)
 	if not SP.on then return end
-	if vite then return rentre() end
+	if vite then
+		rentre()
+		return
+	end
 	if SP.anim then return end
 	SP.anim = true
+	SP.jeton += 1 -- (une caisse 3D encore en chantier ne se montrera pas : elle sera rendue à son arrivée)
 	Sons.vrai("uiFerme", nil, nil, "tap", 0.9, 0.4)
 	local pos, s = viser(SP.src)
 	local ti = TweenInfo.new(0.32, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut)
@@ -313,405 +1221,240 @@ function Boutique.popFerme(vite: boolean?)
 	tw:Play()
 end
 
--- ════════ LES OFFRES EN ROBUX (Sacha, 5/10 : « un bouton pour payer 500 Robux pour avoir 2X plus d'argent, un bouton pour payer
--- 700 Robux pour avoir nitro infini, un bouton pour avoir une vie en plus sous forme de cœur pour 50 Robux ») ════════
--- Une carte par offre, côte à côte : l'icône, le nom, la phrase qui donne envie, le PRIX (lu sur Roblox — le prix se règle sur
--- create.roblox.com, jamais ici ; sans réponse, pas de prix écrit) et un gros ACHETER qui ouvre la fenêtre d'achat de Roblox. Un
--- passe déjà à soi : ACTIF. Un numéro encore à 0 dans Config.REVENUS : BIENTOT (la carte reste, le bouton ne fait rien). VIP et
--- 3 TOURS DE ROUE n'ont de carte que s'ils existent.
--- `passe` : passe de jeu (achat unique) / produit (achat répété) ; `attr` : l'attribut joueur qui dit qu'on le possède (posé par
--- le serveur) ; `seulSi` : pas de carte BIENTOT pour lui ; `packs` : la carte des CŒURS et ses trois achats (1, 5, 15) ;
--- `hasard` : un lot tiré au hasard — sa carte se CACHE là où Roblox interdit de vendre du hasard (PolicyService, comme Client/Roue),
--- et l'achat se fait dans LA ROUE, qui montre ses chances avant (règle de Roblox).
-local ROUE_ICO = "..#####..|.#..#..#.|#.#.#.#.#|#..###..#|#########|#..###..#|#.#.#.#.#|.#..#..#.|..#####.." -- (la roue de l'accueil)
-local OFFRES = {
-	{ cle = "argent2", passe = true, attr = "Argent2", ico = "piece", c = Color3.fromRGB(255, 215, 94),
-		titre = { "x2 ARGENT", "x2 CASH" }, tag = { "A VIE", "FOREVER" },
-		txt = { "Tout l'argent de tes parties compte DOUBLE. Pour toujours.", "All the cash from your runs counts DOUBLE. Forever." } },
-	-- (NitroPasse : le passe est à soi — NitroInfini, lui, dit s'il AGIT : son interrupteur est dans les RÉGLAGES)
-	{ cle = "nitroInfini", passe = true, attr = "NitroPasse", ico = "flamme", c = Color3.fromRGB(176, 107, 255),
-		titre = { "NITRO INFINIE", "INFINITE NITRO" }, tag = { "A VIE", "FOREVER" },
-		txt = { "La jauge ne se vide JAMAIS : nitro à fond, tout le temps. Elle se coupe dans les réglages, quand tu veux.",
-			"The gauge NEVER empties: full nitro, all the time. Switch it off in the settings whenever you like." } },
-	{ cle = "coeur", passe = false, ico = "coeur", c = Color3.fromRGB(255, 94, 122),
-		titre = { "COEURS", "HEARTS" }, tag = { "+1 VIE", "+1 LIFE" }, packs = { "coeur", "coeur5", "coeur15" } },
-	{ cle = "vip", passe = true, attr = "VIP", ico = "etoile", c = Color3.fromRGB(0, 234, 255), seulSi = true,
-		titre = { "VIP", "VIP" }, tag = { "A VIE", "FOREVER" },
-		txt = { "Cadeaux du jour et de temps de jeu DOUBLÉS, et ton nom en or au-dessus de ta caisse.",
-			"Daily and playtime gifts DOUBLED, and your name in gold above your car." } },
-	{ cle = "tours3", passe = false, ico = ROUE_ICO, c = Color3.fromRGB(255, 62, 200), seulSi = true, hasard = true,
-		titre = { "3 TOURS DE ROUE", "3 WHEEL SPINS" }, tag = { "x3", "x3" },
-		txt = { "Trois tours de LA ROUE d'un coup : de l'argent, des habillages, des caisses exclusives. Les chances sont dans LA ROUE.",
-			"Three spins of THE WHEEL at once: cash, skins, exclusive cars. The odds are shown in THE WHEEL." } },
-}
-local function idOffre(o: any): number
-	return idDe(o.passe and R.passes or R.produits, o.cle)
-end
-local OF: any = { cartes = {}, n = 0, hasardOK = false, sig = "" }
-local H_OFFRE = 340
--- l'achat d'un produit : la fenêtre de Roblox (le serveur accorde : ProcessReceipt) — sans numéro, rien
-local function acheterId(id: number)
-	if id <= 0 then return end
-	pcall(function() MarketplaceService:PromptProductPurchase(joueur, id) end)
-end
--- l'achat d'une offre (le serveur accorde : ProcessReceipt pour un produit, PromptGamePassPurchaseFinished pour un passe)
-local function acheterOffre(o: any)
-	local id = idOffre(o)
-	if id <= 0 then return end
-	if o.hasard then
-		-- (hasard payant : les chances se lisent AVANT l'achat — on l'achète dans LA ROUE, qui les montre ; elle vit à l'accueil
-		-- et à l'écran de fin)
-		if depuis == "garage" then
-			Hud.toast(tr("LA ROUE T'ATTEND A L'ACCUEIL", "THE WHEEL IS ON THE HOME SCREEN"), OR1, "etoile")
-			return
-		end
-		Boutique.fermer()
-		Roue.ouvrir()
-	elseif o.passe then
-		pcall(function() MarketplaceService:PromptGamePassPurchase(joueur, id) end)
-	else
-		acheterId(id)
-	end
-end
--- une carte se montre ? (VIP, 3 TOURS : seulement s'ils existent ; 3 TOURS : seulement là où le hasard payant est permis)
-local function offreVisible(o: any): boolean
-	if o.seulSi and idOffre(o) <= 0 then return false end
-	if o.hasard and not OF.hasardOK then return false end
-	return true
-end
--- l'emplacement d'un bouton en bas d'une carte : trois états, trois plaques (une seule visible à la fois)
-local function place(c: Instance, h: number): Frame
-	return inst("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, -32, 0, h), Position = UDim2.new(0, 16, 1, -14), AnchorPoint = Vector2.new(0, 1),
-		Visible = false }, c)
-end
--- BIENTOT · ACTIF · ACHETER : montrer la bonne plaque (rend l'état)
-local function etat3(k: any, id: number, possede: boolean): string
-	local etat = possede and "actif" or ((id > 0) and "acheter" or "bientot")
-	if k.etat ~= etat then
-		k.etat = etat
-		k.sAch.Visible, k.sBie.Visible = etat == "acheter", etat == "bientot"
-		if k.sAct then k.sAct.Visible = etat == "actif" end
-	end
-	return etat
-end
--- bâtir la section des offres (le titre, puis la rangée) ; les cartes se rangent ensuite selon ce qui se montre (rangerOffres)
-local function creerOffres(page: Instance): Frame
-	local s = inst("Frame", { Name = "Offres", BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 46 + H_OFFRE) }, page)
-	K.texte(s, { italique = true, Text = tr("OFFRES ROBUX", "ROBUX DEALS"), TextSize = 30, TextColor3 = OR1, Size = UDim2.fromOffset(700, 34),
-		Position = UDim2.new(0.043, 0, 0, 0), TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 3 })
-	local rang = inst("Frame", { Name = "Rang", BackgroundTransparency = 1, Size = UDim2.new(0.914, 0, 0, H_OFFRE), Position = UDim2.new(0.043, 0, 0, 46) }, s)
-	for _, o in OFFRES do
-		local c = inst("Frame", { Name = "Offre_" .. o.cle, BackgroundColor3 = Color3.new(1, 1, 1), BorderSizePixel = 0, Size = UDim2.fromScale(0, 1), Visible = false }, rang)
-		K.degrade(c, Color3.fromRGB(34, 20, 64):Lerp(o.c, 0.3), Color3.fromRGB(16, 10, 34), 90)
-		inst("UIStroke", { Color = o.c, Thickness = 3, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, c)
-		inst("Frame", { BackgroundColor3 = o.c, BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 6) }, c)
-		-- l'étiquette, en haut à droite : À VIE (un passe), +1 VIE (le cœur), x3 (la roue)
-		local tag = inst("Frame", { BackgroundColor3 = o.c, BorderSizePixel = 0, Size = UDim2.fromOffset(18 + utf8.len(tr(o.tag[1], o.tag[2])) * 16 * Hud.CHASSE + 18, 30),
-			Position = UDim2.new(1, -14, 0, 18), AnchorPoint = Vector2.new(1, 0) }, c)
-		K.texte(tag, { Text = tr(o.tag[1], o.tag[2]), TextSize = 16, TextColor3 = C.encre, Size = UDim2.fromScale(1, 1), TextWrapped = false, contour = false })
-		-- l'icône pixel, à la couleur de l'offre (lèvre claire, plein, ombre)
-		K.icone(c, o.ico, 6, { { 0.3, o.c:Lerp(Color3.new(1, 1, 1), 0.45) }, { 0.7, o.c }, { 1, o.c:Lerp(Color3.new(0, 0, 0), 0.35) } }, UDim2.fromOffset(18, 20))
-		local carte: any = { o = o, c = c }
-		local nom = K.texte(c, { italique = true, Text = tr(o.titre[1], o.titre[2]), TextSize = 30, TextColor3 = C.texte, Size = UDim2.new(1, -32, 0, 36),
-			Position = UDim2.fromOffset(16, 84), TextXAlignment = Enum.TextXAlignment.Left, TextScaled = true, TextWrapped = false, epais = 3 })
-		inst("UITextSizeConstraint", { MaxTextSize = 30, MinTextSize = 14 }, nom)
-		if o.packs then
-			-- LES CŒURS (5/10, lot 2) : la réserve (la police du texte sait dessiner « ♥ », pas la police pixel), puis TROIS achats —
-			-- 1, 5 ou 15 cœurs — chacun sa ligne : combien, et son bouton (son prix, ou BIENTOT)
-			carte.nb = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.TXT, TextSize = 30, TextColor3 = o.c, Text = "",
-				TextXAlignment = Enum.TextXAlignment.Right, Size = UDim2.fromOffset(120, 32), Position = UDim2.new(1, -16, 0, 54), AnchorPoint = Vector2.new(1, 0) }, c)
-			carte.packs = {}
-			for j, q in o.packs do
-				local y = 128 + (j - 1) * 68
-				local nC = R.coeursPar[q] or 1
-				inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.TXT, TextSize = 30, TextColor3 = o.c, Text = "♥ " .. nC,
-					TextXAlignment = Enum.TextXAlignment.Left, Size = UDim2.fromOffset(80, 60), Position = UDim2.fromOffset(18, y) }, c)
-				local bt = K.tuile(c, tr("BIENTOT", "SOON"), o.c, UDim2.new(1, -116, 0, 58), UDim2.new(0, 98, 0, y + 1), nil, 18)
-				bt.Activated:Connect(function()
-					local id = idDe(R.produits, q)
-					if id > 0 then acheterId(id) else Hud.toast(tr("BIENTOT", "SOON"), nil, "verrou") end
-				end)
-				table.insert(carte.packs, { nom = q, bt = bt })
+-- ════════ LES TIRAGES DE BOUTIQUE : décodés à l'ouverture, relâchés à la fermeture ════════
+-- Une caisse par image (la une d'abord, puis la grille dans l'ordre de la page) : l'ouverture ne s'arrête pas, chaque carte passe de la
+-- vignette du garage à son tirage net en quelques images. La boutique fermée, tout est relâché (Caisse.lacherHD) : les cartes
+-- reprennent la vignette du garage, et les 5 Mo d'images ne pèsent rien en course.
+local HD: any = { n = 0, ms = 0 }
+local function chargerHD()
+	HD.n += 1
+	local n = HD.n
+	task.spawn(function()
+		for _, v in VIGN do
+			if not Boutique.ouvert or HD.n ~= n then return end
+			if not v.hd then
+				local t0 = os.clock()
+				v.hd = Caisse.vignetteHD(v.i, true) -- (doux : par tranches de 4 ms)
+				HD.ms = math.max(HD.ms, (os.clock() - t0) * 1000)
+				if v.hd then
+					poserImage(v)
+					-- (la fenêtre de CETTE caisse ouverte, la caisse 3D pas encore là : son tirage se pose aussi)
+					if SP.on and SP.o and SP.o.v == v then SP.image.ImageContent = Content.fromObject(v.hd) end
+				end
+				task.wait()
 			end
+		end
+	end)
+end
+local function lacherHD()
+	HD.n += 1
+	for _, v in VIGN do
+		if v.hd then
+			v.hd = nil
+			poserImage(v) -- (la carte reprend la vignette du garage AVANT que l'image soit détruite)
+		end
+	end
+	if SP.image then SP.image.ImageContent = Content.none end
+	Caisse.lacherHD()
+end
+
+-- ════════ LA PAGE, LE RAIL, LA BOURSE ════════
+local SECTIONS = {
+	{ cle = "offres", fr = "OFFRES", en = "DEALS", c = C.orange, ico = "etoile" },
+	{ cle = "caisses", fr = "CAISSES", en = "CARS", c = C.magenta, ico = "voiture" },
+	{ cle = "argent", fr = "ARGENT", en = "CASH", c = C.menthe, ico = "piece" },
+	{ cle = "avantages", fr = "AVANTAGES", en = "PERKS", c = C.cyan, ico = "eclair" },
+}
+local ECART_SECTIONS = 64
+-- l'échelle entre les unités de l'interface et la position du défilement (CanvasPosition se compte en pixels d'ÉCRAN : la racine
+-- est agrandie, la page avec elle)
+local function kPage(): number
+	local h = U.page.CanvasSize.Y.Offset
+	return (h > 0) and (U.page.AbsoluteCanvasSize.Y / h) or 1
+end
+local function sectionActive(): string?
+	local y = U.page.CanvasPosition.Y / kPage()
+	local maxY = (U.page.AbsoluteCanvasSize.Y - U.page.AbsoluteWindowSize.Y) / kPage()
+	local act = nil
+	for _, s in U.sections do
+		if s.y then
+			if not act then act = s.cle end
+			if s.y <= y + 120 then act = s.cle end
+		end
+	end
+	-- (tout en bas : la dernière section, même courte, s'allume)
+	if maxY > 0 and y >= maxY - 4 then
+		for _, s in U.sections do if s.y then act = s.cle end end
+	end
+	return act
+end
+local function allumerOnglet(cle: string?)
+	if U.ongletOn == cle then return end
+	U.ongletOn = cle
+	for _, o in U.onglets do K.allumer(o.b, o.cle == cle) end
+end
+local function mettreEnPage()
+	if not U.page then return end
+	local ech = Hud.racine and Hud.racine:FindFirstChildOfClass("UIScale")
+	local k = ech and ech.Scale or 1
+	local cw = math.floor(U.page.AbsoluteSize.X / math.max(k, 0.01)) - 22 -- (la barre de défilement)
+	if cw < 400 then return end
+	U.cw = cw
+	local y = 4
+	for _, s in U.sections do
+		local vis = s.visible()
+		s.cadre.Visible = vis
+		if vis then
+			s.cadre.Position = UDim2.fromOffset(0, y)
+			local h = s.placer(cw)
+			s.cadre.Size = UDim2.fromOffset(cw, h)
+			s.y = y
+			y += h + ECART_SECTIONS
 		else
-			local d = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.TXT, TextSize = 19, TextColor3 = C.texte2, TextWrapped = true,
-				Text = tr(o.txt[1], o.txt[2]), TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top,
-				Size = UDim2.new(1, -32, 0, 80), Position = UDim2.fromOffset(16, 124), TextScaled = true }, c)
-			inst("UITextSizeConstraint", { MaxTextSize = 19, MinTextSize = 12 }, d)
-			carte.prix = K.texte(c, { Text = "", TextSize = 28, TextColor3 = OR1, Size = UDim2.new(1, -32, 0, 32), Position = UDim2.fromOffset(16, 214),
-				TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 3 })
-			carte.sAch, carte.sAct, carte.sBie = place(c, 64), place(c, 64), place(c, 64)
-			carte.bt = K.lingot(carte.sAch, o.hasard and tr("VOIR LA ROUE", "SEE THE WHEEL") or tr("ACHETER", "BUY"), UDim2.new(1, 0, 0, 64), UDim2.new(), nil, o.hasard and 22 or 26)
-			carte.bt.Activated:Connect(function() acheterOffre(o) end)
-			local actif = K.tuile(carte.sAct, tr("ACTIF", "OWNED"), C.vert, UDim2.new(1, 0, 0, 64), UDim2.new(), nil, 22, "coche")
-			actif.Activated:Connect(function() Hud.toast(tr("DEJA A TOI", "ALREADY YOURS"), C.vert, "coche") end)
-			bientot(carte.sBie, UDim2.fromScale(0.5, 0.5), Vector2.new(0.5, 0.5), 24)
-		end
-		table.insert(OF.cartes, carte)
-	end
-	return s
-end
--- ranger la rangée : les cartes qui se montrent, côte à côte, à parts égales (rien ne bouge tant que la liste ne change pas)
-local function rangerOffres()
-	local vis = {}
-	local sig = ""
-	for _, k in OF.cartes do
-		if offreVisible(k.o) then
-			table.insert(vis, k)
-			sig ..= k.o.cle .. ","
+			s.y = nil
 		end
 	end
-	if sig == OF.sig then return end
-	OF.sig = sig
-	local n, ecart = math.max(1, #vis), 18
-	for _, k in OF.cartes do k.c.Visible = false end
-	for j, k in vis do
-		local i = j - 1
-		k.c.Size = UDim2.new(1 / n, -ecart * (n - 1) / n, 1, 0)
-		k.c.Position = UDim2.new(i / n, i * ecart / n, 0, 0)
-		k.c.Visible = true
+	U.page.CanvasSize = UDim2.fromOffset(0, y + 20)
+	-- le RAIL : les onglets des sections montrées, l'un sous l'autre
+	local j = 0
+	for _, o in U.onglets do
+		local s = U.parCle[o.cle]
+		local vis = s.y ~= nil
+		o.boite.Visible = vis
+		if vis then
+			o.boite.Position = UDim2.fromOffset(60, 112 + j * 108)
+			j += 1
+		end
 	end
+	U.ongletOn = nil
+	allumerOnglet(sectionActive())
 end
-
--- ════════ LE KIT DU PILOTE (5/10, lot 2 — l'offre de BIENVENUE) ════════
--- En TÊTE de la page, une carte dorée : 50 000 $, 3 cœurs, la traînée POUDRE D'OR (Config.REVENUS.kit) — un PRODUIT, une fois par
--- compte : acheté, la carte s'en va (attribut KitPris, posé par le serveur). Pas de minuteur, pas de « valeur » gonflée : ce qu'il
--- contient, son prix, c'est tout.
-local KT: any = {}
-local H_KIT = 190
-local function creerKit(page: Instance): Frame
-	local s = inst("Frame", { Name = "Kit", BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, H_KIT) }, page)
-	local c = inst("Frame", { BackgroundColor3 = Color3.new(1, 1, 1), BorderSizePixel = 0, Size = UDim2.new(0.914, 0, 1, 0), Position = UDim2.fromScale(0.043, 0) }, s)
-	K.degrade(c, Color3.fromRGB(122, 80, 14), Color3.fromRGB(46, 20, 44), 90)
-	inst("UIStroke", { Color = OR1, Thickness = 3, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, c)
-	inst("Frame", { BackgroundColor3 = OR1, BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 6) }, c)
-	local lib = tr("OFFRE DE BIENVENUE", "WELCOME OFFER")
-	local tag = inst("Frame", { BackgroundColor3 = OR1, BorderSizePixel = 0, Size = UDim2.fromOffset(36 + utf8.len(lib) * 18 * Hud.CHASSE, 32), Position = UDim2.fromOffset(20, 20) }, c)
-	K.texte(tag, { Text = lib, TextSize = 18, TextColor3 = C.encre, Size = UDim2.fromScale(1, 1), TextWrapped = false, contour = false })
-	K.icone(c, "cadeau", 7, { { 0.3, Color3.fromRGB(255, 244, 200) }, { 0.7, OR1 }, { 1, Color3.fromRGB(170, 110, 20) } }, UDim2.fromOffset(24, 70))
-	local titre = K.texte(c, { italique = true, Text = tr("KIT DU PILOTE", "DRIVER'S KIT"), TextSize = 40, TextColor3 = OR1, Size = UDim2.new(0.62, -110, 0, 46),
-		Position = UDim2.fromOffset(106, 62), TextXAlignment = Enum.TextXAlignment.Left, TextScaled = true, TextWrapped = false, epais = 4 })
-	inst("UITextSizeConstraint", { MaxTextSize = 40, MinTextSize = 18 }, titre)
-	local kt = R.kit
-	local contenu = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.TXT, TextSize = 26, TextColor3 = C.texte, TextXAlignment = Enum.TextXAlignment.Left,
-		Text = tr(Hud.compte(kt.argent) .. "   +   ♥ " .. kt.coeurs .. " cœurs   +   la traînée POUDRE D'OR",
-			Hud.compte(kt.argent) .. "   +   ♥ " .. kt.coeurs .. " hearts   +   the GOLD DUST trail"),
-		Size = UDim2.new(0.62, -110, 0, 32), Position = UDim2.fromOffset(106, 114), TextScaled = true }, c)
-	inst("UITextSizeConstraint", { MaxTextSize = 26, MinTextSize = 13 }, contenu)
-	inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.TXT, TextSize = 19, TextColor3 = C.terne, TextXAlignment = Enum.TextXAlignment.Left,
-		Text = tr("Une seule fois par compte.", "Once per account."), Size = UDim2.new(0.62, -110, 0, 22), Position = UDim2.fromOffset(106, 150) }, c)
-	KT.prix = K.texte(c, { Text = "", TextSize = 30, TextColor3 = OR1, Size = UDim2.fromOffset(320, 34), Position = UDim2.new(1, -24, 0, 22), AnchorPoint = Vector2.new(1, 0),
-		TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false, epais = 3 })
-	local function coin(): Frame
-		return inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(330, 84), Position = UDim2.new(1, -24, 1, -18), AnchorPoint = Vector2.new(1, 1), Visible = false }, c)
+-- un onglet fait GLISSER la page jusqu'à sa section (instant : à l'ouverture)
+local GLISSE = TweenInfo.new(0.38, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+local function allerA(cle: string, instant: boolean?)
+	local s = U.parCle[cle]
+	if not s or not s.y then return end
+	local kp = kPage()
+	local maxY = math.max(0, U.page.AbsoluteCanvasSize.Y - U.page.AbsoluteWindowSize.Y)
+	local cible = Vector2.new(0, math.clamp(math.floor((s.y - 4) * kp), 0, maxY))
+	U.visee = cle
+	allumerOnglet(cle)
+	if U.glisse then U.glisse:Cancel() end
+	if instant then
+		U.page.CanvasPosition = cible
+		U.visee = nil
+		return
 	end
-	KT.sAch, KT.sBie = coin(), coin()
-	local bt = K.lingot(KT.sAch, tr("ACHETER", "BUY"), UDim2.new(1, 0, 0, 84), UDim2.new(), nil, 32)
-	bt.Activated:Connect(function() acheterId(idDe(R.produits, "kit")) end)
-	bientot(KT.sBie, UDim2.fromScale(0.5, 0.5), Vector2.new(0.5, 0.5), 26)
-	return s
+	U.glisse = TweenService:Create(U.page, GLISSE, { CanvasPosition = cible })
+	U.glisse.Completed:Once(function() U.visee = nil end)
+	U.glisse:Play()
 end
-
--- ════════ L'ARGENT (5/10, lot 2) : cinq PACKS de $ pour le compte (Config.REVENUS.argent — les montants se règlent là-bas) ════════
--- Chaque carte : le montant, le prix lu sur Roblox, ACHETER (ou BIENTOT). Le BONUS n'est écrit que s'il est VRAI : calculé sur les
--- prix que Roblox rend pour CE joueur — le $ par Robux du pack, comparé à celui du plus petit.
-local AR: any = { cartes = {} }
-local H_ARG = 226
-local MENTHE = C.menthe
-local function creerArgent(page: Instance): Frame
-	local s = inst("Frame", { Name = "Argent", BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 46 + H_ARG) }, page)
-	K.texte(s, { italique = true, Text = tr("ARGENT", "CASH"), TextSize = 30, TextColor3 = MENTHE, Size = UDim2.fromOffset(700, 34),
-		Position = UDim2.new(0.043, 0, 0, 0), TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 3 })
-	local rang = inst("Frame", { Name = "Rang", BackgroundTransparency = 1, Size = UDim2.new(0.914, 0, 0, H_ARG), Position = UDim2.new(0.043, 0, 0, 46) }, s)
-	local n, ecart = math.max(1, #R.argent), 18
-	for k, a in R.argent do
-		local i = k - 1
-		local c = inst("Frame", { Name = "Argent_" .. k, BackgroundColor3 = Color3.new(1, 1, 1), BorderSizePixel = 0,
-			Size = UDim2.new(1 / n, -ecart * (n - 1) / n, 1, 0), Position = UDim2.new(i / n, i * ecart / n, 0, 0) }, rang)
-		K.degrade(c, Color3.fromRGB(22, 62, 50), Color3.fromRGB(12, 16, 32), 90)
-		inst("UIStroke", { Color = MENTHE, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, c)
-		inst("Frame", { BackgroundColor3 = MENTHE, BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 5) }, c)
-		K.icone(c, "piece", 5, { { 0.3, Color3.fromRGB(255, 244, 200) }, { 0.7, OR1 }, { 1, Color3.fromRGB(170, 110, 20) } }, UDim2.fromOffset(16, 18))
-		local carte: any = { a = a, k = k }
-		carte.bonus = inst("Frame", { BackgroundColor3 = MENTHE, BorderSizePixel = 0, Size = UDim2.fromOffset(132, 28), Position = UDim2.new(1, -12, 0, 18),
-			AnchorPoint = Vector2.new(1, 0), Visible = false }, c)
-		carte.bonusT = K.texte(carte.bonus, { Text = "", TextSize = 15, TextColor3 = C.encre, Size = UDim2.fromScale(1, 1), TextWrapped = false, contour = false })
-		local m = K.texte(c, { Text = Hud.compte(a.v), TextSize = 30, TextColor3 = MENTHE, Size = UDim2.new(1, -28, 0, 36), Position = UDim2.fromOffset(14, 72),
-			TextXAlignment = Enum.TextXAlignment.Left, TextScaled = true, TextWrapped = false, epais = 3 })
-		inst("UITextSizeConstraint", { MaxTextSize = 30, MinTextSize = 14 }, m)
-		carte.prix = K.texte(c, { Text = "", TextSize = 24, TextColor3 = OR1, Size = UDim2.new(1, -28, 0, 28), Position = UDim2.fromOffset(14, 116),
-			TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 3 })
-		carte.sAch, carte.sBie = place(c, 60), place(c, 60)
-		local bt = K.tuile(carte.sAch, tr("ACHETER", "BUY"), MENTHE, UDim2.new(1, 0, 0, 60), UDim2.new(), nil, 20)
-		bt.Activated:Connect(function() acheterId(idDe(a, "id")) end)
-		bientot(carte.sBie, UDim2.fromScale(0.5, 0.5), Vector2.new(0.5, 0.5), 20)
-		table.insert(AR.cartes, carte)
+-- LA BOURSE (en haut à droite : ce qu'on a) — le compte et les cœurs
+local function creerBourse(g: Instance)
+	local b = inst("Frame", { Name = "Bourse", BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -40, 0, 26),
+		Size = UDim2.fromOffset(700, 52) }, g)
+	inst("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, HorizontalAlignment = Enum.HorizontalAlignment.Right,
+		VerticalAlignment = Enum.VerticalAlignment.Center, Padding = UDim.new(0, 18), SortOrder = Enum.SortOrder.LayoutOrder }, b)
+	local function pastille(ordre: number, ico: string, col: Color3): TextLabel
+		local f = inst("Frame", { BackgroundColor3 = C.encre, BackgroundTransparency = 0.25, BorderSizePixel = 0, Size = UDim2.fromOffset(0, 52),
+			AutomaticSize = Enum.AutomaticSize.X, LayoutOrder = ordre }, b)
+		inst("UIStroke", { Color = col, Thickness = 2, ApplyStrokeMode = BORD }, f)
+		inst("UIPadding", { PaddingLeft = UDim.new(0, 12), PaddingRight = UDim.new(0, 16) }, f)
+		inst("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, VerticalAlignment = Enum.VerticalAlignment.Center, Padding = UDim.new(0, 12),
+			SortOrder = Enum.SortOrder.LayoutOrder }, f)
+		local ic = K.iconeRelief(f, ico, 4, col)
+		ic.LayoutOrder = 1
+		local t = K.texte(f, { Text = "", TextSize = 26, TextColor3 = col, Size = UDim2.fromOffset(0, 40), AutomaticSize = Enum.AutomaticSize.X, TextWrapped = false,
+			epais = 3, LayoutOrder = 2 })
+		return t
 	end
-	return s
+	U.compte = pastille(1, "piece", C.menthe)
+	U.nCoeurs = pastille(2, "coeur", C.rouge)
+end
+local function majBourse()
+	ecrire(U.compte, Hud.compte(type(PR.compte) == "number" and PR.compte or 0))
+	ecrire(U.nCoeurs, tostring(Revenus.coeurs()))
 end
 
 -- ════════ TOUT TENIR À JOUR (la boutique ouverte : toutes les 0,4 s) ════════
--- les prix qui arrivent de Roblox, un passe qui vient d'être acheté (ACTIF), un cœur de plus, le kit pris, une caisse achetée
-local function ranger()
-	local y = 8
-	for _, s in { U.secKit, U.secOffres, U.secArgent, U.vit } do
-		if s and s.Visible then
-			s.Position = UDim2.fromOffset(0, y)
-			y += s.Size.Y.Offset + 30
-		end
-	end
-	U.page.CanvasSize = UDim2.fromOffset(0, y + 150) -- (+150 : le bas de la page remonte au-dessus de RETOUR, qui le cachait)
-end
+-- les prix qui arrivent de Roblox, un passe qui vient d'être acheté (ACTIF), un cœur de plus, le kit pris, une caisse achetée — et
+-- la mise en page quand ce qui se montre change (le kit parti, VIP ou 3 TOURS qui apparaissent)
 local function majBoutique()
-	-- le KIT : là tant qu'il n'est pas pris
-	local kitLa = joueur:GetAttribute("KitPris") ~= true
-	if U.secKit.Visible ~= kitLa then
-		U.secKit.Visible = kitLa
-		ranger()
+	local h = choixHeros()
+	if h then heros(h) end
+	local sig = tostring(h)
+	for _, o in AV.passes do sig ..= passeVisible(o) and "1" or "0" end
+	if sig ~= U.sig then
+		U.sig = sig
+		HE.montre = h ~= nil
+		mettreEnPage()
 	end
-	local idKit = idDe(R.produits, "kit")
-	etat3(KT, idKit, false)
-	ecrire(KT.prix, prixTxt(idKit, false))
-	-- les OFFRES
-	rangerOffres()
-	for _, k in OF.cartes do
-		local o = k.o
-		if k.packs then
-			for _, q in k.packs do
-				local id = idDe(R.produits, q.nom)
-				local p = prixTxt(id, false)
-				ecrire(q.bt, (id <= 0) and tr("BIENTOT", "SOON") or ((p ~= "") and p or tr("ACHETER", "BUY")))
-				q.bt.TextColor3 = (id > 0) and C.texte or C.terne
-			end
-			local nC = Revenus.coeurs()
-			ecrire(k.nb, "♥ " .. nC)
-			k.nb.TextTransparency = (nC > 0) and 0 or 0.55
-		else
-			local id = idOffre(o)
-			local possede = o.passe and o.attr ~= nil and joueur:GetAttribute(o.attr) == true
-			local etat = etat3(k, id, possede)
-			ecrire(k.prix, (etat == "acheter") and prixTxt(id, o.passe) or "")
-		end
-	end
-	-- l'ARGENT : le prix, et le BONUS quand il est vrai (le $ par Robux, comparé au plus petit pack — sur les prix de CE joueur)
-	local p1 = R.argent[1] and Revenus.prix(idDe(R.argent[1], "id"), false)
-	local base = (p1 and p1 > 0) and R.argent[1].v / p1 or nil
-	for _, k in AR.cartes do
-		local id = idDe(k.a, "id")
-		etat3(k, id, false)
-		ecrire(k.prix, prixTxt(id, false))
-		local p = Revenus.prix(id, false)
-		local pct = (base and p and p > 0 and k.k > 1) and math.floor((k.a.v / p / base - 1) * 100 + 0.5) or 0
-		k.bonus.Visible = pct >= 5
-		if pct >= 5 then ecrire(k.bonusT, "BONUS +" .. pct .. tr(" %", "%")) end
-	end
-	-- les CAISSES de la vitrine : BIENTOT · leur prix · A TOI !
-	if U.uneEtat then U.uneEtat.regler(etatCaisse(UNE)) end
-	for _, k in cases do
-		if k.etat then k.etat.regler(etatCaisse(k.i)) end
-	end
-	-- la fenêtre d'achat ouverte
+	majHeros()
+	majCaisses()
+	majArgent()
+	majAvantages()
+	majBourse()
 	if SP.on and SP.maj then SP.maj() end
 end
+
 local function creer()
 	local racine = Hud.racine
-	local g = inst("Frame", { Name = "Boutique", BackgroundColor3 = Color3.new(1, 1, 1), BackgroundTransparency = 0.03, Size = UDim2.fromScale(1, 1), Visible = false, ZIndex = 18,
-		Active = true }, racine)
+	local g = inst("Frame", { Name = "Boutique", BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Visible = false, ZIndex = 18, Active = true }, racine)
 	U.racine = g
-	K.degrade(g, Color3.fromRGB(58, 16, 70), Color3.fromRGB(10, 7, 24), 80)
-	K.texte(g, { italique = true, Text = tr("BOUTIQUE", "SHOP"), TextSize = 78, TextColor3 = C.texte, Size = UDim2.fromOffset(800, 80), Position = UDim2.fromOffset(66, 22),
-		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 4 })
+	-- le FOND déborde de la racine (la bande des boutons de Roblox en haut, les bords d'un téléphone couché : on ne voit pas le jeu
+	-- derrière un écran plein)
+	local fond = inst("Frame", { Name = "Fond", BackgroundColor3 = BLANC, BorderSizePixel = 0, Size = UDim2.new(1, 800, 1, 800), Position = UDim2.fromOffset(-400, -400),
+		Active = true, ZIndex = 0 }, g)
+	K.degrade(fond, Color3.fromRGB(56, 16, 70), Color3.fromRGB(10, 7, 24), 80)
+	-- ── le TITRE et sa signature (on LIT en haut) ──
+	K.texte(g, { italique = true, Text = tr("BOUTIQUE", "SHOP"), TextSize = 52, TextColor3 = C.texte, Size = UDim2.fromOffset(600, 58), Position = UDim2.fromOffset(58, 20),
+		TextXAlignment = GAUCHE, TextWrapped = false, epais = 4 })
 	for i, c in { C.magenta, C.cyan, C.or_ } do
-		inst("Frame", { BackgroundColor3 = c, BorderSizePixel = 0, Size = UDim2.fromOffset(i == 1 and 82 or 38, 7), Position = UDim2.fromOffset(72 + (i == 1 and 0 or (i == 2 and 92 or 140)), 108) }, g)
+		inst("Frame", { BackgroundColor3 = c, BorderSizePixel = 0, Size = UDim2.fromOffset(i == 1 and 82 or 38, 7), Position = UDim2.fromOffset(64 + (i == 1 and 0 or (i == 2 and 92 or 140)), 82) }, g)
 	end
-
-	-- ── LA PAGE (5/10) : sous le titre, tout défile d'un seul geste — le KIT (tant qu'il n'est pas pris), les OFFRES EN ROBUX,
-	-- l'ARGENT, puis la VITRINE des caisses ; `ranger` les empile (le kit parti, tout remonte) ──
-	U.page = inst("ScrollingFrame", { Name = "Page", BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.new(1, 0, 1, -118),
-		Position = UDim2.fromOffset(0, 118), CanvasSize = UDim2.new(), ScrollingDirection = Enum.ScrollingDirection.Y, ScrollBarThickness = 6,
-		ScrollBarImageColor3 = C.terne }, g)
-	U.secKit = creerKit(U.page)
-	U.secOffres = creerOffres(U.page)
-	U.secArgent = creerArgent(U.page)
-	-- la vitrine : la une à gauche, LES LEGENDAIRES à droite — telles qu'avant, posées sous l'argent
-	local vit = inst("Frame", { Name = "Vitrine", BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 600) }, U.page)
-	U.vit = vit
-
-	-- ── la caisse À LA UNE ──
-	local f = Catalogue[UNE]
-	local une = inst("Frame", { BackgroundColor3 = Color3.new(1, 1, 1), BorderSizePixel = 0, Size = UDim2.new(0.436, 0, 0, 400), Position = UDim2.new(0.043, 0, 0, 36) }, vit)
-	K.degrade(une, Color3.fromRGB(96, 24, 110), Color3.fromRGB(38, 14, 62), 90)
-	inst("UIStroke", { Color = C.magenta, Thickness = 3, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, une)
-	local et = inst("Frame", { BackgroundColor3 = C.magenta, BorderSizePixel = 0, Size = UDim2.fromOffset(318, 44), Position = UDim2.fromOffset(22, 22) }, une)
-	inst("UIStroke", { Color = Color3.fromRGB(255, 190, 240), Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, et)
-	K.texte(et, { Text = tr("A LA UNE", "FEATURED"), TextSize = 24, TextColor3 = C.texte, Size = UDim2.fromScale(1, 1), TextWrapped = false })
-	-- (5/10 : plus de « −50 % » — un rabais sans prix barré réel est un faux rabais, interdit par Roblox)
-	U.uneVue = inst("ViewportFrame", { BackgroundTransparency = 1, Size = UDim2.new(0.46, 0, 0, 230), Position = UDim2.new(0, 10, 0, 86),
-		Ambient = Color3.fromRGB(104, 100, 128), LightColor = Color3.fromRGB(226, 216, 204) }, une)
-	U.unePastille = inst("Frame", { BorderSizePixel = 0, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromOffset(120, 34),
-		BackgroundColor3 = Color3.fromHex(string.format("%06x", f.laque)) }, U.uneVue)
-	local nom = K.texte(une, { Text = Hud.sansAccent(string.upper(FR and f.nom or (f.en or f.nom))), TextSize = 44, TextColor3 = C.texte, Size = UDim2.new(0.52, -24, 0, 104),
-		Position = UDim2.new(0.48, 0, 0, 92), TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, LineHeight = 1.2, epais = 4 })
-	if nom then nom.TextWrapped = true end
-	local desc = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.TXT, TextSize = 22, TextColor3 = C.texte2, TextWrapped = true, Text = FR and f.desc or (f.descEN or f.desc),
-		TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, Size = UDim2.new(0.52, -24, 0, 130), Position = UDim2.new(0.48, 0, 0, 204),
-		TextScaled = true }, une)
-	inst("UITextSizeConstraint", { MaxTextSize = 22, MinTextSize = 13 }, desc)
-	U.uneEtat = plaqueEtat(une, UDim2.new(1, -22, 1, -22), Vector2.new(1, 1), 28)
-	local bu = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Text = "", AutoButtonColor = false }, une)
-	U.une = une
-	bu.Activated:Connect(function() Boutique.pop(une, UNE, U.uneVue, U.unePastille) end)
-
-	-- ── LES LEGENDAIRES : la grille (5/10 : elle ne défile plus seule — c'est la PAGE qui défile ; deux défilements emboîtés se
-	-- volaient la molette et le doigt) ──
-	K.texte(vit, { Text = tr("LES LEGENDAIRES", "THE LEGENDARIES"), TextSize = 26, TextColor3 = C.terne, Size = UDim2.new(0, 500, 0, 28), Position = UDim2.new(0.5, 0, 0, 0),
-		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false })
-	local rangs = math.ceil(#LISTE / 2)
-	local hGrille = 4 + rangs * 340 + math.max(0, rangs - 1) * 18 + 12
-	U.grille = inst("Frame", { BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.new(0.457, 0, 0, hGrille), Position = UDim2.new(0.5, 0, 0, 36) }, vit)
-	vit.Size = UDim2.new(1, 0, 0, 36 + math.max(400, hGrille))
-	inst("UIGridLayout", { CellSize = UDim2.new(0.5, -14, 0, 340), CellPadding = UDim2.fromOffset(16, 18), SortOrder = Enum.SortOrder.LayoutOrder }, U.grille)
-	inst("UIPadding", { PaddingTop = UDim.new(0, 4), PaddingLeft = UDim.new(0, 3), PaddingBottom = UDim.new(0, 12) }, U.grille)
-	for rang, i in LISTE do
-		local fc = Catalogue[i]
-		local c = inst("Frame", { BackgroundColor3 = Color3.new(1, 1, 1), BorderSizePixel = 0, LayoutOrder = rang }, U.grille)
-		K.degrade(c, Color3.fromRGB(44, 26, 78), Color3.fromRGB(22, 14, 44), 90)
-		inst("UIStroke", { Color = C.trait, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, c)
-		inst("Frame", { BackgroundColor3 = C.magenta, BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 5) }, c)
-		local vp = inst("ViewportFrame", { BackgroundTransparency = 1, Size = UDim2.new(1, -16, 0, 190), Position = UDim2.fromOffset(8, 14),
-			Ambient = Color3.fromRGB(104, 100, 128), LightColor = Color3.fromRGB(226, 216, 204) }, c)
-		local pastille = inst("Frame", { BorderSizePixel = 0, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromOffset(96, 28),
-			BackgroundColor3 = Color3.fromHex(string.format("%06x", fc.laque)) }, vp)
-		local n = K.texte(c, { Text = Hud.sansAccent(string.upper(FR and fc.nom or (fc.en or fc.nom))), TextSize = 28, TextColor3 = C.texte, Size = UDim2.new(1, -32, 0, 32),
-			Position = UDim2.fromOffset(18, 220), TextXAlignment = Enum.TextXAlignment.Left, TextScaled = true, epais = 3 })
-		inst("UITextSizeConstraint", { MaxTextSize = 28, MinTextSize = 13 }, n)
-		local etat = plaqueEtat(c, UDim2.new(0, 18, 1, -18), Vector2.new(0, 1), 22)
-		local b = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Text = "", AutoButtonColor = false }, c)
-		cases[rang] = { i = i, vp = vp, pastille = pastille, modele = nil, c = c, etat = etat }
-		b.Activated:Connect(function() Boutique.pop(c, i, vp, pastille) end)
+	creerBourse(g)
+	-- ── LA PAGE : tout défile d'un seul geste, à droite du rail ──
+	U.page = inst("ScrollingFrame", { Name = "Page", BackgroundTransparency = 1, BorderSizePixel = 0, Size = UDim2.new(1, -440, 1, -106),
+		Position = UDim2.fromOffset(400, 106), CanvasSize = UDim2.new(), ScrollingDirection = Enum.ScrollingDirection.Y, ScrollBarThickness = 8,
+		ScrollBarImageColor3 = C.terne, VerticalScrollBarInset = Enum.ScrollBarInset.Always }, g)
+	U.parCle = {}
+	local createurs = {
+		offres = { creerHeros, placerHeros, function() return HE.montre == true end },
+		caisses = { creerCaisses, placerCaisses },
+		argent = { creerArgent, placerArgent },
+		avantages = { creerAvantages, placerAvantages },
+	}
+	for _, d in SECTIONS do
+		local f = createurs[d.cle]
+		local s = { cle = d.cle, cadre = f[1](U.page), placer = f[2], visible = f[3] or function() return true end }
+		table.insert(U.sections, s)
+		U.parCle[d.cle] = s
 	end
-
-	-- ── RETOUR, en bas à gauche (sous le pouce, jamais en haut : la charte) ──
-	-- (5/10, banc : RETOUR se posait SUR les cartes — un pied de page sombre le détache du contenu qui défile dessous)
-	local pied = inst("Frame", { Name = "Pied", BackgroundColor3 = Color3.fromRGB(10, 6, 24), BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 150),
-		Position = UDim2.new(0, 0, 1, 0), AnchorPoint = Vector2.new(0, 1) }, g)
-	inst("UIGradient", { Rotation = 90, Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.45, 0.15),
-		NumberSequenceKeypoint.new(1, 0) }) }, pied)
+	-- ── LE RAIL : les onglets, sous le pouce gauche ──
+	for _, d in SECTIONS do
+		local b = K.tuile(g, tr(d.fr, d.en), d.c, UDim2.fromOffset(290, 86), UDim2.fromOffset(60, 112), nil, 22, d.ico, "g")
+		K.cible(b, 5)
+		local o = { cle = d.cle, b = b, boite = (b.Parent :: Instance).Parent }
+		b.Activated:Connect(function() allerA(d.cle) end)
+		table.insert(U.onglets, o)
+	end
+	-- l'onglet allumé suit la page qu'on fait défiler au doigt (sauf pendant un glissé commandé par un onglet)
+	U.page:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
+		if not U.visee then allumerOnglet(sectionActive()) end
+	end)
+	U.page:GetPropertyChangedSignal("AbsoluteSize"):Connect(mettreEnPage)
+	-- ── RETOUR, en bas à gauche (sous le pouce, jamais en haut : la charte) — au pied du rail, jamais sur la page ──
 	U.btRetour = K.boutonRetour(g)
 	U.btRetour.Activated:Connect(function()
 		if SP.on then Boutique.popFerme() else Boutique.fermer() end -- (la fenêtre ouverte se ferme d'abord)
 	end)
-	for _, o in g:GetDescendants() do
-		if o:IsA("GuiObject") then o.ZIndex = 19 end
-	end
 	creerFenetre(g)
-	ranger()
 end
 
 function Boutique.init(c: any)
 	ctx = c
 	creer()
-	-- le PROFIL (les caisses légendaires déjà à soi) : lu une fois, puis suivi à chaque mise à jour poussée par le serveur
+	-- le PROFIL (le compte, les caisses légendaires déjà à soi) : lu une fois, puis suivi à chaque mise à jour poussée par le serveur
 	task.spawn(function()
 		local ev = CC:WaitForChild("ProfilMaj", 30) :: RemoteEvent?
 		if ev then
@@ -733,131 +1476,104 @@ function Boutique.init(c: any)
 	end)
 end
 
--- depuis : "menu" | "mort" | "garage" — l'écran auquel RETOUR ramène
-function Boutique.ouvrir(d: string)
+-- depuis : "menu" | "mort" | "garage" — l'écran auquel RETOUR ramène. Du garage, la boutique s'ouvre sur les CAISSES ; `caisse` (un
+-- indice) : sa fenêtre d'achat s'ouvre aussitôt (la fiche du garage « EN BOUTIQUE — VOIR » peut y mener tout droit)
+function Boutique.ouvrir(d: string, caisse: number?)
 	if not U.racine then return end
 	depuis = d
 	Boutique.ouvert = true
 	U.racine.Visible = true
-	U.page.CanvasPosition = Vector2.zero -- (on arrive TOUJOURS en haut : le kit, les offres en Robux)
 	if d ~= "garage" then Hud.ecran("boutique") end
-	-- tout se tient à jour tant que la boutique est ouverte : un prix qui arrive de Roblox, un passe qui vient d'être acheté (ACTIF),
-	-- un cœur de plus, le kit pris, une caisse achetée
+	U.sig = nil
+	majBoutique()
+	chargerHD() -- (les tirages nets des caisses, une par image)
+	U.page.CanvasPosition = Vector2.zero
+	task.defer(function()
+		mettreEnPage()
+		if d == "garage" or caisse then allerA("caisses", true) end
+		if caisse then
+			for _, o in { CA.une, table.unpack(CA.cartes) } do
+				if o.i == caisse then Boutique.pop(o) end
+			end
+		end
+	end)
 	OF.n += 1
 	local nOf = OF.n
-	majBoutique()
 	task.spawn(function()
 		while Boutique.ouvert and OF.n == nOf do
 			task.wait(0.4)
 			if Boutique.ouvert and OF.n == nOf then majBoutique() end
 		end
 	end)
-	-- les photos : la une d'abord, puis la grille, une par une ; au premier refus (budget) on s'arrête, les pastilles restent
-	fileN += 1
-	local n = fileN
-	task.spawn(function()
-		-- (Roblox ne rend pas tout de suite la mémoire des maillages qu'on vient de détruire : la première photo réessaie)
-		if not U.uneModele then
-			local m = photographier(U.uneVue, UNE, 1.9)
-			local essai = 0
-			while not m and essai < 5 and n == fileN do
-				essai += 1
-				task.wait(0.7)
-				m = photographier(U.uneVue, UNE, 1.9)
-			end
-			if n ~= fileN then
-				Caisse.rendre(m)
-				return
-			end
-			if not m then return end
-			U.uneModele = m
-			U.unePastille.Visible = false
-		end
-		for _, k in cases do
-			if n ~= fileN then return end
-			if not k.modele then
-				if Maillage.libre() < (Catalogue[k.i].triangles or 3000) + 1500 then return end -- (plus de place : les pastilles restent)
-				local m = photographier(k.vp, k.i, 1.75)
-				if n ~= fileN then
-					Caisse.rendre(m)
-					return
-				end
-				if not m then return end
-				k.modele = m
-				k.pastille.Visible = false
-				task.wait()
-			end
-		end
-	end)
 end
 
--- (banc) ouvrir la fenêtre d'une case (0 = la une), presser ACHETER ; « offre:coeur » (ou argent2, nitroInfini, vip, tours3 — et
--- coeur5, coeur15 : les packs de la carte des cœurs) presse ACHETER sur cette offre ; « kit » presse ACHETER du KIT DU PILOTE ;
--- « argent:2 » celui du 2e pack d'argent (la fenêtre d'achat de Roblox s'ouvre si son numéro existe — dans Studio, un achat de TEST,
--- rien n'est débité) ; « offres » écrit dans la Sortie l'état de chaque carte (le kit, les offres, l'argent, les caisses)
+-- (banc) ouvrir la fenêtre d'une caisse (0 = la une, n = la n-ième de la grille), presser ACHETER (« oui ») ou FERMER (« non ») ;
+-- « offre:coeur » (ou argent2, nitroInfini, vip, tours3, coeur5, coeur15) presse le bouton de cet article ; « kit » celui du KIT
+-- DU PILOTE ; « argent:2 » celui du 2e pack d'argent ; « onglet:argent » presse un onglet du rail ; « y:900 » fait défiler la page à
+-- cette hauteur (unités de l'interface) ; « tourne:dx:dy » fait glisser la caisse 3D de la fenêtre ; « sans3d » simule le refus du
+-- maillage (le repli) ; « budget » et « mesure » disent ce que la boutique tient du budget des maillages (le compte, puis la mesure
+-- réelle) ; « offres » écrit dans la Sortie
+-- l'état de chaque carte (warn : le journal du banc ne lit que les avertissements)
 function Boutique.dbg(quoi: string)
 	if quoi == "oui" then
 		if SP.acheter then SP.acheter() end
 	elseif quoi == "non" then
 		Boutique.popFerme()
 	elseif quoi == "kit" then
-		acheterId(idDe(R.produits, "kit"))
+		acheter(ART.kit)
 	elseif string.sub(quoi, 1, 7) == "argent:" then
-		local a = R.argent[tonumber(string.sub(quoi, 8)) or 0]
-		if a then acheterId(idDe(a, "id")) end
+		local a = ART["pack" .. (tonumber(string.sub(quoi, 8)) or 0)]
+		if a then acheter(a) end
 	elseif string.sub(quoi, 1, 6) == "offre:" then
-		local cle = string.sub(quoi, 7)
-		for _, k in OF.cartes do
-			if k.o.cle == cle then acheterOffre(k.o) end
-			for _, q in k.packs or {} do
-				if q.nom == cle and cle ~= k.o.cle then acheterId(idDe(R.produits, cle)) end
-			end
-		end
+		local a = ART[string.sub(quoi, 7)]
+		if a then acheter(a) end
+	elseif string.sub(quoi, 1, 7) == "onglet:" then
+		allerA(string.sub(quoi, 8))
+	elseif string.sub(quoi, 1, 2) == "y:" then
+		U.page.CanvasPosition = Vector2.new(0, (tonumber(string.sub(quoi, 3)) or 0) * kPage())
+	elseif string.sub(quoi, 1, 7) == "tourne:" then
+		-- « tourne:300:-40 » : un glisser de 300 px vers la droite et 40 vers le haut sur la caisse 3D — le même chemin que le doigt —
+		-- puis le plateau se FIGE (la photo montre la pose obtenue, pas la ronde qui reprend)
+		local dx, dy = string.match(string.sub(quoi, 8), "^(%-?[%d.]+):?(%-?[%d.]*)$")
+		SP.tG = os.clock() - 0.05
+		SP.glisser(tonumber(dx) or 0, tonumber(dy) or 0)
+		SP.fige, SP.vAz = true, 0
+		poserVue()
+	elseif quoi == "budget" then
+		-- ce que la boutique tient : le budget de triangles (compté), la caisse 3D, les tirages décodés, le pire décodage
+		local nhd = 0
+		for _, v in VIGN do if v.hd then nhd += 1 end end
+		warn(string.format("[boutique] BUDGET : %d triangles libres (compte) | caisse 3D=%s | tirages HD=%d/%d | pire chargement %.1f ms (tranches de 4 ms comprises)",
+			Maillage.libre(), tostring(SP.i3), nhd, #VIGN, HD.ms))
+	elseif quoi == "sans3d" then
+		SP.sans3d = not SP.sans3d -- (le REPLI : la fenêtre fait comme si Roblox refusait le maillage — le tirage flotte sur le plateau)
+		warn("[boutique] sans 3D : " .. tostring(SP.sans3d))
+	elseif quoi == "mesure" then
+		Maillage.mesurer("boutique", true) -- (le VRAI budget : des maillages de 1 000 triangles jusqu'au refus, puis tout est rendu)
 	elseif quoi == "offres" then
 		majBoutique()
-		print(string.format("[boutique] kit : %s, %s, prix « %s »", U.secKit.Visible and "montre" or "pris", KT.etat or "?", KT.prix.Text))
-		for _, k in OF.cartes do
-			if k.packs then
-				local t = {}
-				for _, q in k.packs do table.insert(t, q.nom .. " « " .. q.bt.Text .. " »") end
-				print(string.format("[boutique] %s : %s, %s, %s", k.o.cle, k.c.Visible and "montre" or "cache", k.nb.Text, table.concat(t, ", ")))
-			else
-				print(string.format("[boutique] %s : %s, %s, prix « %s »", k.o.cle, k.c.Visible and "montre" or "cache", k.etat or "?", k.prix.Text))
-			end
+		local t = { "heros=" .. tostring(HE.kind) .. (HE.montre and "" or "(cache)") .. " prix=" .. HE.prix.Text }
+		for _, o in { CA.une, table.unpack(CA.cartes) } do table.insert(t, "c" .. o.i .. "=" .. o.bt.etat .. ":" .. o.bt.b.Text) end
+		for _, o in AR.cartes do
+			local bo = o.bonus.Visible and ("+" .. o.bonus:FindFirstChildOfClass("TextLabel").Text) or ""
+			table.insert(t, "a" .. o.k .. "=" .. o.bt.b.Text .. bo .. (o.meilleur.Visible and "+MEILLEUR" or ""))
 		end
-		for _, k in AR.cartes do
-			print(string.format("[boutique] argent%d (%s) : %s, prix « %s »%s", k.k, Hud.compte(k.a.v), k.etat or "?", k.prix.Text,
-				k.bonus.Visible and (", " .. k.bonusT.Text) or ""))
-		end
-		print("[boutique] a la une : " .. (U.uneEtat and U.uneEtat.etat or "?"))
-		for _, k in cases do
-			print(string.format("[boutique] caisse %d : %s", k.i, k.etat and k.etat.etat or "?"))
-		end
+		for _, o in AV.passes do table.insert(t, o.cle .. "=" .. (o.c.boite.Visible and "" or "(cache)") .. o.bt.etat .. ":" .. o.bt.b.Text) end
+		for _, o in AV.coeurs do table.insert(t, o.q .. "=" .. o.bt.b.Text .. (o.bonus.Visible and ("+" .. o.bonus:FindFirstChildOfClass("TextLabel").Text) or "")) end
+		table.insert(t, "bourse=" .. U.compte.Text .. "/" .. U.nCoeurs.Text)
+		warn("[boutique] " .. table.concat(t, " | "))
 	else
 		local r = tonumber(quoi) or 0
-		local k = cases[r]
-		if r == 0 or not k then Boutique.pop(U.une, UNE, U.uneVue, U.unePastille) else Boutique.pop(k.c, k.i, k.vp, k.pastille) end
+		Boutique.pop((r == 0 or not CA.cartes[r]) and CA.une or CA.cartes[r])
 	end
 end
 function Boutique.fermer()
 	if not Boutique.ouvert then return end
 	Boutique.ouvert = false
 	Boutique.popFerme(true)
-	fileN += 1
+	lacherHD() -- (la mémoire des tirages revient : rien ne reste en course)
+	OF.n += 1
 	U.racine.Visible = false
-	-- on rend les maillages (le garage en a besoin pour ses vignettes)
-	if U.uneModele then
-		Caisse.rendre(U.uneModele)
-		U.uneModele = nil
-		U.unePastille.Visible = true
-	end
-	for _, k in cases do
-		if k.modele then
-			Caisse.rendre(k.modele)
-			k.modele = nil
-			k.pastille.Visible = true
-		end
-	end
 	if ctx and ctx.retour then ctx.retour(depuis) end
 end
 
