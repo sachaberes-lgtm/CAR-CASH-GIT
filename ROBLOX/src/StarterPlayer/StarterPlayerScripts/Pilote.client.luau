@@ -401,6 +401,7 @@ local G = {
 	fruitRaf = 0, fruitRafT = 0, coeurs = 3, ailes = 0, helice = 0,
 	hopY = 0, hopV = 0, choc = 0, -- LA POSE SANS SAUT : la hauteur qui reste à la pose, sa vitesse, la secousse due au contact
 	lgS = 240, lgK = 0, lgV = 0, lgAcc = 20, -- LA LIGNE PARFAITE : la prochaine abscisse, fruit (0) ou pad (1), la vitesse et l'accélération lissées
+	poseX = 0, poseZ = 0, -- LA POSE À L'ÉCRAN : le décalage d'affichage qui se résorbe après une pose par la lèvre (voir G.poseAffiche)
 }
 local NTR = { on = false, t = 0, pal = 0, boost = 0, k = 0, kc = 0, gT = 0 }
 local NTR_BOOST, NTR_BOOST_MAX, NTR_T = 0.1, 1.6, 2
@@ -447,7 +448,17 @@ function G.gK(): number return (piste and (piste :: any).niveau == "espace") and
 local function airMax(): number return Config.AIR_MAX * ((G.gK() < 1) and Config.ORB_AIR or 1) * (facile() and FAC.air or 1) end
 function G.nomNiveau(): string
 	local n = Config.niveau((piste and (piste :: any).zone) or 1)
-	if piste and ((piste :: any).niveau ~= n.id or (piste :: any).variante ~= n.var) then n = Config.NIVEAUX[1] end -- (l'auto-école)
+	if piste and ((piste :: any).niveau ~= n.id or (piste :: any).variante ~= n.var) then
+		-- (la piste de l'auto-école, zone 0 : on cherche le niveau de SA piste — le ciel des NUAGES. Avant le 9/10 : NIVEAUX[1], qui est
+		-- devenu la VILLE)
+		n = Config.NIVEAUX[1]
+		for _, m in Config.NIVEAUX do
+			if m.id == (piste :: any).niveau and m.var == (piste :: any).variante then
+				n = m
+				break
+			end
+		end
+	end
 	return tr(n.nom, n.en)
 end
 local function horiz(v: Vector3): number return math.sqrt(v.X * v.X + v.Z * v.Z) end
@@ -714,6 +725,7 @@ local function decoller(impU: number, impF: number, bord: boolean?)
 	-- ensuite (levreRattrape ne le remet pas à zéro) la faisait retomber d'un saut fantôme.
 	fallPos = (cf.Position + B * (lat * M)) / M + N * (bord and G.hopY or 0.6)
 	G.hopY, G.hopV, G.choc = 0, 0, 0
+	G.poseX, G.poseZ, G.poseQ, G.poseRot = 0, 0, nil, nil -- (la pose à l'écran : rien ne traîne dans le vol)
 	fallVel = T_ * (vA * math.cos(psi - G.slipB) * impF * vm) + B * (vL * vm) + N * impU -- l'éjection = l'avance RÉELLE
 	if fallVel.Y > 70 then fallVel = Vector3.new(fallVel.X, 70, fallVel.Z) end
 	prevPos = fallPos
@@ -763,8 +775,9 @@ local function replacer()
 	-- (6/10) la caisse repart NETTE : un petit saut de pose en cours (hopY) la faisait rebondir à la réapparition, un drift chargé
 	-- lâchait son mini-turbo au premier relâcher
 	G.hopY, G.hopV, G.choc, G.driftOn, G.driftC, G.driftLv = 0, 0, 0, false, 0, 0
+	G.poseX, G.poseZ, G.poseQ, G.poseRot = 0, 0, nil, nil
 	G.qaExcuse = os.clock() + 0.2 -- (banc : un replacement n'est pas un saut de caméra)
-	G.qaRepl = true -- (banc : … ni une pose)
+	G.qaRepl, G.qv = true, nil -- (banc : … ni une pose)
 	G.sillagesNets()
 	mode = "drive"
 	Score.ETAT.mode = "drive"
@@ -832,7 +845,14 @@ function TU.carte()
 	E.coachTete.Text = TU.msg or (tr("AUTO-ECOLE", "DRIVING SCHOOL") .. " · " .. e .. "/5")
 	E.coachTete.TextColor3 = TU.msg and Hud.C.rouge or Hud.C.terne
 	E.coachTitre.Text = TU_ETAPES[e][1]
-	E.coachTxt.Text = TU_ETAPES[e][2]
+	-- (9/10, parcours joueur) au CLAVIER, la consigne NITRO dit sa touche ; au doigt (le gros bouton NITRO clignote à l'écran) et à la
+	-- manette, elle ne change pas
+	local txt = TU_ETAPES[e][2]
+	if e == 2 and not Hud.doigtActif() then
+		KA.UIS = KA.UIS or game:GetService("UserInputService")
+		if not string.find(KA.UIS:GetLastInputType().Name, "Gamepad") then txt = tr("Maintiens NITRO (ESPACE) : ça pousse fort.", "Hold NITRO (SPACE): it pushes hard.") end
+	end
+	E.coachTxt.Text = txt
 	for i = 1, 5 do
 		E.coachPips[i].BackgroundColor3 = (i < e) and Color3.fromRGB(98, 224, 98) or ((i == e) and Hud.C.or_ or Hud.C.trait)
 	end
@@ -1070,7 +1090,7 @@ end
 -- ════════ atterrir (tryLand, L30413-30570) ════════
 local voisins: { number } = {}
 -- hR = la hauteur qui reste au-dessus de la face où l'on se pose (m ; négative : posée sous le niveau, par la lèvre)
-local function atterrir(face: number, latX: number, sX: number, hR: number?)
+local function atterrir(face: number, latX: number, sX: number, hR: number?, garde: boolean?)
 	side = face
 	s = sX
 	G.hopY, G.hopV, G.choc = 0, 0, 0
@@ -1232,6 +1252,7 @@ local function atterrir(face: number, latX: number, sX: number, hR: number?)
 		secousse = math.max(secousse, math.min(0.6, impact * 0.04))
 		G.squashT = math.max(G.squashT or 0, 0.1 + math.min(0.2, impact * 0.022)) -- (L30855 : la caisse se TASSE sur ses ressorts)
 	end
+	G.poseAffiche(garde) -- (avant le signal : les effets de la pose partent de la caisse à sa place)
 	Bus.emit("pose", { g = g, impact = impact, face = face, chainVal = V.chainVal, chainMult = V.chainMult, raccourci = gagne, figures = V.chainN, fallT = V.fallT, reste = reste,
 		q = qG, paye = paye, serpent = serpent, ratee = ratee,
 		-- le MÉTÉORE (L29912) : la nitro tenue jusqu'au contact, en piqué à plus de 45°
@@ -1269,8 +1290,55 @@ function G.levreRattrape(j: number, latOff: number, hOff: number, tOff: number)
 	-- (5/10, L31535) le pneu qui monte la marche : la caisse se tasse, la main le sent, le plancher crache sa gerbe d'or
 	G.squashT = math.max(G.squashT or 0, 0.14)
 	Hud.vibre(18)
+	G.poseAffiche(true)
 	Bus.emit("gerbe", "or", carCF.Position, 8, 7 * 0.15, 7 * 0.75, 58)
 	E.air.Visible = false
+end
+-- (9/10) LA POSE À L'ÉCRAN (visuel seulement : la place, la vitesse et les règles de la pose ne bougent pas). Vidéo de Sacha, 27,7 s :
+-- après un piqué raide la caisse se remettait à plat d'un coup (jusqu'à 90° en une image) et la lèvre la recalait de côté (1,5 à
+-- 3,9 m en une image). Désormais, dès l'image de la pose, la caisse s'affiche À SA PLACE sur la route (pas au bout du pas de vol,
+-- qui a pu passer sous le bitume), son attitude de vol rejoint celle de la route en ~0,12 s comme au décollage (G.poseVue) et —
+-- `garde` : la pose par la LÈVRE — le recalage devient un décalage d'affichage qui se résorbe, comme la marche (levreY).
+function G.poseAffiche(garde: boolean?)
+	if workspace:GetAttribute("DbgPoseBrute") then return end -- (banc, 9/10 : l'ancienne pose à l'écran, pour comparer)
+	local cfL = repere(s, side)
+	G.poseX, G.poseZ = 0, 0
+	if garde then
+		local d = carCF.Position - (cfL.Position + cfL.RightVector * (lat * M))
+		G.poseX = math.clamp(d:Dot(cfL.RightVector) / M, -6, 6)
+		G.poseZ = math.clamp(d:Dot(cfL.LookVector) / M, -6, 6)
+	end
+	G.poseRot = carCF.Rotation
+	local p = cfL.Position + cfL.RightVector * ((lat + G.poseX) * M) + cfL.LookVector * (G.poseZ * M) + cfL.UpVector * ((G.levreY + G.hopY) * M)
+	carCF = G.poseVue(CFrame.new(p) * cfL.Rotation * CFrame.Angles(0, -psi, 0) * CFrame.Angles(0, 0, G.carRoll), 0)
+end
+-- l'attitude de la pose : `cible` = la caisse posée sur la route ; rend la caisse affichée. À la pose, l'écart entre l'attitude de vol
+-- et celle de la route est gardé (G.poseQ), puis fond à 8/s (le slerp du décollage, dt × 8). Tant qu'il dure, la caisse est soulevée
+-- de ce que sa caisse inclinée enfoncerait dans le bitume (le nez du piqué touche, l'arrière retombe ; le toit d'une caisse roulée en
+-- vol — la VRILLE visuelle peut la poser à l'envers — ne passe pas sous la route). Seul un retournement d'exactement un demi-tour (son
+-- axe est indécis) se remet à plat d'un coup, comme avant.
+function G.poseVue(cible: CFrame, dt: number): CFrame
+	if workspace:GetAttribute("DbgPoseBrute") then G.poseQ, G.poseRot = nil, nil return cible end
+	if G.poseRot then
+		local q = cible.Rotation:ToObjectSpace(G.poseRot)
+		G.poseRot = nil
+		local _, a = q:ToAxisAngle()
+		G.poseQ = (math.abs(a) > 0.01 and math.abs(a) < math.rad(179)) and q or nil
+	elseif G.poseQ then
+		G.poseQ = CFrame.identity:Lerp(G.poseQ, math.exp(-8 * dt))
+		local _, a = G.poseQ:ToAxisAngle()
+		if math.abs(a) < 0.004 then G.poseQ = nil end
+	end
+	local q = G.poseQ
+	if not q then return cible end
+	local f = poignees.fiche
+	local hx, hz, hy = f.w * 0.5 * M, f.l * 0.5 * M, f.h * M
+	local y = 0
+	for _, c in { Vector3.new(hx, 0, hz), Vector3.new(-hx, 0, hz), Vector3.new(hx, 0, -hz), Vector3.new(-hx, 0, -hz),
+		Vector3.new(hx, hy, hz), Vector3.new(-hx, hy, hz), Vector3.new(hx, hy, -hz), Vector3.new(-hx, hy, -hz) } do
+		y = math.min(y, q:VectorToWorldSpace(c).Y)
+	end
+	return cible * CFrame.new(0, math.max(0, -(y + math.max(0, G.hopY) * M)), 0) * q
 end
 
 -- LE RADAR À PORTÉE (5/10) : tous les échantillons de la piste rangés dans les cases de la grille qui touchent la boîte
@@ -1303,12 +1371,14 @@ function G.qa()
 	end
 	-- (9/10) LA POSE À TRAVERS : à l'image de la pose, la caisse était (à l'image d'avant) de l'AUTRE côté de la dalle — et chaque
 	-- pose s'écrit (« QA POSE », le banc des lâchers les compte)
-	if mode == "drive" and G.qaM == "fall" and not G.qaIntro and not G.qaRepl then
+	if mode == "drive" and G.qaPose and G.qaPose ~= G.qaPoseVu and not G.qaRepl then
+		G.qaPoseVu = G.qaPose
 		if G.qaE and G.qaE ~= side then
 			warn(string.format("[CashCar] QA POSE A TRAVERS LA DALLE venue de %s, posee %s zone=%d s=%d lat=%.1f", (G.qaE > 0) and "DESSUS" or "DESSOUS",
 				(side > 0) and "DESSUS" or "DESSOUS", zoneN, s, lat))
 		end
 		warn(string.format("[CashCar] QA POSE face=%d zone=%d s=%d lat=%.1f vA=%d", side, zoneN, s, lat, vA))
+		G.qv = { t = 0, att = 0, saut = 0, sautL = 0, roll = 0, mur = 0, v0 = G.qvV, genre = G.dbgGenre or "-" } -- (voir G.qaVue)
 	end
 	G.qaM, G.qaIntro, G.qaRepl = mode, intro, nil
 	if mode ~= "fall" then G.qaE, G.qaJ, G.dbgNit = nil, nil, nil end
@@ -1341,7 +1411,8 @@ function G.qa()
 end
 -- (banc, 6/10) …et LA CAMÉRA QUI SAUTE : d'une image à l'autre, le regard qui tourne de plus de 15° ou la caméra qui bouge de
 -- plus de 3 m PAR RAPPORT À LA CAISSE (un portail ou un replacement l'excusent : G.qaExcuse)
-function G.qaCam()
+function G.qaCam(dt: number)
+	G.qaVue(dt)
 	local c9 = cam.CFrame
 	local Q = G.qaC
 	local course = (mode == "drive" or mode == "fall") and not enPause
@@ -1366,6 +1437,47 @@ function G.qaCam()
 	end
 	G.qaC = { lk = c9.LookVector, p = c9.Position, car = carCF.Position, upR = (mode == "drive") and repere(s, side):VectorToObjectSpace(carCF.UpVector) or nil,
 		mode = course and mode or nil, dit = Q and Q.dit or 0, ditC = Q and Q.ditC or 0 }
+end
+-- (banc, 9/10) LA POSE VUE : pendant 0,8 s après chaque pose, ce que l'écran montre — le plus gros à-coup d'ATTITUDE de la caisse
+-- d'une image à l'autre (°), son plus gros SAUT de place hors de ce que sa vitesse explique (m ; dont la part en travers de la route),
+-- et la caméra : son ROULIS par rapport à la route (° ; 90 = la route debout, « comme un mur ») et le temps passé à plus de 30°
+function G.qaVue(dt: number)
+	local course = (mode == "drive" or mode == "fall") and not enPause
+	if not course then G.qv, G.qvP = nil, nil return end
+	local cfR = repere(s, side)
+	local pos, rot = carCF.Position, carCF.Rotation
+	local v
+	if mode == "fall" then
+		v = fallVel * (SPD * M)
+	else
+		local cap = psi - G.slipB
+		v = (cfR.LookVector * (vA * math.cos(cap)) + cfR.RightVector * (vA * math.sin(cap))) * (SPD * vitMult() * M)
+	end
+	local Q = G.qv
+	if Q and mode ~= "drive" then
+		warn(string.format("[CashCar] QA POSE VUE genre=%s face=%d att=%.0f° saut=%.2f m (travers %.2f) roulis=%.0f° mur=%.2f s", Q.genre, side, Q.att, Q.saut, Q.sautL,
+			Q.roll, Q.mur))
+		G.qv, G.dbgGenre, Q = nil, nil, nil
+	end
+	if Q and G.qvP then
+		-- (l'image de la pose avance à la vitesse de VOL ; les suivantes à celle de la route)
+		local vRef = (Q.t == 0 and Q.v0) or v
+		Q.t += dt
+		local _, a = G.qvR:ToObjectSpace(rot):ToAxisAngle()
+		Q.att = math.max(Q.att, math.deg(math.abs(a)))
+		local d = (pos - G.qvP) - vRef * dt
+		Q.saut = math.max(Q.saut, d.Magnitude / M)
+		Q.sautL = math.max(Q.sautL, math.abs(d:Dot(cfR.RightVector)) / M)
+		local roll = math.deg(math.asin(math.clamp(math.abs(cam.CFrame.RightVector:Dot(cfR.UpVector)), 0, 1)))
+		Q.roll = math.max(Q.roll, roll)
+		if roll > 30 then Q.mur += dt end
+		if Q.t >= 0.8 or mode ~= "drive" then
+			warn(string.format("[CashCar] QA POSE VUE genre=%s face=%d att=%.0f° saut=%.2f m (travers %.2f) roulis=%.0f° mur=%.2f s", Q.genre, side, Q.att, Q.saut, Q.sautL,
+				Q.roll, Q.mur))
+			G.qv, G.dbgGenre = nil, nil
+		end
+	end
+	G.qvP, G.qvR, G.qvV = pos, rot, v
 end
 -- (banc) le JOURNAL DU BORD : pendant 4 s après un « DbgOuvre bord… », chaque décision du bord s'écrit dans la Sortie
 function G.dbgNote(quoi: string, h: number, l: number, vB: number)
@@ -1405,6 +1517,7 @@ function G.dbgBascule()
 	fallVel += B * (sg * 3 - fallVel:Dot(B)) -- (vers le vide, 3 en travers)
 	G.dbgBordT = os.clock() + 4
 	G.qaExcuse = os.clock() + 0.2
+	G.dbgGenre = "bordL"
 	warn("[CashCar] BORD : bascule par le bord, retour vers la route dans 0,3 s")
 	task.delay(0.3, function()
 		if mode == "fall" and V.bascOn then fallVel += B * (-sg * 3 - fallVel:Dot(B)) end -- (on braque : elle revient)
@@ -1423,7 +1536,9 @@ function G.dbgLacher(genre: string)
 	local function r(a: number, b: number): number return a + math.random() * (b - a) end
 	if genre == "mix" then genre = ({ "dessus", "dessous", "tranche", "rase", "vite" })[math.random(1, 5)] end
 	local sx = math.min(s + r(60, 260), L - 30)
-	if math.random() < 0.6 then
+	local fixe = string.sub(genre, -1) == "P" -- (les lâchers FIXES des photos : toujours 150 m devant, sans chercher de virage)
+	if fixe then sx = math.min(s + 150, L - 30) end
+	if math.random() < 0.6 and not fixe then
 		local kb = -1
 		for k = 0, 80 do
 			local s1 = s + 60 + k * 5
@@ -1453,6 +1568,17 @@ function G.dbgLacher(genre: string)
 		lat0, h0, vT, vB, vN = sg * (RH + r(3, 6)), -THICK - r(1, 2.5), r(50, 600), -sg * r(50, 90), r(15, 35)
 	elseif genre == "piege2" then -- au ras SOUS la dalle, nitro tenue, vite : la route qui se creuse sous un long pas
 		lat0, h0, vT, vB, vN, nit = r(-RH + 2, RH - 2), -THICK - r(0.05, 0.6), r(400, 800), r(-20, 20), r(-5, 2), true
+	elseif genre == "piqueR" or genre == "piqueRP" then -- (9/10) haut, plus long, le haut de la caisse ROULÉ de 60 à 130° (l'assiette en vol)
+		lat0, h0, vT, vB, vN = -sg * r(5, 15), r(35, 55), r(30, 120), sg * r(40, 100), r(-120, -60)
+		if genre == "piqueRP" then lat0, h0, vT, vB, vN = -sg * 10, 45, 60, sg * 70, -90 end
+	elseif genre == "pique" or genre == "piqueP" then -- (9/10) un PIQUÉ raide en travers de la route (la pose de la vidéo, 27,7 s)
+		lat0, h0, vT, vB, vN = -sg * r(5, 15), r(6, 14), r(30, 150), sg * r(60, 160), r(-280, -140)
+		if genre == "piqueP" then lat0, h0, vT, vB, vN = -sg * 10, 10, 60, sg * 120, -220 end -- (le même à chaque fois : pour la photo)
+	elseif genre == "levre" or genre == "levreP" then -- (9/10) à côté du bord, au niveau du bitume, qui y revient : la POSE PAR LA LÈVRE
+		lat0, h0, vT, vB, vN = sg * (RH + r(1.1, 3)), r(-0.4, 0.1), r(100, 600), -sg * r(15, 90), r(-3, 2)
+		if genre == "levreP" then lat0, h0, vT, vB, vN = sg * (RH + 2.5), -0.2, 200, -sg * 70, 0 end
+	elseif genre == "levreL" then -- (9/10) sous le niveau du bitume (jamais au-dessus) : la TRANCHE la prend, la lèvre la pose au bord
+		lat0, h0, vT, vB, vN = sg * (RH + r(3, 5)), r(-0.4, -0.08), r(100, 600), -sg * r(30, 90), r(0, 1.5)
 	elseif genre == "piege3" then -- en piqué près du bord en filant vers l'axe : le BUMP qui prenait la place d'une pose
 		lat0, h0, vT, vB, vN = sg * (RH + r(0, 3)), r(5, 18), r(400, 1500), -sg * r(40, 130), r(-600, -150)
 	else -- "vite"
@@ -1467,6 +1593,9 @@ function G.dbgLacher(genre: string)
 	flyAv = fallVel.Unit
 	flyU = N - flyAv * N:Dot(flyAv)
 	flyU = (flyU.Magnitude > 1e-3) and flyU.Unit or N
+	if genre == "piqueR" or genre == "piqueRP" then
+		flyU = CFrame.fromAxisAngle(flyAv, (genre == "piqueRP" and 1.75 or (sg * r(1.05, 2.27)))):VectorToWorldSpace(flyU)
+	end
 	local f0 = r(0.3, 2.5)
 	V.fallT, V.fallTR, V.volT, V.fallVH0 = f0, f0, f0, -1
 	V.sDecol, V.flowS0, V.flowP0 = sx, sx, fallPos
@@ -1477,6 +1606,9 @@ function G.dbgLacher(genre: string)
 	end
 	G.sillagesNets()
 	G.dbgNit = nit or nil
+	G.dbgGenre = genre
+	G.qv, G.qvP = nil, nil
+	if string.sub(genre, 1, 5) == "levre" or string.sub(genre, 1, 5) == "pique" then V.fallT, V.fallTR, V.volT = math.max(f0, 0.5), math.max(f0, 0.5), math.max(f0, 0.5) end
 	G.qaExcuse = os.clock() + 0.3
 	warn(string.format("[CashCar] LACHER %s zone=%d s=%d lat=%.1f h=%.1f vT=%d vB=%d vN=%d nitro=%s", genre, zoneN, sx, lat0, h0, vT, vB, vN, tostring(nit)))
 end
@@ -1571,7 +1703,7 @@ function G.essayerAtterrir(dt: number)
 		if tranche and hOff > -0.45 and V.fallT > 0.35 and vN < 4.5 then
 			local cote = bumpThru and math.sign(prevL) or sgL
 			G.dbgNote("POSE PAR LA LEVRE", hOff, latOff, vB)
-			atterrir(1, cote * (RH - 0.05), (proche - 1) * DSm + math.clamp(tOff, -2, 2), hOff)
+			atterrir(1, cote * (RH - 0.05), (proche - 1) * DSm + math.clamp(tOff, -2, 2), hOff, true)
 			return
 		end
 		if tranche then
@@ -1723,7 +1855,7 @@ function G.dallePleine(j: number, jA: number?, demi: number, DSm: number)
 		local B = F.RightVector
 		if h > -0.45 and V.fallT > 0.35 and fallVel:Dot(F.UpVector) < 4.5 then
 			G.dbgNote("POSE PAR LA LEVRE (flanc)", h, la, fallVel:Dot(B))
-			atterrir(1, sg * (RH - 0.05), (j - 1) * DSm + math.clamp(z, -2, 2), h)
+			atterrir(1, sg * (RH - 0.05), (j - 1) * DSm + math.clamp(z, -2, 2), h, true)
 			return
 		end
 		fallPos += B * (sg * (RH + demi) - la)
@@ -2745,6 +2877,12 @@ function G.etapeSol(dt: number)
 	G.carRoll = math.clamp(G.carRoll + G.rollV * d, -0.42, 0.42)
 	G.levreY *= math.exp(-16 * dt)
 	if math.abs(G.levreY) < 0.005 then G.levreY = 0 end
+	-- (9/10) le décalage d'affichage de la pose par la lèvre se résorbe (G.poseAffiche) : 12/s, la moitié en 0,06 s
+	if G.poseX ~= 0 or G.poseZ ~= 0 then
+		local k9 = math.exp(-12 * dt)
+		G.poseX, G.poseZ = G.poseX * k9, G.poseZ * k9
+		if math.abs(G.poseX) + math.abs(G.poseZ) < 0.01 then G.poseX, G.poseZ = 0, 0 end
+	end
 	-- (6/10, `hopY>0||hopV!==0` du web, L37720) un saut qui PART du sol (le débris de l'orbite qui soulève la caisse : hopV posé, hopY
 	-- à 0) ne démarrait jamais — la caisse touchée restait collée au bitume, la vitesse du saut en attente jusqu'à la pose suivante
 	if G.hopY > 0 or G.hopV > 0 then
@@ -2789,8 +2927,8 @@ function G.etapeSol(dt: number)
 		G.susY = math.clamp((G.susY or 0) + G.susV * d9, -0.26, 0.12)
 	end
 	-- la caisse posée
-	local pos = cf2.Position + cf2.RightVector * (lat * M) + cf2.UpVector * ((G.levreY + G.hopY + G.susY) * M)
-	carCF = CFrame.new(pos) * cf2.Rotation * CFrame.Angles(0, -(psi + G.driftYaw), 0) * CFrame.Angles(-G.pitch, 0, G.carRoll)
+	local pos = cf2.Position + cf2.RightVector * ((lat + G.poseX) * M) + cf2.LookVector * (G.poseZ * M) + cf2.UpVector * ((G.levreY + G.hopY + G.susY) * M)
+	carCF = G.poseVue(CFrame.new(pos) * cf2.Rotation * CFrame.Angles(0, -(psi + G.driftYaw), 0) * CFrame.Angles(-G.pitch, 0, G.carRoll), dt)
 end
 
 -- ════════ LE VOL (L36896-37176) ════════
@@ -3420,10 +3558,14 @@ local function finPartie()
 	end
 	E.mPartie.Text = ""
 	Hud.defi(KA.Roue.carte()) -- (la carte de LA ROUE : les parties vers le prochain tour)
+	-- (9/10, parcours joueur) LE BILAN D'UN DÉBUTANT : « ×1 MULTI MAX » et « 0:00 FRENESIE » ne disaient rien — sans chaîne, la case dit
+	-- les PIÈCES ramassées ; sans frénésie, la DISTANCE parcourue
+	local km9 = (dist >= 1000) and ((string.gsub(string.format("%.1f", dist / 1000), "%.", FR and "," or ".")) .. " KM") or (Hud.entier(dist) .. " M")
 	local st = {
-		{ "×" .. math.max(1, Score.CHA.xMax), T.multiMax }, -- (sans chaîne, le multiplicateur vaut ×1, pas ×0)
+		(Score.CHA.xMax > 1) and { "×" .. Score.CHA.xMax, T.multiMax } or { Hud.entier(stats.pieces), T.pieces },
 		{ Hud.entier(G.vmax), T.kmhMax }, { tostring(G.nbZones + 1), "ZONE" },
-		{ Score.mmss(Score.FREN.max), (Score.FREN.max >= 5 and Score.FREN.max >= (Score.FREN.record or 0) - 0.05) and "RECORD" or T.frenesie },
+		(Score.FREN.max >= 1) and { Score.mmss(Score.FREN.max), (Score.FREN.max >= 5 and Score.FREN.max >= (Score.FREN.record or 0) - 0.05) and "RECORD" or T.frenesie }
+			or { km9, T.distance },
 	}
 	for i, v in st do
 		E.mStats[i][1].Text = v[1]
@@ -3532,9 +3674,21 @@ Garage.init({
 	surReglages = function() Hud.ecran("reglages") end,
 	surBoutique = function()
 		Garage.vignettes(false) -- le garage prête sa place à la vitrine
-		G.boutique.ouvrir("garage")
+		-- (9/10) la fiche « EN BOUTIQUE — VOIR » mène tout droit à la fenêtre d'achat de CETTE caisse (Boutique.ouvrir, 2e argument ;
+		-- une caisse qui n'est pas en vente ouvre la boutique sur ses caisses, comme avant)
+		if workspace:GetAttribute("DbgQA") then warn(string.format("[CashCar] BOUTIQUE depuis le garage : caisse %s", tostring(G.garMontre))) end
+		G.boutique.ouvrir("garage", G.garMontre)
 	end,
 })
+-- (9/10) LA CAISSE QUE LE GARAGE MONTRE : Garage la garde pour lui (`montre`) — toutes les bascules de la vitrine passent par
+-- Garage.sauter, on la lit au passage
+do
+	local sauter0 = Garage.sauter
+	Garage.sauter = function(i: number, ...: any)
+		G.garMontre = i
+		return sauter0(i, ...)
+	end
+end
 E.btGarage.Activated:Connect(ouvrirGarage)
 -- LA MANETTE HORS DE LA COURSE (propre à Roblox : Xbox, manettes PC) — A = JOUER à l'accueil ; A = REJOUER à l'écran de fin (après
 -- 1,5 s : la nitro est aussi au bouton A, on ne saute pas le bilan en mourant doigt posé) ; au garage, gâchettes ou croix
@@ -3667,6 +3821,11 @@ local function basculerPause()
 	if not enPause then
 		enPause = true
 		Hud.pauseBilan(aura, tier + 1, zoneN)
+		-- (9/10, parcours joueur) la leçon PASSÉE, on roule encore sur sa piste (zone 0) : la pause disait « AUTO-ECOLE » — elle dit le
+		-- vrai niveau (pendant la leçon, elle garde « AUTO-ECOLE »)
+		if zoneN <= 0 and not TU.on then
+			E.pauseBilan.Text = string.format("AURA %s   -   %s %d   -   %s", Hud.entier(aura), T.palier, tier + 1, Hud.sansAccent(G.nomNiveau()))
+		end
 		Hud.ecran("pause")
 		return
 	end
@@ -3756,6 +3915,8 @@ workspace:GetAttributeChangedSignal("DbgOuvre"):Connect(function()
 		if mode == "garage" then -- (banc) presser le lingot de décision, passer à la caisse suivante
 			if v == "gar:decider" then Garage.dbgDecider() else Garage.voisin(1) end
 		end
+	elseif string.sub(v, 1, 5) == "gar:i" then
+		if mode == "garage" then Garage.sauter(tonumber(string.sub(v, 6)) or 0) end -- (banc) « gar:i54 » : la caisse 54 sur le plateau
 	elseif string.sub(v, 1, 7) == "onglet:" then
 		if mode == "garage" then Garage.onglet(string.sub(v, 8)) end -- (banc) « onglet:trainee » : un onglet du garage
 	elseif string.sub(v, 1, 6) == "impact" then
@@ -3783,6 +3944,8 @@ workspace:GetAttributeChangedSignal("DbgOuvre"):Connect(function()
 		G.boutique.dbg(string.sub(v, 7)) -- (banc) « achat:2 » ouvre la fenêtre d'achat de la 2e case, « achat:oui » presse ACHETER
 	elseif string.sub(v, 1, 7) == "quitter" then
 		G.quitterPause() -- (banc) QUITTER de la pause (« quitter1 », « quitter2 » : la question, puis la confirmation)
+	elseif v == "passer" then
+		if TU.on then TU.fin(true) end -- (banc, 9/10) PASSER la leçon (le bouton, sans sa question)
 	elseif v == "qapiste" then
 		if piste then task.spawn(function() pcall(KA.qaPiste, piste, zoneN, function() task.wait() end) end) end -- (banc : les croisements de la piste en cours)
 	elseif v == "frenesie" then
@@ -4236,7 +4399,7 @@ RunService:BindToRenderStep("CashCar", Enum.RenderPriority.Camera.Value + 1, fun
 		end
 		G.habiller(dt)
 		if mode == "garage" then Garage.rendu(dtBrut) else G.camera(dt) end
-		if workspace:GetAttribute("DbgQA") then G.qaCam() end -- (banc : la caméra qui saute, voir G.qaCam)
+		if workspace:GetAttribute("DbgQA") then G.qaCam(dt) end -- (banc : la caméra qui saute, voir G.qaCam)
 		local vue = workspace:GetAttribute("DbgVue") -- (mise au point) une vue imposée depuis la console de Studio
 		if vue then
 			cam.CFrame = vue
