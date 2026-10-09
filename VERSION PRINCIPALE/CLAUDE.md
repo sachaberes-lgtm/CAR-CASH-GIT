@@ -48,7 +48,17 @@
   plonge vers la caisse) et l'aura montait pour rien. CORRIGÉ : le banc vit dans le repère de la CAMÉRA (24 m devant elle, collé à l'écran),
   les dauphins sautent sur les CÔTÉS de l'écran (R = 38 % de la demi-largeur, écarts en `ku` jusqu'au bord), dans la profondeur ; la route la
   plus proche (dalleProche + frameAt) donne sa hauteur et le banc monte au-dessus (ou descend sous elle) pour que la tranche de leurs sauts
-  ne la touche jamais (`dolHY`). Saut le plus long : jamais à moins de 10 m de l'objectif. La boîte dessine une route (repère, pas à l'échelle). `dbgDauphin('ecran')` :
+  ne la touche jamais (`dolHY`). Saut le plus long : jamais à moins de 10 m de l'objectif.
+- **LA PEAU LISSE SUR LES CUBES** (même soir, Léo : « remets-le en pas lisse ; rajoute celui en lisse par-dessus celui en pixel, transparent,
+  l'opacité qu'il faut, laisse celui en pixel en dessous créer du volume — essaie de créer une technique, de la maîtriser ») : chaque dauphin
+  en cubes porte une COQUE (`DOL_GEO_S` = le dauphin lisse, enfant du maillage, programme `dauphin5c`, mêmes uniforms de nage et de surface :
+  elle suit ses cubes au millimètre), gonflée de `uCoqG` (1,3 cube) le long des normales, transparente de face (`uCoqA0` .3) et presque
+  opaque sur la silhouette (`uCoqA1` .95, courbe `uCoqP` 1,4 sur 1 − |n·v|) : silhouette lisse et peau mouillée, cubes visibles dessous comme
+  sous du verre. `depthWrite:false`, renderOrder 1. +5 100 triangles par dauphin. `DOL_COQUE.on=false` l'enlève. Dans la boîte : la carte
+  « Peau lisse sur les cubes » (Oui/Non + 4 curseurs, réglages gardés dans le navigateur) ; le bouton « Lisse » = le dauphin lisse seul.
+- **DEUX CHORÉS QUI PASSENT AU-DESSUS** (même soir, Léo : « remets au moins deux chorés où ça passe au-dessus de la route, de la voiture,
+  comme avant ») : LE PONT et LES CISEAUX traversent l'écran (`ax0 → ax1` en demi-largeurs d'écran, `hx` = .8 × la demi-largeur à D9) ; la
+  règle `dolHY` relève le banc pour que la tranche de leurs sauts reste au-dessus de la route (mesuré : banc à +5 à +8 m au sol). La boîte dessine une route (repère, pas à l'échelle). `dbgDauphin('ecran')` :
   où sont les dauphins à l'écran (−1…1) et à quelle distance.
 ## LA SALLE BLANCHE (2026-10-09, Léo : « une sublime voiture dans une salle blanche, que je peux tourner, avec une petite rangée de toutes les voitures qu'on a — pas les enlevées — qu'on glisse dans différentes raretés ; télécharger une liste écrite de tout ce qu'on a dit dessus »)
 - `salle-blanche.html` (outil, à côté d'index.html, à servir : `python3 -m http.server 8975` puis /salle-blanche.html). RIEN n'est recopié :
