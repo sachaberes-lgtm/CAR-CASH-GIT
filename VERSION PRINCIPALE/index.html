@@ -6134,6 +6134,56 @@ html.hubOn #gHub .ghPips u{width:4px;height:4px}
 /* (même jour, Léo : « enlève le settings ») le ⚙ du garage part (`#gOutils [data-go="set"]`, en haut à droite) : les RÉGLAGES restent
    sur l'écran titre (le ⚙ à côté de la boutique) et dans la pause. Masqué, pas retiré : les écouteurs le cherchent toujours. */
 html body #garage #gOutils>[data-go="set"],#gReglage{display:none!important}
+/* LE RANG À CÔTÉ DU NOM (même jour, Léo, capture « 32 / 46 » : « le 1 / 46, mets-le en petit à côté du nom de la voiture »). Il était
+   SOUS le filet du nom, sur sa propre ligne : il monte sur la ligne du nom, en petit (9 px), calé sur le bas des lettres. Le nom n'occupe
+   plus toute la largeur (flex auto) et sa taille réserve 90 px au rang (« 32 / 46 » en fait ~70) — un nom long rapetisse un peu au lieu de pousser le rang à la
+   ligne ; le filet du nom garde sa longueur, HORS DU FLUX (couché, ses 260 px élargissaient la boîte du nom et poussaient le rang loin à droite). */
+html body #garage:not(.menu) #gName{flex:0 1 auto;min-width:0;align-self:baseline;font-size:min(clamp(20px,6.8vw,28px),calc((100cqw - 90px) / var(--nL,10) - 3px))}
+html body #garage:not(.menu) #gName{position:relative;padding-bottom:13px}
+html body #garage:not(.menu) #gName::after{position:absolute;left:0;bottom:0;margin:0;width:min(100cqw,230px)} /* hors du flux : le filet ne fait plus la largeur du nom */
+html body #garage:not(.menu) #gLvl{flex:0 0 auto;align-self:baseline;margin:0 0 0 8px;font-size:9px!important;letter-spacing:0;white-space:nowrap;transform:skewX(var(--sk))}
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html body #garage:not(.menu) #gName{font-size:min(var(--f6),calc((100cqw - 90px) / var(--nL,10) - 3px))}
+  html body #garage:not(.menu) #gName::after{width:min(100cqw,260px)}
+}
+/* LA JAUGE POUR TOURNER LE GARAGE (même jour, Léo : « mets une jauge manuelle pour tourner le garage, stratégiquement posée à la place
+   des boutons ATELIER · MISSIONS · CARRIÈRE — à enlever du garage »). La barre du hub disparaît (#gHub, son câblage reste) ; à sa place,
+   dans l'ATELIER seulement, une réglette de la même famille (30 px, fond à 18 %, penchée) : un rail gradué tous les 15°, le cran du
+   milieu = face à la porte, un curseur cyan et le trait qui part du milieu jusqu'à lui. Tirer le curseur (ou toucher le rail) fait
+   TOURNER LA VUE autour de la caisse (`GAR.vAc`, la même cible que le glissé du doigt sur le décor), sur un tour complet : la jauge suit
+   aussi le doigt sur le décor, et le RETOUR À LA PORTE (3 s sans toucher) la ramène au milieu. Les pages MISSIONS et CARRIÈRE rendent la
+   place que la barre leur prenait. Cible de 48 px (::before de .gtZone : 9 px au-dessus et au-dessous). */
+html.hubOn #gHub{display:none!important}
+html.hubOn #gmBas{bottom:calc(var(--sB) + 14px)}
+html.hubOn #carr .mDock{padding-bottom:calc(var(--sB) + 18px)}
+#gTourne{display:none}
+html.hubOn #gTourne.on{position:fixed;z-index:82;left:calc(var(--sL) + 15px);right:calc(var(--sR) + 15px);bottom:calc(var(--sB) + 10px);margin:0 auto;
+  max-width:560px;height:var(--hubH);box-sizing:border-box;display:block;transform:skewX(var(--sk));pointer-events:auto;touch-action:none;cursor:grab;
+  background:rgba(11,8,24,.18);box-shadow:inset 0 0 0 1px rgba(154,144,200,.16);-webkit-tap-highlight-color:transparent;outline:none;
+  animation:hubMonte var(--t-slow) var(--ease) both}
+html.hubOn #gTourne.on.tient{cursor:grabbing}
+#gTourne:focus-visible{box-shadow:inset 0 0 0 1px var(--neoC)}
+#gTourne i{position:absolute;display:block;pointer-events:none}
+#gTourne .gtZone{inset:-9px 0;pointer-events:auto}
+#gTourne::before,#gTourne::after{content:'';position:absolute;top:50%;width:0;height:0;margin-top:-5px;border:5px solid transparent;opacity:.7;pointer-events:none}
+#gTourne::before{left:8px;border-left:0;border-right:6px solid rgba(154,144,200,.9)}
+#gTourne::after{right:8px;border-right:0;border-left:6px solid rgba(154,144,200,.9)}
+#gTourne .gtRail{left:26px;right:26px;top:50%;height:10px;margin-top:-5px;
+  background:linear-gradient(rgba(154,144,200,.4),rgba(154,144,200,.4)) 0 50%/100% 2px no-repeat,
+    linear-gradient(rgba(255,255,255,.75),rgba(255,255,255,.75)) 50% 0/2px 100% no-repeat,
+    repeating-linear-gradient(90deg,rgba(154,144,200,.5) 0 1px,transparent 1px calc(100% / 24)) 0 50%/calc(100% + 1px) 6px no-repeat}
+#gTourne .gtFill{top:50%;height:2px;margin-top:-1px;left:calc(26px + var(--f0,.5) * (100% - 52px));width:calc(var(--fl,0) * (100% - 52px));
+  background:var(--neoC);box-shadow:0 0 8px var(--neoC)}
+#gTourne .gtPouce{top:50%;width:8px;height:18px;margin:-9px 0 0 -4px;left:calc(26px + var(--t,.5) * (100% - 52px));
+  background:linear-gradient(90deg,#fff 0 2px,var(--neoC) 2px calc(100% - 2px),#2a9fbf calc(100% - 2px));
+  box-shadow:0 0 0 1px rgba(7,5,15,.9),0 0 10px var(--neoC);transition:height var(--t-fast) var(--ease),margin var(--t-fast) var(--ease)}
+#gTourne.tient .gtPouce{height:24px;margin-top:-12px;box-shadow:0 0 0 1px rgba(7,5,15,.9),0 0 16px var(--neoC)}
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html.hubOn #gTourne.on{right:auto;left:calc(var(--sL) + 19px);bottom:calc(var(--sB) + 12px);margin:0;max-width:none;
+    width:min(calc(100% - min(48%,450px) - var(--sL) - var(--sR) - 56px),440px)}
+}
+@media (prefers-reduced-motion:reduce){html.hubOn #gTourne.on{animation:none}#gTourne .gtPouce{transition:none}}
+html[data-reduced-motion="1"] #gTourne{animation:none!important}
 </style>
 <style id="carriereV2">
 /* LA CARRIÈRE v2 (2026-10-07, Sacha : « dans l'écran carrière c'est mal fait, notamment la mauvaise police ; pas besoin de mettre
@@ -6409,6 +6459,7 @@ html.sansFacile [data-m="facile"]{display:none!important}
   <button class="ghT" data-h="mis" role="tab" aria-selected="false"><i class="pxi pxi-cible" aria-hidden="true"></i><span data-fr="MISSIONS">MISSIONS</span><b class="ghPips" aria-hidden="true"><u></u><u></u><u></u></b></button>
   <button class="ghT" data-h="carr" role="tab" aria-selected="false"><i class="pxi pxi-trophee" aria-hidden="true"></i><span data-fr="CARRIERE">CARRIERE</span></button>
 </nav>
+<div id="gTourne" role="slider" tabindex="0" aria-label="Tourner le garage" aria-valuemin="-180" aria-valuemax="180" aria-valuenow="0"><i class="gtZone"></i><i class="gtRail"></i><i class="gtFill"></i><i class="gtPouce"></i></div>
 <div id="modale" role="dialog" aria-modal="true"><div class="modIn"><h3 id="modT"></h3><div id="modX"></div><textarea id="modC" rows="3" spellcheck="false" autocomplete="off"></textarea><div class="modB"></div></div></div>
 <div id="toast" role="status" aria-live="polite"></div>
 <div id="overlay" role="button" tabindex="0" aria-label="Menu principal CASH CAR">
@@ -39114,7 +39165,7 @@ function garGabarit(){
   return GAR._gab={k:k,R:Math.max(1,.5*Math.hypot(v.x,v.z)),a:Math.max(.8,v.z*.5),b:Math.max(.5,v.x*.5),H:Math.max(.8,v.y)};
 }
 function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 360° DANS l'atelier
-  GAR.dtR=dt;try{hubSync();}catch(e){} // (2026-10-06) LE HUB : la barre suit l'onglet
+  GAR.dtR=dt;try{hubSync();gTourneMaj();}catch(e){} // (2026-10-06) LE HUB : la barre suit l'onglet — (2026-10-09) la jauge suit la vue
   if(chuteVoulue()||CHUTE.go){chuteRender(dt);return;}if(CHUTE.on)chuteSort(); // (2026-09-30) LA CHUTE : au MENU, la caisse tombe du ciel (voir « LA CHUTE ») ; la boutique et les missions rouvrent l'atelier
   {const ti9=SHOP.tab==='trainee'?1:(INV&&INV.on&&INV.cat==='trainee')?.55:0;trailApercu(dt,ti9>0,ti9||1);} // (2026-10-04) l'INVENTAIRE ouvert sur ses traînées les montre aussi — plus doucement : la caméra de la vitrine est plus près
   const ay=GARAGE_Y,t9=performance.now()*.001;
@@ -39702,6 +39753,7 @@ function hubSync(){ // appelée à chaque image de l'atelier (garageRender) et �
   if(k===hubSync.k)return;const t0=hubSync.t;hubSync.k=k;hubSync.t=t;
   const el=hubSync.el||(hubSync.el=document.getElementById('gHub'));if(!el)return;
   document.documentElement.classList.toggle('hubOn',!!t);el.classList.toggle('cache',cache);
+  if(GTN&&GTN.el)GTN.el.classList.toggle('on',t==='atl'&&!cache); // (2026-10-09) LA JAUGE : dans l'atelier seulement
   if(t!==t0)el.querySelectorAll('.ghT').forEach(function(b){const on=b.getAttribute('data-h')===t;b.classList.toggle('on',on);b.setAttribute('aria-selected',on?'true':'false');b.tabIndex=on?0:-1;});
   if(t&&!t0)try{const s9=misEtat();el.querySelectorAll('.ghPips u').forEach(function(u,i){u.classList.toggle('ok',!!s9.ok[i]);});}catch(e){}}
 function hubVa(t,b){ // changer d'onglet : la feuille CARRIÈRE se pose par-dessus l'atelier (qui reste ouvert dessous), les deux autres sont des modes de l'atelier
@@ -39717,6 +39769,36 @@ function hubVa(t,b){ // changer d'onglet : la feuille CARRIÈRE se pose par-dess
 function hubMaison(){ // HOME depuis la carrière du hub : le même chemin que la maison de l'atelier
   const c=$('carr');if(c)feuilleFerme(c,'on');const g=$('gClose');if(g)g.click();}
 document.querySelectorAll('#gHub .ghT').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();hubVa(b.getAttribute('data-h'),b);});});
+/* LA JAUGE POUR TOURNER LE GARAGE (2026-10-09, Léo) — voir son CSS (fin de <style id="hubGarage">). Le curseur = l'angle de la VUE
+   ramené dans [−180°, 180°] (le milieu : face à la porte ; à droite, le décor tourne comme sous un doigt qui glisse vers la droite).
+   Saisie : le balancement est versé dans le regard (pas de saut), l'élan et le retour à la porte s'arrêtent ; le tour de base `k0` est
+   figé pour toute la saisie (sinon, au bout du rail, ±180° basculerait d'un tour complet). Clavier : ← → 15°, Début = la porte. */
+var GTN={el:document.getElementById('gTourne'),id:null,k0:0,t:-1,deg:999}; // var : hubSync peut tourner avant cette ligne
+function gtWrap(a){return Math.atan2(Math.sin(a),Math.cos(a));}
+function gTourneMaj(){
+  if(!GTN||!GTN.el||!GTN.el.classList.contains('on'))return;
+  const a=gtWrap(GAR.vA||0),t=Math.round((.5-a/(2*Math.PI))*1000)/1000;
+  if(t!==GTN.t){GTN.t=t;const st=GTN.el.style;st.setProperty('--t',t);st.setProperty('--f0',Math.min(t,.5));st.setProperty('--fl',Math.abs(t-.5));}
+  const d=Math.round(-a*180/Math.PI);if(d!==GTN.deg){GTN.deg=d;GTN.el.setAttribute('aria-valuenow',d);}}
+function gtLibre(){return garageOn&&!GAR.go&&!GAR.fige&&!ecranWipe._on&&hubCtx()==='atl';}
+function gtSaisit(){
+  if(GAR.swK){GAR.vA=(GAR.vA||0)+(GAR.swO||0);GAR.swO=GAR.swP=GAR.swK=0;}
+  const cur=GAR.vAc!=null?GAR.vAc:(GAR.vA||0);GTN.k0=cur-gtWrap(cur);GAR.ret=null;GAR.vW=0;}
+function gtVise(a){GAR.vAc=GTN.k0+a;GAR.vW=0;GAR.ret=null;GAR.mvT=GAR.tDoigt=performance.now();}
+function gtDuDoigt(e){const r=GTN.el.querySelector('.gtRail').getBoundingClientRect();
+  const t=THREE.MathUtils.clamp((e.clientX-r.left)/Math.max(1,r.width),0,1);gtVise(-(t-.5)*2*Math.PI);}
+if(GTN.el){
+  GTN.el.addEventListener('pointerdown',function(e){e.stopPropagation();if(!gtLibre()||GTN.id!=null)return;
+    GTN.id=e.pointerId;try{GTN.el.setPointerCapture(e.pointerId);}catch(_){}GTN.el.classList.add('tient');gtSaisit();gtDuDoigt(e);hap(4);});
+  GTN.el.addEventListener('pointermove',function(e){if(e.pointerId!==GTN.id)return;e.stopPropagation();if(!gtLibre())return;gtDuDoigt(e);});
+  const fin=function(e){if(e.pointerId!==GTN.id)return;e.stopPropagation();GTN.id=null;GTN.el.classList.remove('tient');GAR.tDoigt=performance.now();};
+  GTN.el.addEventListener('pointerup',fin);GTN.el.addEventListener('pointercancel',fin);GTN.el.addEventListener('lostpointercapture',fin);
+  GTN.el.addEventListener('keydown',function(e){if(!gtLibre())return;const k=e.code;
+    if(k!=='ArrowLeft'&&k!=='ArrowRight'&&k!=='Home')return;e.preventDefault();e.stopPropagation();gtSaisit();
+    const a=gtWrap(GAR.vAc!=null?GAR.vAc:(GAR.vA||0));
+    gtVise(k==='Home'?0:THREE.MathUtils.clamp(a+(k==='ArrowLeft'?1:-1)*Math.PI/12,-Math.PI,Math.PI));});}
+window.dbgTourne=function(deg){if(deg!=null&&gtLibre()){gtSaisit();gtVise(-deg*Math.PI/180);}const r=GTN.el&&GTN.el.getBoundingClientRect();
+  return {on:!!(GTN.el&&GTN.el.classList.contains('on')),t:GTN.t,deg:GTN.deg,vA:+(GAR.vA||0).toFixed(3),vAc:+(GAR.vAc||0).toFixed(3),jauge:r?[Math.round(r.left),Math.round(r.top),Math.round(r.width),Math.round(r.height)]:null};};
 window.dbgHub=function(){const el=$('gHub'),r=el&&el.getBoundingClientRect();return {hub:HUB,ctx:hubCtx(),on:document.documentElement.classList.contains('hubOn'),cache:!!(el&&el.classList.contains('cache')),barre:r?[Math.round(r.left),Math.round(r.top),Math.round(r.width),Math.round(r.height)]:null};};
 document.documentElement.classList.toggle('misS',MENU_SACHA); // l'écran MISSIONS de Sacha : ses règles CSS vivent sous html.misS
 /* (même soir, Léo : « enlève la porte ») la porte FERMÉE au menu (Sacha, b8e7ce7) va avec SA version : par défaut (ou ?porte=1) elle
@@ -41213,7 +41295,7 @@ const SWIPE_PX=64; // (2026-10-06) plus lu : le glissé ne change plus de caisse
 /* (2026-09-29, audit de sortie) UN SEUL DOIGT fait tourner l'atelier : le 2e (le pincement) écrasait le point de départ, l'orbite sautait
    d'un doigt à l'autre, et au relâcher le premier comptait pour un glissé — la caisse changeait. Rien ne passe à travers le voile. */
 let gpId=null,gPince=false;
-addEventListener('pointerdown',e=>{if(!garageOn||ecranWipe._on)return;if(e.target.closest&&e.target.closest('#gTop,#gBottom,#gMenu,#gMis .gmC,#gmBas,#wipe,#carr,#modale,[data-m],#gInv,#gHub,#gBurnBtns'))return;
+addEventListener('pointerdown',e=>{if(!garageOn||ecranWipe._on)return;if(e.target.closest&&e.target.closest('#gTop,#gBottom,#gMenu,#gMis .gmC,#gmBas,#wipe,#carr,#modale,[data-m],#gInv,#gHub,#gTourne,#gBurnBtns'))return;
   if(!garageDrag&&atlVise(e)){ATL.appui=e.pointerId;return;} // (même soir) LE BOUTON ROUGE du plateau : ni vue ni plateau, il s'enfonce // (2026-09-30) [data-m] : un bouton de l'accueil n'est pas un glissé · (2026-10-04) le tiroir de l'INVENTAIRE non plus
   if(garageDrag){gPince=true;return;}
   garageDrag=true;gpId=e.pointerId;gPince=false;gpx=gpx0=e.clientX;gpy=gpy0=e.clientY;
@@ -41252,7 +41334,7 @@ addEventListener('pointerup',e=>{
 });
 addEventListener('pointermove',e=>{
   if(!garageDrag){ // (affiches) LE SURVOL à la souris : l'affiche s'allume, le curseur devient une main
-    if(garageOn&&e.pointerType==='mouse'&&!GAR.go&&!(e.target.closest&&e.target.closest('#gTop,#gBottom,#gMenu,#wipe,#carr,#modale,#gInv,#gHub'))){let af=null;try{af=afficheVise(e);}catch(_){}
+    if(garageOn&&e.pointerType==='mouse'&&!GAR.go&&!(e.target.closest&&e.target.closest('#gTop,#gBottom,#gMenu,#wipe,#carr,#modale,#gInv,#gHub,#gTourne'))){let af=null;try{af=afficheVise(e);}catch(_){}
       if(af!==GAR.affH){GAR.affH=af;document.body.style.cursor=af?'pointer':'';}}
     return;}
   if(e.pointerId!==gpId||gPince)return;
