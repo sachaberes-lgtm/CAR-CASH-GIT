@@ -58,7 +58,7 @@
   `nyRallye` déforme d'un bloc la coque, la pop-tart, l'aileron, les feux et le trait noir (pavillon tassé ×,74 → ×,56 vers la poupe,
   pente LINÉAIRE en z pour garder les pavés de glaçage plans ; ailes +8 cm au-dessus des roues ; jupes −7 cm) ; `NY_BAS` ,25 → ,33 (le
   pneu rentre dans l'aile), `NY_VOIE` ,76 (roues, pattes, ancrages) ; équipement posé hors déformation : lame, longue-portée jaunes,
-  bavettes, plaque « 61 ». L'ancienne version : `index-avant-rallye` n'est pas gardée — `git show 386bace:"VERSION PRINCIPALE/index.html"`.
+  bavettes (la plaque « 61 » des portières : retirée le jour même, Léo). L'ancienne version : `index-avant-rallye` n'est pas gardée — `git show 386bace:"VERSION PRINCIPALE/index.html"`.
 
 ## LA SONDE QUI NE FIGE PLUS (2026-10-08, Léo : « le jeu bug un peu quand je le lance, pas que au lancement il rame — trouve une solution qui ne touche pas au graphique ni à la qualité »)
 - MESURÉ (Chrome sans fenêtre sur le Mac M2 de Léo, course au pilote auto, trace + appels WebGL chronométrés) : les à-coups de 35-120 ms

@@ -17494,7 +17494,7 @@ const SHAPES={
        const g9=bloc(),gf=kf.done();for(const g in gf)nyRallye(gf[g]);for(const g in gf){const m=new THREE.Mesh(gf[g],mat(g));m.userData.lp=1;g9.add(m);}g9.visible=!vif;NYAN.feux.push(g9);}}
     /* (2026-10-09, Léo : « la nyan cat doit faire plus voiture de rallye, genre mini rally : plus au ras du sol, moins voiture de ville ») L'ÉQUIPEMENT DE RALLYE, posé APRÈS la déformation (il ne bouge pas avec elle) : la LAME avant au ras du sol, sous
        le visage ; deux LONGUE-PORTÉE jaunes aux coins du bouclier ; des BAVETTES derrière les quatre roues (noires, la pop-tart rose au
-       milieu) ; la PLAQUE DE RALLYE « 61 » sur chaque portière, chiffres en pixels (lus dans le bon sens des deux côtés). Les couleurs
+       milieu) ; (la plaque de rallye « 61 » des portières : retirée le jour même, Léo). Les couleurs
        dans la famille sans lumière, comme le reste du chat. */
     {const kr=lpKit({k:{g:'m',c:0x131317},c:{g:'c',c:0xd8dce4},y:{g:'l',c:0xffe14a},p:{g:'l',c:0xff9cf3},w:{g:'l',c:0xf4f1ea},n:{g:'l',c:0x14141c}});
      kr.box('k',1.58,.025,.24,0,.40,1.42);                                                   // la lame
@@ -17503,11 +17503,7 @@ const SHAPES={
        kr.box('k',.03,.03,.06,sd*.73,.49,1.42);                                              // leur pied
        for(const zc of [.95,-.45]){const zb=zc-.28;                                           // les bavettes, derrière chaque roue
          kr.box('k',.22,.25,.014,sd*NY_VOIE,.485,zb);kr.box('p',.13,.09,.006,sd*NY_VOIE,.50,zb-.01);}
-       // la plaque « 61 » : un cadre blanc sur la portière, les chiffres en cases de 2,6 cm (3 × 5 par chiffre, une colonne d'écart)
-       const xP=sd*.866,CH=['###','#..','###','#.#','###'],UN=['.#.','##.','.#.','.#.','###'],ce=.026;
-       kr.box('w',.012,.17,.30,xP,.70,.25);
-       for(let r=0;r<5;r++)for(let c9=0;c9<7;c9++){const ch=c9<3?CH[r][c9]:c9>3?UN[r][c9-4]:'.';if(ch!=='#')continue;
-         kr.box('n',.016,ce,ce,xP,.70+(2-r)*ce,.25-sd*(c9-3)*ce);}}                      // à droite on lit vers l'arrière, à gauche vers l'avant
+       /* (2026-10-09, Léo : « enlève le 61 sur la nyan ») la plaque de rallye « 61 » des portières est retirée */}
      const gr=kr.done();for(const g in gr){const m=new THREE.Mesh(gr[g],mat(g));m.userData.lp=1;carGroup.add(m);}}
     // 2. LA TÊTE : le dessin de face sur la couche avant, deux couches derrière (gris cerclé de noir : l'arrière de la tête, vu de
     //    la poursuite, est un chat, pas un pavé noir). Elle HOCHE d'un voxel. (v11, Léo : « la tête un peu énorme, ou trop larges les
