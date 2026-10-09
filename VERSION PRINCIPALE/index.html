@@ -12609,7 +12609,7 @@ function voxAt(G,x,y,z){return (x<0||y<0||z<0||x>=G.nx||y>=G.ny||z>=G.nz)?0:G.d[
 function voxSet(G,x,y,z,m){if(x>=0&&y>=0&&z>=0&&x<G.nx&&y<G.ny&&z<G.nz)G.d[x+G.nx*(z+G.nz*y)]=m;}
 /* LE MAILLAGE GLOUTON — pour chaque axe et chaque sens, plan par plan : un masque des faces (matière + ombre des 4 coins), puis les plus
    grands rectangles identiques. Sortie : position (en cubes), normale, aM (matière), aAO (0 = coin enfoui, 1 = à l'air). */
-function voxMesh(G){
+function voxMesh(G,inner){ // inner : une face INTÉRIEURE (matière 10) tous les `inner` cubes, entre deux cubes pleins — on la voit à travers le verre
   const dims=[G.nx,G.ny,G.nz],P=[],Nm=[],Ma=[],Ao=[],I=[],at=[0,0,0],q=[0,0,0];
   const sol=(a,b,c)=>voxAt(G,a,b,c)>0;
   for(let d=0;d<3;d++){const u=(d+1)%3,v=(d+2)%3,nu=dims[u],nv=dims[v],mask=new Int32Array(nu*nv);
@@ -12617,7 +12617,7 @@ function voxMesh(G){
       let n=0;const xi=sg>0?x-1:x,xo=sg>0?x:x-1;
       for(let j=0;j<nv;j++)for(let i=0;i<nu;i++,n++){
         at[d]=xi;at[u]=i;at[v]=j;const m=voxAt(G,at[0],at[1],at[2]);if(!m){mask[n]=0;continue;}
-        at[d]=xo;if(voxAt(G,at[0],at[1],at[2])){mask[n]=0;continue;}
+        at[d]=xo;if(voxAt(G,at[0],at[1],at[2])){mask[n]=inner&&sg>0&&x%inner===0?(10|(255<<8)|(1<<20)):0;continue;}
         let key=m;const co=[[-1,-1],[1,-1],[1,1],[-1,1]];
         for(let c=0;c<4;c++){q[d]=xo;q[u]=i+co[c][0];q[v]=j;const s1=sol(q[0],q[1],q[2])?1:0;q[u]=i;q[v]=j+co[c][1];const s2=sol(q[0],q[1],q[2])?1:0;
           q[u]=i+co[c][0];q[v]=j+co[c][1];const cc=sol(q[0],q[1],q[2])?1:0;key|=(s1&&s2?0:3-(s1+s2+cc))<<(8+c*2);}
@@ -12688,7 +12688,7 @@ function voxPilier(R,H,kind,graine){
   let yTop=0,rmax=0;for(let yy=0;yy<G.ny;yy++)for(let i=0;i<N;i++)for(let j=0;j<N;j++)if(G.d[i+N*(j+N*yy)]){yTop=Math.max(yTop,yy+1);rmax=Math.max(rmax,Math.hypot(i+.5-M,j+.5-M)+.71);}
   const G1=voxDemi(G),G2=voxDemi(G1);
   return {G:G,M:M,H:H,Hb:Hb,yTop:yTop,rmax:rmax,tops:tops.filter(function(c){return !voxAt(G,c[0],c[1]+1,c[2]);}),cor:cor.filter(function(c){return !voxAt(G,c[0],c[1]+1,c[2]);}),des:des,
-    geo:[voxMesh(G),voxMesh(G1),voxMesh(G2)]};
+    geo:[voxMesh(G,4),voxMesh(G1),voxMesh(G2)]};
 }
 /* ---- LA MATIÈRE : des CUBES de pierre réaliste ---- */
 const JADE_VR_VS=[
@@ -12714,7 +12714,7 @@ const JADE_VR_FS=[
   '             mix(mix(rh(i+vec3(0,0,1)),rh(i+vec3(1,0,1)),f.x),mix(rh(i+vec3(0,1,1)),rh(i+vec3(1,1,1)),f.x),f.y),f.z);}',
   'void main(){',
   '#ifdef PREPASS',
-  '  gl_FragColor=vec4(1.);return;',                                                // la passe de PROFONDEUR (rien à peindre)
+  '  gl_FragColor=vec4(1.);return;',                                                // la profondeur de la face la plus proche (rien à peindre)
   '#endif',
   '  vec3 an=abs(vNo);vec2 uv=an.x>.5?vO.zy:(an.y>.5?vO.xz:vO.xy),f=fract(uv);',   // la face du cube (en cubes)
   '  vec3 vox=floor(vO-vNo*.5+.001),Ng=normalize(vN),p=vW+vJ.x*137.;',
@@ -12741,30 +12741,44 @@ const JADE_VR_FS=[
   '    alb=an.y>.5?g:mix(roc*mix(.94,.82+.3*rg,dF),g,step(.62-.25*rn(vec3(uv*3.,vJ.x)),f.y));}',
   '  else if(m==4)alb=mix(vec3(.07,.14,.06),vec3(.19,.30,.11),rn(p*.6))*(.7+.45*rn(p*1.9));', // les FEUILLES
   '  else if(m==5)alb=vec3(.27,.20,.15)*(.85+.3*rg);',
-  '  else if(m==6)alb=vec3(.55,.13,.09);else if(m==7)alb=vec3(.16,.19,.19);else if(m==8)alb=vec3(.86,.66,.30);else alb=vec3(.62,.60,.55)*(.9+.2*rg);',
+  '  else if(m==6)alb=vec3(.55,.13,.09);else if(m==7)alb=vec3(.16,.19,.19);else if(m==8)alb=vec3(.86,.66,.30);else if(m==10)alb=roc*.75;else alb=vec3(.62,.60,.55)*(.9+.2*rg);',
   '  alb*=1.-jt*.28*dF;if(an.y<.5)alb*=1.+.06*smoothstep(.9,.985,f.y)*dF;',          // le joint creusé, l arête du haut qui accroche la lumière
   '  vec3 V=normalize(cameraPosition-vW);',
   '  float cav=mix(.3,1.,vAO)*mix(.6,1.,smoothstep(.05,.5,h)),dif=max((dot(N,uSunDir)+.12)/1.12,0.);',
   '  vec3 col=alb*(mix(uGnd,uSky,N.y*.5+.5)*cav*.85+uSunC*dif*mix(.5,1.,cav)*1.1+uFillC*max(dot(N,-uFillD),0.)*cav);',
-  // LE FANTÔME : les bords s allument, le contre-jour TRAVERSE la pierre (le jade est translucide), les joints laissent filtrer une lueur
-  // qui respire, les couleurs se lavent — et la pierre laisse voir un peu ce qu il y a derrière (le centre plus que les bords)
-  '  float nv=abs(dot(Ng,V)),rim=pow(1.-nv,2.2);',
-  '  float tr=pow(max(dot(-V,uSunDir),0.),3.)*(.35+.65*(1.-max(dot(Ng,uSunDir),0.)));',
-  '  col=mix(col,vec3(dot(col,vec3(.3,.59,.11))),.24);',
-  '  col+=uGhost*(rim*.42+tr*.32+jt*dF*(.15+.12*sin(uTime*1.3+hC*25.)));',
+  // LE VERRE DE JADE (v6, Léo : « je parlais de la transparence des CUBES qui font la montagne ; c est trop clair là ») : chaque bloc est une
+  // brique de jade teinté — on voit au travers les blocs de derrière, l autre face de la montagne et ses plans intérieurs (matière 10), assombris
+  // et verdis ; les arêtes des cubes absorbent plus (on lit les blocs). Une lueur discrète au contre-jour et dans les joints, rien de plus.
+  '  float nv=abs(dot(Ng,V)),rim=pow(1.-nv,2.5),tr=pow(max(dot(-V,uSunDir),0.),3.)*(1.-max(dot(Ng,uSunDir),0.));',
+  '  col+=uGhost*(rim*.07+tr*.12+jt*dF*(.04+.03*sin(uTime*1.3+hC*25.)));',
   '  float hm=smoothstep(uMerY+300.,uMerY+10.,vW.y);col=mix(col,uMist,hm*hm*(3.-2.*hm));',
-  '  gl_FragColor=vec4(col,mix(.76,.97,rim));',
-  '#include <fog_fragment>',
+  '  float fo=0.;',
+  '#ifdef USE_FOG',
+  '  fo=smoothstep(fogNear,fogFar,fogDepth);',
+  '#endif',
+  '  float op=m==4?.9:m==3?.88:m==2?.76:m==10?.2:m>=5?.95:.72;op*=1.-fo;op=mix(op,0.,hm*.85);', // l OPACITÉ du bloc (la brume l efface au loin)
+  '#ifdef PASSE_M',
+  '  vec3 Tr=vec3(1.-op)*mix(vec3(1.),vec3(.52,.78,.64),op);Tr*=1.-jt*dF*op*.55;', // ce qu on voit À TRAVERS : assombri, verdi, l arête plus sombre
+  '  if(!gl_FrontFacing&&m!=10)Tr=mix(vec3(1.),Tr,.8);',
+  '  gl_FragColor=vec4(Tr,1.);',
+  '#else',
+  '  gl_FragColor=vec4(col*op*.7,1.);',                                                 // la LUMIÈRE de la face la plus proche (une seule : la profondeur l a gardée)
+  '#endif',
   '}'].join('\n');
-/* LA TRANSPARENCE SANS DÉSORDRE : chaque montagne passe DEUX fois — une passe de PROFONDEUR (opaque, sans couleur, après le ciel :
-   renderOrder 25 > 20) puis la passe de COULEUR translucide (avant la brume et les cascades : renderOrder 3) qui ne garde que la face la
-   plus proche. On devine à travers la pierre le ciel, la brume, la route, la caisse — jamais une montagne mal triée derrière une autre. */
-function jadeVRMat(pre){const m=new THREE.ShaderMaterial({uniforms:Object.assign(THREE.UniformsUtils.clone(THREE.UniformsLib.fog),JADE_U,{uBump:JADE_BUMP}),defines:pre?{PREPASS:''}:{},
-    vertexShader:JADE_VR_VS,fragmentShader:JADE_VR_FS,fog:true,extensions:{derivatives:true},transparent:!pre,depthWrite:!!pre,colorWrite:!pre});
-  if(!pre){m.polygonOffset=true;m.polygonOffsetFactor=-1;m.polygonOffsetUnits=-1;}m.dispose=function(){};return m;}
+/* LE VERRE SANS DÉSORDRE (v6) — trois passes, aucun tri :
+   1. l'ABSORPTION (renderOrder 2) : TOUTES les couches (faces avant, de dos, plans intérieurs, montagnes derrière) multiplient le fond par ce
+      qu'elles laissent passer — assombri, verdi, l'arête plus sombre : on voit les cubes qui font la montagne, en ombres dans le verre ;
+   2. la PROFONDEUR de la face avant la plus proche (renderOrder 2.5, sans couleur) ;
+   3. la LUMIÈRE (renderOrder 3) : seule cette face-là ajoute sa lumière (la profondeur a écarté les autres) — rien ne s'additionne en lueur.
+   Pour une couche c'est l'exact « fond × (1 − α) + bloc × α ». La brume de three n'est pas appliquée telle quelle : c'est l'OPACITÉ qui
+   s'éteint au loin (le fond reprend sa place). La brume, les cascades, les rayons passent après : derrière une montagne, la profondeur les cache. */
+function jadeVRMat(k){const m=new THREE.ShaderMaterial({uniforms:Object.assign(THREE.UniformsUtils.clone(THREE.UniformsLib.fog),JADE_U,{uBump:JADE_BUMP}),defines:k==='M'?{PASSE_M:''}:k==='P'?{PREPASS:''}:{},
+    vertexShader:JADE_VR_VS,fragmentShader:JADE_VR_FS,fog:true,extensions:{derivatives:true},transparent:true,depthWrite:k==='P',colorWrite:k!=='P',side:k==='M'?THREE.DoubleSide:THREE.FrontSide,
+    blending:k==='M'?THREE.MultiplyBlending:k==='A'?THREE.AdditiveBlending:THREE.NormalBlending});
+  if(k==='A'){m.polygonOffset=true;m.polygonOffsetFactor=-1;m.polygonOffsetUnits=-1;}m.dispose=function(){};return m;}
 const JADE_BUMP={value:6};
-const JADE_M={vr:null,vrM:null,vrP:null,vrMP:null,col:null,arb:null};
-function jadeMats(){if(!JADE_M.vr){JADE_M.vr=jadeVRMat();JADE_M.vrM=jadeVRMat();JADE_M.vrP=jadeVRMat(1);JADE_M.vrMP=jadeVRMat(1); // vr : en instances · vrM : un maillage seul (la muraille, l'arche) — un programme chacun
+const JADE_M={vr:null,vrM:null,vrX:null,vrXM:null,vrP:null,vrPM:null,col:null,arb:null};
+function jadeMats(){if(!JADE_M.vr){JADE_M.vr=jadeVRMat('A');JADE_M.vrM=jadeVRMat('A');JADE_M.vrX=jadeVRMat('M');JADE_M.vrXM=jadeVRMat('M');JADE_M.vrP=jadeVRMat('P');JADE_M.vrPM=jadeVRMat('P'); // vr : en instances · vrM : un maillage seul (la muraille, l'arche) — un programme chacun
     JADE_M.col=new THREE.ShaderMaterial({uniforms:Object.assign(THREE.UniformsUtils.clone(THREE.UniformsLib.fog),JADE_U),vertexShader:JADE_COL_VS,fragmentShader:JADE_COL_FS,fog:true});JADE_M.col.dispose=function(){};
     JADE_M.arb=new THREE.ShaderMaterial({uniforms:Object.assign(THREE.UniformsUtils.clone(THREE.UniformsLib.fog),JADE_U,{uTex:{value:jadeArbresTex()}}),vertexShader:JADE_ARB_VS,fragmentShader:JADE_ARB_FS,fog:true,side:THREE.DoubleSide});JADE_M.arb.dispose=function(){};}
   return JADE_M;}
@@ -12883,7 +12897,7 @@ function jadeMatPilier(q,k){ // la matrice d'une montagne (gabarit q[5], quart d
   return new THREE.Matrix4().makeTranslation(q[0],q[3],q[1]).multiply(new THREE.Matrix4().makeRotationY(q[6]*Math.PI/2)).multiply(new THREE.Matrix4().makeScale(VX*e,VX*e,VX*e)).multiply(new THREE.Matrix4().makeTranslation(-T9.M/e,0,-T9.M/e));}
 function jadeQuart(r,ox,oz){const c=Math.round(Math.cos(r*Math.PI/2)),s=Math.round(Math.sin(r*Math.PI/2));return [ox*c+oz*s,-ox*s+oz*c];} // un vecteur du gabarit tourné comme l'instance
 function buildJade(seed){
-  for(const F of JADE.fam){F.im.dispose();if(F.im2)F.im2.dispose();const g9=F.im.geometry;for(const k in g9.attributes)if(k!=='aJ')g9.deleteAttribute(k);g9.setIndex(null);g9.dispose();}JADE.fam=[];JADE.col=null;JADE.porte=null;JADE.pont=null;JADE.brume=null;JADE.sig=0;
+  for(const F of JADE.fam){F.im.dispose();if(F.im2){F.im2.dispose();F.im3.dispose();}const g9=F.im.geometry;for(const k in g9.attributes)if(k!=='aJ')g9.deleteAttribute(k);g9.setIndex(null);g9.dispose();}JADE.fam=[];JADE.col=null;JADE.porte=null;JADE.pont=null;JADE.brume=null;JADE.sig=0;
   if(JADE.root){for(const o of JADE.root.children)if(o.userData.jeter&&o.geometry)o.geometry.dispose();JADE.root=null;}
   if(PARK.on||!LVL.cur||LVL.cur.piste!=='jade'||!(NP>1))return;
   const t00=performance.now(),M9=jadeMats(),G=jadeGabarits(),jr=mulberry32((seed^0x1ADE5EED)>>>0),Q=JADE.Q||{};
@@ -12970,7 +12984,8 @@ function buildJade(seed){
     const g=vue(geo);F.im=new THREE.InstancedMesh(g,mat,n);F.im.frustumCulled=false;F.im.matrixAutoUpdate=false;
     F.aJ=new THREE.InstancedBufferAttribute(new Float32Array(n*4),4);F.aJ.setUsage(THREE.DynamicDrawUsage);g.setAttribute('aJ',F.aJ);
     F.im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);F.im.count=0;root.add(F.im);JADE.fam.push(F);
-    if(mat===M9.vr){F.im.renderOrder=3;F.im2=new THREE.InstancedMesh(g,M9.vrP,n);F.im2.instanceMatrix=F.im.instanceMatrix;F.im2.frustumCulled=false;F.im2.matrixAutoUpdate=false;F.im2.renderOrder=25;F.im2.count=0;root.add(F.im2);} // la passe de profondeur jumelle (mêmes tampons)
+    if(mat===M9.vr){F.im.renderOrder=3;F.im2=new THREE.InstancedMesh(g,M9.vrX,n);F.im2.instanceMatrix=F.im.instanceMatrix;F.im2.frustumCulled=false;F.im2.matrixAutoUpdate=false;F.im2.renderOrder=2;F.im2.count=0;root.add(F.im2); // la passe d'ABSORPTION jumelle (mêmes tampons)
+      F.im3=new THREE.InstancedMesh(g,M9.vrP,n);F.im3.instanceMatrix=F.im.instanceMatrix;F.im3.frustumCulled=false;F.im3.matrixAutoUpdate=false;F.im3.renderOrder=2.5;F.im3.count=0;root.add(F.im3);} // …et celle de la PROFONDEUR
     return F;};
   const parT=G.p.map(function(){return [[],[],[]];});
   for(const q of PIL){const o=qDe(q[0],q[1]);ext(o,q[0],q[3]-8,q[4]+25,q[1],q[2]);for(let k=0;k<3;k++)parT[q[5]][k].push({q:o,m:jadeMatPilier(q,k).toArray(),j:[q[7],q[8]<2000||q[8]===1e9?1:.85,0,0]});}
@@ -12981,7 +12996,7 @@ function buildJade(seed){
   JADE.quart=[];for(const o of quart.values())JADE.quart[o.k]={c:new THREE.Vector3((o.x0+o.x1)/2,(o.y0+o.y1)/2,(o.z0+o.z1)/2),r:Math.hypot(o.x1-o.x0,o.y1-o.y0,o.z1-o.z0)/2+10};
   if(CHU.length){const m=new THREE.Mesh(jadeChutes(CHU),JADE_CHUTE_M);m.userData.jeter=true;m.frustumCulled=false;m.renderOrder=5;root.add(m);}
   {const RY=[],pasY=Math.max(1,Math.round(170/(L/(NP-1))));for(let i=0;i<NP;i+=pasY){if(jr()>.55)continue;const t9=T[i],hl=Math.hypot(t9.x,t9.z)||1,px=-t9.z/hl,pz=t9.x/hl,sg=jr()<.5?-1:1,lat=60+Math.pow(jr(),1.3)*650;
-     RY.push([pts[i].x+px*sg*lat,pts[i].y+40+jr()*160,pts[i].z+pz*sg*lat,22+jr()*55,650+jr()*600,jr(),.05+jr()*.08]);}
+     RY.push([pts[i].x+px*sg*lat,pts[i].y+40+jr()*160,pts[i].z+pz*sg*lat,22+jr()*55,650+jr()*600,jr(),.03+jr()*.05]);}
    if(RY.length){const m=new THREE.Mesh(jadeRayons(RY),JADE_RAYON_M);m.userData.jeter=true;m.frustumCulled=false;m.renderOrder=7;root.add(m);JADE.n9=RY.length;}}
   // ---- LA GRILLE DES CHOCS (cases de 80 m) : chaque montagne et chaque rocher y est inscrit dans son cercle ; le test final lit SES cubes ----
   {const CG=80,g9=new Map();
@@ -13034,10 +13049,10 @@ function jadePorte(root,i0,jr,M9,pose){
       if(ru&&(!voxAt(G,x,y,z-1)||!voxAt(G,x,y,z+1))&&jr()<.9)G.d[k0]=JM.rouille;
       else if(yr>40&&jr()<.012){const o=voxAt(G,x,y,z-1)?1:-1;if(!voxAt(G,x,y,z+o)){voxSet(G,x,y,z+o,JM.feuille);if(jr()<.5)voxSet(G,x,y+1,z+o,JM.feuille);}}}}
   const o=p.clone().addScaledVector(b,-wG).addScaledVector(t,D/2);o.y=oy;
-  const g=voxMesh(G),m=new THREE.Mesh(g,M9.vrM);m.userData.jeter=true;
+  const g=voxMesh(G,4),m=new THREE.Mesh(g,M9.vrM);m.userData.jeter=true;
   {const aJ=new Float32Array(g.attributes.position.count*4);for(let k=0;k<aJ.length;k+=4){aJ[k]=.37;aJ[k+1]=1;}g.setAttribute('aJ',new THREE.BufferAttribute(aJ,4));}
   m.matrixAutoUpdate=false;m.matrix.copy(jadeRepere(o,b,t));m.matrixWorldNeedsUpdate=true;m.renderOrder=3;root.add(m);
-  {const m2=new THREE.Mesh(g,M9.vrMP);m2.matrixAutoUpdate=false;m2.matrix.copy(m.matrix);m2.matrixWorldNeedsUpdate=true;m2.renderOrder=25;root.add(m2);}
+  for(const k of [[M9.vrXM,2],[M9.vrPM,2.5]]){const m2=new THREE.Mesh(g,k[0]);m2.matrixAutoUpdate=false;m2.matrix.copy(m.matrix);m2.matrixWorldNeedsUpdate=true;m2.renderOrder=k[1];m2.frustumCulled=false;root.add(m2);}
   JADE.porte={c:new THREE.Vector3(p.x,y0,p.z),t:t,b:b,D:D,hw:hw,hb:y0+hb,ht:y0+ht,G:G,o:o,i:i0,tri:g.index.count/3};
   if(pose){for(const sg of [-1,1]){const W9=sg<0?wG:wD;
       for(const fa of [-1,1])pose(p.x+b.x*sg*(hw+62)+t.x*fa*(D*.5-18),p.z+b.z*sg*(hw+62)+t.z*fa*(D*.5-18),40,y0+crete(.5+sg*(hw+62)/W)+40+jr()*80);
@@ -13062,10 +13077,10 @@ function jadePont(root,i0,jr,M9,pose,ARB){
     else if(!voxAt(G,x,y-1,z)&&jr()<.1){for(let k=1;k<=1+((jr()*3)|0);k++)voxSet(G,x,y-k,z,JM.feuille);}
     else if((!voxAt(G,x,y,z-1)||!voxAt(G,x,y,z+1))&&x%7===3&&jr()<.8)G.d[k0]=JM.rouille;}
   const o=p.clone().addScaledVector(b,-xa).addScaledVector(t,D/2);o.y=oy;
-  const g=voxMesh(G),m=new THREE.Mesh(g,M9.vrM);m.userData.jeter=true;
+  const g=voxMesh(G,4),m=new THREE.Mesh(g,M9.vrM);m.userData.jeter=true;
   {const aJ=new Float32Array(g.attributes.position.count*4);for(let k=0;k<aJ.length;k+=4){aJ[k]=.81;aJ[k+1]=1;}g.setAttribute('aJ',new THREE.BufferAttribute(aJ,4));}
   const Mr=jadeRepere(o,b,t);m.matrixAutoUpdate=false;m.matrix.copy(Mr);m.matrixWorldNeedsUpdate=true;m.renderOrder=3;root.add(m);
-  {const m2=new THREE.Mesh(g,M9.vrMP);m2.matrixAutoUpdate=false;m2.matrix.copy(Mr);m2.matrixWorldNeedsUpdate=true;m2.renderOrder=25;root.add(m2);}
+  for(const k of [[M9.vrXM,2],[M9.vrPM,2.5]]){const m2=new THREE.Mesh(g,k[0]);m2.matrixAutoUpdate=false;m2.matrix.copy(Mr);m2.matrixWorldNeedsUpdate=true;m2.renderOrder=k[1];m2.frustumCulled=false;root.add(m2);}
   const V3=new THREE.Vector3();
   for(let k=0;k<14&&tops.length;k++){const c=tops[(jr()*tops.length)|0];V3.set(c[0]+.5,c[1]+1,c[2]+.5).applyMatrix4(Mr);const h=9+jr()*9,pin=jr()<.7;ARB.push({x:V3.x,y:V3.y,z:V3.z,j:[h*(pin?.95:1.35),h,pin?(jr()*4)|0:4,jr()]});}
   JADE.pont={c:new THREE.Vector3(p.x,y0,p.z),t:t,b:b,D:D,xa:xa,yB:yB,yH:yH,G:G,o:o,i:i0,tri:g.index.count/3};
@@ -13086,7 +13101,7 @@ function jadeTri(cam){
     for(const F of JADE.fam){let w=0;const A=F.im.instanceMatrix.array,J=F.aJ.array;
       for(const [k,r] of F.r){const v=JT.vis[k];if(v<F.b0||v>F.b1)continue;
         A.set(F.M.subarray(r[0]*16,r[1]*16),w*16);J.set(F.J.subarray(r[0]*4,r[1]*4),w*4);w+=r[1]-r[0];}
-      F.im.count=w;if(F.im2)F.im2.count=w;F.im.instanceMatrix.needsUpdate=true;F.aJ.needsUpdate=true;}}
+      F.im.count=w;if(F.im2){F.im2.count=w;F.im3.count=w;}F.im.instanceMatrix.needsUpdate=true;F.aJ.needsUpdate=true;}}
   JT.ms+=performance.now()-t0;JT.n++;
 }
 {const ob9=scene.onBeforeRender;scene.onBeforeRender=function(r9,s9,cam,rt){ob9.call(this,r9,s9,cam,rt);try{jadeTri(cam);}catch(e){window.__jadeErr=e;}};} // CHAÎNÉ (jamais réassigné)
@@ -14934,18 +14949,18 @@ Object.assign(BIOMES.tempete,{daCon:0,daExpo:1.12,daWbN:.5,daSh:.35});Object.ass
 /* LES PICS DE JADE (2026-10-09, Léo) — l'air d'un rouleau peint : un soleil bas et doux (or pâle), une brume crème-jade qui avale le
    lointain à ~2,5 km (les piliers s'y fondent, le ciel peint prend le relais), un ciel clair, un remplissage vert-de-gris. Étalonnage doux
    (la couche DA en retrait : les verts et les gris du lavis, pas le split teal/orange). */
-BIOMES.jade={nm:'PICS DE JADE',skyMul:[1,1,1],skyLift:[0,0,0],sunTint:[1,.97,.92],sunHalo:0,city:0,stars:0,moon:0,
-  /* (v5, Léo : « joue avec la lumière, qu'elle soit presque fantomatique ») : une lumière DIFFUSE et pâle (un soleil voilé, le ciel et la mer
-     de nuages qui éclairent tout), une brume blanc-bleuté qui avale tôt, des couleurs lavées, le halo (bloom) plus fort et plus bas */
-  fog:[.80,.87,.90],fogN:170,fogF:2400,
-  hemiS:[.86,.93,1.0],hemiG:[.66,.72,.77],hemiI:1.05, sunC:[.98,.97,.95],sunI:.78,
-  fillC:[.60,.72,.80],fillI:.18, kickC:[.85,.95,1],kickI:.06,
-  volSun:[1.9,1.9,1.9],volSky:[.74,.84,.90],volGnd:[.50,.56,.60],volAmb:.9,
-  expo:1.0,sat:.80,
-  env:[[0,'#9cbccc'],[.3,'#c6d8de'],[.48,'#e8f0f2'],[.58,'#f2f4f2'],[.66,'#9aa8ac'],[1,'#5a6a70']],eS1:[245,250,255,.45],eS2:[180,220,235,.30],
-  wb:[1,1,1],sh:[0,.006,.012],hi:[0,.008,.012],con:1.0,bloomS:.62,bloomT:.80,vigK:.2,vigC:[.12,.15,.17],rimK:0,rimS:.42,fogIn:[.90,.94,.96],fogCj:[.94,.94,.92],
-  daCon:.4,daExpo:1,daWbN:1,daSh:.2,daHi:.15,
-  jdZ:[.62,.76,.86],jdH:[.88,.93,.95],jdR:[.45,.56,.60],jdB:[.92,.95,.96],jdS:[1,.98,.92]};
+BIOMES.jade={nm:'PICS DE JADE',skyMul:[1,1,1],skyLift:[0,0,0],sunTint:[1,.95,.86],sunHalo:0,city:0,stars:0,moon:0,
+  /* (v6, Léo : « c'est trop clair là ») : fini le blanc délavé de la v5 — l'air des photos (brume blanc-bleuté mais plus loin, lumière du
+     soleil franche, la mer de nuages qui éclaire par-dessous), un cran plus sombre que la v4, des couleurs pleines */
+  fog:[.70,.80,.83],fogN:240,fogF:2500,
+  hemiS:[.74,.84,.92],hemiG:[.50,.55,.56],hemiI:.95, sunC:[1,.96,.90],sunI:1.05,
+  fillC:[.50,.62,.70],fillI:.12, kickC:[1,.90,.78],kickI:.04,
+  volSun:[1.8,1.75,1.6],volSky:[.66,.76,.84],volGnd:[.32,.38,.34],volAmb:.8,
+  expo:.88,sat:1.02,
+  env:[[0,'#7f9fb2'],[.3,'#b1c6cc'],[.48,'#dce4e2'],[.58,'#e6e4d8'],[.66,'#7a8a80'],[1,'#3e4a44']],eS1:[245,240,225,.45],eS2:[160,200,205,.30],
+  wb:[1,1,1],sh:[0,.006,.008],hi:[.012,.01,0],con:1.08,bloomS:.30,bloomT:.95,vigK:.30,vigC:[.08,.11,.11],rimK:0,rimS:.38,fogIn:[.86,.90,.91],fogCj:[.90,.86,.78],
+  daCon:.6,daExpo:1,daWbN:1,daSh:.3,daHi:.2,
+  jdZ:[.48,.66,.80],jdH:[.80,.87,.89],jdR:[.32,.43,.45],jdB:[.86,.90,.91],jdS:[1,.95,.84]};
 for(const k9 in BIOMES)for(const f9 in BIO_ETAL0)if(BIOMES[k9][f9]==null)BIOMES[k9][f9]=JSON.parse(JSON.stringify(BIO_ETAL0[f9]));
 // Le tirage du jour, dans l'ordre des heures (+ l'ORAGE en joker météo) — la NUIT ne se tire pas,
 // elle se MÉRITE (3 portails). 9 ambiances en rotation : deux parties ne se ressemblent plus.

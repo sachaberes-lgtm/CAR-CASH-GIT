@@ -56,13 +56,24 @@ d'aller dans cette map avec une voiture, la mobilité comme le main, mais seulem
   quart de tour, grilles de la Porte et du Pont). MESURÉ : 60 i/s, ~520 000 triangles / ~37 appels visibles, construction ~0,4 s ;
   `dbgJadeHeurt('test')` sur 3 vallées : tout bon (route libre dessus et dessous, tout flotte au-dessus de la mer).
 - **v5 — LES CUBES FANTÔMES** (même soirée, Léo : « des cubes plus petits, un peu de transparence, et joue avec la lumière : presque
-  fantomatique ») — LA VERSION EN COURS. `VX` 5 → 3,5 m sur l'ordi (5 m sur un vrai téléphone) ; la muraille et l'arche gardent 5 m (`VXG`).
+  fantomatique »). `VX` 5 → 3,5 m sur l'ordi (5 m sur un vrai téléphone) ; la muraille et l'arche gardent 5 m (`VXG`).
   TRANSPARENCE sans désordre : chaque pierre passe deux fois — profondeur (`PREPASS`, opaque sans couleur, renderOrder 25 > le ciel 20) puis
   couleur translucide (renderOrder 3, avant la brume ; décalage de polygone) : on devine le ciel, la brume, la route à travers, jamais une
   montagne mal triée. LUMIÈRE FANTÔME dans `JADE_VR` : bords qui s'allument, contre-jour qui traverse la pierre, joints qui respirent une
   lueur (`uGhost`), couleurs lavées, alpha .76 au centre → .97 aux bords. RAYONS de lumière en biais dans la brume (`jadeRayons`), ESPRITS
   (poussières qui flottent autour de la caméra, `JADE_ESPRITS`), air pâle (`BIOMES.jade` : soleil voilé, brume blanc-bleuté, saturation .8,
   halo plus fort). MESURÉ : 60 i/s, ~0,9-1 M triangles visibles, construction ~0,5 s ; collisions et règle d'or inchangées (3 vallées OK).
+- **v6 — LE VERRE DE JADE** (même soirée, Léo : « je parlais de la transparence des CUBES qui constituent les montagnes, c'est trop clair
+  là ») — LA VERSION EN COURS. La v5 laissait voir le ciel à travers une pierre délavée ; désormais ce sont les CUBES qui se voient dans la
+  montagne, comme dans un bloc de jade sombre. TROIS PASSES SANS TRI (`jadeVRMat('M'|'P'|'A')`, toutes dans la liste transparente, donc
+  après le ciel et la route) : (1) ABSORPTION (`PASSE_M`, MultiplyBlending, DoubleSide, renderOrder 2) — TOUTES les couches (faces avant, de
+  dos, montagnes derrière) multiplient le fond par ce qu'elles laissent passer, teinté vert-de-gris, les arêtes plus sombres ; (2) PROFONDEUR
+  (`PREPASS`, sans couleur, renderOrder 2,5) de la face la plus proche ; (3) LUMIÈRE (Additive, FrontSide, décalage de polygone, renderOrder 3)
+  de cette seule face, à 70 % — les couches ne s'additionnent plus en lueur (c'était le « trop clair »). Des PLANS INTÉRIEURS tous les 4 cubes
+  (matière 10 de `voxMesh(G,4)`, opacité .2) dessinent la grille des cubes DANS la montagne. La brume de three devient un fondu d'OPACITÉ (le
+  fond reprend sa place au loin). Air un cran plus sombre (`BIOMES.jade` : expo .88, soleil moins jaune, bloom .30 / seuil .95). Jumeaux par
+  famille : `F.im2` (absorption) et `F.im3` (profondeur) partagent les tampons de `F.im`. MESURÉ : 60 i/s, collisions et règle d'or
+  inchangées (3 vallées OK), Porte et Pont traversés. sw.js → v208.
 - Mesuré (Chrome sans fenêtre du Mac) : 60 i/s, construction 16-28 ms, tri ~0,03 ms ; collisions (`dbgJadeHeurt('test')`, 3 vallées) :
   piliers durs, arche et dessous du pont libres, AUCUN point de la route dans la pierre. Console : `dbgJade()`, `dbgJadeVue('route'|'porte'|
   'pont'|'haut'|'loin'|'grue',d,h,cap)` (photo figée), `dbgGrues()`. sw.js → v203.
