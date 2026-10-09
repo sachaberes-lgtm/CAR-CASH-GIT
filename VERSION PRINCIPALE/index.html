@@ -6266,14 +6266,7 @@ html body #garage:not(.menu) #gRar.gModeBar{display:flex!important;align-items:c
 .gModeT b{flex:none;font-weight:400;font-size:var(--f0);letter-spacing:1px;color:var(--tx3);text-shadow:none}
 #gStrip .gVide{flex:1;display:flex;align-items:center;justify-content:center;min-height:60px;font-size:var(--f0);letter-spacing:2px;color:var(--tx3)}
 #gStrip.gModeShop .gT.lock img{filter:none}
-/* L'INVENTAIRE COMPLET (2026-10-09, Léo) : ce qu'on n'a pas encore = une SILHOUETTE noire transparente (cernée d'un fil cyan pour se lire
-   sur le fond sombre), le fond de la vignette éteint, le cadenas au coin ; ce qu'on a garde ses couleurs. */
-#gStrip.gModeInv .gT.lock{background:rgba(6,4,14,.55)!important;box-shadow:inset 0 0 0 1px rgba(94,230,255,.14)!important}
-html body #garage #gStrip.gModeInv .gT.lock img{filter:brightness(.26) saturate(.55) contrast(1.15) drop-shadow(0 0 1px rgba(94,230,255,.55));opacity:.8} /* (plus fort que la lueur des vignettes à vendre) — (même soir, Léo : « qu'on les devine quand même un petit peu ») assombrie, plus noire : formes et couleurs se devinent */
-#gStrip.gModeInv .gT.lock :is(.gSwc,.gRub,.gIc){filter:brightness(.3) saturate(.6) drop-shadow(0 0 1px rgba(94,230,255,.55));opacity:.75}
-#gStrip.gModeInv .gT.lock .gTl{display:none}
-#gStrip.gModeInv .gT.lock::before{background:#9fdcff;opacity:.85}
-#gStrip.gModeInv .gT.lock.on{box-shadow:inset 0 0 0 2px rgba(94,230,255,.6)!important}
+
 html body #garage:not(.menu) #gRar .gR.vide{opacity:.45}
 /* LES LOGOS DES FAMILLES (2026-10-09, Léo : « enlève les nombres, fais des logotypes ») : dans la rangée des raretés, plus de losange ni de
    compte — le logo pixel de la famille (RAR_LOGO : roue · gemme · flamme · couronne · cible), à sa couleur, qui s'allume quand on la choisit. */
@@ -6282,7 +6275,7 @@ html body #garage:not(.menu) #gRar .gR:not(.gF)>.pxi{--pxs:2;color:var(--rc);opa
 html body #garage:not(.menu) #gRar .gR.on:not(.gF)>.pxi{opacity:1;filter:drop-shadow(0 0 7px var(--rc)) brightness(1.15)}
 /* HOME ET CACHER DANS LE VIDE DE LA RANGÉE (même jour, Léo, capture de la rangée : « dans l'espace vide, intègre un nouveau bouton HOME et
    un bouton pour enlever l'interface boutique et inventaire »). La ligne du haut de la grille n'avait qu'ÉQUIPER (au-dessus de JOUER) :
-   HOME prend la place au-dessus d'INVENTAIRE, CACHER celle au-dessus de BOUTIQUE — deux barres de la famille d'ÉQUIPER (28 px, laque sombre,
+   CACHER prend la place au-dessus d'INVENTAIRE, HOME celle au-dessus de BOUTIQUE (échangés le même soir) — deux barres de la famille d'ÉQUIPER (28 px, laque sombre,
    trait de couleur dessous : bleu pour HOME, lilas pour CACHER). CACHER replie la partie boutique / inventaire de la console (onglets,
    familles, vignettes : `#garage.consoleCachee`) ; la jauge et la rangée restent, la caisse prend la place (garLibre relit la console).
    Le mot devient VOIR ; INVENTAIRE ou BOUTIQUE la rouvrent aussi. Le HOME du haut (#gHomeMini) s'efface : un seul HOME à l'écran. */
@@ -6291,8 +6284,8 @@ html.hubOn #gHomeMini.on{display:none}
 html body #garage:not(.menu):not(.vitrine) #gAct>:is(#gHomeBas,#gCache){grid-row:1;display:flex;align-items:center;justify-content:center;gap:6px;min-width:0;height:28px;min-height:28px;
   padding:0 6px;font-size:var(--f0);letter-spacing:2px;--ton:#4f8cff;--nc:var(--ton);color:var(--tx2);text-shadow:0 1px 0 rgba(7,5,15,.85);animation:none;transform:skewX(var(--sk));
   background:linear-gradient(180deg,rgba(26,21,50,.92),rgba(15,12,32,.92));box-shadow:inset 0 0 0 1px var(--fil),inset 0 -3px 0 var(--ton),0 6px 14px -8px var(--ton)}
-html body #garage:not(.menu):not(.vitrine) #gAct>#gHomeBas{grid-column:1}
-html body #garage:not(.menu):not(.vitrine) #gAct>#gCache{grid-column:2;--ton:#b8b0e0}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gHomeBas{grid-column:2} /* (même soir, Léo : « le HOME et le VOIR changent de place ») */
+html body #garage:not(.menu):not(.vitrine) #gAct>#gCache{grid-column:1;--ton:#b8b0e0}
 html body #garage:not(.menu):not(.vitrine) #gAct>:is(#gHomeBas,#gCache) .pxi{--pxs:1;color:var(--ton);filter:drop-shadow(0 0 4px var(--ton))}
 html body #garage:not(.menu):not(.vitrine) #gAct>:is(#gHomeBas,#gCache):is(:active,.appui){transform:skewX(var(--sk)) translateY(2px)}
 html body #garage.consoleCachee:not(.menu):not(.vitrine) #gAct>#gCache{--ton:#fff;color:#fff}
@@ -37865,11 +37858,7 @@ function gPossede(i){return i===(SAVE.d.equipped|0)||carUnlockedVrai(i);}
 function gModeListeVoitures(m){const eq=SAVE.d.equipped|0,L=[];
   for(let i=0;i<CARS.length;i++){if(carRetiree(i))continue;
     if(m==='inv'?gPossede(i):gAVendre(i))L.push(i);}
-  if(m==='inv'){L.sort(function(a,b){return (INV_RANG[carRar(b)]-INV_RANG[carRar(a)])||(carOrdre(b)-carOrdre(a));});
-    /* (2026-10-09, Léo : « l'INVENTAIRE montre toutes les voitures et les trucs qu'on n'a pas eus, débloquables non acquis, en noir transparent
-       (bloqués), à côté des objets acquis mais distinguables ») : après ce qu'on a, TOUT le reste, dans l'ordre du garage (familles, du plus
-       accessible au plus dur) — dessiné en silhouette (voir #gStrip.gModeInv .gT.lock) */
-    for(const i of garageListe())if(!gPossede(i))L.push(i);}
+  if(m==='inv')L.sort(function(a,b){return (INV_RANG[carRar(b)]-INV_RANG[carRar(a)])||(carOrdre(b)-carOrdre(a));}); // (2026-10-09) les silhouettes de ce qu'on n'a pas (v221-v222) sont retirées le même soir (Léo : « enlève le truc avec les voitures transparentes »)
   else L.sort(function(a,b){return ((CAR_UNLOCK[a].p?0:1)-(CAR_UNLOCK[b].p?0:1))||(carOrdre(a)-carOrdre(b));});
   return L;}
 function gModeBoutons(){const m=gModeM(),c=document.getElementById('gvCof'),b=document.getElementById('gShopBas'),r=document.getElementById('gRar'),st=document.getElementById('gStrip');
@@ -37880,7 +37869,7 @@ function gModeTete(bar,m,n){bar.classList.add('gModeBar'); // n : un nombre, ou 
 function gStripModeVoitures(){
   const bar=$('gRar'),st=$('gStrip');if(!bar||!st)return;gModeBoutons();
   const m=GMODE.m,eq=SAVE.d.equipped|0,L=gModeListeVoitures(m);
-  const nA=m==='inv'?L.filter(gPossede).length:L.length,lbl=m==='inv'?nA+' / '+L.length:L.length;
+  const lbl=L.length;
   const kb='mode:'+m+':'+lbl+':'+LANG;if(bar._k!==kb){bar._k=kb;bar._on=null;gModeTete(bar,m,lbl);}
   const mk9=(function(){try{const s9=misEtat();return s9.n+':'+s9.ok.join('');}catch(e){return '';}})();
   const k='mode:'+m+':'+L.join(',')+':'+eq+':'+mk9;
@@ -37888,7 +37877,7 @@ function gStripModeVoitures(){
     if(!L.length)st.innerHTML='<div class="gVide">'+sansAcc(TR(m==='inv'?'RIEN ICI':'TOUT EST A TOI'))+'</div>';
     else st.innerHTML=L.map(function(i){const ri={c:'#5ee6ff'},lg9=';--rg:rgba(94,230,255,.32);--rg2:rgba(94,230,255,.72)'; // (2026-10-09, Léo : « enlève la rareté de l'inventaire ») tout dans le cyan de l'INVENTAIRE
       const u=CAR_UNLOCK[i],ouv=i===eq||carUnlockedVrai(i);
-      const et=ouv?(i===eq?'':pxi('coche')):''; // (2026-10-09) pas encore à toi : la silhouette et le cadenas, sans prix (c'est l'inventaire)
+      const et=ouv?(i===eq?'':pxi('coche')):(u&&u.p?fmtC(u.p):u&&u.eur?eurTxt(u.eur):u&&u.k==='carnet'?gDefiEt(u.v):'');
       return '<div class="gT'+(ouv?'':' lock')+(i===eq?' eq':'')+'" data-car="'+i+'" role="button" aria-label="'+String(CARS[i].name).replace(/"/g,'')+'" style="--rc:'+ri.c+lg9+'">'
         +'<i class="gTl"></i><i class="gTv"></i><em'+(!ouv&&u&&!u.p&&u.eur?' class="eur"':!ouv&&u&&u.k==='carnet'?' class="def"':'')+'>'+et+'</em></div>';}).join('');
     st.querySelectorAll('.gT').forEach(function(el){const i=+el.getAttribute('data-car');
@@ -37909,17 +37898,6 @@ function gConsoleCache(on){if(!gEl)return;gEl.classList.toggle('consoleCachee',!
 try{document.getElementById('gCache').addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(e.currentTarget);uiClic('onglet');gConsoleCache(!gEl.classList.contains('consoleCachee'));});
   document.getElementById('gHomeBas').addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(e.currentTarget);const c=$('gClose');if(c)c.click();});
   if(!I18N['CACHER'])I18N['CACHER']='HIDE';if(!I18N['VOIR'])I18N['VOIR']='SHOW';}catch(e){}
-/* (2026-10-09, Léo : « et quand on clique dessus, ça amène sur la BOUTIQUE et ça montre la voiture qu'on va acheter ») une silhouette touchée
-   en INVENTAIRE : si elle s'achète (argent du jeu ou €), la console passe en BOUTIQUE, sur CET objet (sa famille, sa vignette, le plateau) ;
-   une caisse à gagner (défi) reste dans l'inventaire et se montre sur le plateau, comme avant. */
-try{document.getElementById('gStrip').addEventListener('click',function(e){
-  const t=e.target&&e.target.closest&&e.target.closest('.gT.lock');if(!t||gModeM()!=='inv'||!garageOn||GAR.go||ecranWipe._on)return;
-  if(t.hasAttribute('data-car')){const i=+t.getAttribute('data-car');if(!gAVendre(i))return;
-    e.stopPropagation();uiPop(t);uiClic('nav');GMODE.m='shop';const bar=$('gRar'),st=$('gStrip');if(bar)bar._k=null;if(st)st._r=null;
-    gModeBoutons();if(i===garageI)garageFamilles(carRar(i));else garageSaute(i);return;}
-  if(t.hasAttribute('data-cos')&&SHOP.tab!=='voiture'){const cat=SHOP.tab,j=+t.getAttribute('data-cos'),d=COSM[cat][j];if(!d||shopOwned(cat,d.id)||!d.p)return;
-    e.stopPropagation();uiPop(t);uiClic('nav');GMODE.m='shop';const bar=$('gRar'),st=$('gStrip');if(bar)bar._k=null;if(st)st._r=null;gModeBoutons();shopShow(cat,j);}
-},true);}catch(e){}
 /* le plateau suit le mode : en BOUTIQUE le 1er objet à acheter (si celui qu'on voit ne l'est pas), en INVENTAIRE ta caisse / le 1er objet
    à toi (si celui qu'on voit ne l'est pas) — au changement de mode ET d'onglet (shopTab) */
 function gModeCale(){const m=gModeM();if(m==='tout')return;
@@ -38036,22 +38014,21 @@ function gStripHabits(cat,i){
   const st=$('gStrip'),bar=$('gRar');if(!st)return;const L=COSM[cat],md=gModeM(),fi=md==='inv'?'moi':md==='shop'?'achat':(SHOP.filtre||'tout'); // (2026-10-09) INVENTAIRE = à moi, BOUTIQUE = à acheter
   try{gModeBoutons();}catch(e){}
   const k='cos:'+md+':'+cat+':'+fi+':'+L.map(function(x){return shopOwned(cat,x.id)?1:0;}).join('')+':'+shopEqD(cat).id;
-  const garde=function(d){const a=shopOwned(cat,d.id);return md==='inv'||fi==='tout'||(fi==='moi'?a:(!a&&!!d.p));}; // À ACHETER = en vente et pas à toi (les défis se gagnent) — (2026-10-09) INVENTAIRE : tout (le reste en silhouette)
-  if(bar&&bar._k!==k&&md!=='tout'){bar._k=k;bar._on=null;let n9=0,a9=0;for(const d of L)if(garde(d)){n9++;if(shopOwned(cat,d.id))a9++;}gModeTete(bar,md,md==='inv'?a9+' / '+n9:n9);} // (2026-10-09) en mode, la barre dit le MODE
+  const garde=function(d){const a=shopOwned(cat,d.id);return fi==='tout'||(fi==='moi'?a:(!a&&!!d.p));}; // À ACHETER = en vente et pas à toi (les défis se gagnent)
+  if(bar&&bar._k!==k&&md!=='tout'){bar._k=k;bar._on=null;let n9=0;for(const d of L)if(garde(d))n9++;gModeTete(bar,md,n9);} // (2026-10-09) en mode, la barre dit le MODE
   else if(bar&&bar._k!==k){bar._k=k;bar._on=null;bar.classList.remove('gModeBar'); // la barre des familles devient celle des FILTRES (même touche, même place)
     const nb=function(f){let n=0;for(const d of L){const a=shopOwned(cat,d.id);if(f==='tout'||(f==='moi'?a:(!a&&!!d.p)))n++;}return n;};
     bar.innerHTML=[['tout','TOUT','var(--tx2)'],['moi','À MOI','var(--neoV)'],['achat','À ACHETER','var(--neoC)']].map(function(f){
       return '<button class="gR gF'+(f[0]===fi?' on':'')+'" data-f="'+f[0]+'" role="tab" aria-selected="'+(f[0]===fi)+'" style="--rc:'+f[2]+'"><span class="gRn">'+sansAcc(TR(f[1]))+'</span><b>'+nb(f[0])+'</b></button>';}).join('');}
   if(st._r!==k){st._r=k;st._n=-1;
     const hx=function(c){return '#'+(c>>>0).toString(16).padStart(6,'0');},rg=function(v){return 'rgb('+v.map(function(x){return Math.round(Math.min(1,x/1.45)*255);}).join(',')+')';};
-    const ord9=L.map(function(d,j){return j;});if(md==='inv')ord9.sort(function(x,y){return (shopOwned(cat,L[y].id)?1:0)-(shopOwned(cat,L[x].id)?1:0)||x-y;}); // (2026-10-09) INVENTAIRE : ce qu'on a d'abord
-    st.innerHTML=ord9.map(function(j){const d=L[j],a=shopOwned(cat,d.id),eqd=shopEqD(cat)===d;
+    st.innerHTML=L.map(function(d,j){const a=shopOwned(cat,d.id),eqd=shopEqD(cat)===d;
       let fig='';
       if(cat==='peinture'){const c9=d.id==='usine'?CARS[equippedCar()].color:d.c;
         fig='<i class="gSwc'+(d.g==='c'?' chrome':d.g==='o'?' or':d.g==='s'?' mat':'')+'" style="background:'+(d.grad?'linear-gradient(160deg,'+d.grad.map(hx).join(',')+')':hx(c9))+'"></i>';}
       else if(cat==='trainee')fig='<i class="gRub" style="color:'+(d.rainbow?'#ff9b1a':d.rgb?rg(d.rgb):'#ff8a24')+';background:'+(d.rainbow?'linear-gradient(90deg,#ff3b3b,#ff9b1a,#ffe23a,#3bff6a,#3bb4ff,#9b5bff)':'linear-gradient(90deg,transparent,'+(d.rgb?rg(d.rgb):'#ff6a14')+' 35%,#fff 100%)')+'"></i>';
       else fig='<i class="pxi pxi-aile gIc" style="color:'+(a?'#dff6ff':'#6c6390')+'"></i>';
-      const et=a?(eqd?'':pxi('coche')):md==='inv'?'':(d.p?fmtC(d.p):sansAcc(TR('DÉFI'))); // (à gagner : le cadenas est déjà au coin) — (2026-10-09) en INVENTAIRE, pas de prix
+      const et=a?(eqd?'':pxi('coche')):(d.p?fmtC(d.p):sansAcc(TR('DÉFI'))); // (à gagner : le cadenas est déjà au coin)
       if(!garde(d))return '';
       const rc9=md==='shop'?' style="--rc:'+rarInfo(cosmRar(cat,d)).c+'"':md==='inv'?' style="--rc:#5ee6ff"':''; // (2026-10-09) BOUTIQUE : la couleur de la rareté ; INVENTAIRE : le cyan de l'inventaire (« enlève la rareté de l'inventaire »)
       return '<div class="gT cos c-'+cat+(a?'':' lock')+(eqd?' eq':'')+'" data-cos="'+j+'" role="button" aria-label="'+String(TR(d.n)).replace(/"/g,'')+'"'+rc9+'>'+fig+(cat==='aile'?'<b>'+sansAcc(TR(d.n))+'</b>':'')+'<em>'+et+'</em></div>';}).join('');} // (le nom se lit en grand sur la fiche : la vignette montre la MATIÈRE — sauf l'aile, que seul son nom distingue)
