@@ -180,7 +180,7 @@ sauvegarde qui ne peut plus effacer une progression.
   caisses légendaires** se vendent dès que tu as créé leurs numéros (voir « Gagner de l'argent avec le jeu ») — avant, leur carte dit
   « BIENTOT » ;
 - **LA ROUE** (accueil) : un tour gratuit toutes les 4 h, un tour offert toutes les 3 parties ; on y gagne de l'argent, un skin, ou
-  l'une des 9 caisses EXCLUSIVES (à garder ou à revendre 7 500 $, au choix). Les cases et leurs chances : `Config.ROUE` ;
+  l'une des 10 caisses EXCLUSIVES (à garder ou à revendre 7 500 $, au choix). Les cases et leurs chances : `Config.ROUE` ;
   « 3 TOURS » en Robux : `REVENUS.produits.tours3` (à créer, comme le cœur) ;
 - les **sons** : les 122 sont importés (5/10) — bruitages, boucles moteur/nitro/drift et les six musiques ;
 - le **TOP 10 mondial** est « SANS AIDE » : seule une partie jouée sans cœur, sans nitro infinie et sans mode facile y monte (le
@@ -220,7 +220,8 @@ et de l'écran de fin, et la tuile **BOUTIQUE ROBUX** en bas à gauche de l'accu
   mène à LA ROUE (qui montre ses chances avant l'achat, règle de Roblox) et se cache là où Roblox interdit de vendre du hasard ;
 - **L'ARGENT** (5 produits, achat répété) : 25 000 $, 70 000 $, 150 000 $, 325 000 $, 900 000 $ versés au compte (les montants se
   règlent dans `Config.REVENUS.argent`). Le badge « BONUS +x % » n'apparaît que s'il est vrai (calculé sur les vrais prix) ;
-- **LES 13 CAISSES LÉGENDAIRES** (13 produits, achat UNIQUE) : la vitrine de la boutique — ACHETER ouvre la fenêtre de Roblox ;
+- **LES 7 CAISSES LÉGENDAIRES** (7 produits, achat UNIQUE — la gamme du web au 9/10) : la vitrine de la boutique — ACHETER ouvre la
+  fenêtre de Roblox ;
   achetée, la caisse dit « A TOI ! », elle est au garage (à équiper) et ne se rachète pas. Purement cosmétique : la vitesse vient du
   moteur, jamais de la caisse. Ce qui a été payé en Robux (cœurs, kit, caisses légendaires) survit à « EFFACER MA PROGRESSION ».
 
@@ -229,6 +230,7 @@ l'écriture rate, Roblox représente le reçu plus tard — et un reçu déjà s
 
 Ce que le jeu fait déjà, gratuit, pour faire REVENIR les joueurs :
 - **le cadeau du jour** : une fenêtre à l'accueil, 7 jours qui montent (500 $ → 5 000 $) ; rater un jour = retour au jour 1 ;
+  **le 7e jour d'affilée donne LE DRAGON D'OR** (une fois ; ensuite le 7e jour reste à 5 000 $) — `Config.REVENUS.jour7` ;
 - **les cadeaux de temps de jeu** : 5, 15, 30, 60 minutes dans la session, puis chaque heure (tuile en bas à gauche) ;
 - **inviter des amis** : la fenêtre d'invitation de Roblox ; un ami qui arrive par ton lien = 1 000 $ pour lui et pour toi ;
 - **le TOP 10 MONDE** : les meilleurs records de tous les serveurs (il a besoin des API de données, voir plus bas) ;
@@ -253,19 +255,13 @@ ligne indiquée. « Passe » = Monétisation → **Passes** ; « Produit » = Mo
 | 11 | « 150 000 $ » | Produit | **499 R$** | `argent` → 3e ligne (`v = 150000`), `id = …` |
 | 12 | « 325 000 $ » | Produit | **999 R$** | `argent` → 4e ligne (`v = 325000`), `id = …` |
 | 13 | « 900 000 $ » | Produit | **2 499 R$** | `argent` → 5e ligne (`v = 900000`), `id = …` |
-| 14 | « CHAT ARC-EN-CIEL » | Produit | **399 R$** | `caisses = { [9] = … }` |
-| 15 | « REQUIN » | Produit | **799 R$** | `caisses` → `[10] = …` |
-| 16 | « COMETE » | Produit | **399 R$** | `caisses` → `[11] = …` |
-| 17 | « FORMULE OR » | Produit | **399 R$** | `caisses` → `[12] = …` |
-| 18 | « ENDURANCE 24 » | Produit | **249 R$** | `caisses` → `[13] = …` |
-| 19 | « EL PATRON » | Produit | **249 R$** | `caisses` → `[14] = …` |
-| 20 | « ACIDE » | Produit | **149 R$** | `caisses` → `[15] = …` |
-| 21 | « L'ETERNELLE » | Produit | **799 R$** | `caisses` → `[56] = …` |
-| 22 | « LE TRONE CENTRAL » | Produit | **599 R$** | `caisses` → `[57] = …` |
-| 23 | « LE SPECTRE » | Produit | **599 R$** | `caisses` → `[58] = …` |
-| 24 | « LE CHEVALIER NOIR » | Produit | **799 R$** | `caisses` → `[59] = …` |
-| 25 | « LE MUR DU SON » | Produit | **549 R$** | `caisses` → `[60] = …` |
-| 26 | « LE DRAGON D'OR » | Produit | **799 R$** | `caisses` → `[61] = …` |
+| 14 | « CHAT ARC-EN-CIEL » | Produit | **339 R$** (web : 4,20 €) | `caisses = { [9] = … }` |
+| 15 | « LA PIZZA EXPRESS » | Produit | **12 899 R$** (web : 161 €) | `caisses` → `[19] = …` |
+| 16 | « LA FELINE » | Produit | **129 R$** (web : 1,61 €) | `caisses` → `[54] = …` |
+| 17 | « LE TRONE CENTRAL » | Produit | **129 R$** (web : 1,61 €) | `caisses` → `[57] = …` |
+| 18 | « LE SPECTRE » | Produit | **129 R$** (web : 1,61 €) | `caisses` → `[58] = …` |
+| 19 | « LE CHEVALIER NOIR » | Produit | **799 R$** (web : 9,99 €) | `caisses` → `[59] = …` |
+| 20 | « LE MUR DU SON » | Produit | **79 R$** (web : 0,99 €) | `caisses` → `[60] = …` |
 | — | Bienvenue, Permis, Zone 6, Moteur palier 10, 1 000 d'aura, Millionnaire, 7 jours d'affilée | Engagement → **Badges** (chaque badge coûte un peu de Robux à créer) | — | `badges = { bienvenue = …, permis = …, zone6 = …, moteur10 = …, aura1000 = …, millionnaire = …, serie7 = … }` |
 
 (Les caisses sont des **produits**, pas des passes : le jeu garde lui-même qui les possède, et n'en propose pas le rachat à qui les a.

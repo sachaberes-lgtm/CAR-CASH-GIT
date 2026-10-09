@@ -241,20 +241,24 @@ local function peindre(k: any, i: number, etat: string, vip: number)
 	k.j.TextColor3 = ici and Color3.fromRGB(96, 44, 4) or (fait and C.menthe or (roi and OR1 or C.terne))
 	local sj = k.j:FindFirstChildOfClass("UIStroke")
 	if sj then sj.Enabled = not ici end
-	-- l'icône : la coche quand c'est pris, sinon le cadeau (ou le trophée) dans la couleur de son état
-	k.cad.Visible = not fait
+	-- l'icône : la coche quand c'est pris, sinon le cadeau (ou le trophée) dans la couleur de son état — (9/10) au 7e jour, LE DRAGON
+	-- D'OR tant qu'il n'est pas au garage : la caisse prend la place du trophée, son nom celle du montant
+	local dragon = roi and k.voit ~= nil and not attr("Jour7Pris")
+	local ico = dragon and k.voit or k.cad
+	k.cad.Visible = not fait and not dragon
+	if k.voit then k.voit.Visible = not fait and dragon end
 	k.coche.Visible = fait
 	if ici then
-		K.teinter(k.cad, roi and { { 0.3, BLANC }, { 0.7, Color3.fromRGB(176, 70, 220) }, { 1, Color3.fromRGB(96, 22, 140) } }
+		K.teinter(ico, roi and { { 0.3, BLANC }, { 0.7, Color3.fromRGB(176, 70, 220) }, { 1, Color3.fromRGB(96, 22, 140) } }
 			or { { 0.24, BLANC }, { 0.5, Color3.fromRGB(255, 118, 190) }, { 1, Color3.fromRGB(206, 30, 104) } })
 	elseif not fait then
-		K.teinter(k.cad, roi and { { 0.3, Color3.fromRGB(255, 246, 180) }, { 0.7, Color3.fromRGB(255, 200, 40) }, { 1, Color3.fromRGB(214, 128, 0) } }
+		K.teinter(ico, roi and { { 0.3, Color3.fromRGB(255, 246, 180) }, { 0.7, Color3.fromRGB(255, 200, 40) }, { 1, Color3.fromRGB(214, 128, 0) } }
 			or bandes(Color3.fromRGB(176, 168, 248)))
 	end
 	-- le montant, sur son bandeau
 	k.bande.BackgroundColor3 = ici and Color3.fromRGB(120, 58, 0) or (fait and Color3.fromRGB(4, 30, 14) or ENCRE)
 	k.bande.BackgroundTransparency = ici and 0.1 or 0.35
-	k.m.Text = fait and tr("PRIS", "TAKEN") or Hud.argent(R.jour[i] * vip)
+	k.m.Text = fait and tr("PRIS", "TAKEN") or (dragon and tr("DRAGON D'OR", "GOLD DRAGON") or Hud.argent(R.jour[i] * vip))
 	k.m.TextSize = math.min(roi and 24 or 22, math.floor((k.w - 14) / math.max(1, utf8.len(k.m.Text) * CH)))
 	k.m.TextColor3 = ici and Color3.fromRGB(255, 246, 206) or (fait and C.menthe or (roi and OR1 or C.texte))
 	-- le halo d'or : aujourd'hui seulement (la boucle le fait respirer)
@@ -302,12 +306,15 @@ local function creerJour()
 		local cad = K.icone(f, (i == 7) and "trophee" or "cadeau", px, C.texte2, UDim2.new(0.5, 0, 0, 84), Vector2.new(0.5, 0.5))
 		local coche = K.icone(f, "coche", 6, bandes(C.menthe), UDim2.new(0.5, 0, 0, 84), Vector2.new(0.5, 0.5))
 		coche.Visible = false
+		-- (9/10) la case 7 porte aussi LA CAISSE (le DRAGON D'OR) : peindre() choisit entre elle et le trophée
+		local voit = (i == 7) and K.icone(f, "voiture", 7, C.texte2, UDim2.new(0.5, 0, 0, 84), Vector2.new(0.5, 0.5)) or nil
+		if voit then voit.Visible = false end
 		local bande = inst("Frame", { BackgroundColor3 = ENCRE, BackgroundTransparency = 0.35, BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 42),
 			Position = UDim2.new(0, 0, 1, -42) }, f)
 		local m = texte(bande, { Text = "", TextSize = 22, Size = UDim2.new(1, -10, 1, 0), Position = UDim2.fromOffset(5, 0), TextWrapped = false,
 			epais = 3 })
 		U.jCases[i] = { h = h, base = base, sc = sc9, halo = halo, ep = ep, f = f, grad = grad, st = st, bis = bis, j = j, cad = cad, coche = coche,
-			bande = bande, m = m, w = Wi }
+			voit = voit, bande = bande, m = m, w = Wi }
 	end
 	-- (la case d'aujourd'hui respire, son halo bat avec elle — rien ne tourne quand la fenêtre est fermée)
 	RunService.RenderStepped:Connect(function()
@@ -327,17 +334,23 @@ local function majJour()
 	local auj = ((serie - 1) % 7) + 1
 	local vip = attr("VIP") and 2 or 1
 	local nb = '<font color="#ffd75e">' .. serie .. "</font>"
-	U.jSous.Text = (serie > 1) and tr("Jour " .. nb .. " d'affilée — reviens demain : ça monte encore.",
-		"Day " .. nb .. " in a row — come back tomorrow: it keeps growing.")
+	local dragon = not attr("Jour7Pris")
+	local d7 = '<font color="#ffd75e">' .. tr("LE DRAGON D'OR", "THE GOLDEN DRAGON") .. "</font>"
+	U.jSous.Text = (serie > 1) and (dragon and tr("Jour " .. nb .. " d'affilée — au 7e jour, " .. d7 .. " est à toi.",
+		"Day " .. nb .. " in a row — on day 7, " .. d7 .. " is yours.")
+		or tr("Jour " .. nb .. " d'affilée — reviens demain : ça monte encore.", "Day " .. nb .. " in a row — come back tomorrow: it keeps growing."))
+		or (dragon and tr("Reviens 7 jours de suite : " .. d7 .. " t'attend. Rate un jour, et ça repart.",
+		"Come back 7 days in a row: " .. d7 .. " awaits. Miss a day and it starts over.")
 		or tr("Reviens chaque jour : le cadeau monte. Rate un jour, et ça repart du début.",
-		"Come back every day: the gift grows. Miss a day and it starts over.")
+		"Come back every day: the gift grows. Miss a day and it starts over."))
 	U.jIci = auj
 	U.jVipK = vip
 	for i, k in U.jCases do
 		peindre(k, i, (i < auj) and "fait" or ((i == auj) and "ici" or "avenir"), vip)
 	end
 	U.jVip.Visible = vip > 1
-	U.jPrendre.Text = tr("PRENDRE  ", "CLAIM  ") .. Hud.argent(R.jour[auj] * vip)
+	U.jPrendre.Text = (auj == 7 and dragon) and tr("PRENDRE LE DRAGON", "CLAIM THE DRAGON")
+		or (tr("PRENDRE  ", "CLAIM  ") .. Hud.argent(R.jour[auj] * vip))
 end
 local function ouvrirJour()
 	majJour()

@@ -300,24 +300,24 @@ Config.REVENUS = {
 		{ id = 0, v = 325000 }, -- 999 R$
 		{ id = 0, v = 900000 }, -- 2 499 R$
 	},
-	-- LES CAISSES LÉGENDAIRES en Robux (les 13 « premium » du catalogue, cond.k = "premium") : [indice de la caisse] = numéro du
+	-- LES CAISSES LÉGENDAIRES en Robux (les 7 « premium » du catalogue, cond.k = "premium") : [indice de la caisse] = numéro du
 	-- PRODUIT. Achat UNIQUE gardé dans le profil (une caisse à soi ne se rachète pas) ; purement cosmétique — la vitesse vient du
 	-- moteur, jamais de la caisse. Prix conseillés (le prix web en euros × ~80) en commentaire.
+	-- (9/10 : la gamme resserrée du web — Léo, ccfbb02 — reprise à l'identique : REQUIN et COMÈTE passent en défis à venir, ACIDE à
+	-- l'argent du jeu, L'ÉTERNELLE à la roue, FORMULE OR / ENDURANCE 24 / EL PATRON retirées ; PIZZA EXPRESS et LA FÉLINE entrent ;
+	-- LE DRAGON D'OR ne se vend plus : c'est le cadeau du 7e jour, voir `jour7` plus bas)
 	caisses = {
-		[9] = 0,  -- CHAT ARC-EN-CIEL (4,99 €) — 399 R$
-		[10] = 0, -- REQUIN (9,99 €) — 799 R$
-		[11] = 0, -- COMÈTE (4,99 €) — 399 R$
-		[12] = 0, -- FORMULE OR (4,99 €) — 399 R$
-		[13] = 0, -- ENDURANCE 24 (2,99 €) — 249 R$
-		[14] = 0, -- EL PATRON (2,99 €) — 249 R$
-		[15] = 0, -- ACIDE (1,99 €) — 149 R$
-		[56] = 0, -- L'ÉTERNELLE (9,99 €) — 799 R$
-		[57] = 0, -- LE TRÔNE CENTRAL (7,99 €) — 599 R$
-		[58] = 0, -- LE SPECTRE (7,99 €) — 599 R$
+		[9] = 0,  -- CHAT ARC-EN-CIEL (4,20 €) — 339 R$
+		[19] = 0, -- LA PIZZA EXPRESS (161 €) — 12 899 R$
+		[54] = 0, -- LA FÉLINE (1,61 €) — 129 R$
+		[57] = 0, -- LE TRÔNE CENTRAL (1,61 €) — 129 R$
+		[58] = 0, -- LE SPECTRE (1,61 €) — 129 R$
 		[59] = 0, -- LE CHEVALIER NOIR (9,99 €) — 799 R$
-		[60] = 0, -- LE MUR DU SON (6,99 €) — 549 R$
-		[61] = 0, -- LE DRAGON D'OR (9,99 €) — 799 R$
+		[60] = 0, -- LE MUR DU SON (0,99 €) — 79 R$
 	},
+	-- (9/10, Sacha : « après 1 semaine de connexion quotidienne, les joueurs gagnent la voiture dragon d'or ») : la caisse offerte au
+	-- 7e jour d'affilée du CADEAU DU JOUR (cond.k = "jour7" au catalogue) — une fois ; déjà à soi, le 7e jour reste le gros montant
+	jour7 = 61, -- LE DRAGON D'OR
 	-- les BADGES : bienvenue, permis de l'auto-école, zone 6 atteinte, moteur palier 10, 1 000 d'aura en une partie, record d'un
 	-- million, sept jours d'affilée
 	badges = { bienvenue = 0, permis = 0, zone6 = 0, moteur10 = 0, aura1000 = 0, millionnaire = 0, serie7 = 0 },

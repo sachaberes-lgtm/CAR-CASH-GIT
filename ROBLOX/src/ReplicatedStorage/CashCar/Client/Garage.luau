@@ -38,7 +38,8 @@ local L = FR and {
 	equiper = "EQUIPER", verrou = "VERROUILLEE", enBoutique = "EN BOUTIQUE", aToi = "A TOI !", equipee = "EQUIPEE",
 	ilTeManque = "IL TE MANQUE ", bientot = "BIENTOT DISPONIBLE",
 	tout = "TOUT", aMoi = "A MOI", aAcheter = "A ACHETER", gagner = "A GAGNER", defi = "ROUE",
-	roue = "SE GAGNE A LA ROUE", carrN = "ATTRAPE-LA AU NIVEAU 10 DES NUAGES  (%d / 10)",
+	roue = "SE GAGNE A LA ROUE", jour7 = "CADEAU DU 7e JOUR DE CONNEXION D'AFFILEE", sept = "7 JOURS", bientotDefi = "BIENTOT : UN DEFI A VENIR",
+	carrN = "ATTRAPE-LA AU NIVEAU 10 DES NUAGES  (%d / 10)",
 	carrV = "BATS LE BANQUIER AU NIVEAU 10 DE LA VILLE  (%d / 10)", aura = "RANG D'AURA « %s »   (LE TIEN : « %s »)",
 	rangs = { "ANONYME", "REMARQUE", "ON PARLE DE TOI", "REPUTE", "LEGENDE LOCALE", "STAR DU BITUME", "MYTHE", "DIVINITE DU CIEL" },
 } or {
@@ -47,7 +48,8 @@ local L = FR and {
 	equiper = "EQUIP", verrou = "LOCKED", enBoutique = "IN THE SHOP", aToi = "YOURS!", equipee = "EQUIPPED",
 	ilTeManque = "SHORT BY ", bientot = "COMING SOON",
 	tout = "ALL", aMoi = "MINE", aAcheter = "FOR SALE", gagner = "EARN IT", defi = "WHEEL",
-	roue = "WON ON THE WHEEL", carrN = "CATCH HER IN CLOUDS LEVEL 10  (%d / 10)",
+	roue = "WON ON THE WHEEL", jour7 = "GIFT FOR LOGGING IN 7 DAYS IN A ROW", sept = "7 DAYS", bientotDefi = "SOON: A CHALLENGE IS COMING",
+	carrN = "CATCH HER IN CLOUDS LEVEL 10  (%d / 10)",
 	carrV = "BEAT THE BANKER IN CITY LEVEL 10  (%d / 10)", aura = 'AURA RANK "%s"   (yours: "%s")',
 	rangs = { "NOBODY", "NOTICED", "THEY'RE TALKING ABOUT YOU", "RENOWNED", "LOCAL LEGEND", "ASPHALT STAR", "MYTH", "SKY GOD" },
 }
@@ -74,6 +76,7 @@ local function ordre(i: number): number -- carOrdre : dans une famille, du plus 
 	if k.k == "prix" then return k.v end
 	if k.k == "premium" then return eurNombre(k.eur) end
 	if k.k == "roue" then return i end
+	if k.k == "jour7" then return 500 + i end -- (9/10) LE DRAGON D'OR du 7e jour, après les exclusives de la roue
 	if k.k == "aura" then return 100 + k.v end
 	return 1e9
 end
@@ -750,6 +753,10 @@ local function majTuile(i: number)
 		direPuce(t.puce, L.boutique, OR1)
 	elseif f.cond.k == "roue" then
 		direPuce(t.puce, L.defi, OR1)
+	elseif f.cond.k == "jour7" then
+		direPuce(t.puce, L.sept, OR1)
+	elseif f.cond.k == "bientot" then
+		direPuce(t.puce, FR and "BIENTOT" or "SOON", C.lavande)
 	elseif f.cond.k == "aura" then
 		direPuce(t.puce, "AURA", C.lavande)
 	else
@@ -1027,6 +1034,8 @@ end
 local function condition(i: number): string
 	local k = Catalogue[i].cond
 	if k.k == "roue" then return L.roue end
+	if k.k == "jour7" then return L.jour7 end
+	if k.k == "bientot" then return L.bientotDefi end
 	if k.k == "aura" then return string.format(L.aura, L.rangs[k.v + 1] or "?", L.rangs[rangAura(profil().aura or 0)]) end
 	if k.k == "premium" then return FR and "EN VENTE A LA BOUTIQUE" or "FOR SALE IN THE SHOP" end
 	return ""
@@ -1147,6 +1156,8 @@ local function majBarre()
 			dire(dec, "verrou2", nil, L.gagner, 15, C.texte2)
 		elseif decision == "roue" then
 			dire(dec, nil, L.gagner, L.defi, 22, OR1)
+		elseif decision == "jour7" then
+			dire(dec, nil, L.gagner, L.sept, 22, OR1)
 		else
 			dire(dec, "verrou2", nil, L.verrou, 14, C.texte2)
 		end
@@ -1194,7 +1205,7 @@ function Garage.majFicheCaisse()
 	elseif k.k == "premium" and not possede(montre) and not ouv then
 		decision = "boutique"
 	elseif not ouv then
-		decision = (k.k == "roue") and "roue" or "verrou" -- (une caisse de la roue dit OÙ la gagner, pas seulement « verrouillée »)
+		decision = (k.k == "roue") and "roue" or ((k.k == "jour7") and "jour7" or "verrou") -- (une caisse de la roue ou du 7e jour dit OÙ la gagner)
 	elseif profil().caisse ~= montre then
 		decision = "equiper"
 	else
@@ -1312,7 +1323,7 @@ local function decider()
 		else
 			secouer()
 		end
-	elseif decision == "verrou" or decision == "roue" then
+	elseif decision == "verrou" or decision == "roue" or decision == "jour7" then
 		secouer()
 		Hud.toast(condition(montre), nil, "verrou")
 	elseif decision == "boutique" then
