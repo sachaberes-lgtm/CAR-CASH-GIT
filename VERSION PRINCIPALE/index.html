@@ -13147,6 +13147,10 @@ const CARS=[
  {name:'L\'ABSTRAITE',shape:'abstraite',color:0xf2f2ee,accent:0x2b2e34,maxKmh:420,accel:48,turn:3.0,h:1.18,w:2.0,l:4.74,spoiler:0,rar:'epique',
   fx:{jet:0xffd36a,core:0xfff6d8,trail:[1.4,1.0,.35],light:0xffc84a},
   desc:'Trois lames qui flottent l\'une sur l\'autre, quatre disques, un anneau d\'or qu\'elle traverse sans le toucher. Personne ne sait où est le moteur. Elle non plus.'},
+ // (2026-10-10, Léo : « une nouvelle abstraite, en glace, genre iceberg, stylisée, dynamique ») L'ICEBERG (voir SHAPES.iceberg). Ajoutée EN DERNIER (les index de sauvegarde ne bougent pas).
+ {name:'L\'ICEBERG',shape:'iceberg',color:0x52c8f0,accent:0xf4faff,maxKmh:415,accel:49,turn:3.1,h:1.3,w:2.0,l:4.78,spoiler:0,rar:'epique',
+  fx:{jet:0x9fe8ff,core:0xffffff,trail:[.75,1.15,1.45],light:0x8fe0ff},
+  desc:'Taillée dans un iceberg : de la glace qu\'on voit au travers, de la neige sur le capot, deux pics couchés par le vent.'},
 ];
 // ---- VALEUR D'UNE PIÈCE — UNE ENTRÉE PAR PALIER MOTEUR (30) ---------------------------------
 // ⚠ Cette table est indexée par `engTier` depuis que les PIÈCES portent la progression, mais elle
@@ -13610,6 +13614,11 @@ Object.assign(I18N,{
 Object.assign(I18N,{
  "L'ABSTRAITE":"THE ABSTRACT",
  "Trois lames qui flottent l'une sur l'autre, quatre disques, un anneau d'or qu'elle traverse sans le toucher. Personne ne sait où est le moteur. Elle non plus.":"Three blades floating on top of each other, four discs, a golden ring she drives through without touching. Nobody knows where the engine is. Neither does she.",
+});
+// (2026-10-10) L'ICEBERG
+Object.assign(I18N,{
+ "L'ICEBERG":"THE ICEBERG",
+ "Taillée dans un iceberg : de la glace qu'on voit au travers, de la neige sur le capot, deux pics couchés par le vent.":"Carved out of an iceberg: ice you can see through, snow on the hood, two peaks swept back by the wind.",
 });
 // (2026-09-29) les chaînes visibles qui manquaient
 Object.assign(I18N,{
@@ -16619,6 +16628,11 @@ const NY_TOIT=['..fffffff..',
                'fffffffffff',
                '.ffffsffff.',
                '..fffffff..'];
+var BLING={s:[],t:0}; // (2026-10-10) L'ICEBERG : ses éclats de givre (voir SHAPES.iceberg)
+/* LES ÉCLATS DE GIVRE de L'ICEBERG : chacune s'allume à SON rythme (une pointe très brève, sinus à la puissance 12), puis s'éteint ; rien d'autre ne
+   bouge. Quelques écritures d'échelle par image, et rien quand la caisse n'a pas d'étoiles. */
+function blingTick(dt){const L=BLING.s;if(!L.length)return;BLING.t+=dt;
+  for(const m of L){const u=m.userData,v=Math.sin(BLING.t*u.r+u.ph),k=v>0?Math.pow(v,12):0,sc=k*u.s;m.visible=sc>.03;if(m.visible)m.scale.setScalar(sc);}}
 const NYAN={on:false,tete:null,pattes:[],queue:[],feux:[],roues:[],rf:'',rPas:1,pix:null,pixT:0,arc:new THREE.Vector3(0,.75,-1),ph:0,pas:-1,bat:0,hb:-1,volK:0,v0:0,acc:0,allure:''};
 const NY_GATEAU=(function(){const L=['BBBBBBBBBBBBBBBBBBBBBB','BCCCCCCCCCCCCCCCCCCCCB','BCCCCCCCCCCCCCCCCCCCCB','BCCCPPPPPPPPPPPPPPCCCB']; // (v2) coins CARRÉS : un caisson de voiture, plus une galette — le glaçage garde ses coins arrondis
   for(let i=0;i<9;i++)L.push('BCCPPPPPPPPPPPPPPPPCCB');
@@ -20620,6 +20634,95 @@ Object.assign(SHAPES,{
     K.commit(P);
     return {hl:[.30,.48,2.08],tl:[.46,.80,-2.32],wx:.86,wzF:ZF,wzR:-ZR,pots:[[.22,.36,-2.26],[-.22,.36,-2.26]],
             lpw:{R:R,w:.26,style:'enjoliveur',jante:0xf2f2ee,pneu:0x1a1b1f}};
+  },
+/* L'ICEBERG (2026-10-10, Léo : « une nouvelle abstraite, type gel » → « glace, ICE » → « en glace, genre ICEBERG, pas trop carrée,
+   stylisée, DYNAMIQUE ; éviter tout modèle qui ressemble à une voiture qu'on a déjà » → « moins géométrique simple, plus VOITURE ») —
+   une vraie voiture, taillée dans un iceberg. Un long capot entre deux ailes bombées, de vraies ARCHES de roue, un pavillon en
+   FASTBACK ; la carrosserie est de la GLACE turquoise qu'on voit au travers (plus profonde vers le bas), les vitres de la GLACE SOMBRE,
+   la NEIGE seulement à plat sur le capot, le toit et la malle ; les épaules restent de glace claire (elles accrochent la lumière). Les
+   pics de l'iceberg sont devenus DEUX AILERONS couchés vers l'arrière, pointes de neige ; derrière les roues avant, des OUÏES de givre ;
+   une lueur bleue au cœur de l'habitacle ; des phares en fentes, un bandeau rouge ; des roues à six rayons. La glace = la matière
+   CHROME du kit, transparente, sans profondeur (`userData.g='ice'`, zéro programme de plus) ; la neige = le satiné (opaque). Des
+   ÉCLATS DE GIVRE scintillent (`BLING`). */
+  iceberg:function(K){
+    const U=LPU,R=.38,ZF=1.42,ZR=-1.42,V=new THREE.Vector3(),V2=new THREE.Vector3(),V3=new THREE.Vector3();
+    const P=K.kit({N:{g:'s',c:0xeaf4fb},B:{g:'p',c:0x0d3d63,f:0},C:{g:'l',c:0x46d2ff},W:{g:'l',c:0xeafaff},L:{g:'l',c:0xff1838},k:{g:'m',c:0x0c1a26}});
+    const I=K.kit({i:{g:'c',c:0x1479b8},o:{g:'c',c:0x1f95cf},j:{g:'c',c:0x2fb2e6},m:{g:'c',c:0x48c4ee},h:{g:'c',c:0x7ad8f7},n:{g:'c',c:0x9ae2fa},v:{g:'c',c:0x0b3f66}});
+    const hs=(a,b)=>{const x=Math.sin(a*127.1+b*311.7)*43758.5453;return x-Math.floor(x);};   // un hasard FIXE (la même glace à chaque construction)
+    // UNE FACETTE : `cle` la force (vitre, épaule) ; sinon, à plat sur le dos c'est de la NEIGE, ailleurs de la GLACE plus profonde vers le bas
+    const fac=(a,b,c,cle)=>{V.set(b[0]-a[0],b[1]-a[1],b[2]-a[2]);V2.set(c[0]-a[0],c[1]-a[1],c[2]-a[2]);V.cross(V2).normalize();
+      const y=(a[1]+b[1]+c[1])/3,r=hs((a[0]+b[0]+c[0])*7.3+(a[2]+b[2]+c[2])*3.1,y*5.7);                 // (« plus irrégulière, la glace ») : chaque facette sa nuance,
+      if(cle==='N'||(!cle&&V.y>.88&&r>.2))P.tri('N',a,b,c);                                                // la neige mangée par plaques
+      else I.tri(cle||(V.y>.88?'n':y<.48?(r<.5?'i':'o'):y<.74?(r<.35?'j':r<.7?'m':'o'):(r<.5?'h':'n')),a,b,c);};
+    const dehors=(a,b,c,o,cle)=>{V.set(b[0]-a[0],b[1]-a[1],b[2]-a[2]);V2.set(c[0]-a[0],c[1]-a[1],c[2]-a[2]);V.cross(V2);
+      V3.set((a[0]+b[0]+c[0])/3-o[0],(a[1]+b[1]+c[1])/3-o[1],(a[2]+b[2]+c[2])/3-o[2]);if(V.dot(V3)<0)fac(a,c,b,cle);else fac(a,b,c,cle);};
+    // LA CAISSE : demi-largeur, ligne d'épaule, capot/malle, pavillon (fastback) ; les arches découpent le bas
+    const AR=[[0,2*R+.06],[R*.62,2*R+.06],[R+.16,.30]],
+          wC=z=>U.lin([[-2.35,.78],[-2.15,.90],[-1.42,.98],[-.6,.92],[.4,.91],[1.42,.96],[2.1,.86],[2.4,.60]],z),
+          sC=z=>U.lin([[-2.35,.80],[-1.9,.86],[-1.42,.90],[-.9,.84],[.2,.80],[1.0,.82],[1.42,.86],[2.0,.74],[2.4,.56]],z),
+          dC=z=>U.lin([[-2.35,.82],[-1.9,.90],[-1.75,.92],[.75,.86],[1.4,.74],[2.0,.62],[2.4,.50]],z),
+          rC=z=>U.lin([[-1.75,.92],[-1.3,1.08],[-.7,1.20],[-.1,1.22],[.35,1.10],[.75,.88]],z),
+          crC=z=>U.lin([[-1.75,.62],[-1.0,.54],[-.1,.54],[.75,.66]],z),
+          dans=z=>z>=-1.75&&z<=.75,
+          zs=[-2.35,-2.2,-1.95,-1.75,-1.3,-1.0,-.75,-.4,-.1,.05,.35,.55,.75,1.0,1.9,2.15,2.4];
+    for(const w of [ZF,ZR])for(const d of [R*.62,R+.16])zs.push(w-d,w+d);
+    zs.sort((a,b)=>a-b);
+    const sec=(z,i,g9)=>{const b=U.arch(z,[ZF,ZR],AR,.30),w=wC(z),s=sC(z),T=dans(z)?Math.max(dC(z),rC(z)):dC(z),
+        P5=dans(z)?[.74,s+.04]:[w*.74,Math.max(s-.03,T-.02)],P6=dans(z)?[crC(z),T]:[w*.40,T+.015],
+        S0=[[0,b],[w*.82,b],[w*.99,b+(s-b)*.35],[w,b+(s-b)*.78],[w*.93,s],P5,P6,[0,T+.012]];
+      // LA GLACE BRUTE : chaque arête bousculée de quelques centimètres (l'axe et le bas restent en place : pas de fente, l'arche reste nette)
+      return S0.map((p,j)=>j===0||j===7?p:[p[0]+(hs(i,j+g9)-.5)*.08,p[1]+(j===1?0:(hs(i+.5,j*1.3+g9)-.5)*.07)]);};
+    const SC=zs.map((z,i)=>sec(z,i,0)),SG=zs.map((z,i)=>sec(z,i,17));                                    // droite, gauche
+    const cleDe=(j,z)=>j===3||j===4?'h':(j===5&&dans(z))?'v':(j===6&&((z>.05&&z<=.75)||(z>=-1.75&&z<-.75)))?'v':null; // épaules · vitres · pare-brise · lunette
+    for(let i=0;i<zs.length-1;i++)for(let j=0;j<SC[0].length-1;j++){const z0=zs[i],z1=zs[i+1],a=SC[i][j],b=SC[i][j+1],c=SC[i+1][j+1],d=SC[i+1][j],k=cleDe(j,(z0+z1)/2),
+        e=SG[i][j],f=SG[i][j+1],g2=SG[i+1][j+1],h2=SG[i+1][j];
+      fac([a[0],a[1],z0],[b[0],b[1],z0],[c[0],c[1],z1],k);fac([a[0],a[1],z0],[c[0],c[1],z1],[d[0],d[1],z1],k);
+      fac([-e[0],e[1],z0],[-g2[0],g2[1],z1],[-f[0],f[1],z0],k);fac([-e[0],e[1],z0],[-h2[0],h2[1],z1],[-g2[0],g2[1],z1],k);}
+    for(const [sc,sg,z,dir] of [[SC[0],SG[0],zs[0],-1],[SC[SC.length-1],SG[SG.length-1],zs[zs.length-1],1]]){ // la poupe et le nez, en éventail
+      const ct=sc.map(p=>[p[0],p[1]]).concat(sg.slice(1,-1).reverse().map(p=>[-p[0],p[1]])),cy=ct.reduce((s9,p)=>s9+p[1],0)/ct.length;
+      for(let k=0;k<ct.length;k++){const p=ct[k],q=ct[(k+1)%ct.length];if(dir>0)fac([0,cy,z],[p[0],p[1],z],[q[0],q[1],z],'j');else fac([0,cy,z],[q[0],q[1],z],[p[0],p[1],z],'j');}}
+    // LES AILERONS : deux pics de l'iceberg, couchés vers l'arrière sur la malle, pointes de neige
+    const pic=(cx,cz,r,ax,ay,az,n,ph)=>{const y0=dC(cz)-.05,B=[];
+      for(let k=0;k<n;k++){const a=ph+k/n*Math.PI*2,rr=r*(.72+.28*Math.abs(Math.sin(k*2.3+ph*3)));B.push([cx+Math.cos(a)*rr*.45,y0,cz+Math.sin(a)*rr*1.4]);}
+      const A=[ax,ay,az],M=B.map(p=>[p[0]+(ax-p[0])*.7,p[1]+(ay-p[1])*.7,p[2]+(az-p[2])*.7]),o=[cx,y0+(ay-y0)*.3,cz+(az-cz)*.3];
+      for(let k=0;k<n;k++){const k2=(k+1)%n;dehors(B[k],B[k2],M[k2],o,'h');dehors(B[k],M[k2],M[k],o,'h');dehors(M[k],M[k2],A,o,'N');}};
+    pic(.50,-1.80,.22,.60,1.30,-2.32,5,.4);pic(-.50,-1.80,.22,-.60,1.30,-2.32,5,1.9);
+    // LES OUÏES DE GIVRE : derrière chaque roue avant, trois lames minces balayées vers l'arrière
+    for(const sd of [1,-1])for(let k=0;k<3;k++){const z0=.95-k*.05,y0=.52+k*.09,x0=sd*.965,e=.10-k*.02;
+      const a=[x0,y0,z0],b=[x0,y0-.05,z0-.04],c=[sd*(.97+e),y0+.02,z0-.62+k*.08];fac(a,b,c,'h');fac(a,c,b,'h');}
+    // LES CRISTAUX : des éclats de glace qui SORTENT des flancs et des ailes, couchés vers l'arrière — pas les mêmes des deux côtés
+    const crist=(sd,z,y,l)=>{const x=sd*wC(z)*.97,p1=[x,y+.06,z+.05],p2=[x,y-.05,z+.07],p3=[x,y,z-.08],A=[x+sd*l*.55,y+l*.35,z-l*.85],o=[x-sd*.3,y,z];
+      dehors(p1,p2,A,o,'n');dehors(p2,p3,A,o,'h');dehors(p3,p1,A,o,'m');};
+    for(const q of [[1,.35,.62,.22],[1,-.35,.70,.16],[1,-.95,.56,.12],[1,1.95,.66,.14],[1,-1.95,.72,.20],[1,1.42,.86,.18],[1,-1.42,.92,.24],
+                    [-1,.6,.58,.14],[-1,0,.72,.22],[-1,-.7,.60,.18],[-1,1.85,.70,.20],[-1,-1.9,.64,.13],[-1,1.42,.88,.22],[-1,-1.42,.90,.15]])crist(q[0],q[1],q[2],q[3]);
+    // LES STALACTITES : sous les bas de caisse (entre les roues) et sous les boucliers
+    for(const t of [[.78,.6,.16],[.80,.1,.10],[.76,-.45,.20],[-.80,.75,.12],[-.77,.2,.19],[-.79,-.6,.11],[.35,2.15,.12],[-.25,2.18,.16],[.42,-2.15,.14],[-.38,-2.12,.10]]){
+      const yb=U.arch(t[1],[ZF,ZR],AR,.30),l=t[2],r9=.04,x=t[0],z=t[1],A=[x+.01,yb-l,z-.02],B9=[[x+r9,yb,z],[x-r9*.6,yb,z+r9*.8],[x-r9*.6,yb,z-r9*.8]];
+      dehors(B9[0],B9[1],A,[x,yb-l*.3,z],'h');dehors(B9[1],B9[2],A,[x,yb-l*.3,z],'n');dehors(B9[2],B9[0],A,[x,yb-l*.3,z],'m');}
+    // LA BASE (bleu abysse), LA LUEUR au cœur de l'habitacle, les PHARES en fentes, le BANDEAU rouge, les tuyères
+    P.loft([-2.1,-1.8,1.8,2.15],z=>{const w=wC(z)*.86;return [[0,.24],[w*.72,.24],[w*.68,.30],[0,.30]];},()=>'B');
+    P.put('C',new THREE.OctahedronGeometry(1,0),0,.76,-.4,0,0,0,.34,.2,.8);
+    P.sym(sd=>{P.box('W',.34,.05,.04,sd*.50,.50,2.31,0,sd*.6,0);P.box('L',.05,.10,.02,sd*.66,.76,-2.36);}); // les phares SORTENT de la glace (dedans, on ne les voyait plus)
+    P.box('L',1.2,.03,.02,0,.76,-2.36);
+    P.sym(sd=>P.cyl('k',.055,.04,10,sd*.30,.42,-2.36,'z'));
+    K.commit(P);
+    // LA GLACE : un maillage à part, transparent, dessiné après le reste
+    const g=K.add(new THREE.Group());g.userData.ice=1;
+    let gm;try{gm=lpMat('c');}catch(e){gm=new THREE.MeshPhongMaterial({vertexColors:true,side:THREE.DoubleSide,shininess:160});}
+    gm.transparent=true;gm.opacity=.80;gm.depthWrite=false;gm.userData.g='ice';
+    const gl9=new THREE.Mesh(I.done().c,gm);gl9.renderOrder=2;g.add(gl9);
+    // LES ÉCLATS DE GIVRE : trois aiguilles croisées (une étoile vue de partout), sur la neige, les ailerons, les épaules ; ils scintillent
+    const E=K.kit({s:{g:'l',c:0xffffff}});
+    for(const sc of [[1,.09,.09],[.09,1,.09],[.09,.09,.7]])E.put('s',new THREE.OctahedronGeometry(.17,0),0,0,0,0,0,0,sc[0],sc[1],sc[2]);
+    E.put('s',new THREE.OctahedronGeometry(.035,0),0,0,0);
+    const par=g.parent,n0=par.children.length;K.commit(E);const em=par.children[n0];par.remove(em);
+    const eg=K.add(new THREE.Group()),et=[];eg.userData.etoiles=et;const em2=em.material.clone();em2.transparent=true;
+    for(const q of [[.60,1.30,-2.32],[-.60,1.30,-2.32],[.25,1.23,-.4],[-.35,.80,1.3],[.85,.88,1.45],[-.88,.92,-1.4],[.30,.62,2.2]]){
+      const m=new THREE.Mesh(em.geometry,em2);m.position.set(q[0],q[1],q[2]);m.renderOrder=3;
+      m.userData.ph=et.length*2.39;m.userData.r=1.3+(et.length*.37)%1.1;m.userData.s=.8+(et.length%3)*.25;eg.add(m);et.push(m);}
+    if(typeof BLING==='object'&&BLING)BLING.s=et;
+    return {hl:[.50,.50,2.34],tl:[.60,.76,-2.38],wx:.80,wzF:ZF,wzR:-ZR,pots:[[.30,.42,-2.38],[-.30,.42,-2.38]],
+            lpw:{R:R,w:.26,style:'rayons',n:6,jante:0xd8f3ff,accent:0xd8f3ff,pneu:0x0e1a24}};
   }
 });
 /* ===== LA GAMME DES 50 — FIN ===== */
@@ -21323,6 +21426,7 @@ function buildCar(spec){
   // ne se déployait jamais. Tout ce qu'un GABARIT peut remplir doit être vidé AVANT qu'il ne tourne.
   carFins.length=0;
   ATCH.on=false;ATCH.ph=0;ATCH.k=0;ATCH.t=3+Math.random()*2; // (2026-10-06) ATCHOUM s'allume dans son gabarit
+  BLING.s=[]; // (2026-10-10) L'ICEBERG pose ses éclats pendant son gabarit
   NYAN.on=false;NYAN.tete=null;NYAN.pattes.length=0;NYAN.queue.length=0;NYAN.feux.length=0;NYAN.roues.length=0;NYAN.rf='';NYAN.pas=-1;NYAN.hb=-1; // (2026-10-06) le chat pop-tart remplit ses pièces animées pendant son gabarit
   HALO.h.length=0;HALO.t.length=0;ROUES.flou=null; // (2026-09-26) halos et flou de jante de l'ancienne caisse
   const lvl=CARS.indexOf(spec),wreck=lvl===0;
@@ -22149,6 +22253,7 @@ function engVigRender(dt){
 }
 buildCar(CARS[0]);
 try{renderer.initTexture(flouRoueTex);}catch(e){} // (2026-09-26) le flou de jante ne s'allume qu'en course, lancé : sa texture monte au GPU dès maintenant, pas au premier virage
+window.dbgBling=function(){return {etoiles:BLING.s.length,allumees:BLING.s.filter(m=>m.visible).length,t:+BLING.t.toFixed(2),mode:mode,started:started,go:gameOver};}; // (2026-10-10) L'ICEBERG : ses éclats (banc)
 window.dbgEquipe=function(i){if(started&&!gameOver)return 'en course';i=Math.max(0,Math.min(CARS.length-1,i|0));SAVE.d.equipped=i;level=i;buildCar(CARS[i]);return CARS[i].name;}; // (2026-09-26) équiper une caisse depuis la console (tests)
 window.dbgPots=function(){const a=v=>[+v.x.toFixed(3),+v.y.toFixed(3),+v.z.toFixed(3)];return {src:CAR_POT_SRC,un:CAR_POT_1,pots:CAR_POTS.map(a),L:a(CAR_POT_L),R:a(CAR_POT_R),C:a(CAR_POT_C)};}; // (dev) les pots relevés sur la caisse montée
 window.dbgSpec=function(i){const c=CARS[i|0];return c?{name:c.name,w:c.w,l:c.l,h:c.h,shape:c.shape}:null;};window.dbgNbCaisses=function(){return CARS.length;}; // (dev) les fiches, pour les bancs d'essai
@@ -22781,6 +22886,7 @@ const CAR_UNLOCK=[
   {p:900000}, // (2026-10-06) ATCHOUM — RARE, à l'argent (2026-10-09, Léo, fiche de la salle blanche) ÉPIQUE à 900 000 : entre LA STRATOS et L'ORIGAMI, l'ordre de la fiche
   {p:700000}, // (2026-10-08) LE SQUALE — RARE, à l'argent (2026-10-09, Léo, fiche de la salle blanche) ÉPIQUE à 700 000 : entre LA TAURINE et ACIDE, l'ordre de la fiche
   {p:3000000}, // (2026-10-09, Léo : « fais-en une hyper abstraite mais travaillée, concept, ajoute-la à la liste ») L'ABSTRAITE — ÉPIQUE, la plus chère des épiques (juste après ROSSO 40)
+  {p:3200000}, // (2026-10-10, Léo : « une nouvelle abstraite, en glace, genre iceberg ») L'ICEBERG — ÉPIQUE, juste après L'ABSTRAITE
 ]
 /* (POKI) PLUS DE MISSIONS, DE CARRIÈRE NI DE BOUTIQUE : les caisses qui s'y gagnaient passent À L'ARGENT DU JEU (sinon le garage montrerait
    des caisses qu'on ne peut plus avoir). Les prix prolongent la gamme : les carnets là où ils tombaient dans la progression (LA BULLE
@@ -41811,6 +41917,7 @@ function loop(now){
   }
   if(PERF_MON)perfMonTick(now,rawMs);
   lvlStep(dt);routeTick(); // NIVEAUX : le noir de l'orbite, la planète et la pluie suivent le même fondu — AVANT bioStep, qui lit LVL.espace
+  blingTick(dt); // (2026-10-10) L'ICEBERG : les éclats de givre scintillent (menu, garage, course)
   bioStep(dt); // BIOMES : le voyage d'ambiance avance même au menu/en pause de jeu (c'est le ciel qui vit, pas la sim)
   if(mode!=='drive'||!running||gameOver)LIGNE_U.uFile.value*=Math.max(0,1-dt*6); /* (LES TIRETS FILENT) hors de la route, le filé retombe : pas de tirets flous au menu */
   if(parkGrassMat)parkGrassMat.uniforms.uTime.value=now*.001; // l'herbe longue du parc ondule au vent (now : dispo avant `const t`)

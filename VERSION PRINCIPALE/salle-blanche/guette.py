@@ -5,6 +5,7 @@
 import json, os, sys, time
 P = sys.argv[1]
 CALME = float(sys.argv[2]) if len(sys.argv) > 2 else 40
+UNE = len(sys.argv) > 3 and sys.argv[3] == 'une'   # 'une' : s'arrête après le premier changement (Claude le relance en tâche de fond)
 
 def lire():
     try:
@@ -44,4 +45,5 @@ while True:
             len(neufs), court(' | '.join(neufs), 1200), len(e), (' · ' + court(' ; '.join(e), 900)) if e else '',
             (' · ordre changé dans : ' + ', '.join(o)) if o else ''), flush=True)
         base = g; attente = 0
+        if UNE: break
     time.sleep(2)
