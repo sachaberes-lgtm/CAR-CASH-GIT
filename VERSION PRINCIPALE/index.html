@@ -6229,6 +6229,22 @@ html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip:is(:active,.appui){tran
   html body #garage:not(.menu):not(.vitrine) #gAct{column-gap:10px;row-gap:5px}
   html body #garage:not(.menu):not(.vitrine) #gAct>#gvCof{width:88px;min-width:88px;min-height:54px;gap:4px;padding:4px 2px 2px 6px}
   html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip{height:24px;min-height:24px;letter-spacing:2px}}
+/* LE PETIT HOME (même jour, Léo : « ajoute le HOME en minimaliste en haut à droite, environ vers la barre jaune, mais au-dessus ») : juste
+   AU-DESSUS de la console, calé sur le bout droit de sa livrée (le segment jaune) — debout au-dessus du panneau, couché dans le coin haut
+   droit (la console y monte). La maison seule, sur une plaque presque transparente, penchée comme la jauge ; filet lilas et trait d'OR
+   dessous, l'écho du segment jaune. Placé par gHomePlace (le coin de la console, relu au plus 5 fois par seconde) ; visible dans l'ATELIER
+   comme la jauge (hubSync) ; cible de 44 px (::after). Il rejoue le HOME caché (#gClose). */
+#gHomeMini{display:none}
+html.hubOn #gHomeMini.on{position:fixed;z-index:82;top:var(--hmT,-200px);right:var(--hmR,16px);display:flex;align-items:center;justify-content:center;width:42px;height:32px;
+  pointer-events:auto;cursor:pointer;color:#e6e0ff;transform:skewX(var(--sk));-webkit-tap-highlight-color:transparent;outline:none;
+  background:linear-gradient(180deg,rgba(26,20,52,.42),rgba(10,7,24,.32));box-shadow:inset 0 0 0 1px rgba(214,206,255,.22),inset 0 -2px 0 rgba(255,215,94,.8),0 8px 18px -10px rgba(0,0,0,.8);
+  transition:background var(--t-fast) var(--ease),translate var(--t-fast) var(--ease);animation:hubMonte var(--t-slow) var(--ease) both}
+#gHomeMini::after{content:'';position:absolute;left:-1px;right:-1px;top:-6px;bottom:-6px}
+#gHomeMini .pxi{--pxs:2;filter:drop-shadow(0 0 5px rgba(214,206,255,.5))}
+html.hubOn #gHomeMini.on:is(:active,.appui){translate:0 1px;background:linear-gradient(180deg,rgba(60,48,110,.55),rgba(20,14,44,.45))}
+#gHomeMini:focus-visible{box-shadow:inset 0 0 0 1px var(--neoC),inset 0 -2px 0 rgba(255,215,94,.8)}
+@media (hover:hover){html.hubOn #gHomeMini.on:hover{background:linear-gradient(180deg,rgba(46,36,88,.5),rgba(14,10,32,.4))}}
+@media (prefers-reduced-motion:reduce){html.hubOn #gHomeMini.on{animation:none}}
 /* LA CROIX DE L'INVENTAIRE, DISCRÈTE (même jour, Léo : « la croix est juste plus discrète, et sert à enlever le rectangle avec toutes
    les voitures pour qu'on ait une vue sur le garage ») : elle ferme toujours le tiroir, mais n'est plus une touche cyan pleine. Plus de
    plaque ni de tranche : une petite croix lilas dans un carré à peine dessiné (filet d'1 px, fond presque nul), qui s'allume sous le doigt.
@@ -6516,6 +6532,7 @@ html.sansFacile [data-m="facile"]{display:none!important}
   <button class="ghT" data-h="mis" role="tab" aria-selected="false"><i class="pxi pxi-cible" aria-hidden="true"></i><span data-fr="MISSIONS">MISSIONS</span><b class="ghPips" aria-hidden="true"><u></u><u></u><u></u></b></button>
   <button class="ghT" data-h="carr" role="tab" aria-selected="false"><i class="pxi pxi-trophee" aria-hidden="true"></i><span data-fr="CARRIERE">CARRIERE</span></button>
 </nav>
+<div id="gHomeMini" role="button" tabindex="0" aria-label="Accueil"><i class="pxi pxi-maison" aria-hidden="true"></i></div>
 <div id="gTourne" role="slider" tabindex="0" aria-label="Tourner le garage" aria-valuemin="-180" aria-valuemax="180" aria-valuenow="0"><i class="gtZone"></i><i class="gtRail"></i><i class="gtFill"></i><i class="gtPouce"></i></div>
 <div id="modale" role="dialog" aria-modal="true"><div class="modIn"><h3 id="modT"></h3><div id="modX"></div><textarea id="modC" rows="3" spellcheck="false" autocomplete="off"></textarea><div class="modB"></div></div></div>
 <div id="toast" role="status" aria-live="polite"></div>
@@ -39229,7 +39246,7 @@ function garGabarit(){
   return GAR._gab={k:k,R:Math.max(1,.5*Math.hypot(v.x,v.z)),a:Math.max(.8,v.z*.5),b:Math.max(.5,v.x*.5),H:Math.max(.8,v.y)};
 }
 function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 360° DANS l'atelier
-  GAR.dtR=dt;try{hubSync();gTourneMaj();}catch(e){} // (2026-10-06) LE HUB : la barre suit l'onglet — (2026-10-09) la jauge suit la vue
+  GAR.dtR=dt;try{hubSync();gTourneMaj();gHomePlace();}catch(e){} // (2026-10-06) LE HUB : la barre suit l'onglet — (2026-10-09) la jauge suit la vue
   if(chuteVoulue()||CHUTE.go){chuteRender(dt);return;}if(CHUTE.on)chuteSort(); // (2026-09-30) LA CHUTE : au MENU, la caisse tombe du ciel (voir « LA CHUTE ») ; la boutique et les missions rouvrent l'atelier
   {const ti9=SHOP.tab==='trainee'?1:(INV&&INV.on&&INV.cat==='trainee')?.55:0;trailApercu(dt,ti9>0,ti9||1);} // (2026-10-04) l'INVENTAIRE ouvert sur ses traînées les montre aussi — plus doucement : la caméra de la vitrine est plus près
   const ay=GARAGE_Y,t9=performance.now()*.001;
@@ -39831,6 +39848,7 @@ function hubSync(){ // appelée à chaque image de l'atelier (garageRender) et �
   const el=hubSync.el||(hubSync.el=document.getElementById('gHub'));if(!el)return;
   document.documentElement.classList.toggle('hubOn',!!t);el.classList.toggle('cache',cache);
   if(GTN&&GTN.el)GTN.el.classList.toggle('on',t==='atl'&&!cache); // (2026-10-09) LA JAUGE : dans l'atelier seulement
+  {const hm=document.getElementById('gHomeMini');if(hm){hm.classList.toggle('on',t==='atl'&&!cache);try{gHomePlace(true);}catch(e){}}} // (2026-10-09) le PETIT HOME aussi
   if(t!==t0)el.querySelectorAll('.ghT').forEach(function(b){const on=b.getAttribute('data-h')===t;b.classList.toggle('on',on);b.setAttribute('aria-selected',on?'true':'false');b.tabIndex=on?0:-1;});
   if(t&&!t0)try{const s9=misEtat();el.querySelectorAll('.ghPips u').forEach(function(u,i){u.classList.toggle('ok',!!s9.ok[i]);});}catch(e){}}
 function hubVa(t,b){ // changer d'onglet : la feuille CARRIÈRE se pose par-dessus l'atelier (qui reste ouvert dessous), les deux autres sont des modes de l'atelier
@@ -39883,6 +39901,14 @@ function gtPlace(){if(!GTN.el)return;const bas=document.getElementById('gBottom'
   else if(hub&&GTN.el.previousSibling!==hub)hub.parentNode.insertBefore(GTN.el,hub.nextSibling);
   document.documentElement.classList.toggle('gtConsole',!!dedans);}
 try{gtPlace();if(GT_COUCHE.addEventListener)GT_COUCHE.addEventListener('change',gtPlace);else GT_COUCHE.addListener(gtPlace);}catch(e){}
+/* LE PETIT HOME (2026-10-09) : au-dessus du coin haut droit de la console, sur le bout de sa livrée (right:18px dans #gBottom::before) */
+function gHomePlace(force){const el=document.getElementById('gHomeMini');if(!el||!el.classList.contains('on'))return;
+  const n=performance.now();if(!force&&n-(gHomePlace._t||0)<200)return;gHomePlace._t=n;
+  const b=document.getElementById('gBottom'),r=b&&b.getBoundingClientRect();if(!r||!r.width)return;
+  const top=Math.max(8,Math.round(r.top-32-10)),right=Math.max(8,Math.round(VP.w-r.right+18)),k=top+'|'+right;
+  if(k===gHomePlace._k)return;gHomePlace._k=k;el.style.setProperty('--hmT',top+'px');el.style.setProperty('--hmR',right+'px');}
+try{const hm=document.getElementById('gHomeMini');const va=function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(hm);const c=$('gClose');if(c)c.click();};
+  hm.addEventListener('click',va);hm.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();va(e);}});}catch(e){}
 window.dbgTourne=function(deg){if(deg!=null&&gtLibre()){gtSaisit();gtVise(-deg*Math.PI/180);}const r=GTN.el&&GTN.el.getBoundingClientRect();
   return {on:!!(GTN.el&&GTN.el.classList.contains('on')),t:GTN.t,deg:GTN.deg,vA:+(GAR.vA||0).toFixed(3),vAc:+(GAR.vAc||0).toFixed(3),jauge:r?[Math.round(r.left),Math.round(r.top),Math.round(r.width),Math.round(r.height)]:null};};
 window.dbgHub=function(){const el=$('gHub'),r=el&&el.getBoundingClientRect();return {hub:HUB,ctx:hubCtx(),on:document.documentElement.classList.contains('hubOn'),cache:!!(el&&el.classList.contains('cache')),barre:r?[Math.round(r.left),Math.round(r.top),Math.round(r.width),Math.round(r.height)]:null};};
@@ -41381,7 +41407,7 @@ const SWIPE_PX=64; // (2026-10-06) plus lu : le glissé ne change plus de caisse
 /* (2026-09-29, audit de sortie) UN SEUL DOIGT fait tourner l'atelier : le 2e (le pincement) écrasait le point de départ, l'orbite sautait
    d'un doigt à l'autre, et au relâcher le premier comptait pour un glissé — la caisse changeait. Rien ne passe à travers le voile. */
 let gpId=null,gPince=false;
-addEventListener('pointerdown',e=>{if(!garageOn||ecranWipe._on)return;if(e.target.closest&&e.target.closest('#gTop,#gBottom,#gMenu,#gMis .gmC,#gmBas,#wipe,#carr,#modale,[data-m],#gInv,#gHub,#gTourne,#gBurnBtns'))return;
+addEventListener('pointerdown',e=>{if(!garageOn||ecranWipe._on)return;if(e.target.closest&&e.target.closest('#gTop,#gBottom,#gMenu,#gMis .gmC,#gmBas,#wipe,#carr,#modale,[data-m],#gInv,#gHub,#gTourne,#gHomeMini,#gBurnBtns'))return;
   if(!garageDrag&&atlVise(e)){ATL.appui=e.pointerId;return;} // (même soir) LE BOUTON ROUGE du plateau : ni vue ni plateau, il s'enfonce // (2026-09-30) [data-m] : un bouton de l'accueil n'est pas un glissé · (2026-10-04) le tiroir de l'INVENTAIRE non plus
   if(garageDrag){gPince=true;return;}
   garageDrag=true;gpId=e.pointerId;gPince=false;gpx=gpx0=e.clientX;gpy=gpy0=e.clientY;
@@ -41420,7 +41446,7 @@ addEventListener('pointerup',e=>{
 });
 addEventListener('pointermove',e=>{
   if(!garageDrag){ // (affiches) LE SURVOL à la souris : l'affiche s'allume, le curseur devient une main
-    if(garageOn&&e.pointerType==='mouse'&&!GAR.go&&!(e.target.closest&&e.target.closest('#gTop,#gBottom,#gMenu,#wipe,#carr,#modale,#gInv,#gHub,#gTourne'))){let af=null;try{af=afficheVise(e);}catch(_){}
+    if(garageOn&&e.pointerType==='mouse'&&!GAR.go&&!(e.target.closest&&e.target.closest('#gTop,#gBottom,#gMenu,#wipe,#carr,#modale,#gInv,#gHub,#gTourne,#gHomeMini'))){let af=null;try{af=afficheVise(e);}catch(_){}
       if(af!==GAR.affH){GAR.affH=af;document.body.style.cursor=af?'pointer':'';}}
     return;}
   if(e.pointerId!==gpId||gPince)return;
