@@ -1,5 +1,17 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LA SALLE BLANCHE (2026-10-09, Léo : « une sublime voiture dans une salle blanche, que je peux tourner, avec une petite rangée de toutes les voitures qu'on a — pas les enlevées — qu'on glisse dans différentes raretés ; télécharger une liste écrite de tout ce qu'on a dit dessus »)
+- `salle-blanche.html` (outil, à côté d'index.html, à servir : `python3 -m http.server 8975` puis /salle-blanche.html). RIEN n'est recopié :
+  elle LIT index.html et exécute les vrais constructeurs (même liste de blocs que `ROBLOX/outils/cuire-caisses.js` + `MATV` pour les vraies
+  peaux) ; seules les matières sont refaites en PBR de studio (laque vernie, chrome, verre). Les 46 jouables (`retire:1` exclues).
+- Rendu : tonemapping LINÉAIRE (l'ACES décolorait les laques : ROSSO 40 saumon), murs de l'environnement gris + boîtes à lumière fortes,
+  ombre VSM douce + ombre de contact, sol ÉTALONNÉ au pixel (`etalonne`) pour avoir le blanc du fond : salle infinie, pas d'horizon.
+- Rangée : couloirs COMMUNES · RARES · ÉPIQUES · LÉGENDAIRES · DÉFIS · À RETIRER ; glisser = trait d'insertion (rien ne bouge avant de
+  lâcher), clic = la voiture en grand ; prix modifiable et notes par voiture, notes générales ; tout en localStorage (`cashcar.salleBlanche.v1`).
+- « Télécharger la fiche » = `fiche-voitures-cash-car-AAAA-MM-JJ.txt`, au format de la fiche du 6/10 (familles dans le nouvel ordre, notes
+  sous chaque voiture, NOTES GÉNÉRALES, CHANGEMENTS PAR RAPPORT AU JEU) — c'est ce fichier qu'on donne à Claude pour l'appliquer au jeu.
+  Console : `dbgSalle.lum({…})` règle la lumière à chaud, `dbgSalle.fiche()`, `dbgSalle.ratees()`.
+
 ## LA SONDE QUI NE FIGE PLUS (2026-10-08, Léo : « le jeu bug un peu quand je le lance, pas que au lancement il rame — trouve une solution qui ne touche pas au graphique ni à la qualité »)
 - MESURÉ (Chrome sans fenêtre sur le Mac M2 de Léo, course au pilote auto, trace + appels WebGL chronométrés) : les à-coups de 35-120 ms
   en course venaient de `qlSonde` — la SONDE de la règle de qualité (28/09, faite pour l'iPhone bridé à 30 i/s). Quand des images ratent,
