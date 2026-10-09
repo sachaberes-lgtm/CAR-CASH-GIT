@@ -100,6 +100,12 @@ plafonds de lacet et de tangage, vol libre, vrille visuelle, drift = un geste. C
   `index.html` sur GitHub (`MAIN_URL`, raw du main, CORS ouvert), copie locale en secours (`?source=local` la force), la source est écrite
   sous le titre ; toutes les 2 min elle compare l'empreinte du main et propose « Le main a bougé · mettre la gamme à jour ». Les gabarits
   posés hors de la gamme (`SHAPES.xxx=function…`) sont tous ramassés tout seuls (ceux de demain compris).
+- **LA LISTE SUR LE DISQUE (9/10, Léo : « quand tu vois la liste a changé, demande et précise c'quoi le changement, et demande si
+  push sur main »)** : servie par `salle-blanche/serveur.py 8975` (au lieu d'`http.server`), la page envoie chaque enregistrement
+  (`versDisque`, 0,9 s après, `sendBeacon` à la fermeture, seulement sur 127.0.0.1/localhost) → `salle-blanche/sauvegarde.json` (état,
+  journal, noms, `ecarts` avec le main) + `fiche-salle-blanche.txt` + `sauvegardes/` (copie datée à chaque nouveau geste), gitignorés.
+  `salle-blanche/guette.py` (en Monitor) dit chaque série de gestes finie (40 s de calme). RÈGLE : on DIT le changement à Léo et on
+  DEMANDE avant de pousser sur main — plus jamais de push d'office d'une liste.
 - **L'ABSTRAITE (9/10, Léo : « une hyper abstraite mais travaillée, concept »)** : index 71, `SHAPES.abstraite` DANS la gamme (la salle et
   cuire-caisses.js la lisent d'office) — un coin tranché en trois lames (graphite · blanc nacré · éclat de verre noir) séparées par des
   fentes de lumière d'or, une rainure de lumière au flanc, quatre disques à enjoliveur blanc tenus par des bras, un ARC blanc cerclé d'or
