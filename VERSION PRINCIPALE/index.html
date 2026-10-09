@@ -6228,6 +6228,9 @@ html body #garage:not(.menu):not(.vitrine) #gOutils>#gvHome>span{display:inline}
 html body #garage:not(.menu):not(.vitrine) #gOutils>#gvHome .pxi{--pxs:2;color:#e6e0ff;filter:drop-shadow(0 0 5px rgba(214,206,255,.55))}
 html body #garage:not(.menu):not(.vitrine) #gOutils>#gvHome:is(:active,.appui){translate:0 1px;background:linear-gradient(180deg,rgba(60,48,110,.55),rgba(20,14,44,.45));
   box-shadow:inset 0 0 0 1px rgba(214,206,255,.4),inset 0 -2px 0 #d6ceff,0 0 14px -4px rgba(214,206,255,.5)}
+/* (même jour, Léo : « la croix bleue sert à rien ») la croix de l'INVENTAIRE part : on le referme en touchant le garage (au-dessus du
+   tiroir), au bouton INVENTAIRE, à Échap ou à I. Cachée, pas retirée : son écouteur reste. */
+#ivFerme{display:none!important}
 @media (hover:hover){html body #garage:not(.menu):not(.vitrine) #gOutils>#gvHome:hover{background:linear-gradient(180deg,rgba(46,36,88,.5),rgba(14,10,32,.4))}}
 @media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
   html body #garage:not(.menu):not(.vitrine) #gOutils>#gvHome{height:40px;min-height:40px}}
@@ -39207,7 +39210,8 @@ function garCamA(){return GAR_CAM_A+(GAR.vA||0)+(GAR.swO||0)+(GAR.vD||0);} // (2
    · (même jour, « un peu générique — un juste milieu entre les deux ») : ressort un peu sous-amorti (dAmorti), visée qui traîne (dRegard),
      un peu plus de roulis (dRoulis : ×(1 − ,6) au lieu de ×,25) et de balancement (dSway ,35), un peu plus d'élan (dElan 2, dFrein 3) ;
    · le zoom ne respire plus avec l'angle du doigt (seulement avec le plateau) ; le recadrage de l'image se lisse dans le temps, plus par image. */
-const VITRINE_CAM={dRecadre:3.6,retAttente:3,retDuree:1.1,retPente:.9,dPx:.0046,dLisse:.3,dAmorti:.78,dFrein:3,dElan:2,dSway:1,dSwayV:.5,dRegard:4.5,dRoulis:.85,porteY:1.9,fw:.9,fwP:.88,fh:.8,fhP:.88,cx:.43,cxL:.62,cy:.55,cyL:.6,adapt:.5,p:.08,y:0,vise:-.38,viseP:.6,fov:.9,rot:.15,cle:.3,rim:.35}; // LA VITRINE v2 : la caisse tient dans fw de la largeur libre et fh de sa hauteur, inclinaison +p rad, hauteur +y m, visée +vise (+viseP debout), objectif ×fov, plateau rot rad/s, lampes +cle/+rim
+/* (2026-10-09, Léo : « lève un peu la voiture dans le POV ») cy .55 → .47 (debout), cyL .6 → .54 (couché) : la caisse remonte dans sa place. */
+const VITRINE_CAM={dRecadre:3.6,retAttente:3,retDuree:1.1,retPente:.9,dPx:.0046,dLisse:.3,dAmorti:.78,dFrein:3,dElan:2,dSway:1,dSwayV:.5,dRegard:4.5,dRoulis:.85,porteY:1.9,fw:.9,fwP:.88,fh:.8,fhP:.88,cx:.43,cxL:.62,cy:.47,cyL:.54,adapt:.5,p:.08,y:0,vise:-.38,viseP:.6,fov:.9,rot:.15,cle:.3,rim:.35}; // LA VITRINE v2 : la caisse tient dans fw de la largeur libre et fh de sa hauteur, inclinaison +p rad, hauteur +y m, visée +vise (+viseP debout), objectif ×fov, plateau rot rad/s, lampes +cle/+rim
 /* le GABARIT de la caisse vue en tournant : R = demi-diagonale de son empreinte au sol (la plus large qu'elle montre), H = sa hauteur. Mesuré
    caisse droite et à l'échelle 1 (la bascule l'écrase, le toucher la tasse), une fois par caisse et par construction. */
 function garGabarit(){
@@ -39566,7 +39570,7 @@ function garLibre(){
       else r.y1=bb.top;}                                       // sinon : les commandes en bas
     if(tb&&tb.height>0&&tb.bottom<r.y1-120)r.y0=tb.bottom;r.shop=true;    // la fiche du haut (si elle laisse de la place)
     r.vit=gEl.classList.contains('vitrine');r.leo=garVueLeo(); // (2026-10-06) r.leo : la composition de la vitrine (la caisse décalée, l'entrée au milieu) — aussi dans la console de Sacha
-    if(r.leo&&!r.vit&&W>H*1.2&&document.documentElement.classList.contains('hubOn')){const hb=$('gHub'),hr=hb&&hb.getBoundingClientRect();if(hr&&hr.height>0&&hr.left<W*.3)r.y1=Math.min(r.y1,hb.offsetTop-8);} // couché, la barre du HUB tient le bas à gauche : la caisse se pose au-dessus — sa place FINALE (offsetTop ignore le glissé d'entrée `hubMonte`, qui faisait bouger le cadrage)
+    if(r.leo&&!r.vit&&W>H*1.2&&document.documentElement.classList.contains('hubOn')){const hb=document.documentElement.classList.contains('gtConsole')?null:$('gTourne'),hr=hb&&hb.getBoundingClientRect(); /* (2026-10-09) la barre du hub est partie : c'est la JAUGE qui tient le bas à gauche */if(hr&&hr.height>0&&hr.left<W*.3)r.y1=Math.min(r.y1,hb.offsetTop-8);} // couché, la barre du HUB tient le bas à gauche : la caisse se pose au-dessus — sa place FINALE (offsetTop ignore le glissé d'entrée `hubMonte`, qui faisait bouger le cadrage)
     if(r.vit&&W>H*1.2){const ga=$('gAct'),gr=ga&&ga.getBoundingClientRect();if(gr&&gr.width>0&&gr.left>W*.3){r.x1=gr.left-12;r.y1=H-12;}} // (2026-10-05) couché : la pile JOUER · niveau · MISSIONS à droite, la caisse a toute la gauche
     if(INV&&INV.on){const iv=$('gInv'),ir=iv&&iv.getBoundingClientRect();     // (2026-10-04) L'INVENTAIRE ouvert : la caisse se pose au-dessus du tiroir (debout), à sa gauche (couché)
       if(ir&&ir.width>0){if(W>H*1.2&&ir.left>W*.3){r.x1=Math.min(r.x1,ir.left);r.y1=H-12;}else r.y1=Math.min(r.y1,ir.top);}}}
