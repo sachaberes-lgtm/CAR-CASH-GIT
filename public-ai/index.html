@@ -19,6 +19,10 @@
 </style>
 <div id="boot">Car Cash<div id="bootBar"><i></i></div></div>
 <script>
+  /* (Public AI Edition) /public-ai without the trailing slash would load vendor/ and assets/ from the site root: add the slash */
+  if(/^https?:/.test(location.protocol)&&!/(\/|\.html?)$/.test(location.pathname))location.replace(location.pathname+'/'+location.search+location.hash);
+</script>
+<script>
   /* Le gros script du jeu est le dernier élément du document : quand DOMContentLoaded
      part, la scène est bâtie et l'intro « 1.61 » attend derrière le voile. */
   addEventListener("DOMContentLoaded",function(){
