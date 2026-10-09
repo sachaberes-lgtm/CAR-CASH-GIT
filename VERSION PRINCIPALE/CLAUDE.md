@@ -12,7 +12,7 @@
   repose ne la passe pas). Même filet à la souris (le cadre de l'ordi : bouton enfoncé pendant le volet).
 - Banc après correctif : REJOUER + pouce à 0 et 100 ms → volant pris (couché ET debout) ; 1er JOUER pouce posé pendant le lâcher → pris au
   départ ; NITRO seule (même glissée à gauche) ne vole jamais le volant ; deux doigts à gauche : le 1er garde le volant ; souris pendant le
-  volet → prise ; parties normale et FACILE inchangées ; 0 erreur. sw.js → v209.
+  volet → prise ; parties normale et FACILE inchangées ; 0 erreur. sw.js → v212 (v209 sur la branche, fusionnée après les v210-211 de Léo).
 
 ## LE DAUPHIN DE RÊVE + LA BOÎTE À DAUPHINS (2026-10-09, Léo : « retouchons les dauphins, envoie-moi dans une boîte blanche avec les dauphins, on va les design » — puis une image de grand dauphin pastel : « travaille encore plus dur »)
 - **LA BOÎTE** : `boite-dauphins.html` (à côté d'index.html, servie par `python3 -m http.server`, jamais en double-clic). Elle LIT et exécute le
@@ -40,6 +40,30 @@
   (`aLp` : une couleur, la nage le déplace d'un bloc, l'eau le coupe entier) ; biseau sombre aux arêtes + nuance par cube ; quelques cubes
   qui scintillent. `DOL_VOX` .026 (≈ 24 800 triangles) et `DOL_VOX_L` .045 (≈ 8 000) : updateDolphins prend les FINS seulement quand le
   dauphin fait plus de 260 px à l'écran. `DOL_VOX=0` rend le dauphin lisse.
+- **TROIS DAUPHINS EN FORMATION** (même jour, Léo : « moins de dauphins, animations plus jolies ») : `DOL_BANC` = 3 (au lieu de 6, `DOL_PAS` 1 s,
+  l'aura ×1,375 par dauphin en plus : le plafond ×1,75 ne bouge pas). Même tempo pour les trois, chacun `lag` de cycle derrière le chef (une
+  vague qui saute), plongée de durée fixe (`DOL_CYCLE` 1,6), celui qui rejoint attend sa place, une vrille sur quatre et jamais deux à la
+  fois, et au sommet il tourne la tête vers la caméra (on le voit de trois-quarts). Le bond royal part au 3e.
+- **LES SEPT CHORÉS** (même jour, Léo : « donne-leur plusieurs chorés possibles ») : `DOL_CHORE` (dans le bloc lu par la boîte) — LA VAGUE ·
+  L'UNISSON (en diagonale, vrilles ensemble) · LES CISEAUX (deux qui se croisent, le 3e jaillit à la verticale en double vrille) · LE
+  SAUTE-MOUTON (le grand passe au-dessus du petit) · L'ÉTOILE (trois directions, dont un qui vient vers la caméra) · L'ESCALIER (de plus en
+  plus haut, le dernier vrille) · LA FONTAINE (sauts verticaux qui tournent). Par dauphin : x0 → x1 (demi-largeurs), z0 → z1 (m, vers la
+  caméra +), hauteur `a`, retard `lag`, tours forcés `v` ; par choré : chance de vrille `vr`, `sync`. La pose = `dolChorePose` (⚠ PAS
+  `dolPose` : ce nom est déjà celui de l'encaissement du dauphin à la pose — une 2e déclaration l'écrasait). Le jeu en tire une par
+  apparition du banc (jamais deux fois la même de suite) ; `dbgDolphins(sec,nb,ch)` en force une (index ou nom, null = hasard). La boîte :
+  rangée des chorés en vue LE BANC (« Au hasard » = une nouvelle tous les 3 sauts du chef, chaque dauphin l'adopte en replongeant).
+- **LE BANC LONGE LA ROUTE** (même jour, Léo : « ils ne peuvent pas aller de la droite vers la gauche… celles qui viennent du milieu vont
+  transpercer la route ») : plus aucune traversée ni sortie au milieu. Les chorés sont refaites DE PART ET D'AUTRE de la route, sauts LE
+  LONG d'elle : L'ESCORTE · L'UNISSON · LE MIROIR · LE SAUTE-MOUTON · LE CROISEMENT (deux viennent vers la caméra) · L'ÉVENTAIL (ils
+  s'écartent en diagonale) · L'ESCALIER · LA FONTAINE. Par dauphin : côté `s`, distance au BORD x0 → x1 (m × taille), saut z0 → z1 (en W,
+  + devant). updateDolphins mesure l'axe de la route en x du banc (`dolXR` : FDOL.p au sol, `pts[tryLand._bi]` en vol), R = ROAD_HALF + 2,
+  et pose le banc assez loin pour que les deux bords tiennent dans l'écran (portée en mètres FIXES — liée à la taille, elle s'emballait).
+  ⚠ Poussé ainsi sur main (v209), « ça bug » : calé sur la caisse puis sur la route, le banc sortait de l'écran en vol (la caméra de vol
+  plonge vers la caisse) et l'aura montait pour rien. CORRIGÉ : le banc vit dans le repère de la CAMÉRA (24 m devant elle, collé à l'écran),
+  les dauphins sautent sur les CÔTÉS de l'écran (R = 38 % de la demi-largeur, écarts en `ku` jusqu'au bord), dans la profondeur ; la route la
+  plus proche (dalleProche + frameAt) donne sa hauteur et le banc monte au-dessus (ou descend sous elle) pour que la tranche de leurs sauts
+  ne la touche jamais (`dolHY`). Saut le plus long : jamais à moins de 10 m de l'objectif. La boîte dessine une route (repère, pas à l'échelle). `dbgDauphin('ecran')` :
+  où sont les dauphins à l'écran (−1…1) et à quelle distance.
 ## LA SALLE BLANCHE (2026-10-09, Léo : « une sublime voiture dans une salle blanche, que je peux tourner, avec une petite rangée de toutes les voitures qu'on a — pas les enlevées — qu'on glisse dans différentes raretés ; télécharger une liste écrite de tout ce qu'on a dit dessus »)
 - `salle-blanche.html` (outil, à côté d'index.html, à servir : `python3 -m http.server 8975` puis /salle-blanche.html). RIEN n'est recopié :
   elle LIT index.html et exécute les vrais constructeurs (même liste de blocs que `ROBLOX/outils/cuire-caisses.js` + `MATV` pour les vraies
@@ -72,7 +96,7 @@
   `nyRallye` déforme d'un bloc la coque, la pop-tart, l'aileron, les feux et le trait noir (pavillon tassé ×,74 → ×,56 vers la poupe,
   pente LINÉAIRE en z pour garder les pavés de glaçage plans ; ailes +8 cm au-dessus des roues ; jupes −7 cm) ; `NY_BAS` ,25 → ,33 (le
   pneu rentre dans l'aile), `NY_VOIE` ,76 (roues, pattes, ancrages) ; équipement posé hors déformation : lame, longue-portée jaunes,
-  bavettes (la plaque « 61 » des portières : retirée le jour même, Léo). L'ancienne version : `index-avant-rallye` n'est pas gardée — `git show 386bace:"VERSION PRINCIPALE/index.html"`.
+  bavettes (la plaque « 61 » des portières : retirée le jour même, Léo). Puis « un peu plus volumineuse » : NY_K ,86, NY_TASSE ,84 (pente ,08), NY_AILE ,12, NY_VOIE ,79. L'ancienne version : `index-avant-rallye` n'est pas gardée — `git show 386bace:"VERSION PRINCIPALE/index.html"`.
 
 ## LA SONDE QUI NE FIGE PLUS (2026-10-08, Léo : « le jeu bug un peu quand je le lance, pas que au lancement il rame — trouve une solution qui ne touche pas au graphique ni à la qualité »)
 - MESURÉ (Chrome sans fenêtre sur le Mac M2 de Léo, course au pilote auto, trace + appels WebGL chronométrés) : les à-coups de 35-120 ms
