@@ -7074,9 +7074,10 @@ const skyDome=(function(){
       '  for(int k=-1;k<=1;k++){float i2=id+float(k),r1=jh(i2+s),r2=jh(i2*1.37+s*2.1),r3=jh(i2*2.71+s*4.3);',
       '    if(r3<.16)continue;',                                            // des trouées dans la rangée
       '    float cx=float(k)+(r2-.5)*.6,top=mix(h0,h1,r2*r2*.6+r1*.4),w=w0*(.40+.85*r1)*k2;',
-      '    float e=clamp((y-h0*.2)/max(top-h0*.2,1e-4),0.,1.),wr=w*(1.-.38*e*e)*(1.+.12*sin(y*900.+i2*3.1));', // il s AFFINE en montant, ses flancs ondulent
-      '    float dx=abs(f-cx)*k2,tp=floor((top-wr*.85*pow(min(1.,dx/max(wr,1e-5)),2.2))/.0045)*.0045;',                         // le sommet BOMBÉ (la forêt sur la tête)
-      '    c=max(c,clamp((wr-dx)/uJPx+.5,0.,1.)*clamp((tp-y)/uJPx+.5,0.,1.));}',
+      '    float e=clamp((y-h0*.2)/max(top-h0*.2,1e-4),0.,1.),wr=w*(1.-.25*e*e)*(1.+.12*sin(y*900.+i2*3.1));', // il s AFFINE en montant, ses flancs ondulent
+      '    float dx=abs(f-cx)*k2,tp=top-wr*.85*pow(min(1.,dx/max(wr,1e-5)),2.2);',                         // le sommet BOMBÉ (la forêt sur la tête)
+      '    float bo=top-(top-h0*.2)*(.55+.35*r3)-wr*1.6*pow(min(1.,dx/max(wr,1e-5)),1.5);',                    // la POINTE du dessous : la montagne flotte
+      '    c=max(c,clamp((wr-dx)/uJPx+.5,0.,1.)*clamp((tp-y)/uJPx+.5,0.,1.)*smoothstep(bo,bo+wr*1.2,y));}',
       '  return c;}',
       'vec3 jadeCiel(vec3 d){',
       '  float y=d.y,yy=max(y,0.),az=atan(d.x,-d.z),sd=max(dot(d,uSunDir),0.);',
@@ -7085,9 +7086,8 @@ const skyDome=(function(){
       '  c=mix(c,uJdS*1.35+vec3(.25),smoothstep(.99950,.99972,sd));',     // le disque : pâle, comme sur la soie
       '  if(y>.012&&y<.4){float t=1.0/y;vec2 p=d.xz*t*1.05+vec2(uTime*.003,0.);', // les voiles de lavis, étirés
       '    float n=vfbm(vec2(p.x*.55,p.y*2.4)+3.7);c=mix(c,mix(uJdH,vec3(1.),.35),smoothstep(.56,.86,n)*.42*smoothstep(.012,.06,y)*(1.-smoothstep(.22,.4,y)));}',
-      '  vec3 B=uJdB;float ps=.0045,azq=(floor(az/ps)+.5)*ps;',             // (v2, Léo : « en pixels ») la TRAME des monts : un pixel = .0045 rad
-      '  {float h=floor((.004+.13*pow(jCrete(azq,1.7),2.4))/ps)*ps,cv=clamp((h-y)/uJPx+.5,0.,1.);', // 0 : les grands pics, au fond
-      '   vec3 m=mix(B,uJdR,.16);m=mix(m,B,smoothstep(h*.6,-.01,y)*.8);c=mix(c,m,cv);}',
+      '  vec3 B=uJdB;float azq=az;',                                         // (v3, Léo : « que du ciel et de la mer ») : plus de monts posés sur l horizon — au fond aussi, ils FLOTTENT
+      '  {float cv=jPeigne(azq,y,250.,1.9,.004,.03,.30);vec3 m=mix(B,uJdR,.14);m=mix(m,B,.5);c=mix(c,m,cv);}',
       '  {float cv=jPeigne(azq,y,170.,3.3,.008,.052,.26);vec3 m=mix(B,uJdR,.27);m=mix(m,B,smoothstep(.034,-.004,y)*.85);c=mix(c,m,cv);}',
       '  {float cv=jPeigne(azq,y,104.,7.9,.012,.078,.24);vec3 m=mix(B,uJdR,.39);m=mix(m,B,smoothstep(.05,-.004,y)*.85);c=mix(c,m,cv);}',
       '  {float cv=jPeigne(azq,y,62.,11.2,.018,.108,.22);vec3 m=mix(B,uJdR,.52);m=mix(m,B,smoothstep(.07,-.004,y)*.85);c=mix(c,m,cv);}',
@@ -12585,128 +12585,79 @@ function jadeKit(){const P=[],C=[];
       f([x0,y1,z0],[x0,y1,z1],[x1,y1,z1],[x1,y1,z0],T9);f([x0,y0,z1],[x1,y0,z1],[x1,y1,z1],[x0,y1,z1],col);f([x1,y0,z0],[x0,y0,z0],[x0,y1,z0],[x1,y1,z0],col);
       f([x1,y0,z1],[x1,y0,z0],[x1,y1,z0],[x1,y1,z1],col);f([x0,y0,z0],[x0,y0,z1],[x0,y1,z1],[x0,y1,z0],col);},
     geo:function(){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('aCol',new THREE.Float32BufferAttribute(C,3));g.computeBoundingSphere();return g;}};}
-/* ======================= LES PICS DE JADE v2 — EN CUBES (2026-10-09, Léo) =======================
-   Léo, sur la v1 (piliers lisses à facettes) : « couleurs plus similaires à l'image, et les montagnes fabriquées en pixels pour donner
-   plus de réalisme — comme du Minecraft art, mais plus beau ». Tout ce qui est pierre est désormais BÂTI EN CUBES sur une même trame :
-   · VX = 6 m, LE CUBE de la map : piliers, muraille de la Porte, arche du Pont. Les piliers sont posés sur la trame du monde (positions
-     et hauteurs alignées, rotations par quarts de tour) : leurs strates tombent aux mêmes hauteurs d'un pilier à l'autre.
-   · LES GABARITS (`voxPilier`) : dix piliers bâtis couche par couche (des tronçons de section constante — les corniches de Zhangjiajie —,
-     cannelures, une marche au hasard du profil, la tête qui dérive), de l'HERBE sur tout ce qui regarde le ciel, des TOUFFES de feuillage
-     en cubes sur les sommets et les corniches, des buissons accrochés aux parois, des TRAÎNÉES de rouille (les coulées orangées de la
-     photo). Trois niveaux de détail (cube de 6, 12, 24 m) tirés de la même grille.
-   · LE MAILLAGE (`voxMesh`) : glouton (les faces voisines de même matière et de même ombre se fondent en un seul rectangle) avec
-     l'OCCLUSION aux coins (le « smooth lighting » de Minecraft : le creux d'une corniche s'assombrit), diagonale choisie selon l'ombre.
-   · LA MATIÈRE (`JADE_VOX`) : chaque face porte une TEXTURE PIXEL calculée (8 × 8 texels par cube : grain, fissures, l'herbe qui
-     déborde sur le haut des côtés), les strates suivent la couche du monde, la lumière du niveau (soleil, ciel, sol, remplissage) +
-     l'ombre des coins + le biseau des cubes ; le détail se fond au loin (plus de scintillement) ; le pied se noie dans la brume.
-   · LES PINS du Huangshan en petits cubes de 2 m (`voxPin`, trois modèles : tronc qui se tord, plateaux d'aiguilles), les PAVILLONS en
-     cubes de 1,5 m (`voxPavillon`). Les nappes de BRUME restent douces (la photo), les GRUES aussi.
-   ⚠ La collision lit les CUBES (`jadeHeurt` → la grille du gabarit, du mur, de l'arche) : ce qu'on voit est ce qui arrête.
-   Console : `dbgJade()` (comptes, triangles visibles), `dbgJadeVue(k)`, `dbgJadeHeurt('test')`. */
-const VX=6;
-const JM={roche:1,rouille:2,herbe:3,feuille:4,bois:5,laque:6,tuile:7,or:8,pierre:9};
-function voxG(nx,ny,nz){return {nx:nx,ny:ny,nz:nz,d:new Uint8Array(nx*ny*nz)};}
-function voxAt(G,x,y,z){return (x<0||y<0||z<0||x>=G.nx||y>=G.ny||z>=G.nz)?0:G.d[x+G.nx*(z+G.nz*y)];}
-function voxSet(G,x,y,z,m){if(x>=0&&y>=0&&z>=0&&x<G.nx&&y<G.ny&&z<G.nz)G.d[x+G.nx*(z+G.nz*y)]=m;}
-/* LE MAILLAGE GLOUTON — pour chaque axe et chaque sens, plan par plan : un masque des faces (matière + ombre des 4 coins), puis les plus
-   grands rectangles identiques. Sortie : position (en cubes), normale, aM (matière), aAO (0 = coin enfoui, 1 = à l'air). */
-function voxMesh(G){
-  const dims=[G.nx,G.ny,G.nz],P=[],Nm=[],Ma=[],Ao=[],I=[],at=[0,0,0],q=[0,0,0];
-  const sol=(a,b,c)=>voxAt(G,a,b,c)>0;
-  for(let d=0;d<3;d++){const u=(d+1)%3,v=(d+2)%3,nu=dims[u],nv=dims[v],mask=new Int32Array(nu*nv);
-    for(const sg of [1,-1])for(let x=0;x<=dims[d];x++){
-      let n=0;const xi=sg>0?x-1:x,xo=sg>0?x:x-1;
-      for(let j=0;j<nv;j++)for(let i=0;i<nu;i++,n++){
-        at[d]=xi;at[u]=i;at[v]=j;const m=voxAt(G,at[0],at[1],at[2]);if(!m){mask[n]=0;continue;}
-        at[d]=xo;if(voxAt(G,at[0],at[1],at[2])){mask[n]=0;continue;}
-        let key=m;const co=[[-1,-1],[1,-1],[1,1],[-1,1]];
-        for(let c=0;c<4;c++){q[d]=xo;q[u]=i+co[c][0];q[v]=j;const s1=sol(q[0],q[1],q[2])?1:0;q[u]=i;q[v]=j+co[c][1];const s2=sol(q[0],q[1],q[2])?1:0;
-          q[u]=i+co[c][0];q[v]=j+co[c][1];const cc=sol(q[0],q[1],q[2])?1:0;key|=(s1&&s2?0:3-(s1+s2+cc))<<(8+c*2);}
-        mask[n]=key|(1<<20);}
-      n=0;
-      for(let j=0;j<nv;j++)for(let i=0;i<nu;){const c=mask[n];if(!c){i++;n++;continue;}
-        let w=1;while(i+w<nu&&mask[n+w]===c)w++;
-        let h=1;grand:while(j+h<nv){for(let k=0;k<w;k++)if(mask[n+k+h*nu]!==c)break grand;h++;}
-        const base=P.length/3,m=c&255,a=[(c>>8)&3,(c>>10)&3,(c>>12)&3,(c>>14)&3];
-        const crn=[[i,j],[i+w,j],[i+w,j+h],[i,j+h]];
-        for(let k=0;k<4;k++){q[d]=x;q[u]=crn[k][0];q[v]=crn[k][1];P.push(q[0],q[1],q[2]);const nn=[0,0,0];nn[d]=sg;Nm.push(nn[0],nn[1],nn[2]);Ma.push(m);Ao.push(a[k]/3);}
-        const fl=a[0]+a[2]<a[1]+a[3]; // la diagonale suit l'ombre (sinon un coin sombre s'étire en losange)
-        let t=fl?[1,2,3,1,3,0]:[0,1,2,0,2,3];if(sg<0)t=[t[0],t[2],t[1],t[3],t[5],t[4]];
-        for(const e of t)I.push(base+e);
-        for(let l=0;l<h;l++)for(let k=0;k<w;k++)mask[n+k+l*nu]=0;
-        i+=w;n+=w;}}}
-  const g=new THREE.BufferGeometry();
-  g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(Nm,3));
-  g.setAttribute('aM',new THREE.Float32BufferAttribute(Ma,1));g.setAttribute('aAO',new THREE.Float32BufferAttribute(Ao,1));
-  g.setIndex(P.length/3>65535?new THREE.Uint32BufferAttribute(I,1):new THREE.Uint16BufferAttribute(I,1));g.computeBoundingSphere();
-  return g;
+/* ======================= LES PICS DE JADE v3 — LA ROCHE DE WUKONG (2026-10-09, Léo) =======================
+   Léo, sur la v2 en cubes : « copie plutôt Wukong que Minecraft » (Black Myth: Wukong — des falaises de calcaire sculptées, une forêt
+   accrochée partout, des temples sur les cimes, la brume, une lumière de cinéma). La pierre redevient LISSE et RÉALISTE :
+   · LES PILIERS (`rocPilier`) : huit gabarits en mètres (rayons 10 → 56 m, ~1 150 m de haut), une grille cylindrique déformée par une
+     fonction de rayon : profil de la sorte (colonne, aiguille, gradins, tête large), STRATES (des bancs qui avancent ou reculent : les
+     corniches et les surplombs), FISSURES verticales profondes qui serpentent, un bruit fin. Normales lissées ; l'OCCLUSION de chaque
+     sommet (creux d'une fissure, dessous d'un surplomb) cuite dans `aAO`. Trois niveaux de détail tirés de la MÊME fonction.
+   · LA MATIÈRE (`JADE_ROC`) : le relief fin et le grain sont calculés au pixel (bruit 3D : coulures verticales, rugosité ; une carte de
+     relief par dérivées d'écran — la recette `perturbNormalArb` de three) ; calcaire gris clair et chaud, coulées humides sombres, rouille,
+     lichen, mousse sur ce qui regarde le ciel et dans les fissures du haut ; lumière enveloppante, ombre de cavité, liseré de brume ; le
+     détail se fond au loin ; le pied se noie dans la mer de nuages.
+   · LA FORÊT (`jadeArbresTex`, `JADE_ARB`) : des pins du Huangshan et des touffes PEINTS sur une toile (une planche de 8 dessins) et posés
+     en panneaux qui font face à la caméra — denses sur les cimes, accrochés aux corniches.
+   · LES TEMPLES : des PAGODES à étages (bois sombre, tuiles grises aux avant-toits relevés) et des pavillons sur quelques cimes.
+   · LA PORTE et LE PONT : de la roche ORGANIQUE (un champ de densité maillé en « surface nets », `surfNets`) : la muraille percée de
+     l'arche, l'arche naturelle — mêmes collisions que ce qu'on voit (la densité elle-même).
+   · (même soirée, Léo : « pour ce niveau, pas de base : les montagnes sont hautes, elles FLOTTENT ; la répartition est déjà pas mal ; il n'y
+     a que du ciel et de la mer ») : chaque montagne a un DESSOUS — une pointe de roche bosselée, décentrée, d'où pendent des LIANES — et
+     flotte au-dessus de la mer de nuages (les montagnes d'Avatar sont celles de Zhangjiajie) ; des CASCADES tombent de quelques-unes dans
+     le vide et se défont en brume ; des ROCHERS flottent autour. Une montagne qui croiserait la route passe dessous… ou AU-DESSUS (la
+     route file sous sa pointe).
+   Console : `dbgJade()`, `dbgJadeVue(k)`, `dbgJadeAller('porte'|'pont')`, `dbgJadeHeurt('test')`. */
+const JADE_TPL=[[10,190,1],[14,250,0],[18,300,2],[23,350,3],[29,400,0],[36,440,2],[45,490,1],[56,540,3]]; // rayon (m), hauteur (m), sorte : 0 colonne · 1 aiguille · 2 gradins · 3 tête large
+function rocNoise2(sd){return function(a,b){const i=Math.floor(a),j=Math.floor(b),fa=a-i,fb=b-j,h=(x,y)=>{const s=Math.sin(x*127.1+y*311.7+sd)*43758.5453;return s-Math.floor(s);};
+  const u=fa*fa*(3-2*fa),w=fb*fb*(3-2*fb);return (h(i,j)*(1-u)+h(i+1,j)*u)*(1-w)+(h(i,j+1)*(1-u)+h(i+1,j+1)*u)*w;};}
+function rocPilier(R,H,kind,graine){
+  const rg=mulberry32(graine),n2=rocNoise2(rg()*100),n2b=rocNoise2(rg()*100);
+  const harm=[];for(let k=2;k<=5;k++)harm.push([k,(.03+rg()*.07)*(k===2?1.4:1),rg()*6.283,(rg()-.5)*3]);
+  const fis=[];for(let k=0,n=4+((rg()*6)|0);k<n;k++)fis.push([rg()*6.283,.035+rg()*.07,.10+rg()*.18,rg()*6.283,.2+rg()*.6,H*(.15+rg()*.35)]); // angle, largeur, profondeur, phase, sinuosité, pied
+  const st=[];{let y=0;while(y<H+40){const h=12+rg()*34;st.push([y,y+h,(rg()-.55)*.13]);y+=h;}} // les BANCS : [bas, haut, avancée]
+  const strate=y=>{let k=0;while(k<st.length-1&&st[k][1]<=y)k++;const s=st[k],t=y-s[0],up=s[1]-y;let o=s[2];
+    if(t<3&&k>0)o=st[k-1][2]+(o-st[k-1][2])*(t/3);return o;};
+  const prof=v=>kind===0?1+.04*Math.sin(v*7+graine):kind===1?1.14-.42*v:kind===2?1-.06*Math.sin(v*23):.84+.32*v*v;
+  const Hb=H*(.26+rg()*.12),bA=rg()*6.283,bK=.25+rg()*.35,n2c=rocNoise2(rg()*100); // LE DESSOUS : sa hauteur, le côté où la pointe se décale
+  const rad=(th,y)=>{const v=y/H;let f=prof(v)+(y>Hb*.6?strate(y):0);
+    for(const h of harm)f+=h[1]*Math.cos(h[0]*th+h[2]+h[3]*v);
+    for(const c of fis){if(y<c[5])continue;const a=c[0]+c[4]*Math.sin(y*.004+c[3]),da=Math.abs(((th-a)%6.2832+9.4248)%6.2832-3.1416);if(da<c[1]*3)f-=c[2]*Math.exp(-(da/c[1])*(da/c[1]));}
+    f+=(n2(th*R*.16,y*.05)-.5)*.07+(n2b(th*R*.4,y*.13)-.5)*.03;
+    if(y>H-14)f*=Math.sqrt(Math.max(0,(H-y)/14))*.7+.3*(H-y)/14+.0; // l'épaule du sommet
+    if(y<Hb){const t=Math.max(0,y/Hb);f=f*(Math.pow(t,.62)*(.82+.18*t))+(1-t)*(1-t)*bK*Math.cos(th-bA)+(n2c(th*3.1,y*.05)-.5)*.16*(1-t); // la POINTE bosselée et décentrée
+      return R*Math.max(.03,f);}
+    return R*Math.max(.28,f);};
+  // LES ANNEAUX : 60 m dans la brume, 9 m au-dessus ; la tête arrondie
+  const Y=[];{let y=0;while(y<Hb){Y.push(y);y+=y<Hb*.3?5:7;}while(y<H-14){Y.push(y);y+=9;}Y.push(H-14,H-8,H-4,H-1.5);}
+  const nS=Math.max(24,Math.min(48,2*Math.round(R*.55)));
+  const tab=new Float32Array(Y.length*nS);
+  for(let i=0;i<Y.length;i++)for(let j=0;j<nS;j++)tab[i*nS+j]=rad(j/nS*6.2832,Y[i]);
+  const lod=(es,ey)=>{const P=[],A=[],I=[],ns=nS/es,rings=[];for(let i=0;i<Y.length;i++)if(i%ey===0||i===Y.length-1||Y[i]>=H-14)rings.push(i);
+    for(const i of rings)for(let j=0;j<ns;j++){const th=j*es/nS*6.2832,r=tab[i*nS+j*es];P.push(Math.cos(th)*r,Y[i],Math.sin(th)*r);
+      // L'OMBRE CUITE : creux par rapport aux voisins (une fissure) + dessous d'un banc qui avance (un surplomb)
+      const jm=(j*es-2+nS)%nS,jp=(j*es+2)%nS,moy=(tab[i*nS+jm]+tab[i*nS+jp])*.5,cv=Math.max(0,(moy-r)/(R*.07));
+      const ia=Math.min(Y.length-1,i+1),sur=Math.max(0,(tab[ia*nS+j*es]-r)/(R*.05));
+      A.push(Math.max(.25,1-cv*.6-sur*.45));}
+    for(let a=0;a<rings.length-1;a++)for(let j=0;j<ns;j++){const p0=a*ns+j,p1=a*ns+(j+1)%ns,p2=p0+ns,p3=p1+ns;I.push(p0,p2,p1,p1,p2,p3);}
+    const c=P.length/3;P.push(0,H,0);A.push(1);const t0=(rings.length-1)*ns;for(let j=0;j<ns;j++)I.push(t0+j,c,t0+(j+1)%ns); // le sommet
+    const pc=P.length/3;P.push(Math.cos(bA)*R*bK*.4,-7,Math.sin(bA)*R*bK*.4);A.push(.5);for(let j=0;j<ns;j++)I.push(j,(j+1)%ns,pc); // le bout de la pointe
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('aAO',new THREE.Float32BufferAttribute(A,1));
+    g.setIndex(P.length/3>65535?new THREE.Uint32BufferAttribute(I,1):new THREE.Uint16BufferAttribute(I,1));g.computeVertexNormals();g.computeBoundingSphere();return g;};
+  let rmax=0;for(let k=0;k<tab.length;k++)rmax=Math.max(rmax,tab[k]);
+  let rtop=0;{const i=Y.length-5;for(let j=0;j<nS;j++)rtop+=tab[i*nS+j];rtop/=nS;}
+  // LES CORNICHES : là où un banc avance de plus de 4 % — on y accroche des arbres
+  const cor=[];for(let i=1;i<Y.length-5;i++){if(Y[i]<H*.45)continue;for(let j=0;j<nS;j+=3){const r=tab[i*nS+j],rb=tab[(i-1)*nS+j];if(r-rb>R*.035)cor.push([j/nS*6.2832,Y[i],r]);}}
+  // LE DESSOUS : où pendent les lianes (sur l'anneau, entre 30 et 90 % de la hauteur de la pointe)
+  const des=[];for(let i=0;i<Y.length;i++){if(Y[i]<Hb*.3||Y[i]>Hb*.9)continue;for(let j=0;j<nS;j+=2)if(rg()<.35)des.push([j/nS*6.2832,Y[i],tab[i*nS+j]]);}
+  return {R:R,H:H,Hb:Hb,Y:Y,nS:nS,tab:tab,rmax:rmax,rtop:rtop,cor:cor,des:des,geo:[lod(1,1),lod(2,2),lod(4,5)]};
 }
-// UN NIVEAU DE DÉTAIL : la grille divisée par 2 (un cube plein si 3 de ses 8 enfants le sont ; la vie l'emporte en haut)
-function voxDemi(G){const H=voxG(Math.ceil(G.nx/2),Math.ceil(G.ny/2),Math.ceil(G.nz/2));
-  for(let y=0;y<H.ny;y++)for(let z=0;z<H.nz;z++)for(let x=0;x<H.nx;x++){let n=0,v=0,r=0;
-    for(let k=0;k<8;k++){const m=voxAt(G,2*x+(k&1),2*y+((k>>1)&1),2*z+(k>>2));if(m){n++;if(m===JM.feuille||m===JM.herbe)v++;else if(m===JM.rouille)r++;}}
-    if(n>=3)H.d[x+H.nx*(z+H.nz*y)]=v>=2?(v>=n-1?JM.feuille:JM.herbe):r>=3?JM.rouille:JM.roche;}
-  return H;}
-/* UN PILIER EN CUBES — R : rayon moyen (cubes), H : hauteur (cubes), kind : 0 colonne · 1 aiguille · 2 gradins · 3 tête large */
-function voxPilier(R,H,kind,graine){
-  const rg=mulberry32(graine),M=2*Math.ceil((R*1.55+2)/2),N=2*M,G=voxG(N,H+5,N);
-  const harm=[];for(let k=2;k<=5;k++)harm.push([k,(.05+rg()*.11)*(k===2?1.35:1),rg()*6.283]);
-  const can=[];for(let k=0,nc=2+((rg()*2.6)|0);k<nc;k++)can.push([rg()*6.283,.18+rg()*.2,.22+rg()*.2]); // les CANNELURES
-  const tr=[];for(let k=0,nt=1+((rg()*2.4)|0);k<nt;k++)tr.push([rg()*6.283,.12+rg()*.14,(.3+rg()*.6)*H,(.15+rg()*.3)*H]); // les TRAÎNÉES de rouille : angle, demi-largeur, haut, longueur
-  let y=0,cx=M,cz=M,rw=0;
-  while(y<H){const deep=y<H*.38,h=deep?9+((rg()*9)|0):2+((rg()*5)|0),v=(y+h/2)/H;
-    rw=rw*.6+(rg()-.5)*.17;let s;
-    if(kind===0)s=1+rw;else if(kind===1)s=1.14-.44*v+rw*.6;else if(kind===2)s=(((y/3)|0)%2?.82:1)+rw*.5;else s=.86+.34*v*v+rw*.5;
-    if(!deep){cx=Math.max(M-R*.25,Math.min(M+R*.25,cx+(rg()-.5)*.7));cz=Math.max(M-R*.25,Math.min(M+R*.25,cz+(rg()-.5)*.7));}
-    const rr=Math.max(1.15,R*s),y1=Math.min(H,y+h);
-    for(let i=0;i<N;i++)for(let j=0;j<N;j++){const dx=i+.5-cx,dz=j+.5-cz,d=Math.hypot(dx,dz),an=Math.atan2(dz,dx);
-      let f=1;for(const hq of harm)f+=hq[1]*Math.cos(hq[0]*an+hq[2]);
-      for(const c of can){const da=Math.abs(((an-c[0])%6.2832+9.4248)%6.2832-3.1416);if(da<c[1])f-=c[2]*(1-da/c[1]);}
-      if(d<rr*f)for(let yy=y;yy<y1;yy++)G.d[i+N*(j+N*yy)]=JM.roche;}
-    y=y1;}
-  // LA RUILLE : les coulées orangées, sur la peau, en bandes verticales
-  for(let yy=0;yy<H;yy++)for(let i=0;i<N;i++)for(let j=0;j<N;j++){const k0=i+N*(j+N*yy);if(G.d[k0]!==JM.roche)continue;
-    if(voxAt(G,i+1,yy,j)&&voxAt(G,i-1,yy,j)&&voxAt(G,i,yy,j+1)&&voxAt(G,i,yy,j-1))continue; // pas sur la peau
-    const an=Math.atan2(j+.5-M,i+.5-M);
-    for(const t of tr){const da=Math.abs(((an-t[0])%6.2832+9.4248)%6.2832-3.1416);if(da<t[1]&&yy<t[2]&&yy>t[2]-t[3]&&rg()<.9){G.d[k0]=JM.rouille;break;}}}
-  // LA VIE : l'herbe sur ce qui regarde le ciel (au-dessus du tiers bas), des touffes de feuillage, des buissons accrochés à la paroi
-  const tops=[],cor=[];
-  for(let yy=Math.floor(H*.3);yy<H;yy++)for(let i=0;i<N;i++)for(let j=0;j<N;j++){const k0=i+N*(j+N*yy),m=G.d[k0];if(!m||m===JM.feuille||voxAt(G,i,yy+1,j))continue;
-    G.d[k0]=JM.herbe;(yy>=H-1?tops:cor).push([i,yy,j]);}
-  const touffe=(i,yy,j,p)=>{if(rg()>p)return;voxSet(G,i,yy+1,j,JM.feuille);if(rg()<.45)voxSet(G,i,yy+2,j,JM.feuille);
-    for(const o of [[1,0],[-1,0],[0,1],[0,-1]])if(rg()<.35&&!voxAt(G,i+o[0],yy+1,j+o[1]))voxSet(G,i+o[0],yy+1,j+o[1],JM.feuille);};
-  for(const c of tops)touffe(c[0],c[1],c[2],.5);
-  for(const c of cor)touffe(c[0],c[1],c[2],.42);
-  for(let yy=Math.floor(H*.45);yy<H-1;yy++)for(let i=0;i<N;i++)for(let j=0;j<N;j++){if(!voxAt(G,i,yy,j)||rg()>.03)continue; // accrochés à la paroi
-    const o=[[1,0],[-1,0],[0,1],[0,-1]][(rg()*4)|0];if(voxAt(G,i+o[0],yy,j+o[1]))continue;
-    voxSet(G,i+o[0],yy,j+o[1],JM.feuille);if(rg()<.5)voxSet(G,i+o[0],yy+1,j+o[1],JM.feuille);if(rg()<.3)voxSet(G,i+o[0],yy-1,j+o[1],JM.feuille);}
-  let yTop=0,rmax=0;for(let yy=0;yy<G.ny;yy++)for(let i=0;i<N;i++)for(let j=0;j<N;j++)if(G.d[i+N*(j+N*yy)]){yTop=Math.max(yTop,yy+1);rmax=Math.max(rmax,Math.hypot(i+.5-M,j+.5-M)+.71);}
-  const G1=voxDemi(G),G2=voxDemi(G1);
-  return {G:G,M:M,H:H,yTop:yTop,rmax:rmax,tops:tops.filter(function(c){return !voxAt(G,c[0],c[1]+1,c[2]);}),geo:[voxMesh(G),voxMesh(G1),voxMesh(G2)]};
-}
-/* LE PIN DU HUANGSHAN en cubes de 2 m (grille 13 × 15 × 13) : un tronc de bois qui se tord, des PLATEAUX d'aiguilles horizontaux,
-   l'un qui part loin sur le côté. LE PAVILLON en cubes de 1,5 m : socle de pierre, colonnes vermillon, deux toits aux coins relevés, l'épi d'or. */
-function voxPin(v){const rg=mulberry32(0x9A1E+v*977),G=voxG(13,15,13);let x=6,z=6;
-  const h=9+((rg()*4)|0),dx=rg()<.5?1:-1,dz=rg()<.5?1:-1;
-  for(let y=0;y<h;y++){voxSet(G,Math.round(x),y,Math.round(z),JM.bois);if(y>2&&rg()<.4)x+=dx*.6;if(y>4&&rg()<.3)z+=dz*.5;x=Math.max(2,Math.min(10,x));z=Math.max(2,Math.min(10,z));}
-  const pad=(cx,cy,cz,rx,rz)=>{for(let i=0;i<13;i++)for(let j=0;j<13;j++){const e=((i-cx)/rx)**2+((j-cz)/rz)**2;if(e<1-rg()*.25){voxSet(G,i,cy,j,JM.feuille);if(e<.35&&rg()<.7)voxSet(G,i,cy+1,j,JM.feuille);}}};
-  const tx=Math.round(x),tz=Math.round(z);
-  pad(tx,h,tz,2.6,2.2);pad(tx-dx*2,h-3,tz+dz,3.4,2.6);
-  if(v!==1){const bx=tx+dx*3,bz=tz-dz*2;for(let k=0;k<3;k++)voxSet(G,tx+Math.round(dx*k),h-5,tz-Math.round(dz*k*.6),JM.bois);pad(bx,h-5,bz,3.6,2.4);} // la grande branche qui part
-  else pad(tx,h-5,tz,4,3.4);
-  return voxMesh(G);}
-function voxPavillon(){const G=voxG(11,13,11);
-  for(let i=0;i<11;i++)for(let j=0;j<11;j++){voxSet(G,i,0,j,JM.pierre);if(i>0&&i<10&&j>0&&j<10)voxSet(G,i,1,j,JM.pierre);}
-  for(const i of [2,8])for(const j of [2,8])for(let y=2;y<6;y++)voxSet(G,i,y,j,JM.laque);
-  for(let i=1;i<10;i++)for(let j=1;j<10;j++)if(i===1||i===9||j===1||j===9)voxSet(G,i,6,j,JM.laque);
-  const toit=(y,a,b)=>{for(let i=a;i<=b;i++)for(let j=a;j<=b;j++)voxSet(G,i,y,j,JM.tuile);for(const c of [[a,a],[a,b],[b,a],[b,b]])voxSet(G,c[0],y+1,c[1],JM.tuile);}; // les coins RELEVÉS
-  toit(7,0,10);toit(8,2,8);for(let i=3;i<=7;i++)for(let j=3;j<=7;j++)voxSet(G,i,9,j,JM.tuile);
-  for(let y=9;y<11;y++)for(let i=4;i<=6;i++)for(let j=4;j<=6;j++)if(y===9||(i===5&&j===5))voxSet(G,i,y,j,y===9?JM.laque:JM.tuile);
-  toit(11,3,7);voxSet(G,5,12,5,JM.or);
-  return voxMesh(G);}
-/* ---- LA MATIÈRE DES CUBES ---- */
-const JADE_VOX_VS=[
-  'attribute float aM,aAO;attribute vec4 aJ;varying vec3 vW,vO,vN,vNo;varying float vM,vAO;varying vec4 vJ;',
+// le rayon de la paroi à (angle, hauteur), lu dans la table (la collision voit ce qui est dessiné)
+function rocRayon(T,th,y){const Y=T.Y;if(y<0||y>T.H)return 0;let a=0,b=Y.length-1;while(b-a>1){const m=(a+b)>>1;if(Y[m]<=y)a=m;else b=m;}
+  const f=(y-Y[a])/Math.max(1e-6,Y[b]-Y[a]),u=((th/6.2832)%1+1)%1*T.nS,j=Math.floor(u)%T.nS,j1=(j+1)%T.nS,w=u-Math.floor(u),N=T.nS;
+  const ra=T.tab[a*N+j]*(1-w)+T.tab[a*N+j1]*w,rb=T.tab[b*N+j]*(1-w)+T.tab[b*N+j1]*w;return ra+(rb-ra)*f;}
+/* ---- LA MATIÈRE DE LA ROCHE ---- */
+const JADE_ROC_VS=[
+  'attribute float aAO;attribute vec4 aJ;varying vec3 vW,vN;varying float vAO;varying vec4 vJ;',
   '#include <fog_pars_vertex>',
   'void main(){',
   '#ifdef USE_INSTANCING',
@@ -12714,61 +12665,167 @@ const JADE_VOX_VS=[
   '#else',
   '  mat4 mw=modelMatrix;',
   '#endif',
-  '  vec4 wp=mw*vec4(position,1.);vW=wp.xyz;vO=position;vNo=normal;vN=normalize(mat3(mw)*normal);vM=aM;vAO=aAO;vJ=aJ;',
+  '  vec4 wp=mw*vec4(position,1.);vW=wp.xyz;vN=normalize(mat3(mw)*normal);vAO=aAO;vJ=aJ;',
   '  vec4 mvPosition=viewMatrix*wp;gl_Position=projectionMatrix*mvPosition;',
   '#include <fog_vertex>',
   '}'].join('\n');
-const JADE_VOX_FS=[
-  'uniform vec3 uSunDir,uSunC,uSky,uGnd,uFillD,uFillC,uMist;uniform float uMerY,uVX;',
-  'varying vec3 vW,vO,vN,vNo;varying float vM,vAO;varying vec4 vJ;',
+const JADE_ROC_FS=[
+  'uniform vec3 uSunDir,uSunC,uSky,uGnd,uFillD,uFillC,uMist;uniform float uMerY,uBump;',
+  'varying vec3 vW,vN;varying float vAO;varying vec4 vJ;',
   '#include <fog_pars_fragment>',
-  'float hv(vec3 p){p=fract(p*vec3(.1031,.1030,.0973));p+=dot(p,p.yxz+33.33);return fract((p.x+p.y)*p.z);}',
+  'float rh(vec3 p){p=fract(p*.1031);p+=dot(p,p.yzx+33.33);return fract((p.x+p.y)*p.z);}',
+  'float rn(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);',
+  '  return mix(mix(mix(rh(i),rh(i+vec3(1,0,0)),f.x),mix(rh(i+vec3(0,1,0)),rh(i+vec3(1,1,0)),f.x),f.y),',
+  '             mix(mix(rh(i+vec3(0,0,1)),rh(i+vec3(1,0,1)),f.x),mix(rh(i+vec3(0,1,1)),rh(i+vec3(1,1,1)),f.x),f.y),f.z);}',
   'void main(){',
-  '  vec3 an=abs(vNo);vec2 uv=an.x>.5?vO.zy:(an.y>.5?vO.xz:vO.xy);', // le plan de la face (en cubes)
-  '  vec2 fw=fwidth(uv);float px=max(fw.x,fw.y);',                     // ⚠ dérivées hors de toute branche
-  '  float det=1.-smoothstep(.05,.22,px),detV=1.-smoothstep(.45,1.6,px);', // le détail du texel, puis celui du cube, se fondent au loin
-  '  vec3 vox=floor(vO-vNo*.5+.001),t=vec3(floor(fract(uv)*8.),0.);vec2 f=fract(uv);',
-  '  float sd=vJ.x*71.3,lay=floor(vW.y/uVX-vN.y*.5+.001);',
-  '  float hT=hv(vox*1.7+t*13.1+sd),hC=hv(vox+sd),hA=hv(vec3(floor(lay/2.),sd*.01,3.)),hB=hv(vec3(floor(lay/5.),7.,sd*.02));',
-  '  int m=int(vM+.5);vec3 alb;',
-  // la ROCHE : gris pâle, gris chaud, beige rosé par strates (la couche du monde), un cube un peu plus clair ou plus sombre que l autre
-  '  vec3 roc=mix(vec3(.66,.66,.62),vec3(.57,.57,.54),hA);roc=mix(roc,vec3(.68,.63,.56),step(.74,hB)*.45);roc=mix(roc,vec3(.45,.47,.44),step(hB,.14)*.6);', // le GRÈS des photos : gris pâle, quelques bancs beiges, quelques bancs sombres
-  '  roc*=.93+.12*hC*detV;',
-  '  if(m==1){alb=roc*(.94+.10*hT*det);if(hT<.045)alb*=mix(1.,.78,det);}',
-  // la ROUILLE : les coulées orangées et saumon, striées à la verticale
-  '  else if(m==2){float st=hv(vec3(vox.x*3.+t.x,vox.z*3.+t.x,sd));alb=mix(vec3(.68,.52,.40),roc,st*.55)*(.92+.12*hT*det);}',
-  // l HERBE : dessus vert vif moucheté de jaune-vert ; sur les côtés elle déborde sur le haut du cube, en dents
-  '  else if(m==3){vec3 g=mix(vec3(.26,.46,.15),vec3(.40,.58,.20),hT*det);g=mix(g,vec3(.17,.32,.12),step(hT,.18)*det);',
-  '    if(an.y>.5)alb=g;else{float fr=f.y>.68-.22*hv(vec3(vox.x+t.x,vox.z+t.x,sd))?1.:0.;alb=mix(roc*(.9+.12*hT*det),g,mix(.35,fr,det));}}',
-  // le FEUILLAGE : des verts profonds, des taches claires, quelques trous d ombre
-  '  else if(m==4){float hc=hv(vox+sd*.3);alb=mix(vec3(.12,.26,.10),vec3(.27,.45,.16),hT*det)*(.85+.3*hc*detV);if(hT>.86)alb=mix(alb,vec3(.44,.60,.22),det);if(hT<.14)alb*=mix(1.,.55,det);}',
-  '  else if(m==5)alb=mix(vec3(.30,.22,.16),vec3(.40,.30,.21),step(.5,hv(vec3(t.x,vox.y,sd)))*det);', // le bois
-  '  else if(m==6)alb=vec3(.70,.16,.10)*(.9+.12*hT*det);',            // la laque vermillon
-  '  else if(m==7)alb=mix(vec3(.15,.24,.24),vec3(.22,.33,.32),step(.5,fract(t.x*.5))*det);', // les tuiles
-  '  else if(m==8)alb=vec3(.92,.70,.28);',                            // l or
-  '  else alb=vec3(.74,.71,.64)*(.94+.1*hT*det);',                     // la pierre claire
-  // LE BISEAU : le haut de chaque cube accroche la lumière, le bas se creuse — la trame des blocs se lit (comme dans Minecraft), en doux
-  '  if(an.y<.5){alb*=1.+(.07*step(.875,f.y)-.06*step(f.y,.125))*det;}else alb*=1.-.05*(step(f.x,.125)+step(f.y,.125))*det;',
-  '  float dif=max(dot(vN,uSunDir),0.),fl=max(dot(vN,-uFillD),0.);',
-  '  float fs=vN.y>.5?1.:(vN.y<-.5?.62:(abs(vN.x)>.5?.88:.78));',  // la lumière « de bloc » : dessus franc, côtés un cran plus bas
-  '  float ao=mix(.38,1.,vAO);ao=mix(1.,ao,.35+.65*detV);',
-  '  vec3 col=alb*((mix(uGnd,uSky,vN.y*.5+.5)*fs)*ao+uSunC*dif*(.55+.45*ao)+uFillC*fl*ao);',
-  '  float hm=smoothstep(uMerY+300.,uMerY+10.,vW.y);col=mix(col,uMist,hm*hm*(3.-2.*hm));', // le pied dans la brume
+  '  vec3 Ng=normalize(vN),p=vW+vJ.x*137.;',
+  // LES CHAMPS : coulées verticales (4 m de large, 45 m de long), rugosité sur trois tailles (11 · 5 · 2 m)
+  '  float st=rn(vec3(p.x*.24,p.y*.022,p.z*.24)),rg=rn(p*.09)*.5+rn(p*.21)*.3+rn(p*.55)*.2;',
+  // LES FISSURES NETTES : un bruit replié (1 − |2n − 1|) — des diaclases verticales qui serpentent, des joints de litage horizontaux
+  '  float fv=pow(1.-abs(2.*rn(vec3(p.x*.13,p.y*.028,p.z*.13)+19.)-1.),13.),fh=pow(1.-abs(2.*rn(vec3(p.x*.045,p.y*.16,p.z*.045)+31.)-1.),14.)*step(.45,rn(vec3(p.x*.02,p.y*.01,p.z*.02)+5.));',
+  '  float fi=max(fv,fh*.8),h=st*.45+rg*.4-fi*.55;',
+  '  float pxs=length(fwidth(vW)),dF=1.-smoothstep(1.2,7.,pxs);',   // les mètres par pixel : le détail fin s efface au loin
+  // LE RELIEF FIN (perturbNormalArb de three : la pente de h en espace écran)
+  '  vec3 dpx=dFdx(vW),dpy=dFdy(vW);float dhx=dFdx(h),dhy=dFdy(h);',  // ⚠ dérivées hors de toute branche
+  '  vec3 r1=cross(dpy,Ng),r2=cross(Ng,dpx);float de=dot(dpx,r1);',
+  '  vec3 N=normalize(abs(de)*Ng-sign(de)*(dhx*r1+dhy*r2)*uBump*dF);',
+  // LE CALCAIRE : gris clair, des plaques plus chaudes, des bancs beiges ; les COULÉES humides sombres ; rouille ; lichen
+  '  float big=rn(p*.011+3.);vec3 alb=mix(vec3(.52,.52,.49),vec3(.38,.38,.36),big);',
+  '  alb=mix(alb,vec3(.56,.51,.44),smoothstep(.62,.9,rn(vec3(vJ.x*9.,p.y*.03,1.)))*.4);',
+  '  alb*=mix(.42,1.,smoothstep(.10,.6,st));',
+  '  alb*=mix(.94,.82+.3*rg,dF);alb*=1.-fi*.42*dF;',
+  '  float ru=smoothstep(.70,.9,rn(vec3(p.x*.045,p.y*.005,p.z*.045)+7.));alb=mix(alb,vec3(.50,.36,.27),ru*.4);',
+  '  alb=mix(alb,vec3(.74,.74,.64),step(.935,rn(p*.85))*dF*.45);',
+  // LA VIE : mousse sur ce qui regarde le ciel, des coussins dans les fissures du haut (au-dessus de la mer de nuages)
+  '  float hv=smoothstep(uMerY+120.,uMerY+520.,vW.y),up=smoothstep(.38,.78,Ng.y);',
+  '  float mo=smoothstep(.55,.72,rn(p*.05+11.)*.65+(1.-st)*.35)*hv*(1.-smoothstep(.3,.9,vAO))*.9;',
+  '  float veg=max(up*smoothstep(.25,.55,rn(p*.13)),max(mo,smoothstep(.62,.8,rn(p*.035+5.))*hv*.55))*vJ.y;',
+  '  vec3 vert=mix(vec3(.09,.16,.07),vec3(.22,.32,.12),rn(p*.4));alb=mix(alb,vert,veg);',
+  // LA LUMIÈRE : enveloppante, l ombre de cavité (cuite + le creux du relief), le liseré de brume des silhouettes
+  '  vec3 V=normalize(cameraPosition-vW);',
+  '  float cav=mix(.3,1.,vAO)*mix(.6,1.,smoothstep(.1,.55,h)),dif=max((dot(N,uSunDir)+.12)/1.12,0.);',
+  '  vec3 col=alb*(mix(uGnd,uSky,N.y*.5+.5)*cav*.85+uSunC*dif*mix(.5,1.,cav)*1.1+uFillC*max(dot(N,-uFillD),0.)*cav);',
+  '  col+=uMist*pow(1.-max(dot(Ng,V),0.),3.)*.16;',
+  '  float hm=smoothstep(uMerY+300.,uMerY+10.,vW.y);col=mix(col,uMist,hm*hm*(3.-2.*hm));',
   '  gl_FragColor=vec4(col,1.);',
   '#include <fog_fragment>',
   '}'].join('\n');
-const JADE_VU={uVX:{value:VX}};
-function jadeVoxMat(){const m=new THREE.ShaderMaterial({uniforms:Object.assign(THREE.UniformsUtils.clone(THREE.UniformsLib.fog),JADE_U,JADE_VU),
-  vertexShader:JADE_VOX_VS,fragmentShader:JADE_VOX_FS,fog:true,extensions:{derivatives:true}});m.dispose=function(){};return m;}
-const JADE_M={vox:null,voxM:null};
-function jadeMats(){if(!JADE_M.vox){JADE_M.vox=jadeVoxMat();JADE_M.voxM=jadeVoxMat();}return JADE_M;} // vox : en instances · voxM : un maillage seul (la muraille, l'arche) — un programme chacun
-/* LES GABARITS : bâtis une fois par session (~10 piliers + 3 pins + 1 pavillon) */
-const JADE_TPL=[[2.4,1],[3,0],[3.5,2],[4,3],[4.6,0],[5.2,1],[5.8,2],[6.6,3],[7.6,0],[9,2]];
+/* ---- LA MATIÈRE DES TEMPLES (couleur par sommet, lumière du niveau, brume) ---- */
+const JADE_COL_VS=['attribute vec3 aCol;attribute vec4 aJ;varying vec3 vW,vN,vC;','#include <fog_pars_vertex>','void main(){',
+  '#ifdef USE_INSTANCING','  mat4 mw=modelMatrix*instanceMatrix;','#else','  mat4 mw=modelMatrix;','#endif',
+  '  vec4 wp=mw*vec4(position,1.);vW=wp.xyz;vN=normalize(mat3(mw)*normal);vC=aCol;vec4 mvPosition=viewMatrix*wp;gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n');
+const JADE_COL_FS=['uniform vec3 uSunDir,uSunC,uSky,uGnd,uMist;uniform float uMerY;varying vec3 vW,vN,vC;','#include <fog_pars_fragment>','void main(){',
+  '  vec3 N=normalize(vN);float dif=max((dot(N,uSunDir)+.15)/1.15,0.);vec3 col=vC*(mix(uGnd,uSky,N.y*.5+.5)+uSunC*dif);',
+  '  float hm=smoothstep(uMerY+300.,uMerY+10.,vW.y);col=mix(col,uMist,hm);gl_FragColor=vec4(col,1.);','#include <fog_fragment>','}'].join('\n');
+/* ---- LA FORÊT PEINTE : une planche de 8 dessins (4 × 2) — cinq pins du Huangshan (tronc tordu, plateaux d'aiguilles en nuages), trois
+   touffes de feuillus. Chaque dessin : des centaines de touches (ombre dessous, lumière dessus), un alpha franc. ---- */
+function jadeArbresTex(){const W=256,cv=document.createElement('canvas');cv.width=W*4;cv.height=W*2;const c=cv.getContext('2d'),rg=mulberry32(0xA7B3);
+  const touche=(x,y,r,col)=>{c.fillStyle=col;c.beginPath();c.arc(x,y,r,0,6.2832);c.fill();};
+  const vert=(l,k)=>{const a=[[18,34,18],[27,48,25],[40,66,32],[56,84,40],[74,100,48]][Math.min(4,Math.max(0,l))];const v=k||1;return 'rgb('+Math.round(a[0]*v)+','+Math.round(a[1]*v)+','+Math.round(a[2]*v)+')';};
+  for(let n=0;n<8;n++){const ox=(n%4)*W,oy=Math.floor(n/4)*W;c.save();c.translate(ox,oy);c.beginPath();c.rect(0,0,W,W);c.clip();
+    if(n>=6){ // LA LIANE (peinte « à l'envers » : posée la tête en bas, elle pend sous la montagne)
+      for(let k=0;k<14;k++){let x=20+rg()*(W-40),y=W;const L=90+rg()*150,dx=(rg()-.5)*.5;c.strokeStyle=vert(1,.7);c.lineWidth=1.6;c.beginPath();c.moveTo(x,y);
+        for(let q=0;q<L;q+=6){x+=dx*3+(rg()-.5)*2;y-=6;c.lineTo(x,y);}c.stroke();
+        for(let q=0;q<L;q+=3){const yy=W-q,xx=x-(L-q)*dx*.5;touche(xx+(rg()-.5)*10,yy,1.5+rg()*2.8*(1-q/L*.6),vert(q<L*.3?2:1,.75+rg()*.4));}}
+    }else if(n<4){ // LE PIN : un tronc qui se tord, des branches presque horizontales, des plateaux d'aiguilles
+      let x=W/2+(rg()-.5)*20,y=W-2;const pts=[[x,y]],dx=(rg()-.5)*2.2;
+      for(let k=0;k<9;k++){x+=dx*6+(rg()-.5)*10;y-=24+rg()*5;pts.push([x,y]);}
+      c.strokeStyle='#2b2018';c.lineCap='round';for(let k=0;k<pts.length-1;k++){c.lineWidth=9-k*.8;c.beginPath();c.moveTo(pts[k][0],pts[k][1]);c.lineTo(pts[k+1][0],pts[k+1][1]);c.stroke();}
+      const np=3+((rg()*3)|0);
+      for(let k=0;k<np;k++){const b=pts[Math.min(pts.length-1,3+Math.round(k*(pts.length-4)/np))],sg=rg()<.5?-1:1,L=30+rg()*60*(k===0?1.4:1),cx=b[0]+sg*L*.6,cy=b[1]-6-rg()*8;
+        c.lineWidth=4;c.beginPath();c.moveTo(b[0],b[1]);c.quadraticCurveTo((b[0]+cx)/2,b[1]+4,cx,cy+4);c.stroke();
+        const rx=26+rg()*(k===0?54:36),ry=9+rg()*9;
+        for(let q=0;q<170;q++){const a=rg()*6.2832,rr=Math.sqrt(rg()),tx=cx+Math.cos(a)*rx*rr,ty=cy+Math.sin(a)*ry*rr;const hi=(cy-ty)/ry;
+          touche(tx,ty+3,2.6+rg()*3.2,vert(hi>.25?3:hi>-.3?2:1,.8+rg()*.35));}
+        for(let q=0;q<40;q++){const a=rg()*3.1416+3.1416,rr=Math.sqrt(rg()),tx=cx+Math.cos(a)*rx*rr*.9,ty=cy+Math.sin(a)*ry*rr*.8;touche(tx,ty,1.8+rg()*2,vert(4,.85+rg()*.3));}}
+      // la couronne : un dernier plateau au sommet
+      const t=pts[pts.length-1];for(let q=0;q<120;q++){const a=rg()*6.2832,rr=Math.sqrt(rg()),tx=t[0]+Math.cos(a)*30*rr,ty=t[1]+Math.sin(a)*14*rr;touche(tx,ty,2.4+rg()*3,vert((t[1]-ty)/14>.2?3:2,.8+rg()*.35));}
+    }else{ // LA TOUFFE : un nuage de feuillage, l'ombre dessous, le soleil dessus
+      const cx=W/2,cy=W*.62;for(let q=0;q<900;q++){const a=rg()*6.2832,rr=Math.sqrt(rg()),tx=cx+Math.cos(a)*100*rr,ty=cy+Math.sin(a)*82*rr*(Math.sin(a)>0?.85:1.1);if(ty>W-4)continue;
+        const hi=(cy-ty)/82;touche(tx,ty,3+rg()*4.5,vert(hi>.35?4:hi>0?3:hi>-.4?2:1,.75+rg()*.4));}}
+    c.restore();}
+  const t=new THREE.CanvasTexture(cv);t.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());t.minFilter=THREE.LinearMipmapLinearFilter;return t;}
+const JADE_ARB_VS=['attribute vec4 aJ;uniform float uTime;varying vec2 vUv,vL;varying vec3 vW;','#include <fog_pars_vertex>',
+  'void main(){vec3 c=(modelMatrix*instanceMatrix*vec4(0.,0.,0.,1.)).xyz;',
+  '  vec3 R=normalize(vec3(viewMatrix[0][0],0.,viewMatrix[2][0])+vec3(1e-4,0.,0.)),U=normalize(vec3(0.,1.,0.)+vec3(viewMatrix[0][1],viewMatrix[1][1],viewMatrix[2][1])*.35);', // face à la caméra (un peu penché vers elle d en haut)
+  '  float y=position.y+.5,sw=sin(uTime*.8+aJ.w*40.)*y*y*.04*aJ.y;',
+  '  vec3 wp=c+R*(position.x*aJ.x+sw)+U*y*aJ.y;vW=wp;',
+  '  float k=aJ.z;vUv=(vec2(mod(k,4.),floor(k/4.))+vec2(position.x+.5,1.-y))*vec2(.25,.5);vUv.y=1.-vUv.y;vL=vec2(y,aJ.w);',
+  '  vec4 mvPosition=viewMatrix*vec4(wp,1.);gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n');
+const JADE_ARB_FS=['uniform sampler2D uTex;uniform vec3 uSunC,uSky,uGnd,uMist,uSunDir;uniform float uMerY;varying vec2 vUv,vL;varying vec3 vW;','#include <fog_pars_fragment>',
+  'void main(){vec4 t=texture2D(uTex,vUv);if(t.a<.45)discard;',
+  '  vec3 col=mix(t.rgb,vec3(dot(t.rgb,vec3(.3,.59,.11))),.15)*(.8+.25*vL.y)*(mix(uGnd,uSky,.35+.5*vL.x)*.9+uSunC*(.35+.4*vL.x));',
+  '  float hm=smoothstep(uMerY+300.,uMerY+10.,vW.y);col=mix(col,uMist,hm);gl_FragColor=vec4(col,1.);','#include <fog_fragment>','}'].join('\n');
+/* ---- LES TEMPLES : la PAGODE (octogonale, cinq étages, avant-toits relevés) et le PAVILLON (un toit, huit colonnes) ---- */
+function jadeTempleGeo(etages){const P=[],C=[],add=(g,col)=>{const h=g.index?g.toNonIndexed():g,a=h.attributes.position.array;for(let i=0;i<a.length;i++)P.push(a[i]);for(let i=0;i<a.length/3;i++)C.push(col[0],col[1],col[2]);};
+  const bois=[.32,.12,.08],mur=[.70,.66,.58],tuile=[.17,.19,.19],pierre=[.55,.53,.49],or=[.86,.66,.30];
+  const lathe=(prof,col)=>add(new THREE.LatheGeometry(prof.map(function(q){return new THREE.Vector2(q[0],q[1]);}),8),col);
+  lathe([[0,0],[7.5,0],[7.5,1.6],[0,1.6]],pierre);
+  let y=1.6,r=5;
+  for(let k=0;k<etages;k++){const h=k===0?6:4.2;
+    lathe([[0,y],[r,y],[r,y+h],[0,y+h]],k%2?bois:mur);
+    const e=r*1.55,ys=y+h;lathe([[0,ys+2.4],[r*.62,ys+2.2],[r*1.05,ys+1.3],[e*.92,ys+.35],[e,ys+.75],[e*.98,ys+.55],[r*.5,ys-.3],[0,ys-.3]],tuile); // l'avant-toit RELEVÉ
+    y=ys+1.6;r*=.84;}
+  lathe([[0,y],[.45,y],[.25,y+5],[0,y+6.2]],or);
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('aCol',new THREE.Float32BufferAttribute(C,3));g.computeVertexNormals();g.computeBoundingSphere();return g;}
+/* ---- SURFACE NETS : un champ de densité (> 0 = la pierre) échantillonné sur une grille → un maillage lisse (un sommet par cellule
+   traversée, au barycentre des croisements ; un quadrilatère par arête traversée). Coordonnées en cellules. ---- */
+function surfNets(D,nx,ny,nz){const V=[],idx=new Int32Array(nx*ny*nz).fill(-1),I=[],at=(x,y,z)=>D[x+nx*(y+ny*z)];
+  const E=[[0,1],[2,3],[4,5],[6,7],[0,2],[1,3],[4,6],[5,7],[0,4],[1,5],[2,6],[3,7]],cr=[[0,0,0],[1,0,0],[0,1,0],[1,1,0],[0,0,1],[1,0,1],[0,1,1],[1,1,1]],d=new Float32Array(8);
+  for(let z=0;z<nz-1;z++)for(let y=0;y<ny-1;y++)for(let x=0;x<nx-1;x++){let m=0;for(let k=0;k<8;k++){d[k]=at(x+cr[k][0],y+cr[k][1],z+cr[k][2]);if(d[k]>0)m|=1<<k;}
+    if(m===0||m===255)continue;let sx=0,sy=0,sz=0,n=0;
+    for(const e of E){const a=d[e[0]],b=d[e[1]];if((a>0)===(b>0))continue;const t=a/(a-b),A=cr[e[0]],B=cr[e[1]];sx+=A[0]+(B[0]-A[0])*t;sy+=A[1]+(B[1]-A[1])*t;sz+=A[2]+(B[2]-A[2])*t;n++;}
+    idx[x+nx*(y+ny*z)]=V.length/3;V.push(x+sx/n,y+sy/n,z+sz/n);}
+  const dims=[nx,ny,nz],c=[0,0,0];
+  for(let a=0;a<3;a++){const u=(a+1)%3,v=(a+2)%3;
+    for(let z=0;z<nz;z++)for(let y=0;y<ny;y++)for(let x=0;x<nx;x++){c[0]=x;c[1]=y;c[2]=z;if(c[a]>=dims[a]-1||c[u]<1||c[v]<1||c[u]>=dims[u]-1||c[v]>=dims[v]-1)continue;
+      const d0=at(x,y,z);c[a]++;const d1=at(c[0],c[1],c[2]);c[a]--;if((d0>0)===(d1>0))continue;
+      const q=[],o=[[-1,-1],[0,-1],[0,0],[-1,0]];
+      for(const w of o){const k=[x,y,z];k[u]+=w[0];k[v]+=w[1];q.push(idx[k[0]+nx*(k[1]+ny*k[2])]);}
+      if(q.some(function(e){return e<0;}))continue;
+      if(d0>0)I.push(q[0],q[1],q[2],q[0],q[2],q[3]);else I.push(q[0],q[2],q[1],q[0],q[3],q[2]);}}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(V,3));g.setIndex(V.length/3>65535?new THREE.Uint32BufferAttribute(I,1):new THREE.Uint16BufferAttribute(I,1));g.computeVertexNormals();g.computeBoundingSphere();return g;}
+function jadeRocMat(){const m=new THREE.ShaderMaterial({uniforms:Object.assign(THREE.UniformsUtils.clone(THREE.UniformsLib.fog),JADE_U,{uBump:JADE_BUMP}),vertexShader:JADE_ROC_VS,fragmentShader:JADE_ROC_FS,fog:true,extensions:{derivatives:true}});m.dispose=function(){};return m;}
+const JADE_BUMP={value:7};
+const JADE_M={roc:null,rocM:null,col:null,arb:null};
+function jadeMats(){if(!JADE_M.roc){JADE_M.roc=jadeRocMat();JADE_M.rocM=jadeRocMat();
+    JADE_M.col=new THREE.ShaderMaterial({uniforms:Object.assign(THREE.UniformsUtils.clone(THREE.UniformsLib.fog),JADE_U),vertexShader:JADE_COL_VS,fragmentShader:JADE_COL_FS,fog:true});JADE_M.col.dispose=function(){};
+    JADE_M.arb=new THREE.ShaderMaterial({uniforms:Object.assign(THREE.UniformsUtils.clone(THREE.UniformsLib.fog),JADE_U,{uTex:{value:jadeArbresTex()}}),vertexShader:JADE_ARB_VS,fragmentShader:JADE_ARB_FS,fog:true,side:THREE.DoubleSide});JADE_M.arb.dispose=function(){};}
+  return JADE_M;}
 function jadeGabarits(){if(JADE.geos)return JADE.geos;const t0=performance.now();
-  const p=JADE_TPL.map(function(q,k){return voxPilier(q[0],172,q[1],0x51A0+k*131);});
-  JADE.geos={p:p,pin:[0,1,2].map(voxPin),pav:voxPavillon(),ms:Math.round(performance.now()-t0)};return JADE.geos;}
-// le gabarit dont le rayon (en m) colle au mieux
-function jadeTplDe(r){let bi=0,bd=1e9;for(let k=0;k<JADE_TPL.length;k++){const d=Math.abs(JADE_TPL[k][0]*VX-r);if(d<bd){bd=d;bi=k;}}return bi;}
+  JADE.geos={p:JADE_TPL.map(function(q,k){return rocPilier(q[0],q[1],q[2],0x51A0+k*131);}),cail:[0,1,2].map(jadeCaillouGeo),pag:jadeTempleGeo(5),pav:jadeTempleGeo(1),arbreQ:new THREE.PlaneGeometry(1,1),ms:0};JADE.geos.ms=Math.round(performance.now()-t0);return JADE.geos;}
+function jadeTplDe(r){let bi=0,bd=1e9;for(let k=0;k<JADE_TPL.length;k++){const d=Math.abs(JADE_TPL[k][0]-r);if(d<bd){bd=d;bi=k;}}return bi;}
+/* LE ROCHER FLOTTANT : une boule bosselée au dessus aplati (l'herbe), au dessous étiré en pointe — trois modèles */
+function jadeCaillouGeo(v){const g=new THREE.IcosahedronGeometry(1,2),pa=g.attributes.position,rg=mulberry32(0xCA11+v*71),n2=rocNoise2(rg()*90);
+  for(let k=0;k<pa.count;k++){let x=pa.getX(k),y=pa.getY(k),z=pa.getZ(k);const a=Math.atan2(z,x),f=.82+.36*n2(a*2.2+3,y*2.4+1)+.12*Math.sin(a*3+v);
+    x*=f;z*=f;y=y>0?y*.45+.12:y*(1.5+.5*n2(a*1.3,5));pa.setXYZ(k,x,y,z);}
+  const P=pa.array,N=pa.count,A=new Float32Array(N).fill(1);for(let k=0;k<N;k++)if(P[k*3+1]<-.3)A[k]=.7;
+  g.setAttribute('aAO',new THREE.BufferAttribute(A,1));g.computeVertexNormals();g.computeBoundingSphere();return g;}
+/* LES CASCADES : un ruban qui fait face à la caméra (autour de la verticale), qui s'écarte un peu de la paroi en tombant ; l'eau défile
+   (des filets blancs qui coulent), s'élargit et se défait en brume vers le bas. Toutes dans UN maillage. */
+const JADE_CHUTE_M=(function(){const m=new THREE.ShaderMaterial({transparent:true,depthWrite:false,fog:true,side:THREE.DoubleSide,
+  uniforms:Object.assign(THREE.UniformsUtils.clone(THREE.UniformsLib.fog),{uTime:JADE_U.uTime,uMist:JADE_U.uMist,uSunC:JADE_U.uSunC}),
+  vertexShader:['attribute vec3 aTop;attribute vec4 aW;attribute vec2 aO;varying vec2 vP;varying vec4 vWw;','#include <fog_pars_vertex>',
+    'void main(){float t=position.x,sd=position.y;vec3 out3=vec3(aO.x,0.,aO.y);',
+    '  vec3 c=aTop+out3*(aW.x*.4+t*t*aW.y*.07)-vec3(0.,1.,0.)*t*aW.y;',
+    '  vec3 tc=cameraPosition-c;tc.y=0.;vec3 R=normalize(vec3(tc.z,0.,-tc.x)+vec3(1e-4,0.,0.));',
+    '  vec3 wp=c+R*sd*aW.x*(.5+t*1.4);vP=vec2(t,sd);vWw=aW;',
+    '  vec4 mvPosition=viewMatrix*vec4(wp,1.);gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n'),
+  fragmentShader:['uniform float uTime;uniform vec3 uMist,uSunC;varying vec2 vP;varying vec4 vWw;','#include <fog_pars_fragment>',
+    'float ch(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}',
+    'float cn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(ch(i),ch(i+vec2(1,0)),f.x),mix(ch(i+vec2(0,1)),ch(i+vec2(1,1)),f.x),f.y);}',
+    'void main(){float t=vP.x,x=vP.y;',
+    '  float L=vWw.y,fl=cn(vec2(x*7.+vWw.z*13.,t*L*.035-uTime*1.6))*.6+cn(vec2(x*17.,t*L*.08-uTime*2.7))*.4;', // les filets qui coulent
+    '  float e=1.-smoothstep(.25,.5,abs(x));float a=e*(.35+.65*fl)*smoothstep(0.,.04,t)*(1.-smoothstep(.45,1.,t));',
+    '  a*=mix(.95,.55,t);vec3 col=mix(vec3(.93,.96,.98),uMist,t*.7)+uSunC*.04;',
+    '  gl_FragColor=vec4(col,a*.9);','#include <fog_fragment>','}'].join('\n')});m.dispose=function(){};return m;})();
+function jadeChutes(L9){ // L9 : [x, y, z, ox, oz, largeur, longueur, graine]
+  const n=L9.length,S=24,P=[],T9=[],W=[],O=[],I=[];
+  for(let k=0;k<n;k++){const q=L9[k],b=P.length/3;for(let i=0;i<=S;i++)for(const sd of [-.5,.5]){P.push(i/S,sd,0);T9.push(q[0],q[1],q[2]);O.push(q[3],q[4]);W.push(q[5],q[6],q[7],0);}
+    for(let i=0;i<S;i++){const a=b+i*2;I.push(a,a+1,a+2,a+1,a+3,a+2);}}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('aTop',new THREE.Float32BufferAttribute(T9,3));
+  g.setAttribute('aO',new THREE.Float32BufferAttribute(O,2));g.setAttribute('aW',new THREE.Float32BufferAttribute(W,4));g.setIndex(I);
+  g.boundingSphere=new THREE.Sphere(new THREE.Vector3(),1e7);return g;}
 /* LA BRUME QUI FLOTTE : des nappes en billboard (face caméra), un bruit doux dans le shader, un dessus éclairé, un ventre lavande ;
    elles s'effacent près de l'objectif (pas de voile plein écran quand on les traverse) et au loin dans la brume de three. */
 const JADE_BRUME_M=(function(){const m=new THREE.ShaderMaterial({transparent:true,depthWrite:false,fog:true,
@@ -12788,12 +12845,23 @@ const JADE_BRUME_M=(function(){const m=new THREE.ShaderMaterial({transparent:tru
     '  gl_FragColor=vec4(col,a);','#include <fog_fragment>','}'].join('\n')});
   m.dispose=function(){};return m;})();
 /* ---- LA CONSTRUCTION ---- */
-const JADE_LOD=(function(){const k=TEL_NATIF?.8:1;return {d0:560*k,pin:820*k,pav:1250*k,d1:1450*k};})(); // les distances (m) : cube de 6 → 12 m, pins, pavillons, cube de 12 → 24 m
+const JADE_LOD=(function(){const k=TEL_NATIF?.8:1;return {d0:520*k,pin:900*k,pav:1300*k,d1:1500*k};})(); // les distances (m) : roche fine → moyenne, arbres, temples, roche moyenne → légère
 function jadeBande(d){const L9=JADE_LOD;return d<L9.d0?0:d<L9.pin?1:d<L9.pav?2:d<L9.d1?3:4;}
-function jadeMatPilier(q,k){ // la matrice d'un pilier (gabarit q[5], quart de tour q[6]) à son niveau de détail k (0, 1, 2)
-  const T=JADE.geos.p[q[5]],e=1<<k,m=new THREE.Matrix4().makeTranslation(q[0],q[3],q[1]);
-  m.multiply(new THREE.Matrix4().makeRotationY(q[6]*Math.PI/2)).multiply(new THREE.Matrix4().makeScale(VX*e,VX*e,VX*e)).multiply(new THREE.Matrix4().makeTranslation(-T.M/e,0,-T.M/e));
-  return m;}
+function jadeMatPilier(q){return new THREE.Matrix4().makeTranslation(q[0],q[3],q[1]).multiply(new THREE.Matrix4().makeRotationY(q[6])).multiply(new THREE.Matrix4().makeScale(q[9],q[9],q[9]));}
+function rocNoise3(sd){return function(x,y,z){const i=Math.floor(x),j=Math.floor(y),k=Math.floor(z),fx=x-i,fy=y-j,fz=z-k,h=(a,b,c)=>{const s=Math.sin(a*127.1+b*311.7+c*74.7+sd)*43758.5453;return s-Math.floor(s);};
+  const u=fx*fx*(3-2*fx),v=fy*fy*(3-2*fy),w=fz*fz*(3-2*fz),l=(a,b,t)=>a+(b-a)*t;
+  return l(l(l(h(i,j,k),h(i+1,j,k),u),l(h(i,j+1,k),h(i+1,j+1,k),u),v),l(l(h(i,j,k+1),h(i+1,j,k+1),u),l(h(i,j+1,k+1),h(i+1,j+1,k+1),u),v),w);};}
+/* un champ de densité (local : x = b, y = haut, z = −t, en m) → le maillage lisse, posé dans le monde, son ombre cuite (la densité un peu
+   au-dessus de la surface : dans un creux on y est encore près de la pierre) */
+function jadeDensMesh(f,x0,x1,y0,y1,z0,z1,S,p,b,t,graine){
+  const nx=Math.ceil((x1-x0)/S)+1,ny=Math.ceil((y1-y0)/S)+1,nz=Math.ceil((z1-z0)/S)+1,D=new Float32Array(nx*ny*nz);
+  for(let k=0;k<nz;k++)for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){const bord=i===0||j===0||k===0||i===nx-1||j===ny-1||k===nz-1;D[i+nx*(j+ny*k)]=bord?-1:f(x0+i*S,y0+j*S,z0+k*S);}
+  const g=surfNets(D,nx,ny,nz),pa=g.attributes.position,na=g.attributes.normal,n=pa.count,A=new Float32Array(n),J=new Float32Array(n*4).fill(graine);
+  for(let v=0;v<n;v++){const lx=x0+pa.getX(v)*S,ly=y0+pa.getY(v)*S,lz=z0+pa.getZ(v)*S;
+    const dd=f(lx+na.getX(v)*7,ly+na.getY(v)*7,lz+na.getZ(v)*7);A[v]=Math.max(.3,Math.min(1,-dd/7));
+    pa.setXYZ(v,p.x+b.x*lx-t.x*lz,p.y+ly,p.z+b.z*lx-t.z*lz);}
+  for(let v=0;v<n;v++)J[v*4+1]=1;
+  g.setAttribute('aAO',new THREE.BufferAttribute(A,1));g.setAttribute('aJ',new THREE.BufferAttribute(J,4));g.computeVertexNormals();g.computeBoundingSphere();return g;}
 function buildJade(seed){
   for(const F of JADE.fam){F.im.dispose();const g9=F.im.geometry;for(const k in g9.attributes)if(k!=='aJ')g9.deleteAttribute(k);g9.setIndex(null);g9.dispose();}JADE.fam=[];JADE.col=null;JADE.porte=null;JADE.pont=null;JADE.brume=null;JADE.sig=0;
   if(JADE.root){for(const o of JADE.root.children)if(o.userData.jeter&&o.geometry)o.geometry.dispose();JADE.root=null;}
@@ -12801,9 +12869,7 @@ function buildJade(seed){
   const t00=performance.now(),M9=jadeMats(),G=jadeGabarits(),jr=mulberry32((seed^0x1ADE5EED)>>>0),Q=JADE.Q||{};
   const root=new THREE.Group();root.matrixAutoUpdate=false;scene.add(root);JADE.root=root;trackMeshes.push(root);
   let yMin=1e9,yMax=-1e9;for(let i=0;i<NP;i+=4){if(pts[i].y<yMin)yMin=pts[i].y;if(pts[i].y>yMax)yMax=pts[i].y;}
-  JADE.merY=yMin-330;JADE_U.uMerY.value=JADE.merY;
-  const yBase=JADE.merY-260;
-  // LA GRILLE DE LA PISTE (cases de 120 m) : la règle d'or
+  JADE.merY=yMin-470;JADE_U.uMerY.value=JADE.merY; // LA MER DE NUAGES, loin sous les montagnes : elles flottent
   const HB=120,grille=new Map(),pas=Math.max(1,Math.round(10/(L/(NP-1))));
   for(let i=0;i<NP;i+=pas){const p=pts[i],k=Math.floor(p.x/HB)+','+Math.floor(p.z/HB);let a=grille.get(k);if(!a)grille.set(k,a=[]);a.push(i);}
   const proches=(x,z,R,cb)=>{const r=Math.ceil(R/HB),bx=Math.floor(x/HB),bz=Math.floor(z/HB);
@@ -12812,17 +12878,20 @@ function buildJade(seed){
   const zonesNu=[];let iPorte=-1,iPont=-1;
   if(Q.porte0&&Q.porte1)iPorte=Math.round((sDe(Q.porte0.p)+sDe(Q.porte1.p))/2);
   if(Q.pont0&&Q.pont1)iPont=Math.round((sDe(Q.pont0.p)+sDe(Q.pont1.p))/2);
-  // ---- LES PILIERS : [x, z, rayon (m), y du gabarit (pied), y du sommet, gabarit, quart de tour, graine, distance à la route] ----
-  const PIL=[],PG=new Map(),PGC=120,snap=v=>Math.round(v/VX)*VX;
+  // ---- LES MONTAGNES : [x, z, rayon (m), y du pied (la pointe), y du sommet, gabarit, angle, graine, distance à la route, échelle] ----
+  const PIL=[],PG=new Map(),PGC=120,mer=JADE.merY+90;
   const pgVois=(x,z,cb)=>{const bx=Math.floor(x/PGC),bz=Math.floor(z/PGC);for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++){const a=PG.get((bx+dx)+','+(bz+dz));if(a)for(const q of a)if(cb(q))return true;}return false;};
   const tente=(cx,cz,r,yt,vert,dR,libre)=>{
-    const t=jadeTplDe(r),T=G.p[t],rm=T.rmax*VX;cx=snap(cx);cz=snap(cz);
+    const t=jadeTplDe(r),T9=G.p[t],s=Math.max(.82,Math.min(1.22,r/T9.R)),rm=T9.rmax*s,Hs=T9.H*s;
     if(!libre)for(const z of zonesNu)if(Math.hypot(cx-z[0],cz-z[1])<z[2]+rm)return false;
-    const clr=rm+ROAD_HALF+18;
-    proches(cx,cz,clr,function(i){const p=pts[i];if(Math.hypot(p.x-cx,p.z-cz)>clr)return;if(yt>p.y-45)yt=p.y-45;}); // la RÈGLE D'OR : il passe SOUS la dalle
-    yt=Math.floor(yt/VX)*VX;if(yt<JADE.merY+70)return false; // (noyé dans la brume : rien à voir)
-    if(pgVois(cx,cz,function(q){return Math.hypot(q[0]-cx,q[1]-cz)<(q[2]+rm)*.9;}))return false; // pas deux piliers l'un dans l'autre
-    const q9=[cx,cz,rm,yt-T.yTop*VX,yt,t,(jr()*4)|0,jr(),dR];PIL.push(q9);const kk=Math.floor(cx/PGC)+','+Math.floor(cz/PGC);let a9=PG.get(kk);if(!a9)PG.set(kk,a9=[]);a9.push(q9);return true;};
+    if(yt-Hs<mer)yt=mer+Hs; // elle FLOTTE : sa pointe reste au-dessus de la mer
+    // LA RÈGLE D'OR : une montagne qui croise la route passe DESSOUS (sommet 45 m sous la dalle) ou AU-DESSUS (pointe 70 m au-dessus)
+    let lo=1e9,hi=-1e9;const clr=rm+ROAD_HALF+18;
+    proches(cx,cz,clr,function(i){const p=pts[i];if(Math.hypot(p.x-cx,p.z-cz)>clr)return;lo=Math.min(lo,p.y);hi=Math.max(hi,p.y);});
+    if(hi>-1e9&&yt>lo-45&&yt-Hs<hi+70){const tU=lo-45,tA=hi+70+Hs,okU=tU-Hs>=mer,okA=tA<hi+760;
+      if(okU&&(!okA||yt-tU<=tA-yt))yt=tU;else if(okA)yt=tA;else return false;}
+    if(pgVois(cx,cz,function(q){return Math.hypot(q[0]-cx,q[1]-cz)<(q[2]+rm)*.9;}))return false;
+    const q9=[cx,cz,rm,yt-Hs,yt,t,jr()*6.2832,jr(),dR,s];PIL.push(q9);const kk=Math.floor(cx/PGC)+','+Math.floor(cz/PGC);let a9=PG.get(kk);if(!a9)PG.set(kk,a9=[]);a9.push(q9);return true;};
   const touffe=(cx,cz,r0,yN,hMin,hMax,n,vert,dR)=>{let ok=0;
     for(let k=0;k<n;k++){const r=r0*(.55+jr()*.6),an=jr()*6.283,dd=k===0?0:(r0+r)*(.9+jr()*.5);
       if(tente(cx+Math.cos(an)*dd,cz+Math.sin(an)*dd,r,yN+hMin+(hMax-hMin)*Math.pow(jr(),.8),vert,dR+dd))ok++;}
@@ -12830,30 +12899,41 @@ function buildJade(seed){
   if(iPorte>0){const p=pts[iPorte],b=B[iPorte];zonesNu.push([p.x,p.z,140]);for(let k=-6;k<=6;k++)zonesNu.push([p.x+b.x*k*85,p.z+b.z*k*85,95]);}
   if(iPont>0){const p=pts[iPont],t=T[iPont];for(let k=-3;k<=3;k++)zonesNu.push([p.x+t.x*k*70,p.z+t.z*k*70,ROAD_HALF+(k===0?30:70)]);}
   const MOB=TEL_NATIF?.7:1,pasR=Math.max(1,Math.round(46/(L/(NP-1))));
-  const RANGS=[[ROAD_HALF+38,90,.27,13,34,-150,260,2],[170,200,.38,15,44,-200,330,3],[380,420,.46,18,58,-260,380,4]];
+  const RANGS=[[ROAD_HALF+38,90,.27,10,30,-150,260,2],[170,200,.38,12,40,-200,330,3],[380,420,.46,16,56,-260,380,4]];
   for(let i=Math.round(120/(L/(NP-1)));i<NP;i+=pasR){const t9=T[i],hl=Math.hypot(t9.x,t9.z);if(hl<.5)continue;
     const px=-t9.z/hl,pz=t9.x/hl;
-    for(const sg of [-1,1])for(const R of RANGS){if(jr()>R[2]*MOB)continue;
-      const r=R[3]+jr()*(R[4]-R[3]),lat=R[0]+r+jr()*R[1],al=(jr()-.5)*40;
-      touffe(pts[i].x+px*sg*lat+t9.x/hl*al,pts[i].z+pz*sg*lat+t9.z/hl*al,r,pts[i].y,R[5],R[6],1+((jr()*R[7])|0),1,lat);}}
+    for(const sg of [-1,1])for(const R9 of RANGS){if(jr()>R9[2]*MOB)continue;
+      const r=R9[3]+jr()*(R9[4]-R9[3]),lat=R9[0]+r+jr()*R9[1],al=(jr()-.5)*40;
+      touffe(pts[i].x+px*sg*lat+t9.x/hl*al,pts[i].z+pz*sg*lat+t9.z/hl*al,r,pts[i].y,R9[5],R9[6],1+((jr()*R9[7])|0),1,lat);}}
   {const S=230,Rmax=TEL_NATIF?2100:2500,m=new Map(),pasC=Math.max(1,Math.round(S*.7/(L/(NP-1))));
    for(let i=0;i<NP;i+=pasC){const cx0=Math.round(pts[i].x/S),cz0=Math.round(pts[i].z/S),rr=Math.ceil(Rmax/S);
      for(let dx=-rr;dx<=rr;dx++)for(let dz=-rr;dz<=rr;dz++){const gx=(cx0+dx)*S,gz=(cz0+dz)*S,d=Math.hypot(gx-pts[i].x,gz-pts[i].z);if(d>Rmax)continue;
        const k=(cx0+dx)+','+(cz0+dz),o=m.get(k);if(!o||d<o[0])m.set(k,[d,i,gx,gz]);}}
    for(const v of m.values()){if(v[0]<700||jr()>.55*MOB)continue;
-     touffe(v[2]+(jr()-.5)*S*.7,v[3]+(jr()-.5)*S*.7,22+jr()*36,pts[v[1]].y,-260,420,1+((jr()*4)|0),.85,v[0]);}}
-  const ARBRES=[[],[],[]],PAV=[];
+     touffe(v[2]+(jr()-.5)*S*.7,v[3]+(jr()-.5)*S*.7,20+jr()*36,pts[v[1]].y,-260,420,1+((jr()*4)|0),.85,v[0]);}}
+  const ARB=[];
   if(iPorte>0){try{jadePorte(root,iPorte,jr,M9,function(x,z,r,yt){return tente(x,z,r,yt,1,60,true);});}catch(e){console.warn('porte',e);JADE.porte=null;}}
-  if(iPont>0){try{jadePont(root,iPont,jr,M9,PIL,ARBRES);}catch(e){console.warn('pont',e);JADE.pont=null;}}
-  // ---- LES PINS (en cubes de 2 m) sur les sommets et les corniches, LES PAVILLONS ----
-  const V3=new THREE.Vector3(),mP=new THREE.Matrix4(),mA=new THREE.Matrix4();
-  const arbre=(dest,x,y,z,rot,s,c)=>{mA.makeTranslation(x,y,z).multiply(new THREE.Matrix4().makeRotationY(rot*Math.PI/2)).multiply(new THREE.Matrix4().makeScale(s,s,s)).multiply(new THREE.Matrix4().makeTranslation(-c,0,-c));dest.push(mA.toArray());};
-  for(const q of PIL){const d=q[8];if(!(d<(TEL_NATIF?650:950)))continue;const T=G.p[q[5]];if(!T.tops.length)continue;
-    mP.copy(jadeMatPilier(q,0));
-    const nA=Math.min(5,1+((T.rmax/2.6)|0));
-    for(let k=0;k<nA;k++){if(jr()<.25)continue;const c=T.tops[(jr()*T.tops.length)|0];V3.set(c[0]+.5,c[1]+1,c[2]+.5).applyMatrix4(mP);arbre(ARBRES[(jr()*3)|0],V3.x,V3.y,V3.z,(jr()*4)|0,VX/3,6.5);}
-    if(PAV.length<14&&q[5]>=4&&d<520&&jr()<.2){let bc=null,bd=1e9;for(const c of T.tops){const e=Math.hypot(c[0]+.5-T.M,c[2]+.5-T.M);if(e<bd){bd=e;bc=c;}}
-      if(bc){V3.set(bc[0]+.5,bc[1]+1,bc[2]+.5).applyMatrix4(mP);arbre(PAV,V3.x,V3.y,V3.z,(jr()*4)|0,1.5,5.5);}}}
+  if(iPont>0){try{jadePont(root,iPont,jr,M9,PIL,ARB);}catch(e){console.warn('pont',e);JADE.pont=null;}}
+  // ---- LA FORÊT : des pins et des touffes serrés sur les cimes, accrochés aux corniches ; des lianes sous les montagnes ----
+  // (une instance = une matrice de translation + aJ : largeur, hauteur (négative : elle pend), dessin, graine)
+  const PAG=[],PAV=[],CAIL=[[],[],[]],CHU=[],Mt=new THREE.Matrix4();
+  const arb=(x,y,z,w,h,cell)=>{ARB.push({x:x,y:y,z:z,j:[w,h,cell,jr()]});};
+  for(const q of PIL){const d=q[8],T9=G.p[q[5]],s=q[9],an=q[6],ca=Math.cos(an),sa=Math.sin(an),loin=!(d<(TEL_NATIF?700:1000));
+    const mond=(th,r,y)=>{const x=Math.cos(th)*r,z=Math.sin(th)*r;return [q[0]+(x*ca+z*sa)*s,q[3]+y*s,q[1]+(-x*sa+z*ca)*s];};
+    if(!loin){
+      const rt=T9.rtop*.88,nA=Math.min(70,Math.max(3,Math.round(Math.PI*rt*rt*s*s/55)));
+      for(let k=0;k<nA;k++){const th=jr()*6.2832,rr=Math.sqrt(jr())*rt,c=mond(th,rr,T9.H-1.5),pin=jr()<.62,h=pin?11+jr()*11:5+jr()*5;arb(c[0],c[1],c[2],h*(pin?.95:1.35),h,pin?(jr()*4)|0:4+((jr()*2)|0));}
+      for(let k=0;k<Math.min(14,T9.cor.length);k++){const c9=T9.cor[(jr()*T9.cor.length)|0],c=mond(c9[0],c9[2]+1.5,c9[1]);const h=7+jr()*9;arb(c[0],c[1],c[2],h,h,jr()<.6?(jr()*4)|0:4+((jr()*2)|0));}
+      for(let k=0;k<Math.min(16,T9.des.length);k++){const c9=T9.des[(jr()*T9.des.length)|0],c=mond(c9[0],Math.max(1,c9[2]-1.5),c9[1]);const h=24+jr()*50;arb(c[0],c[1],c[2],14+jr()*12,-h,6+((jr()*2)|0));}
+      // UN TEMPLE sur quelques cimes larges, près de la route
+      if(q[5]>=3&&d<700){const c=mond(0,0,T9.H-1);if(PAG.length<7&&jr()<.16)PAG.push([c[0],c[1],c[2],1.1+jr()*.4]);else if(PAV.length<10&&jr()<.14)PAV.push([c[0],c[1],c[2],1.3+jr()*.4]);}
+      // UNE CASCADE qui tombe dans le vide
+      if(CHU.length<16&&T9.H*s>260&&jr()<.11){const th=jr()*6.2832,yl=T9.H*(.78+jr()*.14),rr=rocRayon(T9,th,yl),c=mond(th,rr+1.5,yl),o=[Math.cos(th)*ca+Math.sin(th)*sa,-Math.cos(th)*sa+Math.sin(th)*ca];
+        CHU.push([c[0],c[1],c[2],o[0],o[1],8+jr()*9,(c[1]-JADE.merY)*(.55+jr()*.35),jr()]);}}
+    // DES ROCHERS qui flottent autour
+    if(d<1600&&jr()<.55)for(let k=0,n=1+((jr()*3)|0);k<n;k++){const th=jr()*6.2832,rr=(T9.rmax+8+jr()*45)*s,y=q[3]+(T9.Hb*.5+jr()*T9.H*.7)*s,sz=3+jr()*11,x=q[0]+Math.cos(th)*rr,z=q[1]+Math.sin(th)*rr;
+      let ok=true;proches(x,z,sz+ROAD_HALF+14,function(i){const p=pts[i];if(Math.abs(p.y-y)<sz*2+30&&Math.hypot(p.x-x,p.z-z)<sz+ROAD_HALF+14)ok=false;});
+      if(ok)CAIL[(jr()*3)|0].push([x,y,z,sz,jr()*6.28]);}}
   // ---- LA POSE : par QUARTIERS de 360 m (le tri, c'est jadeTri) ----
   const QC=360,quart=new Map(),qDe=(x,z)=>{const k=Math.floor(x/QC)+','+Math.floor(z/QC);let o=quart.get(k);if(!o)quart.set(k,o={k:quart.size,x0:1e9,x1:-1e9,y0:1e9,y1:-1e9,z0:1e9,z1:-1e9});return o;};
   const ext=(o,x,y0,y1,z,r)=>{o.x0=Math.min(o.x0,x-r);o.x1=Math.max(o.x1,x+r);o.y0=Math.min(o.y0,y0);o.y1=Math.max(o.y1,y1);o.z0=Math.min(o.z0,z-r);o.z1=Math.max(o.z1,z+r);};
@@ -12864,100 +12944,81 @@ function buildJade(seed){
     let a=0;for(let i=0;i<n;i++){const it=items[i];F.M.set(it.m,i*16);F.J.set(it.j,i*4);if(i===n-1||items[i+1].q!==it.q){F.r.set(it.q.k,[a,i+1]);a=i+1;}}
     const g=vue(geo);F.im=new THREE.InstancedMesh(g,mat,n);F.im.frustumCulled=false;F.im.matrixAutoUpdate=false;
     F.aJ=new THREE.InstancedBufferAttribute(new Float32Array(n*4),4);F.aJ.setUsage(THREE.DynamicDrawUsage);g.setAttribute('aJ',F.aJ);
-    F.im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);F.im.count=0;root.add(F.im);JADE.fam.push(F);};
-  const parT=JADE_TPL.map(function(){return [[],[],[]];});
-  for(const q of PIL){const o=qDe(q[0],q[1]);ext(o,q[0],Math.max(q[3],JADE.merY-60),q[4]+20,q[1],q[2]);
-    for(let k=0;k<3;k++)parT[q[5]][k].push({q:o,m:jadeMatPilier(q,k).toArray(),j:[q[7],0,0,0]});}
-  const it=(liste)=>liste.map(function(m){const o=qDe(m[12],m[14]);ext(o,m[12],m[13]-5,m[13]+35,m[14],20);return {q:o,m:m,j:[jr(),0,0,0]};});
-  for(let t=0;t<JADE_TPL.length;t++){famille(G.p[t].geo[0],M9.vox,parT[t][0],0,0);famille(G.p[t].geo[1],M9.vox,parT[t][1],1,3);famille(G.p[t].geo[2],M9.vox,parT[t][2],4,4);}
-  for(let v=0;v<3;v++)famille(G.pin[v],M9.vox,it(ARBRES[v]),0,1);
-  famille(G.pav,M9.vox,it(PAV),0,2);
+    F.im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);F.im.count=0;root.add(F.im);JADE.fam.push(F);return F;};
+  const parT=JADE_TPL.map(function(){return [];});
+  for(const q of PIL){const o=qDe(q[0],q[1]);ext(o,q[0],q[3]-8,q[4]+25,q[1],q[2]);parT[q[5]].push({q:o,m:jadeMatPilier(q).toArray(),j:[q[7],q[8]<2000?1:.85,0,0]});}
+  for(let t=0;t<JADE_TPL.length;t++){const Gt=G.p[t].geo;famille(Gt[0],M9.roc,parT[t],0,0);famille(Gt[1],M9.roc,parT[t],1,3);famille(Gt[2],M9.roc,parT[t],4,4);}
+  famille(G.arbreQ,M9.arb,ARB.map(function(a){const o=qDe(a.x,a.z);ext(o,a.x,a.y-80,a.y+25,a.z,20);return {q:o,m:Mt.makeTranslation(a.x,a.y,a.z).toArray(),j:a.j};}),0,1);
+  for(let v=0;v<3;v++)famille(G.cail[v],M9.roc,CAIL[v].map(function(c){const o=qDe(c[0],c[2]);ext(o,c[0],c[1]-c[3]*2,c[1]+c[3],c[2],c[3]*2);
+    return {q:o,m:new THREE.Matrix4().makeTranslation(c[0],c[1],c[2]).multiply(new THREE.Matrix4().makeRotationY(c[4])).multiply(new THREE.Matrix4().makeScale(c[3],c[3],c[3])).toArray(),j:[jr(),1,0,0]};}),0,3);
+  const tem=(L9)=>L9.map(function(c){const o=qDe(c[0],c[2]);ext(o,c[0],c[1],c[1]+60,c[2],20);return {q:o,m:new THREE.Matrix4().makeTranslation(c[0],c[1],c[2]).multiply(new THREE.Matrix4().makeRotationY(jr()*6.28)).multiply(new THREE.Matrix4().makeScale(c[3],c[3],c[3])).toArray(),j:[0,0,0,0]};});
+  famille(G.pag,M9.col,tem(PAG),0,2);famille(G.pav,M9.col,tem(PAV),0,2);
   JADE.quart=[];for(const o of quart.values())JADE.quart[o.k]={c:new THREE.Vector3((o.x0+o.x1)/2,(o.y0+o.y1)/2,(o.z0+o.z1)/2),r:Math.hypot(o.x1-o.x0,o.y1-o.y0,o.z1-o.z0)/2+10};
-  // ---- LA GRILLE DES CHOCS (cases de 80 m) — chaque pilier y est inscrit dans son cercle ; le test final lit SES cubes ----
-  {const CG=80,g9=new Map();
-   PIL.forEach(function(q,k){const re=q[2]+2;for(let gx=Math.floor((q[0]-re)/CG);gx<=Math.floor((q[0]+re)/CG);gx++)for(let gz=Math.floor((q[1]-re)/CG);gz<=Math.floor((q[1]+re)/CG);gz++){const kk=gx+','+gz;let a=g9.get(kk);if(!a)g9.set(kk,a=[]);a.push(k);}});
-   JADE.col={g:g9,CG:CG,P:PIL};}
+  // ---- LES CASCADES ----
+  if(CHU.length){const m=new THREE.Mesh(jadeChutes(CHU),JADE_CHUTE_M);m.userData.jeter=true;m.frustumCulled=false;m.renderOrder=5;root.add(m);}
+  // ---- LA GRILLE DES CHOCS (cases de 80 m) : chaque montagne et chaque rocher y est inscrit ; le test final lit SA paroi ----
+  {const CG=80,g9=new Map(),ins=(x,z,re,k)=>{for(let gx=Math.floor((x-re)/CG);gx<=Math.floor((x+re)/CG);gx++)for(let gz=Math.floor((z-re)/CG);gz<=Math.floor((z+re)/CG);gz++){const kk=gx+','+gz;let a=g9.get(kk);if(!a)g9.set(kk,a=[]);a.push(k);}};
+   PIL.forEach(function(q,k){ins(q[0],q[1],q[2]+2,k);});const CA=[].concat(CAIL[0],CAIL[1],CAIL[2]);CA.forEach(function(c,k){ins(c[0],c[2],c[3]*1.3,-1-k);});
+   JADE.col={g:g9,CG:CG,P:PIL,C:CA};}
   // ---- LA BRUME QUI FLOTTE ----
   {const n0=TEL_NATIF?150:240,itb=[],ib=[],Mx=new THREE.Matrix4();const pasB=Math.max(1,Math.floor(NP/n0));
    for(let i=0;i<NP;i+=pasB){const t9=T[i],hl=Math.hypot(t9.x,t9.z)||1,px=-t9.z/hl,pz=t9.x/hl;
      for(let k=0;k<2;k++){const sg=jr()<.5?-1:1,lat=ROAD_HALF+60+Math.pow(jr(),1.4)*700,w=140+jr()*320,low=jr()<.45;
-       const y=low?JADE.merY+30+jr()*120:pts[i].y-200+jr()*230;
+       const y=low?JADE.merY+30+jr()*120:pts[i].y-260+jr()*290;
        itb.push(pts[i].x+px*sg*lat+(jr()-.5)*120,y,pts[i].z+pz*sg*lat+(jr()-.5)*120);ib.push(w*(low?1.8:1),w*(low?.42:.3),jr(),low?.75:.38+jr()*.3);}}
    const n=itb.length/3,geo=new THREE.PlaneGeometry(1,1),im=new THREE.InstancedMesh(geo,JADE_BRUME_M,n);
    for(let k=0;k<n;k++){Mx.makeTranslation(itb[k*3],itb[k*3+1],itb[k*3+2]);im.setMatrixAt(k,Mx);}
    geo.setAttribute('aB',new THREE.InstancedBufferAttribute(new Float32Array(ib),4));im.userData.jeter=true;
    im.frustumCulled=false;im.renderOrder=4;root.add(im);JADE.brume=im;}
-  JADE.n={piliers:PIL.length,pins:ARBRES[0].length+ARBRES[1].length+ARBRES[2].length,pavillons:PAV.length,brume:JADE.brume?JADE.brume.count:0,quartiers:JADE.quart.length,
-    porte:!!JADE.porte,pont:!!JADE.pont,ms:Math.round(performance.now()-t00),gabaritsMs:G.ms,L:Math.round(L),merY:Math.round(JADE.merY),
-    triGabarits:G.p.map(function(T){return T.geo.map(function(g){return g.index.count/3;});})};
+  JADE.n={montagnes:PIL.length,arbres:ARB.length,temples:PAG.length+PAV.length,cascades:CHU.length,rochers:CAIL[0].length+CAIL[1].length+CAIL[2].length,
+    brume:JADE.brume?JADE.brume.count:0,quartiers:JADE.quart.length,porte:!!JADE.porte,pont:!!JADE.pont,ms:Math.round(performance.now()-t00),gabaritsMs:G.ms,
+    L:Math.round(L),merY:Math.round(JADE.merY),triGabarits:G.p.map(function(T9){return T9.geo.map(function(g){return g.index.count/3;});})};
 }
-/* une GRILLE posée dans un repère (o : coin, axes x = b, y = haut, z = −t ; en cubes de VX) — la muraille, l'arche */
-function jadeRepere(o,b,t){const m=new THREE.Matrix4(),z=t.clone().negate();
-  m.set(b.x*VX,0,z.x*VX,o.x, b.y*VX,VX,z.y*VX,o.y, b.z*VX,0,z.z*VX,o.z, 0,0,0,1);return m;}
-function jadeDansGrille(R,p){const dx=p.x-R.o.x,dy=p.y-R.o.y,dz=p.z-R.o.z; // un point du monde est-il dans un cube de cette grille ?
-  return voxAt(R.G,Math.floor((dx*R.b.x+dz*R.b.z)/VX),Math.floor(dy/VX),Math.floor(-(dx*R.t.x+dz*R.t.z)/VX))>0;}
-/* LA PORTE DU CIEL — la muraille percée d'une arche (176 m), en cubes : faces bosselées, crête en pitons, rouille, herbe, touffes ; rognée
-   si la route repasse derrière ; un massif de piliers en cubes soudé à ses deux faces. */
+/* LA PORTE DU CIEL — un massif flottant percé d'une arche (176 m) : un champ de densité (la muraille aux faces bosselées, la crête en
+   pitons, un DESSOUS en pointes, l'arche), maillé lisse ; rogné si la route repasse derrière ; des montagnes soudées à ses faces. */
 function jadePorte(root,i0,jr,M9,pose){
   const p=pts[i0],t=new THREE.Vector3(T[i0].x,0,T[i0].z).normalize(),b=new THREE.Vector3(-t.z,0,t.x),D=168;
   let wG=560,wD=560;
   for(let i=0;i<NP;i+=4){if(Math.abs(i-i0)<Math.round(420/(L/(NP-1))))continue;const q=pts[i],dx=q.x-p.x,dz=q.z-p.z,u=dx*t.x+dz*t.z,v=dx*b.x+dz*b.z;
-    if(Math.abs(u)>D/2+ROAD_HALF+40)continue;if(v>0)wD=Math.min(wD,v-ROAD_HALF-50);else wG=Math.min(wG,-v-ROAD_HALF-50);}
+    if(Math.abs(u)>D/2+ROAD_HALF+60)continue;if(v>0)wD=Math.min(wD,v-ROAD_HALF-60);else wG=Math.min(wG,-v-ROAD_HALF-60);}
   if(wG<180||wD<180)return;
-  wG=Math.floor(wG/VX)*VX;wD=Math.floor(wD/VX)*VX;
-  const y0=p.y,hb=-55,ht=215,hw=88,top=520,W=wG+wD,ab=ht-hw*.9;
-  const ph=[jr()*6.28,jr()*6.28,jr()*6.28],crete=f=>{const cr=Math.sin(f*Math.PI);return top*(.62+.38*Math.sqrt(cr))-(1-cr)*90+
-      70*Math.pow(Math.abs(Math.sin(f*5.1+ph[0])),2.5)+35*Math.sin(f*13.7+ph[1])+18*Math.sin(f*31.+ph[2]);};
-  const yLow=Math.floor((JADE.merY-50)/VX)*VX,oy=yLow,nx=Math.round(W/VX),nz=Math.round(D/VX),ny=Math.ceil((y0+top+130-yLow)/VX);
-  const G=voxG(nx,ny,nz),sd=jr()*100;
-  const vn=(a,c)=>{const i=Math.floor(a),j=Math.floor(c),fa=a-i,fc=c-j,h=(x,y)=>{const s=Math.sin(x*127.1+y*311.7+sd)*43758.5453;return s-Math.floor(s);};
-    const u=fa*fa*(3-2*fa),w=fc*fc*(3-2*fc);return (h(i,j)*(1-u)+h(i+1,j)*u)*(1-w)+(h(i,j+1)*(1-u)+h(i+1,j+1)*u)*w;};
-  const cretes=new Float32Array(nx);for(let x=0;x<nx;x++)cretes[x]=crete((x+.5)/nx)+(jr()-.5)*10;
-  for(let x=0;x<nx;x++){const v=-wG+(x+.5)*VX;for(let y=0;y<ny;y++){const yr=oy+(y+.5)*VX-y0;if(yr>cretes[x])break;
-    if(Math.abs(v)<hw&&yr>hb&&(yr<ab||(v/hw)**2+((yr-ab)/(hw*.9))**2<1))continue; // L'ARCHE
-    const f0=vn(x*.14,y*.11)*3.2+vn(x*.05+9,y*.04)*2.4,f1=vn(x*.14+40,y*.11+7)*3.2+vn(x*.05+19,y*.04+3)*2.4; // les faces BOSSELÉES
-    for(let z=Math.floor(f0);z<nz-Math.floor(f1);z++)G.d[x+nx*(z+nz*y)]=JM.roche;}}
-  // la peau : rouille en coulées, herbe sur ce qui regarde le ciel, touffes, buissons accrochés
-  for(let x=0;x<nx;x++){const ru=vn(x*.3,3.3)>.83;
-    for(let y=0;y<ny;y++)for(let z=0;z<nz;z++){const k0=x+nx*(z+nz*y);if(G.d[k0]!==JM.roche)continue;
-      const yr=oy+(y+.5)*VX-y0;
-      if(!voxAt(G,x,y+1,z)&&yr>-60){G.d[k0]=JM.herbe;if(jr()<.38){voxSet(G,x,y+1,z,JM.feuille);if(jr()<.4)voxSet(G,x,y+2,z,JM.feuille);}continue;}
-      if(ru&&(!voxAt(G,x,y,z-1)||!voxAt(G,x,y,z+1))&&jr()<.9)G.d[k0]=JM.rouille;
-      else if(yr>40&&jr()<.012){const o=voxAt(G,x,y,z-1)?1:-1;if(!voxAt(G,x,y,z+o)){voxSet(G,x,y,z+o,JM.feuille);if(jr()<.5)voxSet(G,x,y+1,z+o,JM.feuille);}}}}
-  const o=p.clone().addScaledVector(b,-wG).addScaledVector(t,D/2);o.y=oy;
-  const g=voxMesh(G),m=new THREE.Mesh(g,M9.voxM);m.userData.jeter=true;
-  {const aJ=new Float32Array(g.attributes.position.count*4).fill(.37);g.setAttribute('aJ',new THREE.BufferAttribute(aJ,4));}
-  m.matrixAutoUpdate=false;m.matrix.copy(jadeRepere(o,b,t));m.matrixWorldNeedsUpdate=true;root.add(m);
-  JADE.porte={c:new THREE.Vector3(p.x,y0,p.z),t:t,b:b,D:D,hw:hw,hb:y0+hb,ht:y0+ht,G:G,o:o,i:i0,tri:g.index.count/3};
+  const hb=-55,ht=215,hw=88,top=520,W=wG+wD,ab=ht-hw*.9,ph=[jr()*6.28,jr()*6.28,jr()*6.28];
+  const crete=f=>{const cr=Math.sin(Math.max(0,Math.min(1,f))*Math.PI);return top*(.62+.38*Math.sqrt(cr))-(1-cr)*90+70*Math.pow(Math.abs(Math.sin(f*5.1+ph[0])),2.5)+35*Math.sin(f*13.7+ph[1])+18*Math.sin(f*31.+ph[2]);};
+  const na=rocNoise2(jr()*90),nb=rocNoise2(jr()*90),nc=rocNoise2(jr()*90),n3=rocNoise3(jr()*90);
+  const f=(x,y,z)=>{const fx=(x+wG)/W,xn=(x-(wD-wG)/2)/(W/2);
+    let d=D/2+30*(na(x*.014,y*.014)-.5)+14*(nb(x*.05,y*.05)-.5)-Math.abs(z);                 // la muraille, ses faces bosselées
+    d=Math.min(d,crete(fx)+30*(nc(x*.02,z*.03)-.5)-y);                                        // la crête
+    d=Math.min(d,Math.min(x+wG,wD-x)*.7+20*(nb(y*.02,z*.02)-.5));                              // les bords
+    d=Math.min(d,y-(-300+180*xn*xn+80*(nc(x*.016,z*.025+4)-.5)));                               // le DESSOUS, en pointes : elle flotte
+    const e=y<ab?Math.min(hw-Math.abs(x),y-hb):hw*.9*(1-Math.hypot(x/hw,(y-ab)/(hw*.9)));d=Math.min(d,-e); // L'ARCHE
+    return d+9*(n3(x*.05,y*.05,z*.05)-.5);};
+  const g=jadeDensMesh(f,-wG-20,wD+20,-360,top+110,-D/2-40,D/2+40,9,p,b,t,.37);
+  const m=new THREE.Mesh(g,M9.rocM);m.userData.jeter=true;root.add(m);
+  JADE.porte={c:new THREE.Vector3(p.x,p.y,p.z),t:t,b:b,D:D,hw:hw,hb:p.y+hb,ht:p.y+ht,f:f,i:i0,tri:g.index.count/3};
   if(pose){for(const sg of [-1,1]){const W9=sg<0?wG:wD;
-      for(const fa of [-1,1])pose(p.x+b.x*sg*(hw+58)+t.x*fa*(D*.5-20),p.z+b.z*sg*(hw+58)+t.z*fa*(D*.5-20),46,y0+crete(.5+sg*(hw+58)/W)+40+jr()*80);
-      for(let v=hw+130;v<W9-40;v+=70+jr()*60)for(const fa of [-1,1])if(jr()<.8){const r=30+jr()*34,f=(v*sg+wG)/W;
-        pose(p.x+b.x*sg*v+t.x*fa*(D*.5-r*.35),p.z+b.z*sg*v+t.z*fa*(D*.5-r*.35),r,y0+crete(f)-60+jr()*170);}}}
+      for(const fa of [-1,1])pose(p.x+b.x*sg*(hw+62)+t.x*fa*(D*.5-18),p.z+b.z*sg*(hw+62)+t.z*fa*(D*.5-18),40,p.y+crete(.5+sg*(hw+62)/W)+40+jr()*80);
+      for(let v=hw+140;v<W9-40;v+=75+jr()*60)for(const fa of [-1,1])if(jr()<.7){const r=24+jr()*26,f9=(v*sg+wG)/W;
+        pose(p.x+b.x*sg*v+t.x*fa*(D*.5-r*.3),p.z+b.z*sg*v+t.z*fa*(D*.5-r*.3),r,p.y+crete(f9)-60+jr()*170);}}}
 }
-/* LE PONT DU CIEL — deux piliers en cubes, une arche de cubes qui les relie (72-150 m au-dessus de la route), herbe, touffes et pins dessus. */
-function jadePont(root,i0,jr,M9,PIL,ARBRES){
+/* LE PONT DU CIEL — deux montagnes flottantes, une arche de roche (champ de densité) qui les relie 72-150 m au-dessus de la route. */
+function jadePont(root,i0,jr,M9,PIL,ARB){
   const p=pts[i0],t=new THREE.Vector3(T[i0].x,0,T[i0].z).normalize(),b=new THREE.Vector3(-t.z,0,t.x),y0=p.y;
-  const ec=ROAD_HALF+66,G9=JADE.geos,tp=jadeTplDe(42),Tp=G9.p[tp];
-  for(const sg of [-1,1]){const cx=Math.round((p.x+b.x*sg*ec)/VX)*VX,cz=Math.round((p.z+b.z*sg*ec)/VX)*VX,yt=Math.floor((y0+205+(sg>0?24:0))/VX)*VX;
-    PIL.push([cx,cz,Tp.rmax*VX,yt-Tp.yTop*VX,yt,tp,(jr()*4)|0,jr(),ec]);}
-  const xa=Math.ceil((ec+12)/VX)*VX,D=66,PR={b0:72,bC:104,t0:132,tC:150};
-  const yB=f=>PR.b0+(PR.bC-PR.b0)*Math.sin(f*Math.PI),yH=f=>PR.t0+(PR.tC-PR.t0)*Math.pow(Math.sin(f*Math.PI),.6);
-  const oy=Math.floor((y0+PR.b0-12)/VX)*VX,nx=Math.round(2*xa/VX),nz=Math.round(D/VX),ny=Math.ceil((y0+PR.tC+20-oy)/VX),G=voxG(nx,ny,nz);
-  for(let x=0;x<nx;x++){const f=(x+.5)/nx,a=yB(f)+(jr()-.5)*5,c=yH(f)+(jr()-.5)*5;
-    for(let y=0;y<ny;y++){const yr=oy+(y+.5)*VX-y0;if(yr<a||yr>c)continue;for(let z=0;z<nz;z++){if((z===0||z===nz-1)&&jr()<.3)continue;G.d[x+nx*(z+nz*y)]=JM.roche;}}}
-  const tops=[];
-  for(let x=0;x<nx;x++)for(let y=0;y<ny;y++)for(let z=0;z<nz;z++){const k0=x+nx*(z+nz*y);if(G.d[k0]!==JM.roche)continue;
-    if(!voxAt(G,x,y+1,z)){G.d[k0]=JM.herbe;if(jr()<.3)voxSet(G,x,y+1,z,JM.feuille);else tops.push([x,y,z]);}
-    else if((!voxAt(G,x,y,z-1)||!voxAt(G,x,y,z+1))&&x%7===3&&jr()<.8)G.d[k0]=JM.rouille;}
-  const o=p.clone().addScaledVector(b,-xa).addScaledVector(t,D/2);o.y=oy;
-  const g=voxMesh(G),m=new THREE.Mesh(g,M9.voxM);m.userData.jeter=true;
-  {const aJ=new Float32Array(g.attributes.position.count*4).fill(.81);g.setAttribute('aJ',new THREE.BufferAttribute(aJ,4));}
-  const Mr=jadeRepere(o,b,t);m.matrixAutoUpdate=false;m.matrix.copy(Mr);m.matrixWorldNeedsUpdate=true;root.add(m);
-  const V3=new THREE.Vector3(),mA=new THREE.Matrix4();
-  for(let k=0;k<12&&tops.length;k++){const c=tops[(jr()*tops.length)|0];V3.set(c[0]+.5,c[1]+1,c[2]+.5).applyMatrix4(Mr);
-    mA.makeTranslation(V3.x,V3.y,V3.z).multiply(new THREE.Matrix4().makeRotationY(((jr()*4)|0)*Math.PI/2)).multiply(new THREE.Matrix4().makeScale(VX/3,VX/3,VX/3)).multiply(new THREE.Matrix4().makeTranslation(-6.5,0,-6.5));
-    ARBRES[(jr()*3)|0].push(mA.toArray());}
-  JADE.pont={c:new THREE.Vector3(p.x,y0,p.z),t:t,b:b,D:D,xa:xa,yB:yB,yH:yH,G:G,o:o,i:i0,tri:g.index.count/3};
+  const ec=ROAD_HALF+66,G9=JADE.geos,tp=jadeTplDe(40),Tp=G9.p[tp];
+  for(const sg of [-1,1]){const yt=y0+205+(sg>0?24:0),s=40/Tp.R;PIL.push([p.x+b.x*sg*ec,p.z+b.z*sg*ec,Tp.rmax*s,yt-Tp.H*s,yt,tp,jr()*6.28,jr(),ec,s]);}
+  const xa=ec+8,D=66,PR={b0:72,bC:104,t0:132,tC:150};
+  const yB=f9=>PR.b0+(PR.bC-PR.b0)*Math.sin(f9*Math.PI),yH=f9=>PR.t0+(PR.tC-PR.t0)*Math.pow(Math.sin(f9*Math.PI),.6);
+  const na=rocNoise2(jr()*90),n3=rocNoise3(jr()*90);
+  const f=(x,y,z)=>{const fx=Math.max(0,Math.min(1,(x+xa)/(2*xa)));
+    let d=Math.min(y-yB(fx)-6*(na(x*.04,z*.05)-.5),yH(fx)+5*(na(x*.03+7,z*.04)-.5)-y);
+    d=Math.min(d,D/2+6*(na(x*.05,y*.05+3)-.5)-Math.abs(z));d=Math.min(d,xa+6-Math.abs(x));
+    return d+4*(n3(x*.08,y*.08,z*.08)-.5);};
+  const g=jadeDensMesh(f,-xa-14,xa+14,PR.b0-24,PR.tC+24,-D/2-16,D/2+16,5,p,b,t,.81);
+  const m=new THREE.Mesh(g,M9.rocM);m.userData.jeter=true;root.add(m);
+  for(let k=0;k<14;k++){const x=(jr()-.5)*xa*1.5,z=(jr()-.5)*D*.6,y=y0+yH((x+xa)/(2*xa))-3,h=9+jr()*9,pin=jr()<.7;
+    ARB.push({x:p.x+b.x*x-t.x*z,y:y,z:p.z+b.z*x-t.z*z,j:[h*(pin?.95:1.35),h,pin?(jr()*4)|0:4,jr()]});}
+  for(let k=0;k<10;k++){const x=(jr()-.5)*xa*1.4,z=(jr()<.5?-1:1)*D*.42,y=y0+yB((x+xa)/(2*xa))+2,h=25+jr()*40; // des lianes sous l'arche
+    ARB.push({x:p.x+b.x*x-t.x*z,y:y,z:p.z+b.z*x-t.z*z,j:[14,-h,6+((jr()*2)|0),jr()]});}
+  JADE.pont={c:new THREE.Vector3(p.x,y0,p.z),t:t,b:b,D:D,xa:xa,yB:yB,yH:yH,f:f,i:i0,tri:g.index.count/3};
 }
 /* ---- LE TRI : à chaque rendu (chaîné sur scene.onBeforeRender), les quartiers dans le champ et en deçà de la brume, chacun à sa BANDE
    de distance (jadeBande) ; chaque famille dessine les bandes qui sont les siennes. Les tampons ne repartent que si la liste a changé. ---- */
@@ -12982,7 +13043,7 @@ function jadeTri(cam){
 /* ---- CHAQUE IMAGE : les lumières du niveau dans la matière (une Lambert les lirait d'elle-même), l'horloge, la brume ---- */
 function jadeTick(dt){
   if(!JADE.root)return;
-  if(JADE.photo&&paused&&acesPass)acesPass.uniforms.uSpeed.value=0;
+  if(JADE.photo&&paused&&acesPass){acesPass.uniforms.uSpeed.value=0;loop._sfx=0;}
   if(BALADE&&running&&!gameOver){
     {const m9=Math.min(ENGINE_TIERS.length-1,BALADE_MOTEUR);if(engTier!==m9){engTier=m9;coinsGot=ENGINE_TIERS[m9].coins;}} // le moteur de la balade, posé tel quel (sans la scène du palier)
     if(!nitroOn)nitroR=Math.min(nitroCap(),nitroR+.30*dt);} // sans pièces ni fruits, la nitro se recharge seule // (dev) dbgJadeVue : une image NETTE (le flou de vitesse figé par la pause)
@@ -13035,27 +13096,31 @@ function grueTick(dt){
     b.wr.rotation.z=a;b.wl.rotation.z=-a;
     if(b.life<=0){scene.remove(b.g);GRUE.L.splice(i,1);}}
 }
-/* ---- EN VOL : les CUBES sont durs — le pilier (la grille de son gabarit, au quart de tour près), la muraille, l'arche. La caisse
-   compte pour cinq points (son centre et ±1,4 m de chaque côté). ---- */
+/* ---- EN VOL : la roche est dure — la paroi de la montagne (sa table de rayons), la muraille et l'arche (leur densité), les rochers.
+   La caisse compte pour cinq points (son centre et ±1,4 m de chaque côté). ---- */
 const JH=[[0,0],[1.4,0],[-1.4,0],[0,1.4],[0,-1.4]];
-function jadePilierDans(q,x,y,z){const Tq=JADE.geos.p[q[5]],a=-q[6]*Math.PI/2,c=Math.round(Math.cos(a)),s=Math.round(Math.sin(a)),lx=(x-q[0])/VX,lz=(z-q[1])/VX;
-  return voxAt(Tq.G,Math.floor(lx*c+lz*s+Tq.M),Math.floor((y-q[3])/VX),Math.floor(-lx*s+lz*c+Tq.M))>0;}
+function jadePilierDans(q,x,y,z){const T9=JADE.geos.p[q[5]],s=q[9],ca=Math.cos(q[6]),sa=Math.sin(q[6]),dx=(x-q[0])/s,dz=(z-q[1])/s;
+  const lx=dx*ca-dz*sa,lz=dx*sa+dz*ca,yl=(y-q[3])/s;if(yl<-7||yl>T9.H)return false;
+  if(yl<0)return Math.hypot(lx,lz)<T9.R*.05;
+  return Math.hypot(lx,lz)<rocRayon(T9,Math.atan2(lz,lx),yl);}
+function jadeDensDans(P,p){const dx=p.x-P.c.x,dz=p.z-P.c.z;return P.f(dx*P.b.x+dz*P.b.z,p.y-P.c.y,-(dx*P.t.x+dz*P.t.z))>0;}
+const V9J=new THREE.Vector3();
 function jadeHeurt(p){
   const C=JADE.col;if(!C||!JADE.root)return false;
   for(const o of JH){const x=p.x+o[0],z=p.z+o[1];
     const a=C.g.get(Math.floor(x/C.CG)+','+Math.floor(z/C.CG));
-    if(a)for(let j=0;j<a.length;j++){const q=C.P[a[j]];if(p.y<q[3]||p.y>q[4]+VX*3)continue;const dx=x-q[0],dz=z-q[1];if(dx*dx+dz*dz>(q[2]+1)*(q[2]+1))continue;
-      if(jadePilierDans(q,x,p.y,z))return true;}
+    if(a)for(let j=0;j<a.length;j++){const k=a[j];
+      if(k>=0){const q=C.P[k];if(p.y<q[3]-8||p.y>q[4]+2)continue;const dx=x-q[0],dz=z-q[1];if(dx*dx+dz*dz>(q[2]+1)*(q[2]+1))continue;if(jadePilierDans(q,x,p.y,z))return true;}
+      else{const c=C.C[-1-k],dx=x-c[0],dy=(p.y-c[1])/(p.y<c[1]?1.6:.5),dz=z-c[2];if(dx*dx+dy*dy+dz*dz<c[3]*c[3]*.8)return true;}}
     V9J.set(x,p.y,z);
-    if(JADE.porte&&jadeDansGrille(JADE.porte,V9J))return true;
-    if(JADE.pont&&jadeDansGrille(JADE.pont,V9J))return true;}
+    if(JADE.porte&&jadeDensDans(JADE.porte,V9J))return true;
+    if(JADE.pont&&jadeDensDans(JADE.pont,V9J))return true;}
   return false;
 }
-const V9J=new THREE.Vector3();
 function jadeChauffe(){ // une instance de chaque matière, compilée hors écran (la balade arrive directement dans la map : c'est surtout un filet)
-  try{const M9=jadeMats(),g=new THREE.Group(),G=voxG(1,1,1);G.d[0]=1;const bx=voxMesh(G);
-    const b1=bx.clone();b1.setAttribute('aJ',new THREE.InstancedBufferAttribute(new Float32Array(4),4));const i1=new THREE.InstancedMesh(b1,M9.vox,1);i1.setMatrixAt(0,new THREE.Matrix4());g.add(i1);
-    const b2=bx.clone();b2.setAttribute('aJ',new THREE.Float32BufferAttribute(new Float32Array(b2.attributes.position.count*4),4));g.add(new THREE.Mesh(b2,M9.voxM));
+  try{const M9=jadeMats(),g=new THREE.Group(),bx=new THREE.BoxGeometry(1,1,1);bx.setAttribute('aAO',new THREE.Float32BufferAttribute(new Float32Array(bx.attributes.position.count).fill(1),1));
+    const b1=bx.clone();b1.setAttribute('aJ',new THREE.InstancedBufferAttribute(new Float32Array(4),4));const i1=new THREE.InstancedMesh(b1,M9.roc,1);i1.setMatrixAt(0,new THREE.Matrix4());g.add(i1);
+    const b2=bx.clone();b2.setAttribute('aJ',new THREE.Float32BufferAttribute(new Float32Array(b2.attributes.position.count*4),4));g.add(new THREE.Mesh(b2,M9.rocM));
     const pl=new THREE.PlaneGeometry(1,1);pl.setAttribute('aB',new THREE.InstancedBufferAttribute(new Float32Array(4),4));const i3=new THREE.InstancedMesh(pl,JADE_BRUME_M,1);i3.setMatrixAt(0,new THREE.Matrix4());g.add(i3);
     g.traverse(function(o){o.frustumCulled=false;});scene.add(g);renderer.compile(scene,camera);scene.remove(g);}catch(e){console.warn('jadeChauffe',e);}
 }
@@ -13067,15 +13132,14 @@ window.dbgJadeAller=function(k,d){const P=k==='pont'?JADE.pont:JADE.porte;if(!P|
 window.dbgGrues=function(){grueVol();return GRUE.L.length;}; // (dev) un vol de grues, tout de suite, devant la caisse
 window.dbgJadeHeurt=function(o){if(!JADE.col)return null;if(o!=='test')return jadeHeurt(carGroup.position); // (banc) 'test' : des points connus dedans / dehors
   const V=new THREE.Vector3(),r={pilDedans:0,pilDehors:0,n:0},P=JADE.col.P;
-  for(let k=0;k<P.length;k+=Math.max(1,(P.length/40)|0)){const q=P[k],Tq=JADE.geos.p[q[5]];r.n++;
-    // un cube PLEIN du gabarit (à mi-hauteur), ramené dans le monde : il doit être dur ; à 3 rayons de là, l'air
-    let c=null;const y=Math.floor(Tq.yTop*.6);for(let i=0;i<Tq.G.nx&&!c;i++)for(let j=0;j<Tq.G.nz;j++)if(voxAt(Tq.G,i,y,j)===JM.roche){c=[i,j];break;}
-    if(c){V.set(c[0]+.5,y+.5,c[1]+.5).applyMatrix4(jadeMatPilier(q,0));if(jadePilierDans(q,V.x,V.y,V.z))r.pilDedans++;}
+  for(let k=0;k<P.length;k+=Math.max(1,(P.length/40)|0)){const q=P[k];r.n++;
+    V.set(q[0],(q[3]+q[4])/2,q[1]);if(jadeHeurt(V))r.pilDedans++;          // le cœur de la montagne, à mi-hauteur
     V.set(q[0]+q[2]*3+20,(q[3]+q[4])/2,q[1]);if(!jadeHeurt(V))r.pilDehors++;}
   const Po=JADE.porte;if(Po){V.copy(Po.c);V.y+=60;r.porteTrou=!jadeHeurt(V);V.copy(Po.c).addScaledVector(Po.b,Po.hw+150);V.y+=60;r.porteMur=jadeHeurt(V);
-    V.copy(Po.c).addScaledVector(Po.t,Po.D);V.y+=60;r.porteDevant=!jadeHeurt(V);}
+    V.copy(Po.c).addScaledVector(Po.t,Po.D);V.y+=60;r.porteDevant=!jadeHeurt(V);V.copy(Po.c);V.y-=420;r.porteDessous=!jadeHeurt(V);}
   const B9=JADE.pont;if(B9){V.copy(B9.c);V.y+=40;r.pontDessous=!jadeHeurt(V);V.copy(B9.c);V.y+=(B9.yB(.5)+B9.yH(.5))/2;r.pontDalle=jadeHeurt(V);}
-  let routeTouche=0;for(let i=0;i<NP;i+=7){V.copy(pts[i]);V.y+=1.5;if(jadeHeurt(V))routeTouche++;V.copy(pts[i]).addScaledVector(Nn[i],-THICK-1.5);if(jadeHeurt(V))routeTouche++;}r.routeTouche=routeTouche; // la RÈGLE D'OR : aucun point de la route (dessus ni dessous) dans la pierre
+  let routeTouche=0;for(let i=0;i<NP;i+=7){V.copy(pts[i]);V.y+=1.5;if(jadeHeurt(V))routeTouche++;V.copy(pts[i]).addScaledVector(Nn[i],-THICK-1.5);if(jadeHeurt(V))routeTouche++;}r.routeTouche=routeTouche; // la RÈGLE D'OR : aucun point de la route (dessus ni dessous) dans la roche
+  let flotte=0;for(const q of P)if(q[3]>JADE.merY+60)flotte++;r.flottent=flotte+'/'+P.length; // toutes au-dessus de la mer
   return r;};
 // `dbgJadeVue(k,d,h)` (dev) : MODE PHOTO — 'route' (derrière la caisse, haut), 'porte', 'pont', 'haut' (vue plongeante), 'loin'
 window.dbgJadeVue=function(k,d,h,cap){if(!JADE.root)return 'pas de map';
@@ -14792,7 +14856,7 @@ Object.assign(BIOMES.tempete,{daCon:0,daExpo:1.12,daWbN:.5,daSh:.35});Object.ass
    (la couche DA en retrait : les verts et les gris du lavis, pas le split teal/orange). */
 BIOMES.jade={nm:'PICS DE JADE',skyMul:[1,1,1],skyLift:[0,0,0],sunTint:[1,.95,.86],sunHalo:0,city:0,stars:0,moon:0,
   fog:[.76,.85,.86],fogN:200,fogF:2500,  /* (v2, Léo : « couleurs plus similaires à l'image ») : l'air des photos — une brume blanc-bleuté, une lumière DIFFUSE (ciel fort, soleil voilé) */
-  hemiS:[.82,.90,.96],hemiG:[.36,.42,.33],hemiI:1.0, sunC:[1,.97,.92],sunI:1.0,
+  hemiS:[.82,.90,.96],hemiG:[.58,.62,.62],hemiI:1.0, sunC:[1,.95,.86],sunI:1.05, /* (v3) le dessous des montagnes flottantes reçoit la lumière renvoyée par la mer de nuages */
   fillC:[.55,.66,.70],fillI:.12, kickC:[1,.92,.80],kickI:.04,
   volSun:[1.9,1.85,1.7],volSky:[.70,.80,.86],volGnd:[.32,.38,.32],volAmb:.85,
   expo:.98,sat:1.0,

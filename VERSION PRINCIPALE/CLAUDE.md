@@ -33,6 +33,20 @@ d'aller dans cette map avec une voiture, la mobilité comme le main, mais seulem
   recalées sur les photos (brume blanc-bleuté, lumière diffuse, grès gris pâle, verts francs, rouille saumon). MESURÉ : 60 i/s, ~420 000
   triangles et ~33 appels de rendu visibles, construction ~0,3 s (dont 0,16 s de gabarits, une fois par session) ; `dbgJadeHeurt('test')`
   sur 3 vallées : cubes durs, arche et dessous du pont libres, AUCUN point de la route (dessus ni dessous) dans un cube.
+- **v3 — LA ROCHE DE WUKONG, LES MONTAGNES QUI FLOTTENT** (même soirée, Léo : « copie plutôt Wukong que Minecraft » puis « pour ce niveau
+  pas de base : les montagnes sont hautes, elles flottent ; la répartition est déjà pas mal ; il n'y a que du ciel et de la mer ») — la v2 en
+  cubes est REMPLACÉE (elle reste dans l'historique, e18c44d). `rocPilier` : 8 gabarits en mètres (`JADE_TPL` rayon/hauteur/sorte, 190 → 540 m
+  de haut), grille cylindrique déformée (strates/corniches, fissures verticales qui serpentent, bruit fin) et un DESSOUS en pointe bosselée
+  et décentrée ; occlusion cuite (`aAO`) ; table de rayons `rocRayon` = la collision. Matière `JADE_ROC` : calcaire, coulées humides,
+  FISSURES nettes (bruit replié : diaclases verticales, joints de litage), relief par dérivées d'écran (`uBump`), rouille, lichen, mousse,
+  liseré de brume. Placement : la même répartition ; la montagne FLOTTE (sa pointe au-dessus de la mer, `merY` = route la plus basse − 470) ;
+  RÈGLE D'OR à deux issues : elle passe 45 m SOUS la dalle ou sa pointe 70 m AU-DESSUS (la route file dessous). Forêt PEINTE en panneaux
+  (`jadeArbresTex` : 4 pins, 2 touffes, 2 lianes — ~40 000 instances, un seul appel), LIANES qui pendent sous les montagnes, CASCADES dans
+  le vide (`jadeChutes`, `JADE_CHUTE_M`), ROCHERS flottants (`jadeCaillouGeo`, durs), PAGODES et pavillons (`jadeTempleGeo`). La Porte et
+  le Pont en roche organique : champs de densité maillés en surface nets (`surfNets`, `jadeDensMesh`) — la Porte est un massif flottant ;
+  collision = la densité. Ciel : plus de pixels, les monts lointains flottent aussi (`jPeigne` a une pointe). MESURÉ : 60 i/s, ~500 000
+  triangles et 30 appels de rendu visibles, construction ~0,35 s ; `dbgJadeHeurt('test')` sur 3 vallées : roche dure, arche et dessous du
+  pont libres, AUCUN point de la route dans la roche, toutes les montagnes au-dessus de la mer.
 - Mesuré (Chrome sans fenêtre du Mac) : 60 i/s, construction 16-28 ms, tri ~0,03 ms ; collisions (`dbgJadeHeurt('test')`, 3 vallées) :
   piliers durs, arche et dessous du pont libres, AUCUN point de la route dans la pierre. Console : `dbgJade()`, `dbgJadeVue('route'|'porte'|
   'pont'|'haut'|'loin'|'grue',d,h,cap)` (photo figée), `dbgGrues()`. sw.js → v203.
