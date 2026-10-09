@@ -64,7 +64,7 @@ d'aller dans cette map avec une voiture, la mobilité comme le main, mais seulem
   (poussières qui flottent autour de la caméra, `JADE_ESPRITS`), air pâle (`BIOMES.jade` : soleil voilé, brume blanc-bleuté, saturation .8,
   halo plus fort). MESURÉ : 60 i/s, ~0,9-1 M triangles visibles, construction ~0,5 s ; collisions et règle d'or inchangées (3 vallées OK).
 - **v6 — LE VERRE DE JADE** (même soirée, Léo : « je parlais de la transparence des CUBES qui constituent les montagnes, c'est trop clair
-  là ») — LA VERSION EN COURS. La v5 laissait voir le ciel à travers une pierre délavée ; désormais ce sont les CUBES qui se voient dans la
+  là »). La v5 laissait voir le ciel à travers une pierre délavée ; désormais ce sont les CUBES qui se voient dans la
   montagne, comme dans un bloc de jade sombre. TROIS PASSES SANS TRI (`jadeVRMat('M'|'P'|'A')`, toutes dans la liste transparente, donc
   après le ciel et la route) : (1) ABSORPTION (`PASSE_M`, MultiplyBlending, DoubleSide, renderOrder 2) — TOUTES les couches (faces avant, de
   dos, montagnes derrière) multiplient le fond par ce qu'elles laissent passer, teinté vert-de-gris, les arêtes plus sombres ; (2) PROFONDEUR
@@ -74,6 +74,15 @@ d'aller dans cette map avec une voiture, la mobilité comme le main, mais seulem
   fond reprend sa place au loin). Air un cran plus sombre (`BIOMES.jade` : expo .88, soleil moins jaune, bloom .30 / seuil .95). Jumeaux par
   famille : `F.im2` (absorption) et `F.im3` (profondeur) partagent les tampons de `F.im`. MESURÉ : 60 i/s, collisions et règle d'or
   inchangées (3 vallées OK), Porte et Pont traversés. sw.js → v208.
+- **v7 — LES CUBES MINUSCULES** (même soirée, Léo : « pas Minecraft » → choisi : « cubes minuscules ») — LA VERSION EN COURS. Le verre de
+  la v6 reste ; ce qui faisait Minecraft part : cubes de 3,5 → **1,75 m** (`VX`, 3,5 m sur un vrai téléphone), muraille et arche 5 → **2,5 m**
+  (`VXG`, leurs bruits passés en mètres + une rugosité fine sur la façade) ; plus de JOINT dessiné autour de chaque bloc ni de liseré d'arête
+  (le carrelage), nuance par cube réduite (une mosaïque) ; l'herbe seulement SUR le dessus, en plaques de mousse sur la pierre (plus de frange
+  sur les côtés = le bloc d'herbe) ; plus aucune feuille, touffe, buisson ni liane EN CUBES (les pins et lianes peints restent, même forêt au
+  m² : `nA` × (VX/3,5)²) ; soleil sur la pierre ×.85, lumière du verre ×.6. **4 niveaux de détail** (1,75 · 3,5 · 7 · 14 m ; `JADE_LOD` r0 300 m,
+  r1 750, pins 900, temples 1300, d1 1500 ; `jadeBande` rend 0-5) ; plans intérieurs tous les 7 m à chaque niveau (`voxMesh(G,4|2|1)`, opacité
+  .13). Rochers en mètres (6,5-11 m). MESURÉ : 60 i/s (p90 17,7 ms), ~2,4-2,7 M triangles visibles, construction ~2,1 s (gabarits 1,1 s, une
+  fois par session) ; collisions et règle d'or OK (3 vallées), Porte et Pont traversés. sw.js → v209.
 - Mesuré (Chrome sans fenêtre du Mac) : 60 i/s, construction 16-28 ms, tri ~0,03 ms ; collisions (`dbgJadeHeurt('test')`, 3 vallées) :
   piliers durs, arche et dessous du pont libres, AUCUN point de la route dans la pierre. Console : `dbgJade()`, `dbgJadeVue('route'|'porte'|
   'pont'|'haut'|'loin'|'grue',d,h,cap)` (photo figée), `dbgGrues()`. sw.js → v203.
