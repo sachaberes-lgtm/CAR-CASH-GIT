@@ -30,6 +30,14 @@
   l'aura ×1,375 par dauphin en plus : le plafond ×1,75 ne bouge pas). Même tempo pour les trois, chacun `lag` de cycle derrière le chef (une
   vague qui saute), plongée de durée fixe (`DOL_CYCLE` 1,6), celui qui rejoint attend sa place, une vrille sur quatre et jamais deux à la
   fois, et au sommet il tourne la tête vers la caméra (on le voit de trois-quarts). Le bond royal part au 3e.
+- **LES SEPT CHORÉS** (même jour, Léo : « donne-leur plusieurs chorés possibles ») : `DOL_CHORE` (dans le bloc lu par la boîte) — LA VAGUE ·
+  L'UNISSON (en diagonale, vrilles ensemble) · LES CISEAUX (deux qui se croisent, le 3e jaillit à la verticale en double vrille) · LE
+  SAUTE-MOUTON (le grand passe au-dessus du petit) · L'ÉTOILE (trois directions, dont un qui vient vers la caméra) · L'ESCALIER (de plus en
+  plus haut, le dernier vrille) · LA FONTAINE (sauts verticaux qui tournent). Par dauphin : x0 → x1 (demi-largeurs), z0 → z1 (m, vers la
+  caméra +), hauteur `a`, retard `lag`, tours forcés `v` ; par choré : chance de vrille `vr`, `sync`. La pose = `dolChorePose` (⚠ PAS
+  `dolPose` : ce nom est déjà celui de l'encaissement du dauphin à la pose — une 2e déclaration l'écrasait). Le jeu en tire une par
+  apparition du banc (jamais deux fois la même de suite) ; `dbgDolphins(sec,nb,ch)` en force une (index ou nom, null = hasard). La boîte :
+  rangée des chorés en vue LE BANC (« Au hasard » = une nouvelle tous les 3 sauts du chef, chaque dauphin l'adopte en replongeant).
 ## LA SALLE BLANCHE (2026-10-09, Léo : « une sublime voiture dans une salle blanche, que je peux tourner, avec une petite rangée de toutes les voitures qu'on a — pas les enlevées — qu'on glisse dans différentes raretés ; télécharger une liste écrite de tout ce qu'on a dit dessus »)
 - `salle-blanche.html` (outil, à côté d'index.html, à servir : `python3 -m http.server 8975` puis /salle-blanche.html). RIEN n'est recopié :
   elle LIT index.html et exécute les vrais constructeurs (même liste de blocs que `ROBLOX/outils/cuire-caisses.js` + `MATV` pour les vraies
