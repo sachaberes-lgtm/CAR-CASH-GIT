@@ -6,9 +6,10 @@
 --   · en HAUT à droite, ce qu'on a : le compte en $ et les cœurs en réserve (on lit en haut, on touche en bas) ;
 --   · LA PAGE : 1. OFFRES — UNE grande carte, la meilleure offre du moment : le KIT DU PILOTE tant qu'il n'est pas pris (ce qu'il
 --     contient en trois tuiles, son prix, UN lingot d'or), sinon le premier passe qu'on n'a pas (×2 ARGENT, puis NITRO INFINIE,
---     puis VIP s'il existe) ; tout est à soi : la section s'efface ; 2. CAISSES — les légendaires EN GRAND, chacune avec sa
---     VIGNETTE dessinée (sa vraie forme, ses vraies couleurs : Caisse.vignetteImage), la une en pleine largeur ; le bouton de la
---     carte, c'est son prix ; toucher la caisse la fait SORTIR de la page (la fenêtre d'achat, en grand) ; 3. ARGENT — cinq packs :
+--     puis VIP s'il existe) ; tout est à soi : la section s'efface ; 2. CAISSES — les légendaires EN GRAND, chacune avec son
+--     TIRAGE DE BOUTIQUE (576 × 320, bord anticrénelé, éclairage de studio : Caisse.vignetteHD — sa vraie forme, ses vraies couleurs,
+--     lisse), la une en pleine largeur ; le bouton de la carte, c'est son prix ; toucher la caisse la fait SORTIR de la page (la
+--     fenêtre d'achat, en grand : la VRAIE caisse en 3D, sur un plateau qui tourne, qu'on fait pivoter au doigt) ; 3. ARGENT — cinq packs :
 --     le montant en vert, une pile de pièces qui grandit avec le pack, le prix sur le bouton ; 4. AVANTAGES — les passes (×2
 --     ARGENT, NITRO INFINIE, VIP), 3 TOURS DE ROUE quand ils existent, puis les CŒURS (1, 5, 15).
 -- L'HONNÊTETÉ (règles de Roblox) : un prix affiché est celui que Roblox rend pour CE joueur (Revenus.prix : prix régional, remise
@@ -18,13 +19,16 @@
 -- Le chemin de l'achat ne change pas : MarketplaceService (PromptProductPurchase / PromptGamePassPurchase), le serveur accorde
 -- (ServerScriptService/Revenus, `recevoir`). Les 3 TOURS s'achètent dans LA ROUE, qui montre ses chances avant (hasard payant), et
 -- leur carte se cache là où Roblox interdit de vendre du hasard (PolicyService).
--- Plus aucune caisse 3D bâtie à l'ouverture : les vignettes sont des images — le budget de maillages de Roblox reste au garage.
+-- Aucune caisse 3D bâtie pour les CARTES : ce sont des images (le budget de maillages de Roblox reste au garage). UNE seule caisse 3D
+-- vit dans la boutique : celle de la fenêtre d'achat ouverte — bâtie à l'ouverture, RENDUE à la fermeture. Les tirages de boutique
+-- (720 Ko de mémoire chacun) se décodent à l'ouverture de la boutique et se relâchent à sa fermeture : rien ne reste en course.
 -- (banc, Studio seulement) workspace « DbgBoutiqueIds » = true : chaque objet fait comme s'il existait, au prix conseillé (pris pour
 -- le vrai : les étiquettes se calculent) ; un achat écrit « [boutique] fenetre d'achat » dans la Sortie au lieu d'appeler Roblox.
 local TweenService = game:GetService("TweenService")
 local MarketplaceService = game:GetService("MarketplaceService")
 local PolicyService = game:GetService("PolicyService")
 local RunService = game:GetService("RunService")
+local UIS = game:GetService("UserInputService") -- (le glisser qui fait tourner la caisse de la fenêtre d'achat)
 local joueur = game:GetService("Players").LocalPlayer
 local CC = script.Parent.Parent -- (le dossier CashCar : Profil, ProfilMaj — les caisses légendaires déjà à soi, le compte)
 local Hud = require(script.Parent:WaitForChild("Hud"))
@@ -33,6 +37,7 @@ local Sons = require(script.Parent:WaitForChild("Sons"))
 local Caisse = require(CC:WaitForChild("Caisse"))
 local Config = require(CC:WaitForChild("Config"))
 local Revenus = require(script.Parent:WaitForChild("Revenus")) -- (les prix lus sur Roblox, le stock de cœurs)
+local Maillage = require(script.Parent:WaitForChild("Maillage")) -- (le budget de triangles : la caisse 3D de la fenêtre d'achat le demande avant de se bâtir)
 local Catalogue = Caisse.Catalogue
 local K, C = Hud.kit, Hud.C
 local inst = K.inst
@@ -49,7 +54,7 @@ local UNE = 9 -- la caisse à la une : le CHAT ARC-EN-CIEL
 local OR1 = Color3.fromRGB(255, 215, 94)
 local BLANC = Color3.new(1, 1, 1)
 local VIOLET = Color3.fromRGB(176, 107, 255)
-local RATIO = 80 / 144 -- (la vignette dessinée fait 144 × 80)
+local RATIO = 80 / 144 -- (la vignette dessinée fait 144 × 80 ; le tirage de boutique, 576 × 320 : le même cadre)
 local GAUCHE = Enum.TextXAlignment.Left
 local BORD = Enum.ApplyStrokeMode.Border
 
@@ -257,22 +262,32 @@ local function plateau(parent: Instance, cercle: Color3): (Frame, Frame)
 	inst("UIGradient", { Transparency = FONDU }, filet)
 	return halo, filet
 end
--- LA VIGNETTE d'une caisse : l'image dessinée (en gros pixels nets — c'est la direction artistique), posée sur un plateau cerclé de la
--- couleur de sa rareté (le plateau du garage) ; sans image (API d'images refusées), sa silhouette pixel à sa couleur
+-- LA VIGNETTE d'une caisse, posée sur un plateau cerclé de la couleur de sa rareté (le plateau du garage). (9/10, Sacha, capture à
+-- l'appui : « il faut un aperçu des vraies voitures » — la vignette du garage, 144 × 80 en gros pixels, s'étirait sur 480 unités.)
+-- L'image : le TIRAGE DE BOUTIQUE (Caisse.vignetteHD, 576 × 320, lisse) dès qu'il est décodé — à l'ouverture de la boutique, une caisse
+-- par image (voir chargerHD) ; en attendant (et une fois la boutique fermée), la vignette du garage, lissée elle aussi. Sans aucune
+-- image (API d'images refusées) : sa silhouette pixel à sa couleur.
+local VIGN: { any } = {} -- toutes les vignettes de la page (la une d'abord) : le tirage de boutique s'y pose en passant
+local function poserImage(v: any)
+	local ei = v.hd or v.ei
+	v.img.Visible = ei ~= nil
+	if ei then v.img.ImageContent = Content.fromObject(ei) else v.img.ImageContent = Content.none end
+	if v.sil then v.sil.Visible = ei == nil end
+end
 local function vignette(parent: Instance, i: number, cercle: Color3): any
 	local f = Catalogue[i]
 	local cadre = inst("Frame", { Name = "Vignette", BackgroundTransparency = 1, Size = UDim2.fromOffset(144, 80) }, parent)
 	plateau(cadre, cercle)
 	local ei = Caisse.vignetteImage(i)
 	local img = inst("ImageLabel", { Name = "Image", BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), ScaleType = Enum.ScaleType.Fit,
-		ResampleMode = Enum.ResamplerMode.Pixelated, ZIndex = 2 }, cadre)
-	if ei then
-		img.ImageContent = Content.fromObject(ei)
-	else
-		img.Visible = false
-		K.iconeRelief(cadre, "voiture", 8, Color3.fromHex(string.format("%06x", f.laque)), UDim2.fromScale(0.5, 0.45), Vector2.new(0.5, 0.5))
+		ZIndex = 2 }, cadre) -- (le rééchantillonnage par défaut : la caisse est LISSE, plus en pavés)
+	local v: any = { i = i, cadre = cadre, img = img, ei = ei, hd = nil }
+	if not ei then
+		v.sil = K.iconeRelief(cadre, "voiture", 8, Color3.fromHex(string.format("%06x", f.laque)), UDim2.fromScale(0.5, 0.45), Vector2.new(0.5, 0.5))
 	end
-	return { cadre = cadre, img = img, ei = ei }
+	poserImage(v)
+	table.insert(VIGN, v)
+	return v
 end
 -- une PILE d'icônes qui grandit avec le pack (pièces pour l'argent, cœurs pour les cœurs) : rangées du bas vers le haut
 local PILES = { { 1 }, { 2 }, { 2, 1 }, { 3, 2 }, { 3, 2, 1 } }
@@ -735,11 +750,253 @@ end
 -- ════════ LA FENÊTRE D'ACHAT D'UNE CAISSE (shopPop du web ; Sacha, 1/10 : « il faut que la fenêtre de la voiture sorte de la page
 -- en mode pop-up pour valider la transaction ») ════════
 -- Toucher une caisse la fait SORTIR de la page : sa carte quitte sa place (un trou reste), grandit et vient se poser au centre sur
--- un voile — la vignette en grand qui flotte sur son plateau, la rareté, le nom, sa phrase, ce qu'elle est (cosmétique), UN lingot
--- d'or (ACHETER) et FERMER. Fermer (FERMER, le voile, RETOUR) la renvoie À SA PLACE par le même chemin. Déjà à soi : une plaque
--- verte A TOI ; pas encore en vente : une plaque terne BIENTOT — jamais un lingot qui ne vend rien.
-local SP: any = { on = false }
-local FW, FH = 760, 628
+-- un voile — LA VRAIE CAISSE EN 3D sur son plateau tournant (voir LA VITRINE 3D plus bas), la rareté, le nom, sa phrase, ce qu'elle est
+-- (cosmétique), UN lingot d'or (ACHETER) et FERMER. Fermer (FERMER, le voile, RETOUR) la renvoie À SA PLACE par le même chemin. Déjà à
+-- soi : une plaque verte A TOI ; pas encore en vente : une plaque terne BIENTOT — jamais un lingot qui ne vend rien.
+-- (9/10, Sacha : « quand on clique dessus on peut les voir bien ») la fenêtre a grandi (760 × 628 → 900 × 680) : la scène fait toute
+-- sa largeur, 844 × 340.
+local EL0 = 0.25 -- l'assiette d'arrivée de la caméra (un peu plus bas que les photos du garage, 0,27 : la caisse prend plus de place
+-- que son plateau)
+local SP: any = { on = false, jeton = 0, az = 0, el = EL0, vAz = 0 }
+local FW, FH = 900, 680
+local SCENE_H = 340
+
+-- ════════ LA VITRINE 3D DE LA FENÊTRE D'ACHAT ════════
+-- La caisse entière en UN maillage (Caisse.vignette : celle que le garage et LA ROUE photographient — mêmes triangles, mêmes couleurs
+-- que sur la route), dans un ViewportFrame : posée sur un PLATEAU de carbone cerclé d'un jonc de néon à la couleur de sa rareté, elle
+-- tourne doucement ; on la fait pivoter au doigt ou à la souris (glisser à gauche, à droite ; en haut, en bas pour la voir de plus haut
+-- ou de plus bas), elle garde son élan quand on lâche, puis le plateau reprend sa ronde. La caméra est cadrée sur la boîte de la caisse
+-- sous TOUS ses angles et sur le bord du plateau : quel que soit l'angle, rien ne sort du cadre, et le cadre ne respire pas pendant la
+-- ronde (premier essai, sur le cylindre qui enveloppait tout : la caisse n'occupait qu'un tiers de la scène). Une seule caisse 3D à la fois, RENDUE (son
+-- maillage rendu au budget de Roblox) dès que la fenêtre se ferme. Le budget trop juste, ou Roblox qui refuse le maillage : la fenêtre
+-- garde le tirage de boutique, qui flotte au-dessus du plateau (le repli d'avant).
+local VUE_AMB, VUE_LUM = Color3.fromRGB(150, 150, 178), Color3.fromRGB(255, 244, 230) -- (la lumière des photos du garage)
+local AUTO = 0.38 -- la ronde du plateau (radians par seconde : un tour en 16 s)
+local EL_MIN, EL_MAX = 0.06, 0.72 -- l'assiette de la caméra : du ras du plateau à la vue plongeante
+local AZ0 = math.pi - 0.82 -- l'angle d'arrivée : le trois-quarts avant des photos du garage, nez à gauche
+local CARBONE3D = Color3.fromRGB(30, 24, 52)
+local function creerVue(scene: Instance)
+	local vue = inst("ViewportFrame", { Name = "Vue3D", BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Ambient = VUE_AMB, LightColor = VUE_LUM,
+		ImageTransparency = 1, Visible = false, Active = true, ZIndex = 3 }, scene)
+	local cam = Instance.new("Camera")
+	cam.FieldOfView = 24
+	cam.Parent = vue
+	vue.CurrentCamera = cam
+	-- le PLATEAU : bâti une fois (des pièces simples : aucun maillage, aucun budget), mis à l'échelle de chaque caisse
+	local plat = Instance.new("Model")
+	plat.Name = "Plateau"
+	local function piece(nom: string, forme: Enum.PartType, couleur: Color3, matiere: Enum.Material): Part
+		local p = Instance.new("Part")
+		p.Name = nom
+		p.Shape = forme
+		p.Anchored = true
+		p.CanCollide = false
+		p.CanQuery = false
+		p.CanTouch = false
+		p.CastShadow = false
+		p.Color = couleur
+		p.Material = matiere
+		p.TopSurface, p.BottomSurface = Enum.SurfaceType.Smooth, Enum.SurfaceType.Smooth
+		p.Parent = plat
+		return p
+	end
+	local disque = piece("Disque", Enum.PartType.Cylinder, CARBONE3D, Enum.Material.SmoothPlastic)
+	local jonc = piece("Jonc", Enum.PartType.Cylinder, OR1, Enum.Material.Neon)
+	-- douze repères sur le pourtour : on VOIT le plateau tourner (une caisse vue de face semble sinon immobile)
+	local reperes = {}
+	for k = 1, 12 do
+		reperes[k] = piece("Repere", Enum.PartType.Block, Color3.fromRGB(74, 62, 120), Enum.Material.SmoothPlastic)
+	end
+	plat.PrimaryPart = disque
+	plat.Parent = vue
+	-- l'OMBRE de la caisse sur le plateau (une ellipse sombre : le ViewportFrame ne projette pas d'ombre)
+	local ombre = piece("Ombre", Enum.PartType.Block, C.encre, Enum.Material.SmoothPlastic)
+	ombre.Transparency = 0.35
+	local sm = Instance.new("SpecialMesh")
+	sm.MeshType = Enum.MeshType.Sphere
+	sm.Parent = ombre
+	ombre.Parent = vue
+	SP.vue, SP.cam, SP.plat, SP.disque, SP.jonc, SP.reperes, SP.ombre = vue, cam, plat, disque, jonc, reperes, ombre
+end
+-- le plateau et l'ombre à la mesure de la caisse (R = le rayon du cylindre qui l'enveloppe)
+local function cadrerPlateau(R: number, sz: Vector3)
+	local ep = math.max(0.05, R * 0.07)
+	SP.disque.Size = Vector3.new(ep, R * 2, R * 2)
+	SP.jonc.Size = Vector3.new(ep * 0.8, R * 2.05, R * 2.05)
+	for _, p in SP.reperes do p.Size = Vector3.new(R * 0.025, ep * 0.2, R * 0.1) end
+	SP.ombre.Size = Vector3.new(sz.X * 1.08, 0.02, sz.Z * 1.04)
+	-- LES POINTS À GARDER DANS LE CADRE : les huit coins de la boîte de la caisse sous 24 angles (elle tourne : tous les angles
+	-- comptent, sinon le cadre respire pendant la ronde) et le bord du plateau, dessus et dessous
+	local pts = {}
+	local cy = SP.decal.Y
+	for k = 0, 23 do
+		local r = CFrame.Angles(0, k * math.pi / 12, 0)
+		for _, sx in { -0.5, 0.5 } do
+			for _, sy in { -0.5, 0.5 } do
+				for _, sz9 in { -0.5, 0.5 } do table.insert(pts, r * Vector3.new(sz.X * sx, cy + sz.Y * sy, sz.Z * sz9)) end
+			end
+		end
+	end
+	for k = 0, 23 do
+		local a = k * math.pi / 12
+		for _, y in { 0, -ep } do table.insert(pts, Vector3.new(math.cos(a) * R * 1.03, y, math.sin(a) * R * 1.03)) end
+	end
+	SP.pts, SP.cle = pts, nil
+end
+-- LE CADRAGE (objectif de 24°, comme les photos du garage) : pour l'assiette `el` et la forme de la scène, le recul juste nécessaire
+-- pour que TOUS les points tiennent dans le cadre (avec un peu d'air), et la visée qui centre l'ensemble à l'écran. Recalculé seulement
+-- quand l'assiette ou la scène changent.
+local TV = math.tan(math.rad(12))
+local function cadrer(el: number, A: number)
+	if SP.cle and SP.cleEl == el and math.abs(SP.cleA - A) < 0.002 then return end
+	SP.cle, SP.cleEl, SP.cleA = true, el, A
+	local dir = Vector3.new(0, math.sin(el), math.cos(el))
+	local haut = Vector3.new(0, math.cos(el), -math.sin(el))
+	local mv, mh = 0.9, 0.94 -- (l'air autour : la puce de rareté en haut, l'astuce en bas)
+	-- la visée : le milieu de l'étendue verticale vue de très loin, puis une correction de perspective (le devant du plateau, plus
+	-- près, descend plus bas à l'écran que le toit ne monte)
+	local lo, hi = math.huge, -math.huge
+	for _, p in SP.pts do
+		local y = p:Dot(haut)
+		lo, hi = math.min(lo, y), math.max(hi, y)
+	end
+	local ty = (lo + hi) / 2 / math.cos(el)
+	local d = 0
+	for passe = 1, 3 do
+		local T = Vector3.new(0, ty, 0)
+		d = 0
+		for _, p in SP.pts do
+			local q = p - T
+			local long = q:Dot(dir)
+			d = math.max(d, long + math.abs(q:Dot(haut)) / (TV * mv), long + math.abs(q.X) / (TV * A * mh))
+		end
+		if passe == 3 then break end -- (le dernier recul est pris sur la dernière visée)
+		local bas, sommet = math.huge, -math.huge
+		for _, p in SP.pts do
+			local q = p - T
+			local t = q:Dot(haut) / (d - q:Dot(dir))
+			bas, sommet = math.min(bas, t), math.max(sommet, t)
+		end
+		ty += (bas + sommet) / 2 * d / math.cos(el)
+	end
+	SP.cible, SP.d = Vector3.new(0, ty, 0), d
+end
+-- la pose de chaque image : la caisse, son plateau et son ombre tournés de SP.az ; la caméra au cadrage de l'assiette
+local function poserVue()
+	local corps = SP.corps
+	if not corps or not corps.Parent then return end
+	local rot = CFrame.Angles(0, SP.az, 0)
+	corps.CFrame = rot * CFrame.new(SP.decal)
+	local R = SP.R
+	local ep = SP.disque.Size.X
+	SP.disque.CFrame = rot * CFrame.new(0, -ep / 2, 0) * CFrame.Angles(0, 0, math.pi / 2)
+	SP.jonc.CFrame = rot * CFrame.new(0, -ep * 0.62, 0) * CFrame.Angles(0, 0, math.pi / 2)
+	for k, p in SP.reperes do
+		p.CFrame = rot * CFrame.Angles(0, k * math.pi / 6, 0) * CFrame.new(0, 0, R * 0.9) * CFrame.new(0, ep * 0.1 - 0.001, 0)
+	end
+	SP.ombre.CFrame = rot * CFrame.new(SP.decal.X, 0.012, SP.decal.Z)
+	local el = SP.el
+	local taille = SP.vue.AbsoluteSize
+	cadrer(el, (taille.X > 10 and taille.Y > 10) and taille.X / taille.Y or (FW - 56) / SCENE_H)
+	local dir = Vector3.new(0, math.sin(el), math.cos(el))
+	SP.cam.CFrame = CFrame.lookAt(SP.cible + dir * SP.d, SP.cible)
+	SP.vue.LightDirection = (-dir * 0.5 + Vector3.new(0.5, -1, 0.2)).Unit -- (la lampe des photos du garage : en haut à gauche, côté caméra)
+end
+-- le GLISSER (doigt ou souris, en pixels d'écran) : toute la largeur de la scène fait presque un tour ; l'élan se mesure au passage
+function SP.glisser(dx: number, dy: number)
+	if not SP.corps then return end
+	local taille = SP.vue.AbsoluteSize
+	local da = dx / math.max(80, taille.X) * 5.6
+	SP.az += da
+	SP.el = math.clamp(SP.el + dy / math.max(40, taille.Y) * 0.9, EL_MIN, EL_MAX)
+	local t = os.clock()
+	local dt = math.clamp(t - (SP.tG or t), 1 / 240, 0.1)
+	SP.tG = t
+	SP.vAz = SP.vAz * 0.5 + math.clamp(da / dt, -9, 9) * 0.5
+	if not SP.aTourne then
+		SP.aTourne = true
+		TweenService:Create(SP.astuce, K.LENTE, { TextTransparency = 1 }):Play() -- (on a compris : l'astuce s'efface)
+	end
+	poserVue()
+end
+-- chaque image, fenêtre ouverte avec sa caisse 3D : la ronde (et l'élan du dernier glisser, qui s'éteint)
+local function tourner(dt: number)
+	if not SP.corps then return end
+	if not SP.tient and not SP.fige then
+		SP.vAz *= math.exp(-dt * 3.2)
+		local k = math.clamp((os.clock() - (SP.lache or 0) - 1) / 1.2, 0, 1) -- (lâchée : une seconde de répit, puis la ronde revient)
+		SP.az += (SP.vAz + AUTO * k) * dt
+	end
+	poserVue()
+end
+-- la caisse 3D arrive (bâtie à part : l'ouverture ne l'attend pas) : elle prend la place du tirage, en fondu
+local function montrerVue(m: Model, i: number)
+	local corps = m.PrimaryPart :: BasePart
+	local sz, ce = corps.Size, corps.Position
+	SP.modele, SP.corps = m, corps
+	SP.decal = Vector3.new(0, ce.Y, 0) -- (la caisse tourne autour du centre de sa boîte, les roues au ras du plateau)
+	SP.R = math.sqrt(sz.X * sz.X + sz.Z * sz.Z) / 2 * 1.05 + 0.05
+	SP.haut = ce.Y + sz.Y / 2
+	cadrerPlateau(SP.R, sz)
+	m.Parent = SP.vue
+	SP.az, SP.el, SP.vAz, SP.tient, SP.lache, SP.fige = AZ0, EL0, 0, nil, nil, nil
+	poserVue()
+	SP.vue.Visible = true
+	SP.vue.ImageTransparency = 1
+	TweenService:Create(SP.vue, K.LENTE, { ImageTransparency = 0 }):Play()
+	TweenService:Create(SP.image, K.LENTE, { ImageTransparency = 1 }):Play()
+	for _, n in { "Halo", "Ombre", "Filet" } do -- (le plateau dessiné laisse la place au vrai)
+		local f = SP.scene:FindFirstChild(n)
+		if f then (f :: GuiObject).Visible = false end
+	end
+	SP.astuce.TextTransparency = 0
+	SP.astuce.Visible = true
+	SP.aTourne = false
+	if SP.boucle then SP.boucle:Disconnect() end
+	SP.boucle = RunService.RenderStepped:Connect(tourner)
+	SP.i3 = i
+end
+-- la caisse 3D s'en va : son maillage est RENDU au budget, la scène revient au tirage
+local function rendreVue()
+	SP.jeton += 1 -- (une caisse encore en chantier sera rendue à son arrivée)
+	if SP.boucle then
+		SP.boucle:Disconnect()
+		SP.boucle = nil
+	end
+	if SP.modele then
+		Caisse.rendre(SP.modele)
+		SP.modele, SP.corps = nil, nil
+	end
+	SP.tient, SP.i3 = nil, nil
+	SP.vue.Visible = false
+	SP.astuce.Visible = false
+	SP.image.ImageTransparency = 0
+	for _, n in { "Halo", "Ombre", "Filet" } do
+		local f = SP.scene:FindFirstChild(n)
+		if f then (f :: GuiObject).Visible = true end
+	end
+end
+-- bâtir la caisse 3D de la fenêtre (à part : CreateMeshPartAsync attend) — seulement s'il reste au budget de quoi la bâtir avec de la
+-- marge (le garage peut avoir sa vitrine sur le plateau) ; sinon, ou si Roblox refuse : le tirage reste
+local function batirVue(i: number)
+	SP.jeton += 1
+	local j = SP.jeton
+	task.spawn(function()
+		local besoin = (Catalogue[i].triangles or 3000) + 1500
+		local m = nil
+		if Maillage.libre() >= besoin and not SP.sans3d then m = Caisse.vignette(i) end
+		if SP.jeton ~= j or not SP.on then
+			if m then Caisse.rendre(m) end
+			return
+		end
+		if not m then
+			warn(string.format("[boutique] caisse 3D %d refusee (budget : %d libres pour %d) : la fenetre garde le tirage", i, Maillage.libre(), besoin))
+			return
+		end
+		montrerVue(m, i)
+	end)
+end
+
 local function creerFenetre(g: Instance)
 	local v = inst("Frame", { Name = "Fenetre", BackgroundColor3 = Color3.fromRGB(6, 4, 16), BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1),
 		Visible = false, Active = true, ZIndex = 40 }, g)
@@ -751,19 +1008,76 @@ local function creerFenetre(g: Instance)
 	SP.trait = inst("UIStroke", { Color = OR1, Thickness = 3, ApplyStrokeMode = BORD }, c)
 	SP.bande = inst("Frame", { BackgroundColor3 = OR1, BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 6) }, c)
 	SP.echelle = inst("UIScale", {}, c)
-	SP.rare, SP.rareT = puce(c, "", C.encre, 17, UDim2.fromOffset(28, 26), nil, OR1, OR1)
-	-- la vignette en grand, sur son plateau (le cadre flotte : il monte et descend doucement tant que la fenêtre est ouverte)
-	SP.scene = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(504, 280), Position = UDim2.new(0.5, 0, 0, 50), AnchorPoint = Vector2.new(0.5, 0) }, c)
+	-- LA SCÈNE, toute la largeur : le projecteur et le plateau dessinés, le tirage de boutique (qui flotte tant que la caisse 3D n'est
+	-- pas là — ou si elle est refusée), la vitrine 3D par-dessus
+	SP.scene = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(FW - 56, SCENE_H), Position = UDim2.new(0.5, 0, 0, 40), AnchorPoint = Vector2.new(0.5, 0) }, c)
 	SP.halo, SP.filet = plateau(SP.scene, OR1)
-	SP.image = inst("ImageLabel", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), ScaleType = Enum.ScaleType.Fit,
-		ResampleMode = Enum.ResamplerMode.Pixelated, ZIndex = 2 }, SP.scene)
-	SP.nom = K.texte(c, { Text = "", TextSize = 42, TextColor3 = C.texte, Size = UDim2.new(1, -56, 0, 50), Position = UDim2.fromOffset(28, 336),
+	-- LE PROJECTEUR : une lueur RONDE à la couleur de la rareté, fondue dans tous les sens (l'ovale dessiné du plateau des cartes, à
+	-- cette taille, se lisait comme une pilule aux bords francs) — une petite image de 64 × 64 calculée ici, étirée et lissée ; refusée,
+	-- l'ovale reste
+	do
+		local okL, lueur = pcall(function() return game:GetService("AssetService"):CreateEditableImage({ Size = Vector2.new(64, 64) }) end)
+		if okL and lueur then
+			local b = buffer.create(64 * 64 * 4)
+			for y = 0, 63 do
+				for x = 0, 63 do
+					local dx, dy = (x + 0.5) / 32 - 1, (y + 0.5) / 32 - 1
+					local r = math.min(1, math.sqrt(dx * dx + dy * dy))
+					local a = (1 - r * r) ^ 2 * 0.34
+					buffer.writeu32(b, (y * 64 + x) * 4, 255 + 255 * 256 + 255 * 65536 + math.floor(a * 255 + 0.5) * 16777216)
+				end
+			end
+			if pcall(function() lueur:WritePixelsBuffer(Vector2.zero, Vector2.new(64, 64), b) end) then
+				SP.lueur = inst("ImageLabel", { Name = "Lueur", BackgroundTransparency = 1, Size = UDim2.fromScale(1.02, 1.12), Position = UDim2.fromScale(0.5, 0.5),
+					AnchorPoint = Vector2.new(0.5, 0.5), ImageColor3 = OR1, ImageContent = Content.fromObject(lueur) }, SP.scene)
+				local spot = SP.scene:FindFirstChild("Spot")
+				if spot then (spot :: GuiObject).Visible = false end
+			else
+				lueur:Destroy()
+			end
+		end
+	end
+	SP.image = inst("ImageLabel", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), ScaleType = Enum.ScaleType.Fit, ZIndex = 2 }, SP.scene)
+	creerVue(SP.scene)
+	-- l'astuce : on peut la faire tourner (elle s'efface au premier glisser)
+	SP.astuce = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.TXT, TextSize = 19, TextColor3 = C.terne, Text = tr("Glisse pour la faire tourner", "Drag to spin it"),
+		TextXAlignment = Enum.TextXAlignment.Right, Size = UDim2.fromOffset(360, 24), Position = UDim2.new(1, -6, 1, -26), AnchorPoint = Vector2.new(1, 0),
+		Visible = false, ZIndex = 4 }, SP.scene)
+	-- le glisser : il naît sur la scène, puis suit le doigt (ou la souris) partout jusqu'au lâcher
+	SP.vue.InputBegan:Connect(function(io: InputObject)
+		local t = io.UserInputType
+		if SP.corps and (t == Enum.UserInputType.MouseButton1 or t == Enum.UserInputType.Touch) then
+			SP.tient, SP.px, SP.vAz, SP.tG, SP.fige = io, io.Position, 0, os.clock(), nil
+		end
+	end)
+	UIS.InputChanged:Connect(function(io: InputObject)
+		local tn = SP.tient
+		if not tn then return end
+		local suit = (tn.UserInputType == Enum.UserInputType.Touch and io == tn)
+			or (tn.UserInputType == Enum.UserInputType.MouseButton1 and io.UserInputType == Enum.UserInputType.MouseMovement)
+		if not suit then return end
+		local d = io.Position - SP.px
+		SP.px = io.Position
+		SP.glisser(d.X, d.Y)
+	end)
+	UIS.InputEnded:Connect(function(io: InputObject)
+		local tn = SP.tient
+		if tn and (io == tn or (tn.UserInputType == Enum.UserInputType.MouseButton1 and io.UserInputType == Enum.UserInputType.MouseButton1)) then
+			SP.tient = nil
+			SP.lache = os.clock()
+			-- (lâchée sans élan — un doigt qui s'arrête avant de quitter l'écran — : pas de lancer fantôme)
+			if os.clock() - (SP.tG or 0) > 0.12 then SP.vAz = 0 end
+		end
+	end)
+	SP.rare, SP.rareT = puce(c, "", C.encre, 17, UDim2.fromOffset(28, 24), nil, OR1, OR1)
+	SP.rare.ZIndex = 5
+	SP.nom = K.texte(c, { Text = "", TextSize = 42, TextColor3 = C.texte, Size = UDim2.new(1, -56, 0, 50), Position = UDim2.fromOffset(28, 388),
 		TextXAlignment = GAUCHE, TextWrapped = false, epais = 4, ajuste = 6 })
 	SP.desc = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.TXT, TextSize = 22, TextColor3 = C.texte2, TextWrapped = true, Text = "",
-		TextXAlignment = GAUCHE, TextYAlignment = Enum.TextYAlignment.Top, Size = UDim2.new(1, -56, 0, 52), Position = UDim2.fromOffset(28, 390), TextScaled = true }, c)
+		TextXAlignment = GAUCHE, TextYAlignment = Enum.TextYAlignment.Top, Size = UDim2.new(1, -56, 0, 52), Position = UDim2.fromOffset(28, 442), TextScaled = true }, c)
 	inst("UITextSizeConstraint", { MaxTextSize = 22, MinTextSize = 15 }, SP.desc)
 	SP.note = inst("TextLabel", { BackgroundTransparency = 1, FontFace = K.TXT, TextSize = 19, TextColor3 = C.terne, TextWrapped = true, Text = "",
-		TextXAlignment = GAUCHE, TextYAlignment = Enum.TextYAlignment.Top, Size = UDim2.new(1, -56, 0, 44), Position = UDim2.fromOffset(28, 448), TextScaled = true }, c)
+		TextXAlignment = GAUCHE, TextYAlignment = Enum.TextYAlignment.Top, Size = UDim2.new(1, -56, 0, 44), Position = UDim2.fromOffset(28, 498), TextScaled = true }, c)
 	inst("UITextSizeConstraint", { MaxTextSize = 19, MinTextSize = 14 }, SP.note)
 	-- UN lingot d'or (ACHETER + le prix) — ou, à la même place, la plaque A TOI / BIENTOT ; FERMER en cyan à côté
 	SP.oui = K.lingot(c, tr("ACHETER", "BUY"), UDim2.new(0.58, -34, 0, 92), UDim2.new(0, 28, 1, -26), Vector2.new(0, 1), 34)
@@ -843,17 +1157,23 @@ function Boutique.pop(o: any)
 	SP.rareT.Text, SP.rareT.TextColor3 = tr(r[1], r[2]), r[3]
 	SP.rare.UIStroke.Color = r[3]
 	SP.trait.Color, SP.bande.BackgroundColor3, SP.halo.BackgroundColor3, SP.filet.BackgroundColor3 = r[3], r[3], r[3], r[3]
+	SP.jonc.Color = r[3] -- (le jonc de néon du plateau 3D)
+	if SP.lueur then SP.lueur.ImageColor3 = r[3] end
 	SP.nom.Text = nomCaisse(o.i)
 	SP.desc.Text = FR and (f.desc or "") or (f.descEN or f.desc or "")
 	SP.note.Text = tr("Achat unique, avec tes Robux : à toi pour toujours. Purement cosmétique — la vitesse vient du moteur.",
 		"One-time purchase with your Robux: yours forever. Purely cosmetic — speed comes from the engine.")
 	SP.note.TextColor3 = C.terne
-	SP.image.ImageContent = o.v.ei and Content.fromObject(o.v.ei) or Content.none
+	-- le TIRAGE de boutique en attendant la caisse 3D (ou à sa place si elle est refusée) : il FLOTTE au-dessus de son plateau
+	local ei = o.v.hd or o.v.ei
+	SP.image.ImageContent = ei and Content.fromObject(ei) or Content.none
+	SP.image.ImageTransparency = 0
 	SP.maj()
-	-- la vignette FLOTTE au-dessus de son plateau
 	SP.image.Position = UDim2.fromOffset(0, 4)
 	SP.flotte = TweenService:Create(SP.image, FLOTTE, { Position = UDim2.fromOffset(0, -6) })
 	SP.flotte:Play()
+	-- LA VRAIE CAISSE, en 3D : bâtie à part, elle prend la place du tirage dès qu'elle est là
+	batirVue(o.i)
 	-- LA CARTE SORT DE LA PAGE : posée au centre, puis partie de la place de la carte
 	SP.voile.Visible = true
 	SP.voile.BackgroundTransparency = 1
@@ -877,6 +1197,7 @@ local function rentre()
 		SP.flotte:Cancel()
 		SP.flotte = nil
 	end
+	rendreVue() -- (la caisse 3D part avec la fenêtre : son maillage est rendu au budget)
 	SP.trou.Visible = false
 	SP.voile.Visible = false
 	SP.on, SP.anim, SP.o = false, false, nil
@@ -889,6 +1210,7 @@ function Boutique.popFerme(vite: boolean?)
 	end
 	if SP.anim then return end
 	SP.anim = true
+	SP.jeton += 1 -- (une caisse 3D encore en chantier ne se montrera pas : elle sera rendue à son arrivée)
 	Sons.vrai("uiFerme", nil, nil, "tap", 0.9, 0.4)
 	local pos, s = viser(SP.src)
 	local ti = TweenInfo.new(0.32, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut)
@@ -897,6 +1219,43 @@ function Boutique.popFerme(vite: boolean?)
 	local tw = TweenService:Create(SP.carte, ti, { Position = pos })
 	tw.Completed:Once(rentre)
 	tw:Play()
+end
+
+-- ════════ LES TIRAGES DE BOUTIQUE : décodés à l'ouverture, relâchés à la fermeture ════════
+-- Une caisse par image (la une d'abord, puis la grille dans l'ordre de la page) : l'ouverture ne s'arrête pas, chaque carte passe de la
+-- vignette du garage à son tirage net en quelques images. La boutique fermée, tout est relâché (Caisse.lacherHD) : les cartes
+-- reprennent la vignette du garage, et les 5 Mo d'images ne pèsent rien en course.
+local HD: any = { n = 0, ms = 0 }
+local function chargerHD()
+	HD.n += 1
+	local n = HD.n
+	task.spawn(function()
+		for _, v in VIGN do
+			if not Boutique.ouvert or HD.n ~= n then return end
+			if not v.hd then
+				local t0 = os.clock()
+				v.hd = Caisse.vignetteHD(v.i, true) -- (doux : par tranches de 4 ms)
+				HD.ms = math.max(HD.ms, (os.clock() - t0) * 1000)
+				if v.hd then
+					poserImage(v)
+					-- (la fenêtre de CETTE caisse ouverte, la caisse 3D pas encore là : son tirage se pose aussi)
+					if SP.on and SP.o and SP.o.v == v then SP.image.ImageContent = Content.fromObject(v.hd) end
+				end
+				task.wait()
+			end
+		end
+	end)
+end
+local function lacherHD()
+	HD.n += 1
+	for _, v in VIGN do
+		if v.hd then
+			v.hd = nil
+			poserImage(v) -- (la carte reprend la vignette du garage AVANT que l'image soit détruite)
+		end
+	end
+	if SP.image then SP.image.ImageContent = Content.none end
+	Caisse.lacherHD()
 end
 
 -- ════════ LA PAGE, LE RAIL, LA BOURSE ════════
@@ -1127,6 +1486,7 @@ function Boutique.ouvrir(d: string, caisse: number?)
 	if d ~= "garage" then Hud.ecran("boutique") end
 	U.sig = nil
 	majBoutique()
+	chargerHD() -- (les tirages nets des caisses, une par image)
 	U.page.CanvasPosition = Vector2.zero
 	task.defer(function()
 		mettreEnPage()
@@ -1150,7 +1510,9 @@ end
 -- (banc) ouvrir la fenêtre d'une caisse (0 = la une, n = la n-ième de la grille), presser ACHETER (« oui ») ou FERMER (« non ») ;
 -- « offre:coeur » (ou argent2, nitroInfini, vip, tours3, coeur5, coeur15) presse le bouton de cet article ; « kit » celui du KIT
 -- DU PILOTE ; « argent:2 » celui du 2e pack d'argent ; « onglet:argent » presse un onglet du rail ; « y:900 » fait défiler la page à
--- cette hauteur (unités de l'interface) ; « offres » écrit dans la Sortie
+-- cette hauteur (unités de l'interface) ; « tourne:dx:dy » fait glisser la caisse 3D de la fenêtre ; « sans3d » simule le refus du
+-- maillage (le repli) ; « budget » et « mesure » disent ce que la boutique tient du budget des maillages (le compte, puis la mesure
+-- réelle) ; « offres » écrit dans la Sortie
 -- l'état de chaque carte (warn : le journal du banc ne lit que les avertissements)
 function Boutique.dbg(quoi: string)
 	if quoi == "oui" then
@@ -1169,6 +1531,25 @@ function Boutique.dbg(quoi: string)
 		allerA(string.sub(quoi, 8))
 	elseif string.sub(quoi, 1, 2) == "y:" then
 		U.page.CanvasPosition = Vector2.new(0, (tonumber(string.sub(quoi, 3)) or 0) * kPage())
+	elseif string.sub(quoi, 1, 7) == "tourne:" then
+		-- « tourne:300:-40 » : un glisser de 300 px vers la droite et 40 vers le haut sur la caisse 3D — le même chemin que le doigt —
+		-- puis le plateau se FIGE (la photo montre la pose obtenue, pas la ronde qui reprend)
+		local dx, dy = string.match(string.sub(quoi, 8), "^(%-?[%d.]+):?(%-?[%d.]*)$")
+		SP.tG = os.clock() - 0.05
+		SP.glisser(tonumber(dx) or 0, tonumber(dy) or 0)
+		SP.fige, SP.vAz = true, 0
+		poserVue()
+	elseif quoi == "budget" then
+		-- ce que la boutique tient : le budget de triangles (compté), la caisse 3D, les tirages décodés, le pire décodage
+		local nhd = 0
+		for _, v in VIGN do if v.hd then nhd += 1 end end
+		warn(string.format("[boutique] BUDGET : %d triangles libres (compte) | caisse 3D=%s | tirages HD=%d/%d | pire chargement %.1f ms (tranches de 4 ms comprises)",
+			Maillage.libre(), tostring(SP.i3), nhd, #VIGN, HD.ms))
+	elseif quoi == "sans3d" then
+		SP.sans3d = not SP.sans3d -- (le REPLI : la fenêtre fait comme si Roblox refusait le maillage — le tirage flotte sur le plateau)
+		warn("[boutique] sans 3D : " .. tostring(SP.sans3d))
+	elseif quoi == "mesure" then
+		Maillage.mesurer("boutique", true) -- (le VRAI budget : des maillages de 1 000 triangles jusqu'au refus, puis tout est rendu)
 	elseif quoi == "offres" then
 		majBoutique()
 		local t = { "heros=" .. tostring(HE.kind) .. (HE.montre and "" or "(cache)") .. " prix=" .. HE.prix.Text }
@@ -1190,6 +1571,7 @@ function Boutique.fermer()
 	if not Boutique.ouvert then return end
 	Boutique.ouvert = false
 	Boutique.popFerme(true)
+	lacherHD() -- (la mémoire des tirages revient : rien ne reste en course)
 	OF.n += 1
 	U.racine.Visible = false
 	if ctx and ctx.retour then ctx.retour(depuis) end
