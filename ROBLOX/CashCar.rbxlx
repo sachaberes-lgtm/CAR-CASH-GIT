@@ -26464,7 +26464,7 @@ Config.REVENUS = {
 	-- compte double — 500 R$), « NITRO INFINIE » (la réserve de nitro ne se vide jamais, pour toujours — 700 R$ ; Sacha, 5/10),
 	-- « VIP » (cadeaux du jour et de temps de jeu doublés, nom doré au-dessus de la caisse)
 	-- (NITRO INFINIE se coupe et se rallume dans les RÉGLAGES — colonne JEU — pour qui possède le passe : réglage « nitroInf »)
-	passes = { argent2 = 0, nitroInfini = 0, vip = 0 },
+	passes = { argent2 = 2024936419, nitroInfini = 2022152446, vip = 2023610427 },
 	-- les PRODUITS (achat répété) : le CŒUR (50 R$ ; Sacha, 5/10 : « une vie en plus sous forme de cœur ») — un cœur = une vie : à
 	-- l'explosion, la carte de la mort propose d'en UTILISER un (on repart sur la route) ou de terminer ; les cœurs se GARDENT dans le
 	-- profil d'une partie à l'autre ; sans cœur, la même carte propose d'en acheter un (acheté, il sert aussitôt).

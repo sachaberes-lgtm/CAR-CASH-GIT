@@ -79,6 +79,10 @@ def lister(chemin, cle_liste):
         if jeton:
             params['pageToken'] = jeton
         r = appel('GET', API + chemin, 0.2, params=params)
+        if r.status_code in (401, 403):
+            # (la clé n'a pas ce droit : la famille est sautée, les autres continuent)
+            print(f'⚠ droit manquant pour {chemin} : {r.status_code} {r.text[:200]}')
+            return None
         if r.status_code != 200:
             sys.exit(f'lecture refusée {chemin} : {r.status_code} {r.text[:300]}')
         j = r.json()
@@ -135,14 +139,18 @@ def main():
     ids = json.load(open(IDS, encoding='utf-8')) if os.path.exists(IDS) else {}
     passes = lister(f'/game-passes/v1/universes/{U}/game-passes/creator', 'gamePasses')
     produits = lister(f'/developer-products/v2/universes/{U}/developer-products/creator', 'developerProducts')
-    print(f'existant : {len(passes)} passe(s), {len(produits)} produit(s)')
+    print(f"existant : {'?' if passes is None else len(passes)} passe(s), {'?' if produits is None else len(produits)} produit(s)")
     print('CRÉATION' if CREER else 'SIMULATION (rien ne sera créé ; --creer pour de vrai)')
     for a in CONF['articles']:
         if a['type'] == 'badge':
             continue
         estPasse = a['type'] == 'pass'
         champ = 'gamePassId' if estPasse else 'productId'
-        deja = (passes if estPasse else produits).get(a['name'].casefold())
+        liste = passes if estPasse else produits
+        if liste is None:
+            note(a, ids.get(a['cle']), a['price'], 'SAUTÉ : la clé n’a pas le droit ' + ('game-pass' if estPasse else 'developer-product'))
+            continue
+        deja = liste.get(a['name'].casefold())
         if deja:
             ident, p = deja[champ], prix_de(deja)
             ids[a['cle']] = ident
