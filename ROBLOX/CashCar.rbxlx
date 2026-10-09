@@ -13649,7 +13649,7 @@ local L = FR and {
 	voitures = "VOITURES", peinture = "PEINTURE", ailes = "AILES", trainees = "TRAINEES",
 	home = "HOME", boutique = "BOUTIQUE", jouer = "JOUER", acheter = "ACHETER", manque = "IL MANQUE",
 	equiper = "EQUIPER", verrou = "VERROUILLEE", enBoutique = "EN BOUTIQUE", aToi = "A TOI !", equipee = "EQUIPEE",
-	ilTeManque = "IL TE MANQUE ", bientot = "BIENTOT DISPONIBLE",
+	ilTeManque = "IL TE MANQUE ", gagneLes = "  -  JOUE POUR LES GAGNER", bientot = "BIENTOT DISPONIBLE",
 	tout = "TOUT", aMoi = "A MOI", aAcheter = "A ACHETER", gagner = "A GAGNER", defi = "ROUE",
 	roue = "SE GAGNE A LA ROUE", jour7 = "CADEAU DU 7e JOUR DE CONNEXION D'AFFILEE", sept = "7 JOURS", bientotDefi = "BIENTOT : UN DEFI A VENIR",
 	carrN = "ATTRAPE-LA AU NIVEAU 10 DES NUAGES  (%d / 10)",
@@ -13659,7 +13659,7 @@ local L = FR and {
 	voitures = "CARS", peinture = "PAINT", ailes = "WINGS", trainees = "TRAILS",
 	home = "HOME", boutique = "SHOP", jouer = "PLAY", acheter = "BUY", manque = "SHORT BY",
 	equiper = "EQUIP", verrou = "LOCKED", enBoutique = "IN THE SHOP", aToi = "YOURS!", equipee = "EQUIPPED",
-	ilTeManque = "SHORT BY ", bientot = "COMING SOON",
+	ilTeManque = "SHORT BY ", gagneLes = "  -  PLAY TO EARN IT", bientot = "COMING SOON",
 	tout = "ALL", aMoi = "MINE", aAcheter = "FOR SALE", gagner = "EARN IT", defi = "WHEEL",
 	roue = "WON ON THE WHEEL", jour7 = "GIFT FOR LOGGING IN 7 DAYS IN A ROW", sept = "7 DAYS", bientotDefi = "SOON: A CHALLENGE IS COMING",
 	carrN = "CATCH HER IN CLOUDS LEVEL 10  (%d / 10)",
@@ -14904,7 +14904,7 @@ local function deciderHabit()
 		end
 	elseif decision == "pauvre" then
 		secouer()
-		Hud.toast(L.ilTeManque .. Hud.argent(d.p - (profil().compte or 0)), ROUGE, "croix")
+		Hud.toast(L.ilTeManque .. Hud.argent(d.p - (profil().compte or 0)) .. L.gagneLes, ROUGE, "croix")
 	elseif decision == "gagner" then
 		secouer()
 		Hud.toast(FR and d.d or d.dEN, nil, "verrou")
@@ -14931,7 +14931,8 @@ local function decider()
 		end
 	elseif decision == "pauvre" then
 		secouer()
-		Hud.toast(L.ilTeManque .. Hud.argent(f.cond.v - (profil().compte or 0)), ROUGE, "croix")
+		-- (9/10, parcours : le bouton rouge disait déjà « IL MANQUE $ X » — le toast le répétait mot pour mot, sans dire quoi faire)
+		Hud.toast(L.ilTeManque .. Hud.argent(f.cond.v - (profil().compte or 0)) .. L.gagneLes, ROUGE, "croix")
 	elseif decision == "equiper" then
 		occupe = true
 		local ok = ctx.action("equiper", montre)
@@ -17149,7 +17150,9 @@ function Hud.creer()
 	E.coachGeste = inst("Frame", { Name = "Geste", BackgroundTransparency = 1, ClipsDescendants = true, Size = UDim2.new(1, -52, 0, 44),
 		Position = UDim2.fromOffset(26, 130) }, E.coach)
 	E.coachGestes = {}
-	for _, g in { { "glisse", "pouce", Color3.new(1, 1, 1) }, { "nitro", "eclair", hx("ff8d2e") }, { "bord", "droite", Color3.new(1, 1, 1) }, { "pose", "cible", hx("7dff9a") } } do
+	-- (9/10) « fleches » : la démo de l'étape TOURNE au clavier (◀ ▶) — le pouce qui glisse est une aide AU DOIGT, voir `doigtActif`
+	for _, g in { { "glisse", "pouce", Color3.new(1, 1, 1) }, { "fleches", "fleches", Color3.new(1, 1, 1) }, { "nitro", "eclair", hx("ff8d2e") },
+		{ "bord", "droite", Color3.new(1, 1, 1) }, { "pose", "cible", hx("7dff9a") } } do
 		local f = icone(E.coachGeste, g[2], 4, g[3], UDim2.new(0.5, 0, 0, 22), Vector2.new(0.5, 0.5))
 		f.Visible = false
 		E.coachGestes[g[1]] = { f = f, k = inst("UIScale", {}, f) }
@@ -17182,6 +17185,14 @@ function Hud.creer()
 	E.nitroMini = jauge(nbP, UDim2.fromOffset(132, 20), UDim2.new(0.5, -6, 1, -16), Vector2.new(0.5, 1), 3, 2)
 	E.btNitro = nbB
 	nbB.ZIndex = 4
+	-- (9/10, parcours) LA TOUCHE DU CLAVIER : à l'ordinateur, rien ne disait que la NITRO est la barre ESPACE (l'auto-école dit « maintiens
+	-- NITRO », l'anneau désigne le bouton à cliquer). Une étiquette de touche, une capsule d'encre posée au-dessus du bouton, tant que le
+	-- joueur est au clavier ou à la souris — jamais au doigt ni à la manette (voir `majAidesDoigt`).
+	E.nitroTouche = texte(hud, { Text = FR and "ESPACE" or "SPACE", TextSize = 16, TextColor3 = C.texte2, BackgroundColor3 = C.encre, BackgroundTransparency = 0.15,
+		Size = UDim2.fromOffset(math.floor(6 * 16 * CH + 24), 28), Position = UDim2.new(1, -104, 1, -194), AnchorPoint = Vector2.new(0.5, 1), TextWrapped = false,
+		contour = false, Visible = false })
+	inst("UIStroke", { Color = hx("8a5a2a"), Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, E.nitroTouche)
+	inst("Frame", { BackgroundColor3 = hx("8a5a2a"), BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 3), Position = UDim2.new(0, 0, 1, -3) }, E.nitroTouche) -- (le bas de la capsule : une touche)
 	-- (L1243) L'APPEL : pendant les étapes NITRO de l'auto-école, un anneau d'or bat autour du bouton — c'est LUI qu'il faut presser
 	E.nitroAppel = inst("Frame", { Name = "Appel", BackgroundTransparency = 1, Size = UDim2.fromOffset(204, 176), Position = UDim2.new(1, -16, 1, -18),
 		AnchorPoint = Vector2.new(1, 1), Visible = false, ZIndex = 4 }, hud)
@@ -17803,6 +17814,9 @@ function Hud.toast(txt: string, couleur: Color3?, ico: string?)
 	-- (le texte part APRÈS l'icône et garde la même marge à droite : il chevauchait l'icône quand il remplissait la ligne)
 	E.toastTxt.Position = UDim2.fromOffset(ico and 70 or 16, 0)
 	E.toastTxt.Size = UDim2.new(1, ico and -86 or -32, 1, 0)
+	-- (9/10, parcours) le bandeau prend la LARGEUR DE SON TEXTE (la police pixel est à chasse fixe) : à 780 px pour trois mots, il
+	-- couvrait le compte du garage et la barre de nitro sur un écran 16:9
+	E.toast.Size = UDim2.fromOffset(math.clamp(math.floor((utf8.len(txt) or #txt) * 22 * CH + (ico and 100 or 48)), 360, 780), 66)
 	E.toastTxt.Text = txt
 	E.toastTxt.TextColor3 = couleur or C.texte
 	E.toast.Visible = true
@@ -17815,6 +17829,30 @@ function Hud.toast(txt: string, couleur: Color3?, ico: string?)
 	end)
 end
 
+-- ── LES AIDES AU DOIGT (9/10, Sacha : « laisse ça que pour la version mobile ») : « GLISSE POUR TOURNER » et l'anneau du volant ne
+-- s'affichent que si le joueur se sert VRAIMENT du doigt (sa dernière entrée est un toucher — un PC à écran tactile qu'on pilote au
+-- clavier n'en voit rien) ; une souris ou une touche les cache aussitôt, et après le premier braquage au doigt elles ne reviennent
+-- plus. Le volant, lui, marche toujours (il ne dépend que de Hud.tactile). Le banc TACTILE=1 les force. ──
+local aideFaite = false
+local function doigtActif(): boolean
+	return Config.TACTILE_TEST == true or UserInputService:GetLastInputType() == Enum.UserInputType.Touch
+end
+Hud.doigtActif = doigtActif
+local function majAidesDoigt()
+	if not E.glisseTxt then return end
+	local on = doigtActif() and not aideFaite
+	if E.glisseTxt.Visible ~= on then E.glisseTxt.Visible = on end
+	if E.volantInvite.Visible ~= on then E.volantInvite.Visible = on end
+	-- (la touche ESPACE du bouton NITRO : au clavier et à la souris seulement)
+	if E.nitroTouche then
+		local t = UserInputService:GetLastInputType()
+		local clavier = not doigtActif() and (t == Enum.UserInputType.Keyboard or t == Enum.UserInputType.MouseMovement
+			or t == Enum.UserInputType.MouseButton1 or t == Enum.UserInputType.MouseButton2 or t == Enum.UserInputType.MouseWheel
+			or t == Enum.UserInputType.TextInput or t == Enum.UserInputType.Focus or t == Enum.UserInputType.None)
+		if E.nitroTouche.Visible ~= clavier then E.nitroTouche.Visible = clavier end
+	end
+end
+UserInputService.LastInputTypeChanged:Connect(majAidesDoigt)
 -- ── le volant tactile : la moitié gauche de l'écran, le stick NAÎT sous le pouce et le suit ──
 local doigt: InputObject? = nil
 local origine = Vector2.zero
@@ -17838,8 +17876,8 @@ function Hud.brancherTactile()
 		local cam = workspace.CurrentCamera
 		if io.Position.X > cam.ViewportSize.X * 0.5 then return end
 		doigt = io
-		E.glisseTxt.Visible = false -- (L907 : la consigne est dite UNE fois — au premier braquage elle s'efface pour de bon)
-		E.volantInvite.Visible = false -- (et l'anneau d'invitation avec elle)
+		aideFaite = true -- (L907 : la consigne est dite UNE fois — au premier braquage elle s'efface pour de bon, l'anneau avec elle)
+		majAidesDoigt()
 		origine = Vector2.new(io.Position.X, io.Position.Y)
 		t.actif = true
 		t.x, t.y = 0, 0
@@ -17888,6 +17926,7 @@ function Hud.ecran(nom: string)
 	E.reglages.Visible = nom == "reglages"
 	E.mort.Visible = nom == "mort"
 	E.tactile.Visible = Hud.tactile and nom == "course"
+	majAidesDoigt()
 	if nom == "menu" and Hud.surMenu then Hud.surMenu() end
 	if nom ~= "course" then
 		doigt = nil
@@ -17929,7 +17968,31 @@ local popPrio, popPrioFin = 0, 0
 -- titre (« SERIE COMPLETE x17 » sur « NOUVEAU SOMMET ») — il attend qu'elle finisse ; le plus important de l'attente passe ensuite
 local carteFin = 0
 local enAttente: { any }? = nil
-Bus.on("moteur", function() carteFin = os.clock() + 1.7 end)
+local popVu: { any }? = nil -- (le texte du centre affiché en ce moment : txt, couleur, taille, priorité)
+Bus.on("moteur", function()
+	carteFin = os.clock() + 1.7
+	-- (9/10, banc du parcours) les premières pièces du départ font monter le moteur PENDANT le logo CASH CAR : « NOUVEAU SOMMET ·
+	-- BICYLINDRE » sortait à moitié caché derrière lui. La carte parle seule : le logo s'efface (0,2 s) pour lui laisser la place.
+	if Hud.logoFin then Hud.logoFin() end
+	-- (9/10, banc du parcours) la pièce qui fait monter le moteur paie AUSSI sa récolte : « RECOLTE x5 +20 » s'écrivait une image
+	-- AVANT la carte, et restait 1,3 s en travers de « 3 CYLINDRES ». Un texte déjà à l'écran se range dans l'attente : il revient
+	-- quand la carte a parlé.
+	local q = popVu
+	if q and E.pop and E.pop.Text ~= "" and os.clock() < popFin then
+		E.pop.Text = ""
+		if not enAttente or (q[4] or 0) >= (enAttente[4] or 0) then
+			local deja = enAttente ~= nil
+			enAttente = q
+			if not deja then
+				task.delay(1.75, function()
+					local r = enAttente
+					enAttente = nil
+					if r and E.hud.Visible then Hud.pop(r[1], r[2], r[3], r[4]) end
+				end)
+			end
+		end
+	end
+end)
 Bus.on("mort", function() carteFin, enAttente = 0, nil end)
 function Hud.pop(txt: string, couleur: Color3?, taille: number?, prio: number?)
 	local p9, t9 = prio or 0, os.clock()
@@ -17947,6 +18010,7 @@ function Hud.pop(txt: string, couleur: Color3?, taille: number?, prio: number?)
 	end
 	if p9 < popPrio and t9 < popPrioFin then return end
 	popPrio, popPrioFin = p9, t9 + 0.65
+	popVu = { txt, couleur, taille, p9 }
 	E.pop.Text = txt
 	E.pop.TextColor3 = couleur or C.or_
 	E.pop.TextSize = taille or 22
@@ -17966,6 +18030,8 @@ function Hud.grand(txt: string, couleur: Color3?, duree: number?, taille: number
 	grandFin = os.clock() + (duree or 0.8)
 	-- le bandeau : seulement pour un NOM (le compte à rebours, lui, passe une taille et reste nu)
 	local bande = taille == nil
+	-- (9/10, banc) le nom du niveau arrive quand le logo du départ s'efface : pendant ses 0,3 s de fondu, les deux se chevauchaient
+	if bande and Hud.logoFin then Hud.logoFin() end
 	E.grandBande.BackgroundTransparency = bande and 0 or 1
 	for _, f9 in E.grandBande:GetChildren() do
 		if f9:IsA("Frame") then f9.BackgroundTransparency = bande and 0 or 1 end
@@ -18006,6 +18072,20 @@ function Hud.logoDepart()
 		for _, h in E.logoHalo do TweenService:Create(h, sortie, { BackgroundTransparency = 1 }):Play() end
 		task.delay(0.32, function() if n == logoN then E.logo.Visible = false end end)
 	end)
+end
+-- le logo du départ s'efface plus tôt (la carte moteur arrive pendant qu'il est à l'écran)
+function Hud.logoFin()
+	if not E.logo or not E.logo.Visible then return end
+	logoN += 1
+	local n = logoN
+	local sortie = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+	for _, t in E.logoMots do
+		TweenService:Create(t, sortie, { TextTransparency = 1 }):Play()
+		local st = t:FindFirstChildOfClass("UIStroke")
+		if st then TweenService:Create(st, sortie, { Transparency = 1 }):Play() end
+	end
+	for _, h in E.logoHalo do TweenService:Create(h, sortie, { BackgroundTransparency = 1 }):Play() end
+	task.delay(0.22, function() if n == logoN then E.logo.Visible = false end end)
 end
 -- (une mort, un retour au menu : ni le logo ni la carte d'astuce ne restent plantés sur l'écran de fin ou la partie d'après)
 function Hud.logoCache()
@@ -18070,6 +18150,7 @@ end
 -- coCible ,8 s ×4) — appelée à chaque image tant que la carte est là
 function Hud.coachGeste(nom: string?)
 	local t = os.clock()
+	if nom == "glisse" and not doigtActif() then nom = "fleches" end -- (au clavier : ◀ ▶, pas un pouce)
 	for k, g in E.coachGestes do
 		local on = k == nom
 		if g.f.Visible ~= on then g.f.Visible = on end
@@ -18078,6 +18159,9 @@ function Hud.coachGeste(nom: string?)
 			if k == "glisse" then
 				local u = math.floor((t % 1.6) / 1.6 * 16) / 16
 				x = -110 + 220 * (1 - math.abs(1 - 2 * u))
+			elseif k == "fleches" then
+				local u = math.floor((t % 1.6) / 1.6 * 8) / 8 -- (la paire de flèches va d'un bord à l'autre, en crans)
+				x = -60 + 120 * (1 - math.abs(1 - 2 * u))
 			elseif k == "nitro" then
 				y = (t % 0.5 < 0.25) and 0 or 7
 			elseif k == "bord" then
@@ -21840,8 +21924,10 @@ end
 local gen: { [Instance]: number } = {}
 local function fenetre(nom: string, W: number, H: number, accent: Color3?): (Frame, Frame, UIScale, TextButton)
 	local acc = accent or OR1
-	local v = inst("Frame", { Name = nom, BackgroundColor3 = Color3.fromRGB(6, 4, 16), BackgroundTransparency = 0.32, Size = UDim2.fromScale(1, 1),
-		Visible = false, Active = true, ZIndex = 40 }, Hud.racine)
+	-- (9/10, banc du parcours) le voile DÉBORDE de 400 px de chaque côté (la jupe des écrans de Hud) : il s'arrêtait sous la bande des
+	-- boutons de Roblox, et une bande de ciel clair restait allumée au-dessus de la fenêtre. Son milieu ne bouge pas : la carte non plus.
+	local v = inst("Frame", { Name = nom, BackgroundColor3 = Color3.fromRGB(6, 4, 16), BackgroundTransparency = 0.32, Size = UDim2.new(1, 800, 1, 800),
+		Position = UDim2.fromOffset(-400, -400), Visible = false, Active = true, ZIndex = 40 }, Hud.racine)
 	local fond = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Text = "", AutoButtonColor = false }, v)
 	local boite = inst("Frame", { Name = "Boite", BackgroundTransparency = 1, Size = UDim2.fromOffset(W, H), AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.new(0.5, 0, 0.5, -4) }, v)
@@ -22089,6 +22175,9 @@ end
 -- trop étroit pour elle à côté de JOUER (une tablette 4:3), elle se range en COLONNE contre le bord.
 local TW, TH, GAP = 104, 92, 10
 local AMI = ".###.....|#####....|#####..#.|.###..###|.......#.|.###.....|#####....|#####....|#####...." -- (un ami, et le « + »)
+-- (9/10, parcours) la pièce ROBUX : un hexagone et son carré — la tuile ROBUX portait le PANIER, le même que BOUTIQUE juste à côté :
+-- deux paniers sur l'accueil, et on ne savait pas lequel prendre
+local ROBUX_ICO = "...###...|.#######.|##.....##|##.###.##|##.#.#.##|##.###.##|##.....##|.#######.|...###..."
 local function puce(ico: string, filet: Color3): (TextButton, Frame)
 	local b = K.tuile(U.pile, " ", filet, UDim2.fromOffset(TW, TH), UDim2.new(0, 0, 1, 0), Vector2.new(0, 1), 20)
 	b.TextScaled = false
@@ -22137,7 +22226,15 @@ local function creerPile()
 	U.temps, U.tempsIco = puce("cadeau", C.orange)
 	U.tempsEtat = false
 	U.temps.TextColor3 = C.texte2
+	-- (9/10, parcours) la tuile ne disait que « 4:43 » : un nouveau venu ne savait pas ce qui arrivait. Le mot nomme la chose (CADEAU),
+	-- la pastille dit quand (comme les primes des tuiles voisines) ; prêt, la tuile passe à l'or et dit son montant
+	U.tempsP = pastille(U.temps.Parent.Parent :: Instance, Color3.fromRGB(150, 70, 0), 16)
 	U.temps.Activated:Connect(function()
+		if not U.tempsPret and U.tempsReste then
+			-- (un appui trop tôt ne tombait dans rien : il dit maintenant quand le cadeau sera là)
+			Hud.toast(tr("TON CADEAU ARRIVE DANS ", "YOUR GIFT ARRIVES IN ") .. U.tempsReste, OR1, "cadeau")
+			return
+		end
 		if not U.tempsPret or U.tOccupe then return end
 		U.tOccupe = true
 		ctx.action("cadeauTemps")
@@ -22145,7 +22242,7 @@ local function creerPile()
 	end)
 	-- LA BOUTIQUE ROBUX (Sacha, 5/10 : « fais de ce jeu une usine à fric ») : un raccourci vers les offres en Robux, en tête de la
 	-- boutique — ×2 ARGENT, NITRO INFINIE, LES CŒURS
-	U.robux = puce("panier", C.vert)
+	U.robux = puce(ROBUX_ICO, C.vert)
 	libelle(U.robux, "ROBUX")
 	U.robux.Activated:Connect(function()
 		if ctx and ctx.boutique then ctx.boutique() end
@@ -22202,10 +22299,15 @@ local function majPile()
 		local reste = mn * 60 - (workspace:GetServerTimeNow() - debut)
 		g *= attr("VIP") and 2 or 1
 		pret = reste <= 0
-		libelle(U.temps, pret and ("+" .. Hud.argent(g)) or mmss(reste))
+		U.tempsReste = (not pret) and mmss(reste) or nil
+		libelle(U.temps, pret and ("+" .. Hud.argent(g)) or tr("CADEAU", "GIFT"))
 	else
+		U.tempsReste = nil
 		libelle(U.temps, tr("CADEAU", "GIFT"))
 	end
+	local pf = U.tempsP.Parent :: Frame
+	if pf.Visible ~= (U.tempsReste ~= nil) then pf.Visible = U.tempsReste ~= nil end
+	if U.tempsReste then ecrirePastille(U.tempsP, U.tempsReste) end
 	U.tempsPret = pret
 	-- prêt : la tuile passe à l'OR (filet, icône, montant) et se dandine, pour qu'on vienne la chercher
 	if U.tempsEtat ~= pret then
@@ -22290,6 +22392,7 @@ local function creerClassement()
 		Text = tr("Fais une partie sans aide : ton record y entre.", "Play a run with no help: your record goes in."),
 		Size = UDim2.new(1, -80, 0, 30), Position = UDim2.fromOffset(40, 184) }, U.cVide)
 	local ok = K.tuile(c, T_OK, C.cyan, UDim2.fromOffset(240, 66), UDim2.new(0.5, 0, 1, -22), Vector2.new(0.5, 1), 26)
+	K.cible(ok, 12) -- (9/10 : 66 dessinés = 32 px réels sur un téléphone couché ; la zone touchée en fait 90)
 	ok.Activated:Connect(function() fermer(v, sc) end)
 	U.classeV = v
 end
@@ -22346,6 +22449,7 @@ local function creerSeconde()
 	U.sJauge = K.jauge(c, UDim2.new(1, -252, 0, 22), UDim2.fromOffset(208, 216), nil, 4, 3)
 	U.sOui = K.lingot(c, tr("CONTINUER", "CONTINUE"), UDim2.new(0.58, -44, 0, 92), UDim2.new(0, 44, 1, -34), Vector2.new(0, 1), 34)
 	U.sNon = K.tuile(c, tr("NON MERCI", "NO THANKS"), C.cyan, UDim2.new(0.42, -44, 0, 76), UDim2.new(1, -44, 1, -42), Vector2.new(1, 1), 22)
+	K.cible(U.sNon, 7)
 	-- le cœur bat (deux coups, un silence)
 	RunService.RenderStepped:Connect(function()
 		if not v.Visible then return end
@@ -23079,7 +23183,13 @@ local LMIN = 1400 -- la largeur de dessin minimale (un écran plus étroit — 1
 local function creer()
 	local v = inst("Frame", { Name = "Roue", BackgroundColor3 = BLANC, BackgroundTransparency = 0.02, BorderSizePixel = 0, Size = UDim2.fromScale(1, 1),
 		Visible = false, Active = true, ZIndex = 42 }, Hud.racine)
-	K.degrade(v, RGB(64, 18, 84), RGB(10, 6, 26), 80)
+	-- (9/10, banc du parcours) LA JUPE : le fond déborde de 400 px de chaque côté — sans elle, la bande des boutons de Roblox, en haut,
+	-- laissait voir le CIEL CLAIR de l'accueil au-dessus de la roue (le voile s'arrêtait sous elle). Le dégradé et le fondu d'entrée
+	-- passent sur elle ; le voile garde sa taille (Roue.placer mesure l'écran sur lui).
+	v.BackgroundTransparency = 1
+	U.jupe = inst("Frame", { Name = "Jupe", BackgroundColor3 = BLANC, BackgroundTransparency = 0.02, BorderSizePixel = 0, Size = UDim2.new(1, 800, 1, 800),
+		Position = UDim2.fromOffset(-400, -400), ZIndex = 0 }, v)
+	K.degrade(U.jupe, RGB(64, 18, 84), RGB(10, 6, 26), 80)
 	inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Text = "", AutoButtonColor = false }, v) -- (le voile avale les clics)
 	U.voile = v
 	local sc = inst("Frame", { Name = "Scene", BackgroundTransparency = 1, Size = UDim2.fromOffset(LMIN, 720), AnchorPoint = Vector2.new(0.5, 0.5),
@@ -23138,6 +23248,9 @@ local function creer()
 	-- les CHANCES (règle de Roblox pour tout lot tiré au hasard qu'on peut payer en Robux : les afficher AVANT l'achat)
 	U.chancesBt = K.tuile(g, tr("VOIR LES CHANCES", "SEE THE ODDS"), C.cyan, UDim2.fromOffset(320, 60), UDim2.new(0, 66, 1, -164), Vector2.new(0, 1), 19)
 	U.chancesBoite = U.chancesBt.Parent.Parent
+	-- (9/10, parcours) les CIBLES DU POUCE : une plaque de 60 ne faisait que 29 px réels sur un téléphone couché (la racine × 0,49) — la
+	-- zone qu'on touche déborde en haut et en bas (le dessin ne bouge pas), sans mordre sur RETOUR ni sur le lingot
+	K.cible(U.chancesBt, 15)
 	U.chancesBt.Activated:Connect(function() Roue.chances(true) end)
 	U.retour = K.boutonRetour(g)
 	U.retour.Activated:Connect(function()
@@ -23162,6 +23275,7 @@ local function creer()
 	U.basEtat = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1) }, d)
 	U.acheter = K.tuile(U.basEtat, tr("+3 TOURS", "+3 SPINS"), C.magenta, UDim2.fromOffset(360, 66), UDim2.new(0, 0, 1, -176), Vector2.new(0, 1), 20, "panier")
 	U.acheterBoite = U.acheter.Parent.Parent
+	K.cible(U.acheter, 12)
 	U.acheter.Activated:Connect(function()
 		local id = R.produits.tours3
 		if type(id) == "number" and id > 0 then pcall(function() MarketplaceService:PromptProductPurchase(joueur, id) end) end
@@ -23179,6 +23293,7 @@ local function creer()
 	U.basGain = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Visible = false }, d)
 	U.gVendre = K.tuile(U.basGain, "", C.cyan, UDim2.fromOffset(360, 76), UDim2.new(0, 0, 1, -176), Vector2.new(0, 1), 21)
 	U.gVendreBoite = U.gVendre.Parent.Parent
+	K.cible(U.gVendre, 7)
 	U.gGarder = K.lingot(U.basGain, tr("LA GARDER", "KEEP IT"), UDim2.fromOffset(360, 112), UDim2.new(0, 0, 1, -36), Vector2.new(0, 1), 40)
 	U.gGarder.Activated:Connect(function()
 		if U.res and U.res.caisse then Roue.choisir(true) else Roue.retourEtat() end
@@ -23258,6 +23373,7 @@ local function creer()
 			Position = UDim2.new(1, -40, 0, y), AnchorPoint = Vector2.new(1, 0), TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false })
 	end
 	local okC = K.tuile(tb, "OK", C.cyan, UDim2.fromOffset(200, 60), UDim2.new(0.5, 0, 1, -22), Vector2.new(0.5, 1), 24)
+	K.cible(okC, 15)
 	okC.Activated:Connect(function() Roue.chances(false) end)
 
 	-- la mise en page suit l'écran (rotation du téléphone, fenêtre redimensionnée)
@@ -23680,8 +23796,8 @@ function Roue.ouvrir()
 	Roue.placer()
 	Sons.vrai("uiModale", nil, nil, "tap", 1.1, 0.5)
 	-- l'entrée : le fond tombe, la roue arrive en grandissant, les colonnes glissent depuis leur bord
-	U.voile.BackgroundTransparency = 1
-	tw(U.voile, 0.25, { BackgroundTransparency = 0.02 })
+	U.jupe.BackgroundTransparency = 1
+	tw(U.jupe, 0.25, { BackgroundTransparency = 0.02 })
 	U.roueEchelle.Scale = 0.8
 	tw(U.roueEchelle, 0.5, { Scale = 1 }, Enum.EasingStyle.Quint)
 	U.gauche.Position = UDim2.fromOffset(-50, 0)

@@ -144,8 +144,10 @@ end
 local gen: { [Instance]: number } = {}
 local function fenetre(nom: string, W: number, H: number, accent: Color3?): (Frame, Frame, UIScale, TextButton)
 	local acc = accent or OR1
-	local v = inst("Frame", { Name = nom, BackgroundColor3 = Color3.fromRGB(6, 4, 16), BackgroundTransparency = 0.32, Size = UDim2.fromScale(1, 1),
-		Visible = false, Active = true, ZIndex = 40 }, Hud.racine)
+	-- (9/10, banc du parcours) le voile DÉBORDE de 400 px de chaque côté (la jupe des écrans de Hud) : il s'arrêtait sous la bande des
+	-- boutons de Roblox, et une bande de ciel clair restait allumée au-dessus de la fenêtre. Son milieu ne bouge pas : la carte non plus.
+	local v = inst("Frame", { Name = nom, BackgroundColor3 = Color3.fromRGB(6, 4, 16), BackgroundTransparency = 0.32, Size = UDim2.new(1, 800, 1, 800),
+		Position = UDim2.fromOffset(-400, -400), Visible = false, Active = true, ZIndex = 40 }, Hud.racine)
 	local fond = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Text = "", AutoButtonColor = false }, v)
 	local boite = inst("Frame", { Name = "Boite", BackgroundTransparency = 1, Size = UDim2.fromOffset(W, H), AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.new(0.5, 0, 0.5, -4) }, v)
@@ -393,6 +395,9 @@ end
 -- trop étroit pour elle à côté de JOUER (une tablette 4:3), elle se range en COLONNE contre le bord.
 local TW, TH, GAP = 104, 92, 10
 local AMI = ".###.....|#####....|#####..#.|.###..###|.......#.|.###.....|#####....|#####....|#####...." -- (un ami, et le « + »)
+-- (9/10, parcours) la pièce ROBUX : un hexagone et son carré — la tuile ROBUX portait le PANIER, le même que BOUTIQUE juste à côté :
+-- deux paniers sur l'accueil, et on ne savait pas lequel prendre
+local ROBUX_ICO = "...###...|.#######.|##.....##|##.###.##|##.#.#.##|##.###.##|##.....##|.#######.|...###..."
 local function puce(ico: string, filet: Color3): (TextButton, Frame)
 	local b = K.tuile(U.pile, " ", filet, UDim2.fromOffset(TW, TH), UDim2.new(0, 0, 1, 0), Vector2.new(0, 1), 20)
 	b.TextScaled = false
@@ -441,7 +446,15 @@ local function creerPile()
 	U.temps, U.tempsIco = puce("cadeau", C.orange)
 	U.tempsEtat = false
 	U.temps.TextColor3 = C.texte2
+	-- (9/10, parcours) la tuile ne disait que « 4:43 » : un nouveau venu ne savait pas ce qui arrivait. Le mot nomme la chose (CADEAU),
+	-- la pastille dit quand (comme les primes des tuiles voisines) ; prêt, la tuile passe à l'or et dit son montant
+	U.tempsP = pastille(U.temps.Parent.Parent :: Instance, Color3.fromRGB(150, 70, 0), 16)
 	U.temps.Activated:Connect(function()
+		if not U.tempsPret and U.tempsReste then
+			-- (un appui trop tôt ne tombait dans rien : il dit maintenant quand le cadeau sera là)
+			Hud.toast(tr("TON CADEAU ARRIVE DANS ", "YOUR GIFT ARRIVES IN ") .. U.tempsReste, OR1, "cadeau")
+			return
+		end
 		if not U.tempsPret or U.tOccupe then return end
 		U.tOccupe = true
 		ctx.action("cadeauTemps")
@@ -449,7 +462,7 @@ local function creerPile()
 	end)
 	-- LA BOUTIQUE ROBUX (Sacha, 5/10 : « fais de ce jeu une usine à fric ») : un raccourci vers les offres en Robux, en tête de la
 	-- boutique — ×2 ARGENT, NITRO INFINIE, LES CŒURS
-	U.robux = puce("panier", C.vert)
+	U.robux = puce(ROBUX_ICO, C.vert)
 	libelle(U.robux, "ROBUX")
 	U.robux.Activated:Connect(function()
 		if ctx and ctx.boutique then ctx.boutique() end
@@ -506,10 +519,15 @@ local function majPile()
 		local reste = mn * 60 - (workspace:GetServerTimeNow() - debut)
 		g *= attr("VIP") and 2 or 1
 		pret = reste <= 0
-		libelle(U.temps, pret and ("+" .. Hud.argent(g)) or mmss(reste))
+		U.tempsReste = (not pret) and mmss(reste) or nil
+		libelle(U.temps, pret and ("+" .. Hud.argent(g)) or tr("CADEAU", "GIFT"))
 	else
+		U.tempsReste = nil
 		libelle(U.temps, tr("CADEAU", "GIFT"))
 	end
+	local pf = U.tempsP.Parent :: Frame
+	if pf.Visible ~= (U.tempsReste ~= nil) then pf.Visible = U.tempsReste ~= nil end
+	if U.tempsReste then ecrirePastille(U.tempsP, U.tempsReste) end
 	U.tempsPret = pret
 	-- prêt : la tuile passe à l'OR (filet, icône, montant) et se dandine, pour qu'on vienne la chercher
 	if U.tempsEtat ~= pret then
@@ -594,6 +612,7 @@ local function creerClassement()
 		Text = tr("Fais une partie sans aide : ton record y entre.", "Play a run with no help: your record goes in."),
 		Size = UDim2.new(1, -80, 0, 30), Position = UDim2.fromOffset(40, 184) }, U.cVide)
 	local ok = K.tuile(c, T_OK, C.cyan, UDim2.fromOffset(240, 66), UDim2.new(0.5, 0, 1, -22), Vector2.new(0.5, 1), 26)
+	K.cible(ok, 12) -- (9/10 : 66 dessinés = 32 px réels sur un téléphone couché ; la zone touchée en fait 90)
 	ok.Activated:Connect(function() fermer(v, sc) end)
 	U.classeV = v
 end
@@ -650,6 +669,7 @@ local function creerSeconde()
 	U.sJauge = K.jauge(c, UDim2.new(1, -252, 0, 22), UDim2.fromOffset(208, 216), nil, 4, 3)
 	U.sOui = K.lingot(c, tr("CONTINUER", "CONTINUE"), UDim2.new(0.58, -44, 0, 92), UDim2.new(0, 44, 1, -34), Vector2.new(0, 1), 34)
 	U.sNon = K.tuile(c, tr("NON MERCI", "NO THANKS"), C.cyan, UDim2.new(0.42, -44, 0, 76), UDim2.new(1, -44, 1, -42), Vector2.new(1, 1), 22)
+	K.cible(U.sNon, 7)
 	-- le cœur bat (deux coups, un silence)
 	RunService.RenderStepped:Connect(function()
 		if not v.Visible then return end

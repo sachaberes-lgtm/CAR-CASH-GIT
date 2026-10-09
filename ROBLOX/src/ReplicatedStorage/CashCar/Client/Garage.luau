@@ -46,7 +46,7 @@ local L = FR and {
 	voitures = "VOITURES", peinture = "PEINTURE", ailes = "AILES", trainees = "TRAINEES",
 	home = "HOME", boutique = "BOUTIQUE", jouer = "JOUER", acheter = "ACHETER", manque = "IL MANQUE",
 	equiper = "EQUIPER", verrou = "VERROUILLEE", enBoutique = "EN BOUTIQUE", aToi = "A TOI !", equipee = "EQUIPEE",
-	ilTeManque = "IL TE MANQUE ", bientot = "BIENTOT DISPONIBLE",
+	ilTeManque = "IL TE MANQUE ", gagneLes = "  -  JOUE POUR LES GAGNER", bientot = "BIENTOT DISPONIBLE",
 	tout = "TOUT", aMoi = "A MOI", aAcheter = "A ACHETER", gagner = "A GAGNER", defi = "ROUE",
 	roue = "SE GAGNE A LA ROUE", jour7 = "CADEAU DU 7e JOUR DE CONNEXION D'AFFILEE", sept = "7 JOURS", bientotDefi = "BIENTOT : UN DEFI A VENIR",
 	carrN = "ATTRAPE-LA AU NIVEAU 10 DES NUAGES  (%d / 10)",
@@ -56,7 +56,7 @@ local L = FR and {
 	voitures = "CARS", peinture = "PAINT", ailes = "WINGS", trainees = "TRAILS",
 	home = "HOME", boutique = "SHOP", jouer = "PLAY", acheter = "BUY", manque = "SHORT BY",
 	equiper = "EQUIP", verrou = "LOCKED", enBoutique = "IN THE SHOP", aToi = "YOURS!", equipee = "EQUIPPED",
-	ilTeManque = "SHORT BY ", bientot = "COMING SOON",
+	ilTeManque = "SHORT BY ", gagneLes = "  -  PLAY TO EARN IT", bientot = "COMING SOON",
 	tout = "ALL", aMoi = "MINE", aAcheter = "FOR SALE", gagner = "EARN IT", defi = "WHEEL",
 	roue = "WON ON THE WHEEL", jour7 = "GIFT FOR LOGGING IN 7 DAYS IN A ROW", sept = "7 DAYS", bientotDefi = "SOON: A CHALLENGE IS COMING",
 	carrN = "CATCH HER IN CLOUDS LEVEL 10  (%d / 10)",
@@ -1301,7 +1301,7 @@ local function deciderHabit()
 		end
 	elseif decision == "pauvre" then
 		secouer()
-		Hud.toast(L.ilTeManque .. Hud.argent(d.p - (profil().compte or 0)), ROUGE, "croix")
+		Hud.toast(L.ilTeManque .. Hud.argent(d.p - (profil().compte or 0)) .. L.gagneLes, ROUGE, "croix")
 	elseif decision == "gagner" then
 		secouer()
 		Hud.toast(FR and d.d or d.dEN, nil, "verrou")
@@ -1328,7 +1328,8 @@ local function decider()
 		end
 	elseif decision == "pauvre" then
 		secouer()
-		Hud.toast(L.ilTeManque .. Hud.argent(f.cond.v - (profil().compte or 0)), ROUGE, "croix")
+		-- (9/10, parcours : le bouton rouge disait déjà « IL MANQUE $ X » — le toast le répétait mot pour mot, sans dire quoi faire)
+		Hud.toast(L.ilTeManque .. Hud.argent(f.cond.v - (profil().compte or 0)) .. L.gagneLes, ROUGE, "croix")
 	elseif decision == "equiper" then
 		occupe = true
 		local ok = ctx.action("equiper", montre)
