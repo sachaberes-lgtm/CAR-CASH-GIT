@@ -11,6 +11,13 @@
 - « Télécharger la fiche » = `fiche-voitures-cash-car-AAAA-MM-JJ.txt`, au format de la fiche du 6/10 (familles dans le nouvel ordre, notes
   sous chaque voiture, NOTES GÉNÉRALES, CHANGEMENTS PAR RAPPORT AU JEU) — c'est ce fichier qu'on donne à Claude pour l'appliquer au jeu.
   Console : `dbgSalle.lum({…})` règle la lumière à chaud, `dbgSalle.fiche()`, `dbgSalle.ratees()`.
+- **LA 1re FICHE APPLIQUÉE (9/10, Léo : « à retenir pour la liste et pour le main tant que je dis pas "c'est dégueu" »)** :
+  L'AIGLE DE FEU → RARE 800 000 $ ; LE SQUALE → ÉPIQUE 700 000 $ ; ATCHOUM → ÉPIQUE 900 000 $ (« des prix qui collent à mon ordre » :
+  le garage range chaque famille par prix). ATCHOUM : un V8 À COMPRESSEUR sort du capot à la place de l'écope (kit à part, posé après
+  `creux`). LA TAURINE : des CORNES de toro derrière les phares à cils (tube de Bézier à 7 pans, ivoire, pointe noire). CHAT POP-TART
+  ×`NY_K` (,8) : géométries + positions à la fin du gabarit, crans de l'animation ×NY_K, fiche h/w/l. Le SQUALE n'avait rien dans le
+  jeu : c'était la SALLE (pièces du kit peintes d'un seul côté, roues sans `w1F`/`wxF`/`wRF`) — corrigée. ⚠ `ROBLOX/outils/cuire-caisses.js`
+  a les deux mêmes oublis (vignettes et formes Roblox du SQUALE).
 
 ## LA SONDE QUI NE FIGE PLUS (2026-10-08, Léo : « le jeu bug un peu quand je le lance, pas que au lancement il rame — trouve une solution qui ne touche pas au graphique ni à la qualité »)
 - MESURÉ (Chrome sans fenêtre sur le Mac M2 de Léo, course au pilote auto, trace + appels WebGL chronométrés) : les à-coups de 35-120 ms

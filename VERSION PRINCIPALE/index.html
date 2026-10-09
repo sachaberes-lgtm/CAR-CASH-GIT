@@ -12990,7 +12990,8 @@ const CARS=[
   desc:'Inox brossé, portes papillon. À 88 à l\'heure elle remonte le temps, paraît-il. Toi, tu vas plus vite.'},
  // ---- LES CAISSES PREMIUM (2026-09-25) : la gamme des 15 retrouvée, en BOUTIQUE (vrai argent). Hors du garage tant
  // qu'elles ne sont pas achetées (voir `garageListe`). Fiches reprises de la branche `appstore-backlog`, emojis retirés.
- {name:'CHAT POP-TART',   shape:'poptart', color:0xf6b98a,accent:0xf78fb8,maxKmh:560,accel:64,turn:3.2, h:1.5,w:1.7,l:3.0,spoiler:0, // (2026-10-06) en voxels : 1,7 × 3 m, oreilles à 1,5 m — plus de bandes néon (`glow`) : elles barraient les murs noirs
+ {name:'CHAT POP-TART',   shape:'poptart', color:0xf6b98a,accent:0xf78fb8,maxKmh:560,accel:64,turn:3.2, h:1.2,w:1.36,l:2.4,spoiler:0, // (2026-10-09, Léo, fiche de la salle blanche) « plus petite » : tout le chat ×NY_K (,8) — h 1,5 · w 1,7 · l 3,0 avant
+  // (2026-10-06) en voxels : 1,7 × 3 m, oreilles à 1,5 m — plus de bandes néon (`glow`) : elles barraient les murs noirs
   fx:{jet:0xff64d2,core:0xffd8f2,trail:[1.5,.35,1.1],light:0xff5ec8}, // (2026-10-07) son arc-en-ciel EN FEU DE PIXELS (voir ARC_*) + ses pixels qui scintillent (NY_PIX), à la nitro et en vol — branché par NYAN.on
   desc:'Une pâtisserie industrielle avec une tête de chat et quatre roulettes. Personne n\'a demandé pourquoi. Tout le monde a demandé comment.'},
  {name:'REQUIN',          shape:'requin',  color:0x3a6ea8,accent:0xdfe9f2,maxKmh:600,accel:68,turn:3.22,h:.95,w:1.98,l:3.3,spoiler:0,glow:0x9adfff,
@@ -13085,7 +13086,7 @@ const CARS=[
   desc:'Son toit est creux, son pedigree ne l\'est pas. Elle te double en gants de cuir, sans transpirer.'},
  {retire:1,name:'LA DÉESSE',color:0x141418,accent:0xe8dcc0,maxKmh:320,accel:36,turn:2.8,h:1.47,w:1.79,l:4.84,spoiler:0,shape:'d_deesse',rar:'epique',
   desc:'Suspension hydraulique, élégance divine. Elle ne roule pas sur la route : elle la survole, et toi avec.'},
- {name:'L\'AIGLE DE FEU',color:0x0f0f11,accent:0xd9a520,maxKmh:340,accel:38,turn:2.6,h:1.25,w:1.85,l:5.1,spoiler:0,shape:'e_aigle',rar:'epique',
+ {name:'L\'AIGLE DE FEU',color:0x0f0f11,accent:0xd9a520,maxKmh:340,accel:38,turn:2.6,h:1.25,w:1.85,l:5.1,spoiler:0,shape:'e_aigle',rar:'rare', // (2026-10-09, Léo, fiche de la salle blanche) ÉPIQUE → RARE
   desc:'Un oiseau d\'or sur le capot, un shérif dans le rétro. Le shérif n\'a jamais rattrapé l\'oiseau.'},
  {name:'LA ZED',color:0xff6a14,accent:0x131417,maxKmh:330,accel:37,turn:2.9,h:1.28,w:1.63,l:4.14,spoiler:0,shape:'e_zed',rar:'rare',
   desc:'Six cylindres, un capot d\'un kilomètre et des rétros sur les ailes : le samouraï a troqué le sabre.'},
@@ -13133,12 +13134,12 @@ const CARS=[
   desc:'Une feuille d\'inox, sept plis, zéro courbe. Vitres incassables, paraît-il : on a essayé avec une boule, on n\'en parle plus.'},
  // (2026-10-06) ATCHOUM — Léo : « la voiture tuning McQueen orange qui crache du feu et éternue des flammes, elle ressemble un peu à la
  // cabossée ». Un stock-car de piste ovale, tuné et cabossé (voir SHAPES.atchoum) ; son feu : ATCH / atchTick. Ajoutée EN DERNIER.
- {name:'ATCHOUM',shape:'atchoum',color:0xff9020,accent:0x141417,maxKmh:300,accel:34,turn:2.7,h:1.24,w:1.95,l:4.32,spoiler:0,rar:'rare',
+ {name:'ATCHOUM',shape:'atchoum',color:0xff9020,accent:0x141417,maxKmh:300,accel:34,turn:2.7,h:1.24,w:1.95,l:4.32,spoiler:0,rar:'epique', // (2026-10-09, Léo, fiche de la salle blanche) RARE → ÉPIQUE
   fx:{jet:0xff7a24,core:0xffe08a,trail:[1.5,.62,.18],light:0xff8030},
   desc:'Elle a pris froid au dernier tour : depuis, elle éternue du feu. Ne reste jamais devant elle.'},
  // (2026-10-08) LE SQUALE — Léo : la voiture au sourire de requin de son sketch du garage, bleu clair, sportive, carrée aux angles
  // arrondis, les phares en yeux (voir SHAPES.squale). Ajoutée EN DERNIER (les index de sauvegarde ne bougent pas).
- {name:'SQUALE',shape:'squale',color:0x5e666d,accent:0x2a3036,maxKmh:340,accel:40,turn:2.7,h:1.66,w:2.52,l:4.5,spoiler:0,rar:'rare',
+ {name:'SQUALE',shape:'squale',color:0x5e666d,accent:0x2a3036,maxKmh:340,accel:40,turn:2.7,h:1.66,w:2.52,l:4.5,spoiler:0,rar:'epique', // (2026-10-09, Léo, fiche de la salle blanche) RARE → ÉPIQUE
   fx:{jet:0xbfe4ff,core:0xffffff,trail:[.75,.85,.95],light:0xcfe8ff},
   desc:'Toujours le sourire. Surtout quand elle te double.'},
 ];
@@ -15751,14 +15752,14 @@ function nyanTick(dt){
   NYAN.pas=cle;NYAN.hb=hb;NYAN.allure=al;
   const Z=[1,0,-1,0],Y=[0,1,0,-1]; // le tour de la bielle, par crans : devant, en haut, derrière, en bas
   for(let i=0;i<NYAN.pattes.length;i++){const s9=(st[i]+((i===0||i===3)?0:2))&3,g=NYAN.pattes[i];
-    if(al==='frein')g.position.set(0,0,NY_PATTE);else g.position.set(0,Y[s9]*NY_PATTE,Z[s9]*NY_PATTE);}
+    if(al==='frein')g.position.set(0,0,NY_PATTE*NY_K);else g.position.set(0,Y[s9]*NY_PATTE*NY_K,Z[s9]*NY_PATTE*NY_K);}
   if(NYAN.queue.length===2){const h=al==='sprint'||al==='vol'?1:al==='frein'?0:(al==='course')?(st[2]>>1)&1:(Math.floor(NYAN.bat/2)&1); // à l'arrêt elle bat doucement
     NYAN.queue[0].visible=!h;NYAN.queue[1].visible=!!h;}
   if(NYAN.feux.length===2){NYAN.feux[0].visible=!frein;NYAN.feux[1].visible=frein;}
-  if(NYAN.tete)NYAN.tete.position.y=hb*NY_U;
+  if(NYAN.tete)NYAN.tete.position.y=hb*NY_U*NY_K;
 }
 window.dbgNyan=function(c,a,d,h){if(c==='tick'){if(d){for(const w of wheels)w.rotation.x+=d;for(const e of ESSIEUX)e.rotation.x+=d;}nyanTick(a||1/60);c='allure';} // (banc, v13) une image de l'allure à la main, les roues tournées de `d` rad : le panneau caché ne fait pas tourner la boucle
-  if(c==='allure')return {allure:NYAN.allure,acc:+NYAN.acc.toFixed(1),v:+NYAN.v0.toFixed(0),pattes:NYAN.pattes.map(g=>+(g.position.z/NY_PATTE).toFixed(0)),stop:!!(NYAN.feux[1]&&NYAN.feux[1].visible)};if(c==='cliche'){if(NYAN.photo){const f=NYAN.photo,r=carGroup.rotation.y+f.a; // (banc) l'image rendue ET lue dans le même instant (le tampon WebGL est vidé entre deux images)
+  if(c==='allure')return {allure:NYAN.allure,acc:+NYAN.acc.toFixed(1),v:+NYAN.v0.toFixed(0),pattes:NYAN.pattes.map(g=>+(g.position.z/(NY_PATTE*NY_K)).toFixed(0)),stop:!!(NYAN.feux[1]&&NYAN.feux[1].visible)};if(c==='cliche'){if(NYAN.photo){const f=NYAN.photo,r=carGroup.rotation.y+f.a; // (banc) l'image rendue ET lue dans le même instant (le tampon WebGL est vidé entre deux images)
     camera.position.set(carGroup.position.x+Math.sin(r)*f.d,carGroup.position.y+f.h,carGroup.position.z+Math.cos(r)*f.d);
     camera.lookAt(carGroup.position.x,carGroup.position.y+.7,carGroup.position.z);camera.updateMatrixWorld();if(camera.view&&camera.view.enabled)camera.clearViewOffset();}
   if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return renderer.domElement.toDataURL('image/png');}if(c==='mats'){const L=[];carGroup.traverse(o=>{if(!o.isMesh)return;const m=o.material,ca=o.geometry.attributes.color;
@@ -16570,6 +16571,7 @@ function lpWheel(o){
    la tête hoche d'un voxel sur le tempo — et à la nitro, des pixels multicolores qui scintillent (voir NY_PIX). Unité `NY_U` = 10 cm ; repère
    caisse : i → x (centré), j → y (sol = 0), k → z (k = 10 ↔ z = 0, l'avant en +z). Console : `dbgNyan()`. */
 const NY_U=.1;
+const NY_K=.8; // (2026-10-09, Léo, fiche de la salle blanche) « la nyan cat : plus petite » — TOUT le chat ×,8 à la fin de son gabarit (géométries et positions) ; les crans de l'animation suivent (pattes, hochement)
 const NY_PATTE=.05,NY_BAS=.25; // (v13) la case des pattes (accrochées aux roues) — c'est aussi un cran de leur tour · la descente de la caisse sur ses roues
 const NY_P=.086; // (v12) LE PIXEL DU DESSIN : la tête et la pop-tart du pavillon ont la même case (une seule image, pas deux)
 /* (v12) LA POP-TART DU PAVILLON, de l'arrière (rangée 0) vers l'avant : `.` biscuit, `f` glaçage, `s` vermicelle — les coins du glaçage
@@ -17529,8 +17531,15 @@ const SHAPES={
        NYAN.roues.push(im);}}
     // LA FICHE : roues pixel sous les pattes (voie ±0,55 m) ; pas de halos (phares et feux sont des voxels, l'arc-en-ciel est sa
     // lumière) ; ni flamme de réacteur (`tuyeres:0`) : sa nitro, c'est l'arc-en-ciel et les étoiles, nés au milieu de la poupe.
-    return {hl:[.5,.45,2.5],tl:[.65,.8-NY_BAS,-1.1],lpw:{R:.25,w:.18,style:'nyan'},wx:.7,wzF:.95,wzR:.45,wy:0, // (v13) les roues sous les pattes, au centre des passages · (2026-10-08) 50 cm, dessinées par le gabarit (voir 6.)
-            split:0,skirt:0,sp:0,doors:0,wings:'none',glowF:0,halos:0,tuyeres:0,pots:[[0,.75-NY_BAS,-1.03]]};
+    /* (2026-10-09, Léo, fiche de la salle blanche) « la nyan cat : plus petite » — TOUT le chat ×NY_K d'un coup, comme la descente NY_BAS plus haut : chaque géométrie (une
+       fois : les images des roues et la coque du trait en partagent) et chaque position sous la caisse (les groupes animés partent de
+       zéro : leurs crans sont multipliés par NY_K dans la boucle) ; ses ancrages suivent. */
+    {const vu=new Set();for(let n=n0;n<carGroup.children.length;n++)carGroup.children[n].traverse(o=>{o.position.multiplyScalar(NY_K);
+      if(o.isMesh&&!vu.has(o.geometry)){vu.add(o.geometry);o.geometry.scale(NY_K,NY_K,NY_K);}});
+     NYAN.arc.multiplyScalar(NY_K);}
+    const kk=NY_K,mk=a=>a.map(v=>v*kk);
+    return {hl:mk([.5,.45,2.5]),tl:mk([.65,.8-NY_BAS,-1.1]),lpw:{R:.25*kk,w:.18*kk,style:'nyan'},wx:.7*kk,wzF:.95*kk,wzR:.45*kk,wy:0, // (v13) les roues sous les pattes, au centre des passages · (2026-10-08) 50 cm, dessinées par le gabarit (voir 6.)
+            split:0,skirt:0,sp:0,doors:0,wings:'none',glowF:0,halos:0,tuyeres:0,pots:[mk([0,.75-NY_BAS,-1.03])]};
   },
   // 15. LE REQUIN — bulle de verre sur un corps rond, museau de grand blanc, et QUATRE BRAS
   //     D'HÉLICES repliés dans les flancs au sol / déployés en vol. Les bras réutilisent les
@@ -19481,6 +19490,27 @@ Object.assign(SHAPES,{
   P.box('k',.70,.06,.03,0,.32,LF-.01);P.box('k',1.30,.05,.02,0,.40,LF-.035);   // la bouche avant
   for(let i=0;i<5;i++)P.box('c',1.10,.012,.02,0,.47+i*.04,-LF-.012);           // grille arrière chromée
   K.commit(P);
+  /* (2026-10-09, Léo, fiche de la salle blanche) « à LA TAURINE, ajoute des cornes de toro » — LES CORNES : plantées sur la crête des ailes juste derrière les phares à
+     cils (les YEUX de la caisse), elles partent de côté, remontent et pointent vers l'AVANT : le toro qui baisse la tête pour charger.
+     Un tube à 7 pans qui s'effile le long d'une courbe de Bézier (repère transporté le long de la courbe, sans vrille), IVOIRE, la pointe
+     NOIRE, une platine chromée au pied. */
+  {const C=K.kit({H:{g:'s',c:0xf0e4c8},N:{g:'m',c:0x2a211c},c:{g:'c',c:0xe9ecf0}});
+   const nz=a=>{const l=Math.hypot(a[0],a[1],a[2])||1;return [a[0]/l,a[1]/l,a[2]/l];},vx=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+   const B=[[.74,.70,1.30],[1.08,.82,1.26],[1.24,1.10,1.42],[1.10,1.38,1.74]];   // la courbe de la corne droite : le pied, de côté, en haut, la pointe
+   const at=t=>{const u=1-t;return [0,1,2].map(i=>u*u*u*B[0][i]+3*u*u*t*B[1][i]+3*u*t*t*B[2][i]+t*t*t*B[3][i]);};
+   const NS=7,NR=12,A9=[];let n=null,Tg=null;
+   for(let i=0;i<=NR;i++){const t=i/NR,p=at(t),a=at(Math.max(0,t-.02)),b=at(Math.min(1,t+.02));Tg=nz([b[0]-a[0],b[1]-a[1],b[2]-a[2]]);
+     if(!n)n=nz(vx(Tg,[0,0,1]));else{const d=n[0]*Tg[0]+n[1]*Tg[1]+n[2]*Tg[2];n=nz([n[0]-Tg[0]*d,n[1]-Tg[1]*d,n[2]-Tg[2]*d]);}
+     const bn=vx(Tg,n),r=.092*Math.pow(1-t,.85)+.004,R9=[];
+     for(let j=0;j<NS;j++){const th=j/NS*Math.PI*2,c9=Math.cos(th)*r,s9=Math.sin(th)*r;R9.push([p[0]+n[0]*c9+bn[0]*s9,p[1]+n[1]*c9+bn[1]*s9,p[2]+n[2]*c9+bn[2]*s9]);}
+     A9.push(R9);}
+   const pt=at(1),apex=[pt[0]+Tg[0]*.03,pt[1]+Tg[1]*.03,pt[2]+Tg[2]*.03];
+   for(const sd of [-1,1]){const m=q=>[sd*q[0],q[1],q[2]],tri=(k,a,b,c)=>sd>0?C.tri(k,m(a),m(b),m(c)):C.tri(k,m(a),m(c),m(b)); // à gauche, le miroir retourne les faces
+     for(let i=0;i<NR;i++){const k=(i+.5)/NR>.8?'N':'H';
+       for(let j=0;j<NS;j++){const j1=(j+1)%NS;tri(k,A9[i][j],A9[i][j1],A9[i+1][j1]);tri(k,A9[i][j],A9[i+1][j1],A9[i+1][j]);}}
+     for(let j=0;j<NS;j++)tri('N',A9[NR][j],A9[NR][(j+1)%NS],apex);
+     C.box('c',.22,.03,.26,sd*.74,yF(1.30)-.005,1.30);}                        // la platine du pied
+   K.commit(C);}
   return {hl:[.64,.75,1.80],tl:[.66,.64,-2.20],wx:.76,wzF:ZF,wzR:-ZR,
           lpw:{R:R,w:.27,style:'multi',n:12,jante:0xd8c9a2}};
 },
@@ -20667,8 +20697,7 @@ SHAPES.atchoum=function(K){
   for(const sd of [-1,1])P.box('W',.30,.09,.02,sd*.52,.535,ZN+.008);
   P.box('c',.30,.025,.012,.52,.535,ZN+.02,0,0,.42);P.box('c',.30,.025,.012,.52,.535,ZN+.022,0,0,-.42); // le scotch
   P.box('k',1.7,.03,.26,0,.24,ZN-.03);                                          // la lame
-  // ---- LE CAPOT : l'écope ----
-  P.box('K',.46,.075,.52,0,T(1.25)+.035,1.25,.12,0,0);P.box('k',.40,.05,.02,0,T(1.0)+.05,.99);
+  // ---- LE CAPOT : (2026-10-09) l'écope a laissé la place au V8 À COMPRESSEUR, posé après la tôle enfoncée (voir plus bas) ----
   // ---- LES RÉTROS (le gauche rouillé) ----
   for(const sd of [-1,1]){P.box(sd<0?'R':'p',.1,.075,.14,sd*.86,Bt(.62)+.12,.62);P.box('k',.11,.025,.04,sd*.80,Bt(.62)+.08,.62);}
   // ---- LES POTS LATÉRAUX (devant les roues arrière) et les sorties sous la poupe ----
@@ -20694,6 +20723,25 @@ SHAPES.atchoum=function(K){
     for(let i=0;i<a.length;i+=3){creux(a[i],a[i+1],a[i+2],o9);a[i]+=o9[0];a[i+1]+=o9[1];a[i+2]+=o9[2];}
     gs[g].attributes.position.needsUpdate=true;gs[g].computeVertexNormals();}return gs;};
   K.commit(P);
+  /* (2026-10-09, Léo, fiche de la salle blanche) « ajoute un moteur Dodge thermique sur le capot » — LE V8 À COMPRESSEUR qui SORT DU CAPOT, façon dragster américain
+     (l'esprit seulement, aucune marque) : à la place de l'écope, le collecteur noir noyé dans le capot, les deux CULASSES ROUGES du V qui
+     en dépassent (reniflards chromés), le CARTER DU COMPRESSEUR strié de nervures, sa courroie et ses deux poulies devant, et dessus la
+     PRISE D'AIR chromée, sa gueule noire grillagée face à la route. Un kit À PART, posé APRÈS `creux` : le capot froissé ne le cabosse pas. */
+  {const E=K.kit({c:{g:'c',c:0xd9dde3},G:{g:'s',c:0x9ea3ab},k:{g:'m',c:0x141417},K:{g:'g',c:0x0c0d10},F:{g:'p',c:0xd8261a,f:0}}),
+     zM=1.24,yC=T(zM),yB=yC+.195,yH=yB+.11,zP=zM+.32;                          // le centre du bloc, le capot à cet endroit, le carter, la prise d'air, la façade
+   E.box('k',.58,.16,.74,0,yC+.005,zM);                                        // le collecteur, noyé dans le capot (le capot penche : il dépasse plus à l'avant)
+   for(const sd of [-1,1]){E.box('F',.17,.075,.64,sd*.37,yC+.02,zM,0,0,sd*.42); // les culasses du V, couchées vers l'extérieur
+     for(const z of [-.18,.14])E.cyl('c',.032,.06,8,sd*.40,yC+.075,zM+z,'y');}   // les reniflards
+   E.box('G',.44,.22,.60,0,yB,zM);                                              // LE CARTER DU COMPRESSEUR
+   for(let i=0;i<7;i++)E.box('c',.465,.17,.018,0,yB-.005,zM-.255+i*.085);      // ses nervures
+   E.cyl('c',.085,.05,12,0,yB+.02,zP,'z');E.cyl('k',.03,.055,8,0,yB+.02,zP+.003,'z'); // la poulie du haut et son moyeu
+   E.cyl('c',.065,.05,12,0,yC+.10,zP+.02,'z');                                 // celle du vilebrequin
+   for(const sd of [-1,1])E.box('k',.022,yB-yC-.08,.045,sd*.075,(yB+yC+.12)/2,zP+.012); // la courroie
+   E.box('k',.32,.03,.44,0,yH+.015,zM);                                        // LA PRISE D'AIR : son embase
+   E.box('c',.30,.13,.30,0,yH+.095,zM-.02);E.box('c',.33,.022,.33,0,yH+.17,zM-.02); // le corps chromé, sa lèvre
+   E.box('K',.25,.09,.012,0,yH+.095,zM+.135);                                  // la gueule, face à la route
+   for(let i=0;i<4;i++)E.box('G',.012,.085,.014,-.09+i*.06,yH+.095,zM+.142);   // sa grille
+   K.commit(E);}
   return {hl:[.52,.535,ZN+.03],tl:[.58,.66,ZT-.03],wx:.82,wzF:ZF,wzR:-ZR,
           pots:[[.97,.29,-.83],[-.97,.29,-.83],[.42,.30,ZT-.14],[-.42,.30,ZT-.14]],
           lpw:{R:R,w:.26,style:'multi',jante:0x26282d,accent:0xff9020}};
@@ -22631,7 +22679,7 @@ const CAR_UNLOCK=[
   {p:850000}, // LA CHAUVE-SOURIS
   {p:950000}, // LA PAGODE — (2026-10-06) RETIRÉE
   {p:1100000}, // LA DÉESSE — (2026-10-06) RETIRÉE
-  {p:1000000}, // L'AIGLE DE FEU (2026-10-06 : 1,3 M → 1 M)
+  {p:800000}, // L'AIGLE DE FEU (2026-10-06 : 1,3 M → 1 M) (2026-10-09, Léo, fiche de la salle blanche) RARE à 800 000 : entre LA QUEUE DE CANARD et LA CHAUVE-SOURIS, l'ordre de la fiche
   {p:1600000}, // LA ZED
   {k:'premium',eur:'1,61 €',rar:'leg'}, // LA FÉLINE — (2026-10-06) LÉGENDAIRE en boutique (était épique, 2 M)
   {k:'bientot',v:1}, // LA RAIE — (2026-10-06) DÉFI à définir (était épique, 2,5 M)
@@ -22649,8 +22697,8 @@ const CAR_UNLOCK=[
   {k:'carrN',v:5}, // (2026-10-04 : les 5 niveaux de SKY HIGH) (2026-09-27) LA CAISSE-NUAGE — les dix niveaux des NUAGES (elle se gagne en l'attrapant au niveau 10)
   {k:'carrV',v:5}, // (2026-10-05 : les 5 niveaux de la VILLE) (2026-09-27) LE LINGOT — les dix niveaux de la VILLE (il se gagne en battant le banquier au niveau 10)
   {p:1200000}, // (2026-10-02) L'ORIGAMI — ÉPIQUE, à l'argent : entre LA DÉESSE et L'AIGLE DE FEU
-  {p:150000}, // (2026-10-06) ATCHOUM — RARE, à l'argent
-  {p:120000}, // (2026-10-08) LE SQUALE — RARE, à l'argent
+  {p:900000}, // (2026-10-06) ATCHOUM — RARE, à l'argent (2026-10-09, Léo, fiche de la salle blanche) ÉPIQUE à 900 000 : entre LA STRATOS et L'ORIGAMI, l'ordre de la fiche
+  {p:700000}, // (2026-10-08) LE SQUALE — RARE, à l'argent (2026-10-09, Léo, fiche de la salle blanche) ÉPIQUE à 700 000 : entre LA TAURINE et ACIDE, l'ordre de la fiche
 ]
 /* (POKI) PLUS DE MISSIONS, DE CARRIÈRE NI DE BOUTIQUE : les caisses qui s'y gagnaient passent À L'ARGENT DU JEU (sinon le garage montrerait
    des caisses qu'on ne peut plus avoir). Les prix prolongent la gamme : les carnets là où ils tombaient dans la progression (LA BULLE

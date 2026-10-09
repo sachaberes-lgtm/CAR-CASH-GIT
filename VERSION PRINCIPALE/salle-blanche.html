@@ -253,7 +253,9 @@ function assemble(i){
   const cyl=(rt,rb,hh,mat,x,y,z,sg)=>{const m=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,hh,sg||12),mat);m.position.set(x||0,y||0,z||0);return add(m);};
   const sph=(sx,sy,sz,mat,x,y,z)=>{const m=new THREE.Mesh(SPH9,mat);m.scale.set(sx,sy,sz);m.position.set(x||0,y||0,z||0);return add(m);};
   const con=(r,hh,mat,x,y,z,sg)=>{const m=new THREE.Mesh(new THREE.ConeGeometry(r,hh,sg||12),mat);m.position.set(x||0,y||0,z||0);return add(m);};
-  const lpM={},lpMatC=g=>lpM[g]||(lpM[g]=tag(new THREE.MeshBasicMaterial({vertexColors:true}),g)),kitM=m=>{m.userData.kit=1;return m;};
+  // ⚠ les pièces du kit sont peintes DES DEUX CÔTÉS, comme dans le jeu (lpMat : DoubleSide) — sinon une face retournée devient un trou
+  //   (le SQUALE montrait des « transparences » partout, Léo 9/10)
+  const lpM={},lpMatC=g=>lpM[g]||(lpM[g]=tag(new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide}),g)),kitM=m=>{m.userData.kit=1;return m;};
   const commit=kt=>{const gs=kt.done();for(const g in gs){if(g!=='l')lpOmbre(gs[g],H9);add(new THREE.Mesh(gs[g],kitM(lpMatC(g))));}};
   const K={W:W9,H:H9,L:L9,y0,spec,wreck,add,box,prof,cyl,sph,con,kit:pal=>lpKit(pal),commit,
     body:bodyM,acc:accM,glass:glassM,chrome:chromeM,dark:darkM,rust:rustM};
@@ -265,11 +267,15 @@ function assemble(i){
     for(const sd of[-1,1])box(.05,.06,A.glowL,gm,sd*A.glowX,A.glowY,0);if(A.glowF)box(W9*.7,.06,.05,gm,0,y0+H9*.5,L9/2+.02);}
   if(spec.rocket){const bm=tag(new THREE.MeshPhongMaterial({color:0x3a3f48}),'c'),nm=tag(new THREE.MeshBasicMaterial({color:spec.glow||0x66c8ff}),'l');
     for(const sd of[-1,1]){cyl(.24,.3,.9,bm,sd*W9*.26,y0+H9*.55,-L9/2-.32,10).rotation.x=Math.PI/2;cyl(.16,.2,.1,nm,sd*W9*.26,y0+H9*.55,-L9/2-.82,10).rotation.x=Math.PI/2;}}
-  // LES ROUES : une géométrie dans son repère (essieu = X), posée quatre fois (miroir à gauche pour le kit)
+  // LES ROUES : une géométrie dans son repère (essieu = X), posée quatre fois (miroir à gauche pour le kit) — EXACTEMENT comme buildCar,
+  // fiche comprise : `wxF` (voie avant), `wRF` (échelle avant), `w1F`/`lpwF` (UNE roue avant au milieu, le SQUALE : ses deux roues avant
+  // perçaient les nageoires dans la salle, Léo 9/10)
   const roue=new THREE.Group(),roues=[];
-  if(A.lpw){const gs=lpWheel(A.lpw);for(const g in gs)roue.add(new THREE.Mesh(gs[g],kitM(lpMatC(g))));
-    for(const[sx,sz]of[[-1,1],[1,1],[-1,-1],[1,-1]])
-      roues.push({x:sx*A.wx,y:A.lpw.R+A.wy,z:sz>0?(A.wzF!=null?A.wzF:A.wz):-(A.wzR!=null?A.wzR:A.wz),miroir:sx<0});
+  if(A.lpw){const W9=A.lpw,gs=lpWheel(W9),gs1=A.w1F?lpWheel(Object.assign({},W9,A.lpwF||{},{deux:1})):null;
+    for(const[sx,sz]of[[-1,1],[1,1],[-1,-1],[1,-1]]){const seule=gs1&&sz>0;if(seule&&sx<0)continue;
+      const g9=seule?gs1:gs,kF=sz>0&&A.wRF?A.wRF:1,w=new THREE.Group();for(const g in g9)w.add(new THREE.Mesh(g9[g],kitM(lpMatC(g))));
+      w.scale.set((sx<0&&!seule?-1:1)*kF,kF,kF);
+      w.position.set(seule?0:sx*(sz>0&&A.wxF!=null?A.wxF:A.wx),W9.R*kF+A.wy,sz>0?(A.wzF!=null?A.wzF:A.wz):-(A.wzR!=null?A.wzR:A.wz));grp.add(w);}
   }else{const R9=.40*A.wr,w=new THREE.Group();
     w.add(new THREE.Mesh(new THREE.CylinderGeometry(R9,R9,.32*A.wr,14),darkM));
     w.add(new THREE.Mesh(new THREE.CylinderGeometry(R9*.6,R9*.6,.34*A.wr,10),wreck?darkM:chromeM));
