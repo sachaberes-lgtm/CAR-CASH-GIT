@@ -6172,9 +6172,10 @@ html.hubOn #gTourne.on.tient{cursor:grabbing}
   background:linear-gradient(rgba(154,144,200,.4),rgba(154,144,200,.4)) 0 50%/100% 2px no-repeat,
     linear-gradient(rgba(255,255,255,.75),rgba(255,255,255,.75)) 50% 0/2px 100% no-repeat,
     repeating-linear-gradient(90deg,rgba(154,144,200,.5) 0 1px,transparent 1px calc(100% / 24)) 0 50%/calc(100% + 1px) 6px no-repeat}
-#gTourne .gtFill{top:50%;height:2px;margin-top:-1px;left:calc(26px + var(--f0,.5) * (100% - 52px));width:calc(var(--fl,0) * (100% - 52px));
-  background:var(--neoC);box-shadow:0 0 8px var(--neoC)}
-#gTourne .gtPouce{top:50%;width:8px;height:18px;margin:-9px 0 0 -4px;left:calc(26px + var(--t,.5) * (100% - 52px));
+#gTourne .gtFill{top:50%;height:2px;margin-top:-1px;left:26px;right:26px;clip-path:inset(-6px calc((1 - var(--f1,.5)) * 100%) -6px calc(var(--f0,.5) * 100%));
+  background:var(--neoC);box-shadow:0 0 8px var(--neoC)} /* (même soir, « plus smooth ») le trait se découpe (clip-path) au lieu de changer de largeur : rien à remettre en page */
+#gTourne{container-type:inline-size}
+#gTourne .gtPouce{top:50%;width:8px;height:18px;margin:-9px 0 0 -4px;left:26px;translate:calc(var(--t,.5) * (100cqw - 52px)) 0;will-change:translate;
   background:linear-gradient(90deg,#fff 0 2px,var(--neoC) 2px calc(100% - 2px),#2a9fbf calc(100% - 2px));
   box-shadow:0 0 0 1px rgba(7,5,15,.9),0 0 10px var(--neoC);transition:height var(--t-fast) var(--ease),margin var(--t-fast) var(--ease)}
 #gTourne.tient .gtPouce{height:24px;margin-top:-12px;box-shadow:0 0 0 1px rgba(7,5,15,.9),0 0 16px var(--neoC)}
@@ -6259,7 +6260,7 @@ html body #ivGrille .ivT{height:100px}
 html body #ivGrille .ivSec{grid-column:1/-1;display:flex;align-items:center;gap:9px;height:16px;margin:6px 2px -2px;color:var(--rc);font-size:var(--f0);letter-spacing:3px;
   text-shadow:0 0 8px var(--rg),0 1px 0 rgba(7,5,15,.9);pointer-events:none}
 html body #ivGrille .ivSec:first-child{margin-top:0}
-html body #ivGrille .ivSec>i{flex:none;width:7px;height:7px;transform:rotate(45deg);background:var(--rc);box-shadow:0 0 8px var(--rg)}
+html body #ivGrille .ivSec>.pxi{--pxs:1;flex:none;color:var(--rc);filter:drop-shadow(0 0 5px var(--rg))} /* (2026-10-09) le logo de la famille (RAR_LOGO) */
 html body #ivGrille .ivSec>span{flex:none;transform:skewX(var(--sk))}
 html body #ivGrille .ivSec>s{flex:1;height:1px;text-decoration:none;background:linear-gradient(90deg,var(--rc),transparent);opacity:.55}
 html body #ivGrille .ivSec>small{flex:none;font-size:var(--f0);letter-spacing:1px;color:var(--tx3);text-shadow:none}
@@ -6281,6 +6282,11 @@ html body #garage:not(.menu) #gRar.gModeBar{display:flex!important;align-items:c
 #gStrip .gVide{flex:1;display:flex;align-items:center;justify-content:center;min-height:60px;font-size:var(--f0);letter-spacing:2px;color:var(--tx3)}
 #gStrip.gModeShop .gT.lock img{filter:none}
 html body #garage:not(.menu) #gRar .gR.vide{opacity:.45}
+/* LES LOGOS DES FAMILLES (2026-10-09, Léo : « enlève les nombres, fais des logotypes ») : dans la rangée des raretés, plus de losange ni de
+   compte — le logo pixel de la famille (RAR_LOGO : roue · gemme · flamme · couronne · cible), à sa couleur, qui s'allume quand on la choisit. */
+html body #garage:not(.menu) #gRar .gR:not(.gF)::before{display:none}
+html body #garage:not(.menu) #gRar .gR:not(.gF)>.pxi{--pxs:2;color:var(--rc);opacity:.78;filter:drop-shadow(0 0 3px var(--rc));transform:skewX(calc(-1 * var(--sk)))}
+html body #garage:not(.menu) #gRar .gR.on:not(.gF)>.pxi{opacity:1;filter:drop-shadow(0 0 7px var(--rc)) brightness(1.15)}
 /* LA CROIX DE L'INVENTAIRE, DISCRÈTE (même jour, Léo : « la croix est juste plus discrète, et sert à enlever le rectangle avec toutes
    les voitures pour qu'on ait une vue sur le garage ») : elle ferme toujours le tiroir, mais n'est plus une touche cyan pleine. Plus de
    plaque ni de tranche : une petite croix lilas dans un carré à peine dessiné (filet d'1 px, fond presque nul), qui s'allume sous le doigt.
@@ -6807,6 +6813,9 @@ if(window.CC_COLONNE)return; // (2026-09-28) sur l'ordi cette page n'est que le 
    Usage : `<i class="pxi pxi-croix"></i>` dans le HTML, `pxi('croix')` dans le JS. */
 const PXI_G={coeur:'.........|.##...##.|####.####|#########|#########|.#######.|..#####..|...###...|....#....',vibre:'..#####..|#.#...#.#|#.#...#.#|..#...#..|#.#...#.#|#.#...#.#|..#...#..|..#.#.#..|..#####..',aimant:'##.....##|.........|##.....##|##.....##|##.....##|###...###|.#######.|..#####..|.........',bouclier:'#########|##.....##|##.....##|##.....##|.##...##.|.##...##.|..##.##..|...###...|....#....',nuage:'.........|.........|....##...|...####..|.##.####.|#########|#########|.#######.|.........',immeuble:'....#....|...###...|...###.##|##.###.##|##.###.##|#########|#########|#########|.........',flamme:'....#....|...##....|...###...|..####.#.|..######.|.###.###.|.##...##.|.##...##.|..#####..',pinceau:'......###|.....####|....####.|...####..|..####...|.#.##....|###......|###......|.#.......',aile:'.........|#........|##.......|###......|#####....|.#######.|..#######|....#####|.......##',trainee:'.........|##.......|.###.....|..####...|...######|..####...|.###.....|##.......|.........',pouce:'...##....|...##....|...##....|...####..|.#######.|.########|.#######.|..#####..|..#####..',cadeau:'.##...##.|#..#.#..#|.#######.|#########|#...#...#|####.####|.#..#..#.|.#..#..#.|.#######.',cible:'..#####..|.#.....#.|#..###..#|#.#...#.#|#.#.#.#.#|#.#...#.#|#..###..#|.#.....#.|..#####..',croix:'##.....##|###...###|.###.###.|..#####..|...###...|..#####..|.###.###.|###...###|##.....##',gauche:'....##...|...###...|..####...|.#####...|######...|.#####...|..####...|...###...|....##...',droite:'...##....|...###...|...####..|...#####.|...######|...#####.|...####..|...###...|...##....',haut:'.........|....#....|...###...|..#####..|.#######.|#########|...###...|...###...|...###...',bas:'...###...|...###...|...###...|#########|.#######.|..#####..|...###...|....#....|.........',lecture:'##.......|####.....|######...|########.|#########|########.|######...|####.....|##.......',pause:'.........|###...###|###...###|###...###|###...###|###...###|###...###|###...###|.........',reglages:'....#....|.#.###.#.|..#####..|.##...##.|###...###|.##...##.|..#####..|.#.###.#.|....#....',son:'....#....|...##..#.|####.#..#|####.#..#|####.#..#|####.#..#|...##..#.|....#....|.........',muet:'....#....|...##....|####..#.#|####...#.|####..#.#|####.....|...##....|....#....|.........',musique:'...######|...#....#|...#....#|...#....#|.###..###|####.####|####.####|.##...##.|.........',voix:'...###...|..#####..|..#####..|..#####..|#.#####.#|#..###..#|.##...##.|...###...|..#####..',volant:'..#####..|.#.....#.|#.......#|#..###..#|#########|#...#...#|#...#...#|.#..#..#.|..#####..',fleches:'.........|..#...#..|.##...##.|###...###|###...###|###...###|.##...##.|..#...#..|.........',eclair:'.....###.|....###..|...###...|..######.|.....##..|....##...|...##....|..##.....|.#.......',drapeau:'#.#.#.#.#|##.#.#.#.|#.#.#.#.#|##.#.#.#.|#.#.#.#.#|#........|#........|#........|#........',voiture:'.........|.........|..####...|.#..#.#..|########.|#########|#########|.##...##.|.##...##.',rampe:'.........|.........|........#|......###|.....####|...######|.########|#########|.........',brique:'#########|#...#...#|#########|..#...#..|#########|#...#...#|#########|..#...#..|#########',copier:'...###...|.##...##.|.#######.|.#.....#.|.#.###.#.|.#.....#.|.#.###.#.|.#.....#.|.#######.',importer:'....#....|....#....|..#.#.#..|...###...|....#....|#.......#|#.......#|#########|.........',corbeille:'...###...|#########|.#.....#.|.#.#.#.#.|.#.#.#.#.|.#.#.#.#.|.#.#.#.#.|.#.....#.|..#####..',rejouer:'..#####..|.#.....##|#.....###|#........|#........|#.......#|#.......#|.#.....#.|..#####..',quitter:'#####....|#...#....|#...#.#..|#...#.##.|#..######|#...#.##.|#...#.#..|#...#....|#####....',verrou:'..#####..|.#.....#.|.#.....#.|#########|#########|####.####|####.####|#########|#########',coche:'.........|........#|.......##|#.....##.|##...##..|.##.##...|..###....|...#.....|.........',etoile:'....#....|....#....|...###...|#########|.#######.|..#####..|..##.##..|.##...##.|.#.....#.',trophee:'#########|#.#####.#|#.#####.#|.#######.|..#####..|...###...|....#....|..#####..|.#######.',rotation:'..#####..|.#.....##|#.....###|#........|#..###...|#..#.#..#|#..###..#|.#.....#.|..#####..',panier:'.........|#........|.#######.|.#.#.#.#.|.#######.|..#.#.#..|..#####..|..#...#..|.........',bulle:'.#######.|#.......#|#.#.#.#.#|#.......#|.###.###.|...#.#...|...##....|...#.....|.........',piece:'..#####..|.#.....#.|#..###..#|#.#.....#|#..###..#|#.....#.#|#..###..#|.#.....#.|..#####..',maison:'....#....|...###...|..#####..|.#######.|#########|.#######.|.##...##.|.##...##.|.##...##.',triade:'....#....|...###...|...###...|..##.##..|.##.#.##.|.###.###.|#########|#########|.........'};
 PXI_G.coffre='.#######.|#.......#|#.......#|#########|#...#...#|#..###..#|#...#...#|#.......#|#########'; // (2026-10-05) le COFFRE : l'inventaire (le coffre de la caisse)
+PXI_G.roue='..#####..|.#.....#.|#..###..#|#.#...#.#|#.#.#.#.#|#.#...#.#|#..###..#|.#.....#.|..#####..'; // (2026-10-09) la famille COMMUNE : la roue
+PXI_G.gemme='.........|..#####..|.#..#..#.|#########|.#.....#.|..#...#..|...#.#...|....#....|.........'; // (2026-10-09) la famille RARE : la gemme taillée
+PXI_G.couronne='.........|#...#...#|#..###..#|##.###.##|#########|#########|.........|#########|.........'; // (2026-10-09) la famille LÉGENDAIRE : la couronne
 PXI_G.tour='....#....|....#....|...###...|...#.#...|..#####..|..#...#..|.#######.|.#.....#.|##.....##'; // (2026-09-28) la Dame de fer
 (function(){
   let css='',vars='';
@@ -22986,6 +22995,7 @@ function carRar(i){const c=CARS[i];if(c&&c.rar)return c.rar;const u=CAR_UNLOCK[i
 function carOrdre(i){const u=CAR_UNLOCK[i];if(!u)return -1;if(u.p)return u.p;if(u.eur)return parseFloat(String(u.eur).replace(',','.'))||0;
   if(u.k==='carnet')return u.v;if(u.k==='aura')return 100+u.v;return 1e9;} // dans une famille : du plus accessible au plus dur
 function rarListe(r){const L=[];for(let i=0;i<CARS.length;i++)if(carRar(i)===r&&!carRetiree(i))L.push(i);return L.sort(function(a,b){return carOrdre(a)-carOrdre(b);});}
+const RAR_LOGO={commun:'roue',rare:'gemme',epique:'flamme',legendaire:'couronne',defi:'cible'}; // (2026-10-09, Léo : « enlève les nombres de voitures dans chaque rareté, fais des logotypes ») — DÉFI : la cible des missions
 function rarInfo(r){return RARETES.find(function(x){return x.id===r;})||RARETES[0];}
 function carOwned(i){return !!(SAVE.d.owned&&SAVE.d.owned.indexOf(i)>=0);}
 /* (2026-09-26, user : « pour la version test donne-moi accès à toutes les voitures mais en laissant les conditions d'obtention »)
@@ -37806,7 +37816,7 @@ function garageFamilles(r){
   if(bar._k!==cles){bar._k=cles;
     bar.innerHTML=RARETES.map(function(x){const L=rarListe(x.id);let a=0;for(const i of L)if(carUnlockedVrai(i))a++;const v=shop?nbV(L):0,lb=shop?String(v):a+'/'+L.length;
       const nm9=sansAcc(TR(x.n)); // (garage v6) la famille se dit en COULEUR : son nom reste pour le lecteur d'écran et l'info-bulle
-      return '<button class="gR'+(x.id===r?' on':'')+(shop&&!v?' vide':'')+'" data-r="'+x.id+'" role="tab" aria-selected="'+(x.id===r)+'" aria-label="'+nm9+' '+lb+'" title="'+nm9+'" style="--rc:'+x.c+'"><span class="gRn">'+nm9+'</span><b>'+lb+'</b></button>';}).join('');}
+      return '<button class="gR'+(x.id===r?' on':'')+(shop&&!v?' vide':'')+'" data-r="'+x.id+'" role="tab" aria-selected="'+(x.id===r)+'" aria-label="'+nm9+' '+lb+'" title="'+nm9+'" style="--rc:'+x.c+'"><span class="gRn">'+nm9+'</span>'+pxi(RAR_LOGO[x.id]||'etoile')+'</button>';}).join('');} // (2026-10-09) le LOGO de la famille, plus de compte
   {const ro=bar.querySelector('.gR.on');if(ro&&bar._on!==r){bar._on=r;const x=ro.offsetLeft-(bar.clientWidth-ro.offsetWidth)/2;try{bar.scrollTo({left:x,behavior:REDUCED_MOTION?'auto':'smooth'});}catch(e){bar.scrollLeft=x;}}} // la famille active vient se montrer
   const L=shop?rarListe(r).filter(gAVendre):rarListe(r),ri=rarInfo(r),own=L.filter(carUnlockedVrai).length; // (charte v4) posséder une caisse de plus REFAIT la bande (elle gardait son cadenas après l'achat) — (2026-10-09) en BOUTIQUE, celles à vendre seulement
   const mk9=(function(){try{const s=misEtat();return s.n+':'+s.ok.join('');}catch(e){return '';}})(); // (2026-09-29) les défis relevés changent la vignette de la caisse en jeu
@@ -40227,21 +40237,28 @@ var GTN={el:document.getElementById('gTourne'),id:null,k0:0,t:-1,deg:999}; // va
 function gtWrap(a){return Math.atan2(Math.sin(a),Math.cos(a));}
 function gTourneMaj(){
   if(!GTN||!GTN.el||!GTN.el.classList.contains('on'))return;
-  const a=gtWrap(GAR.vA||0),t=Math.round((.5-a/(2*Math.PI))*1000)/1000;
-  if(t!==GTN.t){GTN.t=t;const st=GTN.el.style;st.setProperty('--t',t);st.setProperty('--f0',Math.min(t,.5));st.setProperty('--fl',Math.abs(t-.5));}
+  /* (même soir, Léo : « plus smooth la glisse de la jauge ») le curseur montre la CIBLE (GAR.vAc) : il colle au doigt et file avec l'élan,
+     la vue le rattrape par son ressort (au lieu d'un curseur qui traînait derrière la vue). L'élan s'arrête en douceur au bout du rail. */
+  if(GTN.glisse){if(!GAR.vW){GTN.glisse=false;}else{const lo=GTN.k0-Math.PI,hi=GTN.k0+Math.PI;if(GAR.vAc<lo||GAR.vAc>hi){GAR.vAc=Math.min(hi,Math.max(lo,GAR.vAc));GAR.vW=0;GTN.glisse=false;}}}
+  const a=gtWrap(GTN.id!=null||GTN.glisse?(GAR.vAc-GTN.k0)+0:(GAR.vAc!=null?GAR.vAc:(GAR.vA||0))),t=Math.round((.5-a/(2*Math.PI))*10000)/10000;
+  if(t!==GTN.t){GTN.t=t;const st=GTN.el.style;st.setProperty('--t',t);st.setProperty('--f0',Math.min(t,.5));st.setProperty('--f1',Math.max(t,.5));}
   const d=Math.round(-a*180/Math.PI);if(d!==GTN.deg){GTN.deg=d;GTN.el.setAttribute('aria-valuenow',d);}}
 function gtLibre(){return garageOn&&!GAR.go&&!GAR.fige&&!ecranWipe._on&&hubCtx()==='atl';}
 function gtSaisit(){
   if(GAR.swK){GAR.vA=(GAR.vA||0)+(GAR.swO||0);GAR.swO=GAR.swP=GAR.swK=0;}
   const cur=GAR.vAc!=null?GAR.vAc:(GAR.vA||0);GTN.k0=cur-gtWrap(cur);GAR.ret=null;GAR.vW=0;}
-function gtVise(a){GAR.vAc=GTN.k0+a;GAR.vW=0;GAR.ret=null;GAR.mvT=GAR.tDoigt=performance.now();}
+function gtVise(a){const n=performance.now(),c0=GAR.vAc;GAR.vAc=GTN.k0+a;
+  if(GTN.tv!=null&&c0!=null){const dtv=Math.max(8,n-GTN.tv)/1000;GTN.v=(GTN.v||0)*.5+((GAR.vAc-c0)/dtv)*.5;} // la vitesse du doigt, lissée : l'élan du lâcher
+  GTN.tv=n;GAR.vW=0;GAR.ret=null;GAR.mvT=GAR.tDoigt=n;}
 function gtDuDoigt(e){const r=GTN.el.querySelector('.gtRail').getBoundingClientRect();
   const t=THREE.MathUtils.clamp((e.clientX-r.left)/Math.max(1,r.width),0,1);gtVise(-(t-.5)*2*Math.PI);}
 if(GTN.el){
   GTN.el.addEventListener('pointerdown',function(e){e.stopPropagation();if(!gtLibre()||GTN.id!=null)return;
-    GTN.id=e.pointerId;try{GTN.el.setPointerCapture(e.pointerId);}catch(_){}GTN.el.classList.add('tient');gtSaisit();gtDuDoigt(e);hap(4);});
+    GTN.id=e.pointerId;GTN.glisse=false;GTN.tv=null;GTN.v=0;try{GTN.el.setPointerCapture(e.pointerId);}catch(_){}GTN.el.classList.add('tient');gtSaisit();gtDuDoigt(e);hap(4);});
   GTN.el.addEventListener('pointermove',function(e){if(e.pointerId!==GTN.id)return;e.stopPropagation();if(!gtLibre())return;gtDuDoigt(e);});
-  const fin=function(e){if(e.pointerId!==GTN.id)return;e.stopPropagation();GTN.id=null;GTN.el.classList.remove('tient');GAR.tDoigt=performance.now();};
+  const fin=function(e){if(e.pointerId!==GTN.id)return;e.stopPropagation();GTN.id=null;GTN.el.classList.remove('tient');const n=performance.now();GAR.tDoigt=n;
+    if(GTN.tv!=null&&n-GTN.tv<90&&Math.abs(GTN.v||0)>.3){GAR.vW=THREE.MathUtils.clamp(GTN.v,-VITRINE_CAM.dElan*1.4,VITRINE_CAM.dElan*1.4);GTN.glisse=true;} // lâchée en mouvement : elle GLISSE et ralentit (le frein de la vue)
+    GTN.tv=null;};
   GTN.el.addEventListener('pointerup',fin);GTN.el.addEventListener('pointercancel',fin);GTN.el.addEventListener('lostpointercapture',fin);
   GTN.el.addEventListener('keydown',function(e){if(!gtLibre())return;const k=e.code;
     if(k!=='ArrowLeft'&&k!=='ArrowRight'&&k!=='Home')return;e.preventDefault();e.stopPropagation();gtSaisit();
@@ -40622,7 +40639,7 @@ function invRender(){
     const hx=function(c){return '#'+(c>>>0).toString(16).padStart(6,'0');},rg=function(v){return 'rgb('+v.map(function(x){return Math.round(Math.min(1,x/1.45)*255);}).join(',')+')';};
     const nbR={};L.forEach(function(o){nbR[o.r]=(nbR[o.r]||0)+1;});let rPrec=null; // (2026-10-09, Léo : « l'inventaire ne montre pas les raretés ») un intertitre par famille, voir .ivSec
     g.innerHTML=L.map(function(o,n){const ri=rarInfo(o.r),lu=INV_LUEUR[o.r]||.5;let fig='',nm='';
-      let sec='';if(o.r!==rPrec){rPrec=o.r;sec='<div class="ivSec" style="--rc:'+ri.c+';--rg:'+invRgba(ri.c,.75)+'" aria-hidden="true"><i></i><span>'+sansAcc(TR(ri.n))+'</span><s></s><small>'+nbR[o.r]+'</small></div>';}
+      let sec='';if(o.r!==rPrec){rPrec=o.r;sec='<div class="ivSec" style="--rc:'+ri.c+';--rg:'+invRgba(ri.c,.75)+'" aria-hidden="true">'+pxi(RAR_LOGO[o.r]||'etoile')+'<span>'+sansAcc(TR(ri.n))+'</span><s></s><small>'+nbR[o.r]+'</small></div>';}
       if(o.cat==='voiture'){nm=TR(CARS[o.i].name);fig=PHOTO.cache[o.i]?'<img alt="" src="'+PHOTO.cache[o.i]+'">':'<i class="ivPh"></i>';}
       else{const d=o.d;nm=TR(d.n);
         if(o.cat==='peinture'){const c9=d.id==='usine'?CARS[equippedCar()].color:d.c;fig='<i class="ivSw'+(d.g==='c'?' chrome':d.g==='o'?' or':d.g==='s'?' mat':'')+'" style="background:'+(d.grad?'linear-gradient(160deg,'+d.grad.map(hx).join(',')+')':hx(c9))+'"></i>';}
