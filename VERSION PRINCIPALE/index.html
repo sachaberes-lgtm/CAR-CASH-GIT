@@ -6267,6 +6267,19 @@ html body #ivGrille .ivT{box-shadow:inset 0 0 0 1.5px var(--rc),inset 0 1px 0 rg
 html body #ivGrille .ivT.eq{box-shadow:inset 0 0 0 2px var(--rc),inset 0 1px 0 rgba(255,255,255,.14),0 0 calc(14px + var(--rk) * 16px) 2px var(--rg)}
 html body #ivGrille .ivT:not(.r-legendaire)::before{content:'';position:absolute;left:7px;top:7px;width:6px;height:6px;transform:rotate(45deg);background:var(--rc);box-shadow:0 0 6px var(--rc);pointer-events:none} /* (les légendes ont déjà leur reflet d'or qui passe : pas de losange en plus) */
 @media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){html body #ivGrille .ivT{height:94px}}
+/* LA CONSOLE À TROIS MODES (voir le JS « LA CONSOLE À TROIS MODES ») : la touche du mode actif reste ENFONCÉE et cerclée de sa couleur ;
+   la barre des familles devient l'intertitre du mode (le même que ceux de l'inventaire : pictogramme, nom, fil, compte) ; en BOUTIQUE les
+   vignettes sont éclairées (c'est une vitrine, pas un mur de cadenas). */
+html body #garage:not(.menu):not(.vitrine) #gAct>:is(#gvCof,#gShopBas).modeOn{translate:0 3px;outline:2px solid var(--nc);outline-offset:-2px;filter:brightness(1.18)}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gShopBas.modeOn{--nc:var(--neoM)}
+html body #garage:not(.menu) #gRar.gModeBar{display:flex!important;align-items:center;-webkit-mask:none;mask:none}
+.gModeT{flex:1;display:flex;align-items:center;gap:10px;height:34px;min-width:0;padding:0 6px;color:var(--rc);font-size:var(--f1);letter-spacing:3px;text-shadow:0 0 8px var(--rc),0 1px 0 rgba(7,5,15,.9)}
+.gModeT .pxi{--pxs:2;flex:none;color:var(--rc);filter:drop-shadow(0 0 5px var(--rc))}
+.gModeT span{flex:none;transform:skewX(var(--sk))}
+.gModeT s{flex:1;height:1px;text-decoration:none;background:linear-gradient(90deg,var(--rc),transparent);opacity:.55}
+.gModeT b{flex:none;font-weight:400;font-size:var(--f0);letter-spacing:1px;color:var(--tx3);text-shadow:none}
+#gStrip .gVide{flex:1;display:flex;align-items:center;justify-content:center;min-height:60px;font-size:var(--f0);letter-spacing:2px;color:var(--tx3)}
+#gStrip.gModeShop .gT.lock img{filter:none}
 /* LA CROIX DE L'INVENTAIRE, DISCRÈTE (même jour, Léo : « la croix est juste plus discrète, et sert à enlever le rectangle avec toutes
    les voitures pour qu'on ait une vue sur le garage ») : elle ferme toujours le tiroir, mais n'est plus une touche cyan pleine. Plus de
    plaque ni de tranche : une petite croix lilas dans un carré à peine dessiné (filet d'1 px, fond presque nul), qui s'allume sous le doigt.
@@ -37784,7 +37797,8 @@ function garageShow(i){
    viennent du studio (`carPhoto`), UNE par image au plus (`photoFile`) : ouvrir une famille de 16 ne gèle pas le garage. */
 function gDefiEt(n){try{const s=misEtat();if(n!==s.n+1)return '';return pxi('cible')+' '+s.ok.reduce(function(a,b){return a+(b?1:0);},0)+' / 3';}catch(e){return '';}} // la vignette de la caisse que les MISSIONS en cours font gagner
 function garageFamilles(r){
-  const bar=$('gRar'),st=$('gStrip');if(!bar||!st)return;
+  if(gModeM()!=='tout'){gStripModeVoitures();return;} // (2026-10-09) INVENTAIRE / BOUTIQUE : voir « LA CONSOLE À TROIS MODES »
+  const bar=$('gRar'),st=$('gStrip');if(!bar||!st)return;try{gModeBoutons();}catch(e){}
   const eq=SAVE.d.equipped|0;
   const cles=RARETES.map(function(x){const L=rarListe(x.id);let a=0;for(const i of L)if(carUnlockedVrai(i))a++;return x.id+a+'/'+L.length;}).join('|')+'#'+r;
   if(bar._k!==cles){bar._k=cles;
@@ -37807,6 +37821,60 @@ function garageFamilles(r){
   const on=st.querySelector('.gT.on');if(on){const x=on.offsetLeft-(st.clientWidth-on.offsetWidth)/2;try{st.scrollTo({left:x,behavior:REDUCED_MOTION?'auto':'smooth'});}catch(e){st.scrollLeft=x;}}
   if(!st._fin){st._fin=1;const f9=function(){st.classList.toggle('finDroite',st.scrollLeft+st.clientWidth>=st.scrollWidth-4);};st.addEventListener('scroll',f9,{passive:true});setTimeout(f9,400);} /* (garage v7) au bout de la bande, plus de fondu */
 }
+/* ===== LA CONSOLE À TROIS MODES (2026-10-09, Léo : « crée un système : les boutons INVENTAIRE et BOUTIQUE liés à ce qui est affiché au
+   début — voitures, peinture, ailes, avec les raretés. Pas une autre page : la même. INVENTAIRE montre ce qu'on a, directement, dans la
+   couleur indiquée, au lieu des raretés ; BOUTIQUE, la même chose avec tout ce qu'il y a à acheter ») =====
+   `GMODE.m` : 'tout' (la console d'origine : familles pour les voitures, filtres TOUT · À MOI · À ACHETER pour l'habillage) · 'inv' · 'shop'.
+   Les deux touches de la rangée basculent le mode (re-toucher la touche allumée ramène à 'tout') ; les onglets VOITURES · PEINTURE · AILES ·
+   TRAÎNÉES restent, la barre des familles devient l'INTERTITRE du mode (pictogramme, nom, fil, compte) et la bande des vignettes ne garde
+   que ce qui est à toi (INVENTAIRE, toutes familles mêlées, chacune dans la couleur de SA rareté, des légendes aux communes) ou ce qui est
+   à acheter (BOUTIQUE : l'argent du jeu du moins cher au plus cher, puis les légendes en €, vignettes éclairées — c'est une vitrine).
+   Le tiroir #gInv et la page € (#mShop) ne s'ouvrent plus depuis ces touches dans la console (la page € reste sur l'accueil). */
+var GMODE={m:'tout'};
+function gModeConsole(){return !!gEl&&!gEl.classList.contains('vitrine')&&!gEl.classList.contains('menu');}
+function gModeM(){return GMODE&&gModeConsole()?GMODE.m:'tout';} // (GMODE est un var : lu avant sa ligne au chargement, il vaut undefined → 'tout')
+function gModeListeVoitures(m){const eq=SAVE.d.equipped|0,L=[];
+  for(let i=0;i<CARS.length;i++){if(carRetiree(i))continue;const u=CAR_UNLOCK[i],own=i===eq||carUnlockedVrai(i);
+    if(m==='inv'?own:(!own&&!!u&&(!!u.p||u.k==='premium')))L.push(i);}
+  if(m==='inv')L.sort(function(a,b){return (INV_RANG[carRar(b)]-INV_RANG[carRar(a)])||(carOrdre(b)-carOrdre(a));});
+  else L.sort(function(a,b){return ((CAR_UNLOCK[a].p?0:1)-(CAR_UNLOCK[b].p?0:1))||(carOrdre(a)-carOrdre(b));});
+  return L;}
+function gModeBoutons(){const m=gModeM(),c=document.getElementById('gvCof'),b=document.getElementById('gShopBas'),r=document.getElementById('gRar'),st=document.getElementById('gStrip');
+  if(c)c.classList.toggle('modeOn',m==='inv');if(b)b.classList.toggle('modeOn',m==='shop');
+  if(r&&m==='tout')r.classList.remove('gModeBar');if(st)st.classList.toggle('gModeShop',m==='shop');}
+function gModeTete(bar,m,n){bar.classList.add('gModeBar');
+  bar.innerHTML='<div class="gModeT" style="--rc:'+(m==='inv'?'var(--neoC)':'var(--neoM)')+'">'+pxi(m==='inv'?'coffre':'panier')+'<span>'+sansAcc(TR(m==='inv'?'INVENTAIRE':'BOUTIQUE'))+'</span><s></s><b>'+n+'</b></div>';}
+function gStripModeVoitures(){
+  const bar=$('gRar'),st=$('gStrip');if(!bar||!st)return;gModeBoutons();
+  const m=GMODE.m,eq=SAVE.d.equipped|0,L=gModeListeVoitures(m);
+  const kb='mode:'+m+':'+L.length+':'+LANG;if(bar._k!==kb){bar._k=kb;bar._on=null;gModeTete(bar,m,L.length);}
+  const mk9=(function(){try{const s9=misEtat();return s9.n+':'+s9.ok.join('');}catch(e){return '';}})();
+  const k='mode:'+m+':'+L.join(',')+':'+eq+':'+mk9;
+  if(st._r!==k){st._r=k;st._n=-1;
+    if(!L.length)st.innerHTML='<div class="gVide">'+sansAcc(TR(m==='inv'?'RIEN ICI':'TOUT EST A TOI'))+'</div>';
+    else st.innerHTML=L.map(function(i){const rr=carRar(i),ri=rarInfo(rr),lu9=INV_LUEUR[rr]||.5,lg9=';--rg:'+invRgba(ri.c,.22+.28*lu9)+';--rg2:'+invRgba(ri.c,.55+.4*lu9);
+      const u=CAR_UNLOCK[i],ouv=i===eq||carUnlockedVrai(i);
+      const et=ouv?(i===eq?'':pxi('coche')):(u&&u.p?fmtC(u.p):u&&u.eur?eurTxt(u.eur):u&&u.k==='carnet'?gDefiEt(u.v):'');
+      return '<div class="gT'+(ouv?'':' lock')+(i===eq?' eq':'')+'" data-car="'+i+'" role="button" aria-label="'+String(CARS[i].name).replace(/"/g,'')+'" style="--rc:'+ri.c+lg9+'">'
+        +'<i class="gTl"></i><i class="gTv"></i><em'+(!ouv&&u&&!u.p&&u.eur?' class="eur"':!ouv&&u&&u.k==='carnet'?' class="def"':'')+'>'+et+'</em></div>';}).join('');
+    st.querySelectorAll('.gT').forEach(function(el){const i=+el.getAttribute('data-car');
+      photoFile(i,function(url){const v=el.querySelector('.gTv');if(v)v.remove();if(!el.querySelector('img')){const im=document.createElement('img');im.alt='';im.src=url;el.insertBefore(im,el.firstChild);}});});}
+  st.querySelectorAll('.gT').forEach(function(el){el.classList.toggle('on',+el.getAttribute('data-car')===garageI);});
+  const on=st.querySelector('.gT.on');if(on){const x=on.offsetLeft-(st.clientWidth-on.offsetWidth)/2;try{st.scrollTo({left:x,behavior:REDUCED_MOTION?'auto':'smooth'});}catch(e){st.scrollLeft=x;}}
+  else{try{st.scrollTo({left:0,behavior:REDUCED_MOTION?'auto':'smooth'});}catch(e){st.scrollLeft=0;}}}
+function gModeVa(m){
+  GMODE.m=GMODE.m===m?'tout':m;
+  const bar=$('gRar'),st=$('gStrip');if(bar)bar._k=null;if(st)st._r=null;
+  gModeCale();
+  if(SHOP.tab==='voiture')garageFamilles(carRar(garageI));else gStripHabits(SHOP.tab,SHOP.i[SHOP.tab]);
+  gModeBoutons();}
+/* le plateau suit le mode : en BOUTIQUE le 1er objet à acheter (si celui qu'on voit ne l'est pas), en INVENTAIRE ta caisse / le 1er objet
+   à toi (si celui qu'on voit ne l'est pas) — au changement de mode ET d'onglet (shopTab) */
+function gModeCale(){const m=gModeM();if(m==='tout')return;
+  if(SHOP.tab==='voiture'){const L=gModeListeVoitures(m);if(L.length&&L.indexOf(garageI)<0)garageSaute(m==='inv'?(SAVE.d.equipped|0):L[0]);return;}
+  const cat=SHOP.tab,Lc=COSM[cat],cur=Lc[SHOP.i[cat]],ok=function(d){const a=shopOwned(cat,d.id);return m==='inv'?a:(!a&&!!d.p);};
+  if(cur&&!ok(cur)){const j=Lc.findIndex(ok);if(j>=0)shopShow(cat,j);}}
+try{Object.keys({'RIEN ICI':1,'TOUT EST A TOI':1}).forEach(function(k){if(!I18N[k])I18N[k]=k==='RIEN ICI'?'NOTHING HERE':'ALL YOURS';});}catch(e){}
 // LA FILE DU STUDIO PHOTO : une vignette par image, jamais pendant la bascule du plateau ni hors du garage
 const PHQ={q:[],on:false};
 function photoFile(i,cb){if(PHOTO.cache[i]){cb(PHOTO.cache[i]);return;}PHQ.q.push([i,cb]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}
@@ -37856,9 +37924,9 @@ function shopTab(tab){
   const gt=$('gTitle');if(gt)gt.textContent=TR('GARAGE'); // la personnalisation fait partie du GARAGE (la BOUTIQUE, c'est le vrai argent)
   if(gEl)gEl.classList.toggle('shopMode',tab!=='voiture');
   if(tab==='trainee')garageAng=3.5; // TRAÎNÉES : la caméra passe derrière la caisse (trois-quarts arrière) — on regarde ce qui SORT des tuyères
-  if(tab==='voiture'){SHOP.prev=null;{const bar=$('gRar');if(bar)bar._k=null;}garageShow(garageI);return;}
+  if(tab==='voiture'){SHOP.prev=null;{const bar=$('gRar');if(bar)bar._k=null;}garageShow(garageI);try{gModeCale();}catch(e){}return;}
   SHOP.filtre='tout'; // chaque catégorie s'ouvre sur TOUT
-  const eqI=COSM[tab].indexOf(shopEqD(tab));shopShow(tab,eqI<0?0:eqI);
+  const eqI=COSM[tab].indexOf(shopEqD(tab));shopShow(tab,eqI<0?0:eqI);try{gModeCale();}catch(e){} // (2026-10-09) en INVENTAIRE / BOUTIQUE, l'onglet s'ouvre sur un objet du mode
 }
 function shopShow(cat,i){
   const L=COSM[cat];i=((i%L.length)+L.length)%L.length;
@@ -37913,10 +37981,12 @@ function gPrixHtml(peut,prix){return '<span>'+TR(peut?'ACHETER':'IL MANQUE')+'</
    même bande de vignettes que les caisses montre TOUTE la gamme d'un coup d'œil — le nuancier de la laque (chrome, or et
    mat ont leur matière), l'aile, le ruban de la traînée — avec le prix, le cadenas (à gagner) ou la coche (à toi). */
 function gStripHabits(cat,i){
-  const st=$('gStrip'),bar=$('gRar');if(!st)return;const L=COSM[cat],fi=SHOP.filtre||'tout';
-  const k='cos:'+cat+':'+fi+':'+L.map(function(x){return shopOwned(cat,x.id)?1:0;}).join('')+':'+shopEqD(cat).id;
+  const st=$('gStrip'),bar=$('gRar');if(!st)return;const L=COSM[cat],md=gModeM(),fi=md==='inv'?'moi':md==='shop'?'achat':(SHOP.filtre||'tout'); // (2026-10-09) INVENTAIRE = à moi, BOUTIQUE = à acheter
+  try{gModeBoutons();}catch(e){}
+  const k='cos:'+md+':'+cat+':'+fi+':'+L.map(function(x){return shopOwned(cat,x.id)?1:0;}).join('')+':'+shopEqD(cat).id;
   const garde=function(d){const a=shopOwned(cat,d.id);return fi==='tout'||(fi==='moi'?a:(!a&&!!d.p));}; // À ACHETER = en vente et pas à toi (les défis se gagnent)
-  if(bar&&bar._k!==k){bar._k=k;bar._on=null; // la barre des familles devient celle des FILTRES (même touche, même place)
+  if(bar&&bar._k!==k&&md!=='tout'){bar._k=k;bar._on=null;let n9=0;for(const d of L)if(garde(d))n9++;gModeTete(bar,md,n9);} // (2026-10-09) en mode, la barre dit le MODE
+  else if(bar&&bar._k!==k){bar._k=k;bar._on=null;bar.classList.remove('gModeBar'); // la barre des familles devient celle des FILTRES (même touche, même place)
     const nb=function(f){let n=0;for(const d of L){const a=shopOwned(cat,d.id);if(f==='tout'||(f==='moi'?a:(!a&&!!d.p)))n++;}return n;};
     bar.innerHTML=[['tout','TOUT','var(--tx2)'],['moi','À MOI','var(--neoV)'],['achat','À ACHETER','var(--neoC)']].map(function(f){
       return '<button class="gR gF'+(f[0]===fi?' on':'')+'" data-f="'+f[0]+'" role="tab" aria-selected="'+(f[0]===fi)+'" style="--rc:'+f[2]+'"><span class="gRn">'+sansAcc(TR(f[1]))+'</span><b>'+nb(f[0])+'</b></button>';}).join('');}
@@ -37930,7 +38000,8 @@ function gStripHabits(cat,i){
       else fig='<i class="pxi pxi-aile gIc" style="color:'+(a?'#dff6ff':'#6c6390')+'"></i>';
       const et=a?(eqd?'':pxi('coche')):(d.p?fmtC(d.p):sansAcc(TR('DÉFI'))); // (à gagner : le cadenas est déjà au coin)
       if(!garde(d))return '';
-      return '<div class="gT cos c-'+cat+(a?'':' lock')+(eqd?' eq':'')+'" data-cos="'+j+'" role="button" aria-label="'+String(TR(d.n)).replace(/"/g,'')+'">'+fig+(cat==='aile'?'<b>'+sansAcc(TR(d.n))+'</b>':'')+'<em>'+et+'</em></div>';}).join('');} // (le nom se lit en grand sur la fiche : la vignette montre la MATIÈRE — sauf l'aile, que seul son nom distingue)
+      const rc9=md!=='tout'?' style="--rc:'+rarInfo(cosmRar(cat,d)).c+'"':''; // (2026-10-09) en INVENTAIRE / BOUTIQUE, chaque objet dans la couleur de sa rareté
+      return '<div class="gT cos c-'+cat+(a?'':' lock')+(eqd?' eq':'')+'" data-cos="'+j+'" role="button" aria-label="'+String(TR(d.n)).replace(/"/g,'')+'"'+rc9+'>'+fig+(cat==='aile'?'<b>'+sansAcc(TR(d.n))+'</b>':'')+'<em>'+et+'</em></div>';}).join('');} // (le nom se lit en grand sur la fiche : la vignette montre la MATIÈRE — sauf l'aile, que seul son nom distingue)
   st.querySelectorAll('.gT').forEach(function(el){el.classList.toggle('on',+el.getAttribute('data-cos')===i);});
   const on=st.querySelector('.gT.on');if(on){const x=on.offsetLeft-(st.clientWidth-on.offsetWidth)/2;try{st.scrollTo({left:x,behavior:REDUCED_MOTION?'auto':'smooth'});}catch(e){st.scrollLeft=x;}}
   if(!st._fin){st._fin=1;const f9=function(){st.classList.toggle('finDroite',st.scrollLeft+st.clientWidth>=st.scrollWidth-4);};st.addEventListener('scroll',f9,{passive:true});setTimeout(f9,400);} /* (garage v7) au bout de la bande, plus de fondu */
@@ -37941,6 +38012,7 @@ function gStripHabits(cat,i){
 // menu s'est mis à traverser tout l'étal). Le garage RESTE la scène du départ (porte qui s'ouvre,
 // boost, logo) ; c'est seulement le PAPIER PEINT du shop qui n'a rien à faire sur un lancement rapide.
 function openGarage(quiet){
+  try{GMODE.m='tout';}catch(e){} // (2026-10-09) la console à trois modes repart sur TOUT
   try{if(PHQ.q.length&&!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}catch(e){} // (2026-09-26) les photos en attente reprennent
   if(started&&!gameOver){showMsg('Le garage se visite depuis le menu');return;} // ⚠ gameOver = on EST au menu : refuser ici bloquait le bouton apres la 1re partie
   try{if(SONV2&&!openGarage._amb)openGarage._amb=sfx('garage.ambiance',{loop:true});}catch(e){} // (console de son) l'ATELIER a sa voix : néons, tube qui grésille, la ville au loin
@@ -40072,6 +40144,8 @@ function gEqTon(bt,achat){const et=bt.dataset.etat,ton=et==='eq'?'vert':(achat||
 /* Le doigt sur ÉQUIPER ROUGE d'une caisse À VENDRE = l'achat (ACHETER n'est plus à l'écran) : le geste est relayé au bouton d'achat caché,
    qui fait tout comme avant (achat et tampon, ou « IL TE MANQUE » ; une légendaire part vers la BOUTIQUE). Seulement un VRAI doigt :
    JOUER clique ÉQUIPER pour partir avec la caisse affichée, ce clic-là ne doit jamais acheter. */
+try{$('gAct').addEventListener('click',function(e){const b=e.target&&e.target.closest&&e.target.closest('#gvCof,#gShopBas');if(!b||!gModeConsole())return; // (2026-10-09) LA CONSOLE À TROIS MODES
+  e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(b);uiClic('onglet');gModeVa(b.id==='gvCof'?'inv':'shop');},true);}catch(e){}
 try{$('gAct').addEventListener('click',function(e){const b=e.target&&e.target.closest&&e.target.closest('#gEquip'),row=$('gBuyRow');
   if(!b||!e.isTrusted||b.dataset.ton!=='rouge'||!row||row.style.display==='none'||!gEl||gEl.classList.contains('vitrine'))return;
   e.stopPropagation();const bb=$('gBuy');if(bb)bb.click();if(b.dataset.ton==='rouge'&&row.style.display!=='none'&&!(bb&&bb.dataset.bout==='1'))gSecoue(b);},true);}catch(e){} // UN SEUL LINGOT D'OR (charte) : s'il y a un choix, c'est LUI qui est en or — JOUER passe en laque
