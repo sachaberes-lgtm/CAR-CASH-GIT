@@ -47,6 +47,14 @@ d'aller dans cette map avec une voiture, la mobilité comme le main, mais seulem
   collision = la densité. Ciel : plus de pixels, les monts lointains flottent aussi (`jPeigne` a une pointe). MESURÉ : 60 i/s, ~500 000
   triangles et 30 appels de rendu visibles, construction ~0,35 s ; `dbgJadeHeurt('test')` sur 3 vallées : roche dure, arche et dessous du
   pont libres, AUCUN point de la route dans la roche, toutes les montagnes au-dessus de la mer.
+- **v4 — LES CUBES DE WUKONG** (même soirée, Léo : « cube et ça, mélangé ») — LA VERSION EN COURS. Un Minecraft aux shaders réalistes :
+  la FORME en cubes de `VX` = 5 m (montagnes flottantes `voxPilier` avec un dessous en pointe d'escalier décentrée, lianes de feuilles en
+  cubes, la Porte = massif flottant en cubes, le Pont, 3 gabarits de ROCHERS flottants en cubes — `JADE_TPL` puis 3 gabarits à part,
+  `JADE_NTPL`), maillage glouton + occlusion aux coins ; la MATIÈRE réaliste de la v3 sur chaque bloc (`JADE_VR` : nuance par bloc, joint
+  creusé, arête éclairée, fissures nettes, coulées, rouille, lichen, mousse, relief au pixel, cavité, liseré de brume). Le reste réaliste
+  de la v3 : forêt peinte, lianes peintes, cascades, pagodes, brume, grues, ciel aux monts flottants. Collision = les cubes (gabarit au
+  quart de tour, grilles de la Porte et du Pont). MESURÉ : 60 i/s, ~520 000 triangles / ~37 appels visibles, construction ~0,4 s ;
+  `dbgJadeHeurt('test')` sur 3 vallées : tout bon (route libre dessus et dessous, tout flotte au-dessus de la mer).
 - Mesuré (Chrome sans fenêtre du Mac) : 60 i/s, construction 16-28 ms, tri ~0,03 ms ; collisions (`dbgJadeHeurt('test')`, 3 vallées) :
   piliers durs, arche et dessous du pont libres, AUCUN point de la route dans la pierre. Console : `dbgJade()`, `dbgJadeVue('route'|'porte'|
   'pont'|'haut'|'loin'|'grue',d,h,cap)` (photo figée), `dbgGrues()`. sw.js → v203.
