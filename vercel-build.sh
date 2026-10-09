@@ -13,6 +13,8 @@ cp -R demo/cash-car-demo .vercel-static/demo
 cp demo/cash-car-demo/og.jpg .vercel-static/og.jpg
 cp -R "VERSION PRINCIPALE" .vercel-static/jouer
 rm -f .vercel-static/jouer/CLAUDE.md .vercel-static/jouer/README.md .vercel-static/jouer/JOUER.bat
+# /public-ai/ = CAR CASH — Public AI Edition (branch public-ai-edition only; skipped when the folder is absent)
+if [ -d public-ai ]; then cp -R public-ai .vercel-static/public-ai; rm -f .vercel-static/public-ai/LANCER.command .vercel-static/public-ai/LANCER.bat .vercel-static/public-ai/.gitattributes; fi
 # (2026-10-07, campagne de debug avant publication) les OUTILS de travail ne partent plus en ligne : le banc d écoute (sons.html), l atelier
 # du son (recettes, scripts) — le jeu n en charge aucun (l atelier des nuages reste : ?nuages=1 le charge en ligne).
 rm -rf .vercel-static/jouer/atelier-son .vercel-static/jouer/sons.html
