@@ -40407,7 +40407,7 @@ function invHoldFin(){if(!INV||!INV.hold)return;INV.hold=null;cancelAnimationFra
    chaînes, leurs portes s'ouvrent et se referment (voir LES PORTES DU GRAPHE AUDIO).
    Console : dbgBurn() → l'état · dbgBurn(s) → un burn-out de s secondes (sans doigt) · dbgBurn(0) → coupé. */
 const BURN={on:false,hold:null,bouge:false,k:0,t:0,chaud:0,rpm:0,son:false,cut:0,pops:[],fum:null,feu:null,gom:null,yaw:0,yawV:0,cib:0,pivK:0,drz:.8,rr:2.4,
-  hapT:0,auto:0,autoW:0,ar:[],roues:[],pots:[],corps:false,tE:0,tF:0,tP:0,
+  hapT:0,auto:0,autoW:0,ar:[],arW:[],roues:[],pots:[],corps:false,tE:0,tF:0,tP:0, // (2026-10-09) arW déclaré : absent, la 1re CHARGE (doigt tenu avant tout burn-out) jetait « arW is not iterable » à chaque image
   don:0,donK:0,donM:0,acc:0,n:0,nT:0,scx:0,scy:0,fA:null,fR:0,tx:null,ty:0,th:null,tT:0,sT:0,sAu:0,kc:0,mc:0,aideT:0,cad:0,Rs:3, // (2026-10-08) LE DONUT AU DOIGT
   qx:0,qz:0,qvx:0,qvz:0,fsx:0,fsz:0,fsOk:false,sv:null,so:null,sp:null,
   chg:0,nitro:false,recul:false,nk:0,rk:0,rkP:0,dzP:null,nE:0,btn:null, // (2026-10-08) LA CHARGE qui se voit · LA NITRO et LA MARCHE ARRIÈRE (boutons, clavier) // (2026-10-08) LA CAISSE SE BALADE : où elle est partie sur le plateau, sa vitesse, le doigt au sol
@@ -40726,6 +40726,7 @@ function burnTick(dt){ // chaque image du garage (après la pose de la caisse, a
   if(!BURN.pret){BURN.pret=true;try{chauffeRendu(burnPools());}catch(e){}} // (2026-10-08) à la 1re image du garage : la fumée en pixels et ses cubes compilés pendant l'entrée — la chauffe de l'atelier au menu ne tourne plus toujours (mesuré : jamais sur l'écran titre de la chute), et le 1er burn-out compilait
   if(BURN.hold&&!BURN.on&&!BURN.bouge&&now-BURN.hold.t0>BURN_TENU){if(!BURN.hold.non){const b9=!!BURN.hold.bouge;burnPart();if(b9){BURN.bouge=true;GAR.platW=0;}}else if(!BURN.hold.dit){BURN.hold.dit=1;burnRefus();}} // (2026-10-08) parti en tournant le plateau : le doigt qui bouge DÉRAPE aussitôt
   {const c9=BURN.hold&&!BURN.on&&!BURN.hold.non&&!GAR.go?Math.max(0,Math.min(1,(now-BURN.hold.t0-BURN_TENU*.25)/(BURN_TENU*.75))):0; // LA CHARGE : le dernier ¾ du maintien, le moteur monte
+    if(c9>0&&!BURN.chg)burnPrepare(); // (2026-10-09) la charge démarre : les essieux de LA caisse du moment (elle a pu changer depuis le dernier burn-out) — sinon l'arrière ne patinait pas pendant la charge
     BURN.chg=c9>BURN.chg?c9:BURN.chg+(c9-BURN.chg)*Math.min(1,dt*6);
     if(c9>0&&!REDUCED_MOTION&&now>BURN.hapT){BURN.hapT=now+200-130*c9;hap(c9>.7?6:3);}}   // le pouce la sent venir : des tics de plus en plus serrés // (même soir) 0,28 s, (2026-10-08) 0,8 s : un glissé lent qui démarre doucement reste le PLATEAU
   if(BURN.auto>0&&dt>0){BURN.auto-=dt;if(BURN.autoW)burnVolant(BURN.autoW*dt);if(BURN.auto<=0)burnFin();} // (le banc) un doigt qui tourne à autoW rad/s
