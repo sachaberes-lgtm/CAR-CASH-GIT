@@ -1,5 +1,32 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LE DAUPHIN DE RÊVE + LA BOÎTE À DAUPHINS (2026-10-09, Léo : « retouchons les dauphins, envoie-moi dans une boîte blanche avec les dauphins, on va les design » — puis une image de grand dauphin pastel : « travaille encore plus dur »)
+- **LA BOÎTE** : `boite-dauphins.html` (à côté d'index.html, servie par `python3 -m http.server`, jamais en double-clic). Elle LIT et exécute le
+  VRAI bloc du jeu (de `const DOL_L=` à `const dolphinRig=`) et le RELIT ~1 fois/s : une retouche du dauphin dans index.html apparaît sans
+  recharger (« Nouveau dessin » ; une erreur garde l'ancien et s'affiche en rouge, comme les erreurs de shader). Elle se recharge seule si
+  elle-même change. Vues UN DAUPHIN (nage sur place, ombre) · LE BANC (chorégraphie recopiée d'`updateDolphins`). Interrupteurs Surface,
+  Au ras, Dark triad (`dolNoirMaj` du jeu), Ralenti, Figé, Ciel rêve (le fond pastel de la référence, gerbes et étoiles en lumière).
+  ⚠ Étalonnée COMME LE JEU : ACES + `filter:saturate(1.4)` (POST_SAT) — sans ça, le pastel réglé dans la boîte sortait violet électrique en
+  course. Sur blanc, gerbes et étoiles sont peintes en couleur (en jeu elles sont additives). Une clé de programme par dessin (three garde
+  le programme d'une clé connue). `?vue=banc&noir=1&reve=1&yaw=&pitch=&dist=` pour une vue d'entrée.
+- **LE DAUPHIN** (bloc « LE DAUPHIN DE RÊVE » avant `const DOL_L`) : grand dauphin LISSE (profil `DOL_PR` en courbe monotone, 56 anneaux ×
+  28 pans, section qui se pince en carènes vers la queue, nez arrondi), nageoires en profils d'aile NACA lissés (dorsale en faucille,
+  pectorales en pagaie, caudale à encoche). La PEAU est peinte au pixel (`dolPeau`, attribut `aRb` = u, t, partie) : cape ardoise qui
+  plonge sous la dorsale, flancs gris glacé, ventre nacré, gorge rose, commissure, évent, œil + reflet ; NACRE pastel selon le regard,
+  liseré irisé (`uRimA/uRimB`), PAILLETTES qui scintillent (cases de 3 cm, horloge = `uDol.y`). Palette DOUCE exprès (×1,4 en course).
+  Sillage en ÉTOILES (`DOL_ETOILE`, nées le long du corps, taille .5·kT). ~5 100 triangles par dauphin (six : ~31 k), un programme `dauphin5`.
+  Dark triad : robe noire vernie, paillettes et liseré rouges (inchangé côté jeu).
+- **v2 « PLUS RÉEL » puis EN MINUSCULES CUBES** (même jour, Léo : « ils sont un peu fantômes, je le veux plus réel » · « fais-le en minuscules
+  cubes pour rajouter du réalisme » + deux dauphins à l'aérographe) : (1) SA LUMIÈRE (`DOL_U.uLum`, posée par updateDolphins = le haut du
+  banc, un peu vers la caméra ; `uScene` .5 = la part des lumières du niveau qu'il garde) — le ciel du jeu l'éclairait de partout pareil, il
+  se fondait dedans ; reflet mouillé serré, emissive .15, plus de nacre (un reflet de ciel aux angles rasants), liseré seulement AU RAS
+  (`uRimK` > 1,2). (2) Palette de l'AÉROGRAPHE : dos ardoise bleu nuit, bande violette sous la cape, reflets d'eau cyan dessous, ventre
+  bleu pâle, + marbrure, griffures claires, trait œil → pectorale. (3) LES CUBES (`dolCubes(src,h)`) : la surface lisse est échantillonnée,
+  chaque case touchée = un cube, dehors rempli depuis un coin, seules les faces qui donnent dehors ; chaque cube porte le centre de sa case
+  (`aLp` : une couleur, la nage le déplace d'un bloc, l'eau le coupe entier) ; biseau sombre aux arêtes + nuance par cube ; quelques cubes
+  qui scintillent. `DOL_VOX` .026 (≈ 24 800 triangles) et `DOL_VOX_L` .045 (≈ 8 000) : updateDolphins prend les FINS seulement quand le
+  dauphin fait plus de 260 px à l'écran. `DOL_VOX=0` rend le dauphin lisse.
+
 ## LA SONDE QUI NE FIGE PLUS (2026-10-08, Léo : « le jeu bug un peu quand je le lance, pas que au lancement il rame — trouve une solution qui ne touche pas au graphique ni à la qualité »)
 - MESURÉ (Chrome sans fenêtre sur le Mac M2 de Léo, course au pilote auto, trace + appels WebGL chronométrés) : les à-coups de 35-120 ms
   en course venaient de `qlSonde` — la SONDE de la règle de qualité (28/09, faite pour l'iPhone bridé à 30 i/s). Quand des images ratent,
