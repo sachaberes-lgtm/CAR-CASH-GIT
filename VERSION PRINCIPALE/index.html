@@ -6272,6 +6272,25 @@ html body #garage:not(.menu) #gRar .gR.vide{opacity:.45}
 html body #garage:not(.menu) #gRar .gR:not(.gF)::before{display:none}
 html body #garage:not(.menu) #gRar .gR:not(.gF)>.pxi{--pxs:2;color:var(--rc);opacity:.78;filter:drop-shadow(0 0 3px var(--rc));transform:skewX(calc(-1 * var(--sk)))}
 html body #garage:not(.menu) #gRar .gR.on:not(.gF)>.pxi{opacity:1;filter:drop-shadow(0 0 7px var(--rc)) brightness(1.15)}
+/* HOME ET CACHER DANS LE VIDE DE LA RANGÉE (même jour, Léo, capture de la rangée : « dans l'espace vide, intègre un nouveau bouton HOME et
+   un bouton pour enlever l'interface boutique et inventaire »). La ligne du haut de la grille n'avait qu'ÉQUIPER (au-dessus de JOUER) :
+   HOME prend la place au-dessus d'INVENTAIRE, CACHER celle au-dessus de BOUTIQUE — deux barres de la famille d'ÉQUIPER (28 px, laque sombre,
+   trait de couleur dessous : bleu pour HOME, lilas pour CACHER). CACHER replie la partie boutique / inventaire de la console (onglets,
+   familles, vignettes : `#garage.consoleCachee`) ; la jauge et la rangée restent, la caisse prend la place (garLibre relit la console).
+   Le mot devient VOIR ; INVENTAIRE ou BOUTIQUE la rouvrent aussi. Le HOME du haut (#gHomeMini) s'efface : un seul HOME à l'écran. */
+#gHomeBas,#gCache{display:none}
+html.hubOn #gHomeMini.on{display:none}
+html body #garage:not(.menu):not(.vitrine) #gAct>:is(#gHomeBas,#gCache){grid-row:1;display:flex;align-items:center;justify-content:center;gap:6px;min-width:0;height:28px;min-height:28px;
+  padding:0 6px;font-size:var(--f0);letter-spacing:2px;--ton:#4f8cff;--nc:var(--ton);color:var(--tx2);text-shadow:0 1px 0 rgba(7,5,15,.85);animation:none;transform:skewX(var(--sk));
+  background:linear-gradient(180deg,rgba(26,21,50,.92),rgba(15,12,32,.92));box-shadow:inset 0 0 0 1px var(--fil),inset 0 -3px 0 var(--ton),0 6px 14px -8px var(--ton)}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gHomeBas{grid-column:1}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gCache{grid-column:2;--ton:#b8b0e0}
+html body #garage:not(.menu):not(.vitrine) #gAct>:is(#gHomeBas,#gCache) .pxi{--pxs:1;color:var(--ton);filter:drop-shadow(0 0 4px var(--ton))}
+html body #garage:not(.menu):not(.vitrine) #gAct>:is(#gHomeBas,#gCache):is(:active,.appui){transform:skewX(var(--sk)) translateY(2px)}
+html body #garage.consoleCachee:not(.menu):not(.vitrine) #gAct>#gCache{--ton:#fff;color:#fff}
+html body #garage.consoleCachee:not(.menu):not(.vitrine) :is(#gTabs,#gRar,#gStrip){display:none!important}
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html body #garage:not(.menu):not(.vitrine) #gAct>:is(#gHomeBas,#gCache){height:24px;min-height:24px;letter-spacing:1px}}
 /* LA CROIX DE L'INVENTAIRE, DISCRÈTE (même jour, Léo : « la croix est juste plus discrète, et sert à enlever le rectangle avec toutes
    les voitures pour qu'on ait une vue sur le garage ») : elle ferme toujours le tiroir, mais n'est plus une touche cyan pleine. Plus de
    plaque ni de tranche : une petite croix lilas dans un carré à peine dessiné (filet d'1 px, fond presque nul), qui s'allume sous le doigt.
@@ -6438,6 +6457,8 @@ html.sansFacile [data-m="facile"]{display:none!important}
         <button id="gShopBas" class="pbtn pb-mag" data-go="shop" aria-label="Boutique"><i class="pxi pxi-panier" aria-hidden="true"></i><span data-fr="BOUTIQUE">BOUTIQUE</span></button>
         <div id="gBuyRow"><button id="gBuy" class="pbtn pb-gold">ACHETER</button></div>
         <button id="gEquip" class="pbtn pb-gold">ÉQUIPER</button>
+        <button id="gHomeBas" class="pbtn" aria-label="Accueil"><i class="pxi pxi-maison" aria-hidden="true"></i><span data-fr="HOME">HOME</span></button><!-- (2026-10-09, Léo) le HOME dans la rangée, au-dessus d'INVENTAIRE -->
+        <button id="gCache" class="pbtn" aria-label="Cacher la console" aria-pressed="false"><i class="pxi pxi-oeil" aria-hidden="true"></i><span data-fr="CACHER">CACHER</span></button><!-- (2026-10-09, Léo) replier la boutique / l'inventaire : la vue sur le garage -->
         <button id="gJouer" class="pbtn pb-gold big"><span data-fr="JOUER">JOUER</span><i class="mChev" aria-hidden="true"><i class="pxi pxi-droite"></i><i class="pxi pxi-droite"></i><i class="pxi pxi-droite"></i></i></button>
         <!-- (2026-10-05, Léo : « en dessous du play, insère MISSIONS, et le nom du level qui va être lancé, limite collé, de manière stylée, branché énergétiquement ») LA VITRINE : voir gvNiveau -->
         <button id="gvMis" class="pbtn" aria-label="Missions"><s class="gvFx" aria-hidden="true"></s><i class="pxi pxi-cible" aria-hidden="true"></i><span data-fr="MISSIONS">MISSIONS</span><b class="gvPips" aria-hidden="true"><u></u><u></u><u></u></b></button>
@@ -6801,6 +6822,7 @@ PXI_G.coffre='.#######.|#.......#|#.......#|#########|#...#...#|#..###..#|#...#.
 PXI_G.roue='..#####..|.#.....#.|#..###..#|#.#...#.#|#.#.#.#.#|#.#...#.#|#..###..#|.#.....#.|..#####..'; // (2026-10-09) la famille COMMUNE : la roue
 PXI_G.gemme='.........|..#####..|.#..#..#.|#########|.#.....#.|..#...#..|...#.#...|....#....|.........'; // (2026-10-09) la famille RARE : la gemme taillée
 PXI_G.couronne='.........|#...#...#|#..###..#|##.###.##|#########|#########|.........|#########|.........'; // (2026-10-09) la famille LÉGENDAIRE : la couronne
+PXI_G.oeil='.........|.........|..#####..|.#.....#.|#..###..#|#..###..#|.#.....#.|..#####..|.........'; // (2026-10-09) CACHER / VOIR la console
 PXI_G.tour='....#....|....#....|...###...|...#.#...|..#####..|..#...#..|.#######.|.#.....#.|##.....##'; // (2026-09-28) la Dame de fer
 (function(){
   let css='',vars='';
@@ -37861,11 +37883,18 @@ function gStripModeVoitures(){
   const on=st.querySelector('.gT.on');if(on){const x=on.offsetLeft-(st.clientWidth-on.offsetWidth)/2;try{st.scrollTo({left:x,behavior:REDUCED_MOTION?'auto':'smooth'});}catch(e){st.scrollLeft=x;}}
   else{try{st.scrollTo({left:0,behavior:REDUCED_MOTION?'auto':'smooth'});}catch(e){st.scrollLeft=0;}}}
 function gModeVa(m){
+  if(gEl&&gEl.classList.contains('consoleCachee')){gConsoleCache(false);if(GMODE.m===m)return;} // (2026-10-09) la console repliée : la touche la ROUVRE (dans son mode)
   GMODE.m=GMODE.m===m?'tout':m;
   const bar=$('gRar'),st=$('gStrip');if(bar)bar._k=null;if(st)st._r=null;
   gModeCale();
   if(SHOP.tab==='voiture')garageFamilles(carRar(garageI));else gStripHabits(SHOP.tab,SHOP.i[SHOP.tab]);
   gModeBoutons();}
+/* CACHER / VOIR (2026-10-09, Léo) : replier la partie boutique / inventaire de la console pour voir le garage (voir le CSS « HOME ET CACHER ») */
+function gConsoleCache(on){if(!gEl)return;gEl.classList.toggle('consoleCachee',!!on);garLibre._r=null;
+  const b=document.getElementById('gCache');if(b){b.setAttribute('aria-pressed',on?'true':'false');const sp=b.querySelector('span');if(sp){sp.dataset.fr=on?'VOIR':'CACHER';sp.textContent=TR(sp.dataset.fr);}}}
+try{document.getElementById('gCache').addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(e.currentTarget);uiClic('onglet');gConsoleCache(!gEl.classList.contains('consoleCachee'));});
+  document.getElementById('gHomeBas').addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(e.currentTarget);const c=$('gClose');if(c)c.click();});
+  if(!I18N['CACHER'])I18N['CACHER']='HIDE';if(!I18N['VOIR'])I18N['VOIR']='SHOW';}catch(e){}
 /* le plateau suit le mode : en BOUTIQUE le 1er objet à acheter (si celui qu'on voit ne l'est pas), en INVENTAIRE ta caisse / le 1er objet
    à toi (si celui qu'on voit ne l'est pas) — au changement de mode ET d'onglet (shopTab) */
 function gModeCale(){const m=gModeM();if(m==='tout')return;
@@ -38010,7 +38039,7 @@ function gStripHabits(cat,i){
 // menu s'est mis à traverser tout l'étal). Le garage RESTE la scène du départ (porte qui s'ouvre,
 // boost, logo) ; c'est seulement le PAPIER PEINT du shop qui n'a rien à faire sur un lancement rapide.
 function openGarage(quiet){
-  try{GMODE.m='tout';}catch(e){} // (2026-10-09) la console à trois modes repart sur TOUT
+  try{GMODE.m='tout';gConsoleCache(false);}catch(e){} // (2026-10-09) la console à trois modes repart sur TOUT, dépliée
   try{if(PHQ.q.length&&!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}catch(e){} // (2026-09-26) les photos en attente reprennent
   if(started&&!gameOver){showMsg('Le garage se visite depuis le menu');return;} // ⚠ gameOver = on EST au menu : refuser ici bloquait le bouton apres la 1re partie
   try{if(SONV2&&!openGarage._amb)openGarage._amb=sfx('garage.ambiance',{loop:true});}catch(e){} // (console de son) l'ATELIER a sa voix : néons, tube qui grésille, la ville au loin
