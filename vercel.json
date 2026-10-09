@@ -10,6 +10,11 @@
       "permanent": false
     },
     {
+      "source": "/public-ai",
+      "destination": "/public-ai/",
+      "permanent": false
+    },
+    {
       "source": "/jouer",
       "destination": "/jouer/",
       "permanent": false
