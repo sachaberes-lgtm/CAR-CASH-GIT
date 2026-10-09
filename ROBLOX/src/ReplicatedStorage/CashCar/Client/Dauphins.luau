@@ -10,6 +10,7 @@ local RunService = game:GetService("RunService")
 local Config = require(script.Parent.Parent:WaitForChild("Config"))
 local Objets = require(script.Parent.Parent:WaitForChild("Objets"))
 local Bus = require(script.Parent:WaitForChild("Bus"))
+local Perf = require(script.Parent:WaitForChild("Perf"))
 local Maillage = require(script.Parent:WaitForChild("Maillage"))
 local Score = require(script.Parent:WaitForChild("Score"))
 local M = Config.M
@@ -109,6 +110,7 @@ end
 
 -- la gerbe : une COURONNE qui monte et un ANNEAU d'écume qui file au ras de l'eau
 local function gerbe(u: any, pos: Vector3, haut: CFrame, puissance: number, k: number, nM: number)
+	nM *= Perf.part(Perf.F.particules) -- (APPAREIL FAIBLE : une part des gouttes, Config.FAIBLE.particules)
 	u.ag.WorldCFrame = CFrame.fromMatrix(pos * M, haut.RightVector, haut.UpVector, haut.LookVector * -1)
 	local e: ParticleEmitter = u.gerbe
 	e.Speed = NumberRange.new(4 * puissance * k * M * 0.4, 9 * puissance * k * M * 0.4)
@@ -286,7 +288,7 @@ local function tick(dt: number)
 		local sl: ParticleEmitter = u.sillage
 		sl.Enabled = dessus
 		if dessus then
-			sl.Rate = 55
+			sl.Rate = 55 * Perf.part(Perf.F.particules)
 			sl.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.24 * k * M * 0.6), NumberSequenceKeypoint.new(1, 0.05 * k * M) })
 			sl.Color = ColorSequence.new(noir and Color3.fromRGB(255, 26, 48) or Color3.fromRGB(255, 106, 214))
 		end
@@ -294,8 +296,9 @@ local function tick(dt: number)
 end
 
 function Dauphins.init()
+	local tickC = Perf.chrono("Dauphins", tick) -- (banc : son temps par image, voir Perf)
 	RunService.RenderStepped:Connect(function(dt: number)
-		local ok, err = pcall(tick, math.min(dt, 0.05))
+		local ok, err = pcall(tickC, math.min(dt, 0.05))
 		if not ok then
 			if not D.erreur then warn("[CashCar] dauphins : " .. tostring(err)) end
 			D.erreur = true
