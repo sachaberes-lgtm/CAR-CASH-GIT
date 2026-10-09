@@ -116,6 +116,15 @@
   .lien{border:0;background:none;font-size:11px;color:var(--gris2);cursor:pointer;margin-top:10px;letter-spacing:.02em}
   .lien:hover{color:var(--encre)}
   #bilan{font-size:11px;color:var(--gris);margin-top:8px;letter-spacing:.02em;min-height:14px}
+  .rond:not(.on) .ondes{opacity:.15}
+  #bulle{position:absolute;left:0;top:0;pointer-events:none;font:800 30px/1 var(--sys);letter-spacing:.02em;color:#ff7a1a;white-space:nowrap;
+    text-shadow:0 2px 0 #fff,0 -2px 0 #fff,2px 0 0 #fff,-2px 0 0 #fff,0 6px 18px rgba(0,0,0,.18);opacity:0;transform:translate(-50%,-50%)}
+  #bulle.on{animation:bulleSaute .95s cubic-bezier(.2,.9,.3,1.2) forwards}
+  @keyframes bulleSaute{0%{opacity:0;scale:.4}18%{opacity:1;scale:1.12}30%{scale:1}75%{opacity:1;translate:0 -14px}100%{opacity:0;translate:0 -30px}}
+  #bilan .ok{color:#1f9d55;margin-left:6px;opacity:0;transition:opacity .25s}#bilan .ok.on{opacity:1}
+  #histo{display:none;max-height:150px;overflow-y:auto;margin-top:6px;padding:8px 10px;border-radius:10px;background:rgba(0,0,0,.035);
+    font-size:11px;line-height:1.5;color:var(--gris)}
+  #histo.on{display:block}#histo b{font-weight:500;color:var(--gris2);margin-right:6px}#histo p.fiche{color:var(--gris2);text-align:center}
   #toast{position:fixed;left:50%;top:22px;transform:translate(-50%,-8px);z-index:60;background:var(--encre);color:#fff;font-size:12px;
     padding:9px 16px;border-radius:999px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s}
   #toast.on{opacity:1;transform:translate(-50%,0)}
@@ -140,6 +149,7 @@
   <div id="marque"><b>SALLE BLANCHE</b><span>CASH CAR</span></div>
   <div id="outils">
     <button class="rond on" id="bTourne" title="Tourner tout seul"><svg viewBox="0 0 16 16"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/><path d="M13.6 2.2v2.6H11"/></svg></button>
+    <button class="rond on" id="bSon" title="Le son du toucher"><svg viewBox="0 0 16 16"><path d="M2.5 6h2.6L8.5 3v10L5.1 10H2.5z"/><path class="ondes" d="M10.8 5.6a3.4 3.4 0 0 1 0 4.8M12.6 3.8a6 6 0 0 1 0 8.4"/></svg></button>
     <button class="rond" id="bCadre" title="Recadrer"><svg viewBox="0 0 16 16"><path d="M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10"/></svg></button>
   </div>
   <div id="fiche">
@@ -148,7 +158,8 @@
     <label class="champ"><i>Prix · condition</i><input id="fPrix" spellcheck="false" autocomplete="off"></label>
     <label class="champ"><i>Ce qu'on en dit</i><textarea id="fNote" placeholder="Écris ce que tu penses de cette voiture…"></textarea></label>
   </div>
-  <div id="aide">glisse pour tourner · molette pour zoomer · ← → voiture suivante</div>
+  <div id="aide">glisse pour tourner · touche-la pour la faire réagir · molette pour zoomer · ← → voiture suivante</div>
+  <div id="bulle"></div>
   <div id="charge">Ouverture du garage…</div>
 </div>
 
@@ -166,6 +177,8 @@
       <button class="btn" id="bCopie">Copier</button>
     </div>
     <div id="bilan"></div>
+    <button class="lien" id="bHisto">Ce que j'ai fait à la main</button>
+    <div id="histo"></div>
     <button class="lien" id="bZero">Revenir à la gamme du jeu</button>
   </div>
 </aside>
@@ -174,6 +187,8 @@
 <div id="toast"></div>
 
 <script src="vendor/three.min.js"></script>
+<script src="sons-banque.js" defer></script>
+<script src="sfx.js" defer></script>
 <script>
 'use strict';
 /* =====================================================================================================================
@@ -295,6 +310,7 @@ function assemble(i){
     if(!o.isMesh||!o.geometry||(o.material.userData&&o.material.userData.kit))return;
     const f=geoFacette(o.geometry);if(f)o.geometry=f;});
   for(const r of roues){const w=roue.clone();w.position.set(r.x,r.y,r.z);if(r.miroir)w.scale.x=-1;grp.add(w);}
+  grp.userData.A=A;grp.userData.spec=spec; // les ancrages du jeu (pots, phares…) : les réactions au toucher en partent
   return studio(grp); // la caisse posée dans sa BOÎTE (centrée, au sol) : c'est elle qu'on fait tourner
 }
 
@@ -428,20 +444,22 @@ function taille(){
 addEventListener('resize',taille);
 
 const doigts=new Map();let pince0=0,distPince=0;
-cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);doigts.set(e.pointerId,{x:e.clientX,y:e.clientY,t:performance.now()});
-  if(doigts.size===2){const[a,b]=[...doigts.values()];pince0=Math.hypot(a.x-b.x,a.y-b.y);distPince=V.distC;}
-  V.yawV=0;cv.classList.add('tient');aideVue();if(V.tourne)basculeTourne(false);});
+cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);const n9=performance.now();
+  doigts.set(e.pointerId,{x:e.clientX,y:e.clientY,t:n9,x0:e.clientX,y0:e.clientY,t0:n9,bouge:false});
+  if(doigts.size===2){const[a,b]=[...doigts.values()];pince0=Math.hypot(a.x-b.x,a.y-b.y);distPince=V.distC;a.bouge=b.bouge=true;}
+  V.yawV=0;cv.classList.add('tient');aideVue();});
 cv.addEventListener('pointermove',e=>{const d=doigts.get(e.pointerId);if(!d)return;
+  if(!d.bouge){if(Math.hypot(e.clientX-d.x0,e.clientY-d.y0)<6)return;d.bouge=true;if(V.tourne)basculeTourne(false);} // un TAP ne tourne rien (il frappe, voir tape)
   if(doigts.size===2){d.x=e.clientX;d.y=e.clientY;const[a,b]=[...doigts.values()];const p=Math.hypot(a.x-b.x,a.y-b.y);
     if(pince0>0)V.distC=bornerDist(distPince*pince0/p);V.besoin=true;return;}
   const dx=e.clientX-d.x,dy=e.clientY-d.y,now=performance.now(),dt=Math.max(1,now-d.t);
   V.yaw+=dx*.0085;V.yawV=dx*.0085/(dt/1000)*.9;V.elC=Math.max(.02,Math.min(1.25,V.elC+dy*.005));
   d.x=e.clientX;d.y=e.clientY;d.t=now;V.besoin=true;});
 const lache=e=>{const d=doigts.get(e.pointerId);doigts.delete(e.pointerId);if(doigts.size<2)pince0=0;
-  if(!doigts.size){cv.classList.remove('tient');if(d&&performance.now()-d.t>80)V.yawV=0;}};
+  if(!doigts.size){cv.classList.remove('tient');if(d&&performance.now()-d.t>80)V.yawV=0;
+    if(d&&!d.bouge&&e.type==='pointerup'&&performance.now()-d.t0<450)tape(e);}};  // ni glissé ni pincement : un TAP, la caisse réagit
 cv.addEventListener('pointerup',lache);cv.addEventListener('pointercancel',lache);
 cv.addEventListener('wheel',e=>{e.preventDefault();V.distC=bornerDist(V.distC*Math.exp(e.deltaY*.0012));V.besoin=true;aideVue();},{passive:false});
-cv.addEventListener('dblclick',()=>{if(V.car)cadrer(V.car,true);});
 const bornerDist=d=>Math.max(V.distBase*.38,Math.min(V.distBase*2.2,d));
 function basculeTourne(on){V.tourne=on;$('bTourne').classList.toggle('on',on);V.besoin=true;}
 $('bTourne').onclick=()=>basculeTourne(!V.tourne);
@@ -456,7 +474,8 @@ function caisse(i){
   if(CAISSES.has(i))return CAISSES.get(i);if(RATEES.has(i))return null;
   try{const b=assemble(i);CAISSES.set(i,b);return b;}catch(e){console.warn('caisse '+i+' ('+G.CARS[i].name+') :',e);RATEES.add(i);return null;}}
 function montrer(i){
-  const b=caisse(i);if(V.car&&V.car!==b){TOUR.remove(V.car);}
+  const b=caisse(i);if(V.car&&V.car!==b){TOUR.remove(V.car);V.car.position.set(0,0,0);V.car.rotation.x=V.car.rotation.z=0;}
+  TAP.j.p.set(0,0,0);TAP.j.v.set(0,0,0);TAP.j.r.set(0,0,0);TAP.j.w.set(0,0,0); // (TAP est déclaré plus bas : montrer ne sert qu'après le départ)
   V.car=b;if(b){TOUR.add(b);cadrer(b,false);}V.besoin=true;}
 function photo(i){ // une vignette : la caisse de trois quarts avant, dans le petit studio, recopiée depuis un coin de la toile
   const b=caisse(i),vg=VIG.get(i);if(!vg)return;const ctx=vg.cv.getContext('2d');
@@ -494,8 +513,10 @@ function boucle(){
   const k=1-Math.exp(-dt*10);
   if(Math.abs(V.dist-V.distC)>.001){V.dist+=(V.distC-V.dist)*k;bouge=true;}
   if(Math.abs(V.el-V.elC)>.0005){V.el+=(V.elC-V.el)*k;bouge=true;}
+  if(fxTick(dt))bouge=true;                                                       // le toucher : coup, étincelles, tôle, feu, arc-en-ciel
   if(!bouge&&!V.besoin)return;V.besoin=false;
   TOUR.rotation.y=V.yaw;placeCam(CAM,V.dist,V.el,V.ty);SC.fog.near=V.dist+4;SC.fog.far=V.dist+38;
+  if(TAP.sh>.002){const k9=TAP.sh*V.dist*.006;CAM.position.x+=(Math.random()-.5)*k9;CAM.position.y+=(Math.random()-.5)*k9;}
   R.render(SC,CAM);if(!CAL.ok)etalonne();}
 
 /* ---------------------------------------------------------------------------------------------------------------------
@@ -523,7 +544,25 @@ function lireJeuGamme(){
     let r=G.carRar(i);if(!fam[r]||r==='retire')r='commun';fam[r].push(i);rar[i]=r;prix[i]=prixJeu(i);}
   for(const id in fam)fam[id].sort((a,b)=>G.carOrdre(a)-G.carOrdre(b)||a-b);
   JEU={fam,rar,prix};}
-function neuf(){const lanes={};for(const f of FAMS)lanes[f.id]=JEU.fam[f.id].slice();return {v:1,lanes,prix:{},notes:{},general:'',sel:JEU.fam.commun[0]||0};}
+function neuf(){const lanes={};for(const f of FAMS)lanes[f.id]=JEU.fam[f.id].slice();return {v:1,lanes,prix:{},notes:{},general:'',sel:JEU.fam.commun[0]||0,journal:[]};}
+/* LE JOURNAL (2026-10-09, Léo : « sauvegarder tous les changements faits à la main par moi ») — chaque GESTE fait à la main (une voiture
+   glissée d'une rareté à l'autre ou à une autre place, un prix, une note, les notes générales, le retour à la gamme du jeu) est écrit avec
+   son heure, enregistré tout de suite, et part dans la fiche (« CE QUE J'AI FAIT À LA MAIN »). Il ne s'efface JAMAIS — ni quand le jeu
+   rattrape la liste (la salle dirait alors « rien de changé »), ni au retour à la gamme du jeu. Une salle d'avant le journal le commence
+   avec ce que Léo avait déjà fait (sa fiche du 9/10, appliquée au jeu le jour même). */
+const JOURNAL_AVANT=["L'AIGLE DE FEU : ÉPIQUE → RARE","SQUALE : RARE → ÉPIQUE","ATCHOUM : RARE → ÉPIQUE","Ordre changé dans les RARES et les ÉPIQUES"];
+const ordinal=n=>n===1?'1re':n+'e';
+let okT=0;
+function geste(x){ETAT.journal.push({t:Date.now(),x});if(ETAT.journal.length>1500)ETAT.journal.splice(0,ETAT.journal.length-1500);
+  sauver();const o=$('bilan').querySelector('.ok');if(o){o.classList.add('on');clearTimeout(okT);okT=setTimeout(()=>o.classList.remove('on'),1400);}
+  if($('histo').classList.contains('on'))histo();}
+const quand=j=>j.avant?'9 oct. (avant le journal)':new Date(j.t).toLocaleString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}).replace(',','');
+function histo(){const h=$('histo'),J=ETAT.journal;h.innerHTML='';
+  if(!J.length){h.innerHTML='<p>Rien encore : chaque geste s\'écrira ici.</p>';return;}
+  for(let k=J.length-1;k>=0;k--){const p=document.createElement('p'),j=J[k];
+    if(j.x==='— fiche téléchargée —'){p.className='fiche';p.textContent='— fiche téléchargée · '+quand(j)+' —';}
+    else{const b=document.createElement('b');b.textContent=quand(j);p.appendChild(b);p.appendChild(document.createTextNode(j.x));}
+    h.appendChild(p);}}
 function charger(){
   let e=null;try{e=JSON.parse(localStorage.getItem(CLE)||'null');}catch(_){}
   if(!e||!e.lanes){ETAT=neuf();return;}
@@ -531,8 +570,14 @@ function charger(){
   const vues=new Set(),lanes={};
   for(const f of FAMS)lanes[f.id]=(e.lanes[f.id]||[]).filter(i=>JEU.rar[i]!=null&&!vues.has(i)&&vues.add(i));
   for(const i in JEU.rar)if(!vues.has(+i))lanes[JEU.rar[i]].push(+i);
-  ETAT={v:1,lanes,prix:e.prix||{},notes:e.notes||{},general:e.general||'',sel:JEU.rar[e.sel]!=null?e.sel:(JEU.fam.commun[0]||0)};}
-let sauveT=0;function sauver(){clearTimeout(sauveT);sauveT=setTimeout(()=>{try{localStorage.setItem(CLE,JSON.stringify(ETAT));}catch(_){}},250);bilan();}
+  ETAT={v:1,lanes,prix:e.prix||{},notes:e.notes||{},general:e.general||'',sel:JEU.rar[e.sel]!=null?e.sel:(JEU.fam.commun[0]||0),
+    journal:Array.isArray(e.journal)?e.journal:null};
+  if(!ETAT.journal){ETAT.journal=JOURNAL_AVANT.map(x=>({t:0,avant:1,x}));                   // une salle d'avant le journal : il reprend ce qui était déjà fait
+    if(ETAT.general.trim())ETAT.journal.push({t:0,avant:1,x:'Notes générales : « '+ETAT.general.trim().replace(/\s*\n\s*/g,' / ')+' »'});
+    ETAT.journal.push({t:0,avant:1,x:'— fiche téléchargée —'});}}
+let sauveT=0;function sauver(){clearTimeout(sauveT);sauveT=setTimeout(ecrire,250);bilan();}
+function ecrire(){clearTimeout(sauveT);try{localStorage.setItem(CLE,JSON.stringify(ETAT));}catch(_){}}
+addEventListener('pagehide',ecrire);addEventListener('beforeunload',ecrire); // rien ne se perd, même fermée dans le quart de seconde
 const famDeCaisse=i=>{for(const f of FAMS)if(ETAT.lanes[f.id].includes(i))return f.id;return JEU.rar[i];};
 const prixDe=i=>(ETAT.prix[i]!=null&&ETAT.prix[i].trim()!=='')?ETAT.prix[i].trim():JEU.prix[i];
 const nom=i=>G.CARS[i].name;
@@ -591,12 +636,15 @@ function glisseFin(e){const g=glisse;if(!g||e.pointerId!==g.id)return;glisse=nul
   for(const f of FAMS)LANE[f.id].classList.remove('vise');
   if(g.lane&&e.type==='pointerup'&&g.avant!==g.el)g.lane.insertBefore(g.el,g.avant);
   lireDOM();marques();sauver();majFiche();
-  const fa=famDeCaisse(g.i);if(fa!==g.fam0)toast(nom(g.i)+' → '+famDe(fa).n1);}
+  const fa=famDeCaisse(g.i),pos=ETAT.lanes[fa].indexOf(g.i)+1,F=famDe(fa);
+  if(fa!==g.fam0){toast(nom(g.i)+' → '+F.n1);
+    geste(nom(g.i)+' : '+famDe(g.fam0).n1+' → '+F.n1+(fa==='retire'?'':' ('+ordinal(pos)+' des '+F.n+')'));}
+  else if(pos!==g.pos0)geste(nom(g.i)+' : '+ordinal(g.pos0)+' → '+ordinal(pos)+(fa==='retire'?' (à retirer)':' des '+F.n));}
 /* ⚠ pendant le glissé RIEN ne bouge dans la rangée : la vignette reste à sa place (pâlie) et un TRAIT montre où elle tombera.
    (Essayé d'abord : la vignette qui se range en direct — chaque couloir traversé grandissait d'une rangée et poussait la cible
    sous le doigt : on visait les ÉPIQUES, on tombait dans les RARES.) */
 function demarre(e){
-  const g=glisse,r=g.el.getBoundingClientRect();g.on=true;g.dx=e.clientX-r.left;g.dy=e.clientY-r.top;g.fam0=famDeCaisse(g.i);g.lane=null;g.avant=null;
+  const g=glisse,r=g.el.getBoundingClientRect();g.on=true;g.dx=e.clientX-r.left;g.dy=e.clientY-r.top;g.fam0=famDeCaisse(g.i);g.pos0=ETAT.lanes[g.fam0].indexOf(g.i)+1;g.lane=null;g.avant=null;
   const f=$('fantome');f.querySelector('canvas').getContext('2d').drawImage(VIG.get(g.i).cv,0,0);
   f.querySelector('b').textContent=nom(g.i);f.style.display='block';g.el.classList.add('place');}
 function suit(e){
@@ -626,7 +674,9 @@ function placeAvant(l,x,y,moi){
    9. LA FICHE DE LA VOITURE — nom, famille (et d'où elle vient), prix modifiable, ce qu'on en dit
    --------------------------------------------------------------------------------------------------------------------- */
 function choisir(i){
-  if(ETAT.sel===i&&V.car)return;ETAT.sel=i;sauver();marques();majFiche();montrer(i);
+  if(ETAT.sel===i&&V.car)return;
+  const ae=document.activeElement;if(ae&&(ae.id==='fNote'||ae.id==='fPrix'))ae.blur(); // ⚠ le texte en cours appartient à la voiture d'AVANT : on le clôt (et il s'écrit au journal)
+  ETAT.sel=i;sauver();marques();majFiche();montrer(i);
   const v=VIG.get(i);if(v)v.el.scrollIntoView({block:'nearest',behavior:'smooth'});}
 function majFiche(){
   const i=ETAT.sel,c=G.CARS[i];if(!c)return;
@@ -642,11 +692,21 @@ function majFiche(){
 $('fPrix').addEventListener('input',e=>{const i=ETAT.sel,v=e.target.value;
   if(v.trim()===''||v.trim()===JEU.prix[i])delete ETAT.prix[i];else ETAT.prix[i]=v;
   e.target.classList.toggle('change',prixDe(i)!==JEU.prix[i]);sauver();});
-$('fPrix').addEventListener('blur',()=>majFiche());
+$('fPrix').addEventListener('focus',e=>{e.target.dataset.avant=prixDe(ETAT.sel);e.target.dataset.i=ETAT.sel;});
+$('fPrix').addEventListener('blur',e=>{const i=+e.target.dataset.i,a=e.target.dataset.avant;
+  if(a!=null&&e.target.dataset.i!==''&&G.CARS[i]&&prixDe(i)!==a)geste(nom(i)+' : prix '+a+' → '+prixDe(i)+(prixDe(i)===JEU.prix[i]?' (le prix du jeu)':''));
+  e.target.dataset.i='';majFiche();});
 $('fPrix').addEventListener('keydown',e=>{if(e.key==='Enter')e.target.blur();});
 $('fNote').addEventListener('input',e=>{const i=ETAT.sel;if(e.target.value.trim())ETAT.notes[i]=e.target.value;else delete ETAT.notes[i];
   e.target.style.height='auto';e.target.style.height=Math.min(180,e.target.scrollHeight+2)+'px';marques();sauver();});
 $('gNote').addEventListener('input',e=>{ETAT.general=e.target.value;sauver();});
+$('fNote').addEventListener('focus',e=>{e.target.dataset.avant=ETAT.notes[ETAT.sel]||'';e.target.dataset.i=ETAT.sel;});
+$('fNote').addEventListener('blur',e=>{const i=+e.target.dataset.i,a=(e.target.dataset.avant||'').trim(),n=(ETAT.notes[i]||'').trim();
+  if(e.target.dataset.i!==''&&G.CARS[i]&&a!==n)geste(n?'Note sur '+nom(i)+' : « '+n.replace(/\s*\n\s*/g,' / ')+' »':'Note sur '+nom(i)+' effacée');e.target.dataset.i='';});
+$('gNote').addEventListener('focus',e=>{e.target.dataset.avant=ETAT.general||'';});
+$('gNote').addEventListener('blur',e=>{const a=(e.target.dataset.avant||'').trim(),n=(ETAT.general||'').trim();
+  if(a!==n)geste(n?'Notes générales : « '+n.replace(/\s*\n\s*/g,' / ')+' »':'Notes générales effacées');});
+$('bHisto').onclick=()=>{const h=$('histo');h.classList.toggle('on');if(h.classList.contains('on'))histo();};
 addEventListener('keydown',e=>{
   if(/INPUT|TEXTAREA/.test(document.activeElement.tagName)){if(e.key==='Escape')document.activeElement.blur();return;}
   if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft')return;
@@ -692,22 +752,164 @@ function fiche(){
   if(ch.ordres.length)o.push('  ORDRE CHANGÉ dans : '+ch.ordres.join(', ')+' (l\'ordre de la liste ci-dessus est le nouvel ordre)');
   const nN=Object.keys(ETAT.notes).filter(i=>ETAT.notes[i].trim()).length;
   if(nN)o.push('  NOTES écrites sur '+nN+' voiture'+(nN>1?'s':''));
+  const J=ETAT.journal.filter(j=>j.x!=='— fiche téléchargée —'||j.avant);
+  o.push('');o.push('CE QUE J\'AI FAIT À LA MAIN ('+J.filter(j=>j.x!=='— fiche téléchargée —').length+') — chaque geste, dans l\'ordre, enregistré au moment même');
+  if(!J.length)o.push('  rien encore');
+  for(const j of ETAT.journal)o.push(j.x==='— fiche téléchargée —'?'  — fiche téléchargée ('+quand(j)+') —':'  '+quand(j)+' · '+j.x);
   return o.join('\n')+'\n';}
 function bilan(){
   if(!JEU)return;const ch=changements(),nN=Object.keys(ETAT.notes).filter(i=>ETAT.notes[i].trim()).length;
   const b=[];if(ch.L.length)b.push(ch.L.length+' changement'+(ch.L.length>1?'s':''));if(ch.ordres.length)b.push('ordre modifié');
   if(nN)b.push(nN+' note'+(nN>1?'s':''));if(ETAT.general.trim())b.push('notes générales');
-  $('bilan').textContent=b.length?b.join(' · '):'Rien de changé : c\'est la gamme du jeu.';}
+  const n9=ETAT.journal.filter(j=>j.x!=='— fiche téléchargée —').length;
+  $('bilan').innerHTML='';$('bilan').append((b.length?b.join(' · '):'Rien de changé par rapport au jeu')+' · '+n9+' geste'+(n9>1?'s':'')+' enregistré'+(n9>1?'s':''));
+  const ok=document.createElement('span');ok.className='ok';ok.textContent='✓ enregistré';$('bilan').appendChild(ok);
+  $('bHisto').textContent='Ce que j\'ai fait à la main ('+n9+')';}
 $('bTele').onclick=()=>{
   const t=fiche(),a=document.createElement('a'),j=new Date();
   a.href=URL.createObjectURL(new Blob(['﻿'+t],{type:'text/plain;charset=utf-8'}));
   a.download='fiche-voitures-cash-car-'+j.getFullYear()+'-'+String(j.getMonth()+1).padStart(2,'0')+'-'+String(j.getDate()).padStart(2,'0')+'.txt';
-  document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},800);toast('Fiche téléchargée');};
+  document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},800);toast('Fiche téléchargée');
+  geste('— fiche téléchargée —');ecrire();};
 $('bCopie').onclick=async()=>{try{await navigator.clipboard.writeText(fiche());toast('Fiche copiée');}
   catch(_){const t=document.createElement('textarea');t.value=fiche();document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();toast('Fiche copiée');}};
-$('bZero').onclick=()=>{if(!confirm('Revenir à la gamme du jeu ? Les familles, l\'ordre, les prix ET les notes écrites ici seront effacés.'))return;
-  ETAT=neuf();$('gNote').value='';ranger();sauver();choisir(ETAT.sel);majFiche();toast('Gamme du jeu remise');};
+$('bZero').onclick=()=>{if(!confirm('Revenir à la gamme du jeu ? Les familles, l\'ordre, les prix ET les notes écrites ici seront effacés (le journal de tes gestes, lui, reste).'))return;
+  const J=ETAT.journal;ETAT=neuf();ETAT.journal=J;$('gNote').value='';ranger();choisir(ETAT.sel);majFiche();
+  geste('Retour à la gamme du jeu : familles, ordre, prix et notes remis comme dans le jeu');toast('Gamme du jeu remise');};
 let toastT=0;function toast(t){const e=$('toast');e.textContent=t;e.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('on'),1600);}
+
+/* ---------------------------------------------------------------------------------------------------------------------
+   12. LE TOUCHER (2026-10-09, Léo : « quand j'appuie sur les voitures, ça fait leur réaction — chaque voiture n'en a pas forcément une,
+   donc juste l'effet clic dessus ») — un TAP sur la caisse (ni glissé, ni pincement) :
+   · L'EFFET CLIC, pour toutes : celui de la caisse au doigt de l'écran titre, posé dans le studio — elle ENCAISSE (recul dans le sens du
+     doigt, petit saut, bascule, en ressorts), des ÉTINCELLES giclent du point touché, des MORCEAUX DE TÔLE à la couleur de la pièce touchée
+     s'arrachent et rebondissent sur le sol blanc (avec leur ombre), la vue tremble, la tôle sonne (les sons du jeu : pose.choc,
+     debris.tole, pose.lourde au combo). Des coups rapprochés (< 0,7 s) frappent de plus en plus fort : LE COMBO, ×1 → ×2,75.
+   · LEUR RÉACTION, pour celles qui en ont une dans le jeu : ATCHOUM ÉTERNUE (le feu part du museau, comme au garage — ATCH.N du jeu —
+     la caisse se cabre, « ATCHOUM ! ») ; le CHAT POP-TART lâche son ARC-EN-CIEL en pixels par la poupe (six bandes, en escalier).
+   Sur fond blanc rien d'additif (l'additif sur du blanc ne se voit pas) : étincelles et feu en couleurs pleines.
+   --------------------------------------------------------------------------------------------------------------------- */
+const TAP={ray:new THREE.Raycaster(),nd:new THREE.Vector2(),combo:0,cT:-9,sh:0,v3:new THREE.Vector3(),v4:new THREE.Vector3(),q:new THREE.Quaternion(),
+  j:{p:new THREE.Vector3(),v:new THREE.Vector3(),r:new THREE.Vector3(),w:new THREE.Vector3()},son:true,ac:null};
+try{TAP.son=localStorage.getItem('cashcar.salleBlanche.son')!=='0';}catch(_){}
+$('bSon').classList.toggle('on',TAP.son);
+$('bSon').onclick=()=>{TAP.son=!TAP.son;$('bSon').classList.toggle('on',TAP.son);try{localStorage.setItem('cashcar.salleBlanche.son',TAP.son?'1':'0');}catch(_){}
+  if(TAP.son)son('ui.appui');};
+function son(id,o){ // les sons du jeu (sfx.js + sons-banque.js), le contexte audio s'ouvre au premier toucher
+  if(!TAP.son||!window.CCSON)return;
+  try{if(!TAP.ac){const AC=window.AudioContext||window.webkitAudioContext;TAP.ac=new AC();const M=TAP.ac.createGain();M.gain.value=.9;
+      const c=TAP.ac.createDynamicsCompressor();c.threshold.value=-16;c.ratio.value=4;M.connect(c);c.connect(TAP.ac.destination);CCSON.init(TAP.ac,M);}
+    if(TAP.ac.state!=='running')TAP.ac.resume();CCSON.play(id,o||{});}catch(_){}}
+// --- les étincelles : des éclats allongés dans le sens de leur vol, orange vif → rouge ---
+const ETI_N=110,ETI=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshBasicMaterial({toneMapped:false}),ETI_N);
+// ⚠ les couleurs AVANT `count=0` : setColorAt crée son tampon à la taille de `count` (créé à 0, il était vide — erreur WebGL au dessin)
+ETI.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(ETI_N*3),3);ETI.frustumCulled=false;ETI.count=0;SC.add(ETI);const ETS=[];
+for(let i=0;i<ETI_N;i++)ETS.push({p:new THREE.Vector3(),v:new THREE.Vector3(),t:0,vie:0});
+// --- les morceaux de tôle : de vraies petites pièces (ombre comprise) qui rebondissent sur le sol ---
+const TOLE=[],TOLE_G=new THREE.BoxGeometry(1,1,1);
+for(let i=0;i<24;i++){const m=new THREE.Mesh(TOLE_G,new THREE.MeshStandardMaterial({roughness:.35,metalness:.25}));m.castShadow=true;m.visible=false;SC.add(m);
+  TOLE.push({m,v:new THREE.Vector3(),w:new THREE.Vector3(),t:0,vie:0,s:new THREE.Vector3()});}
+let toleI=0;
+// --- le feu d'ATCHOUM : des bouffées de flamme pleines (jaune au cœur, rouge au bord) ---
+const FEU_T=(()=>{const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d'),g=x.createRadialGradient(32,32,0,32,32,32);
+  g.addColorStop(0,'rgba(255,248,210,1)');g.addColorStop(.28,'rgba(255,196,40,1)');g.addColorStop(.6,'rgba(255,96,20,.9)');g.addColorStop(1,'rgba(200,30,10,0)');
+  x.fillStyle=g;x.fillRect(0,0,64,64);return new THREE.CanvasTexture(c);})();
+const FEU=[];for(let i=0;i<44;i++){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:FEU_T,transparent:true,depthWrite:false,toneMapped:false}));
+  sp.visible=false;SC.add(sp);FEU.push({sp,v:new THREE.Vector3(),t:0,vie:0,s0:.3,s1:1});}
+let feuI=0;
+// --- l'arc-en-ciel du chat : des colonnes de six cubes, du rouge au violet ---
+const ARC_C=[0xff2a36,0xff9a1e,0xffe14a,0x4cd964,0x2f8bff,0x8a4dff].map(h=>new THREE.Color(h)),ARC_N=6*60;
+const ARCM=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshBasicMaterial({toneMapped:false}),ARC_N);
+ARCM.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(ARC_N*3),3);ARCM.frustumCulled=false;ARCM.count=0;SC.add(ARCM);
+const ARCS=[];for(let i=0;i<ARC_N;i++)ARCS.push({p:new THREE.Vector3(),v:new THREE.Vector3(),t:0,vie:0,k:0});
+let arcI=0;const EMET={arc:0,arcAcc:0,arcN:0,arcCar:null};
+const M4=new THREE.Matrix4(),QZ=new THREE.Vector3(0,0,1),SCL=new THREE.Vector3();
+
+function ancre(box,loc,out){const g=box.children[0];return out.set(loc[0],loc[1],loc[2]).applyMatrix4(g.matrixWorld);} // un point de la fiche du jeu, dans le monde
+function avant(box,out){box.children[0].getWorldQuaternion(TAP.q);return out.set(0,0,1).applyQuaternion(TAP.q);}           // le nez de la caisse, dans le monde
+function tape(e){
+  if(!V.car)return;const r=cv.getBoundingClientRect();TAP.nd.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1);
+  SC.updateMatrixWorld();TAP.ray.setFromCamera(TAP.nd,CAM);
+  const h=TAP.ray.intersectObject(V.car,true).find(x=>x.object.isMesh&&x.object.visible);if(!h)return;
+  const now=performance.now()/1000;TAP.combo=now-TAP.cT<.7?Math.min(6,TAP.combo+1):1;TAP.cT=now;const mu=1+.35*(TAP.combo-1);
+  const d=TAP.ray.ray.direction,n=TAP.v3;if(h.face)n.copy(h.face.normal).transformDirection(h.object.matrixWorld);else n.copy(d).negate();if(n.dot(d)>0)n.negate();
+  // LE COUP : dans le repère du plateau (il tourne), recul dans le sens du doigt, petit saut, bascule (r × F)
+  TAP.q.copy(TOUR.quaternion).invert();const dl=TAP.v4.copy(d).applyQuaternion(TAP.q),J=TAP.j;
+  J.v.x+=dl.x*.85*mu;J.v.z+=dl.z*.85*mu;J.v.y+=.75*mu;
+  const c=V.car.getWorldPosition(new THREE.Vector3());c.y+=V.car.userData.taille.y*.4;
+  const rl=new THREE.Vector3().subVectors(h.point,c).applyQuaternion(TAP.q),tq=rl.cross(dl);J.w.x+=tq.x*1.6*mu;J.w.z+=tq.z*1.6*mu;
+  TAP.sh=Math.min(1.4,TAP.sh+.5*mu);
+  // LES ÉTINCELLES, du point touché, dans le sens de la face
+  const ne=Math.round(14+8*mu);
+  for(let k=0;k<ne;k++){let s0=null;for(const e9 of ETS)if(e9.t>=e9.vie){s0=e9;break;}if(!s0)break;
+    const sp=2.5+Math.random()*4*mu;s0.p.copy(h.point).addScaledVector(n,.03);
+    s0.v.set(n.x*sp+(Math.random()-.5)*5,n.y*sp+(Math.random()-.5)*4+2,n.z*sp+(Math.random()-.5)*5);s0.t=0;s0.vie=.28+Math.random()*.4;}
+  // LA TÔLE, à la couleur de la pièce touchée (sa matière × sa couleur de sommet) et à son accent
+  const M9=Array.isArray(h.object.material)?h.object.material[0]:h.object.material,G9=h.object.geometry,ca=G9.attributes.color,col=new THREE.Color(1,1,1);
+  if(M9.color)col.copy(M9.color);if(ca&&M9.vertexColors&&h.face)col.multiply(new THREE.Color(ca.getX(h.face.a),ca.getY(h.face.a),ca.getZ(h.face.a)));
+  const spec=V.car.children[0].userData.spec||{},acc=new THREE.Color(spec.accent!=null?spec.accent:0x222222).convertSRGBToLinear();
+  const nt=Math.min(TOLE.length,Math.round(2+1.8*mu));
+  for(let k=0;k<nt;k++){const D=TOLE[toleI];toleI=(toleI+1)%TOLE.length;const sp=1+Math.random()*1.5*mu; // (vu au banc : plus fort, elle sortait du cadre)
+    D.m.material.color.copy(k%3===2?acc:col);D.m.position.copy(h.point).addScaledVector(n,.04);
+    D.v.set(n.x*sp+(Math.random()-.5)*1.4,Math.abs(n.y)*sp*.5+2.2+Math.random()*1.8*mu,n.z*sp+(Math.random()-.5)*1.4);
+    D.w.set((Math.random()-.5)*18,(Math.random()-.5)*18,(Math.random()-.5)*18);D.m.rotation.set(Math.random()*6,Math.random()*6,Math.random()*6);
+    const k9=.6+Math.random()*.8;D.s.set(.16*k9,.022+.02*Math.random(),.11*k9);D.m.scale.copy(D.s);D.t=0;D.vie=2.4+Math.random();D.m.visible=true;}
+  son('pose.choc',{vol:-2+3*Math.min(1,mu-1)});son('debris.tole',{vol:1,t:.03});if(TAP.combo>=3)son('pose.lourde',{vol:-5,t:.02});
+  // LEUR RÉACTION
+  const sh=spec.shape;
+  if(sh==='atchoum')setTimeout(()=>eternue(V.car),140);
+  else if(sh==='poptart'){EMET.arc=1.1;EMET.arcCar=V.car;son('nitro.plein',{vol:-4});}
+  V.besoin=true;}
+function eternue(box){ // ATCHOUM : le feu part du museau (le point d'ATCH.N du jeu), elle se cabre, et le dit
+  if(!box||box!==V.car)return;const P=ancre(box,[0,.47,2.2],new THREE.Vector3()),F=avant(box,new THREE.Vector3());
+  for(let k=0;k<26;k++){const f=FEU[feuI];feuI=(feuI+1)%FEU.length;const sp=3.5+Math.random()*4.5;
+    f.sp.position.copy(P);f.v.copy(F).multiplyScalar(sp).add(TAP.v3.set((Math.random()-.5)*2.2,(Math.random()-.2)*1.6,(Math.random()-.5)*2.2));
+    f.t=-k*.012;f.vie=.45+Math.random()*.35;f.s0=.18+Math.random()*.12;f.s1=.7+Math.random()*.6;f.sp.visible=false;}
+  TAP.q.copy(TOUR.quaternion).invert();const fl=F.clone().applyQuaternion(TAP.q),J=TAP.j;
+  J.v.x-=fl.x*1.3;J.v.z-=fl.z*1.3;J.v.y+=.5;J.w.x-=fl.z*2.2;J.w.z+=fl.x*2.2;TAP.sh=Math.min(1.4,TAP.sh+.6);  // elle recule et se cabre
+  son('garage.feu');
+  const b=$('bulle'),q=P.clone().add(TAP.v3.set(0,.9,0)).project(CAM),r=cv.getBoundingClientRect();
+  b.textContent='ATCHOUM !';b.style.left=((q.x+1)/2*r.width)+'px';b.style.top=((1-q.y)/2*r.height)+'px';b.classList.remove('on');void b.offsetWidth;b.classList.add('on');}
+function fxTick(dt){
+  let vit=false;const k=Math.min(dt,.05),J=TAP.j;
+  // le coup : deux ressorts (position, bascule), elle ne passe pas sous le sol
+  if(J.p.lengthSq()+J.v.lengthSq()+J.r.lengthSq()+J.w.lengthSq()>1e-7){vit=true;
+    J.v.addScaledVector(J.p,-55*k).multiplyScalar(Math.exp(-6.5*k));J.p.addScaledVector(J.v,k);if(J.p.y<0){J.p.y=0;if(J.v.y<0)J.v.y*=-.25;}
+    J.w.addScaledVector(J.r,-70*k).multiplyScalar(Math.exp(-7.5*k));J.r.addScaledVector(J.w,k);J.r.x=Math.max(-.16,Math.min(.16,J.r.x));J.r.z=Math.max(-.16,Math.min(.16,J.r.z));
+    if(V.car){V.car.position.copy(J.p);V.car.rotation.x=J.r.x;V.car.rotation.z=J.r.z;}}
+  else if(V.car&&(V.car.position.lengthSq()||V.car.rotation.x||V.car.rotation.z)){V.car.position.set(0,0,0);V.car.rotation.x=V.car.rotation.z=0;vit=true;}
+  if(TAP.sh>.002){TAP.sh*=Math.exp(-9*k);vit=true;}else TAP.sh=0;
+  // les étincelles
+  let n=0;for(const e of ETS){if(e.t>=e.vie)continue;e.t+=k;if(e.t>=e.vie)continue;vit=true;
+    e.v.y-=9.8*k;e.p.addScaledVector(e.v,k);if(e.p.y<.01){e.p.y=.01;e.v.y*=-.3;e.v.x*=.6;e.v.z*=.6;}
+    const u=e.t/e.vie,l=e.v.length();TAP.q.setFromUnitVectors(QZ,TAP.v4.copy(e.v).normalize());
+    SCL.set(.055*(1-u*.6),.055*(1-u*.6),Math.max(.09,Math.min(.42,l*.06))*(1-u*.5));M4.compose(e.p,TAP.q,SCL);ETI.setMatrixAt(n,M4); // (vu au banc : à 2,8 cm elles faisaient un pixel)
+    ETI.instanceColor.setXYZ(n,1,.62-.42*u,.12-.1*u);n++;}
+  ETI.count=n;if(n){ETI.instanceMatrix.needsUpdate=true;ETI.instanceColor.needsUpdate=true;}
+  // la tôle : elle vole, rebondit sur le sol, glisse, puis s'efface en rapetissant
+  for(const D of TOLE){if(!D.m.visible)continue;D.t+=k;if(D.t>=D.vie){D.m.visible=false;continue;}vit=true;
+    D.v.y-=9.8*k;D.m.position.addScaledVector(D.v,k);D.m.rotation.x+=D.w.x*k;D.m.rotation.y+=D.w.y*k;D.m.rotation.z+=D.w.z*k;
+    const hb=D.s.y*.5+.004;if(D.m.position.y<hb+.002){D.v.x*=Math.exp(-3*k);D.v.z*=Math.exp(-3*k);}            // au sol, elle frotte
+    if(D.m.position.y<hb){D.m.position.y=hb;if(D.v.y<0)D.v.y*=-.32;D.v.x*=.6;D.v.z*=.6;D.w.multiplyScalar(.6);
+      if(Math.abs(D.v.y)<.4){D.v.y=0;D.w.multiplyScalar(.5);D.m.rotation.x*=.8;D.m.rotation.z*=.8;}}
+    const fin=Math.max(0,(D.t-(D.vie-.45))/.45);D.m.scale.copy(D.s).multiplyScalar(1-fin);}
+  // le feu
+  for(const f of FEU){if(f.t>=f.vie&&!f.sp.visible)continue;f.t+=k;if(f.t<0)continue;if(f.t>=f.vie){f.sp.visible=false;continue;}vit=true;
+    f.sp.visible=true;const u=f.t/f.vie;f.v.multiplyScalar(Math.exp(-2.2*k));f.v.y+=1.6*k;f.sp.position.addScaledVector(f.v,k);
+    const sc=f.s0+(f.s1-f.s0)*Math.sqrt(u);f.sp.scale.set(sc,sc,1);f.sp.material.opacity=1-u*u;f.sp.material.rotation+=k*2;
+    f.sp.material.color.setRGB(1,1-.45*u,1-.7*u);}
+  // l'arc-en-ciel : l'émetteur pose une colonne tous les 3,2 cm de route, en escalier, qui file vers l'arrière
+  if(EMET.arc>0&&EMET.arcCar===V.car&&V.car){vit=true;EMET.arc-=k;EMET.arcAcc+=k;
+    const A=V.car.children[0].userData.A||{},po=(A.pots&&A.pots[0])||[0,.34,-.82],P=ancre(V.car,po,new THREE.Vector3()),B=avant(V.car,new THREE.Vector3()).negate();
+    while(EMET.arcAcc>.026){EMET.arcAcc-=.026;const pas=((EMET.arcN>>2)&1)?1:0;EMET.arcN++;const cz=.072;
+      for(let b=0;b<6;b++){const a=ARCS[arcI];arcI=(arcI+1)%ARC_N;a.k=b;a.p.copy(P).addScaledVector(B,.05);a.p.y+=(2.5-b+pas)*cz;
+        a.v.copy(B).multiplyScalar(2.8);a.v.y+=1.9;a.t=0;a.vie=1.3;}}}   // il MONTE en filant : vu de face, il passe au-dessus de la poupe
+  else EMET.arc=0;
+  let na=0;for(let i=0;i<ARC_N;i++){const a=ARCS[i];if(a.t>=a.vie)continue;a.t+=k;if(a.t>=a.vie)continue;vit=true;
+    a.p.addScaledVector(a.v,k);a.v.multiplyScalar(Math.exp(-1.2*k));a.v.y-=1.6*k;const u=a.t/a.vie,sz=.085*(u<.75?1:1-(u-.75)/.25);
+    M4.makeScale(sz,sz,sz*1.15).setPosition(a.p);ARCM.setMatrixAt(na,M4);const cc=ARC_C[a.k];ARCM.instanceColor.setXYZ(na,cc.r,cc.g,cc.b);na++;}
+  ARCM.count=na;if(na){ARCM.instanceMatrix.needsUpdate=true;ARCM.instanceColor.needsUpdate=true;}
+  return vit;}
 
 /* ---------------------------------------------------------------------------------------------------------------------
    11. DÉPART
@@ -723,7 +925,7 @@ let toastT=0;function toast(t){const e=$('toast');e.textContent=t;e.classList.ad
   for(const f of FAMS)for(const i of ETAT.lanes[f.id])FILE.push(i);
   requestAnimationFrame(boucle);
   reglerLum();
-  window.dbgSalle={lum:reglerLum,MATS,G,V,ETAT:()=>ETAT,JEU:()=>JEU,fiche,choisir,ratees:()=>[...RATEES].map(i=>i+' '+G.CARS[i].name),R};
+  window.dbgSalle={tape,TAP,EMET,lum:reglerLum,MATS,G,V,ETAT:()=>ETAT,JEU:()=>JEU,fiche,choisir,ratees:()=>[...RATEES].map(i=>i+' '+G.CARS[i].name),R};
 })();
 </script>
 </body>
