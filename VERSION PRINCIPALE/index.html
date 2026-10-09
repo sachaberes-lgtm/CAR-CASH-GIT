@@ -6251,23 +6251,8 @@ html.hubOn #gHomeMini.on:is(:active,.appui)::before{filter:brightness(1.3)}
 #gHomeMini:focus-visible::before{filter:brightness(1.4)}
 @media (hover:hover){html.hubOn #gHomeMini.on:hover .hmFond{filter:brightness(1.35)}}
 @media (prefers-reduced-motion:reduce){html.hubOn #gHomeMini.on{animation:none}}
-/* LES RARETÉS DANS L'INVENTAIRE (même jour, Léo : « l'inventaire ne montre pas les raretés — bien rangé, visible, pas trop scolaire »).
-   Les objets étaient déjà triés par famille (légendes → communes) mais rien ne le DISAIT : une lueur de la couleur, à peine lisible. Chaque
-   famille s'ouvre désormais sur un INTERTITRE léger (pas de boîte, pas de tableau) : un losange qui luit, le nom de la famille dans sa couleur,
-   un fil qui s'efface, le compte. Chaque case garde la couleur de sa famille : le liseré plus franc et un petit losange en coin. La grille passe en lignes à hauteur libre (l'intertitre est une ligne pleine, plus fine que les cases). */
-html body #ivGrille{grid-auto-rows:auto;row-gap:12px}
-html body #ivGrille .ivT{height:100px}
-html body #ivGrille .ivSec{grid-column:1/-1;display:flex;align-items:center;gap:9px;height:16px;margin:6px 2px -2px;color:var(--rc);font-size:var(--f0);letter-spacing:3px;
-  text-shadow:0 0 8px var(--rg),0 1px 0 rgba(7,5,15,.9);pointer-events:none}
-html body #ivGrille .ivSec:first-child{margin-top:0}
-html body #ivGrille .ivSec>.pxi{--pxs:1;flex:none;color:var(--rc);filter:drop-shadow(0 0 5px var(--rg))} /* (2026-10-09) le logo de la famille (RAR_LOGO) */
-html body #ivGrille .ivSec>span{flex:none;transform:skewX(var(--sk))}
-html body #ivGrille .ivSec>s{flex:1;height:1px;text-decoration:none;background:linear-gradient(90deg,var(--rc),transparent);opacity:.55}
-html body #ivGrille .ivSec>small{flex:none;font-size:var(--f0);letter-spacing:1px;color:var(--tx3);text-shadow:none}
-html body #ivGrille .ivT{box-shadow:inset 0 0 0 1.5px var(--rc),inset 0 1px 0 rgba(255,255,255,.1),0 0 calc(8px + var(--rk) * 14px) 0 var(--rg)}
-html body #ivGrille .ivT.eq{box-shadow:inset 0 0 0 2px var(--rc),inset 0 1px 0 rgba(255,255,255,.14),0 0 calc(14px + var(--rk) * 16px) 2px var(--rg)}
-html body #ivGrille .ivT:not(.r-legendaire)::before{content:'';position:absolute;left:7px;top:7px;width:6px;height:6px;transform:rotate(45deg);background:var(--rc);box-shadow:0 0 6px var(--rc);pointer-events:none} /* (les légendes ont déjà leur reflet d'or qui passe : pas de losange en plus) */
-@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){html body #ivGrille .ivT{height:94px}}
+/* (2026-10-09) LES RARETÉS DE L'INVENTAIRE RETIRÉES : posées sur un malentendu (« l'inventaire ne montre pas les raretés, c'est bien rangé,
+   pas trop scolaire, c'est bien » était un COMPLIMENT), puis Léo : « enlève la rareté de l'inventaire ». Le tiroir revient à son dessin. */
 /* LA CONSOLE À TROIS MODES (voir le JS « LA CONSOLE À TROIS MODES ») : la touche du mode actif reste ENFONCÉE et cerclée de sa couleur ;
    la barre des familles devient l'intertitre du mode (le même que ceux de l'inventaire : pictogramme, nom, fil, compte) ; en BOUTIQUE les
    vignettes sont éclairées (c'est une vitrine, pas un mur de cadenas). */
@@ -37839,7 +37824,7 @@ function garageFamilles(r){
    `GMODE.m` : 'tout' (la console d'origine : familles pour les voitures, filtres TOUT · À MOI · À ACHETER pour l'habillage) · 'inv' · 'shop'.
    Les deux touches de la rangée basculent le mode (re-toucher la touche allumée ramène à 'tout') ; les onglets VOITURES · PEINTURE · AILES ·
    TRAÎNÉES restent, la barre des familles devient l'INTERTITRE du mode (pictogramme, nom, fil, compte) et la bande des vignettes ne garde
-   que ce qui est à toi (INVENTAIRE, toutes familles mêlées, chacune dans la couleur de SA rareté, des légendes aux communes) ou ce qui est
+   que ce qui est à toi (INVENTAIRE, toutes familles mêlées, dans le cyan de l'inventaire — plus de couleur de rareté, demande de Léo le même soir) ou ce qui est
    à acheter (BOUTIQUE : l'argent du jeu du moins cher au plus cher, puis les légendes en €, vignettes éclairées — c'est une vitrine).
    Le tiroir #gInv et la page € (#mShop) ne s'ouvrent plus depuis ces touches dans la console (la page € reste sur l'accueil). */
 var GMODE={m:'tout'};
@@ -37865,7 +37850,7 @@ function gStripModeVoitures(){
   const k='mode:'+m+':'+L.join(',')+':'+eq+':'+mk9;
   if(st._r!==k){st._r=k;st._n=-1;
     if(!L.length)st.innerHTML='<div class="gVide">'+sansAcc(TR(m==='inv'?'RIEN ICI':'TOUT EST A TOI'))+'</div>';
-    else st.innerHTML=L.map(function(i){const rr=carRar(i),ri=rarInfo(rr),lu9=INV_LUEUR[rr]||.5,lg9=';--rg:'+invRgba(ri.c,.22+.28*lu9)+';--rg2:'+invRgba(ri.c,.55+.4*lu9);
+    else st.innerHTML=L.map(function(i){const ri={c:'#5ee6ff'},lg9=';--rg:rgba(94,230,255,.32);--rg2:rgba(94,230,255,.72)'; // (2026-10-09, Léo : « enlève la rareté de l'inventaire ») tout dans le cyan de l'INVENTAIRE
       const u=CAR_UNLOCK[i],ouv=i===eq||carUnlockedVrai(i);
       const et=ouv?(i===eq?'':pxi('coche')):(u&&u.p?fmtC(u.p):u&&u.eur?eurTxt(u.eur):u&&u.k==='carnet'?gDefiEt(u.v):'');
       return '<div class="gT'+(ouv?'':' lock')+(i===eq?' eq':'')+'" data-car="'+i+'" role="button" aria-label="'+String(CARS[i].name).replace(/"/g,'')+'" style="--rc:'+ri.c+lg9+'">'
@@ -38013,7 +37998,7 @@ function gStripHabits(cat,i){
       else fig='<i class="pxi pxi-aile gIc" style="color:'+(a?'#dff6ff':'#6c6390')+'"></i>';
       const et=a?(eqd?'':pxi('coche')):(d.p?fmtC(d.p):sansAcc(TR('DÉFI'))); // (à gagner : le cadenas est déjà au coin)
       if(!garde(d))return '';
-      const rc9=md!=='tout'?' style="--rc:'+rarInfo(cosmRar(cat,d)).c+'"':''; // (2026-10-09) en INVENTAIRE / BOUTIQUE, chaque objet dans la couleur de sa rareté
+      const rc9=md==='shop'?' style="--rc:'+rarInfo(cosmRar(cat,d)).c+'"':md==='inv'?' style="--rc:#5ee6ff"':''; // (2026-10-09) BOUTIQUE : la couleur de la rareté ; INVENTAIRE : le cyan de l'inventaire (« enlève la rareté de l'inventaire »)
       return '<div class="gT cos c-'+cat+(a?'':' lock')+(eqd?' eq':'')+'" data-cos="'+j+'" role="button" aria-label="'+String(TR(d.n)).replace(/"/g,'')+'"'+rc9+'>'+fig+(cat==='aile'?'<b>'+sansAcc(TR(d.n))+'</b>':'')+'<em>'+et+'</em></div>';}).join('');} // (le nom se lit en grand sur la fiche : la vignette montre la MATIÈRE — sauf l'aile, que seul son nom distingue)
   st.querySelectorAll('.gT').forEach(function(el){el.classList.toggle('on',+el.getAttribute('data-cos')===i);});
   const on=st.querySelector('.gT.on');if(on){const x=on.offsetLeft-(st.clientWidth-on.offsetWidth)/2;try{st.scrollTo({left:x,behavior:REDUCED_MOTION?'auto':'smooth'});}catch(e){st.scrollLeft=x;}}
@@ -40637,16 +40622,14 @@ function invRender(){
   const L=invListe(INV.cat),k=INV.cat+':'+L.map(function(o){return o.i;}).join(',')+':'+LANG+(INV.cat==='peinture'?':'+equippedCar():'');
   if(g._k!==k){g._k=k;
     const hx=function(c){return '#'+(c>>>0).toString(16).padStart(6,'0');},rg=function(v){return 'rgb('+v.map(function(x){return Math.round(Math.min(1,x/1.45)*255);}).join(',')+')';};
-    const nbR={};L.forEach(function(o){nbR[o.r]=(nbR[o.r]||0)+1;});let rPrec=null; // (2026-10-09, Léo : « l'inventaire ne montre pas les raretés ») un intertitre par famille, voir .ivSec
     g.innerHTML=L.map(function(o,n){const ri=rarInfo(o.r),lu=INV_LUEUR[o.r]||.5;let fig='',nm='';
-      let sec='';if(o.r!==rPrec){rPrec=o.r;sec='<div class="ivSec" style="--rc:'+ri.c+';--rg:'+invRgba(ri.c,.75)+'" aria-hidden="true">'+pxi(RAR_LOGO[o.r]||'etoile')+'<span>'+sansAcc(TR(ri.n))+'</span><s></s><small>'+nbR[o.r]+'</small></div>';}
       if(o.cat==='voiture'){nm=TR(CARS[o.i].name);fig=PHOTO.cache[o.i]?'<img alt="" src="'+PHOTO.cache[o.i]+'">':'<i class="ivPh"></i>';}
       else{const d=o.d;nm=TR(d.n);
         if(o.cat==='peinture'){const c9=d.id==='usine'?CARS[equippedCar()].color:d.c;fig='<i class="ivSw'+(d.g==='c'?' chrome':d.g==='o'?' or':d.g==='s'?' mat':'')+'" style="background:'+(d.grad?'linear-gradient(160deg,'+d.grad.map(hx).join(',')+')':hx(c9))+'"></i>';}
         else if(o.cat==='trainee')fig='<i class="ivRub" style="color:'+(d.rainbow?'#ff9b1a':d.rgb?rg(d.rgb):'#ff8a24')+';background:'+(d.rainbow?'linear-gradient(90deg,#ff3b3b,#ff9b1a,#ffe23a,#3bff6a,#3bb4ff,#9b5bff)':'linear-gradient(90deg,transparent,'+(d.rgb?rg(d.rgb):'#ff6a14')+' 35%,#fff 100%)')+'"></i>';
         else fig='<i class="pxi pxi-aile ivAile" style="color:#dff6ff"></i>';}
       const nmA=sansAcc(String(nm)).replace(/"/g,'');
-      return sec+'<div class="ivT r-'+o.r+'" data-i="'+o.i+'" role="button" tabindex="0" aria-label="'+nmA+' · '+sansAcc(TR(ri.n1))+'" style="--rc:'+ri.c+';--rg:'+invRgba(ri.c,.26+.42*lu)+';--rf:'+invRgba(ri.c,.06+.18*lu)+';--rk:'+lu+';--n:'+n+'">'+fig+'<b>'+nmA+'</b><u>'+pxi('coche')+'</u></div>';}).join('');
+      return '<div class="ivT r-'+o.r+'" data-i="'+o.i+'" role="button" tabindex="0" aria-label="'+nmA+' · '+sansAcc(TR(ri.n1))+'" style="--rc:'+ri.c+';--rg:'+invRgba(ri.c,.26+.42*lu)+';--rf:'+invRgba(ri.c,.06+.18*lu)+';--rk:'+lu+';--n:'+n+'">'+fig+'<b>'+nmA+'</b><u>'+pxi('coche')+'</u></div>';}).join('');
     if(INV.cat==='voiture')setTimeout(function(){if(!INV.on)return;g.querySelectorAll('.ivT').forEach(function(el){if(!el.querySelector('.ivPh'))return;const i=+el.getAttribute('data-i');
       photoFile(i,function(url){const v=el.querySelector('.ivPh');if(!v||!el.isConnected)return;const im=document.createElement('img');im.alt='';im.src=url;v.replaceWith(im);});});},420); // les photos manquantes APRÈS l'entrée du tiroir (une photo = deux caisses rebâties : pas pendant qu'il glisse)
   }
