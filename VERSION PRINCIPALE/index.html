@@ -6184,6 +6184,20 @@ html.hubOn #gTourne.on.tient{cursor:grabbing}
 }
 @media (prefers-reduced-motion:reduce){html.hubOn #gTourne.on{animation:none}#gTourne .gtPouce{transition:none}}
 html[data-reduced-motion="1"] #gTourne{animation:none!important}
+/* LA JAUGE AURA (même jour, Léo : « ajoute une jauge aura en dessous de la jauge argent »). Sous le compte, la même plaque (coins coupés,
+   encre, filet), en VIOLET aura comme le compteur de course : l'étoile, le total, le rang en petit, et dessous la JAUGE vers le rang
+   suivant (le trait du bas, qui se remplit — plein au dernier rang). Un cran plus basse que le compte (34 px contre 40) : l'argent reste
+   le premier chiffre lu. Masquée là où le compte l'est (vitrine, menu). */
+#gAuraC{position:relative;display:inline-flex;align-items:center;gap:8px;height:34px;margin-top:6px;padding:0 12px 0 11px;pointer-events:none;
+  background:linear-gradient(180deg,rgba(18,14,36,.92),rgba(8,6,18,.92));box-shadow:inset 0 0 0 1px var(--fil),inset 0 -3px 0 rgba(180,107,255,.22);
+  clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)}
+#gAuraC .pxi{--pxs:2;color:#b46bff;filter:drop-shadow(0 0 4px rgba(180,107,255,.6))}
+#gAuraC b{display:inline-block;font-weight:400;font-size:var(--f3);letter-spacing:1px;color:#d6a8ff;text-shadow:0 2px 0 #3a1260,0 0 10px rgba(180,107,255,.45);transform:skewX(var(--sk))}
+#gAuraC small{font-size:var(--f0);letter-spacing:1px;color:var(--tx3);white-space:nowrap;transform:skewX(var(--sk))}
+#gAuraC u{position:absolute;left:0;right:0;bottom:0;height:3px;display:block;text-decoration:none}
+#gAuraC u em{display:block;height:100%;width:0;background:#b46bff;box-shadow:0 0 8px #b46bff;transition:width var(--t-slow) var(--ease)}
+html body #garage.vitrine:not(.menu) #gAuraC,#garage.menu #gAuraC{display:none!important}
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){#gAuraC{height:30px;margin-top:5px}}
 </style>
 <style id="carriereV2">
 /* LA CARRIÈRE v2 (2026-10-07, Sacha : « dans l'écran carrière c'est mal fait, notamment la mauvaise police ; pas besoin de mettre
@@ -6299,6 +6313,7 @@ html.sansFacile [data-m="facile"]{display:none!important}
          au milieu, reste nue. Les ids n'ont pas bougé : tout le câblage JS les retrouve. -->
     <div id="gTop">
       <div id="gTopRow"><span id="gTitle" hidden>GARAGE</span><div id="gCompteur" aria-label="Compte"><i class="pxi pxi-piece" aria-hidden="true"></i><b>$0</b></div><!-- (2026-09-29, Léo : « reprends les boutons du menu d'après le crash et mets-les dans le garage ») BOUTIQUE · RÉGLAGES, en haut à droite (le coin vide) ; GARAGE n'est pas repris : on y est --><div id="gOutils"><div class="pbtn pbCarre pb-mag" data-go="shop" role="button" tabindex="0" aria-label="Boutique"><i class="pxi pxi-panier" aria-hidden="true"></i></div><div class="pbtn pbCarre" data-go="set" role="button" tabindex="0" aria-label="Réglages"><svg class="boulon" viewBox="3 8 42 40" aria-hidden="true"></svg></div><div class="pbtn pbCarre" id="gvHome" role="button" tabindex="0" aria-label="Accueil"><i class="pxi pxi-maison" aria-hidden="true"></i></div></div></div>
+      <div id="gAuraC" aria-label="Aura"><i class="pxi pxi-etoile" aria-hidden="true"></i><b>0</b><small></small><u><em></em></u></div>
       <div id="gPlayMain" role="button" tabindex="0" aria-label="Jouer"></div><!-- (le JOUER en lettres de l'ancien garage : masqué, gardé pour le câblage) -->
       <div id="gCarr" class="pbtn" role="button" tabindex="0" style="display:none"><i class="pxi pxi-trophee" aria-hidden="true"></i><span data-fr="CARRIERE">CARRIERE</span></div>
       <div id="gCard">
@@ -37470,7 +37485,13 @@ function gBankPaint(){const gb=$('gBank');
 /* LE COMPTEUR DU GARAGE, FAÇON GTA (2026-09-25, user : « trop de texte — mets le prix en haut, joliment, avec un vrai
    compteur comme GTA »). Le solde en chiffres COMPLETS (« $35,850 », pas « 35,9 k »), vert, contour noir, en haut à
    gauche. Quand il change, il DÉFILE jusqu'à la nouvelle valeur ; une dépense fait tomber « −$6,000 » en rouge dessous. */
+function gAuraMaj(){ // (2026-10-09, Léo) LA JAUGE AURA sous le compte : le total, le rang, et la jauge vers le rang suivant
+  const el=$('gAuraC');if(!el)return;const au=SAVE.d.aura||0,r=auraRank(au),lo=AURA_RANKS[r].v,nx=AURA_RANKS[r+1];
+  const k=nx?Math.max(0,Math.min(1,(au-lo)/(nx.v-lo))):1,cle=au+'|'+r+'|'+LANG;if(cle===gAuraMaj._k)return;gAuraMaj._k=cle;
+  el.querySelector('b').textContent=fmtAura(au);el.querySelector('small').textContent=sansAcc(auraRankName(r));
+  el.querySelector('u em').style.width=Math.round(k*100)+'%';el.setAttribute('aria-label','Aura '+fmtAura(au)+', '+auraRankName(r));}
 function gCompteur(){
+  try{gAuraMaj();}catch(e){}
   const el=$('gCompteur');if(!el)return;const b=el.querySelector('b'),v=Math.floor(bank()),v0=gCompteur._v;
   // (2026-09-26) chiffres COMPLETS façon GTA, mais au format de la LANGUE : en français « $42,000 » se lisait 42 dollars.
   // Les espaces insécables de fr-FR deviennent des espaces simples (la police pixel n'a pas U+202F).
