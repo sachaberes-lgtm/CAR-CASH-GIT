@@ -318,6 +318,14 @@ Config.REVENUS = {
 	-- (9/10, Sacha : « met les prix ») le prix AFFICHÉ sur la carte du garage tant que Roblox n'a pas répondu (ou que le produit n'existe
 	-- pas encore) — dès que le produit existe, c'est SON vrai prix qui s'affiche. À tenir égal au prix choisi sur create.roblox.com.
 	prixCaisses = { [9] = 339, [19] = 12899, [54] = 129, [57] = 129, [58] = 129, [59] = 799, [60] = 79 },
+	-- (9/10) les prix CONSEILLÉS des passes, des produits et des packs d'argent (ceux du README) : la boutique les écrit en terne,
+	-- « BIENTOT R$ x », tant que le produit n'existe pas — dès qu'il existe, c'est le prix lu sur Roblox. À tenir égal aux prix
+	-- choisis sur create.roblox.com (comme prixCaisses).
+	prixConseilles = {
+		passes = { argent2 = 500, nitroInfini = 700, vip = 449 },
+		produits = { coeur = 50, coeur5 = 199, coeur15 = 499, kit = 99, tours3 = 99 },
+		argent = { 99, 249, 499, 999, 2499 },
+	},
 	-- (9/10, Sacha : « après 1 semaine de connexion quotidienne, les joueurs gagnent la voiture dragon d'or ») : la caisse offerte au
 	-- 7e jour d'affilée du CADEAU DU JOUR (cond.k = "jour7" au catalogue) — une fois ; déjà à soi, le 7e jour reste le gros montant
 	jour7 = 61, -- LE DRAGON D'OR

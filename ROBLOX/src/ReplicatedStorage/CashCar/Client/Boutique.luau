@@ -64,14 +64,10 @@ local RARETE = { legendaire = { "LEGENDAIRE", "LEGENDARY", Color3.fromRGB(255, 2
 	rare = { "RARE", "RARE", Color3.fromRGB(77, 184, 255) } }
 
 -- ════════ LES ARTICLES : un numéro (Config.REVENUS), un prix lu sur Roblox, un prix CONSEILLÉ ════════
--- Les prix conseillés sont ceux du README (« Gagner de l'argent ») et des commentaires de Config.REVENUS ; ceux des caisses viennent
--- de Config.REVENUS.prixCaisses (le garage affiche les mêmes). Ils ne servent qu'à dire, en terne, ce que coûtera un objet pas
--- encore créé : dès que le numéro existe, c'est le prix de Roblox, et rien d'autre, qui s'écrit.
-local CONSEIL = {
-	passes = { argent2 = 500, nitroInfini = 700, vip = 449 },
-	produits = { coeur = 50, coeur5 = 199, coeur15 = 499, kit = 99, tours3 = 99 },
-	argent = { 99, 249, 499, 999, 2499 },
-}
+-- Les prix conseillés vivent dans Config.REVENUS (prixConseilles ; prixCaisses pour les caisses, que le garage affiche aussi) : un seul
+-- endroit. Ils ne servent qu'à dire, en terne, ce que coûtera un objet pas encore créé : dès que le numéro existe, c'est le prix de
+-- Roblox, et rien d'autre, qui s'écrit.
+local CONSEIL = R.prixConseilles or { passes = {}, produits = {}, argent = {} }
 local function idDe(t: any, cle: any): number
 	local id = t and t[cle]
 	return (type(id) == "number" and id > 0) and id or 0

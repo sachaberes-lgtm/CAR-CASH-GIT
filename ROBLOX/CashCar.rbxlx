@@ -7395,14 +7395,10 @@ local RARETE = { legendaire = { "LEGENDAIRE", "LEGENDARY", Color3.fromRGB(255, 2
 	rare = { "RARE", "RARE", Color3.fromRGB(77, 184, 255) } }
 
 -- ════════ LES ARTICLES : un numéro (Config.REVENUS), un prix lu sur Roblox, un prix CONSEILLÉ ════════
--- Les prix conseillés sont ceux du README (« Gagner de l'argent ») et des commentaires de Config.REVENUS ; ceux des caisses viennent
--- de Config.REVENUS.prixCaisses (le garage affiche les mêmes). Ils ne servent qu'à dire, en terne, ce que coûtera un objet pas
--- encore créé : dès que le numéro existe, c'est le prix de Roblox, et rien d'autre, qui s'écrit.
-local CONSEIL = {
-	passes = { argent2 = 500, nitroInfini = 700, vip = 449 },
-	produits = { coeur = 50, coeur5 = 199, coeur15 = 499, kit = 99, tours3 = 99 },
-	argent = { 99, 249, 499, 999, 2499 },
-}
+-- Les prix conseillés vivent dans Config.REVENUS (prixConseilles ; prixCaisses pour les caisses, que le garage affiche aussi) : un seul
+-- endroit. Ils ne servent qu'à dire, en terne, ce que coûtera un objet pas encore créé : dès que le numéro existe, c'est le prix de
+-- Roblox, et rien d'autre, qui s'écrit.
+local CONSEIL = R.prixConseilles or { passes = {}, produits = {}, argent = {} }
 local function idDe(t: any, cle: any): number
 	local id = t and t[cle]
 	return (type(id) == "number" and id > 0) and id or 0
@@ -26227,6 +26223,14 @@ Config.REVENUS = {
 	-- (9/10, Sacha : « met les prix ») le prix AFFICHÉ sur la carte du garage tant que Roblox n'a pas répondu (ou que le produit n'existe
 	-- pas encore) — dès que le produit existe, c'est SON vrai prix qui s'affiche. À tenir égal au prix choisi sur create.roblox.com.
 	prixCaisses = { [9] = 339, [19] = 12899, [54] = 129, [57] = 129, [58] = 129, [59] = 799, [60] = 79 },
+	-- (9/10) les prix CONSEILLÉS des passes, des produits et des packs d'argent (ceux du README) : la boutique les écrit en terne,
+	-- « BIENTOT R$ x », tant que le produit n'existe pas — dès qu'il existe, c'est le prix lu sur Roblox. À tenir égal aux prix
+	-- choisis sur create.roblox.com (comme prixCaisses).
+	prixConseilles = {
+		passes = { argent2 = 500, nitroInfini = 700, vip = 449 },
+		produits = { coeur = 50, coeur5 = 199, coeur15 = 499, kit = 99, tours3 = 99 },
+		argent = { 99, 249, 499, 999, 2499 },
+	},
 	-- (9/10, Sacha : « après 1 semaine de connexion quotidienne, les joueurs gagnent la voiture dragon d'or ») : la caisse offerte au
 	-- 7e jour d'affilée du CADEAU DU JOUR (cond.k = "jour7" au catalogue) — une fois ; déjà à soi, le 7e jour reste le gros montant
 	jour7 = 61, -- LE DRAGON D'OR
