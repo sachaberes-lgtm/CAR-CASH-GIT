@@ -6228,9 +6228,17 @@ html body #garage:not(.menu):not(.vitrine) #gOutils>#gvHome>span{display:inline}
 html body #garage:not(.menu):not(.vitrine) #gOutils>#gvHome .pxi{--pxs:2;color:#e6e0ff;filter:drop-shadow(0 0 5px rgba(214,206,255,.55))}
 html body #garage:not(.menu):not(.vitrine) #gOutils>#gvHome:is(:active,.appui){translate:0 1px;background:linear-gradient(180deg,rgba(60,48,110,.55),rgba(20,14,44,.45));
   box-shadow:inset 0 0 0 1px rgba(214,206,255,.4),inset 0 -2px 0 #d6ceff,0 0 14px -4px rgba(214,206,255,.5)}
-/* (même jour, Léo : « la croix bleue sert à rien ») la croix de l'INVENTAIRE part : on le referme en touchant le garage (au-dessus du
-   tiroir), au bouton INVENTAIRE, à Échap ou à I. Cachée, pas retirée : son écouteur reste. */
-#ivFerme{display:none!important}
+/* LA CROIX DE L'INVENTAIRE, DISCRÈTE (même jour, Léo : « la croix est juste plus discrète, et sert à enlever le rectangle avec toutes
+   les voitures pour qu'on ait une vue sur le garage ») : elle ferme toujours le tiroir, mais n'est plus une touche cyan pleine. Plus de
+   plaque ni de tranche : une petite croix lilas dans un carré à peine dessiné (filet d'1 px, fond presque nul), qui s'allume sous le doigt.
+   La cible reste à 44 × 44 (le dessin fait 30). */
+html body #gInv #ivFerme{position:relative;width:44px;min-width:44px;height:44px;min-height:44px;padding:0;margin-left:auto;background:none;box-shadow:none;transform:none;color:#b8b0e0;opacity:.75}
+html body #gInv #ivFerme::before{content:'';position:absolute;inset:7px;display:block;background:rgba(255,255,255,.03);box-shadow:inset 0 0 0 1px rgba(184,176,224,.3);border:0;opacity:1;transform:skewX(var(--sk))}
+html body #gInv #ivFerme::after{display:none}
+html body #gInv #ivFerme .pxi{--pxs:1;position:relative;color:#d6ceff;filter:none}
+html body #gInv #ivFerme:is(:active,.appui){opacity:1;translate:0 1px}
+html body #gInv #ivFerme:is(:active,.appui)::before{background:rgba(214,206,255,.12);box-shadow:inset 0 0 0 1px rgba(214,206,255,.6)}
+@media (hover:hover){html body #gInv #ivFerme:hover{opacity:1}}
 @media (hover:hover){html body #garage:not(.menu):not(.vitrine) #gOutils>#gvHome:hover{background:linear-gradient(180deg,rgba(46,36,88,.5),rgba(14,10,32,.4))}}
 @media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
   html body #garage:not(.menu):not(.vitrine) #gOutils>#gvHome{height:40px;min-height:40px}}
