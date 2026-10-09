@@ -6131,6 +6131,9 @@ html.hubOn #gHub .ghPips{position:static;gap:3px}
 html.hubOn #gHub .ghPips u{width:4px;height:4px}
 @media (hover:hover){html.hubOn #gHub .ghT:not(.on):hover{color:var(--tx2);background:rgba(255,255,255,.04)}}
 @supports not (color:color-mix(in srgb,red 50%,blue)){html.hubOn #gHub .ghT.on{background:rgba(255,255,255,.08);text-shadow:0 1px 0 rgba(7,5,15,.85)}}
+/* (même jour, Léo : « enlève le settings ») le ⚙ du garage part (`#gOutils [data-go="set"]`, en haut à droite) : les RÉGLAGES restent
+   sur l'écran titre (le ⚙ à côté de la boutique) et dans la pause. Masqué, pas retiré : les écouteurs le cherchent toujours. */
+html body #garage #gOutils>[data-go="set"],#gReglage{display:none!important}
 </style>
 <style id="carriereV2">
 /* LA CARRIÈRE v2 (2026-10-07, Sacha : « dans l'écran carrière c'est mal fait, notamment la mauvaise police ; pas besoin de mettre
