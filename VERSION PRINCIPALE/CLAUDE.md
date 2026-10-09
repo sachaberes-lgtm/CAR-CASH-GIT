@@ -61,6 +61,14 @@
 - « Télécharger la fiche » = `fiche-voitures-cash-car-AAAA-MM-JJ.txt`, au format de la fiche du 6/10 (familles dans le nouvel ordre, notes
   sous chaque voiture, NOTES GÉNÉRALES, CHANGEMENTS PAR RAPPORT AU JEU) — c'est ce fichier qu'on donne à Claude pour l'appliquer au jeu.
   Console : `dbgSalle.lum({…})` règle la lumière à chaud, `dbgSalle.fiche()`, `dbgSalle.ratees()`.
+- **LA SALLE SUIT LE MAIN (9/10, Léo : « que la liste représente ce qu'on a sur le main, et plus tard celle de plus tard »)** : elle lit
+  `index.html` sur GitHub (`MAIN_URL`, raw du main, CORS ouvert), copie locale en secours (`?source=local` la force), la source est écrite
+  sous le titre ; toutes les 2 min elle compare l'empreinte du main et propose « Le main a bougé · mettre la gamme à jour ». Les gabarits
+  posés hors de la gamme (`SHAPES.xxx=function…`) sont tous ramassés tout seuls (ceux de demain compris).
+- **L'ABSTRAITE (9/10, Léo : « une hyper abstraite mais travaillée, concept »)** : index 71, `SHAPES.abstraite` DANS la gamme (la salle et
+  cuire-caisses.js la lisent d'office) — un coin tranché en trois lames (graphite · blanc nacré · éclat de verre noir) séparées par des
+  fentes de lumière d'or, une rainure de lumière au flanc, quatre disques à enjoliveur blanc tenus par des bras, un ARC blanc cerclé d'or
+  qui flotte au-dessus de chaque roue, l'ANNEAU D'OR penché qu'elle traverse ; ÉPIQUE à 3 000 000 $, nitro dorée (`fx`), « THE ABSTRACT ».
 - **LE TOUCHER + LE JOURNAL (9/10, Léo : « quand j'appuie sur les voitures, leur réaction — sinon juste l'effet clic » · « sauvegarder
   tous les changements faits à la main par moi »)** : un TAP sur la caisse (ni glissé ni pincement ; le double-clic ne recadre plus) =
   l'effet clic de l'écran titre en studio (recul + saut + bascule en ressorts, étincelles orange, tôle à la couleur de la pièce qui rebondit
