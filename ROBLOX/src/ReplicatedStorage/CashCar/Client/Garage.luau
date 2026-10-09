@@ -27,6 +27,16 @@ local Sons = require(script.Parent:WaitForChild("Sons"))
 local M = Config.M
 local Catalogue = Caisse.Catalogue
 local K, C, FR = Hud.kit, Hud.C, Hud.FR
+-- (9/10, Sacha : « met les prix ») le PRIX EN ROBUX d'une légendaire, sur sa carte : le vrai prix du produit dès que Roblox l'a dit
+-- (Client/Revenus le lit et le garde), sinon le prix conseillé de Config.REVENUS.prixCaisses
+local function prixRobux(i: number): string
+	local R = Config.REVENUS
+	local id = R.caisses and R.caisses[i]
+	local ok, Revenus = pcall(require, script.Parent:WaitForChild("Revenus"))
+	local p = (ok and type(id) == "number" and id > 0) and Revenus.prix(id, false) or nil
+	p = p or (R.prixCaisses and R.prixCaisses[i])
+	return p and ("R$ " .. math.floor(p)) or (FR and "BOUTIQUE" or "SHOP")
+end
 local inst = K.inst
 
 local Garage = { ouvert = false }
@@ -735,7 +745,8 @@ local function majTuile(i: number)
 	local sombre = not aMoi
 	local vue = i == montre
 	t.vp.ImageColor3 = sombre and Color3.fromRGB(104, 96, 140) or Color3.new(1, 1, 1)
-	if t.silSombre ~= sombre then
+	t.image.ImageColor3 = t.vp.ImageColor3 -- (une caisse pas encore à soi : la vignette assombrie, comme la photo)
+	if not t.aImage and t.silSombre ~= sombre then
 		if t.sil then t.sil:Destroy() end
 		t.sil = silhouette(t.pastille, 3, t.laque, sombre)
 		t.silSombre = sombre
@@ -750,7 +761,7 @@ local function majTuile(i: number)
 		-- celle de la roue dit ROUE)
 		direPuce(t.puce, Hud.argent(f.cond.v), (profil().compte or 0) >= f.cond.v and CASH or ROSE_PRIX)
 	elseif f.cond.k == "premium" then
-		direPuce(t.puce, L.boutique, OR1)
+		direPuce(t.puce, prixRobux(i), OR1)
 	elseif f.cond.k == "roue" then
 		direPuce(t.puce, L.defi, OR1)
 	elseif f.cond.k == "jour7" then
@@ -775,8 +786,13 @@ local function creerTuile(i: number, rang: number): any
 	local trait = inst("UIStroke", { Color = ombrer(c, 0.5), Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, cadre)
 	local vp = inst("ViewportFrame", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Ambient = Color3.fromRGB(150, 150, 178),
 		LightColor = Color3.fromRGB(255, 244, 230) }, cadre)
+	-- (9/10) LA VIGNETTE DESSINÉE de la caisse (Caisse.vignetteImage) : sa vraie forme, ses vraies couleurs, tout de suite — la photo
+	-- 3D n'est plus prise que si l'image manque
+	local image = inst("ImageLabel", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), ScaleType = Enum.ScaleType.Fit }, cadre)
+	local ei = Caisse.vignetteImage(i)
+	if ei then image.ImageContent = Content.fromObject(ei) else image.Visible = false end
 	-- en attendant la photo (ou quand le budget de formes de Roblox la refuse) : la SILHOUETTE (posée par majTuile)
-	local pastille = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1) }, cadre)
+	local pastille = inst("Frame", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Visible = ei == nil }, cadre)
 	inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = c, Size = UDim2.new(1, 0, 0, 3), Position = UDim2.new(0, 0, 1, -3), ZIndex = 2 }, cadre)
 	local puce = puceCarte(cadre)
 	-- le cadenas : une petite plaque d'encre en haut à gauche
@@ -785,7 +801,8 @@ local function creerTuile(i: number, rang: number): any
 	K.icone(verrou, "verrou", 1, Color3.fromRGB(200, 190, 255), UDim2.fromOffset(3, 3))
 	local b = inst("TextButton", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Text = "", ZIndex = 5 }, cadre)
 	local t = { cadre = cadre, grad = grad, trait = trait, vp = vp, pastille = pastille, puce = puce, verrou = verrou, b = b, rar = c,
-		laque = Color3.fromHex(string.format("%06x", f.laque)), sil = nil :: Frame?, silSombre = nil :: boolean? }
+		laque = Color3.fromHex(string.format("%06x", f.laque)), sil = nil :: Frame?, silSombre = nil :: boolean?, image = image,
+		aImage = ei ~= nil }
 	b.Activated:Connect(function()
 		Sons.jouer("tap")
 		Hud.vibre(6)
@@ -939,7 +956,7 @@ local function majBande()
 			for _, i in liste do
 				if n ~= fileN or not Garage.ouvert then return end
 				local t = tuiles[i]
-				if t and not t.modele and not t.enCours then
+				if t and not t.modele and not t.enCours and not t.aImage then -- (une carte qui a sa vignette dessinée n'a plus besoin de photo)
 					-- (la RÉSERVE : changer de caisse sur le plateau demande jusqu'à 6 000 triangles — une photo ne les prend pas)
 					if Maillage.libre() < (Catalogue[i].triangles or 3000) + RESERVE then return end
 					t.enCours = true
@@ -1010,7 +1027,7 @@ local function majCompte(direct: boolean?)
 	if direct or cibleV == compteVu then
 		compteVu = cibleV
 		U.compte.Text = Hud.compte(cibleV)
-		Hud.tenir(U.compteEchelle, U.compte.Text, 44, 262)
+		Hud.tenir(U.compteEchelle, U.compte.Text, 44, 300)
 		return
 	end
 	compteN += 1
@@ -1025,7 +1042,7 @@ local function majCompte(direct: boolean?)
 		end
 		if n == compteN then
 			U.compte.Text = Hud.compte(cibleV)
-			Hud.tenir(U.compteEchelle, U.compte.Text, 44, 262)
+			Hud.tenir(U.compteEchelle, U.compte.Text, 44, 300)
 		end
 	end)
 end
@@ -1349,8 +1366,8 @@ local function creerInterface()
 	-- ── le COMPTE ──
 	local cp = K.carbone(g, UDim2.fromOffset(340, 68), UDim2.fromOffset(40, 20))
 	inst("Frame", { BorderSizePixel = 0, BackgroundColor3 = CASH, Size = UDim2.new(1, 0, 0, 3), Position = UDim2.new(0, 0, 1, -3) }, cp)
-	K.icone(cp, "piece", 4, { { 0.3, Color3.fromRGB(255, 240, 170) }, { 0.7, Color3.fromRGB(255, 199, 42) }, { 1, Color3.fromRGB(240, 150, 10) } }, UDim2.new(0, 16, 0.5, -1), Vector2.new(0, 0.5))
-	U.compte = K.texte(cp, { Text = "$ 0", TextSize = 44, TextColor3 = CASH, Size = UDim2.new(1, -70, 1, 0), Position = UDim2.fromOffset(64, 0),
+	-- (9/10, Sacha : « enlève le S jaune » — la pièce d'or redisait le « $ » vert du montant : le montant seul)
+	U.compte = K.texte(cp, { Text = "$ 0", TextSize = 44, TextColor3 = CASH, Size = UDim2.new(1, -36, 1, 0), Position = UDim2.fromOffset(20, 0),
 		TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, epais = 3, contourCouleur = Color3.fromRGB(5, 36, 15) })
 	U.compteEchelle = inst("UIScale", {}, U.compte)
 	U.compteCadre = cp

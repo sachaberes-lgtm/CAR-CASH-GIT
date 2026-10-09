@@ -315,6 +315,9 @@ Config.REVENUS = {
 		[59] = 0, -- LE CHEVALIER NOIR (9,99 €) — 799 R$
 		[60] = 0, -- LE MUR DU SON (0,99 €) — 79 R$
 	},
+	-- (9/10, Sacha : « met les prix ») le prix AFFICHÉ sur la carte du garage tant que Roblox n'a pas répondu (ou que le produit n'existe
+	-- pas encore) — dès que le produit existe, c'est SON vrai prix qui s'affiche. À tenir égal au prix choisi sur create.roblox.com.
+	prixCaisses = { [9] = 339, [19] = 12899, [54] = 129, [57] = 129, [58] = 129, [59] = 799, [60] = 79 },
 	-- (9/10, Sacha : « après 1 semaine de connexion quotidienne, les joueurs gagnent la voiture dragon d'or ») : la caisse offerte au
 	-- 7e jour d'affilée du CADEAU DU JOUR (cond.k = "jour7" au catalogue) — une fois ; déjà à soi, le 7e jour reste le gros montant
 	jour7 = 61, -- LE DRAGON D'OR

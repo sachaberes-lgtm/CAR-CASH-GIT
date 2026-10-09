@@ -504,6 +504,51 @@ function Caisse.rendre(m: Instance?)
 	if ok and Maillage and Maillage.rendre then Maillage.rendre(m) else m:Destroy() end
 end
 
+-- LA VIGNETTE DESSINÉE (9/10, Sacha : « on doit voir chaque voiture ») : l'image de la caisse, dessinée d'avance par
+-- outils/cuire-vignettes.js (même angle que la photo du garage) et rangée dans Caisses/Vignettes/Vxx — décodée ici dans une
+-- EditableImage, une fois par caisse (gardée ensuite). Une image ne pèse presque rien au budget des maillages de Roblox : là où la
+-- photo 3D était refusée passé une dizaine de cartes, chaque carte a sa vraie caisse. nil = pas de vignette (l'appelant photographie).
+-- Format : mots de 16 bits — bit 15 levé = une série de N pixels transparents ; sinon un pixel peint, 5 bits par couleur (r, g, b).
+local AssetService = game:GetService("AssetService")
+local images: { [number]: any } = {}
+function Caisse.vignetteImage(indice: number): EditableImage?
+	local deja = images[indice]
+	if deja ~= nil then return deja or nil end
+	images[indice] = false
+	local dossier = script.Parent:FindFirstChild("Caisses") and script.Parent.Caisses:FindFirstChild("Vignettes")
+	local module = dossier and dossier:FindFirstChild(string.format("V%02d", indice))
+	local Client = script.Parent:FindFirstChild("Client")
+	local mMaillage = Client and Client:FindFirstChild("Maillage")
+	if not module or not mMaillage then return nil end
+	local okD, v = pcall(require, module)
+	local okM, Maillage = pcall(require, mMaillage)
+	if not okD or not okM or type(v) ~= "table" then return nil end
+	local w, h = v.w, v.h
+	local src = Maillage.decoder(v.d)
+	local px = buffer.create(w * h * 4) -- (zéro partout : transparent)
+	local o, k, n = 0, 0, buffer.len(src)
+	while o + 1 < n do
+		local m = buffer.readu16(src, o)
+		o += 2
+		if m >= 0x8000 then
+			k += m - 0x8000
+		elseif k < w * h then
+			local q = k * 4
+			buffer.writeu8(px, q, (bit32.band(bit32.rshift(m, 10), 31) * 255 + 15) // 31)
+			buffer.writeu8(px, q + 1, (bit32.band(bit32.rshift(m, 5), 31) * 255 + 15) // 31)
+			buffer.writeu8(px, q + 2, (bit32.band(m, 31) * 255 + 15) // 31)
+			buffer.writeu8(px, q + 3, 255)
+			k += 1
+		end
+	end
+	local ok, img = pcall(function() return AssetService:CreateEditableImage({ Size = Vector2.new(w, h) }) end)
+	if not ok or not img then return nil end
+	local okE = pcall(function() img:WritePixelsBuffer(Vector2.zero, Vector2.new(w, h), px) end)
+	if not okE then img:Destroy() return nil end
+	images[indice] = img
+	return img
+end
+
 function Caisse.vignette(indice: number): Model?
 	local module = Formes:FindFirstChild(string.format("F%02d", indice))
 	local Client = script.Parent:FindFirstChild("Client")
