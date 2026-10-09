@@ -6198,6 +6198,39 @@ html[data-reduced-motion="1"] #gTourne{animation:none!important}
 #gAuraC u em{display:block;height:100%;width:0;background:#b46bff;box-shadow:0 0 8px #b46bff;transition:width var(--t-slow) var(--ease)}
 html body #garage.vitrine:not(.menu) #gAuraC,#garage.menu #gAuraC{display:none!important}
 @media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){#gAuraC{height:30px;margin-top:5px}}
+/* LA JAUGE MONTE, LES BOUTONS DESCENDENT (même jour, Léo : « mets la jauge plus haut en portrait : échange l'emplacement de HOME ·
+   BOUTIQUE · JOUER et de la jauge, seulement en portrait ») : DEBOUT, la jauge entre DANS la console, juste au-dessus de la rangée
+   (gtPlace la range avant #gAct), et la console redescend au bord (sB + 10, la place de l'ancienne barre) — la rangée des boutons est
+   donc tout en bas, sous le pouce. COUCHÉ, rien ne bouge : la jauge reste en bas à gauche, sous la caisse. `html.gtConsole` = rangée. */
+html.hubOn.gtConsole body #garage:not(.menu) #gBottom{margin-bottom:calc(var(--sB) + 10px)}
+html.hubOn body #garage:not(.menu) #gBottom>#gTourne.on{position:relative;left:auto;right:auto;bottom:auto;z-index:auto;margin:0;width:auto;max-width:none;flex:none}
+/* L'INVENTAIRE À LA PLACE DE HOME (même jour, Léo : « à la place de HOME, mets INVENTORY ») : le COFFRE de la vitrine (#gvCof, qui
+   ouvre l'inventaire) prend la première place de la rangée, habillé comme la BOUTIQUE (pictogramme au-dessus du mot), en CYAN (aller
+   voir) ; #gClose reste dans la page, caché : c'est lui que le HOME du haut déclenche. */
+html body #garage:not(.menu):not(.vitrine) #gAct>#gClose{display:none!important}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gvCof{display:flex;order:-1;flex:none;flex-direction:column;justify-content:center;gap:6px;width:96px;min-width:96px;
+  padding:6px 4px 4px 8px;font-size:var(--f0);letter-spacing:0;--nc:var(--neoC)}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gvCof .pxi{--pxs:3;color:var(--neoC);filter:drop-shadow(0 0 5px rgba(95,240,255,.55))}
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html body #garage:not(.menu):not(.vitrine) #gAct>#gvCof{width:88px;min-width:88px;min-height:54px;gap:4px;padding:4px 2px 2px 6px}}
+/* LE HOME DU HAUT, CRÈME (même jour, Léo : « place le HOME de manière stratégique en haut à droite, change ses aspects pour que ça passe
+   crème ») : la place du ⚙, en face du compte — même hauteur que lui (40 px), son reflet de l'autre côté. La famille des réglettes :
+   penché (on le touche), presque transparent, filet lilas d'1 px et trait lilas dessous (le compte a son trait vert, l'aura le sien),
+   la maison pixel et son mot. Ni tranche ni bande de livrée : il se pose sur le garage sans le couvrir. Cible de 44 px (::after). */
+#gvHome>span{display:none}
+html body #garage:not(.menu):not(.vitrine) #gOutils>#gvHome{display:flex;flex-direction:row;align-items:center;gap:8px;position:relative;width:auto;min-width:0;height:40px;min-height:40px;
+  padding:0 13px 0 11px;color:#e6e0ff;background:linear-gradient(180deg,rgba(26,20,52,.42),rgba(10,7,24,.32));
+  box-shadow:inset 0 0 0 1px rgba(214,206,255,.24),inset 0 -2px 0 rgba(184,176,224,.75),0 8px 18px -10px rgba(0,0,0,.8);
+  font-size:var(--f1);letter-spacing:2px;text-shadow:0 1px 0 rgba(7,5,15,.85);transition:background var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease)}
+html body #garage:not(.menu):not(.vitrine) #gOutils>#gvHome::before{display:none}
+html body #garage:not(.menu):not(.vitrine) #gOutils>#gvHome::after{content:'';display:block;position:absolute;left:0;right:0;top:-2px;bottom:-2px;background:none;box-shadow:none;border:0;opacity:1}
+html body #garage:not(.menu):not(.vitrine) #gOutils>#gvHome>span{display:inline}
+html body #garage:not(.menu):not(.vitrine) #gOutils>#gvHome .pxi{--pxs:2;color:#e6e0ff;filter:drop-shadow(0 0 5px rgba(214,206,255,.55))}
+html body #garage:not(.menu):not(.vitrine) #gOutils>#gvHome:is(:active,.appui){translate:0 1px;background:linear-gradient(180deg,rgba(60,48,110,.55),rgba(20,14,44,.45));
+  box-shadow:inset 0 0 0 1px rgba(214,206,255,.4),inset 0 -2px 0 #d6ceff,0 0 14px -4px rgba(214,206,255,.5)}
+@media (hover:hover){html body #garage:not(.menu):not(.vitrine) #gOutils>#gvHome:hover{background:linear-gradient(180deg,rgba(46,36,88,.5),rgba(14,10,32,.4))}}
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html body #garage:not(.menu):not(.vitrine) #gOutils>#gvHome{height:40px;min-height:40px}}
 </style>
 <style id="carriereV2">
 /* LA CARRIÈRE v2 (2026-10-07, Sacha : « dans l'écran carrière c'est mal fait, notamment la mauvaise police ; pas besoin de mettre
@@ -6312,7 +6345,7 @@ html.sansFacile [data-m="facile"]{display:none!important}
          barre d'action : la SORTIE sous le pouce gauche, LA décision — un seul lingot — sous le pouce droit). La caisse,
          au milieu, reste nue. Les ids n'ont pas bougé : tout le câblage JS les retrouve. -->
     <div id="gTop">
-      <div id="gTopRow"><span id="gTitle" hidden>GARAGE</span><div id="gCompteur" aria-label="Compte"><i class="pxi pxi-piece" aria-hidden="true"></i><b>$0</b></div><!-- (2026-09-29, Léo : « reprends les boutons du menu d'après le crash et mets-les dans le garage ») BOUTIQUE · RÉGLAGES, en haut à droite (le coin vide) ; GARAGE n'est pas repris : on y est --><div id="gOutils"><div class="pbtn pbCarre pb-mag" data-go="shop" role="button" tabindex="0" aria-label="Boutique"><i class="pxi pxi-panier" aria-hidden="true"></i></div><div class="pbtn pbCarre" data-go="set" role="button" tabindex="0" aria-label="Réglages"><svg class="boulon" viewBox="3 8 42 40" aria-hidden="true"></svg></div><div class="pbtn pbCarre" id="gvHome" role="button" tabindex="0" aria-label="Accueil"><i class="pxi pxi-maison" aria-hidden="true"></i></div></div></div>
+      <div id="gTopRow"><span id="gTitle" hidden>GARAGE</span><div id="gCompteur" aria-label="Compte"><i class="pxi pxi-piece" aria-hidden="true"></i><b>$0</b></div><!-- (2026-09-29, Léo : « reprends les boutons du menu d'après le crash et mets-les dans le garage ») BOUTIQUE · RÉGLAGES, en haut à droite (le coin vide) ; GARAGE n'est pas repris : on y est --><div id="gOutils"><div class="pbtn pbCarre pb-mag" data-go="shop" role="button" tabindex="0" aria-label="Boutique"><i class="pxi pxi-panier" aria-hidden="true"></i></div><div class="pbtn pbCarre" data-go="set" role="button" tabindex="0" aria-label="Réglages"><svg class="boulon" viewBox="3 8 42 40" aria-hidden="true"></svg></div><div class="pbtn pbCarre" id="gvHome" role="button" tabindex="0" aria-label="Accueil"><i class="pxi pxi-maison" aria-hidden="true"></i><span data-fr="HOME">HOME</span></div></div></div>
       <div id="gAuraC" aria-label="Aura"><i class="pxi pxi-etoile" aria-hidden="true"></i><b>0</b><small></small><u><em></em></u></div>
       <div id="gPlayMain" role="button" tabindex="0" aria-label="Jouer"></div><!-- (le JOUER en lettres de l'ancien garage : masqué, gardé pour le câblage) -->
       <div id="gCarr" class="pbtn" role="button" tabindex="0" style="display:none"><i class="pxi pxi-trophee" aria-hidden="true"></i><span data-fr="CARRIERE">CARRIERE</span></div>
@@ -6361,7 +6394,7 @@ html.sansFacile [data-m="facile"]{display:none!important}
         <i id="gvBranche" aria-hidden="true"></i><!-- (2026-10-05, Léo : « la map branchée à la place de MISSIONS ») les deux conducteurs d'or entre JOUER et la map -->
         <div id="gvLvl" role="button" tabindex="0" aria-label="Les niveaux" aria-expanded="false"><i class="gvImg" aria-hidden="true"></i><s class="gvFx" aria-hidden="true"></s><span class="gvTx"><i class="gvEcl pxi pxi-eclair" aria-hidden="true"></i><b class="gvN"></b><span class="gvT"></span><em class="gvD"></em></span><i class="gvOuv pxi pxi-haut" aria-hidden="true"></i></div>
         <div id="gvNivs" role="dialog" aria-label="Niveaux accomplis"></div>
-        <button id="gvCof" class="pbtn" aria-label="Inventaire"><i class="pxi pxi-coffre" aria-hidden="true"></i><span data-fr="COFFRE">COFFRE</span></button>
+        <button id="gvCof" class="pbtn" aria-label="Inventaire"><i class="pxi pxi-coffre" aria-hidden="true"></i><span data-fr="INVENTAIRE">INVENTAIRE</span></button>
       </div>
     </div>
     <!-- L'INVENTAIRE (2026-10-04, Léo : « quand on maintient sur la voiture, ça active un inventaire comme le shop, mais avec les objets
@@ -39818,6 +39851,15 @@ if(GTN.el){
     if(k!=='ArrowLeft'&&k!=='ArrowRight'&&k!=='Home')return;e.preventDefault();e.stopPropagation();gtSaisit();
     const a=gtWrap(GAR.vAc!=null?GAR.vAc:(GAR.vA||0));
     gtVise(k==='Home'?0:THREE.MathUtils.clamp(a+(k==='ArrowLeft'?1:-1)*Math.PI/12,-Math.PI,Math.PI));});}
+/* (même jour) DEBOUT, la jauge vit DANS la console, juste avant la rangée des boutons ; COUCHÉE, elle retourne à côté de la barre du hub
+   (position fixe, en bas à gauche). Même nœud, mêmes écouteurs : on ne fait que le déplacer quand l'orientation change. */
+const GT_COUCHE=matchMedia('(orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px)');
+function gtPlace(){if(!GTN.el)return;const bas=document.getElementById('gBottom'),act=document.getElementById('gAct'),hub=document.getElementById('gHub');
+  const dedans=!GT_COUCHE.matches&&bas&&act&&act.parentNode===bas;
+  if(dedans){if(GTN.el.nextSibling!==act||GTN.el.parentNode!==bas)bas.insertBefore(GTN.el,act);}
+  else if(hub&&GTN.el.previousSibling!==hub)hub.parentNode.insertBefore(GTN.el,hub.nextSibling);
+  document.documentElement.classList.toggle('gtConsole',!!dedans);}
+try{gtPlace();if(GT_COUCHE.addEventListener)GT_COUCHE.addEventListener('change',gtPlace);else GT_COUCHE.addListener(gtPlace);}catch(e){}
 window.dbgTourne=function(deg){if(deg!=null&&gtLibre()){gtSaisit();gtVise(-deg*Math.PI/180);}const r=GTN.el&&GTN.el.getBoundingClientRect();
   return {on:!!(GTN.el&&GTN.el.classList.contains('on')),t:GTN.t,deg:GTN.deg,vA:+(GAR.vA||0).toFixed(3),vAc:+(GAR.vAc||0).toFixed(3),jauge:r?[Math.round(r.left),Math.round(r.top),Math.round(r.width),Math.round(r.height)]:null};};
 window.dbgHub=function(){const el=$('gHub'),r=el&&el.getBoundingClientRect();return {hub:HUB,ctx:hubCtx(),on:document.documentElement.classList.contains('hubOn'),cache:!!(el&&el.classList.contains('cache')),barre:r?[Math.round(r.left),Math.round(r.top),Math.round(r.width),Math.round(r.height)]:null};};
