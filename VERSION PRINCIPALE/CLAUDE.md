@@ -5,18 +5,21 @@
   `img/<id>-trace.jpg` (la route vue de haut, nuages du DÉCOR masqués — `COTON.root` et les CLOUDS hors `camp`/`onRoad` : vue de haut, les
   niveaux de carrière ne sont que du coton), `traces.js` (le plan : ligne centrale tous les ~16 m), `serveur.py` (sert VERSION PRINCIPALE et
   ÉCRIT la sauvegarde). Lancer : `python3 maps-ciel/serveur.py 9019` depuis VERSION PRINCIPALE → http://127.0.0.1:9019/maps-ciel.html.
-- 16 maps : SKY HIGH 1-5 (dans le jeu) · SKY HIGH 6-10 (retirées le 4/10 — leurs pistes vivent encore dans genCampagne : photographiées en
-  remettant les niveaux dans une COPIE de capture, jamais dans index.html) · MER DE NUAGES matin/midi/aprem + L'ORAGE (partie sans fin) ·
-  PARC FREESTYLE · PICS DE JADE (branche map-jade). Les données des maps sont dans `MAPS0` en tête du script de la page.
+- 21 maps. EN TÊTE (Léo, même soir : « celles sur lesquelles on a mis les musiques finales : mets les cinq, et les cinq des villes — là c'est
+  n'importe quoi ») les 10 qui ont LEUR musique finale (`musicLieuVoulu`) : SKY HIGH 1-5 = CIEL · NIVEAU 1-5 (`MUSIC_CIEL`), VILLE 1-5 = NÉON
+  COMPLÈTE 1-5 (`MUSIC_VILLE`) — chaque carte la fait écouter. Repliées en bas, « Les autres · pas de musique finale » (11) : MER DE NUAGES
+  matin/midi/aprem (morceau entier CIEL), L'ORAGE (SWAG CASH CAR), SKY HIGH 6-10 (retirées le 4/10, NOITE — leurs pistes vivent encore dans
+  genCampagne : photographiées en remettant les niveaux dans une COPIE de capture, jamais dans index.html), PARC FREESTYLE, PICS DE JADE
+  (branche map-jade). Données : `CATS0` / `MAPS0` en tête du script (`mus` : titre, fichier, fin). Clé du navigateur `cashcar.mapsCiel.v2`.
 - La page : glisser une carte (trait bleu = où elle tombe) d'une catégorie à l'autre ou vers À SUPPRIMER, renommer (clic sur le nom),
   note par map, notes générales, catégories ajoutées/renommées/montées/supprimées (vides), ⌘Z, REMETTRE (tout comme dans le jeu), grande
-  vue (← → espace). Chaque geste s'écrit dans le navigateur (`cashcar.mapsCiel.v1`) ; SAUVEGARDER (⌘S) POST → `maps-ciel/sauvegarde.json`
+  vue (← → espace). Chaque geste s'écrit dans le navigateur ; SAUVEGARDER (⌘S) POST → `maps-ciel/sauvegarde.json`
   + `maps-ciel/fiche-maps-ciel.txt` + copie datée dans `maps-ciel/sauvegardes/` ; sans serveur, la fiche se télécharge. À l'ouverture, la
   sauvegarde du dossier passe devant celle du navigateur si elle est plus récente. **C'est la fiche (À SUPPRIMER, CHANGEMENTS PAR RAPPORT
   AU JEU, notes, journal) que Claude relit pour reconstruire le PLAY.** Console : `dbgMaps.etat()`, `.fiche()`, `.changements()`.
 - Reprendre les photos : copie de capture `_capture-maps.html` (index.html + niveaux 6-10 remis + `window.__cap` : sansFin, zone, nu, trace,
   vue, etat) servie à côté d'index.html, Chrome sans fenêtre muet, splash touché par un VRAI clic (sinon `start()` refuse : `#splash` existe
-  encore), `dbgCampagne(n)` / `__cap.sansFin()` puis `__cap.zone(z)`, `dbgNet(true)` + `dbgAuto(true,0)`, 5 s, photo. Copie supprimée après.
+  encore), `dbgCampagne(n)` (`dbgCampagne(n,1)` = VILLE n) / `__cap.sansFin()` puis `__cap.zone(z)`, `dbgNet(true)` + `dbgAuto(true,0)`, 5 s, photo. Copie supprimée après.
 
 ## LE DAUPHIN DE RÊVE + LA BOÎTE À DAUPHINS (2026-10-09, Léo : « retouchons les dauphins, envoie-moi dans une boîte blanche avec les dauphins, on va les design » — puis une image de grand dauphin pastel : « travaille encore plus dur »)
 - **LA BOÎTE** : `boite-dauphins.html` (à côté d'index.html, servie par `python3 -m http.server`, jamais en double-clic). Elle LIT et exécute le

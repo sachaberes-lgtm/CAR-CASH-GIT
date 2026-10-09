@@ -3,9 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Les maps du ciel</title>
-<!-- LES MAPS DU CIEL (2026-10-09, Léo : « reconstruction du système du PLAY : un visuel interactif, avec suppression et sauvegarde des
-     modifs — récupère toutes les maps du ciel, mets-les en liste, en image et nommées, rangées par catégorie »).
+<title>Les maps</title>
+<!-- LES MAPS (2026-10-09, Léo : « reconstruction du système du PLAY : un visuel interactif, avec suppression et sauvegarde des
+     modifs — récupère toutes les maps du ciel, mets-les en liste, en image et nommées, rangées par catégorie » ; puis « celles sur
+     lesquelles on a mis les musiques finales : mets les cinq, et les cinq des villes — là c'est n'importe quoi » : EN TÊTE SKY HIGH 1-5
+     et VILLE 1-5 avec leur musique finale, écoutable sur la carte ; les 11 autres repliées en bas).
      Un OUTIL à côté du jeu (comme la salle blanche) : chaque map du ciel avec DEUX photos prises dans le vrai jeu (AU VOLANT = ce que voit
      le joueur, LE TRACÉ = la route vue de haut, nuages du décor retirés — et le PLAN de la piste), son nom, sa catégorie. On renomme, on glisse d'une catégorie à l'autre, on range, on met à
      la corbeille (À SUPPRIMER), on annote, on annule (⌘Z). Tout s'écrit dans ce navigateur à chaque geste ; SAUVEGARDER (⌘S) le pose
@@ -63,7 +65,7 @@
   .ico:disabled{opacity:.25;cursor:default;background:transparent}
   .ico.danger:hover{color:var(--rouge)}
 
-  .grille{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:18px;position:relative;min-height:120px;
+  .grille{display:grid;grid-template-columns:repeat(auto-fill,minmax(226px,1fr)); /* 5 par rangée sur l'ordi : un monde = une rangée */gap:18px;position:relative;min-height:120px;
     border-radius:var(--r);transition:background .2s}
   .grille.vide::after{content:"Glisse une map ici";position:absolute;inset:0;display:grid;place-items:center;font-size:12px;color:var(--gris2);
     letter-spacing:.06em;border:1.5px dashed rgba(0,0,0,.12);border-radius:var(--r)}
@@ -110,6 +112,22 @@
   .actions{display:flex;flex-wrap:wrap;gap:2px;margin-top:10px;margin-left:-6px}
   .actions .ico{width:auto;padding:0 8px;gap:5px;display:inline-flex;align-items:center;font-size:12px}
   .actions .ico span{font-size:12px}
+  .ecoute{display:inline-flex;align-items:center;gap:7px;margin-top:8px;border:0;background:rgba(0,0,0,.05);border-radius:999px;padding:5px 11px 5px 8px;
+    font-size:11.5px;font-weight:600;letter-spacing:.03em;color:var(--encre);max-width:100%}
+  .ecoute:hover{background:rgba(0,0,0,.09)}
+  .ecoute svg{width:13px;height:13px;flex:0 0 13px;fill:currentColor;stroke:currentColor;stroke-width:2.6;stroke-linecap:round}
+  .ecoute .iS{display:none}.ecoute.joue .iS{display:block}.ecoute.joue .iP{display:none}
+  .ecoute span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  .ecoute em{font-style:normal;font-size:9.5px;letter-spacing:.12em;padding:2px 6px;border-radius:5px;background:#e8f8ec;color:#1f7a35}
+  .ecoute.fin{background:#f2f7ff;color:#0a4fb0}.ecoute.fin:hover{background:#e6efff}
+  .ecoute.joue{background:var(--encre);color:#fff}.ecoute.joue em{background:rgba(255,255,255,.18);color:#fff}
+  .ecoute.sans{background:transparent;padding-left:0;color:var(--gris2);font-weight:500;cursor:default}
+  .plier{width:24px;height:24px;margin-left:-4px;margin-right:-4px}
+  .plier svg{transition:transform .25s}
+  .cat.plie .plier svg{transform:rotate(-90deg)}
+  .cat.plie .grille{display:none}
+  .cat.plie .catTete{opacity:.7}
+  .cat.plie.survol .catTete{opacity:1;background:rgba(10,99,214,.06);border-radius:10px}
   .noteZone{display:none;margin-top:8px}
   .carte.noteOuverte .noteZone{display:block}
   textarea{width:100%;min-height:60px;resize:vertical;border:0;border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.45;
@@ -178,7 +196,7 @@
 </head>
 <body>
 <header>
-  <div id="marque"><b>LES MAPS DU CIEL</b><span id="compte">CASH CAR</span></div>
+  <div id="marque"><b>LES MAPS</b><span id="compte">CASH CAR</span></div>
   <div class="seg" id="vueSeg" role="tablist" aria-label="Photo affichée">
     <button data-v="volant" class="on">AU VOLANT</button><button data-v="trace">LE TRACÉ</button>
   </div>
@@ -214,53 +232,66 @@
 <script>
 'use strict';
 /* =====================================================================================================================
-   LES MAPS, telles qu'elles sont dans le jeu (main du 9/10, 6531110) — photos prises au banc dans le vrai jeu
-   (copie de capture, son coupé : les niveaux 6-10 remis le temps des photos, leurs pistes vivent encore dans genCampagne).
+   LES MAPS, telles qu'elles sont dans le jeu (main du 9/10, 6531110) — photos prises au banc dans le vrai jeu (son coupé).
+   (9/10, Léo : « celles sur lesquelles on a mis les musiques finales : mets les cinq, et les cinq des villes — là c'est n'importe
+   quoi ») EN TÊTE les 10 maps qui ont LEUR musique finale (musicLieuVoulu du jeu) : SKY HIGH 1-5 = CIEL · NIVEAU 1 à 5
+   (MUSIC_CIEL), VILLE 1-5 = NÉON COMPLÈTE 1 à 5 (MUSIC_VILLE). Le reste est replié tout en bas.
+   `mus` : t = le titre, f = le fichier (écoutable sur la carte), fin = musique finale.
    ===================================================================================================================== */
 const CATS0=[
-  {id:'jeu',     nom:'SKY HIGH · dans le jeu',      c:'#0a84ff'},
-  {id:'retire',  nom:'SKY HIGH · retirées le 4/10', c:'#ff9f0a'},
-  {id:'sansfin', nom:'Partie sans fin',             c:'#30d158'},
-  {id:'modes',   nom:'Modes',                       c:'#bf5af2'},
-  {id:'essais',  nom:'Essais hors jeu',             c:'#ff375f'}];
+  {id:'ciel',   nom:'SKY HIGH · musique finale',            c:'#0a84ff'},
+  {id:'ville',  nom:'VILLE · musique finale',               c:'#ff2d92'},
+  {id:'autres', nom:'Les autres · pas de musique finale',   c:'#a1a1a6',plie:true}];
+const MC=k=>({t:'CIEL · NIVEAU '+k,f:'assets/audio/music/ciel/ciel-n'+k+'.m4a',fin:1}),MV=k=>({t:'NÉON COMPLÈTE '+k,f:'assets/audio/music/ville/ville-n'+k+'.m4a',fin:1});
+const NOITE={t:'NOITE DE VELOCIDADE (avant le retrait)',f:'assets/audio/music/noite-de-velocidade.mp3'};
 const MAPS0=[
-  {id:'sh1',cat:'jeu',nom:'AURORE',code:'SKY HIGH 1',heure:'aurore',pr:'APPRENDS A VOLER',g:['#3b2a6e','#ff9ec4'],musique:'CIEL · NIVEAU 1',
+  {id:'sh1',cat:'ciel',nom:'AURORE',code:'SKY HIGH 1',heure:'aurore',pr:'APPRENDS A VOLER',g:['#3b2a6e','#ff9ec4'],mus:MC(1),
    idee:"La piste de l'auto-école dessinée à la main, sous le ciel nu de l'aurore (aucun nuage : on y lit tout).",ou:'CARRIÈRE › SKY HIGH › 1 · piste genTuto'},
-  {id:'sh2',cat:'jeu',nom:'PREMIÈRES LUEURS',code:'SKY HIGH 2',heure:'aube → lever',pr:'LA ROUTE EST A TOI',g:['#5a3a8a','#ffd27a'],musique:'CIEL · NIVEAU 2',
+  {id:'sh2',cat:'ciel',nom:'PREMIÈRES LUEURS',code:'SKY HIGH 2',heure:'aube → lever',pr:'LA ROUTE EST A TOI',g:['#5a3a8a','#ffd27a'],mus:MC(2),
    idee:'Deux grands balayages de 160° qui descendent. Zéro banc, zéro plot.',ou:'CARRIÈRE › SKY HIGH › 2 · genCampagne(2)'},
-  {id:'sh3',cat:'jeu',nom:'LEVER DU SOLEIL',code:'SKY HIGH 3',heure:'lever du soleil',pr:'TRAVERSE LE NUAGE',g:['#ff7a5c','#ffd27a'],musique:'CIEL · NIVEAU 3',
+  {id:'sh3',cat:'ciel',nom:'LEVER DU SOLEIL',code:'SKY HIGH 3',heure:'lever du soleil',pr:'TRAVERSE LE NUAGE',g:['#ff7a5c','#ffd27a'],mus:MC(3),
    idee:'Un banc de nuage sur une droite tournée vers le soleil : « PERCE-NUAGE ! » à la sortie.',ou:'CARRIÈRE › SKY HIGH › 3 · genCampagne(3)'},
-  {id:'sh4',cat:'jeu',nom:'MATIN FRAIS',code:'SKY HIGH 4',heure:'lever → matin',pr:'PASSE LES PORTES',g:['#ff7a5c','#d6ecff'],musique:'CIEL · NIVEAU 4',
+  {id:'sh4',cat:'ciel',nom:'MATIN FRAIS',code:'SKY HIGH 4',heure:'lever → matin',pr:'PASSE LES PORTES',g:['#ff7a5c','#d6ecff'],mus:MC(4),
    idee:'Trois séquences de trois portes, de plus en plus étroites.',ou:'CARRIÈRE › SKY HIGH › 4 · genCampagne(4)'},
-  {id:'sh5',cat:'jeu',nom:'MATIN',code:'SKY HIGH 5',heure:'matin',pr:'SEME LA POLICE',g:['#6fb4ff','#d6ecff'],musique:'CIEL · NIVEAU 5 (le final)',
-   idee:'La poursuite : deux voitures de police tirent par derrière, la nitro sème. Le dernier niveau du monde (la caisse-nuage se gagne ici).',ou:'CARRIÈRE › SKY HIGH › 5 · genCampagne(5)'},
-  {id:'sh6',cat:'retire',nom:'MIDI',code:'SKY HIGH 6',heure:'midi',pr:'ET SI TU COUPAIS ?',g:['#3aa0ff','#eef8ff'],musique:'NOITE DE VELOCIDADE (retirée)',
-   idee:"Quatre ovales lents : on saute d'un étage de route à l'autre (la coupe), ciel propre.",ou:'retirée de CARRIERE le 4/10 · la piste genCampagne(6) existe encore'},
-  {id:'sh7',cat:'retire',nom:'APRÈS-MIDI',code:'SKY HIGH 7',heure:'après-midi',pr:'DANSE AVEC LE RELIEF',g:['#4f9cf0','#ffe3a0'],musique:'NOITE DE VELOCIDADE (retirée)',
-   idee:'Vagues en sinus et esses. Zéro plot, zéro banc.',ou:'retirée le 4/10 · genCampagne(7) existe encore'},
-  {id:'sh8',cat:'retire',nom:"FIN D'APRÈS-MIDI",code:'SKY HIGH 8',heure:'après-midi → heure dorée',pr:'LE CIEL MENT',g:['#4f9cf0','#ff9a3c'],musique:'NOITE DE VELOCIDADE (retirée)',
-   idee:'Un banc de nuage au bout de chaque droite cache le virage suivant.',ou:'retirée le 4/10 · genCampagne(8) existe encore'},
-  {id:'sh9',cat:'retire',nom:'HEURE DORÉE',code:'SKY HIGH 9',heure:'orage doré',pr:"TRAVERSE L'ORAGE",g:['#5a4a7a','#ffb347'],musique:'NOITE DE VELOCIDADE (retirée)',
-   idee:"Orage doré et pluie : les éclairs révèlent la route dans la brume.",ou:'retirée le 4/10 · genCampagne(9) existe encore'},
-  {id:'sh10',cat:'retire',nom:'COUCHER DE SOLEIL',code:'SKY HIGH 10',heure:'heure dorée → coucher',pr:'ATTRAPE LA CAISSE-NUAGE',g:['#ff9a3c','#ff3ec8'],musique:'NOITE DE VELOCIDADE (retirée)',
-   idee:'La caisse-nuage file devant : reste dans son sillage pour la gagner.',ou:'retirée le 4/10 · genCampagne(10) existe encore'},
-  {id:'mer-matin',cat:'sansfin',nom:'MER DE NUAGES · MATIN',code:'SANS FIN 1',heure:'matin',pr:'LES NUAGES CACHENT LES VIRAGES',g:['#6fb4ff','#d6ecff'],musique:'CIEL · LES 5 NIVEAUX',
+  {id:'sh5',cat:'ciel',nom:'MATIN',code:'SKY HIGH 5',heure:'matin',pr:'SEME LA POLICE',g:['#6fb4ff','#d6ecff'],mus:MC(5),
+   idee:'La poursuite : deux voitures de police tirent par derrière, la nitro sème. Le final du monde (la caisse-nuage se gagne ici).',ou:'CARRIÈRE › SKY HIGH › 5 · genCampagne(5)'},
+  {id:'v1',cat:'ville',nom:'COUCHER DE SOLEIL',code:'VILLE 1',heure:'coucher du soleil',pr:'FAIS-TOI FLASHER',g:['#ff3ec8','#ff9a3c'],mus:MV(1),
+   idee:'Trois portiques radar au bout de trois droites : le flash paie la vitesse (×2 en excès).',ou:'CARRIÈRE › VILLE › 1 · genCampagne(11)'},
+  {id:'v2',cat:'ville',nom:'SOIRÉE',code:'VILLE 2',heure:'soirée',pr:'SUIS LA LIGNE DE NEON',g:['#3a1a6e','#ff5ea8'],mus:MV(2),
+   idee:"Des files de pads d'or reliées par un trait de lumière : la file entière = LIGNE PARFAITE.",ou:'CARRIÈRE › VILLE › 2 · genCampagne(12)'},
+  {id:'v3',cat:'ville',nom:'PLUIE NÉON',code:'VILLE 3',heure:'pluie',pr:'LIS LES FLAQUES',g:['#0e2a4a','#00eaff'],mus:MV(3),
+   idee:'Des rangées de flaques en travers de la route, une seule ligne sèche : passer à sec paie.',ou:'CARRIÈRE › VILLE › 3 · genCampagne(13)'},
+  {id:'v4',cat:'ville',nom:'MINUIT',code:'VILLE 4',heure:'minuit',pr:'NE FINIS PAS DERNIER',g:['#10103a','#4a4aa8'],mus:MV(4),
+   idee:'La meute : sept voitures, le dernier de chaque minute explose.',ou:'CARRIÈRE › VILLE › 4 · genCampagne(14)'},
+  {id:'v5',cat:'ville',nom:'ORAGE',code:'VILLE 5',heure:'orage',pr:'ESQUIVE LA FOUDRE',g:['#2a2440','#a99cff'],mus:MV(5),
+   idee:'Un cercle se pose là où tu vas passer, la foudre tombe dedans. Le final de la ville (le lingot se gagne ici).',ou:'CARRIÈRE › VILLE › 5 · genCampagne(15)'},
+  {id:'mer-matin',cat:'autres',nom:'MER DE NUAGES · MATIN',code:'SANS FIN 1',heure:'matin',pr:'LES NUAGES CACHENT LES VIRAGES',g:['#6fb4ff','#d6ecff'],mus:{t:'CIEL · LES 5 NIVEAUX (le morceau entier)',f:'assets/audio/music/ciel/ciel-complet.m4a'},
    idee:"Ce que lance PLAY aujourd'hui (le mode classique). Piste tirée au hasard ; le ciel tire une heure parmi matin, midi, après-midi.",ou:'NIVEAUX[0] « MER DE NUAGES », ciel matin'},
-  {id:'mer-midi',cat:'sansfin',nom:'MER DE NUAGES · MIDI',code:'SANS FIN 1',heure:'midi',pr:'LES NUAGES CACHENT LES VIRAGES',g:['#3aa0ff','#eef8ff'],musique:'CIEL · LES 5 NIVEAUX',
+  {id:'mer-midi',cat:'autres',nom:'MER DE NUAGES · MIDI',code:'SANS FIN 1',heure:'midi',pr:'LES NUAGES CACHENT LES VIRAGES',g:['#3aa0ff','#eef8ff'],mus:{t:'CIEL · LES 5 NIVEAUX (le morceau entier)',f:'assets/audio/music/ciel/ciel-complet.m4a'},
    idee:'La même map, à midi.',ou:'NIVEAUX[0] « MER DE NUAGES », ciel midi'},
-  {id:'mer-aprem',cat:'sansfin',nom:'MER DE NUAGES · APRÈS-MIDI',code:'SANS FIN 1',heure:'après-midi',pr:'LES NUAGES CACHENT LES VIRAGES',g:['#4f9cf0','#ffe3a0'],musique:'CIEL · LES 5 NIVEAUX',
+  {id:'mer-aprem',cat:'autres',nom:'MER DE NUAGES · APRÈS-MIDI',code:'SANS FIN 1',heure:'après-midi',pr:'LES NUAGES CACHENT LES VIRAGES',g:['#4f9cf0','#ffe3a0'],mus:{t:'CIEL · LES 5 NIVEAUX (le morceau entier)',f:'assets/audio/music/ciel/ciel-complet.m4a'},
    idee:"La même map, l'après-midi.",ou:'NIVEAUX[0] « MER DE NUAGES », ciel aprem'},
-  {id:'orage',cat:'sansfin',nom:"L'ORAGE",code:'SANS FIN 5',heure:'tempête',pr:"LA ROUTE SE CACHE : L'ECLAIR LA MONTRE",g:['#2a2440','#a99cff'],musique:'SWAG CASH CAR',
+  {id:'orage',cat:'autres',nom:"L'ORAGE",code:'SANS FIN 5',heure:'tempête',pr:"LA ROUTE SE CACHE : L'ECLAIR LA MONTRE",g:['#2a2440','#a99cff'],mus:{t:'SWAG CASH CAR',f:'assets/audio/music/swag-cash-car-2.m4a'},
    idee:"Le niveau dur de la partie sans fin : les nuages sous l'orage, bancs, plafond bas, éclairs.",ou:'NIVEAUX[4] « L\'ORAGE »'},
-  {id:'parc',cat:'modes',nom:'PARC FREESTYLE',code:'MODE',heure:'—',pr:'',g:['#ff9a3c','#ffd76a'],musique:'',
+  {id:'sh6',cat:'autres',nom:'MIDI',code:'SKY HIGH 6',heure:'midi',pr:'ET SI TU COUPAIS ?',g:['#3aa0ff','#eef8ff'],mus:NOITE,
+   idee:"Retirée le 4/10. Quatre ovales lents : on saute d'un étage de route à l'autre (la coupe), ciel propre.",ou:'retirée de CARRIERE le 4/10 · la piste genCampagne(6) existe encore'},
+  {id:'sh7',cat:'autres',nom:'APRÈS-MIDI',code:'SKY HIGH 7',heure:'après-midi',pr:'DANSE AVEC LE RELIEF',g:['#4f9cf0','#ffe3a0'],mus:NOITE,
+   idee:'Retirée le 4/10. Vagues en sinus et esses. Zéro plot, zéro banc.',ou:'retirée le 4/10 · genCampagne(7) existe encore'},
+  {id:'sh8',cat:'autres',nom:"FIN D'APRÈS-MIDI",code:'SKY HIGH 8',heure:'après-midi → heure dorée',pr:'LE CIEL MENT',g:['#4f9cf0','#ff9a3c'],mus:NOITE,
+   idee:'Retirée le 4/10. Un banc de nuage au bout de chaque droite cache le virage suivant.',ou:'retirée le 4/10 · genCampagne(8) existe encore'},
+  {id:'sh9',cat:'autres',nom:'HEURE DORÉE',code:'SKY HIGH 9',heure:'orage doré',pr:"TRAVERSE L'ORAGE",g:['#5a4a7a','#ffb347'],mus:NOITE,
+   idee:"Retirée le 4/10. Orage doré et pluie : les éclairs révèlent la route dans la brume.",ou:'retirée le 4/10 · genCampagne(9) existe encore'},
+  {id:'sh10',cat:'autres',nom:'COUCHER DE SOLEIL',code:'SKY HIGH 10',heure:'heure dorée → coucher',pr:'ATTRAPE LA CAISSE-NUAGE',g:['#ff9a3c','#ff3ec8'],mus:NOITE,
+   idee:'Retirée le 4/10. La caisse-nuage file devant : reste dans son sillage pour la gagner.',ou:'retirée le 4/10 · genCampagne(10) existe encore'},
+  {id:'parc',cat:'autres',nom:'PARC FREESTYLE',code:'MODE',heure:'—',pr:'',g:['#ff9a3c','#ffd76a'],mus:null,
    idee:'Le parc de figures : nitro libre, ni mort, ni portail, ni course.',ou:'MODES › PARC FREESTYLE (PARK)'},
-  {id:'jade',cat:'essais',nom:'PICS DE JADE',code:'ESSAI',heure:'brume',pr:'',g:['#3d6b5c','#cfe8d8'],musique:'',
+  {id:'jade',cat:'autres',nom:'PICS DE JADE',code:'ESSAI',heure:'brume',pr:'',g:['#3d6b5c','#cfe8d8'],mus:null,
    idee:'Montagnes qui flottent, en cubes de jade translucides, au-dessus de la mer de nuages. La voiture seule, sans jeu (balade).',ou:'branche map-jade (pas sur main) · ?map=jade'}];
 
 /* =====================================================================================================================
    L'ÉTAT — ce que Léo change. { t, cats:[{id,nom,c}], ordre:{cat:[ids]}, maps:{id:{nom,note}}, corbeille:[ids], generales, journal }
    ===================================================================================================================== */
-const CLE='cashcar.mapsCiel.v1',MAX_ANNUL=60;
+const CLE='cashcar.mapsCiel.v2',MAX_ANNUL=60;
 let E=null,ANNUL=[],VUE='volant',sauveT=0,modifie=false;
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const M0={};MAPS0.forEach(m=>{M0[m.id]=m;});
@@ -273,7 +304,7 @@ function etatNeuf(){
 function propre(o){ // une sauvegarde lue (disque ou navigateur) : on garde la forme, on rattrape les maps ajoutées depuis
   const n=etatNeuf();if(!o||typeof o!=='object'||!Array.isArray(o.cats))return n;
   const r={v:1,t:+o.t||0,cats:[],ordre:{},maps:{},corbeille:[],generales:String(o.generales||''),journal:Array.isArray(o.journal)?o.journal.slice(-500):[]};
-  o.cats.forEach(c=>{if(c&&c.id&&!r.ordre[c.id]){r.cats.push({id:String(c.id),nom:String(c.nom||'Sans nom'),c:String(c.c||'#999')});r.ordre[c.id]=[];}});
+  o.cats.forEach(c=>{if(c&&c.id&&!r.ordre[c.id]){r.cats.push({id:String(c.id),nom:String(c.nom||'Sans nom'),c:String(c.c||'#999'),plie:!!c.plie});r.ordre[c.id]=[];}});
   if(!r.cats.length)return n;
   const vu=new Set();
   r.cats.forEach(c=>{((o.ordre||{})[c.id]||[]).forEach(id=>{if(M0[id]&&!vu.has(id)){vu.add(id);r.ordre[c.id].push(id);}});});
@@ -312,7 +343,9 @@ const ICO={
   poubelle:'<svg viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M10 4h4"/><path d="M6 7l1 13h10l1-13"/><path d="M10 11v6M14 11v6"/></svg>',
   remet:'<svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>',
   haut:'<svg viewBox="0 0 24 24"><path d="m6 15 6-6 6 6"/></svg>',bas:'<svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>',
-  croix:'<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>'};
+  croix:'<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+  play:'<svg class="iP" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>',pause:'<svg class="iS" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></svg>',
+  chev:'<svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>'};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function img(id,v){return 'maps-ciel/img/'+id+'-'+v+'.jpg';}
 /* LE PLAN : la ligne centrale de la piste vue de dessus (relevée au banc, un point tous les 8 m — maps-ciel/traces.js). Départ en vert,
@@ -337,6 +370,7 @@ function carteHTML(id,dansCorbeille){
       '<div class="ligneNom"><div class="nom'+(change?' change':'')+'" contenteditable="plaintext-only" spellcheck="false" data-act="nom">'+esc(s.nom)+'</div></div>'+
       (change?'<div class="avant">dans le jeu : '+esc(m.nom)+'</div>':'')+
       '<div class="sous">'+esc(m.heure)+(m.pr?' · « '+esc(m.pr)+' »':'')+'</div>'+
+      (m.mus?'<button class="ecoute'+(m.mus.fin?' fin':'')+(JOUE.id===id?' joue':'')+'" data-act="ecoute" title="Écouter">'+ICO.play+ICO.pause+'<span>'+esc(m.mus.t)+'</span>'+(m.mus.fin?'<em>FINALE</em>':'')+'</button>':'<div class="ecoute sans">pas de musique à elle</div>')+
       '<div class="idee">'+esc(m.idee)+'</div>'+
       (s.note?'<div class="noteApercu" data-act="note">'+esc(s.note)+'</div>':'')+
       '<div class="noteZone"><textarea data-act="noteTxt" placeholder="Une note sur cette map…">'+esc(s.note)+'</textarea></div>'+
@@ -352,8 +386,8 @@ function rendu(){
   let h='';
   E.cats.forEach((c,k)=>{
     const ids=E.ordre[c.id];
-    h+='<section class="cat" data-cat="'+c.id+'" style="--c:'+c.c+'"><div class="catTete"><span class="point"></span>'+
-      '<span class="catNom" contenteditable="plaintext-only" spellcheck="false" data-act="catNom">'+esc(c.nom)+'</span><span class="catN">'+ids.length+'</span>'+
+    h+='<section class="cat'+(c.plie?' plie':'')+'" data-cat="'+c.id+'" style="--c:'+c.c+'"><div class="catTete"><button class="ico plier" data-act="catPlie" title="'+(c.plie?'Ouvrir':'Replier')+'">'+ICO.chev+'</button><span class="point"></span>'+
+      '<span class="catNom" contenteditable="plaintext-only" spellcheck="false" data-act="catNom">'+esc(c.nom)+'</span><span class="catN">'+ids.length+(c.plie&&ids.length?' · repliée':'')+'</span>'+
       '<span class="catOutils"><button class="ico" data-act="catHaut" title="Monter" '+(k===0?'disabled':'')+'>'+ICO.haut+'</button>'+
       '<button class="ico" data-act="catBas" title="Descendre" '+(k===E.cats.length-1?'disabled':'')+'>'+ICO.bas+'</button>'+
       '<button class="ico danger" data-act="catSuppr" title="'+(ids.length?'Vide-la d\'abord':'Supprimer la catégorie')+'" '+(ids.length?'disabled':'')+'>'+ICO.croix+'</button></span></div>'+
@@ -370,7 +404,8 @@ function rendu(){
   window.scrollTo({top:sc,left:0,behavior:'instant'});L.style.minHeight='';if(!L.classList.contains('pret'))setTimeout(()=>L.classList.add('pret'),700);
   if(rendu.neuve){const n=L.querySelector('.carte[data-id="'+rendu.neuve+'"]');if(n)n.classList.add('neuve');rendu.neuve=null;}
   const tot=MAPS0.length,sup=E.corbeille.length;
-  $('#compte').textContent=tot+' maps · '+E.cats.length+' catégories'+(sup?' · '+sup+' à supprimer':'');
+  const fin=MAPS0.filter(m=>m.mus&&m.mus.fin).length;
+  $('#compte').textContent=fin+' avec leur musique finale · '+(tot-fin)+' autres'+(sup?' · '+sup+' à supprimer':'');
   $('#annuler').disabled=!ANNUL.length;
   if($('#grand').classList.contains('on'))grandMaj();
 }
@@ -387,6 +422,8 @@ document.addEventListener('click',e=>{
   const b=e.target.closest('[data-act]');if(!b)return;
   const carte=b.closest('.carte'),id=carte&&carte.dataset.id,act=b.dataset.act,sec=b.closest('.cat'),cat=sec&&sec.dataset.cat;
   if(act==='grand')return grandOuvre(id);
+  if(act==='ecoute')return ecoute(id);
+  if(act==='catPlie'){const c=E.cats.find(x=>x.id===cat);if(c){c.plie=!c.plie;ecritLocal();rendu();}return;} // replier = une vue, pas un changement de la liste
   if(act==='renomme'){const n=carte.querySelector('.nom');n.focus();selTout(n);return;}
   if(act==='note'){carte.classList.toggle('noteOuverte');if(carte.classList.contains('noteOuverte'))carte.querySelector('textarea').focus();return;}
   if(act==='suppr')return supprime(id);
@@ -448,13 +485,17 @@ function cible(e){
 document.addEventListener('dragover',e=>{
   if(!GL)return;const g=cible(e);if(!g){finRepere();return;}
   e.preventDefault();e.dataTransfer.dropEffect='move';
+  const sec=g.closest('.cat');
+  if(sec&&sec.classList.contains('plie')){ // catégorie repliée : la carte va au bout, le titre s'allume
+    GL.cat=g.dataset.cat;GL.i=E.ordre[GL.cat]?E.ordre[GL.cat].length:-1;$('#repere').style.display='none';
+    $$('.survol').forEach(x=>{if(x!==sec)x.classList.remove('survol');});sec.classList.add('survol');return;}
   const cartes=[...g.querySelectorAll('.carte')].filter(c=>c.dataset.id!==GL.id);
   let i=cartes.length,ref=null,apres=false;
   for(let k=0;k<cartes.length;k++){const r=cartes[k].getBoundingClientRect();
     if(e.clientY<r.top||(e.clientY<=r.bottom&&e.clientX<r.left+r.width/2)){i=k;ref=r;break;}}
   if(!ref&&cartes.length){ref=cartes[cartes.length-1].getBoundingClientRect();apres=true;}
   GL.cat=g.dataset.cat;GL.i=i;
-  $$('.grille.survol').forEach(x=>{if(x!==g)x.classList.remove('survol');});g.classList.add('survol');
+  $$('.survol').forEach(x=>{if(x!==g)x.classList.remove('survol');});g.classList.add('survol');
   const rp=$('#repere'),L=$('#liste').getBoundingClientRect();
   if(ref){rp.style.display='block';rp.style.left=((apres?ref.right+7:ref.left-10.5)-L.left)+'px';rp.style.top=(ref.top-L.top)+'px';rp.style.height=ref.height+'px';}
   else rp.style.display='none';
@@ -471,7 +512,7 @@ document.addEventListener('drop',e=>{
   geste(txt,()=>{retire(id);pose(id,cat,i);});
   if(cat==='corbeille')petitMot('« '+nomDe(id)+' » est dans À SUPPRIMER',annuler);
 });
-function finRepere(){const r=$('#repere');if(r)r.style.display='none';$$('.grille.survol').forEach(x=>x.classList.remove('survol'));}
+function finRepere(){const r=$('#repere');if(r)r.style.display='none';$$('.survol').forEach(x=>x.classList.remove('survol'));}
 
 /* =====================================================================================================================
    LA GRANDE VUE
@@ -485,7 +526,7 @@ function grandMaj(){
   $('#gA').src=img(id,'volant');$('#gB').src=img(id,'trace');$('#gB').style.opacity=G.v==='trace'?1:0;$('#gPlan').innerHTML=planSVG(id,'grand');
   $('#gNom').textContent=s.nom;
   $('#gInfo').innerHTML='<b>'+esc(m.code)+'</b> · '+esc(m.heure)+(m.pr?' · « '+esc(m.pr)+' »':'')+'<br>'+esc(m.idee)+
-    '<br>Où : '+esc(m.ou)+(m.musique?'<br>Musique : '+esc(m.musique):'')+(s.nom!==m.nom?'<br>Nom dans le jeu : '+esc(m.nom):'')+(s.note?'<br>Note : '+esc(s.note):'');
+    '<br>Où : '+esc(m.ou)+'<br>Musique : '+(m.mus?esc(m.mus.t)+(m.mus.fin?' — <b>finale</b>':''):'aucune à elle')+(s.nom!==m.nom?'<br>Nom dans le jeu : '+esc(m.nom):'')+(s.note?'<br>Note : '+esc(s.note):'');
   $$('#gVue button').forEach(b=>b.classList.toggle('on',b.dataset.v===G.v));
   $('#gCat').innerHTML=E.cats.map(c=>'<option value="'+c.id+'"'+(c.id===o?' selected':'')+'>'+esc(c.nom)+'</option>').join('')+
     '<option value="corbeille"'+(o==='corbeille'?' selected':'')+'>À supprimer</option>';
@@ -535,11 +576,11 @@ document.addEventListener('keydown',e=>{
    ===================================================================================================================== */
 function fiche(){
   const d=new Date(),jour=d.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}),L=[];
-  L.push('CASH CAR — LES MAPS DU CIEL','',jour+' · '+MAPS0.length+' maps · faite dans la page des maps (maps-ciel.html)','');
+  L.push('CASH CAR — LES MAPS','',jour+' · '+MAPS0.length+' maps · faite dans la page des maps (maps-ciel.html)','');
   E.cats.forEach(c=>{
     const ids=E.ordre[c.id];L.push(c.nom.toUpperCase()+' ('+ids.length+')');
     ids.forEach((id,k)=>{const m=M0[id],s=E.maps[id];
-      L.push('  '+(k+1)+'. '+s.nom+'   ('+m.code+' · '+m.heure+')   [id '+id+']');
+      L.push('  '+(k+1)+'. '+s.nom+'   ('+m.code+' · '+m.heure+' · musique : '+(m.mus?m.mus.t+(m.mus.fin?', FINALE':''):'aucune')+')   [id '+id+']');
       if(s.nom!==m.nom)L.push('       nom dans le jeu : '+m.nom);
       if(s.note)s.note.split('\n').forEach((x,j)=>L.push((j?'              ':'       note : ')+x));});
     if(!ids.length)L.push('  (vide)');L.push('');
@@ -588,6 +629,16 @@ async function sauve(){
   }
   b.disabled=false;
 }
+
+/* ---------- L'ÉCOUTE : la musique de la map, une seule à la fois (même bouton = pause) ---------- */
+const JOUE={id:null,a:null};
+function ecoute(id){
+  const m=M0[id];if(!m||!m.mus)return;
+  if(!JOUE.a){JOUE.a=new Audio();JOUE.a.loop=true;JOUE.a.addEventListener('error',()=>{if(!JOUE.id)return;petitMot('Musique introuvable : '+M0[JOUE.id].mus.t,null);JOUE.id=null;marqueJoue();});}
+  if(JOUE.id===id){JOUE.a.pause();JOUE.id=null;marqueJoue();return;}
+  JOUE.id=id;JOUE.a.src=m.mus.f;const p=JOUE.a.play();if(p&&p.catch)p.catch(()=>{});marqueJoue();
+}
+function marqueJoue(){$$('.carte').forEach(c=>{const b=c.querySelector('.ecoute[data-act]');if(b)b.classList.toggle('joue',c.dataset.id===JOUE.id);});}
 
 /* ---------- le petit mot en bas (avec ANNULER quand ça a du sens) ---------- */
 let motT=0;
