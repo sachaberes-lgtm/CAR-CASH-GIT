@@ -38,6 +38,15 @@
   `dolPose` : ce nom est déjà celui de l'encaissement du dauphin à la pose — une 2e déclaration l'écrasait). Le jeu en tire une par
   apparition du banc (jamais deux fois la même de suite) ; `dbgDolphins(sec,nb,ch)` en force une (index ou nom, null = hasard). La boîte :
   rangée des chorés en vue LE BANC (« Au hasard » = une nouvelle tous les 3 sauts du chef, chaque dauphin l'adopte en replongeant).
+- **LE BANC LONGE LA ROUTE** (même jour, Léo : « ils ne peuvent pas aller de la droite vers la gauche… celles qui viennent du milieu vont
+  transpercer la route ») : plus aucune traversée ni sortie au milieu. Les chorés sont refaites DE PART ET D'AUTRE de la route, sauts LE
+  LONG d'elle : L'ESCORTE · L'UNISSON · LE MIROIR · LE SAUTE-MOUTON · LE CROISEMENT (deux viennent vers la caméra) · L'ÉVENTAIL (ils
+  s'écartent en diagonale) · L'ESCALIER · LA FONTAINE. Par dauphin : côté `s`, distance au BORD x0 → x1 (m × taille), saut z0 → z1 (en W,
+  + devant). updateDolphins mesure l'axe de la route en x du banc (`dolXR` : FDOL.p au sol, `pts[tryLand._bi]` en vol), R = ROAD_HALF + 2,
+  et pose le banc assez loin pour que les deux bords tiennent dans l'écran (portée en mètres FIXES — liée à la taille, elle s'emballait).
+  ⚠ Conséquence mesurée : en course ils sont à 40-60 m, près de l'horizon, et le flou de vitesse les étale (au sol surtout) ; en portrait
+  la route prend toute la largeur, ils sont encore plus loin. La boîte dessine une route (repère, pas à l'échelle). `dbgDauphin('ecran')` :
+  où sont les dauphins à l'écran (−1…1) et à quelle distance.
 ## LA SALLE BLANCHE (2026-10-09, Léo : « une sublime voiture dans une salle blanche, que je peux tourner, avec une petite rangée de toutes les voitures qu'on a — pas les enlevées — qu'on glisse dans différentes raretés ; télécharger une liste écrite de tout ce qu'on a dit dessus »)
 - `salle-blanche.html` (outil, à côté d'index.html, à servir : `python3 -m http.server 8975` puis /salle-blanche.html). RIEN n'est recopié :
   elle LIT index.html et exécute les vrais constructeurs (même liste de blocs que `ROBLOX/outils/cuire-caisses.js` + `MATV` pour les vraies
