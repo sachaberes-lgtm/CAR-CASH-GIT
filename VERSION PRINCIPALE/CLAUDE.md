@@ -1,5 +1,23 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LES MAPS DU CIEL (2026-10-09, Léo : « contexte : reconstruction du système du PLAY — un visuel interactif, avec suppression et sauvegarde des modifs ; récupère toutes les maps du ciel, mets-les en liste, en image et nommées, rangées par catégorie »)
+- `maps-ciel.html` (OUTIL, comme la salle blanche) + `maps-ciel/` : `img/<id>-volant.jpg` (la vue de poursuite, HUD masqué, flou coupé) et
+  `img/<id>-trace.jpg` (la route vue de haut, nuages du DÉCOR masqués — `COTON.root` et les CLOUDS hors `camp`/`onRoad` : vue de haut, les
+  niveaux de carrière ne sont que du coton), `traces.js` (le plan : ligne centrale tous les ~16 m), `serveur.py` (sert VERSION PRINCIPALE et
+  ÉCRIT la sauvegarde). Lancer : `python3 maps-ciel/serveur.py 9019` depuis VERSION PRINCIPALE → http://127.0.0.1:9019/maps-ciel.html.
+- 16 maps : SKY HIGH 1-5 (dans le jeu) · SKY HIGH 6-10 (retirées le 4/10 — leurs pistes vivent encore dans genCampagne : photographiées en
+  remettant les niveaux dans une COPIE de capture, jamais dans index.html) · MER DE NUAGES matin/midi/aprem + L'ORAGE (partie sans fin) ·
+  PARC FREESTYLE · PICS DE JADE (branche map-jade). Les données des maps sont dans `MAPS0` en tête du script de la page.
+- La page : glisser une carte (trait bleu = où elle tombe) d'une catégorie à l'autre ou vers À SUPPRIMER, renommer (clic sur le nom),
+  note par map, notes générales, catégories ajoutées/renommées/montées/supprimées (vides), ⌘Z, REMETTRE (tout comme dans le jeu), grande
+  vue (← → espace). Chaque geste s'écrit dans le navigateur (`cashcar.mapsCiel.v1`) ; SAUVEGARDER (⌘S) POST → `maps-ciel/sauvegarde.json`
+  + `maps-ciel/fiche-maps-ciel.txt` + copie datée dans `maps-ciel/sauvegardes/` ; sans serveur, la fiche se télécharge. À l'ouverture, la
+  sauvegarde du dossier passe devant celle du navigateur si elle est plus récente. **C'est la fiche (À SUPPRIMER, CHANGEMENTS PAR RAPPORT
+  AU JEU, notes, journal) que Claude relit pour reconstruire le PLAY.** Console : `dbgMaps.etat()`, `.fiche()`, `.changements()`.
+- Reprendre les photos : copie de capture `_capture-maps.html` (index.html + niveaux 6-10 remis + `window.__cap` : sansFin, zone, nu, trace,
+  vue, etat) servie à côté d'index.html, Chrome sans fenêtre muet, splash touché par un VRAI clic (sinon `start()` refuse : `#splash` existe
+  encore), `dbgCampagne(n)` / `__cap.sansFin()` puis `__cap.zone(z)`, `dbgNet(true)` + `dbgAuto(true,0)`, 5 s, photo. Copie supprimée après.
+
 ## LE DAUPHIN DE RÊVE + LA BOÎTE À DAUPHINS (2026-10-09, Léo : « retouchons les dauphins, envoie-moi dans une boîte blanche avec les dauphins, on va les design » — puis une image de grand dauphin pastel : « travaille encore plus dur »)
 - **LA BOÎTE** : `boite-dauphins.html` (à côté d'index.html, servie par `python3 -m http.server`, jamais en double-clic). Elle LIT et exécute le
   VRAI bloc du jeu (de `const DOL_L=` à `const dolphinRig=`) et le RELIT ~1 fois/s : une retouche du dauphin dans index.html apparaît sans

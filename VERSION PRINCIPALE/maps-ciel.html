@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Les maps du ciel</title>
+<!-- LES MAPS DU CIEL (2026-10-09, Léo : « reconstruction du système du PLAY : un visuel interactif, avec suppression et sauvegarde des
+     modifs — récupère toutes les maps du ciel, mets-les en liste, en image et nommées, rangées par catégorie »).
+     Un OUTIL à côté du jeu (comme la salle blanche) : chaque map du ciel avec DEUX photos prises dans le vrai jeu (AU VOLANT = ce que voit
+     le joueur, LE TRACÉ = la route vue de haut, nuages du décor retirés — et le PLAN de la piste), son nom, sa catégorie. On renomme, on glisse d'une catégorie à l'autre, on range, on met à
+     la corbeille (À SUPPRIMER), on annote, on annule (⌘Z). Tout s'écrit dans ce navigateur à chaque geste ; SAUVEGARDER (⌘S) le pose
+     dans le dossier du jeu (maps-ciel/sauvegarde.json + fiche-maps-ciel.txt, via maps-ciel/serveur.py) — c'est ce que Claude relit
+     pour appliquer. Sans le serveur, SAUVEGARDER télécharge la fiche. Les photos : maps-ciel/img/<id>-volant.jpg / <id>-trace.jpg ; le plan : maps-ciel/traces.js. -->
+<style>
+  :root{
+    --fond:#f1f1ef;--encre:#1d1d1f;--gris:#6e6e73;--gris2:#a1a1a6;--trait:rgba(0,0,0,.08);--carte:#fff;
+    --bleu:#0a63d6;--rouge:#d70015;
+    --sys:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;
+    --r:16px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--fond);color:var(--encre);font-family:var(--sys);-webkit-font-smoothing:antialiased;
+    -webkit-tap-highlight-color:transparent;min-height:100vh;padding-bottom:120px}
+  button,input,textarea,select{font:inherit;color:inherit}
+  button{cursor:pointer}
+
+  /* ---------- LE HAUT ---------- */
+  header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+    padding:16px max(16px,env(safe-area-inset-left)) 14px;background:rgba(241,241,239,.82);
+    -webkit-backdrop-filter:blur(22px) saturate(1.4);backdrop-filter:blur(22px) saturate(1.4);border-bottom:.5px solid var(--trait)}
+  #marque b{display:block;font-size:12px;letter-spacing:.24em;font-weight:650}
+  #marque span{display:block;font-size:11px;letter-spacing:.1em;color:var(--gris2);margin-top:4px}
+  .seg{display:inline-flex;background:rgba(0,0,0,.06);border-radius:10px;padding:2px;margin-left:auto}
+  .seg button{border:0;background:transparent;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:550;letter-spacing:.04em;color:var(--gris)}
+  .seg button.on{background:#fff;color:var(--encre);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+  .outil{border:0;background:transparent;padding:7px 10px;border-radius:9px;font-size:13px;color:var(--encre);display:inline-flex;align-items:center;gap:6px}
+  .outil:hover{background:rgba(0,0,0,.06)}
+  .outil:disabled{opacity:.3;cursor:default;background:transparent}
+  .outil svg,.ico svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+  #etatSauve{font-size:12px;color:var(--gris2);min-width:150px;text-align:right}
+  #etatSauve.modifie{color:#b25000}
+  #etatSauve.ok{color:#1f7a35}
+  #sauver{border:0;background:var(--encre);color:#fff;border-radius:999px;padding:9px 18px;font-size:13px;font-weight:600;letter-spacing:.02em;
+    transition:transform .12s,opacity .2s}
+  #sauver:active{transform:scale(.96)}
+  #sauver.pulse{animation:pulse 1.4s ease-in-out infinite}
+  @keyframes pulse{50%{box-shadow:0 0 0 6px rgba(29,29,31,.12)}}
+
+  /* ---------- LES CATÉGORIES ---------- */
+  main{position:relative;padding:8px max(16px,env(safe-area-inset-left)) 0;max-width:1500px;margin:0 auto}
+  .cat{margin-top:34px}
+  .catTete{display:flex;align-items:center;gap:10px;margin-bottom:14px;min-height:30px}
+  .point{width:10px;height:10px;border-radius:50%;flex:0 0 10px;background:var(--c,#999)}
+  .catNom{font-size:13px;font-weight:650;letter-spacing:.16em;text-transform:uppercase;outline:none;border-radius:6px;padding:2px 4px;margin:-2px -4px}
+  .catNom[contenteditable="true"]:hover{background:rgba(0,0,0,.05)}
+  .catNom:focus{background:#fff;box-shadow:0 0 0 1px var(--encre)}
+  .catN{font-size:12px;color:var(--gris2)}
+  .catOutils{margin-left:auto;display:flex;gap:2px;opacity:0;transition:opacity .2s}
+  .cat:hover .catOutils,.cat:focus-within .catOutils{opacity:1}
+  .ico{border:0;background:transparent;width:30px;height:30px;border-radius:8px;display:grid;place-items:center;color:var(--gris)}
+  .ico:hover{background:rgba(0,0,0,.06);color:var(--encre)}
+  .ico:disabled{opacity:.25;cursor:default;background:transparent}
+  .ico.danger:hover{color:var(--rouge)}
+
+  .grille{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:18px;position:relative;min-height:120px;
+    border-radius:var(--r);transition:background .2s}
+  .grille.vide::after{content:"Glisse une map ici";position:absolute;inset:0;display:grid;place-items:center;font-size:12px;color:var(--gris2);
+    letter-spacing:.06em;border:1.5px dashed rgba(0,0,0,.12);border-radius:var(--r)}
+  .grille.survol{background:rgba(10,99,214,.05)}
+  #repere{position:absolute;width:3px;border-radius:2px;background:var(--bleu);pointer-events:none;display:none;z-index:5;
+    box-shadow:0 0 0 3px rgba(10,99,214,.15)}
+
+  /* ---------- UNE MAP ---------- */
+  .carte{background:var(--carte);border-radius:var(--r);overflow:hidden;position:relative;
+    box-shadow:0 0 0 .5px rgba(0,0,0,.06),0 6px 24px rgba(0,0,0,.05);transition:transform .25s cubic-bezier(.32,.72,0,1),box-shadow .25s,opacity .2s}
+  main:not(.pret) .carte{animation:entre .35s cubic-bezier(.32,.72,0,1) both} /* l'entrée une seule fois : un geste ne refait pas danser toute la page */
+  .carte.neuve{animation:entre .35s cubic-bezier(.32,.72,0,1) both}
+  @keyframes entre{from{opacity:0;transform:translateY(8px) scale(.985)}}
+  .carte:hover{transform:translateY(-2px);box-shadow:0 0 0 .5px rgba(0,0,0,.08),0 14px 34px rgba(0,0,0,.09)}
+  .carte.glisse{opacity:.35}
+  .photo{position:relative;aspect-ratio:16/9;background:linear-gradient(135deg,var(--g1,#9ab),var(--g2,#dde));cursor:zoom-in;overflow:hidden}
+  .photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity .35s;user-select:none;-webkit-user-drag:none}
+  .photo img.b{opacity:0}
+  .carte:hover .photo img.b{opacity:1}
+  .photo img.manque{display:none}
+  .code{position:absolute;left:10px;top:10px;font-size:10px;font-weight:650;letter-spacing:.14em;color:#fff;background:rgba(0,0,0,.38);
+    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);padding:4px 8px;border-radius:7px}
+  .vueTag{position:absolute;right:10px;bottom:10px;font-size:10px;letter-spacing:.1em;color:#fff;background:rgba(0,0,0,.3);padding:3px 7px;border-radius:6px;
+    opacity:0;transition:opacity .25s}
+  .carte:hover .vueTag{opacity:1}
+  .plan.mini{position:absolute;right:8px;top:8px;width:26%;max-width:96px;aspect-ratio:1;filter:drop-shadow(0 1px 3px rgba(0,0,0,.35));
+    opacity:.92;transition:opacity .25s;pointer-events:none}
+  .carte:hover .plan.mini{opacity:0}
+  .plan path{fill:none;stroke-linecap:round;stroke-linejoin:round}
+  .plan .pO{stroke:rgba(0,0,0,.45)}.plan .pT{stroke:#fff}
+  .plan .pA{fill:#30d158;stroke:#fff;stroke-width:.8}.plan .pB{fill:#ff375f;stroke:#fff;stroke-width:.8}
+  #gPlan{width:150px;aspect-ratio:1;border-radius:14px;background:rgba(255,255,255,.06)}
+  #gPlan:empty{display:none}
+  #gPlan .plan{width:100%;height:100%}#gPlan .plan .pO{stroke:rgba(0,0,0,.6)}
+  .texte{padding:12px 14px 14px}
+  .ligneNom{display:flex;align-items:flex-start;gap:6px}
+  .nom{font-size:17px;font-weight:650;letter-spacing:.01em;line-height:1.2;outline:none;border-radius:6px;padding:1px 4px;margin:-1px -4px;flex:1;min-width:0;word-break:break-word}
+  .nom:hover{background:rgba(0,0,0,.04)}
+  .nom:focus{background:#fff;box-shadow:0 0 0 1px var(--encre)}
+  .nom.change{color:var(--bleu)}
+  .avant{font-size:11px;color:var(--gris2);margin-top:3px}
+  .sous{font-size:12px;color:var(--gris);margin-top:6px;line-height:1.4}
+  .idee{font-size:12px;color:var(--gris2);margin-top:4px;line-height:1.45}
+  .actions{display:flex;flex-wrap:wrap;gap:2px;margin-top:10px;margin-left:-6px}
+  .actions .ico{width:auto;padding:0 8px;gap:5px;display:inline-flex;align-items:center;font-size:12px}
+  .actions .ico span{font-size:12px}
+  .noteZone{display:none;margin-top:8px}
+  .carte.noteOuverte .noteZone{display:block}
+  textarea{width:100%;min-height:60px;resize:vertical;border:0;border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.45;
+    background:#f5f5f3;box-shadow:inset 0 0 0 .5px rgba(0,0,0,.08);outline:none}
+  textarea:focus{background:#fff;box-shadow:0 0 0 1px var(--encre)}
+  .noteApercu{font-size:12px;color:var(--encre);margin-top:8px;padding:8px 10px;background:#fff8e1;border-radius:10px;line-height:1.4;white-space:pre-wrap;cursor:text}
+  .carte.noteOuverte .noteApercu{display:none}
+  .pastille{display:inline-block;font-size:10px;font-weight:650;letter-spacing:.1em;padding:2px 6px;border-radius:5px;margin-right:6px;vertical-align:1px;
+    background:var(--pc,rgba(0,0,0,.06));color:var(--pt,var(--gris))}
+
+  /* ---------- À SUPPRIMER ---------- */
+  #corbeille{margin-top:56px;padding:18px;border-radius:calc(var(--r) + 6px);background:rgba(215,0,21,.035);box-shadow:inset 0 0 0 1px rgba(215,0,21,.10)}
+  #corbeille .catNom{color:var(--rouge)}
+  #corbeille .grille{grid-template-columns:repeat(auto-fill,minmax(210px,1fr));min-height:90px}
+  #corbeille .grille.vide::after{content:"Glisse ici une map à enlever du jeu"}
+  #corbeille .carte .photo{filter:grayscale(.85) brightness(1.05)}
+  #corbeille .carte .nom{text-decoration:line-through;text-decoration-color:rgba(215,0,21,.5)}
+  #corbeille .idee,#corbeille .sous{display:none}
+  #corbeille .actions [data-act="renomme"] span,#corbeille .actions [data-act="note"] span{display:none} /* carte étroite : les icônes suffisent, REMETTRE garde son mot */
+
+  #generales{margin-top:40px}
+  #generales textarea{min-height:90px;background:#fff}
+
+  /* ---------- LA GRANDE VUE ---------- */
+  #grand{position:fixed;inset:0;z-index:50;background:rgba(20,20,22,.86);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
+    display:none;align-items:center;justify-content:center;padding:24px}
+  #grand.on{display:flex;animation:fondu .25s ease-out}
+  @keyframes fondu{from{opacity:0}}
+  #gBoite{width:min(1180px,100%,calc((100vh - 250px) * 16 / 9));max-height:100%;overflow:auto;color:#fff}
+  #gImg{position:relative;width:100%;aspect-ratio:16/9;border-radius:18px;overflow:hidden;background:#222}
+  #gImg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity .3s}
+  #gBas{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start;margin-top:18px}
+  #gNom{font-size:28px;font-weight:650;letter-spacing:.01em}
+  #gInfo{font-size:13px;color:rgba(255,255,255,.7);margin-top:6px;line-height:1.6;max-width:640px}
+  #gInfo b{color:#fff;font-weight:600}
+  #gDroite{margin-left:auto;display:flex;flex-direction:column;gap:10px;min-width:220px}
+  #grand .seg{background:rgba(255,255,255,.12);margin:0}
+  #grand .seg button{color:rgba(255,255,255,.7)}
+  #grand .seg button.on{background:#fff;color:#111}
+  #grand select{background:rgba(255,255,255,.12);border:0;border-radius:10px;padding:8px 10px;color:#fff;font-size:13px}
+  #grand select option{color:#111}
+  #gFerme,#gPrec,#gSuiv{position:fixed;border:0;background:rgba(255,255,255,.12);color:#fff;width:44px;height:44px;border-radius:50%;display:grid;place-items:center}
+  #gFerme:hover,#gPrec:hover,#gSuiv:hover{background:rgba(255,255,255,.22)}
+  #gFerme{right:20px;top:20px}#gPrec{left:16px;top:50%}#gSuiv{right:16px;top:50%}
+  #gFerme svg,#gPrec svg,#gSuiv svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+  /* ---------- LE PETIT MOT EN BAS ---------- */
+  #toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);opacity:0;z-index:60;background:var(--encre);color:#fff;border-radius:14px;
+    padding:11px 14px 11px 16px;font-size:13px;display:flex;align-items:center;gap:14px;box-shadow:0 12px 40px rgba(0,0,0,.25);
+    transition:opacity .25s,transform .35s cubic-bezier(.32,.72,0,1);pointer-events:none;max-width:calc(100% - 32px)}
+  #toast.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+  #toast button{border:0;background:rgba(255,255,255,.14);color:#fff;border-radius:9px;padding:5px 10px;font-size:12px;font-weight:600}
+
+  @media (max-width:700px){
+    #etatSauve{min-width:0;order:9;width:100%;text-align:left}
+    .seg{margin-left:0}
+    .grille{grid-template-columns:1fr 1fr;gap:10px}
+    .nom{font-size:14px}.idee{display:none}
+    .catOutils{opacity:1}
+    header{position:static}            /* au téléphone le haut ne colle pas : il mangerait un tiers de l'écran */
+    .actions .ico span{display:none}
+    .actions [data-act="remet"] span{display:inline}
+  }
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <div id="marque"><b>LES MAPS DU CIEL</b><span id="compte">CASH CAR</span></div>
+  <div class="seg" id="vueSeg" role="tablist" aria-label="Photo affichée">
+    <button data-v="volant" class="on">AU VOLANT</button><button data-v="trace">LE TRACÉ</button>
+  </div>
+  <button class="outil" id="annuler" title="Annuler (⌘Z)" disabled><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg>Annuler</button>
+  <button class="outil" id="ajCat" title="Nouvelle catégorie"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Catégorie</button>
+  <button class="outil" id="fiche" title="Télécharger la fiche (.txt)"><svg viewBox="0 0 24 24"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>Fiche</button>
+  <button class="outil" id="remise" title="Tout remettre comme dans le jeu"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>Remettre</button>
+  <span id="etatSauve">—</span>
+  <button id="sauver" title="Sauvegarder (⌘S)">Sauvegarder</button>
+</header>
+
+<main id="liste"></main>
+
+<div id="grand" role="dialog" aria-modal="true" aria-label="La map en grand">
+  <button id="gFerme" aria-label="Fermer"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  <button id="gPrec" aria-label="Map précédente"><svg viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></svg></button>
+  <button id="gSuiv" aria-label="Map suivante"><svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></button>
+  <div id="gBoite">
+    <div id="gImg"><img id="gA" alt=""><img id="gB" alt=""></div>
+    <div id="gBas">
+      <div><div id="gNom"></div><div id="gInfo"></div></div>
+      <div id="gDroite">
+        <div class="seg" id="gVue"><button data-v="volant">AU VOLANT</button><button data-v="trace">LE TRACÉ</button></div>
+        <select id="gCat" aria-label="Catégorie"></select>
+        <div id="gPlan"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="toast"><span id="tTxt"></span><button id="tBtn">Annuler</button></div>
+
+<script src="maps-ciel/traces.js"></script>
+<script>
+'use strict';
+/* =====================================================================================================================
+   LES MAPS, telles qu'elles sont dans le jeu (main du 9/10, 6531110) — photos prises au banc dans le vrai jeu
+   (copie de capture, son coupé : les niveaux 6-10 remis le temps des photos, leurs pistes vivent encore dans genCampagne).
+   ===================================================================================================================== */
+const CATS0=[
+  {id:'jeu',     nom:'SKY HIGH · dans le jeu',      c:'#0a84ff'},
+  {id:'retire',  nom:'SKY HIGH · retirées le 4/10', c:'#ff9f0a'},
+  {id:'sansfin', nom:'Partie sans fin',             c:'#30d158'},
+  {id:'modes',   nom:'Modes',                       c:'#bf5af2'},
+  {id:'essais',  nom:'Essais hors jeu',             c:'#ff375f'}];
+const MAPS0=[
+  {id:'sh1',cat:'jeu',nom:'AURORE',code:'SKY HIGH 1',heure:'aurore',pr:'APPRENDS A VOLER',g:['#3b2a6e','#ff9ec4'],musique:'CIEL · NIVEAU 1',
+   idee:"La piste de l'auto-école dessinée à la main, sous le ciel nu de l'aurore (aucun nuage : on y lit tout).",ou:'CARRIÈRE › SKY HIGH › 1 · piste genTuto'},
+  {id:'sh2',cat:'jeu',nom:'PREMIÈRES LUEURS',code:'SKY HIGH 2',heure:'aube → lever',pr:'LA ROUTE EST A TOI',g:['#5a3a8a','#ffd27a'],musique:'CIEL · NIVEAU 2',
+   idee:'Deux grands balayages de 160° qui descendent. Zéro banc, zéro plot.',ou:'CARRIÈRE › SKY HIGH › 2 · genCampagne(2)'},
+  {id:'sh3',cat:'jeu',nom:'LEVER DU SOLEIL',code:'SKY HIGH 3',heure:'lever du soleil',pr:'TRAVERSE LE NUAGE',g:['#ff7a5c','#ffd27a'],musique:'CIEL · NIVEAU 3',
+   idee:'Un banc de nuage sur une droite tournée vers le soleil : « PERCE-NUAGE ! » à la sortie.',ou:'CARRIÈRE › SKY HIGH › 3 · genCampagne(3)'},
+  {id:'sh4',cat:'jeu',nom:'MATIN FRAIS',code:'SKY HIGH 4',heure:'lever → matin',pr:'PASSE LES PORTES',g:['#ff7a5c','#d6ecff'],musique:'CIEL · NIVEAU 4',
+   idee:'Trois séquences de trois portes, de plus en plus étroites.',ou:'CARRIÈRE › SKY HIGH › 4 · genCampagne(4)'},
+  {id:'sh5',cat:'jeu',nom:'MATIN',code:'SKY HIGH 5',heure:'matin',pr:'SEME LA POLICE',g:['#6fb4ff','#d6ecff'],musique:'CIEL · NIVEAU 5 (le final)',
+   idee:'La poursuite : deux voitures de police tirent par derrière, la nitro sème. Le dernier niveau du monde (la caisse-nuage se gagne ici).',ou:'CARRIÈRE › SKY HIGH › 5 · genCampagne(5)'},
+  {id:'sh6',cat:'retire',nom:'MIDI',code:'SKY HIGH 6',heure:'midi',pr:'ET SI TU COUPAIS ?',g:['#3aa0ff','#eef8ff'],musique:'NOITE DE VELOCIDADE (retirée)',
+   idee:"Quatre ovales lents : on saute d'un étage de route à l'autre (la coupe), ciel propre.",ou:'retirée de CARRIERE le 4/10 · la piste genCampagne(6) existe encore'},
+  {id:'sh7',cat:'retire',nom:'APRÈS-MIDI',code:'SKY HIGH 7',heure:'après-midi',pr:'DANSE AVEC LE RELIEF',g:['#4f9cf0','#ffe3a0'],musique:'NOITE DE VELOCIDADE (retirée)',
+   idee:'Vagues en sinus et esses. Zéro plot, zéro banc.',ou:'retirée le 4/10 · genCampagne(7) existe encore'},
+  {id:'sh8',cat:'retire',nom:"FIN D'APRÈS-MIDI",code:'SKY HIGH 8',heure:'après-midi → heure dorée',pr:'LE CIEL MENT',g:['#4f9cf0','#ff9a3c'],musique:'NOITE DE VELOCIDADE (retirée)',
+   idee:'Un banc de nuage au bout de chaque droite cache le virage suivant.',ou:'retirée le 4/10 · genCampagne(8) existe encore'},
+  {id:'sh9',cat:'retire',nom:'HEURE DORÉE',code:'SKY HIGH 9',heure:'orage doré',pr:"TRAVERSE L'ORAGE",g:['#5a4a7a','#ffb347'],musique:'NOITE DE VELOCIDADE (retirée)',
+   idee:"Orage doré et pluie : les éclairs révèlent la route dans la brume.",ou:'retirée le 4/10 · genCampagne(9) existe encore'},
+  {id:'sh10',cat:'retire',nom:'COUCHER DE SOLEIL',code:'SKY HIGH 10',heure:'heure dorée → coucher',pr:'ATTRAPE LA CAISSE-NUAGE',g:['#ff9a3c','#ff3ec8'],musique:'NOITE DE VELOCIDADE (retirée)',
+   idee:'La caisse-nuage file devant : reste dans son sillage pour la gagner.',ou:'retirée le 4/10 · genCampagne(10) existe encore'},
+  {id:'mer-matin',cat:'sansfin',nom:'MER DE NUAGES · MATIN',code:'SANS FIN 1',heure:'matin',pr:'LES NUAGES CACHENT LES VIRAGES',g:['#6fb4ff','#d6ecff'],musique:'CIEL · LES 5 NIVEAUX',
+   idee:"Ce que lance PLAY aujourd'hui (le mode classique). Piste tirée au hasard ; le ciel tire une heure parmi matin, midi, après-midi.",ou:'NIVEAUX[0] « MER DE NUAGES », ciel matin'},
+  {id:'mer-midi',cat:'sansfin',nom:'MER DE NUAGES · MIDI',code:'SANS FIN 1',heure:'midi',pr:'LES NUAGES CACHENT LES VIRAGES',g:['#3aa0ff','#eef8ff'],musique:'CIEL · LES 5 NIVEAUX',
+   idee:'La même map, à midi.',ou:'NIVEAUX[0] « MER DE NUAGES », ciel midi'},
+  {id:'mer-aprem',cat:'sansfin',nom:'MER DE NUAGES · APRÈS-MIDI',code:'SANS FIN 1',heure:'après-midi',pr:'LES NUAGES CACHENT LES VIRAGES',g:['#4f9cf0','#ffe3a0'],musique:'CIEL · LES 5 NIVEAUX',
+   idee:"La même map, l'après-midi.",ou:'NIVEAUX[0] « MER DE NUAGES », ciel aprem'},
+  {id:'orage',cat:'sansfin',nom:"L'ORAGE",code:'SANS FIN 5',heure:'tempête',pr:"LA ROUTE SE CACHE : L'ECLAIR LA MONTRE",g:['#2a2440','#a99cff'],musique:'SWAG CASH CAR',
+   idee:"Le niveau dur de la partie sans fin : les nuages sous l'orage, bancs, plafond bas, éclairs.",ou:'NIVEAUX[4] « L\'ORAGE »'},
+  {id:'parc',cat:'modes',nom:'PARC FREESTYLE',code:'MODE',heure:'—',pr:'',g:['#ff9a3c','#ffd76a'],musique:'',
+   idee:'Le parc de figures : nitro libre, ni mort, ni portail, ni course.',ou:'MODES › PARC FREESTYLE (PARK)'},
+  {id:'jade',cat:'essais',nom:'PICS DE JADE',code:'ESSAI',heure:'brume',pr:'',g:['#3d6b5c','#cfe8d8'],musique:'',
+   idee:'Montagnes qui flottent, en cubes de jade translucides, au-dessus de la mer de nuages. La voiture seule, sans jeu (balade).',ou:'branche map-jade (pas sur main) · ?map=jade'}];
+
+/* =====================================================================================================================
+   L'ÉTAT — ce que Léo change. { t, cats:[{id,nom,c}], ordre:{cat:[ids]}, maps:{id:{nom,note}}, corbeille:[ids], generales, journal }
+   ===================================================================================================================== */
+const CLE='cashcar.mapsCiel.v1',MAX_ANNUL=60;
+let E=null,ANNUL=[],VUE='volant',sauveT=0,modifie=false;
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const M0={};MAPS0.forEach(m=>{M0[m.id]=m;});
+function etatNeuf(){
+  const o={v:1,t:0,cats:CATS0.map(c=>({...c})),ordre:{},maps:{},corbeille:[],generales:'',journal:[]};
+  CATS0.forEach(c=>{o.ordre[c.id]=MAPS0.filter(m=>m.cat===c.id).map(m=>m.id);});
+  MAPS0.forEach(m=>{o.maps[m.id]={nom:m.nom,note:''};});
+  return o;
+}
+function propre(o){ // une sauvegarde lue (disque ou navigateur) : on garde la forme, on rattrape les maps ajoutées depuis
+  const n=etatNeuf();if(!o||typeof o!=='object'||!Array.isArray(o.cats))return n;
+  const r={v:1,t:+o.t||0,cats:[],ordre:{},maps:{},corbeille:[],generales:String(o.generales||''),journal:Array.isArray(o.journal)?o.journal.slice(-500):[]};
+  o.cats.forEach(c=>{if(c&&c.id&&!r.ordre[c.id]){r.cats.push({id:String(c.id),nom:String(c.nom||'Sans nom'),c:String(c.c||'#999')});r.ordre[c.id]=[];}});
+  if(!r.cats.length)return n;
+  const vu=new Set();
+  r.cats.forEach(c=>{((o.ordre||{})[c.id]||[]).forEach(id=>{if(M0[id]&&!vu.has(id)){vu.add(id);r.ordre[c.id].push(id);}});});
+  (o.corbeille||[]).forEach(id=>{if(M0[id]&&!vu.has(id)){vu.add(id);r.corbeille.push(id);}});
+  MAPS0.forEach(m=>{const s=(o.maps||{})[m.id]||{};r.maps[m.id]={nom:String(s.nom||m.nom),note:String(s.note||'')};
+    if(!vu.has(m.id)){const c=r.ordre[m.cat]?m.cat:r.cats[0].id;r.ordre[c].push(m.id);}});
+  return r;
+}
+function ouEst(id){if(E.corbeille.includes(id))return 'corbeille';for(const c of E.cats)if(E.ordre[c.id].includes(id))return c.id;return null;}
+function catNom(id){if(id==='corbeille')return 'À supprimer';const c=E.cats.find(x=>x.id===id);return c?c.nom:id;}
+function retire(id){const k=ouEst(id);const a=k==='corbeille'?E.corbeille:E.ordre[k];a.splice(a.indexOf(id),1);return k;}
+function pose(id,cat,i){const a=cat==='corbeille'?E.corbeille:E.ordre[cat];i=i==null||i<0||i>a.length?a.length:i;a.splice(i,0,id);rendu.neuve=id;} // la carte posée arrive en douceur à sa nouvelle place
+function nomDe(id){return E.maps[id].nom;}
+
+/* un GESTE = une photo de l'état avant (pour ⌘Z), le geste, une ligne au journal, l'écriture dans le navigateur, le rendu */
+function geste(txt,fn,annulable){
+  if(annulable!==false){ANNUL.push(JSON.stringify(E));if(ANNUL.length>MAX_ANNUL)ANNUL.shift();}
+  fn();
+  E.journal.push({h:new Date().toISOString(),txt});
+  E.t=Date.now();modifie=true;ecritLocal();rendu();majSauve();
+}
+function annuler(){
+  if(!ANNUL.length)return;
+  const dernier=E.journal[E.journal.length-1];
+  const j=E.journal;E=JSON.parse(ANNUL.pop());E.journal=j;E.journal.push({h:new Date().toISOString(),txt:'annulé : '+(dernier?dernier.txt:'')});
+  E.t=Date.now();modifie=true;ecritLocal();rendu();majSauve();petitMot('Annulé'+(dernier?' — '+dernier.txt:''),null);
+}
+function ecritLocal(){try{localStorage.setItem(CLE,JSON.stringify(E));}catch(e){}}
+
+/* =====================================================================================================================
+   LE RENDU
+   ===================================================================================================================== */
+const ICO={
+  crayon:'<svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg>',
+  note:'<svg viewBox="0 0 24 24"><path d="M5 4h14v12l-4 4H5z"/><path d="M15 20v-4h4"/><path d="M9 9h6M9 13h4"/></svg>',
+  poubelle:'<svg viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M10 4h4"/><path d="M6 7l1 13h10l1-13"/><path d="M10 11v6M14 11v6"/></svg>',
+  remet:'<svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>',
+  haut:'<svg viewBox="0 0 24 24"><path d="m6 15 6-6 6 6"/></svg>',bas:'<svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>',
+  croix:'<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>'};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function img(id,v){return 'maps-ciel/img/'+id+'-'+v+'.jpg';}
+/* LE PLAN : la ligne centrale de la piste vue de dessus (relevée au banc, un point tous les 8 m — maps-ciel/traces.js). Départ en vert,
+   portail en rose ; plus la route descend, plus le trait fonce. Pour la partie sans fin et le parc, c'est UN tirage parmi d'autres. */
+function planSVG(id,taille){
+  const t=window.TRACES&&TRACES[id];if(!t||!t.p||t.p.length<2)return '';
+  const P=t.p;let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9,y0=1e9,y1=-1e9;
+  for(const q of P){if(q[0]<x0)x0=q[0];if(q[0]>x1)x1=q[0];if(q[2]<z0)z0=q[2];if(q[2]>z1)z1=q[2];if(q[1]<y0)y0=q[1];if(q[1]>y1)y1=q[1];}
+  const W=100,H=100,m=8,k=Math.min((W-2*m)/Math.max(1,x1-x0),(H-2*m)/Math.max(1,z1-z0)),ox=(W-(x1-x0)*k)/2,oz=(H-(z1-z0)*k)/2;
+  const X=q=>(ox+(q[0]-x0)*k).toFixed(1),Z=q=>(H-(oz+(q[2]-z0)*k)).toFixed(1);
+  const d='M'+P.map(q=>X(q)+' '+Z(q)).join('L'),a=P[0],b=P[P.length-1],ep=taille==='grand'?1.6:2.4;
+  return '<svg class="plan '+taille+'" viewBox="0 0 '+W+' '+H+'" aria-hidden="true"><path d="'+d+'" class="pO" style="stroke-width:'+(ep+2.4)+'"/>'+
+    '<path d="'+d+'" class="pT" style="stroke-width:'+ep+'"/><circle cx="'+X(a)+'" cy="'+Z(a)+'" r="'+(ep*1.5)+'" class="pA"/><circle cx="'+X(b)+'" cy="'+Z(b)+'" r="'+(ep*1.5)+'" class="pB"/></svg>';
+}
+function carteHTML(id,dansCorbeille){
+  const m=M0[id],s=E.maps[id],autre=VUE==='trace'?'volant':'trace',change=s.nom!==m.nom;
+  return '<article class="carte" draggable="true" data-id="'+id+'">'+
+    '<div class="photo" style="--g1:'+m.g[0]+';--g2:'+m.g[1]+'" data-act="grand">'+
+      '<img class="a" src="'+img(id,VUE)+'" alt="" onerror="this.classList.add(\'manque\')"><img class="b" src="'+img(id,autre)+'" alt="" onerror="this.classList.add(\'manque\')">'+
+      '<span class="code">'+esc(m.code)+'</span><span class="vueTag">'+(autre==='trace'?'LE TRACÉ':'AU VOLANT')+'</span>'+planSVG(id,'mini')+'</div>'+
+    '<div class="texte">'+
+      '<div class="ligneNom"><div class="nom'+(change?' change':'')+'" contenteditable="plaintext-only" spellcheck="false" data-act="nom">'+esc(s.nom)+'</div></div>'+
+      (change?'<div class="avant">dans le jeu : '+esc(m.nom)+'</div>':'')+
+      '<div class="sous">'+esc(m.heure)+(m.pr?' · « '+esc(m.pr)+' »':'')+'</div>'+
+      '<div class="idee">'+esc(m.idee)+'</div>'+
+      (s.note?'<div class="noteApercu" data-act="note">'+esc(s.note)+'</div>':'')+
+      '<div class="noteZone"><textarea data-act="noteTxt" placeholder="Une note sur cette map…">'+esc(s.note)+'</textarea></div>'+
+      '<div class="actions">'+
+        '<button class="ico" data-act="renomme" title="Renommer">'+ICO.crayon+'<span>Renommer</span></button>'+
+        '<button class="ico" data-act="note" title="Note">'+ICO.note+'<span>Note</span></button>'+
+        (dansCorbeille?'<button class="ico" data-act="remet" title="Remettre dans le jeu">'+ICO.remet+'<span>Remettre</span></button>'
+                      :'<button class="ico danger" data-act="suppr" title="À supprimer">'+ICO.poubelle+'<span>Supprimer</span></button>')+
+      '</div></div></article>';
+}
+function rendu(){
+  const L=$('#liste'),sc=window.scrollY,ouverte=$$('.carte.noteOuverte').map(c=>c.dataset.id),focus=document.activeElement&&document.activeElement.closest&&document.activeElement.closest('.carte');
+  let h='';
+  E.cats.forEach((c,k)=>{
+    const ids=E.ordre[c.id];
+    h+='<section class="cat" data-cat="'+c.id+'" style="--c:'+c.c+'"><div class="catTete"><span class="point"></span>'+
+      '<span class="catNom" contenteditable="plaintext-only" spellcheck="false" data-act="catNom">'+esc(c.nom)+'</span><span class="catN">'+ids.length+'</span>'+
+      '<span class="catOutils"><button class="ico" data-act="catHaut" title="Monter" '+(k===0?'disabled':'')+'>'+ICO.haut+'</button>'+
+      '<button class="ico" data-act="catBas" title="Descendre" '+(k===E.cats.length-1?'disabled':'')+'>'+ICO.bas+'</button>'+
+      '<button class="ico danger" data-act="catSuppr" title="'+(ids.length?'Vide-la d\'abord':'Supprimer la catégorie')+'" '+(ids.length?'disabled':'')+'>'+ICO.croix+'</button></span></div>'+
+      '<div class="grille'+(ids.length?'':' vide')+'" data-cat="'+c.id+'">'+ids.map(id=>carteHTML(id,false)).join('')+'</div></section>';
+  });
+  h+='<section class="cat" id="corbeille" data-cat="corbeille" style="--c:var(--rouge)"><div class="catTete"><span class="point"></span>'+
+    '<span class="catNom">À supprimer</span><span class="catN">'+E.corbeille.length+'</span></div>'+
+    '<div class="grille'+(E.corbeille.length?'':' vide')+'" data-cat="corbeille">'+E.corbeille.map(id=>carteHTML(id,true)).join('')+'</div></section>';
+  h+='<section id="generales"><div class="catTete"><span class="catNom">Notes générales</span></div>'+
+    '<textarea id="gNotes" placeholder="Pour le nouveau PLAY : ce qu\'il lance, dans quel ordre, ce qui manque…">'+esc(E.generales)+'</textarea></section>';
+  L.style.minHeight=L.offsetHeight+'px'; // la page garde sa hauteur pendant qu'on la redessine : la vue ne saute pas
+  L.innerHTML=h+'<div id="repere"></div>';
+  ouverte.forEach(id=>{const c=L.querySelector('.carte[data-id="'+id+'"]');if(c)c.classList.add('noteOuverte');});
+  window.scrollTo({top:sc,left:0,behavior:'instant'});L.style.minHeight='';if(!L.classList.contains('pret'))setTimeout(()=>L.classList.add('pret'),700);
+  if(rendu.neuve){const n=L.querySelector('.carte[data-id="'+rendu.neuve+'"]');if(n)n.classList.add('neuve');rendu.neuve=null;}
+  const tot=MAPS0.length,sup=E.corbeille.length;
+  $('#compte').textContent=tot+' maps · '+E.cats.length+' catégories'+(sup?' · '+sup+' à supprimer':'');
+  $('#annuler').disabled=!ANNUL.length;
+  if($('#grand').classList.contains('on'))grandMaj();
+}
+function majSauve(){
+  const el=$('#etatSauve');
+  if(modifie){el.className='modifie';el.textContent='Pas encore sauvegardé';$('#sauver').classList.add('pulse');}
+  else{el.className=sauveT?'ok':'';el.textContent=sauveT?'Sauvegardé à '+new Date(sauveT).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'Rien de changé';$('#sauver').classList.remove('pulse');}
+}
+
+/* =====================================================================================================================
+   LES GESTES SUR LES CARTES
+   ===================================================================================================================== */
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]');if(!b)return;
+  const carte=b.closest('.carte'),id=carte&&carte.dataset.id,act=b.dataset.act,sec=b.closest('.cat'),cat=sec&&sec.dataset.cat;
+  if(act==='grand')return grandOuvre(id);
+  if(act==='renomme'){const n=carte.querySelector('.nom');n.focus();selTout(n);return;}
+  if(act==='note'){carte.classList.toggle('noteOuverte');if(carte.classList.contains('noteOuverte'))carte.querySelector('textarea').focus();return;}
+  if(act==='suppr')return supprime(id);
+  if(act==='remet')return remet(id);
+  if(act==='catHaut'||act==='catBas'){const i=E.cats.findIndex(c=>c.id===cat),j=i+(act==='catHaut'?-1:1);
+    return geste('catégorie « '+catNom(cat)+' » '+(act==='catHaut'?'montée':'descendue'),()=>{const t=E.cats[i];E.cats[i]=E.cats[j];E.cats[j]=t;});}
+  if(act==='catSuppr'){if(E.ordre[cat].length)return;const nm=catNom(cat);return geste('catégorie « '+nm+' » supprimée',()=>{E.cats=E.cats.filter(c=>c.id!==cat);delete E.ordre[cat];});}
+});
+function selTout(n){const r=document.createRange();r.selectNodeContents(n);const s=getSelection();s.removeAllRanges();s.addRange(r);}
+function supprime(id){
+  const de=ouEst(id);if(de==='corbeille')return;
+  geste('« '+nomDe(id)+' » → à supprimer (venait de « '+catNom(de)+' »)',()=>{retire(id);pose(id,'corbeille');});
+  petitMot('« '+nomDe(id)+' » est dans À SUPPRIMER',annuler);
+}
+function remet(id){
+  let c=M0[id].cat;if(!E.ordre[c])c=E.cats[0].id;
+  geste('« '+nomDe(id)+' » remise dans « '+catNom(c)+' »',()=>{retire(id);pose(id,c);});
+}
+/* renommer : le nom s'écrit à la sortie du champ (Entrée valide, Échap annule) */
+document.addEventListener('keydown',e=>{
+  const n=e.target.closest&&e.target.closest('.nom,.catNom');
+  if(n&&e.key==='Enter'){e.preventDefault();n.blur();}
+  if(n&&e.key==='Escape'){e.preventDefault();n.dataset.annule='1';n.blur();}
+});
+document.addEventListener('focusout',e=>{
+  const t=e.target;
+  if(t.matches&&t.matches('.nom')){
+    const id=t.closest('.carte').dataset.id,v=t.textContent.replace(/\s+/g,' ').trim();
+    if(t.dataset.annule||!v||v===nomDe(id)){delete t.dataset.annule;t.textContent=nomDe(id);return;}
+    const av=nomDe(id);geste('« '+av+' » renommée « '+v+' »',()=>{E.maps[id].nom=v;});
+  }else if(t.matches&&t.matches('.catNom[contenteditable]')){
+    const cat=t.closest('.cat').dataset.cat,c=E.cats.find(x=>x.id===cat),v=t.textContent.replace(/\s+/g,' ').trim();
+    if(!c)return;if(t.dataset.annule||!v||v===c.nom){delete t.dataset.annule;t.textContent=c.nom;return;}
+    const av=c.nom;geste('catégorie « '+av+' » renommée « '+v+' »',()=>{c.nom=v;});
+  }else if(t.matches&&t.matches('textarea[data-act="noteTxt"]')){
+    const id=t.closest('.carte').dataset.id,v=t.value.trim();
+    if(v===E.maps[id].note)return;
+    geste('note sur « '+nomDe(id)+' » : '+(v?'« '+v.slice(0,80)+(v.length>80?'…':'')+' »':'effacée'),()=>{E.maps[id].note=v;});
+  }else if(t.id==='gNotes'){
+    const v=t.value.trim();if(v===E.generales)return;
+    geste('notes générales modifiées',()=>{E.generales=v;});
+  }
+});
+
+/* =====================================================================================================================
+   GLISSER : d'une catégorie à l'autre, à une place précise, ou vers À SUPPRIMER. Rien ne bouge avant de lâcher (le trait bleu dit où).
+   ===================================================================================================================== */
+let GL=null; // {id, cat, i}
+document.addEventListener('dragstart',e=>{
+  const c=e.target.closest&&e.target.closest('.carte');if(!c||document.activeElement&&document.activeElement.isContentEditable){e.preventDefault&&c&&e.preventDefault();return;}
+  GL={id:c.dataset.id,cat:null,i:-1};c.classList.add('glisse');
+  e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/plain',GL.id);}catch(_){}
+});
+document.addEventListener('dragend',()=>{GL=null;$$('.glisse').forEach(c=>c.classList.remove('glisse'));finRepere();});
+function cible(e){
+  let g=e.target.closest&&(e.target.closest('.grille')||(e.target.closest('.cat')&&e.target.closest('.cat').querySelector('.grille')));
+  return g||null;
+}
+document.addEventListener('dragover',e=>{
+  if(!GL)return;const g=cible(e);if(!g){finRepere();return;}
+  e.preventDefault();e.dataTransfer.dropEffect='move';
+  const cartes=[...g.querySelectorAll('.carte')].filter(c=>c.dataset.id!==GL.id);
+  let i=cartes.length,ref=null,apres=false;
+  for(let k=0;k<cartes.length;k++){const r=cartes[k].getBoundingClientRect();
+    if(e.clientY<r.top||(e.clientY<=r.bottom&&e.clientX<r.left+r.width/2)){i=k;ref=r;break;}}
+  if(!ref&&cartes.length){ref=cartes[cartes.length-1].getBoundingClientRect();apres=true;}
+  GL.cat=g.dataset.cat;GL.i=i;
+  $$('.grille.survol').forEach(x=>{if(x!==g)x.classList.remove('survol');});g.classList.add('survol');
+  const rp=$('#repere'),L=$('#liste').getBoundingClientRect();
+  if(ref){rp.style.display='block';rp.style.left=((apres?ref.right+7:ref.left-10.5)-L.left)+'px';rp.style.top=(ref.top-L.top)+'px';rp.style.height=ref.height+'px';}
+  else rp.style.display='none';
+});
+document.addEventListener('drop',e=>{
+  if(!GL||!GL.cat)return;e.preventDefault();
+  const {id,cat}=GL,de=ouEst(id);let i=GL.i;
+  const a=cat==='corbeille'?E.corbeille:E.ordre[cat],ancien=a.indexOf(id);
+  finRepere();
+  if(de===cat){const sans=a.filter(x=>x!==id);if(sans[i]===a[ancien+1]&&ancien>=0&&(i===ancien))return;}
+  const txt=de===cat?'« '+nomDe(id)+' » rangée à la place '+(i+1)+' dans « '+catNom(cat)+' »'
+    :cat==='corbeille'?'« '+nomDe(id)+' » → à supprimer (venait de « '+catNom(de)+' »)'
+    :'« '+nomDe(id)+' » déplacée de « '+catNom(de)+' » vers « '+catNom(cat)+' »';
+  geste(txt,()=>{retire(id);pose(id,cat,i);});
+  if(cat==='corbeille')petitMot('« '+nomDe(id)+' » est dans À SUPPRIMER',annuler);
+});
+function finRepere(){const r=$('#repere');if(r)r.style.display='none';$$('.grille.survol').forEach(x=>x.classList.remove('survol'));}
+
+/* =====================================================================================================================
+   LA GRANDE VUE
+   ===================================================================================================================== */
+let G={id:null,v:'volant'};
+function ordreVu(){return E.cats.flatMap(c=>E.ordre[c.id]).concat(E.corbeille);}
+function grandOuvre(id){G.id=id;G.v=VUE;$('#grand').classList.add('on');grandMaj();}
+function grandFerme(){$('#grand').classList.remove('on');}
+function grandMaj(){
+  const id=G.id,m=M0[id],s=E.maps[id],o=ouEst(id);
+  $('#gA').src=img(id,'volant');$('#gB').src=img(id,'trace');$('#gB').style.opacity=G.v==='trace'?1:0;$('#gPlan').innerHTML=planSVG(id,'grand');
+  $('#gNom').textContent=s.nom;
+  $('#gInfo').innerHTML='<b>'+esc(m.code)+'</b> · '+esc(m.heure)+(m.pr?' · « '+esc(m.pr)+' »':'')+'<br>'+esc(m.idee)+
+    '<br>Où : '+esc(m.ou)+(m.musique?'<br>Musique : '+esc(m.musique):'')+(s.nom!==m.nom?'<br>Nom dans le jeu : '+esc(m.nom):'')+(s.note?'<br>Note : '+esc(s.note):'');
+  $$('#gVue button').forEach(b=>b.classList.toggle('on',b.dataset.v===G.v));
+  $('#gCat').innerHTML=E.cats.map(c=>'<option value="'+c.id+'"'+(c.id===o?' selected':'')+'>'+esc(c.nom)+'</option>').join('')+
+    '<option value="corbeille"'+(o==='corbeille'?' selected':'')+'>À supprimer</option>';
+}
+$('#gFerme').onclick=grandFerme;
+$('#grand').addEventListener('click',e=>{if(e.target.id==='grand')grandFerme();});
+$('#gVue').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;G.v=b.dataset.v;grandMaj();});
+$('#gImg').addEventListener('click',()=>{G.v=G.v==='trace'?'volant':'trace';grandMaj();});
+function grandPas(d){const o=ordreVu(),i=o.indexOf(G.id);G.id=o[(i+d+o.length)%o.length];grandMaj();}
+$('#gPrec').onclick=()=>grandPas(-1);$('#gSuiv').onclick=()=>grandPas(1);
+$('#gCat').addEventListener('change',e=>{
+  const id=G.id,de=ouEst(id),cat=e.target.value;if(cat===de)return;
+  geste(cat==='corbeille'?'« '+nomDe(id)+' » → à supprimer (venait de « '+catNom(de)+' »)':'« '+nomDe(id)+' » déplacée de « '+catNom(de)+' » vers « '+catNom(cat)+' »',()=>{retire(id);pose(id,cat);});
+});
+
+/* =====================================================================================================================
+   LE HAUT : vue, catégorie, annuler, remettre, fiche, sauvegarder
+   ===================================================================================================================== */
+$('#vueSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;VUE=b.dataset.v;
+  $$('#vueSeg button').forEach(x=>x.classList.toggle('on',x===b));try{localStorage.setItem(CLE+'.vue',VUE);}catch(_){}rendu();});
+$('#annuler').onclick=annuler;
+$('#ajCat').onclick=()=>{
+  const COUL=['#64d2ff','#ffd60a','#ac8e68','#5e5ce6','#ff6482','#32ade6','#a2845e'];
+  const id='c'+Date.now().toString(36),c=COUL[E.cats.length%COUL.length];
+  geste('nouvelle catégorie',()=>{E.cats.push({id,nom:'Nouvelle catégorie',c});E.ordre[id]=[];});
+  const n=document.querySelector('.cat[data-cat="'+id+'"] .catNom');if(n){n.scrollIntoView({block:'center'});n.focus();selTout(n);}
+};
+$('#remise').onclick=()=>{
+  if(!confirm('Tout remettre comme dans le jeu ? (Annuler pourra revenir en arrière.)'))return;
+  geste('tout remis comme dans le jeu',()=>{const j=E.journal,g=E.generales;E=etatNeuf();E.journal=j;E.generales=g;});
+};
+$('#fiche').onclick=()=>telecharge();
+$('#sauver').onclick=sauve;
+document.addEventListener('keydown',e=>{
+  const mod=e.metaKey||e.ctrlKey,ecrit=document.activeElement&&(document.activeElement.isContentEditable||/TEXTAREA|INPUT|SELECT/.test(document.activeElement.tagName));
+  if(mod&&e.key.toLowerCase()==='s'){e.preventDefault();if(ecrit)document.activeElement.blur();sauve();return;}
+  if(mod&&e.key.toLowerCase()==='z'&&!e.shiftKey&&!ecrit){e.preventDefault();annuler();return;}
+  if($('#grand').classList.contains('on')&&!ecrit){
+    if(e.key==='Escape')grandFerme();else if(e.key==='ArrowLeft')grandPas(-1);else if(e.key==='ArrowRight')grandPas(1);
+    else if(e.key===' '){e.preventDefault();G.v=G.v==='trace'?'volant':'trace';grandMaj();}
+    else if(e.key==='Backspace'||e.key==='Delete'){const id=G.id;if(ouEst(id)!=='corbeille')supprime(id);}
+  }
+});
+
+/* =====================================================================================================================
+   LA FICHE — ce que Claude lit pour appliquer (même esprit que la fiche des voitures de la salle blanche)
+   ===================================================================================================================== */
+function fiche(){
+  const d=new Date(),jour=d.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}),L=[];
+  L.push('CASH CAR — LES MAPS DU CIEL','',jour+' · '+MAPS0.length+' maps · faite dans la page des maps (maps-ciel.html)','');
+  E.cats.forEach(c=>{
+    const ids=E.ordre[c.id];L.push(c.nom.toUpperCase()+' ('+ids.length+')');
+    ids.forEach((id,k)=>{const m=M0[id],s=E.maps[id];
+      L.push('  '+(k+1)+'. '+s.nom+'   ('+m.code+' · '+m.heure+')   [id '+id+']');
+      if(s.nom!==m.nom)L.push('       nom dans le jeu : '+m.nom);
+      if(s.note)s.note.split('\n').forEach((x,j)=>L.push((j?'              ':'       note : ')+x));});
+    if(!ids.length)L.push('  (vide)');L.push('');
+  });
+  L.push('À SUPPRIMER DU JEU ('+E.corbeille.length+')');
+  E.corbeille.forEach(id=>{const m=M0[id],s=E.maps[id];L.push('  - '+s.nom+'  ('+m.code+' · '+m.ou+')  [id '+id+']');if(s.note)L.push('       note : '+s.note);});
+  if(!E.corbeille.length)L.push('  (rien)');L.push('');
+  L.push('CHANGEMENTS PAR RAPPORT AU JEU');const ch=changements();ch.forEach(x=>L.push('  - '+x));if(!ch.length)L.push('  (aucun)');L.push('');
+  L.push('NOTES GÉNÉRALES');L.push(E.generales?E.generales.split('\n').map(x=>'  '+x).join('\n'):'  (aucune)');L.push('');
+  L.push("CE QUE J'AI FAIT À LA MAIN");
+  E.journal.forEach(j=>{const t=new Date(j.h);L.push('  '+t.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'})+' '+t.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})+'  '+j.txt);});
+  if(!E.journal.length)L.push('  (rien encore)');
+  return L.join('\n')+'\n';
+}
+function changements(){
+  const r=[],N=etatNeuf();
+  MAPS0.forEach(m=>{const s=E.maps[m.id],o=ouEst(m.id);
+    if(s.nom!==m.nom)r.push(m.nom+' ('+m.code+') : renommée « '+s.nom+' »');
+    if(o==='corbeille')r.push(s.nom+' ('+m.code+') : À SUPPRIMER');
+    else if(o!==m.cat)r.push(s.nom+' ('+m.code+') : déplacée de « '+(CATS0.find(c=>c.id===m.cat)||{nom:m.cat}).nom+' » vers « '+catNom(o)+' »');});
+  E.cats.forEach(c=>{const c0=CATS0.find(x=>x.id===c.id);
+    if(!c0)r.push('nouvelle catégorie « '+c.nom+' »');else if(c0.nom!==c.nom)r.push('catégorie « '+c0.nom+' » renommée « '+c.nom+' »');
+    const a=E.ordre[c.id],b=(N.ordre[c.id]||[]).filter(id=>a.includes(id));
+    if(a.length>1&&a.filter(id=>b.includes(id)).join()!==b.join())r.push('nouvel ordre dans « '+c.nom+' » : '+a.map(nomDe).join(' · '));});
+  CATS0.forEach(c=>{if(!E.cats.find(x=>x.id===c.id))r.push('catégorie « '+c.nom+' » supprimée');});
+  if(E.cats.map(c=>c.id).filter(id=>CATS0.find(x=>x.id===id)).join()!==CATS0.map(c=>c.id).filter(id=>E.cats.find(x=>x.id===id)).join())
+    r.push('ordre des catégories : '+E.cats.map(c=>c.nom).join(' · '));
+  return r;
+}
+function telecharge(){
+  const a=document.createElement('a'),d=new Date();
+  a.href=URL.createObjectURL(new Blob([fiche()],{type:'text/plain;charset=utf-8'}));
+  a.download='fiche-maps-ciel-'+d.toISOString().slice(0,10)+'.txt';document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);
+}
+async function sauve(){
+  const b=$('#sauver');b.disabled=true;
+  E.journal.push({h:new Date().toISOString(),txt:'sauvegardé'});ecritLocal();
+  try{
+    const r=await fetch('maps-ciel/sauve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({etat:E,fiche:fiche()})});
+    const j=await r.json();if(!j.ok)throw new Error(j.erreur||'refus');
+    sauveT=Date.now();modifie=false;majSauve();petitMot('Sauvegardé dans le dossier du jeu',null);
+  }catch(e){
+    telecharge();sauveT=Date.now();modifie=false;majSauve();
+    petitMot('Serveur absent : la fiche est téléchargée',null);
+  }
+  b.disabled=false;
+}
+
+/* ---------- le petit mot en bas (avec ANNULER quand ça a du sens) ---------- */
+let motT=0;
+function petitMot(txt,act){
+  const t=$('#toast');$('#tTxt').textContent=txt;const b=$('#tBtn');b.style.display=act?'':'none';b.onclick=()=>{t.classList.remove('on');act&&act();};
+  t.classList.add('on');clearTimeout(motT);motT=setTimeout(()=>t.classList.remove('on'),act?5200:2600);
+}
+
+/* =====================================================================================================================
+   AU DÉPART : la sauvegarde du navigateur, ou celle du dossier si elle est plus récente
+   ===================================================================================================================== */
+(async function(){
+  let loc=null;try{loc=JSON.parse(localStorage.getItem(CLE)||'null');}catch(_){}
+  try{const v=localStorage.getItem(CLE+'.vue');if(v==='trace'||v==='volant'){VUE=v;$$('#vueSeg button').forEach(x=>x.classList.toggle('on',x.dataset.v===VUE));}}catch(_){}
+  E=propre(loc);rendu();majSauve();
+  try{
+    const r=await fetch('maps-ciel/sauvegarde.json',{cache:'no-store'});
+    if(r.ok){const d=await r.json();if(d&&(+d.t||0)>(E.t||0)){E=propre(d);ecritLocal();rendu();}sauveT=+d.t||0;majSauve();}
+  }catch(_){}
+  window.addEventListener('beforeunload',e=>{if(modifie){e.preventDefault();e.returnValue='';}});
+})();
+window.dbgMaps={etat:()=>E,fiche:()=>fiche(),changements:()=>changements()};
+</script>
+</body>
+</html>
