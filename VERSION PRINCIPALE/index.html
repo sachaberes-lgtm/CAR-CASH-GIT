@@ -6229,25 +6229,26 @@ html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip:is(:active,.appui){tran
   html body #garage:not(.menu):not(.vitrine) #gAct{column-gap:10px;row-gap:5px}
   html body #garage:not(.menu):not(.vitrine) #gAct>#gvCof{width:88px;min-width:88px;min-height:54px;gap:4px;padding:4px 2px 2px 6px}
   html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip{height:24px;min-height:24px;letter-spacing:2px}}
-/* LE PETIT HOME (même jour, Léo : « ajoute le HOME en minimaliste en haut à droite, environ vers la barre jaune, mais au-dessus », puis
-   « plus stylisé, moins carré, puisque la position ne s'y prête pas ») : un ONGLET qui pousse du segment JAUNE de la livrée de la console —
-   même largeur que lui, posé sur son bord (debout au-dessus du panneau, couché dans le coin haut droit). Pas de plaque : un trapèze aux
-   flancs penchés (::before, clip-path), un voile d'or qui monte du segment et s'efface, un filet d'or en haut, la maison en or blanc qui
-   luit. Placé par gHomePlace (left/top/largeur relus au plus 5 fois par seconde) ; visible dans l'ATELIER comme la jauge (hubSync) ; la
-   cible déborde du dessin (::after, 44 px de haut ; le clip-path rognerait le toucher, il n'est que sur ::before). Il rejoue #gClose. */
+/* LE PETIT HOME (même jour, Léo, trois passes : « le HOME en minimaliste en haut à droite, vers la barre jaune mais au-dessus » ;
+   « plus stylisé, moins carré » ; puis « en BLEU, détaché du jaune, et en portrait en haut à droite, au niveau du plafond »). Il flotte en
+   haut à droite, aligné sur la plaque du compte (gHomePlace lit sa hauteur) : debout dans le plafond de l'atelier, couché dans le coin
+   libre au-dessus de la console — jamais collé à elle. Un hexagone allongé (coins coupés, rien de carré) : un filet bleu (::before), le
+   fond bleu nuit dedans (.hmFond), la maison blanc-bleu qui luit. Visible dans l'ATELIER (hubSync) ; cible de 44 px (::after, hors du
+   clip-path qui rognerait le toucher). Il rejoue #gClose. */
 #gHomeMini{display:none}
-html.hubOn #gHomeMini.on{position:fixed;z-index:82;left:var(--hmL,-200px);top:var(--hmT,-200px);width:var(--hmW,64px);height:28px;display:flex;align-items:center;justify-content:center;
-  padding-top:3px;box-sizing:border-box;pointer-events:auto;cursor:pointer;-webkit-tap-highlight-color:transparent;outline:none;background:none;
+html.hubOn #gHomeMini.on{position:fixed;z-index:82;right:calc(var(--sR) + 18px);top:var(--hmT,-200px);width:58px;height:32px;display:flex;align-items:center;justify-content:center;
+  pointer-events:auto;cursor:pointer;-webkit-tap-highlight-color:transparent;outline:none;background:none;
   transition:translate var(--t-fast) var(--ease);animation:hubMonte var(--t-slow) var(--ease) both}
-#gHomeMini::before{content:'';position:absolute;inset:0;clip-path:polygon(18% 0,82% 0,100% 100%,0 100%);
-  background:linear-gradient(rgba(255,215,94,.9),rgba(255,215,94,.9)) 50% 0/64% 1px no-repeat,linear-gradient(0deg,rgba(255,196,64,.55),rgba(255,170,40,.2) 62%,rgba(255,200,80,.03));
-  transition:filter var(--t-fast) var(--ease)}
-#gHomeMini::after{content:'';position:absolute;left:-6px;right:-6px;top:-12px;bottom:-4px}
-#gHomeMini .pxi{--pxs:2;position:relative;color:#fff3c4;filter:drop-shadow(0 0 5px rgba(255,200,60,.85)) drop-shadow(0 1px 0 rgba(60,30,0,.6))}
-html.hubOn #gHomeMini.on:is(:active,.appui){translate:0 2px}
-html.hubOn #gHomeMini.on:is(:active,.appui)::before{filter:brightness(1.6)}
-#gHomeMini:focus-visible::before{filter:brightness(1.6)}
-@media (hover:hover){html.hubOn #gHomeMini.on:hover::before{filter:brightness(1.35)}}
+#gHomeMini::before,#gHomeMini .hmFond{content:'';position:absolute;clip-path:polygon(16% 0,84% 0,100% 50%,84% 100%,16% 100%,0 50%)}
+#gHomeMini::before{inset:0;background:linear-gradient(180deg,#8fc2ff,#3f7dff);opacity:.85;transition:filter var(--t-fast) var(--ease)}
+#gHomeMini .hmFond{display:block;inset:1.5px;background:linear-gradient(180deg,rgba(34,64,150,.82),rgba(10,18,58,.88));box-shadow:none;transition:filter var(--t-fast) var(--ease)}
+#gHomeMini::after{content:'';position:absolute;left:-4px;right:-4px;top:-6px;bottom:-6px}
+#gHomeMini .pxi{--pxs:2;position:relative;color:#e2eeff;filter:drop-shadow(0 0 5px rgba(90,160,255,.95))}
+html.hubOn #gHomeMini.on:is(:active,.appui){translate:0 1px}
+html.hubOn #gHomeMini.on:is(:active,.appui) :is(.hmFond){filter:brightness(1.7)}
+html.hubOn #gHomeMini.on:is(:active,.appui)::before{filter:brightness(1.3)}
+#gHomeMini:focus-visible::before{filter:brightness(1.4)}
+@media (hover:hover){html.hubOn #gHomeMini.on:hover .hmFond{filter:brightness(1.35)}}
 @media (prefers-reduced-motion:reduce){html.hubOn #gHomeMini.on{animation:none}}
 /* LA CROIX DE L'INVENTAIRE, DISCRÈTE (même jour, Léo : « la croix est juste plus discrète, et sert à enlever le rectangle avec toutes
    les voitures pour qu'on ait une vue sur le garage ») : elle ferme toujours le tiroir, mais n'est plus une touche cyan pleine. Plus de
@@ -6536,7 +6537,7 @@ html.sansFacile [data-m="facile"]{display:none!important}
   <button class="ghT" data-h="mis" role="tab" aria-selected="false"><i class="pxi pxi-cible" aria-hidden="true"></i><span data-fr="MISSIONS">MISSIONS</span><b class="ghPips" aria-hidden="true"><u></u><u></u><u></u></b></button>
   <button class="ghT" data-h="carr" role="tab" aria-selected="false"><i class="pxi pxi-trophee" aria-hidden="true"></i><span data-fr="CARRIERE">CARRIERE</span></button>
 </nav>
-<div id="gHomeMini" role="button" tabindex="0" aria-label="Accueil"><i class="pxi pxi-maison" aria-hidden="true"></i></div>
+<div id="gHomeMini" role="button" tabindex="0" aria-label="Accueil"><b class="hmFond" aria-hidden="true"></b><i class="pxi pxi-maison" aria-hidden="true"></i></div>
 <div id="gTourne" role="slider" tabindex="0" aria-label="Tourner le garage" aria-valuemin="-180" aria-valuemax="180" aria-valuenow="0"><i class="gtZone"></i><i class="gtRail"></i><i class="gtFill"></i><i class="gtPouce"></i></div>
 <div id="modale" role="dialog" aria-modal="true"><div class="modIn"><h3 id="modT"></h3><div id="modX"></div><textarea id="modC" rows="3" spellcheck="false" autocomplete="off"></textarea><div class="modB"></div></div></div>
 <div id="toast" role="status" aria-live="polite"></div>
@@ -40161,14 +40162,11 @@ function gtPlace(){if(!GTN.el)return;const bas=document.getElementById('gBottom'
   else if(hub&&GTN.el.previousSibling!==hub)hub.parentNode.insertBefore(GTN.el,hub.nextSibling);
   document.documentElement.classList.toggle('gtConsole',!!dedans);}
 try{gtPlace();if(GT_COUCHE.addEventListener)GT_COUCHE.addEventListener('change',gtPlace);else GT_COUCHE.addListener(gtPlace);}catch(e){}
-/* LE PETIT HOME (2026-10-09) : l'onglet posé sur le segment JAUNE de la livrée de la console. La livrée court de coupe + 4 px à 18 px
-   du bord droit (#gBottom::before) ; l'or en occupe les 20 derniers pour cent (--livree). */
+/* LE PETIT HOME (2026-10-09) : en haut à droite, centré sur la hauteur de la plaque du compte (debout : le plafond de l'atelier). */
 function gHomePlace(force){const el=document.getElementById('gHomeMini');if(!el||!el.classList.contains('on'))return;
   const n=performance.now();if(!force&&n-(gHomePlace._t||0)<200)return;gHomePlace._t=n;
-  const b=document.getElementById('gBottom'),r=b&&b.getBoundingClientRect();if(!r||!r.width)return;
-  const cp=parseFloat(getComputedStyle(b).getPropertyValue('--coupe'))||12,l0=r.left+cp+4,lw=r.width-cp-4-18;
-  const w=Math.max(44,Math.round(lw*.2)),left=Math.round(l0+lw*.8+(lw*.2-w)/2),top=Math.max(6,Math.round(r.top-28)),k=left+'|'+top+'|'+w;
-  if(k===gHomePlace._k)return;gHomePlace._k=k;const st=el.style;st.setProperty('--hmL',left+'px');st.setProperty('--hmT',top+'px');st.setProperty('--hmW',w+'px');}
+  const m=document.getElementById('gCompteur'),r=m&&m.getBoundingClientRect();if(!r||!r.height)return;
+  const top=Math.max(6,Math.round(r.top+(r.height-32)/2));if(top===gHomePlace._k)return;gHomePlace._k=top;el.style.setProperty('--hmT',top+'px');}
 try{const hm=document.getElementById('gHomeMini');const va=function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(hm);const c=$('gClose');if(c)c.click();};
   hm.addEventListener('click',va);hm.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();va(e);}});}catch(e){}
 window.dbgTourne=function(deg){if(deg!=null&&gtLibre()){gtSaisit();gtVise(-deg*Math.PI/180);}const r=GTN.el&&GTN.el.getBoundingClientRect();
