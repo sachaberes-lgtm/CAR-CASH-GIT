@@ -55,6 +55,14 @@ d'aller dans cette map avec une voiture, la mobilité comme le main, mais seulem
   de la v3 : forêt peinte, lianes peintes, cascades, pagodes, brume, grues, ciel aux monts flottants. Collision = les cubes (gabarit au
   quart de tour, grilles de la Porte et du Pont). MESURÉ : 60 i/s, ~520 000 triangles / ~37 appels visibles, construction ~0,4 s ;
   `dbgJadeHeurt('test')` sur 3 vallées : tout bon (route libre dessus et dessous, tout flotte au-dessus de la mer).
+- **v5 — LES CUBES FANTÔMES** (même soirée, Léo : « des cubes plus petits, un peu de transparence, et joue avec la lumière : presque
+  fantomatique ») — LA VERSION EN COURS. `VX` 5 → 3,5 m sur l'ordi (5 m sur un vrai téléphone) ; la muraille et l'arche gardent 5 m (`VXG`).
+  TRANSPARENCE sans désordre : chaque pierre passe deux fois — profondeur (`PREPASS`, opaque sans couleur, renderOrder 25 > le ciel 20) puis
+  couleur translucide (renderOrder 3, avant la brume ; décalage de polygone) : on devine le ciel, la brume, la route à travers, jamais une
+  montagne mal triée. LUMIÈRE FANTÔME dans `JADE_VR` : bords qui s'allument, contre-jour qui traverse la pierre, joints qui respirent une
+  lueur (`uGhost`), couleurs lavées, alpha .76 au centre → .97 aux bords. RAYONS de lumière en biais dans la brume (`jadeRayons`), ESPRITS
+  (poussières qui flottent autour de la caméra, `JADE_ESPRITS`), air pâle (`BIOMES.jade` : soleil voilé, brume blanc-bleuté, saturation .8,
+  halo plus fort). MESURÉ : 60 i/s, ~0,9-1 M triangles visibles, construction ~0,5 s ; collisions et règle d'or inchangées (3 vallées OK).
 - Mesuré (Chrome sans fenêtre du Mac) : 60 i/s, construction 16-28 ms, tri ~0,03 ms ; collisions (`dbgJadeHeurt('test')`, 3 vallées) :
   piliers durs, arche et dessous du pont libres, AUCUN point de la route dans la pierre. Console : `dbgJade()`, `dbgJadeVue('route'|'porte'|
   'pont'|'haut'|'loin'|'grue',d,h,cap)` (photo figée), `dbgGrues()`. sw.js → v203.
