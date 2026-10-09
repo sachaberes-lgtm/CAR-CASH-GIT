@@ -83,6 +83,7 @@
     <button class="pil" id="oNoir" title="La robe de la frénésie DARK TRIAD">Dark triad</button>
     <button class="pil" id="oLent" title="Tout au quart de la vitesse">Ralenti</button>
     <button class="pil" id="oFige" title="Fige la nage (Espace)">Figé</button>
+    <button class="pil" id="oLisse" title="Le même dauphin SANS ses cubes : un essai de la boîte, le jeu ne change pas">Lisse</button>
     <button class="pil" id="oReve" title="Le fond pastel de ta référence : la nacre, le liseré et les étoiles y brillent comme en jeu">Ciel rêve</button>
   </div>
 </div>
@@ -110,8 +111,8 @@ const JOURNAL=[]; // les erreurs (un shader qui ne compile pas, une exception) s
 {const ce=console.error.bind(console);console.error=(...a)=>{JOURNAL.push(a.map(String).join(' ').slice(0,1200));ce(...a);};
   addEventListener('error',e=>{JOURNAL.push(String(e.message)+' @'+e.lineno);try{etat();}catch(_){}});}
 const PREF=(()=>{try{return JSON.parse(localStorage.getItem('boiteDauphins')||'{}')||{};}catch(e){return {};}})();
-const ST=Object.assign({vue:'un',tourne:true,surf:true,ras:false,noir:false,lent:false,fige:false,reve:false,ch:'hasard'},PREF);
-{const q=new URLSearchParams(location.search);if(q.get('vue'))ST.vue=q.get('vue')==='banc'?'banc':'un';for(const k of ['surf','ras','noir','lent','fige','tourne','reve'])if(q.has(k))ST[k]=q.get(k)!=='0';if(q.has('ch'))ST.ch=q.get('ch')==='hasard'?'hasard':+q.get('ch');} // ?vue=banc&noir=1 : une vue d'entrée
+const ST=Object.assign({vue:'un',tourne:true,surf:true,ras:false,noir:false,lent:false,fige:false,reve:false,ch:'hasard',lisse:false},PREF);
+{const q=new URLSearchParams(location.search);if(q.get('vue'))ST.vue=q.get('vue')==='banc'?'banc':'un';for(const k of ['surf','ras','noir','lent','fige','tourne','reve','lisse'])if(q.has(k))ST[k]=q.get(k)!=='0';if(q.has('ch'))ST.ch=q.get('ch')==='hasard'?'hasard':+q.get('ch');} // ?vue=banc&noir=1 : une vue d'entrée
 const garde=()=>{try{localStorage.setItem('boiteDauphins',JSON.stringify(ST));}catch(e){}};
 
 /* ---------------------------------------------------------------------------------------------------------------------
@@ -130,6 +131,7 @@ async function lireBloc(){
 }
 function executer(bloc,dolphins,dolTrail,dolSplash){
   // le bloc appelle triNoir/dolphins/dolTrail/dolSplash dans dolNoirMaj : on lui prête les nôtres
+  if(ST.lisse)bloc=bloc.replace(/const DOL_VOX=[^,;]+/,'const DOL_VOX=0'); // LISSE : le même dauphin sans ses cubes (rien n'est changé dans le jeu : c'est la boîte qui essaie)
   return new Function('THREE','triNoir','dolphins','dolTrail','dolSplash',bloc+
     '\nreturn {DOL_CHORE:typeof DOL_CHORE!=="undefined"?DOL_CHORE:null,dolPose:typeof dolChorePose==="function"?dolChorePose:null,DOL_CYCLE:typeof DOL_CYCLE!=="undefined"?DOL_CYCLE:0,DOL_L,DOL_GEO,DOL_U,DOL_BANC,mkDauphin,dolNoirMaj:typeof dolNoirMaj==="function"?dolNoirMaj:null,DOL_ETOILE:typeof DOL_ETOILE!=="undefined"?DOL_ETOILE:null};')
     (THREE,()=>ST.noir,dolphins,dolTrail,dolSplash);
@@ -330,7 +332,7 @@ function peindre(){
   for(const b of $('vue').children)b.classList.toggle('on',b.dataset.v===ST.vue);
   $('bTourne').classList.toggle('on',ST.tourne);
   $('oSurf').hidden=ST.vue!=='banc';
-  for(const [id,k] of [['oSurf','surf'],['oRas','ras'],['oNoir','noir'],['oLent','lent'],['oFige','fige'],['oReve','reve']])$(id).classList.toggle('on',!!ST[k]);
+  for(const [id,k] of [['oSurf','surf'],['oRas','ras'],['oNoir','noir'],['oLent','lent'],['oFige','fige'],['oReve','reve']])$(id).classList.toggle('on',!!ST[k]);$('oLisse').classList.toggle('on',!!ST.lisse);
   fondJeu();peindreChores();
 }
 function fondJeu(){ // au CIEL RÊVE, les étoiles redeviennent de la lumière (additives, blanches) comme en jeu ; sur blanc, de la couleur
@@ -345,6 +347,7 @@ $('chores').addEventListener('click',e=>{const b=e.target.closest('button');if(!
   if(v!=='hasard')choreRelance(+v);peindreChores();});
 $('bTourne').onclick=()=>{ST.tourne=!ST.tourne;garde();peindre();};
 $('bCadre').onclick=()=>recadre(.8);
+$('oLisse').onclick=()=>{ST.lisse=!ST.lisse;garde();peindre();if(BLOC){try{monter(BLOC);annonce(ST.lisse?'Lisse : sans les cubes':'Les cubes');}catch(e){ST.lisse=!ST.lisse;garde();peindre();annonce('Erreur : '+e.message,true);}etat();}};
 for(const [id,k] of [['oSurf','surf'],['oRas','ras'],['oNoir','noir'],['oLent','lent'],['oFige','fige'],['oReve','reve']])
   $(id).onclick=()=>{ST[k]=!ST[k];garde();peindre();};
 addEventListener('keydown',e=>{if(e.key==='1')vue('un');else if(e.key==='2')vue('banc');else if(e.key==='r'||e.key==='R')recadre(.8);
