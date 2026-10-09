@@ -549,6 +549,102 @@ function Caisse.vignetteImage(indice: number): EditableImage?
 	return img
 end
 
+-- LA VIGNETTE DE BOUTIQUE (9/10, Sacha : « il faut un aperçu des vraies voitures ») : le tirage GRAND FORMAT des caisses en vente
+-- (576 × 320, bord anticrénelé, éclairage de studio — outils/cuire-vignettes.js, Caisses/VignettesHD/Hxx_1, Hxx_2…). La petite
+-- vignette du garage, étirée sur une carte de 480 unités, tombait en gros pavés. Une image de cette taille pèse 720 Ko de mémoire :
+-- la boutique la demande quand elle s'ouvre et la RELÂCHE quand elle se ferme (Caisse.lacherHD) — rien ne reste en course.
+-- Format f = 2 (mots de 16 bits) : < 0x8000 un pixel opaque (5 bits par couleur, en gamma 2) · 0x8000-0xBFFF N transparents ·
+-- 0xC000-0xDFFF le pixel précédent N fois de plus · 0xE000-0xE0FF la transparence du pixel qui suit. nil = pas de tirage (ou refusé).
+local imagesHD: { [number]: any } = {}
+local GAMMA2: { number } = table.create(32, 0)
+for q = 0, 31 do GAMMA2[q + 1] = math.floor(255 * (q / 31) ^ 2 + 0.5) end
+local genHD = 0 -- (chaque relâche change de génération : un décodage en cours d'une génération passée est jeté à son arrivée)
+-- doux = le décodage rend la main à chaque tranche de 4 ms (un téléphone met ~4 fois plus de temps qu'un PC : 35 ms d'un bloc, c'est une
+-- image qui saute) — à n'appeler ainsi que depuis un fil qui peut attendre
+function Caisse.vignetteHD(indice: number, doux: boolean?): EditableImage?
+	local deja = imagesHD[indice]
+	if deja ~= nil then return deja or nil end
+	local dossier = script.Parent:FindFirstChild("Caisses") and script.Parent.Caisses:FindFirstChild("VignettesHD")
+	local Client = script.Parent:FindFirstChild("Client")
+	local mMaillage = Client and Client:FindFirstChild("Maillage")
+	local premier = dossier and dossier:FindFirstChild(string.format("H%02d_1", indice))
+	if not premier or not mMaillage then
+		imagesHD[indice] = false -- (pas de tirage pour cette caisse : on ne le cherchera plus)
+		return nil
+	end
+	local okM, Maillage = pcall(require, mMaillage)
+	local ok1, v = pcall(require, premier)
+	if not okM or not ok1 or type(v) ~= "table" or v.f ~= 2 then
+		imagesHD[indice] = false
+		return nil
+	end
+	-- les morceaux, bout à bout (chacun est un base64 complet : on les décode l'un après l'autre)
+	local parts: { buffer } = { Maillage.decoder(v.d) }
+	for k = 2, v.n or 1 do
+		local mk = dossier:FindFirstChild(string.format("H%02d_%d", indice, k))
+		local okK, vk = pcall(require, mk)
+		if not mk or not okK or type(vk) ~= "table" then
+			imagesHD[indice] = false
+			return nil
+		end
+		table.insert(parts, Maillage.decoder(vk.d))
+	end
+	local w, h = v.w, v.h
+	local px = buffer.create(w * h * 4) -- (zéro partout : transparent)
+	local total = w * h
+	local k, a, prec = 0, 255, 0
+	local gen, tranche, nm = genHD, os.clock(), 0
+	for _, src in parts do
+		local o, n = 0, buffer.len(src)
+		while o + 1 < n do
+			local m = buffer.readu16(src, o)
+			o += 2
+			nm += 1
+			if doux and nm % 2048 == 0 and os.clock() - tranche > 0.004 then
+				task.wait()
+				tranche = os.clock()
+			end
+			if m < 0x8000 then
+				if k < total then
+					-- (RGBA en petit-boutiste : un seul mot de 32 bits par pixel)
+					prec = GAMMA2[m // 1024 + 1] + GAMMA2[(m // 32) % 32 + 1] * 256 + GAMMA2[m % 32 + 1] * 65536 + a * 16777216
+					buffer.writeu32(px, k * 4, prec)
+					k += 1
+				end
+				a = 255
+			elseif m < 0xC000 then
+				k += m - 0x8000
+			elseif m < 0xE000 then
+				for _ = 1, math.min(m - 0xC000, total - k) do
+					buffer.writeu32(px, k * 4, prec)
+					k += 1
+				end
+			else
+				a = m - 0xE000
+			end
+		end
+	end
+	if gen ~= genHD then return nil end -- (relâchée pendant le décodage : la boutique s'est fermée)
+	if imagesHD[indice] then return imagesHD[indice] end -- (un autre fil l'a décodée entre-temps)
+	local ok, img = pcall(function() return AssetService:CreateEditableImage({ Size = Vector2.new(w, h) }) end)
+	if not ok or not img then return nil end -- (refusée — la mémoire des images est pleine : on réessaiera à la prochaine ouverture)
+	local okE = pcall(function() img:WritePixelsBuffer(Vector2.zero, Vector2.new(w, h), px) end)
+	if not okE then
+		img:Destroy()
+		return nil
+	end
+	imagesHD[indice] = img
+	return img
+end
+-- relâcher les tirages de boutique (la mémoire revient tout de suite — une EditableImage détruite rend sa place)
+function Caisse.lacherHD()
+	genHD += 1
+	for i, img in imagesHD do
+		if img then pcall(function() img:Destroy() end) end
+		imagesHD[i] = nil
+	end
+end
+
 function Caisse.vignette(indice: number): Model?
 	local module = Formes:FindFirstChild(string.format("F%02d", indice))
 	local Client = script.Parent:FindFirstChild("Client")
