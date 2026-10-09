@@ -18,6 +18,11 @@
   ×`NY_K` (,8) : géométries + positions à la fin du gabarit, crans de l'animation ×NY_K, fiche h/w/l. Le SQUALE n'avait rien dans le
   jeu : c'était la SALLE (pièces du kit peintes d'un seul côté, roues sans `w1F`/`wxF`/`wRF`) — corrigée. ⚠ `ROBLOX/outils/cuire-caisses.js`
   a les deux mêmes oublis (vignettes et formes Roblox du SQUALE).
+- **LE CHAT EN MINI DE RALLYE (9/10, Léo : « plus voiture de rallye, genre mini rally : plus au ras du sol, moins voiture de ville »)** :
+  `nyRallye` déforme d'un bloc la coque, la pop-tart, l'aileron, les feux et le trait noir (pavillon tassé ×,74 → ×,56 vers la poupe,
+  pente LINÉAIRE en z pour garder les pavés de glaçage plans ; ailes +8 cm au-dessus des roues ; jupes −7 cm) ; `NY_BAS` ,25 → ,33 (le
+  pneu rentre dans l'aile), `NY_VOIE` ,76 (roues, pattes, ancrages) ; équipement posé hors déformation : lame, longue-portée jaunes,
+  bavettes, plaque « 61 ». L'ancienne version : `index-avant-rallye` n'est pas gardée — `git show 386bace:"VERSION PRINCIPALE/index.html"`.
 
 ## LA SONDE QUI NE FIGE PLUS (2026-10-08, Léo : « le jeu bug un peu quand je le lance, pas que au lancement il rame — trouve une solution qui ne touche pas au graphique ni à la qualité »)
 - MESURÉ (Chrome sans fenêtre sur le Mac M2 de Léo, course au pilote auto, trace + appels WebGL chronométrés) : les à-coups de 35-120 ms

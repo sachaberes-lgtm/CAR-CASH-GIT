@@ -12990,7 +12990,8 @@ const CARS=[
   desc:'Inox brossé, portes papillon. À 88 à l\'heure elle remonte le temps, paraît-il. Toi, tu vas plus vite.'},
  // ---- LES CAISSES PREMIUM (2026-09-25) : la gamme des 15 retrouvée, en BOUTIQUE (vrai argent). Hors du garage tant
  // qu'elles ne sont pas achetées (voir `garageListe`). Fiches reprises de la branche `appstore-backlog`, emojis retirés.
- {name:'CHAT POP-TART',   shape:'poptart', color:0xf6b98a,accent:0xf78fb8,maxKmh:560,accel:64,turn:3.2, h:1.2,w:1.36,l:2.4,spoiler:0, // (2026-10-09, Léo, fiche de la salle blanche) « plus petite » : tout le chat ×NY_K (,8) — h 1,5 · w 1,7 · l 3,0 avant
+ {name:'CHAT POP-TART',   shape:'poptart', color:0xf6b98a,accent:0xf78fb8,maxKmh:560,accel:64,turn:3.2, h:1.14,w:1.5,l:2.4,spoiler:0, // (2026-10-09) la mini de rallye : plus basse, plus large (h 1,2 · w 1,36 avant)
+  // (2026-10-09, Léo, fiche de la salle blanche) « plus petite » : tout le chat ×NY_K (,8) — h 1,5 · w 1,7 · l 3,0 avant
   // (2026-10-06) en voxels : 1,7 × 3 m, oreilles à 1,5 m — plus de bandes néon (`glow`) : elles barraient les murs noirs
   fx:{jet:0xff64d2,core:0xffd8f2,trail:[1.5,.35,1.1],light:0xff5ec8}, // (2026-10-07) son arc-en-ciel EN FEU DE PIXELS (voir ARC_*) + ses pixels qui scintillent (NY_PIX), à la nitro et en vol — branché par NYAN.on
   desc:'Une pâtisserie industrielle avec une tête de chat et quatre roulettes. Personne n\'a demandé pourquoi. Tout le monde a demandé comment.'},
@@ -16572,7 +16573,25 @@ function lpWheel(o){
    caisse : i → x (centré), j → y (sol = 0), k → z (k = 10 ↔ z = 0, l'avant en +z). Console : `dbgNyan()`. */
 const NY_U=.1;
 const NY_K=.8; // (2026-10-09, Léo, fiche de la salle blanche) « la nyan cat : plus petite » — TOUT le chat ×,8 à la fin de son gabarit (géométries et positions) ; les crans de l'animation suivent (pattes, hochement)
-const NY_PATTE=.05,NY_BAS=.25; // (v13) la case des pattes (accrochées aux roues) — c'est aussi un cran de leur tour · la descente de la caisse sur ses roues
+const NY_PATTE=.05,NY_BAS=.33; // (v13) la case des pattes (accrochées aux roues) — c'est aussi un cran de leur tour · la descente de la caisse sur ses roues — (2026-10-09, Léo : « la nyan cat doit faire plus voiture de rallye, genre mini rally : plus au ras du sol, moins voiture de ville ») ,25 → ,33 : le pneu rentre dans l'aile
+/* (2026-10-09, Léo : « la nyan cat doit faire plus voiture de rallye, genre mini rally : plus au ras du sol, moins voiture de ville »)
+   LA MINI DE RALLYE : une déformation CONTINUE de toute la caisse (coque, pop-tart du pavillon, aileron, feux, trait noir — jamais la tête,
+   les pattes ni les roues), appliquée à la sortie de chaque chantier :
+   · le vitrage et le pavillon TASSÉS au-dessus de ,9 m (×NY_TASSE : le pavillon descend de 8 cm, le pare-brise se couche), de plus en
+     plus vers l'arrière (×,74 au haut du pare-brise → ×,56 à la poupe : le pavillon plonge vers le hayon, l'aileron descend avec lui) ;
+   · les AILES ÉLARGIES autour des deux roues (+NY_AILE : plateau au-dessus de la roue, fondu vers la porte et vers la ceinture) ;
+   · les JUPES qui descendent de 7 cm (tout ce qui est sous ,62 m s'étire vers le sol).
+   Continue = rien ne se décolle (l'aileron reste sur ses cols de cygne, la pop-tart sur son pavillon, le trait noir sur la coque). Avec la
+   descente NY_BAS et la voie élargie NY_VOIE (,7 → ,76 : roues, pattes, ancrages), la caisse est basse, large, sur ses roues. */
+const NY_TASSE=.74,NY_AILE=.08,NY_VOIE=.76;
+function nyRallye(g){const a=g.attributes.position.array,sm=t=>{t=Math.min(1,Math.max(0,t));return t*t*(3-2*t);};
+  for(let i=0;i<a.length;i+=3){const x=a[i],y=a[i+1],z=a[i+2];let b=0;
+    for(const zc of [.95,-.45])b=Math.max(b,sm((1-Math.abs(z-zc)/.62)/.4));        // au-dessus des roues, et le fondu vers la porte
+    a[i]=x+Math.sign(x)*NY_AILE*b*sm((Math.abs(x)-.45)/.3)*sm((.98-y)/.14);        // les ailes (ni le plancher, ni au-dessus de la ceinture)
+    a[i+1]=y>.9?.9+(y-.9)*(NY_TASSE-.1*(.8-z)):y-.07*sm((.62-y)/.12);}            // le pavillon tassé, qui PLONGE vers l'arrière (hayon de rallye) · les jupes vers le sol
+    // ⚠ la pente est LINÉAIRE en z : une face plane le reste (les grands pavés de glaçage du pavillon ne couvrent qu'avec leurs 4 coins —
+    //   une pente courbe faisait passer le pavillon au travers, une bande de biscuit en travers du rose)
+  g.attributes.position.needsUpdate=true;g.computeVertexNormals();return g;}
 const NY_P=.086; // (v12) LE PIXEL DU DESSIN : la tête et la pop-tart du pavillon ont la même case (une seule image, pas deux)
 /* (v12) LA POP-TART DU PAVILLON, de l'arrière (rangée 0) vers l'avant : `.` biscuit, `f` glaçage, `s` vermicelle — les coins du glaçage
    en ESCALIER et les vermicelles semés comme sur l'image (une case chacun). */
@@ -17440,7 +17459,7 @@ const SHAPES={
         l'atelier (la lampe chaude, le rideau de feu). Une clé fixe (haut, avant, gauche), le ciel par le dessus, un lustre sur ce qui
         regarde le ciel — sur la normale PLATE de chaque facette : chaque pan a son ton, l'art low-poly. Noirs, vitres, chromes et
         catadioptres gardent leur matière. */
-     const gs=kt.done();
+     const gs=kt.done();for(const g in gs)nyRallye(gs[g]); // (2026-10-09) la mini de rallye (voir nyRallye)
      for(const g in gs){if(g!=='l')lpOmbre(gs[g],1.5);let m9=g;
        if(g==='p'){const n=gs[g].attributes.normal.array,c=gs[g].attributes.color.array;
          for(let i=0;i<n.length;i+=3){const d=Math.max(0,n[i]*.33+n[i+1]*.82+n[i+2]*.47),k=.55+.42*d+.08*n[i+1]+.1*Math.pow(Math.max(0,n[i+1]),6);c[i]*=k;c[i+1]*=k;c[i+2]*=k;}
@@ -17451,7 +17470,7 @@ const SHAPES={
      // Une coque RETOURNÉE (faces arrière seules) gonflée le long des normales MOYENNÉES par sommet : on ne la voit qu'au bord de la
      // silhouette, un trait de 4,5 cm, comme le contour d'un sprite. Un dessin, une matière nue ; l'explosion ne l'arrache pas.
      {const ko=lpKit({o:{g:'m',c:0}});ko.loft(zs,z=>S(z,1),()=>'o');ko.box('o',1.42,.035,.26,0,1.47,-.76);
-      const g=ko.done().m,p=g.attributes.position.array,N=new Map(),cle=i=>Math.round(p[i]*1e4)+','+Math.round(p[i+1]*1e4)+','+Math.round(p[i+2]*1e4);
+      const g=nyRallye(ko.done().m),p=g.attributes.position.array,N=new Map(),cle=i=>Math.round(p[i]*1e4)+','+Math.round(p[i+1]*1e4)+','+Math.round(p[i+2]*1e4);
       for(let i=0;i<p.length;i+=9){const ux=p[i+3]-p[i],uy=p[i+4]-p[i+1],uz=p[i+5]-p[i+2],vx=p[i+6]-p[i],vy=p[i+7]-p[i+1],vz=p[i+8]-p[i+2];
         const nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx;
         for(let v=0;v<9;v+=3){const k=cle(i+v),a=N.get(k);if(a){a[0]+=nx;a[1]+=ny;a[2]+=nz;}else N.set(k,[nx,ny,nz]);}}
@@ -17472,7 +17491,24 @@ const SHAPES={
          let zp=-1,xp=S(-1)[6][0];for(const z of [-.985,-.95,-.88]){const x=S(z)[6][0];
            kf.box('r',.025,.075,Math.hypot(z-zp,x-xp)+.01,sd*((x+xp)/2+.012),.905,(z+zp)/2,0,sd*Math.atan2(x-xp,z-zp),0);zp=z;xp=x;}}
        kf.box('r',.3,.02,.02,0,1.305,-.68);
-       const g9=bloc(),gf=kf.done();for(const g in gf){const m=new THREE.Mesh(gf[g],mat(g));m.userData.lp=1;g9.add(m);}g9.visible=!vif;NYAN.feux.push(g9);}}
+       const g9=bloc(),gf=kf.done();for(const g in gf)nyRallye(gf[g]);for(const g in gf){const m=new THREE.Mesh(gf[g],mat(g));m.userData.lp=1;g9.add(m);}g9.visible=!vif;NYAN.feux.push(g9);}}
+    /* (2026-10-09, Léo : « la nyan cat doit faire plus voiture de rallye, genre mini rally : plus au ras du sol, moins voiture de ville ») L'ÉQUIPEMENT DE RALLYE, posé APRÈS la déformation (il ne bouge pas avec elle) : la LAME avant au ras du sol, sous
+       le visage ; deux LONGUE-PORTÉE jaunes aux coins du bouclier ; des BAVETTES derrière les quatre roues (noires, la pop-tart rose au
+       milieu) ; la PLAQUE DE RALLYE « 61 » sur chaque portière, chiffres en pixels (lus dans le bon sens des deux côtés). Les couleurs
+       dans la famille sans lumière, comme le reste du chat. */
+    {const kr=lpKit({k:{g:'m',c:0x131317},c:{g:'c',c:0xd8dce4},y:{g:'l',c:0xffe14a},p:{g:'l',c:0xff9cf3},w:{g:'l',c:0xf4f1ea},n:{g:'l',c:0x14141c}});
+     kr.box('k',1.58,.025,.24,0,.40,1.42);                                                   // la lame
+     for(const sd of [-1,1]){
+       kr.cyl('c',.08,.05,10,sd*.73,.57,1.44,'z');kr.cyl('y',.064,.056,10,sd*.73,.57,1.442,'z'); // les longue-portée
+       kr.box('k',.03,.03,.06,sd*.73,.49,1.42);                                              // leur pied
+       for(const zc of [.95,-.45]){const zb=zc-.28;                                           // les bavettes, derrière chaque roue
+         kr.box('k',.22,.25,.014,sd*NY_VOIE,.485,zb);kr.box('p',.13,.09,.006,sd*NY_VOIE,.50,zb-.01);}
+       // la plaque « 61 » : un cadre blanc sur la portière, les chiffres en cases de 2,6 cm (3 × 5 par chiffre, une colonne d'écart)
+       const xP=sd*.866,CH=['###','#..','###','#.#','###'],UN=['.#.','##.','.#.','.#.','###'],ce=.026;
+       kr.box('w',.012,.17,.30,xP,.70,.25);
+       for(let r=0;r<5;r++)for(let c9=0;c9<7;c9++){const ch=c9<3?CH[r][c9]:c9>3?UN[r][c9-4]:'.';if(ch!=='#')continue;
+         kr.box('n',.016,ce,ce,xP,.70+(2-r)*ce,.25-sd*(c9-3)*ce);}}                      // à droite on lit vers l'arrière, à gauche vers l'avant
+     const gr=kr.done();for(const g in gr){const m=new THREE.Mesh(gr[g],mat(g));m.userData.lp=1;carGroup.add(m);}}
     // 2. LA TÊTE : le dessin de face sur la couche avant, deux couches derrière (gris cerclé de noir : l'arrière de la tête, vu de
     //    la poursuite, est un chat, pas un pavé noir). Elle HOCHE d'un voxel. (v11, Léo : « la tête un peu énorme, ou trop larges les
     //    côtés noirs ») : cases de 8,6 cm au lieu de 10 — 1,29 m de large dans une caisse de 1,73 (les ailes avant dépassent de chaque
@@ -17503,7 +17539,7 @@ const SHAPES={
       for(let x=0;x<NX;x++)for(let j=0;j<NY;j++)for(let k=0;k<NZ;k++){
         const bx=x===0||x===NX-1,by=j===0||j===NY-1,bz=k===0||k===NZ-1;
         V.set(x,j,k,((bx&&by)||(bx&&bz)||(by&&bz))?'B':'G');}
-      NYAN.pattes.push(pose(V,bloc(),0,U,[sd>0?.78:-.78-NX*U,.22,zc-NZ*U/2]));}
+      NYAN.pattes.push(pose(V,bloc(),0,U,[sd>0?NY_VOIE+.08:-NY_VOIE-.08-NX*U,.22,zc-NZ*U/2]));} // (2026-10-09) la voie de rallye (,78 = ,7 + ,08 avant)
     // 6. LES ROUES PIXEL (2026-10-08, Léo : « fais les pixels plus propres et des plus belles roues », puis « plus de détails, les pixels
     //    plus petits, des pneus plus ronds »). Les roulettes de 7 × 7 TOURNAIENT : un disque en escalier à n'importe quel angle n'est plus
     //    un dessin, c'est un losange dentelé. Désormais une roue de 50 cm (elle remplit son passage) dessinée sur 21 × 21 cases de 2,4 cm
@@ -17523,7 +17559,7 @@ const SHAPES={
        if(r<=2.6){const a=((phi-sec/2)%sec+sec)%sec;return [r>1.6&&Math.min(a,sec-a)*r<.6?'N':'X',0,EP-2];} // le moyeu, ses écrous
        const a=(phi%sec+sec)%sec;return Math.min(a,sec-a)*r<.55+.05*r?['X',0,EP-3]:['N',0,EP-5];}; // les rayons · le creux
      for(const zc of [.95,-.45])for(const sd of [-1,1]){const g=new THREE.Group(),im=[];
-       g.position.set(sd*.7,NR*vR/2,zc);g.userData.sol=1;carGroup.add(g);
+       g.position.set(sd*NY_VOIE,NR*vR/2,zc);g.userData.sol=1;carGroup.add(g);
        for(let f=0;f<NF;f++){const V=voxGrille();
          for(let a=0;a<NR;a++)for(let b=0;b<NR;b++){const k=cas(b-C,C-a,f*NYAN.rPas);if(!k)continue;
            for(let d=k[1];d<=k[2];d++)V.set(sd>0?d:EP-1-d,NR-1-a,b,k[0]);} // la face dessinée regarde DEHORS (+x à droite, −x à gauche)
@@ -17538,7 +17574,7 @@ const SHAPES={
       if(o.isMesh&&!vu.has(o.geometry)){vu.add(o.geometry);o.geometry.scale(NY_K,NY_K,NY_K);}});
      NYAN.arc.multiplyScalar(NY_K);}
     const kk=NY_K,mk=a=>a.map(v=>v*kk);
-    return {hl:mk([.5,.45,2.5]),tl:mk([.65,.8-NY_BAS,-1.1]),lpw:{R:.25*kk,w:.18*kk,style:'nyan'},wx:.7*kk,wzF:.95*kk,wzR:.45*kk,wy:0, // (v13) les roues sous les pattes, au centre des passages · (2026-10-08) 50 cm, dessinées par le gabarit (voir 6.)
+    return {hl:mk([.5,.45,2.5]),tl:mk([.65,.8-NY_BAS,-1.1]),lpw:{R:.25*kk,w:.18*kk,style:'nyan'},wx:NY_VOIE*kk,wzF:.95*kk,wzR:.45*kk,wy:0, // (v13) les roues sous les pattes, au centre des passages · (2026-10-08) 50 cm, dessinées par le gabarit (voir 6.)
             split:0,skirt:0,sp:0,doors:0,wings:'none',glowF:0,halos:0,tuyeres:0,pots:[mk([0,.75-NY_BAS,-1.03])]};
   },
   // 15. LE REQUIN — bulle de verre sur un corps rond, museau de grand blanc, et QUATRE BRAS
