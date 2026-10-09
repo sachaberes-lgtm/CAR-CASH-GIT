@@ -1,5 +1,36 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LE DERNIER TOUR DES COMMANDES AVANT LE VERROU (2026-10-09, session GRAPHISME — Sacha : « on va verrouiller le gameplay ; avant, fais un dernier tour d'amélioration des contrôles pour que le jeu soit le plus fun à jouer possible, tant dans la conduite que la voltige »)
+Audit complet de la chaîne des commandes (entrées → lissage → lacet/tangage → trajectoire), puis bancs A/B pas à pas (`dbgStep(n,16|33)`,
+la boucle gelée) contre la version d'avant. **Aucun verdict défait** : zéro assistance, volant sans aimant, AIR_RATE 1, ↑ piqué / ↓ cabré,
+plafonds de lacet et de tangage, vol libre, vrille visuelle, drift = un geste. Ce qui a changé :
+1. **BUG — relâcher la souris coupait la NITRO tenue au clavier** (`bindHold` : `mouseup` global → `keys[code]=false` pour NITRO et ← →).
+   Chaque fin de glissé du volant à la souris éteignait ESPACE (seuil de rallumage 0,3, impulsion de vol rebrûlée). Le relâcher ne lâche
+   plus que le bouton pris à la souris (`ms9`). Banc : nitro tenue → glissé souris → lâcher : avant ÉTEINTE, après ALLUMÉE.
+2. **Le drift au clavier ne freine plus** (`if(dn&&!driftEnCours)`) : ↓ est aussi le geste du drift, le doigt et la souris ne freinaient
+   pas. 1 s de drift : perte de vitesse 40-44 % → 9-15 %. Hors drift, ↓ freine comme avant.
+3. **Même jeu à 30 et à 60 i/s** (l'iPhone bridé) : volant en exponentielle exacte `1-exp(-dt·21.4)` (= l'ancien ×0,3 à 60 i/s ; à 30 il
+   braquait plus sec, τ 36 ms au lieu de 47) ; huile en marche aléatoire `×√(dt/60)` (à 30 i/s l'embardée était +41 %) ; flammes
+   d'échappement, jet du réacteur en vol, traits d'air (sol et vol) et fumée de drift émis À LA SECONDE (`emiN`, à côté de `nfxVent`) :
+   60/s pile à 30, 40 ou 50 i/s — à 30 i/s on en voyait la MOITIÉ (nitro « faiblarde » sur l'iPhone). JAMAIS moins d'1 par image :
+   au-dessus de 60 (120/144 Hz) l'émission d'avant est gardée au pixel près. Les « sous-images » naissent à la place de la caisse
+   entre deux images (pas de paquets).
+4. **Le manche lissé comme le volant** (`pitchS`, τ 47 ms, remis à 0 dans `startFall`) : le tangage attaquait brut (97°/s d'un coup au
+   clavier), le lacet passait déjà par le lissage de `steer`. Plafonds inchangés (1,7 rad/s au réacteur, 0,85 sans). Banc : même
+   assiette à ±1-2° qu'avant, pas d'à-coup au relâché.
+5. **La pose garde le lacet** : `yawR=0` → `yawR` = le lacet du vol (même formule que `yawIn`), dans `tryLand` ET au rattrapage de la
+   lèvre — volant tenu, la caisse ne « s'arrête » plus de tourner à la pose avant de repartir ; elle rejoint le lacet du sol en `VOL_TAU`.
+6. **La souris n'est pas un pouce** : l'arc du pouce (socle qui glisse, `cr`, apprentissage `ar`, seuil `dyS`) ne s'applique plus qu'au
+   doigt (`pou9 = TCTL.id!=='souris'`) ; la zone morte croisée reste pour tous. Effet seulement quand le tracé de souris est en arc
+   (le seuil du drift ne monte plus jusqu'à 42,5 px à droite).
+7. **Le viseur honnête sous nitro** : il n'intégrait que la gravité pleine ; il suit maintenant la même loi que la chute (plané 60/75 %,
+   poussée dans l'axe 60/96 × palier × NITROOO, bascule du bord). Physique intacte, visuel seul. Crochet de banc `dbgVise()`.
+- Bancs (scratchpad GRAPHISME `gfx/`) : `ctl.js` (réponse du volant, temps réel), `ctl2.js` (A/B pas à pas), `ctl3.js` (vol tracé),
+  `ctl4.js` (viseur, `dbgPose` 'droit'), `souris.js`, `emi.js`. `tour.js` : 0 programme lié en course, 0 erreur.
+- **Laissé à Sacha (règle de jeu)** : la pose punit les grands vols (PARFAIT exige `landLoss<.2`, donc `fallT`<~2,1 s — AIR MONSTRE
+  jamais PARFAIT ; perte de vitesse jusqu'à 52 %) ; le lacet en vol ne suit pas `vitMult` (rayon 40 m à ×1, 103 m sous NITROOO ×2,6).
+- ⚠ Commentaires périmés à ne pas croire : `AIR_RATE` vaut 1 (pas 1,3, remis à 1 dans `startFall`).
+
 ## LE DAUPHIN DE RÊVE + LA BOÎTE À DAUPHINS (2026-10-09, Léo : « retouchons les dauphins, envoie-moi dans une boîte blanche avec les dauphins, on va les design » — puis une image de grand dauphin pastel : « travaille encore plus dur »)
 - **LA BOÎTE** : `boite-dauphins.html` (à côté d'index.html, servie par `python3 -m http.server`, jamais en double-clic). Elle LIT et exécute le
   VRAI bloc du jeu (de `const DOL_L=` à `const dolphinRig=`) et le RELIT ~1 fois/s : une retouche du dauphin dans index.html apparaît sans

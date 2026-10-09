@@ -30825,7 +30825,7 @@ window.dbgTerrain=function(kmh,mult){
 };
 let mode='drive',s=0,lat=0,psi=0,vA=0,vL=0,side=1,driveDir=1; // driveDir : sens de conduite le long du ruban (+1/-1). TOUJOURS 1 en course ; dans le PARC il suit le sens d'atterrissage → les routes se roulent dans les DEUX sens (pas de sens imposé)
 const START_CASH=1.61; // la mise de depart, clin d'oeil au studio 1.61
-let steer=0,money=START_CASH,levelCash=0,boost=0,fallT=0,fallTR=0,padCd=0,shake=0,combo=0,comboT=0,graceT=0,safeS=0,yawAcc=0,edgeT=0,squashT=0,momT=0,styleM=0,fever=0,streak=0,slowT=0,steerHold=0,aheadV=0,sideCd=0,slipT=0,oilCd=0,hitT=0,insUsed=false,feverArmed=false,lastSpaceT=0,rollover=0,idleT=0,driftT=0,driftYaw=0;
+let steer=0,pitchS=0,money=START_CASH,levelCash=0,boost=0,fallT=0,fallTR=0,padCd=0,shake=0,combo=0,comboT=0,graceT=0,safeS=0,yawAcc=0,edgeT=0,squashT=0,momT=0,styleM=0,fever=0,streak=0,slowT=0,steerHold=0,aheadV=0,sideCd=0,slipT=0,oilCd=0,hitT=0,insUsed=false,feverArmed=false,lastSpaceT=0,rollover=0,idleT=0,driftT=0,driftYaw=0;
 /* ⚠ LE VOL EN VRILLE EST UN PARTI PRIS, PAS UN OUBLI (tranché par le user, 2026-08-05).
    J'ai tenté deux fois de « corriger » la rotation de la caisse en vol — d'abord en la remplaçant
    par une inclinaison de virage pilotant le lacet (trop de latence au braquage), puis en gardant
@@ -30906,6 +30906,12 @@ ventN.mesh.material.blending=THREE.AdditiveBlending;ventN.mesh.material.map=spar
 // son PROPRE tirage (mulberry32) : ces effets purement visuels ne consomment pas le Math.random du jeu — les parcours de test
 // (grand tour, pilote auto) restent identiques à ce qu'ils étaient sans eux
 function nfxR(){let t=(NFX.s=(NFX.s+0x6D2B79F5)|0);t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;}
+/* (2026-10-09) L'ÉMISSION À LA SECONDE — les flammes d'échappement, le jet du réacteur en vol, les traits d'air et la fumée de drift
+   naissaient PAR IMAGE : à 30 i/s (l'iPhone bridé) on en voyait la MOITIÉ — nitro « faiblarde », vitesse moins sentie, alors que le jeu
+   se juge à 60 sur PC. `emiN` rend le nombre d'« images à 60 Hz » écoulées : 1 à 60 i/s, 2 à 30, 1,5 en moyenne à 40. JAMAIS moins d'1 :
+   au-dessus de 60 (écrans 120/144 Hz) on garde l'émission d'avant au pixel près — ce qu'on voyait sur un PC rapide ne change pas. */
+const EMI={};
+function emiN(k,dt){const a=(EMI[k]||0)+Math.min(dt,.067)*60,n=Math.max(1,Math.round(a));EMI[k]=Math.max(-.5,a-n);return n;} // le reste reporté (−0,5 au plus) : 60 par seconde pile à 30, 40 ou 50 i/s ; au-dessus de 60, une émission par image comme avant
 function nfxVent(dt,dir,kmh){ // `dir` : le sens de la course (cap au sol, vitesse en vol) — sème autour de la caméra, devant elle
   const v9=Math.max(20,kmh/3.6);NFX.vAcc+=dt*(nitroBlue?52:40)*(1+NFX.ign*NFX.ignK*1.5);
   NFX.cR.setFromMatrixColumn(camera.matrixWorld,0);NFX.cU.setFromMatrixColumn(camera.matrixWorld,1);
@@ -33287,6 +33293,7 @@ function volR(){const sp=CARS[level]||CARS[0];return .5*Math.hypot(sp.l||4.2,sp.
 function volTaille(d,fov){return volR()/(Math.max(.5,d)*Math.tan(fov*Math.PI/360));} // sa taille à l'écran : part de la demi-hauteur
 // (dev) dbgCamVol() : la caméra de vol mesurée — distance à la caisse, champ, taille de la caisse à l'écran (part de la hauteur et de
 // la largeur), et où tombent la caisse et l'anneau d'atterrissage à l'écran (NDC, −1..1). Console seulement.
+window.dbgVise=function(){return {mode:mode,vu:!!LM.vu,eta:+(+CAMV.eta).toFixed(2),p:landMark.visible?landMark.position.toArray().map(function(v){return +v.toFixed(2);}):null,car:carGroup.position.toArray().map(function(v){return +v.toFixed(2);}),fvy:+fallVel.y.toFixed(2),nitro:nitroOn,pitchS:+pitchS.toFixed(3)};}; // (banc, 2026-10-09) le viseur lu : où l'anneau promet la pose, où est la caisse
 window.dbgCamVol=function(){try{const b=new THREE.Box3().setFromObject(carGroup),v=new THREE.Vector3();let x0=9,x1=-9,y0=9,y1=-9;
   for(let i=0;i<8;i++){v.set(i&1?b.max.x:b.min.x,i&2?b.max.y:b.min.y,i&4?b.max.z:b.min.z).project(camera);x0=Math.min(x0,v.x);x1=Math.max(x1,v.x);y0=Math.min(y0,v.y);y1=Math.max(y1,v.y);}
   const c=carGroup.position.clone().project(camera),r=landMark.visible?landMark.position.clone().project(camera):null;
@@ -33302,7 +33309,7 @@ function poseParfaiteFx(divin){
 }
 function startFall(impU,impF,bord){ // bord : sortie par le CÔTÉ de la route (physique du bord v2) — pas de pop, bascule vers le vide
   const roll0=carRoll9; // (bord v2) le roulis de la carrosserie AVANT la remise à zéro : la bascule part de là
-  ECH=0;figSnd._ess=0; // (console de son) une gamme neuve à chaque vol
+  ECH=0;figSnd._ess=0;pitchS=0; // (console de son) une gamme neuve à chaque vol — (2026-10-09) pitchS : le manche repart du neutre
   traceTick(false); // (2026-09-26) le ruban de gomme se coupe au décollage
   loop._nAir=nitroOn; // (2026-09-26) l'impulsion est celle de l'ALLUMAGE en vol : tenue depuis le sol, elle ne compte pas — mais elle ne dépend plus du vol d'avant
   lastNearS=s;        // (2026-09-26) le couloir de proximité (LOD, aimant) part d'ICI, pas de la fin du vol précédent (les pièces clignotaient une image)
@@ -33520,7 +33527,7 @@ function tryLand(dt){
   side=sideL;lat=THREE.MathUtils.clamp(latX9,-ROAD_HALF+.02,ROAD_HALF-.02)*sideL;
   // RÉCEPTION EN GLISSE : la caisse se pose de travers et rattrape — petit drift au lieu d'un psi=0 sec
   {const vTan=fallVel.dot(T[bestI]),vLat=fallVel.dot(B[bestI])*sideL;
-   psi=THREE.MathUtils.clamp(Math.atan2(vLat,Math.abs(vTan)+1),-1.4,1.4);yawR=0;slipB=0;driftYaw=0; // (2026-09-25) le cap de la pose = la direction EXACTE du vol — plus de redressement (×0,6) : c'était une aide
+   psi=THREE.MathUtils.clamp(Math.atan2(vLat,Math.abs(vTan)+1),-1.4,1.4);yawR=steer*(1.15+Math.min(.6,fallVel.length()*.004));slipB=0;driftYaw=0; /* (2026-10-09) yawR = le lacet du VOL (même formule que yawIn) : volant tenu, la caisse ne « s'arrête » plus de tourner à la pose avant de repartir — elle rejoint le lacet du sol en VOL_TAU */ // (2026-09-25) le cap de la pose = la direction EXACTE du vol — plus de redressement (×0,6) : c'était une aide
    driftT=Math.max(driftT,Math.min(1,.45+Math.abs(psi)));} // …et la fumée/le crissement suivent tout seuls
   {const vm9=vitMult();vA=fallVel.dot(T[bestI])/vm9;vL=fallVel.dot(B[bestI])*.4*sideL/vm9;} // (2026-09-30) le vol porte la vitesse RÉELLE (× vitMult) : à la pose, on la ramène au vA d'avant le multiplicateur — sans ça, le boost comptait DEUX fois
   if(PARK.on){driveDir=vA<0?-1:1;vA=Math.abs(vA);}else driveDir=1; // PARC : on repart dans le sens d'atterrissage (les deux directions roulent) ; COURSE : toujours vers l'avant
@@ -33715,7 +33722,7 @@ function levreRattrape(bI,latOff,hOff,tOff){
   const vm9=vitMult(),vTan=fallVel.dot(T[bI])/vm9,vLat=fallVel.dot(B[bI])/vm9; // (30/09) le vol porte la vitesse RÉELLE (× vitMult) : ramenée au vA d'avant le multiplicateur, comme à la pose
   s=THREE.MathUtils.clamp(bI/(NP-1)*L+THREE.MathUtils.clamp(tOff,-2,2),0,L-1);
   side=1;lat=Math.sign(latOff)*(ROAD_HALF-.05);
-  psi=THREE.MathUtils.clamp(Math.atan2(vLat,Math.abs(vTan)+1),-1.4,1.4);yawR=0;slipB=0;driftYaw=0;
+  psi=THREE.MathUtils.clamp(Math.atan2(vLat,Math.abs(vTan)+1),-1.4,1.4);yawR=steer*(1.15+Math.min(.6,fallVel.length()*.004));slipB=0;driftYaw=0; /* (2026-10-09) yawR = le lacet du VOL (même formule que yawIn) : volant tenu, la caisse ne « s'arrête » plus de tourner à la pose avant de repartir — elle rejoint le lacet du sol en VOL_TAU */
   vA=vTan*.94;vL=0; // le choc de la lèvre coûte 6 %
   if(PARK.on){driveDir=vA<0?-1:1;vA=Math.abs(vA);}else driveDir=1;
   levreY=Math.min(0,hOff);carRoll9=THREE.MathUtils.clamp(r9,-.42,.42);rollV=0;
@@ -41899,7 +41906,7 @@ function loop(now){
     const mA9=DBG_AUTO.on&&mode==='drive'?vitMult():1; // (HAUTE VITESSE, 2026-09-30) le pilote de mesure connaît sa caisse : au sol, le lacet est ×spdMult, et l'écart latéral s'y referme en autant de SECONDES qu'à ×1
     const target=DBG_AUTO.on&&DBG_AUTO.vol&&mode==='fall'?dbgAutoVol(dt):DBG_AUTO.on?THREE.MathUtils.clamp((routeLacet+(THREE.MathUtils.clamp((DBG_AUTO.lat-lat)/(Math.max(6,Math.abs(vA)*SPD*mA9)*.9),-.4,.4)-psi)*3)/(lacetMax(vA)*mA9),-1,1) // (conduite v6) le pilote de mesure corrige son CAP vers la ligne visée // (conduite v4) le pilote de mesure VISE un cap
       :TCTL.act?TCTL.st:(lf?1:0)-(rt?1:0); // VOLANT TACTILE : le pouce prend la main sur le tout-ou-rien (même lissage derrière)
-    steer+=(target-steer)*Math.min(1,dt*18);
+    steer+=(target-steer)*(1-Math.exp(-dt*21.4)); /* (2026-10-09) exponentielle EXACTE : à 60 i/s c'est l'ancien ×0,3 au millième ; à 30 i/s (l'iPhone bridé) le volant braquait plus sec que sur PC (τ 36 ms au lieu de 47) */
     graceT=Math.max(0,graceT-dt);
     sideCd=Math.max(0,sideCd-dt);
     if(DBG_AUTO.on&&DBG_AUTO.saut>0){if(mode==='drive'&&!introD&&graceT<=0){DBG_AUTO.tS+=dt;if(DBG_AUTO.tS>=DBG_AUTO.saut&&Math.abs(lat)<ROAD_HALF*.5&&Math.abs(vA)*3.6*SPD>110){DBG_AUTO.tS=0;DBG_AUTO.l0=null;startFall(DBG_AUTO.imp,1);}}else DBG_AUTO.tS=0;} /* banc : la boucle décoller / se poser */
@@ -41944,7 +41951,7 @@ function loop(now){
       const momF=1+Math.min(1.8,momT*momT*.1);
       let a=0;
       if(up)a=acc9*(vA<maxSp*(1+FLOW.lv*.05)?1:.55)*(boost>0?1.5:1)*momF*(1+FLOW.lv*.06); // ça pousse TOUJOURS sur la route — et le FLOW pousse plus loin
-      if(dn)a=vA>2?-acc9*1.5:-acc9*.5;
+      if(dn&&!driftEnCours)a=vA>2?-acc9*1.5:-acc9*.5; /* (2026-10-09) au clavier ↓ est AUSSI le geste du drift : en drift il ne freine plus — au doigt et à la souris le drift ne freinait pas, au clavier il coûtait ~3× plus de vitesse */
       vA+=a*dt;
       if(nitroOn)vA+=(nitroBlue?48:30)*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*dt; // LE MOTEUR pousse : le palier multiplie la nitro
       else if(startBoostT>0)vA+=30*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*dt; // (2026-10-08) L'ÉLAN DU DÉPART : la poussée de la nitro, sans la nitro — de la vitesse, rien d'autre
@@ -42166,7 +42173,7 @@ function loop(now){
       }
       if(slipT>0){ // la voiture chasse : direction quasi coupée + embardée aléatoire
         slipT-=dt;driftT=Math.max(driftT,.7); // (2026-09-28) on VOIT la glisse : fumée de gomme + crissement (au téléphone, le message « huile » est masqué)
-        psi+=(Math.random()-.5)*2.6*dt*Math.min(1,Math.abs(vA)/12);
+        psi+=(Math.random()-.5)*2.6*Math.sqrt(dt/60)*Math.min(1,Math.abs(vA)/12); /* (2026-10-09) une marche aléatoire grandit en √dt : ×√(dt/60) = la même embardée à toutes les cadences (à 30 i/s elle était +41 %) */
         psi=THREE.MathUtils.clamp(psi,-1.4,1.4);
       }
       // des petits bouts se détachent par moments (réalisme, surtout l'épave)
@@ -42237,9 +42244,9 @@ function loop(now){
         traceTick(Math.abs(vF)>10&&(glisse9>.08||Math.abs(yawR/spdMult*vA)*SPD>9)); // (2026-09-26) LES TRACES DE PNEUS : dès que ça tourne fort ou que ça glisse
         if(drf9>0&&Math.abs(vF)>14){
           const nD9=1+(drf9>.5?1:0),VC9=PT_U.uVc.value;
-          for(let k=0;k<nD9;k++){
+          for(let r9=0,rp9=emiN('fum',dt);r9<rp9;r9++)for(let k=0;k<nD9;k++){ // (2026-10-09) à la seconde : voir emiN
             const sd2=k?1:-1;
-            tmp2.copy(carGroup.position).addScaledVector(fwdW,-spec.l/2).addScaledVector(tmp,sd2*spec.w/2);
+            tmp2.copy(carGroup.position).addScaledVector(fwdW,-spec.l/2).addScaledVector(tmp,sd2*spec.w/2);if(r9)tmp2.addScaledVector(VC9,-dt*r9/rp9); // la bouffée « d'entre deux images » naît là où était la roue
             spawnP(dust,tmp2.x,tmp2.y,tmp2.z, // (2026-09-26) la fumée HÉRITE de la vitesse de la caisse (EXV) : laissée sur place, la caméra la traversait → un grand disque mauve derrière la roue
               VC9.x*.9-fwdW.x*3+tmp.x*sd2*2.5*drf9+(Math.random()-.5)*1.5,VC9.y*.9+F.n.y*1.2+Math.random()*.8,VC9.z*.9-fwdW.z*3+tmp.z*sd2*2.5*drf9+(Math.random()-.5)*1.5,
               .3+Math.random()*.25); // (particules v2) elle hérite de la VRAIE vitesse de la caisse (VC9 : en glisse, le nez ne dit plus où l'on va — calée sur le cap, la fumée partait de côté hors de l'écran), colle à la roue et vit un peu plus : le fondu de vie l'efface en douceur
@@ -42248,7 +42255,7 @@ function loop(now){
         // traits d'AIR : discrets, de plus en plus nombreux à mesure que ça accélère
         if(speedKmh>140){ // seuils ×2 (SPD .25→.5 : km/h doublés) — mêmes traits d'air au même état-caisse
           const nS9=speedKmh>640?4:speedKmh>460?3:speedKmh>280?2:1;
-          for(let k9=0;k9<nS9;k9++)if(Math.random()<.85){
+          for(let k9=0,n9=nS9*emiN('trS',dt);k9<n9;k9++)if(Math.random()<.85){ // (2026-10-09) à la seconde : voir emiN
             tmp2.copy(carGroup.position).addScaledVector(fwdW,10+Math.random()*40);
             tmp2.addScaledVector(tmp,(Math.random()-.5)*30);
             tmp2.addScaledVector(F.n,1+Math.random()*10);
@@ -42269,8 +42276,9 @@ function loop(now){
         // à 50+, elles fonçaient vers la caméra à ~70 m/s relatifs et gonflaient en gros ronds orange devant l'objectif. Le gaz
         // quitte le pot à −22 m/s PAR RAPPORT À LA CAISSE : c'est la physique, et elles meurent avant d'atteindre la caméra.
         EXV.copy(fwdW).multiplyScalar(Math.max(0,vA)*SPD);
-        for(let k=0;k<fl;k++){
+        for(let r9=0,rp9=emiN('fl',dt);r9<rp9;r9++)for(let k=0;k<fl;k++){ // (2026-10-09) à la seconde : voir emiN
           potMonde(CAR_POTS[k%CAR_POTS.length],tmp2); // (2026-09-26) des VRAIS pots de la caisse (voir CAR_POTS)
+          if(r9)tmp2.addScaledVector(EXV,-dt*r9/rp9); // (2026-10-09) la braise « d'entre deux images » sort du pot où il était
           const vsp=nitroOn?.6:.9; // flux SERRÉ le long de l'axe : un jet, pas un nuage
           spawnP(flames,tmp2.x+(Math.random()-.5)*.10,tmp2.y+(Math.random()-.5)*.10,tmp2.z+(Math.random()-.5)*.10,
             EXV.x-fwdW.x*(13+Math.min(level,15)*.3+(nitroOn?8:0))+(Math.random()-.5)*vsp,EXV.y+F.n.y*.5+(Math.random()-.5)*vsp,EXV.z-fwdW.z*(13+Math.min(level,15)*.3+(nitroOn?8:0))+(Math.random()-.5)*vsp, // ≤ 2,5 m derrière le pot : la caméra est 3 m plus loin
@@ -42496,7 +42504,8 @@ function loop(now){
         // (vol libre, 2026-09-26) plus de plafond à ±65° ni de repli « à l'horizontale » : le manche fait tourner la trajectoire ET le
         // haut de la caisse autour de SA droite (FLY_R) — piqué, cabré, looping : aucune assiette n'est interdite, rien ne se bloque
         // (des vecteurs qui tournent autour d'un axe local : pas d'angle d'Euler, donc pas de gimbal-lock).
-        if(wPitch!==0){const a9=-wPitch*1.7*dtF;fallVel.applyAxisAngle(FLY_R,a9);FLY_U.applyAxisAngle(FLY_R,a9);}
+        pitchS+=(wPitch-pitchS)*(1-Math.exp(-dtF*21.4)); /* (2026-10-09) LE MANCHE LISSÉ COMME LE VOLANT (τ 47 ms) : le lacet passait par le lissage de steer, le tangage attaquait brut — 97°/s d'un coup au clavier, dosage aux petits coups. Plafonds inchangés (1,7 / 0,85 rad/s) */
+        if(Math.abs(pitchS)>1e-4){const a9=-pitchS*1.7*dtF;fallVel.applyAxisAngle(FLY_R,a9);FLY_U.applyAxisAngle(FLY_R,a9);}
         // jet visible au point de poussée arrière : panache conique, jamais deux fois pareil
         flames.mesh.material.color.set(nitroBlue?0x5b7dff:pwrNitroT>0?NINF.jet:0xff7a24);    // (vague 3) le RÉACTEUR aux couleurs de la bible : feu #ff7a24, réserve #5b7dff
         flameCore.mesh.material.color.set(nitroBlue?0xd6e2ff:pwrNitroT>0?NINF.core:0xffe4bc); // cœur blanc chaud / blanc bleuté
@@ -42507,9 +42516,9 @@ function loop(now){
           tmp2.x-tmp3.x*.1,tmp2.y-tmp3.y*.1,tmp2.z-tmp3.z*.1,
           -tmp3.x*(8+Math.random()*10)+(Math.random()-.5)*5,-tmp3.y*8+2+Math.random()*3,-tmp3.z*(8+Math.random()*10)+(Math.random()-.5)*5,
           .4+Math.random()*.45);
-        for(let j9=0;j9<5;j9++){
+        for(let r9=0,rp9=emiN('jet',dt);r9<rp9;r9++)for(let j9=0;j9<5;j9++){ // (2026-10-09) à la seconde : voir emiN
           potMonde(CAR_POTS[j9%CAR_POTS.length],tmp2);
-          tmp2.x+=(Math.random()-.5)*.14;tmp2.y+=(Math.random()-.5)*.14;tmp2.z+=(Math.random()-.5)*.14;
+          tmp2.x+=(Math.random()-.5)*.14;tmp2.y+=(Math.random()-.5)*.14;tmp2.z+=(Math.random()-.5)*.14;if(r9)tmp2.addScaledVector(fallVel,-SPD*dtF*r9/rp9);
           const pw=21+Math.random()*9,spr=1.7; // vol : le jet reste un CRAYON de feu, pas une gerbe
           spawnP(flames,tmp2.x,tmp2.y,tmp2.z,
             -tmp3.x*pw+(Math.random()-.5)*spr,-tmp3.y*pw+(Math.random()-.5)*spr,-tmp3.z*pw+(Math.random()-.5)*spr,
@@ -42530,7 +42539,8 @@ function loop(now){
         // CLAVIER — sur téléphone le pouce (axe Y du volant) était ignoré sans nitro. Même lecture qu'au réacteur : analogique, zone morte.
         const pitT=TCTL.act?TCTL.sv*volSens():0;
         const wPitch=pitT!==0?(Math.abs(pitT)<.05?0:-pitT):((keys.KeyW||keys.KeyZ||keys.ArrowUp)?-1:0)+(dn?1:0); // ↑ piqué · ↓ cabré
-        if(wPitch!==0){const a9=-wPitch*.85*dtF;fallVel.applyAxisAngle(FLY_R,a9);FLY_U.applyAxisAngle(FLY_R,a9);} // (vol libre) même manche, sans plafond — 0,62 rad/s : on infléchit, on ne pilote pas
+        pitchS+=(wPitch-pitchS)*(1-Math.exp(-dtF*21.4)); // (2026-10-09) le même manche lissé (voir le réacteur)
+        if(Math.abs(pitchS)>1e-4){const a9=-pitchS*.85*dtF;fallVel.applyAxisAngle(FLY_R,a9);FLY_U.applyAxisAngle(FLY_R,a9);} // (vol libre) même manche, sans plafond — 0,85 rad/s : on infléchit, on ne pilote pas
       }
       /* (vol v7, 2026-09-25, user : « l'airtime doit être basé sur un principe d'INERTIE, dépendre de la vitesse de la voiture au
          moment de l'éjection, et PAS de sa vitesse max ») : en l'air, la caisse garde la vitesse qu'elle avait en quittant la route —
@@ -42590,7 +42600,7 @@ function loop(now){
       if(speedKmh>120){ // traits d'air aussi en vol (seuils ×2 : SPD .25→.5)
         tmp.copy(fallVel).normalize();
         const nS9=speedKmh>480?3:speedKmh>260?2:1;
-        for(let k9=0;k9<nS9;k9++){
+        for(let k9=0,n9=nS9*emiN('trV',dt);k9<n9;k9++){ // (2026-10-09) à la seconde : voir emiN
           tmp2.copy(fallPos).addScaledVector(tmp,10+Math.random()*30);
           tmp2.x+=(Math.random()-.5)*22;tmp2.y+=(Math.random()-.5)*16;tmp2.z+=(Math.random()-.5)*22;
           const ln9=4+speedKmh*.035;
@@ -42687,8 +42697,13 @@ function loop(now){
       LM.vu=false; // (la dernière pose trouvée reste en place pendant le fondu de sortie)
       tmp2.copy(fallPos);tmp3.copy(fallVel);
       CAMV.eta=99; // (caméra de vol v2) temps avant la réception prédite — 99 = rien en vue
+      /* (2026-10-09) LE VISEUR HONNÊTE : il n'intégrait que la gravité pleine — nitro tenue, la vraie chute est 2,5× (orange) à 4× (bleue)
+         plus lente et la poussée allonge le vol : l'anneau annonçait une pose trop COURTE et trop DURE (rouge au lieu d'or) pile quand on
+         pilote au réacteur. Même loi que la chute : plané (60 / 75 %), poussée dans l'axe (60 / 96 × palier × NITROOO), bascule du bord. */
+      const vg9=nitroOn?1-(nitroBlue?.75:.6):1,th9=nitroOn?(nitroBlue?96:60)*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*(1+Math.min(.4,NTR.boost))*.12:0;
       for(let st2=0;st2<14;st2++){ // même intégration que la vraie chute : vel par seconde, position ×SPD
-        tmp3.y-=FALL_G*gK()*.12;
+        if(th9>0){const sp9=tmp3.length();if(sp9>1)tmp3.multiplyScalar((sp9+th9)/sp9);}
+        tmp3.y-=FALL_G*gK()*(bascOn?Math.min(1,(bascT+st2*.12)/BASC_T):1)*vg9*.12;
         tmp2.addScaledVector(tmp3,.12*SPD);
         // le point le plus proche à moins de 20 m, 1 sur 8, trous exclus (le viseur ne promet jamais un atterrissage dans le vide)
         // (2026-09-27, passe perf iPhone) balayage en casiers (dalleProche) : même point élu, ~6× moins de distances
@@ -43857,7 +43872,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     el.addEventListener('touchstart',dn,{passive:false});
     el.addEventListener('touchend',up,{passive:false});
     el.addEventListener('touchcancel',up,{passive:false});
-    el.addEventListener('mousedown',dn); addEventListener('mouseup',up); // repli souris (test au clic, ?touch=1)
+    let ms9=false; el.addEventListener('mousedown',function(e){ms9=true;dn(e);}); addEventListener('mouseup',function(e){if(ms9){ms9=false;up(e);}}); // repli souris (test au clic, ?touch=1) — (2026-10-09) le relâcher ne lâche QUE le bouton pris à la souris : chaque fin de glissé du volant coupait la NITRO tenue à ESPACE (seuil de rallumage, impulsion de vol rebrûlée)
   }
   bindHold($t('tLeft'),'ArrowLeft',start);
   bindHold($t('tRight'),'ArrowRight',start);
@@ -43912,10 +43927,10 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
            endroit. Essayés et rejetés au banc node : tout rentrer dans le socle (piqué 0,2 à 0,7 au neutre au retour, jusqu'à 1 en
            contre-braquant) ; le rendre au retour (drift au 2e passage) ; un excès cumulé sans position (5 slaloms : plus de drift du tout).
          Le vrai geste du drift (tirer vers le bas, droit ou vers la base du pouce) ne tire pas le socle en X : il compte en entier. */
-      const fx=TCTL.ox-ox0;
-      if(fx>0&&dym>0){const g=Math.min(dym,ARC_B*fx),f9=Math.min(fx,TCTL.ox-TCTL.x0);TCTL.oy+=g;
+      const fx=TCTL.ox-ox0,pou9=TCTL.id!=='souris'; /* (2026-10-09) L'ARC est celui d'un POUCE qui pivote : un curseur glisse droit. À la souris il décalait le seuil du drift (42,5 px à droite, 34,9 à gauche) — pou9 le réserve au doigt ; la zone morte croisée reste pour tous */
+      if(pou9&&fx>0&&dym>0){const g=Math.min(dym,ARC_B*fx),f9=Math.min(fx,TCTL.ox-TCTL.x0);TCTL.oy+=g;
         if(f9>0){TCTL.ab+=Math.min(dym-g,(ARC_P-ARC_B)*fx)*f9/fx;TCTL.tr+=f9;}}
-      else if(fx<0&&dym<0)TCTL.oy+=ARC_B*fx;
+      else if(pou9&&fx<0&&dym<0)TCTL.oy+=ARC_B*fx;
       const pxr=x-TCTL.ox,cr=pxr>0&&TCTL.tr>0?TCTL.ab/TCTL.tr*Math.max(0,TCTL.ox-TCTL.x0)*Math.min(1,pxr/LOCK):0,rawY=y-TCTL.oy-cr;
       if(rawY>gy)TCTL.oy=y-cr-gy;        // IMMÉDIATEMENT (jamais collé au plein braquage)
       if(rawY<-LOCKV){TCTL.oy=y-cr+LOCKV;gy=Math.max(gy,Math.min(LOCKV,sB-TCTL.oy-6));}
@@ -43941,8 +43956,8 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
          relevé pouce déjà TIRÉ (dy ≥ 42,5) : pousser plus loin en plein drift ne fait pas croire à un arc profond (sinon +8 px au drift suivant).
          `dyS` = ce seuil d'entrée (la conduite y applique le plancher 34,9) ; RESTER en drift demande 34,9 comme avant (`tireBas`) : on en
          sort au même geste. */
-      if(nx>=.4&&Math.abs(dxm)>Math.abs(dym)&&TCTL.dy<ARC_MAX){const r9=TCTL.dy/Math.pow(nx,1.2);TCTL.ar=TCTL.ar<0||r9>TCTL.ar?r9:Math.max(r9,TCTL.ar-1);}
-      TCTL.dyS=nx>0?Math.min(ARC_MAX,(TCTL.ar<0?ARC_R0:TCTL.ar)*Math.pow(nx,1.2)+ARC_M):0; // la conduite y ajoute le plancher de 34,9 (DRIFT_PX)
+      if(pou9&&nx>=.4&&Math.abs(dxm)>Math.abs(dym)&&TCTL.dy<ARC_MAX){const r9=TCTL.dy/Math.pow(nx,1.2);TCTL.ar=TCTL.ar<0||r9>TCTL.ar?r9:Math.max(r9,TCTL.ar-1);}
+      TCTL.dyS=pou9&&nx>0?Math.min(ARC_MAX,(TCTL.ar<0?ARC_R0:TCTL.ar)*Math.pow(nx,1.2)+ARC_M):0; // la conduite y ajoute le plancher de 34,9 (DRIFT_PX)
       stSet(-(ax<0?-1:ax>0?1:0)*Math.pow(Math.abs(ax),1.15),   // pouce à GAUCHE = braquage à gauche (steer>0) — (conduite v4) courbe 1,35 → 1,15 : 25 % de pouce = 20 % du cap (15 % avant)
             -ay,px,Math.max(-LOCKV,Math.min(gy,y-TCTL.oy))); // pouce vers le HAUT = sv>0 = PIQUÉ (manche d'avion) — le bouton reste SOUS le pouce (sans `cr`)
     };
