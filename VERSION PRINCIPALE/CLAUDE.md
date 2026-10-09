@@ -26,6 +26,29 @@
   (`aLp` : une couleur, la nage le déplace d'un bloc, l'eau le coupe entier) ; biseau sombre aux arêtes + nuance par cube ; quelques cubes
   qui scintillent. `DOL_VOX` .026 (≈ 24 800 triangles) et `DOL_VOX_L` .045 (≈ 8 000) : updateDolphins prend les FINS seulement quand le
   dauphin fait plus de 260 px à l'écran. `DOL_VOX=0` rend le dauphin lisse.
+## LA SALLE BLANCHE (2026-10-09, Léo : « une sublime voiture dans une salle blanche, que je peux tourner, avec une petite rangée de toutes les voitures qu'on a — pas les enlevées — qu'on glisse dans différentes raretés ; télécharger une liste écrite de tout ce qu'on a dit dessus »)
+- `salle-blanche.html` (outil, à côté d'index.html, à servir : `python3 -m http.server 8975` puis /salle-blanche.html). RIEN n'est recopié :
+  elle LIT index.html et exécute les vrais constructeurs (même liste de blocs que `ROBLOX/outils/cuire-caisses.js` + `MATV` pour les vraies
+  peaux) ; seules les matières sont refaites en PBR de studio (laque vernie, chrome, verre). Les 46 jouables (`retire:1` exclues).
+- Rendu : tonemapping LINÉAIRE (l'ACES décolorait les laques : ROSSO 40 saumon), murs de l'environnement gris + boîtes à lumière fortes,
+  ombre VSM douce + ombre de contact, sol ÉTALONNÉ au pixel (`etalonne`) pour avoir le blanc du fond : salle infinie, pas d'horizon.
+- Rangée : couloirs COMMUNES · RARES · ÉPIQUES · LÉGENDAIRES · DÉFIS · À RETIRER ; glisser = trait d'insertion (rien ne bouge avant de
+  lâcher), clic = la voiture en grand ; prix modifiable et notes par voiture, notes générales ; tout en localStorage (`cashcar.salleBlanche.v1`).
+- « Télécharger la fiche » = `fiche-voitures-cash-car-AAAA-MM-JJ.txt`, au format de la fiche du 6/10 (familles dans le nouvel ordre, notes
+  sous chaque voiture, NOTES GÉNÉRALES, CHANGEMENTS PAR RAPPORT AU JEU) — c'est ce fichier qu'on donne à Claude pour l'appliquer au jeu.
+  Console : `dbgSalle.lum({…})` règle la lumière à chaud, `dbgSalle.fiche()`, `dbgSalle.ratees()`.
+- **LA 1re FICHE APPLIQUÉE (9/10, Léo : « à retenir pour la liste et pour le main tant que je dis pas "c'est dégueu" »)** :
+  L'AIGLE DE FEU → RARE 800 000 $ ; LE SQUALE → ÉPIQUE 700 000 $ ; ATCHOUM → ÉPIQUE 900 000 $ (« des prix qui collent à mon ordre » :
+  le garage range chaque famille par prix). ATCHOUM : un V8 À COMPRESSEUR sort du capot à la place de l'écope (kit à part, posé après
+  `creux`). LA TAURINE : des CORNES de toro derrière les phares à cils (tube de Bézier à 7 pans, ivoire, pointe noire). CHAT POP-TART
+  ×`NY_K` (,8) : géométries + positions à la fin du gabarit, crans de l'animation ×NY_K, fiche h/w/l. Le SQUALE n'avait rien dans le
+  jeu : c'était la SALLE (pièces du kit peintes d'un seul côté, roues sans `w1F`/`wxF`/`wRF`) — corrigée. ⚠ `ROBLOX/outils/cuire-caisses.js`
+  a les deux mêmes oublis (vignettes et formes Roblox du SQUALE).
+- **LE CHAT EN MINI DE RALLYE (9/10, Léo : « plus voiture de rallye, genre mini rally : plus au ras du sol, moins voiture de ville »)** :
+  `nyRallye` déforme d'un bloc la coque, la pop-tart, l'aileron, les feux et le trait noir (pavillon tassé ×,74 → ×,56 vers la poupe,
+  pente LINÉAIRE en z pour garder les pavés de glaçage plans ; ailes +8 cm au-dessus des roues ; jupes −7 cm) ; `NY_BAS` ,25 → ,33 (le
+  pneu rentre dans l'aile), `NY_VOIE` ,76 (roues, pattes, ancrages) ; équipement posé hors déformation : lame, longue-portée jaunes,
+  bavettes, plaque « 61 ». L'ancienne version : `index-avant-rallye` n'est pas gardée — `git show 386bace:"VERSION PRINCIPALE/index.html"`.
 
 ## LA SONDE QUI NE FIGE PLUS (2026-10-08, Léo : « le jeu bug un peu quand je le lance, pas que au lancement il rame — trouve une solution qui ne touche pas au graphique ni à la qualité »)
 - MESURÉ (Chrome sans fenêtre sur le Mac M2 de Léo, course au pilote auto, trace + appels WebGL chronométrés) : les à-coups de 35-120 ms
