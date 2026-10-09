@@ -27,8 +27,12 @@ plafonds de lacet et de tangage, vol libre, vrille visuelle, drift = un geste. C
    poussée dans l'axe 60/96 × palier × NITROOO, bascule du bord). Physique intacte, visuel seul. Crochet de banc `dbgVise()`.
 - Bancs (scratchpad GRAPHISME `gfx/`) : `ctl.js` (réponse du volant, temps réel), `ctl2.js` (A/B pas à pas), `ctl3.js` (vol tracé),
   `ctl4.js` (viseur, `dbgPose` 'droit'), `souris.js`, `emi.js`. `tour.js` : 0 programme lié en course, 0 erreur.
-- **Laissé à Sacha (règle de jeu)** : la pose punit les grands vols (PARFAIT exige `landLoss<.2`, donc `fallT`<~2,1 s — AIR MONSTRE
-  jamais PARFAIT ; perte de vitesse jusqu'à 52 %) ; le lacet en vol ne suit pas `vitMult` (rayon 40 m à ×1, 103 m sous NITROOO ×2,6).
+- **TRANCHÉ PAR SACHA le jour même** (deux questions) :
+  · **la pose « plus généreuse »** : PARFAIT = `impact<4.5` et pas ratée (dans l'axe), QUELLE QUE SOIT la durée du vol (`landLoss<.2`
+    l'interdisait au-delà de ~2 s : AIR MONSTRE jamais PARFAIT) ; perte de vitesse à la pose plafonnée à **30 %** (était 52 %) ; la tôle
+    qui part (`dropChip`) seulement sur une pose dure. Le nitro rendu reste au prorata du vol réacteur coupé (la boucle du 1/10 reste
+    fermée). Banc `pose2.js` : 4 s de vol posé doux → PARFAIT, vA 110 → 77 ; dur → pas PARFAIT.
+  · **le virage en vol reste tel quel** : le lacet en vol ne suit pas `vitMult` (rayon 40 m à ×1, ~100 m sous NITROOO ×2,6) — voulu.
 - ⚠ Commentaires périmés à ne pas croire : `AIR_RATE` vaut 1 (pas 1,3, remis à 1 dans `startFall`).
 
 ## LE DAUPHIN DE RÊVE + LA BOÎTE À DAUPHINS (2026-10-09, Léo : « retouchons les dauphins, envoie-moi dans une boîte blanche avec les dauphins, on va les design » — puis une image de grand dauphin pastel : « travaille encore plus dur »)
