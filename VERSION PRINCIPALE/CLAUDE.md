@@ -37,6 +37,16 @@
 - « Télécharger la fiche » = `fiche-voitures-cash-car-AAAA-MM-JJ.txt`, au format de la fiche du 6/10 (familles dans le nouvel ordre, notes
   sous chaque voiture, NOTES GÉNÉRALES, CHANGEMENTS PAR RAPPORT AU JEU) — c'est ce fichier qu'on donne à Claude pour l'appliquer au jeu.
   Console : `dbgSalle.lum({…})` règle la lumière à chaud, `dbgSalle.fiche()`, `dbgSalle.ratees()`.
+- **LE TOUCHER + LE JOURNAL (9/10, Léo : « quand j'appuie sur les voitures, leur réaction — sinon juste l'effet clic » · « sauvegarder
+  tous les changements faits à la main par moi »)** : un TAP sur la caisse (ni glissé ni pincement ; le double-clic ne recadre plus) =
+  l'effet clic de l'écran titre en studio (recul + saut + bascule en ressorts, étincelles orange, tôle à la couleur de la pièce qui rebondit
+  sur le sol, secousse, sons du jeu via sfx.js — bouton son ; combo < 0,7 s) ; ATCHOUM éternue (feu au point ATCH.N, « ATCHOUM ! ») ; le
+  CHAT lâche son arc-en-ciel en pixels (il monte au-dessus de la poupe : droit vers l'arrière, la caisse le cachait). ⚠ InstancedMesh :
+  créer `instanceColor` AVANT `count=0` (setColorAt le crée à la taille de count → tampon vide, INVALID_OPERATION, rien ne s'affiche).
+  JOURNAL `ETAT.journal` : chaque geste à la main (rareté, place, prix, note, notes générales, retour au jeu, fiche téléchargée) avec son
+  heure, jamais effacé, section « CE QUE J'AI FAIT À LA MAIN » de la fiche, historique sous le bouton ; une sauvegarde d'avant le journal
+  le commence par la fiche du 9/10. Écrit aussi à la fermeture (pagehide). Corrigé : changer de voiture en écrivant une note la laissait
+  affichée — et la suite partait sur la voiture suivante (`choisir` clôt le champ d'abord).
 - **LA 1re FICHE APPLIQUÉE (9/10, Léo : « à retenir pour la liste et pour le main tant que je dis pas "c'est dégueu" »)** :
   L'AIGLE DE FEU → RARE 800 000 $ ; LE SQUALE → ÉPIQUE 700 000 $ ; ATCHOUM → ÉPIQUE 900 000 $ (« des prix qui collent à mon ordre » :
   le garage range chaque famille par prix). ATCHOUM : un V8 À COMPRESSEUR sort du capot à la place de l'écope (kit à part, posé après
