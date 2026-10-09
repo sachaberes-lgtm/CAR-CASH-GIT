@@ -181,3 +181,131 @@
 ## 2026-10-09 16:55 — publication
 
 Lieu 91982637462711 publié par l API : version 9, fichier CashCar_PRET.rbxlx (7491476 octets).
+
+## 2026-10-09 17:24 — simulation
+
+| date | clé | type | nom | ID | prix R$ | statut |
+|---|---|---|---|---|---|---|
+| 2026-10-09 17:24 | passes.argent2 | pass | x2 CASH | 2024936419 | 500 | réutilisé |
+| 2026-10-09 17:24 | passes.nitroInfini | pass | INFINITE NITRO | 2022152446 | 700 | réutilisé |
+| 2026-10-09 17:24 | passes.vip | pass | VIP | 2023610427 | 449 | réutilisé |
+| 2026-10-09 17:24 | produits.coeur | product | 1 HEART | 3717447759 | 50 | réutilisé |
+| 2026-10-09 17:24 | produits.coeur5 | product | 5 HEARTS | 3717447762 | 199 | réutilisé |
+| 2026-10-09 17:24 | produits.coeur15 | product | 15 HEARTS | 3717447770 | 499 | réutilisé |
+| 2026-10-09 17:24 | produits.tours3 | product | 3 WHEEL SPINS | 3717447777 | 99 | réutilisé |
+| 2026-10-09 17:24 | produits.kit | product | DRIVER KIT | 3717447786 | 99 | réutilisé |
+| 2026-10-09 17:24 | argent.1 | product | $25K | 3717447795 | 99 | réutilisé — ⚠ prix en ligne 99, attendu 10 (non modifié) |
+| 2026-10-09 17:24 | argent.2 | product | $70K | 3717447797 | 249 | réutilisé — ⚠ prix en ligne 249, attendu 25 (non modifié) |
+| 2026-10-09 17:24 | argent.3 | product | $150K | 3717447812 | 499 | réutilisé — ⚠ prix en ligne 499, attendu 50 (non modifié) |
+| 2026-10-09 17:24 | argent.4 | product | $325K | 3717447821 | 999 | réutilisé — ⚠ prix en ligne 999, attendu 100 (non modifié) |
+| 2026-10-09 17:24 | argent.5 | product | $900K | 3717447831 | 2499 | réutilisé — ⚠ prix en ligne 2499, attendu 250 (non modifié) |
+| 2026-10-09 17:24 | caisses.9 | product | RAINBOW CAT | 3717447834 | 339 | réutilisé |
+| 2026-10-09 17:24 | caisses.19 | product | PIZZA EXPRESS | 3717447841 | 12899 | réutilisé |
+| 2026-10-09 17:24 | caisses.54 | product | LA FELINE | 3717447849 | 129 | réutilisé |
+| 2026-10-09 17:24 | caisses.57 | product | CENTRAL THRONE | 3717447854 | 129 | réutilisé |
+| 2026-10-09 17:24 | caisses.58 | product | THE SPECTER | 3717447857 | 129 | réutilisé |
+| 2026-10-09 17:24 | caisses.59 | product | BLACK KNIGHT | 3717447865 | 799 | réutilisé |
+| 2026-10-09 17:24 | caisses.60 | product | SOUND BARRIER | 3717447871 | 79 | réutilisé |
+| 2026-10-09 17:24 | badges.bienvenue | badge | WELCOME TO CASH CAR | — | 0 | à créer (gratuit si quota) |
+| 2026-10-09 17:24 | badges.permis | badge | DRIVER'S LICENSE | — | 0 | à créer (gratuit si quota) |
+| 2026-10-09 17:24 | badges.zone6 | badge | ZONE 6 | — | 0 | à créer (gratuit si quota) |
+| 2026-10-09 17:24 | badges.moteur10 | badge | ENGINE LEVEL 10 | — | 0 | à créer (gratuit si quota) |
+| 2026-10-09 17:24 | badges.aura1000 | badge | 1,000 AURA | — | 0 | à créer (gratuit si quota) |
+| 2026-10-09 17:24 | badges.millionnaire | badge | MILLIONAIRE | — | 0 | à créer (gratuit si quota) |
+| 2026-10-09 17:24 | badges.serie7 | badge | 7-DAY STREAK | — | 0 | à créer (gratuit si quota) |
+
+## 2026-10-09 17:24 — simulation
+
+| date | clé | type | nom | ID | prix R$ | statut |
+|---|---|---|---|---|---|---|
+| 2026-10-09 17:24 | passes.argent2 | pass | x2 CASH | 2024936419 | 500 | réutilisé |
+| 2026-10-09 17:24 | passes.nitroInfini | pass | INFINITE NITRO | 2022152446 | 700 | réutilisé |
+| 2026-10-09 17:24 | passes.vip | pass | VIP | 2023610427 | 449 | réutilisé |
+| 2026-10-09 17:24 | produits.coeur | product | 1 HEART | 3717447759 | 50 | réutilisé |
+| 2026-10-09 17:24 | produits.coeur5 | product | 5 HEARTS | 3717447762 | 199 | réutilisé |
+| 2026-10-09 17:24 | produits.coeur15 | product | 15 HEARTS | 3717447770 | 499 | réutilisé |
+| 2026-10-09 17:24 | produits.tours3 | product | 3 WHEEL SPINS | 3717447777 | 99 | réutilisé |
+| 2026-10-09 17:24 | produits.kit | product | DRIVER KIT | 3717447786 | 99 | réutilisé |
+| 2026-10-09 17:24 | argent.1 | product | $25K | 3717447795 | 99 | réutilisé — ⚠ prix en ligne 99, attendu 10 (non modifié) |
+| 2026-10-09 17:24 | argent.2 | product | $70K | 3717447797 | 249 | réutilisé — ⚠ prix en ligne 249, attendu 25 (non modifié) |
+| 2026-10-09 17:24 | argent.3 | product | $150K | 3717447812 | 499 | réutilisé — ⚠ prix en ligne 499, attendu 50 (non modifié) |
+| 2026-10-09 17:24 | argent.4 | product | $325K | 3717447821 | 999 | réutilisé — ⚠ prix en ligne 999, attendu 100 (non modifié) |
+| 2026-10-09 17:24 | argent.5 | product | $900K | 3717447831 | 2499 | réutilisé — ⚠ prix en ligne 2499, attendu 250 (non modifié) |
+| 2026-10-09 17:24 | caisses.9 | product | RAINBOW CAT | 3717447834 | 339 | réutilisé |
+| 2026-10-09 17:24 | caisses.19 | product | PIZZA EXPRESS | 3717447841 | 12899 | réutilisé |
+| 2026-10-09 17:24 | caisses.54 | product | LA FELINE | 3717447849 | 129 | réutilisé |
+| 2026-10-09 17:24 | caisses.57 | product | CENTRAL THRONE | 3717447854 | 129 | réutilisé |
+| 2026-10-09 17:24 | caisses.58 | product | THE SPECTER | 3717447857 | 129 | réutilisé |
+| 2026-10-09 17:24 | caisses.59 | product | BLACK KNIGHT | 3717447865 | 799 | réutilisé |
+| 2026-10-09 17:24 | caisses.60 | product | SOUND BARRIER | 3717447871 | 79 | réutilisé |
+| 2026-10-09 17:24 | badges.bienvenue | badge | WELCOME TO CASH CAR | — | 0 | à créer (gratuit si quota) |
+| 2026-10-09 17:24 | badges.permis | badge | DRIVER'S LICENSE | — | 0 | à créer (gratuit si quota) |
+| 2026-10-09 17:24 | badges.zone6 | badge | ZONE 6 | — | 0 | à créer (gratuit si quota) |
+| 2026-10-09 17:24 | badges.moteur10 | badge | ENGINE LEVEL 10 | — | 0 | à créer (gratuit si quota) |
+| 2026-10-09 17:24 | badges.aura1000 | badge | 1,000 AURA | — | 0 | à créer (gratuit si quota) |
+| 2026-10-09 17:24 | badges.millionnaire | badge | MILLIONAIRE | — | 0 | à créer (gratuit si quota) |
+| 2026-10-09 17:24 | badges.serie7 | badge | 7-DAY STREAK | — | 0 | à créer (gratuit si quota) |
+
+## 2026-10-09 17:24 — simulation
+
+| date | clé | type | nom | ID | prix R$ | statut |
+|---|---|---|---|---|---|---|
+| 2026-10-09 17:24 | passes.argent2 | pass | x2 CASH | 2024936419 | 500 | réutilisé |
+| 2026-10-09 17:24 | passes.nitroInfini | pass | INFINITE NITRO | 2022152446 | 700 | réutilisé |
+| 2026-10-09 17:24 | passes.vip | pass | VIP | 2023610427 | 449 | réutilisé |
+| 2026-10-09 17:24 | produits.coeur | product | 1 HEART | 3717447759 | 50 | réutilisé |
+| 2026-10-09 17:24 | produits.coeur5 | product | 5 HEARTS | 3717447762 | 199 | réutilisé |
+| 2026-10-09 17:24 | produits.coeur15 | product | 15 HEARTS | 3717447770 | 499 | réutilisé |
+| 2026-10-09 17:24 | produits.tours3 | product | 3 WHEEL SPINS | 3717447777 | 99 | réutilisé |
+| 2026-10-09 17:24 | produits.kit | product | DRIVER KIT | 3717447786 | 99 | réutilisé |
+| 2026-10-09 17:24 | argent.1 | product | $25K | 3717447795 | 10 | réutilisé — prix corrigé 99 → 10 |
+| 2026-10-09 17:24 | argent.2 | product | $70K | 3717447797 | 25 | réutilisé — prix corrigé 249 → 25 |
+| 2026-10-09 17:24 | argent.3 | product | $150K | 3717447812 | 50 | réutilisé — prix corrigé 499 → 50 |
+| 2026-10-09 17:24 | argent.4 | product | $325K | 3717447821 | 100 | réutilisé — prix corrigé 999 → 100 |
+| 2026-10-09 17:24 | argent.5 | product | $900K | 3717447831 | 250 | réutilisé — prix corrigé 2499 → 250 |
+| 2026-10-09 17:24 | caisses.9 | product | RAINBOW CAT | 3717447834 | 339 | réutilisé |
+| 2026-10-09 17:24 | caisses.19 | product | PIZZA EXPRESS | 3717447841 | 12899 | réutilisé |
+| 2026-10-09 17:24 | caisses.54 | product | LA FELINE | 3717447849 | 129 | réutilisé |
+| 2026-10-09 17:24 | caisses.57 | product | CENTRAL THRONE | 3717447854 | 129 | réutilisé |
+| 2026-10-09 17:24 | caisses.58 | product | THE SPECTER | 3717447857 | 129 | réutilisé |
+| 2026-10-09 17:24 | caisses.59 | product | BLACK KNIGHT | 3717447865 | 799 | réutilisé |
+| 2026-10-09 17:24 | caisses.60 | product | SOUND BARRIER | 3717447871 | 79 | réutilisé |
+| 2026-10-09 17:24 | badges.bienvenue | badge | WELCOME TO CASH CAR | — | 0 | à créer (gratuit si quota) |
+| 2026-10-09 17:24 | badges.permis | badge | DRIVER'S LICENSE | — | 0 | à créer (gratuit si quota) |
+| 2026-10-09 17:24 | badges.zone6 | badge | ZONE 6 | — | 0 | à créer (gratuit si quota) |
+| 2026-10-09 17:24 | badges.moteur10 | badge | ENGINE LEVEL 10 | — | 0 | à créer (gratuit si quota) |
+| 2026-10-09 17:24 | badges.aura1000 | badge | 1,000 AURA | — | 0 | à créer (gratuit si quota) |
+| 2026-10-09 17:24 | badges.millionnaire | badge | MILLIONAIRE | — | 0 | à créer (gratuit si quota) |
+| 2026-10-09 17:24 | badges.serie7 | badge | 7-DAY STREAK | — | 0 | à créer (gratuit si quota) |
+
+## 2026-10-09 17:25 — simulation
+
+| date | clé | type | nom | ID | prix R$ | statut |
+|---|---|---|---|---|---|---|
+| 2026-10-09 17:24 | passes.argent2 | pass | x2 CASH | 2024936419 | 500 | réutilisé |
+| 2026-10-09 17:24 | passes.nitroInfini | pass | INFINITE NITRO | 2022152446 | 700 | réutilisé |
+| 2026-10-09 17:24 | passes.vip | pass | VIP | 2023610427 | 449 | réutilisé |
+| 2026-10-09 17:24 | produits.coeur | product | 1 HEART | 3717447759 | 50 | réutilisé |
+| 2026-10-09 17:24 | produits.coeur5 | product | 5 HEARTS | 3717447762 | 199 | réutilisé |
+| 2026-10-09 17:24 | produits.coeur15 | product | 15 HEARTS | 3717447770 | 499 | réutilisé |
+| 2026-10-09 17:24 | produits.tours3 | product | 3 WHEEL SPINS | 3717447777 | 99 | réutilisé |
+| 2026-10-09 17:24 | produits.kit | product | DRIVER KIT | 3717447786 | 99 | réutilisé |
+| 2026-10-09 17:24 | argent.1 | product | $25K | 3717447795 | 10 | réutilisé |
+| 2026-10-09 17:24 | argent.2 | product | $70K | 3717447797 | 25 | réutilisé |
+| 2026-10-09 17:24 | argent.3 | product | $150K | 3717447812 | 50 | réutilisé |
+| 2026-10-09 17:24 | argent.4 | product | $325K | 3717447821 | 100 | réutilisé |
+| 2026-10-09 17:24 | argent.5 | product | $900K | 3717447831 | 250 | réutilisé |
+| 2026-10-09 17:24 | caisses.9 | product | RAINBOW CAT | 3717447834 | 339 | réutilisé |
+| 2026-10-09 17:24 | caisses.19 | product | PIZZA EXPRESS | 3717447841 | 12899 | réutilisé |
+| 2026-10-09 17:24 | caisses.54 | product | LA FELINE | 3717447849 | 129 | réutilisé |
+| 2026-10-09 17:24 | caisses.57 | product | CENTRAL THRONE | 3717447854 | 129 | réutilisé |
+| 2026-10-09 17:24 | caisses.58 | product | THE SPECTER | 3717447857 | 129 | réutilisé |
+| 2026-10-09 17:24 | caisses.59 | product | BLACK KNIGHT | 3717447865 | 799 | réutilisé |
+| 2026-10-09 17:24 | caisses.60 | product | SOUND BARRIER | 3717447871 | 79 | réutilisé |
+| 2026-10-09 17:25 | badges.bienvenue | badge | WELCOME TO CASH CAR | — | 0 | à créer (gratuit si quota) |
+| 2026-10-09 17:25 | badges.permis | badge | DRIVER'S LICENSE | — | 0 | à créer (gratuit si quota) |
+| 2026-10-09 17:25 | badges.zone6 | badge | ZONE 6 | — | 0 | à créer (gratuit si quota) |
+| 2026-10-09 17:25 | badges.moteur10 | badge | ENGINE LEVEL 10 | — | 0 | à créer (gratuit si quota) |
+| 2026-10-09 17:25 | badges.aura1000 | badge | 1,000 AURA | — | 0 | à créer (gratuit si quota) |
+| 2026-10-09 17:25 | badges.millionnaire | badge | MILLIONAIRE | — | 0 | à créer (gratuit si quota) |
+| 2026-10-09 17:25 | badges.serie7 | badge | 7-DAY STREAK | — | 0 | à créer (gratuit si quota) |

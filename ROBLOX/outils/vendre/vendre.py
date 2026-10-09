@@ -24,6 +24,9 @@ CONF = json.load(open(os.path.join(ICI, 'articles.json'), encoding='utf-8'))
 U = CONF['universe']
 CREER = '--creer' in sys.argv
 BADGES = '--badges' in sys.argv
+# (9/10, Sacha : « l'argent doit coûter 10 x moins cher ») --corriger : un article qui existe déjà mais dont le prix en ligne n'est plus
+# celui d'articles.json reçoit le bon prix (PATCH …/game-passes/{id} ou …/developer-products/{id}, champ « price » seul — doc OpenAPI)
+CORRIGER = '--corriger' in sys.argv
 ICONES = os.path.join(RACINE, 'publication', 'boutique')
 IDS = os.path.join(ICI, 'ids.json')
 JOURNAL = os.path.join(RACINE, 'audit', 'journal.md')
@@ -60,7 +63,8 @@ def appel(meth, url, pas, **kw):
             time.sleep(attente)
         DERNIER['t'] = time.time()
         for f in (kw.get('files') or {}).values():
-            f[1].seek(0)
+            if hasattr(f[1], 'seek'):
+                f[1].seek(0)
         r = S.request(meth, url, timeout=60, **kw)
         if r.status_code == 429 or r.status_code >= 500:
             ra = r.headers.get('Retry-After', '')
@@ -155,7 +159,15 @@ def main():
             ident, p = deja[champ], prix_de(deja)
             ids[a['cle']] = ident
             etat = 'réutilisé'
-            if p != a['price']:
+            if p != a['price'] and CORRIGER:
+                base = f'/game-passes/v1/universes/{U}/game-passes' if estPasse else f'/developer-products/v2/universes/{U}/developer-products'
+                r = appel('PATCH', f'{API}{base}/{ident}', 0.25 if estPasse else 0.4, files={'price': (None, str(a['price']))})
+                if r.status_code in (200, 204):
+                    etat += f" — prix corrigé {p} → {a['price']}"
+                    p = a['price']
+                else:
+                    etat += f" — ⚠ ÉCHEC de la correction du prix ({r.status_code} {r.text[:160]})"
+            elif p != a['price']:
                 etat += f" — ⚠ prix en ligne {p}, attendu {a['price']} (non modifié)"
             if not deja.get('isForSale'):
                 etat += ' — ⚠ PAS en vente (non modifié)'

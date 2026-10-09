@@ -250,11 +250,11 @@ ligne indiquée. « Passe » = Monétisation → **Passes** ; « Produit » = Mo
 | 6 | « 15 COEURS » | Produit | **499 R$** | `produits = { coeur15 = … }` |
 | 7 | « KIT DU PILOTE » (50 000 $, 3 cœurs, traînée POUDRE D'OR) | Produit | **99 R$** | `produits = { kit = … }` |
 | 8 | « 3 TOURS DE ROUE » | Produit | 99 R$ | `produits = { tours3 = … }` |
-| 9 | « 25 000 $ » | Produit | **99 R$** | `argent = { { id = … , v = 25000 }` (1re ligne) |
-| 10 | « 70 000 $ » | Produit | **249 R$** | `argent` → 2e ligne (`v = 70000`), `id = …` |
-| 11 | « 150 000 $ » | Produit | **499 R$** | `argent` → 3e ligne (`v = 150000`), `id = …` |
-| 12 | « 325 000 $ » | Produit | **999 R$** | `argent` → 4e ligne (`v = 325000`), `id = …` |
-| 13 | « 900 000 $ » | Produit | **2 499 R$** | `argent` → 5e ligne (`v = 900000`), `id = …` |
+| 9 | « 25 000 $ » | Produit | **10 R$** | `argent = { { id = … , v = 25000 }` (1re ligne) |
+| 10 | « 70 000 $ » | Produit | **25 R$** | `argent` → 2e ligne (`v = 70000`), `id = …` |
+| 11 | « 150 000 $ » | Produit | **50 R$** | `argent` → 3e ligne (`v = 150000`), `id = …` |
+| 12 | « 325 000 $ » | Produit | **100 R$** | `argent` → 4e ligne (`v = 325000`), `id = …` |
+| 13 | « 900 000 $ » | Produit | **250 R$** | `argent` → 5e ligne (`v = 900000`), `id = …` |
 | 14 | « CHAT ARC-EN-CIEL » | Produit | **339 R$** (web : 4,20 €) | `caisses = { [9] = … }` |
 | 15 | « LA PIZZA EXPRESS » | Produit | **12 899 R$** (web : 161 €) | `caisses` → `[19] = …` |
 | 16 | « LA FELINE » | Produit | **129 R$** (web : 1,61 €) | `caisses` → `[54] = …` |

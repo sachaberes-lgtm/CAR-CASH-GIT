@@ -26476,13 +26476,13 @@ Config.REVENUS = {
 	-- habillage OFFERT (« catégorie:id » de Config.HABITS — ici la traînée POUDRE D'OR, rangée au garage)
 	kit = { argent = 50000, coeurs = 3, habit = "trainee:or" },
 	-- LES PACKS D'ARGENT (produits, achat répété ; section ARGENT de la boutique) : `id` = le numéro du produit, `v` = les $ versés au
-	-- compte. Prix conseillés : 99 · 249 · 499 · 999 · 2 499 R$ (le bonus grandit avec la taille). Les montants se règlent ICI.
+	-- compte. Prix : 10 · 25 · 50 · 100 · 250 R$ (le bonus grandit avec la taille ; 9/10, Sacha : « l'argent doit coûter 10 x moins cher »). Les montants se règlent ICI.
 	argent = {
-		{ id = 3717447795, v = 25000 },  -- 99 R$
-		{ id = 3717447797, v = 70000 },  -- 249 R$
-		{ id = 3717447812, v = 150000 }, -- 499 R$
-		{ id = 3717447821, v = 325000 }, -- 999 R$
-		{ id = 3717447831, v = 900000 }, -- 2 499 R$
+		{ id = 3717447795, v = 25000 },  -- 10 R$
+		{ id = 3717447797, v = 70000 },  -- 25 R$
+		{ id = 3717447812, v = 150000 }, -- 50 R$
+		{ id = 3717447821, v = 325000 }, -- 100 R$
+		{ id = 3717447831, v = 900000 }, -- 250 R$
 	},
 	-- LES CAISSES LÉGENDAIRES en Robux (les 7 « premium » du catalogue, cond.k = "premium") : [indice de la caisse] = numéro du
 	-- PRODUIT. Achat UNIQUE gardé dans le profil (une caisse à soi ne se rachète pas) ; purement cosmétique — la vitesse vient du
@@ -26508,7 +26508,7 @@ Config.REVENUS = {
 	prixConseilles = {
 		passes = { argent2 = 500, nitroInfini = 700, vip = 449 },
 		produits = { coeur = 50, coeur5 = 199, coeur15 = 499, kit = 99, tours3 = 99 },
-		argent = { 99, 249, 499, 999, 2499 },
+		argent = { 10, 25, 50, 100, 250 },
 	},
 	-- (9/10, Sacha : « après 1 semaine de connexion quotidienne, les joueurs gagnent la voiture dragon d'or ») : la caisse offerte au
 	-- 7e jour d'affilée du CADEAU DU JOUR (cond.k = "jour7" au catalogue) — une fois ; déjà à soi, le 7e jour reste le gros montant

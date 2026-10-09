@@ -18,11 +18,11 @@ Puis colle-moi les numéros (ID) : je les branche dans le jeu (Config.REVENUS) e
 | 6 | `produits.coeur15` | Produit développeur | **15 HEARTS** | 499 | Fifteen extra lives, kept from race to race. | `produits.coeur15.png` | |
 | 7 | `produits.tours3` | Produit développeur | **3 WHEEL SPINS** | 99 | Three spins of the prize wheel. Odds are shown on the wheel before you buy. | `produits.tours3.png` | |
 | 8 | `produits.kit` | Produit développeur | **DRIVER KIT** | 99 | $50,000 + 3 hearts + the GOLD DUST trail. Once per account. | `produits.kit.png` | |
-| 9 | `argent.1` | Produit développeur | **$25K** | 99 | +$25,000 straight to your account. | `argent.1.png` | |
-| 10 | `argent.2` | Produit développeur | **$70K** | 249 | +$70,000 straight to your account. | `argent.2.png` | |
-| 11 | `argent.3` | Produit développeur | **$150K** | 499 | +$150,000 straight to your account. | `argent.3.png` | |
-| 12 | `argent.4` | Produit développeur | **$325K** | 999 | +$325,000 straight to your account. | `argent.4.png` | |
-| 13 | `argent.5` | Produit développeur | **$900K** | 2499 | +$900,000 straight to your account. Best deal. | `argent.5.png` | |
+| 9 | `argent.1` | Produit développeur | **$25K** | 10 | +$25,000 straight to your account. | `argent.1.png` | |
+| 10 | `argent.2` | Produit développeur | **$70K** | 25 | +$70,000 straight to your account. | `argent.2.png` | |
+| 11 | `argent.3` | Produit développeur | **$150K** | 50 | +$150,000 straight to your account. | `argent.3.png` | |
+| 12 | `argent.4` | Produit développeur | **$325K** | 100 | +$325,000 straight to your account. | `argent.4.png` | |
+| 13 | `argent.5` | Produit développeur | **$900K** | 250 | +$900,000 straight to your account. Best deal. | `argent.5.png` | |
 | 14 | `caisses.9` | Produit développeur | **RAINBOW CAT** | 339 | Legendary car, yours forever. Cosmetic only: speed comes from the engine. | `caisses.9.png` | |
 | 15 | `caisses.19` | Produit développeur | **PIZZA EXPRESS** | 12899 | Legendary car, yours forever. Cosmetic only: speed comes from the engine. | `caisses.19.png` | |
 | 16 | `caisses.54` | Produit développeur | **LA FELINE** | 129 | Legendary car, yours forever. Cosmetic only: speed comes from the engine. | `caisses.54.png` | |
