@@ -44,8 +44,11 @@
   s'écartent en diagonale) · L'ESCALIER · LA FONTAINE. Par dauphin : côté `s`, distance au BORD x0 → x1 (m × taille), saut z0 → z1 (en W,
   + devant). updateDolphins mesure l'axe de la route en x du banc (`dolXR` : FDOL.p au sol, `pts[tryLand._bi]` en vol), R = ROAD_HALF + 2,
   et pose le banc assez loin pour que les deux bords tiennent dans l'écran (portée en mètres FIXES — liée à la taille, elle s'emballait).
-  ⚠ Conséquence mesurée : en course ils sont à 40-60 m, près de l'horizon, et le flou de vitesse les étale (au sol surtout) ; en portrait
-  la route prend toute la largeur, ils sont encore plus loin. La boîte dessine une route (repère, pas à l'échelle). `dbgDauphin('ecran')` :
+  ⚠ Poussé ainsi sur main (v209), « ça bug » : calé sur la caisse puis sur la route, le banc sortait de l'écran en vol (la caméra de vol
+  plonge vers la caisse) et l'aura montait pour rien. CORRIGÉ : le banc vit dans le repère de la CAMÉRA (24 m devant elle, collé à l'écran),
+  les dauphins sautent sur les CÔTÉS de l'écran (R = 38 % de la demi-largeur, écarts en `ku` jusqu'au bord), dans la profondeur ; la route la
+  plus proche (dalleProche + frameAt) donne sa hauteur et le banc monte au-dessus (ou descend sous elle) pour que la tranche de leurs sauts
+  ne la touche jamais (`dolHY`). Saut le plus long : jamais à moins de 10 m de l'objectif. La boîte dessine une route (repère, pas à l'échelle). `dbgDauphin('ecran')` :
   où sont les dauphins à l'écran (−1…1) et à quelle distance.
 ## LA SALLE BLANCHE (2026-10-09, Léo : « une sublime voiture dans une salle blanche, que je peux tourner, avec une petite rangée de toutes les voitures qu'on a — pas les enlevées — qu'on glisse dans différentes raretés ; télécharger une liste écrite de tout ce qu'on a dit dessus »)
 - `salle-blanche.html` (outil, à côté d'index.html, à servir : `python3 -m http.server 8975` puis /salle-blanche.html). RIEN n'est recopié :

@@ -27364,9 +27364,9 @@ const DOL_CHORE=[
 // la POSE du dauphin i de la choré C à la phase p (repère du banc : x en travers, z le long de la route) : position, cap, tangage (le nez
 // suit la trajectoire), l'axe du nez (nx,ny,nz), la portée horizontale du saut (hz : la cambrure) ; R = le demi-bitume + la marge, xr = l'axe
 // de la route (en x du banc). Quand il vient vers la caméra, au sommet il tourne un peu la tête. Partagée par le jeu et la boîte.
-function dolChorePose(C,i,b,p,k,W,dir,o,R,xr){
-  const c=C.d[i]||C.d[0],sd=(c.s||1)*dir,xa=c.x0!=null?c.x0:(c.x||3),xb=c.x1!=null?c.x1:(c.x||3),
-    x0=(xr||0)+sd*((R||0)+xa*k),x1=(xr||0)+sd*((R||0)+xb*k),z0=(c.z0||0)*W,z1=(c.z1||0)*W,amp=b.amp*k*(c.a||1),base=b.base*k,arc=Math.sin(p*Math.PI);
+function dolChorePose(C,i,b,p,k,W,dir,o,R,xr,ku){ // ku : l'unité des écarts au bord (par défaut la taille du banc)
+  const c=C.d[i]||C.d[0],sd=(c.s||1)*dir,xa=c.x0!=null?c.x0:(c.x||3),xb=c.x1!=null?c.x1:(c.x||3),u9=ku||k,
+    x0=(xr||0)+sd*((R||0)+xa*u9),x1=(xr||0)+sd*((R||0)+xb*u9),z0=(c.z0||0)*W,z1=(c.z1||0)*W,amp=b.amp*k*(c.a||1),base=b.base*k,arc=Math.sin(p*Math.PI);
   o.x=x0+(x1-x0)*p;o.z=z0+(z1-z0)*p;o.y=base+arc*amp;o.arc=arc;o.amp=amp;o.base=base;
   const vx=x1-x0,vz=z1-z0,vy=Math.cos(p*Math.PI)*amp*Math.PI,hz=Math.max(.05,Math.hypot(vx,vz));o.hz=hz;
   o.yaw=Math.atan2(-vz,vx);o.pitch=Math.atan2(vy,hz*.8);o.yaw+=.22*Math.max(0,arc)*Math.cos(o.yaw);
@@ -27396,7 +27396,7 @@ function dolGerbe(x,y,z,power,k,nM){ // la gerbe : une COURONNE qui monte, un AN
 }
 const crV3=new THREE.Vector3(),dolUp=new THREE.Vector3(),dolQc=new THREE.Quaternion(),dolQp=new THREE.Quaternion(),FDOL={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()}; // (v6) dolQc : l'orientation VISÉE du banc · dolQp : celle de l'image d'avant (banc) · FDOL : le repère de la route sous la caisse
 let dolRasK=0,dolRasF=null,dolSync=false,dolSyncT=0,dolSyncVr=1,dolRigMax=0; // (v6) dolRasK : le RAS lissé qui se VOIT (0-1 ; dolRasF le force au banc) · dolSync/T/Vr : le BOND ROYAL du 6e dauphin · dolRigMax : la plus grande rotation du banc en UNE image (°, lue et remise à zéro par dbgDauphin('etat'))
-let dolCh=0,dolChF=null,dolVrS=0,dolXR=0;const DOLP={}; // dolXR : l'axe de la route en x du banc (lissé) // (2026-10-09) la CHORÉ en cours (dolChF : forcée par la console) · dolVrS : la vrille décidée pour toute la vague (sync) · DOLP : la pose de l'image
+let dolCh=0,dolChF=null,dolVrS=0,dolXR=0,dolBi=0,dolHY=0;const DOLP={},DCAM=new THREE.Vector3(),DQ9=new THREE.Vector3(); // dolBi : la route où se pose le banc (graine de dalleProche) · DCAM : le regard de la caméra // dolXR : l'axe de la route en x du banc (lissé) // (2026-10-09) la CHORÉ en cours (dolChF : forcée par la console) · dolVrS : la vrille décidée pour toute la vague (sync) · DOLP : la pose de l'image
 let dolShow=0,dolIn=9,dolPart=0,dolDir=-1,dolKS=1,dolW=13; // dolShow : secondes d'affichage restantes · dolIn : secondes depuis le déclenchement · dolPart : vie restante des gerbes · dolDir : sens de traversée · dolKS/dolW : taille et demi-largeur du banc (m)
 function updateDolphins(dt,photo){
   if(paused&&!photo)return; // (2026-09-29) la PAUSE fige le banc : il nageait (et s'usait) derrière le panneau — `photo` : le pas à pas de dbgDolView
@@ -27408,11 +27408,24 @@ function updateDolphins(dt,photo){
      10-30° à la pose le faisait bondir de plusieurs mètres en une image. Au sol il prend le repère de la ROUTE (sa tangente dans le sens
      de marche, sa normale côté face roulée — la même main que carGroup) et l'orientation RALLIE la visée (1 − e^(−6·dt) : 63 % en
      0,17 s) ; posée d'un coup seulement quand le banc est neuf (dolIn = 0). Repère dégénéré (vitesse ∥ haut) : on garde l'orientation. */
-  dolphinRig.position.copy(carGroup.position);
-  if(mode==='fall'){crV1.copy(fallVel).normalize();crV2.crossVectors(FLY_U,crV1).normalize();}
-  else{frameAt(s,FDOL);crV1.copy(FDOL.t).multiplyScalar(driveDir);dolUp.copy(FDOL.n).multiplyScalar(side);crV2.crossVectors(dolUp,crV1).normalize();}
+  /* (2026-10-09, Léo : « ça bug ») LE BANC SUIT LA CAMÉRA. Calé sur la caisse et sa trajectoire (ou sur la route), il sortait de l'écran
+     en vol : la caméra de vol plonge vers la caisse et la route peut être n'importe où dans l'image — les dauphins passaient hors champ,
+     l'aura montait pour rien. Désormais le banc vit dans le repère de la CAMÉRA, à D9 m devant elle (x en travers de l'écran, y son haut,
+     z la profondeur) : les dauphins sautent sur les CÔTÉS de l'écran (jamais au milieu, jamais en travers : dolChorePose, R = 38 % de la
+     demi-largeur), le long de la profondeur. Et ils ne TOUCHENT JAMAIS la route : la route la plus proche du banc (dalleProche + frameAt)
+     donne sa hauteur ; si elle tombe dans la tranche de leurs sauts, le banc monte au-dessus (ou descend en dessous si la caméra est sous elle). */
+  const tanV=Math.tan(camera.fov*Math.PI/360),tanH=tanV*camera.aspect,D9=24;
+  camera.getWorldDirection(DCAM);dolphinRig.position.copy(camera.position).addScaledVector(DCAM,D9);
+  crV1.copy(DCAM);crV3.setFromMatrixColumn(camera.matrixWorld,1);crV2.crossVectors(crV3,crV1).normalize(); // z = le regard · y = le haut de l'écran · x = y × z
+  { // LA ROUTE NE SE TRAVERSE PAS : sa hauteur dans le repère du banc, et la tranche de ses sauts (−2k … +4,2k) qui doit l'éviter de 2 m
+    let y9=0;const bi=dalleProche(dolphinRig.position.x,dolphinRig.position.y,dolphinRig.position.z,2,1e9,dolBi);
+    if(bi>=0&&bi<NP){dolBi=bi;frameAt(bi/(NP-1)*L+crV3.subVectors(dolphinRig.position,pts[bi]).dot(T[bi]),FDOL);
+      crV3.setFromMatrixColumn(camera.matrixWorld,1);const hr=crV3.dot(DQ9.subVectors(FDOL.p,dolphinRig.position)),k9=dolKS,lo=-2*k9,hi=4.2*k9;
+      if(hr>lo-2&&hr<hi+2){const dessus=DQ9.subVectors(camera.position,FDOL.p).dot(FDOL.n)>0;y9=dessus?(hr+2)-lo:-(hi-(hr-2));}}
+    dolHY=dolIn===0?y9:dolHY+(y9-dolHY)*(1-Math.exp(-dt*4));}
+  crV3.setFromMatrixColumn(camera.matrixWorld,1);
   if(crV2.lengthSq()>.5){crV3.crossVectors(crV1,crV2);mat4.makeBasis(crV2,crV3,crV1);dolQc.setFromRotationMatrix(mat4);
-    if(dolIn===0)dolphinRig.quaternion.copy(dolQc);else{dolphinRig.quaternion.slerp(dolQc,1-Math.exp(-dt*6));dolRigMax=Math.max(dolRigMax,dolQp.angleTo(dolphinRig.quaternion)*57.3);}
+    dolphinRig.quaternion.copy(dolQc);dolRigMax=Math.max(dolRigMax,dolQp.angleTo(dolphinRig.quaternion)*57.3); // (2026-10-09) collé au repère de la caméra : il bouge avec l'écran (le ralliement de 0,17 s le faisait tanguer)
     dolQp.copy(dolphinRig.quaternion);}
   dolPoolStep(dolTrail,dt,0);dolPoolStep(dolSplash,dt,6*dolKS);
   if(dolShow<=0){for(const d of dolphins)if(d.visible)d.visible=false;return;} // (tous : le 1er pouvait être sous l'eau pendant qu'un autre restait figé en l'air)
@@ -27421,17 +27434,13 @@ function updateDolphins(dt,photo){
   /* (2026-10-09, Léo : « ils ne peuvent pas aller de la droite vers la gauche… celles qui viennent du milieu vont transpercer la route »)
      LE BANC LONGE LA ROUTE : on mesure où passe son axe (en x du banc) et les dauphins nagent DE PART ET D'AUTRE, hors du bitume
      (dolChorePose, R = demi-bitume + 2 m). Le banc se pose assez loin devant pour que les deux bords tiennent dans l'écran. */
-  {let P9=null;if(mode==='fall'){const bi=tryLand._bi;if(bi>=0&&bi<NP)P9=pts[bi];}else P9=FDOL.p;
-    let xr=0;if(P9){crV3.set(1,0,0).applyQuaternion(dolphinRig.quaternion);xr=crV3.dot(crV1.subVectors(P9,carGroup.position));if(!isFinite(xr))xr=0;}
-    dolXR=neuf?xr:dolXR+(xr-dolXR)*(1-Math.exp(-dt*3));}
-  const R9=ROAD_HALF+2;camera.getWorldDirection(crV2);
-  const tanV=Math.tan(camera.fov*Math.PI/360),tanH=tanV*camera.aspect,dCar=Math.max(1,crV2.dot(crV1.subVectors(carGroup.position,camera.position))),
-        dist=Math.max(dCar+8,(Math.abs(dolXR)+R9+12)/(.85*tanH)),hv=dist*tanV,hw=hv*camera.aspect, // (la portée en m FIXES : liée à la taille, elle s'emballait)
-        kT=THREE.MathUtils.clamp(.11*Math.min(hv,hw),.8,3),wT=6*kT; // un dauphin ≈ un neuvième de la plus petite dimension · un saut ≈ 4 longueurs, le long de la route
-  dolPod.position.set(0,-.35*dolKS,dist-dCar); // devant la caisse, un poil sous sa ligne
+  dolXR=0;
+  const hv=D9*tanV,hw=hv*camera.aspect,R9=.38*hw,KU9=Math.max(.2,(.9*hw-R9)/10), // R9 : le bord du « couloir » du milieu, interdit · KU9 : l'unité des écarts (x 0…10 → jusqu'au bord de l'écran)
+        kT=THREE.MathUtils.clamp(.12*Math.min(hv,hw),.6,3),wT=Math.min(6*kT,(D9-10)/1.6); // (le saut le plus long part de −1,6 W : jamais à moins de 10 m de l'objectif) // un dauphin ≈ un huitième de la plus petite dimension · un saut ≈ 4 longueurs, dans la profondeur
+  dolPod.position.set(0,dolHY,0); // relevé (ou abaissé) pour ne jamais toucher la route
   dolPod.getWorldPosition(crV1);
   dolUp.set(0,1,0).applyQuaternion(dolphinRig.quaternion);const surf0=dolUp.dot(crV1); // la SURFACE de l'eau : le plan du banc, à la hauteur de chaque gerbe
-  DOL_U.uLum.value.copy(dolUp).addScaledVector(crV2,-.4).normalize(); // (2026-10-09) SA lumière : le haut du banc, un peu vers la caméra
+  DOL_U.uLum.value.copy(dolUp).addScaledVector(DCAM,-.4).normalize(); // (2026-10-09) SA lumière : le haut du banc, un peu vers la caméra
   if(neuf){dolKS=kT;dolW=wT;dolDir=-dolDir;dolSyncT=0; // (v6) un banc neuf n'hérite pas d'un bond royal resté en suspens
     {let c9=dolChF!=null?dolChF:Math.floor(Math.random()*(DOL_CHORE.length-1));if(dolChF==null&&c9>=dolCh)c9++;dolCh=Math.min(DOL_CHORE.length-1,c9);} // une CHORÉ par apparition, jamais deux fois la même de suite
     for(let i=0;i<dolphins.length;i++){const u=dolphins[i].userData,c=DOL_CHORE[dolCh].d[i]||{lag:0};u.p=-(c.lag||0);u.up=false;u.sy=0;u.vr=0;}
@@ -27459,7 +27468,7 @@ function updateDolphins(dt,photo){
       else{let vr9=0;for(const o of dolphins)if(o!==d&&o.visible&&o.userData.vr)vr9=1;u.vr=!vr9&&Math.random()<(C.vr||0)?(Math.random()<.5?1:-1):0;}} // sinon, à la chance de la choré, jamais deux à la fois
     if(go9){u.p=-.12;u.sy=1;u.vr=dolSyncVr;} // (v6) …puis les six percent ENSEMBLE, même tempo, même vrille
     const p=u.p,vis=p>-.18&&p<1.18;d.visible=vis; // la surface le coupe : il est « là » dès que le rostre peut la percer
-    const P9=dolChorePose(C,i9,b,p,k,W,dir,DOLP,R9,dolXR),arc=P9.arc,amp=P9.amp,base=P9.base,x=P9.x,y=P9.y,z=P9.z; // (2026-10-09) la pose vient de la CHORÉ
+    const P9=dolChorePose(C,i9,b,p,k,W,dir,DOLP,R9,dolXR,KU9),arc=P9.arc,amp=P9.amp,base=P9.base,x=P9.x,y=P9.y,z=P9.z; // (2026-10-09) la pose vient de la CHORÉ
     const above=y>base+.15*k&&p>0&&p<1;
     if(above!==u.up){dolGerbe(x,base+.05*k,z,(above?1.2:.9)*b.scale*(u.sy?1.4:1),k,gK);dolPart=1.3;u.up=above;} // on JAILLIT / on REPLONGE → gerbe (v6 : plus fournie au ras, plus haute au bond royal)
     if(!vis)continue;
