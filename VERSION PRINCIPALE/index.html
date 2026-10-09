@@ -6269,8 +6269,8 @@ html body #garage:not(.menu) #gRar.gModeBar{display:flex!important;align-items:c
 /* L'INVENTAIRE COMPLET (2026-10-09, Léo) : ce qu'on n'a pas encore = une SILHOUETTE noire transparente (cernée d'un fil cyan pour se lire
    sur le fond sombre), le fond de la vignette éteint, le cadenas au coin ; ce qu'on a garde ses couleurs. */
 #gStrip.gModeInv .gT.lock{background:rgba(6,4,14,.55)!important;box-shadow:inset 0 0 0 1px rgba(94,230,255,.14)!important}
-html body #garage #gStrip.gModeInv .gT.lock img{filter:brightness(0) drop-shadow(0 0 1px rgba(94,230,255,.55));opacity:.6} /* (plus fort que la lueur des vignettes à vendre) */
-#gStrip.gModeInv .gT.lock :is(.gSwc,.gRub,.gIc){filter:brightness(0) drop-shadow(0 0 1px rgba(94,230,255,.55));opacity:.55}
+html body #garage #gStrip.gModeInv .gT.lock img{filter:brightness(.26) saturate(.55) contrast(1.15) drop-shadow(0 0 1px rgba(94,230,255,.55));opacity:.8} /* (plus fort que la lueur des vignettes à vendre) — (même soir, Léo : « qu'on les devine quand même un petit peu ») assombrie, plus noire : formes et couleurs se devinent */
+#gStrip.gModeInv .gT.lock :is(.gSwc,.gRub,.gIc){filter:brightness(.3) saturate(.6) drop-shadow(0 0 1px rgba(94,230,255,.55));opacity:.75}
 #gStrip.gModeInv .gT.lock .gTl{display:none}
 #gStrip.gModeInv .gT.lock::before{background:#9fdcff;opacity:.85}
 #gStrip.gModeInv .gT.lock.on{box-shadow:inset 0 0 0 2px rgba(94,230,255,.6)!important}
