@@ -177,3 +177,7 @@
 | 2026-10-09 16:07 | badges.aura1000 | badge | 1,000 AURA | — | 0 | à créer (gratuit si quota) |
 | 2026-10-09 16:07 | badges.millionnaire | badge | MILLIONAIRE | — | 0 | à créer (gratuit si quota) |
 | 2026-10-09 16:07 | badges.serie7 | badge | 7-DAY STREAK | — | 0 | à créer (gratuit si quota) |
+
+## 2026-10-09 16:55 — publication
+
+Lieu 91982637462711 publié par l API : version 9, fichier CashCar_PRET.rbxlx (7491476 octets).
