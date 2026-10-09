@@ -6108,6 +6108,29 @@ html.hub #mHome .mHubShop .mBadge{top:-10px;right:-8px;transform:scale(.86);tran
 html.hub #mHome .mHubPorte .mBadge{top:-10px;right:-8px;transform:scale(.86);transform-origin:100% 0}
 @media (prefers-reduced-motion:reduce){html.hubOn #gHub{animation:none;transition:none}.ghT,.ghT::before{transition:none}}
 html[data-reduced-motion="1"] #gHub{animation:none!important;transition:none!important}
+/* LA BARRE FINE (2026-10-09, Léo, photo du garage : « enlève les touches ATELIER, MISSIONS, CARRIÈRE et remplace-les par ce que j'aime
+   bien, mais plus transparent » — ce qu'il aime, ce sont LES ONGLETS FINS de la console, voir garageV7). La barre du hub passe d'un pavé
+   de 56 px (pictogramme au-dessus du mot, fond d'encre plein) à la même RÉGLETTE de 30 px, en plus transparent encore :
+   · le mot seul, sur une ligne (les trois cases des MISSIONS restent, à côté du mot) ; le pictogramme part, comme dans la console ;
+   · le fond à 18 % (la console : 35 %) : le garage se voit au travers — une ombre d'encre sous les lettres les garde lisibles ;
+   · l'actif se dit par un TRAIT de SA couleur dessous (atelier magenta, missions vert, carrière cyan), un voile léger et le mot en blanc ;
+   · la cible reste à 44 px (charte, règle 5) : la zone de touche (::after) déborde de 9 px en haut et en bas ; les séparateurs passent en
+     ombre portée (le ::after leur appartenait). `--hubH` suit : la console et la carrière descendent d'autant, la caisse gagne la place. */
+:root{--hubH:30px}
+html.hubOn #gHub{gap:2px;padding:2px;background:rgba(11,8,24,.18);box-shadow:inset 0 0 0 1px rgba(154,144,200,.16)}
+html.hubOn #gHub .ghT{flex-direction:row;gap:6px;padding:0 4px;font-size:var(--f1);color:rgba(154,144,200,.82);
+  text-shadow:0 1px 0 rgba(7,5,15,.85),0 0 6px rgba(7,5,15,.7)}
+html.hubOn #gHub .ghT .pxi{display:none}
+html.hubOn #gHub .ghT::before{display:none}
+html.hubOn #gHub .ghT::after{content:'';position:absolute;left:0;right:0;top:-9px;bottom:-9px;width:auto;background:none;opacity:1}
+html.hubOn #gHub .ghT+.ghT{box-shadow:-3px 0 0 -2px rgba(154,144,200,.2)}
+html.hubOn #gHub .ghT.on{color:#fff;background:linear-gradient(180deg,color-mix(in srgb,var(--hc) 0%,transparent),color-mix(in srgb,var(--hc) 18%,transparent));
+  box-shadow:inset 0 -2px 0 var(--hc),0 6px 12px -8px var(--hc);text-shadow:0 1px 0 rgba(7,5,15,.85),0 0 8px color-mix(in srgb,var(--hc) 65%,transparent)}
+html.hubOn #gHub .ghT:not(.on):active,html.hubOn #gHub .ghT:not(.on).appui{background:rgba(255,255,255,.06)}
+html.hubOn #gHub .ghPips{position:static;gap:3px}
+html.hubOn #gHub .ghPips u{width:4px;height:4px}
+@media (hover:hover){html.hubOn #gHub .ghT:not(.on):hover{color:var(--tx2);background:rgba(255,255,255,.04)}}
+@supports not (color:color-mix(in srgb,red 50%,blue)){html.hubOn #gHub .ghT.on{background:rgba(255,255,255,.08);text-shadow:0 1px 0 rgba(7,5,15,.85)}}
 </style>
 <style id="carriereV2">
 /* LA CARRIÈRE v2 (2026-10-07, Sacha : « dans l'écran carrière c'est mal fait, notamment la mauvaise police ; pas besoin de mettre
