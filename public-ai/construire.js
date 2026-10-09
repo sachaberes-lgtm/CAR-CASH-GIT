@@ -4,7 +4,9 @@
    VERSION PRINCIPALE par `poki-construire.js itch`, plus quelques retouches :
      · la mention « EDITION DEMO PUBLIC AI » sous le logo (écran titre et accueil ; la police pixel n'a pas de capitales accentuées),
      · le titre de l'onglet et le numéro de version (« VERSION xxxxxxx · DEMO PUBLIC AI » dans les réglages),
-     · le mode SURVIVANT armé : chaque JOUER est une course Survivant (sauf l'auto-école de la toute première partie),
+     · le mode SURVIVANT armé : chaque JOUER est une course Survivant,
+     · ni AUTO-ÉCOLE (la sauvegarde la dit faite), ni MODE FACILE (FACILE_OK faux, comme l'édition CrazyGames),
+     · les GRAPHISMES AU MAX tout le temps (VHD allumé partout, sans filet, image NETTE, pas de déclassement au nombre de cœurs),
      · tant que le morceau de la FRÉNÉSIE n'est pas livré, le jeu ne le demande plus (plus de 404 en console),
      · /public-ai sans barre finale redirigé vers /public-ai/ (sinon vendor/ et assets/ se chargeraient depuis la racine du site).
    Rien de tout ça n'est gardé dans git (une copie vieillirait derrière la version principale) : Vercel la refait à chaque mise en
@@ -42,8 +44,21 @@ une("[PORTAIL]||'WEB')","[PORTAIL]||'DEMO PUBLIC AI')",'numéro de version');
 // LE SURVIVANT (Sacha : « je veux le mode survivant ») : il existe dans la dernière version mais plus aucun bouton n'y mène — l'édition
 // démo l'ARME dès le départ : chaque JOUER est une course Survivant (les 7 policiers, le dernier de chaque minute explose).
 une('const SURV={armed:false,','const SURV={armed:true,','Survivant armé');
-// …mais pas pendant l'AUTO-ÉCOLE de la toute première partie : c'est une leçon où l'on ne peut pas mourir, le couperet de la minute n'y a pas sa place
+// (garde-fou) jamais pendant une leçon d'auto-école — l'édition n'en lance plus, voir ci-dessous
 une('SURV.on=(ch9||campMeute()||(SURV.armed&&!campN()))&&!PARK.on;','SURV.on=(ch9||campMeute()||(SURV.armed&&!campN()&&!TUTO.on))&&!PARK.on;','Survivant hors auto-école');
+// PAS D'AUTO-ÉCOLE (Sacha, 9/10 : « pas de tuto ») : la sauvegarde la dit toujours FAITE — la 1re partie est une vraie course, et le
+// choix NORMAL / FACILE du 1er JOUER (qui ne s'affiche qu'avant l'auto-école) ne vient plus. « REVOIR L'AUTO-ECOLE » quitte les réglages (CSS).
+une('c.tuto=d.tuto===0?0:(d.tuto||c.ex.runs>0)?1:0;','c.tuto=1;','sans auto-école');
+// GRAPHISMES AU MAX TOUT LE TEMPS (Sacha, 9/10). Le jeu a déjà son « max » : VHD, l'accueil en haute définition (pleine résolution
+// sur-échantillonnée, ombre 4096 / 2048 sur téléphone, filtrage ×16, échelle QL au cran 0). L'édition le garde ALLUMÉ partout (course,
+// garage), coupe son filet (il ne redescend plus la résolution), ne range plus un PC à 4 cœurs parmi les petites machines, et fige
+// l'IMAGE sur NETTE (l'interrupteur quitte les réglages, CSS).
+une("vhdBascule(!garageOn&&(!started||MENUV.retour)&&!(typeof stallOn!=='undefined'&&stallOn));","vhdBascule(true); /* (édition démo Public AI) graphismes au max partout, course comprise */",'VHD partout');
+une('if(VHD.on){VHD.t+=dt;if(VHD.t>1.5&&calme9&&QLR.p75>22','if(VHD.on){VHD.t+=dt;if(false/* (édition démo Public AI) le filet ne redescend jamais */&&VHD.t>1.5&&calme9&&QLR.p75>22','filet VHD');
+une('const IS_LOW_END=IS_MOBILE||(navigator.hardwareConcurrency>0&&navigator.hardwareConcurrency<=4);','const IS_LOW_END=IS_MOBILE; /* (édition démo Public AI) plus de déclassement au nombre de cœurs */','petites machines');
+une("c.q=(d.q==='net')?'net':'fast';","c.q='net';",'image NETTE');
+// PAS DE MODE FACILE (Sacha, 9/10) : le même interrupteur que l'édition CrazyGames — ni choix du mode, ni réglage MODE FACILE, ni facile importé
+une("const FACILE_OK=!(POKI&&PORTAIL==='crazy');",'const FACILE_OK=false;','sans mode facile');
 // le morceau de la FRÉNÉSIE n'est pas encore livré dans VERSION PRINCIPALE : le jeu le DEMANDAIT quand même (une 404 rouge en console).
 // Chemin vide = le jeu ne le cherche pas et prend son repli prévu (la radio s'emballe). Dès que le fichier existe, il est gardé tel quel.
 {const fren="f:'assets/audio/music/dark-triad.mp3'";
@@ -52,7 +67,9 @@ une('</head>','<style id="paiEdCss">/* (édition démo Public AI) la mention, pl
   '.paiEd{display:block;width:max-content;margin:12px auto 0;padding:9px 14px;font-family:var(--pix);font-size:9px;line-height:1;letter-spacing:3px;'+
   'color:#ffd75e;background:#14100a;clip-path:polygon(6px 0,calc(100% - 6px) 0,100% 6px,100% calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,0 calc(100% - 6px),0 6px);'+
   'box-shadow:inset 0 0 0 1px rgba(255,215,94,.5);text-shadow:none;pointer-events:none}\n'+
-  '#spStage .paiEd{position:relative;z-index:2}\n</style>\n</head>','style');
+  '#spStage .paiEd{position:relative;z-index:2}\n'+
+  '.mLigne[data-m="tuto"]{display:none!important} /* pas d\'auto-école dans l\'édition démo */\n'+
+  '.mLigne[data-m="q"],.tp[data-a="q"],.dp[data-a="q"],[data-a="q"]{display:none!important} /* graphismes au max : pas de réglage IMAGE */\n</style>\n</head>','style');
 fs.writeFileSync(f,s);
 
 let o=0,nb=0;(function taille(d){for(const n of fs.readdirSync(d)){const p=path.join(d,n),t=fs.statSync(p);if(t.isDirectory())taille(p);else{o+=t.size;nb++;}}})(DST);

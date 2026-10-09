@@ -4,8 +4,8 @@ The latest version of CASH CAR (folder `VERSION PRINCIPALE/` on `main`), in a li
 the Public AI network:
 
 - **no shop** (and no missions, career or voices: it is the game's own "portal" edition, without ads);
-- **Survivor mode** on every race: you and 7 police cars, every 60 seconds the last one explodes
-  (except during the driving lesson of your very first race);
+- **Survivor mode** on every race: you and 7 police cars, every 60 seconds the last one explodes;
+- **no tutorial and no easy mode**: the very first race is a real one;
 - marked **"ÉDITION DÉMO PUBLIC AI"** on the title screen.
 
 **Play online:** https://car-cash-git-public-ai-edition-scar1.vercel.app/public-ai/
@@ -21,7 +21,7 @@ node public-ai/construire.js --zip    # → also public-ai/CASH-CAR-demo-public-
 ```
 
 It runs the repository's portal build (`poki-construire.js itch`), then adds the "ÉDITION DÉMO PUBLIC AI"
-mark, the tab title, the armed Survivor mode, and a redirect from `/public-ai` to `/public-ai/`.
+mark, the tab title, the armed Survivor mode, removes the tutorial and the easy mode, and adds a redirect from `/public-ai` to `/public-ai/`.
 Vercel runs it on every push of the `public-ai-edition` branch (`vercel-build.sh`).
 To ship a newer version of the game: rebase the branch on `main` and push.
 
