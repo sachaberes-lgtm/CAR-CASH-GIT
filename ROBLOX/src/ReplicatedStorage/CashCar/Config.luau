@@ -286,7 +286,7 @@ Config.REVENUS = {
 	-- profil d'une partie à l'autre ; sans cœur, la même carte propose d'en acheter un (acheté, il sert aussitôt).
 	-- (5/10, lot 2) les PACKS de cœurs : coeur5 (5 cœurs, ~199 R$), coeur15 (15 cœurs, ~499 R$) ; le KIT DU PILOTE (99 R$, une fois
 	-- par compte : voir `kit` plus bas)
-	produits = { coeur = 0, coeur5 = 0, coeur15 = 0, tours3 = 0, kit = 0 }, -- (tours3 : TROIS TOURS DE ROUE d'un coup — voir Config.ROUE)
+	produits = { coeur = 3717447759, coeur5 = 3717447762, coeur15 = 3717447770, tours3 = 3717447777, kit = 3717447786 }, -- (tours3 : TROIS TOURS DE ROUE d'un coup — voir Config.ROUE)
 	coeursPar = { coeur = 1, coeur5 = 5, coeur15 = 15 }, -- combien de cœurs donne chaque produit « cœur »
 	-- LE KIT DU PILOTE (l'offre de bienvenue, en tête de la boutique tant qu'il n'est pas acheté) : de l'argent, des cœurs, et un
 	-- habillage OFFERT (« catégorie:id » de Config.HABITS — ici la traînée POUDRE D'OR, rangée au garage)
@@ -294,11 +294,11 @@ Config.REVENUS = {
 	-- LES PACKS D'ARGENT (produits, achat répété ; section ARGENT de la boutique) : `id` = le numéro du produit, `v` = les $ versés au
 	-- compte. Prix conseillés : 99 · 249 · 499 · 999 · 2 499 R$ (le bonus grandit avec la taille). Les montants se règlent ICI.
 	argent = {
-		{ id = 0, v = 25000 },  -- 99 R$
-		{ id = 0, v = 70000 },  -- 249 R$
-		{ id = 0, v = 150000 }, -- 499 R$
-		{ id = 0, v = 325000 }, -- 999 R$
-		{ id = 0, v = 900000 }, -- 2 499 R$
+		{ id = 3717447795, v = 25000 },  -- 99 R$
+		{ id = 3717447797, v = 70000 },  -- 249 R$
+		{ id = 3717447812, v = 150000 }, -- 499 R$
+		{ id = 3717447821, v = 325000 }, -- 999 R$
+		{ id = 3717447831, v = 900000 }, -- 2 499 R$
 	},
 	-- LES CAISSES LÉGENDAIRES en Robux (les 7 « premium » du catalogue, cond.k = "premium") : [indice de la caisse] = numéro du
 	-- PRODUIT. Achat UNIQUE gardé dans le profil (une caisse à soi ne se rachète pas) ; purement cosmétique — la vitesse vient du
@@ -307,13 +307,13 @@ Config.REVENUS = {
 	-- l'argent du jeu, L'ÉTERNELLE à la roue, FORMULE OR / ENDURANCE 24 / EL PATRON retirées ; PIZZA EXPRESS et LA FÉLINE entrent ;
 	-- LE DRAGON D'OR ne se vend plus : c'est le cadeau du 7e jour, voir `jour7` plus bas)
 	caisses = {
-		[9] = 0,  -- CHAT ARC-EN-CIEL (4,20 €) — 339 R$
-		[19] = 0, -- LA PIZZA EXPRESS (161 €) — 12 899 R$
-		[54] = 0, -- LA FÉLINE (1,61 €) — 129 R$
-		[57] = 0, -- LE TRÔNE CENTRAL (1,61 €) — 129 R$
-		[58] = 0, -- LE SPECTRE (1,61 €) — 129 R$
-		[59] = 0, -- LE CHEVALIER NOIR (9,99 €) — 799 R$
-		[60] = 0, -- LE MUR DU SON (0,99 €) — 79 R$
+		[9] = 3717447834,  -- CHAT ARC-EN-CIEL (4,20 €) — 339 R$
+		[19] = 3717447841, -- LA PIZZA EXPRESS (161 €) — 12 899 R$
+		[54] = 3717447849, -- LA FÉLINE (1,61 €) — 129 R$
+		[57] = 3717447854, -- LE TRÔNE CENTRAL (1,61 €) — 129 R$
+		[58] = 3717447857, -- LE SPECTRE (1,61 €) — 129 R$
+		[59] = 3717447865, -- LE CHEVALIER NOIR (9,99 €) — 799 R$
+		[60] = 3717447871, -- LE MUR DU SON (0,99 €) — 79 R$
 	},
 	-- (9/10, Sacha : « met les prix ») le prix AFFICHÉ sur la carte du garage tant que Roblox n'a pas répondu (ou que le produit n'existe
 	-- pas encore) — dès que le produit existe, c'est SON vrai prix qui s'affiche. À tenir égal au prix choisi sur create.roblox.com.
