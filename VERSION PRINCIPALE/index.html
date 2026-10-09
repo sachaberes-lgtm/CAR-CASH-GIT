@@ -27336,14 +27336,15 @@ function mkDauphin(){ // UN mesh, SA matière (clone) : le programme est partag�
 }
 // LE BANC : les gabarits du `setPod` de Léo — vitesse (tempo du bond), amplitude, niveau de la « surface », profondeur
 // (vers la caméra = positif, comme dans l'aperçu), taille. `p0` : où en est chacun au déclenchement (négatif = encore sous l'eau).
-// (dauphin v4) SIX gabarits : ils entrent DANS CET ORDRE, un toutes les DOL_PAS s de dauphin tenu (dolNb) — le banc grandit avec la tenue
+// (dauphin v4) les gabarits entrent DANS CET ORDRE, un toutes les DOL_PAS s de dauphin tenu (dolNb) — le banc grandit avec la tenue
+/* (2026-10-09, Léo : « moins de dauphins, animations plus jolies ») TROIS au lieu de six, et ils sautent EN FORMATION : même tempo, chacun
+   `lag` de cycle derrière le chef (le chef perce, le 2e le suit, le 3e ferme la vague), une plongée de durée fixe entre deux sauts (le
+   rythme se tient au lieu de s'émietter), un qui rejoint attend sa place dans la vague. La vrille : une fois sur quatre, jamais deux à la fois. */
+const DOL_CYCLE=1.6; // un cycle de nage : le saut (p 0 → 1,2) + la plongée (0,4)
 const DOL_BANC=[
-  {speed:.30,amp:3.6,base:-1.6,z:0,   scale:1.15,p0:0},
-  {speed:.24,amp:2.9,base:-1.2,z:-3.5,scale:.85, p0:-.15},
-  {speed:.38,amp:4.1,base:-1.9,z:1.8, scale:.95, p0:-.35},
-  {speed:.27,amp:3.3,base:-1.4,z:4.6, scale:.8,  p0:-.2},
-  {speed:.33,amp:3.9,base:-1.8,z:-6.4,scale:1.0, p0:-.3},
-  {speed:.21,amp:2.6,base:-1.1,z:2.9, scale:.72, p0:-.1}];
+  {speed:.30,amp:3.6,base:-1.6,z:0,   scale:1.15,p0:0,   lag:0},
+  {speed:.30,amp:3.0,base:-1.3,z:-3.2,scale:.88, p0:-.24,lag:.24},
+  {speed:.30,amp:3.3,base:-1.5,z:2.4, scale:.95, p0:-.48,lag:.48}];
 const dolphinRig=new THREE.Group();dolphinRig.visible=false;scene.add(dolphinRig);
 const dolPod=new THREE.Group();dolphinRig.add(dolPod); // la « scène de Léo », posée devant la caisse
 const dolphins=DOL_BANC.map((b,i)=>{const d=mkDauphin();d.userData.b=b;d.userData.p=b.p0;d.userData.tailPh=i*1.7;d.userData.roll=i*2.3;d.userData.up=false;d.userData.vr=0;dolPod.add(d);return d;});
@@ -27412,10 +27413,11 @@ function updateDolphins(dt,photo){
   let go9=false;if(dolSyncT>0){dolSyncT-=dt;go9=dolSyncT<=0;}
   for(let i9=0;i9<dolphins.length;i9++){const d=dolphins[i9],u=d.userData,b=u.b;
     if(i9>=dolNb){if(d.visible)d.visible=false;u.pret=false;continue;} // (dauphin v4) pas encore dans le banc
-    if(!u.pret){u.pret=true;if(!neuf){u.p=dolSyncT>0?-.2:-.12;u.up=false;}} // il REJOINT le banc : il perce la surface tout de suite (gerbe comprise) — (v6) pendant le rassemblement du bond royal, il attend sous l'eau
+    if(!u.pret){u.pret=true;if(!neuf){u.p=dolSyncT>0?-.2:dolphins[0].userData.p-b.lag;if(u.p>-.15)u.p-=DOL_CYCLE;u.up=false;}} // il REJOINT le banc à SA place dans la vague (2026-10-09 : il attendait de percer tout de suite, n'importe quand) — (v6) pendant le rassemblement du bond royal, il attend sous l'eau
     if(dolSyncT>0){if(u.p>-.18)u.p+=dt*3.6;} // (v6) le banc SE RASSEMBLE (0,4 s) : qui est en l'air finit son bond, vite ; qui est sous l'eau attend
     else u.p+=dt*(u.sy?.096:b.speed*b.speed)*8.8*tempo; // le tempo de l'aperçu (phase×vitesse×4,4 avec phase+=dt×vitesse×2) — (v6) ×tempo au ras et vite ; le bond royal au même tempo pour tous
-    if(u.p>1.2){u.p=-(.2+Math.random()*.3);u.vr=Math.random()<.34?(Math.random()<.5?1:-1):0;u.sy=0;} // replongé : un temps sous l'eau, et il revient — une fois sur trois en VRILLE
+    if(u.p>1.2){u.p-=DOL_CYCLE;if(u.sy){u.p=-.4-b.lag;u.sy=0;} // replongé : une plongée de durée FIXE (la formation se tient) — après le bond royal, chacun reprend sa place dans la vague
+      let vr9=0;for(const o of dolphins)if(o!==d&&o.visible&&o.userData.vr)vr9=1;u.vr=!vr9&&Math.random()<.25?(Math.random()<.5?1:-1):0;} // une fois sur quatre en VRILLE, jamais deux à la fois
     if(go9){u.p=-.12;u.sy=1;u.vr=dolSyncVr;} // (v6) …puis les six percent ENSEMBLE, même tempo, même vrille
     const p=u.p,vis=p>-.18&&p<1.18;d.visible=vis; // la surface le coupe : il est « là » dès que le rostre peut la percer
     const arc=Math.sin(p*Math.PI),amp=b.amp*k,base=b.base*k,x=dir*W*(2*p-1),y=base+arc*amp,z=-b.z*k;
@@ -27428,7 +27430,7 @@ function updateDolphins(dt,photo){
       px=DOL_L*s/dd*VP.h/(2*Math.tan(camera.fov*Math.PI/360)),g9=px>260?DOL_GEO:DOL_GEO_L;if(d.geometry!==g9)d.geometry=g9;}
     const pitch=Math.atan2(Math.cos(p*Math.PI)*amp*Math.PI,2*W*.8); // le nez suit la vitesse du bond
     u.roll+=dt*1.3;
-    d.rotation.set(Math.sin(u.roll)*.12+u.vr*6.2832*THREE.MathUtils.smoothstep(p,.12,.88),dir>0?0:Math.PI,pitch); // roulis gracieux (+ la vrille) ; demi-tour de cap quand le banc part dans l'autre sens
+    d.rotation.set(Math.sin(u.roll)*.12+u.vr*6.2832*THREE.MathUtils.smoothstep(p,.12,.88),(dir>0?0:Math.PI)+dir*.22*Math.max(0,arc),pitch); // roulis gracieux (+ la vrille) ; demi-tour de cap quand le banc part dans l'autre sens — (2026-10-09) au sommet il tourne la tête VERS la caméra (on le voit de trois-quarts)
     u.tailPh+=dt*(7.5+b.speed*8);const hors=Math.max(0,arc);
     const mu=d.material.userData;
     mu.uDol.value.set(.11+.22*(1-hors)*(1-hors),u.tailPh,2.3,Math.min(.1,.5*Math.PI*Math.PI*amp/(4*W*W)*s*1.4)); // la queue POMPE fort en perçant l'eau, se relâche au sommet ; le corps se CAMBRE sur l'arc
@@ -32277,7 +32279,7 @@ function addTrick(id,txt,val,tier,raw,free){ // raw : échelles qui grimpent dé
    · PRÈS DE LA ROUTE = près de la DALLE, où qu'on soit : au-dessus de la face du dessus, sous la face du dessous, ou à côté des bords —
      `dolDist` = la distance au rectangle de la dalle dans son plan de coupe (0 au contact). Plus de chrono : le dauphin part à la
      1re image de vol près de la route (`DOL_T`=0).
-   · LE BANC GRANDIT : un dauphin au départ, un de plus toutes les `DOL_PAS` s tenues, jusqu'à six (`DOL_BANC`) — et l'aura monte avec
+   · LE BANC GRANDIT : un dauphin au départ, un de plus toutes les `DOL_PAS` s tenues, jusqu'à six (`DOL_BANC` — TROIS depuis le 2026-10-09, ×1,375 l'aura par dauphin en plus : le plafond ×1,75 ne bouge pas) — et l'aura monte avec
      lui (×(1 + 0,15 par dauphin en plus)). L'étiquette dit « DAUPHIN ×n ».
    · LA FIGURE (la chaîne d'argent, le cri « LE DAUPHIN ! », le flow) n'arrive qu'à `DOL_FIG` s de dauphin tenu, une fois par vol : la
      même règle qu'avant (1 s) — sinon CHAQUE saut deviendrait une figure et la frénésie se déclencherait sur n'importe quelle pose.
@@ -32313,7 +32315,7 @@ function addTrick(id,txt,val,tier,raw,free){ // raw : échelles qui grimpent dé
      (1 133 → 1 138), figure à 1,35 s au lieu de 0,98 ; à 3,2 m 661 → 674 ; à 6 m 548 → 526 ; vol flottant de 3 s culminant à 8 m (route qui
      descend sous la caisse) 527 → 501, figure à 2,6 s. ⚠ Le verdict MONSTRE de la pose, lui, vient du RASE-DALLE d'argent (`chainVal`,
      bloc de vol, 2,2-12 m) : il reste sur tout saut au-dessus de la route (hors de ce lot : il porte les pièces MOTEUR et le nitro de la pose). */
-const DOL_T=0,DOL_VU=2.6,DOL_HMAX=40,DOL_TMAX=4,DOL_GRACE=.12,DOL_FIGE=.6,DOL_FIG=1,DOL_PAS=.6,
+const DOL_T=0,DOL_VU=2.6,DOL_HMAX=40,DOL_TMAX=4,DOL_GRACE=.12,DOL_FIGE=.6,DOL_FIG=1,DOL_PAS=1,
       DOL_AURA0=80,DOL_AURA_S=0,DOL_AURA_RAS=190,DOL_AURA_MAX=1200,DOL_FLOW_K=4,DOL_FLOW_MAX=6,
       DOL_RAS_H=6.5,DOL_RAS_T0=.35,DOL_AURA_NUE=.5,DOL_AURA_MIN=10; // (v6) le RAS de la figure (m), sa porte (fallT), la part de la nage SANS figure, la plus petite ligne écrite
 let dolRoadT=0,dolOffT=0,dolOn=false,dolAura=0,dolMul=1,dolHudT=0,dolLive=0,dolNb=1,dolQ=0,dolRasT=0,dolRasV=0; // (v6) dolRasT : secondes AU RAS dans ce vol (la figure) · dolRasV : la proximité de l'image (0-1) que le banc montre
@@ -32335,7 +32337,7 @@ function dolTick(dt,sur,hF){ // chaque image de VOL, avant tryLand (radar = imag
       const ras=Math.max(0,Math.min(1,1-(hF-2.2)/9.8));dolRasV=ras; // l'esprit du dauphin : nager AU RAS paye plus — (v6) et SE VOIT (dolRasV → updateDolphins)
       dolMul+=(dolVitMul()-dolMul)*Math.min(1,dt*4); // (v5) la vitesse, relue en continu (lissée : un coup de nitro se sent en ~0,25 s)
       dolQ+=ras*ras*(.3+.7*Math.max(0,Math.min(1,(dolMul-.6)/1.5)))*dt; // (v5) la QUALITÉ du geste : au ras ET vite — elle fera le flow
-      dolAura=Math.max(dolAura,Math.min(DOL_AURA_MAX*dolMul,dolAura+(DOL_AURA_S+DOL_AURA_RAS*ras*ras)*(1+.15*(dolNb-1))*dolMul*dt)); // (v5) jamais de recul : la vitesse qui retombe baisse le plafond, pas le gagné
+      dolAura=Math.max(dolAura,Math.min(DOL_AURA_MAX*dolMul,dolAura+(DOL_AURA_S+DOL_AURA_RAS*ras*ras)*(1+.375*(dolNb-1))*dolMul*dt)); // (v5) jamais de recul : la vitesse qui retombe baisse le plafond, pas le gagné
       dolShow=Math.max(dolShow,.7); // ils nagent tant qu'on reste près de la route ; à la sortie, le fondu de 0,4 s d'updateDolphins
       dolHudVal();if(!DAUPH.enVol&&!PARK.on&&Math.round(dolAura*(trkDolph?1:DOL_AURA_NUE))>=DOL_AURA_MIN)dolHudVol(); // (v7) l'aura MONTE sous les yeux pendant que les dauphins nagent
     }

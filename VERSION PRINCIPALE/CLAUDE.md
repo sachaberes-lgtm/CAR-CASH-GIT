@@ -26,6 +26,10 @@
   (`aLp` : une couleur, la nage le déplace d'un bloc, l'eau le coupe entier) ; biseau sombre aux arêtes + nuance par cube ; quelques cubes
   qui scintillent. `DOL_VOX` .026 (≈ 24 800 triangles) et `DOL_VOX_L` .045 (≈ 8 000) : updateDolphins prend les FINS seulement quand le
   dauphin fait plus de 260 px à l'écran. `DOL_VOX=0` rend le dauphin lisse.
+- **TROIS DAUPHINS EN FORMATION** (même jour, Léo : « moins de dauphins, animations plus jolies ») : `DOL_BANC` = 3 (au lieu de 6, `DOL_PAS` 1 s,
+  l'aura ×1,375 par dauphin en plus : le plafond ×1,75 ne bouge pas). Même tempo pour les trois, chacun `lag` de cycle derrière le chef (une
+  vague qui saute), plongée de durée fixe (`DOL_CYCLE` 1,6), celui qui rejoint attend sa place, une vrille sur quatre et jamais deux à la
+  fois, et au sommet il tourne la tête vers la caméra (on le voit de trois-quarts). Le bond royal part au 3e.
 ## LA SALLE BLANCHE (2026-10-09, Léo : « une sublime voiture dans une salle blanche, que je peux tourner, avec une petite rangée de toutes les voitures qu'on a — pas les enlevées — qu'on glisse dans différentes raretés ; télécharger une liste écrite de tout ce qu'on a dit dessus »)
 - `salle-blanche.html` (outil, à côté d'index.html, à servir : `python3 -m http.server 8975` puis /salle-blanche.html). RIEN n'est recopié :
   elle LIT index.html et exécute les vrais constructeurs (même liste de blocs que `ROBLOX/outils/cuire-caisses.js` + `MATV` pour les vraies
