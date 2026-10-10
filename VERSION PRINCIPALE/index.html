@@ -6328,11 +6328,11 @@ html[data-reduced-motion="1"] body #garage #gAct>#gCache .gLueur::after{animatio
 html body #garage:not(.menu):not(.vitrine) #gAct>#gCache{display:none!important}
 html body #garage:not(.menu):not(.vitrine) #gAct>#gHomeBas{grid-column:1}
 html body #garage:not(.menu):not(.vitrine) #gAct>#gOeil{grid-row:1;grid-column:2;display:flex;align-items:center;justify-content:center;min-width:0;height:34px;min-height:34px;padding:0 8px;
-  --ton:#5b95ff;--nc:var(--ton);--lu:rgba(255,138,31,.9);transform:skewX(var(--sk));animation:none; /* (même jour, Léo : « case bleue, œil orange ») */
-  background:linear-gradient(180deg,rgba(46,78,170,.62),rgba(20,28,74,.9));box-shadow:inset 0 0 0 1px rgba(120,165,255,.55),inset 0 -4px 0 var(--ton),0 0 16px -4px var(--ton),0 6px 14px -8px var(--ton)}
+  --ton:#ff8a1f;--nc:var(--ton);--lu:rgba(255,200,120,.9);transform:skewX(var(--sk));animation:none; /* (même jour, Léo : « case bleue, œil orange », puis « orange le bouton œil, et seulement l'œil quand on l'active ») */
+  background:linear-gradient(180deg,rgba(255,150,50,.92),rgba(196,82,12,.94));box-shadow:inset 0 0 0 1px rgba(255,214,160,.7),inset 0 -4px 0 #ffc27a,0 0 16px -4px var(--ton),0 6px 14px -8px var(--ton)}
 html body #garage:not(.menu):not(.vitrine) #gAct>#gOeil:is(:active,.appui){transform:skewX(var(--sk)) translateY(2px)}
 html body #garage:not(.menu):not(.vitrine) #gAct>#gOeil .gLueur{position:relative;display:inline-flex;line-height:0;filter:drop-shadow(0 0 2px var(--lu)) drop-shadow(0 0 6px var(--lu))}
-html body #garage:not(.menu):not(.vitrine) #gAct>#gOeil .gLueur .pxi{--pxs:2;color:#ffa23a;filter:none}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gOeil .gLueur .pxi{--pxs:2;color:#fff3e0;filter:none}
 html body #garage:not(.menu):not(.vitrine) #gAct>#gOeil .gLueur::after{content:'';position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;pointer-events:none;
   background:radial-gradient(circle,rgba(255,150,40,.5),rgba(255,120,20,.18) 45%,transparent 70%);animation:gOeilLuit 2.4s ease-in-out infinite}
 @media (prefers-reduced-motion:reduce){html body #garage #gAct>#gOeil .gLueur::after{animation:none;opacity:.8}}
@@ -6342,7 +6342,13 @@ html[data-reduced-motion="1"] body #garage #gAct>#gOeil .gLueur::after{animation
 html body #garage.vueSeule{visibility:hidden}
 html body #garage.vueSeule #gOeil{visibility:visible}
 html.vueSeule #gTourne,html.vueSeule #gHomeMini{visibility:hidden!important}
-html body #garage.vueSeule:not(.menu):not(.vitrine) #gAct>#gOeil{--lu:rgba(255,170,60,1);background:linear-gradient(180deg,rgba(79,140,255,.85),rgba(30,52,140,.92));box-shadow:inset 0 0 0 1px rgba(170,200,255,.7),inset 0 -4px 0 #9cc2ff,0 0 20px -3px var(--ton)} /* allumé : la case bleue s'éclaire, l'œil reste orange */
+html body #garage.vueSeule:not(.menu):not(.vitrine) #gAct>#gOeil{--lu:rgba(255,138,31,1);background:none;box-shadow:none} /* allumé : la case s'efface, il ne reste QUE l'œil, orange luisant */
+html body #garage.vueSeule:not(.menu):not(.vitrine) #gAct>#gOeil .gLueur .pxi{--pxs:3;color:#ffa23a}
+/* ÉQUIPER → ACHETER (2026-10-10) : le verbe en petit, le prix dessous, en vert billet (or pour l'euro) — voir gEqTon. */
+html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip.achat{flex-direction:column;gap:2px;letter-spacing:1px;line-height:1}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip.achat .gEqV{font-size:var(--f0);letter-spacing:2px;color:var(--tx2)}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip.achat .gEqP{font-weight:400;font-size:var(--f3);letter-spacing:1px;color:var(--cash,#3ee87a);text-shadow:0 1px 0 rgba(7,5,15,.9),0 0 8px rgba(62,232,122,.45)}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip.achat .gEqP.eur{color:var(--au2,#ffd75e);text-shadow:0 1px 0 rgba(7,5,15,.9),0 0 8px rgba(255,215,94,.45)}
 /* LA CROIX DE L'INVENTAIRE, DISCRÈTE (même jour, Léo : « la croix est juste plus discrète, et sert à enlever le rectangle avec toutes
    les voitures pour qu'on ait une vue sur le garage ») : elle ferme toujours le tiroir, mais n'est plus une touche cyan pleine. Plus de
    plaque ni de tranche : une petite croix lilas dans un carré à peine dessiné (filet d'1 px, fond presque nul), qui s'allume sous le doigt.
@@ -37845,7 +37851,7 @@ function garageShow(i){
   if(row)row.style.display=aVendre?'':'none';
   if(bb&&aVendre){
     const peut=bank()>=prix;
-    bb.innerHTML=gPrixHtml(peut,prix); // le verbe, puis le prix en gros (charte v4)
+    bb.innerHTML=gPrixHtml(peut,prix);bb.dataset.px=fmtC(prix);bb.dataset.eur=''; // le verbe, puis le prix en gros (charte v4) — (2026-10-10) dataset.px : le prix que dit ÉQUIPER devenu ACHETER (gEqTon)
     bb.classList.toggle('pauvre',!peut); // ⚠ plus de `disabled` : un bouton désactivé n'émet AUCUN clic — pas de son, pas de vibration, rien
   }
   // ⚠ UN SEUL BOUTON D'ACTION (2026-09-25) : une caisse à vendre affichait « IL MANQUE 25 k » ET « VERROUILLÉE »
@@ -37859,7 +37865,7 @@ function garageShow(i){
    $('gCard').style.setProperty('--rc',ri.c); // le nom s'auréole de la couleur de sa famille
    // LÉGENDAIRE pas encore à toi : UN bouton, qui mène à la BOUTIQUE (le seul endroit où elle s'achète)
    if(bb){bb.dataset.bout='';if(u9&&u9.k==='premium'&&!carUnlockedVrai(garageI)&&!testOuv){if(row)row.style.display='';bb.innerHTML=pxi('panier')+'<span>'+TR('EN BOUTIQUE')+'</span><b class="gPrix">'+eurTxt(u9.eur)+'</b>';
-     bb.classList.remove('pauvre');bb.dataset.bout='1';if(bt)bt.style.display='none';}}
+     bb.classList.remove('pauvre');bb.dataset.bout='1';bb.dataset.px=eurTxt(u9.eur);bb.dataset.eur='1';if(bt)bt.style.display='none';gActSync();}} // (2026-10-10) gActSync : ÉQUIPER dit ACHETER + le prix en € (il était passé avant cette branche)
    garageFamilles(ri.id);}
   gBankPaint();
 }
@@ -38042,7 +38048,7 @@ function shopShow(cat,i){
   }
   const bt=$('gEquip'),bb=$('gBuy'),row=$('gBuyRow');
   if(row)row.style.display=(!a&&d.p)?'':'none';
-  if(bb){bb.dataset.bout='';if(!a&&d.p){const peut=bank()>=d.p;bb.innerHTML=gPrixHtml(peut,d.p);bb.classList.toggle('pauvre',!peut);}}
+  if(bb){bb.dataset.bout='';if(!a&&d.p){const peut=bank()>=d.p;bb.innerHTML=gPrixHtml(peut,d.p);bb.dataset.px=fmtC(d.p);bb.dataset.eur='';bb.classList.toggle('pauvre',!peut);}}
   if(bt){
     bt.style.display=(!a&&d.p)?'none':'';
     bt.disabled=false;
@@ -40237,7 +40243,11 @@ function gActSync(){const a=$('gAct');if(!a)return;const bt=$('gEquip'),row=$('g
 /* ÉQUIPER EN COULEURS (2026-10-09, Léo) : ROUGE = pas à toi (à vendre, en boutique, à gagner), BLEU = à toi, à équiper, VERT = équipée.
    Le mot : ÉQUIPÉE quand c'est la tienne, ÉQUIPER sinon (le cadenas devant quand elle n'est pas à toi). */
 function gEqTon(bt,achat){const et=bt.dataset.etat,ton=et==='eq'?'vert':(achat||et==='verrou')?'rouge':'bleu';
-  bt.dataset.ton=ton;const h=(ton==='vert'?pxi('coche'):ton==='rouge'?pxi('verrou'):'')+'<span>'+TR(ton==='vert'?'ÉQUIPÉE':'ÉQUIPER')+'</span>';
+  bt.dataset.ton=ton;const bb=achat?$('gBuy'):null,px=bb&&bb.dataset.px||'';bt.classList.toggle('achat',!!px);
+  /* (2026-10-10, Léo : « ÉQUIPER se change en BUY avec le prix de la voiture quand je regarde une voiture non acquise ») À VENDRE : le verbe
+     en petit, le PRIX dessous (vert billet ; or pour l'euro) — sur une ligne il ne tenait pas dans la colonne de JOUER. Le geste reste le relais vers #gBuy. */
+  const h=px?'<span class="gEqV">'+TR('ACHETER')+'</span><b class="gEqP'+(bb.dataset.eur?' eur':'')+'">'+px+'</b>'
+    :(ton==='vert'?pxi('coche'):ton==='rouge'?pxi('verrou'):'')+'<span>'+TR(ton==='vert'?'ÉQUIPÉE':'ÉQUIPER')+'</span>';
   bt.innerHTML=h;} // (gActSync ne tourne qu'à l'affichage d'une caisse ou d'un habillage : réécrire est sans coût, et passe toujours après gEtat)
 /* Le doigt sur ÉQUIPER ROUGE d'une caisse À VENDRE = l'achat (ACHETER n'est plus à l'écran) : le geste est relayé au bouton d'achat caché,
    qui fait tout comme avant (achat et tampon, ou « IL TE MANQUE » ; une légendaire part vers la BOUTIQUE). Seulement un VRAI doigt :
