@@ -599,15 +599,21 @@ function charger(){
     if(ETAT.general.trim())ETAT.journal.push({t:0,avant:1,x:'Notes générales : « '+ETAT.general.trim().replace(/\s*\n\s*/g,' / ')+' »'});
     ETAT.journal.push({t:0,avant:1,x:'— fiche téléchargée —'});}}
 let sauveT=0;function sauver(){clearTimeout(sauveT);sauveT=setTimeout(ecrire,250);bilan();}
-function ecrire(){clearTimeout(sauveT);try{localStorage.setItem(CLE,JSON.stringify(ETAT));}catch(_){}clearTimeout(disqueT);disqueT=setTimeout(versDisque,900);}
-addEventListener('pagehide',()=>{ecrire();versDisque(true);});addEventListener('beforeunload',ecrire); // rien ne se perd, même fermée dans le quart de seconde
+/* PLUSIEURS ONGLETS (2026-10-10) : chacun garde SA copie de la liste — un onglet resté en arrière écrasait, en se fermant, ce qu'on venait de
+   faire dans un autre (journal compris). Dès qu'un autre onglet écrit la salle, celui-ci est PÉRIMÉ : il n'écrit plus rien, et se recharge
+   (la liste à jour) dès qu'on revient dessus. */
+let PERIME=false;
+addEventListener('storage',e=>{if(e.key===CLE){PERIME=true;if(!document.hidden)location.reload();}});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&PERIME)location.reload();});
+function ecrire(){clearTimeout(sauveT);if(PERIME)return;try{localStorage.setItem(CLE,JSON.stringify(ETAT));}catch(_){}clearTimeout(disqueT);disqueT=setTimeout(versDisque,900);}
+addEventListener('pagehide',()=>{if(PERIME)return;ecrire();versDisque(true);});addEventListener('beforeunload',ecrire); // rien ne se perd, même fermée dans le quart de seconde
 /* LE DISQUE (2026-10-09, Léo : « quand tu vois que la liste a changé, demande-moi, précise le changement et demande si on pousse sur
    main ») — servie en local par salle-blanche/serveur.py, chaque enregistrement part AUSSI dans le dossier du jeu
    (salle-blanche/sauvegarde.json + fiche-salle-blanche.txt) : Claude voit la liste changer sans qu'on lui envoie la fiche. En ligne
    (Vercel) ou servie par un simple http.server, rien ne part et rien ne casse. */
 const DISQUE=/^(127\.0\.0\.1|localhost)$/.test(location.hostname);let disqueT=0;
 function versDisque(adieu){
-  if(!DISQUE||!ETAT||!JEU)return;clearTimeout(disqueT);
+  if(!DISQUE||!ETAT||!JEU||PERIME)return;clearTimeout(disqueT);
   try{const ch=changements(),noms={},fam={};for(const i in JEU.rar){noms[i]=nom(+i);fam[i]=JEU.rar[i];}
     const corps=JSON.stringify({quand:new Date().toISOString(),source:SOURCE.nom,etat:ETAT,fiche:fiche(),noms,jeu:{fam,prix:JEU.prix},
       ecarts:ch.L,ordres:ch.ordres});
