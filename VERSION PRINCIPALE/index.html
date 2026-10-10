@@ -37874,7 +37874,7 @@ function garageShow(i){
    viennent du studio (`carPhoto`), UNE par image au plus (`photoFile`) : ouvrir une famille de 16 ne gèle pas le garage. */
 function gDefiEt(n){try{const s=misEtat();if(n!==s.n+1)return '';return pxi('cible')+' '+s.ok.reduce(function(a,b){return a+(b?1:0);},0)+' / 3';}catch(e){return '';}} // la vignette de la caisse que les MISSIONS en cours font gagner
 function garageFamilles(r){
-  const md=gModeM();if(md==='inv'){gStripModeVoitures();return;} // (2026-10-09) INVENTAIRE : voir « LA CONSOLE À TROIS MODES » — la BOUTIQUE garde les familles (Léo : « remets les raretés dans la boutique »)
+  const md=gModeM();if(md==='shop'&&GMODE.fam)r=GMODE.fam; /* (2026-10-10) en BOUTIQUE la bande garde SA famille, quelle que soit la caisse affichée */if(md==='inv'){gStripModeVoitures();return;} // (2026-10-09) INVENTAIRE : voir « LA CONSOLE À TROIS MODES » — la BOUTIQUE garde les familles (Léo : « remets les raretés dans la boutique »)
   const bar=$('gRar'),st=$('gStrip');if(!bar||!st)return;try{gModeBoutons();}catch(e){}bar.classList.remove('gModeBar');
   const eq=SAVE.d.equipped|0,shop=md==='shop';
   const nbV=function(L){let n=0;for(const i of L)if(gAVendre(i))n++;return n;}; // BOUTIQUE : chaque famille dit combien il en reste à ACHETER
@@ -37908,7 +37908,10 @@ function garageFamilles(r){
    que ce qui est à toi (INVENTAIRE, toutes familles mêlées, dans le cyan de l'inventaire — plus de couleur de rareté, demande de Léo le même soir) ou ce qui est
    à acheter (BOUTIQUE : l'argent du jeu du moins cher au plus cher, puis les légendes en €, vignettes éclairées — c'est une vitrine).
    Le tiroir #gInv et la page € (#mShop) ne s'ouvrent plus depuis ces touches dans la console (la page € reste sur l'accueil). */
-var GMODE={m:'tout'};
+var GMODE={m:'tout',fam:null};
+/* (2026-10-10) LA FAMILLE DE LA BOUTIQUE : celle de la caisse affichée si elle a encore quelque chose à vendre, sinon la 1re qui en a. La caisse,
+   elle, ne bouge pas tant qu'on ne touche pas une vignette ; une puce de famille ne change que la bande. */
+function gShopFam(){const r0=carRar(garageI),a=function(r){return rarListe(r).some(gAVendre);};if(a(r0))return r0;for(const x of RARETES)if(a(x.id))return x.id;return r0;}
 function gAVendre(i){const u=CAR_UNLOCK[i];return !carRetiree(i)&&i!==(SAVE.d.equipped|0)&&!carUnlockedVrai(i)&&!!u&&(!!u.p||u.k==='premium');} // (2026-10-09) à acheter : argent du jeu ou boutique (€), pas encore à toi
 function gModeConsole(){return !!gEl&&!gEl.classList.contains('vitrine')&&!gEl.classList.contains('menu');}
 function gModeM(){return GMODE&&gModeConsole()?GMODE.m:'tout';} // (GMODE est un var : lu avant sa ligne au chargement, il vaut undefined → 'tout')
@@ -37949,7 +37952,7 @@ function gModeVa(m){
      ou INVENTAIRE une deuxième fois, tu fais HIDE ») la touche allumée, retouchée, REPLIE la console (ce que faisait CACHER, retiré) — elle ne
      ramène plus à la vue des raretés ; touchée repliée, elle la rouvre (ligne du dessus). TOUT ne reste que la vue d'ouverture du garage. */
   if(GMODE.m===m){gConsoleCache(true);return;}
-  GMODE.m=m;
+  GMODE.m=m;GMODE.fam=m==='shop'?gShopFam():null; // (2026-10-10) la famille montrée en BOUTIQUE, détachée de la caisse affichée
   const bar=$('gRar'),st=$('gStrip');if(bar)bar._k=null;if(st)st._r=null;
   gModeCale();
   if(SHOP.tab==='voiture')garageFamilles(carRar(garageI));else gStripHabits(SHOP.tab,SHOP.i[SHOP.tab]);
@@ -37969,7 +37972,7 @@ try{document.getElementById('gCache').addEventListener('click',function(e){e.sto
   if(!I18N['CACHER'])I18N['CACHER']='HIDE';if(!I18N['VOIR'])I18N['VOIR']='SHOW';}catch(e){}
 /* le plateau suit le mode : en BOUTIQUE le 1er objet à acheter (si celui qu'on voit ne l'est pas), en INVENTAIRE ta caisse / le 1er objet
    à toi (si celui qu'on voit ne l'est pas) — au changement de mode ET d'onglet (shopTab) */
-function gModeCale(){const m=gModeM();if(m==='tout')return;
+function gModeCale(){const m=gModeM();if(m==='tout'||m==='shop')return; // (2026-10-10, Léo : « quand tu appuies sur SHOP, ça ne change pas automatiquement ta voiture : ça attend que tu appuies sur une voiture ») la BOUTIQUE ne saute plus sur la 1re caisse (ou le 1er habillage) à vendre
   if(SHOP.tab==='voiture'){if(m==='inv'){if(!gPossede(garageI))garageSaute(SAVE.d.equipped|0);return;}const L=gModeListeVoitures(m);if(L.length&&L.indexOf(garageI)<0)garageSaute(L[0]);return;}
   const cat=SHOP.tab,Lc=COSM[cat],cur=Lc[SHOP.i[cat]],ok=function(d){const a=shopOwned(cat,d.id);return m==='inv'?a:(!a&&!!d.p);};
   if(cur&&!ok(cur)){const j=Lc.findIndex(ok);if(j>=0)shopShow(cat,j);}}
@@ -41769,7 +41772,7 @@ $('gEquip').addEventListener('click',e=>{e.stopPropagation();
 $('gRar').addEventListener('click',e=>{const b=e.target.closest('.gR');if(!b)return;e.stopPropagation();uiPop(b);uiClic('onglet');
   if(b.hasAttribute('data-f')){SHOP.filtre=b.getAttribute('data-f');if(SHOP.tab!=='voiture')gStripHabits(SHOP.tab,SHOP.i[SHOP.tab]);return;} // un FILTRE d'habillage
   const L0=rarListe(b.getAttribute('data-r'));if(!L0.length)return;const eq=SAVE.d.equipped|0;
-  if(gModeM()==='shop'){const L=L0.filter(gAVendre);garageSaute(L.length?L[0]:L0[0]);return;} // (2026-10-09) BOUTIQUE : la 1re caisse à vendre de la famille
+  if(gModeM()==='shop'){GMODE.fam=b.getAttribute('data-r');garageFamilles(GMODE.fam);return;} // (2026-10-09) BOUTIQUE : la famille — (2026-10-10, Léo) elle ne change plus la caisse : seulement la bande, la caisse attend qu'on touche une vignette
   garageSaute(L0.indexOf(eq)>=0?eq:L0[0]);});
 $('gStrip').addEventListener('click',e=>{const t=e.target.closest('.gT');if(!t)return;e.stopPropagation();uiPop(t);uiClic('nav');
   if(t.hasAttribute('data-cos')){const j=+t.getAttribute('data-cos');if(SHOP.tab!=='voiture'&&j!==SHOP.i[SHOP.tab]){shopShow(SHOP.tab,j);try{if(SONV2)sfx('ui.carte');else chimeNote(880,0,.16,.14);}catch(er){}}return;} // un habillage : on l'ESSAIE sur la caisse
