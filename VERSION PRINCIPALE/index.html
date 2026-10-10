@@ -6384,6 +6384,14 @@ html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnPorte:is(:active,.
 html body #garage:not(.menu):not(.vitrine) #gRar .fnTete .fnRetour{display:inline-flex;align-items:center;justify-content:center;width:40px;height:34px;margin:0 -4px 0 -6px;pointer-events:auto;cursor:pointer;color:#ffd75e}
 html body #garage:not(.menu):not(.vitrine) #gRar .fnTete .fnRetour .pxi{--pxs:2;color:#ffd75e}
 html body #garage:not(.menu):not(.vitrine) #gRar .fnTete .fnCompte{color:#ffd75e}
+/* SEE ALL ITEMS EN GRILLE (2026-10-10, Léo : « comme il y en aura plus, agrandis un tout petit peu la place des items ; on glisse vers le
+   bas, on voit trois voitures par trois voitures ») : la bande du mode `tous` devient une grille de trois qui défile vers le BAS (même
+   mécanique que la vitrine du jour) — un peu plus haute qu'une rangée, la suivante dépasse et se fond : il y a une suite. */
+html body #garage:not(.menu):not(.vitrine) #gStrip.gModeTous{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:none;grid-auto-rows:auto;grid-auto-flow:row;
+  gap:8px;height:auto;max-height:132px;padding:4px 12px 16px;overflow-x:hidden;overflow-y:auto;touch-action:pan-y;overscroll-behavior:contain;scroll-snap-type:y proximity;
+  -webkit-mask:linear-gradient(180deg,#000 0,#000 calc(100% - 26px),transparent);mask:linear-gradient(180deg,#000 0,#000 calc(100% - 26px),transparent)}
+html body #garage:not(.menu):not(.vitrine) #gStrip.gModeTous.finBas{-webkit-mask:none;mask:none}
+html body #garage:not(.menu):not(.vitrine) #gStrip.gModeTous>.gT{width:auto!important;min-width:0!important;max-width:none!important;flex:none!important;margin:0!important;scroll-snap-align:start}
 html body #garage:not(.menu):not(.vitrine) #gStrip .gT.c-aile.lock em{bottom:auto!important;height:auto!important} /* (2026-10-10) une AILE à vendre : le prix monte au coin haut (il s'étirait sur toute la vignette et se posait sur le nom — vu dans SEE ALL ITEMS) */
 #gStrip.fnBande .fnTout{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;margin:4px 0 0;cursor:pointer;
   font-size:var(--f0);letter-spacing:2px;color:rgba(230,226,255,.55);text-shadow:0 1px 0 rgba(7,5,15,.8);transition:color var(--t-fast) var(--ease)} /* (2026-10-10) écrit en transparent, pas une plaque */
@@ -38912,7 +38920,7 @@ function gModeListeVoitures(m){const eq=SAVE.d.equipped|0,L=[];
   return L;}
 function gModeBoutons(){const m=gModeM(),c=document.getElementById('gvCof'),b=document.getElementById('gShopBas'),r=document.getElementById('gRar'),st=document.getElementById('gStrip');
   if(c)c.classList.toggle('modeOn',m==='inv');if(b)b.classList.toggle('modeOn',m==='shop'||m==='tous');
-  if(r&&m==='tout')r.classList.remove('gModeBar');if(st){st.classList.toggle('gModeShop',m==='shop'||m==='tous');st.classList.toggle('gModeInv',m==='inv');if(m!=='shop'&&st.classList.contains('fnBande')){st.classList.remove('fnBande');st._r=null;st._n=-1;if(r)r._k=null;}}
+  if(r&&m==='tout')r.classList.remove('gModeBar');if(st){st.classList.toggle('gModeShop',m==='shop'||m==='tous');st.classList.toggle('gModeTous',m==='tous');st.classList.toggle('gModeInv',m==='inv');if(m!=='shop'&&st.classList.contains('fnBande')){st.classList.remove('fnBande');st._r=null;st._n=-1;if(r)r._k=null;}}
   if(gEl)gEl.classList.toggle('modeShop',m==='shop');} // (2026-10-10) LA BOUTIQUE DU JOUR : la console change de visage (voir gShopJour)
 function gModeTete(bar,m,n){bar.classList.add('gModeBar'); // n : un nombre, ou « 15 / 46 » en INVENTAIRE
   if(m==='tous'){bar.innerHTML='<div class="gModeT fnTete" style="--rc:var(--neoM)"><b class="fnRetour" role="button" aria-label="'+TR('RETOUR')+'">'+pxi('gauche')+'</b>'+pxi('panier')+'<span>SEE ALL ITEMS</span><s></s><b>'+n+'</b></div>';return;} // (2026-10-10) SEE ALL ITEMS, en anglais (Léo)
@@ -39009,7 +39017,7 @@ function gShopJour(){const bar=$('gRar'),st=$('gStrip');if(!bar||!st)return;try{
     bar.innerHTML='<div class="gModeT fnTete" style="--rc:var(--neoM)">'+pxi('panier')+'<span>'+sansAcc(TR('OFFRES ÉPHÉMÈRES'))+'</span><s></s><b class="fnT">'+pxi('horloge')+'<i>'+bqReste()+'</i></b></div>';}
   const O=bqPayantes(),k='fn:'+B.j+':'+B.l.join(',')+':'+B.l.map(function(x){return bqA(x)?1:0;}).join('')+':'+O.length+':'+LANG;
   st.classList.add('fnBande');
-  if(!st._finB){st._finB=1;st.addEventListener('scroll',function(){if(st.classList.contains('fnBande'))st.classList.toggle('finBas',st.scrollTop+st.clientHeight>=st.scrollHeight-4);},{passive:true});} // au bout de la vitrine, plus de fondu
+  if(!st._finB){st._finB=1;st.addEventListener('scroll',function(){if(st.classList.contains('fnBande')||st.classList.contains('gModeTous'))st.classList.toggle('finBas',st.scrollTop+st.clientHeight>=st.scrollHeight-4);},{passive:true});} // au bout de la vitrine, plus de fondu
   if(st._r!==k){st._r=k;st._n=-1;st.scrollLeft=0;st.scrollTop=0;st.classList.remove('finBas');
     st.innerHTML=(O.length?bqPorte(O)+'<div class="fnSec"><span>'+sansAcc(TR('À LA UNE'))+'</span><s></s></div>':'')
       +B.l.map(function(x,n){return (n===BQ_N.une?'<div class="fnSec"><span>'+sansAcc(TR('DU JOUR'))+'</span><s></s></div>':'')+bqCarte(x,n<BQ_N.une);}).join('')
@@ -39044,7 +39052,7 @@ function gModeVa(m){
      ramène plus à la vue des raretés ; touchée repliée, elle la rouvre (ligne du dessus). TOUT ne reste que la vue d'ouverture du garage. */
   if(GMODE.m===m){gConsoleCache(true);return;}
   GMODE.m=m;GMODE.fam=m==='shop'?gShopFam():null; // (2026-10-10) la famille montrée en BOUTIQUE, détachée de la caisse affichée
-  const bar=$('gRar'),st=$('gStrip');if(bar)bar._k=null;if(st)st._r=null;
+  const bar=$('gRar'),st=$('gStrip');if(bar)bar._k=null;if(st){st._r=null;if(m==='tous'){st.scrollTop=0;st.classList.remove('finBas');}}
   gModeCale();
   if(SHOP.tab==='voiture')garageFamilles(carRar(garageI));else gStripHabits(SHOP.tab,SHOP.i[SHOP.tab]);
   gModeBoutons();}
