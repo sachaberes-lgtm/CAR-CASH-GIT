@@ -91,6 +91,33 @@ plafonds de lacet et de tangage, vol libre, vrille visuelle, drift = un geste. C
   qui passe sous lui toutes les ~5 s, carte « Vitrail » (Peau · Cœur + 7 curseurs), Dark triad, Ralenti, Figé, Lisse, Ciel rêve.
   Une erreur dans le bloc s'affiche en rouge et garde l'ancien singe. `?passe=0&fige=1&cy=&dist=&yaw=&pitch=` pour une photo.
 
+## LES NIVEAUX — la page `maps-ciel.html` (2026-10-09/10, Léo : « reconstruction du système du PLAY : un visuel interactif, avec suppression et sauvegarde des modifs » → « les cinq [SKY HIGH] et les cinq des villes, là c'est n'importe quoi » → « encore trop de trucs écrits, je veux vraiment une page blanche, avec en liste les niveaux qu'on a, organisés de manière agréable ; je dois pouvoir y attacher une musique, puisque chaque niveau aura une musique ; des classes : parfois on va répéter la même map et la faire varier, parfois des maps uniques »)
+- OUTIL à côté du jeu (comme la salle blanche). Lancer : `python3 maps-ciel/serveur.py 9019` depuis VERSION PRINCIPALE → http://127.0.0.1:9019/maps-ciel.html.
+- UNE MAP = un décor ; UN NIVEAU = une map + sa VARIATION (heure, piste, idée) + SA MUSIQUE. Deux CLASSES déduites du contenu : une map à
+  plusieurs niveaux = RÉPÉTÉE, à un seul = UNIQUE (« variante » d'un niveau unique → sa map passe dans les répétées ; une map vidée disparaît).
+  Au départ (11/10, Léo : « trois maps de nuages, les plus belles, trois versions ; puis le ciel dégagé et l'horizon ciel, le ciel sans
+  nuages ») : répétées = MER DE NUAGES (matin, midi, après-midi — le ciel de coton de la partie sans fin), SKY HIGH 1-5 (CIEL · NIVEAU 1-5),
+  VILLE 1-5 (NÉON COMPLÈTE 1-5) ; uniques = CIEL DÉGAGÉ (la mer de nuages en dessous, aucun cumulus) et HORIZON CIEL (ni cumulus ni mer :
+  le ciel et l'horizon) — photographiés dans la MER DE NUAGES du jeu en masquant les nuages (`__cap.nu(1)`) puis la mer (`__cap.mer(0)` :
+  LVL.mer et skyU.uMer à 0), PAS ENCORE des niveaux du jeu — et PICS DE JADE. RÉSERVE repliée (L'ORAGE, SKY HIGH 6-10, PARC). Une
+  sauvegarde d'avant reçoit cette tête une fois (`mig.nuages3`). La bande « Une partie » (mode classique) tire parmi `DANS_LE_JEU`.
+- PAS EN LIGNE : `vercel-build.sh` retire `maps-ciel.html` et `maps-ciel/` du site (un outil de travail, comme sons.html — et un fichier de
+  plus dans jouer/ change l'empreinte du jeu, donc recharge les joueurs). On l'ouvre en local, par son serveur.
+- Une ligne = poignée · n° · photo (→ la fiche : photos au volant / le tracé, plan, description, note — le SEUL endroit avec du texte) · nom
+  et variation (clic = écrire) · pastille musique (▶ écoute, une à la fois ; le titre ouvre la BIBLIOTHÈQUE : musiques du jeu listées par le
+  serveur, « Importer un fichier… », « Sans musique » ; un fichier audio glissé du Finder sur une ligne s'y attache) · variante, retirer.
+  Glisser : d'une map à l'autre (le niveau en devient une variation), au milieu d'une ligne unique (la rejoindre), dans la zone « map
+  unique », dans la réserve. ⌘Z annule, ⌘S enregistre.
+- Données : `MAPS0`, `N0` (le catalogue : map, var, mus, photo, description — **PICS DE JADE : la session de la map jade met sa ligne à jour
+  dans `N0`**, photo `img/jade-volant.jpg`), `TITRES` (titres des musiques). État navigateur `cashcar.niveaux.v3`.
+- ENREGISTRER → `maps-ciel/sauvegarde.json` + `maps-ciel/fiche-maps-ciel.txt` (+ copie datée dans `sauvegardes/`), musiques importées dans
+  `maps-ciel/musiques/` (tous ignorés par git). **La fiche (maps, niveaux, musique de chacun, réserve, CHANGEMENTS PAR RAPPORT AU JEU, notes,
+  journal) est ce que Claude relit pour refaire le PLAY.** Console : `dbgNiveaux.etat()`, `.fiche()`, `.changements()`, `.bib()`.
+- Photos : `img/<id>-volant.jpg` (poursuite, HUD masqué, flou coupé) et `img/<id>-trace.jpg` (la route vue de haut, nuages du DÉCOR masqués —
+  `COTON.root` et les CLOUDS hors `camp`/`onRoad`), `traces.js` (le plan, un point tous les ~16 m). Les reprendre : copie de capture
+  `_capture-maps.html` (index.html + `window.__cap` : sansFin, zone, nu, trace, vue, etat ; les niveaux 6-10 remis dans CETTE copie seulement)
+  servie à côté d'index.html, Chrome sans fenêtre muet, splash touché par un VRAI clic (sinon `start()` refuse : `#splash` existe encore),
+  `dbgCampagne(n)` (`dbgCampagne(n,1)` = VILLE n) / `__cap.sansFin()` puis `__cap.zone(z)`, `dbgNet(true)` + `dbgAuto(true,0)`, 5 s, photo. Copie supprimée après.
 ## LE DAUPHIN DE RÊVE + LA BOÎTE À DAUPHINS (2026-10-09, Léo : « retouchons les dauphins, envoie-moi dans une boîte blanche avec les dauphins, on va les design » — puis une image de grand dauphin pastel : « travaille encore plus dur »)
 - **LA BOÎTE** : `boite-dauphins.html` (à côté d'index.html, servie par `python3 -m http.server`, jamais en double-clic). Elle LIT et exécute le
   VRAI bloc du jeu (de `const DOL_L=` à `const dolphinRig=`) et le RELIT ~1 fois/s : une retouche du dauphin dans index.html apparaît sans
