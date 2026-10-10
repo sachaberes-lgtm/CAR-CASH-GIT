@@ -6392,6 +6392,10 @@ html body #garage:not(.menu):not(.vitrine) #gStrip.gModeTous{display:grid!import
   -webkit-mask:linear-gradient(180deg,#000 0,#000 calc(100% - 26px),transparent);mask:linear-gradient(180deg,#000 0,#000 calc(100% - 26px),transparent)}
 html body #garage:not(.menu):not(.vitrine) #gStrip.gModeTous.finBas{-webkit-mask:none;mask:none}
 html body #garage:not(.menu):not(.vitrine) #gStrip.gModeTous>.gT{width:auto!important;min-width:0!important;max-width:none!important;flex:none!important;margin:0!important;scroll-snap-align:start}
+#gStrip .rarLogo{position:absolute;top:6px;right:8px;z-index:3;display:flex;align-items:center;justify-content:center;width:17px;height:17px;pointer-events:none;
+  background:rgba(7,5,15,.78);box-shadow:inset 0 0 0 1px var(--rl),0 0 8px var(--rl);transform:skewX(calc(-1 * var(--sk,0deg)))}
+#gStrip .rarLogo .pxi{--pxs:1;color:var(--rl);filter:none}
+#gStrip.fnBande .fnC .rarLogo{top:8px;right:10px;width:20px;height:20px}
 html body #garage:not(.menu):not(.vitrine) #gStrip .gT.c-aile.lock em{bottom:auto!important;height:auto!important} /* (2026-10-10) une AILE à vendre : le prix monte au coin haut (il s'étirait sur toute la vignette et se posait sur le nom — vu dans SEE ALL ITEMS) */
 #gStrip.fnBande .fnTout{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;margin:4px 0 0;cursor:pointer;
   font-size:var(--f0);letter-spacing:2px;color:rgba(230,226,255,.55);text-shadow:0 1px 0 rgba(7,5,15,.8);transition:color var(--t-fast) var(--ease)} /* (2026-10-10) écrit en transparent, pas une plaque */
@@ -38925,6 +38929,10 @@ function gModeBoutons(){const m=gModeM(),c=document.getElementById('gvCof'),b=do
 function gModeTete(bar,m,n){bar.classList.add('gModeBar'); // n : un nombre, ou « 15 / 46 » en INVENTAIRE
   if(m==='tous'){bar.innerHTML='<div class="gModeT fnTete" style="--rc:var(--neoM)"><b class="fnRetour" role="button" aria-label="'+TR('RETOUR')+'">'+pxi('gauche')+'</b>'+pxi('panier')+'<span>SEE ALL ITEMS</span><s></s><b>'+n+'</b></div>';return;} // (2026-10-10) SEE ALL ITEMS, en anglais (Léo)
   bar.innerHTML='<div class="gModeT" style="--rc:'+(m==='inv'?'var(--neoC)':'var(--neoM)')+'">'+pxi(m==='inv'?'coffre':'panier')+'<span>'+sansAcc(TR(m==='inv'?'INVENTAIRE':'BOUTIQUE'))+'</span><s></s><b>'+n+'</b></div>';}
+/* LE LOGO DE LA RARETÉ (2026-10-10, Léo : « les raretés, tu peux ajouter le logo à côté de chaque voiture, au même endroit, pour créer un peu
+   de logique visuelle ») : sur CHAQUE vignette de caisse (inventaire, SEE ALL ITEMS, vitrine du jour), le logo de sa famille (RAR_LOGO : roue,
+   gemme, flamme, couronne, cible) dans sa couleur, toujours au coin haut droit — le cadenas et le losange de l'équipée restent à gauche. */
+function rarLogo(i){const r=carRar(i),c=rarInfo(r).c;return '<span class="rarLogo" style="--rl:'+c+'" title="'+sansAcc(TR(rarInfo(r).n1))+'">'+pxi(RAR_LOGO[r]||'etoile')+'</span>';}
 function gStripModeVoitures(){
   const bar=$('gRar'),st=$('gStrip');if(!bar||!st)return;gModeBoutons();
   const m=GMODE.m,eq=SAVE.d.equipped|0,L=gModeListeVoitures(m);
@@ -38938,7 +38946,7 @@ function gStripModeVoitures(){
       const u=CAR_UNLOCK[i],ouv=i===eq||carUnlockedVrai(i);
       const et=ouv?(i===eq?'':pxi('coche')):(u&&u.p?fmtC(u.p):u&&u.eur?eurTxt(u.eur):u&&u.k==='carnet'?gDefiEt(u.v):'');
       return '<div class="gT'+(ouv?'':' lock')+(i===eq?' eq':'')+'" data-car="'+i+'" role="button" aria-label="'+String(CARS[i].name).replace(/"/g,'')+'" style="--rc:'+ri.c+lg9+'">'
-        +'<i class="gTl"></i><i class="gTv"></i><em'+(!ouv&&u&&!u.p&&u.eur?' class="eur"':!ouv&&u&&u.k==='carnet'?' class="def"':'')+'>'+et+'</em></div>';}).join('');
+        +'<i class="gTl"></i><i class="gTv"></i>'+rarLogo(i)+'<em'+(!ouv&&u&&!u.p&&u.eur?' class="eur"':!ouv&&u&&u.k==='carnet'?' class="def"':'')+'>'+et+'</em></div>';}).join('');
     st.querySelectorAll('.gT').forEach(function(el){const i=+el.getAttribute('data-car');
       photoFile(i,function(url){const v=el.querySelector('.gTv');if(v)v.remove();if(!el.querySelector('img')){const im=document.createElement('img');im.alt='';im.src=url;el.insertBefore(im,el.firstChild);}});});}
   st.querySelectorAll('.gT').forEach(function(el){el.classList.toggle('on',+el.getAttribute('data-car')===garageI);});
@@ -38987,7 +38995,7 @@ function bqCarte(k,une){const ri=rarInfo(bqRar(k)),c=ri.c,a=bqA(k);let nom='',ty
   if(k[0]==='v'){const i=+k.slice(2),u=CAR_UNLOCK[i]||{};nom=TR(CARS[i].name);ty='CAISSE';if(u.k==='premium'){px=eurTxt(u.eur);eur=true;}else px=fmtC(u.p||0);fig='<i class="fnPh"></i>';}
   else{const o=bqCos(k);nom=TR(o.d.n);ty=SHOP_LBL[o.cat];px=fmtC(o.d.p);fig=bqFig(o.cat,o.d);}
   return '<div class="fnC'+(une?' une':'')+(a?' acquis':'')+'" data-fn="'+k+'" role="button" aria-label="'+String(nom).replace(/"/g,'')+'" style="--rc:'+c+';--rcL:'+invRgba(c,.98)+';--rcD:'+invRgba(c,.22)+'">'
-    +'<i class="fnFond"></i>'+fig+(une?'<s class="fnBan">'+sansAcc(TR('À LA UNE'))+'</s>':'')
+    +'<i class="fnFond"></i>'+fig+(k[0]==='v'?rarLogo(+k.slice(2)):'')+(une?'<s class="fnBan">'+sansAcc(TR('À LA UNE'))+'</s>':'')
     +'<span class="fnTy">'+sansAcc(TR(ty))+(une?' · '+sansAcc(TR(ri.n1)):'')+'</span><b class="fnN">'+sansAcc(String(nom))+'</b>'
     +'<em class="fnP'+(eur?' eur':'')+'">'+(a?pxi('coche')+'<span>'+sansAcc(TR('ACQUIS'))+'</span>':px)+'</em></div>';}
 /* LA BOUTIQUE DU GARAGE, SON PLAN (2026-10-10, Léo, après quatre passes — « quand on appuie sur SHOP : en haut LIMITED OFFERS, c'est top ;
@@ -39214,7 +39222,7 @@ function gStripHabits(cat,i){
 // menu s'est mis à traverser tout l'étal). Le garage RESTE la scène du départ (porte qui s'ouvre,
 // boost, logo) ; c'est seulement le PAPIER PEINT du shop qui n'a rien à faire sur un lancement rapide.
 function openGarage(quiet){
-  try{GMODE.m='tout';gConsoleCache(false);gVueSeule(false);}catch(e){} // (2026-10-09) la console à trois modes repart sur TOUT, dépliée — (2026-10-10) et l'œil rouvert
+  try{GMODE.m='inv';gConsoleCache(false);gVueSeule(false);}catch(e){} // (2026-10-09) la console à trois modes repart dépliée — (2026-10-10) et l'œil rouvert ; (même soir, Léo : « quand j'arrive direct dans le garage, ça montre l'ancien truc avec les raretés, enlève ça ») elle s'ouvre sur l'INVENTAIRE, plus sur la vue par familles (TOUT)
   try{if(PHQ.q.length&&!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}catch(e){} // (2026-09-26) les photos en attente reprennent
   if(started&&!gameOver){showMsg('Le garage se visite depuis le menu');return;} // ⚠ gameOver = on EST au menu : refuser ici bloquait le bouton apres la 1re partie
   try{if(SONV2&&!openGarage._amb)openGarage._amb=sfx('garage.ambiance',{loop:true});}catch(e){} // (console de son) l'ATELIER a sa voix : néons, tube qui grésille, la ville au loin
