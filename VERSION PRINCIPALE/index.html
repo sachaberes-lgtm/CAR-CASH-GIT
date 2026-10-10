@@ -6328,8 +6328,8 @@ html[data-reduced-motion="1"] body #garage #gAct>#gCache .gLueur::after{animatio
 html body #garage:not(.menu):not(.vitrine) #gAct>#gCache{display:none!important}
 html body #garage:not(.menu):not(.vitrine) #gAct>#gHomeBas{grid-column:1}
 html body #garage:not(.menu):not(.vitrine) #gAct>#gOeil{grid-row:1;grid-column:2;display:flex;align-items:center;justify-content:center;min-width:0;height:34px;min-height:34px;padding:0 8px;
-  --ton:#ff8a1f;--nc:var(--ton);--lu:rgba(255,138,31,.9);transform:skewX(var(--sk));animation:none;
-  background:linear-gradient(180deg,rgba(60,32,14,.72),rgba(24,14,10,.9));box-shadow:inset 0 0 0 1px rgba(255,160,80,.38),inset 0 -3px 0 var(--ton),0 0 14px -5px var(--ton),0 6px 14px -8px var(--ton)}
+  --ton:#5b95ff;--nc:var(--ton);--lu:rgba(255,138,31,.9);transform:skewX(var(--sk));animation:none; /* (même jour, Léo : « case bleue, œil orange ») */
+  background:linear-gradient(180deg,rgba(46,78,170,.62),rgba(20,28,74,.9));box-shadow:inset 0 0 0 1px rgba(120,165,255,.55),inset 0 -4px 0 var(--ton),0 0 16px -4px var(--ton),0 6px 14px -8px var(--ton)}
 html body #garage:not(.menu):not(.vitrine) #gAct>#gOeil:is(:active,.appui){transform:skewX(var(--sk)) translateY(2px)}
 html body #garage:not(.menu):not(.vitrine) #gAct>#gOeil .gLueur{position:relative;display:inline-flex;line-height:0;filter:drop-shadow(0 0 2px var(--lu)) drop-shadow(0 0 6px var(--lu))}
 html body #garage:not(.menu):not(.vitrine) #gAct>#gOeil .gLueur .pxi{--pxs:2;color:#ffa23a;filter:none}
@@ -6342,8 +6342,7 @@ html[data-reduced-motion="1"] body #garage #gAct>#gOeil .gLueur::after{animation
 html body #garage.vueSeule{visibility:hidden}
 html body #garage.vueSeule #gOeil{visibility:visible}
 html.vueSeule #gTourne,html.vueSeule #gHomeMini{visibility:hidden!important}
-html body #garage.vueSeule:not(.menu):not(.vitrine) #gAct>#gOeil{--lu:rgba(255,190,90,1);background:linear-gradient(180deg,rgba(255,138,31,.85),rgba(150,60,10,.92));box-shadow:inset 0 0 0 1px rgba(255,210,150,.6),inset 0 -3px 0 #ffcf8a,0 0 18px -3px var(--ton)}
-html body #garage.vueSeule:not(.menu):not(.vitrine) #gAct>#gOeil .gLueur .pxi{color:#fff6e6}
+html body #garage.vueSeule:not(.menu):not(.vitrine) #gAct>#gOeil{--lu:rgba(255,170,60,1);background:linear-gradient(180deg,rgba(79,140,255,.85),rgba(30,52,140,.92));box-shadow:inset 0 0 0 1px rgba(170,200,255,.7),inset 0 -4px 0 #9cc2ff,0 0 20px -3px var(--ton)} /* allumé : la case bleue s'éclaire, l'œil reste orange */
 /* LA CROIX DE L'INVENTAIRE, DISCRÈTE (même jour, Léo : « la croix est juste plus discrète, et sert à enlever le rectangle avec toutes
    les voitures pour qu'on ait une vue sur le garage ») : elle ferme toujours le tiroir, mais n'est plus une touche cyan pleine. Plus de
    plaque ni de tranche : une petite croix lilas dans un carré à peine dessiné (filet d'1 px, fond presque nul), qui s'allume sous le doigt.
