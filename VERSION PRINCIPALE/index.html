@@ -13511,7 +13511,7 @@ const CARS=[
   fx:{jet:0xff7a24,core:0xffe0a0,trail:[1.5,.7,.25],light:0xff6a1a},
   desc:'Une croûte de basalte qui se fend sur un cœur de lave, le feu qui coule dans chaque joint. Ne la touche pas.'},
  // (2026-10-10, Léo : « une abstraite type EAU — l'élément, pas une bouteille ; quelque chose de vraiment méchant ») LA DÉFERLANTE (voir SHAPES.deferlante). Ajoutée EN DERNIER.
- {name:'LA DÉFERLANTE',shape:'deferlante',color:0x06263c,accent:0x5ee6ff,maxKmh:430,accel:51,turn:3.1,h:1.72,w:2.0,l:4.9,spoiler:0,rar:'epique',
+ {name:'LA DÉFERLANTE',shape:'deferlante',color:0x06263c,accent:0x5ee6ff,maxKmh:430,accel:51,turn:3.1,h:1.68,w:2.0,l:4.9,spoiler:0,rar:'epique',
   fx:{jet:0x5ee6ff,core:0xe8fbff,trail:[.3,1.05,1.5],light:0x3fc8ff},
   desc:'Une vague scélérate qui a appris à conduire. Elle se creuse au-dessus de ta nuque, et toi tu respires dans une bulle d\'air.'},
 ];
@@ -21430,43 +21430,61 @@ Object.assign(SHAPES,{
             lpw:{R:R,w:.26,style:'multi',n:8,jante:0xff7a24,accent:0xff7a24,pneu:0x120d0c}}; // (Léo : « je préférais avant, avec les roues noires »)
   },
 /* LA DÉFERLANTE (2026-10-10, Léo : « une abstraite type EAU — l'élément, pas une bouteille ; avec tout ce qu'on a appris, quelque chose
-   de vraiment méchant ; inspire-toi d'un modèle qui existe, ou pas — original, qu'on n'a pas dans le jeu ») — UNE VAGUE SCÉLÉRATE QUI
-   CONDUIT. Le modèle : l'hypercar du Mans SANS AILERON (la Peugeot 9X8) — nez bas en étrave, ailes en bosses sur les roues ; ici
-   l'aileron, c'est la VAGUE : à l'arrière, l'eau se lève, se creuse au-dessus de la nuque du pilote (le tube) et sa lèvre retombe vers
-   l'avant ; elle déferle un peu plus loin à droite qu'à gauche. Trois eaux, un seul programme d'eau (`EAU_VS`, sommets qui ONDULENT :
-   des vagues qui courent du nez à la poupe ; facettes par les dérivées — le poly du jeu, qui scintille quand l'eau bouge) :
-   · le FOND (la coque, opaque) : une eau noire des abysses → canard, traversée de CAUSTIQUES cyan (un réseau de Voronoï animé) qui
-     filent vers l'arrière ;
-   · la PEAU (transparente, 5 cm au-dessus) : Fresnel au bord, reflet, ÉCLATS des facettes qui attrapent la lumière, caustiques fines ;
-     la VAGUE est faite de cette eau-là, sans fond (plus dense) : on voit à travers, et des BULLES y montent ;
-   · l'ÉCUME et les EMBRUNS EN CUBES (comme les petites flammes de LA FOURNAISE) : la lèvre et la crête moussent par CRANS (12 images/s),
-     le tube bouillonne, les moustaches d'étrave au nez ; des gouttes partent de la lèvre, de la crête et du nez, et retombent.
-   Le pilote respire dans une BULLE D'AIR (le cockpit). Les yeux : deux fentes cyan, en colère. Les roues : des tourbillons (le flasque
-   plié). Tout s'emballe à la nitro. Ce qui bouge : `BLING.anim` (jeu) et `userData.anime` (salle blanche). */
+   de vraiment méchant ; inspire-toi d'un modèle qui existe, ou pas — original, qu'on n'a pas dans le jeu » → 1er jet, une sportive dont
+   l'aileron était une vague : « la vitre, elle est magnifique ; mais la forme, on dirait une voiture que j'ai déjà ») — LA VOITURE EST
+   LA VAGUE. De profil, c'est 🌊 : le nez est le CREUX (une lame au ras de la route), la face monte jusqu'à la CRÊTE, à l'arrière, et la
+   LÈVRE se recourbe vers l'avant au-dessus du pilote ; le pilote est DANS LE TUBE, sa bulle d'air se voit de côté, à travers. Plus de
+   carrosserie dessous : l'eau fait tout. Des bosses sur les roues avant, le nez arrondi en plan, la queue tombe en pente. Elle déferle un
+   peu en biais (la lèvre plus loin à droite) et sa lèvre est DÉCHIQUETÉE. La matière (« la vitre ») est celle du 1er jet, un programme
+   d'eau (`EAU_VS` : sommets qui ONDULENT le long d'un rayon de la caisse — continu, rien ne se décolle ; facettes par les dérivées) :
+   · le FOND (opaque, 5-8 cm sous la surface, seulement là où l'eau est épaisse) : une eau noire des abysses → canard, traversée de
+     CAUSTIQUES cyan qui filent vers l'arrière ;
+   · L'EAU par-dessus (transparente, `uGrad` : bleu profond en bas, turquoise où elle s'amincit, blanche à la crête ; Fresnel, filets qui
+     coulent, SCINTILLEMENT en points de soleil — jamais une facette entière en blanc) ; la lèvre n'a pas de fond : elle luit ;
+   · l'ÉCUME et les EMBRUNS EN CUBES (comme les petites flammes de LA FOURNAISE) : la lèvre mousse par crans et pend en rideau, la crête
+     moutonne, le nez fend l'eau ; des gouttes partent de la lèvre, la crête souffle son panache en arrière ; des BULLES montent dans le dos.
+   Tout s'emballe à la nitro. Ce qui bouge : `BLING.anim` (jeu) et `userData.anime` (salle blanche). */
   deferlante:function(K){
-    const U=LPU,R=.37,ZF=1.48,ZR=-1.48;
+    const U=LPU,R=.37,ZF=1.48,ZR=-1.48,XE=.98;
     let rs=0x2545f491;const rnd=()=>{rs^=rs<<13;rs^=rs>>>17;rs^=rs<<5;return (rs>>>0)/4294967296;};   // un hasard FIXE (la même vague à chaque construction)
-    // LA FORME : arches, arête du milieu (capot bas entre les bosses), bosses sur les roues, demi-largeur
-    const AR=[[0,2*R+.06],[R*.62,2*R+.06],[R+.16,.26]],Bz=z=>U.arch(z,[ZF,ZR],AR,.26),
-      Tc=z=>U.lin([[-2.42,.70],[-2.0,.84],[-1.5,.88],[-.8,.84],[-.45,.70],[.3,.62],[1.1,.62],[1.9,.52],[2.42,.34]],z),
-      Tf=z=>U.lin([[-2.42,.72],[-2.1,.96],[-1.48,1.02],[-.9,.92],[0,.82],[.8,.84],[1.48,.99],[2.0,.76],[2.42,.36]],z),
-      W=z=>U.lin([[-2.42,.80],[-2.2,.94],[-1.48,1.02],[-.7,.92],[.2,.88],[1.0,.95],[1.48,1.0],[1.95,.86],[2.2,.62],[2.42,.24]],z);
-    const sect=(z,d)=>{const b=Bz(z),w=W(z)+d,tc=Tc(z)+d,tf=Math.max(Tf(z)+d,tc),ys=b+(tf-b)*.5,xi=Math.min(.60,w*.6),y0=.26-d*.4;
-      return [[0,y0],[xi,y0],[xi,Math.max(y0,b-d*.3)],[w*.97,Math.max(y0,b-d*.3)],[w,Math.max(y0,b-d*.3)+.07],[w,ys],[w*.95,tf-.07],[w*.82,tf],
-        [w*.64,tf-.03],[w*.42,tc+(tf-tc)*.45],[w*.2,tc+.01],[0,tc]];};
-    const zs=[-2.42,-2.32,-2.2,-2.06,-1.92,-1.78,-1.64,-1.5,-1.36,-1.22,-1.08,-.94,-.8,-.62,-.45,-.25,0,.25,.5,.75,.95,1.1,1.25,1.4,1.55,1.7,
-      1.85,2.0,2.12,2.24,2.34,2.42];
-    for(const w of [ZF,ZR])for(const d of [R*.62,R+.16])zs.push(w-d,w+d);zs.sort((a,b)=>a-b);
-    const loftGeo=(d,sz)=>{const C=K.kit({o:{g:'l',c:0xffffff}});C.loft(zs.map(z=>z*sz),z=>sect(z/sz,d),()=>'o');return C.done().l;};
-    // LE BOIS DE LA CAISSE (ce qui n'est pas de l'eau) : les yeux, les feux, le baquet, les canons à eau
+    const AR=[[0,2*R+.06],[R*.62,2*R+.06],[R+.16,.26]],Bz=z=>U.arch(z,[ZF,ZR],AR,.26),ss=(a,b,v)=>{const t=U.cl((v-a)/(b-a),0,1);return t*t*(3-2*t);},
+      Y=y=>.30+(y-.30)*.76;
+    // LE PROFIL (z, y) : le DESSUS du nez à la queue (le creux, la face, le tube, la lèvre, la crête, le dos), puis le DESSOUS de la queue au nez
+    const HAUT=[[2.45,.30],[2.0,.34],[1.5,.40],[1.0,.48],[.6,.58],[.25,.70],[-.05,.86],[-.28,1.06],[-.42,1.30],[-.46,1.52],[-.36,1.72],[-.12,1.86],
+        [.18,1.90],[.48,1.84],[.76,1.68],[1.00,1.46],[1.16,1.22],[1.24,1.00],[1.14,1.28],[.98,1.58],[.76,1.84],[.50,2.04],[.24,2.14],[-.06,2.02],
+        [-.50,1.80],[-1.00,1.53],[-1.50,1.25],[-1.95,.96],[-2.24,.70],[-2.38,.50],[-2.42,.32]],
+      FHAUT=[[1.0,.44],[.80,.50],[.6,.56],[.25,.66],[-.05,.80],[-.30,.98],[-.48,1.20],[-.54,1.46],[-.48,1.66],[-.32,1.80],
+        [-.10,1.88],[-.10,1.94],[-.48,1.73],[-.98,1.46],[-1.47,1.19],[-1.90,.92],[-2.18,.68],[-2.30,.50],[-2.32,.34]],
+      BAS=[-2.30,-2.01,-1.71,-1.48,-1.25,-.95,0,.95,1.25,1.48,1.71,2.01,2.30],LEVRE=17,CRETE=22;
+    const uX=x=>(x+XE)/(2*XE),cote=x=>Math.exp(-Math.pow((Math.abs(x)-.82)/.24,2));   // une houle ronde, centrée sur la roue
+    const plan=(z,x)=>{const a=(x/XE)*(x/XE);return z>1.6?1.6+(z-1.6)*(1-.55*a):z<-2.0?-2.0+(z+2.0)*(1-.3*a):z;};      // le nez arrondi, la queue aussi
+    const serre=z=>1-.40*ss(.75,1.15,z);                                                                                // devant, entre les roues (elles restent DEHORS)
+    const dessous=(z,x)=>z>.6?.30:.30+(Bz(z)-.26)*ss(.52,.62,Math.abs(x));                                              // le dessous, creusé sur les roues arrière
+    const profil=(x,fond)=>{const H=fond?FHAUT:HAUT,r=cote(x),out=[];
+      H.forEach((p,j)=>{let z=p[0],y=Y(p[1]);
+        if(!fond){if(j>=10&&j<=21)z+=.14*uX(x)-.05;                                                                    // elle déferle en biais
+          if(j>=15&&j<=19)z+=.06*Math.sin(x*9.7+2.1)+.035*Math.sin(x*23.+.4);                                            // la lèvre en GRIFFES
+          if(j>=20&&j<=24)y+=.06*Math.sin(x*6.3+.7)+.03*Math.sin(x*13.1+1.9);                                            // la crête
+          if(j>=24&&j<=28)z+=.05*Math.sin(x*8.3+j);}                                                                     // le dos qui ondule
+        if(z<.6){const yF=Bz(z)+(fond?.04:.14);if(yF>.4)y+=Math.max(0,yF-y)*r;}                                       // la HOULE qui passe sur les roues arrière
+        out.push([x*serre(z),plan(z,x),y]);});
+      for(const z of BAS){const zz=fond?U.cl(z,-2.26,1.0):z;out.push([x*serre(zz),plan(zz,x),dessous(zz,x)+(fond?.01:0)]);}
+      return out;};
+    const nappe=(fond,x0)=>{const NX=24,VP=[],IX=[],PR=[];let M=0;
+      for(let i=0;i<=NX;i++){const x=-x0+2*x0*i/NX,pr=profil(x,fond);M=pr.length;PR.push([x,pr]);for(const q of pr)VP.push(q[0],q[2],q[1]);}
+      for(let i=0;i<NX;i++)for(let j=0;j<M;j++){const a=i*M+j,b=i*M+(j+1)%M,c=(i+1)*M+(j+1)%M,d=(i+1)*M+j;IX.push(a,b,c,a,c,d);}
+      for(const i of [0,NX]){const ct=PR[i][1].map(q=>new THREE.Vector2(q[1],q[2]));                                    // les deux bouts : le profil plein
+        for(const f of THREE.ShapeUtils.triangulateShape(ct,[]))IX.push(i*M+f[0],i*M+f[1],i*M+f[2]);}
+      const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(VP,3));geo.setIndex(IX);geo.computeVertexNormals();
+      return {geo,PR};};
+    // CE QUI N'EST PAS DE L'EAU : les yeux (en colère, sur les bosses), les feux, le baquet, les canons à eau
     const P=K.kit({W:{g:'l',c:0xd9fbff},C:{g:'l',c:0x5ee6ff},L:{g:'l',c:0xff1838},k:{g:'m',c:0x06111a},s:{g:'s',c:0x0b1822}});
-    P.sym(sd=>{P.box('W',.42,.04,.10,sd*.50,.78,1.97,-.42,sd*.45,sd*-.28);P.box('C',.20,.03,.07,sd*.70,.86,1.80,-.42,sd*.45,sd*-.28);}); // les yeux, en colère
-    P.box('L',1.06,.035,.02,0,.58,-2.43);P.sym(sd=>P.box('L',.05,.16,.02,sd*.55,.52,-2.43));                                          // les feux
-    P.sym(sd=>{P.cyl('k',.075,.07,12,sd*.24,.40,-2.42,'z');P.cyl('C',.05,.01,12,sd*.24,.40,-2.452,'z');});                            // les canons à eau
-    P.box('s',.38,.07,.46,0,.66,.22);P.box('s',.38,.36,.08,0,.84,-.05,-.22,0,0);P.box('s',.22,.12,.07,0,1.04,-.10,-.22,0,0);           // le baquet
+    P.sym(sd=>{P.box('W',.26,.035,.07,sd*.36,.47,1.10,-.17,sd*.30,sd*-.28);P.box('C',.12,.025,.05,sd*.52,.45,1.20,-.17,sd*.30,sd*-.28);}); // les yeux, au fond de la GUEULE du tube
+    P.box('L',.90,.035,.02,0,.40,-2.43);P.sym(sd=>P.box('L',.05,.10,.02,sd*.46,.36,-2.43));
+    P.sym(sd=>{P.cyl('k',.065,.06,12,sd*.26,.34,-2.42,'z');P.cyl('C',.044,.01,12,sd*.26,.34,-2.45,'z');});
+    P.box('s',.32,.05,.40,0,.62,.40);P.box('s',.32,.26,.07,0,.76,.16,-.25,0,0);P.box('s',.18,.10,.07,0,.91,.11,-.25,0,0);
     K.commit(P);
     const g=K.add(new THREE.Group());
-    // L'EAU : un programme. Les sommets ondulent le long d'un rayon de la caisse (continu : non indexé, aucune facette ne se décolle)
     const UW={uT:{value:0},uF:{value:0}};
     const EAU_VS='uniform float uT,uF,uAmp;varying vec3 vP,vV;void main(){vec3 p=position;vec3 d=normalize(vec3(p.x,p.y-.55,0.)+vec3(0.,1e-3,0.));'+
       'float w=sin(p.z*3.1+p.x*1.3+uT*(2.6+uF*2.2))*.6+sin(p.z*5.3-p.x*4.1+uT*3.7)*.3+sin(p.y*6.+p.z*2.+uT*4.3)*.25;'+
@@ -21493,84 +21511,64 @@ Object.assign(SHAPES,{
     const eauMat=(fs,amp,transp,a0,a1,cau,te)=>{const m=new THREE.ShaderMaterial({uniforms:{uT:UW.uT,uF:UW.uF,uAmp:{value:amp},uA0:{value:a0||0},uA1:{value:a1||0},
       uCau:{value:cau||0},uGrad:{value:cau?1:0},uTe:{value:new THREE.Color().setRGB(te?te[0]:.03,te?te[1]:.34,te?te[2]:.54)}},
       vertexShader:EAU_VS,fragmentShader:fs,transparent:!!transp,depthWrite:!transp,side:THREE.DoubleSide,extensions:{derivatives:true}});m.userData.g='eau';return m;};
-    const fond=new THREE.Mesh(loftGeo(0,1),eauMat(FOND_FS,.012,false));fond.userData.brut=1;fond.userData.ombre=1;g.add(fond);
-    const peau=new THREE.Mesh(loftGeo(.05,1.02),eauMat(PEAU_FS,.022,true,.08,.82));peau.userData.brut=1;peau.userData.noShadow=1;peau.renderOrder=3;g.add(peau);
-    // LA VAGUE : un profil (z, y) fermé — la face creuse du tube, la lèvre, la crête, le dos, le pont (caché dans la coque) — tiré en travers
-    const CU=[[-.70,.80],[-1.05,.86],[-1.35,.96],[-1.55,1.12],[-1.58,1.30],[-1.45,1.45],[-1.20,1.52],[-.92,1.46],[-.70,1.34],[-.56,1.20],
-      [-.48,1.10],[-.52,1.24],[-.66,1.42],[-.90,1.58],[-1.20,1.67],[-1.55,1.70],[-1.85,1.60],[-2.08,1.40],[-2.26,1.14],[-2.38,.92],[-2.45,.70],[-2.0,.80],[-1.4,.84]],
-      LEVRE=10,CRETE=15,NX=24,XE=.98,M=CU.length;
-    // elle DÉFERLE EN BIAIS : à gauche l'ÉPAULE (basse, la lèvre en retrait), à droite le TUBE grand ouvert (la lèvre plus loin devant)
-    const uX=x=>(x+XE)/(2*XE),ampX=x=>.38+.62*U.cl(uX(x)/.75,0,1)*U.cl(uX(x)/.75,0,1)*(3-2*U.cl(uX(x)/.75,0,1));
-    const profil=x=>{const A=ampX(x);return CU.map((p,j)=>{const avant=j>=5&&j<=14?.26*uX(x)-.06:0,y0=Tc(p[0])-.04,
-      griffe=j>=8&&j<=12?.06*Math.sin(x*9.7+2.1)+.03*Math.sin(x*23.+.4):0,                                         // la lèvre DÉCHIQUETÉE (des griffes)
-      dos=j>=16&&j<=19?.05*Math.sin(x*8.3+j):0,                                                                       // le dos qui ondule
-      y=y0+(p[1]+(j>=13&&j<=17?.07*Math.sin(x*6.3+.7)+.035*Math.sin(x*13.1+1.9):0)-y0)*A;return [p[0]+avant+griffe+dos,y];});};
-    const VP=[],IX=[],PR=[];
-    for(let i=0;i<=NX;i++){const x=-XE+2*XE*i/NX,pr=profil(x);PR.push([x,pr]);for(const p of pr)VP.push(x,p[1],p[0]);}
-    for(let i=0;i<NX;i++)for(let j=0;j<M;j++){const a=i*M+j,b=i*M+(j+1)%M,c=(i+1)*M+(j+1)%M,d=(i+1)*M+j;IX.push(a,b,c,a,c,d);}
-    for(const i of [0,NX]){const ct=PR[i][1].map(p=>new THREE.Vector2(p[0],p[1]));                                   // les deux bouts : le profil plein (on voit le tube)
-      for(const f of THREE.ShapeUtils.triangulateShape(ct,[]))IX.push(i*M+f[0],i*M+f[1],i*M+f[2]);}
-    const vg=new THREE.BufferGeometry();vg.setAttribute('position',new THREE.Float32BufferAttribute(VP,3));vg.setIndex(IX);vg.computeVertexNormals();
-    const vague=new THREE.Mesh(vg,eauMat(PEAU_FS,.014,true,.26,.92,.5,[.04,.52,.70]));vague.userData.brut=1;vague.userData.noShadow=1;vague.renderOrder=4;g.add(vague);
-    // LA BULLE D'AIR : le cockpit (le même programme que les bulles qui montent)
+    const F0=nappe(true,.90),E0=nappe(false,XE),PR=E0.PR;
+    const fond=new THREE.Mesh(F0.geo,eauMat(FOND_FS,.010,false));fond.userData.brut=1;fond.userData.ombre=1;g.add(fond);
+    const vague=new THREE.Mesh(E0.geo,eauMat(PEAU_FS,.016,true,.16,.90,.45,[.04,.50,.70]));vague.userData.brut=1;vague.userData.noShadow=1;vague.renderOrder=4;g.add(vague);
+    // LA BULLE D'AIR : le cockpit, au fond du tube (le même programme que les bulles qui montent)
     const BUL_VS='varying vec3 vN,vV;void main(){mat4 m=modelViewMatrix;\n#ifdef USE_INSTANCING\nm=m*instanceMatrix;\n#endif\n'+
       'vN=normalize(mat3(m)*normal);vec4 mv=m*vec4(position,1.);vV=mv.xyz;gl_Position=projectionMatrix*mv;}',
       BUL_FS='uniform float uA;varying vec3 vN,vV;void main(){vec3 n=normalize(vN),v=normalize(-vV);float fr=pow(1.-abs(dot(n,v)),1.7);'+
       'float sp=pow(max(dot(reflect(-normalize(vec3(-.35,.8,.45)),n),v),0.),40.);gl_FragColor=vec4(mix(vec3(.55,.9,1.),vec3(1.),fr)+sp,clamp(uA+fr*.85+sp,0.,1.));}';
     const bulMat=a=>{const m=new THREE.ShaderMaterial({uniforms:{uA:{value:a}},vertexShader:BUL_VS,fragmentShader:BUL_FS,transparent:true,depthWrite:false});m.userData.g='eau';return m;};
-    const cock=new THREE.Mesh(new THREE.SphereGeometry(1,18,12),bulMat(.04));cock.scale.set(.40,.30,.78);cock.position.set(0,.80,.30);
+    const cock=new THREE.Mesh(new THREE.SphereGeometry(1,18,12),bulMat(.04));cock.scale.set(.32,.24,.55);cock.position.set(0,.80,.40);
     cock.userData.brut=1;cock.userData.noShadow=1;cock.renderOrder=5;g.add(cock);
-    // LES BULLES qui montent dans la vague
-    const NB=26,bulles=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(.03,0),bulMat(.28),NB);
+    // LES BULLES qui montent dans le dos de la vague
+    const NB=30,bulles=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(.03,0),bulMat(.28),NB);
     bulles.frustumCulled=false;bulles.userData.brut=1;bulles.userData.noShadow=1;bulles.renderOrder=2;g.add(bulles);
-    const yHaut=z=>U.lin([[-2.26,1.14],[-2.08,1.40],[-1.85,1.60],[-1.7,1.66]],z)-.10;
-    const BU=[];for(let k=0;k<NB;k++){const z=-2.06+rnd()*.42;BU.push({x:-.3+rnd()*1.1,z,y:.86+rnd()*(yHaut(z)-.86),v:.22+rnd()*.25,r:.016+rnd()*.026,p:rnd()*6.3});}
+    const dos9=z=>Y(U.lin([[-1.5,1.25],[-1.0,1.53],[-.5,1.80]],z))-.1,nouvelle=b=>{b.z=-1.3+rnd()*.75;b.x=(rnd()-.5)*1.6;b.y=Y(.95);b.v=.2+rnd()*.25;b.r=.016+rnd()*.026;b.p=rnd()*6.3;};
+    const BU=[];for(let k=0;k<NB;k++){const b={};nouvelle(b);b.y+=rnd()*.45;BU.push(b);}
     // L'ÉCUME ET LES EMBRUNS : des cubes (un InstancedMesh, couleurs écrites telles quelles — même rendu jeu / salle)
-    const e9=.06,NE=420,mE=new THREE.ShaderMaterial({vertexShader:'varying vec3 vC;varying float vS;void main(){vec3 n=normalize(mat3(instanceMatrix)*normal);'+
+    const e9=.06,NE=480,mE=new THREE.ShaderMaterial({vertexShader:'varying vec3 vC;varying float vS;void main(){vec3 n=normalize(mat3(instanceMatrix)*normal);'+
       'vS=.8+.2*max(n.y,0.)+.1*abs(n.x);vC=instanceColor;gl_Position=projectionMatrix*modelViewMatrix*instanceMatrix*vec4(position,1.);}',
       fragmentShader:'varying vec3 vC;varying float vS;void main(){gl_FragColor=vec4(min(vC*vS*1.18,vec3(1.)),1.);}'});mE.userData.g='eau';
     const ecume=new THREE.InstancedMesh(new THREE.BoxGeometry(e9*.86,e9*.86,e9*.86),mE,NE);
     ecume.frustumCulled=false;ecume.userData.brut=1;ecume.userData.noShadow=1;ecume.renderOrder=6;g.add(ecume);
     const BLANC=[[1,1,1],[.86,.97,1],[.62,.9,1]],M9=new THREE.Matrix4(),C9=new THREE.Color(),Q9=new THREE.Quaternion(),V9=new THREE.Vector3(),S9=new THREE.Vector3();
-    // les points d'écume : la lèvre, la crête, le pied de la face (le tube qui bouillonne), l'étrave
-    const LEV=[],CRE=[],TUB=[],ETR=[];
-    for(const [x,pr] of PR){LEV.push([x,pr[LEVRE][1],pr[LEVRE][0]]);CRE.push([x,pr[CRETE][1]+.02,pr[CRETE][0]]);
-      if(Math.abs(x)<.72)TUB.push([x,.90,-1.0-rnd()*.3]);}
-    for(let z=2.40;z>1.62;z-=.065)for(const sd of [1,-1])ETR.push([sd*(W(z)+.06),.30,z]);
+    // les points d'écume : la lèvre et la crête (d'un flanc à l'autre), le nez (le pied de la vague)
+    const LEV=[],CRE=[],ETR=[];
+    for(const [x,pr] of PR){LEV.push([pr[LEVRE][0],pr[LEVRE][2],pr[LEVRE][1]]);CRE.push([pr[CRETE][0],pr[CRETE][2]+.02,pr[CRETE][1]]);if(Math.abs(x)<.95)ETR.push([pr[0][0],.31,pr[0][1]-.02]);}
     let FO=[];
-    const pasEcume=F=>{FO=[];const pose=(p,dy,dz,s,c)=>FO.push([p[0]+(rnd()<.3?(rnd()<.5?-e9:e9):0),p[1]+dy,p[2]+dz,s,c]);
-      for(const p of LEV)if(rnd()<.85+.15*F){pose(p,0,0,.9+rnd()*.4,0);if(rnd()<.6)pose(p,e9*.8,e9*.5,.7+rnd()*.4,0);         // la lèvre : elle mousse,
-        const n=rnd()*(2.6+F*2)|0;for(let k=1;k<=n;k++)pose(p,-k*e9*.95,e9*.15*k,.85-k*.14,k<2?0:1);}                        // et son RIDEAU pend
-      for(const p of CRE){for(const dz of [e9,0,-e9])if(rnd()<.8+.2*F)pose(p,(dz?-.3:0)*e9+rnd()*e9*.5,dz,.8+rnd()*.5,rnd()<.75?0:1);   // la crête : un MOUTON continu
-        if(rnd()<.5)pose(p,e9*1.1,-e9*.5,.6+rnd()*.4,0);}
-      for(const p of TUB)if(rnd()<.6)pose(p,rnd()*e9,0,.6+rnd()*.6,rnd()<.5?1:2);
-      for(const p of ETR){const n=1+(rnd()*(2.4+F*1.5)|0);for(let k=0;k<n;k++)if(rnd()<.85)pose(p,k*e9*.9,0,.7+rnd()*.4,k?(rnd()<.5?1:2):0);}};
+    const pasEcume=F=>{FO=[];const pose=(p,dx,dy,dz,s,c)=>FO.push([p[0]+dx+(rnd()<.3?(rnd()<.5?-e9:e9):0),p[1]+dy,p[2]+dz,s,c]);
+      for(const p of LEV)if(rnd()<.85+.15*F){pose(p,0,0,0,.9+rnd()*.4,0);if(rnd()<.5)pose(p,0,e9*.6,e9*.6,.7+rnd()*.4,0);      // la lèvre mousse,
+        const n=rnd()*(2.6+F*2)|0;for(let k=1;k<=n;k++)pose(p,0,-k*e9*.95,e9*.15*k,.85-k*.14,k<2?0:1);}                        // et son RIDEAU pend
+      for(const p of CRE){for(const dz of [e9,0,-e9])if(rnd()<.7+.25*F)pose(p,0,rnd()*e9*.5,dz,.8+rnd()*.5,rnd()<.75?0:1);}  // la crête moutonne
+      for(const p of ETR){const n=1+(rnd()*(1.8+F*1.5)|0);for(let k=0;k<n;k++)if(rnd()<.75)pose(p,0,k*e9*.9,e9*.3,.7+rnd()*.4,k?(rnd()<.5?1:2):0);}};
     // les gouttes : elles partent, retombent (dans le repère de la caisse : à la course, elles filent derrière)
-    const NG=170,GO=[];for(let k=0;k<NG;k++)GO.push({v:0});
+    const NG=190,GO=[];for(let k=0;k<NG;k++)GO.push({v:0});
     let emis=0;const lance=(p,vx,vy,vz)=>{for(const o of GO)if(o.v<=0){o.v=.55+rnd()*.5;o.v0=o.v;o.x=p[0];o.y=p[1];o.z=p[2];
       o.vx=vx;o.vy=vy;o.vz=vz;o.s=.45+rnd()*.5;o.c=rnd()<.6?0:1;return;}};
-    const pasGouttes=(dt,F)=>{emis+=dt*(70+F*80);while(emis>=1){emis-=1;const r=rnd();
-        if(r<.42){const p=LEV[rnd()*LEV.length|0];lance(p,(rnd()-.5)*.6,.6+rnd()*1.1,.6-rnd()*2.6);}
-        else if(r<.86){const p=CRE[rnd()*CRE.length|0];lance(p,(rnd()-.5)*.7,1.1+rnd()*1.4,-1.8-rnd()*2.4);}          // le PANACHE de la crête
-        else{const p=ETR[rnd()*ETR.length|0];lance(p,Math.sign(p[0])*(.6+rnd()*.9),.5+rnd()*.9,-.6-rnd()*1.2);}}
+    const pasGouttes=(dt,F)=>{emis+=dt*(80+F*90);while(emis>=1){emis-=1;const r=rnd();
+        if(r<.40){const p=LEV[rnd()*LEV.length|0];lance(p,(rnd()-.5)*.5,.1+rnd()*.8,.3-rnd()*1.6);}                    // la lèvre
+        else if(r<.78){const p=CRE[rnd()*CRE.length|0];lance(p,(rnd()-.5)*.6,1.0+rnd()*1.3,-1.6-rnd()*2.4);}          // le PANACHE de la crête
+        else{const p=ETR[rnd()*ETR.length|0];lance(p,Math.sign(p[0]||1)*(.4+rnd()*.9),.6+rnd()*.9,-.4-rnd()*1.0);}}  // le nez fend l'eau
       for(const o of GO)if(o.v>0){o.v-=dt;o.vy-=5.5*dt;o.x+=o.vx*dt;o.y+=o.vy*dt;o.z+=o.vz*dt;if(o.y<.24)o.v=0;}};
     const pose9=()=>{let n=0;const mat=(x,y,z,s,c)=>{if(n>=NE)return;M9.makeScale(s,s,s).setPosition(x,y,z);ecume.setMatrixAt(n,M9);
         C9.setRGB(BLANC[c][0],BLANC[c][1],BLANC[c][2]);ecume.setColorAt(n,C9);n++;};
       for(const f of FO)mat(f[0],f[1],f[2],f[3],f[4]);
       for(const o of GO)if(o.v>0)mat(o.x,o.y,o.z,o.s*Math.min(1,o.v/o.v0*1.6),o.c);
       ecume.count=n;ecume.instanceMatrix.needsUpdate=true;if(ecume.instanceColor)ecume.instanceColor.needsUpdate=true;
-      for(let k=0;k<NB;k++){const b=BU[k];M9.compose(V9.set(b.x+.02*Math.sin(t*3+b.p),b.y,b.z),Q9,S9.set(b.r/.03,b.r/.03,b.r/.03));bulles.setMatrixAt(k,M9);}
+      for(let k=0;k<NB;k++){const b=BU[k];M9.compose(V9.set(b.x+.015*Math.sin(t*3+b.p),b.y,b.z),Q9,S9.set(b.r/.03,b.r/.03,b.r/.03));bulles.setMatrixAt(k,M9);}
       bulles.instanceMatrix.needsUpdate=true;};
     // LA VIE : l'eau court, l'écume mousse par crans, les gouttes volent, les bulles montent ; tout s'emballe à la nitro
     let t=0,acc=0;
     const anime=dt=>{dt=Math.min(dt,.1);t+=dt;UW.uT.value=t;const fort=(typeof nitroOn!=='undefined'&&nitroOn)?1:0;UW.uF.value+=(fort-UW.uF.value)*Math.min(1,dt*4);
       const F=UW.uF.value;acc+=dt;if(acc>=1/12){acc=0;pasEcume(F);}
-      pasGouttes(dt,F);for(const b of BU){b.y+=b.v*(1+F*.8)*dt;if(b.y>.86+(yHaut(b.z)-.86)*ampX(b.x)){b.y=.86;b.x=-.3+rnd()*1.1;}}
+      pasGouttes(dt,F);for(const b of BU){b.y+=b.v*(1+F*.8)*dt;if(b.y>dos9(b.z))nouvelle(b);}
       pose9();};
     pasEcume(0);for(let k=0;k<30;k++)pasGouttes(1/30,0);pose9();
     g.userData.anime=anime;
     if(typeof BLING==='object'&&BLING&&BLING.anim)BLING.anim.push(anime);
-    return {hl:[.56,.70,2.02],tl:[.50,.58,-2.44],wx:.82,wzF:ZF,wzR:-ZR,pots:[[.24,.40,-2.46],[-.24,.40,-2.46]],
+    return {hl:[.36,.47,1.14],tl:[.46,.38,-2.44],wx:.82,wzF:ZF,wzR:-ZR,pots:[[.26,.34,-2.45],[-.26,.34,-2.45]],
             lpw:{R:R,w:.27,style:'plis',n:9,jante:0x5ee6ff,accent:0x0a2c48,pneu:0x0a1622}};
   }
 });

@@ -162,16 +162,17 @@ plafonds de lacet et de tangage, vol libre, vrille visuelle, drift = un geste. C
   sous le titre ; toutes les 2 min elle compare l'empreinte du main et propose « Le main a bougé · mettre la gamme à jour ». Les gabarits
   posés hors de la gamme (`SHAPES.xxx=function…`) sont tous ramassés tout seuls (ceux de demain compris).
 - **LA DÉFERLANTE (10/10, Léo : « une abstraite type EAU — l'élément, pas une bouteille ; avec tout ce qu'on a appris, quelque chose de
-  vraiment méchant ; inspire-toi d'un modèle qui existe, ou pas »)** : index 74, `SHAPES.deferlante`, ÉPIQUE 3 600 000 $, « THE BREAKER ».
-  Le modèle : l'hypercar du Mans SANS AILERON (Peugeot 9X8) — l'aileron, c'est une VAGUE qui se creuse au-dessus de la nuque du pilote,
-  lèvre vers l'avant, qui déferle EN BIAIS (épaule basse à gauche, tube ouvert à droite, bouts bouchés par le profil), lèvre en griffes.
-  Un programme d'eau (`EAU_VS` : sommets qui ondulent le long d'un RAYON de la caisse — continu, rien ne se décolle sur une géométrie non
-  indexée ; facettes par dérivées) : le FOND opaque (abysses → canard, caustiques de Voronoï qui filent vers l'arrière, `ombre`), la PEAU
-  transparente 5 cm au-dessus (Fresnel, scintillement = normale bousculée — PAS d'éclat sur une facette entière : grands triangles
-  blancs), la VAGUE (même peau, `uGrad` : bleu profond au pied → turquoise → blanche à la crête, filets qui coulent, caustiques). Écume
-  et embruns en CUBES (un InstancedMesh) : lèvre en rideau, crête en mouton, tube qui bouillonne, étrave ; gouttes et PANACHE de crête ;
-  bulles qui montent dans la vague ; cockpit = BULLE D'AIR. ⚠ Un InstancedMesh se mesure à sa géométrie de base (la boîte de la caisse) :
-  une sphère de 1 m au centre faisait FLOTTER la caisse dans la salle — géométrie à la taille réelle. La salle fait porter son ombre à un
+  vraiment méchant ; inspire-toi d'un modèle qui existe, ou pas » → 1er jet, une sportive à aileron-vague : « la vitre est magnifique,
+  mais la forme, on dirait une voiture que j'ai déjà »)** : index 74, `SHAPES.deferlante`, ÉPIQUE 3 600 000 $, « THE BREAKER ». LA
+  VOITURE EST LA VAGUE : un profil (z, y) — le creux (nez), la face, le tube, la lèvre, la crête en pointe, le dos en pente droite, puis le
+  dessous — tiré en travers (`nappe`, 24 tranches, bouts bouchés par le profil : de côté on voit le pilote DANS le tube) ; devant, elle se
+  RESSERRE entre les roues avant, qui restent DEHORS (`serre`), le nez est de l'eau peu profonde, claire (pas de fond) ; derrière, elle
+  couvre les roues (dessous creusé). Lèvre en griffes, en biais, crête et dos qui ondulent. Deux nappes : le FOND opaque (abysses →
+  canard, caustiques de Voronoï, `ombre`) là où l'eau est épaisse, et L'EAU transparente (`uGrad` : bleu profond → turquoise → blanche
+  en haut, filets, scintillement = normale bousculée — jamais une facette entière en blanc). Sommets qui ondulent le long d'un RAYON
+  (continu : rien ne se décolle). Écume et embruns en CUBES (lèvre en rideau = les dents de la gueule, crête en mouton, nez), panache de
+  crête, bulles dans le dos, cockpit = BULLE D'AIR, yeux au fond de la gueule. ⚠ Un InstancedMesh se mesure à sa géométrie de base (la
+  boîte de la caisse) : une sphère de 1 m au centre faisait FLOTTER la caisse dans la salle. La salle fait porter son ombre à un
   maillage `brut` qui a `userData.ombre`.
 - **LE RANG DANS UNE FAMILLE (10/10, Léo, salle blanche : LA GRANDE ANGLAISE glissée en dernière des RARES)** : une famille du garage
   est triée par `carOrdre` = le PRIX, sauf si la fiche porte `ordre` (LA GRANDE ANGLAISE : `ordre:1e8`, son prix reste 200 000 $) ; une
