@@ -348,7 +348,8 @@ const REGLE={
   s:{t:'std',roughness:.46,metalness:.22},
   m:{t:'std',roughness:.82,metalness:0},
   g:{t:'phys',roughness:.05,metalness:0,clearcoat:1,clearcoatRoughness:.02,envMapIntensity:1.35},
-  ice:{t:'phys',roughness:.04,metalness:0,clearcoat:1,clearcoatRoughness:.02,envMapIntensity:1.0}, // la GLACE (L'ICEBERG) — on voit au travers (transparente, sans profondeur)
+  ice:{t:'phys',roughness:.04,metalness:0,clearcoat:1,clearcoatRoughness:.02,envMapIntensity:1.0}, // la GLACE (L'ICEBERG)
+  givre:{t:'phys',roughness:.38,metalness:0,clearcoat:.35,clearcoatRoughness:.2,envMapIntensity:.6}, // la PORCELAINE translucide (LA FOURNAISE) — on voit au travers (transparente, sans profondeur)
   l:{t:'basic'}};
 function linGeo(geo){ // les couleurs de sommets du kit, en linéaire — une fois par géométrie (les roues partagent la leur)
   if(geo.userData.lin||!geo.attributes.color)return;geo.userData.lin=1;
@@ -368,7 +369,7 @@ function studioMat(m){
   else{const p=Object.assign({},R);delete p.t;Object.assign(o,p);
     n=R.t==='phys'?new THREE.MeshPhysicalMaterial(o):new THREE.MeshStandardMaterial(o);}
   if(m.color)n.color.copy(m.color).convertSRGBToLinear();
-  if(g==='ice')n.depthWrite=false;
+  if(g==='ice'||g==='givre')n.depthWrite=false;
   n.userData.g=g;MATS.set(cle,n);return n;}
 function studio(grp){
   grp.traverse(o=>{
