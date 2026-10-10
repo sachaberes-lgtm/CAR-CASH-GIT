@@ -60,7 +60,20 @@ plafonds de lacet et de tangage, vol libre, vrille visuelle, drift = un geste. C
   `singeForme('mains')` (`SINGE_FM`, à l'endroit, les mains agrippées sous la dalle : il LÂCHE une main pour taper la caisse) —
   `singeNouveau(cle, mode)`. Couleur et os dans le repère debout (`sgCol`, `sgOs`). Bug « oreilles / bras » corrigé : les coudes passaient à
   ~3 cm des oreilles et la soudure les collait (bras écartés à x .56, oreilles plus hautes et plus petites).
-  ~35 000 triangles (h .024, hs .034). **PAS ENCORE BRANCHÉ en course** (déclencheur, placement sous la dalle, aura : à faire quand Léo valide).
+  ~35 000 triangles (h .024, hs .034).
+- **LE SINGE EN COURSE** (même jour, Léo : « garde ce que t'as, push main — mais il faut pas que ce soit à chaque fois qu'on va en dessous de
+  la route ») : bloc « LE SINGE EN COURSE » juste après `<<<FIN SINGE>>>`, `singeJeu(dt)` dans la boucle (après les dauphins). Passage SOUS la
+  dalle (la règle d'« À L'ABRI » : en vol, sous l'épaisseur, dans la largeur ; ni auto-école ni parc) → UN tirage par passage :
+  `SG_CHANCE` .34, jamais à moins de `SG_CD` 24 s du précédent. Il apparaît pendu (queue ou mains, au hasard) sous la dalle, là où la caisse
+  sera dans `SG_AVANCE` .85 s (dalleProche + frameAt sur la position prévue, la largeur bornée à 80 %), échelle `SG_ECH` 3,2, le visage vers
+  la caisse ; il surgit en 0,22 s, la suit de la tête, tend la main. La caisse le CROISE à moins de `SG_PORTEE` 5 m de sa main ou de son corps
+  → TOPE LÀ ! : nitro (25 à 60 % du plein), aura `chaineAura('TOPE LA !', 90 → 250)`, flow MACHIAVEL, gerbe d'or, `sfx('singe.tope')` (son à
+  faire : nom posé). Trop loin : il se balance dans son souffle. Il remonte dans la dalle 1,2 s après (ou 5 s sans croisement) ; `dolKill`
+  le range (explosion, replacement, nouvelle piste). Les deux poses sont bâties AU MENU en tranches de 5 ms (`vitrailPrepare`, générateurs :
+  ~0,4 s chacune d'un bloc, mesuré) puis compilées une fois hors écran (`chauffeRendu`) — en course, rien ne se construit ni ne se compile.
+  Console : `dbgSinge()` (état, position à l'écran), `dbgSinge(1)` (force le prochain passage), `dbgSinge('sous',prof)` (un vol juste sous la
+  dalle). ⚠ BANC : un profil neuf joue l'AUTO-ÉCOLE (`tutoTick` replace la caisse dès qu'elle sort : finir par `dbgTuto('permis')`), et
+  « Pick your mode » attend NORMAL. Vérifié en vraie course : apparition dans l'écran, TOPE LA ! +199 encaissé, rangé à l'explosion, 0 erreur.
 - **`boite-singe.html`** : la boîte (même principe que la boîte à dauphins : lit et RELIT les deux blocs) — le dessous de la route, une caisse
   qui passe sous lui toutes les ~5 s, carte « Vitrail » (Peau · Cœur + 7 curseurs), Dark triad, Ralenti, Figé, Lisse, Ciel rêve.
   Une erreur dans le bloc s'affiche en rouge et garde l'ancien singe. `?passe=0&fige=1&cy=&dist=&yaw=&pitch=` pour une photo.
