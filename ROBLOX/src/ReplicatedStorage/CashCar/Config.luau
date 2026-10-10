@@ -178,11 +178,11 @@ Config.LIGNE = { dt = 1.2, don = 1.15, voir = 3.5 }
 -- SATELLITES, puis on recommence. Une VARIANTE (`var`) garde l'`id` de son lieu : toute la ville suit, tout le ciel de coton suit ;
 -- elle ne change que ce qui fait sa difficulté (orage : les bancs partout et l'éclair · nuit : les fenêtres éteintes et les phares ·
 -- hard : des satellites SUR la route).
--- (5/10, Sacha : « sur la version Roblox, mets la ville avant les nuages » — la VILLE ouvre la partie ; l'auto-école, la zone 0,
--- garde le ciel des nuages)
+-- (5/10, Sacha : « sur la version Roblox, mets la ville avant les nuages » — puis 10/10 : « met la map nuage avant la ville » :
+-- la MER DE NUAGES rouvre la partie, comme sur le web ; l'auto-école, la zone 0, garde le ciel des nuages)
 Config.NIVEAUX = {
-	{ id = "ville", nom = "AU-DESSUS DE LA VILLE", en = "ABOVE THE CITY" },
 	{ id = "nuages", nom = "MER DE NUAGES", en = "SEA OF CLOUDS" },
+	{ id = "ville", nom = "AU-DESSUS DE LA VILLE", en = "ABOVE THE CITY" },
 	{ id = "espace", nom = "EN ORBITE", en = "IN ORBIT" },
 	{ id = "nuages", var = "orage", nom = "L'ORAGE", en = "THE STORM" },
 	{ id = "ville", var = "nuit", nom = "MINUIT EN VILLE", en = "MIDNIGHT CITY" },
@@ -337,6 +337,34 @@ Config.REVENUS = {
 	invitation = 1000, -- arriver par l'invitation d'un ami : 1 000 $ pour lui et pour l'ami (une fois)
 	jour = { 500, 750, 1000, 1500, 2000, 3000, 5000 }, -- le CADEAU DU JOUR, jours 1 à 7 de la série (puis ça recommence)
 	tempsJeu = { { 5, 300 }, { 15, 800 }, { 30, 1500 }, { 60, 3000 } }, -- { minutes dans la session, $ } — puis 3 000 $ chaque heure
+}
+
+-- ── LE MODE « APPAREIL FAIBLE » (voir Client/Perf ; 9/10, avant les annonces) : un téléphone n'a ni la carte graphique ni le
+-- processeur d'un PC. Il s'allume TOUT SEUL sur un appareil tactile sans clavier, ou en course si l'image reste sous `seuilIps`
+-- pendant `duree` secondes d'affilée (bascule à sens unique pour la session). Il n'allège que le DÉCOR et les EFFETS : la piste,
+-- les objets, les nuages qu'on traverse, les tours qui tuent, les satellites de la route et la physique restent ceux du PC, au
+-- tirage près. (banc : workspace « DbgFaible » = true / false le force ; « DbgIps » = un nombre simule l'image mesurée)
+Config.FAIBLE = {
+	seuilIps = 30,        -- images par seconde sous lesquelles l'appareil est jugé faible…
+	duree = 5,            -- … pendant tant de secondes d'affilée, en course (un à-coup de portail ne suffit pas)
+	particules = 0.5,     -- la part des particules gardée (étincelles, braises, explosion, jus, ouate, gerbes des dauphins)
+	gouttes = 60,         -- les symboles de la pluie de devises à l'écran, au plus (150 sur PC : autant de panneaux)
+	billets = 30,         -- les billets 3D en vol, au plus (70 sur PC)
+	vent = 0.5,           -- la part des stries de vent de la nitro
+	pluie = 0.5,          -- la part de la pluie de la ville et de l'orage (520 traits par seconde sur PC)
+	flou = false,         -- le flou du lointain : MESURÉ comme la passe la plus chère de la carte graphique (2 ms sur 7 au banc)
+	rayons = false,       -- les rayons du soleil (une passe plein écran de plus, à peine visibles)
+	nuagesMilieu = 2,     -- NUAGES : un nuage de décor sur 2 dans la couronne du milieu (0,35-1,3 km) et la couche haute
+	nuagesLointain = false, -- NUAGES : l'horizon (1,2-2,6 km, dans la brume) n'est pas bâti
+	nuagesFins = 0,       -- NUAGES : les versions FINES d'un nuage tout proche (4 gabarits tenus sur PC) : aucune — chacune se BÂTIT en
+	                      -- pleine course (un maillage de ~3 000 triangles, un à-coup), et se rebâtit quand elle a été rendue
+	merFines = 4,         -- LA MER : la couronne fine fait 4 × 4 dalles (8 × 8 sur PC)…
+	merLoin = 8,          -- … la grossière 8 × 8 (16 × 16 sur PC) : quatre fois moins de pièces à déplacer quand la vue descend
+	villeGabarits = false, -- VILLE : les ~450 gabarits de façades du PC ? (false : 40 — MESURÉ, chaque gabarit est un appel de dessin de
+	                       -- plus, 200 sur 360 dans une vue de course ; les tours gardent leurs cotes, leurs fenêtres s'étirent un peu)
+	cielHz = 15,          -- VILLE : le ciel musical (42 panneaux à 3 km) bat 15 fois par seconde au lieu de chaque image
+	orbiteAnneaux = 2,    -- ORBITE : un éclat sur 2 dans les anneaux de débris (1 à 3 km, du décor pur)
+	dragon = false,       -- le dragon de NITROOO complet ? (false : la tête, le corps, la crête et la comète, sans les rubans de luxe)
 }
 
 -- LA LANGUE : celle de Roblox (LocaleId du joueur) — le français pour « fr-* », l'anglais pour tout le reste. UN SEUL endroit pour

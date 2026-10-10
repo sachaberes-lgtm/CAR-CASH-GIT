@@ -69,6 +69,10 @@
   #rTete h1{font-size:13px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;display:flex;justify-content:space-between;align-items:baseline}
   #rTete h1 span{font-size:11px;font-weight:400;letter-spacing:.06em;color:var(--gris2);text-transform:none}
   #rTete p{font-size:11px;color:var(--gris2);margin-top:6px;letter-spacing:.02em}
+  #source{display:block;margin-top:3px;color:var(--gris)}#source i{display:inline-block;width:6px;height:6px;border-radius:50%;background:#30c45a;margin-right:5px;vertical-align:1px}
+  #source.local i{background:#c9a227}
+  #majMain{display:none;margin-top:8px;width:100%;border:0;border-radius:10px;padding:8px 10px;font-size:11.5px;font-weight:500;cursor:pointer;
+    background:#1d1d1f;color:#fff}#majMain.on{display:block}
   #couloirs{flex:1;overflow-y:auto;padding:4px 14px 18px;scrollbar-width:thin}
   .fam{margin-top:14px}
   .fam h2{display:flex;align-items:center;gap:8px;font-size:10.5px;font-weight:600;letter-spacing:.16em;padding:0 8px 7px}
@@ -115,6 +119,7 @@
   .btn.noir{background:var(--encre);color:#fff;flex:1}.btn.noir:hover{background:#000}
   .lien{border:0;background:none;font-size:11px;color:var(--gris2);cursor:pointer;margin-top:10px;letter-spacing:.02em}
   .lien:hover{color:var(--encre)}
+  #rPied .lien{display:block}
   #bilan{font-size:11px;color:var(--gris);margin-top:8px;letter-spacing:.02em;min-height:14px}
   .rond:not(.on) .ondes{opacity:.15}
   #bulle{position:absolute;left:0;top:0;pointer-events:none;font:800 30px/1 var(--sys);letter-spacing:.02em;color:#ff7a1a;white-space:nowrap;
@@ -166,7 +171,8 @@
 <aside id="rangee">
   <div id="rTete">
     <h1>La gamme <span id="compte"></span></h1>
-    <p>Glisse une voiture d'une rareté à l'autre. Touche-la pour la voir en grand.</p>
+    <p>Glisse une voiture d'une rareté à l'autre. Touche-la pour la voir en grand. <span id="source"></span></p>
+    <button id="majMain">Le main a bougé · mettre la gamme à jour</button>
   </div>
   <div id="couloirs"></div>
   <div id="rPied">
@@ -179,7 +185,7 @@
     <div id="bilan"></div>
     <button class="lien" id="bHisto">Ce que j'ai fait à la main</button>
     <div id="histo"></div>
-    <button class="lien" id="bZero">Revenir à la gamme du jeu</button>
+    <button class="lien" id="bZero">Revenir à la gamme du main</button>
   </div>
 </aside>
 <div id="insere"></div>
@@ -216,11 +222,28 @@ const famDe=id=>FAMS.find(f=>f.id===id)||FAMS[0];
    1. LIRE LE JEU — les blocs du jeu par leur DÉBUT de ligne (les numéros bougent à chaque commit), comme cuire-caisses.js
    --------------------------------------------------------------------------------------------------------------------- */
 let G=null; // ce que le jeu nous prête : CARS, CAR_UNLOCK, carRar, carOrdre, SHAPES, lpKit, lpWheel…
+/* LA SALLE SUIT LE MAIN (2026-10-09, Léo : « que la liste se mette à jour et représente ce qu'on a sur le main actuellement — et plus
+   tard, celle de plus tard ») : elle lit le jeu DIRECTEMENT sur le main du dépôt (GitHub, public, ouvert aux autres sites) — à chaque
+   ouverture la gamme du main d'aujourd'hui, et toutes les 2 min elle regarde s'il a bougé (un bandeau propose de se mettre à jour, le
+   travail est gardé). Sans réseau, ou si le main ne se lit pas : la copie d'index.html à côté d'elle. `?source=local` force la copie. */
+const MAIN_URL='https://raw.githubusercontent.com/sachaberes-lgtm/CAR-CASH-GIT/main/VERSION%20PRINCIPALE/index.html';
+const SOURCE={nom:'',lu:0,emp:''};
+const empreinte=t=>{let h=0;for(let i=0;i<t.length;i+=7)h=(h*31+t.charCodeAt(i))|0;return t.length+':'+h;};
 async function lireJeu(){
+  const local=/[?&]source=local/.test(location.search);
+  if(!local)try{const r=await fetch(MAIN_URL+'?salle='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error(r.status);
+    const t=await r.text();evaluerJeu(t);SOURCE.nom='main';SOURCE.lu=Date.now();SOURCE.emp=empreinte(t);return;}
+  catch(e){console.warn('le main ne se lit pas, la copie locale prend le relais :',e);}
   // ⚠ le service worker du jeu répond à `index.html` depuis SON cache : une requête à part y échappe
   const r=await fetch('index.html?salle='+Date.now(),{cache:'no-store'});
   if(!r.ok)throw new Error('index.html : '+r.status);
-  const SRC=await r.text(),L=SRC.split('\n');
+  evaluerJeu(await r.text());SOURCE.nom='local';}
+async function mainABouge(){ // toutes les 2 min : le main a-t-il changé depuis l'ouverture ?
+  if(SOURCE.nom!=='main'||document.hidden)return;
+  try{const r=await fetch(MAIN_URL+'?salle='+Date.now(),{cache:'no-store'});if(!r.ok)return;const t=await r.text();
+    if(empreinte(t)!==SOURCE.emp)$('majMain').classList.add('on');}catch(_){}}
+function evaluerJeu(SRC){
+  const L=SRC.split('\n');
   const ligne=(debut,apres)=>{for(let i=apres||0;i<L.length;i++)if(L[i].startsWith(debut))return i;throw new Error('introuvable dans index.html : '+debut);};
   const bloc=(debut,fin,comprise)=>{const a=ligne(debut);let b=a+1;while(b<L.length&&!L[b].startsWith(fin))b++;return L.slice(a,comprise?b+1:b).join('\n');};
   const blocs=[
@@ -237,13 +260,11 @@ async function lireJeu(){
     bloc('const FACET_SHAPES=','function facetteCaisse',false),
     bloc('const NUAGE_BLOBS=','const GH=',false),
     L[ligne('function lingotGeo(')],
-    bloc('SHAPES.lingot=','};',true),
-    bloc('SHAPES.origami=','};',true),
-    bloc('SHAPES.atchoum=','};',true),
-    bloc('SHAPES.squale=','};',true),
+    // TOUS les gabarits posés hors de la gamme (`SHAPES.xxx=function…` : le lingot, l'origami, ATCHOUM, le SQUALE… et ceux de demain)
+    ...L.map((l,i)=>/^SHAPES\.\w+=/.test(l)?i:-1).filter(i=>i>=0).map(i=>{let b=i+1;while(b<L.length&&!L[b].startsWith('};'))b++;return L.slice(i,b+1).join('\n');}),
     bloc('const NY_U=','const SHAPES={',false),
     L[ligne('const ATCH=')],
-    'return {CARS,CAR_UNLOCK,carRar,carOrdre,AURA_RANKS,SHAPES,lpKit,lpWheel,lpOmbre,carProfile,SPH9,FACET_SHAPES,geoFacette,monte:function(g){carGroup=g;}};'];
+    'return {CARS,CAR_UNLOCK,carRar,carOrdre,AURA_RANKS,SHAPES,lpKit,lpWheel,lpOmbre,carProfile,SPH9,FACET_SHAPES,geoFacette,echRetire,echappement,monte:function(g){carGroup=g;}};'];
   const stubs={envTex:null,carFins:[],rimify:()=>{},lpGrad:()=>{},nuageShader:()=>{},vMat:m=>m,lampTex:null,
     LINGOT_MAT:(()=>{const m=new THREE.MeshPhongMaterial({color:0xc08a1c});m.userData.g='o';return m;})(),
     LINGOT_PL:(()=>{const m=new THREE.MeshPhongMaterial({color:0xd99a1c});m.userData.g='o';return m;})(),
@@ -271,12 +292,13 @@ function assemble(i){
   // ⚠ les pièces du kit sont peintes DES DEUX CÔTÉS, comme dans le jeu (lpMat : DoubleSide) — sinon une face retournée devient un trou
   //   (le SQUALE montrait des « transparences » partout, Léo 9/10)
   const lpM={},lpMatC=g=>lpM[g]||(lpM[g]=tag(new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide}),g)),kitM=m=>{m.userData.kit=1;return m;};
-  const commit=kt=>{const gs=kt.done();for(const g in gs){if(g!=='l')lpOmbre(gs[g],H9);add(new THREE.Mesh(gs[g],kitM(lpMatC(g))));}};
+  const commit=kt=>{const gs=kt.ech?kt.done():G.echRetire(kt.done(),kt.prims,spec.shape);for(const g in gs){if(g!=='l')lpOmbre(gs[g],H9);add(new THREE.Mesh(gs[g],kitM(lpMatC(g))));}}; // (l'ancien embout ôté, voir echRetire)
   const K={W:W9,H:H9,L:L9,y0,spec,wreck,add,box,prof,cyl,sph,con,kit:pal=>lpKit(pal),commit,
     body:bodyM,acc:accM,glass:glassM,chrome:chromeM,dark:darkM,rust:rustM};
   const A=Object.assign({hl:[W9*.32,y0+H9*.50,L9/2+.16],tl:[W9*.30,y0+H9*.55,-L9/2-.10],wr:1,wx:W9/2,wz:L9/2-.75,wy:0,
     glowX:W9/2+.02,glowY:y0+H9*.42,glowL:L9*.82,glowF:1,sp:1,skirt:1,split:1,doors:0,slats:0,wings:'panel'},SHAPES[spec.shape](K)||{});
   if(A.lpw)Object.assign(A,{lamps:0,pipes:0,sp:0,split:0,doors:0,slats:0});
+  G.echappement(K,spec.shape,A);                       // LE POT de la caisse, comme buildCar (il déclare ses bouches)
   if(spec.spoiler&&A.sp){box(W9*.98,.09,.5,accM,0,y0+H9+.42,-L9/2+.12);for(const sd of[-1,1])box(.09,.34,.12,darkM,sd*W9*.36,y0+H9+.22,-L9/2+.12);}
   if(spec.glow){const gm=tag(new THREE.MeshBasicMaterial({color:spec.glow}),'l');
     for(const sd of[-1,1])box(.05,.06,A.glowL,gm,sd*A.glowX,A.glowY,0);if(A.glowF)box(W9*.7,.06,.05,gm,0,y0+H9*.5,L9/2+.02);}
@@ -326,6 +348,7 @@ const REGLE={
   s:{t:'std',roughness:.46,metalness:.22},
   m:{t:'std',roughness:.82,metalness:0},
   g:{t:'phys',roughness:.05,metalness:0,clearcoat:1,clearcoatRoughness:.02,envMapIntensity:1.35},
+  ice:{t:'phys',roughness:.04,metalness:0,clearcoat:1,clearcoatRoughness:.02,envMapIntensity:1.0}, // la GLACE (L'ICEBERG) — on voit au travers (transparente, sans profondeur)
   l:{t:'basic'}};
 function linGeo(geo){ // les couleurs de sommets du kit, en linéaire — une fois par géométrie (les roues partagent la leur)
   if(geo.userData.lin||!geo.attributes.color)return;geo.userData.lin=1;
@@ -345,12 +368,13 @@ function studioMat(m){
   else{const p=Object.assign({},R);delete p.t;Object.assign(o,p);
     n=R.t==='phys'?new THREE.MeshPhysicalMaterial(o):new THREE.MeshStandardMaterial(o);}
   if(m.color)n.color.copy(m.color).convertSRGBToLinear();
+  if(g==='ice')n.depthWrite=false;
   n.userData.g=g;MATS.set(cle,n);return n;}
 function studio(grp){
   grp.traverse(o=>{if(!o.isMesh)return;
     o.material=studioMat(o.material);if(o.geometry)linGeo(o.geometry);
     const g=(Array.isArray(o.material)?o.material[0]:o.material).userData.g;
-    o.castShadow=g!=='l';o.receiveShadow=g!=='l'&&g!=='g';});
+    o.castShadow=g!=='l'&&g!=='ice';o.receiveShadow=g!=='l'&&g!=='g'&&g!=='ice';}); // la glace ne fait pas d'ombre pleine : la lame, les roues et le platine la font
   // posée au sol, centrée sur la longueur
   const b=new THREE.Box3().setFromObject(grp),c=b.getCenter(new THREE.Vector3());
   grp.position.set(-c.x,-b.min.y,-c.z);
@@ -576,8 +600,27 @@ function charger(){
     if(ETAT.general.trim())ETAT.journal.push({t:0,avant:1,x:'Notes générales : « '+ETAT.general.trim().replace(/\s*\n\s*/g,' / ')+' »'});
     ETAT.journal.push({t:0,avant:1,x:'— fiche téléchargée —'});}}
 let sauveT=0;function sauver(){clearTimeout(sauveT);sauveT=setTimeout(ecrire,250);bilan();}
-function ecrire(){clearTimeout(sauveT);try{localStorage.setItem(CLE,JSON.stringify(ETAT));}catch(_){}}
-addEventListener('pagehide',ecrire);addEventListener('beforeunload',ecrire); // rien ne se perd, même fermée dans le quart de seconde
+/* PLUSIEURS ONGLETS (2026-10-10) : chacun garde SA copie de la liste — un onglet resté en arrière écrasait, en se fermant, ce qu'on venait de
+   faire dans un autre (journal compris). Dès qu'un autre onglet écrit la salle, celui-ci est PÉRIMÉ : il n'écrit plus rien, et se recharge
+   (la liste à jour) dès qu'on revient dessus. */
+let PERIME=false;
+addEventListener('storage',e=>{if(e.key===CLE){PERIME=true;if(!document.hidden)location.reload();}});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&PERIME)location.reload();});
+function ecrire(){clearTimeout(sauveT);if(PERIME)return;try{localStorage.setItem(CLE,JSON.stringify(ETAT));}catch(_){}clearTimeout(disqueT);disqueT=setTimeout(versDisque,900);}
+addEventListener('pagehide',()=>{if(PERIME)return;ecrire();versDisque(true);});addEventListener('beforeunload',ecrire); // rien ne se perd, même fermée dans le quart de seconde
+/* LE DISQUE (2026-10-09, Léo : « quand tu vois que la liste a changé, demande-moi, précise le changement et demande si on pousse sur
+   main ») — servie en local par salle-blanche/serveur.py, chaque enregistrement part AUSSI dans le dossier du jeu
+   (salle-blanche/sauvegarde.json + fiche-salle-blanche.txt) : Claude voit la liste changer sans qu'on lui envoie la fiche. En ligne
+   (Vercel) ou servie par un simple http.server, rien ne part et rien ne casse. */
+const DISQUE=/^(127\.0\.0\.1|localhost)$/.test(location.hostname);let disqueT=0;
+function versDisque(adieu){
+  if(!DISQUE||!ETAT||!JEU||PERIME)return;clearTimeout(disqueT);
+  try{const ch=changements(),noms={},fam={};for(const i in JEU.rar){noms[i]=nom(+i);fam[i]=JEU.rar[i];}
+    const corps=JSON.stringify({quand:new Date().toISOString(),source:SOURCE.nom,etat:ETAT,fiche:fiche(),noms,jeu:{fam,prix:JEU.prix},
+      ecarts:ch.L,ordres:ch.ordres});
+    if(adieu&&navigator.sendBeacon){navigator.sendBeacon('salle-blanche/sauve',new Blob([corps],{type:'application/json'}));return;}
+    fetch('salle-blanche/sauve',{method:'POST',headers:{'Content-Type':'application/json'},body:corps}).catch(()=>{});}
+  catch(_){}}
 const famDeCaisse=i=>{for(const f of FAMS)if(ETAT.lanes[f.id].includes(i))return f.id;return JEU.rar[i];};
 const prixDe=i=>(ETAT.prix[i]!=null&&ETAT.prix[i].trim()!=='')?ETAT.prix[i].trim():JEU.prix[i];
 const nom=i=>G.CARS[i].name;
@@ -859,6 +902,7 @@ function tape(e){
   const sh=spec.shape;
   if(sh==='atchoum')setTimeout(()=>eternue(V.car),140);
   else if(sh==='poptart'){EMET.arc=1.1;EMET.arcCar=V.car;son('nitro.plein',{vol:-4});}
+  else if(sh==='iceberg'){BL.flash=1;son('piece.serie',{vol:-5});son('nuage.defonce',{vol:-8,t:.03});} // L'ICEBERG : tous ses éclats de givre s'allument d'un coup
   V.besoin=true;}
 function eternue(box){ // ATCHOUM : le feu part du museau (le point d'ATCH.N du jeu), elle se cabre, et le dit
   if(!box||box!==V.car)return;const P=ancre(box,[0,.47,2.2],new THREE.Vector3()),F=avant(box,new THREE.Vector3());
@@ -870,8 +914,12 @@ function eternue(box){ // ATCHOUM : le feu part du museau (le point d'ATCH.N du 
   son('garage.feu');
   const b=$('bulle'),q=P.clone().add(TAP.v3.set(0,.9,0)).project(CAM),r=cv.getBoundingClientRect();
   b.textContent='ATCHOUM !';b.style.left=((q.x+1)/2*r.width)+'px';b.style.top=((1-q.y)/2*r.height)+'px';b.classList.remove('on');void b.offsetWidth;b.classList.add('on');}
+const BL={t:0,flash:0,car:null,et:null}; // L'ICEBERG : ses éclats de givre scintillent (le rythme du jeu), et s'allument toutes au toucher
 function fxTick(dt){
   let vit=false;const k=Math.min(dt,.05),J=TAP.j;
+  if(V.car!==BL.car){BL.car=V.car;BL.et=null;BL.flash=0;if(V.car)V.car.traverse(o=>{if(o.userData.etoiles)BL.et=o.userData.etoiles;});}
+  if(BL.et){vit=true;BL.t+=k;BL.flash=Math.max(0,BL.flash-k*1.6);
+    for(const m of BL.et){const u=m.userData,v=Math.sin(BL.t*u.r+u.ph),sc=Math.max(v>0?Math.pow(v,12):0,BL.flash*BL.flash)*u.s;m.visible=sc>.03;if(m.visible)m.scale.setScalar(sc);}}
   // le coup : deux ressorts (position, bascule), elle ne passe pas sous le sol
   if(J.p.lengthSq()+J.v.lengthSq()+J.r.lengthSq()+J.w.lengthSq()>1e-7){vit=true;
     J.v.addScaledVector(J.p,-55*k).multiplyScalar(Math.exp(-6.5*k));J.p.addScaledVector(J.v,k);if(J.p.y<0){J.p.y=0;if(J.v.y<0)J.v.y*=-.25;}
@@ -920,7 +968,11 @@ function fxTick(dt){
     c.innerHTML=(location.protocol==='file:'?'La salle lit les voitures directement dans le jeu : il faut l\'ouvrir par un petit serveur.<br>Dans le dossier VERSION PRINCIPALE :<br><code>python3 -m http.server 8975</code><br>puis http://localhost:8975/salle-blanche.html'
       :'Impossible de lire les voitures dans index.html.<br><small>'+String(e.message||e)+'</small>');console.error(e);return;}
   lireJeuGamme();charger();construireRangee();$('gNote').value=ETAT.general;
+  {const so=$('source');if(SOURCE.nom==='main'){so.innerHTML='<i></i>La gamme du main, lue en direct ('+new Date(SOURCE.lu).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})+')';}
+   else{so.className='local';so.innerHTML='<i></i>Copie locale du jeu (le main ne se lit pas : hors ligne ?)';}}
+  setInterval(mainABouge,120000);$('majMain').onclick=()=>{ecrire();location.reload();};
   taille();montrer(ETAT.sel);majFiche();bilan();$('charge').classList.add('fini');
+  versDisque();                                       // le dossier connaît la liste dès l'ouverture
   // les vignettes : la rangée dans l'ordre affiché
   for(const f of FAMS)for(const i of ETAT.lanes[f.id])FILE.push(i);
   requestAnimationFrame(boucle);

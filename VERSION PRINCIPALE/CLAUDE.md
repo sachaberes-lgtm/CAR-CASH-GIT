@@ -1,5 +1,47 @@
 # CASH CAR — guide projet pour Claude Code
 
+## PARIS SORT DU MODE INFINI (2026-10-10, session GRAPHISME — Sacha : « enlève la map Paris du mode infini »)
+La ligne `paris` de `NIVEAUX` est passée en commentaire (décommenter pour la remettre). Le cycle de la partie sans fin devient
+NUAGES → VILLE → ORBITE → ORAGE → MINUIT EN VILLE → PLUIE DE SATELLITES (6 au lieu de 7). PARIS reste ENTIER dans la CARRIÈRE : son
+monde est fabriqué par `carNiveau` (ciel `parisOr`, piste `paris`) sans lire `NIVEAUX`, et sa chauffe au menu (`parisChauffe`) ne
+change pas. Rien ne lisait Paris par sa PLACE dans `NIVEAUX` (seul `NIVEAUX[0]` est lu, pour la musique) ; Poki échange par id.
+Banc `gfx/infini.js` : 9 portails sans Paris, la carrière lance toujours Paris, 0 erreur.
+
+## LE DERNIER TOUR DES COMMANDES AVANT LE VERROU (2026-10-09, session GRAPHISME — Sacha : « on va verrouiller le gameplay ; avant, fais un dernier tour d'amélioration des contrôles pour que le jeu soit le plus fun à jouer possible, tant dans la conduite que la voltige »)
+Audit complet de la chaîne des commandes (entrées → lissage → lacet/tangage → trajectoire), puis bancs A/B pas à pas (`dbgStep(n,16|33)`,
+la boucle gelée) contre la version d'avant. **Aucun verdict défait** : zéro assistance, volant sans aimant, AIR_RATE 1, ↑ piqué / ↓ cabré,
+plafonds de lacet et de tangage, vol libre, vrille visuelle, drift = un geste. Ce qui a changé :
+1. **BUG — relâcher la souris coupait la NITRO tenue au clavier** (`bindHold` : `mouseup` global → `keys[code]=false` pour NITRO et ← →).
+   Chaque fin de glissé du volant à la souris éteignait ESPACE (seuil de rallumage 0,3, impulsion de vol rebrûlée). Le relâcher ne lâche
+   plus que le bouton pris à la souris (`ms9`). Banc : nitro tenue → glissé souris → lâcher : avant ÉTEINTE, après ALLUMÉE.
+2. **Le drift au clavier ne freine plus** (`if(dn&&!driftEnCours)`) : ↓ est aussi le geste du drift, le doigt et la souris ne freinaient
+   pas. 1 s de drift : perte de vitesse 40-44 % → 9-15 %. Hors drift, ↓ freine comme avant.
+3. **Même jeu à 30 et à 60 i/s** (l'iPhone bridé) : volant en exponentielle exacte `1-exp(-dt·21.4)` (= l'ancien ×0,3 à 60 i/s ; à 30 il
+   braquait plus sec, τ 36 ms au lieu de 47) ; huile en marche aléatoire `×√(dt/60)` (à 30 i/s l'embardée était +41 %) ; flammes
+   d'échappement, jet du réacteur en vol, traits d'air (sol et vol) et fumée de drift émis À LA SECONDE (`emiN`, à côté de `nfxVent`) :
+   60/s pile à 30, 40 ou 50 i/s — à 30 i/s on en voyait la MOITIÉ (nitro « faiblarde » sur l'iPhone). JAMAIS moins d'1 par image :
+   au-dessus de 60 (120/144 Hz) l'émission d'avant est gardée au pixel près. Les « sous-images » naissent à la place de la caisse
+   entre deux images (pas de paquets).
+4. **Le manche lissé comme le volant** (`pitchS`, τ 47 ms, remis à 0 dans `startFall`) : le tangage attaquait brut (97°/s d'un coup au
+   clavier), le lacet passait déjà par le lissage de `steer`. Plafonds inchangés (1,7 rad/s au réacteur, 0,85 sans). Banc : même
+   assiette à ±1-2° qu'avant, pas d'à-coup au relâché.
+5. **La pose garde le lacet** : `yawR=0` → `yawR` = le lacet du vol (même formule que `yawIn`), dans `tryLand` ET au rattrapage de la
+   lèvre — volant tenu, la caisse ne « s'arrête » plus de tourner à la pose avant de repartir ; elle rejoint le lacet du sol en `VOL_TAU`.
+6. **La souris n'est pas un pouce** : l'arc du pouce (socle qui glisse, `cr`, apprentissage `ar`, seuil `dyS`) ne s'applique plus qu'au
+   doigt (`pou9 = TCTL.id!=='souris'`) ; la zone morte croisée reste pour tous. Effet seulement quand le tracé de souris est en arc
+   (le seuil du drift ne monte plus jusqu'à 42,5 px à droite).
+7. **Le viseur honnête sous nitro** : il n'intégrait que la gravité pleine ; il suit maintenant la même loi que la chute (plané 60/75 %,
+   poussée dans l'axe 60/96 × palier × NITROOO, bascule du bord). Physique intacte, visuel seul. Crochet de banc `dbgVise()`.
+- Bancs (scratchpad GRAPHISME `gfx/`) : `ctl.js` (réponse du volant, temps réel), `ctl2.js` (A/B pas à pas), `ctl3.js` (vol tracé),
+  `ctl4.js` (viseur, `dbgPose` 'droit'), `souris.js`, `emi.js`. `tour.js` : 0 programme lié en course, 0 erreur.
+- **TRANCHÉ PAR SACHA le jour même** (deux questions) :
+  · **la pose « plus généreuse »** : PARFAIT = `impact<4.5` et pas ratée (dans l'axe), QUELLE QUE SOIT la durée du vol (`landLoss<.2`
+    l'interdisait au-delà de ~2 s : AIR MONSTRE jamais PARFAIT) ; perte de vitesse à la pose plafonnée à **30 %** (était 52 %) ; la tôle
+    qui part (`dropChip`) seulement sur une pose dure. Le nitro rendu reste au prorata du vol réacteur coupé (la boucle du 1/10 reste
+    fermée). Banc `pose2.js` : 4 s de vol posé doux → PARFAIT, vA 110 → 77 ; dur → pas PARFAIT.
+  · **le virage en vol reste tel quel** : le lacet en vol ne suit pas `vitMult` (rayon 40 m à ×1, ~100 m sous NITROOO ×2,6) — voulu.
+- ⚠ Commentaires périmés à ne pas croire : `AIR_RATE` vaut 1 (pas 1,3, remis à 1 dans `startFall`).
+
 ## LE DAUPHIN DE RÊVE + LA BOÎTE À DAUPHINS (2026-10-09, Léo : « retouchons les dauphins, envoie-moi dans une boîte blanche avec les dauphins, on va les design » — puis une image de grand dauphin pastel : « travaille encore plus dur »)
 - **LA BOÎTE** : `boite-dauphins.html` (à côté d'index.html, servie par `python3 -m http.server`, jamais en double-clic). Elle LIT et exécute le
   VRAI bloc du jeu (de `const DOL_L=` à `const dolphinRig=`) et le RELIT ~1 fois/s : une retouche du dauphin dans index.html apparaît sans
@@ -61,6 +103,45 @@
 - « Télécharger la fiche » = `fiche-voitures-cash-car-AAAA-MM-JJ.txt`, au format de la fiche du 6/10 (familles dans le nouvel ordre, notes
   sous chaque voiture, NOTES GÉNÉRALES, CHANGEMENTS PAR RAPPORT AU JEU) — c'est ce fichier qu'on donne à Claude pour l'appliquer au jeu.
   Console : `dbgSalle.lum({…})` règle la lumière à chaud, `dbgSalle.fiche()`, `dbgSalle.ratees()`.
+- **LA SALLE SUIT LE MAIN (9/10, Léo : « que la liste représente ce qu'on a sur le main, et plus tard celle de plus tard »)** : elle lit
+  `index.html` sur GitHub (`MAIN_URL`, raw du main, CORS ouvert), copie locale en secours (`?source=local` la force), la source est écrite
+  sous le titre ; toutes les 2 min elle compare l'empreinte du main et propose « Le main a bougé · mettre la gamme à jour ». Les gabarits
+  posés hors de la gamme (`SHAPES.xxx=function…`) sont tous ramassés tout seuls (ceux de demain compris).
+- **LES POTS D'ÉCHAPPEMENT (10/10, Léo : « une grosse révision très précise sur chacune des voitures — ne change rien, garde-les telles
+  qu'elles sont : juste un pot d'échappement pour chacune, adapté au modèle ; fais la différence »)** : bloc « LES POTS D'ÉCHAPPEMENT »
+  juste après `LPU` (entre deux marqueurs : la salle le lit avec LPU). `ECH_POTS` (⚠ pas `ECH` : le banc du téléphone a déjà le sien)
+  = un pot PAR GABARIT, pour les 48 de la liste ; `ECHP` = les pièces (rond/ovale à bouche roulée, double paroi, évasé, bout brûlé,
+  lueur ; rect et double sortie ; plaque ; fente ; tuyère à pétales ; cloche ; ouïes ; gueule à crocs ; sortie latérale ; pot latéral
+  à écran perforé ; cheminées à clapet ; collecteurs du HOT ROD ; nuage ; pixel arc-en-ciel ; triangle ; cristal ; épave tordue) ;
+  `ECH_PAL` = leurs matières. Deux temps : `echRetire` (dans le `commit` du kit, jeu ET salle) ÔTE l'ancien embout, triangle par
+  triangle, seulement ce qui tient EN ENTIER dans l'embout (mêmes critères que le relevé CAR_POTS, + les boîtes `ote` de la fiche) ;
+  `echappement(K,shape,A)` (juste après le gabarit) dessine le nouveau pot, ôte les vieux canons des gabarits d'avant le kit (`vieux`),
+  coupe les cylindres canoniques (`A.pipes=0`) et DÉCLARE ses bouches (`A.pots`, 4 au plus) : flammes, tuyères et traînées en sortent.
+  Les positions ont été posées au banc sur la poupe RÉELLE (rayon depuis l'arrière, limité à la poupe — sinon, sous une caisse, il
+  frappait l'avant). Un pot à changer : sa ligne dans `ECH_POTS`. Exemples : ELDORADO ovales dans le pare-chocs, SAMOURAÏ canon de
+  titane bleui, CAÏD sorties latérales sous le marchepied, MASTODONTE cheminées (ses deux pots plongeants ôtés), TRÔNE sortie centrale
+  sur feuille d'or, SQUALE ouïes, RAIE pots latéraux, ACIDE un canon géant à lueur verte, la HONTE un tuyau rouillé qui pend.
+- **LA LISTE SUR LE DISQUE (9/10, Léo : « quand tu vois la liste a changé, demande et précise c'quoi le changement, et demande si
+  push sur main »)** : servie par `salle-blanche/serveur.py 8975` (au lieu d'`http.server`), la page envoie chaque enregistrement
+  (`versDisque`, 0,9 s après, `sendBeacon` à la fermeture, seulement sur 127.0.0.1/localhost) → `salle-blanche/sauvegarde.json` (état,
+  journal, noms, `ecarts` avec le main) + `fiche-salle-blanche.txt` + `sauvegardes/` (copie datée à chaque nouveau geste), gitignorés.
+  `salle-blanche/guette.py` (en Monitor) dit chaque série de gestes finie (40 s de calme). RÈGLE : on DIT le changement à Léo et on
+  DEMANDE avant de pousser sur main — plus jamais de push d'office d'une liste.
+- **L'ABSTRAITE (9/10, Léo : « une hyper abstraite mais travaillée, concept »)** : index 71, `SHAPES.abstraite` DANS la gamme (la salle et
+  cuire-caisses.js la lisent d'office) — un coin tranché en trois lames (graphite · blanc nacré · éclat de verre noir) séparées par des
+  fentes de lumière d'or, une rainure de lumière au flanc, quatre disques à enjoliveur blanc tenus par des bras, un ARC blanc cerclé d'or
+  qui flotte au-dessus de chaque roue, l'ANNEAU D'OR penché qu'elle traverse ; ÉPIQUE à 3 000 000 $, nitro dorée (`fx`), « THE ABSTRACT ».
+- **L'ICEBERG (10/10, Léo : « une nouvelle abstraite, en glace, genre iceberg » → « plus voiture » → « plus irrégulière, la glace » →
+  « une forme originale, loin de celles qu'on a » → « plus originale, mais une voiture de SPORT : là on dirait un truc de famille »)** :
+  index 72, `SHAPES.iceberg` — UN ICEBERG FENDU EN TROIS (la v1 sur main d5dadc6 était un coupé de glace qui rappelait LA VETTE ; un bob à
+  deux places a été refusé : « familial »). Au milieu un fuselage étroit et sa BULLE de chasseur (une place, baquet) ; de chaque côté un
+  BLOC DE GLACE sur les roues, en rampe vers l'arrière, COUPÉ NET (la falaise qui vêle) ; entre eux des CANAUX D'AIR ouverts (un fil de
+  lumière bleue au fond), deux ARCS-BOUTANTS par côté ; un AILERON en lame de glace sur les deux blocs (bord d'attaque cassé, neige), un
+  béquet. `volume(zs,anneau,cle)` = une section FERMÉE par station, pans orientés vers le dehors (`dehors`), bouts en éventail. LA GLACE
+  BRUTE : arêtes bousculées (`bous`, `hs` hasard FIXE), gauche ≠ droite, sept nuances par facette, neige par plaques ; cristaux,
+  stalactites. La glace = la matière CHROME du kit, transparente (.80), sans profondeur, `userData.g='ice'` (zéro programme de plus) ; la
+  salle : `REGLE.ice`, pas d'ombre pleine. ÉCLATS DE GIVRE (`BLING`, `blingTick` ; la salle `BL`, tous allumés au toucher). ÉPIQUE
+  3 200 000 $, nitro glacier, « THE ICEBERG ». Banc : `dbgBling()`.
 - **LE TOUCHER + LE JOURNAL (9/10, Léo : « quand j'appuie sur les voitures, leur réaction — sinon juste l'effet clic » · « sauvegarder
   tous les changements faits à la main par moi »)** : un TAP sur la caisse (ni glissé ni pincement ; le double-clic ne recadre plus) =
   l'effet clic de l'écran titre en studio (recul + saut + bascule en ressorts, étincelles orange, tôle à la couleur de la pièce qui rebondit

@@ -1,0 +1,32 @@
+CASH CAR — LES 7 BADGES (icônes 512×512 dans ce dossier, même nom de fichier)
+Les noms anglais sont ceux que outils/vendre/articles.json utilisera pour les créer sur Roblox.
+Chaque badge est donné par le serveur (ServerScriptService/Revenus) : tant que son numéro vaut 0 dans Config.REVENUS.badges,
+il ne fait rien et n'affiche rien.
+
+bienvenue.png — clé : bienvenue
+  EN  WELCOME TO CASH CAR — Played CASH CAR for the first time.
+  FR  BIENVENUE DANS CASH CAR — A joué à CASH CAR pour la première fois.
+
+permis.png — clé : permis
+  EN  DRIVER'S LICENSE — Passed driving school.
+  FR  PERMIS DE CONDUIRE — A réussi l'auto-école.
+
+zone6.png — clé : zone6
+  EN  ZONE 6 — Reached zone 6 in a single race.
+  FR  ZONE 6 — A atteint la zone 6 en une seule partie.
+
+moteur10.png — clé : moteur10
+  EN  ENGINE LEVEL 10 — Pushed the engine to level 10.
+  FR  MOTEUR NIVEAU 10 — A poussé le moteur jusqu'au palier 10.
+
+aura1000.png — clé : aura1000
+  EN  1,000 AURA — Scored 1,000 aura in a single race.
+  FR  1 000 D'AURA — A marqué 1 000 d'aura en une seule partie.
+
+millionnaire.png — clé : millionnaire
+  EN  MILLIONAIRE — Earned a million in a single race.
+  FR  MILLIONNAIRE — A gagné un million en une seule partie.
+
+serie7.png — clé : serie7
+  EN  7-DAY STREAK — Came back 7 days in a row.
+  FR  SÉRIE DE 7 JOURS — Est revenu 7 jours d'affilée.

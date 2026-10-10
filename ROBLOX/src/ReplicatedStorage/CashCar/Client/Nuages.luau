@@ -15,6 +15,7 @@ local AssetService = game:GetService("AssetService")
 local Config = require(script.Parent.Parent:WaitForChild("Config"))
 local Maillage = require(script.Parent:WaitForChild("Maillage"))
 local Recyclage = require(script.Parent:WaitForChild("Recyclage"))
+local Perf = require(script.Parent:WaitForChild("Perf"))
 local Modules = script.Parent.Parent:WaitForChild("Nuages")
 local Liste = require(Modules:WaitForChild("Liste"))
 local M = Config.M
@@ -22,6 +23,11 @@ local RH = Config.ROAD_HALF
 local THICK = Config.THICK
 
 local Nuages = {}
+-- les nuages DE JEU (ceux qu'on traverse : bancs de route, coussins, tours) — le guetteur du banc les compte à part (Client/Perf)
+Nuages.jeu = setmetatable({}, { __mode = "k" }) :: { [BasePart]: boolean }
+-- les nuages de DÉCOR que l'appareil faible ne bâtit pas (Config.FAIBLE.nuagesMilieu, .nuagesLointain) — bâtis avant une bascule en
+-- pleine session, ils sont retirés à la bascule
+Nuages.legers = setmetatable({}, { __mode = "k" }) :: { [BasePart]: boolean }
 
 local UNITE = 100 -- studs par unité de nuage dans le gabarit
 local TAILLE_MAX = 2000 -- studs : la plus grande pièce que Roblox accepte
@@ -167,6 +173,8 @@ end
 -- un nuage qui part au RECYCLAGE sort de la liste des « fins » : sa copie fine est rendue, son entrée oubliée — sinon, repris par
 -- la zone suivante, il serait inscrit deux fois (et sa version fine dédoublée)
 function Nuages.desinscrire(p: BasePart)
+	Nuages.jeu[p] = nil
+	Nuages.legers[p :: any] = nil
 	local e = parPiece[p :: any]
 	if not e then return end
 	oterFin(e)
@@ -219,10 +227,11 @@ function Nuages.finesseTick(dt: number, cam: Vector3?)
 	end
 	table.sort(ordre, function(a, b) return a[2] > b[2] end)
 	local tenus = 0
+	local finMax = Perf.faible and (Perf.F.nuagesFins or FIN_MAX) or FIN_MAX -- (APPAREIL FAIBLE : chaque version fine se bâtit en pleine course)
 	for _, v in ordre do
 		local k = v[1]
 		local F = fins[k]
-		if tenus >= FIN_MAX then
+		if tenus >= finMax then
 			voulus[k] = nil
 			continue
 		end
@@ -395,7 +404,9 @@ function Nuages.batir(piste: any, dossier: Instance, graine: number, ceder: (() 
 	end
 	local nb = 0
 	-- poser un nuage (cotonPose) : son DESSOUS à yB, près du point de piste `ref` ; refusé s'il toucherait le ruban
-	local function pose(ref: Vector3, x: number, yB: number, z: number, r: number, k: number, syF: number?, sansGarde: boolean?): MeshPart?
+	-- `leger` : un nuage de décor que l'APPAREIL FAIBLE ne bâtit pas — tous les tirages sont faits avant (le hasard, la garde du ruban) :
+	-- le ciel qui reste et les nuages de JEU qui suivent sont exactement ceux du PC ; rend vrai si le nuage a (ou aurait) sa place
+	local function pose(ref: Vector3, x: number, yB: number, z: number, r: number, k: number, syF: number?, sansGarde: boolean?, leger: boolean?): any
 		local g = gabarit(k)
 		if not g then return nil end
 		local gn = g.fiche.genre
@@ -413,6 +424,7 @@ function Nuages.batir(piste: any, dossier: Instance, graine: number, ceder: (() 
 		end
 		local h = (g.fiche.sommet - g.fiche.base) * r * sy
 		if not sansGarde and touche(x, yB + h * 0.5, z, r * 1.02 * sx, h * 0.5 + r * 0.05) then return nil end
+		if leger and Perf.faible then return true end
 		local origine = Vector3.new(x, yB - g.fiche.base * r * sy, z) * M
 		local ech = Vector3.new(r * sx, r * sy, r) * (M / UNITE)
 		local rot = CFrame.Angles(0, cap, 0)
@@ -425,10 +437,14 @@ function Nuages.batir(piste: any, dossier: Instance, graine: number, ceder: (() 
 		p.Color = Color3.new(math.min(1, 1 + (tr - 1) * 0.3) * BLANC, math.min(1, 1 + (tv - 1) * 0.3) * BLANC, math.min(1, 1 + (tb - 1) * 0.3) * BLANC)
 		p.Parent = dossier
 		inscrire(p, k)
+		if leger then Nuages.legers[p] = true end
 		nb += 1
 		if ceder and nb % 12 == 0 then ceder() end
 		return p
 	end
+	-- (APPAREIL FAIBLE) un sur `nuagesMilieu` dans la couronne du milieu et la couche haute, et pas d'horizon
+	local pasM = math.max(1, Perf.F.nuagesMilieu or 1)
+	local function milieu(k: number): boolean return k % pasM ~= 0 end
 	local function strat(k: number, K: number): number return math.min(NP, math.floor(((k + 0.18 + cr() * 0.64) / K) * NP) + 1) end
 	local function pt(i: number): Vector3 return F[i].Position / M end
 	local function travers(i: number): (number, number) -- le travers HORIZONTAL du ruban
@@ -490,14 +506,14 @@ function Nuages.batir(piste: any, dossier: Instance, graine: number, ceder: (() 
 	for k = 0, KK(116) - 1 do
 		local p = pt(strat(k, KK(116)))
 		local a, d, r = cr() * 6.2832, (350 + cr() * 950) * 1.12, taille(rnd, 50 * GZ, 330 * GZ, 1.6)
-		pose(p, p.X + math.cos(a) * d, p.Y - 210 + cr() * 520, p.Z + math.sin(a) * d, r, tire(rnd, POIDS.mil))
+		pose(p, p.X + math.cos(a) * d, p.Y - 210 + cr() * 520, p.Z + math.sin(a) * d, r, tire(rnd, POIDS.mil), nil, nil, milieu(k))
 	end
 	-- (4) LA COUCHE HAUTE : des cumulus qui se découpent sur le ciel
 	local K4 = math.floor(44 * NZ + 0.5)
 	for k = 0, K4 - 1 do
 		local p = pt(strat(k, K4))
 		local a, d, r = cr() * 6.2832, 260 + cr() * 1700, taille(rnd, 60 * GZ, 300 * GZ, 1.5)
-		pose(p, p.X + math.cos(a) * d, p.Y + 230 + cr() * 420, p.Z + math.sin(a) * d, r, tire(rnd, POIDS.mil))
+		pose(p, p.X + math.cos(a) * d, p.Y + 230 + cr() * 420, p.Z + math.sin(a) * d, r, tire(rnd, POIDS.mil), nil, nil, milieu(k))
 	end
 	if OR then
 		-- LES MURS : au ras de la route, de chaque côté, à hauteur de caisse — la route file dans un couloir de ouate : on ne voit plus
@@ -529,7 +545,7 @@ function Nuages.batir(piste: any, dossier: Instance, graine: number, ceder: (() 
 	for k = 0, K5 - 1 do
 		local p = pt(strat(k, K5))
 		local a, d, r = cr() * 6.2832, 1200 + cr() * 1400, taille(rnd, 120 * GZ, 560 * GZ, 1.4)
-		pose(p, p.X + math.cos(a) * d, p.Y - 260 + cr() * 700, p.Z + math.sin(a) * d, r, tire(rnd, POIDS.loin))
+		pose(p, p.X + math.cos(a) * d, p.Y - 260 + cr() * 700, p.Z + math.sin(a) * d, r, tire(rnd, POIDS.loin), nil, nil, Perf.F.nuagesLointain == false)
 	end
 	-- (7) LES CATHÉDRALES : de grands congestus qui montent de l'abîme — une PORTE (les deux côtés) ou une FALAISE (un seul)
 	local K7 = math.max(3, math.floor(L / (OR and 1400 or 2000))) -- (aux NUAGES : moins de cathédrales, plus grosses — pas à l'orage)
@@ -595,6 +611,7 @@ function Nuages.batir(piste: any, dossier: Instance, graine: number, ceder: (() 
 		p.CFrame = CFrame.new(base) * CFrame.Angles(0, cap, 0) * CFrame.new(g.centre * UNITE * ech)
 		p.Parent = dossier
 		inscrire(p, kk)
+		Nuages.jeu[p] = true
 		-- (« dedans » = l'ellipsoïde r × ry autour du centre, comme dans le jeu web)
 		table.insert(traverses, { p = p, c = c * M, r = r * M, ry = ry * M, route = route, base = p.Position, echelle = p.Size, casse = 0, dedans = false })
 		nb += 1
@@ -682,6 +699,17 @@ function Nuages.batir(piste: any, dossier: Instance, graine: number, ceder: (() 
 	end
 	return traverses
 end
+
+-- LA BASCULE en pleine session (Client/Perf) : le décor « léger » déjà bâti s'en va — ni les nuages de jeu, ni ceux du titre
+Perf.surBascule(function(oui: boolean)
+	if not oui then return end
+	local l = {}
+	for p in Nuages.legers do table.insert(l, p) end
+	for _, p in l do
+		Nuages.desinscrire(p)
+		p:Destroy()
+	end
+end)
 
 -- À chaque image : où est la caisse par rapport aux nuages qu'on traverse ? Rend à quel point on est DEDANS (0-1) et
 -- ce qui vient d'arriver ("entre", "defonce", "sort", "percee" ou nil), avec le nuage.

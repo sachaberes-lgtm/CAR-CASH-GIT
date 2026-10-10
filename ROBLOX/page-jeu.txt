@@ -1,0 +1,42 @@
+CASH CAR — TEXTES DE LA PAGE DU JEU (create.roblox.com → CASH CAR → Paramètres de base)
+Tout ce qui est promis ici existe dans le jeu tel qu'il est (vérifié dans le code le 9/10) : 43 caisses jouables, 6 mondes, la roue,
+le cadeau du jour et le DRAGON D'OR au 7e jour d'affilée, le TOP 10 mondial, les commandes clavier / téléphone / manette.
+
+═══ TITRE (≤ 50 caractères) ═══
+CASH CAR 🏎️💸 Fly Off The Road!
+
+═══ DESCRIPTION — ENGLISH (langue source du jeu) ═══
+Jump off the road, hit the nitro and FLY. 🏎️💨
+CASH CAR is a racer on a road floating above the clouds: one life, one run, go as far and as rich as you can.
+
+• Drive, jump off the edge, fly on nitro and land it clean to cash in 💰
+• Pull off air tricks, stack up aura and climb the world TOP 10 🏆
+• Unlock 43 cars, and spin THE WHEEL for cars you can only win there 🎡
+• Race through 6 worlds: neon city, sea of clouds, orbit, storm, midnight city, satellite rain 🌌
+
+🎁 A gift every day — come back 7 days in a row to win THE GOLDEN DRAGON.
+
+Controls: ← → or A D to steer (gas is automatic), SPACE for nitro, ↑ ↓ to dive or pull up in the air.
+Phone: left thumb steers, right thumb NITRO. Gamepad supported.
+
+═══ DESCRIPTION — FRANÇAIS (Localisation → Français) ═══
+Saute de la route, mets la nitro et VOLE. 🏎️💨
+CASH CAR, c'est une course sur une route suspendue au-dessus des nuages : une seule vie, une seule partie, va le plus loin et le plus riche possible.
+
+• Roule, saute par le bord, vole à la nitro et pose-toi proprement pour encaisser 💰
+• Enchaîne les figures en vol, fais monter ton aura et grimpe au TOP 10 mondial 🏆
+• Débloque 43 caisses, et fais tourner LA ROUE pour des caisses qu'on ne gagne qu'ici 🎡
+• Traverse 6 mondes : la ville néon, la mer de nuages, l'orbite, l'orage, minuit en ville, la pluie de satellites 🌌
+
+🎁 Un cadeau chaque jour — reviens 7 jours d'affilée pour gagner LE DRAGON D'OR.
+
+Commandes : ← → ou Q D pour tourner (le gaz est automatique), ESPACE pour la nitro, ↑ ↓ pour piquer ou cabrer en vol.
+Téléphone : pouce gauche = volant, pouce droit = NITRO. Manette compatible.
+
+═══ 5 IDÉES DE MINIATURES (ce qu'on voit — le texte posé sur l'image) ═══
+1. La caisse orange en plein vol au-dessus de la mer de nuages, flammes de nitro derrière, soleil couchant — « FLY OFF THE ROAD! »
+2. LE DRAGON D'OR sur son plateau doré, un calendrier de 7 cases cochées à côté — « 7 DAYS = GOLDEN DRAGON »
+3. LA ROUE qui tourne, une caisse légendaire qui en sort dans une gerbe de pièces — « SPIN TO WIN CARS »
+4. La ville néon de nuit, la caisse qui se pose sur la route avec le mot PARFAIT au-dessus — « LAND IT. CASH IT. »
+5. Une grille serrée de caisses du garage (la honte en haut à gauche, le dragon en bas à droite) — « 43 CARS TO UNLOCK »
+(Déjà prêtes dans publication/ : icone-512.png et vignette-1 à 5 — à refaire sur ces idées si tu veux une série homogène.)
