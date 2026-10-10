@@ -1,5 +1,12 @@
 # CASH CAR — guide projet pour Claude Code
 
+## PARIS SORT DU MODE INFINI (2026-10-10, session GRAPHISME — Sacha : « enlève la map Paris du mode infini »)
+La ligne `paris` de `NIVEAUX` est passée en commentaire (décommenter pour la remettre). Le cycle de la partie sans fin devient
+NUAGES → VILLE → ORBITE → ORAGE → MINUIT EN VILLE → PLUIE DE SATELLITES (6 au lieu de 7). PARIS reste ENTIER dans la CARRIÈRE : son
+monde est fabriqué par `carNiveau` (ciel `parisOr`, piste `paris`) sans lire `NIVEAUX`, et sa chauffe au menu (`parisChauffe`) ne
+change pas. Rien ne lisait Paris par sa PLACE dans `NIVEAUX` (seul `NIVEAUX[0]` est lu, pour la musique) ; Poki échange par id.
+Banc `gfx/infini.js` : 9 portails sans Paris, la carrière lance toujours Paris, 0 erreur.
+
 ## LE DERNIER TOUR DES COMMANDES AVANT LE VERROU (2026-10-09, session GRAPHISME — Sacha : « on va verrouiller le gameplay ; avant, fais un dernier tour d'amélioration des contrôles pour que le jeu soit le plus fun à jouer possible, tant dans la conduite que la voltige »)
 Audit complet de la chaîne des commandes (entrées → lissage → lacet/tangage → trajectoire), puis bancs A/B pas à pas (`dbgStep(n,16|33)`,
 la boucle gelée) contre la version d'avant. **Aucun verdict défait** : zéro assistance, volant sans aimant, AIR_RATE 1, ↑ piqué / ↓ cabré,
@@ -118,6 +125,20 @@ plafonds de lacet et de tangage, vol libre, vrille visuelle, drift = un geste. C
   `index.html` sur GitHub (`MAIN_URL`, raw du main, CORS ouvert), copie locale en secours (`?source=local` la force), la source est écrite
   sous le titre ; toutes les 2 min elle compare l'empreinte du main et propose « Le main a bougé · mettre la gamme à jour ». Les gabarits
   posés hors de la gamme (`SHAPES.xxx=function…`) sont tous ramassés tout seuls (ceux de demain compris).
+- **LES POTS D'ÉCHAPPEMENT (10/10, Léo : « une grosse révision très précise sur chacune des voitures — ne change rien, garde-les telles
+  qu'elles sont : juste un pot d'échappement pour chacune, adapté au modèle ; fais la différence »)** : bloc « LES POTS D'ÉCHAPPEMENT »
+  juste après `LPU` (entre deux marqueurs : la salle le lit avec LPU). `ECH_POTS` (⚠ pas `ECH` : le banc du téléphone a déjà le sien)
+  = un pot PAR GABARIT, pour les 48 de la liste ; `ECHP` = les pièces (rond/ovale à bouche roulée, double paroi, évasé, bout brûlé,
+  lueur ; rect et double sortie ; plaque ; fente ; tuyère à pétales ; cloche ; ouïes ; gueule à crocs ; sortie latérale ; pot latéral
+  à écran perforé ; cheminées à clapet ; collecteurs du HOT ROD ; nuage ; pixel arc-en-ciel ; triangle ; cristal ; épave tordue) ;
+  `ECH_PAL` = leurs matières. Deux temps : `echRetire` (dans le `commit` du kit, jeu ET salle) ÔTE l'ancien embout, triangle par
+  triangle, seulement ce qui tient EN ENTIER dans l'embout (mêmes critères que le relevé CAR_POTS, + les boîtes `ote` de la fiche) ;
+  `echappement(K,shape,A)` (juste après le gabarit) dessine le nouveau pot, ôte les vieux canons des gabarits d'avant le kit (`vieux`),
+  coupe les cylindres canoniques (`A.pipes=0`) et DÉCLARE ses bouches (`A.pots`, 4 au plus) : flammes, tuyères et traînées en sortent.
+  Les positions ont été posées au banc sur la poupe RÉELLE (rayon depuis l'arrière, limité à la poupe — sinon, sous une caisse, il
+  frappait l'avant). Un pot à changer : sa ligne dans `ECH_POTS`. Exemples : ELDORADO ovales dans le pare-chocs, SAMOURAÏ canon de
+  titane bleui, CAÏD sorties latérales sous le marchepied, MASTODONTE cheminées (ses deux pots plongeants ôtés), TRÔNE sortie centrale
+  sur feuille d'or, SQUALE ouïes, RAIE pots latéraux, ACIDE un canon géant à lueur verte, la HONTE un tuyau rouillé qui pend.
 - **LA LISTE SUR LE DISQUE (9/10, Léo : « quand tu vois la liste a changé, demande et précise c'quoi le changement, et demande si
   push sur main »)** : servie par `salle-blanche/serveur.py 8975` (au lieu d'`http.server`), la page envoie chaque enregistrement
   (`versDisque`, 0,9 s après, `sendBeacon` à la fermeture, seulement sur 127.0.0.1/localhost) → `salle-blanche/sauvegarde.json` (état,
@@ -128,20 +149,17 @@ plafonds de lacet et de tangage, vol libre, vrille visuelle, drift = un geste. C
   cuire-caisses.js la lisent d'office) — un coin tranché en trois lames (graphite · blanc nacré · éclat de verre noir) séparées par des
   fentes de lumière d'or, une rainure de lumière au flanc, quatre disques à enjoliveur blanc tenus par des bras, un ARC blanc cerclé d'or
   qui flotte au-dessus de chaque roue, l'ANNEAU D'OR penché qu'elle traverse ; ÉPIQUE à 3 000 000 $, nitro dorée (`fx`), « THE ABSTRACT ».
-- **L'ICEBERG (10/10, Léo : « une nouvelle abstraite, type gel » → « glace, ICE » → « en glace, genre ICEBERG, pas trop carrée, stylisée,
-  dynamique, qui ne ressemble à rien qu'on a » → « moins géométrique simple, plus VOITURE »)** : index 72, `SHAPES.iceberg` (après
-  l'abstraite ; refusées avant le main : LA GELÉE, ICE la voiture-bijou, puis un bloc de glace à pics). Une vraie voiture taillée dans un
-  iceberg : long capot entre deux ailes bombées, ARCHES de roue (`U.arch`), pavillon FASTBACK ; carrosserie de GLACE turquoise qu'on
-  voit au travers, vitres de GLACE SOMBRE (bandes 5/6 de la section, `cleDe`), NEIGE seulement à plat (capot, toit, malle — normale >
-  .88), épaules de glace claire ; deux AILERONS = les pics de l'iceberg couchés vers l'arrière ; des OUÏES de givre derrière les roues
-  avant ; lueur bleue dans l'habitacle ; phares en fentes SORTIS de la glace (dedans on ne les voyait plus), bandeau rouge ; roues à six
-  rayons. (Léo : « plus irrégulière, la glace ») LA GLACE BRUTE : chaque arête de section bousculée de quelques cm (`hs`, un hasard FIXE ;
-  l'axe et le bas restent en place), pas pareil à gauche (`SG`) qu'à droite (`SC`), sept nuances tirées par facette, la neige mangée par
-  plaques, 14 CRISTAUX qui sortent des flancs et des ailes, 10 STALACTITES sous les bas de caisse et les boucliers. Facettes routées une à
-  une (`fac` : neige opaque ↔ glace). La glace = la matière CHROME du kit, transparente (.80), sans
-  profondeur, `userData.g='ice'` (zéro programme de plus) ; la salle : `REGLE.ice`, pas d'ombre pleine. Les ÉCLATS DE GIVRE (7 étoiles,
-  `BLING` + `blingTick` en tête de boucle) scintillent ; la salle (`BL`) les allume tous au toucher. ÉPIQUE 3 200 000 $, nitro glacier,
-  « THE ICEBERG ». Banc : `dbgBling()`.
+- **L'ICEBERG (10/10, Léo : « une nouvelle abstraite, en glace, genre iceberg » → « plus voiture » → « plus irrégulière, la glace » →
+  « une forme originale, loin de celles qu'on a » → « plus originale, mais une voiture de SPORT : là on dirait un truc de famille »)** :
+  index 72, `SHAPES.iceberg` — UN ICEBERG FENDU EN TROIS (la v1 sur main d5dadc6 était un coupé de glace qui rappelait LA VETTE ; un bob à
+  deux places a été refusé : « familial »). Au milieu un fuselage étroit et sa BULLE de chasseur (une place, baquet) ; de chaque côté un
+  BLOC DE GLACE sur les roues, en rampe vers l'arrière, COUPÉ NET (la falaise qui vêle) ; entre eux des CANAUX D'AIR ouverts (un fil de
+  lumière bleue au fond), deux ARCS-BOUTANTS par côté ; un AILERON en lame de glace sur les deux blocs (bord d'attaque cassé, neige), un
+  béquet. `volume(zs,anneau,cle)` = une section FERMÉE par station, pans orientés vers le dehors (`dehors`), bouts en éventail. LA GLACE
+  BRUTE : arêtes bousculées (`bous`, `hs` hasard FIXE), gauche ≠ droite, sept nuances par facette, neige par plaques ; cristaux,
+  stalactites. La glace = la matière CHROME du kit, transparente (.80), sans profondeur, `userData.g='ice'` (zéro programme de plus) ; la
+  salle : `REGLE.ice`, pas d'ombre pleine. ÉCLATS DE GIVRE (`BLING`, `blingTick` ; la salle `BL`, tous allumés au toucher). ÉPIQUE
+  3 200 000 $, nitro glacier, « THE ICEBERG ». Banc : `dbgBling()`.
 - **LE TOUCHER + LE JOURNAL (9/10, Léo : « quand j'appuie sur les voitures, leur réaction — sinon juste l'effet clic » · « sauvegarder
   tous les changements faits à la main par moi »)** : un TAP sur la caisse (ni glissé ni pincement ; le double-clic ne recadre plus) =
   l'effet clic de l'écran titre en studio (recul + saut + bascule en ressorts, étincelles orange, tôle à la couleur de la pièce qui rebondit

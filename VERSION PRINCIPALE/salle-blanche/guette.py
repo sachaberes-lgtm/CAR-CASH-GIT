@@ -14,14 +14,19 @@ def lire():
         return None
 
 def gestes(d):
-    return [j.get('x', '') for j in ((d or {}).get('etat') or {}).get('journal') or [] if j.get('x') != '— fiche téléchargée —']
+    return [j for j in ((d or {}).get('etat') or {}).get('journal') or [] if j.get('x') != '— fiche téléchargée —']
+
+def cle(j):
+    return '%s|%s' % (j.get('t'), j.get('x'))
 
 def court(t, n):
     return t if len(t) <= n else t[:n - 1] + '…'
 
-base = None; vu = None; mt = 0; attente = 0; dern = None
+# (2026-10-10) LES GESTES DÉJÀ VUS, par leur heure et leur texte — pas par leur nombre : avec plusieurs onglets ouverts, un onglet en
+# retard réécrit un journal plus court, puis un autre le rallonge ; compter faisait revoir les mêmes gestes comme nouveaux.
+vus = None; mt = 0; attente = 0; dern = None
 d = lire()
-if d: base = gestes(d); vu = len(base)
+if d: vus = set(cle(j) for j in gestes(d))
 while True:
     try:
         m = os.path.getmtime(P)
@@ -30,20 +35,19 @@ while True:
     if m and m != mt:
         mt = m; d = lire()
         if d:
-            g = gestes(d)
-            if base is None:
-                base = g; vu = len(g)
+            if vus is None:
+                vus = set(cle(j) for j in gestes(d))
                 print('SALLE OUVERTE · écarts avec le main : %d%s' % (len(d.get('ecarts') or []), (' · ' + court(' ; '.join(d.get('ecarts')), 900)) if d.get('ecarts') else '') + (' · ordre changé dans : ' + ', '.join(d.get('ordres')) if d.get('ordres') else ''), flush=True)
-            elif len(g) < len(base):
-                base = g; vu = len(g)
-            elif len(g) != vu:
-                vu = len(g); attente = time.time(); dern = d
+            elif any(cle(j) not in vus for j in gestes(d)):
+                attente = time.time(); dern = d
     if attente and time.time() - attente >= CALME:
-        d = dern or lire(); g = gestes(d); neufs = g[len(base):]
+        d = lire() or dern; neufs = [j for j in gestes(d) if cle(j) not in vus]
         e = d.get('ecarts') or []; o = d.get('ordres') or []
-        print('LISTE CHANGÉE · %d geste(s) : %s || écarts avec le main maintenant : %d%s%s' % (
-            len(neufs), court(' | '.join(neufs), 1200), len(e), (' · ' + court(' ; '.join(e), 900)) if e else '',
-            (' · ordre changé dans : ' + ', '.join(o)) if o else ''), flush=True)
-        base = g; attente = 0
-        if UNE: break
+        if neufs:
+            print('LISTE CHANGÉE · %d geste(s) : %s || écarts avec le main maintenant : %d%s%s' % (
+                len(neufs), court(' | '.join(j.get('x', '') for j in neufs), 1200), len(e), (' · ' + court(' ; '.join(e), 900)) if e else '',
+                (' · ordre changé dans : ' + ', '.join(o)) if o else ''), flush=True)
+            for j in neufs: vus.add(cle(j))
+        attente = 0
+        if UNE and neufs: break
     time.sleep(2)
