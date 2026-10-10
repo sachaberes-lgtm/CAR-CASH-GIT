@@ -157,7 +157,7 @@ d'aller dans cette map avec une voiture, la mobilité comme le main, mais seulem
     éclairé ; le fleuve les REFLÈTE (tremblées par les lignes d'eau). Les quatre rangées de piliers peints sur l'horizon (`jPeigne`) sont
     retirées : devant le lointain elles faisaient une frise de bosses blanches. sw.js → v214.
 - **v13 — LA MER ET LES NUAGES EN CUBES MINUSCULES** (même jour, Léo : « beaucoup plus brillante la route ; la mer, beaucoup plus de relief,
-  plus réaliste ; les nuages en cubes minuscules, pareil pour la mer ») — LA VERSION EN COURS.
+  plus réaliste ; les nuages en cubes minuscules, pareil pour la mer »).
   · ROUTE : encore plus d'éclat (le ciel ×.42 dans l'émeraude, vernis .26, facettes ×1,1, paillettes ×5, soleil ×2,2, lumière intérieure .20).
   · LA MER EN CUBES (`jMerCubes` dans le dôme) : des colonnes de cubes de 4 m (`JMS`) — quatre houles croisées + un cran propre à chaque cube
     qui danse un peu (±20 m de relief) ; chaque rayon parcourt les cases (DDA, 48 pas, rien au-delà de 2,6 km) dans la tranche des vagues :
@@ -169,6 +169,26 @@ d'aller dans cette map avec une voiture, la mobilité comme le main, mais seulem
     dans le champ partent au GPU, de loin (> 2,5 km) en cubes deux fois plus gros (`voxDemi`). `?nuvox=0` = les panneaux en relief de la v9.
   · MESURÉ : Mac très chargé (charge 21-43), A/B alterné v12/v13 dans le bruit après allègement (avant : +4-5 ms) ; ~0,54 M triangles de
     volutes si toutes étaient vues. sw.js → v215.
+- **v14 — UN VRAI NIVEAU : DÉPART, ARRIVÉE, L'EFFONDREMENT ; DEUX ROUTES À ESSAYER ; L'EAU PLUS HAUTE** (même jour, Léo : « remonte le niveau de
+  l'eau ; la route, c'est pas très beau, trouve une route plus originale [→ choisi : « essayer la route de NUAGE et les PLANCHES en bois »] ;
+  crée un début, une fin du niveau, moyen, ni trop court ni trop long ; à la fin, des montagnes qui commencent à chuter autour ») — LA VERSION EN COURS.
+  · L'EAU : `JADE.merY` = point le plus bas de la route − 230 m (était − 470).
+  · LE NIVEAU EST FIXE : `NIV_JADE.graine` 0x51ADE (`?graine=n` pour en essayer une autre) — 12,8 km, ~2 min à la vitesse de la balade.
+    `genJade` finit par le repère « chute », ~1 km de virages, 650 m de ligne droite, l'arrivée. Deux PORTIQUES 牌坊 en cubes d'un mètre
+    (`jadeArcheGeo`/`jadeArches` : piliers laqués sur socles de pierre hors de la route, linteaux, plaque d'or, toit de tuiles aux coins
+    relevés) au DÉPART (120 m) et à l'ARRIVÉE (140 m du bout). Au portail : `jadeFinale` (« ARRIVÉE · PICS DE JADE · m:ss », `#slam9`
+    autorisé par `html.jadeAnn`), puis sous le volet `jadeRedemarre` (s = 0, vitesse 0, montagnes remises debout, « DÉPART »).
+  · L'EFFONDREMENT (`JCH`, `jadeChutePrep/jadeChuteTick/jadeChuteRaz`) : après le repère « chute », les montagnes à moins de 900 m de la route
+    (373 sur le niveau fixe ; pas celles qui portent une cascade ou un temple) tremblent 0,9 s puis basculent autour de leur pointe et tombent
+    (8-15 m/s²), ~700 m avant la caisse ; à la mer, une gerbe de CUBES d'écume (700 cubes, une instance) ; elles quittent la grille des chocs
+    (`JADE.col.mort`). Leurs matrices (F.M via F.pidx, les arbres via F.tq, les cubes fins via FIN.mats) sont réécrites à chaque image.
+    MESURÉ (Mac calme) : 60 i/s en roulant comme pendant l'effondrement. Hooks : `dbgEffondre()`, `dbgJadeAller(s)` (un nombre = la caisse à s m).
+  · DEUX ROUTES (`ROAD_U.uJStyle`, `jadeRouteStyle(k)`, touche R dans la balade, `?route=nuage|planches|emeraude`, défaut NUAGE) :
+    NUAGE = des cubes de nuage de 80 cm en biseau, les ombres douces des cumulus, des volutes creusées sur les bords, des CUBES de nuage qui
+    débordent des deux bords (`JADE.decoNuage`) ; PLANCHES = des planches de 90 cm en travers, tronçons décalés, grain PIXELISÉ (15 cm),
+    joints, clous, une poutre sur chaque bord, une RAMBARDE laquée rouge (poteaux tous les 6 m, deux lisses) et des LANTERNES rouges tous
+    les ~42 m (`JADE.decoPlanches`). Les rails, la lueur, les flancs, la ligne suivent le style (⚠ le caméléon des rails mesure la teinte
+    une fois : `userData.hsl=null` pour qu'il la remesure). L'émeraude reste (0). sw.js → v216.
 - Mesuré (Chrome sans fenêtre du Mac) : 60 i/s, construction 16-28 ms, tri ~0,03 ms ; collisions (`dbgJadeHeurt('test')`, 3 vallées) :
   piliers durs, arche et dessous du pont libres, AUCUN point de la route dans la pierre. Console : `dbgJade()`, `dbgJadeVue('route'|'porte'|
   'pont'|'haut'|'loin'|'grue',d,h,cap)` (photo figée), `dbgGrues()`. sw.js → v203.
