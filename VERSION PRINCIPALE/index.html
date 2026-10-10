@@ -6392,10 +6392,10 @@ html body #garage:not(.menu):not(.vitrine) #gStrip.gModeTous{display:grid!import
   -webkit-mask:linear-gradient(180deg,#000 0,#000 calc(100% - 26px),transparent);mask:linear-gradient(180deg,#000 0,#000 calc(100% - 26px),transparent)}
 html body #garage:not(.menu):not(.vitrine) #gStrip.gModeTous.finBas{-webkit-mask:none;mask:none}
 html body #garage:not(.menu):not(.vitrine) #gStrip.gModeTous>.gT{width:auto!important;min-width:0!important;max-width:none!important;flex:none!important;margin:0!important;scroll-snap-align:start}
-#gStrip .rarLogo{position:absolute;top:6px;right:8px;z-index:3;display:flex;align-items:center;justify-content:center;width:17px;height:17px;pointer-events:none;
-  background:rgba(7,5,15,.78);box-shadow:inset 0 0 0 1px var(--rl),0 0 8px var(--rl);transform:skewX(calc(-1 * var(--sk,0deg)))}
-#gStrip .rarLogo .pxi{--pxs:1;color:var(--rl);filter:none}
-#gStrip.fnBande .fnC .rarLogo{top:8px;right:10px;width:20px;height:20px}
+#gStrip .rarLogo{position:absolute;top:7px;right:8px;z-index:3;display:flex;line-height:0;pointer-events:none;transform:skewX(calc(-1 * var(--sk,0deg)));
+  filter:drop-shadow(1px 0 0 #07050f) drop-shadow(-1px 0 0 #07050f) drop-shadow(0 1px 0 #07050f) drop-shadow(0 -1px 0 #07050f) drop-shadow(0 0 5px var(--rl))} /* (2026-10-10, Léo : « enlève le cube qui encadre le pictogramme ») le logo seul, cerné d'encre (sur l'enveloppe : posé sur la .pxi, le masque le rognerait) */
+#gStrip .rarLogo .pxi{--pxs:2;color:var(--rl);filter:none}
+#gStrip.fnBande .fnC .rarLogo{top:8px;right:10px}
 html body #garage:not(.menu):not(.vitrine) #gStrip .gT.c-aile.lock em{bottom:auto!important;height:auto!important} /* (2026-10-10) une AILE à vendre : le prix monte au coin haut (il s'étirait sur toute la vignette et se posait sur le nom — vu dans SEE ALL ITEMS) */
 #gStrip.fnBande .fnTout{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;margin:4px 0 0;cursor:pointer;
   font-size:var(--f0);letter-spacing:2px;color:rgba(230,226,255,.55);text-shadow:0 1px 0 rgba(7,5,15,.8);transition:color var(--t-fast) var(--ease)} /* (2026-10-10) écrit en transparent, pas une plaque */
@@ -6905,7 +6905,7 @@ html.sansFacile [data-m="facile"]{display:none!important}
     <div class="mscr" id="mShop">
       <div class="mHead"><h3>OFFRES</h3></div><!-- (2026-10-10, Léo : « la boutique du menu, on la renomme OFFRES » — la BOUTIQUE, c'est celle du garage) -->
       <div class="shUne" id="shUne" data-m="shopSoon" role="button"></div>
-      <div class="mSec shSec">LES LEGENDAIRES</div>
+      <div class="mSec shSec">LES MYTHIQUES</div>
       <div class="shGrille" id="shGrille"></div>
       <div class="shRestaurer" data-m="shopRestore" role="button">RESTAURER MES ACHATS</div>
       <div class="mDock"><div class="pbtn mBack" data-m="back" role="button" aria-label="Retour"><i class="pxi pxi-gauche" aria-hidden="true"></i>RETOUR</div></div>
@@ -7040,6 +7040,9 @@ PXI_G.coffre='.#######.|#.......#|#.......#|#########|#...#...#|#..###..#|#...#.
 PXI_G.roue='..#####..|.#.....#.|#..###..#|#.#...#.#|#.#.#.#.#|#.#...#.#|#..###..#|.#.....#.|..#####..'; // (2026-10-09) la famille COMMUNE : la roue
 PXI_G.gemme='.........|..#####..|.#..#..#.|#########|.#.....#.|..#...#..|...#.#...|....#....|.........'; // (2026-10-09) la famille RARE : la gemme taillée
 PXI_G.couronne='.........|#...#...#|#..###..#|##.###.##|#########|#########|.........|#########|.........'; // (2026-10-09) la famille LÉGENDAIRE : la couronne
+PXI_G.rond='.........|...###...|..#####..|.#######.|.#######.|.#######.|..#####..|...###...|.........'; // (2026-10-10) COMMUNE : un simple rond
+PXI_G.dragon='##.......|.##......|.######..|###.####.|#########|###..#...|####.....|.#######.|..##.....'; // (2026-10-10) MYTHIQUE : la tête de dragon, de profil (cornes, œil, gueule ouverte, croc)
+PXI_G.infini='.........|.........|.##...##.|#..#.#..#|#...#...#|#..#.#..#|.##...##.|.........|.........'; // (2026-10-10) INFINI : le signe ∞
 PXI_G.oeil='.........|.........|..#####..|.#.....#.|#..###..#|#..###..#|.#.....#.|..#####..|.........'; // (2026-10-09) CACHER / VOIR la console
 PXI_G.tour='....#....|....#....|...###...|...#.#...|..#####..|..#...#..|.#######.|.#.....#.|##.....##'; // (2026-09-28) la Dame de fer
 (function(){
@@ -13886,6 +13889,8 @@ Object.assign(I18N_ZH,{'FRÔLÉ':'擦边','RÉCOLTE':'金币连收','RAFALE':'�
   'TOI':'你','EN TÊTE':'领先','PLUS VITE !':'再快点！',
   'RISQUE + VITESSE':'冒险 + 速度','RACCOURCI':'捷径','RETOUR À LA COURSE':'回到比赛'});
 // ---- la charte v4 (2026-09-26) : les libellés neufs de l'interface (et ceux qui retombaient en français) ----
+Object.assign(I18N,{"LÉGENDAIRES":"LEGENDARIES","MYTHIQUES":"MYTHICS","MYTHIQUE":"MYTHIC","INFINIS":"INFINITE","INFINI":"INFINITE","LES MYTHIQUES":"MYTHICS"}); // (2026-10-10) les nouvelles raretés
+Object.assign(I18N_ZH,{"LÉGENDAIRES":"传奇","MYTHIQUES":"神话","MYTHIQUE":"神话","INFINIS":"无限","INFINI":"无限","LES MYTHIQUES":"神话座驾"});
 Object.assign(I18N,{"COMMUNES":"COMMONS","COMMUNE":"COMMON","RARES":"RARES","ÉPIQUES":"EPICS","ÉPIQUE":"EPIC","LÉGENDES":"LEGENDS","LÉGENDAIRE":"LEGENDARY","DÉFIS":"CHALLENGES","TOUT":"ALL","À MOI":"MINE","À ACHETER":"FOR SALE","TRAÎNÉE":"TRAIL","PEINTURE":"PAINT","AILES":"WINGS"});
 Object.assign(I18N_ZH,{"COMMUNES":"普通","COMMUNE":"普通","RARES":"稀有","RARE":"稀有","ÉPIQUES":"史诗","ÉPIQUE":"史诗","LÉGENDES":"传奇","LÉGENDAIRE":"传奇","DÉFIS":"挑战","TOUT":"全部","À MOI":"已拥有","À ACHETER":"可购买","TRAÎNÉE":"尾迹","PEINTURE":"涂装","AILES":"翅膀"});
 Object.assign(I18N,{"PIÈCE":"COIN","RETOUR":"BACK","EN BOUTIQUE":"IN THE SHOP","VERROUILLÉE":"LOCKED","ÉQUIPÉE":"EQUIPPED","IL MANQUE":"SHORT BY","LES LEGENDAIRES":"LEGENDARIES","DÉFI":"CHALLENGE"});
@@ -23709,11 +23714,14 @@ function carPrice(i){const u=CAR_UNLOCK[i];return (!carRetiree(i)&&u&&u.p)||0;} 
    condition : boutique = LÉGENDAIRE, contrat/rang d'aura = DÉFI, prix ≥ 1 M = ÉPIQUE, ≥ 20 000 = RARE, sinon COMMUNE.
    ⚠ LÉGENDAIRE = en BOUTIQUE seulement (vrai argent) : c'est la règle du joueur. */
 const RARETES=[
+  /* (2026-10-10, Léo : « les nouveaux types de rareté sont RARE, LÉGENDAIRE, MYTHIQUE, INFINI ; LA HONTE est la seule COMMUNE ») : les
+     familles gardent leurs voitures et leur `id` (sauvegardes, fiches `rar`, salle blanche) — seuls le NOM, la couleur et le logo changent,
+     dans l'ordre : ÉPIQUE → LÉGENDAIRE (l'or de la couronne), LÉGENDAIRE (les caisses en €) → MYTHIQUE (le violet du dragon), DÉFI → INFINI. */
   {id:'commun',    n:'COMMUNES',   n1:'COMMUNE',   c:'#b9c4d6'},
   {id:'rare',      n:'RARES',      n1:'RARE',      c:'#4db8ff'},
-  {id:'epique',    n:'ÉPIQUES',    n1:'ÉPIQUE',    c:'#c77dff'},
-  {id:'legendaire',n:'LÉGENDES',   n1:'LÉGENDAIRE',c:'#ffd75e'},
-  {id:'defi',      n:'DÉFIS',      n1:'DÉFI',      c:'#5ee37a'}];
+  {id:'epique',    n:'LÉGENDAIRES',n1:'LÉGENDAIRE',c:'#ffd75e'},
+  {id:'legendaire',n:'MYTHIQUES',  n1:'MYTHIQUE',  c:'#c77dff'},
+  {id:'defi',      n:'INFINIS',    n1:'INFINI',    c:'#5ee37a'}];
 function carRar(i){const c=CARS[i];if(c&&c.rar)return c.rar;const u=CAR_UNLOCK[i];
   if(!u)return 'commun';if(u.k==='premium')return 'legendaire';if(u.k)return 'defi';return u.p>=1e6?'epique':u.p>=20e3?'rare':'commun';}
 function carOrdre(i){const c9=CARS[i];if(c9&&c9.ordre!=null)return c9.ordre;return carPrixOrdre(i);} // DANS UNE FAMILLE : un rang posé à la main (la salle
@@ -23721,7 +23729,7 @@ function carPrixOrdre(i){ // blanche, `ordre` sur la fiche) passe devant le prix
   const u=CAR_UNLOCK[i];if(!u)return -1;if(u.p)return u.p;if(u.eur)return parseFloat(String(u.eur).replace(',','.'))||0;
   if(u.k==='carnet')return u.v;if(u.k==='aura')return 100+u.v;return 1e9;} // dans une famille : du plus accessible au plus dur
 function rarListe(r){const L=[];for(let i=0;i<CARS.length;i++)if(carRar(i)===r&&!carRetiree(i))L.push(i);return L.sort(function(a,b){return carOrdre(a)-carOrdre(b);});}
-const RAR_LOGO={commun:'roue',rare:'gemme',epique:'flamme',legendaire:'couronne',defi:'cible'}; // (2026-10-09, Léo : « enlève les nombres de voitures dans chaque rareté, fais des logotypes ») — DÉFI : la cible des missions
+const RAR_LOGO={commun:'rond',rare:'gemme',epique:'couronne',legendaire:'dragon',defi:'infini'}; // (2026-10-10, Léo : « trouve les pictogrammes adaptés pour que les gens comprennent exactement ce que c'est ») COMMUNE un simple rond · RARE la gemme · LÉGENDAIRE la couronne · MYTHIQUE le dragon · INFINI le signe ∞ (la roue et la cible étaient le même dessin) // (2026-10-09, Léo : « enlève les nombres de voitures dans chaque rareté, fais des logotypes ») — DÉFI : la cible des missions
 function rarInfo(r){return RARETES.find(function(x){return x.id===r;})||RARETES[0];}
 function carOwned(i){return !!(SAVE.d.owned&&SAVE.d.owned.indexOf(i)>=0);}
 /* (2026-09-26, user : « pour la version test donne-moi accès à toutes les voitures mais en laissant les conditions d'obtention »)
@@ -25160,7 +25168,7 @@ window.dbgEssaiCaisse=function(src,fiche,vues){
 // LA VITRINE : l'offre à la une (la premium marquée `une`) et la grille des autres, par rareté
 function shopRender(){
   const une=document.getElementById('shUne'),gr=document.getElementById('shGrille');if(!une||!gr)return;
-  const RAR={leg:'LÉGENDAIRE',epi:'ÉPIQUE',rar:'RARE'};let hU='',hG=''; // (2026-09-26) toutes LÉGENDAIRES : la boutique est leur seule porte
+  const RAR={leg:'MYTHIQUE',epi:'LÉGENDAIRE',rar:'RARE'};let hU='',hG=''; // (2026-10-10) les caisses en € sont les MYTHIQUES // (2026-09-26) toutes LÉGENDAIRES : la boutique est leur seule porte
   for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(!u||u.k!=='premium'||carRetiree(i))continue; // (2026-10-06) une caisse RETIRÉE quitte aussi la vitrine
     const ph=PHOTO.cache[i],img=ph?'<img src="'+ph+'" alt="">':'<i class="pxi pxi-voiture shAttente"></i>',a=carOwned(i);if(!ph)shopPhotoVeut(i); // (revue GAMEPLAY) plus de carPhoto EN SYNCHRONE : 13 photos d'un bloc = 1,1 s de gel sur PC (2-3 s sur iPhone) à la 1re ouverture
     if(u.une&&!hU){ // (charte v4) la VITRINE DE LÉGENDE : cadre d'or qui scintille autour (`.shUne`), le décor dedans (`.shUneCadre`)
@@ -25225,7 +25233,7 @@ function shopPop(src){
   const el=shopPopEl();if(el.classList.contains('on'))return;
   clearTimeout(SPOP.t);
   const a=carOwned(i),une=!!u.une,im=src.querySelector('.shPhoto img'),ph=PHOTO.cache[i]||(im?im.src:'');
-  const RAR={leg:'LÉGENDAIRE',epi:'ÉPIQUE',rar:'RARE'},rar=u.rar||'leg';
+  const RAR={leg:'MYTHIQUE',epi:'LÉGENDAIRE',rar:'RARE'},rar=u.rar||'leg';
   el.innerHTML='<div class="spCarte '+rar+'" data-car="'+i+'">'
     +'<span class="spRare">'+sansAcc(TR(RAR[rar]))+'</span>'+(une&&!a?'<b class="shRemise spRemise">-50%</b>':'')
     +'<div class="shPhoto big">'+(ph?'<img src="'+ph+'" alt="">':'<i class="pxi pxi-voiture shAttente"></i>')+'</div>'
