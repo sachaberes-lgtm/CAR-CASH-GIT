@@ -6441,22 +6441,6 @@ html.hubOn body #gTourne .gtPouce{left:18px;width:5px;height:16px;margin:-8px 0 
   background:#fff;box-shadow:0 0 0 1px rgba(7,5,15,.55),0 0 10px rgba(94,230,255,.85);border-radius:1px}
 html.hubOn body #gTourne.tient .gtPouce{height:22px;margin-top:-11px;box-shadow:0 0 0 1px rgba(7,5,15,.55),0 0 16px var(--neoC)}
 html.hubOn.gtConsole body #garage:not(.menu)>#gTourne.on{background:none!important;box-shadow:none!important}
-/* LE LOGO QUI BRILLE (2026-10-10, Léo : « enlève les flammes, sois plus mature : juste le logo — il est beau ; fais-le briller encore plus,
-   plus d'effet OR sur CASH, plus d'effet SUNSET sur CAR ; imposant ; en paysage il est trop haut »). CASH : un or MÉTALLIQUE (crème, or vif,
-   une bande ambrée sombre à l'horizon de la lettre, puis l'or qui remonte) ; CAR : un coucher de soleil (crème, or, orange, corail, rose,
-   violet au pied) ; le TITRE porte un double halo (or serré, rose large). Le reflet qui passe (lgShine) devient plus lent et plus franc. Le logo grandit (debout
-   jusqu'au bord de la colonne ; couché 64 px) et, couché, descend au quart de l'écran. Rien d'autre ne bouge. */
-html.hub body #mHome.acc2 .mTitle .lg.gold{background:linear-gradient(180deg,#fffef6 0%,#fff2bd 16%,#ffd84f 34%,#ffb000 48%,#8f4c00 60%,#c57800 70%,#ffcf48 84%,#fff1ba 100%);
-  -webkit-background-clip:text;background-clip:text}
-html.hub body #mHome.acc2 .mTitle .lg.grad{background:linear-gradient(180deg,#fff5c8 0%,#ffd75e 20%,#ff9d3a 40%,#ff5d5a 58%,#ff2f8e 76%,#b13cff 100%);
-  -webkit-background-clip:text;background-clip:text} /* ⚠ PAS de filter sur un .lg : il ferait passer l'extrusion brune (::before) devant la face d'or — la lueur est portée par le TITRE */
-html.hub body #mHome.acc2 .mTitle .lg::after{background:linear-gradient(105deg,transparent 36%,rgba(255,255,255,.95) 50%,transparent 64%) 180% 0/240% 100% no-repeat;
-  -webkit-background-clip:text;background-clip:text;animation:lgShine 5.2s ease-in-out infinite}
-html.hub body #mHome.acc2 .mTitle .lg.grad::after{animation-delay:.35s}
-html.hub body #mHome.acc2 .mTitle{font-size:clamp(40px,12.4vw,60px);filter:drop-shadow(0 8px 0 rgba(0,0,0,.35)) drop-shadow(0 0 14px rgba(255,200,80,.55)) drop-shadow(0 0 34px rgba(255,120,110,.3))}
-@media (prefers-reduced-motion:reduce){html.hub body #mHome.acc2 .mTitle .lg::after{animation:none;opacity:0}}
-@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
-  html.hub body #mHome.acc2 .mTitle{font-size:64px;margin-top:max(30px,9vh)!important;align-self:flex-end;margin-right:6px}}
 /* LA CROIX DE L'INVENTAIRE, DISCRÈTE (même jour, Léo : « la croix est juste plus discrète, et sert à enlever le rectangle avec toutes
    les voitures pour qu'on ait une vue sur le garage ») : elle ferme toujours le tiroir, mais n'est plus une touche cyan pleine. Plus de
    plaque ni de tranche : une petite croix lilas dans un carré à peine dessiné (filet d'1 px, fond presque nul), qui s'allume sous le doigt.
