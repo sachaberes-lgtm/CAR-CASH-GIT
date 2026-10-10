@@ -37916,6 +37916,7 @@ function gStripModeVoitures(){
   else{try{st.scrollTo({left:0,behavior:REDUCED_MOTION?'auto':'smooth'});}catch(e){st.scrollLeft=0;}}}
 function gModeVa(m){
   if(gEl&&gEl.classList.contains('consoleCachee')){gConsoleCache(false);if(GMODE.m===m)return;} // (2026-10-09) la console repliée : la touche la ROUVRE (dans son mode)
+  if(m==='inv'&&GMODE.m==='inv')return; // (2026-10-10, Léo : « quand j'appuie sur INVENTAIRE ça fait deux trucs différents, il y en a un avec les raretés : enlève celui avec les raretés ») INVENTAIRE ne bascule plus : retouché, il reste l'inventaire
   GMODE.m=GMODE.m===m?'tout':m;
   const bar=$('gRar'),st=$('gStrip');if(bar)bar._k=null;if(st)st._r=null;
   gModeCale();
