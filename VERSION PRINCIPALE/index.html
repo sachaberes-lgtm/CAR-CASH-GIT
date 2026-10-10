@@ -6933,7 +6933,7 @@ html.sansFacile [data-m="facile"]{display:none!important}
           <div class="mLigne" data-m="q"><i class="pxi pxi-eclair" aria-hidden="true"></i><span class="tpL">IMAGE</span><b id="mvQ" class="valeur">RAPIDE</b></div>
           <div class="mLigne" data-m="lang"><i class="pxi pxi-bulle" aria-hidden="true"></i><span class="tpL">LANGUE</span><b id="mvLang" class="valeur">FR</b></div>
           <div class="mLigne" data-m="facile"><i class="pxi pxi-coeur" aria-hidden="true"></i><span class="tpL">MODE FACILE</span><b id="mvFacile" class="bascule">OFF</b></div>
-          <div class="mLigne" data-m="volh"><i class="pxi pxi-aile" aria-hidden="true"></i><span class="tpL">POUCE HAUT EN VOL</span><b id="mvVolH" class="valeur">PLONGE</b></div>
+          <div class="mLigne" data-m="volh"><i class="pxi pxi-aile" aria-hidden="true"></i><span class="tpL">POUCE HAUT EN VOL</span><b id="mvVolH" class="valeur">MONTE</b></div>
           <div class="mLigne" data-m="vib"><i class="pxi pxi-vibre" aria-hidden="true"></i><span class="tpL">VIBRATIONS</span><b id="mvVib" class="bascule">ON</b></div><!-- (2026-09-28) la charte, règle 8 : SON et VIBRATIONS sont deux interrupteurs -->
           <div class="mLigne lien" data-m="tuto"><i class="pxi pxi-volant" aria-hidden="true"></i><span class="tpL">REVOIR L'AUTO-ECOLE</span><b id="mvTuto" class="valeur" hidden></b></div>
         </div>
@@ -31689,6 +31689,7 @@ const SAVE={
   def(){return{v:this.V,best:0,leaders:[],bestCar:0,equipped:0,sfx:true,vox:true,mus:true,fruits:[],
     vol:{mus:.62,sfx:1,vox:1}, // les trois curseurs de volume (1 = le mixage d'origine)
     tctl:'stick',q:'fast',sand:false,carr:{}, // MOBILE : schéma de commandes · résolution d'image · bac à sable
+    volH:'monte',volHv:2, // (2026-10-10, Léo) POUCE HAUT EN VOL : MONTE d'origine (voir san)
     // EXPLOITS — les compteurs À VIE qui débloquent les caisses. Ils PERSISTENT : le moteur est la
     // progression DANS une partie (il repart à zéro), la voiture est la progression ENTRE les parties.
     // `eng` = plus haut palier moteur jamais atteint · `gaps`/`tricks`/`bumps` = cumuls · `zones`,
@@ -31725,7 +31726,7 @@ const SAVE={
       .slice(0,10).map(e=>({n:e.n.slice(0,8),s:Math.max(0,Math.round(+e.s))}));
     c.sfx=d.sfx!==false;c.vox=d.vox!==false;c.mus=d.mus!==false;c.vib=d.vib!==false; // (2026-09-28) VIBRATIONS : leur propre interrupteur
     if(d.facile===1||d.facile===true)c.facile=1;else if(d.facile===0||d.facile===false)c.facile=0; // (2026-09-29) MODE FACILE : absent = jamais choisi (le 1er JOUER le propose)
-    c.volH=d.volH==='monte'?'monte':'plonge'; // (2026-09-29) pouce en HAUT en vol : plonge (manche d'avion, d'origine) ou monte
+    c.volH=d.volH==='plonge'&&d.volHv>=2?'plonge':'monte';c.volHv=2; // pouce en HAUT en vol : monte (d'origine depuis le 2026-10-10, Léo : « plus logique, plus intuitif sur mobile ») ou plonge (manche d'avion, l'ancien défaut) — `volHv` < 2 : sauvegarde d'avant, basculée UNE fois sur MONTE, le choix fait après est gardé
     /* ⚠ LES VOLUMES SONT BORNÉS À [0,1], ET C'EST UNE VRAIE PROTECTION, pas une formalité : ces
        nombres partent DIRECTEMENT dans un GainNode et dans `HTMLAudio.volume`. Un NaN venu d'un
        storage rongé rend tout le graphe WebAudio silencieux sans lever la moindre erreur ; une
@@ -32023,7 +32024,7 @@ const FAC={coeurs:3},FAC_AIR=10/6,FAC_BORD=5,FAC_VIRAGE=.8,FAC_CAP=1.6;
 function facOn(){return !!(SAVE.d&&SAVE.d.facile)&&!PARK.on&&FACILE_OK;} // (CrazyGames) FACILE_OK faux : jamais de mode facile, même par une sauvegarde importée
 function facBord(){return facOn()?FAC_BORD:0;}
 function facFilet(){return facOn()&&FAC.coeurs>1&&!TUTO.on;} // il reste une vie à perdre : la chute perdue d'avance est rattrapée tout de suite
-function volSens(){return SAVE.d&&SAVE.d.volH==='monte'?-1:1;}
+function volSens(){return SAVE.d&&SAVE.d.volH==='plonge'?1:-1;} // (2026-10-10) absent = MONTE
 function volhBascule(){SAVE.d.volH=volSens()<0?'plonge':'monte';SAVE.flush();} // (2026-09-30, R7-5) LE seul écrivain de « POUCE HAUT EN VOL » : les RÉGLAGES et la PAUSE passent par lui // (2026-09-29) « pouce en HAUT = monte » : l'assiette au pouce s'inverse (le clavier ne change pas)
 function airMax(){return AIR_MAX*(gK()<1?ORB_AIR:1)*(facOn()?FAC_AIR:1);}
 // AIR_RATE : le vol se joue PLUS VITE en temps réel — la parabole dans l'espace est identique
@@ -44354,8 +44355,8 @@ function loop(now){
         // de ~4°/s (« le nitro haut/bas ne marche plus » — surtout au plafond de vitesse du parc). La
         // ROTATION donne une autorité FORTE et INDÉPENDANTE de la vitesse (on plie autant à 260 qu'à 80).
         // BORNÉE à ±65° d'assiette → jamais vertical → pas de gimbal-lock, pas de vrille coincée.
-        // VOLANT TACTILE : l'assiette devient ANALOGIQUE (pouce vers le HAUT = piqué, vers le BAS =
-        // cabré) — même levier, dosé. Zone morte large : tourner ne doit jamais cabrer par accident.
+        // VOLANT TACTILE : l'assiette devient ANALOGIQUE (2026-10-10, Léo : pouce vers le HAUT = MONTE (cabré), vers le BAS =
+        // plonge, par défaut ; le réglage PLONGE rend le manche d'avion) — même levier, dosé. Zone morte large : tourner ne doit jamais cabrer par accident.
         const pitT=TCTL.act?TCTL.sv*volSens():0; // (2026-09-29) réglage « POUCE HAUT EN VOL : PLONGE / MONTE »
         const wPitch=pitT!==0?(Math.abs(pitT)<.05?0:-pitT):((keys.KeyW||keys.KeyZ||keys.ArrowUp)?-1:0)+(dn?1:0); // -1 = piqué, +1 = cabré
         // (vol libre, 2026-09-26) plus de plafond à ±65° ni de repli « à l'horizontale » : le manche fait tourner la trajectoire ET le
@@ -45817,7 +45818,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       if(pou9&&nx>=.4&&Math.abs(dxm)>Math.abs(dym)&&TCTL.dy<ARC_MAX){const r9=TCTL.dy/Math.pow(nx,1.2);TCTL.ar=TCTL.ar<0||r9>TCTL.ar?r9:Math.max(r9,TCTL.ar-1);}
       TCTL.dyS=pou9&&nx>0?Math.min(ARC_MAX,(TCTL.ar<0?ARC_R0:TCTL.ar)*Math.pow(nx,1.2)+ARC_M):0; // la conduite y ajoute le plancher de 34,9 (DRIFT_PX)
       stSet(-(ax<0?-1:ax>0?1:0)*Math.pow(Math.abs(ax),1.15),   // pouce à GAUCHE = braquage à gauche (steer>0) — (conduite v4) courbe 1,35 → 1,15 : 25 % de pouce = 20 % du cap (15 % avant)
-            -ay,px,Math.max(-LOCKV,Math.min(gy,y-TCTL.oy))); // pouce vers le HAUT = sv>0 = PIQUÉ (manche d'avion) — le bouton reste SOUS le pouce (sans `cr`)
+            -ay,px,Math.max(-LOCKV,Math.min(gy,y-TCTL.oy))); // pouce vers le HAUT = sv>0 (en vol, `volSens()` en fait MONTE par défaut depuis le 2026-10-10, PLONGE au réglage) — le bouton reste SOUS le pouce (sans `cr`)
     };
     const stUp=function(){ TCTL.act=false;TCTL.id=null;stSet(0,0);sz.classList.remove('act'); };
     sz.addEventListener('touchstart',function(e){

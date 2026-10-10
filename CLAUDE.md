@@ -62,6 +62,8 @@ la montre sur n'importe quelle copie. Le détail : « L'ÉDITION POKI » dans `V
   · (2026-10-04, Léo) le FEU EN CUBES : des flammes en cubes de pixels qui viennent des quatre bords de l'ouverture
     (`FEU_CUBES`), un brasier orange au centre ; et LA PORTE v2 — la porte fermée de Sacha est GARDÉE (Léo l'avait enlevée puis l'a
     fait remettre), mais redessinée : caissons en laque indigo, CASH CAR en or, hublots qui laissent voir le feu.
+  · (2026-10-10, Léo) EN VOL, POUCE EN HAUT = LA CAISSE MONTE par défaut (réglage « POUCE HAUT EN VOL » : MONTE ; les anciennes
+    sauvegardes basculées une fois, PLONGE reste au choix ; le clavier ne change pas). Détail en tête de `VERSION PRINCIPALE/CLAUDE.md`.
 - **SANS TOUT CASSER** — la règle de chaque session, avant de pousser :
   1. Partir de `origin/main` À JOUR : `git fetch origin main`, puis `git merge origin/main`. Jamais d'une vieille branche, jamais d'une copie locale.
   2. Sur `main`, on FUSIONNE. Jamais de `push --force`, de `reset` ni de revert du travail de l'autre ; dans un conflit, on garde les deux.

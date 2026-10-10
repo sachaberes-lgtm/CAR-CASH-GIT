@@ -1,5 +1,18 @@
 # CASH CAR — guide projet pour Claude Code
 
+## EN VOL, POUCE EN HAUT = LA CAISSE MONTE (2026-10-10, Léo : « si en l'air le joystick avant fait monter la voiture, c'est plus logique, et intuitif, niveau mobile »)
+Le réglage « POUCE HAUT EN VOL » passe à **MONTE par défaut** (il était à PLONGE, le manche d'avion, depuis le 29/09). À la question
+« ↑ piqué / ↓ cabré est un verdict du verrou de Sacha (09/10), Sacha est d'accord ? », Léo a répondu « MONTE pour tous, même
+anciens ». Si Sacha n'était pas au courant : c'est ici que ça se défait (une ligne dans `volSens` et une dans `san`).
+- `volSens()` : absent = MONTE (`SAVE.d.volH==='plonge'` seul garde l'ancien sens). `def()` porte `volH:'monte', volHv:2`.
+- **LA BASCULE DES ANCIENNES SAUVEGARDES, UNE FOIS** : dans `san`, une sauvegarde sans `volHv>=2` passe à MONTE (même un PLONGE choisi
+  avant le 10/10 : tout le monde repart au nouveau sens) ; `volHv=2` est alors écrit, et un PLONGE choisi APRÈS est gardé.
+- Le CLAVIER ne change pas (↑ piqué / ↓ cabré) : le réglage ne touche que le pouce (et la souris sur le volant). L'ASTUCE du vol, les
+  RÉGLAGES et la PAUSE lisent `volSens()` : ils suivent seuls. Le libellé d'origine de `#mvVolH` dit MONTE.
+- Banc (scratchpad `vol2.js`, téléphone debout, vrai vol hors de la route, pouce tenu au volant par CDP) : défaut → pouce HAUT `pitchS`
+  +1 (cabré, `fallVel.y` remonte), pouce BAS −1 ; PLONGE rechoisi → l'inverse. `volh.js` : neuve / ancienne PLONGE / ancienne MONTE →
+  MONTE, PLONGE choisi après (`volHv:2`) → gardé au rechargement. 0 erreur.
+
 ## PARIS SORT DU MODE INFINI (2026-10-10, session GRAPHISME — Sacha : « enlève la map Paris du mode infini »)
 La ligne `paris` de `NIVEAUX` est passée en commentaire (décommenter pour la remettre). Le cycle de la partie sans fin devient
 NUAGES → VILLE → ORBITE → ORAGE → MINUIT EN VILLE → PLUIE DE SATELLITES (6 au lieu de 7). PARIS reste ENTIER dans la CARRIÈRE : son
@@ -3260,7 +3273,7 @@ doit être exponentielle ; à chaque palier de 10 % ça doit rajouter un compart
 - **Le 1er JOUER demande le mode** (`facChoix()` : FACILE vert / NORMAL, Échap = NORMAL) tant que `SAVE.d.facile` n'a jamais été posé et
   que la leçon n'est pas faite. Interrupteur **MODE FACILE** dans RÉGLAGES › JEU.
 - **POUCE HAUT EN VOL : PLONGE / MONTE** (`SAVE.d.volH`, `volSens()`) : multiplie les deux lectures de `TCTL.sv` en vol ; d'origine
-  PLONGE (manche d'avion). L'ASTUCE du vol dit le bon sens. Le clavier ne change pas.
+  PLONGE (manche d'avion) — ⚠ MONTE d'origine depuis le 2026-10-10 (Léo, voir en tête). L'ASTUCE du vol dit le bon sens. Le clavier ne change pas.
 - Banc : `fac.js w h lang` (choix, cœurs, 3 chutes, mains libres NORMAL/FACILE, réglages) ; hook `dbgFacile('mort')`.
 
 ## LES 10 PREMIÈRES MINUTES — CÔTÉ INTERFACE (2026-09-29, session INTERFACE)
