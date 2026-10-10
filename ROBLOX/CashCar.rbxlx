@@ -27337,11 +27337,11 @@ Config.LIGNE = { dt = 1.2, don = 1.15, voir = 3.5 }
 -- SATELLITES, puis on recommence. Une VARIANTE (`var`) garde l'`id` de son lieu : toute la ville suit, tout le ciel de coton suit ;
 -- elle ne change que ce qui fait sa difficulté (orage : les bancs partout et l'éclair · nuit : les fenêtres éteintes et les phares ·
 -- hard : des satellites SUR la route).
--- (5/10, Sacha : « sur la version Roblox, mets la ville avant les nuages » — la VILLE ouvre la partie ; l'auto-école, la zone 0,
--- garde le ciel des nuages)
+-- (5/10, Sacha : « sur la version Roblox, mets la ville avant les nuages » — puis 10/10 : « met la map nuage avant la ville » :
+-- la MER DE NUAGES rouvre la partie, comme sur le web ; l'auto-école, la zone 0, garde le ciel des nuages)
 Config.NIVEAUX = {
-	{ id = "ville", nom = "AU-DESSUS DE LA VILLE", en = "ABOVE THE CITY" },
 	{ id = "nuages", nom = "MER DE NUAGES", en = "SEA OF CLOUDS" },
+	{ id = "ville", nom = "AU-DESSUS DE LA VILLE", en = "ABOVE THE CITY" },
 	{ id = "espace", nom = "EN ORBITE", en = "IN ORBIT" },
 	{ id = "nuages", var = "orage", nom = "L'ORAGE", en = "THE STORM" },
 	{ id = "ville", var = "nuit", nom = "MINUIT EN VILLE", en = "MIDNIGHT CITY" },
