@@ -3,672 +3,689 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Les maps</title>
-<!-- LES MAPS (2026-10-09, Léo : « reconstruction du système du PLAY : un visuel interactif, avec suppression et sauvegarde des
-     modifs — récupère toutes les maps du ciel, mets-les en liste, en image et nommées, rangées par catégorie » ; puis « celles sur
-     lesquelles on a mis les musiques finales : mets les cinq, et les cinq des villes — là c'est n'importe quoi » : EN TÊTE SKY HIGH 1-5
-     et VILLE 1-5 avec leur musique finale, écoutable sur la carte ; les 11 autres repliées en bas).
-     Un OUTIL à côté du jeu (comme la salle blanche) : chaque map du ciel avec DEUX photos prises dans le vrai jeu (AU VOLANT = ce que voit
-     le joueur, LE TRACÉ = la route vue de haut, nuages du décor retirés — et le PLAN de la piste), son nom, sa catégorie. On renomme, on glisse d'une catégorie à l'autre, on range, on met à
-     la corbeille (À SUPPRIMER), on annote, on annule (⌘Z). Tout s'écrit dans ce navigateur à chaque geste ; SAUVEGARDER (⌘S) le pose
-     dans le dossier du jeu (maps-ciel/sauvegarde.json + fiche-maps-ciel.txt, via maps-ciel/serveur.py) — c'est ce que Claude relit
-     pour appliquer. Sans le serveur, SAUVEGARDER télécharge la fiche. Les photos : maps-ciel/img/<id>-volant.jpg / <id>-trace.jpg ; le plan : maps-ciel/traces.js. -->
+<title>Niveaux</title>
+<!-- LES NIVEAUX (2026-10-10, Léo : « la page où on écrit tout ça doit être plus claire ; encore trop de trucs écrits, je veux vraiment une
+     page blanche, avec en liste les niveaux qu'on a, organisés de manière agréable ; je dois pouvoir y attacher une musique, puisque chaque
+     niveau aura une musique ; fais des classes : parfois on va répéter la même map et la faire varier, parfois il y aura des maps uniques »).
+     Héritière de « LES MAPS DU CIEL » (9/10 : photos prises au banc dans le vrai jeu, maps-ciel/img/<id>-volant|trace.jpg, plans traces.js).
+     · UNE MAP = un décor. Un NIVEAU = une map + sa variation (l'heure, la piste, l'idée) + SA musique.
+     · DEUX CLASSES, déduites du contenu : une map à plusieurs niveaux = RÉPÉTÉE (ses niveaux la font varier), une map à un seul niveau =
+       UNIQUE. « Faire une variante » d'un niveau unique fait passer sa map dans les répétées.
+     · La RÉSERVE (repliée en bas) garde tout ce qui n'est pas dans la liste : maps retirées, partie sans fin, niveaux retirés. Rien ne se perd.
+     · La musique : un toucher sur la pastille ouvre la bibliothèque (les musiques du jeu + celles qu'on importe : fichier, ou glissé sur le
+       niveau → maps-ciel/musiques/ via maps-ciel/serveur.py). ▶ écoute, une seule à la fois.
+     · Chaque geste s'écrit dans ce navigateur (cashcar.niveaux.v3) ; ENREGISTRER (⌘S) pose maps-ciel/sauvegarde.json + fiche-maps-ciel.txt
+       dans le dossier du jeu — c'est ce que Claude relit pour refaire le PLAY. ⌘Z annule. -->
 <style>
   :root{
-    --fond:#f1f1ef;--encre:#1d1d1f;--gris:#6e6e73;--gris2:#a1a1a6;--trait:rgba(0,0,0,.08);--carte:#fff;
-    --bleu:#0a63d6;--rouge:#d70015;
+    --encre:#111113;--gris:#86868b;--gris2:#b9b9be;--trait:#efeff1;--doux:#f4f4f6;--bleu:#0a63d6;--rouge:#d70015;
     --sys:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;
-    --r:16px;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  html{scroll-behavior:smooth}
-  body{background:var(--fond);color:var(--encre);font-family:var(--sys);-webkit-font-smoothing:antialiased;
-    -webkit-tap-highlight-color:transparent;min-height:100vh;padding-bottom:120px}
-  button,input,textarea,select{font:inherit;color:inherit}
-  button{cursor:pointer}
+  html{background:#fff}
+  body{background:#fff;color:var(--encre);font-family:var(--sys);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+  button,input,textarea{font:inherit;color:inherit}
+  button{cursor:pointer;border:0;background:transparent}
+  .page{position:relative;max-width:860px;margin:0 auto;padding:52px max(20px,env(safe-area-inset-left)) 180px}
 
   /* ---------- LE HAUT ---------- */
-  header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
-    padding:16px max(16px,env(safe-area-inset-left)) 14px;background:rgba(241,241,239,.82);
-    -webkit-backdrop-filter:blur(22px) saturate(1.4);backdrop-filter:blur(22px) saturate(1.4);border-bottom:.5px solid var(--trait)}
-  #marque b{display:block;font-size:12px;letter-spacing:.24em;font-weight:650}
-  #marque span{display:block;font-size:11px;letter-spacing:.1em;color:var(--gris2);margin-top:4px}
-  .seg{display:inline-flex;background:rgba(0,0,0,.06);border-radius:10px;padding:2px;margin-left:auto}
-  .seg button{border:0;background:transparent;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:550;letter-spacing:.04em;color:var(--gris)}
-  .seg button.on{background:#fff;color:var(--encre);box-shadow:0 1px 3px rgba(0,0,0,.12)}
-  .outil{border:0;background:transparent;padding:7px 10px;border-radius:9px;font-size:13px;color:var(--encre);display:inline-flex;align-items:center;gap:6px}
-  .outil:hover{background:rgba(0,0,0,.06)}
-  .outil:disabled{opacity:.3;cursor:default;background:transparent}
-  .outil svg,.ico svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-  #etatSauve{font-size:12px;color:var(--gris2);min-width:150px;text-align:right}
-  #etatSauve.modifie{color:#b25000}
-  #etatSauve.ok{color:#1f7a35}
-  #sauver{border:0;background:var(--encre);color:#fff;border-radius:999px;padding:9px 18px;font-size:13px;font-weight:600;letter-spacing:.02em;
-    transition:transform .12s,opacity .2s}
-  #sauver:active{transform:scale(.96)}
-  #sauver.pulse{animation:pulse 1.4s ease-in-out infinite}
-  @keyframes pulse{50%{box-shadow:0 0 0 6px rgba(29,29,31,.12)}}
+  header{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap}
+  h1{font-size:34px;font-weight:650;letter-spacing:-.02em;line-height:1}
+  #compte{font-size:13px;color:var(--gris);margin-top:8px}
+  .outils{margin-left:auto;display:flex;align-items:center;gap:6px}
+  #etat{font-size:12px;color:var(--gris2);margin-right:6px}
+  #etat.modifie{color:#b25000}
+  .rond{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:var(--encre)}
+  .rond:hover{background:var(--doux)}
+  .rond:disabled{opacity:.25;cursor:default;background:transparent}
+  #enreg{background:var(--encre);color:#fff;border-radius:999px;height:34px;padding:0 16px;font-size:13px;font-weight:600}
+  #enreg:active{transform:scale(.97)}
+  svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
 
-  /* ---------- LES CATÉGORIES ---------- */
-  main{position:relative;padding:8px max(16px,env(safe-area-inset-left)) 0;max-width:1500px;margin:0 auto}
-  .cat{margin-top:34px}
-  .catTete{display:flex;align-items:center;gap:10px;margin-bottom:14px;min-height:30px}
-  .point{width:10px;height:10px;border-radius:50%;flex:0 0 10px;background:var(--c,#999)}
-  .catNom{font-size:13px;font-weight:650;letter-spacing:.16em;text-transform:uppercase;outline:none;border-radius:6px;padding:2px 4px;margin:-2px -4px}
-  .catNom[contenteditable="true"]:hover{background:rgba(0,0,0,.05)}
-  .catNom:focus{background:#fff;box-shadow:0 0 0 1px var(--encre)}
-  .catN{font-size:12px;color:var(--gris2)}
-  .catOutils{margin-left:auto;display:flex;gap:2px;opacity:0;transition:opacity .2s}
-  .cat:hover .catOutils,.cat:focus-within .catOutils{opacity:1}
-  .ico{border:0;background:transparent;width:30px;height:30px;border-radius:8px;display:grid;place-items:center;color:var(--gris)}
-  .ico:hover{background:rgba(0,0,0,.06);color:var(--encre)}
-  .ico:disabled{opacity:.25;cursor:default;background:transparent}
+  /* ---------- LES CLASSES ET LES MAPS ---------- */
+  .classe{margin-top:58px}
+  .classe>h2{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--gris)}
+  .map{margin-top:22px}
+  .mapTete{display:flex;align-items:baseline;gap:10px;padding:4px 0 10px;border-bottom:1px solid var(--trait)}
+  .mapNom{font-size:21px;font-weight:650;letter-spacing:-.01em;outline:none;border-radius:6px;padding:0 4px;margin:0 -4px}
+  .mapN{font-size:13px;color:var(--gris)}
+  .mapOut{margin-left:auto;display:flex;gap:2px;opacity:0;transition:opacity .15s}
+  .map:hover .mapOut,.map:focus-within .mapOut{opacity:1}
+  .mapTete.cible{background:rgba(10,99,214,.06);border-radius:8px}
+  .petit{height:28px;padding:0 10px;border-radius:8px;font-size:12px;color:var(--gris);display:inline-flex;align-items:center;gap:5px}
+  .petit:hover{background:var(--doux);color:var(--encre)}
+  .ico:disabled{opacity:.3;cursor:default;background:transparent}
+
+  ol.rangs{list-style:none;min-height:8px}
+  .rang{display:grid;grid-template-columns:16px 20px 104px minmax(0,1fr) 196px 64px;align-items:center;column-gap:14px;
+    min-height:78px;padding:10px 0;border-bottom:1px solid var(--trait);position:relative;background:#fff;transition:background .15s}
+  .rang:hover{background:#fcfcfd}
+  .rang.glisse{opacity:.3}
+  .rang.cible{box-shadow:inset 0 0 0 2px var(--bleu);border-radius:10px}
+  .rang.neuf{animation:neuf .6s ease-out}
+  @keyframes neuf{from{background:#eef5ff}}
+  .poignee{color:var(--gris2);cursor:grab;opacity:0;display:grid;place-items:center;height:40px}
+  .rang:hover .poignee{opacity:1}
+  .num{font-size:13px;color:var(--gris2);text-align:right;font-variant-numeric:tabular-nums}
+  .vign{display:block;width:104px;height:58px;border-radius:9px;overflow:hidden;cursor:zoom-in;
+    background:linear-gradient(135deg,var(--g1,#e5e5ea),var(--g2,#f5f5f7))}
+  .vign img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s}
+  .vign:hover img{transform:scale(1.04)}
+  .txt{min-width:0;display:flex;flex-direction:column;gap:3px}
+  .nom{font-size:15.5px;font-weight:600;outline:none;border-radius:5px;padding:0 4px;margin:0 -4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .var{font-size:13px;color:var(--gris);outline:none;border-radius:5px;padding:0 4px;margin:0 -4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .var:empty::before{content:attr(data-vide);color:var(--gris2)}
+  .nom:focus,.var:focus,.mapNom:focus{background:#fff;box-shadow:0 0 0 1.5px var(--encre);white-space:normal;text-overflow:clip}
+  [contenteditable]:hover{background:var(--doux)}
+
+  .mus{display:inline-flex;align-items:center;height:34px;border-radius:999px;background:var(--doux);max-width:100%;min-width:0;justify-self:start} /* les pastilles alignées à gauche : la colonne des musiques se lit d'un coup d'œil */
+  .mus .lit{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;flex:0 0 34px}
+  .mus .lit:hover{background:rgba(0,0,0,.06)}
+  .mus .titre{height:34px;padding:0 15px 0 2px;font-size:12.5px;font-weight:550;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  .mus .iS{display:none}
+  .mus.joue{background:var(--encre);color:#fff}
+  .mus.joue .iS{display:block}.mus.joue .iP{display:none}
+  .mus.joue .lit:hover{background:rgba(255,255,255,.12)}
+  .mus.vide{background:transparent;box-shadow:inset 0 0 0 1px #dedee2}
+  .mus.vide .titre{padding:0 15px;color:var(--gris);display:inline-flex;align-items:center;gap:6px}
+  .mus.vide:hover{box-shadow:inset 0 0 0 1px var(--encre)}.mus.vide:hover .titre{color:var(--encre)}
+  .rang.fichier{box-shadow:inset 0 0 0 2px #1fae84;border-radius:10px}
+
+  .act{display:flex;justify-content:flex-end;gap:2px;opacity:0;transition:opacity .15s}
+  .rang:hover .act,.rang:focus-within .act{opacity:1}
+  .ico{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;color:var(--gris)}
+  .ico:hover{background:var(--doux);color:var(--encre)}
   .ico.danger:hover{color:var(--rouge)}
 
-  .grille{display:grid;grid-template-columns:repeat(auto-fill,minmax(226px,1fr)); /* 5 par rangée sur l'ordi : un monde = une rangée */gap:18px;position:relative;min-height:120px;
-    border-radius:var(--r);transition:background .2s}
-  .grille.vide::after{content:"Glisse une map ici";position:absolute;inset:0;display:grid;place-items:center;font-size:12px;color:var(--gris2);
-    letter-spacing:.06em;border:1.5px dashed rgba(0,0,0,.12);border-radius:var(--r)}
-  .grille.survol{background:rgba(10,99,214,.05)}
-  #repere{position:absolute;width:3px;border-radius:2px;background:var(--bleu);pointer-events:none;display:none;z-index:5;
-    box-shadow:0 0 0 3px rgba(10,99,214,.15)}
+  .vide{font-size:13px;color:var(--gris2);padding:18px 0}
+  .depot{display:none;margin-top:10px;height:56px;border-radius:12px;border:1.5px dashed #d4d4d8;color:var(--gris);font-size:12px;place-items:center}
+  body.enGlisse .depot{display:grid}
+  .depot.cible{border-color:var(--bleu);color:var(--bleu);background:rgba(10,99,214,.04)}
+  .nouvelle{margin-top:26px;height:40px;padding:0 4px;font-size:13.5px;font-weight:500;color:var(--gris);display:inline-flex;align-items:center;gap:8px}
+  .nouvelle:hover{color:var(--encre)}
 
-  /* ---------- UNE MAP ---------- */
-  .carte{background:var(--carte);border-radius:var(--r);overflow:hidden;position:relative;
-    box-shadow:0 0 0 .5px rgba(0,0,0,.06),0 6px 24px rgba(0,0,0,.05);transition:transform .25s cubic-bezier(.32,.72,0,1),box-shadow .25s,opacity .2s}
-  main:not(.pret) .carte{animation:entre .35s cubic-bezier(.32,.72,0,1) both} /* l'entrée une seule fois : un geste ne refait pas danser toute la page */
-  .carte.neuve{animation:entre .35s cubic-bezier(.32,.72,0,1) both}
-  @keyframes entre{from{opacity:0;transform:translateY(8px) scale(.985)}}
-  .carte:hover{transform:translateY(-2px);box-shadow:0 0 0 .5px rgba(0,0,0,.08),0 14px 34px rgba(0,0,0,.09)}
-  .carte.glisse{opacity:.35}
-  .photo{position:relative;aspect-ratio:16/9;background:linear-gradient(135deg,var(--g1,#9ab),var(--g2,#dde));cursor:zoom-in;overflow:hidden}
-  .photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity .35s;user-select:none;-webkit-user-drag:none}
-  .photo img.b{opacity:0}
-  .carte:hover .photo img.b{opacity:1}
-  .photo img.manque{display:none}
-  .code{position:absolute;left:10px;top:10px;font-size:10px;font-weight:650;letter-spacing:.14em;color:#fff;background:rgba(0,0,0,.38);
-    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);padding:4px 8px;border-radius:7px}
-  .vueTag{position:absolute;right:10px;bottom:10px;font-size:10px;letter-spacing:.1em;color:#fff;background:rgba(0,0,0,.3);padding:3px 7px;border-radius:6px;
-    opacity:0;transition:opacity .25s}
-  .carte:hover .vueTag{opacity:1}
-  .plan.mini{position:absolute;right:8px;top:8px;width:26%;max-width:96px;aspect-ratio:1;filter:drop-shadow(0 1px 3px rgba(0,0,0,.35));
-    opacity:.92;transition:opacity .25s;pointer-events:none}
-  .carte:hover .plan.mini{opacity:0}
-  .plan path{fill:none;stroke-linecap:round;stroke-linejoin:round}
-  .plan .pO{stroke:rgba(0,0,0,.45)}.plan .pT{stroke:#fff}
-  .plan .pA{fill:#30d158;stroke:#fff;stroke-width:.8}.plan .pB{fill:#ff375f;stroke:#fff;stroke-width:.8}
-  #gPlan{width:150px;aspect-ratio:1;border-radius:14px;background:rgba(255,255,255,.06)}
-  #gPlan:empty{display:none}
-  #gPlan .plan{width:100%;height:100%}#gPlan .plan .pO{stroke:rgba(0,0,0,.6)}
-  .texte{padding:12px 14px 14px}
-  .ligneNom{display:flex;align-items:flex-start;gap:6px}
-  .nom{font-size:17px;font-weight:650;letter-spacing:.01em;line-height:1.2;outline:none;border-radius:6px;padding:1px 4px;margin:-1px -4px;flex:1;min-width:0;word-break:break-word}
-  .nom:hover{background:rgba(0,0,0,.04)}
-  .nom:focus{background:#fff;box-shadow:0 0 0 1px var(--encre)}
-  .nom.change{color:var(--bleu)}
-  .avant{font-size:11px;color:var(--gris2);margin-top:3px}
-  .sous{font-size:12px;color:var(--gris);margin-top:6px;line-height:1.4}
-  .idee{font-size:12px;color:var(--gris2);margin-top:4px;line-height:1.45}
-  .actions{display:flex;flex-wrap:wrap;gap:2px;margin-top:10px;margin-left:-6px}
-  .actions .ico{width:auto;padding:0 8px;gap:5px;display:inline-flex;align-items:center;font-size:12px}
-  .actions .ico span{font-size:12px}
-  .ecoute{display:inline-flex;align-items:center;gap:7px;margin-top:8px;border:0;background:rgba(0,0,0,.05);border-radius:999px;padding:5px 11px 5px 8px;
-    font-size:11.5px;font-weight:600;letter-spacing:.03em;color:var(--encre);max-width:100%}
-  .ecoute:hover{background:rgba(0,0,0,.09)}
-  .ecoute svg{width:13px;height:13px;flex:0 0 13px;fill:currentColor;stroke:currentColor;stroke-width:2.6;stroke-linecap:round}
-  .ecoute .iS{display:none}.ecoute.joue .iS{display:block}.ecoute.joue .iP{display:none}
-  .ecoute span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-  .ecoute em{font-style:normal;font-size:9.5px;letter-spacing:.12em;padding:2px 6px;border-radius:5px;background:#e8f8ec;color:#1f7a35}
-  .ecoute.fin{background:#f2f7ff;color:#0a4fb0}.ecoute.fin:hover{background:#e6efff}
-  .ecoute.joue{background:var(--encre);color:#fff}.ecoute.joue em{background:rgba(255,255,255,.18);color:#fff}
-  .ecoute.sans{background:transparent;padding-left:0;color:var(--gris2);font-weight:500;cursor:default}
-  .plier{width:24px;height:24px;margin-left:-4px;margin-right:-4px}
-  .plier svg{transition:transform .25s}
-  .cat.plie .plier svg{transform:rotate(-90deg)}
-  .cat.plie .grille{display:none}
-  .cat.plie .catTete{opacity:.7}
-  .cat.plie.survol .catTete{opacity:1;background:rgba(10,99,214,.06);border-radius:10px}
-  .noteZone{display:none;margin-top:8px}
-  .carte.noteOuverte .noteZone{display:block}
-  textarea{width:100%;min-height:60px;resize:vertical;border:0;border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.45;
-    background:#f5f5f3;box-shadow:inset 0 0 0 .5px rgba(0,0,0,.08);outline:none}
-  textarea:focus{background:#fff;box-shadow:0 0 0 1px var(--encre)}
-  .noteApercu{font-size:12px;color:var(--encre);margin-top:8px;padding:8px 10px;background:#fff8e1;border-radius:10px;line-height:1.4;white-space:pre-wrap;cursor:text}
-  .carte.noteOuverte .noteApercu{display:none}
-  .pastille{display:inline-block;font-size:10px;font-weight:650;letter-spacing:.1em;padding:2px 6px;border-radius:5px;margin-right:6px;vertical-align:1px;
-    background:var(--pc,rgba(0,0,0,.06));color:var(--pt,var(--gris))}
+  /* ---------- LA RÉSERVE ---------- */
+  .reserve{margin-top:64px}
+  .resTete{display:flex;align-items:center;gap:8px;height:36px;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--gris)}
+  .resTete b{font-weight:500;letter-spacing:0;color:var(--gris2)}
+  .resTete svg{transition:transform .2s;transform:rotate(-90deg)}
+  .reserve.ouverte .resTete svg{transform:none}
+  .reserve:not(.ouverte) ol{display:none}
+  .reserve.cible .resTete{color:var(--bleu)}
+  .reserve .rang{opacity:.62}.reserve .rang:hover{opacity:1}
+  .orig{font-size:11px;color:var(--gris2);letter-spacing:.04em}
+  #notes{display:block;width:100%;margin-top:56px;min-height:90px;border:0;border-top:1px solid var(--trait);padding:18px 0;resize:vertical;
+    font-size:14px;line-height:1.5;outline:none;background:transparent}
+  #notes::placeholder{color:var(--gris2)}
 
-  /* ---------- À SUPPRIMER ---------- */
-  #corbeille{margin-top:56px;padding:18px;border-radius:calc(var(--r) + 6px);background:rgba(215,0,21,.035);box-shadow:inset 0 0 0 1px rgba(215,0,21,.10)}
-  #corbeille .catNom{color:var(--rouge)}
-  #corbeille .grille{grid-template-columns:repeat(auto-fill,minmax(210px,1fr));min-height:90px}
-  #corbeille .grille.vide::after{content:"Glisse ici une map à enlever du jeu"}
-  #corbeille .carte .photo{filter:grayscale(.85) brightness(1.05)}
-  #corbeille .carte .nom{text-decoration:line-through;text-decoration-color:rgba(215,0,21,.5)}
-  #corbeille .idee,#corbeille .sous{display:none}
-  #corbeille .actions [data-act="renomme"] span,#corbeille .actions [data-act="note"] span{display:none} /* carte étroite : les icônes suffisent, REMETTRE garde son mot */
+  #ligne{position:absolute;height:2px;border-radius:2px;background:var(--bleu);pointer-events:none;display:none;z-index:5}
 
-  #generales{margin-top:40px}
-  #generales textarea{min-height:90px;background:#fff}
+  /* ---------- LA BIBLIOTHÈQUE DE MUSIQUES ---------- */
+  #choix{position:fixed;z-index:40;width:330px;max-height:min(460px,70vh);display:none;flex-direction:column;background:#fff;border-radius:14px;
+    box-shadow:0 0 0 .5px rgba(0,0,0,.12),0 18px 50px rgba(0,0,0,.16);overflow:hidden}
+  #choix.on{display:flex;animation:pop .16s ease-out}
+  @keyframes pop{from{opacity:0;transform:translateY(-4px) scale(.98)}}
+  #cherche{border:0;border-bottom:1px solid var(--trait);padding:13px 16px;font-size:14px;outline:none}
+  #liste{overflow:auto;flex:1;padding:6px 0}
+  #liste h3{font-size:10.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--gris2);padding:12px 16px 4px}
+  .piste{display:flex;align-items:center;gap:4px;padding:0 8px}
+  .piste .lit{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:var(--gris)}
+  .piste .lit:hover{background:var(--doux);color:var(--encre)}
+  .piste .lit .iS{display:none}.piste.joue .lit .iS{display:block}.piste.joue .lit .iP{display:none}.piste.joue .lit{color:var(--encre)}
+  .piste .prend{flex:1;min-width:0;text-align:left;padding:8px 8px;border-radius:8px;font-size:13px;display:flex;align-items:baseline;gap:8px}
+  .piste .prend:hover{background:var(--doux)}
+  .piste .prend span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .piste .prend small{margin-left:auto;font-size:11px;color:var(--gris2);white-space:nowrap;flex:0 0 auto}
+  .piste.actuelle .prend{font-weight:650}
+  .piste.actuelle .prend::after{content:"✓";margin-left:6px;color:var(--bleu)}
+  #choixBas{display:flex;border-top:1px solid var(--trait)}
+  #choixBas button{flex:1;height:42px;font-size:12.5px;color:var(--gris)}
+  #choixBas button:hover{color:var(--encre);background:var(--doux)}
 
-  /* ---------- LA GRANDE VUE ---------- */
-  #grand{position:fixed;inset:0;z-index:50;background:rgba(20,20,22,.86);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
+  /* ---------- LA FICHE D'UN NIVEAU ---------- */
+  #fiche{position:fixed;inset:0;z-index:50;background:rgba(255,255,255,.72);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
     display:none;align-items:center;justify-content:center;padding:24px}
-  #grand.on{display:flex;animation:fondu .25s ease-out}
+  #fiche.on{display:flex;animation:fondu .2s ease-out}
   @keyframes fondu{from{opacity:0}}
-  #gBoite{width:min(1180px,100%,calc((100vh - 250px) * 16 / 9));max-height:100%;overflow:auto;color:#fff}
-  #gImg{position:relative;width:100%;aspect-ratio:16/9;border-radius:18px;overflow:hidden;background:#222}
-  #gImg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity .3s}
-  #gBas{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start;margin-top:18px}
-  #gNom{font-size:28px;font-weight:650;letter-spacing:.01em}
-  #gInfo{font-size:13px;color:rgba(255,255,255,.7);margin-top:6px;line-height:1.6;max-width:640px}
-  #gInfo b{color:#fff;font-weight:600}
-  #gDroite{margin-left:auto;display:flex;flex-direction:column;gap:10px;min-width:220px}
-  #grand .seg{background:rgba(255,255,255,.12);margin:0}
-  #grand .seg button{color:rgba(255,255,255,.7)}
-  #grand .seg button.on{background:#fff;color:#111}
-  #grand select{background:rgba(255,255,255,.12);border:0;border-radius:10px;padding:8px 10px;color:#fff;font-size:13px}
-  #grand select option{color:#111}
-  #gFerme,#gPrec,#gSuiv{position:fixed;border:0;background:rgba(255,255,255,.12);color:#fff;width:44px;height:44px;border-radius:50%;display:grid;place-items:center}
-  #gFerme:hover,#gPrec:hover,#gSuiv:hover{background:rgba(255,255,255,.22)}
-  #gFerme{right:20px;top:20px}#gPrec{left:16px;top:50%}#gSuiv{right:16px;top:50%}
-  #gFerme svg,#gPrec svg,#gSuiv svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  #fBoite{width:min(900px,100%,calc((100vh - 270px)*16/9));max-height:100%;overflow:auto;background:#fff;border-radius:20px;
+    box-shadow:0 0 0 .5px rgba(0,0,0,.08),0 30px 80px rgba(0,0,0,.14)}
+  #fImg{position:relative;aspect-ratio:16/9;background:linear-gradient(135deg,var(--g1,#e5e5ea),var(--g2,#f5f5f7));cursor:pointer}
+  #fImg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity .3s}
+  #fVue{position:absolute;left:14px;bottom:14px;display:flex;background:rgba(0,0,0,.35);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-radius:10px;padding:2px}
+  #fVue button{color:rgba(255,255,255,.75);font-size:11.5px;font-weight:600;padding:5px 10px;border-radius:8px}
+  #fVue button.on{background:#fff;color:#111}
+  #fPlan{position:absolute;right:14px;top:14px;width:110px;height:110px;filter:drop-shadow(0 1px 3px rgba(0,0,0,.4))}
+  #fPlan path{fill:none;stroke-linecap:round;stroke-linejoin:round}
+  #fCorps{padding:22px 26px 24px;display:grid;grid-template-columns:1fr auto;gap:6px 20px;align-items:start}
+  #fNom{font-size:24px;font-weight:650;letter-spacing:-.01em}
+  #fSous{font-size:13.5px;color:var(--gris);grid-column:1}
+  #fMus{grid-column:2;grid-row:1/3;align-self:center}
+  #fDesc{grid-column:1/3;font-size:13.5px;line-height:1.55;color:#55555a;margin-top:12px}
+  #fNote{grid-column:1/3;margin-top:14px;width:100%;min-height:62px;resize:vertical;border:0;border-radius:12px;padding:12px 14px;font-size:14px;line-height:1.45;
+    background:var(--doux);outline:none}
+  #fNote:focus{background:#fff;box-shadow:0 0 0 1.5px var(--encre)}
+  #fFerme{position:fixed;right:20px;top:20px;width:40px;height:40px;border-radius:50%;background:#fff;display:grid;place-items:center;
+    box-shadow:0 0 0 .5px rgba(0,0,0,.1),0 6px 18px rgba(0,0,0,.08)}
 
-  /* ---------- LE PETIT MOT EN BAS ---------- */
-  #toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);opacity:0;z-index:60;background:var(--encre);color:#fff;border-radius:14px;
-    padding:11px 14px 11px 16px;font-size:13px;display:flex;align-items:center;gap:14px;box-shadow:0 12px 40px rgba(0,0,0,.25);
-    transition:opacity .25s,transform .35s cubic-bezier(.32,.72,0,1);pointer-events:none;max-width:calc(100% - 32px)}
-  #toast.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
-  #toast button{border:0;background:rgba(255,255,255,.14);color:#fff;border-radius:9px;padding:5px 10px;font-size:12px;font-weight:600}
+  #mot{position:fixed;left:50%;bottom:26px;transform:translate(-50%,16px);opacity:0;z-index:60;background:var(--encre);color:#fff;border-radius:12px;
+    padding:10px 12px 10px 16px;font-size:13px;display:flex;align-items:center;gap:14px;box-shadow:0 12px 40px rgba(0,0,0,.22);
+    transition:opacity .2s,transform .3s cubic-bezier(.32,.72,0,1);pointer-events:none;max-width:calc(100% - 32px)}
+  #mot.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+  #mot button{background:rgba(255,255,255,.14);color:#fff;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:600}
 
-  @media (max-width:700px){
-    #etatSauve{min-width:0;order:9;width:100%;text-align:left}
-    .seg{margin-left:0}
-    .grille{grid-template-columns:1fr 1fr;gap:10px}
-    .nom{font-size:14px}.idee{display:none}
-    .catOutils{opacity:1}
-    header{position:static}            /* au téléphone le haut ne colle pas : il mangerait un tiers de l'écran */
-    .actions .ico span{display:none}
-    .actions [data-act="remet"] span{display:inline}
+  @media (max-width:640px){
+    .page{padding-top:32px}
+    .rang{grid-template-columns:14px 0 76px minmax(0,1fr) 34px;row-gap:8px}
+    .num{visibility:hidden;font-size:0} /* elle garde sa colonne (display:none décalait toute la ligne) */
+    .vign{width:76px;height:43px}
+    .rang .mus{grid-column:4/6;grid-row:2;justify-self:start}
+    .act{grid-column:5;grid-row:1;opacity:1}
+    .act .ico[data-act="variante1"]{display:none}
+    .poignee{opacity:1}
+    .mapOut{opacity:1}
   }
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
-<header>
-  <div id="marque"><b>LES MAPS</b><span id="compte">CASH CAR</span></div>
-  <div class="seg" id="vueSeg" role="tablist" aria-label="Photo affichée">
-    <button data-v="volant" class="on">AU VOLANT</button><button data-v="trace">LE TRACÉ</button>
-  </div>
-  <button class="outil" id="annuler" title="Annuler (⌘Z)" disabled><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg>Annuler</button>
-  <button class="outil" id="ajCat" title="Nouvelle catégorie"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Catégorie</button>
-  <button class="outil" id="fiche" title="Télécharger la fiche (.txt)"><svg viewBox="0 0 24 24"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>Fiche</button>
-  <button class="outil" id="remise" title="Tout remettre comme dans le jeu"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>Remettre</button>
-  <span id="etatSauve">—</span>
-  <button id="sauver" title="Sauvegarder (⌘S)">Sauvegarder</button>
-</header>
-
-<main id="liste"></main>
-
-<div id="grand" role="dialog" aria-modal="true" aria-label="La map en grand">
-  <button id="gFerme" aria-label="Fermer"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
-  <button id="gPrec" aria-label="Map précédente"><svg viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></svg></button>
-  <button id="gSuiv" aria-label="Map suivante"><svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></button>
-  <div id="gBoite">
-    <div id="gImg"><img id="gA" alt=""><img id="gB" alt=""></div>
-    <div id="gBas">
-      <div><div id="gNom"></div><div id="gInfo"></div></div>
-      <div id="gDroite">
-        <div class="seg" id="gVue"><button data-v="volant">AU VOLANT</button><button data-v="trace">LE TRACÉ</button></div>
-        <select id="gCat" aria-label="Catégorie"></select>
-        <div id="gPlan"></div>
-      </div>
+<div class="page" id="page">
+  <header>
+    <div><h1>Niveaux</h1><div id="compte"></div></div>
+    <div class="outils">
+      <span id="etat"></span>
+      <button class="rond" id="annuler" title="Annuler (⌘Z)" disabled><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg></button>
+      <button class="rond" id="fiche-txt" title="Télécharger la fiche"><svg viewBox="0 0 24 24"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg></button>
+      <button id="enreg" title="Enregistrer (⌘S)">Enregistrer</button>
     </div>
+  </header>
+  <main id="liste-niveaux"></main>
+  <div id="ligne"></div>
+</div>
+
+<div id="choix" role="dialog" aria-label="Choisir une musique">
+  <input id="cherche" placeholder="Chercher une musique" autocomplete="off">
+  <div id="liste"></div>
+  <div id="choixBas"><button id="importer">Importer un fichier…</button><button id="sansMus">Sans musique</button></div>
+</div>
+<input type="file" id="fichierMus" accept="audio/*,.m4a,.mp3,.wav,.ogg,.aac,.flac" hidden>
+
+<div id="fiche" role="dialog" aria-modal="true">
+  <button id="fFerme" aria-label="Fermer"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  <div id="fBoite">
+    <div id="fImg"><img id="fA" alt=""><img id="fB" alt=""><svg id="fPlan" viewBox="0 0 100 100"></svg>
+      <div id="fVue"><button data-v="volant" class="on">Au volant</button><button data-v="trace">Le tracé</button></div></div>
+    <div id="fCorps"><div id="fNom"></div><div id="fMus"></div><div id="fSous"></div><div id="fDesc"></div>
+      <textarea id="fNote" placeholder="Une note sur ce niveau…"></textarea></div>
   </div>
 </div>
-<div id="toast"><span id="tTxt"></span><button id="tBtn">Annuler</button></div>
+<div id="mot"><span id="motTxt"></span><button id="motBtn">Annuler</button></div>
 
 <script src="maps-ciel/traces.js"></script>
 <script>
 'use strict';
 /* =====================================================================================================================
-   LES MAPS, telles qu'elles sont dans le jeu (main du 9/10, 6531110) — photos prises au banc dans le vrai jeu (son coupé).
-   (9/10, Léo : « celles sur lesquelles on a mis les musiques finales : mets les cinq, et les cinq des villes — là c'est n'importe
-   quoi ») EN TÊTE les 10 maps qui ont LEUR musique finale (musicLieuVoulu du jeu) : SKY HIGH 1-5 = CIEL · NIVEAU 1 à 5
-   (MUSIC_CIEL), VILLE 1-5 = NÉON COMPLÈTE 1 à 5 (MUSIC_VILLE). Le reste est replié tout en bas.
-   `mus` : t = le titre, f = le fichier (écoutable sur la carte), fin = musique finale.
+   LE CATALOGUE — les niveaux tels qu'ils sont dans le jeu (main du 9/10). `map` : le décor ; `var` : ce qui le fait varier ;
+   `mus` : la musique que le jeu leur donne aujourd'hui (musicLieuVoulu). Les photos : maps-ciel/img/<id>-volant.jpg / -trace.jpg.
+   Ceux dont la map n'est pas dans MAPS0 partent dans la RÉSERVE.
    ===================================================================================================================== */
-const CATS0=[
-  {id:'ciel',   nom:'SKY HIGH · musique finale',            c:'#0a84ff'},
-  {id:'ville',  nom:'VILLE · musique finale',               c:'#ff2d92'},
-  {id:'garder', nom:'Nouvelles maps · à garder pour le jeu', c:'#1fae84'}, // (10/10, Léo : « garde-le sur une liste de maps qu'on garde pour le jeu »)
-  {id:'autres', nom:'Les autres · pas de musique finale',   c:'#a1a1a6',plie:true}];
-const MC=k=>({t:'CIEL · NIVEAU '+k,f:'assets/audio/music/ciel/ciel-n'+k+'.m4a',fin:1}),MV=k=>({t:'NÉON COMPLÈTE '+k,f:'assets/audio/music/ville/ville-n'+k+'.m4a',fin:1});
-const NOITE={t:'NOITE DE VELOCIDADE (avant le retrait)',f:'assets/audio/music/noite-de-velocidade.mp3'};
-const MAPS0=[
-  {id:'sh1',cat:'ciel',nom:'AURORE',code:'SKY HIGH 1',heure:'aurore',pr:'APPRENDS A VOLER',g:['#3b2a6e','#ff9ec4'],mus:MC(1),
-   idee:"La piste de l'auto-école dessinée à la main, sous le ciel nu de l'aurore (aucun nuage : on y lit tout).",ou:'CARRIÈRE › SKY HIGH › 1 · piste genTuto'},
-  {id:'sh2',cat:'ciel',nom:'PREMIÈRES LUEURS',code:'SKY HIGH 2',heure:'aube → lever',pr:'LA ROUTE EST A TOI',g:['#5a3a8a','#ffd27a'],mus:MC(2),
-   idee:'Deux grands balayages de 160° qui descendent. Zéro banc, zéro plot.',ou:'CARRIÈRE › SKY HIGH › 2 · genCampagne(2)'},
-  {id:'sh3',cat:'ciel',nom:'LEVER DU SOLEIL',code:'SKY HIGH 3',heure:'lever du soleil',pr:'TRAVERSE LE NUAGE',g:['#ff7a5c','#ffd27a'],mus:MC(3),
-   idee:'Un banc de nuage sur une droite tournée vers le soleil : « PERCE-NUAGE ! » à la sortie.',ou:'CARRIÈRE › SKY HIGH › 3 · genCampagne(3)'},
-  {id:'sh4',cat:'ciel',nom:'MATIN FRAIS',code:'SKY HIGH 4',heure:'lever → matin',pr:'PASSE LES PORTES',g:['#ff7a5c','#d6ecff'],mus:MC(4),
-   idee:'Trois séquences de trois portes, de plus en plus étroites.',ou:'CARRIÈRE › SKY HIGH › 4 · genCampagne(4)'},
-  {id:'sh5',cat:'ciel',nom:'MATIN',code:'SKY HIGH 5',heure:'matin',pr:'SEME LA POLICE',g:['#6fb4ff','#d6ecff'],mus:MC(5),
-   idee:'La poursuite : deux voitures de police tirent par derrière, la nitro sème. Le final du monde (la caisse-nuage se gagne ici).',ou:'CARRIÈRE › SKY HIGH › 5 · genCampagne(5)'},
-  {id:'v1',cat:'ville',nom:'COUCHER DE SOLEIL',code:'VILLE 1',heure:'coucher du soleil',pr:'FAIS-TOI FLASHER',g:['#ff3ec8','#ff9a3c'],mus:MV(1),
-   idee:'Trois portiques radar au bout de trois droites : le flash paie la vitesse (×2 en excès).',ou:'CARRIÈRE › VILLE › 1 · genCampagne(11)'},
-  {id:'v2',cat:'ville',nom:'SOIRÉE',code:'VILLE 2',heure:'soirée',pr:'SUIS LA LIGNE DE NEON',g:['#3a1a6e','#ff5ea8'],mus:MV(2),
-   idee:"Des files de pads d'or reliées par un trait de lumière : la file entière = LIGNE PARFAITE.",ou:'CARRIÈRE › VILLE › 2 · genCampagne(12)'},
-  {id:'v3',cat:'ville',nom:'PLUIE NÉON',code:'VILLE 3',heure:'pluie',pr:'LIS LES FLAQUES',g:['#0e2a4a','#00eaff'],mus:MV(3),
-   idee:'Des rangées de flaques en travers de la route, une seule ligne sèche : passer à sec paie.',ou:'CARRIÈRE › VILLE › 3 · genCampagne(13)'},
-  {id:'v4',cat:'ville',nom:'MINUIT',code:'VILLE 4',heure:'minuit',pr:'NE FINIS PAS DERNIER',g:['#10103a','#4a4aa8'],mus:MV(4),
-   idee:'La meute : sept voitures, le dernier de chaque minute explose.',ou:'CARRIÈRE › VILLE › 4 · genCampagne(14)'},
-  {id:'v5',cat:'ville',nom:'ORAGE',code:'VILLE 5',heure:'orage',pr:'ESQUIVE LA FOUDRE',g:['#2a2440','#a99cff'],mus:MV(5),
-   idee:'Un cercle se pose là où tu vas passer, la foudre tombe dedans. Le final de la ville (le lingot se gagne ici).',ou:'CARRIÈRE › VILLE › 5 · genCampagne(15)'},
-  {id:'mer-matin',cat:'autres',nom:'MER DE NUAGES · MATIN',code:'SANS FIN 1',heure:'matin',pr:'LES NUAGES CACHENT LES VIRAGES',g:['#6fb4ff','#d6ecff'],mus:{t:'CIEL · LES 5 NIVEAUX (le morceau entier)',f:'assets/audio/music/ciel/ciel-complet.m4a'},
-   idee:"Ce que lance PLAY aujourd'hui (le mode classique). Piste tirée au hasard ; le ciel tire une heure parmi matin, midi, après-midi.",ou:'NIVEAUX[0] « MER DE NUAGES », ciel matin'},
-  {id:'mer-midi',cat:'autres',nom:'MER DE NUAGES · MIDI',code:'SANS FIN 1',heure:'midi',pr:'LES NUAGES CACHENT LES VIRAGES',g:['#3aa0ff','#eef8ff'],mus:{t:'CIEL · LES 5 NIVEAUX (le morceau entier)',f:'assets/audio/music/ciel/ciel-complet.m4a'},
-   idee:'La même map, à midi.',ou:'NIVEAUX[0] « MER DE NUAGES », ciel midi'},
-  {id:'mer-aprem',cat:'autres',nom:'MER DE NUAGES · APRÈS-MIDI',code:'SANS FIN 1',heure:'après-midi',pr:'LES NUAGES CACHENT LES VIRAGES',g:['#4f9cf0','#ffe3a0'],mus:{t:'CIEL · LES 5 NIVEAUX (le morceau entier)',f:'assets/audio/music/ciel/ciel-complet.m4a'},
-   idee:"La même map, l'après-midi.",ou:'NIVEAUX[0] « MER DE NUAGES », ciel aprem'},
-  {id:'orage',cat:'autres',nom:"L'ORAGE",code:'SANS FIN 5',heure:'tempête',pr:"LA ROUTE SE CACHE : L'ECLAIR LA MONTRE",g:['#2a2440','#a99cff'],mus:{t:'SWAG CASH CAR',f:'assets/audio/music/swag-cash-car-2.m4a'},
-   idee:"Le niveau dur de la partie sans fin : les nuages sous l'orage, bancs, plafond bas, éclairs.",ou:'NIVEAUX[4] « L\'ORAGE »'},
-  {id:'sh6',cat:'autres',nom:'MIDI',code:'SKY HIGH 6',heure:'midi',pr:'ET SI TU COUPAIS ?',g:['#3aa0ff','#eef8ff'],mus:NOITE,
-   idee:"Retirée le 4/10. Quatre ovales lents : on saute d'un étage de route à l'autre (la coupe), ciel propre.",ou:'retirée de CARRIERE le 4/10 · la piste genCampagne(6) existe encore'},
-  {id:'sh7',cat:'autres',nom:'APRÈS-MIDI',code:'SKY HIGH 7',heure:'après-midi',pr:'DANSE AVEC LE RELIEF',g:['#4f9cf0','#ffe3a0'],mus:NOITE,
-   idee:'Retirée le 4/10. Vagues en sinus et esses. Zéro plot, zéro banc.',ou:'retirée le 4/10 · genCampagne(7) existe encore'},
-  {id:'sh8',cat:'autres',nom:"FIN D'APRÈS-MIDI",code:'SKY HIGH 8',heure:'après-midi → heure dorée',pr:'LE CIEL MENT',g:['#4f9cf0','#ff9a3c'],mus:NOITE,
-   idee:'Retirée le 4/10. Un banc de nuage au bout de chaque droite cache le virage suivant.',ou:'retirée le 4/10 · genCampagne(8) existe encore'},
-  {id:'sh9',cat:'autres',nom:'HEURE DORÉE',code:'SKY HIGH 9',heure:'orage doré',pr:"TRAVERSE L'ORAGE",g:['#5a4a7a','#ffb347'],mus:NOITE,
-   idee:"Retirée le 4/10. Orage doré et pluie : les éclairs révèlent la route dans la brume.",ou:'retirée le 4/10 · genCampagne(9) existe encore'},
-  {id:'sh10',cat:'autres',nom:'COUCHER DE SOLEIL',code:'SKY HIGH 10',heure:'heure dorée → coucher',pr:'ATTRAPE LA CAISSE-NUAGE',g:['#ff9a3c','#ff3ec8'],mus:NOITE,
-   idee:'Retirée le 4/10. La caisse-nuage file devant : reste dans son sillage pour la gagner.',ou:'retirée le 4/10 · genCampagne(10) existe encore'},
-  {id:'parc',cat:'autres',nom:'PARC FREESTYLE',code:'MODE',heure:'—',pr:'',g:['#ff9a3c','#ffd76a'],mus:null,
-   idee:'Le parc de figures : nitro libre, ni mort, ni portail, ni course.',ou:'MODES › PARC FREESTYLE (PARK)'},
-  {id:'jade',cat:'garder',nom:'PICS DE JADE',code:'NOUVELLE MAP',heure:'jour de brume',pr:'',g:['#2f6f8f','#cfe8d8'],mus:null,
-   idee:"Les piliers de Zhangjiajie qui flottent, faits de cubes minuscules en verre de jade, au-dessus d'une mer en petits cubes qui ondule ; une route d'émeraude polie qui scintille, des nuages en volutes de petits cubes, des montagnes en lavis au loin, une arche et un pont. Pour l'instant la voiture seule (balade) : le niveau complet reste à faire.",ou:'branche map-jade (pas sur main) · ?map=jade'}];
+const MAPS0=[{id:'ciel',nom:'SKY HIGH'},{id:'ville',nom:'VILLE'},{id:'jade',nom:'PICS DE JADE'}];
+const MAPNOM={ciel:'SKY HIGH',ville:'VILLE',jade:'PICS DE JADE',mer:'MER DE NUAGES',orage:"L'ORAGE",retire:'SKY HIGH · retiré le 4/10',parc:'PARC FREESTYLE'};
+const C='assets/audio/music/';
+const N0=[
+  {id:'sh1',map:'ciel',nom:'AURORE',var:'aurore',mus:C+'ciel/ciel-n1.m4a',g:['#3b2a6e','#ff9ec4'],
+   desc:"La piste de l'auto-école dessinée à la main, sous le ciel nu de l'aurore. « APPRENDS À VOLER ».",ou:'CARRIÈRE › SKY HIGH › 1 (genTuto)'},
+  {id:'sh2',map:'ciel',nom:'PREMIÈRES LUEURS',var:'aube',mus:C+'ciel/ciel-n2.m4a',g:['#5a3a8a','#ffd27a'],
+   desc:'Deux grands balayages de 160° qui descendent, zéro banc, zéro plot. « LA ROUTE EST À TOI ».',ou:'CARRIÈRE › SKY HIGH › 2 (genCampagne 2)'},
+  {id:'sh3',map:'ciel',nom:'LEVER DU SOLEIL',var:'lever du soleil',mus:C+'ciel/ciel-n3.m4a',g:['#ff7a5c','#ffd27a'],
+   desc:'Un banc de nuage sur une droite face au soleil : « PERCE-NUAGE ! » à la sortie. « TRAVERSE LE NUAGE ».',ou:'CARRIÈRE › SKY HIGH › 3 (genCampagne 3)'},
+  {id:'sh4',map:'ciel',nom:'MATIN FRAIS',var:'matin frais',mus:C+'ciel/ciel-n4.m4a',g:['#ff7a5c','#d6ecff'],
+   desc:'Trois séquences de trois portes, de plus en plus étroites. « PASSE LES PORTES ».',ou:'CARRIÈRE › SKY HIGH › 4 (genCampagne 4)'},
+  {id:'sh5',map:'ciel',nom:'MATIN',var:'matin',mus:C+'ciel/ciel-n5.m4a',g:['#6fb4ff','#d6ecff'],
+   desc:'La poursuite : deux voitures de police tirent par derrière, la nitro sème. Le final du monde. « SÈME LA POLICE ».',ou:'CARRIÈRE › SKY HIGH › 5 (genCampagne 5)'},
+  {id:'v1',map:'ville',nom:'COUCHER DE SOLEIL',var:'coucher du soleil',mus:C+'ville/ville-n1.m4a',g:['#ff3ec8','#ff9a3c'],
+   desc:'Trois portiques radar au bout de trois droites : le flash paie la vitesse. « FAIS-TOI FLASHER ».',ou:'CARRIÈRE › VILLE › 1 (genCampagne 11)'},
+  {id:'v2',map:'ville',nom:'SOIRÉE',var:'soirée',mus:C+'ville/ville-n2.m4a',g:['#3a1a6e','#ff5ea8'],
+   desc:"Des files de pads d'or reliées par un trait de lumière. « SUIS LA LIGNE DE NÉON ».",ou:'CARRIÈRE › VILLE › 2 (genCampagne 12)'},
+  {id:'v3',map:'ville',nom:'PLUIE NÉON',var:'pluie',mus:C+'ville/ville-n3.m4a',g:['#0e2a4a','#00eaff'],
+   desc:'Des rangées de flaques en travers de la route, une seule ligne sèche. « LIS LES FLAQUES ».',ou:'CARRIÈRE › VILLE › 3 (genCampagne 13)'},
+  {id:'v4',map:'ville',nom:'MINUIT',var:'minuit',mus:C+'ville/ville-n4.m4a',g:['#10103a','#4a4aa8'],
+   desc:'La meute : sept voitures, le dernier de chaque minute explose. « NE FINIS PAS DERNIER ».',ou:'CARRIÈRE › VILLE › 4 (genCampagne 14)'},
+  {id:'v5',map:'ville',nom:'ORAGE',var:'orage',mus:C+'ville/ville-n5.m4a',g:['#2a2440','#a99cff'],
+   desc:'Un cercle se pose là où tu vas passer, la foudre tombe dedans. Le final de la ville. « ESQUIVE LA FOUDRE ».',ou:'CARRIÈRE › VILLE › 5 (genCampagne 15)'},
+  // LA FICHE DE PICS DE JADE — la session de la map jade met sa description à jour ici (photo : maps-ciel/img/jade-volant.jpg)
+  {id:'jade',map:'jade',nom:'PICS DE JADE',var:'jour de brume',mus:'',g:['#2f6f8f','#cfe8d8'],
+   desc:"Les piliers de Zhangjiajie qui flottent, faits de cubes minuscules en verre de jade, au-dessus d'une mer en petits cubes qui ondule ; une route d'émeraude polie qui scintille, des nuages en volutes de petits cubes, des montagnes en lavis au loin, une arche et un pont. Pour l'instant la voiture seule (balade) : le niveau complet reste à faire.",ou:'branche map-jade (pas sur main) · ?map=jade'},
+  {id:'mer-matin',map:'mer',nom:'MER DE NUAGES',var:'matin',mus:C+'ciel/ciel-complet.m4a',g:['#6fb4ff','#d6ecff'],
+   desc:"La partie sans fin : ce que lance PLAY aujourd'hui. Piste tirée au hasard.",ou:'NIVEAUX[0] (partie sans fin)'},
+  {id:'mer-midi',map:'mer',nom:'MER DE NUAGES',var:'midi',mus:C+'ciel/ciel-complet.m4a',g:['#3aa0ff','#eef8ff'],desc:'La même map, à midi.',ou:'NIVEAUX[0] (partie sans fin)'},
+  {id:'mer-aprem',map:'mer',nom:'MER DE NUAGES',var:'après-midi',mus:C+'ciel/ciel-complet.m4a',g:['#4f9cf0','#ffe3a0'],desc:"La même map, l'après-midi.",ou:'NIVEAUX[0] (partie sans fin)'},
+  {id:'orage',map:'orage',nom:"L'ORAGE",var:'tempête',mus:C+'swag-cash-car-2.m4a',g:['#2a2440','#a99cff'],
+   desc:"Le niveau dur de la partie sans fin : les nuages sous l'orage, bancs, plafond bas, éclairs.",ou:'NIVEAUX[4] (partie sans fin)'},
+  {id:'sh6',map:'retire',nom:'MIDI',var:'midi',mus:C+'noite-de-velocidade.mp3',g:['#3aa0ff','#eef8ff'],desc:"Quatre ovales lents : on saute d'un étage de route à l'autre.",ou:'retiré le 4/10 (genCampagne 6 existe encore)'},
+  {id:'sh7',map:'retire',nom:'APRÈS-MIDI',var:'après-midi',mus:C+'noite-de-velocidade.mp3',g:['#4f9cf0','#ffe3a0'],desc:'Vagues en sinus et esses.',ou:'retiré le 4/10 (genCampagne 7)'},
+  {id:'sh8',map:'retire',nom:"FIN D'APRÈS-MIDI",var:'heure dorée',mus:C+'noite-de-velocidade.mp3',g:['#4f9cf0','#ff9a3c'],desc:'Un banc au bout de chaque droite cache le virage suivant.',ou:'retiré le 4/10 (genCampagne 8)'},
+  {id:'sh9',map:'retire',nom:'HEURE DORÉE',var:'orage doré',mus:C+'noite-de-velocidade.mp3',g:['#5a4a7a','#ffb347'],desc:'Orage doré : les éclairs révèlent la route.',ou:'retiré le 4/10 (genCampagne 9)'},
+  {id:'sh10',map:'retire',nom:'COUCHER DE SOLEIL',var:'coucher',mus:C+'noite-de-velocidade.mp3',g:['#ff9a3c','#ff3ec8'],desc:'La caisse-nuage à attraper.',ou:'retiré le 4/10 (genCampagne 10)'},
+  {id:'parc',map:'parc',nom:'PARC FREESTYLE',var:'figures',mus:'',g:['#ff9a3c','#ffd76a'],desc:'Le parc de figures : nitro libre, ni mort, ni course.',ou:'MODES › PARC FREESTYLE'}];
+const M={};N0.forEach(n=>{M[n.id]=n;});
+
+/* LES TITRES DES MUSIQUES (ceux que le jeu leur donne) ; un fichier inconnu prend son nom de fichier */
+const TITRES={};
+[1,2,3,4,5].forEach(k=>{TITRES[C+'ciel/ciel-n'+k+'.m4a']='CIEL · NIVEAU '+k;});
+['NÉON COMPLÈTE 1','NÉON COMPLÈTE 2','NÉON COMPLÈTE 3','NÉON COMPLÈTE 4','NÉON COMPLÈTE 5',"PLUIE D'OR",'SOUS-SOL','PENTHOUSE','CHAMBRE FORTE','CASH EXPLOSION']
+  .forEach((t,i)=>{TITRES[C+'ville/ville-n'+(i+1)+'.m4a']=t;});
+Object.assign(TITRES,{[C+'ciel/ciel-complet.m4a']:'CIEL · LES 5 NIVEAUX',[C+'noite-de-velocidade.mp3']:'NOITE DE VELOCIDADE',[C+'swag-cash-car-2.m4a']:'SWAG CASH CAR',
+  [C+'glassy-plucks-boucle.m4a']:'GLASSY PLUCKS',[C+'addictive-loop.m4a']:'ADDICTIVE LOOP',[C+'nocturnal-groove.mp3']:'NOCTURNAL GROOVE',
+  [C+'lvl1-neon-cash-car-v3.mp3']:'NÉON CASH CAR',[C+'lvl2-cash-car-vitesse.mp3']:'CASH CAR VITESSE',[C+'lobby/lobby-ascenseur.m4a']:'ASCENSEUR DORÉ',[C+'lobby/vapeur-salon.m4a']:'VAPEUR · SALON'});
+function titreDe(f){if(!f)return '';if(TITRES[f])return TITRES[f];return f.split('/').pop().replace(/\.[^.]+$/,'').replace(/[-_]+/g,' ').toUpperCase();}
+function groupeDe(f){return f.indexOf('maps-ciel/musiques/')===0?'Importées':/\/(ciel|ville)\//.test(f)?'Musiques des niveaux':'Autres musiques';}
+let BIB=Object.keys(TITRES).map(f=>({f}));   // remplacée par la liste du serveur (tous les fichiers du dossier) dès qu'elle arrive
 
 /* =====================================================================================================================
-   L'ÉTAT — ce que Léo change. { t, cats:[{id,nom,c}], ordre:{cat:[ids]}, maps:{id:{nom,note}}, corbeille:[ids], generales, journal }
+   L'ÉTAT — ce que Léo change. { maps:[{id,nom}], ordre:{map:[niveaux]}, niv:{id:{nom,var,mus,note,photo,base,map0}}, reserve, notes, journal }
+   La CLASSE d'une map se lit à son contenu : plusieurs niveaux = répétée, un seul = unique. Une map vidée disparaît.
    ===================================================================================================================== */
-const CLE='cashcar.mapsCiel.v2',MAX_ANNUL=60;
-let E=null,ANNUL=[],VUE='volant',sauveT=0,modifie=false;
+const CLE='cashcar.niveaux.v3',MAX_ANNUL=80;
+let E=null,ANNUL=[],sauveT=0,modifie=false;
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
-const M0={};MAPS0.forEach(m=>{M0[m.id]=m;});
 function etatNeuf(){
-  const o={v:1,t:0,cats:CATS0.map(c=>({...c})),ordre:{},maps:{},corbeille:[],generales:'',journal:[],mig:{garder:1}};
-  CATS0.forEach(c=>{o.ordre[c.id]=MAPS0.filter(m=>m.cat===c.id).map(m=>m.id);});
-  MAPS0.forEach(m=>{o.maps[m.id]={nom:m.nom,note:''};});
-  return o;
+  const e={v:3,t:0,maps:MAPS0.map(m=>({...m})),ordre:{},niv:{},reserve:[],notes:'',journal:[]};
+  MAPS0.forEach(m=>{e.ordre[m.id]=N0.filter(n=>n.map===m.id).map(n=>n.id);});
+  N0.forEach(n=>{e.niv[n.id]={nom:n.nom,var:n.var,mus:n.mus||'',note:'',photo:n.id,base:n.id,map0:n.map};});
+  e.reserve=N0.filter(n=>!e.ordre[n.map]).map(n=>n.id);
+  return e;
 }
-function propre(o){ // une sauvegarde lue (disque ou navigateur) : on garde la forme, on rattrape les maps ajoutées depuis
-  const n=etatNeuf();if(!o||typeof o!=='object'||!Array.isArray(o.cats))return n;
-  const r={v:1,t:+o.t||0,cats:[],ordre:{},maps:{},corbeille:[],generales:String(o.generales||''),journal:Array.isArray(o.journal)?o.journal.slice(-500):[],mig:{}};
-  o.cats.forEach(c=>{if(c&&c.id&&!r.ordre[c.id]){r.cats.push({id:String(c.id),nom:String(c.nom||'Sans nom'),c:String(c.c||'#999'),plie:!!c.plie});r.ordre[c.id]=[];}});
-  if(!r.cats.length)return n;
-  r.mig=Object.assign({},o.mig||{});
-  if(!r.mig.garder){r.mig.garder=1; // (10/10) la catégorie « à garder pour le jeu » arrive, PICS DE JADE y passe (une fois : ensuite c'est Léo qui range)
-    if(!r.ordre.garder){const i=r.cats.findIndex(c=>c.id==='ville');r.cats.splice(i<0?r.cats.length:i+1,0,{...CATS0.find(c=>c.id==='garder')});r.ordre.garder=[];}
-    for(const c of r.cats){const a=(o.ordre||{})[c.id];if(a&&c.id!=='garder'){const k=a.indexOf('jade');if(k>=0)a.splice(k,1);}}
-    if(o.corbeille){const k=o.corbeille.indexOf('jade');if(k>=0)o.corbeille.splice(k,1);}
-    o.ordre=o.ordre||{};o.ordre.garder=['jade'].concat((o.ordre.garder||[]).filter(x=>x!=='jade'));}
+function propre(o){ // une sauvegarde lue (dossier ou navigateur) : on garde sa forme, rien ne se perd, les niveaux ajoutés depuis rejoignent la réserve
+  const d=etatNeuf();if(!o||o.v!==3||!Array.isArray(o.maps))return d;
+  const r={v:3,t:+o.t||0,maps:[],ordre:{},niv:{},reserve:[],notes:String(o.notes||''),journal:Array.isArray(o.journal)?o.journal.slice(-800):[]};
+  for(const id in (o.niv||{})){const s=o.niv[id];if(!s||typeof s!=='object'||(!M[id]&&!/^n[0-9a-z]+$/.test(id)))continue;
+    r.niv[id]={nom:String(s.nom||'Sans nom'),var:String(s.var||''),mus:String(s.mus||''),note:String(s.note||''),
+      photo:M[s.photo]?s.photo:null,base:M[s.base]?s.base:'',map0:String(s.map0||(M[id]?M[id].map:''))};}
+  N0.forEach(n=>{if(!r.niv[n.id])r.niv[n.id]=d.niv[n.id];});
   const vu=new Set();
-  r.cats.forEach(c=>{((o.ordre||{})[c.id]||[]).forEach(id=>{if(M0[id]&&!vu.has(id)){vu.add(id);r.ordre[c.id].push(id);}});});
-  (o.corbeille||[]).forEach(id=>{if(M0[id]&&!vu.has(id)){vu.add(id);r.corbeille.push(id);}});
-  MAPS0.forEach(m=>{const s=(o.maps||{})[m.id]||{};r.maps[m.id]={nom:String(s.nom||m.nom),note:String(s.note||'')};
-    if(!vu.has(m.id)){const c=r.ordre[m.cat]?m.cat:r.cats[0].id;r.ordre[c].push(m.id);}});
+  o.maps.forEach(m=>{if(!m||!m.id||r.ordre[m.id])return;const ids=(((o.ordre||{})[m.id])||[]).filter(id=>r.niv[id]&&!vu.has(id));
+    if(!ids.length)return;ids.forEach(id=>vu.add(id));r.maps.push({id:String(m.id),nom:String(m.nom||'Map')});r.ordre[m.id]=ids;});
+  (o.reserve||[]).forEach(id=>{if(r.niv[id]&&!vu.has(id)){vu.add(id);r.reserve.push(id);}});
+  for(const id in r.niv)if(!vu.has(id))r.reserve.push(id);
   return r;
 }
-function ouEst(id){if(E.corbeille.includes(id))return 'corbeille';for(const c of E.cats)if(E.ordre[c.id].includes(id))return c.id;return null;}
-function catNom(id){if(id==='corbeille')return 'À supprimer';const c=E.cats.find(x=>x.id===id);return c?c.nom:id;}
-function retire(id){const k=ouEst(id);const a=k==='corbeille'?E.corbeille:E.ordre[k];a.splice(a.indexOf(id),1);return k;}
-function pose(id,cat,i){const a=cat==='corbeille'?E.corbeille:E.ordre[cat];i=i==null||i<0||i>a.length?a.length:i;a.splice(i,0,id);rendu.neuve=id;} // la carte posée arrive en douceur à sa nouvelle place
-function nomDe(id){return E.maps[id].nom;}
+function mapDe(id){for(const m of E.maps)if(E.ordre[m.id].includes(id))return m.id;return null;}
+function classe(mid){return E.ordre[mid].length>1?'rep':'uni';}
+function ote(id){ // le niveau quitte sa place ; une map vidée disparaît
+  const mid=mapDe(id);
+  if(mid){const a=E.ordre[mid];a.splice(a.indexOf(id),1);if(!a.length){delete E.ordre[mid];E.maps=E.maps.filter(m=>m.id!==mid);}}
+  else{const k=E.reserve.indexOf(id);if(k>=0)E.reserve.splice(k,1);}
+  return mid;
+}
+function nouvelId(p){return p+Date.now().toString(36)+Math.floor(Math.random()*1e3).toString(36);}
+function nomMap(mid){const m=E.maps.find(x=>x.id===mid);return m?m.nom:'?';}
 
-/* un GESTE = une photo de l'état avant (pour ⌘Z), le geste, une ligne au journal, l'écriture dans le navigateur, le rendu */
-function geste(txt,fn,annulable){
-  if(annulable!==false){ANNUL.push(JSON.stringify(E));if(ANNUL.length>MAX_ANNUL)ANNUL.shift();}
-  fn();
-  E.journal.push({h:new Date().toISOString(),txt});
-  E.t=Date.now();modifie=true;ecritLocal();rendu();majSauve();
+/* un GESTE : la photo d'avant (⌘Z), le geste, une ligne au journal, l'écriture dans le navigateur, le rendu */
+function geste(txt,fn){
+  ANNUL.push(JSON.stringify(E));if(ANNUL.length>MAX_ANNUL)ANNUL.shift();
+  fn();E.journal.push({h:new Date().toISOString(),txt});E.t=Date.now();modifie=true;ecrit();rendu();majEtat();
 }
 function annuler(){
-  if(!ANNUL.length)return;
-  const dernier=E.journal[E.journal.length-1];
-  const j=E.journal;E=JSON.parse(ANNUL.pop());E.journal=j;E.journal.push({h:new Date().toISOString(),txt:'annulé : '+(dernier?dernier.txt:'')});
-  E.t=Date.now();modifie=true;ecritLocal();rendu();majSauve();petitMot('Annulé'+(dernier?' — '+dernier.txt:''),null);
+  if(!ANNUL.length)return;const d=E.journal[E.journal.length-1],j=E.journal;
+  E=JSON.parse(ANNUL.pop());E.journal=j;E.journal.push({h:new Date().toISOString(),txt:'annulé : '+(d?d.txt:'')});
+  E.t=Date.now();modifie=true;ecrit();rendu();majEtat();mot('Annulé',null);
 }
-function ecritLocal(){try{localStorage.setItem(CLE,JSON.stringify(E));}catch(e){}}
+function ecrit(){try{localStorage.setItem(CLE,JSON.stringify(E));}catch(e){}}
 
 /* =====================================================================================================================
    LE RENDU
    ===================================================================================================================== */
-const ICO={
-  crayon:'<svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg>',
-  note:'<svg viewBox="0 0 24 24"><path d="M5 4h14v12l-4 4H5z"/><path d="M15 20v-4h4"/><path d="M9 9h6M9 13h4"/></svg>',
-  poubelle:'<svg viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M10 4h4"/><path d="M6 7l1 13h10l1-13"/><path d="M10 11v6M14 11v6"/></svg>',
-  remet:'<svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>',
-  haut:'<svg viewBox="0 0 24 24"><path d="m6 15 6-6 6 6"/></svg>',bas:'<svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>',
+const I={
+  poignee:'<svg viewBox="0 0 24 24"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></svg>',
+  play:'<svg class="iP" viewBox="0 0 24 24" style="fill:currentColor;stroke:none"><path d="M8 5.5v13l10.5-6.5z"/></svg>',
+  pause:'<svg class="iS" viewBox="0 0 24 24" style="stroke-width:2.6"><path d="M9 6v12M15 6v12"/></svg>',
+  note:'<svg viewBox="0 0 24 24"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg>',
+  copie:'<svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2.5"/><path d="M16 8V6.5A2.5 2.5 0 0 0 13.5 4h-7A2.5 2.5 0 0 0 4 6.5v7A2.5 2.5 0 0 0 6.5 16H8"/></svg>',
   croix:'<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>',
-  play:'<svg class="iP" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>',pause:'<svg class="iS" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></svg>',
+  remet:'<svg viewBox="0 0 24 24"><path d="M12 19V5"/><path d="m6 11 6-6 6 6"/></svg>',
+  plus:'<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+  haut:'<svg viewBox="0 0 24 24"><path d="m6 15 6-6 6 6"/></svg>',bas:'<svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>',
   chev:'<svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>'};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-function img(id,v){return 'maps-ciel/img/'+id+'-'+v+'.jpg';}
-/* LE PLAN : la ligne centrale de la piste vue de dessus (relevée au banc, un point tous les 8 m — maps-ciel/traces.js). Départ en vert,
-   portail en rose ; plus la route descend, plus le trait fonce. Pour la partie sans fin et le parc, c'est UN tirage parmi d'autres. */
-function planSVG(id,taille){
-  const t=window.TRACES&&TRACES[id];if(!t||!t.p||t.p.length<2)return '';
-  const P=t.p;let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9,y0=1e9,y1=-1e9;
-  for(const q of P){if(q[0]<x0)x0=q[0];if(q[0]>x1)x1=q[0];if(q[2]<z0)z0=q[2];if(q[2]>z1)z1=q[2];if(q[1]<y0)y0=q[1];if(q[1]>y1)y1=q[1];}
-  const W=100,H=100,m=8,k=Math.min((W-2*m)/Math.max(1,x1-x0),(H-2*m)/Math.max(1,z1-z0)),ox=(W-(x1-x0)*k)/2,oz=(H-(z1-z0)*k)/2;
-  const X=q=>(ox+(q[0]-x0)*k).toFixed(1),Z=q=>(H-(oz+(q[2]-z0)*k)).toFixed(1);
-  const d='M'+P.map(q=>X(q)+' '+Z(q)).join('L'),a=P[0],b=P[P.length-1],ep=taille==='grand'?1.6:2.4;
-  return '<svg class="plan '+taille+'" viewBox="0 0 '+W+' '+H+'" aria-hidden="true"><path d="'+d+'" class="pO" style="stroke-width:'+(ep+2.4)+'"/>'+
-    '<path d="'+d+'" class="pT" style="stroke-width:'+ep+'"/><circle cx="'+X(a)+'" cy="'+Z(a)+'" r="'+(ep*1.5)+'" class="pA"/><circle cx="'+X(b)+'" cy="'+Z(b)+'" r="'+(ep*1.5)+'" class="pB"/></svg>';
+let RES_OUVERTE=false;
+function musHTML(id){
+  const f=E.niv[id].mus;
+  if(!f)return '<span class="mus vide"><button class="titre" data-act="choisir" title="Attacher une musique">'+I.note+'Musique</button></span>';
+  return '<span class="mus'+(JOUE.id===id?' joue':'')+'"><button class="lit" data-act="ecoute" title="Écouter">'+I.play+I.pause+'</button>'+
+    '<button class="titre" data-act="choisir" title="Changer la musique">'+esc(titreDe(f))+'</button></span>';
 }
-function carteHTML(id,dansCorbeille){
-  const m=M0[id],s=E.maps[id],autre=VUE==='trace'?'volant':'trace',change=s.nom!==m.nom;
-  return '<article class="carte" draggable="true" data-id="'+id+'">'+
-    '<div class="photo" style="--g1:'+m.g[0]+';--g2:'+m.g[1]+'" data-act="grand">'+
-      '<img class="a" src="'+img(id,VUE)+'" alt="" onerror="this.classList.add(\'manque\')"><img class="b" src="'+img(id,autre)+'" alt="" onerror="this.classList.add(\'manque\')">'+
-      '<span class="code">'+esc(m.code)+'</span><span class="vueTag">'+(autre==='trace'?'LE TRACÉ':'AU VOLANT')+'</span>'+planSVG(id,'mini')+'</div>'+
-    '<div class="texte">'+
-      '<div class="ligneNom"><div class="nom'+(change?' change':'')+'" contenteditable="plaintext-only" spellcheck="false" data-act="nom">'+esc(s.nom)+'</div></div>'+
-      (change?'<div class="avant">dans le jeu : '+esc(m.nom)+'</div>':'')+
-      '<div class="sous">'+esc(m.heure)+(m.pr?' · « '+esc(m.pr)+' »':'')+'</div>'+
-      (m.mus?'<button class="ecoute'+(m.mus.fin?' fin':'')+(JOUE.id===id?' joue':'')+'" data-act="ecoute" title="Écouter">'+ICO.play+ICO.pause+'<span>'+esc(m.mus.t)+'</span>'+(m.mus.fin?'<em>FINALE</em>':'')+'</button>':'<div class="ecoute sans">pas de musique à elle</div>')+
-      '<div class="idee">'+esc(m.idee)+'</div>'+
-      (s.note?'<div class="noteApercu" data-act="note">'+esc(s.note)+'</div>':'')+
-      '<div class="noteZone"><textarea data-act="noteTxt" placeholder="Une note sur cette map…">'+esc(s.note)+'</textarea></div>'+
-      '<div class="actions">'+
-        '<button class="ico" data-act="renomme" title="Renommer">'+ICO.crayon+'<span>Renommer</span></button>'+
-        '<button class="ico" data-act="note" title="Note">'+ICO.note+'<span>Note</span></button>'+
-        (dansCorbeille?'<button class="ico" data-act="remet" title="Remettre dans le jeu">'+ICO.remet+'<span>Remettre</span></button>'
-                      :'<button class="ico danger" data-act="suppr" title="À supprimer">'+ICO.poubelle+'<span>Supprimer</span></button>')+
-      '</div></div></article>';
+function rangHTML(id,num,mid){
+  const n=E.niv[id],ref=M[n.photo]||M[n.base]||M[id],g=ref?ref.g:['#e5e5ea','#f5f5f7'],res=!mid;
+  return '<li class="rang" data-id="'+id+'"'+(mid?' data-map="'+mid+'"':'')+'>'+
+    '<span class="poignee" draggable="true" title="Glisser pour ranger">'+I.poignee+'</span>'+
+    '<span class="num">'+(num||'')+'</span>'+
+    '<span class="vign" data-act="fiche" style="--g1:'+g[0]+';--g2:'+g[1]+'">'+(n.photo?'<img src="maps-ciel/img/'+n.photo+'-volant.jpg" alt="" loading="lazy" draggable="false">':'')+'</span>'+
+    '<span class="txt"><span class="nom" contenteditable="plaintext-only" spellcheck="false" data-act="nom">'+esc(n.nom)+'</span>'+
+      '<span class="var" contenteditable="plaintext-only" spellcheck="false" data-act="var" data-vide="variation">'+esc(n.var)+'</span>'+
+      (res?'<span class="orig">'+esc(MAPNOM[n.map0]||'')+'</span>':'')+'</span>'+
+    musHTML(id)+
+    '<span class="act">'+(res?'<button class="ico" data-act="remet" title="Remettre dans la liste">'+I.remet+'</button>'
+      :'<button class="ico" data-act="variante1" title="Faire une variante de ce niveau">'+I.copie+'</button><button class="ico danger" data-act="retire" title="Retirer (va dans la réserve)">'+I.croix+'</button>')+'</span></li>';
 }
 function rendu(){
-  const L=$('#liste'),sc=window.scrollY,ouverte=$$('.carte.noteOuverte').map(c=>c.dataset.id),focus=document.activeElement&&document.activeElement.closest&&document.activeElement.closest('.carte');
-  let h='';
-  E.cats.forEach((c,k)=>{
-    const ids=E.ordre[c.id];
-    h+='<section class="cat'+(c.plie?' plie':'')+'" data-cat="'+c.id+'" style="--c:'+c.c+'"><div class="catTete"><button class="ico plier" data-act="catPlie" title="'+(c.plie?'Ouvrir':'Replier')+'">'+ICO.chev+'</button><span class="point"></span>'+
-      '<span class="catNom" contenteditable="plaintext-only" spellcheck="false" data-act="catNom">'+esc(c.nom)+'</span><span class="catN">'+ids.length+(c.plie&&ids.length?' · repliée':'')+'</span>'+
-      '<span class="catOutils"><button class="ico" data-act="catHaut" title="Monter" '+(k===0?'disabled':'')+'>'+ICO.haut+'</button>'+
-      '<button class="ico" data-act="catBas" title="Descendre" '+(k===E.cats.length-1?'disabled':'')+'>'+ICO.bas+'</button>'+
-      '<button class="ico danger" data-act="catSuppr" title="'+(ids.length?'Vide-la d\'abord':'Supprimer la catégorie')+'" '+(ids.length?'disabled':'')+'>'+ICO.croix+'</button></span></div>'+
-      '<div class="grille'+(ids.length?'':' vide')+'" data-cat="'+c.id+'">'+ids.map(id=>carteHTML(id,false)).join('')+'</div></section>';
+  const L=$('#liste-niveaux'),sc=window.scrollY;L.style.minHeight=L.offsetHeight+'px';
+  const rep=E.maps.filter(m=>classe(m.id)==='rep'),uni=E.maps.filter(m=>classe(m.id)==='uni');
+  let h='<section class="classe" data-classe="rep"><h2>Maps répétées</h2>';
+  rep.forEach((m,k)=>{
+    h+='<div class="map" data-map="'+m.id+'"><div class="mapTete" data-map="'+m.id+'"><span class="mapNom" contenteditable="plaintext-only" spellcheck="false" data-act="mapNom">'+esc(m.nom)+'</span>'+
+      '<span class="mapN">'+E.ordre[m.id].length+' niveaux</span><span class="mapOut">'+
+      '<button class="ico" data-act="mapHaut" title="Monter"'+(k?'':' disabled')+'>'+I.haut+'</button><button class="ico" data-act="mapBas" title="Descendre"'+(k<rep.length-1?'':' disabled')+'>'+I.bas+'</button>'+
+      '<button class="petit" data-act="variante" title="Un niveau de plus sur cette map">'+I.plus+'Variante</button></span></div>'+
+      '<ol class="rangs" data-map="'+m.id+'">'+E.ordre[m.id].map((id,i)=>rangHTML(id,i+1,m.id)).join('')+'</ol></div>';
   });
-  h+='<section class="cat" id="corbeille" data-cat="corbeille" style="--c:var(--rouge)"><div class="catTete"><span class="point"></span>'+
-    '<span class="catNom">À supprimer</span><span class="catN">'+E.corbeille.length+'</span></div>'+
-    '<div class="grille'+(E.corbeille.length?'':' vide')+'" data-cat="corbeille">'+E.corbeille.map(id=>carteHTML(id,true)).join('')+'</div></section>';
-  h+='<section id="generales"><div class="catTete"><span class="catNom">Notes générales</span></div>'+
-    '<textarea id="gNotes" placeholder="Pour le nouveau PLAY : ce qu\'il lance, dans quel ordre, ce qui manque…">'+esc(E.generales)+'</textarea></section>';
-  L.style.minHeight=L.offsetHeight+'px'; // la page garde sa hauteur pendant qu'on la redessine : la vue ne saute pas
-  L.innerHTML=h+'<div id="repere"></div>';
-  ouverte.forEach(id=>{const c=L.querySelector('.carte[data-id="'+id+'"]');if(c)c.classList.add('noteOuverte');});
-  window.scrollTo({top:sc,left:0,behavior:'instant'});L.style.minHeight='';if(!L.classList.contains('pret'))setTimeout(()=>L.classList.add('pret'),700);
-  if(rendu.neuve){const n=L.querySelector('.carte[data-id="'+rendu.neuve+'"]');if(n)n.classList.add('neuve');rendu.neuve=null;}
-  const tot=MAPS0.length,sup=E.corbeille.length;
-  const fin=MAPS0.filter(m=>m.mus&&m.mus.fin).length;
-  const gar=(E.ordre.garder||[]).length;
-  $('#compte').textContent=fin+' avec leur musique finale · '+(gar?gar+' à garder · ':'')+(tot-fin-gar)+' autres'+(sup?' · '+sup+' à supprimer':'');
+  if(!rep.length)h+='<div class="vide">Aucune map répétée</div>';
+  h+='</section><section class="classe" data-classe="uni"><h2>Maps uniques</h2><ol class="rangs" data-uni="1">'+uni.map(m=>rangHTML(E.ordre[m.id][0],0,m.id)).join('')+'</ol>'+
+    (uni.length?'':'<div class="vide">Aucune map unique</div>')+'<div class="depot" data-depot="uni">Lâche ici pour en faire une map unique</div></section>';
+  h+='<button class="nouvelle" data-act="nouvelleMap">'+I.plus+'Nouvelle map</button>';
+  h+='<section class="reserve'+(RES_OUVERTE?' ouverte':'')+'"><button class="resTete" data-act="reserve">'+I.chev+'Réserve <b>'+E.reserve.length+'</b></button>'+
+    '<ol class="rangs" data-reserve="1">'+E.reserve.map(id=>rangHTML(id,0,null)).join('')+'</ol></section>';
+  h+='<textarea id="notes" placeholder="Notes">'+esc(E.notes)+'</textarea>';
+  L.innerHTML=h;
+  window.scrollTo({top:sc,behavior:'instant'});L.style.minHeight='';
+  if(rendu.neuf){const r=L.querySelector('.rang[data-id="'+rendu.neuf+'"]');if(r)r.classList.add('neuf');rendu.neuf=null;}
+  const nb=E.maps.reduce((a,m)=>a+E.ordre[m.id].length,0);
+  $('#compte').textContent=nb+' niveau'+(nb>1?'x':'')+' · '+E.maps.length+' map'+(E.maps.length>1?'s':'');
   $('#annuler').disabled=!ANNUL.length;
-  if($('#grand').classList.contains('on'))grandMaj();
+  if($('#fiche').classList.contains('on'))ficheMaj();
 }
-function majSauve(){
-  const el=$('#etatSauve');
-  if(modifie){el.className='modifie';el.textContent='Pas encore sauvegardé';$('#sauver').classList.add('pulse');}
-  else{el.className=sauveT?'ok':'';el.textContent=sauveT?'Sauvegardé à '+new Date(sauveT).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'Rien de changé';$('#sauver').classList.remove('pulse');}
+function majEtat(){
+  const e=$('#etat');
+  if(modifie){e.className='modifie';e.textContent='Pas encore enregistré';}
+  else{e.className='';e.textContent=sauveT?'Enregistré à '+new Date(sauveT).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'';}
 }
 
 /* =====================================================================================================================
-   LES GESTES SUR LES CARTES
+   LES GESTES
    ===================================================================================================================== */
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-act]');if(!b)return;
-  const carte=b.closest('.carte'),id=carte&&carte.dataset.id,act=b.dataset.act,sec=b.closest('.cat'),cat=sec&&sec.dataset.cat;
-  if(act==='grand')return grandOuvre(id);
-  if(act==='ecoute')return ecoute(id);
-  if(act==='catPlie'){const c=E.cats.find(x=>x.id===cat);if(c){c.plie=!c.plie;ecritLocal();rendu();}return;} // replier = une vue, pas un changement de la liste
-  if(act==='renomme'){const n=carte.querySelector('.nom');n.focus();selTout(n);return;}
-  if(act==='note'){carte.classList.toggle('noteOuverte');if(carte.classList.contains('noteOuverte'))carte.querySelector('textarea').focus();return;}
-  if(act==='suppr')return supprime(id);
+  const r=b.closest('.rang'),id=r&&r.dataset.id,act=b.dataset.act,mt=b.closest('.map'),mid=(r&&r.dataset.map)||(mt&&mt.dataset.map);
+  if(act==='fiche')return ficheOuvre(id);
+  if(act==='ecoute')return ecoute(id||FI.id);
+  if(act==='choisir')return choixOuvre(id||FI.id,b.closest('.mus')||b);
+  if(act==='reserve'){RES_OUVERTE=!RES_OUVERTE;$('.reserve').classList.toggle('ouverte',RES_OUVERTE);return;}
+  if(act==='retire')return retire(id);
   if(act==='remet')return remet(id);
-  if(act==='catHaut'||act==='catBas'){const i=E.cats.findIndex(c=>c.id===cat),j=i+(act==='catHaut'?-1:1);
-    return geste('catégorie « '+catNom(cat)+' » '+(act==='catHaut'?'montée':'descendue'),()=>{const t=E.cats[i];E.cats[i]=E.cats[j];E.cats[j]=t;});}
-  if(act==='catSuppr'){if(E.ordre[cat].length)return;const nm=catNom(cat);return geste('catégorie « '+nm+' » supprimée',()=>{E.cats=E.cats.filter(c=>c.id!==cat);delete E.ordre[cat];});}
+  if(act==='variante1')return variante(id);
+  if(act==='variante'){const a=E.ordre[mid];return variante(a[a.length-1]);}
+  if(act==='mapHaut'||act==='mapBas'){
+    const rep=E.maps.filter(m=>classe(m.id)==='rep'),k=rep.findIndex(m=>m.id===mid),o=rep[k+(act==='mapHaut'?-1:1)];if(!o)return;
+    return geste('map « '+nomMap(mid)+' » '+(act==='mapHaut'?'montée':'descendue'),()=>{const i=E.maps.findIndex(m=>m.id===mid),j=E.maps.findIndex(m=>m.id===o.id);const t=E.maps[i];E.maps[i]=E.maps[j];E.maps[j]=t;});}
+  if(act==='nouvelleMap'){
+    const nid=nouvelId('n'),m=nouvelId('m');
+    geste('nouvelle map',()=>{E.niv[nid]={nom:'NOUVELLE MAP',var:'',mus:'',note:'',photo:null,base:'',map0:''};E.maps.push({id:m,nom:'NOUVELLE MAP'});E.ordre[m]=[nid];rendu.neuf=nid;});
+    const n=document.querySelector('.rang[data-id="'+nid+'"] .nom');if(n){n.scrollIntoView({block:'center'});n.focus();selTout(n);}
+  }
 });
-function selTout(n){const r=document.createRange();r.selectNodeContents(n);const s=getSelection();s.removeAllRanges();s.addRange(r);}
-function supprime(id){
-  const de=ouEst(id);if(de==='corbeille')return;
-  geste('« '+nomDe(id)+' » → à supprimer (venait de « '+catNom(de)+' »)',()=>{retire(id);pose(id,'corbeille');});
-  petitMot('« '+nomDe(id)+' » est dans À SUPPRIMER',annuler);
+function selTout(n){const g=document.createRange();g.selectNodeContents(n);const s=getSelection();s.removeAllRanges();s.addRange(g);}
+function retire(id){
+  const mid=mapDe(id),nm=E.niv[id].nom;
+  geste('« '+nm+' » retiré de « '+nomMap(mid)+' » (dans la réserve)',()=>{ote(id);E.reserve.unshift(id);});
+  mot('« '+nm+' » est dans la réserve',annuler);
 }
-function remet(id){
-  let c=M0[id].cat;if(!E.ordre[c])c=E.cats[0].id;
-  geste('« '+nomDe(id)+' » remise dans « '+catNom(c)+' »',()=>{retire(id);pose(id,c);});
+function remet(id){ // de la réserve vers la liste : sur sa map d'origine si elle est là, sinon une map à lui
+  const n=E.niv[id],mid=E.ordre[n.map0]?n.map0:null;
+  geste('« '+n.nom+' » remis dans la liste',()=>{ote(id);
+    if(mid)E.ordre[mid].push(id);
+    else{const m=nouvelId('m');E.maps.push({id:m,nom:MAPNOM[n.map0]&&n.map0!=='retire'?MAPNOM[n.map0]:n.nom});E.ordre[m]=[id];}
+    rendu.neuf=id;});
 }
-/* renommer : le nom s'écrit à la sortie du champ (Entrée valide, Échap annule) */
+function variante(id){ // un niveau de plus sur la MÊME map : la map devient (ou reste) répétée
+  const src=E.niv[id];let mid=mapDe(id);const nid=nouvelId('n');
+  geste('nouvelle variante de « '+src.nom+' »',()=>{
+    if(!mid){mid=nouvelId('m');E.maps.push({id:mid,nom:src.nom});E.ordre[mid]=[];ote(id);E.ordre[mid].push(id);}
+    if(classe(mid)==='uni'){const m=E.maps.find(x=>x.id===mid);m.nom=src.nom;}
+    E.niv[nid]={nom:src.nom,var:'',mus:'',note:'',photo:src.photo,base:src.base||id,map0:''};
+    const a=E.ordre[mid];a.splice(a.indexOf(id)+1,0,nid);rendu.neuf=nid;});
+  const v=document.querySelector('.rang[data-id="'+nid+'"] .var');if(v){v.scrollIntoView({block:'center'});v.focus();}
+  mot('Variante créée : écris ce qui change',null);
+}
+/* écrire : à la sortie du champ (Entrée valide, Échap annule) */
 document.addEventListener('keydown',e=>{
-  const n=e.target.closest&&e.target.closest('.nom,.catNom');
+  const n=e.target.closest&&e.target.closest('[contenteditable]');
   if(n&&e.key==='Enter'){e.preventDefault();n.blur();}
   if(n&&e.key==='Escape'){e.preventDefault();n.dataset.annule='1';n.blur();}
 });
 document.addEventListener('focusout',e=>{
-  const t=e.target;
-  if(t.matches&&t.matches('.nom')){
-    const id=t.closest('.carte').dataset.id,v=t.textContent.replace(/\s+/g,' ').trim();
-    if(t.dataset.annule||!v||v===nomDe(id)){delete t.dataset.annule;t.textContent=nomDe(id);return;}
-    const av=nomDe(id);geste('« '+av+' » renommée « '+v+' »',()=>{E.maps[id].nom=v;});
-  }else if(t.matches&&t.matches('.catNom[contenteditable]')){
-    const cat=t.closest('.cat').dataset.cat,c=E.cats.find(x=>x.id===cat),v=t.textContent.replace(/\s+/g,' ').trim();
-    if(!c)return;if(t.dataset.annule||!v||v===c.nom){delete t.dataset.annule;t.textContent=c.nom;return;}
-    const av=c.nom;geste('catégorie « '+av+' » renommée « '+v+' »',()=>{c.nom=v;});
-  }else if(t.matches&&t.matches('textarea[data-act="noteTxt"]')){
-    const id=t.closest('.carte').dataset.id,v=t.value.trim();
-    if(v===E.maps[id].note)return;
-    geste('note sur « '+nomDe(id)+' » : '+(v?'« '+v.slice(0,80)+(v.length>80?'…':'')+' »':'effacée'),()=>{E.maps[id].note=v;});
-  }else if(t.id==='gNotes'){
-    const v=t.value.trim();if(v===E.generales)return;
-    geste('notes générales modifiées',()=>{E.generales=v;});
-  }
+  const t=e.target;if(!t.matches)return;
+  const val=()=>t.textContent.replace(/\s+/g,' ').trim();
+  if(t.matches('.nom,.var')){
+    const id=t.closest('.rang').dataset.id,k=t.matches('.nom')?'nom':'var',v=k==='nom'?val().toUpperCase():val(),av=E.niv[id][k];
+    if(t.dataset.annule||(k==='nom'&&!v)||v===av){delete t.dataset.annule;t.textContent=av;return;}
+    geste(k==='nom'?'« '+av+' » renommé « '+v+' »':'variation de « '+E.niv[id].nom+' » : « '+v+' »',()=>{E.niv[id][k]=v;});
+  }else if(t.matches('.mapNom')){
+    const mid=t.closest('.map').dataset.map,m=E.maps.find(x=>x.id===mid),v=val().toUpperCase();
+    if(!m||t.dataset.annule||!v||v===m.nom){delete t.dataset.annule;if(m)t.textContent=m.nom;return;}
+    const av=m.nom;geste('map « '+av+' » renommée « '+v+' »',()=>{m.nom=v;});
+  }else if(t.id==='notes'){const v=t.value.trim();if(v!==E.notes)geste('notes modifiées',()=>{E.notes=v;});}
+  else if(t.id==='fNote'){const id=FI.id,v=t.value.trim();if(id&&v!==E.niv[id].note)geste('note sur « '+E.niv[id].nom+' »',()=>{E.niv[id].note=v;});}
 });
 
 /* =====================================================================================================================
-   GLISSER : d'une catégorie à l'autre, à une place précise, ou vers À SUPPRIMER. Rien ne bouge avant de lâcher (le trait bleu dit où).
+   LA MUSIQUE : écouter (une à la fois), choisir dans la bibliothèque, importer un fichier (bouton ou glissé sur un niveau)
    ===================================================================================================================== */
-let GL=null; // {id, cat, i}
-document.addEventListener('dragstart',e=>{
-  const c=e.target.closest&&e.target.closest('.carte');if(!c||document.activeElement&&document.activeElement.isContentEditable){e.preventDefault&&c&&e.preventDefault();return;}
-  GL={id:c.dataset.id,cat:null,i:-1};c.classList.add('glisse');
-  e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/plain',GL.id);}catch(_){}
-});
-document.addEventListener('dragend',()=>{GL=null;$$('.glisse').forEach(c=>c.classList.remove('glisse'));finRepere();});
-function cible(e){
-  let g=e.target.closest&&(e.target.closest('.grille')||(e.target.closest('.cat')&&e.target.closest('.cat').querySelector('.grille')));
-  return g||null;
+const JOUE={id:null,f:null,a:null};
+function lecteur(){if(!JOUE.a){JOUE.a=new Audio();JOUE.a.loop=true;JOUE.a.addEventListener('error',()=>{if(JOUE.f){mot('Musique introuvable : '+titreDe(JOUE.f),null);arret();}});}return JOUE.a;}
+function joue(f,id){const a=lecteur();JOUE.f=f;JOUE.id=id;a.src=f;const p=a.play();if(p&&p.catch)p.catch(()=>{});marque();}
+function arret(){if(JOUE.a)JOUE.a.pause();JOUE.f=JOUE.id=null;marque();}
+function ecoute(id){if(!id||!E.niv[id])return;const f=E.niv[id].mus;if(!f)return;if(JOUE.id===id)arret();else joue(f,id);}
+function marque(){
+  $$('.rang').forEach(r=>{const m=r.querySelector('.mus');if(m)m.classList.toggle('joue',r.dataset.id===JOUE.id);});
+  $$('.piste').forEach(p=>p.classList.toggle('joue',!JOUE.id&&p.dataset.f===JOUE.f));
+  const fm=$('#fMus .mus');if(fm)fm.classList.toggle('joue',!!JOUE.id&&JOUE.id===FI.id);
 }
+let CH={id:null};
+function utilisePar(f){const r=[];for(const m of E.maps)for(const id of E.ordre[m.id])if(E.niv[id].mus===f)r.push(E.niv[id].nom);return r;}
+function choixListe(){
+  const q=$('#cherche').value.trim().toLowerCase(),cur=CH.id?E.niv[CH.id].mus:'',grp={};
+  const tri=BIB.slice().sort((a,b)=>a.f.localeCompare(b.f,'fr',{numeric:true})); // ville-n2 avant ville-n10
+  tri.forEach(b=>{const t=titreDe(b.f);if(q&&t.toLowerCase().indexOf(q)<0&&b.f.toLowerCase().indexOf(q)<0)return;(grp[groupeDe(b.f)]=grp[groupeDe(b.f)]||[]).push(b.f);});
+  let h='';['Musiques des niveaux','Autres musiques','Importées'].forEach(g=>{if(!grp[g])return;h+='<h3>'+g+'</h3>';
+    grp[g].forEach(f=>{const u=utilisePar(f).filter(x=>!CH.id||x!==E.niv[CH.id].nom);
+      h+='<div class="piste'+(f===cur?' actuelle':'')+(JOUE.f===f&&!JOUE.id?' joue':'')+'" data-f="'+esc(f)+'"><button class="lit" data-c="pre" title="Écouter">'+I.play+I.pause+'</button>'+
+        '<button class="prend" data-c="prend"><span>'+esc(titreDe(f))+'</span>'+(u.length?'<small>'+esc(u[0])+(u.length>1?' +'+(u.length-1):'')+'</small>':'')+'</button></div>';});});
+  $('#liste').innerHTML=h||'<div class="vide" style="padding:16px">Rien trouvé</div>';
+}
+function choixOuvre(id,ancre){
+  if(!id)return;CH.id=id;const c=$('#choix');$('#cherche').value='';choixListe();c.classList.add('on');
+  const r=ancre.getBoundingClientRect(),W=330,H=Math.min(460,innerHeight*.7);
+  let x=Math.min(innerWidth-W-12,Math.max(12,r.right-W)),y=r.bottom+8;if(y+H>innerHeight-12)y=Math.max(12,r.top-H-8);
+  c.style.left=x+'px';c.style.top=y+'px';setTimeout(()=>$('#cherche').focus(),30);
+}
+function choixFerme(){$('#choix').classList.remove('on');if(JOUE.f&&!JOUE.id)arret();CH.id=null;}
+function attache(id,f){
+  const av=E.niv[id].mus;if(av===f)return;
+  geste('musique de « '+E.niv[id].nom+' » : '+(f?titreDe(f):'aucune')+(av?' (avant : '+titreDe(av)+')':''),()=>{E.niv[id].mus=f;});
+  if(JOUE.id===id)arret();
+}
+$('#cherche').addEventListener('input',choixListe);
+$('#liste').addEventListener('click',e=>{
+  const b=e.target.closest('[data-c]');if(!b)return;const f=b.closest('.piste').dataset.f;
+  if(b.dataset.c==='pre'){if(JOUE.f===f&&!JOUE.id)arret();else joue(f,null);return;}
+  const id=CH.id;choixFerme();attache(id,f);
+});
+$('#sansMus').onclick=()=>{const id=CH.id;choixFerme();if(id)attache(id,'');};
+const IMP={id:null};
+$('#importer').onclick=()=>{IMP.id=CH.id;$('#fichierMus').value='';$('#fichierMus').click();};
+document.addEventListener('pointerdown',e=>{if($('#choix').classList.contains('on')&&!e.target.closest('#choix')&&!e.target.closest('[data-act="choisir"]'))choixFerme();},true);
+$('#fichierMus').addEventListener('change',e=>{const f=e.target.files[0],id=IMP.id;choixFerme();if(f&&id)importe(f,id);});
+async function importe(fichier,id){
+  if(!/\.(m4a|mp3|wav|ogg|aac|flac)$/i.test(fichier.name)&&!/^audio\//.test(fichier.type)){mot("Ce n'est pas un fichier de musique",null);return;}
+  mot('Import de « '+fichier.name+' »…',null);
+  try{
+    const r=await fetch('maps-ciel/musique?nom='+encodeURIComponent(fichier.name),{method:'POST',body:fichier});
+    const j=await r.json();if(!j.ok)throw new Error(j.erreur);
+    if(!BIB.find(b=>b.f===j.f))BIB.push({f:j.f,importee:true});
+    attache(id,j.f);mot('« '+titreDe(j.f)+' » attachée à « '+E.niv[id].nom+' »',null);
+  }catch(err){mot("Import impossible : la page doit être ouverte par son serveur (maps-ciel/serveur.py)",null);}
+}
+
+/* =====================================================================================================================
+   GLISSER — un niveau d'une map à l'autre (il en devient une variation), dans les maps uniques (une map à lui),
+   dans la réserve ; une musique (fichier) lâchée sur un niveau s'y attache. Rien ne bouge avant de lâcher : le trait bleu dit où.
+   ===================================================================================================================== */
+let GL=null;
+document.addEventListener('dragstart',e=>{
+  const p=e.target.closest&&e.target.closest('.poignee');if(!p){if(!(e.target.closest&&e.target.closest('[contenteditable]')))e.preventDefault();return;}
+  const r=p.closest('.rang');GL={id:r.dataset.id,mode:null};r.classList.add('glisse');document.body.classList.add('enGlisse');
+  e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/plain',GL.id);e.dataTransfer.setDragImage(r,40,30);}catch(_){}
+});
+document.addEventListener('dragend',finGlisse);
+function finGlisse(){GL=null;$$('.glisse,.cible,.fichier').forEach(x=>x.classList.remove('glisse','cible','fichier'));document.body.classList.remove('enGlisse');$('#ligne').style.display='none';}
+function ligne(r,apres,ol){const P=$('#page').getBoundingClientRect(),o=ol.getBoundingClientRect(),l=$('#ligne');
+  l.style.display='block';l.style.left=(o.left-P.left)+'px';l.style.width=o.width+'px';l.style.top=((apres?r.bottom:r.top)-P.top-1)+'px';}
+function aFichier(e){return !GL&&e.dataTransfer&&[...e.dataTransfer.types].includes('Files');}
 document.addEventListener('dragover',e=>{
-  if(!GL)return;const g=cible(e);if(!g){finRepere();return;}
-  e.preventDefault();e.dataTransfer.dropEffect='move';
-  const sec=g.closest('.cat');
-  if(sec&&sec.classList.contains('plie')){ // catégorie repliée : la carte va au bout, le titre s'allume
-    GL.cat=g.dataset.cat;GL.i=E.ordre[GL.cat]?E.ordre[GL.cat].length:-1;$('#repere').style.display='none';
-    $$('.survol').forEach(x=>{if(x!==sec)x.classList.remove('survol');});sec.classList.add('survol');return;}
-  const cartes=[...g.querySelectorAll('.carte')].filter(c=>c.dataset.id!==GL.id);
-  let i=cartes.length,ref=null,apres=false;
-  for(let k=0;k<cartes.length;k++){const r=cartes[k].getBoundingClientRect();
-    if(e.clientY<r.top||(e.clientY<=r.bottom&&e.clientX<r.left+r.width/2)){i=k;ref=r;break;}}
-  if(!ref&&cartes.length){ref=cartes[cartes.length-1].getBoundingClientRect();apres=true;}
-  GL.cat=g.dataset.cat;GL.i=i;
-  $$('.survol').forEach(x=>{if(x!==g)x.classList.remove('survol');});g.classList.add('survol');
-  const rp=$('#repere'),L=$('#liste').getBoundingClientRect();
-  if(ref){rp.style.display='block';rp.style.left=((apres?ref.right+7:ref.left-10.5)-L.left)+'px';rp.style.top=(ref.top-L.top)+'px';rp.style.height=ref.height+'px';}
-  else rp.style.display='none';
+  if(aFichier(e)){ // une musique glissée depuis le Finder
+    e.preventDefault();const r=e.target.closest&&e.target.closest('.rang');$$('.fichier').forEach(x=>{if(x!==r)x.classList.remove('fichier');});
+    if(r){r.classList.add('fichier');e.dataTransfer.dropEffect='copy';}else e.dataTransfer.dropEffect='none';return;}
+  if(!GL)return;
+  $$('.cible').forEach(x=>x.classList.remove('cible'));$('#ligne').style.display='none';GL.mode=null;
+  const t=e.target.closest?e.target:document.body;
+  const dep=t.closest('.depot'),tete=t.closest('.mapTete'),res=t.closest('.reserve'),ol=t.closest('ol.rangs');
+  if(res&&!ol){e.preventDefault();res.classList.add('cible');GL.mode={k:'res'};return;}
+  if(dep){e.preventDefault();dep.classList.add('cible');GL.mode={k:'uni',avant:null};return;}
+  if(tete){e.preventDefault();tete.classList.add('cible');GL.mode={k:'map',mid:tete.dataset.map,i:E.ordre[tete.dataset.map].length};return;}
+  if(!ol)return;e.preventDefault();e.dataTransfer.dropEffect='move';
+  const rangs=[...ol.querySelectorAll('.rang')].filter(r=>r.dataset.id!==GL.id);
+  if(ol.dataset.uni){ // les maps uniques : au milieu d'un niveau = le rejoindre (sa map devient répétée) ; entre deux = une map unique de plus
+    for(let k=0;k<rangs.length;k++){const b=rangs[k].getBoundingClientRect();
+      if(e.clientY>=b.top+b.height*.3&&e.clientY<=b.bottom-b.height*.3){rangs[k].classList.add('cible');GL.mode={k:'joint',mid:rangs[k].dataset.map};return;}}
+  }
+  let i=rangs.length,ref=null,apres=false;
+  for(let k=0;k<rangs.length;k++){const b=rangs[k].getBoundingClientRect();if(e.clientY<b.top+b.height/2){i=k;ref=rangs[k];break;}}
+  if(!ref&&rangs.length){ref=rangs[rangs.length-1];apres=true;}
+  if(ref)ligne(ref.getBoundingClientRect(),apres,ol);
+  if(ol.dataset.reserve)GL.mode={k:'res'};
+  else if(ol.dataset.uni){const mids=rangs.map(r=>r.dataset.map);GL.mode={k:'uni',avant:mids[i]||null};}
+  else GL.mode={k:'map',mid:ol.dataset.map,i};
 });
 document.addEventListener('drop',e=>{
-  if(!GL||!GL.cat)return;e.preventDefault();
-  const {id,cat}=GL,de=ouEst(id);let i=GL.i;
-  const a=cat==='corbeille'?E.corbeille:E.ordre[cat],ancien=a.indexOf(id);
-  finRepere();
-  if(de===cat){const sans=a.filter(x=>x!==id);if(sans[i]===a[ancien+1]&&ancien>=0&&(i===ancien))return;}
-  const txt=de===cat?'« '+nomDe(id)+' » rangée à la place '+(i+1)+' dans « '+catNom(cat)+' »'
-    :cat==='corbeille'?'« '+nomDe(id)+' » → à supprimer (venait de « '+catNom(de)+' »)'
-    :'« '+nomDe(id)+' » déplacée de « '+catNom(de)+' » vers « '+catNom(cat)+' »';
-  geste(txt,()=>{retire(id);pose(id,cat,i);});
-  if(cat==='corbeille')petitMot('« '+nomDe(id)+' » est dans À SUPPRIMER',annuler);
-});
-function finRepere(){const r=$('#repere');if(r)r.style.display='none';$$('.survol').forEach(x=>x.classList.remove('survol'));}
-
-/* =====================================================================================================================
-   LA GRANDE VUE
-   ===================================================================================================================== */
-let G={id:null,v:'volant'};
-function ordreVu(){return E.cats.flatMap(c=>E.ordre[c.id]).concat(E.corbeille);}
-function grandOuvre(id){G.id=id;G.v=VUE;$('#grand').classList.add('on');grandMaj();}
-function grandFerme(){$('#grand').classList.remove('on');}
-function grandMaj(){
-  const id=G.id,m=M0[id],s=E.maps[id],o=ouEst(id);
-  $('#gA').src=img(id,'volant');$('#gB').src=img(id,'trace');$('#gB').style.opacity=G.v==='trace'?1:0;$('#gPlan').innerHTML=planSVG(id,'grand');
-  $('#gNom').textContent=s.nom;
-  $('#gInfo').innerHTML='<b>'+esc(m.code)+'</b> · '+esc(m.heure)+(m.pr?' · « '+esc(m.pr)+' »':'')+'<br>'+esc(m.idee)+
-    '<br>Où : '+esc(m.ou)+'<br>Musique : '+(m.mus?esc(m.mus.t)+(m.mus.fin?' — <b>finale</b>':''):'aucune à elle')+(s.nom!==m.nom?'<br>Nom dans le jeu : '+esc(m.nom):'')+(s.note?'<br>Note : '+esc(s.note):'');
-  $$('#gVue button').forEach(b=>b.classList.toggle('on',b.dataset.v===G.v));
-  $('#gCat').innerHTML=E.cats.map(c=>'<option value="'+c.id+'"'+(c.id===o?' selected':'')+'>'+esc(c.nom)+'</option>').join('')+
-    '<option value="corbeille"'+(o==='corbeille'?' selected':'')+'>À supprimer</option>';
-}
-$('#gFerme').onclick=grandFerme;
-$('#grand').addEventListener('click',e=>{if(e.target.id==='grand')grandFerme();});
-$('#gVue').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;G.v=b.dataset.v;grandMaj();});
-$('#gImg').addEventListener('click',()=>{G.v=G.v==='trace'?'volant':'trace';grandMaj();});
-function grandPas(d){const o=ordreVu(),i=o.indexOf(G.id);G.id=o[(i+d+o.length)%o.length];grandMaj();}
-$('#gPrec').onclick=()=>grandPas(-1);$('#gSuiv').onclick=()=>grandPas(1);
-$('#gCat').addEventListener('change',e=>{
-  const id=G.id,de=ouEst(id),cat=e.target.value;if(cat===de)return;
-  geste(cat==='corbeille'?'« '+nomDe(id)+' » → à supprimer (venait de « '+catNom(de)+' »)':'« '+nomDe(id)+' » déplacée de « '+catNom(de)+' » vers « '+catNom(cat)+' »',()=>{retire(id);pose(id,cat);});
-});
-
-/* =====================================================================================================================
-   LE HAUT : vue, catégorie, annuler, remettre, fiche, sauvegarder
-   ===================================================================================================================== */
-$('#vueSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;VUE=b.dataset.v;
-  $$('#vueSeg button').forEach(x=>x.classList.toggle('on',x===b));try{localStorage.setItem(CLE+'.vue',VUE);}catch(_){}rendu();});
-$('#annuler').onclick=annuler;
-$('#ajCat').onclick=()=>{
-  const COUL=['#64d2ff','#ffd60a','#ac8e68','#5e5ce6','#ff6482','#32ade6','#a2845e'];
-  const id='c'+Date.now().toString(36),c=COUL[E.cats.length%COUL.length];
-  geste('nouvelle catégorie',()=>{E.cats.push({id,nom:'Nouvelle catégorie',c});E.ordre[id]=[];});
-  const n=document.querySelector('.cat[data-cat="'+id+'"] .catNom');if(n){n.scrollIntoView({block:'center'});n.focus();selTout(n);}
-};
-$('#remise').onclick=()=>{
-  if(!confirm('Tout remettre comme dans le jeu ? (Annuler pourra revenir en arrière.)'))return;
-  geste('tout remis comme dans le jeu',()=>{const j=E.journal,g=E.generales;E=etatNeuf();E.journal=j;E.generales=g;});
-};
-$('#fiche').onclick=()=>telecharge();
-$('#sauver').onclick=sauve;
-document.addEventListener('keydown',e=>{
-  const mod=e.metaKey||e.ctrlKey,ecrit=document.activeElement&&(document.activeElement.isContentEditable||/TEXTAREA|INPUT|SELECT/.test(document.activeElement.tagName));
-  if(mod&&e.key.toLowerCase()==='s'){e.preventDefault();if(ecrit)document.activeElement.blur();sauve();return;}
-  if(mod&&e.key.toLowerCase()==='z'&&!e.shiftKey&&!ecrit){e.preventDefault();annuler();return;}
-  if($('#grand').classList.contains('on')&&!ecrit){
-    if(e.key==='Escape')grandFerme();else if(e.key==='ArrowLeft')grandPas(-1);else if(e.key==='ArrowRight')grandPas(1);
-    else if(e.key===' '){e.preventDefault();G.v=G.v==='trace'?'volant':'trace';grandMaj();}
-    else if(e.key==='Backspace'||e.key==='Delete'){const id=G.id;if(ouEst(id)!=='corbeille')supprime(id);}
+  if(aFichier(e)){e.preventDefault();const r=e.target.closest&&e.target.closest('.rang'),f=e.dataTransfer.files[0];$$('.fichier').forEach(x=>x.classList.remove('fichier'));
+    if(r&&f)importe(f,r.dataset.id);return;}
+  if(!GL||!GL.mode)return finGlisse();
+  e.preventDefault();const {id,mode}=GL,de=mapDe(id),nm=E.niv[id].nom;finGlisse();
+  if(mode.k==='res'){if(!de)return;return retire(id);}
+  if(mode.k==='map'){
+    const memeMap=de===mode.mid;
+    geste(memeMap?'« '+nm+' » rangé à la place '+(mode.i+1)+' de « '+nomMap(mode.mid)+' »':'« '+nm+' » devient un niveau de « '+nomMap(mode.mid)+' »',()=>{
+      ote(id);if(!E.ordre[mode.mid])return;E.ordre[mode.mid].splice(Math.min(mode.i,E.ordre[mode.mid].length),0,id);rendu.neuf=id;});return;}
+  if(mode.k==='joint'){if(mode.mid===de)return;
+    geste('« '+nm+' » rejoint « '+nomMap(mode.mid)+' » (map répétée)',()=>{ote(id);if(!E.ordre[mode.mid])return;E.ordre[mode.mid].push(id);rendu.neuf=id;});return;}
+  if(mode.k==='uni'){
+    if(de&&classe(de)==='uni'){ // une map unique qu'on range parmi les autres
+      if(mode.avant===de)return;
+      return geste('map « '+nomMap(de)+' » rangée',()=>{const m=E.maps.find(x=>x.id===de);E.maps=E.maps.filter(x=>x!==m);
+        const k=mode.avant?E.maps.findIndex(x=>x.id===mode.avant):E.maps.length;E.maps.splice(k<0?E.maps.length:k,0,m);});}
+    geste('« '+nm+' » devient une map unique',()=>{ote(id);const m=nouvelId('m');const k=mode.avant?E.maps.findIndex(x=>x.id===mode.avant):E.maps.length;
+      E.maps.splice(k<0?E.maps.length:k,0,{id:m,nom:nm});E.ordre[m]=[id];rendu.neuf=id;});
   }
 });
 
 /* =====================================================================================================================
-   LA FICHE — ce que Claude lit pour appliquer (même esprit que la fiche des voitures de la salle blanche)
+   LA FICHE D'UN NIVEAU (le grand format : photos, plan, ce qu'il est, une note) — le seul endroit où il y a du texte
    ===================================================================================================================== */
-function fiche(){
-  const d=new Date(),jour=d.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}),L=[];
-  L.push('CASH CAR — LES MAPS','',jour+' · '+MAPS0.length+' maps · faite dans la page des maps (maps-ciel.html)','');
-  E.cats.forEach(c=>{
-    const ids=E.ordre[c.id];L.push(c.nom.toUpperCase()+' ('+ids.length+')');
-    ids.forEach((id,k)=>{const m=M0[id],s=E.maps[id];
-      L.push('  '+(k+1)+'. '+s.nom+'   ('+m.code+' · '+m.heure+' · musique : '+(m.mus?m.mus.t+(m.mus.fin?', FINALE':''):'aucune')+')   [id '+id+']');
-      if(s.nom!==m.nom)L.push('       nom dans le jeu : '+m.nom);
-      if(s.note)s.note.split('\n').forEach((x,j)=>L.push((j?'              ':'       note : ')+x));});
-    if(!ids.length)L.push('  (vide)');L.push('');
-  });
-  L.push('À SUPPRIMER DU JEU ('+E.corbeille.length+')');
-  E.corbeille.forEach(id=>{const m=M0[id],s=E.maps[id];L.push('  - '+s.nom+'  ('+m.code+' · '+m.ou+')  [id '+id+']');if(s.note)L.push('       note : '+s.note);});
-  if(!E.corbeille.length)L.push('  (rien)');L.push('');
-  L.push('CHANGEMENTS PAR RAPPORT AU JEU');const ch=changements();ch.forEach(x=>L.push('  - '+x));if(!ch.length)L.push('  (aucun)');L.push('');
-  L.push('NOTES GÉNÉRALES');L.push(E.generales?E.generales.split('\n').map(x=>'  '+x).join('\n'):'  (aucune)');L.push('');
-  L.push("CE QUE J'AI FAIT À LA MAIN");
+const FI={id:null,v:'volant'};
+function ficheOuvre(id){FI.id=id;$('#fiche').classList.add('on');ficheMaj();}
+function ficheFerme(){const t=$('#fNote');if(document.activeElement===t)t.blur();$('#fiche').classList.remove('on');FI.id=null;}
+function ficheMaj(){
+  const id=FI.id,n=E.niv[id];if(!n)return ficheFerme();const ref=M[n.photo]||M[n.base]||M[id]||{g:['#e5e5ea','#f5f5f7']},mid=mapDe(id);
+  $('#fImg').style.setProperty('--g1',ref.g[0]);$('#fImg').style.setProperty('--g2',ref.g[1]);
+  ['fA','fB'].forEach((k,i)=>{const im=$('#'+k);if(n.photo){im.src='maps-ciel/img/'+n.photo+'-'+(i?'trace':'volant')+'.jpg';im.style.display='';}else im.style.display='none';});
+  $('#fB').style.opacity=FI.v==='trace'?1:0;$$('#fVue button').forEach(b=>b.classList.toggle('on',b.dataset.v===FI.v));$('#fVue').style.display=n.photo?'':'none';
+  $('#fPlan').innerHTML=plan(n.photo);
+  $('#fNom').textContent=n.nom;
+  $('#fSous').textContent=[mid?nomMap(mid)+(classe(mid)==='rep'?' · map répétée':' · map unique'):'Réserve',n.var].filter(Boolean).join(' · ');
+  $('#fMus').innerHTML=musHTML(id);
+  const base=M[id]||M[n.base];$('#fDesc').textContent=base?(M[id]?base.desc+'  —  '+base.ou:'Variante à construire, sur la map de « '+base.nom+' ».'):'Nouvelle map, à construire.';
+  if(document.activeElement!==$('#fNote'))$('#fNote').value=n.note;
+}
+$('#fFerme').onclick=ficheFerme;
+$('#fiche').addEventListener('click',e=>{if(e.target.id==='fiche')ficheFerme();});
+$('#fImg').addEventListener('click',e=>{if(e.target.closest('#fVue'))return;FI.v=FI.v==='trace'?'volant':'trace';ficheMaj();});
+$('#fVue').addEventListener('click',e=>{const b=e.target.closest('button');if(b){FI.v=b.dataset.v;ficheMaj();}});
+function plan(pid){
+  const t=window.TRACES&&TRACES[pid];if(!t||!t.p||t.p.length<2)return '';
+  const P=t.p;let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(const q of P){x0=Math.min(x0,q[0]);x1=Math.max(x1,q[0]);z0=Math.min(z0,q[2]);z1=Math.max(z1,q[2]);}
+  const k=Math.min(84/Math.max(1,x1-x0),84/Math.max(1,z1-z0)),ox=(100-(x1-x0)*k)/2,oz=(100-(z1-z0)*k)/2;
+  const X=q=>(ox+(q[0]-x0)*k).toFixed(1),Z=q=>(100-(oz+(q[2]-z0)*k)).toFixed(1),d='M'+P.map(q=>X(q)+' '+Z(q)).join('L'),a=P[0],b=P[P.length-1];
+  return '<path d="'+d+'" stroke="rgba(0,0,0,.45)" stroke-width="4"/><path d="'+d+'" stroke="#fff" stroke-width="1.8"/>'+
+    '<circle cx="'+X(a)+'" cy="'+Z(a)+'" r="3" fill="#30d158" stroke="#fff"/><circle cx="'+X(b)+'" cy="'+Z(b)+'" r="3" fill="#ff375f" stroke="#fff"/>';
+}
+
+/* =====================================================================================================================
+   LA FICHE TEXTE (ce que Claude lit pour refaire le PLAY) et l'enregistrement
+   ===================================================================================================================== */
+function ficheTexte(){
+  const d=new Date(),L=[],D=etatNeuf(),rep=E.maps.filter(m=>classe(m.id)==='rep'),uni=E.maps.filter(m=>classe(m.id)==='uni');
+  const ligneNiv=(id,k)=>{const n=E.niv[id];return '  '+(k?k+'. ':'- ')+n.nom+(n.var?' — '+n.var:'')+' — musique : '+(n.mus?titreDe(n.mus)+' ('+n.mus+')':'AUCUNE')+
+    '   ['+id+(M[id]?'':', NOUVEAU'+(n.base&&M[n.base]?' (variante de '+M[n.base].nom+')':''))+']'+(n.note?'\n       note : '+n.note.replace(/\n/g,'\n              '):'');};
+  const nb=E.maps.reduce((a,m)=>a+E.ordre[m.id].length,0);
+  L.push('CASH CAR — LES NIVEAUX','',d.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})+' · '+nb+' niveaux · '+rep.length+' maps répétées · '+uni.length+' maps uniques','');
+  L.push('MAPS RÉPÉTÉES (une map, plusieurs niveaux qui la font varier)');
+  rep.forEach(m=>{L.push('',m.nom+' ('+E.ordre[m.id].length+' niveaux)');E.ordre[m.id].forEach((id,k)=>L.push(ligneNiv(id,k+1)));});
+  if(!rep.length)L.push('  (aucune)');
+  L.push('','MAPS UNIQUES (une map, un niveau)');uni.forEach(m=>L.push(ligneNiv(E.ordre[m.id][0],0)));if(!uni.length)L.push('  (aucune)');
+  L.push('','RÉSERVE (pas dans la liste)');E.reserve.forEach(id=>L.push(ligneNiv(id,0)+'   ← '+(MAPNOM[E.niv[id].map0]||'?')));if(!E.reserve.length)L.push('  (vide)');
+  L.push('','CHANGEMENTS PAR RAPPORT AU JEU');const ch=changements(D);ch.forEach(x=>L.push('  - '+x));if(!ch.length)L.push('  (aucun)');
+  L.push('','NOTES');L.push(E.notes?E.notes.split('\n').map(x=>'  '+x).join('\n'):'  (aucune)');
+  L.push('',"CE QUE J'AI FAIT À LA MAIN");
   E.journal.forEach(j=>{const t=new Date(j.h);L.push('  '+t.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'})+' '+t.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})+'  '+j.txt);});
   if(!E.journal.length)L.push('  (rien encore)');
   return L.join('\n')+'\n';
 }
-function changements(){
-  const r=[],N=etatNeuf();
-  MAPS0.forEach(m=>{const s=E.maps[m.id],o=ouEst(m.id);
-    if(s.nom!==m.nom)r.push(m.nom+' ('+m.code+') : renommée « '+s.nom+' »');
-    if(o==='corbeille')r.push(s.nom+' ('+m.code+') : À SUPPRIMER');
-    else if(o!==m.cat)r.push(s.nom+' ('+m.code+') : déplacée de « '+(CATS0.find(c=>c.id===m.cat)||{nom:m.cat}).nom+' » vers « '+catNom(o)+' »');});
-  E.cats.forEach(c=>{const c0=CATS0.find(x=>x.id===c.id);
-    if(!c0)r.push('nouvelle catégorie « '+c.nom+' »');else if(c0.nom!==c.nom)r.push('catégorie « '+c0.nom+' » renommée « '+c.nom+' »');
-    const a=E.ordre[c.id],b=(N.ordre[c.id]||[]).filter(id=>a.includes(id));
-    if(a.length>1&&a.filter(id=>b.includes(id)).join()!==b.join())r.push('nouvel ordre dans « '+c.nom+' » : '+a.map(nomDe).join(' · '));});
-  CATS0.forEach(c=>{if(!E.cats.find(x=>x.id===c.id))r.push('catégorie « '+c.nom+' » supprimée');});
-  if(E.cats.map(c=>c.id).filter(id=>CATS0.find(x=>x.id===id)).join()!==CATS0.map(c=>c.id).filter(id=>E.cats.find(x=>x.id===id)).join())
-    r.push('ordre des catégories : '+E.cats.map(c=>c.nom).join(' · '));
+function changements(D){
+  const r=[];
+  for(const id in E.niv){const n=E.niv[id],o=D.niv[id],mid=mapDe(id);
+    if(!o){r.push('NOUVEAU niveau « '+n.nom+' »'+(mid?' sur « '+nomMap(mid)+' »':' (réserve)')+(n.base&&M[n.base]?' — variante de '+M[n.base].nom:'')+(n.mus?' — musique '+titreDe(n.mus):' — sans musique'));continue;}
+    if(n.nom!==o.nom)r.push(o.nom+' : renommé « '+n.nom+' »');
+    if(n.var!==o.var)r.push(n.nom+' : variation « '+o.var+' » → « '+n.var+' »');
+    if(n.mus!==o.mus)r.push(n.nom+' : musique '+(o.mus?titreDe(o.mus):'aucune')+' → '+(n.mus?titreDe(n.mus):'AUCUNE'));
+    let dm=null;for(const m of D.maps)if(D.ordre[m.id].includes(id))dm=m.id;
+    if(!mid&&dm)r.push(n.nom+' : RETIRÉ (dans la réserve)');
+    else if(mid&&!dm)r.push(n.nom+' : AJOUTÉ à la liste, sur « '+nomMap(mid)+' »');
+    else if(mid&&dm&&mid!==dm)r.push(n.nom+' : passe de « '+D.maps.find(m=>m.id===dm).nom+' » à « '+nomMap(mid)+' »');}
+  E.maps.forEach(m=>{const d=D.maps.find(x=>x.id===m.id);
+    if(d&&d.nom!==m.nom)r.push('map « '+d.nom+' » renommée « '+m.nom+' »');
+    if(d){const a=E.ordre[m.id].filter(id=>D.ordre[m.id].includes(id)),b=D.ordre[m.id].filter(id=>a.includes(id));if(a.join()!==b.join())r.push('nouvel ordre de « '+m.nom+' » : '+E.ordre[m.id].map(id=>E.niv[id].nom).join(' · '));}
+    else r.push('NOUVELLE map « '+m.nom+' » ('+(classe(m.id)==='rep'?'répétée':'unique')+')');});
   return r;
 }
-function telecharge(){
-  const a=document.createElement('a'),d=new Date();
-  a.href=URL.createObjectURL(new Blob([fiche()],{type:'text/plain;charset=utf-8'}));
-  a.download='fiche-maps-ciel-'+d.toISOString().slice(0,10)+'.txt';document.body.appendChild(a);a.click();
-  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);
-}
-async function sauve(){
-  const b=$('#sauver');b.disabled=true;
-  E.journal.push({h:new Date().toISOString(),txt:'sauvegardé'});ecritLocal();
-  try{
-    const r=await fetch('maps-ciel/sauve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({etat:E,fiche:fiche()})});
-    const j=await r.json();if(!j.ok)throw new Error(j.erreur||'refus');
-    sauveT=Date.now();modifie=false;majSauve();petitMot('Sauvegardé dans le dossier du jeu',null);
-  }catch(e){
-    telecharge();sauveT=Date.now();modifie=false;majSauve();
-    petitMot('Serveur absent : la fiche est téléchargée',null);
-  }
+function telecharge(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([ficheTexte()],{type:'text/plain;charset=utf-8'}));
+  a.download='niveaux-cash-car-'+new Date().toISOString().slice(0,10)+'.txt';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);}
+async function enregistre(){
+  const b=$('#enreg');b.disabled=true;E.journal.push({h:new Date().toISOString(),txt:'enregistré'});ecrit();
+  try{const r=await fetch('maps-ciel/sauve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({etat:E,fiche:ficheTexte()})});
+    const j=await r.json();if(!j.ok)throw new Error(j.erreur);sauveT=Date.now();modifie=false;majEtat();mot('Enregistré dans le dossier du jeu',null);}
+  catch(e){telecharge();sauveT=Date.now();modifie=false;majEtat();mot('Serveur absent : la fiche est téléchargée',null);}
   b.disabled=false;
 }
+$('#annuler').onclick=annuler;$('#enreg').onclick=enregistre;$('#fiche-txt').onclick=telecharge;
+document.addEventListener('keydown',e=>{
+  const mod=e.metaKey||e.ctrlKey,ecritIci=document.activeElement&&(document.activeElement.isContentEditable||/TEXTAREA|INPUT/.test(document.activeElement.tagName));
+  if(mod&&e.key.toLowerCase()==='s'){e.preventDefault();if(ecritIci)document.activeElement.blur();enregistre();return;}
+  if(mod&&e.key.toLowerCase()==='z'&&!e.shiftKey&&!ecritIci){e.preventDefault();annuler();return;}
+  if(e.key==='Escape'){if($('#choix').classList.contains('on'))choixFerme();else if($('#fiche').classList.contains('on')&&!ecritIci)ficheFerme();}
+});
 
-/* ---------- L'ÉCOUTE : la musique de la map, une seule à la fois (même bouton = pause) ---------- */
-const JOUE={id:null,a:null};
-function ecoute(id){
-  const m=M0[id];if(!m||!m.mus)return;
-  if(!JOUE.a){JOUE.a=new Audio();JOUE.a.loop=true;JOUE.a.addEventListener('error',()=>{if(!JOUE.id)return;petitMot('Musique introuvable : '+M0[JOUE.id].mus.t,null);JOUE.id=null;marqueJoue();});}
-  if(JOUE.id===id){JOUE.a.pause();JOUE.id=null;marqueJoue();return;}
-  JOUE.id=id;JOUE.a.src=m.mus.f;const p=JOUE.a.play();if(p&&p.catch)p.catch(()=>{});marqueJoue();
-}
-function marqueJoue(){$$('.carte').forEach(c=>{const b=c.querySelector('.ecoute[data-act]');if(b)b.classList.toggle('joue',c.dataset.id===JOUE.id);});}
-
-/* ---------- le petit mot en bas (avec ANNULER quand ça a du sens) ---------- */
 let motT=0;
-function petitMot(txt,act){
-  const t=$('#toast');$('#tTxt').textContent=txt;const b=$('#tBtn');b.style.display=act?'':'none';b.onclick=()=>{t.classList.remove('on');act&&act();};
-  t.classList.add('on');clearTimeout(motT);motT=setTimeout(()=>t.classList.remove('on'),act?5200:2600);
-}
+function mot(txt,act){const m=$('#mot');$('#motTxt').textContent=txt;const b=$('#motBtn');b.style.display=act?'':'none';b.onclick=()=>{m.classList.remove('on');act&&act();};
+  m.classList.add('on');clearTimeout(motT);motT=setTimeout(()=>m.classList.remove('on'),act?5000:2600);}
 
-/* =====================================================================================================================
-   AU DÉPART : la sauvegarde du navigateur, ou celle du dossier si elle est plus récente
-   ===================================================================================================================== */
+/* AU DÉPART : la sauvegarde du navigateur, ou celle du dossier si elle est plus récente ; la bibliothèque du serveur */
 (async function(){
   let loc=null;try{loc=JSON.parse(localStorage.getItem(CLE)||'null');}catch(_){}
-  try{const v=localStorage.getItem(CLE+'.vue');if(v==='trace'||v==='volant'){VUE=v;$$('#vueSeg button').forEach(x=>x.classList.toggle('on',x.dataset.v===VUE));}}catch(_){}
-  E=propre(loc);rendu();majSauve();
-  try{
-    const r=await fetch('maps-ciel/sauvegarde.json',{cache:'no-store'});
-    if(r.ok){const d=await r.json();if(d&&(+d.t||0)>(E.t||0)){E=propre(d);ecritLocal();rendu();}sauveT=+d.t||0;majSauve();}
-  }catch(_){}
+  E=propre(loc);rendu();majEtat();
+  try{const r=await fetch('maps-ciel/sauvegarde.json',{cache:'no-store'});if(r.ok){const d=await r.json();if(d&&d.v===3&&(+d.t||0)>(E.t||0)){E=propre(d);ecrit();rendu();}sauveT=d&&d.v===3?(+d.t||0):0;majEtat();}}catch(_){}
+  try{const r=await fetch('maps-ciel/bibliotheque',{cache:'no-store'});if(r.ok){const j=await r.json();if(j.musiques&&j.musiques.length)BIB=j.musiques;}}catch(_){}
   window.addEventListener('beforeunload',e=>{if(modifie){e.preventDefault();e.returnValue='';}});
 })();
-window.dbgMaps={etat:()=>E,fiche:()=>fiche(),changements:()=>changements()};
+window.dbgNiveaux={etat:()=>E,fiche:()=>ficheTexte(),changements:()=>changements(etatNeuf()),bib:()=>BIB};
 </script>
 </body>
 </html>
