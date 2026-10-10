@@ -6385,6 +6385,22 @@ html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnPorte:is(:active,.
 html body #garage:not(.menu):not(.vitrine) #gRar .fnTete .fnRetour{display:inline-flex;align-items:center;justify-content:center;width:40px;height:34px;margin:0 -4px 0 -6px;pointer-events:auto;cursor:pointer;color:#ffd75e}
 html body #garage:not(.menu):not(.vitrine) #gRar .fnTete .fnRetour .pxi{--pxs:2;color:#ffd75e}
 html body #garage:not(.menu):not(.vitrine) #gRar .fnTete .fnCompte{color:#ffd75e}
+/* LES PETITES CASES DE ALL ITEMS (2026-10-10, Léo : « pour chaque item, des cases plus petites ; et dans ALL ITEMS, le nom des items et
+   les différentes raretés ») : trois par rangée et plus basses (108 px au lieu de 128 ; à quatre, les noms en pixel de 8 px se coupaient :
+   « LA SILENCI… ») ; l'image en haut, puis la RARETÉ (dans sa couleur), le NOM en entier (deux lignes) et le prix. Une seule liste, sans familles. */
+html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande.fnTous{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande.fnTous .fnC{grid-column:span 1;height:108px}
+#gStrip.fnBande.fnTous .fnC::after{height:60%}
+#gStrip.fnBande.fnTous .fnFond{background-position:50% 22%}
+#gStrip.fnBande.fnTous .fnPh{top:26%;width:96%}
+#gStrip.fnBande.fnTous .fnSw{top:25%;width:34px;height:34px;margin:-17px 0 0 -17px}
+#gStrip.fnBande.fnTous .fnRub{top:25%;left:10%;right:10%;height:9px;margin-top:-4px}
+#gStrip.fnBande.fnTous .fnAile{top:25%;--pxs:3}
+#gStrip.fnBande .fnBas{position:absolute;left:8px;right:4px;bottom:6px;z-index:1;display:flex;flex-direction:column;gap:3px}
+#gStrip.fnBande .fnBas .fnRar{font-size:var(--f0);letter-spacing:0;color:var(--rc);white-space:nowrap;overflow:hidden;text-shadow:0 1px 0 rgba(7,5,15,.95)}
+#gStrip.fnBande .fnBas .fnN{position:static;font-size:var(--f0);line-height:1.35;letter-spacing:0;white-space:normal;overflow:hidden;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;text-overflow:clip}
+#gStrip.fnBande .fnBas .fnP{position:static;font-size:var(--f0);letter-spacing:0;gap:4px}
+#gStrip.fnBande .fnBas .fnP .pxi{--pxs:1}
 #gStrip.fnBande .fnTout{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;margin:4px 0 0;cursor:pointer;
   font-size:var(--f0);letter-spacing:2px;color:rgba(230,226,255,.55);text-shadow:0 1px 0 rgba(7,5,15,.8);transition:color var(--t-fast) var(--ease)} /* (2026-10-10) écrit en transparent, pas une plaque */
 #gStrip.fnBande .fnTout .pxi{--pxs:1;color:rgba(94,230,255,.6)}
@@ -39006,9 +39022,10 @@ function gOffres(on){GMODE.off=!!on;const bar=$('gRar'),st=$('gStrip');if(bar)ba
 function bqCourant(){if(SHOP.tab==='voiture')return 'v:'+garageI;const L=COSM[SHOP.tab],d=L&&L[SHOP.i[SHOP.tab]];return d?SHOP.tab+':'+d.id:'';}
 function gShopJour(){const bar=$('gRar'),st=$('gStrip');if(!bar||!st)return;try{gModeBoutons();}catch(e){}
   if(GMODE.off){gShopOffres(bar,st);return;}
+  st.classList.remove('fnTous');
   const B=bqVitrine(),kb='fn:'+B.j+':'+LANG;
   if(bar._k!==kb){bar._k=kb;bar._on=null;bar.classList.add('gModeBar');
-    bar.innerHTML='<div class="gModeT fnTete" style="--rc:var(--neoM)">'+pxi('panier')+'<span>'+sansAcc(TR('BOUTIQUE DU JOUR'))+'</span><s></s><b class="fnT">'+pxi('horloge')+'<i>'+bqReste()+'</i></b></div>';}
+    bar.innerHTML='<div class="gModeT fnTete" style="--rc:var(--neoM)">'+pxi('panier')+'<span>'+sansAcc(TR('OFFRES ÉPHÉMÈRES'))+'</span><s></s><b class="fnT">'+pxi('horloge')+'<i>'+bqReste()+'</i></b></div>';}
   const O=bqTous(),k='fn:'+B.j+':'+B.l.join(',')+':'+B.l.map(function(x){return bqA(x)?1:0;}).join('')+':'+O.length+':'+LANG;
   st.classList.add('fnBande');
   if(!st._finB){st._finB=1;st.addEventListener('scroll',function(){if(st.classList.contains('fnBande'))st.classList.toggle('finBas',st.scrollTop+st.clientHeight>=st.scrollHeight-4);},{passive:true});} // au bout de la vitrine, plus de fondu
@@ -39022,12 +39039,18 @@ function bqPhotos(st){
   st.querySelectorAll('.fnC[data-fn^="v:"],.fnC[data-fn^="o:"]').forEach(function(el){const i=+el.getAttribute('data-fn').slice(2);
     photoFile(i,function(url){const ph=el.querySelector('.fnPh');if(ph&&!ph.firstChild){const im=document.createElement('img');im.alt='';im.src=url;ph.appendChild(im);}});});
   st.querySelectorAll('.fpPh i[data-ph]').forEach(function(el){photoFile(+el.getAttribute('data-ph'),function(url){if(!el.firstChild){const im=document.createElement('img');im.alt='';im.src=url;el.appendChild(im);}});});}
+function bqMini(k){const ri=rarInfo(bqRar(k)),c=ri.c,a=bqA(k);let nom='',px='',eur=false,fig='';
+  if(k[0]==='v'){const i=+k.slice(2),u=CAR_UNLOCK[i]||{};nom=TR(CARS[i].name);if(u.k==='premium'){px=eurTxt(u.eur);eur=true;}else px=fmtC(u.p||0);fig='<i class="fnPh"></i>';}
+  else{const o=bqCos(k);nom=TR(o.d.n);px=fmtC(o.d.p);fig=bqFig(o.cat,o.d);}
+  return '<div class="fnC mini'+(a?' acquis':'')+'" data-fn="'+k+'" role="button" aria-label="'+String(nom).replace(/"/g,'')+'" style="--rc:'+c+';--rcL:'+invRgba(c,.98)+';--rcD:'+invRgba(c,.22)+'">'
+    +'<i class="fnFond"></i>'+fig+'<span class="fnBas"><span class="fnRar">'+sansAcc(TR(ri.n1))+'</span><b class="fnN">'+sansAcc(String(nom))+'</b>'
+    +'<em class="fnP'+(eur?' eur':'')+'">'+(a?pxi('coche')+'<span>'+sansAcc(TR('ACQUIS'))+'</span>':px)+'</em></span></div>';}
 function gShopOffres(bar,st){const L=bqTous(),kb='fo:'+L.length+':'+LANG;
   if(bar._k!==kb){bar._k=kb;bar._on=null;bar.classList.add('gModeBar');
     bar.innerHTML='<div class="gModeT fnTete" style="--rc:#ffd75e"><b class="fnRetour" role="button" aria-label="'+TR('RETOUR')+'">'+pxi('gauche')+'</b>'+pxi('panier')+'<span>ALL ITEMS</span><s></s><b class="fnCompte">'+L.length+' ITEMS</b></div>';}
-  const k='fo:'+L.join(',')+':'+L.map(function(x){return bqA(x)?1:0;}).join('')+':'+LANG;st.classList.add('fnBande');
+  const k='fo:'+L.join(',')+':'+L.map(function(x){return bqA(x)?1:0;}).join('')+':'+LANG;st.classList.add('fnBande','fnTous');
   if(st._r!==k){st._r=k;st._n=-1;st.scrollLeft=0;st.scrollTop=0;st.classList.remove('finBas');
-    st.innerHTML='<div class="fnSec fnSecOr"><span>LAUNCH: EVERY ITEM AVAILABLE</span><s></s></div>'+L.map(function(x){return bqCarte(x,false);}).join('');bqPhotos(st);}
+    st.innerHTML='<div class="fnSec fnSecOr"><span>LAUNCH: EVERY ITEM AVAILABLE</span><s></s></div>'+L.map(bqMini).join('');bqPhotos(st);}
   const cur=bqCourant();st.querySelectorAll('.fnC').forEach(function(el){el.classList.toggle('on',el.getAttribute('data-fn')===cur);});}
 try{$('gStrip').addEventListener('click',function(e){const v=e.target.closest&&e.target.closest('.fnTout');if(v){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(v);uiClic('nav');gOffres(true);return;}
   const po=e.target.closest&&e.target.closest('.fnPorte');if(po){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(po);uiClic('nav');gOffres(true);return;} // (2026-10-10) la porte SEE ALL ITEMS : le catalogue complet
@@ -39038,7 +39061,7 @@ try{$('gStrip').addEventListener('click',function(e){const v=e.target.closest&&e
   gShopJour();});}catch(e){}
 setInterval(function(){try{if(!garageOn||gModeM()!=='shop')return;const B=SAVE.d.bq;if(!B||B.j!==bqJour()){const bar=$('gRar'),st=$('gStrip');if(bar)bar._k=null;if(st)st._r=null;gShopJour();return;}
   const t=document.querySelector('#gRar .fnT i:not(.pxi)');if(t){const v=bqReste();if(t.textContent!==v)t.textContent=v;}}catch(e){}},1000);
-try{Object.assign(I18N,{'BOUTIQUE DU JOUR':'DAILY SHOP','À LA UNE':'FEATURED','ACQUIS':'OWNED','DU JOUR':'DAILY','VOIR TOUTES LES VOITURES':'SEE ALL CARS','OFFRES':'OFFERS','TOUTES LES VOITURES PAYANTES':'ALL PAID CARS','VOITURES':'CARS'});}catch(e){}
+try{Object.assign(I18N,{'BOUTIQUE DU JOUR':'DAILY SHOP','À LA UNE':'FEATURED','ACQUIS':'OWNED','DU JOUR':'DAILY','VOIR TOUTES LES VOITURES':'SEE ALL CARS','OFFRES':'OFFERS','TOUTES LES VOITURES PAYANTES':'ALL PAID CARS','VOITURES':'CARS','OFFRES ÉPHÉMÈRES':'LIMITED OFFERS'});}catch(e){} // (2026-10-10, Léo : « le truc du haut, c'est les OFFRES ÉPHÉMÈRES ») le titre de la vitrine du jour, avec son compte à rebours
 try{$('gRar').addEventListener('click',function(e){const b=e.target.closest&&e.target.closest('.fnRetour');if(!b)return;e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(b);uiClic('retour');gOffres(false);});}catch(e){} // ◀ des OFFRES : la vitrine du jour
 /* VOIR TOUTES LES VOITURES (2026-10-10) : du bas de la vitrine du jour, le CATALOGUE complet — la console d'ouverture (toutes les caisses, rangées
    par famille, à toi ou pas), onglet VOITURES ; la caisse affichée ne bouge pas. BOUTIQUE ramène à la vitrine du jour. */
