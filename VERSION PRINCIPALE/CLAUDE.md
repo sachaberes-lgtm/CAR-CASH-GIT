@@ -42,6 +42,42 @@ plafonds de lacet et de tangage, vol libre, vrille visuelle, drift = un geste. C
   · **le virage en vol reste tel quel** : le lacet en vol ne suit pas `vitMult` (rayon 40 m à ×1, ~100 m sous NITROOO ×2,6) — voulu.
 - ⚠ Commentaires périmés à ne pas croire : `AIR_RATE` vaut 1 (pas 1,3, remis à 1 dans `startFall`).
 
+## LE VITRAIL EN MODULE + LE SINGE PENDU (2026-10-10, Léo : la technique trouvée sur le dauphin s'appelle VITRAIL ; puis « quelle figure pourrait faire apparaître un singe » → « le 2 »)
+- **`<<<VITRAIL>>>`** (avant `// ---- SERPENT`) : la recette pour N'IMPORTE QUELLE forme. Une forme = `F` {`sdf` (distance signée, des volumes
+  soudés en douceur), `col` (couleur), `os` (poids de 3 os, facultatif), `s` (coordonnée de l'onde 0 → 1), `min/max`, `hs` (pas de la forme
+  lisse), `h` (taille des écailles)}. `vitrailObjet(F,U,cle)` → un groupe de trois maillages : ÉCAILLES (cases de `h` dont le centre est
+  dedans et qui touchent le dehors, une couleur / un os / une normale par cube), CŒUR (la forme lisse rentrée, lumière pure `uGlowA → uGlowB`),
+  PEAU de verre (la forme lisse gonflée, reflet de ciel, éclat, film irisé) ; un seul programme par couche (`vitrailShader`, rôles 0/1/2) ;
+  la forme lisse = « surface nets » (normales = gradient du champ). `vitrailU(F)` = les réglages, valeurs du JUSTE MILIEU de Léo (de face .43,
+  bords .95, gonflée 1,3 cube, écailles .89, vague .45 cube) ; trois os par `uM0..2` (Matrix3) + pivots `uP0..2`. Rien n'est bâti au chargement.
+- **`<<<SINGE>>>` LE SINGE PENDU** : la figure choisie — quand on passe SOUS la route (LIMBO / SNAKE LOOP), un singe pend à l'envers sous la
+  dalle, accroché par la queue, suit la caisse de la tête et tend la main (il tape sur le toit au plus près), puis se balance dans son souffle.
+  Modelé debout (`SG_P` : ellipsoïdes et capsules soudés ; `SG_C` les couleurs : fourrure caramel, visage / ventre / mains pêche, grands yeux
+  noirs à reflet, sourire) puis retourné (repère d'accroche : la queue en 0,0,0, il pend vers −y sur ~2,1 m). Son vrai sourire, pendu, se lit
+  🙃 (le retourner pour « nous » le faisait grimacer). Os : la tête (cou), bras droit, bras gauche. `singeNouveau()`, `singeAnime(S,dt,cible,
+  proche)` (pendule amorti, tête qui suit, bras qui se tend), `singeTape(S,vx,vz)` (le souffle). Cœur : l'or de la banane → l'ambre.
+  DEUX POSES (même jour, Léo : « il peut également se tenir sur les mains ») : `singeForme('queue')` (`SINGE_F`, à l'envers) et
+  `singeForme('mains')` (`SINGE_FM`, à l'endroit, les mains agrippées sous la dalle : il LÂCHE une main pour taper la caisse) —
+  `singeNouveau(cle, mode)`. Couleur et os dans le repère debout (`sgCol`, `sgOs`). Bug « oreilles / bras » corrigé : les coudes passaient à
+  ~3 cm des oreilles et la soudure les collait (bras écartés à x .56, oreilles plus hautes et plus petites).
+  ~35 000 triangles (h .024, hs .034).
+- **LE SINGE EN COURSE** (même jour, Léo : « garde ce que t'as, push main — mais il faut pas que ce soit à chaque fois qu'on va en dessous de
+  la route ») : bloc « LE SINGE EN COURSE » juste après `<<<FIN SINGE>>>`, `singeJeu(dt)` dans la boucle (après les dauphins). Passage SOUS la
+  dalle (la règle d'« À L'ABRI » : en vol, sous l'épaisseur, dans la largeur ; ni auto-école ni parc) → UN tirage par passage :
+  `SG_CHANCE` .34, jamais à moins de `SG_CD` 24 s du précédent. Il apparaît pendu (queue ou mains, au hasard) sous la dalle, là où la caisse
+  sera dans `SG_AVANCE` .85 s (dalleProche + frameAt sur la position prévue, la largeur bornée à 80 %), échelle `SG_ECH` 3,2, le visage vers
+  la caisse ; il surgit en 0,22 s, la suit de la tête, tend la main. La caisse le CROISE à moins de `SG_PORTEE` 5 m de sa main ou de son corps
+  → TOPE LÀ ! : nitro (25 à 60 % du plein), aura `chaineAura('TOPE LA !', 90 → 250)`, flow MACHIAVEL, gerbe d'or, `sfx('singe.tope')` (son à
+  faire : nom posé). Trop loin : il se balance dans son souffle. Il remonte dans la dalle 1,2 s après (ou 5 s sans croisement) ; `dolKill`
+  le range (explosion, replacement, nouvelle piste). Les deux poses sont bâties AU MENU en tranches de 5 ms (`vitrailPrepare`, générateurs :
+  ~0,4 s chacune d'un bloc, mesuré) puis compilées une fois hors écran (`chauffeRendu`) — en course, rien ne se construit ni ne se compile.
+  Console : `dbgSinge()` (état, position à l'écran), `dbgSinge(1)` (force le prochain passage), `dbgSinge('sous',prof)` (un vol juste sous la
+  dalle). ⚠ BANC : un profil neuf joue l'AUTO-ÉCOLE (`tutoTick` replace la caisse dès qu'elle sort : finir par `dbgTuto('permis')`), et
+  « Pick your mode » attend NORMAL. Vérifié en vraie course : apparition dans l'écran, TOPE LA ! +199 encaissé, rangé à l'explosion, 0 erreur.
+- **`boite-singe.html`** : la boîte (même principe que la boîte à dauphins : lit et RELIT les deux blocs) — le dessous de la route, une caisse
+  qui passe sous lui toutes les ~5 s, carte « Vitrail » (Peau · Cœur + 7 curseurs), Dark triad, Ralenti, Figé, Lisse, Ciel rêve.
+  Une erreur dans le bloc s'affiche en rouge et garde l'ancien singe. `?passe=0&fige=1&cy=&dist=&yaw=&pitch=` pour une photo.
+
 ## LE DAUPHIN DE RÊVE + LA BOÎTE À DAUPHINS (2026-10-09, Léo : « retouchons les dauphins, envoie-moi dans une boîte blanche avec les dauphins, on va les design » — puis une image de grand dauphin pastel : « travaille encore plus dur »)
 - **LA BOÎTE** : `boite-dauphins.html` (à côté d'index.html, servie par `python3 -m http.server`, jamais en double-clic). Elle LIT et exécute le
   VRAI bloc du jeu (de `const DOL_L=` à `const dolphinRig=`) et le RELIT ~1 fois/s : une retouche du dauphin dans index.html apparaît sans
@@ -90,7 +126,25 @@ plafonds de lacet et de tangage, vol libre, vrille visuelle, drift = un geste. C
   plonge vers la caisse) et l'aura montait pour rien. CORRIGÉ : le banc vit dans le repère de la CAMÉRA (24 m devant elle, collé à l'écran),
   les dauphins sautent sur les CÔTÉS de l'écran (R = 38 % de la demi-largeur, écarts en `ku` jusqu'au bord), dans la profondeur ; la route la
   plus proche (dalleProche + frameAt) donne sa hauteur et le banc monte au-dessus (ou descend sous elle) pour que la tranche de leurs sauts
-  ne la touche jamais (`dolHY`). Saut le plus long : jamais à moins de 10 m de l'objectif. La boîte dessine une route (repère, pas à l'échelle). `dbgDauphin('ecran')` :
+  ne la touche jamais (`dolHY`). Saut le plus long : jamais à moins de 10 m de l'objectif.
+- **LA PEAU LISSE SUR LES CUBES** (même soir, Léo : « remets-le en pas lisse ; rajoute celui en lisse par-dessus celui en pixel, transparent,
+  l'opacité qu'il faut, laisse celui en pixel en dessous créer du volume — essaie de créer une technique, de la maîtriser ») : chaque dauphin
+  en cubes porte une COQUE (`DOL_GEO_S` = le dauphin lisse, enfant du maillage, programme `dauphin5c`, mêmes uniforms de nage et de surface :
+  elle suit ses cubes au millimètre), gonflée de `uCoqG` (1,3 cube) le long des normales, transparente de face (`uCoqA0` .3) et presque
+  opaque sur la silhouette (`uCoqA1` .95, courbe `uCoqP` 1,4 sur 1 − |n·v|) : silhouette lisse et peau mouillée, cubes visibles dessous comme
+  sous du verre. `depthWrite:false`, renderOrder 1. +5 100 triangles par dauphin. `DOL_COQUE.on=false` l'enlève. Dans la boîte : la carte
+  « Peau lisse sur les cubes » (Oui/Non + 4 curseurs, réglages gardés dans le navigateur) ; le bouton « Lisse » = le dauphin lisse seul.
+- **DEUX CHORÉS QUI PASSENT AU-DESSUS** (même soir, Léo : « remets au moins deux chorés où ça passe au-dessus de la route, de la voiture,
+  comme avant ») : LE PONT et LES CISEAUX traversent l'écran (`ax0 → ax1` en demi-largeurs d'écran, `hx` = .8 × la demi-largeur à D9) ; la
+  règle `dolHY` relève le banc pour que la tranche de leurs sauts reste au-dessus de la route (mesuré : banc à +5 à +8 m au sol).
+- **LA STRUCTURE EN TROIS COUCHES** (2026-10-10, Léo : « crée une structure en mélangeant les deux techniques… encore plus, plus, plus
+  impressionnant ») : du dedans au dehors — LE CŒUR (`coeur`, programme `dauphin5h` : le dauphin lisse rentré de `uCoeurIn` sous les
+  écailles, lumière pure rose → violet → cyan, rouge en dark triad via `uNoir`) · LES ÉCAILLES (les cubes réduits à `uEcart` .84 autour de
+  leur centre : le cœur brille dans les joints, une lanterne en mosaïque) · LA PEAU DE VERRE (`coque` : + reflet d'un ciel sur la direction
+  réfléchie — vue → monde par `vec4(r,0.)*viewMatrix`, WebGL 1 compris —, éclat de studio, film irisé). L'ONDE (`uScan`, ≈ 2 s sur
+  l'horloge de la nage) parcourt le corps du rostre à la queue : elle soulève et referme les écailles (`uVague`), allume leurs arêtes et le
+  cœur. Coût : ~35 k triangles par dauphin de près (cœur 5 k + écailles 25 k + peau 5 k), 3 programmes. Carte « Structure » dans la boîte
+  (Peau · Cœur, 7 curseurs ; `?cq=ec:.8,lu:2&peau=0&coeur=0` pour une photo). La boîte dessine une route (repère, pas à l'échelle). `dbgDauphin('ecran')` :
   où sont les dauphins à l'écran (−1…1) et à quelle distance.
 ## LA SALLE BLANCHE (2026-10-09, Léo : « une sublime voiture dans une salle blanche, que je peux tourner, avec une petite rangée de toutes les voitures qu'on a — pas les enlevées — qu'on glisse dans différentes raretés ; télécharger une liste écrite de tout ce qu'on a dit dessus »)
 - `salle-blanche.html` (outil, à côté d'index.html, à servir : `python3 -m http.server 8975` puis /salle-blanche.html). RIEN n'est recopié :
