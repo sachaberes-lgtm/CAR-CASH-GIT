@@ -312,7 +312,8 @@ function assemble(i){
     for(const[sx,sz]of[[-1,1],[1,1],[-1,-1],[1,-1]]){const seule=gs1&&sz>0;if(seule&&sx<0)continue;
       const g9=seule?gs1:gs,kF=sz>0&&A.wRF?A.wRF:1,w=new THREE.Group();for(const g in g9)w.add(new THREE.Mesh(g9[g],kitM(lpMatC(g))));
       w.scale.set((sx<0&&!seule?-1:1)*kF,kF,kF);
-      w.position.set(seule?0:sx*(sz>0&&A.wxF!=null?A.wxF:A.wx),W9.R*kF+A.wy,sz>0?(A.wzF!=null?A.wzF:A.wz):-(A.wzR!=null?A.wzR:A.wz));grp.add(w);}
+      w.position.set(seule?0:sx*(sz>0&&A.wxF!=null?A.wxF:A.wx),W9.R*kF+A.wy,sz>0?(A.wzF!=null?A.wzF:A.wz):-(A.wzR!=null?A.wzR:A.wz));
+      if(A.roueDeco)A.roueDeco(w,sx,sz);grp.add(w);} // (LA DÉFERLANTE) les pièces que le gabarit pose DANS la roue
   }else{const R9=.40*A.wr,w=new THREE.Group();
     w.add(new THREE.Mesh(new THREE.CylinderGeometry(R9,R9,.32*A.wr,14),darkM));
     w.add(new THREE.Mesh(new THREE.CylinderGeometry(R9*.6,R9*.6,.34*A.wr,10),wreck?darkM:chromeM));
@@ -375,7 +376,7 @@ function studio(grp){
   grp.traverse(o=>{
     if(o.isSprite&&o.userData.feu){const m=o.material;if(m.map){m.map.encoding=THREE.sRGBEncoding;m.map.needsUpdate=true;}m.toneMapped=false;return;} // LE FEU EN PIXELS de LA FOURNAISE
     if(!o.isMesh)return;
-    if(o.userData.brut){if(o.geometry)linGeo(o.geometry);o.material.toneMapped=false;return;}      // une matière qui VIT (le cœur de lave) : gardée telle quelle
+    if(o.userData.brut){if(o.geometry)linGeo(o.geometry);o.material.toneMapped=false;o.castShadow=!!o.userData.ombre;return;} // une matière qui VIT (la lave, l'eau) : gardée telle quelle ; `ombre` = elle porte son ombre (le fond de LA DÉFERLANTE)
     o.material=studioMat(o.material);if(o.geometry)linGeo(o.geometry);
     const g=(Array.isArray(o.material)?o.material[0]:o.material).userData.g;
     o.castShadow=g!=='l'&&g!=='ice';o.receiveShadow=g!=='l'&&g!=='g'&&g!=='ice';}); // la glace ne fait pas d'ombre pleine : la lame, les roues et le platine la font

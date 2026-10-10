@@ -161,6 +161,22 @@ plafonds de lacet et de tangage, vol libre, vrille visuelle, drift = un geste. C
   `index.html` sur GitHub (`MAIN_URL`, raw du main, CORS ouvert), copie locale en secours (`?source=local` la force), la source est écrite
   sous le titre ; toutes les 2 min elle compare l'empreinte du main et propose « Le main a bougé · mettre la gamme à jour ». Les gabarits
   posés hors de la gamme (`SHAPES.xxx=function…`) sont tous ramassés tout seuls (ceux de demain compris).
+- **LA DÉFERLANTE (10/10, Léo : « une abstraite type EAU — l'élément, pas une bouteille ; avec tout ce qu'on a appris, quelque chose de
+  vraiment méchant ; inspire-toi d'un modèle qui existe, ou pas » → 1er jet, une sportive à aileron-vague : « la vitre est magnifique,
+  mais la forme, on dirait une voiture que j'ai déjà »)** : index 74, `SHAPES.deferlante`, ÉPIQUE 3 600 000 $, « THE BREAKER ». LA
+  VOITURE EST LA VAGUE : un profil (z, y) — le creux (nez), la face, le tube, la lèvre, la crête en pointe, le dos en pente droite, puis le
+  dessous — tiré en travers (`nappe`, 24 tranches, bouts bouchés par le profil : de côté on voit le pilote DANS le tube) ; devant, elle se
+  RESSERRE entre les roues avant, qui restent DEHORS (`serre`), le nez est de l'eau peu profonde, claire (pas de fond) ; derrière, elle
+  couvre les roues (dessous creusé). Lèvre en griffes, en biais, crête et dos qui ondulent. Deux nappes : le FOND opaque (abysses →
+  canard, caustiques de Voronoï, `ombre`) là où l'eau est épaisse, et L'EAU transparente (`uGrad` : bleu profond → turquoise → blanche
+  en haut, filets, scintillement = normale bousculée — jamais une facette entière en blanc). Sommets qui ondulent le long d'un RAYON
+  (continu : rien ne se décolle). Écume et embruns en CUBES (lèvre en rideau = les dents de la gueule, crête en mouton, nez), panache de
+  crête, bulles dans le dos, cockpit = BULLE D'AIR, yeux au fond de la gueule. ROUES D'EAU (« des roues élémentaires, en eau ») : jante
+  `tourbillon` de `lpWheel` (7 pales en spirale cyan à pointe blanche sur fond bleu nuit), `sansPneu` ; le PNEU est un anneau d'eau
+  (la peau, transparente) sur un cœur sombre, posé DANS chaque roue par le crochet `A.roueDeco(w,sx,sz)` (buildCar ET la salle) : il
+  tourne avec elle ; les roues projettent des gouttes. (`bande`/`flanc` restent des options de lpWheel.) ⚠ Un InstancedMesh se mesure à sa géométrie de base (la
+  boîte de la caisse) : une sphère de 1 m au centre faisait FLOTTER la caisse dans la salle. La salle fait porter son ombre à un
+  maillage `brut` qui a `userData.ombre`.
 - **LE RANG DANS UNE FAMILLE (10/10, Léo, salle blanche : LA GRANDE ANGLAISE glissée en dernière des RARES)** : une famille du garage
   est triée par `carOrdre` = le PRIX, sauf si la fiche porte `ordre` (LA GRANDE ANGLAISE : `ordre:1e8`, son prix reste 200 000 $) ; une
   liste qui MÉLANGE les familles (« à acheter » du garage) reste au prix (`carPrixOrdre`). La salle lit le même `carOrdre`.
@@ -388,6 +404,25 @@ LES BOUTONS DE SACHA ») : **PLAY/JOUER = la partie sans fin, et toucher un nive
   renversé) et la bouche sont de vraies OUVERTURES entre ces os, avec un creux sombre posé plus loin derrière (plus de rubis). Six
   PASTELS nacrés (`M.cranes` : rose, menthe, lavande, ciel, pêche, citron — le métal du studio teinté, l'éclat à sa teinte), tirés au
   lancer. Plus petit : 0,5-0,6 m (était ~1 m). `dbgRiche('cranes')` aligne les six ; `dbgRiche('cranes','pres')` à 5 m de l'objectif. sw.js → v175.
+- **v5 — BILLETS EN COULEURS, PIÈCES EN RELIEF, LE PAPIER QUI TOMBE (2026-10-10, Léo : « ajoute à l'animation un peu de complexité ;
+  les billets un tout petit peu plus petits, plusieurs couleurs — les liasses restent vertes ; les pièces un peu plus flashy et
+  réalistes »)** : BILLETS −12 % (0,92 m ; la liasse garde sa taille) et une SÉRIE de sept valeurs, une couleur chacune (`RICH_BILLETS` :
+  5 fuchsia · 10 rubis · 20 bleu roi · 50 orange · 100 sarcelle · 200 violet · 500 or ; `M.billets`, même programme SOUPLE) ; le 100
+  (`RICH_B100`, le billet d'origine) habille la LIASSE et les billets qui en sortent. PIÈCES : chaque pièce a deux images du même dessin
+  (`richDuo` : couleur + HAUTEUR) — listel, étoiles, arbre, chiffre, rainure du bimétal, et la TRANCHE (cordon fin du 2 €, segments du
+  1 €, fleur d'Espagne du 50 c, crénelage du bitcoin) en bande au bas de l'image ; le programme du métal a un `#define PIECE` (4e
+  programme, compilé sous l'écran titre) qui incline la normale par la carte de hauteur (`RICH_BOSSE`), moins de ciel teinté, une BOÎTE À
+  LUMIÈRE derrière l'objectif (la face qui te regarde s'allume d'un coup), bord plus blanc, éclats ×1,45 ; métaux un cran plus vifs ;
+  vraie épaisseur (.16 du rayon) ; éclat en étoile plus large et teinté (froid pour l'argent, chaud pour l'or). L'ANIMATION :
+  · le PAPIER (billets, trèfles — `richPapier`/`richPapierTick`) se pose sur l'air après la giclée : FEUILLE MORTE (2 fois sur 3 : il se
+    balance autour de son long côté, glisse en zigzag, file au creux et cale en haut) ou CULBUTE (bout sur bout, il plane de côté) ; il
+    vire lentement ; l'allure le rattrape par un slerp (aucun à-coup) ;
+  · les PIÈCES VOILENT (précession de l'axe de rotation, `pa`/`pw`) : les éclats tombent quand on ne les attend pas ;
+  · une LIASSE sur deux CRAQUE en vol (`richEclate`) : la bande saute, cinq à sept billets verts s'ouvrent en éventail ;
+  · la GERBE EN DEUX TEMPS : le métal part d'abord, le papier suit et s'étale ; gros et jackpot ont une RÉPLIQUE (la caisse recrache une
+    poignée de pièces 0,34-0,43 s après). Mesuré : 154 programmes au menu, 0 compilé au coup ; 60+ objets en l'air sans erreur ni NaN.
+  Console : `dbgRiche('etal',d,w)` (les sept billets et les quatre pièces face à l'objectif, à d m, figés — `dbgRiche('vitrine',0)` les
+  relâche ; figés, ils ne s'effacent plus de près) ; `dbgRiche().papier` = feuilles / culbutes / horsNombre (NaN, doit rester à 0). sw.js → v248.
 
 ## LE SON PARASITE DU DÉPART DES NUAGES (2026-10-08, Léo : « la première map, quand je démarre, il y a un son hyper chelou, un son parasite — enlève ; vérifie pour les autres »)
 - **C'ÉTAIT `nuages.ambiance`** (la boucle « LA MER DE NUAGES A SON AIR » du 30/09 : souffle d'altitude, rafales, harpe éolienne), lancée au
