@@ -110,20 +110,17 @@ plafonds de lacet et de tangage, vol libre, vrille visuelle, drift = un geste. C
   cuire-caisses.js la lisent d'office) — un coin tranché en trois lames (graphite · blanc nacré · éclat de verre noir) séparées par des
   fentes de lumière d'or, une rainure de lumière au flanc, quatre disques à enjoliveur blanc tenus par des bras, un ARC blanc cerclé d'or
   qui flotte au-dessus de chaque roue, l'ANNEAU D'OR penché qu'elle traverse ; ÉPIQUE à 3 000 000 $, nitro dorée (`fx`), « THE ABSTRACT ».
-- **L'ICEBERG (10/10, Léo : « une nouvelle abstraite, type gel » → « glace, ICE » → « en glace, genre ICEBERG, pas trop carrée, stylisée,
-  dynamique, qui ne ressemble à rien qu'on a » → « moins géométrique simple, plus VOITURE »)** : index 72, `SHAPES.iceberg` (après
-  l'abstraite ; refusées avant le main : LA GELÉE, ICE la voiture-bijou, puis un bloc de glace à pics). Une vraie voiture taillée dans un
-  iceberg : long capot entre deux ailes bombées, ARCHES de roue (`U.arch`), pavillon FASTBACK ; carrosserie de GLACE turquoise qu'on
-  voit au travers, vitres de GLACE SOMBRE (bandes 5/6 de la section, `cleDe`), NEIGE seulement à plat (capot, toit, malle — normale >
-  .88), épaules de glace claire ; deux AILERONS = les pics de l'iceberg couchés vers l'arrière ; des OUÏES de givre derrière les roues
-  avant ; lueur bleue dans l'habitacle ; phares en fentes SORTIS de la glace (dedans on ne les voyait plus), bandeau rouge ; roues à six
-  rayons. (Léo : « plus irrégulière, la glace ») LA GLACE BRUTE : chaque arête de section bousculée de quelques cm (`hs`, un hasard FIXE ;
-  l'axe et le bas restent en place), pas pareil à gauche (`SG`) qu'à droite (`SC`), sept nuances tirées par facette, la neige mangée par
-  plaques, 14 CRISTAUX qui sortent des flancs et des ailes, 10 STALACTITES sous les bas de caisse et les boucliers. Facettes routées une à
-  une (`fac` : neige opaque ↔ glace). La glace = la matière CHROME du kit, transparente (.80), sans
-  profondeur, `userData.g='ice'` (zéro programme de plus) ; la salle : `REGLE.ice`, pas d'ombre pleine. Les ÉCLATS DE GIVRE (7 étoiles,
-  `BLING` + `blingTick` en tête de boucle) scintillent ; la salle (`BL`) les allume tous au toucher. ÉPIQUE 3 200 000 $, nitro glacier,
-  « THE ICEBERG ». Banc : `dbgBling()`.
+- **L'ICEBERG (10/10, Léo : « une nouvelle abstraite, en glace, genre iceberg » → « plus voiture » → « plus irrégulière, la glace » →
+  « une forme originale, loin de celles qu'on a » → « plus originale, mais une voiture de SPORT : là on dirait un truc de famille »)** :
+  index 72, `SHAPES.iceberg` — UN ICEBERG FENDU EN TROIS (la v1 sur main d5dadc6 était un coupé de glace qui rappelait LA VETTE ; un bob à
+  deux places a été refusé : « familial »). Au milieu un fuselage étroit et sa BULLE de chasseur (une place, baquet) ; de chaque côté un
+  BLOC DE GLACE sur les roues, en rampe vers l'arrière, COUPÉ NET (la falaise qui vêle) ; entre eux des CANAUX D'AIR ouverts (un fil de
+  lumière bleue au fond), deux ARCS-BOUTANTS par côté ; un AILERON en lame de glace sur les deux blocs (bord d'attaque cassé, neige), un
+  béquet. `volume(zs,anneau,cle)` = une section FERMÉE par station, pans orientés vers le dehors (`dehors`), bouts en éventail. LA GLACE
+  BRUTE : arêtes bousculées (`bous`, `hs` hasard FIXE), gauche ≠ droite, sept nuances par facette, neige par plaques ; cristaux,
+  stalactites. La glace = la matière CHROME du kit, transparente (.80), sans profondeur, `userData.g='ice'` (zéro programme de plus) ; la
+  salle : `REGLE.ice`, pas d'ombre pleine. ÉCLATS DE GIVRE (`BLING`, `blingTick` ; la salle `BL`, tous allumés au toucher). ÉPIQUE
+  3 200 000 $, nitro glacier, « THE ICEBERG ». Banc : `dbgBling()`.
 - **LE TOUCHER + LE JOURNAL (9/10, Léo : « quand j'appuie sur les voitures, leur réaction — sinon juste l'effet clic » · « sauvegarder
   tous les changements faits à la main par moi »)** : un TAP sur la caisse (ni glissé ni pincement ; le double-clic ne recadre plus) =
   l'effet clic de l'écran titre en studio (recul + saut + bascule en ressorts, étincelles orange, tôle à la couleur de la pièce qui rebondit
