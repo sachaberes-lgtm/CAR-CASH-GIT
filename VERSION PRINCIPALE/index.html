@@ -13506,9 +13506,9 @@ const CARS=[
   fx:{jet:0x9fe8ff,core:0xffffff,trail:[.75,1.15,1.45],light:0x8fe0ff},
   desc:'Un iceberg fendu en trois : deux blocs de glace sur les roues, une bulle au milieu pour un seul pilote. Le vent passe entre.'},
  // (2026-10-10, Léo : « une voiture flamme — dur, vas-y dur ; une autre technique ; une forme de voiture originale, associée au feu ») LA FOURNAISE (voir SHAPES.fournaise). Ajoutée EN DERNIER.
- {name:'LA FOURNAISE',shape:'fournaise',color:0xf2efe9,accent:0xff6a1a,maxKmh:425,accel:50,turn:3.0,h:1.2,w:1.95,l:4.72,spoiler:0,rar:'epique',
+ {name:'LA FOURNAISE',shape:'fournaise',color:0x241a16,accent:0xff6a1a,maxKmh:425,accel:50,turn:3.0,h:1.2,w:1.95,l:4.72,spoiler:0,rar:'epique',
   fx:{jet:0xff7a24,core:0xffe0a0,trail:[1.5,.7,.25],light:0xff6a1a},
-  desc:'Une carrosserie de porcelaine posée sur un feu qui ne s\'éteint jamais. On le voit danser à travers.'},
+  desc:'Une croûte de basalte qui se fend sur un cœur de lave, le feu qui coule dans chaque joint. Ne la touche pas.'},
 ];
 // ---- VALEUR D'UNE PIÈCE — UNE ENTRÉE PAR PALIER MOTEUR (30) ---------------------------------
 // ⚠ Cette table est indexée par `engTier` depuis que les PIÈCES portent la progression, mais elle
@@ -13981,7 +13981,7 @@ Object.assign(I18N,{
 // (2026-10-10) LA FOURNAISE
 Object.assign(I18N,{
  "LA FOURNAISE":"THE FURNACE",
- "Une carrosserie de porcelaine posée sur un feu qui ne s'éteint jamais. On le voit danser à travers.":"A porcelain body resting on a fire that never goes out. You can see it dancing through.",
+ "Une croûte de basalte qui se fend sur un cœur de lave, le feu qui coule dans chaque joint. Ne la touche pas.":"A basalt crust cracking over a heart of lava, fire flowing through every seam. Don't touch it.",
 });
 // (2026-09-29) les chaînes visibles qui manquaient
 Object.assign(I18N,{
@@ -21299,18 +21299,17 @@ Object.assign(SHAPES,{
     return {hl:[.78,.44,2.34],tl:[.78,.86,-2.28],wx:.82,wzF:ZF,wzR:-ZR,pots:[[.11,.31,-2.32],[-.11,.31,-2.32]],
             lpw:{R:R,w:.26,style:'multi',n:10,jante:0xd8f3ff,accent:0xd8f3ff,pneu:0x0e1a24}};
   },
-/* LA FOURNAISE (2026-10-10, Léo : « une voiture FLAMME — ça va être dur, vas-y dur ; trouve une solution, peut-être une autre technique ;
-   toujours une forme de voiture, originale, qu'on n'a pas déjà faite, associée au feu » → « la même, avec les cubes en BLANC, et que
-   par-dessous on voie les FLAMMES TRANSLUCIDES ; les petites flammes, c'est un peu gamin ») — UNE CARROSSERIE DE PORCELAINE SUR UN FEU.
-   · LA CROÛTE (le VITRAIL de Léo) : des cubes BLANCS à 86 % de leur taille, un peu TRANSLUCIDES (comme du givre ou de la porcelaine), posés
-     en surface d'un volume (`dedans`) ; le cockpit reste en obsidienne noire (on lit la voiture) ; quelques cubes-braises ;
-   · LE FEU, DESSOUS : le cœur n'est plus de la lave peinte mais un FEU qui coule — un programme (`FEU_VS/FEU_FS`) : un bruit qui monte et
-     file vers l'arrière, rouge sombre → orange → jaune → blanc, additif et translucide ; on le voit danser dans les joints et À TRAVERS
-     les cubes, et par huit TROUS ouverts dans la croûte ;
-   · LE PUITS dans la malle : des LANGUES de feu en volume (des tours tournés, le même programme : la hauteur les efface), pas des images.
-   La version noire (cubes de basalte, feu en pixels) est dans l'historique (8b4fbf8). Silhouette : un coupé bas en coin, ailes bombées,
-   capot creusé, la poupe haute qui porte le puits. Pots : deux gueules de forge carrées. Ce qui bouge : `BLING.anim` (jeu), `userData.anime`
-   (salle blanche). */
+/* LA FOURNAISE (2026-10-10, Léo : « une voiture FLAMME — vas-y dur ; une autre technique ; une forme de voiture originale, associée au feu »
+   → (essai en porcelaine blanche, refusé : « je préférais avant, avec les roues noires et les cubes noirs ; fais VIBRER un peu plus la
+   voiture — pas au sens littéral ») — UNE VOITURE DE LAVE QUI VIT. Le VITRAIL de Léo, en trois couches :
+   · la CROÛTE : des cubes de BASALTE de 11 cm à 86 % (les joints laissent passer la lumière), posés en surface d'un volume (`dedans` :
+     superellipse, ailes bombées, capot creusé, arches seulement sur les flancs, un PUITS dans la malle, huit TROUS ouverts) ; cockpit en
+     obsidienne ; des BRAISES (un maillage à part : elles PALPITENT) ;
+   · dessous, la LAVE (le cœur lisse, rouge sombre → orange → jaune) qui RESPIRE ;
+   · entre les deux, un FEU QUI COULE (un programme : bruit qui monte et file vers l'arrière) et une ONDE de lumière qui parcourt la caisse
+     de l'avant vers l'arrière — les joints scintillent, la voiture VIBRE de lumière ;
+   · dans le puits, des LANGUES DE FEU translucides en volume (le même programme). Plus de flammes en pixels (« un peu gamin »).
+   Pots : deux gueules de forge carrées. Ce qui bouge : `BLING.anim` (jeu), `userData.anime` (salle blanche). */
   fournaise:function(K){
     const U=LPU,R=.38,ZF=1.45,ZR=-1.45,S9=.11,hs=(a,b)=>{const x=Math.sin(a*127.1+b*311.7)*43758.5453;return x-Math.floor(x);};
     // LA FORME : bas (arches comprises), dessus, demi-largeur le long de la caisse ; la section se resserre en haut (le pavillon)
@@ -21325,11 +21324,11 @@ Object.assign(SHAPES,{
           dedans=(x,y,z)=>{if(z<-2.3||z>2.36)return false;const b=B(z,x),t=T(z)-creux(x,z);if(y<b||y>t)return false;if(cratere(x,y,z))return false;
             const w=Wy(z,y),yc=(b+t)/2,hh=(t-b)/2,ux=Math.abs(x)/w,uy=Math.abs(y-yc)/hh;return Math.pow(ux,3)+Math.pow(uy,6)<=1;},
           cabine=(y,z)=>z>-.75&&z<.86&&y>.30+(T(z)-.30)*.62;
-    // LA CROÛTE : un cube par case de surface (une case dedans dont une voisine est dehors) — les blancs dans leur propre kit (Q : translucide)
-    const Q=K.kit({a:{g:'s',c:0xf4f1ec},b:{g:'s',c:0xe9e4dc},c:{g:'s',c:0xddd6cb}});
-    const P=K.kit({v:{g:'s',c:0x0b0808},q:{g:'s',c:0x2a1410},L:{g:'l',c:0xff5a14},Y:{g:'l',c:0xffb02e},
-      W:{g:'l',c:0xfff1c8},R:{g:'l',c:0xff1a1a},f:{g:'m',c:0x141010},k:{g:'m',c:0x050404}});
-    // LES TROUS DE FLAMMES (Léo : « rajoute quelques petits trous de flammes ») : la croûte s'ouvre — on y voit le feu, dessous
+    // LA CROÛTE : un cube par case de surface (une case dedans dont une voisine est dehors), à 89 % — les joints laissent passer la lave
+    const P=K.kit({a:{g:'s',c:0x231a17},b:{g:'s',c:0x2e221d},c:{g:'s',c:0x1a1311},v:{g:'s',c:0x0b0808},q:{g:'s',c:0x4a1608},
+      W:{g:'l',c:0xfff1c8},R:{g:'l',c:0xff1a1a},f:{g:'m',c:0x141010},k:{g:'m',c:0x050404}}),
+          E=K.kit({L:{g:'l',c:0xff5a14},Y:{g:'l',c:0xffb02e}});                                        // les braises, à part : elles palpitent
+    // LES TROUS DE FLAMMES (Léo : « rajoute quelques petits trous de flammes ») : la croûte s'ouvre — on y voit couler le feu
     const TROUS=[],trou=(x,z,s9)=>TROUS.push({p:[x,T(z)-creux(x,z),z],s:s9}),trouF=(sd,y,z,s9)=>TROUS.push({p:[sd*Wy(z,y),y,z],s:s9});
     trou(.26,1.62,.12);trou(-.30,1.30,.10);trou(.64,1.48,.10);trou(-.60,1.40,.11);
     trouF(1,.62,-.20,.11);trouF(-1,.56,.30,.10);trouF(1,.70,-1.02,.10);trouF(-1,.66,-1.12,.12);
@@ -21339,10 +21338,10 @@ Object.assign(SHAPES,{
       if(!dedans(x,y,z))continue;
       if(dedans(x+S9,y,z)&&dedans(x-S9,y,z)&&dedans(x,y+S9,z)&&dedans(x,y-S9,z)&&dedans(x,y,z+S9)&&dedans(x,y,z-S9))continue;
       for(const sd of [1,-1]){const X=sd*x,r=hs(X*7.1+z*3.3,y*5.9);if(ouvert(X,y,z))continue;
-        if(cabine(y,z)){P.put(r<.62?'v':r<.95?'q':'L',geo,X,y,z);continue;}                         // le cockpit : obsidienne, braise sombre
+        if(cabine(y,z)){if(r>.93)E.put('L',geo,X,y,z);else P.put(r<.55?'v':'q',geo,X,y,z);continue;}   // le cockpit : obsidienne et braise sombre
         const pr=Math.abs(z+1.63)<.48&&Math.abs(X)<.62&&y>T(z)-.32;                                    // la margelle du puits : elle rougeoie
-        if(pr&&r>.82){P.put(r>.95?'Y':'L',geo,X,y,z);continue;}                                         // (des braises seulement à la margelle)
-        Q.put(r<.33?'a':r<.66?'b':'c',geo,X,y,z);}}
+        if(r>.94||(pr&&r>.55)){E.put(r>.97?'Y':'L',geo,X,y,z);continue;}
+        P.put(r<.33?'a':r<.66?'b':'c',geo,X,y,z);}}
     // LES PHARES (des cubes blancs-jaunes au nez), LES FEUX (des cubes rouges à la poupe)
     for(const sd of [1,-1]){P.box('W',.12,.06,.04,sd*.24,.50,2.33);P.box('W',.08,.05,.04,sd*.36,.53,2.27);
       P.box('R',.22,.05,.04,sd*.40,.78,-2.33);}
@@ -21351,41 +21350,52 @@ Object.assign(SHAPES,{
       P.box('f',.16,.025,.18,x,y+.068,z+.09);P.box('f',.16,.025,.18,x,y-.068,z+.09);P.box('f',.025,.16,.18,x-.068,y,z+.09);P.box('f',.025,.16,.18,x+.068,y,z+.09);
       P.box('k',.11,.11,.03,x,y,z+.15);P.box('L',.08,.08,.01,x,y,z+.12);P.box('f',.012,.11,.012,x,y,z+.004);}
     K.commit(P);
-    const g=K.add(new THREE.Group());
-    // LA PORCELAINE : un maillage à part, un peu translucide (le feu passe à travers), sans écriture de profondeur, dessiné APRÈS le feu
-    const qg=Q.done().s;                                                                                  // (sans l'ombre cuite : elle virait au lilas)
-    let qm;try{qm=lpMat('s');}catch(e){qm=new THREE.MeshPhongMaterial({vertexColors:true,side:THREE.DoubleSide});}
-    qm.transparent=true;qm.opacity=.45;qm.depthWrite=false;qm.userData.g='givre';const croute=new THREE.Mesh(qg,qm);croute.renderOrder=3;g.add(croute);
-    // LE FEU, DESSOUS : un programme — un bruit qui MONTE et file vers l'arrière ; la hauteur (uY0, uH) l'efface vers le haut ; additif
-    const FEU_VS='varying vec3 vP;void main(){vP=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
-          FEU_FS='uniform float uT,uF,uY0,uH,uA,uB;varying vec3 vP;'+
-      'float h3(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}'+
-      'float n3(vec3 x){vec3 i=floor(x),f=fract(x);f=f*f*(3.-2.*f);return mix(mix(mix(h3(i),h3(i+vec3(1,0,0)),f.x),mix(h3(i+vec3(0,1,0)),h3(i+vec3(1,1,0)),f.x),f.y),'+
-      'mix(mix(h3(i+vec3(0,0,1)),h3(i+vec3(1,0,1)),f.x),mix(h3(i+vec3(0,1,1)),h3(i+vec3(1,1,1)),f.x),f.y),f.z);}'+
-      'void main(){float u=clamp((vP.y-uY0)/uH,0.,1.);vec3 q=vec3(vP.x*4.,vP.y*5.-uT*(2.4+uF*1.6),vP.z*3.+uT*.7);'+
-      'float n=n3(q)*.6+n3(q*2.1)*.3+n3(q*4.3)*.1;float f=clamp(n*1.25+(1.-u)*.5-u*.45+uF*.12,0.,1.);float a=smoothstep(.34,.64,f+uB)*uA;'+
-      'vec3 c=mix(vec3(.85,.12,.02),vec3(1.,.6,.1),smoothstep(.45,.75,f));c=mix(c,vec3(1.,.95,.75),smoothstep(.8,.96,f));gl_FragColor=vec4(c,a);}';
-    const UF={uT:{value:0},uF:{value:0}};
-    const feuMat=(y0,h,a,b)=>{const m=new THREE.ShaderMaterial({uniforms:{uT:UF.uT,uF:UF.uF,uY0:{value:y0},uH:{value:h},uA:{value:a},uB:{value:b||0}},vertexShader:FEU_VS,fragmentShader:FEU_FS,
-      transparent:true,depthWrite:false,side:THREE.DoubleSide});m.userData.g='feu';return m;};          // (pas additif : sur du blanc, une lumière ajoutée ne se voit pas)
-    const C=K.kit({r:{g:'l',c:0xffffff}});
+    // LE CŒUR DE LAVE : la forme lisse, rentrée d'une demi-case sous les cubes ; rouge sombre en bas, jaune en haut — il RESPIRE
+    const C=K.kit({r:{g:'l',c:0x8a1a08},o:{g:'l',c:0xff5a10},y:{g:'l',c:0xffb23a}});
     const zs=[-2.24,-2.01,-1.99,-1.7,-1.45,-1.27,-1.25,-.8,-.4,0,.4,.85,1.2,1.45,1.8,2.1,2.3];
     C.loft(zs,z=>{const b=.30+S9*.5,t=T(z)-creux(0,z)-(z>-2.0&&z<-1.26?.28:S9*1.15)/* (dans le puits, la lave est plus bas) */,yc=(b+t)/2,hh=(t-b)/2,pts=[];          // une case sous la croûte : jamais à fleur
       for(let i=0;i<=8;i++){const a=-Math.PI/2+i/8*Math.PI,y=yc+Math.sin(a)*hh,ux=Math.pow(Math.max(0,1-Math.pow(Math.abs(Math.sin(a)),6)),1/3);
         pts.push([Math.max(.001,(Wy(z,y)-S9*1.1)*ux)*(i===0||i===8?0:1),y]);}return pts;},
-      ()=>'r');
-    const coeur=new THREE.Mesh(C.done().l,feuMat(.3,.95,1.0,.32));coeur.userData.brut=1;coeur.renderOrder=1;g.add(coeur); // (le feu du dessous, nourri : il doit se voir à travers)
-    // LE PUITS : des LANGUES de feu en volume (des tours tournés, le même programme) — de tous les côtés elles ont de l'épaisseur
+      (j,z,y)=>y<.55?'r':y<.85?'o':'y');
+    const cg=C.done().l;let cm;try{cm=lpMat('l');}catch(e){cm=new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide});}
+    cm.userData.g='l';const coeur=new THREE.Mesh(cg,cm);coeur.userData.brut=1;
+    const g=K.add(new THREE.Group());g.add(coeur);
+    // LES BRAISES : leur propre matière (elle palpite)
+    let em;try{em=lpMat('l');}catch(e){em=new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide});}
+    em.userData.g='l';const braises=new THREE.Mesh(E.done().l,em);braises.userData.brut=1;g.add(braises);
+    // LE FEU QUI COULE et L'ONDE : un programme — un bruit qui monte et file vers l'arrière ; une vague de lumière (uW) qui court de l'avant
+    // vers l'arrière ; la hauteur (uY0, uH) l'efface vers le haut ; `uB` le rend plus présent sans le blanchir
+    const FEU_VS='varying vec3 vP;void main(){vP=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+          FEU_FS='uniform float uT,uF,uY0,uH,uA,uB,uW;varying vec3 vP;'+
+      'float h3(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}'+
+      'float n3(vec3 x){vec3 i=floor(x),f=fract(x);f=f*f*(3.-2.*f);return mix(mix(mix(h3(i),h3(i+vec3(1,0,0)),f.x),mix(h3(i+vec3(0,1,0)),h3(i+vec3(1,1,0)),f.x),f.y),'+
+      'mix(mix(h3(i+vec3(0,0,1)),h3(i+vec3(1,0,1)),f.x),mix(h3(i+vec3(0,1,1)),h3(i+vec3(1,1,1)),f.x),f.y),f.z);}'+
+      'void main(){float u=clamp((vP.y-uY0)/uH,0.,1.);vec3 q=vec3(vP.x*4.,vP.y*5.-uT*(2.4+uF*1.6),vP.z*3.+uT*.7);'+
+      'float n=n3(q)*.6+n3(q*2.1)*.3+n3(q*4.3)*.1;float w=pow(max(0.,sin(vP.z*1.7+uT*(3.+uF*2.))),10.)*uW;'+
+      'float f=clamp(n*1.25+(1.-u)*.5-u*.45+uF*.12+w*.45,0.,1.);float a=smoothstep(.34,.64,f+uB)*uA;'+
+      'vec3 c=mix(vec3(.85,.12,.02),vec3(1.,.6,.1),smoothstep(.45,.75,f));c=mix(c,vec3(1.,.95,.75),smoothstep(.8,.96,f));gl_FragColor=vec4(c,a);}';
+    const UF={uT:{value:0},uF:{value:0}};
+    const feuMat=(y0,h,a,b,w9)=>{const m=new THREE.ShaderMaterial({uniforms:{uT:UF.uT,uF:UF.uF,uY0:{value:y0},uH:{value:h},uA:{value:a},uB:{value:b||0},uW:{value:w9||0}},
+      vertexShader:FEU_VS,fragmentShader:FEU_FS,transparent:true,depthWrite:false,side:THREE.DoubleSide});m.userData.g='feu';return m;};
+    // LA PEAU DE FEU : entre la lave et la croûte (une demi-case sous les cubes) — c'est elle qu'on voit scintiller dans les joints
+    const D=K.kit({r:{g:'l',c:0xffffff}});
+    D.loft(zs,z=>{const b=.30+S9*.4,t=T(z)-creux(0,z)-(z>-2.0&&z<-1.26?.26:S9*.7),yc=(b+t)/2,hh=(t-b)/2,pts=[];
+      for(let i=0;i<=8;i++){const a=-Math.PI/2+i/8*Math.PI,y=yc+Math.sin(a)*hh,ux=Math.pow(Math.max(0,1-Math.pow(Math.abs(Math.sin(a)),6)),1/3);
+        pts.push([Math.max(.001,(Wy(z,y)-S9*.7)*ux)*(i===0||i===8?0:1),y]);}return pts;},()=>'r');
+    const peau=new THREE.Mesh(D.done().l,feuMat(.3,.95,.95,.18,1));peau.userData.brut=1;peau.renderOrder=2;g.add(peau);
+    // LE PUITS : des LANGUES de feu translucides en volume (des tours tournés, le même programme)
     const langue=new THREE.LatheGeometry([[0,0],[.16,.06],[.21,.22],[.17,.48],[.09,.78],[.02,.97],[0,1]].map(p=>new THREE.Vector2(p[0],p[1])),12);
-    const mL=feuMat(0,1,.95),yC=T(-1.63)-.32;
+    const mL=feuMat(0,1,.95),yL=T(-1.63)-.30;
     for(const q of [[0,-1.64,.80,1.0],[.19,-1.44,.52,.72],[-.20,-1.48,.58,.78],[.16,-1.86,.46,.7],[-.17,-1.84,.5,.74]]){
-      const m=new THREE.Mesh(langue,mL);m.position.set(q[0],yC,q[1]);m.scale.set(q[3],q[2],q[3]);m.rotation.x=-.18;m.userData.brut=1;m.renderOrder=2;g.add(m);}
-    // LA VIE : le feu coule (une horloge) ; plus fort à la nitro
-    let t=0;const anime=dt=>{t+=dt;UF.uT.value=t;const fort=(typeof nitroOn!=='undefined'&&nitroOn)?1:0;UF.uF.value+=(fort-UF.uF.value)*Math.min(1,dt*4);};
+      const m=new THREE.Mesh(langue,mL);m.position.set(q[0],yL,q[1]);m.scale.set(q[3],q[2],q[3]);m.rotation.x=-.18;m.userData.brut=1;m.renderOrder=3;g.add(m);}
+    // LA VIE : le feu coule, l'onde court, la lave respire, les braises palpitent ; tout s'emballe à la nitro
+    let t=0;const anime=dt=>{t+=dt;UF.uT.value=t;const fort=(typeof nitroOn!=='undefined'&&nitroOn)?1:0;UF.uF.value+=(fort-UF.uF.value)*Math.min(1,dt*4);
+      const k=1+.22*Math.sin(t*2.3)*Math.sin(t*.8+1.3)+.15*UF.uF.value;cm.color.setRGB(k,k*.97,k*.94);
+      const e=.72+.28*Math.abs(Math.sin(t*5.3)*Math.sin(t*3.1+.7))+.2*UF.uF.value;em.color.setRGB(e,e,e);};
     g.userData.anime=anime;anime(1/30);
     if(typeof BLING==='object'&&BLING&&BLING.anim)BLING.anim.push(anime);
     return {hl:[.30,.51,2.36],tl:[.40,.78,-2.36],wx:.80,wzF:ZF,wzR:-ZR,pots:[[.30,.48,-2.37],[-.30,.48,-2.37]],
-            lpw:{R:R,w:.26,style:'multi',n:8,jante:0xffffff,accent:0xffffff,pneu:0xebe9e4}}; // (Léo : « des roues blanches, pour un vrai contraste »)
+            lpw:{R:R,w:.26,style:'multi',n:8,jante:0xff7a24,accent:0xff7a24,pneu:0x120d0c}}; // (Léo : « je préférais avant, avec les roues noires »)
   }
 });
 /* ===== LA GAMME DES 50 — FIN ===== */

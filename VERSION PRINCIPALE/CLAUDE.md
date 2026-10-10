@@ -162,15 +162,15 @@ plafonds de lacet et de tangage, vol libre, vrille visuelle, drift = un geste. C
   sous le titre ; toutes les 2 min elle compare l'empreinte du main et propose « Le main a bougé · mettre la gamme à jour ». Les gabarits
   posés hors de la gamme (`SHAPES.xxx=function…`) sont tous ramassés tout seuls (ceux de demain compris).
 - **LA FOURNAISE (10/10, Léo : « une voiture flamme — dur, vas-y dur ; une autre technique ; une forme de voiture originale, associée au
-  feu » → « les cubes en BLANC, et par-dessous qu'on voie les FLAMMES TRANSLUCIDES ; les petites flammes, c'est un peu gamin » → « des roues
-  blanches »)** : index 73, `SHAPES.fournaise`. Le VITRAIL : une croûte de cubes de 11 cm à 86 % posés en surface d'un volume (`dedans` :
-  superellipse, ailes bombées, capot creusé, arches seulement sur les flancs, un PUITS dans la malle, huit TROUS ouverts), en PORCELAINE
-  BLANCHE un peu translucide (kit Q à part, opacité .45, sans profondeur, `userData.g='givre'` — la salle : `REGLE.givre`), cockpit en
-  obsidienne ; DESSOUS un FEU qui coule — un programme (`FEU_VS/FEU_FS` : bruit qui monte et file vers l'arrière, rouge → orange → jaune ;
-  `uB` le rend plus présent SANS le blanchir ; PAS additif : sur du blanc une lumière ajoutée ne se voit pas) ; dans le puits, des LANGUES de
-  feu en volume (tours tournés, même programme). La version noire (basalte + feu en pixels de DOOM, sprites) est dans l'historique
-  (8b4fbf8). Ce qui VIT dans une caisse : `BLING.anim` (jeu, `blingTick`) et `userData.anime` (salle, `BL.vie`) ; la salle garde les
-  matières `userData.brut`. Roues blanches. Pots : deux gueules de forge. ÉPIQUE 3 400 000 $, « THE FURNACE ».
+  feu » → essais : feu en pixels (« les petites flammes, c'est un peu gamin »), porcelaine blanche (« je préférais avant, avec les roues
+  noires et les cubes noirs ») → « fais VIBRER un peu plus la voiture, pas au sens littéral »)** : index 73, `SHAPES.fournaise`. Le VITRAIL
+  en couches : une CROÛTE de cubes de basalte de 11 cm à 86 % en surface d'un volume (`dedans` : superellipse, ailes bombées, capot creusé,
+  arches seulement sur les flancs, un PUITS dans la malle, huit TROUS ouverts), cockpit en obsidienne, BRAISES dans leur propre maillage
+  (elles palpitent) ; dessous la LAVE (cœur lisse) qui respire ; ENTRE LES DEUX une PEAU DE FEU qui coule (un programme `FEU_VS/FEU_FS` :
+  bruit qui monte et file vers l'arrière, + une ONDE `uW` qui court de l'avant vers l'arrière ; `uB` = plus présent sans blanchir ; PAS
+  additif) — c'est elle qui fait scintiller les joints ; dans le puits, des LANGUES de feu translucides en volume (le même programme). Tout
+  s'emballe à la nitro. Ce qui VIT dans une caisse : `BLING.anim` (jeu, `blingTick`) et `userData.anime` (salle, `BL.vie`) ; la salle garde
+  les matières `userData.brut`. Roues sombres à jantes orange. Pots : deux gueules de forge. ÉPIQUE 3 400 000 $, « THE FURNACE ».
 - **LES POTS D'ÉCHAPPEMENT (10/10, Léo : « une grosse révision très précise sur chacune des voitures — ne change rien, garde-les telles
   qu'elles sont : juste un pot d'échappement pour chacune, adapté au modèle ; fais la différence »)** : bloc « LES POTS D'ÉCHAPPEMENT »
   juste après `LPU` (entre deux marqueurs : la salle le lit avec LPU). `ECH_POTS` (⚠ pas `ECH` : le banc du téléphone a déjà le sien)
