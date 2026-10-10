@@ -6361,6 +6361,10 @@ html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande{display:grid!importan
   gap:10px 8px;height:auto;max-height:226px;padding:4px 14px 18px;overflow-x:hidden;overflow-y:auto;touch-action:pan-y;overscroll-behavior:contain;scroll-snap-type:y proximity;
   -webkit-mask:linear-gradient(180deg,#000 0,#000 calc(100% - 30px),transparent);mask:linear-gradient(180deg,#000 0,#000 calc(100% - 30px),transparent)} /* (même jour) une GRILLE qui défile vers le BAS : on en voit une rangée et demie, le bas se fond — il y a une suite, pas tout le catalogue */
 html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande.finBas{-webkit-mask:none;mask:none}
+#gStrip.fnBande .fnTout{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;margin:4px 0 0;cursor:pointer;
+  font-size:var(--f0);letter-spacing:2px;color:rgba(230,226,255,.55);text-shadow:0 1px 0 rgba(7,5,15,.8);transition:color var(--t-fast) var(--ease)} /* (2026-10-10) écrit en transparent, pas une plaque */
+#gStrip.fnBande .fnTout .pxi{--pxs:1;color:rgba(94,230,255,.6)}
+#gStrip.fnBande .fnTout:is(:hover,:active,.appui){color:rgba(255,255,255,.9)}
 #gStrip.fnBande .fnSec{grid-column:1/-1;display:flex;align-items:center;gap:8px;margin:4px 2px -2px;font-size:var(--f0);letter-spacing:2px;color:var(--tx2)}
 #gStrip.fnBande .fnSec s{flex:1;height:1px;background:linear-gradient(90deg,rgba(154,144,200,.5),transparent)}
 html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnC{position:relative;grid-column:span 2;width:auto;height:128px;overflow:hidden;cursor:pointer;scroll-snap-align:start;transform:skewX(var(--sk));
@@ -38818,18 +38822,25 @@ function gShopJour(){const bar=$('gRar'),st=$('gStrip');if(!bar||!st)return;try{
   st.classList.add('fnBande');
   if(!st._finB){st._finB=1;st.addEventListener('scroll',function(){if(st.classList.contains('fnBande'))st.classList.toggle('finBas',st.scrollTop+st.clientHeight>=st.scrollHeight-4);},{passive:true});} // au bout de la vitrine, plus de fondu
   if(st._r!==k){st._r=k;st._n=-1;st.scrollLeft=0;st.scrollTop=0;st.classList.remove('finBas');
-    st.innerHTML=B.l.map(function(x,n){return (n===BQ_N.une?'<div class="fnSec"><span>'+sansAcc(TR('DU JOUR'))+'</span><s></s></div>':'')+bqCarte(x,n<BQ_N.une);}).join('');
+    st.innerHTML=B.l.map(function(x,n){return (n===BQ_N.une?'<div class="fnSec"><span>'+sansAcc(TR('DU JOUR'))+'</span><s></s></div>':'')+bqCarte(x,n<BQ_N.une);}).join('')
+      +'<div class="fnTout" role="button" tabindex="0">'+sansAcc(TR('VOIR TOUTES LES VOITURES'))+' '+pxi('droite')+'</div>'; // (2026-10-10, Léo : « tout en bas de la boutique, pour voir toutes les voitures — écrit en transparent, pas un bouton ») → le catalogue complet, par famille
     st.querySelectorAll('.fnC[data-fn^="v:"]').forEach(function(el){const i=+el.getAttribute('data-fn').slice(2);
       photoFile(i,function(url){const ph=el.querySelector('.fnPh');if(ph&&!ph.firstChild){const im=document.createElement('img');im.alt='';im.src=url;ph.appendChild(im);}});});}
   const cur=bqCourant();st.querySelectorAll('.fnC').forEach(function(el){el.classList.toggle('on',el.getAttribute('data-fn')===cur);});}
-try{$('gStrip').addEventListener('click',function(e){const t=e.target.closest&&e.target.closest('.fnC');if(!t)return;e.stopPropagation();
+try{$('gStrip').addEventListener('click',function(e){const v=e.target.closest&&e.target.closest('.fnTout');if(v){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(v);uiClic('nav');gVoirTout();return;}
+  const t=e.target.closest&&e.target.closest('.fnC');if(!t)return;e.stopPropagation();
   if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(t);uiClic('nav');const k=t.getAttribute('data-fn');
   if(k[0]==='v'){const i=+k.slice(2);if(SHOP.tab!=='voiture')shopTab('voiture');if(i!==garageI)garageSaute(i);}
   else{const o=bqCos(k),j=COSM[o.cat].indexOf(o.d);if(SHOP.tab!==o.cat)shopTab(o.cat);if(j>=0)shopShow(o.cat,j);try{if(SONV2)sfx('ui.carte');}catch(er){}}
   gShopJour();});}catch(e){}
 setInterval(function(){try{if(!garageOn||gModeM()!=='shop')return;const B=SAVE.d.bq;if(!B||B.j!==bqJour()){const bar=$('gRar'),st=$('gStrip');if(bar)bar._k=null;if(st)st._r=null;gShopJour();return;}
   const t=document.querySelector('#gRar .fnT i:not(.pxi)');if(t){const v=bqReste();if(t.textContent!==v)t.textContent=v;}}catch(e){}},1000);
-try{Object.assign(I18N,{'BOUTIQUE DU JOUR':'DAILY SHOP','À LA UNE':'FEATURED','ACQUIS':'OWNED','DU JOUR':'DAILY'});}catch(e){}
+try{Object.assign(I18N,{'BOUTIQUE DU JOUR':'DAILY SHOP','À LA UNE':'FEATURED','ACQUIS':'OWNED','DU JOUR':'DAILY','VOIR TOUTES LES VOITURES':'SEE ALL CARS'});}catch(e){}
+/* VOIR TOUTES LES VOITURES (2026-10-10) : du bas de la vitrine du jour, le CATALOGUE complet — la console d'ouverture (toutes les caisses, rangées
+   par famille, à toi ou pas), onglet VOITURES ; la caisse affichée ne bouge pas. BOUTIQUE ramène à la vitrine du jour. */
+function gVoirTout(){if(!gEl)return;if(gEl.classList.contains('consoleCachee'))gConsoleCache(false);GMODE.m='tout';GMODE.fam=null;
+  const bar=$('gRar'),st=$('gStrip');if(bar)bar._k=null;if(st){st._r=null;st.scrollTop=0;st.scrollLeft=0;}
+  if(SHOP.tab!=='voiture')shopTab('voiture');else garageFamilles(carRar(garageI));gModeBoutons();}
 window.dbgBoutiqueJour=function(dj){if(dj!=null){BQ_DECALE=dj|0;}const B=bqVitrine();return {jour:B.j,decale:BQ_DECALE,vitrine:B.l.map(function(k){return k+(bqA(k)?' (acquis)':'')+' '+bqRar(k);}),reste:bqReste()};};
 function gModeVa(m){
   if(gEl&&gEl.classList.contains('consoleCachee')){gConsoleCache(false);if(GMODE.m===m)return;} // (2026-10-09) la console repliée : la touche la ROUVRE (dans son mode)
