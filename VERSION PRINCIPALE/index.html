@@ -6419,7 +6419,7 @@ html.hub body #mHome.acc2 .mAccP>.mPlay .lg{font-size:32px!important}
   html.hub body #mHome.acc2 .mAccP>.mPlay .lg{font-size:28px!important}}
 /* les flammes : derrière les lettres (la plaque du titre isole sa pile), lissées, fondues vers le haut */
 html.hub body #mHome.acc2 .mTitle{isolation:isolate}
-#mHome .mTitle .mFeu{position:absolute;left:-5%;width:110%;bottom:76%;height:auto;aspect-ratio:72/16;z-index:-1;pointer-events:none;opacity:1;image-rendering:pixelated;image-rendering:crisp-edges} /* (2e passe) posée AU-DESSUS des lettres : les langues dépassent de leur crête, jamais dans leurs trous */
+#mHome .mTitle .mFeu{position:absolute;z-index:-1;pointer-events:none;image-rendering:auto} /* (3e passe) posée et dimensionnée par mFeuMesure : le titre, plus une marge au-dessus et sur les côtés */
 /* LA JAUGE SOBRE (2026-10-10, Léo : « retravaille la jauge : jolie, sobre, discrète, agréable à l'œil ») : plus de plaque ni de flèches.
    Un fil fin qui s'efface aux deux bouts (une ombre douce dessous pour se lire sur l'anneau du plateau), cinq points discrets (−180°, −90°,
    0°, 90°, 180° ; celui du milieu un peu plus haut), le trait cyan du centre au curseur, et un curseur blanc fin, penché comme les touches,
@@ -40854,28 +40854,58 @@ if(HUB)try{const hm=$('mHome'),ou=hm&&hm.querySelector('.mOutils'),gar=ou&&ou.qu
     const bas=document.createElement('div');bas.className='mAccP';pl.parentNode.insertBefore(bas,pl);bas.appendChild(ge);bas.appendChild(pl);bas.appendChild(sh);
     window.__mFeuVeut=1;}
 }catch(e){console.warn('accueil du ciel',e);}
-/* LES FLAMMES DU LOGO : un feu de DOOM (la méthode des flammes de la porte et de la jauge), 72 × 28 cases, PEINT derrière les lettres et
-   agrandi en CASES NETTES de la taille des pixels du logo ; la chaleur ne naît que sous les lettres, monte et s'éteint vite : de courtes
-   langues qui dépassent du haut des lettres. 20 images/s, seulement quand l'accueil est à l'écran ; « Réduire les animations » : quelques pas puis figé. */
-var MFEU={c:null,x:null,W:72,H:16,t:0,px:null,img:null,pal:null,n:0,br:[]}; // var : mFeuInit est appelée plus haut (l'accueil se monte avant cette ligne)
+/* LES FLAMMES DU LOGO (2026-10-10, Léo, trois passes : « des flammes très légères derrière le logo, quelque chose d'un peu fluide », puis
+   « les flammes CONTOURNENT les lettres, et pas en pixels comme ça — un peu comme la porte, et même plus léger ; le mouvement est trop dur »).
+   · LA SOURCE = LE CONTOUR DES LETTRES : chaque lettre du titre est mesurée (une Range par caractère, transformations comprises) ; la chaleur
+     naît sur son BORD (2 px vers l'intérieur au plus : les creux des lettres restent vides), monte d'environ 22 px, déborde de 6 px sur les
+     côtés et à peine dessous — des flammes qui lèchent les lettres, entre elles et au-dessus.
+   · LE MOUVEMENT = un bruit doux (deux octaves) qui MONTE lentement et ondule : pas de cases qui sautent, une matière qui coule.
+   · LA MATIÈRE : rendue en cases de 2 px, agrandie en LISSÉ ; des couleurs presque PLEINES (orange, ambre, crème) avec un bord fondu de
+     1-2 px — sur le ciel BLEU, un orange translucide vire au gris (le menu est une couche à part : il ne peut pas « éclairer » le ciel 3D).
+   · 30 images/s, seulement quand l'accueil est à l'écran ; les boîtes des lettres se remesurent quand le titre bouge. « Réduire les
+     animations » : une image, figée. */
+var MFEU={c:null,x:null,img:null,W:0,H:0,F:null,t0:0,t:0,cle:'',n:0,ti:null};
+const MFEU_K=2,MFEU_UP=22,MFEU_SIDE=6,MFEU_DOWN=3,MFEU_MX=22,MFEU_MT=30,MFEU_MB=6;
+const MFEU_NZ=(function(){const N=64,T=new Float32Array(N*N);let a=0x9E3779B9;for(let i=0;i<N*N;i++){a^=a<<13;a^=a>>>17;a^=a<<5;T[i]=((a>>>0)%1000)/1000;}return {N:N,T:T};})();
+function mFeuBruit(x,y){const N=MFEU_NZ.N,T=MFEU_NZ.T,xi=Math.floor(x),yi=Math.floor(y),fx=x-xi,fy=y-yi,sx=fx*fx*(3-2*fx),sy=fy*fy*(3-2*fy),
+  x0=((xi%N)+N)%N,y0=((yi%N)+N)%N,x1=(x0+1)%N,y1=(y0+1)%N,a=T[y0*N+x0],b=T[y0*N+x1],c=T[y1*N+x0],d=T[y1*N+x1];
+  return a+(b-a)*sx+(c-a)*sy+(a-b-c+d)*sx*sy;}
 function mFeuInit(){const ti=document.querySelector('#mHome .mTitle');if(!ti||MFEU.c)return;
-  const c=document.createElement('canvas');c.className='mFeu';c.width=MFEU.W;c.height=MFEU.H;c.setAttribute('aria-hidden','true');ti.insertBefore(c,ti.firstChild);
-  MFEU.c=c;MFEU.x=c.getContext('2d');MFEU.img=MFEU.x.createImageData(MFEU.W,MFEU.H);MFEU.px=new Uint8Array(MFEU.W*MFEU.H);
-  /* (même jour) sur le ciel BLEU un orange translucide vire au gris (couleurs complémentaires) : des cases NETTES et presque opaques, la
-     case froide COUPÉE (comme l'alphaTest des flammes de la porte) — rouge braise, orange, or, crème. */
-  const P=[];for(let v=0;v<=36;v++)P.push(v<11?[0,0,0,0]:v<17?[255,118,26,1]:v<23?[255,170,44,1]:v<29?[255,214,94,1]:[255,242,184,1]); // (3e passe) des cases OPAQUES : translucide, l'or sur le bleu du ciel vire au gris (couleurs complémentaires) — un feu de pixel art est fait de couleurs pleines
-  MFEU.pal=P;requestAnimationFrame(mFeuTic);}
+  const c=document.createElement('canvas');c.className='mFeu';c.setAttribute('aria-hidden','true');ti.insertBefore(c,ti.firstChild);
+  MFEU.c=c;MFEU.x=c.getContext('2d');MFEU.ti=ti;requestAnimationFrame(mFeuTic);}
+function mFeuMesure(){ /* LE MASQUE DES LETTRES : le titre est penché d'un bloc (skewX sur .mTitle) et le canvas, son enfant, penche avec lui —
+     on travaille donc dans son repère À PLAT : chaque mot (.lg) redessiné à sa place (offsetLeft/Top), même police, même corps. Puis :
+     l'EXTÉRIEUR (remplissage depuis les bords : les creux des lettres n'en sont pas), les cases de BORD (lettre touchant l'extérieur) et,
+     de chacune, une flamme potentielle qui MONTE (MFEU_UP) et déborde un peu sur les côtés (MFEU_SIDE) — seulement dehors. */
+  const ti=MFEU.ti,tw=ti.offsetWidth,th=ti.offsetHeight;if(tw<20||th<10)return false;
+  const L=Array.prototype.map.call(ti.querySelectorAll('.lg'),function(e){const c=getComputedStyle(e);return [e.textContent,e.offsetLeft,e.offsetTop,parseFloat(c.fontSize),c.fontFamily];});
+  const cle=tw+'x'+th+':'+L.map(function(a){return a.slice(0,4).join(',');}).join('|');if(cle===MFEU.cle)return true;MFEU.cle=cle;
+  const K=MFEU_K,Wc=tw+2*MFEU_MX,Hc=th+MFEU_MT+MFEU_MB,W=Math.ceil(Wc/K),H=Math.ceil(Hc/K),c=MFEU.c;
+  c.width=W;c.height=H;c.style.left=(-MFEU_MX)+'px';c.style.top=(-MFEU_MT)+'px';c.style.width=(W*K)+'px';c.style.height=(H*K)+'px';
+  MFEU.W=W;MFEU.H=H;MFEU.img=MFEU.x.createImageData(W,H);
+  const m=document.createElement('canvas');m.width=W;m.height=H;const mx=m.getContext('2d');mx.setTransform(1/K,0,0,1/K,MFEU_MX/K,MFEU_MT/K);mx.textBaseline='top';mx.fillStyle='#fff';
+  for(const a of L){mx.font=a[3]+'px '+a[4];mx.fillText(a[0],a[1],a[2]);}
+  const A=mx.getImageData(0,0,W,H).data,N=W*H,M=new Uint8Array(N),E=new Uint8Array(N),Q=new Int32Array(N);let qh=0,qt=0;
+  for(let i=0;i<N;i++)M[i]=A[i*4+3]>110?1:0;
+  const pousse=function(i){if(!M[i]&&!E[i]){E[i]=1;Q[qt++]=i;}};
+  for(let x=0;x<W;x++){pousse(x);pousse((H-1)*W+x);}for(let y=0;y<H;y++){pousse(y*W);pousse(y*W+W-1);}
+  while(qh<qt){const i=Q[qh++],x=i%W;if(x>0)pousse(i-1);if(x<W-1)pousse(i+1);if(i>=W)pousse(i-W);if(i<N-W)pousse(i+W);}
+  const F=MFEU.F=new Float32Array(N),up=Math.ceil(MFEU_UP/K),sd=Math.ceil(MFEU_SIDE/K);
+  for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++){const i=y*W+x;if(!M[i]||!(E[i-1]||E[i+1]||E[i-W]||E[i+W]))continue;
+    for(let dy=-1;dy<=up;dy++){const yy=y-dy;if(yy<0||yy>=H)continue;for(let dx=-sd;dx<=sd;dx++){const xx=x+dx;if(xx<0||xx>=W)continue;const j=yy*W+xx;if(!E[j])continue;
+      const v=1-Math.max(0,dy)/up-Math.abs(dx)/sd*.85-(dy<0?.5:0);if(v>F[j])F[j]=v;}}}
+  return true;}
 function mFeuTic(t){requestAnimationFrame(mFeuTic);
   if(document.hidden||!MFEU.c)return;const hm=document.getElementById('mHome');if(!hm||!hm.classList.contains('on')||!MFEU.c.offsetParent)return;
-  if(t-MFEU.t<50)return;MFEU.t=t;if(REDUCED_MOTION&&MFEU.n>40)return;MFEU.n++;
-  const W=MFEU.W,H=MFEU.H,p=MFEU.px,R=Math.random;
-  for(let x=0;x<W;x++){const c=Math.abs(x-W/2)/(W*.44);p[(H-1)*W+x]=c<1?Math.round(27*(1-c*c*c*c)*(.5+.5*R())):0;}
-  for(let y=1;y<H;y++)for(let x=0;x<W;x++){const i=y*W+x,v=p[i],r=(R()*3)|0,d=i-W-r+1;if(d<0)continue;p[d]=v>0?Math.max(0,v-(r&1)-(R()<.6?3:2)):0;}
-  const D=MFEU.img.data,P=MFEU.pal;for(let i=0;i<W*H;i++){const q=P[p[i]],o=i*4;D[o]=q[0];D[o+1]=q[1];D[o+2]=q[2];D[o+3]=q[3]*255;}
-  /* LES BRAISES : quelques cases d'or qui se détachent des langues, montent en ondulant et s'éteignent (6 au plus) */
-  const B=MFEU.br;if(B.length<6&&R()<.22)B.push({x:W*(.12+.76*R()),y:H-4,v:.35+.35*R(),ph:R()*6.3,l:1});
-  for(let k=B.length-1;k>=0;k--){const b=B[k];b.y-=b.v;b.ph+=.35;b.l-=.06;const bx=Math.round(b.x+Math.sin(b.ph)*.8),by=Math.round(b.y);
-    if(b.l<=0||by<0){B.splice(k,1);continue;}if(bx<0||bx>=W)continue;const o=(by*W+bx)*4,q=b.l>.66?[255,242,184]:b.l>.33?[255,214,94]:[255,150,40];D[o]=q[0];D[o+1]=q[1];D[o+2]=q[2];D[o+3]=255;} // elle s'éteint en changeant de COULEUR (crème, or, orange), jamais en transparence
+  if(t-MFEU.t<33)return;MFEU.t=t;if(REDUCED_MOTION&&MFEU.n>2)return;
+  if(MFEU.n%30===0||!MFEU.F)if(!mFeuMesure())return;MFEU.n++;
+  const W=MFEU.W,H=MFEU.H,F=MFEU.F,D=MFEU.img.data,s=t/1000,v=s*1.25,sw=s*.5;
+  for(let y=0;y<H;y++){const yy=y*.11+v,ox=Math.sin(y*.21+s*1.3)*.6;
+    for(let x=0;x<W;x++){const i=y*W+x,f=F[i],o=i*4;if(f<=0){D[o+3]=0;continue;}
+      const n=mFeuBruit(x*.085+ox+sw,yy)*.65+mFeuBruit(x*.19-sw,yy*2.1+3.7)*.35,h=f*(.35+1.05*n)-.38;
+      if(h<=0){D[o+3]=0;continue;}
+      let r,g,b;if(h<.25){const k=h/.25;r=255;g=104+52*k;b=24+16*k;}else if(h<.5){const k=(h-.25)/.25;r=255;g=156+58*k;b=40+40*k;}else{const k=Math.min(1,(h-.5)/.3);r=255;g=214+30*k;b=80+110*k;}
+      D[o]=r;D[o+1]=g;D[o+2]=b;D[o+3]=Math.min(235,h*1400);}}
   MFEU.x.putImageData(MFEU.img,0,0);}
 if(window.__mFeuVeut)try{mFeuInit();}catch(e){console.warn('flammes du logo',e);}
 function hubCtx(){ // l'onglet du hub où l'on est ('' = hors du hub)
