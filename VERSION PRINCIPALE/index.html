@@ -6303,6 +6303,24 @@ html.hubOn.gtConsole body #garage:not(.menu)>#gTourne.on{width:min(calc(100% - v
   html.hubOn #gTourne.on{--gtW:min(calc(100% - min(48%,450px) - var(--sL) - var(--sR) - 90px),320px);width:var(--gtW);
     left:calc(var(--sL) + (100% - min(48%,450px) - 14px - var(--sL) - var(--sR) - var(--gtW)) / 2)}}
 html body #garage:not(.menu):not(.vitrine) #gBottom{background:linear-gradient(180deg,rgba(22,17,44,.34) 0%,rgba(18,14,36,.22) 34%,rgba(16,12,34,.26) 62%,rgba(13,10,28,.6) 82%,rgba(11,8,24,.74) 100%)}
+/* HOME BIEN VISIBLE, L'ŒIL QUI LUIT (2026-10-10, Léo : « le HOME plus visible, et le CACHER : mets l'œil en orange luisant ») : les deux
+   pictogrammes passent au double (--pxs 2) dans une enveloppe `.gLueur` qui porte la lueur — un drop-shadow posé SUR une .pxi ne se voit pas
+   (le masque le rogne, voir la charte) : posé sur son parent, il passe. HOME : plaque teintée de bleu, mot en blanc, filet bleu épais.
+   CACHER : l'œil orange, un halo qui respire (opacité seule, 2,4 s — rien d'autre ne s'anime). */
+html body #garage:not(.menu):not(.vitrine) #gAct>:is(#gHomeBas,#gCache){gap:5px;padding:0 6px;letter-spacing:1px}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip{letter-spacing:1px}
+html body #garage:not(.menu):not(.vitrine) #gAct>:is(#gHomeBas,#gCache) .gLueur{position:relative;display:inline-flex;line-height:0;filter:drop-shadow(0 0 2px var(--lu)) drop-shadow(0 0 6px var(--lu))}
+html body #garage:not(.menu):not(.vitrine) #gAct>:is(#gHomeBas,#gCache) .gLueur .pxi{--pxs:2;filter:none}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gHomeBas{--ton:#5b95ff;--lu:rgba(79,140,255,.85);color:#fff;text-shadow:0 1px 0 rgba(7,5,15,.9),0 0 10px rgba(91,149,255,.75);
+  background:linear-gradient(180deg,rgba(46,78,170,.62),rgba(20,28,74,.9));box-shadow:inset 0 0 0 1px rgba(120,165,255,.55),inset 0 -4px 0 var(--ton),0 0 16px -4px var(--ton),0 6px 14px -8px var(--ton)}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gHomeBas .pxi{color:#8fbcff}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gCache{--lu:rgba(255,138,31,.9)}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gCache .pxi{color:#ffa23a}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gCache .gLueur::after{content:'';position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,rgba(255,150,40,.5),rgba(255,120,20,.18) 45%,transparent 70%);animation:gOeilLuit 2.4s ease-in-out infinite}
+@keyframes gOeilLuit{0%,100%{opacity:.45}50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){html body #garage #gAct>#gCache .gLueur::after{animation:none;opacity:.8}}
+html[data-reduced-motion="1"] body #garage #gAct>#gCache .gLueur::after{animation:none;opacity:.8}
 /* LA CROIX DE L'INVENTAIRE, DISCRÈTE (même jour, Léo : « la croix est juste plus discrète, et sert à enlever le rectangle avec toutes
    les voitures pour qu'on ait une vue sur le garage ») : elle ferme toujours le tiroir, mais n'est plus une touche cyan pleine. Plus de
    plaque ni de tranche : une petite croix lilas dans un carré à peine dessiné (filet d'1 px, fond presque nul), qui s'allume sous le doigt.
@@ -6469,8 +6487,8 @@ html.sansFacile [data-m="facile"]{display:none!important}
         <button id="gShopBas" class="pbtn pb-mag" data-go="shop" aria-label="Boutique"><i class="pxi pxi-panier" aria-hidden="true"></i><span data-fr="BOUTIQUE">BOUTIQUE</span></button>
         <div id="gBuyRow"><button id="gBuy" class="pbtn pb-gold">ACHETER</button></div>
         <button id="gEquip" class="pbtn pb-gold">ÉQUIPER</button>
-        <button id="gHomeBas" class="pbtn" aria-label="Accueil"><i class="pxi pxi-maison" aria-hidden="true"></i><span data-fr="HOME">HOME</span></button><!-- (2026-10-09, Léo) le HOME dans la rangée, au-dessus d'INVENTAIRE -->
-        <button id="gCache" class="pbtn" aria-label="Cacher la console" aria-pressed="false"><i class="pxi pxi-oeil" aria-hidden="true"></i><span data-fr="CACHER">CACHER</span></button><!-- (2026-10-09, Léo) replier la boutique / l'inventaire : la vue sur le garage -->
+        <button id="gHomeBas" class="pbtn" aria-label="Accueil"><i class="gLueur" aria-hidden="true"><i class="pxi pxi-maison"></i></i><span data-fr="HOME">HOME</span></button><!-- (2026-10-09, Léo) le HOME dans la rangée, au-dessus d'INVENTAIRE -->
+        <button id="gCache" class="pbtn" aria-label="Cacher la console" aria-pressed="false"><i class="gLueur" aria-hidden="true"><i class="pxi pxi-oeil"></i></i><span data-fr="CACHER">CACHER</span></button><!-- (2026-10-09, Léo) replier la boutique / l'inventaire : la vue sur le garage -->
         <button id="gJouer" class="pbtn pb-gold big"><span data-fr="JOUER">JOUER</span><i class="mChev" aria-hidden="true"><i class="pxi pxi-droite"></i><i class="pxi pxi-droite"></i><i class="pxi pxi-droite"></i></i></button>
         <!-- (2026-10-05, Léo : « en dessous du play, insère MISSIONS, et le nom du level qui va être lancé, limite collé, de manière stylée, branché énergétiquement ») LA VITRINE : voir gvNiveau -->
         <button id="gvMis" class="pbtn" aria-label="Missions"><s class="gvFx" aria-hidden="true"></s><i class="pxi pxi-cible" aria-hidden="true"></i><span data-fr="MISSIONS">MISSIONS</span><b class="gvPips" aria-hidden="true"><u></u><u></u><u></u></b></button>
