@@ -388,6 +388,25 @@ LES BOUTONS DE SACHA ») : **PLAY/JOUER = la partie sans fin, et toucher un nive
   renversé) et la bouche sont de vraies OUVERTURES entre ces os, avec un creux sombre posé plus loin derrière (plus de rubis). Six
   PASTELS nacrés (`M.cranes` : rose, menthe, lavande, ciel, pêche, citron — le métal du studio teinté, l'éclat à sa teinte), tirés au
   lancer. Plus petit : 0,5-0,6 m (était ~1 m). `dbgRiche('cranes')` aligne les six ; `dbgRiche('cranes','pres')` à 5 m de l'objectif. sw.js → v175.
+- **v5 — BILLETS EN COULEURS, PIÈCES EN RELIEF, LE PAPIER QUI TOMBE (2026-10-10, Léo : « ajoute à l'animation un peu de complexité ;
+  les billets un tout petit peu plus petits, plusieurs couleurs — les liasses restent vertes ; les pièces un peu plus flashy et
+  réalistes »)** : BILLETS −12 % (0,92 m ; la liasse garde sa taille) et une SÉRIE de sept valeurs, une couleur chacune (`RICH_BILLETS` :
+  5 fuchsia · 10 rubis · 20 bleu roi · 50 orange · 100 sarcelle · 200 violet · 500 or ; `M.billets`, même programme SOUPLE) ; le 100
+  (`RICH_B100`, le billet d'origine) habille la LIASSE et les billets qui en sortent. PIÈCES : chaque pièce a deux images du même dessin
+  (`richDuo` : couleur + HAUTEUR) — listel, étoiles, arbre, chiffre, rainure du bimétal, et la TRANCHE (cordon fin du 2 €, segments du
+  1 €, fleur d'Espagne du 50 c, crénelage du bitcoin) en bande au bas de l'image ; le programme du métal a un `#define PIECE` (4e
+  programme, compilé sous l'écran titre) qui incline la normale par la carte de hauteur (`RICH_BOSSE`), moins de ciel teinté, une BOÎTE À
+  LUMIÈRE derrière l'objectif (la face qui te regarde s'allume d'un coup), bord plus blanc, éclats ×1,45 ; métaux un cran plus vifs ;
+  vraie épaisseur (.16 du rayon) ; éclat en étoile plus large et teinté (froid pour l'argent, chaud pour l'or). L'ANIMATION :
+  · le PAPIER (billets, trèfles — `richPapier`/`richPapierTick`) se pose sur l'air après la giclée : FEUILLE MORTE (2 fois sur 3 : il se
+    balance autour de son long côté, glisse en zigzag, file au creux et cale en haut) ou CULBUTE (bout sur bout, il plane de côté) ; il
+    vire lentement ; l'allure le rattrape par un slerp (aucun à-coup) ;
+  · les PIÈCES VOILENT (précession de l'axe de rotation, `pa`/`pw`) : les éclats tombent quand on ne les attend pas ;
+  · une LIASSE sur deux CRAQUE en vol (`richEclate`) : la bande saute, cinq à sept billets verts s'ouvrent en éventail ;
+  · la GERBE EN DEUX TEMPS : le métal part d'abord, le papier suit et s'étale ; gros et jackpot ont une RÉPLIQUE (la caisse recrache une
+    poignée de pièces 0,34-0,43 s après). Mesuré : 154 programmes au menu, 0 compilé au coup ; 60+ objets en l'air sans erreur ni NaN.
+  Console : `dbgRiche('etal',d,w)` (les sept billets et les quatre pièces face à l'objectif, à d m, figés — `dbgRiche('vitrine',0)` les
+  relâche ; figés, ils ne s'effacent plus de près) ; `dbgRiche().papier` = feuilles / culbutes / horsNombre (NaN, doit rester à 0). sw.js → v248.
 
 ## LE SON PARASITE DU DÉPART DES NUAGES (2026-10-08, Léo : « la première map, quand je démarre, il y a un son hyper chelou, un son parasite — enlève ; vérifie pour les autres »)
 - **C'ÉTAIT `nuages.ambiance`** (la boucle « LA MER DE NUAGES A SON AIR » du 30/09 : souffle d'altitude, rafales, harpe éolienne), lancée au
