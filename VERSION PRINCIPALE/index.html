@@ -27403,7 +27403,17 @@ function dolCubes(src,h){
    lisse, un peu gonflé (`uCoqG`, en m : il enveloppe les cubes), TRANSPARENT de face (`uCoqA0`) et presque opaque sur la silhouette
    (`uCoqA1`, selon l'angle — `uCoqP` la courbe) : de face on voit les cubes à travers une peau de verre mouillé, sur les bords la ligne est
    lisse. Même peau peinte, mêmes uniforms de nage et de surface que ses cubes (elle les suit au millimètre). `DOL_COQUE.on=false` l'enlève. */
-const DOL_COQUE={on:true};
+/* LA STRUCTURE EN TROIS COUCHES (2026-10-10, Léo : « crée une structure en mélangeant les deux techniques fusionnées… un résultat encore
+   plus, plus, plus impressionnant ») — de l'intérieur vers l'extérieur :
+   · LE CŒUR (`coeur`) : le dauphin lisse RENTRÉ sous les écailles (`uCoeurIn`), une lumière pure (rose au rostre → violet → cyan à la
+     queue, les couleurs du liseré : la dark triad le passe au rouge sang), qui bat avec l'ONDE ;
+   · LES ÉCAILLES : les cubes, un peu ÉCARTÉS (`uEcart` .84) — la lumière du cœur passe dans les joints, une mosaïque de lanterne — et
+     soulevés par une VAGUE qui court du rostre à la queue (`uVague`, le long de la normale hors de l'axe du corps) ;
+   · LA PEAU DE VERRE (`coque`) : transparente de face, opaque sur la silhouette, avec le REFLET D'UN CIEL (dégradé zénith / horizon / sol
+     sur la direction réfléchie), un ÉCLAT de studio net et un film IRISÉ sur les bords.
+   L'ONDE (`uScan`) : une bande de lumière qui parcourt le corps du rostre à la queue (≈ 2 s, l'horloge de la nage) — elle allume le cœur,
+   les arêtes des écailles et la peau à son passage. Chaque couche est réglable dans la boîte (carte « Structure »). */
+const DOL_COQUE={on:true,coeur:true};
 const DOL_GEO=DOL_VOX>0?dolCubes(mkDolphinGeo(),DOL_VOX):mkDolphinGeo(),DOL_GEO_L=DOL_VOX>0?dolCubes(mkDolphinGeo(),DOL_VOX_L):DOL_GEO,DOL_GEO_S=DOL_VOX>0?mkDolphinGeo():null; // la coque : le dauphin lisse // ~24 800 et ~8 000 triangles
 // LES ÉTOILES du sillage : quatre branches fines + deux petites en biais, cœur doux (texture des particules)
 const DOL_ETOILE=(function(){const cv=document.createElement('canvas');cv.width=cv.height=64;const c=cv.getContext('2d');
@@ -27417,23 +27427,25 @@ const DOL_ETOILE=(function(){const cv=document.createElement('canvas');cv.width=
 // uniforms PARTAGÉS : largeur de la ligne d'écume (m — suit la taille du banc) · force du liseré · ses couleurs (ventre, dos) et celle de l'écume
 const DOL_U={uEcume:{value:.2},uRimK:{value:1.5},uRimA:{value:new THREE.Color(.55,.9,1)},uRimB:{value:new THREE.Color(1,.6,.88)},uEcC:{value:new THREE.Color(.75,.97,1)},
   uLum:{value:new THREE.Vector3(.3,1,.25).normalize()},uScene:{value:.5},
-  uCoqA0:{value:.3},uCoqA1:{value:.95},uCoqP:{value:1.4},uCoqG:{value:DOL_VOX*1.3}}; // la COQUE : opacité de face · sur la silhouette · courbe · gonflement (m) /* (2026-10-09, « plus réel ») uLum : SA lumière (direction MONDE : le haut du banc, un peu vers la caméra — posée par updateDolphins) ; uScene : la part des lumières du niveau qu'il garde */ /* la DARK TRIAD les passe au rouge sang, la robe au noir (dolNoirMaj) */
+  uCoqA0:{value:.3},uCoqA1:{value:.95},uCoqP:{value:1.4},uCoqG:{value:DOL_VOX*1.3}, // la COQUE : opacité de face · sur la silhouette · courbe · gonflement (m)
+  uEcart:{value:.84},uVague:{value:DOL_VOX*.6},uLueur:{value:1.4},uScan:{value:1},uCoeurIn:{value:DOL_VOX*1.6},uNoir:{value:0}}; // LA STRUCTURE : taille des écailles (1 = jointives) · leur vague (m) · la lumière du cœur · l'onde qui parcourt le corps · le cœur rentré sous les écailles (m) /* (2026-10-09, « plus réel ») uLum : SA lumière (direction MONDE : le haut du banc, un peu vers la caméra — posée par updateDolphins) ; uScene : la part des lumières du niveau qu'il garde */ /* la DARK TRIAD les passe au rouge sang, la robe au noir (dolNoirMaj) */
 let dolNoir=false;
 function dolNoirMaj(){const n=triNoir();if(n===dolNoir)return;dolNoir=n; /* (Sacha : « en dark triad […] les dauphins […] doivent être noirs ») uniforms et couleurs seulement : même programme */
-  DOL_U.uRimA.value.setRGB(n?1:.55,n?.08:.9,n?.14:1);DOL_U.uRimB.value.setRGB(n?.75:1,n?0:.6,n?.08:.88);DOL_U.uEcC.value.setRGB(n?1:.75,n?.22:.97,n?.28:1);
+  DOL_U.uNoir.value=n?1:0;DOL_U.uRimA.value.setRGB(n?1:.55,n?.08:.9,n?.14:1);DOL_U.uRimB.value.setRGB(n?.75:1,n?0:.6,n?.08:.88);DOL_U.uEcC.value.setRGB(n?1:.75,n?.22:.97,n?.28:1);
   for(const d of dolphins){d.material.color.setHex(n?0x0e0d12:0xffffff);if(d.userData.coque)d.userData.coque.material.color.setHex(n?0x0e0d12:0xffffff);}
   dolTrail.mesh.material.color.setHex(n?0xff1a30:0xffe6fb);dolSplash.mesh.material.color.setHex(n?0xb01424:0xd6faff);}
 const DOL_G3=c=>'vec3('+c.r.toFixed(4)+','+c.g.toFixed(4)+','+c.b.toFixed(4)+')',DOL_F=v=>(+v).toFixed(4);
 function dolShader(sh){ // nage + surface d'eau + PEAU peinte + nacre, liseré, paillettes — appelée en méthode : `this` = la matière du dauphin, ses uniforms à lui
-  const m=this.userData,C=DOL_C,E=DOL_OEIL,cq=!!m.coque;sh.uniforms.uCoqA0=DOL_U.uCoqA0;sh.uniforms.uCoqA1=DOL_U.uCoqA1;sh.uniforms.uCoqP=DOL_U.uCoqP;sh.uniforms.uCoqG=DOL_U.uCoqG;sh.uniforms.uLum=DOL_U.uLum;sh.uniforms.uScene=DOL_U.uScene;sh.uniforms.uDol=m.uDol;sh.uniforms.uSurf=m.uSurf;sh.uniforms.uEcume=DOL_U.uEcume;sh.uniforms.uRimK=DOL_U.uRimK;sh.uniforms.uRimA=DOL_U.uRimA;sh.uniforms.uRimB=DOL_U.uRimB;sh.uniforms.uEcC=DOL_U.uEcC;
+  const m=this.userData,C=DOL_C,E=DOL_OEIL,cq=!!m.coque,co=!!m.coeur;for(const k of ['uEcart','uVague','uLueur','uScan','uCoeurIn','uNoir'])sh.uniforms[k]=DOL_U[k];sh.uniforms.uCoqA0=DOL_U.uCoqA0;sh.uniforms.uCoqA1=DOL_U.uCoqA1;sh.uniforms.uCoqP=DOL_U.uCoqP;sh.uniforms.uCoqG=DOL_U.uCoqG;sh.uniforms.uLum=DOL_U.uLum;sh.uniforms.uScene=DOL_U.uScene;sh.uniforms.uDol=m.uDol;sh.uniforms.uSurf=m.uSurf;sh.uniforms.uEcume=DOL_U.uEcume;sh.uniforms.uRimK=DOL_U.uRimK;sh.uniforms.uRimA=DOL_U.uRimA;sh.uniforms.uRimB=DOL_U.uRimB;sh.uniforms.uEcC=DOL_U.uEcC;
   // uDol : x = amplitude de la vague, y = sa phase (l'horloge de la nage), z = son nombre d'onde sur le corps, w = la cambrure (le corps épouse l'arc du bond)
-  sh.vertexShader='uniform float uCoqG;attribute vec3 aRb;attribute vec3 aLp;uniform vec4 uDol;uniform vec4 uSurf;varying float vSurf9;varying vec3 vRb;varying vec3 vLp;varying vec3 vPo;\n'+sh.vertexShader
+  sh.vertexShader='uniform float uCoqG;uniform float uEcart;uniform float uVague;uniform float uCoeurIn;attribute vec3 aRb;attribute vec3 aLp;uniform vec4 uDol;uniform vec4 uSurf;varying float vSurf9;varying vec3 vRb;varying vec3 vLp;varying vec3 vPo;\n'+sh.vertexShader
     .replace('#include <begin_vertex>','#include <begin_vertex>\nvRb=aRb;vLp=aLp;vPo=position;\n'+ // (cubes) la vague se lit au CENTRE du cube : il bouge d'un bloc
       'float u9=clamp((1.6-aLp.x)/3.2,0.,1.3),e9=smoothstep(.2,1.05,u9),dy9=uDol.x*e9*e9*sin(uDol.y-u9*uDol.z)-uDol.w*aLp.x*aLp.x;\n'+
-      'transformed.y+=dy9;'+(cq?'\ntransformed+=normalize(objectNormal)*uCoqG;':''))
+      (!cq&&!co&&DOL_VOX>0?'{vec3 dr9=normalize(vec3(0.,aLp.y+.02,aLp.z)+1e-4);float wv9=exp(-pow((aLp.x-(1.9-4.4*fract(uDol.y*.05)))/.3,2.));transformed=aLp+(transformed-aLp)*mix(uEcart,1.,wv9*.8)+dr9*uVague*wv9;}\n':'')+ // les ÉCAILLES : écartées (les joints laissent passer le cœur) et soulevées par la vague
+      'transformed.y+=dy9;'+(cq?'\ntransformed+=normalize(objectNormal)*uCoqG;':'')+(co?'\ntransformed-=normalize(objectNormal)*uCoeurIn;':''))
     .replace('#include <project_vertex>','#include <project_vertex>\nvSurf9=dot(uSurf.xyz,(modelMatrix*vec4(aLp.x,aLp.y+dy9,aLp.z,1.)).xyz)-uSurf.w;'); // (cubes) l'eau coupe le cube ENTIER
-  sh.fragmentShader='uniform vec3 uLum;uniform float uScene;uniform float uEcume;uniform float uRimK;uniform vec3 uRimA;uniform vec3 uRimB;uniform vec3 uEcC;uniform vec4 uDol;varying float vSurf9;varying vec3 vRb;varying vec3 vLp;varying vec3 vPo;\n'+
-    'uniform float uCoqA0;uniform float uCoqA1;uniform float uCoqP;\nconst float dolVox='+DOL_F(cq?0:DOL_VOX)+';\n'+ // (la coque est lisse : ni biseau ni éclats de cube)
+  sh.fragmentShader='uniform float uNoir;uniform vec3 uLum;uniform float uScene;uniform float uEcume;uniform float uRimK;uniform vec3 uRimA;uniform vec3 uRimB;uniform vec3 uEcC;uniform vec4 uDol;varying float vSurf9;varying vec3 vRb;varying vec3 vLp;varying vec3 vPo;\n'+
+    'uniform float uCoqA0;uniform float uCoqA1;uniform float uCoqP;uniform float uLueur;uniform float uScan;\nconst float dolVox='+DOL_F(cq||co?0:DOL_VOX)+';float dolE9=0.;\n'+ // (la coque est lisse : ni biseau ni éclats de cube)
     'float dolH(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}\n'+
     'float dolN(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);\n'+
     '  return mix(mix(mix(dolH(i),dolH(i+vec3(1.,0.,0.)),f.x),mix(dolH(i+vec3(0.,1.,0.)),dolH(i+vec3(1.,1.,0.)),f.x),f.y),\n'+
@@ -27460,7 +27472,7 @@ function dolShader(sh){ // nage + surface d'eau + PEAU peinte + nacre, liseré, 
     '  c=mix(c,'+DOL_G3(C.cerne)+',.45*smoothstep(1.7,1.1,eo)*corps);c=mix(c,'+DOL_G3(C.oeil)+',smoothstep(1.,.78,eo)*corps);\n'+
     '  vec3 qr=vPo-vec3('+DOL_F(E[0])+','+DOL_F(E[1])+',sign(vPo.z)*'+DOL_F(E[2])+');\n'+
     '  dolReflet9=smoothstep(1.,.35,length(vec3((qr.x-.01)/.011,(qr.y-.008)/.011,qr.z/.07)))*corps;\n'+
-    '  if(dolVox>0.){vec3 qb=abs(vPo-vLp);qb/=max(qb.x,max(qb.y,qb.z));float e=qb.x+qb.y+qb.z-1.-min(qb.x,min(qb.y,qb.z));\n'+ // (cubes) le biseau des arêtes + la nuance propre à chaque cube
+    '  if(dolVox>0.){vec3 qb=abs(vPo-vLp);qb/=max(qb.x,max(qb.y,qb.z));float e=qb.x+qb.y+qb.z-1.-min(qb.x,min(qb.y,qb.z));dolE9=smoothstep(.6,1.,e);\n'+ // (cubes) le biseau des arêtes + la nuance propre à chaque cube
     '    c*=(1.-.2*smoothstep(.6,1.,e))*(.95+.1*dolH(vLp*61.7));}\n'+
     '  return c;}\n'+sh.fragmentShader
     .replace('#include <color_fragment>','#include <color_fragment>\ndiffuseColor.rgb*=dolPeau();')
@@ -27487,7 +27499,15 @@ function dolShader(sh){ // nage + surface d'eau + PEAU peinte + nacre, liseré, 
       'else if(hg9>.93){vec3 o9=vec3(dolH(ci9+1.7),dolH(ci9+3.1),dolH(ci9+5.3))-.5;float d9=length(fract(g9)-.5-o9*.5),r9=max(.16,length(fwidth(g9))*.9);\n'+
       '  float tw9=pow(.5+.5*sin(uDol.y*(.3+.4*dolH(ci9+9.))+hg9*80.),6.);\n'+
       '  totalEmissiveRadiance+=mix(vec3(1.),uRimB,.2)*smoothstep(r9,0.,d9)*tw9*(.16/r9)*.7;}\n'+
-      'float ec9=1.-smoothstep(0.,uEcume,vSurf9);totalEmissiveRadiance+=uEcC*ec9*ec9*2.2;');
+      'float sc9=uScan*exp(-pow((vLp.x-(1.9-4.4*fract(uDol.y*.05)))/.22,2.));vec3 gl9=mix(mix(mix(vec3(1.,.22,.62),vec3(.55,.28,1.),smoothstep(.15,.5,vRb.x)),vec3(.15,.8,1.),smoothstep(.5,.9,vRb.x)),uRimA,uNoir);\n'+ // L'ONDE et la couleur du cœur à cet endroit
+      (cq?'vec3 rf9=reflect(-vd9,normal),rw9=(vec4(rf9,0.)*viewMatrix).xyz,ll9=normalize((viewMatrix*vec4(uLum,0.)).xyz);\n'+ // (vec × mat = la transposée : vue → monde, WebGL 1 compris) // LA PEAU DE VERRE : le ciel réfléchi, l'éclat, le film irisé
+          'vec3 sky9=mix(mix(vec3(.30,.27,.40),vec3(.86,.92,1.),smoothstep(-.25,.05,rw9.y)),vec3(.42,.6,1.),smoothstep(.15,.9,rw9.y));\n'+
+          'totalEmissiveRadiance+=sky9*(.03+.55*fr9);totalEmissiveRadiance+=vec3(1.,.98,.95)*pow(max(dot(rf9,ll9),0.),300.)*2.5;\n'+
+          'totalEmissiveRadiance+=(.5+.5*cos(6.2832*(fr9*1.4+vLp.x*.15+vec3(0.,.33,.67))))*fr9*.28;\n'+
+          'totalEmissiveRadiance+=gl9*sc9*.35;diffuseColor.a=min(1.,diffuseColor.a+sc9*.12);\n':'')+
+      (!cq&&!co?'totalEmissiveRadiance+=gl9*(dolE9*(.25*uLueur+2.2*sc9)+sc9*.25);\n':'')+ // LES ÉCAILLES : leurs arêtes s'allument au passage de l'onde
+      'float ec9=1.-smoothstep(0.,uEcume,vSurf9);totalEmissiveRadiance+=uEcC*ec9*ec9*2.2;')
+    .replace('#include <tonemapping_fragment>',(co?'gl_FragColor=vec4(gl9*uLueur*(.55+.25*sin(uDol.y*.3)+2.2*sc9)+uEcC*ec9*ec9,1.);\n':'')+'#include <tonemapping_fragment>'); // LE CŒUR : de la lumière pure (rien d\'autre ne compte : on écrase la sortie)
 }
 function mkDauphin(){ // UN mesh, SA matière (clone) : le programme est partagé, les uniforms (vague, surface) sont les siens
   const m=new THREE.MeshPhongMaterial({color:0xffffff,shininess:85,specular:0x7c8590,emissive:0x262626}); // emissive = part de la peau qui s'éclaire seule (× la couleur, dans le shader) ; peau MOUILLÉE : reflet serré
@@ -27499,6 +27519,10 @@ function mkDauphin(){ // UN mesh, SA matière (clone) : le programme est partag�
     m2.extensions={derivatives:true};m2.userData.uDol=m.userData.uDol;m2.userData.uSurf=m.userData.uSurf;m2.userData.coque=true; // les MÊMES uniforms : elle nage avec ses cubes
     m2.onBeforeCompile=dolShader;m2.customProgramCacheKey=function(){return 'dauphin5c';};
     const c2=new THREE.Mesh(DOL_GEO_S,m2);c2.renderOrder=1;d.add(c2);d.userData.coque=c2;}
+  if(DOL_GEO_S&&DOL_COQUE.coeur){const m3=new THREE.MeshPhongMaterial({color:0xffffff});m3.extensions={derivatives:true}; // LE CŒUR : il ne se voit que par les joints des écailles et à travers la peau
+    m3.userData.uDol=m.userData.uDol;m3.userData.uSurf=m.userData.uSurf;m3.userData.coeur=true;
+    m3.onBeforeCompile=dolShader;m3.customProgramCacheKey=function(){return 'dauphin5h';};
+    const c3=new THREE.Mesh(DOL_GEO_S,m3);d.add(c3);d.userData.coeur=c3;}
   d.visible=false;return d;
 }
 // LE BANC : les gabarits du `setPod` de Léo — vitesse (tempo du bond), amplitude, niveau de la « surface », profondeur

@@ -51,13 +51,15 @@
   #coque{position:fixed;left:24px;bottom:64px;width:236px;padding:12px 14px 10px;border-radius:16px;background:rgba(255,255,255,.72);
     box-shadow:0 0 0 .5px rgba(0,0,0,.08),0 8px 28px rgba(0,0,0,.06);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);font-size:12px}
   #coque[hidden]{display:none}
-  #coque .tete{display:flex;align-items:center;justify-content:space-between;font-weight:600;letter-spacing:.02em;margin-bottom:6px}
+  #coque .tete{display:flex;align-items:center;justify-content:space-between;font-weight:600;letter-spacing:.02em;margin-bottom:4px}
+  #coque .tg{display:flex;gap:4px}#coque .tg .pil{padding:5px 10px;font-size:11px}
+  #coque h4{font-size:9.5px;font-weight:600;letter-spacing:.16em;color:var(--gris2);margin:9px 0 0}
+  #coque .cur.eteint{opacity:.35;pointer-events:none}
   #coque .cur{display:grid;grid-template-columns:62px 1fr 34px;align-items:center;gap:8px;margin-top:6px;color:var(--gris)}
   #coque .cur b{font-weight:500;color:var(--encre);text-align:right;font-variant-numeric:tabular-nums}
   #coque input[type=range]{width:100%;accent-color:var(--encre)}
   #coque .lien{border:0;background:none;color:var(--gris2);font-size:11px;cursor:pointer;margin-top:8px;padding:0}
   #coque .lien:hover{color:var(--encre)}
-  #coque.off .cur{opacity:.35;pointer-events:none}
   @media (max-width:760px){#coque{left:12px;bottom:auto;top:96px;width:200px}}
   #etat{position:fixed;left:28px;bottom:28px;font-size:11px;color:var(--gris2);letter-spacing:.03em;pointer-events:none;line-height:1.6}
   #etat b{font-weight:500;color:var(--gris)}
@@ -99,11 +101,8 @@
   </div>
 </div>
 <div id="coque" hidden>
-  <div class="tete"><span>Peau lisse sur les cubes</span><button class="pil" id="oCoque">Oui</button></div>
-  <label class="cur"><span>De face</span><input type="range" id="cA0" min="0" max="1" step=".01"><b id="vA0"></b></label>
-  <label class="cur"><span>Bords</span><input type="range" id="cA1" min="0" max="1" step=".01"><b id="vA1"></b></label>
-  <label class="cur"><span>Courbe</span><input type="range" id="cP" min=".4" max="4" step=".05"><b id="vP"></b></label>
-  <label class="cur"><span>Gonflée</span><input type="range" id="cG" min="0" max="1.5" step=".05"><b id="vG"></b></label>
+  <div class="tete"><span>Structure</span><span class="tg"><button class="pil" id="oCoque">Peau</button><button class="pil" id="oCoeur">Cœur</button></span></div>
+  <div id="cqCurs"></div>
   <button class="lien" id="cZero">Revenir aux réglages du jeu</button>
 </div>
 <div id="etat"></div>
@@ -131,8 +130,8 @@ const JOURNAL=[]; // les erreurs (un shader qui ne compile pas, une exception) s
   addEventListener('error',e=>{JOURNAL.push(String(e.message)+' @'+e.lineno);try{etat();}catch(_){}});}
 const PREF=(()=>{try{return JSON.parse(localStorage.getItem('boiteDauphins')||'{}')||{};}catch(e){return {};}})();
 const ST=Object.assign({vue:'un',tourne:true,surf:true,ras:false,noir:false,lent:false,fige:false,reve:false,ch:'hasard',lisse:false,cqOn:true,cq:null},PREF);
-if(ST.vCoque!==2){ST.vCoque=2;ST.lisse=false;ST.cq=null;} // (les réglages de peau repartent de ceux du jeu)
-{const q=new URLSearchParams(location.search);if(q.has('cq')){const v=q.get('cq').split(',').map(Number);ST.cq={a0:v[0],a1:v[1],p:v[2],g:v[3]};}} // ?cq=a0,a1,p,g : un réglage de peau d'entrée (photos) // (2026-10-09, Léo : « remets-le en pas lisse ») une fois : retour aux cubes, la peau lisse par-dessus
+if(ST.vCoque!==3){ST.vCoque=3;ST.lisse=false;ST.cq=null;ST.cqOn=true;ST.coOn=true;} // (les réglages de peau repartent de ceux du jeu)
+{const q=new URLSearchParams(location.search);if(q.has('cq')){ST.cq=ST.cq||{};for(const kv of q.get('cq').split(',')){const [k,v]=kv.split(':');ST.cq[k]=+v;}}if(q.has('peau'))ST.cqOn=q.get('peau')!=='0';if(q.has('coeur'))ST.coOn=q.get('coeur')!=='0';} // ?cq=ec:.8,lu:2 · ?peau=0 · ?coeur=0 (photos) // ?cq=a0,a1,p,g : un réglage de peau d'entrée (photos) // (2026-10-09, Léo : « remets-le en pas lisse ») une fois : retour aux cubes, la peau lisse par-dessus
 {const q=new URLSearchParams(location.search);if(q.get('vue'))ST.vue=q.get('vue')==='banc'?'banc':'un';for(const k of ['surf','ras','noir','lent','fige','tourne','reve','lisse'])if(q.has(k))ST[k]=q.get(k)!=='0';if(q.has('ch'))ST.ch=q.get('ch')==='hasard'?'hasard':+q.get('ch');} // ?vue=banc&noir=1 : une vue d'entrée
 const garde=()=>{try{localStorage.setItem('boiteDauphins',JSON.stringify(ST));}catch(e){}};
 
@@ -223,11 +222,11 @@ for(let i=0;i<6;i++){ETAT.push({p:0,tailPh:i*1.7,roll:i*2.3,up:false,vr:0});
 function monter(bloc){
   const ancien=dolphins.splice(0);
   let J;try{J=executer(bloc,dolphins,dolTrail,dolSplash);}catch(e){dolphins.push(...ancien);throw e;}
-  for(const d of ancien){scene.remove(d);d.material.dispose();if(d.userData.coque)d.userData.coque.material.dispose();}
+  for(const d of ancien){scene.remove(d);d.material.dispose();if(d.userData.coque)d.userData.coque.material.dispose();if(d.userData.coeur)d.userData.coeur.material.dispose();}
   if(JEU&&JEU.DOL_GEO_S&&JEU.DOL_GEO_S!==J.DOL_GEO_S)JEU.DOL_GEO_S.dispose();
   if(JEU&&JEU.DOL_GEO!==J.DOL_GEO)JEU.DOL_GEO.dispose();
   const cle=(J.mkDauphin().material.customProgramCacheKey()||'dauphin')+'-boite'+(++VERSION);
-  for(let i=0;i<J.DOL_BANC.length&&i<6;i++){const d=J.mkDauphin();d.material.customProgramCacheKey=()=>cle;if(d.userData.coque)d.userData.coque.material.customProgramCacheKey=()=>cle+'c';d.userData.b=J.DOL_BANC[i];scene.add(d);dolphins.push(d);}
+  for(let i=0;i<J.DOL_BANC.length&&i<6;i++){const d=J.mkDauphin();d.material.customProgramCacheKey=()=>cle;if(d.userData.coque)d.userData.coque.material.customProgramCacheKey=()=>cle+'c';if(d.userData.coeur)d.userData.coeur.material.customProgramCacheKey=()=>cle+'h';d.userData.b=J.DOL_BANC[i];scene.add(d);dolphins.push(d);}
   dolTrail.mesh.material.uniforms.uMap.value=J.DOL_ETOILE||goutte;
   JEU=J;BLOC=bloc;noirFait=null;setTimeout(coqueLit,0);
   for(let i=0;i<dolphins.length;i++)ETAT[i].ch=null;
@@ -403,19 +402,28 @@ function taille(){const w=innerWidth,h=innerHeight,pr=Math.min(devicePixelRatio|
   renderer.setPixelRatio(pr);renderer.setSize(w,h,false);camera.aspect=w/h;
   camera.fov=w<h?48:36;camera.updateProjectionMatrix();PX.value=h*pr/(2*Math.tan(camera.fov*Math.PI/360));}
 addEventListener('resize',taille);
-// LA PEAU LISSE SUR LES CUBES : ses réglages (les uniforms DOL_U.uCoq* du jeu) — partis des valeurs du jeu, gardés dans ce navigateur
-const CQ=[['cA0','vA0','a0','uCoqA0',v=>v.toFixed(2)],['cA1','vA1','a1','uCoqA1',v=>v.toFixed(2)],['cP','vP','p','uCoqP',v=>v.toFixed(1)],['cG','vG','g','uCoqG',v=>v.toFixed(2)]];
+// LA STRUCTURE (peau de verre · écailles · cœur) : ses réglages = les uniforms DOL_U du jeu — partis des valeurs du jeu, gardés dans ce navigateur.
+// [clé, uniform, min, max, pas, ×cube (la valeur s'affiche en cubes), étiquette, groupe, couche qui doit être allumée]
+const CQ=[['a0','uCoqA0',0,1,.01,0,'De face','LA PEAU DE VERRE','cqOn'],['a1','uCoqA1',0,1,.01,0,'Bords','','cqOn'],['g','uCoqG',0,2,.05,1,'Gonflée','','cqOn'],
+  ['ec','uEcart',.5,1,.01,0,'Taille','LES ÉCAILLES',''],['va','uVague',0,1.5,.05,1,'Vague','',''],
+  ['lu','uLueur',0,3,.05,0,'Lumière','LE CŒUR ET L’ONDE','coOn'],['sc','uScan',0,2,.05,0,'Onde','','']];
 let CQ0=null; // les valeurs du jeu (lues à chaque nouveau dessin)
-function coqueLit(){if(!JEU||!JEU.DOL_U.uCoqA0)return;const U=JEU.DOL_U,vx=JEU.DOL_VOX||.026;
-  CQ0={a0:U.uCoqA0.value,a1:U.uCoqA1.value,p:U.uCoqP.value,g:U.uCoqG.value/vx};if(!ST.cq)ST.cq=Object.assign({},CQ0);coquePeindre();}
+{const el=$('cqCurs');el.innerHTML=CQ.map(([k,,a,b,st,,lb,gr])=>(gr?'<h4>'+gr+'</h4>':'')+'<label class="cur" data-k="'+k+'"><span>'+lb+'</span><input type="range" min="'+a+'" max="'+b+'" step="'+st+'"><b></b></label>').join('');
+  for(const c of CQ){const lab=el.querySelector('[data-k="'+c[0]+'"]'),inp=lab.querySelector('input');
+    inp.addEventListener('input',()=>{if(!ST.cq)return;ST.cq[c[0]]=+inp.value;lab.querySelector('b').textContent=(+inp.value).toFixed(2);garde();});}}
+if(ST.cqOn===undefined)ST.cqOn=true;if(ST.coOn===undefined)ST.coOn=true;
+function coqueLit(){if(!JEU||!JEU.DOL_U.uCoqA0)return;const U=JEU.DOL_U,vx=JEU.DOL_VOX||.026;CQ0={};
+  for(const [k,u,,,,vk] of CQ)if(U[u])CQ0[k]=U[u].value/(vk?vx:1);
+  if(!ST.cq||Object.keys(CQ0).some(k=>ST.cq[k]==null))ST.cq=Object.assign({},CQ0,ST.cq||{});coquePeindre();}
 function coqueApplique(){if(!JEU||!JEU.DOL_U.uCoqA0||!ST.cq)return;const U=JEU.DOL_U,vx=JEU.DOL_VOX||.026;
-  U.uCoqA0.value=ST.cq.a0;U.uCoqA1.value=ST.cq.a1;U.uCoqP.value=ST.cq.p;U.uCoqG.value=ST.cq.g*vx;
-  for(const d of dolphins)if(d.userData.coque)d.userData.coque.visible=!!ST.cqOn;}
+  for(const [k,u,,,,vk] of CQ)if(U[u]&&ST.cq[k]!=null)U[u].value=ST.cq[k]*(vk?vx:1);
+  for(const d of dolphins){if(d.userData.coque)d.userData.coque.visible=!!ST.cqOn;if(d.userData.coeur)d.userData.coeur.visible=!!ST.coOn;}}
 function coquePeindre(){const el=$('coque'),a=!!(JEU&&JEU.DOL_GEO_S&&!ST.lisse);el.hidden=!a;if(!a||!ST.cq)return;
-  el.classList.toggle('off',!ST.cqOn);$('oCoque').textContent=ST.cqOn?'Oui':'Non';$('oCoque').classList.toggle('on',!!ST.cqOn);
-  for(const [i,v,k,,f] of CQ){$(i).value=ST.cq[k];$(v).textContent=f(+ST.cq[k]);}}
-for(const [i,v,k,,f] of CQ)$(i).addEventListener('input',()=>{if(!ST.cq)return;ST.cq[k]=+$(i).value;$(v).textContent=f(ST.cq[k]);garde();});
+  $('oCoque').classList.toggle('on',!!ST.cqOn);$('oCoeur').classList.toggle('on',!!ST.coOn);
+  for(const c of CQ){const lab=$('cqCurs').querySelector('[data-k="'+c[0]+'"]');if(!lab||ST.cq[c[0]]==null)continue;
+    lab.querySelector('input').value=ST.cq[c[0]];lab.querySelector('b').textContent=(+ST.cq[c[0]]).toFixed(2);lab.classList.toggle('eteint',!!c[8]&&!ST[c[8]]);}}
 $('oCoque').onclick=()=>{ST.cqOn=!ST.cqOn;garde();coquePeindre();};
+$('oCoeur').onclick=()=>{ST.coOn=!ST.coOn;garde();coquePeindre();};
 $('cZero').onclick=()=>{if(CQ0){ST.cq=Object.assign({},CQ0);garde();coquePeindre();}};
 let t0=performance.now(),T=0;const VD=new THREE.Vector3();
 function boucle(now){

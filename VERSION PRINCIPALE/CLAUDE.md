@@ -93,7 +93,15 @@ plafonds de lacet et de tangage, vol libre, vrille visuelle, drift = un geste. C
   « Peau lisse sur les cubes » (Oui/Non + 4 curseurs, réglages gardés dans le navigateur) ; le bouton « Lisse » = le dauphin lisse seul.
 - **DEUX CHORÉS QUI PASSENT AU-DESSUS** (même soir, Léo : « remets au moins deux chorés où ça passe au-dessus de la route, de la voiture,
   comme avant ») : LE PONT et LES CISEAUX traversent l'écran (`ax0 → ax1` en demi-largeurs d'écran, `hx` = .8 × la demi-largeur à D9) ; la
-  règle `dolHY` relève le banc pour que la tranche de leurs sauts reste au-dessus de la route (mesuré : banc à +5 à +8 m au sol). La boîte dessine une route (repère, pas à l'échelle). `dbgDauphin('ecran')` :
+  règle `dolHY` relève le banc pour que la tranche de leurs sauts reste au-dessus de la route (mesuré : banc à +5 à +8 m au sol).
+- **LA STRUCTURE EN TROIS COUCHES** (2026-10-10, Léo : « crée une structure en mélangeant les deux techniques… encore plus, plus, plus
+  impressionnant ») : du dedans au dehors — LE CŒUR (`coeur`, programme `dauphin5h` : le dauphin lisse rentré de `uCoeurIn` sous les
+  écailles, lumière pure rose → violet → cyan, rouge en dark triad via `uNoir`) · LES ÉCAILLES (les cubes réduits à `uEcart` .84 autour de
+  leur centre : le cœur brille dans les joints, une lanterne en mosaïque) · LA PEAU DE VERRE (`coque` : + reflet d'un ciel sur la direction
+  réfléchie — vue → monde par `vec4(r,0.)*viewMatrix`, WebGL 1 compris —, éclat de studio, film irisé). L'ONDE (`uScan`, ≈ 2 s sur
+  l'horloge de la nage) parcourt le corps du rostre à la queue : elle soulève et referme les écailles (`uVague`), allume leurs arêtes et le
+  cœur. Coût : ~35 k triangles par dauphin de près (cœur 5 k + écailles 25 k + peau 5 k), 3 programmes. Carte « Structure » dans la boîte
+  (Peau · Cœur, 7 curseurs ; `?cq=ec:.8,lu:2&peau=0&coeur=0` pour une photo). La boîte dessine une route (repère, pas à l'échelle). `dbgDauphin('ecran')` :
   où sont les dauphins à l'écran (−1…1) et à quelle distance.
 ## LA SALLE BLANCHE (2026-10-09, Léo : « une sublime voiture dans une salle blanche, que je peux tourner, avec une petite rangée de toutes les voitures qu'on a — pas les enlevées — qu'on glisse dans différentes raretés ; télécharger une liste écrite de tout ce qu'on a dit dessus »)
 - `salle-blanche.html` (outil, à côté d'index.html, à servir : `python3 -m http.server 8975` puis /salle-blanche.html). RIEN n'est recopié :
