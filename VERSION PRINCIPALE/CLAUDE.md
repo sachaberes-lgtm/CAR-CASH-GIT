@@ -161,6 +161,24 @@ plafonds de lacet et de tangage, vol libre, vrille visuelle, drift = un geste. C
   `index.html` sur GitHub (`MAIN_URL`, raw du main, CORS ouvert), copie locale en secours (`?source=local` la force), la source est écrite
   sous le titre ; toutes les 2 min elle compare l'empreinte du main et propose « Le main a bougé · mettre la gamme à jour ». Les gabarits
   posés hors de la gamme (`SHAPES.xxx=function…`) sont tous ramassés tout seuls (ceux de demain compris).
+- **LE RANG DANS UNE FAMILLE (10/10, Léo, salle blanche : LA GRANDE ANGLAISE glissée en dernière des RARES)** : une famille du garage
+  est triée par `carOrdre` = le PRIX, sauf si la fiche porte `ordre` (LA GRANDE ANGLAISE : `ordre:1e8`, son prix reste 200 000 $) ; une
+  liste qui MÉLANGE les familles (« à acheter » du garage) reste au prix (`carPrixOrdre`). La salle lit le même `carOrdre`.
+- **LA FOURNAISE (10/10, Léo : « une voiture flamme — dur, vas-y dur ; une autre technique ; une forme de voiture originale, associée au
+  feu » → essais : feu en pixels (« les petites flammes, c'est un peu gamin »), porcelaine blanche (« je préférais avant, avec les roues
+  noires et les cubes noirs ») → « fais VIBRER un peu plus la voiture, pas au sens littéral » → « plus pixel, les flammes ; des petites
+  flammes »)** : index 73, `SHAPES.fournaise`. Le VITRAIL
+  en couches : une CROÛTE de cubes de basalte de 11 cm à 86 % en surface d'un volume (`dedans` : superellipse, ailes bombées, capot creusé,
+  arches seulement sur les flancs, un PUITS dans la malle, huit TROUS ouverts), cockpit en obsidienne, BRAISES dans leur propre maillage
+  (elles palpitent) ; dessous la LAVE (cœur lisse) qui respire ; ENTRE LES DEUX une PEAU DE FEU qui coule (un programme `FEU_VS/FEU_FS` :
+  bruit qui monte et file vers l'arrière, + une ONDE `uW` qui court de l'avant vers l'arrière ; `uB` = plus présent sans blanchir ; PAS
+  additif ; PIXELISÉ : `uPx` = des cases nettes, 7 crans de chaleur, alpha au seuil) — c'est elle qui fait scintiller les joints ; dans le
+  puits, des PETITES FLAMMES EN CUBES (un `InstancedMesh`, `instanceColor`, programme à couleurs écrites telles quelles = même rendu jeu /
+  salle ; `noShadow`, `frustumCulled=false`) : six tas de colonnes 3 × 3, blanc → jaune → orange → rouge, couronne plus rouge ; elles
+  vacillent par CRANS à 12 images/s (`pasFeu`), la pointe penche d'une case, une étincelle monte. Les langues tournées rondes d'avant
+  sont retirées (silhouette en bulles). Tout
+  s'emballe à la nitro. Ce qui VIT dans une caisse : `BLING.anim` (jeu, `blingTick`) et `userData.anime` (salle, `BL.vie`) ; la salle garde
+  les matières `userData.brut`. Roues sombres à jantes orange. Pots : deux gueules de forge. ÉPIQUE 3 400 000 $, « THE FURNACE ».
 - **LES POTS D'ÉCHAPPEMENT (10/10, Léo : « une grosse révision très précise sur chacune des voitures — ne change rien, garde-les telles
   qu'elles sont : juste un pot d'échappement pour chacune, adapté au modèle ; fais la différence »)** : bloc « LES POTS D'ÉCHAPPEMENT »
   juste après `LPU` (entre deux marqueurs : la salle le lit avec LPU). `ECH_POTS` (⚠ pas `ECH` : le banc du téléphone a déjà le sien)

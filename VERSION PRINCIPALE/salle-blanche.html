@@ -348,7 +348,8 @@ const REGLE={
   s:{t:'std',roughness:.46,metalness:.22},
   m:{t:'std',roughness:.82,metalness:0},
   g:{t:'phys',roughness:.05,metalness:0,clearcoat:1,clearcoatRoughness:.02,envMapIntensity:1.35},
-  ice:{t:'phys',roughness:.04,metalness:0,clearcoat:1,clearcoatRoughness:.02,envMapIntensity:1.0}, // la GLACE (L'ICEBERG) — on voit au travers (transparente, sans profondeur)
+  ice:{t:'phys',roughness:.04,metalness:0,clearcoat:1,clearcoatRoughness:.02,envMapIntensity:1.0}, // la GLACE (L'ICEBERG)
+  givre:{t:'phys',roughness:.38,metalness:0,clearcoat:.35,clearcoatRoughness:.2,envMapIntensity:.6}, // la PORCELAINE translucide (LA FOURNAISE) — on voit au travers (transparente, sans profondeur)
   l:{t:'basic'}};
 function linGeo(geo){ // les couleurs de sommets du kit, en linéaire — une fois par géométrie (les roues partagent la leur)
   if(geo.userData.lin||!geo.attributes.color)return;geo.userData.lin=1;
@@ -368,10 +369,13 @@ function studioMat(m){
   else{const p=Object.assign({},R);delete p.t;Object.assign(o,p);
     n=R.t==='phys'?new THREE.MeshPhysicalMaterial(o):new THREE.MeshStandardMaterial(o);}
   if(m.color)n.color.copy(m.color).convertSRGBToLinear();
-  if(g==='ice')n.depthWrite=false;
+  if(g==='ice'||g==='givre')n.depthWrite=false;
   n.userData.g=g;MATS.set(cle,n);return n;}
 function studio(grp){
-  grp.traverse(o=>{if(!o.isMesh)return;
+  grp.traverse(o=>{
+    if(o.isSprite&&o.userData.feu){const m=o.material;if(m.map){m.map.encoding=THREE.sRGBEncoding;m.map.needsUpdate=true;}m.toneMapped=false;return;} // LE FEU EN PIXELS de LA FOURNAISE
+    if(!o.isMesh)return;
+    if(o.userData.brut){if(o.geometry)linGeo(o.geometry);o.material.toneMapped=false;return;}      // une matière qui VIT (le cœur de lave) : gardée telle quelle
     o.material=studioMat(o.material);if(o.geometry)linGeo(o.geometry);
     const g=(Array.isArray(o.material)?o.material[0]:o.material).userData.g;
     o.castShadow=g!=='l'&&g!=='ice';o.receiveShadow=g!=='l'&&g!=='g'&&g!=='ice';}); // la glace ne fait pas d'ombre pleine : la lame, les roues et le platine la font
@@ -914,10 +918,11 @@ function eternue(box){ // ATCHOUM : le feu part du museau (le point d'ATCH.N du 
   son('garage.feu');
   const b=$('bulle'),q=P.clone().add(TAP.v3.set(0,.9,0)).project(CAM),r=cv.getBoundingClientRect();
   b.textContent='ATCHOUM !';b.style.left=((q.x+1)/2*r.width)+'px';b.style.top=((1-q.y)/2*r.height)+'px';b.classList.remove('on');void b.offsetWidth;b.classList.add('on');}
-const BL={t:0,flash:0,car:null,et:null}; // L'ICEBERG : ses éclats de givre scintillent (le rythme du jeu), et s'allument toutes au toucher
+const BL={t:0,flash:0,car:null,et:null,vie:[]}; // L'ICEBERG : ses éclats de givre scintillent (le rythme du jeu), et s'allument toutes au toucher
 function fxTick(dt){
   let vit=false;const k=Math.min(dt,.05),J=TAP.j;
-  if(V.car!==BL.car){BL.car=V.car;BL.et=null;BL.flash=0;if(V.car)V.car.traverse(o=>{if(o.userData.etoiles)BL.et=o.userData.etoiles;});}
+  if(V.car!==BL.car){BL.car=V.car;BL.et=null;BL.flash=0;BL.vie=[];if(V.car)V.car.traverse(o=>{if(o.userData.etoiles)BL.et=o.userData.etoiles;if(o.userData.anime)BL.vie.push(o.userData.anime);});}
+  if(BL.vie.length){vit=true;for(const f of BL.vie)f(k);}                                    // ce qui VIT dans la caisse (le feu de LA FOURNAISE…)
   if(BL.et){vit=true;BL.t+=k;BL.flash=Math.max(0,BL.flash-k*1.6);
     for(const m of BL.et){const u=m.userData,v=Math.sin(BL.t*u.r+u.ph),sc=Math.max(v>0?Math.pow(v,12):0,BL.flash*BL.flash)*u.s;m.visible=sc>.03;if(m.visible)m.scale.setScalar(sc);}}
   // le coup : deux ressorts (position, bascule), elle ne passe pas sous le sol
