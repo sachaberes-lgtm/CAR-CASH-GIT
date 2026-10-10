@@ -6361,6 +6361,7 @@ html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande{display:grid!importan
   gap:10px 8px;height:auto;max-height:226px;padding:4px 14px 18px;overflow-x:hidden;overflow-y:auto;touch-action:pan-y;overscroll-behavior:contain;scroll-snap-type:y proximity;
   -webkit-mask:linear-gradient(180deg,#000 0,#000 calc(100% - 30px),transparent);mask:linear-gradient(180deg,#000 0,#000 calc(100% - 30px),transparent)} /* (même jour) une GRILLE qui défile vers le BAS : on en voit une rangée et demie, le bas se fond — il y a une suite, pas tout le catalogue */
 html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande.finBas{-webkit-mask:none;mask:none}
+html body #garage.consoleCachee:not(.menu):not(.vitrine) #gStrip.fnBande{display:none!important} /* (2026-10-10, Léo : « le shop, quand je rappuie dessus, ne disparaît pas ») la grille de la vitrine (display:grid!important) passait devant le repli */
 #gStrip.fnBande .fnSec{grid-column:1/-1;display:flex;align-items:center;gap:8px;margin:4px 2px -2px;font-size:var(--f0);letter-spacing:2px;color:var(--tx2)}
 #gStrip.fnBande .fnSec s{flex:1;height:1px;background:linear-gradient(90deg,rgba(154,144,200,.5),transparent)}
 html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnC{position:relative;grid-column:span 2;width:auto;height:128px;overflow:hidden;cursor:pointer;scroll-snap-align:start;transform:skewX(var(--sk));
