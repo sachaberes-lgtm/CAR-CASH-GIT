@@ -375,7 +375,7 @@ function studio(grp){
   grp.traverse(o=>{
     if(o.isSprite&&o.userData.feu){const m=o.material;if(m.map){m.map.encoding=THREE.sRGBEncoding;m.map.needsUpdate=true;}m.toneMapped=false;return;} // LE FEU EN PIXELS de LA FOURNAISE
     if(!o.isMesh)return;
-    if(o.userData.brut){if(o.geometry)linGeo(o.geometry);o.material.toneMapped=false;return;}      // une matière qui VIT (le cœur de lave) : gardée telle quelle
+    if(o.userData.brut){if(o.geometry)linGeo(o.geometry);o.material.toneMapped=false;o.castShadow=!!o.userData.ombre;return;} // une matière qui VIT (la lave, l'eau) : gardée telle quelle ; `ombre` = elle porte son ombre (le fond de LA DÉFERLANTE)
     o.material=studioMat(o.material);if(o.geometry)linGeo(o.geometry);
     const g=(Array.isArray(o.material)?o.material[0]:o.material).userData.g;
     o.castShadow=g!=='l'&&g!=='ice';o.receiveShadow=g!=='l'&&g!=='g'&&g!=='ice';}); // la glace ne fait pas d'ombre pleine : la lame, les roues et le platine la font

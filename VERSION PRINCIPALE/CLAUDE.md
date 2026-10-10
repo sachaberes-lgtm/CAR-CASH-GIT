@@ -161,6 +161,18 @@ plafonds de lacet et de tangage, vol libre, vrille visuelle, drift = un geste. C
   `index.html` sur GitHub (`MAIN_URL`, raw du main, CORS ouvert), copie locale en secours (`?source=local` la force), la source est écrite
   sous le titre ; toutes les 2 min elle compare l'empreinte du main et propose « Le main a bougé · mettre la gamme à jour ». Les gabarits
   posés hors de la gamme (`SHAPES.xxx=function…`) sont tous ramassés tout seuls (ceux de demain compris).
+- **LA DÉFERLANTE (10/10, Léo : « une abstraite type EAU — l'élément, pas une bouteille ; avec tout ce qu'on a appris, quelque chose de
+  vraiment méchant ; inspire-toi d'un modèle qui existe, ou pas »)** : index 74, `SHAPES.deferlante`, ÉPIQUE 3 600 000 $, « THE BREAKER ».
+  Le modèle : l'hypercar du Mans SANS AILERON (Peugeot 9X8) — l'aileron, c'est une VAGUE qui se creuse au-dessus de la nuque du pilote,
+  lèvre vers l'avant, qui déferle EN BIAIS (épaule basse à gauche, tube ouvert à droite, bouts bouchés par le profil), lèvre en griffes.
+  Un programme d'eau (`EAU_VS` : sommets qui ondulent le long d'un RAYON de la caisse — continu, rien ne se décolle sur une géométrie non
+  indexée ; facettes par dérivées) : le FOND opaque (abysses → canard, caustiques de Voronoï qui filent vers l'arrière, `ombre`), la PEAU
+  transparente 5 cm au-dessus (Fresnel, scintillement = normale bousculée — PAS d'éclat sur une facette entière : grands triangles
+  blancs), la VAGUE (même peau, `uGrad` : bleu profond au pied → turquoise → blanche à la crête, filets qui coulent, caustiques). Écume
+  et embruns en CUBES (un InstancedMesh) : lèvre en rideau, crête en mouton, tube qui bouillonne, étrave ; gouttes et PANACHE de crête ;
+  bulles qui montent dans la vague ; cockpit = BULLE D'AIR. ⚠ Un InstancedMesh se mesure à sa géométrie de base (la boîte de la caisse) :
+  une sphère de 1 m au centre faisait FLOTTER la caisse dans la salle — géométrie à la taille réelle. La salle fait porter son ombre à un
+  maillage `brut` qui a `userData.ombre`.
 - **LE RANG DANS UNE FAMILLE (10/10, Léo, salle blanche : LA GRANDE ANGLAISE glissée en dernière des RARES)** : une famille du garage
   est triée par `carOrdre` = le PRIX, sauf si la fiche porte `ordre` (LA GRANDE ANGLAISE : `ordre:1e8`, son prix reste 200 000 $) ; une
   liste qui MÉLANGE les familles (« à acheter » du garage) reste au prix (`carPrixOrdre`). La salle lit le même `carOrdre`.
