@@ -6349,6 +6349,46 @@ html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip.achat{flex-direction:co
 html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip.achat .gEqV{font-size:var(--f0);letter-spacing:2px;color:var(--tx2)}
 html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip.achat .gEqP{font-weight:400;font-size:var(--f3);letter-spacing:1px;color:var(--cash,#3ee87a);text-shadow:0 1px 0 rgba(7,5,15,.9),0 0 8px rgba(62,232,122,.45)}
 html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip.achat .gEqP.eur{color:var(--au2,#ffd75e);text-shadow:0 1px 0 rgba(7,5,15,.9),0 0 8px rgba(255,215,94,.45)}
+/* LA BOUTIQUE DU JOUR (2026-10-10, Léo : « un shop type Fortnite ») — voir gShopJour. La console en BOUTIQUE : plus d'onglets (la vitrine
+   mêle caisses et habillages), la barre dit « BOUTIQUE DU JOUR » et l'horloge du renouvellement, la bande devient des CARTES : fond à la
+   couleur de la rareté (éclat au centre, rayons, bords sombres), l'objet au milieu, l'étiquette en bas (catégorie · rareté, nom, prix).
+   À LA UNE : deux cartes larges, bandeau or. ACQUIS : la coche à la place du prix. La carte touchée s'allume (cadre blanc). */
+html body #garage.modeShop:not(.menu):not(.vitrine) #gTabs{display:none!important}
+html body #garage:not(.menu):not(.vitrine) #gRar .fnTete .fnT{display:inline-flex;align-items:center;gap:6px;color:#fff;letter-spacing:1px;font-weight:400}
+html body #garage:not(.menu):not(.vitrine) #gRar .fnTete .fnT .pxi{--pxs:1;color:#ffd75e}
+html body #garage:not(.menu):not(.vitrine) #gRar .fnTete .fnT i:not(.pxi){font-style:normal;font-variant-numeric:tabular-nums}
+html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande{display:flex!important;grid-template-rows:none;height:auto;gap:10px;padding:6px 14px 10px;align-items:stretch;scroll-snap-type:x proximity}
+html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnC{position:relative;flex:none;width:98px;height:132px;overflow:hidden;cursor:pointer;scroll-snap-align:start;transform:skewX(var(--sk));
+  background:radial-gradient(130% 90% at 50% 30%,var(--rcL) 0%,var(--rc) 34%,var(--rcD) 100%),#120d24;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.3),0 0 0 1px rgba(7,5,15,.95),0 8px 18px -8px var(--rc);
+  clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);transition:transform var(--t-fast) var(--ease)}
+html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnC.une{width:156px}
+html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnC:is(:active,.appui){transform:skewX(var(--sk)) translateY(2px)}
+html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnC.on{box-shadow:inset 0 0 0 2px #fff,0 0 0 1px rgba(7,5,15,.95),0 0 22px var(--rc)}
+#gStrip.fnBande .fnC i,#gStrip.fnBande .fnC s,#gStrip.fnBande .fnC b,#gStrip.fnBande .fnC em,#gStrip.fnBande .fnC span{pointer-events:none}
+#gStrip.fnBande .fnFond{position:absolute;inset:0;opacity:.55;background:repeating-conic-gradient(from 0deg at 50% 30%,rgba(255,255,255,.16) 0 5deg,transparent 5deg 15deg);
+  -webkit-mask:radial-gradient(closest-side at 50% 30%,#000 30%,transparent);mask:radial-gradient(closest-side at 50% 30%,#000 30%,transparent)}
+#gStrip.fnBande .fnC::after{content:'';position:absolute;left:0;right:0;bottom:0;height:48%;pointer-events:none;background:linear-gradient(180deg,transparent,rgba(7,5,15,.78) 45%,rgba(7,5,15,.96))}
+#gStrip.fnBande .fnPh{position:absolute;left:50%;top:34%;width:132%;transform:translate(-50%,-50%) skewX(calc(-1 * var(--sk)))}
+#gStrip.fnBande .fnC.une .fnPh{width:112%}
+#gStrip.fnBande .fnPh img{display:block;width:100%;height:auto;filter:drop-shadow(0 6px 5px rgba(0,0,0,.5))}
+#gStrip.fnBande .fnSw{position:absolute;left:50%;top:32%;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;
+  box-shadow:inset 0 -7px 10px rgba(0,0,0,.35),inset 0 5px 8px rgba(255,255,255,.5),0 0 0 3px rgba(7,5,15,.55),0 8px 14px rgba(0,0,0,.4)}
+#gStrip.fnBande .fnSw.chrome{background:linear-gradient(160deg,#fff,#9aa6b8 45%,#f1f5fb 55%,#7b8698)!important}
+#gStrip.fnBande .fnRub{position:absolute;left:12%;right:12%;top:32%;height:14px;margin-top:-7px;border-radius:7px;box-shadow:0 0 14px rgba(255,255,255,.35)}
+#gStrip.fnBande .fnAile{position:absolute;left:50%;top:32%;--pxs:5;transform:translate(-50%,-50%) skewX(calc(-1 * var(--sk)));color:#eef8ff;filter:none}
+#gStrip.fnBande .fnBan{position:absolute;top:7px;left:-2px;z-index:2;padding:3px 9px 3px 10px;text-decoration:none;font-size:var(--f0);letter-spacing:1px;color:#2b1700;
+  background:linear-gradient(180deg,#ffe48a,#ffc23a);box-shadow:0 2px 0 rgba(7,5,15,.6),0 0 12px rgba(255,215,94,.6)}
+#gStrip.fnBande .fnTy{position:absolute;left:9px;right:4px;bottom:38px;z-index:1;font-size:var(--f0);letter-spacing:0;color:var(--rc);white-space:nowrap;overflow:hidden;text-shadow:0 1px 0 rgba(7,5,15,.95)}
+#gStrip.fnBande .fnN{position:absolute;left:9px;right:6px;bottom:22px;z-index:1;font-weight:400;font-size:var(--f1);letter-spacing:1px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 2px 0 rgba(7,5,15,.95)}
+#gStrip.fnBande .fnP{position:absolute;left:9px;right:4px;bottom:6px;z-index:1;display:flex;white-space:nowrap;align-items:center;gap:5px;font-style:normal;font-size:var(--f1);letter-spacing:1px;color:var(--cash,#3ee87a);text-shadow:0 1px 0 rgba(7,5,15,.95),0 0 8px rgba(62,232,122,.4)}
+#gStrip.fnBande .fnP.eur{color:#ffd75e;text-shadow:0 1px 0 rgba(7,5,15,.95),0 0 8px rgba(255,215,94,.45)}
+#gStrip.fnBande .fnC.acquis .fnP{color:#cfe9ff;text-shadow:0 1px 0 rgba(7,5,15,.95)}
+#gStrip.fnBande .fnC.acquis .fnP .pxi{--pxs:1;color:#3ee87a}
+#gStrip.fnBande .fnC.acquis{filter:saturate(.75)}
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnC{width:90px;height:118px}
+  html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnC.une{width:140px}}
 /* LA CROIX DE L'INVENTAIRE, DISCRÈTE (même jour, Léo : « la croix est juste plus discrète, et sert à enlever le rectangle avec toutes
    les voitures pour qu'on ait une vue sur le garage ») : elle ferme toujours le tiroir, mais n'est plus une touche cyan pleine. Plus de
    plaque ni de tranche : une petite croix lilas dans un carré à peine dessiné (filet d'1 px, fond presque nul), qui s'allume sous le doigt.
@@ -6876,7 +6916,7 @@ if(window.CC_COLONNE)return; // (2026-09-28) sur l'ordi cette page n'est que le 
    dessinée à la main, convertie UNE fois en SVG et posée en MASQUE CSS : elle prend la couleur de son
    bouton (`currentColor`), reste nette à toutes les tailles (`crispEdges`) et ne coûte aucun fichier.
    Usage : `<i class="pxi pxi-croix"></i>` dans le HTML, `pxi('croix')` dans le JS. */
-const PXI_G={coeur:'.........|.##...##.|####.####|#########|#########|.#######.|..#####..|...###...|....#....',vibre:'..#####..|#.#...#.#|#.#...#.#|..#...#..|#.#...#.#|#.#...#.#|..#...#..|..#.#.#..|..#####..',aimant:'##.....##|.........|##.....##|##.....##|##.....##|###...###|.#######.|..#####..|.........',bouclier:'#########|##.....##|##.....##|##.....##|.##...##.|.##...##.|..##.##..|...###...|....#....',nuage:'.........|.........|....##...|...####..|.##.####.|#########|#########|.#######.|.........',immeuble:'....#....|...###...|...###.##|##.###.##|##.###.##|#########|#########|#########|.........',flamme:'....#....|...##....|...###...|..####.#.|..######.|.###.###.|.##...##.|.##...##.|..#####..',pinceau:'......###|.....####|....####.|...####..|..####...|.#.##....|###......|###......|.#.......',aile:'.........|#........|##.......|###......|#####....|.#######.|..#######|....#####|.......##',trainee:'.........|##.......|.###.....|..####...|...######|..####...|.###.....|##.......|.........',pouce:'...##....|...##....|...##....|...####..|.#######.|.########|.#######.|..#####..|..#####..',cadeau:'.##...##.|#..#.#..#|.#######.|#########|#...#...#|####.####|.#..#..#.|.#..#..#.|.#######.',cible:'..#####..|.#.....#.|#..###..#|#.#...#.#|#.#.#.#.#|#.#...#.#|#..###..#|.#.....#.|..#####..',croix:'##.....##|###...###|.###.###.|..#####..|...###...|..#####..|.###.###.|###...###|##.....##',gauche:'....##...|...###...|..####...|.#####...|######...|.#####...|..####...|...###...|....##...',droite:'...##....|...###...|...####..|...#####.|...######|...#####.|...####..|...###...|...##....',haut:'.........|....#....|...###...|..#####..|.#######.|#########|...###...|...###...|...###...',bas:'...###...|...###...|...###...|#########|.#######.|..#####..|...###...|....#....|.........',lecture:'##.......|####.....|######...|########.|#########|########.|######...|####.....|##.......',pause:'.........|###...###|###...###|###...###|###...###|###...###|###...###|###...###|.........',reglages:'....#....|.#.###.#.|..#####..|.##...##.|###...###|.##...##.|..#####..|.#.###.#.|....#....',son:'....#....|...##..#.|####.#..#|####.#..#|####.#..#|####.#..#|...##..#.|....#....|.........',muet:'....#....|...##....|####..#.#|####...#.|####..#.#|####.....|...##....|....#....|.........',musique:'...######|...#....#|...#....#|...#....#|.###..###|####.####|####.####|.##...##.|.........',voix:'...###...|..#####..|..#####..|..#####..|#.#####.#|#..###..#|.##...##.|...###...|..#####..',volant:'..#####..|.#.....#.|#.......#|#..###..#|#########|#...#...#|#...#...#|.#..#..#.|..#####..',fleches:'.........|..#...#..|.##...##.|###...###|###...###|###...###|.##...##.|..#...#..|.........',eclair:'.....###.|....###..|...###...|..######.|.....##..|....##...|...##....|..##.....|.#.......',drapeau:'#.#.#.#.#|##.#.#.#.|#.#.#.#.#|##.#.#.#.|#.#.#.#.#|#........|#........|#........|#........',voiture:'.........|.........|..####...|.#..#.#..|########.|#########|#########|.##...##.|.##...##.',rampe:'.........|.........|........#|......###|.....####|...######|.########|#########|.........',brique:'#########|#...#...#|#########|..#...#..|#########|#...#...#|#########|..#...#..|#########',copier:'...###...|.##...##.|.#######.|.#.....#.|.#.###.#.|.#.....#.|.#.###.#.|.#.....#.|.#######.',importer:'....#....|....#....|..#.#.#..|...###...|....#....|#.......#|#.......#|#########|.........',corbeille:'...###...|#########|.#.....#.|.#.#.#.#.|.#.#.#.#.|.#.#.#.#.|.#.#.#.#.|.#.....#.|..#####..',rejouer:'..#####..|.#.....##|#.....###|#........|#........|#.......#|#.......#|.#.....#.|..#####..',quitter:'#####....|#...#....|#...#.#..|#...#.##.|#..######|#...#.##.|#...#.#..|#...#....|#####....',verrou:'..#####..|.#.....#.|.#.....#.|#########|#########|####.####|####.####|#########|#########',coche:'.........|........#|.......##|#.....##.|##...##..|.##.##...|..###....|...#.....|.........',etoile:'....#....|....#....|...###...|#########|.#######.|..#####..|..##.##..|.##...##.|.#.....#.',trophee:'#########|#.#####.#|#.#####.#|.#######.|..#####..|...###...|....#....|..#####..|.#######.',rotation:'..#####..|.#.....##|#.....###|#........|#..###...|#..#.#..#|#..###..#|.#.....#.|..#####..',panier:'.........|#........|.#######.|.#.#.#.#.|.#######.|..#.#.#..|..#####..|..#...#..|.........',bulle:'.#######.|#.......#|#.#.#.#.#|#.......#|.###.###.|...#.#...|...##....|...#.....|.........',piece:'..#####..|.#.....#.|#..###..#|#.#.....#|#..###..#|#.....#.#|#..###..#|.#.....#.|..#####..',maison:'....#....|...###...|..#####..|.#######.|#########|.#######.|.##...##.|.##...##.|.##...##.',triade:'....#....|...###...|...###...|..##.##..|.##.#.##.|.###.###.|#########|#########|.........'};
+const PXI_G={coeur:'.........|.##...##.|####.####|#########|#########|.#######.|..#####..|...###...|....#....',vibre:'..#####..|#.#...#.#|#.#...#.#|..#...#..|#.#...#.#|#.#...#.#|..#...#..|..#.#.#..|..#####..',aimant:'##.....##|.........|##.....##|##.....##|##.....##|###...###|.#######.|..#####..|.........',bouclier:'#########|##.....##|##.....##|##.....##|.##...##.|.##...##.|..##.##..|...###...|....#....',nuage:'.........|.........|....##...|...####..|.##.####.|#########|#########|.#######.|.........',immeuble:'....#....|...###...|...###.##|##.###.##|##.###.##|#########|#########|#########|.........',flamme:'....#....|...##....|...###...|..####.#.|..######.|.###.###.|.##...##.|.##...##.|..#####..',pinceau:'......###|.....####|....####.|...####..|..####...|.#.##....|###......|###......|.#.......',aile:'.........|#........|##.......|###......|#####....|.#######.|..#######|....#####|.......##',trainee:'.........|##.......|.###.....|..####...|...######|..####...|.###.....|##.......|.........',pouce:'...##....|...##....|...##....|...####..|.#######.|.########|.#######.|..#####..|..#####..',cadeau:'.##...##.|#..#.#..#|.#######.|#########|#...#...#|####.####|.#..#..#.|.#..#..#.|.#######.',cible:'..#####..|.#.....#.|#..###..#|#.#...#.#|#.#.#.#.#|#.#...#.#|#..###..#|.#.....#.|..#####..',croix:'##.....##|###...###|.###.###.|..#####..|...###...|..#####..|.###.###.|###...###|##.....##',gauche:'....##...|...###...|..####...|.#####...|######...|.#####...|..####...|...###...|....##...',droite:'...##....|...###...|...####..|...#####.|...######|...#####.|...####..|...###...|...##....',haut:'.........|....#....|...###...|..#####..|.#######.|#########|...###...|...###...|...###...',bas:'...###...|...###...|...###...|#########|.#######.|..#####..|...###...|....#....|.........',lecture:'##.......|####.....|######...|########.|#########|########.|######...|####.....|##.......',pause:'.........|###...###|###...###|###...###|###...###|###...###|###...###|###...###|.........',reglages:'....#....|.#.###.#.|..#####..|.##...##.|###...###|.##...##.|..#####..|.#.###.#.|....#....',son:'....#....|...##..#.|####.#..#|####.#..#|####.#..#|####.#..#|...##..#.|....#....|.........',muet:'....#....|...##....|####..#.#|####...#.|####..#.#|####.....|...##....|....#....|.........',musique:'...######|...#....#|...#....#|...#....#|.###..###|####.####|####.####|.##...##.|.........',voix:'...###...|..#####..|..#####..|..#####..|#.#####.#|#..###..#|.##...##.|...###...|..#####..',volant:'..#####..|.#.....#.|#.......#|#..###..#|#########|#...#...#|#...#...#|.#..#..#.|..#####..',fleches:'.........|..#...#..|.##...##.|###...###|###...###|###...###|.##...##.|..#...#..|.........',eclair:'.....###.|....###..|...###...|..######.|.....##..|....##...|...##....|..##.....|.#.......',drapeau:'#.#.#.#.#|##.#.#.#.|#.#.#.#.#|##.#.#.#.|#.#.#.#.#|#........|#........|#........|#........',voiture:'.........|.........|..####...|.#..#.#..|########.|#########|#########|.##...##.|.##...##.',rampe:'.........|.........|........#|......###|.....####|...######|.########|#########|.........',brique:'#########|#...#...#|#########|..#...#..|#########|#...#...#|#########|..#...#..|#########',copier:'...###...|.##...##.|.#######.|.#.....#.|.#.###.#.|.#.....#.|.#.###.#.|.#.....#.|.#######.',importer:'....#....|....#....|..#.#.#..|...###...|....#....|#.......#|#.......#|#########|.........',corbeille:'...###...|#########|.#.....#.|.#.#.#.#.|.#.#.#.#.|.#.#.#.#.|.#.#.#.#.|.#.....#.|..#####..',rejouer:'..#####..|.#.....##|#.....###|#........|#........|#.......#|#.......#|.#.....#.|..#####..',quitter:'#####....|#...#....|#...#.#..|#...#.##.|#..######|#...#.##.|#...#.#..|#...#....|#####....',verrou:'..#####..|.#.....#.|.#.....#.|#########|#########|####.####|####.####|#########|#########',coche:'.........|........#|.......##|#.....##.|##...##..|.##.##...|..###....|...#.....|.........',etoile:'....#....|....#....|...###...|#########|.#######.|..#####..|..##.##..|.##...##.|.#.....#.',trophee:'#########|#.#####.#|#.#####.#|.#######.|..#####..|...###...|....#....|..#####..|.#######.',rotation:'..#####..|.#.....##|#.....###|#........|#..###...|#..#.#..#|#..###..#|.#.....#.|..#####..',panier:'.........|#........|.#######.|.#.#.#.#.|.#######.|..#.#.#..|..#####..|..#...#..|.........',bulle:'.#######.|#.......#|#.#.#.#.#|#.......#|.###.###.|...#.#...|...##....|...#.....|.........',piece:'..#####..|.#.....#.|#..###..#|#.#.....#|#..###..#|#.....#.#|#..###..#|.#.....#.|..#####..',maison:'....#....|...###...|..#####..|.#######.|#########|.#######.|.##...##.|.##...##.|.##...##.',horloge:'..#####..|.#..#..#.|#...#...#|#...#...#|#...###.#|#.......#|#.......#|.#.....#.|..#####..',triade:'....#....|...###...|...###...|..##.##..|.##.#.##.|.###.###.|#########|#########|.........'};
 PXI_G.coffre='.#######.|#.......#|#.......#|#########|#...#...#|#..###..#|#...#...#|#.......#|#########'; // (2026-10-05) le COFFRE : l'inventaire (le coffre de la caisse)
 PXI_G.roue='..#####..|.#.....#.|#..###..#|#.#...#.#|#.#.#.#.#|#.#...#.#|#..###..#|.#.....#.|..#####..'; // (2026-10-09) la famille COMMUNE : la roue
 PXI_G.gemme='.........|..#####..|.#..#..#.|#########|.#.....#.|..#...#..|...#.#...|....#....|.........'; // (2026-10-09) la famille RARE : la gemme taillée
@@ -30621,6 +30661,7 @@ const SAVE={
        ⚠ LA BANQUE N'EST PAS TOUCHÉE : on ne confisque jamais ce qui a été gagné. */
     if(!(d.eco>=3)){const k9=ECO3.gain*.5;c.best=Math.round(c.best*k9);c.leaders.forEach(function(e){e.s=Math.round(e.s*k9);});}
     c.eco=3;
+    if(d.bq&&typeof d.bq==='object'&&isFinite(+d.bq.j)&&Array.isArray(d.bq.l))c.bq={j:Math.round(+d.bq.j),l:d.bq.l.filter(function(x){return typeof x==='string';}).slice(0,12).map(function(x){return x.slice(0,32);})}; // (2026-10-10) LA BOUTIQUE DU JOUR : la vitrine tirée ce jour-là
     return c;
   },
   load(){
@@ -37874,7 +37915,7 @@ function garageShow(i){
    viennent du studio (`carPhoto`), UNE par image au plus (`photoFile`) : ouvrir une famille de 16 ne gèle pas le garage. */
 function gDefiEt(n){try{const s=misEtat();if(n!==s.n+1)return '';return pxi('cible')+' '+s.ok.reduce(function(a,b){return a+(b?1:0);},0)+' / 3';}catch(e){return '';}} // la vignette de la caisse que les MISSIONS en cours font gagner
 function garageFamilles(r){
-  const md=gModeM();if(md==='shop'&&GMODE.fam)r=GMODE.fam; /* (2026-10-10) en BOUTIQUE la bande garde SA famille, quelle que soit la caisse affichée */if(md==='inv'){gStripModeVoitures();return;} // (2026-10-09) INVENTAIRE : voir « LA CONSOLE À TROIS MODES » — la BOUTIQUE garde les familles (Léo : « remets les raretés dans la boutique »)
+  const md=gModeM();if(md==='shop'){gShopJour();return;} /* (2026-10-10) la BOUTIQUE est devenue LA BOUTIQUE DU JOUR (gShopJour) */if(md==='inv'){gStripModeVoitures();return;} // (2026-10-09) INVENTAIRE : voir « LA CONSOLE À TROIS MODES » — la BOUTIQUE garde les familles (Léo : « remets les raretés dans la boutique »)
   const bar=$('gRar'),st=$('gStrip');if(!bar||!st)return;try{gModeBoutons();}catch(e){}bar.classList.remove('gModeBar');
   const eq=SAVE.d.equipped|0,shop=md==='shop';
   const nbV=function(L){let n=0;for(const i of L)if(gAVendre(i))n++;return n;}; // BOUTIQUE : chaque famille dit combien il en reste à ACHETER
@@ -37924,7 +37965,8 @@ function gModeListeVoitures(m){const eq=SAVE.d.equipped|0,L=[];
   return L;}
 function gModeBoutons(){const m=gModeM(),c=document.getElementById('gvCof'),b=document.getElementById('gShopBas'),r=document.getElementById('gRar'),st=document.getElementById('gStrip');
   if(c)c.classList.toggle('modeOn',m==='inv');if(b)b.classList.toggle('modeOn',m==='shop');
-  if(r&&m==='tout')r.classList.remove('gModeBar');if(st){st.classList.toggle('gModeShop',m==='shop');st.classList.toggle('gModeInv',m==='inv');}}
+  if(r&&m==='tout')r.classList.remove('gModeBar');if(st){st.classList.toggle('gModeShop',m==='shop');st.classList.toggle('gModeInv',m==='inv');if(m!=='shop'&&st.classList.contains('fnBande')){st.classList.remove('fnBande');st._r=null;st._n=-1;if(r)r._k=null;}}
+  if(gEl)gEl.classList.toggle('modeShop',m==='shop');} // (2026-10-10) LA BOUTIQUE DU JOUR : la console change de visage (voir gShopJour)
 function gModeTete(bar,m,n){bar.classList.add('gModeBar'); // n : un nombre, ou « 15 / 46 » en INVENTAIRE
   bar.innerHTML='<div class="gModeT" style="--rc:'+(m==='inv'?'var(--neoC)':'var(--neoM)')+'">'+pxi(m==='inv'?'coffre':'panier')+'<span>'+sansAcc(TR(m==='inv'?'INVENTAIRE':'BOUTIQUE'))+'</span><s></s><b>'+n+'</b></div>';}
 function gStripModeVoitures(){
@@ -37946,6 +37988,70 @@ function gStripModeVoitures(){
   st.querySelectorAll('.gT').forEach(function(el){el.classList.toggle('on',+el.getAttribute('data-car')===garageI);});
   const on=st.querySelector('.gT.on');if(on){const x=on.offsetLeft-(st.clientWidth-on.offsetWidth)/2;try{st.scrollTo({left:x,behavior:REDUCED_MOTION?'auto':'smooth'});}catch(e){st.scrollLeft=x;}}
   else{try{st.scrollTo({left:0,behavior:REDUCED_MOTION?'auto':'smooth'});}catch(e){st.scrollLeft=0;}}}
+/* ===== LA BOUTIQUE DU JOUR (2026-10-10, Léo : « fais un shop type Fortnite — comme ce n'est pas hebdomadaire, trouve un moyen ») =====
+   Pas de serveur, pas d'équipe qui remplit la vitrine chaque semaine : la vitrine se TIRE d'elle-même chaque jour, dans le catalogue du jeu.
+   · Le jour = le jour UTC (minuit UTC, comme Fortnite : 2 h du matin l'été à Paris) ; la graine = ce jour.
+   · Tirée UNE fois, au 1er passage du jour, parmi ce qui n'est PAS encore à toi, puis GARDÉE (SAVE.d.bq) : ce que tu achètes reste en
+     vitrine, marqué ACQUIS (un tirage refait à chaque achat remélangerait tout).
+   · À LA UNE : deux caisses (rare et plus, de préférence), en grand ; DU JOUR : deux caisses et deux habillages.
+   · Compte à rebours jusqu'au renouvellement ; à zéro, la nouvelle vitrine tombe toute seule.
+   Dans la console (BOUTIQUE) : les onglets se taisent, la barre dit « BOUTIQUE DU JOUR » + l'horloge, la bande devient des CARTES à la
+   couleur de leur rareté. Toucher une carte montre l'objet sur le plateau (rien ne change avant), et ÉQUIPER devient ACHETER + le prix.
+   Triche possible en avançant l'horloge du téléphone : jeu hors ligne, on l'accepte. `dbgBoutiqueJour(j)` : la vitrine d'un autre jour. */
+function bqJour(){return Math.floor(Date.now()/864e5)+(BQ_DECALE|0);}
+var BQ_DECALE=0;
+function bqCles(){const V=[],C=[];
+  for(let i=0;i<CARS.length;i++){if(carRetiree(i))continue;const u=CAR_UNLOCK[i];if(u&&(u.p>0||u.k==='premium'))V.push('v:'+i);}
+  for(const cat of ['peinture','aile','trainee'])for(const d of COSM[cat])if(d.p>0)C.push(cat+':'+d.id);
+  return {V:V,C:C};}
+function bqCos(k){const p=k.indexOf(':'),cat=k.slice(0,p);return {cat:cat,d:COSM[cat]&&COSM[cat].find(function(x){return x.id===k.slice(p+1);})};}
+function bqA(k){if(k[0]==='v'){const i=+k.slice(2);return carUnlockedVrai(i)||i===(SAVE.d.equipped|0);}const o=bqCos(k);return !!o.d&&shopOwned(o.cat,o.d.id);}
+function bqValide(k){if(typeof k!=='string')return false;if(k[0]==='v'){const i=+k.slice(2);return !!CARS[i]&&!carRetiree(i);}return !!bqCos(k).d;}
+function bqRar(k){if(k[0]==='v')return carRar(+k.slice(2));const o=bqCos(k);return cosmRar(o.cat,o.d);}
+function bqTire(j){const r=mulberry32(Math.imul(j,2654435761)^0x5B0071C),{V,C}=bqCles(),rg={commun:0,rare:1,defi:1,epique:2,legendaire:3};
+  const mel=function(L){L=L.slice();for(let i=L.length-1;i>0;i--){const k=Math.floor(r()*(i+1)),t=L[i];L[i]=L[k];L[k]=t;}return L;};
+  const neuf=function(L){return mel(L.filter(function(k){return !bqA(k);})).concat(mel(L.filter(bqA)));}; // ce qui n'est pas à toi d'abord
+  const Vn=neuf(V),une=Vn.filter(function(k){return !bqA(k)&&rg[bqRar(k)]>=1;}).slice(0,2);
+  for(const k of Vn)if(une.length<2&&une.indexOf(k)<0)une.push(k);
+  const jour=Vn.filter(function(k){return une.indexOf(k)<0;}).slice(0,2).concat(neuf(C).slice(0,2));
+  return une.concat(jour);}
+function bqVitrine(){const j=bqJour();let b=SAVE.d.bq;
+  if(!b||b.j!==j||!Array.isArray(b.l)||!b.l.length||!b.l.every(bqValide)){b={j:j,l:bqTire(j)};SAVE.d.bq=b;try{SAVE.mark();}catch(e){}}
+  return b;}
+function bqReste(){const ms=Math.max(0,(bqJour()+1-(BQ_DECALE|0))*864e5-Date.now()),t=Math.floor(ms/1000),d2=function(n){return (n<10?'0':'')+n;};
+  return d2(Math.floor(t/3600))+':'+d2(Math.floor(t/60)%60)+':'+d2(t%60);}
+function bqFig(cat,d){const hx=function(c){return '#'+(c>>>0).toString(16).padStart(6,'0');},rg=function(v){return 'rgb('+v.map(function(x){return Math.round(Math.min(1,x/1.45)*255);}).join(',')+')';};
+  if(cat==='peinture')return '<i class="fnSw'+(d.g==='c'?' chrome':d.g==='o'?' or':d.g==='s'?' mat':'')+'" style="background:'+(d.grad?'linear-gradient(160deg,'+d.grad.map(hx).join(',')+')':hx(d.c||0xff7a3a))+'"></i>';
+  if(cat==='trainee')return '<i class="fnRub" style="background:'+(d.rainbow?'linear-gradient(90deg,#ff3b3b,#ff9b1a,#ffe23a,#3bff6a,#3bb4ff,#9b5bff)':'linear-gradient(90deg,transparent,'+(d.rgb?rg(d.rgb):'#ff6a14')+' 35%,#fff 100%)')+'"></i>';
+  return '<i class="pxi pxi-aile fnAile"></i>';}
+function bqCarte(k,une){const ri=rarInfo(bqRar(k)),c=ri.c,a=bqA(k);let nom='',ty='',px='',eur=false,fig='';
+  if(k[0]==='v'){const i=+k.slice(2),u=CAR_UNLOCK[i]||{};nom=TR(CARS[i].name);ty='CAISSE';if(u.k==='premium'){px=eurTxt(u.eur);eur=true;}else px=fmtC(u.p||0);fig='<i class="fnPh"></i>';}
+  else{const o=bqCos(k);nom=TR(o.d.n);ty=SHOP_LBL[o.cat];px=fmtC(o.d.p);fig=bqFig(o.cat,o.d);}
+  return '<div class="fnC'+(une?' une':'')+(a?' acquis':'')+'" data-fn="'+k+'" role="button" aria-label="'+String(nom).replace(/"/g,'')+'" style="--rc:'+c+';--rcL:'+invRgba(c,.98)+';--rcD:'+invRgba(c,.22)+'">'
+    +'<i class="fnFond"></i>'+fig+(une?'<s class="fnBan">'+sansAcc(TR('À LA UNE'))+'</s>':'')
+    +'<span class="fnTy">'+sansAcc(TR(ty))+' · '+sansAcc(TR(ri.n1))+'</span><b class="fnN">'+sansAcc(String(nom))+'</b>'
+    +'<em class="fnP'+(eur?' eur':'')+'">'+(a?pxi('coche')+'<span>'+sansAcc(TR('ACQUIS'))+'</span>':px)+'</em></div>';}
+function bqCourant(){if(SHOP.tab==='voiture')return 'v:'+garageI;const L=COSM[SHOP.tab],d=L&&L[SHOP.i[SHOP.tab]];return d?SHOP.tab+':'+d.id:'';}
+function gShopJour(){const bar=$('gRar'),st=$('gStrip');if(!bar||!st)return;try{gModeBoutons();}catch(e){}
+  const B=bqVitrine(),kb='fn:'+B.j+':'+LANG;
+  if(bar._k!==kb){bar._k=kb;bar._on=null;bar.classList.add('gModeBar');
+    bar.innerHTML='<div class="gModeT fnTete" style="--rc:var(--neoM)">'+pxi('panier')+'<span>'+sansAcc(TR('BOUTIQUE DU JOUR'))+'</span><s></s><b class="fnT">'+pxi('horloge')+'<i>'+bqReste()+'</i></b></div>';}
+  const k='fn:'+B.j+':'+B.l.join(',')+':'+B.l.map(function(x){return bqA(x)?1:0;}).join('')+':'+LANG;
+  st.classList.add('fnBande');
+  if(st._r!==k){st._r=k;st._n=-1;st.scrollLeft=0;
+    st.innerHTML=B.l.map(function(x,n){return bqCarte(x,n<2);}).join('');
+    st.querySelectorAll('.fnC[data-fn^="v:"]').forEach(function(el){const i=+el.getAttribute('data-fn').slice(2);
+      photoFile(i,function(url){const ph=el.querySelector('.fnPh');if(ph&&!ph.firstChild){const im=document.createElement('img');im.alt='';im.src=url;ph.appendChild(im);}});});}
+  const cur=bqCourant();st.querySelectorAll('.fnC').forEach(function(el){el.classList.toggle('on',el.getAttribute('data-fn')===cur);});}
+try{$('gStrip').addEventListener('click',function(e){const t=e.target.closest&&e.target.closest('.fnC');if(!t)return;e.stopPropagation();
+  if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(t);uiClic('nav');const k=t.getAttribute('data-fn');
+  if(k[0]==='v'){const i=+k.slice(2);if(SHOP.tab!=='voiture')shopTab('voiture');if(i!==garageI)garageSaute(i);}
+  else{const o=bqCos(k),j=COSM[o.cat].indexOf(o.d);if(SHOP.tab!==o.cat)shopTab(o.cat);if(j>=0)shopShow(o.cat,j);try{if(SONV2)sfx('ui.carte');}catch(er){}}
+  gShopJour();});}catch(e){}
+setInterval(function(){try{if(!garageOn||gModeM()!=='shop')return;const B=SAVE.d.bq;if(!B||B.j!==bqJour()){const bar=$('gRar'),st=$('gStrip');if(bar)bar._k=null;if(st)st._r=null;gShopJour();return;}
+  const t=document.querySelector('#gRar .fnT i:not(.pxi)');if(t){const v=bqReste();if(t.textContent!==v)t.textContent=v;}}catch(e){}},1000);
+try{Object.assign(I18N,{'BOUTIQUE DU JOUR':'DAILY SHOP','À LA UNE':'FEATURED','ACQUIS':'OWNED'});}catch(e){}
+window.dbgBoutiqueJour=function(dj){if(dj!=null){BQ_DECALE=dj|0;}const B=bqVitrine();return {jour:B.j,decale:BQ_DECALE,vitrine:B.l.map(function(k){return k+(bqA(k)?' (acquis)':'')+' '+bqRar(k);}),reste:bqReste()};};
 function gModeVa(m){
   if(gEl&&gEl.classList.contains('consoleCachee')){gConsoleCache(false);if(GMODE.m===m)return;} // (2026-10-09) la console repliée : la touche la ROUVRE (dans son mode)
   /* (2026-10-10, Léo, deux passes : « INVENTAIRE fait deux trucs différents : enlève celui avec les raretés », puis « quand j'appuie sur BOUTIQUE
@@ -38083,6 +38189,7 @@ function gPrixHtml(peut,prix){return '<span>'+TR(peut?'ACHETER':'IL MANQUE')+'</
    même bande de vignettes que les caisses montre TOUTE la gamme d'un coup d'œil — le nuancier de la laque (chrome, or et
    mat ont leur matière), l'aile, le ruban de la traînée — avec le prix, le cadenas (à gagner) ou la coche (à toi). */
 function gStripHabits(cat,i){
+  if(gModeM()==='shop'){gShopJour();return;} // (2026-10-10) LA BOUTIQUE DU JOUR mêle caisses et habillages : une seule vitrine
   const st=$('gStrip'),bar=$('gRar');if(!st)return;const L=COSM[cat],md=gModeM(),fi=md==='inv'?'moi':md==='shop'?'achat':(SHOP.filtre||'tout'); // (2026-10-09) INVENTAIRE = à moi, BOUTIQUE = à acheter
   try{gModeBoutons();}catch(e){}
   const k='cos:'+md+':'+cat+':'+fi+':'+L.map(function(x){return shopOwned(cat,x.id)?1:0;}).join('')+':'+shopEqD(cat).id;
