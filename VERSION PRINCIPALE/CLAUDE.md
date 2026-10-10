@@ -171,8 +171,10 @@ plafonds de lacet et de tangage, vol libre, vrille visuelle, drift = un geste. C
   canard, caustiques de Voronoï, `ombre`) là où l'eau est épaisse, et L'EAU transparente (`uGrad` : bleu profond → turquoise → blanche
   en haut, filets, scintillement = normale bousculée — jamais une facette entière en blanc). Sommets qui ondulent le long d'un RAYON
   (continu : rien ne se décolle). Écume et embruns en CUBES (lèvre en rideau = les dents de la gueule, crête en mouton, nez), panache de
-  crête, bulles dans le dos, cockpit = BULLE D'AIR, yeux au fond de la gueule. Roues (« améliore un peu les roues ») : style `tourbillon`
-  de `lpWheel` (7 pales en spirale cyan à pointe blanche sur fond bleu nuit), pneu noir, `bande` + `flanc` cyan (un anneau au bord du flanc). ⚠ Un InstancedMesh se mesure à sa géométrie de base (la
+  crête, bulles dans le dos, cockpit = BULLE D'AIR, yeux au fond de la gueule. ROUES D'EAU (« des roues élémentaires, en eau ») : jante
+  `tourbillon` de `lpWheel` (7 pales en spirale cyan à pointe blanche sur fond bleu nuit), `sansPneu` ; le PNEU est un anneau d'eau
+  (la peau, transparente) sur un cœur sombre, posé DANS chaque roue par le crochet `A.roueDeco(w,sx,sz)` (buildCar ET la salle) : il
+  tourne avec elle ; les roues projettent des gouttes. (`bande`/`flanc` restent des options de lpWheel.) ⚠ Un InstancedMesh se mesure à sa géométrie de base (la
   boîte de la caisse) : une sphère de 1 m au centre faisait FLOTTER la caisse dans la salle. La salle fait porter son ombre à un
   maillage `brut` qui a `userData.ombre`.
 - **LE RANG DANS UNE FAMILLE (10/10, Léo, salle blanche : LA GRANDE ANGLAISE glissée en dernière des RARES)** : une famille du garage

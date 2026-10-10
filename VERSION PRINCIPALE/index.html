@@ -17105,17 +17105,17 @@ function lpWheel(o){
   if(o.style==='nyan')return {}; // (2026-10-08) le chat pop-tart dessine ses roues lui-même (voir « LES ROUES PIXEL » dans son gabarit) : ici, des moyeux VIDES qui portent l'angle
   const R=o.R,hw=o.w/2,K=lpKit({k:{g:'m',c:o.pneu||0x16171a},w:{g:'s',c:0xf4f1ea},
     c:{g:'c',c:o.jante||0xe6e9ee},d:{g:'m',c:o.fond||0x1b1c21},o:{g:'o',c:0xffc24a},a:{g:'p',c:o.accent||0xe6e9ee,f:0},b:{g:'p',c:o.bande||0xffffff,f:0}});
-  K.lathe('k',[[R*.64,-hw],[R*.88,-hw],[R,-hw*.55],[R,hw*.55],[R*.88,hw],[R*.64,hw]],16,0,0,0,'x');
+  if(!o.sansPneu)K.lathe('k',[[R*.64,-hw],[R*.88,-hw],[R,-hw*.55],[R,hw*.55],[R*.88,hw],[R*.64,hw]],16,0,0,0,'x'); // `sansPneu` : le gabarit pose le sien (`roueDeco`)
   if(o.crampons)for(let i=0;i<14;i++){const a=i/14*Math.PI*2;
     K.box('k',o.w*.84,.05,.11,0,Math.sin(a)*R,Math.cos(a)*R,Math.PI/2-a);}
-  if(o.bande)K.lathe('b',[[R+.004,-hw*.16],[R+.004,hw*.16]],16,0,0,0,'x'); // (2026-10-08, SQUALE) une BANDE claire au milieu de la bande de roulement : vue d'en dessous, la roue se lit
+  if(o.bande&&!o.sansPneu)K.lathe('b',[[R+.004,-hw*.16],[R+.004,hw*.16]],16,0,0,0,'x'); // (2026-10-08, SQUALE) une BANDE claire au milieu de la bande de roulement : vue d'en dessous, la roue se lit
   const fx0=hw-.035,FACES=o.deux?[1,-1]:[1];                 // le plan de la jante, en retrait du pneu
   // (2026-10-08, SQUALE) `deux` : la roue du MILIEU, qu'on voit des deux côtés — un tambour FERMÉ et une jante sur CHAQUE face (miroir en x)
   if(o.deux)K.lathe('d',[[0,-(fx0-.05)],[R*.64,-(fx0-.05)],[R*.64,fx0-.05],[0,fx0-.05]],16,0,0,0,'x');
   else K.lathe('d',[[R*.64,-hw+.02],[R*.64,fx0-.05],[0,fx0-.05]],16,0,0,0,'x'); // fût + fond sombre
   for(const e of FACES){const fx=e*fx0;
   if(o.blanc)K.lathe('w',[[R*.70,e*(hw+.004)],[R*.86,e*(hw+.004)]],16,0,0,0,'x');
-  if(o.flanc)K.lathe('b',[[R*.80,e*(hw+.004)],[R*.86,e*(hw+.004)]],24,0,0,0,'x'); // (2026-10-10, LA DÉFERLANTE) un ANNEAU de la couleur de la bande, au bord du flanc
+  if(o.flanc&&!o.sansPneu)K.lathe('b',[[R*.80,e*(hw+.004)],[R*.86,e*(hw+.004)]],24,0,0,0,'x'); // (2026-10-10, LA DÉFERLANTE) un ANNEAU de la couleur de la bande, au bord du flanc
   if(o.style==='cadran'){
     K.lathe('c',[[R*.64,fx],[0,fx]],16,0,0,0,'x');
     for(let h=0;h<5;h++){const a=h/5*Math.PI*2;K.cyl('d',R*.13,.012,8,fx+e*.004,Math.sin(a)*R*.40,Math.cos(a)*R*.40,'x');}
@@ -21526,6 +21526,15 @@ Object.assign(SHAPES,{
     const F0=nappe(true,.90),E0=nappe(false,XE),PR=E0.PR;
     const fond=new THREE.Mesh(F0.geo,eauMat(FOND_FS,.010,false));fond.userData.brut=1;fond.userData.ombre=1;g.add(fond);
     const vague=new THREE.Mesh(E0.geo,eauMat(PEAU_FS,.016,true,.16,.90,.45,[.04,.50,.70]));vague.userData.brut=1;vague.userData.noShadow=1;vague.renderOrder=4;g.add(vague);
+    // LES ROUES D'EAU (Léo : « des roues élémentaires, en eau ») : le pneu est un ANNEAU D'EAU — la même eau que la caisse, transparente,
+    // caustiques qui tournent avec la roue — sur un CŒUR sombre ; au milieu, le tourbillon de la jante (`lpWheel`, `sansPneu`). Posés DANS
+    // chaque roue par `roueDeco` (buildCar et la salle l'appellent) : ils tournent avec elle. Matières PARTAGÉES par les quatre.
+    const anneau=(rc,ra,ha,n)=>{const pts=[];for(let k=0;k<=n;k++){const a=k/n*Math.PI*2;pts.push(new THREE.Vector2(rc+Math.cos(a)*ra,Math.sin(a)*ha));}
+      const geo=new THREE.LatheGeometry(pts,28);geo.rotateZ(-Math.PI/2);return geo;};
+    const gPneu=anneau(R*.83,R*.20,.145,16),gCoeur=anneau(R*.83,R*.12,.10,10),mPneu=eauMat(PEAU_FS,0,true,.30,.94,.5,[.05,.52,.74]),mCoeur=eauMat(FOND_FS,0,false);
+    mPneu.uniforms.uGrad.value=0;
+    const roueDeco=w=>{const a=new THREE.Mesh(gPneu,mPneu),b=new THREE.Mesh(gCoeur,mCoeur);a.userData.brut=b.userData.brut=1;a.userData.noShadow=1;b.userData.ombre=1;
+      a.renderOrder=4;w.add(b,a);};
     // LA BULLE D'AIR : le cockpit, au fond du tube (le même programme que les bulles qui montent)
     const BUL_VS='varying vec3 vN,vV;void main(){mat4 m=modelViewMatrix;\n#ifdef USE_INSTANCING\nm=m*instanceMatrix;\n#endif\n'+
       'vN=normalize(mat3(m)*normal);vec4 mv=m*vec4(position,1.);vV=mv.xyz;gl_Position=projectionMatrix*mv;}',
@@ -21559,9 +21568,12 @@ Object.assign(SHAPES,{
     const NG=190,GO=[];for(let k=0;k<NG;k++)GO.push({v:0});
     let emis=0;const lance=(p,vx,vy,vz)=>{for(const o of GO)if(o.v<=0){o.v=.55+rnd()*.5;o.v0=o.v;o.x=p[0];o.y=p[1];o.z=p[2];
       o.vx=vx;o.vy=vy;o.vz=vz;o.s=.45+rnd()*.5;o.c=rnd()<.6?0:1;return;}};
+    const ROUE9=[0,0,0];
     const pasGouttes=(dt,F)=>{emis+=dt*(80+F*90);while(emis>=1){emis-=1;const r=rnd();
-        if(r<.40){const p=LEV[rnd()*LEV.length|0];lance(p,(rnd()-.5)*.5,.1+rnd()*.8,.3-rnd()*1.6);}                    // la lèvre
-        else if(r<.78){const p=CRE[rnd()*CRE.length|0];lance(p,(rnd()-.5)*.6,1.0+rnd()*1.3,-1.6-rnd()*2.4);}          // le PANACHE de la crête
+        if(r<.32){const p=LEV[rnd()*LEV.length|0];lance(p,(rnd()-.5)*.5,.1+rnd()*.8,.3-rnd()*1.6);}                    // la lèvre
+        else if(r<.62){const p=CRE[rnd()*CRE.length|0];lance(p,(rnd()-.5)*.6,1.0+rnd()*1.3,-1.6-rnd()*2.4);}          // le PANACHE de la crête
+        else if(r<.84){const k=rnd()*4|0,sd=k%2?1:-1,av=k<2;ROUE9[0]=sd*(av?.86:1.02);ROUE9[1]=av?.68:.46;ROUE9[2]=(av?ZF:ZR)-.24;  // les ROUES D'EAU
+          lance(ROUE9,sd*(.3+rnd()*.6),.6+rnd()*1.0,-1.2-rnd()*1.6);}
         else{const p=ETR[rnd()*ETR.length|0];lance(p,Math.sign(p[0]||1)*(.4+rnd()*.9),.6+rnd()*.9,-.4-rnd()*1.0);}}  // le nez fend l'eau
       for(const o of GO)if(o.v>0){o.v-=dt;o.vy-=5.5*dt;o.x+=o.vx*dt;o.y+=o.vy*dt;o.z+=o.vz*dt;if(o.y<.24)o.v=0;}};
     const pose9=()=>{let n=0;const mat=(x,y,z,s,c)=>{if(n>=NE)return;M9.makeScale(s,s,s).setPosition(x,y,z);ecume.setMatrixAt(n,M9);
@@ -21581,7 +21593,7 @@ Object.assign(SHAPES,{
     g.userData.anime=anime;
     if(typeof BLING==='object'&&BLING&&BLING.anim)BLING.anim.push(anime);
     return {hl:[.36,.47,1.14],tl:[.46,.38,-2.44],wx:.82,wzF:ZF,wzR:-ZR,pots:[[.26,.34,-2.45],[-.26,.34,-2.45]],
-            lpw:{R:R,w:.27,style:'tourbillon',n:7,jante:0x5ee6ff,accent:0x5ee6ff,fond:0x061a2c,pneu:0x0a0f15,bande:0x5ee6ff,flanc:1}};
+            lpw:{R:R,w:.27,style:'tourbillon',n:7,jante:0x5ee6ff,accent:0x5ee6ff,fond:0x061a2c,sansPneu:1},roueDeco};
   }
 });
 /* ===== LA GAMME DES 50 — FIN ===== */
@@ -22447,6 +22459,7 @@ function buildCar(spec){
       w.scale.set((sxz[0]<0&&!seule?-1:1)*kF,kF,kF);w.userData.large=W9.w*kF; // (2026-09-26) la largeur du pneu : les traces la reprennent
       w.userData.R=W9.R*kF; // (2026-09-26) le rayon : la boucle fait tourner la roue à sa VRAIE vitesse (v / R)
       if(seule)w.userData.deux=1;
+      if(A.roueDeco)A.roueDeco(w,sxz[0],sxz[1]); // (2026-10-10, LA DÉFERLANTE) le gabarit ajoute ses pièces DANS la roue (le pneu d'eau) : elles tournent avec elle
       w.position.set(seule?0:sxz[0]*(sxz[1]>0&&A.wxF!=null?A.wxF:A.wx),W9.R*kF+A.wy,sxz[1]>0?(A.wzF!=null?A.wzF:A.wz):-(A.wzR!=null?A.wzR:A.wz)); // `wxF` : la voie avant
       carGroup.add(w);wheels.push(w);
     }
