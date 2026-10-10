@@ -6363,23 +6363,23 @@ html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande{display:grid!importan
 html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande.finBas{-webkit-mask:none;mask:none}
 html body #garage.consoleCachee:not(.menu):not(.vitrine) #gStrip.fnBande{display:none!important} /* (2026-10-10, Léo : « le shop, quand je rappuie dessus, ne disparaît pas ») la grille de la vitrine (display:grid!important) passait devant le repli */
 #gStrip.fnBande .fnSecOr{color:#ffd75e}#gStrip.fnBande .fnSecOr s{background:linear-gradient(90deg,rgba(255,215,94,.6),transparent)}
-html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnC.offre{grid-column:span 3;height:140px}
-/* LA PORTE DES OFFRES (2026-10-10, Léo : « l'offre dans le shop, je voulais que ça amène vers TOUTES les voitures payantes, pas une offre
-   montée, improvisée ») : en tête de la boutique du jour, une plaque d'or sur toute la largeur — OFFRES, « toutes les voitures payantes »,
-   le nombre, et trois d'entre elles en éventail. Touchée : la bande devient le catalogue des caisses en € (gOffres). */
+/* LA PORTE « SEE ALL ITEMS » (2026-10-10, Léo, deux passes : « l'offre dans le shop doit amener vers toutes les voitures payantes, pas une
+   offre montée », puis « au lieu de toutes les voitures : en anglais, SEE ALL ITEMS — dedans tous les objets avec leur prix ; au lancement
+   on peut tout acheter, plus tard non ») : en tête de la boutique du jour, une plaque d'or sur toute la largeur — le titre, « LAUNCH: ALL
+   AVAILABLE », le nombre, et trois caisses en éventail. Touchée : la bande devient le CATALOGUE COMPLET (gOffres). */
 html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnPorte{position:relative;grid-column:1/-1;height:92px;overflow:hidden;cursor:pointer;transform:skewX(var(--sk));
   background:linear-gradient(105deg,rgba(64,40,8,.95),rgba(26,16,4,.96) 62%,rgba(48,30,6,.9));box-shadow:inset 0 0 0 1px rgba(255,215,94,.62),inset 4px 0 0 #ffd75e,0 0 20px -6px #ffc23a;
   clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
 html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnPorte:is(:active,.appui){transform:skewX(var(--sk)) translateY(2px)}
 #gStrip.fnBande .fnPorte>*{pointer-events:none}
 #gStrip.fnBande .fnPorte .fnFond{opacity:.35}
-#gStrip.fnBande .fpPh{position:absolute;top:0;bottom:0;right:-3%;width:50%}
-#gStrip.fnBande .fpPh i{position:absolute;top:50%;width:54%;transform:translate(-50%,-50%) skewX(calc(-1 * var(--sk)))}
+#gStrip.fnBande .fpPh{position:absolute;top:26px;bottom:0;right:-3%;width:48%}
+#gStrip.fnBande .fpPh i{position:absolute;top:50%;width:52%;transform:translate(-50%,-50%) skewX(calc(-1 * var(--sk)))}
 #gStrip.fnBande .fpPh i:nth-child(1){left:30%;top:58%;z-index:1}#gStrip.fnBande .fpPh i:nth-child(2){left:56%;top:40%;z-index:2;width:62%}#gStrip.fnBande .fpPh i:nth-child(3){left:82%;top:60%;z-index:1}
 #gStrip.fnBande .fpPh img{display:block;width:100%;height:auto;filter:drop-shadow(0 5px 4px rgba(0,0,0,.6))}
 #gStrip.fnBande .fpT{position:absolute;left:14px;top:12px;z-index:3;display:flex;align-items:center;gap:8px;font-weight:400;font-size:var(--f3);letter-spacing:2px;color:#ffd75e;text-shadow:0 2px 0 rgba(7,5,15,.95),0 0 10px rgba(255,194,58,.55)}
 #gStrip.fnBande .fpT .pxi{--pxs:2;color:#ffd75e}
-#gStrip.fnBande .fpS{position:absolute;left:14px;top:40px;z-index:3;width:46%;font-size:var(--f0);line-height:1.6;letter-spacing:1px;color:#fff;text-shadow:0 1px 0 rgba(7,5,15,.95)}
+#gStrip.fnBande .fpS{position:absolute;left:14px;top:38px;z-index:3;width:48%;font-size:var(--f0);line-height:1.6;letter-spacing:1px;color:#fff;text-shadow:0 1px 0 rgba(7,5,15,.95)}
 #gStrip.fnBande .fpN{position:absolute;left:14px;bottom:10px;z-index:3;display:flex;align-items:center;gap:6px;font-style:normal;font-size:var(--f0);letter-spacing:1px;color:#ffd75e;text-shadow:0 1px 0 rgba(7,5,15,.95)}
 #gStrip.fnBande .fpN .pxi{--pxs:1;color:#ffd75e}
 html body #garage:not(.menu):not(.vitrine) #gRar .fnTete .fnRetour{display:inline-flex;align-items:center;justify-content:center;width:40px;height:34px;margin:0 -4px 0 -6px;pointer-events:auto;cursor:pointer;color:#ffd75e}
@@ -6389,7 +6389,7 @@ html body #garage:not(.menu):not(.vitrine) #gRar .fnTete .fnCompte{color:#ffd75e
   font-size:var(--f0);letter-spacing:2px;color:rgba(230,226,255,.55);text-shadow:0 1px 0 rgba(7,5,15,.8);transition:color var(--t-fast) var(--ease)} /* (2026-10-10) écrit en transparent, pas une plaque */
 #gStrip.fnBande .fnTout .pxi{--pxs:1;color:rgba(94,230,255,.6)}
 #gStrip.fnBande .fnTout:is(:hover,:active,.appui){color:rgba(255,255,255,.9)}
-#gStrip.fnBande .fnSec{grid-column:1/-1;display:flex;align-items:center;gap:8px;margin:4px 2px -2px;font-size:var(--f0);letter-spacing:2px;color:var(--tx2)}
+#gStrip.fnBande .fnSec{grid-column:1/-1;scroll-snap-align:start;display:flex;align-items:center;gap:8px;margin:4px 2px -2px;font-size:var(--f0);letter-spacing:2px;color:var(--tx2)}
 #gStrip.fnBande .fnSec s{flex:1;height:1px;background:linear-gradient(90deg,rgba(154,144,200,.5),transparent)}
 html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnC{position:relative;grid-column:span 2;width:auto;height:128px;overflow:hidden;cursor:pointer;scroll-snap-align:start;transform:skewX(var(--sk));
   background:radial-gradient(130% 90% at 50% 30%,var(--rcL) 0%,var(--rc) 34%,var(--rcD) 100%),#120d24;
@@ -38981,26 +38981,27 @@ function bqCarte(k,une){const ri=rarInfo(bqRar(k)),c=ri.c,a=bqA(k);let nom='',ty
     +'<i class="fnFond"></i>'+fig+(une?'<s class="fnBan">'+sansAcc(TR('À LA UNE'))+'</s>':'')
     +'<span class="fnTy">'+sansAcc(TR(ty))+(une?' · '+sansAcc(TR(ri.n1)):'')+'</span><b class="fnN">'+sansAcc(String(nom))+'</b>'
     +'<em class="fnP'+(eur?' eur':'')+'">'+(a?pxi('coche')+'<span>'+sansAcc(TR('ACQUIS'))+'</span>':px)+'</em></div>';}
-/* LES OFFRES DANS LA BOUTIQUE DU GARAGE (2026-10-10, Léo : « intègre la fonctionnalité du menu qui s'appelle aussi shop — on la renomme
-   OFFRES — dans le shop du garage », puis : « l'offre dans le shop, je voulais que ça amène vers TOUTES les voitures payantes, pas juste une
-   offre montée, improvisée »). En tête de la vitrine du jour, la PORTE DES OFFRES (bqPorte) ; touchée (`GMODE.off`), la bande devient le
-   catalogue de TOUTES les caisses en € (bqPayantes, du moins cher au plus cher), sans remise inventée. Toucher une caisse la pose sur le
-   plateau (comme toute carte de la boutique) ; ACHETER + son prix en € ouvre la fenêtre d'achat de la page OFFRES (shopPop), ici même.
-   ◀ dans la barre, ou BOUTIQUE retouchée, ramène à la vitrine du jour. Les caisses en € ne sont pas tirées dans À LA UNE / DU JOUR. */
+/* SEE ALL ITEMS — LE CATALOGUE COMPLET DANS LA BOUTIQUE DU GARAGE (2026-10-10, Léo, trois passes : « intègre les OFFRES du menu dans le shop
+   du garage », « l'offre doit amener vers toutes les voitures payantes, pas une offre montée, improvisée », puis « au lieu de toutes les
+   voitures : en anglais, SEE ALL ITEMS ; dedans tous les objets avec leur prix — au lancement on peut tout acheter, avec de l'argent ; plus
+   tard, non » · « ne les classe pas par rareté, fais-les toutes défiler, montre-les toutes »). En tête de la vitrine du jour, la PORTE
+   (bqPorte) ; touchée (`GMODE.off`), la bande devient UNE seule liste qui défile (bqTous) : tout ce qui a un prix — caisses à l'argent du jeu,
+   peintures, ailes, traînées, du moins cher au plus cher, puis les caisses en € — sans familles ni rubriques (la couleur de la carte reste
+   celle de sa rareté). Chaque carte est celle de la vitrine (bqCarte) : touchée, l'objet se pose sur le plateau et ÉQUIPER dit ACHETER + son
+   prix ($ : l'achat du garage ; € : la fenêtre d'achat de la page OFFRES, ici même). ◀ dans la barre, ou BOUTIQUE retouchée, ramène à la
+   vitrine du jour. Les caisses en € ne sont pas tirées dans À LA UNE / DU JOUR. Plus tard (après le lancement), la porte pourra se fermer :
+   la vitrine du jour restera la seule. */
 function bqEur(i){return parseFloat(String((CAR_UNLOCK[i]||{}).eur||'0').replace(',','.'))||0;}
-function bqPayantes(){const L=[];for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(u&&u.k==='premium'&&!carRetiree(i))L.push(i);}
-  return L.sort(function(a,b){return bqEur(a)-bqEur(b)||a-b;});}
-function bqPorte(L){const ph=L.filter(function(i){return !carOwned(i);}).concat(L.filter(carOwned)).slice(0,3);
-  return '<div class="fnPorte" role="button" tabindex="0" aria-label="'+sansAcc(TR('OFFRES'))+'"><i class="fnFond"></i>'
-    +'<span class="fpPh">'+ph.map(function(i){return '<i data-ph="'+i+'"></i>';}).join('')+'</span>'
-    +'<b class="fpT">'+pxi('cadeau')+'<span>'+sansAcc(TR('OFFRES'))+'</span></b>'
-    +'<span class="fpS">'+sansAcc(TR('TOUTES LES VOITURES PAYANTES'))+'</span>'
-    +'<em class="fpN">'+L.length+' '+sansAcc(TR('VOITURES'))+' '+pxi('droite')+'</em></div>';}
-function bqOffreCarte(i){const u=CAR_UNLOCK[i]||{},c=rarInfo('legendaire').c,a=carOwned(i),nom=TR(CARS[i].name);
-  return '<div class="fnC offre'+(a?' acquis':'')+'" data-fn="o:'+i+'" data-car="'+i+'" role="button" aria-label="'+String(nom).replace(/"/g,'')+'" style="--rc:'+c+';--rcL:'+invRgba(c,.98)+';--rcD:'+invRgba(c,.22)+'">'
-    +'<i class="fnFond"></i><i class="fnPh"></i>'
-    +'<span class="fnTy">'+sansAcc(TR('CAISSE'))+' · '+sansAcc(TR('LÉGENDAIRE'))+'</span><b class="fnN">'+sansAcc(String(nom))+'</b>'
-    +'<em class="fnP eur">'+(a?pxi('coche')+'<span>'+sansAcc(TR('À TOI'))+'</span>':'<span>'+eurTxt(u.eur)+'</span>')+'</em></div>';}
+function bqTous(){const D=[],E=[],t=function(a,b){return a.p-b.p;};
+  for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(!u||carRetiree(i))continue;if(u.k==='premium')E.push({k:'v:'+i,p:bqEur(i)});else if(u.p>0)D.push({k:'v:'+i,p:u.p});}
+  for(const cat of ['peinture','aile','trainee'])for(const d of COSM[cat])if(d.p>0)D.push({k:cat+':'+d.id,p:d.p});
+  return D.sort(t).concat(E.sort(t)).map(function(o){return o.k;});}
+function bqPorte(L){const V=L.filter(function(k){return k[0]==='v';}).reverse(),ph=V.filter(function(k){return !bqA(k);}).concat(V.filter(bqA)).slice(0,3);
+  return '<div class="fnPorte" role="button" tabindex="0" aria-label="See all items"><i class="fnFond"></i>'
+    +'<span class="fpPh">'+ph.map(function(k){return '<i data-ph="'+k.slice(2)+'"></i>';}).join('')+'</span>'
+    +'<b class="fpT">'+pxi('panier')+'<span>SEE ALL ITEMS</span></b>'
+    +'<span class="fpS">LAUNCH: ALL AVAILABLE</span>'
+    +'<em class="fpN">'+L.length+' ITEMS '+pxi('droite')+'</em></div>';}
 function gOffres(on){GMODE.off=!!on;const bar=$('gRar'),st=$('gStrip');if(bar)bar._k=null;if(st){st._r=null;st.scrollTop=0;}gShopJour();}
 function bqCourant(){if(SHOP.tab==='voiture')return 'v:'+garageI;const L=COSM[SHOP.tab],d=L&&L[SHOP.i[SHOP.tab]];return d?SHOP.tab+':'+d.id:'';}
 function gShopJour(){const bar=$('gRar'),st=$('gStrip');if(!bar||!st)return;try{gModeBoutons();}catch(e){}
@@ -39008,31 +39009,29 @@ function gShopJour(){const bar=$('gRar'),st=$('gStrip');if(!bar||!st)return;try{
   const B=bqVitrine(),kb='fn:'+B.j+':'+LANG;
   if(bar._k!==kb){bar._k=kb;bar._on=null;bar.classList.add('gModeBar');
     bar.innerHTML='<div class="gModeT fnTete" style="--rc:var(--neoM)">'+pxi('panier')+'<span>'+sansAcc(TR('BOUTIQUE DU JOUR'))+'</span><s></s><b class="fnT">'+pxi('horloge')+'<i>'+bqReste()+'</i></b></div>';}
-  const O=bqPayantes(),k='fn:'+B.j+':'+B.l.join(',')+':'+B.l.map(function(x){return bqA(x)?1:0;}).join('')+':'+O.map(function(i){return i+(carOwned(i)?'a':'');}).join(',')+':'+LANG;
+  const O=bqTous(),k='fn:'+B.j+':'+B.l.join(',')+':'+B.l.map(function(x){return bqA(x)?1:0;}).join('')+':'+O.length+':'+LANG;
   st.classList.add('fnBande');
   if(!st._finB){st._finB=1;st.addEventListener('scroll',function(){if(st.classList.contains('fnBande'))st.classList.toggle('finBas',st.scrollTop+st.clientHeight>=st.scrollHeight-4);},{passive:true});} // au bout de la vitrine, plus de fondu
   if(st._r!==k){st._r=k;st._n=-1;st.scrollLeft=0;st.scrollTop=0;st.classList.remove('finBas');
     st.innerHTML=(O.length?bqPorte(O)+'<div class="fnSec"><span>'+sansAcc(TR('À LA UNE'))+'</span><s></s></div>':'')
       +B.l.map(function(x,n){return (n===BQ_N.une?'<div class="fnSec"><span>'+sansAcc(TR('DU JOUR'))+'</span><s></s></div>':'')+bqCarte(x,n<BQ_N.une);}).join('')
-      +'<div class="fnTout" role="button" tabindex="0">'+sansAcc(TR('VOIR TOUTES LES VOITURES'))+' '+pxi('droite')+'</div>'; // (2026-10-10, Léo : « tout en bas de la boutique, pour voir toutes les voitures — écrit en transparent, pas un bouton ») → le catalogue complet, par famille
+      +'<div class="fnTout" role="button" tabindex="0">SEE ALL ITEMS '+pxi('droite')+'</div>'; // (2026-10-10, Léo : « tout en bas de la boutique, pour voir toutes les voitures — écrit en transparent, pas un bouton », puis « en anglais, SEE ALL ITEMS ») → le catalogue complet, la même liste que la porte du haut
     bqPhotos(st);}
   const cur=bqCourant();st.querySelectorAll('.fnC').forEach(function(el){el.classList.toggle('on',el.getAttribute('data-fn')===cur);});}
 function bqPhotos(st){
   st.querySelectorAll('.fnC[data-fn^="v:"],.fnC[data-fn^="o:"]').forEach(function(el){const i=+el.getAttribute('data-fn').slice(2);
     photoFile(i,function(url){const ph=el.querySelector('.fnPh');if(ph&&!ph.firstChild){const im=document.createElement('img');im.alt='';im.src=url;ph.appendChild(im);}});});
   st.querySelectorAll('.fpPh i[data-ph]').forEach(function(el){photoFile(+el.getAttribute('data-ph'),function(url){if(!el.firstChild){const im=document.createElement('img');im.alt='';im.src=url;el.appendChild(im);}});});}
-function gShopOffres(bar,st){const L=bqPayantes(),kb='fo:'+L.length+':'+LANG;
+function gShopOffres(bar,st){const L=bqTous(),kb='fo:'+L.length+':'+LANG;
   if(bar._k!==kb){bar._k=kb;bar._on=null;bar.classList.add('gModeBar');
-    bar.innerHTML='<div class="gModeT fnTete" style="--rc:#ffd75e"><b class="fnRetour" role="button" aria-label="'+TR('RETOUR')+'">'+pxi('gauche')+'</b>'+pxi('cadeau')+'<span>'+sansAcc(TR('OFFRES'))+'</span><s></s><b class="fnCompte">'+L.length+' '+sansAcc(TR('VOITURES'))+'</b></div>';}
-  const k='fo:'+L.map(function(i){return i+(carOwned(i)?'a':'');}).join(',')+':'+LANG;st.classList.add('fnBande');
+    bar.innerHTML='<div class="gModeT fnTete" style="--rc:#ffd75e"><b class="fnRetour" role="button" aria-label="'+TR('RETOUR')+'">'+pxi('gauche')+'</b>'+pxi('panier')+'<span>ALL ITEMS</span><s></s><b class="fnCompte">'+L.length+' ITEMS</b></div>';}
+  const k='fo:'+L.join(',')+':'+L.map(function(x){return bqA(x)?1:0;}).join('')+':'+LANG;st.classList.add('fnBande');
   if(st._r!==k){st._r=k;st._n=-1;st.scrollLeft=0;st.scrollTop=0;st.classList.remove('finBas');
-    st.innerHTML=L.map(function(i){return bqOffreCarte(i);}).join('');bqPhotos(st);}
-  const cur=SHOP.tab==='voiture'?'o:'+garageI:'';st.querySelectorAll('.fnC').forEach(function(el){el.classList.toggle('on',el.getAttribute('data-fn')===cur);});}
-try{$('gStrip').addEventListener('click',function(e){const v=e.target.closest&&e.target.closest('.fnTout');if(v){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(v);uiClic('nav');gVoirTout();return;}
-  const po=e.target.closest&&e.target.closest('.fnPorte');if(po){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(po);uiClic('nav');gOffres(true);return;} // (2026-10-10) la PORTE DES OFFRES : toutes les caisses en €
+    st.innerHTML='<div class="fnSec fnSecOr"><span>LAUNCH: EVERY ITEM AVAILABLE</span><s></s></div>'+L.map(function(x){return bqCarte(x,false);}).join('');bqPhotos(st);}
+  const cur=bqCourant();st.querySelectorAll('.fnC').forEach(function(el){el.classList.toggle('on',el.getAttribute('data-fn')===cur);});}
+try{$('gStrip').addEventListener('click',function(e){const v=e.target.closest&&e.target.closest('.fnTout');if(v){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(v);uiClic('nav');gOffres(true);return;}
+  const po=e.target.closest&&e.target.closest('.fnPorte');if(po){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(po);uiClic('nav');gOffres(true);return;} // (2026-10-10) la porte SEE ALL ITEMS : le catalogue complet
   const t=e.target.closest&&e.target.closest('.fnC');if(!t)return;e.stopPropagation();
-  if(t.classList.contains('offre')){if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(t);uiClic('nav');const i=+t.getAttribute('data-car'); // (2026-10-10) une caisse en € : sur le plateau, comme les autres cartes — ACHETER + le prix ouvre la fenêtre d'achat
-    if(SHOP.tab!=='voiture')shopTab('voiture');if(i!==garageI)garageSaute(i);gShopJour();return;}
   if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(t);uiClic('nav');const k=t.getAttribute('data-fn');
   if(k[0]==='v'){const i=+k.slice(2);if(SHOP.tab!=='voiture')shopTab('voiture');if(i!==garageI)garageSaute(i);}
   else{const o=bqCos(k),j=COSM[o.cat].indexOf(o.d);if(SHOP.tab!==o.cat)shopTab(o.cat);if(j>=0)shopShow(o.cat,j);try{if(SONV2)sfx('ui.carte');}catch(er){}}
@@ -42917,7 +42916,7 @@ function garageSaute(i){if(GAR.go||i===garageI||!(i>=0))return; // (2026-09-28) 
   GAR.sw={t:0,fait:false,to:i};try{if(SONV2)sfx('garage.bascule');else{chimeNote(880,0,.16,.14);noiseBurst(.35,.09,900);}}catch(e){}}
 $('gBuy').addEventListener('click',e=>{e.stopPropagation();
   if(SHOP.tab==='voiture'&&e.currentTarget.dataset.bout==='1'&&garageOn&&!gEl.classList.contains('menu')){hap(8); // (2026-10-10) les OFFRES vivent dans la boutique du garage : ACHETER + le prix en € ouvre la fenêtre d'achat ICI, sur la caisse affichée
-    let src=document.querySelector('#gStrip .fnC.offre[data-car="'+garageI+'"]');if(!src){src=e.currentTarget;src.setAttribute('data-car',garageI);}
+    let src=document.querySelector('#gStrip .fnC[data-fn="v:'+garageI+'"]');if(!src)src=e.currentTarget;src.setAttribute('data-car',garageI);
     try{shopPop(src);return;}catch(er){}}
   if(SHOP.tab==='voiture'&&e.currentTarget.dataset.bout==='1'){uiClic('nav');hap(8); // LÉGENDAIRE : direction la BOUTIQUE
     // (2026-09-28) la boutique s'ouvre AU LEVER du voile (`apres`) : le clic simulé sur le bouton de l'accueil partait PENDANT le
