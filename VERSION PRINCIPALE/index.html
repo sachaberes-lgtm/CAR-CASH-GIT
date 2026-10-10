@@ -7091,13 +7091,23 @@ const skyDome=(function(){
       '  {float cv=jPeigne(azq,y,170.,3.3,.008,.052,.26);vec3 m=mix(B,uJdR,.27);m=mix(m,B,smoothstep(.034,-.004,y)*.85);c=mix(c,m,cv);}',
       '  {float cv=jPeigne(azq,y,104.,7.9,.012,.078,.24);vec3 m=mix(B,uJdR,.39);m=mix(m,B,smoothstep(.05,-.004,y)*.85);c=mix(c,m,cv);}',
       '  {float cv=jPeigne(azq,y,62.,11.2,.018,.108,.22);vec3 m=mix(B,uJdR,.52);m=mix(m,B,smoothstep(.07,-.004,y)*.85);c=mix(c,m,cv);}',
-      '  if(y<0.){float t=(uCam.y-uJMerY)/max(-y,.0004);',                  // LA MER DE NUAGES
-      '    vec2 p=(d.xz*t+uCam.xz)*.0019+vec2(uTime*.005,uTime*.0018);',
-      '    float n=vfbm(p+.7*vec2(vn(p*.6+3.1),vn(p*.6-1.7)));',
-      '    float lit=smoothstep(.32,.78,n),cr=smoothstep(.6,.9,n);',
-      '    vec3 sea=mix(B*vec3(.80,.83,.92),mix(B,vec3(1.,.985,.95),.55),lit);',
-      '    sea=mix(sea,vec3(1.,.99,.96)+uJdS*.06,cr*.5);sea+=uJdS*pow(sd,6.)*.18*lit;',
-      '    float hz=1.-smoothstep(-.16,-.002,y);c=mix(c,sea,hz*hz*(3.-2.*hz));}',
+      // (v8, Léo : « un dessous, que ce soit la mer — qui fasse penser au fleuve des peintures chinoises, mais bleu ») LE FLEUVE : le bleu
+      // minéral des rouleaux (千里江山图) — un lavis bleu-vert, plus profond sous soi, et les LIGNES D EAU peintes au pinceau (fines, serrées,
+      // qui ondulent et se cassent en traits), deux houles plus larges, un éclat de soleil sur les lignes ; au loin la brume le reprend.
+      '  if(y<0.){float t=(uCam.y-uJMerY)/max(-y,.0004);vec2 P=d.xz*t+uCam.xz;',
+      '    float px=t*uJPx/max(-y,.015);',                                    // un pixel, en mètres, sur l eau
+      '    vec2 q=vec2(P.x*.956+P.y*.292,-P.x*.292+P.y*.956);',              // le courant, en biais
+      '    float lw=q.y/17.+.7*sin(q.x/90.+q.y/150.)+.3*sin(q.x/33.-q.y/61.+1.3)+uTime*.03;',
+      '    float e1=abs(fract(lw)-.5),ln=smoothstep(.5-.07-px/17.,.5-.015,e1)*(1.-smoothstep(.10,.30,px/17.));', // les LIGNES D EAU (un trait tous les 17 m, effacé avant de grésiller)
+      '    ln*=smoothstep(.3,.6,vn(vec2(q.x/70.,floor(lw)*.37)));',         // cassées en traits de pinceau
+      '    float hw=q.y/90.+.45*sin(q.x/330.+q.y/600.)-uTime*.01,hb=smoothstep(.1,.5,abs(fract(hw)-.5))*(1.-smoothstep(.12,.4,px/90.));', // les houles
+      '    float n=vfbm(P*.0016+vec2(uTime*.002,0.));',
+      '    vec3 dp=vec3(.13,.33,.47),cl=vec3(.33,.55,.65);',                  // le bleu minéral : profond / clair
+      '    vec3 wa=mix(dp,cl,.25+.5*n+.25*smoothstep(-.35,-.03,y));',
+      '    wa*=.88+.12*hb;wa=mix(wa,vec3(.78,.88,.90),ln*.38);',
+      '    float gl=pow(max(dot(vec3(d.x,-d.y,d.z),uSunDir),0.),24.);wa+=uJdS*gl*(.25+.9*ln);', // l éclat du soleil sur les lignes
+      '    wa=mix(wa,mix(uJdH,uJdB,.5)*vec3(.92,.97,1.),pow(1.+y,14.)*.7);', // au ras, le ciel s y reflète
+      '    float hz=1.-smoothstep(-.16,-.002,y);c=mix(c,wa,hz*hz*(3.-2.*hz));}',
       '  c=mix(c,uFogCol,(1.-smoothstep(0.,.05,abs(y)))*.35);',              // l horizon rejoint la brume de three (les piliers 3D s y fondent)
       '  return c;}'],
     fond:[
@@ -12618,7 +12628,7 @@ function voxMesh(G,inner){ // inner : une face INTÉRIEURE (matière 10) tous le
     for(const sg of [1,-1])for(let x=0;x<=dims[d];x++){
       let n=0;const xi=sg>0?x-1:x,xo=sg>0?x:x-1;
       for(let j=0;j<nv;j++)for(let i=0;i<nu;i++,n++){
-        at[d]=xi;at[u]=i;at[v]=j;const m=voxAt(G,at[0],at[1],at[2]);if(!m){mask[n]=0;continue;}
+        at[d]=xi;at[u]=i;at[v]=j;const m=voxAt(G,at[0],at[1],at[2]);if(!m||m===255){mask[n]=0;continue;} // 255 : une case FANTÔME (refaite en cubes fins) — pleine pour ses voisines, sans faces
         at[d]=xo;if(voxAt(G,at[0],at[1],at[2])){mask[n]=inner&&sg>0&&x%inner===0?(10|(255<<8)|(1<<20)):0;continue;}
         let key=m;const co=[[-1,-1],[1,-1],[1,1],[-1,1]];
         for(let c=0;c<4;c++){q[d]=xo;q[u]=i+co[c][0];q[v]=j;const s1=sol(q[0],q[1],q[2])?1:0;q[u]=i;q[v]=j+co[c][1];const s2=sol(q[0],q[1],q[2])?1:0;
@@ -12656,14 +12666,14 @@ function voxPilier(R,H,kind,graine){
   const can=[];for(let k=0,nc=2+((rg()*2.6)|0);k<nc;k++)can.push([rg()*6.283,.18+rg()*.2,.22+rg()*.2]); // les CANNELURES
   const tr=[];for(let k=0,nt=1+((rg()*2.4)|0);k<nt;k++)tr.push([rg()*6.283,.12+rg()*.14,(.4+rg()*.55)*H,(.15+rg()*.3)*H]); // les TRAÎNÉES de rouille
   const Hb=Math.max(3,Math.round(H*(.26+rg()*.12))),bA=rg()*6.283,bK=.22+rg()*.3;
-  let y=0,cx=M,cz=M,rw=0;
+  let y=0,cx=M,cz=M,rw=0;const LY=[]; // les COUCHES, gardées pour les cubes fins (voxPilierFin)
   while(y<H){const bas=y<Hb,h=bas?1+((rg()*1.6)|0):2+((rg()*5)|0),v=(y+h/2)/H;
     rw=rw*.6+(rg()-.5)*.17;let s;
     if(kind===0)s=1+rw;else if(kind===1)s=1.14-.44*v+rw*.6;else if(kind===2)s=(((y/3)|0)%2?.82:1)+rw*.5;else s=.86+.34*v*v+rw*.5;
     let ox=0,oz=0;
     if(bas){const t=Math.min(1,(y+h/2)/Hb);s*=Math.pow(t,.62)*(.82+.18*t);const k9=(1-t)*(1-t)*bK*R;ox=Math.cos(bA)*k9;oz=Math.sin(bA)*k9;} // la POINTE, décentrée
     else{cx=Math.max(M-R*.25,Math.min(M+R*.25,cx+(rg()-.5)*.7));cz=Math.max(M-R*.25,Math.min(M+R*.25,cz+(rg()-.5)*.7));}
-    const rr=Math.max(bas?.55:1.15,R*s),y1=Math.min(H,y+h);
+    const rr=Math.max(bas?.55:1.15,R*s),y1=Math.min(H,y+h);LY.push([y,y1,cx+ox,cz+oz,rr,bas?1:0]);
     for(let i=0;i<N;i++)for(let j=0;j<N;j++){const dx=i+.5-cx-ox,dz=j+.5-cz-oz,d=Math.hypot(dx,dz),an=Math.atan2(dz,dx);
       let f=1;for(const hq of harm)f+=hq[1]*Math.cos(hq[0]*an+hq[2]);
       for(const c of can){const da=Math.abs(((an-c[0])%6.2832+9.4248)%6.2832-3.1416);if(da<c[1])f-=c[2]*(1-da/c[1]);}
@@ -12683,9 +12693,131 @@ function voxPilier(R,H,kind,graine){
     des.push([i,yy,j]);} // les dessous, d'où pendent les lianes peintes
   let yTop=0,rmax=0;for(let yy=0;yy<G.ny;yy++)for(let i=0;i<N;i++)for(let j=0;j<N;j++)if(G.d[i+N*(j+N*yy)]){yTop=Math.max(yTop,yy+1);rmax=Math.max(rmax,Math.hypot(i+.5-M,j+.5-M)+.71);}
   const G1=voxDemi(G),G2=voxDemi(G1),G3=voxDemi(G2);
-  return {G:G,M:M,H:H,Hb:Hb,yTop:yTop,rmax:rmax,tops:tops.filter(function(c){return !voxAt(G,c[0],c[1]+1,c[2]);}),cor:cor.filter(function(c){return !voxAt(G,c[0],c[1]+1,c[2]);}),des:des,
+  return {G:G,M:M,H:H,Hb:Hb,yTop:yTop,rmax:rmax,N:N,ly:LY,harm:harm,can:can,tr:tr,graine:graine,tops:tops.filter(function(c){return !voxAt(G,c[0],c[1]+1,c[2]);}),cor:cor.filter(function(c){return !voxAt(G,c[0],c[1]+1,c[2]);}),des:des,
     geo:[voxMesh(G,4),voxMesh(G1,2),voxMesh(G2,1),voxMesh(G3)]}; // les plans intérieurs tous les 7 m à chaque niveau (le verre garde la même teinte)
 }
+/* ---- LES CUBES MINUSCULES (v8, Léo : « trois fois plus petit ») — un niveau de détail de PLUS, de près seulement (≤ FIN.D de la caméra) :
+   des cubes de VX/3 (58 cm sur l'ordi). Une grille pleine à ce pas pèserait ~250 millions de cases : la montagne est donc relue telle
+   qu'elle a été bâtie, COUCHE PAR COUCHE (`T9.ly` : hauteurs, centre, rayon ; harmoniques et cannelures du gabarit), chaque couche
+   redécoupée en sous-couches de 1 à 3 cubes fins qui avancent ou reculent d'un cube (des corniches fines), son contour tracé en polygone
+   puis balayé rang par rang (des INTERVALLES). Les faces se lisent sur ces intervalles — bouts de rang = faces ±x, écarts entre deux rangs
+   = faces ±z, écarts entre deux sous-couches = dessus / dessous — fusionnées le long du rang et dans la hauteur ; plans intérieurs tous
+   les 12 cubes fins (7 m, comme aux autres niveaux). La roche DURE (les chocs) reste celle des cubes de 1,75 m (`T9.G`). ---- */
+const FIN={on:!TEL_NATIF,k:3,D:170,near:[],sig:0,fam:[],tpl:null,veut:new Set(),job:null,dans:new Set(),mats:new Map()};
+const FIN_VIDE=[];
+function finDiff(A,B){if(!B.length||!A.length)return A.length?A:FIN_VIDE;const o=[];let j=0; // A \ B (listes d'intervalles [a,b, a,b…] triés)
+  for(let k=0;k<A.length;k+=2){let a=A[k];const b=A[k+1];while(j<B.length&&B[j+1]<=a)j+=2;
+    for(let jj=j;jj<B.length&&B[jj]<b;jj+=2){if(B[jj]>a)o.push(a,B[jj]);a=Math.max(a,B[jj+1]);}
+    if(a<b)o.push(a,b);}
+  return o;}
+function finInter(A,B){if(!A.length||!B.length)return FIN_VIDE;const o=[];let i=0,j=0;
+  while(i<A.length&&j<B.length){const a=Math.max(A[i],B[j]),b=Math.min(A[i+1],B[j+1]);if(a<b)o.push(a,b);if(A[i+1]<B[j+1])i+=2;else j+=2;}return o;}
+function* voxPilierFin(T9){ // un GÉNÉRATEUR : il rend la main après chaque couche (finTravail le fait avancer quelques ms par image)
+  const K=FIN.k,N=T9.N*K,rg=mulberry32((T9.graine^0xF1E5)>>>0),HbF=T9.Hb*K;
+  const fh=[];for(let k=7;k<=12;k++)fh.push([k,.006+rg()*.012,rg()*6.283]); // le contour FIN (en plus de celui du gabarit)
+  const P=[],Nm=[],Ma=[],I=[],q=[0,0,0];
+  const quad=(d,sg,x,u0,u1,v0,v1,m)=>{const u=(d+1)%3,v=(d+2)%3,b=P.length/3;
+    q[d]=x;q[u]=u0;q[v]=v0;P.push(q[0],q[1],q[2]);q[u]=u1;P.push(q[0],q[1],q[2]);q[v]=v1;P.push(q[0],q[1],q[2]);q[u]=u0;P.push(q[0],q[1],q[2]);
+    const nx=d===0?sg:0,ny=d===1?sg:0,nz=d===2?sg:0;for(let k=0;k<4;k++){Nm.push(nx,ny,nz);Ma.push(m);}
+    if(sg>0)I.push(b,b+1,b+2,b,b+2,b+3);else I.push(b,b+2,b+1,b,b+3,b+2);};
+  const contour=(cx,cz,rr)=>{ // le contour d'une sous-couche (en cubes fins) → ses rangs d'intervalles
+    const na=Math.max(24,Math.min(1440,Math.ceil(6.2832*rr/1.1))),X=new Float32Array(na),Z=new Float32Array(na);let zmin=1e9,zmax=-1e9;
+    for(let k=0;k<na;k++){const an=k/na*6.2832;let f=1;for(const h of T9.harm)f+=h[1]*Math.cos(h[0]*an+h[2]);for(const h of fh)f+=h[1]*Math.cos(h[0]*an+h[2]);
+      for(const c of T9.can){const da=Math.abs(((an-c[0])%6.2832+9.4248)%6.2832-3.1416);if(da<c[1])f-=c[2]*(1-da/c[1]);}
+      const r=Math.max(0,rr*f);X[k]=cx+Math.cos(an)*r;Z[k]=cz+Math.sin(an)*r;if(Z[k]<zmin)zmin=Z[k];if(Z[k]>zmax)zmax=Z[k];}
+    const j0=Math.max(0,Math.ceil(zmin-.5)),j1=Math.min(N,Math.ceil(zmax-.5)),xs=[];for(let j=j0;j<j1;j++)xs.push([]);
+    for(let k=0;k<na;k++){const k2=k+1===na?0:k+1,za=Z[k],zb=Z[k2];if(za===zb)continue;const lo=Math.min(za,zb),hi=Math.max(za,zb);
+      for(let j=Math.max(j0,Math.ceil(lo-.5)),je=Math.min(j1,Math.ceil(hi-.5));j<je;j++)xs[j-j0].push(X[k]+(j+.5-za)/(zb-za)*(X[k2]-X[k]));}
+    return {j0:j0,R:xs.map(function(a){a.sort(function(u,w){return u-w;});const o=[];
+      for(let k=0;k+1<a.length;k+=2){const u=Math.max(0,Math.ceil(a[k]-.5)),w=Math.min(N,Math.ceil(a[k+1]-.5));if(w>u){if(o.length&&o[o.length-1]>=u)o[o.length-1]=Math.max(o[o.length-1],w);else o.push(u,w);}}return o;})};};
+  const row=(S,j)=>{if(!S)return FIN_VIDE;const k=j-S.j0;return k>=0&&k<S.R.length?S.R[k]:FIN_VIDE;};
+  const plaque=(ja,jb,fr,Y,sg,m)=>{const op=new Map(),vu=new Set(); // les rectangles d'une région horizontale, fusionnés d'un rang au suivant
+    for(let j=ja;j<=jb;j++){const r=j<jb?fr(j):FIN_VIDE;vu.clear();
+      for(let k=0;k<r.length;k+=2){const key=r[k]*8192+r[k+1];vu.add(key);if(!op.has(key))op.set(key,j);}
+      for(const [key,j0] of op)if(!vu.has(key)){quad(1,sg,Y,j0,j,Math.floor(key/8192),key%8192,m);op.delete(key);}}};
+  const rouille=(x,z,cx,cz,y)=>{const an=Math.atan2(z-cz,x-cx),yC=y/K;
+    for(const t of T9.tr){const da=Math.abs(((an-t[0])%6.2832+9.4248)%6.2832-3.1416);if(da<t[1]&&yC<t[2]&&yC>t[2]-t[3])return 2;}return 1;};
+  const op=new Map(),vu=new Set(); // les faces VERTICALES ouvertes (elles montent tant que la sous-couche suivante les a aussi)
+  const cle=(dd,s9,pl,a,b,m)=>((((dd*3+s9)*4096+pl)*4096+a)*4096+b)*16+m;
+  const ouvre=(key,d,sg,pl,a,b,m,y)=>{vu.add(key);if(!op.has(key))op.set(key,[y,d,sg,pl,a,b,m]);};
+  const ferme=y=>{for(const [key,o] of op)if(!vu.has(key)){if(o[1]===0)quad(0,o[2],o[3],o[0],y,o[4],o[5],o[6]);else quad(2,o[2],o[3],o[4],o[5],o[0],y,o[6]);op.delete(key);}vu.clear();};
+  const runs=new Map();
+  let prev=null,y=0,dr=0,cw=0,cv=0;
+  for(const ly of T9.ly){const yb0=ly[1]*K;y=ly[0]*K;
+    while(y<yb0){const h=Math.min(yb0-y,ly[5]?1+((rg()*2)|0):1+((rg()*3)|0)),yb=y+h;
+      if(rg()<.5){dr=(rg()-.5)*(ly[5]?.9:1.8);cw=(rg()-.5)*.5;cv=(rg()-.5)*.5;} // la corniche fine : la sous-couche avance ou recule d'un cube
+      const cx=ly[2]*K+cw,cz=ly[3]*K+cv,S=contour(cx,cz,Math.max(.7,ly[4]*K+dr));
+      const ja=Math.min(S.j0,prev?prev.j0:S.j0),jb=Math.max(S.j0+S.R.length,prev?prev.j0+prev.R.length:0);
+      plaque(ja,jb,function(j){return finDiff(row(S,j),row(prev,j));},y,-1,1);                       // les DESSOUS
+      if(prev)plaque(ja,jb,function(j){return finDiff(row(prev,j),row(S,j));},y,1,y>=HbF?JM.herbe:1);  // les DESSUS (la mousse au-dessus du pied)
+      for(let Y=Math.ceil(Math.max(y,1)/12)*12;Y<yb;Y+=12){if(Y===y){if(prev)plaque(ja,jb,function(j){return finInter(row(S,j),row(prev,j));},Y,1,10);}
+        else plaque(S.j0,S.j0+S.R.length,function(j){return row(S,j);},Y,1,10);}                     // les plans intérieurs horizontaux
+      // les faces ±x (les bouts de rang, fusionnés le long de z) et les plans intérieurs x
+      runs.clear();const jE=S.j0+S.R.length;
+      const sortRun=(k2,o)=>{const s9=Math.floor(k2/4096),pl=k2%4096,m=s9===2?10:rouille(pl,(o[0]+o[1]+1)/2,cx,cz,(y+yb)/2);ouvre(cle(0,s9,pl,o[0],o[1]+1,m),0,s9===0?-1:1,pl,o[0],o[1]+1,m,y);};
+      for(let j=S.j0;j<jE;j++){const r=row(S,j);
+        for(let k=0;k<r.length;k+=2){const a=r[k],b=r[k+1];
+          for(const k2 of [a,4096+b]){const o=runs.get(k2);if(o&&o[1]===j-1)o[1]=j;else{if(o)sortRun(k2,o);runs.set(k2,[j,j]);}}
+          for(let i=Math.ceil((a+1)/12)*12;i<b;i+=12){const k2=8192+i,o=runs.get(k2);if(o&&o[1]===j-1)o[1]=j;else{if(o)sortRun(k2,o);runs.set(k2,[j,j]);}}}}
+      for(const [k2,o] of runs)sortRun(k2,o);
+      // les faces ±z (les écarts entre deux rangs) et les plans intérieurs z
+      for(let j=S.j0;j<=jE;j++){const A=row(S,j-1),B=row(S,j),up=finDiff(A,B),dn=finDiff(B,A);
+        for(let k=0;k<up.length;k+=2){const m=rouille((up[k]+up[k+1])/2,j,cx,cz,(y+yb)/2);ouvre(cle(1,1,j,up[k],up[k+1],m),2,1,j,up[k],up[k+1],m,y);}
+        for(let k=0;k<dn.length;k+=2){const m=rouille((dn[k]+dn[k+1])/2,j,cx,cz,(y+yb)/2);ouvre(cle(1,0,j,dn[k],dn[k+1],m),2,-1,j,dn[k],dn[k+1],m,y);}
+        if(j>0&&j%12===0){const it=finInter(A,B);for(let k=0;k<it.length;k+=2)ouvre(cle(1,2,j,it[k],it[k+1],10),2,1,j,it[k],it[k+1],10,y);}}
+      ferme(y);prev=S;y=yb;}
+    yield;}
+  ferme(y);
+  if(prev)plaque(prev.j0,prev.j0+prev.R.length,function(j){return row(prev,j);},y,1,JM.herbe); // le sommet
+  const g=new THREE.BufferGeometry(),nv=P.length/3;
+  g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(Nm,3));
+  g.setAttribute('aM',new THREE.Float32BufferAttribute(Ma,1));g.setAttribute('aAO',new THREE.Float32BufferAttribute(new Float32Array(nv).fill(.92),1));
+  g.setIndex(nv>65535?new THREE.Uint32BufferAttribute(I,1):new THREE.Uint16BufferAttribute(I,1));g.computeBoundingSphere();return g;}
+/* LE MAILLEUR DE COLONNES (v8, l'arche et le pont en cubes fins) — une grille de colonnes (u, v), chacune pleine sur UN intervalle [LO, HI)
+   le long de w (`perm` dit quel axe x/y/z est u, v, w). Les deux bouts de chaque colonne = faces ±w (rectangles gloutons de même hauteur) ;
+   entre deux colonnes voisines, ce que l'une a et pas l'autre = faces ±u / ±v (fusionnées le long du rang) ; `nb(u,v)` donne la colonne
+   d'à côté quand elle sort de la grille (la région refaite en cubes fins touche la muraille en cubes de 2,5 m : les marches entre les deux
+   sont posées ici, dans les deux sens). Plans intérieurs tous les `inner` cubes. */
+function colMesh(NU,NV,LO,HI,perm,mat,nb,inner){
+  const P=[],Nm=[],Ma=[],I=[],q=[0,0,0],Rg=[null,null,null],au=perm[0],av=perm[1],aw=perm[2];
+  const Q=(d,sg,pl,m)=>{const e1=(d+1)%3,e2=(d+2)%3,b=P.length/3,a0=Rg[e1][0],a1=Rg[e1][1],b0=Rg[e2][0],b1=Rg[e2][1];
+    q[d]=pl;q[e1]=a0;q[e2]=b0;P.push(q[0],q[1],q[2]);q[e1]=a1;P.push(q[0],q[1],q[2]);q[e2]=b1;P.push(q[0],q[1],q[2]);q[e1]=a0;P.push(q[0],q[1],q[2]);
+    const nx=d===0?sg:0,ny=d===1?sg:0,nz=d===2?sg:0;for(let k=0;k<4;k++){Nm.push(nx,ny,nz);Ma.push(m);}
+    if(sg>0)I.push(b,b+1,b+2,b,b+2,b+3);else I.push(b,b+2,b+1,b,b+3,b+2);};
+  const plein=k=>HI[k]>LO[k];
+  const col=(u,v)=>{if(u>=0&&u<NU&&v>=0&&v<NV){const k=u+NU*v;return HI[k]>LO[k]?[LO[k],HI[k]]:null;}return nb?nb(u,v):null;};
+  // 1. les bouts des colonnes (faces ±w)
+  for(const sg of [-1,1]){const V=sg<0?LO:HI,fait=new Uint8Array(NU*NV);
+    for(let v=0;v<NV;v++)for(let u=0;u<NU;u++){const k=u+NU*v;if(fait[k]||!plein(k))continue;const h=V[k],m=mat('w',u,v,sg);
+      let w=1;while(u+w<NU){const k2=k+w;if(fait[k2]||!plein(k2)||V[k2]!==h||mat('w',u+w,v,sg)!==m)break;w++;}
+      let hh=1;grand:while(v+hh<NV){for(let i=0;i<w;i++){const k2=u+i+NU*(v+hh);if(fait[k2]||!plein(k2)||V[k2]!==h||mat('w',u+i,v+hh,sg)!==m)break grand;}hh++;}
+      for(let j=0;j<hh;j++)fait.fill(1,u+NU*(v+j),u+w+NU*(v+j));
+      Rg[au]=[u,u+w];Rg[av]=[v,v+hh];Q(aw,sg,h,m);}}
+  // 2. les flancs : entre la colonne d'avant et celle-ci, le long de u (along 0) puis de v (along 1)
+  const pieces=[];
+  const dif=(A,B)=>{pieces.length=0;if(!A)return;if(!B){pieces.push(A[0],A[1]);return;}if(A[0]<B[0])pieces.push(A[0],Math.min(A[1],B[0]));if(A[1]>B[1])pieces.push(Math.max(A[0],B[1]),A[1]);};
+  for(const along of [0,1]){const NA=along?NV:NU,NB=along?NU:NV,dAx=along?av:au,rAx=along?au:av,kind=along?'v':'u';
+    for(let pl=0;pl<=NA;pl++){const op=new Map(),vu=new Set();
+      const ouvre=(sg,w0,w1,m,b,cu,cv)=>{const key=((sg>0?1:0)*65536+w0)*65536*16+w1*16+m;vu.add(key);if(!op.has(key))op.set(key,[b,sg,w0,w1,m]);};
+      for(let b=0;b<=NB;b++){
+        if(b<NB){const A=along?col(b,pl-1):col(pl-1,b),B=along?col(b,pl):col(pl,b);
+          dif(A,B);for(let k=0;k<pieces.length;k+=2){const u9=along?b:pl-1,v9=along?pl-1:b;ouvre(1,pieces[k],pieces[k+1],(u9>=0&&v9>=0&&u9<NU&&v9<NV)?mat(kind,u9,v9,1):1,b);}
+          dif(B,A);for(let k=0;k<pieces.length;k+=2){const u9=along?b:pl,v9=along?pl:b;ouvre(-1,pieces[k],pieces[k+1],(u9<NU&&v9<NV)?mat(kind,u9,v9,-1):1,b);}
+          if(inner&&pl%inner===0&&A&&B){const w0=Math.max(A[0],B[0]),w1=Math.min(A[1],B[1]);if(w1>w0)ouvre(1,w0,w1,10,b);}}
+        for(const [key,o] of op)if(!vu.has(key)){Rg[rAx]=[o[0],b];Rg[aw]=[o[2],o[3]];Q(dAx,o[1],pl,o[4]);op.delete(key);}
+        vu.clear();}}}
+  // 3. les plans intérieurs le long de w
+  if(inner){let wmin=1e9,wmax=-1e9;for(let k=0;k<NU*NV;k++)if(plein(k)){if(LO[k]<wmin)wmin=LO[k];if(HI[k]>wmax)wmax=HI[k];}
+    for(let W9=Math.ceil((wmin+1)/inner)*inner;W9<wmax;W9+=inner){const op=new Map(),vu=new Set();
+      for(let v=0;v<=NV;v++){
+        if(v<NV){let u=0;while(u<NU){const k=u+NU*v;if(!(plein(k)&&LO[k]<W9&&HI[k]>W9)){u++;continue;}let u1=u+1;while(u1<NU){const k2=u1+NU*v;if(!(plein(k2)&&LO[k2]<W9&&HI[k2]>W9))break;u1++;}
+          const key=u*65536+u1;vu.add(key);if(!op.has(key))op.set(key,v);u=u1;}}
+        for(const [key,v0] of op)if(!vu.has(key)){Rg[au]=[Math.floor(key/65536),key%65536];Rg[av]=[v0,v];Q(aw,1,W9,10);op.delete(key);}
+        vu.clear();}}}
+  const g=new THREE.BufferGeometry(),nv=P.length/3;
+  g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(Nm,3));
+  g.setAttribute('aM',new THREE.Float32BufferAttribute(Ma,1));g.setAttribute('aAO',new THREE.Float32BufferAttribute(new Float32Array(nv).fill(.92),1));
+  g.setIndex(nv>65535?new THREE.Uint32BufferAttribute(I,1):new THREE.Uint16BufferAttribute(I,1));g.computeBoundingSphere();return g;}
 /* ---- LA MATIÈRE : des CUBES de pierre réaliste ---- */
 const JADE_VR_VS=[
   'attribute float aM,aAO;attribute vec4 aJ;varying vec3 vW,vO,vN,vNo;varying float vM,vAO;varying vec4 vJ;',
@@ -12889,9 +13021,10 @@ function jadeBande(d){const L9=JADE_LOD;return d<L9.r0?0:d<L9.r1?1:d<L9.pin?2:d<
 function jadeMatPilier(q,k){ // la matrice d'une montagne (gabarit q[5], quart de tour q[6]) à son niveau de détail k (0 à 3)
   const T9=JADE.geos.p[q[5]],e=1<<(k|0);
   return new THREE.Matrix4().makeTranslation(q[0],q[3],q[1]).multiply(new THREE.Matrix4().makeRotationY(q[6]*Math.PI/2)).multiply(new THREE.Matrix4().makeScale(VX*e,VX*e,VX*e)).multiply(new THREE.Matrix4().makeTranslation(-T9.M/e,0,-T9.M/e));}
+function jadeVueGeo(g){const c=new THREE.BufferGeometry();for(const k in g.attributes)if(k!=='aJ')c.setAttribute(k,g.attributes[k]);if(g.index)c.setIndex(g.index);c.boundingSphere=g.boundingSphere;return c;} // une géométrie qui PARTAGE les tampons d'un gabarit (son aJ à elle)
 function jadeQuart(r,ox,oz){const c=Math.round(Math.cos(r*Math.PI/2)),s=Math.round(Math.sin(r*Math.PI/2));return [ox*c+oz*s,-ox*s+oz*c];} // un vecteur du gabarit tourné comme l'instance
 function buildJade(seed){
-  for(const F of JADE.fam){F.im.dispose();if(F.im2){F.im2.dispose();F.im3.dispose();}const g9=F.im.geometry;for(const k in g9.attributes)if(k!=='aJ')g9.deleteAttribute(k);g9.setIndex(null);g9.dispose();}JADE.fam=[];JADE.col=null;JADE.porte=null;JADE.pont=null;JADE.brume=null;JADE.sig=0;
+  for(const F of JADE.fam.concat(FIN.fam.filter(Boolean))){F.im.dispose();if(F.im2){F.im2.dispose();F.im3.dispose();}const g9=F.im.geometry;for(const k in g9.attributes)if(k!=='aJ')g9.deleteAttribute(k);g9.setIndex(null);g9.dispose();}JADE.fam=[];FIN.fam=[];FIN.near.length=0;FIN.sig=0;FIN.mats=new Map();FIN.dans=new Set();JADE.col=null;JADE.porte=null;JADE.pont=null;JADE.brume=null;JADE.sig=0;
   if(JADE.root){for(const o of JADE.root.children)if(o.userData.jeter&&o.geometry)o.geometry.dispose();JADE.root=null;}
   if(PARK.on||!LVL.cur||LVL.cur.piste!=='jade'||!(NP>1))return;
   const t00=performance.now(),M9=jadeMats(),G=jadeGabarits(),jr=mulberry32((seed^0x1ADE5EED)>>>0),Q=JADE.Q||{};
@@ -12943,8 +13076,8 @@ function buildJade(seed){
    for(const v of m.values()){if(v[0]<700||jr()>.55*MOB)continue;
      touffe(v[2]+(jr()-.5)*S*.7,v[3]+(jr()-.5)*S*.7,20+jr()*36,pts[v[1]].y,-260,420,1+((jr()*4)|0),.85,v[0]);}}
   const ARB=[];
-  if(iPorte>0){try{jadePorte(root,iPorte,jr,M9,function(x,z,r,yt){return tente(x,z,r,yt,1,60,true);});}catch(e){console.warn('porte',e);JADE.porte=null;}}
-  if(iPont>0){try{jadePont(root,iPont,jr,M9,pose,ARB);}catch(e){console.warn('pont',e);JADE.pont=null;}}
+  const tP0=performance.now();if(iPorte>0){try{jadePorte(root,iPorte,jr,M9,function(x,z,r,yt){return tente(x,z,r,yt,1,60,true);});}catch(e){console.warn('porte',e);JADE.porte=null;}}
+  const tP1=performance.now();if(iPont>0){try{jadePont(root,iPont,jr,M9,pose,ARB);}catch(e){console.warn('pont',e);JADE.pont=null;}}JADE.msPorte=Math.round(tP1-tP0);JADE.msPont=Math.round(performance.now()-tP1);
   // ---- LES ROCHERS EN CUBES qui flottent autour des montagnes (des gabarits à part : JADE_NTPL et suivants) ----
   {const n0=PIL.length;for(let k=0;k<n0;k++){const q=PIL[k];if(q[8]>1600||jr()>.5)continue;const T9=G.p[q[5]];
     for(let j=0,n=1+((jr()*3)|0);j<n;j++){const t=JADE_NTPL+((jr()*3)|0),Tr=G.p[t],th=jr()*6.2832,rr=q[2]+12+jr()*45,x=snap(q[0]+Math.cos(th)*rr),z=snap(q[1]+Math.sin(th)*rr),rm=Tr.rmax*VX,Hs=Tr.yTop*VX;
@@ -12970,11 +13103,12 @@ function buildJade(seed){
   // ---- LA POSE : par QUARTIERS de 360 m (le tri, c'est jadeTri) ----
   const QC=360,quart=new Map(),qDe=(x,z)=>{const k=Math.floor(x/QC)+','+Math.floor(z/QC);let o=quart.get(k);if(!o)quart.set(k,o={k:quart.size,x0:1e9,x1:-1e9,y0:1e9,y1:-1e9,z0:1e9,z1:-1e9});return o;};
   const ext=(o,x,y0,y1,z,r)=>{o.x0=Math.min(o.x0,x-r);o.x1=Math.max(o.x1,x+r);o.y0=Math.min(o.y0,y0);o.y1=Math.max(o.y1,y1);o.z0=Math.min(o.z0,z-r);o.z1=Math.max(o.z1,z+r);};
-  const vue=g=>{const c=new THREE.BufferGeometry();for(const k in g.attributes)if(k!=='aJ')c.setAttribute(k,g.attributes[k]);if(g.index)c.setIndex(g.index);c.boundingSphere=g.boundingSphere;return c;};
+  const vue=jadeVueGeo;
   const famille=(geo,mat,items,b0,b1)=>{if(!items.length||(geo.index&&!geo.index.count))return;
     items.sort(function(a,b){return a.q.k-b.q.k;});
     const n=items.length,F={n:n,M:new Float32Array(n*16),J:new Float32Array(n*4),r:new Map(),b0:b0,b1:b1,tri:(geo.index?geo.index.count:geo.attributes.position.count)/3};
     let a=0;for(let i=0;i<n;i++){const it=items[i];F.M.set(it.m,i*16);F.J.set(it.j,i*4);if(i===n-1||items[i+1].q!==it.q){F.r.set(it.q.k,[a,i+1]);a=i+1;}}
+    if(items[0].pi!==undefined){F.pidx=new Map();F.qk=new Int32Array(n);F.dst=new Map();for(let i=0;i<n;i++){F.pidx.set(items[i].pi,i);F.qk[i]=items[i].q.k;}} // (v8) pour céder une montagne aux cubes fins
     const g=vue(geo);F.im=new THREE.InstancedMesh(g,mat,n);F.im.frustumCulled=false;F.im.matrixAutoUpdate=false;
     F.aJ=new THREE.InstancedBufferAttribute(new Float32Array(n*4),4);F.aJ.setUsage(THREE.DynamicDrawUsage);g.setAttribute('aJ',F.aJ);
     F.im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);F.im.count=0;root.add(F.im);JADE.fam.push(F);
@@ -12982,8 +13116,12 @@ function buildJade(seed){
       F.im3=new THREE.InstancedMesh(g,M9.vrP,n);F.im3.instanceMatrix=F.im.instanceMatrix;F.im3.frustumCulled=false;F.im3.matrixAutoUpdate=false;F.im3.renderOrder=2.5;F.im3.count=0;root.add(F.im3);} // …et celle de la PROFONDEUR
     return F;};
   const parT=G.p.map(function(){return [[],[],[],[]];});
-  for(const q of PIL){const o=qDe(q[0],q[1]);ext(o,q[0],q[3]-8,q[4]+25,q[1],q[2]);for(let k=0;k<4;k++)parT[q[5]][k].push({q:o,m:jadeMatPilier(q,k).toArray(),j:[q[7],q[8]<2000||q[8]===1e9?1:.85,0,0]});}
+  PIL.forEach(function(q,pi){const o=qDe(q[0],q[1]);ext(o,q[0],q[3]-8,q[4]+25,q[1],q[2]);for(let k=0;k<4;k++)parT[q[5]][k].push({q:o,m:jadeMatPilier(q,k).toArray(),j:[q[7],q[8]<2000||q[8]===1e9?1:.85,0,0],pi:pi});});
   for(let t=0;t<G.p.length;t++){const Gt=G.p[t].geo;famille(Gt[0],M9.vr,parT[t][0],0,0);famille(Gt[1],M9.vr,parT[t][1],1,1);famille(Gt[2],M9.vr,parT[t][2],2,4);famille(Gt[3],M9.vr,parT[t][3],5,5);}
+  // (v8) LES CUBES MINUSCULES : une famille par gabarit, remplie à chaque image des montagnes proches (finProches) — elles quittent leur famille de 1,75 m
+  FIN.cap=parT.map(function(a){return Math.min(a[0].length,48);});
+  if(FIN.on)for(let t=0;t<G.p.length;t++)if(G.p[t].fin)finFamille(t);
+  FIN.stamp=new Int32Array(PIL.length);FIN.was=new Uint8Array(PIL.length);FIN.gen=0;
   famille(G.arbreQ,M9.arb,ARB.map(function(a){const o=qDe(a.x,a.z);ext(o,a.x,a.y-80,a.y+25,a.z,20);return {q:o,m:Mt.makeTranslation(a.x,a.y,a.z).toArray(),j:a.j};}),0,2);
   const tem=(L9)=>L9.map(function(c){const o=qDe(c[0],c[2]);ext(o,c[0],c[1],c[1]+60,c[2],20);return {q:o,m:new THREE.Matrix4().makeTranslation(c[0],c[1],c[2]).multiply(new THREE.Matrix4().makeRotationY(((jr()*4)|0)*Math.PI/2)).multiply(new THREE.Matrix4().makeScale(c[3],c[3],c[3])).toArray(),j:[0,0,0,0]};});
   famille(G.pag,M9.col,tem(PAG),0,3);famille(G.pav,M9.col,tem(PAV),0,3);
@@ -12992,6 +13130,16 @@ function buildJade(seed){
   {const RY=[],pasY=Math.max(1,Math.round(170/(L/(NP-1))));for(let i=0;i<NP;i+=pasY){if(jr()>.55)continue;const t9=T[i],hl=Math.hypot(t9.x,t9.z)||1,px=-t9.z/hl,pz=t9.x/hl,sg=jr()<.5?-1:1,lat=60+Math.pow(jr(),1.3)*650;
      RY.push([pts[i].x+px*sg*lat,pts[i].y+40+jr()*160,pts[i].z+pz*sg*lat,22+jr()*55,650+jr()*600,jr(),.03+jr()*.05]);}
    if(RY.length){const m=new THREE.Mesh(jadeRayons(RY),JADE_RAYON_M);m.userData.jeter=true;m.frustumCulled=false;m.renderOrder=7;root.add(m);JADE.n9=RY.length;}}
+  // ---- LES NUAGES EN VOLUTES : loin autour de la route (au-dessus des montagnes, et quelques bancs bas sur le fleuve), quelques-uns au-dessus d'elle ----
+  {const NU=[],pasN=Math.max(1,Math.round(480/(L/(NP-1))));
+   for(let i=0;i<NP;i+=pasN){const t9=T[i],hl=Math.hypot(t9.x,t9.z)||1,px=-t9.z/hl,pz=t9.x/hl;
+     for(let k=0;k<3;k++){const r9=jr();if(r9>.8)continue;const sg=jr()<.5?-1:1,haut=true,lat=haut?1000+Math.pow(jr(),.8)*3000:1500+jr()*2600,al=(jr()-.5)*700,w=haut?800+jr()*1100:1500+jr()*1300;
+       const y=haut?pts[i].y+260+jr()*820:JADE.merY+60+jr()*150;NU.push([pts[i].x+px*sg*lat+t9.x/hl*al,y,pts[i].z+pz*sg*lat+t9.z/hl*al,w,w*.5,(jr()*16)|0,jr()]);}
+     if(jr()<.35){const sg=jr()<.5?-1:1,lat=250+jr()*500,w=600+jr()*600;NU.push([pts[i].x+px*sg*lat,pts[i].y+780+jr()*600,pts[i].z+pz*sg*lat,w,w*.5,(jr()*16)|0,jr()]);}} // au-dessus de la route
+   if(NU.length){if(!JADE_NUAGE_M.uniforms.uTex.value)JADE_NUAGE_M.uniforms.uTex.value=jadeNuagesTex();
+     const g=new THREE.PlaneGeometry(1,1),im=new THREE.InstancedMesh(g,JADE_NUAGE_M,NU.length),Mx=new THREE.Matrix4(),aj=new Float32Array(NU.length*4);
+     NU.forEach(function(n,k){Mx.makeTranslation(n[0],n[1],n[2]);im.setMatrixAt(k,Mx);aj.set([n[3],n[4],n[5],n[6]],k*4);});
+     g.setAttribute('aJ',new THREE.InstancedBufferAttribute(aj,4));im.userData.jeter=true;im.frustumCulled=false;im.renderOrder=4.5;root.add(im);JADE.nuages=NU.length;}}
   // ---- LA GRILLE DES CHOCS (cases de 80 m) : chaque montagne et chaque rocher y est inscrit dans son cercle ; le test final lit SES cubes ----
   {const CG=80,g9=new Map();
    PIL.forEach(function(q,k){const re=q[2]+2;for(let gx=Math.floor((q[0]-re)/CG);gx<=Math.floor((q[0]+re)/CG);gx++)for(let gz=Math.floor((q[1]-re)/CG);gz<=Math.floor((q[1]+re)/CG);gz++){const kk=gx+','+gz;let a=g9.get(kk);if(!a)g9.set(kk,a=[]);a.push(k);}});
@@ -13011,8 +13159,12 @@ function buildJade(seed){
     L:Math.round(L),merY:Math.round(JADE.merY),triGabarits:G.p.map(function(T9){return T9.geo.map(function(g){return g.index.count/3;});})};
 }
 /* une GRILLE posée dans un repère (o : coin, axes x = b, y = haut, z = −t ; en cubes de VX) — la muraille, l'arche */
-function jadeRepere(o,b,t){const m=new THREE.Matrix4(),z=t.clone().negate();
-  m.set(b.x*VXG,0,z.x*VXG,o.x, b.y*VXG,VXG,z.y*VXG,o.y, b.z*VXG,0,z.z*VXG,o.z, 0,0,0,1);return m;}
+function jadeRepere(o,b,t,sc){const m=new THREE.Matrix4(),z=t.clone().negate(),k=sc||VXG;
+  m.set(b.x*k,0,z.x*k,o.x, b.y*k,k,z.y*k,o.y, b.z*k,0,z.z*k,o.z, 0,0,0,1);return m;}
+function jadeMonument(root,g,Mr,jx,M9){ // un monument en verre de jade : ses trois passes (lumière, absorption, profondeur) — rend les trois maillages
+  const aJ=new Float32Array(g.attributes.position.count*4);for(let k=0;k<aJ.length;k+=4){aJ[k]=jx;aJ[k+1]=1;}g.setAttribute('aJ',new THREE.BufferAttribute(aJ,4));
+  const L9=[];for(const k of [[M9.vrM,3],[M9.vrXM,2],[M9.vrPM,2.5]]){const m=new THREE.Mesh(g,k[0]);m.matrixAutoUpdate=false;m.matrix.copy(Mr);m.matrixWorldNeedsUpdate=true;m.renderOrder=k[1];m.frustumCulled=false;if(!L9.length)m.userData.jeter=true;root.add(m);L9.push(m);}
+  return L9;}
 function jadeDansGrille(R,p){const dx=p.x-R.o.x,dy=p.y-R.o.y,dz=p.z-R.o.z; // un point du monde est-il dans un cube de cette grille ?
   return voxAt(R.G,Math.floor((dx*R.b.x+dz*R.b.z)/VXG),Math.floor(dy/VXG),Math.floor(-(dx*R.t.x+dz*R.t.z)/VXG))>0;}
 /* LA PORTE DU CIEL — un massif FLOTTANT en cubes, percé d'une arche (176 m) : faces bosselées, crête en pitons, un DESSOUS en pointes
@@ -13041,11 +13193,32 @@ function jadePorte(root,i0,jr,M9,pose){
       if(!voxAt(G,x,y+1,z)&&yr>-60){G.d[k0]=JM.herbe;continue;}
       if(ru&&(!voxAt(G,x,y,z-1)||!voxAt(G,x,y,z+1))&&jr()<.9)G.d[k0]=JM.rouille;}}
   const o=p.clone().addScaledVector(b,-wG).addScaledVector(t,D/2);o.y=oy;
-  const g=voxMesh(G,4),m=new THREE.Mesh(g,M9.vrM);m.userData.jeter=true;
-  {const aJ=new Float32Array(g.attributes.position.count*4);for(let k=0;k<aJ.length;k+=4){aJ[k]=.37;aJ[k+1]=1;}g.setAttribute('aJ',new THREE.BufferAttribute(aJ,4));}
-  m.matrixAutoUpdate=false;m.matrix.copy(jadeRepere(o,b,t));m.matrixWorldNeedsUpdate=true;m.renderOrder=3;root.add(m);
-  for(const k of [[M9.vrXM,2],[M9.vrPM,2.5]]){const m2=new THREE.Mesh(g,k[0]);m2.matrixAutoUpdate=false;m2.matrix.copy(m.matrix);m2.matrixWorldNeedsUpdate=true;m2.renderOrder=k[1];m2.frustumCulled=false;root.add(m2);}
-  JADE.porte={c:new THREE.Vector3(p.x,y0,p.z),t:t,b:b,D:D,hw:hw,hb:y0+hb,ht:y0+ht,G:G,o:o,i:i0,tri:g.index.count/3};
+  JADE.porte={c:new THREE.Vector3(p.x,y0,p.z),t:t,b:b,D:D,hw:hw,hb:y0+hb,ht:y0+ht,G:G,o:o,i:i0,tri:0};
+  // (v8) LES CUBES MINUSCULES de la porte : la RÉGION que la route traverse (l'arche ± 110 m, de 140 m sous la route à 360 m au-dessus) devient
+  // FANTÔME dans la muraille (ni faces ni trou, voxMesh) ; elle a deux habits : de LOIN ses cubes de 2,5 m (une petite grille découpée autour
+  // d'elle), de PRÈS (< 780 m) ses colonnes fines (colMesh, les marches avec la muraille posées des deux côtés). Les chocs lisent toujours G.
+  let fin9=false;const T0=performance.now(),TT=JADE.tPorte={};
+  if(FIN.on){try{const K=FIN.k,RW=hw+110,xa=Math.max(0,Math.floor((wG-RW)/VXG)),xb=Math.min(nx,Math.ceil((wG+RW)/VXG)),ya=Math.max(0,Math.floor((y0-140-oy)/VXG)),yb=Math.min(ny,Math.ceil((y0+360-oy)/VXG));
+    const Gc={nx:nx,ny:ny,nz:nz,d:G.d.slice()};for(let y=ya;y<yb;y++)for(let z=0;z<nz;z++)for(let x=xa;x<xb;x++){const k=x+nx*(z+nz*y);if(Gc.d[k])Gc.d[k]=255;}
+    TT.ghost=Math.round(performance.now()-T0);const gA=voxMesh(Gc,4);TT.A=Math.round(performance.now()-T0);
+    const x0=Math.max(0,Math.floor((xa-1)/4)*4),y09=Math.max(0,Math.floor((ya-1)/4)*4),x1=Math.min(nx,xb+1),y1=Math.min(ny,yb+1),Gb=voxG(x1-x0,y1-y09,nz); // la région seule, en 2,5 m (de loin)
+    for(let y=y09;y<y1;y++)for(let z=0;z<nz;z++)for(let x=x0;x<x1;x++){const m9=G.d[x+nx*(z+nz*y)];if(!m9)continue;Gb.d[(x-x0)+Gb.nx*(z+nz*(y-y09))]=(x>=xa&&x<xb&&y>=ya&&y<yb)?m9:255;}
+    const gB=voxMesh(Gb,4);TT.B=Math.round(performance.now()-T0);const oB=o.clone().addScaledVector(b,x0*VXG);oB.y+=y09*VXG;
+    const NU=(xb-xa)*K,NV=(yb-ya)*K,LO=new Int32Array(NU*NV),HI=new Int32Array(NU*NV),kz=5/VXG;
+    for(let v=0;v<NV;v++)for(let u=0;u<NU;u++){const x=(xa*K+u+.5)/K,y=(ya*K+v+.5)/K,vv=-wG+x*VXG,yr=oy+y*VXG-y0;
+      const xi=Math.min(nx-1,Math.max(0,Math.floor(x-.5))),fx=Math.min(1,Math.max(0,x-.5-xi)),cr=cretes[xi]*(1-fx)+cretes[Math.min(nx-1,xi+1)]*fx;if(yr>=cr)continue;
+      if(Math.abs(vv)<hw&&yr>hb&&(yr<ab||(vv/hw)**2+((yr-ab)/(hw*.9))**2<1))continue; // L'ARCHE
+      const xs=(x-.5)*VXG/5,ys=(y-.5)*VXG/5;
+      const z0=Math.floor((vn(xs*.14,ys*.11)*3.6+vn(xs*.05+9,ys*.04)*2.4+vn(xs*.7+3,ys*.45)*1.3+.5*vn(xs*2.3+7,ys*1.8+2))*kz*K),
+            z1=nz*K-Math.floor((vn(xs*.14+40,ys*.11+7)*3.6+vn(xs*.05+19,ys*.04+3)*2.4+vn(xs*.7+23,ys*.45+5)*1.3+.5*vn(xs*2.3+17,ys*1.8+9))*kz*K);
+      if(z1>z0){LO[u+NU*v]=z0;HI[u+NU*v]=z1;}}
+    TT.cols=Math.round(performance.now()-T0);const cache=new Map(),nb=(u,v)=>{const cx=Math.floor((xa*K+u)/K),cy=Math.floor((ya*K+v)/K);if(cx<0||cy<0||cx>=nx||cy>=ny)return null;const kk=cx*4096+cy;
+      if(!cache.has(kk)){let z0=-1,z1=-1;for(let z=0;z<nz;z++)if(G.d[cx+nx*(z+nz*cy)]){if(z0<0)z0=z;z1=z;}cache.set(kk,z0<0?null:[z0*K,(z1+1)*K]);}return cache.get(kk);};
+    const mat=(kind,u,v,sg)=>{if(kind==='w')return vn((xa*K+u)/K*VXG/5*.3,3.3)>.83?JM.rouille:1;if(kind==='v'&&sg>0)return oy+(ya*K+v+1)/K*VXG-y0>-60?JM.herbe:1;return 1;};
+    const gF=colMesh(NU,NV,LO,HI,[0,1,2],mat,nb,12);TT.F=Math.round(performance.now()-T0);const oF=o.clone().addScaledVector(b,xa*VXG);oF.y+=ya*VXG;
+    jadeMonument(root,gA,jadeRepere(o,b,t),.37,M9);JADE.porte.mL=jadeMonument(root,gB,jadeRepere(oB,b,t),.37,M9);JADE.porte.mF=jadeMonument(root,gF,jadeRepere(oF,b,t,VXG/K),.37,M9);
+    for(const m of JADE.porte.mF)m.visible=false;JADE.porte.pres=false;JADE.porte.tri=gA.index.count/3+gB.index.count/3;JADE.porte.triF=gF.index.count/3;fin9=true;}catch(e){console.warn('porte fine',e);}}
+  if(!fin9){const g=voxMesh(G,4);jadeMonument(root,g,jadeRepere(o,b,t),.37,M9);JADE.porte.tri=g.index.count/3;}
   if(pose){for(const sg of [-1,1]){const W9=sg<0?wG:wD;
       for(const fa of [-1,1])pose(p.x+b.x*sg*(hw+62)+t.x*fa*(D*.5-18),p.z+b.z*sg*(hw+62)+t.z*fa*(D*.5-18),40,y0+crete(.5+sg*(hw+62)/W)+40+jr()*80);
       for(let v=hw+140;v<W9-40;v+=75+jr()*60)for(const fa of [-1,1])if(jr()<.7){const r=24+jr()*26,f9=(v*sg+wG)/W;
@@ -13068,31 +13241,72 @@ function jadePont(root,i0,jr,M9,pose,ARB){
     if(!voxAt(G,x,y+1,z)){G.d[k0]=JM.herbe;tops.push([x,y,z]);}
     else if((!voxAt(G,x,y,z-1)||!voxAt(G,x,y,z+1))&&x%7===3&&jr()<.8)G.d[k0]=JM.rouille;}
   const o=p.clone().addScaledVector(b,-xa).addScaledVector(t,D/2);o.y=oy;
-  const g=voxMesh(G,4),m=new THREE.Mesh(g,M9.vrM);m.userData.jeter=true;
-  {const aJ=new Float32Array(g.attributes.position.count*4);for(let k=0;k<aJ.length;k+=4){aJ[k]=.81;aJ[k+1]=1;}g.setAttribute('aJ',new THREE.BufferAttribute(aJ,4));}
-  const Mr=jadeRepere(o,b,t);m.matrixAutoUpdate=false;m.matrix.copy(Mr);m.matrixWorldNeedsUpdate=true;m.renderOrder=3;root.add(m);
-  for(const k of [[M9.vrXM,2],[M9.vrPM,2.5]]){const m2=new THREE.Mesh(g,k[0]);m2.matrixAutoUpdate=false;m2.matrix.copy(Mr);m2.matrixWorldNeedsUpdate=true;m2.renderOrder=k[1];m2.frustumCulled=false;root.add(m2);}
+  const g=voxMesh(G,4),Mr=jadeRepere(o,b,t),mL=jadeMonument(root,g,Mr,.81,M9);
   const V3=new THREE.Vector3();
   for(let k=0;k<14&&tops.length;k++){const c=tops[(jr()*tops.length)|0];V3.set(c[0]+.5,c[1]+1,c[2]+.5).applyMatrix4(Mr);const h=9+jr()*9,pin=jr()<.7;ARB.push({x:V3.x,y:V3.y,z:V3.z,j:[h*(pin?.95:1.35),h,pin?(jr()*4)|0:4,jr()]});}
-  JADE.pont={c:new THREE.Vector3(p.x,y0,p.z),t:t,b:b,D:D,xa:xa,yB:yB,yH:yH,G:G,o:o,i:i0,tri:g.index.count/3};
+  JADE.pont={c:new THREE.Vector3(p.x,y0,p.z),t:t,b:b,D:D,xa:xa,yB:yB,yH:yH,G:G,o:o,i:i0,tri:g.index.count/3,mL:mL};
+  // (v8) LES CUBES MINUSCULES du pont : l'arche entière en colonnes fines (de près, < 650 m)
+  if(FIN.on){try{const K=FIN.k,cv=VXG/K,NU=nx*K,NV=nz*K,LO=new Int32Array(NU*NV),HI=new Int32Array(NU*NV),na=rocNoise2(31.7),nc=rocNoise2(77.1);
+    const hs=(u,v,s9)=>{const x=Math.sin(u*127.1+v*311.7+s9)*43758.5453;return x-Math.floor(x);};
+    for(let u=0;u<NU;u++){const f=(u+.5)/NU,a=yB(f)+5*(na(u*cv*.07,1.3)-.5)*2,c=yH(f)+5*(nc(u*cv*.07,4.1)-.5)*2;
+      for(let v=0;v<NV;v++){if((v<2||v>=NV-2)&&hs(u,v,1)<.3)continue;const a9=a+(hs(u,v,2)-.5)*1.2,c9=c+(hs(u,v,3)-.5)*1.2;
+        const lo=Math.ceil((a9+y0-oy)/cv-.5),hi=Math.floor((c9+y0-oy)/cv-.5)+1;if(hi>lo){LO[u+NU*v]=lo;HI[u+NU*v]=hi;}}}
+    const gF=colMesh(NU,NV,LO,HI,[0,2,1],function(kind,u,v,sg){return kind==='w'&&sg>0?JM.herbe:1;},null,12);
+    JADE.pont.mF=jadeMonument(root,gF,jadeRepere(o,b,t,cv),.81,M9);for(const m of JADE.pont.mF)m.visible=false;JADE.pont.pres=false;JADE.pont.triF=gF.index.count/3;}catch(e){console.warn('pont fin',e);}}
 }
 /* ---- LE TRI : à chaque rendu (chaîné sur scene.onBeforeRender), les quartiers dans le champ et en deçà de la brume, chacun à sa BANDE
    de distance (jadeBande) ; chaque famille dessine les bandes qui sont les siennes. Les tampons ne repartent que si la liste a changé. ---- */
 const JT={fr:new THREE.Frustum(),pv:new THREE.Matrix4(),vis:null,ms:0,n:0,up:0};
+/* (v8) LES MONTAGNES PROCHES (≤ FIN.D, +25 m pour en sortir) passent aux cubes minuscules — rend une signature (le tri ne recopie que si elle change) */
+function finProches(cp){
+  if(!FIN.on||!JADE.col||!FIN.stamp)return 7;FIN.veut.clear();
+  const C=JADE.col,P=C.P,D=FIN.D,r=Math.ceil((D+110)/C.CG),bx=Math.floor(cp.x/C.CG),bz=Math.floor(cp.z/C.CG),gen=++FIN.gen,o=FIN.near,par=FIN.par||(FIN.par=[]);
+  o.length=0;par.length=0;
+  for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){const a=C.g.get((bx+dx)+','+(bz+dz));if(!a)continue;
+    for(let j=0;j<a.length;j++){const k=a[j];if(k<0||FIN.stamp[k]===gen)continue;FIN.stamp[k]=gen;const q=P[k];if(!FIN.fam[q[5]]){FIN.veut.add(q[5]);continue;}
+      const dh=Math.max(0,Math.hypot(q[0]-cp.x,q[1]-cp.z)-q[2]),dv=cp.y<q[3]?q[3]-cp.y:cp.y>q[4]?cp.y-q[4]:0;
+      if(Math.hypot(dh,dv)<(FIN.was[k]?D+25:D))o.push(k);}}
+  for(const k of FIN.dans)FIN.was[k]=0;FIN.dans.clear();
+  o.sort(function(a,b){return a-b;});const n9=new Map();let sg=7;
+  for(const k of o){const t=P[k][5],c=n9.get(t)||0;if(c>=FIN.fam[t].cap)continue;n9.set(t,c+1);FIN.dans.add(k);FIN.was[k]=1;sg=(Math.imul(sg,31)+k+1)|0;}
+  return sg;}
+function finFamille(t){const T9=JADE.geos.p[t],cap=FIN.cap&&FIN.cap[t];if(!T9||!T9.fin||!cap||!JADE.root||FIN.fam[t])return; // la famille fine d'un gabarit (quand il est prêt)
+  const M9=jadeMats(),g=jadeVueGeo(T9.fin),aJ=new THREE.InstancedBufferAttribute(new Float32Array(cap*4),4);aJ.setUsage(THREE.DynamicDrawUsage);g.setAttribute('aJ',aJ);
+  const mk=(mat,ro)=>{const im=new THREE.InstancedMesh(g,mat,cap);im.frustumCulled=false;im.matrixAutoUpdate=false;im.renderOrder=ro;im.count=0;im.visible=false;JADE.root.add(im);return im;};
+  const im=mk(M9.vr,3),im2=mk(M9.vrX,2),im3=mk(M9.vrP,2.5);im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);im2.instanceMatrix=im.instanceMatrix;im3.instanceMatrix=im.instanceMatrix;
+  FIN.fam[t]={t:t,im:im,im2:im2,im3:im3,aJ:aJ,cap:cap,tri:T9.fin.index.count/3};}
+function finTravail(budget){ // (v8) les gabarits fins se bâtissent À LA VOLÉE, quelques ms par image (le départ n'attend pas) — d'abord ceux qu'on approche
+  if(!FIN.on||!JADE.geos||!JADE.root)return;const P9=JADE.geos.p,t0=performance.now();
+  while(performance.now()-t0<budget){
+    if(!FIN.job){let t=-1;for(const k of FIN.veut)if(!P9[k].fin&&!P9[k].finX){t=k;break;}
+      if(t<0)for(let k=0;k<P9.length;k++)if(!P9[k].fin&&!P9[k].finX&&FIN.cap&&FIN.cap[k]){t=k;break;}
+      if(t<0)return;FIN.job={t:t,it:voxPilierFin(P9[t]),t0:performance.now(),ms:0};}
+    const j9=FIN.job,a9=performance.now();let r;
+    try{r=j9.it.next();}catch(e){P9[j9.t].finX=1;FIN.job=null;console.warn('cubes fins',e);continue;}
+    j9.ms+=performance.now()-a9;
+    if(r.done){P9[j9.t].fin=r.value;P9[j9.t].finMs=Math.round(j9.ms);FIN.job=null;finFamille(j9.t);JADE.sig=0;}}}
+function finMat(pi){let m=FIN.mats.get(pi);if(m)return m;const q=JADE.col.P[pi],T9=JADE.geos.p[q[5]],K=FIN.k;
+  m=new Float32Array(new THREE.Matrix4().makeTranslation(q[0],q[3],q[1]).multiply(new THREE.Matrix4().makeRotationY(q[6]*Math.PI/2)).multiply(new THREE.Matrix4().makeScale(VX/K,VX/K,VX/K)).multiply(new THREE.Matrix4().makeTranslation(-T9.M*K,0,-T9.M*K)).elements);
+  FIN.mats.set(pi,m);return m;}
 function jadeTri(cam){
   if(!JADE.root||!JADE.quart||!JADE.fam.length)return;const t0=performance.now();
   JT.fr.setFromProjectionMatrix(JT.pv.multiplyMatrices(cam.projectionMatrix,cam.matrixWorldInverse));
   const f=scene.fog,ff=(f&&f.isFog)?f.far:9000,cp=cam.position,Qs=JADE.quart,S=JT._s||(JT._s=new THREE.Sphere());
   if(!JT.vis||JT.vis.length!==Qs.length)JT.vis=new Int8Array(Qs.length);
-  let sig=7;
+  let sig=finProches(cp);
   for(let k=0;k<Qs.length;k++){const q=Qs[k];S.center.copy(q.c);S.radius=q.r;let v=-1;
     if(JT.fr.intersectsSphere(S)){const d=Math.max(0,cp.distanceTo(q.c)-q.r);if(d<ff+60)v=jadeBande(d);}
     JT.vis[k]=v;if(v>=0)sig=(Math.imul(sig,31)+k*8+v+1)|0;}
   if(sig!==JADE.sig){JADE.sig=sig;JT.up++;
     for(const F of JADE.fam){let w=0;const A=F.im.instanceMatrix.array,J=F.aJ.array;
-      for(const [k,r] of F.r){const v=JT.vis[k];if(v<F.b0||v>F.b1)continue;
+      for(const [k,r] of F.r){const v=JT.vis[k];if(v<F.b0||v>F.b1)continue;if(F.dst)F.dst.set(k,w);
         A.set(F.M.subarray(r[0]*16,r[1]*16),w*16);J.set(F.J.subarray(r[0]*4,r[1]*4),w*4);w+=r[1]-r[0];}
-      F.im.count=w;if(F.im2){F.im2.count=w;F.im3.count=w;}F.im.instanceMatrix.needsUpdate=true;F.aJ.needsUpdate=true;}}
+      if(F.pidx&&FIN.dans.size)for(const pi of FIN.dans){const si=F.pidx.get(pi);if(si===undefined)continue; // (v8) cédée aux cubes fins : son instance s'écrase en un point
+        const k=F.qk[si],v=JT.vis[k];if(v<F.b0||v>F.b1)continue;const d0=F.dst.get(k);if(d0===undefined)continue;const dst=d0+si-F.r.get(k)[0];A.fill(0,dst*16,dst*16+16);}
+      F.im.count=w;if(F.im2){F.im2.count=w;F.im3.count=w;}F.im.instanceMatrix.needsUpdate=true;F.aJ.needsUpdate=true;}
+    for(const FF of FIN.fam){if(!FF)continue;let n=0;const A=FF.im.instanceMatrix.array,J=FF.aJ.array; // les CUBES MINUSCULES
+      for(const pi of FIN.dans){const q=JADE.col.P[pi];if(q[5]!==FF.t)continue;A.set(finMat(pi),n*16);J[n*4]=q[7];J[n*4+1]=q[8]<2000||q[8]===1e9?1:.85;J[n*4+2]=0;J[n*4+3]=0;n++;}
+      FF.im.count=FF.im2.count=FF.im3.count=n;FF.im.visible=FF.im2.visible=FF.im3.visible=n>0;if(n){FF.im.instanceMatrix.needsUpdate=true;FF.aJ.needsUpdate=true;}}}
   JT.ms+=performance.now()-t0;JT.n++;
 }
 {const ob9=scene.onBeforeRender;scene.onBeforeRender=function(r9,s9,cam,rt){ob9.call(this,r9,s9,cam,rt);try{jadeTri(cam);}catch(e){window.__jadeErr=e;}};} // CHAÎNÉ (jamais réassigné)
@@ -13128,6 +13342,45 @@ const JADE_ESPRITS=(function(){const N=TEL_NATIF?700:1600,S=700,P=new Float32Arr
       '  gl_PointSize=uPx*(1.6+aS*2.6)*min(7.,320./max(d,1.));gl_Position=projectionMatrix*mv;}'].join('\n'),
     fragmentShader:['uniform float uK;varying float vA;void main(){float r=length(gl_PointCoord-.5)*2.;float a=exp(-r*r*4.5)*vA*uK;gl_FragColor=vec4(vec3(.82,.96,1.)*a,a);}'].join('\n')});
   const pt=new THREE.Points(g,m);pt.frustumCulled=false;pt.renderOrder=6;pt.visible=false;scene.add(pt);return pt;})();
+/* ---- LES NUAGES EN VOLUTES (v8, Léo : « en haut, des ciels, avec des nuages style asiatique ; le ciel suit la colorimétrie ; si ça peut
+   donner de la force aux nuages ») — les 祥云 des rouleaux et des broderies : des LOBES ronds posés sur une base plate, chacun roulé en
+   SPIRALE, une QUEUE effilée qui s'enroule au bout, un contour d'encre jade, un dégradé crème → jade pâle, un reflet sur le haut des lobes.
+   Seize dessins sur une planche (4 × 4, cuite une fois), posés en GRAND (400-1 100 m) loin autour de la route et au-dessus d'elle, face à la
+   caméra ; la perspective aérienne les fond dans la brume du loin, la teinte suit le ciel du niveau (`uTeinte`, posée par jadeTick). ---- */
+function jadeNuagesTex(){const CW=512,CH=256,cv=document.createElement('canvas');cv.width=CW*4;cv.height=CH*4;const c=cv.getContext('2d'),rg=mulberry32(0x5A1E);
+  for(let k=0;k<16;k++){const x0=(k%4)*CW,y0=((k/4)|0)*CH;c.save();c.beginPath();c.rect(x0,y0,CW,CH);c.clip();
+    if(rg()<.5){c.translate(x0*2+CW,0);c.scale(-1,1);} // la queue d'un côté ou de l'autre
+    const nL=3+((rg()*3)|0),yb=y0+CH*.70,L9=[];let x=x0+44+rg()*20;
+    for(let i=0;i<nL;i++){const mid=1-Math.abs(i-(nL-1)/2)/((nL-1)/2+.5),r=30+mid*36+rg()*12;if(i)x+=.80*(r+L9[i-1].r);else x+=r;L9.push({x:x,y:yb-r*.78-mid*8+rg()*6,r:r});}
+    const xl=L9[0].x-L9[0].r*.7,xr=L9[nL-1].x+L9[nL-1].r*.55,tipx=Math.min(x0+CW-26,xr+90+rg()*70),tipy=yb-40-rg()*30;
+    const P=new Path2D();for(const l of L9){P.moveTo(l.x+l.r,l.y);P.arc(l.x,l.y,l.r,0,Math.PI*2);}
+    P.moveTo(xl+14,yb-26);P.lineTo(xr,yb-26);P.quadraticCurveTo(xr+8,yb+10,xr-10,yb+12);P.lineTo(xl+10,yb+12);P.quadraticCurveTo(xl-8,yb-6,xl+14,yb-26); // la BASE plate
+    P.moveTo(xr-20,yb-30);P.bezierCurveTo(xr+30,yb-34,tipx-30,tipy+30,tipx,tipy);P.bezierCurveTo(tipx-24,tipy+44,xr+20,yb+12,xr-20,yb+10);P.closePath(); // la QUEUE
+    const ow=6;c.lineJoin='round';c.lineCap='round';c.strokeStyle='#3f6b66';c.lineWidth=ow*2;c.stroke(P); // le contour d'encre (la moitié dedans est recouverte)
+    const gr=c.createLinearGradient(0,yb-110,0,yb+14);gr.addColorStop(0,'#fdfcf5');gr.addColorStop(.55,'#eef4ec');gr.addColorStop(1,'#c6dcd6');c.fillStyle=gr;c.fill(P);
+    c.strokeStyle='rgba(255,255,250,.75)';c.lineWidth=5; // le reflet sur le haut des lobes
+    for(const l of L9){c.beginPath();c.arc(l.x,l.y,l.r*.80,-Math.PI*.92,-Math.PI*.28);c.stroke();}
+    c.strokeStyle='#4a7a73';c.lineWidth=4; // les SPIRALES, roulées vers le bas et l'extérieur
+    for(const l of L9){c.beginPath();const a0=Math.PI*(.35+rg()*.3),tours=1.5+rg()*.4;
+      for(let t=0;t<=1.0001;t+=.02){const a=a0+t*tours*Math.PI*2,r=l.r*(.72-.58*t),px=l.x+Math.cos(a)*r+(1-t)*2,py=l.y+Math.sin(a)*r*.92+l.r*.08;if(t===0)c.moveTo(px,py);else c.lineTo(px,py);}c.stroke();}
+    c.beginPath();for(let t=0;t<=1.0001;t+=.04){const a=-Math.PI*.6+t*Math.PI*2.6,r=15*(1-t*.8);const px=tipx-14+Math.cos(a)*r,py=tipy+12+Math.sin(a)*r;if(t===0)c.moveTo(px,py);else c.lineTo(px,py);}c.stroke(); // la boucle du bout de la queue
+    c.strokeStyle='rgba(74,122,115,.55)';c.lineWidth=3;c.beginPath();c.moveTo(xl+22,yb-2);c.quadraticCurveTo((xl+xr)/2,yb+4,xr+6,yb-6);c.stroke(); // le trait de la base
+    c.restore();}
+  const t=new THREE.CanvasTexture(cv);t.anisotropy=4;return t;}
+const JADE_C9=new THREE.Color();
+const JADE_NUAGE_M=(function(){const m=new THREE.ShaderMaterial({transparent:true,depthWrite:false,
+  uniforms:{uTex:{value:null},uTime:JADE_U.uTime,uTeinte:{value:new THREE.Color(1,1,1)},uFogC:{value:new THREE.Color(.8,.86,.88)}},
+  vertexShader:['attribute vec4 aJ;uniform float uTime;varying vec2 vUv;varying float vD;',
+    'void main(){vec3 c=(modelMatrix*instanceMatrix*vec4(0.,0.,0.,1.)).xyz;c.y+=sin(uTime*.07+aJ.w*40.)*aJ.y*.03;c.x+=sin(uTime*.013+aJ.w*9.)*40.;',
+    '  vec3 f=normalize(c-cameraPosition),R=normalize(cross(f,vec3(0.,1.,0.))+vec3(1e-4,0.,0.)),U=cross(R,f);', // face à la caméra, debout
+    '  vec3 wp=c+R*position.x*aJ.x+U*position.y*aJ.y;vD=length(wp-cameraPosition);',
+    '  float k=aJ.z,col=mod(k,4.),row=floor(k/4.),u=position.x+.5;if(aJ.w>.5)u=1.-u;',
+    '  vUv=vec2((col+u)*.25,1.-(row+1.)*.25+(position.y+.5)*.25);',
+    '  gl_Position=projectionMatrix*viewMatrix*vec4(wp,1.);}'].join('\n'),
+  fragmentShader:['uniform sampler2D uTex;uniform vec3 uTeinte,uFogC;varying vec2 vUv;varying float vD;',
+    'void main(){vec4 t=texture2D(uTex,vUv);if(t.a<.02)discard;',
+    '  vec3 col=t.rgb*uTeinte;col=mix(col,uFogC,smoothstep(1500.,7500.,vD)*.55);', // la perspective aérienne : le loin se fond, sans s effacer
+    '  gl_FragColor=vec4(col,t.a*smoothstep(80.,320.,vD)*(1.-smoothstep(7800.,9400.,vD)));}'].join('\n')});m.dispose=function(){};return m;})();
 /* ---- CHAQUE IMAGE : les lumières du niveau dans la matière (une Lambert les lirait d'elle-même), l'horloge, la brume ---- */
 function jadeTick(dt){
   {const on=!!JADE.root&&LVL.cur&&LVL.cur.id==='jade';if(JADE_ESPRITS.visible!==on)JADE_ESPRITS.visible=on;if(on){const u=JADE_ESPRITS.material.uniforms;u.uCam.value.copy(camera.position);u.uPx.value=renderer.getPixelRatio();u.uK.value=Math.min(1,u.uK.value+dt*.5);}}
@@ -13137,11 +13390,16 @@ function jadeTick(dt){
     {const m9=Math.min(ENGINE_TIERS.length-1,BALADE_MOTEUR);if(engTier!==m9){engTier=m9;coinsGot=ENGINE_TIERS[m9].coins;}} // le moteur de la balade, posé tel quel (sans la scène du palier)
     if(!nitroOn)nitroR=Math.min(nitroCap(),nitroR+.30*dt);} // sans pièces ni fruits, la nitro se recharge seule // (dev) dbgJadeVue : une image NETTE (le flou de vitesse figé par la pause)
   JADE_U.uTime.value+=dt;
+  finTravail(paused?12:4);
+  for(const M9 of [JADE.porte,JADE.pont]){if(!M9||!M9.mF)continue;const d=camera.position.distanceTo(M9.c),n=d<(M9===JADE.porte?780:650)+(M9.pres?40:0); // (v8) de près, les cubes fins
+    if(n!==M9.pres){M9.pres=n;for(const m of M9.mF)m.visible=n;for(const m of M9.mL)m.visible=!n;}}
   JADE_U.uSunC.value.copy(sun.color).multiplyScalar(sun.intensity);
   JADE_U.uSky.value.copy(hemi.color).multiplyScalar(hemi.intensity);JADE_U.uGnd.value.copy(hemi.groundColor).multiplyScalar(hemi.intensity);
   JADE_U.uFillC.value.copy(fill.color).multiplyScalar(fill.intensity);JADE_U.uFillD.value.copy(fill.position).normalize().negate();
   JADE_U.uMist.value.fromArray(BIO.cur.jdB||[.86,.87,.82]);
   {const b=JADE_U.uMist.value,fc=scene.fog&&scene.fog.color;if(fc)b.lerp(fc,.25);}
+  {const u=JADE_NUAGE_M.uniforms,h=BIO.cur.jdH||[.9,.9,.85],sc=BIO.cur.jdS||[1,.95,.85],fc=scene.fog&&scene.fog.color; // les volutes suivent le ciel du niveau
+   u.uTeinte.value.setRGB((h[0]*.45+sc[0]*.55)*1.02,(h[1]*.45+sc[1]*.55)*1.02,(h[2]*.45+sc[2]*.55)*1.02);if(fc)u.uFogC.value.copy(fc).lerp(JADE_C9.setRGB(h[0],h[1],h[2]),.4);}
 }
 /* LES GRUES (2026-10-09) — l'oiseau des rouleaux peints : des vols de grues du Japon (blanches, rémiges noires, calotte rouge, pattes
    tendues derrière) qui traversent la vallée en V, battent lentement puis planent. Lambert à couleurs par sommet sur des facettes (géométrie
@@ -13209,8 +13467,13 @@ function jadeChauffe(){ // une instance de chaque matière, compilée hors écra
     const pl=new THREE.PlaneGeometry(1,1);pl.setAttribute('aB',new THREE.InstancedBufferAttribute(new Float32Array(4),4));const i3=new THREE.InstancedMesh(pl,JADE_BRUME_M,1);i3.setMatrixAt(0,new THREE.Matrix4());g.add(i3);
     g.traverse(function(o){o.frustumCulled=false;});scene.add(g);renderer.compile(scene,camera);scene.remove(g);}catch(e){console.warn('jadeChauffe',e);}
 }
+window.dbgFin=function(v,nu){ // (banc) v : les cubes minuscules on/off ; nu : les nuages en volutes on/off
+  if(v!==undefined&&v!==null){FIN.on=!!v&&!TEL_NATIF;if(!FIN.on){FIN.dans.clear();for(const FF of FIN.fam)if(FF)FF.im.visible=FF.im2.visible=FF.im3.visible=false;}JADE.sig=0;}
+  if(nu!==undefined&&JADE.root)for(const o of JADE.root.children)if(o.material===JADE_NUAGE_M)o.visible=!!nu;
+  return {on:FIN.on,dans:FIN.dans.size,D:FIN.D};};
 window.dbgJade=function(){let tri=0;for(const F of JADE.fam)tri+=F.im.count*F.tri;
-  return Object.assign({},JADE.n,{triangles:Math.round(tri)+(JADE.porte?JADE.porte.tri:0)+(JADE.pont?JADE.pont.tri:0),appels:JADE.fam.filter(function(F){return F.im.count>0;}).length,
+  let triF=0;for(const FF of FIN.fam)if(FF)triF+=FF.im.count*FF.tri;
+  return Object.assign({},JADE.n,{fins:FIN.dans.size,triFins:Math.round(triF),finPrets:JADE.geos?JADE.geos.p.filter(function(T9){return T9.fin;}).length+'/'+JADE.geos.p.length:0,finMs:JADE.geos&&JADE.geos.p.map(function(T9){return T9.finMs||0;}),triFinGab:JADE.geos&&JADE.geos.p.map(function(T9){return T9.fin?T9.fin.index.count/3:0;}),triangles:Math.round(tri+triF)+(JADE.porte?JADE.porte.tri:0)+(JADE.pont?JADE.pont.tri:0),porteFin:JADE.porte&&JADE.porte.triF,msPorte:JADE.msPorte,tPorte:JADE.tPorte,msPont:JADE.msPont,pontFin:JADE.pont&&JADE.pont.triF,appels:JADE.fam.filter(function(F){return F.im.count>0;}).length,
     tri:{ms:JT.n?+(JT.ms/JT.n).toFixed(3):0,envois:JT.up},grues:GRUE.L.length,balade:BALADE,niveau:LVL.cur&&LVL.cur.id,err:window.__jadeErr?String(window.__jadeErr):null});};
 window.dbgJadeAller=function(k,d){const P=k==='pont'?JADE.pont:JADE.porte;if(!P||!started||gameOver)return 'non';if(paused)togglePause(); // (dev) la caisse d m avant un monument, sur la route
   s=Math.max(0,P.i/(NP-1)*L-(d||350));lat=0;psi=0;prevTvalid=false;mode='drive';return Math.round(s);};
@@ -13234,6 +13497,8 @@ window.dbgJadeVue=function(k,d,h,cap){if(!JADE.root)return 'pas de map';
   if((k==='porte'&&JADE.porte)||(k==='pont'&&JADE.pont)){const P=k==='porte'?JADE.porte:JADE.pont,sP=P.i/(NP-1)*L; // depuis la ROUTE, d m avant le monument
     frameAt(Math.max(0,sP-(d||600)),F);C.copy(F.p).addScaledVector(F.n,h||12);V.copy(P.c);V.y+=k==='porte'?110:90;}
   else if(k==='grue'&&GRUE.L.length){const g=GRUE.L[0].g.position;V.copy(g);C.copy(g).addScaledVector(GRUE.L[0].v.clone().normalize(),-(d||120));C.y+=(h||25);}
+  else if(k==='pres'&&JADE.col){frameAt(Math.min(L-10,s),F);const o9=F.p;let bq=null,bd=1e9;for(const q of JADE.col.P){if(q[5]>=JADE_NTPL)continue;const e=Math.hypot(q[0]-o9.x,q[1]-o9.z)-q[2];if(e<bd&&o9.y>q[3]+20&&o9.y<q[4]-10){bd=e;bq=q;}} // (dev) la montagne la plus proche de la route, de près
+    if(bq){const a9=(cap||0)+Math.atan2(o9.z-bq[1],o9.x-bq[0]);C.set(bq[0]+Math.cos(a9)*(bq[2]+(d||40)),o9.y+(h||0),bq[1]+Math.sin(a9)*(bq[2]+(d||40)));V.set(bq[0],C.y-(h||0)*.3,bq[1]);}}
   else if(k==='haut'){C.copy(carGroup.position);C.y+=(h||260);V.copy(carGroup.position).addScaledVector(new THREE.Vector3(Math.sin(cap||0),0,Math.cos(cap||0)),600);}
   else if(k==='loin'){C.copy(carGroup.position);C.y+=(h||30);V.copy(carGroup.position).addScaledVector(new THREE.Vector3(Math.sin(cap||0),0,Math.cos(cap||0)),1000);V.y+=(d||0);}
   else{frameAt(Math.min(L-10,s+(d||0)),F);C.copy(F.p).addScaledVector(F.t,-18).addScaledVector(F.n,(h||8));V.copy(F.p).addScaledVector(F.t,120);}

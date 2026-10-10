@@ -83,6 +83,28 @@ d'aller dans cette map avec une voiture, la mobilité comme le main, mais seulem
   r1 750, pins 900, temples 1300, d1 1500 ; `jadeBande` rend 0-5) ; plans intérieurs tous les 7 m à chaque niveau (`voxMesh(G,4|2|1)`, opacité
   .13). Rochers en mètres (6,5-11 m). MESURÉ : 60 i/s (p90 17,7 ms), ~2,4-2,7 M triangles visibles, construction ~2,1 s (gabarits 1,1 s, une
   fois par session) ; collisions et règle d'or OK (3 vallées), Porte et Pont traversés. sw.js → v209.
+- **v8 — LE FLEUVE, LES VOLUTES, LES CUBES TROIS FOIS PLUS PETITS** (2026-10-10, Léo : « trois fois plus petit [les cubes] … un dessous, que
+  ce soit la mer — qui fasse penser au fleuve des peintures chinoises, mais bleu … en haut, des ciels, avec des nuages style asiatique ; le
+  ciel suit la colorimétrie ; si ça peut donner de la force aux nuages ») — LA VERSION EN COURS.
+  · **LE FLEUVE** (dôme, `jadeCiel`, sous l'horizon, à la place de la mer de nuages) : le bleu minéral des rouleaux (千里江山图) — lavis
+    bleu-vert, LIGNES D'EAU peintes (un trait tous les 17 m, cassées en coups de pinceau, effacées avant de grésiller), houles, éclat du
+    soleil sur les lignes, le ciel au ras, la brume au loin. Les pieds des montagnes se noient dans la brume blanche au-dessus de l'eau.
+  · **LES NUAGES EN VOLUTES** (祥云, `jadeNuagesTex` + `JADE_NUAGE_M`) : 16 dessins sur une planche (lobes ronds sur une base plate,
+    SPIRALES, queue qui s'enroule, contour d'encre jade, dégradé crème → jade, reflet) ; ~60-90 grands panneaux (800-1 900 m) face à la caméra,
+    loin autour de la route et au-dessus d'elle, teinte du ciel du niveau (`uTeinte`), perspective aérienne. Rien au ras du fleuve (essayé :
+    des autocollants posés sur l'eau).
+  · **LES CUBES MINUSCULES** (`FIN`, VX/3 = 58 cm sur l'ordi, rien sur un vrai téléphone) : un niveau de détail de plus, de PRÈS (≤ 170 m,
+    `finProches` à chaque rendu, les montagnes cédées s'écrasent en un point dans leur famille de 1,75 m). Pas de grille (250 M de cases) :
+    `voxPilierFin` relit la montagne COUCHE PAR COUCHE (`T9.ly`), sous-couches de 1-3 cubes fins qui avancent/reculent d'un cube, contour en
+    polygone balayé en INTERVALLES par rang, faces fusionnées le long du rang et dans la hauteur. C'est un GÉNÉRATEUR : `finTravail` le fait
+    avancer 4 ms par image (12 en pause), d'abord les gabarits qu'on approche — le départ n'attend pas. L'ARCHE (la région que la route
+    traverse : ± 110 m, de −140 à +360 m) et le PONT : `colMesh` (colonnes à un intervalle, marches posées des deux côtés avec la muraille
+    de 2,5 m, dont la région devient FANTÔME `255` dans voxMesh) ; de près (< 780 / 650 m) l'habit fin, de loin les cubes de 2,5 m. Les
+    CHOCS lisent toujours les grilles de 1,75 / 2,5 m. Hooks : `dbgFin(on,nuages)`, `dbgJadeVue('pres',d,h,cap)` (la montagne la plus proche).
+  · MESURÉ (Mac très chargé : Roblox + d'autres bancs, charge 26-38) : même médiane d'image que la v7 en alternance A/B ; 23 k-450 k
+    triangles par gabarit fin, l'arche fine ~0,74 M ; collisions et règle d'or OK, Porte et Pont traversés. sw.js → v210.
+  · Rangée dans la page des maps (`CAR-maps`, « Nouvelles maps · à garder pour le jeu », Léo : « garde-le sur une liste de maps qu'on garde
+    pour le jeu ») — pas encore un niveau du jeu.
 - Mesuré (Chrome sans fenêtre du Mac) : 60 i/s, construction 16-28 ms, tri ~0,03 ms ; collisions (`dbgJadeHeurt('test')`, 3 vallées) :
   piliers durs, arche et dessous du pont libres, AUCUN point de la route dans la pierre. Console : `dbgJade()`, `dbgJadeVue('route'|'porte'|
   'pont'|'haut'|'loin'|'grue',d,h,cap)` (photo figée), `dbgGrues()`. sw.js → v203.
