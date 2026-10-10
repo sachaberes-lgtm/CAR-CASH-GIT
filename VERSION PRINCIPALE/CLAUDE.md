@@ -106,7 +106,7 @@ d'aller dans cette map avec une voiture, la mobilité comme le main, mais seulem
   · Rangée dans la page des maps (`CAR-maps`, « Nouvelles maps · à garder pour le jeu », Léo : « garde-le sur une liste de maps qu'on garde
     pour le jeu ») — pas encore un niveau du jeu.
 - **v9 — LES VOLUTES EN RELIEF, LA ROUTE EN JADE** (même jour, Léo : « les nuages plus transparents, moins autocollants, plus 3D ; et surtout,
-  la route : en jade ») — LA VERSION EN COURS.
+  la route : en jade »).
   · **LES VOLUTES** : plus de dessin cerné d'encre — `jadeNuagesTex` cuit une CARTE DE HAUTEUR (texture de données : R hauteur, V spirale,
     A couverture) faite de boules (lobes, base en coussins aplatis, queue en tube qui s'effile et s'enroule), les spirales CREUSÉES dans les
     lobes ; `JADE_NUAGE_M` en tire la normale, l'éclaire au soleil de la map (ombre jade-bleue dessous, contre-jour dans les bords minces),
@@ -115,6 +115,25 @@ d'aller dans cette map avec une voiture, la mobilité comme le main, mais seulem
   · **LA ROUTE EN JADE** (`ROAD_U.uJadeR` = LVL.jade, branche uniforme du bitume, rien ailleurs) : vert profond peu saturé, ses nuages
     laiteux, des VEINES pâles qui courent LE LONG de la route (une fonction du travers décalée par le long : jamais d'anneau), polie (`GLACE.jade`
     .45 : le ciel en rasant ; un éclat de soleil), une lueur intérieure (+16 %). Essayé avant : un vert vif à anneaux blancs (« plastique »).
+- **v10 — LES MONTAGNES EN VITRAIL** (même jour, Léo : « grâce à la technique vitrail, essaie d'alléger et d'embellir en même temps les
+  montagnes ») — LA VERSION EN COURS. La recette VITRAIL vient du dauphin (CAR-dauphins, 10/10 : « de loin lisse et brillant, de près le
+  pixel qui apparaît, avec des joints de lumière très fins ») : un CŒUR de lumière, des ÉCAILLES en cubes écartées (89 %), une PEAU de
+  verre transparente de face (.43-.56) et opaque sur la silhouette (.95), une ONDE de lumière. Pour les montagnes (`VIT`, bloc « LE VITRAIL ») :
+  · `jadeLisse(T9,peau,dy,na)` : des ANNEAUX lisses relus dans les couches (`T9.ly`) — la PEAU = l'enveloppe gonflée de ~1 m autour des
+    cubes (max des couches voisines, adoucie sans jamais rentrer), le CŒUR = rentré de ~1 m (min, ne sort jamais). Pointe dessous, dôme dessus.
+    4 niveaux chacun (peau 1,6/4/10/24 cubes de haut, cœur deux fois plus lâche), dans le repère des cubes de 1,75 m (`jadeMatPilier(q,0)`).
+  · CŒUR (`JADE_COEUR_FS`, opaque) : lumière de jade profonde en bas → pâle en haut, strates, éclairée doucement. PEAU (`JADE_PEAU_FS`,
+    transparente, une passe) : une pierre de jade polie (coulées, fissures) qui laisse voir le cœur de face, le ciel du niveau
+    (`uCielH/uCielZ`) sur la silhouette, l'éclat du soleil, un film irisé discret. ÉCAILLES (`jadeVRMat('V')`, define `VITRAIL`, opaques,
+    une passe) : les cubes de 58 cm de FIN, de PRÈS (fondu tramé 170 → 125 m), joints `uEcart` .89 percés (on voit le cœur), arêtes qui
+    s'allument à l'onde, un voile de ciel en rasant. L'ONDE (`JADE_ONDE`) : un plan de lumière qui monte du fleuve (~25 s, déphasé par montagne).
+  · L'ARCHE et le PONT gardent leurs cubes (2,5 m / fins de près) en écailles `JOINT_LUM` (`'VM'`) : teintées jade, joints de lumière de près
+    seulement (de loin ils grésillaient en hachures), une passe.
+  · ALLÉGER : plus de maillage de cubes de 1,75 m (la grille `G` ne sert qu'aux chocs, ni voxMesh ni voxDemi), plus de verre en trois passes ;
+    peau la plus fine ~23 k triangles pour la plus grande montagne (124 k en cubes ×3 passes avant). `?vitrail=0` = la v9 telle quelle.
+  · Essayé et corrigé : un premier jet trop SATURÉ (des montagnes en bonbon vert) → pierre de jade grise-verte, peau plus couvrante (.56).
+  · MESURÉ (A/B alterné, même banc) : 1,5-2,5 M triangles visibles contre 3-3,8 M en v9, construction ~3,1 s contre ~4,2 s (gabarits 0,7 s
+    contre 1,7 s), même cadence ; collisions et règle d'or OK, Porte et Pont traversés. sw.js → v212.
 - Mesuré (Chrome sans fenêtre du Mac) : 60 i/s, construction 16-28 ms, tri ~0,03 ms ; collisions (`dbgJadeHeurt('test')`, 3 vallées) :
   piliers durs, arche et dessous du pont libres, AUCUN point de la route dans la pierre. Console : `dbgJade()`, `dbgJadeVue('route'|'porte'|
   'pont'|'haut'|'loin'|'grue',d,h,cap)` (photo figée), `dbgGrues()`. sw.js → v203.
