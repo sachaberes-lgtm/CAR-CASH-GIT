@@ -38070,7 +38070,7 @@ function openGarage(quiet){
   // bioStep repeindrait le ciel du biome par-dessus l'atelier à chaque image.
   if(BIO.k<1){BIO.k=1;bioLerp(BIO.from,BIO.to,1,BIO.cur);}
   bioApply(BIOMES.atelier);MENUV.bio=false;
-  garageAng=Math.PI;garagePitch=.2;garageDist=7.8;GAR.vA=0;GAR.vAc=0;GAR.vW=0;GAR.vD=0;GAR.vDv=0;GAR.vDw=0;GAR.preE=0;GAR.aVl=null;GAR.vAv=0;GAR.vDon=true;GAR.ret=null;GAR.tDoigt=0;GAR.pT=.2;GAR.roll=0;GAR.swK=0;GAR.fige=false; // (2026-09-30, Léo, capture de sa branche : « c'est ça que je veux ») on entre DERRIÈRE la caisse, la porte en feu au fond du cadre — le plateau la fait tourner ensuite (voir GAR_CAM_A)
+  garageAng=Math.PI;garagePitch=.2;garageDist=7.8;if(typeof GTN!=='undefined'&&GTN){GTN.fixe=false;GTN.gt=0;GTN.glisse=false;}GAR.vA=0;GAR.vAc=0;GAR.vW=0;GAR.vD=0;GAR.vDv=0;GAR.vDw=0;GAR.preE=0;GAR.aVl=null;GAR.vAv=0;GAR.vDon=true;GAR.ret=null;GAR.tDoigt=0;GAR.pT=.2;GAR.roll=0;GAR.swK=0;GAR.fige=false; // (2026-09-30, Léo, capture de sa branche : « c'est ça que je veux ») on entre DERRIÈRE la caisse, la porte en feu au fond du cadre — le plateau la fait tourner ensuite (voir GAR_CAM_A)
   garageShow(level||0);
   GMIS.mk=0;garMode(GAR.aMenu?'menu':'boutique');GAR.aMenu=false;
   if(GAR.aMis){GAR.aMis=false;garMode('missions');}
@@ -39798,7 +39798,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
        la vue revient face à l'entrée par le chemin le PLUS COURT (jamais plus d'un demi-tour), en une courbe en S (sinus) de `retDuree` +
        `retPente` × (angle / π) s — ~1,5 s pour un quart de tour, 2 s pour un demi. Le doigt qui touche la RATTRAPE : la saisie reprend sa
        vitesse et elle ralentit sous lui (~5° au banc), sans à-coup. Arrivée, l'angle est ramené dans [−π, π] (le regard qui traîne aussi). */
-    if(VK>.5&&!GAR.ret&&!garageDrag&&!GAR.vW&&!GAR.go&&performance.now()-(GAR.tDoigt||0)>VITRINE_CAM.retAttente*1000&&Math.abs(GAR.vAv||0)<.02){
+    if(VK>.5&&!GAR.ret&&!garageDrag&&!GAR.vW&&!GAR.go&&!(typeof GTN!=='undefined'&&GTN&&GTN.fixe)&&performance.now()-(GAR.tDoigt||0)>VITRINE_CAM.retAttente*1000&&Math.abs(GAR.vAv||0)<.02){ // (2026-10-10, Léo : « moins d'effet glissade ») la vue posée À LA JAUGE reste où on l'a mise (GTN.fixe) : 3 s après, elle repartait seule vers la porte et le curseur glissait au milieu — le retour ne suit plus que le glissé du doigt sur le décor
       const w9=Math.atan2(Math.sin(vA0),Math.cos(vA0));
       if(Math.abs(w9)>.004)GAR.ret={a0:vA0,a1:vA0-w9,v0:GAR.vAv||0,t0:performance.now(),d:(VITRINE_CAM.retDuree+VITRINE_CAM.retPente*Math.abs(w9)/Math.PI)*1000};} // (2026-10-06) v0 : la vitesse qu'avait encore la vue — la courbe la reprend (elle repartait de zéro)
     if(GAR.ret&&(VK<=.5||GAR.go))GAR.ret=null;
@@ -39815,9 +39815,9 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
       /* (même jour, Léo : « maintenant c'est un peu générique — fais un juste milieu entre les deux ») le ressort est un peu SOUS-amorti
          (dAmorti ,72 au lieu de 1) : la vue suit plus vivement et se pose avec un soupçon de rebond (< 1°), au lieu de s'arrêter « au cordeau ».
          Intégré en pas de 8 ms (Euler semi-implicite : stable à toutes les cadences). */
-      const vi9=VK>.5,om=2/(vi9?VITRINE_CAM.dLisse:GT_LISSE),z9=vi9?VITRINE_CAM.dAmorti:1,d9=Math.min(dt,.1),n9=Math.max(1,Math.ceil(d9/.008)),h9=d9/n9;let x9=vA0,v9=GAR.vAv||0;
+      const gm9=gtMene(),om=2/(gm9?GT_LISSE:VITRINE_CAM.dLisse),z9=gm9?1:VITRINE_CAM.dAmorti,d9=Math.min(dt,.1),n9=Math.max(1,Math.ceil(d9/.008)),h9=d9/n9;let x9=vA0,v9=GAR.vAv||0;
       for(let i=0;i<n9;i++){v9+=(om*om*(cib9-x9)-2*z9*om*v9)*h9;x9+=v9*h9;}
-      GAR.vAv=v9;GAR.vA=x9;if(!vi9&&GTN.id==null&&!GTN.glisse&&Math.abs(cib9-x9)<.0015&&Math.abs(v9)<.02){GTN.gt=0;GAR.vAv=0;GAR.vA=cib9;}}
+      GAR.vAv=v9;GAR.vA=x9;if(gm9&&GTN.id==null&&!GTN.glisse&&Math.abs(cib9-x9)<.0015&&Math.abs(v9)<.02){GTN.gt=0;GAR.vAv=0;GAR.vA=cib9;}}
     else{GAR.vAv=0;GAR.vA=vA0+(cib9-vA0)*kS;}
     if(menu9&&GAR.pT!=null)garagePitch+=(GAR.pT-garagePitch)*kS;
     const w9=dt>0?(GAR.vA-vA0)/dt:0;const r9=1-VITRINE_CAM.dRoulis*VK;GAR.roll=(GAR.roll||0)+(THREE.MathUtils.clamp(w9*.016*r9,-.04*r9,.04*r9)-(GAR.roll||0))*Math.min(1,dt*6);
@@ -39915,7 +39915,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
      en bas à gauche, le fond au milieu) ne bouge plus ; avant, la visée basculait de l'entrée vers la caisse en cours de geste : un coup de fouet. */
   /* (même jour, « un peu générique — un juste milieu ») la visée n'est plus tout à fait rigide : elle TRAÎNE derrière le geste (dRegard /s,
      ~0,3 s) — la caisse glisse un peu dans le cadre pendant le tour et y revient quand la vue se pose : le flottement de la v109, sans son fouet. */
-  {const aV0=cA-(GAR.vD||0);if(GAR.aVl==null||VK<.5||GAR.fige||GAR.vuePose)GAR.aVl=aV0;else GAR.aVl+=(aV0-GAR.aVl)*(1-Math.exp(-dt*VITRINE_CAM.dRegard));
+  {const aV0=cA-(GAR.vD||0);if(GAR.aVl==null||VK<.5||GAR.fige||GAR.vuePose||gtMene()||(typeof GTN!=='undefined'&&GTN&&GTN.id!=null))GAR.aVl=aV0; // (2026-10-10, Léo : « moins d'effet glissade : qu'elle tourne autour de la voiture ») quand la JAUGE mène, la visée tourne d'un bloc avec la caméra — la caisse reste CLOUÉE dans l'image, c'est le garage qui tourne autourelse GAR.aVl+=(aV0-GAR.aVl)*(1-Math.exp(-dt*VITRINE_CAM.dRegard));
    const aV=GAR.aVl,wD=VK*(1-(GAR.preE||0)),Lv=1.5+(GAR.D/2-1.5)*wD;GAR.wD=wD;
    const ty0=ay+1.0-POR*.65-vG*1.35+(VC.vise+VC.viseP*POR)*VK;
    (GAR.lk||(GAR.lk=new THREE.Vector3())).set(-Math.sin(aV)*Lv,ty0+(ay+VC.porteY-ty0)*wD,-Math.cos(aV)*Lv);camera.lookAt(GAR.lk); // (LA MISE EN PLACE) le point visé est gardé : le vol des MISSIONS part de LUI
@@ -40266,7 +40266,7 @@ document.querySelectorAll('#gHub .ghT').forEach(function(b){b.addEventListener('
    Saisie : le balancement est versé dans le regard (pas de saut), l'élan et le retour à la porte s'arrêtent ; le tour de base `k0` est
    figé pour toute la saisie (sinon, au bout du rail, ±180° basculerait d'un tour complet). Clavier : ← → 15°, Début = la porte. */
 var GTN={el:document.getElementById('gTourne'),id:null,k0:0,t:-1,deg:999}; // var : hubSync peut tourner avant cette ligne
-var GT_LISSE=.24,GT_FREIN=2.2; // (2026-10-10) le ressort de la vue quand la jauge mène (s), le frein de l'élan lâché (/s : plus doux que le 3 du glissé)
+var GT_LISSE=.14,GT_FREIN=6,GT_ELAN=.6; // (2026-10-10) le ressort de la vue quand la jauge mène (s), le frein de l'élan lâché (/s), la part de la vitesse du doigt gardée au lâcher — (même jour, Léo : « moins d'effet glissade ») ressort .24 → .14, frein 2,2 → 6 : un coup de pouce file de quelques degrés et se pose, il ne glisse plus
 function gtMene(){return typeof GTN!=='undefined'&&!!GTN&&!!GTN.gt&&!garageDrag;} // la jauge mène la vue (posé par gtVise, rendu quand la vue s'est posée ou que le doigt saisit le décor)
 function gtWrap(a){return Math.atan2(Math.sin(a),Math.cos(a));}
 function gTourneMaj(){
@@ -40285,7 +40285,7 @@ function gtLibre(){return garageOn&&!GAR.go&&!GAR.fige&&!ecranWipe._on&&hubCtx()
 function gtSaisit(){
   if(GAR.swK){GAR.vA=(GAR.vA||0)+(GAR.swO||0);GAR.swO=GAR.swP=GAR.swK=0;}
   const cur=GAR.vAc!=null?GAR.vAc:(GAR.vA||0);GTN.k0=cur-gtWrap(cur);GAR.ret=null;GAR.vW=0;}
-function gtVise(a){const n=performance.now();GAR.vAc=GTN.k0+a;GTN.gt=1;
+function gtVise(a){const n=performance.now();GAR.vAc=GTN.k0+a;GTN.gt=1;GTN.fixe=true;
   /* (2026-10-10) la vitesse du doigt se mesure sur ses 100 dernières ms (et plus sur les deux derniers événements, bruités) : l'élan du lâcher */
   const H=GTN.h||(GTN.h=[]);H.push(n,GAR.vAc);while(H.length>2&&n-H[0]>100)H.splice(0,2);
   GTN.v=H.length>=4&&n-H[0]>12?(GAR.vAc-H[1])/((n-H[0])/1000):0;
@@ -40297,7 +40297,7 @@ if(GTN.el){
     GTN.id=e.pointerId;GTN.glisse=false;GTN.tv=null;GTN.v=0;GTN.h=[];try{GTN.el.setPointerCapture(e.pointerId);}catch(_){}GTN.el.classList.add('tient');gtSaisit();gtDuDoigt(e);hap(4);});
   GTN.el.addEventListener('pointermove',function(e){if(e.pointerId!==GTN.id)return;e.stopPropagation();if(!gtLibre())return;gtDuDoigt(e);});
   const fin=function(e){if(e.pointerId!==GTN.id)return;e.stopPropagation();GTN.id=null;GTN.el.classList.remove('tient');const n=performance.now();GAR.tDoigt=n;
-    if(GTN.tv!=null&&n-GTN.tv<90&&Math.abs(GTN.v||0)>.3){GAR.vW=THREE.MathUtils.clamp(GTN.v,-VITRINE_CAM.dElan*1.6,VITRINE_CAM.dElan*1.6);GTN.glisse=true;} // lâchée en mouvement : elle GLISSE et ralentit (le frein de la vue)
+    if(GTN.tv!=null&&n-GTN.tv<90&&Math.abs(GTN.v||0)>.3){GAR.vW=THREE.MathUtils.clamp(GTN.v*GT_ELAN,-VITRINE_CAM.dElan*.75,VITRINE_CAM.dElan*.75);GTN.glisse=true;} // (≤ 1,5 rad/s ÷ frein 6 : au plus ~14° de course après le lâcher) // lâchée en mouvement : elle GLISSE et ralentit (le frein de la vue)
     GTN.tv=null;};
   GTN.el.addEventListener('pointerup',fin);GTN.el.addEventListener('pointercancel',fin);GTN.el.addEventListener('lostpointercapture',fin);
   GTN.el.addEventListener('keydown',function(e){if(!gtLibre())return;const k=e.code;
@@ -40321,7 +40321,9 @@ function gHomePlace(force){const el=document.getElementById('gHomeMini');if(!el|
 try{const hm=document.getElementById('gHomeMini');const va=function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(hm);const c=$('gClose');if(c)c.click();};
   hm.addEventListener('click',va);hm.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();va(e);}});}catch(e){}
 window.dbgTourne=function(deg){if(deg!=null&&gtLibre()){gtSaisit();gtVise(-deg*Math.PI/180);}const r=GTN.el&&GTN.el.getBoundingClientRect();
-  return {on:!!(GTN.el&&GTN.el.classList.contains('on')),t:GTN.t,deg:GTN.deg,vA:+(GAR.vA||0).toFixed(3),vAc:+(GAR.vAc||0).toFixed(3),jauge:r?[Math.round(r.left),Math.round(r.top),Math.round(r.width),Math.round(r.height)]:null};};
+  const q9=camera.position,p9=new THREE.Vector3(0,GARAGE_Y+.6,0).project(camera); // (2026-10-10) la caméra et la caisse à l'écran : le banc de l'orbite
+  return {on:!!(GTN.el&&GTN.el.classList.contains('on')),t:GTN.t,deg:GTN.deg,vA:+(GAR.vA||0).toFixed(3),vAc:+(GAR.vAc||0).toFixed(3),jauge:r?[Math.round(r.left),Math.round(r.top),Math.round(r.width),Math.round(r.height)]:null,
+    cam:[+q9.x.toFixed(2),+q9.y.toFixed(2),+q9.z.toFixed(2)],rCam:+Math.hypot(q9.x,q9.z).toFixed(2),caisse:[Math.round((p9.x+1)/2*VP.w),Math.round((1-p9.y)/2*VP.h)],aVl:+(GAR.aVl||0).toFixed(3),vD:+(GAR.vD||0).toFixed(3),wD:+(GAR.wD||0).toFixed(2),W:GAR.W,D:GAR.D,dist:garageDist};};
 window.dbgHub=function(){const el=$('gHub'),r=el&&el.getBoundingClientRect();return {hub:HUB,ctx:hubCtx(),on:document.documentElement.classList.contains('hubOn'),cache:!!(el&&el.classList.contains('cache')),barre:r?[Math.round(r.left),Math.round(r.top),Math.round(r.width),Math.round(r.height)]:null};};
 document.documentElement.classList.toggle('misS',MENU_SACHA); // l'écran MISSIONS de Sacha : ses règles CSS vivent sous html.misS
 /* (même soir, Léo : « enlève la porte ») la porte FERMÉE au menu (Sacha, b8e7ce7) va avec SA version : par défaut (ou ?porte=1) elle
@@ -41825,7 +41827,7 @@ addEventListener('pointerdown',e=>{if(!garageOn||ecranWipe._on)return;if(e.targe
   garageDrag=true;gpId=e.pointerId;gPince=false;gpx=gpx0=e.clientX;gpy=gpy0=e.clientY;
   if(GAR.swK){GAR.vA=(GAR.vA||0)+(GAR.swO||0);garagePitch=THREE.MathUtils.clamp(garagePitch+(GAR.swP||0),.02,.82);GAR.swO=GAR.swP=GAR.swK=0;} // (2026-09-30) le balancement est VERSÉ dans le regard : pas de saut sous le doigt
   GAR.ret=null;GAR.tDoigt=performance.now(); // (LE RETOUR À LA PORTE) le doigt reprend la main, le compte à rebours repart
-  if(!GAR.go){if(typeof GTN!=='undefined'&&GTN){GTN.gt=0;GTN.glisse=false;}GAR.vAc=(GAR.vA||0)+(GAR.vAv||0)*VITRINE_CAM.dLisse/2;GAR.vW=0;GAR.pT=garagePitch;GAR.mvT=performance.now();} // (le glissé fondu) on SAISIT la vue : elle s'arrête sous le doigt
+  if(!GAR.go){if(typeof GTN!=='undefined'&&GTN){GTN.gt=0;GTN.glisse=false;GTN.fixe=false;}GAR.vAc=(GAR.vA||0)+(GAR.vAv||0)*VITRINE_CAM.dLisse/2;GAR.vW=0;GAR.pT=garagePitch;GAR.mvT=performance.now();} // (le glissé fondu) on SAISIT la vue : elle s'arrête sous le doigt
   if(CHUTE&&CHUTE.on){CHUTE.mvT=performance.now();if(!CHUTE.go)chutePrend(e);} /* (2026-10-08, LE CIEL NE SE TOUCHE PLUS) le doigt ne saisit plus la vue : le tour continue dessous */ /* (2026-10-07, LA CAISSE AU DOIGT v2) posé SUR la caisse, le doigt la tient */ // (2026-09-30) au ciel : on SAISIT l'orbite, elle s'arrête sous le doigt
   if(!GAR.sw&&!GAR.go)GAR.pressT=GAR.PRESS_D; // LE TOUCHER : la caisse accuse la pression tout de suite, avant même qu'on glisse
   GAR.doigt=(garVueLeo()&&!GAR.go&&!(INV&&INV.on)&&e.button<=0&&garSurCaisse(e))?'caisse':'vue'; /* (2026-10-06) LA VUE DE LÉO : aussi dans la console de Sacha */ // (même soir) SUR la caisse, le doigt tient le PLATEAU — jamais la vue
