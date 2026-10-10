@@ -6321,6 +6321,29 @@ html body #garage:not(.menu):not(.vitrine) #gAct>#gCache .gLueur::after{content:
 @keyframes gOeilLuit{0%,100%{opacity:.45}50%{opacity:1}}
 @media (prefers-reduced-motion:reduce){html body #garage #gAct>#gCache .gLueur::after{animation:none;opacity:.8}}
 html[data-reduced-motion="1"] body #garage #gAct>#gCache .gLueur::after{animation:none;opacity:.8}
+/* HOME À GAUCHE, L'ŒIL À SA PLACE (2026-10-10, Léo : « enlève le bouton HIDE, mets HOME à la place ; à la place du HOME, un bouton œil »).
+   CACHER est retiré (retoucher INVENTAIRE ou BOUTIQUE replie la console) ; HOME passe au-dessus d'INVENTAIRE ; l'ŒIL, au-dessus de BOUTIQUE,
+   orange luisant comme l'était celui de CACHER, sans mot. `.vueSeule` : tout le garage disparaît sauf lui (voir gVueSeule). */
+#gOeil{display:none}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gCache{display:none!important}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gHomeBas{grid-column:1}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gOeil{grid-row:1;grid-column:2;display:flex;align-items:center;justify-content:center;min-width:0;height:34px;min-height:34px;padding:0 8px;
+  --ton:#ff8a1f;--nc:var(--ton);--lu:rgba(255,138,31,.9);transform:skewX(var(--sk));animation:none;
+  background:linear-gradient(180deg,rgba(60,32,14,.72),rgba(24,14,10,.9));box-shadow:inset 0 0 0 1px rgba(255,160,80,.38),inset 0 -3px 0 var(--ton),0 0 14px -5px var(--ton),0 6px 14px -8px var(--ton)}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gOeil:is(:active,.appui){transform:skewX(var(--sk)) translateY(2px)}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gOeil .gLueur{position:relative;display:inline-flex;line-height:0;filter:drop-shadow(0 0 2px var(--lu)) drop-shadow(0 0 6px var(--lu))}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gOeil .gLueur .pxi{--pxs:2;color:#ffa23a;filter:none}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gOeil .gLueur::after{content:'';position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,rgba(255,150,40,.5),rgba(255,120,20,.18) 45%,transparent 70%);animation:gOeilLuit 2.4s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){html body #garage #gAct>#gOeil .gLueur::after{animation:none;opacity:.8}}
+html[data-reduced-motion="1"] body #garage #gAct>#gOeil .gLueur::after{animation:none;opacity:.8}
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html body #garage:not(.menu):not(.vitrine) #gAct>#gOeil{height:30px;min-height:30px}}
+html body #garage.vueSeule{visibility:hidden}
+html body #garage.vueSeule #gOeil{visibility:visible}
+html.vueSeule #gTourne,html.vueSeule #gHomeMini{visibility:hidden!important}
+html body #garage.vueSeule:not(.menu):not(.vitrine) #gAct>#gOeil{--lu:rgba(255,190,90,1);background:linear-gradient(180deg,rgba(255,138,31,.85),rgba(150,60,10,.92));box-shadow:inset 0 0 0 1px rgba(255,210,150,.6),inset 0 -3px 0 #ffcf8a,0 0 18px -3px var(--ton)}
+html body #garage.vueSeule:not(.menu):not(.vitrine) #gAct>#gOeil .gLueur .pxi{color:#fff6e6}
 /* LA CROIX DE L'INVENTAIRE, DISCRÈTE (même jour, Léo : « la croix est juste plus discrète, et sert à enlever le rectangle avec toutes
    les voitures pour qu'on ait une vue sur le garage ») : elle ferme toujours le tiroir, mais n'est plus une touche cyan pleine. Plus de
    plaque ni de tranche : une petite croix lilas dans un carré à peine dessiné (filet d'1 px, fond presque nul), qui s'allume sous le doigt.
@@ -6488,7 +6511,8 @@ html.sansFacile [data-m="facile"]{display:none!important}
         <div id="gBuyRow"><button id="gBuy" class="pbtn pb-gold">ACHETER</button></div>
         <button id="gEquip" class="pbtn pb-gold">ÉQUIPER</button>
         <button id="gHomeBas" class="pbtn" aria-label="Accueil"><i class="gLueur" aria-hidden="true"><i class="pxi pxi-maison"></i></i><span data-fr="HOME">HOME</span></button><!-- (2026-10-09, Léo) le HOME dans la rangée, au-dessus d'INVENTAIRE -->
-        <button id="gCache" class="pbtn" aria-label="Cacher la console" aria-pressed="false"><i class="gLueur" aria-hidden="true"><i class="pxi pxi-oeil"></i></i><span data-fr="CACHER">CACHER</span></button><!-- (2026-10-09, Léo) replier la boutique / l'inventaire : la vue sur le garage -->
+        <button id="gCache" class="pbtn" aria-label="Cacher la console" aria-pressed="false"><i class="gLueur" aria-hidden="true"><i class="pxi pxi-oeil"></i></i><span data-fr="CACHER">CACHER</span></button>
+        <button id="gOeil" class="pbtn" aria-label="La voiture seule" aria-pressed="false"><i class="gLueur" aria-hidden="true"><i class="pxi pxi-oeil"></i></i></button><!-- (2026-10-10, Léo) l'ŒIL : tout disparaît sauf lui, on ne voit plus que la caisse --><!-- (2026-10-09, Léo) replier la boutique / l'inventaire : la vue sur le garage -->
         <button id="gJouer" class="pbtn pb-gold big"><span data-fr="JOUER">JOUER</span><i class="mChev" aria-hidden="true"><i class="pxi pxi-droite"></i><i class="pxi pxi-droite"></i><i class="pxi pxi-droite"></i></i></button>
         <!-- (2026-10-05, Léo : « en dessous du play, insère MISSIONS, et le nom du level qui va être lancé, limite collé, de manière stylée, branché énergétiquement ») LA VITRINE : voir gvNiveau -->
         <button id="gvMis" class="pbtn" aria-label="Missions"><s class="gvFx" aria-hidden="true"></s><i class="pxi pxi-cible" aria-hidden="true"></i><span data-fr="MISSIONS">MISSIONS</span><b class="gvPips" aria-hidden="true"><u></u><u></u><u></u></b></button>
@@ -37916,13 +37940,23 @@ function gStripModeVoitures(){
   else{try{st.scrollTo({left:0,behavior:REDUCED_MOTION?'auto':'smooth'});}catch(e){st.scrollLeft=0;}}}
 function gModeVa(m){
   if(gEl&&gEl.classList.contains('consoleCachee')){gConsoleCache(false);if(GMODE.m===m)return;} // (2026-10-09) la console repliée : la touche la ROUVRE (dans son mode)
-  if(m==='inv'&&GMODE.m==='inv')return; // (2026-10-10, Léo : « quand j'appuie sur INVENTAIRE ça fait deux trucs différents, il y en a un avec les raretés : enlève celui avec les raretés ») INVENTAIRE ne bascule plus : retouché, il reste l'inventaire
-  GMODE.m=GMODE.m===m?'tout':m;
+  /* (2026-10-10, Léo, deux passes : « INVENTAIRE fait deux trucs différents : enlève celui avec les raretés », puis « quand j'appuie sur BOUTIQUE
+     ou INVENTAIRE une deuxième fois, tu fais HIDE ») la touche allumée, retouchée, REPLIE la console (ce que faisait CACHER, retiré) — elle ne
+     ramène plus à la vue des raretés ; touchée repliée, elle la rouvre (ligne du dessus). TOUT ne reste que la vue d'ouverture du garage. */
+  if(GMODE.m===m){gConsoleCache(true);return;}
+  GMODE.m=m;
   const bar=$('gRar'),st=$('gStrip');if(bar)bar._k=null;if(st)st._r=null;
   gModeCale();
   if(SHOP.tab==='voiture')garageFamilles(carRar(garageI));else gStripHabits(SHOP.tab,SHOP.i[SHOP.tab]);
   gModeBoutons();}
 /* CACHER / VOIR (2026-10-09, Léo) : replier la partie boutique / inventaire de la console pour voir le garage (voir le CSS « HOME ET CACHER ») */
+/* L'ŒIL (2026-10-10, Léo : « à la place du HOME, un bouton œil, un peu comme HIDE mais qui enlève tout sauf l'œil : on voit juste la voiture »).
+   `#garage.vueSeule` (+ `html.vueSeule` pour la jauge, qui vit hors du garage couchée) : tout le garage passe en visibility:hidden SAUF l'œil
+   (une visibilité se rallume sur un enfant) ; le doigt sur le décor tourne toujours la vue. Le cadrage NE BOUGE PAS (essayé : rendre tout l'écran
+   à la caisse la reculait — plus petite) : la même image, sans rien par-dessus. */
+function gVueSeule(on){if(!gEl)return;on=!!on;if(gEl.classList.contains('vueSeule')===on)return;gEl.classList.toggle('vueSeule',on);document.documentElement.classList.toggle('vueSeule',on);garLibre._r=null;
+  const b=document.getElementById('gOeil');if(b)b.setAttribute('aria-pressed',on?'true':'false');}
+try{document.getElementById('gOeil').addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(e.currentTarget);uiClic(gEl.classList.contains('vueSeule')?'on':'off');gVueSeule(!gEl.classList.contains('vueSeule'));});}catch(e){}
 function gConsoleCache(on){if(!gEl)return;gEl.classList.toggle('consoleCachee',!!on);garLibre._r=null;
   const b=document.getElementById('gCache');if(b){b.setAttribute('aria-pressed',on?'true':'false');const sp=b.querySelector('span');if(sp){sp.dataset.fr=on?'VOIR':'CACHER';sp.textContent=TR(sp.dataset.fr);}}}
 try{document.getElementById('gCache').addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(e.currentTarget);uiClic('onglet');gConsoleCache(!gEl.classList.contains('consoleCachee'));});
@@ -38072,7 +38106,7 @@ function gStripHabits(cat,i){
 // menu s'est mis à traverser tout l'étal). Le garage RESTE la scène du départ (porte qui s'ouvre,
 // boost, logo) ; c'est seulement le PAPIER PEINT du shop qui n'a rien à faire sur un lancement rapide.
 function openGarage(quiet){
-  try{GMODE.m='tout';gConsoleCache(false);}catch(e){} // (2026-10-09) la console à trois modes repart sur TOUT, dépliée
+  try{GMODE.m='tout';gConsoleCache(false);gVueSeule(false);}catch(e){} // (2026-10-09) la console à trois modes repart sur TOUT, dépliée — (2026-10-10) et l'œil rouvert
   try{if(PHQ.q.length&&!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}catch(e){} // (2026-09-26) les photos en attente reprennent
   if(started&&!gameOver){showMsg('Le garage se visite depuis le menu');return;} // ⚠ gameOver = on EST au menu : refuser ici bloquait le bouton apres la 1re partie
   try{if(SONV2&&!openGarage._amb)openGarage._amb=sfx('garage.ambiance',{loop:true});}catch(e){} // (console de son) l'ATELIER a sa voix : néons, tube qui grésille, la ville au loin
@@ -38096,6 +38130,7 @@ function openGarage(quiet){
   GAR.vueT=0;GAR.vueNeuve=true; // (2026-10-06) LA MISE EN PLACE : l'atelier qui s'ouvre pose son plan d'un coup (voir garageRender) — (2026-09-30) la porte des MISSIONS, venue d'ailleurs (écran de mort…) // (2026-09-30) ouvert par l'ACCUEIL = le menu ; par un autre chemin (mort → GARAGE, missions, objectif) = la boutique
 }
 function closeGarage(){
+  try{gVueSeule(false);}catch(e){} // (2026-10-10) l'ŒIL ne survit pas à l'atelier
   try{burnCoupe();}catch(e){} // (2026-10-05) le burn-out ne survit pas à l'atelier
   invFerme(true);invHoldFin(); // (2026-10-04) l'INVENTAIRE ne survit pas à l'atelier
   GAR.vD=0;GAR.wD=0;GAR.preE=0;GAR.misVit=false; // (2026-10-05) la composition de la vitrine repart de zéro à la prochaine visite
