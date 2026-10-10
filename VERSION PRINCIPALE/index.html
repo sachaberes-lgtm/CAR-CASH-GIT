@@ -28031,10 +28031,10 @@ const SG_P=[ // [forme, rôle, os, soudure, …] — 'e' ellipsoïde (centre, ra
   ['e','face',1,.03,[0,.93,.13],[.21,.17,.15]],      // le masque du visage
   ['e','museau',1,.04,[0,.85,.2],[.14,.1,.1]],       // le museau
   ['e','oeil',1,.006,[.088,.965,.245],[.056,.056,.05]],['e','oeil',1,.006,[-.088,.965,.245],[.056,.056,.05]], // de grands yeux
-  ['e','oreille',1,.03,[.275,1.0,-.01],[.1,.11,.045]],['e','oreille',1,.03,[-.275,1.0,-.01],[.1,.11,.045]],
+  ['e','oreille',1,.03,[.26,1.03,-.02],[.09,.1,.04]],['e','oreille',1,.03,[-.26,1.03,-.02],[.09,.1,.04]], // (10/10) plus hautes et plus petites : elles se soudaient aux bras
   ['e','four',1,.04,[0,1.17,-.01],[.08,.06,.07]],      // la mèche
-  ['c','four',2,.05,[.2,.6,0],[.47,.88,.04],.075,.065],['c','four',2,.03,[.47,.88,.04],[.42,1.22,.08],.065,.055],['e','main',2,.03,[.42,1.29,.09],[.075,.085,.065]],
-  ['c','four',3,.05,[-.2,.6,0],[-.47,.88,.04],.075,.065],['c','four',3,.03,[-.47,.88,.04],[-.42,1.22,.08],.065,.055],['e','main',3,.03,[-.42,1.29,.09],[.075,.085,.065]],
+  ['c','four',2,.05,[.22,.6,.02],[.56,.84,.08],.075,.065],['c','four',2,.03,[.56,.84,.08],[.5,1.22,.12],.065,.055],['e','main',2,.03,[.5,1.29,.13],[.075,.085,.065]], // (10/10) les bras écartés de la tête
+  ['c','four',3,.05,[-.22,.6,.02],[-.56,.84,.08],.075,.065],['c','four',3,.03,[-.56,.84,.08],[-.5,1.22,.12],.065,.055],['e','main',3,.03,[-.5,1.29,.13],[.075,.085,.065]],
   ['c','four',0,.05,[.13,.02,.04],[.3,-.12,.13],.085,.07],['c','four',0,.03,[.3,-.12,.13],[.22,-.3,.18],.07,.06],['e','main',0,.03,[.2,-.36,.2],[.08,.06,.1]],
   ['c','four',0,.05,[-.13,.02,.04],[-.3,-.12,.13],.085,.07],['c','four',0,.03,[-.3,-.12,.13],[-.22,-.3,.18],.07,.06],['e','main',0,.03,[-.2,-.36,.2],[.08,.06,.1]],
   ['c','queue',0,.06,[0,.02,-.16],[0,-.25,-.3],.05,.045],['c','queue',0,.03,[0,-.25,-.3],[0,-.52,-.28],.045,.04],
@@ -28053,50 +28053,58 @@ function sgDebout(x,y,z){ // le champ, debout ; remplit SG_D (la distance à cha
   return d;
 }
 function sgProche(){let b=0;for(let i=1;i<SG_P.length;i++)if(SG_D[i]<SG_D[b])b=i;return b;}
-const SINGE_F={ // la forme du singe PENDU (repère d'accroche : x = −x debout, y = SG_YA − y debout, z = z)
-  min:[-.62,-2.16,-.44],max:[.62,.1,.42],hs:.034,h:.024,
-  sdf:(x,y,z)=>sgDebout(-x,SG_YA-y,z),
-  s:(x,y,z)=>Math.max(0,Math.min(1,-y/2.05)), // l'onde part de la queue et descend jusqu'aux mains
-  col(x,y,z,o){const X=-x,Y=SG_YA-y,Z=z;sgDebout(X,Y,Z);const q=SG_P[sgProche()];let r=q[1];
+function sgCol(X,Y,Z,o){sgDebout(X,Y,Z);const q=SG_P[sgProche()];let r=q[1]; // la couleur (repère DEBOUT)
     if(r==='oeil'){const c=q[4];r=Math.hypot(X-c[0]-.014*Math.sign(c[0]),Y-c[1]-.02,Z-c[2]-.045)<.024?'reflet':'oeil';} /* le reflet : en haut, vers l'extérieur */
-    else if(r==='museau'){if(Z>.24&&Math.abs(X)<.095&&Math.abs(Y-(.815+2.4*X*X))<.018)r='bouche'; // son vrai sourire : pendu, il se lit comme 🙃
+    else if(r==='museau'){if(Z>.24&&Math.abs(X)<.095&&Math.abs(Y-(.815+2.4*X*X))<.018)r='bouche'; // son vrai sourire (pendu par la queue, il se lit comme 🙃)
       else if(Z>.26&&Math.hypot(Math.abs(X)-.035,Y-.885)<.017)r='bouche';}
-    else if(r==='oreille'&&Z>-.005&&Math.hypot((Math.abs(X)-.285)/.07,(Y-1.0)/.08)<1)r='oreille';
+    else if(r==='oreille'&&Z>-.01&&Math.hypot((Math.abs(X)-.26)/.06,(Y-1.03)/.075)<1)r='oreille';
     else if(r==='oreille')r='four';
     else if(r==='four'&&q[2]===0&&Z>.06&&(X/.19)**2+((Y-.33)/.3)**2<1)r='ventre';
     else if(r==='four'&&Z<-.06)r='dos';
     else if(r==='queue')r=Y<-.6?'dos':'four';
-    o[0]=SG_RGB[r][0];o[1]=SG_RGB[r][1];o[2]=SG_RGB[r][2];},
-  os(x,y,z,o){const X=-x,Y=SG_YA-y,Z=z;sgDebout(X,Y,Z);const q=SG_P[sgProche()],b=q[2];o[0]=o[1]=o[2]=0;
+    o[0]=SG_RGB[r][0];o[1]=SG_RGB[r][1];o[2]=SG_RGB[r][2];}
+function sgOs(X,Y,Z,o){sgDebout(X,Y,Z);const q=SG_P[sgProche()],b=q[2];o[0]=o[1]=o[2]=0; // les os (repère DEBOUT) : 0 la tête · 1 le bras +x · 2 le bras −x
     if(b===1)o[0]=1;else if(b===0&&q[1]==='four'&&Y>.6&&Math.abs(X)<.16)o[0]=Math.max(0,Math.min(1,(Y-.62)/.16));
-    else if(b===2)o[1]=Math.max(0,Math.min(1,(Math.hypot(X-.2,Y-.6,Z)-.03)/.13));
-    else if(b===3)o[2]=Math.max(0,Math.min(1,(Math.hypot(X+.2,Y-.6,Z)-.03)/.13));}};
-const SG_COU=new THREE.Vector3(0,SG_YA-.72,0),SG_EPD=new THREE.Vector3(-.2,SG_YA-.6,0),SG_EPG=new THREE.Vector3(.2,SG_YA-.6,0); // pivots : le cou, l'épaule droite, la gauche (repère pendu)
-const SG_QI=new THREE.Quaternion(),SG_BRD=new THREE.Vector3(-.22,-.69,.09).normalize(),SG_BRG=new THREE.Vector3(.22,-.69,.09).normalize(); // les bras au repos (épaule → main)
-function singeNouveau(cle){ // un singe : son groupe (accroché en 0,0,0), ses réglages, son état
-  const U=vitrailU(SINGE_F,{uGlowA:{value:new THREE.Color(1,.82,.28)},uGlowB:{value:new THREE.Color(1,.42,.18)}}); // le cœur : l'or de la banane → l'ambre
-  U.uP0.value.copy(SG_COU);U.uP1.value.copy(SG_EPD);U.uP2.value.copy(SG_EPG);
-  const grp=vitrailObjet(SINGE_F,U,cle||'singe');
-  return {grp,U,e:{t:0,ax:0,vx:0,az:0,vz:0,hy:0,hp:0,r:0,q:new THREE.Quaternion(),m4:new THREE.Matrix4(),eu:new THREE.Euler(),v:new THREE.Vector3()}};
+    else if(b===2)o[1]=Math.max(0,Math.min(1,(Math.hypot(X-.22,Y-.6,Z-.02)-.03)/.13));
+    else if(b===3)o[2]=Math.max(0,Math.min(1,(Math.hypot(X+.22,Y-.6,Z-.02)-.03)/.13));}
+/* LES DEUX POSES (2026-10-10, Léo : « il peut également se tenir sur les mains ») — le même singe, deux repères d'accroche (0,0,0 sous la dalle) :
+   · 'queue' : pendu PAR LA QUEUE, à l'envers (x = −x debout, y = SG_YA − y debout) — la tête en bas, les bras ballants sous la tête ;
+   · 'mains' : pendu PAR LES MAINS, à l'endroit (x = x debout, y = y debout − SG_YH) — les mains agrippées à la dalle, la queue pend dessous. */
+const SG_YH=1.36; // la hauteur (debout) du haut des mains
+function singeForme(mode){const Q=mode!=='mains',ux=x=>Q?-x:x,uy=y=>Q?SG_YA-y:SG_YH+y;
+  return {mode:Q?'queue':'mains',min:[-.74,-2.18,-.44],max:[.74,.1,.44],hs:.034,h:.024,
+    sdf:(x,y,z)=>sgDebout(ux(x),uy(y),z),s:(x,y,z)=>Math.max(0,Math.min(1,-y/2.05)), // l'onde part de l'accroche et descend
+    col:(x,y,z,o)=>sgCol(ux(x),uy(y),z,o),os:(x,y,z,o)=>sgOs(ux(x),uy(y),z,o),
+    pt:(X,Y,Z)=>new THREE.Vector3(Q?-X:X,Q?SG_YA-Y:Y-SG_YH,Z),vec:(X,Y,Z)=>new THREE.Vector3(Q?-X:X,Q?-Y:Y,Z).normalize()};}
+const SINGE_F=singeForme('queue'),SINGE_FM=singeForme('mains');
+const SG_QI=new THREE.Quaternion();
+function singeNouveau(cle,mode){ // un singe : son groupe (accroché en 0,0,0), ses réglages, son état — mode 'queue' (défaut) ou 'mains'
+  const F=mode==='mains'?SINGE_FM:SINGE_F;
+  const U=vitrailU(F,{uGlowA:{value:new THREE.Color(1,.82,.28)},uGlowB:{value:new THREE.Color(1,.42,.18)}}); // le cœur : l'or de la banane → l'ambre
+  const ep=[F.pt(.22,.6,.02),F.pt(-.22,.6,.02)],re=[F.vec(.28,.62,.1),F.vec(-.28,.62,.1)]; // les épaules (os 1 et 2) et leurs bras au repos (épaule → main)
+  U.uP0.value.copy(F.pt(0,.72,0));U.uP1.value.copy(ep[0]);U.uP2.value.copy(ep[1]);
+  const grp=vitrailObjet(F,U,(cle||'singe')+F.mode);
+  return {grp,U,F,mode:F.mode,ep,re,cou:U.uP0.value.clone(),e:{t:0,ax:0,vx:0,az:0,vz:0,hy:0,hp:0,r:0,q:new THREE.Quaternion(),m4:new THREE.Matrix4(),eu:new THREE.Euler(),v:new THREE.Vector3()}};
 }
 function singeTape(S,vx,vz){S.e.vx+=vx;S.e.vz+=vz;} // un coup de vent : la caisse vient de passer sous lui
 function singeAnime(S,dt,cible,proche){ // cible : la caisse dans le repère du singe (null = personne) · proche : 0 → 1 quand elle passe tout près
-  const e=S.e,U=S.U;e.t+=dt;U.uT.value=e.t;
-  // LE BALANCIER : un pendule amorti autour de la queue (x : d'avant en arrière, z : de côté) + une respiration
+  const e=S.e,U=S.U,Q=S.mode==='queue';e.t+=dt;U.uT.value=e.t;
+  // LE BALANCIER : un pendule amorti autour de l'accroche (x : d'avant en arrière, z : de côté) + une respiration
   e.vx+=(-8*e.ax-1.2*e.vx)*dt;e.ax+=e.vx*dt;e.vz+=(-8*e.az-1.2*e.vz)*dt;e.az+=e.vz*dt;
   S.grp.rotation.set(e.ax+.05*Math.sin(e.t*1.25),0,e.az+.035*Math.sin(e.t*.85+1));
-  // LA TÊTE suit la cible (elle est à l'envers : regarder « vers le sol », c'est regarder vers le haut de son crâne)
+  // LA TÊTE suit la cible (pendu par la queue, elle est à l'envers : regarder « vers le sol », c'est regarder vers le haut de son crâne)
   let fy=.35*Math.sin(e.t*.6),fp=.1*Math.sin(e.t*.9);
-  if(cible){e.v.copy(cible).sub(SG_COU).normalize();fy=Math.max(-1.15,Math.min(1.15,Math.atan2(e.v.x,e.v.z)));fp=Math.max(-.5,Math.min(.75,Math.asin(Math.max(-1,Math.min(1,-e.v.y)))));}
+  if(cible){e.v.copy(cible).sub(S.cou).normalize();fy=Math.max(-1.15,Math.min(1.15,Math.atan2(e.v.x,e.v.z)));fp=Math.max(-.5,Math.min(.75,Math.asin(Math.max(-1,Math.min(1,-e.v.y)))));}
   const a9=Math.min(1,dt*6);e.hy+=(fy-e.hy)*a9;e.hp+=(fp-e.hp)*a9;
   U.uM0.value.setFromMatrix4(e.m4.makeRotationFromEuler(e.eu.set(e.hp,e.hy,0,'YXZ')));
-  // LES BRAS : celui du côté de la caisse se tend vers elle (et tape dans la main au plus près) ; l'autre pend et se balance
-  e.r+=((cible?proche:0)-e.r)*Math.min(1,dt*5);
-  const droit=!cible||cible.x<0,ep=droit?SG_EPD:SG_EPG;
-  for(const [mu,lui,re,sg] of [[U.uM1,droit,SG_BRD,1],[U.uM2,!droit,SG_BRG,-1]]){
-    if(lui&&cible&&e.r>.01){e.v.copy(cible).sub(ep).normalize();e.q.setFromUnitVectors(re,e.v);
+  // LES BRAS : celui du côté de la caisse se tend vers elle (pendu par les mains, il LÂCHE la dalle pour taper) ; l'autre pend (queue) ou tient (mains)
+  e.r+=((cible?proche:0)-e.r)*Math.min(1,dt*(Q?5:3.5));
+  const lui=cible?(cible.distanceToSquared(S.ep[0])<=cible.distanceToSquared(S.ep[1])?0:1):-1;
+  for(let b=0;b<2;b++){const mu=b?U.uM2:U.uM1;
+    if(b===lui&&e.r>.01){e.v.copy(cible).sub(S.ep[b]).normalize();e.q.setFromUnitVectors(S.re[b],e.v);
       const w=Math.min(.95,e.r)*(1+.12*Math.sin(e.t*14)*Math.max(0,e.r-.6));e.q.slerp(SG_QI,1-Math.min(1,w));e.m4.makeRotationFromQuaternion(e.q);}
-    else e.m4.makeRotationFromEuler(e.eu.set(.18*Math.sin(e.t*1.1+sg),0,sg*(.12+.08*Math.sin(e.t*.8)),'XYZ'));
+    else if(Q)e.m4.makeRotationFromEuler(e.eu.set(.18*Math.sin(e.t*1.1+b*2),0,(b?-1:1)*(.12+.08*Math.sin(e.t*.8)),'XYZ'));
+    else e.m4.identity();
     mu.value.setFromMatrix4(e.m4);}
 }
 /* <<<FIN SINGE>>> */

@@ -56,6 +56,10 @@ plafonds de lacet et de tangage, vol libre, vrille visuelle, drift = un geste. C
   noirs à reflet, sourire) puis retourné (repère d'accroche : la queue en 0,0,0, il pend vers −y sur ~2,1 m). Son vrai sourire, pendu, se lit
   🙃 (le retourner pour « nous » le faisait grimacer). Os : la tête (cou), bras droit, bras gauche. `singeNouveau()`, `singeAnime(S,dt,cible,
   proche)` (pendule amorti, tête qui suit, bras qui se tend), `singeTape(S,vx,vz)` (le souffle). Cœur : l'or de la banane → l'ambre.
+  DEUX POSES (même jour, Léo : « il peut également se tenir sur les mains ») : `singeForme('queue')` (`SINGE_F`, à l'envers) et
+  `singeForme('mains')` (`SINGE_FM`, à l'endroit, les mains agrippées sous la dalle : il LÂCHE une main pour taper la caisse) —
+  `singeNouveau(cle, mode)`. Couleur et os dans le repère debout (`sgCol`, `sgOs`). Bug « oreilles / bras » corrigé : les coudes passaient à
+  ~3 cm des oreilles et la soudure les collait (bras écartés à x .56, oreilles plus hautes et plus petites).
   ~35 000 triangles (h .024, hs .034). **PAS ENCORE BRANCHÉ en course** (déclencheur, placement sous la dalle, aura : à faire quand Léo valide).
 - **`boite-singe.html`** : la boîte (même principe que la boîte à dauphins : lit et RELIT les deux blocs) — le dessous de la route, une caisse
   qui passe sous lui toutes les ~5 s, carte « Vitrail » (Peau · Cœur + 7 curseurs), Dark triad, Ralenti, Figé, Lisse, Ciel rêve.

@@ -26,6 +26,9 @@
   .rond svg{width:16px;height:16px;stroke:var(--encre);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
   .rond.on{background:var(--encre)}.rond.on svg{stroke:#fff}
   #bas{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:10px;width:max-content;max-width:calc(100% - 32px)}
+  .seg{display:flex;padding:3px;border-radius:999px;background:rgba(0,0,0,.055);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+  .seg button{border:0;background:transparent;border-radius:999px;padding:8px 18px;font-size:13px;font-weight:500;cursor:pointer;color:var(--gris);transition:background .2s,color .2s;white-space:nowrap}
+  .seg button.on{background:#fff;color:var(--encre);box-shadow:0 1px 3px rgba(0,0,0,.1),0 0 0 .5px rgba(0,0,0,.05)}
   .opts{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
   .pil{border:0;border-radius:999px;padding:7px 13px;font-size:12px;cursor:pointer;background:rgba(255,255,255,.7);color:var(--gris);
     box-shadow:0 0 0 .5px rgba(0,0,0,.09);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);transition:background .2s,color .2s;white-space:nowrap}
@@ -63,7 +66,7 @@
   <button class="rond on" id="bTourne" title="Tourner tout seul"><svg viewBox="0 0 16 16"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/><path d="M13.6 2.2v2.6H11"/></svg></button>
   <button class="rond" id="bCadre" title="Recadrer (R)"><svg viewBox="0 0 16 16"><path d="M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10"/></svg></button>
 </div>
-<div id="bas"><div class="opts">
+<div id="bas"><div class="seg" id="pose"><button data-p="queue">Par la queue</button><button data-p="mains">Par les mains</button></div><div class="opts">
   <button class="pil" id="oPasse" title="Une caisse passe sous la route : il la regarde, tend la main, se balance">La caisse passe</button>
   <button class="pil" id="oNoir" title="La frénésie DARK TRIAD">Dark triad</button>
   <button class="pil" id="oLent" title="Tout au quart de la vitesse">Ralenti</button>
@@ -94,8 +97,8 @@ const $=id=>document.getElementById(id);
 const JOURNAL=[];{const ce=console.error.bind(console);console.error=(...a)=>{JOURNAL.push(a.map(String).join(' ').slice(0,900));ce(...a);};
   addEventListener('error',e=>JOURNAL.push(String(e.message)+' @'+e.lineno));}
 const PREF=(()=>{try{return JSON.parse(localStorage.getItem('boiteSinge')||'{}')||{};}catch(e){return {};}})();
-const ST=Object.assign({tourne:false,passe:true,noir:false,lent:false,fige:false,lisse:false,reve:false,peau:true,coeur:true,cq:null},PREF);
-{const q=new URLSearchParams(location.search);for(const k of ['tourne','passe','noir','lent','fige','lisse','reve','peau','coeur'])if(q.has(k))ST[k]=q.get(k)!=='0';}
+const ST=Object.assign({pose:'queue',tourne:false,passe:true,noir:false,lent:false,fige:false,lisse:false,reve:false,peau:true,coeur:true,cq:null},PREF);
+{const q=new URLSearchParams(location.search);if(q.has('pose'))ST.pose=q.get('pose')==='mains'?'mains':'queue';for(const k of ['tourne','passe','noir','lent','fige','lisse','reve','peau','coeur'])if(q.has(k))ST[k]=q.get(k)!=='0';}
 const garde=()=>{try{localStorage.setItem('boiteSinge',JSON.stringify(ST));}catch(e){}};
 
 /* 1. LIRE LE JEU */
@@ -106,7 +109,7 @@ async function lireBloc(){
     if(i0<0||i1<0)throw new Error('bloc introuvable dans index.html : '+a);return L.slice(i0,i1+1).join('\n');};
   return pr('/* <<<VITRAIL>>>','/* <<<FIN VITRAIL>>>')+'\n'+pr('/* <<<SINGE>>>','/* <<<FIN SINGE>>>');
 }
-const executer=bloc=>new Function('THREE',bloc+'\nreturn {singeNouveau,singeAnime,singeTape,SINGE_F};')(THREE);
+const executer=bloc=>new Function('THREE',bloc+'\nreturn {singeNouveau,singeAnime,singeTape,SINGE_F,SINGE_FM:typeof SINGE_FM!=="undefined"?SINGE_FM:null};')(THREE);
 
 /* 2. LA SALLE : le dessous de la route (le singe y est accroché), la caisse qui passe */
 const cv=$('cv'),renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true});
@@ -130,11 +133,15 @@ let JUS=-1; // la caisse : -1 = attend, sinon sa progression le long de son pass
 
 /* 3. LE SINGE */
 let S=null;
-function monter(bloc){
-  const J=executer(bloc),S2=J.singeNouveau('singe-boite'+(++VER));
+function monter(bloc){ // un nouveau dessin : on relit les blocs et on rebâtit le singe dans la pose choisie
+  const J=executer(bloc);
+  if(JEU&&JEU!==J)for(const F of [JEU.SINGE_F,JEU.SINGE_FM])if(F&&F._geo){F._geo.lisse.dispose();F._geo.ecailles.dispose();}
+  JEU=J;BLOC=bloc;poser();
+}
+function poser(){ // le singe dans la pose ST.pose (la géométrie de chaque pose est bâtie une fois, à sa première visite)
+  const S2=JEU.singeNouveau('singe-boite'+(++VER),ST.pose);
   if(S){scene.remove(S.grp);for(const m of Object.values(S.grp.userData))m.material.dispose();}
-  if(JEU&&JEU.SINGE_F._geo&&JEU.SINGE_F!==J.SINGE_F){JEU.SINGE_F._geo.lisse.dispose();JEU.SINGE_F._geo.ecailles.dispose();}
-  S2.grp.position.copy(ACC);scene.add(S2.grp);S=S2;JEU=J;BLOC=bloc;carteLit();
+  S2.grp.position.copy(ACC);scene.add(S2.grp);S=S2;carteLit();etat();
 }
 // LA CARTE VITRAIL : les réglages du singe (uniforms du jeu), gardés dans ce navigateur — [clé, uniform, min, max, pas, ×cube, étiquette, groupe, couche]
 const CQ=[['a0','uCoqA0',0,1,.01,0,'De face','LA PEAU DE VERRE','peau'],['a1','uCoqA1',0,1,.01,0,'Bords','','peau'],['g','uCoqG',0,2.5,.05,1,'Gonflée','','peau'],
@@ -144,21 +151,22 @@ let CQ0=null;
 {const el=$('curs');el.innerHTML=CQ.map(([k,,a,b,st,,lb,gr])=>(gr?'<h4>'+gr+'</h4>':'')+'<label class="cur" data-k="'+k+'"><span>'+lb+'</span><input type="range" min="'+a+'" max="'+b+'" step="'+st+'"><b></b></label>').join('');
   for(const c of CQ){const lab=el.querySelector('[data-k="'+c[0]+'"]'),inp=lab.querySelector('input');
     inp.addEventListener('input',()=>{if(!ST.cq)return;ST.cq[c[0]]=+inp.value;lab.querySelector('b').textContent=(+inp.value).toFixed(2);garde();});}}
-function carteLit(){const U=S.U,h=JEU.SINGE_F.h;CQ0={};for(const [k,u,,,,vk] of CQ)CQ0[k]=U[u].value/(vk?h:1);
+function carteLit(){const U=S.U,h=S.F.h;CQ0={};for(const [k,u,,,,vk] of CQ)CQ0[k]=U[u].value/(vk?h:1);
   if(!ST.cq||Object.keys(CQ0).some(k=>ST.cq[k]==null))ST.cq=Object.assign({},CQ0,ST.cq||{});peindre();}
-function carteApplique(){if(!S||!ST.cq)return;const U=S.U,h=JEU.SINGE_F.h,ud=S.grp.userData;
+function carteApplique(){if(!S||!ST.cq)return;const U=S.U,h=S.F.h,ud=S.grp.userData;
   for(const [k,u,,,,vk] of CQ)if(ST.cq[k]!=null)U[u].value=ST.cq[k]*(vk?h:1);
   U.uNoir.value=ST.noir?1:0;
   ud.ecailles.visible=!ST.lisse;ud.coeur.visible=!ST.lisse&&ST.coeur;ud.peau.visible=ST.lisse||ST.peau;
   if(ST.lisse){U.uCoqA0.value=1;U.uCoqA1.value=1;}}
 function peindre(){
   for(const [id,k] of [['oPasse','passe'],['oNoir','noir'],['oLent','lent'],['oFige','fige'],['oLisse','lisse'],['oReve','reve'],['oPeau','peau'],['oCoeur','coeur']])$(id).classList.toggle('on',!!ST[k]);
-  $('bTourne').classList.toggle('on',!!ST.tourne);document.body.classList.toggle('reve',!!ST.reve);
+  $('bTourne').classList.toggle('on',!!ST.tourne);for(const b of $('pose').children)b.classList.toggle('on',b.dataset.p===ST.pose);document.body.classList.toggle('reve',!!ST.reve);
   if(ST.cq)for(const c of CQ){const lab=$('curs').querySelector('[data-k="'+c[0]+'"]');lab.querySelector('input').value=ST.cq[c[0]];
     lab.querySelector('b').textContent=(+ST.cq[c[0]]).toFixed(2);lab.classList.toggle('eteint',!!c[8]&&!ST[c[8]]);}
 }
 for(const [id,k] of [['oPasse','passe'],['oNoir','noir'],['oLent','lent'],['oFige','fige'],['oLisse','lisse'],['oReve','reve'],['oPeau','peau'],['oCoeur','coeur']])
   $(id).onclick=()=>{ST[k]=!ST[k];garde();peindre();};
+$('pose').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.dataset.p===ST.pose)return;ST.pose=b.dataset.p;garde();peindre();if(JEU)poser();});
 $('cZero').onclick=()=>{if(CQ0){ST.cq=Object.assign({},CQ0);garde();peindre();}};
 
 /* 4. LA CAMÉRA — une orbite à inertie (vue d'en dessous de la route, de trois-quarts) */
