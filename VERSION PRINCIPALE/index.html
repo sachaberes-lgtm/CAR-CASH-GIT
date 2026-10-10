@@ -6361,6 +6361,13 @@ html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande{display:grid!importan
   gap:10px 8px;height:auto;max-height:226px;padding:4px 14px 18px;overflow-x:hidden;overflow-y:auto;touch-action:pan-y;overscroll-behavior:contain;scroll-snap-type:y proximity;
   -webkit-mask:linear-gradient(180deg,#000 0,#000 calc(100% - 30px),transparent);mask:linear-gradient(180deg,#000 0,#000 calc(100% - 30px),transparent)} /* (même jour) une GRILLE qui défile vers le BAS : on en voit une rangée et demie, le bas se fond — il y a une suite, pas tout le catalogue */
 html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande.finBas{-webkit-mask:none;mask:none}
+html body #garage.consoleCachee:not(.menu):not(.vitrine) #gStrip.fnBande{display:none!important} /* (2026-10-10, Léo : « le shop, quand je rappuie dessus, ne disparaît pas ») la grille de la vitrine (display:grid!important) passait devant le repli */
+#gStrip.fnBande .fnSecOr{color:#ffd75e}#gStrip.fnBande .fnSecOr s{background:linear-gradient(90deg,rgba(255,215,94,.6),transparent)}
+html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnC.offre{grid-column:span 3;height:146px}
+html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnC.offre.lance{grid-column:1/-1;height:150px}
+#gStrip.fnBande .fnC.offre.lance .fnPh{width:66%;left:62%;top:42%}
+#gStrip.fnBande .fnC.offre .fnRemise{position:absolute;top:30px;left:8px;z-index:2;padding:3px 7px;font-weight:400;font-size:var(--f1);color:#fff;background:var(--neoM);box-shadow:0 2px 0 rgba(7,5,15,.6),0 0 12px rgba(255,62,200,.6)}
+#gStrip.fnBande .fnP s{text-decoration:none;position:relative;color:var(--tx2);margin-right:2px}#gStrip.fnBande .fnP s::after{content:'';position:absolute;left:-2px;right:-2px;top:calc(50% - 1px);height:2px;background:var(--neoM)}
 #gStrip.fnBande .fnTout{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;margin:4px 0 0;cursor:pointer;
   font-size:var(--f0);letter-spacing:2px;color:rgba(230,226,255,.55);text-shadow:0 1px 0 rgba(7,5,15,.8);transition:color var(--t-fast) var(--ease)} /* (2026-10-10) écrit en transparent, pas une plaque */
 #gStrip.fnBande .fnTout .pxi{--pxs:1;color:rgba(94,230,255,.6)}
@@ -6402,7 +6409,7 @@ html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnC.on{box-shadow:in
 /* L'ACCUEIL DU CIEL (2026-10-10, Léo : « le ciel, la voiture, tout reste identique au main ; seulement les boutons : plus petits, mieux
    cadrés ; des flammes très légères derrière le logo ») — voir le bloc JS du même nom. Deux rangées serrées dans une colonne de 360 px :
    MISSIONS · GARAGE · CARRIÈRE (tuiles icône + mot, chacune sa couleur de néon), puis ⚙ · JOUER · BOUTIQUE. Rien d'autre ne bouge. */
-html.hub body #mHome.acc2 .mOutils{display:grid!important;grid-template-columns:44px repeat(3,minmax(0,1fr)) 44px;gap:8px;width:min(calc(100% - 8px),372px);margin:0 auto 10px!important;align-self:center}
+html.hub body #mHome.acc2 .mOutils{display:grid!important;grid-template-columns:44px repeat(3,minmax(0,1fr));gap:8px;width:min(calc(100% - 8px),372px);margin:0 auto 10px!important;align-self:center} /* (puis) ⚙ · GARAGE · CARRIÈRE · OFFRES */
 html.hub body #mHome.acc2 .mAccB{position:relative;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:7px;min-width:0!important;width:auto!important;
   height:58px;min-height:58px!important;padding:6px 2px 5px!important;font-size:var(--f0)!important;letter-spacing:0!important;white-space:nowrap;color:var(--tx)}
 html.hub body #mHome.acc2 .mAccB .pxi{--pxs:2;color:var(--nc);filter:none}
@@ -6416,7 +6423,16 @@ html.hub body #mHome.acc2 .mOutils>:is(.mGear,.mHubShop){width:auto!important;mi
 html.hub body #mHome.acc2 .mOutils>:is(.mGear,.mHubShop) .pxi{--pxs:2}
 html.hub body #mHome.acc2 .mOutils>.mHubShop .mBadge{top:-9px;right:-10px;transform:scale(.72);transform-origin:100% 0}
 /* JOUER : la plaque sur toute la largeur du bloc, le mot d'or dedans */
-html.hub body #mHome.acc2 .mAccP{display:flex;width:min(calc(100% - 8px),372px);margin:0 auto;align-self:center}
+html.hub body #mHome.acc2 .mAccP{position:relative;display:flex;flex-direction:column;width:min(calc(100% - 8px),372px);margin:0 auto;align-self:center}
+/* MISSIONS BRANCHÉ SUR JOUER (2026-10-10, Léo : « branche la mission au play comme la dernière fois » — la barre fine du 5/10) : une barre de
+   30 px un peu en retrait, au-dessus de la plaque de JOUER, reliée à elle par deux conducteurs d'or ; les trois cases des défis au bout. */
+html.hub body #mHome.acc2 .mAccP>.mMisBarre{flex-direction:row!important;align-self:center;width:calc(100% - 36px)!important;height:30px;min-height:30px!important;margin:0 0 7px!important;padding:0 12px!important;gap:9px;font-size:var(--f0)!important;letter-spacing:1px!important}
+html.hub body #mHome.acc2 .mAccP>.mMisBarre .pxi{--pxs:1}
+html.hub body #mHome.acc2 .mAccP>.mMisBarre .mMisPips{position:static;margin-left:auto}
+html.hub body #mHome.acc2 .mAccP::before{content:'';position:absolute;left:26%;right:26%;top:29px;height:9px;pointer-events:none;z-index:1;
+  background:linear-gradient(90deg,#ffc23a 0 2px,transparent 2px calc(100% - 2px),#ffc23a calc(100% - 2px));filter:drop-shadow(0 0 3px rgba(255,194,58,.8))}
+html.hub body #mHome.acc2 .mOffres{--nc:var(--neoM)}
+html.hub body #mHome.acc2 .mOffres .mBadge{top:-9px;right:-7px;transform:scale(.8);transform-origin:100% 0}
 html.hub body #mHome.acc2 .mAccP>.mPlay{flex:1;display:flex!important;align-items:center;justify-content:center;height:60px;margin:0!important;width:auto!important;max-width:none!important;align-self:stretch!important;
   transform:skewX(var(--sk));background:linear-gradient(180deg,rgba(40,26,8,.82),rgba(18,12,4,.92))!important;box-shadow:inset 0 0 0 1px rgba(255,215,94,.55),inset 0 -4px 0 #ffc23a,0 0 18px -6px #ffc23a,0 6px 14px -8px rgba(0,0,0,.8)!important;
   clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)!important} /* (la règle du mot d'or impose background/clip-path none !important) */
@@ -6427,6 +6443,7 @@ html.hub body #mHome.acc2 .mAccP>.mPlay:is(:active,.appui){transform:skewX(var(-
   html.hub body #mHome.acc2 .mOutils{margin-bottom:8px!important}
   html.hub body #mHome.acc2 :is(.mAccB,.mOutils>.mGear,.mOutils>.mHubShop){height:50px;min-height:50px!important;gap:5px}
   html.hub body #mHome.acc2 .mAccP>.mPlay{height:52px}
+  html.hub body #mHome.acc2 .mAccP>.mMisBarre{height:28px;min-height:28px!important;margin-bottom:6px!important}html.hub body #mHome.acc2 .mAccP::before{top:27px;height:8px}
   html.hub body #mHome.acc2 .mAccP>.mPlay .lg{font-size:26px!important}}
 /* LA JAUGE SOBRE (2026-10-10, Léo : « retravaille la jauge : jolie, sobre, discrète, agréable à l'œil ») : plus de plaque ni de flèches.
    Un fil fin qui s'efface aux deux bouts (une ombre douce dessous pour se lire sur l'anneau du plateau), cinq points discrets (−180°, −90°,
@@ -6460,7 +6477,8 @@ html.hub body #mHome.acc2 .mTitle .lg.grad::after{animation-delay:.35s}
 html.hub body #mHome.acc2 .mTitle{font-size:clamp(40px,12.4vw,60px);filter:drop-shadow(0 8px 0 rgba(0,0,0,.35)) drop-shadow(0 0 14px rgba(255,200,80,.55)) drop-shadow(0 0 34px rgba(255,120,110,.3))}
 @media (prefers-reduced-motion:reduce){html.hub body #mHome.acc2 .mTitle .lg::after{animation:none;opacity:0}}
 @media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
-  html.hub body #mHome.acc2 .mTitle{font-size:64px;margin-top:max(30px,9vh)!important;align-self:flex-end;margin-right:6px}}
+  html.hub body #mHome.acc2 .mTitle{font-size:54px;margin:0 0 34px auto!important;align-self:flex-end}
+  html.hub body #mHome.acc2{justify-content:center}html.hub body #mHome.acc2 .mVide{display:none}} /* (puis, Léo : « colle le logo au bouton ; à droite, mieux aligné en hauteur ») le logo juste au-dessus du bloc, l'ensemble centré en hauteur à droite */
 /* LA CROIX DE L'INVENTAIRE, DISCRÈTE (même jour, Léo : « la croix est juste plus discrète, et sert à enlever le rectangle avec toutes
    les voitures pour qu'on ait une vue sur le garage ») : elle ferme toujours le tiroir, mais n'est plus une touche cyan pleine. Plus de
    plaque ni de tranche : une petite croix lilas dans un carré à peine dessiné (filet d'1 px, fond presque nul), qui s'allume sous le doigt.
@@ -6856,7 +6874,7 @@ html.sansFacile [data-m="facile"]{display:none!important}
          caisses premium. Les achats intégrés arrivent avec le compte développeur Apple (StoreKit) : « BIENTÔT ».
          « Restaurer mes achats » est OBLIGATOIRE pour l'App Store. -->
     <div class="mscr" id="mShop">
-      <div class="mHead"><h3>BOUTIQUE</h3></div>
+      <div class="mHead"><h3>OFFRES</h3></div><!-- (2026-10-10, Léo : « la boutique du menu, on la renomme OFFRES » — la BOUTIQUE, c'est celle du garage) -->
       <div class="shUne" id="shUne" data-m="shopSoon" role="button"></div>
       <div class="mSec shSec">LES LEGENDAIRES</div>
       <div class="shGrille" id="shGrille"></div>
@@ -38780,7 +38798,7 @@ function gStripModeVoitures(){
 function bqJour(){return Math.floor(Date.now()/864e5)+(BQ_DECALE|0);}
 var BQ_DECALE=0;
 function bqCles(){const V=[],C=[];
-  for(let i=0;i<CARS.length;i++){if(carRetiree(i))continue;const u=CAR_UNLOCK[i];if(u&&(u.p>0||u.k==='premium'))V.push('v:'+i);}
+  for(let i=0;i<CARS.length;i++){if(carRetiree(i))continue;const u=CAR_UNLOCK[i];if(u&&u.p>0)V.push('v:'+i);} // (2026-10-10) les caisses en € passent dans les OFFRES (bqOffres)
   for(const cat of ['peinture','aile','trainee'])for(const d of COSM[cat])if(d.p>0)C.push(cat+':'+d.id);
   return {V:V,C:C};}
 function bqCos(k){const p=k.indexOf(':'),cat=k.slice(0,p);return {cat:cat,d:COSM[cat]&&COSM[cat].find(function(x){return x.id===k.slice(p+1);})};}
@@ -38798,7 +38816,7 @@ function bqTire(j){const r=mulberry32(Math.imul(j,2654435761)^0x5B0071C),{V,C}=b
   return une.concat(jour);}
 var BQ_N={une:2,jour:6,hab:3};
 function bqVitrine(){const j=bqJour();let b=SAVE.d.bq;
-  if(!b||b.j!==j||!Array.isArray(b.l)||b.l.length!==BQ_N.une+BQ_N.jour||!b.l.every(bqValide)){b={j:j,l:bqTire(j)};SAVE.d.bq=b;try{SAVE.mark();}catch(e){}}
+  if(!b||b.j!==j||!Array.isArray(b.l)||b.l.length!==BQ_N.une+BQ_N.jour||!b.l.every(bqValide)||b.l.some(function(k){return k[0]==='v'&&CAR_UNLOCK[+k.slice(2)]&&CAR_UNLOCK[+k.slice(2)].k==='premium';})){b={j:j,l:bqTire(j)};SAVE.d.bq=b;try{SAVE.mark();}catch(e){}}
   return b;}
 function bqReste(){const ms=Math.max(0,(bqJour()+1-(BQ_DECALE|0))*864e5-Date.now()),t=Math.floor(ms/1000),d2=function(n){return (n<10?'0':'')+n;};
   return d2(Math.floor(t/3600))+':'+d2(Math.floor(t/60)%60)+':'+d2(t%60);}
@@ -38813,29 +38831,46 @@ function bqCarte(k,une){const ri=rarInfo(bqRar(k)),c=ri.c,a=bqA(k);let nom='',ty
     +'<i class="fnFond"></i>'+fig+(une?'<s class="fnBan">'+sansAcc(TR('À LA UNE'))+'</s>':'')
     +'<span class="fnTy">'+sansAcc(TR(ty))+(une?' · '+sansAcc(TR(ri.n1)):'')+'</span><b class="fnN">'+sansAcc(String(nom))+'</b>'
     +'<em class="fnP'+(eur?' eur':'')+'">'+(a?pxi('coche')+'<span>'+sansAcc(TR('ACQUIS'))+'</span>':px)+'</em></div>';}
+/* LES OFFRES DANS LA BOUTIQUE DU GARAGE (2026-10-10, Léo : « intègre la fonctionnalité du menu qui s'appelle aussi shop — on la renomme
+   OFFRES — dans le shop du garage »). En tête de la vitrine du jour : l'OFFRE DE LANCEMENT (la légendaire marquée `une`, −50 %, carte sur
+   toute la largeur) et deux autres légendaires en €, tirées du jour (ce qui n'est pas à toi d'abord). Toucher une offre ouvre la MÊME
+   fenêtre d'achat que la page OFFRES (shopPop). Les caisses en € ne sont plus tirées dans À LA UNE / DU JOUR (argent du jeu). */
+function bqOffres(j){const P=[];let une=-1;
+  for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(!u||u.k!=='premium'||carRetiree(i))continue;if(u.une&&une<0)une=i;else P.push(i);}
+  const r=mulberry32(Math.imul(j+7,2246822519)^0x0FF2E5),mel=function(L){L=L.slice();for(let i=L.length-1;i>0;i--){const k=Math.floor(r()*(i+1)),t=L[i];L[i]=L[k];L[k]=t;}return L;};
+  const L=mel(P.filter(function(i){return !carOwned(i);})).concat(mel(P.filter(carOwned)));
+  return (une>=0?[une]:[]).concat(L.slice(0,2));}
+function bqOffreCarte(i,lance){const u=CAR_UNLOCK[i]||{},c=rarInfo('legendaire').c,a=carOwned(i),nom=TR(CARS[i].name);
+  return '<div class="fnC offre'+(lance?' lance':'')+(a?' acquis':'')+'" data-fn="o:'+i+'" data-car="'+i+'" role="button" aria-label="'+String(nom).replace(/"/g,'')+'" style="--rc:'+c+';--rcL:'+invRgba(c,.98)+';--rcD:'+invRgba(c,.22)+'">'
+    +'<i class="fnFond"></i><i class="fnPh"></i>'+(lance?'<s class="fnBan">'+sansAcc(TR('OFFRE DE LANCEMENT'))+'</s>'+(a?'':'<b class="fnRemise">-50%</b>'):'')
+    +'<span class="fnTy">'+sansAcc(TR('CAISSE'))+' · '+sansAcc(TR('LÉGENDAIRE'))+'</span><b class="fnN">'+sansAcc(String(nom))+'</b>'
+    +'<em class="fnP eur">'+(a?pxi('coche')+'<span>'+sansAcc(TR('À TOI'))+'</span>':(lance?'<s>'+eurTxt('9,99 €')+'</s>':'')+'<span>'+eurTxt(u.eur)+'</span>')+'</em></div>';}
 function bqCourant(){if(SHOP.tab==='voiture')return 'v:'+garageI;const L=COSM[SHOP.tab],d=L&&L[SHOP.i[SHOP.tab]];return d?SHOP.tab+':'+d.id:'';}
 function gShopJour(){const bar=$('gRar'),st=$('gStrip');if(!bar||!st)return;try{gModeBoutons();}catch(e){}
   const B=bqVitrine(),kb='fn:'+B.j+':'+LANG;
   if(bar._k!==kb){bar._k=kb;bar._on=null;bar.classList.add('gModeBar');
     bar.innerHTML='<div class="gModeT fnTete" style="--rc:var(--neoM)">'+pxi('panier')+'<span>'+sansAcc(TR('BOUTIQUE DU JOUR'))+'</span><s></s><b class="fnT">'+pxi('horloge')+'<i>'+bqReste()+'</i></b></div>';}
-  const k='fn:'+B.j+':'+B.l.join(',')+':'+B.l.map(function(x){return bqA(x)?1:0;}).join('')+':'+LANG;
+  const k='fn:'+B.j+':'+B.l.join(',')+':'+B.l.map(function(x){return bqA(x)?1:0;}).join('')+':'+bqOffres(B.j).map(function(i){return i+(carOwned(i)?'a':'');}).join(',')+':'+LANG;
   st.classList.add('fnBande');
   if(!st._finB){st._finB=1;st.addEventListener('scroll',function(){if(st.classList.contains('fnBande'))st.classList.toggle('finBas',st.scrollTop+st.clientHeight>=st.scrollHeight-4);},{passive:true});} // au bout de la vitrine, plus de fondu
   if(st._r!==k){st._r=k;st._n=-1;st.scrollLeft=0;st.scrollTop=0;st.classList.remove('finBas');
-    st.innerHTML=B.l.map(function(x,n){return (n===BQ_N.une?'<div class="fnSec"><span>'+sansAcc(TR('DU JOUR'))+'</span><s></s></div>':'')+bqCarte(x,n<BQ_N.une);}).join('')
+    const O=bqOffres(B.j);
+    st.innerHTML=(O.length?'<div class="fnSec fnSecOr"><span>'+sansAcc(TR('OFFRES'))+'</span><s></s></div>'+O.map(function(i,n){return bqOffreCarte(i,n===0&&!!(CAR_UNLOCK[i]||{}).une);}).join('')+'<div class="fnSec"><span>'+sansAcc(TR('À LA UNE'))+'</span><s></s></div>':'')
+      +B.l.map(function(x,n){return (n===BQ_N.une?'<div class="fnSec"><span>'+sansAcc(TR('DU JOUR'))+'</span><s></s></div>':'')+bqCarte(x,n<BQ_N.une);}).join('')
       +'<div class="fnTout" role="button" tabindex="0">'+sansAcc(TR('VOIR TOUTES LES VOITURES'))+' '+pxi('droite')+'</div>'; // (2026-10-10, Léo : « tout en bas de la boutique, pour voir toutes les voitures — écrit en transparent, pas un bouton ») → le catalogue complet, par famille
-    st.querySelectorAll('.fnC[data-fn^="v:"]').forEach(function(el){const i=+el.getAttribute('data-fn').slice(2);
+    st.querySelectorAll('.fnC[data-fn^="v:"],.fnC[data-fn^="o:"]').forEach(function(el){const i=+el.getAttribute('data-fn').slice(2);
       photoFile(i,function(url){const ph=el.querySelector('.fnPh');if(ph&&!ph.firstChild){const im=document.createElement('img');im.alt='';im.src=url;ph.appendChild(im);}});});}
   const cur=bqCourant();st.querySelectorAll('.fnC').forEach(function(el){el.classList.toggle('on',el.getAttribute('data-fn')===cur);});}
 try{$('gStrip').addEventListener('click',function(e){const v=e.target.closest&&e.target.closest('.fnTout');if(v){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(v);uiClic('nav');gVoirTout();return;}
   const t=e.target.closest&&e.target.closest('.fnC');if(!t)return;e.stopPropagation();
+  if(t.classList.contains('offre')){if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(t);try{shopPop(t);}catch(er){}return;} // (2026-10-10) une OFFRE : la fenêtre d'achat en € (celle de la page OFFRES)
   if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(t);uiClic('nav');const k=t.getAttribute('data-fn');
   if(k[0]==='v'){const i=+k.slice(2);if(SHOP.tab!=='voiture')shopTab('voiture');if(i!==garageI)garageSaute(i);}
   else{const o=bqCos(k),j=COSM[o.cat].indexOf(o.d);if(SHOP.tab!==o.cat)shopTab(o.cat);if(j>=0)shopShow(o.cat,j);try{if(SONV2)sfx('ui.carte');}catch(er){}}
   gShopJour();});}catch(e){}
 setInterval(function(){try{if(!garageOn||gModeM()!=='shop')return;const B=SAVE.d.bq;if(!B||B.j!==bqJour()){const bar=$('gRar'),st=$('gStrip');if(bar)bar._k=null;if(st)st._r=null;gShopJour();return;}
   const t=document.querySelector('#gRar .fnT i:not(.pxi)');if(t){const v=bqReste();if(t.textContent!==v)t.textContent=v;}}catch(e){}},1000);
-try{Object.assign(I18N,{'BOUTIQUE DU JOUR':'DAILY SHOP','À LA UNE':'FEATURED','ACQUIS':'OWNED','DU JOUR':'DAILY','VOIR TOUTES LES VOITURES':'SEE ALL CARS'});}catch(e){}
+try{Object.assign(I18N,{'BOUTIQUE DU JOUR':'DAILY SHOP','À LA UNE':'FEATURED','ACQUIS':'OWNED','DU JOUR':'DAILY','VOIR TOUTES LES VOITURES':'SEE ALL CARS','OFFRES':'OFFERS'});}catch(e){}
 /* VOIR TOUTES LES VOITURES (2026-10-10) : du bas de la vitrine du jour, le CATALOGUE complet — la console d'ouverture (toutes les caisses, rangées
    par famille, à toi ou pas), onglet VOITURES ; la caisse affichée ne bouge pas. BOUTIQUE ramène à la vitrine du jour. */
 function gVoirTout(){if(!gEl)return;if(gEl.classList.contains('consoleCachee'))gConsoleCache(false);GMODE.m='tout';GMODE.fam=null;
@@ -41213,11 +41248,15 @@ if(HUB)try{const hm=$('mHome'),ou=hm&&hm.querySelector('.mOutils'),gar=ou&&ou.qu
       d.innerHTML='<i class="pxi pxi-'+ic+'" aria-hidden="true"></i><span data-fr="'+fr+'">'+TR(fr)+'</span>'+(plus||'');return d;};
     const mi=tuile('mis','cible','MISSIONS','Missions','<b class="mMisPips" id="mMisPips" aria-hidden="true"><u></u><u></u><u></u></b>'),ca=tuile('carr','trophee','CARRIERE','Carrière');
     gar.classList.add('mAccB');gar.insertAdjacentHTML('afterbegin','<i class="pxi pxi-voiture" aria-hidden="true"></i>');
-    ou.insertBefore(mi,gar);ou.appendChild(ca);
-    /* (même jour, Léo : « recadre bien les boutons : ils sont un peu éparpillés bizarrement ») UN SEUL BLOC : ⚙ · MISSIONS · GARAGE · CARRIÈRE ·
-       BOUTIQUE sur une grille, même hauteur, bords alignés ; JOUER seul dessous, sur toute la largeur, dans sa plaque. */
-    ou.insertBefore(ge,mi);ou.appendChild(sh);
-    const bas=document.createElement('div');bas.className='mAccP';pl.parentNode.insertBefore(bas,pl);bas.appendChild(pl);
+    /* (même jour, Léo : « recadre bien les boutons : ils sont un peu éparpillés bizarrement ») UN SEUL BLOC, sur une grille, bords alignés.
+       (puis, Léo : « branche la MISSION au PLAY comme la dernière fois » — la barre fine du 5/10 — et « au menu, remplace SHOP par OFFRES »)
+       RANGÉE : ⚙ · GARAGE · CARRIÈRE · OFFRES (la boutique en €, renommée) ; dessous, MISSIONS en BARRE FINE branchée sur JOUER (deux
+       conducteurs d'or), puis JOUER dans sa plaque. */
+    ou.insertBefore(ge,gar);ou.appendChild(ca);
+    {const bd=sh.querySelector('.mBadge');sh.className='pbtn mAccB mOffres';sh.setAttribute('aria-label','Offres');
+      sh.innerHTML='<i class="pxi pxi-cadeau" aria-hidden="true"></i><span data-fr="OFFRES">'+TR('OFFRES')+'</span>';if(bd)sh.appendChild(bd);ou.appendChild(sh);}
+    mi.classList.add('mMisBarre');
+    const bas=document.createElement('div');bas.className='mAccP';pl.parentNode.insertBefore(bas,pl);bas.appendChild(mi);bas.appendChild(pl);
     }
 }catch(e){console.warn('accueil du ciel',e);}
 /* (les FLAMMES du logo — feu de DOOM, puis contour des lettres en cubes — ont été essayées le 2026-10-10 et retirées le même soir, Léo :
@@ -42377,7 +42416,7 @@ function atlTick(dt){
   const G=garGabarit(),vit=garAtelierLibre(),t=performance.now()*.001; /* (2026-10-06) la vitrine de Léo OU la console de Sacha */
   // le bouton : sur son pied, à la place de l'ancien socle des missions ; il respire, s'enfonce sous le doigt, et RENTRE dans le sol pendant un
   // dérapage (la caisse balaie jusqu'au bord du plateau) ou un lâcher
-  ATL.btn.visible=garageOn&&vit; // (2026-10-06) hors de portée de la caisse : il ne rentre plus — dans la vitrine de Léo et dans la console de Sacha
+  ATL.btn.visible=false; // (2026-10-10, Léo : « enlève le bouton rouge au sol, l'inventaire, il n'a plus aucune utilité ») — l'INVENTAIRE vit dans la console ; la borne ne se montre plus (atlBoutonEcran → null : le doigt ne la trouve plus)
   ATL.press=Math.max(0,ATL.press-dt*3.2);const ap=ATL.appui!=null?1:0;ATL.cap.position.y=.59-.04*Math.max(ap,Math.sin(Math.min(1,ATL.press)*Math.PI*.5));
   ATL.halo.material.opacity=(.22+.18*Math.sin(t*3.4))*(INV.on?.4:1)+ATL.press*.5;ATL.halo.scale.setScalar(1+.06*Math.sin(t*3.4)+ATL.press*.25);
   if(ATL.ico){ATL.ico.position.y=.98+.035*Math.sin(t*2.1)-ATL.press*.05;ATL.ico.material.opacity=INV.on?.45:1;const s9=.3*(1+ATL.press*.18);ATL.ico.scale.set(s9,s9,1);} // le COFFRE flotte, il plonge quand on appuie
