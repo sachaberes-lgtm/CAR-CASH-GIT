@@ -13421,7 +13421,7 @@ const CARS=[
   desc:'Phares cachés, V8 pas caché du tout. Elle se lève pour voir la route, puis elle la mange.'},
  {retire:1,name:'LE CHÂTELAIN',color:0x3a5a82,accent:0xf0efe9,maxKmh:260,accel:29,turn:2.5,h:1.78,w:1.78,l:4.47,spoiler:0,shape:'e_chatelain',rar:'rare',
   desc:'Des bottes en caoutchouc, un pull en cachemire et 260 km/h dans l\'allée du château.'},
- {name:'LA GRANDE ANGLAISE',color:0x1a3d2a,accent:0xe9ecf0,maxKmh:320,accel:35,turn:2.6,h:1.4,w:1.94,l:4.8,spoiler:0,shape:'e_anglaise',rar:'rare',
+ {name:'LA GRANDE ANGLAISE',color:0x1a3d2a,accent:0xe9ecf0,maxKmh:320,accel:35,turn:2.6,h:1.4,w:1.94,l:4.8,spoiler:0,shape:'e_anglaise',rar:'rare',ordre:1e8, /* (10/10, Léo, salle blanche : la DERNIÈRE des RARES, après LA ZED — son prix ne bouge pas) */
   desc:'Deux tonnes et demie de cuir, de noyer et de W12. Elle ne dépasse pas : elle congédie.'},
  {name:'LE CHARGEUR 69',color:0x0e0e10,accent:0xe9ecf0,maxKmh:360,accel:40,turn:2.55,h:1.35,w:1.95,l:5.28,spoiler:0,shape:'a_chargeur69',rar:'rare',
   desc:'Phares cachés, intentions aussi. Quand la calandre s\'ouvre dans ton rétro, c\'est déjà trop tard.'},
@@ -23649,7 +23649,9 @@ const RARETES=[
   {id:'defi',      n:'DÉFIS',      n1:'DÉFI',      c:'#5ee37a'}];
 function carRar(i){const c=CARS[i];if(c&&c.rar)return c.rar;const u=CAR_UNLOCK[i];
   if(!u)return 'commun';if(u.k==='premium')return 'legendaire';if(u.k)return 'defi';return u.p>=1e6?'epique':u.p>=20e3?'rare':'commun';}
-function carOrdre(i){const u=CAR_UNLOCK[i];if(!u)return -1;if(u.p)return u.p;if(u.eur)return parseFloat(String(u.eur).replace(',','.'))||0;
+function carOrdre(i){const c9=CARS[i];if(c9&&c9.ordre!=null)return c9.ordre;return carPrixOrdre(i);} // DANS UNE FAMILLE : un rang posé à la main (la salle
+function carPrixOrdre(i){ // blanche, `ordre` sur la fiche) passe devant le prix ; une liste qui MÉLANGE les familles reste au prix (carPrixOrdre)
+  const u=CAR_UNLOCK[i];if(!u)return -1;if(u.p)return u.p;if(u.eur)return parseFloat(String(u.eur).replace(',','.'))||0;
   if(u.k==='carnet')return u.v;if(u.k==='aura')return 100+u.v;return 1e9;} // dans une famille : du plus accessible au plus dur
 function rarListe(r){const L=[];for(let i=0;i<CARS.length;i++)if(carRar(i)===r&&!carRetiree(i))L.push(i);return L.sort(function(a,b){return carOrdre(a)-carOrdre(b);});}
 const RAR_LOGO={commun:'roue',rare:'gemme',epique:'flamme',legendaire:'couronne',defi:'cible'}; // (2026-10-09, Léo : « enlève les nombres de voitures dans chaque rareté, fais des logotypes ») — DÉFI : la cible des missions
@@ -38851,7 +38853,7 @@ function gModeListeVoitures(m){const eq=SAVE.d.equipped|0,L=[];
   for(let i=0;i<CARS.length;i++){if(carRetiree(i))continue;
     if(m==='inv'?gPossede(i):gAVendre(i))L.push(i);}
   if(m==='inv')L.sort(function(a,b){return (INV_RANG[carRar(b)]-INV_RANG[carRar(a)])||(carOrdre(b)-carOrdre(a));}); // (2026-10-09) les silhouettes de ce qu'on n'a pas (v221-v222) sont retirées le même soir (Léo : « enlève le truc avec les voitures transparentes »)
-  else L.sort(function(a,b){return ((CAR_UNLOCK[a].p?0:1)-(CAR_UNLOCK[b].p?0:1))||(carOrdre(a)-carOrdre(b));});
+  else L.sort(function(a,b){return ((CAR_UNLOCK[a].p?0:1)-(CAR_UNLOCK[b].p?0:1))||(carPrixOrdre(a)-carPrixOrdre(b));});
   return L;}
 function gModeBoutons(){const m=gModeM(),c=document.getElementById('gvCof'),b=document.getElementById('gShopBas'),r=document.getElementById('gRar'),st=document.getElementById('gStrip');
   if(c)c.classList.toggle('modeOn',m==='inv');if(b)b.classList.toggle('modeOn',m==='shop');
