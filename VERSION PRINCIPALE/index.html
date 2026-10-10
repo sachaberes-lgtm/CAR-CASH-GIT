@@ -6389,6 +6389,31 @@ html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnC.on{box-shadow:in
 @media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
   html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnC{width:90px;height:118px}
   html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnC.une{width:140px}}
+/* L'ACCUEIL DU CIEL (2026-10-10, Léo : « le ciel, la voiture, tout reste identique au main ; seulement les boutons : plus petits, mieux
+   cadrés ; des flammes très légères derrière le logo ») — voir le bloc JS du même nom. Deux rangées serrées dans une colonne de 360 px :
+   MISSIONS · GARAGE · CARRIÈRE (tuiles icône + mot, chacune sa couleur de néon), puis ⚙ · JOUER · BOUTIQUE. Rien d'autre ne bouge. */
+html.hub body #mHome.acc2 .mOutils{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;width:min(calc(100% - 8px),360px);margin:0 auto 12px!important;align-self:center}
+html.hub body #mHome.acc2 .mAccB{position:relative;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:7px;min-width:0!important;width:auto!important;
+  height:58px;min-height:58px!important;padding:6px 4px 5px!important;font-size:var(--f0)!important;letter-spacing:1px!important;white-space:nowrap;color:var(--tx)}
+html.hub body #mHome.acc2 .mAccB .pxi{--pxs:2;color:var(--nc);filter:none}
+html.hub body #mHome.acc2 .mAccB[data-m="mis"]{--nc:var(--neoV)}
+html.hub body #mHome.acc2 .mAccB[data-m="garage"]{--nc:var(--neoC)}
+html.hub body #mHome.acc2 .mAccB[data-m="carr"]{--nc:#c77dff}
+html.hub body #mHome.acc2 .mAccB .mMisPips{position:absolute;top:6px;right:7px;display:flex;gap:2px;margin:0}
+html.hub body #mHome.acc2 .mAccB .mMisPips u{width:5px;height:5px}
+html.hub body #mHome.acc2 .mAccB .mBadge{top:-9px;right:-7px;transform:scale(.8);transform-origin:100% 0}
+html.hub body #mHome.acc2 .mAccP{display:grid;grid-template-columns:46px minmax(0,1fr) 46px;align-items:center;gap:10px;width:min(calc(100% - 8px),360px);margin:0 auto;align-self:center}
+html.hub body #mHome.acc2 .mAccP>:is(.mGear,.mHubShop){width:46px!important;min-width:46px!important;height:46px;min-height:46px!important;padding:0!important;margin:0!important}
+html.hub body #mHome.acc2 .mAccP>.mPlay{margin:0!important;width:auto!important;max-width:none!important;align-self:center!important;justify-self:center}
+html.hub body #mHome.acc2 .mAccP>.mPlay .lg{font-size:32px!important}
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html.hub body #mHome.acc2 :is(.mOutils,.mAccP){width:min(340px,46vw);margin-left:auto!important;margin-right:0!important;align-self:flex-end}
+  html.hub body #mHome.acc2 .mOutils{margin-bottom:10px!important}
+  html.hub body #mHome.acc2 .mAccB{height:50px;min-height:50px!important;gap:5px}
+  html.hub body #mHome.acc2 .mAccP>.mPlay .lg{font-size:28px!important}}
+/* les flammes : derrière les lettres (la plaque du titre isole sa pile), lissées, fondues vers le haut */
+html.hub body #mHome.acc2 .mTitle{isolation:isolate}
+#mHome .mTitle .mFeu{position:absolute;left:-5%;width:110%;bottom:76%;height:auto;aspect-ratio:72/16;z-index:-1;pointer-events:none;opacity:1;image-rendering:pixelated;image-rendering:crisp-edges} /* (2e passe) posée AU-DESSUS des lettres : les langues dépassent de leur crête, jamais dans leurs trous */
 /* LA CROIX DE L'INVENTAIRE, DISCRÈTE (même jour, Léo : « la croix est juste plus discrète, et sert à enlever le rectangle avec toutes
    les voitures pour qu'on ait une vue sur le garage ») : elle ferme toujours le tiroir, mais n'est plus une touche cyan pleine. Plus de
    plaque ni de tranche : une petite croix lilas dans un carré à peine dessiné (filet d'1 px, fond presque nul), qui s'allume sous le doigt.
@@ -40781,6 +40806,51 @@ if(HUB){document.documentElement.classList.add('hub');
       Array.from(sh.childNodes).forEach(function(n){if(n.nodeType===3)n.remove();});
       ou.insertBefore(sh,ge);}
   }catch(e){console.warn('hub : accueil',e);}}
+/* ================= L'ACCUEIL DU CIEL (2026-10-10, Léo) =================
+   « Nouvelle interface : le ciel, la voiture, tout reste identique au main ; la seule chose qu'on change, ce sont les BOUTONS — plus petits,
+   mieux cadrés dans l'écran ; le logo doré est très beau : peut-être des flammes très légères derrière, quelque chose d'un peu fluide qui
+   donne un peu de vie sans trop en faire ; les boutons : MISSIONS, GARAGE, RÉGLAGES, JOUER, CARRIÈRE. »
+   · RANGÉE 1 (`.mOutils`, que lisent garLibre et menuCadre pour poser la caisse au-dessus) : MISSIONS · GARAGE · CARRIÈRE, trois tuiles
+     (icône + mot) ; MISSIONS reprend ses trois cases (#mMisPips, remplies par mFill) — depuis que le garage a perdu sa barre de hub, c'est
+     d'ici qu'on rejoint les missions et la carrière.
+   · RANGÉE 2 (`.mAccP`) : ⚙ · JOUER (le mot d'or, un cran plus petit) · la BOUTIQUE en € (gardée : c'est la seule porte du shop payant).
+   · Les vraies touches sont DÉPLACÉES (leurs écouteurs, leur badge, leur aiguillage `data-m` restent) ; MISSIONS et CARRIÈRE sont neuves
+     (l'aiguilleur de la coque lit `data-m` : 'mis', 'carr'). ?menu=leo et Poki ne passent pas ici (HUB faux). */
+if(HUB)try{const hm=$('mHome'),ou=hm&&hm.querySelector('.mOutils'),gar=ou&&ou.querySelector('.mHubPorte'),ge=ou&&ou.querySelector('.mGear'),
+    sh=ou&&ou.querySelector('.mHubShop'),pl=hm&&hm.querySelector('.mPlay');
+  if(ou&&gar&&ge&&sh&&pl){hm.classList.add('acc2');
+    const tuile=function(m,ic,fr,lb,plus){const d=document.createElement('div');d.className='pbtn mAccB';d.setAttribute('data-m',m);d.setAttribute('role','button');d.setAttribute('aria-label',lb);
+      d.innerHTML='<i class="pxi pxi-'+ic+'" aria-hidden="true"></i><span data-fr="'+fr+'">'+TR(fr)+'</span>'+(plus||'');return d;};
+    const mi=tuile('mis','cible','MISSIONS','Missions','<b class="mMisPips" id="mMisPips" aria-hidden="true"><u></u><u></u><u></u></b>'),ca=tuile('carr','trophee','CARRIERE','Carrière');
+    gar.classList.add('mAccB');gar.insertAdjacentHTML('afterbegin','<i class="pxi pxi-voiture" aria-hidden="true"></i>');
+    ou.insertBefore(mi,gar);ou.appendChild(ca);
+    const bas=document.createElement('div');bas.className='mAccP';pl.parentNode.insertBefore(bas,pl);bas.appendChild(ge);bas.appendChild(pl);bas.appendChild(sh);
+    window.__mFeuVeut=1;}
+}catch(e){console.warn('accueil du ciel',e);}
+/* LES FLAMMES DU LOGO : un feu de DOOM (la méthode des flammes de la porte et de la jauge), 72 × 28 cases, PEINT derrière les lettres et
+   agrandi en CASES NETTES de la taille des pixels du logo ; la chaleur ne naît que sous les lettres, monte et s'éteint vite : de courtes
+   langues qui dépassent du haut des lettres. 20 images/s, seulement quand l'accueil est à l'écran ; « Réduire les animations » : quelques pas puis figé. */
+var MFEU={c:null,x:null,W:72,H:16,t:0,px:null,img:null,pal:null,n:0,br:[]}; // var : mFeuInit est appelée plus haut (l'accueil se monte avant cette ligne)
+function mFeuInit(){const ti=document.querySelector('#mHome .mTitle');if(!ti||MFEU.c)return;
+  const c=document.createElement('canvas');c.className='mFeu';c.width=MFEU.W;c.height=MFEU.H;c.setAttribute('aria-hidden','true');ti.insertBefore(c,ti.firstChild);
+  MFEU.c=c;MFEU.x=c.getContext('2d');MFEU.img=MFEU.x.createImageData(MFEU.W,MFEU.H);MFEU.px=new Uint8Array(MFEU.W*MFEU.H);
+  /* (même jour) sur le ciel BLEU un orange translucide vire au gris (couleurs complémentaires) : des cases NETTES et presque opaques, la
+     case froide COUPÉE (comme l'alphaTest des flammes de la porte) — rouge braise, orange, or, crème. */
+  const P=[];for(let v=0;v<=36;v++)P.push(v<11?[0,0,0,0]:v<17?[255,118,26,1]:v<23?[255,170,44,1]:v<29?[255,214,94,1]:[255,242,184,1]); // (3e passe) des cases OPAQUES : translucide, l'or sur le bleu du ciel vire au gris (couleurs complémentaires) — un feu de pixel art est fait de couleurs pleines
+  MFEU.pal=P;requestAnimationFrame(mFeuTic);}
+function mFeuTic(t){requestAnimationFrame(mFeuTic);
+  if(document.hidden||!MFEU.c)return;const hm=document.getElementById('mHome');if(!hm||!hm.classList.contains('on')||!MFEU.c.offsetParent)return;
+  if(t-MFEU.t<50)return;MFEU.t=t;if(REDUCED_MOTION&&MFEU.n>40)return;MFEU.n++;
+  const W=MFEU.W,H=MFEU.H,p=MFEU.px,R=Math.random;
+  for(let x=0;x<W;x++){const c=Math.abs(x-W/2)/(W*.44);p[(H-1)*W+x]=c<1?Math.round(27*(1-c*c*c*c)*(.5+.5*R())):0;}
+  for(let y=1;y<H;y++)for(let x=0;x<W;x++){const i=y*W+x,v=p[i],r=(R()*3)|0,d=i-W-r+1;if(d<0)continue;p[d]=v>0?Math.max(0,v-(r&1)-(R()<.6?3:2)):0;}
+  const D=MFEU.img.data,P=MFEU.pal;for(let i=0;i<W*H;i++){const q=P[p[i]],o=i*4;D[o]=q[0];D[o+1]=q[1];D[o+2]=q[2];D[o+3]=q[3]*255;}
+  /* LES BRAISES : quelques cases d'or qui se détachent des langues, montent en ondulant et s'éteignent (6 au plus) */
+  const B=MFEU.br;if(B.length<6&&R()<.22)B.push({x:W*(.12+.76*R()),y:H-4,v:.35+.35*R(),ph:R()*6.3,l:1});
+  for(let k=B.length-1;k>=0;k--){const b=B[k];b.y-=b.v;b.ph+=.35;b.l-=.06;const bx=Math.round(b.x+Math.sin(b.ph)*.8),by=Math.round(b.y);
+    if(b.l<=0||by<0){B.splice(k,1);continue;}if(bx<0||bx>=W)continue;const o=(by*W+bx)*4,q=b.l>.66?[255,242,184]:b.l>.33?[255,214,94]:[255,150,40];D[o]=q[0];D[o+1]=q[1];D[o+2]=q[2];D[o+3]=255;} // elle s'éteint en changeant de COULEUR (crème, or, orange), jamais en transparence
+  MFEU.x.putImageData(MFEU.img,0,0);}
+if(window.__mFeuVeut)try{mFeuInit();}catch(e){console.warn('flammes du logo',e);}
 function hubCtx(){ // l'onglet du hub où l'on est ('' = hors du hub)
   if(!HUB||!garageOn||!gEl||(started&&!gameOver))return '';
   const c=document.getElementById('carr');if(c&&c.classList.contains('on')&&!c.classList.contains('sortant'))return 'carr';
