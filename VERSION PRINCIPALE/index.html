@@ -7092,6 +7092,20 @@ const skyDome=(function(){
       '    m=mix(m,B,smoothstep(top*.42,-.004,y)*.9);',                    // le pied dans la brume
       '    o.rgb=mix(o.rgb,m,cv);o.a=max(o.a,cv);}',
       '  return o;}',
+      /* (v13, Léo : « la mer, beaucoup plus de relief, plus réaliste… en cubes minuscules ») LA MER EN CUBES : des colonnes de cubes de JMS m
+         qui montent et descendent (quatre houles qui se croisent + un bruit, en cubes entiers : ±20 m de relief) ; chaque rayon qui regarde
+         l eau parcourt les cases une à une (DDA) dans la tranche des vagues : il touche le DESSUS d une colonne (le ciel s y reflète, Fresnel,
+         l éclat du soleil, l écume sur les crêtes) ou un FLANC (plus sombre). Plus loin que la portée du parcours, l eau lisse d avant. */
+      'const float JMS=4.;',
+      'float jMerH(vec2 c){vec2 p=c*JMS;float r=fract(sin(dot(c,vec2(41.3,289.1)))*43758.5453);float h=1.6*sin(p.x*.0105+uTime*.55)+1.1*sin(p.y*.0165-uTime*.75+p.x*.004)+.8*sin((p.x+p.y)*.024+uTime*1.1)+.7*sin(p.x*.031-p.y*.027+uTime*.9)+1.5*(r-.5)+.6*sin(uTime*2.+r*6.28);return floor(h);}',
+      'vec4 jMerCubes(vec3 o,vec3 d,out vec3 N,out vec2 cc,out float hh){N=vec3(0.,1.,0.);cc=vec2(0.);hh=0.;',
+      '  if(d.y>-1e-4)return vec4(-1.);float yT=uJMerY+5.*JMS,yB=uJMerY-6.*JMS,t0=max(0.,(yT-o.y)/d.y),t1=(yB-o.y)/d.y;if(t0>2600.)return vec4(-1.);vec3 p=o+d*t0;',
+      '  vec2 dd=vec2(abs(d.x)<1e-5?1e-5:d.x,abs(d.z)<1e-5?1e-5:d.z),st=sign(dd),c=floor(p.xz/JMS),tm=((c+step(0.,dd))*JMS-p.xz)/dd,tdl=JMS/abs(dd),nr=vec2(0.);float tc=0.;',
+      '  for(int i=0;i<48;i++){float h=jMerH(c),top=uJMerY+h*JMS;',
+      '    if(p.y+d.y*tc<=top){N=vec3(-st.x*nr.x,0.,-st.y*nr.y);cc=c;hh=h;return vec4(p+d*tc,t0+tc);}',          // un FLANC
+      '    float tx=min(tm.x,tm.y);if(p.y+d.y*tx<=top){float th=(top-p.y)/d.y;N=vec3(0.,1.,0.);cc=c;hh=h;return vec4(p+d*th,t0+th);}', // le DESSUS
+      '    if(tm.x<tm.y){c.x+=st.x;tm.x+=tdl.x;nr=vec2(1.,0.);}else{c.y+=st.y;tm.y+=tdl.y;nr=vec2(0.,1.);}tc=tx;if(t0+tc>t1)break;}',
+      '  return vec4(-1.);}',
       'vec3 jadeCiel(vec3 d){',
       '  float y=d.y,yy=max(y,0.),az=atan(d.x,-d.z),sd=max(dot(d,uSunDir),0.);',
       '  vec3 c=mix(uJdH,mix(uJdH,uJdZ,.5),smoothstep(0.,.16,yy));c=mix(c,uJdZ,smoothstep(.10,.80,yy));',
@@ -7119,6 +7133,15 @@ const skyDome=(function(){
       '    float gl=pow(max(dot(vec3(d.x,-d.y,d.z),uSunDir),0.),24.);wa+=uJdS*gl*(.25+.9*ln);', // l éclat du soleil sur les lignes
       '    wa=mix(wa,mix(uJdH,uJdB,.5)*vec3(.92,.97,1.),pow(1.+y,14.)*.7);', // au ras, le ciel s y reflète
       '    {vec4 lr=jLointain(az,-y+ln*.0012+.0006*sin(P.x*.05+uTime*.4));wa=mix(wa,lr.rgb*vec3(.82,.92,.96),lr.a*.5*smoothstep(-.12,-.004,y));}', // (v12) le lointain se REFLÈTE dans le fleuve, tremblé par les lignes d eau
+      '    {vec3 Nc;vec2 cc;float hh;vec4 ht=jMerCubes(uCam,d,Nc,cc,hh);if(ht.w>0.){',                     // (v13) LA MER EN CUBES, de près
+      '      float r9=fract(sin(dot(cc,vec2(12.9898,78.233)))*43758.5453),hn=clamp((hh+5.)/9.,0.,1.);',
+      '      vec3 wc=mix(vec3(.035,.17,.30),vec3(.16,.47,.60),hn)*(.92+.14*r9);',                          // le bleu : profond dans les creux, turquoise sur les crêtes, chaque cube sa nuance
+      '      vec3 Rf=reflect(d,Nc),sk=mix(uJdH,uJdZ,smoothstep(0.,.6,Rf.y));float F=.03+.97*pow(1.-max(dot(-d,Nc),0.),5.),dif=max(dot(Nc,uSunDir),0.)*.5+.5;',
+      '      vec2 fq=fract(ht.xz/JMS);float eb=min(min(fq.x,1.-fq.x),min(fq.y,1.-fq.y));',
+      '      vec3 cw;if(Nc.y>.5){cw=mix(wc*(.85+.15*dif),sk,F*.8+.06);cw+=uJdS*pow(max(dot(Rf,uSunDir),0.),90.)*1.3;cw*=.86+.14*smoothstep(0.,.12,eb);cw+=vec3(.10,.14,.15)*(1.-smoothstep(.0,.06,eb))*(1.-smoothstep(300.,900.,ht.w));',
+      '        float fo=smoothstep(2.,4.,hh)*smoothstep(.35,.75,vn(ht.xz*.12+vec2(uTime*.3,0.)));cw=mix(cw,vec3(.90,.95,.97),fo*.8);}', // l ÉCUME sur les crêtes
+      '      else{cw=wc*(.50+.35*dif);cw=mix(cw,sk*.8,F*.45);}',                                            // un flanc : plus sombre
+      '      wa=mix(wa,cw,1.-smoothstep(1400.,2600.,ht.w));}}',
       '    float hz=1.-smoothstep(-.16,-.002,y);c=mix(c,wa,hz*hz*(3.-2.*hz));}',
       '  c=mix(c,uFogCol,(1.-smoothstep(0.,.05,abs(y)))*.35);',              // l horizon rejoint la brume de three (les piliers 3D s y fondent)
       '  return c;}'],
@@ -10672,16 +10695,16 @@ function roadMat(){
       'if(uGlace>.001){float cg9=clamp(abs(dot(normal,normalize(vViewPosition))),0.,1.),g9=1.-cg9;g9=g9*g9*g9*g9*g9;'+
       'outgoingLight+=envColor.rgb*(g9*uGlace*(1.-smoothstep(.90,.985,dot(normalize(reflectVec),uSunW))));}\n'+
       'if(uJadeR>.001){vec3 rf9=normalize(reflectVec),rt9=normalize(rf9+vec3(jF9.x,0.,jF9.y)*.35);'+ // (v11) l ÉCLAT : chaque facette renvoie le soleil selon SA pente (elles scintillent l une après l autre) ; l or renvoie le ciel, doré
-      'outgoingLight+=vec3(1.,.97,.88)*pow(max(dot(rt9,uSunW),0.),120.)*1.1*(1.-jOr9)*uJadeR+vec3(1.,.96,.86)*pow(max(dot(rf9,uSunW),0.),90.)*.3*uJadeR;'+
-      'outgoingLight+=envColor.rgb*(vec3(1.,.82,.42)*jOr9*1.15+vec3(.30,1.,.62)*(1.-jOr9)*.30)*uJadeR+vec3(1.,.80,.40)*pow(max(dot(rf9,uSunW),0.),30.)*.9*jOr9*uJadeR;'+ // (v12, Léo : « beaucoup plus brillante ») le ciel dans l émeraude et dans l or, bien plus fort
+      'outgoingLight+=vec3(1.,.97,.88)*pow(max(dot(rt9,uSunW),0.),120.)*2.2*(1.-jOr9)*uJadeR+vec3(1.,.96,.86)*pow(max(dot(rf9,uSunW),0.),90.)*.3*uJadeR;'+
+      'outgoingLight+=envColor.rgb*(vec3(1.,.82,.42)*jOr9*1.15+vec3(.30,1.,.62)*(1.-jOr9)*.42)*uJadeR+vec3(1.,.80,.40)*pow(max(dot(rf9,uSunW),0.),30.)*.9*jOr9*uJadeR;'+ // (v12, Léo : « beaucoup plus brillante ») le ciel dans l émeraude et dans l or, bien plus fort
       /* (v12) LE VERNIS : un reflet qui ne dépend pas du soleil (dans le dos, il ne donnait rien) — une lumière de ciel posée DEVANT la
          caméra, un peu au-dessus de l horizon (repère de la vue) : la route brille toujours devant soi, en nappe large, chaque facette y
          jette son éclat (sa pente propre), et de près des PAILLETTES (cellules de 90 cm, une sur trois) scintillent quand on avance. */
       'vec3 V9=normalize(vViewPosition),rV9=reflect(-V9,normal),Lv9=normalize(vec3(0.,.30,-1.)),rF9=normalize(rV9+vec3(jF9.x,jF9.y,0.)*.5);'+
       'vec2 gq9=vUv*4./.9,gi9=floor(gq9),gf9=fract(gq9)-.5-(vec2(jdH9(gi9+1.7),jdH9(gi9+6.2))-.5)*.6;float gh9=jdH9(gi9+3.3);vec3 rG9=normalize(rV9+(vec3(jdH9(gi9),jdH9(gi9+9.1),0.)-.5)*1.1);'+
       'float nap9=pow(max(dot(rV9,Lv9),0.),26.),fac9=pow(max(dot(rF9,Lv9),0.),90.)*(1.-smoothstep(.05,.75,jM9)),pai9=pow(max(dot(rG9,Lv9),0.),40.)*step(.62,gh9)*smoothstep(.10,.02,length(gf9))*(1.-smoothstep(20.,70.,length(vViewPosition)));'+ // (les paillettes : de petites étoiles rondes, pas des carrés)
-      'outgoingLight+=(vec3(.55,1.,.78)*nap9*.18+vec3(1.,.98,.92)*(fac9*.45+pai9*3.))*(1.-jOr9)*uJadeR+vec3(1.,.84,.48)*(nap9*.6+fac9*.6)*jOr9*uJadeR;}\n#endif\n'+
-      'outgoingLight+=uLift*lk9*(1.-uJadeR*.7)+uSheenCol*(uSheen*fr9);if(uJadeR>.001)outgoingLight+=diffuseColor.rgb*(.10-.06*jOr9)*uJadeR;}');
+      'outgoingLight+=(vec3(.55,1.,.78)*nap9*.26+vec3(1.,.98,.92)*(fac9*1.1+pai9*5.))*(1.-jOr9)*uJadeR+vec3(1.,.84,.48)*(nap9*.6+fac9*.6)*jOr9*uJadeR;}\n#endif\n'+
+      'outgoingLight+=uLift*lk9*(1.-uJadeR*.7)+uSheenCol*(uSheen*fr9);if(uJadeR>.001)outgoingLight+=diffuseColor.rgb*(.20-.06*jOr9)*uJadeR;}'); // (v13) « beaucoup plus brillante » : la lumière qui traverse l émeraude
   };
   m.customProgramCacheKey=function(){return 'bitumeV5'+(face?'f':'')+(sauts?'s':'');}; // UNE compilation pour toutes les pistes
   return m;
@@ -12650,7 +12673,8 @@ function jadeKit(){const P=[],C=[];
 /* (v7, Léo : « pas Minecraft » → « des cubes minuscules ») VX 3,5 → 1,75 m sur l'ordi (3,5 m sur un vrai téléphone), la muraille et l'arche
    5 → 2,5 m ; un 4e niveau de détail (1,75 · 3,5 · 7 · 14 m) garde le coût : les petits cubes ne se dessinent que de près. */
 const VX=TEL_NATIF?3.5:1.75,VXG=TEL_NATIF?5:2.5;
-const VIT=/[?&]vitrail=1\b/.test(location.search); // (v10) les montagnes en VITRAIL (voir « LE VITRAIL ») — (v11, Léo : « laisse tomber, reviens sur les pixels, c'était plus joli ») : seulement avec `?vitrail=1`
+const VIT=/[?&]vitrail=1\b/.test(location.search),JADE_NUVOX=!/[?&]nuvox=0\b/.test(location.search); // (v13) les volutes en cubes — `?nuvox=0` : les panneaux en relief de la v9
+ // (v10) les montagnes en VITRAIL (voir « LE VITRAIL ») — (v11, Léo : « laisse tomber, reviens sur les pixels, c'était plus joli ») : seulement avec `?vitrail=1`
 const JM={roche:1,rouille:2,herbe:3,feuille:4,bois:5,laque:6,tuile:7,or:8,pierre:9};
 const JADE_TPL=[[10,190,1],[14,250,0],[16,220,3],[18,300,2],[23,350,3],[26,330,1],[29,400,0],[36,440,2],[45,490,1],[56,540,3]]; // rayon (m), hauteur (m), sorte : 0 colonne · 1 aiguille · 2 gradins · 3 tête large
 const JADE_NTPL=JADE_TPL.length;
@@ -13145,6 +13169,7 @@ function jadeMatPilier(q,k){ // la matrice d'une montagne (gabarit q[5], quart d
 function jadeVueGeo(g){const c=new THREE.BufferGeometry();for(const k in g.attributes)if(k!=='aJ')c.setAttribute(k,g.attributes[k]);if(g.index)c.setIndex(g.index);c.boundingSphere=g.boundingSphere;return c;} // une géométrie qui PARTAGE les tampons d'un gabarit (son aJ à elle)
 function jadeQuart(r,ox,oz){const c=Math.round(Math.cos(r*Math.PI/2)),s=Math.round(Math.sin(r*Math.PI/2));return [ox*c+oz*s,-ox*s+oz*c];} // un vecteur du gabarit tourné comme l'instance
 function buildJade(seed){
+  NUVOX.L=null;NUVOX.ims=[];
   for(const F of JADE.fam.concat(FIN.fam.filter(Boolean))){F.im.dispose();if(F.im2&&F.im2!==F.im){F.im2.dispose();F.im3.dispose();}const g9=F.im.geometry;for(const k in g9.attributes)if(k!=='aJ')g9.deleteAttribute(k);g9.setIndex(null);g9.dispose();}JADE.fam=[];FIN.fam=[];FIN.near.length=0;FIN.sig=0;FIN.mats=new Map();FIN.dans=new Set();JADE.col=null;JADE.porte=null;JADE.pont=null;JADE.brume=null;JADE.sig=0;
   if(JADE.root){for(const o of JADE.root.children)if(o.userData.jeter&&o.geometry)o.geometry.dispose();JADE.root=null;}
   if(PARK.on||!LVL.cur||LVL.cur.piste!=='jade'||!(NP>1))return;
@@ -13265,9 +13290,17 @@ function buildJade(seed){
      const Mx=new THREE.Matrix4(),couche=(L9,ro)=>{const g=new THREE.PlaneGeometry(1,1),im=new THREE.InstancedMesh(g,JADE_NUAGE_M,L9.length),aj=new Float32Array(L9.length*4);
        L9.forEach(function(n,k){Mx.makeTranslation(n[0],n[1],n[2]);im.setMatrixAt(k,Mx);aj.set([n[3],n[4],n[5],n[6]],k*4);});
        g.setAttribute('aJ',new THREE.InstancedBufferAttribute(aj,4));im.userData.jeter=true;im.frustumCulled=false;im.renderOrder=ro;root.add(im);};
-     const VO=NU.map(function(n){const dx=n[0]-n[7],dz=n[2]-n[8],hl=Math.hypot(dx,dz)||1,o=n[3]*(.10+jr()*.08); // (v9) le VOILE de derrière : décalé, plus grand, à moitié — il glisse autrement quand on roule (la profondeur)
+     if(JADE_NUVOX){const GV=jadeNuagesVox(),par=GV.map(function(){return [];}),Mr=new THREE.Matrix4(),Ms=new THREE.Matrix4(),Mo=new THREE.Matrix4().makeTranslation(-NUVOX.GX/2,-NUVOX.GY/2,-NUVOX.mid); // (v13) LES VOLUTES EN CUBES
+       for(const n of NU){const yaw=Math.atan2(n[7]-n[0],n[8]-n[2])+(n[6]>.5?Math.PI:0),sc=n[3]/NUVOX.GX;
+         par[n[5]].push(new THREE.Matrix4().makeTranslation(n[0],n[1],n[2]).multiply(Mr.makeRotationY(yaw)).multiply(Ms.makeScale(sc,sc,sc)).multiply(Mo));}
+       NUVOX.L=[];NUVOX.ims=[];NUVOX.sig=0;NUVOX.S=NUVOX.S||new THREE.Sphere();
+       par.forEach(function(L9,t){for(const g9 of [GV[t],NUVOX.loin[t]]){const im=new THREE.InstancedMesh(g9,JADE_NUVOX_M,Math.max(1,L9.length));im.count=0;im.visible=false;im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+           im.frustumCulled=false;im.renderOrder=4.5;root.add(im);NUVOX.ims.push(im);}
+         for(const M9 of L9){const c9=new THREE.Vector3().setFromMatrixPosition(M9);NUVOX.L.push({t:t,m:Float32Array.from(M9.elements),c:c9,r:M9.getMaxScaleOnAxis()*NUVOX.GX*.56,v:0});}});
+       JADE.nuages=NU.length;JADE.nuTri=NUVOX.L.reduce(function(a,n){return a+GV[n.t].index.count/3;},0);}
+     else{const VO=NU.map(function(n){const dx=n[0]-n[7],dz=n[2]-n[8],hl=Math.hypot(dx,dz)||1,o=n[3]*(.10+jr()*.08); // (v9) le VOILE de derrière : décalé, plus grand, à moitié — il glisse autrement quand on roule (la profondeur)
        return [n[0]+dx/hl*o,n[1]+n[4]*(.08+jr()*.1),n[2]+dz/hl*o,n[3]*1.18,n[4]*1.18,(n[5]+5+((jr()*6)|0))%16,1+((n[6]+.5)%1)];});
-     couche(VO,4.4);couche(NU,4.5);JADE.nuages=NU.length;}}
+     couche(VO,4.4);couche(NU,4.5);JADE.nuages=NU.length;}}}
   // ---- LA GRILLE DES CHOCS (cases de 80 m) : chaque montagne et chaque rocher y est inscrit dans son cercle ; le test final lit SES cubes ----
   {const CG=80,g9=new Map();
    PIL.forEach(function(q,k){const re=q[2]+2;for(let gx=Math.floor((q[0]-re)/CG);gx<=Math.floor((q[0]+re)/CG);gx++)for(let gz=Math.floor((q[1]-re)/CG);gz<=Math.floor((q[1]+re)/CG);gz++){const kk=gx+','+gz;let a=g9.get(kk);if(!a)g9.set(kk,a=[]);a.push(k);}});
@@ -13438,7 +13471,7 @@ function jadeTri(cam){
       FF.im.count=FF.im2.count=FF.im3.count=n;FF.im.visible=FF.im2.visible=FF.im3.visible=n>0;if(n){FF.im.instanceMatrix.needsUpdate=true;FF.aJ.needsUpdate=true;}}}
   JT.ms+=performance.now()-t0;JT.n++;
 }
-{const ob9=scene.onBeforeRender;scene.onBeforeRender=function(r9,s9,cam,rt){ob9.call(this,r9,s9,cam,rt);try{jadeTri(cam);}catch(e){window.__jadeErr=e;}};} // CHAÎNÉ (jamais réassigné)
+{const ob9=scene.onBeforeRender;scene.onBeforeRender=function(r9,s9,cam,rt){ob9.call(this,r9,s9,cam,rt);try{jadeTri(cam);if(JADE.root&&NUVOX.L)nuvoxTri(cam);}catch(e){window.__jadeErr=e;}};} // CHAÎNÉ (jamais réassigné)
 /* ---- LA LUMIÈRE FANTÔME (v5) ----
    · LES RAYONS : de longs pans de lumière pâle qui tombent en biais à travers la brume entre les montagnes (additifs, tournés vers la
      caméra autour de leur axe, effilés aux deux bouts, qui ondulent lentement) — posés le long de la route à chaque vallée (`jadeRayons`).
@@ -13525,6 +13558,42 @@ const JADE_NUAGE_M=(function(){const m=new THREE.ShaderMaterial({transparent:tru
     '  col*=uTeinte;col=mix(col,uFogC,smoothstep(1500.,7500.,vD)*.55+vC*.2);',
     '  float a=t.a*(.22+.58*smoothstep(0.,.45,h))*(1.-vC*.5);',                          // l opacité suit l épaisseur ; le voile de derrière à moitié
     '  gl_FragColor=vec4(col,a*smoothstep(80.,320.,vD)*(1.-smoothstep(7800.,9400.,vD)));}'].join('\n')});m.dispose=function(){};return m;})();
+/* (v13, Léo : « les nuages en cubes minuscules ») LES VOLUTES EN CUBES — les seize dessins en relief deviennent de vrais VOLUMES de petits
+   cubes : la grille 96 × 48 relit la carte de hauteur (épaisseur = la hauteur, de part et d'autre d'un plan médian : des lobes ronds, la
+   base en coussins, la queue en tube), les spirales creusées gardent leur ombre (matière 2), le maillage glouton pose l'ombre aux coins
+   (`aAO`). Un cube = la largeur du nuage ÷ 96 (8-20 m). Chaque nuage est TOURNÉ vers la route (sa face large vers qui passe) ; le
+   « miroir » d'un dessin, c'est le même vu de l'autre côté (le volume est symétrique). Éclairés au soleil de la map, une ombre jade-lavande,
+   chaque cube sa nuance, la perspective aérienne du loin. */
+const NUVOX={GX:96,GY:48,geos:null};
+function jadeNuagesVox(){if(NUVOX.geos)return NUVOX.geos;
+  const T=JADE_NUAGE_M.uniforms.uTex.value||(JADE_NUAGE_M.uniforms.uTex.value=jadeNuagesTex()),D=T.image.data,W=T.image.width,H=T.image.height,CW=512,CH=256,HS=90,GX=NUVOX.GX,GY=NUVOX.GY,k=CW/GX,mi=Math.ceil(HS/k)+1,NZ=2*mi;
+  NUVOX.mid=mi;NUVOX.geos=[];
+  NUVOX.loin=[];
+  for(let t=0;t<16;t++){const x0=(t%4)*CW,y0=((t/4)|0)*CH,G=voxG(GX,GY,NZ);
+    for(let gy=0;gy<GY;gy++)for(let gx=0;gx<GX;gx++){const px=Math.min(CW-1,Math.round(gx*k+k/2)),py=Math.min(CH-1,Math.round(CH-1-(gy*k+k/2))),o=((H-1-(y0+py))*W+x0+px)*4;
+      if(D[o+3]<128)continue;const th=Math.max(1,Math.round(D[o]/255*HS/k*.85)),m=D[o+1]>110?2:1;
+      for(let z=mi-th;z<mi+th;z++)G.d[gx+GX*(z+NZ*gy)]=m;}
+    NUVOX.geos.push(voxMesh(G));NUVOX.loin.push(voxMesh(voxDemi(G)));} // de LOIN (> 2,5 km) : des cubes deux fois plus gros (le même nuage, ¼ des triangles)
+  return NUVOX.geos;}
+/* LE TRI DES VOLUTES (à chaque rendu, chaîné sur jadeTri) : seules celles dans le champ partent au GPU, de près en petits cubes, de loin en gros */
+function nuvoxTri(cam){const N9=NUVOX.L;if(!N9||!N9.length)return;let sg=7;
+  for(let i=0;i<N9.length;i++){const n=N9[i];NUVOX.S.center.copy(n.c);NUVOX.S.radius=n.r;let v=0;if(JT.fr.intersectsSphere(NUVOX.S))v=cam.position.distanceTo(n.c)<2500?1:2;n.v=v;sg=(Math.imul(sg,31)+v)|0;}
+  if(sg===NUVOX.sig)return;NUVOX.sig=sg;
+  for(const im of NUVOX.ims){im.count=0;}
+  for(const n of N9){if(!n.v)continue;const im=NUVOX.ims[n.t*2+(n.v-1)];im.instanceMatrix.array.set(n.m,im.count*16);im.count++;}
+  for(const im of NUVOX.ims){im.instanceMatrix.needsUpdate=true;im.visible=im.count>0;}}
+const JADE_NUVOX_M=(function(){const m=new THREE.ShaderMaterial({transparent:true,depthWrite:true,
+  uniforms:{uTeinte:JADE_NUAGE_M.uniforms.uTeinte,uFogC:JADE_NUAGE_M.uniforms.uFogC,uSunD:JADE_U.uSunDir,uSunC:JADE_U.uSunC},
+  vertexShader:['attribute float aM,aAO;varying vec3 vO,vNo,vN;varying float vM,vAO,vD;',
+    'void main(){mat4 mw=modelMatrix*instanceMatrix;vec4 wp=mw*vec4(position,1.);vO=position;vNo=normal;vN=normalize(mat3(mw)*normal);vM=aM;vAO=aAO;',
+    '  vD=length(wp.xyz-cameraPosition);gl_Position=projectionMatrix*viewMatrix*wp;}'].join('\n'),
+  fragmentShader:['uniform vec3 uTeinte,uFogC,uSunD,uSunC;varying vec3 vO,vNo,vN;varying float vM,vAO,vD;',
+    'void main(){vec3 N=normalize(vN);float dif=max((dot(N,uSunD)+.35)/1.35,0.);',
+    '  vec3 c=mix(vec3(.58,.67,.75),vec3(.99,.98,.94),dif)*mix(.70,1.,vAO);',                   // la lumière dessus, l ombre jade-lavande dessous, l ombre des coins
+    '  vec3 q=floor(vO-vNo*.5+.001);c*=.95+.09*fract(sin(dot(q,vec3(12.9898,78.233,37.719)))*43758.5453);', // chaque cube sa nuance
+    '  if(vM>1.5)c*=.80;c*=mix(vec3(1.),uSunC*.6+.4,.25)*uTeinte;',                               // la spirale creusée ; le soleil de la map
+    '  c=mix(c,uFogC,smoothstep(1500.,7500.,vD)*.55);',
+    '  gl_FragColor=vec4(c,.88*smoothstep(80.,320.,vD)*(1.-smoothstep(7800.,9400.,vD)));}'].join('\n')});m.dispose=function(){};return m;})();
 /* ---- CHAQUE IMAGE : les lumières du niveau dans la matière (une Lambert les lirait d'elle-même), l'horloge, la brume ---- */
 function jadeTick(dt){
   {const on=!!JADE.root&&LVL.cur&&LVL.cur.id==='jade';if(JADE_ESPRITS.visible!==on)JADE_ESPRITS.visible=on;if(on){const u=JADE_ESPRITS.material.uniforms;u.uCam.value.copy(camera.position);u.uPx.value=renderer.getPixelRatio();u.uK.value=Math.min(1,u.uK.value+dt*.5);}}
@@ -13618,7 +13687,7 @@ window.dbgFin=function(v,nu){ // (banc) v : les cubes minuscules on/off ; nu : l
   return {on:FIN.on,dans:FIN.dans.size,D:FIN.D};};
 window.dbgJade=function(){let tri=0;for(const F of JADE.fam)tri+=F.im.count*F.tri;
   let triF=0;for(const FF of FIN.fam)if(FF)triF+=FF.im.count*FF.tri;
-  return Object.assign({},JADE.n,{fins:FIN.dans.size,triFins:Math.round(triF),finPrets:JADE.geos?JADE.geos.p.filter(function(T9){return T9.fin;}).length+'/'+JADE.geos.p.length:0,finMs:JADE.geos&&JADE.geos.p.map(function(T9){return T9.finMs||0;}),triFinGab:JADE.geos&&JADE.geos.p.map(function(T9){return T9.fin?T9.fin.index.count/3:0;}),triangles:Math.round(tri+triF)+(JADE.porte?JADE.porte.tri:0)+(JADE.pont?JADE.pont.tri:0),porteFin:JADE.porte&&JADE.porte.triF,msPorte:JADE.msPorte,tPorte:JADE.tPorte,msPont:JADE.msPont,pontFin:JADE.pont&&JADE.pont.triF,appels:JADE.fam.filter(function(F){return F.im.count>0;}).length,
+  return Object.assign({},JADE.n,{fins:FIN.dans.size,triFins:Math.round(triF),finPrets:JADE.geos?JADE.geos.p.filter(function(T9){return T9.fin;}).length+'/'+JADE.geos.p.length:0,finMs:JADE.geos&&JADE.geos.p.map(function(T9){return T9.finMs||0;}),triFinGab:JADE.geos&&JADE.geos.p.map(function(T9){return T9.fin?T9.fin.index.count/3:0;}),triangles:Math.round(tri+triF)+(JADE.porte?JADE.porte.tri:0)+(JADE.pont?JADE.pont.tri:0),porteFin:JADE.porte&&JADE.porte.triF,nuTri:JADE.nuTri,msPorte:JADE.msPorte,tPorte:JADE.tPorte,msPont:JADE.msPont,pontFin:JADE.pont&&JADE.pont.triF,appels:JADE.fam.filter(function(F){return F.im.count>0;}).length,
     tri:{ms:JT.n?+(JT.ms/JT.n).toFixed(3):0,envois:JT.up},grues:GRUE.L.length,balade:BALADE,niveau:LVL.cur&&LVL.cur.id,err:window.__jadeErr?String(window.__jadeErr):null});};
 window.dbgJadeAller=function(k,d){const P=k==='pont'?JADE.pont:JADE.porte;if(!P||!started||gameOver)return 'non';if(paused)togglePause(); // (dev) la caisse d m avant un monument, sur la route
   s=Math.max(0,P.i/(NP-1)*L-(d||350));lat=0;psi=0;prevTvalid=false;mode='drive';return Math.round(s);};

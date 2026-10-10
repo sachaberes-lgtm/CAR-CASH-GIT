@@ -146,7 +146,7 @@ d'aller dans cette map avec une voiture, la mobilité comme le main, mais seulem
   un vert vif « pelouse » à facettes trop contrastées, une bordure de 2,6 m qu'on ne lisait pas. sw.js → v213.
 - **v12 — L'ÉMERAUDE BRILLANTE, SANS OR ; LE LOINTAIN POÉTIQUE** (même jour, Léo : « beaucoup plus brillante la route » puis « ajoute des
   montagnes au loin, simule une sorte de paysage poétique ; et enlève l'or, ça fait moche, le jaune et le vert : fais juste une route
-  émeraude jade ») — LA VERSION EN COURS.
+  émeraude jade »).
   · ROUTE : plus d'or (bordure, filet, joints retirés du shader ; `jOr9` reste à 0), accent jade 0x4fe0a8 (rails, nappe, flancs), ligne
     centrale en jade pâle discret. BRILLANCE : le ciel dans l'émeraude ×2,7 (teinté vert), `GLACE.jade` .55, et un VERNIS qui ne dépend pas
     du soleil — une lumière de ciel posée devant la caméra (repère de la vue, `Lv9`) : une nappe large (`nap9`), l'éclat de chaque facette
@@ -156,6 +156,19 @@ d'aller dans cette map avec une voiture, la mobilité comme le main, mais seulem
     jade-encre devant, pics à la Huangshan, crête périodique sur le tour d'horizon), le pied noyé dans la brume, le haut des crêtes un peu
     éclairé ; le fleuve les REFLÈTE (tremblées par les lignes d'eau). Les quatre rangées de piliers peints sur l'horizon (`jPeigne`) sont
     retirées : devant le lointain elles faisaient une frise de bosses blanches. sw.js → v214.
+- **v13 — LA MER ET LES NUAGES EN CUBES MINUSCULES** (même jour, Léo : « beaucoup plus brillante la route ; la mer, beaucoup plus de relief,
+  plus réaliste ; les nuages en cubes minuscules, pareil pour la mer ») — LA VERSION EN COURS.
+  · ROUTE : encore plus d'éclat (le ciel ×.42 dans l'émeraude, vernis .26, facettes ×1,1, paillettes ×5, soleil ×2,2, lumière intérieure .20).
+  · LA MER EN CUBES (`jMerCubes` dans le dôme) : des colonnes de cubes de 4 m (`JMS`) — quatre houles croisées + un cran propre à chaque cube
+    qui danse un peu (±20 m de relief) ; chaque rayon parcourt les cases (DDA, 48 pas, rien au-delà de 2,6 km) dans la tranche des vagues :
+    le DESSUS (le ciel en Fresnel, l'éclat du soleil, l'ÉCUME sur les crêtes, un biseau d'arête de près) ou un FLANC (plus sombre). Au-delà :
+    l'eau lisse peinte d'avant (lignes, reflet du lointain).
+  · LES VOLUTES EN CUBES (`jadeNuagesVox`, `JADE_NUVOX_M`, `NUVOX`) : les 16 cartes de hauteur deviennent des volumes (grille 96 × 48,
+    épaisseur = hauteur des deux côtés d'un plan médian, voxMesh avec l'ombre des coins, la spirale en matière 2) ; un cube = largeur ÷ 96
+    (8-20 m) ; chaque nuage tourné vers la route (le « miroir » = vu de l'autre côté). `nuvoxTri` (chaîné après jadeTri) : seules les volutes
+    dans le champ partent au GPU, de loin (> 2,5 km) en cubes deux fois plus gros (`voxDemi`). `?nuvox=0` = les panneaux en relief de la v9.
+  · MESURÉ : Mac très chargé (charge 21-43), A/B alterné v12/v13 dans le bruit après allègement (avant : +4-5 ms) ; ~0,54 M triangles de
+    volutes si toutes étaient vues. sw.js → v215.
 - Mesuré (Chrome sans fenêtre du Mac) : 60 i/s, construction 16-28 ms, tri ~0,03 ms ; collisions (`dbgJadeHeurt('test')`, 3 vallées) :
   piliers durs, arche et dessous du pont libres, AUCUN point de la route dans la pierre. Console : `dbgJade()`, `dbgJadeVue('route'|'porte'|
   'pont'|'haut'|'loin'|'grue',d,h,cap)` (photo figée), `dbgGrues()`. sw.js → v203.
