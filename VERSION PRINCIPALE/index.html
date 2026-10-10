@@ -6204,7 +6204,7 @@ html body #garage.vitrine:not(.menu) #gAuraC,#garage.menu #gAuraC{display:none!i
    (gtPlace la range avant #gAct), et la console redescend au bord (sB + 10, la place de l'ancienne barre) — la rangée des boutons est
    donc tout en bas, sous le pouce. COUCHÉ, rien ne bouge : la jauge reste en bas à gauche, sous la caisse. `html.gtConsole` = rangée. */
 html.hubOn.gtConsole body #garage:not(.menu) #gBottom{margin-bottom:calc(var(--sB) + 10px)}
-html.hubOn body #garage:not(.menu) #gBottom>#gTourne.on{position:relative;left:auto;right:auto;bottom:auto;z-index:auto;margin:0;width:auto;max-width:none;flex:none}
+html.hubOn.gtConsole body #garage:not(.menu)>#gTourne.on{position:relative;left:auto;right:auto;bottom:auto;z-index:auto;margin:0;width:auto;max-width:none;flex:none}
 /* LA RANGÉE DU BAS (même jour, Léo, deux passes : « enlève le HOME » puis « remets l'inventaire et la boutique à la place, ÉQUIPER
    au-dessus de JOUER, JOUER en jaune, ÉQUIPER moins haut, sur la longueur de JOUER, juste au-dessus ; sa petite barre lumineuse rouge
    quand la voiture n'est pas achetée, bleue une fois achetée, verte une fois équipée — et il est écrit ÉQUIPÉE ; enlève le "il manque 24 k" »).
@@ -6293,11 +6293,12 @@ html body #garage.consoleCachee:not(.menu):not(.vitrine) :is(#gTabs,#gRar,#gStri
 @media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
   html body #garage:not(.menu):not(.vitrine) #gAct>:is(#gHomeBas,#gCache){height:30px;min-height:30px;letter-spacing:1px}}
 /* LA JAUGE EN TÊTE, LA CONSOLE EN VERRE (2026-10-10, Léo : « encore plus smooth, plus centrée, la jauge — en mode portrait, mets-la
-   au-dessus des catégories VOITURES · PEINTURE… — et remets du visuel sur la zone noire ») : DEBOUT, la jauge ouvre la console (gtPlace la
-   range avant les onglets), plus courte et centrée sous la caisse ; COUCHÉE, elle se centre dans la moitié libre, sous la caisse. Le
+   au-dessus des catégories VOITURES · PEINTURE… — et remets du visuel sur la zone noire », puis « au-dessus des trois bandes colorées ») :
+   DEBOUT, la jauge sort de la console et se pose JUSTE AU-DESSUS (gtPlace la range avant #gBottom ; garLibre cadre la caisse au-dessus
+   d'elle), plus courte et centrée sous la caisse ; COUCHÉE, elle se centre dans la moitié libre, sous la caisse. Le
    panneau de la console passe en VERRE : presque transparent en haut (la bande des vignettes, souvent à moitié vide, laisse voir le sol
    de l'atelier et l'anneau du plateau), il ne se fonce qu'au pied, derrière les touches. Pas de flou (pas de backdrop-filter sur téléphone). */
-html.hubOn body #garage:not(.menu) #gBottom>#gTourne.on{width:min(84%,330px);align-self:center;margin:0 auto}
+html.hubOn.gtConsole body #garage:not(.menu)>#gTourne.on{width:min(calc(100% - var(--sL) - var(--sR) - 96px),300px);align-self:center;margin:auto auto 10px;background:rgba(11,8,24,.55);box-shadow:inset 0 0 0 1px rgba(154,144,200,.22)} /* (même jour, Léo : « au-dessus des trois bandes colorées ») hors de la console, posée juste au-dessus (margin-top:auto la colle au panneau) */
 @media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
   html.hubOn #gTourne.on{--gtW:min(calc(100% - min(48%,450px) - var(--sL) - var(--sR) - 90px),320px);width:var(--gtW);
     left:calc(var(--sL) + (100% - min(48%,450px) - 14px - var(--sL) - var(--sR) - var(--gtW)) / 2)}}
@@ -39984,7 +39985,7 @@ function garLibre(){
     const b=$('gBottom'),t=$('gTop'),bb=b&&b.getBoundingClientRect(),tb=t&&t.getBoundingClientRect();
     if(bb&&bb.width>0){
       if(bb.left>W*.3&&(bb.height>H*.6||W>H*1.2))r.x1=bb.left; // téléphone couché : la colonne à droite — (garage v6) la CONSOLE n'en prend plus toute la hauteur
-      else r.y1=bb.top;}                                       // sinon : les commandes en bas
+      else{r.y1=bb.top;const g9=document.documentElement.classList.contains('gtConsole')?$('gTourne'):null;if(g9&&g9.classList.contains('on')&&g9.offsetHeight>0)r.y1=Math.min(r.y1,g9.offsetTop-6);}} // sinon : les commandes en bas — (2026-10-10) debout, la JAUGE posée au-dessus de la console borne aussi la caisse (offsetTop : sa place finale, sans le glissé d'entrée)
     if(tb&&tb.height>0&&tb.bottom<r.y1-120)r.y0=tb.bottom;r.shop=true;    // la fiche du haut (si elle laisse de la place)
     r.vit=gEl.classList.contains('vitrine');r.leo=garVueLeo(); // (2026-10-06) r.leo : la composition de la vitrine (la caisse décalée, l'entrée au milieu) — aussi dans la console de Sacha
     if(r.leo&&!r.vit&&W>H*1.2&&document.documentElement.classList.contains('hubOn')){const hb=document.documentElement.classList.contains('gtConsole')?null:$('gTourne'),hr=hb&&hb.getBoundingClientRect(); /* (2026-10-09) la barre du hub est partie : c'est la JAUGE qui tient le bas à gauche */if(hr&&hr.height>0&&hr.left<W*.3)r.y1=Math.min(r.y1,hb.offsetTop-8);} // couché, la barre du HUB tient le bas à gauche : la caisse se pose au-dessus — sa place FINALE (offsetTop ignore le glissé d'entrée `hubMonte`, qui faisait bouger le cadrage)
@@ -40307,8 +40308,8 @@ if(GTN.el){
    (position fixe, en bas à gauche). Même nœud, mêmes écouteurs : on ne fait que le déplacer quand l'orientation change. */
 const GT_COUCHE=matchMedia('(orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px)');
 function gtPlace(){if(!GTN.el)return;const bas=document.getElementById('gBottom'),act=document.getElementById('gAct'),hub=document.getElementById('gHub');
-  const dedans=!GT_COUCHE.matches&&bas&&act&&act.parentNode===bas,tete=document.getElementById('gTabs'),av=tete&&tete.parentNode===bas?tete:act; // (2026-10-10, Léo) debout : en TÊTE de la console, au-dessus des onglets
-  if(dedans){if(GTN.el.nextSibling!==av||GTN.el.parentNode!==bas)bas.insertBefore(GTN.el,av);}
+  const dedans=!GT_COUCHE.matches&&bas&&act&&act.parentNode===bas; // (2026-10-10, Léo : « au-dessus des trois bandes colorées ») debout : JUSTE AU-DESSUS de la console, hors du panneau
+  if(dedans){if(GTN.el.nextSibling!==bas)bas.parentNode.insertBefore(GTN.el,bas);}
   else if(hub&&GTN.el.previousSibling!==hub)hub.parentNode.insertBefore(GTN.el,hub.nextSibling);
   document.documentElement.classList.toggle('gtConsole',!!dedans);}
 try{gtPlace();if(GT_COUCHE.addEventListener)GT_COUCHE.addEventListener('change',gtPlace);else GT_COUCHE.addListener(gtPlace);}catch(e){}
