@@ -17115,6 +17115,7 @@ function lpWheel(o){
   else K.lathe('d',[[R*.64,-hw+.02],[R*.64,fx0-.05],[0,fx0-.05]],16,0,0,0,'x'); // fût + fond sombre
   for(const e of FACES){const fx=e*fx0;
   if(o.blanc)K.lathe('w',[[R*.70,e*(hw+.004)],[R*.86,e*(hw+.004)]],16,0,0,0,'x');
+  if(o.flanc)K.lathe('b',[[R*.80,e*(hw+.004)],[R*.86,e*(hw+.004)]],24,0,0,0,'x'); // (2026-10-10, LA DÉFERLANTE) un ANNEAU de la couleur de la bande, au bord du flanc
   if(o.style==='cadran'){
     K.lathe('c',[[R*.64,fx],[0,fx]],16,0,0,0,'x');
     for(let h=0;h<5;h++){const a=h/5*Math.PI*2;K.cyl('d',R*.13,.012,8,fx+e*.004,Math.sin(a)*R*.40,Math.cos(a)*R*.40,'x');}
@@ -17131,13 +17132,24 @@ function lpWheel(o){
     for(let s=0;s<n;s++){const a=s/n*Math.PI*2,d=Math.PI/N*.62;
       K.tri('a',pt(a-d,R*.655,e*(hw+.004)),pt(a+d,R*.655,e*(hw+.004)),pt(a,R*.85,e*(hw+.004)));}
     K.cyl('d',R*.10,.012,7,fx+e*.016,0,0,'x');                                // le cache-moyeu
+  }else if(o.style==='tourbillon'){
+    // (2026-10-10, LA DÉFERLANTE, Léo : « améliore un peu les roues ») LE TOURBILLON : un fond `fond`, `n` PALES EN SPIRALE (`jante`) qui
+    // partent du moyeu et tournent de 80°, leur pointe BLANCHE (l'écume) ; un moyeu `jante`, un cœur blanc. Lancée, la roue est un vortex.
+    // ⚠ rien ne dépasse fx + 0,022 : le flou de jante (voir ROUES.flou) se pose à fx + 0,024, par-dessus.
+    const n=o.n||7,pt=(a,rr,x)=>[x,Math.sin(a)*rr,Math.cos(a)*rr],X=fx+e*.012,NT=9;
+    K.lathe('d',[[R*.64,fx],[0,fx]],20,0,0,0,'x');
+    for(let s=0;s<n;s++){const a0=s/n*Math.PI*2;
+      for(let k=0;k<NT;k++){const t0=k/NT,t1=(k+1)/NT,r0=R*(.13+.50*t0),r1=R*(.13+.50*t1),q0=a0+1.4*t0,q1=a0+1.4*t1,
+        d0=R*(.11*(1-t0)+.04*t0)/(2*r0),d1=R*(.11*(1-t1)+.04*t1)/(2*r1),c=k>=NT-2?'w':'c';
+        K.tri(c,pt(q0-d0,r0,X),pt(q1-d1,r1,X),pt(q1+d1,r1,X));K.tri(c,pt(q0-d0,r0,X),pt(q1+d1,r1,X),pt(q0+d0,r0,X));}}
+    K.cyl('c',R*.15,.016,10,fx+e*.008,0,0,'x');K.cyl('w',R*.06,.012,8,fx+e*.016,0,0,'x');   // le moyeu, le cœur
   }else{
     const n=o.n||5,multi=o.style==='multi';
     K.lathe('c',[[R*.64,fx],[R*.55,fx]],16,0,0,0,'x');                     // la lèvre
     for(let s=0;s<n;s++){const a=s/n*Math.PI*2;
       K.box(multi?'c':'a',.03,R*.46,multi?R*.07:R*.13,fx-e*.012,Math.sin(a)*R*.33,Math.cos(a)*R*.33,-a);}
   }
-  if(o.style!=='enjoliveur'&&o.style!=='plis')K.cyl('c',R*.16,.05,8,fx-e*.01,0,0,'x'); // le moyeu
+  if(o.style!=='enjoliveur'&&o.style!=='plis'&&o.style!=='tourbillon')K.cyl('c',R*.16,.05,8,fx-e*.01,0,0,'x'); // le moyeu
   }
   return K.done();
 }
@@ -21569,7 +21581,7 @@ Object.assign(SHAPES,{
     g.userData.anime=anime;
     if(typeof BLING==='object'&&BLING&&BLING.anim)BLING.anim.push(anime);
     return {hl:[.36,.47,1.14],tl:[.46,.38,-2.44],wx:.82,wzF:ZF,wzR:-ZR,pots:[[.26,.34,-2.45],[-.26,.34,-2.45]],
-            lpw:{R:R,w:.27,style:'plis',n:9,jante:0x5ee6ff,accent:0x0a2c48,pneu:0x0a1622}};
+            lpw:{R:R,w:.27,style:'tourbillon',n:7,jante:0x5ee6ff,accent:0x5ee6ff,fond:0x061a2c,pneu:0x0a0f15,bande:0x5ee6ff,flanc:1}};
   }
 });
 /* ===== LA GAMME DES 50 — FIN ===== */
