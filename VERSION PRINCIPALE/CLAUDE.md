@@ -100,6 +100,20 @@ plafonds de lacet et de tangage, vol libre, vrille visuelle, drift = un geste. C
   `index.html` sur GitHub (`MAIN_URL`, raw du main, CORS ouvert), copie locale en secours (`?source=local` la force), la source est écrite
   sous le titre ; toutes les 2 min elle compare l'empreinte du main et propose « Le main a bougé · mettre la gamme à jour ». Les gabarits
   posés hors de la gamme (`SHAPES.xxx=function…`) sont tous ramassés tout seuls (ceux de demain compris).
+- **LES POTS D'ÉCHAPPEMENT (10/10, Léo : « une grosse révision très précise sur chacune des voitures — ne change rien, garde-les telles
+  qu'elles sont : juste un pot d'échappement pour chacune, adapté au modèle ; fais la différence »)** : bloc « LES POTS D'ÉCHAPPEMENT »
+  juste après `LPU` (entre deux marqueurs : la salle le lit avec LPU). `ECH_POTS` (⚠ pas `ECH` : le banc du téléphone a déjà le sien)
+  = un pot PAR GABARIT, pour les 48 de la liste ; `ECHP` = les pièces (rond/ovale à bouche roulée, double paroi, évasé, bout brûlé,
+  lueur ; rect et double sortie ; plaque ; fente ; tuyère à pétales ; cloche ; ouïes ; gueule à crocs ; sortie latérale ; pot latéral
+  à écran perforé ; cheminées à clapet ; collecteurs du HOT ROD ; nuage ; pixel arc-en-ciel ; triangle ; cristal ; épave tordue) ;
+  `ECH_PAL` = leurs matières. Deux temps : `echRetire` (dans le `commit` du kit, jeu ET salle) ÔTE l'ancien embout, triangle par
+  triangle, seulement ce qui tient EN ENTIER dans l'embout (mêmes critères que le relevé CAR_POTS, + les boîtes `ote` de la fiche) ;
+  `echappement(K,shape,A)` (juste après le gabarit) dessine le nouveau pot, ôte les vieux canons des gabarits d'avant le kit (`vieux`),
+  coupe les cylindres canoniques (`A.pipes=0`) et DÉCLARE ses bouches (`A.pots`, 4 au plus) : flammes, tuyères et traînées en sortent.
+  Les positions ont été posées au banc sur la poupe RÉELLE (rayon depuis l'arrière, limité à la poupe — sinon, sous une caisse, il
+  frappait l'avant). Un pot à changer : sa ligne dans `ECH_POTS`. Exemples : ELDORADO ovales dans le pare-chocs, SAMOURAÏ canon de
+  titane bleui, CAÏD sorties latérales sous le marchepied, MASTODONTE cheminées (ses deux pots plongeants ôtés), TRÔNE sortie centrale
+  sur feuille d'or, SQUALE ouïes, RAIE pots latéraux, ACIDE un canon géant à lueur verte, la HONTE un tuyau rouillé qui pend.
 - **LA LISTE SUR LE DISQUE (9/10, Léo : « quand tu vois la liste a changé, demande et précise c'quoi le changement, et demande si
   push sur main »)** : servie par `salle-blanche/serveur.py 8975` (au lieu d'`http.server`), la page envoie chaque enregistrement
   (`versDisque`, 0,9 s après, `sendBeacon` à la fermeture, seulement sur 127.0.0.1/localhost) → `salle-blanche/sauvegarde.json` (état,

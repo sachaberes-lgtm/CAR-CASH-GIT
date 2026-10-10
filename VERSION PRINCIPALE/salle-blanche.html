@@ -264,7 +264,7 @@ function evaluerJeu(SRC){
     ...L.map((l,i)=>/^SHAPES\.\w+=/.test(l)?i:-1).filter(i=>i>=0).map(i=>{let b=i+1;while(b<L.length&&!L[b].startsWith('};'))b++;return L.slice(i,b+1).join('\n');}),
     bloc('const NY_U=','const SHAPES={',false),
     L[ligne('const ATCH=')],
-    'return {CARS,CAR_UNLOCK,carRar,carOrdre,AURA_RANKS,SHAPES,lpKit,lpWheel,lpOmbre,carProfile,SPH9,FACET_SHAPES,geoFacette,monte:function(g){carGroup=g;}};'];
+    'return {CARS,CAR_UNLOCK,carRar,carOrdre,AURA_RANKS,SHAPES,lpKit,lpWheel,lpOmbre,carProfile,SPH9,FACET_SHAPES,geoFacette,echRetire,echappement,monte:function(g){carGroup=g;}};'];
   const stubs={envTex:null,carFins:[],rimify:()=>{},lpGrad:()=>{},nuageShader:()=>{},vMat:m=>m,lampTex:null,
     LINGOT_MAT:(()=>{const m=new THREE.MeshPhongMaterial({color:0xc08a1c});m.userData.g='o';return m;})(),
     LINGOT_PL:(()=>{const m=new THREE.MeshPhongMaterial({color:0xd99a1c});m.userData.g='o';return m;})(),
@@ -292,12 +292,13 @@ function assemble(i){
   // ⚠ les pièces du kit sont peintes DES DEUX CÔTÉS, comme dans le jeu (lpMat : DoubleSide) — sinon une face retournée devient un trou
   //   (le SQUALE montrait des « transparences » partout, Léo 9/10)
   const lpM={},lpMatC=g=>lpM[g]||(lpM[g]=tag(new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide}),g)),kitM=m=>{m.userData.kit=1;return m;};
-  const commit=kt=>{const gs=kt.done();for(const g in gs){if(g!=='l')lpOmbre(gs[g],H9);add(new THREE.Mesh(gs[g],kitM(lpMatC(g))));}};
+  const commit=kt=>{const gs=kt.ech?kt.done():G.echRetire(kt.done(),kt.prims,spec.shape);for(const g in gs){if(g!=='l')lpOmbre(gs[g],H9);add(new THREE.Mesh(gs[g],kitM(lpMatC(g))));}}; // (l'ancien embout ôté, voir echRetire)
   const K={W:W9,H:H9,L:L9,y0,spec,wreck,add,box,prof,cyl,sph,con,kit:pal=>lpKit(pal),commit,
     body:bodyM,acc:accM,glass:glassM,chrome:chromeM,dark:darkM,rust:rustM};
   const A=Object.assign({hl:[W9*.32,y0+H9*.50,L9/2+.16],tl:[W9*.30,y0+H9*.55,-L9/2-.10],wr:1,wx:W9/2,wz:L9/2-.75,wy:0,
     glowX:W9/2+.02,glowY:y0+H9*.42,glowL:L9*.82,glowF:1,sp:1,skirt:1,split:1,doors:0,slats:0,wings:'panel'},SHAPES[spec.shape](K)||{});
   if(A.lpw)Object.assign(A,{lamps:0,pipes:0,sp:0,split:0,doors:0,slats:0});
+  G.echappement(K,spec.shape,A);                       // LE POT de la caisse, comme buildCar (il déclare ses bouches)
   if(spec.spoiler&&A.sp){box(W9*.98,.09,.5,accM,0,y0+H9+.42,-L9/2+.12);for(const sd of[-1,1])box(.09,.34,.12,darkM,sd*W9*.36,y0+H9+.22,-L9/2+.12);}
   if(spec.glow){const gm=tag(new THREE.MeshBasicMaterial({color:spec.glow}),'l');
     for(const sd of[-1,1])box(.05,.06,A.glowL,gm,sd*A.glowX,A.glowY,0);if(A.glowF)box(W9*.7,.06,.05,gm,0,y0+H9*.5,L9/2+.02);}
