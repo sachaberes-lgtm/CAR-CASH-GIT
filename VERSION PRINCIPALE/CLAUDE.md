@@ -9,8 +9,10 @@
   n'importe quoi ») les 10 qui ont LEUR musique finale (`musicLieuVoulu`) : SKY HIGH 1-5 = CIEL · NIVEAU 1-5 (`MUSIC_CIEL`), VILLE 1-5 = NÉON
   COMPLÈTE 1-5 (`MUSIC_VILLE`) — chaque carte la fait écouter. Repliées en bas, « Les autres · pas de musique finale » (11) : MER DE NUAGES
   matin/midi/aprem (morceau entier CIEL), L'ORAGE (SWAG CASH CAR), SKY HIGH 6-10 (retirées le 4/10, NOITE — leurs pistes vivent encore dans
-  genCampagne : photographiées en remettant les niveaux dans une COPIE de capture, jamais dans index.html), PARC FREESTYLE, PICS DE JADE
-  (branche map-jade). Données : `CATS0` / `MAPS0` en tête du script (`mus` : titre, fichier, fin). Clé du navigateur `cashcar.mapsCiel.v2`.
+  genCampagne : photographiées en remettant les niveaux dans une COPIE de capture, jamais dans index.html), PARC FREESTYLE. Entre les deux
+  (10/10, Léo : « garde-le sur une liste de maps qu'on garde pour le jeu ») : « Nouvelles maps · à garder pour le jeu » (`garder`) — PICS DE
+  JADE (branche map-jade, `?map=jade` ; photo `img/jade-volant.jpg` reprise de la v8 : cubes minuscules, fleuve, nuages en volutes). Une
+  sauvegarde plus ancienne est rangée une fois (`mig.garder` dans `propre`). Données : `CATS0` / `MAPS0` en tête du script (`mus` : titre, fichier, fin). Clé du navigateur `cashcar.mapsCiel.v2`.
 - La page : glisser une carte (trait bleu = où elle tombe) d'une catégorie à l'autre ou vers À SUPPRIMER, renommer (clic sur le nom),
   note par map, notes générales, catégories ajoutées/renommées/montées/supprimées (vides), ⌘Z, REMETTRE (tout comme dans le jeu), grande
   vue (← → espace). Chaque geste s'écrit dans le navigateur ; SAUVEGARDER (⌘S) POST → `maps-ciel/sauvegarde.json`

@@ -241,6 +241,7 @@
 const CATS0=[
   {id:'ciel',   nom:'SKY HIGH · musique finale',            c:'#0a84ff'},
   {id:'ville',  nom:'VILLE · musique finale',               c:'#ff2d92'},
+  {id:'garder', nom:'Nouvelles maps · à garder pour le jeu', c:'#1fae84'}, // (10/10, Léo : « garde-le sur une liste de maps qu'on garde pour le jeu »)
   {id:'autres', nom:'Les autres · pas de musique finale',   c:'#a1a1a6',plie:true}];
 const MC=k=>({t:'CIEL · NIVEAU '+k,f:'assets/audio/music/ciel/ciel-n'+k+'.m4a',fin:1}),MV=k=>({t:'NÉON COMPLÈTE '+k,f:'assets/audio/music/ville/ville-n'+k+'.m4a',fin:1});
 const NOITE={t:'NOITE DE VELOCIDADE (avant le retrait)',f:'assets/audio/music/noite-de-velocidade.mp3'};
@@ -285,8 +286,8 @@ const MAPS0=[
    idee:'Retirée le 4/10. La caisse-nuage file devant : reste dans son sillage pour la gagner.',ou:'retirée le 4/10 · genCampagne(10) existe encore'},
   {id:'parc',cat:'autres',nom:'PARC FREESTYLE',code:'MODE',heure:'—',pr:'',g:['#ff9a3c','#ffd76a'],mus:null,
    idee:'Le parc de figures : nitro libre, ni mort, ni portail, ni course.',ou:'MODES › PARC FREESTYLE (PARK)'},
-  {id:'jade',cat:'autres',nom:'PICS DE JADE',code:'ESSAI',heure:'brume',pr:'',g:['#3d6b5c','#cfe8d8'],mus:null,
-   idee:'Montagnes qui flottent, en cubes de jade translucides, au-dessus de la mer de nuages. La voiture seule, sans jeu (balade).',ou:'branche map-jade (pas sur main) · ?map=jade'}];
+  {id:'jade',cat:'garder',nom:'PICS DE JADE',code:'NOUVELLE MAP',heure:'jour de brume',pr:'',g:['#2f6f8f','#cfe8d8'],mus:null,
+   idee:"Les piliers de Zhangjiajie qui flottent, faits de cubes minuscules en verre de jade, au-dessus d'un fleuve bleu de peinture chinoise ; dans le ciel, des nuages en volutes. Une arche et un pont de pierre sur la route. Pour l'instant la voiture seule (balade) : le niveau complet reste à faire.",ou:'branche map-jade (pas sur main) · ?map=jade'}];
 
 /* =====================================================================================================================
    L'ÉTAT — ce que Léo change. { t, cats:[{id,nom,c}], ordre:{cat:[ids]}, maps:{id:{nom,note}}, corbeille:[ids], generales, journal }
@@ -296,16 +297,22 @@ let E=null,ANNUL=[],VUE='volant',sauveT=0,modifie=false;
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const M0={};MAPS0.forEach(m=>{M0[m.id]=m;});
 function etatNeuf(){
-  const o={v:1,t:0,cats:CATS0.map(c=>({...c})),ordre:{},maps:{},corbeille:[],generales:'',journal:[]};
+  const o={v:1,t:0,cats:CATS0.map(c=>({...c})),ordre:{},maps:{},corbeille:[],generales:'',journal:[],mig:{garder:1}};
   CATS0.forEach(c=>{o.ordre[c.id]=MAPS0.filter(m=>m.cat===c.id).map(m=>m.id);});
   MAPS0.forEach(m=>{o.maps[m.id]={nom:m.nom,note:''};});
   return o;
 }
 function propre(o){ // une sauvegarde lue (disque ou navigateur) : on garde la forme, on rattrape les maps ajoutées depuis
   const n=etatNeuf();if(!o||typeof o!=='object'||!Array.isArray(o.cats))return n;
-  const r={v:1,t:+o.t||0,cats:[],ordre:{},maps:{},corbeille:[],generales:String(o.generales||''),journal:Array.isArray(o.journal)?o.journal.slice(-500):[]};
+  const r={v:1,t:+o.t||0,cats:[],ordre:{},maps:{},corbeille:[],generales:String(o.generales||''),journal:Array.isArray(o.journal)?o.journal.slice(-500):[],mig:{}};
   o.cats.forEach(c=>{if(c&&c.id&&!r.ordre[c.id]){r.cats.push({id:String(c.id),nom:String(c.nom||'Sans nom'),c:String(c.c||'#999'),plie:!!c.plie});r.ordre[c.id]=[];}});
   if(!r.cats.length)return n;
+  r.mig=Object.assign({},o.mig||{});
+  if(!r.mig.garder){r.mig.garder=1; // (10/10) la catégorie « à garder pour le jeu » arrive, PICS DE JADE y passe (une fois : ensuite c'est Léo qui range)
+    if(!r.ordre.garder){const i=r.cats.findIndex(c=>c.id==='ville');r.cats.splice(i<0?r.cats.length:i+1,0,{...CATS0.find(c=>c.id==='garder')});r.ordre.garder=[];}
+    for(const c of r.cats){const a=(o.ordre||{})[c.id];if(a&&c.id!=='garder'){const k=a.indexOf('jade');if(k>=0)a.splice(k,1);}}
+    if(o.corbeille){const k=o.corbeille.indexOf('jade');if(k>=0)o.corbeille.splice(k,1);}
+    o.ordre=o.ordre||{};o.ordre.garder=['jade'].concat((o.ordre.garder||[]).filter(x=>x!=='jade'));}
   const vu=new Set();
   r.cats.forEach(c=>{((o.ordre||{})[c.id]||[]).forEach(id=>{if(M0[id]&&!vu.has(id)){vu.add(id);r.ordre[c.id].push(id);}});});
   (o.corbeille||[]).forEach(id=>{if(M0[id]&&!vu.has(id)){vu.add(id);r.corbeille.push(id);}});
@@ -405,7 +412,8 @@ function rendu(){
   if(rendu.neuve){const n=L.querySelector('.carte[data-id="'+rendu.neuve+'"]');if(n)n.classList.add('neuve');rendu.neuve=null;}
   const tot=MAPS0.length,sup=E.corbeille.length;
   const fin=MAPS0.filter(m=>m.mus&&m.mus.fin).length;
-  $('#compte').textContent=fin+' avec leur musique finale · '+(tot-fin)+' autres'+(sup?' · '+sup+' à supprimer':'');
+  const gar=(E.ordre.garder||[]).length;
+  $('#compte').textContent=fin+' avec leur musique finale · '+(gar?gar+' à garder · ':'')+(tot-fin-gar)+' autres'+(sup?' · '+sup+' à supprimer':'');
   $('#annuler').disabled=!ANNUL.length;
   if($('#grand').classList.contains('on'))grandMaj();
 }
