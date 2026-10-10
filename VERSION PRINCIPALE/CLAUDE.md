@@ -85,7 +85,7 @@ d'aller dans cette map avec une voiture, la mobilité comme le main, mais seulem
   fois par session) ; collisions et règle d'or OK (3 vallées), Porte et Pont traversés. sw.js → v209.
 - **v8 — LE FLEUVE, LES VOLUTES, LES CUBES TROIS FOIS PLUS PETITS** (2026-10-10, Léo : « trois fois plus petit [les cubes] … un dessous, que
   ce soit la mer — qui fasse penser au fleuve des peintures chinoises, mais bleu … en haut, des ciels, avec des nuages style asiatique ; le
-  ciel suit la colorimétrie ; si ça peut donner de la force aux nuages ») — LA VERSION EN COURS.
+  ciel suit la colorimétrie ; si ça peut donner de la force aux nuages »).
   · **LE FLEUVE** (dôme, `jadeCiel`, sous l'horizon, à la place de la mer de nuages) : le bleu minéral des rouleaux (千里江山图) — lavis
     bleu-vert, LIGNES D'EAU peintes (un trait tous les 17 m, cassées en coups de pinceau, effacées avant de grésiller), houles, éclat du
     soleil sur les lignes, le ciel au ras, la brume au loin. Les pieds des montagnes se noient dans la brume blanche au-dessus de l'eau.
@@ -105,6 +105,16 @@ d'aller dans cette map avec une voiture, la mobilité comme le main, mais seulem
     triangles par gabarit fin, l'arche fine ~0,74 M ; collisions et règle d'or OK, Porte et Pont traversés. sw.js → v210.
   · Rangée dans la page des maps (`CAR-maps`, « Nouvelles maps · à garder pour le jeu », Léo : « garde-le sur une liste de maps qu'on garde
     pour le jeu ») — pas encore un niveau du jeu.
+- **v9 — LES VOLUTES EN RELIEF, LA ROUTE EN JADE** (même jour, Léo : « les nuages plus transparents, moins autocollants, plus 3D ; et surtout,
+  la route : en jade ») — LA VERSION EN COURS.
+  · **LES VOLUTES** : plus de dessin cerné d'encre — `jadeNuagesTex` cuit une CARTE DE HAUTEUR (texture de données : R hauteur, V spirale,
+    A couverture) faite de boules (lobes, base en coussins aplatis, queue en tube qui s'effile et s'enroule), les spirales CREUSÉES dans les
+    lobes ; `JADE_NUAGE_M` en tire la normale, l'éclaire au soleil de la map (ombre jade-bleue dessous, contre-jour dans les bords minces),
+    opacité = épaisseur (bords presque transparents). Un VOILE derrière chaque volute (décalé, ×1,18, à moitié, renderOrder 4,4) : il
+    glisse autrement quand on roule — la profondeur.
+  · **LA ROUTE EN JADE** (`ROAD_U.uJadeR` = LVL.jade, branche uniforme du bitume, rien ailleurs) : vert profond peu saturé, ses nuages
+    laiteux, des VEINES pâles qui courent LE LONG de la route (une fonction du travers décalée par le long : jamais d'anneau), polie (`GLACE.jade`
+    .45 : le ciel en rasant ; un éclat de soleil), une lueur intérieure (+16 %). Essayé avant : un vert vif à anneaux blancs (« plastique »).
 - Mesuré (Chrome sans fenêtre du Mac) : 60 i/s, construction 16-28 ms, tri ~0,03 ms ; collisions (`dbgJadeHeurt('test')`, 3 vallées) :
   piliers durs, arche et dessous du pont libres, AUCUN point de la route dans la pierre. Console : `dbgJade()`, `dbgJadeVue('route'|'porte'|
   'pont'|'haut'|'loin'|'grue',d,h,cap)` (photo figée), `dbgGrues()`. sw.js → v203.

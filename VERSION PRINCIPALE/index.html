@@ -10569,7 +10569,7 @@ function genPark(rnd){
      · une CLARTÉ PAR NIVEAU (`uLift`) : la VILLE a un bitume plus clair, qui se détache de la ville sombre (user).
    Les uniformes vivent dans ROAD_U, PARTAGÉS par toutes les pistes : routeTick() les écrit une fois par image. */
 const ROAD_U={uLift:{value:new THREE.Color(0,0,0)},uSheen:{value:.1},uSheenCol:{value:new THREE.Color(.4,.3,.5)},uWet:{value:0},uAcc:{value:new THREE.Color(0xf24aa0)},uVil:{value:0},uEcl:{value:0},
-  uGlace:{value:0},uSunW:{value:SUN_DIR},uTeinte:{value:new THREE.Color(1,1,1)}}; // (passe graphismes mobile) uGlace/uSunW : le BITUME GLACÉ des routes sèches (voir roadMat) — la direction du soleil est SUN_DIR lui-même (même objet) // uWet/uAcc : le bitume MOUILLÉ de la ville (voir BITUME_MOUILLE)
+  uGlace:{value:0},uSunW:{value:SUN_DIR},uTeinte:{value:new THREE.Color(1,1,1)},uJadeR:{value:0}}; // (v9) uJadeR : la route EN JADE (les PICS DE JADE seulement, LVL.jade) // (passe graphismes mobile) uGlace/uSunW : le BITUME GLACÉ des routes sèches (voir roadMat) — la direction du soleil est SUN_DIR lui-même (même objet) // uWet/uAcc : le bitume MOUILLÉ de la ville (voir BITUME_MOUILLE)
 let ASPH_TEX=null;const ASPH_K=1.7; // (vague 2) finesse du grain lu par le bitume (voir roadMat)
 function asphTex(){ if(ASPH_TEX)return ASPH_TEX;
   const N=256,cv=document.createElement('canvas');cv.width=cv.height=N;const c=cv.getContext('2d'),im=c.createImageData(N,N),d=im.data;
@@ -10625,13 +10625,22 @@ function roadMat(){
   m.userData.bitume=face?2:1;m.userData.sauts=sauts; // 2 = face cachée jetée (bloc du dessous retourné), 1 = l'ancien DoubleSide
   m.onBeforeCompile=function(sh){
     sh.uniforms.uLift=ROAD_U.uLift;sh.uniforms.uSheen=ROAD_U.uSheen;sh.uniforms.uSheenCol=ROAD_U.uSheenCol;
-    sh.uniforms.uTeinte=ROAD_U.uTeinte;sh.uniforms.uWet=ROAD_U.uWet;sh.uniforms.uAcc9=ROAD_U.uAcc;sh.uniforms.uT9=CITY.uT;sh.uniforms.uVil9=ROAD_U.uVil;sh.uniforms.uEcl9=ROAD_U.uEcl;sh.uniforms.uGlace=ROAD_U.uGlace;sh.uniforms.uSunW=ROAD_U.uSunW;
+    sh.uniforms.uTeinte=ROAD_U.uTeinte;sh.uniforms.uWet=ROAD_U.uWet;sh.uniforms.uAcc9=ROAD_U.uAcc;sh.uniforms.uT9=CITY.uT;sh.uniforms.uVil9=ROAD_U.uVil;sh.uniforms.uEcl9=ROAD_U.uEcl;sh.uniforms.uGlace=ROAD_U.uGlace;sh.uniforms.uSunW=ROAD_U.uSunW;sh.uniforms.uJadeR=ROAD_U.uJadeR;
     if(face)sh.vertexShader=sh.vertexShader.replace('#include <color_vertex>','#include <color_vertex>\nvColor=abs(vColor);') // le dessous porte des couleurs NIÉES : on relit leur valeur
       .replace('#include <shadowmap_vertex>',THREE.ShaderChunk.shadowmap_vertex.split('inverseTransformDirection( transformedNormal, viewMatrix )')
         .join('inverseTransformDirection( transformedNormal*(color.r<0.?-1.:1.), viewMatrix )')); // …et le décalage d'ombre reprend la normale d'avant le retournement
-    sh.fragmentShader='uniform vec3 uTeinte;uniform vec3 uLift;uniform float uSheen;uniform vec3 uSheenCol;uniform float uWet;uniform vec3 uAcc9;uniform float uT9;uniform float uGlace;uniform vec3 uSunW;uniform float uVil9,uEcl9;\n'+
+    sh.fragmentShader='uniform vec3 uTeinte;uniform vec3 uLift;uniform float uSheen;uniform vec3 uSheenCol;uniform float uWet;uniform vec3 uAcc9;uniform float uT9;uniform float uGlace;uniform vec3 uSunW;uniform float uVil9,uEcl9,uJadeR;\n'+
+      'float jdH9(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}float jdN9(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(jdH9(i),jdH9(i+vec2(1.,0.)),f.x),mix(jdH9(i+vec2(0.,1.)),jdH9(i+vec2(1.,1.)),f.x),f.y);}\n'+
       sh.fragmentShader.replace('void main() {',BITUME_MOUILLE+'void main() {').replace('#include <lights_fragment_begin>',sauts?LFB_ROUTE:LFB_SANS_PL)
-      .replace('#include <map_fragment>','vec4 texelColor=texture2D(map,vUv*'+ASPH_K.toFixed(2)+');float spec9=texelColor.r;texelColor=mapTexelToLinear(texelColor);diffuseColor*=texelColor;diffuseColor.rgb*=uTeinte;')
+      .replace('#include <map_fragment>','vec4 texelColor=texture2D(map,vUv*'+ASPH_K.toFixed(2)+');float spec9=texelColor.r;texelColor=mapTexelToLinear(texelColor);diffuseColor*=texelColor;diffuseColor.rgb*=uTeinte;'+
+      /* (v9, Léo : « et surtout, la route : en jade ») LA ROUTE EN JADE — un vert profond qui a ses NUAGES (le vert clair, le blanc laiteux du
+         « coton » du jade), une VEINE pâle qui court le long de la route ; polie (le ciel s'y reflète en rasant, un éclat de soleil), et la
+         lumière qui la traverse la fait luire de l'intérieur. vUv est en mètres/4. Une branche uniforme : rien ailleurs. */
+      'if(uJadeR>.001){vec2 jq=vUv*4.;float j1=jdN9(jq*vec2(.022,.006)),j2=jdN9(jq*vec2(.07,.02)+3.1),j3=jdN9(jq*vec2(.25,.07)+7.7);'+
+      'vec3 jc=mix(vec3(.018,.085,.065),vec3(.06,.24,.17),smoothstep(.2,.85,j1*.65+j2*.35));jc=mix(jc,vec3(.22,.40,.32),smoothstep(.62,.88,j2*.6+j3*.4)*.45);'+ // le vert profond, peu saturé, ses nuages laiteux
+      'float va=jq.x*.032+.9*jdN9(vec2(jq.y*.006,1.3))+.35*jdN9(jq*vec2(.02,.005)+5.),vj=pow(1.-abs(2.*fract(va)-1.),40.)*smoothstep(.35,.7,jdN9(vec2(floor(va)*7.1,jq.y*.004)));'+ // les VEINES courent le long de la route (jamais d anneau)
+      'jc=mix(jc,vec3(.52,.68,.58),vj*.5);'+
+      'diffuseColor.rgb=mix(diffuseColor.rgb,jc,uJadeR);spec9=mix(spec9,.9,uJadeR);}')
       .replace('#include <specularmap_fragment>','float specularStrength=spec9;').replace('#include <envmap_fragment>',
       '#include <envmap_fragment>\n{float fr9=pow(1.0-clamp(abs(dot(normal,normalize(vViewPosition))),0.0,1.0),4.0);float lk9=1.;\n'+
       '#if defined(USE_ENVMAP)&&defined(ENVMAP_TYPE_CUBE)\nif(uWet>.001){vec4 w9=bitumeMouille(outgoingLight,reflectVec,normal,normalize(vViewPosition));outgoingLight=w9.rgb;lk9=w9.a;}\n'+
@@ -10641,8 +10650,9 @@ function roadMat(){
          dégradé du ciel et la bande rose de l'horizon vers le lointain et sur les dalles qui tournent. Le reflet du SOLEIL en est retiré
          (la traînée dure que Sacha avait refusée le 26/09) ; la pluie de la VILLE garde son eau (uGlace y vaut 0). Zéro lecture de plus. */
       'if(uGlace>.001){float cg9=clamp(abs(dot(normal,normalize(vViewPosition))),0.,1.),g9=1.-cg9;g9=g9*g9*g9*g9*g9;'+
-      'outgoingLight+=envColor.rgb*(g9*uGlace*(1.-smoothstep(.90,.985,dot(normalize(reflectVec),uSunW))));}\n#endif\n'+
-      'outgoingLight+=uLift*lk9+uSheenCol*(uSheen*fr9);}');
+      'outgoingLight+=envColor.rgb*(g9*uGlace*(1.-smoothstep(.90,.985,dot(normalize(reflectVec),uSunW))));}\n'+
+      'if(uJadeR>.001)outgoingLight+=vec3(1.,.96,.86)*pow(max(dot(normalize(reflectVec),uSunW),0.),90.)*.35*uJadeR;\n#endif\n'+ // (v9) l éclat du soleil sur le jade poli
+      'outgoingLight+=uLift*lk9*(1.-uJadeR*.7)+uSheenCol*(uSheen*fr9);if(uJadeR>.001)outgoingLight+=diffuseColor.rgb*.16*uJadeR;}');
   };
   m.customProgramCacheKey=function(){return 'bitumeV5'+(face?'f':'')+(sauts?'s':'');}; // UNE compilation pour toutes les pistes
   return m;
@@ -10765,14 +10775,14 @@ function trancheMat(){
   return m;
 }
 const ROUTE_JOUR=[.86,.94,.86]; /* (niveau 1 v2) [1,1.12,.88] → plus SOMBRE : au banc le bitume du midi sortait gris clair (L* ~55), au niveau des nuages — la route doit être le ruban le plus sombre de l'image pour que la caisse orange et le ciel clair se lisent contre elle (L10 26 → 10) */ // (2026-09-30) la teinte du bitume au jour d'altitude (× la base violette 0x322e40 → un anthracite à peine bleuté)
-const GLACE={k:1,nuages:.45,espace:.5};
+const GLACE={k:1,nuages:.45,espace:.5,jade:.45}; // (v9) le jade est POLI : il renvoie le ciel en rasant
 const ROUTE_JADE=[.95,1.04,.86]; // (2026-10-09) LES PICS DE JADE : le bitume en gris de pierre (× la base violette) // (passe graphismes mobile) la part du ciel dans le bitume sec, par niveau (la VILLE a son eau) — `dbgGfx({glace:0})` = l'ancien bitume
 const _px9=new THREE.Vector2();
 function routeTick(){ // le bitume suit le NIVEAU (fondu du portail : LVL.route / LVL.sheen, voir lvlStep)
   renderer.getDrawingBufferSize(_px9);TRAIT_U.uPx.value=2*Math.tan(camera.fov*Math.PI/360)/Math.max(1,_px9.y); // la taille d'un pixel à 1 m (suit le FOV de vol et la résolution adaptative)
   const r=LVL.route,pa9=LVL.paris||0;ROAD_U.uLift.value.setRGB(.010+.15*r+(.004-.006*r)*pa9,.009+.13*r+(.005+.012*r)*pa9,.016+.16*r-(.004+.03*r)*pa9); // (Paris) un gris d'asphalte NEUTRE, pas le violet de la nuit // ⚠ l'étalonnage de la pluie écrase le rouge et le vert : la clarté doit être NEUTRE et franche pour se lire (mesuré : (0,0,17) → (2,0,47) avec une clarté bleutée de .05)
   ROAD_U.uSheen.value=LVL.sheen;ROAD_U.uWet.value=Math.max(LVL.pluie,parisPluie()*1.8);ROAD_U.uVil.value=LVL.ville;try{ROAD_U.uEcl.value=CAMP_FLASH;}catch(e){} /* (2026-09-30) les enseignes reflétées : en VILLE seulement · l'éclair dans les flaques (CAMP_FLASH est déclaré plus bas : le try couvre l'init) */ // (2026-09-26) le bitume se mouille avec la pluie du niveau, au même fondu
-  ROAD_U.uGlace.value=GLACE.k*(GLACE.nuages*LVL.mer+GLACE.espace*LVL.espace)*(1-LVL.pluie);
+  ROAD_U.uGlace.value=GLACE.k*(GLACE.nuages*LVL.mer+GLACE.espace*LVL.espace+GLACE.jade*(LVL.jade||0))*(1-LVL.pluie);ROAD_U.uJadeR.value=LVL.jade||0;
   {const j9=LVL.mer*skyU.uJour.value,jd9=LVL.jade||0;ROAD_U.uTeinte.value.setRGB((1+(ROUTE_JOUR[0]-1)*j9)*(1+(ROUTE_JADE[0]-1)*jd9),(1+(ROUTE_JOUR[1]-1)*j9)*(1+(ROUTE_JADE[1]-1)*jd9),(1+(ROUTE_JOUR[2]-1)*j9)*(1+(ROUTE_JADE[2]-1)*jd9));} // (2026-09-30) LE JOUR D'ALTITUDE : l'asphalte des NUAGES en gris d'anthracite (le violet de la nuit, sous un ciel turquoise, se lisait en encre violette) // (passe graphismes mobile) le bitume GLACÉ des routes sèches — voir roadMat
   coneBandMat.emissiveIntensity=.25+.6*LVL.pluie; // (2026-09-26) la nuit de pluie, les bandes des plots RÉTRORÉFLÉCHISSENT : on les lit de loin (un uniforme, zéro recompilation)
   ROAD_U.uSheenCol.value.copy(scene.fog.color).multiplyScalar(.9); // (2026-09-26) ×1,5 → ×0,9 : la brillance rasante blanchissait tout le lointain
@@ -13134,12 +13144,15 @@ function buildJade(seed){
   {const NU=[],pasN=Math.max(1,Math.round(480/(L/(NP-1))));
    for(let i=0;i<NP;i+=pasN){const t9=T[i],hl=Math.hypot(t9.x,t9.z)||1,px=-t9.z/hl,pz=t9.x/hl;
      for(let k=0;k<3;k++){const r9=jr();if(r9>.8)continue;const sg=jr()<.5?-1:1,haut=true,lat=haut?1000+Math.pow(jr(),.8)*3000:1500+jr()*2600,al=(jr()-.5)*700,w=haut?800+jr()*1100:1500+jr()*1300;
-       const y=haut?pts[i].y+260+jr()*820:JADE.merY+60+jr()*150;NU.push([pts[i].x+px*sg*lat+t9.x/hl*al,y,pts[i].z+pz*sg*lat+t9.z/hl*al,w,w*.5,(jr()*16)|0,jr()]);}
-     if(jr()<.35){const sg=jr()<.5?-1:1,lat=250+jr()*500,w=600+jr()*600;NU.push([pts[i].x+px*sg*lat,pts[i].y+780+jr()*600,pts[i].z+pz*sg*lat,w,w*.5,(jr()*16)|0,jr()]);}} // au-dessus de la route
+       const y=haut?pts[i].y+260+jr()*820:JADE.merY+60+jr()*150;NU.push([pts[i].x+px*sg*lat+t9.x/hl*al,y,pts[i].z+pz*sg*lat+t9.z/hl*al,w,w*.5,(jr()*16)|0,jr(),pts[i].x,pts[i].z]);}
+     if(jr()<.35){const sg=jr()<.5?-1:1,lat=250+jr()*500,w=600+jr()*600;NU.push([pts[i].x+px*sg*lat,pts[i].y+780+jr()*600,pts[i].z+pz*sg*lat,w,w*.5,(jr()*16)|0,jr(),pts[i].x,pts[i].z]);}} // au-dessus de la route
    if(NU.length){if(!JADE_NUAGE_M.uniforms.uTex.value)JADE_NUAGE_M.uniforms.uTex.value=jadeNuagesTex();
-     const g=new THREE.PlaneGeometry(1,1),im=new THREE.InstancedMesh(g,JADE_NUAGE_M,NU.length),Mx=new THREE.Matrix4(),aj=new Float32Array(NU.length*4);
-     NU.forEach(function(n,k){Mx.makeTranslation(n[0],n[1],n[2]);im.setMatrixAt(k,Mx);aj.set([n[3],n[4],n[5],n[6]],k*4);});
-     g.setAttribute('aJ',new THREE.InstancedBufferAttribute(aj,4));im.userData.jeter=true;im.frustumCulled=false;im.renderOrder=4.5;root.add(im);JADE.nuages=NU.length;}}
+     const Mx=new THREE.Matrix4(),couche=(L9,ro)=>{const g=new THREE.PlaneGeometry(1,1),im=new THREE.InstancedMesh(g,JADE_NUAGE_M,L9.length),aj=new Float32Array(L9.length*4);
+       L9.forEach(function(n,k){Mx.makeTranslation(n[0],n[1],n[2]);im.setMatrixAt(k,Mx);aj.set([n[3],n[4],n[5],n[6]],k*4);});
+       g.setAttribute('aJ',new THREE.InstancedBufferAttribute(aj,4));im.userData.jeter=true;im.frustumCulled=false;im.renderOrder=ro;root.add(im);};
+     const VO=NU.map(function(n){const dx=n[0]-n[7],dz=n[2]-n[8],hl=Math.hypot(dx,dz)||1,o=n[3]*(.10+jr()*.08); // (v9) le VOILE de derrière : décalé, plus grand, à moitié — il glisse autrement quand on roule (la profondeur)
+       return [n[0]+dx/hl*o,n[1]+n[4]*(.08+jr()*.1),n[2]+dz/hl*o,n[3]*1.18,n[4]*1.18,(n[5]+5+((jr()*6)|0))%16,1+((n[6]+.5)%1)];});
+     couche(VO,4.4);couche(NU,4.5);JADE.nuages=NU.length;}}
   // ---- LA GRILLE DES CHOCS (cases de 80 m) : chaque montagne et chaque rocher y est inscrit dans son cercle ; le test final lit SES cubes ----
   {const CG=80,g9=new Map();
    PIL.forEach(function(q,k){const re=q[2]+2;for(let gx=Math.floor((q[0]-re)/CG);gx<=Math.floor((q[0]+re)/CG);gx++)for(let gz=Math.floor((q[1]-re)/CG);gz<=Math.floor((q[1]+re)/CG);gz++){const kk=gx+','+gz;let a=g9.get(kk);if(!a)g9.set(kk,a=[]);a.push(k);}});
@@ -13347,40 +13360,55 @@ const JADE_ESPRITS=(function(){const N=TEL_NATIF?700:1600,S=700,P=new Float32Arr
    SPIRALE, une QUEUE effilée qui s'enroule au bout, un contour d'encre jade, un dégradé crème → jade pâle, un reflet sur le haut des lobes.
    Seize dessins sur une planche (4 × 4, cuite une fois), posés en GRAND (400-1 100 m) loin autour de la route et au-dessus d'elle, face à la
    caméra ; la perspective aérienne les fond dans la brume du loin, la teinte suit le ciel du niveau (`uTeinte`, posée par jadeTick). ---- */
-function jadeNuagesTex(){const CW=512,CH=256,cv=document.createElement('canvas');cv.width=CW*4;cv.height=CH*4;const c=cv.getContext('2d'),rg=mulberry32(0x5A1E);
-  for(let k=0;k<16;k++){const x0=(k%4)*CW,y0=((k/4)|0)*CH;c.save();c.beginPath();c.rect(x0,y0,CW,CH);c.clip();
-    if(rg()<.5){c.translate(x0*2+CW,0);c.scale(-1,1);} // la queue d'un côté ou de l'autre
-    const nL=3+((rg()*3)|0),yb=y0+CH*.70,L9=[];let x=x0+44+rg()*20;
-    for(let i=0;i<nL;i++){const mid=1-Math.abs(i-(nL-1)/2)/((nL-1)/2+.5),r=30+mid*36+rg()*12;if(i)x+=.80*(r+L9[i-1].r);else x+=r;L9.push({x:x,y:yb-r*.78-mid*8+rg()*6,r:r});}
-    const xl=L9[0].x-L9[0].r*.7,xr=L9[nL-1].x+L9[nL-1].r*.55,tipx=Math.min(x0+CW-26,xr+90+rg()*70),tipy=yb-40-rg()*30;
-    const P=new Path2D();for(const l of L9){P.moveTo(l.x+l.r,l.y);P.arc(l.x,l.y,l.r,0,Math.PI*2);}
-    P.moveTo(xl+14,yb-26);P.lineTo(xr,yb-26);P.quadraticCurveTo(xr+8,yb+10,xr-10,yb+12);P.lineTo(xl+10,yb+12);P.quadraticCurveTo(xl-8,yb-6,xl+14,yb-26); // la BASE plate
-    P.moveTo(xr-20,yb-30);P.bezierCurveTo(xr+30,yb-34,tipx-30,tipy+30,tipx,tipy);P.bezierCurveTo(tipx-24,tipy+44,xr+20,yb+12,xr-20,yb+10);P.closePath(); // la QUEUE
-    const ow=6;c.lineJoin='round';c.lineCap='round';c.strokeStyle='#3f6b66';c.lineWidth=ow*2;c.stroke(P); // le contour d'encre (la moitié dedans est recouverte)
-    const gr=c.createLinearGradient(0,yb-110,0,yb+14);gr.addColorStop(0,'#fdfcf5');gr.addColorStop(.55,'#eef4ec');gr.addColorStop(1,'#c6dcd6');c.fillStyle=gr;c.fill(P);
-    c.strokeStyle='rgba(255,255,250,.75)';c.lineWidth=5; // le reflet sur le haut des lobes
-    for(const l of L9){c.beginPath();c.arc(l.x,l.y,l.r*.80,-Math.PI*.92,-Math.PI*.28);c.stroke();}
-    c.strokeStyle='#4a7a73';c.lineWidth=4; // les SPIRALES, roulées vers le bas et l'extérieur
-    for(const l of L9){c.beginPath();const a0=Math.PI*(.35+rg()*.3),tours=1.5+rg()*.4;
-      for(let t=0;t<=1.0001;t+=.02){const a=a0+t*tours*Math.PI*2,r=l.r*(.72-.58*t),px=l.x+Math.cos(a)*r+(1-t)*2,py=l.y+Math.sin(a)*r*.92+l.r*.08;if(t===0)c.moveTo(px,py);else c.lineTo(px,py);}c.stroke();}
-    c.beginPath();for(let t=0;t<=1.0001;t+=.04){const a=-Math.PI*.6+t*Math.PI*2.6,r=15*(1-t*.8);const px=tipx-14+Math.cos(a)*r,py=tipy+12+Math.sin(a)*r;if(t===0)c.moveTo(px,py);else c.lineTo(px,py);}c.stroke(); // la boucle du bout de la queue
-    c.strokeStyle='rgba(74,122,115,.55)';c.lineWidth=3;c.beginPath();c.moveTo(xl+22,yb-2);c.quadraticCurveTo((xl+xr)/2,yb+4,xr+6,yb-6);c.stroke(); // le trait de la base
-    c.restore();}
-  const t=new THREE.CanvasTexture(cv);t.anisotropy=4;return t;}
+/* (v9, Léo : « les nuages plus transparents, moins autocollants, plus 3D ») — plus de dessin cerné d'encre : chaque volute est une FORME
+   EN RELIEF, une carte de hauteur faite de boules (les lobes, la base en coussins aplatis, la queue en tube qui s'effile et s'enroule au
+   bout), les SPIRALES creusées dans les lobes ; le shader en tire la normale et l'éclaire avec le soleil de la map (ombre jade-bleue
+   dessous, lumière dessus, le contre-jour qui traverse les bords minces) ; l'opacité suit l'ÉPAISSEUR (bords presque transparents, cœur
+   laiteux). R = hauteur, V = spirale, A = couverture (bord adouci). Une texture de données (pas de canvas : aucune perte au bord). */
+function jadeNuagesTex(){const CW=512,CH=256,W=CW*4,H=CH*4,HS=90,D=new Uint8Array(W*H*4),rg=mulberry32(0x5A1E),hb=new Float32Array(CW*CH),best=new Int8Array(CW*CH);
+  for(let k=0;k<16;k++){const x0=(k%4)*CW,y0=((k/4)|0)*CH;hb.fill(0);best.fill(-1);
+    const nL=3+((rg()*3)|0),yb=CH*.68,L9=[];let x=44+rg()*20;
+    for(let i=0;i<nL;i++){const mid=1-Math.abs(i-(nL-1)/2)/((nL-1)/2+.5),r=30+mid*36+rg()*12;if(i)x+=.80*(r+L9[i-1].r);else x+=r;L9.push({x:x,y:yb-r*.78-mid*8+rg()*6,r:r,a0:Math.PI*(.35+rg()*.3),tours:1.5+rg()*.4});}
+    const xl=L9[0].x-L9[0].r*.55,xr=L9[nL-1].x+L9[nL-1].r*.45,tipx=Math.min(CW-34,xr+90+rg()*70),tipy=yb-40-rg()*30,B=[];
+    for(let xx=xl;xx<=xr;xx+=9)B.push([xx,yb-10+rg()*3,19+rg()*5,.55]);                                     // la BASE en coussins
+    for(let t=0;t<=1.001;t+=.035){const u=1-t,px=u*u*u*(xr-12)+3*u*u*t*(xr+30)+3*u*t*t*(tipx-30)+t*t*t*tipx,py=u*u*u*(yb-14)+3*u*u*t*(yb-16)+3*u*t*t*(tipy+30)+t*t*t*tipy;
+      B.push([px,py,19*(1-t)+5,.85]);}                                                                             // la QUEUE, un tube qui s'effile
+    for(let t=0;t<=1.001;t+=.05){const a=-Math.PI*.6+t*Math.PI*2.2,r=14*(1-t*.7);B.push([tipx-12+Math.cos(a)*r,tipy+12+Math.sin(a)*r,5.5*(1-t*.45),1]);} // …qui s'enroule
+    const pose=(cx,cy,r,fy,li)=>{const ry=r*fy,xa=Math.max(0,Math.floor(cx-r)),xb=Math.min(CW-1,Math.ceil(cx+r)),ya=Math.max(0,Math.floor(cy-ry)),yb9=Math.min(CH-1,Math.ceil(cy+ry));
+      for(let py=ya;py<=yb9;py++)for(let px=xa;px<=xb;px++){const dx=(px-cx)/r,dy=(py-cy)/ry,d2=dx*dx+dy*dy;if(d2>=1)continue;const hh=Math.sqrt(1-d2)*ry,q=px+CW*py;if(hh>hb[q]){hb[q]=hh;best[q]=li;}}};
+    for(const b9 of B)pose(b9[0],b9[1],b9[2],b9[3],-1);
+    L9.forEach(function(l,i){pose(l.x,l.y,l.r,1,i);});
+    const flip=rg()<.5;
+    for(let py=0;py<CH;py++)for(let px=0;px<CW;px++){const q=px+CW*py;let h=hb[q],g=0;
+      if(best[q]>=0){const l=L9[best[q]],dx=px-l.x,dy=py-l.y,rho=Math.hypot(dx,dy),th=Math.atan2(dy/.92,dx);let dm=1e9; // la SPIRALE creusée
+        for(let kk=-1;kk<=2;kk++){const t=((th-l.a0)/(2*Math.PI)+kk)/l.tours;if(t<0||t>1)continue;dm=Math.min(dm,Math.abs(rho-l.r*(.72-.58*t)));}
+        g=Math.max(0,1-dm/3.4);h=Math.max(0,h-g*l.r*.09);}
+      const X=flip?CW-1-px:px,o=((H-1-(y0+py))*W+x0+X)*4;
+      D[o]=Math.min(255,Math.round(h/HS*255));D[o+1]=Math.round(g*255);D[o+3]=Math.min(255,Math.round(hb[q]/3*255));}}
+  const t=new THREE.DataTexture(D,W,H,THREE.RGBAFormat);t.magFilter=THREE.LinearFilter;t.minFilter=THREE.LinearMipmapLinearFilter;t.generateMipmaps=true;t.anisotropy=4;t.needsUpdate=true;return t;}
 const JADE_C9=new THREE.Color();
 const JADE_NUAGE_M=(function(){const m=new THREE.ShaderMaterial({transparent:true,depthWrite:false,
-  uniforms:{uTex:{value:null},uTime:JADE_U.uTime,uTeinte:{value:new THREE.Color(1,1,1)},uFogC:{value:new THREE.Color(.8,.86,.88)}},
-  vertexShader:['attribute vec4 aJ;uniform float uTime;varying vec2 vUv;varying float vD;',
-    'void main(){vec3 c=(modelMatrix*instanceMatrix*vec4(0.,0.,0.,1.)).xyz;c.y+=sin(uTime*.07+aJ.w*40.)*aJ.y*.03;c.x+=sin(uTime*.013+aJ.w*9.)*40.;',
-    '  vec3 f=normalize(c-cameraPosition),R=normalize(cross(f,vec3(0.,1.,0.))+vec3(1e-4,0.,0.)),U=cross(R,f);', // face à la caméra, debout
+  uniforms:{uTex:{value:null},uTime:JADE_U.uTime,uTeinte:{value:new THREE.Color(1,1,1)},uFogC:{value:new THREE.Color(.8,.86,.88)},uSunD:JADE_U.uSunDir,uSunC:JADE_U.uSunC},
+  vertexShader:['attribute vec4 aJ;uniform float uTime;varying vec2 vUv;varying float vD,vFl,vC;varying vec3 vR,vU,vF;',
+    'void main(){vec3 c=(modelMatrix*instanceMatrix*vec4(0.,0.,0.,1.)).xyz;float sd=fract(aJ.w);vC=floor(aJ.w);', // la graine ; la couche (0 devant, 1 le voile de derrière)
+    '  c.y+=sin(uTime*.07+sd*40.)*aJ.y*.03;c.x+=sin(uTime*.013+sd*9.)*40.;',
+    '  vec3 f=normalize(c-cameraPosition),R=normalize(cross(f,vec3(0.,1.,0.))+vec3(1e-4,0.,0.)),U=cross(R,f);vR=R;vU=U;vF=-f;', // face à la caméra, debout
     '  vec3 wp=c+R*position.x*aJ.x+U*position.y*aJ.y;vD=length(wp-cameraPosition);',
-    '  float k=aJ.z,col=mod(k,4.),row=floor(k/4.),u=position.x+.5;if(aJ.w>.5)u=1.-u;',
+    '  float k=aJ.z,col=mod(k,4.),row=floor(k/4.),u=position.x+.5;vFl=1.;if(sd>.5){u=1.-u;vFl=-1.;}',
     '  vUv=vec2((col+u)*.25,1.-(row+1.)*.25+(position.y+.5)*.25);',
     '  gl_Position=projectionMatrix*viewMatrix*vec4(wp,1.);}'].join('\n'),
-  fragmentShader:['uniform sampler2D uTex;uniform vec3 uTeinte,uFogC;varying vec2 vUv;varying float vD;',
-    'void main(){vec4 t=texture2D(uTex,vUv);if(t.a<.02)discard;',
-    '  vec3 col=t.rgb*uTeinte;col=mix(col,uFogC,smoothstep(1500.,7500.,vD)*.55);', // la perspective aérienne : le loin se fond, sans s effacer
-    '  gl_FragColor=vec4(col,t.a*smoothstep(80.,320.,vD)*(1.-smoothstep(7800.,9400.,vD)));}'].join('\n')});m.dispose=function(){};return m;})();
+  fragmentShader:['uniform sampler2D uTex;uniform vec3 uTeinte,uFogC,uSunD,uSunC;varying vec2 vUv;varying float vD,vFl,vC;varying vec3 vR,vU,vF;',
+    'void main(){vec4 t=texture2D(uTex,vUv);if(t.a<.01)discard;',
+    '  vec2 e=vec2(1.5/2048.,1.5/1024.);',
+    '  float hx=(texture2D(uTex,vUv+vec2(e.x,0.)).r-texture2D(uTex,vUv-vec2(e.x,0.)).r)*vFl,hy=texture2D(uTex,vUv+vec2(0.,e.y)).r-texture2D(uTex,vUv-vec2(0.,e.y)).r;',
+    '  vec3 n=normalize(vec3(-hx*18.,-hy*18.,1.)),L=normalize(vec3(dot(uSunD,vR),dot(uSunD,vU),dot(uSunD,vF)));', // la normale du relief, le soleil dans le repère du panneau
+    '  float h=t.r,dif=max((dot(n,L)+.3)/1.3,0.);',
+    '  vec3 amb=mix(vec3(.50,.64,.70),vec3(.93,.96,.97),n.y*.5+.5);',                     // l ombre jade-bleue dessous, le ciel dessus
+    '  vec3 col=vec3(.97,.97,.94)*(amb*.62+uSunC*dif*.48);',
+    '  col*=1.-t.g*.2;col+=uSunC*pow(1.-h,3.)*max(-L.z,0.)*.22;',                        // la spirale un peu plus sombre ; le contre-jour dans les bords minces
+    '  col*=uTeinte;col=mix(col,uFogC,smoothstep(1500.,7500.,vD)*.55+vC*.2);',
+    '  float a=t.a*(.22+.58*smoothstep(0.,.45,h))*(1.-vC*.5);',                          // l opacité suit l épaisseur ; le voile de derrière à moitié
+    '  gl_FragColor=vec4(col,a*smoothstep(80.,320.,vD)*(1.-smoothstep(7800.,9400.,vD)));}'].join('\n')});m.dispose=function(){};return m;})();
 /* ---- CHAQUE IMAGE : les lumières du niveau dans la matière (une Lambert les lirait d'elle-même), l'horloge, la brume ---- */
 function jadeTick(dt){
   {const on=!!JADE.root&&LVL.cur&&LVL.cur.id==='jade';if(JADE_ESPRITS.visible!==on)JADE_ESPRITS.visible=on;if(on){const u=JADE_ESPRITS.material.uniforms;u.uCam.value.copy(camera.position);u.uPx.value=renderer.getPixelRatio();u.uK.value=Math.min(1,u.uK.value+dt*.5);}}
