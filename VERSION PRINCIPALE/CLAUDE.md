@@ -116,7 +116,8 @@ d'aller dans cette map avec une voiture, la mobilité comme le main, mais seulem
     laiteux, des VEINES pâles qui courent LE LONG de la route (une fonction du travers décalée par le long : jamais d'anneau), polie (`GLACE.jade`
     .45 : le ciel en rasant ; un éclat de soleil), une lueur intérieure (+16 %). Essayé avant : un vert vif à anneaux blancs (« plastique »).
 - **v10 — LES MONTAGNES EN VITRAIL** (même jour, Léo : « grâce à la technique vitrail, essaie d'alléger et d'embellir en même temps les
-  montagnes ») — LA VERSION EN COURS. La recette VITRAIL vient du dauphin (CAR-dauphins, 10/10 : « de loin lisse et brillant, de près le
+  montagnes ») — ⚠ RETIRÉ LE MÊME JOUR (Léo : « laisse tomber, reviens sur les pixels, c'était plus joli ») : le code reste, derrière
+  `?vitrail=1`. La recette VITRAIL vient du dauphin (CAR-dauphins, 10/10 : « de loin lisse et brillant, de près le
   pixel qui apparaît, avec des joints de lumière très fins ») : un CŒUR de lumière, des ÉCAILLES en cubes écartées (89 %), une PEAU de
   verre transparente de face (.43-.56) et opaque sur la silhouette (.95), une ONDE de lumière. Pour les montagnes (`VIT`, bloc « LE VITRAIL ») :
   · `jadeLisse(T9,peau,dy,na)` : des ANNEAUX lisses relus dans les couches (`T9.ly`) — la PEAU = l'enveloppe gonflée de ~1 m autour des
@@ -134,6 +135,15 @@ d'aller dans cette map avec une voiture, la mobilité comme le main, mais seulem
   · Essayé et corrigé : un premier jet trop SATURÉ (des montagnes en bonbon vert) → pierre de jade grise-verte, peau plus couvrante (.56).
   · MESURÉ (A/B alterné, même banc) : 1,5-2,5 M triangles visibles contre 3-3,8 M en v9, construction ~3,1 s contre ~4,2 s (gabarits 0,7 s
     contre 1,7 s), même cadence ; collisions et règle d'or OK, Porte et Pont traversés. sw.js → v212.
+- **v11 — RETOUR AUX PIXELS, LA ROUTE BIJOU** (même jour, Léo : « reviens sur les pixels, la dernière version ; la route comme un bijou de
+  jade mais brillant — presque de l'émeraude, vert comme ça, et les bords dorés : une route d'architecture asiatique ») — LA VERSION EN COURS.
+  Les montagnes = la v9 (cubes minuscules, `VIT` faux par défaut). LA ROUTE BIJOU (branche `uJadeR` du bitume ; `ROAD_U.uHalf` = ROAD_HALF,
+  vUv.x = mètres/4 depuis le bord gauche) : ÉMERAUDE profonde → franche (en linéaire : .001/.045/.022 → .012/.20/.10), TAILLÉE en facettes
+  (Voronoï 3,4 × 4,2 m, chacune sa teinte et sa PENTE : le soleil y scintille facette par facette), ses jardins clairs, polie (`GLACE.jade` .5,
+  le ciel teinté d'émeraude) ; une BORDURE D'OR de 4,5 m gravée d'une frise de 回 (carrés concentriques en chaîne, filets au bord et à
+  l'intérieur), un FILET d'or à 5,3 m, un JOINT d'or entre les dalles tous les 20 m (élargi puis effacé au loin : sans ça, des tirets
+  crénelés), l'or renvoie le ciel doré ; l'accent de la zone = l'OR (rails, nappe, liseré des flancs), la ligne centrale en or. Essayé avant :
+  un vert vif « pelouse » à facettes trop contrastées, une bordure de 2,6 m qu'on ne lisait pas. sw.js → v213.
 - Mesuré (Chrome sans fenêtre du Mac) : 60 i/s, construction 16-28 ms, tri ~0,03 ms ; collisions (`dbgJadeHeurt('test')`, 3 vallées) :
   piliers durs, arche et dessous du pont libres, AUCUN point de la route dans la pierre. Console : `dbgJade()`, `dbgJadeVue('route'|'porte'|
   'pont'|'haut'|'loin'|'grue',d,h,cap)` (photo figée), `dbgGrues()`. sw.js → v203.

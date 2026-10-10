@@ -10569,7 +10569,7 @@ function genPark(rnd){
      · une CLARTÉ PAR NIVEAU (`uLift`) : la VILLE a un bitume plus clair, qui se détache de la ville sombre (user).
    Les uniformes vivent dans ROAD_U, PARTAGÉS par toutes les pistes : routeTick() les écrit une fois par image. */
 const ROAD_U={uLift:{value:new THREE.Color(0,0,0)},uSheen:{value:.1},uSheenCol:{value:new THREE.Color(.4,.3,.5)},uWet:{value:0},uAcc:{value:new THREE.Color(0xf24aa0)},uVil:{value:0},uEcl:{value:0},
-  uGlace:{value:0},uSunW:{value:SUN_DIR},uTeinte:{value:new THREE.Color(1,1,1)},uJadeR:{value:0}}; // (v9) uJadeR : la route EN JADE (les PICS DE JADE seulement, LVL.jade) // (passe graphismes mobile) uGlace/uSunW : le BITUME GLACÉ des routes sèches (voir roadMat) — la direction du soleil est SUN_DIR lui-même (même objet) // uWet/uAcc : le bitume MOUILLÉ de la ville (voir BITUME_MOUILLE)
+  uGlace:{value:0},uSunW:{value:SUN_DIR},uTeinte:{value:new THREE.Color(1,1,1)},uJadeR:{value:0},uHalf:{value:14}}; // (v9) uJadeR : la route EN JADE (les PICS DE JADE seulement, LVL.jade) // (passe graphismes mobile) uGlace/uSunW : le BITUME GLACÉ des routes sèches (voir roadMat) — la direction du soleil est SUN_DIR lui-même (même objet) // uWet/uAcc : le bitume MOUILLÉ de la ville (voir BITUME_MOUILLE)
 let ASPH_TEX=null;const ASPH_K=1.7; // (vague 2) finesse du grain lu par le bitume (voir roadMat)
 function asphTex(){ if(ASPH_TEX)return ASPH_TEX;
   const N=256,cv=document.createElement('canvas');cv.width=cv.height=N;const c=cv.getContext('2d'),im=c.createImageData(N,N),d=im.data;
@@ -10625,22 +10625,34 @@ function roadMat(){
   m.userData.bitume=face?2:1;m.userData.sauts=sauts; // 2 = face cachée jetée (bloc du dessous retourné), 1 = l'ancien DoubleSide
   m.onBeforeCompile=function(sh){
     sh.uniforms.uLift=ROAD_U.uLift;sh.uniforms.uSheen=ROAD_U.uSheen;sh.uniforms.uSheenCol=ROAD_U.uSheenCol;
-    sh.uniforms.uTeinte=ROAD_U.uTeinte;sh.uniforms.uWet=ROAD_U.uWet;sh.uniforms.uAcc9=ROAD_U.uAcc;sh.uniforms.uT9=CITY.uT;sh.uniforms.uVil9=ROAD_U.uVil;sh.uniforms.uEcl9=ROAD_U.uEcl;sh.uniforms.uGlace=ROAD_U.uGlace;sh.uniforms.uSunW=ROAD_U.uSunW;sh.uniforms.uJadeR=ROAD_U.uJadeR;
+    sh.uniforms.uTeinte=ROAD_U.uTeinte;sh.uniforms.uWet=ROAD_U.uWet;sh.uniforms.uAcc9=ROAD_U.uAcc;sh.uniforms.uT9=CITY.uT;sh.uniforms.uVil9=ROAD_U.uVil;sh.uniforms.uEcl9=ROAD_U.uEcl;sh.uniforms.uGlace=ROAD_U.uGlace;sh.uniforms.uSunW=ROAD_U.uSunW;sh.uniforms.uJadeR=ROAD_U.uJadeR;sh.uniforms.uHalf9=ROAD_U.uHalf;
     if(face)sh.vertexShader=sh.vertexShader.replace('#include <color_vertex>','#include <color_vertex>\nvColor=abs(vColor);') // le dessous porte des couleurs NIÉES : on relit leur valeur
       .replace('#include <shadowmap_vertex>',THREE.ShaderChunk.shadowmap_vertex.split('inverseTransformDirection( transformedNormal, viewMatrix )')
         .join('inverseTransformDirection( transformedNormal*(color.r<0.?-1.:1.), viewMatrix )')); // …et le décalage d'ombre reprend la normale d'avant le retournement
-    sh.fragmentShader='uniform vec3 uTeinte;uniform vec3 uLift;uniform float uSheen;uniform vec3 uSheenCol;uniform float uWet;uniform vec3 uAcc9;uniform float uT9;uniform float uGlace;uniform vec3 uSunW;uniform float uVil9,uEcl9,uJadeR;\n'+
+    sh.fragmentShader='uniform vec3 uTeinte;uniform vec3 uLift;uniform float uSheen;uniform vec3 uSheenCol;uniform float uWet;uniform vec3 uAcc9;uniform float uT9;uniform float uGlace;uniform vec3 uSunW;uniform float uVil9,uEcl9,uJadeR,uHalf9;\n'+
       'float jdH9(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}float jdN9(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(jdH9(i),jdH9(i+vec2(1.,0.)),f.x),mix(jdH9(i+vec2(0.,1.)),jdH9(i+vec2(1.,1.)),f.x),f.y);}\n'+
       sh.fragmentShader.replace('void main() {',BITUME_MOUILLE+'void main() {').replace('#include <lights_fragment_begin>',sauts?LFB_ROUTE:LFB_SANS_PL)
       .replace('#include <map_fragment>','vec4 texelColor=texture2D(map,vUv*'+ASPH_K.toFixed(2)+');float spec9=texelColor.r;texelColor=mapTexelToLinear(texelColor);diffuseColor*=texelColor;diffuseColor.rgb*=uTeinte;'+
-      /* (v9, Léo : « et surtout, la route : en jade ») LA ROUTE EN JADE — un vert profond qui a ses NUAGES (le vert clair, le blanc laiteux du
-         « coton » du jade), une VEINE pâle qui court le long de la route ; polie (le ciel s'y reflète en rasant, un éclat de soleil), et la
-         lumière qui la traverse la fait luire de l'intérieur. vUv est en mètres/4. Une branche uniforme : rien ailleurs. */
-      'if(uJadeR>.001){vec2 jq=vUv*4.;float j1=jdN9(jq*vec2(.022,.006)),j2=jdN9(jq*vec2(.07,.02)+3.1),j3=jdN9(jq*vec2(.25,.07)+7.7);'+
-      'vec3 jc=mix(vec3(.018,.085,.065),vec3(.06,.24,.17),smoothstep(.2,.85,j1*.65+j2*.35));jc=mix(jc,vec3(.22,.40,.32),smoothstep(.62,.88,j2*.6+j3*.4)*.45);'+ // le vert profond, peu saturé, ses nuages laiteux
-      'float va=jq.x*.032+.9*jdN9(vec2(jq.y*.006,1.3))+.35*jdN9(jq*vec2(.02,.005)+5.),vj=pow(1.-abs(2.*fract(va)-1.),40.)*smoothstep(.35,.7,jdN9(vec2(floor(va)*7.1,jq.y*.004)));'+ // les VEINES courent le long de la route (jamais d anneau)
-      'jc=mix(jc,vec3(.52,.68,.58),vj*.5);'+
-      'diffuseColor.rgb=mix(diffuseColor.rgb,jc,uJadeR);spec9=mix(spec9,.9,uJadeR);}')
+      /* (v11, Léo : « la route comme un bijou de jade, mais brillant — presque de l'ÉMERAUDE, vert comme ça, et les bords DORÉS : une route
+         d'architecture asiatique ») LA ROUTE BIJOU — l'émeraude franche et polie, TAILLÉE en grandes facettes (cellules de ~3-4 m, chacune sa
+         profondeur et sa pente : au soleil elles scintillent l'une après l'autre), ses « jardins » (inclusions claires) ; une BORDURE D'OR
+         de 2,6 m de chaque côté, gravée d'une frise de 回 (des carrés concentriques en chaîne, le motif des palais), filets au bord et à
+         l'intérieur ; un JOINT d'or entre les dalles tous les 20 m. vUv est en mètres/4, x depuis le bord gauche (0 → 2 × uHalf9). */
+      'float jOr9=0.,jH9=0.;vec2 jF9=vec2(0.);'+
+      'if(uJadeR>.001){vec2 jq=vUv*4.;float ea=min(jq.x,2.*uHalf9-jq.x);'+
+      'vec2 fc=jq/vec2(3.4,4.2),fi=floor(fc),ff=fract(fc);float md=9.;vec2 mc=vec2(0.);'+                                 // les FACETTES (une cellule de Voronoï)
+      'for(int j=-1;j<=1;j++)for(int i=-1;i<=1;i++){vec2 g=vec2(float(i),float(j)),o=vec2(jdH9(fi+g),jdH9(fi+g+17.3));float d=length(g+o-ff);if(d<md){md=d;mc=fi+g;}}'+
+      'jH9=jdH9(mc+5.1);jF9=vec2(jdH9(mc+8.7),jdH9(mc+2.9))-.5;'+
+      'float j1=jdN9(jq*vec2(.03,.008)),j2=jdN9(jq*vec2(.09,.03)+3.1);'+
+      'vec3 jc=mix(vec3(.001,.045,.022),vec3(.012,.20,.10),smoothstep(.1,.9,j1*.7+j2*.3))*(.88+.24*jH9);'+                     // l ÉMERAUDE : profonde → franche (en linéaire), chaque facette un peu sa teinte
+      'jc=mix(jc,vec3(.10,.42,.26),smoothstep(.76,.97,j2)*.25);'+                                                             // ses jardins (inclusions claires)
+      'float dz9=length(vViewPosition),w9=.05+dz9*.0012,sj=(1.-smoothstep(w9,w9*1.9,abs(fract(jq.y/20.+.5)-.5)*20.))*(1.-smoothstep(140.,380.,dz9));'+ // le JOINT d or entre deux dalles (il s élargit au loin puis s efface : pas de tirets crénelés)
+      'float fil=1.-smoothstep(.10+dz9*.0008,.18+dz9*.0016,abs(ea-5.3));jOr9=max(1.-smoothstep(4.45,4.55,ea),fil);'+                              // la BORDURE d or (4,5 m) et son FILET intérieur
+      'vec2 ku=vec2(fract(jq.y/4.5),clamp(ea/4.5,0.,1.));float kd=max(abs(ku.x-.5),abs(ku.y-.5));'+                          // la frise de 回 : carrés concentriques, en chaîne
+      'float gv=max(max(1.-smoothstep(.016,.035,abs(kd-.40)),1.-smoothstep(.016,.035,abs(kd-.22))),max(max(1.-smoothstep(.015,.04,abs(ku.y-.035)),1.-smoothstep(.015,.04,abs(ku.y-.965))),step(kd,.07)))*(1.-fil)*(1.-smoothstep(70.,190.,dz9));'+ // (la gravure s efface au loin : l or reste)
+      'vec3 au=vec3(1.,.78,.36)*(1.-gv*.6);'+                                                                               // l OR, la gravure plus sombre
+      'jc=mix(jc,vec3(1.,.78,.36)*.8,sj*(1.-jOr9));jc=mix(jc,au,jOr9);'+
+      'diffuseColor.rgb=mix(diffuseColor.rgb,jc,uJadeR);spec9=mix(spec9,1.,uJadeR);}')
       .replace('#include <specularmap_fragment>','float specularStrength=spec9;').replace('#include <envmap_fragment>',
       '#include <envmap_fragment>\n{float fr9=pow(1.0-clamp(abs(dot(normal,normalize(vViewPosition))),0.0,1.0),4.0);float lk9=1.;\n'+
       '#if defined(USE_ENVMAP)&&defined(ENVMAP_TYPE_CUBE)\nif(uWet>.001){vec4 w9=bitumeMouille(outgoingLight,reflectVec,normal,normalize(vViewPosition));outgoingLight=w9.rgb;lk9=w9.a;}\n'+
@@ -10651,8 +10663,10 @@ function roadMat(){
          (la traînée dure que Sacha avait refusée le 26/09) ; la pluie de la VILLE garde son eau (uGlace y vaut 0). Zéro lecture de plus. */
       'if(uGlace>.001){float cg9=clamp(abs(dot(normal,normalize(vViewPosition))),0.,1.),g9=1.-cg9;g9=g9*g9*g9*g9*g9;'+
       'outgoingLight+=envColor.rgb*(g9*uGlace*(1.-smoothstep(.90,.985,dot(normalize(reflectVec),uSunW))));}\n'+
-      'if(uJadeR>.001)outgoingLight+=vec3(1.,.96,.86)*pow(max(dot(normalize(reflectVec),uSunW),0.),90.)*.35*uJadeR;\n#endif\n'+ // (v9) l éclat du soleil sur le jade poli
-      'outgoingLight+=uLift*lk9*(1.-uJadeR*.7)+uSheenCol*(uSheen*fr9);if(uJadeR>.001)outgoingLight+=diffuseColor.rgb*.16*uJadeR;}');
+      'if(uJadeR>.001){vec3 rf9=normalize(reflectVec),rt9=normalize(rf9+vec3(jF9.x,0.,jF9.y)*.35);'+ // (v11) l ÉCLAT : chaque facette renvoie le soleil selon SA pente (elles scintillent l une après l autre) ; l or renvoie le ciel, doré
+      'outgoingLight+=vec3(1.,.97,.88)*pow(max(dot(rt9,uSunW),0.),120.)*1.1*(1.-jOr9)*uJadeR+vec3(1.,.96,.86)*pow(max(dot(rf9,uSunW),0.),90.)*.3*uJadeR;'+
+      'outgoingLight+=envColor.rgb*(vec3(1.,.78,.36)*jOr9*.75+vec3(.35,1.,.70)*(1.-jOr9)*.22)*uJadeR+vec3(1.,.80,.40)*pow(max(dot(rf9,uSunW),0.),30.)*.5*jOr9*uJadeR;}\n#endif\n'+
+      'outgoingLight+=uLift*lk9*(1.-uJadeR*.7)+uSheenCol*(uSheen*fr9);if(uJadeR>.001)outgoingLight+=diffuseColor.rgb*(.10-.06*jOr9)*uJadeR;}');
   };
   m.customProgramCacheKey=function(){return 'bitumeV5'+(face?'f':'')+(sauts?'s':'');}; // UNE compilation pour toutes les pistes
   return m;
@@ -10775,14 +10789,14 @@ function trancheMat(){
   return m;
 }
 const ROUTE_JOUR=[.86,.94,.86]; /* (niveau 1 v2) [1,1.12,.88] → plus SOMBRE : au banc le bitume du midi sortait gris clair (L* ~55), au niveau des nuages — la route doit être le ruban le plus sombre de l'image pour que la caisse orange et le ciel clair se lisent contre elle (L10 26 → 10) */ // (2026-09-30) la teinte du bitume au jour d'altitude (× la base violette 0x322e40 → un anthracite à peine bleuté)
-const GLACE={k:1,nuages:.45,espace:.5,jade:.45}; // (v9) le jade est POLI : il renvoie le ciel en rasant
+const GLACE={k:1,nuages:.45,espace:.5,jade:.5}; // (v11) l'émeraude est polie comme une pierre taillée // (v9) le jade est POLI : il renvoie le ciel en rasant
 const ROUTE_JADE=[.95,1.04,.86]; // (2026-10-09) LES PICS DE JADE : le bitume en gris de pierre (× la base violette) // (passe graphismes mobile) la part du ciel dans le bitume sec, par niveau (la VILLE a son eau) — `dbgGfx({glace:0})` = l'ancien bitume
 const _px9=new THREE.Vector2();
 function routeTick(){ // le bitume suit le NIVEAU (fondu du portail : LVL.route / LVL.sheen, voir lvlStep)
   renderer.getDrawingBufferSize(_px9);TRAIT_U.uPx.value=2*Math.tan(camera.fov*Math.PI/360)/Math.max(1,_px9.y); // la taille d'un pixel à 1 m (suit le FOV de vol et la résolution adaptative)
   const r=LVL.route,pa9=LVL.paris||0;ROAD_U.uLift.value.setRGB(.010+.15*r+(.004-.006*r)*pa9,.009+.13*r+(.005+.012*r)*pa9,.016+.16*r-(.004+.03*r)*pa9); // (Paris) un gris d'asphalte NEUTRE, pas le violet de la nuit // ⚠ l'étalonnage de la pluie écrase le rouge et le vert : la clarté doit être NEUTRE et franche pour se lire (mesuré : (0,0,17) → (2,0,47) avec une clarté bleutée de .05)
   ROAD_U.uSheen.value=LVL.sheen;ROAD_U.uWet.value=Math.max(LVL.pluie,parisPluie()*1.8);ROAD_U.uVil.value=LVL.ville;try{ROAD_U.uEcl.value=CAMP_FLASH;}catch(e){} /* (2026-09-30) les enseignes reflétées : en VILLE seulement · l'éclair dans les flaques (CAMP_FLASH est déclaré plus bas : le try couvre l'init) */ // (2026-09-26) le bitume se mouille avec la pluie du niveau, au même fondu
-  ROAD_U.uGlace.value=GLACE.k*(GLACE.nuages*LVL.mer+GLACE.espace*LVL.espace+GLACE.jade*(LVL.jade||0))*(1-LVL.pluie);ROAD_U.uJadeR.value=LVL.jade||0;
+  ROAD_U.uGlace.value=GLACE.k*(GLACE.nuages*LVL.mer+GLACE.espace*LVL.espace+GLACE.jade*(LVL.jade||0))*(1-LVL.pluie);ROAD_U.uJadeR.value=LVL.jade||0;ROAD_U.uHalf.value=ROAD_HALF;
   {const j9=LVL.mer*skyU.uJour.value,jd9=LVL.jade||0;ROAD_U.uTeinte.value.setRGB((1+(ROUTE_JOUR[0]-1)*j9)*(1+(ROUTE_JADE[0]-1)*jd9),(1+(ROUTE_JOUR[1]-1)*j9)*(1+(ROUTE_JADE[1]-1)*jd9),(1+(ROUTE_JOUR[2]-1)*j9)*(1+(ROUTE_JADE[2]-1)*jd9));} // (2026-09-30) LE JOUR D'ALTITUDE : l'asphalte des NUAGES en gris d'anthracite (le violet de la nuit, sous un ciel turquoise, se lisait en encre violette) // (passe graphismes mobile) le bitume GLACÉ des routes sèches — voir roadMat
   coneBandMat.emissiveIntensity=.25+.6*LVL.pluie; // (2026-09-26) la nuit de pluie, les bandes des plots RÉTRORÉFLÉCHISSENT : on les lit de loin (un uniforme, zéro recompilation)
   ROAD_U.uSheenCol.value.copy(scene.fog.color).multiplyScalar(.9); // (2026-09-26) ×1,5 → ×0,9 : la brillance rasante blanchissait tout le lointain
@@ -11074,7 +11088,7 @@ function buildTrack(seed){
      VILLE = le rose néon #f24aa0, ORBITE = le cyan froid #5ee6ff. ⚠ Le TIRAGE reste (il nourrit le parc, l'auto-école, la carrière
      hors de ces trois mondes) : le flux rnd de la piste ne bouge pas d'un pas. */
   const accR=ACCENTS[Math.floor(rnd()*ACCENTS.length)],idA9=LVL.cur&&!PARK.on?LVL.cur.id:'';
-  const accC=new THREE.Color(idA9==='nuages'?0x3ee6f0:idA9==='ville'?0xf24aa0:idA9==='espace'?0x5ee6ff:idA9==='orage'?0x8a7dff:idA9==='paris'?0xd9d4ca:idA9==='jade'?0x4fe0a8:accR); // (2026-09-29) L'ORAGE : le violet électrique de l'éclair // PARIS : une peinture de rive blanche, pas un néon
+  const accC=new THREE.Color(idA9==='nuages'?0x3ee6f0:idA9==='ville'?0xf24aa0:idA9==='espace'?0x5ee6ff:idA9==='orage'?0x8a7dff:idA9==='paris'?0xd9d4ca:idA9==='jade'?0xffc14a:accR); // (v11) les PICS DE JADE : l'accent est l'OR (rails, nappe, liseré des flancs) // (2026-09-29) L'ORAGE : le violet électrique de l'éclair // PARIS : une peinture de rive blanche, pas un néon
   ROAD_U.uAcc.value.copy(accC); // (2026-09-26) le bitume mouillé reflète aussi l'accent de la zone
   // BANDES NÉON (dessus + dessous) : les rails de Vice City — couleur d'accent de la zone
   {const ep=new Float32Array(4*NP*6),el=new Float32Array(4*NP*6);let q=0; // (passe perf) les QUATRE rails dans un seul maillage, une seule matière (le caméléon les peignait tous pareil), découpé en tranches — (chasse aux gels) écrits en place
@@ -11127,7 +11141,7 @@ function buildTrack(seed){
     }
     // (passe perf) découpée en tranches : une paire de sommets tous les 2 points, par face — la ligne centrale ne flotte pas au-dessus du vide
     pisteTranches({position:[lp,3],aLat:[ll,3],uv:[lu,2]},{blocs:2,pr:2,np:Math.ceil(NP/2),pas:2},
-      k=>holeSeg(2*k)||holeSeg(2*k+1),ligneMat(),{ordre:1,marge:20,loin:0}); // au-delà du brouillard : plus de peinture (voir pisteTranches)
+      k=>holeSeg(2*k)||holeSeg(2*k+1),(function(){const m9=ligneMat();if(idA9==='jade'){m9.color.setHex(0xffd27a);m9.opacity=.9;}return m9;})(),{ordre:1,marge:20,loin:0}); // (v11) aux PICS DE JADE : une ligne d'or // au-delà du brouillard : plus de peinture (voir pisteTranches)
   })();
   // BORDS DU VIDE : on ferme la coupe. La dalle montre sa TRANCHE en rouge d'alerte — à pleine vitesse,
   // c'est cette barre qui hurle « ça s'arrête LÀ », et on la voit bien avant d'y être.
@@ -12621,7 +12635,7 @@ function jadeKit(){const P=[],C=[];
 /* (v7, Léo : « pas Minecraft » → « des cubes minuscules ») VX 3,5 → 1,75 m sur l'ordi (3,5 m sur un vrai téléphone), la muraille et l'arche
    5 → 2,5 m ; un 4e niveau de détail (1,75 · 3,5 · 7 · 14 m) garde le coût : les petits cubes ne se dessinent que de près. */
 const VX=TEL_NATIF?3.5:1.75,VXG=TEL_NATIF?5:2.5;
-const VIT=!/[?&]vitrail=0\b/.test(location.search); // (v10) les montagnes en VITRAIL (voir « LE VITRAIL ») — `?vitrail=0` : le verre de jade de la v9
+const VIT=/[?&]vitrail=1\b/.test(location.search); // (v10) les montagnes en VITRAIL (voir « LE VITRAIL ») — (v11, Léo : « laisse tomber, reviens sur les pixels, c'était plus joli ») : seulement avec `?vitrail=1`
 const JM={roche:1,rouille:2,herbe:3,feuille:4,bois:5,laque:6,tuile:7,or:8,pierre:9};
 const JADE_TPL=[[10,190,1],[14,250,0],[16,220,3],[18,300,2],[23,350,3],[26,330,1],[29,400,0],[36,440,2],[45,490,1],[56,540,3]]; // rayon (m), hauteur (m), sorte : 0 colonne · 1 aiguille · 2 gradins · 3 tête large
 const JADE_NTPL=JADE_TPL.length;
