@@ -27897,6 +27897,209 @@ function updateDolphins(dt,photo){
       spawnP(dolTrail,x+P9.nx*q+(Math.random()-.5)*.6*k,y+P9.ny*q+(Math.random()-.5)*.6*k,z+P9.nz*q+(Math.random()-.5)*.6*k,0,0,0,.55+Math.random()*.35);dolPart=Math.max(dolPart,.55);}
   }
 }
+/* <<<VITRAIL>>> LA TECHNIQUE VITRAIL, POUR N'IMPORTE QUELLE FORME (2026-10-10, nommée par Léo sur le dauphin ; mise en recette pour le SINGE)
+   Une forme se décrit par F = {
+     sdf(x,y,z)        la distance signée (< 0 dedans) — des volumes simples soudés en douceur ;
+     col(x,y,z,o)      sa couleur à cet endroit (o = [r,g,b]) ;
+     os(x,y,z,o)       facultatif : le poids de trois OS (o = [os 0, os 1, os 2]) — un sommet tourne avec l'os autour de son pivot ;
+     s(x,y,z)          la coordonnée de l'ONDE (0 → 1 : d'où elle part, où elle finit) ;
+     min, max          la boîte qui la contient ; hs le pas de la forme lisse ; h la taille des ÉCAILLES (cubes) }.
+   vitrailObjet(F,U) en tire les quatre couches de la recette (voir la mémoire « vitrail ») :
+     · LE CŒUR : la forme lisse rentrée de `uCoeurIn`, lumière pure (`uGlowA` → `uGlowB` le long de l'onde ; rouge sang en dark triad) ;
+     · LES ÉCAILLES : chaque case de `h` dont le centre est dedans et qui touche le dehors ; seules ses faces vers le dehors ; un cube a UNE
+       couleur, un poids d'os, une normale (le gradient) ; réduit à `uEcart` autour de son centre (la lumière du cœur passe dans les joints) ;
+     · LA PEAU DE VERRE : la forme lisse gonflée de `uCoqG`, transparente de face (`uCoqA0`), opaque sur la silhouette (`uCoqA1`), le reflet
+       d'un ciel, un éclat, un film irisé ;
+     · L'ONDE (`uScan`, vitesse `uScanV`) : une bande de lumière qui parcourt la forme, soulève les écailles (`uVague`) et allume le tout.
+   La forme lisse : « surface nets » sur la grille de `hs`, sommets au barycentre des passages, normales = le gradient du champ.
+   Valeurs par défaut = le JUSTE MILIEU de Léo sur le dauphin (10/10) : de face .43 · bords .95 · gonflée 1,3 cube · écailles .89 · vague .45 cube. */
+function vitrailU(F,o){ // les réglages d'un objet en vitrail (un jeu d'uniforms partagé par ses trois matières)
+  const h=F.h,M=()=>({value:new THREE.Matrix3()}),V=()=>({value:new THREE.Vector3()});
+  return Object.assign({uCoqA0:{value:.43},uCoqA1:{value:.95},uCoqP:{value:1.4},uCoqG:{value:h*1.3},uEcart:{value:.89},uVague:{value:h*.45},
+    uLueur:{value:1.4},uScan:{value:1},uScanV:{value:.5},uCoeurIn:{value:h*1.6},uNoir:{value:0},uT:{value:0},uScene:{value:.5},
+    uLum:{value:new THREE.Vector3(.3,1,.25).normalize()},uGlowA:{value:new THREE.Color(1,.85,.3)},uGlowB:{value:new THREE.Color(1,.5,.2)},
+    uRimA:{value:new THREE.Color(1,.08,.14)},uM0:M(),uM1:M(),uM2:M(),uP0:V(),uP1:V(),uP2:V()},o||{});
+}
+function vitrailLisse(F){ // la forme lisse (surface nets) : position, normal (gradient), aCol, aLp (= position), aBw, aN, aS
+  const h=F.hs,X0=F.min[0],Y0=F.min[1],Z0=F.min[2],nx=Math.ceil((F.max[0]-X0)/h),ny=Math.ceil((F.max[1]-Y0)/h),nz=Math.ceil((F.max[2]-Z0)/h);
+  const NX=nx+1,NY=ny+1,v=new Float32Array(NX*NY*(nz+1)),gi=(i,j,k)=>i+NX*(j+NY*k);
+  for(let k=0;k<=nz;k++)for(let j=0;j<=ny;j++)for(let i=0;i<=nx;i++)v[gi(i,j,k)]=F.sdf(X0+i*h,Y0+j*h,Z0+k*h);
+  const cid=new Int32Array(nx*ny*nz).fill(-1),ci=(i,j,k)=>i+nx*(j+ny*k),P=[],cv=new Float32Array(8);
+  const ED=[[0,1],[2,3],[4,5],[6,7],[0,2],[1,3],[4,6],[5,7],[0,4],[1,5],[2,6],[3,7]];
+  for(let k=0;k<nz;k++)for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){let m=0;
+    for(let c=0;c<8;c++){cv[c]=v[gi(i+(c&1),j+(c>>1&1),k+(c>>2&1))];if(cv[c]<0)m|=1<<c;}
+    if(m===0||m===255)continue;let sx=0,sy=0,sz=0,n=0;
+    for(const [a,b] of ED){if((cv[a]<0)===(cv[b]<0))continue;const t=cv[a]/(cv[a]-cv[b]);
+      sx+=(a&1)+((b&1)-(a&1))*t;sy+=(a>>1&1)+((b>>1&1)-(a>>1&1))*t;sz+=(a>>2&1)+((b>>2&1)-(a>>2&1))*t;n++;}
+    cid[ci(i,j,k)]=P.length/3;P.push(X0+(i+sx/n)*h,Y0+(j+sy/n)*h,Z0+(k+sz/n)*h);}
+  const I=[],D=[[1,0,0],[0,1,0],[0,0,1]];
+  for(let k=1;k<nz;k++)for(let j=1;j<ny;j++)for(let i=1;i<nx;i++){if(cid[ci(i,j,k)]<0)continue;const q=[i,j,k];
+    for(let a=0;a<3;a++){const e=D[a],v0=v[gi(i,j,k)],v1=v[gi(i+e[0],j+e[1],k+e[2])];if((v0<0)===(v1<0))continue;
+      const b=D[(a+1)%3],c=D[(a+2)%3],c0=cid[ci(i,j,k)],c1=cid[ci(i-b[0],j-b[1],k-b[2])],c2=cid[ci(i-b[0]-c[0],j-b[1]-c[1],k-b[2]-c[2])],c3=cid[ci(i-c[0],j-c[1],k-c[2])];
+      if(c1<0||c2<0||c3<0)continue;I.push(c0,c1,c2,c0,c2,c3);}}
+  const nV=P.length/3,N=new Float32Array(nV*3),C=new Float32Array(nV*3),W=new Float32Array(nV*3),S=new Float32Array(nV),o=[0,0,0],e=h*.3;
+  for(let p=0;p<nV;p++){const x=P[p*3],y=P[p*3+1],z=P[p*3+2];
+    let gx=F.sdf(x+e,y,z)-F.sdf(x-e,y,z),gy=F.sdf(x,y+e,z)-F.sdf(x,y-e,z),gz=F.sdf(x,y,z+e)-F.sdf(x,y,z-e);const l=Math.hypot(gx,gy,gz)||1;
+    N[p*3]=gx/l;N[p*3+1]=gy/l;N[p*3+2]=gz/l;F.col(x,y,z,o);C.set(o,p*3);o[0]=o[1]=o[2]=0;if(F.os)F.os(x,y,z,o);W.set(o,p*3);S[p]=F.s(x,y,z);}
+  for(let t=0;t<I.length;t+=3){const a=I[t]*3,b=I[t+1]*3,c=I[t+2]*3; // chaque triangle tourné vers le DEHORS (le gradient le dit)
+    const ux=P[b]-P[a],uy=P[b+1]-P[a+1],uz=P[b+2]-P[a+2],vx=P[c]-P[a],vy=P[c+1]-P[a+1],vz=P[c+2]-P[a+2];
+    if((uy*vz-uz*vy)*(N[a]+N[b]+N[c])+(uz*vx-ux*vz)*(N[a+1]+N[b+1]+N[c+1])+(ux*vy-uy*vx)*(N[a+2]+N[b+2]+N[c+2])<0){const s=I[t+1];I[t+1]=I[t+2];I[t+2]=s;}}
+  const g=new THREE.BufferGeometry(),A=(k,a,n)=>g.setAttribute(k,new THREE.BufferAttribute(a,n));
+  A('position',new Float32Array(P),3);A('normal',N,3);A('aCol',C,3);A('aLp',new Float32Array(P),3);A('aBw',W,3);A('aN',N,3);A('aS',S,1);
+  g.setIndex(I);g.computeBoundingSphere();g.boundingSphere.radius+=.3;return g;
+}
+function vitrailEcailles(F){ // les écailles : les cases de F.h dont le centre est dedans et qui touchent le dehors — leurs faces vers le dehors
+  const h=F.h,X0=F.min[0],Y0=F.min[1],Z0=F.min[2],nx=Math.ceil((F.max[0]-X0)/h),ny=Math.ceil((F.max[1]-Y0)/h),nz=Math.ceil((F.max[2]-Z0)/h);
+  const de=new Uint8Array(nx*ny*nz),id=(i,j,k)=>i+nx*(j+ny*k),cx=i=>X0+(i+.5)*h,cy=j=>Y0+(j+.5)*h,cz=k=>Z0+(k+.5)*h;
+  for(let k=0;k<nz;k++)for(let j=0;j<ny;j++)for(let i=0;i<nx;i++)de[id(i,j,k)]=F.sdf(cx(i),cy(j),cz(k))<0?1:0;
+  const D6=[[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]],UV=[[[0,1,0],[0,0,1]],[[0,0,1],[0,1,0]],[[0,0,1],[1,0,0]],[[1,0,0],[0,0,1]],[[1,0,0],[0,1,0]],[[0,1,0],[1,0,0]]];
+  const pos=[],nor=[],lp=[],col=[],bw=[],an=[],as=[],ix=[],o=[0,0,0],w=[0,0,0],e=h*.5;let nv=0;
+  for(let k=0;k<nz;k++)for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){if(!de[id(i,j,k)])continue;
+    const dehors=f=>{const d=D6[f],a=i+d[0],b=j+d[1],c=k+d[2];return a<0||b<0||c<0||a>=nx||b>=ny||c>=nz||!de[id(a,b,c)];};
+    let n9=0;for(let f=0;f<6;f++)if(dehors(f))n9++;if(!n9)continue;
+    const x=cx(i),y=cy(j),z=cz(k);F.col(x,y,z,o);w[0]=w[1]=w[2]=0;if(F.os)F.os(x,y,z,w);const s9=F.s(x,y,z);
+    let gx=F.sdf(x+e,y,z)-F.sdf(x-e,y,z),gy=F.sdf(x,y+e,z)-F.sdf(x,y-e,z),gz=F.sdf(x,y,z+e)-F.sdf(x,y,z-e);const l=Math.hypot(gx,gy,gz)||1;gx/=l;gy/=l;gz/=l;
+    for(let f=0;f<6;f++){if(!dehors(f))continue;const d=D6[f],u=UV[f][0],v=UV[f][1];
+      for(const [su,sv] of [[-1,-1],[1,-1],[1,1],[-1,1]]){
+        pos.push(x+(d[0]+su*u[0]+sv*v[0])*h/2,y+(d[1]+su*u[1]+sv*v[1])*h/2,z+(d[2]+su*u[2]+sv*v[2])*h/2);
+        nor.push(d[0],d[1],d[2]);lp.push(x,y,z);col.push(o[0],o[1],o[2]);bw.push(w[0],w[1],w[2]);an.push(gx,gy,gz);as.push(s9);}
+      ix.push(nv,nv+1,nv+2,nv,nv+2,nv+3);nv+=4;}}
+  const g=new THREE.BufferGeometry(),A=(k,a,n)=>g.setAttribute(k,new THREE.Float32BufferAttribute(a,n));
+  A('position',pos,3);A('normal',nor,3);A('aLp',lp,3);A('aCol',col,3);A('aBw',bw,3);A('aN',an,3);A('aS',as,1);
+  g.setIndex(ix);g.computeBoundingSphere();g.boundingSphere.radius+=.3;return g;
+}
+function vitrailShader(sh){ // `this` = la matière ; this.userData : U (les réglages) et ro (0 écailles · 1 peau · 2 cœur)
+  const U=this.userData.U,ro=this.userData.ro;for(const k in U)sh.uniforms[k]=U[k];
+  sh.vertexShader='attribute vec3 aCol;attribute vec3 aLp;attribute vec3 aBw;attribute vec3 aN;attribute float aS;\n'+
+    'uniform mat3 uM0;uniform mat3 uM1;uniform mat3 uM2;uniform vec3 uP0;uniform vec3 uP1;uniform vec3 uP2;\n'+
+    'uniform float uEcart;uniform float uVague;uniform float uCoqG;uniform float uCoeurIn;uniform float uT;uniform float uScanV;\n'+
+    'varying vec3 vCol9;varying vec3 vLoc9;varying vec3 vLp9;varying float vS9;\n'+
+    'vec3 vitOs(vec3 p){vec3 q=p;q=mix(q,uP0+uM0*(q-uP0),aBw.x);q=mix(q,uP1+uM1*(q-uP1),aBw.y);q=mix(q,uP2+uM2*(q-uP2),aBw.z);return q;}\n'+
+    'vec3 vitOsN(vec3 n){vec3 q=n;q=mix(q,uM0*q,aBw.x);q=mix(q,uM1*q,aBw.y);q=mix(q,uM2*q,aBw.z);return normalize(q);}\n'+sh.vertexShader
+    .replace('#include <beginnormal_vertex>','#include <beginnormal_vertex>\nobjectNormal=vitOsN(objectNormal);')
+    .replace('#include <begin_vertex>','#include <begin_vertex>\nvCol9=aCol;vLoc9=position-aLp;vLp9=aLp;vS9=aS;\n'+
+      'float sc9=exp(-pow((aS-fract(uT*uScanV))/.09,2.));\n'+
+      (ro===0?'transformed=aLp+(position-aLp)*mix(uEcart,1.,sc9*.8)+aN*uVague*sc9;\n':ro===1?'transformed+=aN*uCoqG;\n':'transformed-=aN*uCoeurIn;\n')+
+      'transformed=vitOs(transformed);');
+  sh.fragmentShader='uniform float uLueur;uniform float uScan;uniform float uScanV;uniform float uCoqA0;uniform float uCoqA1;uniform float uCoqP;\n'+
+    'uniform float uNoir;uniform float uT;uniform float uScene;uniform vec3 uLum;uniform vec3 uGlowA;uniform vec3 uGlowB;uniform vec3 uRimA;\n'+
+    'varying vec3 vCol9;varying vec3 vLoc9;varying vec3 vLp9;varying float vS9;float vitE9=0.;\n'+
+    'float vitH(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}\n'+sh.fragmentShader
+    .replace('#include <color_fragment>','#include <color_fragment>\ndiffuseColor.rgb*=mix(vCol9,vec3(.055,.05,.07),uNoir);\n'+
+      (ro===0?'{vec3 qb=abs(vLoc9);qb/=max(max(qb.x,max(qb.y,qb.z)),1e-5);vitE9=smoothstep(.6,1.,qb.x+qb.y+qb.z-1.-min(qb.x,min(qb.y,qb.z)));\n'+
+        'diffuseColor.rgb*=(1.-.2*vitE9)*(.95+.1*vitH(vLp9*61.7));}\n':''))
+    .replace('#include <lights_fragment_end>','#include <lights_fragment_end>\n'+ // SA lumière (comme le dauphin) : le niveau ne garde que uScene de la sienne
+      'vec3 lv9=normalize((viewMatrix*vec4(uLum,0.)).xyz);float dl9=dot(normal,lv9),wr9=max(0.,(dl9+.2)/1.2);\n'+
+      'float sp9=pow(max(dot(normal,normalize(lv9+normalize(vViewPosition))),0.),70.);\n'+
+      'reflectedLight.directDiffuse=reflectedLight.directDiffuse*uScene+diffuseColor.rgb*wr9*.95;\n'+
+      'reflectedLight.indirectDiffuse=reflectedLight.indirectDiffuse*uScene*.7+diffuseColor.rgb*(.2+.1*dl9);\n'+
+      'reflectedLight.directSpecular=reflectedLight.directSpecular*uScene+vec3(sp9*.5);')
+    .replace('#include <emissivemap_fragment>','#include <emissivemap_fragment>\n'+
+      'vec3 vd9=normalize(vViewPosition);float nv9=abs(dot(normal,vd9)),fr9=pow(1.-nv9,2.2);\n'+
+      'float sc9=uScan*exp(-pow((vS9-fract(uT*uScanV))/.09,2.));vec3 gl9=mix(mix(uGlowA,uGlowB,vS9),uRimA,uNoir);\n'+
+      'totalEmissiveRadiance=totalEmissiveRadiance*diffuseColor.rgb;\n'+
+      (ro===0?'totalEmissiveRadiance+=gl9*(vitE9*(.25*uLueur+2.2*sc9)+sc9*.25);\n'+
+        'float hc9=vitH(vLp9*47.3);if(hc9>.975)totalEmissiveRadiance+=vec3(1.)*pow(.5+.5*sin(uT*(3.+4.*vitH(vLp9*13.1))+hc9*80.),8.)*.9;\n':'')+
+      (ro===1?'diffuseColor.a=mix(uCoqA0,uCoqA1,pow(1.-nv9,uCoqP));\n'+
+        'vec3 rf9=reflect(-vd9,normal),rw9=(vec4(rf9,0.)*viewMatrix).xyz;\n'+
+        'vec3 sky9=mix(mix(vec3(.30,.27,.40),vec3(.86,.92,1.),smoothstep(-.25,.05,rw9.y)),vec3(.42,.6,1.),smoothstep(.15,.9,rw9.y));\n'+
+        'totalEmissiveRadiance+=sky9*(.03+.55*fr9)+vec3(1.,.98,.95)*pow(max(dot(rf9,normalize((viewMatrix*vec4(uLum,0.)).xyz)),0.),300.)*2.5;\n'+
+        'totalEmissiveRadiance+=(.5+.5*cos(6.2832*(fr9*1.4+vLp9.y*.3+vec3(0.,.33,.67))))*fr9*.28+gl9*sc9*.35;diffuseColor.a=min(1.,diffuseColor.a+sc9*.12);\n':''))
+    .replace('#include <tonemapping_fragment>',(ro===2?'gl_FragColor=vec4(gl9*uLueur*(.55+.25*sin(uT*1.7))+gl9*2.2*sc9,1.);\n':'')+'#include <tonemapping_fragment>');
+}
+function vitrailMat(U,ro,cle){
+  const m=new THREE.MeshPhongMaterial({color:0xffffff,shininess:85,specular:0x7c8590,emissive:0x262626,transparent:ro===1,depthWrite:ro!==1});
+  m.userData.U=U;m.userData.ro=ro;m.onBeforeCompile=vitrailShader;m.customProgramCacheKey=()=>(cle||'vitrail')+ro;return m;
+}
+function vitrailObjet(F,U,cle){ // un objet en VITRAIL : un groupe de trois maillages (écailles, cœur, peau) — géométries bâties une fois par forme
+  if(!F._geo)F._geo={lisse:vitrailLisse(F),ecailles:vitrailEcailles(F)};
+  const g=new THREE.Group(),e=new THREE.Mesh(F._geo.ecailles,vitrailMat(U,0,cle)),c=new THREE.Mesh(F._geo.lisse,vitrailMat(U,2,cle)),p=new THREE.Mesh(F._geo.lisse,vitrailMat(U,1,cle));
+  p.renderOrder=1;for(const m of [e,c,p])m.frustumCulled=false;g.add(e,c,p);g.userData={ecailles:e,coeur:c,peau:p};return g;
+}
+/* <<<FIN VITRAIL>>> */
+/* <<<SINGE>>> LE SINGE PENDU (2026-10-10, Léo choisit « le 2 » : quand on passe SOUS la route, un singe pend à l'envers sous la dalle,
+   accroché par la queue, et te regarde passer — il tend la main quand tu passes tout près). Fait en VITRAIL.
+   Modelé DEBOUT (la tête en haut, le visage vers +z) puis retourné : dans son repère, la queue s'accroche en (0,0,0) sous la dalle, le corps
+   pend vers −y (≈ 2,1 m jusqu'au bout des mains, qui pendent sous la tête). Des volumes simples soudés en douceur (ellipsoïdes, capsules) ;
+   la couleur dit qui est le volume le plus proche (fourrure caramel, visage, ventre, mains et pieds pêche, yeux noirs à reflet, sourire).
+   Trois OS : la TÊTE (elle suit la cible), le BRAS droit et le BRAS gauche (celui du côté de la caisse se tend vers elle). */
+const SG_YA=-.70; // la hauteur (debout) du haut de la crosse de la queue : elle devient le point d'accroche (0,0,0)
+const SG_P=[ // [forme, rôle, os, soudure, …] — 'e' ellipsoïde (centre, rayons) · 'c' capsule (a, b, rayon a, rayon b)
+  ['e','four',0,0,[0,.36,0],[.25,.34,.21]],          // le torse
+  ['e','four',0,.08,[0,.08,-.01],[.22,.17,.19]],     // le bassin
+  ['e','four',1,.06,[0,.93,.02],[.27,.25,.25]],      // la tête
+  ['e','face',1,.03,[0,.93,.13],[.21,.17,.15]],      // le masque du visage
+  ['e','museau',1,.04,[0,.85,.2],[.14,.1,.1]],       // le museau
+  ['e','oeil',1,.006,[.088,.965,.245],[.056,.056,.05]],['e','oeil',1,.006,[-.088,.965,.245],[.056,.056,.05]], // de grands yeux
+  ['e','oreille',1,.03,[.275,1.0,-.01],[.1,.11,.045]],['e','oreille',1,.03,[-.275,1.0,-.01],[.1,.11,.045]],
+  ['e','four',1,.04,[0,1.17,-.01],[.08,.06,.07]],      // la mèche
+  ['c','four',2,.05,[.2,.6,0],[.47,.88,.04],.075,.065],['c','four',2,.03,[.47,.88,.04],[.42,1.22,.08],.065,.055],['e','main',2,.03,[.42,1.29,.09],[.075,.085,.065]],
+  ['c','four',3,.05,[-.2,.6,0],[-.47,.88,.04],.075,.065],['c','four',3,.03,[-.47,.88,.04],[-.42,1.22,.08],.065,.055],['e','main',3,.03,[-.42,1.29,.09],[.075,.085,.065]],
+  ['c','four',0,.05,[.13,.02,.04],[.3,-.12,.13],.085,.07],['c','four',0,.03,[.3,-.12,.13],[.22,-.3,.18],.07,.06],['e','main',0,.03,[.2,-.36,.2],[.08,.06,.1]],
+  ['c','four',0,.05,[-.13,.02,.04],[-.3,-.12,.13],.085,.07],['c','four',0,.03,[-.3,-.12,.13],[-.22,-.3,.18],.07,.06],['e','main',0,.03,[-.2,-.36,.2],[.08,.06,.1]],
+  ['c','queue',0,.06,[0,.02,-.16],[0,-.25,-.3],.05,.045],['c','queue',0,.03,[0,-.25,-.3],[0,-.52,-.28],.045,.04],
+  ['c','queue',0,.03,[0,-.52,-.28],[0,-.66,-.14],.04,.037],['c','queue',0,.03,[0,-.66,-.14],[0,-.66,.02],.037,.035],['c','queue',0,.03,[0,-.66,.02],[0,-.58,.1],.035,.033]];
+const SG_C={four:0x7b4a2c,dos:0x5f361f,face:0xf6d3b0,museau:0xf1c29a,ventre:0xefc39a,main:0xe9b48e,oreille:0xe7a58e,oeil:0x120d10,reflet:0xffffff,bouche:0x5a2a22};
+const SG_RGB={};for(const k in SG_C){const c=new THREE.Color(SG_C[k]);SG_RGB[k]=[c.r,c.g,c.b];}
+const SG_D=new Float32Array(SG_P.length);
+function sgPrim(q,X,Y,Z){
+  if(q[0]==='e'){const c=q[4],r=q[5],x=(X-c[0])/r[0],y=(Y-c[1])/r[1],z=(Z-c[2])/r[2],k0=Math.sqrt(x*x+y*y+z*z),k1=Math.sqrt(x*x/(r[0]*r[0])+y*y/(r[1]*r[1])+z*z/(r[2]*r[2]));return k0*(k0-1)/(k1||1e-6);}
+  const a=q[4],b=q[5],px=X-a[0],py=Y-a[1],pz=Z-a[2],bx=b[0]-a[0],by=b[1]-a[1],bz=b[2]-a[2],t=Math.max(0,Math.min(1,(px*bx+py*by+pz*bz)/(bx*bx+by*by+bz*bz)));
+  return Math.hypot(px-bx*t,py-by*t,pz-bz*t)-(q[6]+(q[7]-q[6])*t);
+}
+function sgDebout(x,y,z){ // le champ, debout ; remplit SG_D (la distance à chaque volume) et rend l'union soudée
+  let d=1e9;for(let i=0;i<SG_P.length;i++){const q=SG_P[i],di=sgPrim(q,x,y,z);SG_D[i]=di;
+    if(i===0)d=di;else{const k=q[3];if(k<=0)d=Math.min(d,di);else{const hh=Math.max(k-Math.abs(d-di),0)/k;d=Math.min(d,di)-hh*hh*k*.25;}}}
+  return d;
+}
+function sgProche(){let b=0;for(let i=1;i<SG_P.length;i++)if(SG_D[i]<SG_D[b])b=i;return b;}
+const SINGE_F={ // la forme du singe PENDU (repère d'accroche : x = −x debout, y = SG_YA − y debout, z = z)
+  min:[-.62,-2.16,-.44],max:[.62,.1,.42],hs:.034,h:.024,
+  sdf:(x,y,z)=>sgDebout(-x,SG_YA-y,z),
+  s:(x,y,z)=>Math.max(0,Math.min(1,-y/2.05)), // l'onde part de la queue et descend jusqu'aux mains
+  col(x,y,z,o){const X=-x,Y=SG_YA-y,Z=z;sgDebout(X,Y,Z);const q=SG_P[sgProche()];let r=q[1];
+    if(r==='oeil'){const c=q[4];r=Math.hypot(X-c[0]-.014*Math.sign(c[0]),Y-c[1]-.02,Z-c[2]-.045)<.024?'reflet':'oeil';} /* le reflet : en haut, vers l'extérieur */
+    else if(r==='museau'){if(Z>.24&&Math.abs(X)<.095&&Math.abs(Y-(.815+2.4*X*X))<.018)r='bouche'; // son vrai sourire : pendu, il se lit comme 🙃
+      else if(Z>.26&&Math.hypot(Math.abs(X)-.035,Y-.885)<.017)r='bouche';}
+    else if(r==='oreille'&&Z>-.005&&Math.hypot((Math.abs(X)-.285)/.07,(Y-1.0)/.08)<1)r='oreille';
+    else if(r==='oreille')r='four';
+    else if(r==='four'&&q[2]===0&&Z>.06&&(X/.19)**2+((Y-.33)/.3)**2<1)r='ventre';
+    else if(r==='four'&&Z<-.06)r='dos';
+    else if(r==='queue')r=Y<-.6?'dos':'four';
+    o[0]=SG_RGB[r][0];o[1]=SG_RGB[r][1];o[2]=SG_RGB[r][2];},
+  os(x,y,z,o){const X=-x,Y=SG_YA-y,Z=z;sgDebout(X,Y,Z);const q=SG_P[sgProche()],b=q[2];o[0]=o[1]=o[2]=0;
+    if(b===1)o[0]=1;else if(b===0&&q[1]==='four'&&Y>.6&&Math.abs(X)<.16)o[0]=Math.max(0,Math.min(1,(Y-.62)/.16));
+    else if(b===2)o[1]=Math.max(0,Math.min(1,(Math.hypot(X-.2,Y-.6,Z)-.03)/.13));
+    else if(b===3)o[2]=Math.max(0,Math.min(1,(Math.hypot(X+.2,Y-.6,Z)-.03)/.13));}};
+const SG_COU=new THREE.Vector3(0,SG_YA-.72,0),SG_EPD=new THREE.Vector3(-.2,SG_YA-.6,0),SG_EPG=new THREE.Vector3(.2,SG_YA-.6,0); // pivots : le cou, l'épaule droite, la gauche (repère pendu)
+const SG_QI=new THREE.Quaternion(),SG_BRD=new THREE.Vector3(-.22,-.69,.09).normalize(),SG_BRG=new THREE.Vector3(.22,-.69,.09).normalize(); // les bras au repos (épaule → main)
+function singeNouveau(cle){ // un singe : son groupe (accroché en 0,0,0), ses réglages, son état
+  const U=vitrailU(SINGE_F,{uGlowA:{value:new THREE.Color(1,.82,.28)},uGlowB:{value:new THREE.Color(1,.42,.18)}}); // le cœur : l'or de la banane → l'ambre
+  U.uP0.value.copy(SG_COU);U.uP1.value.copy(SG_EPD);U.uP2.value.copy(SG_EPG);
+  const grp=vitrailObjet(SINGE_F,U,cle||'singe');
+  return {grp,U,e:{t:0,ax:0,vx:0,az:0,vz:0,hy:0,hp:0,r:0,q:new THREE.Quaternion(),m4:new THREE.Matrix4(),eu:new THREE.Euler(),v:new THREE.Vector3()}};
+}
+function singeTape(S,vx,vz){S.e.vx+=vx;S.e.vz+=vz;} // un coup de vent : la caisse vient de passer sous lui
+function singeAnime(S,dt,cible,proche){ // cible : la caisse dans le repère du singe (null = personne) · proche : 0 → 1 quand elle passe tout près
+  const e=S.e,U=S.U;e.t+=dt;U.uT.value=e.t;
+  // LE BALANCIER : un pendule amorti autour de la queue (x : d'avant en arrière, z : de côté) + une respiration
+  e.vx+=(-8*e.ax-1.2*e.vx)*dt;e.ax+=e.vx*dt;e.vz+=(-8*e.az-1.2*e.vz)*dt;e.az+=e.vz*dt;
+  S.grp.rotation.set(e.ax+.05*Math.sin(e.t*1.25),0,e.az+.035*Math.sin(e.t*.85+1));
+  // LA TÊTE suit la cible (elle est à l'envers : regarder « vers le sol », c'est regarder vers le haut de son crâne)
+  let fy=.35*Math.sin(e.t*.6),fp=.1*Math.sin(e.t*.9);
+  if(cible){e.v.copy(cible).sub(SG_COU).normalize();fy=Math.max(-1.15,Math.min(1.15,Math.atan2(e.v.x,e.v.z)));fp=Math.max(-.5,Math.min(.75,Math.asin(Math.max(-1,Math.min(1,-e.v.y)))));}
+  const a9=Math.min(1,dt*6);e.hy+=(fy-e.hy)*a9;e.hp+=(fp-e.hp)*a9;
+  U.uM0.value.setFromMatrix4(e.m4.makeRotationFromEuler(e.eu.set(e.hp,e.hy,0,'YXZ')));
+  // LES BRAS : celui du côté de la caisse se tend vers elle (et tape dans la main au plus près) ; l'autre pend et se balance
+  e.r+=((cible?proche:0)-e.r)*Math.min(1,dt*5);
+  const droit=!cible||cible.x<0,ep=droit?SG_EPD:SG_EPG;
+  for(const [mu,lui,re,sg] of [[U.uM1,droit,SG_BRD,1],[U.uM2,!droit,SG_BRG,-1]]){
+    if(lui&&cible&&e.r>.01){e.v.copy(cible).sub(ep).normalize();e.q.setFromUnitVectors(re,e.v);
+      const w=Math.min(.95,e.r)*(1+.12*Math.sin(e.t*14)*Math.max(0,e.r-.6));e.q.slerp(SG_QI,1-Math.min(1,w));e.m4.makeRotationFromQuaternion(e.q);}
+    else e.m4.makeRotationFromEuler(e.eu.set(.18*Math.sin(e.t*1.1+sg),0,sg*(.12+.08*Math.sin(e.t*.8)),'XYZ'));
+    mu.value.setFromMatrix4(e.m4);}
+}
+/* <<<FIN SINGE>>> */
 // ---- SERPENT : tube néon (cyan→magenta, ventre doré) à reptation en place ----
 const SN_NSEG=54,SN_RSEG=10,SN_SEGL=0.34;
 const snRP=[[0,.02],[.018,.30],[.05,.44],[.10,.30],[.34,.30],[.62,.20],[.82,.11],[.94,.06],[1,.02]];

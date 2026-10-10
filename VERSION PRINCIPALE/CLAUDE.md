@@ -42,6 +42,25 @@ plafonds de lacet et de tangage, vol libre, vrille visuelle, drift = un geste. C
   · **le virage en vol reste tel quel** : le lacet en vol ne suit pas `vitMult` (rayon 40 m à ×1, ~100 m sous NITROOO ×2,6) — voulu.
 - ⚠ Commentaires périmés à ne pas croire : `AIR_RATE` vaut 1 (pas 1,3, remis à 1 dans `startFall`).
 
+## LE VITRAIL EN MODULE + LE SINGE PENDU (2026-10-10, Léo : la technique trouvée sur le dauphin s'appelle VITRAIL ; puis « quelle figure pourrait faire apparaître un singe » → « le 2 »)
+- **`<<<VITRAIL>>>`** (avant `// ---- SERPENT`) : la recette pour N'IMPORTE QUELLE forme. Une forme = `F` {`sdf` (distance signée, des volumes
+  soudés en douceur), `col` (couleur), `os` (poids de 3 os, facultatif), `s` (coordonnée de l'onde 0 → 1), `min/max`, `hs` (pas de la forme
+  lisse), `h` (taille des écailles)}. `vitrailObjet(F,U,cle)` → un groupe de trois maillages : ÉCAILLES (cases de `h` dont le centre est
+  dedans et qui touchent le dehors, une couleur / un os / une normale par cube), CŒUR (la forme lisse rentrée, lumière pure `uGlowA → uGlowB`),
+  PEAU de verre (la forme lisse gonflée, reflet de ciel, éclat, film irisé) ; un seul programme par couche (`vitrailShader`, rôles 0/1/2) ;
+  la forme lisse = « surface nets » (normales = gradient du champ). `vitrailU(F)` = les réglages, valeurs du JUSTE MILIEU de Léo (de face .43,
+  bords .95, gonflée 1,3 cube, écailles .89, vague .45 cube) ; trois os par `uM0..2` (Matrix3) + pivots `uP0..2`. Rien n'est bâti au chargement.
+- **`<<<SINGE>>>` LE SINGE PENDU** : la figure choisie — quand on passe SOUS la route (LIMBO / SNAKE LOOP), un singe pend à l'envers sous la
+  dalle, accroché par la queue, suit la caisse de la tête et tend la main (il tape sur le toit au plus près), puis se balance dans son souffle.
+  Modelé debout (`SG_P` : ellipsoïdes et capsules soudés ; `SG_C` les couleurs : fourrure caramel, visage / ventre / mains pêche, grands yeux
+  noirs à reflet, sourire) puis retourné (repère d'accroche : la queue en 0,0,0, il pend vers −y sur ~2,1 m). Son vrai sourire, pendu, se lit
+  🙃 (le retourner pour « nous » le faisait grimacer). Os : la tête (cou), bras droit, bras gauche. `singeNouveau()`, `singeAnime(S,dt,cible,
+  proche)` (pendule amorti, tête qui suit, bras qui se tend), `singeTape(S,vx,vz)` (le souffle). Cœur : l'or de la banane → l'ambre.
+  ~35 000 triangles (h .024, hs .034). **PAS ENCORE BRANCHÉ en course** (déclencheur, placement sous la dalle, aura : à faire quand Léo valide).
+- **`boite-singe.html`** : la boîte (même principe que la boîte à dauphins : lit et RELIT les deux blocs) — le dessous de la route, une caisse
+  qui passe sous lui toutes les ~5 s, carte « Vitrail » (Peau · Cœur + 7 curseurs), Dark triad, Ralenti, Figé, Lisse, Ciel rêve.
+  Une erreur dans le bloc s'affiche en rouge et garde l'ancien singe. `?passe=0&fige=1&cy=&dist=&yaw=&pitch=` pour une photo.
+
 ## LE DAUPHIN DE RÊVE + LA BOÎTE À DAUPHINS (2026-10-09, Léo : « retouchons les dauphins, envoie-moi dans une boîte blanche avec les dauphins, on va les design » — puis une image de grand dauphin pastel : « travaille encore plus dur »)
 - **LA BOÎTE** : `boite-dauphins.html` (à côté d'index.html, servie par `python3 -m http.server`, jamais en double-clic). Elle LIT et exécute le
   VRAI bloc du jeu (de `const DOL_L=` à `const dolphinRig=`) et le RELIT ~1 fois/s : une retouche du dauphin dans index.html apparaît sans
