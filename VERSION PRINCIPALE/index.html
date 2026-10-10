@@ -6357,12 +6357,17 @@ html body #garage.modeShop:not(.menu):not(.vitrine) #gTabs{display:none!importan
 html body #garage:not(.menu):not(.vitrine) #gRar .fnTete .fnT{display:inline-flex;align-items:center;gap:6px;color:#fff;letter-spacing:1px;font-weight:400}
 html body #garage:not(.menu):not(.vitrine) #gRar .fnTete .fnT .pxi{--pxs:1;color:#ffd75e}
 html body #garage:not(.menu):not(.vitrine) #gRar .fnTete .fnT i:not(.pxi){font-style:normal;font-variant-numeric:tabular-nums}
-html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande{display:flex!important;grid-template-rows:none;height:auto;gap:10px;padding:6px 14px 10px;align-items:stretch;scroll-snap-type:x proximity}
-html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnC{position:relative;flex:none;width:98px;height:132px;overflow:hidden;cursor:pointer;scroll-snap-align:start;transform:skewX(var(--sk));
+html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr));grid-template-rows:none;grid-auto-rows:auto;grid-auto-flow:row;
+  gap:10px 8px;height:auto;max-height:226px;padding:4px 14px 18px;overflow-x:hidden;overflow-y:auto;touch-action:pan-y;overscroll-behavior:contain;scroll-snap-type:y proximity;
+  -webkit-mask:linear-gradient(180deg,#000 0,#000 calc(100% - 30px),transparent);mask:linear-gradient(180deg,#000 0,#000 calc(100% - 30px),transparent)} /* (même jour) une GRILLE qui défile vers le BAS : on en voit une rangée et demie, le bas se fond — il y a une suite, pas tout le catalogue */
+html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande.finBas{-webkit-mask:none;mask:none}
+#gStrip.fnBande .fnSec{grid-column:1/-1;display:flex;align-items:center;gap:8px;margin:4px 2px -2px;font-size:var(--f0);letter-spacing:2px;color:var(--tx2)}
+#gStrip.fnBande .fnSec s{flex:1;height:1px;background:linear-gradient(90deg,rgba(154,144,200,.5),transparent)}
+html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnC{position:relative;grid-column:span 2;width:auto;height:128px;overflow:hidden;cursor:pointer;scroll-snap-align:start;transform:skewX(var(--sk));
   background:radial-gradient(130% 90% at 50% 30%,var(--rcL) 0%,var(--rc) 34%,var(--rcD) 100%),#120d24;
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.3),0 0 0 1px rgba(7,5,15,.95),0 8px 18px -8px var(--rc);
   clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);transition:transform var(--t-fast) var(--ease)}
-html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnC.une{width:156px}
+html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnC.une{grid-column:span 3;height:146px}
 html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnC:is(:active,.appui){transform:skewX(var(--sk)) translateY(2px)}
 html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnC.on{box-shadow:inset 0 0 0 2px #fff,0 0 0 1px rgba(7,5,15,.95),0 0 22px var(--rc)}
 #gStrip.fnBande .fnC i,#gStrip.fnBande .fnC s,#gStrip.fnBande .fnC b,#gStrip.fnBande .fnC em,#gStrip.fnBande .fnC span{pointer-events:none}
@@ -6387,8 +6392,9 @@ html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnC.on{box-shadow:in
 #gStrip.fnBande .fnC.acquis .fnP .pxi{--pxs:1;color:#3ee87a}
 #gStrip.fnBande .fnC.acquis{filter:saturate(.75)}
 @media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
-  html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnC{width:90px;height:118px}
-  html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnC.une{width:140px}}
+  html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande{max-height:186px}
+  html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnC{height:112px}
+  html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnC.une{height:124px}}
 /* L'ACCUEIL DU CIEL (2026-10-10, Léo : « le ciel, la voiture, tout reste identique au main ; seulement les boutons : plus petits, mieux
    cadrés ; des flammes très légères derrière le logo ») — voir le bloc JS du même nom. Deux rangées serrées dans une colonne de 360 px :
    MISSIONS · GARAGE · CARRIÈRE (tuiles icône + mot, chacune sa couleur de néon), puis ⚙ · JOUER · BOUTIQUE. Rien d'autre ne bouge. */
@@ -6414,6 +6420,23 @@ html.hub body #mHome.acc2 .mAccP>.mPlay .lg{font-size:32px!important}
 /* les flammes : derrière les lettres (la plaque du titre isole sa pile), lissées, fondues vers le haut */
 html.hub body #mHome.acc2 .mTitle{isolation:isolate}
 #mHome .mTitle .mFeu{position:absolute;left:-5%;width:110%;bottom:76%;height:auto;aspect-ratio:72/16;z-index:-1;pointer-events:none;opacity:1;image-rendering:pixelated;image-rendering:crisp-edges} /* (2e passe) posée AU-DESSUS des lettres : les langues dépassent de leur crête, jamais dans leurs trous */
+/* LA JAUGE SOBRE (2026-10-10, Léo : « retravaille la jauge : jolie, sobre, discrète, agréable à l'œil ») : plus de plaque ni de flèches.
+   Un fil fin qui s'efface aux deux bouts (une ombre douce dessous pour se lire sur l'anneau du plateau), cinq points discrets (−180°, −90°,
+   0°, 90°, 180° ; celui du milieu un peu plus haut), le trait cyan du centre au curseur, et un curseur blanc fin, penché comme les touches,
+   à lueur cyan. Au repos tout est à 70 % ; sous le doigt, tout s'allume et le curseur grandit. Même zone de toucher (48 px). */
+html.hubOn body #gTourne.on{background:none!important;box-shadow:none!important;transform:none!important;opacity:.72;transition:opacity var(--t-fast) var(--ease)}
+html.hubOn body #gTourne.on:is(.tient,:hover){opacity:1}
+html.hubOn body #gTourne::before,html.hubOn body #gTourne::after{display:none!important}
+html.hubOn body #gTourne .gtRail{left:18px;right:18px;height:12px;margin-top:-6px;filter:drop-shadow(0 1px 1.5px rgba(7,5,15,.75));
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.4) 12%,rgba(255,255,255,.4) 88%,transparent) 0 50%/100% 1px no-repeat,
+    linear-gradient(rgba(255,255,255,.75),rgba(255,255,255,.75)) 50% 50%/2px 8px no-repeat,
+    radial-gradient(circle,rgba(255,255,255,.6) 0 1.5px,transparent 2px) 25% 50%/4px 4px no-repeat,radial-gradient(circle,rgba(255,255,255,.6) 0 1.5px,transparent 2px) 75% 50%/4px 4px no-repeat,
+    radial-gradient(circle,rgba(255,255,255,.3) 0 1.5px,transparent 2px) 0 50%/4px 4px no-repeat,radial-gradient(circle,rgba(255,255,255,.3) 0 1.5px,transparent 2px) 100% 50%/4px 4px no-repeat}
+html.hubOn body #gTourne .gtFill{left:18px;right:18px;height:2px;margin-top:-1px;background:var(--neoC);box-shadow:0 0 6px rgba(94,230,255,.7);opacity:.85}
+html.hubOn body #gTourne .gtPouce{left:18px;width:5px;height:16px;margin:-8px 0 0 -2.5px;translate:calc(var(--t,.5) * (100cqw - 36px)) 0;transform:skewX(var(--sk));
+  background:#fff;box-shadow:0 0 0 1px rgba(7,5,15,.55),0 0 10px rgba(94,230,255,.85);border-radius:1px}
+html.hubOn body #gTourne.tient .gtPouce{height:22px;margin-top:-11px;box-shadow:0 0 0 1px rgba(7,5,15,.55),0 0 16px var(--neoC)}
+html.hubOn.gtConsole body #garage:not(.menu)>#gTourne.on{background:none!important;box-shadow:none!important}
 /* LA CROIX DE L'INVENTAIRE, DISCRÈTE (même jour, Léo : « la croix est juste plus discrète, et sert à enlever le rectangle avec toutes
    les voitures pour qu'on ait une vue sur le garage ») : elle ferme toujours le tiroir, mais n'est plus une touche cyan pleine. Plus de
    plaque ni de tranche : une petite croix lilas dans un carré à peine dessiné (filet d'1 px, fond presque nul), qui s'allume sous le doigt.
@@ -38413,10 +38436,13 @@ function bqTire(j){const r=mulberry32(Math.imul(j,2654435761)^0x5B0071C),{V,C}=b
   const neuf=function(L){return mel(L.filter(function(k){return !bqA(k);})).concat(mel(L.filter(bqA)));}; // ce qui n'est pas à toi d'abord
   const Vn=neuf(V),une=Vn.filter(function(k){return !bqA(k)&&rg[bqRar(k)]>=1;}).slice(0,2);
   for(const k of Vn)if(une.length<2&&une.indexOf(k)<0)une.push(k);
-  const jour=Vn.filter(function(k){return une.indexOf(k)<0;}).slice(0,2).concat(neuf(C).slice(0,2));
+  /* (même jour, Léo : « un peu plus de choix, qu'on puisse glisser vers le bas, mais pas tout non plus ») DU JOUR : trois caisses et trois
+     habillages (six cartes au lieu de quatre) — la vitrine fait huit objets, jamais tout le catalogue. */
+  const Cn=neuf(C).slice(0,BQ_N.hab),jour=Vn.filter(function(k){return une.indexOf(k)<0;}).slice(0,BQ_N.jour-Cn.length).concat(Cn);
   return une.concat(jour);}
+var BQ_N={une:2,jour:6,hab:3};
 function bqVitrine(){const j=bqJour();let b=SAVE.d.bq;
-  if(!b||b.j!==j||!Array.isArray(b.l)||!b.l.length||!b.l.every(bqValide)){b={j:j,l:bqTire(j)};SAVE.d.bq=b;try{SAVE.mark();}catch(e){}}
+  if(!b||b.j!==j||!Array.isArray(b.l)||b.l.length!==BQ_N.une+BQ_N.jour||!b.l.every(bqValide)){b={j:j,l:bqTire(j)};SAVE.d.bq=b;try{SAVE.mark();}catch(e){}}
   return b;}
 function bqReste(){const ms=Math.max(0,(bqJour()+1-(BQ_DECALE|0))*864e5-Date.now()),t=Math.floor(ms/1000),d2=function(n){return (n<10?'0':'')+n;};
   return d2(Math.floor(t/3600))+':'+d2(Math.floor(t/60)%60)+':'+d2(t%60);}
@@ -38429,7 +38455,7 @@ function bqCarte(k,une){const ri=rarInfo(bqRar(k)),c=ri.c,a=bqA(k);let nom='',ty
   else{const o=bqCos(k);nom=TR(o.d.n);ty=SHOP_LBL[o.cat];px=fmtC(o.d.p);fig=bqFig(o.cat,o.d);}
   return '<div class="fnC'+(une?' une':'')+(a?' acquis':'')+'" data-fn="'+k+'" role="button" aria-label="'+String(nom).replace(/"/g,'')+'" style="--rc:'+c+';--rcL:'+invRgba(c,.98)+';--rcD:'+invRgba(c,.22)+'">'
     +'<i class="fnFond"></i>'+fig+(une?'<s class="fnBan">'+sansAcc(TR('À LA UNE'))+'</s>':'')
-    +'<span class="fnTy">'+sansAcc(TR(ty))+' · '+sansAcc(TR(ri.n1))+'</span><b class="fnN">'+sansAcc(String(nom))+'</b>'
+    +'<span class="fnTy">'+sansAcc(TR(ty))+(une?' · '+sansAcc(TR(ri.n1)):'')+'</span><b class="fnN">'+sansAcc(String(nom))+'</b>'
     +'<em class="fnP'+(eur?' eur':'')+'">'+(a?pxi('coche')+'<span>'+sansAcc(TR('ACQUIS'))+'</span>':px)+'</em></div>';}
 function bqCourant(){if(SHOP.tab==='voiture')return 'v:'+garageI;const L=COSM[SHOP.tab],d=L&&L[SHOP.i[SHOP.tab]];return d?SHOP.tab+':'+d.id:'';}
 function gShopJour(){const bar=$('gRar'),st=$('gStrip');if(!bar||!st)return;try{gModeBoutons();}catch(e){}
@@ -38438,8 +38464,9 @@ function gShopJour(){const bar=$('gRar'),st=$('gStrip');if(!bar||!st)return;try{
     bar.innerHTML='<div class="gModeT fnTete" style="--rc:var(--neoM)">'+pxi('panier')+'<span>'+sansAcc(TR('BOUTIQUE DU JOUR'))+'</span><s></s><b class="fnT">'+pxi('horloge')+'<i>'+bqReste()+'</i></b></div>';}
   const k='fn:'+B.j+':'+B.l.join(',')+':'+B.l.map(function(x){return bqA(x)?1:0;}).join('')+':'+LANG;
   st.classList.add('fnBande');
-  if(st._r!==k){st._r=k;st._n=-1;st.scrollLeft=0;
-    st.innerHTML=B.l.map(function(x,n){return bqCarte(x,n<2);}).join('');
+  if(!st._finB){st._finB=1;st.addEventListener('scroll',function(){if(st.classList.contains('fnBande'))st.classList.toggle('finBas',st.scrollTop+st.clientHeight>=st.scrollHeight-4);},{passive:true});} // au bout de la vitrine, plus de fondu
+  if(st._r!==k){st._r=k;st._n=-1;st.scrollLeft=0;st.scrollTop=0;st.classList.remove('finBas');
+    st.innerHTML=B.l.map(function(x,n){return (n===BQ_N.une?'<div class="fnSec"><span>'+sansAcc(TR('DU JOUR'))+'</span><s></s></div>':'')+bqCarte(x,n<BQ_N.une);}).join('');
     st.querySelectorAll('.fnC[data-fn^="v:"]').forEach(function(el){const i=+el.getAttribute('data-fn').slice(2);
       photoFile(i,function(url){const ph=el.querySelector('.fnPh');if(ph&&!ph.firstChild){const im=document.createElement('img');im.alt='';im.src=url;ph.appendChild(im);}});});}
   const cur=bqCourant();st.querySelectorAll('.fnC').forEach(function(el){el.classList.toggle('on',el.getAttribute('data-fn')===cur);});}
@@ -38450,7 +38477,7 @@ try{$('gStrip').addEventListener('click',function(e){const t=e.target.closest&&e
   gShopJour();});}catch(e){}
 setInterval(function(){try{if(!garageOn||gModeM()!=='shop')return;const B=SAVE.d.bq;if(!B||B.j!==bqJour()){const bar=$('gRar'),st=$('gStrip');if(bar)bar._k=null;if(st)st._r=null;gShopJour();return;}
   const t=document.querySelector('#gRar .fnT i:not(.pxi)');if(t){const v=bqReste();if(t.textContent!==v)t.textContent=v;}}catch(e){}},1000);
-try{Object.assign(I18N,{'BOUTIQUE DU JOUR':'DAILY SHOP','À LA UNE':'FEATURED','ACQUIS':'OWNED'});}catch(e){}
+try{Object.assign(I18N,{'BOUTIQUE DU JOUR':'DAILY SHOP','À LA UNE':'FEATURED','ACQUIS':'OWNED','DU JOUR':'DAILY'});}catch(e){}
 window.dbgBoutiqueJour=function(dj){if(dj!=null){BQ_DECALE=dj|0;}const B=bqVitrine();return {jour:B.j,decale:BQ_DECALE,vitrine:B.l.map(function(k){return k+(bqA(k)?' (acquis)':'')+' '+bqRar(k);}),reste:bqReste()};};
 function gModeVa(m){
   if(gEl&&gEl.classList.contains('consoleCachee')){gConsoleCache(false);if(GMODE.m===m)return;} // (2026-10-09) la console repliée : la touche la ROUVRE (dans son mode)
