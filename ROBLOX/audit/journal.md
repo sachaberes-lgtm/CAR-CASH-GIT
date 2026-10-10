@@ -313,3 +313,7 @@ Lieu 91982637462711 publié par l API : version 9, fichier CashCar_PRET.rbxlx (7
 ## 2026-10-09 20:50 — publication
 
 Lieu 91982637462711 publié par l API : version 10, fichier CashCar_PRET.rbxlx (7773791 octets).
+
+## 2026-10-10 11:44 — publication
+
+Lieu 91982637462711 publié par l API : version 11, fichier CashCar_PRET.rbxlx (7801224 octets).
