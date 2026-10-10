@@ -12,6 +12,7 @@
 local RunService = game:GetService("RunService")
 local Config = require(script.Parent.Parent:WaitForChild("Config"))
 local Bus = require(script.Parent:WaitForChild("Bus"))
+local Perf = require(script.Parent:WaitForChild("Perf"))
 local Maillage = require(script.Parent:WaitForChild("Maillage"))
 local Effets = require(script.Parent:WaitForChild("Effets"))
 local Score = require(script.Parent:WaitForChild("Score"))
@@ -486,6 +487,12 @@ local function tick(dt: number)
 	local nomPal = Score.frenesie() and "noi" or (e.infini and "vio" or "feu")
 	local C9 = PAL[nomPal]
 	local R = D.R
+	-- (APPAREIL FAIBLE, Config.FAIBLE.dragon) LE DRAGON ALLÉGÉ : la tête (crâne, mâchoire, yeux, sourcils, bois, nageoires, moustaches),
+	-- le corps, sa frange et sa crête, les pattes, la queue de feu et la comète restent ; le HALO, les ÉCAILLES, la crinière, les
+	-- flammèches, la barbe, les banderoles et les rubans de la queue s'éteignent — 93 rubans sur 208, et leur calcul à chaque image
+	-- (mesuré au banc : 1,1 ms par image sur PC pour le dragon entier)
+	local leger = Perf.faible and not Perf.F.dragon
+	local function eteindre(l: { Ruban }) for _, r in l do montrer(r, false) end end
 	local function fl(u: number): number return 0.78 + 0.22 * math.sin(23 * u - 11 * t) * math.sin(7 * u + 5.3 * t) end
 
 	-- ===== LA TÊTE : elle GROSSIT et devient OPAQUE avec la tenue =====
@@ -621,7 +628,12 @@ local function tick(dt: number)
 	D.gueuleL.Color = C9.gueule
 	D.gueuleL.Brightness = math.min(1, (0.55 + 0.45 * R9 + 0.3 * AI) * V) * fBo * 3 * C9.feuK
 	-- la CRINIÈRE : six langues de feu qui partent de la nuque vers l'arrière et l'extérieur — plus longues avec la tenue
-	do
+	if leger then
+		eteindre(R.cri)
+		eteindre(R.fla)
+		eteindre(R.bar)
+		eteindre(R.ban)
+	else
 		local ml = (0.8 + 0.4 * gT) * (1 + 0.35 * AI) * (1 + 0.4 * CHs) * (0.85 + 0.3 * v1)
 		for j = 0, 5 do
 			local sg, lv = (j < 3) and -1 or 1, j % 3
@@ -633,7 +645,6 @@ local function tick(dt: number)
 			courbe(R.cri[j + 1], 0.5, 0.06)
 			peindre(R.cri[j + 1], C9.H, C9.Q, opFeu * fC * 0.8, 0)
 		end
-	end
 	-- les FLAMMÈCHES : six langues qui lèchent le crâne vers la nuque — la tête est EN FEU, plus avec la tenue
 	do
 		local lf = (0.55 + 0.55 * gT) * (1 + 0.25 * AI) * (1 + 0.5 * CHs)
@@ -678,6 +689,7 @@ local function tick(dt: number)
 			peindre(r, C9.vermillon, C9.paille, opPapier, opPapier)
 		end
 	end
+	end -- (fin du dragon complet : crinière, flammèches, barbe, banderoles)
 
 	-- ===== LE CORPS : il suit la TRAJECTOIRE, un compartiment par palier — il sort APRÈS la tête formée =====
 	local Lc = 1.7 + 0.5 * gB
@@ -716,8 +728,12 @@ local function tick(dt: number)
 		end
 		poser(R.frange, cam)
 		poser(R.corps, cam, 0.8)
-		poser(R.ecaille, cam, 0.4)
-		poser(R.halo, cam, 2.1)
+		if leger then
+			eteindre({ R.ecaille, R.halo })
+		else
+			poser(R.ecaille, cam, 0.4)
+			poser(R.halo, cam, 2.1)
+		end
 		-- les couleurs par tronçon : les PLIS de l'accordéon (un pli clair, un pli sombre), les ANNEAUX D'OR entre deux
 		-- compartiments, l'éclat du tronçon NEUF
 		local tr = 1 - opCorps
@@ -734,12 +750,14 @@ local function tick(dt: number)
 			b = R.frange.b[i]
 			b.Color = ColorSequence.new(C9.paille)
 			b.Transparency = NumberSequence.new(tr)
-			b = R.ecaille.b[i]
-			b.Color = ColorSequence.new((i % 2 == 0) and C9.ecaille or C9.or_)
-			b.Transparency = NumberSequence.new(1 - opCorps * (0.55 + 0.45 * rg))
-			b = R.halo.b[i]
-			b.Color = ColorSequence.new(C9.A)
-			b.Transparency = NumberSequence.new(1 - math.min(1, V * 0.3 * fl(u)) * C9.feuK)
+			if not leger then
+				b = R.ecaille.b[i]
+				b.Color = ColorSequence.new((i % 2 == 0) and C9.ecaille or C9.or_)
+				b.Transparency = NumberSequence.new(1 - opCorps * (0.55 + 0.45 * rg))
+				b = R.halo.b[i]
+				b.Color = ColorSequence.new(C9.A)
+				b.Transparency = NumberSequence.new(1 - math.min(1, V * 0.3 * fl(u)) * C9.feuK)
+			end
 		end
 		-- LA CRÊTE : des flammes en dents de scie qui défilent sur le dos
 		for i = 1, SPN do
@@ -788,6 +806,10 @@ local function tick(dt: number)
 			poser(R.que[j + 1], cam)
 			peindre(R.que[j + 1], C9.Q, C9.C, opFeu, 0)
 			local r = R.rub[j + 1]
+			if leger then
+				montrer(r, false)
+				continue
+			end
 			local Lr = (1.6 + 3.2 * gB) * (0.6 + 0.5 * v1)
 			for i = 1, r.n do
 				local w = (i - 1) / (r.n - 1)
@@ -856,8 +878,9 @@ Dragon.LANGUES = { { -0.44, 0.42, 0.5, 0.2, 0.1, 0.24, 1.25, 0 }, { 0.44, 0.42, 
 	{ -0.3, 1.02, 0.1, 0.1, 0.16, 0.2, 0.95, 4.4 }, { 0.3, 1.02, 0.1, -0.1, 0.16, 0.2, 0.95, 5.6 } }
 
 function Dragon.init()
+	local tickC = Perf.chrono("Dragon", tick) -- (banc : son temps par image, voir Perf)
 	RunService.RenderStepped:Connect(function(dt: number)
-		local ok, err = pcall(tick, math.min(dt, 0.05))
+		local ok, err = pcall(tickC, math.min(dt, 0.05))
 		if not ok then
 			if not D.erreur then warn("[CashCar] dragon : " .. tostring(err)) end
 			D.erreur = true

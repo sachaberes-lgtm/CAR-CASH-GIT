@@ -10,6 +10,7 @@
 -- d'interface posé à 3 km autour de la caméra (un BillboardGui n'est pas pris par la brume, mais il passe DERRIÈRE les tours et la
 -- route : c'est bien un ciel). Rien n'existe hors de la ville.
 local Config = require(script.Parent.Parent:WaitForChild("Config"))
+local Perf = require(script.Parent:WaitForChild("Perf"))
 local M = Config.M
 
 local CielMusical = {}
@@ -18,7 +19,7 @@ local R = 3000 * M          -- le rayon du cercle de panneaux
 local NQ, NP = 16, 26
 local A, B = Color3.fromRGB(255, 62, 200), Color3.fromRGB(62, 232, 255)
 local V: any = nil
-local E = { spin = 0, t = 0, pulse = 0, mesure = 0, on = false }
+local E = { spin = 0, t = 0, pulse = 0, mesure = 0, on = false, acc = 0 }
 
 local function panneau(dossier: Instance, couleur: Color3): (Part, BillboardGui, Frame)
 	local p = Instance.new("Part")
@@ -81,6 +82,13 @@ function CielMusical.tick(dt: number, force: number, cam: Vector3, fort: number?
 	if not E.on then
 		E.on = true
 		V.d.Parent = workspace
+	end
+	-- (APPAREIL FAIBLE, Config.FAIBLE.cielHz) mesuré au banc : 0,5 à 0,65 ms par image sur PC — 42 panneaux d'interface retaillés et
+	-- reteintés à chaque image. Sur l'appareil faible ils battent `cielHz` fois par seconde : à 3 km, on ne voit pas la différence
+	if Perf.faible then
+		E.acc += dt
+		if E.acc < 1 / (Perf.F.cielHz or 60) then return end
+		dt, E.acc = E.acc, 0
 	end
 	E.t += dt
 	E.spin += dt * 0.035

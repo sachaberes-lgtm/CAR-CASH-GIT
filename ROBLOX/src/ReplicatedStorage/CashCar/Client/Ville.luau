@@ -12,6 +12,7 @@ local AssetService = game:GetService("AssetService")
 local Config = require(script.Parent.Parent:WaitForChild("Config"))
 local Maillage = require(script.Parent:WaitForChild("Maillage"))
 local Recyclage = require(script.Parent:WaitForChild("Recyclage"))
+local Perf = require(script.Parent:WaitForChild("Perf"))
 local M = Config.M
 local RH = Config.ROAD_HALF
 
@@ -132,6 +133,13 @@ end
 -- le nombre de répétitions de l'image (8 fenêtres) le plus proche, parmi quelques crans : peu de gabarits, des fenêtres de 3 à 5 m
 local CRANS_L = { 0.5, 0.75, 1, 1.25, 1.5 }
 local CRANS_H = { 1, 1.5, 2.5, 4, 6, 9, 13, 19, 28 }
+-- (APPAREIL FAIBLE, Config.FAIBLE.villeGabarits = false) MESURÉ AU BANC : la ville est le poste le plus lourd du jeu en APPELS DE
+-- DESSIN — 200 sur 360 dans une vue de course. Chaque gabarit de tour (une combinaison de crans × chaude ou froide) est un appel de
+-- plus : Roblox ne regroupe que les copies d'un MÊME maillage. Des crans deux fois plus larges : 40 gabarits au plus au lieu de 450 —
+-- les tours gardent leurs cotes au centimètre (la collision ne lit qu'elles), seules leurs fenêtres s'étirent un peu plus d'une
+-- tour à l'autre (une travée de 2,5 à 6 m au lieu de 3 à 5)
+local CRANS_L_FAIBLE = { 0.6, 1.2 }
+local CRANS_H_FAIBLE = { 1.2, 2.5, 5, 10, 20 }
 local function cran(x: number, liste: { number }): number
 	local m, md = liste[1], math.huge
 	for _, c in liste do
@@ -405,7 +413,9 @@ function Ville.batir(piste: any, dossier: Instance, graine: number, ceder: (() -
 	for k, v in corps do
 		if v[7] == 0 then
 			-- le BÉTON du village et ses fenêtres (travée ~3,5 m, étage ~4 m : l'image porte 8 fenêtres)
-			local g = gabarit(cran(v[4] / 28, CRANS_L), cran(v[6] / 28, CRANS_L), cran(v[5] / 32, CRANS_H), v[9] > 0.5)
+			local gros = Perf.faible and not Perf.F.villeGabarits
+			local cL, cH = gros and CRANS_L_FAIBLE or CRANS_L, gros and CRANS_H_FAIBLE or CRANS_H
+			local g = gabarit(cran(v[4] / 28, cL), cran(v[6] / 28, cL), cran(v[5] / 32, cH), v[9] > 0.5)
 			local t = v[8] / 1.25
 			if g then
 				local p = Recyclage.copie(g)
@@ -480,7 +490,7 @@ function Ville.pluie(actif: boolean, camCF: CFrame, taux: number?, vent: boolean
 		if not actif then e:Clear() end
 	end
 	if actif then
-		e.Rate = 520 * (taux or 1)
+		e.Rate = 520 * (taux or 1) * Perf.part(Perf.F.pluie) -- (APPAREIL FAIBLE : une part des traits, Config.FAIBLE.pluie)
 		-- au-dessus de l'œil et un peu devant (à plat : la pluie tombe droit, quelle que soit l'assiette de la caméra)
 		local av = camCF.LookVector * Vector3.new(1, 0, 1)
 		-- (pluieTick, L13487 : L'ORAGE a du VENT — la pluie tombe en biais — et plus de pluie)
