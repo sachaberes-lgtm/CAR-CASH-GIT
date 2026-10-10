@@ -21366,32 +21366,54 @@ Object.assign(SHAPES,{
     // LE FEU QUI COULE et L'ONDE : un programme — un bruit qui monte et file vers l'arrière ; une vague de lumière (uW) qui court de l'avant
     // vers l'arrière ; la hauteur (uY0, uH) l'efface vers le haut ; `uB` le rend plus présent sans le blanchir
     const FEU_VS='varying vec3 vP;void main(){vP=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
-          FEU_FS='uniform float uT,uF,uY0,uH,uA,uB,uW;varying vec3 vP;'+
+          FEU_FS='uniform float uT,uF,uY0,uH,uA,uB,uW,uPx;varying vec3 vP;'+
       'float h3(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}'+
       'float n3(vec3 x){vec3 i=floor(x),f=fract(x);f=f*f*(3.-2.*f);return mix(mix(mix(h3(i),h3(i+vec3(1,0,0)),f.x),mix(h3(i+vec3(0,1,0)),h3(i+vec3(1,1,0)),f.x),f.y),'+
       'mix(mix(h3(i+vec3(0,0,1)),h3(i+vec3(1,0,1)),f.x),mix(h3(i+vec3(0,1,1)),h3(i+vec3(1,1,1)),f.x),f.y),f.z);}'+
-      'void main(){float u=clamp((vP.y-uY0)/uH,0.,1.);vec3 q=vec3(vP.x*4.,vP.y*5.-uT*(2.4+uF*1.6),vP.z*3.+uT*.7);'+
-      'float n=n3(q)*.6+n3(q*2.1)*.3+n3(q*4.3)*.1;float w=pow(max(0.,sin(vP.z*1.7+uT*(3.+uF*2.))),10.)*uW;'+
-      'float f=clamp(n*1.25+(1.-u)*.5-u*.45+uF*.12+w*.45,0.,1.);float a=smoothstep(.34,.64,f+uB)*uA;'+
+      'void main(){vec3 P=floor(vP/uPx)*uPx+uPx*.5;'+                                     /* (Léo : « plus pixel, les flammes ») : des cases nettes */
+      'float u=clamp((P.y-uY0)/uH,0.,1.);vec3 q=vec3(P.x*4.,P.y*5.-uT*(2.4+uF*1.6),P.z*3.+uT*.7);'+
+      'float n=n3(q)*.6+n3(q*2.1)*.3+n3(q*4.3)*.1;float w=pow(max(0.,sin(P.z*1.7+uT*(3.+uF*2.))),10.)*uW;'+
+      'float f=clamp(n*1.25+(1.-u)*.5-u*.45+uF*.12+w*.45,0.,1.);f=floor(f*7.)/7.;float a=step(.42,f+uB)*uA;'+
       'vec3 c=mix(vec3(.85,.12,.02),vec3(1.,.6,.1),smoothstep(.45,.75,f));c=mix(c,vec3(1.,.95,.75),smoothstep(.8,.96,f));gl_FragColor=vec4(c,a);}';
     const UF={uT:{value:0},uF:{value:0}};
-    const feuMat=(y0,h,a,b,w9)=>{const m=new THREE.ShaderMaterial({uniforms:{uT:UF.uT,uF:UF.uF,uY0:{value:y0},uH:{value:h},uA:{value:a},uB:{value:b||0},uW:{value:w9||0}},
+    const feuMat=(y0,h,a,b,w9,px)=>{const m=new THREE.ShaderMaterial({uniforms:{uT:UF.uT,uF:UF.uF,uY0:{value:y0},uH:{value:h},uA:{value:a},uB:{value:b||0},uW:{value:w9||0},uPx:{value:px||.05}},
       vertexShader:FEU_VS,fragmentShader:FEU_FS,transparent:true,depthWrite:false,side:THREE.DoubleSide});m.userData.g='feu';return m;};
     // LA PEAU DE FEU : entre la lave et la croûte (une demi-case sous les cubes) — c'est elle qu'on voit scintiller dans les joints
     const D=K.kit({r:{g:'l',c:0xffffff}});
     D.loft(zs,z=>{const b=.30+S9*.4,t=T(z)-creux(0,z)-(z>-2.0&&z<-1.26?.26:S9*.7),yc=(b+t)/2,hh=(t-b)/2,pts=[];
       for(let i=0;i<=8;i++){const a=-Math.PI/2+i/8*Math.PI,y=yc+Math.sin(a)*hh,ux=Math.pow(Math.max(0,1-Math.pow(Math.abs(Math.sin(a)),6)),1/3);
         pts.push([Math.max(.001,(Wy(z,y)-S9*.7)*ux)*(i===0||i===8?0:1),y]);}return pts;},()=>'r');
-    const peau=new THREE.Mesh(D.done().l,feuMat(.3,.95,.95,.18,1));peau.userData.brut=1;peau.renderOrder=2;g.add(peau);
-    // LE PUITS : des LANGUES de feu translucides en volume (des tours tournés, le même programme)
-    const langue=new THREE.LatheGeometry([[0,0],[.16,.06],[.21,.22],[.17,.48],[.09,.78],[.02,.97],[0,1]].map(p=>new THREE.Vector2(p[0],p[1])),12);
-    const mL=feuMat(0,1,.95),yL=T(-1.63)-.30;
-    for(const q of [[0,-1.64,.80,1.0],[.19,-1.44,.52,.72],[-.20,-1.48,.58,.78],[.16,-1.86,.46,.7],[-.17,-1.84,.5,.74]]){
-      const m=new THREE.Mesh(langue,mL);m.position.set(q[0],yL,q[1]);m.scale.set(q[3],q[2],q[3]);m.rotation.x=-.18;m.userData.brut=1;m.renderOrder=3;g.add(m);}
+    const peau=new THREE.Mesh(D.done().l,feuMat(.3,.95,.95,.18,1,.05));peau.userData.brut=1;peau.renderOrder=2;g.add(peau);
+    // LES PETITES FLAMMES EN PIXELS (Léo : « plus pixel, les flammes ; des petites flammes ») : dans le puits, des flammes de pixel art EN
+    // VOLUME — des tas de petits cubes de feu (un InstancedMesh, un appel de dessin) : base blanche, cœur jaune, corps orange, pointe
+    // rouge, la couronne extérieure plus rouge ; chaque colonne vacille par CRANS (12 images/s), la pointe penche d'une case, une
+    // étincelle se détache et monte ; plus hautes à la nitro. Les couleurs sont écrites telles quelles (même rendu jeu / salle).
+    const e9=.056,FL=[[0,-1.64,10],[.20,-1.46,7],[-.21,-1.50,8],[.17,-1.84,7],[-.18,-1.82,7],[.0,-1.36,5]],NF=420;
+    const mF=new THREE.ShaderMaterial({vertexShader:'varying vec3 vC;varying float vS;void main(){vec3 n=normalize(mat3(instanceMatrix)*normal);'+
+      'vS=.72+.28*max(n.y,0.)+.14*abs(n.x);vC=instanceColor;gl_Position=projectionMatrix*modelViewMatrix*instanceMatrix*vec4(position,1.);}',
+      fragmentShader:'varying vec3 vC;varying float vS;void main(){gl_FragColor=vec4(vC*vS,1.);}'});mF.userData.g='feu';
+    const flammes=new THREE.InstancedMesh(new THREE.BoxGeometry(e9*.84,e9*.84,e9*.84),mF,NF);
+    flammes.frustumCulled=false;flammes.userData.brut=1;flammes.userData.noShadow=1;flammes.renderOrder=3;g.add(flammes);
+    const PAL9=[[1,.93,.62],[1,.74,.16],[1,.42,.05],[.86,.13,.03]],M9=new THREE.Matrix4(),C9=new THREE.Color();
+    let rs=0x9e3779b9;const rnd9=()=>{rs^=rs<<13;rs^=rs>>>17;rs^=rs<<5;return (rs>>>0)/4294967296;};
+    const ET9=FL.map(f=>({s:0,h:new Array(9).fill(0),k:0}));                                   // par flamme : la pente, les 9 colonnes, l'étincelle
+    const pasFeu=F=>{let n=0;const pose=(x,y,z,sc,c)=>{if(n>=NF)return;M9.makeScale(sc,sc,sc).setPosition(x,y,z);flammes.setMatrixAt(n,M9);
+        C9.setRGB(c[0],c[1],c[2]);flammes.setColorAt(n,C9);n++;};
+      FL.forEach((f,q)=>{const E9=ET9[q],yB=T(f[1])-.26,Hc=f[2]*(1+.45*F);
+        if(rnd9()<.35)E9.s=Math.max(-1,Math.min(1,E9.s+(rnd9()<.5?-1:1)));                      // la pointe change de côté
+        for(let c=0;c<9;c++){const dx=c%3-1,dz=(c/3|0)-1,w=dx===0&&dz===0?1:dx===0||dz===0?.62:.34;
+          const H=Math.max(0,Math.round(Hc*w*(.68+.32*rnd9())));E9.h[c]=H;
+          for(let j=0;j<H;j++){if(w===1&&j===H-2&&rnd9()<.22)continue;                            // la pointe se détache d'une case
+            const u=j/Math.max(1,Hc)+(w<1?.28:0),pi=u<.2?0:u<.45?1:u<.75?2:3,sh=j>=H*.5?E9.s:0;
+            pose(f[0]+(dx+sh)*e9,yB+(j+.5)*e9,f[1]+dz*e9,1,PAL9[pi]);}}
+        E9.k+=1;if(E9.k>Math.round(Hc*.7)+3)E9.k=0;                                              // l'étincelle : monte d'une case par cran
+        if(E9.k>0){const j=E9.h[4]+E9.k;pose(f[0]+E9.s*e9,yB+(j+.5)*e9,f[1],.62,PAL9[E9.k>3?3:2]);}});
+      flammes.count=n;flammes.instanceMatrix.needsUpdate=true;if(flammes.instanceColor)flammes.instanceColor.needsUpdate=true;};
+    pasFeu(0);let acc9=0;
     // LA VIE : le feu coule, l'onde court, la lave respire, les braises palpitent ; tout s'emballe à la nitro
     let t=0;const anime=dt=>{t+=dt;UF.uT.value=t;const fort=(typeof nitroOn!=='undefined'&&nitroOn)?1:0;UF.uF.value+=(fort-UF.uF.value)*Math.min(1,dt*4);
       const k=1+.22*Math.sin(t*2.3)*Math.sin(t*.8+1.3)+.15*UF.uF.value;cm.color.setRGB(k,k*.97,k*.94);
-      const e=.72+.28*Math.abs(Math.sin(t*5.3)*Math.sin(t*3.1+.7))+.2*UF.uF.value;em.color.setRGB(e,e,e);};
+      const e=.72+.28*Math.abs(Math.sin(t*5.3)*Math.sin(t*3.1+.7))+.2*UF.uF.value;em.color.setRGB(e,e,e);acc9+=dt;if(acc9>=1/12){acc9=0;pasFeu(UF.uF.value);}};
     g.userData.anime=anime;anime(1/30);
     if(typeof BLING==='object'&&BLING&&BLING.anim)BLING.anim.push(anime);
     return {hl:[.30,.51,2.36],tl:[.40,.78,-2.36],wx:.80,wzF:ZF,wzR:-ZR,pots:[[.30,.48,-2.37],[-.30,.48,-2.37]],

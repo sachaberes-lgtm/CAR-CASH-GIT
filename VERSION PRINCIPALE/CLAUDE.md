@@ -163,12 +163,17 @@ plafonds de lacet et de tangage, vol libre, vrille visuelle, drift = un geste. C
   posés hors de la gamme (`SHAPES.xxx=function…`) sont tous ramassés tout seuls (ceux de demain compris).
 - **LA FOURNAISE (10/10, Léo : « une voiture flamme — dur, vas-y dur ; une autre technique ; une forme de voiture originale, associée au
   feu » → essais : feu en pixels (« les petites flammes, c'est un peu gamin »), porcelaine blanche (« je préférais avant, avec les roues
-  noires et les cubes noirs ») → « fais VIBRER un peu plus la voiture, pas au sens littéral »)** : index 73, `SHAPES.fournaise`. Le VITRAIL
+  noires et les cubes noirs ») → « fais VIBRER un peu plus la voiture, pas au sens littéral » → « plus pixel, les flammes ; des petites
+  flammes »)** : index 73, `SHAPES.fournaise`. Le VITRAIL
   en couches : une CROÛTE de cubes de basalte de 11 cm à 86 % en surface d'un volume (`dedans` : superellipse, ailes bombées, capot creusé,
   arches seulement sur les flancs, un PUITS dans la malle, huit TROUS ouverts), cockpit en obsidienne, BRAISES dans leur propre maillage
   (elles palpitent) ; dessous la LAVE (cœur lisse) qui respire ; ENTRE LES DEUX une PEAU DE FEU qui coule (un programme `FEU_VS/FEU_FS` :
   bruit qui monte et file vers l'arrière, + une ONDE `uW` qui court de l'avant vers l'arrière ; `uB` = plus présent sans blanchir ; PAS
-  additif) — c'est elle qui fait scintiller les joints ; dans le puits, des LANGUES de feu translucides en volume (le même programme). Tout
+  additif ; PIXELISÉ : `uPx` = des cases nettes, 7 crans de chaleur, alpha au seuil) — c'est elle qui fait scintiller les joints ; dans le
+  puits, des PETITES FLAMMES EN CUBES (un `InstancedMesh`, `instanceColor`, programme à couleurs écrites telles quelles = même rendu jeu /
+  salle ; `noShadow`, `frustumCulled=false`) : six tas de colonnes 3 × 3, blanc → jaune → orange → rouge, couronne plus rouge ; elles
+  vacillent par CRANS à 12 images/s (`pasFeu`), la pointe penche d'une case, une étincelle monte. Les langues tournées rondes d'avant
+  sont retirées (silhouette en bulles). Tout
   s'emballe à la nitro. Ce qui VIT dans une caisse : `BLING.anim` (jeu, `blingTick`) et `userData.anime` (salle, `BL.vie`) ; la salle garde
   les matières `userData.brut`. Roues sombres à jantes orange. Pots : deux gueules de forge. ÉPIQUE 3 400 000 $, « THE FURNACE ».
 - **LES POTS D'ÉCHAPPEMENT (10/10, Léo : « une grosse révision très précise sur chacune des voitures — ne change rien, garde-les telles
