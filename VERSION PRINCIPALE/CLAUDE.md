@@ -136,7 +136,7 @@ d'aller dans cette map avec une voiture, la mobilité comme le main, mais seulem
   · MESURÉ (A/B alterné, même banc) : 1,5-2,5 M triangles visibles contre 3-3,8 M en v9, construction ~3,1 s contre ~4,2 s (gabarits 0,7 s
     contre 1,7 s), même cadence ; collisions et règle d'or OK, Porte et Pont traversés. sw.js → v212.
 - **v11 — RETOUR AUX PIXELS, LA ROUTE BIJOU** (même jour, Léo : « reviens sur les pixels, la dernière version ; la route comme un bijou de
-  jade mais brillant — presque de l'émeraude, vert comme ça, et les bords dorés : une route d'architecture asiatique ») — LA VERSION EN COURS.
+  jade mais brillant — presque de l'émeraude, vert comme ça, et les bords dorés : une route d'architecture asiatique »).
   Les montagnes = la v9 (cubes minuscules, `VIT` faux par défaut). LA ROUTE BIJOU (branche `uJadeR` du bitume ; `ROAD_U.uHalf` = ROAD_HALF,
   vUv.x = mètres/4 depuis le bord gauche) : ÉMERAUDE profonde → franche (en linéaire : .001/.045/.022 → .012/.20/.10), TAILLÉE en facettes
   (Voronoï 3,4 × 4,2 m, chacune sa teinte et sa PENTE : le soleil y scintille facette par facette), ses jardins clairs, polie (`GLACE.jade` .5,
@@ -144,6 +144,18 @@ d'aller dans cette map avec une voiture, la mobilité comme le main, mais seulem
   l'intérieur), un FILET d'or à 5,3 m, un JOINT d'or entre les dalles tous les 20 m (élargi puis effacé au loin : sans ça, des tirets
   crénelés), l'or renvoie le ciel doré ; l'accent de la zone = l'OR (rails, nappe, liseré des flancs), la ligne centrale en or. Essayé avant :
   un vert vif « pelouse » à facettes trop contrastées, une bordure de 2,6 m qu'on ne lisait pas. sw.js → v213.
+- **v12 — L'ÉMERAUDE BRILLANTE, SANS OR ; LE LOINTAIN POÉTIQUE** (même jour, Léo : « beaucoup plus brillante la route » puis « ajoute des
+  montagnes au loin, simule une sorte de paysage poétique ; et enlève l'or, ça fait moche, le jaune et le vert : fais juste une route
+  émeraude jade ») — LA VERSION EN COURS.
+  · ROUTE : plus d'or (bordure, filet, joints retirés du shader ; `jOr9` reste à 0), accent jade 0x4fe0a8 (rails, nappe, flancs), ligne
+    centrale en jade pâle discret. BRILLANCE : le ciel dans l'émeraude ×2,7 (teinté vert), `GLACE.jade` .55, et un VERNIS qui ne dépend pas
+    du soleil — une lumière de ciel posée devant la caméra (repère de la vue, `Lv9`) : une nappe large (`nap9`), l'éclat de chaque facette
+    (sa pente propre, parti du CŒUR de la cellule et éteint vers ses bords : sinon des polygones blancs), des PAILLETTES rondes de près
+    (cellules de 90 cm, une sur trois). Essayé : trop de nappe = l'émeraude virait au vert menthe pâle ; paillettes carrées = des confettis.
+  · LE LOINTAIN (`jLointain(az,y)` dans le dôme, `jadeCiel`) : cinq chaînes en plans de lavis (hautes et gris-bleu au fond → basses et
+    jade-encre devant, pics à la Huangshan, crête périodique sur le tour d'horizon), le pied noyé dans la brume, le haut des crêtes un peu
+    éclairé ; le fleuve les REFLÈTE (tremblées par les lignes d'eau). Les quatre rangées de piliers peints sur l'horizon (`jPeigne`) sont
+    retirées : devant le lointain elles faisaient une frise de bosses blanches. sw.js → v214.
 - Mesuré (Chrome sans fenêtre du Mac) : 60 i/s, construction 16-28 ms, tri ~0,03 ms ; collisions (`dbgJadeHeurt('test')`, 3 vallées) :
   piliers durs, arche et dessous du pont libres, AUCUN point de la route dans la pierre. Console : `dbgJade()`, `dbgJadeVue('route'|'porte'|
   'pont'|'haut'|'loin'|'grue',d,h,cap)` (photo figée), `dbgGrues()`. sw.js → v203.

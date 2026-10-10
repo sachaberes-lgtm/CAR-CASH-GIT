@@ -7079,6 +7079,19 @@ const skyDome=(function(){
       '    float bo=top-(top-h0*.2)*(.55+.35*r3)-wr*1.6*pow(min(1.,dx/max(wr,1e-5)),1.5);',                    // la POINTE du dessous : la montagne flotte
       '    c=max(c,clamp((wr-dx)/uJPx+.5,0.,1.)*clamp((tp-y)/uJPx+.5,0.,1.)*smoothstep(bo,bo+wr*1.2,y));}',
       '  return c;}',
+      /* (v12, Léo : « ajoute des montagnes au loin, simule une sorte de paysage poétique ») LE LOINTAIN : quatre chaînes en plans de lavis
+         sur l horizon — la plus lointaine haute et pâle comme la brume, les plus proches plus basses et plus sombres (le gris-vert de la
+         roche), des pics à la Huangshan ; leur pied se noie dans la brume au ras du fleuve. Une crête périodique (deux bruits fondus d un
+         bout à l autre du tour d horizon : pas de couture derrière soi). Le fleuve les reflète (voir plus bas). */
+      'vec4 jLointain(float az,float y){vec3 B=uJdB;vec4 o=vec4(0.);float t=(az+3.14159)/6.28318;',
+      '  for(int i=0;i<5;i++){float fi=float(i),h=.150-.024*fi,f=1.1+1.15*fi,s=fi*13.7+2.1;',
+      '    float cr=mix(jCrete(az*f,s),jCrete((az-6.28318)*f,s),t),top=h*(.18+.82*pow(clamp(cr,0.,1.),1.6));',
+      '    float cv=clamp((top-y)/uJPx+.5,0.,1.)*smoothstep(-.006,-.001,y);',
+      '    vec3 m=mix(vec3(.60,.70,.79),vec3(.20,.31,.31),fi/4.);m=mix(m,uJdR,.15*fi/4.);',  // du gris-bleu du lointain au jade-encre du proche
+      '    m*=.92+.16*smoothstep(top*.3,top,y);',                                // le haut des crêtes un peu plus clair (la lumière)
+      '    m=mix(m,B,smoothstep(top*.42,-.004,y)*.9);',                    // le pied dans la brume
+      '    o.rgb=mix(o.rgb,m,cv);o.a=max(o.a,cv);}',
+      '  return o;}',
       'vec3 jadeCiel(vec3 d){',
       '  float y=d.y,yy=max(y,0.),az=atan(d.x,-d.z),sd=max(dot(d,uSunDir),0.);',
       '  vec3 c=mix(uJdH,mix(uJdH,uJdZ,.5),smoothstep(0.,.16,yy));c=mix(c,uJdZ,smoothstep(.10,.80,yy));',
@@ -7086,11 +7099,9 @@ const skyDome=(function(){
       '  c=mix(c,uJdS*1.35+vec3(.25),smoothstep(.99950,.99972,sd));',     // le disque : pâle, comme sur la soie
       '  if(y>.012&&y<.4){float t=1.0/y;vec2 p=d.xz*t*1.05+vec2(uTime*.003,0.);', // les voiles de lavis, étirés
       '    float n=vfbm(vec2(p.x*.55,p.y*2.4)+3.7);c=mix(c,mix(uJdH,vec3(1.),.35),smoothstep(.56,.86,n)*.42*smoothstep(.012,.06,y)*(1.-smoothstep(.22,.4,y)));}',
+      '  {vec4 lo=jLointain(az,y);c=mix(c,lo.rgb,lo.a);}',                  // (v12) le LOINTAIN, derrière les rangées de piliers
       '  vec3 B=uJdB;float azq=az;',                                         // (v3, Léo : « que du ciel et de la mer ») : plus de monts posés sur l horizon — au fond aussi, ils FLOTTENT
-      '  {float cv=jPeigne(azq,y,250.,1.9,.004,.03,.30);vec3 m=mix(B,uJdR,.14);m=mix(m,B,.5);c=mix(c,m,cv);}',
-      '  {float cv=jPeigne(azq,y,170.,3.3,.008,.052,.26);vec3 m=mix(B,uJdR,.27);m=mix(m,B,smoothstep(.034,-.004,y)*.85);c=mix(c,m,cv);}',
-      '  {float cv=jPeigne(azq,y,104.,7.9,.012,.078,.24);vec3 m=mix(B,uJdR,.39);m=mix(m,B,smoothstep(.05,-.004,y)*.85);c=mix(c,m,cv);}',
-      '  {float cv=jPeigne(azq,y,62.,11.2,.018,.108,.22);vec3 m=mix(B,uJdR,.52);m=mix(m,B,smoothstep(.07,-.004,y)*.85);c=mix(c,m,cv);}',
+      // (v12) les quatre rangées de piliers peints sur l horizon sont RETIRÉES : devant le lointain elles faisaient une frise de bosses blanches
       // (v8, Léo : « un dessous, que ce soit la mer — qui fasse penser au fleuve des peintures chinoises, mais bleu ») LE FLEUVE : le bleu
       // minéral des rouleaux (千里江山图) — un lavis bleu-vert, plus profond sous soi, et les LIGNES D EAU peintes au pinceau (fines, serrées,
       // qui ondulent et se cassent en traits), deux houles plus larges, un éclat de soleil sur les lignes ; au loin la brume le reprend.
@@ -7107,6 +7118,7 @@ const skyDome=(function(){
       '    wa*=.88+.12*hb;wa=mix(wa,vec3(.78,.88,.90),ln*.38);',
       '    float gl=pow(max(dot(vec3(d.x,-d.y,d.z),uSunDir),0.),24.);wa+=uJdS*gl*(.25+.9*ln);', // l éclat du soleil sur les lignes
       '    wa=mix(wa,mix(uJdH,uJdB,.5)*vec3(.92,.97,1.),pow(1.+y,14.)*.7);', // au ras, le ciel s y reflète
+      '    {vec4 lr=jLointain(az,-y+ln*.0012+.0006*sin(P.x*.05+uTime*.4));wa=mix(wa,lr.rgb*vec3(.82,.92,.96),lr.a*.5*smoothstep(-.12,-.004,y));}', // (v12) le lointain se REFLÈTE dans le fleuve, tremblé par les lignes d eau
       '    float hz=1.-smoothstep(-.16,-.002,y);c=mix(c,wa,hz*hz*(3.-2.*hz));}',
       '  c=mix(c,uFogCol,(1.-smoothstep(0.,.05,abs(y)))*.35);',              // l horizon rejoint la brume de three (les piliers 3D s y fondent)
       '  return c;}'],
@@ -10638,20 +10650,16 @@ function roadMat(){
          profondeur et sa pente : au soleil elles scintillent l'une après l'autre), ses « jardins » (inclusions claires) ; une BORDURE D'OR
          de 2,6 m de chaque côté, gravée d'une frise de 回 (des carrés concentriques en chaîne, le motif des palais), filets au bord et à
          l'intérieur ; un JOINT d'or entre les dalles tous les 20 m. vUv est en mètres/4, x depuis le bord gauche (0 → 2 × uHalf9). */
-      'float jOr9=0.,jH9=0.;vec2 jF9=vec2(0.);'+
+      'float jOr9=0.,jH9=0.,jM9=1.;vec2 jF9=vec2(0.);'+
       'if(uJadeR>.001){vec2 jq=vUv*4.;float ea=min(jq.x,2.*uHalf9-jq.x);'+
       'vec2 fc=jq/vec2(3.4,4.2),fi=floor(fc),ff=fract(fc);float md=9.;vec2 mc=vec2(0.);'+                                 // les FACETTES (une cellule de Voronoï)
       'for(int j=-1;j<=1;j++)for(int i=-1;i<=1;i++){vec2 g=vec2(float(i),float(j)),o=vec2(jdH9(fi+g),jdH9(fi+g+17.3));float d=length(g+o-ff);if(d<md){md=d;mc=fi+g;}}'+
-      'jH9=jdH9(mc+5.1);jF9=vec2(jdH9(mc+8.7),jdH9(mc+2.9))-.5;'+
+      'jH9=jdH9(mc+5.1);jF9=vec2(jdH9(mc+8.7),jdH9(mc+2.9))-.5;jM9=md;'+
       'float j1=jdN9(jq*vec2(.03,.008)),j2=jdN9(jq*vec2(.09,.03)+3.1);'+
       'vec3 jc=mix(vec3(.001,.045,.022),vec3(.012,.20,.10),smoothstep(.1,.9,j1*.7+j2*.3))*(.88+.24*jH9);'+                     // l ÉMERAUDE : profonde → franche (en linéaire), chaque facette un peu sa teinte
       'jc=mix(jc,vec3(.10,.42,.26),smoothstep(.76,.97,j2)*.25);'+                                                             // ses jardins (inclusions claires)
-      'float dz9=length(vViewPosition),w9=.05+dz9*.0012,sj=(1.-smoothstep(w9,w9*1.9,abs(fract(jq.y/20.+.5)-.5)*20.))*(1.-smoothstep(140.,380.,dz9));'+ // le JOINT d or entre deux dalles (il s élargit au loin puis s efface : pas de tirets crénelés)
-      'float fil=1.-smoothstep(.10+dz9*.0008,.18+dz9*.0016,abs(ea-5.3));jOr9=max(1.-smoothstep(4.45,4.55,ea),fil);'+                              // la BORDURE d or (4,5 m) et son FILET intérieur
-      'vec2 ku=vec2(fract(jq.y/4.5),clamp(ea/4.5,0.,1.));float kd=max(abs(ku.x-.5),abs(ku.y-.5));'+                          // la frise de 回 : carrés concentriques, en chaîne
-      'float gv=max(max(1.-smoothstep(.016,.035,abs(kd-.40)),1.-smoothstep(.016,.035,abs(kd-.22))),max(max(1.-smoothstep(.015,.04,abs(ku.y-.035)),1.-smoothstep(.015,.04,abs(ku.y-.965))),step(kd,.07)))*(1.-fil)*(1.-smoothstep(70.,190.,dz9));'+ // (la gravure s efface au loin : l or reste)
-      'vec3 au=vec3(1.,.78,.36)*(1.-gv*.6);'+                                                                               // l OR, la gravure plus sombre
-      'jc=mix(jc,vec3(1.,.78,.36)*.8,sj*(1.-jOr9));jc=mix(jc,au,jOr9);'+
+      /* (v12, Léo : « enlève l'or, ça fait moche, le jaune et le vert : fais juste une route émeraude jade ») plus de bordure, de joints ni de
+         filet d'or (jOr9 reste à 0 : le reste du shader le lit) */
       'diffuseColor.rgb=mix(diffuseColor.rgb,jc,uJadeR);spec9=mix(spec9,1.,uJadeR);}')
       .replace('#include <specularmap_fragment>','float specularStrength=spec9;').replace('#include <envmap_fragment>',
       '#include <envmap_fragment>\n{float fr9=pow(1.0-clamp(abs(dot(normal,normalize(vViewPosition))),0.0,1.0),4.0);float lk9=1.;\n'+
@@ -10665,7 +10673,14 @@ function roadMat(){
       'outgoingLight+=envColor.rgb*(g9*uGlace*(1.-smoothstep(.90,.985,dot(normalize(reflectVec),uSunW))));}\n'+
       'if(uJadeR>.001){vec3 rf9=normalize(reflectVec),rt9=normalize(rf9+vec3(jF9.x,0.,jF9.y)*.35);'+ // (v11) l ÉCLAT : chaque facette renvoie le soleil selon SA pente (elles scintillent l une après l autre) ; l or renvoie le ciel, doré
       'outgoingLight+=vec3(1.,.97,.88)*pow(max(dot(rt9,uSunW),0.),120.)*1.1*(1.-jOr9)*uJadeR+vec3(1.,.96,.86)*pow(max(dot(rf9,uSunW),0.),90.)*.3*uJadeR;'+
-      'outgoingLight+=envColor.rgb*(vec3(1.,.78,.36)*jOr9*.75+vec3(.35,1.,.70)*(1.-jOr9)*.22)*uJadeR+vec3(1.,.80,.40)*pow(max(dot(rf9,uSunW),0.),30.)*.5*jOr9*uJadeR;}\n#endif\n'+
+      'outgoingLight+=envColor.rgb*(vec3(1.,.82,.42)*jOr9*1.15+vec3(.30,1.,.62)*(1.-jOr9)*.30)*uJadeR+vec3(1.,.80,.40)*pow(max(dot(rf9,uSunW),0.),30.)*.9*jOr9*uJadeR;'+ // (v12, Léo : « beaucoup plus brillante ») le ciel dans l émeraude et dans l or, bien plus fort
+      /* (v12) LE VERNIS : un reflet qui ne dépend pas du soleil (dans le dos, il ne donnait rien) — une lumière de ciel posée DEVANT la
+         caméra, un peu au-dessus de l horizon (repère de la vue) : la route brille toujours devant soi, en nappe large, chaque facette y
+         jette son éclat (sa pente propre), et de près des PAILLETTES (cellules de 90 cm, une sur trois) scintillent quand on avance. */
+      'vec3 V9=normalize(vViewPosition),rV9=reflect(-V9,normal),Lv9=normalize(vec3(0.,.30,-1.)),rF9=normalize(rV9+vec3(jF9.x,jF9.y,0.)*.5);'+
+      'vec2 gq9=vUv*4./.9,gi9=floor(gq9),gf9=fract(gq9)-.5-(vec2(jdH9(gi9+1.7),jdH9(gi9+6.2))-.5)*.6;float gh9=jdH9(gi9+3.3);vec3 rG9=normalize(rV9+(vec3(jdH9(gi9),jdH9(gi9+9.1),0.)-.5)*1.1);'+
+      'float nap9=pow(max(dot(rV9,Lv9),0.),26.),fac9=pow(max(dot(rF9,Lv9),0.),90.)*(1.-smoothstep(.05,.75,jM9)),pai9=pow(max(dot(rG9,Lv9),0.),40.)*step(.62,gh9)*smoothstep(.10,.02,length(gf9))*(1.-smoothstep(20.,70.,length(vViewPosition)));'+ // (les paillettes : de petites étoiles rondes, pas des carrés)
+      'outgoingLight+=(vec3(.55,1.,.78)*nap9*.18+vec3(1.,.98,.92)*(fac9*.45+pai9*3.))*(1.-jOr9)*uJadeR+vec3(1.,.84,.48)*(nap9*.6+fac9*.6)*jOr9*uJadeR;}\n#endif\n'+
       'outgoingLight+=uLift*lk9*(1.-uJadeR*.7)+uSheenCol*(uSheen*fr9);if(uJadeR>.001)outgoingLight+=diffuseColor.rgb*(.10-.06*jOr9)*uJadeR;}');
   };
   m.customProgramCacheKey=function(){return 'bitumeV5'+(face?'f':'')+(sauts?'s':'');}; // UNE compilation pour toutes les pistes
@@ -10789,7 +10804,7 @@ function trancheMat(){
   return m;
 }
 const ROUTE_JOUR=[.86,.94,.86]; /* (niveau 1 v2) [1,1.12,.88] → plus SOMBRE : au banc le bitume du midi sortait gris clair (L* ~55), au niveau des nuages — la route doit être le ruban le plus sombre de l'image pour que la caisse orange et le ciel clair se lisent contre elle (L10 26 → 10) */ // (2026-09-30) la teinte du bitume au jour d'altitude (× la base violette 0x322e40 → un anthracite à peine bleuté)
-const GLACE={k:1,nuages:.45,espace:.5,jade:.5}; // (v11) l'émeraude est polie comme une pierre taillée // (v9) le jade est POLI : il renvoie le ciel en rasant
+const GLACE={k:1,nuages:.45,espace:.5,jade:.55}; // (v11) l'émeraude est polie comme une pierre taillée — (v12) « beaucoup plus brillante » : .5 → .8 // (v9) le jade est POLI : il renvoie le ciel en rasant
 const ROUTE_JADE=[.95,1.04,.86]; // (2026-10-09) LES PICS DE JADE : le bitume en gris de pierre (× la base violette) // (passe graphismes mobile) la part du ciel dans le bitume sec, par niveau (la VILLE a son eau) — `dbgGfx({glace:0})` = l'ancien bitume
 const _px9=new THREE.Vector2();
 function routeTick(){ // le bitume suit le NIVEAU (fondu du portail : LVL.route / LVL.sheen, voir lvlStep)
@@ -11088,7 +11103,7 @@ function buildTrack(seed){
      VILLE = le rose néon #f24aa0, ORBITE = le cyan froid #5ee6ff. ⚠ Le TIRAGE reste (il nourrit le parc, l'auto-école, la carrière
      hors de ces trois mondes) : le flux rnd de la piste ne bouge pas d'un pas. */
   const accR=ACCENTS[Math.floor(rnd()*ACCENTS.length)],idA9=LVL.cur&&!PARK.on?LVL.cur.id:'';
-  const accC=new THREE.Color(idA9==='nuages'?0x3ee6f0:idA9==='ville'?0xf24aa0:idA9==='espace'?0x5ee6ff:idA9==='orage'?0x8a7dff:idA9==='paris'?0xd9d4ca:idA9==='jade'?0xffc14a:accR); // (v11) les PICS DE JADE : l'accent est l'OR (rails, nappe, liseré des flancs) // (2026-09-29) L'ORAGE : le violet électrique de l'éclair // PARIS : une peinture de rive blanche, pas un néon
+  const accC=new THREE.Color(idA9==='nuages'?0x3ee6f0:idA9==='ville'?0xf24aa0:idA9==='espace'?0x5ee6ff:idA9==='orage'?0x8a7dff:idA9==='paris'?0xd9d4ca:idA9==='jade'?0x4fe0a8:accR); // (v12) les PICS DE JADE : l'accent jade (l'or de la v11 retiré : « le jaune et le vert, ça fait moche ») // (2026-09-29) L'ORAGE : le violet électrique de l'éclair // PARIS : une peinture de rive blanche, pas un néon
   ROAD_U.uAcc.value.copy(accC); // (2026-09-26) le bitume mouillé reflète aussi l'accent de la zone
   // BANDES NÉON (dessus + dessous) : les rails de Vice City — couleur d'accent de la zone
   {const ep=new Float32Array(4*NP*6),el=new Float32Array(4*NP*6);let q=0; // (passe perf) les QUATRE rails dans un seul maillage, une seule matière (le caméléon les peignait tous pareil), découpé en tranches — (chasse aux gels) écrits en place
@@ -11141,7 +11156,7 @@ function buildTrack(seed){
     }
     // (passe perf) découpée en tranches : une paire de sommets tous les 2 points, par face — la ligne centrale ne flotte pas au-dessus du vide
     pisteTranches({position:[lp,3],aLat:[ll,3],uv:[lu,2]},{blocs:2,pr:2,np:Math.ceil(NP/2),pas:2},
-      k=>holeSeg(2*k)||holeSeg(2*k+1),(function(){const m9=ligneMat();if(idA9==='jade'){m9.color.setHex(0xffd27a);m9.opacity=.9;}return m9;})(),{ordre:1,marge:20,loin:0}); // (v11) aux PICS DE JADE : une ligne d'or // au-delà du brouillard : plus de peinture (voir pisteTranches)
+      k=>holeSeg(2*k)||holeSeg(2*k+1),(function(){const m9=ligneMat();if(idA9==='jade'){m9.color.setHex(0xc8f5df);m9.opacity=.42;}return m9;})(),{ordre:1,marge:20,loin:0}); // (v12) aux PICS DE JADE : une ligne de jade pâle, discrète // au-delà du brouillard : plus de peinture (voir pisteTranches)
   })();
   // BORDS DU VIDE : on ferme la coupe. La dalle montre sa TRANCHE en rouge d'alerte — à pleine vitesse,
   // c'est cette barre qui hurle « ça s'arrête LÀ », et on la voit bien avant d'y être.
