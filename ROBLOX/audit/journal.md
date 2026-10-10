@@ -309,3 +309,11 @@ Lieu 91982637462711 publié par l API : version 9, fichier CashCar_PRET.rbxlx (7
 | 2026-10-09 17:25 | badges.aura1000 | badge | 1,000 AURA | — | 0 | à créer (gratuit si quota) |
 | 2026-10-09 17:25 | badges.millionnaire | badge | MILLIONAIRE | — | 0 | à créer (gratuit si quota) |
 | 2026-10-09 17:25 | badges.serie7 | badge | 7-DAY STREAK | — | 0 | à créer (gratuit si quota) |
+
+## 2026-10-09 20:50 — publication
+
+Lieu 91982637462711 publié par l API : version 10, fichier CashCar_PRET.rbxlx (7773791 octets).
+
+## 2026-10-10 11:44 — publication
+
+Lieu 91982637462711 publié par l API : version 11, fichier CashCar_PRET.rbxlx (7801224 octets).

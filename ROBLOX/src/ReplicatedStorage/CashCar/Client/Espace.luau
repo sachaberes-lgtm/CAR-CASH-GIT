@@ -9,7 +9,9 @@
 -- est un disque), posés très loin, toujours face à la caméra, à leur vraie taille. Le ciel noir et les étoiles : Client/Ambiance.
 local AssetService = game:GetService("AssetService")
 local Config = require(script.Parent.Parent:WaitForChild("Config"))
+local Perf = require(script.Parent:WaitForChild("Perf"))
 local M = Config.M
+local function rien(...: any) end -- (un éclat que l'appareil faible ne pose pas)
 local RH = Config.ROAD_HALF
 
 local Espace = {}
@@ -499,7 +501,9 @@ function Espace.batir(piste: any, dossier: Instance, graine: number, ceder: (() 
 					local x = r()
 					local c = TEINTES[(x < 0.4 and 1) or (x < 0.66 and 2) or (x < 0.86 and 3) or 4]
 					local brille = r() < 0.2
-					piece(racine, Vector3.new(e * (0.5 + r()), e * 0.12, e * (0.3 + r() * 0.6)), CFrame.new(q * M) * tourne(), brille and Color3.fromRGB(255, 236, 190) or c,
+					-- (APPAREIL FAIBLE, Config.FAIBLE.orbiteAnneaux : un éclat sur deux — ses tirages sont faits quand même, dans les arguments)
+					local poseE = (Perf.faible and posees % math.max(1, Perf.F.orbiteAnneaux or 1) ~= 0) and rien or piece
+					poseE(racine, Vector3.new(e * (0.5 + r()), e * 0.12, e * (0.3 + r() * 0.6)), CFrame.new(q * M) * tourne(), brille and Color3.fromRGB(255, 236, 190) or c,
 						brille and Enum.Material.Neon or Enum.Material.Metal, 0.35)
 				end
 				if ceder and essais4 % 40 == 0 then ceder() end

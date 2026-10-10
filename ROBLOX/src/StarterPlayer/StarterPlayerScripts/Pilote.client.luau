@@ -3462,13 +3462,17 @@ local function nouvellePartie()
 	enPause = false
 	Hud.ecran("course")
 	evEtat:FireServer("course", true)
-	-- la CHUTE : la caisse plonge du ciel (la pose du menu) et se pose sur la route — c'est le départ
+	-- LE DÉPART POSÉ (10/10, Sacha : « sur Roblox les premières minutes de jeu sont importantes ; quand on lance la partie la voiture
+	-- apparaît dans les airs et met quelques longues secondes à atterrir sur la route — fais-la apparaître direct sur la route ») : plus
+	-- de chute de 220 m depuis la pose du menu, la caisse est POSÉE sur la route au point de départ et la course part aussitôt — avec
+	-- tout ce que la pose de la chute faisait (le logo qui claque, le nom du niveau, l'élan de 40, le boost de départ, le choc), par le
+	-- MÊME chemin : atterrir() et sa branche `intro`, appelée tout de suite plus bas
 	intro = true
-	fallPos = carCF.Position / M
-	fallVel = menuCap * 6 - Vector3.new(0, 60, 0) -- presque à la verticale : elle se pose PILE sur la route dessous
+	fallPos = repere(S_CHUTE, 1).Position / M
+	fallVel = Vector3.zero
 	prevPos = fallPos
-	flyAv = fallVel.Unit
-	flyU = (menuCap - flyAv * menuCap:Dot(flyAv)).Unit -- le toit regarde vers l'avant : le nez plonge
+	flyAv = menuCap
+	flyU = Vector3.yAxis
 	V.fallT, V.fallTR, V.yawAcc, V.demiTours, V.nitroAirT, V.nitroAirTenue, V.sideCd, V.bounceN = 0, 0, 0, 0, 0, 0, 0, 0
 	V.fallVH0 = horiz(fallVel)
 	V.bascOn, V.bascDir, V.airRoll, V.nAirTenu, V.kickT = false, 1, 0, false, 0
@@ -3478,11 +3482,9 @@ local function nouvellePartie()
 	table.clear(vus)
 	V.sDecol = s
 	sPrev, latPrev = s, lat
-	mode = "fall"
-	Score.ETAT.mode = "fall"
 	if zone.ciel then zone.ciel.Parent = zone.dossier end -- les nuages du niveau reviennent avec la course
-	Sons.jouer("decollage")
-	Bus.emit("decollage", intro)
+	-- (la caméra de route se recale d'elle-même : l'écart à la vue du titre dépasse 50 m, elle saute derrière la caisse sans travelling)
+	atterrir(1, 0, S_CHUTE, 0)
 end
 
 local function finPartie()

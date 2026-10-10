@@ -44,8 +44,23 @@
     box-shadow:0 0 0 .5px rgba(0,0,0,.09);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);transition:background .2s,color .2s,opacity .2s;white-space:nowrap}
   .pil:hover{color:var(--encre)}
   .pil.on{background:var(--encre);color:#fff;box-shadow:none}
-  .pil[hidden]{display:none}
+  .pil[hidden],.opts[hidden]{display:none}
+  #chores .pil{padding:6px 11px;font-size:11.5px}
+  #chores .pil.joue{box-shadow:inset 0 0 0 1.5px var(--encre);color:var(--encre)} /* au hasard : la choré qui joue */
 
+  #coque{position:fixed;left:24px;bottom:64px;width:236px;padding:12px 14px 10px;border-radius:16px;background:rgba(255,255,255,.72);
+    box-shadow:0 0 0 .5px rgba(0,0,0,.08),0 8px 28px rgba(0,0,0,.06);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);font-size:12px}
+  #coque[hidden]{display:none}
+  #coque .tete{display:flex;align-items:center;justify-content:space-between;font-weight:600;letter-spacing:.02em;margin-bottom:4px}
+  #coque .tg{display:flex;gap:4px}#coque .tg .pil{padding:5px 10px;font-size:11px}
+  #coque h4{font-size:9.5px;font-weight:600;letter-spacing:.16em;color:var(--gris2);margin:9px 0 0}
+  #coque .cur.eteint{opacity:.35;pointer-events:none}
+  #coque .cur{display:grid;grid-template-columns:62px 1fr 34px;align-items:center;gap:8px;margin-top:6px;color:var(--gris)}
+  #coque .cur b{font-weight:500;color:var(--encre);text-align:right;font-variant-numeric:tabular-nums}
+  #coque input[type=range]{width:100%;accent-color:var(--encre)}
+  #coque .lien{border:0;background:none;color:var(--gris2);font-size:11px;cursor:pointer;margin-top:8px;padding:0}
+  #coque .lien:hover{color:var(--encre)}
+  @media (max-width:760px){#coque{left:12px;bottom:auto;top:96px;width:200px}}
   #etat{position:fixed;left:28px;bottom:28px;font-size:11px;color:var(--gris2);letter-spacing:.03em;pointer-events:none;line-height:1.6}
   #etat b{font-weight:500;color:var(--gris)}
   #neuf{position:fixed;left:50%;top:22px;transform:translate(-50%,-8px);background:var(--encre);color:#fff;font-size:12px;letter-spacing:.04em;
@@ -74,14 +89,21 @@
 </div>
 <div id="bas">
   <div class="seg" id="vue"><button data-v="un" class="on">Un dauphin</button><button data-v="banc">Le banc</button></div>
+  <div class="opts" id="chores" hidden></div>
   <div class="opts">
     <button class="pil" id="oSurf" title="Ils sortent de l'eau : la surface les coupe, comme en jeu">Surface</button>
     <button class="pil" id="oRas" title="Au ras de la route et vite : le liseré néon s'allume, le banc s'emballe">Au ras</button>
     <button class="pil" id="oNoir" title="La robe de la frénésie DARK TRIAD">Dark triad</button>
     <button class="pil" id="oLent" title="Tout au quart de la vitesse">Ralenti</button>
     <button class="pil" id="oFige" title="Fige la nage (Espace)">Figé</button>
+    <button class="pil" id="oLisse" title="Le même dauphin SANS ses cubes : un essai de la boîte, le jeu ne change pas">Lisse</button>
     <button class="pil" id="oReve" title="Le fond pastel de ta référence : la nacre, le liseré et les étoiles y brillent comme en jeu">Ciel rêve</button>
   </div>
+</div>
+<div id="coque" hidden>
+  <div class="tete"><span>Structure</span><span class="tg"><button class="pil" id="oCoque">Peau</button><button class="pil" id="oCoeur">Cœur</button></span></div>
+  <div id="cqCurs"></div>
+  <button class="lien" id="cZero">Revenir aux réglages du jeu</button>
 </div>
 <div id="etat"></div>
 <div id="neuf"></div>
@@ -107,8 +129,10 @@ const JOURNAL=[]; // les erreurs (un shader qui ne compile pas, une exception) s
 {const ce=console.error.bind(console);console.error=(...a)=>{JOURNAL.push(a.map(String).join(' ').slice(0,1200));ce(...a);};
   addEventListener('error',e=>{JOURNAL.push(String(e.message)+' @'+e.lineno);try{etat();}catch(_){}});}
 const PREF=(()=>{try{return JSON.parse(localStorage.getItem('boiteDauphins')||'{}')||{};}catch(e){return {};}})();
-const ST=Object.assign({vue:'un',tourne:true,surf:true,ras:false,noir:false,lent:false,fige:false,reve:false},PREF);
-{const q=new URLSearchParams(location.search);if(q.get('vue'))ST.vue=q.get('vue')==='banc'?'banc':'un';for(const k of ['surf','ras','noir','lent','fige','tourne','reve'])if(q.has(k))ST[k]=q.get(k)!=='0';} // ?vue=banc&noir=1 : une vue d'entrée
+const ST=Object.assign({vue:'un',tourne:true,surf:true,ras:false,noir:false,lent:false,fige:false,reve:false,ch:'hasard',lisse:false,cqOn:true,cq:null},PREF);
+if(ST.vCoque!==3){ST.vCoque=3;ST.lisse=false;ST.cq=null;ST.cqOn=true;ST.coOn=true;} // (les réglages de peau repartent de ceux du jeu)
+{const q=new URLSearchParams(location.search);if(q.has('cq')){ST.cq=ST.cq||{};for(const kv of q.get('cq').split(',')){const [k,v]=kv.split(':');ST.cq[k]=+v;}}if(q.has('peau'))ST.cqOn=q.get('peau')!=='0';if(q.has('coeur'))ST.coOn=q.get('coeur')!=='0';} // ?cq=ec:.8,lu:2 · ?peau=0 · ?coeur=0 (photos) // ?cq=a0,a1,p,g : un réglage de peau d'entrée (photos) // (2026-10-09, Léo : « remets-le en pas lisse ») une fois : retour aux cubes, la peau lisse par-dessus
+{const q=new URLSearchParams(location.search);if(q.get('vue'))ST.vue=q.get('vue')==='banc'?'banc':'un';for(const k of ['surf','ras','noir','lent','fige','tourne','reve','lisse'])if(q.has(k))ST[k]=q.get(k)!=='0';if(q.has('ch'))ST.ch=q.get('ch')==='hasard'?'hasard':+q.get('ch');} // ?vue=banc&noir=1 : une vue d'entrée
 const garde=()=>{try{localStorage.setItem('boiteDauphins',JSON.stringify(ST));}catch(e){}};
 
 /* ---------------------------------------------------------------------------------------------------------------------
@@ -127,8 +151,9 @@ async function lireBloc(){
 }
 function executer(bloc,dolphins,dolTrail,dolSplash){
   // le bloc appelle triNoir/dolphins/dolTrail/dolSplash dans dolNoirMaj : on lui prête les nôtres
+  if(ST.lisse)bloc=bloc.replace(/const DOL_VOX=[^,;]+/,'const DOL_VOX=0'); // LISSE : le même dauphin sans ses cubes (rien n'est changé dans le jeu : c'est la boîte qui essaie)
   return new Function('THREE','triNoir','dolphins','dolTrail','dolSplash',bloc+
-    '\nreturn {DOL_L,DOL_GEO,DOL_U,DOL_BANC,mkDauphin,dolNoirMaj:typeof dolNoirMaj==="function"?dolNoirMaj:null,DOL_ETOILE:typeof DOL_ETOILE!=="undefined"?DOL_ETOILE:null};')
+    '\nreturn {DOL_CHORE:typeof DOL_CHORE!=="undefined"?DOL_CHORE:null,dolPose:typeof dolChorePose==="function"?dolChorePose:null,DOL_CYCLE:typeof DOL_CYCLE!=="undefined"?DOL_CYCLE:0,DOL_L,DOL_GEO,DOL_U,DOL_BANC,mkDauphin,dolNoirMaj:typeof dolNoirMaj==="function"?dolNoirMaj:null,DOL_ETOILE:typeof DOL_ETOILE!=="undefined"?DOL_ETOILE:null,DOL_GEO_S:typeof DOL_GEO_S!=="undefined"?DOL_GEO_S:null,DOL_VOX:typeof DOL_VOX!=="undefined"?DOL_VOX:0};')
     (THREE,()=>ST.noir,dolphins,dolTrail,dolSplash);
 }
 
@@ -151,6 +176,15 @@ const sol=(()=>{const c=document.createElement('canvas');c.width=c.height=128;co
   const m=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthWrite:false}));
   m.rotation.x=-Math.PI/2;m.renderOrder=-1;return m;})(); // le gabarit : ses copies (une par dauphin) vont en scène
 
+// LA ROUTE (vue LE BANC) : le bitume nuit, ses bords néon rose, la ligne sodium — les dauphins nagent DE PART ET D'AUTRE
+const route=(()=>{const c=document.createElement('canvas');c.width=128;c.height=1024;const x=c.getContext('2d');
+  x.fillStyle='#2b2937';x.fillRect(0,0,128,1024);x.fillStyle='#f24aa0';x.fillRect(0,0,6,1024);x.fillRect(122,0,6,1024);
+  x.fillStyle='#ffc94a';for(let y=0;y<1024;y+=64)x.fillRect(62,y,4,34);
+  x.globalCompositeOperation='destination-in';const g=x.createLinearGradient(0,0,0,1024);
+  g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(.35,'rgba(0,0,0,1)');g.addColorStop(.85,'rgba(0,0,0,1)');g.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=g;x.fillRect(0,0,128,1024);
+  const t=new THREE.CanvasTexture(c);t.anisotropy=8;
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(2*3.2,64),new THREE.MeshBasicMaterial({map:t,transparent:true,opacity:.85,depthWrite:false,toneMapped:false}));
+  m.rotation.x=-Math.PI/2;m.rotation.z=Math.PI;m.position.set(0,-1.45,16);m.renderOrder=-2;m.visible=false;scene.add(m);return m;})();
 // la goutte : celle du jeu (sparkTex), un disque au cœur plein et au bord fondu
 const goutte=(()=>{const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');
   const g=x.createRadialGradient(32,32,1,32,32,30);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.3,'rgba(255,255,255,.9)');
@@ -188,13 +222,15 @@ for(let i=0;i<6;i++){ETAT.push({p:0,tailPh:i*1.7,roll:i*2.3,up:false,vr:0});
 function monter(bloc){
   const ancien=dolphins.splice(0);
   let J;try{J=executer(bloc,dolphins,dolTrail,dolSplash);}catch(e){dolphins.push(...ancien);throw e;}
-  for(const d of ancien){scene.remove(d);d.material.dispose();}
+  for(const d of ancien){scene.remove(d);d.material.dispose();if(d.userData.coque)d.userData.coque.material.dispose();if(d.userData.coeur)d.userData.coeur.material.dispose();}
+  if(JEU&&JEU.DOL_GEO_S&&JEU.DOL_GEO_S!==J.DOL_GEO_S)JEU.DOL_GEO_S.dispose();
   if(JEU&&JEU.DOL_GEO!==J.DOL_GEO)JEU.DOL_GEO.dispose();
   const cle=(J.mkDauphin().material.customProgramCacheKey()||'dauphin')+'-boite'+(++VERSION);
-  for(let i=0;i<J.DOL_BANC.length&&i<6;i++){const d=J.mkDauphin();d.material.customProgramCacheKey=()=>cle;d.userData.b=J.DOL_BANC[i];scene.add(d);dolphins.push(d);}
+  for(let i=0;i<J.DOL_BANC.length&&i<6;i++){const d=J.mkDauphin();d.material.customProgramCacheKey=()=>cle;if(d.userData.coque)d.userData.coque.material.customProgramCacheKey=()=>cle+'c';if(d.userData.coeur)d.userData.coeur.material.customProgramCacheKey=()=>cle+'h';d.userData.b=J.DOL_BANC[i];scene.add(d);dolphins.push(d);}
   dolTrail.mesh.material.uniforms.uMap.value=J.DOL_ETOILE||goutte;
-  JEU=J;BLOC=bloc;noirFait=null;
-  for(let i=0;i<dolphins.length;i++)ETAT[i].p=J.DOL_BANC[i].p0;
+  JEU=J;BLOC=bloc;noirFait=null;setTimeout(coqueLit,0);
+  for(let i=0;i<dolphins.length;i++)ETAT[i].ch=null;
+  {const L=J.DOL_CHORE||[],i0=ST.ch==='hasard'?Math.min(CH.i,L.length-1):+ST.ch;if(L.length)choreRelance(Math.max(0,i0));}
 }
 let noirFait=null;
 function noirMaj(){ // la robe noire : la fonction du jeu elle-même ; au retour, on remet NOS couleurs d'eau (les siennes sont blanches)
@@ -215,7 +251,7 @@ function gerbe(x,y,z,power,k,nM){ // dolGerbe du jeu
 const SOL_Y=-1.05;
 function animUn(dt,t){
   const d=dolphins[0],u=ETAT[0];if(!d)return;
-  for(let i=1;i<dolphins.length;i++){dolphins[i].visible=false;ombres[i].visible=false;}
+  for(let i=1;i<dolphins.length;i++)dolphins[i].visible=false;for(let i=1;i<ombres.length;i++)ombres[i].visible=false;route.visible=false;
   d.visible=true;d.scale.setScalar(1);
   const y=.09*Math.sin(t*1.25);d.position.set(0,y,0);
   d.rotation.set(.07*Math.sin(t*.8),0,.06*Math.cos(t*1.25));
@@ -226,39 +262,60 @@ function animUn(dt,t){
   const o=ombres[0];o.visible=true;o.position.set(-.2,SOL_Y,0);o.scale.set(3.9,1,1.5);o.material.opacity=1-.25*(y+.09);
 }
 
-// LE BANC : updateDolphins du jeu, tel quel, dans le repère du banc (x = la traversée, y = le haut, z = la profondeur) — k 1, W 8
-const BK=1,BW=8,BDIR=1;
+// LE BANC : updateDolphins du jeu, dans le repère du banc (x = la traversée, y = le haut, z = la profondeur) — k 1, W 8. La POSE vient de
+// `dolChorePose` et des CHORÉS du jeu (DOL_CHORE) : ce qu'on règle ici est ce qui joue en course. Au hasard : une choré tous les 3 sauts du chef ;
+// chaque dauphin adopte la nouvelle quand IL replonge (il prend sa place dans la vague, ou attend le saut suivant) — rien ne saute en l'air.
+const BHY=(-1.45+2)+2*1,BK=1,BW=8,BDIR=1,CH={i:0,n:0,vr:0,der:-1},BR=3.2,BRM=1; // BR : le demi-bitume de la route de la boîte (pas à l'échelle du jeu : elle dit OÙ passe la route) · BRM : la marge
+const chores=()=>JEU&&JEU.DOL_CHORE||[];
+function choreRelance(i){const L=chores();if(!L.length)return;CH.i=Math.max(0,Math.min(L.length-1,i|0));CH.n=0;
+  for(let j=0;j<dolphins.length;j++){const c=L[CH.i].d[j]||{lag:0},u=ETAT[j];u.ch=CH.i;u.p=-(c.lag||0)-.05;u.up=false;u.vr=0;dolphins[j].visible=false;}
+  for(const p of [dolTrail,dolSplash])for(let i=0;i<p.n;i++){p.life[i]=0;p.pos[i*3+1]=-99999;}
+  peindreChores();}
+function choreSuivante(){const L=chores();if(L.length<2)return;let c=Math.floor(Math.random()*(L.length-1));if(c>=CH.i)c++;CH.i=c;CH.n=0;peindreChores();}
 function animBanc(dt){
-  const k=BK,W=BW,dir=BDIR,rK=ST.ras?1:0,tempo=1+.5*rK,gK=1+rK;
+  const L=chores();if(!L.length||!JEU.dolPose)return;
+  const k=BK,W=BW,dir=BDIR,rK=ST.ras?1:0,tempo=1+.5*rK,gK=1+rK,cyc=JEU.DOL_CYCLE||1.6,P9={};
   JEU.DOL_U.uEcume.value=.2*k;JEU.DOL_U.uRimK.value=1.5+2.5*rK*rK;
-  for(let i9=0;i9<dolphins.length;i9++){const d=dolphins[i9],u=ETAT[i9],b=d.userData.b;ombres[i9].visible=false;
+  route.visible=true;
+  for(const o of ombres)o.visible=false; // (le banc n'a pas d'ombre — et il y a moins de dauphins que d'ombres)
+  for(let i9=0;i9<dolphins.length;i9++){const d=dolphins[i9],u=ETAT[i9],b=d.userData.b;if(u.ch==null||u.ch>=L.length)u.ch=CH.i;
     u.p+=dt*b.speed*b.speed*8.8*tempo;
-    if(u.p>1.2){u.p=-(.2+Math.random()*.3);u.vr=Math.random()<.34?(Math.random()<.5?1:-1):0;}
-    const p=u.p,vis=p>-.18&&p<1.18;d.visible=vis;
-    const arc=Math.sin(p*Math.PI),amp=b.amp*k,base=b.base*k,x=dir*W*(2*p-1),y=base+arc*amp,z=-b.z*k;
+    if(u.p>1.2){u.p-=cyc; // il replonge : la plongée a une durée fixe
+      if(u.ch!==CH.i){u.ch=CH.i;const c=L[u.ch].d[i9]||{lag:0};if(i9>0){u.p=ETAT[0].p-(c.lag||0);if(u.p>-.15)u.p-=cyc;}} // la nouvelle choré : il prend sa place dans la vague
+      const C=L[u.ch],c=C.d[i9]||C.d[0];
+      if(c.v)u.vr=c.v*(Math.random()<.5?1:-1);
+      else if(C.sync){if(i9===0)CH.vr=Math.random()<C.vr?(Math.random()<.5?1:-1):0;u.vr=CH.vr;}
+      else{let v9=0;for(let j=0;j<dolphins.length;j++)if(j!==i9&&dolphins[j].visible&&ETAT[j].vr)v9=1;u.vr=!v9&&Math.random()<(C.vr||0)?(Math.random()<.5?1:-1):0;}
+      if(i9===0&&ST.ch==='hasard'&&++CH.n>=3)choreSuivante();}
+    const C=L[u.ch],p=u.p,vis=p>-.18&&p<1.18;d.visible=vis;
+    const o=JEU.dolPose(C,i9,b,p,k,W,dir,P9,BR+BRM,0),arc=o.arc,amp=o.amp,base=o.base+BHY,x=o.x,y=o.y+BHY,z=o.z; // relevés comme en course : leurs sauts ne touchent jamais la route
     const above=y>base+.15*k&&p>0&&p<1;
     if(above!==u.up){if(ST.surf)gerbe(x,base+.05*k,z,(above?1.2:.9)*b.scale,k,gK);u.up=above;}
     if(!vis)continue;
     const s=k*b.scale;d.scale.setScalar(s);d.position.set(x,y,z);
-    const pitch=Math.atan2(Math.cos(p*Math.PI)*amp*Math.PI,2*W*.8);
     u.roll+=dt*1.3;
-    d.rotation.set(Math.sin(u.roll)*.12+u.vr*6.2832*THREE.MathUtils.smoothstep(p,.12,.88),dir>0?0:Math.PI,pitch);
+    d.rotation.set(Math.sin(u.roll)*.12+u.vr*6.2832*THREE.MathUtils.smoothstep(p,.12,.88),o.yaw,o.pitch);
     u.tailPh+=dt*(7.5+b.speed*8);const hors=Math.max(0,arc);
     const mu=d.material.userData;
-    mu.uDol.value.set(ST.fige?0:.11+.22*(1-hors)*(1-hors),u.tailPh,2.3,Math.min(.1,.5*Math.PI*Math.PI*amp/(4*W*W)*s*1.4));
+    mu.uDol.value.set(ST.fige?0:.11+.22*(1-hors)*(1-hors),u.tailPh,2.3,Math.min(.1,.5*Math.PI*Math.PI*amp/(o.hz*o.hz)*s*1.4));
     mu.uSurf.value.set(0,1,0,ST.surf?base:-1e9);
-    if(ST.surf){const sp9=Math.sin(pitch),t9=Math.abs(sp9)>.12?(base-y)/sp9:99;
-      if(Math.abs(t9)<JEU.DOL_L*.5*s&&Math.random()<dt*42*gK){const x9=x+dir*Math.cos(pitch)*t9;
-        spawnP(dolSplash,x9+(Math.random()-.5)*.35*k,base+.04*k,z+(Math.random()-.5)*.35*k,(Math.random()-.5)*1.2*k,(1+Math.random()*1.3)*k,(Math.random()-.5)*1.2*k,.3+Math.random()*.25);}}
+    if(ST.surf){const t9=Math.abs(o.ny)>.12?(base-y)/o.ny:99;
+      if(Math.abs(t9)<JEU.DOL_L*.5*s&&Math.random()<dt*42*gK)
+        spawnP(dolSplash,x+o.nx*t9+(Math.random()-.5)*.35*k,base+.04*k,z+o.nz*t9+(Math.random()-.5)*.35*k,(Math.random()-.5)*1.2*k,(1+Math.random()*1.3)*k,(Math.random()-.5)*1.2*k,.3+Math.random()*.25);}
     if(above&&Math.random()<dt*55){const q=JEU.DOL_L*.5*s*(.8-2*Math.random());
-      spawnP(dolTrail,x+dir*Math.cos(pitch)*q+(Math.random()-.5)*.6*k,y+Math.sin(pitch)*q+(Math.random()-.5)*.6*k,z+(Math.random()-.5)*.6*k,0,0,0,.55+Math.random()*.35);}
+      spawnP(dolTrail,x+o.nx*q+(Math.random()-.5)*.6*k,y+o.ny*q+(Math.random()-.5)*.6*k,z+o.nz*q+(Math.random()-.5)*.6*k,0,0,0,.55+Math.random()*.35);}
   }
 }
+// LE CHOIX DE LA CHORÉ (vue LE BANC) : « Au hasard » (comme en course) ou une choré, rejouée en boucle
+function peindreChores(){const el=$('chores'),L=chores();el.hidden=ST.vue!=='banc'||!L.length;if(el.hidden)return;
+  const sig=L.map(c=>c.n).join('|');if(el._sig!==sig){el._sig=sig;
+    el.innerHTML='<button class="pil" data-c="hasard">Au hasard</button>'+L.map((c,i)=>'<button class="pil" data-c="'+i+'">'+c.n.charAt(0)+c.n.slice(1).toLowerCase()+'</button>').join('');}
+  for(const b of el.children){const v=b.dataset.c;b.classList.toggle('on',String(ST.ch)===v);b.classList.toggle('joue',ST.ch==='hasard'&&v===String(CH.i));}}
 
 /* ---------------------------------------------------------------------------------------------------------------------
    4. LA CAMÉRA — une orbite à inertie autour de la cible ; « tourner » la fait glisser seule quand le doigt la lâche
    --------------------------------------------------------------------------------------------------------------------- */
-const CADRES={un:{cx:-.15,cy:.05,cz:0,yaw:.62,pitch:.2,dist:6.4},banc:{cx:0,cy:.3,cz:-.8,yaw:Math.PI-.18,pitch:.12,dist:18}};
+const CADRES={un:{cx:-.15,cy:.05,cz:0,yaw:.62,pitch:.2,dist:6.4},banc:{cx:0,cy:2.4,cz:10,yaw:Math.PI,pitch:.3,dist:36}};
 const CAM={cx:0,cy:0,cz:0,yaw:0,pitch:0,dist:8,vy:0,vp:0,lache:9,vise:null};
 function recadre(dur){const c=CADRES[ST.vue];CAM.vise={a:{cx:CAM.cx,cy:CAM.cy,cz:CAM.cz,yaw:CAM.yaw,pitch:CAM.pitch,dist:CAM.dist},b:c,t:0,d:dur||0};
   // le lacet le plus court
@@ -296,8 +353,8 @@ function peindre(){
   for(const b of $('vue').children)b.classList.toggle('on',b.dataset.v===ST.vue);
   $('bTourne').classList.toggle('on',ST.tourne);
   $('oSurf').hidden=ST.vue!=='banc';
-  for(const [id,k] of [['oSurf','surf'],['oRas','ras'],['oNoir','noir'],['oLent','lent'],['oFige','fige'],['oReve','reve']])$(id).classList.toggle('on',!!ST[k]);
-  fondJeu();
+  for(const [id,k] of [['oSurf','surf'],['oRas','ras'],['oNoir','noir'],['oLent','lent'],['oFige','fige'],['oReve','reve']])$(id).classList.toggle('on',!!ST[k]);$('oLisse').classList.toggle('on',!!ST.lisse);
+  fondJeu();peindreChores();if(typeof coquePeindre==='function')coquePeindre();
 }
 function fondJeu(){ // au CIEL RÊVE, les étoiles redeviennent de la lumière (additives, blanches) comme en jeu ; sur blanc, de la couleur
   document.body.classList.toggle('reve',!!ST.reve);const m=dolTrail.mesh.material;
@@ -305,10 +362,13 @@ function fondJeu(){ // au CIEL RÊVE, les étoiles redeviennent de la lumière (
   const g=dolSplash.mesh.material;g.blending=m.blending;if(!ST.noir)g.uniforms.uC.value.setHex(ST.reve?0xd6faff:0x8ccff0);g.needsUpdate=true;} // les gerbes aussi : de l'écume blanche en lumière au ciel rêve, un cyan doux sur blanc
 function vue(v){if(v===ST.vue)return;ST.vue=v;garde();peindre();recadre(.9);
   for(const p of [dolTrail,dolSplash])for(let i=0;i<p.n;i++){p.life[i]=0;p.pos[i*3+1]=-99999;}
-  if(JEU)for(let i=0;i<dolphins.length;i++){ETAT[i].p=JEU.DOL_BANC[i].p0;ETAT[i].up=false;}}
+  if(JEU)choreRelance(ST.ch==='hasard'?CH.i:+ST.ch);}
 $('vue').addEventListener('click',e=>{const b=e.target.closest('button');if(b)vue(b.dataset.v);});
+$('chores').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const v=b.dataset.c;ST.ch=v==='hasard'?'hasard':+v;garde();
+  if(v!=='hasard')choreRelance(+v);peindreChores();});
 $('bTourne').onclick=()=>{ST.tourne=!ST.tourne;garde();peindre();};
 $('bCadre').onclick=()=>recadre(.8);
+$('oLisse').onclick=()=>{ST.lisse=!ST.lisse;garde();peindre();if(BLOC){try{monter(BLOC);annonce(ST.lisse?'Lisse : sans les cubes':'Les cubes');}catch(e){ST.lisse=!ST.lisse;garde();peindre();annonce('Erreur : '+e.message,true);}etat();}};
 for(const [id,k] of [['oSurf','surf'],['oRas','ras'],['oNoir','noir'],['oLent','lent'],['oFige','fige'],['oReve','reve']])
   $(id).onclick=()=>{ST[k]=!ST[k];garde();peindre();};
 addEventListener('keydown',e=>{if(e.key==='1')vue('un');else if(e.key==='2')vue('banc');else if(e.key==='r'||e.key==='R')recadre(.8);
@@ -342,11 +402,34 @@ function taille(){const w=innerWidth,h=innerHeight,pr=Math.min(devicePixelRatio|
   renderer.setPixelRatio(pr);renderer.setSize(w,h,false);camera.aspect=w/h;
   camera.fov=w<h?48:36;camera.updateProjectionMatrix();PX.value=h*pr/(2*Math.tan(camera.fov*Math.PI/360));}
 addEventListener('resize',taille);
+// LA STRUCTURE (peau de verre · écailles · cœur) : ses réglages = les uniforms DOL_U du jeu — partis des valeurs du jeu, gardés dans ce navigateur.
+// [clé, uniform, min, max, pas, ×cube (la valeur s'affiche en cubes), étiquette, groupe, couche qui doit être allumée]
+const CQ=[['a0','uCoqA0',0,1,.01,0,'De face','LA PEAU DE VERRE','cqOn'],['a1','uCoqA1',0,1,.01,0,'Bords','','cqOn'],['g','uCoqG',0,2,.05,1,'Gonflée','','cqOn'],
+  ['ec','uEcart',.5,1,.01,0,'Taille','LES ÉCAILLES',''],['va','uVague',0,1.5,.05,1,'Vague','',''],
+  ['lu','uLueur',0,3,.05,0,'Lumière','LE CŒUR ET L’ONDE','coOn'],['sc','uScan',0,2,.05,0,'Onde','','']];
+let CQ0=null; // les valeurs du jeu (lues à chaque nouveau dessin)
+{const el=$('cqCurs');el.innerHTML=CQ.map(([k,,a,b,st,,lb,gr])=>(gr?'<h4>'+gr+'</h4>':'')+'<label class="cur" data-k="'+k+'"><span>'+lb+'</span><input type="range" min="'+a+'" max="'+b+'" step="'+st+'"><b></b></label>').join('');
+  for(const c of CQ){const lab=el.querySelector('[data-k="'+c[0]+'"]'),inp=lab.querySelector('input');
+    inp.addEventListener('input',()=>{if(!ST.cq)return;ST.cq[c[0]]=+inp.value;lab.querySelector('b').textContent=(+inp.value).toFixed(2);garde();});}}
+if(ST.cqOn===undefined)ST.cqOn=true;if(ST.coOn===undefined)ST.coOn=true;
+function coqueLit(){if(!JEU||!JEU.DOL_U.uCoqA0)return;const U=JEU.DOL_U,vx=JEU.DOL_VOX||.026;CQ0={};
+  for(const [k,u,,,,vk] of CQ)if(U[u])CQ0[k]=U[u].value/(vk?vx:1);
+  if(!ST.cq||Object.keys(CQ0).some(k=>ST.cq[k]==null))ST.cq=Object.assign({},CQ0,ST.cq||{});coquePeindre();}
+function coqueApplique(){if(!JEU||!JEU.DOL_U.uCoqA0||!ST.cq)return;const U=JEU.DOL_U,vx=JEU.DOL_VOX||.026;
+  for(const [k,u,,,,vk] of CQ)if(U[u]&&ST.cq[k]!=null)U[u].value=ST.cq[k]*(vk?vx:1);
+  for(const d of dolphins){if(d.userData.coque)d.userData.coque.visible=!!ST.cqOn;if(d.userData.coeur)d.userData.coeur.visible=!!ST.coOn;}}
+function coquePeindre(){const el=$('coque'),a=!!(JEU&&JEU.DOL_GEO_S&&!ST.lisse);el.hidden=!a;if(!a||!ST.cq)return;
+  $('oCoque').classList.toggle('on',!!ST.cqOn);$('oCoeur').classList.toggle('on',!!ST.coOn);
+  for(const c of CQ){const lab=$('cqCurs').querySelector('[data-k="'+c[0]+'"]');if(!lab||ST.cq[c[0]]==null)continue;
+    lab.querySelector('input').value=ST.cq[c[0]];lab.querySelector('b').textContent=(+ST.cq[c[0]]).toFixed(2);lab.classList.toggle('eteint',!!c[8]&&!ST[c[8]]);}}
+$('oCoque').onclick=()=>{ST.cqOn=!ST.cqOn;garde();coquePeindre();};
+$('oCoeur').onclick=()=>{ST.coOn=!ST.coOn;garde();coquePeindre();};
+$('cZero').onclick=()=>{if(CQ0){ST.cq=Object.assign({},CQ0);garde();coquePeindre();}};
 let t0=performance.now(),T=0;const VD=new THREE.Vector3();
 function boucle(now){
   const dtR=Math.min(.05,(now-t0)/1000);t0=now;
   const dt=ST.fige?0:dtR*(ST.lent?.25:1);T+=dt;
-  if(JEU){noirMaj();if(ST.vue==='un')animUn(dt,T);else animBanc(dt);}
+  if(JEU){coqueApplique();noirMaj();if(ST.vue==='un')animUn(dt,T);else animBanc(dt);}
   poolStep(dolTrail,dt,0);poolStep(dolSplash,dt,6*BK);
   camTick(dtR);
   if(JEU&&JEU.DOL_U.uLum){camera.getWorldDirection(VD);JEU.DOL_U.uLum.value.set(0,1,0).addScaledVector(VD,-.4).normalize();} // comme updateDolphins : sa lumière vient d'en haut, un peu de face

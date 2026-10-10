@@ -16,6 +16,7 @@
 local AssetService = game:GetService("AssetService")
 local Lighting = game:GetService("Lighting")
 local Config = require(script.Parent.Parent:WaitForChild("Config"))
+local Perf = require(script.Parent:WaitForChild("Perf"))
 local M = Config.M
 
 local Mer = { pret = false }
@@ -24,8 +25,15 @@ local T = 2000          -- studs : le côté d'une dalle
 local NT = 4            -- dalles par période
 local D = T * NT        -- la période du relief
 local NP = 8            -- dalles FINES par côté (8 × 8 = 64, ±8 000 studs)
-local P = T * NP
 local NPL = 16          -- dalles GROSSIÈRES par côté (16 × 16, ±16 000 studs ; celles sous les fines sont cachées)
+-- (APPAREIL FAIBLE, Config.FAIBLE.merFines / merLoin : 4 × 4 et 8 × 8 — des multiples de la période, la mer reste sans couture ; la
+-- brume avale ce qui manque au loin. Mesuré au banc : déplacer les 321 pièces quand la vue descend coûtait jusqu'à 1,2 ms par image
+-- sur PC — la route ne fait que descendre, la mer suit presque à chaque image)
+local function couronnes(): (number, number)
+	if not Perf.faible then return NP, NPL end
+	return math.clamp(math.floor((Perf.F.merFines or NP) / NT + 0.5) * NT, NT, NP), math.clamp(math.floor((Perf.F.merLoin or NPL) / NT + 0.5) * NT, NT, NPL)
+end
+local P = T * NP
 local PL = T * NPL
 local G = 12            -- carreaux par côté d'une dalle fine (20 avant : le budget de triangles de Roblox, ~68 000 pour TOUT ce qui est bâti par code)
 local GL = 5            -- … d'une dalle grossière
@@ -323,8 +331,10 @@ function Mer.creer(graine: number)
 				ceder()
 			end
 		end
-		for J = 0, NP - 1 do
-			for I = 0, NP - 1 do
+		local np, npl = couronnes()
+		P, PL = T * np, T * npl
+		for J = 0, np - 1 do
+			for I = 0, np - 1 do
 				local src = modeles[(J % NT) * NT + (I % NT)]
 				local p = (I < NT and J < NT) and src or src:Clone()
 				p.Name = "Dalle"
@@ -332,8 +342,8 @@ function Mer.creer(graine: number)
 				table.insert(dalles, { p = p, ox = (I + 0.5) * T, oz = (J + 0.5) * T })
 			end
 		end
-		for J = 0, NPL - 1 do
-			for I = 0, NPL - 1 do
+		for J = 0, npl - 1 do
+			for I = 0, npl - 1 do
 				local src = modelesL[(J % NT) * NT + (I % NT)]
 				local p = (I < NT and J < NT) and src or src:Clone()
 				p.Name = "DalleLoin"
@@ -362,6 +372,25 @@ function Mer.creer(graine: number)
 		Mer.pret = true
 	end)
 end
+
+-- LA BASCULE en pleine session (Client/Perf) : la mer garde ses couronnes du milieu (les dalles « modèles » en font partie), le
+-- reste s'en va
+Perf.surBascule(function(oui: boolean)
+	if not oui or #dalles == 0 then return end
+	local np, npl = couronnes()
+	for _, v in { { dalles, np }, { loin, npl } } do
+		local l, n = v[1], v[2]
+		for i = #l, 1, -1 do
+			local d = l[i]
+			if d.ox > n * T or d.oz > n * T then
+				d.p:Destroy()
+				table.remove(l, i)
+			end
+		end
+	end
+	P, PL = T * np, T * npl
+	cleVue = ""
+end)
 
 -- la mer n'existe qu'au niveau NUAGES (et au menu) : la VILLE et l'ORBITE n'ont pas de nuages
 local visible = true
@@ -396,6 +425,12 @@ function Mer.suivre(camPos: Vector3, yCaisse: number, dt: number, sous: number?)
 		yMer = (yMer :: number) + (cible - (yMer :: number)) * math.min(1, dt * 0.8)
 	end
 	local y = math.round((yMer :: number) / 3) * 3
+	-- (APPAREIL FAIBLE) hors des NUAGES la mer est cachée : inutile de déplacer ses dalles hors du monde (mesuré : 0,15 à 0,4 ms par
+	-- image en ville) — elle se recale d'un coup quand elle revient
+	if Perf.faible and not visible then
+		cleVue = ""
+		return
+	end
 	-- rien ne bouge tant que la vue reste sur la même dalle et que la mer garde son niveau
 	local cle = math.floor(camPos.X / T) .. "," .. math.floor(camPos.Z / T) .. "," .. y .. "," .. #dalles
 	if cle ~= cleVue then

@@ -6,6 +6,7 @@
 local RunService = game:GetService("RunService")
 local Config = require(script.Parent.Parent:WaitForChild("Config"))
 local Bus = require(script.Parent:WaitForChild("Bus"))
+local Perf = require(script.Parent:WaitForChild("Perf"))
 local Effets = require(script.Parent:WaitForChild("Effets"))
 local Score = require(script.Parent:WaitForChild("Score"))
 local M = Config.M
@@ -150,8 +151,9 @@ local function tick(dt: number)
 end
 
 function Serpent.init()
+	local tickC = Perf.chrono("Serpent", tick) -- (banc : son temps par image, voir Perf)
 	RunService.RenderStepped:Connect(function(dt: number)
-		local ok, err = pcall(tick, math.min(dt, 0.05))
+		local ok, err = pcall(tickC, math.min(dt, 0.05))
 		if not ok then
 			if not S.erreur then warn("[CashCar] serpent : " .. tostring(err)) end
 			S.erreur = true

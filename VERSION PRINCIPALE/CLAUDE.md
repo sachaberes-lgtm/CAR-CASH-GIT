@@ -1,11 +1,108 @@
 # CASH CAR — guide projet pour Claude Code
 
+## EN VOL, POUCE EN HAUT = LA CAISSE MONTE (2026-10-10, Léo : « si en l'air le joystick avant fait monter la voiture, c'est plus logique, et intuitif, niveau mobile »)
+Le réglage « POUCE HAUT EN VOL » passe à **MONTE par défaut** (il était à PLONGE, le manche d'avion, depuis le 29/09). À la question
+« ↑ piqué / ↓ cabré est un verdict du verrou de Sacha (09/10), Sacha est d'accord ? », Léo a répondu « MONTE pour tous, même
+anciens ». Si Sacha n'était pas au courant : c'est ici que ça se défait (une ligne dans `volSens` et une dans `san`).
+- `volSens()` : absent = MONTE (`SAVE.d.volH==='plonge'` seul garde l'ancien sens). `def()` porte `volH:'monte', volHv:2`.
+- **LA BASCULE DES ANCIENNES SAUVEGARDES, UNE FOIS** : dans `san`, une sauvegarde sans `volHv>=2` passe à MONTE (même un PLONGE choisi
+  avant le 10/10 : tout le monde repart au nouveau sens) ; `volHv=2` est alors écrit, et un PLONGE choisi APRÈS est gardé.
+- Le CLAVIER ne change pas (↑ piqué / ↓ cabré) : le réglage ne touche que le pouce (et la souris sur le volant). L'ASTUCE du vol, les
+  RÉGLAGES et la PAUSE lisent `volSens()` : ils suivent seuls. Le libellé d'origine de `#mvVolH` dit MONTE.
+- Banc (scratchpad `vol2.js`, téléphone debout, vrai vol hors de la route, pouce tenu au volant par CDP) : défaut → pouce HAUT `pitchS`
+  +1 (cabré, `fallVel.y` remonte), pouce BAS −1 ; PLONGE rechoisi → l'inverse. `volh.js` : neuve / ancienne PLONGE / ancienne MONTE →
+  MONTE, PLONGE choisi après (`volHv:2`) → gardé au rechargement. 0 erreur.
+
+## PARIS SORT DU MODE INFINI (2026-10-10, session GRAPHISME — Sacha : « enlève la map Paris du mode infini »)
+La ligne `paris` de `NIVEAUX` est passée en commentaire (décommenter pour la remettre). Le cycle de la partie sans fin devient
+NUAGES → VILLE → ORBITE → ORAGE → MINUIT EN VILLE → PLUIE DE SATELLITES (6 au lieu de 7). PARIS reste ENTIER dans la CARRIÈRE : son
+monde est fabriqué par `carNiveau` (ciel `parisOr`, piste `paris`) sans lire `NIVEAUX`, et sa chauffe au menu (`parisChauffe`) ne
+change pas. Rien ne lisait Paris par sa PLACE dans `NIVEAUX` (seul `NIVEAUX[0]` est lu, pour la musique) ; Poki échange par id.
+Banc `gfx/infini.js` : 9 portails sans Paris, la carrière lance toujours Paris, 0 erreur.
+
+## LE DERNIER TOUR DES COMMANDES AVANT LE VERROU (2026-10-09, session GRAPHISME — Sacha : « on va verrouiller le gameplay ; avant, fais un dernier tour d'amélioration des contrôles pour que le jeu soit le plus fun à jouer possible, tant dans la conduite que la voltige »)
+Audit complet de la chaîne des commandes (entrées → lissage → lacet/tangage → trajectoire), puis bancs A/B pas à pas (`dbgStep(n,16|33)`,
+la boucle gelée) contre la version d'avant. **Aucun verdict défait** : zéro assistance, volant sans aimant, AIR_RATE 1, ↑ piqué / ↓ cabré,
+plafonds de lacet et de tangage, vol libre, vrille visuelle, drift = un geste. Ce qui a changé :
+1. **BUG — relâcher la souris coupait la NITRO tenue au clavier** (`bindHold` : `mouseup` global → `keys[code]=false` pour NITRO et ← →).
+   Chaque fin de glissé du volant à la souris éteignait ESPACE (seuil de rallumage 0,3, impulsion de vol rebrûlée). Le relâcher ne lâche
+   plus que le bouton pris à la souris (`ms9`). Banc : nitro tenue → glissé souris → lâcher : avant ÉTEINTE, après ALLUMÉE.
+2. **Le drift au clavier ne freine plus** (`if(dn&&!driftEnCours)`) : ↓ est aussi le geste du drift, le doigt et la souris ne freinaient
+   pas. 1 s de drift : perte de vitesse 40-44 % → 9-15 %. Hors drift, ↓ freine comme avant.
+3. **Même jeu à 30 et à 60 i/s** (l'iPhone bridé) : volant en exponentielle exacte `1-exp(-dt·21.4)` (= l'ancien ×0,3 à 60 i/s ; à 30 il
+   braquait plus sec, τ 36 ms au lieu de 47) ; huile en marche aléatoire `×√(dt/60)` (à 30 i/s l'embardée était +41 %) ; flammes
+   d'échappement, jet du réacteur en vol, traits d'air (sol et vol) et fumée de drift émis À LA SECONDE (`emiN`, à côté de `nfxVent`) :
+   60/s pile à 30, 40 ou 50 i/s — à 30 i/s on en voyait la MOITIÉ (nitro « faiblarde » sur l'iPhone). JAMAIS moins d'1 par image :
+   au-dessus de 60 (120/144 Hz) l'émission d'avant est gardée au pixel près. Les « sous-images » naissent à la place de la caisse
+   entre deux images (pas de paquets).
+4. **Le manche lissé comme le volant** (`pitchS`, τ 47 ms, remis à 0 dans `startFall`) : le tangage attaquait brut (97°/s d'un coup au
+   clavier), le lacet passait déjà par le lissage de `steer`. Plafonds inchangés (1,7 rad/s au réacteur, 0,85 sans). Banc : même
+   assiette à ±1-2° qu'avant, pas d'à-coup au relâché.
+5. **La pose garde le lacet** : `yawR=0` → `yawR` = le lacet du vol (même formule que `yawIn`), dans `tryLand` ET au rattrapage de la
+   lèvre — volant tenu, la caisse ne « s'arrête » plus de tourner à la pose avant de repartir ; elle rejoint le lacet du sol en `VOL_TAU`.
+6. **La souris n'est pas un pouce** : l'arc du pouce (socle qui glisse, `cr`, apprentissage `ar`, seuil `dyS`) ne s'applique plus qu'au
+   doigt (`pou9 = TCTL.id!=='souris'`) ; la zone morte croisée reste pour tous. Effet seulement quand le tracé de souris est en arc
+   (le seuil du drift ne monte plus jusqu'à 42,5 px à droite).
+7. **Le viseur honnête sous nitro** : il n'intégrait que la gravité pleine ; il suit maintenant la même loi que la chute (plané 60/75 %,
+   poussée dans l'axe 60/96 × palier × NITROOO, bascule du bord). Physique intacte, visuel seul. Crochet de banc `dbgVise()`.
+- Bancs (scratchpad GRAPHISME `gfx/`) : `ctl.js` (réponse du volant, temps réel), `ctl2.js` (A/B pas à pas), `ctl3.js` (vol tracé),
+  `ctl4.js` (viseur, `dbgPose` 'droit'), `souris.js`, `emi.js`. `tour.js` : 0 programme lié en course, 0 erreur.
+- **TRANCHÉ PAR SACHA le jour même** (deux questions) :
+  · **la pose « plus généreuse »** : PARFAIT = `impact<4.5` et pas ratée (dans l'axe), QUELLE QUE SOIT la durée du vol (`landLoss<.2`
+    l'interdisait au-delà de ~2 s : AIR MONSTRE jamais PARFAIT) ; perte de vitesse à la pose plafonnée à **30 %** (était 52 %) ; la tôle
+    qui part (`dropChip`) seulement sur une pose dure. Le nitro rendu reste au prorata du vol réacteur coupé (la boucle du 1/10 reste
+    fermée). Banc `pose2.js` : 4 s de vol posé doux → PARFAIT, vA 110 → 77 ; dur → pas PARFAIT.
+  · **le virage en vol reste tel quel** : le lacet en vol ne suit pas `vitMult` (rayon 40 m à ×1, ~100 m sous NITROOO ×2,6) — voulu.
+- ⚠ Commentaires périmés à ne pas croire : `AIR_RATE` vaut 1 (pas 1,3, remis à 1 dans `startFall`).
+
+## LE VITRAIL EN MODULE + LE SINGE PENDU (2026-10-10, Léo : la technique trouvée sur le dauphin s'appelle VITRAIL ; puis « quelle figure pourrait faire apparaître un singe » → « le 2 »)
+- **`<<<VITRAIL>>>`** (avant `// ---- SERPENT`) : la recette pour N'IMPORTE QUELLE forme. Une forme = `F` {`sdf` (distance signée, des volumes
+  soudés en douceur), `col` (couleur), `os` (poids de 3 os, facultatif), `s` (coordonnée de l'onde 0 → 1), `min/max`, `hs` (pas de la forme
+  lisse), `h` (taille des écailles)}. `vitrailObjet(F,U,cle)` → un groupe de trois maillages : ÉCAILLES (cases de `h` dont le centre est
+  dedans et qui touchent le dehors, une couleur / un os / une normale par cube), CŒUR (la forme lisse rentrée, lumière pure `uGlowA → uGlowB`),
+  PEAU de verre (la forme lisse gonflée, reflet de ciel, éclat, film irisé) ; un seul programme par couche (`vitrailShader`, rôles 0/1/2) ;
+  la forme lisse = « surface nets » (normales = gradient du champ). `vitrailU(F)` = les réglages, valeurs du JUSTE MILIEU de Léo (de face .43,
+  bords .95, gonflée 1,3 cube, écailles .89, vague .45 cube) ; trois os par `uM0..2` (Matrix3) + pivots `uP0..2`. Rien n'est bâti au chargement.
+- **`<<<SINGE>>>` LE SINGE PENDU** : la figure choisie — quand on passe SOUS la route (LIMBO / SNAKE LOOP), un singe pend à l'envers sous la
+  dalle, accroché par la queue, suit la caisse de la tête et tend la main (il tape sur le toit au plus près), puis se balance dans son souffle.
+  Modelé debout (`SG_P` : ellipsoïdes et capsules soudés ; `SG_C` les couleurs : fourrure caramel, visage / ventre / mains pêche, grands yeux
+  noirs à reflet, sourire) puis retourné (repère d'accroche : la queue en 0,0,0, il pend vers −y sur ~2,1 m). Son vrai sourire, pendu, se lit
+  🙃 (le retourner pour « nous » le faisait grimacer). Os : la tête (cou), bras droit, bras gauche. `singeNouveau()`, `singeAnime(S,dt,cible,
+  proche)` (pendule amorti, tête qui suit, bras qui se tend), `singeTape(S,vx,vz)` (le souffle). Cœur : l'or de la banane → l'ambre.
+  DEUX POSES (même jour, Léo : « il peut également se tenir sur les mains ») : `singeForme('queue')` (`SINGE_F`, à l'envers) et
+  `singeForme('mains')` (`SINGE_FM`, à l'endroit, les mains agrippées sous la dalle : il LÂCHE une main pour taper la caisse) —
+  `singeNouveau(cle, mode)`. Couleur et os dans le repère debout (`sgCol`, `sgOs`). Bug « oreilles / bras » corrigé : les coudes passaient à
+  ~3 cm des oreilles et la soudure les collait (bras écartés à x .56, oreilles plus hautes et plus petites).
+  ~35 000 triangles (h .024, hs .034).
+- **LE SINGE EN COURSE** (même jour, Léo : « garde ce que t'as, push main — mais il faut pas que ce soit à chaque fois qu'on va en dessous de
+  la route ») : bloc « LE SINGE EN COURSE » juste après `<<<FIN SINGE>>>`, `singeJeu(dt)` dans la boucle (après les dauphins). Passage SOUS la
+  dalle (la règle d'« À L'ABRI » : en vol, sous l'épaisseur, dans la largeur ; ni auto-école ni parc) → UN tirage par passage :
+  `SG_CHANCE` .34, jamais à moins de `SG_CD` 24 s du précédent. Il apparaît pendu (queue ou mains, au hasard) sous la dalle, là où la caisse
+  sera dans `SG_AVANCE` .85 s (dalleProche + frameAt sur la position prévue, la largeur bornée à 80 %), échelle `SG_ECH` 3,2, le visage vers
+  la caisse ; il surgit en 0,22 s, la suit de la tête, tend la main. La caisse le CROISE à moins de `SG_PORTEE` 5 m de sa main ou de son corps
+  → TOPE LÀ ! : nitro (25 à 60 % du plein), aura `chaineAura('TOPE LA !', 90 → 250)`, flow MACHIAVEL, gerbe d'or, `sfx('singe.tope')` (son à
+  faire : nom posé). Trop loin : il se balance dans son souffle. Il remonte dans la dalle 1,2 s après (ou 5 s sans croisement) ; `dolKill`
+  le range (explosion, replacement, nouvelle piste). Les deux poses sont bâties AU MENU en tranches de 5 ms (`vitrailPrepare`, générateurs :
+  ~0,4 s chacune d'un bloc, mesuré) puis compilées une fois hors écran (`chauffeRendu`) — en course, rien ne se construit ni ne se compile.
+  Console : `dbgSinge()` (état, position à l'écran), `dbgSinge(1)` (force le prochain passage), `dbgSinge('sous',prof)` (un vol juste sous la
+  dalle). ⚠ BANC : un profil neuf joue l'AUTO-ÉCOLE (`tutoTick` replace la caisse dès qu'elle sort : finir par `dbgTuto('permis')`), et
+  « Pick your mode » attend NORMAL. Vérifié en vraie course : apparition dans l'écran, TOPE LA ! +199 encaissé, rangé à l'explosion, 0 erreur.
+- **`boite-singe.html`** : la boîte (même principe que la boîte à dauphins : lit et RELIT les deux blocs) — le dessous de la route, une caisse
+  qui passe sous lui toutes les ~5 s, carte « Vitrail » (Peau · Cœur + 7 curseurs), Dark triad, Ralenti, Figé, Lisse, Ciel rêve.
+  Une erreur dans le bloc s'affiche en rouge et garde l'ancien singe. `?passe=0&fige=1&cy=&dist=&yaw=&pitch=` pour une photo.
+
 ## LES NIVEAUX — la page `maps-ciel.html` (2026-10-09/10, Léo : « reconstruction du système du PLAY : un visuel interactif, avec suppression et sauvegarde des modifs » → « les cinq [SKY HIGH] et les cinq des villes, là c'est n'importe quoi » → « encore trop de trucs écrits, je veux vraiment une page blanche, avec en liste les niveaux qu'on a, organisés de manière agréable ; je dois pouvoir y attacher une musique, puisque chaque niveau aura une musique ; des classes : parfois on va répéter la même map et la faire varier, parfois des maps uniques »)
 - OUTIL à côté du jeu (comme la salle blanche). Lancer : `python3 maps-ciel/serveur.py 9019` depuis VERSION PRINCIPALE → http://127.0.0.1:9019/maps-ciel.html.
 - UNE MAP = un décor ; UN NIVEAU = une map + sa VARIATION (heure, piste, idée) + SA MUSIQUE. Deux CLASSES déduites du contenu : une map à
   plusieurs niveaux = RÉPÉTÉE, à un seul = UNIQUE (« variante » d'un niveau unique → sa map passe dans les répétées ; une map vidée disparaît).
-  Au départ : SKY HIGH 1-5 (CIEL · NIVEAU 1-5) et VILLE 1-5 (NÉON COMPLÈTE 1-5) en répétées, PICS DE JADE en unique (sans musique) ; RÉSERVE
-  repliée en bas (MER DE NUAGES ×3 heures, L'ORAGE, SKY HIGH 6-10 retirés le 4/10, PARC) — rien ne se perd, « remettre » les ramène.
+  Au départ (11/10, Léo : « trois maps de nuages, les plus belles, trois versions ; puis le ciel dégagé et l'horizon ciel, le ciel sans
+  nuages ») : répétées = MER DE NUAGES (matin, midi, après-midi — le ciel de coton de la partie sans fin), SKY HIGH 1-5 (CIEL · NIVEAU 1-5),
+  VILLE 1-5 (NÉON COMPLÈTE 1-5) ; uniques = CIEL DÉGAGÉ (la mer de nuages en dessous, aucun cumulus) et HORIZON CIEL (ni cumulus ni mer :
+  le ciel et l'horizon) — photographiés dans la MER DE NUAGES du jeu en masquant les nuages (`__cap.nu(1)`) puis la mer (`__cap.mer(0)` :
+  LVL.mer et skyU.uMer à 0), PAS ENCORE des niveaux du jeu — et PICS DE JADE. RÉSERVE repliée (L'ORAGE, SKY HIGH 6-10, PARC). Une
+  sauvegarde d'avant reçoit cette tête une fois (`mig.nuages3`). La bande « Une partie » (mode classique) tire parmi `DANS_LE_JEU`.
+- PAS EN LIGNE : `vercel-build.sh` retire `maps-ciel.html` et `maps-ciel/` du site (un outil de travail, comme sons.html — et un fichier de
+  plus dans jouer/ change l'empreinte du jeu, donc recharge les joueurs). On l'ouvre en local, par son serveur.
 - Une ligne = poignée · n° · photo (→ la fiche : photos au volant / le tracé, plan, description, note — le SEUL endroit avec du texte) · nom
   et variation (clic = écrire) · pastille musique (▶ écoute, une à la fois ; le titre ouvre la BIBLIOTHÈQUE : musiques du jeu listées par le
   serveur, « Importer un fichier… », « Sans musique » ; un fichier audio glissé du Finder sur une ligne s'y attache) · variante, retirer.
@@ -47,6 +144,48 @@
   (`aLp` : une couleur, la nage le déplace d'un bloc, l'eau le coupe entier) ; biseau sombre aux arêtes + nuance par cube ; quelques cubes
   qui scintillent. `DOL_VOX` .026 (≈ 24 800 triangles) et `DOL_VOX_L` .045 (≈ 8 000) : updateDolphins prend les FINS seulement quand le
   dauphin fait plus de 260 px à l'écran. `DOL_VOX=0` rend le dauphin lisse.
+- **TROIS DAUPHINS EN FORMATION** (même jour, Léo : « moins de dauphins, animations plus jolies ») : `DOL_BANC` = 3 (au lieu de 6, `DOL_PAS` 1 s,
+  l'aura ×1,375 par dauphin en plus : le plafond ×1,75 ne bouge pas). Même tempo pour les trois, chacun `lag` de cycle derrière le chef (une
+  vague qui saute), plongée de durée fixe (`DOL_CYCLE` 1,6), celui qui rejoint attend sa place, une vrille sur quatre et jamais deux à la
+  fois, et au sommet il tourne la tête vers la caméra (on le voit de trois-quarts). Le bond royal part au 3e.
+- **LES SEPT CHORÉS** (même jour, Léo : « donne-leur plusieurs chorés possibles ») : `DOL_CHORE` (dans le bloc lu par la boîte) — LA VAGUE ·
+  L'UNISSON (en diagonale, vrilles ensemble) · LES CISEAUX (deux qui se croisent, le 3e jaillit à la verticale en double vrille) · LE
+  SAUTE-MOUTON (le grand passe au-dessus du petit) · L'ÉTOILE (trois directions, dont un qui vient vers la caméra) · L'ESCALIER (de plus en
+  plus haut, le dernier vrille) · LA FONTAINE (sauts verticaux qui tournent). Par dauphin : x0 → x1 (demi-largeurs), z0 → z1 (m, vers la
+  caméra +), hauteur `a`, retard `lag`, tours forcés `v` ; par choré : chance de vrille `vr`, `sync`. La pose = `dolChorePose` (⚠ PAS
+  `dolPose` : ce nom est déjà celui de l'encaissement du dauphin à la pose — une 2e déclaration l'écrasait). Le jeu en tire une par
+  apparition du banc (jamais deux fois la même de suite) ; `dbgDolphins(sec,nb,ch)` en force une (index ou nom, null = hasard). La boîte :
+  rangée des chorés en vue LE BANC (« Au hasard » = une nouvelle tous les 3 sauts du chef, chaque dauphin l'adopte en replongeant).
+- **LE BANC LONGE LA ROUTE** (même jour, Léo : « ils ne peuvent pas aller de la droite vers la gauche… celles qui viennent du milieu vont
+  transpercer la route ») : plus aucune traversée ni sortie au milieu. Les chorés sont refaites DE PART ET D'AUTRE de la route, sauts LE
+  LONG d'elle : L'ESCORTE · L'UNISSON · LE MIROIR · LE SAUTE-MOUTON · LE CROISEMENT (deux viennent vers la caméra) · L'ÉVENTAIL (ils
+  s'écartent en diagonale) · L'ESCALIER · LA FONTAINE. Par dauphin : côté `s`, distance au BORD x0 → x1 (m × taille), saut z0 → z1 (en W,
+  + devant). updateDolphins mesure l'axe de la route en x du banc (`dolXR` : FDOL.p au sol, `pts[tryLand._bi]` en vol), R = ROAD_HALF + 2,
+  et pose le banc assez loin pour que les deux bords tiennent dans l'écran (portée en mètres FIXES — liée à la taille, elle s'emballait).
+  ⚠ Poussé ainsi sur main (v209), « ça bug » : calé sur la caisse puis sur la route, le banc sortait de l'écran en vol (la caméra de vol
+  plonge vers la caisse) et l'aura montait pour rien. CORRIGÉ : le banc vit dans le repère de la CAMÉRA (24 m devant elle, collé à l'écran),
+  les dauphins sautent sur les CÔTÉS de l'écran (R = 38 % de la demi-largeur, écarts en `ku` jusqu'au bord), dans la profondeur ; la route la
+  plus proche (dalleProche + frameAt) donne sa hauteur et le banc monte au-dessus (ou descend sous elle) pour que la tranche de leurs sauts
+  ne la touche jamais (`dolHY`). Saut le plus long : jamais à moins de 10 m de l'objectif.
+- **LA PEAU LISSE SUR LES CUBES** (même soir, Léo : « remets-le en pas lisse ; rajoute celui en lisse par-dessus celui en pixel, transparent,
+  l'opacité qu'il faut, laisse celui en pixel en dessous créer du volume — essaie de créer une technique, de la maîtriser ») : chaque dauphin
+  en cubes porte une COQUE (`DOL_GEO_S` = le dauphin lisse, enfant du maillage, programme `dauphin5c`, mêmes uniforms de nage et de surface :
+  elle suit ses cubes au millimètre), gonflée de `uCoqG` (1,3 cube) le long des normales, transparente de face (`uCoqA0` .3) et presque
+  opaque sur la silhouette (`uCoqA1` .95, courbe `uCoqP` 1,4 sur 1 − |n·v|) : silhouette lisse et peau mouillée, cubes visibles dessous comme
+  sous du verre. `depthWrite:false`, renderOrder 1. +5 100 triangles par dauphin. `DOL_COQUE.on=false` l'enlève. Dans la boîte : la carte
+  « Peau lisse sur les cubes » (Oui/Non + 4 curseurs, réglages gardés dans le navigateur) ; le bouton « Lisse » = le dauphin lisse seul.
+- **DEUX CHORÉS QUI PASSENT AU-DESSUS** (même soir, Léo : « remets au moins deux chorés où ça passe au-dessus de la route, de la voiture,
+  comme avant ») : LE PONT et LES CISEAUX traversent l'écran (`ax0 → ax1` en demi-largeurs d'écran, `hx` = .8 × la demi-largeur à D9) ; la
+  règle `dolHY` relève le banc pour que la tranche de leurs sauts reste au-dessus de la route (mesuré : banc à +5 à +8 m au sol).
+- **LA STRUCTURE EN TROIS COUCHES** (2026-10-10, Léo : « crée une structure en mélangeant les deux techniques… encore plus, plus, plus
+  impressionnant ») : du dedans au dehors — LE CŒUR (`coeur`, programme `dauphin5h` : le dauphin lisse rentré de `uCoeurIn` sous les
+  écailles, lumière pure rose → violet → cyan, rouge en dark triad via `uNoir`) · LES ÉCAILLES (les cubes réduits à `uEcart` .84 autour de
+  leur centre : le cœur brille dans les joints, une lanterne en mosaïque) · LA PEAU DE VERRE (`coque` : + reflet d'un ciel sur la direction
+  réfléchie — vue → monde par `vec4(r,0.)*viewMatrix`, WebGL 1 compris —, éclat de studio, film irisé). L'ONDE (`uScan`, ≈ 2 s sur
+  l'horloge de la nage) parcourt le corps du rostre à la queue : elle soulève et referme les écailles (`uVague`), allume leurs arêtes et le
+  cœur. Coût : ~35 k triangles par dauphin de près (cœur 5 k + écailles 25 k + peau 5 k), 3 programmes. Carte « Structure » dans la boîte
+  (Peau · Cœur, 7 curseurs ; `?cq=ec:.8,lu:2&peau=0&coeur=0` pour une photo). La boîte dessine une route (repère, pas à l'échelle). `dbgDauphin('ecran')` :
+  où sont les dauphins à l'écran (−1…1) et à quelle distance.
 ## LA SALLE BLANCHE (2026-10-09, Léo : « une sublime voiture dans une salle blanche, que je peux tourner, avec une petite rangée de toutes les voitures qu'on a — pas les enlevées — qu'on glisse dans différentes raretés ; télécharger une liste écrite de tout ce qu'on a dit dessus »)
 - `salle-blanche.html` (outil, à côté d'index.html, à servir : `python3 -m http.server 8975` puis /salle-blanche.html). RIEN n'est recopié :
   elle LIT index.html et exécute les vrais constructeurs (même liste de blocs que `ROBLOX/outils/cuire-caisses.js` + `MATV` pour les vraies
@@ -58,6 +197,79 @@
 - « Télécharger la fiche » = `fiche-voitures-cash-car-AAAA-MM-JJ.txt`, au format de la fiche du 6/10 (familles dans le nouvel ordre, notes
   sous chaque voiture, NOTES GÉNÉRALES, CHANGEMENTS PAR RAPPORT AU JEU) — c'est ce fichier qu'on donne à Claude pour l'appliquer au jeu.
   Console : `dbgSalle.lum({…})` règle la lumière à chaud, `dbgSalle.fiche()`, `dbgSalle.ratees()`.
+- **LA SALLE SUIT LE MAIN (9/10, Léo : « que la liste représente ce qu'on a sur le main, et plus tard celle de plus tard »)** : elle lit
+  `index.html` sur GitHub (`MAIN_URL`, raw du main, CORS ouvert), copie locale en secours (`?source=local` la force), la source est écrite
+  sous le titre ; toutes les 2 min elle compare l'empreinte du main et propose « Le main a bougé · mettre la gamme à jour ». Les gabarits
+  posés hors de la gamme (`SHAPES.xxx=function…`) sont tous ramassés tout seuls (ceux de demain compris).
+- **LA DÉFERLANTE (10/10, Léo : « une abstraite type EAU — l'élément, pas une bouteille ; avec tout ce qu'on a appris, quelque chose de
+  vraiment méchant ; inspire-toi d'un modèle qui existe, ou pas » → 1er jet, une sportive à aileron-vague : « la vitre est magnifique,
+  mais la forme, on dirait une voiture que j'ai déjà »)** : index 74, `SHAPES.deferlante`, ÉPIQUE 3 600 000 $, « THE BREAKER ». LA
+  VOITURE EST LA VAGUE : un profil (z, y) — le creux (nez), la face, le tube, la lèvre, la crête en pointe, le dos en pente droite, puis le
+  dessous — tiré en travers (`nappe`, 24 tranches, bouts bouchés par le profil : de côté on voit le pilote DANS le tube) ; devant, elle se
+  RESSERRE entre les roues avant, qui restent DEHORS (`serre`), le nez est de l'eau peu profonde, claire (pas de fond) ; derrière, elle
+  couvre les roues (dessous creusé). Lèvre en griffes, en biais, crête et dos qui ondulent. Deux nappes : le FOND opaque (abysses →
+  canard, caustiques de Voronoï, `ombre`) là où l'eau est épaisse, et L'EAU transparente (`uGrad` : bleu profond → turquoise → blanche
+  en haut, filets, scintillement = normale bousculée — jamais une facette entière en blanc). Sommets qui ondulent le long d'un RAYON
+  (continu : rien ne se décolle). Écume et embruns en CUBES (lèvre en rideau = les dents de la gueule, crête en mouton, nez), panache de
+  crête, bulles dans le dos, cockpit = BULLE D'AIR, yeux au fond de la gueule. ROUES D'EAU (« des roues élémentaires, en eau ») : jante
+  `tourbillon` de `lpWheel` (7 pales en spirale cyan à pointe blanche sur fond bleu nuit), `sansPneu` ; le PNEU est un anneau d'eau
+  (la peau, transparente) sur un cœur sombre, posé DANS chaque roue par le crochet `A.roueDeco(w,sx,sz)` (buildCar ET la salle) : il
+  tourne avec elle ; les roues projettent des gouttes. (`bande`/`flanc` restent des options de lpWheel.) ⚠ Un InstancedMesh se mesure à sa géométrie de base (la
+  boîte de la caisse) : une sphère de 1 m au centre faisait FLOTTER la caisse dans la salle. La salle fait porter son ombre à un
+  maillage `brut` qui a `userData.ombre`.
+- **LE RANG DANS UNE FAMILLE (10/10, Léo, salle blanche : LA GRANDE ANGLAISE glissée en dernière des RARES)** : une famille du garage
+  est triée par `carOrdre` = le PRIX, sauf si la fiche porte `ordre` (LA GRANDE ANGLAISE : `ordre:1e8`, son prix reste 200 000 $) ; une
+  liste qui MÉLANGE les familles (« à acheter » du garage) reste au prix (`carPrixOrdre`). La salle lit le même `carOrdre`.
+- **LA FOURNAISE (10/10, Léo : « une voiture flamme — dur, vas-y dur ; une autre technique ; une forme de voiture originale, associée au
+  feu » → essais : feu en pixels (« les petites flammes, c'est un peu gamin »), porcelaine blanche (« je préférais avant, avec les roues
+  noires et les cubes noirs ») → « fais VIBRER un peu plus la voiture, pas au sens littéral » → « plus pixel, les flammes ; des petites
+  flammes »)** : index 73, `SHAPES.fournaise`. Le VITRAIL
+  en couches : une CROÛTE de cubes de basalte de 11 cm à 86 % en surface d'un volume (`dedans` : superellipse, ailes bombées, capot creusé,
+  arches seulement sur les flancs, un PUITS dans la malle, huit TROUS ouverts), cockpit en obsidienne, BRAISES dans leur propre maillage
+  (elles palpitent) ; dessous la LAVE (cœur lisse) qui respire ; ENTRE LES DEUX une PEAU DE FEU qui coule (un programme `FEU_VS/FEU_FS` :
+  bruit qui monte et file vers l'arrière, + une ONDE `uW` qui court de l'avant vers l'arrière ; `uB` = plus présent sans blanchir ; PAS
+  additif ; PIXELISÉ : `uPx` = des cases nettes, 7 crans de chaleur, alpha au seuil) — c'est elle qui fait scintiller les joints ; dans le
+  puits, des PETITES FLAMMES EN CUBES (un `InstancedMesh`, `instanceColor`, programme à couleurs écrites telles quelles = même rendu jeu /
+  salle ; `noShadow`, `frustumCulled=false`) : six tas de colonnes 3 × 3, blanc → jaune → orange → rouge, couronne plus rouge ; elles
+  vacillent par CRANS à 12 images/s (`pasFeu`), la pointe penche d'une case, une étincelle monte. Les langues tournées rondes d'avant
+  sont retirées (silhouette en bulles). Tout
+  s'emballe à la nitro. Ce qui VIT dans une caisse : `BLING.anim` (jeu, `blingTick`) et `userData.anime` (salle, `BL.vie`) ; la salle garde
+  les matières `userData.brut`. Roues sombres à jantes orange. Pots : deux gueules de forge. ÉPIQUE 3 400 000 $, « THE FURNACE ».
+- **LES POTS D'ÉCHAPPEMENT (10/10, Léo : « une grosse révision très précise sur chacune des voitures — ne change rien, garde-les telles
+  qu'elles sont : juste un pot d'échappement pour chacune, adapté au modèle ; fais la différence »)** : bloc « LES POTS D'ÉCHAPPEMENT »
+  juste après `LPU` (entre deux marqueurs : la salle le lit avec LPU). `ECH_POTS` (⚠ pas `ECH` : le banc du téléphone a déjà le sien)
+  = un pot PAR GABARIT, pour les 48 de la liste ; `ECHP` = les pièces (rond/ovale à bouche roulée, double paroi, évasé, bout brûlé,
+  lueur ; rect et double sortie ; plaque ; fente ; tuyère à pétales ; cloche ; ouïes ; gueule à crocs ; sortie latérale ; pot latéral
+  à écran perforé ; cheminées à clapet ; collecteurs du HOT ROD ; nuage ; pixel arc-en-ciel ; triangle ; cristal ; épave tordue) ;
+  `ECH_PAL` = leurs matières. Deux temps : `echRetire` (dans le `commit` du kit, jeu ET salle) ÔTE l'ancien embout, triangle par
+  triangle, seulement ce qui tient EN ENTIER dans l'embout (mêmes critères que le relevé CAR_POTS, + les boîtes `ote` de la fiche) ;
+  `echappement(K,shape,A)` (juste après le gabarit) dessine le nouveau pot, ôte les vieux canons des gabarits d'avant le kit (`vieux`),
+  coupe les cylindres canoniques (`A.pipes=0`) et DÉCLARE ses bouches (`A.pots`, 4 au plus) : flammes, tuyères et traînées en sortent.
+  Les positions ont été posées au banc sur la poupe RÉELLE (rayon depuis l'arrière, limité à la poupe — sinon, sous une caisse, il
+  frappait l'avant). Un pot à changer : sa ligne dans `ECH_POTS`. Exemples : ELDORADO ovales dans le pare-chocs, SAMOURAÏ canon de
+  titane bleui, CAÏD sorties latérales sous le marchepied, MASTODONTE cheminées (ses deux pots plongeants ôtés), TRÔNE sortie centrale
+  sur feuille d'or, SQUALE ouïes, RAIE pots latéraux, ACIDE un canon géant à lueur verte, la HONTE un tuyau rouillé qui pend.
+- **LA LISTE SUR LE DISQUE (9/10, Léo : « quand tu vois la liste a changé, demande et précise c'quoi le changement, et demande si
+  push sur main »)** : servie par `salle-blanche/serveur.py 8975` (au lieu d'`http.server`), la page envoie chaque enregistrement
+  (`versDisque`, 0,9 s après, `sendBeacon` à la fermeture, seulement sur 127.0.0.1/localhost) → `salle-blanche/sauvegarde.json` (état,
+  journal, noms, `ecarts` avec le main) + `fiche-salle-blanche.txt` + `sauvegardes/` (copie datée à chaque nouveau geste), gitignorés.
+  `salle-blanche/guette.py` (en Monitor) dit chaque série de gestes finie (40 s de calme). RÈGLE : on DIT le changement à Léo et on
+  DEMANDE avant de pousser sur main — plus jamais de push d'office d'une liste.
+- **L'ABSTRAITE (9/10, Léo : « une hyper abstraite mais travaillée, concept »)** : index 71, `SHAPES.abstraite` DANS la gamme (la salle et
+  cuire-caisses.js la lisent d'office) — un coin tranché en trois lames (graphite · blanc nacré · éclat de verre noir) séparées par des
+  fentes de lumière d'or, une rainure de lumière au flanc, quatre disques à enjoliveur blanc tenus par des bras, un ARC blanc cerclé d'or
+  qui flotte au-dessus de chaque roue, l'ANNEAU D'OR penché qu'elle traverse ; ÉPIQUE à 3 000 000 $, nitro dorée (`fx`), « THE ABSTRACT ».
+- **L'ICEBERG (10/10, Léo : « une nouvelle abstraite, en glace, genre iceberg » → « plus voiture » → « plus irrégulière, la glace » →
+  « une forme originale, loin de celles qu'on a » → « plus originale, mais une voiture de SPORT : là on dirait un truc de famille »)** :
+  index 72, `SHAPES.iceberg` — UN ICEBERG FENDU EN TROIS (la v1 sur main d5dadc6 était un coupé de glace qui rappelait LA VETTE ; un bob à
+  deux places a été refusé : « familial »). Au milieu un fuselage étroit et sa BULLE de chasseur (une place, baquet) ; de chaque côté un
+  BLOC DE GLACE sur les roues, en rampe vers l'arrière, COUPÉ NET (la falaise qui vêle) ; entre eux des CANAUX D'AIR ouverts (un fil de
+  lumière bleue au fond), deux ARCS-BOUTANTS par côté ; un AILERON en lame de glace sur les deux blocs (bord d'attaque cassé, neige), un
+  béquet. `volume(zs,anneau,cle)` = une section FERMÉE par station, pans orientés vers le dehors (`dehors`), bouts en éventail. LA GLACE
+  BRUTE : arêtes bousculées (`bous`, `hs` hasard FIXE), gauche ≠ droite, sept nuances par facette, neige par plaques ; cristaux,
+  stalactites. La glace = la matière CHROME du kit, transparente (.80), sans profondeur, `userData.g='ice'` (zéro programme de plus) ; la
+  salle : `REGLE.ice`, pas d'ombre pleine. ÉCLATS DE GIVRE (`BLING`, `blingTick` ; la salle `BL`, tous allumés au toucher). ÉPIQUE
+  3 200 000 $, nitro glacier, « THE ICEBERG ». Banc : `dbgBling()`.
 - **LE TOUCHER + LE JOURNAL (9/10, Léo : « quand j'appuie sur les voitures, leur réaction — sinon juste l'effet clic » · « sauvegarder
   tous les changements faits à la main par moi »)** : un TAP sur la caisse (ni glissé ni pincement ; le double-clic ne recadre plus) =
   l'effet clic de l'écran titre en studio (recul + saut + bascule en ressorts, étincelles orange, tôle à la couleur de la pièce qui rebondit
@@ -79,7 +291,7 @@
   `nyRallye` déforme d'un bloc la coque, la pop-tart, l'aileron, les feux et le trait noir (pavillon tassé ×,74 → ×,56 vers la poupe,
   pente LINÉAIRE en z pour garder les pavés de glaçage plans ; ailes +8 cm au-dessus des roues ; jupes −7 cm) ; `NY_BAS` ,25 → ,33 (le
   pneu rentre dans l'aile), `NY_VOIE` ,76 (roues, pattes, ancrages) ; équipement posé hors déformation : lame, longue-portée jaunes,
-  bavettes (la plaque « 61 » des portières : retirée le jour même, Léo). L'ancienne version : `index-avant-rallye` n'est pas gardée — `git show 386bace:"VERSION PRINCIPALE/index.html"`.
+  bavettes (la plaque « 61 » des portières : retirée le jour même, Léo). Puis « un peu plus volumineuse » : NY_K ,86, NY_TASSE ,84 (pente ,08), NY_AILE ,12, NY_VOIE ,79. L'ancienne version : `index-avant-rallye` n'est pas gardée — `git show 386bace:"VERSION PRINCIPALE/index.html"`.
 
 ## LA SONDE QUI NE FIGE PLUS (2026-10-08, Léo : « le jeu bug un peu quand je le lance, pas que au lancement il rame — trouve une solution qui ne touche pas au graphique ni à la qualité »)
 - MESURÉ (Chrome sans fenêtre sur le Mac M2 de Léo, course au pilote auto, trace + appels WebGL chronométrés) : les à-coups de 35-120 ms
@@ -232,6 +444,25 @@ LES BOUTONS DE SACHA ») : **PLAY/JOUER = la partie sans fin, et toucher un nive
   renversé) et la bouche sont de vraies OUVERTURES entre ces os, avec un creux sombre posé plus loin derrière (plus de rubis). Six
   PASTELS nacrés (`M.cranes` : rose, menthe, lavande, ciel, pêche, citron — le métal du studio teinté, l'éclat à sa teinte), tirés au
   lancer. Plus petit : 0,5-0,6 m (était ~1 m). `dbgRiche('cranes')` aligne les six ; `dbgRiche('cranes','pres')` à 5 m de l'objectif. sw.js → v175.
+- **v5 — BILLETS EN COULEURS, PIÈCES EN RELIEF, LE PAPIER QUI TOMBE (2026-10-10, Léo : « ajoute à l'animation un peu de complexité ;
+  les billets un tout petit peu plus petits, plusieurs couleurs — les liasses restent vertes ; les pièces un peu plus flashy et
+  réalistes »)** : BILLETS −12 % (0,92 m ; la liasse garde sa taille) et une SÉRIE de sept valeurs, une couleur chacune (`RICH_BILLETS` :
+  5 fuchsia · 10 rubis · 20 bleu roi · 50 orange · 100 sarcelle · 200 violet · 500 or ; `M.billets`, même programme SOUPLE) ; le 100
+  (`RICH_B100`, le billet d'origine) habille la LIASSE et les billets qui en sortent. PIÈCES : chaque pièce a deux images du même dessin
+  (`richDuo` : couleur + HAUTEUR) — listel, étoiles, arbre, chiffre, rainure du bimétal, et la TRANCHE (cordon fin du 2 €, segments du
+  1 €, fleur d'Espagne du 50 c, crénelage du bitcoin) en bande au bas de l'image ; le programme du métal a un `#define PIECE` (4e
+  programme, compilé sous l'écran titre) qui incline la normale par la carte de hauteur (`RICH_BOSSE`), moins de ciel teinté, une BOÎTE À
+  LUMIÈRE derrière l'objectif (la face qui te regarde s'allume d'un coup), bord plus blanc, éclats ×1,45 ; métaux un cran plus vifs ;
+  vraie épaisseur (.16 du rayon) ; éclat en étoile plus large et teinté (froid pour l'argent, chaud pour l'or). L'ANIMATION :
+  · le PAPIER (billets, trèfles — `richPapier`/`richPapierTick`) se pose sur l'air après la giclée : FEUILLE MORTE (2 fois sur 3 : il se
+    balance autour de son long côté, glisse en zigzag, file au creux et cale en haut) ou CULBUTE (bout sur bout, il plane de côté) ; il
+    vire lentement ; l'allure le rattrape par un slerp (aucun à-coup) ;
+  · les PIÈCES VOILENT (précession de l'axe de rotation, `pa`/`pw`) : les éclats tombent quand on ne les attend pas ;
+  · une LIASSE sur deux CRAQUE en vol (`richEclate`) : la bande saute, cinq à sept billets verts s'ouvrent en éventail ;
+  · la GERBE EN DEUX TEMPS : le métal part d'abord, le papier suit et s'étale ; gros et jackpot ont une RÉPLIQUE (la caisse recrache une
+    poignée de pièces 0,34-0,43 s après). Mesuré : 154 programmes au menu, 0 compilé au coup ; 60+ objets en l'air sans erreur ni NaN.
+  Console : `dbgRiche('etal',d,w)` (les sept billets et les quatre pièces face à l'objectif, à d m, figés — `dbgRiche('vitrine',0)` les
+  relâche ; figés, ils ne s'effacent plus de près) ; `dbgRiche().papier` = feuilles / culbutes / horsNombre (NaN, doit rester à 0). sw.js → v248.
 
 ## LE SON PARASITE DU DÉPART DES NUAGES (2026-10-08, Léo : « la première map, quand je démarre, il y a un son hyper chelou, un son parasite — enlève ; vérifie pour les autres »)
 - **C'ÉTAIT `nuages.ambiance`** (la boucle « LA MER DE NUAGES A SON AIR » du 30/09 : souffle d'altitude, rafales, harpe éolienne), lancée au
@@ -3069,7 +3300,7 @@ doit être exponentielle ; à chaque palier de 10 % ça doit rajouter un compart
 - **Le 1er JOUER demande le mode** (`facChoix()` : FACILE vert / NORMAL, Échap = NORMAL) tant que `SAVE.d.facile` n'a jamais été posé et
   que la leçon n'est pas faite. Interrupteur **MODE FACILE** dans RÉGLAGES › JEU.
 - **POUCE HAUT EN VOL : PLONGE / MONTE** (`SAVE.d.volH`, `volSens()`) : multiplie les deux lectures de `TCTL.sv` en vol ; d'origine
-  PLONGE (manche d'avion). L'ASTUCE du vol dit le bon sens. Le clavier ne change pas.
+  PLONGE (manche d'avion) — ⚠ MONTE d'origine depuis le 2026-10-10 (Léo, voir en tête). L'ASTUCE du vol dit le bon sens. Le clavier ne change pas.
 - Banc : `fac.js w h lang` (choix, cœurs, 3 chutes, mains libres NORMAL/FACILE, réglages) ; hook `dbgFacile('mort')`.
 
 ## LES 10 PREMIÈRES MINUTES — CÔTÉ INTERFACE (2026-09-29, session INTERFACE)

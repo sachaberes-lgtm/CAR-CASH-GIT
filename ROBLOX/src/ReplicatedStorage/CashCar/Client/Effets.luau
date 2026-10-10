@@ -16,6 +16,7 @@ local GuiService = game:GetService("GuiService")
 local AssetService = game:GetService("AssetService")
 local Config = require(script.Parent.Parent:WaitForChild("Config"))
 local Bus = require(script.Parent:WaitForChild("Bus"))
+local Perf = require(script.Parent:WaitForChild("Perf"))
 local Hud = require(script.Parent:WaitForChild("Hud"))
 local HudScore = require(script.Parent:WaitForChild("HudScore"))
 local Sons = require(script.Parent:WaitForChild("Sons"))
@@ -126,7 +127,12 @@ local function jet(nom: string, pos: Vector3, haut: Vector3, n: number, v0: numb
 	-- (6/10) la durée imposée ne vaut que pour CE jet : elle restait écrite dans l'émetteur, et les jets suivants du bassin (la
 	-- poussière du décollage après un cratère de météore, les étincelles d'or après un palier de moteur) en héritaient
 	e.Lifetime = vie0 and NumberRange.new(vie0, vie1 or vie0) or b.vie
-	e:Emit(math.floor(n + 0.5))
+	-- (APPAREIL FAIBLE, Config.FAIBLE.particules) une part seulement des grains : un jet d'UNE particule (la colonne de fumée, la
+	-- poussière du drift) en garde la même part, au hasard — sinon il s'éteindrait tout entier
+	local k = Perf.faible and math.floor(n * Perf.F.particules + rnd:NextNumber()) or math.floor(n + 0.5)
+	if k <= 0 then return end
+	Perf.particules += k -- (banc : le compte des particules lâchées, voir Perf)
+	e:Emit(k)
 end
 Effets.jet = jet
 
@@ -238,6 +244,7 @@ local POUVOIRS_FX: { [string]: { any } } = {
 -- 280 km/h, pleine à 840 (le regard est tiré vers le centre : la route, la caisse).
 local vigVit: { Frame } = {}
 local vigVitK = 0
+local postFaible = false -- (l'état du mode « appareil faible » déjà appliqué au flou et aux rayons)
 local function teinteTick(dt: number)
 	local vit = etat.mode == "drive" or etat.mode == "fall"
 	do
@@ -266,6 +273,14 @@ local function teinteTick(dt: number)
 			local v = ((etat.mode == "drive" or etat.mode == "fall") and not etat.intro) and 0.6 or 0
 			local f = flou.FarIntensity + (v - flou.FarIntensity) * math.min(1, dt * 3)
 			if math.abs(f - flou.FarIntensity) > 0.002 then flou.FarIntensity = f end
+		end
+		-- (APPAREIL FAIBLE, Config.FAIBLE.flou / .rayons) le flou du lointain et les rayons du soleil sont chacun une passe de plus sur
+		-- TOUTE l'image : coupés — écrits seulement quand l'état change (l'atelier du garage éteint et rallume les rayons lui-même)
+		if Perf.faible ~= postFaible then
+			postFaible = Perf.faible
+			local rayons = Lighting:FindFirstChild("Rayons")
+			if flou then (flou :: any).Enabled = not (Perf.faible and not Perf.F.flou) end
+			if rayons then (rayons :: any).Enabled = not (Perf.faible and not Perf.F.rayons) end
 		end
 	end
 	if vigBas then
@@ -467,7 +482,7 @@ local function pieceBillet(): Part
 	return p
 end
 local function billet(pos: Vector3, v: Vector3, vie: number)
-	if #billets >= MAX_BILLETS then return end
+	if #billets >= (Perf.faible and Perf.F.billets or MAX_BILLETS) then return end
 	local p = pieceBillet()
 	local cf = CFrame.new(pos) * CFrame.Angles(r(0, 6.28), r(0, 6.28), 0)
 	p.CFrame = cf
@@ -509,7 +524,7 @@ local reserveGouttes: { Attachment } = {}
 local pluie = { t = 0, acc = 0, seuil = 1000 }
 local MAX_GOUTTES = 150 -- (le jeu web en lâche 180 par seconde : ici ce sont des panneaux, on en garde ce qu'un téléphone tient)
 local function goutte(pos: Vector3)
-	if #gouttes >= MAX_GOUTTES then return end
+	if #gouttes >= (Perf.faible and Perf.F.gouttes or MAX_GOUTTES) then return end
 	local a = table.remove(reserveGouttes)
 	local l: TextLabel
 	if a then
@@ -1145,7 +1160,7 @@ local function ventTick(dt: number)
 	VENT.prev = cf and cf.Position or nil
 	-- la semence : seulement nitro tenue, en course
 	if vit and etat.nitroOn then
-		VENT.acc += dt * (etat.bleue and 52 or 40)
+		VENT.acc += dt * (etat.bleue and 52 or 40) * Perf.part(Perf.F.vent)
 		local v9 = math.max(20, VENT.v / M) -- (m/s)
 		local cR, cU, cP = cam.CFrame.RightVector, cam.CFrame.UpVector, cam.CFrame.Position
 		while VENT.acc >= 1 do
@@ -1335,7 +1350,7 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 
 	-- ── les écoutes ──
 	-- (à CHAQUE image, quel que soit le mode : l'explosion et ses billets vivent après la mort de la caisse)
-	RunService.RenderStepped:Connect(function(dt: number)
+	RunService.RenderStepped:Connect(Perf.chrono("Effets", function(dt: number)
 		etat = Bus.etat()
 		if etat.pause then return end
 		dt = math.min(dt, 0.05)
@@ -1376,7 +1391,7 @@ function Effets.init(ctx: { compteur: GuiObject? }?)
 				jet("braiseO", nez, -cf.LookVector, 1 + math.floor(2 * feu), 8, 26, 60)
 			end
 		end
-	end)
+	end))
 	-- LES BOUTS DE TÔLE (dropChip, L26391) : de petits morceaux de la caisse (à sa laque ou à son accent) se détachent — une pose qui
 	-- coûte, un bump, et de temps en temps en roulant vite (l'épave plus que les autres). Douze pièces recyclées, 1,6 s de vie.
 	local TOLE: { any } = {}
