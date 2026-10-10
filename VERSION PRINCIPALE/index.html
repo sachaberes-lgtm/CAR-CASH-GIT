@@ -6401,10 +6401,11 @@ html body #garage:not(.menu):not(.vitrine) #gStrip.gModeTous>.gT{width:auto!impo
 #gStrip .gT.gMys em{color:var(--rc)!important;justify-content:center;letter-spacing:1px}
 #gStrip.fnBande .fnC .rarLogo{top:8px;right:10px}
 html body #garage:not(.menu):not(.vitrine) #gStrip .gT.c-aile.lock em{bottom:auto!important;height:auto!important} /* (2026-10-10) une AILE à vendre : le prix monte au coin haut (il s'étirait sur toute la vignette et se posait sur le nom — vu dans SEE ALL ITEMS) */
-#gStrip.fnBande .fnTout{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;margin:4px 0 0;cursor:pointer;
-  font-size:var(--f0);letter-spacing:2px;color:rgba(230,226,255,.55);text-shadow:0 1px 0 rgba(7,5,15,.8);transition:color var(--t-fast) var(--ease)} /* (2026-10-10) écrit en transparent, pas une plaque */
-#gStrip.fnBande .fnTout .pxi{--pxs:1;color:rgba(94,230,255,.6)}
-#gStrip.fnBande .fnTout:is(:hover,:active,.appui){color:rgba(255,255,255,.9)}
+#gStrip.fnBande .fnTout{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:10px;min-height:42px;margin:8px 2px 6px;cursor:pointer;transform:skewX(var(--sk));
+  font-size:var(--f1);letter-spacing:2px;color:#fff;text-shadow:0 1px 0 rgba(7,5,15,.9),0 0 10px rgba(94,230,255,.55);
+  background:rgba(94,230,255,.08);box-shadow:inset 0 0 0 1px rgba(94,230,255,.55),0 0 14px -6px rgba(94,230,255,.8);transition:background var(--t-fast) var(--ease)} /* (2026-10-10) écrit en transparent, pas une plaque — (même soir, Léo : « SEE ALL ITEMS, c'est transparent, pas très visible ; mais à l'endroit où ça devrait être ») même place, mais lisible : texte blanc un cran plus grand, un fin cadre cyan penché */
+#gStrip.fnBande .fnTout .pxi{--pxs:1;color:#5ee6ff}
+#gStrip.fnBande .fnTout:is(:hover,:active,.appui){background:rgba(94,230,255,.18)}
 #gStrip.fnBande .fnSec{grid-column:1/-1;scroll-snap-align:start;display:flex;align-items:center;gap:8px;margin:4px 2px -2px;font-size:var(--f0);letter-spacing:2px;color:var(--tx2)}
 #gStrip.fnBande .fnSec s{flex:1;height:1px;background:linear-gradient(90deg,rgba(154,144,200,.5),transparent)}
 html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnC{position:relative;grid-column:span 2;width:auto;height:128px;overflow:hidden;cursor:pointer;scroll-snap-align:start;transform:skewX(var(--sk));
