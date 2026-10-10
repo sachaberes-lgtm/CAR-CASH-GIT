@@ -6398,9 +6398,9 @@ html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnC.on{box-shadow:in
 /* L'ACCUEIL DU CIEL (2026-10-10, Léo : « le ciel, la voiture, tout reste identique au main ; seulement les boutons : plus petits, mieux
    cadrés ; des flammes très légères derrière le logo ») — voir le bloc JS du même nom. Deux rangées serrées dans une colonne de 360 px :
    MISSIONS · GARAGE · CARRIÈRE (tuiles icône + mot, chacune sa couleur de néon), puis ⚙ · JOUER · BOUTIQUE. Rien d'autre ne bouge. */
-html.hub body #mHome.acc2 .mOutils{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;width:min(calc(100% - 8px),360px);margin:0 auto 12px!important;align-self:center}
+html.hub body #mHome.acc2 .mOutils{display:grid!important;grid-template-columns:44px repeat(3,minmax(0,1fr)) 44px;gap:8px;width:min(calc(100% - 8px),372px);margin:0 auto 10px!important;align-self:center}
 html.hub body #mHome.acc2 .mAccB{position:relative;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:7px;min-width:0!important;width:auto!important;
-  height:58px;min-height:58px!important;padding:6px 4px 5px!important;font-size:var(--f0)!important;letter-spacing:1px!important;white-space:nowrap;color:var(--tx)}
+  height:58px;min-height:58px!important;padding:6px 2px 5px!important;font-size:var(--f0)!important;letter-spacing:0!important;white-space:nowrap;color:var(--tx)}
 html.hub body #mHome.acc2 .mAccB .pxi{--pxs:2;color:var(--nc);filter:none}
 html.hub body #mHome.acc2 .mAccB[data-m="mis"]{--nc:var(--neoV)}
 html.hub body #mHome.acc2 .mAccB[data-m="garage"]{--nc:var(--neoC)}
@@ -6408,15 +6408,22 @@ html.hub body #mHome.acc2 .mAccB[data-m="carr"]{--nc:#c77dff}
 html.hub body #mHome.acc2 .mAccB .mMisPips{position:absolute;top:6px;right:7px;display:flex;gap:2px;margin:0}
 html.hub body #mHome.acc2 .mAccB .mMisPips u{width:5px;height:5px}
 html.hub body #mHome.acc2 .mAccB .mBadge{top:-9px;right:-7px;transform:scale(.8);transform-origin:100% 0}
-html.hub body #mHome.acc2 .mAccP{display:grid;grid-template-columns:46px minmax(0,1fr) 46px;align-items:center;gap:10px;width:min(calc(100% - 8px),360px);margin:0 auto;align-self:center}
-html.hub body #mHome.acc2 .mAccP>:is(.mGear,.mHubShop){width:46px!important;min-width:46px!important;height:46px;min-height:46px!important;padding:0!important;margin:0!important}
-html.hub body #mHome.acc2 .mAccP>.mPlay{margin:0!important;width:auto!important;max-width:none!important;align-self:center!important;justify-self:center}
-html.hub body #mHome.acc2 .mAccP>.mPlay .lg{font-size:32px!important}
+html.hub body #mHome.acc2 .mOutils>:is(.mGear,.mHubShop){width:auto!important;min-width:0!important;height:58px;min-height:58px!important;padding:0!important;margin:0!important}
+html.hub body #mHome.acc2 .mOutils>:is(.mGear,.mHubShop) .pxi{--pxs:2}
+html.hub body #mHome.acc2 .mOutils>.mHubShop .mBadge{top:-9px;right:-10px;transform:scale(.72);transform-origin:100% 0}
+/* JOUER : la plaque sur toute la largeur du bloc, le mot d'or dedans */
+html.hub body #mHome.acc2 .mAccP{display:flex;width:min(calc(100% - 8px),372px);margin:0 auto;align-self:center}
+html.hub body #mHome.acc2 .mAccP>.mPlay{flex:1;display:flex!important;align-items:center;justify-content:center;height:60px;margin:0!important;width:auto!important;max-width:none!important;align-self:stretch!important;
+  transform:skewX(var(--sk));background:linear-gradient(180deg,rgba(40,26,8,.82),rgba(18,12,4,.92))!important;box-shadow:inset 0 0 0 1px rgba(255,215,94,.55),inset 0 -4px 0 #ffc23a,0 0 18px -6px #ffc23a,0 6px 14px -8px rgba(0,0,0,.8)!important;
+  clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)!important} /* (la règle du mot d'or impose background/clip-path none !important) */
+html.hub body #mHome.acc2 .mAccP>.mPlay .lg{font-size:30px!important}
+html.hub body #mHome.acc2 .mAccP>.mPlay:is(:active,.appui){transform:skewX(var(--sk)) translateY(2px)}
 @media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
-  html.hub body #mHome.acc2 :is(.mOutils,.mAccP){width:min(340px,46vw);margin-left:auto!important;margin-right:0!important;align-self:flex-end}
-  html.hub body #mHome.acc2 .mOutils{margin-bottom:10px!important}
-  html.hub body #mHome.acc2 .mAccB{height:50px;min-height:50px!important;gap:5px}
-  html.hub body #mHome.acc2 .mAccP>.mPlay .lg{font-size:28px!important}}
+  html.hub body #mHome.acc2 :is(.mOutils,.mAccP){width:min(372px,48vw);margin-left:auto!important;margin-right:0!important;align-self:flex-end}
+  html.hub body #mHome.acc2 .mOutils{margin-bottom:8px!important}
+  html.hub body #mHome.acc2 :is(.mAccB,.mOutils>.mGear,.mOutils>.mHubShop){height:50px;min-height:50px!important;gap:5px}
+  html.hub body #mHome.acc2 .mAccP>.mPlay{height:52px}
+  html.hub body #mHome.acc2 .mAccP>.mPlay .lg{font-size:26px!important}}
 /* les flammes : derrière les lettres (la plaque du titre isole sa pile), lissées, fondues vers le haut */
 html.hub body #mHome.acc2 .mTitle{isolation:isolate}
 #mHome .mTitle .mFeu{position:absolute;z-index:-1;pointer-events:none;image-rendering:pixelated;image-rendering:crisp-edges} /* (4e passe) des cubes nets */ /* (3e passe) posée et dimensionnée par mFeuMesure : le titre, plus une marge au-dessus et sur les côtés */
@@ -40851,7 +40858,10 @@ if(HUB)try{const hm=$('mHome'),ou=hm&&hm.querySelector('.mOutils'),gar=ou&&ou.qu
     const mi=tuile('mis','cible','MISSIONS','Missions','<b class="mMisPips" id="mMisPips" aria-hidden="true"><u></u><u></u><u></u></b>'),ca=tuile('carr','trophee','CARRIERE','Carrière');
     gar.classList.add('mAccB');gar.insertAdjacentHTML('afterbegin','<i class="pxi pxi-voiture" aria-hidden="true"></i>');
     ou.insertBefore(mi,gar);ou.appendChild(ca);
-    const bas=document.createElement('div');bas.className='mAccP';pl.parentNode.insertBefore(bas,pl);bas.appendChild(ge);bas.appendChild(pl);bas.appendChild(sh);
+    /* (même jour, Léo : « recadre bien les boutons : ils sont un peu éparpillés bizarrement ») UN SEUL BLOC : ⚙ · MISSIONS · GARAGE · CARRIÈRE ·
+       BOUTIQUE sur une grille, même hauteur, bords alignés ; JOUER seul dessous, sur toute la largeur, dans sa plaque. */
+    ou.insertBefore(ge,mi);ou.appendChild(sh);
+    const bas=document.createElement('div');bas.className='mAccP';pl.parentNode.insertBefore(bas,pl);bas.appendChild(pl);
     window.__mFeuVeut=1;}
 }catch(e){console.warn('accueil du ciel',e);}
 /* LES FLAMMES DU LOGO (2026-10-10, Léo, trois passes : « des flammes très légères derrière le logo, quelque chose d'un peu fluide », puis
@@ -40866,7 +40876,7 @@ if(HUB)try{const hm=$('mHome'),ou=hm&&hm.querySelector('.mOutils'),gar=ou&&ou.qu
      animations » : une image, figée. */
 var MFEU={c:null,x:null,img:null,W:0,H:0,F:null,t0:0,t:0,cle:'',n:0,ti:null};
 const MFEU_BAYER=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5].map(function(v){return (v+.5)/16;});
-const MFEU_K=2,MFEU_UP=22,MFEU_SIDE=6,MFEU_DOWN=3,MFEU_MX=22,MFEU_MT=30,MFEU_MB=6;
+const MFEU_K=2,MFEU_UP=34,MFEU_SIDE=7,MFEU_DOWN=3,MFEU_MX=24,MFEU_MT=44,MFEU_MB=6; // (même jour, « plus dynamique, sur l'écran entier ce n'est pas hyper impressionnant ») 22 → 34 px de haut
 const MFEU_NZ=(function(){const N=64,T=new Float32Array(N*N);let a=0x9E3779B9;for(let i=0;i<N*N;i++){a^=a<<13;a^=a>>>17;a^=a<<5;T[i]=((a>>>0)%1000)/1000;}return {N:N,T:T};})();
 function mFeuBruit(x,y){const N=MFEU_NZ.N,T=MFEU_NZ.T,xi=Math.floor(x),yi=Math.floor(y),fx=x-xi,fy=y-yi,sx=fx*fx*(3-2*fx),sy=fy*fy*(3-2*fy),
   x0=((xi%N)+N)%N,y0=((yi%N)+N)%N,x1=(x0+1)%N,y1=(y0+1)%N,a=T[y0*N+x0],b=T[y0*N+x1],c=T[y1*N+x0],d=T[y1*N+x1];
@@ -40900,17 +40910,20 @@ function mFeuTic(t){requestAnimationFrame(mFeuTic);
   if(document.hidden||!MFEU.c)return;const hm=document.getElementById('mHome');if(!hm||!hm.classList.contains('on')||!MFEU.c.offsetParent)return;
   if(t-MFEU.t<33)return;MFEU.t=t;if(REDUCED_MOTION&&MFEU.n>2)return;
   if(MFEU.n%30===0||!MFEU.F)if(!mFeuMesure())return;MFEU.n++;
-  const W=MFEU.W,H=MFEU.H,F=MFEU.F,D=MFEU.img.data,s=t/1000,v=s*1.25,sw=s*.5;
-  for(let y=0;y<H;y++){const yy=y*.11+v,ox=Math.sin(y*.21+s*1.3)*.6;
+  const W=MFEU.W,H=MFEU.H,F=MFEU.F,D=MFEU.img.data,s=t/1000,v=s*1.9,sw=s*.7;
+  /* LA VIE : le feu respire (lent), et une BOUFFÉE parcourt le mot de gauche à droite toutes les ~4,5 s — les langues s'allongent sur son passage */
+  const resp=.9+.12*Math.sin(s*1.6)+.06*Math.sin(s*3.9),bc=((s/4.5)%1)*1.6-.3,G=MFEU.G||(MFEU.G=new Float32Array(512));
+  for(let x=0;x<W;x++){const u=x/W-bc;G[x]=resp+.42*Math.exp(-u*u/.018);}
+  for(let y=0;y<H;y++){const yy=y*.1+v,ox=Math.sin(y*.19+s*1.7)*1.0;
     for(let x=0;x<W;x++){const i=y*W+x,f=F[i],o=i*4;if(f<=0){D[o+3]=0;continue;}
-      const n=mFeuBruit(x*.085+ox+sw,yy)*.65+mFeuBruit(x*.19-sw,yy*2.1+3.7)*.35,h=f*(.35+1.05*n)-.38;
+      const n=mFeuBruit(x*.085+ox+sw,yy)*.65+mFeuBruit(x*.19-sw,yy*2.1+3.7)*.35,h=f*(.35+1.05*n)*G[x]-.36;
       if(h<=0){D[o+3]=0;continue;}
       let r,g,b;if(h<.25){const k=h/.25;r=255;g=104+52*k;b=24+16*k;}else if(h<.5){const k=(h-.25)/.25;r=255;g=156+58*k;b=40+40*k;}else{const k=Math.min(1,(h-.5)/.3);r=255;g=214+30*k;b=80+110*k;}
       /* (4e passe, Léo : « exactement ça, mais la flamme moins solide : faite de minuscules cubes, donc un peu de transparence ») chaque case
          est un CUBE net (rendu sans lissage) ; un tramage ordonné (Bayer 4 × 4) espace les cubes vers le bord de la flamme — des cubes
          qui manquent, pas un scintillement au hasard — et les cubes restants sont translucides (de 45 % au bord à 85 % au cœur). */
       const a9=Math.min(1,h*3.2);if(a9<MFEU_BAYER[(y&3)*4+(x&3)]){D[o+3]=0;continue;}
-      D[o]=r;D[o+1]=g;D[o+2]=b;D[o+3]=Math.round((.45+.4*a9)*255);}}
+      D[o]=r;D[o+1]=g;D[o+2]=b;D[o+3]=Math.round((.5+.42*a9)*255);}}
   MFEU.x.putImageData(MFEU.img,0,0);}
 if(window.__mFeuVeut)try{mFeuInit();}catch(e){console.warn('flammes du logo',e);}
 function hubCtx(){ // l'onglet du hub où l'on est ('' = hors du hub)
