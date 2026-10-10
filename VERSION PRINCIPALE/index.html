@@ -10696,14 +10696,25 @@ function roadMat(){
       'vec2 su=vec2(fract(jq.y/6.)-.5,clamp(ea/6.,0.,1.)-.5);float sr=length(su),sa=atan(su.y,su.x)/6.2832;'+                 // la VOLUTE de la bordure
       'float sp=(1.-smoothstep(.05,.11,abs(fract(sa+sr*2.6)-.5)*2.))*smoothstep(.48,.40,sr)*step(ea,6.);cw*=1.-.30*sp;'+
       'jc=cw;}'+
-      'else if(uJSt9>1.5){float pz=jq.y/.9,pi=floor(pz),pf=fract(pz),sX=6.+jdH9(vec2(pi,3.))*4.,px=(jq.x+jdH9(vec2(pi,1.))*sX)/sX,pxi=floor(px),pxf=fract(px);'+
+      'else if(uJSt9>1.5&&uJSt9<2.5){float pz=jq.y/.9,pi=floor(pz),pf=fract(pz),sX=6.+jdH9(vec2(pi,3.))*4.,px=(jq.x+jdH9(vec2(pi,1.))*sX)/sX,pxi=floor(px),pxf=fract(px);'+
       'float h=jdH9(vec2(pi,pxi));vec2 pq=floor(jq/.15)*.15;float gr=jdN9(vec2(pq.x*.7+h*20.,pq.y*9.))*.6+jdN9(vec2(pq.x*2.6,pq.y*22.))*.4;'+ // le grain, pixelisé
       'vec3 wd=mix(vec3(.13,.06,.025),vec3(.40,.21,.085),.30+.5*h)*(.78+.38*gr);'+
       'float gp=1.-smoothstep(0.,.07,min(pf,1.-pf)),sx=1.-smoothstep(0.,.016,min(pxf,1.-pxf));wd*=1.-.78*max(gp,sx);'+          // les joints
       'float cl=step(min(pxf,1.-pxf)*sX,.22)*step(.06,min(pxf,1.-pxf)*sX)*step(abs(abs(pf-.5)-.24),.05);wd=mix(wd,vec3(.05,.045,.04),cl*.85);'+ // les CLOUS : deux points de part et d autre de chaque coupe
       'float bm=1.-smoothstep(1.3,1.42,ea);wd=mix(wd,vec3(.085,.04,.016)*(.8+.3*gr),bm);'+                                        // la POUTRE du bord
       'jc=wd;}'+
-      'diffuseColor.rgb=mix(diffuseColor.rgb,jc,uJadeR);spec9=mix(spec9,uJSt9<.5?1.:uJSt9<1.5?.15:.3,uJadeR);}')
+      /* (v16) LES RONDINS : des troncs EN TRAVERS, de diamètres inégaux et un peu courbes (la position le long déformée), coupés en tronçons
+         décalés, ronds à la lumière (sombres dans les creux entre deux troncs), l écorce en sillons le long du tronc (pixelisée, 12 cm), la
+         MOUSSE surtout dans les creux, chaque tronc sa nuance d âge. */
+      'else if(uJSt9>2.5){float wy=jq.y+.22*sin(jq.y*1.7)+.35*jdN9(vec2(jq.y*.4,2.))+.10*sin(jq.x*.09+jq.y*.3),ly=wy/.82,li=floor(ly),lf=fract(ly);'+
+      'float pL=5.+jdH9(vec2(li,7.))*6.,px=(jq.x+jdH9(vec2(li,1.3))*pL)/pL,pxi=floor(px),pxf=fract(px),hh=sqrt(max(0.,1.-(2.*lf-1.)*(2.*lf-1.)));'+
+      'float h=jdH9(vec2(li,pxi));vec2 pq=floor(jq/.12)*.12;float bk=jdN9(vec2(pq.x*.9+h*30.,(li+lf)*5.))*.6+jdN9(vec2(pq.x*3.,lf*14.+li))*.4;'+
+      'float hr=pow(hh,.6);vec3 wd=mix(vec3(.14,.105,.075),vec3(.40,.32,.22),.25+.55*h)*(.62+.48*bk)*(.12+.98*hr);'+               // l ÉCORCE grise-brune, ronde à la lumière, noire dans les creux
+      'wd+=vec3(.20,.17,.12)*smoothstep(.86,.99,hh)*(.5+.5*bk);'+                                                                    // le reflet sur le dos de chaque tronc
+      'float ms=smoothstep(.58,.86,jdN9(pq*vec2(.35,.9)+li*1.7))*(.30+.70*(1.-hh));wd=mix(wd,vec3(.10,.22,.06)*(.7+.5*bk),ms*.7);'+   // la MOUSSE
+      'wd*=1.-.45*(1.-smoothstep(0.,.02,min(pxf,1.-pxf)))*step(.5,jdH9(vec2(li,pxi+.5)));'+                                       // de loin en loin, la coupe entre deux troncs
+      'jc=wd;}'+
+      'diffuseColor.rgb=mix(diffuseColor.rgb,jc,uJadeR);spec9=mix(spec9,uJSt9<.5?1.:uJSt9<1.5?.15:uJSt9<2.5?.3:.12,uJadeR);}')
       .replace('#include <specularmap_fragment>','float specularStrength=spec9;').replace('#include <envmap_fragment>',
       '#include <envmap_fragment>\n{float fr9=pow(1.0-clamp(abs(dot(normal,normalize(vViewPosition))),0.0,1.0),4.0);float lk9=1.;\n'+
       '#if defined(USE_ENVMAP)&&defined(ENVMAP_TYPE_CUBE)\nif(uWet>.001){vec4 w9=bitumeMouille(outgoingLight,reflectVec,normal,normalize(vViewPosition));outgoingLight=w9.rgb;lk9=w9.a;}\n'+
@@ -10724,7 +10735,7 @@ function roadMat(){
       'vec2 gq9=vUv*4./.9,gi9=floor(gq9),gf9=fract(gq9)-.5-(vec2(jdH9(gi9+1.7),jdH9(gi9+6.2))-.5)*.6;float gh9=jdH9(gi9+3.3);vec3 rG9=normalize(rV9+(vec3(jdH9(gi9),jdH9(gi9+9.1),0.)-.5)*1.1);'+
       'float nap9=pow(max(dot(rV9,Lv9),0.),26.),fac9=pow(max(dot(rF9,Lv9),0.),90.)*(1.-smoothstep(.05,.75,jM9)),pai9=pow(max(dot(rG9,Lv9),0.),40.)*step(.62,gh9)*smoothstep(.10,.02,length(gf9))*(1.-smoothstep(20.,70.,length(vViewPosition)));'+ // (les paillettes : de petites étoiles rondes, pas des carrés)
       'outgoingLight+=(vec3(.55,1.,.78)*nap9*.26+vec3(1.,.98,.92)*(fac9*1.1+pai9*5.))*(1.-jOr9)*uJadeR+vec3(1.,.84,.48)*(nap9*.6+fac9*.6)*jOr9*uJadeR;}\n#endif\n'+
-      'outgoingLight+=uLift*lk9*(1.-uJadeR*.7)+uSheenCol*(uSheen*fr9);if(uJadeR>.001)outgoingLight+=diffuseColor.rgb*(uJSt9<.5?.20:uJSt9<1.5?.30:.04)*uJadeR;}'); // (v13) « beaucoup plus brillante » : la lumière qui traverse l émeraude — (v14) le nuage luit, le bois non
+      'outgoingLight+=uLift*lk9*(1.-uJadeR*.7)+uSheenCol*(uSheen*fr9);if(uJadeR>.001)outgoingLight+=diffuseColor.rgb*(uJSt9<.5?.20:uJSt9<1.5?.30:.04)*uJadeR;}'); // (v16 : les rondins comme le bois) // (v13) « beaucoup plus brillante » : la lumière qui traverse l émeraude — (v14) le nuage luit, le bois non
   };
   m.customProgramCacheKey=function(){return 'bitumeV5'+(face?'f':'')+(sauts?'s':'');}; // UNE compilation pour toutes les pistes
   return m;
@@ -10854,7 +10865,7 @@ function routeTick(){ // le bitume suit le NIVEAU (fondu du portail : LVL.route 
   renderer.getDrawingBufferSize(_px9);TRAIT_U.uPx.value=2*Math.tan(camera.fov*Math.PI/360)/Math.max(1,_px9.y); // la taille d'un pixel à 1 m (suit le FOV de vol et la résolution adaptative)
   const r=LVL.route,pa9=LVL.paris||0;ROAD_U.uLift.value.setRGB(.010+.15*r+(.004-.006*r)*pa9,.009+.13*r+(.005+.012*r)*pa9,.016+.16*r-(.004+.03*r)*pa9); // (Paris) un gris d'asphalte NEUTRE, pas le violet de la nuit // ⚠ l'étalonnage de la pluie écrase le rouge et le vert : la clarté doit être NEUTRE et franche pour se lire (mesuré : (0,0,17) → (2,0,47) avec une clarté bleutée de .05)
   ROAD_U.uSheen.value=LVL.sheen;ROAD_U.uWet.value=Math.max(LVL.pluie,parisPluie()*1.8);ROAD_U.uVil.value=LVL.ville;try{ROAD_U.uEcl.value=CAMP_FLASH;}catch(e){} /* (2026-09-30) les enseignes reflétées : en VILLE seulement · l'éclair dans les flaques (CAMP_FLASH est déclaré plus bas : le try couvre l'init) */ // (2026-09-26) le bitume se mouille avec la pluie du niveau, au même fondu
-  ROAD_U.uGlace.value=GLACE.k*(GLACE.nuages*LVL.mer+GLACE.espace*LVL.espace+GLACE.jade*(LVL.jade||0))*(1-LVL.pluie);ROAD_U.uJadeR.value=LVL.jade||0;ROAD_U.uHalf.value=ROAD_HALF;ROAD_U.uGlace.value*=1-(LVL.jade||0)*(ROAD_U.uJStyle.value<.5?0:ROAD_U.uJStyle.value<1.5?.85:.7);
+  ROAD_U.uGlace.value=GLACE.k*(GLACE.nuages*LVL.mer+GLACE.espace*LVL.espace+GLACE.jade*(LVL.jade||0))*(1-LVL.pluie);ROAD_U.uJadeR.value=LVL.jade||0;ROAD_U.uHalf.value=ROAD_HALF;ROAD_U.uGlace.value*=1-(LVL.jade||0)*(ROAD_U.uJStyle.value<.5?0:ROAD_U.uJStyle.value<1.5?.85:ROAD_U.uJStyle.value<2.5?.7:.9);
   {const j9=LVL.mer*skyU.uJour.value,jd9=LVL.jade||0;ROAD_U.uTeinte.value.setRGB((1+(ROUTE_JOUR[0]-1)*j9)*(1+(ROUTE_JADE[0]-1)*jd9),(1+(ROUTE_JOUR[1]-1)*j9)*(1+(ROUTE_JADE[1]-1)*jd9),(1+(ROUTE_JOUR[2]-1)*j9)*(1+(ROUTE_JADE[2]-1)*jd9));} // (2026-09-30) LE JOUR D'ALTITUDE : l'asphalte des NUAGES en gris d'anthracite (le violet de la nuit, sous un ciel turquoise, se lisait en encre violette) // (passe graphismes mobile) le bitume GLACÉ des routes sèches — voir roadMat
   coneBandMat.emissiveIntensity=.25+.6*LVL.pluie; // (2026-09-26) la nuit de pluie, les bandes des plots RÉTRORÉFLÉCHISSENT : on les lit de loin (un uniforme, zéro recompilation)
   ROAD_U.uSheenCol.value.copy(scene.fog.color).multiplyScalar(.9); // (2026-09-26) ×1,5 → ×0,9 : la brillance rasante blanchissait tout le lointain
@@ -13014,7 +13025,7 @@ const JADE_VR_FS=[
   '    alb=mix(alb,vec3(.74,.74,.64),step(.935,rn(p*.85))*dF*.4);',               // le lichen
   '    float mo=max(step(.5,Ng.y)*smoothstep(.3,.62,rn(p*.13)),smoothstep(.6,.78,rn(p*.05+11.)*.7+(1.-st)*.3)*hv*(1.-smoothstep(.4,.95,vAO))*.8)*vJ.y;',
   '    alb=mix(alb,mix(vec3(.09,.16,.07),vec3(.22,.32,.12),rn(p*.4)),mo);}',      // la mousse
-  '  else if(m==3){vec3 g=mix(vec3(.10,.18,.07),vec3(.20,.29,.11),rn(p*.35))*(.82+.32*rg),r9=roc*mix(.94,.82+.3*rg,dF);', // l HERBE : sur le dessus seulement, en PLAQUES de mousse sur la pierre (la frange sur les côtés et la dalle verte unie, c était le bloc d herbe de Minecraft)
+  '  else if(m==3){vec3 g=mix(vec3(.11,.24,.06),vec3(.25,.40,.10),rn(p*.35))*(.82+.32*rg),r9=roc*mix(.94,.82+.3*rg,dF);', // l HERBE : sur le dessus seulement, en PLAQUES de mousse sur la pierre (la frange sur les côtés et la dalle verte unie, c était le bloc d herbe de Minecraft)
   '    alb=Ng.y>.5?mix(r9,g,smoothstep(.38,.62,rn(p*.09+5.)*.7+rn(p*.5)*.3)):r9;}',
   '  else if(m==4)alb=mix(vec3(.07,.14,.06),vec3(.19,.30,.11),rn(p*.6))*(.7+.45*rn(p*1.9));', // les FEUILLES
   '  else if(m==5)alb=vec3(.27,.20,.15)*(.85+.3*rg);',
@@ -13297,7 +13308,7 @@ function buildJade(seed){
   FIN.stamp=new Int32Array(PIL.length);FIN.was=new Uint8Array(PIL.length);FIN.gen=0;
   famille(G.arbreQ,M9.arb,ARB.map(function(a){const o=qDe(a.x,a.z);ext(o,a.x,a.y-80,a.y+25,a.z,20);return {q:o,m:Mt.makeTranslation(a.x,a.y,a.z).toArray(),j:a.j,pq:a.pq};}),0,2);
   const tem=(L9)=>L9.map(function(c){const o=qDe(c[0],c[2]);ext(o,c[0],c[1],c[1]+60,c[2],20);return {q:o,m:new THREE.Matrix4().makeTranslation(c[0],c[1],c[2]).multiply(new THREE.Matrix4().makeRotationY(((jr()*4)|0)*Math.PI/2)).multiply(new THREE.Matrix4().makeScale(c[3],c[3],c[3])).toArray(),j:[0,0,0,0]};});
-  famille(G.pag,M9.col,tem(PAG),0,3);famille(G.pav,M9.col,tem(PAV),0,3);
+  // (v16, « évite les clichés en mode Chine ») plus de pagodes ni de pavillons sur les cimes
   JADE.quart=[];for(const o of quart.values())JADE.quart[o.k]={c:new THREE.Vector3((o.x0+o.x1)/2,(o.y0+o.y1)/2,(o.z0+o.z1)/2),r:Math.hypot(o.x1-o.x0,o.y1-o.y0,o.z1-o.z0)/2+10};
   if(CHU.length){const m=new THREE.Mesh(jadeChutes(CHU),JADE_CHUTE_M);m.userData.jeter=true;m.frustumCulled=false;m.renderOrder=5;root.add(m);}
   {const RY=[],pasY=Math.max(1,Math.round(170/(L/(NP-1))));for(let i=0;i<NP;i+=pasY){if(jr()>.55)continue;const t9=T[i],hl=Math.hypot(t9.x,t9.z)||1,px=-t9.z/hl,pz=t9.x/hl,sg=jr()<.5?-1:1,lat=60+Math.pow(jr(),1.3)*650;
@@ -13309,7 +13320,7 @@ function buildJade(seed){
      for(let k=0;k<3;k++){const r9=jr();if(r9>.8)continue;const sg=jr()<.5?-1:1,haut=true,lat=haut?1000+Math.pow(jr(),.8)*3000:1500+jr()*2600,al=(jr()-.5)*700,w=haut?800+jr()*1100:1500+jr()*1300;
        const y=haut?pts[i].y+260+jr()*820:JADE.merY+60+jr()*150;NU.push([pts[i].x+px*sg*lat+t9.x/hl*al,y,pts[i].z+pz*sg*lat+t9.z/hl*al,w,w*.5,(jr()*16)|0,jr(),pts[i].x,pts[i].z]);}
      if(jr()<.35){const sg=jr()<.5?-1:1,lat=250+jr()*500,w=600+jr()*600;NU.push([pts[i].x+px*sg*lat,pts[i].y+780+jr()*600,pts[i].z+pz*sg*lat,w,w*.5,(jr()*16)|0,jr(),pts[i].x,pts[i].z]);}} // au-dessus de la route
-   if(NU.length){if(!JADE_NUAGE_M.uniforms.uTex.value)JADE_NUAGE_M.uniforms.uTex.value=jadeNuagesTex();
+   if(NU.length){if(!JADE_NUAGE_M.uniforms.uTex.value)JADE_NUAGE_M.uniforms.uTex.value=jadeCumulusTex(); // (v16) des CUMULUS (les volutes en spirale : un cliché)
      const Mx=new THREE.Matrix4(),couche=(L9,ro)=>{const g=new THREE.PlaneGeometry(1,1),im=new THREE.InstancedMesh(g,JADE_NUAGE_M,L9.length),aj=new Float32Array(L9.length*4);
        L9.forEach(function(n,k){Mx.makeTranslation(n[0],n[1],n[2]);im.setMatrixAt(k,Mx);aj.set([n[3],n[4],n[5],n[6]],k*4);});
        g.setAttribute('aJ',new THREE.InstancedBufferAttribute(aj,4));im.userData.jeter=true;im.frustumCulled=false;im.renderOrder=ro;root.add(im);};
@@ -13339,7 +13350,8 @@ function buildJade(seed){
    geo.setAttribute('aB',new THREE.InstancedBufferAttribute(new Float32Array(ib),4));im.userData.jeter=true;
    im.frustumCulled=false;im.renderOrder=4;root.add(im);JADE.brume=im;}
   try{jadeRouteDeco(root,jr);jadeRouteStyle(JROUTE.style);}catch(e){console.warn('route',e);}
-  try{jadeArches(root,M9);}catch(e){console.warn('portiques',e);}
+  try{jadeRondinsDeco(root,jr);jadeRouteStyle(JROUTE.style);}catch(e){console.warn('rondins',e);}
+  try{jadeArchesRondins(root);}catch(e){console.warn('arches',e);} // (v16) plus de portique chinois : des arches de troncs
   try{jadeChutePrep(PIL,jr,root);}catch(e){console.warn('chute',e);}
   JADE.n={montagnes:PIL.filter(function(q){return q[5]<JADE_NTPL;}).length,rochers:PIL.filter(function(q){return q[5]>=JADE_NTPL;}).length,arbres:ARB.length,temples:PAG.length+PAV.length,cascades:CHU.length,
     brume:JADE.brume?JADE.brume.count:0,quartiers:JADE.quart.length,porte:!!JADE.porte,pont:!!JADE.pont,ms:Math.round(performance.now()-t00),gabaritsMs:G.ms,
@@ -13349,7 +13361,7 @@ function buildJade(seed){
    · NUAGE : des CUBES de nuage (1-2,6 m) qui débordent des deux bords, dessus et dessous — le ruban devient un nuage ;
    · PLANCHES : une RAMBARDE en bois laqué rouge (poteaux tous les 6 m, deux lisses), et des LANTERNES rouges qui luisent tous les ~42 m,
      accrochées au bout d'un bras au-dessus de la route, d'un côté puis de l'autre. Aucune collision (décor). */
-const JROUTE={style:(function(){const m=/[?&]route=(nuage|planches|emeraude)\b/.exec(location.search);return m?{emeraude:0,nuage:1,planches:2}[m[1]]:2;})()}; // (v15, Léo : « planche en bois ») le CHEMIN DE PLANCHES par défaut ; nuage et émeraude restent (touche R, ?route=)
+const JROUTE={style:(function(){const m=/[?&]route=(nuage|planches|emeraude|rondins)\b/.exec(location.search);return m?{emeraude:0,nuage:1,planches:2,rondins:3}[m[1]]:3;})()}; // (v16, « une vibe Chihiro, des troncs d'arbres collés ») les RONDINS par défaut // (v15, Léo : « planche en bois ») le CHEMIN DE PLANCHES par défaut ; nuage et émeraude restent (touche R, ?route=)
 function jadeBoite(P,N,C,c,ax,ay,az,hx,hy,hz,col){ // une boîte orientée (axes unitaires, demi-tailles), 36 sommets, normales plates
   const F=[[ax,ay,az,hx,hy,hz],[ax.clone().negate(),ay,az.clone().negate(),hx,hy,hz],[az,ay,ax.clone().negate(),hz,hy,hx],[az.clone().negate(),ay,ax,hz,hy,hx],[ay,az,ax,hy,hz,hx],[ay.clone().negate(),az.clone().negate(),ax,hy,hz,hx]];
   const QA=[[-1,-1],[1,-1],[1,1],[-1,-1],[1,1],[-1,1]],QB=[[-1,-1],[1,1],[1,-1],[-1,-1],[-1,1],[1,1]],X9=new THREE.Vector3();
@@ -13386,17 +13398,17 @@ function jadeRouteDeco(root,jr){
 }
 function jadeRouteStyle(k){ // 0 émeraude · 1 nuage · 2 planches : la surface (uJStyle), les bords en volume, les rails, la lueur, les flancs, la ligne
   JROUTE.style=k;ROAD_U.uJStyle.value=k;
-  if(JADE.decoNuage)JADE.decoNuage.visible=k===1;if(JADE.decoPlanches)JADE.decoPlanches.visible=k===2;
-  const ac=[0x4fe0a8,0xf2f5ff,0x5a1a10][k],gl=[.78,.30,0][k];
+  if(JADE.decoNuage)JADE.decoNuage.visible=k===1;if(JADE.decoPlanches)JADE.decoPlanches.visible=k===2;if(JADE.decoRondins)JADE.decoRondins.visible=k===3;
+  const ac=[0x4fe0a8,0xf2f5ff,0x5a1a10,0x2a1a0e][k],gl=[.78,.30,0,0][k];
   if(NEON_RAILS[0]){NEON_RAILS[0].color.setHex(ac);if(NEON_RAILS[0].userData.base)NEON_RAILS[0].userData.base.setHex(ac);NEON_RAILS[0].userData.hsl=null;} // (le caméléon garde la teinte mesurée : on la lui fait remesurer)
   if(NEON_GLOW[0]){NEON_GLOW[0].opacity=gl;NEON_GLOW[0].userData.base=gl;}
   ROAD_U.uAcc.value.setHex(ac);
-  if(JADE.flank)JADE.flank.color.setHex([0x1c0430,0xd9deec,0x2a140a][k]);
-  if(JADE.ligne)JADE.ligne.opacity=[.42,0,0][k];
-  return ['EMERAUDE','NUAGE','PLANCHES'][k];}
+  if(JADE.flank)JADE.flank.color.setHex([0x1c0430,0xd9deec,0x2a140a,0x1e140c][k]);
+  if(JADE.ligne)JADE.ligne.opacity=[.42,0,0,0][k];
+  return ['EMERAUDE','NUAGE','PLANCHES','RONDINS'][k];}
 window.dbgEffondre=function(){return {montagnes:JCH.L.length,tombees:JCH.L.filter(function(c){return c.t0;}).length,finies:JCH.L.filter(function(c){return c.fin;}).length,ecume:JCH.sp.length,sChute:JCH.L.length?Math.round(Math.min.apply(null,JCH.L.map(function(c){return c.sN;}))):null,L:Math.round(L)};};
-window.dbgRoute=function(k){return jadeRouteStyle(k==null?(JROUTE.style+1)%3:k);};
-addEventListener('keydown',function(e){if(e.code!=='KeyR'||e.repeat||!BALADE||!JADE.root)return;const k=JROUTE.style===2?1:JROUTE.style===1?0:2;const nm=jadeRouteStyle(k);try{slam('ROUTE '+nm,'',null,null,null,2);}catch(e9){}}); // (v14) la touche R : nuage → planches → émeraude
+window.dbgRoute=function(k){return jadeRouteStyle(k==null?(JROUTE.style+1)%4:k);};
+addEventListener('keydown',function(e){if(e.code!=='KeyR'||e.repeat||!BALADE||!JADE.root)return;const k=JROUTE.style===3?2:JROUTE.style===2?1:JROUTE.style===1?0:3;const nm=jadeRouteStyle(k);try{slam('ROUTE '+nm,'',null,null,null,2);}catch(e9){}}); // (v14) la touche R : nuage → planches → émeraude
 /* (v14, Léo : « crée un début et une fin du niveau, moyen, ni trop court ni trop long ») LES DEUX PORTIQUES — le 牌坊 des entrées de
    temple, en cubes d'un mètre : deux piliers laqués rouges sur leurs socles de pierre (hors de la route), deux linteaux, une plaque d'or au
    milieu, un toit de tuiles débordant aux coins RELEVÉS, l'or au faîte. Le DÉPART à 120 m, l'ARRIVÉE à 140 m du bout (avant le portail). */
@@ -13421,12 +13433,18 @@ function jadeArches(root,M9){const A=jadeArcheGeo(),pl=(sA)=>{const i=Math.max(1
    celles des cubes fins (FIN.mats) sont réécrites à chaque image ; au redémarrage, tout revient. */
 const JCH={L:[],fixe:new Set(),splash:null,sp:[],t:0};
 function jadeChutePrep(PIL,jr,root){
-  JCH.L=[];JCH.sp.length=0;if(JADE.col)JADE.col.mort=new Set();const Q=JADE.Q||{};if(!Q.chute||VIT)return;
-  let iC=0,bd=1e18;for(let i=0;i<NP;i+=2){const d=pts[i].distanceToSquared(Q.chute.p);if(d<bd){bd=d;iC=i;}}
+  JCH.L=[];JCH.sp.length=0;if(JADE.col)JADE.col.mort=new Set();if(VIT)return;
+  /* (v16, Léo : « évite que les montagnes s'effondrent sur la route ; petit à petit : au début ça tient, après ça tombe un peu ») — sur TOUT
+     le niveau : rien avant 18 %, puis quelques-unes, de plus en plus jusqu'à la fin (probabilité 6 % → 90 %) ; chacune BASCULE VERS
+     L'EXTÉRIEUR (l'axe est ⟂ à la direction route → montagne : son sommet s'éloigne) et dérive en s'éloignant ; jamais celles qui
+     surplombent la route ou la frôlent (à moins de ROAD_HALF + 30 m, au-dessus de la dalle). */
   PIL.forEach(function(q,pi){if(JCH.fixe.has(q))return;let bi=-1,bd2=1e18;
-    for(let i=iC;i<NP;i+=3){const p=pts[i],d=(p.x-q[0])*(p.x-q[0])+(p.z-q[1])*(p.z-q[1]);if(d<bd2){bd2=d;bi=i;}}
-    if(bi<0||Math.sqrt(bd2)-q[2]>900)return;const an=jr()*6.2832;
-    JCH.L.push({pi:pi,q:q,sN:bi/(NP-1)*L,dl:jr()*350,ax:new THREE.Vector3(Math.cos(an),0,Math.sin(an)),g:8+jr()*7,w:.12+jr()*.25,t0:0,fin:false,spl:false,orig:null});});
+    for(let i=0;i<NP;i+=3){const p=pts[i],d=(p.x-q[0])*(p.x-q[0])+(p.z-q[1])*(p.z-q[1]);if(d<bd2){bd2=d;bi=i;}}
+    if(bi<0)return;const dH=Math.sqrt(bd2),sN=bi/(NP-1)*L,u=sN/L;if(dH-q[2]>900||u<.18)return;
+    if(dH-q[2]<ROAD_HALF+30&&q[3]>pts[bi].y-12)return;                                             // elle surplombe la route : elle tient
+    if(jr()>.06+.84*Math.pow(THREE.MathUtils.smoothstep(u,.25,.93),1.3))return;                    // de plus en plus vers la fin
+    const dx=(q[0]-pts[bi].x)/(dH||1),dz=(q[1]-pts[bi].z)/(dH||1);
+    JCH.L.push({pi:pi,q:q,sN:sN,dl:jr()*350,ax:new THREE.Vector3(dz,0,-dx),dx:dx,dz:dz,g:8+jr()*7,w:.12+jr()*.25,t0:0,fin:false,spl:false,orig:null});});
   // L'ÉCUME EN CUBES : une réserve de 700 cubes blancs (une instance), lancés à l'impact
   const g=new THREE.BoxGeometry(1,1,1),im=new THREE.InstancedMesh(g,new THREE.MeshLambertMaterial({color:0xf4f8fa,emissive:0x2a3238}),700);im.count=0;im.frustumCulled=false;im.userData.jeter=true;
   im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);root.add(im);JCH.splash=im;}
@@ -13437,7 +13455,8 @@ function jadeChuteTick(dt){
     if(!c.t0){if(s>c.sN-700-c.dl&&mode!=='boom'){c.t0=tn;if(JADE.col&&JADE.col.mort)JADE.col.mort.add(c.pi);jadeChuteOrig(c);
       if(carGroup.position.distanceTo(JCH_V.set(c.q[0],carGroup.position.y,c.q[1]))<500)shake=Math.max(shake,.12);}else continue;}
     if(c.fin)continue;chg=true;const q=c.q,t=tn-c.t0,tf=Math.max(0,t-.9),dy=.5*c.g*tf*tf,th=Math.min(1.25,.5*c.w*tf*tf),jx=t<.9?Math.sin(t*57)*.35*(t/.9):0;
-    JCH_T.makeTranslation(q[0]+jx,q[3]-dy,q[1]);JCH_R.makeRotationAxis(c.ax,th);JCH_M.multiplyMatrices(JCH_T,JCH_R);JCH_A.makeTranslation(-q[0],-q[3],-q[1]);JCH_M.multiply(JCH_A); // D = T(pivot)·T(0,−dy,0)·R·T(−pivot)
+    const dr=.6*c.g*tf*tf*.25;JCH_T.makeTranslation(q[0]+jx+c.dx*dr,q[3]-dy,q[1]+c.dz*dr); // (elle s'éloigne de la route en tombant)
+    JCH_R.makeRotationAxis(c.ax,th);JCH_M.multiplyMatrices(JCH_T,JCH_R);JCH_A.makeTranslation(-q[0],-q[3],-q[1]);JCH_M.multiply(JCH_A); // D = T(pivot)·T(0,−dy,0)·R·T(−pivot)
     if(!c.spl&&q[3]-dy<JADE.merY+6){c.spl=true;jadeEcume(q[0],JADE.merY,q[1],q[2]);}
     const out=dy>(q[4]-JADE.merY)+60;if(out)c.fin=true;
     for(const o of c.orig){const A=o.F.M;if(out)A.set(JCH_Z,o.si*16);else{JCH_R.fromArray(o.m);JCH_R.premultiply(JCH_M);JCH_R.toArray(A,o.si*16);}}
@@ -13465,6 +13484,60 @@ function jadeFinale(){if(JADE.fini){if(s>L-6)s=L-6;return;}JADE.fini=true;jadeAn
   setTimeout(function(){try{ecranWipe(jadeRedemarre);}catch(e){jadeRedemarre();}},2800);}
 function jadeRedemarre(){s=0;lat=0;psi=0;prevTvalid=false;mode='drive';vA=0;jadeChuteRaz();JADE.fini=false;JADE.t0=performance.now();jadeAnn();
   try{slam('DÉPART','PICS DE JADE',null,null,null,3);}catch(e){}}
+/* (v16, Léo : « évite les clichés en mode Chine, le but c'est une vibe CHIHIRO ; le sol, fais-le moins scolaire… même des bouts de bois
+   empilés, des TRONCS D'ARBRES collés à eux-mêmes ») LA ROUTE DE RONDINS — ses bords en vrais volumes : chaque rondin qui DÉPASSE du bord
+   (60 % d'entre eux, de 0,4 à 2,8 m, des prismes à 6 pans d'écorce, la coupe aux cernes clairs au bout), et des PILES de bois de loin en loin
+   (trois troncs couchés le long du bord, deux dessous, un dessus). Découpés en tronçons de ~800 m (chacun sa sphère : le champ les trie). */
+function jadeTronc(P,N,C,a,b,r,cE,cB){ // un tronc à 6 pans de a à b (rayon r) : l'écorce cE (nuancée par pan), les deux coupes en cernes (centre cB, bord plus clair)
+  const ax=b.clone().sub(a).normalize(),u=new THREE.Vector3(0,1,0);if(Math.abs(ax.dot(u))>.9)u.set(1,0,0);const v1=u.clone().cross(ax).normalize(),v2=ax.clone().cross(v1).normalize(),K=6,ring=[];
+  for(let k=0;k<K;k++){const an=k/K*6.2832+.26;ring.push(v1.clone().multiplyScalar(Math.cos(an)*r).addScaledVector(v2,Math.sin(an)*r));}
+  const tri=(p,q,w,n,c1,c2,c3)=>{P.push(p.x,p.y,p.z,q.x,q.y,q.z,w.x,w.y,w.z);for(let i=0;i<3;i++)N.push(n.x,n.y,n.z);C.push(c1[0],c1[1],c1[2],c2[0],c2[1],c2[2],c3[0],c3[1],c3[2]);};
+  const X=new THREE.Vector3();
+  for(let k=0;k<K;k++){const r0=ring[k],r1=ring[(k+1)%K],n=r0.clone().add(r1).normalize(),f=.8+.4*((k*7919)%11)/11,ce=[cE[0]*f,cE[1]*f,cE[2]*f];
+    const p0=a.clone().add(r0),p1=a.clone().add(r1),q0=b.clone().add(r0),q1=b.clone().add(r1);
+    X.copy(p1).sub(p0).cross(X.copy(q0).sub(p0));if(X.dot(n)<0){tri(p0,q0,p1,n,ce,ce,ce);tri(p1,q0,q1,n,ce,ce,ce);}else{tri(p0,p1,q0,n,ce,ce,ce);tri(p1,q1,q0,n,ce,ce,ce);}}
+  const cR=[cB[0]*1.45,cB[1]*1.45,cB[2]*1.45];
+  for(const e of [[a,ax.clone().negate()],[b,ax]]){const c0=e[0],n=e[1];
+    for(let k=0;k<K;k++){const p1=c0.clone().add(ring[k]),p2=c0.clone().add(ring[(k+1)%K]);X.copy(p1).sub(c0).cross(X.clone().copy(p2).sub(c0));
+      if(X.dot(n)>0)tri(c0,p1,p2,n,cB,cR,cR);else tri(c0,p2,p1,n,cB,cR,cR);}}}
+function jadeRondinsDeco(root,jr){
+  const pas=d=>Math.max(1,Math.round(d/(L/(NP-1)))),geoDe=(P,N,C)=>{const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(N,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));g.computeBoundingSphere();return g;};
+  const mat=new THREE.MeshLambertMaterial({vertexColors:true}),grp=new THREE.Group();let P=[],N=[],C=[],s0=0;
+  const vide=()=>{if(P.length){const m=new THREE.Mesh(geoDe(P,N,C),mat);m.userData.jeter=true;grp.add(m);}P=[];N=[];C=[];};
+  const B9=new THREE.Vector3(),N9=new THREE.Vector3(),T9=new THREE.Vector3(),eco=()=>{const t=jr();return [.16+t*.10,.11+t*.07,.07+t*.04];},cou=[.30,.21,.12];
+  let acc=0;const dl=.82;
+  for(let i=1;i<NP;i++){acc+=pts[i].distanceTo(pts[i-1]);if(acc<dl)continue;acc=0;
+    T9.copy(T[i]).normalize();B9.copy(B[i]).normalize();N9.copy(Nn[i]).normalize();const p=pts[i];
+    for(const sd of [-1,1]){if(jr()>.62)continue;const r=.32+jr()*.2,ln=.4+Math.pow(jr(),1.6)*2.4,dz=(jr()-.5)*.25;
+      const a=p.clone().addScaledVector(B9,sd*(ROAD_HALF-.3)).addScaledVector(N9,-r*.55).addScaledVector(T9,dz),b=a.clone().addScaledVector(B9,sd*ln).addScaledVector(N9,(jr()-.5)*.25);
+      jadeTronc(P,N,C,a,b,r,eco(),cou);}
+    if(jr()<.012){const sd=jr()<.5?-1:1,ln=5+jr()*5,r=.45+jr()*.2,o=ROAD_HALF+1.2+jr()*1.5; // une PILE de bois
+      for(const k of [[-1,0],[1,0],[0,1]]){const a=p.clone().addScaledVector(B9,sd*(o+k[0]*r*1.02)).addScaledVector(N9,r*.6+k[1]*r*1.7).addScaledVector(T9,-ln/2+(jr()-.5)*.6),b=a.clone().addScaledVector(T9,ln+(jr()-.5)*.8);
+        jadeTronc(P,N,C,a,b,r,eco(),cou);}}
+    if(i/(NP-1)*L-s0>800){vide();s0=i/(NP-1)*L;}}
+  vide();root.add(grp);JADE.decoRondins=grp;}
+/* LES DEUX ARCHES DE TRONCS (départ, arrivée) — plus de portique chinois : deux grands troncs bruts plantés de chaque côté, un tronc couché en
+   travers au-dessus, un plus petit dessous, de la mousse (des nuances vertes sur l'écorce) */
+function jadeArchesRondins(root){const P=[],N=[],C=[],up=new THREE.Vector3(0,1,0),mo=[.11,.16,.07],ec=[.20,.14,.09],cou=[.30,.21,.12];
+  for(const sA of [120,L-140]){const i=Math.max(1,Math.min(NP-2,Math.round(sA/L*(NP-1)))),p=pts[i],t=new THREE.Vector3(T[i].x,0,T[i].z).normalize(),b=new THREE.Vector3(-t.z,0,t.x),w=ROAD_HALF+3.5;
+    for(const sd of [-1,1]){const a=p.clone().addScaledVector(b,sd*w);a.y-=6;jadeTronc(P,N,C,a,a.clone().add(new THREE.Vector3(0,34,0)).addScaledVector(b,-sd*.8),1.5,ec,cou);
+      jadeTronc(P,N,C,a.clone().add(new THREE.Vector3(0,9,0)),a.clone().add(new THREE.Vector3(0,16,0)).addScaledVector(b,sd*1.2),1.62,mo,cou);}
+    const g=p.clone().addScaledVector(b,-w-4.5),d=p.clone().addScaledVector(b,w+4.5);g.y+=25.5;d.y+=24.8;jadeTronc(P,N,C,g,d,1.25,ec,cou);
+    const g2=p.clone().addScaledVector(b,-w+.5),d2=p.clone().addScaledVector(b,w-.5);g2.y+=20.2;d2.y+=20.6;jadeTronc(P,N,C,g2,d2,.8,mo,cou);}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(N,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));g.computeBoundingSphere();
+  const m=new THREE.Mesh(g,new THREE.MeshLambertMaterial({vertexColors:true}));m.userData.jeter=true;root.add(m);JADE.depart=120;}
+/* (v16) LES CUMULUS — plus de volutes en spirale (le cliché) : des nuages de Ghibli, une base PLATE, des choux-fleurs empilés en trois rangées
+   (petits lobes en bas, gros au milieu, un ou deux au sommet). Même format que la planche des volutes (R hauteur, A couverture). */
+function jadeCumulusTex(){const CW=512,CH=256,W=CW*4,H=CH*4,HS=90,D=new Uint8Array(W*H*4),rg=mulberry32(0xC0B1),hb=new Float32Array(CW*CH);
+  for(let k=0;k<16;k++){const x0=(k%4)*CW,y0=((k/4)|0)*CH;hb.fill(0);const yb=CH*.82,B9=[];
+    const n0=4+((rg()*3)|0),wid=280+rg()*150,xa=(CW-wid)/2;
+    for(let i=0;i<n0;i++){const r=24+rg()*20;B9.push([xa+wid*(i+.5)/n0+(rg()-.5)*14,yb-r*.45,r]);}
+    const n1=2+((rg()*3)|0);for(let i=0;i<n1;i++){const r=40+rg()*24;B9.push([xa+wid*(.15+.7*(i+.5)/n1)+(rg()-.5)*20,yb-48-r*.25-rg()*10,r]);}
+    const n2=1+((rg()*2)|0);for(let i=0;i<n2;i++){const r=32+rg()*24;B9.push([CW/2+(rg()-.5)*wid*.45,yb-100-rg()*25,r]);}
+    for(const b of B9){const cx=b[0],cy=b[1],r=b[2];for(let py=Math.max(0,Math.floor(cy-r));py<=Math.min(CH-1,Math.ceil(cy+r));py++){if(py>yb)continue; // la BASE plate
+      for(let px=Math.max(0,Math.floor(cx-r));px<=Math.min(CW-1,Math.ceil(cx+r));px++){const dx=px-cx,dy=py-cy,d2=dx*dx+dy*dy;if(d2>=r*r)continue;const h=Math.sqrt(r*r-d2),q=px+CW*py;if(h>hb[q])hb[q]=h;}}}
+    for(let py=0;py<CH;py++)for(let px=0;px<CW;px++){const h=hb[px+CW*py],o=((H-1-(y0+py))*W+x0+px)*4;D[o]=Math.min(255,Math.round(h/HS*255));D[o+1]=0;D[o+3]=Math.min(255,Math.round(h/3*255));}}
+  const t=new THREE.DataTexture(D,W,H,THREE.RGBAFormat);t.magFilter=THREE.LinearFilter;t.minFilter=THREE.LinearMipmapLinearFilter;t.generateMipmaps=true;t.anisotropy=4;t.needsUpdate=true;return t;}
 /* une GRILLE posée dans un repère (o : coin, axes x = b, y = haut, z = −t ; en cubes de VX) — la muraille, l'arche */
 function jadeRepere(o,b,t,sc){const m=new THREE.Matrix4(),z=t.clone().negate(),k=sc||VXG;
   m.set(b.x*k,0,z.x*k,o.x, b.y*k,k,z.y*k,o.y, b.z*k,0,z.z*k,o.z, 0,0,0,1);return m;}
@@ -13712,7 +13785,7 @@ const JADE_NUAGE_M=(function(){const m=new THREE.ShaderMaterial({transparent:tru
    chaque cube sa nuance, la perspective aérienne du loin. */
 const NUVOX={GX:96,GY:48,geos:null};
 function jadeNuagesVox(){if(NUVOX.geos)return NUVOX.geos;
-  const T=JADE_NUAGE_M.uniforms.uTex.value||(JADE_NUAGE_M.uniforms.uTex.value=jadeNuagesTex()),D=T.image.data,W=T.image.width,H=T.image.height,CW=512,CH=256,HS=90,GX=NUVOX.GX,GY=NUVOX.GY,k=CW/GX,mi=Math.ceil(HS/k)+1,NZ=2*mi;
+  const T=JADE_NUAGE_M.uniforms.uTex.value||(JADE_NUAGE_M.uniforms.uTex.value=jadeCumulusTex()),D=T.image.data,W=T.image.width,H=T.image.height,CW=512,CH=256,HS=90,GX=NUVOX.GX,GY=NUVOX.GY,k=CW/GX,mi=Math.ceil(HS/k)+1,NZ=2*mi;
   NUVOX.mid=mi;NUVOX.geos=[];
   NUVOX.loin=[];
   for(let t=0;t<16;t++){const x0=(t%4)*CW,y0=((t/4)|0)*CH,G=voxG(GX,GY,NZ);
@@ -15573,10 +15646,10 @@ BIOMES.jade={nm:'PICS DE JADE',skyMul:[1,1,1],skyLift:[0,0,0],sunTint:[1,.95,.86
   /* (v6, Léo : « c'est trop clair là ») : fini le blanc délavé de la v5 — l'air des photos (brume blanc-bleuté mais plus loin, lumière du
      soleil franche, la mer de nuages qui éclaire par-dessous), un cran plus sombre que la v4, des couleurs pleines */
   fog:[.70,.80,.83],fogN:240,fogF:2500,
-  hemiS:[.74,.84,.92],hemiG:[.50,.55,.56],hemiI:.95, sunC:[1,.96,.90],sunI:1.05,
+  hemiS:[.74,.84,.92],hemiG:[.50,.55,.56],hemiI:.95, sunC:[1,.93,.80],sunI:1.08, // (v16, « une vibe Chihiro ») un soleil d'après-midi, plus doré
   fillC:[.50,.62,.70],fillI:.12, kickC:[1,.90,.78],kickI:.04,
   volSun:[1.8,1.75,1.6],volSky:[.66,.76,.84],volGnd:[.32,.38,.34],volAmb:.8,
-  expo:.88,sat:1.02,
+  expo:.88,sat:1.10,
   env:[[0,'#7f9fb2'],[.3,'#b1c6cc'],[.48,'#dce4e2'],[.58,'#e6e4d8'],[.66,'#7a8a80'],[1,'#3e4a44']],eS1:[245,240,225,.45],eS2:[160,200,205,.30],
   wb:[1,1,1],sh:[0,.006,.008],hi:[.012,.01,0],con:1.08,bloomS:.30,bloomT:.95,vigK:.30,vigC:[.08,.11,.11],rimK:0,rimS:.38,fogIn:[.86,.90,.91],fogCj:[.90,.86,.78],
   daCon:.6,daExpo:1,daWbN:1,daSh:.3,daHi:.2,

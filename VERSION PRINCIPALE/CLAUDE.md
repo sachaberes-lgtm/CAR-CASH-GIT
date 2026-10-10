@@ -171,7 +171,7 @@ d'aller dans cette map avec une voiture, la mobilité comme le main, mais seulem
     volutes si toutes étaient vues. sw.js → v215.
 - **v14 — UN VRAI NIVEAU : DÉPART, ARRIVÉE, L'EFFONDREMENT ; DEUX ROUTES À ESSAYER ; L'EAU PLUS HAUTE** (même jour, Léo : « remonte le niveau de
   l'eau ; la route, c'est pas très beau, trouve une route plus originale [→ choisi : « essayer la route de NUAGE et les PLANCHES en bois »] ;
-  crée un début, une fin du niveau, moyen, ni trop court ni trop long ; à la fin, des montagnes qui commencent à chuter autour ») — LA VERSION EN COURS.
+  crée un début, une fin du niveau, moyen, ni trop court ni trop long ; à la fin, des montagnes qui commencent à chuter autour »).
   · L'EAU : `JADE.merY` = point le plus bas de la route − 230 m (était − 470).
   · LE NIVEAU EST FIXE : `NIV_JADE.graine` 0x51ADE (`?graine=n` pour en essayer une autre) — 12,8 km, ~2 min à la vitesse de la balade.
     `genJade` finit par le repère « chute », ~1 km de virages, 650 m de ligne droite, l'arrivée. Deux PORTIQUES 牌坊 en cubes d'un mètre
@@ -191,6 +191,21 @@ d'aller dans cette map avec une voiture, la mobilité comme le main, mais seulem
     une fois : `userData.hsl=null` pour qu'il la remesure). L'émeraude reste (0). sw.js → v216.
   · (v15) Léo a tranché : « planche en bois » → le CHEMIN DE PLANCHES est la route par défaut (`JROUTE.style` 2) ; la touche R passe à
     nuage puis émeraude, `?route=nuage|emeraude` les rouvre. sw.js → v217.
+- **v16 — UNE VIBE CHIHIRO : LA ROUTE DE RONDINS, PLUS DE CLICHÉS, L'EFFONDREMENT PROGRESSIF** (même jour, Léo : « évite que les montagnes
+  s'effondrent sur la route ; petit à petit — au début ça tient, après ça tombe un peu ; évite les clichés en mode Chine, le but c'est une
+  vibe CHIHIRO ; le sol, moins scolaire… des bouts de bois empilés, des troncs d'arbres collés à eux-mêmes ») — LA VERSION EN COURS.
+  · LA ROUTE DE RONDINS (style 3, par défaut ; planches/nuage/émeraude derrière R et `?route=`) : des troncs EN TRAVERS de diamètres inégaux et
+    un peu courbes, ronds à la lumière (un reflet sur le dos de chacun, noirs dans les creux), écorce gris-brun pixelisée, mousse dans les
+    creux, une coupe de loin en loin ; ses bords en volume (`jadeRondinsDeco`, `jadeTronc` : prismes à 6 pans, cernes clairs à la coupe) —
+    des rondins qui DÉPASSENT du bord (0,4-2,8 m) et des PILES de trois troncs de loin en loin, en tronçons de 800 m (le champ les trie).
+    Essayé avant : des tronçons coupés trop sombres = un dallage de briques.
+  · PLUS DE CLICHÉS : les portiques 牌坊 → deux ARCHES DE TRONCS bruts (`jadeArchesRondins`) ; les pagodes et pavillons des cimes retirés ;
+    les volutes en spirale → des CUMULUS de Ghibli (`jadeCumulusTex` : base plate, trois rangées de choux-fleurs ; en cubes comme avant).
+  · L'EFFONDREMENT sur TOUT le niveau : rien avant 18 %, puis une probabilité qui monte de 6 % à 90 % vers la fin (532 candidates) ; chaque
+    montagne bascule VERS L'EXTÉRIEUR (axe ⟂ route → montagne) et dérive en s'éloignant ; celles qui surplombent ou frôlent la route (à moins
+    de ROAD_HALF + 30 m, au-dessus de la dalle) restent debout.
+  · L'AMBIANCE un cran vers Ghibli : soleil d'après-midi plus doré (`sunC` 1/.93/.80), saturation 1,10, l'herbe des corniches plus vivante.
+  · MESURÉ (Mac calme) : 60 i/s au début et pendant l'effondrement. sw.js → v218.
 - Mesuré (Chrome sans fenêtre du Mac) : 60 i/s, construction 16-28 ms, tri ~0,03 ms ; collisions (`dbgJadeHeurt('test')`, 3 vallées) :
   piliers durs, arche et dessous du pont libres, AUCUN point de la route dans la pierre. Console : `dbgJade()`, `dbgJadeVue('route'|'porte'|
   'pont'|'haut'|'loin'|'grue',d,h,cap)` (photo figée), `dbgGrues()`. sw.js → v203.
