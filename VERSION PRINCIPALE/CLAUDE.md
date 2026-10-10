@@ -1,5 +1,12 @@
 # CASH CAR — guide projet pour Claude Code
 
+## PARIS SORT DU MODE INFINI (2026-10-10, session GRAPHISME — Sacha : « enlève la map Paris du mode infini »)
+La ligne `paris` de `NIVEAUX` est passée en commentaire (décommenter pour la remettre). Le cycle de la partie sans fin devient
+NUAGES → VILLE → ORBITE → ORAGE → MINUIT EN VILLE → PLUIE DE SATELLITES (6 au lieu de 7). PARIS reste ENTIER dans la CARRIÈRE : son
+monde est fabriqué par `carNiveau` (ciel `parisOr`, piste `paris`) sans lire `NIVEAUX`, et sa chauffe au menu (`parisChauffe`) ne
+change pas. Rien ne lisait Paris par sa PLACE dans `NIVEAUX` (seul `NIVEAUX[0]` est lu, pour la musique) ; Poki échange par id.
+Banc `gfx/infini.js` : 9 portails sans Paris, la carrière lance toujours Paris, 0 erreur.
+
 ## LE DERNIER TOUR DES COMMANDES AVANT LE VERROU (2026-10-09, session GRAPHISME — Sacha : « on va verrouiller le gameplay ; avant, fais un dernier tour d'amélioration des contrôles pour que le jeu soit le plus fun à jouer possible, tant dans la conduite que la voltige »)
 Audit complet de la chaîne des commandes (entrées → lissage → lacet/tangage → trajectoire), puis bancs A/B pas à pas (`dbgStep(n,16|33)`,
 la boucle gelée) contre la version d'avant. **Aucun verdict défait** : zéro assistance, volant sans aimant, AIR_RATE 1, ↑ piqué / ↓ cabré,
