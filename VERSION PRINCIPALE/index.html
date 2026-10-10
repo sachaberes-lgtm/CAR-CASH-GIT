@@ -13349,7 +13349,7 @@ function buildJade(seed){
    · NUAGE : des CUBES de nuage (1-2,6 m) qui débordent des deux bords, dessus et dessous — le ruban devient un nuage ;
    · PLANCHES : une RAMBARDE en bois laqué rouge (poteaux tous les 6 m, deux lisses), et des LANTERNES rouges qui luisent tous les ~42 m,
      accrochées au bout d'un bras au-dessus de la route, d'un côté puis de l'autre. Aucune collision (décor). */
-const JROUTE={style:(function(){const m=/[?&]route=(nuage|planches|emeraude)\b/.exec(location.search);return m?{emeraude:0,nuage:1,planches:2}[m[1]]:1;})()};
+const JROUTE={style:(function(){const m=/[?&]route=(nuage|planches|emeraude)\b/.exec(location.search);return m?{emeraude:0,nuage:1,planches:2}[m[1]]:2;})()}; // (v15, Léo : « planche en bois ») le CHEMIN DE PLANCHES par défaut ; nuage et émeraude restent (touche R, ?route=)
 function jadeBoite(P,N,C,c,ax,ay,az,hx,hy,hz,col){ // une boîte orientée (axes unitaires, demi-tailles), 36 sommets, normales plates
   const F=[[ax,ay,az,hx,hy,hz],[ax.clone().negate(),ay,az.clone().negate(),hx,hy,hz],[az,ay,ax.clone().negate(),hz,hy,hx],[az.clone().negate(),ay,ax,hz,hy,hx],[ay,az,ax,hy,hz,hx],[ay.clone().negate(),az.clone().negate(),ax,hy,hz,hx]];
   const QA=[[-1,-1],[1,-1],[1,1],[-1,-1],[1,1],[-1,1]],QB=[[-1,-1],[1,1],[1,-1],[-1,-1],[-1,1],[1,1]],X9=new THREE.Vector3();
@@ -13396,7 +13396,7 @@ function jadeRouteStyle(k){ // 0 émeraude · 1 nuage · 2 planches : la surface
   return ['EMERAUDE','NUAGE','PLANCHES'][k];}
 window.dbgEffondre=function(){return {montagnes:JCH.L.length,tombees:JCH.L.filter(function(c){return c.t0;}).length,finies:JCH.L.filter(function(c){return c.fin;}).length,ecume:JCH.sp.length,sChute:JCH.L.length?Math.round(Math.min.apply(null,JCH.L.map(function(c){return c.sN;}))):null,L:Math.round(L)};};
 window.dbgRoute=function(k){return jadeRouteStyle(k==null?(JROUTE.style+1)%3:k);};
-addEventListener('keydown',function(e){if(e.code!=='KeyR'||e.repeat||!BALADE||!JADE.root)return;const k=JROUTE.style===1?2:JROUTE.style===2?0:1;const nm=jadeRouteStyle(k);try{slam('ROUTE '+nm,'',null,null,null,2);}catch(e9){}}); // (v14) la touche R : nuage → planches → émeraude
+addEventListener('keydown',function(e){if(e.code!=='KeyR'||e.repeat||!BALADE||!JADE.root)return;const k=JROUTE.style===2?1:JROUTE.style===1?0:2;const nm=jadeRouteStyle(k);try{slam('ROUTE '+nm,'',null,null,null,2);}catch(e9){}}); // (v14) la touche R : nuage → planches → émeraude
 /* (v14, Léo : « crée un début et une fin du niveau, moyen, ni trop court ni trop long ») LES DEUX PORTIQUES — le 牌坊 des entrées de
    temple, en cubes d'un mètre : deux piliers laqués rouges sur leurs socles de pierre (hors de la route), deux linteaux, une plaque d'or au
    milieu, un toit de tuiles débordant aux coins RELEVÉS, l'or au faîte. Le DÉPART à 120 m, l'ARRIVÉE à 140 m du bout (avant le portail). */

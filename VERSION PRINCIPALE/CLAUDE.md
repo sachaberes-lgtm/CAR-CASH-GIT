@@ -189,6 +189,8 @@ d'aller dans cette map avec une voiture, la mobilité comme le main, mais seulem
     joints, clous, une poutre sur chaque bord, une RAMBARDE laquée rouge (poteaux tous les 6 m, deux lisses) et des LANTERNES rouges tous
     les ~42 m (`JADE.decoPlanches`). Les rails, la lueur, les flancs, la ligne suivent le style (⚠ le caméléon des rails mesure la teinte
     une fois : `userData.hsl=null` pour qu'il la remesure). L'émeraude reste (0). sw.js → v216.
+  · (v15) Léo a tranché : « planche en bois » → le CHEMIN DE PLANCHES est la route par défaut (`JROUTE.style` 2) ; la touche R passe à
+    nuage puis émeraude, `?route=nuage|emeraude` les rouvre. sw.js → v217.
 - Mesuré (Chrome sans fenêtre du Mac) : 60 i/s, construction 16-28 ms, tri ~0,03 ms ; collisions (`dbgJadeHeurt('test')`, 3 vallées) :
   piliers durs, arche et dessous du pont libres, AUCUN point de la route dans la pierre. Console : `dbgJade()`, `dbgJadeVue('route'|'porte'|
   'pont'|'haut'|'loin'|'grue',d,h,cap)` (photo figée), `dbgGrues()`. sw.js → v203.
