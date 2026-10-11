@@ -1,6 +1,11 @@
 # CASH CAR — guide projet pour Claude Code
 
 ## LA PASSE UX/UI — L'ACCUEIL, LE GARAGE, L'ŒIL, LES TRANSITIONS (2026-10-11, session GRAPHISME — Sacha : « la disposition des boutons dans chaque écran est super moche, mets-toi dans la peau d'un designer UX/UI senior et règle ça page par page » · « l'accueil c'est moche, le garage est bof, plein de boutons au mauvais endroit — le bouton œil ne ressemble pas à un œil, il ne devrait pas être sur la fenêtre mais flotter, et quand on clique dessus la caméra doit recentrer sur la voiture » · « tous les boutons du garage sont à réorganiser, travaille les transitions »)
+⚠ **LA PARTIE GARAGE EST RETIRÉE (2026-10-11, Léo : « non, celui d'avant : INVENTAIRE et BOUTIQUE en bas, ÉQUIPER au-dessus de JOUER ; l'œil et
+HOME où ils étaient ; garde juste que l'œil change le point de vue »)** : plus de grille du panneau, plus de `#gFlot`, plus de fondu de la
+console, l'ancien dessin de l'œil — la console garde sa rangée HOME · ŒIL · ÉQUIPER au-dessus de INVENTAIRE · BOUTIQUE · JOUER. Reste de la
+passe : l'accueil, les transitions, la carrière, et le RECENTRAGE de la caisse quand l'œil est allumé. Ne pas remettre ce rangement du garage
+sans que Léo le demande. Ce qui suit décrit la passe d'origine.
 TOUT le rangement vit dans **`<style id="uxPasse">`**, la DERNIÈRE feuille de la page (juste après `<style id="poki">`) : retirer le bloc = revenir.
 Le HTML, les identifiants et les écouteurs ne bougent pas, sauf HOME et l'œil (voir plus bas). Règles : on LIT en haut, on TOUCHE en bas ; un
 rôle = une place ; l'action principale = l'unique plaque d'or ; mêmes hauteurs sur une rangée ; 44 px au doigt ; la VUE flotte sur la scène,
