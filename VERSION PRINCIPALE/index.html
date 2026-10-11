@@ -10754,8 +10754,9 @@ function roadMat(){
       '  float reed=mix(1.,.55+.45*step(.5,fract(an*7.64)),edg*dF9);'+                                                        // la tranche crénelée
       '  float lit=.5+.5*rd.y;'+                                                                                               // le rebord : le bord du fond prend la lumière, celui du devant reste dans l ombre
       '  cw=au*(.55+rim*(.25+1.10*lit)*dF9+.30*ring*dF9*lit+.55*star*dF9-.45*edg*(1.-lit))*reed;'+
+      '  cw=mix(cw,vec3(.34,.045,.035)*(.85+.35*lit),star*dF9*.62);'+                                                         // (Léo : « une étoile rouge discrète ») l étoile en ÉMAIL rouge sombre
       '  float tl=.55*edg-.45*smoothstep(.74,.80,u)*(1.-smoothstep(.80,.84,u))+.40*(smoothstep(.18,.27,u)*(1.-smoothstep(.27,.33,u)))*dF9;'+
-      '  jF9=rd*tl*dF9+(vec2(jdH9(wi+4.4),jdH9(wi+8.8))-.5)*.70;jH9=wh;jM9=.55+.45*max(rim,star*dF9);'+                       // la pente de chaque pièce (son éclat à elle)
+      '  jF9=rd*tl*dF9+(vec2(jdH9(wi+4.4),jdH9(wi+8.8))-.5)*.70;jH9=wh;jM9=(.55+.45*rim)*(1.-.55*star*dF9);'+                       // la pente de chaque pièce (son éclat à elle)
       '  cw*=mix(1.,.18+.82*smoothstep(0.,.20,ao),dF9);}'+                                                                     // l ombre des pièces du dessus
       'jc=mix(vec3(.34,.24,.07),cw,.25+.75*dF9);jM9=mix(.45,jM9,dF9);jOr9=0.;}'+
       'diffuseColor.rgb=mix(diffuseColor.rgb,jc,uJadeR);spec9=mix(spec9,uJSt9<.5?1.:uJSt9<1.5?.15:uJSt9<2.5?.3:uJSt9<3.5?.12:.95,uJadeR);}')
