@@ -6429,6 +6429,24 @@ html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip{grid-row:1;grid-column:
    (quand il y a quelque chose à acheter) se range au-dessus de JOUER, à droite, et l'œil se fait étroit à sa gauche. */
 html body #garage:not(.menu):not(.vitrine) #gRang1>#gHomeBas{grid-column:1;grid-row:1/3;width:96px;height:auto;min-height:0;align-self:stretch;gap:8px}
 html body #garage:not(.menu):not(.vitrine) #gRang1>#gHomeBas .gLueur .pxi{--pxs:3}
+/* HOME EN CIEL QUI BOUGE (2026-10-11, Léo : « le HOME en mode ciel qui bouge ») : HOME ramène au ciel — il en porte un morceau : le dégradé
+   de l'accueil (bleu de zénith → lavande → pêche de l'horizon) et deux rangées de nuages pixel qui défilent (deux vitesses : la profondeur).
+   Seule la position du fond bouge (pas de repeinte de mise en page) ; « Réduire les animations » le fige. */
+html body #garage:not(.menu):not(.vitrine) #gRang1>#gHomeBas{color:#fff;text-shadow:0 1px 0 #07050f,0 0 6px rgba(7,5,15,.7);
+  background:
+    radial-gradient(ellipse 15px 6px at 30px 30%,rgba(255,255,255,.95) 92%,transparent 100%),
+    radial-gradient(ellipse 9px 5px at 42px 26%,rgba(255,255,255,.95) 92%,transparent 100%),
+    radial-gradient(ellipse 12px 5px at 96px 44%,rgba(255,255,255,.9) 92%,transparent 100%),
+    radial-gradient(ellipse 20px 7px at 60px 66%,rgba(255,244,236,.85) 92%,transparent 100%),
+    radial-gradient(ellipse 11px 5px at 74px 62%,rgba(255,244,236,.85) 92%,transparent 100%),
+    radial-gradient(ellipse 14px 5px at 8px 80%,rgba(255,236,226,.8) 92%,transparent 100%),
+    linear-gradient(180deg,#2c5fcf 0%,#5d8fe8 34%,#a8b4f0 62%,#f2c7a8 100%);
+  background-size:120px 100%,120px 100%,120px 100%,150px 100%,150px 100%,150px 100%,100% 100%;
+  background-repeat:repeat-x;animation:gHomeCiel 14s linear infinite!important} /* ⚠ pas de !important sur le fond : il figerait la position (une animation ne passe pas devant un !important) */
+@keyframes gHomeCiel{from{background-position:0 0,0 0,0 0,0 0,0 0,0 0,0 0}to{background-position:120px 0,120px 0,120px 0,300px 0,300px 0,300px 0,0 0}}
+@media (prefers-reduced-motion:reduce){html body #garage #gRang1>#gHomeBas{animation:none!important}}
+html[data-reduced-motion="1"] body #garage #gRang1>#gHomeBas{animation:none!important}
+html body #garage:not(.menu):not(.vitrine) #gRang1>#gHomeBas .pxi{color:#fff}
 html body #garage:not(.menu):not(.vitrine) #gAct>#gvCof{grid-column:2;grid-row:1}
 html body #garage:not(.menu):not(.vitrine) #gAct>#gShopBas{grid-column:2;grid-row:2}
 html body #garage:not(.menu):not(.vitrine) #gRang1>#gOeil{grid-column:3;grid-row:1;height:auto;min-height:0;align-self:stretch}
