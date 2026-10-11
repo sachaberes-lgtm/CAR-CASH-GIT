@@ -21835,112 +21835,166 @@ Object.assign(SHAPES,{
     return {hl:[.36,.47,1.14],tl:[.46,.38,-2.44],wx:.82,wzF:ZF,wzR:-ZR,pots:[[.26,.34,-2.45],[-.26,.34,-2.45]],
             lpw:{R:R,w:.27,style:'tourbillon',n:7,jante:0x5ee6ff,accent:0x5ee6ff,fond:0x061a2c,sansPneu:1},roueDeco};
   },
-/* LA MERCURE (2026-10-11, Léo : « retoucheur de voitures est ton nouveau travail… designer des voitures imaginaires grâce à la génération
-   d'images » → une planche de quatre concepts (la cunéiforme, la greffée, la vitrail, LA MERCURE), puis « génère la mercure » (quatre vues
-   en haute qualité) et « génère-la en 3D dans mon jeu ») — UNE HYPERCAR EN MERCURE LIQUIDE. Le concept : un miroir qui coule, qui reflète
-   un ciel de crépuscule rose et violet, dont l'arrière se défait en gouttes de chrome qui filent derrière elle, flamme de nitro violette.
-   · LA FORME (un loft, `S(z)`) : nez en lame au ras de la route, ailes avant plus hautes que le capot (le capot est une VALLÉE entre
-     elles), taille de guêpe au milieu, BULLE de cockpit fumée, grosses HANCHES sur les roues arrière (la caisse est plus large derrière),
-     poupe qui tombe. Feux et sorties en dessous de la lèvre de la poupe.
-   · LA MATIÈRE (`MERC_FS`, un programme) : pas de lumière, que des REFLETS — chaque facette (normale par les dérivées : la DA poly) renvoie
-     un morceau de CIEL : le crépuscule de la Mercure, écrit dans le programme, dans le repère de la CAISSE (elle garde son ciel même sous
-     la route), mêlé au vrai ciel du niveau (`envTex`, repère du monde). Bleu-argent de face, blanc au ras (Fresnel). La bulle : le même
-     miroir, fumé et violet.
-   · LE LIQUIDE (`MERC_VS`) : des ondes qui courent du nez vers la queue, calmes devant, fortes sur les hanches ; le haut de la poupe se
-     laisse TIRER en arrière comme une goutte qui s'étire (la lèvre déborde au-dessus des feux) ; tout s'emballe à la nitro.
-   · LES GOUTTES (un InstancedMesh, le même miroir) : elles se détachent des hanches, de la lèvre de la poupe et des arches arrière, en
-     FILETS (chaque source a un cap qui dérive lentement : les gouttes se suivent), s'étirent en partant, retombent, rapetissent. Dans le
-     repère de la caisse : en course, elles filent derrière. Plus nombreuses et plus longues à la nitro.
+/* LA MERCURE v2 (2026-10-11, Léo, « retoucheur de voitures » : la planche générée, « génère la mercure », « génère-la en 3D dans mon jeu »,
+   puis sur la v1 : « pas ouf, ça se sent que tu t'es appuyé sur la forme des projets précédents ») — UNE HYPERCAR EN MERCURE LIQUIDE.
+   La v1 était un loft à facettes, comme toute la gamme : une sportive violette de plus. La v2 change de TECHNIQUE, trois fois :
+   · LA FORME EST UN LIQUIDE, PAS UN PROFIL : un champ de distance (`MERC_F`) — une goutte allongée, un nez qui s'effile au ras de la route,
+     une BULLE, deux grosses HANCHES, deux ailes avant, une lèvre qui coule en arrière, le tout FONDU (union douce : les volumes se
+     rejoignent comme deux gouttes de mercure), creusé (arches, prise d'air latérale, deux bouches d'échappement), aplati dessous.
+     Le maillage en sort tout seul (SURFACE NETS sur une grille de 3,5 cm, normales = le gradient du champ : LISSE, sans une facette),
+     calculé UNE fois par session (`MERC_GEO`) — la même grille sert à poser phares, feux, sorties et sources des filets SUR la surface.
+   · LA MATIÈRE EST UN MIROIR QUI ONDULE (`MERC_FS`) : le ciel de la Mercure (dégradé violet → rose → or, cirrus, MER DE NUAGES en bruit,
+     soleil bas), lu dans le repère de la caisse, un peu du vrai ciel (`envTex`) ; Fresnel de métal (le mercure renvoie ~73 %) ; des ONDES
+     qui courent du nez à la queue déforment la surface ET la normale (le reflet ondule : c'est ça, le liquide) ; la bulle, fumée.
+   · LES FILETS (`FIL`) : des jets de mercure qui se détachent des hanches, de la lèvre et des arches — un tube qui suit les gouttes émises
+     (sous gravité, dans le repère de la caisse) et dont le rayon fait des PERLES : entre elles le fil s'amincit avec l'âge jusqu'à CASSER
+     (l'instabilité d'un jet liquide) — des chapelets de gouttes reliées, puis séparées, comme sur l'image. À la nitro tout s'emballe.
    Ce qui bouge : `BLING.anim` (jeu) et `userData.anime` (salle blanche). */
   mercure:function(K){
-    const U=LPU,R=.37,ZF=1.46,ZR=-1.42,ZN=2.36,ZT=-2.34,g9=(z,c,s)=>Math.exp(-Math.pow((z-c)/s,2)),ss=(a,b,v)=>{const t=U.cl((v-a)/(b-a),0,1);return t*t*(3-2*t);};
-    let rs=0x51ed270b;const rnd=()=>{rs^=rs<<13;rs^=rs>>>17;rs^=rs<<5;return (rs>>>0)/4294967296;};      // un hasard FIXE (les mêmes filets à chaque construction)
-    // LA FORME : demi-largeur, hauteur de la plus grande largeur, crête des ailes, dessus au milieu (capot → bulle → poupe)
-    const AR=[[0,2*R+.03],[R*.62,2*R+.03],[R+.14,.27]],
-      XW=z=>U.lin([[ZT,.62],[-2.15,.84],[-1.9,.91],[-1.0,.88],[-.3,.82],[.3,.81],[1.0,.84],[1.85,.80],[2.12,.68],[2.28,.52],[ZN,.40]],z)+.07*g9(z,ZF,.55)+.13*g9(z,ZR,.62),
-      YW=z=>U.lin([[ZT,.50],[-1.5,.55],[1.5,.52],[ZN,.38]],z),
-      YF=z=>U.lin([[ZT,.66],[-2.1,.86],[-1.8,.98],[-1.42,1.03],[-.9,.96],[-.3,.86],[.3,.80],[.9,.80],[1.46,.87],[1.95,.72],[2.2,.57],[ZN,.47]],z),
-      YC=z=>U.lin([[ZT,.64],[-2.1,.80],[-1.7,.88],[-1.2,.98],[-.7,1.08],[-.25,1.14],[.15,1.10],[.55,.96],[.95,.80],[1.5,.74],[2.0,.62],[2.2,.53],[ZN,.45]],z),
-      CAB=z=>ss(1.05,.62,z)*ss(-1.75,-1.2,z);                                    // la BULLE : 1 dans l'habitacle, 0 sur le capot et la poupe
-    const S=z=>{const xw=XW(z),yb=Math.max(.27,U.arch(z,[ZF,ZR],AR,.27)),y2=Math.max(yb+.04,.33),y3=Math.max(y2+.04,YW(z)),
-        yf=Math.max(YF(z),y3+.05),y4=y3+(yf-y3)*.5,xf=xw-.17,c=CAB(z),yc=YC(z),
-        x6=xf-.12+(.56-(xf-.12))*c,y6=yf-.03+.05*c,pts=[[0,.27],[xw-.14,yb],[xw-.03,y2],[xw,y3],[xw-.05,y4],[xf,yf],[x6,y6]];
-      for(const a of [Math.PI/6,Math.PI/3]){const k=Math.pow(Math.cos(a),.8),s9=Math.pow(Math.sin(a),.8);pts.push([x6*k,y6+(yc-y6)*s9]);}  // le dôme (ou la vallée du capot)
-      pts.push([0,yc]);return pts;};
-    const zs=[];for(let z=ZT;z<ZN-1e-6;z+=.09)zs.push(z);zs.push(ZN);              // serré : les ondes ont des sommets où courir
-    for(const w of [ZF,ZR])for(const d of [-R-.14,-R*.62,R*.62,R+.14])zs.push(w+d);
-    zs.sort((a,b)=>a-b);for(let i=zs.length-1;i>0;i--)if(zs[i]-zs[i-1]<.02)zs.splice(i,1);
-    const B=K.kit({m:{g:'l',c:0xffffff},v:{g:'l',c:0x2e2a40}});                   // la couleur des sommets ne sert qu'à dire : miroir (blanc) ou bulle (fumée)
-    B.loft(zs,S,(j,z)=>(j>=6&&CAB(z)>.5&&z>-.95&&z<.9&&!(j===6&&z<-.55))?'v':'m');
-    const corps=B.done().l;
-    // CE QUI N'EST PAS DU MERCURE : les phares en fentes, la barre des feux, les deux grosses sorties, le plancher
-    const P=K.kit({W:{g:'l',c:0xf2f6ff},L:{g:'l',c:0xff2a74},V:{g:'l',c:0xb46bff},c:{g:'c',c:0xd9dde6},k:{g:'m',c:0x09080d},s:{g:'s',c:0x141219}});
-    P.sym(sd=>{P.box('W',.20,.024,.02,sd*.20,.40,ZN+.006);                                                       // les phares : deux fentes de lumière
-      P.box('L',.05,.10,.02,sd*.50,.47,ZT-.006);});
-    P.box('L',.96,.026,.02,0,.52,ZT-.006);                                          // la barre des feux, sous la lèvre de la poupe
-    P.box('k',1.30,.06,.30,0,.30,ZT+.12);                                           // le diffuseur
-    P.sym(sd=>{const x=sd*.17,y=.38;P.put('c',new THREE.CylinderGeometry(.088,.088,.26,16,1,true),x,y,ZT-.02,Math.PI/2,0,0);      // les deux GROSSES sorties :
-      P.put('c',new THREE.TorusGeometry(.088,.013,6,16),x,y,ZT-.15);P.cyl('k',.084,.10,16,x,y,ZT+.06,'z');P.cyl('V',.062,.01,16,x,y,ZT,'z');}); // un tube ouvert, la bague, l'âme noire au fond, la lueur violette devant elle
-    P.box('s',1.2,.02,3.9,0,.262,-.05);                                            // le plancher : la caisse se pose
+    const R=.37,ZF=1.42,ZR=-1.38,WX=.84;
+    const sm=(a,b,k)=>{const h=Math.max(k-Math.abs(a-b),0)/k;return Math.min(a,b)-h*h*k*.25;},sM=(a,b,k)=>-sm(-a,-b,k);
+    const ell=(x,y,z,cx,cy,cz,rx,ry,rz)=>{const px=(x-cx)/rx,py=(y-cy)/ry,pz=(z-cz)/rz,k0=Math.sqrt(px*px+py*py+pz*pz),
+      k1=Math.sqrt(px*px/(rx*rx)+py*py/(ry*ry)+pz*pz/(rz*rz))||1e-6;return k0*(k0-1)/k1;};
+    const rcone=(x,y,z,ax,ay,az,bx,by,bz,r1,r2)=>{const bax=bx-ax,bay=by-ay,baz=bz-az,l2=bax*bax+bay*bay+baz*baz,rr=r1-r2,a2=l2-rr*rr,il2=1/l2,
+      pax=x-ax,pay=y-ay,paz=z-az,yy=pax*bax+pay*bay+paz*baz,zz=yy-l2,qx=pax*l2-bax*yy,qy=pay*l2-bay*yy,qz=paz*l2-baz*yy,x2=qx*qx+qy*qy+qz*qz,
+      y2=yy*yy*l2,z2=zz*zz*l2,k=Math.sign(rr)*rr*rr*x2;
+      if(Math.sign(zz)*a2*z2>k)return Math.sqrt(x2+z2)*il2-r2;if(Math.sign(yy)*a2*y2<k)return Math.sqrt(x2+y2)*il2-r1;return (Math.sqrt(x2*a2*il2)+yy*rr)*il2-r1;};
+    const capsule=(x,y,z,ax,ay,az,bx,by,bz,r)=>{const bax=bx-ax,bay=by-ay,baz=bz-az,pax=x-ax,pay=y-ay,paz=z-az,
+      h=Math.max(0,Math.min(1,(pax*bax+pay*bay+paz*baz)/(bax*bax+bay*bay+baz*baz))),dx=pax-bax*h,dy=pay-bay*h,dz=paz-baz*h;return Math.sqrt(dx*dx+dy*dy+dz*dz)-r;};
+    // LE CHAMP : la caisse sans sa bulle (`corps`), la bulle (`bulle`), et le tout (`MERC_F`)
+    const corps=(x,y,z)=>{const a=Math.abs(x);
+      let f=ell(a,y,z,0,.60,-.05,.80,.35,2.05);                                       // la goutte
+      f=sm(f,rcone(a,y,z,0,.56,.85,0,.41,2.34,.38,.08),.30);                          // le nez qui s'effile au ras de la route
+      f=sm(f,ell(a,y,z,.60,.70,-1.42,.44,.36,.96),.24);                               // les HANCHES
+      f=sm(f,ell(a,y,z,.64,.58,1.36,.32,.26,.62),.22);                                // les ailes avant
+      f=sm(f,ell(a,y,z,0,.52,-1.72,.62,.30,.70),.20);                                 // la poupe
+      f=sm(f,ell(a,y,z,.36,.76,-2.06,.34,.19,.56),.16);                               // la LÈVRE qui coule en arrière
+      f=sM(f,-capsule(a,y,z,.95,.48,1.0,1.02,.66,-.9,.18),.12);                      // la prise d'air qui creuse le flanc
+      for(const zw of [ZF,ZR]){const dC=Math.hypot(y-R,z-zw)-(R+.075);f=sM(f,-sM(dC,.44-a,.05),.05);}   // les arches
+      const dE=Math.hypot(a-.20,y-.42)-.095;f=sM(f,-Math.max(dE,z+1.92),.03);          // les deux bouches d'échappement
+      return sM(f,.235-y,.05);};                                                        // à plat dessous
+    const bulle=(x,y,z)=>ell(Math.abs(x),y,z,0,.92,-.25,.50,.26,1.05);
+    const MERC_F=(x,y,z)=>sm(corps(x,y,z),bulle(x,y,z),.22);
+    const grad=(x,y,z,o)=>{const e=.006,gx=MERC_F(x+e,y,z)-MERC_F(x-e,y,z),gy=MERC_F(x,y+e,z)-MERC_F(x,y-e,z),gz=MERC_F(x,y,z+e)-MERC_F(x,y,z-e),
+      l=Math.hypot(gx,gy,gz)||1;o[0]=gx/l;o[1]=gy/l;o[2]=gz/l;return o;};
+    const trace=(x,y,z,dx,dy,dz)=>{const l=Math.hypot(dx,dy,dz);dx/=l;dy/=l;dz/=l;let t=0;
+      for(let i=0;i<260;i++){const d=MERC_F(x+dx*t,y+dy*t,z+dz*t);if(d<.0015)return [x+dx*t,y+dy*t,z+dz*t];t+=Math.max(d*.7,.002);if(t>5)break;}return null;};
+    // LE MAILLAGE : surface nets (une fois par session)
+    if(!SHAPES.mercure._geo){const h=.035,X0=-1.16,Y0=.17,Z0=-2.80,nx=67,ny=35,nz=154,N=nx*ny*nz,V=new Float32Array(N);
+      for(let k=0;k<nz;k++)for(let j=0;j<ny;j++)for(let i=0;i<nx;i++)V[i+nx*(j+ny*k)]=MERC_F(X0+i*h,Y0+j*h,Z0+k*h);
+      const CI=new Int32Array((nx-1)*(ny-1)*(nz-1)).fill(-1),P=[],Nn=[],G=[],IX=[],g3=[0,0,0];
+      const EDG=[[0,1],[2,3],[4,5],[6,7],[0,2],[1,3],[4,6],[5,7],[0,4],[1,5],[2,6],[3,7]],CO=[[0,0,0],[1,0,0],[0,1,0],[1,1,0],[0,0,1],[1,0,1],[0,1,1],[1,1,1]],v8=new Float32Array(8);
+      for(let k=0;k<nz-1;k++)for(let j=0;j<ny-1;j++)for(let i=0;i<nx-1;i++){let m=0;
+        for(let c=0;c<8;c++){const o=CO[c];v8[c]=V[(i+o[0])+nx*((j+o[1])+ny*(k+o[2]))];if(v8[c]<0)m|=1<<c;}
+        if(m===0||m===255)continue;let sx=0,sy=0,sz=0,n=0;
+        for(const e of EDG){const a=v8[e[0]],b=v8[e[1]];if((a<0)===(b<0))continue;const t=a/(a-b),A=CO[e[0]],B=CO[e[1]];
+          sx+=A[0]+(B[0]-A[0])*t;sy+=A[1]+(B[1]-A[1])*t;sz+=A[2]+(B[2]-A[2])*t;n++;}
+        const x=X0+(i+sx/n)*h,y=Y0+(j+sy/n)*h,z=Z0+(k+sz/n)*h;CI[i+(nx-1)*(j+(ny-1)*k)]=P.length/3;P.push(x,y,z);grad(x,y,z,g3);Nn.push(g3[0],g3[1],g3[2]);
+        const db=bulle(x,y,z),dc=corps(x,y,z);G.push(Math.max(0,Math.min(1,(dc-db)/.05))*Math.max(0,Math.min(1,(y-.86)/.08))*(z>-1.05&&z<.62?1:0));}
+      const ci=(i,j,k)=>(i<0||j<0||k<0||i>=nx-1||j>=ny-1||k>=nz-1)?-1:CI[i+(nx-1)*(j+(ny-1)*k)];
+      const quad=(a,b,c,d,fl)=>{if(a<0||b<0||c<0||d<0)return;if(fl)IX.push(a,b,c,a,c,d);else IX.push(a,c,b,a,d,c);};
+      for(let k=1;k<nz-1;k++)for(let j=1;j<ny-1;j++)for(let i=1;i<nx-1;i++){const v0=V[i+nx*(j+ny*k)],in0=v0<0;
+        if(i<nx-1){const in1=V[(i+1)+nx*(j+ny*k)]<0;if(in0!==in1)quad(ci(i,j-1,k-1),ci(i,j,k-1),ci(i,j,k),ci(i,j-1,k),in0);}
+        if(j<ny-1){const in1=V[i+nx*((j+1)+ny*k)]<0;if(in0!==in1)quad(ci(i-1,j,k-1),ci(i-1,j,k),ci(i,j,k),ci(i,j,k-1),in0);}
+        if(k<nz-1){const in1=V[i+nx*(j+ny*(k+1))]<0;if(in0!==in1)quad(ci(i-1,j-1,k),ci(i,j-1,k),ci(i,j,k),ci(i-1,j,k),in0);}}
+      SHAPES.mercure._geo={P:new Float32Array(P),N:new Float32Array(Nn),G:new Float32Array(G),I:new Uint32Array(IX)};}
+    const MG=SHAPES.mercure._geo,geo=new THREE.BufferGeometry();
+    geo.setAttribute('position',new THREE.BufferAttribute(MG.P,3));geo.setAttribute('normal',new THREE.BufferAttribute(MG.N,3));
+    geo.setAttribute('aG',new THREE.BufferAttribute(MG.G,1));geo.setIndex(new THREE.BufferAttribute(MG.I,1));geo.computeBoundingSphere();
+    // CE QUI N'EST PAS DU MERCURE, posé SUR la surface : phares, feux, fond des bouches, plancher
+    const P=K.kit({W:{g:'l',c:0xf4f7ff},L:{g:'l',c:0xff2f86},V:{g:'l',c:0xb46bff},s:{g:'s',c:0x110f16}});
+    const tige=(k,a,b,r)=>{const dx=b[0]-a[0],dy=b[1]-a[1],dz=b[2]-a[2],l=Math.hypot(dx,dy,dz);if(l<1e-4)return;
+      const g=new THREE.CylinderGeometry(r,r,l,6,1,false),q=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0),new THREE.Vector3(dx/l,dy/l,dz/l));
+      g.applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3((a[0]+b[0])/2,(a[1]+b[1])/2,(a[2]+b[2])/2),q,new THREE.Vector3(1,1,1)));P.put(k,g,0,0,0);};
+    const ligne=(k,pts,r,ent)=>{const s=pts.map(p=>{const q=trace(p[0],p[1],p[2],p[3],p[4],p[5]);if(!q)return null;const n=grad(q[0],q[1],q[2],[0,0,0]);
+      return [q[0]-n[0]*ent,q[1]-n[1]*ent,q[2]-n[2]*ent];});for(let i=1;i<s.length;i++)if(s[i-1]&&s[i])tige(k,s[i-1],s[i],r);};
+    for(const sd of [1,-1]){const ph=[];for(let i=0;i<=6;i++){const x=sd*(.30+i*.05);ph.push([x,.60+i*.006,3.2,0,-.28,-1]);}ligne('W',ph,.017,.008); // les phares : une fente de lumière
+      const fe=[];for(let i=0;i<=8;i++){const x=sd*(.06+i*.075);fe.push([x,.64+i*.012,-3.3,0,0,1]);}ligne('L',fe,.011,.004);                         // les feux : un fil rose sous la lèvre
+      P.cyl('V',.088,.012,18,sd*.20,.42,-1.93,'z');}                                    // le fond des bouches : la lueur violette
+    P.box('s',1.10,.02,3.7,0,.245,-.10);
     K.commit(P);
     const g=K.add(new THREE.Group());
-    // LE MIROIR : un programme pour la caisse (avec ses ondes), un pour les gouttes (instanciées)
+    // LE MIROIR
     const UM={uT:{value:0},uF:{value:0}},env=(typeof envTex!=='undefined'&&envTex)?envTex:null;
     const AXES='vX=normalize(modelMatrix[0].xyz);vY=normalize(modelMatrix[1].xyz);vZ=normalize(modelMatrix[2].xyz);',
-      MERC_VS='uniform float uT,uF;varying vec3 vW,vX,vY,vZ,vL;varying float vG;void main(){vec3 p=position;vL=p;'+AXES+
-      'float m=mix(.004,.024,1.-smoothstep(-2.3,1.3,p.z))*smoothstep(.29,.46,p.y);'+                                    /* calme devant, liquide sur les hanches ; le dessous ne bouge pas */
-      'float w=sin(p.z*7.3+uT*(5.5+uF*5.))*.6+sin(p.z*12.1-p.x*5.3+uT*(8.+uF*6.))*.28+sin(p.x*9.7+p.y*6.1-uT*3.4)*.22;'+
-      'vec3 d=normalize(vec3(p.x,(p.y-.58)*1.4,0.)+vec3(0.,1e-3,0.));p+=d*w*m*(1.+uF*.9);'+
-      'float tq=max(0.,-p.z-1.9)*smoothstep(.56,.72,p.y);p.z-=tq*tq*(1.5+.5*sin(uT*4.1+p.x*5.)+uF*1.4);'+            /* le haut de la poupe s'étire comme une goutte */
-      'vG=1.-color.r;vec4 wp=modelMatrix*vec4(p,1.);vW=wp.xyz;gl_Position=projectionMatrix*viewMatrix*wp;}',
-      GOU_VS='varying vec3 vW,vX,vY,vZ,vL;varying float vG;void main(){vG=0.;vL=vec3(0.,0.,9.);'+AXES+'vec4 wp=modelMatrix*instanceMatrix*vec4(position,1.);vW=wp.xyz;gl_Position=projectionMatrix*viewMatrix*wp;}',
-      MERC_FS='uniform float uT,uF,uEnvK;uniform samplerCube uEnv;uniform vec3 uSun;varying vec3 vW,vX,vY,vZ,vL;varying float vG;'+
-      'vec3 ciel(vec3 r){float y=r.y,ay=abs(y);vec3 c;'+                                                                      /* le crépuscule de la Mercure */
-      'if(y>0.){c=mix(vec3(1.,.70,.46),vec3(1.,.62,.82),smoothstep(0.,.07,y));c=mix(c,vec3(.58,.42,.80),smoothstep(.07,.22,y));'+  /* or à l'horizon, rose, puis le banc de nuages violets… */
-      'c=mix(c,vec3(.97,.97,1.),smoothstep(.24,.62,y));}'+                                                                      /* …et l'ARGENT au-dessus */
-      'else{c=mix(vec3(.05,.02,.08),vec3(.92,.56,.72),smoothstep(.03,.10,ay));c=mix(c,vec3(.10,.06,.16),smoothstep(.16,.34,ay));'+ /* l'arête noire sous l'horizon, une bande de nuages roses, puis l'ombre */
-      'float b=.5+.5*sin(atan(r.z,r.x)*11.+y*46.);c+=vec3(.20,.09,.14)*b*smoothstep(.06,.12,ay)*(1.-smoothstep(.16,.30,ay));}'+
-      'float s=max(dot(r,uSun),0.);c+=vec3(1.,.88,.66)*(pow(s,500.)*5.+pow(s,20.)*.3);'+                                      /* le soleil, bas */
-      'c+=vec3(1.,.35,.8)*.30*exp(-ay*60.);return c;}'+                                                                           /* la ligne de néon rose de l'horizon */
-      'void main(){vec3 n=normalize(cross(dFdx(vW),dFdy(vW))),v=normalize(cameraPosition-vW);'+                            /* la normale de la FACETTE */
-      'vec3 r=reflect(-v,n),rl=normalize(vec3(dot(r,vX),dot(r,vY),dot(r,vZ)));'+                                              /* le ciel de la caisse se lit dans SON repère */
-      'vec3 e=textureCube(uEnv,vec3(-r.x,r.y,r.z)).rgb;vec3 c=mix(ciel(rl),e*1.3,uEnvK);'+
-      'float fr=pow(1.-max(dot(n,v),0.),3.);c*=mix(vec3(.90,.92,1.),vec3(1.08),fr)*(.84+.28*fr);'+                         /* bleu-argent de face, blanc au ras */
-      'c=mix(c,c*vec3(.30,.24,.44)+vec3(.015,0.,.04),vG*.88);'+                                                             /* la bulle : un miroir fumé */
-      'float on=pow(max(0.,sin(vL.z*2.3+uT*(3.2+uF*3.))),28.)*(1.-vG)*step(vL.z,8.);c+=vec3(1.,.95,1.)*on*(.22+.5*fr);'+  /* le REFLET qui court du nez à la queue : le liquide */
-      'c+=vec3(.75,.45,1.)*uF*.22*fr;gl_FragColor=vec4(c,1.);}';
-    const mirMat=vs=>{const m=new THREE.ShaderMaterial({uniforms:{uT:UM.uT,uF:UM.uF,uEnv:{value:env},uEnvK:{value:env?.30:0},
-      uSun:{value:new THREE.Vector3(-.42,.20,.88).normalize()}},vertexShader:vs,fragmentShader:MERC_FS,vertexColors:vs===MERC_VS,
-      extensions:{derivatives:true}});m.userData.g='mercure';return m;};
-    const mCorps=mirMat(MERC_VS),caisse=new THREE.Mesh(corps,mCorps);caisse.userData.brut=1;g.add(caisse);
-    // LES GOUTTES
-    const NG=170,gouttes=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1,1),mirMat(GOU_VS),NG);
-    gouttes.frustumCulled=false;gouttes.userData.brut=1;gouttes.userData.noShadow=1;g.add(gouttes);
-    // les SOURCES : le dessus des hanches, la lèvre de la poupe, le haut des arches arrière — chacune son cap qui dérive (les filets)
-    const SRC=[];
-    for(const sd of [1,-1]){SRC.push({p:[sd*.78,1.0,-1.70],o:[sd*.18,.50,-1.5],k:1.2});SRC.push({p:[sd*.96,.74,-1.92],o:[sd*.35,.22,-1.2],k:.7});
-      SRC.push({p:[sd*.42,.70,-2.42],o:[sd*.10,.28,-1.6],k:1.0});}
-    SRC.push({p:[0,.72,-2.44],o:[0,.32,-1.7],k:.7});
-    for(const s of SRC){s.ph=rnd()*6.3;s.w=.7+rnd()*.9;s.acc=rnd();}
-    const GO=[];for(let k=0;k<NG;k++)GO.push({v:0});
-    const lance=(s,t,F)=>{for(const o of GO)if(o.v<=0){const a=Math.sin(t*s.w+s.ph),b=Math.sin(t*s.w*1.7+s.ph*2.3);
-        o.v=.45+rnd()*.45+F*.45;o.v0=o.v;o.x=s.p[0]+(rnd()-.5)*.08;o.y=s.p[1]+(rnd()-.5)*.05;o.z=s.p[2]-F*.25;
-        o.vx=s.o[0]*(1+.5*a)+(rnd()-.5)*.12;o.vy=s.o[1]*(1+.6*b)+(rnd()-.5)*.1;o.vz=s.o[2]*(1+.25*a)*(1+F*.7)-rnd()*.3;
-        const gros=rnd()<.10;o.s=(gros?.06+rnd()*.035:.018+rnd()*.03)*(1+F*.25);return;}};
-    const M9=new THREE.Matrix4(),Q9=new THREE.Quaternion(),V9=new THREE.Vector3(),S9=new THREE.Vector3();
-    const pasGouttes=(dt,t,F)=>{for(const s of SRC){s.acc+=dt*s.k*(22+F*40);while(s.acc>=1){s.acc-=1;lance(s,t,F);}}
-      let n=0;for(const o of GO){if(o.v<=0)continue;o.v-=dt;o.vy-=4.2*dt;o.x+=o.vx*dt;o.y+=o.vy*dt;o.z+=o.vz*dt;if(o.y<.04){o.v=0;continue;}
-        const u=o.v/o.v0,et=1+2.2*Math.max(0,u-.62)/.38,sc=o.s*Math.min(1,u*2.2);       // elle s'ÉTIRE en se détachant, puis s'arrondit et rapetisse
-        M9.compose(V9.set(o.x,o.y,o.z),Q9,S9.set(sc/Math.sqrt(et),sc/Math.sqrt(et),sc*et));gouttes.setMatrixAt(n++,M9);}
-      gouttes.count=n;gouttes.instanceMatrix.needsUpdate=true;};
-    // LA VIE : le mercure ondule, la poupe s'étire, les gouttes filent ; tout s'emballe à la nitro
+      VAR='varying vec3 vW,vN,vL,vX,vY,vZ;varying float vG,vA;',
+      MERC_VS='uniform float uT,uF;attribute float aG;'+VAR+'void main(){vec3 p=position,n=normal;vL=p;vN=n;vG=aG;'+AXES+
+      'float t=uT*(1.+uF*.9),A=mix(.003,.013,1.-smoothstep(-2.2,1.2,p.z))*smoothstep(.27,.45,p.y)*(1.+uF*.6);vA=A;'+  /* calme devant, liquide sur les hanches */
+      'float w=sin(p.z*7.+p.x*1.3+t*5.5)*.6+sin(p.z*11.-p.x*4.1+t*8.)*.28+sin(p.x*8.7+p.y*6.1-t*3.4)*.22;p+=n*w*A;'+
+      'float tq=max(0.,-p.z-1.95)*smoothstep(.62,.80,p.y);p.z-=tq*tq*(1.1+.35*sin(uT*4.1+p.x*5.)+uF*1.1);'+             /* la lèvre s'étire comme une goutte */
+      'vec4 wp=modelMatrix*vec4(p,1.);vW=wp.xyz;gl_Position=projectionMatrix*viewMatrix*wp;}',
+      FIL_VS=VAR+'void main(){vL=position;vN=normal;vG=0.;vA=0.;'+AXES+'vec4 wp=modelMatrix*vec4(position,1.);vW=wp.xyz;gl_Position=projectionMatrix*viewMatrix*wp;}',
+      PER_VS=VAR+'void main(){vL=position;vN=normal;vG=0.;vA=0.;'+AXES+'vec4 wp=modelMatrix*instanceMatrix*vec4(position,1.);vW=wp.xyz;gl_Position=projectionMatrix*viewMatrix*wp;}',
+      MERC_FS='uniform float uT,uF,uEnvK;uniform samplerCube uEnv;uniform vec3 uSun;'+VAR+
+      'float h2(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}'+
+      'float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h2(i),h2(i+vec2(1.,0.)),f.x),mix(h2(i+vec2(0.,1.)),h2(i+vec2(1.,1.)),f.x),f.y);}'+
+      'float fbm(vec2 p){float s=0.,a=.5;for(int i=0;i<4;i++){s+=a*vn(p);p=p*2.03+vec2(1.7,9.2);a*=.5;}return s;}'+
+      'vec3 ciel(vec3 r){float y=r.y;vec3 hor=vec3(1.,.86,.70),c=mix(hor,vec3(.96,.74,.86),smoothstep(0.,.12,y));c=mix(c,vec3(.70,.64,.90),smoothstep(.12,.32,y));'+
+      'c=mix(c,vec3(.93,.93,.99),smoothstep(.30,.80,y));'+                                                                                   /* or, rose, un voile violet, puis l'ARGENT */
+      'if(y>0.){vec2 q=r.xz/(y+.12)*1.3;float cl=smoothstep(.48,.86,fbm(q*vec2(1.,2.6)));c=mix(c,vec3(1.,.88,.93),cl*.55*smoothstep(.02,.3,y));}'+  /* les cirrus */
+      'else{vec2 q=r.xz/(.06-y)*1.1;float cl=fbm(q+vec2(0.,uT*.05)),top=smoothstep(.34,.74,cl);'+                                               /* la MER DE NUAGES */
+      'vec3 sea=mix(vec3(.46,.38,.58),vec3(1.,.86,.92),top);sea=mix(sea,hor*.96,exp(y*12.));c=mix(c,sea,smoothstep(0.,.015,-y));'+
+      'c=mix(c,vec3(.11,.09,.15),smoothstep(.28,.62,-y));}'+                                                                                 /* tout en bas : l'ombre de la route */
+      'float s=max(dot(r,uSun),0.);c+=vec3(1.,.92,.75)*(pow(s,300.)*4.+pow(s,12.)*.2);return c;}'+                                           /* le soleil, bas */
+      'void main(){vec3 n=normalize(vN);'+
+      'if(vA>0.){float t=uT*(1.+uF*.9),a1=vL.z*7.+vL.x*1.3+t*5.5,a2=vL.z*11.-vL.x*4.1+t*8.,a3=vL.x*8.7+vL.y*6.1-t*3.4;'+                       /* l'onde déforme aussi la NORMALE : le reflet ondule */
+      'vec3 gr=vec3(.78*cos(a1)-1.15*cos(a2)+1.91*cos(a3),1.34*cos(a3),4.2*cos(a1)+3.08*cos(a2));n=normalize(n-(gr-n*dot(n,gr))*vA*1.7);}'+
+      'vec3 nw=normalize(vX*n.x+vY*n.y+vZ*n.z),v=normalize(cameraPosition-vW),r=reflect(-v,nw),rl=normalize(vec3(dot(r,vX),dot(r,vY),dot(r,vZ)));'+
+      'vec3 c=ciel(rl)*(1.-uEnvK)+textureCube(uEnv,vec3(-r.x,r.y,r.z)).rgb*1.4*uEnvK;'+
+      'float fr=pow(1.-max(dot(nw,v),0.),5.);c*=mix(vec3(.78,.79,.82),vec3(1.),fr);'+                                                         /* le mercure renvoie ~73 %, tout au ras */
+      'c=mix(c,c*vec3(.26,.22,.36)+vec3(.01,0.,.03),vG*.88);'+                                                                                  /* la bulle : un miroir fumé */
+      'c+=vec3(.75,.45,1.)*uF*.25*fr;gl_FragColor=vec4(c,1.);}';
+    const mirMat=(vs,col)=>{const m=new THREE.ShaderMaterial({uniforms:{uT:UM.uT,uF:UM.uF,uEnv:{value:env},uEnvK:{value:env?.16:0},
+      uSun:{value:new THREE.Vector3(-.35,.13,.93).normalize()}},vertexShader:vs,fragmentShader:MERC_FS,side:THREE.DoubleSide,extensions:{derivatives:true}});m.userData.g='mercure';return m;};
+    const caisse=new THREE.Mesh(geo,mirMat(MERC_VS));caisse.userData.brut=1;g.add(caisse);
+    // LES FILETS : des PERLES rondes de mercure (instanciées) reliées par un FIL qui s'amincit avec l'âge et CASSE — les chapelets de l'image
+    let rs=0x51ed270b;const rnd=()=>{rs^=rs<<13;rs^=rs>>>17;rs^=rs<<5;return (rs>>>0)/4294967296;};
+    const NP=48,NC=7,PAS=5,FIL=[],mFil=mirMat(FIL_VS),n3=[0,0,0],NPER=90;
+    const perles=new THREE.InstancedMesh(new THREE.SphereGeometry(1,14,10),mirMat(PER_VS),NPER);
+    perles.frustumCulled=false;perles.userData.brut=1;perles.userData.noShadow=1;g.add(perles);
+    const source=(o,d,v,R0,k)=>{const p=trace(o[0],o[1],o[2],d[0],d[1],d[2]);if(!p)return;grad(p[0],p[1],p[2],n3);
+      const pos=new Float32Array(NP*NC*3),nor=new Float32Array(NP*NC*3),ix=[];
+      for(let i=0;i<NP-1;i++)for(let j=0;j<NC;j++){const a=i*NC+j,b=i*NC+(j+1)%NC,c=a+NC,e=b+NC;ix.push(a,c,b,b,c,e);}
+      const gg=new THREE.BufferGeometry();gg.setAttribute('position',new THREE.BufferAttribute(pos,3).setUsage(THREE.DynamicDrawUsage));
+      gg.setAttribute('normal',new THREE.BufferAttribute(nor,3).setUsage(THREE.DynamicDrawUsage));gg.setIndex(ix);
+      const m=new THREE.Mesh(gg,mFil);m.frustumCulled=false;m.userData.brut=1;m.userData.noShadow=1;g.add(m);
+      FIL.push({p:[p[0]-n3[0]*.015,p[1]-n3[1]*.015,p[2]-n3[2]*.015],v,R0,k,ph:rnd()*6.3,w:.8+rnd()*.8,c:0,acc:rnd(),Q:[],pos,nor,gg});};
+    for(const sd of [1,-1]){source([sd*.62,1.6,-1.78],[0,-1,0],[sd*.20,.42,-1.5],.085,1);      // le dessus des hanches
+      source([sd*.40,.80,-3.3],[0,0,1],[sd*.10,.20,-1.7],.068,.9);                              // la lèvre de la poupe
+      source([sd*1.5,.62,-1.92],[-sd,0,0],[sd*.40,.12,-1.2],.056,.8);}                          // le haut des arches arrière
+    const TT=new THREE.Vector3(),UU=new THREE.Vector3(),VV=new THREE.Vector3(),UP=new THREE.Vector3(0,1,0),M9=new THREE.Matrix4(),Q9=new THREE.Quaternion(),V9=new THREE.Vector3(),S9=new THREE.Vector3();
+    const ss=(a,b,x)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t);};
+    const pasFil=(dt,t,F)=>{let np=0;
+      for(const s of FIL){
+        s.acc+=dt*(1/.016)*(1+F*.4)*s.k;
+        while(s.acc>=1){s.acc-=1;const a=Math.sin(t*s.w+s.ph)*.35,b=Math.sin(t*s.w*1.6+s.ph*2.1)*.3,sp=1+F*.55;
+          s.c=(s.c+1)%PAS;                                                                       // une goutte sur PAS porte une PERLE
+          s.Q.unshift({x:s.p[0],y:s.p[1],z:s.p[2],vx:(s.v[0]+a*.5)*sp,vy:(s.v[1]+b*.4)*sp,vz:s.v[2]*sp,a:0,pe:s.c===0,L:.62+rnd()*.2+F*.2,r:.8+rnd()*.4});
+          if(s.Q.length>NP)s.Q.pop();}
+        for(const q of s.Q){q.a+=dt;q.vy-=3.0*dt;q.x+=q.vx*dt;q.y+=q.vy*dt;q.z+=q.vz*dt;if(q.y<.03){q.y=.03;q.vy=0;}}
+        const Q=s.Q,n=Q.length;let o=0;
+        for(let i=0;i<NP;i++){const q=Q[Math.min(i,n-1)];let r=0;
+          if(q&&i<n){r=s.R0*.30*(1-ss(.16,.55,q.a))*(1+2.4*(1-ss(0,.10,q.a)));                  // le FIL : épais à la naissance (le ménisque), puis il s'amincit et casse
+            if(q.pe&&np<NPER){const u=q.a/q.L,R9=s.R0*q.r*(1-ss(.62,1,u))*(1+.5*(1-ss(0,.12,q.a))),et=1+.9*(1-ss(.04,.26,q.a)); // la PERLE : étirée en partant, puis ronde
+              if(R9>.004){M9.compose(V9.set(q.x,q.y,q.z),Q9,S9.set(R9/Math.sqrt(et),R9/Math.sqrt(et),R9*et));perles.setMatrixAt(np++,M9);}}}
+          const qa=Q[Math.max(0,Math.min(i-1,n-1))],qb=Q[Math.min(i+1,n-1)];
+          if(q&&qa&&qb){TT.set(qa.x-qb.x,qa.y-qb.y,qa.z-qb.z);if(TT.lengthSq()<1e-10)TT.set(0,0,1);TT.normalize();}else TT.set(0,0,1);
+          UU.crossVectors(TT,UP);if(UU.lengthSq()<1e-6)UU.set(1,0,0);UU.normalize();VV.crossVectors(UU,TT).normalize();
+          for(let j=0;j<NC;j++){const th9=j/NC*Math.PI*2,cx=Math.cos(th9),sy=Math.sin(th9),nx=UU.x*cx+VV.x*sy,ny=UU.y*cx+VV.y*sy,nz=UU.z*cx+VV.z*sy;
+            s.nor[o]=nx;s.nor[o+1]=ny;s.nor[o+2]=nz;
+            if(q){s.pos[o]=q.x+nx*r;s.pos[o+1]=q.y+ny*r;s.pos[o+2]=q.z+nz*r;}else{s.pos[o]=s.p[0];s.pos[o+1]=s.p[1];s.pos[o+2]=s.p[2];}
+            o+=3;}}
+        s.gg.attributes.position.needsUpdate=true;s.gg.attributes.normal.needsUpdate=true;}
+      perles.count=np;perles.instanceMatrix.needsUpdate=true;};
+    // LA VIE : le mercure ondule, la lèvre s'étire, les filets se détachent ; tout s'emballe à la nitro
     let t=0;const anime=dt=>{dt=Math.min(dt,.1);t+=dt;UM.uT.value=t;const fort=(typeof nitroOn!=='undefined'&&nitroOn)?1:0;
-      UM.uF.value+=(fort-UM.uF.value)*Math.min(1,dt*4);pasGouttes(dt,t,UM.uF.value);};
-    for(let k=0;k<40;k++)anime(1/30);
+      UM.uF.value+=(fort-UM.uF.value)*Math.min(1,dt*4);pasFil(dt,t,UM.uF.value);};
+    for(let k=0;k<45;k++)anime(1/30);
     g.userData.anime=anime;
     if(typeof BLING==='object'&&BLING&&BLING.anim)BLING.anim.push(anime);
-    return {hl:[.20,.40,ZN+.02],tl:[.48,.52,ZT-.02],lamps:0,halos:0,wx:.80,wzF:ZF,wzR:-ZR,pots:[[.17,.38,ZT-.15],[-.17,.38,ZT-.15]],
-            lpw:{R:R,w:.30,style:'multi',n:10,jante:0xd9dde6,accent:0x8a4dff,pneu:0x111015}};
+    const pot=sd=>{const q=trace(sd*.33,.42,-3.3,0,0,1);return [sd*.20,.42,(q?q[2]:-2.3)-.01];};
+    return {hl:[.22,.45,2.30],tl:[.40,.66,-2.40],lamps:0,halos:0,wx:WX,wzF:ZF,wzR:-ZR,pots:[pot(1),pot(-1)],
+            lpw:{R:R,w:.30,style:'multi',n:12,jante:0x3a3d47,accent:0x8a4dff,pneu:0x0e0d12}};
   }
 });
 /* ===== LA GAMME DES 50 — FIN ===== */

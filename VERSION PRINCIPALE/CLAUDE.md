@@ -1,21 +1,22 @@
 # CASH CAR — guide projet pour Claude Code
 
-## LA MERCURE (2026-10-11, Léo, « retoucheur de voitures ») — l'hypercar en MERCURE LIQUIDE, caisse ajoutée EN DERNIER (index 75), ÉPIQUE 3 800 000 $, `SHAPES.mercure`
-Née d'une planche de concepts générés en images (session « retoucheur » : la cunéiforme, la greffée, la vitrail, LA MERCURE), puis « génère la
-mercure » (quatre vues haute qualité) et « génère-la en 3D dans mon jeu ». Le gabarit est dans le bloc `Object.assign(SHAPES,…)`, après LA DÉFERLANTE.
-- LA FORME : un loft (`S(z)`, 10 points par section) — nez en lame effilé, ailes avant plus hautes que le capot (le capot est une vallée),
-  taille de guêpe, BULLE fumée (`CAB(z)`), grosses HANCHES arrière (`XW`), poupe qui tombe. Phares en deux fentes, barre de feux sous la lèvre,
-  deux grosses sorties ouvertes à lueur violette (`pots` déclarés : pas d'entrée dans `ECH_POTS`).
-- LA MATIÈRE (`MERC_FS`) : que des REFLETS, normale de FACETTE par les dérivées (la DA poly). Le ciel reflété = le crépuscule de la Mercure
-  (`ciel()` : argent au zénith, banc violet, rose, or à l'horizon, ARÊTE NOIRE juste sous l'horizon — c'est elle qui fait le chrome —, nuages
-  roses, ombre), lu dans le repère de la CAISSE (axes passés en varyings : `modelMatrix` n'existe pas dans le fragment), mêlé à 30 % au vrai
-  ciel du niveau (`envTex`, repère du monde). La bulle = le même miroir, fumé. Un reflet blanc COURT du nez à la queue (`vL.z`).
-- LE LIQUIDE (`MERC_VS`) : ondes du nez vers la queue (calmes devant, fortes sur les hanches), le HAUT de la poupe s'étire en arrière comme
-  une goutte (la lèvre déborde au-dessus des feux) ; tout s'emballe à la nitro (`uF`).
-- LES GOUTTES : un InstancedMesh d'icosaèdres, le même miroir ; sept sources (dessus des hanches, arches arrière, lèvre de la poupe) au cap qui
-  dérive lentement = des FILETS ; elles s'étirent en partant, retombent, rapetissent, dans le repère de la caisse (en course, elles filent derrière).
-  Raccourcies après capture (elles descendaient jusqu'au bas de l'écran de poursuite). Plus nombreuses et plus longues à la nitro.
-- Vit par `BLING.anim` (jeu) et `userData.anime` (salle blanche). ⚠ GLSL : pas de `transpose`, pas de `smoothstep` à bornes inversées.
+## LA MERCURE v2 (2026-10-11, Léo, « retoucheur de voitures ») — l'hypercar en MERCURE LIQUIDE, caisse ajoutée EN DERNIER (index 75), ÉPIQUE 3 800 000 $, `SHAPES.mercure`
+Née d'une planche de concepts générés en images (session « retoucheur »), « génère la mercure », « génère-la en 3D dans mon jeu ». La v1 (un loft à
+facettes, comme toute la gamme) a été jugée « pas ouf, ça se sent que tu t'es appuyé sur la forme des projets précédents » → la v2 change de TECHNIQUE :
+- LA FORME EST UN CHAMP DE DISTANCE (`MERC_F` = `corps` ∪ `bulle`) : goutte allongée, nez en `rcone` qui s'effile au ras de la route, hanches,
+  ailes avant, poupe, lèvre qui coule en arrière — tout FONDU par union douce (`sm`) ; creusé (`sM`) : arches, prise d'air du flanc, deux bouches
+  d'échappement ; aplati dessous. Maillé par SURFACE NETS (grille 67 × 35 × 154 de 3,5 cm, normales = gradient du champ : lisse, aucune facette),
+  UNE fois par session (`SHAPES.mercure._geo`, ~0,3 s). `trace()` (lancer de rayon dans le champ) pose les phares, les feux et les sources des
+  filets SUR la surface (rend null s'il rate : on ne pose rien). `aG` = la bulle (miroir fumé).
+- LE MIROIR (`MERC_FS`) : ciel de la caisse (or → rose → voile violet → ARGENT, cirrus et MER DE NUAGES en bruit, ombre de la route tout en bas,
+  soleil bas) dans le repère de la caisse (axes en varyings), 16 % du vrai ciel (`envTex`), Fresnel de métal (~78 % de face). Couleurs PASTEL :
+  l'étalonnage de la course sature (en violet franc, la caisse sortait néon). Les ONDES (nez → queue) déplacent la surface ET la normale (gradient
+  analytique) : le reflet ondule. La lèvre s'étire en arrière. Tout s'emballe à la nitro.
+- LES FILETS (`FIL`, six sources) : des PERLES rondes (InstancedMesh de sphères, `PER_VS`) une goutte émise sur `PAS`, reliées par un FIL (tube
+  dynamique, `FIL_VS`) épais à la naissance (le ménisque) qui s'amincit avec l'âge et CASSE ; perles étirées en partant, puis rondes, puis qui
+  rapetissent. Jet régulier (pas de hasard par goutte : ça faisait des zigzags en rubans). Repère de la caisse : en course elles filent derrière.
+- Mesuré au banc (Chrome sans fenêtre, puce du Mac) : 60 i/s en course, comme LA DÉFERLANTE. Vit par `BLING.anim` / `userData.anime`.
+  ⚠ GLSL : pas de `transpose`, pas de `smoothstep` à bornes inversées, `modelMatrix` absent du fragment.
 
 ## LA PASSE UX/UI — L'ACCUEIL, LE GARAGE, L'ŒIL, LES TRANSITIONS (2026-10-11, session GRAPHISME — Sacha : « la disposition des boutons dans chaque écran est super moche, mets-toi dans la peau d'un designer UX/UI senior et règle ça page par page » · « l'accueil c'est moche, le garage est bof, plein de boutons au mauvais endroit — le bouton œil ne ressemble pas à un œil, il ne devrait pas être sur la fenêtre mais flotter, et quand on clique dessus la caméra doit recentrer sur la voiture » · « tous les boutons du garage sont à réorganiser, travaille les transitions »)
 ⚠ **LA PARTIE GARAGE EST RETIRÉE (2026-10-11, Léo : « non, celui d'avant : INVENTAIRE et BOUTIQUE en bas, ÉQUIPER au-dessus de JOUER ; l'œil et
