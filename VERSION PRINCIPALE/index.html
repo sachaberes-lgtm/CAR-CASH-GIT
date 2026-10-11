@@ -6478,6 +6478,27 @@ html body #garage:not(.menu):not(.vitrine) #gAct>#gJouer .lg{font-family:var(--p
   color:#3a1800!important;-webkit-text-fill-color:#3a1800!important;text-shadow:0 1px 0 rgba(255,247,210,.9)!important;filter:none!important;font-size:24px!important;letter-spacing:0}
 html body #garage:not(.menu):not(.vitrine) #gAct>#gJouer .lg::after{display:none!important}
 @media (orientation:portrait){html body #garage:not(.menu):not(.vitrine) #gAct>#gJouer .lg{font-size:21px!important}}
+/* LA BOUTIQUE VIRTUELLE — le GLITCH (sous l'interface du garage, z 59 : c'est le FOND qui glitche) et ACHETER à la place de l'œil */
+#gGlitch{position:fixed;inset:0;z-index:59;pointer-events:none;opacity:0;overflow:hidden}
+#gGlitch.go{animation:gGlitchO .72s linear forwards}
+#gGlitch i{position:absolute;left:-10%;right:-10%;height:6%;mix-blend-mode:screen;
+  background:linear-gradient(90deg,transparent,rgba(255,62,200,.42) 18%,rgba(94,230,255,.5) 52%,rgba(255,255,255,.18) 70%,transparent)}
+#gGlitch i:nth-child(1){top:14%;height:3%}#gGlitch i:nth-child(2){top:31%;height:8%}#gGlitch i:nth-child(3){top:47%;height:2%}#gGlitch i:nth-child(4){top:62%;height:5%}#gGlitch i:nth-child(5){top:80%;height:3%}
+#gGlitch.go i{animation:gGlitchBande .72s steps(7,end)}
+#gGlitch.go i:nth-child(2n){animation-direction:reverse}
+#gGlitch b{position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(94,230,255,.09) 0 1px,transparent 1px 3px),radial-gradient(ellipse at 50% 45%,rgba(120,60,255,.18),transparent 70%)}
+@keyframes gGlitchO{0%{opacity:0}6%{opacity:1}14%{opacity:.35}22%{opacity:1}36%{opacity:.9}55%{opacity:.5}78%{opacity:.2}100%{opacity:0}}
+@keyframes gGlitchBande{0%{transform:translateX(-35%)}18%{transform:translateX(14%)}36%{transform:translateX(-9%)}54%{transform:translateX(22%)}72%{transform:translateX(-5%)}100%{transform:translateX(0)}}
+body.gGlitchOn>canvas{animation:gCvJit .5s steps(5,end)}
+@keyframes gCvJit{0%{translate:0 0}20%{translate:-4px 0}40%{translate:5px 1px}60%{translate:-2px -1px}80%{translate:3px 0}100%{translate:0 0}}
+@media (prefers-reduced-motion:reduce){#gGlitch.go i,body.gGlitchOn>canvas{animation:none}}
+html[data-reduced-motion="1"] #gGlitch.go i,html[data-reduced-motion="1"] body.gGlitchOn>canvas{animation:none}
+html.gVirtHolo body #garage:not(.menu):not(.vitrine) #gStrip.fnBande>:is(.fnSec,.fnC){display:none!important} /* (2026-10-12) les objets éphémères sont dans l'espace 3D : la console ne garde que la plaque OFFRES et SEE ALL ITEMS */
+html.gVirtHolo body #garage:not(.menu):not(.vitrine) #gStrip.fnBande{-webkit-mask:none;mask:none}
+html body #garage:is(.modeShop,.modeTous):not(.menu):not(.vitrine) #gAct:has(>#gEquip.achat) #gRang1>#gOeil{display:none!important}
+html body #garage:is(.modeShop,.modeTous):not(.menu):not(.vitrine) #gAct>#gEquip.achat{width:auto!important;justify-self:stretch;padding:0 8px;font-size:var(--f1)}
+html body #garage:is(.modeShop,.modeTous):not(.menu):not(.vitrine) #gAct>#gEquip.achat .gEqV{letter-spacing:2px}
+html body #garage:is(.modeShop,.modeTous):not(.menu):not(.vitrine) #gAct>#gEquip.achat .gEqP{font-size:var(--f3);letter-spacing:1px}
 @keyframes gHomeCielPan{from{translate:-5% 0;scale:1.04}to{translate:5% -2%;scale:1.1}}
 @media (prefers-reduced-motion:reduce){html body #garage #gRang1>#gHomeBas>.gHomeCielCv{animation:none}}
 html[data-reduced-motion="1"] body #garage #gRang1>#gHomeBas>.gHomeCielCv{animation:none}
@@ -38510,7 +38531,7 @@ try{Object.assign(I18N,{'RECORD|PERSO':'PERSONAL|BEST','RECORDS|MONDIAUX':'WORLD
 const shopRay=new THREE.Raycaster(),shopNdc=new THREE.Vector2();
 window.dbgAffiche=function(k){GAR.dbgAff=k||null;return GAR.affiches?GAR.affiches.map(a=>a.k):null;}; // 'perso' | 'monde' : la caméra face à l'affiche ; rien = rend la main
 function afficheVise(e){ // l'affiche sous le pointeur — sauf si la caisse est devant
-  if(!GAR.affiches||GAR.btq||!garageOn)return null;
+  if(!GAR.affiches||GAR.btq||!garageOn||(typeof GVIR!=='undefined'&&GVIR.on))return null; // (2026-10-12) dans le vide virtuel, les affiches (cachées) ne se touchent pas
   const r=renderer.domElement.getBoundingClientRect();
   shopNdc.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1);
   shopRay.setFromCamera(shopNdc,camera);
@@ -39647,7 +39668,7 @@ function gModeListeVoitures(m){const eq=SAVE.d.equipped|0,L=[];
 function gModeBoutons(){const m=gModeM(),c=document.getElementById('gvCof'),b=document.getElementById('gShopBas'),r=document.getElementById('gRar'),st=document.getElementById('gStrip');
   if(c)c.classList.toggle('modeOn',m==='inv');if(b)b.classList.toggle('modeOn',m==='shop'||m==='tous');
   if(r&&m==='tout')r.classList.remove('gModeBar');if(st){st.classList.toggle('gModeShop',m==='shop'||m==='tous');st.classList.toggle('gModeTous',m==='tous');st.classList.toggle('gModeInv',m==='inv');if(m!=='shop'&&st.classList.contains('fnBande')){st.classList.remove('fnBande');st._r=null;st._n=-1;if(r)r._k=null;}}
-  if(gEl)gEl.classList.toggle('modeShop',m==='shop');} // (2026-10-10) LA BOUTIQUE DU JOUR : la console change de visage (voir gShopJour)
+  if(gEl){gEl.classList.toggle('modeShop',m==='shop');gEl.classList.toggle('modeTous',m==='tous');}} // (2026-10-10) LA BOUTIQUE DU JOUR : la console change de visage (voir gShopJour)
 function gModeTete(bar,m,n){bar.classList.add('gModeBar'); // n : un nombre, ou « 15 / 46 » en INVENTAIRE
   if(m==='tous'){bar.innerHTML='<div class="gModeT fnTete" style="--rc:var(--neoM)"><b class="fnRetour" role="button" aria-label="'+TR('RETOUR')+'">'+pxi('gauche')+'</b>'+pxi('panier')+'<span>SEE ALL ITEMS</span><s></s><b>'+n+'</b></div>';return;} // (2026-10-10) SEE ALL ITEMS, en anglais (Léo)
   bar.innerHTML='<div class="gModeT" style="--rc:'+(m==='inv'?'var(--neoC)':'var(--neoM)')+'">'+pxi(m==='inv'?'coffre':'panier')+'<span>'+sansAcc(TR(m==='inv'?'INVENTAIRE':'BOUTIQUE'))+'</span><s></s><b>'+n+'</b></div>';}
@@ -41707,6 +41728,98 @@ function garGabarit(){
   if(b.isEmpty())return GAR._gab||{R:2.4,H:1.4};b.getSize(v);
   return GAR._gab={k:k,R:Math.max(1,.5*Math.hypot(v.x,v.z)),a:Math.max(.8,v.z*.5),b:Math.max(.5,v.x*.5),H:Math.max(.8,v.y)};
 }
+/* LA BOUTIQUE VIRTUELLE (2026-10-12, Léo — essai, branche boutique-virtuelle : « quand j'appuie sur BOUTIQUE : le bouton s'allume, la voiture
+   se décolle comme si la gravité avait lâché, tout le fond du garage glitche — cool, subtil — et devient un grand fond vide virtuel ; les trucs
+   se reconstruisent en une interface plus vaste, avec un espace voiture où l'on voit ce qu'on peut tester et acheter — la vibe MISSIONS sci-fi ;
+   les objets de la boutique (éphémère) sont mis à côté de la voiture, on les applique pour voir ; à la place de l'œil, on ACHÈTE ; dans
+   SEE ALL ITEMS c'est le même, sans les objets éphémères ») :
+   · en BOUTIQUE (et SEE ALL ITEMS) l'atelier s'ÉTEINT au pic d'un GLITCH (#gGlitch, 0,72 s, sous l'interface) et un VIDE s'allume (GVIR.grp :
+     une sphère retournée bleu nuit → noir, une GRILLE néon magenta/cyan qui se perd dans la brume, deux anneaux holographiques sous la caisse,
+     une poussière de lumière qui monte) ; la caisse se DÉCOLLE (+0,62 m, en ressort) et flotte (houle lente, roulis léger) ;
+   · retour (INVENTAIRE, HOME, JOUER) : le même glitch, l'atelier revient, elle se repose. Les objets éphémères : voir gHolo. */
+var GVIR={k:0,kv:0,cible:false,on:false,t:9,bascule:true,grp:null,holos:[],hk:''}; // var : garCadre / afficheVise le lisent
+function garVirtuelVoulu(){const m=gModeM();return !!gEl&&gModeConsole()&&(m==='shop'||m==='tous')&&!GAR.go&&!gEl.classList.contains('quiet')&&!gEl.classList.contains('launching');}
+function garVirtuelBatit(){if(GVIR.grp)return;const g=new THREE.Group();g.visible=false;scene.add(g);GVIR.grp=g;
+  const R=70,sg=new THREE.SphereGeometry(R,32,18),p=sg.attributes.position,col=new Float32Array(p.count*3),cH=new THREE.Color(0x0b0626),cM=new THREE.Color(0x1a0d44),cB=new THREE.Color(0x030110),c9=new THREE.Color();
+  for(let i=0;i<p.count;i++){const y=p.getY(i)/R;if(y>0)c9.copy(cM).lerp(cH,Math.min(1,y*1.6));else c9.copy(cM).lerp(cB,Math.min(1,-y*2.2));col[i*3]=c9.r;col[i*3+1]=c9.g;col[i*3+2]=c9.b;}
+  sg.setAttribute('color',new THREE.BufferAttribute(col,3));
+  const sph=new THREE.Mesh(sg,new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.BackSide,fog:false,depthWrite:true}));sph.renderOrder=-10;g.add(sph); // elle ÉCRIT la profondeur : les nuages du monde, derrière, ne passent plus
+  const gr=new THREE.GridHelper(90,72,0xff3ec8,0x2fd8ff);gr.material.transparent=true;gr.material.opacity=.5;gr.material.depthWrite=false;g.add(gr);GVIR.grille=gr;
+  const mA=function(c,o){return new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:o,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,depthWrite:false,fog:false});};
+  const a1=new THREE.Mesh(new THREE.RingGeometry(2.05,2.18,72),mA(0x5ee6ff,.85));a1.rotation.x=-Math.PI/2;a1.position.y=.03;g.add(a1);GVIR.a1=a1;
+  const a2=new THREE.Mesh(new THREE.RingGeometry(2.7,2.76,72,1,0,Math.PI*1.6),mA(0xff3ec8,.55));a2.rotation.x=-Math.PI/2;a2.position.y=.03;g.add(a2);GVIR.a2=a2;
+  const dq=new THREE.Mesh(new THREE.CircleGeometry(2.05,48),mA(0x2fd8ff,.12));dq.rotation.x=-Math.PI/2;dq.position.y=.02;g.add(dq);
+  const N=180,pp=new Float32Array(N*3);for(let i=0;i<N;i++){const r=2.6+Math.random()*16,a=Math.random()*Math.PI*2;pp[i*3]=Math.cos(a)*r;pp[i*3+1]=Math.random()*9;pp[i*3+2]=Math.sin(a)*r;}
+  const pg=new THREE.BufferGeometry();pg.setAttribute('position',new THREE.BufferAttribute(pp,3));
+  const pts=new THREE.Points(pg,new THREE.PointsMaterial({color:0x9feeff,size:.07,transparent:true,opacity:.75,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}));g.add(pts);GVIR.pts=pts;}
+function garVirtuel(dt,ay,t9){
+  const veut=garVirtuelVoulu();
+  if(veut!==GVIR.cible){GVIR.cible=veut;GVIR.t=0;GVIR.bascule=false;if(!GAR.go)garGlitch();}
+  GVIR.t+=dt;if(!GVIR.bascule&&GVIR.t>.26){GVIR.bascule=true;GVIR.on=veut;}
+  if(GAR.go){GVIR.on=false;GVIR.cible=false;GVIR.bascule=true;}
+  const on=!!GVIR.on;if(on){garVirtuelBatit();GAR.root.visible=false;}
+  if(GVIR.grp){GVIR.grp.visible=on;if(on){GVIR.grp.position.set(0,ay,0);GVIR.grille.material.opacity=.38+.14*Math.sin(t9*1.3);GVIR.a1.rotation.z+=dt*.5;GVIR.a2.rotation.z-=dt*.35;
+    GVIR.a1.material.opacity=.7+.2*Math.sin(t9*2.1);const pp=GVIR.pts.geometry.attributes.position;for(let i=0;i<pp.count;i++){let y=pp.getY(i)+dt*.45;if(y>9)y-=9;pp.setY(i,y);}pp.needsUpdate=true;}}
+  garRessort(GVIR,'k','kv',on?1:0,3.4,dt);const k=Math.max(0,GVIR.k);try{gHolo(dt,ay,t9,on&&gModeM()==='shop'&&!GMODE.paye);}catch(e){}
+  if(k>.001){carGroup.position.y+=k*.62+Math.sin(t9*1.6)*.05*k;carGroup.rotation.x+=Math.sin(t9*1.1)*.022*k;carGroup.rotation.z+=Math.sin(t9*.9+1)*.028*k;}}
+/* LES OBJETS ÉPHÉMÈRES À CÔTÉ DE LA VOITURE (2026-10-12, Léo : « la boutique hebdomadaire : les objets sont mis à côté de la voiture, et on
+   peut les appliquer, voir ce que ça donne ») : en BOUTIQUE (vitrine du jour, pas SEE ALL ITEMS ni les offres payantes), chaque objet de la
+   vitrine devient une CARTE HOLOGRAPHIQUE (sprite, toile 200 × 260 : cadre de sa rareté, photo / nuancier / ruban / aile, nom, prix) qui flotte
+   en arc DERRIÈRE la caisse, tournée vers la caméra (l'arc suit l'azimut de la vue : il reste dans le cadre). Toucher une carte = toucher
+   sa vignette dans la console (essayer la caisse / poser l'habillage) ; l'objet essayé grandit et s'éclaire. Les cartes éclosent une à une. */
+const HOLO_W=200,HOLO_H=260;
+function gHoloDessine(o){const cv=o.cv,x=cv.getContext('2d'),k=o.k,ri=rarInfo(bqRar(k)),c=ri.c,a=bqA(k),sel=o.sel;
+  x.clearRect(0,0,HOLO_W,HOLO_H);
+  x.fillStyle='rgba(10,6,30,.78)';x.fillRect(6,6,HOLO_W-12,HOLO_H-12);
+  const gr=x.createLinearGradient(0,0,0,HOLO_H);gr.addColorStop(0,'rgba(255,255,255,.10)');gr.addColorStop(.5,'rgba(255,255,255,0)');gr.addColorStop(1,'rgba(0,0,0,.25)');x.fillStyle=gr;x.fillRect(6,6,HOLO_W-12,HOLO_H-12);
+  if(o.img){const iw=o.img.width,ih=o.img.height,s9=Math.min((HOLO_W-20)/iw,170/ih)*1.15;x.drawImage(o.img,(HOLO_W-iw*s9)/2,40+(160-ih*s9)/2,iw*s9,ih*s9);}
+  else if(k[0]!=='v'){const ob=bqCos(k),d=ob.d,hx=function(n){return '#'+(n>>>0).toString(16).padStart(6,'0');};
+    if(ob.cat==='peinture'){const g2=x.createLinearGradient(60,40,140,140);const L=d.grad?d.grad.map(hx):[hx(d.c||0xff7a3a),hx(d.c||0xff7a3a)];L.forEach(function(cc,i){g2.addColorStop(L.length>1?i/(L.length-1):0,cc);});
+      x.fillStyle=g2;x.beginPath();x.arc(HOLO_W/2,90,46,0,Math.PI*2);x.fill();x.lineWidth=3;x.strokeStyle='rgba(255,255,255,.6)';x.stroke();}
+    else if(ob.cat==='trainee'){const g3=x.createLinearGradient(30,0,170,0);if(d.rainbow)['#ff3b3b','#ff9b1a','#ffe23a','#3bff6a','#3bb4ff','#9b5bff'].forEach(function(cc,i){g3.addColorStop(i/5,cc);});else{g3.addColorStop(0,'rgba(255,120,20,0)');g3.addColorStop(.5,d.rgb?'rgb('+d.rgb.map(function(v){return Math.round(Math.min(1,v/1.45)*255);}).join(',')+')':'#ff6a14');g3.addColorStop(1,'#fff');}
+      x.fillStyle=g3;x.fillRect(30,82,140,18);}
+    else{x.fillStyle='#dff6ff';x.beginPath();x.moveTo(40,110);x.lineTo(160,70);x.lineTo(150,96);x.lineTo(60,118);x.closePath();x.fill();}}
+  x.textAlign='center';x.fillStyle=c;x.fillRect(8,8,HOLO_W-16,22);x.font='16px "Press Start 2P",monospace';x.fillStyle='#0a0616';x.fillText(sansAcc(TR(ri.n1)).slice(0,10),HOLO_W/2,27); /* la RARETÉ en bandeau, en tête — (2026-10-12) le nom n'y tient pas lisible : il s'écrit en grand sur la fiche quand on essaie l'objet */
+  let px='';if(k[0]==='v'){const u=CAR_UNLOCK[+k.slice(2)]||{};px=u.k==='premium'?eurTxt(u.eur):fmtC(u.p||0);}else px=fmtC(bqCos(k).d.p);
+  x.font='24px "Press Start 2P",monospace';x.fillStyle=a?'#cfe9ff':(px.indexOf('€')>=0?'#ffd75e':'#3ee87a');x.shadowColor='#000';x.shadowBlur=6;x.fillText(a?sansAcc(TR('ACQUIS')).slice(0,6):px.replace(/\s+/g,''),HOLO_W/2,236);x.shadowBlur=0;
+  x.fillStyle='rgba(94,230,255,.06)';for(let y=8;y<HOLO_H-8;y+=3)x.fillRect(8,y,HOLO_W-16,1);
+  x.shadowColor=c;x.shadowBlur=sel?18:10;x.lineWidth=sel?6:4;x.strokeStyle=sel?'#fff':c;x.strokeRect(8,8,HOLO_W-16,HOLO_H-16);x.shadowBlur=0;
+  o.tex.needsUpdate=true;}
+function gHoloBatit(L){for(const o of GVIR.holos){GVIR.grp.remove(o.sp);o.sp.material.map.dispose();o.sp.material.dispose();}GVIR.holos=[];
+  L.forEach(function(k,n){const cv=document.createElement('canvas');cv.width=HOLO_W;cv.height=HOLO_H;const tex=new THREE.CanvasTexture(cv);
+    const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false,fog:false}));sp.userData.holoK=k;GVIR.grp.add(sp);
+    const o={k:k,cv:cv,tex:tex,sp:sp,n:n,sel:false,img:null};GVIR.holos.push(o);gHoloDessine(o);
+    if(k[0]==='v')photoFile(+k.slice(2),function(url){const im=new Image();im.onload=function(){o.img=im;gHoloDessine(o);};im.src=url;});});}
+function gHolo(dt,ay,t9,voulu){
+  if(!GVIR.grp)return;
+  if(voulu!==!!GVIR.holoOn){GVIR.holoOn=voulu;garLibre._r=null;document.documentElement.classList.toggle('gVirtHolo',voulu);}
+  const B=bqVitrine(),cur=bqCourant(),k='h:'+B.j+':'+B.l.join(',')+':'+B.l.map(function(x){return bqA(x)?1:0;}).join('')+':'+LANG;
+  if(voulu&&GVIR.hk!==k){GVIR.hk=k;gHoloBatit(B.l.slice(0,6));GVIR.hT=0;}
+  GVIR.hT=voulu?(GVIR.hT||0)+dt:0;const N=GVIR.holos.length;if(!N)return;
+  /* LA DISPOSITION À L'ÉCRAN : la place libre de la caisse (garLibre) est rognée de deux COLONNES ; chaque carte vise le milieu de sa case
+     (3 rangées par colonne) et se pose sur ce rayon, à la PROFONDEUR de la caisse — quelle que soit l'orbite, elles restent rangées. */
+  const r=garLibre(),cw=r.colW||96,hx0=r.hx0!=null?r.hx0:r.x0,hx1=r.hx1!=null?r.hx1:r.x1,h=Math.max(60,r.y1-r.y0),rows=Math.ceil(N/2);
+  const cp=camera.position,dCar=Math.max(3,Math.hypot(cp.x,cp.y-(ay+GAR.POD+.6),cp.z)),wpp=2*dCar*Math.tan(camera.fov*Math.PI/360)/Math.max(1,VP.h);
+  const ph=Math.min(h/rows-10,cw*1.3*.92),v=GVIR._v||(GVIR._v=new THREE.Vector3());
+  GVIR.holos.forEach(function(o,i){const sel=o.k===cur;if(sel!==o.sel){o.sel=sel;gHoloDessine(o);}
+    const col=i%2,row=Math.floor(i/2),px=col?hx1-cw/2:hx0+cw/2,py=r.y0+h*(row+.5)/rows+Math.sin(t9*1.3+i*1.7)*3;
+    v.set(px/VP.w*2-1,1-py/VP.h*2,.5).unproject(camera).sub(cp).normalize().multiplyScalar(dCar).add(cp);
+    const e=Math.max(0,Math.min(1,(GVIR.hT-.35-i*.08)/.4)),pop=e*e*(3-2*e);o.sp.visible=voulu&&pop>0;
+    const hW=ph*wpp*(sel?1.08:1)*pop;o.sp.scale.set(hW/1.3,hW,1);o.sp.position.set(v.x,v.y-ay,v.z);});}
+window.dbgHolo=function(){const v=new THREE.Vector3();return {on:GVIR.on,k:+GVIR.k.toFixed(2),cartes:GVIR.holos.filter(function(o){return o.sp.visible;}).map(function(o){v.copy(o.sp.position);o.sp.parent.localToWorld(v);v.project(camera);return [o.k,Math.round((v.x*.5+.5)*VP.w),Math.round((.5-v.y*.5)*VP.h),o.sel];})};}; // (banc) les cartes à l'écran
+/* le TOUCHER d'une carte (un tap : moins de 8 px et 450 ms) */
+(function(){let d0=null;
+  addEventListener('pointerdown',function(e){d0=(GVIR.on&&GVIR.holos.length)?{x:e.clientX,y:e.clientY,t:performance.now()}:null;},true);
+  addEventListener('pointerup',function(e){if(!d0||!GVIR.on||!garageOn||GAR.go)return;const m=Math.hypot(e.clientX-d0.x,e.clientY-d0.y),dt=performance.now()-d0.t;d0=null;if(m>8||dt>450)return;
+    if(e.target.closest&&e.target.closest('#gTop,#gBottom,#gAct,#gRar,#gStrip,#gTabs,#modale,#shPop,#carr'))return;
+    const r=renderer.domElement.getBoundingClientRect();shopNdc.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1);shopRay.setFromCamera(shopNdc,camera);
+    const vis=GVIR.holos.filter(function(o){return o.sp.visible;}).map(function(o){return o.sp;});const hit=shopRay.intersectObjects(vis,false);if(!hit.length)return;
+    const kk=hit[0].object.userData.holoK,el=document.querySelector('#gStrip .fnC[data-fn="'+kk+'"]');if(el)el.click();},true);})();
+function garGlitch(){let el=document.getElementById('gGlitch');
+  if(!el){el=document.createElement('div');el.id='gGlitch';el.setAttribute('aria-hidden','true');el.innerHTML='<i></i><i></i><i></i><i></i><i></i><b></b>';document.body.appendChild(el);}
+  el.classList.remove('go');document.body.classList.remove('gGlitchOn');void el.offsetWidth;el.classList.add('go');document.body.classList.add('gGlitchOn');
+  try{if(SONV2)sfx('ui.volet');}catch(e){}
+  clearTimeout(garGlitch._t);garGlitch._t=setTimeout(function(){el.classList.remove('go');document.body.classList.remove('gGlitchOn');},760);}
 function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 360° DANS l'atelier
   GAR.dtR=dt;try{hubSync();gTourneMaj();gHomePlace();}catch(e){} // (2026-10-06) LE HUB : la barre suit l'onglet — (2026-10-09) la jauge suit la vue
   if(chuteVoulue()||CHUTE.go){chuteRender(dt);return;}if(CHUTE.on)chuteSort(); // (2026-09-30) LA CHUTE : au MENU, la caisse tombe du ciel (voir « LA CHUTE ») ; la boutique et les missions rouvrent l'atelier
@@ -41715,7 +41828,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
   if(!GAR.root)buildGarageRoom();
   GAR.root.position.y=ay;GAR.root.visible=true;garArgentMaj(); // (2026-10-01) les tas de billets suivent le compte (une comparaison par image)
   garPorte(dt);garFeu(dt);garBeaute(dt,t9); // (2026-09-30) la PORTE (fermée au menu, ouverte au JOUER) ; le rideau de flammes : il brûle au repos, il RUGIT pendant le lâcher
-  carGroup.position.set(0,ay+GAR.POD,0);carGroup.rotation.set(0,garRot(),0);carGroup.visible=true; // posée SUR le plateau — (2026-09-29, Léo) et c'est ELLE qui tourne, avec lui (voir GAR_CAM_A)
+  carGroup.position.set(0,ay+GAR.POD,0);carGroup.rotation.set(0,garRot(),0);carGroup.visible=true;try{garVirtuel(dt,ay,t9);}catch(e){} // (2026-10-12) LA BOUTIQUE VIRTUELLE — posée SUR le plateau — (2026-09-29, Léo) et c'est ELLE qui tourne, avec lui (voir GAR_CAM_A)
   garageFloor.visible=false;                       // l'ancienne nappe de brume : l'atelier a un vrai sol
   // CIEL CYAN étoilé — ce qu'on voit par la porte relevée (poussé après bioStep : ça gagne cette frame)
   skyU.uSkyMul.value.set(.62,.92,1.34);skyU.uStars.value=1.7;skyU.uMoon.value=1.5;skyU.uSunHalo.value=.12;
@@ -42069,12 +42182,13 @@ function garLibre(){
     if(r.vit&&W>H*1.2){const ga=$('gAct'),gr=ga&&ga.getBoundingClientRect();if(gr&&gr.width>0&&gr.left>W*.3){r.x1=gr.left-12;r.y1=H-12;}} // (2026-10-05) couché : la pile JOUER · niveau · MISSIONS à droite, la caisse a toute la gauche
     if(INV&&INV.on){const iv=$('gInv'),ir=iv&&iv.getBoundingClientRect();     // (2026-10-04) L'INVENTAIRE ouvert : la caisse se pose au-dessus du tiroir (debout), à sa gauche (couché)
       if(ir&&ir.width>0){if(W>H*1.2&&ir.left>W*.3){r.x1=Math.min(r.x1,ir.left);r.y1=H-12;}else r.y1=Math.min(r.y1,ir.top);}}}
+  if(typeof GVIR!=='undefined'&&GVIR.holoOn&&r.shop){const cw=Math.min((r.x1-r.x0)*.27,150);r.hx0=r.x0;r.hx1=r.x1;r.colW=cw;r.x0+=cw;r.x1-=cw;} // (2026-10-12) BOUTIQUE VIRTUELLE : deux colonnes de cartes, la caisse entre les deux
   const VC9=VITRINE_CAM,iv9=!!(INV&&INV.on); // (même soir, Léo : « la voiture en paysage encore calée un peu plus vers le coin bas gauche ») couché : cxL/cyL ; tiroir ouvert : au milieu de la place qui reste
   r.cx=(r.x0+r.x1)/2;if(r.leo&&!iv9)r.cx=r.x0+(r.x1-r.x0)*(VC9.cxL+(VC9.cx-VC9.cxL)*POR);r.cy=(r.y0+r.y1)/2;if(r.shop)r.cy=r.y0+(r.y1-r.y0)*(r.leo&&!iv9?(VC9.cyL+(VC9.cy-VC9.cyL)*POR):r.leo?.5:.44); /* (vitrine v2) debout la caisse se pose un peu plus BAS : le feu et la porte au-dessus, moins de sol vide dessous */ /* (garage v7) la caisse se posait BAS dans sa zone (DEBUGGING) : son centre à 44 % de la zone, pas 50 */garLibre._n=r;return garLibre._r=r;
 }
 function garCadre(k,kx){
   const r=garLibre();camera.clearViewOffset();camera.updateMatrixWorld();
-  const v=GAR._pc||(GAR._pc=new THREE.Vector3());v.set(0,GARAGE_Y+GAR.POD+.55,0).project(camera); // le centre du plateau, à mi-hauteur de caisse
+  const v=GAR._pc||(GAR._pc=new THREE.Vector3());v.set(0,GARAGE_Y+GAR.POD+.55+(typeof GVIR!=='undefined'?Math.max(0,GVIR.k)*.62:0),0).project(camera); // le centre du plateau, à mi-hauteur de caisse — (2026-10-12) + la hauteur à laquelle elle FLOTTE en boutique virtuelle
   const sx=(v.x*.5+.5)*VP.w,sy=(.5-v.y*.5)*VP.h,cl=THREE.MathUtils.clamp;GAR.cErr=(sx-r.cx)/Math.max(1,VP.w);GAR.cErrVD=GAR.vDcam; // (vitrine) l'écart de la caisse à sa place, lu par le décalage de caméra (GAR.vD)
   const dx=cl((sx-r.cx)*k*(kx==null?1:kx),-VP.w/3,VP.w/3),dy=cl((sy-r.cy)*k,-VP.h/3,VP.h/3);
   const dt9=Math.min(.1,GAR.dtR||.016);if(GAR.vuePose){GAR.cdx=dx;GAR.cdy=dy;GAR.cvx=GAR.cvy=0;}else{garRessort(GAR,'cdx','cvx',dx,7,dt9);garRessort(GAR,'cdy','cvy',dy,7,dt9);} /* (LA MISE EN PLACE) posé d'un coup quand l'écran est caché */ // (2026-10-05) lissé dans le TEMPS, plus image par image · (2026-10-06) en RESSORT : l'inventaire qui s'ouvre déplaçait la place de la caisse de ~180 px, l'image partait de 20 px en UNE image (mesuré) — elle glisse maintenant en ~0,5 s
