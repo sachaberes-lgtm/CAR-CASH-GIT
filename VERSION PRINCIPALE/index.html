@@ -6453,17 +6453,31 @@ html body #garage:not(.menu):not(.vitrine) #gRang1>#gHomeBas>:not(.gHomeCielCv){
 html body #garage:not(.menu):not(.vitrine) #gRang1>#gHomeBas>.gHomeCielCv{display:block;position:absolute;left:-12%;top:-8%;width:124%;height:116%;z-index:0;pointer-events:none;
   opacity:0;transition:opacity .5s;transform:skewX(calc(-1 * var(--sk)));animation:gHomeCielPan 18s ease-in-out infinite alternate}
 html body #garage:not(.menu):not(.vitrine) #gRang1>#gHomeBas>.gHomeCielCv.on{opacity:1}
-/* LES BOUTONS SUIVENT LE CIEL (voir homeCielPrise) : un FILTRE sur chaque touche — la nuit plus sombres et désaturés, le jour un cran plus
-   clairs ; fondu de 0,8 s. L'accueil (les quatre portes, ⚙, JOUER) et le garage (HOME, l'œil, INVENTAIRE, BOUTIQUE, ACHETER, JOUER).
-   ⚠ jamais de filtre sur les lettres .lg du logo (voir la charte) : il est posé sur la TOUCHE entière. */
-html.hub body #mHome.acc2 :is(.mHubPorte,.mAccB,.mOffres,.mGear,.mPlay),
-html body #garage:not(.menu):not(.vitrine) :is(#gRang1>#gHomeBas,#gRang1>#gOeil,#gAct>#gvCof,#gAct>#gShopBas,#gAct>#gEquip,#gAct>#gJouer){transition:filter .8s var(--ease)}
-html.cielNuit.hub body #mHome.acc2 :is(.mHubPorte,.mAccB,.mOffres,.mGear,.mPlay),
-html.cielNuit body #garage:not(.menu):not(.vitrine) :is(#gRang1>#gHomeBas,#gRang1>#gOeil,#gAct>#gvCof,#gAct>#gShopBas,#gAct>#gEquip,#gAct>#gJouer){filter:brightness(.78) saturate(.68)!important}
-html.cielJour.hub body #mHome.acc2 :is(.mHubPorte,.mAccB,.mOffres,.mGear,.mPlay),
-html.cielJour body #garage:not(.menu):not(.vitrine) :is(#gRang1>#gHomeBas,#gRang1>#gOeil,#gAct>#gvCof,#gAct>#gShopBas,#gAct>#gEquip,#gAct>#gJouer){filter:brightness(1.1) saturate(1.12)!important}
-html.cielNuit.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay{filter:brightness(.78) saturate(.68)!important} /* (la passe UX impose filter:none!important à JOUER : une règle plus précise) */
-html.cielJour.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay{filter:brightness(1.1) saturate(1.12)!important}
+/* (2026-10-12, Léo : « remets les couleurs vives ») les boutons ne suivent plus le ciel : le filtre de nuit / de jour est retiré
+   (homeCielPrise pose toujours html.cielNuit / html.cielJour, sans effet). */
+/* LA DA DU GARAGE AU MENU CIEL (2026-10-12, Léo : « change la DA des boutons du menu ciel en la DA des boutons du garage ») : les quatre portes
+   (GARAGE · CARRIÈRE · MISSIONS · OFFRES) et le ⚙ prennent la matière d'INVENTAIRE / BOUTIQUE — laque dégradée avec son reflet oblique, filet de
+   couleur fin à gauche qui diffuse dans la plaque, contour d'encre et épaisseur dessous ; l'icône passe en grand (×3) et luit de sa couleur.
+   JOUER garde le sien (« je préfère le JOUER du ciel ») — et le garage le reprend (voir mPlayMot / #gJouer .lg). */
+html.hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mAccB,.mOffres,.mGear){
+  background:linear-gradient(112deg,transparent 0 37%,rgba(255,255,255,.055) 37% 45%,transparent 45% 49%,rgba(255,255,255,.03) 49% 51%,transparent 51%),
+    linear-gradient(180deg,#272049 0%,#1c1738 46%,#141029 100%)!important;
+  box-shadow:inset 3px 0 0 var(--nc),inset 34px 0 30px -28px color-mix(in srgb,var(--nc) 75%,transparent),inset 0 1px 0 rgba(255,255,255,.16),inset 0 0 0 1px rgba(255,255,255,.06),
+    0 0 0 1px rgba(3,1,9,.92),0 5px 0 #0a0818,0 5px 0 1px rgba(3,1,9,.92),0 14px 24px -10px rgba(0,0,0,.72)!important}
+html.hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mAccB,.mOffres) .pxi{--pxs:3!important;color:var(--nc)!important;filter:drop-shadow(0 0 5px var(--nc))!important}
+html.hub:not(.poki) body #mHome.acc2 .mGear .pxi{--pxs:3!important;color:var(--nc,#5ee6ff)!important;filter:drop-shadow(0 0 5px var(--nc,#5ee6ff))!important}
+html.hub:not(.poki) body #mHome.acc2 .mAccP>.mMisBarre{
+  background:linear-gradient(112deg,transparent 0 37%,rgba(255,255,255,.055) 37% 45%,transparent 45% 49%,rgba(255,255,255,.03) 49% 51%,transparent 51%),
+    linear-gradient(180deg,#272049 0%,#1c1738 46%,#141029 100%)!important;
+  box-shadow:inset 3px 0 0 var(--nc),inset 34px 0 30px -28px color-mix(in srgb,var(--nc) 75%,transparent),inset 0 1px 0 rgba(255,255,255,.16),inset 0 0 0 1px rgba(255,255,255,.06),
+    0 0 0 1px rgba(3,1,9,.92),0 5px 0 #0a0818,0 5px 0 1px rgba(3,1,9,.92),0 14px 24px -10px rgba(0,0,0,.72)!important}
+html.hub:not(.poki) body #mHome.acc2 .mAccP>.mMisBarre .pxi{--pxs:3!important;color:var(--nc)!important;filter:drop-shadow(0 0 5px var(--nc))!important}
+/* le mot JOUER du ciel au garage : les lettres du logo (.lg, leur relief ::before), en brun sur l'or — les valeurs de la passe UX pour l'accueil */
+html body #garage:not(.menu):not(.vitrine) #gAct>#gJouer .gjMot{display:inline-flex;gap:.06em}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gJouer .lg{font-family:var(--pix);background:none!important;-webkit-background-clip:border-box!important;background-clip:border-box!important;
+  color:#3a1800!important;-webkit-text-fill-color:#3a1800!important;text-shadow:0 1px 0 rgba(255,247,210,.9)!important;filter:none!important;font-size:24px!important;letter-spacing:0}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gJouer .lg::after{display:none!important}
+@media (orientation:portrait){html body #garage:not(.menu):not(.vitrine) #gAct>#gJouer .lg{font-size:21px!important}}
 @keyframes gHomeCielPan{from{translate:-5% 0;scale:1.04}to{translate:5% -2%;scale:1.1}}
 @media (prefers-reduced-motion:reduce){html body #garage #gRang1>#gHomeBas>.gHomeCielCv{animation:none}}
 html[data-reduced-motion="1"] body #garage #gRang1>#gHomeBas>.gHomeCielCv{animation:none}
@@ -21926,17 +21940,19 @@ Object.assign(SHAPES,{
     K.commit(P);
     const g=K.add(new THREE.Group());
     // LE MIROIR
-    const UM={uT:{value:0},uF:{value:0}},env=(typeof envTex!=='undefined'&&envTex)?envTex:null;
+    const UM={uT:{value:0},uF:{value:0},rip:[0,1,2,3,4,5].map(()=>new THREE.Vector4(0,0,0,-99))},env=(typeof envTex!=='undefined'&&envTex)?envTex:null;
     const AXES='vX=normalize(modelMatrix[0].xyz);vY=normalize(modelMatrix[1].xyz);vZ=normalize(modelMatrix[2].xyz);',
       VAR='varying vec3 vW,vN,vL,vX,vY,vZ;varying float vG,vA;',
-      MERC_VS='uniform float uT,uF;attribute float aG;'+VAR+'void main(){vec3 p=position,n=normal;vL=p;vN=n;vG=aG;'+AXES+
-      'float t=uT*(1.+uF*.9),A=mix(.003,.013,1.-smoothstep(-2.2,1.2,p.z))*smoothstep(.27,.45,p.y)*(1.+uF*.6);vA=A;'+  /* calme devant, liquide sur les hanches */
-      'float w=sin(p.z*7.+p.x*1.3+t*5.5)*.6+sin(p.z*11.-p.x*4.1+t*8.)*.28+sin(p.x*8.7+p.y*6.1-t*3.4)*.22;p+=n*w*A;'+
+      RIP='uniform vec4 uRip[6];float rip(vec3 p,out vec3 gr){float s=0.;gr=vec3(0.);for(int i=0;i<6;i++){vec4 e=uRip[i];float a=uT-e.w;if(a<0.||a>1.8)continue;'+ /* les ONDES en cercle là où une goutte s'est détachée */
+      'vec3 dv=p-e.xyz;float d=length(dv)+1e-4,x=d-a*1.1,env=exp(-x*x*30.)*exp(-a*2.2)*smoothstep(0.,.06,a)*.011,ph=x*24.;s+=sin(ph)*env;gr+=dv/d*(cos(ph)*24.*env-sin(ph)*env*60.*x);}return s;}',
+      MERC_VS='uniform float uT,uF;attribute float aG;'+VAR+RIP+'void main(){vec3 p=position,n=normal;vL=p;vN=n;vG=aG;'+AXES+
+      'float t=uT*(1.+uF*.9),A=mix(.003,.013,1.-smoothstep(-2.2,1.2,p.z))*smoothstep(.27,.45,p.y)*(1.+uF*.6);vA=A+1e-5;'+  /* calme devant, liquide sur les hanches */
+      'float w=sin(p.z*7.+p.x*1.3+t*5.5)*.6+sin(p.z*11.-p.x*4.1+t*8.)*.28+sin(p.x*8.7+p.y*6.1-t*3.4)*.22;vec3 gR;p+=n*(w*A+rip(position,gR));'+
       'float tq=max(0.,-p.z-1.95)*smoothstep(.62,.80,p.y);p.z-=tq*tq*(1.1+.35*sin(uT*4.1+p.x*5.)+uF*1.1);'+             /* la lèvre s'étire comme une goutte */
       'vec4 wp=modelMatrix*vec4(p,1.);vW=wp.xyz;gl_Position=projectionMatrix*viewMatrix*wp;}',
       FIL_VS=VAR+'void main(){vL=position;vN=normal;vG=0.;vA=0.;'+AXES+'vec4 wp=modelMatrix*vec4(position,1.);vW=wp.xyz;gl_Position=projectionMatrix*viewMatrix*wp;}',
-      PER_VS=VAR+'void main(){vL=position;vN=normal;vG=0.;vA=0.;'+AXES+'vec4 wp=modelMatrix*instanceMatrix*vec4(position,1.);vW=wp.xyz;gl_Position=projectionMatrix*viewMatrix*wp;}',
-      MERC_FS='uniform float uT,uF,uEnvK;uniform samplerCube uEnv;uniform vec3 uSun;'+VAR+
+      PER_VS=VAR+'void main(){mat3 m=mat3(instanceMatrix);vec3 s2=vec3(dot(m[0],m[0]),dot(m[1],m[1]),dot(m[2],m[2]));vN=normalize(m*(normal/s2));vL=position;vG=0.;vA=0.;'+AXES+'vec4 wp=modelMatrix*instanceMatrix*vec4(position,1.);vW=wp.xyz;gl_Position=projectionMatrix*viewMatrix*wp;}',
+      MERC_FS='uniform float uT,uF,uEnvK;uniform samplerCube uEnv;uniform vec3 uSun;'+VAR+RIP+
       'float h2(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}'+
       'float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h2(i),h2(i+vec2(1.,0.)),f.x),mix(h2(i+vec2(0.,1.)),h2(i+vec2(1.,1.)),f.x),f.y);}'+
       'float fbm(vec2 p){float s=0.,a=.5;for(int i=0;i<4;i++){s+=a*vn(p);p=p*2.03+vec2(1.7,9.2);a*=.5;}return s;}'+
@@ -21949,57 +21965,116 @@ Object.assign(SHAPES,{
       'float s=max(dot(r,uSun),0.);c+=vec3(1.,.92,.75)*(pow(s,300.)*4.+pow(s,12.)*.2);return c;}'+                                           /* le soleil, bas */
       'void main(){vec3 n=normalize(vN);'+
       'if(vA>0.){float t=uT*(1.+uF*.9),a1=vL.z*7.+vL.x*1.3+t*5.5,a2=vL.z*11.-vL.x*4.1+t*8.,a3=vL.x*8.7+vL.y*6.1-t*3.4;'+                       /* l'onde déforme aussi la NORMALE : le reflet ondule */
-      'vec3 gr=vec3(.78*cos(a1)-1.15*cos(a2)+1.91*cos(a3),1.34*cos(a3),4.2*cos(a1)+3.08*cos(a2));n=normalize(n-(gr-n*dot(n,gr))*vA*1.7);}'+
+      'vec3 gr=vec3(.78*cos(a1)-1.15*cos(a2)+1.91*cos(a3),1.34*cos(a3),4.2*cos(a1)+3.08*cos(a2));vec3 gR;rip(vL,gR);vec3 G=gr*vA*1.7+gR*1.3;n=normalize(n-(G-n*dot(n,G)));}'+
       'vec3 nw=normalize(vX*n.x+vY*n.y+vZ*n.z),v=normalize(cameraPosition-vW),r=reflect(-v,nw),rl=normalize(vec3(dot(r,vX),dot(r,vY),dot(r,vZ)));'+
       'vec3 c=ciel(rl)*(1.-uEnvK)+textureCube(uEnv,vec3(-r.x,r.y,r.z)).rgb*1.4*uEnvK;'+
       'float fr=pow(1.-max(dot(nw,v),0.),5.);c*=mix(vec3(.78,.79,.82),vec3(1.),fr);'+                                                         /* le mercure renvoie ~73 %, tout au ras */
       'c=mix(c,c*vec3(.26,.22,.36)+vec3(.01,0.,.03),vG*.88);'+                                                                                  /* la bulle : un miroir fumé */
       'c+=vec3(.75,.45,1.)*uF*.25*fr;gl_FragColor=vec4(c,1.);}';
-    const mirMat=(vs,col)=>{const m=new THREE.ShaderMaterial({uniforms:{uT:UM.uT,uF:UM.uF,uEnv:{value:env},uEnvK:{value:env?.16:0},
+    const mirMat=(vs,col)=>{const m=new THREE.ShaderMaterial({uniforms:{uT:UM.uT,uF:UM.uF,uRip:{value:UM.rip},uEnv:{value:env},uEnvK:{value:env?.16:0},
       uSun:{value:new THREE.Vector3(-.35,.13,.93).normalize()}},vertexShader:vs,fragmentShader:MERC_FS,side:THREE.DoubleSide,extensions:{derivatives:true}});m.userData.g='mercure';return m;};
     const caisse=new THREE.Mesh(geo,mirMat(MERC_VS));caisse.userData.brut=1;g.add(caisse);
-    // LES FILETS : des PERLES rondes de mercure (instanciées) reliées par un FIL qui s'amincit avec l'âge et CASSE — les chapelets de l'image
+    // LES GOUTTES v3 (Léo : « elle drip de manière un peu générique » — un jet de perles continu, c'est un effet de particules comme
+    // partout). Ici chaque goutte a une VIE, celle d'un métal liquide :
+    //  1. elle NAÎT de la peau (`PEND`, un tour de révolution recalculé à chaque image : ménisque, cou, bulbe) — une bosse gonfle,
+    //     s'étire en LARME dans le sens du vent (vers le bas à l'arrêt, vers l'arrière en course), son cou s'amincit et CASSE ;
+    //  2. au pincement : la goutte part avec un SATELLITE (la petite perle du cou), le reste du cou est RAVALÉ par la caisse et une ONDE
+    //     en cercle court sur la carrosserie à partir de là (`onde`, `uRip` dans le programme) ;
+    //  3. en vol elle TREMBLE (allongée ↔ aplatie, amortie), poussée par le vent de la course ;
+    //  4. au sol elle ÉCLATE en billes (le volume est conservé) qui roulent, et qui FUSIONNENT quand elles se touchent ;
+    //  5. à l'arrêt (le garage), les billes RAMPENT vers la caisse et y RENTRENT, une onde à l'endroit où elles la touchent ;
+    //     en course, la route les emporte. En l'air (vol, écran titre) : pas de sol, elles tombent et s'éteignent.
     let rs=0x51ed270b;const rnd=()=>{rs^=rs<<13;rs^=rs>>>17;rs^=rs<<5;return (rs>>>0)/4294967296;};
-    const NP=48,NC=7,PAS=5,FIL=[],mFil=mirMat(FIL_VS),n3=[0,0,0],NPER=90;
-    const perles=new THREE.InstancedMesh(new THREE.SphereGeometry(1,14,10),mirMat(PER_VS),NPER);
-    perles.frustumCulled=false;perles.userData.brut=1;perles.userData.noShadow=1;g.add(perles);
-    const source=(o,d,v,R0,k)=>{const p=trace(o[0],o[1],o[2],d[0],d[1],d[2]);if(!p)return;grad(p[0],p[1],p[2],n3);
-      const pos=new Float32Array(NP*NC*3),nor=new Float32Array(NP*NC*3),ix=[];
-      for(let i=0;i<NP-1;i++)for(let j=0;j<NC;j++){const a=i*NC+j,b=i*NC+(j+1)%NC,c=a+NC,e=b+NC;ix.push(a,c,b,b,c,e);}
+    let t=0,sV=0,pPrev=null,ri=0;
+    const onde=(x,y,z)=>{UM.rip[ri].set(x,y,z,t);ri=(ri+1)%UM.rip.length;};
+    const sMx=(a,b,k)=>{const h=Math.max(k-Math.abs(a-b),0)/k;return Math.max(a,b)+h*h*k*.25;};
+    // les gouttes qui pendent : un tour de révolution par goutte
+    const NR=20,NS=10,PEND=[],mPend=mirMat(FIL_VS);
+    for(let k=0;k<8;k++){const pos=new Float32Array(NR*NS*3),nor=new Float32Array(NR*NS*3),ix=[];
+      for(let i=0;i<NR-1;i++)for(let j=0;j<NS;j++){const a=i*NS+j,b=i*NS+(j+1)%NS;ix.push(a,a+NS,b,b,a+NS,b+NS);}
       const gg=new THREE.BufferGeometry();gg.setAttribute('position',new THREE.BufferAttribute(pos,3).setUsage(THREE.DynamicDrawUsage));
       gg.setAttribute('normal',new THREE.BufferAttribute(nor,3).setUsage(THREE.DynamicDrawUsage));gg.setIndex(ix);
-      const m=new THREE.Mesh(gg,mFil);m.frustumCulled=false;m.userData.brut=1;m.userData.noShadow=1;g.add(m);
-      FIL.push({p:[p[0]-n3[0]*.015,p[1]-n3[1]*.015,p[2]-n3[2]*.015],v,R0,k,ph:rnd()*6.3,w:.8+rnd()*.8,c:0,acc:rnd(),Q:[],pos,nor,gg});};
-    for(const sd of [1,-1]){source([sd*.62,1.6,-1.78],[0,-1,0],[sd*.20,.42,-1.5],.085,1);      // le dessus des hanches
-      source([sd*.40,.80,-3.3],[0,0,1],[sd*.10,.20,-1.7],.068,.9);                              // la lèvre de la poupe
-      source([sd*1.5,.62,-1.92],[-sd,0,0],[sd*.40,.12,-1.2],.056,.8);}                          // le haut des arches arrière
-    const TT=new THREE.Vector3(),UU=new THREE.Vector3(),VV=new THREE.Vector3(),UP=new THREE.Vector3(0,1,0),M9=new THREE.Matrix4(),Q9=new THREE.Quaternion(),V9=new THREE.Vector3(),S9=new THREE.Vector3();
-    const ss=(a,b,x)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t);};
-    const pasFil=(dt,t,F)=>{let np=0;
-      for(const s of FIL){
-        s.acc+=dt*(1/.016)*(1+F*.4)*s.k;
-        while(s.acc>=1){s.acc-=1;const a=Math.sin(t*s.w+s.ph)*.35,b=Math.sin(t*s.w*1.6+s.ph*2.1)*.3,sp=1+F*.55;
-          s.c=(s.c+1)%PAS;                                                                       // une goutte sur PAS porte une PERLE
-          s.Q.unshift({x:s.p[0],y:s.p[1],z:s.p[2],vx:(s.v[0]+a*.5)*sp,vy:(s.v[1]+b*.4)*sp,vz:s.v[2]*sp,a:0,pe:s.c===0,L:.62+rnd()*.2+F*.2,r:.8+rnd()*.4});
-          if(s.Q.length>NP)s.Q.pop();}
-        for(const q of s.Q){q.a+=dt;q.vy-=3.0*dt;q.x+=q.vx*dt;q.y+=q.vy*dt;q.z+=q.vz*dt;if(q.y<.03){q.y=.03;q.vy=0;}}
-        const Q=s.Q,n=Q.length;let o=0;
-        for(let i=0;i<NP;i++){const q=Q[Math.min(i,n-1)];let r=0;
-          if(q&&i<n){r=s.R0*.30*(1-ss(.16,.55,q.a))*(1+2.4*(1-ss(0,.10,q.a)));                  // le FIL : épais à la naissance (le ménisque), puis il s'amincit et casse
-            if(q.pe&&np<NPER){const u=q.a/q.L,R9=s.R0*q.r*(1-ss(.62,1,u))*(1+.5*(1-ss(0,.12,q.a))),et=1+.9*(1-ss(.04,.26,q.a)); // la PERLE : étirée en partant, puis ronde
-              if(R9>.004){M9.compose(V9.set(q.x,q.y,q.z),Q9,S9.set(R9/Math.sqrt(et),R9/Math.sqrt(et),R9*et));perles.setMatrixAt(np++,M9);}}}
-          const qa=Q[Math.max(0,Math.min(i-1,n-1))],qb=Q[Math.min(i+1,n-1)];
-          if(q&&qa&&qb){TT.set(qa.x-qb.x,qa.y-qb.y,qa.z-qb.z);if(TT.lengthSq()<1e-10)TT.set(0,0,1);TT.normalize();}else TT.set(0,0,1);
-          UU.crossVectors(TT,UP);if(UU.lengthSq()<1e-6)UU.set(1,0,0);UU.normalize();VV.crossVectors(UU,TT).normalize();
-          for(let j=0;j<NC;j++){const th9=j/NC*Math.PI*2,cx=Math.cos(th9),sy=Math.sin(th9),nx=UU.x*cx+VV.x*sy,ny=UU.y*cx+VV.y*sy,nz=UU.z*cx+VV.z*sy;
-            s.nor[o]=nx;s.nor[o+1]=ny;s.nor[o+2]=nz;
-            if(q){s.pos[o]=q.x+nx*r;s.pos[o+1]=q.y+ny*r;s.pos[o+2]=q.z+nz*r;}else{s.pos[o]=s.p[0];s.pos[o+1]=s.p[1];s.pos[o+2]=s.p[2];}
-            o+=3;}}
-        s.gg.attributes.position.needsUpdate=true;s.gg.attributes.normal.needsUpdate=true;}
-      perles.count=np;perles.instanceMatrix.needsUpdate=true;};
-    // LA VIE : le mercure ondule, la lèvre s'étire, les filets se détachent ; tout s'emballe à la nitro
-    let t=0;const anime=dt=>{dt=Math.min(dt,.1);t+=dt;UM.uT.value=t;const fort=(typeof nitroOn!=='undefined'&&nitroOn)?1:0;
-      UM.uF.value+=(fort-UM.uF.value)*Math.min(1,dt*4);pasFil(dt,t,UM.uF.value);};
+      const m=new THREE.Mesh(gg,mPend);m.frustumCulled=false;m.visible=false;m.userData.brut=1;m.userData.noShadow=1;g.add(m);
+      PEND.push({on:false,m,gg,pos,nor,D:[0,-1,0]});}
+    // où elles naissent : là où la caisse regarde vers le bas ou vers l'arrière (posées SUR la surface par le lancer de rayon)
+    const SRC=[],n3=[0,0,0];
+    const source=(o,d,w)=>{const p=trace(o[0],o[1],o[2],d[0],d[1],d[2]);if(!p)return;grad(p[0],p[1],p[2],n3);
+      SRC.push({B:[p[0]-n3[0]*.012,p[1]-n3[1]*.012,p[2]-n3[2]*.012],N:[n3[0],n3[1],n3[2]],w,next:.2+rnd()*1.6,R0:.05+rnd()*.025});};
+    for(const sd of [1,-1]){source([sd*.38,.62,-3.3],[0,0,1],1.2);      // sous la lèvre de la poupe
+      source([sd*.92,.52,-2.9],[0,0,1],1);                                // derrière les arches arrière
+      source([sd*1.5,.33,-.35],[-sd,0,0],.7);                             // le bas de caisse
+      source([sd*.92,.42,.2],[0,0,1],.6);}                                // derrière les ailes avant
+    source([0,.36,3.2],[0,0,-1],.5);                                      // le bout du nez
+    // les gouttes libres et les billes : une sphère instanciée chacune (allongée, aplatie, tournée)
+    const NG=200,GT=[],gouttes=new THREE.InstancedMesh(new THREE.SphereGeometry(1,16,12),mirMat(PER_VS),NG);
+    gouttes.frustumCulled=false;gouttes.userData.brut=1;gouttes.userData.noShadow=1;gouttes.count=0;g.add(gouttes);
+    const W3=[0,0,0],M9=new THREE.Matrix4(),Q9=new THREE.Quaternion(),V9=new THREE.Vector3(),S9=new THREE.Vector3(),VA=new THREE.Vector3(),Z9=new THREE.Vector3(0,0,1);
+    const vent=(N,sp,o)=>{const k=.30+.40*(1-sp);let x=N[0]*k,y=N[1]*k-(1.1*(1-sp)+.25),z=N[2]*k-sp*1.9;const l=Math.hypot(x,y,z)||1;o[0]=x/l;o[1]=y/l;o[2]=z/l;return o;};
+    const prof=(s,P)=>{const base=s<=0?P.rb:P.rb*Math.pow(Math.max(0,1-s/(P.rb*1.6+1e-4)),1.5),neck=s<=P.sb?P.rn:0,
+      bulb=P.R>0?P.R*Math.sqrt(Math.max(0,1-Math.pow((s-P.sb)/P.R,2))):0;return sMx(sMx(base,neck,.012),bulb,.018);};
+    const posePend=p=>{const B=p.src.B,D=p.D,s0=-.025,s1=Math.max(p.sb+p.R,.02);let rx=0,ry=1,rz=0;if(Math.abs(D[1])>.9){rx=1;ry=0;}
+      let ux=D[1]*rz-D[2]*ry,uy=D[2]*rx-D[0]*rz,uz=D[0]*ry-D[1]*rx;const ul=Math.hypot(ux,uy,uz)||1;ux/=ul;uy/=ul;uz/=ul;
+      const vx=uy*D[2]-uz*D[1],vy=uz*D[0]-ux*D[2],vz=ux*D[1]-uy*D[0];let o=0;
+      for(let i=0;i<NR;i++){const s=s0+(s1-s0)*i/(NR-1),r=i===NR-1?0:prof(s,p),dr=(prof(s+.004,p)-prof(s-.004,p))/.008;
+        for(let j=0;j<NS;j++){const a=j/NS*Math.PI*2,c=Math.cos(a),sn=Math.sin(a),qx=ux*c+vx*sn,qy=uy*c+vy*sn,qz=uz*c+vz*sn;
+          p.pos[o]=B[0]+D[0]*s+qx*r;p.pos[o+1]=B[1]+D[1]*s+qy*r;p.pos[o+2]=B[2]+D[2]*s+qz*r;
+          let nx=qx-D[0]*dr,ny=qy-D[1]*dr,nz=qz-D[2]*dr;const nl=Math.hypot(nx,ny,nz)||1;p.nor[o]=nx/nl;p.nor[o+1]=ny/nl;p.nor[o+2]=nz/nl;o+=3;}}
+      p.gg.attributes.position.needsUpdate=true;p.gg.attributes.normal.needsUpdate=true;};
+    const naitre=src=>{const p=PEND.find(q=>!q.on);if(!p)return false;
+      Object.assign(p,{on:true,src,ph:0,t:0,Tg:.30+rnd()*.30,Ts:.22+rnd()*.25,R0:src.R0*(.8+rnd()*.45),L:.10+rnd()*.14,rb:0,rn:0,R:0,sb:0});
+      p.D[0]=src.N[0];p.D[1]=src.N[1];p.D[2]=src.N[2];p.m.visible=true;return true;};
+    const eclate=o=>{const vol=o.r*o.r*o.r,n=o.r>.03?5+(rnd()*5|0):2+(rnd()*2|0);let reste=vol;          // le volume est conservé
+      for(let k=0;k<n&&GT.length<NG;k++){const part=k===n-1?reste:vol*(.06+rnd()*.24);reste-=part;if(part<=vol*.01)continue;
+        const r=Math.cbrt(part),an=rnd()*Math.PI*2,v=(.6+rnd()*1.8)*(1-.4*sV);
+        GT.push({mode:1,x:o.x,y:r*.72,z:o.z,vx:Math.cos(an)*v+o.vx*.25,vy:0,vz:Math.sin(an)*v+o.vz*.35,r,a:0,age:0});}};
+    const auSol=()=>{try{if(typeof garageOn==='undefined')return true;                                       // hors du jeu (la salle blanche) : il y a un sol
+      if(typeof CHUTE!=='undefined'&&CHUTE&&CHUTE.on)return false;if(garageOn)return true;                     // LA CHUTE (l'écran titre) : en plein ciel, pas de sol
+      
+      if(typeof started!=='undefined'&&started&&typeof gameOver!=='undefined'&&!gameOver&&typeof mode!=='undefined')return mode==='drive';}catch(e){}return false;};
+    const pasGouttes=(dt,F)=>{
+      const e=g.matrixWorld.elements;                                                    // la vitesse de la caisse (0 au garage) : elle décide du vent
+      if(pPrev){const d=Math.hypot(e[12]-pPrev[0],e[13]-pPrev[1],e[14]-pPrev[2])/Math.max(dt,1e-3);sV+=(Math.min(1,d/45)-sV)*Math.min(1,dt*3);}else pPrev=[0,0,0];
+      pPrev[0]=e[12];pPrev[1]=e[13];pPrev[2]=e[14];const sp=sV,sol=auSol();
+      for(const s of SRC){s.next-=dt*(1+F*1.4)*(1+sp*.6)*s.w;if(s.next<=0)s.next=naitre(s)?.9+rnd()*1.6:.1;}
+      for(const p of PEND){if(!p.on)continue;p.t+=dt;vent(p.src.N,sp,W3);
+        const k=Math.min(1,dt*(p.ph===0?2.5:7));p.D[0]+=(W3[0]-p.D[0])*k;p.D[1]+=(W3[1]-p.D[1])*k;p.D[2]+=(W3[2]-p.D[2])*k;
+        const dl=Math.hypot(p.D[0],p.D[1],p.D[2])||1;p.D[0]/=dl;p.D[1]/=dl;p.D[2]/=dl;
+        if(p.ph===0){const u=Math.min(1,p.t/p.Tg),q=1-(1-u)*(1-u);p.R=p.R0*q;p.sb=p.R*1.05+.008;p.rn=p.R*.78;p.rb=p.R0*1.3*Math.min(1,u*1.6);   // elle GONFLE
+          if(u>=1){p.ph=1;p.t=0;}}
+        else if(p.ph===1){const Ts=p.Ts*(1-.45*sp),u=Math.min(1,p.t/Ts),L=p.L*(1+sp*1.2);                                                  // elle s'ÉTIRE en larme
+          p.R=p.R0;p.sb=p.R0*1.05+.008+L*u*u;p.rn=p.R0*(.78*Math.pow(1-u,1.4)+.035);p.rb=p.R0*1.3;
+          if(u>=1){const B=p.src.B,D=p.D,v0=2*L/Ts*.5;                                                                                     // et CASSE
+            GT.push({mode:0,x:B[0]+D[0]*p.sb,y:B[1]+D[1]*p.sb,z:B[2]+D[2]*p.sb,vx:D[0]*v0,vy:D[1]*v0,vz:D[2]*v0-sp*1.5,r:p.R0*.92,a:.38,age:0});
+            const sc=(p.sb-p.R0)*.6;GT.push({mode:0,x:B[0]+D[0]*sc,y:B[1]+D[1]*sc,z:B[2]+D[2]*sc,vx:D[0]*v0*.7,vy:D[1]*v0*.7,vz:D[2]*v0*.7-sp*1.5,r:p.R0*.24,a:.25,age:0});
+            onde(B[0],B[1],B[2]);p.ph=2;p.t=0;p.sr=Math.max(.01,p.sb-p.R0);}}
+        else{const u=Math.min(1,p.t/.2);p.R=0;p.sb=p.sr*(1-u);p.rn=p.R0*.55*(1-u);p.rb=p.R0*1.3*(1-u*.85);                                  // le cou est RAVALÉ
+          if(u>=1){p.on=false;p.m.visible=false;continue;}}
+        posePend(p);}
+      for(let i=GT.length-1;i>=0;i--){const o=GT[i];o.age+=dt;
+        if(o.mode===0){o.vy-=6.5*dt;o.vz-=sp*10*dt;const f=Math.exp(-.5*dt);o.vx*=f;o.vy*=f;o.vz*=f;o.x+=o.vx*dt;o.y+=o.vy*dt;o.z+=o.vz*dt;o.a*=Math.exp(-2.6*dt);
+          if(sol&&o.y<=o.r*.75){GT.splice(i,1);eclate(o);continue;}
+          if((!sol&&o.age>1.6)||o.z<-9){GT.splice(i,1);continue;}}
+        else if(o.mode===1||o.mode===2){if(!sol){o.mode=0;continue;}o.y=o.r*.72;
+          if(o.mode===2&&sp>.3)o.mode=1;
+          if(o.mode===1){const f=Math.exp(-2.4*dt);o.vx*=f;o.vz*=f;o.vz-=sp*16*dt;o.x+=o.vx*dt;o.z+=o.vz*dt;
+            if(o.z<-9||o.age>12){o.mode=3;continue;}if(sp<.12&&o.age>.75){o.mode=2;o.cs=.45+rnd()*.45;}}
+          else{const tx=Math.max(-.62,Math.min(.62,o.x)),tz=Math.max(-2.2,Math.min(2.15,o.z)),dx=tx-o.x,dz=tz-o.z,d=Math.hypot(dx,dz);     // elle RAMPE vers la caisse
+            if(d<.03){o.mode=3;const sx=Math.sign(o.x)||1,q=trace(sx*1.4,.34,o.z,-sx,0,0)||[o.x,.34,o.z];onde(q[0],q[1],q[2]);continue;}
+            const w=Math.sin(o.age*9+o.r*300)*.35,st=Math.min(d,o.cs*dt);o.x+=(dx/d)*st-(dz/d)*w*st;o.z+=(dz/d)*st+(dx/d)*w*st;}}
+        else{o.r*=Math.exp(-dt*12);if(o.r<.003)GT.splice(i,1);}}
+      for(let i=0;i<GT.length;i++){const a=GT[i];if(a.mode!==1&&a.mode!==2)continue;                                               // les billes qui se touchent FUSIONNENT
+        for(let j=i+1;j<GT.length;j++){const b=GT[j];if(b.mode!==1&&b.mode!==2)continue;const dx=a.x-b.x,dz=a.z-b.z;
+          if(dx*dx+dz*dz<(a.r+b.r)*(a.r+b.r)*.7){const va=a.r*a.r*a.r,vb=b.r*b.r*b.r;a.x=(a.x*va+b.x*vb)/(va+vb);a.z=(a.z*va+b.z*vb)/(va+vb);
+            a.vx=(a.vx*va+b.vx*vb)/(va+vb);a.vz=(a.vz*va+b.vz*vb)/(va+vb);a.r=Math.cbrt(va+vb);a.a=.3;GT.splice(j,1);j--;}}}
+      let n=0;for(const o of GT){if(n>=NG)break;
+        if(o.mode===0){const v=Math.hypot(o.vx,o.vy,o.vz)||1;Q9.setFromUnitVectors(Z9,VA.set(o.vx/v,o.vy/v,o.vz/v));
+          const e2=1+o.a*Math.sin(o.age*44)+Math.min(.5,v*.04);S9.set(o.r/Math.sqrt(e2),o.r/Math.sqrt(e2),o.r*e2);}                  // elle TREMBLE en vol
+        else{Q9.identity();const w=1+(o.a||0)*Math.sin(o.age*40)*Math.exp(-o.age*3);S9.set(o.r*1.12*w,o.r*.78/w,o.r*1.12*w);}       // une bille : écrasée par son poids
+        M9.compose(V9.set(o.x,o.y,o.z),Q9,S9);gouttes.setMatrixAt(n++,M9);}
+      gouttes.count=n;gouttes.instanceMatrix.needsUpdate=true;};
+    // LA VIE : le mercure ondule, la lèvre s'étire, les gouttes naissent, cassent, roulent, rentrent ; tout s'emballe à la nitro
+    const anime=dt=>{dt=Math.min(dt,.1);t+=dt;UM.uT.value=t;const fort=(typeof nitroOn!=='undefined'&&nitroOn)?1:0;
+      UM.uF.value+=(fort-UM.uF.value)*Math.min(1,dt*4);pasGouttes(dt,UM.uF.value);};
     for(let k=0;k<45;k++)anime(1/30);
     g.userData.anime=anime;
     if(typeof BLING==='object'&&BLING&&BLING.anim)BLING.anim.push(anime);
@@ -43807,6 +43882,8 @@ buildPlayWord();
 function mPlayMot(){const el=document.querySelector('#mHome .mPlay');if(!el)return;
   el.classList.remove('pbtn','pb-gold','big','wide');el.classList.add('mMot');el.setAttribute('aria-label',TR('JOUER'));el.innerHTML='';
   for(const ch of TR('JOUER')){const sp=document.createElement('span');sp.className='lg gold';sp.setAttribute('data-t',ch);sp.textContent=ch;el.appendChild(sp);}
+  try{const gj=document.querySelector('#gJouer>span[data-fr="JOUER"],#gJouer>.gjMot');if(gj){gj.removeAttribute('data-fr');gj.className='gjMot';gj.innerHTML=''; // (2026-10-12, Léo : « je préfère le JOUER du ciel ») le JOUER du garage : le même mot, lettre par lettre
+    for(const ch of TR('JOUER')){const sp=document.createElement('span');sp.className='lg gold';sp.setAttribute('data-t',ch);sp.textContent=ch;gj.appendChild(sp);}}}catch(e){}
   try{carrPlayMaj();}catch(e){}} // (2026-10-07) la map que lance PLAY, en petit dessous (« LE NIVEAU DES PLAY »)
 function mPlayVague(x){const el=document.querySelector('#mHome .mPlay.mMot');if(!el)return;const L9=el.querySelectorAll('.lg');if(!L9.length)return;
   if(x==null){const r0=el.getBoundingClientRect();x=(r0.left+r0.right)/2;}

@@ -30,10 +30,16 @@ facettes, comme toute la gamme) a été jugée « pas ouf, ça se sent que tu t'
   soleil bas) dans le repère de la caisse (axes en varyings), 16 % du vrai ciel (`envTex`), Fresnel de métal (~78 % de face). Couleurs PASTEL :
   l'étalonnage de la course sature (en violet franc, la caisse sortait néon). Les ONDES (nez → queue) déplacent la surface ET la normale (gradient
   analytique) : le reflet ondule. La lèvre s'étire en arrière. Tout s'emballe à la nitro.
-- LES FILETS (`FIL`, six sources) : des PERLES rondes (InstancedMesh de sphères, `PER_VS`) une goutte émise sur `PAS`, reliées par un FIL (tube
-  dynamique, `FIL_VS`) épais à la naissance (le ménisque) qui s'amincit avec l'âge et CASSE ; perles étirées en partant, puis rondes, puis qui
-  rapetissent. Jet régulier (pas de hasard par goutte : ça faisait des zigzags en rubans). Repère de la caisse : en course elles filent derrière.
-- Mesuré au banc (Chrome sans fenêtre, puce du Mac) : 60 i/s en course, comme LA DÉFERLANTE. Vit par `BLING.anim` / `userData.anime`.
+- LES GOUTTES v3 (Léo : « elle drip de manière un peu générique » — le jet de perles continu était un effet de particules) : chaque goutte a
+  une VIE de métal liquide. (1) Elle NAÎT de la peau (`PEND`, huit tours de révolution recalculés à chaque image : ménisque, cou, bulbe)
+  aux points qui regardent vers le bas/l'arrière (`SRC`, posés par `trace`) : elle gonfle, s'étire en LARME dans le sens du vent (`vent` :
+  vers le bas à l'arrêt, vers l'arrière en course — la vitesse `sV` est lue sur `g.matrixWorld`), son cou s'amincit et CASSE ; (2) la goutte
+  part avec un SATELLITE, le cou est RAVALÉ et une ONDE en cercle court sur la carrosserie (`onde` → `uRip[6]`, fonction `RIP` dans les deux
+  programmes : déplacement + normale) ; (3) en vol elle TREMBLE (allongée ↔ aplatie) ; (4) au sol (`auSol` : garage, salle blanche, course
+  au sol — PAS la chute de l'écran titre) elle ÉCLATE en billes (volume conservé) qui roulent et FUSIONNENT ; (5) à l'arrêt les billes
+  RAMPENT vers la caisse et y rentrent (onde au contact) ; en course la route les emporte. Une sphère instanciée par goutte/bille (`PER_VS`
+  corrige la normale d'une sphère étirée).
+- Mesuré au banc (Chrome sans fenêtre, puce du Mac) : 60 i/s en course (v3 comprise : médiane 16,7 ms), comme LA DÉFERLANTE. Vit par `BLING.anim` / `userData.anime`.
   ⚠ GLSL : pas de `transpose`, pas de `smoothstep` à bornes inversées, `modelMatrix` absent du fragment.
 
 ## LA PASSE UX/UI — L'ACCUEIL, LE GARAGE, L'ŒIL, LES TRANSITIONS (2026-10-11, session GRAPHISME — Sacha : « la disposition des boutons dans chaque écran est super moche, mets-toi dans la peau d'un designer UX/UI senior et règle ça page par page » · « l'accueil c'est moche, le garage est bof, plein de boutons au mauvais endroit — le bouton œil ne ressemble pas à un œil, il ne devrait pas être sur la fenêtre mais flotter, et quand on clique dessus la caméra doit recentrer sur la voiture » · « tous les boutons du garage sont à réorganiser, travaille les transitions »)
