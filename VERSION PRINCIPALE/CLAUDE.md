@@ -1,5 +1,20 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LE BOUTON NITRO v3 — L'ÉCLAIR 3D, LA JAUGE QUI FAIT LE TOUR, LE COMPTEUR À AIGUILLE (2026-10-12, Léo : « à la place du carré, un éclair 3D brillant, qui s'intensifie au toucher, en parallèle d'une jauge qui fait le tour, placée de manière à la voir par-dessus le pouce, avec un compteur qui affiche à combien tu vas, un peu à l'ancienne, à aiguille »)
+- La plaque penchée NITRO (hudDA §1) est remplacée par un CADRAN rond `--nxD` 136 px : CSS `<style id="nitroEclair">` (le dernier bloc, juste
+  avant `#splash`), JS « LE BOUTON NITRO v3 » juste avant `loopWarn` (`NX3`, `NX3P`, `nx3Monte`, `nx3Grad`, `nx3Cuire`, `nx3Tick`, `nx3Dessine`),
+  appel `nx3Tick(dt,speedKmh)` dans la boucle juste après la pose de `--nr/--nx`. Les anciens enfants (`.pxi`, mot, `.nxJauge`, `.nxArt`) restent, éteints.
+- LA JAUGE NITRO = un arc de 240° OUVERT EN BAS À DROITE (le pouce droit n'y cache que le trou) : orange en trois bandes (réservoir), bleu
+  derrière (réserve), curseur blanc ; `.plein` bat, `.bas` piste rouge qui clignote, `.inf` violet qui file.
+- LE COMPTEUR : chiffres en CENTAINES (×100), aiguille rouge sur ressort sous le moyeu, butée qui tremble. Dernier chiffre = 2,6 × `vmaxShow()×FLOW_VREF`
+  (MESURÉ : sans nitro ≈ 1 ×, nitro tenue → ~2,7 ×) ; l'échelle suit le palier moteur (700 au départ → 1 000 vers le palier 5).
+- L'ÉCLAIR 3D : extrudé à chanfreins à facettes, or poli + petit studio peint (cube à part, indépendant du biome), CUIT UNE FOIS au menu
+  (`setTimeout` 1,4 s, sinon au 1er tick) en 24 images de balancement × 2 états (froid / chauffé) → planche 2D 12 × 4 cases de 192 px ;
+  en course : 2 à 4 `drawImage` (fondu entre images voisines), reflet en biais (`source-atop`), arcs électriques (hasard propre `nx3Alea`).
+  Ses programmes sont libérés aussitôt : MESURÉ 0 programme compilé en course (154 avant/après). Au toucher (`nitroOn` = 1 ; appui à sec = ,35)
+  il chauffe, grossit, tremble, crépite, halo de la couleur de la poussée.
+- Console : `dbgNitro3()` (échelle, aiguille, km/h, jauge) · `dbgNitro3({col:…,refl:…})` re-cuit l'éclair · `dbgNitro3('k',1)` force l'appui.
+
 ## LE SIMULATEUR — `simulateur.html` (2026-10-12, Léo : « un simulateur de course léger pour aucun bug ; une interface avec les maps, leurs noms, une photo représentative et une option jouer sur la map ; chaque map n'a pas de musique pour l'instant, après il faudra associer un fichier à chaque » + son moteur de musique `french-touch.html` « à retranscrire sur la map ville » — puis « il faut que ce soit les bonnes maps et la bonne physique »)
 Un outil À CÔTÉ du jeu, qui ne refait RIEN : il lance LE JEU (`index.html`, sans une ligne changée) directement sur un niveau. Pas en ligne
 (`vercel-build.sh` le retire, comme maps-ciel). ⚠ La 1re version (décors et conduite refaits à la main) a été REJETÉE : jamais de copie du jeu.
