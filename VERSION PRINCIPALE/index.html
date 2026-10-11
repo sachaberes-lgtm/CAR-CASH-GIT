@@ -6453,6 +6453,17 @@ html body #garage:not(.menu):not(.vitrine) #gRang1>#gHomeBas>:not(.gHomeCielCv){
 html body #garage:not(.menu):not(.vitrine) #gRang1>#gHomeBas>.gHomeCielCv{display:block;position:absolute;left:-12%;top:-8%;width:124%;height:116%;z-index:0;pointer-events:none;
   opacity:0;transition:opacity .5s;transform:skewX(calc(-1 * var(--sk)));animation:gHomeCielPan 18s ease-in-out infinite alternate}
 html body #garage:not(.menu):not(.vitrine) #gRang1>#gHomeBas>.gHomeCielCv.on{opacity:1}
+/* LES BOUTONS SUIVENT LE CIEL (voir homeCielPrise) : un FILTRE sur chaque touche — la nuit plus sombres et désaturés, le jour un cran plus
+   clairs ; fondu de 0,8 s. L'accueil (les quatre portes, ⚙, JOUER) et le garage (HOME, l'œil, INVENTAIRE, BOUTIQUE, ACHETER, JOUER).
+   ⚠ jamais de filtre sur les lettres .lg du logo (voir la charte) : il est posé sur la TOUCHE entière. */
+html.hub body #mHome.acc2 :is(.mHubPorte,.mAccB,.mOffres,.mGear,.mPlay),
+html body #garage:not(.menu):not(.vitrine) :is(#gRang1>#gHomeBas,#gRang1>#gOeil,#gAct>#gvCof,#gAct>#gShopBas,#gAct>#gEquip,#gAct>#gJouer){transition:filter .8s var(--ease)}
+html.cielNuit.hub body #mHome.acc2 :is(.mHubPorte,.mAccB,.mOffres,.mGear,.mPlay),
+html.cielNuit body #garage:not(.menu):not(.vitrine) :is(#gRang1>#gHomeBas,#gRang1>#gOeil,#gAct>#gvCof,#gAct>#gShopBas,#gAct>#gEquip,#gAct>#gJouer){filter:brightness(.78) saturate(.68)!important}
+html.cielJour.hub body #mHome.acc2 :is(.mHubPorte,.mAccB,.mOffres,.mGear,.mPlay),
+html.cielJour body #garage:not(.menu):not(.vitrine) :is(#gRang1>#gHomeBas,#gRang1>#gOeil,#gAct>#gvCof,#gAct>#gShopBas,#gAct>#gEquip,#gAct>#gJouer){filter:brightness(1.1) saturate(1.12)!important}
+html.cielNuit.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay{filter:brightness(.78) saturate(.68)!important} /* (la passe UX impose filter:none!important à JOUER : une règle plus précise) */
+html.cielJour.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay{filter:brightness(1.1) saturate(1.12)!important}
 @keyframes gHomeCielPan{from{translate:-5% 0;scale:1.04}to{translate:5% -2%;scale:1.1}}
 @media (prefers-reduced-motion:reduce){html body #garage #gRang1>#gHomeBas>.gHomeCielCv{animation:none}}
 html[data-reduced-motion="1"] body #garage #gRang1>#gHomeBas>.gHomeCielCv{animation:none}
@@ -39756,7 +39767,12 @@ function homeCielPrise(now){
   if(!cv){const b=document.getElementById('gHomeBas');if(!b)return;cv=homeCielPrise._cv=document.createElement('canvas');cv.className='gHomeCielCv';cv.width=160;cv.height=210;cv.setAttribute('aria-hidden','true');b.insertBefore(cv,b.firstChild);}
   const src=renderer.domElement,W=src.width,H=src.height;if(!(W>8&&H>8))return;
   const a=cv.width/cv.height;let sh=H*.34,sw=sh*a;if(sw>W){sw=W;sh=W/a;}
-  cv.getContext('2d').drawImage(src,(W-sw)/2,0,sw,sh,0,0,cv.width,cv.height);cv.classList.add('on');}
+  const cx=cv.getContext('2d',{willReadFrequently:true});cx.drawImage(src,(W-sw)/2,0,sw,sh,0,0,cv.width,cv.height);cv.classList.add('on');
+  /* LES BOUTONS SUIVENT LE CIEL (2026-10-11, Léo : « change la colorimétrie des boutons selon que c'est la nuit : tous un peu plus sombres et
+     sobres — et vice versa ») : la luminosité moyenne de la vignette (un pixel sur 16) dit le moment — NUIT sous ,22 (html.cielNuit : boutons
+     plus sombres et sobres), JOUR au-dessus de ,38 (html.cielJour : un cran plus clairs et vifs), entre les deux (couchant) : tels quels. */
+  try{const d=cx.getImageData(0,0,cv.width,cv.height).data;let l=0,n=0;for(let i=0;i<d.length;i+=64){l+=.2126*d[i]+.7152*d[i+1]+.0722*d[i+2];n++;}l=l/n/255;
+    const h=document.documentElement;h.classList.toggle('cielNuit',l<.22);h.classList.toggle('cielJour',l>.38);homeCielPrise._l=+l.toFixed(3);}catch(e){}}
 /* LA CAISSE SE TOURNE VERS CE QU'ON REGARDE (2026-10-11, Léo : « quand on appuie sur TRAÎNÉES et PEINTURE, au lieu de faire TP de position,
    la voiture se tourne pour montrer les différentes features — TRAÎNÉES : la vue de l'arrière ») : l'onglet ne POSE plus l'angle d'un coup
    (garageAng=3.5), il le fait TOURNER en ~0,9 s par le plus court chemin (garTourneVers, joué dans garageRender, prioritaire sur la rotation
@@ -42289,7 +42305,7 @@ try{const hm=document.getElementById('gHomeMini');const va=function(e){e.stopPro
 window.dbgTourne=function(deg){if(deg!=null&&gtLibre()){gtSaisit();gtVise(-deg*Math.PI/180);}const r=GTN.el&&GTN.el.getBoundingClientRect();
   const q9=camera.position,p9=new THREE.Vector3(0,GARAGE_Y+.6,0).project(camera); // (2026-10-10) la caméra et la caisse à l'écran : le banc de l'orbite
   return {on:!!(GTN.el&&GTN.el.classList.contains('on')),t:GTN.t,deg:GTN.deg,vA:+(GAR.vA||0).toFixed(3),vAc:+(GAR.vAc||0).toFixed(3),jauge:r?[Math.round(r.left),Math.round(r.top),Math.round(r.width),Math.round(r.height)]:null,
-    cam:[+q9.x.toFixed(2),+q9.y.toFixed(2),+q9.z.toFixed(2)],rCam:+Math.hypot(q9.x,q9.z).toFixed(2),caisse:[Math.round((p9.x+1)/2*VP.w),Math.round((1-p9.y)/2*VP.h)],aVl:+(GAR.aVl||0).toFixed(3),vD:+(GAR.vD||0).toFixed(3),wD:+(GAR.wD||0).toFixed(2),W:GAR.W,D:GAR.D,dist:garageDist,ang:+garageAng.toFixed(2),tourne:!!GAR.angTw};};
+    cam:[+q9.x.toFixed(2),+q9.y.toFixed(2),+q9.z.toFixed(2)],rCam:+Math.hypot(q9.x,q9.z).toFixed(2),caisse:[Math.round((p9.x+1)/2*VP.w),Math.round((1-p9.y)/2*VP.h)],aVl:+(GAR.aVl||0).toFixed(3),vD:+(GAR.vD||0).toFixed(3),wD:+(GAR.wD||0).toFixed(2),W:GAR.W,D:GAR.D,dist:garageDist,ang:+garageAng.toFixed(2),tourne:!!GAR.angTw,ciel:homeCielPrise._l};};
 window.dbgHub=function(){const el=$('gHub'),r=el&&el.getBoundingClientRect();return {hub:HUB,ctx:hubCtx(),on:document.documentElement.classList.contains('hubOn'),cache:!!(el&&el.classList.contains('cache')),barre:r?[Math.round(r.left),Math.round(r.top),Math.round(r.width),Math.round(r.height)]:null};};
 document.documentElement.classList.toggle('misS',MENU_SACHA); // l'écran MISSIONS de Sacha : ses règles CSS vivent sous html.misS
 /* (même soir, Léo : « enlève la porte ») la porte FERMÉE au menu (Sacha, b8e7ce7) va avec SA version : par défaut (ou ?porte=1) elle
