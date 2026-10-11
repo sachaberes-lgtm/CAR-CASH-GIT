@@ -6281,17 +6281,17 @@ html body #garage:not(.menu) #gRar .gR.on:not(.gF)>.pxi{opacity:1;filter:drop-sh
    Le mot devient VOIR ; INVENTAIRE ou BOUTIQUE la rouvrent aussi. Le HOME du haut (#gHomeMini) s'efface : un seul HOME à l'écran. */
 #gHomeBas,#gCache{display:none}
 html.hubOn #gHomeMini.on{display:none}
-html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin)>:is(#gHomeBas,#gCache){grid-row:1;display:flex;align-items:center;justify-content:center;gap:7px;min-width:0;height:34px;min-height:34px;
+html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>:is(#gHomeBas,#gCache){grid-row:1;display:flex;align-items:center;justify-content:center;gap:7px;min-width:0;height:34px;min-height:34px;
   padding:0 8px;font-size:var(--f1);letter-spacing:2px;--ton:#4f8cff;--nc:var(--ton);color:var(--tx2);text-shadow:0 1px 0 rgba(7,5,15,.85);animation:none;transform:skewX(var(--sk));
   background:linear-gradient(180deg,rgba(26,21,50,.92),rgba(15,12,32,.92));box-shadow:inset 0 0 0 1px var(--fil),inset 0 -3px 0 var(--ton),0 6px 14px -8px var(--ton)}
-html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin)>#gHomeBas{grid-column:2} /* (même soir, Léo : « le HOME et le VOIR changent de place ») */
+html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>#gHomeBas{grid-column:2} /* (même soir, Léo : « le HOME et le VOIR changent de place ») */
 html body #garage:not(.menu):not(.vitrine) #gAct>#gCache{grid-column:1;--ton:#b8b0e0}
-html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin)>:is(#gHomeBas,#gCache) .pxi{--pxs:1;color:var(--ton);filter:drop-shadow(0 0 4px var(--ton))}
-html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin)>:is(#gHomeBas,#gCache):is(:active,.appui){transform:skewX(var(--sk)) translateY(2px)}
+html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>:is(#gHomeBas,#gCache) .pxi{--pxs:1;color:var(--ton);filter:drop-shadow(0 0 4px var(--ton))}
+html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>:is(#gHomeBas,#gCache):is(:active,.appui){transform:skewX(var(--sk)) translateY(2px)}
 html body #garage.consoleCachee:not(.menu):not(.vitrine) #gAct>#gCache{--ton:#fff;color:#fff}
 html body #garage.consoleCachee:not(.menu):not(.vitrine) :is(#gTabs,#gRar,#gStrip){display:none!important}
 @media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
-  html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin)>:is(#gHomeBas,#gCache){height:30px;min-height:30px;letter-spacing:1px}}
+  html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>:is(#gHomeBas,#gCache){height:30px;min-height:30px;letter-spacing:1px}}
 /* LA JAUGE EN TÊTE, LA CONSOLE EN VERRE (2026-10-10, Léo : « encore plus smooth, plus centrée, la jauge — en mode portrait, mets-la
    au-dessus des catégories VOITURES · PEINTURE… — et remets du visuel sur la zone noire », puis « au-dessus des trois bandes colorées ») :
    DEBOUT, la jauge sort de la console et se pose JUSTE AU-DESSUS (gtPlace la range avant #gBottom ; garLibre cadre la caisse au-dessus
@@ -6307,13 +6307,13 @@ html body #garage:not(.menu):not(.vitrine) #gBottom{background:linear-gradient(1
    pictogrammes passent au double (--pxs 2) dans une enveloppe `.gLueur` qui porte la lueur — un drop-shadow posé SUR une .pxi ne se voit pas
    (le masque le rogne, voir la charte) : posé sur son parent, il passe. HOME : plaque teintée de bleu, mot en blanc, filet bleu épais.
    CACHER : l'œil orange, un halo qui respire (opacité seule, 2,4 s — rien d'autre ne s'anime). */
-html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin)>:is(#gHomeBas,#gCache){gap:5px;padding:0 6px;letter-spacing:1px}
+html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>:is(#gHomeBas,#gCache){gap:5px;padding:0 6px;letter-spacing:1px}
 html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip{letter-spacing:1px}
-html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin)>:is(#gHomeBas,#gCache) .gLueur{position:relative;display:inline-flex;line-height:0;filter:drop-shadow(0 0 2px var(--lu)) drop-shadow(0 0 6px var(--lu))}
-html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin)>:is(#gHomeBas,#gCache) .gLueur .pxi{--pxs:2;filter:none}
-html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin)>#gHomeBas{--ton:#5b95ff;--lu:rgba(79,140,255,.85);color:#fff;text-shadow:0 1px 0 rgba(7,5,15,.9),0 0 10px rgba(91,149,255,.75);
+html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>:is(#gHomeBas,#gCache) .gLueur{position:relative;display:inline-flex;line-height:0;filter:drop-shadow(0 0 2px var(--lu)) drop-shadow(0 0 6px var(--lu))}
+html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>:is(#gHomeBas,#gCache) .gLueur .pxi{--pxs:2;filter:none}
+html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>#gHomeBas{--ton:#5b95ff;--lu:rgba(79,140,255,.85);color:#fff;text-shadow:0 1px 0 rgba(7,5,15,.9),0 0 10px rgba(91,149,255,.75);
   background:linear-gradient(180deg,rgba(46,78,170,.62),rgba(20,28,74,.9));box-shadow:inset 0 0 0 1px rgba(120,165,255,.55),inset 0 -4px 0 var(--ton),0 0 16px -4px var(--ton),0 6px 14px -8px var(--ton)}
-html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin)>#gHomeBas .pxi{color:#8fbcff}
+html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>#gHomeBas .pxi{color:#8fbcff}
 html body #garage:not(.menu):not(.vitrine) #gAct>#gCache{--lu:rgba(255,138,31,.9)}
 html body #garage:not(.menu):not(.vitrine) #gAct>#gCache .pxi{color:#ffa23a}
 html body #garage:not(.menu):not(.vitrine) #gAct>#gCache .gLueur::after{content:'';position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;pointer-events:none;
@@ -6326,24 +6326,24 @@ html[data-reduced-motion="1"] body #garage #gAct>#gCache .gLueur::after{animatio
    orange luisant comme l'était celui de CACHER, sans mot. `.vueSeule` : tout le garage disparaît sauf lui (voir gVueSeule). */
 #gOeil{display:none}
 html body #garage:not(.menu):not(.vitrine) #gAct>#gCache{display:none!important}
-html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin)>#gHomeBas{grid-column:1}
-html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin)>#gOeil{grid-row:1;grid-column:2;display:flex;align-items:center;justify-content:center;min-width:0;height:34px;min-height:34px;padding:0 8px;
+html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>#gHomeBas{grid-column:1}
+html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>#gOeil{grid-row:1;grid-column:2;display:flex;align-items:center;justify-content:center;min-width:0;height:34px;min-height:34px;padding:0 8px;
   --ton:#ff8a1f;--nc:var(--ton);--lu:rgba(255,200,120,.9);transform:skewX(var(--sk));animation:none; /* (même jour, Léo : « case bleue, œil orange », puis « orange le bouton œil, et seulement l'œil quand on l'active ») */
   background:linear-gradient(180deg,rgba(255,150,50,.92),rgba(196,82,12,.94));box-shadow:inset 0 0 0 1px rgba(255,214,160,.7),inset 0 -4px 0 #ffc27a,0 0 16px -4px var(--ton),0 6px 14px -8px var(--ton)}
-html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin)>#gOeil:is(:active,.appui){transform:skewX(var(--sk)) translateY(2px)}
-html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin)>#gOeil .gLueur{position:relative;display:inline-flex;line-height:0;filter:drop-shadow(0 0 2px var(--lu)) drop-shadow(0 0 6px var(--lu))}
-html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin)>#gOeil .gLueur .pxi{--pxs:2;color:#fff3e0;filter:none}
-html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin)>#gOeil .gLueur::after{content:'';position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;pointer-events:none;
+html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>#gOeil:is(:active,.appui){transform:skewX(var(--sk)) translateY(2px)}
+html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>#gOeil .gLueur{position:relative;display:inline-flex;line-height:0;filter:drop-shadow(0 0 2px var(--lu)) drop-shadow(0 0 6px var(--lu))}
+html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>#gOeil .gLueur .pxi{--pxs:2;color:#fff3e0;filter:none}
+html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>#gOeil .gLueur::after{content:'';position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;pointer-events:none;
   background:radial-gradient(circle,rgba(255,150,40,.5),rgba(255,120,20,.18) 45%,transparent 70%);animation:gOeilLuit 2.4s ease-in-out infinite}
-@media (prefers-reduced-motion:reduce){html body #garage :is(#gAct,#gCoin)>#gOeil .gLueur::after{animation:none;opacity:.8}}
-html[data-reduced-motion="1"] body #garage :is(#gAct,#gCoin)>#gOeil .gLueur::after{animation:none;opacity:.8}
+@media (prefers-reduced-motion:reduce){html body #garage :is(#gAct,#gCoin,#gRang1)>#gOeil .gLueur::after{animation:none;opacity:.8}}
+html[data-reduced-motion="1"] body #garage :is(#gAct,#gCoin,#gRang1)>#gOeil .gLueur::after{animation:none;opacity:.8}
 @media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
-  html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin)>#gOeil{height:30px;min-height:30px}}
+  html body #garage:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>#gOeil{height:30px;min-height:30px}}
 html body #garage.vueSeule{visibility:hidden}
 html body #garage.vueSeule #gOeil{visibility:visible}
 html.vueSeule #gTourne,html.vueSeule #gHomeMini{visibility:hidden!important}
-html body #garage.vueSeule:not(.menu):not(.vitrine) :is(#gAct,#gCoin)>#gOeil{--lu:rgba(255,138,31,1);background:none;box-shadow:none} /* allumé : la case s'efface, il ne reste QUE l'œil, orange luisant */
-html body #garage.vueSeule:not(.menu):not(.vitrine) :is(#gAct,#gCoin)>#gOeil .gLueur .pxi{--pxs:3;color:#ffa23a}
+html body #garage.vueSeule:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>#gOeil{--lu:rgba(255,138,31,1);background:none;box-shadow:none} /* allumé : la case s'efface, il ne reste QUE l'œil, orange luisant */
+html body #garage.vueSeule:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>#gOeil .gLueur .pxi{--pxs:3;color:#ffa23a}
 /* ÉQUIPER → ACHETER (2026-10-10) : le verbe en petit, le prix dessous, en vert billet (or pour l'euro) — voir gEqTon. */
 html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip.achat{flex-direction:column;gap:2px;letter-spacing:1px;line-height:1}
 html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip.achat .gEqV{font-size:var(--f0);letter-spacing:2px;color:var(--tx2)}
@@ -6400,18 +6400,26 @@ html body #garage:not(.menu):not(.vitrine) #gStrip.gModeTous>.gT{width:auto!impo
 #gStrip .gT.gMys .gMysQ{position:absolute;left:0;right:0;top:9px;text-align:center;font-weight:400;font-size:var(--f6);line-height:1;color:var(--rc);text-shadow:0 0 10px var(--rc);transform:skewX(calc(-1 * var(--sk,0deg)))}
 #gStrip .gT.gMys em{color:var(--rc)!important;justify-content:center;letter-spacing:1px}
 #gStrip.fnBande .fnC .rarLogo{top:8px;right:10px}
-/* LE COIN DU GARAGE (2026-10-11, Léo : « j'ai compris à peu près ce que Sacha voulait faire, on va le faire de la bonne manière : mets l'argent
-   et l'aura à droite, mets HOME à la place de l'argent et de l'aura, et cale l'œil avec ») : HOME et l'ŒIL quittent la rangée du bas pour #gCoin,
-   en tête de #gTopRow, en haut à gauche (mêmes boutons, mêmes styles : `:is(#gAct,#gCoin)>`) ; le compteur et l'aura se rangent à DROITE.
-   L'œil allumé reste seul à l'écran (la règle de #garage.vueSeule ne regarde que #gOeil). */
-html body #garage:not(.menu):not(.vitrine) #gTopRow{justify-content:space-between;align-self:stretch}
-html body #garage:not(.menu):not(.vitrine) #gTopRow>#gOutils{display:none} /* vide dans la console (ses boutons y sont masqués) : il gardait un écart à droite du compteur */
-html body #garage:not(.menu):not(.vitrine) #gTop>#gAuraC{align-self:flex-end}
-html body #garage #gCoin{display:none}
-html body #garage:not(.menu):not(.vitrine) #gCoin{display:flex;align-items:center;gap:8px;pointer-events:auto}
-html body #garage:not(.menu):not(.vitrine) #gCoin>#gHomeBas{width:auto;padding:0 12px;height:36px;min-height:36px}
-html body #garage:not(.menu):not(.vitrine) #gCoin>#gOeil{width:56px;height:36px;min-height:36px}
-html body #garage:is(.quiet,.launching) #gCoin{visibility:hidden}
+/* (2026-10-11) LE COIN DU GARAGE (HOME + l'œil en haut à gauche, l'argent et l'aura à droite) a été essayé puis RETIRÉ le même jour (Léo :
+   « reviens comme avant ») : HOME et l'œil restent dans la rangée au-dessus d'INVENTAIRE · BOUTIQUE. Reste : ÉQUIPER AU TOUCHER. */
+/* LA RANGÉE HOME + ŒIL (2026-10-11, Léo : « l'œil est un peu petit, HOME allonge-le : les deux à peu près de la taille d'INVENTAIRE et de la
+   BOUTIQUE, HOME un peu plus long qu'INVENTAIRE ; plus grands pour le doigt sur mobile ; chacun une texture distincte, stylée, dans la DA ») :
+   #gRang1 (créé au démarrage) couvre les colonnes d'INVENTAIRE et de la BOUTIQUE ; HOME y prend un peu plus que la moitié, l'œil le reste,
+   à la hauteur des touches du bas. HOME : laque bleue à FINES RAYURES obliques ; l'ŒIL : orange à TRAME DE POINTS (l'afficheur). ACHETER,
+   à droite, prend la même hauteur. */
+#gRang1{display:none}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gRang1{grid-row:1;grid-column:1/3;display:flex;gap:10px;align-items:stretch;min-width:0}
+html body #garage:not(.menu):not(.vitrine) #gRang1>:is(#gHomeBas,#gOeil){height:48px;min-height:48px;min-width:0;margin:0}
+html body #garage:not(.menu):not(.vitrine) #gRang1>#gHomeBas{flex:1.3 1 0;gap:8px;font-size:var(--f2);letter-spacing:2px;
+  background:repeating-linear-gradient(135deg,rgba(255,255,255,.08) 0 2px,transparent 2px 7px),linear-gradient(180deg,rgba(78,120,236,.8),rgba(20,28,74,.96))}
+html body #garage:not(.menu):not(.vitrine) #gRang1>#gOeil{flex:1 1 0;
+  background:radial-gradient(circle,rgba(255,244,214,.28) 0 1px,transparent 1.6px) 0 0/5px 5px,linear-gradient(180deg,#ffa548,#c4520c)}
+html body #garage:not(.menu):not(.vitrine) #gRang1>#gOeil .gLueur .pxi{--pxs:3}
+html body #garage.vueSeule:not(.menu):not(.vitrine) #gRang1>#gOeil{background:none!important;box-shadow:none!important}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip{height:48px;min-height:48px}
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html body #garage:not(.menu):not(.vitrine) #gRang1>:is(#gHomeBas,#gOeil){height:40px;min-height:40px}
+  html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip{height:40px;min-height:40px}}
 html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip:not(.achat){display:none!important} /* (2026-10-11) ÉQUIPER AU TOUCHER : le bouton ne reste que pour ACHETER */
 html body #garage:not(.menu):not(.vitrine) #gStrip .gT.c-aile.lock em{bottom:auto!important;height:auto!important} /* (2026-10-10) une AILE à vendre : le prix monte au coin haut (il s'étirait sur toute la vignette et se posait sur le nom — vu dans SEE ALL ITEMS) */
 #gStrip.fnBande .fnTout{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:10px;min-height:42px;margin:8px 2px 6px;cursor:pointer;transform:skewX(var(--sk));
@@ -39499,9 +39507,11 @@ function gVueSeule(on){if(!gEl)return;on=!!on;if(gEl.classList.contains('vueSeul
    posé sur la scène (voir <style id="uxPasse">). Mêmes éléments, mêmes écouteurs. --gPanB = la hauteur du panneau depuis le bas de l'écran :
    debout, la paire se pose juste au-dessus. Pas chez Poki (sa console garde sa rangée). */
 /* (2026-10-11, Léo : « remets comme avant ») HOME et l'ŒIL restent dans la console (#gAct) : plus de #gFlot */
-try{if(!POKI&&gEl){const tr=document.getElementById('gTopRow'),co=document.createElement('div');co.id='gCoin'; // (même jour, Léo : « mets HOME à la place de l'argent et de l'aura, et cale l'œil avec ») le COIN du garage, en haut à gauche
-  for(const id of ['gHomeBas','gOeil']){const b9=document.getElementById(id);if(b9)co.appendChild(b9);}
-  if(tr)tr.insertBefore(co,tr.firstChild);}}catch(e){}
+/* (2026-10-11, Léo : « reviens comme avant : l'argent et l'aura à leur place, HOME et l'œil au-dessus d'INVENTAIRE · BOUTIQUE ») le coin #gCoin est retiré ;
+   (même soir) HOME et l'ŒIL dans leur rangée à eux (#gRang1), au-dessus d'INVENTAIRE · BOUTIQUE, sur la largeur des deux : voir « LA RANGÉE HOME + ŒIL » */
+try{if(!POKI&&gEl){const ac=document.getElementById('gAct'),r1=document.createElement('div');r1.id='gRang1';
+  for(const id of ['gHomeBas','gOeil']){const b9=document.getElementById(id);if(b9)r1.appendChild(b9);}
+  if(ac)ac.insertBefore(r1,ac.firstChild);}}catch(e){}
 try{document.getElementById('gOeil').addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(e.currentTarget);uiClic(gEl.classList.contains('vueSeule')?'on':'off');gVueSeule(!gEl.classList.contains('vueSeule'));});}catch(e){}
 function gConsoleCache(on){if(!gEl)return;gEl.classList.toggle('consoleCachee',!!on);garLibre._r=null;
   const b=document.getElementById('gCache');if(b){b.setAttribute('aria-pressed',on?'true':'false');const sp=b.querySelector('span');if(sp){sp.dataset.fr=on?'VOIR':'CACHER';sp.textContent=TR(sp.dataset.fr);}}}
@@ -39557,13 +39567,19 @@ function gDots(L){const el=$('gDots');if(!el)return;
    d'habillage, la caisse montrée est TA caisse équipée (on habille ce qu'on conduit), et l'article feuilleté
    est ESSAYÉ dessus (`SHOP.prev`) — qu'il soit à toi ou pas. Fermer l'atelier retire l'essai. */
 const SHOP_LBL={voiture:'CAISSE',peinture:'PEINTURE',aile:'AILES',trainee:'TRAÎNÉE'};
+/* LA CAISSE SE TOURNE VERS CE QU'ON REGARDE (2026-10-11, Léo : « quand on appuie sur TRAÎNÉES et PEINTURE, au lieu de faire TP de position,
+   la voiture se tourne pour montrer les différentes features — TRAÎNÉES : la vue de l'arrière ») : l'onglet ne POSE plus l'angle d'un coup
+   (garageAng=3.5), il le fait TOURNER en ~0,9 s par le plus court chemin (garTourneVers, joué dans garageRender, prioritaire sur la rotation
+   lente ; le doigt l'interrompt). TRAÎNÉES 3,5 (trois-quarts arrière) · PEINTURE ,42 (trois-quarts avant) · AILES 1,2 (de profil). */
+const GAR_TAB_ANG={trainee:3.5,peinture:.42,aile:1.2};
+function garTourneVers(a,D){if(!garageOn||GAR.go)return;const a0=garageAng,T=2*Math.PI,d=((a-a0)%T+T*1.5)%T-T/2;if(Math.abs(d)<.02)return;GAR.angTw={a0:a0,d:d,t:0,D:D||.9};}
 function shopTab(tab){
   if(SHOP_CATS.indexOf(tab)<0)tab='voiture';
   SHOP.tab=tab;
   document.querySelectorAll('#gTabs .gTab').forEach(function(b){const on=b.getAttribute('data-tab')===tab;b.classList.toggle('on',on);b.setAttribute('aria-selected',on);});
   const gt=$('gTitle');if(gt)gt.textContent=TR('GARAGE'); // la personnalisation fait partie du GARAGE (la BOUTIQUE, c'est le vrai argent)
   if(gEl)gEl.classList.toggle('shopMode',tab!=='voiture');
-  if(tab==='trainee')garageAng=3.5; // TRAÎNÉES : la caméra passe derrière la caisse (trois-quarts arrière) — on regarde ce qui SORT des tuyères
+  if(GAR_TAB_ANG[tab]!=null)garTourneVers(GAR_TAB_ANG[tab]); // TRAÎNÉES : la caméra passe derrière la caisse (trois-quarts arrière) — on regarde ce qui SORT des tuyères ; (2026-10-11) en TOURNANT, et chaque onglet a son angle
   if(tab==='voiture'){SHOP.prev=null;{const bar=$('gRar');if(bar)bar._k=null;}garageShow(garageI);try{gModeCale();}catch(e){}return;}
   SHOP.filtre='tout'; // chaque catégorie s'ouvre sur TOUT
   const eqI=COSM[tab].indexOf(shopEqD(tab));shopShow(tab,eqI<0?0:eqI);try{gModeCale();}catch(e){} // (2026-10-09) en INVENTAIRE / BOUTIQUE, l'onglet s'ouvre sur un objet du mode
@@ -41485,7 +41501,8 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
    if(!garageRender._cale){GAR.vueT=vT;GAR.vueNeuve=false;}}
   if(GAR.vuePose){GAR.vit=1;GAR.vitV=0;}else garRessort(GAR,'vit','vitV',garVueLeo()?1:0,4.8,dt); /* (2026-10-06) LA VUE DE LÉO : la vitrine OU la console de Sacha (voir garVueLeo) */if(GAR.vit<0||GAR.vit>1){GAR.vit=Math.min(1,Math.max(0,GAR.vit));GAR.vitV=0;} // (2026-10-06) le fondu vitrine ⇄ boutique en RESSORT : il partait à pleine vitesse (1er ordre ×2,4/s) — la caméra, l'objectif et le recul démarraient d'un coup
   const VK=GAR.vit,VC=VITRINE_CAM;
-  if(!GAR.fige&&(!garageDrag||menu9||VK>.5))garageAng+=dt*(.24+(VC.rot-.24)*VK)*(1-BURN.k)*(garageDrag&&GAR.doigt==='caisse'?0:1);if(GAR.go)GAR.platW=0;if(!garageDrag&&GAR.platW){garageAng+=GAR.platW*dt;GAR.platW*=Math.exp(-dt*1.2);if(Math.abs(GAR.platW)<.03)GAR.platW=0;} // (même soir) le PLATEAU tenu ne tourne plus tout seul ; lancé, il file et ralentit // (le plateau tourne toujours : en vitrine le doigt tourne la VUE) // le tour de piste automatique, lent : on a le temps de regarder (au MENU le doigt bouge la VUE, pas le plateau : il continue de tourner)
+  if(GAR.angTw){const T9=GAR.angTw;T9.t+=dt;const e9=Math.min(1,T9.t/T9.D),s9=e9*e9*(3-2*e9);if(garageDrag||GAR.go)GAR.angTw=null;else{garageAng=T9.a0+T9.d*s9;if(e9>=1)GAR.angTw=null;}} // (2026-10-11) un onglet TOURNE la caisse vers ce qu'il montre
+  else if(!GAR.fige&&(!garageDrag||menu9||VK>.5))garageAng+=dt*(.24+(VC.rot-.24)*VK)*(1-BURN.k)*(garageDrag&&GAR.doigt==='caisse'?0:1);if(GAR.go)GAR.platW=0;if(!garageDrag&&GAR.platW){garageAng+=GAR.platW*dt;GAR.platW*=Math.exp(-dt*1.2);if(Math.abs(GAR.platW)<.03)GAR.platW=0;} // (même soir) le PLATEAU tenu ne tourne plus tout seul ; lancé, il file et ralentit // (le plateau tourne toujours : en vitrine le doigt tourne la VUE) // le tour de piste automatique, lent : on a le temps de regarder (au MENU le doigt bouge la VUE, pas le plateau : il continue de tourner)
   /* LE GARAGE QUI VIT (2026-09-30, Léo : « on est censé pouvoir tourner autour — soit le garage en rotation sans qu'on touche, soit
      avec le doigt on glisse et on voit légèrement ; inspire-toi de ma branche ») : LES DEUX. (1) Au repos la VUE balance doucement
      autour de la caisse — les deux sinus lents de sa branche (±~11°, ~22 s) et un souffle de hauteur ; elle s'efface dès qu'on touche
@@ -42082,7 +42099,7 @@ try{const hm=document.getElementById('gHomeMini');const va=function(e){e.stopPro
 window.dbgTourne=function(deg){if(deg!=null&&gtLibre()){gtSaisit();gtVise(-deg*Math.PI/180);}const r=GTN.el&&GTN.el.getBoundingClientRect();
   const q9=camera.position,p9=new THREE.Vector3(0,GARAGE_Y+.6,0).project(camera); // (2026-10-10) la caméra et la caisse à l'écran : le banc de l'orbite
   return {on:!!(GTN.el&&GTN.el.classList.contains('on')),t:GTN.t,deg:GTN.deg,vA:+(GAR.vA||0).toFixed(3),vAc:+(GAR.vAc||0).toFixed(3),jauge:r?[Math.round(r.left),Math.round(r.top),Math.round(r.width),Math.round(r.height)]:null,
-    cam:[+q9.x.toFixed(2),+q9.y.toFixed(2),+q9.z.toFixed(2)],rCam:+Math.hypot(q9.x,q9.z).toFixed(2),caisse:[Math.round((p9.x+1)/2*VP.w),Math.round((1-p9.y)/2*VP.h)],aVl:+(GAR.aVl||0).toFixed(3),vD:+(GAR.vD||0).toFixed(3),wD:+(GAR.wD||0).toFixed(2),W:GAR.W,D:GAR.D,dist:garageDist};};
+    cam:[+q9.x.toFixed(2),+q9.y.toFixed(2),+q9.z.toFixed(2)],rCam:+Math.hypot(q9.x,q9.z).toFixed(2),caisse:[Math.round((p9.x+1)/2*VP.w),Math.round((1-p9.y)/2*VP.h)],aVl:+(GAR.aVl||0).toFixed(3),vD:+(GAR.vD||0).toFixed(3),wD:+(GAR.wD||0).toFixed(2),W:GAR.W,D:GAR.D,dist:garageDist,ang:+garageAng.toFixed(2),tourne:!!GAR.angTw};};
 window.dbgHub=function(){const el=$('gHub'),r=el&&el.getBoundingClientRect();return {hub:HUB,ctx:hubCtx(),on:document.documentElement.classList.contains('hubOn'),cache:!!(el&&el.classList.contains('cache')),barre:r?[Math.round(r.left),Math.round(r.top),Math.round(r.width),Math.round(r.height)]:null};};
 document.documentElement.classList.toggle('misS',MENU_SACHA); // l'écran MISSIONS de Sacha : ses règles CSS vivent sous html.misS
 /* (même soir, Léo : « enlève la porte ») la porte FERMÉE au menu (Sacha, b8e7ce7) va avec SA version : par défaut (ou ?porte=1) elle
