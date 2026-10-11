@@ -1,5 +1,30 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LA PASSE UX/UI — L'ACCUEIL, LE GARAGE, L'ŒIL, LES TRANSITIONS (2026-10-11, session GRAPHISME — Sacha : « la disposition des boutons dans chaque écran est super moche, mets-toi dans la peau d'un designer UX/UI senior et règle ça page par page » · « l'accueil c'est moche, le garage est bof, plein de boutons au mauvais endroit — le bouton œil ne ressemble pas à un œil, il ne devrait pas être sur la fenêtre mais flotter, et quand on clique dessus la caméra doit recentrer sur la voiture » · « tous les boutons du garage sont à réorganiser, travaille les transitions »)
+TOUT le rangement vit dans **`<style id="uxPasse">`**, la DERNIÈRE feuille de la page (juste après `<style id="poki">`) : retirer le bloc = revenir.
+Le HTML, les identifiants et les écouteurs ne bougent pas, sauf HOME et l'œil (voir plus bas). Règles : on LIT en haut, on TOUCHE en bas ; un
+rôle = une place ; l'action principale = l'unique plaque d'or ; mêmes hauteurs sur une rangée ; 44 px au doigt ; la VUE flotte sur la scène,
+la CAISSE vit dans le panneau. Pas de Poki (`html:not(.poki)`), pas de vitrine de Léo (`?menu=leo`).
+- **ACCUEIL** (`#mHome.acc2`, seulement `:is(.on,.sort)` — en `display:grid!important` permanent il recouvrait les autres écrans) : `.mOutils`
+  et `.mAccP` en `display:contents`, leurs boutons dans UNE grille de 12 : rangée 1 = GARAGE · CARRIÈRE · MISSIONS · OFFRES (la barre MISSIONS
+  de 28 px devient une porte) ; rangée 2 = ⚙ + JOUER, la plaque d'OR de #gJouer (valeurs lues au navigateur ; lettres sombres). Debout : logo
+  en tête, rangées au pied. Couché : bloc à droite centré en hauteur, logo posé dessus (Léo), 30 px sous le logo.
+- **GARAGE** (console de Sacha) : `#gBottom` en grille de 10, `#gAct` en `display:contents` → INVENTAIRE | BOUTIQUE (les deux MODES du
+  panneau) EN TÊTE ; onglets, familles, grille ; au pied ÉQUIPER (4) + JOUER (6), 54 px. Couché, le panneau part du haut (`top` sûr) et la
+  grille / vitrine prend le reste (en BOUTIQUE la vitrine de 186 px le poussait 18 px hors de l'écran).
+- **HOME et l'ŒIL FLOTTENT** : déplacés au démarrage dans **`#gFlot`** (enfant de `#garage`, voir « LE PANNEAU QUI FLOTTE » dans le script) —
+  dans le panneau, son clip-path les coupait. Trois pièges mesurés : `#garage` laisse passer le doigt (`pointer-events:auto` sur #gFlot) ; le
+  glissé de la vue les prenait pour la scène (`#gFlot` ajouté aux deux listes d'exclusion du `pointerdown`) ; la zone tactile de la JAUGE de
+  Léo (`#gTourne`) les couvrait → `--gFlotB` (relu 3×/s, garage ouvert) les pose AU-DESSUS de la jauge et, debout, du panneau.
+- **L'ŒIL RECADRE** : `garLibre` en `vueSeule` rend la MÊME place (demi-largeur, hauteur) recentrée → la caisse glisse au CENTRE à la même
+  taille (mesuré : 0,01 NDC) ; `gVueSeule(true)` ramène l'inclinaison à .2 en 0,6 s (sauf doigt posé) ; la console s'efface en fondu 200 ms.
+  L'icône `PXI_G.oeil` redessinée : lentille, iris rond, pupille (c'était un ovale à pavé : « une pièce »).
+- **TRANSITIONS** (filmées, banc `gfx/film.js` en screencast CDP) : le volet `#wipe` cache les changements de SCÈNE 3D, il reste — mais plus
+  de « CASH CAR » au milieu (écran de chargement), entrée 150 ms, sortie 320 ms, la main au script à 160 ms (était 210), néons aussi au bord
+  qui sort. ~180 ms de fond sombre restent : le temps de fermer l'atelier / d'ouvrir l'écran dessous.
+- **CARRIÈRE** : HOME à GAUCHE couché aussi (il passait à droite pour l'ancienne barre du hub, partie).
+- Bancs (gfx/) : `ecrans.js` (tous les écrans × 4 formats + relevé des boutons), `oeil.js`, `sonde*.js`, `film.js` ; `tour.js` 0 programme en course.
+
 ## EN VOL, POUCE EN HAUT = LA CAISSE MONTE (2026-10-10, Léo : « si en l'air le joystick avant fait monter la voiture, c'est plus logique, et intuitif, niveau mobile »)
 Le réglage « POUCE HAUT EN VOL » passe à **MONTE par défaut** (il était à PLONGE, le manche d'avion, depuis le 29/09). À la question
 « ↑ piqué / ↓ cabré est un verdict du verrou de Sacha (09/10), Sacha est d'accord ? », Léo a répondu « MONTE pour tous, même
