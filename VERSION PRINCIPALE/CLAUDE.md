@@ -179,18 +179,24 @@ plafonds de lacet et de tangage, vol libre, vrille visuelle, drift = un geste. C
   `_capture-maps.html` (index.html + `window.__cap` : sansFin, zone, nu, trace, vue, etat ; les niveaux 6-10 remis dans CETTE copie seulement)
   servie à côté d'index.html, Chrome sans fenêtre muet, splash touché par un VRAI clic (sinon `start()` refuse : `#splash` existe encore),
   `dbgCampagne(n)` (`dbgCampagne(n,1)` = VILLE n) / `__cap.sansFin()` puis `__cap.zone(z)`, `dbgNet(true)` + `dbgAuto(true,0)`, 5 s, photo. Copie supprimée après.
-## LES DAUPHINS À L'IMAGE (2026-10-11, Léo : « l'emplacement des dauphins dans l'expérience, tu l'as un peu cassé — on ne les voit pas beaucoup »)
-- MESURÉ en vrais vols (banc : décollages `dbgDauphin(impU,60,0,0)` sous bouclier, `dbgDauphin('ecran')` = [x, y, distance, longueur en px]) :
-  AVANT, couché, 34 % des dauphins vus dans la zone libre du HUD et 28 % HORS de l'image (x jusqu'à 2,0). Causes : le banc vit dans le
-  repère de la caméra à D9 = 24 m, mais l'écart sur le côté était calculé à cette profondeur — un saut qui vient vers la caméra le
-  rapproche et la perspective le poussait dehors ; la bande visée allait jusqu'à 90 % de la demi-largeur (sous l'aura, la chaîne, l'argent,
-  NITRO) ; le haut des sauts passait sous les barres du haut ; un seul dauphin pendant la 1re seconde (écran vide à chaque plongée) ; le banc
-  filait 0,7 s après la pose.
-- `DOL_ECR` {x0 .28, x1 .62 : la bande libre, en demi-largeur vue · k .18 : la taille (était .12) · saut .75 : la hauteur des sauts · haut .46 :
-  le plafond, en demi-hauteur vue} et `dolEcran(P,p,D9,hv,k)` (appelée sur la pose de la choré dans `updateDolphins`) : l'écart ramené à la
-  largeur vue à la profondeur du dauphin, l'arc écrasé s'il passerait sous le HUD du haut (tangage recalculé). `DOL_PAS` 1 → ,6 (la valeur de
-  Sacha), `dolShow` ≥ 1,4 s après la sortie (était ,7). Chorés, route jamais traversée (`dolHY`), LE PONT / LES CISEAUX : inchangés.
-- APRÈS : couché 86 % dans la zone libre, 2 % hors image, ~80 px de long (médiane) ; debout 94 %, 0 %, ~103 px ; ~1,8× plus de dauphins vus par vol.
+## L'ESCORTE DES DAUPHINS (2026-10-11, Léo : « trop de dauphins ; ils doivent être plus connectés à la route, bien timés en fonction de la vitesse moyenne de la voiture pour que la voiture passe sous les dauphins — ou alors ils suivent la voiture amicalement — mais là ils sont collés à la voiture, c'est dénaturé »)
+- Le banc du 09/10 vivait dans le repère de la CAMÉRA (il bougeait avec l'écran) : ABANDONNÉ, et avec lui le correctif `DOL_ECR` du même
+  matin (« on ne les voit pas beaucoup »). Les chorés `DOL_CHORE` / `dolChorePose` ne servent plus qu'à la boîte à dauphins.
+- ESSAYÉ puis écarté : des ARCHES posées en travers de la route, calées pour que la caisse passe dessous — MESURÉ, la route fait ~50 m de
+  large : l'arche partait hors champ, petite, et passait au-dessus en moins d'une seconde (debout, invisible).
+- RETENU, les deux idées de Léo : DEUX dauphins (au lieu de trois) vivent dans le MONDE (`DOL_ES`, `DOLA`, `dolRoute`, `dolEscorte`,
+  `updateDolphins`). Chacun a sa place sur la piste, dans la largeur, en hauteur, et SA vitesse = la vitesse MOYENNE de la caisse le long de
+  la piste (`DOLA.vel`, lissée ~1 s) + un ressort vers SA distance devant elle (`avance` 12 / 19 m, qui ondule de ±4) : quand elle accélère
+  il prend du retard puis la rattrape, quand elle braque il suit en douceur (`lat`). De part et d'autre de sa ligne, dans le champ réel de
+  la caméra ; leur eau (invisible, les gerbes la disent) est AU-DESSUS du bitume (`surf` 1,2 m, à la hauteur de la caisse quand elle vole) :
+  ils ne percent jamais la route. LE FINAL : la caisse posée ou partie des abords (`!dolOn`) — ou 7 s d'escorte —, chacun RALENTIT et fait
+  un grand bond au-dessus de SA ligne ; sa vitesse se règle À CHAQUE IMAGE pour être pile au-dessus d'elle au sommet (sur la seule prévision
+  elle passait parfois à travers lui) : elle passe DESSOUS, il replonge derrière. Le compte d'aura (dolTick, « DAUPHIN ×n ») ne change pas.
+- MESURÉ en vraie course (pilote du banc, sauts toutes les 2,4 s) : finals à < 1 m de sa ligne, 2,5 à 7 m au-dessus d'elle, 14/14 ;
+  dauphins dans la zone libre de l'écran 95 % (couché comme debout), ~60 px couché / ~95 px debout (médiane).
+- Console : `dbgDauphin('escorte')` (chaque dauphin : devant, côté, hauteur de son eau, phase, final, hauteur au-dessus de la caisse),
+  `dbgDauphin('ecran')` ([x, y, distance, px], derrière la caméra = null). Banc : `dbgCampagne(7)` après UNE touche Entrée, NORMAL au
+  « Pick your mode », `dbgPwr('b',2)`, `dbgAuto(1,0,{saut:2.4,imp:16})`.
 
 ## LE DAUPHIN DE RÊVE + LA BOÎTE À DAUPHINS (2026-10-09, Léo : « retouchons les dauphins, envoie-moi dans une boîte blanche avec les dauphins, on va les design » — puis une image de grand dauphin pastel : « travaille encore plus dur »)
 - **LA BOÎTE** : `boite-dauphins.html` (à côté d'index.html, servie par `python3 -m http.server`, jamais en double-clic). Elle LIT et exécute le

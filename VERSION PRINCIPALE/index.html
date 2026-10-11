@@ -28830,109 +28830,102 @@ const crV3=new THREE.Vector3(),dolUp=new THREE.Vector3(),dolQc=new THREE.Quatern
 let dolRasK=0,dolRasF=null,dolSync=false,dolSyncT=0,dolSyncVr=1,dolRigMax=0; // (v6) dolRasK : le RAS lissé qui se VOIT (0-1 ; dolRasF le force au banc) · dolSync/T/Vr : le BOND ROYAL du 6e dauphin · dolRigMax : la plus grande rotation du banc en UNE image (°, lue et remise à zéro par dbgDauphin('etat'))
 let dolCh=0,dolChF=null,dolVrS=0,dolXR=0,dolBi=0,dolHY=0;const DOLP={},DCAM=new THREE.Vector3(),DQ9=new THREE.Vector3(); // dolBi : la route où se pose le banc (graine de dalleProche) · DCAM : le regard de la caméra // dolXR : l'axe de la route en x du banc (lissé) // (2026-10-09) la CHORÉ en cours (dolChF : forcée par la console) · dolVrS : la vrille décidée pour toute la vague (sync) · DOLP : la pose de l'image
 let dolShow=0,dolIn=9,dolPart=0,dolDir=-1,dolKS=1,dolW=13; // dolShow : secondes d'affichage restantes · dolIn : secondes depuis le déclenchement · dolPart : vie restante des gerbes · dolDir : sens de traversée · dolKS/dolW : taille et demi-largeur du banc (m)
-/* (2026-10-11, Léo : « l'emplacement des dauphins, tu l'as un peu cassé — on ne les voit pas beaucoup ») — MESURÉ en vrai vol (couché) :
-   les dauphins étaient collés aux bords, souvent HORS de l'image (x jusqu'à 2,0 pour un écran de −1 à 1), sous les colonnes du HUD, et le
-   haut des sauts passait sous les barres du haut. Deux causes : l'écart sur le côté était calculé à D9 (24 m) de l'objectif, mais un saut
-   qui vient VERS la caméra (z < 0) le rapproche, et la perspective l'agrandit et le pousse dehors ; et la bande visée allait jusqu'à 90 % de
-   la demi-largeur, là où vivent l'aura, la chaîne, l'argent et NITRO. Désormais : la bande LIBRE du HUD (`x0` → `x1` de la demi-largeur),
-   l'écart ramené à la largeur vue à SA profondeur (`dolEcran`), des dauphins un cran plus grands (`k`), des sauts moins hauts (`saut`) et
-   plafonnés sous les barres du haut (`haut`, part de la demi-hauteur vue). */
-const DOL_ECR={x0:.28,x1:.62,k:.18,saut:.75,haut:.46};
-function dolEcran(P,p,D9,hv,k){ // la pose de la choré → À L'IMAGE : l'écart sur le côté à la profondeur du dauphin, le haut du saut sous le HUD
-  const pz=Math.max(.35,(D9+P.z)/D9);P.x*=pz;
-  let a=P.amp*DOL_ECR.saut;const lim=DOL_ECR.haut*pz*hv-dolHY-.45*k;if(P.base+a>lim)a=Math.max(P.amp*.3,lim-P.base);
-  P.amp=a;P.y=P.base+P.arc*a;P.pitch=Math.atan2(Math.cos(p*Math.PI)*a*Math.PI,P.hz*.8);
-  const cp=Math.cos(P.pitch);P.nx=cp*Math.cos(P.yaw);P.ny=Math.sin(P.pitch);P.nz=-cp*Math.sin(P.yaw);}
+/* L'ESCORTE (2026-10-11, Léo : « trop de dauphins, et ils doivent être plus connectés à la route, bien timés en fonction de la vitesse
+   moyenne de la voiture pour que la voiture passe sous les dauphins — ou alors les dauphins suivent la voiture amicalement — mais là ça se
+   sent, ils sont collés à la voiture et c'est dénaturé »). Le banc vivait dans le repère de la CAMÉRA (09/10) : il bougeait avec l'écran.
+   Essayé d'abord : des arches posées en travers de la route, calées pour que la caisse passe dessous — MESURÉ : la route fait ~50 m de
+   large, l'arche partait hors champ, petite, et passait au-dessus de la caisse en moins d'une seconde (debout, on ne la voyait presque pas).
+   Retenu : LES DEUX. DEUX dauphins (au lieu de trois) vivent dans le MONDE, sur la route : chacun a sa place sur la piste (`s`), dans la
+   largeur et en hauteur, et sa propre vitesse — la vitesse MOYENNE de la caisse (lissée ~1 s, `DOLA.vel`) plus un ressort qui le ramène à
+   SA distance devant elle (`avance`, qui ondule) : quand elle accélère d'un coup il prend du retard, puis la rattrape ; quand elle braque,
+   il suit en douceur (`DOL_ES.lat`). Ils nagent DEVANT elle, de part et d'autre de sa ligne, dans le champ réel de la caméra (debout comme
+   couché), au-dessus de la route : leur eau (invisible : seules les gerbes la disent) est posée au-dessus du bitume — à la hauteur de la
+   caisse quand elle vole — ils ne la percent jamais. Puis LE FINAL : à la fin de l'apparition, chacun RALENTIT et fait un grand bond
+   au-dessus de la ligne de la caisse, calé sur sa vitesse moyenne pour qu'elle passe DESSOUS au sommet ; il replonge derrière elle. Le
+   compte d'aura (dolTick, « DAUPHIN ×n ») ne change pas. */
+const DOL_ES={k:2.4,avance:[12,19],ond:4,lat:1.3,ressort:.9,surf:1.2,saut:.7,fin:1.1,finH:3,finMin:.9,finMax:2};
+const DOLA={vel:new THREE.Vector3(),p0:new THREE.Vector3(),ok:false,pts:null,L:0,dir:1,face:1,t:0,N:new THREE.Vector3(0,1,0),
+  v1:new THREE.Vector3(),O:new THREE.Vector3(),X:new THREE.Vector3(),Y:new THREE.Vector3(),Z:new THREE.Vector3(),P:new THREE.Vector3(),m:new THREE.Matrix4(),q:new THREE.Quaternion(),
+  F:{p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()},FD:{p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()}};
+const DOL_AXE_X=new THREE.Vector3(1,0,0);
+function dolRoute(){ // la caisse sur la piste : s, côté (lat), hauteur au-dessus de SA face (h), face, vitesse moyenne le long de la piste (vs) — null sans route sous elle
+  const P=carGroup.position,F=DOLA.F;let sc;
+  if(mode==='drive')sc=s;else{const bi=dalleProche(P.x,P.y,P.z,2,1e9,tryLand._bi);if(bi<0||bi>=NP)return null;sc=bi/(NP-1)*L+DOLA.v1.subVectors(P,pts[bi]).dot(T[bi]);}
+  frameAt(sc,F);DOLA.v1.subVectors(P,F.p);const lc=DOLA.v1.dot(F.b),hr=DOLA.v1.dot(F.n);
+  const fc=mode==='drive'?(side<0?-1:1):(hr>-THICK*.5||Math.abs(lc)>ROAD_HALF+2?1:-1);
+  return {s:sc,lat:lc,h:fc>0?hr:-THICK-hr,face:fc,vs:DOLA.vel.dot(F.t)};
+}
+function dolEscorte(r){ // l'escorte se forme : deux dauphins, un de chaque côté de la ligne de la caisse, déjà devant elle
+  DOLA.dir=Math.abs(r.vs)>2?Math.sign(r.vs):(driveDir||1);DOLA.face=r.face;DOLA.pts=pts;DOLA.L=L;DOLA.t=0;dolKS=DOL_ES.k;
+  dolTrail.mesh.material.size=.5*dolKS;dolSplash.mesh.material.size=.5*dolKS;
+  const cote=Math.random()<.5?1:-1;
+  for(let i=0;i<dolphins.length;i++){const u=dolphins[i].userData;
+    if(i>=DOL_ES.avance.length){u.es=null;continue;}
+    const av=DOL_ES.avance[i]+6;u.es={s:r.s+DOLA.dir*av,lat:Math.max(-ROAD_HALF+2,Math.min(ROAD_HALF-2,r.lat+(i?-cote:cote)*5)),c:i?-cote:cote,h:Math.max(DOL_ES.surf,r.h-1),
+      vs:Math.abs(r.vs),p:-.05-.45*i,up:false,vr:0,fin:null,parti:false};}
+}
 function updateDolphins(dt,photo){
   if(paused&&!photo)return; // (2026-09-29) la PAUSE fige le banc : il nageait (et s'usait) derrière le panneau — `photo` : le pas à pas de dbgDolView
-  if(dolShow<=0&&dolPart<=0){if(dolphinRig.visible)dolphinRig.visible=false;return;} // rien à montrer : zéro draw call
+  // la VITESSE MOYENNE de la caisse (lissée ~1 s), tenue à chaque image : c'est sur elle que nagent les dauphins
+  if(dt>0){DOLA.v1.subVectors(carGroup.position,DOLA.p0).multiplyScalar(1/dt);if(DOLA.ok&&DOLA.v1.lengthSq()<4e6)DOLA.vel.lerp(DOLA.v1,Math.min(1,dt*1.2));DOLA.ok=true;}DOLA.p0.copy(carGroup.position);
+  if(DOLA.pts&&(DOLA.pts!==pts||DOLA.L!==L)){for(const d of dolphins)d.userData.es=null;DOLA.pts=null;} // nouvelle piste : l'escorte de l'ancienne s'efface
+  let actifs=false;for(const d of dolphins)if(d.userData.es&&!d.userData.es.parti)actifs=true;
+  if(dolShow<=0&&dolPart<=0&&!actifs){if(dolphinRig.visible)dolphinRig.visible=false;return;} // rien à montrer : zéro draw call
   dolphinRig.visible=true;dolPart=Math.max(0,dolPart-dt);dolNoirMaj();
-  // le REPÈRE DU VOL (sans la vrille) : x = latéral, y = haut de la caisse, z = trajectoire — celui de la caméra de vol
-  /* (2026-09-30, v6) LE BANC NE SAUTE PLUS À LA POSE. En vol son repère est la trajectoire (fallVel, FLY_U) ; au sol c'était celui de la
-     CAISSE (qui drifte, braque, se met en travers), posé d'une image à l'autre. Or le banc nage 7 à 16 m devant : un cap qui change de
-     10-30° à la pose le faisait bondir de plusieurs mètres en une image. Au sol il prend le repère de la ROUTE (sa tangente dans le sens
-     de marche, sa normale côté face roulée — la même main que carGroup) et l'orientation RALLIE la visée (1 − e^(−6·dt) : 63 % en
-     0,17 s) ; posée d'un coup seulement quand le banc est neuf (dolIn = 0). Repère dégénéré (vitesse ∥ haut) : on garde l'orientation. */
-  /* (2026-10-09, Léo : « ça bug ») LE BANC SUIT LA CAMÉRA. Calé sur la caisse et sa trajectoire (ou sur la route), il sortait de l'écran
-     en vol : la caméra de vol plonge vers la caisse et la route peut être n'importe où dans l'image — les dauphins passaient hors champ,
-     l'aura montait pour rien. Désormais le banc vit dans le repère de la CAMÉRA, à D9 m devant elle (x en travers de l'écran, y son haut,
-     z la profondeur) : les dauphins sautent sur les CÔTÉS de l'écran (jamais au milieu, jamais en travers : dolChorePose, R = 38 % de la
-     demi-largeur), le long de la profondeur. Et ils ne TOUCHENT JAMAIS la route : la route la plus proche du banc (dalleProche + frameAt)
-     donne sa hauteur ; si elle tombe dans la tranche de leurs sauts, le banc monte au-dessus (ou descend en dessous si la caméra est sous elle). */
-  const tanV=Math.tan(camera.fov*Math.PI/360),tanH=tanV*camera.aspect,D9=24;
-  camera.getWorldDirection(DCAM);dolphinRig.position.copy(camera.position).addScaledVector(DCAM,D9);
-  crV1.copy(DCAM);crV3.setFromMatrixColumn(camera.matrixWorld,1);crV2.crossVectors(crV3,crV1).normalize(); // z = le regard · y = le haut de l'écran · x = y × z
-  { // LA ROUTE NE SE TRAVERSE PAS : sa hauteur dans le repère du banc, et la tranche de ses sauts (−2k … +4,2k) qui doit l'éviter de 2 m
-    let y9=0;const bi=dalleProche(dolphinRig.position.x,dolphinRig.position.y,dolphinRig.position.z,2,1e9,dolBi);
-    if(bi>=0&&bi<NP){dolBi=bi;frameAt(bi/(NP-1)*L+crV3.subVectors(dolphinRig.position,pts[bi]).dot(T[bi]),FDOL);
-      crV3.setFromMatrixColumn(camera.matrixWorld,1);const hr=crV3.dot(DQ9.subVectors(FDOL.p,dolphinRig.position)),k9=dolKS,lo=-2*k9,hi=3.3*k9; // (11/10) hi 4,2 → 3,3 : les sauts sont moins hauts (DOL_ECR.saut)
-      if(hr>lo-2&&hr<hi+2){const dessus=DQ9.subVectors(camera.position,FDOL.p).dot(FDOL.n)>0;y9=dessus?(hr+2)-lo:-(hi-(hr-2));}}
-    dolHY=dolIn===0?y9:dolHY+(y9-dolHY)*(1-Math.exp(-dt*4));}
-  crV3.setFromMatrixColumn(camera.matrixWorld,1);
-  if(crV2.lengthSq()>.5){crV3.crossVectors(crV1,crV2);mat4.makeBasis(crV2,crV3,crV1);dolQc.setFromRotationMatrix(mat4);
-    dolphinRig.quaternion.copy(dolQc);dolRigMax=Math.max(dolRigMax,dolQp.angleTo(dolphinRig.quaternion)*57.3); // (2026-10-09) collé au repère de la caméra : il bouge avec l'écran (le ralliement de 0,17 s le faisait tanguer)
-    dolQp.copy(dolphinRig.quaternion);}
+  dolphinRig.position.set(0,0,0);dolphinRig.quaternion.identity();dolPod.position.set(0,0,0); // le banc vit dans le MONDE : ses dauphins et ses gerbes y restent où ils sont nés
   dolPoolStep(dolTrail,dt,0);dolPoolStep(dolSplash,dt,6*dolKS);
-  if(dolShow<=0){for(const d of dolphins)if(d.visible)d.visible=false;return;} // (tous : le 1er pouvait être sous l'eau pendant qu'un autre restait figé en l'air)
-  // LISIBILITÉ : mesurée sur la VRAIE caméra — distance du banc, champ vertical, format de l'écran
-  const neuf=dolIn===0;
-  /* (2026-10-09, Léo : « ils ne peuvent pas aller de la droite vers la gauche… celles qui viennent du milieu vont transpercer la route »)
-     LE BANC LONGE LA ROUTE : on mesure où passe son axe (en x du banc) et les dauphins nagent DE PART ET D'AUTRE, hors du bitume
-     (dolChorePose, R = demi-bitume + 2 m). Le banc se pose assez loin devant pour que les deux bords tiennent dans l'écran. */
-  dolXR=0;
-  const hv=D9*tanV,hw=hv*camera.aspect,R9=DOL_ECR.x0*hw,KU9=Math.max(.2,(DOL_ECR.x1*hw-R9)/10), // R9 : le bord du « couloir » du milieu, interdit · KU9 : l'unité des écarts (x 0…10 → le bord de la bande libre du HUD)
-        kT=THREE.MathUtils.clamp(DOL_ECR.k*Math.min(hv,hw),.6,3.4),wT=Math.min(6*kT,(D9-10)/1.6); // (le saut le plus long part de −1,6 W : jamais à moins de 10 m de l'objectif) // un dauphin ≈ un huitième de la plus petite dimension · un saut ≈ 4 longueurs, dans la profondeur
-  dolPod.position.set(0,dolHY,0); // relevé (ou abaissé) pour ne jamais toucher la route
-  dolPod.getWorldPosition(crV1);
-  dolUp.set(0,1,0).applyQuaternion(dolphinRig.quaternion);const surf0=dolUp.dot(crV1); // la SURFACE de l'eau : le plan du banc, à la hauteur de chaque gerbe
-  DOL_U.uLum.value.copy(dolUp).addScaledVector(DCAM,-.4).normalize(); // (2026-10-09) SA lumière : le haut du banc, un peu vers la caméra
-  if(neuf){dolKS=kT;dolW=wT;dolDir=-dolDir;dolSyncT=0; // (v6) un banc neuf n'hérite pas d'un bond royal resté en suspens
-    {let c9=dolChF!=null?dolChF:Math.floor(Math.random()*(DOL_CHORE.length-1));if(dolChF==null&&c9>=dolCh)c9++;dolCh=Math.min(DOL_CHORE.length-1,c9);} // une CHORÉ par apparition, jamais deux fois la même de suite
-    for(let i=0;i<dolphins.length;i++){const u=dolphins[i].userData,c=DOL_CHORE[dolCh].d[i]||{lag:0};u.p=-(c.lag||0);u.up=false;u.sy=0;u.vr=0;}
-    dolTrail.mesh.material.size=.5*kT;dolSplash.mesh.material.size=.5*kT;}
-  else{const a=Math.min(1,dt*1.5);dolKS+=(kT-dolKS)*a;dolW+=(wT-dolW)*a;} // la caméra de vol zoome sur les gros airs : le banc suit en douceur
-  dolShow-=dt;dolIn+=dt;
-  const fade=Math.min(1,dolShow*2.5),k=dolKS,W=dolW,dir=dolDir;
-  /* (v6) LE RAS SE VOIT — « au ras et vite = plus d'aura » (×9 du large au ras) ne se lisait pas, et Sacha ne veut pas de texte en vol.
-     Sans un mot : le RAS lissé (dolRasK, ~0,25 s, la proximité que dolTick paie) allume le liseré néon (1,5 → 4), double les gerbes et
-     l'écume, et au ras ET vite le banc S'EMBALLE (tempo des bonds jusqu'à ×1,5). Uniforms seulement : même programme `dauphin2`. */
-  {const c9=dolRasF!=null?dolRasF:(mode==='fall'&&dolOn?dolRasV:0);dolRasK+=(c9-dolRasK)*(1-Math.exp(-dt*4));}
-  const rK=dolRasK,tempo=1+.5*rK*Math.max(0,Math.min(1,(dolMul-.6)/1.5)),gK=1+rK;
-  DOL_U.uEcume.value=.2*k;DOL_U.uRimK.value=1.5+2.5*rK*rK;
-  if(dolSync){dolSync=false;dolSyncT=.4;dolSyncVr=Math.random()<.5?1:-1;} // (v6) LE BOND ROYAL : le 6e dauphin est arrivé (dolTick)
-  let go9=false;if(dolSyncT>0){dolSyncT-=dt;go9=dolSyncT<=0;}
-  for(let i9=0;i9<dolphins.length;i9++){const d=dolphins[i9],u=d.userData,b=u.b;
-    if(i9>=dolNb){if(d.visible)d.visible=false;u.pret=false;continue;} // (dauphin v4) pas encore dans le banc
-    const C=DOL_CHORE[dolCh],c=C.d[i9]||C.d[0];
-    if(!u.pret){u.pret=true;if(!neuf){u.p=dolSyncT>0?-.2:dolphins[0].userData.p-(c.lag||0);if(u.p>-.15)u.p-=DOL_CYCLE;u.up=false;}} // il REJOINT le banc à SA place dans la vague (2026-10-09 : il attendait de percer tout de suite, n'importe quand) — (v6) pendant le rassemblement du bond royal, il attend sous l'eau
-    if(dolSyncT>0){if(u.p>-.18)u.p+=dt*3.6;} // (v6) le banc SE RASSEMBLE (0,4 s) : qui est en l'air finit son bond, vite ; qui est sous l'eau attend
-    else u.p+=dt*(u.sy?.096:b.speed*b.speed)*8.8*tempo; // le tempo de l'aperçu (phase×vitesse×4,4 avec phase+=dt×vitesse×2) — (v6) ×tempo au ras et vite ; le bond royal au même tempo pour tous
-    if(u.p>1.2){u.p-=DOL_CYCLE;if(u.sy){u.p=-.4-(c.lag||0);u.sy=0;} // replongé : une plongée de durée FIXE (la formation se tient) — après le bond royal, chacun reprend sa place dans la vague
-      if(c.v)u.vr=c.v*(Math.random()<.5?1:-1); // la choré impose ses tours (le saut vertical de la FONTAINE, le dernier de l'ESCALIER…)
-      else if(C.sync){if(i9===0)dolVrS=Math.random()<C.vr?(Math.random()<.5?1:-1):0;u.vr=dolVrS;} // l'UNISSON : toute la vague vrille ensemble
-      else{let vr9=0;for(const o of dolphins)if(o!==d&&o.visible&&o.userData.vr)vr9=1;u.vr=!vr9&&Math.random()<(C.vr||0)?(Math.random()<.5?1:-1):0;}} // sinon, à la chance de la choré, jamais deux à la fois
-    if(go9){u.p=-.12;u.sy=1;u.vr=dolSyncVr;} // (v6) …puis les six percent ENSEMBLE, même tempo, même vrille
-    const p=u.p,vis=p>-.18&&p<1.18;d.visible=vis; // la surface le coupe : il est « là » dès que le rostre peut la percer
-    const P9=dolChorePose(C,i9,b,p,k,W,dir,DOLP,R9,dolXR,KU9,.8*hw);dolEcran(P9,p,D9,hv,k);const arc=P9.arc,amp=P9.amp,base=P9.base,x=P9.x,y=P9.y,z=P9.z; // (2026-10-09) la pose vient de la CHORÉ
-    const above=y>base+.15*k&&p>0&&p<1;
-    if(above!==u.up){dolGerbe(x,base+.05*k,z,(above?1.2:.9)*b.scale*(u.sy?1.4:1),k,gK);dolPart=1.3;u.up=above;} // on JAILLIT / on REPLONGE → gerbe (v6 : plus fournie au ras, plus haute au bond royal)
-    if(!vis)continue;
-    const s=k*b.scale*(.5+.5*fade);d.scale.setScalar(s); // pleine taille dès la sortie : c'est la surface qui le révèle, plus la gerbe qui le gonfle
-    d.position.set(x,y,z);
-    {const e=d.matrixWorld.elements,dd=Math.hypot(e[12]-camera.position.x,e[13]-camera.position.y,e[14]-camera.position.z)+.01, // (2026-10-09) les cubes FINS seulement quand il est GRAND à l'écran (l'image d'avant suffit)
-      px=DOL_L*s/dd*VP.h/(2*Math.tan(camera.fov*Math.PI/360)),g9=px>260?DOL_GEO:DOL_GEO_L;if(d.geometry!==g9)d.geometry=g9;}
-    const pitch=P9.pitch; // le nez suit la vitesse du bond
-    u.roll+=dt*1.3;
-    d.rotation.set(Math.sin(u.roll)*.12+u.vr*6.2832*THREE.MathUtils.smoothstep(p,.12,.88),P9.yaw,pitch); // roulis gracieux (+ la vrille) ; demi-tour de cap quand le banc part dans l'autre sens — (2026-10-09) au sommet il tourne la tête VERS la caméra (on le voit de trois-quarts)
-    u.tailPh+=dt*(7.5+b.speed*8);const hors=Math.max(0,arc);
+  const r=dolRoute();
+  if(dolShow>0){if(dolIn===0&&r&&!actifs){dolSync=false;dolEscorte(r);actifs=true;}dolShow-=dt;dolIn+=dt;} // un banc NEUF : l'escorte se forme (une escorte en cours continue)
+  if(!r||r.face!==DOLA.face||mode==='boom'){for(const d of dolphins){const u=d.userData;if(u.es){u.es=null;d.visible=false;}}return;} // plus de route sous elle, l'autre face : ils s'en vont
+  DOLA.t+=dt;
+  camera.getWorldDirection(DCAM);DOLA.N.copy(DOLA.F.n).multiplyScalar(DOLA.face);DOL_U.uLum.value.copy(DOLA.N).addScaledVector(DCAM,-.4).normalize(); // SA lumière : le haut de la route, un peu vers la caméra
+  {const c9=dolRasF!=null?dolRasF:(mode==='fall'&&dolOn?dolRasV:0);dolRasK+=(c9-dolRasK)*(1-Math.exp(-dt*4));} // (v6) le RAS se voit : liseré, gerbes
+  const k=DOL_ES.k,gK=1+dolRasK;DOL_U.uEcume.value=.2*k;DOL_U.uRimK.value=1.5+2.5*dolRasK*dolRasK;
+  const dir=DOLA.dir,v=Math.max(10,Math.abs(r.vs)),camD=Math.max(2,-DOLA.v1.subVectors(camera.position,carGroup.position).dot(DOLA.F.t)*dir),tanH=Math.tan(camera.fov*Math.PI/360)*camera.aspect;
+  const final=(!dolOn&&dolShow<=DOL_ES.fin)||DOLA.t>7; // LE FINAL : la caisse a quitté les abords de la route (posée, partie), ou l'escorte dure depuis 7 s
+  const X=DOLA.X,Y=DOLA.Y,Z=DOLA.Z,P=DOLA.P,FD=DOLA.FD;
+  for(let i9=0;i9<dolphins.length;i9++){const d=dolphins[i9],u=d.userData,b=u.b,E=u.es;
+    if(!E||E.parti){if(d.visible)d.visible=false;if(E&&E.parti)u.es=null;continue;}
+    const av=(E.s-r.s)*dir; // sa distance devant la caisse, sur la piste
+    let vy=0,y,amp,base=0,hz=14; // hz : l'allure qu'on donne au nez (la vraie, 60-90 m/s, rendrait chaque bond tout plat)
+    if(final&&!E.fin&&E.p>-.12&&E.p<.05){ // il RALENTIT et prend son élan : au sommet, la caisse passe dessous
+      const T9=Math.max(DOL_ES.finMin,Math.min(DOL_ES.finMax,2*Math.max(4,av)/(.45*v)));
+      E.fin={t:0,T:T9,vs:v-Math.max(4,av)/(T9*.5),a:Math.max(b.amp*k*DOL_ES.saut,r.h-E.h+DOL_ES.finH+1.2*k)};} // assez haut pour que la caisse passe sous son ventre
+    if(E.fin){const Fn=E.fin;Fn.t+=dt;const q=Fn.t/Fn.T,tr=Fn.T*.5-Fn.t;
+      E.vs=tr>.08?Math.max(.15*v,Math.min(1.2*v,v-av/tr)):.6*v;E.s+=dir*E.vs*dt;E.lat+=(r.lat-E.lat)*Math.min(1,dt*5); // au-dessus de SA ligne /* il RÈGLE sa vitesse à chaque image pour être pile au-dessus d'elle au sommet (mesuré : sur la seule prévision, elle passait parfois à travers lui), puis la laisse filer */
+      base=0;amp=Fn.a;const ar=Math.sin(Math.PI*Math.min(1,q));y=base+amp*ar;vy=amp*Math.PI*Math.cos(Math.PI*Math.min(1,q))/Fn.T;
+      E.p=q;if(q>1.15){E.parti=true;d.visible=false;continue;}}
+    else{ // L'ESCORTE : sa vitesse = la vitesse moyenne de la caisse + un ressort vers SA distance devant elle (qui ondule)
+      const cible=DOL_ES.avance[i9]+DOL_ES.ond*Math.sin(DOLA.t*.5+i9*2.1),ec=Math.max(-.35*v,Math.min(.35*v,DOL_ES.ressort*(cible-av)*Math.max(1,v/30)));
+      E.vs+=(v+ec-E.vs)*Math.min(1,dt*2.5);E.s+=dir*E.vs*dt;
+      const off=Math.max(3.5,Math.min(10,.55*(av+camD)*tanH)); // dans le champ réel de la caméra
+      E.lat+=(Math.max(-ROAD_HALF+2,Math.min(ROAD_HALF-2,r.lat+E.c*off))-E.lat)*Math.min(1,dt*DOL_ES.lat);
+      E.h+=(Math.max(DOL_ES.surf,r.h-1)-E.h)*Math.min(1,dt*2); // son eau : au-dessus du bitume, à la hauteur de la caisse quand elle vole
+      E.p+=dt*b.speed*b.speed*8.8;if(E.p>1.2){E.p-=DOL_CYCLE;E.vr=Math.random()<.2?(Math.random()<.5?1:-1):0;}
+      base=0;amp=b.amp*k*DOL_ES.saut;const ar=Math.sin(Math.PI*E.p);y=base+amp*ar;vy=amp*Math.PI*Math.cos(Math.PI*E.p)*b.speed*b.speed*8.8;}
+    const q9=E.fin?E.p:E.p,vis=q9>-.18&&q9<1.18;
+    frameAt(Math.max(0,Math.min(L-.01,E.s)),FD);const N=DOLA.v1.copy(FD.n).multiplyScalar(DOLA.face);
+    const O=DOLA.O.copy(FD.p);if(DOLA.face<0)O.addScaledVector(FD.n,-THICK);O.addScaledVector(N,E.h); // le niveau de son eau
+    const above=y>base+.15*k&&q9>0&&q9<1;
+    if(above!==E.up){P.copy(O).addScaledVector(FD.b,E.lat);dolGerbe(P.x,P.y,P.z,(above?1.2:.9)*b.scale*(E.fin?1.3:1),k,gK);dolPart=1.3;E.up=above;} // il JAILLIT / il REPLONGE → gerbe
+    if(!vis){if(d.visible)d.visible=false;continue;}
+    P.copy(O).addScaledVector(FD.b,E.lat).addScaledVector(N,y);
+    const s9=k*b.scale;d.visible=true;d.scale.setScalar(s9);d.position.copy(P);
+    // LE CAP : le long de la route, dans son sens ; le nez suit le bond ; le dos vers le haut de la route ; un peu de roulis, une vrille parfois
+    X.copy(FD.t).multiplyScalar(dir*hz).addScaledVector(N,vy).normalize();
+    Y.crossVectors(X,N).normalize();const Zb=DOLA.Z;Zb.copy(Y);Y.crossVectors(Zb,X);DOLA.m.makeBasis(X,Y,Zb);d.quaternion.setFromRotationMatrix(DOLA.m);
+    u.roll+=dt*1.3;d.quaternion.multiply(DOLA.q.setFromAxisAngle(DOL_AXE_X,Math.sin(u.roll)*.12+E.vr*6.2832*THREE.MathUtils.smoothstep(Math.min(1,Math.max(0,q9)),.15,.85)));
+    {const e=d.matrixWorld.elements,dd=Math.hypot(e[12]-camera.position.x,e[13]-camera.position.y,e[14]-camera.position.z)+.01, // les cubes FINS seulement quand il est GRAND à l'écran
+      px=DOL_L*s9/dd*VP.h/(2*Math.tan(camera.fov*Math.PI/360)),g9=px>260?DOL_GEO:DOL_GEO_L;if(d.geometry!==g9)d.geometry=g9;}
+    u.tailPh+=dt*(7.5+b.speed*8);const hors=Math.max(0,Math.sin(Math.PI*Math.min(1,Math.max(0,q9))));
     const mu=d.material.userData;
-    mu.uDol.value.set(.11+.22*(1-hors)*(1-hors),u.tailPh,2.3,Math.min(.1,.5*Math.PI*Math.PI*amp/(P9.hz*P9.hz)*s*1.4)); // la queue POMPE fort en perçant l'eau, se relâche au sommet ; le corps se CAMBRE sur l'arc
-    mu.uSurf.value.set(dolUp.x,dolUp.y,dolUp.z,surf0+base);
-    {const sp9=P9.ny,t9=Math.abs(sp9)>.12?(base-y)/sp9:99; // l'ÉCUME : tant que le corps perce la surface, ça bouillonne à l'endroit exact où son axe la traverse
-      if(Math.abs(t9)<DOL_L*.5*s&&Math.random()<dt*42*gK){const x9=x+P9.nx*t9,z9=z+P9.nz*t9;dolPart=Math.max(dolPart,.6);
-        spawnP(dolSplash,x9+(Math.random()-.5)*.35*k,base+.04*k,z9+(Math.random()-.5)*.35*k,(Math.random()-.5)*1.2*k,(1+Math.random()*1.3)*k,(Math.random()-.5)*1.2*k,.3+Math.random()*.25);}}
-    if(above&&Math.random()<dt*55){const q=DOL_L*.5*s*(.8-2*Math.random()); // (2026-10-09) les ÉTOILES naissent le long du corps et un peu derrière la queue, et restent où il est passé
-      spawnP(dolTrail,x+P9.nx*q+(Math.random()-.5)*.6*k,y+P9.ny*q+(Math.random()-.5)*.6*k,z+P9.nz*q+(Math.random()-.5)*.6*k,0,0,0,.55+Math.random()*.35);dolPart=Math.max(dolPart,.55);}
+    mu.uDol.value.set(.11+.22*(1-hors)*(1-hors),u.tailPh,2.3,Math.min(.1,.5*Math.PI*Math.PI*amp/(hz*hz*1.6)*s9*1.4)); // la queue POMPE en perçant l'eau, se relâche au sommet ; le corps se CAMBRE sur l'arc
+    mu.uSurf.value.set(N.x,N.y,N.z,N.dot(O)); // son eau le coupe (au niveau E.h, au-dessus du bitume)
+    {const sp9=X.dot(N),t9=Math.abs(sp9)>.12?(-y)/sp9:99; // l'ÉCUME : là où son axe traverse l'eau
+      if(Math.abs(t9)<DOL_L*.5*s9&&Math.random()<dt*42*gK){P.copy(d.position).addScaledVector(X,t9);dolPart=Math.max(dolPart,.6);
+        spawnP(dolSplash,P.x+(Math.random()-.5)*.35*k,P.y,P.z+(Math.random()-.5)*.35*k,(Math.random()-.5)*1.2*k,(1+Math.random()*1.3)*k,(Math.random()-.5)*1.2*k,.3+Math.random()*.25);}}
+    if(above&&Math.random()<dt*55){const qq=DOL_L*.5*s9*(.8-2*Math.random()); // les ÉTOILES naissent le long du corps et restent où il est passé
+      P.copy(d.position);spawnP(dolTrail,P.x+X.x*qq+(Math.random()-.5)*.6*k,P.y+X.y*qq+(Math.random()-.5)*.6*k,P.z+X.z*qq+(Math.random()-.5)*.6*k,0,0,0,.55+Math.random()*.35);dolPart=Math.max(dolPart,.55);}
   }
 }
 /* <<<VITRAIL>>> LA TECHNIQUE VITRAIL, POUR N'IMPORTE QUELLE FORME (2026-10-10, nommée par Léo sur le dauphin ; mise en recette pour le SINGE)
@@ -30248,7 +30241,6 @@ window.dbgLogo=function(n){
     obtenu:+(100*(c[j.n]||0)/n).toFixed(2)+' %',unClicSur:Math.round(n/Math.max(1,c[j.n]||0))}))};
 };
 window.dbgDolphins=function(sec,nb,ch){ // `ch` : la CHORÉ (0-6, ou son nom ; null = au hasard)
-  if(ch!==undefined)dolChF=ch==null?null:(typeof ch==='string'?Math.max(0,DOL_CHORE.findIndex(c=>c.n===ch)):Math.max(0,Math.min(DOL_CHORE.length-1,ch|0)));
   if(sec==='royal'){if(dolShow<=0)dolIn=0;dolShow=Math.max(dolShow,4.5);dolNb=DOL_BANC.length;dolSync=true;return 'bond royal';} // (v6) le banc au complet bondit d'un seul corps
   if(sec==='ras'){dolRasF=nb==null?null:+nb;return dolRasF;} // (v6) force le RAS vu (0-1 ; null = le vrai) : liseré, gerbes, tempo
   dolShow=sec||4;dolIn=0;if(nb)dolNb=Math.max(1,Math.min(DOL_BANC.length,nb|0));}; // (2026-09-29) `nb` : le banc au complet d'entrée (banc photo)
@@ -30277,8 +30269,10 @@ window.dbgDolView=function(i,a,d,h,pas,ph){ // `ph` : on nage jusqu'à ce que le
 // (null = radar réel) · `dbgDauphin('boom')` explose en vol.
 window.dbgDauphin=function(a,b,c,d){
   if(a==='force'){DAUPH.force=(b==null?null:!!b);return DAUPH.force;}
-  if(a==='ecran'){const v=new THREE.Vector3();return {ch:DOL_CHORE[dolCh].n,kS:+dolKS.toFixed(2),W:+dolW.toFixed(1),xr:+dolXR.toFixed(1),pod:dolPod.position.toArray().map(x=>+x.toFixed(1)),
-    d:dolphins.map(d=>{if(!d.visible)return null;d.getWorldPosition(v);const dc=v.distanceTo(camera.position);v.project(camera);return [+v.x.toFixed(2),+v.y.toFixed(2),Math.round(dc),Math.round(DOL_L*d.scale.x/dc*VP.h/(2*Math.tan(camera.fov*Math.PI/360)))];})};} // [x, y, distance, longueur à l'écran en px] // (2026-10-09) où sont les dauphins À L'ÉCRAN (−1…1) et à quelle distance
+  if(a==='escorte'){const r=dolRoute();return {route:r&&{s:+r.s.toFixed(1),lat:+r.lat.toFixed(1),h:+r.h.toFixed(1),vs:+r.vs.toFixed(1)},on:dolOn,show:+dolShow.toFixed(2),t:+DOLA.t.toFixed(2),
+    e:dolphins.map(d=>{const E=d.userData.es;if(!E||!r)return null;return {devant:+((E.s-r.s)*DOLA.dir).toFixed(1),lat:+E.lat.toFixed(1),h:+E.h.toFixed(1),p:+E.p.toFixed(2),fin:!!E.fin,vs:+E.vs.toFixed(1),y:+(d.position.clone().sub(carGroup.position).dot(DOLA.N)).toFixed(1)};})};} // (11/10) L'ESCORTE : où est chaque dauphin, par rapport à la caisse
+  if(a==='ecran'){const v=new THREE.Vector3();return {ch:'ESCORTE',kS:+dolKS.toFixed(2),W:+dolW.toFixed(1),xr:+dolXR.toFixed(1),pod:dolPod.position.toArray().map(x=>+x.toFixed(1)),
+    d:dolphins.map(d=>{if(!d.visible)return null;d.getWorldPosition(v);const dc=v.distanceTo(camera.position);v.project(camera);if(v.z>1)return null;return [+v.x.toFixed(2),+v.y.toFixed(2),Math.round(dc),Math.round(DOL_L*d.scale.x/dc*VP.h/(2*Math.tan(camera.fov*Math.PI/360)))];})};} // [x, y, distance, longueur à l'écran en px] // (2026-10-09) où sont les dauphins À L'ÉCRAN (−1…1) et à quelle distance
   if(a==='boom'){explode();return window.dbgState();}
   if(a==='etat'){const r9={on:dolOn,aura:+dolAura.toFixed(1),mul:+dolMul.toFixed(2),q:+dolQ.toFixed(2),nb:dolNb,fig:trkDolph,hF:+dolDist().toFixed(1),flow:+FLOW.v.toFixed(1),mode:mode,
     rasT:+dolRasT.toFixed(2),rasK:+dolRasK.toFixed(2),rim:+DOL_U.uRimK.value.toFixed(2),rigMax:+dolRigMax.toFixed(1)};dolRigMax=0;return r9;} // (v6) rasT : secondes au ras (figure à 1) · rasK : le ras qui se voit · rigMax : la plus grande rotation du banc en une image depuis la dernière lecture (°) // (v5) le dauphin au banc : aura, vitesse, qualité
@@ -34213,8 +34207,7 @@ function addTrick(id,txt,val,tier,raw,free){ // raw : échelles qui grimpent dé
      (1 133 → 1 138), figure à 1,35 s au lieu de 0,98 ; à 3,2 m 661 → 674 ; à 6 m 548 → 526 ; vol flottant de 3 s culminant à 8 m (route qui
      descend sous la caisse) 527 → 501, figure à 2,6 s. ⚠ Le verdict MONSTRE de la pose, lui, vient du RASE-DALLE d'argent (`chainVal`,
      bloc de vol, 2,2-12 m) : il reste sur tout saut au-dessus de la route (hors de ce lot : il porte les pièces MOTEUR et le nitro de la pose). */
-const DOL_T=0,DOL_VU=2.6,DOL_HMAX=40,DOL_TMAX=4,DOL_GRACE=.12,DOL_FIGE=.6,DOL_FIG=1,DOL_PAS=.6, // (11/10) DOL_PAS 1 → ,6 (la valeur de Sacha) : un seul dauphin, c'est un écran vide chaque fois qu'il replonge
-     
+const DOL_T=0,DOL_VU=2.6,DOL_HMAX=40,DOL_TMAX=4,DOL_GRACE=.12,DOL_FIGE=.6,DOL_FIG=1,DOL_PAS=1,
       DOL_AURA0=80,DOL_AURA_S=0,DOL_AURA_RAS=190,DOL_AURA_MAX=1200,DOL_FLOW_K=4,DOL_FLOW_MAX=6,
       DOL_RAS_H=6.5,DOL_RAS_T0=.35,DOL_AURA_NUE=.5,DOL_AURA_MIN=10; // (v6) le RAS de la figure (m), sa porte (fallT), la part de la nage SANS figure, la plus petite ligne écrite
 let dolRoadT=0,dolOffT=0,dolOn=false,dolAura=0,dolMul=1,dolHudT=0,dolLive=0,dolNb=1,dolQ=0,dolRasT=0,dolRasV=0; // (v6) dolRasT : secondes AU RAS dans ce vol (la figure) · dolRasV : la proximité de l'image (0-1) que le banc montre
@@ -34237,7 +34230,7 @@ function dolTick(dt,sur,hF){ // chaque image de VOL, avant tryLand (radar = imag
       dolMul+=(dolVitMul()-dolMul)*Math.min(1,dt*4); // (v5) la vitesse, relue en continu (lissée : un coup de nitro se sent en ~0,25 s)
       dolQ+=ras*ras*(.3+.7*Math.max(0,Math.min(1,(dolMul-.6)/1.5)))*dt; // (v5) la QUALITÉ du geste : au ras ET vite — elle fera le flow
       dolAura=Math.max(dolAura,Math.min(DOL_AURA_MAX*dolMul,dolAura+(DOL_AURA_S+DOL_AURA_RAS*ras*ras)*(1+.375*(dolNb-1))*dolMul*dt)); // (v5) jamais de recul : la vitesse qui retombe baisse le plafond, pas le gagné
-      dolShow=Math.max(dolShow,1.4); // ils nagent tant qu'on reste près de la route ; à la sortie (la pose comprise) encore 1,4 s (11/10 : ,7 — ils filaient à l'atterrissage), dont le fondu de 0,4 s d'updateDolphins
+      dolShow=Math.max(dolShow,.7); // ils nagent tant qu'on reste près de la route ; à la sortie, le fondu de 0,4 s d'updateDolphins
       dolHudVal();if(!DAUPH.enVol&&!PARK.on&&Math.round(dolAura*(trkDolph?1:DOL_AURA_NUE))>=DOL_AURA_MIN)dolHudVol(); // (v7) l'aura MONTE sous les yeux pendant que les dauphins nagent
     }
   }else{
@@ -34290,6 +34283,7 @@ let dolHudAtt=0; // (v5) combien de temps le récapitulatif peut encore attendre
 function dolHudLibre(){const c=document.body.classList;return !(c.contains('verdOn')||c.contains('slamOn')||c.contains('ebOn')||(DAUPH.mb||(DAUPH.mb=document.getElementById('misBan')))&&DAUPH.mb.classList.contains('on'));}
 function dolKill(){ // fin SANS encaissement : explosion, replacement, nouvelle partie, fin de partie
   try{singeCache();}catch(e){} // (2026-10-10) le singe aussi
+  for(const d of dolphins)d.userData.es=null; // (l'escorte) elle part avec la caisse
   dolOn=false;dolAura=0;dolRoadT=0;dolOffT=0;dolShow=0;dolLive=0;dolNb=1;dolQ=0;dolRasT=0;dolRasV=0;dolSync=false;dolSyncT=0;DOL_DIFF.length=0;dolHudOff(); // (v5) les lignes en attente de pose partent avec la caisse
 }
 function dolHudInit(){ // une fois, au 1er dauphin — ensuite des classes et UN nœud texte
