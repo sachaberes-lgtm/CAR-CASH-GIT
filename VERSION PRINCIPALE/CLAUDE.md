@@ -1,22 +1,22 @@
 # CASH CAR — guide projet pour Claude Code
 
-## LE SIMULATEUR LÉGER — `simulateur.html` (2026-10-12, Léo : « un simulateur de course léger pour aucun bug ; une interface avec les maps, leurs noms, une photo représentative et une option jouer sur la map ; chaque map n'a pas de musique pour l'instant, après il faudra associer un fichier à chaque » + son moteur de musique `french-touch.html` « à retranscrire sur la map ville pour essayer »)
-Un outil À CÔTÉ du jeu (il ne touche pas `index.html`, et ne part pas en ligne : `vercel-build.sh` le retire, comme maps-ciel).
-- SERVIR : `cd "VERSION PRINCIPALE" && python3 simulateur/serveur.py 9101` → http://127.0.0.1:9101/simulateur.html (sans cache ; reçoit les photos).
-- `simulateur.html` = la page des maps (blanche : photo · nom · JOUER · pastille de musique). `simulateur/maps.js` = LA LISTE (`MAPS` : id, nom,
-  photo, musique par défaut ; `MUSIQUES` : les musiques qu'on peut associer). Le choix fait sur la page est gardé dans ce navigateur (`simu.musiques`).
-- `simulateur/course.html?map=<id>` + `moteur.js` : une voiture en blocs, une route qui boucle (`traceEtoile` = étoile sans croisement,
-  `traceRues` = angles droits à coins de 140 m), départ sur la plus longue droite, plaques de boost. Conduite du jeu : gaz auto, le volant fait
-  tourner (lacet ≤ v/(40+0,3v)), aucune aide, ↓ frein, Espace nitro (~8 s, recharge ~10 s), hors route = chute puis dernière ligne sûre au tiers
-  de la vitesse. Croisière 360 km/h, pointe nitro 486 km/h. Tactile : moitié gauche volant, moitié droite nitro. `?debug=1` = i/s, `?photo=1` = la photo
-  de la map (posée par `D.photo`, envoyée à serveur.py → `simulateur/photos/<id>.jpg`). Console : `SIMU.etat`, `SIMU.musique()`, `SIMU.rayonMin()`.
-- `simulateur/maps/<id>.js` = UN DÉCOR (`DECORS.<id>` : piste, couleurs, ciel, brouillard, lumière, photo, `construire(o)`, `tick`). VILLE (tours en
-  blocs sur une grille de lots coupée d'avenues, néons + halos, trafic volant, pluie fixée au monde), NUAGES (cubes instanciés, mer de nuages),
-  ORBITE (étoiles, planète en blocs devant le départ, débris et satellites). Mesuré : 60 i/s, 26-36 dessins, 45-111 k triangles.
+## LE SIMULATEUR — `simulateur.html` (2026-10-12, Léo : « un simulateur de course léger pour aucun bug ; une interface avec les maps, leurs noms, une photo représentative et une option jouer sur la map ; chaque map n'a pas de musique pour l'instant, après il faudra associer un fichier à chaque » + son moteur de musique `french-touch.html` « à retranscrire sur la map ville » — puis « il faut que ce soit les bonnes maps et la bonne physique »)
+Un outil À CÔTÉ du jeu, qui ne refait RIEN : il lance LE JEU (`index.html`, sans une ligne changée) directement sur un niveau. Pas en ligne
+(`vercel-build.sh` le retire, comme maps-ciel). ⚠ La 1re version (décors et conduite refaits à la main) a été REJETÉE : jamais de copie du jeu.
+- SERVIR : `cd "VERSION PRINCIPALE" && python3 simulateur/serveur.py 9101` → http://127.0.0.1:9101/simulateur.html (sans cache, et 404 sur
+  `sw.js` : le service worker du jeu ne s'installe pas sur cette adresse — il servirait le simulateur depuis son cache).
+- `simulateur/maps.js` = LA LISTE : les vraies maps (VILLE 1-5, SKY HIGH 1-5, MER DE NUAGES) et leurs niveaux, photos de `maps-ciel/img`,
+  `lance` = `{monde, n}` (carrière : `dbgCampagne(n, monde)`) ou `{sansFin}` (le JOUER `[data-m="play"]` de l'accueil, `dbgEco('rejouer')`
+  après une fin) ; `musique` par map ; `MUSIQUES` = celles qu'on peut associer. Le choix de la page est gardé dans ce navigateur (`simu.musiques`).
+- `simulateur/course.html?niv=<id>` : le jeu dans un cadre 844 × 390 (390 × 844 si la fenêtre est debout) zoomé, comme sur l'ordi. Il écrit
+  dans la sauvegarde du jeu DE CETTE ADRESSE `mus:false` (la musique du jeu coupée), `tuto:1`, `permis:1`. Au 1er toucher (l'écran titre),
+  le niveau part tout seul (réessayé toutes les 1,6 s tant que la course ne tourne pas) ; une partie finie repart 2,4 s après sur le même niveau.
 - LA MUSIQUE D'UNE MAP = une page de musique en direct (`simulateur/musiques/*.html`) jouée TELLE QUELLE dans un cadre invisible de 8 px (pas
-  `display:none` : sa boucle d'images s'arrêterait) : au départ (le geste du joueur) on clique son `#play`, puis à chaque image on pousse son
-  `#speed` (0-100, pas libre) = vitesse ÷ 486 km/h, et on lit son `#bpm`. Une nouvelle musique doit garder ces trois id. Le French Touch de Léo
-  est sur la VILLE (copie de `~/Downloads/french-touch.html`, non modifiée) — une nouvelle version = remplacer le fichier.
+  `display:none` : sa boucle d'images s'arrêterait) : son `#play` au 1er toucher (l'activation remonte du cadre du jeu), sa jauge `#speed`
+  poussée à chaque image = (`dbgFren().vit` − 0,15) ÷ 1,55, lissée ; `#bpm` lu. MESURÉ (VILLE 1, SKY HIGH 3, MER DE NUAGES) : vit ~0,35 au
+  départ, 1,2-1,3 en croisière, 1,5-1,9 en nitro → 13 % · ~70 % · 90-100 % ; zéro hors course et à l'explosion ; pause du jeu = pause de la
+  musique. Une nouvelle musique doit garder `#play`, `#speed`, `#bpm`. Le French Touch de Léo (`~/Downloads/french-touch.html`, non
+  modifié) est sur la VILLE — une nouvelle version = remplacer le fichier. Console : `SIMU.etat()`.
 
 ## LA MERCURE v2 (2026-10-11, Léo, « retoucheur de voitures ») — l'hypercar en MERCURE LIQUIDE, caisse ajoutée EN DERNIER (index 75), ÉPIQUE 3 800 000 $, `SHAPES.mercure`
 Née d'une planche de concepts générés en images (session « retoucheur »), « génère la mercure », « génère-la en 3D dans mon jeu ». La v1 (un loft à

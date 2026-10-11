@@ -4,70 +4,173 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Simulateur</title>
-<!-- LA COURSE DU SIMULATEUR LÉGER — tout le code est dans moteur.js, le décor dans maps/<id>.js, la liste dans maps.js. -->
+<!-- LA COURSE DU SIMULATEUR (2026-10-12, Léo : « il faut que ce soit les bonnes maps et la bonne physique »).
+     Rien n'est refait : c'est LE JEU (../index.html, tel que sur le main, sans une ligne changée) dans un cadre, à la taille d'un
+     téléphone couché (844 × 390, comme le jeu sur l'ordi), lancé directement sur le niveau choisi. Autour, trois choses seulement :
+     · la sauvegarde du jeu SUR CETTE ADRESSE : sa musique coupée (on n'entend que celle de la map), l'auto-école déjà faite ;
+     · le DÉPART : au premier toucher (l'écran titre du jeu le demande), le niveau part tout seul — la carrière par dbgCampagne(n, monde),
+       la partie sans fin par le JOUER de l'accueil ; une partie finie (mort, fin de monde) repart d'elle-même sur le même niveau ;
+     · la MUSIQUE DE LA MAP (musiques/*.html, jouée telle quelle dans un cadre invisible) : son PLAY au premier toucher, et sa jauge
+       « vitesse » (0-100) poussée à chaque image depuis la vraie vitesse du jeu (FLOW.vit, lue par dbgFren, rapportée au palier
+       moteur — MESURÉ au banc sur VILLE 1, SKY HIGH 3, MER DE NUAGES : ~0,35 au départ, 1,2-1,3 en croisière, 1,5-1,9 en nitro → 13 % ·
+       ~70 % · 90-100 %). Jauge à zéro hors course et à l'explosion ; musique en pause quand le jeu l'est.
+     Console : SIMU.etat(). -->
 <style>
   :root{--sys:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif}
   *{box-sizing:border-box;margin:0;padding:0}
-  html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var(--sys);-webkit-font-smoothing:antialiased;
-    -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
-  canvas{display:block}
-  .ombre{text-shadow:0 1px 2px rgba(0,0,0,.55),0 0 12px rgba(0,0,0,.35)}
-
-  #retour{position:fixed;top:max(16px,env(safe-area-inset-top));left:max(16px,env(safe-area-inset-left));width:40px;height:40px;
-    border-radius:50%;display:grid;place-items:center;background:rgba(0,0,0,.32);color:#fff;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
-  #retour:hover{background:rgba(0,0,0,.5)}
-  #retour svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-
-  #hud{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);width:min(260px,70vw);
-    display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none}
-  #vit{display:flex;align-items:baseline;gap:6px}
-  #kmh{font-size:40px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1}
-  #vit small{font-size:13px;opacity:.75}
-  .barre{width:100%;height:4px;border-radius:2px;background:rgba(255,255,255,.22);overflow:hidden}
-  .barre i{display:block;height:100%;width:0;background:#fff;border-radius:2px}
-  .barre.nit{height:3px}
-  .barre.nit i{background:#ff8a2a}
-  .sous{width:100%;display:flex;justify-content:space-between;font-size:11px;opacity:.8;font-variant-numeric:tabular-nums}
-
-  .voile{position:fixed;inset:0;display:grid;place-items:center;text-align:center;background:rgba(0,0,0,.25)}
-  .voile>div{display:flex;flex-direction:column;align-items:center;gap:10px}
-  #nomMap{font-size:clamp(34px,7vw,64px);font-weight:750;letter-spacing:-.02em}
-  #partir{font-size:15px;font-weight:600}
-  #aide{font-size:12px;opacity:.7;margin-top:6px}
-  #pause h2{font-size:28px;font-weight:700;margin-bottom:6px}
-  .btn{height:44px;min-width:170px;padding:0 22px;border-radius:999px;border:0;font:inherit;font-size:15px;font-weight:600;cursor:pointer;
-    display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
-  .btn.plein{background:#fff;color:#111}
-  .btn.vide{background:rgba(255,255,255,.14);color:#fff}
-
-  #err{position:fixed;left:12px;right:12px;top:70px;background:#d70015;color:#fff;font:12px/1.4 ui-monospace,Menlo,monospace;padding:10px 12px;border-radius:10px;white-space:pre-wrap}
-  #dbg{position:fixed;right:12px;top:14px;font:11px ui-monospace,Menlo,monospace;opacity:.7}
+  html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var(--sys);-webkit-font-smoothing:antialiased}
+  #barre{position:fixed;top:0;left:0;right:0;height:40px;display:flex;align-items:center;gap:12px;padding:0 max(12px,env(safe-area-inset-left));
+    font-size:13px;white-space:nowrap;overflow:hidden}
+  #retour{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:#fff;background:rgba(255,255,255,.12);flex:none}
+  #retour:hover{background:rgba(255,255,255,.22)}
+  #retour svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+  #titre{font-weight:650;letter-spacing:.01em}
+  #info{margin-left:auto;opacity:.75;font-variant-numeric:tabular-nums}
+  #zone{position:fixed;left:0;right:0;top:40px;bottom:0;display:grid;place-items:center}
+  #jeu{border:0;display:block;background:#000}
+  #err{position:fixed;left:12px;right:12px;bottom:12px;background:#d70015;color:#fff;font:12px/1.4 ui-monospace,Menlo,monospace;padding:10px 12px;border-radius:10px;white-space:pre-wrap}
   [hidden]{display:none!important}
 </style>
 </head>
 <body>
-<a id="retour" href="../simulateur.html" aria-label="Retour aux maps"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></a>
-<div id="hud" class="ombre">
-  <div id="vit"><b id="kmh">0</b><small>km/h</small></div>
-  <div class="barre"><i id="jauge"></i></div>
-  <div class="sous"><span id="pct">0 %</span><span id="bpmL"><span id="bpm">–</span> BPM</span></div>
-  <div class="barre nit"><i id="nit"></i></div>
+<div id="barre">
+  <a id="retour" href="../simulateur.html" aria-label="Retour aux maps"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></a>
+  <b id="titre"></b>
+  <span id="info"></span>
 </div>
-<div id="depart" class="voile ombre" hidden><div>
-  <h1 id="nomMap"></h1>
-  <p id="partir">Espace pour partir</p>
-  <p id="aide">← → tourner · Espace nitro · ↓ frein · Échap pause</p>
-</div></div>
-<div id="pause" class="voile" hidden><div>
-  <h2 class="ombre">Pause</h2>
-  <button class="btn plein" id="reprendre">Reprendre</button>
-  <a class="btn vide" href="../simulateur.html">Maps</a>
-</div></div>
+<div id="zone"><iframe id="jeu" title="CASH CAR" allow="autoplay; fullscreen"></iframe></div>
 <div id="err" hidden></div>
-<div id="dbg"></div>
-<script src="../vendor/three.min.js"></script>
 <script src="maps.js"></script>
-<script src="moteur.js"></script>
-<script>document.getElementById('reprendre').addEventListener('click', () => SIMU.reprendre());</script>
+<script>
+(function () {
+'use strict';
+const $ = id => document.getElementById(id);
+const Q = new URLSearchParams(location.search);
+const T = niveauDe(Q.get('niv')) || niveauDe('v1');
+const MAP = T.map, NIV = T.niv;
+const num = MAP.niveaux.length > 1 ? ' ' + (MAP.niveaux.indexOf(NIV) + 1) : '';
+$('titre').textContent = MAP.nom + num + ' · ' + NIV.nom;
+document.title = MAP.nom + num + ' · simulateur';
+const erreur = m => { const e = $('err'); e.textContent = String(m).slice(0, 400); e.hidden = false; };
+
+// ——— 1) la sauvegarde du jeu, sur CETTE adresse seulement : sa musique coupée, l'auto-école faite ———
+try {
+  const d = JSON.parse(localStorage.getItem('cashcarSave') || '{}') || {};
+  d.v = d.v || 2; d.mus = false; d.tuto = 1; d.permis = 1;
+  localStorage.setItem('cashcarSave', JSON.stringify(d));
+} catch (e) {}
+
+// ——— 2) le jeu, à la taille d'un téléphone couché (debout si la fenêtre est plus haute que large) ———
+const jeu = $('jeu');
+function taille() {
+  const W = innerWidth, H = innerHeight - 40, debout = H > W * 1.1;
+  const w = debout ? 390 : 844, h = debout ? 844 : 390;
+  jeu.style.width = w + 'px'; jeu.style.height = h + 'px'; jeu.style.zoom = Math.min(W / w, H / h);
+}
+addEventListener('resize', taille); taille();
+jeu.src = '../index.html';
+const focusJeu = () => { try { jeu.focus(); jeu.contentWindow.focus(); } catch (e) {} };
+jeu.addEventListener('load', () => {
+  focusJeu();
+  try {
+    const w = jeu.contentWindow;
+    for (const t of ['pointerdown', 'keydown']) w.addEventListener(t, geste, true);
+  } catch (e) { erreur('Le jeu ne se laisse pas lire : ' + e.message); }
+});
+document.addEventListener('pointerdown', () => setTimeout(focusJeu, 0));
+// une touche frappée pendant que cette page a le focus part dans le jeu (comme le cadre du jeu sur l'ordi)
+for (const t of ['keydown', 'keyup']) addEventListener(t, ev => {
+  if (ev.target === jeu) return;
+  geste();
+  try { const w = jeu.contentWindow; w.document.dispatchEvent(new w.KeyboardEvent(t, { code: ev.code, key: ev.key, keyCode: ev.keyCode, repeat: ev.repeat, bubbles: true, cancelable: true })); } catch (e) {}
+  if (/^(Space|Arrow)/.test(ev.code)) ev.preventDefault();
+});
+
+// ——— 3) la musique de la map ———
+const MUS = { cadre: null, pret: false, veut: false, jauge: '', nom: '' };
+const fichier = musiqueDe(MAP);
+if (fichier) {
+  MUS.nom = (MUSIQUES.find(m => m.fichier === fichier) || {}).nom || '';
+  const f = document.createElement('iframe');
+  f.src = fichier; f.title = 'musique'; f.tabIndex = -1; f.setAttribute('aria-hidden', 'true'); f.setAttribute('allow', 'autoplay');
+  // visible pour le navigateur (sinon sa boucle d'images s'arrête et sa jauge ne bouge plus), invisible pour nous
+  f.style.cssText = 'position:fixed;left:0;bottom:0;width:8px;height:8px;opacity:0;pointer-events:none;border:0;z-index:-1';
+  f.onload = () => {
+    try {
+      const d = f.contentDocument;
+      MUS.jaugeEl = d.getElementById('speed'); MUS.bouton = d.getElementById('play'); MUS.bpm = d.getElementById('bpm');
+      if (MUS.jaugeEl) MUS.jaugeEl.step = 'any';
+      MUS.pret = !!(MUS.jaugeEl && MUS.bouton);
+      if (!MUS.pret) erreur('La musique ' + fichier + ' n\'a pas les repères #play / #speed.');
+      else if (MUS.veut) musJoue(true);
+    } catch (e) { erreur('Musique illisible : ' + e.message); }
+  };
+  document.body.appendChild(f); MUS.cadre = f;
+}
+const musJoueDeja = () => !!(MUS.bouton && /stop/i.test(MUS.bouton.textContent));
+function musJoue(on) { if (MUS.pret && on !== musJoueDeja()) MUS.bouton.click(); }
+function musVitesse(x) {
+  if (!MUS.pret) return;
+  const v = (x * 100).toFixed(1);
+  if (v === MUS.jauge) return;
+  MUS.jauge = v; MUS.jaugeEl.value = v;
+  MUS.jaugeEl.dispatchEvent(new MUS.cadre.contentWindow.Event('input'));
+}
+let touche = false;
+function geste() { // le 1er toucher (l'écran titre du jeu le demande) : il réveille aussi la musique
+  if (touche) return; touche = true; MUS.veut = true; musJoue(true);
+}
+
+// ——— 4) le départ, la relance, la jauge ———
+const L = NIV.lance;
+function lancer() {
+  const w = jeu.contentWindow;
+  if (L.sansFin) {
+    if (w.dbgState().gameOver) { w.dbgEco('rejouer'); return; }
+    const b = w.document.querySelector('[data-m="play"]');
+    if (b) b.click();
+  } else w.dbgCampagne(L.n, L.monde);
+}
+const E = { phase: 'titre', essai: 0, finT: 0, x: 0, vit: 0, st: null };
+let der = performance.now();
+function boucle(now) {
+  requestAnimationFrame(boucle);
+  const dt = Math.min(.1, (now - der) / 1000); der = now;
+  let w, st;
+  try { w = jeu.contentWindow; st = w && w.dbgState ? w.dbgState() : null; } catch (e) { st = null; }
+  E.st = st;
+  if (!st) return;
+  const enCourse = st.started && !st.gameOver;
+  try {
+    // l'écran titre passé (le jeu l'a retiré au 1er toucher) : on part sur le niveau — on réessaie tant que la course ne tourne pas
+    if (E.phase === 'titre' && !w.document.getElementById('splash')) { E.phase = 'depart'; E.essai = 0; E.t = .9; }
+    if (E.phase === 'depart') {
+      if (enCourse) E.phase = 'course';
+      else if ((E.t -= dt) <= 0) { E.t = 1.6; if (E.essai++ < 8) lancer(); }
+    }
+    // une partie finie (mort, fin de monde) : 2,4 s d'écran de fin, puis le même niveau repart
+    if (E.phase === 'course') {
+      if (st.started && st.gameOver) { if ((E.finT += dt) > 2.4) { E.finT = 0; E.phase = 'depart'; E.essai = 0; E.t = 0; } }
+      else E.finT = 0;
+    }
+  } catch (e) { erreur(e.message); }
+  // la jauge de la musique = la vraie vitesse de la caisse
+  let x = 0;
+  if (enCourse && !st.paused && st.mode !== 'boom') { try { E.vit = w.dbgFren().vit; x = Math.max(0, Math.min(1, (E.vit - .15) / 1.55)); } catch (e) {} }
+  E.x += (x - E.x) * Math.min(1, dt * 8);
+  musVitesse(E.x);
+  if (touche) musJoue(!st.paused);
+  const info = MUS.pret ? '♪ ' + MUS.nom + ' · ' + Math.round(E.x * 100) + ' % · ' + (MUS.bpm ? MUS.bpm.textContent : '–') + ' BPM' : '';
+  if ($('info').textContent !== info) $('info').textContent = info;
+}
+requestAnimationFrame(boucle);
+
+window.SIMU = {
+  etat: () => ({ phase: E.phase, essai: E.essai, jauge: +E.x.toFixed(3), vit: E.vit, touche,
+    jeu: E.st && { started: E.st.started, gameOver: E.st.gameOver, paused: E.st.paused, mode: E.st.mode },
+    musique: { pret: MUS.pret, joue: musJoueDeja(), jauge: MUS.jauge, bpm: MUS.bpm && MUS.bpm.textContent } }),
+};
+})();
+</script>
 </body>
 </html>
