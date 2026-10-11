@@ -6453,17 +6453,31 @@ html body #garage:not(.menu):not(.vitrine) #gRang1>#gHomeBas>:not(.gHomeCielCv){
 html body #garage:not(.menu):not(.vitrine) #gRang1>#gHomeBas>.gHomeCielCv{display:block;position:absolute;left:-12%;top:-8%;width:124%;height:116%;z-index:0;pointer-events:none;
   opacity:0;transition:opacity .5s;transform:skewX(calc(-1 * var(--sk)));animation:gHomeCielPan 18s ease-in-out infinite alternate}
 html body #garage:not(.menu):not(.vitrine) #gRang1>#gHomeBas>.gHomeCielCv.on{opacity:1}
-/* LES BOUTONS SUIVENT LE CIEL (voir homeCielPrise) : un FILTRE sur chaque touche — la nuit plus sombres et désaturés, le jour un cran plus
-   clairs ; fondu de 0,8 s. L'accueil (les quatre portes, ⚙, JOUER) et le garage (HOME, l'œil, INVENTAIRE, BOUTIQUE, ACHETER, JOUER).
-   ⚠ jamais de filtre sur les lettres .lg du logo (voir la charte) : il est posé sur la TOUCHE entière. */
-html.hub body #mHome.acc2 :is(.mHubPorte,.mAccB,.mOffres,.mGear,.mPlay),
-html body #garage:not(.menu):not(.vitrine) :is(#gRang1>#gHomeBas,#gRang1>#gOeil,#gAct>#gvCof,#gAct>#gShopBas,#gAct>#gEquip,#gAct>#gJouer){transition:filter .8s var(--ease)}
-html.cielNuit.hub body #mHome.acc2 :is(.mHubPorte,.mAccB,.mOffres,.mGear,.mPlay),
-html.cielNuit body #garage:not(.menu):not(.vitrine) :is(#gRang1>#gHomeBas,#gRang1>#gOeil,#gAct>#gvCof,#gAct>#gShopBas,#gAct>#gEquip,#gAct>#gJouer){filter:brightness(.78) saturate(.68)!important}
-html.cielJour.hub body #mHome.acc2 :is(.mHubPorte,.mAccB,.mOffres,.mGear,.mPlay),
-html.cielJour body #garage:not(.menu):not(.vitrine) :is(#gRang1>#gHomeBas,#gRang1>#gOeil,#gAct>#gvCof,#gAct>#gShopBas,#gAct>#gEquip,#gAct>#gJouer){filter:brightness(1.1) saturate(1.12)!important}
-html.cielNuit.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay{filter:brightness(.78) saturate(.68)!important} /* (la passe UX impose filter:none!important à JOUER : une règle plus précise) */
-html.cielJour.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay{filter:brightness(1.1) saturate(1.12)!important}
+/* (2026-10-12, Léo : « remets les couleurs vives ») les boutons ne suivent plus le ciel : le filtre de nuit / de jour est retiré
+   (homeCielPrise pose toujours html.cielNuit / html.cielJour, sans effet). */
+/* LA DA DU GARAGE AU MENU CIEL (2026-10-12, Léo : « change la DA des boutons du menu ciel en la DA des boutons du garage ») : les quatre portes
+   (GARAGE · CARRIÈRE · MISSIONS · OFFRES) et le ⚙ prennent la matière d'INVENTAIRE / BOUTIQUE — laque dégradée avec son reflet oblique, filet de
+   couleur fin à gauche qui diffuse dans la plaque, contour d'encre et épaisseur dessous ; l'icône passe en grand (×3) et luit de sa couleur.
+   JOUER garde le sien (« je préfère le JOUER du ciel ») — et le garage le reprend (voir mPlayMot / #gJouer .lg). */
+html.hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mAccB,.mOffres,.mGear){
+  background:linear-gradient(112deg,transparent 0 37%,rgba(255,255,255,.055) 37% 45%,transparent 45% 49%,rgba(255,255,255,.03) 49% 51%,transparent 51%),
+    linear-gradient(180deg,#272049 0%,#1c1738 46%,#141029 100%)!important;
+  box-shadow:inset 3px 0 0 var(--nc),inset 34px 0 30px -28px color-mix(in srgb,var(--nc) 75%,transparent),inset 0 1px 0 rgba(255,255,255,.16),inset 0 0 0 1px rgba(255,255,255,.06),
+    0 0 0 1px rgba(3,1,9,.92),0 5px 0 #0a0818,0 5px 0 1px rgba(3,1,9,.92),0 14px 24px -10px rgba(0,0,0,.72)!important}
+html.hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mAccB,.mOffres) .pxi{--pxs:3!important;color:var(--nc)!important;filter:drop-shadow(0 0 5px var(--nc))!important}
+html.hub:not(.poki) body #mHome.acc2 .mGear .pxi{--pxs:3!important;color:var(--nc,#5ee6ff)!important;filter:drop-shadow(0 0 5px var(--nc,#5ee6ff))!important}
+html.hub:not(.poki) body #mHome.acc2 .mAccP>.mMisBarre{
+  background:linear-gradient(112deg,transparent 0 37%,rgba(255,255,255,.055) 37% 45%,transparent 45% 49%,rgba(255,255,255,.03) 49% 51%,transparent 51%),
+    linear-gradient(180deg,#272049 0%,#1c1738 46%,#141029 100%)!important;
+  box-shadow:inset 3px 0 0 var(--nc),inset 34px 0 30px -28px color-mix(in srgb,var(--nc) 75%,transparent),inset 0 1px 0 rgba(255,255,255,.16),inset 0 0 0 1px rgba(255,255,255,.06),
+    0 0 0 1px rgba(3,1,9,.92),0 5px 0 #0a0818,0 5px 0 1px rgba(3,1,9,.92),0 14px 24px -10px rgba(0,0,0,.72)!important}
+html.hub:not(.poki) body #mHome.acc2 .mAccP>.mMisBarre .pxi{--pxs:3!important;color:var(--nc)!important;filter:drop-shadow(0 0 5px var(--nc))!important}
+/* le mot JOUER du ciel au garage : les lettres du logo (.lg, leur relief ::before), en brun sur l'or — les valeurs de la passe UX pour l'accueil */
+html body #garage:not(.menu):not(.vitrine) #gAct>#gJouer .gjMot{display:inline-flex;gap:.06em}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gJouer .lg{font-family:var(--pix);background:none!important;-webkit-background-clip:border-box!important;background-clip:border-box!important;
+  color:#3a1800!important;-webkit-text-fill-color:#3a1800!important;text-shadow:0 1px 0 rgba(255,247,210,.9)!important;filter:none!important;font-size:24px!important;letter-spacing:0}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gJouer .lg::after{display:none!important}
+@media (orientation:portrait){html body #garage:not(.menu):not(.vitrine) #gAct>#gJouer .lg{font-size:21px!important}}
 @keyframes gHomeCielPan{from{translate:-5% 0;scale:1.04}to{translate:5% -2%;scale:1.1}}
 @media (prefers-reduced-motion:reduce){html body #garage #gRang1>#gHomeBas>.gHomeCielCv{animation:none}}
 html[data-reduced-motion="1"] body #garage #gRang1>#gHomeBas>.gHomeCielCv{animation:none}
@@ -43868,6 +43882,8 @@ buildPlayWord();
 function mPlayMot(){const el=document.querySelector('#mHome .mPlay');if(!el)return;
   el.classList.remove('pbtn','pb-gold','big','wide');el.classList.add('mMot');el.setAttribute('aria-label',TR('JOUER'));el.innerHTML='';
   for(const ch of TR('JOUER')){const sp=document.createElement('span');sp.className='lg gold';sp.setAttribute('data-t',ch);sp.textContent=ch;el.appendChild(sp);}
+  try{const gj=document.querySelector('#gJouer>span[data-fr="JOUER"],#gJouer>.gjMot');if(gj){gj.removeAttribute('data-fr');gj.className='gjMot';gj.innerHTML=''; // (2026-10-12, Léo : « je préfère le JOUER du ciel ») le JOUER du garage : le même mot, lettre par lettre
+    for(const ch of TR('JOUER')){const sp=document.createElement('span');sp.className='lg gold';sp.setAttribute('data-t',ch);sp.textContent=ch;gj.appendChild(sp);}}}catch(e){}
   try{carrPlayMaj();}catch(e){}} // (2026-10-07) la map que lance PLAY, en petit dessous (« LE NIVEAU DES PLAY »)
 function mPlayVague(x){const el=document.querySelector('#mHome .mPlay.mMot');if(!el)return;const L9=el.querySelectorAll('.lg');if(!L9.length)return;
   if(x==null){const r0=el.getBoundingClientRect();x=(r0.left+r0.right)/2;}
