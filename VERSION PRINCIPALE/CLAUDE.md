@@ -242,6 +242,12 @@ d'aller dans cette map avec une voiture, la mobilité comme le main, mais seulem
     posée dès le <head> (le logo du chargement, le menu, le garage et le voile ne se montrent plus ; l'image reste noire jusqu'au départ,
     classe `parti`) ; `baladeDepart` appelle `start()` directement (plus de playViaGarage : ni fondu, ni garage, ni sortie par la porte),
     la caméra se pose d'un coup derrière la caisse ; plus de « DÉPART » quand le niveau repart (l'ARRIVÉE reste). sw.js → v220.
+  · (même jour, Léo : « elles brillent trop, et un ciel asiatique » — puis « super boulot ») LES PIÈCES plus mates (le métal ×1,25 au lieu de
+    ×2,2, soleil et vernis divisés par 2-3, étincelles plus rares et seulement de près, lueur .05, rails or vieilli) ; LE CIEL DES PARAVENTS :
+    dégradé de SOIE (bleu doux, céladon, crème, or pâle — jdZ/jdL/jdM/jdH), un grand SOLEIL VERMILLON posé à ~15° au-dessus des monts
+    (au cap du soleil de la lumière), les KASUMI (quatre bandes de brume dorée couchées, aux bouts arrondis), sat 1,12 ; les nuages en cubes
+    COUCHÉS en longs bancs (×1,7 de large, ×0,55 de haut), ombre d'encre bleutée. ⚠ `vDir` arrive interpolé entre les sommets du dôme
+    (non normalisé) : jadeCiel le renormalise — sans ça le soleil sortait en GOUTTE. sw.js → v221.
 - Mesuré (Chrome sans fenêtre du Mac) : 60 i/s, construction 16-28 ms, tri ~0,03 ms ; collisions (`dbgJadeHeurt('test')`, 3 vallées) :
   piliers durs, arche et dessous du pont libres, AUCUN point de la route dans la pierre. Console : `dbgJade()`, `dbgJadeVue('route'|'porte'|
   'pont'|'haut'|'loin'|'grue',d,h,cap)` (photo figée), `dbgGrues()`. sw.js → v203.

@@ -7113,15 +7113,24 @@ const skyDome=(function(){
       '    float tx=min(tm.x,tm.y);if(p.y+d.y*tx<=top){float th=(top-p.y)/d.y;N=vec3(0.,1.,0.);cc=c;hh=h;return vec4(p+d*th,t0+th);}', // le DESSUS
       '    if(tm.x<tm.y){c.x+=st.x;tm.x+=tdl.x;nr=vec2(1.,0.);}else{c.y+=st.y;tm.y+=tdl.y;nr=vec2(0.,1.);}tc=tx;if(t0+tc>t1)break;}',
       '  return vec4(-1.);}',
-      'vec3 jadeCiel(vec3 d){',
+      'vec3 jadeCiel(vec3 d){d=normalize(d);',                                // (v17 bis) vDir arrive interpolé entre les sommets du dôme : renormalisé, le soleil est un DISQUE (il sortait en goutte)
       '  float y=d.y,yy=max(y,0.),az=atan(d.x,-d.z),sd=max(dot(d,uSunDir),0.);',
-      // (v17, Léo : « une ambiance féerique, le ciel plus dégradé ») QUATRE teintes : l or-pêche de l horizon, le rose, le lilas, l azur du zénith
-      '  vec3 c=mix(uJdH,uJdM,smoothstep(.0,.07,yy));c=mix(c,uJdL,smoothstep(.05,.24,yy));c=mix(c,uJdZ,smoothstep(.18,.78,yy));',
-      '  c+=uJdS*(pow(sd,4.)*.38+pow(sd,48.)*.50)*(1.-.5*smoothstep(0.,.5,yy));',
-      '  c=mix(c,uJdS*1.35+vec3(.25),smoothstep(.99950,.99972,sd));',     // le disque : pâle, comme sur la soie
+      /* (v17 bis, Léo : « un ciel asiatique ») LE CIEL DES PARAVENTS ET DES ROULEAUX : un dégradé de SOIE (bleu doux en haut, céladon, crème,
+         or pâle à l horizon : les quatre teintes jdZ/jdL/jdM/jdH), un grand SOLEIL VERMILLON bas sur l horizon (le disque plein, bord net
+         adouci, sans halo de photo), et les KASUMI : des bandes de brume DORÉE couchées sur l horizon, aux bouts arrondis, qui coupent le
+         lointain par endroits (les nuages d or des paravents japonais). */
+      '  vec3 c=mix(uJdH,uJdM,smoothstep(.0,.08,yy));c=mix(c,uJdL,smoothstep(.06,.30,yy));c=mix(c,uJdZ,smoothstep(.24,.85,yy));',
+      '  c+=uJdS*(pow(sd,6.)*.18)*(1.-.6*smoothstep(0.,.4,yy));',
+
       '  if(y>.012&&y<.4){float t=1.0/y;vec2 p=d.xz*t*1.05+vec2(uTime*.003,0.);', // les voiles de lavis, étirés
       '    float n=vfbm(vec2(p.x*.55,p.y*2.4)+3.7);c=mix(c,mix(uJdH,vec3(1.),.35),smoothstep(.56,.86,n)*.42*smoothstep(.012,.06,y)*(1.-smoothstep(.22,.4,y)));}',
       '  {vec4 lo=jLointain(az,y);c=mix(c,lo.rgb,lo.a);}',                  // (v12) le LOINTAIN, derrière les rangées de piliers
+      '  {vec3 sv=normalize(vec3(uSunDir.x,0.,uSunDir.z)*.966+vec3(0.,.259,0.));float sv9=max(dot(d,sv),0.);',               // le SOLEIL vermillon, posé AU-DESSUS des monts (~15°)
+      '   float dk=1.-smoothstep(.99680,.99725,sv9);vec3 ve=mix(vec3(.90,.26,.15),vec3(.97,.42,.22),smoothstep(.99725,.99990,sv9));',
+      '   c=mix(c,ve,(1.-dk)*.96);c+=vec3(.50,.16,.08)*pow(sv9,120.)*.22*dk;}',
+      '  for(int i=0;i<4;i++){float fi=float(i),hc=.020+fi*.062+.014*sin(az*1.3+fi*2.1),th=.010+.005*fi;',                   // (v17 bis) les KASUMI : bandes d or couchées
+      '    float on=smoothstep(.42,.58,vn(vec2(az*(1.1+fi*.35)+fi*7.3,fi*3.1)));float b=(1.-smoothstep(th*.55,th,abs(y-hc)))*on;',
+      '    vec3 kg=mix(vec3(.99,.86,.58),vec3(1.,.94,.80),.5+.5*sin(az*3.+fi));c=mix(c,kg,b*.82);}',
       '  vec3 B=uJdB;float azq=az;',                                         // (v3, Léo : « que du ciel et de la mer ») : plus de monts posés sur l horizon — au fond aussi, ils FLOTTENT
       // (v12) les quatre rangées de piliers peints sur l horizon sont RETIRÉES : devant le lointain elles faisaient une frise de bosses blanches
       // (v8, Léo : « un dessous, que ce soit la mer — qui fasse penser au fleuve des peintures chinoises, mais bleu ») LE FLEUVE : le bleu
@@ -10775,12 +10784,12 @@ function roadMat(){
       'if(uJadeR>.001&&uJSt9>3.5){vec3 au9=vec3(1.,.80,.34),rf9=normalize(reflectVec),rt9=normalize(rf9+vec3(jF9.x,0.,jF9.y)*1.3);'+
       'vec3 V9=normalize(vViewPosition),rV9=reflect(-V9,normal),Lv9=normalize(vec3(0.,.30,-1.)),rF9=normalize(rV9+vec3(jF9.x,jF9.y,0.)*.9);'+
       'vec3 eT9=envMapTexelToLinear(textureCube(envMap,vec3(flipEnvMap*rt9.x,rt9.yz))).rgb;'+                                // LE MÉTAL : chaque pièce renvoie SON morceau de ciel (sa pente à elle)
-      'float lT9=dot(eT9,vec3(.3,.59,.11));vec3 mT9=au9*pow(lT9,2.6)*2.2*(1.-.75*smoothstep(.05,-.35,rt9.y));'+               // le contraste du métal : sombre où il renvoie le haut du ciel (ou le vide), éclatant où il renvoie l horizon
-      'outgoingLight=mix(outgoingLight,outgoingLight*.32,uJadeR)+mT9*(.35+.80*jM9)*uJadeR+vec3(1.,.90,.62)*pow(max(dot(rt9,uSunW),0.),48.)*2.6*jM9*uJadeR;'+
-      'outgoingLight+=vec3(1.,.84,.50)*(pow(max(dot(rV9,Lv9),0.),14.)*.10+pow(max(dot(rF9,Lv9),0.),70.)*1.6*jM9)*uJadeR;'+
-      'float tw9=pow(max(0.,sin(uT9*2.3+jH9*61.)),24.)*step(.80,fract(jH9*13.7))*(1.-smoothstep(60.,240.,length(vViewPosition)));'+
-      'outgoingLight+=vec3(1.,.93,.75)*tw9*jM9*2.2*uJadeR;}\n#endif\n'+
-      'outgoingLight+=uLift*lk9*(1.-uJadeR*.7)+uSheenCol*(uSheen*fr9);if(uJadeR>.001)outgoingLight+=diffuseColor.rgb*(uJSt9<.5?.20:uJSt9<1.5?.30:uJSt9<3.5?.04:.12)*uJadeR;}'); // (v16 : les rondins comme le bois) // (v13) « beaucoup plus brillante » : la lumière qui traverse l émeraude — (v14) le nuage luit, le bois non
+      'float lT9=dot(eT9,vec3(.3,.59,.11));vec3 mT9=au9*pow(lT9,2.6)*1.25*(1.-.75*smoothstep(.05,-.35,rt9.y));'+               // le contraste du métal : sombre où il renvoie le haut du ciel (ou le vide), éclatant où il renvoie l horizon
+      'outgoingLight=mix(outgoingLight,outgoingLight*.40,uJadeR)+mT9*(.25+.55*jM9)*uJadeR+vec3(1.,.90,.62)*pow(max(dot(rt9,uSunW),0.),48.)*1.0*jM9*uJadeR;'+
+      'outgoingLight+=vec3(1.,.84,.50)*(pow(max(dot(rV9,Lv9),0.),14.)*.05+pow(max(dot(rF9,Lv9),0.),70.)*.55*jM9)*uJadeR;'+
+      'float tw9=pow(max(0.,sin(uT9*2.3+jH9*61.)),24.)*step(.92,fract(jH9*13.7))*(1.-smoothstep(40.,140.,length(vViewPosition)));'+
+      'outgoingLight+=vec3(1.,.93,.75)*tw9*jM9*.9*uJadeR;}\n#endif\n'+
+      'outgoingLight+=uLift*lk9*(1.-uJadeR*.7)+uSheenCol*(uSheen*fr9);if(uJadeR>.001)outgoingLight+=diffuseColor.rgb*(uJSt9<.5?.20:uJSt9<1.5?.30:uJSt9<3.5?.04:.05)*uJadeR;}'); // (v16 : les rondins comme le bois) // (v13) « beaucoup plus brillante » : la lumière qui traverse l émeraude — (v14) le nuage luit, le bois non
   };
   m.customProgramCacheKey=function(){return 'bitumeV5'+(face?'f':'')+(sauts?'s':'');}; // UNE compilation pour toutes les pistes
   return m;
@@ -13382,7 +13391,7 @@ function buildJade(seed){
        g.setAttribute('aJ',new THREE.InstancedBufferAttribute(aj,4));im.userData.jeter=true;im.frustumCulled=false;im.renderOrder=ro;root.add(im);};
      if(JADE_NUVOX){const GV=jadeNuagesVox(),par=GV.map(function(){return [];}),Mr=new THREE.Matrix4(),Ms=new THREE.Matrix4(),Mo=new THREE.Matrix4().makeTranslation(-NUVOX.GX/2,-NUVOX.GY/2,-NUVOX.mid); // (v13) LES VOLUTES EN CUBES
        for(const n of NU){const yaw=Math.atan2(n[7]-n[0],n[8]-n[2])+(n[6]>.5?Math.PI:0),sc=n[3]/NUVOX.GX;
-         par[n[5]].push(new THREE.Matrix4().makeTranslation(n[0],n[1],n[2]).multiply(Mr.makeRotationY(yaw)).multiply(Ms.makeScale(sc,sc,sc)).multiply(Mo));}
+         par[n[5]].push(new THREE.Matrix4().makeTranslation(n[0],n[1],n[2]).multiply(Mr.makeRotationY(yaw)).multiply(Ms.makeScale(sc*1.7,sc*.55,sc*1.15)).multiply(Mo));}
        NUVOX.L=[];NUVOX.ims=[];NUVOX.sig=0;NUVOX.S=NUVOX.S||new THREE.Sphere();
        par.forEach(function(L9,t){for(const g9 of [GV[t],NUVOX.loin[t]]){const im=new THREE.InstancedMesh(g9,JADE_NUVOX_M,Math.max(1,L9.length));im.count=0;im.visible=false;im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
            im.frustumCulled=false;im.renderOrder=4.5;root.add(im);NUVOX.ims.push(im);}
@@ -13460,7 +13469,7 @@ function jadeRouteStyle(k){ // 0 émeraude · 1 nuage · 2 planches : la surface
   JROUTE.style=k;ROAD_U.uJStyle.value=k;
   if(JADE.root){try{if((k===1||k===2)&&!JADE.decoFait){JADE.decoFait=true;jadeRouteDeco(JADE.root,mulberry32(0xDEC0));}if(k===3&&!JADE.decoRondins)jadeRondinsDeco(JADE.root,mulberry32(0x7201));}catch(e){console.warn('route',e);}}
   if(JADE.decoNuage)JADE.decoNuage.visible=k===1;if(JADE.decoPlanches)JADE.decoPlanches.visible=k===2;if(JADE.decoRondins)JADE.decoRondins.visible=k===3;
-  const ac=[0x4fe0a8,0xf2f5ff,0x5a1a10,0x2a1a0e,0xffbf3a][k],gl=[.78,.30,0,0,.50][k];
+  const ac=[0x4fe0a8,0xf2f5ff,0x5a1a10,0x2a1a0e,0xc89a3a][k],gl=[.78,.30,0,0,.22][k];
   if(NEON_RAILS[0]){NEON_RAILS[0].color.setHex(ac);if(NEON_RAILS[0].userData.base)NEON_RAILS[0].userData.base.setHex(ac);NEON_RAILS[0].userData.hsl=null;} // (le caméléon garde la teinte mesurée : on la lui fait remesurer)
   if(NEON_GLOW[0]){NEON_GLOW[0].opacity=gl;NEON_GLOW[0].userData.base=gl;}
   ROAD_U.uAcc.value.setHex(ac);
@@ -13902,7 +13911,7 @@ const JADE_NUVOX_M=(function(){const m=new THREE.ShaderMaterial({transparent:tru
     '  vD=length(wp.xyz-cameraPosition);gl_Position=projectionMatrix*viewMatrix*wp;}'].join('\n'),
   fragmentShader:['uniform vec3 uTeinte,uFogC,uSunD,uSunC;varying vec3 vO,vNo,vN;varying float vM,vAO,vD;',
     'void main(){vec3 N=normalize(vN);float dif=max((dot(N,uSunD)+.35)/1.35,0.);',
-    '  vec3 c=mix(vec3(.64,.67,.84),vec3(1.,.97,.93)*uTeinte,dif)*mix(.72,1.,vAO);',                    // (v17) féerique : le ventre lilas, le dessus crème doré                   // la lumière dessus, l ombre jade-lavande dessous, l ombre des coins
+    '  vec3 c=mix(vec3(.62,.68,.78),vec3(1.,.98,.94)*uTeinte,dif)*mix(.72,1.,vAO);',                    // (v17) féerique : le ventre lilas, le dessus crème doré                   // la lumière dessus, l ombre jade-lavande dessous, l ombre des coins
     '  vec3 q=floor(vO-vNo*.5+.001);c*=.95+.09*fract(sin(dot(q,vec3(12.9898,78.233,37.719)))*43758.5453);', // chaque cube sa nuance
     '  if(vM>1.5)c*=.80;c*=mix(vec3(1.),uSunC*.6+.4,.25);',                               // la spirale creusée ; le soleil de la map
     '  c+=vec3(.06,.01,.05)*(1.-dif)*(1.-dif);',                                                       // une pointe de rose dans l ombre
@@ -15769,15 +15778,15 @@ BIOMES.jade={nm:'PICS DE JADE',skyMul:[1,1,1],skyLift:[0,0,0],sunTint:[1,.95,.86
   /* (v17, Léo : « de la colorimétrie sur tout le niveau, du shading, une ambiance FÉERIQUE, le ciel plus dégradé ») — l'heure dorée d'un
      conte : la brume rose-lavande, une lumière d'or, les ombres lilas (le ciel les remplit), un contre-jour rose ; l'étalonnage plus saturé,
      les ombres violettes, les hautes lumières chaudes, un halo plus généreux (ce qui brille rayonne), la vignette prune. */
-  fog:[.90,.80,.86],fogN:240,fogF:2500,
+  fog:[.90,.86,.80],fogN:240,fogF:2500,
   hemiS:[.80,.76,.98],hemiG:[.62,.50,.58],hemiI:.98, sunC:[1,.86,.66],sunI:1.15,
   fillC:[.82,.56,.86],fillI:.20, kickC:[1,.78,.86],kickI:.07,
   volSun:[1.9,1.7,1.5],volSky:[.78,.70,.90],volGnd:[.40,.34,.44],volAmb:.82,
-  expo:.90,sat:1.22,
+  expo:.90,sat:1.12,
   env:[[0,'#5f74c8'],[.3,'#a99ad8'],[.48,'#f2cfe0'],[.58,'#ffe2c4'],[.66,'#8a6f86'],[1,'#3a2e48']],eS1:[255,232,200,.50],eS2:[230,170,220,.32],
-  wb:[1.01,.99,1.02],sh:[.012,-.002,.034],hi:[.022,.008,-.008],con:1.06,bloomS:.46,bloomT:.84,vigK:.28,vigC:[.18,.08,.20],rimK:0,rimS:.38,fogIn:[.95,.86,.92],fogCj:[1,.84,.74],
+  wb:[1.01,.99,1.02],sh:[.012,-.002,.034],hi:[.022,.008,-.008],con:1.06,bloomS:.46,bloomT:.84,vigK:.28,vigC:[.18,.08,.20],rimK:0,rimS:.38,fogIn:[.94,.90,.86],fogCj:[1,.84,.70],
   daCon:.6,daExpo:1,daWbN:1,daSh:.3,daHi:.2,
-  jdZ:[.26,.42,.84],jdL:[.68,.62,.92],jdM:[.98,.72,.82],jdH:[1,.86,.70],jdR:[.42,.40,.64],jdB:[.93,.84,.90],jdS:[1,.84,.60]};
+  jdZ:[.36,.52,.72],jdL:[.70,.80,.80],jdM:[.95,.89,.76],jdH:[1,.86,.66],jdR:[.38,.42,.52],jdB:[.92,.88,.84],jdS:[1,.82,.60]}; // (v17 bis, « un ciel asiatique ») la soie des rouleaux
 for(const k9 in BIOMES)for(const f9 in BIO_ETAL0)if(BIOMES[k9][f9]==null)BIOMES[k9][f9]=JSON.parse(JSON.stringify(BIO_ETAL0[f9]));
 // Le tirage du jour, dans l'ordre des heures (+ l'ORAGE en joker météo) — la NUIT ne se tire pas,
 // elle se MÉRITE (3 portails). 9 ambiances en rotation : deux parties ne se ressemblent plus.
