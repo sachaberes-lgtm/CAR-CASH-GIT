@@ -249,6 +249,10 @@ d'aller dans cette map avec une voiture, la mobilité comme le main, mais seulem
     COUCHÉS en longs bancs (×1,7 de large, ×0,55 de haut), ombre d'encre bleutée. ⚠ `vDir` arrive interpolé entre les sommets du dôme
     (non normalisé) : jadeCiel le renormalise — sans ça le soleil sortait en GOUTTE. sw.js → v221.
   · (12/10, Léo : « une étoile rouge discrète sur les étoiles ») l'étoile de chaque pièce en ÉMAIL rouge sombre (62 %, moins de métal dessus). sw.js → v222.
+  · (12/10, Léo : « enlève les bords de la route et les trucs en bois asiatiques, c'est raciste ») plus d'ARCHES de troncs au départ et à
+    l'arrivée (elles faisaient torii), plus aucun bord en volume pour AUCUNE route de la touche R (planches laquées + lanternes, rondins,
+    volutes : `jadeRouteStyle` ne les bâtit plus), plus de rails ni de lueur (NEON_RAILS / NEON_GLOW invisibles), le liseré et les
+    catadioptres des tranches éteints (`ROAD_U.uAcc` noir). ⚠ Aucun décor « asiatique » d'objet ou d'architecture sur cette map. sw.js → v223.
 - Mesuré (Chrome sans fenêtre du Mac) : 60 i/s, construction 16-28 ms, tri ~0,03 ms ; collisions (`dbgJadeHeurt('test')`, 3 vallées) :
   piliers durs, arche et dessous du pont libres, AUCUN point de la route dans la pierre. Console : `dbgJade()`, `dbgJadeVue('route'|'porte'|
   'pont'|'haut'|'loin'|'grue',d,h,cap)` (photo figée), `dbgGrues()`. sw.js → v203.

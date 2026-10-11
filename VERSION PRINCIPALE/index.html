@@ -13421,7 +13421,7 @@ function buildJade(seed){
    geo.setAttribute('aB',new THREE.InstancedBufferAttribute(new Float32Array(ib),4));im.userData.jeter=true;
    im.frustumCulled=false;im.renderOrder=4;root.add(im);JADE.brume=im;}
   JADE.decoFait=false;JADE.decoNuage=JADE.decoPlanches=JADE.decoRondins=null;try{jadeRouteStyle(JROUTE.style);}catch(e){console.warn('route',e);} // (v17) les bords en volume : bâtis À LA DEMANDE, seulement ceux de la route choisie
-  try{jadeArchesRondins(root);}catch(e){console.warn('arches',e);} // (v16) plus de portique chinois : des arches de troncs
+  JADE.depart=120; // (2026-10-12, Léo : « enlève les trucs en bois asiatiques ») plus d'arches de troncs au départ ni à l'arrivée
   try{jadeChutePrep(PIL,jr,root);}catch(e){console.warn('chute',e);}
   JADE.n={montagnes:PIL.filter(function(q){return q[5]<JADE_NTPL;}).length,rochers:PIL.filter(function(q){return q[5]>=JADE_NTPL;}).length,arbres:ARB.length,temples:PAG.length+PAV.length,cascades:CHU.length,
     brume:JADE.brume?JADE.brume.count:0,quartiers:JADE.quart.length,porte:!!JADE.porte,pont:!!JADE.pont,ms:Math.round(performance.now()-t00),gabaritsMs:G.ms,
@@ -13468,13 +13468,14 @@ function jadeRouteDeco(root,jr){
 }
 function jadeRouteStyle(k){ // 0 émeraude · 1 nuage · 2 planches : la surface (uJStyle), les bords en volume, les rails, la lueur, les flancs, la ligne
   JROUTE.style=k;ROAD_U.uJStyle.value=k;
-  if(JADE.root){try{if((k===1||k===2)&&!JADE.decoFait){JADE.decoFait=true;jadeRouteDeco(JADE.root,mulberry32(0xDEC0));}if(k===3&&!JADE.decoRondins)jadeRondinsDeco(JADE.root,mulberry32(0x7201));}catch(e){console.warn('route',e);}}
+  /* (2026-10-12, Léo : « enlève les bords de la route et les trucs en bois asiatiques ») plus aucun bord en volume (planches laquées et lanternes,
+     rondins, volutes) ni rail, ni lueur, ni liseré sur les tranches : la route seule */
+  for(const m of NEON_RAILS)m.visible=false;for(const m of NEON_GLOW)m.visible=false;
   if(JADE.decoNuage)JADE.decoNuage.visible=k===1;if(JADE.decoPlanches)JADE.decoPlanches.visible=k===2;if(JADE.decoRondins)JADE.decoRondins.visible=k===3;
   const ac=[0x4fe0a8,0xf2f5ff,0x5a1a10,0x2a1a0e,0xc89a3a][k],gl=[.78,.30,0,0,.22][k];
   if(NEON_RAILS[0]){NEON_RAILS[0].color.setHex(ac);if(NEON_RAILS[0].userData.base)NEON_RAILS[0].userData.base.setHex(ac);NEON_RAILS[0].userData.hsl=null;} // (le caméléon garde la teinte mesurée : on la lui fait remesurer)
   if(NEON_GLOW[0]){NEON_GLOW[0].opacity=gl;NEON_GLOW[0].userData.base=gl;}
-  ROAD_U.uAcc.value.setHex(ac);
-  if(JADE.flank)JADE.flank.color.setHex([0x1c0430,0xd9deec,0x2a140a,0x1e140c,0x4a2c08][k]);
+  {const fl=[0x1c0430,0xd9deec,0x2a140a,0x1e140c,0x4a2c08][k];ROAD_U.uAcc.value.setHex(0);if(JADE.flank)JADE.flank.color.setHex(fl);} // le liseré et les catadioptres des tranches s'éteignent (accent noir : rien ne s'ajoute)
   if(JADE.ligne)JADE.ligne.opacity=[.42,0,0,0,0][k];
   return ['EMERAUDE','NUAGE','PLANCHES','RONDINS','PIECES D OR'][k];}
 window.dbgEffondre=function(){return {montagnes:JCH.L.length,tombees:JCH.L.filter(function(c){return c.t0;}).length,finies:JCH.L.filter(function(c){return c.fin;}).length,ecume:JCH.sp.length,sChute:JCH.L.length?Math.round(Math.min.apply(null,JCH.L.map(function(c){return c.sN;}))):null,L:Math.round(L)};};
