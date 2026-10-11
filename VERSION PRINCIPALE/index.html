@@ -28801,6 +28801,8 @@ function updateDolphins(dt,photo){
      · LA PEAU DE VERRE : la forme lisse gonflée de `uCoqG`, transparente de face (`uCoqA0`), opaque sur la silhouette (`uCoqA1`), le reflet
        d'un ciel, un éclat, un film irisé ;
      · L'ONDE (`uScan`, vitesse `uScanV`) : une bande de lumière qui parcourt la forme, soulève les écailles (`uVague`) et allume le tout.
+     · (2026-10-11) `uSat` · `uClair` : la saturation et la clarté de la MATIÈRE (1 = telle quelle) — en course l'étalonnage du jeu (saturation ×1,4,
+       lumière chaude) faisait d'un singe brun une flamme orange : les singes de la course les baissent.
    La forme lisse : « surface nets » sur la grille de `hs`, sommets au barycentre des passages, normales = le gradient du champ.
    Valeurs par défaut = le JUSTE MILIEU de Léo sur le dauphin (10/10) : de face .43 · bords .95 · gonflée 1,3 cube · écailles .89 · vague .45 cube. */
 function vitrailU(F,o){ // les réglages d'un objet en vitrail (un jeu d'uniforms partagé par ses trois matières)
@@ -28808,7 +28810,7 @@ function vitrailU(F,o){ // les réglages d'un objet en vitrail (un jeu d'uniform
   return Object.assign({uCoqA0:{value:.43},uCoqA1:{value:.95},uCoqP:{value:1.4},uCoqG:{value:h*1.3},uEcart:{value:.89},uVague:{value:h*.45},
     uLueur:{value:1.4},uScan:{value:1},uScanV:{value:.5},uCoeurIn:{value:h*1.6},uNoir:{value:0},uT:{value:0},uScene:{value:.5},
     uLum:{value:new THREE.Vector3(.3,1,.25).normalize()},uGlowA:{value:new THREE.Color(1,.85,.3)},uGlowB:{value:new THREE.Color(1,.5,.2)},
-    uRimA:{value:new THREE.Color(1,.08,.14)},uM0:M(),uM1:M(),uM2:M(),uP0:V(),uP1:V(),uP2:V()},o||{});
+    uRimA:{value:new THREE.Color(1,.08,.14)},uSat:{value:1},uClair:{value:1},uM0:M(),uM1:M(),uM2:M(),uP0:V(),uP1:V(),uP2:V()},o||{});
 }
 function vitrailFini(g){let r;do{r=g.next();}while(!r.done);return r.value;} // un générateur mené d'un trait (la boîte) — le jeu, lui, le découpe en tranches (vitrailPrepare)
 function vitrailLisse(F){return vitrailFini(vitrailLisseG(F));}
@@ -28876,10 +28878,10 @@ function vitrailShader(sh){ // `this` = la matière ; this.userData : U (les ré
       (ro===0?'transformed=aLp+(position-aLp)*mix(uEcart,1.,sc9*.8)+aN*uVague*sc9;\n':ro===1?'transformed+=aN*uCoqG;\n':'transformed-=aN*uCoeurIn;\n')+
       'transformed=vitOs(transformed);');
   sh.fragmentShader='uniform float uLueur;uniform float uScan;uniform float uScanV;uniform float uCoqA0;uniform float uCoqA1;uniform float uCoqP;\n'+
-    'uniform float uNoir;uniform float uT;uniform float uScene;uniform vec3 uLum;uniform vec3 uGlowA;uniform vec3 uGlowB;uniform vec3 uRimA;\n'+
+    'uniform float uNoir;uniform float uSat;uniform float uClair;uniform float uT;uniform float uScene;uniform vec3 uLum;uniform vec3 uGlowA;uniform vec3 uGlowB;uniform vec3 uRimA;\n'+
     'varying vec3 vCol9;varying vec3 vLoc9;varying vec3 vLp9;varying float vS9;float vitE9=0.;\n'+
     'float vitH(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}\n'+sh.fragmentShader
-    .replace('#include <color_fragment>','#include <color_fragment>\ndiffuseColor.rgb*=mix(vCol9,vec3(.055,.05,.07),uNoir);\n'+
+    .replace('#include <color_fragment>','#include <color_fragment>\n{vec3 c9=mix(vCol9,vec3(.055,.05,.07),uNoir);diffuseColor.rgb*=mix(vec3(dot(c9,vec3(.299,.587,.114))),c9,uSat)*uClair;}\n'+
       (ro===0?'{vec3 qb=abs(vLoc9);qb/=max(max(qb.x,max(qb.y,qb.z)),1e-5);vitE9=smoothstep(.6,1.,qb.x+qb.y+qb.z-1.-min(qb.x,min(qb.y,qb.z)));\n'+
         'diffuseColor.rgb*=(1.-.2*vitE9)*(.95+.1*vitH(vLp9*61.7));}\n':''))
     .replace('#include <lights_fragment_end>','#include <lights_fragment_end>\n'+ // SA lumière (comme le dauphin) : le niveau ne garde que uScene de la sienne
@@ -28947,7 +28949,8 @@ function sgDebout(x,y,z){ // le champ, debout ; remplit SG_D (la distance à cha
   return d;
 }
 function sgProche(){let b=0;for(let i=1;i<SG_P.length;i++)if(SG_D[i]<SG_D[b])b=i;return b;}
-function sgCol(X,Y,Z,o){sgDebout(X,Y,Z);const q=SG_P[sgProche()];let r=q[1]; // la couleur (repère DEBOUT)
+function sgCol(X,Y,Z,o){sgDebout(X,Y,Z);sgColQ(SG_P[sgProche()],X,Y,Z,o);} // la couleur (repère DEBOUT)
+function sgColQ(q,X,Y,Z,o){let r=q[1]; // la couleur du volume q au point (X,Y,Z) du singe DEBOUT (aussi pour la pose en course : chaque partie y est ramenée)
     if(r==='oeil'){const c=q[4];r=Math.hypot(X-c[0]-.014*Math.sign(c[0]),Y-c[1]-.02,Z-c[2]-.045)<.024?'reflet':'oeil';} /* le reflet : en haut, vers l'extérieur */
     else if(r==='museau'){if(Z>.24&&Math.abs(X)<.095&&Math.abs(Y-(.815+2.4*X*X))<.018)r='bouche'; // son vrai sourire (pendu par la queue, il se lit comme 🙃)
       else if(Z>.26&&Math.hypot(Math.abs(X)-.035,Y-.885)<.017)r='bouche';}
@@ -28972,7 +28975,10 @@ function singeForme(mode){const Q=mode!=='mains',ux=x=>Q?-x:x,uy=y=>Q?SG_YA-y:SG
     pt:(X,Y,Z)=>new THREE.Vector3(Q?-X:X,Q?SG_YA-Y:Y-SG_YH,Z),vec:(X,Y,Z)=>new THREE.Vector3(Q?-X:X,Q?-Y:Y,Z).normalize()};}
 const SINGE_F=singeForme('queue'),SINGE_FM=singeForme('mains');
 const SG_QI=new THREE.Quaternion();
-function singeNouveau(cle,mode){ // un singe : son groupe (accroché en 0,0,0), ses réglages, son état — mode 'queue' (défaut) ou 'mains'
+function singeNouveau(cle,mode){ // un singe : son groupe (accroché en 0,0,0), ses réglages, son état — mode 'queue' (défaut) ou 'mains' — ou 'course' (à quatre pattes, les pieds en 0,0,0)
+  if(mode==='course'){const F=SINGE_FC,U=vitrailU(F,{uGlowA:{value:new THREE.Color(1,.82,.28)},uGlowB:{value:new THREE.Color(1,.42,.18)}});
+    U.uP0.value.copy(F.cou);U.uP1.value.copy(F.epaules);U.uP2.value.copy(F.hanches);
+    return {grp:vitrailObjet(F,U,cle||'singe'),U,F,mode:'course',e:{t:0,ph:0,k:Math.random()*6.28,hy:0,hp:0,m4:new THREE.Matrix4(),eu:new THREE.Euler()}};}
   const F=mode==='mains'?SINGE_FM:SINGE_F;
   const U=vitrailU(F,{uGlowA:{value:new THREE.Color(1,.82,.28)},uGlowB:{value:new THREE.Color(1,.42,.18)}}); // le cœur : l'or de la banane → l'ambre
   const ep=[F.pt(.22,.6,.02),F.pt(-.22,.6,.02)],re=[F.vec(.28,.62,.1),F.vec(-.28,.62,.1)]; // les épaules (os 1 et 2) et leurs bras au repos (épaule → main)
@@ -29001,84 +29007,180 @@ function singeAnime(S,dt,cible,proche){ // cible : la caisse dans le repère du 
     else e.m4.identity();
     mu.value.setFromMatrix4(e.m4);}
 }
+/* LA POSE EN COURSE (2026-10-11, Léo : « les singes apparaissent quand on fait 3 sauts en 5 s : ils sautent avec nous sur la route, courent
+   un peu avec nous et repartent ») — le MÊME singe, à QUATRE PATTES (au sol, un singe galope comme ça). Chaque partie du singe debout (corps,
+   tête, bras, jambes, queue) est déplacée D'UN BLOC — une pose rigide par partie, p(course) = B + R·(p(debout) − A) — : les volumes, les
+   couleurs, le sourire et le reflet des yeux restent ceux du singe debout. Le corps penche de 65° vers l'avant, la tête se relève et
+   regarde devant, les bras descendent jusqu'au sol (les pattes avant), les jambes dessous, la queue en crosse vers le ciel.
+   Repère : le sol en y = 0, le museau vers +z. Trois OS : 0 la tête (le cou) · 1 les DEUX bras (les épaules) · 2 les DEUX jambes (les
+   hanches) — le galop, c'est les bras et les jambes à contretemps. */
+const SG_PART=[0,0,1,1,1,1,1,1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6,6,6]; // la partie de chaque volume de SG_P : corps · tête · bras +x · bras −x · jambe +x · jambe −x · queue
+const SGK=(function(){
+  const V=(x,y,z)=>new THREE.Vector3(x,y,z),q=new THREE.Quaternion(),rx=a=>new THREE.Matrix4().makeRotationX(a*Math.PI/180);
+  const vise=(de,vers)=>new THREE.Matrix4().makeRotationFromQuaternion(q.setFromUnitVectors(de.clone().normalize(),vers.clone().normalize()));
+  const tor={A:V(0,.08,0),B:V(0,.08,0),R:rx(65)},K=[tor];
+  const parTorse=p=>p.clone().sub(tor.A).applyMatrix4(tor.R).add(tor.B); // un point du corps debout → sa place dans le corps penché
+  K.push({A:V(0,.72,0),B:parTorse(V(0,.72,0)).add(V(0,.03,.03)),R:rx(8)}); // la tête, sur le cou : elle regarde devant (8° vers le bas)
+  for(const s of [1,-1]){const A=V(.22*s,.6,.02);K.push({A,B:parTorse(A),R:vise(V(.28*s,.69,.11),V(.06*s,-.97,.2))});} // les bras → les pattes avant : vers le sol, un peu devant
+  for(const s of [1,-1]){const A=V(.13*s,.02,.04);K.push({A,B:parTorse(A),R:vise(V(.07*s,-.38,.16),V(.08*s,-.97,-.12))});} // les jambes → les pattes arrière
+  {const A=V(0,.02,-.16);K.push({A,B:parTorse(A),R:rx(108)});} // la queue : en crosse, derrière, vers le ciel
+  const ou=(k,x,y,z)=>V(x,y,z).sub(K[k].A).applyMatrix4(K[k].R).add(K[k].B);
+  const sol=Math.min(ou(2,.5,1.29,.13).y-.085,ou(4,.2,-.36,.2).y-.06); // le plus bas des mains et des pieds → y = 0
+  for(const k of K){k.B.y-=sol;k.e=new THREE.Matrix3().setFromMatrix4(k.R).transpose().elements;}
+  return {K,ou};
+})();
+const SG_PK=new Float32Array(21); // le point courant ramené dans le repère DEBOUT de chacune des sept parties
+function sgCourse(x,y,z){ // le champ du singe EN COURSE ; remplit SG_D et SG_PK
+  const K=SGK.K;for(let k=0;k<7;k++){const c=K[k],e=c.e,dx=x-c.B.x,dy=y-c.B.y,dz=z-c.B.z;
+    SG_PK[k*3]=c.A.x+e[0]*dx+e[3]*dy+e[6]*dz;SG_PK[k*3+1]=c.A.y+e[1]*dx+e[4]*dy+e[7]*dz;SG_PK[k*3+2]=c.A.z+e[2]*dx+e[5]*dy+e[8]*dz;}
+  let d=1e9;for(let i=0;i<SG_P.length;i++){const q=SG_P[i],k=SG_PART[i]*3,di=sgPrim(q,SG_PK[k],SG_PK[k+1],SG_PK[k+2]);SG_D[i]=di;
+    if(i===0)d=di;else{const w=q[3];if(w<=0)d=Math.min(d,di);else{const hh=Math.max(w-Math.abs(d-di),0)/w;d=Math.min(d,di)-hh*hh*w*.25;}}}
+  return d;
+}
+function sgColCourse(x,y,z,o){sgCourse(x,y,z);const i=sgProche(),k=SG_PART[i]*3;sgColQ(SG_P[i],SG_PK[k],SG_PK[k+1],SG_PK[k+2],o);}
+function sgOsCourse(x,y,z,o){sgCourse(x,y,z);const i=sgProche(),p=SG_PART[i],k=p*3,X=SG_PK[k],Y=SG_PK[k+1],Z=SG_PK[k+2];o[0]=o[1]=o[2]=0;
+  if(p===1)o[0]=1;else if(p===0&&Y>.6&&Math.abs(X)<.16)o[0]=Math.max(0,Math.min(1,(Y-.62)/.16));
+  else if(p===2||p===3)o[1]=Math.max(0,Math.min(1,(Math.hypot(Math.abs(X)-.22,Y-.6,Z-.02)-.03)/.13));
+  else if(p===4||p===5)o[2]=Math.max(0,Math.min(1,(Math.hypot(Math.abs(X)-.13,Y-.02,Z-.04)-.05)/.15));}
+function singeCourseForme(){ // la forme EN COURSE : sa boîte = chaque volume ramené dans la pose, plus sa marge
+  const K=SGK.K,mn=[1e9,1e9,1e9],mx=[-1e9,-1e9,-1e9];
+  for(let i=0;i<SG_P.length;i++){const q=SG_P[i],k=SG_PART[i],r=q[0]==='e'?Math.max(q[5][0],q[5][1],q[5][2]):Math.max(q[6],q[7]);
+    for(const c of q[0]==='e'?[q[4]]:[q[4],q[5]]){const v=SGK.ou(k,c[0],c[1],c[2]);for(let a=0;a<3;a++){mn[a]=Math.min(mn[a],v.getComponent(a)-r-.08);mx[a]=Math.max(mx[a],v.getComponent(a)+r+.08);}}}
+  const z0=mn[2],z1=mx[2];
+  return {mode:'course',min:mn,max:mx,hs:.034,h:.036,sdf:sgCourse,col:sgColCourse,os:sgOsCourse,
+    s:(x,y,z)=>Math.max(0,Math.min(1,(z1-z)/(z1-z0))), // l'onde court du museau à la queue
+    cou:K[1].B.clone(),epaules:new THREE.Vector3(0,K[2].B.y,K[2].B.z),hanches:new THREE.Vector3(0,K[4].B.y,K[4].B.z),
+    centre:new THREE.Vector3(0,(mn[1]+mx[1])*.5,(z0+z1)*.5)};
+}
+const SINGE_FC=singeCourseForme();
+function singeCourt(S,dt,air,vh,cible){ // LE GALOP · air : 0 au sol → 1 en plein saut · vh : sa vitesse verticale (m/s) · cible : la caisse dans son repère (ou null)
+  const e=S.e,U=S.U,F=S.F;e.t+=dt;U.uT.value=e.t;e.ph+=dt*Math.PI*2*(2.9+.2*Math.sin(e.t*.37+e.k));
+  const g=1-air,sn=Math.sin(e.ph);
+  // les bras et les jambes à contretemps ; en l'air, les bras tendus devant, les jambes tendues derrière (un saut de singe)
+  U.uM1.value.setFromMatrix4(e.m4.makeRotationX(g*.62*sn-air*1.25));
+  U.uM2.value.setFromMatrix4(e.m4.makeRotationX(g*.55*Math.sin(e.ph+Math.PI*.85)+air*.95));
+  // le corps : il rebondit et tangue au galop ; en l'air il suit sa trajectoire (le nez monte en montant, plonge en descendant)
+  const tg=g*.13*Math.sin(e.ph+.6)+air*Math.max(-.45,Math.min(.45,-vh*.035)),c=F.centre,ct=Math.cos(tg),st=Math.sin(tg);
+  S.grp.rotation.set(tg,0,0);S.grp.position.set(0,c.y-(c.y*ct-c.z*st)+g*.2*Math.max(0,sn),c.z-(c.y*st+c.z*ct)); // il tangue autour de son milieu
+  // la tête garde l'horizon (elle rattrape le tangage) et, de temps en temps, jette un œil à la caisse par-dessus l'épaule
+  let fy=.18*Math.sin(e.t*.9+e.k),fp=-tg*.8-.05;
+  if(cible){const lk=Math.pow(Math.max(0,Math.sin(e.t*1.1+e.k*2)),6);fy+=(Math.max(-1.1,Math.min(1.1,Math.atan2(cible.x-F.cou.x,cible.z-F.cou.z)))-fy)*lk;}
+  const a9=Math.min(1,dt*7);e.hy+=(fy-e.hy)*a9;e.hp+=(fp-e.hp)*a9;
+  U.uM0.value.setFromMatrix4(e.m4.makeRotationFromEuler(e.eu.set(e.hp,e.hy,0,'YXZ')));
+}
 /* <<<FIN SINGE>>> */
-/* LE SINGE EN COURSE (2026-10-10, Léo : « garde ce que t'as, push main — mais il faut pas que ce soit à chaque fois qu'on va en dessous de la
-   route ») — quand la caisse passe SOUS la dalle (en vol, sous l'épaisseur, dans la largeur : la règle d'« À L'ABRI »), UNE fois par passage
-   on tire au sort (`SG_CHANCE`, et jamais deux singes à moins de `SG_CD` s) : un singe apparaît, pendu sous la dalle (par la queue ou par les
-   mains, au hasard), là où la caisse sera dans `SG_AVANCE` s, le visage tourné vers elle. Il la suit de la tête et tend la main. Si elle passe
-   à portée de sa main (`SG_PORTEE`, plus elle passe près plus ça paie) : TOPE LÀ ! — un coup de nitro, de l'aura, du flow MACHIAVEL (passer sous
-   la route, c'est tricher). Trop loin : rien, il se balance dans son souffle. Puis il remonte dans la dalle.
-   Les deux poses sont BÂTIES AU MENU en tranches de quelques ms (`vitrailPrepare` : ~0,4 s chacune d'un bloc, mesuré) puis compilées une fois
-   hors écran (`chauffeRendu`) : en course, rien ne se construit ni ne se compile. Pas prêt = pas de singe. Console : `dbgSinge()`, `dbgSinge(1)`
-   (force le prochain passage). */
-const SG_CHANCE=.34,SG_CD=24,SG_AVANCE=.85,SG_ECH=3.2,SG_PORTEE=5; // une chance sur trois par passage · 24 s entre deux singes · ~6,7 m de haut
-const SGC={S:{},node:new THREE.Group(),cur:null,t:0,fin:0,cd:0,sousT:0,horsT:9,tire:false,force:false,passe:false,dz:0,fab:null,pret:false,chaud:false,
-  p0:new THREE.Vector3(),vel:new THREE.Vector3(),v1:new THREE.Vector3(),v2:new THREE.Vector3(),v3:new THREE.Vector3(),cib:new THREE.Vector3(),m:new THREE.Matrix4(),F:{p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()}};
+/* LES SINGES EN COURSE (2026-10-11, Léo : « je n'arrive pas à toucher le singe, il est mal placé. Nouvelle idée : il faudrait que les singes
+   apparaissent quand, en 5 secondes ou moins, on fait 3 sauts. Ils apparaissent en sautant avec nous sur la route, courent un peu avec nous
+   et repartent. ») — le singe pendu sous la dalle quitte la course (sa forme, ses deux poses et sa boîte restent).
+   · LE DÉCLENCHEUR (`singeSaut`) : chaque DÉCOLLAGE (`startFall` : bord, tremplin, trou, double-tap) et chaque REBOND sur la tranche (BUMP)
+     compte pour un saut ; trois dans une fenêtre de `SGR_FEN` s → la troupe arrive, dès que la caisse est au-dessus de la route (au 3e saut
+     elle peut survoler le vide : on l'attend `SGR_ATT` s). Pas d'autre troupe avant `SGR_CD` s. Ni à l'auto-école, ni au parc.
+   · L'ARRIVÉE : trois singes (en VITRAIL, la pose À QUATRE PATTES) jaillissent du vide de part et d'autre et bondissent sur la route en arc,
+     à la hauteur de la caisse — « LES SINGES ! » : de l'aura, un peu de nitro, du flow NARCISSE (le saut, c'est la frime).
+   · LA COURSE (`SGR_DUREE` s) : ils galopent DEVANT elle, à sa vitesse (sur la piste : le `s` de la caisse + leur avance), sur SA face,
+     toujours à l'image — l'écart sur le côté suit le champ réel de la caméra (debout comme couché). Quand elle saute, ILS SAUTENT : chacun
+     prend sa hauteur au-dessus de la dalle avec un petit retard, bras tendus devant, jambes derrière.
+   · LE DÉPART : un par un, ils bondissent par-dessus le bord et retombent dans le vide en se laissant distancer. Aussi quand la caisse part
+     loin de la route ou passe sur l'autre face, avant le portail ; à l'explosion ou au replacement ils disparaissent (`dolKill`).
+   La forme est bâtie au MENU en tranches de 5 ms (`vitrailPrepare`) puis compilée une fois hors écran (`chauffeRendu`) : en course, rien ne
+   se construit ni ne se compile. Pas prête = pas de singes. Console : `dbgSinge()`, `dbgSinge(1)` (la troupe, tout de suite),
+   `dbgSinge('sauts')` (le pilote du banc décolle toutes les 1,1 s : trois VRAIS sauts). */
+const SGR_FEN=5,SGR_ATT=2.5,SGR_CD=16,SGR_DUREE=5.5,SGR_ECH=3,SGR_N=3; // 3 sauts en 5 s · 16 s entre deux troupes · 5,5 s de course · ~3,5 m au garrot (ils restent lisibles à 15 m)
+const SGR_VIT={uSat:.5,uClair:.62,uLueur:.5,uEcart:.94,uCoqA0:.25}; // le vitrail EN COURSE (mesuré en captures) : l'étalonnage du jeu en faisait des flammes orange — brun, visage clair, la queue qui luit
+const SGR_PL=[{ds:6,c:-1,k:.6},{ds:10,c:1,k:.62},{ds:15,c:-1,k:.42}]; // chaque singe : son avance sur la caisse (m), son côté, sa place dans le champ (part de la demi-largeur vue)
+const SGC={S:[],node:new THREE.Group(),etat:0,t:0,cd:0,att:0,horl:0,sauts:[],fab:null,pret:false,chaud:false,face:1,dir:1,perdu:0,sPrev:0,pts:null,L:0,
+  sC:0,lC:0,hC:0,faceC:1,vs:0,p0:new THREE.Vector3(),vel:new THREE.Vector3(),v1:new THREE.Vector3(),v2:new THREE.Vector3(),v3:new THREE.Vector3(),cib:new THREE.Vector3(),
+  m:new THREE.Matrix4(),q:new THREE.Quaternion(),qy:new THREE.Quaternion(),Y:new THREE.Vector3(0,1,0),
+  F:{p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()},FM:{p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()}};
 SGC.node.visible=false;scene.add(SGC.node);
-function singeCache(){if(SGC.cur){SGC.cur.grp.visible=false;SGC.cur=null;}SGC.node.visible=false;}
-function singeApparait(){
-  const S=Math.random()<.5?SGC.S.queue:SGC.S.mains;if(!S)return false;
-  // OÙ : là où la caisse sera dans SG_AVANCE s — sous la dalle de la route la plus proche, dans sa largeur
-  const pF=SGC.v1.copy(carGroup.position).addScaledVector(SGC.vel,SG_AVANCE),bi=dalleProche(pF.x,pF.y,pF.z,2,1e9,tryLand._bi);
-  if(bi<0||bi>=NP)return false;const F=SGC.F;frameAt(bi/(NP-1)*L+SGC.v2.subVectors(pF,pts[bi]).dot(T[bi]),F);
-  const lat=Math.max(-ROAD_HALF*.8,Math.min(ROAD_HALF*.8,SGC.v2.subVectors(pF,F.p).dot(F.b)));
-  const ac=SGC.v3.copy(F.p).addScaledVector(F.b,lat).addScaledVector(F.n,-THICK); // l'accroche : sous l'épaisseur de la dalle
-  // LE REPÈRE : y = vers la dalle (la normale), z = vers la caisse qui arrive (le visage), x = y × z
-  const y9=F.n,z9=SGC.v2.copy(SGC.vel).multiplyScalar(-1);z9.addScaledVector(y9,-z9.dot(y9));if(z9.lengthSq()<1e-4)z9.copy(F.t);z9.normalize();
-  const x9=new THREE.Vector3().crossVectors(y9,z9).normalize();z9.crossVectors(x9,y9);
-  SGC.m.makeBasis(x9,y9,z9);SGC.node.quaternion.setFromRotationMatrix(SGC.m);SGC.node.position.copy(ac);SGC.node.scale.setScalar(SG_ECH);SGC.node.updateMatrixWorld(true);
-  for(const k in SGC.S)SGC.S[k].grp.visible=SGC.S[k]===S;
-  S.e.ax=S.e.vx=S.e.az=S.e.vz=S.e.r=0;S.grp.scale.setScalar(.01);
-  SGC.cur=S;SGC.t=0;SGC.fin=0;SGC.passe=false;SGC.dz=SGC.node.worldToLocal(SGC.cib.copy(carGroup.position)).z;SGC.node.visible=true;
-  try{if(typeof sfx==='function')sfx('singe.apparait');}catch(e){}
-  return true;
+function singeCache(){for(const m of SGC.S)m.nd.visible=false;SGC.node.visible=false;SGC.etat=0;SGC.att=0;}
+function singeSaut(){ // un saut de la caisse : trois dans la fenêtre → la troupe est attendue
+  if(!SGC.chaud||SGC.etat||!started||gameOver||TUTO.on||PARK.on)return;
+  const t=SGC.horl;SGC.sauts.push(t);while(SGC.sauts.length&&t-SGC.sauts[0]>SGR_FEN+1e-6)SGC.sauts.shift();
+  if(SGC.sauts.length>=3&&SGC.cd<=0){SGC.sauts.length=0;SGC.att=SGR_ATT;}
 }
-function singeTope(d){ // la caisse est passée à d m de sa main
-  const q=Math.max(.2,Math.min(1,1-d/SG_PORTEE));
-  nitroGain(nitroCap()*(.25+.35*q),'singe');
-  chaineAura('TOPE LA !',Math.round(90+160*q),'singe');
-  try{flowAdd(6+10*q,'risque','m');}catch(e){}
-  hap([12,30,12]);try{if(typeof sfx==='function')sfx('singe.tope');}catch(e){}
-  sparkBurst(sparkGold,carGroup.position,14+Math.round(14*q),7);
-  singeTape(SGC.cur,1.6*Math.sign(SGC.dz||1),(Math.random()-.5)*.6);
+function singeRoute(){ // la caisse sur la piste : sC (le long), lC (de côté), hC (hauteur au-dessus de SA face), faceC — false s'il n'y a pas de route sous elle
+  const P=carGroup.position,F=SGC.F;let sc;
+  if(mode==='drive')sc=s;else{const bi=dalleProche(P.x,P.y,P.z,2,1e9,tryLand._bi);if(bi<0||bi>=NP)return false;sc=bi/(NP-1)*L+SGC.v1.subVectors(P,pts[bi]).dot(T[bi]);}
+  frameAt(sc,F);SGC.v1.subVectors(P,F.p);const lc=SGC.v1.dot(F.b),hr=SGC.v1.dot(F.n);
+  let fc=hr>-THICK*.5?1:-1;if(mode==='drive')fc=side<0?-1:1;else if(Math.abs(lc)>ROAD_HALF+2)fc=SGC.etat?SGC.face:1; // à côté de la dalle, ni dessus ni dessous : la face d'avant
+  SGC.sC=sc;SGC.lC=lc;SGC.hC=fc>0?hr:-THICK-hr;SGC.faceC=fc;return true;
 }
+function singeArrive(){
+  SGC.etat=1;SGC.t=0;SGC.att=0;SGC.face=SGC.faceC;SGC.perdu=0;SGC.sPrev=SGC.sC;SGC.pts=pts;SGC.L=L;SGC.cd=SGR_CD;SGC.node.visible=true;
+  const vt=SGC.vel.dot(SGC.F.t);SGC.dir=Math.abs(vt)>1?Math.sign(vt):(driveDir||1);SGC.vs=vt; // le sens où elle file sur la piste, et sa vitesse le long d'elle
+  for(const m of SGC.S){const P=SGR_PL[m.i];m.ph=0;m.t=-.14*m.i;m.ds0=P.ds-7;m.lat0=P.c*(ROAD_HALF+5+3*Math.random());m.h0=-6;
+    m.ds=m.ds0;m.lat=m.lat0;m.h=m.h0;m.hl=Math.max(0,Math.min(32,SGC.hC));m.vh=0;m.nd.visible=false;m.S.e.ph=Math.random()*6.28;}
+  chaineAura('LES SINGES !',150,'singe');nitroGain(nitroCap()*.15,'singe');
+  try{flowAdd(8,'risque');}catch(e){}hap([10,24,10]);try{if(typeof sfx==='function')sfx('singe.troupe');}catch(e){}
+}
+function singePart(m){if(m.ph===2)return;m.ph=2;m.tp=m.t+.18*m.i;m.latp=m.lat;m.dsp=m.ds;m.hp=m.h;} // il s'en va (chacun à son tour)
 function singeJeu(dt){
-  // LA FABRIQUE : les deux poses, tranche par tranche (≤ 5 ms par image), puis UNE compilation hors écran au menu
-  if(!SGC.pret){if(!SGC.fab)SGC.fab=(function*(){for(const F of [SINGE_F,SINGE_FM])yield* vitrailPrepare(F);})();
+  // LA FABRIQUE : la forme en course, tranche par tranche (≤ 5 ms par image), puis UNE compilation hors écran au menu
+  if(!SGC.pret){if(!SGC.fab)SGC.fab=vitrailPrepare(SINGE_FC);
     const t0=performance.now();let r;do{r=SGC.fab.next();}while(!r.done&&performance.now()-t0<5);
-    if(r.done){SGC.pret=true;SGC.S.queue=singeNouveau('singeJeu','queue');SGC.S.mains=singeNouveau('singeJeu','mains');
-      for(const k in SGC.S){SGC.S[k].grp.visible=false;SGC.node.add(SGC.S[k].grp);}}
+    if(r.done){SGC.pret=true;for(let i=0;i<SGR_N;i++){const S=singeNouveau('singeJeu','course'),nd=new THREE.Group();for(const k in SGR_VIT)S.U[k].value=SGR_VIT[k];nd.add(S.grp);nd.scale.setScalar(SGR_ECH);nd.visible=false;
+      SGC.node.add(nd);SGC.S.push({S,nd,i,ph:3,t:0,ds:0,lat:0,h:0,hl:0,vh:0});}}
     return;}
-  if(!SGC.chaud){if(started&&!gameOver)return;SGC.chaud=true;SGC.node.visible=true;for(const k in SGC.S)SGC.S[k].grp.visible=true;
-    try{chauffeRendu([SGC.node]);}catch(e){}for(const k in SGC.S)SGC.S[k].grp.visible=false;SGC.node.visible=false;return;}
+  if(!SGC.chaud){if(started&&!gameOver)return;SGC.chaud=true;SGC.node.visible=true;for(const m of SGC.S)m.nd.visible=true;
+    try{chauffeRendu([SGC.node]);}catch(e){}for(const m of SGC.S)m.nd.visible=false;SGC.node.visible=false;return;}
   if(paused)return;
-  // la VITESSE de la caisse dans le monde (d'une image à l'autre)
+  SGC.horl+=dt;SGC.cd=Math.max(0,SGC.cd-dt);
   if(dt>0){SGC.vel.subVectors(carGroup.position,SGC.p0).multiplyScalar(1/dt);if(SGC.vel.lengthSq()>4e6)SGC.vel.set(0,0,0);}SGC.p0.copy(carGroup.position);
-  SGC.cd=Math.max(0,SGC.cd-dt);
-  const sous=started&&!gameOver&&!TUTO.on&&!PARK.on&&mode==='fall'&&curNear&&curHOff<-THICK&&Math.abs(curLatOff)<ROAD_HALF+6; // (ni à l'auto-école, ni au parc)
-  if(sous){SGC.sousT+=dt;SGC.horsT=0;}else{SGC.sousT=0;SGC.horsT+=dt;if(SGC.horsT>.6)SGC.tire=false;} // un NOUVEAU passage sous la route relance le tirage
-  if(!SGC.cur&&sous&&SGC.sousT>.12&&!SGC.tire){SGC.tire=true;if((SGC.force||(SGC.cd<=0&&Math.random()<SG_CHANCE))&&singeApparait()){SGC.force=false;SGC.cd=SG_CD;}}
-  const S=SGC.cur;if(!S)return;
-  if(gameOver||mode==='boom'){singeCache();return;}
-  SGC.t+=dt;S.grp.scale.setScalar(Math.min(1,SGC.t/.22)*(SGC.fin>0?Math.max(0,1-(SGC.t-SGC.fin)/.35):1)); // il SURGIT de la dalle (0,22 s) · il y REMONTE (0,35 s)
-  S.U.uNoir.value=triNoir()?1:0;
-  const cib=SGC.node.worldToLocal(SGC.cib.copy(carGroup.position)),z=cib.z;
-  const main=SGC.v1.set(0,-2.0,.1),d=cib.distanceTo(main)*SG_ECH,pro=Math.max(0,Math.min(1,(SG_PORTEE*2.2-d)/(SG_PORTEE*1.6)));
-  singeAnime(S,dt,cib,pro);
-  S.U.uLum.value.set(0,1,0).applyQuaternion(SGC.node.quaternion);camera.getWorldDirection(SGC.v3);S.U.uLum.value.addScaledVector(SGC.v3,-.4).normalize(); // SA lumière : la dalle au-dessus, un peu de face
-  if(!SGC.passe&&Math.sign(z)!==Math.sign(SGC.dz||1)){SGC.passe=true; // la caisse le croise
-    const segD=Math.hypot(cib.x,cib.y-Math.max(-2.1,Math.min(0,cib.y)),cib.z)*SG_ECH; // distance à son corps (la colonne de l'accroche aux mains)
-    const dm=Math.min(d,segD);if(dm<SG_PORTEE)singeTope(dm);else singeTape(S,.9*Math.sign(SGC.dz||1),0);}
-  if(SGC.passe&&!SGC.fin&&(Math.abs(z)*SG_ECH>60||SGC.t>6))SGC.fin=SGC.t+1.2;
-  if(!SGC.passe&&SGC.t>5)SGC.fin=SGC.fin||SGC.t; // elle ne l'a jamais croisé (elle a remonté, viré) : il s'en va
-  if(SGC.fin&&SGC.t>SGC.fin+.35)singeCache();
+  if(!started||gameOver||TUTO.on||PARK.on){if(SGC.etat)singeCache();SGC.sauts.length=0;SGC.att=0;return;}
+  if(!SGC.etat){ // la troupe est attendue : elle arrive dès que la caisse est au-dessus de sa route
+    if(SGC.att>0){SGC.att-=dt;if(mode!=='boom'&&singeRoute()&&Math.abs(SGC.lC)<ROAD_HALF+6&&SGC.hC>-2&&SGC.hC<30)singeArrive();}
+    if(!SGC.etat)return;}
+  const lC0=SGC.lC,ok=singeRoute()&&Math.abs(SGC.sC-SGC.sPrev)<80;
+  if(SGC.pts!==pts||SGC.L!==L||(!ok&&mode==='drive')){singeCache();return;} // nouvelle piste, replacement (un grand saut de `s` au sol) : ils ne courent plus là
+  if(ok)SGC.vs+=((SGC.sC-SGC.sPrev)/Math.max(dt,1e-3)-SGC.vs)*Math.min(1,dt*8);
+  else{SGC.sC=SGC.sPrev+SGC.vs*dt;frameAt(SGC.sC,SGC.F);SGC.lC=lC0;SGC.hC=-1e3;} // EN VOL, la caisse a quitté leur route (plus de dalle sous elle, ou une autre, loin sur la piste) : ils continuent sur la leur, sans elle — et s'en vont
+  SGC.sPrev=SGC.sC;SGC.t+=dt;
+  const loin=!ok||Math.abs(SGC.lC)>ROAD_HALF+30||SGC.hC<-25||SGC.hC>60||SGC.faceC!==SGC.face;SGC.perdu=loin?SGC.perdu+dt:0;
+  const fin=SGC.t>SGR_DUREE||SGC.perdu>.6||(SGC.dir>0?SGC.sC>L-120:SGC.sC<120); // l'heure, la caisse partie ailleurs, le portail
+  // LE CHAMP : la caméra derrière la caisse et la demi-largeur qu'elle voit — un singe y garde sa place, debout comme couché
+  const camD=Math.max(2,-SGC.v1.subVectors(camera.position,carGroup.position).dot(SGC.F.t)*SGC.dir),tanH=Math.tan(camera.fov*Math.PI/360)*camera.aspect;
+  const Hc=(SGC.faceC===SGC.face&&Math.abs(SGC.lC)<ROAD_HALF+10)?Math.max(0,Math.min(32,SGC.hC)):0; // la hauteur de la caisse au-dessus de leur dalle : elle saute, ils sautent
+  const lum=SGC.v3.copy(SGC.F.n).multiplyScalar(SGC.face);camera.getWorldDirection(SGC.v2);lum.addScaledVector(SGC.v2,-.4).normalize(); // LEUR lumière : le ciel de leur face, un peu de face
+  const tri=triNoir()?1:0,FM=SGC.FM;let vivants=0;
+  for(const m of SGC.S){
+    if(m.ph===3)continue;if(fin)singePart(m);m.t+=dt;if(m.t<0){m.nd.visible=false;vivants++;continue;}
+    const P=SGR_PL[m.i],dsC=P.ds+1.4*Math.sin(SGC.t*.8+m.i*2.1); // sa place : devant la caisse, il se laisse doubler et revient
+    const lC=Math.max(-ROAD_HALF+1.8,Math.min(ROAD_HALF-1.8,SGC.lC+P.c*Math.max(3.5,Math.min(13,P.k*(dsC+camD)*tanH))));
+    const h0=m.hl;m.hl+=(Hc-m.hl)*Math.min(1,dt/(.07+.05*m.i));m.vh=dt>0?(m.hl-h0)/dt:0; // il prend la hauteur de la caisse, avec son petit retard
+    let air,yaw=0,k=1;
+    if(m.ph===0){const u=Math.min(1,m.t/.75),eo=1-(1-u)*(1-u); // L'ARRIVÉE : du vide sur la route, en arc
+      m.lat=m.lat0+(lC-m.lat0)*eo;m.ds=m.ds0+(dsC-m.ds0)*u;m.h=m.h0+(m.hl-m.h0)*u+6*4*u*(1-u);air=1;yaw=-P.c*.6*(1-u);k=Math.min(1,.3+u*2.5);
+      if(u>=1)m.ph=1;}
+    else if(m.ph===1){m.lat+=(lC-m.lat)*Math.min(1,dt*5);m.ds+=(dsC-m.ds)*Math.min(1,dt*4);m.h=m.hl;air=Math.max(0,Math.min(1,(m.hl-.8)/2.2));} // LA COURSE
+    else{const u=Math.max(0,Math.min(1,(m.t-m.tp)/1.0)); // LE DÉPART : par-dessus le bord, dans le vide, distancé
+      m.lat=m.latp+(P.c*(ROAD_HALF+16)-m.latp)*(1-(1-u)*(1-u));m.ds=m.dsp-22*u*u;m.h=m.hp+(-16-m.hp)*u*u+5*4*u*(1-u);air=Math.min(1,u*3);yaw=P.c*.7*Math.min(1,u*2);
+      k=1-Math.max(0,(u-.72)/.28);if(u>=1){m.ph=3;m.nd.visible=false;continue;}}
+    vivants++;
+    // SA PLACE DANS LE MONDE : sur la face de la caisse, à `s` + son avance, tourné dans le sens de la course
+    const sm=Math.max(0,Math.min(L-.01,SGC.sC+m.ds*SGC.dir));frameAt(sm,FM);
+    const y9=SGC.v2.copy(FM.n).multiplyScalar(SGC.face),z9=SGC.v1.copy(FM.t).multiplyScalar(SGC.dir),x9=SGC.cib.crossVectors(y9,z9).normalize();z9.crossVectors(x9,y9);
+    SGC.m.makeBasis(x9,y9,z9);m.nd.quaternion.setFromRotationMatrix(SGC.m).multiply(SGC.qy.setFromAxisAngle(SGC.Y,yaw*SGC.face*SGC.dir));
+    m.nd.position.copy(FM.p).addScaledVector(FM.b,m.lat).addScaledVector(FM.n,SGC.face>0?m.h:-(THICK+m.h));
+    m.nd.scale.setScalar(SGR_ECH*Math.max(.01,k));m.nd.visible=true;m.nd.updateMatrixWorld(true);
+    const S=m.S;S.U.uNoir.value=tri;S.U.uLum.value.copy(lum);
+    singeCourt(S,dt,air,m.vh,m.ph===1?m.nd.worldToLocal(SGC.cib.copy(carGroup.position)):null);
+  }
+  if(!vivants)singeCache();
 }
-window.dbgSinge=function(f,prof){ // dbgSinge(1) : force le prochain passage · dbgSinge('sous',prof) : un VRAI vol juste sous la dalle (prof m sous l'épaisseur), le long de la route
-  if(f==='sous'){if(!started||gameOver||mode!=='drive')return 'il faut rouler';SGC.force=true;SGC.cd=0;vA=Math.max(vA,40);startFall(2,1);
-    const i9=Math.max(0,Math.min(NP-1,Math.round(s/L*(NP-1))));fallPos.addScaledVector(Nn[i9],-(THICK+(prof==null?3:prof))*(side||1));
-    fallVel.addScaledVector(Nn[i9],-fallVel.dot(Nn[i9])-1);carGroup.position.copy(fallPos);return 'sous la dalle';}
-  if(f){SGC.force=true;SGC.cd=0;}return {pret:SGC.pret,chaud:SGC.chaud,cur:SGC.cur?SGC.cur.mode:null,cd:+SGC.cd.toFixed(1),sous:+SGC.sousT.toFixed(2),force:SGC.force,
-  pos:SGC.cur?SGC.node.position.toArray().map(v=>+v.toFixed(1)):null,ecran:SGC.cur?(()=>{const v=SGC.node.getWorldPosition(new THREE.Vector3());return v.project(camera).toArray().map(a=>+a.toFixed(2));})():null};};
+window.dbgSinge=function(f){ // dbgSinge(1) : la troupe tout de suite · dbgSinge('sauts') : le pilote du banc décolle toutes les 1,1 s (de VRAIS sauts) · dbgSinge(0) : le pilote s'arrête
+  if(f==='sauts'){if(!started||gameOver)return 'il faut rouler';window.dbgAuto(1,0,{saut:1.1,imp:9});return 'pilote : un saut toutes les 1,1 s';}
+  if(f===0){window.dbgAuto(0);return 'pilote coupé';}
+  if(f&&typeof f==='object'){for(const m of SGC.S)for(const k in f){const u=m.S.U[k];if(!u)continue;if(typeof f[k]==='number')u.value=f[k];else if(u.value.setRGB)u.value.setRGB(f[k][0],f[k][1],f[k][2]);}return 'réglé';} // dbgSinge({uLueur:.5,…}) : les réglages vitrail des trois singes, à chaud
+  if(f){SGC.cd=0;SGC.att=SGR_ATT;}
+  const v=new THREE.Vector3();
+  if(f==='cap'){const p=a=>a.project(camera).toArray().slice(0,2).map(x=>+x.toFixed(3));frameAt(SGC.sC,SGC.F);const fu=p(carGroup.position.clone().addScaledVector(SGC.F.t,2000*SGC.dir));
+    return {fuite:fu,singes:SGC.S.filter(m=>m.nd.visible).map(m=>({tete:p(m.nd.localToWorld(m.S.F.cou.clone())),queue:p(m.nd.localToWorld(new THREE.Vector3(0,.9,-.95))),avant:m.nd.localToWorld(new THREE.Vector3(0,0,1)).sub(m.nd.getWorldPosition(new THREE.Vector3())).normalize().dot(SGC.F.t)*SGC.dir}))};}
+  return {pret:SGC.pret,chaud:SGC.chaud,tri:SINGE_FC._geo?Math.round((SINGE_FC._geo.lisse.index.count*2+SINGE_FC._geo.ecailles.index.count)/3):0,etat:SGC.etat,jeu:started&&!gameOver&&!TUTO.on&&!PARK.on,tuto:TUTO.on,parc:PARK.on,t:+SGC.t.toFixed(2),cd:+SGC.cd.toFixed(1),att:+SGC.att.toFixed(2),face:SGC.face,dir:SGC.dir,
+    sauts:SGC.sauts.map(t=>+(SGC.horl-t).toFixed(2)),route:{s:+SGC.sC.toFixed(1),lat:+SGC.lC.toFixed(1),h:+SGC.hC.toFixed(1)},
+    singes:SGC.S.map(m=>({ph:m.ph,ds:+(m.ds||0).toFixed(1),lat:+(m.lat||0).toFixed(1),h:+(m.h||0).toFixed(1),vu:m.nd.visible,
+      ecran:m.nd.visible?m.nd.getWorldPosition(v).project(camera).toArray().map(a=>+a.toFixed(2)):null}))};
+};
 // ---- SERPENT : tube néon (cyan→magenta, ventre doré) à reptation en place ----
 const SN_NSEG=54,SN_RSEG=10,SN_SEGL=0.34;
 const snRP=[[0,.02],[.018,.30],[.05,.44],[.10,.30],[.34,.30],[.62,.20],[.82,.11],[.94,.06],[1,.02]];
@@ -34860,6 +34962,7 @@ function startFall(impU,impF,bord){ // bord : sortie par le CÔTÉ de la route (
   virT=0;virC=0;virD=false;virPaye=false; /* (LA FRONDE) un virage quitté par le bord ne se paie pas à la pose */
   MIR.t=0;MIR.max=0; // (2026-09-28) MIRACULÉ : chaque vol repart « pas perdu »
   FILR.ok=false; // (2026-09-29) on a quitté la route : ce virage à filet n'est plus « à fond »
+  try{singeSaut();}catch(e){} // (2026-10-11) chaque décollage est un SAUT pour la troupe de singes (trois en 5 s)
   mode='fall';fallT=0;fallTR=0;yawAcc=0;airRoll=0;trkBigA=false;trkMonstre=false; // (momentum v2) le saut ne remet plus la réserve à zéro : c'est la POSE qui juge
   driftC=0;driftLv=0;driftEnCours=false;driftArm=0;yawR=0;slipB=0;glisse9=0;driftYaw=0;carRoll9=0;rollV=0;pitch9=0;carBody.rotation.set(0,0,0);carBody.position.set(0,0,0); // une glisse ne survit pas au décollage (pas de mini-turbo en l'air)
   // TEMPO DE VOL ∝ VITESSE (2026-07-20, dosage DOUX sur base V1) : =1 jusqu'à 450 km/h affichés
@@ -35034,7 +35137,7 @@ function tryLand(dt){
     fallPos.addScaledVector(B[bestI],sg*Math.max(bumpThru?0:Math.abs(latOff),ROAD_HALF+CARS[level].w*.5)-latOff);
     sideCd=.35;bascOn=false; /* (1/10, soir) la tranche touchée : la bascule est finie */
     // ---- BUMP / DOUBLE BUMP / TRIPLE BUMP : figure GRATUITE (compte pour le HUD/style, zéro dollar) ----
-    bounceN++;runStats.bumps++;
+    bounceN++;runStats.bumps++;try{singeSaut();}catch(e){} // (2026-10-11) un rebond sur la tranche est aussi un SAUT pour la troupe de singes
     hap(24);{const nv9=nitroR;nitroGain(nitroBumpDe(bounceN,nitroOn&&pwrNitroT<=0&&!PARK.on),'bump');if(SONV2&&nitroR>nv9+.01)sfx('nitro.plein',{t:.1});}flowAdd(6,'style'); // (LA LOI DU RÉSERVOIR : ,35 puis ×,6 par rebond du même vol, rien au-delà du 4e, rien nitro allumée) LE BUMP RECHARGE (2026-09-25, demande du user) : un quart de cellule… de plus à chaque rebond
     fallT=Math.max(0,fallT-airMax()*.5);fallTR=Math.max(0,fallTR-airMax()*.5);airFlash=.6; // DEMI-JAUGE d'airtime rendue (sim + réelle)
     addTrick('bump',bounceN===1?'BUMP':bounceN===2?'DOUBLE BUMP':bounceN===3?'TRIPLE BUMP — LA DALLE EN PLEURE':'MEGA BUMP x'+bounceN+' 💥',
@@ -45452,7 +45555,7 @@ function loop(now){
   try{musicTick(dt,musMvt);}catch(e){loopWarn(1,'musique',e);}
   try{villeApres();}catch(e){loopWarn(2,'ville',e);}
   try{updateDolphins(dt);}catch(e){loopWarn(4,'dauphins',e);}
-  try{singeJeu(dt);}catch(e){loopWarn(64,'singe',e);} // (2026-10-10) le SINGE PENDU
+  try{singeJeu(dt);}catch(e){loopWarn(64,'singe',e);} // (2026-10-11) LES SINGES EN COURSE (3 sauts en 5 s)
   try{updateSerpent(dt);}catch(e){loopWarn(8,'serpent',e);}
   try{updateBoomArt(dt);}catch(e){loopWarn(16,'boule de feu',e);}
   if(PARIS.meshes.length)parisTick(dt); // (Paris) le scintillement et le phare

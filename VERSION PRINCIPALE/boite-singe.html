@@ -61,13 +61,14 @@
 </head>
 <body>
 <canvas id="cv"></canvas>
-<div id="marque"><b>BOÎTE À SINGE</b><span>CASH CAR · LE SINGE PENDU</span></div>
+<div id="marque"><b>BOÎTE À SINGE</b><span>CASH CAR · LES SINGES</span></div>
 <div id="outils">
   <button class="rond on" id="bTourne" title="Tourner tout seul"><svg viewBox="0 0 16 16"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/><path d="M13.6 2.2v2.6H11"/></svg></button>
   <button class="rond" id="bCadre" title="Recadrer (R)"><svg viewBox="0 0 16 16"><path d="M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10"/></svg></button>
 </div>
-<div id="bas"><div class="seg" id="pose"><button data-p="queue">Par la queue</button><button data-p="mains">Par les mains</button></div><div class="opts">
-  <button class="pil" id="oPasse" title="Une caisse passe sous la route : il la regarde, tend la main, se balance">La caisse passe</button>
+<div id="bas"><div class="seg" id="pose"><button data-p="queue">Par la queue</button><button data-p="mains">Par les mains</button><button data-p="course">En course</button></div><div class="opts">
+  <button class="pil" id="oPasse" title="Une caisse passe : il la regarde (pendu : il tend la main et se balance)">La caisse passe</button>
+  <button class="pil" id="oSaut" title="En course : il saute toutes les 2 s, comme quand la caisse saute">Il saute</button>
   <button class="pil" id="oNoir" title="La frénésie DARK TRIAD">Dark triad</button>
   <button class="pil" id="oLent" title="Tout au quart de la vitesse">Ralenti</button>
   <button class="pil" id="oFige" title="Fige tout (Espace)">Figé</button>
@@ -97,8 +98,8 @@ const $=id=>document.getElementById(id);
 const JOURNAL=[];{const ce=console.error.bind(console);console.error=(...a)=>{JOURNAL.push(a.map(String).join(' ').slice(0,900));ce(...a);};
   addEventListener('error',e=>JOURNAL.push(String(e.message)+' @'+e.lineno));}
 const PREF=(()=>{try{return JSON.parse(localStorage.getItem('boiteSinge')||'{}')||{};}catch(e){return {};}})();
-const ST=Object.assign({pose:'queue',tourne:false,passe:true,noir:false,lent:false,fige:false,lisse:false,reve:false,peau:true,coeur:true,cq:null},PREF);
-{const q=new URLSearchParams(location.search);if(q.has('pose'))ST.pose=q.get('pose')==='mains'?'mains':'queue';for(const k of ['tourne','passe','noir','lent','fige','lisse','reve','peau','coeur'])if(q.has(k))ST[k]=q.get(k)!=='0';}
+const ST=Object.assign({pose:'queue',tourne:false,passe:true,saut:true,noir:false,lent:false,fige:false,lisse:false,reve:false,peau:true,coeur:true,cq:null},PREF);
+{const q=new URLSearchParams(location.search);if(q.has('pose'))ST.pose=['mains','course'].includes(q.get('pose'))?q.get('pose'):'queue';for(const k of ['tourne','passe','saut','noir','lent','fige','lisse','reve','peau','coeur'])if(q.has(k))ST[k]=q.get(k)!=='0';}
 const garde=()=>{try{localStorage.setItem('boiteSinge',JSON.stringify(ST));}catch(e){}};
 
 /* 1. LIRE LE JEU */
@@ -109,7 +110,7 @@ async function lireBloc(){
     if(i0<0||i1<0)throw new Error('bloc introuvable dans index.html : '+a);return L.slice(i0,i1+1).join('\n');};
   return pr('/* <<<VITRAIL>>>','/* <<<FIN VITRAIL>>>')+'\n'+pr('/* <<<SINGE>>>','/* <<<FIN SINGE>>>');
 }
-const executer=bloc=>new Function('THREE',bloc+'\nreturn {singeNouveau,singeAnime,singeTape,SINGE_F,SINGE_FM:typeof SINGE_FM!=="undefined"?SINGE_FM:null};')(THREE);
+const executer=bloc=>new Function('THREE',bloc+'\nreturn {singeNouveau,singeAnime,singeTape,SINGE_F,SINGE_FM:typeof SINGE_FM!=="undefined"?SINGE_FM:null,SINGE_FC:typeof SINGE_FC!=="undefined"?SINGE_FC:null,singeCourt:typeof singeCourt!=="undefined"?singeCourt:null};')(THREE);
 
 /* 2. LA SALLE : le dessous de la route (le singe y est accroché), la caisse qui passe */
 const cv=$('cv'),renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true});
@@ -119,6 +120,7 @@ scene.add(new THREE.HemisphereLight(0xffffff,0xd9d4e6,.7));
 const cle=new THREE.DirectionalLight(0xffffff,.8);cle.position.set(4,9,5);scene.add(cle);
 const contre=new THREE.DirectionalLight(0xf0ecff,.35);contre.position.set(-6,2,-7);scene.add(contre);
 const ACC=new THREE.Vector3(2.55,0,0); // le point d'accroche du singe : sous la dalle, près du bord
+const SOL=new THREE.Group();SOL.position.set(1.15,.5,0);scene.add(SOL); // (en course) ses pieds : SUR la dalle, près du bord — il galope sur place, la route défile sous lui
 const route=new THREE.Group();scene.add(route);
 {const dal=new THREE.Mesh(new THREE.BoxGeometry(6,.5,46),new THREE.MeshPhongMaterial({color:0x2b2937,shininess:20}));dal.position.y=.25;route.add(dal);
   const neon=new THREE.MeshBasicMaterial({color:0xf24aa0,toneMapped:false});
@@ -135,13 +137,13 @@ let JUS=-1; // la caisse : -1 = attend, sinon sa progression le long de son pass
 let S=null;
 function monter(bloc){ // un nouveau dessin : on relit les blocs et on rebâtit le singe dans la pose choisie
   const J=executer(bloc);
-  if(JEU&&JEU!==J)for(const F of [JEU.SINGE_F,JEU.SINGE_FM])if(F&&F._geo){F._geo.lisse.dispose();F._geo.ecailles.dispose();}
+  if(JEU&&JEU!==J)for(const F of [JEU.SINGE_F,JEU.SINGE_FM,JEU.SINGE_FC])if(F&&F._geo){F._geo.lisse.dispose();F._geo.ecailles.dispose();}
   JEU=J;BLOC=bloc;poser();
 }
 function poser(){ // le singe dans la pose ST.pose (la géométrie de chaque pose est bâtie une fois, à sa première visite)
-  const S2=JEU.singeNouveau('singe-boite'+(++VER),ST.pose);
-  if(S){scene.remove(S.grp);for(const m of Object.values(S.grp.userData))m.material.dispose();}
-  S2.grp.position.copy(ACC);scene.add(S2.grp);S=S2;carteLit();etat();
+  const P=ST.pose==='course'&&!JEU.SINGE_FC?'queue':ST.pose,S2=JEU.singeNouveau('singe-boite'+(++VER),P);
+  if(S){S.grp.parent.remove(S.grp);for(const m of Object.values(S.grp.userData))m.material.dispose();}
+  if(P==='course')SOL.add(S2.grp);else{S2.grp.position.copy(ACC);scene.add(S2.grp);}S=S2;carteLit();etat();
 }
 // LA CARTE VITRAIL : les réglages du singe (uniforms du jeu), gardés dans ce navigateur — [clé, uniform, min, max, pas, ×cube, étiquette, groupe, couche]
 const CQ=[['a0','uCoqA0',0,1,.01,0,'De face','LA PEAU DE VERRE','peau'],['a1','uCoqA1',0,1,.01,0,'Bords','','peau'],['g','uCoqG',0,2.5,.05,1,'Gonflée','','peau'],
@@ -159,21 +161,23 @@ function carteApplique(){if(!S||!ST.cq)return;const U=S.U,h=S.F.h,ud=S.grp.userD
   ud.ecailles.visible=!ST.lisse;ud.coeur.visible=!ST.lisse&&ST.coeur;ud.peau.visible=ST.lisse||ST.peau;
   if(ST.lisse){U.uCoqA0.value=1;U.uCoqA1.value=1;}}
 function peindre(){
-  for(const [id,k] of [['oPasse','passe'],['oNoir','noir'],['oLent','lent'],['oFige','fige'],['oLisse','lisse'],['oReve','reve'],['oPeau','peau'],['oCoeur','coeur']])$(id).classList.toggle('on',!!ST[k]);
+  for(const [id,k] of [['oPasse','passe'],['oSaut','saut'],['oNoir','noir'],['oLent','lent'],['oFige','fige'],['oLisse','lisse'],['oReve','reve'],['oPeau','peau'],['oCoeur','coeur']])$(id).classList.toggle('on',!!ST[k]);
+  $('oSaut').style.display=ST.pose==='course'?'':'none';
   $('bTourne').classList.toggle('on',!!ST.tourne);for(const b of $('pose').children)b.classList.toggle('on',b.dataset.p===ST.pose);document.body.classList.toggle('reve',!!ST.reve);
   if(ST.cq)for(const c of CQ){const lab=$('curs').querySelector('[data-k="'+c[0]+'"]');lab.querySelector('input').value=ST.cq[c[0]];
     lab.querySelector('b').textContent=(+ST.cq[c[0]]).toFixed(2);lab.classList.toggle('eteint',!!c[8]&&!ST[c[8]]);}
 }
-for(const [id,k] of [['oPasse','passe'],['oNoir','noir'],['oLent','lent'],['oFige','fige'],['oLisse','lisse'],['oReve','reve'],['oPeau','peau'],['oCoeur','coeur']])
+for(const [id,k] of [['oPasse','passe'],['oSaut','saut'],['oNoir','noir'],['oLent','lent'],['oFige','fige'],['oLisse','lisse'],['oReve','reve'],['oPeau','peau'],['oCoeur','coeur']])
   $(id).onclick=()=>{ST[k]=!ST[k];garde();peindre();};
-$('pose').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.dataset.p===ST.pose)return;ST.pose=b.dataset.p;garde();peindre();if(JEU)poser();});
+$('pose').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.dataset.p===ST.pose)return;ST.pose=b.dataset.p;garde();peindre();if(JEU)poser();recadre(.8);});
 $('cZero').onclick=()=>{if(CQ0){ST.cq=Object.assign({},CQ0);garde();peindre();}};
 
 /* 4. LA CAMÉRA — une orbite à inertie (vue d'en dessous de la route, de trois-quarts) */
-const CAD={cx:2.45,cy:-1.15,cz:0,yaw:.55,pitch:-.08,dist:4.3};
+const CAD0={cx:2.45,cy:-1.15,cz:0,yaw:.55,pitch:-.08,dist:4.3},CADC={cx:1.15,cy:1.05,cz:.35,yaw:1.05,pitch:.16,dist:4.6}; // pendu : vu d'en dessous de la route · en course : sur la dalle, de trois-quarts
+const CAD={};const cadre=()=>Object.assign(CAD,ST.pose==='course'?CADC:CAD0);cadre();
 const CAM={cx:0,cy:0,cz:0,yaw:0,pitch:0,dist:8,vy:0,vp:0,lache:9,vise:null};
-{const q=new URLSearchParams(location.search);for(const k of ['yaw','pitch','dist','cx','cy','cz'])if(q.has(k))CAD[k]=+q.get(k);}
-function recadre(d){const a={...CAM},dy=((CAD.yaw-CAM.yaw)%(2*Math.PI)+3*Math.PI)%(2*Math.PI)-Math.PI,b=Object.assign({},CAD,{yaw:CAM.yaw+dy});
+{const q=new URLSearchParams(location.search);for(const k of ['yaw','pitch','dist','cx','cy','cz'])if(q.has(k))CAD0[k]=CADC[k]=CAD[k]=+q.get(k);}
+function recadre(d){cadre();const a={...CAM},dy=((CAD.yaw-CAM.yaw)%(2*Math.PI)+3*Math.PI)%(2*Math.PI)-Math.PI,b=Object.assign({},CAD,{yaw:CAM.yaw+dy});
   if(!d){Object.assign(CAM,b);CAM.vise=null;}else CAM.vise={a,b,t:0,d};CAM.vy=CAM.vp=0;}
 function camTick(dt){
   if(CAM.vise){const v=CAM.vise;v.t=Math.min(1,v.t+dt/v.d);const e=v.t<.5?4*v.t**3:1-Math.pow(-2*v.t+2,3)/2;
@@ -213,19 +217,23 @@ async function veille(){
 function taille(){const w=innerWidth,h=innerHeight,pr=Math.min(devicePixelRatio||1,2);renderer.setPixelRatio(pr);renderer.setSize(w,h,false);
   camera.aspect=w/h;camera.fov=w<h?50:36;camera.updateProjectionMatrix();}
 addEventListener('resize',taille);
-const CIB=new THREE.Vector3(),VD=new THREE.Vector3(),MAINS=new THREE.Vector3(0,-2.0,.1);let t0=performance.now(),PAUSE=0;
+const CIB=new THREE.Vector3(),VD=new THREE.Vector3(),MAINS=new THREE.Vector3(0,-2.0,.1);let t0=performance.now(),PAUSE=0;const SAUT={t:0,h:0};
 function boucle(now){
   const dtR=Math.min(.05,(now-t0)/1000);t0=now;const dt=ST.fige?0:dtR*(ST.lent?.25:1);
   if(S){carteApplique();
     // LA CAISSE : elle passe sous la route le long de z, juste sous les mains du singe, puis revient 2,5 s plus tard
     let cib=null,pro=0;
+    const C=S.mode==='course';
     if(ST.passe){if(JUS<0){PAUSE-=dt;if(PAUSE<=0){JUS=0;caisse.visible=true;}}
-      if(JUS>=0){const zO=JUS*28-14,zA=zO;JUS+=dt*12/28;caisse.position.set(ACC.x-.55,-2.55,zA);
-        const zp=zO,zn=JUS*28-14;if(zp<0&&zn>=0)JEU.singeTape(S,.9,(Math.random()-.5)*.3); // elle passe : le souffle le fait balancer
+      if(JUS>=0){const zO=JUS*28-14,zA=zO;JUS+=dt*12/28;if(C)caisse.position.set(-1.2,.68,zA);else caisse.position.set(ACC.x-.55,-2.55,zA);
+        const zp=zO,zn=JUS*28-14;if(!C&&zp<0&&zn>=0)JEU.singeTape(S,.9,(Math.random()-.5)*.3); // elle passe : le souffle le fait balancer
         if(JUS>1){JUS=-1;PAUSE=2.5;caisse.visible=false;}
-        CIB.copy(caisse.position).sub(ACC);cib=CIB;pro=Math.max(0,Math.min(1,(4.5-CIB.distanceTo(MAINS))/3.3));}}
+        CIB.copy(caisse.position).sub(C?SOL.position:ACC);cib=CIB;pro=Math.max(0,Math.min(1,(4.5-CIB.distanceTo(MAINS))/3.3));}}
     else{caisse.visible=false;JUS=-1;}
-    JEU.singeAnime(S,dt,cib,pro);
+    if(C){ // EN COURSE : il galope sur place ; « Il saute » : un bond toutes les 2,2 s (la hauteur d'un saut de caisse, à l'échelle de la boîte)
+      SAUT.t+=dt;const u=SAUT.t%2.2,h0=SAUT.h;SAUT.h=ST.saut&&u<1.1?1.1*4*(u/1.1)*(1-u/1.1):0;const vh=dt>0?(SAUT.h-h0)/dt:0;
+      SOL.position.y=.5+SAUT.h;JEU.singeCourt(S,dt,Math.max(0,Math.min(1,(SAUT.h-.15)/.5)),vh*3,cib);}
+    else JEU.singeAnime(S,dt,cib,pro);
     camera.getWorldDirection(VD);S.U.uLum.value.set(0,1,0).addScaledVector(VD,-.4).normalize();}
   camTick(dtR);renderer.render(scene,camera);
   if(JOURNAL.length!==boucle.nj){boucle.nj=JOURNAL.length;etat();}

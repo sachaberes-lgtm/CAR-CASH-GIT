@@ -99,20 +99,31 @@ plafonds de lacet et de tangage, vol libre, vrille visuelle, drift = un geste. C
   `singeNouveau(cle, mode)`. Couleur et os dans le repère debout (`sgCol`, `sgOs`). Bug « oreilles / bras » corrigé : les coudes passaient à
   ~3 cm des oreilles et la soudure les collait (bras écartés à x .56, oreilles plus hautes et plus petites).
   ~35 000 triangles (h .024, hs .034).
-- **LE SINGE EN COURSE** (même jour, Léo : « garde ce que t'as, push main — mais il faut pas que ce soit à chaque fois qu'on va en dessous de
-  la route ») : bloc « LE SINGE EN COURSE » juste après `<<<FIN SINGE>>>`, `singeJeu(dt)` dans la boucle (après les dauphins). Passage SOUS la
-  dalle (la règle d'« À L'ABRI » : en vol, sous l'épaisseur, dans la largeur ; ni auto-école ni parc) → UN tirage par passage :
-  `SG_CHANCE` .34, jamais à moins de `SG_CD` 24 s du précédent. Il apparaît pendu (queue ou mains, au hasard) sous la dalle, là où la caisse
-  sera dans `SG_AVANCE` .85 s (dalleProche + frameAt sur la position prévue, la largeur bornée à 80 %), échelle `SG_ECH` 3,2, le visage vers
-  la caisse ; il surgit en 0,22 s, la suit de la tête, tend la main. La caisse le CROISE à moins de `SG_PORTEE` 5 m de sa main ou de son corps
-  → TOPE LÀ ! : nitro (25 à 60 % du plein), aura `chaineAura('TOPE LA !', 90 → 250)`, flow MACHIAVEL, gerbe d'or, `sfx('singe.tope')` (son à
-  faire : nom posé). Trop loin : il se balance dans son souffle. Il remonte dans la dalle 1,2 s après (ou 5 s sans croisement) ; `dolKill`
-  le range (explosion, replacement, nouvelle piste). Les deux poses sont bâties AU MENU en tranches de 5 ms (`vitrailPrepare`, générateurs :
-  ~0,4 s chacune d'un bloc, mesuré) puis compilées une fois hors écran (`chauffeRendu`) — en course, rien ne se construit ni ne se compile.
-  Console : `dbgSinge()` (état, position à l'écran), `dbgSinge(1)` (force le prochain passage), `dbgSinge('sous',prof)` (un vol juste sous la
-  dalle). ⚠ BANC : un profil neuf joue l'AUTO-ÉCOLE (`tutoTick` replace la caisse dès qu'elle sort : finir par `dbgTuto('permis')`), et
-  « Pick your mode » attend NORMAL. Vérifié en vraie course : apparition dans l'écran, TOPE LA ! +199 encaissé, rangé à l'explosion, 0 erreur.
-- **`boite-singe.html`** : la boîte (même principe que la boîte à dauphins : lit et RELIT les deux blocs) — le dessous de la route, une caisse
+- ~~LE SINGE EN COURSE~~ (le singe PENDU sous la dalle, TOPE LÀ !) : RETIRÉ de la course le 11/10 (Léo : « je n'arrive pas à toucher le
+  singe, il est mal placé ») — ses deux poses et sa boîte restent. Remplacé par :
+- **LES SINGES EN COURSE** (2026-10-11, Léo : « les singes apparaissent quand, en 5 secondes ou moins, on fait 3 sauts ; ils apparaissent en
+  sautant avec nous sur la route, courent un peu avec nous et repartent ») — bloc « LES SINGES EN COURSE » juste après `<<<FIN SINGE>>>`,
+  `singeJeu(dt)` dans la boucle. · DÉCLENCHEUR `singeSaut()` : appelé dans `startFall` (tout décollage : bord, tremplin, trou, double-tap)
+  et au BUMP (rebond sur la tranche) ; 3 dans `SGR_FEN` 5 s → la troupe est attendue `SGR_ATT` 2,5 s et arrive dès que la caisse est
+  au-dessus de sa route ; `SGR_CD` 16 s entre deux troupes ; ni auto-école ni parc. · LA POSE `'course'` (dans `<<<SINGE>>>`) : le même singe
+  À QUATRE PATTES — chaque partie du singe debout déplacée d'un bloc (`SG_PART`, `SGK` : p = B + R·(p debout − A) ; corps penché de 65°, tête
+  relevée, bras → pattes avant, jambes → pattes arrière, queue en crosse), donc couleurs et visage intacts (`sgColQ`, `sgCourse`,
+  `sgOsCourse`) ; os : la tête, les DEUX bras, les DEUX jambes ; `SINGE_FC` (h .036, ~24 800 triangles), `singeCourt(S,dt,air,vh,cible)` =
+  le galop (bras et jambes à contretemps, rebond, tangage), en l'air bras tendus devant / jambes derrière, la tête garde l'horizon et
+  regarde la caisse de temps en temps. · LA TROUPE : 3 singes (`SGR_PL` : avance 6 / 10 / 15 m devant la caisse, côtés alternés, place
+  dans le champ RÉEL de la caméra — debout comme couché ils restent à l'image), échelle `SGR_ECH` 3, sur la FACE de la caisse, cap = sens
+  de la course. Arrivée : ils jaillissent du vide de part et d'autre en arc (0,75 s) — « LES SINGES ! » (aura 150, nitro 15 %, flow
+  NARCISSE, `sfx('singe.troupe')` : son à faire, nom posé). Course `SGR_DUREE` 5,5 s : ils prennent la HAUTEUR de la caisse au-dessus de la
+  dalle (elle saute, ils sautent, chacun avec son petit retard). Départ : un par un par-dessus le bord, dans le vide, distancés. Aussi si la
+  caisse quitte leur route (en vol : ils continuent sur la leur, `SGC.vs`), change de face, ou avant le portail ; `dolKill` les range
+  (explosion, replacement). · COULEUR EN COURSE : l'étalonnage du jeu (saturation ×1,4, lumière chaude) en faisait des flammes orange →
+  le vitrail a deux réglages neufs `uSat` / `uClair` (1 = tel quel) et la course pose `SGR_VIT` (sat .5, clarté .62, lueur .5, écailles .94,
+  peau de face .25). Bâti au MENU en tranches puis compilé hors écran : 0 programme compilé quand la troupe arrive (mesuré 156 → 156).
+  Console : `dbgSinge()` (état, à l'écran, triangles), `dbgSinge(1)` (la troupe tout de suite), `dbgSinge('sauts')` (le pilote du banc
+  décolle toutes les 1,1 s : 3 VRAIS sauts déclenchent la troupe), `dbgSinge(0)`, `dbgSinge({uSat:.5,…})` (vitrail à chaud),
+  `dbgSinge('cap')` (tête / queue / point de fuite). Vérifié en vraie course, couché et debout : déclenchée par 3 sauts en ~3 s, ils sautent
+  avec un saut de 5,7 m, repartent, 0 erreur.
+- **`boite-singe.html`** : (11/10) une 3e pose « En course » (le singe galope sur la dalle, « Il saute » = un bond toutes les 2,2 s) ; la boîte (même principe que la boîte à dauphins : lit et RELIT les deux blocs) — le dessous de la route, une caisse
   qui passe sous lui toutes les ~5 s, carte « Vitrail » (Peau · Cœur + 7 curseurs), Dark triad, Ralenti, Figé, Lisse, Ciel rêve.
   Une erreur dans le bloc s'affiche en rouge et garde l'ancien singe. `?passe=0&fige=1&cy=&dist=&yaw=&pitch=` pour une photo.
 
