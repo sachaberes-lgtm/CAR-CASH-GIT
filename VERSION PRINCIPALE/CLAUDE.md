@@ -193,7 +193,7 @@ d'aller dans cette map avec une voiture, la mobilité comme le main, mais seulem
     nuage puis émeraude, `?route=nuage|emeraude` les rouvre. sw.js → v217.
 - **v16 — UNE VIBE CHIHIRO : LA ROUTE DE RONDINS, PLUS DE CLICHÉS, L'EFFONDREMENT PROGRESSIF** (même jour, Léo : « évite que les montagnes
   s'effondrent sur la route ; petit à petit — au début ça tient, après ça tombe un peu ; évite les clichés en mode Chine, le but c'est une
-  vibe CHIHIRO ; le sol, moins scolaire… des bouts de bois empilés, des troncs d'arbres collés à eux-mêmes ») — LA VERSION EN COURS.
+  vibe CHIHIRO ; le sol, moins scolaire… des bouts de bois empilés, des troncs d'arbres collés à eux-mêmes »).
   · LA ROUTE DE RONDINS (style 3, par défaut ; planches/nuage/émeraude derrière R et `?route=`) : des troncs EN TRAVERS de diamètres inégaux et
     un peu courbes, ronds à la lumière (un reflet sur le dos de chacun, noirs dans les creux), écorce gris-brun pixelisée, mousse dans les
     creux, une coupe de loin en loin ; ses bords en volume (`jadeRondinsDeco`, `jadeTronc` : prismes à 6 pans, cernes clairs à la coupe) —
@@ -206,6 +206,38 @@ d'aller dans cette map avec une voiture, la mobilité comme le main, mais seulem
     de ROAD_HALF + 30 m, au-dessus de la dalle) restent debout.
   · L'AMBIANCE un cran vers Ghibli : soleil d'après-midi plus doré (`sunC` 1/.93/.80), saturation 1,10, l'herbe des corniches plus vivante.
   · MESURÉ (Mac calme) : 60 i/s au début et pendant l'effondrement. sw.js → v218.
+- **v17 — « ÇA BUGUE ÉNORMÉMENT » : L'ALLÈGEMENT, LA ROUTE EN PIÈCES D'OR, L'AMBIANCE FÉERIQUE, L'EAU QUI FRAPPE** (2026-10-11, Léo : « j'y
+  joue, ça bugue énormément… sinon fais des pièces d'or, on roule sur des pièces d'or ; de la colorimétrie sur tout le niveau, du shading,
+  une ambiance féerique, le ciel plus dégradé ; plus de nuages ; l'eau vient frapper sur les montagnes volantes, donc plus haute et agitée »)
+  — LA VERSION EN COURS. MESURÉ d'abord (banc muet, `dbgJadePoste`) : 8 à 10 MILLIONS de triangles par image et, côté processeur, UN TIERS
+  du temps dans `bufferSubData`. Corrigé :
+  · `jadeTri` : une famille ne se réécrit que si SA liste change (signature : quartiers retenus + montagnes cédées) ou si l'effondrement l'a
+    salie (`F.sale`, `JADE.sale`, `FIN.sale`) ; envoi de la seule partie utile (`updateRange`) ; les montagnes cédées aux cubes fins sont
+    RETIRÉES de la liste (échange avec la dernière) au lieu d'être écrasées en un point. bufferSubData : 6,5 s → 0,1 s sur 20 s.
+  · Les BANDES de détail se jugent à la distance à la BOÎTE du quartier (la sphère comptait la hauteur des montagnes : tout restait en
+    détail max jusqu'à ~700 m) ; quartiers de 160 m (360) ; `JADE_LOD.r0` 220 (300) ; cubes fins jusqu'à `FIN.D` 130 m (170).
+  · Au-delà de 750 m les montagnes passent en UNE passe opaque (`jadeVRMat('O')`, `JADE_M.vrO`) — le verre en trois passes seulement de
+    près ; les MONUMENTS (la porte : 519 k triangles × 3, dessinée de partout) vivent dans des groupes éteints au-delà de la brume, triés
+    par le champ, et en une passe opaque à plus de 450 m (`JADE.monu`, `vrOM`).
+  · Les bords de route en volume se bâtissent À LA DEMANDE (seulement ceux de la route choisie).
+  · RÉSULTAT : 2,6-3,5 M triangles (7 M en passant sous l'arche) ; course de 40 s : médiane 6,9 ms, p99 13 ms, AUCUNE image > 60 ms.
+  · LA ROUTE EN PIÈCES D'OR (style 4, défaut ; R : pièces → rondins → planches → nuage → émeraude ; `?route=pieces`) : des pièces en ÉCAILLES
+    (rangées de 62 cm décalées, Ø 1,3-1,6 m, or jaune / rose / pâle), rebord éclairé côté fond, tranche crénelée, filet, ÉTOILE en relief,
+    l'ombre des pièces du dessus ; le MÉTAL : chaque pièce relit le ciel (envMap) selon SA pente, contraste ^2,6, soleil, étincelles en
+    croix ; rails dorés. (L'or était banni en v12 — « le jaune et le vert » — c'est Léo qui l'a redemandé, en pièces.)
+  · FÉERIQUE : ciel en QUATRE teintes (or-pêche, rose `jdM`, lilas `jdL`, azur), brume rose-lavande, soleil d'or, ombres lilas, sat 1,22,
+    halo plus fort ; reflets IRISÉS rose ↔ turquoise sur le verre ; lucioles d'or, de rose et de turquoise (2 400) ; nuages ventre
+    lavande, dessus blanc chaud (la teinte du ciel seulement côté soleil — sinon saumon) ; eau turquoise.
+  · PLUS DE NUAGES : pas de 360 m (480), quatre par pas, une couche ENTRE les montagnes (≥ 420 m de la route). Les bancs bas sur l'eau
+    essayés cachaient l'eau qui frappe : retirés.
+  · L'EAU : `JADE.eauY` = merY + 185 (les montagnes restent posées sur merY + 90 : celles du bas TREMPENT, 920 sur 2 335). La houle est
+    partagée (`JADE_EAU_GLSL`, horloge `uEauT`) : le ciel peint ET les montagnes lisent la même colonne — sous l'eau la pierre est coupée
+    (discard), l'écume monte au pied par à-coups (la vague qui frappe) ; dans la mer, un anneau d'écume et des vagues qui partent autour des
+    12 montagnes trempées les plus proches (`uEauP`), des GERBES de cubes jaillissent de leur pied (`jadeEauTick`). Plus agitée : houles
+    plus rapides, un clapot en plus. ⚠ La mer n'a pas de profondeur (peinte dans le ciel) : une caméra AU RAS de l'eau voit la pierre
+    par-dessus une colonne d'eau voisine — invisible depuis la route (l'écume couvre la ligne de contact).
+  · Hooks : `dbgJadePoste(k,on)` ('cout' appels/triangles d'une image, 'bandes', 'liste', 'scene', 'lod', et les postes), `dbgJadeVue('eau')`.
+    sw.js → v219.
 - Mesuré (Chrome sans fenêtre du Mac) : 60 i/s, construction 16-28 ms, tri ~0,03 ms ; collisions (`dbgJadeHeurt('test')`, 3 vallées) :
   piliers durs, arche et dessous du pont libres, AUCUN point de la route dans la pierre. Console : `dbgJade()`, `dbgJadeVue('route'|'porte'|
   'pont'|'haut'|'loin'|'grue',d,h,cap)` (photo figée), `dbgGrues()`. sw.js → v203.
