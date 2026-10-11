@@ -6447,6 +6447,15 @@ html body #garage:not(.menu):not(.vitrine) #gRang1>#gHomeBas{color:#fff;text-sha
 @media (prefers-reduced-motion:reduce){html body #garage #gRang1>#gHomeBas{animation:none!important}}
 html[data-reduced-motion="1"] body #garage #gRang1>#gHomeBas{animation:none!important}
 html body #garage:not(.menu):not(.vitrine) #gRang1>#gHomeBas .pxi{color:#fff}
+html body #garage:not(.menu):not(.vitrine) #gRang1>#gHomeBas{position:relative;overflow:hidden}
+html body #garage:not(.menu):not(.vitrine) #gRang1>#gHomeBas>:not(.gHomeCielCv){position:relative;z-index:1}
+#gHomeBas .gHomeCielCv{display:none}
+html body #garage:not(.menu):not(.vitrine) #gRang1>#gHomeBas>.gHomeCielCv{display:block;position:absolute;left:-12%;top:-8%;width:124%;height:116%;z-index:0;pointer-events:none;
+  opacity:0;transition:opacity .5s;transform:skewX(calc(-1 * var(--sk)));animation:gHomeCielPan 18s ease-in-out infinite alternate}
+html body #garage:not(.menu):not(.vitrine) #gRang1>#gHomeBas>.gHomeCielCv.on{opacity:1}
+@keyframes gHomeCielPan{from{translate:-5% 0;scale:1.04}to{translate:5% -2%;scale:1.1}}
+@media (prefers-reduced-motion:reduce){html body #garage #gRang1>#gHomeBas>.gHomeCielCv{animation:none}}
+html[data-reduced-motion="1"] body #garage #gRang1>#gHomeBas>.gHomeCielCv{animation:none}
 html body #garage:not(.menu):not(.vitrine) #gAct>#gvCof{grid-column:2;grid-row:1}
 html body #garage:not(.menu):not(.vitrine) #gAct>#gShopBas{grid-column:2;grid-row:2}
 html body #garage:not(.menu):not(.vitrine) #gRang1>#gOeil{grid-column:3;grid-row:1;height:auto;min-height:0;align-self:stretch}
@@ -39621,6 +39630,21 @@ function gDots(L){const el=$('gDots');if(!el)return;
    d'habillage, la caisse montrée est TA caisse équipée (on habille ce qu'on conduit), et l'article feuilleté
    est ESSAYÉ dessus (`SHOP.prev`) — qu'il soit à toi ou pas. Fermer l'atelier retire l'essai. */
 const SHOP_LBL={voiture:'CAISSE',peinture:'PEINTURE',aile:'AILES',trainee:'TRAÎNÉE'};
+/* LE CIEL DU MENU DANS LE HOME DU GARAGE (2026-10-11, Léo : « le bouton HOME doit être le MÊME ciel que le ciel du menu, en plus petit ;
+   quand c'est la nuit, il faut que ce soit la nuit aussi dans le HOME du garage ») : l'atelier ne dessine pas le ciel du menu (il a sa
+   propre lumière) — alors, tant que l'ACCUEIL est à l'écran, on recopie toutes les 3 s un morceau du VRAI ciel rendu (le haut de l'image,
+   au centre : au-dessus de la caisse) dans une petite toile posée au fond de HOME. Au garage, HOME montre donc le ciel tel qu'on l'a
+   quitté — jour, couchant ou nuit — et il vit d'un lent travelling (CSS). Avant la 1re prise, le ciel peint en CSS reste en secours.
+   La copie se fait DANS la même image que le rendu (après, le tampon WebGL peut être vidé). */
+function homeCielPrise(now){
+  const ciel=(garageOn&&!!gEl&&gEl.classList.contains('menu'))||(!garageOn&&((!started||gameOver)||MENUV.retour)); // l'ACCUEIL : le garage en mode « menu » (le ciel), ou l'ancien menu hors garage
+  if(!ciel||(typeof stallOn!=='undefined'&&stallOn))return;
+  if(now-(homeCielPrise._t||0)<3000)return; // toutes les 3 s : le ciel change lentement, et relire l'image WebGL coûte un peu sur iPhonehomeCielPrise._t=now;
+  let cv=homeCielPrise._cv;
+  if(!cv){const b=document.getElementById('gHomeBas');if(!b)return;cv=homeCielPrise._cv=document.createElement('canvas');cv.className='gHomeCielCv';cv.width=160;cv.height=210;cv.setAttribute('aria-hidden','true');b.insertBefore(cv,b.firstChild);}
+  const src=renderer.domElement,W=src.width,H=src.height;if(!(W>8&&H>8))return;
+  const a=cv.width/cv.height;let sh=H*.34,sw=sh*a;if(sw>W){sw=W;sh=W/a;}
+  cv.getContext('2d').drawImage(src,(W-sw)/2,0,sw,sh,0,0,cv.width,cv.height);cv.classList.add('on');}
 /* LA CAISSE SE TOURNE VERS CE QU'ON REGARDE (2026-10-11, Léo : « quand on appuie sur TRAÎNÉES et PEINTURE, au lieu de faire TP de position,
    la voiture se tourne pour montrer les différentes features — TRAÎNÉES : la vue de l'arrière ») : l'onglet ne POSE plus l'angle d'un coup
    (garageAng=3.5), il le fait TOURNER en ~0,9 s par le plus court chemin (garTourneVers, joué dans garageRender, prioritaire sur la rotation
@@ -45596,6 +45620,7 @@ function loop(now){
   if(PARIS.meshes.length)parisTick(dt); // (Paris) le scintillement et le phare
   if(POST_ON&&composer)composer.render(); // ACES + bloom
   else renderer.render(scene,camera);      // repli si le post n'a pas pu se charger
+  try{homeCielPrise(now);}catch(e){} // (2026-10-11) le CIEL DU MENU, recopié en vignette pour le HOME du garage (voir homeCielPrise)
   matSursisTick(); // (perf) les matières de la piste d'avant partent une fois la neuve rendue
   if(CHAUFFE_R.t&&now>CHAUFFE_R.t){CHAUFFE_R.t=0;chauffeRendu();} // (tour 2) niveau neuf : la puce le voit une fois en entier, hors écran
   if(!started||gameOver)engChauffe(); // (perf) au menu et à l'écran de mort : les shaders des moteurs se préparent, un palier par image
