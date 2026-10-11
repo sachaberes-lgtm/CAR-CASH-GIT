@@ -6641,61 +6641,10 @@ html.hub:not(.poki) body #mHome.acc2 .mGear .pxi{--pxs:2}
   html.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay{grid-column:4/14}
   html.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay .lg{font-size:24px!important}}
 
-/* ===== 2. LE GARAGE (la console de Sacha) — un panneau qui se lit de haut en bas, la vue qui flotte ===============================
-   AVANT : six boutons de six rôles mélangés sur deux rangées de hauteurs différentes (HOME 30 px, l'œil 30 px, ÉQUIPÉE 30 px, puis
-   INVENTAIRE, BOUTIQUE, JOUER à 54) — et INVENTAIRE / BOUTIQUE, qui sont les deux MODES du panneau, rangés au pied comme des actions.
-   APRÈS, dans le panneau, de haut en bas :
-   · INVENTAIRE | BOUTIQUE — le sélecteur de MODE, en tête (il décide de tout ce qu'il y a dessous)
-   · les onglets, les familles, la grille
-   · au pied : ÉQUIPER (ce que je fais de CETTE caisse) et JOUER (l'or) — une rangée, une hauteur
-   HORS du panneau, flottant sur la scène : HOME (la sortie) et l'ŒIL (la vue) — ils agissent sur l'écran, pas sur la caisse.
-   #gAct s'efface (display:contents) : ses boutons entrent dans la grille de #gBottom. Le HTML, les identifiants et les écouteurs ne bougent pas. */
-html:not(.poki) body #garage:not(.menu):not(.vitrine) #gBottom{display:grid!important;grid-template-columns:repeat(10,minmax(0,1fr));
-  grid-template-rows:auto auto auto minmax(0,1fr) auto;column-gap:8px;row-gap:8px}
-html:not(.poki) body #garage:not(.menu):not(.vitrine) #gBottom>#gAct{display:contents!important}
-html:not(.poki) body #garage:not(.menu):not(.vitrine) #gBottom>#gTabs{grid-row:2;grid-column:1/-1;margin:0!important}
-html:not(.poki) body #garage:not(.menu):not(.vitrine) #gBottom>#gRar{grid-row:3;grid-column:1/-1;margin:0!important}
-html:not(.poki) body #garage:not(.menu):not(.vitrine) #gBottom>#gStrip{grid-row:4;grid-column:1/-1;min-height:0}
-/* le sélecteur de MODE : deux moitiés égales, pictogramme et mot sur une ligne */
-html:not(.poki) body #garage:not(.menu):not(.vitrine) #gAct>#gvCof{grid-row:1;grid-column:1/6}
-html:not(.poki) body #garage:not(.menu):not(.vitrine) #gAct>#gShopBas{grid-row:1;grid-column:6/11}
-html:not(.poki) body #garage:not(.menu):not(.vitrine) #gAct>:is(#gvCof,#gShopBas){display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;
-  gap:10px!important;width:auto!important;min-width:0!important;height:44px!important;min-height:44px!important;margin:0!important;padding:0 8px!important;font-size:var(--f1)!important;letter-spacing:1px!important}
-html:not(.poki) body #garage:not(.menu):not(.vitrine) #gAct>:is(#gvCof,#gShopBas) .pxi{--pxs:2}
-html:not(.poki) body #garage:not(.menu):not(.vitrine) #gAct>:is(#gvCof,#gShopBas):not(.modeOn){filter:brightness(.82) saturate(.8)!important}
-/* le pied : ÉQUIPER (2 parts) · JOUER (3 parts), même hauteur */
-html:not(.poki) body #garage:not(.menu):not(.vitrine) #gAct>#gEquip{grid-row:5;grid-column:1/5;width:auto!important;min-width:0!important;height:54px!important;min-height:54px!important;margin:0!important;
-  font-size:var(--f1)!important;justify-content:center!important}
-html:not(.poki) body #garage:not(.menu):not(.vitrine) #gAct>#gJouer{grid-row:5;grid-column:5/11;width:auto!important;min-width:0!important;height:54px!important;min-height:54px!important;margin:0!important}
-/* COUCHÉ, le panneau tient dans l'écran : il prenait la hauteur de son contenu, ancré en bas — en BOUTIQUE la vitrine (186 px fixes) le
-   poussait 18 px au-dessus du bord, le sélecteur de mode coupé. Il part désormais du haut (sous la zone sûre) ; la grille / la vitrine
-   prend la place qui reste (1fr) et défile si elle déborde. */
-@media (orientation:landscape) and (max-height:540px){
-  html:not(.poki) body #garage:not(.menu):not(.vitrine) #gBottom{top:calc(env(safe-area-inset-top,0px) + 10px)!important}
-  html:not(.poki) body #garage:not(.menu):not(.vitrine) #gBottom>#gStrip{height:auto!important;max-height:none!important;min-height:0!important;overflow-y:auto}}
-/* HOME et l'ŒIL flottent sur la scène : sortis du panneau au démarrage (#gFlot, voir « LE PANNEAU QUI FLOTTE » dans le script) — dans le
-   panneau, son clip-path les coupait. Couché : le coin bas-gauche, au-dessus de la jauge pour tourner (#gTourne, Léo). Debout : au-dessus du panneau et de la jauge (--gFlotB, mesuré). */
-html:not(.poki) body #garage #gFlot{position:absolute;z-index:4;display:flex;align-items:stretch;gap:10px;pointer-events:auto; /* le garage laisse passer le doigt jusqu'à la scène : la paire le reprend */
-  
-  left:calc(var(--ccL,env(safe-area-inset-left,0px)) + 16px);bottom:var(--gFlotB,46vh)} /* --gFlotB : au-dessus de la JAUGE de Léo (#gTourne) et du panneau, mesuré */
-html:not(.poki) body #garage:is(.menu,.vitrine,.quiet,.launching) #gFlot{display:none}
-@media (orientation:landscape) and (max-height:540px){html:not(.poki) body #garage #gFlot{left:calc(var(--ccL,env(safe-area-inset-left,0px)) + 18px)}}
-html:not(.poki) body #garage #gFlot>:is(#gHomeBas,#gOeil){position:relative;display:flex!important;align-items:center;justify-content:center;margin:0;height:48px;min-height:48px;
-  transform:skewX(var(--sk));animation:none}
-html:not(.poki) body #garage #gFlot>#gHomeBas{width:auto;min-width:0;padding:0 16px;gap:8px;font-size:var(--f1);letter-spacing:1px}
-html:not(.poki) body #garage #gFlot>#gHomeBas .pxi{--pxs:2}
-html:not(.poki) body #garage #gFlot>#gOeil{width:54px;min-width:0;padding:0;--ton:#ff8a1f;--nc:var(--ton);--lu:rgba(255,190,110,.9);
-  background:linear-gradient(180deg,#221b3e,#110c25);box-shadow:inset 0 0 0 1px rgba(255,214,160,.28),inset 0 -4px 0 var(--ton),0 0 0 1px #07050f,0 5px 0 #0a0716,0 0 18px -6px var(--ton),0 10px 18px -8px rgba(0,0,0,.8)}
-html:not(.poki) body #garage #gFlot>#gOeil:is(:active,.appui),html:not(.poki) body #garage #gFlot>#gHomeBas:is(:active,.appui){transform:skewX(var(--sk)) translateY(3px)}
-html:not(.poki) body #garage #gFlot>#gOeil .gLueur{position:relative;display:inline-flex;line-height:0;transform:skewX(calc(-1 * var(--sk)));filter:drop-shadow(0 0 1px var(--lu))} /* un halo d'1 px : plus large, il bouchait les jours d'un pixel et l'œil devenait une tache */
-html:not(.poki) body #garage #gFlot>#gOeil .gLueur .pxi{--pxs:3;color:#ffe2bc;filter:none}
-html:not(.poki) body #garage #gFlot>#gOeil .gLueur::after{content:'';position:absolute;left:50%;top:50%;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;pointer-events:none;
-  background:radial-gradient(circle,rgba(255,150,40,.42),rgba(255,120,20,.14) 45%,transparent 70%);animation:gOeilLuit 2.4s ease-in-out infinite}
-@media (prefers-reduced-motion:reduce){html body #garage #gFlot>#gOeil .gLueur::after{animation:none;opacity:.8}}
-html[data-reduced-motion="1"] body #garage #gFlot>#gOeil .gLueur::after{animation:none;opacity:.8}
-/* l'œil ALLUMÉ (la voiture seule) : seul à l'écran, à sa place ; la plaque s'efface, il ne reste que l'œil orange (la règle de Léo, reprise ici) */
-html:not(.poki) body #garage.vueSeule #gFlot>#gOeil{background:none;box-shadow:none;--lu:rgba(255,138,31,1)}
-html:not(.poki) body #garage.vueSeule #gFlot>#gOeil .gLueur .pxi{color:#ffa23a}
+/* ===== 2. LE GARAGE — RETIRÉ (2026-10-11, Léo : « non, celui d'avant : INVENTAIRE et BOUTIQUE en bas, ÉQUIPER au-dessus de JOUER — remets
+   comme avant ») : la grille du panneau (sélecteur de mode en tête, ÉQUIPER + JOUER au pied) et HOME + l'ŒIL flottants (#gFlot) sont
+   retirés ; la console reprend sa rangée HOME · ŒIL · ÉQUIPER au-dessus de INVENTAIRE · BOUTIQUE · JOUER. Restent de la passe : l'accueil,
+   les transitions, le dessin de l'œil et le recentrage de la caisse quand il est allumé. ===== */
 /* ===== 3. LA CARRIÈRE — la sortie à GAUCHE, comme sur tous les écrans (RETOUR des réglages et des offres, HOME de la mort, du garage) ====
    couchée, HOME passait à DROITE pour éviter l'ancienne barre du hub (bas-gauche), partie depuis : seul écran dont la sortie changeait de côté */
 html.hubOn:not(.poki) body #carr .mDock{justify-content:flex-start!important}
@@ -6712,9 +6661,7 @@ html.hubOn:not(.poki) body #carr .mDock{justify-content:flex-start!important}
   rgba(7,5,15,1) 34px calc(100% - 34px),transparent calc(100% - 34px) calc(100% - 30px),var(--neoM) calc(100% - 30px) calc(100% - 22px),transparent calc(100% - 22px) calc(100% - 18px),
   var(--neoC) calc(100% - 18px) calc(100% - 12px),transparent calc(100% - 12px) calc(100% - 8px),var(--au2) calc(100% - 8px)),var(--matrice),#07050f!important}
 /* L'ŒIL : la console s'EFFACE en 200 ms (elle disparaissait d'un coup), pendant que la caméra glisse sur la caisse ; elle revient en fondu */
-html:not(.poki) body #garage:not(.menu):not(.vitrine) :is(#gTop,#gBottom,#gHomeBas){transition:opacity 200ms var(--ease)}
-html:not(.poki) body #garage.vueSeule:not(.menu):not(.vitrine) :is(#gTop,#gBottom,#gHomeBas){opacity:0}
-html:not(.poki) body #garage.vueSeule:not(.menu):not(.vitrine){transition:visibility 0s linear 200ms}
+/* (2026-10-11) le fondu de la console sous l'œil est retiré avec le garage d'avant : l'œil vit DANS la console, une opacité 0 l'éteindrait aussi */
 </style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
@@ -7185,7 +7132,7 @@ PXI_G.rond='.........|...###...|..#####..|.#######.|.#######.|.#######.|..#####.
 PXI_G.dragon='##.......|.##......|.######..|###.####.|#########|###..#...|####.....|.#######.|..##.....'; // (2026-10-10) MYTHIQUE : la tête de dragon, de profil (cornes, œil, gueule ouverte, croc)
 PXI_G.infini='.........|.........|.##...##.|#..#.#..#|#...#...#|#..#.#..#|.##...##.|.........|.........'; // (2026-10-10) INFINI : le signe ∞
 PXI_G.palmier='.###.###.|#...#...#|...###...|..#.#.#..|.#..#..#.|....#....|....#....|...#.....|.#####...'; // (2026-10-10) EXOTIQUE : le palmier
-PXI_G.oeil='.........|...###...|.##...##.|#..###..#|#.##.##.#|#..###..#|.##...##.|...###...|.........'; // (2026-10-09) CACHER / VOIR la console — (2026-10-11, Sacha : « il ne ressemble pas exactement à un œil ») le contour en lentille, l'IRIS ROND et sa PUPILLE (le jour au centre) — c'était un ovale avec un pavé : une pièce
+PXI_G.oeil='.........|.........|..#####..|.#.....#.|#..###..#|#..###..#|.#.....#.|..#####..|.........'; // (2026-10-09) CACHER / VOIR la console — (2026-10-11, Léo : « remets comme avant ») le dessin d'origine revient ; de la passe UX de Sacha, l'œil ne garde que le recentrage de la vue
 PXI_G.tour='....#....|....#....|...###...|...#.#...|..#####..|..#...#..|.#######.|.#.....#.|##.....##'; // (2026-09-28) la Dame de fer
 (function(){
   let css='',vars='';
@@ -39538,15 +39485,7 @@ function gVueSeule(on){if(!gEl)return;on=!!on;if(gEl.classList.contains('vueSeul
 /* (2026-10-11, passe UX) LE PANNEAU QUI FLOTTE : HOME et l'ŒIL quittent la console (#gAct, coupée par le clip-path du panneau) pour #gFlot,
    posé sur la scène (voir <style id="uxPasse">). Mêmes éléments, mêmes écouteurs. --gPanB = la hauteur du panneau depuis le bas de l'écran :
    debout, la paire se pose juste au-dessus. Pas chez Poki (sa console garde sa rangée). */
-try{if(!POKI&&gEl){const fl=document.createElement('div');fl.id='gFlot';for(const id of ['gHomeBas','gOeil']){const b9=document.getElementById(id);if(b9)fl.appendChild(b9);}gEl.appendChild(fl);
-  /* --gFlotB : le bas de la paire, en px depuis le bas de l'écran — au-dessus de la JAUGE pour tourner (#gTourne, Léo : sa zone tactile
-     couvrait la paire, le doigt tournait la vue au lieu d'appuyer) et, debout, au-dessus du panneau. Relu 3×/s tant que le garage est ouvert. */
-  const gb9=document.getElementById('gBottom'),gt9=document.getElementById('gTourne'),haut9=function(){if(!garageOn)return;
-    const couche=innerWidth>innerHeight*1.2,vu=function(e){if(!e)return null;const r=e.getBoundingClientRect();return r.height>0&&getComputedStyle(e).display!=='none'?r:null;};
-    let haut=innerHeight-12;const rt=vu(gt9),rb=vu(gb9);
-    if(rt)haut=Math.min(haut,rt.top-4);if(rb&&!couche)haut=Math.min(haut,rb.top);
-    const v=Math.round(innerHeight-haut+10)+'px';if(gEl.style.getPropertyValue('--gFlotB')!==v)gEl.style.setProperty('--gFlotB',v);};
-  setInterval(haut9,330);addEventListener('resize',function(){setTimeout(haut9,60);});}}catch(e){}
+/* (2026-10-11, Léo : « remets comme avant ») HOME et l'ŒIL restent dans la console (#gAct) : plus de #gFlot */
 try{document.getElementById('gOeil').addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(e.currentTarget);uiClic(gEl.classList.contains('vueSeule')?'on':'off');gVueSeule(!gEl.classList.contains('vueSeule'));});}catch(e){}
 function gConsoleCache(on){if(!gEl)return;gEl.classList.toggle('consoleCachee',!!on);garLibre._r=null;
   const b=document.getElementById('gCache');if(b){b.setAttribute('aria-pressed',on?'true':'false');const sp=b.querySelector('span');if(sp){sp.dataset.fr=on?'VOIR':'CACHER';sp.textContent=TR(sp.dataset.fr);}}}
