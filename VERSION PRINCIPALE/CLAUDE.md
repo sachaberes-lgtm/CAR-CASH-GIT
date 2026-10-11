@@ -5,7 +5,9 @@
 HOME où ils étaient ; garde juste que l'œil change le point de vue »)** : plus de grille du panneau, plus de `#gFlot`, plus de fondu de la
 console, l'ancien dessin de l'œil — la console garde sa rangée HOME · ŒIL · ÉQUIPER au-dessus de INVENTAIRE · BOUTIQUE · JOUER. Reste de la
 passe : l'accueil, les transitions, la carrière, et le RECENTRAGE de la caisse quand l'œil est allumé. Ne pas remettre ce rangement du garage
-sans que Léo le demande. Ce qui suit décrit la passe d'origine.
+sans que Léo le demande. **Puis (même jour, Léo, « la bonne manière »)** : HOME + l'ŒIL dans `#gCoin` en haut à gauche (tête de
+`#gTopRow`, styles `:is(#gAct,#gCoin)>`), le compteur et l'aura à DROITE ; ÉQUIPER AU TOUCHER (`garEquipeCaisse`, `garEquipeHabit` : une
+caisse ou un habillage à toi s'équipe quand on le touche, un achat équipe) — `#gEquip` n'apparaît plus que pour ACHETER. Ce qui suit décrit la passe d'origine.
 TOUT le rangement vit dans **`<style id="uxPasse">`**, la DERNIÈRE feuille de la page (juste après `<style id="poki">`) : retirer le bloc = revenir.
 Le HTML, les identifiants et les écouteurs ne bougent pas, sauf HOME et l'œil (voir plus bas). Règles : on LIT en haut, on TOUCHE en bas ; un
 rôle = une place ; l'action principale = l'unique plaque d'or ; mêmes hauteurs sur une rangée ; 44 px au doigt ; la VUE flotte sur la scène,
