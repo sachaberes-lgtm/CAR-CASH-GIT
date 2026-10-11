@@ -1,21 +1,22 @@
 # CASH CAR — guide projet pour Claude Code
 
-## LE BOUTON NITRO v3 — L'ÉCLAIR 3D ET LA VITESSE AU BOUT DE LA BARRE DE BOOST (2026-10-12, Léo : « à la place du carré, un éclair 3D brillant, qui s'intensifie au toucher » ; puis le soir même : « abandonne la jauge bizarre, mets juste la vitesse de la voiture à côté de la jauge boost »)
-- La plaque penchée NITRO (hudDA §1) est remplacée par un ÉCLAIR 3D seul (`--nxD` 96 px, disque d'encre flou derrière, halo à l'appui) :
-  CSS `<style id="nitroEclair">` (le dernier bloc, juste avant `#splash`), JS « LE BOUTON NITRO v3 » juste avant `loopWarn` (`NX3`, `NX3P`,
-  `nx3Monte`, `nx3Cuire`, `nx3Tick`, `nx3Dessine`), appel `nx3Tick(dt,speedKmh)` dans la boucle juste après la pose de `--nr/--nx`.
-  Les anciens enfants (`.pxi`, mot, `.nxJauge`, `.nxArt`) restent dans la page, éteints.
+## LE BOUTON NITRO v3 — LE BOUTON D'ARCADE 3D ET LA VITESSE AU BOUT DE LA BARRE DE BOOST (2026-10-12, Léo : « à la place du carré, un éclair 3D brillant, qui s'intensifie au toucher » ; « abandonne la jauge bizarre, mets juste la vitesse de la voiture à côté de la jauge boost » ; « qu'elle ne s'électrifie pas, mais un rendu 3D beaucoup plus joli, qui donne envie d'appuyer »)
+- La plaque penchée NITRO (hudDA §1) est remplacée par un BOUTON D'ARCADE en 3D (`--nxD` 108 px) : socle de laque d'encre, capsule orange
+  vernie (dôme, reflet de fenêtre), éclair doré en relief. CSS `<style id="nitroEclair">` (le dernier bloc, juste avant `#splash`), JS
+  « LE BOUTON NITRO v3 » juste avant `loopWarn` (`NX3`, `NX3P`, `nx3Monte`, `nx3Cuire`, `nx3Tick`, `nx3Dessine`), appel `nx3Tick(dt,speedKmh)`
+  dans la boucle juste après la pose de `--nr/--nx`. Les anciens enfants (`.pxi`, mot, `.nxJauge`, `.nxArt`) restent dans la page, éteints.
+- CUIT UNE FOIS au menu (`setTimeout` 1,4 s, sinon au 1er tick) : 14 enfoncements (−,15 = le rebond du lâcher → 1 = au fond) × 2 états
+  (éteint / allumé de l'intérieur) → planche 2D de cases de 192 px ; en course 2 à 4 `drawImage` (fondu entre cases voisines) + un reflet
+  en biais (`source-atop`). Programmes libérés aussitôt : 0 programme compilé en course. ⚠ Profils `LatheGeometry` parcourus de BAS en HAUT /
+  de l'extérieur vers l'axe — dans l'autre sens les faces regardent dedans (capsule noire, vu en capture).
+- Sous le pouce (`.on`, Espace, Maj) la capsule S'ENFONCE sur un ressort (ω 34, ζ ,42 : rebond mesuré 1 → −,1 → 0 au lâcher) ; elle s'allume
+  quand la nitro BRÛLE (`nitroOn` = 1, appui à sec = ,22) ; pleine et au repos elle RESPIRE (lumière ,1 ± ,09). Halo à la couleur de la poussée.
 - LA VITESSE (`#nxVit`, posé DANS `#nitroBar`) : au bout de la barre de boost, comme le ×CASH au bout de la barre du flow (la barre se
   raccourcit de `--nxV` 58 px : les deux lignes ont la même forme). Typo ombrée du HUD, lavande au repos, couleur de la poussée en nitro
   (orange · bleu · violet en nitro infinie). Réécrite au plus 12 fois/s et seulement si le chiffre change.
-- ⚠ ÉCARTÉ (même soir) : le CADRAN rond autour de l'éclair (jauge nitro en arc ouverte en bas à droite + compteur à aiguille, chiffres en
-  centaines) — « la jauge bizarre ». Il vit dans l'historique (commit 699045e) si on le redemande.
-- L'ÉCLAIR 3D : extrudé à chanfreins à facettes, or poli + petit studio peint (cube à part, indépendant du biome), CUIT UNE FOIS au menu
-  (`setTimeout` 1,4 s, sinon au 1er tick) en 24 images de balancement × 2 états (froid / chauffé) → planche 2D 12 × 4 cases de 192 px ;
-  en course : 2 à 4 `drawImage` (fondu entre images voisines), reflet en biais (`source-atop`), arcs électriques (hasard propre `nx3Alea`).
-  Ses programmes sont libérés aussitôt : MESURÉ 0 programme compilé en course (154 avant/après). Au toucher (`nitroOn` = 1 ; appui à sec = ,35)
-  il chauffe, grossit, tremble, crépite, halo de la couleur de la poussée.
-- Console : `dbgNitro3()` (état, vitesse affichée) · `dbgNitro3({col:…,refl:…})` re-cuit l'éclair · `dbgNitro3('k',1)` force l'appui.
+- ⚠ ÉCARTÉ le même jour : le CADRAN rond (jauge nitro en arc + compteur à aiguille, commit 699045e) — « la jauge bizarre » ; l'éclair seul qui se
+  balançait et crachait des ARCS ÉLECTRIQUES (2581543) — « qu'elle ne s'électrifie pas ».
+- Console : `dbgNitro3()` (état, vitesse affichée) · `dbgNitro3({cap:…,ecl:…})` re-cuit le bouton (NX3P) · `('k',1)` force la lumière · `('p',1)` l'enfoncement.
 
 ## LE SIMULATEUR — `simulateur.html` (2026-10-12, Léo : « un simulateur de course léger pour aucun bug ; une interface avec les maps, leurs noms, une photo représentative et une option jouer sur la map ; chaque map n'a pas de musique pour l'instant, après il faudra associer un fichier à chaque » + son moteur de musique `french-touch.html` « à retranscrire sur la map ville » — puis « il faut que ce soit les bonnes maps et la bonne physique »)
 Un outil À CÔTÉ du jeu, qui ne refait RIEN : il lance LE JEU (`index.html`, sans une ligne changée) directement sur un niveau. Pas en ligne
