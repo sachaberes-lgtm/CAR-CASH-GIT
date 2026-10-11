@@ -238,6 +238,10 @@ d'aller dans cette map avec une voiture, la mobilité comme le main, mais seulem
     par-dessus une colonne d'eau voisine — invisible depuis la route (l'écume couvre la ligne de contact).
   · Hooks : `dbgJadePoste(k,on)` ('cout' appels/triangles d'une image, 'bandes', 'liste', 'scene', 'lod', et les postes), `dbgJadeVue('eau')`.
     sw.js → v219.
+  · (même jour, Léo : « enlève les intros, tout ça : lance juste la voiture dans la map ») LA BALADE SANS INTRO : la classe `balade` est
+    posée dès le <head> (le logo du chargement, le menu, le garage et le voile ne se montrent plus ; l'image reste noire jusqu'au départ,
+    classe `parti`) ; `baladeDepart` appelle `start()` directement (plus de playViaGarage : ni fondu, ni garage, ni sortie par la porte),
+    la caméra se pose d'un coup derrière la caisse ; plus de « DÉPART » quand le niveau repart (l'ARRIVÉE reste). sw.js → v220.
 - Mesuré (Chrome sans fenêtre du Mac) : 60 i/s, construction 16-28 ms, tri ~0,03 ms ; collisions (`dbgJadeHeurt('test')`, 3 vallées) :
   piliers durs, arche et dessous du pont libres, AUCUN point de la route dans la pierre. Console : `dbgJade()`, `dbgJadeVue('route'|'porte'|
   'pont'|'haut'|'loin'|'grue',d,h,cap)` (photo figée), `dbgGrues()`. sw.js → v203.

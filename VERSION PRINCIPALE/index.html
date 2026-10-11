@@ -41,6 +41,9 @@
    `node synchro-versions.js` (racine du dépôt) la régénère depuis la principale. Forçages ponctuels : `?tel=1` / `?pc=1`.
    (Déclarée au niveau global — un `const` de script classique est visible du grand script, qui la lit.) */
 const EDITION='mobile';
+/* (2026-10-11, Léo : « enlève les intros, tout ça : lance juste la voiture dans la map ») LA BALADE SANS INTRO — la classe est posée
+   dès le <head> : ni le logo du chargement, ni le menu ne se montrent (voir baladeDepart). */
+if(/[?&](map=jade|balade=1)\b/.test(location.search)){document.documentElement.classList.add('balade');document.write('<style id="baladeIntro">html.balade #splash,html.balade #overlay,html.balade #garage,html.balade #wipe{visibility:hidden!important}html.balade body{background:#07050f}html.balade:not(.parti) body>canvas{visibility:hidden!important}</style>');}
 /* L'ÉDITION POKI (2026-10-04, Sacha : « créer une version de Cash Car pour Poki en enlevant les missions et la carrière »). Le dossier
    `POKI/` du dépôt est une COPIE GÉNÉRÉE de celui-ci (`node poki-construire.js`, racine du dépôt) : la seule ligne qui diffère est
    `POKI_BUILD`, basculée à true. `?poki=1` force l'édition Poki sur n'importe quelle copie (banc, Vercel). Ce qu'elle change, tout
@@ -13554,8 +13557,7 @@ function jadeFinale(){if(JADE.fini){if(s>L-6)s=L-6;return;}JADE.fini=true;jadeAn
   const tps=Math.max(0,(performance.now()-(JADE.t0||performance.now()))/1000),mm=Math.floor(tps/60),ss=Math.floor(tps%60);
   try{slam('ARRIVÉE','PICS DE JADE · '+mm+':'+(ss<10?'0':'')+ss,null,null,null,3,true);}catch(e){}shake=Math.max(shake,.25);
   setTimeout(function(){try{ecranWipe(jadeRedemarre);}catch(e){jadeRedemarre();}},2800);}
-function jadeRedemarre(){s=0;lat=0;psi=0;prevTvalid=false;mode='drive';vA=0;jadeChuteRaz();JADE.fini=false;JADE.t0=performance.now();jadeAnn();
-  try{slam('DÉPART','PICS DE JADE',null,null,null,3);}catch(e){}}
+function jadeRedemarre(){s=0;lat=0;psi=0;prevTvalid=false;mode='drive';vA=0;jadeChuteRaz();JADE.fini=false;JADE.t0=performance.now();} // (v17, « enlève les intros ») plus de « DÉPART » : on repart, c'est tout
 /* (v16, Léo : « évite les clichés en mode Chine, le but c'est une vibe CHIHIRO ; le sol, fais-le moins scolaire… même des bouts de bois
    empilés, des TRONCS D'ARBRES collés à eux-mêmes ») LA ROUTE DE RONDINS — ses bords en vrais volumes : chaque rondin qui DÉPASSE du bord
    (60 % d'entre eux, de 0,4 à 2,8 m, des prismes à 6 pans d'écorce, la coupe aux cernes clairs au bout), et des PILES de bois de loin en loin
@@ -14071,12 +14073,15 @@ function baladeDepart(){
   const tente=function(){
     try{if(started&&!gameOver){SANDBOX=true;return;}}catch(e){setTimeout(tente,200);return;}
     if(document.getElementById('splash')||!window.__gameReady){setTimeout(tente,200);return;}
-    if(n9++>12)return;
+    if(n9++>40)return;
     SANDBOX=true;CARR.actif=null;
-    try{playViaGarage(false);}catch(e){console.warn('balade',e);}
-    setTimeout(tente,3500); // (si le départ n'a pas pris : on retente)
+    /* (2026-10-11, Léo : « enlève les intros, lance juste la voiture dans la map ») plus de menu, de fondu, de garage ni de sortie par la
+       porte : la course part TOUT DE SUITE (start), la caméra se pose d'un coup derrière la caisse (un écart de plus de 50 m = un saut,
+       pas un travelling depuis la vitrine) */
+    try{if(garageOn)closeGarage();start();camera.position.copy(carGroup.position);camera.position.y+=900;loop._camDriveT=0;setTimeout(function(){document.documentElement.classList.add('parti');},120);}catch(e){console.warn('balade',e);}
+    setTimeout(tente,600); // (si le départ n'a pas pris : on retente)
   };
-  setTimeout(tente,900);
+  setTimeout(tente,60);
 }
 addEventListener('load',function(){setTimeout(baladeDepart,0);});
 function buildVoxCity(seed,accC){
