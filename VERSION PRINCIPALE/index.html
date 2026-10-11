@@ -13742,6 +13742,11 @@ const CARS=[
  {name:'LA DÉFERLANTE',shape:'deferlante',color:0x06263c,accent:0x5ee6ff,maxKmh:430,accel:51,turn:3.1,h:1.68,w:2.0,l:4.9,spoiler:0,rar:'epique',
   fx:{jet:0x5ee6ff,core:0xe8fbff,trail:[.3,1.05,1.5],light:0x3fc8ff},
   desc:'Une vague scélérate qui a appris à conduire. Elle se creuse au-dessus de ta nuque, et toi tu respires dans une bulle d\'air.'},
+ // (2026-10-11, Léo, « retoucheur de voitures » : la planche générée, « génère la mercure », « génère-la en 3D dans mon jeu ») LA MERCURE
+ // (voir SHAPES.mercure) : l'hypercar en mercure liquide qui reflète le crépuscule et sème des gouttes de chrome. Ajoutée EN DERNIER.
+ {name:'LA MERCURE',shape:'mercure',color:0xd9dde6,accent:0x8a4dff,maxKmh:435,accel:52,turn:3.1,h:1.16,w:2.0,l:4.72,spoiler:0,rar:'epique',
+  fx:{jet:0xb46bff,core:0xf3e6ff,trail:[1.1,.55,1.5],light:0xa864ff},
+  desc:'Un miroir qui coule. Elle reflète le ciel, et elle en perd un peu à chaque virage : derrière elle, il pleut du chrome.'},
 ];
 // ---- VALEUR D'UNE PIÈCE — UNE ENTRÉE PAR PALIER MOTEUR (30) ---------------------------------
 // ⚠ Cette table est indexée par `engTier` depuis que les PIÈCES portent la progression, mais elle
@@ -14217,6 +14222,11 @@ Object.assign(I18N,{
 Object.assign(I18N,{
  "LA DÉFERLANTE":"THE BREAKER",
  "Une vague scélérate qui a appris à conduire. Elle se creuse au-dessus de ta nuque, et toi tu respires dans une bulle d'air.":"A rogue wave that learned to drive. It curls right over the back of your neck, and you breathe inside an air bubble."
+});
+// (2026-10-11) LA MERCURE
+Object.assign(I18N,{
+ "LA MERCURE":"THE MERCURY",
+ "Un miroir qui coule. Elle reflète le ciel, et elle en perd un peu à chaque virage : derrière elle, il pleut du chrome.":"A flowing mirror. She reflects the sky and spills a little of it in every corner: behind her, it rains chrome.",
 });
 // (2026-10-10) LA FOURNAISE
 Object.assign(I18N,{
@@ -21824,6 +21834,113 @@ Object.assign(SHAPES,{
     if(typeof BLING==='object'&&BLING&&BLING.anim)BLING.anim.push(anime);
     return {hl:[.36,.47,1.14],tl:[.46,.38,-2.44],wx:.82,wzF:ZF,wzR:-ZR,pots:[[.26,.34,-2.45],[-.26,.34,-2.45]],
             lpw:{R:R,w:.27,style:'tourbillon',n:7,jante:0x5ee6ff,accent:0x5ee6ff,fond:0x061a2c,sansPneu:1},roueDeco};
+  },
+/* LA MERCURE (2026-10-11, Léo : « retoucheur de voitures est ton nouveau travail… designer des voitures imaginaires grâce à la génération
+   d'images » → une planche de quatre concepts (la cunéiforme, la greffée, la vitrail, LA MERCURE), puis « génère la mercure » (quatre vues
+   en haute qualité) et « génère-la en 3D dans mon jeu ») — UNE HYPERCAR EN MERCURE LIQUIDE. Le concept : un miroir qui coule, qui reflète
+   un ciel de crépuscule rose et violet, dont l'arrière se défait en gouttes de chrome qui filent derrière elle, flamme de nitro violette.
+   · LA FORME (un loft, `S(z)`) : nez en lame au ras de la route, ailes avant plus hautes que le capot (le capot est une VALLÉE entre
+     elles), taille de guêpe au milieu, BULLE de cockpit fumée, grosses HANCHES sur les roues arrière (la caisse est plus large derrière),
+     poupe qui tombe. Feux et sorties en dessous de la lèvre de la poupe.
+   · LA MATIÈRE (`MERC_FS`, un programme) : pas de lumière, que des REFLETS — chaque facette (normale par les dérivées : la DA poly) renvoie
+     un morceau de CIEL : le crépuscule de la Mercure, écrit dans le programme, dans le repère de la CAISSE (elle garde son ciel même sous
+     la route), mêlé au vrai ciel du niveau (`envTex`, repère du monde). Bleu-argent de face, blanc au ras (Fresnel). La bulle : le même
+     miroir, fumé et violet.
+   · LE LIQUIDE (`MERC_VS`) : des ondes qui courent du nez vers la queue, calmes devant, fortes sur les hanches ; le haut de la poupe se
+     laisse TIRER en arrière comme une goutte qui s'étire (la lèvre déborde au-dessus des feux) ; tout s'emballe à la nitro.
+   · LES GOUTTES (un InstancedMesh, le même miroir) : elles se détachent des hanches, de la lèvre de la poupe et des arches arrière, en
+     FILETS (chaque source a un cap qui dérive lentement : les gouttes se suivent), s'étirent en partant, retombent, rapetissent. Dans le
+     repère de la caisse : en course, elles filent derrière. Plus nombreuses et plus longues à la nitro.
+   Ce qui bouge : `BLING.anim` (jeu) et `userData.anime` (salle blanche). */
+  mercure:function(K){
+    const U=LPU,R=.37,ZF=1.46,ZR=-1.42,ZN=2.36,ZT=-2.34,g9=(z,c,s)=>Math.exp(-Math.pow((z-c)/s,2)),ss=(a,b,v)=>{const t=U.cl((v-a)/(b-a),0,1);return t*t*(3-2*t);};
+    let rs=0x51ed270b;const rnd=()=>{rs^=rs<<13;rs^=rs>>>17;rs^=rs<<5;return (rs>>>0)/4294967296;};      // un hasard FIXE (les mêmes filets à chaque construction)
+    // LA FORME : demi-largeur, hauteur de la plus grande largeur, crête des ailes, dessus au milieu (capot → bulle → poupe)
+    const AR=[[0,2*R+.03],[R*.62,2*R+.03],[R+.14,.27]],
+      XW=z=>U.lin([[ZT,.62],[-2.15,.84],[-1.9,.91],[-1.0,.88],[-.3,.82],[.3,.81],[1.0,.84],[1.85,.80],[2.12,.68],[2.28,.52],[ZN,.40]],z)+.07*g9(z,ZF,.55)+.13*g9(z,ZR,.62),
+      YW=z=>U.lin([[ZT,.50],[-1.5,.55],[1.5,.52],[ZN,.38]],z),
+      YF=z=>U.lin([[ZT,.66],[-2.1,.86],[-1.8,.98],[-1.42,1.03],[-.9,.96],[-.3,.86],[.3,.80],[.9,.80],[1.46,.87],[1.95,.72],[2.2,.57],[ZN,.47]],z),
+      YC=z=>U.lin([[ZT,.64],[-2.1,.80],[-1.7,.88],[-1.2,.98],[-.7,1.08],[-.25,1.14],[.15,1.10],[.55,.96],[.95,.80],[1.5,.74],[2.0,.62],[2.2,.53],[ZN,.45]],z),
+      CAB=z=>ss(1.05,.62,z)*ss(-1.75,-1.2,z);                                    // la BULLE : 1 dans l'habitacle, 0 sur le capot et la poupe
+    const S=z=>{const xw=XW(z),yb=Math.max(.27,U.arch(z,[ZF,ZR],AR,.27)),y2=Math.max(yb+.04,.33),y3=Math.max(y2+.04,YW(z)),
+        yf=Math.max(YF(z),y3+.05),y4=y3+(yf-y3)*.5,xf=xw-.17,c=CAB(z),yc=YC(z),
+        x6=xf-.12+(.56-(xf-.12))*c,y6=yf-.03+.05*c,pts=[[0,.27],[xw-.14,yb],[xw-.03,y2],[xw,y3],[xw-.05,y4],[xf,yf],[x6,y6]];
+      for(const a of [Math.PI/6,Math.PI/3]){const k=Math.pow(Math.cos(a),.8),s9=Math.pow(Math.sin(a),.8);pts.push([x6*k,y6+(yc-y6)*s9]);}  // le dôme (ou la vallée du capot)
+      pts.push([0,yc]);return pts;};
+    const zs=[];for(let z=ZT;z<ZN-1e-6;z+=.09)zs.push(z);zs.push(ZN);              // serré : les ondes ont des sommets où courir
+    for(const w of [ZF,ZR])for(const d of [-R-.14,-R*.62,R*.62,R+.14])zs.push(w+d);
+    zs.sort((a,b)=>a-b);for(let i=zs.length-1;i>0;i--)if(zs[i]-zs[i-1]<.02)zs.splice(i,1);
+    const B=K.kit({m:{g:'l',c:0xffffff},v:{g:'l',c:0x2e2a40}});                   // la couleur des sommets ne sert qu'à dire : miroir (blanc) ou bulle (fumée)
+    B.loft(zs,S,(j,z)=>(j>=6&&CAB(z)>.5&&z>-.95&&z<.9&&!(j===6&&z<-.55))?'v':'m');
+    const corps=B.done().l;
+    // CE QUI N'EST PAS DU MERCURE : les phares en fentes, la barre des feux, les deux grosses sorties, le plancher
+    const P=K.kit({W:{g:'l',c:0xf2f6ff},L:{g:'l',c:0xff2a74},V:{g:'l',c:0xb46bff},c:{g:'c',c:0xd9dde6},k:{g:'m',c:0x09080d},s:{g:'s',c:0x141219}});
+    P.sym(sd=>{P.box('W',.20,.024,.02,sd*.20,.40,ZN+.006);                                                       // les phares : deux fentes de lumière
+      P.box('L',.05,.10,.02,sd*.50,.47,ZT-.006);});
+    P.box('L',.96,.026,.02,0,.52,ZT-.006);                                          // la barre des feux, sous la lèvre de la poupe
+    P.box('k',1.30,.06,.30,0,.30,ZT+.12);                                           // le diffuseur
+    P.sym(sd=>{const x=sd*.17,y=.38;P.put('c',new THREE.CylinderGeometry(.088,.088,.26,16,1,true),x,y,ZT-.02,Math.PI/2,0,0);      // les deux GROSSES sorties :
+      P.put('c',new THREE.TorusGeometry(.088,.013,6,16),x,y,ZT-.15);P.cyl('k',.084,.10,16,x,y,ZT+.06,'z');P.cyl('V',.062,.01,16,x,y,ZT,'z');}); // un tube ouvert, la bague, l'âme noire au fond, la lueur violette devant elle
+    P.box('s',1.2,.02,3.9,0,.262,-.05);                                            // le plancher : la caisse se pose
+    K.commit(P);
+    const g=K.add(new THREE.Group());
+    // LE MIROIR : un programme pour la caisse (avec ses ondes), un pour les gouttes (instanciées)
+    const UM={uT:{value:0},uF:{value:0}},env=(typeof envTex!=='undefined'&&envTex)?envTex:null;
+    const AXES='vX=normalize(modelMatrix[0].xyz);vY=normalize(modelMatrix[1].xyz);vZ=normalize(modelMatrix[2].xyz);',
+      MERC_VS='uniform float uT,uF;varying vec3 vW,vX,vY,vZ,vL;varying float vG;void main(){vec3 p=position;vL=p;'+AXES+
+      'float m=mix(.004,.024,1.-smoothstep(-2.3,1.3,p.z))*smoothstep(.29,.46,p.y);'+                                    /* calme devant, liquide sur les hanches ; le dessous ne bouge pas */
+      'float w=sin(p.z*7.3+uT*(5.5+uF*5.))*.6+sin(p.z*12.1-p.x*5.3+uT*(8.+uF*6.))*.28+sin(p.x*9.7+p.y*6.1-uT*3.4)*.22;'+
+      'vec3 d=normalize(vec3(p.x,(p.y-.58)*1.4,0.)+vec3(0.,1e-3,0.));p+=d*w*m*(1.+uF*.9);'+
+      'float tq=max(0.,-p.z-1.9)*smoothstep(.56,.72,p.y);p.z-=tq*tq*(1.5+.5*sin(uT*4.1+p.x*5.)+uF*1.4);'+            /* le haut de la poupe s'étire comme une goutte */
+      'vG=1.-color.r;vec4 wp=modelMatrix*vec4(p,1.);vW=wp.xyz;gl_Position=projectionMatrix*viewMatrix*wp;}',
+      GOU_VS='varying vec3 vW,vX,vY,vZ,vL;varying float vG;void main(){vG=0.;vL=vec3(0.,0.,9.);'+AXES+'vec4 wp=modelMatrix*instanceMatrix*vec4(position,1.);vW=wp.xyz;gl_Position=projectionMatrix*viewMatrix*wp;}',
+      MERC_FS='uniform float uT,uF,uEnvK;uniform samplerCube uEnv;uniform vec3 uSun;varying vec3 vW,vX,vY,vZ,vL;varying float vG;'+
+      'vec3 ciel(vec3 r){float y=r.y,ay=abs(y);vec3 c;'+                                                                      /* le crépuscule de la Mercure */
+      'if(y>0.){c=mix(vec3(1.,.70,.46),vec3(1.,.62,.82),smoothstep(0.,.07,y));c=mix(c,vec3(.58,.42,.80),smoothstep(.07,.22,y));'+  /* or à l'horizon, rose, puis le banc de nuages violets… */
+      'c=mix(c,vec3(.97,.97,1.),smoothstep(.24,.62,y));}'+                                                                      /* …et l'ARGENT au-dessus */
+      'else{c=mix(vec3(.05,.02,.08),vec3(.92,.56,.72),smoothstep(.03,.10,ay));c=mix(c,vec3(.10,.06,.16),smoothstep(.16,.34,ay));'+ /* l'arête noire sous l'horizon, une bande de nuages roses, puis l'ombre */
+      'float b=.5+.5*sin(atan(r.z,r.x)*11.+y*46.);c+=vec3(.20,.09,.14)*b*smoothstep(.06,.12,ay)*(1.-smoothstep(.16,.30,ay));}'+
+      'float s=max(dot(r,uSun),0.);c+=vec3(1.,.88,.66)*(pow(s,500.)*5.+pow(s,20.)*.3);'+                                      /* le soleil, bas */
+      'c+=vec3(1.,.35,.8)*.30*exp(-ay*60.);return c;}'+                                                                           /* la ligne de néon rose de l'horizon */
+      'void main(){vec3 n=normalize(cross(dFdx(vW),dFdy(vW))),v=normalize(cameraPosition-vW);'+                            /* la normale de la FACETTE */
+      'vec3 r=reflect(-v,n),rl=normalize(vec3(dot(r,vX),dot(r,vY),dot(r,vZ)));'+                                              /* le ciel de la caisse se lit dans SON repère */
+      'vec3 e=textureCube(uEnv,vec3(-r.x,r.y,r.z)).rgb;vec3 c=mix(ciel(rl),e*1.3,uEnvK);'+
+      'float fr=pow(1.-max(dot(n,v),0.),3.);c*=mix(vec3(.90,.92,1.),vec3(1.08),fr)*(.84+.28*fr);'+                         /* bleu-argent de face, blanc au ras */
+      'c=mix(c,c*vec3(.30,.24,.44)+vec3(.015,0.,.04),vG*.88);'+                                                             /* la bulle : un miroir fumé */
+      'float on=pow(max(0.,sin(vL.z*2.3+uT*(3.2+uF*3.))),28.)*(1.-vG)*step(vL.z,8.);c+=vec3(1.,.95,1.)*on*(.22+.5*fr);'+  /* le REFLET qui court du nez à la queue : le liquide */
+      'c+=vec3(.75,.45,1.)*uF*.22*fr;gl_FragColor=vec4(c,1.);}';
+    const mirMat=vs=>{const m=new THREE.ShaderMaterial({uniforms:{uT:UM.uT,uF:UM.uF,uEnv:{value:env},uEnvK:{value:env?.30:0},
+      uSun:{value:new THREE.Vector3(-.42,.20,.88).normalize()}},vertexShader:vs,fragmentShader:MERC_FS,vertexColors:vs===MERC_VS,
+      extensions:{derivatives:true}});m.userData.g='mercure';return m;};
+    const mCorps=mirMat(MERC_VS),caisse=new THREE.Mesh(corps,mCorps);caisse.userData.brut=1;g.add(caisse);
+    // LES GOUTTES
+    const NG=170,gouttes=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1,1),mirMat(GOU_VS),NG);
+    gouttes.frustumCulled=false;gouttes.userData.brut=1;gouttes.userData.noShadow=1;g.add(gouttes);
+    // les SOURCES : le dessus des hanches, la lèvre de la poupe, le haut des arches arrière — chacune son cap qui dérive (les filets)
+    const SRC=[];
+    for(const sd of [1,-1]){SRC.push({p:[sd*.78,1.0,-1.70],o:[sd*.18,.50,-1.5],k:1.2});SRC.push({p:[sd*.96,.74,-1.92],o:[sd*.35,.22,-1.2],k:.7});
+      SRC.push({p:[sd*.42,.70,-2.42],o:[sd*.10,.28,-1.6],k:1.0});}
+    SRC.push({p:[0,.72,-2.44],o:[0,.32,-1.7],k:.7});
+    for(const s of SRC){s.ph=rnd()*6.3;s.w=.7+rnd()*.9;s.acc=rnd();}
+    const GO=[];for(let k=0;k<NG;k++)GO.push({v:0});
+    const lance=(s,t,F)=>{for(const o of GO)if(o.v<=0){const a=Math.sin(t*s.w+s.ph),b=Math.sin(t*s.w*1.7+s.ph*2.3);
+        o.v=.45+rnd()*.45+F*.45;o.v0=o.v;o.x=s.p[0]+(rnd()-.5)*.08;o.y=s.p[1]+(rnd()-.5)*.05;o.z=s.p[2]-F*.25;
+        o.vx=s.o[0]*(1+.5*a)+(rnd()-.5)*.12;o.vy=s.o[1]*(1+.6*b)+(rnd()-.5)*.1;o.vz=s.o[2]*(1+.25*a)*(1+F*.7)-rnd()*.3;
+        const gros=rnd()<.10;o.s=(gros?.06+rnd()*.035:.018+rnd()*.03)*(1+F*.25);return;}};
+    const M9=new THREE.Matrix4(),Q9=new THREE.Quaternion(),V9=new THREE.Vector3(),S9=new THREE.Vector3();
+    const pasGouttes=(dt,t,F)=>{for(const s of SRC){s.acc+=dt*s.k*(22+F*40);while(s.acc>=1){s.acc-=1;lance(s,t,F);}}
+      let n=0;for(const o of GO){if(o.v<=0)continue;o.v-=dt;o.vy-=4.2*dt;o.x+=o.vx*dt;o.y+=o.vy*dt;o.z+=o.vz*dt;if(o.y<.04){o.v=0;continue;}
+        const u=o.v/o.v0,et=1+2.2*Math.max(0,u-.62)/.38,sc=o.s*Math.min(1,u*2.2);       // elle s'ÉTIRE en se détachant, puis s'arrondit et rapetisse
+        M9.compose(V9.set(o.x,o.y,o.z),Q9,S9.set(sc/Math.sqrt(et),sc/Math.sqrt(et),sc*et));gouttes.setMatrixAt(n++,M9);}
+      gouttes.count=n;gouttes.instanceMatrix.needsUpdate=true;};
+    // LA VIE : le mercure ondule, la poupe s'étire, les gouttes filent ; tout s'emballe à la nitro
+    let t=0;const anime=dt=>{dt=Math.min(dt,.1);t+=dt;UM.uT.value=t;const fort=(typeof nitroOn!=='undefined'&&nitroOn)?1:0;
+      UM.uF.value+=(fort-UM.uF.value)*Math.min(1,dt*4);pasGouttes(dt,t,UM.uF.value);};
+    for(let k=0;k<40;k++)anime(1/30);
+    g.userData.anime=anime;
+    if(typeof BLING==='object'&&BLING&&BLING.anim)BLING.anim.push(anime);
+    return {hl:[.20,.40,ZN+.02],tl:[.48,.52,ZT-.02],lamps:0,halos:0,wx:.80,wzF:ZF,wzR:-ZR,pots:[[.17,.38,ZT-.15],[-.17,.38,ZT-.15]],
+            lpw:{R:R,w:.30,style:'multi',n:10,jante:0xd9dde6,accent:0x8a4dff,pneu:0x111015}};
   }
 });
 /* ===== LA GAMME DES 50 — FIN ===== */
@@ -23992,6 +24109,7 @@ const CAR_UNLOCK=[
   {p:3200000}, // (2026-10-10, Léo : « une nouvelle abstraite, en glace, genre iceberg ») L'ICEBERG — ÉPIQUE, juste après L'ABSTRAITE
   {p:3400000}, // (2026-10-10, Léo : « une voiture flamme ») LA FOURNAISE — ÉPIQUE, juste après L'ICEBERG
   {p:3600000}, // (2026-10-10, Léo : « une abstraite type eau ») LA DÉFERLANTE — ÉPIQUE, juste après LA FOURNAISE
+  {p:3800000}, // (2026-10-11, Léo : « génère-la en 3D dans mon jeu ») LA MERCURE — ÉPIQUE, juste après LA DÉFERLANTE
 ]
 /* (POKI) PLUS DE MISSIONS, DE CARRIÈRE NI DE BOUTIQUE : les caisses qui s'y gagnaient passent À L'ARGENT DU JEU (sinon le garage montrerait
    des caisses qu'on ne peut plus avoir). Les prix prolongent la gamme : les carnets là où ils tombaient dans la progression (LA BULLE

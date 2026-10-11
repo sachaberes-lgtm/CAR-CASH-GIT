@@ -1,5 +1,22 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LA MERCURE (2026-10-11, Léo, « retoucheur de voitures ») — l'hypercar en MERCURE LIQUIDE, caisse ajoutée EN DERNIER (index 75), ÉPIQUE 3 800 000 $, `SHAPES.mercure`
+Née d'une planche de concepts générés en images (session « retoucheur » : la cunéiforme, la greffée, la vitrail, LA MERCURE), puis « génère la
+mercure » (quatre vues haute qualité) et « génère-la en 3D dans mon jeu ». Le gabarit est dans le bloc `Object.assign(SHAPES,…)`, après LA DÉFERLANTE.
+- LA FORME : un loft (`S(z)`, 10 points par section) — nez en lame effilé, ailes avant plus hautes que le capot (le capot est une vallée),
+  taille de guêpe, BULLE fumée (`CAB(z)`), grosses HANCHES arrière (`XW`), poupe qui tombe. Phares en deux fentes, barre de feux sous la lèvre,
+  deux grosses sorties ouvertes à lueur violette (`pots` déclarés : pas d'entrée dans `ECH_POTS`).
+- LA MATIÈRE (`MERC_FS`) : que des REFLETS, normale de FACETTE par les dérivées (la DA poly). Le ciel reflété = le crépuscule de la Mercure
+  (`ciel()` : argent au zénith, banc violet, rose, or à l'horizon, ARÊTE NOIRE juste sous l'horizon — c'est elle qui fait le chrome —, nuages
+  roses, ombre), lu dans le repère de la CAISSE (axes passés en varyings : `modelMatrix` n'existe pas dans le fragment), mêlé à 30 % au vrai
+  ciel du niveau (`envTex`, repère du monde). La bulle = le même miroir, fumé. Un reflet blanc COURT du nez à la queue (`vL.z`).
+- LE LIQUIDE (`MERC_VS`) : ondes du nez vers la queue (calmes devant, fortes sur les hanches), le HAUT de la poupe s'étire en arrière comme
+  une goutte (la lèvre déborde au-dessus des feux) ; tout s'emballe à la nitro (`uF`).
+- LES GOUTTES : un InstancedMesh d'icosaèdres, le même miroir ; sept sources (dessus des hanches, arches arrière, lèvre de la poupe) au cap qui
+  dérive lentement = des FILETS ; elles s'étirent en partant, retombent, rapetissent, dans le repère de la caisse (en course, elles filent derrière).
+  Raccourcies après capture (elles descendaient jusqu'au bas de l'écran de poursuite). Plus nombreuses et plus longues à la nitro.
+- Vit par `BLING.anim` (jeu) et `userData.anime` (salle blanche). ⚠ GLSL : pas de `transpose`, pas de `smoothstep` à bornes inversées.
+
 ## LA PASSE UX/UI — L'ACCUEIL, LE GARAGE, L'ŒIL, LES TRANSITIONS (2026-10-11, session GRAPHISME — Sacha : « la disposition des boutons dans chaque écran est super moche, mets-toi dans la peau d'un designer UX/UI senior et règle ça page par page » · « l'accueil c'est moche, le garage est bof, plein de boutons au mauvais endroit — le bouton œil ne ressemble pas à un œil, il ne devrait pas être sur la fenêtre mais flotter, et quand on clique dessus la caméra doit recentrer sur la voiture » · « tous les boutons du garage sont à réorganiser, travaille les transitions »)
 ⚠ **LA PARTIE GARAGE EST RETIRÉE (2026-10-11, Léo : « non, celui d'avant : INVENTAIRE et BOUTIQUE en bas, ÉQUIPER au-dessus de JOUER ; l'œil et
 HOME où ils étaient ; garde juste que l'œil change le point de vue »)** : plus de grille du panneau, plus de `#gFlot`, plus de fondu de la
