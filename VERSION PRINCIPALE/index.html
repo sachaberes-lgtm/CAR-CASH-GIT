@@ -6424,6 +6424,24 @@ html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip{grid-row:1;grid-column:
 @media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
   html body #garage:not(.menu):not(.vitrine) #gRang1>:is(#gHomeBas,#gOeil){height:54px;min-height:54px}
   html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip{height:54px;min-height:54px}}
+/* (même soir, Léo, sur capture : « BOUTIQUE reste à sa place, INVENTAIRE va au-dessus de BOUTIQUE, et HOME s'élargit vers la place libérée
+   par INVENTAIRE ») : HOME, haut, sur les DEUX rangées à gauche ; INVENTAIRE au-dessus de la BOUTIQUE ; l'ŒIL au-dessus de JOUER. ACHETER
+   (quand il y a quelque chose à acheter) se range au-dessus de JOUER, à droite, et l'œil se fait étroit à sa gauche. */
+html body #garage:not(.menu):not(.vitrine) #gRang1>#gHomeBas{grid-column:1;grid-row:1/3;width:96px;height:auto;min-height:0;align-self:stretch;gap:8px}
+html body #garage:not(.menu):not(.vitrine) #gRang1>#gHomeBas .gLueur .pxi{--pxs:3}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gvCof{grid-column:2;grid-row:1}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gShopBas{grid-column:2;grid-row:2}
+html body #garage:not(.menu):not(.vitrine) #gRang1>#gOeil{grid-column:3;grid-row:1;height:auto;min-height:0;align-self:stretch}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip{grid-column:3;grid-row:1;justify-self:end;width:calc(100% - 64px);height:auto;min-height:0;align-self:stretch}
+html body #garage:not(.menu):not(.vitrine) #gAct:has(>#gEquip.achat) #gRang1>#gOeil{justify-self:start;width:44px;padding:0}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip.achat{width:calc(100% - 52px);padding:0 2px;font-size:var(--f0);letter-spacing:0}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip.achat .gEqV{letter-spacing:0}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip.achat .gEqP{font-size:var(--f1);letter-spacing:0}
+html body #garage:not(.menu):not(.vitrine) #gAct:has(>#gEquip.achat) #gRang1>#gOeil .gLueur .pxi{--pxs:2}
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html body #garage:not(.menu):not(.vitrine) #gRang1>#gHomeBas{width:88px}
+  html body #garage:not(.menu):not(.vitrine) #gRang1>:is(#gHomeBas,#gOeil){height:auto;min-height:0}
+  html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip{height:auto;min-height:0}}
 html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip:not(.achat){display:none!important} /* (2026-10-11) ÉQUIPER AU TOUCHER : le bouton ne reste que pour ACHETER */
 html body #garage:not(.menu):not(.vitrine) #gStrip .gT.c-aile.lock em{bottom:auto!important;height:auto!important} /* (2026-10-10) une AILE à vendre : le prix monte au coin haut (il s'étirait sur toute la vignette et se posait sur le nom — vu dans SEE ALL ITEMS) */
 #gStrip.fnBande .fnTout{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:10px;min-height:42px;margin:8px 2px 6px;cursor:pointer;transform:skewX(var(--sk));
