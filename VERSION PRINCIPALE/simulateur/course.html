@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Simulateur</title>
+<!-- LA COURSE DU SIMULATEUR LÉGER — tout le code est dans moteur.js, le décor dans maps/<id>.js, la liste dans maps.js. -->
+<style>
+  :root{--sys:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var(--sys);-webkit-font-smoothing:antialiased;
+    -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+  canvas{display:block}
+  .ombre{text-shadow:0 1px 2px rgba(0,0,0,.55),0 0 12px rgba(0,0,0,.35)}
+
+  #retour{position:fixed;top:max(16px,env(safe-area-inset-top));left:max(16px,env(safe-area-inset-left));width:40px;height:40px;
+    border-radius:50%;display:grid;place-items:center;background:rgba(0,0,0,.32);color:#fff;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+  #retour:hover{background:rgba(0,0,0,.5)}
+  #retour svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+  #hud{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);width:min(260px,70vw);
+    display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none}
+  #vit{display:flex;align-items:baseline;gap:6px}
+  #kmh{font-size:40px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1}
+  #vit small{font-size:13px;opacity:.75}
+  .barre{width:100%;height:4px;border-radius:2px;background:rgba(255,255,255,.22);overflow:hidden}
+  .barre i{display:block;height:100%;width:0;background:#fff;border-radius:2px}
+  .barre.nit{height:3px}
+  .barre.nit i{background:#ff8a2a}
+  .sous{width:100%;display:flex;justify-content:space-between;font-size:11px;opacity:.8;font-variant-numeric:tabular-nums}
+
+  .voile{position:fixed;inset:0;display:grid;place-items:center;text-align:center;background:rgba(0,0,0,.25)}
+  .voile>div{display:flex;flex-direction:column;align-items:center;gap:10px}
+  #nomMap{font-size:clamp(34px,7vw,64px);font-weight:750;letter-spacing:-.02em}
+  #partir{font-size:15px;font-weight:600}
+  #aide{font-size:12px;opacity:.7;margin-top:6px}
+  #pause h2{font-size:28px;font-weight:700;margin-bottom:6px}
+  .btn{height:44px;min-width:170px;padding:0 22px;border-radius:999px;border:0;font:inherit;font-size:15px;font-weight:600;cursor:pointer;
+    display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
+  .btn.plein{background:#fff;color:#111}
+  .btn.vide{background:rgba(255,255,255,.14);color:#fff}
+
+  #err{position:fixed;left:12px;right:12px;top:70px;background:#d70015;color:#fff;font:12px/1.4 ui-monospace,Menlo,monospace;padding:10px 12px;border-radius:10px;white-space:pre-wrap}
+  #dbg{position:fixed;right:12px;top:14px;font:11px ui-monospace,Menlo,monospace;opacity:.7}
+  [hidden]{display:none!important}
+</style>
+</head>
+<body>
+<a id="retour" href="../simulateur.html" aria-label="Retour aux maps"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></a>
+<div id="hud" class="ombre">
+  <div id="vit"><b id="kmh">0</b><small>km/h</small></div>
+  <div class="barre"><i id="jauge"></i></div>
+  <div class="sous"><span id="pct">0 %</span><span id="bpmL"><span id="bpm">–</span> BPM</span></div>
+  <div class="barre nit"><i id="nit"></i></div>
+</div>
+<div id="depart" class="voile ombre" hidden><div>
+  <h1 id="nomMap"></h1>
+  <p id="partir">Espace pour partir</p>
+  <p id="aide">← → tourner · Espace nitro · ↓ frein · Échap pause</p>
+</div></div>
+<div id="pause" class="voile" hidden><div>
+  <h2 class="ombre">Pause</h2>
+  <button class="btn plein" id="reprendre">Reprendre</button>
+  <a class="btn vide" href="../simulateur.html">Maps</a>
+</div></div>
+<div id="err" hidden></div>
+<div id="dbg"></div>
+<script src="../vendor/three.min.js"></script>
+<script src="maps.js"></script>
+<script src="moteur.js"></script>
+<script>document.getElementById('reprendre').addEventListener('click', () => SIMU.reprendre());</script>
+</body>
+</html>

@@ -1,5 +1,23 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LE SIMULATEUR LÉGER — `simulateur.html` (2026-10-12, Léo : « un simulateur de course léger pour aucun bug ; une interface avec les maps, leurs noms, une photo représentative et une option jouer sur la map ; chaque map n'a pas de musique pour l'instant, après il faudra associer un fichier à chaque » + son moteur de musique `french-touch.html` « à retranscrire sur la map ville pour essayer »)
+Un outil À CÔTÉ du jeu (il ne touche pas `index.html`, et ne part pas en ligne : `vercel-build.sh` le retire, comme maps-ciel).
+- SERVIR : `cd "VERSION PRINCIPALE" && python3 simulateur/serveur.py 9101` → http://127.0.0.1:9101/simulateur.html (sans cache ; reçoit les photos).
+- `simulateur.html` = la page des maps (blanche : photo · nom · JOUER · pastille de musique). `simulateur/maps.js` = LA LISTE (`MAPS` : id, nom,
+  photo, musique par défaut ; `MUSIQUES` : les musiques qu'on peut associer). Le choix fait sur la page est gardé dans ce navigateur (`simu.musiques`).
+- `simulateur/course.html?map=<id>` + `moteur.js` : une voiture en blocs, une route qui boucle (`traceEtoile` = étoile sans croisement,
+  `traceRues` = angles droits à coins de 140 m), départ sur la plus longue droite, plaques de boost. Conduite du jeu : gaz auto, le volant fait
+  tourner (lacet ≤ v/(40+0,3v)), aucune aide, ↓ frein, Espace nitro (~8 s, recharge ~10 s), hors route = chute puis dernière ligne sûre au tiers
+  de la vitesse. Croisière 360 km/h, pointe nitro 486 km/h. Tactile : moitié gauche volant, moitié droite nitro. `?debug=1` = i/s, `?photo=1` = la photo
+  de la map (posée par `D.photo`, envoyée à serveur.py → `simulateur/photos/<id>.jpg`). Console : `SIMU.etat`, `SIMU.musique()`, `SIMU.rayonMin()`.
+- `simulateur/maps/<id>.js` = UN DÉCOR (`DECORS.<id>` : piste, couleurs, ciel, brouillard, lumière, photo, `construire(o)`, `tick`). VILLE (tours en
+  blocs sur une grille de lots coupée d'avenues, néons + halos, trafic volant, pluie fixée au monde), NUAGES (cubes instanciés, mer de nuages),
+  ORBITE (étoiles, planète en blocs devant le départ, débris et satellites). Mesuré : 60 i/s, 26-36 dessins, 45-111 k triangles.
+- LA MUSIQUE D'UNE MAP = une page de musique en direct (`simulateur/musiques/*.html`) jouée TELLE QUELLE dans un cadre invisible de 8 px (pas
+  `display:none` : sa boucle d'images s'arrêterait) : au départ (le geste du joueur) on clique son `#play`, puis à chaque image on pousse son
+  `#speed` (0-100, pas libre) = vitesse ÷ 486 km/h, et on lit son `#bpm`. Une nouvelle musique doit garder ces trois id. Le French Touch de Léo
+  est sur la VILLE (copie de `~/Downloads/french-touch.html`, non modifiée) — une nouvelle version = remplacer le fichier.
+
 ## LA MERCURE v2 (2026-10-11, Léo, « retoucheur de voitures ») — l'hypercar en MERCURE LIQUIDE, caisse ajoutée EN DERNIER (index 75), ÉPIQUE 3 800 000 $, `SHAPES.mercure`
 Née d'une planche de concepts générés en images (session « retoucheur »), « génère la mercure », « génère-la en 3D dans mon jeu ». La v1 (un loft à
 facettes, comme toute la gamme) a été jugée « pas ouf, ça se sent que tu t'es appuyé sur la forme des projets précédents » → la v2 change de TECHNIQUE :

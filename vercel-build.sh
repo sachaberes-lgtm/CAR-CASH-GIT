@@ -18,6 +18,8 @@ rm -f .vercel-static/jouer/CLAUDE.md .vercel-static/jouer/README.md .vercel-stat
 rm -rf .vercel-static/jouer/atelier-son .vercel-static/jouer/sons.html
 # (2026-10-11) la page des niveaux (maps-ciel.html + son dossier : photos, serveur qui écrit sur le disque) reste un outil LOCAL
 rm -rf .vercel-static/jouer/maps-ciel.html .vercel-static/jouer/maps-ciel
+# (2026-10-12) le SIMULATEUR LÉGER (simulateur.html + son dossier : serveur qui écrit sur le disque) reste un outil LOCAL
+rm -rf .vercel-static/jouer/simulateur.html .vercel-static/jouer/simulateur
 # LA MÊME VERSION POUR TOUT LE MONDE (2026-10-01, Léo) : le commit publié est gravé dans le jeu (jeton __CC_BUILD__ de
 # index.html) et posé dans version.json ; le jeu compare les deux et se recharge tout seul s'il est en retard.
 # ⚠ (2026-10-03, Léo : « le jeu coupe bizarrement la musique ») L'EMPREINTE DU JEU, PLUS LE COMMIT : graver le commit faisait croire à une
