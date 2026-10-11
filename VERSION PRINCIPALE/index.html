@@ -28667,6 +28667,19 @@ const crV3=new THREE.Vector3(),dolUp=new THREE.Vector3(),dolQc=new THREE.Quatern
 let dolRasK=0,dolRasF=null,dolSync=false,dolSyncT=0,dolSyncVr=1,dolRigMax=0; // (v6) dolRasK : le RAS lissé qui se VOIT (0-1 ; dolRasF le force au banc) · dolSync/T/Vr : le BOND ROYAL du 6e dauphin · dolRigMax : la plus grande rotation du banc en UNE image (°, lue et remise à zéro par dbgDauphin('etat'))
 let dolCh=0,dolChF=null,dolVrS=0,dolXR=0,dolBi=0,dolHY=0;const DOLP={},DCAM=new THREE.Vector3(),DQ9=new THREE.Vector3(); // dolBi : la route où se pose le banc (graine de dalleProche) · DCAM : le regard de la caméra // dolXR : l'axe de la route en x du banc (lissé) // (2026-10-09) la CHORÉ en cours (dolChF : forcée par la console) · dolVrS : la vrille décidée pour toute la vague (sync) · DOLP : la pose de l'image
 let dolShow=0,dolIn=9,dolPart=0,dolDir=-1,dolKS=1,dolW=13; // dolShow : secondes d'affichage restantes · dolIn : secondes depuis le déclenchement · dolPart : vie restante des gerbes · dolDir : sens de traversée · dolKS/dolW : taille et demi-largeur du banc (m)
+/* (2026-10-11, Léo : « l'emplacement des dauphins, tu l'as un peu cassé — on ne les voit pas beaucoup ») — MESURÉ en vrai vol (couché) :
+   les dauphins étaient collés aux bords, souvent HORS de l'image (x jusqu'à 2,0 pour un écran de −1 à 1), sous les colonnes du HUD, et le
+   haut des sauts passait sous les barres du haut. Deux causes : l'écart sur le côté était calculé à D9 (24 m) de l'objectif, mais un saut
+   qui vient VERS la caméra (z < 0) le rapproche, et la perspective l'agrandit et le pousse dehors ; et la bande visée allait jusqu'à 90 % de
+   la demi-largeur, là où vivent l'aura, la chaîne, l'argent et NITRO. Désormais : la bande LIBRE du HUD (`x0` → `x1` de la demi-largeur),
+   l'écart ramené à la largeur vue à SA profondeur (`dolEcran`), des dauphins un cran plus grands (`k`), des sauts moins hauts (`saut`) et
+   plafonnés sous les barres du haut (`haut`, part de la demi-hauteur vue). */
+const DOL_ECR={x0:.28,x1:.62,k:.18,saut:.75,haut:.46};
+function dolEcran(P,p,D9,hv,k){ // la pose de la choré → À L'IMAGE : l'écart sur le côté à la profondeur du dauphin, le haut du saut sous le HUD
+  const pz=Math.max(.35,(D9+P.z)/D9);P.x*=pz;
+  let a=P.amp*DOL_ECR.saut;const lim=DOL_ECR.haut*pz*hv-dolHY-.45*k;if(P.base+a>lim)a=Math.max(P.amp*.3,lim-P.base);
+  P.amp=a;P.y=P.base+P.arc*a;P.pitch=Math.atan2(Math.cos(p*Math.PI)*a*Math.PI,P.hz*.8);
+  const cp=Math.cos(P.pitch);P.nx=cp*Math.cos(P.yaw);P.ny=Math.sin(P.pitch);P.nz=-cp*Math.sin(P.yaw);}
 function updateDolphins(dt,photo){
   if(paused&&!photo)return; // (2026-09-29) la PAUSE fige le banc : il nageait (et s'usait) derrière le panneau — `photo` : le pas à pas de dbgDolView
   if(dolShow<=0&&dolPart<=0){if(dolphinRig.visible)dolphinRig.visible=false;return;} // rien à montrer : zéro draw call
@@ -28689,7 +28702,7 @@ function updateDolphins(dt,photo){
   { // LA ROUTE NE SE TRAVERSE PAS : sa hauteur dans le repère du banc, et la tranche de ses sauts (−2k … +4,2k) qui doit l'éviter de 2 m
     let y9=0;const bi=dalleProche(dolphinRig.position.x,dolphinRig.position.y,dolphinRig.position.z,2,1e9,dolBi);
     if(bi>=0&&bi<NP){dolBi=bi;frameAt(bi/(NP-1)*L+crV3.subVectors(dolphinRig.position,pts[bi]).dot(T[bi]),FDOL);
-      crV3.setFromMatrixColumn(camera.matrixWorld,1);const hr=crV3.dot(DQ9.subVectors(FDOL.p,dolphinRig.position)),k9=dolKS,lo=-2*k9,hi=4.2*k9;
+      crV3.setFromMatrixColumn(camera.matrixWorld,1);const hr=crV3.dot(DQ9.subVectors(FDOL.p,dolphinRig.position)),k9=dolKS,lo=-2*k9,hi=3.3*k9; // (11/10) hi 4,2 → 3,3 : les sauts sont moins hauts (DOL_ECR.saut)
       if(hr>lo-2&&hr<hi+2){const dessus=DQ9.subVectors(camera.position,FDOL.p).dot(FDOL.n)>0;y9=dessus?(hr+2)-lo:-(hi-(hr-2));}}
     dolHY=dolIn===0?y9:dolHY+(y9-dolHY)*(1-Math.exp(-dt*4));}
   crV3.setFromMatrixColumn(camera.matrixWorld,1);
@@ -28704,8 +28717,8 @@ function updateDolphins(dt,photo){
      LE BANC LONGE LA ROUTE : on mesure où passe son axe (en x du banc) et les dauphins nagent DE PART ET D'AUTRE, hors du bitume
      (dolChorePose, R = demi-bitume + 2 m). Le banc se pose assez loin devant pour que les deux bords tiennent dans l'écran. */
   dolXR=0;
-  const hv=D9*tanV,hw=hv*camera.aspect,R9=.38*hw,KU9=Math.max(.2,(.9*hw-R9)/10), // R9 : le bord du « couloir » du milieu, interdit · KU9 : l'unité des écarts (x 0…10 → jusqu'au bord de l'écran)
-        kT=THREE.MathUtils.clamp(.12*Math.min(hv,hw),.6,3),wT=Math.min(6*kT,(D9-10)/1.6); // (le saut le plus long part de −1,6 W : jamais à moins de 10 m de l'objectif) // un dauphin ≈ un huitième de la plus petite dimension · un saut ≈ 4 longueurs, dans la profondeur
+  const hv=D9*tanV,hw=hv*camera.aspect,R9=DOL_ECR.x0*hw,KU9=Math.max(.2,(DOL_ECR.x1*hw-R9)/10), // R9 : le bord du « couloir » du milieu, interdit · KU9 : l'unité des écarts (x 0…10 → le bord de la bande libre du HUD)
+        kT=THREE.MathUtils.clamp(DOL_ECR.k*Math.min(hv,hw),.6,3.4),wT=Math.min(6*kT,(D9-10)/1.6); // (le saut le plus long part de −1,6 W : jamais à moins de 10 m de l'objectif) // un dauphin ≈ un huitième de la plus petite dimension · un saut ≈ 4 longueurs, dans la profondeur
   dolPod.position.set(0,dolHY,0); // relevé (ou abaissé) pour ne jamais toucher la route
   dolPod.getWorldPosition(crV1);
   dolUp.set(0,1,0).applyQuaternion(dolphinRig.quaternion);const surf0=dolUp.dot(crV1); // la SURFACE de l'eau : le plan du banc, à la hauteur de chaque gerbe
@@ -28737,7 +28750,7 @@ function updateDolphins(dt,photo){
       else{let vr9=0;for(const o of dolphins)if(o!==d&&o.visible&&o.userData.vr)vr9=1;u.vr=!vr9&&Math.random()<(C.vr||0)?(Math.random()<.5?1:-1):0;}} // sinon, à la chance de la choré, jamais deux à la fois
     if(go9){u.p=-.12;u.sy=1;u.vr=dolSyncVr;} // (v6) …puis les six percent ENSEMBLE, même tempo, même vrille
     const p=u.p,vis=p>-.18&&p<1.18;d.visible=vis; // la surface le coupe : il est « là » dès que le rostre peut la percer
-    const P9=dolChorePose(C,i9,b,p,k,W,dir,DOLP,R9,dolXR,KU9,.8*hw),arc=P9.arc,amp=P9.amp,base=P9.base,x=P9.x,y=P9.y,z=P9.z; // (2026-10-09) la pose vient de la CHORÉ
+    const P9=dolChorePose(C,i9,b,p,k,W,dir,DOLP,R9,dolXR,KU9,.8*hw);dolEcran(P9,p,D9,hv,k);const arc=P9.arc,amp=P9.amp,base=P9.base,x=P9.x,y=P9.y,z=P9.z; // (2026-10-09) la pose vient de la CHORÉ
     const above=y>base+.15*k&&p>0&&p<1;
     if(above!==u.up){dolGerbe(x,base+.05*k,z,(above?1.2:.9)*b.scale*(u.sy?1.4:1),k,gK);dolPart=1.3;u.up=above;} // on JAILLIT / on REPLONGE → gerbe (v6 : plus fournie au ras, plus haute au bond royal)
     if(!vis)continue;
@@ -30102,7 +30115,7 @@ window.dbgDolView=function(i,a,d,h,pas,ph){ // `ph` : on nage jusqu'à ce que le
 window.dbgDauphin=function(a,b,c,d){
   if(a==='force'){DAUPH.force=(b==null?null:!!b);return DAUPH.force;}
   if(a==='ecran'){const v=new THREE.Vector3();return {ch:DOL_CHORE[dolCh].n,kS:+dolKS.toFixed(2),W:+dolW.toFixed(1),xr:+dolXR.toFixed(1),pod:dolPod.position.toArray().map(x=>+x.toFixed(1)),
-    d:dolphins.map(d=>{if(!d.visible)return null;d.getWorldPosition(v);const dc=+v.distanceTo(camera.position).toFixed(0);v.project(camera);return [+v.x.toFixed(2),+v.y.toFixed(2),dc];})};} // (2026-10-09) où sont les dauphins À L'ÉCRAN (−1…1) et à quelle distance
+    d:dolphins.map(d=>{if(!d.visible)return null;d.getWorldPosition(v);const dc=v.distanceTo(camera.position);v.project(camera);return [+v.x.toFixed(2),+v.y.toFixed(2),Math.round(dc),Math.round(DOL_L*d.scale.x/dc*VP.h/(2*Math.tan(camera.fov*Math.PI/360)))];})};} // [x, y, distance, longueur à l'écran en px] // (2026-10-09) où sont les dauphins À L'ÉCRAN (−1…1) et à quelle distance
   if(a==='boom'){explode();return window.dbgState();}
   if(a==='etat'){const r9={on:dolOn,aura:+dolAura.toFixed(1),mul:+dolMul.toFixed(2),q:+dolQ.toFixed(2),nb:dolNb,fig:trkDolph,hF:+dolDist().toFixed(1),flow:+FLOW.v.toFixed(1),mode:mode,
     rasT:+dolRasT.toFixed(2),rasK:+dolRasK.toFixed(2),rim:+DOL_U.uRimK.value.toFixed(2),rigMax:+dolRigMax.toFixed(1)};dolRigMax=0;return r9;} // (v6) rasT : secondes au ras (figure à 1) · rasK : le ras qui se voit · rigMax : la plus grande rotation du banc en une image depuis la dernière lecture (°) // (v5) le dauphin au banc : aura, vitesse, qualité
@@ -34037,7 +34050,8 @@ function addTrick(id,txt,val,tier,raw,free){ // raw : échelles qui grimpent dé
      (1 133 → 1 138), figure à 1,35 s au lieu de 0,98 ; à 3,2 m 661 → 674 ; à 6 m 548 → 526 ; vol flottant de 3 s culminant à 8 m (route qui
      descend sous la caisse) 527 → 501, figure à 2,6 s. ⚠ Le verdict MONSTRE de la pose, lui, vient du RASE-DALLE d'argent (`chainVal`,
      bloc de vol, 2,2-12 m) : il reste sur tout saut au-dessus de la route (hors de ce lot : il porte les pièces MOTEUR et le nitro de la pose). */
-const DOL_T=0,DOL_VU=2.6,DOL_HMAX=40,DOL_TMAX=4,DOL_GRACE=.12,DOL_FIGE=.6,DOL_FIG=1,DOL_PAS=1,
+const DOL_T=0,DOL_VU=2.6,DOL_HMAX=40,DOL_TMAX=4,DOL_GRACE=.12,DOL_FIGE=.6,DOL_FIG=1,DOL_PAS=.6, // (11/10) DOL_PAS 1 → ,6 (la valeur de Sacha) : un seul dauphin, c'est un écran vide chaque fois qu'il replonge
+     
       DOL_AURA0=80,DOL_AURA_S=0,DOL_AURA_RAS=190,DOL_AURA_MAX=1200,DOL_FLOW_K=4,DOL_FLOW_MAX=6,
       DOL_RAS_H=6.5,DOL_RAS_T0=.35,DOL_AURA_NUE=.5,DOL_AURA_MIN=10; // (v6) le RAS de la figure (m), sa porte (fallT), la part de la nage SANS figure, la plus petite ligne écrite
 let dolRoadT=0,dolOffT=0,dolOn=false,dolAura=0,dolMul=1,dolHudT=0,dolLive=0,dolNb=1,dolQ=0,dolRasT=0,dolRasV=0; // (v6) dolRasT : secondes AU RAS dans ce vol (la figure) · dolRasV : la proximité de l'image (0-1) que le banc montre
@@ -34060,7 +34074,7 @@ function dolTick(dt,sur,hF){ // chaque image de VOL, avant tryLand (radar = imag
       dolMul+=(dolVitMul()-dolMul)*Math.min(1,dt*4); // (v5) la vitesse, relue en continu (lissée : un coup de nitro se sent en ~0,25 s)
       dolQ+=ras*ras*(.3+.7*Math.max(0,Math.min(1,(dolMul-.6)/1.5)))*dt; // (v5) la QUALITÉ du geste : au ras ET vite — elle fera le flow
       dolAura=Math.max(dolAura,Math.min(DOL_AURA_MAX*dolMul,dolAura+(DOL_AURA_S+DOL_AURA_RAS*ras*ras)*(1+.375*(dolNb-1))*dolMul*dt)); // (v5) jamais de recul : la vitesse qui retombe baisse le plafond, pas le gagné
-      dolShow=Math.max(dolShow,.7); // ils nagent tant qu'on reste près de la route ; à la sortie, le fondu de 0,4 s d'updateDolphins
+      dolShow=Math.max(dolShow,1.4); // ils nagent tant qu'on reste près de la route ; à la sortie (la pose comprise) encore 1,4 s (11/10 : ,7 — ils filaient à l'atterrissage), dont le fondu de 0,4 s d'updateDolphins
       dolHudVal();if(!DAUPH.enVol&&!PARK.on&&Math.round(dolAura*(trkDolph?1:DOL_AURA_NUE))>=DOL_AURA_MIN)dolHudVol(); // (v7) l'aura MONTE sous les yeux pendant que les dauphins nagent
     }
   }else{

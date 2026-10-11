@@ -162,6 +162,19 @@ plafonds de lacet et de tangage, vol libre, vrille visuelle, drift = un geste. C
   `_capture-maps.html` (index.html + `window.__cap` : sansFin, zone, nu, trace, vue, etat ; les niveaux 6-10 remis dans CETTE copie seulement)
   servie à côté d'index.html, Chrome sans fenêtre muet, splash touché par un VRAI clic (sinon `start()` refuse : `#splash` existe encore),
   `dbgCampagne(n)` (`dbgCampagne(n,1)` = VILLE n) / `__cap.sansFin()` puis `__cap.zone(z)`, `dbgNet(true)` + `dbgAuto(true,0)`, 5 s, photo. Copie supprimée après.
+## LES DAUPHINS À L'IMAGE (2026-10-11, Léo : « l'emplacement des dauphins dans l'expérience, tu l'as un peu cassé — on ne les voit pas beaucoup »)
+- MESURÉ en vrais vols (banc : décollages `dbgDauphin(impU,60,0,0)` sous bouclier, `dbgDauphin('ecran')` = [x, y, distance, longueur en px]) :
+  AVANT, couché, 34 % des dauphins vus dans la zone libre du HUD et 28 % HORS de l'image (x jusqu'à 2,0). Causes : le banc vit dans le
+  repère de la caméra à D9 = 24 m, mais l'écart sur le côté était calculé à cette profondeur — un saut qui vient vers la caméra le
+  rapproche et la perspective le poussait dehors ; la bande visée allait jusqu'à 90 % de la demi-largeur (sous l'aura, la chaîne, l'argent,
+  NITRO) ; le haut des sauts passait sous les barres du haut ; un seul dauphin pendant la 1re seconde (écran vide à chaque plongée) ; le banc
+  filait 0,7 s après la pose.
+- `DOL_ECR` {x0 .28, x1 .62 : la bande libre, en demi-largeur vue · k .18 : la taille (était .12) · saut .75 : la hauteur des sauts · haut .46 :
+  le plafond, en demi-hauteur vue} et `dolEcran(P,p,D9,hv,k)` (appelée sur la pose de la choré dans `updateDolphins`) : l'écart ramené à la
+  largeur vue à la profondeur du dauphin, l'arc écrasé s'il passerait sous le HUD du haut (tangage recalculé). `DOL_PAS` 1 → ,6 (la valeur de
+  Sacha), `dolShow` ≥ 1,4 s après la sortie (était ,7). Chorés, route jamais traversée (`dolHY`), LE PONT / LES CISEAUX : inchangés.
+- APRÈS : couché 86 % dans la zone libre, 2 % hors image, ~80 px de long (médiane) ; debout 94 %, 0 %, ~103 px ; ~1,8× plus de dauphins vus par vol.
+
 ## LE DAUPHIN DE RÊVE + LA BOÎTE À DAUPHINS (2026-10-09, Léo : « retouchons les dauphins, envoie-moi dans une boîte blanche avec les dauphins, on va les design » — puis une image de grand dauphin pastel : « travaille encore plus dur »)
 - **LA BOÎTE** : `boite-dauphins.html` (à côté d'index.html, servie par `python3 -m http.server`, jamais en double-clic). Elle LIT et exécute le
   VRAI bloc du jeu (de `const DOL_L=` à `const dolphinRig=`) et le RELIT ~1 fois/s : une retouche du dauphin dans index.html apparaît sans
