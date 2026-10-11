@@ -6796,75 +6796,47 @@ html.hubOn:not(.poki) body #carr .mDock{justify-content:flex-start!important}
 </style>
 <style id="nitroEclair">
 /* =====================================================================================================================================
-   LE BOUTON NITRO v3 — L'ÉCLAIR 3D, LA JAUGE QUI FAIT LE TOUR, LE COMPTEUR À AIGUILLE (2026-10-12, Léo : « retouche du nitro : à la
-   place du carré, un éclair 3D brillant, qui s'intensifie au toucher, en parallèle d'une jauge qui fait le tour, placée de manière à la
-   voir par-dessus le pouce qui appuie, avec un compteur de vitesse qui affiche à combien tu vas, un peu à l'ancienne, à aiguille »).
-   · LE CADRAN (`.nx3`, bâti par nx3Monte) : un rond d'encre ; la JAUGE NITRO en arc de 240°, OUVERT EN BAS À DROITE — c'est par là
-     qu'arrive le pouce droit : il ne couvre que le trou, l'arc se lit à gauche et au-dessus, même en appuyant. Les bandes de la barre
-     NITRO (lèvre claire, plein, ourlet sombre), la réserve bleue derrière l'orange, le curseur blanc au bout.
-   · LE COMPTEUR : graduations et chiffres (en CENTAINES de km/h, la zone rouge au bout) à l'intérieur de l'arc ; l'AIGUILLE rouge, sur
-     ressort (elle dépasse un peu, bute et tremble au-delà du dernier chiffre), part SOUS le moyeu — l'éclair en est le cache.
-   · L'ÉCLAIR : un vrai éclair 3D (extrudé, chanfreins à facettes, or poli), calculé UNE fois au menu en images de balancement, froid
-     et chauffé à blanc (nx3Cuire) — en course, deux drawImage dans une petite toile : zéro programme, zéro rendu 3D de plus.
-   Les anciens morceaux du bouton (`.pxi`, le mot, `.nxJauge`, `.nxArt`) restent dans la page, éteints. La boucle pose toujours `--nr`,
-   `--nx`, `.plein/.bas/.bleu/.inf` et bindHold `.on` : le cadran s'en sert.
+   LE BOUTON NITRO v3 — L'ÉCLAIR 3D, ET LA VITESSE AU BOUT DE LA BARRE DE BOOST (2026-10-12, Léo : « à la place du carré, un éclair 3D
+   brillant, qui s'intensifie au toucher » ; puis, le soir même : « abandonne la jauge bizarre, mets juste la vitesse de la voiture à côté
+   de la jauge boost » — le cadran rond, son arc et son aiguille sont retirés).
+   · LE BOUTON : plus de plaque — un vrai éclair 3D (extrudé, chanfreins à facettes, or poli), calculé UNE fois au menu en images de
+     balancement, froid et chauffé à blanc (nx3Cuire) ; en course, deux drawImage dans une petite toile : zéro programme, zéro rendu 3D de
+     plus. Un disque d'encre flou derrière le détache des ciels clairs. Au toucher il chauffe, grossit, tremble, crépite ; halo à la couleur
+     de la poussée (--nc : orange, bleue, violette, rouge à sec — posée par les classes de la boucle).
+   · LA VITESSE (`#nxVit`, dans #nitroBar) : au bout de la barre de boost, comme le ×CASH au bout de la barre du flow juste dessous (la
+     barre se raccourcit d'autant : les deux lignes ont la même forme). Typo ombrée du HUD ; elle passe à la couleur de la poussée.
    ===================================================================================================================================== */
-html body.touch{--nxD:136px}
+html body.touch{--nxD:96px;--nxV:58px}
 html body.touch #tNitro,html body.touch #tNitro:active,html body.touch #tNitro.on{width:var(--nxD)!important;height:var(--nxD)!important;padding:0!important;margin:0!important;
   border:0!important;border-radius:50%!important;display:block!important;background:none!important;box-shadow:none!important;transform:none!important;
   filter:none!important;clip-path:none!important;overflow:visible!important;animation:none!important;transition:none!important;opacity:1!important}
-html body.touch #tNitro{right:calc(var(--hudD) + 2px)!important;bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 8px)!important}
 html body.touch #tNitro>.pxi,html body.touch #tNitro>span,html body.touch #tNitro>.nxJauge,html body.touch #tNitro>.nxArt,html body.touch #tNitro::before{display:none!important}
 html body.coNitro #tNitro::after{inset:-6px!important;border-radius:50%!important}
 .nx3{position:absolute;inset:0;pointer-events:none}
-.nx3>*{position:absolute;pointer-events:none}
-.nx3Cad{left:0;top:0;width:100%;height:100%;overflow:visible}
-/* la face : un rond d'encre, plus sombre au centre (on lit les chiffres sur n'importe quel ciel), cerclé du cadre indigo de la barre */
-.nx3Fond{fill:url(#nx3Face)}
-.nx3Bord{fill:none;stroke:var(--jEncre);stroke-width:2.4}
-/* la JAUGE : piste d'encre, puis l'orange en trois bandes, la réserve bleue derrière, le curseur blanc */
-.nx3Piste{fill:none;stroke:var(--jFond);stroke-width:13.5}
-.nx3J path,.nx3Lueur,.nx3Inf,.nx3Curs{fill:none;stroke-linecap:butt}
-.nx3J .e{stroke-width:7}.nx3J .l{stroke-width:2.2}.nx3J .s{stroke-width:2.8}
-.nx3Or .e{stroke:var(--nP)}.nx3Or .l{stroke:var(--nL)}.nx3Or .s{stroke:var(--nO)}
-.nx3Bl .e{stroke:var(--bP)}.nx3Bl .l{stroke:var(--bL)}.nx3Bl .s{stroke:var(--bO)}
-.nx3Curs{stroke:var(--jCurs);stroke-width:12}
-.nx3Lueur{stroke:var(--nc,var(--nP));stroke-width:20;opacity:0}
-.nx3Inf{stroke:rgba(255,255,255,.5);stroke-width:7;stroke-dasharray:4 5;opacity:0}
-/* le COMPTEUR : graduations claires, zone rouge au bout, chiffres en police pixel cernés d'encre */
-.nx3Tq line{stroke:#e9e4ff;stroke-width:1.3}
-.nx3Tq line.m{stroke-width:2.4}
-.nx3Tq line.r{stroke:var(--rP)}
-.nx3Tq text{font-family:var(--pix);font-size:8px;fill:#f3efff;text-anchor:middle;dominant-baseline:central;paint-order:stroke;stroke:var(--jInk);stroke-width:2.6px;stroke-linejoin:round}
-.nx3Tq text.r{fill:var(--rL)}
-.nx3Kmh{font-family:var(--pix);font-size:8px;fill:#a99be0;text-anchor:middle;dominant-baseline:central;letter-spacing:.5px}
-/* l'AIGUILLE : rouge, effilée, pointe claire — elle tourne autour du centre (transform posé par nx3Tick) */
-.nx3Aig{left:50%;top:50%;width:7px;height:calc(var(--nxD) * .405);margin-left:-3.5px;margin-top:calc(var(--nxD) * -.405);transform-origin:50% 100%;
-  background:linear-gradient(0deg,#9e0f1c 0,#ff2f3a 45%,#ff6a4a 84%,#fff1dc 84%);clip-path:polygon(50% 0,100% 100%,0 100%);will-change:transform}
-/* le MOYEU : le cache de l'aiguille, laqué ; son liseré prend la couleur de la nitro (--nc : orange, bleue, violette, rouge à sec) */
-.nx3Moy{left:50%;top:50%;width:calc(var(--nxD) * .45);height:calc(var(--nxD) * .45);margin:calc(var(--nxD) * -.225) 0 0 calc(var(--nxD) * -.225);border-radius:50%;
-  background:radial-gradient(circle at 38% 28%,#43358a 0,#1c1150 42%,#0b0726 100%);
-  box-shadow:inset 0 0 0 2px var(--jEncre),0 0 0 2px var(--nP),0 3px 0 2px var(--jEncre);
-  box-shadow:inset 0 0 0 2px var(--jEncre),0 0 0 2px color-mix(in srgb,var(--nc,var(--nP)) 80%,transparent),0 3px 0 2px var(--jEncre)}
-/* le HALO derrière l'éclair : il monte avec l'appui (opacité posée par nx3Tick) */
-.nx3Halo{left:50%;top:50%;width:calc(var(--nxD) * .7);height:calc(var(--nxD) * .7);margin:calc(var(--nxD) * -.35) 0 0 calc(var(--nxD) * -.35);border-radius:50%;opacity:0;will-change:opacity;
-  background:radial-gradient(circle,rgba(255,236,190,.9) 0,rgba(255,141,46,.5) 34%,rgba(255,141,46,0) 70%);
-  background:radial-gradient(circle,color-mix(in srgb,var(--nc,var(--nP)) 30%,#fff) 0,color-mix(in srgb,var(--nc,var(--nP)) 55%,transparent) 34%,transparent 70%)}
+.nx3>*{position:absolute;pointer-events:none;left:50%;top:50%;border-radius:50%}
+/* le disque d'ENCRE : flou, il assombrit juste ce qu'il faut derrière l'or pour qu'il se lise sur n'importe quel ciel */
+.nx3Encre{width:calc(var(--nxD) * .92);height:calc(var(--nxD) * .92);margin:calc(var(--nxD) * -.46) 0 0 calc(var(--nxD) * -.46);
+  background:radial-gradient(circle,rgba(13,10,42,.62) 0,rgba(13,10,42,.42) 38%,rgba(13,10,42,0) 70%)}
+/* le HALO : il monte avec l'appui (opacité posée par nx3Tick) */
+.nx3Halo{width:calc(var(--nxD) * 1.25);height:calc(var(--nxD) * 1.25);margin:calc(var(--nxD) * -.625) 0 0 calc(var(--nxD) * -.625);opacity:0;will-change:opacity;
+  background:radial-gradient(circle,rgba(255,236,190,.9) 0,rgba(255,141,46,.5) 30%,rgba(255,141,46,0) 68%);
+  background:radial-gradient(circle,color-mix(in srgb,var(--nc,var(--nP)) 30%,#fff) 0,color-mix(in srgb,var(--nc,var(--nP)) 55%,transparent) 30%,transparent 68%)}
 /* l'ÉCLAIR : la toile où nx3Tick pose l'image du moment */
-.nx3Ecl{left:50%;top:50%;width:calc(var(--nxD) * .58);height:calc(var(--nxD) * .58);margin:calc(var(--nxD) * -.29) 0 0 calc(var(--nxD) * -.29);will-change:transform}
-/* PLEIN : la jauge bat doucement · À SEC : la piste clignote rouge · NITRO INFINIE : la jauge pleine passe au violet et FILE */
-html body.touch #tNitro.plein:not(.on) .nx3Lueur{animation:nx3Bat 1.1s var(--ease,ease) infinite}
-@keyframes nx3Bat{0%,100%{opacity:0}50%{opacity:.32}}
-html body.touch #tNitro.bas:not(.inf) .nx3Piste{animation:nx3Sec .6s steps(2) infinite}
-@keyframes nx3Sec{50%{stroke:var(--rS)}}
-html body.touch #tNitro.inf .nx3J path{stroke-dasharray:none!important}
-html body.touch #tNitro.inf .nx3Or .e{stroke:var(--vP)}html body.touch #tNitro.inf .nx3Or .l{stroke:var(--vL)}html body.touch #tNitro.inf .nx3Or .s{stroke:var(--vO)}
-html body.touch #tNitro.inf .nx3Bl,html body.touch #tNitro.inf .nx3Curs{display:none}
-html body.touch #tNitro.inf .nx3Inf{opacity:1;animation:nx3File .25s linear infinite}
-html body.touch #tNitro.inf .nx3Lueur{stroke-dasharray:none!important;animation:nx3Bat .7s var(--ease,ease) infinite}
-@keyframes nx3File{to{stroke-dashoffset:-9}}
-@media (prefers-reduced-motion:reduce){html body.touch #tNitro .nx3Lueur,html body.touch #tNitro .nx3Piste,html body.touch #tNitro .nx3Inf{animation:none!important}}
-html[data-reduced-motion] body.touch #tNitro .nx3Lueur,html[data-reduced-motion] body.touch #tNitro .nx3Piste,html[data-reduced-motion] body.touch #tNitro .nx3Inf{animation:none!important}
+.nx3Ecl{width:var(--nxD);height:var(--nxD);margin:calc(var(--nxD) * -.5) 0 0 calc(var(--nxD) * -.5);border-radius:0!important;will-change:transform}
+/* LA VITESSE : la barre de boost laisse la place au bout, le chiffre s'y range (km/h dessous) */
+html body.touch #nitroWrap{padding-right:var(--nxV)!important}
+html body.touch #nitroBar>#nxVit{position:absolute;left:100%;top:50%;width:var(--nxV);transform:translateY(-50%);box-sizing:border-box;padding-left:7px;
+  display:flex;flex-direction:column;align-items:flex-end;line-height:1;pointer-events:none;font-family:var(--pix);white-space:nowrap}
+#nxVit b{font-weight:normal;font-size:14px;line-height:1.1;letter-spacing:0;text-shadow:none;color:#fff;
+  color:transparent;-webkit-text-fill-color:transparent;-webkit-background-clip:text;background-clip:text;filter:var(--contourP);
+  background-image:linear-gradient(180deg,#ffffff 0 22%,#ece6ff 22% 50%,#c9bcff 50% 82%,#9a8ae6 82%)}
+#nxVit i{font-style:normal;font-size:8px;letter-spacing:1px;margin-top:2px;color:#b9adf0;filter:var(--contourP)}
+#nxVit.on b{background-image:linear-gradient(180deg,#fff3dc 0 22%,var(--nL) 22% 50%,var(--nP) 50% 82%,var(--nS) 82%)}
+#nxVit.bleu b{background-image:linear-gradient(180deg,#eef2ff 0 22%,var(--bL) 22% 50%,var(--bP) 50% 82%,var(--bS) 82%)}
+#nxVit.inf b{background-image:linear-gradient(180deg,#fbf3ff 0 22%,var(--vL) 22% 50%,var(--vP) 50% 82%,var(--vS) 82%)}
+#nxVit.on i{color:var(--nL)}#nxVit.bleu i{color:var(--bL)}#nxVit.inf i{color:var(--vL)}
+/* iOS < 16.2 (pas de color-mix, voir hudDA §7) : un texte découpé dans son fond peut disparaître — couleur pleine cernée d'encre */
+@supports not (color:color-mix(in srgb,red 50%,blue)){#nxVit b{color:#fff;-webkit-text-fill-color:#fff;background:none}}
 </style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
@@ -44308,52 +44280,30 @@ function pickupsTick(dt){
   }
 }
 /* =====================================================================================================================================
-   LE BOUTON NITRO v3 — L'ÉCLAIR 3D, LA JAUGE QUI FAIT LE TOUR, LE COMPTEUR À AIGUILLE (2026-10-12, Léo) — voir <style id="nitroEclair">.
-   · nx3Monte : bâtit le cadran DANS #tNitro (une fois) : face, jauge en arc, graduations, aiguille, moyeu, halo, toile de l'éclair.
+   LE BOUTON NITRO v3 — L'ÉCLAIR 3D, ET LA VITESSE AU BOUT DE LA BARRE DE BOOST (2026-10-12, Léo) — voir <style id="nitroEclair">.
+   (Le soir même, Léo : « abandonne la jauge bizarre, mets juste la vitesse de la voiture à côté de la jauge boost » — le cadran rond,
+   sa jauge en arc et son aiguille sont retirés ; la jauge de boost, c'est la barre du haut.)
+   · nx3Monte : pose, une fois, l'éclair DANS #tNitro (disque d'encre, halo, toile) et la vitesse `#nxVit` au bout de #nitroBar.
    · nx3Cuire : l'éclair 3D, rendu UNE fois (au menu, ~1 s après le lancement) par le renderer du jeu dans un petit tampon, en NX3.N
      images de balancement × 2 états (froid · chauffé à blanc), relues et rangées dans une planche 2D. Ses programmes (Phong à facettes +
      reflet) sont libérés aussitôt : en course il n'y a RIEN de 3D en plus — la toile du bouton recopie une case de la planche.
-   · nx3Tick (dans la boucle, à côté de --nr/--nx) : l'aiguille sur son ressort, la jauge (seulement quand elle change), l'éclair (30 i/s
-     au repos, 60 quand on appuie), son halo, ses arcs électriques. Rien ne tourne hors course (`body.play`).
+   · nx3Tick (dans la boucle, à côté de --nr/--nx) : la vitesse (12 fois par seconde, seulement si elle change), l'éclair (30 i/s au
+     repos, 60 quand on appuie), son halo, ses arcs électriques. Rien ne tourne hors course (`body.play`).
    Console : `dbgNitro3()` (état) · `dbgNitro3({…})` re-cuit l'éclair avec d'autres réglages (NX3P) · `dbgNitro3('k',1)` force l'appui.
    ===================================================================================================================================== */
-const NX3={el:null,w:null,cv:null,cx:null,aig:null,moy:null,halo:null,or:null,bl:null,lu:null,inf:null,curs:null,grad:null,
-  atlas:null,cuit:0,N:24,C:192,K:12,ph:0,k:0,kF:null,a:-1,va:0,max:0,maxT:0,stp:100,fr:-1,fx:-1,t:0,gl:-1,glT:1.6,arcT:0,arcN:0,arcs:new Float32Array(2*7*2),
-  rs:0x2f6b1d3,px:0,pxW:0,tr:'',hop:-1,A0:105,SP:240,R:60.5};
+const NX3={el:null,cv:null,cx:null,halo:null,vit:null,vN:null,v:-1,vT:0,vc:null,kmh:0,
+  atlas:null,cuit:0,N:24,C:192,K:12,ph:0,k:0,kF:null,t:0,gl:-1,glT:1.6,arcT:0,arcN:0,arcs:new Float32Array(2*7*2),rs:0x2f6b1d3,px:0,pxW:0,dpr:0,hop:-1};
 const NX3P={col:0xffa818,em:0x3a1000,spec:0xffffff,sh:140,refl:.5,colC:0xffe27a,emC:0xd86400,spC:0xffffff,
   cle:1.45,rim:1.1,amb:.5,yaw:-.42,amp:.27,pit:.16,roll:.12,fov:26,dist:6.6};
-const NX3_RAD=Math.PI/180;
-function nx3Arc(r){const a0=NX3.A0*NX3_RAD,a1=(NX3.A0+NX3.SP)*NX3_RAD;
-  return 'M'+(r*Math.cos(a0)).toFixed(2)+' '+(r*Math.sin(a0)).toFixed(2)+'A'+r+' '+r+' 0 1 1 '+(r*Math.cos(a1)).toFixed(2)+' '+(r*Math.sin(a1)).toFixed(2);}
 function nx3Monte(){
-  const el=document.getElementById('tNitro');if(!el||NX3.el)return!!NX3.el;NX3.el=el;
-  const R=NX3.R,b=function(c){return '<g class="nx3J '+c+'"><path class="l" d="'+nx3Arc(R+3.4)+'"/><path class="e" d="'+nx3Arc(R)+'"/><path class="s" d="'+nx3Arc(R-3.1)+'"/></g>';};
+  const el=document.getElementById('tNitro'),bar=document.getElementById('nitroBar');if(!el||!bar||NX3.el)return!!NX3.el;NX3.el=el;
   const w=document.createElement('div');w.className='nx3';w.setAttribute('aria-hidden','true');
-  w.innerHTML='<svg class="nx3Cad" viewBox="-68 -68 136 136"><defs><radialGradient id="nx3Face" cx=".5" cy=".5" r=".5">'+
-    '<stop offset="0" stop-color="#0b0726" stop-opacity=".96"/><stop offset=".6" stop-color="#120a36" stop-opacity=".92"/><stop offset="1" stop-color="#0d0a2a" stop-opacity=".86"/></radialGradient></defs>'+
-    '<circle class="nx3Fond" r="67"/><circle class="nx3Bord" r="67"/><path class="nx3Piste" d="'+nx3Arc(R)+'"/><path class="nx3Lueur" d="'+nx3Arc(R)+'"/>'+b('nx3Or')+b('nx3Bl')+
-    '<path class="nx3Inf" d="'+nx3Arc(R)+'"/><path class="nx3Curs" d="'+nx3Arc(R)+'"/><g class="nx3Tq"></g></svg>'+
-    '<i class="nx3Aig"></i><i class="nx3Moy"></i><i class="nx3Halo"></i><canvas class="nx3Ecl"></canvas>';
-  el.appendChild(w);NX3.w=w;
-  const q=function(s){return w.querySelector(s);},L=function(p,r){p._L=r*NX3.SP*NX3_RAD;return p;};
-  NX3.or=[...w.querySelectorAll('.nx3Or path')];NX3.bl=[...w.querySelectorAll('.nx3Bl path')];
-  for(const g of [NX3.or,NX3.bl]){L(g[0],R+3.4);L(g[1],R);L(g[2],R-3.1);}
-  NX3.lu=L(q('.nx3Lueur'),R);NX3.curs=L(q('.nx3Curs'),R);NX3.grad=q('.nx3Tq');
-  NX3.aig=q('.nx3Aig');NX3.moy=q('.nx3Moy');NX3.halo=q('.nx3Halo');NX3.cv=q('.nx3Ecl');NX3.cx=NX3.cv.getContext('2d');
+  w.innerHTML='<i class="nx3Encre"></i><i class="nx3Halo"></i><canvas class="nx3Ecl"></canvas>';el.appendChild(w);
+  NX3.halo=w.querySelector('.nx3Halo');NX3.cv=w.querySelector('.nx3Ecl');NX3.cx=NX3.cv.getContext('2d');
+  const v=document.createElement('div');v.id='nxVit';v.setAttribute('aria-hidden','true');v.innerHTML='<b>0</b><i>KM/H</i>';bar.appendChild(v);
+  NX3.vit=v;NX3.vN=v.firstChild;
   addEventListener('resize',function(){NX3.px=0;});
   return true;
-}
-/* LES CHIFFRES DU COMPTEUR : en CENTAINES de km/h (un ou deux chiffres : ils tiennent entre le moyeu et les graduations), le pas choisi
-   pour 4 à 7 chiffres. MESURÉ au banc (pilote, moteur de départ → palier 5) : sans nitro la caisse roule à ~1 × vmaxShow × FLOW_VREF
-   (264 → 354 km/h) ; la nitro tenue l'emmène à ~2,7 × (949 km/h). Le dernier chiffre est à 2,6 × : la croisière tombe vers 40 % du
-   cadran, la nitro pousse l'aiguille dans la zone rouge, jusqu'à la butée. */
-function nx3Grad(max,st){
-  let h='';const n=Math.round(max/st*2);
-  for(let i=0;i<=n;i++){const v=i*st/2,f=v/max,a=(NX3.A0+NX3.SP*f)*NX3_RAD,c=Math.cos(a),s=Math.sin(a),maj=!(i&1),r0=maj?45.5:48.5,r1=53,rg=f>.82?' r':'';
-    h+='<line class="'+(maj?'m':'')+rg+'" x1="'+(c*r0).toFixed(1)+'" y1="'+(s*r0).toFixed(1)+'" x2="'+(c*r1).toFixed(1)+'" y2="'+(s*r1).toFixed(1)+'"/>';
-    if(maj)h+='<text class="'+rg+'" x="'+(c*38).toFixed(1)+'" y="'+(s*38).toFixed(1)+'">'+(v/100)+'</text>';}
-  h+='<text class="nx3Kmh" x="45" y="47">'+(st>=1000?'×1000':'×100')+'</text>';
-  NX3.grad.innerHTML=h;
 }
 /* L'ÉCLAIR 3D, CUIT UNE FOIS. Le contour reprend l'éclair du HUD (pente, marche au milieu, pointe en bas à gauche) ; l'extrusion et ses
    chanfreins à FACETTES (la DA poly des caisses) ; or poli qui renvoie un petit studio (cube peint ici, indépendant du ciel du niveau). */
@@ -44409,35 +44359,22 @@ function nx3Tick(dt,kmh){
   if(!document.body.classList.contains('play'))return;
   if(!NX3.atlas)nx3Cuire();
   if(!NX3.px||NX3.dpr!==window.devicePixelRatio)nx3Toile(); // la densité change aussi sans resize (zoom de la colonne, rotation)
-  const T=ENGINE_TIERS[engTier]||ENGINE_TIERS[0],mx=T.res||2,inf=pwrNitroT>0;
-  // LA JAUGE (comme l'ancienne : la part du réservoir en orange, la réserve bleue derrière) — seulement quand elle bouge
-  const fr=inf?1:Math.round(Math.min(1,nitroR/mx)*200)/200,fx=inf?0:Math.round(Math.min(1-fr,nitroX/2)*200)/200;
-  if(fr!==NX3.fr||fx!==NX3.fx){NX3.fr=fr;NX3.fx=fx;
-    for(const p of NX3.or)p.style.strokeDasharray=(fr*p._L).toFixed(2)+' '+(p._L+2).toFixed(2);
-    for(const p of NX3.bl)p.style.strokeDasharray='0 '+(fr*p._L).toFixed(2)+' '+(fx*p._L).toFixed(2)+' '+(p._L+2).toFixed(2);
-    const L=NX3.lu._L,ft=fr+fx;NX3.lu.style.strokeDasharray=(ft*L).toFixed(2)+' '+(L+2).toFixed(2);
-    NX3.curs.style.display=ft>.01&&ft<.995?'':'none';NX3.curs.style.strokeDasharray='1.8 '+(L+4).toFixed(2);NX3.curs.style.strokeDashoffset=(-(ft*L-.9)).toFixed(2);}
-  // LES CHIFFRES suivent la caisse : le cadran va un cran au-dessus de sa croisière (refait seulement quand le moteur monte)
-  NX3.maxT-=dt;
-  if(NX3.maxT<=0||!NX3.max){NX3.maxT=.5;const raw=Math.max(300,vmaxShow()*FLOW_VREF*2.6);let st=100;for(const s of [100,200,500,1000,2000]){st=s;if(raw/s<=7)break;}
-    const max=Math.ceil(raw/st)*st;if(max!==NX3.max){NX3.max=max;NX3.stp=st;nx3Grad(max,st);}}
-  // L'AIGUILLE : un ressort (elle dépasse un peu et revient), elle BUTE au-delà du dernier chiffre et tremble ; à haute vitesse elle vibre
-  NX3.kmh=kmh;const f=Math.max(0,kmh||0)/NX3.max,fc=Math.min(f,1.025);NX3.t+=dt;
-  let cible=NX3.A0+NX3.SP*fc;if(f>1.02)cible+=Math.sin(NX3.t*61)*1.3;else if(f>.6)cible+=Math.sin(NX3.t*43)*.35*(f-.6)/.4;
-  if(NX3.a<0){NX3.a=NX3.A0;NX3.va=0;}
-  const h=Math.min(dt,.05),w0=17;NX3.va+=(w0*w0*(cible-NX3.a)-2*.48*w0*NX3.va)*h;NX3.a+=NX3.va*h;
-  const tr='rotate('+(NX3.a-270).toFixed(1)+'deg)';if(tr!==NX3.tr){NX3.tr=tr;NX3.aig.style.transform=tr;}
+  const inf=pwrNitroT>0,plein=inf||(nitroR+nitroX)>=((ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2)-.01;NX3.t+=dt;
+  // LA VITESSE : 12 fois par seconde au plus, et seulement si le chiffre change (un texte réécrit = un recalcul de style) ; sa couleur suit la poussée
+  NX3.kmh=kmh;NX3.vT-=dt;
+  if(NX3.vT<=0){NX3.vT=.08;const v=Math.round(Math.max(0,kmh||0));if(v!==NX3.v){NX3.v=v;NX3.vN.textContent=v;}}
+  const vc=inf?'inf':(nitroOn?(nitroBlue?'bleu':'on'):'');if(vc!==NX3.vc){NX3.vc=vc;NX3.vit.className=vc;}
   // L'APPUI : l'éclair chauffe (fondu vers l'image chauffée à blanc), grossit, tremble, crache des arcs ; le halo monte avec lui
   const veut=NX3.kF!=null?NX3.kF:(nitroOn?1:((keys.Space||keys.ShiftLeft||keys.ShiftRight||NX3.el.classList.contains('on'))?.35:0)); // à sec, l'appui ne fait qu'une étincelle
   NX3.k+=(veut-NX3.k)*Math.min(1,dt*(veut>NX3.k?14:5));const k=NX3.k<.003?0:NX3.k;
   const rm=REDUCED_MOTION||document.documentElement.hasAttribute('data-reduced-motion');
   NX3.ph=(NX3.ph+(rm?0:dt/(2.8-1.9*k)))%1;
-  // le REFLET qui passe sur l'or : toutes les ~3,5 s (1,6 s quand la jauge est pleine)
+  // le REFLET qui passe sur l'or : toutes les ~3,5 s (1,6 s quand la nitro est pleine)
   NX3.glT-=dt;if(NX3.gl<0&&NX3.glT<=0&&!rm){NX3.gl=0;}
-  if(NX3.gl>=0){NX3.gl+=dt/.55;if(NX3.gl>1){NX3.gl=-1;NX3.glT=fr+fx>=.99?1.6:3.5;}}
+  if(NX3.gl>=0){NX3.gl+=dt/.55;if(NX3.gl>1){NX3.gl=-1;NX3.glT=plein?1.6:3.5;}}
   const hop=Math.round(veut*2+k*8);
   if(k>0||NX3.gl>=0||NX3.hop!==hop||(NX3.t%(1/30))<dt){NX3.hop=hop;nx3Dessine(k,rm,inf);}
-  const ho=Math.min(1,k*(.75+.25*Math.sin(NX3.t*37))+((fr+fx>=.99&&!k)?.12+.08*Math.sin(NX3.t*5.7):0));
+  const ho=Math.min(1,k*(.75+.25*Math.sin(NX3.t*37))+((plein&&!k)?.12+.08*Math.sin(NX3.t*5.7):0));
   if(Math.abs(ho-(NX3.halo._o||0))>.01){NX3.halo._o=ho;NX3.halo.style.opacity=ho.toFixed(2);}
 }
 function nx3Dessine(k,rm,inf){
@@ -44467,7 +44404,7 @@ setTimeout(function(){try{if(!NX3.atlas&&(!started||gameOver))nx3Cuire();}catch(
 window.dbgNitro3=function(a,b){
   if(a==='k'){NX3.kF=b==null?null:+b;return NX3.kF;}
   if(a&&typeof a==='object'){Object.assign(NX3P,a);NX3.cuit=0;nx3Cuire();if(NX3.cx)nx3Dessine(NX3.k,false,pwrNitroT>0);return Object.assign({},NX3P);}
-  return {monte:!!NX3.el,cuit:!!NX3.atlas,max:NX3.max,pas:NX3.stp,aiguille:+NX3.a.toFixed(1),k:+NX3.k.toFixed(2),jauge:[NX3.fr,NX3.fx],toile:NX3.px,image:Math.floor(NX3.ph*NX3.N),kmh:Math.round(NX3.kmh||0),ref:Math.round(vmaxShow()*FLOW_VREF),vmaxPartie:Math.round(runStats.vmax||0),palier:engTier,nitro:nitroOn};
+  return {monte:!!NX3.el,cuit:!!NX3.atlas,k:+NX3.k.toFixed(2),toile:NX3.px,image:Math.floor(NX3.ph*NX3.N),kmh:Math.round(NX3.kmh||0),affiche:NX3.v,couleur:NX3.vc,nitro:nitroOn};
 };
 function loopWarn(b,nom,e){if(!((loop._crWarn|0)&b)){console.warn('créatures/musique · '+nom,e);loop._crWarn=(loop._crWarn|0)|b;}} // (2026-09-30) un bit par appel gardé : chaque panne se dit UNE fois, sans masquer celle du voisin
 function loop(now){
@@ -45984,7 +45921,7 @@ function loop(now){
      // L'ANNEAU DU BOUTON NITRO : la même réserve, en arc autour du pouce
      const mx9=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,r9=Math.round(Math.min(1,nitroR/mx9)*100)/100,x9=Math.round(Math.min(1,nitroX/2)*100)/100;
      if(elNB&&(loop._nbr!==r9||loop._nbx!==x9)){loop._nbr=r9;loop._nbx=x9;elNB.style.setProperty('--nr',r9);elNB.style.setProperty('--nx',x9);}}
-    try{nx3Tick(dt,speedKmh);}catch(e){loopWarn(256,'nitro 3D',e);} // (2026-10-12, Léo) LE BOUTON NITRO v3 : l'éclair 3D, la jauge qui fait le tour, le compteur à aiguille
+    try{nx3Tick(dt,speedKmh);}catch(e){loopWarn(256,'nitro 3D',e);} // (2026-10-12, Léo) LE BOUTON NITRO v3 : l'éclair 3D, la vitesse au bout de la barre de boost
     // chip des POUVOIRS actifs : compte à rebours coloré au-dessus de la jauge nitro
     let pch='';
     // (2026-09-26, user : « le power-up affiché EN GROS avec un timer en temps réel ») : une plaque par pouvoir — bâtie quand la liste change,
