@@ -4,6 +4,7 @@ Sert le dossier du jeu (VERSION PRINCIPALE) SANS cache et SANS le service worker
 rechargement. Et trois choses en plus, pour la musique des niveaux :
   · GET  simulateur/musiques.json         → la BIBLIOTHÈQUE : tout ce qui est dans simulateur/musiques/ (.html à jauge, .js module) ;
   · GET/POST simulateur/choix-musiques.json → LE CHOIX niveau → musique, écrit sur le DISQUE (pas dans le navigateur) ;
+  · GET/POST simulateur/play.json         → L'ORGANISATEUR DU PLAY : { pool: {niveau: dans le tirage ?}, noms: {niveau | map:id: nom} } ;
   · POST simulateur/musiques/<fichier>    → ajoute une musique glissée sur la page des maps.
 
     cd "VERSION PRINCIPALE" && python3 simulateur/serveur.py 9101
@@ -15,6 +16,7 @@ ICI = os.path.dirname(os.path.abspath(__file__))
 RACINE = os.path.dirname(ICI)
 MUSIQUES = os.path.join(ICI, 'musiques')
 CHOIX = os.path.join(ICI, 'choix-musiques.json')
+PLAY = os.path.join(ICI, 'play.json')
 
 
 def nom_de(fichier):
@@ -53,7 +55,7 @@ class Main(http.server.SimpleHTTPRequestHandler):
         if p == '/simulateur/musiques.json':
             liste = sorted(f for f in os.listdir(MUSIQUES) if f.endswith(('.html', '.js')) and not f.startswith('.'))
             return self._json([{'fichier': 'musiques/' + f, 'nom': nom_de(f)} for f in liste])
-        if p == '/simulateur/choix-musiques.json' and not os.path.exists(CHOIX):
+        if (p == '/simulateur/choix-musiques.json' and not os.path.exists(CHOIX)) or (p == '/simulateur/play.json' and not os.path.exists(PLAY)):
             return self._json({})
         super().do_GET()
 
@@ -67,10 +69,16 @@ class Main(http.server.SimpleHTTPRequestHandler):
                 assert isinstance(d, dict) and all(isinstance(k, str) and isinstance(v, str) for k, v in d.items())
             except Exception:
                 return self._json({'ok': False, 'erreur': 'choix illisible'}, 400)
-            with open(CHOIX + '.tmp', 'w', encoding='utf-8') as f:
-                json.dump(d, f, ensure_ascii=False, indent=1, sort_keys=True); f.write('\n')
-            os.replace(CHOIX + '.tmp', CHOIX)
-            return self._json({'ok': True})
+            return self._ecrit(CHOIX, d)
+        if p == '/simulateur/play.json':
+            try:
+                d = json.loads(corps.decode('utf-8'))
+                pool, noms = d.get('pool', {}), d.get('noms', {})
+                assert isinstance(pool, dict) and all(isinstance(k, str) and isinstance(v, bool) for k, v in pool.items())
+                assert isinstance(noms, dict) and all(isinstance(k, str) and isinstance(v, str) and len(v) <= 60 for k, v in noms.items())
+            except Exception:
+                return self._json({'ok': False, 'erreur': 'organisation illisible'}, 400)
+            return self._ecrit(PLAY, {'pool': pool, 'noms': noms})
         m = re.fullmatch(r'/simulateur/musiques/([^/]+\.(?:html|js))', p)
         if m and corps:
             nom = re.sub(r'[^\w.\- ]', '', m.group(1)).strip().replace(' ', '-').lower()
@@ -80,6 +88,12 @@ class Main(http.server.SimpleHTTPRequestHandler):
                 f.write(corps)
             return self._json({'ok': True, 'fichier': 'musiques/' + nom, 'nom': nom_de(nom)})
         self._json({'ok': False}, 404)
+
+    def _ecrit(self, chemin, d):
+        with open(chemin + '.tmp', 'w', encoding='utf-8') as f:
+            json.dump(d, f, ensure_ascii=False, indent=1, sort_keys=True); f.write('\n')
+        os.replace(chemin + '.tmp', chemin)
+        return self._json({'ok': True})
 
     def end_headers(self):
         self.send_header('Cache-Control', 'no-store')

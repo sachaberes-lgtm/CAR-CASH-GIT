@@ -12,6 +12,41 @@
   `.nbPrend`, un éclat au bout du plein seulement. Gains < 0,03 (rase-bord) : directs, sans éclat.
 - 12 en vol au plus, au-delà / « Réduire les animations » / hors course : direct. Console `dbgVols()` · `dbgVols('a'|'n'|'x',q)` ·
   `dbgVols('ralenti',.1)` (le ralenti du banc). Comparaison : `photos-gameplay/comparaison-gains-qui-flottent.jpg` (CAR CAHS V3).
+## LE NIVEAU « SOLEIL DE JADE » — la map des PICS DE JADE en vrai niveau, au simulateur (2026-10-12, Léo : « là, il n'y a pas de fruits, tout ça : fais-en un niveau complet avec ses aspects — fruits custom, pièces ¥ yuan yen — qu'on ajoute au système audio pour tester, référencé par un nom que tu choisis »)
+- La map (section « LES PICS DE JADE » plus bas, branche `map-jade` FUSIONNÉE dans le main ce jour-là) a désormais deux usages : la BALADE
+  `?map=jade` (la voiture seule, inchangée) et le NIVEAU **SOLEIL DE JADE** (`JADE_NOM` ; nom choisi par Claude — la map, elle, reste
+  « PICS DE JADE »). `JADE_JEU` (let) : lvlChoisir rend NIV_JADE, la piste garde ses plaques, flaques, plots et 2e vague (`JADE9` ne coupe
+  plus rien), spawnPickups pose pièces, fruits et pouvoirs, HUD et mort normaux ; l'arrivée = `jadeFinale` (ARRIVÉE + le temps, le niveau
+  repart sur place). Lancement : `dbgNiveauJade()` (le chemin de la carrière : la piste sous le voile, l'atelier, le lâcher) ou `?niveau=jade`.
+  `carrLancerSous` remet JADE_JEU à faux.
+- LES PIÈCES ¥ : `coinPeint(sym)` redessine la texture 16 × 16 de la pièce (canvas `COIN_CV`) — au SOLEIL DE JADE (`coinSymbole`, appelé
+  par buildJade) un « ¥ » en vert sombre sur un champ de JADE, tranche d'OR (une pièce d'or se perdait sur la route en pièces d'or) ;
+  « $ » partout ailleurs. Le HUD garde « $ » (la police pixel n'a pas le ¥).
+- LES FRUITS DU NIVEAU (fin de FRUIT_DEFS, `freq:0` + `jf` = leur fréquence au SOLEIL DE JADE ; `fruitPick` ne tire QUE ceux-là là-bas, et
+  jamais ailleurs) : LITCHI (écorce en écailles, tige, feuille), KAKI (aplati à quatre lobes, calice à quatre sépales), PITAYA (rose, écailles
+  à pointe verte), MANGOUSTAN (pourpre, gros calice vert). Palette `jl*/jk*/jp*/jm*` dans FRUIT_PAL, outils `frH(K)` (ceux des fruits
+  d'origine). RICH_FRUIT_R allongé.
+- AU SIMULATEUR : la map « PICS DE JADE », niveau « SOLEIL DE JADE » (`lance:{jade:true}` → dbgNiveauJade, simulateur/maps.js et course.html),
+  photo `maps-ciel/img/jade-volant.jpg`. Pas de musique par défaut : Léo choisit (pastille ♪).
+- (12/10, Léo : « plus de zoom, plutôt des pièces ARGENTÉES, comme celles qu'on connaît, avec un CARRÉ au milieu ; le ciel plus ORANGÉ »)
+  la route (style 4) = des pièces d'ARGENT à TROU CARRÉ, 1,5 × plus grandes (Ø 1,9-2,3 m), chacune sa nuance et l'angle de son carré ;
+  plus d'étoile. Le ciel : orange du soir (jdH/jdM/jdL orange, zénith bleu-mauve), brume et lumière orangées.
+- (12/10 soir, Léo : « le ciel, un mélange de gris, bleu, orangé ; le bord de la route pas tout lisse, ce sont les PIÈCES qui DÉPASSENT ;
+  lance-le comme la map qui se déclenche quand on appuie sur JOUER, avec CETTE musique-là ; on retouchera la map directement sur le main »)
+  · LE JOUER (accueil `mTap('play')` et garage `garJouer`) lance le SOLEIL DE JADE (`jadeJouer`, `jadePlayOk` : `JADE_PLAY`, pas Poki, pas
+    le parc/Survivant armés, et JAMAIS pour un tout premier joueur : l'auto-école d'abord). `?play=sansfin` (ou `carriere`) rend l'ancien JOUER
+    — le simulateur charge le jeu avec `?play=sansfin` et lance le jade par `dbgNiveauJade` (= jadeJouer).
+  · SA MUSIQUE : GLISSE V2 (choix de Léo au simulateur, choix-musiques.json) — la COPIE `assets/audio/music/musique-glisse-v2.js` (le
+    simulateur est retiré du site : si Léo retouche son module, recopier le fichier ici). `JMUS` : chargé dès le démarrage (import dynamique),
+    joue tant que la course tourne (pause, mort, menu, appli cachée, interrupteur MUSIQUE : il se tait), intensité = 5 paliers (moteurs 1-5 ·
+    6-10 · 11-15 · 16-20 · 21-30 → setTier(P, 5)), volume = curseur MUSIQUE (VOL.mus/.62) ; la radio se tait sur ce niveau (musicPlayCurrent,
+    musicNext, frenMus). Réveillé dans le geste du JOUER, relancé une fois au 1er toucher (Safari). Console `dbgJadeMus()`.
+  · LE CIEL : orange en bas, un gris chaud au milieu, gris-bleu en haut (sat 1,08).
+  · LES PIÈCES DU BORD (`jadePiecesBord`, `JADE_PB`, `JADE.decoPieces`, route style 4 seulement) : de vraies pièces d'argent à trou carré
+    (disque à 12 pans + tranche, la texture percée : alphaTest) tous les ~1,2 m de chaque bord, à cheval sur l'arête, penchées, une sur sept
+    avec une autre de biais dessus ; tronçons de 700 m dessinés à moins de 450 m. `dbgJadePoste('bordPieces',on)`, vue `dbgJadeVue('bord')`.
+- Banc : `dbgJadePoste('ramasse')` (pièces, fruits par nom, pouvoirs, plots, plaques, flaques). MESURÉ : 650 pièces, ~16 fruits, 20 pouvoirs,
+  300 plots, 8 plaques par passage ; en course : pièces ramassées, défis (« EAT 4 FRUITS »), paliers moteur, aimant, jus des fruits.
 
 ## LA JAUGE D'AURA (le format de la barre flow d'origine), LE FLOW EN TOUT PETIT, LA BARRE DE BOOST RAYÉE (2026-10-12, Léo : « la jauge flow devient une jauge AURA, qui se remplit en fonction de combien on se rapproche de l'aura moyenne ; le flow juste en dessous, plus petit mais branché ; les + aura se dirigent et remplissent la barre aura » ; puis « l'aura même taille, format et couleur au début que la barre flow de la v1 ; en dessous le flow encore plus petit ; je préfère les barres d'avant avec les barres diagonales, juste en plus bossé »)
 - CSS `<style id="auraJauge">` (juste après nitroEclair) ; JS « LA JAUGE D'AURA ET L'AURA QUI VOLE DEDANS » avant `loopWarn` (`AJ`, `ajMoy`,
@@ -88,6 +123,16 @@ Un outil À CÔTÉ du jeu, qui ne refait RIEN : il lance LE JEU (`index.html`, s
     tirer la FORCE (jaune), AUTO rend la main ; « + » = le vrai moteur jusqu'au 1er moteur du palier suivant (`dbgMoteur()` en rafale : une
     seule carte). ⚠ Les `const` du jeu (ENGINE_TIERS…) ne se lisent PAS depuis la page (`w.eval` → ReferenceError) : dbgState / dbg* seulement. La pastille ♪ de la course change la musique EN DIRECT et l'écrit sur le disque. Les modules restent créés (`MODS`, un
     contexte audio chacun) : y revenir reprend le même.
+  · **L'ORGANISATEUR DU PLAY** (12/10, Léo : « tu es mon organisateur de map aléatoire pour le bouton PLAY ; laisse renommer si jamais je
+    veux, et ajoute la nouvelle map ») — `simulateur/play.json` sur le DISQUE (`POST` par le serveur) : `pool` {niveau: dans le tirage ?}
+    (sans réglage : `play` de sa map — VILLE, SKY HIGH, PICS DE JADE oui, la partie sans fin non) et `noms` {niveau | `map:`+id: nom}.
+    Page des maps : pastille PLAY par niveau (hors tirage = carte pâle), un NOM (niveau ou map) se renomme d'un clic (Entrée garde, Échap
+    annule, vide = l'origine, en capitales), bouton PLAY (avec le compte) = `course.html?play=1` : les niveaux du tirage au hasard, chacun
+    sa musique, sans redite dans un tour (le tour suivant ne recommence pas par le dernier), partie finie → le suivant ; ⏭ = `dbgBoom()`
+    puis le suivant. La partie sans fin après un autre niveau RECHARGE le jeu (son JOUER rejouerait la carrière ou la jade) : un toucher.
+    Vérifié : VILLE 1 → 5 → 3 (renommé) → SKY HIGH 2 → JADE → SKY HIGH 5 (carrLancer remet JADE_JEU à faux), musique suivie.
+    ⚠ Le jeu se met en PAUSE quand l'onglet est caché (visibilitychange) : un ⏭ pendant la pause attend la reprise.
+    ⚠ `choix-musiques.json` et `play.json` sont les DONNÉES de Léo (pas commitées tant qu'il range) — ne pas les écraser en test.
   · `?muet=1` (bancs) : la `destination` de chaque contexte audio passe par un gain nul (page, module, cadre de la page à jauge).
     `SIMU.musique()` = le pilote (MUS.inst = le module en cours).
 
@@ -124,11 +169,26 @@ sans que Léo le demande. **Puis (même jour, Léo)** : le coin `#gCoin` (HOME +
 comme avant ; HOME + l'ŒIL dans `#gRang1` (créé au démarrage, colonnes d'INVENTAIRE + BOUTIQUE, 48 px, HOME un peu plus long, textures : rayures
 bleues / trame orange) ; changer d'onglet TOURNE la caisse (`garTourneVers`, `GAR_TAB_ANG` : TRAÎNÉES 3,5 · PEINTURE ,42 · AILES 1,2) ; ÉQUIPER AU TOUCHER (`garEquipeCaisse`, `garEquipeHabit` : une
 caisse ou un habillage à toi s'équipe quand on le touche, un achat équipe) — `#gEquip` n'apparaît plus que pour ACHETER. Ce qui suit décrit la passe d'origine.
+**L'INVENTAIRE D'ARRIVÉE (2026-10-12, Léo)** : le garage s'ouvre sur l'INVENTAIRE (`gGarageInv`, `#garage.modeInv`), les cinq touches dessous (HOME · INVENTAIRE au-dessus de BOUTIQUE · l'œil · JOUER) ;
+INVENTAIRE ne devient plus RETOUR ; BOUTIQUE → ◀ RETOUR, les autres touches s'effacent, RETOUR ramène à l'inventaire. Le rappel OFFRES ÉPHÉMÈRES (`#gRappel`)
+reste sous l'inventaire debout, masqué couché (pas la place). Le garage replié (`gGarageReplie`) n'est plus appelé.
+**L'ATELIER FERMÉ (même soir)** : INVENTAIRE touché (`gAtelier`, `GATL`, `#garage.atelierInv`) → la porte descend (`GATL.cs` dans garPorte), une lampe descend du plafond et
+s'allume (clé `stallKey` au-dessus, tubes baissés, cône + flaque additifs), une PINCE par roue sort du plateau (colonne, barre en travers de la jante, griffes
+jaunes, diode verte = tenue ; `garPincesPose` lit `wheels`) ; ni burn-out ni coup ; INVENTAIRE devient ◀ RETOUR à gauche, le reste s'efface, l'inventaire en grille
+de trois. `garAtelierTick` après les lampes de garageRender. Banc : `dbgAtelierInv(1|0)` (⚠ `dbgAtelier` est un autre crochet).
 TOUT le rangement vit dans **`<style id="uxPasse">`**, la DERNIÈRE feuille de la page (juste après `<style id="poki">`) : retirer le bloc = revenir.
 Le HTML, les identifiants et les écouteurs ne bougent pas, sauf HOME et l'œil (voir plus bas). Règles : on LIT en haut, on TOUCHE en bas ; un
 rôle = une place ; l'action principale = l'unique plaque d'or ; mêmes hauteurs sur une rangée ; 44 px au doigt ; la VUE flotte sur la scène,
 la CAISSE vit dans le panneau. Pas de Poki (`html:not(.poki)`), pas de vitrine de Léo (`?menu=leo`).
-- **ACCUEIL** (`#mHome.acc2`, seulement `:is(.on,.sort)` — en `display:grid!important` permanent il recouvrait les autres écrans) : `.mOutils`
+- **ACCUEIL v2 (2026-10-12, Sacha sur capture : « c'est quoi cette merde » — les portes se chevauchaient, les mots débordaient — puis
+  « JOUER doit revenir en mode flottant comme avant », GARAGE · RÉGLAGES · OFFRES « plus petits, en icônes », « le logo est trop rose,
+  remets l'ancien »)** : une grille de 5 — CARRIÈRE · MISSIONS (portes à mot) puis GARAGE · OFFRES · ⚙ en ICÔNES carrées (54 px, 46 debout
+  ≤ 400 px), et JOUER FLOTTANT dessous (le mot d'or en cubes, sans plaque). Les cinq plaques penchent autour de leur CENTRE
+  (`transform-origin:50% 50%`) : chacune penchait autour d'un point différent et leurs coins se touchaient. LE LOGO : « la brillance du
+  logo » (Léo, 98b905c : CAR du corail au violet) est neutralisée dans la couche — dégradés `.lg.gold` / `.lg.grad` et reflet `lgShine`
+  d'origine, lueur sur le titre. (Les flammes derrière le logo, retirées par Léo dans le même commit, ne sont PAS revenues.) La v1
+  ci-dessous (quatre portes égales + JOUER en plaque d'or) est REMPLACÉE.
+- *(v1, remplacée)* **ACCUEIL** (`#mHome.acc2`, seulement `:is(.on,.sort)` — en `display:grid!important` permanent il recouvrait les autres écrans) : `.mOutils`
   et `.mAccP` en `display:contents`, leurs boutons dans UNE grille de 12 : rangée 1 = GARAGE · CARRIÈRE · MISSIONS · OFFRES (la barre MISSIONS
   de 28 px devient une porte) ; rangée 2 = ⚙ + JOUER, la plaque d'OR de #gJouer (valeurs lues au navigateur ; lettres sombres). Debout : logo
   en tête, rangées au pied. Couché : bloc à droite centré en hauteur, logo posé dessus (Léo), 30 px sous le logo.
@@ -470,6 +530,262 @@ plafonds de lacet et de tangage, vol libre, vrille visuelle, drift = un geste. C
   pente LINÉAIRE en z pour garder les pavés de glaçage plans ; ailes +8 cm au-dessus des roues ; jupes −7 cm) ; `NY_BAS` ,25 → ,33 (le
   pneu rentre dans l'aile), `NY_VOIE` ,76 (roues, pattes, ancrages) ; équipement posé hors déformation : lame, longue-portée jaunes,
   bavettes (la plaque « 61 » des portières : retirée le jour même, Léo). Puis « un peu plus volumineuse » : NY_K ,86, NY_TASSE ,84 (pente ,08), NY_AILE ,12, NY_VOIE ,79. L'ancienne version : `index-avant-rallye` n'est pas gardée — `git show 386bace:"VERSION PRINCIPALE/index.html"`.
+## LES PICS DE JADE + LA BALADE `?map=jade` (2026-10-09, Léo, branche `map-jade`, worktree `~/Downloads/CAR-jade`)
+Léo, trois images (les piliers de grès de Zhangjiajie couronnés de pins, un pic du Huangshan peint aux bleus-verts minéraux sur une mer de
+nuages, les mêmes piliers noyés de brume) : « travaille sur une nouvelle map inspirée de ça, vas-y à fond » — puis « donne-moi la capacité
+d'aller dans cette map avec une voiture, la mobilité comme le main, mais seulement ça : pas de jeu, que la voiture dans la map ».
+- **LA BALADE** (`BALADE`, posé après `IS_MOBILE` ; `?map=jade` ou `?balade=1`, marche aussi dans le cadre iPhone de l'ordi) : l'intro
+  s'efface seule, le PLAY part tout seul (`baladeDepart` → `playViaGarage`, le vrai départ : le piqué depuis le ciel), `lvlChoisir` rend
+  toujours `NIV_JADE` (chaque portail = une autre vallée, graine neuve). Rien sur la route (`spawnPickups` sort, `LIGNE.on` faux, pads /
+  flaques / plots sautés par `JADE9` dans buildTrack, pas de pigeons), le HUD du jeu masqué (`BALADE_CSS` : il reste la nitro, ⏸, le volant),
+  le bac à sable (`SANDBOX=BALADE` : une mort = un replacement), ni chrono de vol ni mort à l'arrêt, la nitro se recharge seule, le moteur
+  fixé (`BALADE_MOTEUR`, V6 biturbo = 8, `?moteur=n`), RIEN n'est écrit (`SAVE.flush/mark` neutralisés, leçon et question du mode sautées),
+  pas de rechargement automatique. ⚠ Le jeu normal n'est pas touché (tout est gardé par `BALADE` ou `piste==='jade'`), et la map n'est PAS
+  dans le cycle des niveaux ni dans la carrière (à décider avec Léo / Sacha).
+- **LA MAP** (bloc « LES PICS DE JADE », juste avant `buildVoxCity`) : `genJade(rnd)` (le ruban qui serpente, R 280-700 m, cap ±85°,
+  relief doux, aplani sous les monuments) ; `buildJade(seed)` (appelée en fin de buildTrack) : ~1 200 PILIERS (4 gabarits taillés à
+  cannelures + 1 léger au loin, trois rangs en touffes le long de la route + la forêt au large jusqu'à 2,5 km), ~1 800 PINS du Huangshan
+  (plateaux d'aiguilles), ~3 000 TOUFFES (couronnes et parois), 14 PAVILLONS vermillon, ~300 nappes de BRUME en billboard. RÈGLE D'OR : un
+  pilier qui croiserait la route passe 45 m SOUS la dalle. LA PORTE DU CIEL (`jadePorte` : muraille percée — Shape + Extrude — d'une arche
+  de 176 m, rognée si la route repasse derrière, + un massif de piliers soudés) et LE PONT DU CIEL (`jadePont` : arche naturelle 72-150 m
+  au-dessus de la route, entre deux piliers). Matière à elle (`JADE_VS/FS`, normales plates par dérivées, strates, coulures, mousse, le pied
+  dans la brume), tri par quartiers de 360 m (`jadeTri`, chaîné sur onBeforeRender), `jadeTick`, `jadeHeurt` (en vol : pilier, muraille,
+  arche → `explode('pic')`), `grueTick` (des vols de GRUES en V). Ciel : `BIOMES.jade` + la couche `COUCHES.jade` du dôme (`jadeCiel` :
+  rouleau peint, 4 rangées de monts, mer de nuages en plan ; `uJade`, programme PLEIN forcé). Route : `ROUTE_JADE` (gris de pierre), rails jade.
+- **v2 EN CUBES** (même jour, Léo : « couleurs plus similaires à l'image, et les montagnes fabriquées en pixels, comme du Minecraft art
+  mais plus beau ») : toute la pierre est bâtie en CUBES de `VX` = 6 m. `voxPilier` (10 gabarits `JADE_TPL`, bâtis couche par couche :
+  corniches, cannelures, herbe sur ce qui regarde le ciel, touffes de feuillage, buissons accrochés, coulées de rouille), `voxMesh`
+  (maillage GLOUTON + occlusion aux coins façon « smooth lighting »), `voxDemi` (deux niveaux de détail, cubes de 12 et 24 m — bandes
+  `JADE_LOD`), pins en cubes de 2 m (`voxPin`), pavillons en cubes de 1,5 m (`voxPavillon`), la Porte et le Pont en grilles de cubes
+  (`jadeRepere`). Piliers posés sur la trame du monde, rotations par quarts de tour. Matière `JADE_VOX_VS/FS` : texture PIXEL calculée
+  (8 × 8 texels par face), strates par couche du monde, biseau des blocs, lumière « de bloc », détail fondu au loin. Collision = les
+  cubes (`jadePilierDans`, `jadeDansGrille`, 5 points de caisse). Ciel : les rangées de monts EN PIXELS (trame `.0045` rad). Couleurs
+  recalées sur les photos (brume blanc-bleuté, lumière diffuse, grès gris pâle, verts francs, rouille saumon). MESURÉ : 60 i/s, ~420 000
+  triangles et ~33 appels de rendu visibles, construction ~0,3 s (dont 0,16 s de gabarits, une fois par session) ; `dbgJadeHeurt('test')`
+  sur 3 vallées : cubes durs, arche et dessous du pont libres, AUCUN point de la route (dessus ni dessous) dans un cube.
+- **v3 — LA ROCHE DE WUKONG, LES MONTAGNES QUI FLOTTENT** (même soirée, Léo : « copie plutôt Wukong que Minecraft » puis « pour ce niveau
+  pas de base : les montagnes sont hautes, elles flottent ; la répartition est déjà pas mal ; il n'y a que du ciel et de la mer ») — la v2 en
+  cubes est REMPLACÉE (elle reste dans l'historique, e18c44d). `rocPilier` : 8 gabarits en mètres (`JADE_TPL` rayon/hauteur/sorte, 190 → 540 m
+  de haut), grille cylindrique déformée (strates/corniches, fissures verticales qui serpentent, bruit fin) et un DESSOUS en pointe bosselée
+  et décentrée ; occlusion cuite (`aAO`) ; table de rayons `rocRayon` = la collision. Matière `JADE_ROC` : calcaire, coulées humides,
+  FISSURES nettes (bruit replié : diaclases verticales, joints de litage), relief par dérivées d'écran (`uBump`), rouille, lichen, mousse,
+  liseré de brume. Placement : la même répartition ; la montagne FLOTTE (sa pointe au-dessus de la mer, `merY` = route la plus basse − 470) ;
+  RÈGLE D'OR à deux issues : elle passe 45 m SOUS la dalle ou sa pointe 70 m AU-DESSUS (la route file dessous). Forêt PEINTE en panneaux
+  (`jadeArbresTex` : 4 pins, 2 touffes, 2 lianes — ~40 000 instances, un seul appel), LIANES qui pendent sous les montagnes, CASCADES dans
+  le vide (`jadeChutes`, `JADE_CHUTE_M`), ROCHERS flottants (`jadeCaillouGeo`, durs), PAGODES et pavillons (`jadeTempleGeo`). La Porte et
+  le Pont en roche organique : champs de densité maillés en surface nets (`surfNets`, `jadeDensMesh`) — la Porte est un massif flottant ;
+  collision = la densité. Ciel : plus de pixels, les monts lointains flottent aussi (`jPeigne` a une pointe). MESURÉ : 60 i/s, ~500 000
+  triangles et 30 appels de rendu visibles, construction ~0,35 s ; `dbgJadeHeurt('test')` sur 3 vallées : roche dure, arche et dessous du
+  pont libres, AUCUN point de la route dans la roche, toutes les montagnes au-dessus de la mer.
+- **v4 — LES CUBES DE WUKONG** (même soirée, Léo : « cube et ça, mélangé ») — LA VERSION EN COURS. Un Minecraft aux shaders réalistes :
+  la FORME en cubes de `VX` = 5 m (montagnes flottantes `voxPilier` avec un dessous en pointe d'escalier décentrée, lianes de feuilles en
+  cubes, la Porte = massif flottant en cubes, le Pont, 3 gabarits de ROCHERS flottants en cubes — `JADE_TPL` puis 3 gabarits à part,
+  `JADE_NTPL`), maillage glouton + occlusion aux coins ; la MATIÈRE réaliste de la v3 sur chaque bloc (`JADE_VR` : nuance par bloc, joint
+  creusé, arête éclairée, fissures nettes, coulées, rouille, lichen, mousse, relief au pixel, cavité, liseré de brume). Le reste réaliste
+  de la v3 : forêt peinte, lianes peintes, cascades, pagodes, brume, grues, ciel aux monts flottants. Collision = les cubes (gabarit au
+  quart de tour, grilles de la Porte et du Pont). MESURÉ : 60 i/s, ~520 000 triangles / ~37 appels visibles, construction ~0,4 s ;
+  `dbgJadeHeurt('test')` sur 3 vallées : tout bon (route libre dessus et dessous, tout flotte au-dessus de la mer).
+- **v5 — LES CUBES FANTÔMES** (même soirée, Léo : « des cubes plus petits, un peu de transparence, et joue avec la lumière : presque
+  fantomatique »). `VX` 5 → 3,5 m sur l'ordi (5 m sur un vrai téléphone) ; la muraille et l'arche gardent 5 m (`VXG`).
+  TRANSPARENCE sans désordre : chaque pierre passe deux fois — profondeur (`PREPASS`, opaque sans couleur, renderOrder 25 > le ciel 20) puis
+  couleur translucide (renderOrder 3, avant la brume ; décalage de polygone) : on devine le ciel, la brume, la route à travers, jamais une
+  montagne mal triée. LUMIÈRE FANTÔME dans `JADE_VR` : bords qui s'allument, contre-jour qui traverse la pierre, joints qui respirent une
+  lueur (`uGhost`), couleurs lavées, alpha .76 au centre → .97 aux bords. RAYONS de lumière en biais dans la brume (`jadeRayons`), ESPRITS
+  (poussières qui flottent autour de la caméra, `JADE_ESPRITS`), air pâle (`BIOMES.jade` : soleil voilé, brume blanc-bleuté, saturation .8,
+  halo plus fort). MESURÉ : 60 i/s, ~0,9-1 M triangles visibles, construction ~0,5 s ; collisions et règle d'or inchangées (3 vallées OK).
+- **v6 — LE VERRE DE JADE** (même soirée, Léo : « je parlais de la transparence des CUBES qui constituent les montagnes, c'est trop clair
+  là »). La v5 laissait voir le ciel à travers une pierre délavée ; désormais ce sont les CUBES qui se voient dans la
+  montagne, comme dans un bloc de jade sombre. TROIS PASSES SANS TRI (`jadeVRMat('M'|'P'|'A')`, toutes dans la liste transparente, donc
+  après le ciel et la route) : (1) ABSORPTION (`PASSE_M`, MultiplyBlending, DoubleSide, renderOrder 2) — TOUTES les couches (faces avant, de
+  dos, montagnes derrière) multiplient le fond par ce qu'elles laissent passer, teinté vert-de-gris, les arêtes plus sombres ; (2) PROFONDEUR
+  (`PREPASS`, sans couleur, renderOrder 2,5) de la face la plus proche ; (3) LUMIÈRE (Additive, FrontSide, décalage de polygone, renderOrder 3)
+  de cette seule face, à 70 % — les couches ne s'additionnent plus en lueur (c'était le « trop clair »). Des PLANS INTÉRIEURS tous les 4 cubes
+  (matière 10 de `voxMesh(G,4)`, opacité .2) dessinent la grille des cubes DANS la montagne. La brume de three devient un fondu d'OPACITÉ (le
+  fond reprend sa place au loin). Air un cran plus sombre (`BIOMES.jade` : expo .88, soleil moins jaune, bloom .30 / seuil .95). Jumeaux par
+  famille : `F.im2` (absorption) et `F.im3` (profondeur) partagent les tampons de `F.im`. MESURÉ : 60 i/s, collisions et règle d'or
+  inchangées (3 vallées OK), Porte et Pont traversés. sw.js → v208.
+- **v7 — LES CUBES MINUSCULES** (même soirée, Léo : « pas Minecraft » → choisi : « cubes minuscules ») — LA VERSION EN COURS. Le verre de
+  la v6 reste ; ce qui faisait Minecraft part : cubes de 3,5 → **1,75 m** (`VX`, 3,5 m sur un vrai téléphone), muraille et arche 5 → **2,5 m**
+  (`VXG`, leurs bruits passés en mètres + une rugosité fine sur la façade) ; plus de JOINT dessiné autour de chaque bloc ni de liseré d'arête
+  (le carrelage), nuance par cube réduite (une mosaïque) ; l'herbe seulement SUR le dessus, en plaques de mousse sur la pierre (plus de frange
+  sur les côtés = le bloc d'herbe) ; plus aucune feuille, touffe, buisson ni liane EN CUBES (les pins et lianes peints restent, même forêt au
+  m² : `nA` × (VX/3,5)²) ; soleil sur la pierre ×.85, lumière du verre ×.6. **4 niveaux de détail** (1,75 · 3,5 · 7 · 14 m ; `JADE_LOD` r0 300 m,
+  r1 750, pins 900, temples 1300, d1 1500 ; `jadeBande` rend 0-5) ; plans intérieurs tous les 7 m à chaque niveau (`voxMesh(G,4|2|1)`, opacité
+  .13). Rochers en mètres (6,5-11 m). MESURÉ : 60 i/s (p90 17,7 ms), ~2,4-2,7 M triangles visibles, construction ~2,1 s (gabarits 1,1 s, une
+  fois par session) ; collisions et règle d'or OK (3 vallées), Porte et Pont traversés. sw.js → v209.
+- **v8 — LE FLEUVE, LES VOLUTES, LES CUBES TROIS FOIS PLUS PETITS** (2026-10-10, Léo : « trois fois plus petit [les cubes] … un dessous, que
+  ce soit la mer — qui fasse penser au fleuve des peintures chinoises, mais bleu … en haut, des ciels, avec des nuages style asiatique ; le
+  ciel suit la colorimétrie ; si ça peut donner de la force aux nuages »).
+  · **LE FLEUVE** (dôme, `jadeCiel`, sous l'horizon, à la place de la mer de nuages) : le bleu minéral des rouleaux (千里江山图) — lavis
+    bleu-vert, LIGNES D'EAU peintes (un trait tous les 17 m, cassées en coups de pinceau, effacées avant de grésiller), houles, éclat du
+    soleil sur les lignes, le ciel au ras, la brume au loin. Les pieds des montagnes se noient dans la brume blanche au-dessus de l'eau.
+  · **LES NUAGES EN VOLUTES** (祥云, `jadeNuagesTex` + `JADE_NUAGE_M`) : 16 dessins sur une planche (lobes ronds sur une base plate,
+    SPIRALES, queue qui s'enroule, contour d'encre jade, dégradé crème → jade, reflet) ; ~60-90 grands panneaux (800-1 900 m) face à la caméra,
+    loin autour de la route et au-dessus d'elle, teinte du ciel du niveau (`uTeinte`), perspective aérienne. Rien au ras du fleuve (essayé :
+    des autocollants posés sur l'eau).
+  · **LES CUBES MINUSCULES** (`FIN`, VX/3 = 58 cm sur l'ordi, rien sur un vrai téléphone) : un niveau de détail de plus, de PRÈS (≤ 170 m,
+    `finProches` à chaque rendu, les montagnes cédées s'écrasent en un point dans leur famille de 1,75 m). Pas de grille (250 M de cases) :
+    `voxPilierFin` relit la montagne COUCHE PAR COUCHE (`T9.ly`), sous-couches de 1-3 cubes fins qui avancent/reculent d'un cube, contour en
+    polygone balayé en INTERVALLES par rang, faces fusionnées le long du rang et dans la hauteur. C'est un GÉNÉRATEUR : `finTravail` le fait
+    avancer 4 ms par image (12 en pause), d'abord les gabarits qu'on approche — le départ n'attend pas. L'ARCHE (la région que la route
+    traverse : ± 110 m, de −140 à +360 m) et le PONT : `colMesh` (colonnes à un intervalle, marches posées des deux côtés avec la muraille
+    de 2,5 m, dont la région devient FANTÔME `255` dans voxMesh) ; de près (< 780 / 650 m) l'habit fin, de loin les cubes de 2,5 m. Les
+    CHOCS lisent toujours les grilles de 1,75 / 2,5 m. Hooks : `dbgFin(on,nuages)`, `dbgJadeVue('pres',d,h,cap)` (la montagne la plus proche).
+  · MESURÉ (Mac très chargé : Roblox + d'autres bancs, charge 26-38) : même médiane d'image que la v7 en alternance A/B ; 23 k-450 k
+    triangles par gabarit fin, l'arche fine ~0,74 M ; collisions et règle d'or OK, Porte et Pont traversés. sw.js → v210.
+  · Rangée dans la page des maps (`CAR-maps`, « Nouvelles maps · à garder pour le jeu », Léo : « garde-le sur une liste de maps qu'on garde
+    pour le jeu ») — pas encore un niveau du jeu.
+- **v9 — LES VOLUTES EN RELIEF, LA ROUTE EN JADE** (même jour, Léo : « les nuages plus transparents, moins autocollants, plus 3D ; et surtout,
+  la route : en jade »).
+  · **LES VOLUTES** : plus de dessin cerné d'encre — `jadeNuagesTex` cuit une CARTE DE HAUTEUR (texture de données : R hauteur, V spirale,
+    A couverture) faite de boules (lobes, base en coussins aplatis, queue en tube qui s'effile et s'enroule), les spirales CREUSÉES dans les
+    lobes ; `JADE_NUAGE_M` en tire la normale, l'éclaire au soleil de la map (ombre jade-bleue dessous, contre-jour dans les bords minces),
+    opacité = épaisseur (bords presque transparents). Un VOILE derrière chaque volute (décalé, ×1,18, à moitié, renderOrder 4,4) : il
+    glisse autrement quand on roule — la profondeur.
+  · **LA ROUTE EN JADE** (`ROAD_U.uJadeR` = LVL.jade, branche uniforme du bitume, rien ailleurs) : vert profond peu saturé, ses nuages
+    laiteux, des VEINES pâles qui courent LE LONG de la route (une fonction du travers décalée par le long : jamais d'anneau), polie (`GLACE.jade`
+    .45 : le ciel en rasant ; un éclat de soleil), une lueur intérieure (+16 %). Essayé avant : un vert vif à anneaux blancs (« plastique »).
+- **v10 — LES MONTAGNES EN VITRAIL** (même jour, Léo : « grâce à la technique vitrail, essaie d'alléger et d'embellir en même temps les
+  montagnes ») — ⚠ RETIRÉ LE MÊME JOUR (Léo : « laisse tomber, reviens sur les pixels, c'était plus joli ») : le code reste, derrière
+  `?vitrail=1`. La recette VITRAIL vient du dauphin (CAR-dauphins, 10/10 : « de loin lisse et brillant, de près le
+  pixel qui apparaît, avec des joints de lumière très fins ») : un CŒUR de lumière, des ÉCAILLES en cubes écartées (89 %), une PEAU de
+  verre transparente de face (.43-.56) et opaque sur la silhouette (.95), une ONDE de lumière. Pour les montagnes (`VIT`, bloc « LE VITRAIL ») :
+  · `jadeLisse(T9,peau,dy,na)` : des ANNEAUX lisses relus dans les couches (`T9.ly`) — la PEAU = l'enveloppe gonflée de ~1 m autour des
+    cubes (max des couches voisines, adoucie sans jamais rentrer), le CŒUR = rentré de ~1 m (min, ne sort jamais). Pointe dessous, dôme dessus.
+    4 niveaux chacun (peau 1,6/4/10/24 cubes de haut, cœur deux fois plus lâche), dans le repère des cubes de 1,75 m (`jadeMatPilier(q,0)`).
+  · CŒUR (`JADE_COEUR_FS`, opaque) : lumière de jade profonde en bas → pâle en haut, strates, éclairée doucement. PEAU (`JADE_PEAU_FS`,
+    transparente, une passe) : une pierre de jade polie (coulées, fissures) qui laisse voir le cœur de face, le ciel du niveau
+    (`uCielH/uCielZ`) sur la silhouette, l'éclat du soleil, un film irisé discret. ÉCAILLES (`jadeVRMat('V')`, define `VITRAIL`, opaques,
+    une passe) : les cubes de 58 cm de FIN, de PRÈS (fondu tramé 170 → 125 m), joints `uEcart` .89 percés (on voit le cœur), arêtes qui
+    s'allument à l'onde, un voile de ciel en rasant. L'ONDE (`JADE_ONDE`) : un plan de lumière qui monte du fleuve (~25 s, déphasé par montagne).
+  · L'ARCHE et le PONT gardent leurs cubes (2,5 m / fins de près) en écailles `JOINT_LUM` (`'VM'`) : teintées jade, joints de lumière de près
+    seulement (de loin ils grésillaient en hachures), une passe.
+  · ALLÉGER : plus de maillage de cubes de 1,75 m (la grille `G` ne sert qu'aux chocs, ni voxMesh ni voxDemi), plus de verre en trois passes ;
+    peau la plus fine ~23 k triangles pour la plus grande montagne (124 k en cubes ×3 passes avant). `?vitrail=0` = la v9 telle quelle.
+  · Essayé et corrigé : un premier jet trop SATURÉ (des montagnes en bonbon vert) → pierre de jade grise-verte, peau plus couvrante (.56).
+  · MESURÉ (A/B alterné, même banc) : 1,5-2,5 M triangles visibles contre 3-3,8 M en v9, construction ~3,1 s contre ~4,2 s (gabarits 0,7 s
+    contre 1,7 s), même cadence ; collisions et règle d'or OK, Porte et Pont traversés. sw.js → v212.
+- **v11 — RETOUR AUX PIXELS, LA ROUTE BIJOU** (même jour, Léo : « reviens sur les pixels, la dernière version ; la route comme un bijou de
+  jade mais brillant — presque de l'émeraude, vert comme ça, et les bords dorés : une route d'architecture asiatique »).
+  Les montagnes = la v9 (cubes minuscules, `VIT` faux par défaut). LA ROUTE BIJOU (branche `uJadeR` du bitume ; `ROAD_U.uHalf` = ROAD_HALF,
+  vUv.x = mètres/4 depuis le bord gauche) : ÉMERAUDE profonde → franche (en linéaire : .001/.045/.022 → .012/.20/.10), TAILLÉE en facettes
+  (Voronoï 3,4 × 4,2 m, chacune sa teinte et sa PENTE : le soleil y scintille facette par facette), ses jardins clairs, polie (`GLACE.jade` .5,
+  le ciel teinté d'émeraude) ; une BORDURE D'OR de 4,5 m gravée d'une frise de 回 (carrés concentriques en chaîne, filets au bord et à
+  l'intérieur), un FILET d'or à 5,3 m, un JOINT d'or entre les dalles tous les 20 m (élargi puis effacé au loin : sans ça, des tirets
+  crénelés), l'or renvoie le ciel doré ; l'accent de la zone = l'OR (rails, nappe, liseré des flancs), la ligne centrale en or. Essayé avant :
+  un vert vif « pelouse » à facettes trop contrastées, une bordure de 2,6 m qu'on ne lisait pas. sw.js → v213.
+- **v12 — L'ÉMERAUDE BRILLANTE, SANS OR ; LE LOINTAIN POÉTIQUE** (même jour, Léo : « beaucoup plus brillante la route » puis « ajoute des
+  montagnes au loin, simule une sorte de paysage poétique ; et enlève l'or, ça fait moche, le jaune et le vert : fais juste une route
+  émeraude jade »).
+  · ROUTE : plus d'or (bordure, filet, joints retirés du shader ; `jOr9` reste à 0), accent jade 0x4fe0a8 (rails, nappe, flancs), ligne
+    centrale en jade pâle discret. BRILLANCE : le ciel dans l'émeraude ×2,7 (teinté vert), `GLACE.jade` .55, et un VERNIS qui ne dépend pas
+    du soleil — une lumière de ciel posée devant la caméra (repère de la vue, `Lv9`) : une nappe large (`nap9`), l'éclat de chaque facette
+    (sa pente propre, parti du CŒUR de la cellule et éteint vers ses bords : sinon des polygones blancs), des PAILLETTES rondes de près
+    (cellules de 90 cm, une sur trois). Essayé : trop de nappe = l'émeraude virait au vert menthe pâle ; paillettes carrées = des confettis.
+  · LE LOINTAIN (`jLointain(az,y)` dans le dôme, `jadeCiel`) : cinq chaînes en plans de lavis (hautes et gris-bleu au fond → basses et
+    jade-encre devant, pics à la Huangshan, crête périodique sur le tour d'horizon), le pied noyé dans la brume, le haut des crêtes un peu
+    éclairé ; le fleuve les REFLÈTE (tremblées par les lignes d'eau). Les quatre rangées de piliers peints sur l'horizon (`jPeigne`) sont
+    retirées : devant le lointain elles faisaient une frise de bosses blanches. sw.js → v214.
+- **v13 — LA MER ET LES NUAGES EN CUBES MINUSCULES** (même jour, Léo : « beaucoup plus brillante la route ; la mer, beaucoup plus de relief,
+  plus réaliste ; les nuages en cubes minuscules, pareil pour la mer »).
+  · ROUTE : encore plus d'éclat (le ciel ×.42 dans l'émeraude, vernis .26, facettes ×1,1, paillettes ×5, soleil ×2,2, lumière intérieure .20).
+  · LA MER EN CUBES (`jMerCubes` dans le dôme) : des colonnes de cubes de 4 m (`JMS`) — quatre houles croisées + un cran propre à chaque cube
+    qui danse un peu (±20 m de relief) ; chaque rayon parcourt les cases (DDA, 48 pas, rien au-delà de 2,6 km) dans la tranche des vagues :
+    le DESSUS (le ciel en Fresnel, l'éclat du soleil, l'ÉCUME sur les crêtes, un biseau d'arête de près) ou un FLANC (plus sombre). Au-delà :
+    l'eau lisse peinte d'avant (lignes, reflet du lointain).
+  · LES VOLUTES EN CUBES (`jadeNuagesVox`, `JADE_NUVOX_M`, `NUVOX`) : les 16 cartes de hauteur deviennent des volumes (grille 96 × 48,
+    épaisseur = hauteur des deux côtés d'un plan médian, voxMesh avec l'ombre des coins, la spirale en matière 2) ; un cube = largeur ÷ 96
+    (8-20 m) ; chaque nuage tourné vers la route (le « miroir » = vu de l'autre côté). `nuvoxTri` (chaîné après jadeTri) : seules les volutes
+    dans le champ partent au GPU, de loin (> 2,5 km) en cubes deux fois plus gros (`voxDemi`). `?nuvox=0` = les panneaux en relief de la v9.
+  · MESURÉ : Mac très chargé (charge 21-43), A/B alterné v12/v13 dans le bruit après allègement (avant : +4-5 ms) ; ~0,54 M triangles de
+    volutes si toutes étaient vues. sw.js → v215.
+- **v14 — UN VRAI NIVEAU : DÉPART, ARRIVÉE, L'EFFONDREMENT ; DEUX ROUTES À ESSAYER ; L'EAU PLUS HAUTE** (même jour, Léo : « remonte le niveau de
+  l'eau ; la route, c'est pas très beau, trouve une route plus originale [→ choisi : « essayer la route de NUAGE et les PLANCHES en bois »] ;
+  crée un début, une fin du niveau, moyen, ni trop court ni trop long ; à la fin, des montagnes qui commencent à chuter autour »).
+  · L'EAU : `JADE.merY` = point le plus bas de la route − 230 m (était − 470).
+  · LE NIVEAU EST FIXE : `NIV_JADE.graine` 0x51ADE (`?graine=n` pour en essayer une autre) — 12,8 km, ~2 min à la vitesse de la balade.
+    `genJade` finit par le repère « chute », ~1 km de virages, 650 m de ligne droite, l'arrivée. Deux PORTIQUES 牌坊 en cubes d'un mètre
+    (`jadeArcheGeo`/`jadeArches` : piliers laqués sur socles de pierre hors de la route, linteaux, plaque d'or, toit de tuiles aux coins
+    relevés) au DÉPART (120 m) et à l'ARRIVÉE (140 m du bout). Au portail : `jadeFinale` (« ARRIVÉE · PICS DE JADE · m:ss », `#slam9`
+    autorisé par `html.jadeAnn`), puis sous le volet `jadeRedemarre` (s = 0, vitesse 0, montagnes remises debout, « DÉPART »).
+  · L'EFFONDREMENT (`JCH`, `jadeChutePrep/jadeChuteTick/jadeChuteRaz`) : après le repère « chute », les montagnes à moins de 900 m de la route
+    (373 sur le niveau fixe ; pas celles qui portent une cascade ou un temple) tremblent 0,9 s puis basculent autour de leur pointe et tombent
+    (8-15 m/s²), ~700 m avant la caisse ; à la mer, une gerbe de CUBES d'écume (700 cubes, une instance) ; elles quittent la grille des chocs
+    (`JADE.col.mort`). Leurs matrices (F.M via F.pidx, les arbres via F.tq, les cubes fins via FIN.mats) sont réécrites à chaque image.
+    MESURÉ (Mac calme) : 60 i/s en roulant comme pendant l'effondrement. Hooks : `dbgEffondre()`, `dbgJadeAller(s)` (un nombre = la caisse à s m).
+  · DEUX ROUTES (`ROAD_U.uJStyle`, `jadeRouteStyle(k)`, touche R dans la balade, `?route=nuage|planches|emeraude`, défaut NUAGE) :
+    NUAGE = des cubes de nuage de 80 cm en biseau, les ombres douces des cumulus, des volutes creusées sur les bords, des CUBES de nuage qui
+    débordent des deux bords (`JADE.decoNuage`) ; PLANCHES = des planches de 90 cm en travers, tronçons décalés, grain PIXELISÉ (15 cm),
+    joints, clous, une poutre sur chaque bord, une RAMBARDE laquée rouge (poteaux tous les 6 m, deux lisses) et des LANTERNES rouges tous
+    les ~42 m (`JADE.decoPlanches`). Les rails, la lueur, les flancs, la ligne suivent le style (⚠ le caméléon des rails mesure la teinte
+    une fois : `userData.hsl=null` pour qu'il la remesure). L'émeraude reste (0). sw.js → v216.
+  · (v15) Léo a tranché : « planche en bois » → le CHEMIN DE PLANCHES est la route par défaut (`JROUTE.style` 2) ; la touche R passe à
+    nuage puis émeraude, `?route=nuage|emeraude` les rouvre. sw.js → v217.
+- **v16 — UNE VIBE CHIHIRO : LA ROUTE DE RONDINS, PLUS DE CLICHÉS, L'EFFONDREMENT PROGRESSIF** (même jour, Léo : « évite que les montagnes
+  s'effondrent sur la route ; petit à petit — au début ça tient, après ça tombe un peu ; évite les clichés en mode Chine, le but c'est une
+  vibe CHIHIRO ; le sol, moins scolaire… des bouts de bois empilés, des troncs d'arbres collés à eux-mêmes »).
+  · LA ROUTE DE RONDINS (style 3, par défaut ; planches/nuage/émeraude derrière R et `?route=`) : des troncs EN TRAVERS de diamètres inégaux et
+    un peu courbes, ronds à la lumière (un reflet sur le dos de chacun, noirs dans les creux), écorce gris-brun pixelisée, mousse dans les
+    creux, une coupe de loin en loin ; ses bords en volume (`jadeRondinsDeco`, `jadeTronc` : prismes à 6 pans, cernes clairs à la coupe) —
+    des rondins qui DÉPASSENT du bord (0,4-2,8 m) et des PILES de trois troncs de loin en loin, en tronçons de 800 m (le champ les trie).
+    Essayé avant : des tronçons coupés trop sombres = un dallage de briques.
+  · PLUS DE CLICHÉS : les portiques 牌坊 → deux ARCHES DE TRONCS bruts (`jadeArchesRondins`) ; les pagodes et pavillons des cimes retirés ;
+    les volutes en spirale → des CUMULUS de Ghibli (`jadeCumulusTex` : base plate, trois rangées de choux-fleurs ; en cubes comme avant).
+  · L'EFFONDREMENT sur TOUT le niveau : rien avant 18 %, puis une probabilité qui monte de 6 % à 90 % vers la fin (532 candidates) ; chaque
+    montagne bascule VERS L'EXTÉRIEUR (axe ⟂ route → montagne) et dérive en s'éloignant ; celles qui surplombent ou frôlent la route (à moins
+    de ROAD_HALF + 30 m, au-dessus de la dalle) restent debout.
+  · L'AMBIANCE un cran vers Ghibli : soleil d'après-midi plus doré (`sunC` 1/.93/.80), saturation 1,10, l'herbe des corniches plus vivante.
+  · MESURÉ (Mac calme) : 60 i/s au début et pendant l'effondrement. sw.js → v218.
+- **v17 — « ÇA BUGUE ÉNORMÉMENT » : L'ALLÈGEMENT, LA ROUTE EN PIÈCES D'OR, L'AMBIANCE FÉERIQUE, L'EAU QUI FRAPPE** (2026-10-11, Léo : « j'y
+  joue, ça bugue énormément… sinon fais des pièces d'or, on roule sur des pièces d'or ; de la colorimétrie sur tout le niveau, du shading,
+  une ambiance féerique, le ciel plus dégradé ; plus de nuages ; l'eau vient frapper sur les montagnes volantes, donc plus haute et agitée »)
+  — LA VERSION EN COURS. MESURÉ d'abord (banc muet, `dbgJadePoste`) : 8 à 10 MILLIONS de triangles par image et, côté processeur, UN TIERS
+  du temps dans `bufferSubData`. Corrigé :
+  · `jadeTri` : une famille ne se réécrit que si SA liste change (signature : quartiers retenus + montagnes cédées) ou si l'effondrement l'a
+    salie (`F.sale`, `JADE.sale`, `FIN.sale`) ; envoi de la seule partie utile (`updateRange`) ; les montagnes cédées aux cubes fins sont
+    RETIRÉES de la liste (échange avec la dernière) au lieu d'être écrasées en un point. bufferSubData : 6,5 s → 0,1 s sur 20 s.
+  · Les BANDES de détail se jugent à la distance à la BOÎTE du quartier (la sphère comptait la hauteur des montagnes : tout restait en
+    détail max jusqu'à ~700 m) ; quartiers de 160 m (360) ; `JADE_LOD.r0` 220 (300) ; cubes fins jusqu'à `FIN.D` 130 m (170).
+  · Au-delà de 750 m les montagnes passent en UNE passe opaque (`jadeVRMat('O')`, `JADE_M.vrO`) — le verre en trois passes seulement de
+    près ; les MONUMENTS (la porte : 519 k triangles × 3, dessinée de partout) vivent dans des groupes éteints au-delà de la brume, triés
+    par le champ, et en une passe opaque à plus de 450 m (`JADE.monu`, `vrOM`).
+  · Les bords de route en volume se bâtissent À LA DEMANDE (seulement ceux de la route choisie).
+  · RÉSULTAT : 2,6-3,5 M triangles (7 M en passant sous l'arche) ; course de 40 s : médiane 6,9 ms, p99 13 ms, AUCUNE image > 60 ms.
+  · LA ROUTE EN PIÈCES D'OR (style 4, défaut ; R : pièces → rondins → planches → nuage → émeraude ; `?route=pieces`) : des pièces en ÉCAILLES
+    (rangées de 62 cm décalées, Ø 1,3-1,6 m, or jaune / rose / pâle), rebord éclairé côté fond, tranche crénelée, filet, ÉTOILE en relief,
+    l'ombre des pièces du dessus ; le MÉTAL : chaque pièce relit le ciel (envMap) selon SA pente, contraste ^2,6, soleil, étincelles en
+    croix ; rails dorés. (L'or était banni en v12 — « le jaune et le vert » — c'est Léo qui l'a redemandé, en pièces.)
+  · FÉERIQUE : ciel en QUATRE teintes (or-pêche, rose `jdM`, lilas `jdL`, azur), brume rose-lavande, soleil d'or, ombres lilas, sat 1,22,
+    halo plus fort ; reflets IRISÉS rose ↔ turquoise sur le verre ; lucioles d'or, de rose et de turquoise (2 400) ; nuages ventre
+    lavande, dessus blanc chaud (la teinte du ciel seulement côté soleil — sinon saumon) ; eau turquoise.
+  · PLUS DE NUAGES : pas de 360 m (480), quatre par pas, une couche ENTRE les montagnes (≥ 420 m de la route). Les bancs bas sur l'eau
+    essayés cachaient l'eau qui frappe : retirés.
+  · L'EAU : `JADE.eauY` = merY + 185 (les montagnes restent posées sur merY + 90 : celles du bas TREMPENT, 920 sur 2 335). La houle est
+    partagée (`JADE_EAU_GLSL`, horloge `uEauT`) : le ciel peint ET les montagnes lisent la même colonne — sous l'eau la pierre est coupée
+    (discard), l'écume monte au pied par à-coups (la vague qui frappe) ; dans la mer, un anneau d'écume et des vagues qui partent autour des
+    12 montagnes trempées les plus proches (`uEauP`), des GERBES de cubes jaillissent de leur pied (`jadeEauTick`). Plus agitée : houles
+    plus rapides, un clapot en plus. ⚠ La mer n'a pas de profondeur (peinte dans le ciel) : une caméra AU RAS de l'eau voit la pierre
+    par-dessus une colonne d'eau voisine — invisible depuis la route (l'écume couvre la ligne de contact).
+  · Hooks : `dbgJadePoste(k,on)` ('cout' appels/triangles d'une image, 'bandes', 'liste', 'scene', 'lod', et les postes), `dbgJadeVue('eau')`.
+    sw.js → v219.
+  · (même jour, Léo : « enlève les intros, tout ça : lance juste la voiture dans la map ») LA BALADE SANS INTRO : la classe `balade` est
+    posée dès le <head> (le logo du chargement, le menu, le garage et le voile ne se montrent plus ; l'image reste noire jusqu'au départ,
+    classe `parti`) ; `baladeDepart` appelle `start()` directement (plus de playViaGarage : ni fondu, ni garage, ni sortie par la porte),
+    la caméra se pose d'un coup derrière la caisse ; plus de « DÉPART » quand le niveau repart (l'ARRIVÉE reste). sw.js → v220.
+  · (même jour, Léo : « elles brillent trop, et un ciel asiatique » — puis « super boulot ») LES PIÈCES plus mates (le métal ×1,25 au lieu de
+    ×2,2, soleil et vernis divisés par 2-3, étincelles plus rares et seulement de près, lueur .05, rails or vieilli) ; LE CIEL DES PARAVENTS :
+    dégradé de SOIE (bleu doux, céladon, crème, or pâle — jdZ/jdL/jdM/jdH), un grand SOLEIL VERMILLON posé à ~15° au-dessus des monts
+    (au cap du soleil de la lumière), les KASUMI (quatre bandes de brume dorée couchées, aux bouts arrondis), sat 1,12 ; les nuages en cubes
+    COUCHÉS en longs bancs (×1,7 de large, ×0,55 de haut), ombre d'encre bleutée. ⚠ `vDir` arrive interpolé entre les sommets du dôme
+    (non normalisé) : jadeCiel le renormalise — sans ça le soleil sortait en GOUTTE. sw.js → v221.
+  · (12/10, Léo : « une étoile rouge discrète sur les étoiles ») l'étoile de chaque pièce en ÉMAIL rouge sombre (62 %, moins de métal dessus). sw.js → v222.
+  · (12/10, Léo : « enlève les bords de la route et les trucs en bois asiatiques, c'est raciste ») plus d'ARCHES de troncs au départ et à
+    l'arrivée (elles faisaient torii), plus aucun bord en volume pour AUCUNE route de la touche R (planches laquées + lanternes, rondins,
+    volutes : `jadeRouteStyle` ne les bâtit plus), plus de rails ni de lueur (NEON_RAILS / NEON_GLOW invisibles), le liseré et les
+    catadioptres des tranches éteints (`ROAD_U.uAcc` noir). ⚠ Aucun décor « asiatique » d'objet ou d'architecture sur cette map. sw.js → v223.
+- Mesuré (Chrome sans fenêtre du Mac) : 60 i/s, construction 16-28 ms, tri ~0,03 ms ; collisions (`dbgJadeHeurt('test')`, 3 vallées) :
+  piliers durs, arche et dessous du pont libres, AUCUN point de la route dans la pierre. Console : `dbgJade()`, `dbgJadeVue('route'|'porte'|
+  'pont'|'haut'|'loin'|'grue',d,h,cap)` (photo figée), `dbgGrues()`. sw.js → v203.
 
 ## LA SONDE QUI NE FIGE PLUS (2026-10-08, Léo : « le jeu bug un peu quand je le lance, pas que au lancement il rame — trouve une solution qui ne touche pas au graphique ni à la qualité »)
 - MESURÉ (Chrome sans fenêtre sur le Mac M2 de Léo, course au pilote auto, trace + appels WebGL chronométrés) : les à-coups de 35-120 ms

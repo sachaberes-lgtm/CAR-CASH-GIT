@@ -11,6 +11,10 @@
      niveau. Chaque NIVEAU a sa pastille de musique (la bibliothèque = simulateur/musiques/) ; celle de la map les règle tous d'un coup.
      Le choix s'écrit sur le DISQUE (simulateur/choix-musiques.json, par le serveur) — c'est la table que le jeu lira. Un fichier de
      musique (.html à jauge, .js module) GLISSÉ sur la page, ou « + Musique », rejoint la bibliothèque.
+     L'ORGANISATEUR DU PLAY (12/10, Léo : « tu es mon organisateur de map aléatoire pour le bouton PLAY ; laisse renommer si jamais je
+     veux ») : chaque niveau a son interrupteur PLAY (dans le tirage ou pas — hors du tirage, la carte pâlit), un NOM se renomme d'un clic
+     (niveau ou map ; vide = le nom d'origine), le bouton PLAY en haut lance le tirage au hasard (course.html?play=1). Tout va dans
+     simulateur/play.json, sur le disque.
      Page blanche, le moins de texte possible. -->
 <style>
   :root{--encre:#111113;--gris:#86868b;--gris2:#b9b9be;--trait:#efeff1;--doux:#f4f4f6;
@@ -57,12 +61,30 @@
     place-items:center;font-size:22px;font-weight:650;z-index:20;pointer-events:none}
   #toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:var(--encre);color:#fff;font-size:13.5px;font-weight:550;
     padding:10px 16px;border-radius:999px;z-index:30;transition:opacity .25s}
+  .lance{height:34px;padding:0 16px 0 13px;border-radius:999px;background:var(--encre);color:#fff;font-size:14px;font-weight:650;
+    display:inline-flex;align-items:center;gap:7px}
+  .lance svg{width:13px;height:13px;fill:currentColor}
+  .lance small{font-size:12px;font-weight:550;opacity:.6}
+  .lance:active{transform:scale(.97)}
+  .ajout{margin-left:0}
+  .tete .lance{margin-left:auto}
+  .renomme{cursor:text;border-radius:5px;outline:none}
+  .renomme:hover{box-shadow:0 0 0 4px var(--doux);background:var(--doux)}
+  .renomme[contenteditable="true"],.renomme[contenteditable="plaintext-only"]{box-shadow:0 0 0 4px #e8f0fe;background:#e8f0fe;-webkit-line-clamp:unset;display:block}
+  .bas{display:flex;align-items:center;gap:8px;min-width:0}
+  .pp{margin-left:auto;height:26px;padding:0 10px;border-radius:999px;font-size:11.5px;font-weight:700;letter-spacing:.04em;flex:none;
+    display:inline-flex;align-items:center;gap:5px;background:#e7f8ec;color:#1a7f37}
+  .pp::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+  .pp.non{background:transparent;color:var(--gris2);box-shadow:inset 0 0 0 1px #dedee2}
+  .pp.non::before{background:transparent;box-shadow:inset 0 0 0 1.5px currentColor}
+  .carte.horsPlay .photo{opacity:.38;filter:grayscale(.6)}
+  .carte.horsPlay .nom{color:var(--gris)}
   [hidden]{display:none!important}
 </style>
 </head>
 <body>
 <main class="page">
-  <div class="tete"><h1>Maps</h1><button class="ajout" id="ajout">+ Musique</button><input type="file" id="fic" accept=".html,.js" multiple hidden></div>
+  <div class="tete"><h1>Maps</h1><button class="lance" id="lance" title="Le tirage au hasard du bouton PLAY"><svg viewBox="0 0 10 12"><path d="M0 0l10 6-10 6z"/></svg>PLAY <small id="nbPlay"></small></button><button class="ajout" id="ajout">+ Musique</button><input type="file" id="fic" accept=".html,.js" multiple hidden></div>
   <div id="maps"></div>
 </main>
 <div id="depot" hidden>Lâche pour ajouter la musique</div>
@@ -107,24 +129,59 @@
     };
   }
 
+  // renommer d'un clic : Entrée garde, Échap annule, vide = le nom d'origine — écrit sur le disque (play.json)
+  function renommable(el, cle, origine, peins) {
+    el.classList.add('renomme'); el.title = 'Renommer';
+    el.addEventListener('click', ev => {
+      ev.preventDefault(); ev.stopPropagation();
+      if (el.isContentEditable) return;
+      el.contentEditable = 'plaintext-only';
+      if (!el.isContentEditable) el.contentEditable = 'true';
+      el.focus();
+      const r = document.createRange(); r.selectNodeContents(el); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+    });
+    el.addEventListener('keydown', ev => {
+      if (ev.key === 'Enter') { ev.preventDefault(); el.blur(); }
+      if (ev.key === 'Escape') { ev.stopPropagation(); el.dataset.annule = '1'; el.blur(); }
+    });
+    el.addEventListener('blur', async () => {
+      el.contentEditable = 'false';
+      const annule = el.dataset.annule; delete el.dataset.annule;
+      if (!annule) {
+        const v = el.textContent.replace(/\s+/g, ' ').trim().toUpperCase().slice(0, 60);
+        if (!v || v === origine) delete PLAY.noms[cle]; else PLAY.noms[cle] = v;
+        if (!await playEnregistre()) toast('Pas enregistré (serveur ?)');
+      }
+      peins();
+    });
+  }
+  const majPlay = () => { document.getElementById('nbPlay').textContent = poolPlay().length; };
+
   await musiquesCharge();
   const racine = document.getElementById('maps');
   for (const map of MAPS) {
     const sec = document.createElement('section'); sec.className = 'map';
     sec.innerHTML = '<div class="mapTete"><h2></h2><div class="musBox"><button class="mus"></button></div></div><div class="grille"></div>';
-    sec.querySelector('h2').textContent = map.nom;
+    const h2 = sec.querySelector('h2'), peinsMap = () => { h2.textContent = nomMap(map); };
+    peinsMap(); renommable(h2, 'map:' + map.id, map.nom, peinsMap);
     if (map.niveaux.length > 1) pastille(sec.querySelector('.musBox'), map.niveaux.map(n => n.id));
     else sec.querySelector('.musBox').remove();
     // ses niveaux
     const grille = sec.querySelector('.grille');
     map.niveaux.forEach((niv, k) => {
       const c = document.createElement('article'); c.className = 'carte';
-      c.innerHTML = '<a class="photo"><img alt=""></a><div class="ligne"><span class="num"></span><span class="nom"></span><button class="jouer">Jouer</button></div><div class="musBox"><button class="mus"></button></div>';
+      c.innerHTML = '<a class="photo"><img alt=""></a><div class="ligne"><span class="num"></span><span class="nom"></span><button class="jouer">Jouer</button></div><div class="bas"><div class="musBox"><button class="mus"></button></div><button class="pp">PLAY</button></div>';
       c.querySelector('.photo').href = lien(niv.id);
       c.querySelector('.photo').setAttribute('aria-label', 'Jouer sur ' + map.nom + ' · ' + niv.nom);
       const img = c.querySelector('img'); img.src = 'simulateur/' + niv.photo; img.onerror = () => img.remove();
       c.querySelector('.num').textContent = map.niveaux.length > 1 ? k + 1 : '';
-      c.querySelector('.nom').textContent = niv.nom;
+      const nomEl = c.querySelector('.nom'), peinsNom = () => { nomEl.textContent = nomNiv(niv); };
+      peinsNom(); renommable(nomEl, niv.id, niv.nom, peinsNom);
+      // dans le tirage du PLAY, ou pas
+      const pp = c.querySelector('.pp');
+      const peinsPP = () => { const on = dansPlay(niv); pp.classList.toggle('non', !on); c.classList.toggle('horsPlay', !on); pp.title = on ? 'Dans le tirage du PLAY' : 'Hors du tirage du PLAY'; majPlay(); };
+      peinsPP();
+      pp.onclick = async () => { PLAY.pool[niv.id] = !dansPlay(niv); peinsPP(); if (!await playEnregistre()) toast('Pas enregistré (serveur ?)'); };
       c.querySelector('.jouer').onclick = () => { location.href = lien(niv.id); };
       pastille(c.querySelector('.musBox'), [niv.id]);
       grille.appendChild(c);
@@ -145,6 +202,10 @@
     if (noms.length) { await musiquesCharge(); repeins(); toast('Ajoutée : ' + noms.join(', ')); }
     else if (files.length) toast('Pas ajoutée (serveur ?)');
   }
+  document.getElementById('lance').onclick = () => {
+    if (!poolPlay().length) { toast('Aucun niveau dans le PLAY'); return; }
+    location.href = 'simulateur/course.html?play=1';
+  };
   const fic = document.getElementById('fic'), depot = document.getElementById('depot');
   document.getElementById('ajout').onclick = () => fic.click();
   fic.onchange = () => { ajoute([...fic.files]); fic.value = ''; };
