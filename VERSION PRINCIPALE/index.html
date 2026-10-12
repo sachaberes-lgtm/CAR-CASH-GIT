@@ -44262,13 +44262,22 @@ function garBqBatit(){if(GBQ.grp)return; // (2026-10-12, Léo : « lâche le mag
    let y=0;for(const t of [[2.9,.18],[2.5,.18],[2.15,.2]]){const m=new THREE.Mesh(C(t[0],t[0]+.05,t[1]),marbre);m.position.y=y+t[1]/2;g.add(m);
      const f=new THREE.Mesh(new THREE.TorusGeometry(t[0]+.012,.024,4,72),or);f.rotation.x=Math.PI/2;f.position.y=y+t[1];g.add(f);y+=t[1];}
    GBQ.socleH=y;
-   const XC=3.1,ZC=-4.6,HC=5;for(const sx of [-1,1]){const x=sx*XC; // (les colonnes encadrent la caisse, debout comme couché)
-     const b=new THREE.Mesh(new THREE.BoxGeometry(.95,.3,.95),marbre);b.position.set(x,.15,ZC);g.add(b);
-     const fut=new THREE.Mesh(C(.28,.34,HC,16),marbre);fut.position.set(x,.3+HC/2,ZC);g.add(fut);
-     const an=new THREE.Mesh(new THREE.TorusGeometry(.33,.04,4,24),or);an.rotation.x=Math.PI/2;an.position.set(x,.3+HC-.12,ZC);g.add(an);
-     const ch=new THREE.Mesh(new THREE.BoxGeometry(.92,.28,.92),marbre);ch.position.set(x,.3+HC+.14,ZC);g.add(ch);}
-   const ar=new THREE.Mesh(new THREE.BoxGeometry(2*XC+1.3,.46,.95),marbre);ar.position.set(0,.3+HC+.51,ZC);g.add(ar);
-   const fi=new THREE.Mesh(new THREE.BoxGeometry(2*XC+1.32,.06,.97),or);fi.position.set(0,.3+HC+.31,ZC);g.add(fi);}
+   /* (2026-10-12, Léo : « tous les piliers sont faits de ce blanc structuré ») le portique en CUBES — la matière du tapis : chaque colonne est une
+      peau de petits cubes (un cylindre en pixels, quelques cubes en retrait ou en saillie pour le grain), sa base et son chapiteau des blocs de
+      cubes, l'architrave une poutre de cubes ; un seul maillage instancié, posé une fois. Les filets d'or restent. */
+   const XC=3.1,ZC=-4.6,HC=5,PAS=.17,V=[],R9=mulberry32(0xC0B5),cube=function(x,y,z){V.push(x,y,z);};
+   const bloc=function(cx,cy,cz,lx,ly,lz){const nx=Math.max(1,Math.round(lx/PAS)),ny=Math.max(1,Math.round(ly/PAS)),nz=Math.max(1,Math.round(lz/PAS));
+     for(let i=0;i<nx;i++)for(let j=0;j<ny;j++)for(let k=0;k<nz;k++){if(i>0&&i<nx-1&&j>0&&j<ny-1&&k>0&&k<nz-1)continue; // la peau seule
+       cube(cx+(i-(nx-1)/2)*PAS,cy+(j-(ny-1)/2)*PAS,cz+(k-(nz-1)/2)*PAS);}};
+   for(const sx of [-1,1]){const x=sx*XC;
+     bloc(x,.15,ZC,.95,.3,.95);bloc(x,.3+HC+.14,ZC,.92,.3,.92);
+     const rC=.31,nA=Math.round(2*Math.PI*rC/PAS);
+     for(let y=.3+PAS/2;y<.3+HC;y+=PAS)for(let a9=0;a9<nA;a9++){const an=a9/nA*Math.PI*2+(Math.round(y/PAS)%2)*Math.PI/nA,rr=rC+(R9()<.12?(R9()<.5?-.05:.04):0);cube(x+Math.cos(an)*rr,y,ZC+Math.sin(an)*rr);}
+     const an=new THREE.Mesh(new THREE.TorusGeometry(.37,.035,4,24),or);an.rotation.x=Math.PI/2;an.position.set(x,.3+HC-.12,ZC);g.add(an);}
+   bloc(0,.3+HC+.51,ZC,2*XC+1.3,.46,.95);
+   const fi=new THREE.Mesh(new THREE.BoxGeometry(2*XC+1.4,.05,1.05),or);fi.position.set(0,.3+HC+.31,ZC);g.add(fi);
+   {const n=V.length/3,mc=new THREE.InstancedMesh(new THREE.BoxGeometry(PAS*.86,PAS*.86,PAS*.86),new THREE.MeshLambertMaterial({color:0xe8edf5,emissive:0x000000,flatShading:true,fog:false}),n),M9=new THREE.Matrix4();
+    for(let k=0;k<n;k++){M9.makeTranslation(V[3*k],V[3*k+1],V[3*k+2]);mc.setMatrixAt(k,M9);}mc.frustumCulled=false;g.add(mc);GBQ.colonnes=mc;}}
   {const cv=document.createElement('canvas');cv.width=cv.height=1024;const x=cv.getContext('2d'),c0=512;
    {const gr=x.createRadialGradient(c0,c0,0,c0,c0,340);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.42,'rgba(255,251,238,.9)');gr.addColorStop(1,'rgba(255,248,230,0)');x.fillStyle=gr;x.fillRect(0,0,1024,1024);}
    const N=48;for(let i=0;i<N;i++){const a=i/N*Math.PI*2,L=i%2?330:505,w=i%2?.02:.032,gr=x.createRadialGradient(c0,c0,95,c0,c0,L);
