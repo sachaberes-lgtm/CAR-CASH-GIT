@@ -44242,6 +44242,41 @@ function bqIndusVoulu(){const m=gModeM();return !!gEl&&garageOn&&(m==='shop'||m=
 function bqBio(){if(!bqBio._b)bqBio._b=Object.assign({},BIOMES.atelier,{nm:'MAGASIN',hemiS:[.98,.99,1],hemiG:[.62,.64,.68],hemiI:1.1,sunC:[1,1,1],sunI:.62,fillC:[.82,.84,.88],fillI:.2,
   kickC:[1,.62,.3],kickI:.05,expo:1.2,sat:.92,con:1.02,daHi:0,daSh:0,daCon:.5,bloomS:.16,bloomT:.98,vigK:0,vigC:[.05,.05,.06],wb:[1,1,1],sh:[0,0,.004],hi:[0,0,0],rimK:0,rimS:.22});return bqBio._b;}
 /* LE MAGASIN : bâti une fois (à la 1re visite de la boutique), dans un repère qui suit l'azimut de la caméra (+z = vers elle, l'allée file vers −z) */
+/* LE SOL QUI BRILLE (2026-10-12, Léo : « un sol qui reflète tout le blanc, qui doit briller ») : un vrai miroir plan. La scène est redessinée
+   depuis la caméra RÉFLÉCHIE sous le sol (moitié de la résolution ; plan de coupe oblique : rien de ce qui est sous le sol ne passe), et le
+   sol la relit en projection : un peu floutée (un sol laqué, pas une glace), plus forte en rasant (Fresnel), plus faible dans les joints
+   des dalles. Une passe de plus, seulement dans la boutique (le sol n'est dessiné que là) ; ni ombres recalculées, ni crochets de la scène.
+   La CAISSE n'y est pas (posée sur le socle, son reflet tombait sous lui : une 2e voiture derrière les COLORIS) — le sol reflète le blanc :
+   le socle, le portique, la gloire. `GBQ.mirCaisse=true` la remet. */
+function garBqMiroir(sol){
+  const rt=new THREE.WebGLRenderTarget(4,4,{minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,format:THREE.RGBAFormat,type:(composer&&composer.renderTarget1&&composer.renderTarget1.texture.type)||THREE.UnsignedByteType});
+  rt.texture.generateMipmaps=false;
+  const vc=new THREE.PerspectiveCamera(),TM=new THREE.Matrix4(),N=new THREE.Vector3(),Pw=new THREE.Vector3(),Cw=new THREE.Vector3(),Rm=new THREE.Matrix4(),La=new THREE.Vector3(),
+    Tg=new THREE.Vector3(),V=new THREE.Vector3(),Pl=new THREE.Plane(),Cp=new THREE.Vector4(),Q=new THREE.Vector4(),sz=new THREE.Vector2(),
+    U={tRefl:{value:rt.texture},mRefl:{value:TM},uRo:{value:new THREE.Vector2(.002,.002)},uK:{value:1.6}};
+  sol.material.onBeforeCompile=function(s){Object.assign(s.uniforms,U);
+    s.vertexShader='uniform mat4 mRefl;\nvarying vec4 vRefl;\nvarying vec3 vWp;\n'+s.vertexShader.replace('#include <project_vertex>','#include <project_vertex>\nvRefl=mRefl*vec4(position,1.);vWp=(modelMatrix*vec4(position,1.)).xyz;');
+    s.fragmentShader='uniform sampler2D tRefl;\nuniform vec2 uRo;\nuniform float uK;\nvarying vec4 vRefl;\nvarying vec3 vWp;\n'+s.fragmentShader.replace('#include <map_fragment>','#include <map_fragment>\n'+
+      '{vec2 q=vRefl.xy/vRefl.w;vec3 r=texture2D(tRefl,q).rgb*.36+(texture2D(tRefl,q+vec2(uRo.x,0.)).rgb+texture2D(tRefl,q-vec2(uRo.x,0.)).rgb+texture2D(tRefl,q+vec2(0.,uRo.y)).rgb+texture2D(tRefl,q-vec2(0.,uRo.y)).rgb)*.16;'+
+      'float ct=clamp(normalize(cameraPosition-vWp).y,0.,1.),k=uK*(.36+.5*pow(1.-ct,3.))*mix(.4,1.,smoothstep(.925,.95,texelColor.g));diffuseColor.rgb=mix(diffuseColor.rgb,r*1.2,k);}');};
+  sol.material.customProgramCacheKey=function(){return 'bqMiroir';};
+  sol.onBeforeRender=function(rd,sc,cam){if(GBQ._mirB||!cam||!cam.isPerspectiveCamera)return;
+    Pw.setFromMatrixPosition(sol.matrixWorld);Cw.setFromMatrixPosition(cam.matrixWorld);Rm.extractRotation(sol.matrixWorld);N.set(0,0,1).applyMatrix4(Rm);
+    V.subVectors(Pw,Cw);if(V.dot(N)>0)return;V.reflect(N).negate().add(Pw);
+    Rm.extractRotation(cam.matrixWorld);La.set(0,0,-1).applyMatrix4(Rm).add(Cw);Tg.subVectors(Pw,La).reflect(N).negate().add(Pw);
+    vc.position.copy(V);vc.up.set(0,1,0).applyMatrix4(Rm).reflect(N);vc.lookAt(Tg);vc.near=cam.near;vc.far=cam.far;vc.layers.mask=cam.layers.mask;vc.updateMatrixWorld();
+    vc.projectionMatrix.copy(cam.projectionMatrix);vc.projectionMatrixInverse.copy(cam.projectionMatrixInverse);
+    TM.set(.5,0,0,.5,0,.5,0,.5,0,0,.5,.5,0,0,0,1).multiply(vc.projectionMatrix).multiply(vc.matrixWorldInverse).multiply(sol.matrixWorld);
+    Pl.setFromNormalAndCoplanarPoint(N,Pw).applyMatrix4(vc.matrixWorldInverse);Cp.set(Pl.normal.x,Pl.normal.y,Pl.normal.z,Pl.constant);
+    const e=vc.projectionMatrix.elements;Q.set((Math.sign(Cp.x)+e[8])/e[0],(Math.sign(Cp.y)+e[9])/e[5],-1,(1+e[10])/e[14]);Cp.multiplyScalar(2/Cp.dot(Q));
+    e[2]=Cp.x;e[6]=Cp.y;e[10]=Cp.z+1-.003;e[14]=Cp.w;
+    rd.getDrawingBufferSize(sz);const w=Math.max(4,Math.round(sz.x*.5)),h=Math.max(4,Math.round(sz.y*.5));if(rt.width!==w||rt.height!==h)rt.setSize(w,h);U.uRo.value.set(1.4/w,1.4/h);
+    const rt0=rd.getRenderTarget(),sh=rd.shadowMap.autoUpdate,ob=sc.onBeforeRender,ac=rd.autoClear,ch=!!(GBQ.choc&&GBQ.choc.visible);
+    const cv9=carGroup.visible,tv9=!!(GBQ.tapis&&GBQ.tapis.visible);GBQ._mirB=true;sol.visible=false;if(GBQ.choc)GBQ.choc.visible=false;if(!GBQ.mirCaisse){carGroup.visible=false;if(GBQ.tapis)GBQ.tapis.visible=false;}
+    try{rd.shadowMap.autoUpdate=false;sc.onBeforeRender=function(){};rd.setRenderTarget(rt);rd.autoClear=true;rd.clear();rd.render(sc,vc);}
+    finally{rd.autoClear=ac;sc.onBeforeRender=ob;rd.shadowMap.autoUpdate=sh;rd.setRenderTarget(rt0);sol.visible=true;if(GBQ.choc)GBQ.choc.visible=ch;carGroup.visible=cv9;if(GBQ.tapis)GBQ.tapis.visible=tv9;GBQ._mirB=false;}};
+  GBQ.miroir=rt;GBQ.mirU=U;}
+window.dbgMiroir=function(o){if(o&&GBQ.mirU){for(const k in o)if(GBQ.mirU[k])GBQ.mirU[k].value=o[k];if('caisse' in o)GBQ.mirCaisse=!!o.caisse;}const r=GBQ.miroir;return r?{w:r.width,h:r.height,type:r.texture.type,demi:r.texture.type===THREE.HalfFloatType,k:GBQ.mirU.uK.value,caisse:!!GBQ.mirCaisse}:null;};
 function garBqBatit(){if(GBQ.grp)return; // (2026-10-12, Léo : « lâche le magasin… plutôt un carré blanc futuriste — on a trop de salles, la boutique c'est un truc hors du temps ») L'ESPACE BLANC
   const g=new THREE.Group();g.visible=false;scene.add(g);GBQ.grp=g;
   const B=function(c,o){return new THREE.MeshBasicMaterial(Object.assign({color:c,fog:false},o||{}));};
@@ -44259,7 +44294,7 @@ function garBqBatit(){if(GBQ.grp)return; // (2026-10-12, Léo : « lâche le mag
   GBQ.tuile=tuile;
   // LE SOL : en blanc structuré (des dalles de ~34 cm), à perte de vue
   const tS=cvT(512,512,function(x,w,h){const gr=x.createRadialGradient(w/2,h/2,0,w/2,h/2,w/2);gr.addColorStop(0,'#ffffff');gr.addColorStop(.25,'#f8f9fa');gr.addColorStop(1,'#eceff2');x.fillStyle=gr;x.fillRect(0,0,w,h);});
-  const sol=new THREE.Mesh(new THREE.CircleGeometry(R*.97,64),B(0xffffff,{map:tuile(R*2*.97/1.36,R*2*.97/1.36)}));sol.rotation.x=-Math.PI/2;sol.material.color.setScalar(1.75);g.add(sol);
+  const sol=new THREE.Mesh(new THREE.CircleGeometry(R*.97,64),B(0xffffff,{map:tuile(R*2*.97/1.36,R*2*.97/1.36)}));sol.rotation.x=-Math.PI/2;sol.material.color.setScalar(1.75);g.add(sol);try{garBqMiroir(sol);}catch(e){}
   // (v3, Léo : « il y a juste l'ombre de la voiture ») plus de grille ni d'anneaux
   /* LE TRÔNE (2026-10-12, Léo : « une compo comme si la voiture était sur son trône ; la lueur en mode pics, comme l'iconographie de Jésus ;
      inspiré des compositions néo-classiques ; quelque chose qui met en avant la voiture ») : un socle de marbre à trois gradins cerclés d'or
@@ -44515,47 +44550,64 @@ function garBqIndus(dt,ay,t9){
   try{garBqTapis(dt,t9,ay);}catch(e){}
   try{garBqPanneau(dt,t9);}catch(e){}
 }
-/* LE TAPIS DE CUBES (2026-10-12, Léo : « une ondulation de pixels blancs quand on bouge la voiture, un tapis futuriste monté de cubes » ;
-   puis : « que le socle et la structure restent collés à la voiture : des cubes encore plus minuscules qui épousent la forme du dessous de la
-   voiture ») : une grille de cubes de 10 cm sur le dessus du socle, TOUJOURS là sous la caisse — chaque colonne monte jusqu'au DESSOUS réel
-   de la caisse (bqDessous : la carte des sommets les plus bas, roues comprises, dans son repère — elle suit la caisse quand on la tourne ou la
-   penche) ; quand on la bouge, une onde part d'elle autour. */
+/* LE BERCEAU DE CUBES (2026-10-12, Léo : « une ondulation de pixels blancs quand on bouge la voiture, un tapis futuriste monté de cubes » ;
+   « des cubes encore plus minuscules qui épousent la forme du dessous de la voiture » ; puis : « corrige quand tu la mets vers le haut et le
+   bas ; ça doit moins ressembler à des lignes, le truc sous la voiture ») — v2 : plus de colonnes tirées du socle (des cubes étirés côte à
+   côte = des rayures, et penchée la caisse les montait en un tambour strié). Sous le ventre, un COUSSIN de vrais cubes de 10 cm, séparés
+   dans les trois sens : deux rangs pleins collés à son dessous, puis trois rangs qui s'émiettent (une case sur deux, une sur quatre, une
+   sur dix — tirées une fois pour toutes : rien ne grésille). Les roues n'y sont plus (la caisse flotte sur son plancher, roues libres).
+   Le dessous est relevé dans le repère de la caisse (bqDessous), puis REPORTÉ dans le monde à chaque image, point par point (le plus bas
+   par case) : penchée, chaque cube reste sous le point de la caisse qui est au-dessus de lui — plus rien autour des pare-chocs.
+   Penchée au-delà de ~6°, son ventre regarde la caméra : le coussin RENTRE dans le socle et ressort quand elle revient à plat (il sort
+   aussi du socle à l'arrivée dans la boutique). Autour, quand on la bouge : l'onde, des cubes qui affleurent du socle. */
 function bqDessous(){const k=garageI+':'+(carBody?carBody.children.length:0)+':'+carGroup.children.length;if(GBQ.hm&&GBQ.hm.k===k)return GBQ.hm;
-  const P=.08,G=garGabarit(),nx=Math.ceil(2*G.b/P)+5,nz=Math.ceil(2*G.a/P)+5,x0=-(nx-1)*P/2,z0=-(nz-1)*P/2,H=new Float32Array(nx*nz).fill(1e9);
+  const P=.08,G=garGabarit(),nx=Math.ceil(2*G.b/P)+5,nz=Math.ceil(2*G.a/P)+5,x0=-(nx-1)*P/2,z0=-(nz-1)*P/2,H=new Float32Array(nx*nz).fill(1e9),Ro=new Uint8Array(nx*nz);
   carGroup.updateMatrixWorld(true);const inv=new THREE.Matrix4().copy(carGroup.matrixWorld).invert(),M=new THREE.Matrix4(),v=new THREE.Vector3(),w=new THREE.Vector3(),u=new THREE.Vector3();
-  const pose=function(p){const ix=Math.round((p.x-x0)/P),iz=Math.round((p.z-z0)/P);if(ix<0||iz<0||ix>=nx||iz>=nz)return;const j=iz*nx+ix;if(p.y<H[j])H[j]=p.y;};
+  let roue=false;const pose=function(p,y){const ix=Math.round((p.x-x0)/P),iz=Math.round((p.z-z0)/P);if(ix<0||iz<0||ix>=nx||iz>=nz)return;const j=iz*nx+ix;if(roue)Ro[j]=1;else if(y<H[j])H[j]=y;};
   carGroup.traverse(function(o){if(!o.isMesh||!o.geometry||!o.geometry.attributes.position)return;const mt=Array.isArray(o.material)?o.material[0]:o.material;
     if((mt&&(mt.transparent||mt.blending===THREE.AdditiveBlending))||(o.userData&&o.userData.sol))return;
-    for(let q9=o;q9&&q9!==carGroup;q9=q9.parent)if(!q9.visible)return;
+    roue=false;for(let q9=o;q9&&q9!==carGroup;q9=q9.parent){if(!q9.visible)return;const u9=q9.userData;if(u9&&(u9.essieu||u9.R!=null))roue=true;} // (une roue : son empreinte est notée à part)
     M.multiplyMatrices(inv,o.matrixWorld);const a=o.geometry.attributes.position,idx=o.geometry.index,nT=idx?idx.count/3:a.count/3,st=nT>9000?Math.ceil(nT/9000):1;
     for(let t=0;t<nT;t+=st){const i0=idx?idx.getX(3*t):3*t,i1=idx?idx.getX(3*t+1):3*t+1,i2=idx?idx.getX(3*t+2):3*t+2;
-      v.fromBufferAttribute(a,i0).applyMatrix4(M);w.fromBufferAttribute(a,i1).applyMatrix4(M);u.fromBufferAttribute(a,i2).applyMatrix4(M);pose(v);pose(w);pose(u);
+      v.fromBufferAttribute(a,i0).applyMatrix4(M);w.fromBufferAttribute(a,i1).applyMatrix4(M);u.fromBufferAttribute(a,i2).applyMatrix4(M);pose(v,v.y);pose(w,w.y);pose(u,u.y);
       // le triangle RASTÉRISÉ vu de dessous : chaque centre de case qu'il couvre prend sa hauteur exacte (une grande face de plancher n'a pas de sommets au milieu)
       const ar=(w.x-v.x)*(u.z-v.z)-(u.x-v.x)*(w.z-v.z);if(Math.abs(ar)<1e-7)continue;
       const ia=Math.max(0,Math.ceil((Math.min(v.x,w.x,u.x)-x0)/P)),ib=Math.min(nx-1,Math.floor((Math.max(v.x,w.x,u.x)-x0)/P)),ka=Math.max(0,Math.ceil((Math.min(v.z,w.z,u.z)-z0)/P)),kb=Math.min(nz-1,Math.floor((Math.max(v.z,w.z,u.z)-z0)/P));
       for(let ix=ia;ix<=ib;ix++)for(let iz=ka;iz<=kb;iz++){const cx=x0+ix*P,cz=z0+iz*P,l1=((w.x-cx)*(u.z-cz)-(u.x-cx)*(w.z-cz))/ar,l2=((u.x-cx)*(v.z-cz)-(v.x-cx)*(u.z-cz))/ar,l3=1-l1-l2;
-        if(l1<-1e-4||l2<-1e-4||l3<-1e-4)continue;const y=l1*v.y+l2*w.y+l3*u.y,j=iz*nx+ix;if(y<H[j])H[j]=y;}}});
-  for(let pass=0;pass<2;pass++){const H2=H.slice();for(let iz=1;iz<nz-1;iz++)for(let ix=1;ix<nx-1;ix++){const j=iz*nx+ix;if(H[j]<1e8)continue;let s9=0,c=0;
+        if(l1<-1e-4||l2<-1e-4||l3<-1e-4)continue;const j=iz*nx+ix;if(roue){Ro[j]=1;continue;}const y=l1*v.y+l2*w.y+l3*u.y;if(y<H[j])H[j]=y;}}});
+  {const R2=Ro.slice();for(let iz=0;iz<nz;iz++)for(let ix=0;ix<nx;ix++)if(R2[iz*nx+ix])for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++){const X=ix+a,Z=iz+b;if(X>=0&&Z>=0&&X<nx&&Z<nz)Ro[Z*nx+X]=1;}} // l'empreinte des roues, une case de marge
+  for(let j=0;j<H.length;j++)if(Ro[j])H[j]=1e9;
+  for(let pass=0;pass<2;pass++){const H2=H.slice();for(let iz=1;iz<nz-1;iz++)for(let ix=1;ix<nx-1;ix++){const j=iz*nx+ix;if(H[j]<1e8||Ro[j])continue;let s9=0,c=0;
     for(const d of [-1,1,-nx,nx])if(H[j+d]<1e8){s9+=H[j+d];c++;}if(c>=2)H2[j]=s9/c;}H.set(H2);}
   let mn=1e9;for(let j=0;j<H.length;j++)if(H[j]<mn)mn=H[j];const mx=mn+.45;
-  for(let pass=0;pass<2;pass++){const H2=H.slice();for(let iz=0;iz<nz;iz++)for(let ix=0;ix<nx;ix++){const j=iz*nx+ix;if(H[j]>=mx)continue; // (Léo : « ça ne doit pas cacher la voiture du tout ») les BORDS rognés de deux cases : jamais une colonne devant un flanc
+  for(let pass=0;pass<2;pass++){const H2=H.slice();for(let iz=0;iz<nz;iz++)for(let ix=0;ix<nx;ix++){const j=iz*nx+ix;if(H[j]>=mx)continue; // (Léo : « ça ne doit pas cacher la voiture du tout ») les BORDS rognés de deux cases : jamais un cube devant un flanc
     if(ix<1||iz<1||ix>=nx-1||iz>=nz-1||H[j-1]>=mx||H[j+1]>=mx||H[j-nx]>=mx||H[j+nx]>=mx)H2[j]=1e9;}H.set(H2);}
-  return GBQ.hm={k:k,P:P,nx:nx,nz:nz,x0:x0,z0:z0,H:H,max:mx};} // max : le plancher seul — un aileron, un rétro, un débord haut ne se portent pas
+  const L=[];for(let iz=0;iz<nz;iz++)for(let ix=0;ix<nx;ix++){const y=H[iz*nx+ix];if(y<mx)L.push(x0+ix*P,y,z0+iz*P);} // max : le plancher seul — un aileron, un rétro, un débord haut ne se portent pas
+  return GBQ.hm={k:k,pts:new Float32Array(L),n:L.length/3};}
 function garBqTapis(dt,t9,ay){
-  if(!GBQ.on||!GBQ.socleH){if(GBQ.tapis)GBQ.tapis.visible=false;GBQ.ta=0;return;}
+  if(!GBQ.on||!GBQ.socleH){if(GBQ.tapis)GBQ.tapis.visible=false;GBQ.ta=0;GBQ.ts=0;return;}
   const actif=!!GBQ.drag||Math.abs(GBQ.yawV)>.2||Math.abs(GBQ.pitV)>.2;GBQ.ta=(GBQ.ta||0)+((actif?1:0)-(GBQ.ta||0))*Math.min(1,dt*(actif?7:1.7));
-  if(!GBQ.tapis){const P=[],pas=.1,R=2.08;for(let x=-R;x<=R+1e-6;x+=pas)for(let z=-R;z<=R+1e-6;z+=pas)if(x*x+z*z<=R*R)P.push(x,z);
-    const n=P.length/2,m=new THREE.InstancedMesh(new THREE.BoxGeometry(pas*.86,1,pas*.86),new THREE.MeshLambertMaterial({color:0xe8edf5,emissive:0x000000,flatShading:true,fog:false}),n);
-    m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);m.frustumCulled=false;m.renderOrder=2;scene.add(m);GBQ.tapis=m;GBQ.tapisP=P;GBQ._mt=new THREE.Matrix4();GBQ._qi=new THREE.Quaternion();GBQ._vt=new THREE.Vector3();GBQ._wt=new THREE.Vector3();}
-  const m=GBQ.tapis,A=GBQ.ta;m.visible=true;
-  const P=GBQ.tapisP,n=P.length/2,y0=ay+GBQ.socleH,hm=bqDessous(),p0=carGroup.position,q=carGroup.quaternion,qi=GBQ._qi.copy(q).invert(),v=GBQ._vt,w=GBQ._wt,M=GBQ._mt;
-  m.position.set(0,y0,0);const bas9=Math.max(0,p0.y-y0-.12);
-  for(let k=0;k<n;k++){const x=P[2*k],z=P[2*k+1];let h=0;
-    v.set(x-p0.x,0,z-p0.z).applyQuaternion(qi);const ix=Math.round((v.x-hm.x0)/hm.P),iz=Math.round((v.z-hm.z0)/hm.P);
-    let sous=false;if(ix>=0&&iz>=0&&ix<hm.nx&&iz<hm.nz){const hl=hm.H[iz*hm.nx+ix];if(hl<hm.max){w.set(v.x,hl,v.z).applyQuaternion(q);h=p0.y+w.y-y0-.05;sous=true;}} // 5 cm sous son dessous, sans crans : il suit la houle sans sautiller
-    if(!sous&&A>.02){const r=Math.hypot(x,z);h=Math.min(.2,bas9)*Math.max(0,Math.sin(r*5-t9*8))*(1-r/2.2)*A;} // autour : l'onde, toujours plus basse que la caisse
-    if(h<.03)M.makeScale(.001,.001,.001);else{M.makeScale(1,h,1);M.setPosition(x,h/2,z);}m.setMatrixAt(k,M);}
-  m.instanceMatrix.needsUpdate=true;}
+  const C=.1,NIV=5,R=2.08,nW=Math.round(2*R/C)+1;
+  if(!GBQ.tapis){const L=[];for(let i=0;i<nW;i++)for(let j=0;j<nW;j++){const x=-R+i*C,z=-R+j*C;if(x*x+z*z<=R*R)L.push(i,j);}
+    const m=new THREE.InstancedMesh(new THREE.BoxGeometry(C*.84,C*.84,C*.84),new THREE.MeshLambertMaterial({color:0xe8edf5,emissive:0x000000,flatShading:true,fog:false}),L.length/2*NIV);
+    m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);m.frustumCulled=false;m.renderOrder=2;m.count=0;scene.add(m);
+    GBQ.tapis=m;GBQ.tapisL=new Uint16Array(L);GBQ.tapisW=new Float32Array(nW*nW);GBQ._mt=new THREE.Matrix4();GBQ._vt=new THREE.Vector3();GBQ._ut=new THREE.Vector3();}
+  const m=GBQ.tapis,A=GBQ.ta,L=GBQ.tapisL,n=L.length/2,W=GBQ.tapisW,y0=ay+GBQ.socleH,hm=bqDessous(),p0=carGroup.position,q=carGroup.quaternion,v=GBQ._vt,M=GBQ._mt;
+  m.visible=true;m.position.set(0,y0,0);
+  const up=GBQ._ut.set(0,1,0).applyQuaternion(q),sv=1-THREE.MathUtils.smoothstep(Math.acos(Math.min(1,up.y)),.07,.2); // penchée : le coussin rentre
+  GBQ.ts=(GBQ.ts||0)+(sv-(GBQ.ts||0))*Math.min(1,dt*(sv>(GBQ.ts||0)?3.2:8));const s=GBQ.ts;
+  W.fill(1e9);
+  if(s>.01){const P=hm.pts;for(let i=0;i<hm.n;i++){v.set(P[3*i],P[3*i+1],P[3*i+2]).applyQuaternion(q).add(p0);const ix=Math.round((v.x+R)/C),iz=Math.round((v.z+R)/C);
+    if(ix<0||iz<0||ix>=nW||iz>=nW)continue;const j=iz*nW+ix,y=v.y-y0;if(y<W[j])W[j]=y;}}
+  const hR=Math.min(.09,Math.max(0,p0.y-y0-.12));let c=0;
+  for(let k=0;k<n;k++){const i=L[2*k],j=L[2*k+1],x=-R+i*C,z=-R+j*C,hw=W[j*nW+i];
+    if(hw<1e8){const top=hw-.035,chute=(1-s)*(top+.25);
+      for(let d=0;d<NIV;d++){if(d>=2){let h=Math.imul(i,73856093)^Math.imul(j,19349663)^Math.imul(d,83492791);h=Math.imul(h^(h>>>13),1274126177);h^=h>>>16;
+          if((h>>>0)/4294967296>=(d===2?.55:d===3?.28:.1))continue;}
+        const yc=top-(d+.5)*C-chute;if(yc+C*.42<.004)break;M.makeTranslation(x,yc,z);m.setMatrixAt(c++,M);}}
+    else if(A>.02&&hR>0){const r=Math.hypot(x,z),h=hR*Math.max(0,Math.sin(r*5-t9*8))*(1-r/2.2)*A;if(h>.015){M.makeTranslation(x,h-C*.42,z);m.setMatrixAt(c++,M);}} // autour : l'onde affleure du socle
+  }
+  m.count=c;m.instanceMatrix.needsUpdate=true;}
 function garBqLumiere(){if(!GBQ.on)return; // la lumière du magasin : blanche, sans le contre-jour du feu
   stallKey.color.setHex(0xffffff);stallKey.intensity=1.45;stallKey.distance=30;stallRim.color.setHex(0xe8eef5);stallRim.intensity=.7;stallRim.distance=30;}
 /* LE DOIGT SUR LA SCÈNE tourne la caisse (le garage ne reçoit plus le glissé : pris en capture) */
