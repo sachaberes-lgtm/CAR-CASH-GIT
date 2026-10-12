@@ -16,6 +16,9 @@
   d'origine). RICH_FRUIT_R allongé.
 - AU SIMULATEUR : la map « PICS DE JADE », niveau « SOLEIL DE JADE » (`lance:{jade:true}` → dbgNiveauJade, simulateur/maps.js et course.html),
   photo `maps-ciel/img/jade-volant.jpg`. Pas de musique par défaut : Léo choisit (pastille ♪).
+- (12/10, Léo : « plus de zoom, plutôt des pièces ARGENTÉES, comme celles qu'on connaît, avec un CARRÉ au milieu ; le ciel plus ORANGÉ »)
+  la route (style 4) = des pièces d'ARGENT à TROU CARRÉ, 1,5 × plus grandes (Ø 1,9-2,3 m), chacune sa nuance et l'angle de son carré ;
+  plus d'étoile. Le ciel : orange du soir (jdH/jdM/jdL orange, zénith bleu-mauve), brume et lumière orangées.
 - Banc : `dbgJadePoste('ramasse')` (pièces, fruits par nom, pouvoirs, plots, plaques, flaques). MESURÉ : 650 pièces, ~16 fruits, 20 pouvoirs,
   300 plots, 8 plaques par passage ; en course : pièces ramassées, défis (« EAT 4 FRUITS »), paliers moteur, aimant, jus des fruits.
 
