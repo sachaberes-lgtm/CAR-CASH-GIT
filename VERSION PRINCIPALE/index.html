@@ -6955,11 +6955,28 @@ html body.touch #flowHud[data-lv="4"]::after{top:-10px!important;height:24px!imp
 }
 /* l'AURA QUI VOLE : les « +N », par-dessus le HUD (à la couleur de la cellule qu'ils remplissent) */
 html body.touch.play #ajVols{display:block;position:fixed;inset:0;z-index:31;pointer-events:none;overflow:hidden}
-#ajVols b{position:absolute;left:0;top:0;font-family:var(--pix);font-weight:normal;font-size:12px;line-height:1;white-space:nowrap;opacity:0;will-change:transform,opacity;
+#ajVols b{position:absolute;left:0;top:0;font-family:var(--pix);font-weight:normal;font-size:14px;line-height:1;white-space:nowrap;opacity:0;will-change:transform,opacity;
   color:var(--ajI,#e0faff);filter:var(--contourP)}
+/* (2026-10-12, Léo : « ça flotte, puis la gravité le tire vers la jauge ») la NITRO vole aussi : un éclair pixel (la lueur sur le <b>, le
+   masque sur le <i> — un drop-shadow sur l'élément masqué ne se verrait pas), orange vers le réservoir, bleu vers la réserve des fruits */
+#ajVols b.n{font-size:0;filter:drop-shadow(0 2px 0 #2a0e00) drop-shadow(0 0 6px rgba(255,141,46,.95))}
+#ajVols b.n>i{display:block;width:24px;height:24px;background:linear-gradient(180deg,#fff3c4 0 22%,#ffb81f 22% 62%,#ff8d2e 62%);
+  -webkit-mask:var(--pxi-eclair) center/100% 100% no-repeat;mask:var(--pxi-eclair) center/100% 100% no-repeat}
+#ajVols b.n.x{filter:drop-shadow(0 2px 0 #0b1250) drop-shadow(0 0 6px rgba(110,140,255,.95))}
+#ajVols b.n.x>i{background:linear-gradient(180deg,#eef2ff 0 22%,#8fa4ff 22% 62%,#4a68f0 62%)}
+/* l'arrivée : un anneau de pixels qui s'ouvre là où il tombe */
+#ajVols u{position:absolute;left:-11px;top:-11px;width:22px;height:22px;opacity:0;box-shadow:inset 0 0 0 3px var(--c,#fff);pointer-events:none}
+#ajVols u.on{animation:volImpact .34s steps(4) forwards}
+@keyframes volImpact{0%{opacity:1;scale:.35}100%{opacity:0;scale:1.7}}
+/* la barre de boost PREND la nitro qui arrive : un éclat au bout du plein (seulement là — plus de flash sur toute la barre) */
+html body.touch #nitroBar>.nbPrend{position:absolute;top:-4px;bottom:-4px;left:calc(3px + var(--px,0) * (100% - 6px));width:34px;translate:-100% 0;z-index:4;
+  pointer-events:none;opacity:0;background:linear-gradient(90deg,transparent,rgba(255,244,214,.95));transform-origin:100% 50%}
+html body.touch #nitroBar>.nbPrend.x{background:linear-gradient(90deg,transparent,rgba(225,232,255,.95))}
+html body.touch #nitroBar>.nbPrend.on{animation:nbPrendK .34s var(--ease)}
+@keyframes nbPrendK{0%{opacity:1;scale:1 1.4}100%{opacity:0;scale:1 1}}
 /* la pause passe devant : la jauge et ce qui vole se cachent comme le reste du HUD */
 body:has(#tPanel.open) :is(#ajCourse,#ajVols){visibility:hidden}
-@media (prefers-reduced-motion:reduce){#ajCourse .ajSeg::after,html body.touch #nitroBar.boost #nitroR,html body.touch #nitroBar.bleu #nitroX,html body.touch #nitroBar.inf #nitroR,html body.touch #nitroBar.inf #nitroX,html body.touch #nitroBar #nitroR::after{animation:none!important}}
+@media (prefers-reduced-motion:reduce){#ajVols u.on,html body.touch #nitroBar>.nbPrend.on,#ajCourse .ajSeg::after,html body.touch #nitroBar.boost #nitroR,html body.touch #nitroBar.bleu #nitroX,html body.touch #nitroBar.inf #nitroR,html body.touch #nitroBar.inf #nitroX,html body.touch #nitroBar #nitroR::after{animation:none!important}}
 /* ---- 4. (2026-10-12, Léo : « l'aura un peu plus courte, les km/h plus à droite encore, et le flow même taille ») : la jauge d'aura et le flow à
    80 % de la barre de boost (même longueur l'une que l'autre), leurs bouts juste après ; la VITESSE va se ranger contre le ⏸ (couché : son bord
    droit à 16 px du bouton ; debout : 8 px plus loin que la case). `--ajPad` = ce que la barre laisse à droite, debout. ---- */
@@ -25456,7 +25473,7 @@ function nitroGain(q,src){
   if(!(q>0))return;const mx=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2;
   const av=nitroR;nitroR=Math.min(mx,nitroR+q);
   if(LIVRE.on){livre('n+:'+(src||'?'),nitroR-av);livre('n0:'+(src||'?'),q-(nitroR-av));}
-  if(nitroR>av+.01){const b=document.getElementById('nitroBar');if(b){b.classList.remove('gain');void b.offsetWidth;b.classList.add('gain');}}
+  if(nitroR>av+.03&&!volgNitro('r',nitroR-av))nbPrend('r'); // (2026-10-12, Léo) elle FLOTTE puis tombe dans la barre (plus de flash blanc sur toute la barre, km/h compris)
 }
 function runxReset(){flowReset();RUNX.best0=best; // le record d'AVANT la partie : c'est lui que l'écran de mort doit battre
 RUNX.coins=RUNX.fruits=RUNX.perfect=RUNX.zf=0;RUNX.t=RUNX.nitro=0;RUNX.fren=RUNX.frenMax=0;MIS_NEW.length=0;misT=0;
@@ -44408,7 +44425,7 @@ function pickupsTick(dt){
         // (2026-09-26, user : « les fruits donnent du nitro BLEU ») : chaque fruit remplit la RÉSERVE BLEUE (la nitro la plus forte : poussée
         // 48 contre 30) de 20 % de la jauge — le bleu se voit sur la barre et sur l'anneau du bouton
         {const mx9=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,av9=nitroX;nitroX=Math.min(2,nitroX+(p.ligne?LIGNE.don:.2*mx9));if(LIVRE.on){livre('n+:'+(p.ligne?'fruit.ligne':'fruit'),nitroX-av9);livre('n0:'+(p.ligne?'fruit.ligne':'fruit'),(p.ligne?LIGNE.don:.2*mx9)-(nitroX-av9));}if(p.ligne)LIGNE.pris[0]++; // (LIGNE PARFAITE) le fruit de la file rend de quoi tenir jusqu'au pad
-         if(nitroX>av9+.01){if(SONV2)sfx('nitro.plein',{t:.14});const b=document.getElementById('nitroBar');if(b){b.classList.remove('gain');void b.offsetWidth;b.classList.add('gain');}}}
+         if(nitroX>av9+.01){if(SONV2)sfx('nitro.plein',{t:.14});if(!volgNitro('x',nitroX-av9))nbPrend('x');}}
         RUNX.fruits++;hap(fd.boost>=1.5?[20,40,30]:11);
         fruitCroque(carGroup.position,fd.jus||0xffd75e,pw,fd.n); // ON CROQUE : jus, crunch, et la rafale qui monte
         // (le fruit ne touche PAS au moteur : il ne sert qu'au boost — ce sont les pièces qui l'améliorent)
@@ -44576,7 +44593,6 @@ function ajMonte(){
   document.body.appendChild(e);AJ.el=e;AJ.seg=e.querySelector('.ajSeg');AJ.cel=[...AJ.seg.children];
   AJ.lS=e.querySelector('.ajLbl small');AJ.lB=e.querySelector('.ajLbl b');
   const v=document.createElement('div');v.id='ajVols';v.setAttribute('aria-hidden','true');document.body.appendChild(v);AJ.vols=v;
-  for(let i=0;i<8;i++){const b=document.createElement('b');v.appendChild(b);AJ.pool.push(b);}
   AJ.v3=new THREE.Vector3();addEventListener('resize',function(){AJ.wT=0;});
   return true;
 }
@@ -44593,27 +44609,98 @@ function ajGain(n,ch){
   if(ch||n>=150)ajLance(); // une chaîne qu'on encaisse, un gros gain : il part tout de suite
 }
 function ajLance(){
-  const n=AJ.acc;if(!(n>0))return;const b=AJ.pool.pop();
+  const n=AJ.acc;if(!(n>0))return;
   const ch=AJ.accCh;AJ.acc=0;AJ.accCh=false;AJ.accT=0;
-  if(!b||!AJ.w)return; // trop en vol (ou pas encore mesurée) : l'aura passe directement, l'image suivante la montre
-  const s=ajSource(ch),r=AJ.seg.getBoundingClientRect(),x1=r.left+3+AJ.fx*(r.width-6),y1=r.top+r.height/2;
-  const dx=x1-s[0],dy=y1-s[1],mx=s[0]+dx*.45,my=s[1]+dy*.45-Math.min(120,40+Math.abs(dx)*.18); // une courbe : elle monte avant de plonger dans la jauge
-  b.textContent='+'+fmtAura(n);AJ.envol+=n;AJ.enVol++;
-  const big=n>=300?1.35:n>=100?1.15:1;
-  const a=b.animate([
-    {transform:'translate('+s[0]+'px,'+s[1]+'px) translate(-50%,-50%) scale('+(big*.6)+')',opacity:0},
-    {transform:'translate('+s[0]+'px,'+(s[1]-14)+'px) translate(-50%,-50%) scale('+big+')',opacity:1,offset:.16},
-    {transform:'translate('+mx+'px,'+my+'px) translate(-50%,-50%) scale('+(big*.9)+')',opacity:1,offset:.55},
-    {transform:'translate('+x1+'px,'+y1+'px) translate(-50%,-50%) scale(.45)',opacity:.9}],
-    {duration:620+Math.min(180,Math.hypot(dx,dy)*.25),easing:'cubic-bezier(.4,0,.75,.55)',fill:'forwards'});
-  a.onfinish=function(){AJ.envol=Math.max(0,AJ.envol-n);AJ.enVol=Math.max(0,AJ.enVol-1);b.style.opacity='0';a.cancel();AJ.pool.push(b);
-    if(AJ.el){AJ.el.classList.remove('prend');void AJ.el.offsetWidth;AJ.el.classList.add('prend');}};
+  if(!AJ.w)return; // pas encore mesurée : l'aura passe directement, l'image suivante la montre
+  if(volgLance('a',n,ajSource(ch),n>=300?1.35:n>=100?1.15:1)){AJ.envol+=n;AJ.enVol++;} // plus de place en vol : elle passe directement
 }
+/* =====================================================================================================================================
+   LES GAINS QUI FLOTTENT, PUIS TOMBENT DANS LEUR JAUGE (2026-10-12, Léo : « quand on gagne de l'aura, n'importe quoi, ça arrive dans l'écran
+   en mode flottement, et après ça tire, la gravité, vers la jauge — quand on fait des figures, quand on tombe sur un truc de nitro »).
+   UN moteur pour l'AURA (→ le bout du plein de la jauge d'aura) et la NITRO (→ le bout orange de la barre de boost ; la réserve BLEUE des
+   fruits → son bout bleu). Avant : l'aura filait en ligne presque droite en 0,7 s, et la nitro SAUTAIT dans la barre (avec un flash blanc
+   sur toute la barre, km/h compris).
+   · Le gain JAILLIT de là où il naît (la caisse à l'écran, la boîte de la chaîne qu'on encaisse) : un coup vers le haut, un peu de côté ;
+   · il FLOTTE : l'air le freine, il plane en ondulant (~0,4 s) ;
+   · puis la jauge l'ATTIRE : une gravité qui grandit avec le temps (un puits), la vitesse de travers freinée pour qu'il y plonge sans tourner
+     autour ; il rapetisse en tombant. Il touche le bout du plein (suivi EN DIRECT : la jauge bouge pendant qu'il vole), la jauge le prend
+     (elle bat, un anneau de pixels) — et c'est seulement LÀ qu'elle monte. La ressource est à toi dès la prise (la nitro se brûle tout de
+     suite) : seul l'AFFICHAGE attend (`VOLG.n.r/x`, ôtés de la barre par la boucle).
+   · Simulé à l'image (pas de keyframes) ; 12 en vol au plus — au-delà, ou en « Réduire les animations », le gain passe direct.
+   · Les nitros nées ensemble (pose + figure + bump au même atterrissage) partent en UNE (elle grossit).
+   Console : `dbgVols()` (en vol, nitro en attente) · `dbgVols('n',.5)` / `('x',.4)` / `('a',200)` lance un gain depuis la caisse.
+   ===================================================================================================================================== */
+var VOLG={L:[],pool:[],imp:[],rS:null,rN:null,rT:0,n:{r:0,x:0},fR:0,fX:0,nb:null,nbP:null,k:1};
+function volgMonte(){
+  if(VOLG.pool.length||VOLG.L.length||!AJ.vols)return;
+  for(let i=0;i<12;i++){const b=document.createElement('b');AJ.vols.appendChild(b);VOLG.pool.push(b);}
+  for(let i=0;i<4;i++){const u=document.createElement('u');AJ.vols.appendChild(u);VOLG.imp.push(u);}
+}
+// la cible : le bout du plein de SA jauge (rectangles relus deux fois par seconde, la fraction suit chaque image)
+function volgCible(k,o){
+  if(k==='a'){const r=VOLG.rS;if(!r)return null;o[0]=r.left+3+AJ.fx*(r.width-6);o[1]=r.top+r.height/2;return o;}
+  const r=VOLG.rN;if(!r)return null;o[0]=r.left+3+(k==='x'?VOLG.fR+VOLG.fX:VOLG.fR)*(r.width-6);o[1]=r.top+r.height/2;return o;
+}
+function volgLance(k,q,src,big){
+  if(REDUCED_MOTION||document.hidden||!document.body.classList.contains('play')||!src)return false;
+  volgMonte();
+  if(k!=='a')for(const f of VOLG.L)if(f.k===k&&f.t<.12){f.q+=q;f.big=Math.min(1.6,f.big+.25);return true;} // née au même instant : elle grossit
+  const el=VOLG.pool.pop();if(!el)return false;
+  if(k==='a'){el.className='a';el.textContent='+'+fmtAura(q);}else{el.className='n '+k;if(!el.firstChild||el.firstChild.nodeType!==1)el.innerHTML='<i></i>';}
+  const sg=Math.random()<.5?-1:1;
+  VOLG.L.push({el,k,q,big,x:src[0],y:src[1],vx:sg*(40+Math.random()*110),vy:-(220+Math.random()*90),t:0,tF:.34+Math.random()*.12,d0:0,ph:Math.random()*6.3,c:[0,0]});
+  return true;
+}
+// une nitro gagnée : elle vole si elle peut (`r` réservoir orange, `x` réserve bleue) ; sinon la barre bat tout de suite
+function volgNitro(k,q){
+  if(!(q>.03)||!VOLG)return false;
+  if(volgLance(k,q,ajSource(false),Math.min(1.5,.9+q*.6))){VOLG.n[k]+=q;return true;}
+  return false;
+}
+function volgImpact(x,y,c){const u=VOLG.imp.shift();if(!u)return;VOLG.imp.push(u);
+  u.style.translate=Math.round(x)+'px '+Math.round(y)+'px';u.style.setProperty('--c',c);u.classList.remove('on');void u.offsetWidth;u.classList.add('on');}
+function nbPrend(k){ // la barre de boost PREND : un éclat au bout du plein
+  if(!VOLG)return;
+  if(!VOLG.nbP){const nb=document.getElementById('nitroBar');if(!nb)return;const p=document.createElement('i');p.className='nbPrend';p.setAttribute('aria-hidden','true');nb.appendChild(p);VOLG.nbP=p;}
+  const p=VOLG.nbP;p.style.setProperty('--px',(k==='x'?VOLG.fR+VOLG.fX:VOLG.fR).toFixed(3));p.className='nbPrend '+k;void p.offsetWidth;p.className='nbPrend on '+k;
+}
+function volgArrive(f,i,muet){
+  VOLG.L.splice(i,1);f.el.style.opacity='0';VOLG.pool.push(f.el);
+  if(f.k==='a'){AJ.envol=Math.max(0,AJ.envol-f.q);AJ.enVol=Math.max(0,AJ.enVol-1);
+    if(!muet&&AJ.el){AJ.el.classList.remove('prend');void AJ.el.offsetWidth;AJ.el.classList.add('prend');volgImpact(f.c[0],f.c[1],FLOW_CEL[Math.max(0,AJ.cur)]||'#5ee6ff');}}
+  else{VOLG.n[f.k]=Math.max(0,VOLG.n[f.k]-f.q);if(!muet){nbPrend(f.k);volgImpact(f.c[0],f.c[1],f.k==='x'?'#8fa4ff':'#ffb81f');}}
+}
+function volgVide(){for(let i=VOLG.L.length-1;i>=0;i--)volgArrive(VOLG.L[i],i,true);VOLG.n.r=VOLG.n.x=0;}
+function volgTick(dt){
+  if((VOLG.rT-=dt)<=0){VOLG.rT=.5;if(AJ.seg)VOLG.rS=zRect(AJ.seg);const nb=document.getElementById('nitroBar');if(nb)VOLG.rN=zRect(nb);}
+  if(!VOLG.L.length)return;
+  dt=Math.min(dt,.05)*VOLG.k; // (k : le ralenti du banc, `dbgVols('ralenti',.1)`)
+  for(let i=VOLG.L.length-1;i>=0;i--){const f=VOLG.L[i];f.t+=dt;
+    if(!volgCible(f.k,f.c)||f.t>2.6){volgArrive(f,i,true);continue;}
+    if(f.t<f.tF){ // IL FLOTTE : l'air le freine, il plane
+      const dr=Math.exp(-dt*5.5);f.vx*=dr;f.vy*=dr;f.x+=f.vx*dt;f.y+=f.vy*dt;
+    }else{ // LA JAUGE L'ATTIRE : une gravité qui grandit (un puits), le travers freiné
+      const dx=f.c[0]-f.x,dy=f.c[1]-f.y,d=Math.hypot(dx,dy)||1;if(!f.d0)f.d0=Math.max(40,d);
+      const ux=dx/d,uy=dy/d,vl=f.vx*ux+f.vy*uy,kt=Math.exp(-dt*7),a=2400+24000*(f.t-f.tF);
+      const px=(f.vx-vl*ux)*kt,py=(f.vy-vl*uy)*kt,v2=Math.min(3200,Math.max(vl,0)+a*dt);
+      f.vx=px+v2*ux;f.vy=py+v2*uy;
+      if(d<=Math.max(7,Math.hypot(f.vx,f.vy)*dt)){volgArrive(f,i,false);continue;}
+      f.x+=f.vx*dt;f.y+=f.vy*dt;
+    }
+    // le rendu : il éclôt (rebond), ondule tant qu'il flotte, rapetisse en tombant
+    const t=f.t,pop=t<.1?.55+.6*t/.1:t<.2?1.15-.15*(t-.1)/.1:1,shr=f.d0?.45+.55*Math.min(1,Math.hypot(f.c[0]-f.x,f.c[1]-f.y)/f.d0):1,
+      fl=Math.max(0,1-Math.max(0,t-f.tF)/.12),oy=Math.sin(t*10+f.ph)*3*fl;
+    f.el.style.opacity=t<.06?(t/.06).toFixed(2):'1';
+    f.el.style.transform='translate('+Math.round(f.x)+'px,'+Math.round(f.y+oy)+'px) translate(-50%,-50%) scale('+(f.big*pop*shr).toFixed(3)+')';
+  }
+}
+window.dbgVols=function(k,q){if(k==='ralenti'){VOLG.k=q==null?1:+q;return VOLG.k;}if(k&&running&&!gameOver){if(k==='a'){auraRun+=q||200;ajGain(q||200,false);ajLance();}else if(k==='n'||k==='r')nitroGain(q||.5,'dbg');else if(k==='x'){const av=nitroX;nitroX=Math.min(2,nitroX+(q||.4));if(!volgNitro('x',nitroX-av))nbPrend('x');}}
+  return {enVol:VOLG.L.map(f=>f.k+':'+(f.k==='a'?Math.round(f.q):f.q.toFixed(2))+(f.t<f.tF?' flotte':' tombe')),pos:VOLG.L.map(f=>[f.k,Math.round(f.x),Math.round(f.y),+f.t.toFixed(3),Math.round(f.c[0]),Math.round(f.c[1])]),nitroAttend:{r:+VOLG.n.r.toFixed(2),x:+VOLG.n.x.toFixed(2)},barre:{r:+VOLG.fR.toFixed(3),x:+VOLG.fX.toFixed(3)},libres:VOLG.pool.length};};
 function ajTick(dt){
   if(!AJ.el&&!ajMonte())return;
-  if(!document.body.classList.contains('play'))return;
+  if(!document.body.classList.contains('play')){if(VOLG.L.length||VOLG.n.r||VOLG.n.x)volgVide();return;}
   // une NOUVELLE partie : rien en vol, la moyenne et le record relus (la partie d'avant vient de les changer)
-  if(auraRun<AJ.run0||!AJ.moy||(AJ.moyT-=dt)<=0){if(auraRun<AJ.run0){for(const b of AJ.vols.children)try{for(const a of b.getAnimations())a.finish();}catch(e){}AJ.envol=0;AJ.acc=0;AJ.vis=0;AJ.dit=false;}
+  if(auraRun<AJ.run0||!AJ.moy||(AJ.moyT-=dt)<=0){if(auraRun<AJ.run0){volgVide();AJ.envol=0;AJ.acc=0;AJ.vis=0;AJ.dit=false;}
     AJ.moyT=1;AJ.moy=ajMoy();AJ.rec=Math.max(AJ.moy,SAVE.d.auraMax||0);}
   AJ.run0=auraRun;
   if((AJ.wT-=dt)<=0){AJ.wT=1;AJ.w=AJ.seg.clientWidth-6;}
@@ -44636,6 +44723,7 @@ function ajTick(dt){
   const lbl=TR(rev?'RECORD':'MOY');if(lbl!==AJ.lbl){AJ.lbl=lbl;AJ.lS.textContent=lbl;}
   const t=recB?'×'+(Math.floor(v/AJ.rec*10)/10).toFixed(1):fmtAura(rev?AJ.rec:AJ.moy);
   if(t!==AJ.txt){AJ.txt=t;AJ.lB.textContent=t;}
+  volgTick(dt); // les gains qui flottent puis tombent dans leur jauge (aura ET nitro)
 }
 window.dbgJaugeAura=function(n){if(n>0&&running&&!gameOver){auraRun+=n;ajGain(n,false);ajLance();}
   return {moyenne:Math.round(AJ.moy||ajMoy()),record:Math.round(AJ.rec),montre:Math.round(AJ.vis),enVol:Math.round(AJ.envol),attend:Math.round(AJ.acc),vols:AJ.enVol,aura:Math.round(auraRun),
@@ -46141,19 +46229,20 @@ function loop(now){
     // ⚠ on n'écrit la jauge QUE si elle a bougé d'un demi-pour-cent : un style par image, c'est un recalcul de style par image
     // (2026-09-28, HUD v5) la rampe dit la MÊME chose que le disque NITRO : la part du RÉSERVOIR du moteur (orange), puis la réserve bleue
     // par-dessus, plafonnées à la rampe entière — elle comptait sur 4 unités : réservoir plein = rampe à moitié, disque plein (contradiction)
-    {const mx8=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,fR8=Math.min(1,nitroR/mx8),fX8=Math.min(1-fR8,nitroX/2),w1=Math.round(fR8*200)/2,w2=Math.round(fX8*200)/2;
+    {VOLG.n.r=Math.min(VOLG.n.r,nitroR);VOLG.n.x=Math.min(VOLG.n.x,nitroX); // (2026-10-12) la barre MONTRE la nitro moins celle qui vole encore vers elle
+     const nR8=Math.max(0,nitroR-VOLG.n.r),nX8=Math.max(0,nitroX-VOLG.n.x),mx8=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,fR8=Math.min(1,nR8/mx8),fX8=Math.min(1-fR8,nX8/2),w1=Math.round(fR8*200)/2,w2=Math.round(fX8*200)/2;VOLG.fR=fR8;VOLG.fX=fX8;
      if(loop._nw1!==w1){loop._nw1=w1;elNR.style.width=w1+'%';}
      if(loop._nw2!==w2){loop._nw2=w2;elNX.style.width=w2+'%';}
-     const pl=(nitroR+nitroX)>=((ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2)-.01;
+     const pl=(nR8+nX8)>=mx8-.01;
      if(loop._npl!==pl){loop._npl=pl;elNR.parentNode.classList.toggle('plein',pl);if(elNB)elNB.classList.toggle('plein',pl);}
      try{nitroFeu(dt);}catch(e){} // (2026-09-26) LA JAUGE EN FEU
      {const inf=pwrNitroT>0;if(loop._ninf!==inf){loop._ninf=inf;elNR.parentNode.classList.toggle('inf',inf);if(elNB)elNB.classList.toggle('inf',inf);}} // (2026-09-28) le bouton NITRO porte l'état lui aussi (violet)
      // LA JAUGE VIT : elle file quand on boost (rayures qui défilent, halo), vire au bleu en réserve, clignote rouge à sec
-     {const st=(nitroOn?(nitroBlue?'bleu':'boost'):'')+((nitroR+nitroX)<.35?' bas':'');
-      if(loop._nst!==st){loop._nst=st;const nb=elNR.parentNode;nb.classList.toggle('boost',nitroOn&&!nitroBlue);nb.classList.toggle('bleu',nitroOn&&nitroBlue);nb.classList.toggle('bas',(nitroR+nitroX)<.35);
-       if(elNB){elNB.classList.toggle('bleu',nitroOn&&nitroBlue);elNB.classList.toggle('bas',(nitroR+nitroX)<.35);}}} // (2026-09-28) …et le bouton NITRO : réserve bleue, à sec
+     {const st=(nitroOn?(nitroBlue?'bleu':'boost'):'')+((nR8+nX8)<.35?' bas':'');
+      if(loop._nst!==st){loop._nst=st;const nb=elNR.parentNode;nb.classList.toggle('boost',nitroOn&&!nitroBlue);nb.classList.toggle('bleu',nitroOn&&nitroBlue);nb.classList.toggle('bas',(nR8+nX8)<.35);
+       if(elNB){elNB.classList.toggle('bleu',nitroOn&&nitroBlue);elNB.classList.toggle('bas',(nR8+nX8)<.35);}}} // (2026-09-28) …et le bouton NITRO : réserve bleue, à sec
      // L'ANNEAU DU BOUTON NITRO : la même réserve, en arc autour du pouce
-     const mx9=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,r9=Math.round(Math.min(1,nitroR/mx9)*100)/100,x9=Math.round(Math.min(1,nitroX/2)*100)/100;
+     const r9=Math.round(Math.min(1,nR8/mx8)*100)/100,x9=Math.round(Math.min(1,nX8/2)*100)/100;
      if(elNB&&(loop._nbr!==r9||loop._nbx!==x9)){loop._nbr=r9;loop._nbx=x9;elNB.style.setProperty('--nr',r9);elNB.style.setProperty('--nx',x9);}}
     try{nx3Tick(dt,speedKmh);}catch(e){loopWarn(256,'nitro',e);}
     try{ajTick(dt);}catch(e){loopWarn(512,'jauge aura',e);} // (2026-10-12, Léo) LA JAUGE D'AURA (le flow passe en petit dessous) // (2026-10-12, Léo) LE BOUTON NITRO v3 : l'éclair en pixels qui s'enfonce, la vitesse à droite de la barre de boost

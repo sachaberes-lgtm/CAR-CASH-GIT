@@ -1,5 +1,18 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LES GAINS QUI FLOTTENT PUIS TOMBENT DANS LEUR JAUGE — AURA ET NITRO (2026-10-12, Léo : « quand on gagne de l'aura, n'importe quoi, ça arrive dans l'écran en mode flottement, et après ça tire, la gravité, vers la jauge — quand on fait des figures, quand on tombe sur un truc de nitro la jauge part en couille »)
+- Bloc JS « LES GAINS QUI FLOTTENT… » (`VOLG`, `volgLance`, `volgNitro`, `volgTick`, `volgArrive`, `volgVide`, `nbPrend`), juste après `ajLance`,
+  appelé en fin d'`ajTick`. UN moteur, simulé à l'image (plus de keyframes WAAPI) : le gain JAILLIT de la caisse à l'écran (ou de la boîte de
+  la chaîne encaissée), FLOTTE ~0,4 s (l'air le freine, il ondule), puis la jauge l'ATTIRE (gravité qui grandit, travers freiné) jusqu'au BOUT
+  DU PLEIN suivi en direct ; arrivée ≈ 0,7-0,8 s : la jauge bat, un anneau de pixels (`#ajVols u`), et c'est LÀ qu'elle monte.
+- L'AURA : « +N » 14 px (12 avant) vers la jauge d'aura (`AJ.envol` inchangé). LA NITRO : un ÉCLAIR pixel 24 px — orange vers le bout du
+  réservoir (`nitroGain` : pose, figure, bump, pads, drift…), BLEU vers le bout de la réserve (les fruits) ; nées au même instant = une seule
+  qui grossit. La RESSOURCE est à toi dès la prise : seul l'affichage attend — la boucle dessine `nitroR − VOLG.n.r` / `nitroX − VOLG.n.x`
+  (plein, à sec, anneau du bouton compris). Fini le `.gain` (flash ×2,2 de TOUTE la barre, km/h compris : « la jauge part en couille ») →
+  `.nbPrend`, un éclat au bout du plein seulement. Gains < 0,03 (rase-bord) : directs, sans éclat.
+- 12 en vol au plus, au-delà / « Réduire les animations » / hors course : direct. Console `dbgVols()` · `dbgVols('a'|'n'|'x',q)` ·
+  `dbgVols('ralenti',.1)` (le ralenti du banc). Comparaison : `photos-gameplay/comparaison-gains-qui-flottent.jpg` (CAR CAHS V3).
+
 ## LA JAUGE D'AURA (le format de la barre flow d'origine), LE FLOW EN TOUT PETIT, LA BARRE DE BOOST RAYÉE (2026-10-12, Léo : « la jauge flow devient une jauge AURA, qui se remplit en fonction de combien on se rapproche de l'aura moyenne ; le flow juste en dessous, plus petit mais branché ; les + aura se dirigent et remplissent la barre aura » ; puis « l'aura même taille, format et couleur au début que la barre flow de la v1 ; en dessous le flow encore plus petit ; je préfère les barres d'avant avec les barres diagonales, juste en plus bossé »)
 - CSS `<style id="auraJauge">` (juste après nitroEclair) ; JS « LA JAUGE D'AURA ET L'AURA QUI VOLE DEDANS » avant `loopWarn` (`AJ`, `ajMoy`,
   `ajMonte`, `ajSource`, `ajGain`, `ajLance`, `ajTick`), appel `ajTick(dt)` après `nx3Tick`. ⚠ L'élément s'appelle `#ajCourse` : « auraJauge »
