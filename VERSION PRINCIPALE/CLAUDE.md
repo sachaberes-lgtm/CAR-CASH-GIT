@@ -73,6 +73,13 @@ chaque <audio> via captureStream × volume) toutes les 25 ms, en plein spectre E
 - LE BRUIT ASSOURDISSANT : boost tenu dès le départ (tout le monde), le grondement brun (`jrG`) est la chaîne dominante dès 0,5 s, pic −12 au
   lancement, presque tout sous 200 Hz. Le boost n'est pas touché (poussée, durée) — son SON : passe-haut 85 Hz aussi sur ordi (le téléphone avait
   déjà 120), allumage en fondu (constante ,18 s les 0,45 premières s), `NIT_GRONDE` ,3. Pic du lancement −17, plus de sub. `photos-gameplay/comparaison-son-4.jpg`.
+5e PASSE (Léo : « dans mon simulateur, la map marche beaucoup mieux : on entend les pièces et tout ; le mieux, que les sons commencent dès le
+début — dans l'autre ça commence un peu tard ») — mesuré des DEUX côtés (banc `ts7` : course.html?niv=jade, la page + le cadre du jeu) :
+- mêmes EFFETS (−21 dB) ; seule la MUSIQUE différait : le simulateur joue GLISSE à son niveau d'origine (−10 plein spectre, −22 haut-parleur),
+  le main à −19 / −27 → `JMUS_NIV` 1, `JMUS_BASSES` 0, `JMUS_SORTIE` 1 : le main sonne comme le simulateur (mesuré −9,8 / −22,9).
+- LE DÉPART TARDIF : au JOUER, `buildJade` (newTrack ← rebuildMenuScene) bâtit la carte d'un bloc — ~7,4 s de calcul au banc (voxMesh,
+  jadePorte 3,3 s, jadeGabarits 2,5 s une fois par session) : tout est figé, le son aussi ; le simulateur la bâtit AVANT le clic (course en 1,8 s).
+  NON corrigé (code de la carte jade) : à faire = préparer la carte en tâche de fond (par morceaux) au menu, ou la garder d'une partie à l'autre.
 
 ## LES GAINS QUI FLOTTENT PUIS TOMBENT DANS LEUR JAUGE — AURA ET NITRO (2026-10-12, Léo : « quand on gagne de l'aura, n'importe quoi, ça arrive dans l'écran en mode flottement, et après ça tire, la gravité, vers la jauge — quand on fait des figures, quand on tombe sur un truc de nitro la jauge part en couille »)
 - Bloc JS « LES GAINS QUI FLOTTENT… » (`VOLG`, `volgLance`, `volgNitro`, `volgTick`, `volgArrive`, `volgVide`, `nbPrend`), juste après `ajLance`,
