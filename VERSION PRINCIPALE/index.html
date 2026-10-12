@@ -32439,6 +32439,10 @@ function musicTick(dt,mvt){
   else if(musicMode==='menu'){musicVolCible=musVol()*.5*mDuck;                   // le menu : en fond
     if(DEPMUS.on&&GAR.go)musicVolCible*=Math.max(0,1-(GAR.go.t||0)/1.5);          // (LE DÉPART EN MUSIQUE) il s'EFFACE pendant le piqué de JOUER…
     if(DEPMUS.sort){const d9=performance.now()-DEPMUS.sort;if(d9>3000)DEPMUS.sort=0;else musicVolCible*=Math.max(0,1-d9/350);}} // …et sous le fondu au noir du REJOUER
+  {const bq9=musicMode==='menu'&&typeof GBQ!=='undefined'&&!!GBQ.veut; /* (2026-10-13, Léo, dans la boutique : « le sound design est terrifiant, change ou enlève ») LA BOUTIQUE SE TAIT : la musique du
+     lobby s'efface en fondu dès qu'on touche BOUTIQUE et revient au retour (seuls les petits clics restent) ; sur iPhone (volume en lecture seule) elle se met en pause */
+   if(bq9)musicVolCible=0;
+   if(VOL_LOCKED&&bq9!==!!musicTick._bq){musicTick._bq=bq9;musicPause(bq9);}else musicTick._bq=bq9;}
   if(DEPMUS.f0>=0&&musicMode==='run'){const k9=(performance.now()-DEPMUS.f0)/(DEPMUS.fondu*1000); // (LE DÉPART EN MUSIQUE) l'entrée en fondu : une courbe en S, pas le ressort ordinaire (il bondissait de 0 à 60 % en 0,15 s)
     if(k9>=1)DEPMUS.f0=-1;else musicVolCour=musicVolCible*k9*k9*(3-2*k9);}
   if(musicMode!=='none'){if(!(DEPMUS.f0>=0))musicVolCour+=(musicVolCible-musicVolCour)*Math.min(1,dt*6);
@@ -44280,41 +44284,6 @@ function bqPovPanneau(){if(!BQ_CADRAGE||bqPovPanneau._el)return;
 window.dbgPov=function(o){if(o&&typeof o==='object'){const l=bqPovLu()||{};l[bqPovSens()]=Object.assign({},BQ_POV_DEF,o);try{localStorage.setItem('ccCadrageBq',JSON.stringify(l));}catch(e){}}
   return {sens:bqPovSens(),actif:bqPov(),regle:bqPovLu(),retenu:BQ_POV,cadrage:BQ_CADRAGE};};
 if(BQ_CADRAGE){if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bqPovPanneau);else setTimeout(bqPovPanneau,0);}
-/* LE SOL QUI BRILLE (2026-10-12, Léo : « un sol qui reflète tout le blanc, qui doit briller ») : un vrai miroir plan. La scène est redessinée
-   depuis la caméra RÉFLÉCHIE sous le sol (moitié de la résolution ; plan de coupe oblique : rien de ce qui est sous le sol ne passe), et le
-   sol la relit en projection : un peu floutée (un sol laqué, pas une glace), plus forte en rasant (Fresnel), plus faible dans les joints
-   des dalles. Une passe de plus, seulement dans la boutique (le sol n'est dessiné que là) ; ni ombres recalculées, ni crochets de la scène.
-   La CAISSE et ses BRAS n'y sont pas (posée sur le socle, son reflet tombait sous lui : une 2e voiture derrière les COLORIS) — le sol reflète le blanc :
-   le socle, le portique, la gloire. `GBQ.mirCaisse=true` la remet. */
-function garBqMiroir(sol){
-  const rt=new THREE.WebGLRenderTarget(4,4,{minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,format:THREE.RGBAFormat,type:(composer&&composer.renderTarget1&&composer.renderTarget1.texture.type)||THREE.UnsignedByteType});
-  rt.texture.generateMipmaps=false;
-  const vc=new THREE.PerspectiveCamera(),TM=new THREE.Matrix4(),N=new THREE.Vector3(),Pw=new THREE.Vector3(),Cw=new THREE.Vector3(),Rm=new THREE.Matrix4(),La=new THREE.Vector3(),
-    Tg=new THREE.Vector3(),V=new THREE.Vector3(),Pl=new THREE.Plane(),Cp=new THREE.Vector4(),Q=new THREE.Vector4(),sz=new THREE.Vector2(),
-    U={tRefl:{value:rt.texture},mRefl:{value:TM},uRo:{value:new THREE.Vector2(.002,.002)},uK:{value:1.6}};
-  sol.material.onBeforeCompile=function(s){Object.assign(s.uniforms,U);
-    s.vertexShader='uniform mat4 mRefl;\nvarying vec4 vRefl;\nvarying vec3 vWp;\n'+s.vertexShader.replace('#include <project_vertex>','#include <project_vertex>\nvRefl=mRefl*vec4(position,1.);vWp=(modelMatrix*vec4(position,1.)).xyz;');
-    s.fragmentShader='uniform sampler2D tRefl;\nuniform vec2 uRo;\nuniform float uK;\nvarying vec4 vRefl;\nvarying vec3 vWp;\n'+s.fragmentShader.replace('#include <map_fragment>','#include <map_fragment>\n'+
-      '{vec2 q=vRefl.xy/vRefl.w;vec3 r=texture2D(tRefl,q).rgb*.36+(texture2D(tRefl,q+vec2(uRo.x,0.)).rgb+texture2D(tRefl,q-vec2(uRo.x,0.)).rgb+texture2D(tRefl,q+vec2(0.,uRo.y)).rgb+texture2D(tRefl,q-vec2(0.,uRo.y)).rgb)*.16;'+
-      'float ct=clamp(normalize(cameraPosition-vWp).y,0.,1.),k=uK*(.36+.5*pow(1.-ct,3.))*mix(.4,1.,smoothstep(.925,.95,texelColor.g));diffuseColor.rgb=mix(diffuseColor.rgb,r*1.2,k);}');};
-  sol.material.customProgramCacheKey=function(){return 'bqMiroir';};
-  sol.onBeforeRender=function(rd,sc,cam){if(GBQ._mirB||!cam||!cam.isPerspectiveCamera)return;
-    Pw.setFromMatrixPosition(sol.matrixWorld);Cw.setFromMatrixPosition(cam.matrixWorld);Rm.extractRotation(sol.matrixWorld);N.set(0,0,1).applyMatrix4(Rm);
-    V.subVectors(Pw,Cw);if(V.dot(N)>0)return;V.reflect(N).negate().add(Pw);
-    Rm.extractRotation(cam.matrixWorld);La.set(0,0,-1).applyMatrix4(Rm).add(Cw);Tg.subVectors(Pw,La).reflect(N).negate().add(Pw);
-    vc.position.copy(V);vc.up.set(0,1,0).applyMatrix4(Rm).reflect(N);vc.lookAt(Tg);vc.near=cam.near;vc.far=cam.far;vc.layers.mask=cam.layers.mask;vc.updateMatrixWorld();
-    vc.projectionMatrix.copy(cam.projectionMatrix);vc.projectionMatrixInverse.copy(cam.projectionMatrixInverse);
-    TM.set(.5,0,0,.5,0,.5,0,.5,0,0,.5,.5,0,0,0,1).multiply(vc.projectionMatrix).multiply(vc.matrixWorldInverse).multiply(sol.matrixWorld);
-    Pl.setFromNormalAndCoplanarPoint(N,Pw).applyMatrix4(vc.matrixWorldInverse);Cp.set(Pl.normal.x,Pl.normal.y,Pl.normal.z,Pl.constant);
-    const e=vc.projectionMatrix.elements;Q.set((Math.sign(Cp.x)+e[8])/e[0],(Math.sign(Cp.y)+e[9])/e[5],-1,(1+e[10])/e[14]);Cp.multiplyScalar(2/Cp.dot(Q));
-    e[2]=Cp.x;e[6]=Cp.y;e[10]=Cp.z+1-.003;e[14]=Cp.w;
-    rd.getDrawingBufferSize(sz);const w=Math.max(4,Math.round(sz.x*.5)),h=Math.max(4,Math.round(sz.y*.5));if(rt.width!==w||rt.height!==h)rt.setSize(w,h);U.uRo.value.set(1.4/w,1.4/h);
-    const rt0=rd.getRenderTarget(),sh=rd.shadowMap.autoUpdate,ob=sc.onBeforeRender,ac=rd.autoClear,ch=!!(GBQ.choc&&GBQ.choc.visible);
-    const cv9=carGroup.visible,tv9=!!(GBQ.bras&&GBQ.bras.visible);GBQ._mirB=true;sol.visible=false;if(GBQ.choc)GBQ.choc.visible=false;if(!GBQ.mirCaisse){carGroup.visible=false;if(GBQ.bras)GBQ.bras.visible=false;}
-    try{rd.shadowMap.autoUpdate=false;sc.onBeforeRender=function(){};rd.setRenderTarget(rt);rd.autoClear=true;rd.clear();rd.render(sc,vc);}
-    finally{rd.autoClear=ac;sc.onBeforeRender=ob;rd.shadowMap.autoUpdate=sh;rd.setRenderTarget(rt0);sol.visible=true;if(GBQ.choc)GBQ.choc.visible=ch;carGroup.visible=cv9;if(GBQ.bras)GBQ.bras.visible=tv9;GBQ._mirB=false;}};
-  GBQ.miroir=rt;GBQ.mirU=U;}
-window.dbgMiroir=function(o){if(o&&GBQ.mirU){for(const k in o)if(GBQ.mirU[k])GBQ.mirU[k].value=o[k];if('caisse' in o)GBQ.mirCaisse=!!o.caisse;}const r=GBQ.miroir;return r?{w:r.width,h:r.height,type:r.texture.type,demi:r.texture.type===THREE.HalfFloatType,k:GBQ.mirU.uK.value,caisse:!!GBQ.mirCaisse}:null;};
 function garBqBatit(){if(GBQ.grp)return; // (2026-10-12, Léo : « lâche le magasin… plutôt un carré blanc futuriste — on a trop de salles, la boutique c'est un truc hors du temps ») L'ESPACE BLANC
   const g=new THREE.Group();g.visible=false;scene.add(g);GBQ.grp=g;
   const B=function(c,o){return new THREE.MeshBasicMaterial(Object.assign({color:c,fog:false},o||{}));};
@@ -44332,7 +44301,7 @@ function garBqBatit(){if(GBQ.grp)return; // (2026-10-12, Léo : « lâche le mag
   GBQ.tuile=tuile;
   // LE SOL : en blanc structuré (des dalles de ~34 cm), à perte de vue
   const tS=cvT(512,512,function(x,w,h){const gr=x.createRadialGradient(w/2,h/2,0,w/2,h/2,w/2);gr.addColorStop(0,'#ffffff');gr.addColorStop(.25,'#f8f9fa');gr.addColorStop(1,'#eceff2');x.fillStyle=gr;x.fillRect(0,0,w,h);});
-  const sol=new THREE.Mesh(new THREE.CircleGeometry(R*.97,64),B(0xffffff,{map:tuile(R*2*.97/1.36,R*2*.97/1.36)}));sol.rotation.x=-Math.PI/2;sol.material.color.setScalar(1.75);g.add(sol);try{garBqMiroir(sol);}catch(e){}
+  const sol=new THREE.Mesh(new THREE.CircleGeometry(R*.97,64),B(0xffffff,{map:tuile(R*2*.97/1.36,R*2*.97/1.36)}));sol.rotation.x=-Math.PI/2;sol.material.color.setScalar(1.75);g.add(sol); // (2026-10-13, Léo : « le reflet en bas, c'est bof ») le sol miroir est retiré
   // (v3, Léo : « il y a juste l'ombre de la voiture ») plus de grille ni d'anneaux
   /* LE TRÔNE (2026-10-12, Léo : « une compo comme si la voiture était sur son trône ; la lueur en mode pics, comme l'iconographie de Jésus ;
      inspiré des compositions néo-classiques ; quelque chose qui met en avant la voiture ») : un socle de marbre à trois gradins cerclés d'or
@@ -44343,22 +44312,28 @@ function garBqBatit(){if(GBQ.grp)return; // (2026-10-12, Léo : « lâche le mag
    let y=0;for(const t of [[2.9,.18],[2.5,.18],[2.15,.2]]){const m=new THREE.Mesh(C(t[0],t[0]+.05,t[1]),marbre);m.position.y=y+t[1]/2;g.add(m);
      const f=new THREE.Mesh(new THREE.TorusGeometry(t[0]+.012,.024,4,72),or);f.rotation.x=Math.PI/2;f.position.y=y+t[1];g.add(f);y+=t[1];}
    GBQ.socleH=y;
-   /* (2026-10-12, Léo : « tous les piliers sont faits de ce blanc structuré ») le portique en CUBES — la matière du tapis : chaque colonne est une
-      peau de petits cubes (un cylindre en pixels, quelques cubes en retrait ou en saillie pour le grain), sa base et son chapiteau des blocs de
-      cubes, l'architrave une poutre de cubes ; un seul maillage instancié, posé une fois. Les filets d'or restent. */
-   const XC=3.1,ZC=-4.6,HC=5,PAS=.17,V=[],R9=mulberry32(0xC0B5),cube=function(x,y,z){V.push(x,y,z);};
+   /* LA ROTONDE (2026-10-13, Léo : « un cercle de piliers, comme si on était au Panthéon autour de la voiture, un peu ambiance Assassin's Creed »)
+      — avant : deux colonnes et une architrave derrière la caisse. Seize colonnes sur un cercle de 8,2 m, chacune une peau de petits cubes (le
+      blanc structuré : quelques cubes en retrait ou en saillie pour le grain), base et chapiteau en blocs de cubes, l'entablement en anneau de
+      cubes posé dessus. La caméra est à 12-14 m : les colonnes du côté de la caméra (±52°) passeraient devant l'objectif — elles ne sont pas
+      posées (le repère suit l'azimut de la caméra : l'hémicycle est toujours derrière et autour de la caisse). Un seul maillage instancié. */
+   const RC=8.2,NC=16,HC=7.6,PAS=.2,OUV=52*Math.PI/180,V=[],R9=mulberry32(0xC0B5),cube=function(x,y,z){V.push(x,y,z);};
    const bloc=function(cx,cy,cz,lx,ly,lz){const nx=Math.max(1,Math.round(lx/PAS)),ny=Math.max(1,Math.round(ly/PAS)),nz=Math.max(1,Math.round(lz/PAS));
      for(let i=0;i<nx;i++)for(let j=0;j<ny;j++)for(let k=0;k<nz;k++){if(i>0&&i<nx-1&&j>0&&j<ny-1&&k>0&&k<nz-1)continue; // la peau seule
        cube(cx+(i-(nx-1)/2)*PAS,cy+(j-(ny-1)/2)*PAS,cz+(k-(nz-1)/2)*PAS);}};
-   for(const sx of [-1,1]){const x=sx*XC;
-     bloc(x,.15,ZC,.95,.3,.95);bloc(x,.3+HC+.14,ZC,.92,.3,.92);
-     const rC=.31,nA=Math.round(2*Math.PI*rC/PAS);
-     for(let y=.3+PAS/2;y<.3+HC;y+=PAS)for(let a9=0;a9<nA;a9++){const an=a9/nA*Math.PI*2+(Math.round(y/PAS)%2)*Math.PI/nA,rr=rC+(R9()<.12?(R9()<.5?-.05:.04):0);cube(x+Math.cos(an)*rr,y,ZC+Math.sin(an)*rr);}
-     }
-   bloc(0,.3+HC+.51,ZC,2*XC+1.3,.46,.95);
-   // (même soir, Léo : « repars sur les piliers d'avant, on ne les voit même plus ») l'arrière de la salle est retiré : le portique se détache sur le blanc
+   const ang=function(a){a=Math.atan2(Math.sin(a),Math.cos(a));return Math.abs(a)<OUV;}; // +z = vers la caméra
+   for(let c=0;c<NC;c++){const a0=c/NC*Math.PI*2+Math.PI/NC;if(ang(a0))continue;const x=Math.sin(a0)*RC,z=Math.cos(a0)*RC;
+     bloc(x,.2,z,1.3,.4,1.3);bloc(x,.4+HC+.2,z,1.3,.4,1.3);
+     const rC=.48,nA=Math.round(2*Math.PI*rC/PAS);
+     for(let y=.4+PAS/2;y<.4+HC;y+=PAS)for(let a9=0;a9<nA;a9++){const an=a9/nA*Math.PI*2+(Math.round(y/PAS)%2)*Math.PI/nA,rr=rC+(R9()<.1?(R9()<.5?-.06:.05):0);cube(x+Math.cos(an)*rr,y,z+Math.sin(an)*rr);}}
+   {const y1=.4+HC+.4,nR=Math.round(2*Math.PI*RC/PAS);for(let i=0;i<nR;i++){const an=i/nR*Math.PI*2;if(ang(an+(an>Math.PI?-.12:.12)))continue;const ca=Math.cos(an),sa=Math.sin(an);
+     for(let r=0;r<6;r++)for(let h=0;h<3;h++){if(r>0&&r<5&&h>0&&h<2)continue;const rr=RC-.5+r*PAS;cube(sa*rr,y1+PAS/2+h*PAS,ca*rr);}}}
    {const n=V.length/3,mc=new THREE.InstancedMesh(new THREE.BoxGeometry(PAS*.86,PAS*.86,PAS*.86),new THREE.MeshLambertMaterial({color:0xe8edf5,emissive:0x000000,flatShading:true,fog:false}),n),M9=new THREE.Matrix4();
-    for(let k=0;k<n;k++){M9.makeTranslation(V[3*k],V[3*k+1],V[3*k+2]);mc.setMatrixAt(k,M9);}mc.frustumCulled=false;g.add(mc);GBQ.colonnes=mc;}}
+    for(let k=0;k<n;k++){M9.makeTranslation(V[3*k],V[3*k+1],V[3*k+2]);mc.setMatrixAt(k,M9);}mc.frustumCulled=false;g.add(mc);GBQ.colonnes=mc;}
+   /* LA POUSSIÈRE D'OR (même demande, l'ambiance) : 90 grains carrés qui dérivent lentement dans la lumière autour de la caisse (bqPoussiere) */
+   {const N=90,P=new Float32Array(N*3),r=mulberry32(0xD057);for(let i=0;i<N;i++){const a=r()*Math.PI*2,d=.8+r()*4.2;P[3*i]=Math.sin(a)*d;P[3*i+1]=.5+r()*4.5;P[3*i+2]=Math.cos(a)*d;}
+    const ge=new THREE.BufferGeometry();ge.setAttribute('position',new THREE.BufferAttribute(P,3));
+    const pt=new THREE.Points(ge,new THREE.PointsMaterial({color:0xe8b257,size:.045,sizeAttenuation:true,transparent:true,opacity:.7,depthWrite:false,fog:false}));pt.frustumCulled=false;g.add(pt);GBQ.poussiere=pt;GBQ.poussP0=P.slice();}}
   {const cv=document.createElement('canvas');cv.width=cv.height=1024;const x=cv.getContext('2d'),c0=512;
    {const gr=x.createRadialGradient(c0,c0,0,c0,c0,340);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.42,'rgba(255,246,228,.9)');gr.addColorStop(1,'rgba(255,240,215,0)');x.fillStyle=gr;x.fillRect(0,0,1024,1024);}
    const N=48;for(let i=0;i<N;i++){const a=i/N*Math.PI*2,L=i%2?330:505,w=i%2?.02:.032,gr=x.createRadialGradient(c0,c0,95,c0,c0,L);
@@ -44396,7 +44371,7 @@ function garBqGloire(dt,t9){const G9=GBQ.gloire;if(!G9)return;
   const kg=GBQ.on?Math.min(1,Math.max(0,(GBQ.t-.95)/.75)):Math.max(0,(GBQ.gk||0)-dt*5);GBQ.gk=kg;G9.visible=kg>.01;if(!G9.visible)return;
   const v=GBQ._vg||(GBQ._vg=new THREE.Vector3()),d=GBQ._dg||(GBQ._dg=new THREE.Vector3());carGroup.getWorldPosition(v);v.y+=.5;
   d.copy(v).sub(camera.position);d.y=0;d.normalize();G9.position.copy(v).addScaledVector(d,3.6);G9.quaternion.copy(camera.quaternion);G9.rotateZ(t9*.045);
-  const e=kg*kg*(3-2*kg),sc=13-3.2*e;G9.scale.set(sc,sc,1);G9.material.opacity=e*.95;}
+  const e=kg*kg*(3-2*kg),fl9=GBQ.gFlash||0,sc=(13-3.2*e)*(1+.22*fl9*fl9);G9.scale.set(sc,sc,1);G9.material.opacity=Math.min(1,e*.95+.25*fl9);}
 function garBqLueur(ay){const g=GBQ.lueur||0;garBqLueurBatit();const vis=g>.002;GBQ.halo.visible=GBQ.nappe.visible=vis;if(!vis)return;
   const v=GBQ._vl||(GBQ._vl=new THREE.Vector3()),d=GBQ._dl||(GBQ._dl=new THREE.Vector3());carGroup.getWorldPosition(v);v.y+=.55;
   d.copy(v).sub(camera.position);d.y=0;d.normalize();GBQ.halo.position.copy(v).addScaledVector(d,2.8);GBQ.halo.quaternion.copy(camera.quaternion);
@@ -44519,8 +44494,8 @@ function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBq
 function bqSkins(k){if(!k)return [];if(k[0]!=='v'){const c=k.slice(0,k.indexOf(':'));if(c==='peinture')return [];} // une peinture EST un coloris
   return [{id:'original',n:'ORIGINAL',c:'linear-gradient(135deg,#fff,#d9dde3)'}];} // (2026-10-12) aucun skin n'est encore dessiné : chaque voiture, aile, traînée a son ORIGINAL
 function bqEssaie(k){ // toucher = ESSAYER (2026-10-12, Léo : « à droite un bouton ÉQUIPER / DÉSÉQUIPER / ACHETER qui change en fonction ») : c'est le bouton qui équipe (bqAction)
-  if(k[0]==='v'){const i=+k.slice(2);if(SHOP.tab!=='voiture')shopTab('voiture');if(i!==garageI)garageSaute(i);}
-  else{const o=bqCos(k),j=COSM[o.cat].indexOf(o.d);if(SHOP.tab!==o.cat)shopTab(o.cat);if(j>=0)shopShow(o.cat,j);try{if(SONV2)sfx('ui.carte');}catch(er){}}
+  if(k[0]==='v'){const i=+k.slice(2);if(SHOP.tab!=='voiture')shopTab('voiture');if(i!==garageI){garageSaute(i);try{bqGeste('voiture');}catch(e){}}}
+  else{const o=bqCos(k),j=COSM[o.cat].indexOf(o.d);if(SHOP.tab!==o.cat)shopTab(o.cat);if(j>=0)shopShow(o.cat,j);try{bqGeste(o.cat,o.d);}catch(er){try{if(SONV2)sfx('ui.carte');}catch(e9){}}} // (2026-10-13) chaque essai a son GESTE (voir bqGeste)
   try{gShopJour();}catch(e){}GBQ.ck='';}
 /* LE BOUTON QUI CHANGE (#gBqBtn, à droite de RETOUR) : ACHETER (+ le prix) · ÉQUIPER · DÉSÉQUIPER (un habillage équipé, sauf celui d'origine) ·
    ÉQUIPÉE (la caisse que tu as) · À GAGNER (défi : il le dit) — il remplace ACHETER de la console en boutique */
@@ -44570,7 +44545,7 @@ function garBqIndus(dt,ay,t9){
   if(!veut){const tg=Math.round(GBQ.yaw/(2*Math.PI))*2*Math.PI;GBQ.yaw+=(tg-GBQ.yaw)*Math.min(1,dt*5);GBQ.yawV=0;}
   const fl=Math.max(0,Math.min(1,GBQ.lev/.95));
   if(Math.abs(GBQ.lev)>1e-4||Math.abs(GBQ.yaw)>1e-4||Math.abs(GBQ.pit)>1e-4){
-    {const b9=GBQ.ba||0;GBQ.levB=.38*b9*b9*(3-2*b9);}carGroup.position.y+=GBQ.lev+GBQ.levB+Math.sin(t9*1.6)*.05*fl; // (2026-10-13) +38 cm quand les BRAS la tiennent : la place de les voir
+    {const b9=GBQ.ba||0;GBQ.levB=.38*b9*b9*(3-2*b9);}carGroup.position.y+=GBQ.lev+GBQ.levB+(GBQ.hop||0)+Math.sin(t9*1.6)*.05*fl; // (2026-10-13) +38 cm quand les BRAS la tiennent : la place de les voir
     const cA=garCamA(),q=GBQ._q||(GBQ._q=new THREE.Quaternion()),q2=GBQ._q2||(GBQ._q2=new THREE.Quaternion()),ax=GBQ._ax||(GBQ._ax=new THREE.Vector3()),Y=GBQ._Y||(GBQ._Y=new THREE.Vector3(0,1,0));
     q.setFromAxisAngle(Y,carGroup.rotation.y+GBQ.yaw);ax.set(1,0,0);q2.setFromAxisAngle(ax,GBQ.pit+Math.sin(t9*1.1)*.025*fl);q.multiply(q2); /* (2026-10-13, Léo : « penchée vers le bas, capot vers l'avant ») le glissé vertical la fait TANGUER sur son propre axe (l'axe de ses roues : le nez, à +z, plonge quand on tire vers le bas) — avant, elle basculait vers la caméra (de profil : le toit, puis le ventre) */
     ax.set(Math.sin(cA),0,Math.cos(cA));q2.setFromAxisAngle(ax,Math.sin(t9*.9+1)*.03*fl+THREE.MathUtils.clamp(GBQ.yawV*.03,-.12,.12)*fl);q.premultiply(q2);carGroup.quaternion.copy(q);}
@@ -44590,6 +44565,7 @@ function garBqIndus(dt,ay,t9){
   if(GBQ.omb){const s=4.2-.9*fl;GBQ.omb.scale.set(s,s,1);GBQ.omb.material.opacity=.42-.12*fl;}
   if(GBQ.choc){GBQ.chocT+=dt;const u=GBQ.chocT/.55;GBQ.choc.visible=u<1;if(u<1){const s=1.2+4.2*(1-Math.pow(1-u,3));GBQ.choc.scale.set(s,s,s);GBQ.choc.position.set(0,ay+GAR.POD+.06,0);GBQ.choc.material.opacity=.85*(1-u);}}
   try{garBqBras(dt,t9,ay);}catch(e){window.__brasErr=e;}
+  try{bqGesteTick(dt,t9);bqPoussiere(t9);}catch(e){window.__gesteErr=e;}
   try{garBqPanneau(dt,t9);}catch(e){}
 }
 /* LE DESSOUS DE LA CAISSE (bqDessous) — relevé une fois par caisse, dans SON repère : le FOND (le point le plus bas de chaque case de 8 cm,
@@ -44699,6 +44675,86 @@ function garBqBras(dt,t9,ay){
     A.poignet.position.copy(W);A.poignet.scale.setScalar(.075);
     A.main.position.copy(W).addScaledVector(up,.065*e);A.main.quaternion.copy(q);A.main.scale.setScalar(.4+.6*e);}
 }
+/* LES GESTES DE LA BOUTIQUE (2026-10-13, Léo : « quand on change de voiture, d'aile ou de traînée, chaque action doit avoir une animation propre
+   à elle, en respectant la DA de la boutique, néoclassique digitale ») — des CUBES DE LUMIÈRE (un seul maillage instancié, additif) et une lame :
+   · VOITURE — LA MATÉRIALISATION : l'ancienne s'écrase (la bascule du garage), un éclat de cubes blancs part du socle, puis un ANNEAU de cubes
+     de lumière court sur le toit de la nouvelle pendant qu'elle se dresse : elle s'imprime sous nos yeux, des étincelles carrées s'en échappent.
+   · PEINTURE — LE BAIN : une LAME de lumière de la couleur traverse la caisse de l'arrière à l'avant, des cubes de couleur s'en détachent.
+   · AILE — L'ENVOL : la caisse bondit, deux gerbes de cubes nacre et or partent en V de l'arrière, la gloire s'ouvre un instant.
+   · TRAÎNÉE — LA COMÈTE : une comète de la couleur fait un tour et quart en spirale autour de la caisse et finit dans ses pots, sa traîne en cubes.
+   `dbgGeste('voiture'|'peinture'|'aile'|'trainee')` le rejoue. */
+const BQG={a:null,t:0,n:0};
+function bqGesteBatit(){if(BQG.m)return;
+  const N=420,m=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshBasicMaterial({color:0xffffff,fog:false}),N); // des cubes PLEINS : sur le blanc, une lumière additive ne se voit pas
+  m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);m.frustumCulled=false;m.renderOrder=6;m.setColorAt(0,new THREE.Color(1,1,1));m.count=0;scene.add(m);BQG.m=m;BQG.N=N;
+  BQG.p=new Float32Array(N*3);BQG.v=new Float32Array(N*3);BQG.l=new Float32Array(N);BQG.l0=new Float32Array(N);BQG.s=new Float32Array(N);BQG.c=new Float32Array(N*3);
+  BQG.lame=new THREE.Mesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0,depthWrite:false,fog:false}));
+  BQG.lame.visible=false;BQG.lame.renderOrder=6;scene.add(BQG.lame);
+  BQG.M=new THREE.Matrix4();BQG.C=new THREE.Color();BQG.v1=new THREE.Vector3();BQG.v2=new THREE.Vector3();BQG.Q=new THREE.Quaternion();BQG.S=new THREE.Vector3();BQG.r=mulberry32(0x6E57);}
+function bqPart(x,y,z,vx,vy,vz,l,s,r,g,b){if(BQG.n>=BQG.N-60)return;const i=BQG.n++;BQG.p[3*i]=x;BQG.p[3*i+1]=y;BQG.p[3*i+2]=z;BQG.v[3*i]=vx;BQG.v[3*i+1]=vy;BQG.v[3*i+2]=vz;
+  BQG.l[i]=BQG.l0[i]=l;BQG.s[i]=s;BQG.c[3*i]=r;BQG.c[3*i+1]=g;BQG.c[3*i+2]=b;}
+const BQ_OR=[.91,.70,.34],BQ_GRAPH=[.17,.18,.22]; // l'or pâle de la gloire, le graphite des bras
+function bqGesteCoul(cat,d){if(!d)return BQ_OR;
+  if(cat==='trainee'){if(d.rainbow)return null;if(d.rgb){const m9=Math.max(1,...d.rgb);return d.rgb.map(function(x){return x/m9;});}return [1,.45,.12];}
+  const h=d.c!=null?d.c:(d.grad?d.grad[0]:null);if(h==null)return BQ_OR;const c=new THREE.Color(h);return [c.r,c.g,c.b];}
+function bqGeste(k,d){bqGesteBatit();BQG.a=k;BQG.t=0;BQG.f=0;BQG.col=bqGesteCoul(k,d);BQG.th0=Math.random()*Math.PI*2;
+  if(k==='aile')GBQ.gFlash=1;try{if(SONV2)sfx(k==='voiture'?'ui.feuille':'ui.carte');}catch(e){}}
+window.dbgGeste=function(k,id){k=k||'voiture';const d=(id&&COSM[k])?COSM[k].find(function(x){return x.id===id;}):null;bqGeste(k,d);return {geste:BQG.a,cubes:BQG.n,objet:d?d.id:null};};
+function bqGesteTick(dt,t9){if(!BQG.m)return;const B=BQG,m=B.m,M=B.M,C=B.C,r=B.r;
+  const vis=!!(GBQ.grp&&GBQ.grp.visible);if(!vis){m.visible=false;B.lame.visible=false;B.n=0;B.a=null;GBQ.hop=0;return;}m.visible=true;
+  const hm=bqDessous(),bb=hm.bb,q=carGroup.quaternion,sc=carGroup.scale,p0=carGroup.position,v1=B.v1,v2=B.v2;
+  const L=function(x,y,z,out){return out.set(x*sc.x,y*sc.y,z*sc.z).applyQuaternion(q).add(p0);}; // repère caisse → monde
+  const x0=bb?bb.min.x:-1,x1=bb?bb.max.x:1,y0=bb?bb.min.y:0,y1=bb?bb.max.y:1.3,z0=bb?bb.min.z:-2.2,z1=bb?bb.max.z:2.2,cx=(x0+x1)/2,cz=(z0+z1)/2;
+  GBQ.gFlash=Math.max(0,(GBQ.gFlash||0)-dt*1.6);
+  // le geste en cours
+  if(B.a){B.t+=dt;const t=B.t,col=B.col||[1.5,1.5,1.55];
+    if(B.a==='voiture'){
+      if(t>=.34&&!(B.f&1)){B.f|=1;for(let i=0;i<46;i++){const a=r()*Math.PI*2,sp=1.6+r()*2.6;L(cx+Math.cos(a)*(x1-x0)*.45,y0,cz+Math.sin(a)*(z1-z0)*.45,v1);
+        const g9=i%3?BQ_OR:BQ_GRAPH;bqPart(v1.x,v1.y,v1.z,Math.cos(a)*sp,1.2+r()*2.2,Math.sin(a)*sp,.5+r()*.5,.05+r()*.06,g9[0],g9[1],g9[2]);}}
+      if(t>=.34&&t<1.32){const u=Math.min(1,(t-.34)/.72),al=t<1.06?1:1-(t-1.06)/.26,n=48,ry=y0+(y1-y0)*Math.min(1,u*1.04),ax=(x1-x0)/2+.2,az=(z1-z0)/2+.2;
+        for(let i=0;i<n;i++)if(r()<.09*al){const a=i/n*Math.PI*2+t*1.8;L(cx+Math.cos(a)*ax,ry,cz+Math.sin(a)*az,v1); // des étincelles carrées s'échappent de l'anneau
+          bqPart(v1.x,v1.y,v1.z,(r()-.5)*1.4,.4+r()*.9,(r()-.5)*1.4,.35+r()*.3,.035+r()*.03,BQ_OR[0],BQ_OR[1],BQ_OR[2]);}
+        B.ring={ry:ry,ax:ax,az:az,al:al};}else B.ring=null;
+      if(t>1.4)B.a=null;}
+    else if(B.a==='peinture'){const u=Math.min(1,t/.75),z=z0-.25+(z1-z0+.5)*u*u*(3-2*u),al=Math.sin(Math.PI*u);
+      const la=B.lame;la.visible=al>.01;L(cx,(y0+y1)/2,z,v1);la.position.copy(v1);la.quaternion.copy(q);la.scale.set((x1-x0+.5)*sc.x,(y1-y0+.45)*sc.y,.05);
+      la.material.color.setRGB(col[0],col[1],col[2]);la.material.opacity=al*.55;
+      for(let i=0;i<7;i++){L(x0-.2+(x1-x0+.4)*r(),y0+(y1-y0+.2)*r(),z,v1);v2.set((r()-.5)*.6,.3+r()*.8,(r()<.5?-1:1)*(.4+r()*.9)).applyQuaternion(q);
+        bqPart(v1.x,v1.y,v1.z,v2.x,v2.y,v2.z,.45+r()*.4,.04+r()*.05,col[0],col[1],col[2]);}
+      if(t>.8){B.a=null;la.visible=false;}}
+    else if(B.a==='aile'){GBQ.hop=Math.sin(Math.PI*Math.min(1,t/.62))*.3;
+      if(t>=.06&&!(B.f&1)){B.f|=1;for(const sg of [-1,1])for(let i=0;i<46;i++){const sp=2.6+r()*3.2,o=i%3?1:0;
+        v2.set(sg*(.8+r()*.5),1+r()*.9,-.5-r()*.6).normalize().multiplyScalar(sp).applyQuaternion(q);L(cx+sg*(x1-x0)*.32,y1*.82,z0+.35,v1);
+        const g9=o?BQ_OR:BQ_GRAPH;bqPart(v1.x,v1.y,v1.z,v2.x,v2.y,v2.z,.65+r()*.55,.06+r()*.06,g9[0],g9[1],g9[2]);}}
+      if(t>1.1){B.a=null;GBQ.hop=0;}}
+    else if(B.a==='trainee'){const T=1.25,u=Math.min(1,t/T),R=Math.max((x1-x0),(z1-z0))/2+.55;
+      let px,py,pz;const th=B.th0+u*Math.PI*2.5,yH=y0+.15+(y1-y0)*.55*Math.sin(Math.PI*Math.min(1,u*1.2));
+      L(cx,y0+.45,z0-.1,v2); // les pots (l'arrière, à hauteur de tuyère)
+      px=p0.x+Math.sin(th)*R;pz=p0.z+Math.cos(th)*R;py=p0.y+yH;
+      const k9=Math.max(0,(u-.78)/.22),e9=k9*k9*(3-2*k9);px+=(v2.x-px)*e9;py+=(v2.y-py)*e9;pz+=(v2.z-pz)*e9;
+      const rb=col?null:new THREE.Color().setHSL((t*1.4)%1,1,.55);const c3=col||[rb.r,rb.g,rb.b];
+      if(u<1){for(let i=0;i<5;i++)bqPart(px+(r()-.5)*.12,py+(r()-.5)*.12,pz+(r()-.5)*.12,(r()-.5)*.25,(r()-.5)*.25,(r()-.5)*.25,.45+r()*.35,.05+r()*.04,c3[0],c3[1],c3[2]);
+        B.tete={x:px,y:py,z:pz,c:c3};}else B.tete=null;
+      if(u>=1&&!(B.f&1)){B.f|=1;for(let i=0;i<26;i++){v1.set((r()-.5)*1.2,r()*.8,-1-r()*1.5).applyQuaternion(q);bqPart(v2.x,v2.y,v2.z,v1.x*1.6,v1.y*1.6,v1.z*1.6,.4+r()*.4,.04+r()*.05,c3[0],c3[1],c3[2]);}}
+      if(t>T+.5){B.a=null;B.tete=null;}}}
+  else{B.lame.visible=false;B.ring=null;B.tete=null;}
+  // les cubes : la gerbe vit, rétrécit et s'éteint
+  let n=0;
+  for(let i=0;i<B.n;i++){B.l[i]-=dt;if(B.l[i]<=0)continue;const k=B.l[i]/B.l0[i],j=n++;
+    if(j!==i){for(let a=0;a<3;a++){B.p[3*j+a]=B.p[3*i+a];B.v[3*j+a]=B.v[3*i+a];B.c[3*j+a]=B.c[3*i+a];}B.l[j]=B.l[i];B.l0[j]=B.l0[i];B.s[j]=B.s[i];}
+    B.v[3*j]*=Math.exp(-dt*1.4);B.v[3*j+2]*=Math.exp(-dt*1.4);B.v[3*j+1]=B.v[3*j+1]*Math.exp(-dt*1.4)-dt*2.2;
+    for(let a=0;a<3;a++)B.p[3*j+a]+=B.v[3*j+a]*dt;
+    const s9=B.s[j]*Math.sqrt(k);M.makeScale(s9,s9,s9);M.setPosition(B.p[3*j],B.p[3*j+1],B.p[3*j+2]);m.setMatrixAt(j,M);C.setRGB(B.c[3*j],B.c[3*j+1],B.c[3*j+2]);m.setColorAt(j,C);}
+  B.n=n;let c=n;
+  if(B.ring){const R9=B.ring,nR=48;for(let i=0;i<nR&&c<B.N;i++){const a=i/nR*Math.PI*2+B.t*1.8;L(cx+Math.cos(a)*R9.ax,R9.ry,cz+Math.sin(a)*R9.az,v1);
+    const s9=.08*R9.al;M.makeScale(s9,s9*.6,s9);M.setPosition(v1.x,v1.y,v1.z);m.setMatrixAt(c,M);C.setRGB(BQ_OR[0],BQ_OR[1],BQ_OR[2]);m.setColorAt(c,C);c++;}}
+  if(B.tete&&c<B.N-6){const T9=B.tete;for(let i=0;i<5;i++){const s9=i?.07:.16;M.makeScale(s9,s9,s9);M.setPosition(T9.x+(i?(r()-.5)*.2:0),T9.y+(i?(r()-.5)*.2:0),T9.z+(i?(r()-.5)*.2:0));m.setMatrixAt(c,M);
+    C.setRGB(i?T9.c[0]:BQ_OR[0],i?T9.c[1]:BQ_OR[1],i?T9.c[2]:BQ_OR[2]);m.setColorAt(c,C);c++;}}
+  m.count=c;m.instanceMatrix.needsUpdate=true;if(m.instanceColor)m.instanceColor.needsUpdate=true;}
+/* la poussière d'or dérive : un lent tourbillon autour de la caisse, chaque grain respire */
+function bqPoussiere(t9){const pt=GBQ.poussiere;if(!pt)return;const P=pt.geometry.attributes.position,A=P.array,A0=GBQ.poussP0,n=A.length/3,a=t9*.05,ca=Math.cos(a),sa=Math.sin(a);
+  for(let i=0;i<n;i++){const x=A0[3*i],z=A0[3*i+2];A[3*i]=x*ca+z*sa;A[3*i+2]=-x*sa+z*ca;A[3*i+1]=A0[3*i+1]+Math.sin(t9*.6+i*1.7)*.18;}
+  P.needsUpdate=true;}
 function garBqLumiere(){if(!GBQ.on)return; // la lumière du magasin : blanche, sans le contre-jour du feu
   stallKey.color.setHex(0xffffff);stallKey.intensity=1.45;stallKey.distance=30;stallRim.color.setHex(0xe8eef5);stallRim.intensity=.7;stallRim.distance=30;}
 /* LE DOIGT SUR LA SCÈNE tourne la caisse (le garage ne reçoit plus le glissé : pris en capture) */
@@ -44715,7 +44771,7 @@ window.dbgBqSol=function(){if(!GBQ.grp||!GBQ.grp.visible)return null;carGroup.up
   carGroup.traverse(function(o){if(!o.isMesh||!o.geometry||!o.geometry.attributes.position)return;const mt=Array.isArray(o.material)?o.material[0]:o.material;if((mt&&(mt.transparent||mt.blending===THREE.AdditiveBlending))||(o.userData&&o.userData.sol))return;
     for(let q9=o;q9;q9=q9.parent)if(!q9.visible)return;const a=o.geometry.attributes.position;for(let i=0;i<a.count;i++){v.fromBufferAttribute(a,i).applyMatrix4(o.matrixWorld);if(v.y<mn){mn=v.y;qui=o.name||o.geometry.type;}}});
   return {jeu:+(mn-top).toFixed(3),qui:qui,pit:+GBQ.pit.toFixed(2),yaw:+GBQ.yaw.toFixed(2),leve:+(GBQ.leve||0).toFixed(3)};}; // (banc) l'écart RÉEL entre le point le plus bas de la caisse et le dessus du socle (négatif = elle le traverse)
-window.dbgBqIndus=function(){return {veut:GBQ.veut,on:GBQ.on,lev:+GBQ.lev.toFixed(2),k:+GBQ.k.toFixed(2),yaw:+GBQ.yaw.toFixed(2),pit:+GBQ.pit.toFixed(2),ong:GBQ.ong||'eph',eph:GBQ.eph?GBQ.eph.l:null,caisse:garageI,reste:bqHebdoReste(),
+window.dbgBqIndus=function(){return {cam:[+camera.position.x.toFixed(2),+camera.position.y.toFixed(2),+camera.position.z.toFixed(2),+camera.fov.toFixed(1)],grpY:GBQ.grp?+GBQ.grp.position.y.toFixed(2):null,veut:GBQ.veut,on:GBQ.on,lev:+GBQ.lev.toFixed(2),k:+GBQ.k.toFixed(2),yaw:+GBQ.yaw.toFixed(2),pit:+GBQ.pit.toFixed(2),ong:GBQ.ong||'eph',eph:GBQ.eph?GBQ.eph.l:null,caisse:garageI,reste:bqHebdoReste(),
   rail:[...document.querySelectorAll('#gBqPan .bqK')].map(function(el){const r=el.getBoundingClientRect();return [+el.getAttribute('data-i'),Math.round(r.x),Math.round(r.y),Math.round(r.width),Math.round(r.height),el.classList.contains('sel')];}),zone:GBQ.zone};};
 function garGlitch(){let el=document.getElementById('gGlitch'); // (essai boutique virtuelle, repris) le GLITCH : des bandes qui sautent, l'image qui tressaute, 0,72 s
   if(!el){el=document.createElement('div');el.id='gGlitch';el.setAttribute('aria-hidden','true');el.innerHTML='<i></i><i></i><i></i><i></i><i></i><b></b>';document.body.appendChild(el);}
