@@ -33578,7 +33578,7 @@ function initAudio(){
   jrG=AC.createGain();jrG.gain.value=0;
   jr.connect(jrF);jrF.connect(jrF2);
   if(TEL_NATIF){const jrHp=AC.createBiquadFilter();jrHp.type='highpass';jrHp.frequency.value=120;jrF2.connect(jrHp);jrHp.connect(jrG);} // (2026-09-25) le haut-parleur d'un téléphone ne rend rien sous ~150 Hz : ce grave ne faisait que POMPER le compresseur — et appuyer sur NITRO rendait la caisse plus SOURDE
-  else jrF2.connect(jrG);
+  else{const jrHp=AC.createBiquadFilter();jrHp.type='highpass';jrHp.frequency.value=85;jrF2.connect(jrHp);jrHp.connect(jrG);} // (2026-10-12, Léo : « au début de la partie, un bruit assourdissant ») MESURÉ : boost tenu dès le départ, ce grondement était la chaîne dominante et presque tout son poids sous 200 Hz — le sub (< 85 Hz) ne faisait qu'assourdir au casque et pomper le compresseur
   jrG.connect(MASTER);jr.start();
   const jrLfo=AC.createOscillator();jrLfo.type='sine';jrLfo.frequency.value=5.3;
   jrDep=AC.createGain();jrDep.gain.value=0;
@@ -39517,11 +39517,16 @@ const JMUS={mod:null,load:false,inst:null,P:0,vol:-1,kick:false,err:null};
 /* (2026-10-12, Léo : « le sound design est complètement niqué, on n'entend rien du tout ») MESURÉ au banc : GLISSE V2 sortait à −10 dB RMS
    au départ et −5/−6 lancée — 15 à 20 dB au-dessus des effets (−26) et 5 à 10 dB au-dessus d'une musique « radio » du jeu (−11 dB RMS
    au fichier × le curseur ,62 ≈ −15). Elle couvrait TOUT. Son niveau dans le jeu : ×,4 (−8 dB) — la même place que la radio. */
-const JMUS_NIV=.3,NIT_GRONDE=.4,JMUS_TON=1; // (2026-10-12, 2e passe : « on n'entend pas bien les bruits ») la musique ,4 → ,3 : −20 au départ, −14 lancée
+const JMUS_NIV=.3,NIT_GRONDE=.3,JMUS_TON=1; // JMUS_NIV ,4 → ,3 (2e passe : « on n'entend pas bien les bruits ») · NIT_GRONDE ,4 → ,3 (4e passe) · JMUS_TON : voir sonTonSuit (3e passe)
+/* (2026-10-12, 4e passe, Léo : « la musique, on ne l'entend pas — elle doit être là, intégrée, derrière le sound design, sans prendre dessus »)
+   MESURÉ : GLISSE −20 dB en plein spectre mais −32 au-dessus de 200 Hz (ce que rend un portable / un téléphone) — presque tout son poids est dans
+   le sub (808, nappes) : 10 dB SOUS les effets du jeu (−22) sur haut-parleur. À sa sortie : −6 dB sous 160 Hz, +6 dB de niveau → −26 sur
+   haut-parleur (4 dB derrière les effets), le grave à peine changé. */
+const JMUS_BASSES=-6,JMUS_SORTIE=2;
 function jadeMusOn(){return JADE_JEU&&!!LVL.cur&&LVL.cur.id==='jade';}
 function jadeMusCharge(){if(JMUS.mod||JMUS.load)return;JMUS.load=true;
   try{import('./assets/audio/music/musique-glisse-v2.js').then(function(m){JMUS.mod=m;}).catch(function(e){JMUS.err=String(e);});}catch(e){JMUS.err=String(e);}}
-function jadeMusInst(){if(!JMUS.inst&&JMUS.mod){try{JMUS.inst=(JMUS.mod.createGlisseMusic||Object.values(JMUS.mod).find(function(f){return typeof f==='function';}))({});}catch(e){JMUS.err=String(e);}}return JMUS.inst;}
+function jadeMusInst(){if(!JMUS.inst&&JMUS.mod){try{JMUS.inst=(JMUS.mod.createGlisseMusic||Object.values(JMUS.mod).find(function(f){return typeof f==='function';}))({basses:JMUS_BASSES,sortie:JMUS_SORTIE});}catch(e){JMUS.err=String(e);}}return JMUS.inst;}
 function jadeMusVeut(){return jadeMusOn()&&SND.music&&started&&!gameOver&&!paused&&!document.hidden;}
 function jadeMusGeste(){const i=jadeMusInst();if(!i||!SND.music)return;try{if(i.playing)i.stop();i.start();i.setVolume(0);JMUS.vol=-1;JMUS.P=0;}catch(e){}} // réveillé dans le geste, muet jusqu'à la course
 function jadeMusTick(){
@@ -48208,7 +48213,8 @@ function loop(now){
         // (2026-10-12, Léo : « le bruit dont je parle tout le temps au début… le boost en l'air ») MESURÉ au banc (dbgVu) : ce grondement sortait
         // à −14/−16 dB RMS, 12 dB AU-DESSUS de tout le reste (moteur −28, mélange −26) — dès qu'on tient le boost, il couvrait le jeu. ×,4 (−8 dB).
         const jb=nOn9?(nitroBlue?.52:.4)*NIT_GRONDE:0;
-        stt(jrG.gain,jb*(air9?1.1:1.05)*(.84+.32*Math.random())*dk,AC.currentTime,.08); // turbulence lente
+        if(nOn9&&!loop._jrP)loop._jrT=AC.currentTime;loop._jrP=nOn9; // (2026-10-12) l'ALLUMAGE en fondu (~0,35 s) : plus un mur de bruit d'un coup
+        stt(jrG.gain,jb*(air9?1.1:1.05)*(.84+.32*Math.random())*dk,AC.currentTime,nOn9&&AC.currentTime-(loop._jrT||0)<.45?.18:.08); // turbulence lente
         stt(jrDep.gain,jb*(air9?.22:.16)*dk,AC.currentTime,.1); // flutter 5 Hz : la flamme respire
         stt(jrF.frequency,nOn9?(air9?310+spd3*.3:430+spd3*.35)+(nitroBlue?80:0):240,AC.currentTime,.1); // un poil plus mordante au sol
         // PLUS AUCUNE couche de bruit blanc continue : souffle médium coupé, grave blanc réduit
