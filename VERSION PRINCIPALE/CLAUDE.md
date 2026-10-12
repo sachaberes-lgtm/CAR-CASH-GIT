@@ -21,6 +21,7 @@
 - PLACEMENT (Léo : « l'aura un peu plus courte, les km/h plus à droite encore, le flow même taille ») : l'aura et le flow à 80 % de la barre de
   boost (`--ajK`, même longueur), leurs bouts (MOY/RECORD, ×CASH) juste après ; la VITESSE contre le ⏸ (couché : bord droit à 16 px du bouton,
   calc sur --hudG/--hudD/50vw ; debout : 8 px plus loin que la case `--nxV` 82 px). Debout, rien sous l'argent (x ≥ 275, y ≥ 113 sur 390 × 844).
+  Couché, le bout de l'aura (« MOY 600 ») FINIT au x de la fin de la barre de boost (Léo). La vitesse : 34 px couché, 22 px debout (« plus gros »).
 - Console : `dbgJaugeAura()` (moyenne, record, montré, en vol, phase, cellules) · `dbgJaugeAura(n)` verse n d'aura depuis la caisse.
 
 ## LE BOUTON NITRO v3 — L'ÉCLAIR EN PIXELS QUI S'ENFONCE ET LA VITESSE À DROITE DE LA BARRE DE BOOST (2026-10-12, Léo : « à la place du carré, un éclair » ; « abandonne la jauge bizarre, mets juste la vitesse de la voiture à côté de la jauge boost » ; « nan, sans rond, vraiment pixels, qui s'appuie quand on appuie, et la vitesse alignée plus à droite et visible »)

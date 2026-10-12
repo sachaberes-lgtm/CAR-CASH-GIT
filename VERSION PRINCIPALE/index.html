@@ -6969,11 +6969,17 @@ html body.touch.play #ajCourse{padding-right:var(--ajPad)}
 html body.touch #flowHud{padding-right:var(--ajPad)!important}
 html body.touch #flowHud .fM{left:calc(100% - var(--ajPad))}
 html body.touch #nitroBar>#nxVit{width:calc(var(--nxV) + 8px)}
+#nxVit b{font-size:22px}   /* (Léo : « plus gros la vitesse ») debout : 18 → 22 px */
 @media (orientation:landscape) and (max-height:540px){
   html body.touch.play #ajCourse{width:calc(34px + (min(50vw,440px) - 34px) * var(--ajK));padding-right:0}
   html body.touch #flowHud{width:calc(34px + (min(50vw,440px) - 34px) * var(--ajK))!important;padding-right:0!important}
   html body.touch #flowHud .fM{left:calc(100% + 18px)}
   html body.touch #nitroBar>#nxVit{left:auto;width:auto;right:calc(var(--hudG) + min(50vw,440px) - 100vw + var(--hudD) + 73px)}
+  /* (Léo : « 600 doit se finir au niveau de la fin de la barre nitro ») le bout de l'aura se cale À DROITE sur la fin de la barre de boost */
+  #ajCourse .ajLbl{left:auto;right:calc((min(50vw,440px) - 34px) * (var(--ajK) - 1));justify-content:flex-end}
+  /* (Léo : « plus gros la vitesse ») 24 → 34 px, KM/H 9 → 11 */
+  #nxVit b{font-size:34px}
+  #nxVit i{font-size:11px}
 }
 </style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
