@@ -24,6 +24,15 @@ accordé ; une pièce, je l'entends pas forcément ») — le jeu, pas l'ordi :
   (faux : mi♭ après VAPEUR, fa#/si après GLASSY). La banque joue la pentatonique de MI majeur (la pièce de base = mi, mesuré) ; GLISSE est en
   RÉ MINEUR → `JMUS_TON` +1 = la pentatonique de ré mineur, 5 notes sur 5. Le « plop » d'arrivée des gains (`ui.pop`, sa propre gamme) RETIRÉ.
 - LES PIÈCES : 6-12 dB sous GLISSE → `piece` vol +4. Planche : `photos-gameplay/comparaison-son-3.jpg`.
+4e PASSE (Léo : « la musique, on ne l'entend pas — elle doit être là, intégrée, derrière le sound design, sans prendre dessus » ; « au début de la
+partie, un bruit assourdissant — si tu ne trouves pas, ne touche pas ») — banc `hookson2` : CHAQUE source (contexte du jeu, contexte GLISSE,
+chaque <audio> via captureStream × volume) toutes les 25 ms, en plein spectre ET « haut-parleur » (passe-haut 200 Hz = ce que rend un portable) :
+- LA MUSIQUE : GLISSE −20 en plein spectre mais −32 sur haut-parleur (tout son poids dans le sub), 10 dB SOUS les effets (−22). La copie du jeu
+  du module a une SORTIE (`basses` étagère < 160 Hz, `sortie` gain après le compresseur) : `JMUS_BASSES` −6, `JMUS_SORTIE` 2 → −27 sur haut-parleur
+  (5 dB derrière les effets), le grave inchangé.
+- LE BRUIT ASSOURDISSANT : boost tenu dès le départ (tout le monde), le grondement brun (`jrG`) est la chaîne dominante dès 0,5 s, pic −12 au
+  lancement, presque tout sous 200 Hz. Le boost n'est pas touché (poussée, durée) — son SON : passe-haut 85 Hz aussi sur ordi (le téléphone avait
+  déjà 120), allumage en fondu (constante ,18 s les 0,45 premières s), `NIT_GRONDE` ,3. Pic du lancement −17, plus de sub. `photos-gameplay/comparaison-son-4.jpg`.
 
 ## LES GAINS QUI FLOTTENT PUIS TOMBENT DANS LEUR JAUGE — AURA ET NITRO (2026-10-12, Léo : « quand on gagne de l'aura, n'importe quoi, ça arrive dans l'écran en mode flottement, et après ça tire, la gravité, vers la jauge — quand on fait des figures, quand on tombe sur un truc de nitro la jauge part en couille »)
 - Bloc JS « LES GAINS QUI FLOTTENT… » (`VOLG`, `volgLance`, `volgNitro`, `volgTick`, `volgArrive`, `volgVide`, `nbPrend`), juste après `ajLance`,
