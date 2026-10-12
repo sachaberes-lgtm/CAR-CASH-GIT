@@ -228,6 +228,13 @@ Un outil À CÔTÉ du jeu, qui ne refait RIEN : il lance LE JEU (`index.html`, s
   · L'ÉCOUTE (12/10, « chaque musique qu'on choisit, on peut l'écouter juste en dessous, avec la jauge pour les vitesses ») : sous la pastille
     de musique d'un niveau, ▶ + jauge de VITESSE (page à jauge : #speed ; module : setSpeed), le BPM à côté ; un seul son à la fois
     (survoler une image coupe l'écoute, l'écoute met l'aperçu en pause).
+  · (12/10, Léo : « quand j'appuie sur la musique, un truc qui loop et ne s'arrête pas, et ça met aussi la musique du gameplay ») —
+    MESURÉ (minuterie de 25 ms dans la page des maps) : la course cachée bloquait la page 15 s au chargement, 0,8 s au garage, 1,8 s à un
+    changement de niveau → l'écoute crachait des paquets de notes. La course est chargée depuis l'AUTRE nom du serveur (localhost ⇄
+    127.0.0.1 : un autre site = un autre processus), pilotée par postMessage (lance · pause · dort · touche · geste → etat / echap) :
+    pire attente de la page 27-33 ms, chargement compris. DORT (souris sur aucune image, plein écran quitté, écoute lancée) = musique
+    coupée tout de suite, course en pause (~1 s, le 3-2-1 du jeu), pas de relance après une fin. GLISSE V2 du simulateur = la copie
+    corrigée du jeu (0,4 s d'avance, retard sauté). Bancs : `ETAT_COURSE` (ce que la course dit d'elle, dans la page des maps).
 - LE BOOST NE JOUE PLUS D'INSTRUMENT (12/10, Léo : « enlève le boost instrument, il fait un bruit horrible qui casse tout ») : `INSTRU.on`
   = false dans le jeu. `instruMusiqueOk` regardait la SOURCE du lecteur, pas s'il jouait : au simulateur (musique du jeu coupée) la phrase
   du CIEL partait sous une autre musique. `dbgInstru(1)` la rallume pour l'écouter.

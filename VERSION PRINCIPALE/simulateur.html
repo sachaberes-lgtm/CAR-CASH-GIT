@@ -241,7 +241,11 @@
   const AP = { id: null, photo: null, plein: false, veut: null, sortT: 0 };
   const cadre = document.createElement('iframe');
   cadre.id = 'apercu'; cadre.title = 'Course'; cadre.tabIndex = -1; cadre.setAttribute('allow', 'autoplay; fullscreen');
-  cadre.src = 'simulateur/course.html?nu=1&niv=' + encodeURIComponent(MAPS[0].niveaux[0].id);
+  /* (12/10, Léo : « quand j'appuie sur la musique, un truc qui loop et ne s'arrête pas ») MESURÉ : sur le même site, le jeu bloquait cette page
+     jusqu'à 0,8 s (garage) · 1,8 s (changement de niveau) · 15 s (chargement) — l'écoute crachait des paquets de notes. La course vient
+     donc de l'AUTRE nom du même serveur (localhost ⇄ 127.0.0.1) : un autre site, donc un autre processus ; on se parle par messages. */
+  const AUTRE = location.protocol + '//' + (location.hostname === 'localhost' ? '127.0.0.1' : 'localhost') + (location.port ? ':' + location.port : '');
+  cadre.src = AUTRE + '/simulateur/course.html?nu=1&niv=' + encodeURIComponent(MAPS[0].niveaux[0].id);
   document.body.appendChild(cadre);
   const fermer = document.createElement('button');
   fermer.id = 'fermer'; fermer.hidden = true; fermer.setAttribute('aria-label', 'Revenir aux maps');
@@ -250,7 +254,14 @@
   const voile = document.createElement('div'); voile.id = 'voile'; voile.hidden = true;
   const voileImg = document.createElement('img'); voileImg.alt = ''; voile.appendChild(voileImg);
   document.body.appendChild(voile);
-  const S = () => { try { return cadre.contentWindow.SIMU || null; } catch (e) { return null; } };
+  const ETAT = window.ETAT_COURSE = { pret: false, niveau: null, roule: false };   // ce que la course dit d'elle (bancs : ETAT_COURSE)
+  const dis = m => { try { cadre.contentWindow.postMessage(m, AUTRE); } catch (e) {} };
+  addEventListener('message', ev => {
+    const d = ev.data;
+    if (ev.source !== cadre.contentWindow || !d || typeof d !== 'object') return;
+    if (d.simu === 'etat') { Object.assign(ETAT, { niveau: d.niveau, roule: !!d.roule, phase: d.phase, musique: !!d.musique, pause: !!d.pause }); if (!ETAT.pret && d.phase !== 'titre') ETAT.pret = true; }
+    else if (d.simu === 'echap') sortPlein();   // Échap frappé dans le jeu (le focus y est après un clic dans la course)
+  });
   function pose(ph) {
     const r = ph.getBoundingClientRect();
     Object.assign(cadre.style, { left: (r.left + scrollX) + 'px', top: (r.top + scrollY) + 'px', width: r.width + 'px', height: r.height + 'px' });
@@ -263,14 +274,15 @@
     if (AP.photo && AP.photo !== ph) AP.photo.classList.remove('charge');
     if (AP.id !== niv.id) cadre.classList.remove('vu');
     AP.photo = ph; AP.id = niv.id; pose(ph); ph.classList.add('charge');
-    const s = S(); if (s) s.lance(niv.id); else AP.veut = niv.id;
+    dis({ simu: 'dort', on: false });
+    if (ETAT.pret) dis({ simu: 'lance', id: niv.id }); else AP.veut = niv.id;
   }
   function quitte() {
     if (AP.plein) return;
     clearTimeout(AP.sortT);
     AP.sortT = setTimeout(() => {
       cadre.classList.remove('vu'); if (AP.photo) AP.photo.classList.remove('charge'); AP.photo = null;
-      const s = S(); if (s) s.pause(true);
+      dis({ simu: 'dort', on: true });
     }, 150);
   }
   function plein(niv, ph) {
@@ -278,32 +290,30 @@
     survole(niv, ph);
     AP.plein = true; cadre.classList.add('plein'); fermer.hidden = false; document.body.classList.add('enPlein');
     voileImg.src = 'simulateur/' + niv.photo; voile.hidden = false;   // la photo de CETTE carte tant que son niveau n'est pas parti
-    const s = S(); if (s) s.geste();
+    dis({ simu: 'geste' });
   }
   function sortPlein() {
     if (!AP.plein) return;
     AP.plein = false; cadre.classList.remove('plein'); fermer.hidden = true; document.body.classList.remove('enPlein'); voile.hidden = true;
     if (AP.photo) pose(AP.photo);
     cadre.classList.remove('vu'); if (AP.photo) AP.photo.classList.remove('charge'); AP.photo = null;
-    const s = S(); if (s) s.pause(true);
+    dis({ simu: 'dort', on: true });
   }
   fermer.onclick = sortPlein;
-  addEventListener('simu:echap', sortPlein);   // Échap frappé dans le jeu (le focus y est après un clic dans la course)
   addEventListener('resize', () => { if (AP.photo && !AP.plein) pose(AP.photo); });
   // les touches de la page partent dans la course (sauf pendant qu'on renomme) ; Échap sort du plein écran
   for (const t of ['keydown', 'keyup']) document.addEventListener(t, ev => {
     if (!(AP.photo || AP.plein) || ev.target.isContentEditable) return;
     if (t === 'keydown' && ev.key === 'Escape') { if (AP.plein) { ev.preventDefault(); sortPlein(); } return; }
-    const s = S(); if (!s) return;
-    s.relaie(t, ev);
+    dis({ simu: 'touche', type: t, code: ev.code, key: ev.key, keyCode: ev.keyCode, repeat: ev.repeat });
     if (/^(Space|Arrow|Shift)/.test(ev.code)) ev.preventDefault();
   });
   (function suit() { // la course n'apparaît sur l'image que quand ce niveau roule vraiment
     requestAnimationFrame(suit);
-    const s = S(); if (!s) return;
-    if (AP.veut) { s.lance(AP.veut); AP.veut = null; }
+    if (!ETAT.pret) return;
+    if (AP.veut) { dis({ simu: 'lance', id: AP.veut }); AP.veut = null; }
     if (!AP.photo) return;
-    let ok = false; try { ok = s.roule() && s.etat().niveau === AP.id; } catch (e) {}
+    const ok = ETAT.roule && ETAT.niveau === AP.id;
     if (AP.plein) { if (voile.hidden !== ok) voile.hidden = ok; return; }
     if (ok && !cadre.classList.contains('vu')) { cadre.classList.add('vu'); AP.photo.classList.remove('charge'); }
     else if (!ok && cadre.classList.contains('vu')) cadre.classList.remove('vu');
@@ -329,7 +339,7 @@
     if (ECO.row === row) { ecoStop(); return; }
     ecoStop();
     if (!f) return;
-    { const s = S(); if (s) s.pause(true); }
+    dis({ simu: 'dort', on: true });
     const jeton = ECO.jeton, x = row.querySelector('.vit').value / 100;
     ECO.row = row; ECO.fichier = f; row.classList.add('joue');
     if (/\.js$/i.test(f)) {

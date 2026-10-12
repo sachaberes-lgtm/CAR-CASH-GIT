@@ -447,7 +447,10 @@ export function createGlisseMusic({ volume = 1, audioContext = null } = {}) {
     if (now > dipEnd) darkF.frequency.setTargetAtTime(darkFreq(), now, 0.2);
     delay.delayTime.setTargetAtTime(60 / bpmNow() / 2, now, 0.15);
     pre808.gain.setTargetAtTime(1.2 + speed * 2, now, 0.2);
-    while (nextTime < now + 0.12) {
+    // (2026-10-12, dans le jeu : « des coupures ») le jeu occupe le fil principal (images lourdes, portails) : 0,12 s d'avance ne suffisait
+    // pas, les notes arrivaient en retard (trou, puis un paquet joué d'un coup). 0,4 s d'avance, et un retard malgré tout SAUTE les pas manqués.
+    if (nextTime < now - 0.02) { const sd0 = 60 / bpmNow() / 4, k = Math.ceil((now - nextTime) / sd0); step += k; nextTime += k * sd0; }
+    while (nextTime < now + 0.4) {
       const sd = 60 / bpmNow() / 4;
       scheduleStep(step, nextTime, sd);
       nextTime += sd; step++;
@@ -482,5 +485,6 @@ export function createGlisseMusic({ volume = 1, audioContext = null } = {}) {
     setVolume(v) { if (master) master.gain.setTargetAtTime(0.62 * v, ctx.currentTime, 0.1); },
     get bpm() { return bpmNow(); },
     get playing() { return playing; },
+    wake() { if (ctx && playing && ctx.state !== 'running') ctx.resume(); }, // (jeu) réveille un contexte endormi/interrompu, sans repartir du début
   };
 }
