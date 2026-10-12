@@ -6,6 +6,15 @@ MASTER) : le jeu sort vers −26 dB ; la musique GLISSE V2 du SOLEIL DE JADE (so
 couvrait TOUT ; une musique radio du jeu = −11 au fichier × ,62 ≈ −15) ; dès qu'on tient le boost, le grondement brun de la nitro (`jrG`)
 sortait à −14/−16, 12 dB au-dessus de tout le reste — « le bruit ». Corrigé : `JMUS_NIV` ,4 (−8 dB : GLISSE à −17 → −12, la place de la radio)
 et `NIT_GRONDE` ,4 (−8 dB : boost à −22, encore le son le plus fort mais de 4-6 dB). Planche : `photos-gameplay/comparaison-son.jpg`.
+2e PASSE (même jour, Léo : « encore le bruit parasite ; on entend parfois la musique et il y a des coupures ; on n'entend pas bien les bruits ») :
+- LE BRUIT = `vitesse.pure` (mur d'air + cuivre qui monte : « du bruit, puis de l'aigu, avec le boost », déjà dit le 08/10) — boost tenu dès le
+  départ, il partait ~2 s après l'élan puis toutes les 2 s. Il ne SONNE plus (NITROOO garde texte, flash, paliers). `nitrooo.palier` −11 → −17,
+  `jeu.palierVitesse` −8 dB (trois murs d'air dans les premières secondes). Écarté par mesure : les couches « vinyle »/« souffle » de GLISSE
+  (52 dB sous la musique). `JMUS_NIV` ,4 → ,3.
+- LES COUPURES : GLISSE programmait ses notes 0,12 s à l'avance (setInterval 25 ms) — une image lourde du jeu (portail, chauffe) et les notes
+  arrivaient en retard, trou puis paquet. La COPIE du jeu (`assets/audio/music/musique-glisse-v2.js`, ≠ celle du simulateur) : 0,4 s d'avance,
+  un retard SAUTE les pas manqués ; `wake()` réveille son contexte sans repartir du début. Le 1er toucher de la course faisait stop+start (le
+  morceau repartait de zéro) → `jadeMusReveil` (pointerdown/touchend) ne fait plus que `wake()`. Planche : `photos-gameplay/comparaison-son-depart.jpg`.
 
 ## LES GAINS QUI FLOTTENT PUIS TOMBENT DANS LEUR JAUGE — AURA ET NITRO (2026-10-12, Léo : « quand on gagne de l'aura, n'importe quoi, ça arrive dans l'écran en mode flottement, et après ça tire, la gravité, vers la jauge — quand on fait des figures, quand on tombe sur un truc de nitro la jauge part en couille »)
 - Bloc JS « LES GAINS QUI FLOTTENT… » (`VOLG`, `volgLance`, `volgNitro`, `volgTick`, `volgArrive`, `volgVide`, `nbPrend`), juste après `ajLance`,
