@@ -94,6 +94,16 @@ Un outil À CÔTÉ du jeu, qui ne refait RIEN : il lance LE JEU (`index.html`, s
     tirer la FORCE (jaune), AUTO rend la main ; « + » = le vrai moteur jusqu'au 1er moteur du palier suivant (`dbgMoteur()` en rafale : une
     seule carte). ⚠ Les `const` du jeu (ENGINE_TIERS…) ne se lisent PAS depuis la page (`w.eval` → ReferenceError) : dbgState / dbg* seulement. La pastille ♪ de la course change la musique EN DIRECT et l'écrit sur le disque. Les modules restent créés (`MODS`, un
     contexte audio chacun) : y revenir reprend le même.
+  · **L'ORGANISATEUR DU PLAY** (12/10, Léo : « tu es mon organisateur de map aléatoire pour le bouton PLAY ; laisse renommer si jamais je
+    veux, et ajoute la nouvelle map ») — `simulateur/play.json` sur le DISQUE (`POST` par le serveur) : `pool` {niveau: dans le tirage ?}
+    (sans réglage : `play` de sa map — VILLE, SKY HIGH, PICS DE JADE oui, la partie sans fin non) et `noms` {niveau | `map:`+id: nom}.
+    Page des maps : pastille PLAY par niveau (hors tirage = carte pâle), un NOM (niveau ou map) se renomme d'un clic (Entrée garde, Échap
+    annule, vide = l'origine, en capitales), bouton PLAY (avec le compte) = `course.html?play=1` : les niveaux du tirage au hasard, chacun
+    sa musique, sans redite dans un tour (le tour suivant ne recommence pas par le dernier), partie finie → le suivant ; ⏭ = `dbgBoom()`
+    puis le suivant. La partie sans fin après un autre niveau RECHARGE le jeu (son JOUER rejouerait la carrière ou la jade) : un toucher.
+    Vérifié : VILLE 1 → 5 → 3 (renommé) → SKY HIGH 2 → JADE → SKY HIGH 5 (carrLancer remet JADE_JEU à faux), musique suivie.
+    ⚠ Le jeu se met en PAUSE quand l'onglet est caché (visibilitychange) : un ⏭ pendant la pause attend la reprise.
+    ⚠ `choix-musiques.json` et `play.json` sont les DONNÉES de Léo (pas commitées tant qu'il range) — ne pas les écraser en test.
   · `?muet=1` (bancs) : la `destination` de chaque contexte audio passe par un gain nul (page, module, cadre de la page à jauge).
     `SIMU.musique()` = le pilote (MUS.inst = le module en cours).
 

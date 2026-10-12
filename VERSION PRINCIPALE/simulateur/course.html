@@ -25,6 +25,10 @@
        musique suivant (dbgMoteur en rafale : carte, son, poussée — une seule carte, engBigFile ne garde que la dernière).
        ⚠ Les const du jeu (ENGINE_TIERS…) ne sont PAS lisibles d'ici (w.eval → ReferenceError) : seuls dbgState / dbg* le sont.
        La pastille ♪ change la musique du niveau en direct, et l'écrit sur le disque (choix-musiques.json).
+     · LE PLAY (?play=1, le bouton PLAY de la page des maps — Léo, 12/10 : « tu es mon organisateur de map aléatoire pour le bouton PLAY ») :
+       les niveaux DANS LE PLAY (play.json) tirés au hasard, chacun avec sa musique, sans redite tant que le tour n'est pas fini (le
+       nouveau tour ne recommence pas par le dernier joué) ; une partie finie → le niveau suivant du tirage. ⏭ = passer au suivant (la caisse
+       explose : dbgBoom). La partie sans fin après un autre niveau recharge le jeu (son JOUER rejouerait la carrière ou la jade) : un toucher.
      ?muet=1 : tout se joue, rien ne sort (bancs). Console : SIMU.etat(). -->
 <style>
   :root{--sys:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif}
@@ -59,6 +63,8 @@
   #auto{height:24px;padding:0 9px;border-radius:999px;background:#ffd60a;color:#000;font-size:11.5px;font-weight:700}
   #source{opacity:.75}
   #bpm{opacity:.55;font-variant-numeric:tabular-nums;width:56px}
+  #suivant{padding:0 10px}
+  #suivant svg{width:14px;height:14px;fill:currentColor;stroke:none}
   #zone{position:fixed;left:0;right:0;top:44px;bottom:0;display:grid;place-items:center}
   #jeu{border:0;display:block;background:#000}
   #err{position:fixed;left:12px;right:12px;bottom:12px;background:#d70015;color:#fff;font:12px/1.4 ui-monospace,Menlo,monospace;padding:10px 12px;border-radius:10px;white-space:pre-wrap;z-index:3}
@@ -78,6 +84,7 @@
     <button id="auto" hidden>AUTO</button>
     <button class="pil" id="source" title="Ce que l'intensité suit"></button>
     <span id="bpm"></span>
+    <button class="pil" id="suivant" title="Niveau suivant du PLAY" hidden><svg viewBox="0 0 16 12"><path d="M0 0l7 6-7 6zM7 0l7 6-7 6zM14 0h2v12h-2z"/></svg></button>
   </div>
 </div>
 <div id="zone"><iframe id="jeu" title="CASH CAR" allow="autoplay; fullscreen"></iframe></div>
@@ -89,11 +96,16 @@
 const $ = id => document.getElementById(id);
 const Q = new URLSearchParams(location.search);
 const MUET = Q.get('muet') === '1';
-const T = niveauDe(Q.get('niv')) || niveauDe('v1');
-const MAP = T.map, NIV = T.niv;
-const num = MAP.niveaux.length > 1 ? ' ' + (MAP.niveaux.indexOf(NIV) + 1) : '';
-$('titre').textContent = MAP.nom + num + ' · ' + NIV.nom;
-document.title = MAP.nom + num + ' · simulateur';
+// le niveau en cours (en mode PLAY il change à chaque partie) et ses noms (ceux que Léo a donnés)
+const SEQ = { on: Q.get('play') === '1', ordre: [], i: -1, n: 0, saute: false, dernier: '' };
+let MAP, NIV, L;
+function peinsTitre() {
+  const num = MAP.niveaux.length > 1 ? ' ' + (MAP.niveaux.indexOf(NIV) + 1) : '';
+  $('titre').textContent = (SEQ.on ? 'PLAY ' + SEQ.n + ' · ' : '') + nomMap(MAP) + num + ' · ' + nomNiv(NIV);
+  document.title = (SEQ.on ? 'PLAY · ' : '') + nomMap(MAP) + num + ' · simulateur';
+}
+function niveauPose(id) { const T = niveauDe(id) || niveauDe('v1'); MAP = T.map; NIV = T.niv; L = NIV.lance; peinsTitre(); }
+niveauPose(Q.get('niv'));
 const erreur = m => { const e = $('err'); e.textContent = String(m).slice(0, 400); e.hidden = false; };
 
 // ——— 1) la sauvegarde du jeu, sur CETTE adresse seulement : sa musique coupée, l'auto-école faite ———
@@ -273,9 +285,9 @@ $('plus').onclick = () => { // le vrai moteur saute au 1er moteur du palier suiv
 };
 
 // ——— 4) le départ, la relance, l'intensité ———
-const L = NIV.lance;
 function lancer() {
   const w = jeu.contentWindow;
+  E.lanceDe = L;
   if (L.sansFin) {
     if (w.dbgState().gameOver) { w.dbgEco('rejouer'); return; }
     const b = w.document.querySelector('[data-m="play"]');
@@ -301,7 +313,7 @@ function boucle(now) {
     }
     // une partie finie (mort, fin de monde) : 2,4 s d'écran de fin, puis le même niveau repart
     if (E.phase === 'course') {
-      if (st.started && st.gameOver) { if ((E.finT += dt) > 2.4) { E.finT = 0; E.phase = 'depart'; E.essai = 0; E.t = 0; } }
+      if (st.started && st.gameOver) { if ((E.finT += dt) > (SEQ.saute ? .25 : 2.4)) { E.finT = 0; E.phase = 'depart'; E.essai = 0; E.t = 0; if (SEQ.on) seqSuivant(); } }
       else E.finT = 0;
     }
   } catch (e) { erreur(e.message); }
@@ -327,14 +339,42 @@ function boucle(now) {
   if ($('bpm').textContent !== bpm) $('bpm').textContent = bpm;
 }
 
-// la bibliothèque et le choix (sur le disque), puis la musique du niveau
+// LE PLAY : le niveau suivant du tirage (un tour = tous les niveaux du PLAY, au hasard, sans redite), et sa musique
+function seqSuivant() {
+  SEQ.saute = false;
+  const pool = poolPlay();
+  if (!pool.length) { erreur('Aucun niveau dans le PLAY (page des maps : les pastilles PLAY).'); return; }
+  if (SEQ.i + 1 >= SEQ.ordre.length) {
+    const o = pool.map(n => n.id);
+    for (let k = o.length - 1; k > 0; k--) { const j = Math.floor(Math.random() * (k + 1)); [o[k], o[j]] = [o[j], o[k]]; }
+    if (o.length > 1 && o[0] === SEQ.dernier) [o[0], o[1]] = [o[1], o[0]];
+    SEQ.ordre = o; SEQ.i = -1;
+  }
+  SEQ.i++; SEQ.n++;
+  niveauPose(SEQ.ordre[SEQ.i]); SEQ.dernier = NIV.id;
+  const f = musiqueDe(NIV);
+  if (f !== MUS.fichier) musCharge(f);
+  // la partie sans fin après un autre niveau : son JOUER rejouerait la carrière ou la jade → le jeu repart de zéro (un toucher)
+  if (L.sansFin && E.lanceDe && !E.lanceDe.sansFin) { E.lanceDe = null; E.phase = 'titre'; try { jeu.contentWindow.location.reload(); } catch (e) {} }
+}
+$('suivant').onclick = () => {
+  setTimeout(focusJeu, 0);
+  const st = E.st;
+  if (st && st.started && !st.gameOver) { SEQ.saute = true; try { jeu.contentWindow.dbgBoom(); } catch (e) {} }
+  else if (st && st.started && st.gameOver) SEQ.saute = true;
+  else { seqSuivant(); E.t = 0; }
+};
+
+// la bibliothèque, le choix et l'organisation (sur le disque), puis le niveau et sa musique
 await musiquesCharge();
 peinsMus();
-musCharge(musiqueDe(NIV));
+if (SEQ.on) { $('suivant').hidden = false; $('retour').href = '../simulateur.html'; seqSuivant(); }
+else { peinsTitre(); musCharge(musiqueDe(NIV)); }
 requestAnimationFrame(boucle);
 
 window.SIMU = {
-  etat: () => ({ phase: E.phase, essai: E.essai, touche, source: E.source, force: E.force, intensite: +E.x.toFixed(3), vit: E.vit,
+  etat: () => ({ niveau: NIV.id, play: SEQ.on ? { n: SEQ.n, ordre: SEQ.ordre.slice(), i: SEQ.i } : null,
+    phase: E.phase, essai: E.essai, touche, source: E.source, force: E.force, intensite: +E.x.toFixed(3), vit: E.vit,
     moteur: E.tier + 1, moteurs: E.nbMot, palier: palDe(E.tier),
     jeu: E.st && { started: E.st.started, gameOver: E.st.gameOver, paused: E.st.paused, mode: E.st.mode },
     musique: { fichier: MUS.fichier, type: MUS.type, pret: MUS.pret, joue: musJoueDeja(), bpm: musBpm(), muet: MUET } }),
