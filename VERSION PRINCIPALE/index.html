@@ -44484,13 +44484,40 @@ function garBqIndus(dt,ay,t9){
     const cA=garCamA(),q=GBQ._q||(GBQ._q=new THREE.Quaternion()),q2=GBQ._q2||(GBQ._q2=new THREE.Quaternion()),ax=GBQ._ax||(GBQ._ax=new THREE.Vector3()),Y=GBQ._Y||(GBQ._Y=new THREE.Vector3(0,1,0));
     q.setFromAxisAngle(Y,carGroup.rotation.y+GBQ.yaw);ax.set(Math.cos(cA),0,-Math.sin(cA));q2.setFromAxisAngle(ax,GBQ.pit+Math.sin(t9*1.1)*.025*fl);q.premultiply(q2);
     ax.set(Math.sin(cA),0,Math.cos(cA));q2.setFromAxisAngle(ax,Math.sin(t9*.9+1)*.03*fl+THREE.MathUtils.clamp(GBQ.yawV*.03,-.12,.12)*fl);q.premultiply(q2);carGroup.quaternion.copy(q);}
+  /* (2026-10-12, Léo : « la voiture passe à travers la plateforme ») penchée, elle se SOULÈVE de ce qu'il faut : le coin le plus bas de sa
+     boîte (garGabarit, tournée comme elle) reste au-dessus du socle ; levée en douceur (garRessort-like), jamais d'un coup */
+  if(GBQ.socleH&&GBQ.grp&&GBQ.grp.visible){const G=garGabarit(),q=carGroup.quaternion,c=GBQ._cc||(GBQ._cc=new THREE.Vector3());let bas=1e9;
+    for(const sx of [-1,1])for(const sz of [-1,1])for(const sy of [0,1]){c.set(sx*G.b,sy*G.H,sz*G.a).applyQuaternion(q);if(c.y<bas)bas=c.y;}
+    const sol=ay+GBQ.socleH+.07,besoin=Math.max(0,sol-(carGroup.position.y+bas));GBQ.leve=(GBQ.leve||0)+(besoin-(GBQ.leve||0))*Math.min(1,dt*(besoin>(GBQ.leve||0)?14:4));
+    carGroup.position.y+=GBQ.leve;}else GBQ.leve=0;
   // l'ombre sous la caisse et l'onde du boum
   if(GBQ.anneaux&&on){GBQ.anneaux[0].rotation.z+=dt*.12;GBQ.anneaux[1].rotation.z-=dt*.22;}
   if(!veut&&Math.abs(GBQ.lev)<.002){GBQ.yaw-=Math.round(GBQ.yaw/(2*Math.PI))*2*Math.PI;if(Math.abs(GBQ.yaw)<.002)GBQ.yaw=0;if(Math.abs(GBQ.pit)<.002){GBQ.pit=0;GBQ.pitV=0;}} // reposée : plus rien n'oriente la caisse que le plateau
   if(GBQ.omb){const s=4.2-.9*fl;GBQ.omb.scale.set(s,s,1);GBQ.omb.material.opacity=.42-.12*fl;}
   if(GBQ.choc){GBQ.chocT+=dt;const u=GBQ.chocT/.55;GBQ.choc.visible=u<1;if(u<1){const s=1.2+4.2*(1-Math.pow(1-u,3));GBQ.choc.scale.set(s,s,s);GBQ.choc.position.set(0,ay+GAR.POD+.06,0);GBQ.choc.material.opacity=.85*(1-u);}}
+  try{garBqTapis(dt,t9,ay);}catch(e){}
   try{garBqPanneau(dt,t9);}catch(e){}
 }
+/* LE TAPIS DE CUBES (2026-10-12, Léo : « quand on bouge la voiture, une ondulation de pixels blancs, qu'on ne voit que quand on la bouge,
+   qui agisse comme un tapis futuriste monté de cubes et permette la mobilité maximale de la voiture ») : une grille de petits cubes blancs
+   sur le dessus du socle, INVISIBLE au repos ; dès que le doigt tourne la caisse, une onde part d'elle et les cubes montent par crans
+   (« pixels ») — sous la caisse ils viennent la porter (jusqu'à son dessous, penché comme elle) ; lâchée, tout redescend et s'efface. */
+function garBqTapis(dt,t9,ay){
+  if(!GBQ.on||!GBQ.socleH){if(GBQ.tapis)GBQ.tapis.visible=false;GBQ.ta=0;return;}
+  const actif=!!GBQ.drag||Math.abs(GBQ.yawV)>.2||Math.abs(GBQ.pitV)>.2;GBQ.ta=(GBQ.ta||0)+((actif?1:0)-(GBQ.ta||0))*Math.min(1,dt*(actif?7:1.7));
+  if(!GBQ.tapis){if(GBQ.ta<.02)return;
+    const P=[],pas=.18,R=2.05;for(let x=-R;x<=R+1e-6;x+=pas)for(let z=-R;z<=R+1e-6;z+=pas)if(x*x+z*z<=R*R)P.push(x,z);
+    const n=P.length/2,m=new THREE.InstancedMesh(new THREE.BoxGeometry(pas*.84,1,pas*.84),new THREE.MeshLambertMaterial({color:0xe8edf5,emissive:0x000000,flatShading:true,fog:false}),n); /* (flancs plus sombres que le dessus : les pixels se lisent sur le blanc) */
+    m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);m.frustumCulled=false;m.renderOrder=2;scene.add(m);GBQ.tapis=m;GBQ.tapisP=P;GBQ._mt=new THREE.Matrix4();GBQ._qi=new THREE.Quaternion();GBQ._vt=new THREE.Vector3();GBQ._nt=new THREE.Vector3();}
+  const m=GBQ.tapis,A=GBQ.ta;m.visible=A>.02;if(!m.visible)return;
+  const P=GBQ.tapisP,n=P.length/2,y0=ay+GBQ.socleH,G=garGabarit(),p0=carGroup.position,qi=GBQ._qi.copy(carGroup.quaternion).invert(),nn=GBQ._nt.set(0,1,0).applyQuaternion(carGroup.quaternion),v=GBQ._vt,M=GBQ._mt;
+  m.position.set(p0.x,y0,p0.z);
+  for(let k=0;k<n;k++){const x=P[2*k],z=P[2*k+1],r=Math.hypot(x,z);
+    let h=Math.max(0,Math.sin(r*4.2-t9*8))*(1-r/2.2)*.62; // l'onde qui part de la caisse
+    v.set(x,0,z).applyQuaternion(qi);if(Math.abs(v.x)<G.b*.92&&Math.abs(v.z)<G.a*.92&&nn.y>.2){ // sous elle : jusqu'à son dessous (le plan de son plancher, penché)
+      const yU=p0.y-(nn.x*x+nn.z*z)/nn.y-y0-.04;if(yU>h)h=Math.min(yU,1.6);}
+    h=Math.round(h*A/.07)*.07;M.makeScale(1,Math.max(.001,h),1);M.setPosition(x,h/2,z);if(h<.03)M.makeScale(.001,.001,.001);m.setMatrixAt(k,M);}
+  m.instanceMatrix.needsUpdate=true;}
 function garBqLumiere(){if(!GBQ.on)return; // la lumière du magasin : blanche, sans le contre-jour du feu
   stallKey.color.setHex(0xffffff);stallKey.intensity=1.45;stallKey.distance=30;stallRim.color.setHex(0xe8eef5);stallRim.intensity=.7;stallRim.distance=30;}
 /* LE DOIGT SUR LA SCÈNE tourne la caisse (le garage ne reçoit plus le glissé : pris en capture) */
