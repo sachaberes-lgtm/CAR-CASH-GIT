@@ -20,6 +20,10 @@ rm -rf .vercel-static/jouer/atelier-son .vercel-static/jouer/sons.html
 rm -rf .vercel-static/jouer/maps-ciel.html .vercel-static/jouer/maps-ciel
 # (2026-10-12) le SIMULATEUR LÉGER (simulateur.html + son dossier : serveur qui écrit sur le disque) reste un outil LOCAL
 rm -rf .vercel-static/jouer/simulateur.html .vercel-static/jouer/simulateur
+# (2026-10-12, passe qualité) les autres outils LOCAUX de Léo (servis par python en local, serveurs qui écrivent sur le disque) :
+# la salle blanche, la boîte à dauphins, la boîte du singe — et aucun script Python ne part en ligne
+rm -rf .vercel-static/jouer/salle-blanche.html .vercel-static/jouer/salle-blanche .vercel-static/jouer/boite-dauphins.html .vercel-static/jouer/boite-singe.html
+find .vercel-static/jouer -name '*.py' -delete
 # LA MÊME VERSION POUR TOUT LE MONDE (2026-10-01, Léo) : le commit publié est gravé dans le jeu (jeton __CC_BUILD__ de
 # index.html) et posé dans version.json ; le jeu compare les deux et se recharge tout seul s'il est en retard.
 # ⚠ (2026-10-03, Léo : « le jeu coupe bizarrement la musique ») L'EMPREINTE DU JEU, PLUS LE COMMIT : graver le commit faisait croire à une

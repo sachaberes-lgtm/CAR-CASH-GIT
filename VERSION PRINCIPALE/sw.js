@@ -75,8 +75,12 @@ self.addEventListener('fetch', e => {
   // invisibles en jeu. `no-store` force un VRAI aller-retour, à chaque navigation, sans exception.
   if (req.mode === 'navigate') {
     e.respondWith(
-      fetch(req, { cache: 'no-store' })
-        .then(r => { const cp = r.clone(); caches.open(CACHE).then(c => c.put('./index.html', cp)); return r; })
+      // (2026-10-12, passe qualité) `no-cache` au lieu de `no-store` : toujours un VRAI aller-retour (le serveur revalide, rien de
+      // vieux ne passe), mais une page inchangée répond 304 — `no-store` retéléchargeait les 5 Mo (1,8 compressés) à CHAQUE lancement,
+      // deux fois sur l'ordi (le cadre puis la colonne). Et on ne range comme copie hors ligne QUE la page du jeu, et seulement en 200 :
+      // une 404/500 de Vercel, ou une page d'outil, devenait la copie hors ligne.
+      fetch(req, { cache: 'no-cache' })
+        .then(r => { const p = new URL(req.url).pathname; if (r && r.ok && /\/(index\.html)?$/.test(p)) { const cp = r.clone(); caches.open(CACHE).then(c => c.put('./index.html', cp)).catch(() => {}); } return r; })
         .catch(() => caches.match('./index.html'))
     );
     return;

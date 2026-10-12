@@ -1,5 +1,43 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LA PASSE QUALITÉ AVANT SORTIE (2026-10-12, Sacha : « trouve des bugs et règle-les, améliore des trucs à droite à gauche, fais en sorte que le jeu soit parfait et sortable »)
+Méthode : bancs Puppeteer son coupé (rendu LOGICIEL SwiftShader : Roblox Studio tenait le GPU, le Chrome de test calait sur D3D11), un
+parcours COMPLET au vrai doigt (accueil → garage → réglages → missions → carrière → offres → course → pause → mort → REJOUER → HOME), le
+tour des 3 niveaux, le HUD couché mesuré (avec et sans les marges de l'iPhone), puis 6 auditeurs en lecture seule (garage/accueil, HUD,
+gameplay récent, sortabilité, joueur neuf, son). **0 erreur JS** partout ; seul 404 : `dark-triad.mp3` (connu). Rien du design de Léo
+n'a été rebasculé. Corrigé :
+- **Perf du menu** : `homeCielPrise._t=now` était collé DERRIÈRE un `//` → la relecture GPU→CPU du ciel tournait à CHAQUE image au menu.
+- **Partie perdue** : ⏸ / P / Échap PENDANT L'EXPLOSION ouvraient la pause, et RECOMMENCER sautait `endGame` (ni virement, ni aura, ni
+  record). Pendant `mode==='boom'` ils avancent à l'écran de fin (`boomSkip`), et RECOMMENCER y solde la partie (`endGame`).
+- **Double-tap qui traverse** : `uiGarde` armé par `ecranWipe` (520 ms), `gModeVa`, `gGarageInv` (le 2e tap d'un HOME lançait une course
+  par le JOUER de l'accueil v2 ; RETOUR de la boutique tombait sur HOME).
+- **Garage** : l'ŒIL éteint par `garMode('menu')` (Échap depuis la vue seule → MISSIONS sans un bouton) ; en BOUTIQUE, Échap = ◀ RETOUR
+  et Entrée ne lance plus la course ; le libellé BOUTIQUE repasse dans la langue du moment (`b._lib` figé à la 1re visite).
+- **HUD de course** : la jauge d'aura cachée pendant l'auto-école (`body.coOn`) et la balade ; repli `background:var(--sc)` (sans
+  `color-mix`, iOS 15/16.0-16.1, la jauge restait VIDE) ; COUCHÉ, le bout « MOY 1 234 » / « RECORD 2 500 » mordait de 20 à 47 px sur la
+  jauge → `ajSerre()` efface le mot (puis resserre le chiffre) seulement quand il ne tient pas, mesuré au changement de texte ; l'emblème
+  DARK TRIAD descend sous la vitesse quand il y a une marge d'iPhone (25 px de chevauchement sur la colonne de l'ordi) ; `#nxVit` caché
+  hors tactile ; pool des « +N » qui fuyait ; l'éclair NITRO ne reste plus enfoncé après une perte de focus ; « réduire les animations »
+  couvre la jauge ; plus de `TR`/`toLocaleString` par image pour le bout de jauge.
+- **Joueur neuf** : la CARRIÈRE en premier pose aussi le choix FACILE / NORMAL ; AURORE quittée puis REJOUER réarme la leçon (avant : la
+  piste d'école sans coach) ; TOUT EFFACER efface aussi la langue ; la pastille GARAGE se met à jour au retour du garage ; la tuile de
+  l'écran de fin s'appelle OFFRES (icône cadeau), comme sur l'accueil v2 — elle mène à la page OFFRES.
+- **Son** : la musique ne repart plus en ARRIÈRE-PLAN (trois minuteries la relançaient écran verrouillé : `musicJoue._vu`) ; la sonde de
+  la frénésie passe par une requête HEAD (sur iPhone elle ne répondait jamais : la 1re FRÉNÉSIE coupait la musique vers le fichier absent) ;
+  hors ligne la radio ne réessaie plus sans fin ; le FEU du garage revient quand on rallume le SON dans l'atelier.
+- **Gameplay récent** : les SINGES se fabriquent au menu (plus de tranches de 5 ms en pleine 1re course) ; tampons d'instances libérés
+  (FOURNAISE, DÉFERLANTE, MERCURE) ; JADE : chrono d'ARRIVÉE remis à zéro, lucioles éteintes hors de la map ; textes EN (LES SINGES !,
+  ARRIVÉE, SOLEIL DE JADE, MAINTIENS TA CAISSE — la clé disait « LA CAISSE » —, aria Offres / La voiture seule / Tourner le garage).
+- **Sortie** : `poki-construire.js crazy` ÉCHOUAIT (« deux fichiers serveur.py ») — les outils locaux (maps-ciel, simulateur, salle
+  blanche, boîtes) et tout `.py` sont exclus des portails ; Vercel ne publie plus salle-blanche / boîtes ni aucun `.py` ; le démarrage
+  sur réseau lent n'affiche plus « CASH CAR a calé » tant que la page arrive (et l'écran s'en va si le jeu démarre dessous) ; `sw.js` en
+  `no-cache` (304 au lieu de 5 Mo retéléchargés à chaque lancement) et ne range comme copie hors ligne que la page du jeu en 200 ; la page-
+  cadre de l'ordi ne décode plus la banque de sons (`sfx.js?v=5`).
+- **À trancher par Sacha et/ou Léo (rien changé)** : `TEST_CAISSES` / `TEST_CARRIERE` (tout ouvert, pastille TEST) ; boutique sans
+  StoreKit ; droits des sons/noms ; RECOMMENCER ne repart pas du DÉBUT du morceau (`playMusic(...,{garde:true})`) ; la phrase du boost
+  (`INSTRU`) joue avec la MUSIQUE coupée ; sons absents de la banque (`singe.troupe`, `aura.moyenne`) ; onglets du garage à 28 px de haut
+  et rappel OFFRES à 38 px (règle des 44 px) ; après une mort lancée depuis CARRIÈRE/MISSIONS, HOME ramène à l'accueil.
+
 ## LE NIVEAU « SOLEIL DE JADE » — la map des PICS DE JADE en vrai niveau, au simulateur (2026-10-12, Léo : « là, il n'y a pas de fruits, tout ça : fais-en un niveau complet avec ses aspects — fruits custom, pièces ¥ yuan yen — qu'on ajoute au système audio pour tester, référencé par un nom que tu choisis »)
 - La map (section « LES PICS DE JADE » plus bas, branche `map-jade` FUSIONNÉE dans le main ce jour-là) a désormais deux usages : la BALADE
   `?map=jade` (la voiture seule, inchangée) et le NIVEAU **SOLEIL DE JADE** (`JADE_NOM` ; nom choisi par Claude — la map, elle, reste
