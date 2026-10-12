@@ -1,5 +1,97 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LA PASSE QUALITÉ AVANT SORTIE (2026-10-12, Sacha : « trouve des bugs et règle-les, améliore des trucs à droite à gauche, fais en sorte que le jeu soit parfait et sortable »)
+Méthode : bancs Puppeteer son coupé (rendu LOGICIEL SwiftShader : Roblox Studio tenait le GPU, le Chrome de test calait sur D3D11), un
+parcours COMPLET au vrai doigt (accueil → garage → réglages → missions → carrière → offres → course → pause → mort → REJOUER → HOME), le
+tour des 3 niveaux, le HUD couché mesuré (avec et sans les marges de l'iPhone), puis 6 auditeurs en lecture seule (garage/accueil, HUD,
+gameplay récent, sortabilité, joueur neuf, son). **0 erreur JS** partout ; seul 404 : `dark-triad.mp3` (connu). Rien du design de Léo
+n'a été rebasculé. Corrigé :
+- **Perf du menu** : `homeCielPrise._t=now` était collé DERRIÈRE un `//` → la relecture GPU→CPU du ciel tournait à CHAQUE image au menu.
+- **Partie perdue** : ⏸ / P / Échap PENDANT L'EXPLOSION ouvraient la pause, et RECOMMENCER sautait `endGame` (ni virement, ni aura, ni
+  record). Pendant `mode==='boom'` ils avancent à l'écran de fin (`boomSkip`), et RECOMMENCER y solde la partie (`endGame`).
+- **Double-tap qui traverse** : `uiGarde` armé par `ecranWipe` (520 ms), `gModeVa`, `gGarageInv` (le 2e tap d'un HOME lançait une course
+  par le JOUER de l'accueil v2 ; RETOUR de la boutique tombait sur HOME).
+- **Garage** : l'ŒIL éteint par `garMode('menu')` (Échap depuis la vue seule → MISSIONS sans un bouton) ; en BOUTIQUE, Échap = ◀ RETOUR
+  et Entrée ne lance plus la course ; le libellé BOUTIQUE repasse dans la langue du moment (`b._lib` figé à la 1re visite).
+- **HUD de course** : la jauge d'aura cachée pendant l'auto-école (`body.coOn`) et la balade ; repli `background:var(--sc)` (sans
+  `color-mix`, iOS 15/16.0-16.1, la jauge restait VIDE) ; COUCHÉ, le bout « MOY 1 234 » / « RECORD 2 500 » mordait de 20 à 47 px sur la
+  jauge → `ajSerre()` efface le mot (puis resserre le chiffre) seulement quand il ne tient pas, mesuré au changement de texte ; l'emblème
+  DARK TRIAD descend sous la vitesse quand il y a une marge d'iPhone (25 px de chevauchement sur la colonne de l'ordi) ; `#nxVit` caché
+  hors tactile ; pool des « +N » qui fuyait ; l'éclair NITRO ne reste plus enfoncé après une perte de focus ; « réduire les animations »
+  couvre la jauge ; plus de `TR`/`toLocaleString` par image pour le bout de jauge.
+- **Joueur neuf** : la CARRIÈRE en premier pose aussi le choix FACILE / NORMAL ; AURORE quittée puis REJOUER réarme la leçon (avant : la
+  piste d'école sans coach) ; TOUT EFFACER efface aussi la langue ; la pastille GARAGE se met à jour au retour du garage ; la tuile de
+  l'écran de fin s'appelle OFFRES (icône cadeau), comme sur l'accueil v2 — elle mène à la page OFFRES.
+- **Son** : la musique ne repart plus en ARRIÈRE-PLAN (trois minuteries la relançaient écran verrouillé : `musicJoue._vu`) ; la sonde de
+  la frénésie passe par une requête HEAD (sur iPhone elle ne répondait jamais : la 1re FRÉNÉSIE coupait la musique vers le fichier absent) ;
+  hors ligne la radio ne réessaie plus sans fin ; le FEU du garage revient quand on rallume le SON dans l'atelier.
+- **Gameplay récent** : les SINGES se fabriquent au menu (plus de tranches de 5 ms en pleine 1re course) ; tampons d'instances libérés
+  (FOURNAISE, DÉFERLANTE, MERCURE) ; JADE (le niveau du JOUER depuis 20e5fed) : `jadeRedemarre` ne remet plus en 'drive' une caisse qui
+  EXPLOSE ou une partie finie dans les 2,8 s après l'ARRIVÉE, chrono d'ARRIVÉE remis à zéro, lucioles éteintes hors de la map ; textes EN (LES SINGES !,
+  ARRIVÉE, SOLEIL DE JADE, MAINTIENS TA CAISSE — la clé disait « LA CAISSE » —, aria Offres / La voiture seule / Tourner le garage).
+- **Sortie** : `poki-construire.js crazy` ÉCHOUAIT (« deux fichiers serveur.py ») — les outils locaux (maps-ciel, simulateur, salle
+  blanche, boîtes) et tout `.py` sont exclus des portails ; Vercel ne publie plus salle-blanche / boîtes ni aucun `.py` ; le démarrage
+  sur réseau lent n'affiche plus « CASH CAR a calé » tant que la page arrive (et l'écran s'en va si le jeu démarre dessous) ; `sw.js` en
+  `no-cache` (304 au lieu de 5 Mo retéléchargés à chaque lancement) et ne range comme copie hors ligne que la page du jeu en 200 ; la page-
+  cadre de l'ordi ne décode plus la banque de sons (`sfx.js?v=5`).
+- **À trancher par Sacha et/ou Léo (rien changé)** : `TEST_CAISSES` / `TEST_CARRIERE` (tout ouvert, pastille TEST) ; boutique sans
+  StoreKit ; droits des sons/noms ; RECOMMENCER ne repart pas du DÉBUT du morceau (`playMusic(...,{garde:true})`) ; la phrase du boost
+  (`INSTRU`) joue avec la MUSIQUE coupée ; sons absents de la banque (`singe.troupe`, `aura.moyenne`) ; onglets du garage à 28 px de haut
+  et rappel OFFRES à 38 px (règle des 44 px) ; après une mort lancée depuis CARRIÈRE/MISSIONS, HOME ramène à l'accueil ; JADE : le 2e tour
+  après l'ARRIVÉE est VIDE (pièces et fruits ramassés ne reviennent pas, plots couchés) et `jadeChauffe()` n'est appelée nulle part.
+
+## LE SON EN COURSE REMIS D'APLOMB (2026-10-12, Léo : « le sound design est complètement niqué, on n'entend rien du tout ; le bruit dont je parle tout le temps au début — le boost en l'air ? »)
+MESURÉ au banc (crochet sur chaque contexte audio + `dbgVu()` : dB RMS de chaque chaîne continue à sa sortie, dans l'ordre des portes, + le
+MASTER) : le jeu sort vers −26 dB ; la musique GLISSE V2 du SOLEIL DE JADE (son propre contexte) sortait à −10 → −5 (15-20 dB au-dessus : elle
+couvrait TOUT ; une musique radio du jeu = −11 au fichier × ,62 ≈ −15) ; dès qu'on tient le boost, le grondement brun de la nitro (`jrG`)
+sortait à −14/−16, 12 dB au-dessus de tout le reste — « le bruit ». Corrigé : `JMUS_NIV` ,4 (−8 dB : GLISSE à −17 → −12, la place de la radio)
+et `NIT_GRONDE` ,4 (−8 dB : boost à −22, encore le son le plus fort mais de 4-6 dB). Planche : `photos-gameplay/comparaison-son.jpg`.
+2e PASSE (même jour, Léo : « encore le bruit parasite ; on entend parfois la musique et il y a des coupures ; on n'entend pas bien les bruits ») :
+- LE BRUIT = `vitesse.pure` (mur d'air + cuivre qui monte : « du bruit, puis de l'aigu, avec le boost », déjà dit le 08/10) — boost tenu dès le
+  départ, il partait ~2 s après l'élan puis toutes les 2 s. Il ne SONNE plus (NITROOO garde texte, flash, paliers). `nitrooo.palier` −11 → −17,
+  `jeu.palierVitesse` −8 dB (trois murs d'air dans les premières secondes). Écarté par mesure : les couches « vinyle »/« souffle » de GLISSE
+  (52 dB sous la musique). `JMUS_NIV` ,4 → ,3.
+- LES COUPURES : GLISSE programmait ses notes 0,12 s à l'avance (setInterval 25 ms) — une image lourde du jeu (portail, chauffe) et les notes
+  arrivaient en retard, trou puis paquet. La COPIE du jeu (`assets/audio/music/musique-glisse-v2.js`, ≠ celle du simulateur) : 0,4 s d'avance,
+  un retard SAUTE les pas manqués ; `wake()` réveille son contexte sans repartir du début. Le 1er toucher de la course faisait stop+start (le
+  morceau repartait de zéro) → `jadeMusReveil` (pointerdown/touchend) ne fait plus que `wake()`. Planche : `photos-gameplay/comparaison-son-depart.jpg`.
+3e PASSE (Léo : « en début de partie, un vrai bruit, comme une trompette, un klaxon — c'est mon ordi ou le jeu ? » ; « je ne l'entends plus du tout
+accordé ; une pièce, je l'entends pas forcément ») — le jeu, pas l'ordi :
+- LA TROMPETTE : `moteur.palier` (visseuse, impact, démarreur, FANFARE de palier, 2 s) = le son le plus fort de la banque (+4 dB, 8 dB au-dessus
+  d'une pièce), à CHAQUE nouveau moteur — le moteur repart de zéro à chaque partie : plusieurs fois dans les 30 premières secondes. vol −10 ;
+  le NOUVEAU SOMMET (`ui.record`, cuivres ta-ta-TAAA) −8 en course, le record d'argent en course (`aura.record`) −6.
+- L'ACCORD : sur le SOLEIL DE JADE, `sonTonSuit` ne lisait que la radio (muette) → les sons gardaient la tonalité du DERNIER morceau du lobby
+  (faux : mi♭ après VAPEUR, fa#/si après GLASSY). La banque joue la pentatonique de MI majeur (la pièce de base = mi, mesuré) ; GLISSE est en
+  RÉ MINEUR → `JMUS_TON` +1 = la pentatonique de ré mineur, 5 notes sur 5. Le « plop » d'arrivée des gains (`ui.pop`, sa propre gamme) RETIRÉ.
+- LES PIÈCES : 6-12 dB sous GLISSE → `piece` vol +4. Planche : `photos-gameplay/comparaison-son-3.jpg`.
+4e PASSE (Léo : « la musique, on ne l'entend pas — elle doit être là, intégrée, derrière le sound design, sans prendre dessus » ; « au début de la
+partie, un bruit assourdissant — si tu ne trouves pas, ne touche pas ») — banc `hookson2` : CHAQUE source (contexte du jeu, contexte GLISSE,
+chaque <audio> via captureStream × volume) toutes les 25 ms, en plein spectre ET « haut-parleur » (passe-haut 200 Hz = ce que rend un portable) :
+- LA MUSIQUE : GLISSE −20 en plein spectre mais −32 sur haut-parleur (tout son poids dans le sub), 10 dB SOUS les effets (−22). La copie du jeu
+  du module a une SORTIE (`basses` étagère < 160 Hz, `sortie` gain après le compresseur) : `JMUS_BASSES` −6, `JMUS_SORTIE` 2 → −27 sur haut-parleur
+  (5 dB derrière les effets), le grave inchangé.
+- LE BRUIT ASSOURDISSANT : boost tenu dès le départ (tout le monde), le grondement brun (`jrG`) est la chaîne dominante dès 0,5 s, pic −12 au
+  lancement, presque tout sous 200 Hz. Le boost n'est pas touché (poussée, durée) — son SON : passe-haut 85 Hz aussi sur ordi (le téléphone avait
+  déjà 120), allumage en fondu (constante ,18 s les 0,45 premières s), `NIT_GRONDE` ,3. Pic du lancement −17, plus de sub. `photos-gameplay/comparaison-son-4.jpg`.
+
+## LES GAINS QUI FLOTTENT PUIS TOMBENT DANS LEUR JAUGE — AURA ET NITRO (2026-10-12, Léo : « quand on gagne de l'aura, n'importe quoi, ça arrive dans l'écran en mode flottement, et après ça tire, la gravité, vers la jauge — quand on fait des figures, quand on tombe sur un truc de nitro la jauge part en couille »)
+- Bloc JS « LES GAINS QUI FLOTTENT… » (`VOLG`, `volgLance`, `volgNitro`, `volgTick`, `volgArrive`, `volgVide`, `nbPrend`), juste après `ajLance`,
+  appelé en fin d'`ajTick`. UN moteur, simulé à l'image (plus de keyframes WAAPI) : le gain JAILLIT de la caisse à l'écran (ou de la boîte de
+  la chaîne encaissée), FLOTTE ~0,4 s (l'air le freine, il ondule), puis la jauge l'ATTIRE (gravité qui grandit, travers freiné) jusqu'au BOUT
+  DU PLEIN suivi en direct ; arrivée ≈ 0,7-0,8 s : la jauge bat, un anneau de pixels (`#ajVols u`), et c'est LÀ qu'elle monte.
+- L'AURA : « +N » 14 px (12 avant) vers la jauge d'aura (`AJ.envol` inchangé). LA NITRO : un ÉCLAIR pixel 24 px — orange vers le bout du
+  réservoir (`nitroGain` : pose, figure, bump, pads, drift…), BLEU vers le bout de la réserve (les fruits) ; nées au même instant = une seule
+  qui grossit. La RESSOURCE est à toi dès la prise : seul l'affichage attend — la boucle dessine `nitroR − VOLG.n.r` / `nitroX − VOLG.n.x`
+  (plein, à sec, anneau du bouton compris). Fini le `.gain` (flash ×2,2 de TOUTE la barre, km/h compris : « la jauge part en couille ») →
+  `.nbPrend`, un éclat au bout du plein seulement. Gains < 0,03 (rase-bord) : directs, sans éclat.
+- LE REMPLISSAGE QUI SATISFAIT (même jour, Léo : « travaille juste le fait que ce soit satisfaisant quand ça se remplit — la dynamique ») :
+  les deux jauges se VERSENT en ressort (`VOLG_W` 17, `VOLG_Z` ,5 : elles filent ~0,15 s, dépassent ~15 %, se posent ~0,33 s ; `AJ.vv`,
+  `volgRessort` pour la barre de boost, qui se VIDE sans traîner) ; les états (moyenne battue, record, bout) se lisent sur `vS` (jamais sur le
+  dépassement) ; à l'arrivée le plein BAT (`volgBat`, WAAPI sur `scale` : ×1,3-1,4 → ×0,9 → ×1,04 → 1 ; l'ancien `ajBat` CSS retiré) et
+  `sfx('ui.pop')` sonne ; enchaînées (< 0,65 s) les arrivées montent la pentatonique (`VOLG_GAMME`) et tapent plus fort. Plus de transition
+  en crans sur la largeur de #nitroR/#nitroX (le ressort la porte). Courbes : `photos-gameplay/comparaison-remplissage.jpg`.
+- 12 en vol au plus, au-delà / « Réduire les animations » / hors course : direct. Console `dbgVols()` · `dbgVols('a'|'n'|'x',q)` ·
+  `dbgVols('ralenti',.1)` (le ralenti du banc). Comparaison : `photos-gameplay/comparaison-gains-qui-flottent.jpg` (CAR CAHS V3).
 ## LE NIVEAU « SOLEIL DE JADE » — la map des PICS DE JADE en vrai niveau, au simulateur (2026-10-12, Léo : « là, il n'y a pas de fruits, tout ça : fais-en un niveau complet avec ses aspects — fruits custom, pièces ¥ yuan yen — qu'on ajoute au système audio pour tester, référencé par un nom que tu choisis »)
 - La map (section « LES PICS DE JADE » plus bas, branche `map-jade` FUSIONNÉE dans le main ce jour-là) a désormais deux usages : la BALADE
   `?map=jade` (la voiture seule, inchangée) et le NIVEAU **SOLEIL DE JADE** (`JADE_NOM` ; nom choisi par Claude — la map, elle, reste
@@ -33,6 +125,11 @@
   · LES PIÈCES DU BORD (`jadePiecesBord`, `JADE_PB`, `JADE.decoPieces`, route style 4 seulement) : de vraies pièces d'argent à trou carré
     (disque à 12 pans + tranche, la texture percée : alphaTest) tous les ~1,2 m de chaque bord, à cheval sur l'arête, penchées, une sur sept
     avec une autre de biais dessus ; tronçons de 700 m dessinés à moins de 450 m. `dbgJadePoste('bordPieces',on)`, vue `dbgJadeVue('bord')`.
+- (12/10 nuit, Léo : « la voiture a l'air enfoncée dans les pièces » · « l'argent, mais un peu bronze ou un peu de reflet or, pour le relief de la
+  couleur » · « tu as du mal à enlever la barre lisse : fais la route plus fine, sur deux pièces ») : `THICK` devient un let — 30 cm (deux
+  pièces) aux PICS DE JADE, 2,6 m partout ailleurs (posé en tête de buildTrack) ; `JADE_LEVE` 12 cm : la caisse posée sur le DESSUS des pièces
+  (route style 4) ; les pièces : argent froid · argent chaud au reflet d'or · BRONZE · argent bleuté, leurs reflets teintés pareil ; les
+  pièces du bord en argent chaud.
 - Banc : `dbgJadePoste('ramasse')` (pièces, fruits par nom, pouvoirs, plots, plaques, flaques). MESURÉ : 650 pièces, ~16 fruits, 20 pouvoirs,
   300 plots, 8 plaques par passage ; en course : pièces ramassées, défis (« EAT 4 FRUITS »), paliers moteur, aimant, jus des fruits.
 
@@ -123,6 +220,38 @@ Un outil À CÔTÉ du jeu, qui ne refait RIEN : il lance LE JEU (`index.html`, s
     ⚠ `choix-musiques.json` et `play.json` sont les DONNÉES de Léo (pas commitées tant qu'il range) — ne pas les écraser en test.
   · `?muet=1` (bancs) : la `destination` de chaque contexte audio passe par un gain nul (page, module, cadre de la page à jauge).
     `SIMU.musique()` = le pilote (MUS.inst = le module en cours).
+- LE JEU AU SURVOL (12/10, Léo : « l'important, c'est qu'on puisse jouer dans la map : enlève l'écran d'accueil ; je dois pouvoir jouer
+  dès que je mets mon curseur sur l'image, avec mes flèches, la musique automatiquement ; si je clique, c'est juste la course ») :
+  · le JEU en `?simu=1` (index.html, `SIMU_JEU`) : pas d'écran titre (le voile s'ouvre à 80 ms, comme la balade), pas de rechargement
+    automatique à une nouvelle version, et son plafond de résolution (DPR_CAP) suit le zoom du cadre (aperçu ×0,28 → plein écran net).
+    `dbgQuitte()` = finir la course sans explosion (comme QUITTER). Sans `?simu=1`, le jeu ne change pas.
+  · `course.html?nu=1` = la course seule, sans barre ; elle attend (`phase 'pret'`) que la page des maps dise quel niveau. `SIMU.lance(id)`
+    change de niveau sans recharger (dbgQuitte puis départ 0,25 s après), `SIMU.pause(v)` passe par le panneau ⏸ du jeu (`__panBascule`,
+    décidé sur `#tPanel.open`, PAS sur `paused` : pendant le 3-2-1 le jeu est encore gelé, basculer rouvrait la pause), `SIMU.relaie`
+    (touches de la page), `SIMU.geste` (réveille la musique). Échap dans le jeu → `simu:echap` vers la page des maps.
+  · la page des maps charge UNE course (`#apercu`) dès l'ouverture ; survol = posée sur l'image, le niveau part (~2,5 s), la musique à la
+    1re touche (le navigateur exige un geste) ; souris partie = pause ; clic (image ou Jouer) = la même course en plein écran ; ✕ / Échap.
+  · (12/10, Léo : « je clique sur une map, ça apparaît sur l'autre ») : `SIMU.roule()` exige que la course qui roule soit CELLE demandée
+    (`E.lanceDe === L`) — pendant un changement l'ancienne roulait encore et s'affichait sur la nouvelle carte ; le plein écran garde la
+    photo de la carte cliquée (`#voile`) tant que son niveau n'est pas parti. MESURÉ : 6 changements, ~2,4 s chacun, 0 image d'une autre map.
+  · L'ÉCOUTE (12/10, « chaque musique qu'on choisit, on peut l'écouter juste en dessous, avec la jauge pour les vitesses ») : sous la pastille
+    de musique d'un niveau, ▶ + jauge de VITESSE (page à jauge : #speed ; module : setSpeed), le BPM à côté ; un seul son à la fois
+    (survoler une image coupe l'écoute, l'écoute met l'aperçu en pause).
+  · (12/10, Léo : « quand j'appuie sur la musique, un truc qui loop et ne s'arrête pas, et ça met aussi la musique du gameplay ») —
+    MESURÉ (minuterie de 25 ms dans la page des maps) : la course cachée bloquait la page 15 s au chargement, 0,8 s au garage, 1,8 s à un
+    changement de niveau → l'écoute crachait des paquets de notes. La course est chargée depuis l'AUTRE nom du serveur (localhost ⇄
+    127.0.0.1 : un autre site = un autre processus), pilotée par postMessage (lance · pause · dort · touche · geste → etat / echap) :
+    pire attente de la page 27-33 ms, chargement compris. DORT (souris sur aucune image, plein écran quitté, écoute lancée) = musique
+    coupée tout de suite, course en pause (~1 s, le 3-2-1 du jeu), pas de relance après une fin. GLISSE V2 du simulateur = la copie
+    corrigée du jeu (0,4 s d'avance, retard sauté). Bancs : `ETAT_COURSE` (ce que la course dit d'elle, dans la page des maps).
+  · ⚠ RETIRÉ LE SOIR MÊME (Léo : « enlève la fonction jouer sur la page, ça ne marche pas de toute manière, et ça bug ») : plus de
+    course sur l'image survolée ni de plein écran dans la page des maps — l'image et « Jouer » ouvrent `course.html?niv=<id>` (le jeu
+    en ?simu=1, sans écran titre). Le mode `?nu=1` de course.html (messages, dort) reste dans le fichier mais n'est plus appelé.
+    L'ÉCOUTE sous les musiques reste.
+- LE BOOST NE JOUE PLUS D'INSTRUMENT (12/10, Léo : « enlève le boost instrument, il fait un bruit horrible qui casse tout ») : `INSTRU.on`
+  = false dans le jeu. `instruMusiqueOk` regardait la SOURCE du lecteur, pas s'il jouait : au simulateur (musique du jeu coupée) la phrase
+  du CIEL partait sous une autre musique. `dbgInstru(1)` la rallume pour l'écouter.
+- SOLEIL DE JADE : photo de la liste reprise au banc avec le nouveau look (pièces d'argent à trou carré, ciel orangé) — `maps-ciel/img/jade-volant.jpg`.
 
 ## LA MERCURE v2 (2026-10-11, Léo, « retoucheur de voitures ») — l'hypercar en MERCURE LIQUIDE, caisse ajoutée EN DERNIER (index 75), ÉPIQUE 3 800 000 $, `SHAPES.mercure`
 Née d'une planche de concepts générés en images (session « retoucheur »), « génère la mercure », « génère-la en 3D dans mon jeu ». La v1 (un loft à

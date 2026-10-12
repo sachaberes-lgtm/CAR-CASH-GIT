@@ -11,8 +11,10 @@
 // Les changements tombent pile sur un temps : un palier qui monte joue un roulement de caisse claire,
 // un palier qui descend fait plonger le son un instant. La mélodie change de niveau au début d'une mesure.
 
-export function createGlisseMusic({ volume = 1, audioContext = null } = {}) {
+export function createGlisseMusic({ volume = 1, audioContext = null, basses = 0, sortie = 1 } = {}) {
   const VOLUME = volume;
+  // (jeu, 2026-10-12) la SORTIE dans le jeu : `basses` = étagère sous 160 Hz (dB), `sortie` = gain après le compresseur — voir JMUS dans index.html
+  const BASSES = basses, SORTIE = sortie;
   // === MOTEUR ===
   const BPM_MIN = 98, BPM_MAX = 112;
   const clamp = v => Math.min(1, Math.max(0, v));
@@ -150,7 +152,9 @@ export function createGlisseMusic({ volume = 1, audioContext = null } = {}) {
     const warm = shaper(1.3);
     darkF = ctx.createBiquadFilter(); darkF.type = 'lowpass'; darkF.frequency.value = darkFreq(); darkF.Q.value = 0.5;
     master = ctx.createGain(); master.gain.value = 0.62 * VOLUME;
-    master.connect(warm); warm.connect(darkF); darkF.connect(comp); comp.connect(ctx.destination);
+    const tilt = ctx.createBiquadFilter(); tilt.type = 'lowshelf'; tilt.frequency.value = 160; tilt.gain.value = BASSES;
+    const out = ctx.createGain(); out.gain.value = SORTIE;
+    master.connect(warm); warm.connect(darkF); darkF.connect(comp); comp.connect(tilt); tilt.connect(out); out.connect(ctx.destination);
 
     const verb = ctx.createConvolver(); verb.buffer = impulse(3.2, 2.3);
     const vOut = ctx.createGain(); vOut.gain.value = 0.32;
@@ -447,7 +451,10 @@ export function createGlisseMusic({ volume = 1, audioContext = null } = {}) {
     if (now > dipEnd) darkF.frequency.setTargetAtTime(darkFreq(), now, 0.2);
     delay.delayTime.setTargetAtTime(60 / bpmNow() / 2, now, 0.15);
     pre808.gain.setTargetAtTime(1.2 + speed * 2, now, 0.2);
-    while (nextTime < now + 0.12) {
+    // (2026-10-12, dans le jeu : « des coupures ») le jeu occupe le fil principal (images lourdes, portails) : 0,12 s d'avance ne suffisait
+    // pas, les notes arrivaient en retard (trou, puis un paquet joué d'un coup). 0,4 s d'avance, et un retard malgré tout SAUTE les pas manqués.
+    if (nextTime < now - 0.02) { const sd0 = 60 / bpmNow() / 4, k = Math.ceil((now - nextTime) / sd0); step += k; nextTime += k * sd0; }
+    while (nextTime < now + 0.4) {
       const sd = 60 / bpmNow() / 4;
       scheduleStep(step, nextTime, sd);
       nextTime += sd; step++;
@@ -482,5 +489,6 @@ export function createGlisseMusic({ volume = 1, audioContext = null } = {}) {
     setVolume(v) { if (master) master.gain.setTargetAtTime(0.62 * v, ctx.currentTime, 0.1); },
     get bpm() { return bpmNow(); },
     get playing() { return playing; },
+    wake() { if (ctx && playing && ctx.state !== 'running') ctx.resume(); }, // (jeu) réveille un contexte endormi/interrompu, sans repartir du début
   };
 }
