@@ -29,7 +29,10 @@ const NOM={poki:'POKI',crazy:'CRAZY',itch:'ITCH',playgama:'PLAYGAMA'}[ED],SDK={p
 const OU={poki:'Poki for Developers',crazy:'CrazyGames (developer.crazygames.com, type HTML5)',itch:'itch.io (Kind of project : HTML)',
   playgama:'Playgama (developer.playgama.com)'}[ED];
 const SRC=path.join(__dirname,'VERSION PRINCIPALE'),DST=path.join(__dirname,NOM),ZIP=path.join(__dirname,NOM+'.zip');
-const SAUTE=new Set(['CLAUDE.md','README.md','JOUER.bat','sw.js','sons.html','atelier-son','atelier-nuages.js']); // à la racine du jeu
+const SAUTE=new Set(['CLAUDE.md','README.md','JOUER.bat','sw.js','sons.html','atelier-son','atelier-nuages.js', // à la racine du jeu
+  // (2026-10-12, passe qualité) les OUTILS LOCAUX de Léo : chacun a son serveur.py — deux fichiers du même nom cassaient l'édition À PLAT
+  // (CrazyGames : « deux fichiers serveur.py »), et Poki/itch embarquaient 4 Mo d'outils et trois serveurs Python
+  'maps-ciel','maps-ciel.html','simulateur','simulateur.html','salle-blanche','salle-blanche.html','boite-dauphins.html','boite-singe.html']);
 // (2026-10-08) ciel-n1 RESTE : depuis le 7/10 l'AUTO-ÉCOLE (la 1re partie d'un joueur neuf) la joue (musicLieuVoulu, piste 'tuto') —
 // retirée, la toute première partie d'un portail tournait sans musique (404 « fichier illisible », vu au banc Playgama)
 const SAUTE_REL=new Set([2,3,4,5].map(k=>'assets/audio/music/ciel/ciel-n'+k+'.m4a') // la musique des niveaux 2 à 5 de la CARRIÈRE (nuages…
@@ -39,7 +42,7 @@ function copie(de,vers,rel){
   fs.mkdirSync(vers,{recursive:true});
   for(const n of fs.readdirSync(de)){
     const r=rel?rel+'/'+n:n,a=path.join(de,n),b=path.join(vers,n);
-    if((!rel&&SAUTE.has(n))||SAUTE_REL.has(r))continue;
+    if((!rel&&SAUTE.has(n))||SAUTE_REL.has(r)||/\.py$/.test(n))continue; // (passe qualité) jamais un script Python dans un portail
     if(fs.statSync(a).isDirectory())copie(a,b,r);else fs.copyFileSync(a,b);
   }
 }

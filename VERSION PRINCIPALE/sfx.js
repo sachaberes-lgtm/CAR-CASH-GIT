@@ -188,5 +188,7 @@ G.CCSON={charge:charge,init:init,play:play,ton:ton,stop:stop,liste:liste,annuleF
   attaques:function(){const v=Object.keys(S.off).map(function(k){return Math.round(S.off[k]*1000);}).sort(function(a,b){return a-b;});
     return {etalon:S.t0==null?null:Math.round(S.t0*10000)/10,n:v.length,min:v[0],med:v[v.length>>1],max:v[v.length-1],hors:Object.keys(S.off).filter(function(k){return S.off[k]<.02||S.off[k]>.07;})};}};
 // le décodage part tout de suite, sans attendre le premier toucher (voir charge)
-try{if(typeof requestIdleCallback==='function')requestIdleCallback(charge,{timeout:1500});else setTimeout(charge,300);}catch(e){}
+// (2026-10-12, passe qualité) …sauf dans la PAGE-CADRE de l'ordi (CC_COLONNE) : elle ne joue aucun son, le jeu tourne dans la colonne —
+// la banque y était décodée une 2e fois au lancement (processeur et mémoire doublés pour rien)
+try{if(!G.CC_COLONNE){if(typeof requestIdleCallback==='function')requestIdleCallback(charge,{timeout:1500});else setTimeout(charge,300);}}catch(e){}
 })(typeof window!=='undefined'?window:globalThis);
