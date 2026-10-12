@@ -123,7 +123,7 @@ function taille() {
   jeu.style.width = w + 'px'; jeu.style.height = h + 'px'; jeu.style.zoom = Math.min(W / w, H / h);
 }
 addEventListener('resize', taille); taille();
-jeu.src = '../index.html';
+jeu.src = '../index.html?play=sansfin'; // (2026-10-12) le JOUER du jeu lance désormais le SOLEIL DE JADE : la partie SANS FIN le demande sans lui
 const focusJeu = () => { try { jeu.focus(); jeu.contentWindow.focus(); } catch (e) {} };
 jeu.addEventListener('load', () => {
   focusJeu();
