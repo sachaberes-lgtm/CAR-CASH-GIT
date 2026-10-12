@@ -6960,6 +6960,21 @@ html body.touch.play #ajVols{display:block;position:fixed;inset:0;z-index:31;poi
 /* la pause passe devant : la jauge et ce qui vole se cachent comme le reste du HUD */
 body:has(#tPanel.open) :is(#ajCourse,#ajVols){visibility:hidden}
 @media (prefers-reduced-motion:reduce){#ajCourse .ajSeg::after,html body.touch #nitroBar.boost #nitroR,html body.touch #nitroBar.bleu #nitroX,html body.touch #nitroBar.inf #nitroR,html body.touch #nitroBar.inf #nitroX,html body.touch #nitroBar #nitroR::after{animation:none!important}}
+/* ---- 4. (2026-10-12, Léo : « l'aura un peu plus courte, les km/h plus à droite encore, et le flow même taille ») : la jauge d'aura et le flow à
+   80 % de la barre de boost (même longueur l'une que l'autre), leurs bouts juste après ; la VITESSE va se ranger contre le ⏸ (couché : son bord
+   droit à 16 px du bouton ; debout : 8 px plus loin que la case). `--ajPad` = ce que la barre laisse à droite, debout. ---- */
+html body.touch{--ajK:.8;--ajPad:calc(var(--nxV) + (100vw - var(--hudG) - var(--hudD) - 70px - 34px - var(--nxV)) * (1 - var(--ajK)))}
+html body.touch.play #ajCourse{padding-right:var(--ajPad)}
+#ajCourse .ajLbl{width:auto;justify-content:flex-start}
+html body.touch #flowHud{padding-right:var(--ajPad)!important}
+html body.touch #flowHud .fM{left:calc(100% - var(--ajPad))}
+html body.touch #nitroBar>#nxVit{width:calc(var(--nxV) + 8px)}
+@media (orientation:landscape) and (max-height:540px){
+  html body.touch.play #ajCourse{width:calc(34px + (min(50vw,440px) - 34px) * var(--ajK));padding-right:0}
+  html body.touch #flowHud{width:calc(34px + (min(50vw,440px) - 34px) * var(--ajK))!important;padding-right:0!important}
+  html body.touch #flowHud .fM{left:calc(100% + 18px)}
+  html body.touch #nitroBar>#nxVit{left:auto;width:auto;right:calc(var(--hudG) + min(50vw,440px) - 100vw + var(--hudD) + 73px)}
+}
 </style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>

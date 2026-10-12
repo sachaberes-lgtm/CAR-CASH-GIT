@@ -18,8 +18,9 @@
   la boîte de la chaîne (encaissement) ou de la caisse (le reste), courbe WAAPI ~0,7 s jusqu'au BOUT DU PLEIN, et c'est en arrivant qu'il
   remplit (la cellule s'éclaire, la barre bat). Petits gains regroupés (≤ 1 vol / 0,15 s), 8 en vol au plus. Montré = `auraRun` − en vol.
 - LE FLOW EN TOUT PETIT : `#flowHud` intact (frénésie, zone rouge…), un fil de 6 px, icône 11 px, nom du palier masqué, ×CASH au bout.
-- PLACEMENT : couché, bouts (vitesse, MOY/RECORD, ×CASH) à droite des barres ; debout, ils vivent dans la case `--nxV` 82 px (les trois barres
-  finissent au même x) et le ×CASH reste à gauche de l'argent (colonne ⏸/argent : x ≥ 275, y ≥ 113 sur 390 × 844).
+- PLACEMENT (Léo : « l'aura un peu plus courte, les km/h plus à droite encore, le flow même taille ») : l'aura et le flow à 80 % de la barre de
+  boost (`--ajK`, même longueur), leurs bouts (MOY/RECORD, ×CASH) juste après ; la VITESSE contre le ⏸ (couché : bord droit à 16 px du bouton,
+  calc sur --hudG/--hudD/50vw ; debout : 8 px plus loin que la case `--nxV` 82 px). Debout, rien sous l'argent (x ≥ 275, y ≥ 113 sur 390 × 844).
 - Console : `dbgJaugeAura()` (moyenne, record, montré, en vol, phase, cellules) · `dbgJaugeAura(n)` verse n d'aura depuis la caisse.
 
 ## LE BOUTON NITRO v3 — L'ÉCLAIR EN PIXELS QUI S'ENFONCE ET LA VITESSE À DROITE DE LA BARRE DE BOOST (2026-10-12, Léo : « à la place du carré, un éclair » ; « abandonne la jauge bizarre, mets juste la vitesse de la voiture à côté de la jauge boost » ; « nan, sans rond, vraiment pixels, qui s'appuie quand on appuie, et la vitesse alignée plus à droite et visible »)
