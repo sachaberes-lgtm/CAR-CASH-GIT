@@ -1,5 +1,22 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LA JAUGE D'AURA, LE FLOW EN PETIT, LA BARRE DE BOOST EN CASES (2026-10-12, Léo : « enlève l'électricité de la jauge, rends-la plus stylée ; la jauge flow devient une jauge AURA, qui se remplit en fonction de combien on se rapproche de l'aura moyenne ; la jauge flow s'affiche juste en dessous en plus petit mais branchée ; les + aura se dirigent et remplissent la barre aura »)
+- CSS `<style id="auraJauge">` (juste après nitroEclair) ; JS « LA JAUGE D'AURA ET L'AURA QUI VOLE DEDANS » avant `loopWarn` (`AJ`, `ajMoy`,
+  `ajMonte`, `ajSource`, `ajGain`, `ajLance`, `ajTick`), appel `ajTick(dt)` après `nx3Tick`. ⚠ L'élément s'appelle `#ajCourse` : « auraJauge »
+  est l'id de sa FEUILLE (un <style> dans le body) — un #auraJauge en CSS rendait la feuille visible, en texte, sur 6 000 px.
+- LA BARRE DE BOOST : plus de hachures ni de bouffées blanches (`nitroFeu` coupé par un `return` en tête) — des CASES (`.nbCases`, crans d'encre
+  tous les 12 px) et, quand la nitro brûle, un CHENILLARD (une case allumée qui file, `nbChenille`, steps).
+- LA JAUGE D'AURA (où était le flow, sous la boost) : même recette (cadre d'encre, 4 bandes rose-violet, cases, curseur), étoile pixel ; pleine =
+  l'AURA MOYENNE (`SAVE.d.aura ÷ SAVE.d.ex.runs`, la partie en cours exclue ; 400 sans partie, ≥ 100) ; au bout « MOY » + le chiffre ; dépassée :
+  OR + chenillard, le bout dit ×1.7, « MOYENNE BATTUE » une fois (`sfx('aura.moyenne')`, à sonoriser). I18N : MOY → AVG.
+- L'AURA QUI VOLE (`#ajVols`) : `ajGain` est branché aux 3 robinets (`addAura`, le robinet de `chaineAura`, `chaineEncaisse`) ; le « +N » part de
+  la boîte de la chaîne (encaissement) ou de la caisse (le reste), courbe WAAPI ~0,7 s jusqu'au BOUT DU PLEIN, et c'est en arrivant qu'il
+  remplit (éclat sur le plein). Petits gains regroupés (≤ 1 vol / 0,15 s), 8 en vol au plus. Montré = `auraRun` − en vol, recalé chaque image.
+- LE FLOW EN PETIT : `#flowHud` intact (frénésie, zone rouge…), barre de 9 px, icône réduite, nom du palier masqué, ×CASH au bout.
+- PLACEMENT : couché, bouts (vitesse, MOY, ×CASH) à droite des barres ; debout, ils vivent dans la case `--nxV` 82 px (les trois barres finissent
+  au même x) et le ×CASH reste à gauche de l'argent (colonne ⏸/argent : x ≥ 275, y ≥ 113 sur 390 × 844).
+- Console : `dbgAura()` (moyenne, montré, en vol, %) · `dbgAura(n)` verse n d'aura depuis la caisse (on voit le vol).
+
 ## LE BOUTON NITRO v3 — L'ÉCLAIR EN PIXELS QUI S'ENFONCE ET LA VITESSE À DROITE DE LA BARRE DE BOOST (2026-10-12, Léo : « à la place du carré, un éclair » ; « abandonne la jauge bizarre, mets juste la vitesse de la voiture à côté de la jauge boost » ; « nan, sans rond, vraiment pixels, qui s'appuie quand on appuie, et la vitesse alignée plus à droite et visible »)
 - La plaque penchée NITRO (hudDA §1) est remplacée par l'ÉCLAIR LUI-MÊME en pixel art : grille `NX3_G` (15 × 20, la silhouette de l'icône
   de la barre en grand), dessinée case par case (`nx3Dessine` → `putImageData`) dans une toile de la taille de la grille (21 × 29 avec marges),
