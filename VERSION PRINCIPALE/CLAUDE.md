@@ -182,6 +182,12 @@ Un outil À CÔTÉ du jeu, qui ne refait RIEN : il lance LE JEU (`index.html`, s
     (touches de la page), `SIMU.geste` (réveille la musique). Échap dans le jeu → `simu:echap` vers la page des maps.
   · la page des maps charge UNE course (`#apercu`) dès l'ouverture ; survol = posée sur l'image, le niveau part (~2,5 s), la musique à la
     1re touche (le navigateur exige un geste) ; souris partie = pause ; clic (image ou Jouer) = la même course en plein écran ; ✕ / Échap.
+  · (12/10, Léo : « je clique sur une map, ça apparaît sur l'autre ») : `SIMU.roule()` exige que la course qui roule soit CELLE demandée
+    (`E.lanceDe === L`) — pendant un changement l'ancienne roulait encore et s'affichait sur la nouvelle carte ; le plein écran garde la
+    photo de la carte cliquée (`#voile`) tant que son niveau n'est pas parti. MESURÉ : 6 changements, ~2,4 s chacun, 0 image d'une autre map.
+  · L'ÉCOUTE (12/10, « chaque musique qu'on choisit, on peut l'écouter juste en dessous, avec la jauge pour les vitesses ») : sous la pastille
+    de musique d'un niveau, ▶ + jauge de VITESSE (page à jauge : #speed ; module : setSpeed), le BPM à côté ; un seul son à la fois
+    (survoler une image coupe l'écoute, l'écoute met l'aperçu en pause).
 - LE BOOST NE JOUE PLUS D'INSTRUMENT (12/10, Léo : « enlève le boost instrument, il fait un bruit horrible qui casse tout ») : `INSTRU.on`
   = false dans le jeu. `instruMusiqueOk` regardait la SOURCE du lecteur, pas s'il jouait : au simulateur (musique du jeu coupée) la phrase
   du CIEL partait sous une autre musique. `dbgInstru(1)` la rallume pour l'écouter.

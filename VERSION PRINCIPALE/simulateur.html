@@ -21,6 +21,11 @@
      l'image survolée : le niveau part (SIMU.lance), les flèches / Espace / Maj passent au jeu, la musique part à la 1re touche (le
      navigateur exige un geste) ; la souris s'en va = pause (le panneau ⏸ du jeu, 3-2-1 au retour). Un clic (image ou Jouer) = la même
      course en plein écran, rien autour ; ✕ ou Échap = retour aux maps. Le bouton PLAY (le tirage) garde sa page à lui.
+     (12/10, Léo : « je clique sur une map, ça apparaît sur l'autre ») : l'aperçu et le plein écran n'apparaissent que quand la course
+     qui roule est CELLE de la carte (SIMU.roule) ; en attendant, le plein écran montre la photo de la carte cliquée (#voile).
+     L'ÉCOUTE (12/10, Léo : « chaque musique qu'on choisit, on peut l'écouter juste en dessous, avec la jauge pour les vitesses ») : sous
+     la pastille de musique d'un niveau, ▶ et une jauge de VITESSE (0-100 %) — la musique joue seule, sans le jeu (page à jauge : son
+     #speed ; module : setSpeed). Un seul son à la fois : l'écoute s'arrête quand la course part sur une image, et inversement.
      Page blanche, le moins de texte possible. -->
 <style>
   :root{--encre:#111113;--gris:#86868b;--gris2:#b9b9be;--trait:#efeff1;--doux:#f4f4f6;
@@ -99,6 +104,20 @@
   #fermer:hover{background:rgba(0,0,0,.65)}
   #fermer svg{width:14px;height:14px;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;fill:none}
   body.enPlein{overflow:hidden}
+  #voile{position:fixed;inset:0;z-index:41;background:#000;display:grid;place-items:center}
+  #voile img{width:min(100vw,177.8vh);aspect-ratio:16/9;object-fit:cover;opacity:.55}
+  #voile::after{content:"";position:absolute;width:26px;height:26px;border-radius:50%;border:3px solid rgba(255,255,255,.35);
+    border-top-color:#fff;animation:tourne .8s linear infinite}
+  #fermer{z-index:42}
+  .ecoute{display:flex;align-items:center;gap:8px;min-width:0;height:26px}
+  .eco{width:26px;height:26px;border-radius:50%;background:var(--doux);display:grid;place-items:center;flex:none}
+  .eco:hover{background:#e6e6ea}
+  .eco svg{width:10px;height:10px;fill:currentColor}
+  .eco .iS{display:none}
+  .ecoute.joue .eco{background:var(--encre);color:#fff}
+  .ecoute.joue .eco .iS{display:block}.ecoute.joue .eco .iP{display:none}
+  .vit{flex:1;min-width:0;accent-color:var(--encre);height:20px;cursor:pointer}
+  .ebpm{font-size:11.5px;color:var(--gris);font-variant-numeric:tabular-nums;width:54px;text-align:right;flex:none}
   [hidden]{display:none!important}
 </style>
 </head>
@@ -177,6 +196,8 @@
   }
   const majPlay = () => { document.getElementById('nbPlay').textContent = poolPlay().length; };
 
+  // l'écoute (voir plus bas) : déclarée AVANT les cartes, qui la consultent en se peignant
+  const ECO = { row: null, fichier: '', type: '', inst: null, cadre: null, bouton: null, jauge: null, bpm: null, mods: {}, jeton: 0 };
   await musiquesCharge();
   const racine = document.getElementById('maps');
   for (const map of MAPS) {
@@ -190,7 +211,9 @@
     const grille = sec.querySelector('.grille');
     map.niveaux.forEach((niv, k) => {
       const c = document.createElement('article'); c.className = 'carte';
-      c.innerHTML = '<a class="photo"><img alt=""></a><div class="ligne"><span class="num"></span><span class="nom"></span><button class="jouer">Jouer</button></div><div class="bas"><div class="musBox"><button class="mus"></button></div><button class="pp">PLAY</button></div>';
+      c.innerHTML = '<a class="photo"><img alt=""></a><div class="ligne"><span class="num"></span><span class="nom"></span><button class="jouer">Jouer</button></div><div class="bas"><div class="musBox"><button class="mus"></button></div><button class="pp">PLAY</button></div>' +
+        '<div class="ecoute"><button class="eco" title="Écouter la musique"><svg class="iP" viewBox="0 0 10 12"><path d="M0 0l10 6-10 6z"/></svg><svg class="iS" viewBox="0 0 10 10"><path d="M0 0h10v10H0z"/></svg></button>' +
+        '<input class="vit" type="range" min="0" max="100" step="1" value="50" title="Vitesse"><span class="ebpm"></span></div>';
       c.querySelector('.photo').href = lien(niv.id);
       c.querySelector('.photo').setAttribute('aria-label', 'Jouer sur ' + map.nom + ' · ' + niv.nom);
       const img = c.querySelector('img'); img.src = 'simulateur/' + niv.photo; img.onerror = () => img.remove();
@@ -208,6 +231,7 @@
       ph.addEventListener('click', ev => { ev.preventDefault(); plein(niv, ph); });
       c.querySelector('.jouer').onclick = () => plein(niv, ph);
       pastille(c.querySelector('.musBox'), [niv.id]);
+      ecouteBranche(niv, c.querySelector('.ecoute'));
       grille.appendChild(c);
     });
     racine.appendChild(sec);
@@ -223,6 +247,9 @@
   fermer.id = 'fermer'; fermer.hidden = true; fermer.setAttribute('aria-label', 'Revenir aux maps');
   fermer.innerHTML = '<svg viewBox="0 0 14 14"><path d="M2 2l10 10M12 2L2 12"/></svg>';
   document.body.appendChild(fermer);
+  const voile = document.createElement('div'); voile.id = 'voile'; voile.hidden = true;
+  const voileImg = document.createElement('img'); voileImg.alt = ''; voile.appendChild(voileImg);
+  document.body.appendChild(voile);
   const S = () => { try { return cadre.contentWindow.SIMU || null; } catch (e) { return null; } };
   function pose(ph) {
     const r = ph.getBoundingClientRect();
@@ -232,6 +259,7 @@
   function survole(niv, ph) {
     if (AP.plein) return;
     clearTimeout(AP.sortT);
+    ecoStop();
     if (AP.photo && AP.photo !== ph) AP.photo.classList.remove('charge');
     if (AP.id !== niv.id) cadre.classList.remove('vu');
     AP.photo = ph; AP.id = niv.id; pose(ph); ph.classList.add('charge');
@@ -246,14 +274,15 @@
     }, 150);
   }
   function plein(niv, ph) {
-    ferme();
+    ferme(); ecoStop();
     survole(niv, ph);
     AP.plein = true; cadre.classList.add('plein'); fermer.hidden = false; document.body.classList.add('enPlein');
+    voileImg.src = 'simulateur/' + niv.photo; voile.hidden = false;   // la photo de CETTE carte tant que son niveau n'est pas parti
     const s = S(); if (s) s.geste();
   }
   function sortPlein() {
     if (!AP.plein) return;
-    AP.plein = false; cadre.classList.remove('plein'); fermer.hidden = true; document.body.classList.remove('enPlein');
+    AP.plein = false; cadre.classList.remove('plein'); fermer.hidden = true; document.body.classList.remove('enPlein'); voile.hidden = true;
     if (AP.photo) pose(AP.photo);
     cadre.classList.remove('vu'); if (AP.photo) AP.photo.classList.remove('charge'); AP.photo = null;
     const s = S(); if (s) s.pause(true);
@@ -273,9 +302,79 @@
     requestAnimationFrame(suit);
     const s = S(); if (!s) return;
     if (AP.veut) { s.lance(AP.veut); AP.veut = null; }
-    if (!AP.photo || AP.plein) return;
+    if (!AP.photo) return;
     let ok = false; try { ok = s.roule() && s.etat().niveau === AP.id; } catch (e) {}
+    if (AP.plein) { if (voile.hidden !== ok) voile.hidden = ok; return; }
     if (ok && !cadre.classList.contains('vu')) { cadre.classList.add('vu'); AP.photo.classList.remove('charge'); }
+    else if (!ok && cadre.classList.contains('vu')) cadre.classList.remove('vu');
+  })();
+
+  // ——— L'ÉCOUTE : la musique d'un niveau, seule, à la vitesse de la jauge ———
+  const ecoJoueDeja = () => ECO.type === 'js' ? !!(ECO.inst && ECO.inst.playing) : ECO.type === 'html' ? !!(ECO.bouton && /stop/i.test(ECO.bouton.textContent)) : false;
+  function ecoStop() {
+    ECO.jeton++;
+    try { if (ECO.type === 'js' && ECO.inst && ECO.inst.playing) ECO.inst.stop(); if (ECO.type === 'html' && ecoJoueDeja()) ECO.bouton.click(); } catch (e) {}
+    if (ECO.cadre) ECO.cadre.remove();
+    if (ECO.row) { ECO.row.classList.remove('joue'); ECO.row.querySelector('.ebpm').textContent = ''; }
+    Object.assign(ECO, { row: null, fichier: '', type: '', inst: null, cadre: null, bouton: null, jauge: null, bpm: null });
+  }
+  function ecoVitesse(x) {
+    try {
+      if (ECO.type === 'js' && ECO.inst) { if (ECO.inst.setSpeed) ECO.inst.setSpeed(x); else ECO.inst.setTier(1 + Math.round(x * 4), 5); }
+      if (ECO.type === 'html' && ECO.jauge) { ECO.jauge.value = (x * 100).toFixed(1); ECO.jauge.dispatchEvent(new ECO.cadre.contentWindow.Event('input')); }
+    } catch (e) {}
+  }
+  async function ecoJoue(niv, row) {
+    const f = musiqueDe(niv);
+    if (ECO.row === row) { ecoStop(); return; }
+    ecoStop();
+    if (!f) return;
+    { const s = S(); if (s) s.pause(true); }
+    const jeton = ECO.jeton, x = row.querySelector('.vit').value / 100;
+    ECO.row = row; ECO.fichier = f; row.classList.add('joue');
+    if (/\.js$/i.test(f)) {
+      ECO.type = 'js';
+      try {
+        let inst = ECO.mods[f];
+        if (!inst) {
+          const mod = await import(new URL(f, SIMU_DIR).href);
+          const fab = Object.values(mod).find(v => typeof v === 'function' && /^create/i.test(v.name)) || Object.values(mod).find(v => typeof v === 'function');
+          inst = ECO.mods[f] = fab({});
+        }
+        if (jeton !== ECO.jeton) return;
+        ECO.inst = inst; inst.start(); ecoVitesse(x);
+      } catch (e) { toast('Musique illisible'); ecoStop(); }
+      return;
+    }
+    ECO.type = 'html';
+    const fr = document.createElement('iframe');
+    fr.src = SIMU_DIR + f; fr.tabIndex = -1; fr.setAttribute('aria-hidden', 'true'); fr.setAttribute('allow', 'autoplay');
+    fr.style.cssText = 'position:fixed;left:0;bottom:0;width:8px;height:8px;opacity:0;pointer-events:none;border:0;z-index:-1';
+    fr.onload = () => {
+      if (jeton !== ECO.jeton) return;
+      try {
+        const d = fr.contentDocument;
+        ECO.bouton = d.getElementById('play'); ECO.jauge = d.getElementById('speed'); ECO.bpm = d.getElementById('bpm');
+        if (ECO.jauge) ECO.jauge.step = 'any';
+        if (ECO.bouton && !ecoJoueDeja()) ECO.bouton.click();
+        ecoVitesse(row.querySelector('.vit').value / 100);
+      } catch (e) { toast('Musique illisible'); ecoStop(); }
+    };
+    document.body.appendChild(fr); ECO.cadre = fr;
+  }
+  function ecouteBranche(niv, row) {
+    const maj = () => { row.hidden = !musiqueDe(niv); if (row.hidden && ECO.row === row) ecoStop(); };
+    peintures.push(maj); maj();
+    row.querySelector('.eco').onclick = () => ecoJoue(niv, row);
+    row.querySelector('.vit').addEventListener('input', ev => { if (ECO.row === row) ecoVitesse(ev.target.value / 100); });
+  }
+  (function ecoTick() { // le BPM de ce qui joue
+    requestAnimationFrame(ecoTick);
+    if (!ECO.row) return;
+    let b = '';
+    try { b = ECO.type === 'js' ? ECO.inst && ECO.inst.bpm : ECO.bpm && parseFloat(ECO.bpm.textContent); } catch (e) {}
+    const t = b > 0 ? Math.round(b) + ' BPM' : '';
+    const el = ECO.row.querySelector('.ebpm'); if (el.textContent !== t) el.textContent = t;
   })();
 
   // ajouter une musique : « + Musique » ou un fichier glissé sur la page → simulateur/musiques/
