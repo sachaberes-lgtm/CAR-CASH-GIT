@@ -15,6 +15,15 @@ et `NIT_GRONDE` ,4 (−8 dB : boost à −22, encore le son le plus fort mais de
   arrivaient en retard, trou puis paquet. La COPIE du jeu (`assets/audio/music/musique-glisse-v2.js`, ≠ celle du simulateur) : 0,4 s d'avance,
   un retard SAUTE les pas manqués ; `wake()` réveille son contexte sans repartir du début. Le 1er toucher de la course faisait stop+start (le
   morceau repartait de zéro) → `jadeMusReveil` (pointerdown/touchend) ne fait plus que `wake()`. Planche : `photos-gameplay/comparaison-son-depart.jpg`.
+3e PASSE (Léo : « en début de partie, un vrai bruit, comme une trompette, un klaxon — c'est mon ordi ou le jeu ? » ; « je ne l'entends plus du tout
+accordé ; une pièce, je l'entends pas forcément ») — le jeu, pas l'ordi :
+- LA TROMPETTE : `moteur.palier` (visseuse, impact, démarreur, FANFARE de palier, 2 s) = le son le plus fort de la banque (+4 dB, 8 dB au-dessus
+  d'une pièce), à CHAQUE nouveau moteur — le moteur repart de zéro à chaque partie : plusieurs fois dans les 30 premières secondes. vol −10 ;
+  le NOUVEAU SOMMET (`ui.record`, cuivres ta-ta-TAAA) −8 en course, le record d'argent en course (`aura.record`) −6.
+- L'ACCORD : sur le SOLEIL DE JADE, `sonTonSuit` ne lisait que la radio (muette) → les sons gardaient la tonalité du DERNIER morceau du lobby
+  (faux : mi♭ après VAPEUR, fa#/si après GLASSY). La banque joue la pentatonique de MI majeur (la pièce de base = mi, mesuré) ; GLISSE est en
+  RÉ MINEUR → `JMUS_TON` +1 = la pentatonique de ré mineur, 5 notes sur 5. Le « plop » d'arrivée des gains (`ui.pop`, sa propre gamme) RETIRÉ.
+- LES PIÈCES : 6-12 dB sous GLISSE → `piece` vol +4. Planche : `photos-gameplay/comparaison-son-3.jpg`.
 
 ## LES GAINS QUI FLOTTENT PUIS TOMBENT DANS LEUR JAUGE — AURA ET NITRO (2026-10-12, Léo : « quand on gagne de l'aura, n'importe quoi, ça arrive dans l'écran en mode flottement, et après ça tire, la gravité, vers la jauge — quand on fait des figures, quand on tombe sur un truc de nitro la jauge part en couille »)
 - Bloc JS « LES GAINS QUI FLOTTENT… » (`VOLG`, `volgLance`, `volgNitro`, `volgTick`, `volgArrive`, `volgVide`, `nbPrend`), juste après `ajLance`,

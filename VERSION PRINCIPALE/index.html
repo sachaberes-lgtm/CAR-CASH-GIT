@@ -28347,7 +28347,7 @@ function engBig(E,tier,ru){
   hap(rec?[18,50,30,60,40]:[18,50,30]);pixBurst(b.querySelector('.ebScene'),rec?28:18);
   // (v4) LES CYLINDRES CHANTENT : une note par cylindre qui s'allume, sur une gamme qui monte — puis le gain claque
   for(let i=0;i<n;i++)setTimeout(function(){try{if(engBig.on&&!engBig.plonge){if(SONV2)sfx('moteur.cylindre',{st:sonPd(i)});else chimeNote(noteP(i%5,1+Math.floor(i/5)),0,.028,.08);}}catch(e){}},250+i*50);
-  clearTimeout(engBig._f);if(rec)engBig._f=setTimeout(function(){if(!gameOver)try{son('ui.record',fanfare);}catch(e){}},SONV2?2150:1200); /* (console de son) le NOUVEAU SOMMET sonne APRÈS l'impact et la fanfare de palier, plus par-dessus la visseuse */ // APRÈS le démarreur du montage, jamais par-dessus
+  clearTimeout(engBig._f);if(rec)engBig._f=setTimeout(function(){if(!gameOver)try{son('ui.record',fanfare,{vol:-8});}catch(e){}},SONV2?2150:1200); /* (2026-10-12) −8 dB : les cuivres du début de course */ /* (console de son) le NOUVEAU SOMMET sonne APRÈS l'impact et la fanfare de palier, plus par-dessus la visseuse */ // APRÈS le démarreur du montage, jamais par-dessus
   engBig._p=setTimeout(engPlonge,ENG_COULOIR);
   engBig._a=setTimeout(function(){if(!gameOver)engSwapArme();},ENG_ARME); // le clank de la visseuse = l'entrée dans le capot
 }
@@ -33204,6 +33204,11 @@ const SON_TON={'ville-n':5,'glassy-plucks':-2,'ciel-n5':1,'ciel':-1,'vapeur-salo
 function sonTonSuit(){
   if(!SONV2)return;let t=0;
   try{const el=musicEl;if(SND.music&&el&&el.src){for(const k in SON_TON)if(el.src.indexOf(k)>=0){t=SON_TON[k];break;}if(FRENM.surm)t+=1;}}catch(e){}
+  // (2026-10-12, Léo : « je ne l'entends plus du tout accordé ») sur le SOLEIL DE JADE la radio se tait et GLISSE joue dans son propre contexte :
+  // les sons gardaient la tonalité du DERNIER morceau de la radio (le lobby). GLISSE est en RÉ MINEUR (Rém7 · Si♭ · Solm9 · La sus ; gamme
+  // ré-mi-fa-sol-la-si♭-do). La banque joue la pentatonique de MI majeur (la pièce de base = mi, mesuré) : +1 = fa majeur pentatonique = LA
+  // PENTATONIQUE DE RÉ MINEUR, la tonalité même de GLISSE (5 notes sur 5). Avant : −1 après VAPEUR (un mi♭ faux), −2 après GLASSY (fa#, si faux).
+  try{if(typeof jadeMusOn==='function'&&jadeMusOn()&&JMUS.inst&&JMUS.inst.playing)t=JMUS_TON;}catch(e){}
   if(t!==sonTonSuit._t){sonTonSuit._t=t;window.CCSON.ton(t);}
 }
 const FRUIT_SON={'PÊCHE PLATE':'fruit.peche','BANANE':'fruit.banane','GRENADE':'fruit.grenade','ORANGE':'fruit.orange','MYRTILLE':'fruit.myrtille','PASTÈQUE':'fruit.pasteque'};
@@ -33600,7 +33605,8 @@ function visseuse9(t,dur){ // clé à chocs : une rafale de percussions serrées
   }catch(e){}
 }
 function engSwapSnd(){ // la scène complète du remplacement
-  if(SONV2){sfx('moteur.palier');return;} // (console de son) la scène entière d'un seul tenant, calée sur la carte : visseuse, plongée, clanks, impact, démarreur, fanfare
+  if(SONV2){sfx('moteur.palier',{vol:-10});return;} // (2026-10-12, Léo : « en début de partie, un vrai bruit, comme une trompette, un klaxon ») MESURÉ : le son le plus fort de la banque (+4 dB, 8 dB au-dessus d'une pièce), à CHAQUE nouveau moteur — plusieurs fois dans les 30 premières secondes. −10 dB
+ // (console de son) la scène entière d'un seul tenant, calée sur la carte : visseuse, plongée, clanks, impact, démarreur, fanfare
   if(!sfxOk())return;
   try{
     visseuse9(0,.34);                       // on dévisse
@@ -33701,7 +33707,7 @@ const TON=330; // mi4 : la tonique EXACTE des pièces (660) et de rewardSfx (660
 function noteP(i,oct){return TON*Math.pow(2,GAMME_P[Math.max(0,Math.min(GAMME_P.length-1,i|0))]/12+(oct||0));}
 const FLOW_ACC=[null,[0,2,3],[1,3,5],[2,4,6],[3,5,7]]; // mi majeur · fa#-si-mi · sol#-do#-fa# · si-mi-si : la basse monte d'un degré par palier
 function blip(){
-  if(SONV2){if(!sfxOk())return;const k9=Math.max(0,combo-1);sfx('piece',{st:GAMME_P[Math.min(k9,GAMME_P.length-1)]});if(combo>0&&combo%5===0)sfx('piece.recolte');return;} // (console de son)
+  if(SONV2){if(!sfxOk())return;const k9=Math.max(0,combo-1);sfx('piece',{st:GAMME_P[Math.min(k9,GAMME_P.length-1)],vol:4}); /* (2026-10-12, Léo : « quand je vais sur une pièce, je l'entends pas forcément ») +4 dB : sous GLISSE elles se perdaient */if(combo>0&&combo%5===0)sfx('piece.recolte');return;} // (console de son)
   if(!sfxOk())return;
   try{
     const k=Math.max(0,combo-1),st=GAMME_P[Math.min(k,GAMME_P.length-1)],f=660*Math.pow(2,st/12);
@@ -39477,7 +39483,7 @@ const JMUS={mod:null,load:false,inst:null,P:0,vol:-1,kick:false,err:null};
 /* (2026-10-12, Léo : « le sound design est complètement niqué, on n'entend rien du tout ») MESURÉ au banc : GLISSE V2 sortait à −10 dB RMS
    au départ et −5/−6 lancée — 15 à 20 dB au-dessus des effets (−26) et 5 à 10 dB au-dessus d'une musique « radio » du jeu (−11 dB RMS
    au fichier × le curseur ,62 ≈ −15). Elle couvrait TOUT. Son niveau dans le jeu : ×,4 (−8 dB) — la même place que la radio. */
-const JMUS_NIV=.3,NIT_GRONDE=.4; // (2026-10-12, 2e passe : « on n'entend pas bien les bruits ») la musique ,4 → ,3 : −20 au départ, −14 lancée
+const JMUS_NIV=.3,NIT_GRONDE=.4,JMUS_TON=1; // (2026-10-12, 2e passe : « on n'entend pas bien les bruits ») la musique ,4 → ,3 : −20 au départ, −14 lancée
 function jadeMusOn(){return JADE_JEU&&!!LVL.cur&&LVL.cur.id==='jade';}
 function jadeMusCharge(){if(JMUS.mod||JMUS.load)return;JMUS.load=true;
   try{import('./assets/audio/music/musique-glisse-v2.js').then(function(m){JMUS.mod=m;}).catch(function(e){JMUS.err=String(e);});}catch(e){JMUS.err=String(e);}}
@@ -46677,7 +46683,7 @@ function volgArrive(f,i,muet){
   VOLG.L.splice(i,1);f.el.style.opacity='0';VOLG.pool.push(f.el);
   let a=1;
   if(!muet){const now=performance.now();VOLG.ch=now-VOLG.chT<650?Math.min(VOLG_GAMME.length-1,VOLG.ch+1):0;VOLG.chT=now;a=1+.16*Math.min(VOLG.ch,4);
-    try{if(SONV2)sfx('ui.pop',{st:VOLG_GAMME[VOLG.ch]+(f.k==='a'?0:-5),vol:-3});}catch(e){}} // l'arrivée sonne : la série monte la gamme
+    } // (2026-10-12, Léo : « je ne l'entends plus accordé ; une pièce, je l'entends pas forcément ») le « plop » d'arrivée (ui.pop, sa gamme à lui) est RETIRÉ : il brouillait la mélodie des pièces — l'arrivée se VOIT (rebond, anneau)
   if(f.k==='a'){AJ.envol=Math.max(0,AJ.envol-f.q);AJ.enVol=Math.max(0,AJ.enVol-1);
     if(!muet&&AJ.el){AJ.el.classList.remove('prend');void AJ.el.offsetWidth;AJ.el.classList.add('prend');volgBat(AJ.seg,a);volgImpact(f.c[0],f.c[1],FLOW_CEL[Math.max(0,AJ.cur)]||'#5ee6ff');}}
   else{VOLG.n[f.k]=Math.max(0,VOLG.n[f.k]-f.q);if(!muet){nbPrend(f.k);volgBat(document.getElementById(f.k==='x'?'nitroX':'nitroR'),a);volgImpact(f.c[0],f.c[1],f.k==='x'?'#8fa4ff':'#ffb81f');}}
@@ -48242,7 +48248,7 @@ function loop(now){
         break;}
     }
     if(!gameOver&&money>=nextRainAt){nextRainAt*=2.6;startMoneyRain();showMsg(pickL(RAIN_LINES),'#7dff9a');}
-    if(money>best){if(SONV2&&started&&!gameOver&&!SANDBOX&&!TUTO.on&&best>START_CASH+.5&&!runStats.recSon){runStats.recSon=1;sfx('aura.record');}best=money;SAVE.d.best=best;SAVE.mark();} // mark : le filet des 30 s (ou la fin de run) écrira
+    if(money>best){if(SONV2&&started&&!gameOver&&!SANDBOX&&!TUTO.on&&best>START_CASH+.5&&!runStats.recSon){runStats.recSon=1;sfx('aura.record',{vol:-6});}best=money;SAVE.d.best=best;SAVE.mark();} // mark : le filet des 30 s (ou la fin de run) écrira
     if(loop._bestHud!==best){loop._bestHud=best;elRecord.textContent=TR('record : ')+fmt(best);}
     // ⚠ on n'écrit la jauge QUE si elle a bougé d'un demi-pour-cent : un style par image, c'est un recalcul de style par image
     // (2026-09-28, HUD v5) la rampe dit la MÊME chose que le disque NITRO : la part du RÉSERVOIR du moteur (orange), puis la réserve bleue
