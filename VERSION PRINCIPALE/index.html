@@ -6524,78 +6524,78 @@ body.gGlitchOn>canvas{animation:gCvJit .5s steps(5,end)}
 @keyframes gCvJit{0%{translate:0 0}20%{translate:-4px 0}40%{translate:5px 1px}60%{translate:-2px -1px}80%{translate:3px 0}100%{translate:0 0}}
 @media (prefers-reduced-motion:reduce){#gGlitch.go i,body.gGlitchOn>canvas{animation:none}}
 #gBq{display:none}
-html.bqIndus body #garage #gBq{display:block;position:absolute;inset:0;pointer-events:none;z-index:6}
+html.bqIndus body #garage.bqBlanc #gBq{display:block;position:absolute;inset:0;pointer-events:none;z-index:6} /* la page de vente : après la lueur */
 html.bqIndus body #garage #gTop{visibility:hidden!important} /* (la place reste : la console est calée en flex sous elle) */
 html.bqIndus #gTourne{display:none!important}
-html.bqIndus body #garage::before,html.bqIndus body #garage::after{display:none!important} /* les voiles d'encre du haut et du bas du garage : l'espace reste blanc */
+html body #garage.bqBlanc::before,html body #garage.bqBlanc::after{display:none!important}
+html.bqIndus body #garage::before,html.bqIndus body #garage::after{opacity:0!important;transition:opacity .45s ease .25s} /* pendant la lueur, les voiles d'encre s'effacent */ /* les voiles d'encre du haut et du bas du garage : l'espace reste blanc */
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gBottom{background:none!important;box-shadow:none!important;clip-path:none!important;padding-top:0}
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gBottom::before{display:none}
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) :is(#gTabs,#gRar,#gStrip,#gStrip.fnBande){display:none!important}
-/* L'INTERFACE v2 (voir garBqPanneau) : blanche, fine, du noir pour lire, l'orange pour ce qui est rare et pour ACHETER */
-#gBqTete{position:absolute;left:16px;right:16px;top:calc(var(--sT,0px) + 16px);display:flex;align-items:center;justify-content:space-between;font-family:var(--pix);animation:bqTete .4s var(--ease) both}
-@keyframes bqTete{from{opacity:0;translate:0 -14px}to{opacity:1;translate:0 0}}
+/* L'INTERFACE v3 (voir garBqPanneau) : blanc, du noir pour lire, un BLEU ÉLECTRIQUE (#3d4bff) pour ce qui compte — l'orange retiré */
+#gBqFlash{position:fixed;inset:0;z-index:59;pointer-events:none;opacity:0;background:radial-gradient(circle at var(--fx,50%) var(--fy,45%),#fff 0,#fff 34%,rgba(255,255,255,.95) 62%,rgba(250,251,253,.9) 100%)}
+#gBqFlash.go{animation:bqEclat var(--d,.6s) cubic-bezier(.3,.7,.3,1) forwards}
+@keyframes bqEclat{0%{opacity:0}22%{opacity:1}100%{opacity:0}}
+#gBqTete{position:absolute;left:16px;right:16px;top:calc(var(--sT,0px) + 16px);display:flex;align-items:flex-start;justify-content:space-between;font-family:var(--pix);animation:bqTete .5s var(--ease) .12s both}
+@keyframes bqTete{from{opacity:0;translate:0 -12px}to{opacity:1;translate:0 0}}
+#gBqTete .bqT1{display:flex;flex-direction:column;align-items:flex-start;gap:9px}
 #gBqTete .bqT1 b{display:block;font-weight:400;font-size:18px;letter-spacing:4px;color:#14171c}
-#gBqTete .bqT1 b::after{content:'';display:block;width:30px;height:3px;margin-top:9px;background:#ff6a13}
+#gBqTete .bqT1 b::after{content:'';display:block;width:26px;height:3px;margin-top:8px;background:#3d4bff}
+#gBqTete .bqSel{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+#gBqTete .bqRar{display:inline-flex;align-items:center;gap:6px;font-size:8px;letter-spacing:2px;color:#8a929c}
+#gBqTete .bqRar::before{content:'';width:7px;height:7px;background:var(--rc)}
+#gBqTete .bqNom{font-size:10px;letter-spacing:1px;color:#14171c}
+#gBqTete .bqLim{display:none;align-items:center;gap:6px;padding:5px 8px;white-space:nowrap;background:#3d4bff;color:#fff;font-size:8px;letter-spacing:1px}
+#gBqTete .bqLim::before{content:'EDITION LIMITEE ·'}
+#gBqTete .bqLim .pxi{--pxs:1;color:#fff}
+#gBqTete .bqLim em{font-style:normal;font-variant-numeric:tabular-nums}
+#gBqTete.lim .bqLim{display:inline-flex}
 #gBqTete .bqArg{display:flex;align-items:center;gap:7px;padding:9px 12px;background:rgba(255,255,255,.9);box-shadow:0 0 0 1px #dde1e6,0 8px 20px rgba(30,40,55,.06);color:#14171c;font-size:11px;letter-spacing:1px}
 #gBqTete .bqArg b{font-weight:400}
 #gBqTete .bqArg .pxi{--pxs:2;color:#14171c}
 #gBqPan{position:absolute;display:none;flex-direction:column;justify-content:flex-end;gap:12px;pointer-events:none}
-#gBq.pan #gBqPan{display:flex;animation:bqPan .45s var(--ease) both}
+#gBq.pan #gBqPan{display:flex;animation:bqPan .5s var(--ease) .2s both}
 @keyframes bqPan{from{opacity:0;translate:0 18px}to{opacity:1;translate:0 0}}
-#gBqPan .bqInfo{text-align:center;font-family:var(--pix)}
-#gBqPan.cote .bqInfo{text-align:left}
-#gBqPan .bqI1{display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap}
-#gBqPan.cote .bqI1{justify-content:flex-start}
-#gBqPan .bqRar{padding:5px 9px;background:#fff;box-shadow:0 0 0 1px #dde1e6;color:#14171c;font-size:8px;letter-spacing:2px;display:inline-flex;align-items:center;gap:7px}
-#gBqPan .bqRar::before{content:'';width:8px;height:8px;background:var(--rc)}
-#gBqPan .bqLim{display:none;align-items:center;gap:6px;padding:5px 9px;background:#ff6a13;color:#14171c;font-size:8px;letter-spacing:1px}
-#gBqPan .bqLim .pxi{--pxs:1;color:#14171c}
-#gBqPan .bqLim em{font-style:normal;font-variant-numeric:tabular-nums}
-#gBqPan .bqLim::before{content:'EDITION LIMITEE ·';letter-spacing:1px}
-#gBqPan .bqInfo.lim .bqLim{display:inline-flex}
-#gBqPan .bqNom{margin-top:10px;font-size:20px;letter-spacing:2px;color:#14171c;line-height:1.2}
-#gBqPan .bqSous{margin-top:7px;font-family:var(--sans);font-size:12px;letter-spacing:.2px;color:#7f8893}
-#gBqPan .bqOng{display:flex;gap:4px;padding:4px;background:rgba(255,255,255,.75);box-shadow:0 0 0 1px #dde1e6;pointer-events:auto}
-#gBqPan .bqOng button{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;min-height:38px;padding:0 6px;border:0;background:none;font-family:var(--pix);font-size:8px;letter-spacing:1px;color:#7f8893;cursor:pointer}
+#gBqPan .bqOng{display:flex;gap:4px;padding:4px;background:rgba(255,255,255,.8);box-shadow:0 0 0 1px #dde1e6;pointer-events:auto}
+#gBqPan .bqOng button{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:0 6px;border:0;background:none;font-family:var(--pix);font-size:9px;letter-spacing:2px;color:#7f8893;cursor:pointer}
 #gBqPan .bqOng button.on{background:#14171c;color:#fff}
-#gBqPan .bqOng button i{font-style:normal;color:#ff6a13}
+#gBqPan .bqOng button i{font-style:normal;font-size:8px;color:#3d4bff}
+#gBqPan .bqOng button.on i{color:#9aa3ff}
 #gBqPan .bqRail{display:flex;gap:10px;overflow-x:auto;overflow-y:hidden;padding:2px 2px 10px;scroll-snap-type:x proximity;touch-action:pan-x;overscroll-behavior:contain;pointer-events:auto;scrollbar-width:none}
 #gBqPan .bqRail::-webkit-scrollbar{display:none}
 #gBqPan.cote .bqRail{flex-wrap:wrap;overflow-x:hidden;overflow-y:auto;touch-action:pan-y;min-height:0;flex:1;align-content:flex-start;scroll-snap-type:y proximity}
 #gBqPan .bqK{position:relative;flex:none;width:106px;display:flex;flex-direction:column;background:#fff;box-shadow:0 0 0 1px #dde1e6,0 8px 20px rgba(30,40,55,.07);scroll-snap-align:start;cursor:pointer;font-family:var(--pix);
-  animation:bqK .38s cubic-bezier(.2,1.3,.4,1) both;animation-delay:calc(var(--i) * 45ms);transition:translate .15s,box-shadow .15s}
+  animation:bqK .38s cubic-bezier(.2,1.3,.4,1) both;animation-delay:calc(.25s + var(--i) * 45ms);transition:translate .15s,box-shadow .15s}
 @keyframes bqK{from{opacity:0;translate:0 12px}to{opacity:1;translate:0 0}}
 #gBqPan .bqK::after{content:'';position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--rc)}
 #gBqPan .bqK .bqKph{height:60px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:linear-gradient(180deg,#f8f9fb,#eceff3)}
 #gBqPan .bqK .bqKph img{width:118%;max-width:none}
 #gBqPan .bqK .bqKn{padding:7px 7px 0;font-size:8px;color:#14171c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#gBqPan .bqK .bqKp{padding:6px 7px 9px;font-size:8px;color:#14171c}
-#gBqPan .bqK .bqKp.eur{color:#c4560d}
+#gBqPan .bqK .bqKp{display:flex;align-items:center;gap:5px;padding:6px 7px 9px;font-size:8px;color:#14171c}
+#gBqPan .bqK .bqKp .pxi{--pxs:1;color:#14171c}
+#gBqPan .bqK .bqKp.eur{color:#3d4bff}
 #gBqPan .bqK .bqKp:is(.acq,.defi){color:#8a929c}
-#gBqPan .bqK .bqKl{position:absolute;top:6px;left:6px;padding:4px 6px;background:#ff6a13;color:#14171c;font-size:8px;letter-spacing:1px}
-#gBqPan .bqK.eph{width:148px}
-#gBqPan .bqK.eph .bqKph{height:84px}
-#gBqPan.cote .bqK{width:calc((100% - 20px) / 3)}
-#gBqPan.cote .bqK.eph{width:calc((100% - 20px) / 3)}
-#gBqPan.cote .bqK .bqKph,#gBqPan.cote .bqK.eph .bqKph{height:46px}
+#gBqPan .bqK .bqKl{position:absolute;top:6px;left:6px;padding:4px 6px;background:#3d4bff;color:#fff;font-size:8px;letter-spacing:1px}
+#gBqPan .bqK.off{width:148px}
+#gBqPan .bqK.off .bqKph{height:84px}
+#gBqPan.cote .bqK,#gBqPan.cote .bqK.off{width:calc((100% - 20px) / 3)}
+#gBqPan.cote .bqK .bqKph,#gBqPan.cote .bqK.off .bqKph{height:46px}
 #gBqPan.cote .bqK .bqKl{top:4px;left:4px;padding:3px 4px}
 #gBqPan.cote{gap:9px}
-#gBqPan.cote .bqNom{margin-top:7px;font-size:16px}
-#gBqPan.cote .bqSous{margin-top:5px;font-size:11px}
-#gBqPan.cote .bqOng button{min-height:32px}
+#gBqPan.cote .bqOng button{min-height:34px}
 #gBqPan .bqK.sel{box-shadow:0 0 0 2px #14171c,0 10px 24px rgba(30,40,55,.16);translate:0 -2px}
 #gBqPan .bqK:is(:active,.appui){translate:0 2px}
-@media (prefers-reduced-motion:reduce){#gBqPan .bqK,#gBq.pan #gBqPan,#gBqTete{animation:none}}
+@media (prefers-reduced-motion:reduce){#gBqPan .bqK,#gBq.pan #gBqPan,#gBqTete,#gBqFlash.go{animation:none}}
 /* RETOUR et ACHETER, aux couleurs du magasin : droits, noir et orange */
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>:is(#gShopBas,#gEquip.achat){background:rgba(255,255,255,.92)!important;background-image:none!important;outline:2px solid #16181c;outline-offset:-2px;box-shadow:0 5px 0 rgba(10,11,13,.35)!important;filter:none!important;clip-path:none!important;transform:none!important;translate:none!important;color:#fff}
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>:is(#gShopBas,#gEquip.achat)::before,html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>:is(#gShopBas,#gEquip.achat)::after{display:none!important}
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas :is(span,.pxi){transform:none!important;color:#14171c!important}
-html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas .pxi{color:#ff6a13!important}
+html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas .pxi{color:#3d4bff!important}
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas{background:rgba(255,255,255,.92)!important;outline:0;box-shadow:0 0 0 1px #d6dbe0,0 8px 20px rgba(30,40,55,.1)!important}
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas span{color:#14171c!important}
-html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gEquip.achat{outline:0;box-shadow:0 10px 24px rgba(255,106,19,.3)!important}
-html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gEquip.achat{background:#ff6a13!important;box-shadow:0 5px 0 #8f3305!important}
-html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gEquip.achat :is(.gEqV,.gEqP,.gEqP.eur){color:#16181c!important;text-shadow:none!important;transform:none!important}
+html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gEquip.achat{outline:0;box-shadow:0 10px 24px rgba(20,23,28,.22)!important}
+html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gEquip.achat{background:#14171c!important;box-shadow:0 10px 24px rgba(20,23,28,.22)!important}
+html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gEquip.achat :is(.gEqV,.gEqP,.gEqP.eur){color:#fff!important;text-shadow:none!important;transform:none!important}
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gEquip.achat .gEqP{font-size:var(--f3)!important}
 /* LE RAPPEL DE LA BOUTIQUE (voir le script du même nom) */
 #gRappel{display:none}
@@ -44030,7 +44030,7 @@ function bqHebdoReste(){const ms=Math.max(0,((bqSem()+1)*7-3)*864e5-Date.now()),
   return (d>0?d+(LANG==='fr'?'J ':'D '):'')+d2(Math.floor(t/3600)%24)+':'+d2(Math.floor(t/60)%60)+':'+d2(t%60);}
 function bqIndusVoulu(){const m=gModeM();return !!gEl&&garageOn&&(m==='shop'||m==='tous')&&!GAR.go&&!gEl.classList.contains('menu')&&!gEl.classList.contains('missions')&&!gEl.classList.contains('quiet')&&!gEl.classList.contains('launching');}
 function bqBio(){if(!bqBio._b)bqBio._b=Object.assign({},BIOMES.atelier,{nm:'MAGASIN',hemiS:[.98,.99,1],hemiG:[.62,.64,.68],hemiI:1.1,sunC:[1,1,1],sunI:.62,fillC:[.82,.84,.88],fillI:.2,
-  kickC:[1,.62,.3],kickI:.05,expo:1.08,sat:1.08,con:1.04,bloomS:.16,bloomT:.98,vigK:.08,vigC:[.05,.05,.06],wb:[1,1,1],sh:[0,0,.004],hi:[0,0,0],rimK:0,rimS:.22});return bqBio._b;}
+  kickC:[1,.62,.3],kickI:.05,expo:1.2,sat:.92,con:1.02,daHi:0,daSh:0,daCon:.5,bloomS:.16,bloomT:.98,vigK:.08,vigC:[.05,.05,.06],wb:[1,1,1],sh:[0,0,.004],hi:[0,0,0],rimK:0,rimS:.22});return bqBio._b;}
 /* LE MAGASIN : bâti une fois (à la 1re visite de la boutique), dans un repère qui suit l'azimut de la caméra (+z = vers elle, l'allée file vers −z) */
 function garBqBatit(){if(GBQ.grp)return; // (2026-10-12, Léo : « lâche le magasin… plutôt un carré blanc futuriste — on a trop de salles, la boutique c'est un truc hors du temps ») L'ESPACE BLANC
   const g=new THREE.Group();g.visible=false;scene.add(g);GBQ.grp=g;
@@ -44038,46 +44038,60 @@ function garBqBatit(){if(GBQ.grp)return; // (2026-10-12, Léo : « lâche le mag
   const cvT=function(w,h,f){const cv=document.createElement('canvas');cv.width=w;cv.height=h;f(cv.getContext('2d'),w,h);const t=new THREE.CanvasTexture(cv);t.anisotropy=Math.min(4,renderer.capabilities.getMaxAnisotropy());return t;};
   // LE FOND : une sphère retournée, blanc pur au zénith, gris perle à l'horizon — aucun mur, aucun coin
   const R=60,tF=cvT(4,256,function(x,w,h){const gr=x.createLinearGradient(0,0,0,h);gr.addColorStop(0,'#ffffff');gr.addColorStop(.42,'#fafbfc');gr.addColorStop(.5,'#eceff2');gr.addColorStop(1,'#eceff2');x.fillStyle=gr;x.fillRect(0,0,w,h);});
-  const fond=new THREE.Mesh(new THREE.SphereGeometry(R,32,24),B(0xffffff,{map:tF,side:THREE.BackSide}));fond.renderOrder=-10;fond.material.color.setScalar(1.5);g.add(fond); /* (×1,5 : l'étalonnage du jeu tasse les blancs — le fond doit sortir BLANC) */ // (elle écrit la profondeur : rien du monde ne passe derrière)
+  const fond=new THREE.Mesh(new THREE.SphereGeometry(R,32,24),B(0xffffff,{map:tF,side:THREE.BackSide}));fond.renderOrder=-10;fond.material.color.setScalar(1.75);g.add(fond); /* (×1,5 : l'étalonnage du jeu tasse les blancs — le fond doit sortir BLANC) */ // (elle écrit la profondeur : rien du monde ne passe derrière)
   // LE SOL : un disque immense, blanc au centre, fondu dans le gris de l'horizon au bord — le sol et le fond ne font qu'un (cyclo de studio)
   const tS=cvT(512,512,function(x,w,h){const gr=x.createRadialGradient(w/2,h/2,0,w/2,h/2,w/2);gr.addColorStop(0,'#ffffff');gr.addColorStop(.25,'#f8f9fa');gr.addColorStop(1,'#eceff2');x.fillStyle=gr;x.fillRect(0,0,w,h);});
-  const sol=new THREE.Mesh(new THREE.CircleGeometry(R*.97,64),B(0xffffff,{map:tS}));sol.rotation.x=-Math.PI/2;sol.material.color.setScalar(1.42);g.add(sol);
-  // UNE GRILLE TRÈS FINE qui s'efface autour de la caisse (le futur, en filigrane)
-  const tG=cvT(1024,1024,function(x,w,h){const pas=w/40;x.strokeStyle='rgba(120,130,145,1)';x.lineWidth=1.2;
-    for(let i=0;i<=40;i++){x.beginPath();x.moveTo(i*pas,0);x.lineTo(i*pas,h);x.stroke();x.beginPath();x.moveTo(0,i*pas);x.lineTo(w,i*pas);x.stroke();}
-    x.globalCompositeOperation='destination-in';const gr=x.createRadialGradient(w/2,h/2,0,w/2,h/2,w/2);gr.addColorStop(0,'rgba(0,0,0,.34)');gr.addColorStop(.45,'rgba(0,0,0,.16)');gr.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=gr;x.fillRect(0,0,w,h);});
-  const gri=new THREE.Mesh(new THREE.PlaneGeometry(40,40),B(0xffffff,{map:tG,transparent:true,depthWrite:false}));gri.rotation.x=-Math.PI/2;gri.position.y=.004;gri.renderOrder=1;g.add(gri);
-  // SOUS LA CAISSE : deux anneaux fins qui tournent lentement (un gris, un arc orange), l'ombre douce qui se resserre quand elle monte
-  const a1=new THREE.Mesh(new THREE.RingGeometry(2.55,2.6,96),B(0x8d96a2,{transparent:true,opacity:.55,depthWrite:false}));a1.rotation.x=-Math.PI/2;a1.position.y=.008;a1.renderOrder=2;g.add(a1);
-  const a2=new THREE.Mesh(new THREE.RingGeometry(3.05,3.11,96,1,0,Math.PI*1.3),B(0xff6a13,{transparent:true,opacity:.8,depthWrite:false}));a2.rotation.x=-Math.PI/2;a2.position.y=.009;a2.renderOrder=2;g.add(a2);
-  GBQ.anneaux=[a1,a2];
+  const sol=new THREE.Mesh(new THREE.CircleGeometry(R*.97,64),B(0xffffff,{map:tS}));sol.rotation.x=-Math.PI/2;sol.material.color.setScalar(1.6);g.add(sol);
+  // (v3, Léo : « il y a juste l'ombre de la voiture ») plus de grille ni d'anneaux
   const tOmb=cvT(128,128,function(x,w,h){const gr=x.createRadialGradient(64,64,0,64,64,64);gr.addColorStop(0,'rgba(20,24,30,.55)');gr.addColorStop(1,'rgba(20,24,30,0)');x.fillStyle=gr;x.fillRect(0,0,w,h);});
   GBQ.omb=new THREE.Mesh(new THREE.PlaneGeometry(1,1),B(0x000000,{map:tOmb,transparent:true,opacity:.5,depthWrite:false}));GBQ.omb.rotation.x=-Math.PI/2;GBQ.omb.position.y=.01;GBQ.omb.renderOrder=3;g.add(GBQ.omb);
   // L'ONDE DU BOUM : dans la scène (elle part encore dans l'atelier)
-  GBQ.choc=new THREE.Mesh(new THREE.RingGeometry(.86,1,56),new THREE.MeshBasicMaterial({color:0xffe2b8,transparent:true,opacity:0,depthWrite:false,fog:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide}));
+  GBQ.choc=new THREE.Mesh(new THREE.RingGeometry(.86,1,56),new THREE.MeshBasicMaterial({color:0xdfe7ff,transparent:true,opacity:0,depthWrite:false,fog:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide}));
   GBQ.choc.rotation.x=-Math.PI/2;GBQ.choc.visible=false;scene.add(GBQ.choc);
 }
-function garBqAmbiance(on){document.documentElement.classList.toggle('bqIndus',on);if(gEl)gEl.classList.toggle('bqIndus',on);garLibre._r=null;
-  try{bioApply(on?bqBio():BIOMES.atelier);}catch(e){}}
-/* L'INTERFACE DE LA BOUTIQUE v2 (2026-10-12, Léo : « la voiture bien placée : elle flotte assez haut, pas trop, au milieu ; autour, un
-   maximum de place pour une interface pro — c'est pour voir toutes les voitures, et on en profite pour des offres de voitures ÉPHÉMÈRES,
-   introuvables en jeu, pour créer de la rareté ; l'interface d'avant avait ce qu'il fallait mais ne parlait pas ») : plus de fils ni de
-   colonnes. En haut : BOUTIQUE et l'argent. Au milieu : la caisse seule (garLibre : la zone entre l'en-tête et le panneau). En bas, le
-   PANNEAU (#gBqPan) : la FICHE de la caisse affichée (rareté, ÉDITION LIMITÉE + compte à rebours, nom, ce qu'elle est), deux ONGLETS
-   (ÉDITIONS LIMITÉES : les caisses premium de la semaine, bqEphemeres · TOUTES LES VOITURES : la gamme entière, famille par famille), une
-   RANGÉE de vignettes qui défile ; touchée, on l'essaie (bqEssaie) ; RETOUR et ACHETER restent la barre du bas. Couché : le panneau à droite. */
+function garBqAmbiance(on){garLibre._r=null; // (v3) au BASCULEMENT (pic de la lueur) : la lumière, et les voiles d'encre du garage retirés (#garage.bqBlanc)
+  if(gEl)gEl.classList.toggle('bqBlanc',on);try{bioApply(on?bqBio():BIOMES.atelier);}catch(e){}}
+function bqClasses(on){document.documentElement.classList.toggle('bqIndus',on);if(gEl)gEl.classList.toggle('bqIndus',on);garLibre._r=null;} // dès le geste : l'interface du garage s'efface
+/* L'ÉCLAT BLANC (v3, Léo : « elle décolle, et grosse lueur de blanc ») : un voile blanc SOUS l'interface (z 59, comme le glitch d'avant),
+   centré sur la caisse, qui monte en 0,15 s et retombe — le changement de lieu se fait dessous */
+function bqEclat(dur,pic){let el=document.getElementById('gBqFlash');
+  if(!el){el=document.createElement('div');el.id='gBqFlash';el.setAttribute('aria-hidden','true');document.body.appendChild(el);}
+  try{const v=GBQ._ve||(GBQ._ve=new THREE.Vector3());carGroup.getWorldPosition(v);v.y+=.6;v.project(camera);el.style.setProperty('--fx',((v.x*.5+.5)*100).toFixed(1)+'%');el.style.setProperty('--fy',((.5-v.y*.5)*100).toFixed(1)+'%');}catch(e){}
+  el.style.setProperty('--d',dur+'s');el.style.setProperty('--p',Math.round(pic*100)+'%');el.classList.remove('go');void el.offsetWidth;el.classList.add('go');
+  clearTimeout(bqEclat._t);bqEclat._t=setTimeout(function(){el.classList.remove('go');},dur*1000+60);}
+/* LA LUEUR DERRIÈRE LA CAISSE (v3) : un disque blanc tourné vers la caméra, posé DERRIÈRE la caisse (elle reste devant : il est caché par
+   elle), qui grandit jusqu'à couvrir le garage ; une nappe blanche s'étale au sol depuis sous elle. Deux objets de la scène (hors de
+   l'atelier : ils survivent au basculement), blancs au-delà de 1 (le bloom les fait rayonner). */
+function garBqLueurBatit(){if(GBQ.halo)return;
+  const cv=document.createElement('canvas');cv.width=cv.height=256;const x=cv.getContext('2d'),gr=x.createRadialGradient(128,128,0,128,128,128);
+  gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.45,'rgba(255,255,255,1)');gr.addColorStop(.72,'rgba(255,255,255,.55)');gr.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=gr;x.fillRect(0,0,256,256);
+  const t=new THREE.CanvasTexture(cv),m=function(){const mt=new THREE.MeshBasicMaterial({map:t,transparent:true,opacity:0,depthWrite:false,fog:false});mt.color.setScalar(1.3);return mt;};
+  GBQ.halo=new THREE.Mesh(new THREE.PlaneGeometry(1,1),m());GBQ.halo.visible=false;GBQ.halo.renderOrder=5;scene.add(GBQ.halo);
+  GBQ.nappe=new THREE.Mesh(new THREE.PlaneGeometry(1,1),m());GBQ.nappe.rotation.x=-Math.PI/2;GBQ.nappe.visible=false;GBQ.nappe.renderOrder=4;scene.add(GBQ.nappe);}
+function garBqLueur(ay){const g=GBQ.lueur||0;garBqLueurBatit();const vis=g>.002;GBQ.halo.visible=GBQ.nappe.visible=vis;if(!vis)return;
+  const v=GBQ._vl||(GBQ._vl=new THREE.Vector3()),d=GBQ._dl||(GBQ._dl=new THREE.Vector3());carGroup.getWorldPosition(v);v.y+=.55;
+  d.copy(v).sub(camera.position);d.y=0;d.normalize();GBQ.halo.position.copy(v).addScaledVector(d,2.8);GBQ.halo.quaternion.copy(camera.quaternion);
+  const e=g*g,s=1.2+80*e;GBQ.halo.scale.set(s,s,1);GBQ.halo.material.opacity=Math.min(1,g*1.7);
+  const sn=2.5+90*Math.pow(g,1.6);GBQ.nappe.position.set(v.x,ay+GAR.POD+.016,v.z);GBQ.nappe.scale.set(sn,sn,1);GBQ.nappe.material.opacity=Math.min(1,g*1.5);}
+/* L'INTERFACE DE LA BOUTIQUE v3 (2026-10-12, Léo : « le petit nom de la voiture en plus petit, mieux placé ; d'abord la boutique des
+   voitures que tout le monde peut acheter, avec les pièces, et à côté on peut sélectionner les offres ; l'orange n'est pas beau, trouve
+   quelque chose qui se marie mieux avec le blanc ») : l'accent devient un BLEU ÉLECTRIQUE (#3d4bff) sur blanc et noir. En haut à gauche
+   BOUTIQUE, et dessous, en petit, la caisse affichée (rareté · nom · ÉDITION LIMITÉE et son compte à rebours) ; l'argent à droite. En bas :
+   deux onglets — VOITURES (en pièces, pour tout le monde : bqPieces) d'abord, OFFRES (les éditions limitées de la semaine, en €,
+   introuvables en jeu : bqEphemeres) à côté — et la rangée de vignettes ; RETOUR et ACHETER (noir) sous le pouce. */
 function bqEphemeres(){const w=bqSem();if(GBQ.eph&&GBQ.eph.w===w)return GBQ.eph; // quatre caisses premium tirées sur le numéro de la semaine
   const P=bqPayantes(),r=mulberry32(Math.imul(w+11,2654435761)^0x1E9E3),L=P.slice();
   for(let i=L.length-1;i>0;i--){const k=Math.floor(r()*(i+1)),t=L[i];L[i]=L[k];L[k]=t;}
   return GBQ.eph={w:w,l:L.slice(0,4)};}
-function bqToutes(){if(!GBQ.toutes)GBQ.toutes=garageListe().slice();return GBQ.toutes;} // toute la gamme, rangée par famille (commune → infinie)
+function bqPieces(){if(!GBQ.pieces){const L=[];for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(u&&u.p>0&&u.k!=='premium'&&!carRetiree(i))L.push(i);} // les caisses qui s'achètent en PIÈCES, de la moins chère à la plus chère
+  GBQ.pieces=L.sort(function(a,b){return (CAR_UNLOCK[a].p-CAR_UNLOCK[b].p)||(a-b);});}return GBQ.pieces;}
 function bqPrixCaisse(i){const u=CAR_UNLOCK[i]||{};if(bqA('v:'+i))return {t:sansAcc(TR('À TOI')),c:'acq'};if(u.k==='premium')return {t:eurTxt(u.eur),c:'eur'};
-  if(u.p)return {t:fmtC(u.p),c:''};return {t:sansAcc(TR('DÉFI')),c:'defi'};}
+  if(u.p)return {t:fmtC(u.p),c:'pc'};return {t:sansAcc(TR('DÉFI')),c:'defi'};}
 function garBqUI(){let ui=document.getElementById('gBq');if(ui)return ui;
   ui=document.createElement('div');ui.id='gBq';
-  ui.innerHTML='<div id="gBqTete"><div class="bqT1"><b data-fr="BOUTIQUE">'+sansAcc(TR('BOUTIQUE'))+'</b></div><div class="bqArg">'+pxi('piece')+'<b id="gBqArg"></b></div></div>'
-    +'<div id="gBqPan"><div class="bqInfo"><div class="bqI1"><span class="bqRar"></span><span class="bqLim">'+pxi('horloge')+'<em></em></span></div><div class="bqNom"></div><div class="bqSous"></div></div>'
-    +'<div class="bqOng" role="tablist"><button data-o="eph" class="on" role="tab">'+sansAcc(TR('ÉDITIONS LIMITÉES'))+'</button><button data-o="tout" role="tab">'+sansAcc(TR('TOUTES LES VOITURES'))+'<i></i></button></div>'
+  ui.innerHTML='<div id="gBqTete"><div class="bqT1"><b data-fr="BOUTIQUE">'+sansAcc(TR('BOUTIQUE'))+'</b><div class="bqSel"><span class="bqRar"></span><span class="bqNom"></span></div><span class="bqLim">'+pxi('horloge')+'<em></em></span></div>'
+    +'<div class="bqArg">'+pxi('piece')+'<b id="gBqArg"></b></div></div>'
+    +'<div id="gBqPan"><div class="bqOng" role="tablist"><button data-o="voit" class="on" role="tab">'+sansAcc(TR('VOITURES'))+'<i class="n1"></i></button><button data-o="off" role="tab">'+sansAcc(TR('OFFRES'))+'<i class="n2"></i></button></div>'
     +'<div class="bqRail"></div></div>';
   gEl.insertBefore(ui,gEl.firstChild);
   ui.querySelector('.bqOng').addEventListener('click',function(e){const b=e.target.closest&&e.target.closest('button');if(!b)return;e.stopPropagation();
@@ -44089,33 +44103,31 @@ function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBq
   if(voulu!==GBQ.panOn){GBQ.panOn=voulu;ui.classList.toggle('pan',voulu);garLibre._r=null;GBQ.lay='';GBQ.rk='';GBQ.vu=-1;if(!voulu)GBQ.zone=null;}
   {const a=document.getElementById('gBqArg'),v=fmtC(Math.floor(bank()));if(a&&a.textContent!==v)a.textContent=v;}
   if(!voulu)return;
-  const E=bqEphemeres().l,ong=GBQ.ong||'eph',L=ong==='tout'?bqToutes():E,rail=pan.querySelector('.bqRail');
+  const E=bqEphemeres().l,P=bqPieces(),ong=GBQ.ong||'voit',L=ong==='off'?E:P,rail=pan.querySelector('.bqRail');
   const rk=ong+':'+E.join(',')+':'+L.map(function(i){return bqA('v:'+i)?1:0;}).join('')+':'+LANG;
   if(GBQ.rk!==rk){GBQ.rk=rk;GBQ.vu=-1;
     pan.querySelectorAll('.bqOng button').forEach(function(b){const on=b.getAttribute('data-o')===ong;b.classList.toggle('on',on);b.setAttribute('aria-selected',on);});
-    {const n=pan.querySelector('.bqOng i');if(n)n.textContent=bqToutes().length;}
-    rail.classList.toggle('eph',ong==='eph');rail.scrollLeft=0;
+    {const n1=pan.querySelector('.bqOng .n1'),n2=pan.querySelector('.bqOng .n2');if(n1)n1.textContent=P.length;if(n2)n2.textContent=E.length;}
+    rail.classList.toggle('off',ong==='off');rail.scrollLeft=0;
     rail.innerHTML=L.map(function(i,n){const px=bqPrixCaisse(i),ri=rarInfo(carRar(i));
-      return '<div class="bqK'+(ong==='eph'?' eph':'')+'" data-i="'+i+'" role="button" style="--rc:'+ri.c+';--i:'+Math.min(n,8)+'" aria-label="'+String(TR(CARS[i].name)).replace(/"/g,'')+'">'
-        +'<span class="bqKph" data-ph="'+i+'"></span>'+(ong==='eph'?'<span class="bqKl">'+sansAcc(TR('LIMITÉE'))+'</span>':'')
-        +'<span class="bqKn">'+sansAcc(TR(CARS[i].name))+'</span><span class="bqKp '+px.c+'">'+String(px.t).replace(/</g,'')+'</span></div>';}).join('');
+      return '<div class="bqK'+(ong==='off'?' off':'')+'" data-i="'+i+'" role="button" style="--rc:'+ri.c+';--i:'+Math.min(n,8)+'" aria-label="'+String(TR(CARS[i].name)).replace(/"/g,'')+'">'
+        +'<span class="bqKph" data-ph="'+i+'"></span>'+(ong==='off'?'<span class="bqKl">'+sansAcc(TR('LIMITÉE'))+'</span>':'')
+        +'<span class="bqKn">'+sansAcc(TR(CARS[i].name))+'</span><span class="bqKp '+px.c+'">'+(px.c==='pc'?pxi('piece'):'')+String(px.t).replace(/</g,'')+'</span></div>';}).join('');
     rail.querySelectorAll('.bqKph[data-ph]').forEach(function(el){photoFile(+el.getAttribute('data-ph'),function(url){if(!el.firstChild){const im=document.createElement('img');im.alt='';im.src=url;el.appendChild(im);}});});}
-  // LA FICHE : la caisse affichée (essayée)
-  const i=garageI,lim=E.indexOf(i)>=0;
-  if(GBQ.vu!==i){GBQ.vu=i;const inf=pan.querySelector('.bqInfo'),ri=rarInfo(carRar(i)),u=CAR_UNLOCK[i]||{};
-    inf.style.setProperty('--rc',ri.c);inf.classList.toggle('lim',lim);
-    inf.querySelector('.bqRar').textContent=sansAcc(TR(ri.n1));inf.querySelector('.bqNom').textContent=sansAcc(TR(CARS[i].name));
-    inf.querySelector('.bqSous').textContent=bqA('v:'+i)?TR('Dans ton garage'):u.k==='premium'?(lim?TR('Exclusivité boutique — introuvable en jeu'):TR('Exclusivité boutique — revient en édition limitée')):u.p?TR('En vente'):TR('Se gagne aux défis');
+  // LA CAISSE AFFICHÉE, en petit sous BOUTIQUE
+  const i=garageI,lim=E.indexOf(i)>=0,te=document.getElementById('gBqTete');
+  if(GBQ.vu!==i){GBQ.vu=i;const ri=rarInfo(carRar(i));te.style.setProperty('--rc',ri.c);te.classList.toggle('lim',lim);
+    te.querySelector('.bqRar').textContent=sansAcc(TR(ri.n1));te.querySelector('.bqNom').textContent=sansAcc(TR(CARS[i].name));
     rail.querySelectorAll('.bqK').forEach(function(el){el.classList.toggle('sel',+el.getAttribute('data-i')===i);});}
-  {const t=pan.querySelector('.bqLim em'),r=bqHebdoReste();if(t&&lim&&t.textContent!==r)t.textContent=r;}
+  {const t=te.querySelector('.bqLim em'),r=bqHebdoReste();if(t&&lim&&t.textContent!==r)t.textContent=r;}
   // LA PLACE : debout le panneau en bas, la caisse entre l'en-tête et lui ; couché le panneau à droite
-  const W=VP.w,H=VP.h,te=document.getElementById('gBqTete'),ac=document.getElementById('gAct'),tr=te.getBoundingClientRect(),arc=ac&&ac.getBoundingClientRect(),cou=W>H*1.2;
+  const W=VP.w,H=VP.h,ac=document.getElementById('gAct'),tr=te.getBoundingClientRect(),arc=ac&&ac.getBoundingClientRect(),cou=W>H*1.2;
   const bas=arc&&arc.height?arc.top:H-80,lay=W+'x'+H+':'+Math.round(bas)+':'+(arc?Math.round(arc.left):0)+':'+ong;
   if(GBQ.lay!==lay){GBQ.lay=lay;
     if(!cou){pan.style.left='14px';pan.style.right='14px';pan.style.top='auto';pan.style.bottom=(H-bas+12)+'px';pan.classList.remove('cote');}
-    else{const x0=Math.max(W*.5,(arc&&arc.width?arc.left:W*.55)-6);pan.style.left=x0+'px';pan.style.right='12px';pan.style.top=(tr.bottom+12)+'px';pan.style.bottom=(H-bas+10)+'px';pan.classList.add('cote');}
+    else{const x0=Math.max(W*.5,(arc&&arc.width?arc.left:W*.55)-6);pan.style.left=x0+'px';pan.style.right='12px';pan.style.top=(tr.bottom+14)+'px';pan.style.bottom=(H-bas+10)+'px';pan.classList.add('cote');}
     garLibre._r=null;}
-  {const pr=pan.getBoundingClientRect();GBQ.zone=cou?{cote:true,x0:pr.left,y0:tr.bottom+6}:{g:14,d:W-14,y0:tr.bottom+8,y1:pr.top-8};}
+  {const pr=pan.getBoundingClientRect();GBQ.zone=cou?{cote:true,x0:pr.left,y0:tr.bottom+6}:{g:14,d:W-14,y0:tr.bottom+10,y1:pr.top-10};}
 }
 function bqEssaie(k){ // la même chose qu'une carte de la vitrine du jour (voir le clic de #gStrip) : on ESSAIE ; à toi, elle s'équipe
   if(k[0]==='v'){const i=+k.slice(2);if(SHOP.tab!=='voiture')shopTab('voiture');const eq9=garEquipeCaisse(i);if(i!==garageI)garageSaute(i);else if(eq9)garageShow(i);}
@@ -44125,17 +44137,26 @@ function garBqChoc(){if(!GBQ.choc)garBqBatit();GBQ.chocT=0;}
 /* chaque image du garage, juste après la pose de la caisse sur le plateau */
 function garBqIndus(dt,ay,t9){
   dt=Math.min(.05,dt);const veut=bqIndusVoulu();
-  if(veut!==GBQ.veut){GBQ.veut=veut;GBQ.t=0;GBQ.bascule=false;GBQ.boum=0;GBQ.coupT=veut?0:-1;if(!veut&&!GAR.go)garGlitch();}
+  /* (v3, Léo : « au lieu d'un glitch, la voiture se décolle de la plateforme de manière cool et lévite ; une grosse lueur blanche derrière
+     elle ; il ne reste que son ombre ; après, la page de vente ») LE TEMPS DU GESTE : 0 → 0,12 s elle s'enfonce, puis se DÉCOLLE (ressort doux) ;
+     0,3 s la LUEUR naît derrière elle et grandit ; 0,8 s l'ÉCLAT blanc monte (pic à ~0,95 s) : dessous, l'atelier laisse place au blanc ;
+     puis la page de vente. Au retour : un éclat bref, l'atelier revient dessous, elle se repose. */
+  if(veut!==GBQ.veut){GBQ.veut=veut;GBQ.t=0;GBQ.bascule=false;GBQ.boum=0;GBQ.eclat=0;GBQ.coupT=veut?0:-1;bqClasses(veut);
+    if(veut){garBqBatit();garBqLueurBatit();}else if(!GAR.go&&GBQ.on)bqEclat(.5,.2);}
   GBQ.t+=dt;
-  if(veut&&GBQ.coupT>=0){GBQ.coupT+=dt;if(GBQ.coupT>=.16&&!GBQ.boum){GBQ.boum=1;garGlitch();GBQ.levV=4.8;garBqChoc();try{if(SONV2)sfx('pose.choc');}catch(e){}try{hap(14);}catch(e){}}}
-  if(!GBQ.bascule&&GBQ.t>(veut?.44:.26)){GBQ.bascule=true;GBQ.on=veut;if(veut)garBqBatit();garBqAmbiance(veut);}
-  if(GAR.go&&(GBQ.on||GBQ.veut)){GBQ.on=GBQ.veut=false;GBQ.bascule=true;garBqAmbiance(false);}
+  if(veut&&GBQ.coupT>=0){GBQ.coupT+=dt;if(GBQ.coupT>=.12&&!GBQ.boum){GBQ.boum=1;GBQ.levV=3.4;garBqChoc();try{if(SONV2)sfx('ui.volet');}catch(e){}try{hap(10);}catch(e){}}}
+  if(veut){GBQ.lueur=Math.max(0,Math.min(1,(GBQ.t-.3)/.65));if(GBQ.t>=.8&&!GBQ.eclat){GBQ.eclat=1;bqEclat(.65,.22);}}
+  else GBQ.lueur=Math.max(0,(GBQ.lueur||0)-dt*4);
+  if(!GBQ.bascule&&GBQ.t>(veut?.95:.1)){GBQ.bascule=true;GBQ.on=veut;garBqAmbiance(veut);}
+  if(GBQ.on&&GBQ.t>1.4)GBQ.lueur=Math.max(0,1-(GBQ.t-1.4)/.5); // basculée : la lueur se retire (blanc sur blanc)
+  if(GAR.go&&(GBQ.on||GBQ.veut)){GBQ.on=GBQ.veut=false;GBQ.bascule=true;bqClasses(false);garBqAmbiance(false);GBQ.lueur=0;}
+  try{garBqLueur(ay);}catch(e){}
   const on=GBQ.on;
   if(GBQ.grp){GBQ.grp.visible=on;if(on){GAR.root.visible=false;GBQ.grp.position.set(0,ay,0);GBQ.grp.rotation.y=garCamA();}}
   {const c=on?1:0,w=3;GBQ.kv+=(w*w*(c-GBQ.k)-2*w*GBQ.kv)*dt;GBQ.k+=GBQ.kv*dt;}
   // LA LÉVITATION : le petit coup (elle s'enfonce), le BOUM (elle bondit, dépasse), puis elle flotte
-  if(veut&&GBQ.coupT>=0&&GBQ.coupT<.16){GBQ.lev=-.08*Math.sin(Math.PI*.5*GBQ.coupT/.16);GBQ.levV=0;}
-  else{const c=veut?.6:0,w=veut?7.2:5.5,z=veut?.36:1;GBQ.levV+=(w*w*(c-GBQ.lev)-2*z*w*GBQ.levV)*dt;GBQ.lev+=GBQ.levV*dt;}
+  if(veut&&GBQ.coupT>=0&&GBQ.coupT<.12){GBQ.lev=-.06*Math.sin(Math.PI*.5*GBQ.coupT/.12);GBQ.levV=0;}
+  else{const c=veut?.6:0,w=veut?5.6:5.5,z=veut?.55:1;GBQ.levV+=(w*w*(c-GBQ.lev)-2*z*w*GBQ.levV)*dt;GBQ.lev+=GBQ.levV*dt;}
   if(!veut&&Math.abs(GBQ.lev)<.002&&Math.abs(GBQ.levV)<.01){GBQ.lev=0;GBQ.levV=0;}
   // LE DOIGT : lacet libre avec élan, tangage qui revient doucement ; au retour, elle se repose à plat
   if(!GBQ.drag){GBQ.yaw+=GBQ.yawV*dt;GBQ.yawV*=Math.exp(-2.4*dt);const pw=1.7;GBQ.pitV+=(pw*pw*(0-GBQ.pit)-2*pw*GBQ.pitV)*dt;GBQ.pit+=GBQ.pitV*dt;}
@@ -44164,7 +44185,7 @@ function garBqLumiere(){if(!GBQ.on)return; // la lumière du magasin : blanche, 
     GBQ.yaw+=dx*.011;GBQ.pit=THREE.MathUtils.clamp(GBQ.pit+dy*.008,-1.05,1.05);GBQ.yawV=GBQ.yawV*.5+dx*.011/ds*.5;},true);
   const fin=function(e){const d=GBQ.drag;if(!d||d.id!==e.pointerId)return;e.stopPropagation();GBQ.drag=null;if(performance.now()-d.t>90)GBQ.yawV=0;};
   addEventListener('pointerup',fin,true);addEventListener('pointercancel',fin,true);})();
-try{Object.assign(I18N,{'CETTE SEMAINE':'THIS WEEK','TOUT VOIR':'SEE ALL','TRAÎNÉE':'TRAIL','AILE':'WING','CAISSE':'CAR','ÉDITIONS LIMITÉES':'LIMITED EDITIONS','TOUTES LES VOITURES':'ALL CARS','LIMITÉE':'LIMITED','À TOI':'YOURS','Dans ton garage':'In your garage','Exclusivité boutique — introuvable en jeu':'Shop exclusive — not obtainable in game','Exclusivité boutique — revient en édition limitée':'Shop exclusive — returns as a limited edition','En vente':'For sale','Se gagne aux défis':'Earned through challenges'});}catch(e){}
+try{Object.assign(I18N,{'OFFRES':'OFFERS','VOITURES':'CARS','CETTE SEMAINE':'THIS WEEK','TOUT VOIR':'SEE ALL','TRAÎNÉE':'TRAIL','AILE':'WING','CAISSE':'CAR','ÉDITIONS LIMITÉES':'LIMITED EDITIONS','TOUTES LES VOITURES':'ALL CARS','LIMITÉE':'LIMITED','À TOI':'YOURS','Dans ton garage':'In your garage','Exclusivité boutique — introuvable en jeu':'Shop exclusive — not obtainable in game','Exclusivité boutique — revient en édition limitée':'Shop exclusive — returns as a limited edition','En vente':'For sale','Se gagne aux défis':'Earned through challenges'});}catch(e){}
 window.dbgBqIndus=function(){return {veut:GBQ.veut,on:GBQ.on,lev:+GBQ.lev.toFixed(2),k:+GBQ.k.toFixed(2),yaw:+GBQ.yaw.toFixed(2),pit:+GBQ.pit.toFixed(2),ong:GBQ.ong||'eph',eph:GBQ.eph?GBQ.eph.l:null,caisse:garageI,reste:bqHebdoReste(),
   rail:[...document.querySelectorAll('#gBqPan .bqK')].map(function(el){const r=el.getBoundingClientRect();return [+el.getAttribute('data-i'),Math.round(r.x),Math.round(r.y),Math.round(r.width),Math.round(r.height),el.classList.contains('sel')];}),zone:GBQ.zone};};
 function garGlitch(){let el=document.getElementById('gGlitch'); // (essai boutique virtuelle, repris) le GLITCH : des bandes qui sautent, l'image qui tressaute, 0,72 s
