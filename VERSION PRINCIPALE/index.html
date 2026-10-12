@@ -6553,28 +6553,38 @@ html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) :is(#gTabs,#gRar,#gS
 #gBqTete .bqArg{display:flex;align-items:center;gap:7px;padding:9px 12px;background:rgba(255,255,255,.9);box-shadow:0 0 0 1px #dde1e6,0 8px 20px rgba(30,40,55,.06);color:#14171c;font-size:11px;letter-spacing:1px}
 #gBqTete .bqArg b{font-weight:400}
 #gBqTete .bqArg .pxi{--pxs:2;color:#14171c}
-/* LES OBJETS DE LA SEMAINE : une ligne fine (CETTE SEMAINE + compte à rebours), trois carrés blancs */
-#gBqSem{position:absolute;display:none;align-items:center;gap:12px;pointer-events:none;font-family:var(--pix)}
-#gBq.pan #gBqSem{display:flex;animation:bqPan .5s var(--ease) .3s both}
-#gBqSem .bqSt{display:flex;flex-direction:column;gap:7px;flex:none}
-#gBqSem .bqSt b{font-weight:400;font-size:8px;letter-spacing:2px;color:#14171c}
-#gBqSem .bqSt em{display:flex;align-items:center;gap:5px;font-style:normal;font-size:8px;letter-spacing:1px;color:#8a929c;font-variant-numeric:tabular-nums}
-#gBqSem .bqSt em .pxi{--pxs:1;color:#8a929c}
-#gBqSem .bqSl{display:flex;gap:8px;margin-left:auto;pointer-events:auto}
-#gBqSem.cote{flex-direction:column;align-items:flex-start;gap:8px}
-#gBqSem.cote .bqSl{margin-left:0}
-#gBqSem .bqH{position:relative;width:62px;display:flex;flex-direction:column;background:#fff;box-shadow:0 0 0 1px #e1e4e8,0 6px 16px rgba(30,40,55,.06);cursor:pointer;
-  animation:bqK .38s cubic-bezier(.2,1.3,.4,1) both;animation-delay:calc(.35s + var(--i) * 60ms);transition:translate .15s,box-shadow .15s}
-#gBqSem .bqH::after{content:'';position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--rc)}
-#gBqSem .bqHf{height:44px;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#fbfbfc,#f1f3f5)}
-#gBqSem .bqHf .bqSw{width:24px;height:24px;box-shadow:0 0 0 1px rgba(20,23,28,.15),inset 0 0 0 2px rgba(255,255,255,.35)}
-#gBqSem .bqHf .bqRub{width:42px;height:8px;box-shadow:0 0 0 1px rgba(20,23,28,.15)}
-#gBqSem .bqHf .pxi{--pxs:2;color:#14171c}
-#gBqSem .bqHp{display:flex;align-items:center;justify-content:center;gap:4px;padding:5px 3px 7px;font-size:8px;color:#14171c;white-space:nowrap}
-#gBqSem .bqHp .pxi{--pxs:1;color:#14171c}
-#gBqSem .bqHp.acq{color:#8a929c}
-#gBqSem .bqH.sel{box-shadow:0 0 0 2px #14171c,0 8px 18px rgba(30,40,55,.14);translate:0 -2px}
-#gBqSem .bqH:is(:active,.appui){translate:0 2px}
+/* À LA UNE : le bandeau qui défile (la piste est doublée : elle boucle sans couture) */
+#gBqUne{position:absolute;display:none;flex-direction:column;gap:8px;pointer-events:none;font-family:var(--pix)}
+#gBq.pan #gBqUne{display:flex;animation:bqPan .5s var(--ease) .3s both}
+#gBqUne .bqUt{display:flex;align-items:center;gap:10px;padding:0 16px}
+#gBqUne.cote .bqUt{padding:0}
+#gBqUne .bqUt b{display:flex;align-items:center;gap:8px;font-weight:400;font-size:8px;letter-spacing:2px;color:#14171c}
+#gBqUne .bqUt b::before{content:'';width:14px;height:2px;background:#3d4bff}
+#gBqUne .bqUt em{margin-left:auto;display:flex;align-items:center;gap:5px;font-style:normal;font-size:8px;letter-spacing:1px;color:#8a929c;font-variant-numeric:tabular-nums}
+#gBqUne .bqUt em .pxi{--pxs:1;color:#8a929c}
+#gBqUne .bqUv{overflow:hidden;pointer-events:auto;-webkit-mask:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent);mask:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent)}
+#gBqUne .bqUr{display:flex;gap:10px;width:max-content;padding:2px 10px 8px 0;animation:bqDefile calc(var(--n,7) * 3.4s) linear infinite}
+#gBqUne .bqUv:is(:hover,:active) .bqUr{animation-play-state:paused}
+@keyframes bqDefile{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+#gBqUne .bqU{position:relative;flex:none;width:116px;display:flex;flex-direction:column;background:#fff;box-shadow:0 0 0 1px #e1e4e8,0 6px 16px rgba(30,40,55,.06);cursor:pointer;transition:translate .15s,box-shadow .15s}
+#gBqUne .bqU::after{content:'';position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--rc)}
+#gBqUne .bqUf{height:52px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:linear-gradient(180deg,#fbfbfc,#f1f3f5)}
+#gBqUne .bqUph{display:flex;align-items:center;justify-content:center;width:100%;height:100%}
+#gBqUne .bqUph img{width:116%;max-width:none}
+#gBqUne .bqUf .bqSw{width:24px;height:24px;box-shadow:0 0 0 1px rgba(20,23,28,.15),inset 0 0 0 2px rgba(255,255,255,.35)}
+#gBqUne .bqUf .bqRub{width:46px;height:8px;box-shadow:0 0 0 1px rgba(20,23,28,.15)}
+#gBqUne .bqUf .pxi{--pxs:2;color:#14171c}
+#gBqUne .bqUl{position:absolute;top:5px;left:5px;padding:3px 5px;font-size:8px;letter-spacing:1px;background:#14171c;color:#fff}
+#gBqUne .bqU.lim .bqUl{background:#3d4bff}
+#gBqUne .bqUn{padding:6px 7px 0;font-size:8px;color:#14171c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#gBqUne .bqUp{display:flex;align-items:center;gap:4px;padding:5px 7px 8px;font-size:8px;color:#14171c;white-space:nowrap}
+#gBqUne .bqUp .pxi{--pxs:1;color:#14171c}
+#gBqUne .bqU.lim .bqUp{color:#3d4bff}
+#gBqUne .bqUp.acq{color:#8a929c}
+#gBqUne .bqU.sel{box-shadow:0 0 0 2px #14171c,0 8px 18px rgba(30,40,55,.14)}
+#gBqUne.cote .bqU{width:104px}
+#gBqUne.cote .bqUf{height:44px}
+@media (prefers-reduced-motion:reduce){#gBqUne .bqUr{animation:none}}
 #gBqPan{position:absolute;display:none;flex-direction:column;justify-content:flex-end;gap:12px;pointer-events:none}
 #gBq.pan #gBqPan{display:flex;animation:bqPan .5s var(--ease) .2s both}
 @keyframes bqPan{from{opacity:0;translate:0 18px}to{opacity:1;translate:0 0}}
@@ -6607,7 +6617,7 @@ html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) :is(#gTabs,#gRar,#gS
 #gBqPan.cote .bqOng button{min-height:34px}
 #gBqPan .bqK.sel{box-shadow:0 0 0 2px #14171c,0 10px 24px rgba(30,40,55,.16);translate:0 -2px}
 #gBqPan .bqK:is(:active,.appui){translate:0 2px}
-@media (prefers-reduced-motion:reduce){#gBqPan .bqK,#gBq.pan #gBqPan,#gBqTete,#gBqFlash.go,#gBqSem .bqH,#gBq.pan #gBqSem{animation:none}}
+@media (prefers-reduced-motion:reduce){#gBqPan .bqK,#gBq.pan #gBqPan,#gBqTete,#gBqFlash.go{animation:none}}
 /* RETOUR et ACHETER, aux couleurs du magasin : droits, noir et orange */
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>:is(#gShopBas,#gEquip.achat){background:rgba(255,255,255,.92)!important;background-image:none!important;outline:2px solid #16181c;outline-offset:-2px;box-shadow:0 5px 0 rgba(10,11,13,.35)!important;filter:none!important;clip-path:none!important;transform:none!important;translate:none!important;color:#fff}
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>:is(#gShopBas,#gEquip.achat)::before,html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>:is(#gShopBas,#gEquip.achat)::after{display:none!important}
@@ -44065,8 +44075,32 @@ function garBqBatit(){if(GBQ.grp)return; // (2026-10-12, Léo : « lâche le mag
   const tS=cvT(512,512,function(x,w,h){const gr=x.createRadialGradient(w/2,h/2,0,w/2,h/2,w/2);gr.addColorStop(0,'#ffffff');gr.addColorStop(.25,'#f8f9fa');gr.addColorStop(1,'#eceff2');x.fillStyle=gr;x.fillRect(0,0,w,h);});
   const sol=new THREE.Mesh(new THREE.CircleGeometry(R*.97,64),B(0xffffff,{map:tS}));sol.rotation.x=-Math.PI/2;sol.material.color.setScalar(2.3);g.add(sol);
   // (v3, Léo : « il y a juste l'ombre de la voiture ») plus de grille ni d'anneaux
+  /* LE TRÔNE (2026-10-12, Léo : « une compo comme si la voiture était sur son trône ; la lueur en mode pics, comme l'iconographie de Jésus ;
+     inspiré des compositions néo-classiques ; quelque chose qui met en avant la voiture ») : un socle de marbre à trois gradins cerclés d'or
+     pâle, deux colonnes et une architrave derrière (le repère suit la caméra : la composition reste SYMÉTRIQUE autour de la caisse) ; la
+     GLOIRE (rayons d'or pâle, longs et courts, une auréole) derrière elle — voir garBqGloire. */
+  {const Lm=function(c,e){return new THREE.MeshLambertMaterial({color:c,emissive:e||0,flatShading:true,fog:false});},marbre=Lm(0xf3f3f1,0x404044),or=Lm(0xd9c38c,0x3a2e12),
+     C=function(r0,r1,h,n){return new THREE.CylinderGeometry(r0,r1,h,n||48);};
+   let y=0;for(const t of [[2.9,.18],[2.5,.18],[2.15,.2]]){const m=new THREE.Mesh(C(t[0],t[0]+.05,t[1]),marbre);m.position.y=y+t[1]/2;g.add(m);
+     const f=new THREE.Mesh(new THREE.TorusGeometry(t[0]+.012,.024,4,72),or);f.rotation.x=Math.PI/2;f.position.y=y+t[1];g.add(f);y+=t[1];}
+   GBQ.socleH=y;
+   const XC=3.1,ZC=-4.6,HC=5;for(const sx of [-1,1]){const x=sx*XC; // (les colonnes encadrent la caisse, debout comme couché)
+     const b=new THREE.Mesh(new THREE.BoxGeometry(.95,.3,.95),marbre);b.position.set(x,.15,ZC);g.add(b);
+     const fut=new THREE.Mesh(C(.28,.34,HC,16),marbre);fut.position.set(x,.3+HC/2,ZC);g.add(fut);
+     const an=new THREE.Mesh(new THREE.TorusGeometry(.33,.04,4,24),or);an.rotation.x=Math.PI/2;an.position.set(x,.3+HC-.12,ZC);g.add(an);
+     const ch=new THREE.Mesh(new THREE.BoxGeometry(.92,.28,.92),marbre);ch.position.set(x,.3+HC+.14,ZC);g.add(ch);}
+   const ar=new THREE.Mesh(new THREE.BoxGeometry(2*XC+1.3,.46,.95),marbre);ar.position.set(0,.3+HC+.51,ZC);g.add(ar);
+   const fi=new THREE.Mesh(new THREE.BoxGeometry(2*XC+1.32,.06,.97),or);fi.position.set(0,.3+HC+.31,ZC);g.add(fi);}
+  {const cv=document.createElement('canvas');cv.width=cv.height=1024;const x=cv.getContext('2d'),c0=512;
+   {const gr=x.createRadialGradient(c0,c0,0,c0,c0,340);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.42,'rgba(255,251,238,.9)');gr.addColorStop(1,'rgba(255,248,230,0)');x.fillStyle=gr;x.fillRect(0,0,1024,1024);}
+   const N=48;for(let i=0;i<N;i++){const a=i/N*Math.PI*2,L=i%2?330:505,w=i%2?.02:.032,gr=x.createRadialGradient(c0,c0,95,c0,c0,L);
+     gr.addColorStop(0,'rgba(201,168,94,.7)');gr.addColorStop(1,'rgba(201,168,94,0)');x.fillStyle=gr;x.beginPath();
+     x.moveTo(c0+Math.cos(a-w)*95,c0+Math.sin(a-w)*95);x.lineTo(c0+Math.cos(a)*L,c0+Math.sin(a)*L);x.lineTo(c0+Math.cos(a+w)*95,c0+Math.sin(a+w)*95);x.closePath();x.fill();}
+   x.strokeStyle='rgba(190,156,82,.8)';x.lineWidth=5;x.beginPath();x.arc(c0,c0,176,0,Math.PI*2);x.stroke();x.lineWidth=2;x.beginPath();x.arc(c0,c0,158,0,Math.PI*2);x.stroke();
+   GBQ.gloire=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cv),transparent:true,opacity:0,depthWrite:false,fog:false}));
+   GBQ.gloire.renderOrder=4;GBQ.gloire.visible=false;scene.add(GBQ.gloire);}
   const tOmb=cvT(128,128,function(x,w,h){const gr=x.createRadialGradient(64,64,0,64,64,64);gr.addColorStop(0,'rgba(20,24,30,.55)');gr.addColorStop(1,'rgba(20,24,30,0)');x.fillStyle=gr;x.fillRect(0,0,w,h);});
-  GBQ.omb=new THREE.Mesh(new THREE.PlaneGeometry(1,1),B(0x000000,{map:tOmb,transparent:true,opacity:.5,depthWrite:false}));GBQ.omb.rotation.x=-Math.PI/2;GBQ.omb.position.y=.01;GBQ.omb.renderOrder=3;g.add(GBQ.omb);
+  GBQ.omb=new THREE.Mesh(new THREE.PlaneGeometry(1,1),B(0x000000,{map:tOmb,transparent:true,opacity:.5,depthWrite:false}));GBQ.omb.rotation.x=-Math.PI/2;GBQ.omb.position.y=(GBQ.socleH||0)+.006;GBQ.omb.renderOrder=3;g.add(GBQ.omb);
   // L'ONDE DU BOUM : dans la scène (elle part encore dans l'atelier)
   GBQ.choc=new THREE.Mesh(new THREE.RingGeometry(.86,1,56),new THREE.MeshBasicMaterial({color:0xdfe7ff,transparent:true,opacity:0,depthWrite:false,fog:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide}));
   GBQ.choc.rotation.x=-Math.PI/2;GBQ.choc.visible=false;scene.add(GBQ.choc);
@@ -44090,6 +44124,11 @@ function garBqLueurBatit(){if(GBQ.halo)return;
   const t=new THREE.CanvasTexture(cv),m=function(){const mt=new THREE.MeshBasicMaterial({map:t,transparent:true,opacity:0,depthWrite:false,fog:false});mt.color.setScalar(1.3);return mt;};
   GBQ.halo=new THREE.Mesh(new THREE.PlaneGeometry(1,1),m());GBQ.halo.visible=false;GBQ.halo.renderOrder=5;scene.add(GBQ.halo);
   GBQ.nappe=new THREE.Mesh(new THREE.PlaneGeometry(1,1),m());GBQ.nappe.rotation.x=-Math.PI/2;GBQ.nappe.visible=false;GBQ.nappe.renderOrder=4;scene.add(GBQ.nappe);}
+function garBqGloire(dt,t9){const G9=GBQ.gloire;if(!G9)return;
+  const kg=GBQ.on?Math.min(1,Math.max(0,(GBQ.t-.95)/.75)):Math.max(0,(GBQ.gk||0)-dt*5);GBQ.gk=kg;G9.visible=kg>.01;if(!G9.visible)return;
+  const v=GBQ._vg||(GBQ._vg=new THREE.Vector3()),d=GBQ._dg||(GBQ._dg=new THREE.Vector3());carGroup.getWorldPosition(v);v.y+=.5;
+  d.copy(v).sub(camera.position);d.y=0;d.normalize();G9.position.copy(v).addScaledVector(d,3.6);G9.quaternion.copy(camera.quaternion);G9.rotateZ(t9*.045);
+  const e=kg*kg*(3-2*kg),sc=13-3.2*e;G9.scale.set(sc,sc,1);G9.material.opacity=e*.95;}
 function garBqLueur(ay){const g=GBQ.lueur||0;garBqLueurBatit();const vis=g>.002;GBQ.halo.visible=GBQ.nappe.visible=vis;if(!vis)return;
   const v=GBQ._vl||(GBQ._vl=new THREE.Vector3()),d=GBQ._dl||(GBQ._dl=new THREE.Vector3());carGroup.getWorldPosition(v);v.y+=.55;
   d.copy(v).sub(camera.position);d.y=0;d.normalize();GBQ.halo.position.copy(v).addScaledVector(d,2.8);GBQ.halo.quaternion.copy(camera.quaternion);
@@ -44119,7 +44158,7 @@ function garBqUI(){let ui=document.getElementById('gBq');if(ui)return ui;
   ui=document.createElement('div');ui.id='gBq';
   ui.innerHTML='<div id="gBqTete"><div class="bqT1"><b data-fr="BOUTIQUE">'+sansAcc(TR('BOUTIQUE'))+'</b><div class="bqSel"><span class="bqRar"></span><span class="bqNom"></span></div><span class="bqLim">'+pxi('horloge')+'<em></em></span></div>'
     +'<div class="bqArg">'+pxi('piece')+'<b id="gBqArg"></b></div></div>'
-    +'<div id="gBqSem"><div class="bqSt"><b>'+sansAcc(TR('CETTE SEMAINE'))+'</b><em>'+pxi('horloge')+'<i></i></em></div><div class="bqSl"></div></div>'
+    +'<div id="gBqUne"><div class="bqUt"><b>'+sansAcc(TR('À LA UNE'))+'</b><em>'+pxi('horloge')+'<i></i></em></div><div class="bqUv"><div class="bqUr"></div></div></div>'
     +'<div id="gBqPan"><div class="bqOng" role="tablist"><button data-o="voit" class="on" role="tab">'+sansAcc(TR('VOITURES'))+'<i class="n1"></i></button><button data-o="off" role="tab">'+sansAcc(TR('OFFRES'))+'<i class="n2"></i></button></div>'
     +'<div class="bqRail"></div></div>';
   gEl.insertBefore(ui,gEl.firstChild);
@@ -44127,7 +44166,7 @@ function garBqUI(){let ui=document.getElementById('gBq');if(ui)return ui;
     if(!garageOn||GAR.go||ecranWipe._on||!GBQ.on)return;const o=b.getAttribute('data-o');if(o===GBQ.ong)return;uiPop(b);uiClic('onglet');GBQ.ong=o;GBQ.rk='';});
   ui.querySelector('.bqRail').addEventListener('click',function(e){const t=e.target.closest&&e.target.closest('.bqK');if(!t)return;e.stopPropagation();
     if(!garageOn||GAR.go||ecranWipe._on||!GBQ.on)return;uiPop(t);uiClic('nav');bqEssaie('v:'+t.getAttribute('data-i'));});
-  ui.querySelector('.bqSl').addEventListener('click',function(e){const t=e.target.closest&&e.target.closest('.bqH');if(!t)return;e.stopPropagation();
+  ui.querySelector('.bqUr').addEventListener('click',function(e){const t=e.target.closest&&e.target.closest('.bqU');if(!t)return;e.stopPropagation();
     if(!garageOn||GAR.go||ecranWipe._on||!GBQ.on)return;uiPop(t);uiClic('nav');bqEssaie(t.getAttribute('data-k'));});
   return ui;}
 function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBqPan'),voulu=GBQ.on&&gModeM()==='shop'&&!GMODE.paye;
@@ -44145,12 +44184,17 @@ function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBq
         +'<span class="bqKph" data-ph="'+i+'"></span>'+(ong==='off'?'<span class="bqKl">'+sansAcc(TR('LIMITÉE'))+'</span>':'')
         +'<span class="bqKn">'+sansAcc(TR(CARS[i].name))+'</span><span class="bqKp '+px.c+'">'+(px.c==='pc'?pxi('piece'):'')+String(px.t).replace(/</g,'')+'</span></div>';}).join('');
     rail.querySelectorAll('.bqKph[data-ph]').forEach(function(el){photoFile(+el.getAttribute('data-ph'),function(url){if(!el.firstChild){const im=document.createElement('img');im.alt='';im.src=url;el.appendChild(im);}});});}
-  // LES OBJETS DE LA SEMAINE (trois carrés : peinture, aile, traînée — touchés, on les essaie sur la caisse)
-  const S=bqSemaine().l,sem=document.getElementById('gBqSem'),sl=sem.querySelector('.bqSl'),sk=S.join(',')+':'+S.map(function(k){return bqA(k)?1:0;}).join('')+':'+LANG;
-  if(GBQ.sk!==sk){GBQ.sk=sk;GBQ.vu='';
-    sl.innerHTML=S.map(function(k,n){const o=bqCos(k),d=o.d,a=bqA(k),ri=rarInfo(cosmRar(o.cat,d));
-      return '<div class="bqH" data-k="'+k+'" role="button" style="--rc:'+ri.c+';--i:'+n+'" aria-label="'+String(TR(d.n)).replace(/"/g,'')+'"><span class="bqHf c-'+o.cat+'">'+bqFigHab(k)+'</span><span class="bqHp'+(a?' acq':'')+'">'+(a?sansAcc(TR('À TOI')):(pxi('piece')+fmtC(d.p||0)))+'</span></div>';}).join('');}
-  {const t=sem.querySelector('.bqSt em i:not(.pxi)'),r=bqHebdoReste();if(t&&t.textContent!==r)t.textContent=r;}
+  // À LA UNE (Léo : « je les vois bien défiler, les objets mis en avant ») : les éditions limitées et les objets de la semaine défilent
+  const S=bqSemaine().l,une=document.getElementById('gBqUne'),ur=une.querySelector('.bqUr'),U=E.map(function(n){return 'v:'+n;}).concat(S),
+    uk=U.join(',')+':'+U.map(function(k){return bqA(k)?1:0;}).join('')+':'+LANG;
+  if(GBQ.uk!==uk){GBQ.uk=uk;GBQ.vu='';
+    const h=U.map(function(k){const vo=k[0]==='v',n=vo?+k.slice(2):-1,o=vo?null:bqCos(k),a=bqA(k),ri=rarInfo(vo?carRar(n):cosmRar(o.cat,o.d)),
+        nom=vo?TR(CARS[n].name):TR(o.d.n),px=a?sansAcc(TR('À TOI')):vo?eurTxt((CAR_UNLOCK[n]||{}).eur):pxi('piece')+fmtC(o.d.p||0);
+      return '<div class="bqU'+(vo?' lim':'')+'" data-k="'+k+'" role="button" style="--rc:'+ri.c+'" aria-label="'+String(nom).replace(/"/g,'')+'"><span class="bqUf">'+(vo?'<span class="bqUph" data-ph="'+n+'"></span>':bqFigHab(k))+'</span>'
+        +'<span class="bqUl">'+sansAcc(TR(vo?'LIMITÉE':'SEMAINE'))+'</span><span class="bqUn">'+sansAcc(String(nom))+'</span><span class="bqUp'+(a?' acq':'')+'">'+String(px)+'</span></div>';}).join('');
+    ur.innerHTML=h+h;ur.style.setProperty('--n',U.length);
+    ur.querySelectorAll('.bqUph[data-ph]').forEach(function(el){photoFile(+el.getAttribute('data-ph'),function(url){if(!el.firstChild){const im=document.createElement('img');im.alt='';im.src=url;el.appendChild(im);}});});}
+  {const t=une.querySelector('.bqUt em i:not(.pxi)'),r=bqHebdoReste();if(t&&t.textContent!==r)t.textContent=r;}
   // CE QU'ON REGARDE (caisse ou objet), en petit sous BOUTIQUE
   const i=garageI,cur=bqCourant(),lim=cur[0]==='v'&&E.indexOf(i)>=0,te=document.getElementById('gBqTete');
   if(GBQ.vu!==cur){GBQ.vu=cur;let ri,nom;
@@ -44158,18 +44202,18 @@ function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBq
     te.style.setProperty('--rc',ri.c);te.classList.toggle('lim',lim);
     te.querySelector('.bqRar').textContent=sansAcc(TR(ri.n1));te.querySelector('.bqNom').textContent=sansAcc(String(nom));
     rail.querySelectorAll('.bqK').forEach(function(el){el.classList.toggle('sel',cur==='v:'+el.getAttribute('data-i'));});
-    sl.querySelectorAll('.bqH').forEach(function(el){el.classList.toggle('sel',el.getAttribute('data-k')===cur);});}
+    ur.querySelectorAll('.bqU').forEach(function(el){el.classList.toggle('sel',el.getAttribute('data-k')===cur);});}
   {const t=te.querySelector('.bqLim em'),r=bqHebdoReste();if(t&&lim&&t.textContent!==r)t.textContent=r;}
   // LA PLACE : debout le panneau en bas, la caisse entre l'en-tête et lui ; couché le panneau à droite
   const W=VP.w,H=VP.h,ac=document.getElementById('gAct'),tr=te.getBoundingClientRect(),arc=ac&&ac.getBoundingClientRect(),cou=W>H*1.2;
   const bas=arc&&arc.height?arc.top:H-80,lay=W+'x'+H+':'+Math.round(bas)+':'+(arc?Math.round(arc.left):0)+':'+ong;
   if(GBQ.lay!==lay){GBQ.lay=lay;
     if(!cou){pan.style.left='14px';pan.style.right='14px';pan.style.top='auto';pan.style.bottom=(H-bas+12)+'px';pan.classList.remove('cote');
-      const ph=pan.getBoundingClientRect().height;sem.style.left='14px';sem.style.right='14px';sem.style.bottom=(H-bas+12+ph+12)+'px';sem.classList.remove('cote');}
-    else{const x0=Math.max(W*.5,(arc&&arc.width?arc.left:W*.55)-6);pan.style.left=x0+'px';pan.style.right='12px';pan.style.top=(tr.bottom+14)+'px';pan.style.bottom=(H-bas+10)+'px';pan.classList.add('cote');
-      sem.style.left='14px';sem.style.right='auto';sem.style.bottom='12px';sem.classList.add('cote');} // couché : un petit carré en bas à gauche, sous la caisse
+      const ph=pan.getBoundingClientRect().height;une.style.left='0';une.style.right='0';une.style.top='auto';une.style.bottom=(H-bas+12+ph+14)+'px';une.classList.remove('cote');} // debout : sur toute la largeur, sous la caisse
+    else{const x0=Math.max(W*.5,(arc&&arc.width?arc.left:W*.55)-6);une.style.left=x0+'px';une.style.right='12px';une.style.bottom='auto';une.style.top=(tr.bottom+12)+'px';une.classList.add('cote');
+      const uh=une.getBoundingClientRect().height;pan.style.left=x0+'px';pan.style.right='12px';pan.style.top=(tr.bottom+12+uh+10)+'px';pan.style.bottom=(H-bas+10)+'px';pan.classList.add('cote');} // couché : au-dessus de la boutique, sur sa largeur
     garLibre._r=null;}
-  {const pr=pan.getBoundingClientRect(),sr=sem.getBoundingClientRect();GBQ.zone=cou?{cote:true,x0:pr.left,y0:tr.bottom+6,y1:sr.top-6}:{g:14,d:W-14,y0:tr.bottom+10,y1:sr.top-8};}
+  {const pr=pan.getBoundingClientRect(),ru=une.getBoundingClientRect();GBQ.zone=cou?{cote:true,x0:Math.min(pr.left,ru.left),y0:tr.bottom+6}:{g:14,d:W-14,y0:tr.bottom+10,y1:ru.top-8};}
 }
 function bqEssaie(k){ // la même chose qu'une carte de la vitrine du jour (voir le clic de #gStrip) : on ESSAIE ; à toi, elle s'équipe
   if(k[0]==='v'){const i=+k.slice(2);if(SHOP.tab!=='voiture')shopTab('voiture');const eq9=garEquipeCaisse(i);if(i!==garageI)garageSaute(i);else if(eq9)garageShow(i);}
@@ -44192,18 +44236,18 @@ function garBqIndus(dt,ay,t9){
   if(!GBQ.bascule&&GBQ.t>(veut?.95:.1)){GBQ.bascule=true;GBQ.on=veut;garBqAmbiance(veut);}
   if(GBQ.on&&GBQ.t>1.4)GBQ.lueur=Math.max(0,1-(GBQ.t-1.4)/.5); // basculée : la lueur se retire (blanc sur blanc)
   if(GAR.go&&(GBQ.on||GBQ.veut)){GBQ.on=GBQ.veut=false;GBQ.bascule=true;bqClasses(false);garBqAmbiance(false);GBQ.lueur=0;}
-  try{garBqLueur(ay);}catch(e){}
+  try{garBqLueur(ay);garBqGloire(dt,t9);}catch(e){}
   const on=GBQ.on;
   if(GBQ.grp){GBQ.grp.visible=on;if(on){GAR.root.visible=false;GBQ.grp.position.set(0,ay,0);GBQ.grp.rotation.y=garCamA();}}
   {const c=on?1:0,w=3;GBQ.kv+=(w*w*(c-GBQ.k)-2*w*GBQ.kv)*dt;GBQ.k+=GBQ.kv*dt;}
   // LA LÉVITATION : le petit coup (elle s'enfonce), le BOUM (elle bondit, dépasse), puis elle flotte
   if(veut&&GBQ.coupT>=0&&GBQ.coupT<.12){GBQ.lev=-.06*Math.sin(Math.PI*.5*GBQ.coupT/.12);GBQ.levV=0;}
-  else{const c=veut?.6:0,w=veut?5.6:5.5,z=veut?.55:1;GBQ.levV+=(w*w*(c-GBQ.lev)-2*z*w*GBQ.levV)*dt;GBQ.lev+=GBQ.levV*dt;}
+  else{const c=veut?.95:0,w=veut?5.6:5.5,z=veut?.55:1;GBQ.levV+=(w*w*(c-GBQ.lev)-2*z*w*GBQ.levV)*dt;GBQ.lev+=GBQ.levV*dt;}
   if(!veut&&Math.abs(GBQ.lev)<.002&&Math.abs(GBQ.levV)<.01){GBQ.lev=0;GBQ.levV=0;}
   // LE DOIGT : lacet libre avec élan, tangage qui revient doucement ; au retour, elle se repose à plat
   if(!GBQ.drag){GBQ.yaw+=GBQ.yawV*dt;GBQ.yawV*=Math.exp(-2.4*dt);const pw=1.7;GBQ.pitV+=(pw*pw*(0-GBQ.pit)-2*pw*GBQ.pitV)*dt;GBQ.pit+=GBQ.pitV*dt;}
   if(!veut){const tg=Math.round(GBQ.yaw/(2*Math.PI))*2*Math.PI;GBQ.yaw+=(tg-GBQ.yaw)*Math.min(1,dt*5);GBQ.yawV=0;}
-  const fl=Math.max(0,Math.min(1,GBQ.lev/.6));
+  const fl=Math.max(0,Math.min(1,GBQ.lev/.95));
   if(Math.abs(GBQ.lev)>1e-4||Math.abs(GBQ.yaw)>1e-4||Math.abs(GBQ.pit)>1e-4){
     carGroup.position.y+=GBQ.lev+Math.sin(t9*1.6)*.05*fl;
     const cA=garCamA(),q=GBQ._q||(GBQ._q=new THREE.Quaternion()),q2=GBQ._q2||(GBQ._q2=new THREE.Quaternion()),ax=GBQ._ax||(GBQ._ax=new THREE.Vector3()),Y=GBQ._Y||(GBQ._Y=new THREE.Vector3(0,1,0));
@@ -44212,7 +44256,7 @@ function garBqIndus(dt,ay,t9){
   // l'ombre sous la caisse et l'onde du boum
   if(GBQ.anneaux&&on){GBQ.anneaux[0].rotation.z+=dt*.12;GBQ.anneaux[1].rotation.z-=dt*.22;}
   if(!veut&&Math.abs(GBQ.lev)<.002){GBQ.yaw-=Math.round(GBQ.yaw/(2*Math.PI))*2*Math.PI;if(Math.abs(GBQ.yaw)<.002)GBQ.yaw=0;if(Math.abs(GBQ.pit)<.002){GBQ.pit=0;GBQ.pitV=0;}} // reposée : plus rien n'oriente la caisse que le plateau
-  if(GBQ.omb){const s=4.6-1.4*fl;GBQ.omb.scale.set(s,s,1);GBQ.omb.material.opacity=.5-.22*fl;}
+  if(GBQ.omb){const s=4.2-.9*fl;GBQ.omb.scale.set(s,s,1);GBQ.omb.material.opacity=.42-.12*fl;}
   if(GBQ.choc){GBQ.chocT+=dt;const u=GBQ.chocT/.55;GBQ.choc.visible=u<1;if(u<1){const s=1.2+4.2*(1-Math.pow(1-u,3));GBQ.choc.scale.set(s,s,s);GBQ.choc.position.set(0,ay+GAR.POD+.06,0);GBQ.choc.material.opacity=.85*(1-u);}}
   try{garBqPanneau(dt,t9);}catch(e){}
 }
@@ -44227,7 +44271,7 @@ function garBqLumiere(){if(!GBQ.on)return; // la lumière du magasin : blanche, 
     GBQ.yaw+=dx*.011;GBQ.pit=THREE.MathUtils.clamp(GBQ.pit+dy*.008,-1.05,1.05);GBQ.yawV=GBQ.yawV*.5+dx*.011/ds*.5;},true);
   const fin=function(e){const d=GBQ.drag;if(!d||d.id!==e.pointerId)return;e.stopPropagation();GBQ.drag=null;if(performance.now()-d.t>90)GBQ.yawV=0;};
   addEventListener('pointerup',fin,true);addEventListener('pointercancel',fin,true);})();
-try{Object.assign(I18N,{'OFFRES':'OFFERS','VOITURES':'CARS','CETTE SEMAINE':'THIS WEEK','TOUT VOIR':'SEE ALL','TRAÎNÉE':'TRAIL','AILE':'WING','CAISSE':'CAR','ÉDITIONS LIMITÉES':'LIMITED EDITIONS','TOUTES LES VOITURES':'ALL CARS','LIMITÉE':'LIMITED','À TOI':'YOURS','Dans ton garage':'In your garage','Exclusivité boutique — introuvable en jeu':'Shop exclusive — not obtainable in game','Exclusivité boutique — revient en édition limitée':'Shop exclusive — returns as a limited edition','En vente':'For sale','Se gagne aux défis':'Earned through challenges'});}catch(e){}
+try{Object.assign(I18N,{'À LA UNE':'FEATURED','SEMAINE':'WEEKLY','OFFRES':'OFFERS','VOITURES':'CARS','CETTE SEMAINE':'THIS WEEK','TOUT VOIR':'SEE ALL','TRAÎNÉE':'TRAIL','AILE':'WING','CAISSE':'CAR','ÉDITIONS LIMITÉES':'LIMITED EDITIONS','TOUTES LES VOITURES':'ALL CARS','LIMITÉE':'LIMITED','À TOI':'YOURS','Dans ton garage':'In your garage','Exclusivité boutique — introuvable en jeu':'Shop exclusive — not obtainable in game','Exclusivité boutique — revient en édition limitée':'Shop exclusive — returns as a limited edition','En vente':'For sale','Se gagne aux défis':'Earned through challenges'});}catch(e){}
 window.dbgBqIndus=function(){return {veut:GBQ.veut,on:GBQ.on,lev:+GBQ.lev.toFixed(2),k:+GBQ.k.toFixed(2),yaw:+GBQ.yaw.toFixed(2),pit:+GBQ.pit.toFixed(2),ong:GBQ.ong||'eph',eph:GBQ.eph?GBQ.eph.l:null,caisse:garageI,reste:bqHebdoReste(),
   rail:[...document.querySelectorAll('#gBqPan .bqK')].map(function(el){const r=el.getBoundingClientRect();return [+el.getAttribute('data-i'),Math.round(r.x),Math.round(r.y),Math.round(r.width),Math.round(r.height),el.classList.contains('sel')];}),zone:GBQ.zone};};
 function garGlitch(){let el=document.getElementById('gGlitch'); // (essai boutique virtuelle, repris) le GLITCH : des bandes qui sautent, l'image qui tressaute, 0,72 s
