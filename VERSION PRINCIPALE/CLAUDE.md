@@ -146,6 +146,21 @@ Un outil À CÔTÉ du jeu, qui ne refait RIEN : il lance LE JEU (`index.html`, s
     ⚠ `choix-musiques.json` et `play.json` sont les DONNÉES de Léo (pas commitées tant qu'il range) — ne pas les écraser en test.
   · `?muet=1` (bancs) : la `destination` de chaque contexte audio passe par un gain nul (page, module, cadre de la page à jauge).
     `SIMU.musique()` = le pilote (MUS.inst = le module en cours).
+- LE JEU AU SURVOL (12/10, Léo : « l'important, c'est qu'on puisse jouer dans la map : enlève l'écran d'accueil ; je dois pouvoir jouer
+  dès que je mets mon curseur sur l'image, avec mes flèches, la musique automatiquement ; si je clique, c'est juste la course ») :
+  · le JEU en `?simu=1` (index.html, `SIMU_JEU`) : pas d'écran titre (le voile s'ouvre à 80 ms, comme la balade), pas de rechargement
+    automatique à une nouvelle version, et son plafond de résolution (DPR_CAP) suit le zoom du cadre (aperçu ×0,28 → plein écran net).
+    `dbgQuitte()` = finir la course sans explosion (comme QUITTER). Sans `?simu=1`, le jeu ne change pas.
+  · `course.html?nu=1` = la course seule, sans barre ; elle attend (`phase 'pret'`) que la page des maps dise quel niveau. `SIMU.lance(id)`
+    change de niveau sans recharger (dbgQuitte puis départ 0,25 s après), `SIMU.pause(v)` passe par le panneau ⏸ du jeu (`__panBascule`,
+    décidé sur `#tPanel.open`, PAS sur `paused` : pendant le 3-2-1 le jeu est encore gelé, basculer rouvrait la pause), `SIMU.relaie`
+    (touches de la page), `SIMU.geste` (réveille la musique). Échap dans le jeu → `simu:echap` vers la page des maps.
+  · la page des maps charge UNE course (`#apercu`) dès l'ouverture ; survol = posée sur l'image, le niveau part (~2,5 s), la musique à la
+    1re touche (le navigateur exige un geste) ; souris partie = pause ; clic (image ou Jouer) = la même course en plein écran ; ✕ / Échap.
+- LE BOOST NE JOUE PLUS D'INSTRUMENT (12/10, Léo : « enlève le boost instrument, il fait un bruit horrible qui casse tout ») : `INSTRU.on`
+  = false dans le jeu. `instruMusiqueOk` regardait la SOURCE du lecteur, pas s'il jouait : au simulateur (musique du jeu coupée) la phrase
+  du CIEL partait sous une autre musique. `dbgInstru(1)` la rallume pour l'écouter.
+- SOLEIL DE JADE : photo de la liste reprise au banc avec le nouveau look (pièces d'argent à trou carré, ciel orangé) — `maps-ciel/img/jade-volant.jpg`.
 
 ## LA MERCURE v2 (2026-10-11, Léo, « retoucheur de voitures ») — l'hypercar en MERCURE LIQUIDE, caisse ajoutée EN DERNIER (index 75), ÉPIQUE 3 800 000 $, `SHAPES.mercure`
 Née d'une planche de concepts générés en images (session « retoucheur »), « génère la mercure », « génère-la en 3D dans mon jeu ». La v1 (un loft à

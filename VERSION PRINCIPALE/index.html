@@ -8668,6 +8668,15 @@ let JADE_JEU=/[?&]niveau=jade\b/.test(location.search)&&!BALADE;
    sauf pour un tout premier joueur (l'auto-école d'abord) et au simulateur pour ses parties SANS FIN (`?play=sansfin`). Sa musique : GLISSE V2
    (le module de Léo, `assets/audio/music/musique-glisse-v2.js` — la copie de `simulateur/musiques/`, son choix au simulateur), voir JMUS. */
 const JADE_PLAY=!/[?&]play=(sansfin|carriere)\b/.test(location.search)&&!BALADE;
+/* (2026-10-12, Léo : « l'important avec ce simulateur, c'est qu'on puisse jouer dans la map : enlève l'écran d'accueil ») LE JEU DU SIMULATEUR —
+   `?simu=1` (posé par simulateur/course.html) : pas d'écran titre (le voile s'ouvre tout seul, comme la balade), pas de rechargement automatique
+   quand une nouvelle version sort (le simulateur garde la main) ; le reste est le jeu tel quel. `dbgQuitte()` finit la course sans explosion. */
+const SIMU_JEU=/[?&]simu=1\b/.test(location.search);
+/* (2026-10-12, le simulateur) la page des maps pose ce jeu en PETIT sur une image puis en PLEIN ÉCRAN : son cadre change de zoom, donc de
+   devicePixelRatio — le plafond de résolution (DPR_CAP), pris une fois au démarrage, restait celui de la petite image (plein écran flou).
+   En ?simu=1 seulement, il suit le zoom du cadre (même calcul qu'au démarrage). */
+if(SIMU_JEU){let dpr9=devicePixelRatio;setInterval(function(){if(Math.abs(devicePixelRatio-dpr9)<.01)return;dpr9=devicePixelRatio;
+  try{DPR_CAP=Math.min(devicePixelRatio,IS_MOBILE?1:1.5);qlReprise();}catch(e){}},250);}
 if(BALADE)document.documentElement.classList.add('balade');
 const IS_LOW_END=IS_MOBILE||(navigator.hardwareConcurrency>0&&navigator.hardwareConcurrency<=4);
 const REDUCED_MOTION=(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)||false; // ACCESSIBILITÉ : iOS « Réduire les animations » → coupe bloom + grain + effets de vitesse
@@ -34961,7 +34970,10 @@ function nitroEteint(){ // LA DERNIÈRE BOUFFÉE : une langue de feu aux pots + 
    · LÂCHER = plus de nouvelles notes, celles qui sonnent s'éteignent seules. La grille repart du I après 2,5 s sans appui.
    Discret (≈ −30 dB sous une voix pleine), un écho en croche pointée. Par MASTER (curseur EFFETS) : marche aussi sur iPhone.
    `dbgInstru()` : état · `dbgInstru(0|1)` coupe / rallume · `dbgInstru('essai')` (banc muet : les fréquences jouées). */
-const INSTRU={fins:[],der:0,on:true,tient:false,k:0,n:0,tNote:0,tDer:0,bus:null,iv:0,vu:[],pas:.15,off:null,queue:0,mel:14,vel:1,acc:0};
+/* (2026-10-12, Léo : « enlève le boost instrument, il fait un bruit horrible qui casse tout ») : la phrase est COUPÉE (`on:false`) — elle
+   lisait la musique du CIEL (instruMusiqueOk regardait la SOURCE du lecteur, pas s'il jouait) et partait donc aussi sous une autre musique
+   (simulateur, GLISSE V2…), à contretemps et hors tonalité. Tout le code reste : `dbgInstru(1)` la rallume pour l'écouter. */
+const INSTRU={fins:[],der:0,on:false,tient:false,k:0,n:0,tNote:0,tDer:0,bus:null,iv:0,vu:[],pas:.15,off:null,queue:0,mel:14,vel:1,acc:0};
 /* (2026-10-03, Léo : « le 3e et le 4e son gâchent un peu la musique — baisse ou adapte si tu vois c'est quoi la dissonance ») : LA
    DISSONANCE = la 4te (5 demi-tons) et la 7e majeure (11) — dans IV maj9 et V9 surtout, et dans les 7es de I et vi. La phrase part quand
    le JOUEUR appuie, pas sur la grille d'accords du morceau : ces deux notes tombaient sur un autre accord et frottaient. Désormais
@@ -39470,6 +39482,8 @@ function jadeMusTick(){
   else if(i.playing){try{i.stop();}catch(e){}JMUS.P=0;}}
 addEventListener('pointerdown',function(){if(JMUS.kick||!JMUS.inst||!jadeMusVeut())return;JMUS.kick=true;try{JMUS.inst.stop();JMUS.inst.start();JMUS.vol=-1;JMUS.P=0;}catch(e){}},true);
 window.dbgJadeMus=function(){return {charge:!!JMUS.mod,inst:!!JMUS.inst,joue:!!(JMUS.inst&&JMUS.inst.playing),palier:JMUS.P,bpm:JMUS.inst&&JMUS.inst.bpm,err:JMUS.err,radio:musicEl?!musicEl.paused:null,veut:jadeMusVeut()};};
+window.dbgQuitte=function(){ // (2026-10-12, le simulateur) finir la course en cours SANS explosion — comme QUITTER du panneau ⏸
+  if(!started||gameOver)return 'pas de course';if(TUTO.on)tutoQuitte();const sb=SANDBOX;SANDBOX=false;endGame();SANDBOX=sb;return 'fini';};
 window.dbgCampagne=function(n,b){ // (dev) lancer un niveau de carrière depuis la console : dbgCampagne(5) (NUAGES), dbgCampagne(3,1) (VILLE)
   b=Math.max(0,Math.min(CARRIERE.length-1,b|0));n=Math.max(1,Math.min(CARRIERE[b].niveaux.length,n|0));if(started&&!gameOver)return 'en course';carrLancer(b,n-1);return CARRIERE[b].id+' '+n;};
 window.dbgCamp=function(){return {niveau:CAMP.n,corde:CORDE_ON,degats:+CAMP.dmg.toFixed(2),proche:Math.round(CAMP.proche),coupes:CAMP.coupes.map(function(c){return {sA0:Math.round(c.sA0),sA1:Math.round(c.sA1),sB0:Math.round(c.sB0),cote:c.side,ecart:+(c.gap||0).toFixed(1)};}),
@@ -48529,7 +48543,7 @@ renderLeaders(-1);
   T9(function(){if(!launched&&!done){
     const n=document.getElementById('spNote');if(n)n.classList.add('on');
   }},900);
-  if(NUAGES_LAB||BALADE)T9(hide,80); // (atelier des nuages) droit à l'écran titre, sans l'intro ni son clic
+  if(NUAGES_LAB||BALADE||SIMU_JEU)T9(hide,80); // (atelier des nuages) droit à l'écran titre, sans l'intro ni son clic — (2026-10-12) le simulateur aussi
   // ---- SOUND DESIGN « 1.61 » : tout est accordé sur le NOMBRE D'OR φ=1,618 ----
   // Échelle inouïe (intervalles de φ : ni octaves ni quintes — le son littéral de 1.61),
   // compteuse à billets en guise de riser, sub qui bat à 0,618 Hz, jackpot de pièces à la fission.
@@ -49545,7 +49559,7 @@ if('serviceWorker'in navigator&&!window.Capacitor&&!POKI&&(location.protocol==='
    Copie locale / file:// / appli Capacitor : rien. Le numéro se lit en bas des RÉGLAGES (et sous le jeu sur l'ordi). */
 (function(){
   var e=document.getElementById('mvVer');if(e)e.textContent='VERSION '+CC_VER;
-  if(/^__/.test(CC_BUILD)||window.Capacitor||POKI||!(location.protocol==='http:'||location.protocol==='https:')||NUAGES_LAB||BALADE)return; // (l'atelier des nuages ne se recharge pas en plein réglage)
+  if(/^__/.test(CC_BUILD)||window.Capacitor||POKI||!(location.protocol==='http:'||location.protocol==='https:')||NUAGES_LAB||BALADE||SIMU_JEU)return; // (l'atelier des nuages ne se recharge pas en plein réglage — le simulateur non plus)
   var neuf=null,vu=0,touche=Date.now();
   /* (2026-10-05, Léo : « au début, quand CASH CAR explose, une musique part très fort, puis ça relance au niveau ciel ») ⚠ LA MISE À JOUR
      TOMBAIT EN PLEINE INTRO : la 1re lecture de version.json partait 4 s après l'ouverture et « pas en course » comprenait l'intro — un
