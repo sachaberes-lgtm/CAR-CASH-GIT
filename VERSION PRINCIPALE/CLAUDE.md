@@ -146,6 +146,10 @@ caisse ou un habillage à toi s'équipe quand on le touche, un achat équipe) �
 **L'INVENTAIRE D'ARRIVÉE (2026-10-12, Léo)** : le garage s'ouvre sur l'INVENTAIRE (`gGarageInv`, `#garage.modeInv`), les cinq touches dessous (HOME · INVENTAIRE au-dessus de BOUTIQUE · l'œil · JOUER) ;
 INVENTAIRE ne devient plus RETOUR ; BOUTIQUE → ◀ RETOUR, les autres touches s'effacent, RETOUR ramène à l'inventaire. Le rappel OFFRES ÉPHÉMÈRES (`#gRappel`)
 reste sous l'inventaire debout, masqué couché (pas la place). Le garage replié (`gGarageReplie`) n'est plus appelé.
+**L'ATELIER FERMÉ (même soir)** : INVENTAIRE touché (`gAtelier`, `GATL`, `#garage.atelierInv`) → la porte descend (`GATL.cs` dans garPorte), une lampe descend du plafond et
+s'allume (clé `stallKey` au-dessus, tubes baissés, cône + flaque additifs), une PINCE par roue sort du plateau (colonne, barre en travers de la jante, griffes
+jaunes, diode verte = tenue ; `garPincesPose` lit `wheels`) ; ni burn-out ni coup ; INVENTAIRE devient ◀ RETOUR à gauche, le reste s'efface, l'inventaire en grille
+de trois. `garAtelierTick` après les lampes de garageRender. Banc : `dbgAtelierInv(1|0)` (⚠ `dbgAtelier` est un autre crochet).
 TOUT le rangement vit dans **`<style id="uxPasse">`**, la DERNIÈRE feuille de la page (juste après `<style id="poki">`) : retirer le bloc = revenir.
 Le HTML, les identifiants et les écouteurs ne bougent pas, sauf HOME et l'œil (voir plus bas). Règles : on LIT en haut, on TOUCHE en bas ; un
 rôle = une place ; l'action principale = l'unique plaque d'or ; mêmes hauteurs sur une rangée ; 44 px au doigt ; la VUE flotte sur la scène,
