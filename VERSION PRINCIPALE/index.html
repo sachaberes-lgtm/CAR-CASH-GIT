@@ -39517,12 +39517,12 @@ const JMUS={mod:null,load:false,inst:null,P:0,vol:-1,kick:false,err:null};
 /* (2026-10-12, Léo : « le sound design est complètement niqué, on n'entend rien du tout ») MESURÉ au banc : GLISSE V2 sortait à −10 dB RMS
    au départ et −5/−6 lancée — 15 à 20 dB au-dessus des effets (−26) et 5 à 10 dB au-dessus d'une musique « radio » du jeu (−11 dB RMS
    au fichier × le curseur ,62 ≈ −15). Elle couvrait TOUT. Son niveau dans le jeu : ×,4 (−8 dB) — la même place que la radio. */
-const JMUS_NIV=.3,NIT_GRONDE=.3,JMUS_TON=1; // (2026-10-12, 4e passe) le grondement ,4 → ,3
+const JMUS_NIV=.3,NIT_GRONDE=.3,JMUS_TON=1; // JMUS_NIV ,4 → ,3 (2e passe : « on n'entend pas bien les bruits ») · NIT_GRONDE ,4 → ,3 (4e passe) · JMUS_TON : voir sonTonSuit (3e passe)
 /* (2026-10-12, 4e passe, Léo : « la musique, on ne l'entend pas — elle doit être là, intégrée, derrière le sound design, sans prendre dessus »)
    MESURÉ : GLISSE −20 dB en plein spectre mais −32 au-dessus de 200 Hz (ce que rend un portable / un téléphone) — presque tout son poids est dans
    le sub (808, nappes) : 10 dB SOUS les effets du jeu (−22) sur haut-parleur. À sa sortie : −6 dB sous 160 Hz, +6 dB de niveau → −26 sur
    haut-parleur (4 dB derrière les effets), le grave à peine changé. */
-const JMUS_BASSES=-6,JMUS_SORTIE=2; // (2026-10-12, 2e passe : « on n'entend pas bien les bruits ») la musique ,4 → ,3 : −20 au départ, −14 lancée
+const JMUS_BASSES=-6,JMUS_SORTIE=2;
 function jadeMusOn(){return JADE_JEU&&!!LVL.cur&&LVL.cur.id==='jade';}
 function jadeMusCharge(){if(JMUS.mod||JMUS.load)return;JMUS.load=true;
   try{import('./assets/audio/music/musique-glisse-v2.js').then(function(m){JMUS.mod=m;}).catch(function(e){JMUS.err=String(e);});}catch(e){JMUS.err=String(e);}}
