@@ -8595,6 +8595,12 @@ const IS_MOBILE=FORCE_TEL||TEL_NATIF;
    voiture dans la map ») LA BALADE — `?map=jade` : la caisse sur la route des PICS DE JADE, sa conduite telle quelle ; ni pièces, ni plots,
    ni score, ni HUD ; la mort n'est qu'un replacement (le bac à sable) ; rien n'est écrit dans la sauvegarde. Voir « LES PICS DE JADE ». */
 const BALADE=/[?&](map=jade|balade=1)\b/.test(location.search);
+/* (2026-10-12, Léo : « là, il n'y a pas de fruits, tout ça : fais-en un niveau complet avec ses aspects — fruits custom, pièces ¥ yuan
+   yen — qu'on ajoute au système audio (le simulateur) pour tester, référencé par un nom que tu choisis ») LE NIVEAU « SOLEIL DE JADE » :
+   la map des PICS DE JADE en VRAI niveau (pièces, fruits, plaques, plots, pouvoirs, score, HUD, mort) — `dbgNiveauJade()` le lance
+   (le simulateur l'appelle), `?niveau=jade` le choisit dès le chargement. JADE_JEU vrai = lvlChoisir rend la map, ses fruits à elle,
+   ses pièces frappées du ¥. La BALADE (`?map=jade`, la voiture seule) ne change pas. */
+let JADE_JEU=/[?&]niveau=jade\b/.test(location.search)&&!BALADE;
 if(BALADE)document.documentElement.classList.add('balade');
 const IS_LOW_END=IS_MOBILE||(navigator.hardwareConcurrency>0&&navigator.hardwareConcurrency<=4);
 const REDUCED_MOTION=(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)||false; // ACCESSIBILITÉ : iOS « Réduire les animations » → coupe bloom + grain + effets de vitesse
@@ -11840,7 +11846,7 @@ function buildTrack(seed){
   for(const m of trackMeshes){if(m.geometry)m.geometry.dispose();if(m.material&&m.material.dispose)MAT_SURSIS.add(m.material);} // (perf) matières en sursis : voir MAT_SURSIS
   matSursisN=3;
   trackMeshes.length=0;PISTE_LOD.length=0;NEON_RAILS.length=0;NEON_GLOW.length=0;PADS=[];PADL=[];PAD_MATS.length=0;BUMPS=[];CONES=[];FLYCONES=[];OILS=[];RAMPS=[];
-  const rnd=mulberry32(seed);VILLE_ENTREE=null;MODMARK.length=0;const JADE9=!!(LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on); // (2026-10-09) LES PICS DE JADE : une route nue (ni pad, ni flaque, ni plot)
+  const rnd=mulberry32(seed);VILLE_ENTREE=null;MODMARK.length=0;const JADE9=!!(LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on&&!JADE_JEU); // (2026-10-09) LES PICS DE JADE : une route nue (ni pad, ni flaque, ni plot)
   // (l'entrée surélevée n'existe que si genCtrl la pose : niveau VILLE généré) · (les modules aussi : le parc, l'école et la campagne n'en ont pas)
   const ctrl=PARK.on?genPark(rnd):(LVL.cur&&LVL.cur.piste==='tuto')?genTuto():(LVL.cur&&LVL.cur.piste==='camp')?genCampagne(LVL.cur.camp):(LVL.cur&&LVL.cur.piste==='paris')?genParis():(LVL.cur&&LVL.cur.piste==='jade')?genJade(rnd):genCtrl(rnd,new THREE.Vector3(0,0,0),0); // FREESTYLE : le parc de figures remplace la piste de course · (2026-09-27) CAMPAGNE : la piste dessinée du niveau
   const curve=new THREE.CatmullRomCurve3(ctrl,false,'centripetal'); // (piste v7) centripète : l'uniforme faisait des COUDES entre points inégalement espacés (liaison courte après une grande figure)
@@ -13489,6 +13495,7 @@ window.dbgParisVue=function(k,d,h){const Q=PARIS.Q;if(!Q)return 'pas de Paris';i
    · Les nappes de BRUME restent douces, des vols de GRUES traversent la vallée.
    Console : `dbgJade()`, `dbgJadeVue(k)` ('route' 'porte' 'pont' 'haut' 'loin' 'grue'), `dbgJadeAller('porte'|'pont')`, `dbgJadeHeurt('test')`. */
 const BALADE_MOTEUR=(/[?&]moteur=(\d+)/.exec(location.search)||[0,8])[1]|0; // (BALADE) le moteur de la balade : sans pièces il ne monterait jamais — un V6 biturbo par défaut, `?moteur=n` pour un autre palier
+const JADE_NOM='SOLEIL DE JADE'; // (2026-10-12) le nom du NIVEAU (choisi par Claude, à la demande de Léo) — la map, elle, reste « PICS DE JADE »
 const NIV_JADE={graine:(+((/[?&]graine=(\d+)/.exec(location.search)||[])[1])||0x51ADE),id:'jade',nm:'PICS DE JADE',bio:['jade'],planete:0,espace:0,pluie:0,cielMusical:false,route:.42,sheen:.16,piste:'jade',pr:''};
 const JADE={root:null,Q:null,fam:[],col:null,porte:null,pont:null,brume:null,n:{},ms:0,merY:-420,t:0,sig:0,geos:null,cl:null};
 const JADE_U={uSunDir:{value:SUN_DIR},uSunC:{value:new THREE.Color()},uSky:{value:new THREE.Color()},uGnd:{value:new THREE.Color()},
@@ -14078,6 +14085,7 @@ function buildJade(seed){
   NUVOX.L=null;NUVOX.ims=[];
   for(const F of JADE.fam.concat(FIN.fam.filter(Boolean))){F.im.dispose();if(F.im2&&F.im2!==F.im){F.im2.dispose();F.im3.dispose();}const g9=F.im.geometry;for(const k in g9.attributes)if(k!=='aJ')g9.deleteAttribute(k);g9.setIndex(null);g9.dispose();}JADE.fam=[];FIN.fam=[];FIN.near.length=0;FIN.sig=0;FIN.mats=new Map();FIN.dans=new Set();JADE.col=null;JADE.porte=null;JADE.pont=null;JADE.brume=null;JADE.sig=0;
   if(JADE.root){JADE.root.traverse(function(o){if(o.userData.jeter&&o.geometry)o.geometry.dispose();});JADE.root=null;}JADE.monu=[];
+  try{coinSymbole(!!(JADE_JEU&&LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on));}catch(e){} // (2026-10-12) les pièces du SOLEIL DE JADE frappées du ¥
   if(PARK.on||!LVL.cur||LVL.cur.piste!=='jade'||!(NP>1))return;
   const t00=performance.now(),M9=jadeMats(),G=jadeGabarits(),jr=mulberry32((seed^0x1ADE5EED)>>>0),Q=JADE.Q||{};
   const root=new THREE.Group();root.matrixAutoUpdate=false;scene.add(root);JADE.root=root;trackMeshes.push(root);
@@ -14377,7 +14385,7 @@ function jadeChuteRaz(){for(const c of JCH.L){if(c.orig)for(const o of c.orig)o.
 function jadeAnn(){const h=document.documentElement;h.classList.add('jadeAnn');clearTimeout(jadeAnn.t);jadeAnn.t=setTimeout(function(){h.classList.remove('jadeAnn');},3600);}
 function jadeFinale(){if(JADE.fini){if(s>L-6)s=L-6;return;}JADE.fini=true;jadeAnn();
   const tps=Math.max(0,(performance.now()-(JADE.t0||performance.now()))/1000),mm=Math.floor(tps/60),ss=Math.floor(tps%60);
-  try{slam('ARRIVÉE','PICS DE JADE · '+mm+':'+(ss<10?'0':'')+ss,null,null,null,3,true);}catch(e){}shake=Math.max(shake,.25);
+  try{slam('ARRIVÉE',(JADE_JEU?JADE_NOM:'PICS DE JADE')+' · '+mm+':'+(ss<10?'0':'')+ss,null,null,null,3,true);}catch(e){}shake=Math.max(shake,.25);
   setTimeout(function(){try{ecranWipe(jadeRedemarre);}catch(e){jadeRedemarre();}},2800);}
 function jadeRedemarre(){s=0;lat=0;psi=0;prevTvalid=false;mode='drive';vA=0;jadeChuteRaz();JADE.fini=false;JADE.t0=performance.now();} // (v17, « enlève les intros ») plus de « DÉPART » : on repart, c'est tout
 /* (v16, Léo : « évite les clichés en mode Chine, le but c'est une vibe CHIHIRO ; le sol, fais-le moins scolaire… même des bouts de bois
@@ -14829,6 +14837,8 @@ window.dbgFin=function(v,nu){ // (banc) v : les cubes minuscules on/off ; nu : l
   return {on:FIN.on,dans:FIN.dans.size,D:FIN.D};};
 window.dbgJadePoste=function(k,on){if(!JADE.root)return 'pas de map';on=!!on;
   if(k==='bandes'){const o={};for(const F of JADE.fam){const kk=F.b0+'-'+F.b1+(F.im2?'v':'');o[kk]=(o[kk]||0)+F.im.count*F.tri*(F.im2?3:1);}for(const FF of FIN.fam)if(FF)o.fins=(o.fins||0)+FF.im.count*FF.tri*3;for(const kk in o)o[kk]=Math.round(o[kk]/1000)+'k';return o;}
+  if(k==='ramasse'){const o={pieces:0,fruits:{},pouvoirs:0};for(const p of pickups){if(p.pow)o.pouvoirs++;else if(p.nitro){const n9=(FRUIT_DEFS[p.fruit]||{}).n||'?';o.fruits[n9]=(o.fruits[n9]||0)+1;}else o.pieces++;}o.plots=CONES.length;o.pads=PADS.length;o.flaques=OILS.length;o.coinIM=coinIM.count;o.fruitsS=pickups.filter(function(p){return p.nitro&&p.face===1;}).map(function(p){return [Math.round(p.s),+p.lat.toFixed(1),(FRUIT_DEFS[p.fruit]||{}).n];});o.coinVis=coinIM.visible;o.s=Math.round(s);o.prochaines=pickups.filter(function(p){return p.s>s;}).slice(0,4).map(function(p){const m=p.mesh;return {s:Math.round(p.s),lat:+p.lat.toFixed(1),vis:m&&m.visible,par:!!(m&&m.parent),y:m?Math.round(m.position.y):null,sc:m?+m.scale.x.toFixed(2):null};});const P9=new THREE.Vector3();frameAt(s,F);o.routeY=Math.round(F.p.y);o.cone=CONES.slice(0,2).map(function(c){return {s:Math.round(c.s),mesh:!!c.mesh};});o.coneIM=(typeof CONE_IM!=='undefined'&&CONE_IM)?CONE_IM.map(function(m){return m?m.count:null;}):null;return o;}
+  if(k==='bitume'){scene.traverse(function(o){if(o.isMesh&&o.material&&o.material.userData&&o.material.userData.bitume)o.visible=on;});return 'bitume '+on;}
   if(k==='lod'){JADE_LOD.r0=+arguments[1];JADE.sig=0;return JADE_LOD.r0;}
   if(k==='liste'){const o=[];JADE.root.traverse(function(x){if(!x.visible||!x.isMesh||x.isInstancedMesh)return;const g=x.geometry;const n=(g.index?g.index.count:g.attributes.position.count)/3;if(n>5000)o.push([x.name||(x.material&&x.material.type),Math.round(n/1000)+'k',x.frustumCulled,x.parent===JADE.root?'root':'sous',JADE.porte&&JADE.porte.mF&&JADE.porte.mF.indexOf(x)>=0?'porteF':JADE.porte&&JADE.porte.mL&&JADE.porte.mL.indexOf(x)>=0?'porteL':JADE.pont&&JADE.pont.mF&&JADE.pont.mF.indexOf(x)>=0?'pontF':JADE.pont&&JADE.pont.mL&&JADE.pont.mL.indexOf(x)>=0?'pontL':'']);});return o;}
   if(k==='scene'){const o={};scene.traverse(function(x){if(!x.visible||!(x.isMesh||x.isPoints||x.isLine))return;const g=x.geometry;if(!g)return;const n=(g.index?g.index.count:(g.attributes.position?g.attributes.position.count:0))/3*(x.isInstancedMesh?x.count:1);const kk=(x.material&&x.material.type)+(x.isInstancedMesh?'I':'')+(x.parent===JADE.root?'J':'');o[kk]=(o[kk]||0)+n;});for(const kk in o)o[kk]=Math.round(o[kk]/1000)+'k';return o;}
@@ -16857,7 +16867,7 @@ function lvlChoisir(){ // appelé par newTrack AVANT buildTrack
   if(z===0)LVL.tutoZ=TUTO.on?1:0; // (2026-09-29) la zone 0 de cette partie est-elle la piste de l'école ? (voir plus bas)
   ROAD_HALF=ROAD_HALF0*(PARK.on?1.4:LARGEUR[Math.min(LARGEUR.length-1,z)]);
   if(PARK.on){LVL.cur=null;lvlAstre(null);return null;}
-  if(BALADE){LVL.cur=NIV_JADE;LVL.n=1;LVL.tutoZ=0;lvlAstre(null);return LVL.cur;} // (2026-10-09) LA BALADE : toujours les PICS DE JADE, chaque portail mène à une autre vallée
+  if(BALADE||JADE_JEU){LVL.cur=NIV_JADE;LVL.n=1;LVL.tutoZ=0;lvlAstre(null);return LVL.cur;} // (2026-10-09) LA BALADE : toujours les PICS DE JADE, chaque portail mène à une autre vallée
   if(CARR.actif){ // CARRIÈRE : le niveau de départ + les portails franchis ; chaque portail TERMINE le précédent
     const bi=CARR.actif.b,der=CARRIERE[bi].niveaux.length-1,i=Math.min(der,CARR.actif.i+z);
     if(z>0)carrMarque(bi,Math.min(der,CARR.actif.i+z-1));
@@ -17853,7 +17863,7 @@ function carrLancer(bi,i){
   ecranWipe(function(){carrLancerSous(bi,i);},function(){garageLaunch();});
 }
 function carrLancerSous(bi,i){
-  CARR.actif={b:bi,i:i};carrSelPose(bi,i); // (2026-10-07) le niveau lancé devient celui des PLAY (voir « LE NIVEAU DES PLAY »)
+  JADE_JEU=false;CARR.actif={b:bi,i:i};carrSelPose(bi,i); // (2026-10-07) le niveau lancé devient celui des PLAY (voir « LE NIVEAU DES PLAY »)
   if(PARK.on){PARK.on=false;try{modeLbl();}catch(e){}} // (2026-09-27) la carrière passe devant le parc freestyle : sinon lvlChoisir rendait le parc, jamais le niveau
   /* (2026-09-28) PASSER PAR LA CARRIÈRE EN PREMIER SAUTAIT L'AUTO-ÉCOLE : le niveau 1 (AURORE) roule sur la piste d'apprentissage, mais
      sans le coach. Jamais faite → on l'arme ici, avec les mêmes refus que tutoArme (sans son rebuildMenuScene : celui d'en dessous suffit). */
@@ -25661,8 +25671,9 @@ shadow.visible=false;
    (tranche + deux faces) : trois appels de dessin par pièce, ×2 faces de route, sur des centaines de pièces — et une
    facture « clip-art » au milieu d'un jeu en pixels et en facettes. Désormais : un OCTOGONE épais (la coupe low-poly
    des caisses), frappé d'un « $ » en VRAIS pixels (texture 16×16, filtrage au plus proche), UNE matière, UN appel. */
-const coinTex=(function(){
-  const N=16,cv=document.createElement('canvas');cv.width=cv.height=N;const c=cv.getContext('2d');
+const COIN_CV=document.createElement('canvas');COIN_CV.width=COIN_CV.height=16;
+function coinPeint(sym){ // (2026-10-12) le symbole frappé : « $ » partout, « ¥ » au niveau SOLEIL DE JADE (voir coinSymbole)
+  const N=16,cv=COIN_CV;const c=cv.getContext('2d');
   /* (2026-09-26, vague 2) L'OR DE LA BIBLE À L'ÉCRAN : #ffd75e. MESURÉ en course (pixels lus après l'ACES et le grade) : l'ancienne pièce
      (#ffc12e, émissif blanc ×.42, et surtout éclairée par la scène) sortait #fe8004 au couchant — ORANGE pur, la teinte des plots
      et de la flamme — et BRONZE sombre (#682800) dans la nuit de la ville. Deux causes : (1) elle vivait de la lumière de la scène,
@@ -25670,8 +25681,8 @@ const coinTex=(function(){
      vif vers l'orange : le vert tient à la luminance, le rouge s'envole et `roule` divise par lui. D'où une pièce qui ÉMET (voir
      pickMat) et un champ peint en or CITRON #fff27a : c'est lui qui ressort OR à l'écran (mesuré : #fcb120 au couchant au lieu de
      #fe8004, un or franc au lieu du bronze dans la ville) — et plus jamais de la teinte des plots. */
-  const COL={k:'#6e3c00',d:'#d8a412',g:'#fff27a',l:'#fffbe6',h:'#fffbd0',s:'#8a4a00'};
-  const DOL=['..#..','.####','#.#..','#.#..','.###.','..#.#','..#.#','####.','..#..'];
+  const COL=sym==='Y'?{k:'#073a20',d:'#e0a818',g:'#6ff0ae',l:'#fff6c8',h:'#d6ffe8',s:'#0a4428'}:{k:'#6e3c00',d:'#d8a412',g:'#fff27a',l:'#fffbe6',h:'#fffbd0',s:'#8a4a00'}; // (2026-10-12) au SOLEIL DE JADE : le champ en JADE, la tranche d'OR, le ¥ en vert sombre (une pièce d'or se perdait sur la route en pièces d'or)
+  const DOL=sym==='Y'?['#...#','#...#','.#.#.','..#..','#####','..#..','#####','..#..','..#..']:['..#..','.####','#.#..','#.#..','.###.','..#.#','..#.#','####.','..#..'];
   for(let y=0;y<N;y++)for(let x=0;x<N;x++){
     const dx=x-7.5,dy=y-7.5,r=Math.hypot(dx,dy);let k;
     if(r>6.9)k='k';                                   // le liseré sombre (il découpe la pièce sur n'importe quel ciel)
@@ -25680,6 +25691,8 @@ const coinTex=(function(){
     c.fillStyle=COL[k];c.fillRect(x,y,1,1);
   }
   for(let y=0;y<9;y++)for(let x=0;x<5;x++)if(DOL[y][x]==='#'){c.fillStyle=COL.s;c.fillRect(6+x,3+y,1,1);}
+}
+const coinTex=(function(){coinPeint('$');const cv=COIN_CV;
   /* (2026-09-26, vague 2) LES PIÈCES NE SCINTILLENT PLUS AU LOIN. Filtrée au plus proche EN RÉDUCTION et sans mipmaps, la pièce de
      16 pixels tirait un texel au hasard à chaque image dès 40 m : moiré, et une rangée de pièces clignotait comme des lampadaires.
      Désormais des mipmaps (la pièce lointaine devient un disque d'or moyen, stable) ; en AGRANDISSEMENT on garde le plus proche : de
@@ -25687,6 +25700,7 @@ const coinTex=(function(){
   const t=new THREE.CanvasTexture(cv);t.magFilter=THREE.NearestFilter;t.minFilter=THREE.LinearMipmapLinearFilter;t.generateMipmaps=true;
   return t; // (pas d'anisotropie : sous D3D/ANGLE elle force un filtrage LINÉAIRE à l'agrandissement — adieu les vrais pixels de près)
 })();
+function coinSymbole(yen){const k=yen?'Y':'$';if(coinSymbole.k===k)return;coinSymbole.k=k;coinPeint(k);coinTex.needsUpdate=true;}
 /* (2026-09-26, user : « les items sur la route plus gros, plus beaux, mieux travaillés ») : la pièce grossit (Ø 2,6 m), passe à 12 pans
    et reçoit un JONC en relief — un tore fusionné à la galette, dont les UV lisent le pixel clair de la tranche : on voit une vraie
    pièce frappée, avec sa bordure qui accroche la lumière, et c'est toujours UNE matière, UN appel de dessin. */
@@ -25731,6 +25745,27 @@ const FRUIT_PAL={P:{g:'f',c:0xff9ec2},p:{g:'f',c:0xfff0dc},B:{g:'f',c:0xffd63a},
   m:{g:'f',c:0xa9a0ec},V:{g:'f',c:0x1f8a34},v:{g:'f',c:0x4cc25a},C:{g:'f',c:0xff2d4a},w:{g:'f',c:0xf1f8dc},
   n:{g:'f',c:0x1a1410},F:{g:'f',c:0x43b84e},T:{g:'f',c:0x7a5230},
   /* fruits v2 */ pe1:{g:'f',c:0x6c0412},pe2:{g:'f',c:0x94101a},pe3:{g:'f',c:0xb04400},pe4:{g:'f',c:0xb07a06},peT:{g:'f',c:0x3a1e08},peL:{g:'f',c:0x127a22},pel:{g:'f',c:0x07461a},ba1:{g:'f',c:0xb88400},ba2:{g:'f',c:0xa86400},ba3:{g:'f',c:0x2e6a08},ba6:{g:'f',c:0x7a8a04},ba4:{g:'f',c:0x1a0c04},ba5:{g:'f',c:0x4a2404},ba7:{g:'f',c:0x1e2a04},gr1:{g:'f',c:0x780800},gr2:{g:'f',c:0x460400},gr3:{g:'f',c:0x8e3000},gr4:{g:'f',c:0x300004},gr5:{g:'f',c:0xb00800},gr8:{g:'f',c:0xd02010},gr6:{g:'f',c:0x7a4010},gr7:{g:'f',c:0x140200},or1:{g:'f',c:0xb03400},or2:{g:'f',c:0xc84800},or3:{g:'f',c:0x8a2000},or4:{g:'f',c:0x1e5a0a},or5:{g:'f',c:0x2e3008},or6:{g:'f',c:0x0e6a1e},or7:{g:'f',c:0x06401a},my1:{g:'f',c:0x0a0a50},my2:{g:'f',c:0x2a3890},my3:{g:'f',c:0x040210},my4:{g:'f',c:0x120a36},myT:{g:'f',c:0x2a2a08},myL:{g:'f',c:0x127a22},myl:{g:'f',c:0x07461a},pa1:{g:'f',c:0x08380e},pa2:{g:'f',c:0x1a5a0c},pa3:{g:'f',c:0x9a0a00},pa4:{g:'f',c:0xb81400},pa6:{g:'f',c:0x4a7a22},pa7:{g:'f',c:0x120806},paT:{g:'f',c:0x2a2008}};
+Object.assign(FRUIT_PAL,{ // (2026-10-12) les fruits du SOLEIL DE JADE
+  jl1:{g:'f',c:0xc0223a},jl2:{g:'f',c:0xe8506a},jl3:{g:'f',c:0x7a0e22},jlT:{g:'f',c:0x5a3a18},jlL:{g:'f',c:0x2f7a2a},jll:{g:'f',c:0x1c561c},
+  jk1:{g:'f',c:0xff7a12},jk2:{g:'f',c:0xffa640},jk3:{g:'f',c:0xc8520a},jkC:{g:'f',c:0x5e7426},jkc:{g:'f',c:0x3e5016},jkT:{g:'f',c:0x4a3412},
+  jp1:{g:'f',c:0xe0157a},jp2:{g:'f',c:0xff4fa6},jp3:{g:'f',c:0xa00852},jpS:{g:'f',c:0x86d040},
+  jm1:{g:'f',c:0x52123a},jm2:{g:'f',c:0x7a2456},jm3:{g:'f',c:0x2e0a22},jmC:{g:'f',c:0x4e8a2e},jmc:{g:'f',c:0x2e5e1c},jmT:{g:'f',c:0x5a4420}});
+/* les outils des fruits (les mêmes que dans chaque fruit d'origine), pour les fruits du SOLEIL DE JADE */
+function frH(K){const T=THREE,V3=T.Vector3;
+  const hs=(x,y,z)=>{const s=Math.sin(x*127.1+y*311.7+z*74.7)*43758.5453;return s-Math.floor(s);};
+  const D=(g,fn)=>{const p=g.attributes.position,v=new V3();for(let i=0;i<p.count;i++){v.fromBufferAttribute(p,i);fn(v);p.setXYZ(i,v.x,v.y,v.z);}return g;};
+  const P=(g,fn)=>{const gg=g.index?g.toNonIndexed():g,p=gg.attributes.position.array;
+    for(let i=0;i<p.length;i+=9){const a=[p[i],p[i+1],p[i+2]],b=[p[i+3],p[i+4],p[i+5]],c=[p[i+6],p[i+7],p[i+8]];
+      const ux=b[0]-a[0],uy=b[1]-a[1],uz=b[2]-a[2],vx=c[0]-a[0],vy=c[1]-a[1],vz=c[2]-a[2];
+      const nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx,l=Math.hypot(nx,ny,nz)||1;
+      K.tri(fn((a[0]+b[0]+c[0])/3,(a[1]+b[1]+c[1])/3,(a[2]+b[2]+c[2])/3,nx/l,ny/l,nz/l),a,b,c);}
+    gg.dispose();if(gg!==g)g.dispose();};
+  const LF=(kA,kB,L,W,fold,droop,x,y,z,rx,ry,rz,N)=>{N=N||5;
+    const M=new T.Matrix4().compose(new V3(x,y,z),new T.Quaternion().setFromEuler(new T.Euler(rx||0,ry||0,rz||0,'YZX')),new V3(1,1,1));
+    const pt=(u,s)=>{const w=W*Math.pow(Math.sin(Math.PI*u),.7)*(1-.35*u),v=new V3(u*L,-droop*u*u+fold*Math.abs(s)*w,s*w).applyMatrix4(M);return [v.x,v.y,v.z];};
+    for(let i=0;i<N;i++){const u0=i/N,u1=(i+1)/N,m0=pt(u0,0),m1=pt(u1,0);
+      for(const s of [-1,1]){const e0=pt(u0,s),e1=pt(u1,s),k=s<0?kA:kB;K.tri(k,m0,e0,e1);K.tri(k,m0,e1,m1);}}};
+  return {T:T,V3:V3,hs:hs,D:D,P:P,LF:LF};}
 const SPH=(w,h)=>new THREE.SphereGeometry(1,w||8,h||6);
 const FRUIT_DEFS=[
   /* (2026-09-26, user : « les fruits plus gros, plus beaux, mieux travaillés dans leur design ») : les six fruits REDESSINÉS à l'atelier
@@ -25947,6 +25982,33 @@ const FRUIT_DEFS=[
     pep(p,[Math.cos(tw),0,Math.sin(tw)],[-Math.sin(tw),0,Math.cos(tw)],[0,1,0]);
     pep(w,[Math.cos(tw),Math.sin(tw),0],[-Math.sin(tw),Math.cos(tw),0],[0,0,1]);}
   P(new T.CylinderGeometry(.04,.07,.14,5).rotateZ(1.5708).translate(-1.04,0,0),(x,y,z,nx)=>nx<-.8?'pa7':'paT');
+ }},
+  /* (2026-10-12) LES FRUITS DU SOLEIL DE JADE — freq 0 partout ailleurs (ils ne sortent jamais hors de ce niveau), `jf` = leur fréquence là-bas
+     (voir fruitPick). Mêmes outils et même facture que les fruits d'origine (facettes colorées une à une, feuilles à nervure). */
+  {n:'LITCHI',boost:.5,freq:0,jf:14,jus:0xf6e6ee,lp:function(K){const H=frH(K),T=H.T;
+  const g=H.D(new T.IcosahedronGeometry(1,3),v=>{const n=H.hs(Math.round(v.x*9),Math.round(v.y*9),Math.round(v.z*9)),k=.66*(1+.07*n)*(1+.06*v.y);v.set(v.x*k*.95,v.y*k*1.06,v.z*k*.95);});
+  H.P(g,(x,y,z,nx,ny,nz)=>{if(y>.5&&Math.hypot(x,z)<.12)return 'jlT';const h=H.hs(Math.round(x*7),Math.round(y*7),Math.round(z*7));return h>.72?'jl2':h<.22?'jl3':'jl1';}); // l écorce en écailles
+  K.put('jlT',new T.CylinderGeometry(.03,.045,.30,5),.03,.80,0,0,0,-.25);
+  H.LF('jlL','jll',.55,.17,.18,.10,.06,.88,0,.6,.9,.45,5);
+ }},
+  {n:'KAKI',boost:.7,freq:0,jf:10,jus:0xff8a1e,lp:function(K){const H=frH(K),T=H.T;
+  const g=H.D(new T.SphereGeometry(1,20,12),v=>{const th=Math.atan2(v.z,v.x),r=Math.hypot(v.x,v.z),lob=1+.05*Math.cos(4*th);v.set(v.x*.80*lob,v.y*.60-(v.y>0?.10:0)*Math.exp(-r*r/.05),v.z*.80*lob);});
+  H.P(g,(x,y,z,nx,ny,nz)=>{const h=H.hs(x,y,z);if(ny>.55)return h>.5?'jk2':'jk1';if(ny<-.4)return 'jk3';return h>.85?'jk2':'jk1';});
+  for(let i=0;i<4;i++){const a=i/4*6.2832+.4;H.LF('jkC','jkc',.32,.17,.05,.05,0,.50,0,0,-a,.12,4);} // le calice à quatre sépales
+  K.put('jkT',new T.CylinderGeometry(.035,.05,.16,5),0,.58,0);
+ }},
+  {n:'PITAYA',boost:1.2,freq:0,jf:5,jus:0xe8187a,lp:function(K){const H=frH(K),T=H.T;
+  const g=H.D(new T.SphereGeometry(1,18,12),v=>{v.set(v.x*.62,v.y*.62*1.25,v.z*.62);});
+  H.P(g,(x,y,z,nx,ny,nz)=>{const h=H.hs(x,y,z);return ny>.4?(h>.5?'jp2':'jp1'):ny<-.5?'jp3':(h>.8?'jp2':'jp1');});
+  for(let j=0;j<3;j++)for(let i=0;i<6;i++){const a=i/6*6.2832+j*.52,yy=-.40+j*.34,r=.60*Math.sqrt(Math.max(0,1-Math.pow(yy/.78,2)));
+    H.LF('jp1','jpS',.34,.11,.25,-.06,Math.cos(a)*r,yy,Math.sin(a)*r,0,-a,.9,4);}                     // les écailles : rose, la pointe verte
+  for(let i=0;i<4;i++){const a=i/4*6.2832+.3;H.LF('jpS','jp1',.26,.09,.2,-.05,0,.74,0,0,-a,1.2,4);}
+ }},
+  {n:'MANGOUSTAN',boost:.9,freq:0,jf:7,jus:0xf3eee6,lp:function(K){const H=frH(K),T=H.T;
+  const g=H.D(new T.SphereGeometry(1,18,12),v=>{v.set(v.x*.66,v.y*.58,v.z*.66);});
+  H.P(g,(x,y,z,nx,ny,nz)=>{const h=H.hs(x,y,z);return ny>.5?(h>.6?'jm2':'jm1'):ny<-.5?'jm3':(h>.85?'jm2':'jm1');});
+  for(let i=0;i<4;i++){const a=i/4*6.2832;H.LF('jmC','jmc',.28,.17,.08,.02,0,.52,0,0,-a,.05,4);}        // le gros calice vert
+  K.put('jmT',new T.CylinderGeometry(.04,.055,.22,5),0,.66,0);
  }},
 ];
 // UNE GÉOMÉTRIE PAR FRUIT, coulée à la première demande et partagée par tous ses exemplaires (jamais libérée)
@@ -29020,11 +29082,12 @@ function mkEngine(i){
 }
 /* <<<FIN MOTEURS>>> */
 function fruitPick(rnd){ // tirage PONDÉRÉ par la fréquence (un brocoli reste rare, une pomme court les rues)
-  let tot=0;for(const f of FRUIT_DEFS)tot+=Math.max(0,f.freq);
+  const J=!!(JADE_JEU&&LVL.cur&&LVL.cur.id==='jade'),fq=f=>J?(f.jf||0):(f.jf!=null?0:Math.max(0,f.freq)); // (2026-10-12) au SOLEIL DE JADE : SES fruits, et seulement eux
+  let tot=0;for(const f of FRUIT_DEFS)tot+=fq(f);
   if(tot<=0)return 0;
   let r=(rnd?rnd():Math.random())*tot;
-  for(let i=0;i<FRUIT_DEFS.length;i++){r-=Math.max(0,FRUIT_DEFS[i].freq);if(r<=0)return i;}
-  return FRUIT_DEFS.length-1;
+  let der=0;for(let i=0;i<FRUIT_DEFS.length;i++){const q=fq(FRUIT_DEFS[i]);if(q<=0)continue;der=i;r-=q;if(r<=0)return i;}
+  return der;
 }
 function mkFruit(i){ const g=new THREE.Mesh(fruitGeo(i),FRUIT_MAT);g.scale.setScalar(2.7);g.userData.fruit=i;return g; } // (2026-09-26) ×2,7 // 1,15 → 1,9 : on les repère de loin · UN mesh par fruit
 function mkNitro(rnd){ return mkFruit(fruitPick(rnd)); }
@@ -37038,7 +37101,7 @@ function nitroooVide(){ // (2026-09-29, audit GAMEPLAY) une partie qui finit ou 
   dragonCache();DRG.pal=-1;DRG.roar=0;DRG.em=0;DRG.fo=0;DRG.ne=0;DRG.vOk=false;DRG.nS=0;NTR.gT=0;
 }
 function portailPasse(){
-  if(BALADE&&LVL.cur&&LVL.cur.id==='jade'&&JADE.root){jadeFinale();return;} // (v14) la balade de jade a une FIN : l'arrivée, puis le départ
+  if((BALADE||JADE_JEU)&&LVL.cur&&LVL.cur.id==='jade'&&JADE.root){jadeFinale();return;} // (v14) la balade de jade a une FIN : l'arrivée, puis le départ
   const sP=survPortS(); // (2026-09-30) ce que la course du Survivant avance au passage (en vol : voir survPortS)
   if(CAMP.n===10&&CAMP.pris&&!PARK.on){campFinale();return;}
   if(!PARK.on&&CARR.actif&&LVL.cur&&LVL.cur.carr&&LVL.cur.id==='nuages'&&LVL.cur.carr.i===CARRIERE[LVL.cur.carr.b].niveaux.length-1){campFinale();return;} // (2026-10-04) SKY HIGH finit au niveau 5
@@ -39259,6 +39322,10 @@ window.dbgOrage=function(q){ // (2026-09-29) L'ORAGE du mode principal : l'état
   return {lieu:LVL.cur&&LVL.cur.id,flash:+CAMP_FLASH.toFixed(3),brumeOuverte:Math.round(CAMP_FOG),prochain:+ECL.t.toFixed(2),pluie:+LVL.pluie.toFixed(2),brume:[Math.round(scene.fog.near),Math.round(scene.fog.far)],bancs:CLOUDS.filter(function(c){return c.onRoad||c.mesh&&c.mesh.userData.trav;}).length,nuages:CLOUDS.length};};
 window.dbgEclair=function(){if(CAMP.n!==9)return 'pas d orage';eclFrappe();ECL.t=6;return {k:ECL.k};}; // (dev) un éclair tout de suite (niveau 9)
 window.dbgFumee=function(d){CAMP.dmg=+d||0;CAMP.palier=0;return CAMP.dmg;}; // (dev) forcer les dégâts de la poursuite (la fumée suit)
+window.dbgNiveauJade=function(){ // (2026-10-12) lancer le niveau SOLEIL DE JADE (le simulateur l'appelle) — le chemin de la carrière : la piste sous le voile, puis l'atelier et le lâcher
+  if(started&&!gameOver)return 'en course';if(ecranWipe._on||(typeof GAR!=='undefined'&&GAR.go))return 'occupé';
+  JADE_JEU=true;CARR.actif=null;if(PARK.on){PARK.on=false;try{modeLbl();}catch(e){}}
+  ecranWipe(function(){runStats.zones=0;rebuildMenuScene();if(!garageOn)openGarage(true);},function(){garageLaunch();});return JADE_NOM;};
 window.dbgCampagne=function(n,b){ // (dev) lancer un niveau de carrière depuis la console : dbgCampagne(5) (NUAGES), dbgCampagne(3,1) (VILLE)
   b=Math.max(0,Math.min(CARRIERE.length-1,b|0));n=Math.max(1,Math.min(CARRIERE[b].niveaux.length,n|0));if(started&&!gameOver)return 'en course';carrLancer(b,n-1);return CARRIERE[b].id+' '+n;};
 window.dbgCamp=function(){return {niveau:CAMP.n,corde:CORDE_ON,degats:+CAMP.dmg.toFixed(2),proche:Math.round(CAMP.proche),coupes:CAMP.coupes.map(function(c){return {sA0:Math.round(c.sA0),sA1:Math.round(c.sA1),sB0:Math.round(c.sB0),cote:c.side,ecart:+(c.gap||0).toFixed(1)};}),
@@ -42560,7 +42627,7 @@ const RICH_U={uSunDir:{value:new THREE.Vector3().copy(SUN_DIR)},uSunCol:{value:n
 // la liasse a la taille du billet, les gemmes et les pépites sont petites (et de tailles variées), chaque fruit a la sienne (la myrtille
 // ne fait plus la taille de la pastèque). Les unités de s suivent la forme de chaque objet (rayon d'une pièce, longueur d'un billet…).
 const RICH_GEM_NL=[[0,1,0],[.6,.55,.58],[-.7,.5,.3],[.2,.45,-.85],[-.3,-.7,.6]],RICH_OR_NL=[[0,1,0],[.7,.4,.5],[-.6,.5,-.4],[.2,-.6,.7]],RICH_FACE_Y=[[0,1,0],[0,-1,0]];
-const RICH_FRUIT_R=[.34,.57,.41,.36,.13,.6]; // le RAYON (m) de chaque fruit, dans l'ordre de FRUIT_DEFS : pêche plate 7 cm, banane 18, grenade 10, orange 8, myrtille 1,2, pastèque 30 (plafonnée)
+const RICH_FRUIT_R=[.34,.57,.41,.36,.13,.6,.17,.34,.45,.30]; // (+ les fruits du SOLEIL DE JADE : litchi, kaki, pitaya, mangoustan) // le RAYON (m) de chaque fruit, dans l'ordre de FRUIT_DEFS : pêche plate 7 cm, banane 18, grenade 10, orange 8, myrtille 1,2, pastèque 30 (plafonnée)
 const RICH_T={
   billet:{kd:2.4,fl:5,s:[.88,.96],w:[2,6],v:[3,6],vie:[2.8,3.8],papier:1},                            // 156 × 66 mm → 1,05 m (s = sa longueur) · (2026-10-10, Léo : « un tout petit peu plus petits ») −12 % : 0,92 m — la liasse garde sa taille
   liasse:{kd:.9,fl:.3,s:[1,1.1],w:[3,7],v:[4,7],vie:[2.6,3.4]},                              // le billet, en paquet

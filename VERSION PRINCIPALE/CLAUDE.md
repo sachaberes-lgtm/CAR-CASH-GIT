@@ -1,5 +1,24 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LE NIVEAU « SOLEIL DE JADE » — la map des PICS DE JADE en vrai niveau, au simulateur (2026-10-12, Léo : « là, il n'y a pas de fruits, tout ça : fais-en un niveau complet avec ses aspects — fruits custom, pièces ¥ yuan yen — qu'on ajoute au système audio pour tester, référencé par un nom que tu choisis »)
+- La map (section « LES PICS DE JADE » plus bas, branche `map-jade` FUSIONNÉE dans le main ce jour-là) a désormais deux usages : la BALADE
+  `?map=jade` (la voiture seule, inchangée) et le NIVEAU **SOLEIL DE JADE** (`JADE_NOM` ; nom choisi par Claude — la map, elle, reste
+  « PICS DE JADE »). `JADE_JEU` (let) : lvlChoisir rend NIV_JADE, la piste garde ses plaques, flaques, plots et 2e vague (`JADE9` ne coupe
+  plus rien), spawnPickups pose pièces, fruits et pouvoirs, HUD et mort normaux ; l'arrivée = `jadeFinale` (ARRIVÉE + le temps, le niveau
+  repart sur place). Lancement : `dbgNiveauJade()` (le chemin de la carrière : la piste sous le voile, l'atelier, le lâcher) ou `?niveau=jade`.
+  `carrLancerSous` remet JADE_JEU à faux.
+- LES PIÈCES ¥ : `coinPeint(sym)` redessine la texture 16 × 16 de la pièce (canvas `COIN_CV`) — au SOLEIL DE JADE (`coinSymbole`, appelé
+  par buildJade) un « ¥ » en vert sombre sur un champ de JADE, tranche d'OR (une pièce d'or se perdait sur la route en pièces d'or) ;
+  « $ » partout ailleurs. Le HUD garde « $ » (la police pixel n'a pas le ¥).
+- LES FRUITS DU NIVEAU (fin de FRUIT_DEFS, `freq:0` + `jf` = leur fréquence au SOLEIL DE JADE ; `fruitPick` ne tire QUE ceux-là là-bas, et
+  jamais ailleurs) : LITCHI (écorce en écailles, tige, feuille), KAKI (aplati à quatre lobes, calice à quatre sépales), PITAYA (rose, écailles
+  à pointe verte), MANGOUSTAN (pourpre, gros calice vert). Palette `jl*/jk*/jp*/jm*` dans FRUIT_PAL, outils `frH(K)` (ceux des fruits
+  d'origine). RICH_FRUIT_R allongé.
+- AU SIMULATEUR : la map « PICS DE JADE », niveau « SOLEIL DE JADE » (`lance:{jade:true}` → dbgNiveauJade, simulateur/maps.js et course.html),
+  photo `maps-ciel/img/jade-volant.jpg`. Pas de musique par défaut : Léo choisit (pastille ♪).
+- Banc : `dbgJadePoste('ramasse')` (pièces, fruits par nom, pouvoirs, plots, plaques, flaques). MESURÉ : 650 pièces, ~16 fruits, 20 pouvoirs,
+  300 plots, 8 plaques par passage ; en course : pièces ramassées, défis (« EAT 4 FRUITS »), paliers moteur, aimant, jus des fruits.
+
 ## LA JAUGE D'AURA (le format de la barre flow d'origine), LE FLOW EN TOUT PETIT, LA BARRE DE BOOST RAYÉE (2026-10-12, Léo : « la jauge flow devient une jauge AURA, qui se remplit en fonction de combien on se rapproche de l'aura moyenne ; le flow juste en dessous, plus petit mais branché ; les + aura se dirigent et remplissent la barre aura » ; puis « l'aura même taille, format et couleur au début que la barre flow de la v1 ; en dessous le flow encore plus petit ; je préfère les barres d'avant avec les barres diagonales, juste en plus bossé »)
 - CSS `<style id="auraJauge">` (juste après nitroEclair) ; JS « LA JAUGE D'AURA ET L'AURA QUI VOLE DEDANS » avant `loopWarn` (`AJ`, `ajMoy`,
   `ajMonte`, `ajSource`, `ajGain`, `ajLance`, `ajTick`), appel `ajTick(dt)` après `nx3Tick`. ⚠ L'élément s'appelle `#ajCourse` : « auraJauge »

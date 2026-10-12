@@ -2,7 +2,7 @@
    Le simulateur ne refait rien : il lance le jeu lui-même (index.html, tel que sur le main) directement sur le niveau choisi.
    · Une MAP = un décor du jeu, avec ses niveaux (les mêmes que la page des Niveaux, maps-ciel.html, et leurs photos).
    · `lance` : comment le jeu part sur ce niveau — { monde, n } = la CARRIÈRE (dbgCampagne(n, monde)) ; { sansFin } = la partie sans fin
-     (le JOUER de l'accueil).
+     (le JOUER de l'accueil) ; { jade } = le niveau SOLEIL DE JADE (dbgNiveauJade()).
    · `musique` : la musique PAR DÉFAUT des niveaux de la map, ou null.
    LA MUSIQUE DES NIVEAUX (Léo, 12/10 soir : « je dois pouvoir tester mes nouveaux sons dans les maps pour choisir où ils vont, et tester
    l'intensité de la musique proportionnelle au palier moteur ») :
@@ -30,6 +30,11 @@ const MAPS = [
   ] },
   { id: 'mer', nom: 'MER DE NUAGES', musique: null, niveaux: [
     { id: 'mer', nom: 'PARTIE SANS FIN', photo: IMG + 'mer-matin-volant.jpg', lance: { sansFin: true } },
+  ] },
+  // (2026-10-12, Léo : « un niveau complet — fruits custom, pièces ¥ — qu'on ajoute pour tester, référencé par un nom que tu choisis »)
+  // la map des PICS DE JADE en vrai niveau : `lance: { jade }` = dbgNiveauJade() du jeu
+  { id: 'jade', nom: 'PICS DE JADE', musique: null, niveaux: [
+    { id: 'jade', nom: 'SOLEIL DE JADE', photo: IMG + 'jade-volant.jpg', lance: { jade: true } },
   ] },
 ];
 

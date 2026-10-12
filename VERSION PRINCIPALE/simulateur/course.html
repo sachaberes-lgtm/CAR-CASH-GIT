@@ -267,7 +267,8 @@ function lancer() {
     if (w.dbgState().gameOver) { w.dbgEco('rejouer'); return; }
     const b = w.document.querySelector('[data-m="play"]');
     if (b) b.click();
-  } else w.dbgCampagne(L.n, L.monde);
+  } else if (L.jade) w.dbgNiveauJade(); // le SOLEIL DE JADE (la map des PICS DE JADE en vrai niveau)
+  else w.dbgCampagne(L.n, L.monde);
 }
 let der = performance.now();
 function boucle(now) {
