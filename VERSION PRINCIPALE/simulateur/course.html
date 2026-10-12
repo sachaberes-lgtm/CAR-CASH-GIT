@@ -15,12 +15,16 @@
          - une PAGE .html à jauge (le French Touch), jouée telle quelle dans un cadre invisible : son #play, sa jauge #speed (0-100), son #bpm ;
          - un MODULE .js (musique-glisse.js) : importé, sa fonction exportée rend { start, stop, setTier, setSpeed, bpm }.
        L'INTENSITÉ (0-1) suit au choix :
-         - le MOTEUR (par défaut) = le palier moteur du jeu, engTier / 29 (les 30 moteurs) — au module : setTier(engTier + 1, 30), son API ;
-           il repart de zéro à chaque partie, comme dans le jeu ;
+         - le MOTEUR (par défaut) = 5 PALIERS DE MUSIQUE sur les 30 moteurs (moteurs 1-5 · 6-10 · 11-15 · 16-20 · 21-30, le découpage du
+           CAHIER-MUSIQUE validé le 12/10) → intensité (P − 1) ÷ 4 ; au module, son API : setTier(P, 5). ⚠ Pas setTier(moteur, 30) : un
+           moteur de plus ne bouge la cible que de 0,034, et Glisse v2 ne joue sa transition (roulement qui monte / plongée qui descend)
+           qu'au-delà de 0,06 — à 30 crans on ne l'entendait jamais. Il repart de zéro à chaque partie, comme dans le jeu ;
          - la VITESSE = FLOW.vit (lue par dbgFren) — MESURÉ au banc : ~0,35 au départ, 1,2-1,3 en croisière, 1,5-1,9 en nitro → 13 % ·
            ~70 % · 90-100 % ; zéro hors course et à l'explosion.
-       Le curseur de la barre MONTRE l'intensité ; le tirer la FORCE (AUTO rend la main). « + » monte le VRAI moteur d'un palier (dbgMoteur :
-       carte, son, poussée). La pastille ♪ change la musique du niveau en direct, et l'écrit sur le disque (choix-musiques.json).
+       Le curseur de la barre MONTRE l'intensité ; le tirer la FORCE (AUTO rend la main). « + » monte le VRAI moteur jusqu'au palier de
+       musique suivant (dbgMoteur en rafale : carte, son, poussée — une seule carte, engBigFile ne garde que la dernière).
+       ⚠ Les const du jeu (ENGINE_TIERS…) ne sont PAS lisibles d'ici (w.eval → ReferenceError) : seuls dbgState / dbg* le sont.
+       La pastille ♪ change la musique du niveau en direct, et l'écrit sur le disque (choix-musiques.json).
      ?muet=1 : tout se joue, rien ne sort (bancs). Console : SIMU.etat(). -->
 <style>
   :root{--sys:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif}
@@ -47,7 +51,6 @@
   .menu button.aucune{color:rgba(255,255,255,.55)}
   #mot{display:inline-flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums;opacity:.9}
   #mot b{font-weight:650}
-  #motNom{opacity:.6;max-width:120px;overflow:hidden;text-overflow:ellipsis}
   #plus{width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.12);font-size:16px;line-height:1;display:grid;place-items:center}
   #plus:hover{background:rgba(255,255,255,.24)}
   #intens{width:120px;accent-color:#fff;cursor:pointer}
@@ -59,7 +62,7 @@
   #zone{position:fixed;left:0;right:0;top:44px;bottom:0;display:grid;place-items:center}
   #jeu{border:0;display:block;background:#000}
   #err{position:fixed;left:12px;right:12px;bottom:12px;background:#d70015;color:#fff;font:12px/1.4 ui-monospace,Menlo,monospace;padding:10px 12px;border-radius:10px;white-space:pre-wrap;z-index:3}
-  @media (max-width:900px){#titre,#motNom,#bpm{display:none}}
+  @media (max-width:900px){#titre,#bpm{display:none}}
   [hidden]{display:none!important}
 </style>
 </head>
@@ -69,7 +72,7 @@
   <b id="titre"></b>
   <div id="outils">
     <div class="musBox"><button class="pil" id="musBtn"></button></div>
-    <span id="mot" title="Le palier moteur du jeu"><b id="motN">–</b><span id="motNom"></span><button id="plus" title="Monter le moteur d'un palier">+</button></span>
+    <span id="mot"><b id="motN">–</b><button id="plus" title="Monter le moteur au palier de musique suivant">+</button></span>
     <input type="range" id="intens" min="0" max="100" step="0.1" value="0" title="L'intensité de la musique — tire pour la forcer">
     <span id="pct">0 %</span>
     <button id="auto" hidden>AUTO</button>
@@ -200,7 +203,7 @@ async function musCharge(fichier) {
 function musIntensite(x, tier) {
   if (!MUS.pret) return;
   if (MUS.type === 'js') {
-    try { if (tier != null && MUS.inst.setTier) MUS.inst.setTier(tier + 1, E.nbMot); else MUS.inst.setSpeed(x); } catch (e) {}
+    try { if (tier != null && MUS.inst.setTier) MUS.inst.setTier(tier, NB_PAL); else MUS.inst.setSpeed(x); } catch (e) {}
     return;
   }
   const v = (x * 100).toFixed(1);
@@ -257,7 +260,17 @@ addEventListener('pointerup', () => { E.tire = false; });
 curseur.addEventListener('change', () => setTimeout(focusJeu, 0));
 curseur.addEventListener('input', () => { E.force = curseur.value / 100; $('auto').hidden = false; curseur.classList.add('force'); });
 $('auto').onclick = () => { E.force = null; $('auto').hidden = true; curseur.classList.remove('force'); };
-$('plus').onclick = () => { try { const w = jeu.contentWindow; if (E.st && E.st.started && !E.st.gameOver) w.dbgMoteur(); } catch (e) {} };
+// les 5 paliers de musique sur les 30 moteurs (engTier part de 0) : 0-4 → 1 · 5-9 → 2 · 10-14 → 3 · 15-19 → 4 · 20-29 → 5
+const NB_PAL = 5, PAL_DEBUT = [0, 5, 10, 15, 20];
+const palDe = t => t >= 20 ? 5 : Math.floor(t / 5) + 1;
+$('plus').onclick = () => { // le vrai moteur saute au 1er moteur du palier suivant (au dernier palier : un moteur de plus)
+  try {
+    const w = jeu.contentWindow; if (!(E.st && E.st.started && !E.st.gameOver)) return;
+    const p = palDe(E.tier);
+    if (p >= NB_PAL) { w.dbgMoteur(); return; }
+    for (let k = 0; k < 12 && (w.dbgState().engTier | 0) < PAL_DEBUT[p]; k++) if (w.dbgMoteur() === 'palier max') break;
+  } catch (e) {}
+};
 
 // ——— 4) le départ, la relance, l'intensité ———
 const L = NIV.lance;
@@ -295,13 +308,13 @@ function boucle(now) {
   E.tier = st.engTier | 0;
   if (E.tier !== E.motVu) {
     E.motVu = E.tier;
-    try { E.nbMot = w.eval('ENGINE_TIERS.length') || 30; $('motNom').textContent = w.eval('ENGINE_TIERS[' + E.tier + '].n'); } catch (e) {}
-    $('motN').textContent = (E.tier + 1) + '/' + E.nbMot;
+    $('motN').textContent = 'P' + palDe(E.tier) + '/' + NB_PAL;
+    $('mot').title = 'Palier de musique · moteur ' + (E.tier + 1) + '/' + E.nbMot;
   }
   // l'intensité
   let x = 0, tier = null;
   if (E.force != null) x = E.force;
-  else if (E.source === 'moteur') { tier = E.tier; x = E.tier / Math.max(1, E.nbMot - 1); }
+  else if (E.source === 'moteur') { tier = palDe(E.tier); x = (tier - 1) / (NB_PAL - 1); }
   else if (enCourse && !st.paused && st.mode !== 'boom') { try { E.vit = w.dbgFren().vit; x = Math.max(0, Math.min(1, (E.vit - .15) / 1.55)); } catch (e) {} }
   E.x += (x - E.x) * Math.min(1, dt * 8);
   musIntensite(E.x, tier);
@@ -321,7 +334,7 @@ requestAnimationFrame(boucle);
 
 window.SIMU = {
   etat: () => ({ phase: E.phase, essai: E.essai, touche, source: E.source, force: E.force, intensite: +E.x.toFixed(3), vit: E.vit,
-    moteur: E.tier + 1, moteurs: E.nbMot,
+    moteur: E.tier + 1, moteurs: E.nbMot, palier: palDe(E.tier),
     jeu: E.st && { started: E.st.started, gameOver: E.st.gameOver, paused: E.st.paused, mode: E.st.mode },
     musique: { fichier: MUS.fichier, type: MUS.type, pret: MUS.pret, joue: musJoueDeja(), bpm: musBpm(), muet: MUET } }),
   musique: () => MUS,   // le pilote (débogage : MUS.inst = le module en cours)

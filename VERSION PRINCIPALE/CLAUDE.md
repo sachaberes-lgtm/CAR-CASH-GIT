@@ -68,10 +68,12 @@ Un outil À CÔTÉ du jeu, qui ne refait RIEN : il lance LE JEU (`index.html`, s
   · LE CHOIX est PAR NIVEAU et sur le DISQUE : `simulateur/choix-musiques.json` (`{idNiveau: 'musiques/x' | ''}`, `POST` par le serveur) —
     c'est la table que le jeu lira. Sans choix : la `musique` de la map (VILLE = French Touch). Plus de localStorage `simu.musiques`.
     Page des maps : une pastille ♪ par niveau, celle de la map les règle tous (« Plusieurs » si ça diffère).
-  · L'INTENSITÉ suit le MOTEUR par défaut : `engTier / (ENGINE_TIERS.length − 1)` ; au module, son API `setTier(engTier + 1, 30)` (au palier 1 la
-    batterie de Glisse n'est pas encore là : ses couches s'ouvrent de 5 à 90 %). « suit la vitesse » = l'ancienne jauge (FLOW.vit). Le curseur de
-    la barre MONTRE l'intensité, le tirer la FORCE (jaune), AUTO rend la main ; « + » = `dbgMoteur()` (le vrai moteur monte d'un palier, carte
-    et son compris). La pastille ♪ de la course change la musique EN DIRECT et l'écrit sur le disque. Les modules restent créés (`MODS`, un
+  · L'INTENSITÉ suit le MOTEUR par défaut, en 5 PALIERS DE MUSIQUE (moteurs 1-5 · 6-10 · 11-15 · 16-20 · 21-30, le découpage du
+    CAHIER-MUSIQUE) : (P − 1) ÷ 4 ; au module, son API `setTier(P, 5)`. ⚠ Pas `setTier(moteur, 30)` : un moteur ne bouge la cible que de 0,034
+    et GLISSE V2 (`musique-glisse-v2.js`, 12/10) ne joue sa transition (roulement de caisse claire qui monte / plongée filtrée qui descend,
+    calés sur le temps) qu'au-delà de 0,06. « suit la vitesse » = l'ancienne jauge (FLOW.vit). Le curseur de la barre MONTRE l'intensité, le
+    tirer la FORCE (jaune), AUTO rend la main ; « + » = le vrai moteur jusqu'au 1er moteur du palier suivant (`dbgMoteur()` en rafale : une
+    seule carte). ⚠ Les `const` du jeu (ENGINE_TIERS…) ne se lisent PAS depuis la page (`w.eval` → ReferenceError) : dbgState / dbg* seulement. La pastille ♪ de la course change la musique EN DIRECT et l'écrit sur le disque. Les modules restent créés (`MODS`, un
     contexte audio chacun) : y revenir reprend le même.
   · `?muet=1` (bancs) : la `destination` de chaque contexte audio passe par un gain nul (page, module, cadre de la page à jauge).
     `SIMU.musique()` = le pilote (MUS.inst = le module en cours).
