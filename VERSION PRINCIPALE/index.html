@@ -33351,6 +33351,13 @@ function portesTick(){ // à chaque image, hors de la simulation (la porte doit 
     try{P.g.disconnect(P.d);}catch(e){}P.on=false;}
 }
 window.dbgPortes=function(){return PORTES.map(function(P,i){return i+':'+(P.on?'ouverte':'fermée');}).join(' ');}; // console : l'état des portes
+// (2026-10-12, banc du son) `dbgVu()` : le niveau (dB RMS) de chaque chaîne continue à sa sortie (ordre des portes) et du MASTER — pour trouver
+// QUI fait « le bruit » au lieu de deviner. Les analyseurs se posent au 1er appel (ils n'écoutent qu'en dérivation, rien n'est rebranché).
+window.dbgVu=function(){if(!AC||!MASTER)return null;const N=['moteur','vent','sifflet','crisse','nitroGronde','nitroJet','nitroBas','nitroOsc'];
+  if(!dbgVu.A)dbgVu.A=[];while(dbgVu.A.length<PORTES.length){const a=AC.createAnalyser();a.fftSize=1024;try{PORTES[dbgVu.A.length].g.connect(a);}catch(e){}dbgVu.A.push(a);}
+  if(!dbgVu.M){dbgVu.M=AC.createAnalyser();dbgVu.M.fftSize=1024;MASTER.connect(dbgVu.M);dbgVu.b=new Float32Array(1024);}
+  const db=function(a){a.getFloatTimeDomainData(dbgVu.b);let q=0;for(const v of dbgVu.b)q+=v*v;return Math.round(10*Math.log10(q/1024+1e-12));};
+  const o={total:db(dbgVu.M)};dbgVu.A.forEach(function(a,i){o[N[i]||('p'+i)]=db(a);});return o;};
 function initAudio(){
   AC=new (window.AudioContext||window.webkitAudioContext)();
   if(!SND.sfx)try{AC.suspend();}catch(e){} // le mute SON survit au redémarrage
@@ -39467,6 +39474,10 @@ window.dbgNiveauJade=jadeJouer; // (le simulateur l'appelle)
    = le curseur MUSIQUE (VOL.mus, .62 = le niveau du module), l'interrupteur MUSIQUE le coupe. Le module se charge dès le démarrage ; le
    1er toucher d'une course le relance une fois (Safari ne réveille un contexte audio que dans un geste). */
 const JMUS={mod:null,load:false,inst:null,P:0,vol:-1,kick:false,err:null};
+/* (2026-10-12, Léo : « le sound design est complètement niqué, on n'entend rien du tout ») MESURÉ au banc : GLISSE V2 sortait à −10 dB RMS
+   au départ et −5/−6 lancée — 15 à 20 dB au-dessus des effets (−26) et 5 à 10 dB au-dessus d'une musique « radio » du jeu (−11 dB RMS
+   au fichier × le curseur ,62 ≈ −15). Elle couvrait TOUT. Son niveau dans le jeu : ×,4 (−8 dB) — la même place que la radio. */
+const JMUS_NIV=.4,NIT_GRONDE=.4;
 function jadeMusOn(){return JADE_JEU&&!!LVL.cur&&LVL.cur.id==='jade';}
 function jadeMusCharge(){if(JMUS.mod||JMUS.load)return;JMUS.load=true;
   try{import('./assets/audio/music/musique-glisse-v2.js').then(function(m){JMUS.mod=m;}).catch(function(e){JMUS.err=String(e);});}catch(e){JMUS.err=String(e);}}
@@ -39478,7 +39489,7 @@ function jadeMusTick(){
   const v=jadeMusVeut(),i=v?jadeMusInst():JMUS.inst;if(!i)return;
   if(v){try{if(!i.playing){i.start();JMUS.vol=-1;JMUS.P=0;JMUS.kick=false;}
       const P=1+[5,10,15,20].filter(function(t){return engTier>=t;}).length;if(P!==JMUS.P){JMUS.P=P;i.setTier(P,5);}
-      const vo=VOL.mus/.62;if(Math.abs(vo-JMUS.vol)>.01){JMUS.vol=vo;i.setVolume(vo);}}catch(e){JMUS.err=String(e);}}
+      const vo=VOL.mus/.62*JMUS_NIV;if(Math.abs(vo-JMUS.vol)>.01){JMUS.vol=vo;i.setVolume(vo);}}catch(e){JMUS.err=String(e);}}
   else if(i.playing){try{i.stop();}catch(e){}JMUS.P=0;}}
 addEventListener('pointerdown',function(){if(JMUS.kick||!JMUS.inst||!jadeMusVeut())return;JMUS.kick=true;try{JMUS.inst.stop();JMUS.inst.start();JMUS.vol=-1;JMUS.P=0;}catch(e){}},true);
 window.dbgJadeMus=function(){return {charge:!!JMUS.mod,inst:!!JMUS.inst,joue:!!(JMUS.inst&&JMUS.inst.playing),palier:JMUS.P,bpm:JMUS.inst&&JMUS.inst.bpm,err:JMUS.err,radio:musicEl?!musicEl.paused:null,veut:jadeMusVeut()};};
@@ -48133,7 +48144,9 @@ function loop(now){
         // (2026-09-26) la flamme ne vit QUE manette en main : pendant l'explosion (un tap NITRO pour la passer tient `keys.Space`)
         // et après `endGame` dans la même image, elle réécrivait ses gains — le souffle restait figé sur l'écran de mort
         const nOn9=nitroOn&&mode!=='boom'&&!gameOver&&BTEST!=='feu0';
-        const jb=nOn9?(nitroBlue?.52:.4):0;
+        // (2026-10-12, Léo : « le bruit dont je parle tout le temps au début… le boost en l'air ») MESURÉ au banc (dbgVu) : ce grondement sortait
+        // à −14/−16 dB RMS, 12 dB AU-DESSUS de tout le reste (moteur −28, mélange −26) — dès qu'on tient le boost, il couvrait le jeu. ×,4 (−8 dB).
+        const jb=nOn9?(nitroBlue?.52:.4)*NIT_GRONDE:0;
         stt(jrG.gain,jb*(air9?1.1:1.05)*(.84+.32*Math.random())*dk,AC.currentTime,.08); // turbulence lente
         stt(jrDep.gain,jb*(air9?.22:.16)*dk,AC.currentTime,.1); // flutter 5 Hz : la flamme respire
         stt(jrF.frequency,nOn9?(air9?310+spd3*.3:430+spd3*.35)+(nitroBlue?80:0):240,AC.currentTime,.1); // un poil plus mordante au sol

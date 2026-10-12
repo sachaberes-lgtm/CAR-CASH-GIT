@@ -1,5 +1,12 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LE SON EN COURSE REMIS D'APLOMB (2026-10-12, Léo : « le sound design est complètement niqué, on n'entend rien du tout ; le bruit dont je parle tout le temps au début — le boost en l'air ? »)
+MESURÉ au banc (crochet sur chaque contexte audio + `dbgVu()` : dB RMS de chaque chaîne continue à sa sortie, dans l'ordre des portes, + le
+MASTER) : le jeu sort vers −26 dB ; la musique GLISSE V2 du SOLEIL DE JADE (son propre contexte) sortait à −10 → −5 (15-20 dB au-dessus : elle
+couvrait TOUT ; une musique radio du jeu = −11 au fichier × ,62 ≈ −15) ; dès qu'on tient le boost, le grondement brun de la nitro (`jrG`)
+sortait à −14/−16, 12 dB au-dessus de tout le reste — « le bruit ». Corrigé : `JMUS_NIV` ,4 (−8 dB : GLISSE à −17 → −12, la place de la radio)
+et `NIT_GRONDE` ,4 (−8 dB : boost à −22, encore le son le plus fort mais de 4-6 dB). Planche : `photos-gameplay/comparaison-son.jpg`.
+
 ## LES GAINS QUI FLOTTENT PUIS TOMBENT DANS LEUR JAUGE — AURA ET NITRO (2026-10-12, Léo : « quand on gagne de l'aura, n'importe quoi, ça arrive dans l'écran en mode flottement, et après ça tire, la gravité, vers la jauge — quand on fait des figures, quand on tombe sur un truc de nitro la jauge part en couille »)
 - Bloc JS « LES GAINS QUI FLOTTENT… » (`VOLG`, `volgLance`, `volgNitro`, `volgTick`, `volgArrive`, `volgVide`, `nbPrend`), juste après `ajLance`,
   appelé en fin d'`ajTick`. UN moteur, simulé à l'image (plus de keyframes WAAPI) : le gain JAILLIT de la caisse à l'écran (ou de la boîte de
