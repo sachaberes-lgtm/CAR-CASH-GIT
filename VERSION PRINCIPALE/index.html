@@ -8631,6 +8631,11 @@ const BALADE=/[?&](map=jade|balade=1)\b/.test(location.search);
    (le simulateur l'appelle), `?niveau=jade` le choisit dès le chargement. JADE_JEU vrai = lvlChoisir rend la map, ses fruits à elle,
    ses pièces frappées du ¥. La BALADE (`?map=jade`, la voiture seule) ne change pas. */
 let JADE_JEU=/[?&]niveau=jade\b/.test(location.search)&&!BALADE;
+/* (2026-10-12, Léo : « lance-le en tant que map qui se déclenche quand on appuie sur JOUER, avec CETTE musique-là, précisément ; on retouchera
+   la map directement sur le main ») LE JOUER = LE SOLEIL DE JADE : le JOUER de l'accueil et celui du garage lancent ce niveau (jadeJouer) —
+   sauf pour un tout premier joueur (l'auto-école d'abord) et au simulateur pour ses parties SANS FIN (`?play=sansfin`). Sa musique : GLISSE V2
+   (le module de Léo, `assets/audio/music/musique-glisse-v2.js` — la copie de `simulateur/musiques/`, son choix au simulateur), voir JMUS. */
+const JADE_PLAY=!/[?&]play=(sansfin|carriere)\b/.test(location.search)&&!BALADE;
 if(BALADE)document.documentElement.classList.add('balade');
 const IS_LOW_END=IS_MOBILE||(navigator.hardwareConcurrency>0&&navigator.hardwareConcurrency<=4);
 const REDUCED_MOTION=(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)||false; // ACCESSIBILITÉ : iOS « Réduire les animations » → coupe bloom + grain + effets de vitesse
@@ -14274,7 +14279,7 @@ function buildJade(seed){
    for(let k=0;k<n;k++){Mx.makeTranslation(itb[k*3],itb[k*3+1],itb[k*3+2]);im.setMatrixAt(k,Mx);}
    geo.setAttribute('aB',new THREE.InstancedBufferAttribute(new Float32Array(ib),4));im.userData.jeter=true;
    im.frustumCulled=false;im.renderOrder=4;root.add(im);JADE.brume=im;}
-  JADE.decoFait=false;JADE.decoNuage=JADE.decoPlanches=JADE.decoRondins=null;try{jadeRouteStyle(JROUTE.style);}catch(e){console.warn('route',e);} // (v17) les bords en volume : bâtis À LA DEMANDE, seulement ceux de la route choisie
+  JADE.decoFait=false;JADE.decoNuage=JADE.decoPlanches=JADE.decoRondins=JADE.decoPieces=null;try{jadeRouteStyle(JROUTE.style);}catch(e){console.warn('route',e);} // (v17) les bords en volume : bâtis À LA DEMANDE, seulement ceux de la route choisie
   JADE.depart=120; // (2026-10-12, Léo : « enlève les trucs en bois asiatiques ») plus d'arches de troncs au départ ni à l'arrivée
   try{jadeChutePrep(PIL,jr,root);}catch(e){console.warn('chute',e);}
   JADE.n={montagnes:PIL.filter(function(q){return q[5]<JADE_NTPL;}).length,rochers:PIL.filter(function(q){return q[5]>=JADE_NTPL;}).length,arbres:ARB.length,temples:PAG.length+PAV.length,cascades:CHU.length,
@@ -14325,6 +14330,8 @@ function jadeRouteStyle(k){ // 0 émeraude · 1 nuage · 2 planches : la surface
   /* (2026-10-12, Léo : « enlève les bords de la route et les trucs en bois asiatiques ») plus aucun bord en volume (planches laquées et lanternes,
      rondins, volutes) ni rail, ni lueur, ni liseré sur les tranches : la route seule */
   for(const m of NEON_RAILS)m.visible=false;for(const m of NEON_GLOW)m.visible=false;
+  if(JADE.root&&k===4&&!JADE.decoPieces){try{jadePiecesBord(JADE.root,mulberry32(0x5ECE));}catch(e){console.warn('pieces du bord',e);}} // (12/10 soir) les PIÈCES QUI DÉPASSENT du bord
+  if(JADE.decoPieces)JADE.decoPieces.visible=k===4;
   if(JADE.decoNuage)JADE.decoNuage.visible=k===1;if(JADE.decoPlanches)JADE.decoPlanches.visible=k===2;if(JADE.decoRondins)JADE.decoRondins.visible=k===3;
   const ac=[0x4fe0a8,0xf2f5ff,0x5a1a10,0x2a1a0e,0xa8acb4][k],gl=[.78,.30,0,0,.22][k];
   if(NEON_RAILS[0]){NEON_RAILS[0].color.setHex(ac);if(NEON_RAILS[0].userData.base)NEON_RAILS[0].userData.base.setHex(ac);NEON_RAILS[0].userData.hsl=null;} // (le caméléon garde la teinte mesurée : on la lui fait remesurer)
@@ -14465,6 +14472,41 @@ function jadeArchesRondins(root){const P=[],N=[],C=[],up=new THREE.Vector3(0,1,0
     const g2=p.clone().addScaledVector(b,-w+.5),d2=p.clone().addScaledVector(b,w-.5);g2.y+=20.2;d2.y+=20.6;jadeTronc(P,N,C,g2,d2,.8,mo,cou);}
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(N,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));g.computeBoundingSphere();
   const m=new THREE.Mesh(g,new THREE.MeshLambertMaterial({vertexColors:true}));m.userData.jeter=true;root.add(m);JADE.depart=120;}
+/* (12/10 soir, Léo : « le bord de la route n'est pas juste tout lisse : ce sont les PIÈCES qui DÉPASSENT ») LES PIÈCES DU BORD — de vraies
+   pièces d'argent à trou carré (disque à 14 pans + tranche, la texture de la pièce avec son trou percé : alphaTest), posées tous les ~1,6 m sur
+   chaque bord, à cheval sur l'arête (la moitié dehors), chacune sa taille, son angle, un peu penchée, une sur quatre avec une autre posée de
+   biais dessus. Tronçons de ~700 m (chacun sa sphère : le champ les trie), écrits directement dans des tampons. */
+const JADE_PB=(function(){let tex=null,mat=null,tpl=null;
+  return {mat:function(){if(mat)return mat;const N=64,cv=document.createElement('canvas');cv.width=cv.height=N;const c=cv.getContext('2d'),C=N/2;
+      const g=c.createRadialGradient(C*.8,C*.7,2,C,C,C);g.addColorStop(0,'#e9ecf2');g.addColorStop(.7,'#b6bcc6');g.addColorStop(1,'#8c929c');
+      c.fillStyle=g;c.beginPath();c.arc(C,C,C-.5,0,6.2832);c.fill();
+      c.lineWidth=3;c.strokeStyle='#d8dde6';c.beginPath();c.arc(C,C,C-4,0,6.2832);c.stroke();c.lineWidth=1.5;c.strokeStyle='#6a707a';c.beginPath();c.arc(C,C,C-1.2,0,6.2832);c.stroke();
+      c.fillStyle='#cfd4dc';c.fillRect(C-11,C-11,22,22);c.fillStyle='#7c828c';c.fillRect(C-8,C-8,16,16);c.clearRect(C-6.5,C-6.5,13,13); // le liseré du carré, puis le TROU
+      tex=new THREE.CanvasTexture(cv);tex.anisotropy=4;
+      mat=new THREE.MeshPhongMaterial({map:tex,alphaTest:.5,shininess:60,specular:0x6a6e76,envMap:envTex,reflectivity:.10,color:0x9a9ea8,emissive:0x24262c});mat.dispose=function(){};return mat;},
+    tpl:function(){if(tpl)return tpl;const top=new THREE.CircleGeometry(1,12);top.rotateX(-Math.PI/2);top.translate(0,.07,0);
+      const sd=new THREE.CylinderGeometry(1,1,.14,12,1,true);const u=sd.attributes.uv;for(let i=0;i<u.count;i++)u.setXY(i,.5,.03);
+      const t=top.toNonIndexed(),q=sd.toNonIndexed();const n=t.attributes.position.count+q.attributes.position.count,P=new Float32Array(n*3),Nn9=new Float32Array(n*3),U=new Float32Array(n*2);
+      P.set(t.attributes.position.array,0);P.set(q.attributes.position.array,t.attributes.position.count*3);Nn9.set(t.attributes.normal.array,0);Nn9.set(q.attributes.normal.array,t.attributes.position.count*3);
+      U.set(t.attributes.uv.array,0);U.set(q.attributes.uv.array,t.attributes.position.count*2);tpl={P:P,N:Nn9,U:U,n:n};return tpl;}};})();
+function jadePiecesBord(root,jr){if(JADE.decoPieces)return;const T9=JADE_PB.tpl(),mat=JADE_PB.mat(),grp=new THREE.Group();
+  const M=new THREE.Matrix4(),R=new THREE.Matrix4(),S=new THREE.Matrix4(),Nm=new THREE.Matrix3(),V=new THREE.Vector3(),B9=new THREE.Vector3(),N9=new THREE.Vector3(),Tt=new THREE.Vector3(),C=new THREE.Vector3();
+  let L9=[],s0=0,acc=0,pas=1.5;
+  const vide=()=>{if(!L9.length)return;const k=L9.length,P=new Float32Array(k*T9.n*3),Nn9=new Float32Array(k*T9.n*3),U=new Float32Array(k*T9.n*2);
+    for(let j=0;j<k;j++){M.fromArray(L9[j]);Nm.getNormalMatrix(M);const o=j*T9.n;
+      for(let v=0;v<T9.n;v++){V.fromArray(T9.P,v*3).applyMatrix4(M);V.toArray(P,(o+v)*3);V.fromArray(T9.N,v*3).applyMatrix3(Nm).normalize();V.toArray(Nn9,(o+v)*3);}
+      U.set(T9.U,o*2);}
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(P,3));g.setAttribute('normal',new THREE.BufferAttribute(Nn9,3));g.setAttribute('uv',new THREE.BufferAttribute(U,2));g.computeBoundingSphere();
+    const m=new THREE.Mesh(g,mat);m.userData.jeter=true;grp.add(m);L9=[];};
+  const pose=(p,sd,lat,h,r,yaw,tx,tz)=>{C.copy(p).addScaledVector(B9,sd*lat).addScaledVector(N9,h);
+    M.makeBasis(B9,N9,Tt).setPosition(C);R.makeRotationFromEuler(new THREE.Euler(tx,yaw,tz,'YXZ'));S.makeScale(r,1,r);M.multiply(R).multiply(S);L9.push(M.toArray());};
+  for(let i=1;i<NP;i++){acc+=pts[i].distanceTo(pts[i-1]);if(acc<pas)continue;acc=0;pas=.95+jr()*.45;
+    Tt.copy(T[i]).normalize();B9.copy(B[i]).normalize();N9.copy(Nn[i]).normalize();const p=pts[i];
+    for(const sd of [-1,1]){const r=.92+jr()*.22,lat=ROAD_HALF-.30+jr()*.55,tilt=(jr()-.5)*.20+sd*.05;
+      pose(p,sd,lat,.02+jr()*.04,r,jr()*6.283,(jr()-.5)*.16,tilt);
+      if(jr()<.15)pose(p,sd,lat-sd*(.25+jr()*.4),.16+jr()*.05,r*(.9+jr()*.1),jr()*6.283,(jr()-.5)*.3,tilt+(jr()-.5)*.25);} // une autre, posée de biais dessus
+    if(i/(NP-1)*L-s0>700){vide();s0=i/(NP-1)*L;}}
+  vide();root.add(grp);JADE.decoPieces=grp;}
 /* (v16) LES CUMULUS — plus de volutes en spirale (le cliché) : des nuages de Ghibli, une base PLATE, des choux-fleurs empilés en trois rangées
    (petits lobes en bas, gros au milieu, un ou deux au sommet). Même format que la planche des volutes (R hauteur, A couverture). */
 function jadeCumulusTex(){const CW=512,CH=256,W=CW*4,H=CH*4,HS=90,D=new Uint8Array(W*H*4),rg=mulberry32(0xC0B1),hb=new Float32Array(CW*CH);
@@ -14775,6 +14817,7 @@ const JADE_NUVOX_M=(function(){const m=new THREE.ShaderMaterial({transparent:tru
     '  gl_FragColor=vec4(c,.88*smoothstep(80.,320.,vD)*(1.-smoothstep(7800.,9400.,vD)));}'].join('\n')});m.dispose=function(){};return m;})();
 /* ---- CHAQUE IMAGE : les lumières du niveau dans la matière (une Lambert les lirait d'elle-même), l'horloge, la brume ---- */
 function jadeTick(dt){
+  try{jadeMusTick();}catch(e){}
   {const on=!!JADE.root&&LVL.cur&&LVL.cur.id==='jade';if(JADE_ESPRITS.visible!==on)JADE_ESPRITS.visible=on;if(on){const u=JADE_ESPRITS.material.uniforms;u.uCam.value.copy(camera.position);u.uPx.value=renderer.getPixelRatio();u.uK.value=Math.min(1,u.uK.value+dt*.5);}}
   if(!JADE.root)return;
   if(JADE.photo&&paused&&acesPass){acesPass.uniforms.uSpeed.value=0;loop._sfx=0;}
@@ -14786,6 +14829,7 @@ function jadeTick(dt){
   try{jadeEauTick(dt);}catch(e){window.__jadeErr=e;}
   if(!paused){try{jadeChuteTick(dt);}catch(e){window.__jadeErr=e;}}
   if(!JADE.t0&&started)JADE.t0=performance.now();
+  if(JADE.decoPieces&&JADE.decoPieces.visible){const cp=camera.position;for(const m of JADE.decoPieces.children){const S9=m.geometry.boundingSphere,v=!!S9&&cp.distanceTo(S9.center)-S9.radius<450;if(m.visible!==v)m.visible=v;}} // (12/10) les pièces du bord : à moins de 450 m seulement
   if(JADE.monu){const ff=(scene.fog&&scene.fog.far)||2600;for(const o of JADE.monu){const d9=camera.position.distanceTo(o.c)-o.r,v=d9<ff+80;if(o.g.visible!==v)o.g.visible=v; // (v17) au-delà de la brume : pas dessinés…
     const lo=d9>450;if(o.L&&lo!==o.loin){o.loin=lo;o.L[1].visible=o.L[2].visible=!lo;o.L[0].material=lo?JADE_M.vrOM:JADE_M.vrM;o.L[0].renderOrder=lo?0:3;}}} // …et à plus de 450 m, une seule passe opaque (le verre en trois passes, de près)
   for(const M9 of [JADE.porte,JADE.pont]){if(!M9||!M9.mF)continue;const d=camera.position.distanceTo(M9.c),n=d<(M9===JADE.porte?780:650)+(M9.pres?40:0); // (v8) de près, les cubes fins
@@ -14874,6 +14918,7 @@ window.dbgJadePoste=function(k,on){if(!JADE.root)return 'pas de map';on=!!on;
   if(k==='bandes'){const o={};for(const F of JADE.fam){const kk=F.b0+'-'+F.b1+(F.im2?'v':'');o[kk]=(o[kk]||0)+F.im.count*F.tri*(F.im2?3:1);}for(const FF of FIN.fam)if(FF)o.fins=(o.fins||0)+FF.im.count*FF.tri*3;for(const kk in o)o[kk]=Math.round(o[kk]/1000)+'k';return o;}
   if(k==='ramasse'){const o={pieces:0,fruits:{},pouvoirs:0};for(const p of pickups){if(p.pow)o.pouvoirs++;else if(p.nitro){const n9=(FRUIT_DEFS[p.fruit]||{}).n||'?';o.fruits[n9]=(o.fruits[n9]||0)+1;}else o.pieces++;}o.plots=CONES.length;o.pads=PADS.length;o.flaques=OILS.length;o.coinIM=coinIM.count;o.fruitsS=pickups.filter(function(p){return p.nitro&&p.face===1;}).map(function(p){return [Math.round(p.s),+p.lat.toFixed(1),(FRUIT_DEFS[p.fruit]||{}).n];});o.coinVis=coinIM.visible;o.s=Math.round(s);o.prochaines=pickups.filter(function(p){return p.s>s;}).slice(0,4).map(function(p){const m=p.mesh;return {s:Math.round(p.s),lat:+p.lat.toFixed(1),vis:m&&m.visible,par:!!(m&&m.parent),y:m?Math.round(m.position.y):null,sc:m?+m.scale.x.toFixed(2):null};});const P9=new THREE.Vector3();frameAt(s,F);o.routeY=Math.round(F.p.y);o.cone=CONES.slice(0,2).map(function(c){return {s:Math.round(c.s),mesh:!!c.mesh};});o.coneIM=(typeof CONE_IM!=='undefined'&&CONE_IM)?CONE_IM.map(function(m){return m?m.count:null;}):null;return o;}
   if(k==='bitume'){scene.traverse(function(o){if(o.isMesh&&o.material&&o.material.userData&&o.material.userData.bitume)o.visible=on;});return 'bitume '+on;}
+  if(k==='bordPieces'){if(JADE.decoPieces)JADE.decoPieces.visible=on;return 'bord '+on;}
   if(k==='lod'){JADE_LOD.r0=+arguments[1];JADE.sig=0;return JADE_LOD.r0;}
   if(k==='liste'){const o=[];JADE.root.traverse(function(x){if(!x.visible||!x.isMesh||x.isInstancedMesh)return;const g=x.geometry;const n=(g.index?g.index.count:g.attributes.position.count)/3;if(n>5000)o.push([x.name||(x.material&&x.material.type),Math.round(n/1000)+'k',x.frustumCulled,x.parent===JADE.root?'root':'sous',JADE.porte&&JADE.porte.mF&&JADE.porte.mF.indexOf(x)>=0?'porteF':JADE.porte&&JADE.porte.mL&&JADE.porte.mL.indexOf(x)>=0?'porteL':JADE.pont&&JADE.pont.mF&&JADE.pont.mF.indexOf(x)>=0?'pontF':JADE.pont&&JADE.pont.mL&&JADE.pont.mL.indexOf(x)>=0?'pontL':'']);});return o;}
   if(k==='scene'){const o={};scene.traverse(function(x){if(!x.visible||!(x.isMesh||x.isPoints||x.isLine))return;const g=x.geometry;if(!g)return;const n=(g.index?g.index.count:(g.attributes.position?g.attributes.position.count:0))/3*(x.isInstancedMesh?x.count:1);const kk=(x.material&&x.material.type)+(x.isInstancedMesh?'I':'')+(x.parent===JADE.root?'J':'');o[kk]=(o[kk]||0)+n;});for(const kk in o)o[kk]=Math.round(o[kk]/1000)+'k';return o;}
@@ -14920,6 +14965,7 @@ window.dbgJadeVue=function(k,d,h,cap){if(!JADE.root)return 'pas de map';
     if(bq){const a9=(cap||0)+Math.atan2(o9.z-bq[1],o9.x-bq[0]);C.set(bq[0]+Math.cos(a9)*(bq[2]+(d||40)),o9.y+(h||0),bq[1]+Math.sin(a9)*(bq[2]+(d||40)));V.set(bq[0],C.y-(h||0)*.3,bq[1]);}}
   else if(k==='eau'&&JADE.eauPil&&JADE.eauPil.length){const o9=carGroup.position;let be=null,bd=-1;for(const e of JADE.eauPil){const d9=(e.x-o9.x)*(e.x-o9.x)+(e.z-o9.z)*(e.z-o9.z);if(d9<1500*1500&&e.r>bd){bd=e.r;be=e;}}if(!be)be=JADE.eauPil[0]; // (v17, dev) le pied d'une montagne que l'eau frappe
     const a9=(cap||0)+Math.atan2(o9.z-be.z,o9.x-be.x);C.set(be.x+Math.cos(a9)*(be.r+(d||110)),JADE.eauY+(h||22),be.z+Math.sin(a9)*(be.r+(d||110)));V.set(be.x,JADE.eauY+(h||22)*.6,be.z);camera.position.copy(C);JADE.eauT=0;jadeEauTick(0);}
+  else if(k==='bord'){frameAt(Math.min(L-10,s+(d||0)),F);C.copy(F.p).addScaledVector(F.b,ROAD_HALF+(cap||6)).addScaledVector(F.n,h||3).addScaledVector(F.t,-6);V.copy(F.p).addScaledVector(F.b,ROAD_HALF-2).addScaledVector(F.t,30);} // (dev) le BORD de la route, de côté
   else if(k==='haut'){C.copy(carGroup.position);C.y+=(h||260);V.copy(carGroup.position).addScaledVector(new THREE.Vector3(Math.sin(cap||0),0,Math.cos(cap||0)),600);}
   else if(k==='loin'){C.copy(carGroup.position);C.y+=(h||30);V.copy(carGroup.position).addScaledVector(new THREE.Vector3(Math.sin(cap||0),0,Math.cos(cap||0)),1000);V.y+=(d||0);}
   else{frameAt(Math.min(L-10,s+(d||0)),F);C.copy(F.p).addScaledVector(F.t,-18).addScaledVector(F.n,(h||8));V.copy(F.p).addScaledVector(F.t,120);}
@@ -16687,15 +16733,15 @@ BIOMES.jade={nm:'PICS DE JADE',skyMul:[1,1,1],skyLift:[0,0,0],sunTint:[1,.95,.86
   /* (v17, Léo : « de la colorimétrie sur tout le niveau, du shading, une ambiance FÉERIQUE, le ciel plus dégradé ») — l'heure dorée d'un
      conte : la brume rose-lavande, une lumière d'or, les ombres lilas (le ciel les remplit), un contre-jour rose ; l'étalonnage plus saturé,
      les ombres violettes, les hautes lumières chaudes, un halo plus généreux (ce qui brille rayonne), la vignette prune. */
-  fog:[.98,.80,.62],fogN:240,fogF:2500,
-  hemiS:[.90,.78,.76],hemiG:[.62,.48,.46],hemiI:.98, sunC:[1,.78,.52],sunI:1.15,
+  fog:[.88,.80,.72],fogN:240,fogF:2500,
+  hemiS:[.84,.80,.84],hemiG:[.60,.50,.48],hemiI:.98, sunC:[1,.78,.52],sunI:1.15,
   fillC:[.82,.56,.86],fillI:.20, kickC:[1,.78,.86],kickI:.07,
   volSun:[1.9,1.7,1.5],volSky:[.78,.70,.90],volGnd:[.40,.34,.44],volAmb:.82,
-  expo:.90,sat:1.12,
+  expo:.90,sat:1.08,
   env:[[0,'#5f74c8'],[.3,'#a99ad8'],[.48,'#f2cfe0'],[.58,'#ffe2c4'],[.66,'#8a6f86'],[1,'#3a2e48']],eS1:[255,232,200,.50],eS2:[230,170,220,.32],
-  wb:[1.01,.99,1.02],sh:[.012,-.002,.034],hi:[.022,.008,-.008],con:1.06,bloomS:.46,bloomT:.84,vigK:.28,vigC:[.18,.08,.20],rimK:0,rimS:.38,fogIn:[1,.86,.70],fogCj:[1,.76,.56],
+  wb:[1.01,.99,1.02],sh:[.012,-.002,.034],hi:[.022,.008,-.008],con:1.06,bloomS:.46,bloomT:.84,vigK:.28,vigC:[.18,.08,.20],rimK:0,rimS:.38,fogIn:[.94,.86,.78],fogCj:[1,.76,.56],
   daCon:.6,daExpo:1,daWbN:1,daSh:.3,daHi:.2,
-  jdZ:[.44,.46,.66],jdL:[.98,.70,.46],jdM:[1,.62,.34],jdH:[1,.78,.48],jdR:[.40,.36,.46],jdB:[.98,.82,.66],jdS:[1,.70,.40]}; // (12/10, Léo : « le ciel plus ORANGÉ, du coup, asiatique ») l orange du soir, le zénith bleu-mauve (v17 bis : la soie céladon)
+  jdZ:[.50,.56,.66],jdL:[.74,.72,.74],jdM:[1,.66,.42],jdH:[1,.78,.54],jdR:[.40,.38,.46],jdB:[.90,.82,.76],jdS:[1,.72,.44]}; // (12/10 soir, Léo : « le ciel, un mélange de GRIS, BLEU, ORANGÉ ») l orange en bas, un gris chaud au milieu, le gris-bleu en haut // (12/10, Léo : « le ciel plus ORANGÉ, du coup, asiatique ») l orange du soir, le zénith bleu-mauve (v17 bis : la soie céladon)
 for(const k9 in BIOMES)for(const f9 in BIO_ETAL0)if(BIOMES[k9][f9]==null)BIOMES[k9][f9]=JSON.parse(JSON.stringify(BIO_ETAL0[f9]));
 // Le tirage du jour, dans l'ordre des heures (+ l'ORAGE en joker météo) — la NUIT ne se tire pas,
 // elle se MÉRITE (3 portails). 9 ambiances en rotation : deux parties ne se ressemblent plus.
@@ -31847,6 +31893,7 @@ function musicMenu(){
   playMusic(MUSIC.menu||musicPremier(),{loop:true,volume:0,garde:true});
 }
 function musicPlayCurrent(){
+  if(musicMode==='run'&&jadeMusOn()){stopMusic();return;} // (2026-10-12) le SOLEIL DE JADE a SA musique (JMUS) : la radio se tait
   const ouv=musicMode==='run'&&!!musicLieu;
   const url=musicMode==='menu'?(MUSIC.menu||musicPremier()):ouv?musicLieu.f:(MUSIC_TRACKS[musicCur]||{}).f;
   if(!url)return;
@@ -31854,7 +31901,7 @@ function musicPlayCurrent(){
 }
 /* ---- L'ENCHAÎNEMENT RADIO : un morceau se termine → un AUTRE au hasard, sans fanfare. ---- */
 function musicNext(){
-  if(musicMode!=='run')return;
+  if(musicMode!=='run'||jadeMusOn())return;
   musicCur=musicPickNext(musicCur);
   NIVEAU_FX=2.6;
   BCLK.ph=0;BCLK.n=0;BCLK.conf=0;BCLK.miss=0;BCLK.last=BCLK.t-9;BCLK.per=.5;BCLK.force=0;
@@ -31918,6 +31965,7 @@ function frenMusRate(){ // le morceau de la triade a échoué : retour radio, pu
   if(FRENM.on&&MUSIC_FREN.surm>1){FRENM.surm=true;frenMusVit(el,MUSIC_FREN.surm,300);}
 }
 function frenMus(on){
+  if(jadeMusOn())return; // (2026-10-12) au SOLEIL DE JADE, GLISSE V2 garde l'antenne
   if(on===FRENM.on)return;FRENM.on=on;
   const el=musicEl;
   if(on){
@@ -39357,10 +39405,35 @@ window.dbgOrage=function(q){ // (2026-09-29) L'ORAGE du mode principal : l'état
   return {lieu:LVL.cur&&LVL.cur.id,flash:+CAMP_FLASH.toFixed(3),brumeOuverte:Math.round(CAMP_FOG),prochain:+ECL.t.toFixed(2),pluie:+LVL.pluie.toFixed(2),brume:[Math.round(scene.fog.near),Math.round(scene.fog.far)],bancs:CLOUDS.filter(function(c){return c.onRoad||c.mesh&&c.mesh.userData.trav;}).length,nuages:CLOUDS.length};};
 window.dbgEclair=function(){if(CAMP.n!==9)return 'pas d orage';eclFrappe();ECL.t=6;return {k:ECL.k};}; // (dev) un éclair tout de suite (niveau 9)
 window.dbgFumee=function(d){CAMP.dmg=+d||0;CAMP.palier=0;return CAMP.dmg;}; // (dev) forcer les dégâts de la poursuite (la fumée suit)
-window.dbgNiveauJade=function(){ // (2026-10-12) lancer le niveau SOLEIL DE JADE (le simulateur l'appelle) — le chemin de la carrière : la piste sous le voile, puis l'atelier et le lâcher
-  if(started&&!gameOver)return 'en course';if(ecranWipe._on||(typeof GAR!=='undefined'&&GAR.go))return 'occupé';
+function jadePlayOk(){return JADE_PLAY&&!POKI&&!PARK.on&&!SURV.armed&&!!(SAVE.d.tuto||SAVE.d.permis);} // un tout premier joueur passe d'abord par l'auto-école
+function jadeJouer(){ // (2026-10-12) lancer le SOLEIL DE JADE — le chemin de la carrière : la piste sous le voile (si elle n'est pas déjà là), l'atelier, le lâcher
+  if(pendingScore!=null||(started&&!gameOver))return 'en course';if(ecranWipe._on||(typeof GAR!=='undefined'&&GAR.go))return 'occupé';
   JADE_JEU=true;CARR.actif=null;if(PARK.on){PARK.on=false;try{modeLbl();}catch(e){}}
-  ecranWipe(function(){runStats.zones=0;rebuildMenuScene();if(!garageOn)openGarage(true);},function(){garageLaunch();});return JADE_NOM;};
+  jadeMusGeste(); // dans le geste du JOUER : la musique du niveau peut naître (règle des navigateurs)
+  const ici=LVL.cur&&LVL.cur.id==='jade'&&!!JADE.root;
+  ecranWipe(function(){runStats.zones=0;if(!ici)rebuildMenuScene();if(!garageOn)openGarage(true);},function(){garageLaunch();});return JADE_NOM;}
+window.dbgNiveauJade=jadeJouer; // (le simulateur l'appelle)
+/* LA MUSIQUE DU SOLEIL DE JADE (JMUS) — GLISSE V2, le module de Léo, joué en direct (son propre contexte audio) : la radio du jeu se tait
+   sur ce niveau (musicPlayCurrent / musicNext / frenMus), le module joue tant que la course tourne (pause, mort, menu, appli cachée : il se
+   tait), son intensité = les 5 PALIERS DE MUSIQUE du simulateur (moteurs 1-5 · 6-10 · 11-15 · 16-20 · 21-30 → setTier(P, 5)), son volume
+   = le curseur MUSIQUE (VOL.mus, .62 = le niveau du module), l'interrupteur MUSIQUE le coupe. Le module se charge dès le démarrage ; le
+   1er toucher d'une course le relance une fois (Safari ne réveille un contexte audio que dans un geste). */
+const JMUS={mod:null,load:false,inst:null,P:0,vol:-1,kick:false,err:null};
+function jadeMusOn(){return JADE_JEU&&!!LVL.cur&&LVL.cur.id==='jade';}
+function jadeMusCharge(){if(JMUS.mod||JMUS.load)return;JMUS.load=true;
+  try{import('./assets/audio/music/musique-glisse-v2.js').then(function(m){JMUS.mod=m;}).catch(function(e){JMUS.err=String(e);});}catch(e){JMUS.err=String(e);}}
+function jadeMusInst(){if(!JMUS.inst&&JMUS.mod){try{JMUS.inst=(JMUS.mod.createGlisseMusic||Object.values(JMUS.mod).find(function(f){return typeof f==='function';}))({});}catch(e){JMUS.err=String(e);}}return JMUS.inst;}
+function jadeMusVeut(){return jadeMusOn()&&SND.music&&started&&!gameOver&&!paused&&!document.hidden;}
+function jadeMusGeste(){const i=jadeMusInst();if(!i||!SND.music)return;try{if(i.playing)i.stop();i.start();i.setVolume(0);JMUS.vol=-1;JMUS.P=0;}catch(e){}} // réveillé dans le geste, muet jusqu'à la course
+function jadeMusTick(){
+  if(!JMUS.mod){if(JADE_PLAY||JADE_JEU)jadeMusCharge();return;}
+  const v=jadeMusVeut(),i=v?jadeMusInst():JMUS.inst;if(!i)return;
+  if(v){try{if(!i.playing){i.start();JMUS.vol=-1;JMUS.P=0;JMUS.kick=false;}
+      const P=1+[5,10,15,20].filter(function(t){return engTier>=t;}).length;if(P!==JMUS.P){JMUS.P=P;i.setTier(P,5);}
+      const vo=VOL.mus/.62;if(Math.abs(vo-JMUS.vol)>.01){JMUS.vol=vo;i.setVolume(vo);}}catch(e){JMUS.err=String(e);}}
+  else if(i.playing){try{i.stop();}catch(e){}JMUS.P=0;}}
+addEventListener('pointerdown',function(){if(JMUS.kick||!JMUS.inst||!jadeMusVeut())return;JMUS.kick=true;try{JMUS.inst.stop();JMUS.inst.start();JMUS.vol=-1;JMUS.P=0;}catch(e){}},true);
+window.dbgJadeMus=function(){return {charge:!!JMUS.mod,inst:!!JMUS.inst,joue:!!(JMUS.inst&&JMUS.inst.playing),palier:JMUS.P,bpm:JMUS.inst&&JMUS.inst.bpm,err:JMUS.err,radio:musicEl?!musicEl.paused:null,veut:jadeMusVeut()};};
 window.dbgCampagne=function(n,b){ // (dev) lancer un niveau de carrière depuis la console : dbgCampagne(5) (NUAGES), dbgCampagne(3,1) (VILLE)
   b=Math.max(0,Math.min(CARRIERE.length-1,b|0));n=Math.max(1,Math.min(CARRIERE[b].niveaux.length,n|0));if(started&&!gameOver)return 'en course';carrLancer(b,n-1);return CARRIERE[b].id+' '+n;};
 window.dbgCamp=function(){return {niveau:CAMP.n,corde:CORDE_ON,degats:+CAMP.dmg.toFixed(2),proche:Math.round(CAMP.proche),coupes:CAMP.coupes.map(function(c){return {sA0:Math.round(c.sA0),sA1:Math.round(c.sA1),sB0:Math.round(c.sB0),cote:c.side,ecart:+(c.gap||0).toFixed(1)};}),
@@ -44259,6 +44332,7 @@ function garJouer(e){
     if(SHOP.tab==='voiture'){if(!carUnlocked(garageI))garageShow(equippedCar());}
     else if(SHOP.prev&&!shopOwned(SHOP.prev.cat,COSM[SHOP.prev.cat][SHOP.prev.i].id)){shopTab('voiture');garageShow(equippedCar());}
     goImmersive();
+    if(jadePlayOk()){jadeJouer();return;} // (2026-10-12, Léo) le JOUER lance le SOLEIL DE JADE
     if(carrPlayOk()){carrJouer();return;} // (2026-10-07, Léo) LE NIVEAU DES PLAY : la map de la carrière, par son départ (le voile, la piste du niveau, sa musique)
     CARR.actif=null;tutoArme();garageLaunch();};
   if(SAVE.d.facile==null&&!SAVE.d.tuto)facChoix().then(part);else part();
@@ -48101,7 +48175,7 @@ function loop(now){
   try{updateSerpent(dt);}catch(e){loopWarn(8,'serpent',e);}
   try{updateBoomArt(dt);}catch(e){loopWarn(16,'boule de feu',e);}
   if(PARIS.meshes.length)parisTick(dt);
-  if(JADE.root)jadeTick(dt); // (2026-10-09) LES PICS DE JADE : lumières de la matière, vent des pins, brume
+  if(JADE.root)jadeTick(dt);else{try{jadeMusTick();}catch(e){}} // (2026-10-12) la musique du SOLEIL DE JADE se charge dès le départ, et se tait hors du niveau — (2026-10-09) LES PICS DE JADE : lumières de la matière, vent des pins, brume
   if(GRUE.L.length||JADE.root)grueTick(dt); // …et les vols de grues // (Paris) le scintillement et le phare
   if(POST_ON&&composer)composer.render(); // ACES + bloom
   else renderer.render(scene,camera);      // repli si le post n'a pas pu se charger
@@ -49017,6 +49091,8 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   function mTap(a,el){
     if(a!=='snd')uiClic(mRole9(a));uiPop(el);if(a==='play'||a==='replay')pixBurst(el,16); // chaque bouton REBONDIT ; JOUER lâche une gerbe — (2026-09-28) SON : le clic part APRÈS la bascule (plus bas)
     if(a==='replay'&&started&&gameOver){ const r9=function(){ DEPMUS.sort=performance.now(); goImmersive(); ecranWipe(function(){ if(started&&gameOver){ if(!CARR.actif)tutoArme(); resetGame(); } }); }; if(pkPasse(r9))r9(); } // (POKI) pkPasse : la pause pub avant de rejouer // REJOUER : tout de suite, sans repasser par l'atelier — mais par un fondu (la piste neuve se construit DESSOUS) · (2026-09-28) tutoArme : « REVOIR L'AUTO-ÉCOLE » promet le PROCHAIN départ, REJOUER compris (sans effet si elle est déjà faite ; pas en carrière : son niveau passe devant la piste d'apprentissage)
+    else if(a==='play'&&jadePlayOk()){ const go9=function(){goImmersive();jadeJouer();}; // (2026-10-12, Léo) le JOUER lance le SOLEIL DE JADE, avec sa musique
+      if(SAVE.d.facile==null&&!SAVE.d.tuto)facChoix().then(go9);else go9(); }
     else if(a==='play'&&carrPlayOk()){ const go9=function(){goImmersive();carrJouer();}; // (2026-10-07, Léo) LE NIVEAU DES PLAY : la map de la carrière (la dernière jouée, ou choisie), par le départ de la carrière — sa musique comprise
       if(SAVE.d.facile==null&&!SAVE.d.tuto)facChoix().then(go9);else go9(); } // le 1er JOUER demande toujours le mode
     else if(a==='play'||a==='replay'){ if(a==='play')CARR.actif=null; // la partie sans fin : parc, Survivant armé, Poki, ?menu=leo (carrPlayOk)

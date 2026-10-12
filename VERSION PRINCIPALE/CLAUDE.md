@@ -19,6 +19,20 @@
 - (12/10, Léo : « plus de zoom, plutôt des pièces ARGENTÉES, comme celles qu'on connaît, avec un CARRÉ au milieu ; le ciel plus ORANGÉ »)
   la route (style 4) = des pièces d'ARGENT à TROU CARRÉ, 1,5 × plus grandes (Ø 1,9-2,3 m), chacune sa nuance et l'angle de son carré ;
   plus d'étoile. Le ciel : orange du soir (jdH/jdM/jdL orange, zénith bleu-mauve), brume et lumière orangées.
+- (12/10 soir, Léo : « le ciel, un mélange de gris, bleu, orangé ; le bord de la route pas tout lisse, ce sont les PIÈCES qui DÉPASSENT ;
+  lance-le comme la map qui se déclenche quand on appuie sur JOUER, avec CETTE musique-là ; on retouchera la map directement sur le main »)
+  · LE JOUER (accueil `mTap('play')` et garage `garJouer`) lance le SOLEIL DE JADE (`jadeJouer`, `jadePlayOk` : `JADE_PLAY`, pas Poki, pas
+    le parc/Survivant armés, et JAMAIS pour un tout premier joueur : l'auto-école d'abord). `?play=sansfin` (ou `carriere`) rend l'ancien JOUER
+    — le simulateur charge le jeu avec `?play=sansfin` et lance le jade par `dbgNiveauJade` (= jadeJouer).
+  · SA MUSIQUE : GLISSE V2 (choix de Léo au simulateur, choix-musiques.json) — la COPIE `assets/audio/music/musique-glisse-v2.js` (le
+    simulateur est retiré du site : si Léo retouche son module, recopier le fichier ici). `JMUS` : chargé dès le démarrage (import dynamique),
+    joue tant que la course tourne (pause, mort, menu, appli cachée, interrupteur MUSIQUE : il se tait), intensité = 5 paliers (moteurs 1-5 ·
+    6-10 · 11-15 · 16-20 · 21-30 → setTier(P, 5)), volume = curseur MUSIQUE (VOL.mus/.62) ; la radio se tait sur ce niveau (musicPlayCurrent,
+    musicNext, frenMus). Réveillé dans le geste du JOUER, relancé une fois au 1er toucher (Safari). Console `dbgJadeMus()`.
+  · LE CIEL : orange en bas, un gris chaud au milieu, gris-bleu en haut (sat 1,08).
+  · LES PIÈCES DU BORD (`jadePiecesBord`, `JADE_PB`, `JADE.decoPieces`, route style 4 seulement) : de vraies pièces d'argent à trou carré
+    (disque à 12 pans + tranche, la texture percée : alphaTest) tous les ~1,2 m de chaque bord, à cheval sur l'arête, penchées, une sur sept
+    avec une autre de biais dessus ; tronçons de 700 m dessinés à moins de 450 m. `dbgJadePoste('bordPieces',on)`, vue `dbgJadeVue('bord')`.
 - Banc : `dbgJadePoste('ramasse')` (pièces, fruits par nom, pouvoirs, plots, plaques, flaques). MESURÉ : 650 pièces, ~16 fruits, 20 pouvoirs,
   300 plots, 8 plaques par passage ; en course : pièces ramassées, défis (« EAT 4 FRUITS »), paliers moteur, aimant, jus des fruits.
 
