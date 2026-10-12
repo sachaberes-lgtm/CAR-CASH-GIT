@@ -10,6 +10,12 @@
   qui grossit. La RESSOURCE est à toi dès la prise : seul l'affichage attend — la boucle dessine `nitroR − VOLG.n.r` / `nitroX − VOLG.n.x`
   (plein, à sec, anneau du bouton compris). Fini le `.gain` (flash ×2,2 de TOUTE la barre, km/h compris : « la jauge part en couille ») →
   `.nbPrend`, un éclat au bout du plein seulement. Gains < 0,03 (rase-bord) : directs, sans éclat.
+- LE REMPLISSAGE QUI SATISFAIT (même jour, Léo : « travaille juste le fait que ce soit satisfaisant quand ça se remplit — la dynamique ») :
+  les deux jauges se VERSENT en ressort (`VOLG_W` 17, `VOLG_Z` ,5 : elles filent ~0,15 s, dépassent ~15 %, se posent ~0,33 s ; `AJ.vv`,
+  `volgRessort` pour la barre de boost, qui se VIDE sans traîner) ; les états (moyenne battue, record, bout) se lisent sur `vS` (jamais sur le
+  dépassement) ; à l'arrivée le plein BAT (`volgBat`, WAAPI sur `scale` : ×1,3-1,4 → ×0,9 → ×1,04 → 1 ; l'ancien `ajBat` CSS retiré) et
+  `sfx('ui.pop')` sonne ; enchaînées (< 0,65 s) les arrivées montent la pentatonique (`VOLG_GAMME`) et tapent plus fort. Plus de transition
+  en crans sur la largeur de #nitroR/#nitroX (le ressort la porte). Courbes : `photos-gameplay/comparaison-remplissage.jpg`.
 - 12 en vol au plus, au-delà / « Réduire les animations » / hors course : direct. Console `dbgVols()` · `dbgVols('a'|'n'|'x',q)` ·
   `dbgVols('ralenti',.1)` (le ralenti du banc). Comparaison : `photos-gameplay/comparaison-gains-qui-flottent.jpg` (CAR CAHS V3).
 ## LE NIVEAU « SOLEIL DE JADE » — la map des PICS DE JADE en vrai niveau, au simulateur (2026-10-12, Léo : « là, il n'y a pas de fruits, tout ça : fais-en un niveau complet avec ses aspects — fruits custom, pièces ¥ yuan yen — qu'on ajoute au système audio pour tester, référencé par un nom que tu choisis »)

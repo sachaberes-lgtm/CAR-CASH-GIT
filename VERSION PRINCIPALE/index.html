@@ -6948,7 +6948,6 @@ html body.touch.play #ajCourse{animation:hmHaut .55s var(--ease) 1.25s both}
 /* l'aura qui arrive : la cellule en cours s'éclaire, la barre bat */
 #ajCourse .ajSeg>i.cur s::before{content:'';position:absolute;inset:0;background:#fff;opacity:0}
 #ajCourse.prend .ajSeg>i.cur s::before{animation:ajPrend .32s var(--ease)}
-#ajCourse.prend .ajSeg{animation:ajBat .32s var(--ease)}
 @keyframes ajPrend{0%{opacity:.6}100%{opacity:0}}
 @keyframes ajBat{0%{scale:1 1.3}100%{scale:1 1}}
 /* le RECORD battu : le cadre à l'or */
@@ -6999,6 +6998,7 @@ html body.touch #nitroBar>.nbPrend{position:absolute;top:-4px;bottom:-4px;left:c
   pointer-events:none;opacity:0;background:linear-gradient(90deg,transparent,rgba(255,244,214,.95));transform-origin:100% 50%}
 html body.touch #nitroBar>.nbPrend.x{background:linear-gradient(90deg,transparent,rgba(225,232,255,.95))}
 html body.touch #nitroBar>.nbPrend.on{animation:nbPrendK .34s var(--ease)}
+html body.touch #nitroR,html body.touch #nitroX{transition:none!important}   /* le RESSORT de la boucle porte la largeur (la transition en crans le hachait) */
 @keyframes nbPrendK{0%{opacity:1;scale:1 1.4}100%{opacity:0;scale:1 1}}
 /* la pause passe devant : la jauge et ce qui vole se cachent comme le reste du HUD */
 body:has(#tPanel.open) :is(#ajCourse,#ajVols){visibility:hidden}
@@ -46545,7 +46545,7 @@ window.dbgNitro3=function(a,b){
    Console : `dbgJaugeAura()` (moyenne, record, montré, en vol, phase) · `dbgJaugeAura(n)` verse n d'aura depuis la caisse (le vol se voit).
    ⚠ PAS `dbgAura` : c'est le crochet du jeu (banque, aura totale, rangs, caisses) — la 1re version de cette jauge l'avait écrasé.
    ===================================================================================================================================== */
-const AJ={el:null,seg:null,cel:null,lS:null,lB:null,vols:null,pool:[],moy:0,rec:0,moyT:0,vis:0,envol:0,acc:0,accT:0,accCh:false,
+const AJ={el:null,seg:null,cel:null,lS:null,lB:null,vols:null,pool:[],moy:0,rec:0,moyT:0,vis:0,vv:0,envol:0,acc:0,accT:0,accCh:false,
   enVol:0,fs:[-1,-1,-1,-1],cur:-1,rev:false,recB:false,fx:0,w:0,wT:0,dit:false,txt:'',lbl:'',run0:-1,v3:null};
 function ajMoy(){const r=(SAVE.d.ex&&SAVE.d.ex.runs)|0,a=SAVE.d.aura||0;return r>0?Math.max(100,a/r):400;}
 function ajMonte(){
@@ -46592,7 +46592,26 @@ function ajLance(){
    · Les nitros nées ensemble (pose + figure + bump au même atterrissage) partent en UNE (elle grossit).
    Console : `dbgVols()` (en vol, nitro en attente) · `dbgVols('n',.5)` / `('x',.4)` / `('a',200)` lance un gain depuis la caisse.
    ===================================================================================================================================== */
-var VOLG={L:[],pool:[],imp:[],rS:null,rN:null,rT:0,n:{r:0,x:0},fR:0,fX:0,nb:null,nbP:null,k:1};
+var VOLG={L:[],pool:[],imp:[],rS:null,rN:null,rT:0,n:{r:0,x:0},fR:0,fX:0,nb:null,nbP:null,k:1,dR:0,vR:0,tR:0,dX:0,vX:0,tX:0,ch:0,chT:-1e9};
+/* LE REMPLISSAGE QUI SATISFAIT (2026-10-12, Léo : « travaille juste le fait que ce soit satisfaisant quand ça se remplit — la dynamique ») :
+   · les deux jauges se REMPLISSENT en ressort (ω 17, ζ ,5 : elles dépassent d'~16 % de ce qui arrive, reviennent, se posent en ~0,45 s) ;
+     la barre de boost se VIDE, elle, sans traîner (la nitro qui brûle se suit à l'image) ;
+   · à chaque arrivée le plein BAT (il gonfle, s'écrase, se pose) et un « plop » (ui.pop) sonne ; les arrivées ENCHAÎNÉES (< 0,65 s) montent
+     la gamme (pentatonique) et tapent un peu plus fort — une série de gains se sent comme une série de pièces. */
+var VOLG_W=17,VOLG_Z=.5,VOLG_GAMME=[0,2,4,7,9,12,14];
+function volgRessort(dt,fR,fX){
+  const k=Math.min(dt,.05)*VOLG.k,W2=VOLG_W*VOLG_W,D=2*VOLG_Z*VOLG_W; // (k : le ralenti du banc)
+  if(fR<VOLG.tR-1e-4){VOLG.dR=Math.min(VOLG.dR,fR);VOLG.vR=Math.min(0,VOLG.vR);} // elle se vide : elle suit
+  else{VOLG.vR+=((fR-VOLG.dR)*W2-D*VOLG.vR)*k;VOLG.dR+=VOLG.vR*k;}
+  if(fX<VOLG.tX-1e-4){VOLG.dX=Math.min(VOLG.dX,fX);VOLG.vX=Math.min(0,VOLG.vX);}
+  else{VOLG.vX+=((fX-VOLG.dX)*W2-D*VOLG.vX)*k;VOLG.dX+=VOLG.vX*k;}
+  VOLG.tR=fR;VOLG.tX=fX;
+  VOLG.fR=Math.max(0,Math.min(1,VOLG.dR));VOLG.fX=Math.max(0,Math.min(1-VOLG.fR,VOLG.dX));
+}
+function volgBat(el,a){ // le plein BAT : il gonfle, s'écrase, se pose (propriété `scale` seule : rien d'autre ne l'anime)
+  if(!el||!el.animate)return;
+  try{const an=el.animate([{scale:'1 '+(1+.3*a).toFixed(2)},{scale:'1 '+(1-.1*a).toFixed(2),offset:.38},{scale:'1 '+(1+.04*a).toFixed(2),offset:.7},{scale:'1 1'}],{duration:380,easing:'ease-out'});if(VOLG.k!==1)an.playbackRate=VOLG.k;}catch(e){} // (le ralenti du banc le ralentit aussi)
+}
 function volgMonte(){
   if(VOLG.pool.length||VOLG.L.length||!AJ.vols)return;
   for(let i=0;i<12;i++){const b=document.createElement('b');AJ.vols.appendChild(b);VOLG.pool.push(b);}
@@ -46628,9 +46647,12 @@ function nbPrend(k){ // la barre de boost PREND : un éclat au bout du plein
 }
 function volgArrive(f,i,muet){
   VOLG.L.splice(i,1);f.el.style.opacity='0';VOLG.pool.push(f.el);
+  let a=1;
+  if(!muet){const now=performance.now();VOLG.ch=now-VOLG.chT<650?Math.min(VOLG_GAMME.length-1,VOLG.ch+1):0;VOLG.chT=now;a=1+.16*Math.min(VOLG.ch,4);
+    try{if(SONV2)sfx('ui.pop',{st:VOLG_GAMME[VOLG.ch]+(f.k==='a'?0:-5),vol:-3});}catch(e){}} // l'arrivée sonne : la série monte la gamme
   if(f.k==='a'){AJ.envol=Math.max(0,AJ.envol-f.q);AJ.enVol=Math.max(0,AJ.enVol-1);
-    if(!muet&&AJ.el){AJ.el.classList.remove('prend');void AJ.el.offsetWidth;AJ.el.classList.add('prend');volgImpact(f.c[0],f.c[1],FLOW_CEL[Math.max(0,AJ.cur)]||'#5ee6ff');}}
-  else{VOLG.n[f.k]=Math.max(0,VOLG.n[f.k]-f.q);if(!muet){nbPrend(f.k);volgImpact(f.c[0],f.c[1],f.k==='x'?'#8fa4ff':'#ffb81f');}}
+    if(!muet&&AJ.el){AJ.el.classList.remove('prend');void AJ.el.offsetWidth;AJ.el.classList.add('prend');volgBat(AJ.seg,a);volgImpact(f.c[0],f.c[1],FLOW_CEL[Math.max(0,AJ.cur)]||'#5ee6ff');}}
+  else{VOLG.n[f.k]=Math.max(0,VOLG.n[f.k]-f.q);if(!muet){nbPrend(f.k);volgBat(document.getElementById(f.k==='x'?'nitroX':'nitroR'),a);volgImpact(f.c[0],f.c[1],f.k==='x'?'#8fa4ff':'#ffb81f');}}
 }
 function volgVide(){for(let i=VOLG.L.length-1;i>=0;i--)volgArrive(VOLG.L[i],i,true);VOLG.n.r=VOLG.n.x=0;}
 function volgTick(dt){
@@ -46662,14 +46684,17 @@ function ajTick(dt){
   if(!AJ.el&&!ajMonte())return;
   if(!document.body.classList.contains('play')){if(VOLG.L.length||VOLG.n.r||VOLG.n.x)volgVide();return;}
   // une NOUVELLE partie : rien en vol, la moyenne et le record relus (la partie d'avant vient de les changer)
-  if(auraRun<AJ.run0||!AJ.moy||(AJ.moyT-=dt)<=0){if(auraRun<AJ.run0){volgVide();AJ.envol=0;AJ.acc=0;AJ.vis=0;AJ.dit=false;}
+  if(auraRun<AJ.run0||!AJ.moy||(AJ.moyT-=dt)<=0){if(auraRun<AJ.run0){volgVide();AJ.envol=0;AJ.acc=0;AJ.vis=0;AJ.vv=0;AJ.dit=false;}
     AJ.moyT=1;AJ.moy=ajMoy();AJ.rec=Math.max(AJ.moy,SAVE.d.auraMax||0);}
   AJ.run0=auraRun;
   if((AJ.wT-=dt)<=0){AJ.wT=1;AJ.w=AJ.seg.clientWidth-6;}
   if(AJ.acc>0&&(AJ.accT+=dt)>=.15)ajLance();
   // ce que la jauge MONTRE = l'aura gagnée moins ce qui vole encore ; elle y glisse vite (on la voit se remplir à l'arrivée)
-  const cible=Math.max(0,auraRun-AJ.envol-AJ.acc);AJ.vis+=(cible-AJ.vis)*Math.min(1,dt*9);if(Math.abs(cible-AJ.vis)<.5)AJ.vis=cible;
-  const v=AJ.vis,rev=v>=AJ.moy,recB=rev&&v>AJ.rec&&AJ.rec>AJ.moy;
+  // (2026-10-12, Léo : « que ce soit satisfaisant quand ça se remplit ») elle s'y VERSE en ressort : elle file, dépasse un peu, revient, se
+  // pose (~0,45 s). Les états (moyenne battue, record, le bout) se lisent sur ce qui est vraiment arrivé (`vS`), jamais sur le dépassement.
+  const cible=Math.max(0,auraRun-AJ.envol-AJ.acc),kd=Math.min(dt,.05)*VOLG.k;
+  AJ.vv+=((cible-AJ.vis)*VOLG_W*VOLG_W-2*VOLG_Z*VOLG_W*AJ.vv)*kd;AJ.vis+=AJ.vv*kd;if(Math.abs(cible-AJ.vis)<.5&&Math.abs(AJ.vv)<6){AJ.vis=cible;AJ.vv=0;}
+  const v=Math.max(0,AJ.vis),vS=Math.min(v,cible),rev=vS>=AJ.moy,recB=rev&&vS>AJ.rec&&AJ.rec>AJ.moy;
   // les quatre cellules : trois tiers jusqu'à la moyenne, puis la 4e jusqu'au record
   let cur=0;for(let k=0;k<4;k++){let f;
     if(k<3)f=rev?1:Math.max(0,Math.min(1,v/AJ.moy*3-k));else f=!rev?0:(AJ.rec>AJ.moy?Math.max(0,Math.min(1,(v-AJ.moy)/(AJ.rec-AJ.moy))):1);
@@ -46683,7 +46708,7 @@ function ajTick(dt){
       try{typeof sfx==='function'&&sfx('aura.moyenne');}catch(e){}}} // (console de son) aura.moyenne — à sonoriser
   if(recB!==AJ.recB){AJ.recB=recB;AJ.el.classList.toggle('record',recB);}
   const lbl=TR(rev?'RECORD':'MOY');if(lbl!==AJ.lbl){AJ.lbl=lbl;AJ.lS.textContent=lbl;}
-  const t=recB?'×'+(Math.floor(v/AJ.rec*10)/10).toFixed(1):fmtAura(rev?AJ.rec:AJ.moy);
+  const t=recB?'×'+(Math.floor(vS/AJ.rec*10)/10).toFixed(1):fmtAura(rev?AJ.rec:AJ.moy);
   if(t!==AJ.txt){AJ.txt=t;AJ.lB.textContent=t;}
   volgTick(dt); // les gains qui flottent puis tombent dans leur jauge (aura ET nitro)
 }
@@ -48193,7 +48218,7 @@ function loop(now){
     // (2026-09-28, HUD v5) la rampe dit la MÊME chose que le disque NITRO : la part du RÉSERVOIR du moteur (orange), puis la réserve bleue
     // par-dessus, plafonnées à la rampe entière — elle comptait sur 4 unités : réservoir plein = rampe à moitié, disque plein (contradiction)
     {VOLG.n.r=Math.min(VOLG.n.r,nitroR);VOLG.n.x=Math.min(VOLG.n.x,nitroX); // (2026-10-12) la barre MONTRE la nitro moins celle qui vole encore vers elle
-     const nR8=Math.max(0,nitroR-VOLG.n.r),nX8=Math.max(0,nitroX-VOLG.n.x),mx8=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,fR8=Math.min(1,nR8/mx8),fX8=Math.min(1-fR8,nX8/2),w1=Math.round(fR8*200)/2,w2=Math.round(fX8*200)/2;VOLG.fR=fR8;VOLG.fX=fX8;
+     const nR8=Math.max(0,nitroR-VOLG.n.r),nX8=Math.max(0,nitroX-VOLG.n.x),mx8=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,fR8=Math.min(1,nR8/mx8),fX8=Math.min(1-fR8,nX8/2);volgRessort(dt,fR8,fX8);const w1=Math.round(VOLG.fR*200)/2,w2=Math.round(VOLG.fX*200)/2; // (2026-10-12) elle se remplit en RESSORT
      if(loop._nw1!==w1){loop._nw1=w1;elNR.style.width=w1+'%';}
      if(loop._nw2!==w2){loop._nw2=w2;elNX.style.width=w2+'%';}
      const pl=(nR8+nX8)>=mx8-.01;
