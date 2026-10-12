@@ -45,6 +45,11 @@
   · LES PIÈCES DU BORD (`jadePiecesBord`, `JADE_PB`, `JADE.decoPieces`, route style 4 seulement) : de vraies pièces d'argent à trou carré
     (disque à 12 pans + tranche, la texture percée : alphaTest) tous les ~1,2 m de chaque bord, à cheval sur l'arête, penchées, une sur sept
     avec une autre de biais dessus ; tronçons de 700 m dessinés à moins de 450 m. `dbgJadePoste('bordPieces',on)`, vue `dbgJadeVue('bord')`.
+- (12/10 nuit, Léo : « la voiture a l'air enfoncée dans les pièces » · « l'argent, mais un peu bronze ou un peu de reflet or, pour le relief de la
+  couleur » · « tu as du mal à enlever la barre lisse : fais la route plus fine, sur deux pièces ») : `THICK` devient un let — 30 cm (deux
+  pièces) aux PICS DE JADE, 2,6 m partout ailleurs (posé en tête de buildTrack) ; `JADE_LEVE` 12 cm : la caisse posée sur le DESSUS des pièces
+  (route style 4) ; les pièces : argent froid · argent chaud au reflet d'or · BRONZE · argent bleuté, leurs reflets teintés pareil ; les
+  pièces du bord en argent chaud.
 - Banc : `dbgJadePoste('ramasse')` (pièces, fruits par nom, pouvoirs, plots, plaques, flaques). MESURÉ : 650 pièces, ~16 fruits, 20 pouvoirs,
   300 plots, 8 plaques par passage ; en course : pièces ramassées, défis (« EAT 4 FRUITS »), paliers moteur, aimant, jus des fruits.
 
