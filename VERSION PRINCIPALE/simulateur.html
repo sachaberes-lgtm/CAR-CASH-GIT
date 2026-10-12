@@ -15,17 +15,12 @@
      veux ») : chaque niveau a son interrupteur PLAY (dans le tirage ou pas — hors du tirage, la carte pâlit), un NOM se renomme d'un clic
      (niveau ou map ; vide = le nom d'origine), le bouton PLAY en haut lance le tirage au hasard (course.html?play=1). Tout va dans
      simulateur/play.json, sur le disque.
-     LE JEU AU SURVOL (12/10, Léo : « l'important, c'est qu'on puisse jouer dans la map ; je dois pouvoir jouer dès que je mets mon
-     curseur sur l'image, avec mes flèches, la musique automatiquement ; si je clique, c'est juste la course ») : UNE course
-     (simulateur/course.html?nu=1 — le vrai jeu, sans écran titre, la musique du niveau) chargée dès l'ouverture de la page, posée sur
-     l'image survolée : le niveau part (SIMU.lance), les flèches / Espace / Maj passent au jeu, la musique part à la 1re touche (le
-     navigateur exige un geste) ; la souris s'en va = pause (le panneau ⏸ du jeu, 3-2-1 au retour). Un clic (image ou Jouer) = la même
-     course en plein écran, rien autour ; ✕ ou Échap = retour aux maps. Le bouton PLAY (le tirage) garde sa page à lui.
-     (12/10, Léo : « je clique sur une map, ça apparaît sur l'autre ») : l'aperçu et le plein écran n'apparaissent que quand la course
-     qui roule est CELLE de la carte (SIMU.roule) ; en attendant, le plein écran montre la photo de la carte cliquée (#voile).
+     JOUER (l'image ou le bouton) = simulateur/course.html?niv=<id> : le vrai jeu, lancé sur le niveau, sans écran titre (?simu=1).
+     (12/10, Léo : « enlève la fonction jouer sur la page, ça ne marche pas de toute manière, et ça bug ») : le jeu au SURVOL de l'image et
+     son plein écran dans la page sont RETIRÉS (essayés le 12/10 : une course préchargée, posée sur l'image survolée — voir l'historique).
      L'ÉCOUTE (12/10, Léo : « chaque musique qu'on choisit, on peut l'écouter juste en dessous, avec la jauge pour les vitesses ») : sous
      la pastille de musique d'un niveau, ▶ et une jauge de VITESSE (0-100 %) — la musique joue seule, sans le jeu (page à jauge : son
-     #speed ; module : setSpeed). Un seul son à la fois : l'écoute s'arrête quand la course part sur une image, et inversement.
+     #speed ; module : setSpeed), un seul son à la fois.
      Page blanche, le moins de texte possible. -->
 <style>
   :root{--encre:#111113;--gris:#86868b;--gris2:#b9b9be;--trait:#efeff1;--doux:#f4f4f6;
@@ -90,25 +85,6 @@
   .pp.non::before{background:transparent;box-shadow:inset 0 0 0 1.5px currentColor}
   .carte.horsPlay .photo{opacity:.38;filter:grayscale(.6)}
   .carte.horsPlay .nom{color:var(--gris)}
-  .photo{position:relative}
-  .photo.charge::after{content:"";position:absolute;right:10px;bottom:10px;width:16px;height:16px;border-radius:50%;
-    border:2px solid rgba(255,255,255,.45);border-top-color:#fff;animation:tourne .8s linear infinite;z-index:1}
-  @keyframes tourne{to{transform:rotate(360deg)}}
-  #apercu{position:absolute;left:0;top:0;width:320px;height:180px;border:0;border-radius:12px;background:#000;z-index:4;opacity:0;
-    pointer-events:none;transition:opacity .18s}
-  #apercu.vu{opacity:1}
-  #apercu.plein{position:fixed;left:0!important;top:0!important;width:100vw!important;height:100vh!important;border-radius:0;opacity:1;
-    pointer-events:auto;z-index:40;transition:none}
-  #fermer{position:fixed;top:max(14px,env(safe-area-inset-top));left:max(14px,env(safe-area-inset-left));z-index:41;width:34px;height:34px;
-    border-radius:50%;background:rgba(0,0,0,.45);color:#fff;display:grid;place-items:center;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
-  #fermer:hover{background:rgba(0,0,0,.65)}
-  #fermer svg{width:14px;height:14px;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;fill:none}
-  body.enPlein{overflow:hidden}
-  #voile{position:fixed;inset:0;z-index:41;background:#000;display:grid;place-items:center}
-  #voile img{width:min(100vw,177.8vh);aspect-ratio:16/9;object-fit:cover;opacity:.55}
-  #voile::after{content:"";position:absolute;width:26px;height:26px;border-radius:50%;border:3px solid rgba(255,255,255,.35);
-    border-top-color:#fff;animation:tourne .8s linear infinite}
-  #fermer{z-index:42}
   .ecoute{display:flex;align-items:center;gap:8px;min-width:0;height:26px}
   .eco{width:26px;height:26px;border-radius:50%;background:var(--doux);display:grid;place-items:center;flex:none}
   .eco:hover{background:#e6e6ea}
@@ -225,99 +201,13 @@
       const peinsPP = () => { const on = dansPlay(niv); pp.classList.toggle('non', !on); c.classList.toggle('horsPlay', !on); pp.title = on ? 'Dans le tirage du PLAY' : 'Hors du tirage du PLAY'; majPlay(); };
       peinsPP();
       pp.onclick = async () => { PLAY.pool[niv.id] = !dansPlay(niv); peinsPP(); if (!await playEnregistre()) toast('Pas enregistré (serveur ?)'); };
-      const ph = c.querySelector('.photo');
-      ph.addEventListener('mouseenter', () => survole(niv, ph));
-      ph.addEventListener('mouseleave', quitte);
-      ph.addEventListener('click', ev => { ev.preventDefault(); plein(niv, ph); });
-      c.querySelector('.jouer').onclick = () => plein(niv, ph);
+      c.querySelector('.jouer').onclick = () => { location.href = lien(niv.id); };
       pastille(c.querySelector('.musBox'), [niv.id]);
       ecouteBranche(niv, c.querySelector('.ecoute'));
       grille.appendChild(c);
     });
     racine.appendChild(sec);
   }
-
-  // ——— LE JEU AU SURVOL : une seule course, chargée tout de suite, posée sur l'image survolée ———
-  const AP = { id: null, photo: null, plein: false, veut: null, sortT: 0 };
-  const cadre = document.createElement('iframe');
-  cadre.id = 'apercu'; cadre.title = 'Course'; cadre.tabIndex = -1; cadre.setAttribute('allow', 'autoplay; fullscreen');
-  /* (12/10, Léo : « quand j'appuie sur la musique, un truc qui loop et ne s'arrête pas ») MESURÉ : sur le même site, le jeu bloquait cette page
-     jusqu'à 0,8 s (garage) · 1,8 s (changement de niveau) · 15 s (chargement) — l'écoute crachait des paquets de notes. La course vient
-     donc de l'AUTRE nom du même serveur (localhost ⇄ 127.0.0.1) : un autre site, donc un autre processus ; on se parle par messages. */
-  const AUTRE = location.protocol + '//' + (location.hostname === 'localhost' ? '127.0.0.1' : 'localhost') + (location.port ? ':' + location.port : '');
-  cadre.src = AUTRE + '/simulateur/course.html?nu=1&niv=' + encodeURIComponent(MAPS[0].niveaux[0].id);
-  document.body.appendChild(cadre);
-  const fermer = document.createElement('button');
-  fermer.id = 'fermer'; fermer.hidden = true; fermer.setAttribute('aria-label', 'Revenir aux maps');
-  fermer.innerHTML = '<svg viewBox="0 0 14 14"><path d="M2 2l10 10M12 2L2 12"/></svg>';
-  document.body.appendChild(fermer);
-  const voile = document.createElement('div'); voile.id = 'voile'; voile.hidden = true;
-  const voileImg = document.createElement('img'); voileImg.alt = ''; voile.appendChild(voileImg);
-  document.body.appendChild(voile);
-  const ETAT = window.ETAT_COURSE = { pret: false, niveau: null, roule: false };   // ce que la course dit d'elle (bancs : ETAT_COURSE)
-  const dis = m => { try { cadre.contentWindow.postMessage(m, AUTRE); } catch (e) {} };
-  addEventListener('message', ev => {
-    const d = ev.data;
-    if (ev.source !== cadre.contentWindow || !d || typeof d !== 'object') return;
-    if (d.simu === 'etat') { Object.assign(ETAT, { niveau: d.niveau, roule: !!d.roule, phase: d.phase, musique: !!d.musique, pause: !!d.pause }); if (!ETAT.pret && d.phase !== 'titre') ETAT.pret = true; }
-    else if (d.simu === 'echap') sortPlein();   // Échap frappé dans le jeu (le focus y est après un clic dans la course)
-  });
-  function pose(ph) {
-    const r = ph.getBoundingClientRect();
-    Object.assign(cadre.style, { left: (r.left + scrollX) + 'px', top: (r.top + scrollY) + 'px', width: r.width + 'px', height: r.height + 'px' });
-  }
-  { const p0 = document.querySelector('.photo'); if (p0) pose(p0); }   // la course se charge à sa taille d'aperçu
-  function survole(niv, ph) {
-    if (AP.plein) return;
-    clearTimeout(AP.sortT);
-    ecoStop();
-    if (AP.photo && AP.photo !== ph) AP.photo.classList.remove('charge');
-    if (AP.id !== niv.id) cadre.classList.remove('vu');
-    AP.photo = ph; AP.id = niv.id; pose(ph); ph.classList.add('charge');
-    dis({ simu: 'dort', on: false });
-    if (ETAT.pret) dis({ simu: 'lance', id: niv.id }); else AP.veut = niv.id;
-  }
-  function quitte() {
-    if (AP.plein) return;
-    clearTimeout(AP.sortT);
-    AP.sortT = setTimeout(() => {
-      cadre.classList.remove('vu'); if (AP.photo) AP.photo.classList.remove('charge'); AP.photo = null;
-      dis({ simu: 'dort', on: true });
-    }, 150);
-  }
-  function plein(niv, ph) {
-    ferme(); ecoStop();
-    survole(niv, ph);
-    AP.plein = true; cadre.classList.add('plein'); fermer.hidden = false; document.body.classList.add('enPlein');
-    voileImg.src = 'simulateur/' + niv.photo; voile.hidden = false;   // la photo de CETTE carte tant que son niveau n'est pas parti
-    dis({ simu: 'geste' });
-  }
-  function sortPlein() {
-    if (!AP.plein) return;
-    AP.plein = false; cadre.classList.remove('plein'); fermer.hidden = true; document.body.classList.remove('enPlein'); voile.hidden = true;
-    if (AP.photo) pose(AP.photo);
-    cadre.classList.remove('vu'); if (AP.photo) AP.photo.classList.remove('charge'); AP.photo = null;
-    dis({ simu: 'dort', on: true });
-  }
-  fermer.onclick = sortPlein;
-  addEventListener('resize', () => { if (AP.photo && !AP.plein) pose(AP.photo); });
-  // les touches de la page partent dans la course (sauf pendant qu'on renomme) ; Échap sort du plein écran
-  for (const t of ['keydown', 'keyup']) document.addEventListener(t, ev => {
-    if (!(AP.photo || AP.plein) || ev.target.isContentEditable) return;
-    if (t === 'keydown' && ev.key === 'Escape') { if (AP.plein) { ev.preventDefault(); sortPlein(); } return; }
-    dis({ simu: 'touche', type: t, code: ev.code, key: ev.key, keyCode: ev.keyCode, repeat: ev.repeat });
-    if (/^(Space|Arrow|Shift)/.test(ev.code)) ev.preventDefault();
-  });
-  (function suit() { // la course n'apparaît sur l'image que quand ce niveau roule vraiment
-    requestAnimationFrame(suit);
-    if (!ETAT.pret) return;
-    if (AP.veut) { dis({ simu: 'lance', id: AP.veut }); AP.veut = null; }
-    if (!AP.photo) return;
-    const ok = ETAT.roule && ETAT.niveau === AP.id;
-    if (AP.plein) { if (voile.hidden !== ok) voile.hidden = ok; return; }
-    if (ok && !cadre.classList.contains('vu')) { cadre.classList.add('vu'); AP.photo.classList.remove('charge'); }
-    else if (!ok && cadre.classList.contains('vu')) cadre.classList.remove('vu');
-  })();
 
   // ——— L'ÉCOUTE : la musique d'un niveau, seule, à la vitesse de la jauge ———
   const ecoJoueDeja = () => ECO.type === 'js' ? !!(ECO.inst && ECO.inst.playing) : ECO.type === 'html' ? !!(ECO.bouton && /stop/i.test(ECO.bouton.textContent)) : false;
@@ -339,7 +229,6 @@
     if (ECO.row === row) { ecoStop(); return; }
     ecoStop();
     if (!f) return;
-    dis({ simu: 'dort', on: true });
     const jeton = ECO.jeton, x = row.querySelector('.vit').value / 100;
     ECO.row = row; ECO.fichier = f; row.classList.add('joue');
     if (/\.js$/i.test(f)) {

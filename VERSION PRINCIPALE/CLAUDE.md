@@ -244,6 +244,10 @@ Un outil À CÔTÉ du jeu, qui ne refait RIEN : il lance LE JEU (`index.html`, s
     pire attente de la page 27-33 ms, chargement compris. DORT (souris sur aucune image, plein écran quitté, écoute lancée) = musique
     coupée tout de suite, course en pause (~1 s, le 3-2-1 du jeu), pas de relance après une fin. GLISSE V2 du simulateur = la copie
     corrigée du jeu (0,4 s d'avance, retard sauté). Bancs : `ETAT_COURSE` (ce que la course dit d'elle, dans la page des maps).
+  · ⚠ RETIRÉ LE SOIR MÊME (Léo : « enlève la fonction jouer sur la page, ça ne marche pas de toute manière, et ça bug ») : plus de
+    course sur l'image survolée ni de plein écran dans la page des maps — l'image et « Jouer » ouvrent `course.html?niv=<id>` (le jeu
+    en ?simu=1, sans écran titre). Le mode `?nu=1` de course.html (messages, dort) reste dans le fichier mais n'est plus appelé.
+    L'ÉCOUTE sous les musiques reste.
 - LE BOOST NE JOUE PLUS D'INSTRUMENT (12/10, Léo : « enlève le boost instrument, il fait un bruit horrible qui casse tout ») : `INSTRU.on`
   = false dans le jeu. `instruMusiqueOk` regardait la SOURCE du lecteur, pas s'il jouait : au simulateur (musique du jeu coupée) la phrase
   du CIEL partait sous une autre musique. `dbgInstru(1)` la rallume pour l'écouter.
