@@ -111,6 +111,9 @@ sans que Léo le demande. **Puis (même jour, Léo)** : le coin `#gCoin` (HOME +
 comme avant ; HOME + l'ŒIL dans `#gRang1` (créé au démarrage, colonnes d'INVENTAIRE + BOUTIQUE, 48 px, HOME un peu plus long, textures : rayures
 bleues / trame orange) ; changer d'onglet TOURNE la caisse (`garTourneVers`, `GAR_TAB_ANG` : TRAÎNÉES 3,5 · PEINTURE ,42 · AILES 1,2) ; ÉQUIPER AU TOUCHER (`garEquipeCaisse`, `garEquipeHabit` : une
 caisse ou un habillage à toi s'équipe quand on le touche, un achat équipe) — `#gEquip` n'apparaît plus que pour ACHETER. Ce qui suit décrit la passe d'origine.
+**L'INVENTAIRE D'ARRIVÉE (2026-10-12, Léo)** : le garage s'ouvre sur l'INVENTAIRE (`gGarageInv`, `#garage.modeInv`), les cinq touches dessous (HOME · INVENTAIRE au-dessus de BOUTIQUE · l'œil · JOUER) ;
+INVENTAIRE ne devient plus RETOUR ; BOUTIQUE → ◀ RETOUR, les autres touches s'effacent, RETOUR ramène à l'inventaire. Le rappel OFFRES ÉPHÉMÈRES (`#gRappel`)
+reste sous l'inventaire debout, masqué couché (pas la place). Le garage replié (`gGarageReplie`) n'est plus appelé.
 TOUT le rangement vit dans **`<style id="uxPasse">`**, la DERNIÈRE feuille de la page (juste après `<style id="poki">`) : retirer le bloc = revenir.
 Le HTML, les identifiants et les écouteurs ne bougent pas, sauf HOME et l'œil (voir plus bas). Règles : on LIT en haut, on TOUCHE en bas ; un
 rôle = une place ; l'action principale = l'unique plaque d'or ; mêmes hauteurs sur une rangée ; 44 px au doigt ; la VUE flotte sur la scène,

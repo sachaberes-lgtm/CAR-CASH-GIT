@@ -6481,8 +6481,8 @@ html body #garage:not(.menu):not(.vitrine) #gAct>#gJouer .lg::after{display:none
 @keyframes gHomeCielPan{from{translate:-5% 0;scale:1.04}to{translate:5% -2%;scale:1.1}}
 @media (prefers-reduced-motion:reduce){html body #garage #gRang1>#gHomeBas>.gHomeCielCv{animation:none}}
 html[data-reduced-motion="1"] body #garage #gRang1>#gHomeBas>.gHomeCielCv{animation:none}
-html body #garage:not(.menu):not(.vitrine) #gAct>#gvCof{grid-column:2;grid-row:2} /* (2026-10-12, Léo : « inverse juste INVENTAIRE et BOUTIQUE de place ») INVENTAIRE en bas, BOUTIQUE au-dessus — (même jour, HOME passé au milieu, puis : « remets HOME à gauche ») HOME à gauche, BOUTIQUE / INVENTAIRE au milieu, l'œil / JOUER à droite */
-html body #garage:not(.menu):not(.vitrine) #gAct>#gShopBas{grid-column:2;grid-row:1}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gvCof{grid-column:2;grid-row:1} /* (2026-10-12, Léo, 2e fois : « switch inventaire et boutique de place, encore une fois ») INVENTAIRE au-dessus, BOUTIQUE en bas — (avant : « inverse juste INVENTAIRE et BOUTIQUE de place ») INVENTAIRE en bas, BOUTIQUE au-dessus — (même jour, HOME passé au milieu, puis : « remets HOME à gauche ») HOME à gauche, BOUTIQUE / INVENTAIRE au milieu, l'œil / JOUER à droite */
+html body #garage:not(.menu):not(.vitrine) #gAct>#gShopBas{grid-column:2;grid-row:2}
 /* LE RETOUR DE LA BOUTIQUE (voir gGarageReplie) : une rangée — ◀ RETOUR à gauche, ACHETER à côté (quand il y a un achat) ; les autres
    touches s'effacent, la vitrine prend la place */
 html body #garage.shopRet:not(.menu):not(.vitrine) #gAct{grid-template-columns:auto minmax(0,1fr)!important;grid-template-rows:auto!important}
@@ -6494,7 +6494,7 @@ html body #garage.shopRet:not(.menu):not(.vitrine) #gAct>#gEquip{grid-column:2!i
 html body #garage.shopRet:not(.menu):not(.vitrine) #gStrip.fnBande{max-height:min(330px,40vh)}
 /* LE RAPPEL DE LA BOUTIQUE (voir le script du même nom) */
 #gRappel{display:none}
-html body #garage.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching) #gBottom>#gRappel{position:relative;display:flex;align-items:center;gap:9px;height:38px;min-height:38px;margin:0 0 10px;padding:0 12px;overflow:hidden;
+html body #garage:is(.consoleCachee,.modeInv):not(.menu):not(.vitrine):not(.quiet):not(.launching) #gBottom>#gRappel{position:relative;display:flex;align-items:center;gap:9px;height:38px;min-height:38px;margin:0 0 10px;padding:0 12px;overflow:hidden;
   font-size:var(--f0);letter-spacing:1px;color:#ffd75e;text-shadow:0 1px 0 rgba(7,5,15,.9),0 0 8px rgba(255,194,58,.5);transform:skewX(var(--sk));pointer-events:auto;cursor:pointer;--nc:var(--neoM);
   background:linear-gradient(112deg,transparent 0 37%,rgba(255,255,255,.055) 37% 45%,transparent 45%),linear-gradient(180deg,#2a1d4a 0%,#1c1538 55%,#140f2a 100%);
   box-shadow:inset 3px 0 0 var(--neoM),inset 34px 0 30px -28px rgba(255,62,200,.7),inset 0 1px 0 rgba(255,255,255,.14),inset 0 0 0 1px rgba(255,62,200,.28),0 0 0 1px rgba(3,1,9,.92),0 4px 0 #0a0818,0 10px 18px -10px rgba(0,0,0,.7)}
@@ -6510,13 +6510,8 @@ html body #garage.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launch
 @media (prefers-reduced-motion:reduce){#gRappel::after{animation:none;display:none}}
 html[data-reduced-motion="1"] #gRappel::after{animation:none;display:none}
 @media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
-  html body #garage.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching) #gBottom>#gRappel{height:34px;min-height:34px;margin-bottom:8px}}
-/* INVENTAIRE devient RETOUR, lui aussi : les autres touches s'effacent */
-html body #garage.invRet:not(.menu):not(.vitrine) #gAct{grid-template-columns:auto minmax(0,1fr)!important;grid-template-rows:auto!important}
-html body #garage.invRet:not(.menu):not(.vitrine) :is(#gRang1>#gHomeBas,#gRang1>#gOeil,#gAct>#gShopBas,#gAct>#gJouer){display:none!important}
-html body #garage.invRet:not(.menu):not(.vitrine) #gAct>#gvCof{grid-column:1;grid-row:1;flex-direction:row!important;gap:8px;width:auto;min-width:118px;height:52px;min-height:52px;padding:0 14px}
-html body #garage.invRet:not(.menu):not(.vitrine) #gAct>#gvCof.modeOn{translate:none;outline:0;filter:none}
-html body #garage.invRet:not(.menu):not(.vitrine) #gAct>#gvCof .pxi{--pxs:2} /* plus haute qu'avant (226), sans cacher la caisse qu'on essaie */
+  html body #garage:is(.consoleCachee,.modeInv):not(.menu):not(.vitrine):not(.quiet):not(.launching) #gBottom>#gRappel{height:34px;min-height:34px;margin-bottom:8px}
+  html body #garage.modeInv:not(.consoleCachee) #gBottom>#gRappel{display:none!important}} /* couché, l'inventaire ouvert : la colonne n'a pas la place (les onglets sortaient par le haut) — BOUTIQUE est juste dessous */
 html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnPorte{scroll-snap-align:start} /* la vitrine s'ouvre SUR le bandeau des offres (l'aimant de défilement la posait sur À LA UNE) */
 html body #garage.shopRet:not(.menu):not(.vitrine) #gStrip.gModeTous{max-height:min(360px,44vh)}
 /* LE BANDEAU DES OFFRES (voir bqPorte) */
@@ -39875,8 +39870,7 @@ function gModeBoutons(){const m=gModeM(),c=document.getElementById('gvCof'),b=do
   if(c)c.classList.toggle('modeOn',m==='inv');if(b)b.classList.toggle('modeOn',m==='shop'||m==='tous');
   if(b){const ret=m==='shop'||m==='tous';if(b._lib==null)b._lib=b.innerHTML;if(ret!==!!b._ret){b._ret=ret;b.innerHTML=ret?pxi('gauche')+'<span data-fr="RETOUR">'+TR('RETOUR')+'</span>':b._lib;b.setAttribute('aria-label',ret?TR('RETOUR'):'Boutique');}
     if(gEl)gEl.classList.toggle('shopRet',ret);} // (2026-10-12) BOUTIQUE devient RETOUR
-  if(c){const ret=m==='inv';if(c._lib==null)c._lib=c.innerHTML;if(ret!==!!c._ret){c._ret=ret;c.innerHTML=ret?pxi('gauche')+'<span data-fr="RETOUR">'+TR('RETOUR')+'</span>':c._lib;c.setAttribute('aria-label',ret?TR('RETOUR'):'Inventaire');}
-    if(gEl)gEl.classList.toggle('invRet',ret);} // (même jour, Léo : « enlève aussi les boutons quand on met INVENTAIRE ») INVENTAIRE devient RETOUR
+  if(gEl){gEl.classList.remove('invRet');gEl.classList.toggle('modeInv',m==='inv');} // (2026-10-12, Léo : « quand on appuie sur INVENTAIRE, tous les boutons restent ») INVENTAIRE ne devient plus RETOUR (v288) — c'est la vue d'arrivée du garage
   if(r&&m==='tout')r.classList.remove('gModeBar');if(st){st.classList.toggle('gModeShop',m==='shop'||m==='tous');st.classList.toggle('gModeTous',m==='tous');st.classList.toggle('gModeInv',m==='inv');if(m!=='shop'&&st.classList.contains('fnBande')){st.classList.remove('fnBande');st._r=null;st._n=-1;if(r)r._k=null;}}
   if(gEl)gEl.classList.toggle('modeShop',m==='shop');} // (2026-10-10) LA BOUTIQUE DU JOUR : la console change de visage (voir gShopJour)
 function gModeTete(bar,m,n){bar.classList.add('gModeBar'); // n : un nombre, ou « 15 / 46 » en INVENTAIRE
@@ -40042,7 +40036,7 @@ function gModeVa(m){
      ramène plus à la vue des raretés ; touchée repliée, elle la rouvre (ligne du dessus). TOUT ne reste que la vue d'ouverture du garage. */
   if(GMODE.m===m){ // (2026-10-11, Léo : « enlève le double-clic INVENTAIRE ou BOUTIQUE qui enlève la page, l'œil fait déjà ça ») la touche allumée, retouchée, ne replie plus rien —
     if(m==='shop'&&GMODE.paye){GMODE.paye=false;const b9=$('gRar'),s9=$('gStrip');if(b9)b9._k=null;if(s9){s9._r=null;s9.scrollTop=0;}gShopJour();return;} // (2026-10-12) RETOUR depuis les offres payantes : la vitrine du jour
-    if(m==='shop'||m==='inv'){gGarageReplie();return;} // (2026-10-12, Léo : « BOUTIQUE devient RETOUR quand on appuie dessus », puis « pareil pour INVENTAIRE ») RETOUR : le garage replié, les cinq touches
+    if(m==='shop'){gGarageInv();return;} // (2026-10-12, Léo : « BOUTIQUE devient RETOUR quand on appuie dessus ») RETOUR : l'INVENTAIRE (la vue d'arrivée), les cinq touches
     return;}
   GMODE.m=m;GMODE.paye=false;GMODE.fam=m==='shop'?gShopFam():null; // (2026-10-10) la famille montrée en BOUTIQUE, détachée de la caisse affichée
   const bar=$('gRar'),st=$('gStrip');if(bar)bar._k=null;if(st){st._r=null;if(m==='tous'){st.scrollTop=0;st.classList.remove('finBas');}}
@@ -40051,7 +40045,7 @@ function gModeVa(m){
   gModeBoutons();}
 /* LE RAPPEL DE LA BOUTIQUE (2026-10-12, Léo : « qu'est-ce qu'on pourrait mettre au-dessus de HOME, tout ça ? » → « rappel de la boutique ») :
    au garage replié, une fine bande au-dessus des cinq touches — OFFRES ÉPHÉMÈRES, le compte à rebours, un reflet qui passe ; touchée, elle
-   ouvre la BOUTIQUE. Visible seulement replié (#garage.consoleCachee). */
+   ouvre la BOUTIQUE. Visible replié (#garage.consoleCachee) et en INVENTAIRE (.modeInv, la vue d arrivée : sous l inventaire, au-dessus des touches). */
 try{if(!POKI&&gEl){const gb=document.getElementById('gBottom'),ga=document.getElementById('gAct');if(gb&&ga&&!document.getElementById('gRappel')){
   const r=document.createElement('div');r.id='gRappel';r.className='pbtn';r.setAttribute('role','button');r.setAttribute('aria-label',sansAcc(TR('OFFRES ÉPHÉMÈRES')));
   r.innerHTML=pxi('cadeau')+'<span data-fr="OFFRES ÉPHÉMÈRES">'+sansAcc(TR('OFFRES ÉPHÉMÈRES'))+'</span><b class="grT">'+pxi('horloge')+'<i>'+bqReste()+'</i></b>'+pxi('droite');
@@ -40065,6 +40059,14 @@ try{if(!POKI&&gEl){const gb=document.getElementById('gBottom'),ga=document.getEl
 function gGarageReplie(){GMODE.m='tout';GMODE.paye=false;GMODE.fam=null;
   try{if(SHOP.tab!=='voiture')shopTab('voiture');else SHOP.prev=null;const eq=equippedCar();if(garageI!==eq)garageSaute(eq);}catch(e){}
   const bar=$('gRar'),st=$('gStrip');if(bar)bar._k=null;if(st)st._r=null;gConsoleCache(true);gModeBoutons();}
+/* L'INVENTAIRE D'ARRIVÉE (2026-10-12, Léo : « dans l'espace vide au-dessus, mets directement l'inventaire dès qu'on arrive dans le garage,
+   puisqu'en vrai on vient pour ça ; quand on appuie sur INVENTAIRE, tous les boutons restent ; quand on appuie sur SHOP, une petite flèche
+   et on enlève le reste des boutons ») : le garage s'ouvre sur l'INVENTAIRE, les cinq touches dessous ; RETOUR de la BOUTIQUE y revient
+   (ta caisse revient, l'essai s'efface). Le garage replié (gGarageReplie) ne sert plus qu'à qui l'appelle encore. */
+function gGarageInv(){GMODE.m='inv';GMODE.paye=false;GMODE.fam=null;
+  try{if(SHOP.tab!=='voiture')shopTab('voiture');else SHOP.prev=null;const eq=equippedCar();if(garageI!==eq)garageSaute(eq);}catch(e){}
+  const bar=$('gRar'),st=$('gStrip');if(bar)bar._k=null;if(st){st._r=null;st.scrollTop=0;}gConsoleCache(false);
+  try{garageFamilles(carRar(garageI));}catch(e){}gModeBoutons();}
 /* CACHER / VOIR (2026-10-09, Léo) : replier la partie boutique / inventaire de la console pour voir le garage (voir le CSS « HOME ET CACHER ») */
 /* L'ŒIL (2026-10-10, Léo : « à la place du HOME, un bouton œil, un peu comme HIDE mais qui enlève tout sauf l'œil : on voit juste la voiture »).
    `#garage.vueSeule` (+ `html.vueSeule` pour la jauge, qui vit hors du garage couchée) : tout le garage passe en visibility:hidden SAUF l'œil
@@ -40260,7 +40262,7 @@ function gStripHabits(cat,i){
 // menu s'est mis à traverser tout l'étal). Le garage RESTE la scène du départ (porte qui s'ouvre,
 // boost, logo) ; c'est seulement le PAPIER PEINT du shop qui n'a rien à faire sur un lancement rapide.
 function openGarage(quiet){
-  try{GMODE.m='tout';GMODE.paye=false;gConsoleCache(true);gVueSeule(false);}catch(e){} // (2026-10-12, Léo : « quand on appuie GARAGE, juste les 5 boutons en bas, pas la marge, la voiture encadrée ; seulement quand j'appuie INVENTAIRE s'affiche l'inventaire — pareil pour la BOUTIQUE ») le garage s'ouvre REPLIÉ, aucun mode allumé : INVENTAIRE ou BOUTIQUE déplient leur panneau (gModeVa) // (2026-10-09) la console à trois modes repart dépliée — (2026-10-10) et l'œil rouvert ; (même soir, Léo : « quand j'arrive direct dans le garage, ça montre l'ancien truc avec les raretés, enlève ça ») elle s'ouvre sur l'INVENTAIRE, plus sur la vue par familles (TOUT)
+  try{GMODE.m='inv';GMODE.paye=false;GMODE.fam=null;gConsoleCache(false);gVueSeule(false);}catch(e){} // (2026-10-12, Léo, le soir : « mets directement l'inventaire dès qu'on arrive dans le garage ») le garage s'ouvre sur l'INVENTAIRE (voir gGarageInv) — avant : (2026-10-12, Léo : « quand on appuie GARAGE, juste les 5 boutons en bas, pas la marge, la voiture encadrée ; seulement quand j'appuie INVENTAIRE s'affiche l'inventaire — pareil pour la BOUTIQUE ») le garage s'ouvre REPLIÉ, aucun mode allumé : INVENTAIRE ou BOUTIQUE déplient leur panneau (gModeVa) // (2026-10-09) la console à trois modes repart dépliée — (2026-10-10) et l'œil rouvert ; (même soir, Léo : « quand j'arrive direct dans le garage, ça montre l'ancien truc avec les raretés, enlève ça ») elle s'ouvre sur l'INVENTAIRE, plus sur la vue par familles (TOUT)
   try{if(PHQ.q.length&&!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}catch(e){} // (2026-09-26) les photos en attente reprennent
   if(started&&!gameOver){showMsg('Le garage se visite depuis le menu');return;} // ⚠ gameOver = on EST au menu : refuser ici bloquait le bouton apres la 1re partie
   try{if(SONV2&&!openGarage._amb)openGarage._amb=sfx('garage.ambiance',{loop:true});}catch(e){} // (console de son) l'ATELIER a sa voix : néons, tube qui grésille, la ville au loin
@@ -43809,7 +43811,7 @@ function garMode(m){
   if(menu){if(SHOP.tab!=='voiture'||SHOP.prev)shopTab('voiture');const eq=equippedCar();if(garageI!==eq&&!GAR.sw)garageShow(eq);} // au menu : TA caisse, sans essai
   const deMenu9=gEl.classList.contains('menu')||gEl.classList.contains('missions');
   gEl.classList.toggle('menu',menu);gEl.classList.toggle('missions',mis);garLibre._r=null;
-  if(!menu&&deMenu9){try{GMODE.m='tout';GMODE.paye=false;gConsoleCache(true);gVueSeule(false);gModeBoutons();}catch(e){}} // (2026-10-12, Léo) de l'accueil au garage : REPLIÉ, les cinq touches seules
+  if(!menu&&deMenu9){try{gVueSeule(false);gGarageInv();}catch(e){}} // (2026-10-12, Léo) de l'accueil au garage : l'INVENTAIRE et les cinq touches (avant : replié)
   document.body.classList.toggle('garMenuH',MENU_SACHA&&menu&&!mis); // (2026-09-30, Sacha) au MENU, ses boutons — (même soir, Léo : « remets ma version sketch ») seulement avec ?menu=sacha, voir MENU_SACHA : l'accueil #mHome par-dessus l'atelier (voir « LE MENU = LE GARAGE + LES BOUTONS DE SACHA »)
   if(MENU_SACHA&&menu&&!mis&&window.__mHomeSur)try{window.__mHomeSur();}catch(e){}
   if(menu)garMenuMaj();
