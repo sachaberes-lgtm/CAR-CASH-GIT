@@ -6962,7 +6962,6 @@ html body.touch.play #ajCourse{animation:hmHaut .55s var(--ease) 1.25s both}
 /* l'aura qui arrive : la cellule en cours s'éclaire, la barre bat */
 #ajCourse .ajSeg>i.cur s::before{content:'';position:absolute;inset:0;background:#fff;opacity:0}
 #ajCourse.prend .ajSeg>i.cur s::before{animation:ajPrend .32s var(--ease)}
-#ajCourse.prend .ajSeg{animation:ajBat .32s var(--ease)}
 @keyframes ajPrend{0%{opacity:.6}100%{opacity:0}}
 @keyframes ajBat{0%{scale:1 1.3}100%{scale:1 1}}
 /* le RECORD battu : le cadre à l'or */
@@ -7014,6 +7013,7 @@ html body.touch #nitroBar>.nbPrend{position:absolute;top:-4px;bottom:-4px;left:c
   pointer-events:none;opacity:0;background:linear-gradient(90deg,transparent,rgba(255,244,214,.95));transform-origin:100% 50%}
 html body.touch #nitroBar>.nbPrend.x{background:linear-gradient(90deg,transparent,rgba(225,232,255,.95))}
 html body.touch #nitroBar>.nbPrend.on{animation:nbPrendK .34s var(--ease)}
+html body.touch #nitroR,html body.touch #nitroX{transition:none!important}   /* le RESSORT de la boucle porte la largeur (la transition en crans le hachait) */
 @keyframes nbPrendK{0%{opacity:1;scale:1 1.4}100%{opacity:0;scale:1 1}}
 /* la pause passe devant : la jauge et ce qui vole se cachent comme le reste du HUD */
 body:has(#tPanel.open) :is(#ajCourse,#ajVols){visibility:hidden}
@@ -8685,6 +8685,15 @@ let JADE_JEU=/[?&]niveau=jade\b/.test(location.search)&&!BALADE;
    sauf pour un tout premier joueur (l'auto-école d'abord) et au simulateur pour ses parties SANS FIN (`?play=sansfin`). Sa musique : GLISSE V2
    (le module de Léo, `assets/audio/music/musique-glisse-v2.js` — la copie de `simulateur/musiques/`, son choix au simulateur), voir JMUS. */
 const JADE_PLAY=!/[?&]play=(sansfin|carriere)\b/.test(location.search)&&!BALADE;
+/* (2026-10-12, Léo : « l'important avec ce simulateur, c'est qu'on puisse jouer dans la map : enlève l'écran d'accueil ») LE JEU DU SIMULATEUR —
+   `?simu=1` (posé par simulateur/course.html) : pas d'écran titre (le voile s'ouvre tout seul, comme la balade), pas de rechargement automatique
+   quand une nouvelle version sort (le simulateur garde la main) ; le reste est le jeu tel quel. `dbgQuitte()` finit la course sans explosion. */
+const SIMU_JEU=/[?&]simu=1\b/.test(location.search);
+/* (2026-10-12, le simulateur) la page des maps pose ce jeu en PETIT sur une image puis en PLEIN ÉCRAN : son cadre change de zoom, donc de
+   devicePixelRatio — le plafond de résolution (DPR_CAP), pris une fois au démarrage, restait celui de la petite image (plein écran flou).
+   En ?simu=1 seulement, il suit le zoom du cadre (même calcul qu'au démarrage). */
+if(SIMU_JEU){let dpr9=devicePixelRatio;setInterval(function(){if(Math.abs(devicePixelRatio-dpr9)<.01)return;dpr9=devicePixelRatio;
+  try{DPR_CAP=Math.min(devicePixelRatio,IS_MOBILE?1:1.5);qlReprise();}catch(e){}},250);}
 if(BALADE)document.documentElement.classList.add('balade');
 const IS_LOW_END=IS_MOBILE||(navigator.hardwareConcurrency>0&&navigator.hardwareConcurrency<=4);
 const REDUCED_MOTION=(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)||false; // ACCESSIBILITÉ : iOS « Réduire les animations » → coupe bloom + grain + effets de vitesse
@@ -28360,7 +28369,7 @@ function engBig(E,tier,ru){
   hap(rec?[18,50,30,60,40]:[18,50,30]);pixBurst(b.querySelector('.ebScene'),rec?28:18);
   // (v4) LES CYLINDRES CHANTENT : une note par cylindre qui s'allume, sur une gamme qui monte — puis le gain claque
   for(let i=0;i<n;i++)setTimeout(function(){try{if(engBig.on&&!engBig.plonge){if(SONV2)sfx('moteur.cylindre',{st:sonPd(i)});else chimeNote(noteP(i%5,1+Math.floor(i/5)),0,.028,.08);}}catch(e){}},250+i*50);
-  clearTimeout(engBig._f);if(rec)engBig._f=setTimeout(function(){if(!gameOver)try{son('ui.record',fanfare);}catch(e){}},SONV2?2150:1200); /* (console de son) le NOUVEAU SOMMET sonne APRÈS l'impact et la fanfare de palier, plus par-dessus la visseuse */ // APRÈS le démarreur du montage, jamais par-dessus
+  clearTimeout(engBig._f);if(rec)engBig._f=setTimeout(function(){if(!gameOver)try{son('ui.record',fanfare,{vol:-8});}catch(e){}},SONV2?2150:1200); /* (2026-10-12) −8 dB : les cuivres du début de course */ /* (console de son) le NOUVEAU SOMMET sonne APRÈS l'impact et la fanfare de palier, plus par-dessus la visseuse */ // APRÈS le démarreur du montage, jamais par-dessus
   engBig._p=setTimeout(engPlonge,ENG_COULOIR);
   engBig._a=setTimeout(function(){if(!gameOver)engSwapArme();},ENG_ARME); // le clank de la visseuse = l'entrée dans le capot
 }
@@ -29436,7 +29445,7 @@ function vpalTick(kmh){
   if(c>=VPAL.c0&&c>VPAL.n){VPAL.n=c;
     popTexte((c*100)+(LANG==='fr'?' KM/H !':' KM/H!'),c>=8?'#ff5ec8':c>=5?'#ffd75e':'#9fe8ff',1);
     fovPunch=Math.max(fovPunch,5+Math.min(8,c));hap(c>=6?[12,20,18]:10);
-    try{if(SONV2)sfx('jeu.palierVitesse',{st:Math.max(0,c-4)});else chimeNote(noteP(Math.min(11,c),1),0,.05,.22);}catch(e){}}
+    try{if(SONV2)sfx('jeu.palierVitesse',{st:Math.max(0,c-4),vol:-8}); /* (2026-10-12) −8 dB : un mur d'air à chaque centaine, trois dans les premières secondes */else chimeNote(noteP(Math.min(11,c),1),0,.05,.22);}catch(e){}}
   const ex=SAVE.d.ex,r=ex?(ex.kmh|0):0;
   if(!VPAL.rec&&r>=250&&kmh>r+5){VPAL.rec=true;
     setTimeout(function(){try{if(running&&!gameOver){slam('RECORD DE VITESSE',Math.round(Math.max(kmh,runStats.vmax||0))+' KM/H','#ffd75e','#ff3924',40,2,14);hap([12,30,20]);}}catch(e){}},250);}
@@ -33229,6 +33238,11 @@ const SON_TON={'ville-n':5,'glassy-plucks':-2,'ciel-n5':1,'ciel':-1,'vapeur-salo
 function sonTonSuit(){
   if(!SONV2)return;let t=0;
   try{const el=musicEl;if(SND.music&&el&&el.src){for(const k in SON_TON)if(el.src.indexOf(k)>=0){t=SON_TON[k];break;}if(FRENM.surm)t+=1;}}catch(e){}
+  // (2026-10-12, Léo : « je ne l'entends plus du tout accordé ») sur le SOLEIL DE JADE la radio se tait et GLISSE joue dans son propre contexte :
+  // les sons gardaient la tonalité du DERNIER morceau de la radio (le lobby). GLISSE est en RÉ MINEUR (Rém7 · Si♭ · Solm9 · La sus ; gamme
+  // ré-mi-fa-sol-la-si♭-do). La banque joue la pentatonique de MI majeur (la pièce de base = mi, mesuré) : +1 = fa majeur pentatonique = LA
+  // PENTATONIQUE DE RÉ MINEUR, la tonalité même de GLISSE (5 notes sur 5). Avant : −1 après VAPEUR (un mi♭ faux), −2 après GLASSY (fa#, si faux).
+  try{if(typeof jadeMusOn==='function'&&jadeMusOn()&&JMUS.inst&&JMUS.inst.playing)t=JMUS_TON;}catch(e){}
   if(t!==sonTonSuit._t){sonTonSuit._t=t;window.CCSON.ton(t);}
 }
 const FRUIT_SON={'PÊCHE PLATE':'fruit.peche','BANANE':'fruit.banane','GRENADE':'fruit.grenade','ORANGE':'fruit.orange','MYRTILLE':'fruit.myrtille','PASTÈQUE':'fruit.pasteque'};
@@ -33376,6 +33390,13 @@ function portesTick(){ // à chaque image, hors de la simulation (la porte doit 
     try{P.g.disconnect(P.d);}catch(e){}P.on=false;}
 }
 window.dbgPortes=function(){return PORTES.map(function(P,i){return i+':'+(P.on?'ouverte':'fermée');}).join(' ');}; // console : l'état des portes
+// (2026-10-12, banc du son) `dbgVu()` : le niveau (dB RMS) de chaque chaîne continue à sa sortie (ordre des portes) et du MASTER — pour trouver
+// QUI fait « le bruit » au lieu de deviner. Les analyseurs se posent au 1er appel (ils n'écoutent qu'en dérivation, rien n'est rebranché).
+window.dbgVu=function(){if(!AC||!MASTER)return null;const N=['moteur','vent','sifflet','crisse','nitroGronde','nitroJet','nitroBas','nitroOsc'];
+  if(!dbgVu.A)dbgVu.A=[];while(dbgVu.A.length<PORTES.length){const a=AC.createAnalyser();a.fftSize=1024;try{PORTES[dbgVu.A.length].g.connect(a);}catch(e){}dbgVu.A.push(a);}
+  if(!dbgVu.M){dbgVu.M=AC.createAnalyser();dbgVu.M.fftSize=1024;MASTER.connect(dbgVu.M);dbgVu.b=new Float32Array(1024);}
+  const db=function(a){a.getFloatTimeDomainData(dbgVu.b);let q=0;for(const v of dbgVu.b)q+=v*v;return Math.round(10*Math.log10(q/1024+1e-12));};
+  const o={total:db(dbgVu.M)};dbgVu.A.forEach(function(a,i){o[N[i]||('p'+i)]=db(a);});return o;};
 function initAudio(){
   AC=new (window.AudioContext||window.webkitAudioContext)();
   if(!SND.sfx)try{AC.suspend();}catch(e){} // le mute SON survit au redémarrage
@@ -33618,7 +33639,8 @@ function visseuse9(t,dur){ // clé à chocs : une rafale de percussions serrées
   }catch(e){}
 }
 function engSwapSnd(){ // la scène complète du remplacement
-  if(SONV2){sfx('moteur.palier');return;} // (console de son) la scène entière d'un seul tenant, calée sur la carte : visseuse, plongée, clanks, impact, démarreur, fanfare
+  if(SONV2){sfx('moteur.palier',{vol:-10});return;} // (2026-10-12, Léo : « en début de partie, un vrai bruit, comme une trompette, un klaxon ») MESURÉ : le son le plus fort de la banque (+4 dB, 8 dB au-dessus d'une pièce), à CHAQUE nouveau moteur — plusieurs fois dans les 30 premières secondes. −10 dB
+ // (console de son) la scène entière d'un seul tenant, calée sur la carte : visseuse, plongée, clanks, impact, démarreur, fanfare
   if(!sfxOk())return;
   try{
     visseuse9(0,.34);                       // on dévisse
@@ -33719,7 +33741,7 @@ const TON=330; // mi4 : la tonique EXACTE des pièces (660) et de rewardSfx (660
 function noteP(i,oct){return TON*Math.pow(2,GAMME_P[Math.max(0,Math.min(GAMME_P.length-1,i|0))]/12+(oct||0));}
 const FLOW_ACC=[null,[0,2,3],[1,3,5],[2,4,6],[3,5,7]]; // mi majeur · fa#-si-mi · sol#-do#-fa# · si-mi-si : la basse monte d'un degré par palier
 function blip(){
-  if(SONV2){if(!sfxOk())return;const k9=Math.max(0,combo-1);sfx('piece',{st:GAMME_P[Math.min(k9,GAMME_P.length-1)]});if(combo>0&&combo%5===0)sfx('piece.recolte');return;} // (console de son)
+  if(SONV2){if(!sfxOk())return;const k9=Math.max(0,combo-1);sfx('piece',{st:GAMME_P[Math.min(k9,GAMME_P.length-1)],vol:4}); /* (2026-10-12, Léo : « quand je vais sur une pièce, je l'entends pas forcément ») +4 dB : sous GLISSE elles se perdaient */if(combo>0&&combo%5===0)sfx('piece.recolte');return;} // (console de son)
   if(!sfxOk())return;
   try{
     const k=Math.max(0,combo-1),st=GAMME_P[Math.min(k,GAMME_P.length-1)],f=660*Math.pow(2,st/12);
@@ -34995,7 +35017,10 @@ function nitroEteint(){ // LA DERNIÈRE BOUFFÉE : une langue de feu aux pots + 
    · LÂCHER = plus de nouvelles notes, celles qui sonnent s'éteignent seules. La grille repart du I après 2,5 s sans appui.
    Discret (≈ −30 dB sous une voix pleine), un écho en croche pointée. Par MASTER (curseur EFFETS) : marche aussi sur iPhone.
    `dbgInstru()` : état · `dbgInstru(0|1)` coupe / rallume · `dbgInstru('essai')` (banc muet : les fréquences jouées). */
-const INSTRU={fins:[],der:0,on:true,tient:false,k:0,n:0,tNote:0,tDer:0,bus:null,iv:0,vu:[],pas:.15,off:null,queue:0,mel:14,vel:1,acc:0};
+/* (2026-10-12, Léo : « enlève le boost instrument, il fait un bruit horrible qui casse tout ») : la phrase est COUPÉE (`on:false`) — elle
+   lisait la musique du CIEL (instruMusiqueOk regardait la SOURCE du lecteur, pas s'il jouait) et partait donc aussi sous une autre musique
+   (simulateur, GLISSE V2…), à contretemps et hors tonalité. Tout le code reste : `dbgInstru(1)` la rallume pour l'écouter. */
+const INSTRU={fins:[],der:0,on:false,tient:false,k:0,n:0,tNote:0,tDer:0,bus:null,iv:0,vu:[],pas:.15,off:null,queue:0,mel:14,vel:1,acc:0};
 /* (2026-10-03, Léo : « le 3e et le 4e son gâchent un peu la musique — baisse ou adapte si tu vois c'est quoi la dissonance ») : LA
    DISSONANCE = la 4te (5 demi-tons) et la 7e majeure (11) — dans IV maj9 et V9 surtout, et dans les 7es de I et vi. La phrase part quand
    le JOUEUR appuie, pas sur la grille d'accords du morceau : ces deux notes tombaient sur un autre accord et frottaient. Désormais
@@ -36719,7 +36744,7 @@ function nitroooTick(dt){
     if(pal>NTR.pal&&NTR.boost<NTR_BOOST_MAX-.001){NTR.pal=pal;NTR.kc=1;
       const pct=Math.round(Math.min(NTR_BOOST_MAX,Math.pow(1+NTR_BOOST,pal)-1)*100); // (exponentiel) le palier affiche ce qu'il vaut vraiment
       try{popTexte('+'+pct+' %','#ffb040',1);}catch(e){}fovPunch=Math.max(fovPunch,4);flashEcran('rgba(255,140,40,.45)');hap(10);
-      if(SONV2&&BTEST!=='nitrooo0')sfx('nitrooo.palier',{st:sonPd(pal%2?2:0),vol:-11});} // (2026-10-03, Léo : « quand j'appuie sur le boost avec la barre très remplie, ça MONTE trop fort ; quand ça s'égalise en notes plus douces c'est agréable ») : les paliers de NITROOO ne GRIMPENT plus la gamme (ils alternaient vers le 7e degré) et passent −11 dB — la phrase du boost prend le relais
+      if(SONV2&&BTEST!=='nitrooo0')sfx('nitrooo.palier',{st:sonPd(pal%2?2:0),vol:-17});} // (2026-10-12) −11 → −17 dB : il tombe chaque seconde de boost tenu // (2026-10-03, Léo : « quand j'appuie sur le boost avec la barre très remplie, ça MONTE trop fort ; quand ça s'égalise en notes plus douces c'est agréable ») : les paliers de NITROOO ne GRIMPENT plus la gamme (ils alternaient vers le 7e degré) et passent −11 dB — la phrase du boost prend le relais
     NTR.boost=Math.min(NTR_BOOST_MAX,Math.max(NTR.boost,Math.pow(1+NTR_BOOST,NTR.t)-1)); // (exponentiel) continu entre deux paliers, ×1,10 à chaque seconde tenue
   }else NTR.boost=Math.max(0,NTR.boost-dt*1.4);
   const cible=actif?Math.max(NTR.kc>0?1:0,.6+.4*NTR.gT):0; // (2026-09-30, Sacha : « plus tu boostes longtemps, plus la tête devient grosse, opaque et enflammée ») — c'était l'inverse : 0,7 puis 0,5 après 6 s
@@ -39489,6 +39514,10 @@ window.dbgNiveauJade=jadeJouer; // (le simulateur l'appelle)
    = le curseur MUSIQUE (VOL.mus, .62 = le niveau du module), l'interrupteur MUSIQUE le coupe. Le module se charge dès le démarrage ; le
    1er toucher d'une course le relance une fois (Safari ne réveille un contexte audio que dans un geste). */
 const JMUS={mod:null,load:false,inst:null,P:0,vol:-1,kick:false,err:null};
+/* (2026-10-12, Léo : « le sound design est complètement niqué, on n'entend rien du tout ») MESURÉ au banc : GLISSE V2 sortait à −10 dB RMS
+   au départ et −5/−6 lancée — 15 à 20 dB au-dessus des effets (−26) et 5 à 10 dB au-dessus d'une musique « radio » du jeu (−11 dB RMS
+   au fichier × le curseur ,62 ≈ −15). Elle couvrait TOUT. Son niveau dans le jeu : ×,4 (−8 dB) — la même place que la radio. */
+const JMUS_NIV=.3,NIT_GRONDE=.4,JMUS_TON=1; // (2026-10-12, 2e passe : « on n'entend pas bien les bruits ») la musique ,4 → ,3 : −20 au départ, −14 lancée
 function jadeMusOn(){return JADE_JEU&&!!LVL.cur&&LVL.cur.id==='jade';}
 function jadeMusCharge(){if(JMUS.mod||JMUS.load)return;JMUS.load=true;
   try{import('./assets/audio/music/musique-glisse-v2.js').then(function(m){JMUS.mod=m;}).catch(function(e){JMUS.err=String(e);});}catch(e){JMUS.err=String(e);}}
@@ -39500,10 +39529,15 @@ function jadeMusTick(){
   const v=jadeMusVeut(),i=v?jadeMusInst():JMUS.inst;if(!i)return;
   if(v){try{if(!i.playing){i.start();JMUS.vol=-1;JMUS.P=0;JMUS.kick=false;}
       const P=1+[5,10,15,20].filter(function(t){return engTier>=t;}).length;if(P!==JMUS.P){JMUS.P=P;i.setTier(P,5);}
-      const vo=VOL.mus/.62;if(Math.abs(vo-JMUS.vol)>.01){JMUS.vol=vo;i.setVolume(vo);}}catch(e){JMUS.err=String(e);}}
+      const vo=VOL.mus/.62*JMUS_NIV;if(Math.abs(vo-JMUS.vol)>.01){JMUS.vol=vo;i.setVolume(vo);}}catch(e){JMUS.err=String(e);}}
   else if(i.playing){try{i.stop();}catch(e){}JMUS.P=0;}}
-addEventListener('pointerdown',function(){if(JMUS.kick||!JMUS.inst||!jadeMusVeut())return;JMUS.kick=true;try{JMUS.inst.stop();JMUS.inst.start();JMUS.vol=-1;JMUS.P=0;}catch(e){}},true);
+// (2026-10-12, Léo : « on entend parfois la musique, et il y a des coupures ») le 1er toucher de la course la REDÉMARRAIT (stop + start : coupure,
+// le morceau repartait du début) — désormais chaque toucher se contente de RÉVEILLER son contexte s'il dort (Safari ne réveille que dans un geste)
+function jadeMusReveil(){if(!JMUS.inst||!jadeMusVeut())return;try{if(JMUS.inst.wake)JMUS.inst.wake();}catch(e){}}
+addEventListener('pointerdown',jadeMusReveil,true);addEventListener('touchend',jadeMusReveil,true);
 window.dbgJadeMus=function(){return {charge:!!JMUS.mod,inst:!!JMUS.inst,joue:!!(JMUS.inst&&JMUS.inst.playing),palier:JMUS.P,bpm:JMUS.inst&&JMUS.inst.bpm,err:JMUS.err,radio:musicEl?!musicEl.paused:null,veut:jadeMusVeut()};};
+window.dbgQuitte=function(){ // (2026-10-12, le simulateur) finir la course en cours SANS explosion — comme QUITTER du panneau ⏸
+  if(!started||gameOver)return 'pas de course';if(TUTO.on)tutoQuitte();const sb=SANDBOX;SANDBOX=false;endGame();SANDBOX=sb;return 'fini';};
 window.dbgCampagne=function(n,b){ // (dev) lancer un niveau de carrière depuis la console : dbgCampagne(5) (NUAGES), dbgCampagne(3,1) (VILLE)
   b=Math.max(0,Math.min(CARRIERE.length-1,b|0));n=Math.max(1,Math.min(CARRIERE[b].niveaux.length,n|0));if(started&&!gameOver)return 'en course';carrLancer(b,n-1);return CARRIERE[b].id+' '+n;};
 window.dbgCamp=function(){return {niveau:CAMP.n,corde:CORDE_ON,degats:+CAMP.dmg.toFixed(2),proche:Math.round(CAMP.proche),coupes:CAMP.coupes.map(function(c){return {sA0:Math.round(c.sA0),sA1:Math.round(c.sA1),sB0:Math.round(c.sB0),cote:c.side,ecart:+(c.gap||0).toFixed(1)};}),
@@ -42000,17 +42034,28 @@ function garPinceNeuve(hy,R,lw){ // une pince : repère local x = vers l'EXTÉRI
   P.barre=b(M.chrome,.06,.07,1);                                  // la BARRE en travers de la jante, à hauteur du moyeu
   P.gAv=b(M.jaune,1,.09,.07);P.gAr=b(M.jaune,1,.09,.07);           // les deux GRIFFES qui se referment sur la bande du pneu, devant et derrière
   return P;}
+function garRoues(){ /* (2026-10-12, Léo : « les trucs tournaient et traversaient la voiture ») les roues de la caisse AFFICHÉE, mesurées sur
+     elle : chaque ESSIEU (groupe userData.essieu) porte ses deux roues SOUDÉES en un maillage — sa boîte donne le flanc extérieur de chaque
+     côté, la hauteur du moyeu et le rayon. La liste globale `wheels` ne tient que les roues d'avant la soudure (détachées). Repli : des
+     roues encore à part (userData.R) avant la soudure. Rend un côté par entrée : {sx, xo (flanc, |x|), y, z, R}. */
+  const L=[],bb=GATL._bb||(GATL._bb=new THREE.Box3()),b9=GATL._b9||(GATL._b9=new THREE.Box3());
+  for(const o of carGroup.children){const u=o.userData||{};
+    if(u.essieu){bb.makeEmpty();for(const m of o.children){if(!m.geometry)continue;if(!m.geometry.boundingBox)m.geometry.computeBoundingBox();b9.copy(m.geometry.boundingBox).applyMatrix4(m.matrix);bb.union(b9);}
+      if(bb.isEmpty())continue;const R=Math.max(.2,(bb.max.y-bb.min.y)/2),y=o.position.y+(bb.max.y+bb.min.y)/2,z=o.position.z+(bb.max.z+bb.min.z)/2;
+      L.push({sx:1,xo:Math.max(.05,o.position.x+bb.max.x),y:y,z:z,R:R});L.push({sx:-1,xo:Math.max(.05,-(o.position.x+bb.min.x)),y:y,z:z,R:R});}
+    else if(u.R!=null&&o.children.length){const x=o.position.x,lw=u.large||.3;
+      for(const sx of (Math.abs(x)<.05?[-1,1]:[Math.sign(x)]))L.push({sx:sx,xo:Math.abs(x)+lw/2,y:o.position.y,z:o.position.z,R:u.R});}}
+  return L;}
 function garPincesPose(cle){
   GATL.cle=cle;const pg=GATL.pg;GATL.pinces.length=0;while(pg.children.length)pg.remove(pg.children[0]); // géométries et matières partagées : rien à libérer
-  for(const w of wheels){if(!w.children.length)continue;const x=w.position.x,lw=w.userData.large||.3,hy=w.position.y;
-    for(const sx of (Math.abs(x)<.05?[-1,1]:[Math.sign(x)])){const P=garPinceNeuve(hy,w.userData.R||.4,lw);P.o.position.set(sx*(Math.abs(x)+lw/2+.02),0,w.position.z);P.o.scale.x=sx;pg.add(P.o);GATL.pinces.push(P);}}}
+  for(const w of garRoues()){const P=garPinceNeuve(w.y,w.R,.3);P.o.position.set(w.sx*(w.xo+.02),0,w.z);P.o.scale.x=w.sx;pg.add(P.o);GATL.pinces.push(P);}}
 function garAtelierTick(dt,ay){
   const on=GATL.on&&garageOn&&!GAR.go&&!!gEl&&!gEl.classList.contains('menu');
   if(GATL.on&&!on&&GAR.go){GATL.on=false;try{gModeBoutons();}catch(e){}} // JOUER (clavier) : l'atelier se rouvre d'un coup, la porte suit le lâcher
   const ap=(v,t,r)=>v+Math.max(-r*dt,Math.min(r*dt,t-v)),sm=u=>{u=u<0?0:u>1?1:u;return u*u*(3-2*u);};
   GATL.c=ap(GATL.c,on?1:0,on?1/.9:1/.7);GATL.cs=sm(GATL.c);
   GATL.l=ap(GATL.l,on&&GATL.c>.5?1:0,on?1/.45:1/.3);
-  const cle=garageI+':'+(carBody?carBody.children.length:0)+':'+wheels.length,veut=on&&GATL.c>.62&&!GAR.sw&&GATL.cle===cle;
+  const cle=garageI+':'+(carBody?carBody.children.length:0)+':'+carGroup.children.length,veut=on&&GATL.c>.62&&!GAR.sw&&GATL.cle===cle;
   GATL.p=ap(GATL.p,veut?1:0,veut?1/.9:1/.4);
   if(GATL.l>.06&&!GATL.sonL){GATL.sonL=1;try{if(SONV2)sfx('ui.on');}catch(e){}}if(GATL.l<.01)GATL.sonL=0;
   if(GATL.p>.985&&!GATL.sonP){GATL.sonP=1;try{if(SONV2)sfx('garage.tole');}catch(e){}try{hap(8);}catch(e){}}if(GATL.p<.5)GATL.sonP=0;
@@ -42032,7 +42077,7 @@ function garAtelierTick(dt,ay){
   if(b>0){GATL.v.set(0,ay+yA-.6,.35);stallKey.position.lerp(GATL.v,b);stallKey.intensity+=.85*b;stallKey.color.lerp(GATL.cK,b);stallKey.distance=Math.max(stallKey.distance,22);}
   stallRim.intensity*=1-.5*GATL.cs;
   // LES PINCES : elles tournent avec le plateau, sous la caisse
-  const pg=GATL.pg;pg.position.set(carGroup.position.x,carGroup.position.y-ay,carGroup.position.z);pg.rotation.y=carGroup.rotation.y;pg.visible=GATL.p>.001;
+  const pg=GATL.pg;pg.position.set(carGroup.position.x,carGroup.position.y-ay,carGroup.position.z);pg.quaternion.copy(carGroup.quaternion); /* l'orientation ENTIÈRE de la caisse (pas seulement son angle Y d'Euler, qui n'est plus son cap dès qu'un quaternion l'oriente) */pg.visible=GATL.p>.001;
   const p=GATL.p,ouv=sm(p/.12),mo=sm((p-.08)/.45),br=sm((p-.5)/.3),se=sm((p-.8)/.2),tenu=p>.985;
   GATL.M.led.color.setHex(tenu?0x3dff8a:0x5ff0ff);GATL.M.led.emissive.setHex(tenu?0x1fb85a:0x2fb8d0);
   for(const P of GATL.pinces){const H9=P.H,dz=-(H9+.3)*(1-mo),xb=P.x0-(P.x0-.02)*br,L9=Math.max(.001,(P.x0-.02)*br);
@@ -42042,6 +42087,8 @@ function garAtelierTick(dt,ay){
     const zB=(P.R+.05)*(.08+.92*br),lg=.02+(P.lw*.75+.04)*se;P.barre.scale.z=2*zB;P.barre.position.set(xb-.01,dz+P.hy,0);P.barre.visible=br>.01;
     P.gAv.scale.x=P.gAr.scale.x=lg;P.gAv.position.set(xb+.02-lg/2,dz+P.hy,zB);P.gAr.position.set(xb+.02-lg/2,dz+P.hy,-zB);P.gAv.visible=P.gAr.visible=br>.01;}
 }
+window.dbgPincesRoues=function(){if(!GATL.pg||!GATL.pinces.length)return null;const v=new THREE.Vector3(),w=new THREE.Vector3();carGroup.updateMatrixWorld(true);GAR.root.updateMatrixWorld(true);let mx=0; // (banc) l'écart de chaque pince à la roue la plus proche (m) — ~0,2 quand elles tiennent les roues
+  for(const P of GATL.pinces){P.o.getWorldPosition(v);let d=1e9;for(const r of garRoues()){w.set(r.sx*r.xo,r.y,r.z);carGroup.localToWorld(w);d=Math.min(d,v.distanceTo(w));}mx=Math.max(mx,d);}return {max:+mx.toFixed(3),angle:+(2*Math.acos(Math.min(1,Math.abs(GATL.pg.quaternion.dot(carGroup.quaternion))))).toFixed(4),p:+GATL.p.toFixed(2)};};
 window.dbgAtelierInv=function(on){if(on!=null){if(on&&GMODE.m!=='inv')gModeVa('inv');else gAtelier(on);}return {on:GATL.on,porte:+GATL.c.toFixed(2),lampe:+GATL.l.toFixed(2),pinces:+GATL.p.toFixed(2),n:GATL.pinces.length,cle:GATL.cle,porteE:GAR.porte?+GAR.porte.e.toFixed(2):null};};
 /* LE RAPPEL DE LA BOUTIQUE (2026-10-12, Léo : « qu'est-ce qu'on pourrait mettre au-dessus de HOME, tout ça ? » → « rappel de la boutique ») :
    au garage replié, une fine bande au-dessus des cinq touches — OFFRES ÉPHÉMÈRES, le compte à rebours, un reflet qui passe ; touchée, elle
@@ -46572,7 +46619,7 @@ window.dbgNitro3=function(a,b){
    Console : `dbgJaugeAura()` (moyenne, record, montré, en vol, phase) · `dbgJaugeAura(n)` verse n d'aura depuis la caisse (le vol se voit).
    ⚠ PAS `dbgAura` : c'est le crochet du jeu (banque, aura totale, rangs, caisses) — la 1re version de cette jauge l'avait écrasé.
    ===================================================================================================================================== */
-const AJ={el:null,seg:null,cel:null,lS:null,lB:null,vols:null,pool:[],moy:0,rec:0,moyT:0,vis:0,envol:0,acc:0,accT:0,accCh:false,
+const AJ={el:null,seg:null,cel:null,lS:null,lB:null,vols:null,pool:[],moy:0,rec:0,moyT:0,vis:0,vv:0,envol:0,acc:0,accT:0,accCh:false,
   enVol:0,fs:[-1,-1,-1,-1],cur:-1,rev:false,recB:false,fx:0,w:0,wT:0,dit:false,txt:'',lbl:'',run0:-1,v3:null};
 function ajMoy(){const r=(SAVE.d.ex&&SAVE.d.ex.runs)|0,a=SAVE.d.aura||0;return r>0?Math.max(100,a/r):400;}
 function ajMonte(){
@@ -46619,7 +46666,26 @@ function ajLance(){
    · Les nitros nées ensemble (pose + figure + bump au même atterrissage) partent en UNE (elle grossit).
    Console : `dbgVols()` (en vol, nitro en attente) · `dbgVols('n',.5)` / `('x',.4)` / `('a',200)` lance un gain depuis la caisse.
    ===================================================================================================================================== */
-var VOLG={L:[],pool:[],imp:[],rS:null,rN:null,rT:0,n:{r:0,x:0},fR:0,fX:0,nb:null,nbP:null,k:1};
+var VOLG={L:[],pool:[],imp:[],rS:null,rN:null,rT:0,n:{r:0,x:0},fR:0,fX:0,nb:null,nbP:null,k:1,dR:0,vR:0,tR:0,dX:0,vX:0,tX:0,ch:0,chT:-1e9};
+/* LE REMPLISSAGE QUI SATISFAIT (2026-10-12, Léo : « travaille juste le fait que ce soit satisfaisant quand ça se remplit — la dynamique ») :
+   · les deux jauges se REMPLISSENT en ressort (ω 17, ζ ,5 : elles dépassent d'~16 % de ce qui arrive, reviennent, se posent en ~0,45 s) ;
+     la barre de boost se VIDE, elle, sans traîner (la nitro qui brûle se suit à l'image) ;
+   · à chaque arrivée le plein BAT (il gonfle, s'écrase, se pose) et un « plop » (ui.pop) sonne ; les arrivées ENCHAÎNÉES (< 0,65 s) montent
+     la gamme (pentatonique) et tapent un peu plus fort — une série de gains se sent comme une série de pièces. */
+var VOLG_W=17,VOLG_Z=.5,VOLG_GAMME=[0,2,4,7,9,12,14];
+function volgRessort(dt,fR,fX){
+  const k=Math.min(dt,.05)*VOLG.k,W2=VOLG_W*VOLG_W,D=2*VOLG_Z*VOLG_W; // (k : le ralenti du banc)
+  if(fR<VOLG.tR-1e-4){VOLG.dR=Math.min(VOLG.dR,fR);VOLG.vR=Math.min(0,VOLG.vR);} // elle se vide : elle suit
+  else{VOLG.vR+=((fR-VOLG.dR)*W2-D*VOLG.vR)*k;VOLG.dR+=VOLG.vR*k;}
+  if(fX<VOLG.tX-1e-4){VOLG.dX=Math.min(VOLG.dX,fX);VOLG.vX=Math.min(0,VOLG.vX);}
+  else{VOLG.vX+=((fX-VOLG.dX)*W2-D*VOLG.vX)*k;VOLG.dX+=VOLG.vX*k;}
+  VOLG.tR=fR;VOLG.tX=fX;
+  VOLG.fR=Math.max(0,Math.min(1,VOLG.dR));VOLG.fX=Math.max(0,Math.min(1-VOLG.fR,VOLG.dX));
+}
+function volgBat(el,a){ // le plein BAT : il gonfle, s'écrase, se pose (propriété `scale` seule : rien d'autre ne l'anime)
+  if(!el||!el.animate)return;
+  try{const an=el.animate([{scale:'1 '+(1+.3*a).toFixed(2)},{scale:'1 '+(1-.1*a).toFixed(2),offset:.38},{scale:'1 '+(1+.04*a).toFixed(2),offset:.7},{scale:'1 1'}],{duration:380,easing:'ease-out'});if(VOLG.k!==1)an.playbackRate=VOLG.k;}catch(e){} // (le ralenti du banc le ralentit aussi)
+}
 function volgMonte(){
   if(VOLG.pool.length||VOLG.L.length||!AJ.vols)return;
   for(let i=0;i<12;i++){const b=document.createElement('b');AJ.vols.appendChild(b);VOLG.pool.push(b);}
@@ -46655,9 +46721,12 @@ function nbPrend(k){ // la barre de boost PREND : un éclat au bout du plein
 }
 function volgArrive(f,i,muet){
   VOLG.L.splice(i,1);f.el.style.opacity='0';VOLG.pool.push(f.el);
+  let a=1;
+  if(!muet){const now=performance.now();VOLG.ch=now-VOLG.chT<650?Math.min(VOLG_GAMME.length-1,VOLG.ch+1):0;VOLG.chT=now;a=1+.16*Math.min(VOLG.ch,4);
+    } // (2026-10-12, Léo : « je ne l'entends plus accordé ; une pièce, je l'entends pas forcément ») le « plop » d'arrivée (ui.pop, sa gamme à lui) est RETIRÉ : il brouillait la mélodie des pièces — l'arrivée se VOIT (rebond, anneau)
   if(f.k==='a'){AJ.envol=Math.max(0,AJ.envol-f.q);AJ.enVol=Math.max(0,AJ.enVol-1);
-    if(!muet&&AJ.el){AJ.el.classList.remove('prend');void AJ.el.offsetWidth;AJ.el.classList.add('prend');volgImpact(f.c[0],f.c[1],FLOW_CEL[Math.max(0,AJ.cur)]||'#5ee6ff');}}
-  else{VOLG.n[f.k]=Math.max(0,VOLG.n[f.k]-f.q);if(!muet){nbPrend(f.k);volgImpact(f.c[0],f.c[1],f.k==='x'?'#8fa4ff':'#ffb81f');}}
+    if(!muet&&AJ.el){AJ.el.classList.remove('prend');void AJ.el.offsetWidth;AJ.el.classList.add('prend');volgBat(AJ.seg,a);volgImpact(f.c[0],f.c[1],FLOW_CEL[Math.max(0,AJ.cur)]||'#5ee6ff');}}
+  else{VOLG.n[f.k]=Math.max(0,VOLG.n[f.k]-f.q);if(!muet){nbPrend(f.k);volgBat(document.getElementById(f.k==='x'?'nitroX':'nitroR'),a);volgImpact(f.c[0],f.c[1],f.k==='x'?'#8fa4ff':'#ffb81f');}}
 }
 function volgVide(){for(let i=VOLG.L.length-1;i>=0;i--)volgArrive(VOLG.L[i],i,true);VOLG.n.r=VOLG.n.x=0;}
 function volgTick(dt){
@@ -46689,14 +46758,17 @@ function ajTick(dt){
   if(!AJ.el&&!ajMonte())return;
   if(!document.body.classList.contains('play')){if(VOLG.L.length||VOLG.n.r||VOLG.n.x)volgVide();return;}
   // une NOUVELLE partie : rien en vol, la moyenne et le record relus (la partie d'avant vient de les changer)
-  if(auraRun<AJ.run0||!AJ.moy||(AJ.moyT-=dt)<=0){if(auraRun<AJ.run0){volgVide();AJ.envol=0;AJ.acc=0;AJ.vis=0;AJ.dit=false;}
+  if(auraRun<AJ.run0||!AJ.moy||(AJ.moyT-=dt)<=0){if(auraRun<AJ.run0){volgVide();AJ.envol=0;AJ.acc=0;AJ.vis=0;AJ.vv=0;AJ.dit=false;}
     AJ.moyT=1;AJ.moy=ajMoy();AJ.rec=Math.max(AJ.moy,SAVE.d.auraMax||0);}
   AJ.run0=auraRun;
   if((AJ.wT-=dt)<=0){AJ.wT=1;AJ.w=AJ.seg.clientWidth-6;}
   if(AJ.acc>0&&(AJ.accT+=dt)>=.15)ajLance();
   // ce que la jauge MONTRE = l'aura gagnée moins ce qui vole encore ; elle y glisse vite (on la voit se remplir à l'arrivée)
-  const cible=Math.max(0,auraRun-AJ.envol-AJ.acc);AJ.vis+=(cible-AJ.vis)*Math.min(1,dt*9);if(Math.abs(cible-AJ.vis)<.5)AJ.vis=cible;
-  const v=AJ.vis,rev=v>=AJ.moy,recB=rev&&v>AJ.rec&&AJ.rec>AJ.moy;
+  // (2026-10-12, Léo : « que ce soit satisfaisant quand ça se remplit ») elle s'y VERSE en ressort : elle file, dépasse un peu, revient, se
+  // pose (~0,45 s). Les états (moyenne battue, record, le bout) se lisent sur ce qui est vraiment arrivé (`vS`), jamais sur le dépassement.
+  const cible=Math.max(0,auraRun-AJ.envol-AJ.acc),kd=Math.min(dt,.05)*VOLG.k;
+  AJ.vv+=((cible-AJ.vis)*VOLG_W*VOLG_W-2*VOLG_Z*VOLG_W*AJ.vv)*kd;AJ.vis+=AJ.vv*kd;if(Math.abs(cible-AJ.vis)<.5&&Math.abs(AJ.vv)<6){AJ.vis=cible;AJ.vv=0;}
+  const v=Math.max(0,AJ.vis),vS=Math.min(v,cible),rev=vS>=AJ.moy,recB=rev&&vS>AJ.rec&&AJ.rec>AJ.moy;
   // les quatre cellules : trois tiers jusqu'à la moyenne, puis la 4e jusqu'au record
   let cur=0;for(let k=0;k<4;k++){let f;
     if(k<3)f=rev?1:Math.max(0,Math.min(1,v/AJ.moy*3-k));else f=!rev?0:(AJ.rec>AJ.moy?Math.max(0,Math.min(1,(v-AJ.moy)/(AJ.rec-AJ.moy))):1);
@@ -46712,8 +46784,8 @@ function ajTick(dt){
   // (2026-10-12, passe qualité) le libellé et le chiffre ne se REFABRIQUENT que si ce qu'ils disent change (TR + majPix + toLocaleString
   // tournaient à chaque image pour une valeur qui bouge au plus une fois par seconde : des chaînes jetées au ramasse-miettes en pleine course)
   if(rev!==AJ.revL||LANG!==AJ.lgL){AJ.revL=rev;AJ.lgL=LANG;AJ.kv=NaN;const lbl=TR(rev?'RECORD':'MOY');if(lbl!==AJ.lbl){AJ.lbl=lbl;AJ.lS.textContent=lbl;}}
-  const kv=recB?-1-Math.floor(v/AJ.rec*10):(rev?AJ.rec:AJ.moy);
-  if(kv!==AJ.kv){AJ.kv=kv;const t=recB?'×'+(Math.floor(v/AJ.rec*10)/10).toFixed(1):fmtAura(rev?AJ.rec:AJ.moy);
+  const kv=recB?-1-Math.floor(vS/AJ.rec*10):(rev?AJ.rec:AJ.moy);
+  if(kv!==AJ.kv){AJ.kv=kv;const t=recB?'×'+(Math.floor(vS/AJ.rec*10)/10).toFixed(1):fmtAura(rev?AJ.rec:AJ.moy);
     if(t!==AJ.txt){AJ.txt=t;AJ.lB.textContent=t;}ajSerre();}
   volgTick(dt); // les gains qui flottent puis tombent dans leur jauge (aura ET nitro)
 }
@@ -47034,7 +47106,7 @@ function loop(now){
       // PURE SPEED → NITROOO (2026-09-29) : 2 s (NTR_T) de nitro soutenu sur la route, au-delà de 55 % de la vmax du moteur (voir le bloc NITROOO)
       if(nitroOn&&startBoostT<=0&&speedKmh>Math.min(400,vmaxShow()*.55)){ /* (2026-10-08, Léo : « au début, un bruit assourdissant, du bruit puis de l'aigu ») pendant l'ÉLAN du départ, la vitesse pure ne compte toujours pas : depuis 4cb8f85 le boost tenu dès le départ lançait NITROOO à ~1,9 s (le mur d'air + le cuivre qui monte de `vitesse.pure`) */
         pureT+=dt;
-        if(pureT>NTR_T&&pureArmed){pureArmed=false;if(!NTR.on){annSpeak('pureSpeed',2);trickMsg('NITROOO !',3);if(SONV2&&BTEST!=='nitrooo0')sfx('vitesse.pure',{st:sonPd(0),vol:-8});else noiseBurst(.5,.12,1200); // (2026-09-29) une NITROOO qui continue depuis le vol ne se réannonce ni ne se repaie
+        if(pureT>NTR_T&&pureArmed){pureArmed=false;if(!NTR.on){annSpeak('pureSpeed',2);trickMsg('NITROOO !',3);/* (2026-10-12, Léo : « encore le bruit parasite », 2e fois après le 08/10 : « du bruit, puis de l'aigu, avec le boost ») `vitesse.pure` (le mur d'air + le cuivre qui monte) ne SONNE plus : boost tenu dès le départ, il partait ~2 s après l'élan puis toutes les 2 s — NITROOO garde son texte, son flash et ses paliers */ // (2026-09-29) une NITROOO qui continue depuis le vol ne se réannonce ni ne se repaie
           chaineAura('NITROOO',120,'pure',false,SONV2);}pureNext=pureT+2;nitroooPart();
           if(!PARK.on)flowAdd(5,'risque','p');} // (NITROOO) un petit geste de flow, UNE fois par tenue (PSYCHO paie déjà la vitesse tenue)
         /* TENIR PLUS LONGTEMPS PAYE PLUS, MAIS PAR PALIERS. Un gain continu redeviendrait le robinet
@@ -47043,7 +47115,7 @@ function loop(now){
         // ⚠ PALIER PLAFONNÉ À 5 (audit 2026-08-18) : `150+pureLvl*100` sans borne, c'est une rente —
         // tenir 60 s donnait 30 salves dont la derniere a 3 150. L'escalade se sent jusqu'a ×6, apres
         // quoi c'est la DUREE qui paye, pas le multiplicateur.
-        if(!pureArmed&&pureT>pureNext){pureNext=pureT+2;pureLvl=Math.min(5,pureLvl+1);if(SONV2&&BTEST!=='nitrooo0')sfx('vitesse.pure',{st:sonPd(pureLvl%2?2:0),vol:-10}); /* (2026-10-03, Léo) il GRIMPAIT la gamme toutes les 2 s, à plein volume */chaineAura('NITROOO ×'+(pureLvl+1),15+pureLvl*8,'pure',true,SONV2,true); /* (2026-10-01) 60+40·palier → 15+8·palier : calé quand un réservoir donnait 3 paliers toutes les 15 s ; sur la LIGNE PARFAITE la NITROOO se tient, et le palier tombe toutes les 2 s */}
+        if(!pureArmed&&pureT>pureNext){pureNext=pureT+2;pureLvl=Math.min(5,pureLvl+1);/* (2026-10-12) plus de `vitesse.pure` toutes les 2 s (voir plus haut) */chaineAura('NITROOO ×'+(pureLvl+1),15+pureLvl*8,'pure',true,SONV2,true); /* (2026-10-01) 60+40·palier → 15+8·palier : calé quand un réservoir donnait 3 paliers toutes les 15 s ; sur la LIGNE PARFAITE la NITROOO se tient, et le palier tombe toutes les 2 s */}
       }else{pureT=0;pureArmed=true;pureNext=0;pureLvl=0;}
       // point de respawn sûr
       if(side>0&&F.n.y>.5&&Math.abs(lat)<ROAD_HALF-2&&Math.abs(psi)<.5)safeS=s;
@@ -48133,7 +48205,9 @@ function loop(now){
         // (2026-09-26) la flamme ne vit QUE manette en main : pendant l'explosion (un tap NITRO pour la passer tient `keys.Space`)
         // et après `endGame` dans la même image, elle réécrivait ses gains — le souffle restait figé sur l'écran de mort
         const nOn9=nitroOn&&mode!=='boom'&&!gameOver&&BTEST!=='feu0';
-        const jb=nOn9?(nitroBlue?.52:.4):0;
+        // (2026-10-12, Léo : « le bruit dont je parle tout le temps au début… le boost en l'air ») MESURÉ au banc (dbgVu) : ce grondement sortait
+        // à −14/−16 dB RMS, 12 dB AU-DESSUS de tout le reste (moteur −28, mélange −26) — dès qu'on tient le boost, il couvrait le jeu. ×,4 (−8 dB).
+        const jb=nOn9?(nitroBlue?.52:.4)*NIT_GRONDE:0;
         stt(jrG.gain,jb*(air9?1.1:1.05)*(.84+.32*Math.random())*dk,AC.currentTime,.08); // turbulence lente
         stt(jrDep.gain,jb*(air9?.22:.16)*dk,AC.currentTime,.1); // flutter 5 Hz : la flamme respire
         stt(jrF.frequency,nOn9?(air9?310+spd3*.3:430+spd3*.35)+(nitroBlue?80:0):240,AC.currentTime,.1); // un poil plus mordante au sol
@@ -48226,13 +48300,13 @@ function loop(now){
         break;}
     }
     if(!gameOver&&money>=nextRainAt){nextRainAt*=2.6;startMoneyRain();showMsg(pickL(RAIN_LINES),'#7dff9a');}
-    if(money>best){if(SONV2&&started&&!gameOver&&!SANDBOX&&!TUTO.on&&best>START_CASH+.5&&!runStats.recSon){runStats.recSon=1;sfx('aura.record');}best=money;SAVE.d.best=best;SAVE.mark();} // mark : le filet des 30 s (ou la fin de run) écrira
+    if(money>best){if(SONV2&&started&&!gameOver&&!SANDBOX&&!TUTO.on&&best>START_CASH+.5&&!runStats.recSon){runStats.recSon=1;sfx('aura.record',{vol:-6});}best=money;SAVE.d.best=best;SAVE.mark();} // mark : le filet des 30 s (ou la fin de run) écrira
     if(loop._bestHud!==best){loop._bestHud=best;elRecord.textContent=TR('record : ')+fmt(best);}
     // ⚠ on n'écrit la jauge QUE si elle a bougé d'un demi-pour-cent : un style par image, c'est un recalcul de style par image
     // (2026-09-28, HUD v5) la rampe dit la MÊME chose que le disque NITRO : la part du RÉSERVOIR du moteur (orange), puis la réserve bleue
     // par-dessus, plafonnées à la rampe entière — elle comptait sur 4 unités : réservoir plein = rampe à moitié, disque plein (contradiction)
     {VOLG.n.r=Math.min(VOLG.n.r,nitroR);VOLG.n.x=Math.min(VOLG.n.x,nitroX); // (2026-10-12) la barre MONTRE la nitro moins celle qui vole encore vers elle
-     const nR8=Math.max(0,nitroR-VOLG.n.r),nX8=Math.max(0,nitroX-VOLG.n.x),mx8=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,fR8=Math.min(1,nR8/mx8),fX8=Math.min(1-fR8,nX8/2),w1=Math.round(fR8*200)/2,w2=Math.round(fX8*200)/2;VOLG.fR=fR8;VOLG.fX=fX8;
+     const nR8=Math.max(0,nitroR-VOLG.n.r),nX8=Math.max(0,nitroX-VOLG.n.x),mx8=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,fR8=Math.min(1,nR8/mx8),fX8=Math.min(1-fR8,nX8/2);volgRessort(dt,fR8,fX8);const w1=Math.round(VOLG.fR*200)/2,w2=Math.round(VOLG.fX*200)/2; // (2026-10-12) elle se remplit en RESSORT
      if(loop._nw1!==w1){loop._nw1=w1;elNR.style.width=w1+'%';}
      if(loop._nw2!==w2){loop._nw2=w2;elNX.style.width=w2+'%';}
      const pl=(nR8+nX8)>=mx8-.01;
@@ -48543,7 +48617,7 @@ renderLeaders(-1);
   T9(function(){if(!launched&&!done){
     const n=document.getElementById('spNote');if(n)n.classList.add('on');
   }},900);
-  if(NUAGES_LAB||BALADE)T9(hide,80); // (atelier des nuages) droit à l'écran titre, sans l'intro ni son clic
+  if(NUAGES_LAB||BALADE||SIMU_JEU)T9(hide,80); // (atelier des nuages) droit à l'écran titre, sans l'intro ni son clic — (2026-10-12) le simulateur aussi
   // ---- SOUND DESIGN « 1.61 » : tout est accordé sur le NOMBRE D'OR φ=1,618 ----
   // Échelle inouïe (intervalles de φ : ni octaves ni quintes — le son littéral de 1.61),
   // compteuse à billets en guise de riser, sub qui bat à 0,618 Hz, jackpot de pièces à la fission.
@@ -49562,7 +49636,7 @@ if('serviceWorker'in navigator&&!window.Capacitor&&!POKI&&(location.protocol==='
    Copie locale / file:// / appli Capacitor : rien. Le numéro se lit en bas des RÉGLAGES (et sous le jeu sur l'ordi). */
 (function(){
   var e=document.getElementById('mvVer');if(e)e.textContent='VERSION '+CC_VER;
-  if(/^__/.test(CC_BUILD)||window.Capacitor||POKI||!(location.protocol==='http:'||location.protocol==='https:')||NUAGES_LAB||BALADE)return; // (l'atelier des nuages ne se recharge pas en plein réglage)
+  if(/^__/.test(CC_BUILD)||window.Capacitor||POKI||!(location.protocol==='http:'||location.protocol==='https:')||NUAGES_LAB||BALADE||SIMU_JEU)return; // (l'atelier des nuages ne se recharge pas en plein réglage — le simulateur non plus)
   var neuf=null,vu=0,touche=Date.now();
   /* (2026-10-05, Léo : « au début, quand CASH CAR explose, une musique part très fort, puis ça relance au niveau ciel ») ⚠ LA MISE À JOUR
      TOMBAIT EN PLEINE INTRO : la 1re lecture de version.json partait 4 s après l'ouverture et « pas en course » comprenait l'intro — un
