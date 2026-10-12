@@ -41975,17 +41975,28 @@ function garPinceNeuve(hy,R,lw){ // une pince : repère local x = vers l'EXTÉRI
   P.barre=b(M.chrome,.06,.07,1);                                  // la BARRE en travers de la jante, à hauteur du moyeu
   P.gAv=b(M.jaune,1,.09,.07);P.gAr=b(M.jaune,1,.09,.07);           // les deux GRIFFES qui se referment sur la bande du pneu, devant et derrière
   return P;}
+function garRoues(){ /* (2026-10-12, Léo : « les trucs tournaient et traversaient la voiture ») les roues de la caisse AFFICHÉE, mesurées sur
+     elle : chaque ESSIEU (groupe userData.essieu) porte ses deux roues SOUDÉES en un maillage — sa boîte donne le flanc extérieur de chaque
+     côté, la hauteur du moyeu et le rayon. La liste globale `wheels` ne tient que les roues d'avant la soudure (détachées). Repli : des
+     roues encore à part (userData.R) avant la soudure. Rend un côté par entrée : {sx, xo (flanc, |x|), y, z, R}. */
+  const L=[],bb=GATL._bb||(GATL._bb=new THREE.Box3()),b9=GATL._b9||(GATL._b9=new THREE.Box3());
+  for(const o of carGroup.children){const u=o.userData||{};
+    if(u.essieu){bb.makeEmpty();for(const m of o.children){if(!m.geometry)continue;if(!m.geometry.boundingBox)m.geometry.computeBoundingBox();b9.copy(m.geometry.boundingBox).applyMatrix4(m.matrix);bb.union(b9);}
+      if(bb.isEmpty())continue;const R=Math.max(.2,(bb.max.y-bb.min.y)/2),y=o.position.y+(bb.max.y+bb.min.y)/2,z=o.position.z+(bb.max.z+bb.min.z)/2;
+      L.push({sx:1,xo:Math.max(.05,o.position.x+bb.max.x),y:y,z:z,R:R});L.push({sx:-1,xo:Math.max(.05,-(o.position.x+bb.min.x)),y:y,z:z,R:R});}
+    else if(u.R!=null&&o.children.length){const x=o.position.x,lw=u.large||.3;
+      for(const sx of (Math.abs(x)<.05?[-1,1]:[Math.sign(x)]))L.push({sx:sx,xo:Math.abs(x)+lw/2,y:o.position.y,z:o.position.z,R:u.R});}}
+  return L;}
 function garPincesPose(cle){
   GATL.cle=cle;const pg=GATL.pg;GATL.pinces.length=0;while(pg.children.length)pg.remove(pg.children[0]); // géométries et matières partagées : rien à libérer
-  for(const w of wheels){if(!w.children.length)continue;const x=w.position.x,lw=w.userData.large||.3,hy=w.position.y;
-    for(const sx of (Math.abs(x)<.05?[-1,1]:[Math.sign(x)])){const P=garPinceNeuve(hy,w.userData.R||.4,lw);P.o.position.set(sx*(Math.abs(x)+lw/2+.02),0,w.position.z);P.o.scale.x=sx;pg.add(P.o);GATL.pinces.push(P);}}}
+  for(const w of garRoues()){const P=garPinceNeuve(w.y,w.R,.3);P.o.position.set(w.sx*(w.xo+.02),0,w.z);P.o.scale.x=w.sx;pg.add(P.o);GATL.pinces.push(P);}}
 function garAtelierTick(dt,ay){
   const on=GATL.on&&garageOn&&!GAR.go&&!!gEl&&!gEl.classList.contains('menu');
   if(GATL.on&&!on&&GAR.go){GATL.on=false;try{gModeBoutons();}catch(e){}} // JOUER (clavier) : l'atelier se rouvre d'un coup, la porte suit le lâcher
   const ap=(v,t,r)=>v+Math.max(-r*dt,Math.min(r*dt,t-v)),sm=u=>{u=u<0?0:u>1?1:u;return u*u*(3-2*u);};
   GATL.c=ap(GATL.c,on?1:0,on?1/.9:1/.7);GATL.cs=sm(GATL.c);
   GATL.l=ap(GATL.l,on&&GATL.c>.5?1:0,on?1/.45:1/.3);
-  const cle=garageI+':'+(carBody?carBody.children.length:0)+':'+wheels.length,veut=on&&GATL.c>.62&&!GAR.sw&&GATL.cle===cle;
+  const cle=garageI+':'+(carBody?carBody.children.length:0)+':'+carGroup.children.length,veut=on&&GATL.c>.62&&!GAR.sw&&GATL.cle===cle;
   GATL.p=ap(GATL.p,veut?1:0,veut?1/.9:1/.4);
   if(GATL.l>.06&&!GATL.sonL){GATL.sonL=1;try{if(SONV2)sfx('ui.on');}catch(e){}}if(GATL.l<.01)GATL.sonL=0;
   if(GATL.p>.985&&!GATL.sonP){GATL.sonP=1;try{if(SONV2)sfx('garage.tole');}catch(e){}try{hap(8);}catch(e){}}if(GATL.p<.5)GATL.sonP=0;
@@ -42007,7 +42018,7 @@ function garAtelierTick(dt,ay){
   if(b>0){GATL.v.set(0,ay+yA-.6,.35);stallKey.position.lerp(GATL.v,b);stallKey.intensity+=.85*b;stallKey.color.lerp(GATL.cK,b);stallKey.distance=Math.max(stallKey.distance,22);}
   stallRim.intensity*=1-.5*GATL.cs;
   // LES PINCES : elles tournent avec le plateau, sous la caisse
-  const pg=GATL.pg;pg.position.set(carGroup.position.x,carGroup.position.y-ay,carGroup.position.z);pg.rotation.y=carGroup.rotation.y;pg.visible=GATL.p>.001;
+  const pg=GATL.pg;pg.position.set(carGroup.position.x,carGroup.position.y-ay,carGroup.position.z);pg.quaternion.copy(carGroup.quaternion); /* l'orientation ENTIÈRE de la caisse (pas seulement son angle Y d'Euler, qui n'est plus son cap dès qu'un quaternion l'oriente) */pg.visible=GATL.p>.001;
   const p=GATL.p,ouv=sm(p/.12),mo=sm((p-.08)/.45),br=sm((p-.5)/.3),se=sm((p-.8)/.2),tenu=p>.985;
   GATL.M.led.color.setHex(tenu?0x3dff8a:0x5ff0ff);GATL.M.led.emissive.setHex(tenu?0x1fb85a:0x2fb8d0);
   for(const P of GATL.pinces){const H9=P.H,dz=-(H9+.3)*(1-mo),xb=P.x0-(P.x0-.02)*br,L9=Math.max(.001,(P.x0-.02)*br);
@@ -42017,6 +42028,8 @@ function garAtelierTick(dt,ay){
     const zB=(P.R+.05)*(.08+.92*br),lg=.02+(P.lw*.75+.04)*se;P.barre.scale.z=2*zB;P.barre.position.set(xb-.01,dz+P.hy,0);P.barre.visible=br>.01;
     P.gAv.scale.x=P.gAr.scale.x=lg;P.gAv.position.set(xb+.02-lg/2,dz+P.hy,zB);P.gAr.position.set(xb+.02-lg/2,dz+P.hy,-zB);P.gAv.visible=P.gAr.visible=br>.01;}
 }
+window.dbgPincesRoues=function(){if(!GATL.pg||!GATL.pinces.length)return null;const v=new THREE.Vector3(),w=new THREE.Vector3();carGroup.updateMatrixWorld(true);GAR.root.updateMatrixWorld(true);let mx=0; // (banc) l'écart de chaque pince à la roue la plus proche (m) — ~0,2 quand elles tiennent les roues
+  for(const P of GATL.pinces){P.o.getWorldPosition(v);let d=1e9;for(const r of garRoues()){w.set(r.sx*r.xo,r.y,r.z);carGroup.localToWorld(w);d=Math.min(d,v.distanceTo(w));}mx=Math.max(mx,d);}return {max:+mx.toFixed(3),angle:+(2*Math.acos(Math.min(1,Math.abs(GATL.pg.quaternion.dot(carGroup.quaternion))))).toFixed(4),p:+GATL.p.toFixed(2)};};
 window.dbgAtelierInv=function(on){if(on!=null){if(on&&GMODE.m!=='inv')gModeVa('inv');else gAtelier(on);}return {on:GATL.on,porte:+GATL.c.toFixed(2),lampe:+GATL.l.toFixed(2),pinces:+GATL.p.toFixed(2),n:GATL.pinces.length,cle:GATL.cle,porteE:GAR.porte?+GAR.porte.e.toFixed(2):null};};
 /* LE RAPPEL DE LA BOUTIQUE (2026-10-12, Léo : « qu'est-ce qu'on pourrait mettre au-dessus de HOME, tout ça ? » → « rappel de la boutique ») :
    au garage replié, une fine bande au-dessus des cinq touches — OFFRES ÉPHÉMÈRES, le compte à rebours, un reflet qui passe ; touchée, elle
