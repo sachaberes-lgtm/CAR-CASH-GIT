@@ -8,7 +8,9 @@
      option jouer sur la map ; chaque map n'a pas de musique pour l'instant, après il faudra associer un fichier à chaque » — puis
      « il faut que ce soit les bonnes maps et la bonne physique »). Les VRAIES maps du jeu et leurs niveaux (simulateur/maps.js), avec les
      photos prises dans le jeu pour la page des Niveaux (maps-ciel/img). JOUER = simulateur/course.html : le jeu lui-même, lancé sur le
-     niveau. La pastille d'une map choisit SA musique (simulateur/musiques/) — gardée dans ce navigateur, lue par la course.
+     niveau. Chaque NIVEAU a sa pastille de musique (la bibliothèque = simulateur/musiques/) ; celle de la map les règle tous d'un coup.
+     Le choix s'écrit sur le DISQUE (simulateur/choix-musiques.json, par le serveur) — c'est la table que le jeu lira. Un fichier de
+     musique (.html à jauge, .js module) GLISSÉ sur la page, ou « + Musique », rejoint la bibliothèque.
      Page blanche, le moins de texte possible. -->
 <style>
   :root{--encre:#111113;--gris:#86868b;--gris2:#b9b9be;--trait:#efeff1;--doux:#f4f4f6;
@@ -45,67 +47,112 @@
   .menu button:hover{background:var(--doux)}
   .menu button.choisi::after{content:"";margin-left:auto;width:8px;height:8px;border-radius:50%;background:var(--encre)}
   .menu button.aucune{color:var(--gris)}
+  .tete{display:flex;align-items:center;gap:14px}
+  .ajout{margin-left:auto;height:32px;padding:0 14px;border-radius:999px;box-shadow:inset 0 0 0 1px #dedee2;font-size:13px;font-weight:550;color:var(--gris)}
+  .ajout:hover{box-shadow:inset 0 0 0 1px var(--encre);color:var(--encre)}
+  .carte .musBox{align-self:flex-start;max-width:100%}
+  .carte .mus{height:26px;font-size:12px;max-width:100%}
+  .carte .mus span{overflow:hidden;text-overflow:ellipsis}
+  #depot{position:fixed;inset:12px;border-radius:20px;border:2px dashed var(--encre);background:rgba(255,255,255,.88);display:grid;
+    place-items:center;font-size:22px;font-weight:650;z-index:20;pointer-events:none}
+  #toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:var(--encre);color:#fff;font-size:13.5px;font-weight:550;
+    padding:10px 16px;border-radius:999px;z-index:30;transition:opacity .25s}
+  [hidden]{display:none!important}
 </style>
 </head>
 <body>
 <main class="page">
-  <h1>Maps</h1>
+  <div class="tete"><h1>Maps</h1><button class="ajout" id="ajout">+ Musique</button><input type="file" id="fic" accept=".html,.js" multiple hidden></div>
   <div id="maps"></div>
 </main>
+<div id="depot" hidden>Lâche pour ajouter la musique</div>
+<div id="toast" hidden></div>
 <script src="simulateur/maps.js"></script>
 <script>
-(function () {
+(async function () {
   const ICO_NOTE = '<svg viewBox="0 0 24 24"><path d="M9 18V6l11-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg>';
   const lien = id => 'simulateur/course.html?niv=' + encodeURIComponent(id);
-  const nomMusique = f => (MUSIQUES.find(m => m.fichier === f) || {}).nom;
   let ouvert = null;
   const ferme = () => { if (ouvert) { ouvert.remove(); ouvert = null; } };
   document.addEventListener('click', ev => { if (ouvert && !ev.target.closest('.musBox')) ferme(); });
   document.addEventListener('keydown', ev => { if (ev.key === 'Escape') ferme(); });
-  const racine = document.getElementById('maps');
+  const toast = (t) => { const e = document.getElementById('toast'); e.textContent = t; e.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(() => { e.hidden = true; }, 2200); };
+  const peintures = [];   // chaque pastille sait se repeindre
+  const repeins = () => peintures.forEach(f => f());
 
-  for (const map of MAPS) {
-    const sec = document.createElement('section'); sec.className = 'map';
-    sec.innerHTML = '<div class="mapTete"><h2></h2><div class="musBox"><button class="mus"></button></div></div><div class="grille"></div>';
-    sec.querySelector('h2').textContent = map.nom;
-    // la musique de la map
-    const mus = sec.querySelector('.mus'), box = sec.querySelector('.musBox');
+  // une pastille de musique : pour UN niveau, ou pour toute une map (ids = ses niveaux)
+  function pastille(box, ids) {
+    const mus = box.querySelector('.mus');
     const peins = () => {
-      const nom = nomMusique(musiqueDe(map));
+      const f = ids.map(id => musiqueDe(niveauDe(id).niv)), memes = f.every(x => x === f[0]);
+      const nom = memes ? nomMusique(f[0]) : 'Plusieurs';
       mus.classList.toggle('vide', !nom);
       mus.innerHTML = ICO_NOTE + '<span></span>';
       mus.querySelector('span').textContent = nom || 'Pas de musique';
     };
-    peins();
+    peintures.push(peins); peins();
     mus.onclick = ev => {
-      ev.stopPropagation();
+      ev.stopPropagation(); ev.preventDefault();
       const deja = ouvert && ouvert.parentNode === box; ferme(); if (deja) return;
       const menu = document.createElement('div'); menu.className = 'menu';
-      const choix = musiqueDe(map);
+      const f = ids.map(id => musiqueDe(niveauDe(id).niv)), choix = f.every(x => x === f[0]) ? f[0] : null;
       for (const m of [{ fichier: '', nom: 'Pas de musique' }, ...MUSIQUES]) {
         const b = document.createElement('button'); b.textContent = m.nom;
         if (!m.fichier) b.classList.add('aucune');
         if (m.fichier === choix) b.classList.add('choisi');
-        b.onclick = () => { musiqueChoisir(map, m.fichier); peins(); ferme(); };
+        b.onclick = async () => { ferme(); const ok = await musiqueChoisir(ids, m.fichier); repeins(); if (!ok) toast('Pas enregistré (serveur ?)'); };
         menu.appendChild(b);
       }
       box.appendChild(menu); ouvert = menu;
     };
+  }
+
+  await musiquesCharge();
+  const racine = document.getElementById('maps');
+  for (const map of MAPS) {
+    const sec = document.createElement('section'); sec.className = 'map';
+    sec.innerHTML = '<div class="mapTete"><h2></h2><div class="musBox"><button class="mus"></button></div></div><div class="grille"></div>';
+    sec.querySelector('h2').textContent = map.nom;
+    if (map.niveaux.length > 1) pastille(sec.querySelector('.musBox'), map.niveaux.map(n => n.id));
+    else sec.querySelector('.musBox').remove();
     // ses niveaux
     const grille = sec.querySelector('.grille');
     map.niveaux.forEach((niv, k) => {
       const c = document.createElement('article'); c.className = 'carte';
-      c.innerHTML = '<a class="photo"><img alt=""></a><div class="ligne"><span class="num"></span><span class="nom"></span><button class="jouer">Jouer</button></div>';
+      c.innerHTML = '<a class="photo"><img alt=""></a><div class="ligne"><span class="num"></span><span class="nom"></span><button class="jouer">Jouer</button></div><div class="musBox"><button class="mus"></button></div>';
       c.querySelector('.photo').href = lien(niv.id);
       c.querySelector('.photo').setAttribute('aria-label', 'Jouer sur ' + map.nom + ' · ' + niv.nom);
       const img = c.querySelector('img'); img.src = 'simulateur/' + niv.photo; img.onerror = () => img.remove();
       c.querySelector('.num').textContent = map.niveaux.length > 1 ? k + 1 : '';
       c.querySelector('.nom').textContent = niv.nom;
       c.querySelector('.jouer').onclick = () => { location.href = lien(niv.id); };
+      pastille(c.querySelector('.musBox'), [niv.id]);
       grille.appendChild(c);
     });
     racine.appendChild(sec);
   }
+
+  // ajouter une musique : « + Musique » ou un fichier glissé sur la page → simulateur/musiques/
+  async function ajoute(files) {
+    const noms = [];
+    for (const f of files) {
+      if (!/\.(html|js)$/i.test(f.name)) { toast(f.name + ' : il faut un .html ou un .js'); continue; }
+      try {
+        const r = await fetch(SIMU_DIR + 'musiques/' + encodeURIComponent(f.name), { method: 'POST', body: await f.arrayBuffer() });
+        const d = await r.json(); if (d.ok) noms.push(d.nom);
+      } catch (e) {}
+    }
+    if (noms.length) { await musiquesCharge(); repeins(); toast('Ajoutée : ' + noms.join(', ')); }
+    else if (files.length) toast('Pas ajoutée (serveur ?)');
+  }
+  const fic = document.getElementById('fic'), depot = document.getElementById('depot');
+  document.getElementById('ajout').onclick = () => fic.click();
+  fic.onchange = () => { ajoute([...fic.files]); fic.value = ''; };
+  let prof = 0;
+  addEventListener('dragenter', ev => { if (ev.dataTransfer.types.includes('Files')) { prof++; depot.hidden = false; } });
+  addEventListener('dragleave', () => { if (--prof <= 0) { prof = 0; depot.hidden = true; } });
+  addEventListener('dragover', ev => ev.preventDefault());
+  addEventListener('drop', ev => { ev.preventDefault(); prof = 0; depot.hidden = true; ajoute([...ev.dataTransfer.files]); });
 })();
 </script>
 </body>

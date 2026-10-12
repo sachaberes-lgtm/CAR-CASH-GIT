@@ -3,8 +3,14 @@
    · Une MAP = un décor du jeu, avec ses niveaux (les mêmes que la page des Niveaux, maps-ciel.html, et leurs photos).
    · `lance` : comment le jeu part sur ce niveau — { monde, n } = la CARRIÈRE (dbgCampagne(n, monde)) ; { sansFin } = la partie sans fin
      (le JOUER de l'accueil).
-   · `musique` : la page de musique en direct de la map (musiques/*.html, comme le French Touch), ou null. Le choix fait sur la page des
-     maps passe devant (gardé dans ce navigateur). La musique du JEU est coupée dans le simulateur : on n'entend que celle-ci.
+   · `musique` : la musique PAR DÉFAUT des niveaux de la map, ou null.
+   LA MUSIQUE DES NIVEAUX (Léo, 12/10 soir : « je dois pouvoir tester mes nouveaux sons dans les maps pour choisir où ils vont, et tester
+   l'intensité de la musique proportionnelle au palier moteur ») :
+   · la BIBLIOTHÈQUE = tout ce qui est dans musiques/ (lue par le serveur : musiques.json). Deux formats :
+       - une PAGE .html à jauge (le French Touch) : bouton #play, jauge #speed (0-100), affichage #bpm ;
+       - un MODULE .js (musique-glisse.js) : une fonction exportée qui rend { start, stop, setTier(palier, nbPaliers), setSpeed(0-1), bpm }.
+     Une nouvelle musique = son fichier dans musiques/ (ou glissé sur la page des maps), rien d'autre ;
+   · LE CHOIX niveau → musique = choix-musiques.json, sur le DISQUE (écrit par le serveur) : c'est la table que le jeu lira.
    Chemins relatifs au dossier simulateur/. */
 const IMG = '../maps-ciel/img/';
 const MAPS = [
@@ -27,28 +33,34 @@ const MAPS = [
   ] },
 ];
 
-/* LES MUSIQUES qu'on peut associer à une map. Une nouvelle musique = son fichier dans musiques/ + une ligne ici.
-   Elle doit garder les trois repères du French Touch : le bouton #play, la jauge #speed (0-100) et l'affichage #bpm. */
-const MUSIQUES = [
-  { fichier: 'musiques/french-touch.html', nom: 'French Touch' },
-];
+// le dossier simulateur/, d'où que la page soit servie (la page des maps est un cran au-dessus)
+const SIMU_DIR = new URL('.', document.currentScript.src).href;
+let MUSIQUES = [];   // [{ fichier: 'musiques/x', nom }]
+let CHOIX = {};      // { idNiveau: 'musiques/x' | '' (aucune) }
 
+async function musiquesCharge() {
+  const lit = async (f, defaut) => { try { const r = await fetch(SIMU_DIR + f, { cache: 'no-store' }); return r.ok ? await r.json() : defaut; } catch (e) { return defaut; } };
+  [MUSIQUES, CHOIX] = await Promise.all([lit('musiques.json', []), lit('choix-musiques.json', {})]);
+  if (!Array.isArray(MUSIQUES)) MUSIQUES = [];
+  if (!CHOIX || typeof CHOIX !== 'object') CHOIX = {};
+}
 function niveauDe(id) {
   for (const m of MAPS) for (const n of m.niveaux) if (n.id === id) return { map: m, niv: n };
   return null;
 }
-/* La musique d'une map : le choix de la page des maps, sinon celle par défaut. '' = aucune. */
-function musiqueDe(map) {
-  try {
-    const choix = JSON.parse(localStorage.getItem('simu.musiques') || '{}');
-    if (typeof choix[map.id] === 'string' && (choix[map.id] === '' || MUSIQUES.some(m => m.fichier === choix[map.id]))) return choix[map.id];
-  } catch (e) {}
-  return map.musique || '';
+const nomMusique = f => (MUSIQUES.find(m => m.fichier === f) || {}).nom || '';
+/* La musique d'un niveau : le choix enregistré, sinon celle de sa map. '' = aucune. */
+function musiqueDe(niv) {
+  const c = CHOIX[niv.id];
+  if (typeof c === 'string' && (c === '' || MUSIQUES.some(m => m.fichier === c))) return c;
+  const T = niveauDe(niv.id);
+  return (T && T.map.musique) || '';
 }
-function musiqueChoisir(map, fichier) {
+/* Choisir une musique pour un ou plusieurs niveaux : écrit tout de suite sur le disque. Rend true si c'est enregistré. */
+async function musiqueChoisir(ids, fichier) {
+  for (const id of ids) CHOIX[id] = fichier;
   try {
-    const choix = JSON.parse(localStorage.getItem('simu.musiques') || '{}');
-    choix[map.id] = fichier;
-    localStorage.setItem('simu.musiques', JSON.stringify(choix));
-  } catch (e) {}
+    const r = await fetch(SIMU_DIR + 'choix-musiques.json', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(CHOIX) });
+    return r.ok;
+  } catch (e) { return false; }
 }
