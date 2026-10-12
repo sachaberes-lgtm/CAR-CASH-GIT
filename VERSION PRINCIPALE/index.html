@@ -6553,6 +6553,28 @@ html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) :is(#gTabs,#gRar,#gS
 #gBqTete .bqArg{display:flex;align-items:center;gap:7px;padding:9px 12px;background:rgba(255,255,255,.9);box-shadow:0 0 0 1px #dde1e6,0 8px 20px rgba(30,40,55,.06);color:#14171c;font-size:11px;letter-spacing:1px}
 #gBqTete .bqArg b{font-weight:400}
 #gBqTete .bqArg .pxi{--pxs:2;color:#14171c}
+/* LES OBJETS DE LA SEMAINE : une ligne fine (CETTE SEMAINE + compte à rebours), trois carrés blancs */
+#gBqSem{position:absolute;display:none;align-items:center;gap:12px;pointer-events:none;font-family:var(--pix)}
+#gBq.pan #gBqSem{display:flex;animation:bqPan .5s var(--ease) .3s both}
+#gBqSem .bqSt{display:flex;flex-direction:column;gap:7px;flex:none}
+#gBqSem .bqSt b{font-weight:400;font-size:8px;letter-spacing:2px;color:#14171c}
+#gBqSem .bqSt em{display:flex;align-items:center;gap:5px;font-style:normal;font-size:8px;letter-spacing:1px;color:#8a929c;font-variant-numeric:tabular-nums}
+#gBqSem .bqSt em .pxi{--pxs:1;color:#8a929c}
+#gBqSem .bqSl{display:flex;gap:8px;margin-left:auto;pointer-events:auto}
+#gBqSem.cote{flex-direction:column;align-items:flex-start;gap:8px}
+#gBqSem.cote .bqSl{margin-left:0}
+#gBqSem .bqH{position:relative;width:62px;display:flex;flex-direction:column;background:#fff;box-shadow:0 0 0 1px #e1e4e8,0 6px 16px rgba(30,40,55,.06);cursor:pointer;
+  animation:bqK .38s cubic-bezier(.2,1.3,.4,1) both;animation-delay:calc(.35s + var(--i) * 60ms);transition:translate .15s,box-shadow .15s}
+#gBqSem .bqH::after{content:'';position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--rc)}
+#gBqSem .bqHf{height:44px;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#fbfbfc,#f1f3f5)}
+#gBqSem .bqHf .bqSw{width:24px;height:24px;box-shadow:0 0 0 1px rgba(20,23,28,.15),inset 0 0 0 2px rgba(255,255,255,.35)}
+#gBqSem .bqHf .bqRub{width:42px;height:8px;box-shadow:0 0 0 1px rgba(20,23,28,.15)}
+#gBqSem .bqHf .pxi{--pxs:2;color:#14171c}
+#gBqSem .bqHp{display:flex;align-items:center;justify-content:center;gap:4px;padding:5px 3px 7px;font-size:8px;color:#14171c;white-space:nowrap}
+#gBqSem .bqHp .pxi{--pxs:1;color:#14171c}
+#gBqSem .bqHp.acq{color:#8a929c}
+#gBqSem .bqH.sel{box-shadow:0 0 0 2px #14171c,0 8px 18px rgba(30,40,55,.14);translate:0 -2px}
+#gBqSem .bqH:is(:active,.appui){translate:0 2px}
 #gBqPan{position:absolute;display:none;flex-direction:column;justify-content:flex-end;gap:12px;pointer-events:none}
 #gBq.pan #gBqPan{display:flex;animation:bqPan .5s var(--ease) .2s both}
 @keyframes bqPan{from{opacity:0;translate:0 18px}to{opacity:1;translate:0 0}}
@@ -6585,7 +6607,7 @@ html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) :is(#gTabs,#gRar,#gS
 #gBqPan.cote .bqOng button{min-height:34px}
 #gBqPan .bqK.sel{box-shadow:0 0 0 2px #14171c,0 10px 24px rgba(30,40,55,.16);translate:0 -2px}
 #gBqPan .bqK:is(:active,.appui){translate:0 2px}
-@media (prefers-reduced-motion:reduce){#gBqPan .bqK,#gBq.pan #gBqPan,#gBqTete,#gBqFlash.go{animation:none}}
+@media (prefers-reduced-motion:reduce){#gBqPan .bqK,#gBq.pan #gBqPan,#gBqTete,#gBqFlash.go,#gBqSem .bqH,#gBq.pan #gBqSem{animation:none}}
 /* RETOUR et ACHETER, aux couleurs du magasin : droits, noir et orange */
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>:is(#gShopBas,#gEquip.achat){background:rgba(255,255,255,.92)!important;background-image:none!important;outline:2px solid #16181c;outline-offset:-2px;box-shadow:0 5px 0 rgba(10,11,13,.35)!important;filter:none!important;clip-path:none!important;transform:none!important;translate:none!important;color:#fff}
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>:is(#gShopBas,#gEquip.achat)::before,html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>:is(#gShopBas,#gEquip.achat)::after{display:none!important}
@@ -44030,7 +44052,7 @@ function bqHebdoReste(){const ms=Math.max(0,((bqSem()+1)*7-3)*864e5-Date.now()),
   return (d>0?d+(LANG==='fr'?'J ':'D '):'')+d2(Math.floor(t/3600)%24)+':'+d2(Math.floor(t/60)%60)+':'+d2(t%60);}
 function bqIndusVoulu(){const m=gModeM();return !!gEl&&garageOn&&(m==='shop'||m==='tous')&&!GAR.go&&!gEl.classList.contains('menu')&&!gEl.classList.contains('missions')&&!gEl.classList.contains('quiet')&&!gEl.classList.contains('launching');}
 function bqBio(){if(!bqBio._b)bqBio._b=Object.assign({},BIOMES.atelier,{nm:'MAGASIN',hemiS:[.98,.99,1],hemiG:[.62,.64,.68],hemiI:1.1,sunC:[1,1,1],sunI:.62,fillC:[.82,.84,.88],fillI:.2,
-  kickC:[1,.62,.3],kickI:.05,expo:1.2,sat:.92,con:1.02,daHi:0,daSh:0,daCon:.5,bloomS:.16,bloomT:.98,vigK:.08,vigC:[.05,.05,.06],wb:[1,1,1],sh:[0,0,.004],hi:[0,0,0],rimK:0,rimS:.22});return bqBio._b;}
+  kickC:[1,.62,.3],kickI:.05,expo:1.2,sat:.92,con:1.02,daHi:0,daSh:0,daCon:.5,bloomS:.16,bloomT:.98,vigK:0,vigC:[.05,.05,.06],wb:[1,1,1],sh:[0,0,.004],hi:[0,0,0],rimK:0,rimS:.22});return bqBio._b;}
 /* LE MAGASIN : bâti une fois (à la 1re visite de la boutique), dans un repère qui suit l'azimut de la caméra (+z = vers elle, l'allée file vers −z) */
 function garBqBatit(){if(GBQ.grp)return; // (2026-10-12, Léo : « lâche le magasin… plutôt un carré blanc futuriste — on a trop de salles, la boutique c'est un truc hors du temps ») L'ESPACE BLANC
   const g=new THREE.Group();g.visible=false;scene.add(g);GBQ.grp=g;
@@ -44038,10 +44060,10 @@ function garBqBatit(){if(GBQ.grp)return; // (2026-10-12, Léo : « lâche le mag
   const cvT=function(w,h,f){const cv=document.createElement('canvas');cv.width=w;cv.height=h;f(cv.getContext('2d'),w,h);const t=new THREE.CanvasTexture(cv);t.anisotropy=Math.min(4,renderer.capabilities.getMaxAnisotropy());return t;};
   // LE FOND : une sphère retournée, blanc pur au zénith, gris perle à l'horizon — aucun mur, aucun coin
   const R=60,tF=cvT(4,256,function(x,w,h){const gr=x.createLinearGradient(0,0,0,h);gr.addColorStop(0,'#ffffff');gr.addColorStop(.42,'#fafbfc');gr.addColorStop(.5,'#eceff2');gr.addColorStop(1,'#eceff2');x.fillStyle=gr;x.fillRect(0,0,w,h);});
-  const fond=new THREE.Mesh(new THREE.SphereGeometry(R,32,24),B(0xffffff,{map:tF,side:THREE.BackSide}));fond.renderOrder=-10;fond.material.color.setScalar(1.75);g.add(fond); /* (×1,5 : l'étalonnage du jeu tasse les blancs — le fond doit sortir BLANC) */ // (elle écrit la profondeur : rien du monde ne passe derrière)
+  const fond=new THREE.Mesh(new THREE.SphereGeometry(R,32,24),B(0xffffff,{map:tF,side:THREE.BackSide}));fond.renderOrder=-10;fond.material.color.setScalar(2.6);g.add(fond); /* (×1,5 : l'étalonnage du jeu tasse les blancs — le fond doit sortir BLANC) */ // (elle écrit la profondeur : rien du monde ne passe derrière)
   // LE SOL : un disque immense, blanc au centre, fondu dans le gris de l'horizon au bord — le sol et le fond ne font qu'un (cyclo de studio)
   const tS=cvT(512,512,function(x,w,h){const gr=x.createRadialGradient(w/2,h/2,0,w/2,h/2,w/2);gr.addColorStop(0,'#ffffff');gr.addColorStop(.25,'#f8f9fa');gr.addColorStop(1,'#eceff2');x.fillStyle=gr;x.fillRect(0,0,w,h);});
-  const sol=new THREE.Mesh(new THREE.CircleGeometry(R*.97,64),B(0xffffff,{map:tS}));sol.rotation.x=-Math.PI/2;sol.material.color.setScalar(1.6);g.add(sol);
+  const sol=new THREE.Mesh(new THREE.CircleGeometry(R*.97,64),B(0xffffff,{map:tS}));sol.rotation.x=-Math.PI/2;sol.material.color.setScalar(2.3);g.add(sol);
   // (v3, Léo : « il y a juste l'ombre de la voiture ») plus de grille ni d'anneaux
   const tOmb=cvT(128,128,function(x,w,h){const gr=x.createRadialGradient(64,64,0,64,64,64);gr.addColorStop(0,'rgba(20,24,30,.55)');gr.addColorStop(1,'rgba(20,24,30,0)');x.fillStyle=gr;x.fillRect(0,0,w,h);});
   GBQ.omb=new THREE.Mesh(new THREE.PlaneGeometry(1,1),B(0x000000,{map:tOmb,transparent:true,opacity:.5,depthWrite:false}));GBQ.omb.rotation.x=-Math.PI/2;GBQ.omb.position.y=.01;GBQ.omb.renderOrder=3;g.add(GBQ.omb);
@@ -44083,6 +44105,12 @@ function bqEphemeres(){const w=bqSem();if(GBQ.eph&&GBQ.eph.w===w)return GBQ.eph;
   const P=bqPayantes(),r=mulberry32(Math.imul(w+11,2654435761)^0x1E9E3),L=P.slice();
   for(let i=L.length-1;i>0;i--){const k=Math.floor(r()*(i+1)),t=L[i];L[i]=L[k];L[k]=t;}
   return GBQ.eph={w:w,l:L.slice(0,4)};}
+function bqSemaine(){const w=bqSem();if(GBQ.sem&&GBQ.sem.w===w)return GBQ.sem; // (2026-10-12, Léo : « des objets hebdomadaires ») trois habillages tirés sur le numéro de la semaine
+  const T=bqTire(90001+w);return GBQ.sem={w:w,l:T.filter(function(k){return k[0]!=='v'&&bqValide(k);}).slice(0,3)};}
+function bqFigHab(k){const o=bqCos(k),d=o.d,hx=function(c9){return '#'+(c9>>>0).toString(16).padStart(6,'0');};
+  if(o.cat==='peinture')return '<i class="bqSw" style="background:'+(d.grad?'linear-gradient(150deg,'+d.grad.map(hx).join(',')+')':hx(d.c||0xff7a3a))+'"></i>';
+  if(o.cat==='trainee')return '<i class="bqRub" style="background:'+(d.rainbow?'linear-gradient(90deg,#ff3b3b,#ff9b1a,#ffe23a,#3bff6a,#3bb4ff,#9b5bff)':'linear-gradient(90deg,rgba(255,255,255,0),'+(d.rgb?'rgb('+d.rgb.map(function(v){return Math.round(Math.min(1,v/1.45)*255);}).join(',')+')':'#ff6a14')+' 45%,#fff)')+'"></i>';
+  return pxi('aile');}
 function bqPieces(){if(!GBQ.pieces){const L=[];for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(u&&u.p>0&&u.k!=='premium'&&!carRetiree(i))L.push(i);} // les caisses qui s'achètent en PIÈCES, de la moins chère à la plus chère
   GBQ.pieces=L.sort(function(a,b){return (CAR_UNLOCK[a].p-CAR_UNLOCK[b].p)||(a-b);});}return GBQ.pieces;}
 function bqPrixCaisse(i){const u=CAR_UNLOCK[i]||{};if(bqA('v:'+i))return {t:sansAcc(TR('À TOI')),c:'acq'};if(u.k==='premium')return {t:eurTxt(u.eur),c:'eur'};
@@ -44091,6 +44119,7 @@ function garBqUI(){let ui=document.getElementById('gBq');if(ui)return ui;
   ui=document.createElement('div');ui.id='gBq';
   ui.innerHTML='<div id="gBqTete"><div class="bqT1"><b data-fr="BOUTIQUE">'+sansAcc(TR('BOUTIQUE'))+'</b><div class="bqSel"><span class="bqRar"></span><span class="bqNom"></span></div><span class="bqLim">'+pxi('horloge')+'<em></em></span></div>'
     +'<div class="bqArg">'+pxi('piece')+'<b id="gBqArg"></b></div></div>'
+    +'<div id="gBqSem"><div class="bqSt"><b>'+sansAcc(TR('CETTE SEMAINE'))+'</b><em>'+pxi('horloge')+'<i></i></em></div><div class="bqSl"></div></div>'
     +'<div id="gBqPan"><div class="bqOng" role="tablist"><button data-o="voit" class="on" role="tab">'+sansAcc(TR('VOITURES'))+'<i class="n1"></i></button><button data-o="off" role="tab">'+sansAcc(TR('OFFRES'))+'<i class="n2"></i></button></div>'
     +'<div class="bqRail"></div></div>';
   gEl.insertBefore(ui,gEl.firstChild);
@@ -44098,6 +44127,8 @@ function garBqUI(){let ui=document.getElementById('gBq');if(ui)return ui;
     if(!garageOn||GAR.go||ecranWipe._on||!GBQ.on)return;const o=b.getAttribute('data-o');if(o===GBQ.ong)return;uiPop(b);uiClic('onglet');GBQ.ong=o;GBQ.rk='';});
   ui.querySelector('.bqRail').addEventListener('click',function(e){const t=e.target.closest&&e.target.closest('.bqK');if(!t)return;e.stopPropagation();
     if(!garageOn||GAR.go||ecranWipe._on||!GBQ.on)return;uiPop(t);uiClic('nav');bqEssaie('v:'+t.getAttribute('data-i'));});
+  ui.querySelector('.bqSl').addEventListener('click',function(e){const t=e.target.closest&&e.target.closest('.bqH');if(!t)return;e.stopPropagation();
+    if(!garageOn||GAR.go||ecranWipe._on||!GBQ.on)return;uiPop(t);uiClic('nav');bqEssaie(t.getAttribute('data-k'));});
   return ui;}
 function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBqPan'),voulu=GBQ.on&&gModeM()==='shop'&&!GMODE.paye;
   if(voulu!==GBQ.panOn){GBQ.panOn=voulu;ui.classList.toggle('pan',voulu);garLibre._r=null;GBQ.lay='';GBQ.rk='';GBQ.vu=-1;if(!voulu)GBQ.zone=null;}
@@ -44114,20 +44145,31 @@ function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBq
         +'<span class="bqKph" data-ph="'+i+'"></span>'+(ong==='off'?'<span class="bqKl">'+sansAcc(TR('LIMITÉE'))+'</span>':'')
         +'<span class="bqKn">'+sansAcc(TR(CARS[i].name))+'</span><span class="bqKp '+px.c+'">'+(px.c==='pc'?pxi('piece'):'')+String(px.t).replace(/</g,'')+'</span></div>';}).join('');
     rail.querySelectorAll('.bqKph[data-ph]').forEach(function(el){photoFile(+el.getAttribute('data-ph'),function(url){if(!el.firstChild){const im=document.createElement('img');im.alt='';im.src=url;el.appendChild(im);}});});}
-  // LA CAISSE AFFICHÉE, en petit sous BOUTIQUE
-  const i=garageI,lim=E.indexOf(i)>=0,te=document.getElementById('gBqTete');
-  if(GBQ.vu!==i){GBQ.vu=i;const ri=rarInfo(carRar(i));te.style.setProperty('--rc',ri.c);te.classList.toggle('lim',lim);
-    te.querySelector('.bqRar').textContent=sansAcc(TR(ri.n1));te.querySelector('.bqNom').textContent=sansAcc(TR(CARS[i].name));
-    rail.querySelectorAll('.bqK').forEach(function(el){el.classList.toggle('sel',+el.getAttribute('data-i')===i);});}
+  // LES OBJETS DE LA SEMAINE (trois carrés : peinture, aile, traînée — touchés, on les essaie sur la caisse)
+  const S=bqSemaine().l,sem=document.getElementById('gBqSem'),sl=sem.querySelector('.bqSl'),sk=S.join(',')+':'+S.map(function(k){return bqA(k)?1:0;}).join('')+':'+LANG;
+  if(GBQ.sk!==sk){GBQ.sk=sk;GBQ.vu='';
+    sl.innerHTML=S.map(function(k,n){const o=bqCos(k),d=o.d,a=bqA(k),ri=rarInfo(cosmRar(o.cat,d));
+      return '<div class="bqH" data-k="'+k+'" role="button" style="--rc:'+ri.c+';--i:'+n+'" aria-label="'+String(TR(d.n)).replace(/"/g,'')+'"><span class="bqHf c-'+o.cat+'">'+bqFigHab(k)+'</span><span class="bqHp'+(a?' acq':'')+'">'+(a?sansAcc(TR('À TOI')):(pxi('piece')+fmtC(d.p||0)))+'</span></div>';}).join('');}
+  {const t=sem.querySelector('.bqSt em i:not(.pxi)'),r=bqHebdoReste();if(t&&t.textContent!==r)t.textContent=r;}
+  // CE QU'ON REGARDE (caisse ou objet), en petit sous BOUTIQUE
+  const i=garageI,cur=bqCourant(),lim=cur[0]==='v'&&E.indexOf(i)>=0,te=document.getElementById('gBqTete');
+  if(GBQ.vu!==cur){GBQ.vu=cur;let ri,nom;
+    if(cur[0]==='v'){ri=rarInfo(carRar(i));nom=TR(CARS[i].name);}else{const o=bqCos(cur);ri=rarInfo(cosmRar(o.cat,o.d));nom=o.d?TR(o.d.n):'';}
+    te.style.setProperty('--rc',ri.c);te.classList.toggle('lim',lim);
+    te.querySelector('.bqRar').textContent=sansAcc(TR(ri.n1));te.querySelector('.bqNom').textContent=sansAcc(String(nom));
+    rail.querySelectorAll('.bqK').forEach(function(el){el.classList.toggle('sel',cur==='v:'+el.getAttribute('data-i'));});
+    sl.querySelectorAll('.bqH').forEach(function(el){el.classList.toggle('sel',el.getAttribute('data-k')===cur);});}
   {const t=te.querySelector('.bqLim em'),r=bqHebdoReste();if(t&&lim&&t.textContent!==r)t.textContent=r;}
   // LA PLACE : debout le panneau en bas, la caisse entre l'en-tête et lui ; couché le panneau à droite
   const W=VP.w,H=VP.h,ac=document.getElementById('gAct'),tr=te.getBoundingClientRect(),arc=ac&&ac.getBoundingClientRect(),cou=W>H*1.2;
   const bas=arc&&arc.height?arc.top:H-80,lay=W+'x'+H+':'+Math.round(bas)+':'+(arc?Math.round(arc.left):0)+':'+ong;
   if(GBQ.lay!==lay){GBQ.lay=lay;
-    if(!cou){pan.style.left='14px';pan.style.right='14px';pan.style.top='auto';pan.style.bottom=(H-bas+12)+'px';pan.classList.remove('cote');}
-    else{const x0=Math.max(W*.5,(arc&&arc.width?arc.left:W*.55)-6);pan.style.left=x0+'px';pan.style.right='12px';pan.style.top=(tr.bottom+14)+'px';pan.style.bottom=(H-bas+10)+'px';pan.classList.add('cote');}
+    if(!cou){pan.style.left='14px';pan.style.right='14px';pan.style.top='auto';pan.style.bottom=(H-bas+12)+'px';pan.classList.remove('cote');
+      const ph=pan.getBoundingClientRect().height;sem.style.left='14px';sem.style.right='14px';sem.style.bottom=(H-bas+12+ph+12)+'px';sem.classList.remove('cote');}
+    else{const x0=Math.max(W*.5,(arc&&arc.width?arc.left:W*.55)-6);pan.style.left=x0+'px';pan.style.right='12px';pan.style.top=(tr.bottom+14)+'px';pan.style.bottom=(H-bas+10)+'px';pan.classList.add('cote');
+      sem.style.left='14px';sem.style.right='auto';sem.style.bottom='12px';sem.classList.add('cote');} // couché : un petit carré en bas à gauche, sous la caisse
     garLibre._r=null;}
-  {const pr=pan.getBoundingClientRect();GBQ.zone=cou?{cote:true,x0:pr.left,y0:tr.bottom+6}:{g:14,d:W-14,y0:tr.bottom+10,y1:pr.top-10};}
+  {const pr=pan.getBoundingClientRect(),sr=sem.getBoundingClientRect();GBQ.zone=cou?{cote:true,x0:pr.left,y0:tr.bottom+6,y1:sr.top-6}:{g:14,d:W-14,y0:tr.bottom+10,y1:sr.top-8};}
 }
 function bqEssaie(k){ // la même chose qu'une carte de la vitrine du jour (voir le clic de #gStrip) : on ESSAIE ; à toi, elle s'équipe
   if(k[0]==='v'){const i=+k.slice(2);if(SHOP.tab!=='voiture')shopTab('voiture');const eq9=garEquipeCaisse(i);if(i!==garageI)garageSaute(i);else if(eq9)garageShow(i);}
