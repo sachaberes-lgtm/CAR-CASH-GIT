@@ -9136,7 +9136,7 @@ function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a
    AVANT chaque `buildTrack` (voir `LARGEUR`). Tout ce qui la lit le fait à l'exécution (collisions, bords,
    pickups, bots, viseur) — sauf trois géométries PARTAGÉES bâties une fois (dos d'âne, tapis et lèvre
    du tremplin) : elles sont taillées sur `ROAD_HALF0` et chaque mesh se met à l'échelle en X. */
-const ROAD_HALF0=14, THICK=2.6; // (2026-09-25 soir) la route avait été divisée par 2 (14 → 7, « réduis de moitié la largeur ») puis REDOUBLÉE à la demande (« double la largeur des routes ») : retour à 14. LARGEUR, CARR_LARG, parc ×1,4 et auto-école ×1,7 sont des MULTIPLES de ce gabarit — une ligne change toute la route
+const ROAD_HALF0=14;let THICK=2.6,JADE_LEVE=0; // (2026-10-12) THICK devient un let : le SOLEIL DE JADE roule sur une dalle de DEUX PIÈCES d'épaisseur (buildTrack) — // (2026-09-25 soir) la route avait été divisée par 2 (14 → 7, « réduis de moitié la largeur ») puis REDOUBLÉE à la demande (« double la largeur des routes ») : retour à 14. LARGEUR, CARR_LARG, parc ×1,4 et auto-école ×1,7 sont des MULTIPLES de ce gabarit — une ligne change toute la route
 let ROAD_HALF=ROAD_HALF0*2.0;
 let pts=[],T=[],Nn=[],B=[],L=0,NP=0,trackMinY=-1e9; // trackMinY : plancher du monde (référence du plongeon fatal)
 /* NÉON RÉACTIF (2026-08-07) : on garde une poignée sur les matériaux des rails et de leur nappe
@@ -11618,7 +11618,7 @@ function roadMat(){
       '  if(wd>=0.)break;}'+
       'vec3 cw;if(wd<0.){cw=vec3(.02,.022,.026);jM9=0.;}'+                                                                // un jour entre deux pièces : le noir du dessous
       'else{float u=wd/wr;vec2 rd=(jq-wc)/max(wd,1e-4);float an=atan(rd.y,rd.x);'+
-      '  vec3 au=mix(mix(vec3(.60,.62,.66),vec3(.68,.68,.67),step(.62,wh)),vec3(.55,.60,.68),step(.88,wh))*(.72+.50*fract(wh*7.3));'+ // argent froid · argent vieilli · argent bleuté, chaque pièce sa lumière
+      '  vec3 au=(wh<.45?vec3(.60,.62,.66):wh<.70?vec3(.70,.65,.55):wh<.88?vec3(.62,.45,.29):vec3(.55,.60,.68))*(.72+.50*fract(wh*7.3));'+ // (12/10 soir, Léo : « argentées, mais un peu bronze, un peu de reflet or, pour donner du relief à la couleur ») argent froid · argent chaud · BRONZE · argent bleuté // argent froid · argent vieilli · argent bleuté, chaque pièce sa lumière
       '  float rim=smoothstep(.76,.82,u)*(1.-smoothstep(.93,.97,u)),edg=smoothstep(.95,1.,u);'+
       '  float ca=cos(wh*6.2832),sa9=sin(wh*6.2832);vec2 q=mat2(ca,-sa9,sa9,ca)*(jq-wc)/wr;float sq=max(abs(q.x),abs(q.y));'+     // le CARRÉ, tourné comme la pièce est tombée
       '  vec2 n2=abs(q.x)>abs(q.y)?vec2(sign(q.x),0.):vec2(0.,sign(q.y));n2=mat2(ca,sa9,-sa9,ca)*n2;'+
@@ -11654,12 +11654,12 @@ function roadMat(){
       'outgoingLight+=(vec3(.55,1.,.78)*nap9*.26+vec3(1.,.98,.92)*(fac9*1.1+pai9*5.))*(1.-jOr9)*uJadeR+vec3(1.,.84,.48)*(nap9*.6+fac9*.6)*jOr9*uJadeR;}\n'+
       /* (v17) L OR DES PIÈCES : le ciel dans l or (teinté), le soleil sur la pente de chaque pièce, le vernis devant soi (nappe large + l éclat
          de chaque pièce), et de loin en loin une ÉTINCELLE en croix qui s allume et s éteint sur le rebord d une pièce */
-      'if(uJadeR>.001&&uJSt9>3.5){vec3 au9=vec3(.92,.95,1.),rf9=normalize(reflectVec),rt9=normalize(rf9+vec3(jF9.x,0.,jF9.y)*1.3);'+
+      'if(uJadeR>.001&&uJSt9>3.5){float wk9=jH9<.45?.08:jH9<.70?.55:jH9<.88?.90:0.;vec3 au9=mix(vec3(.92,.95,1.),vec3(1.,.80,.50),wk9),rf9=normalize(reflectVec),rt9=normalize(rf9+vec3(jF9.x,0.,jF9.y)*1.3);'+
       'vec3 V9=normalize(vViewPosition),rV9=reflect(-V9,normal),Lv9=normalize(vec3(0.,.30,-1.)),rF9=normalize(rV9+vec3(jF9.x,jF9.y,0.)*.9);'+
       'vec3 eT9=envMapTexelToLinear(textureCube(envMap,vec3(flipEnvMap*rt9.x,rt9.yz))).rgb;'+                                // LE MÉTAL : chaque pièce renvoie SON morceau de ciel (sa pente à elle)
       'float lT9=dot(eT9,vec3(.3,.59,.11));vec3 mT9=au9*pow(lT9,2.6)*1.25*(1.-.75*smoothstep(.05,-.35,rt9.y));'+               // le contraste du métal : sombre où il renvoie le haut du ciel (ou le vide), éclatant où il renvoie l horizon
-      'outgoingLight=mix(outgoingLight,outgoingLight*.40,uJadeR)+mT9*(.25+.55*jM9)*uJadeR+vec3(1.,.98,.94)*pow(max(dot(rt9,uSunW),0.),48.)*1.0*jM9*uJadeR;'+
-      'outgoingLight+=vec3(.95,.97,1.)*(pow(max(dot(rV9,Lv9),0.),14.)*.05+pow(max(dot(rF9,Lv9),0.),70.)*.55*jM9)*uJadeR;'+
+      'outgoingLight=mix(outgoingLight,outgoingLight*.40,uJadeR)+mT9*(.25+.55*jM9)*uJadeR+mix(vec3(1.,.98,.94),vec3(1.,.86,.56),max(wk9,.25))*pow(max(dot(rt9,uSunW),0.),48.)*1.0*jM9*uJadeR;'+
+      'outgoingLight+=mix(vec3(.95,.97,1.),vec3(1.,.85,.55),.35+.5*wk9)*(pow(max(dot(rV9,Lv9),0.),14.)*.05+pow(max(dot(rF9,Lv9),0.),70.)*.55*jM9)*uJadeR;'+
       'float tw9=pow(max(0.,sin(uT9*2.3+jH9*61.)),24.)*step(.92,fract(jH9*13.7))*(1.-smoothstep(40.,140.,length(vViewPosition)));'+
       'outgoingLight+=vec3(1.,1.,1.)*tw9*jM9*.9*uJadeR;}\n#endif\n'+
       'outgoingLight+=uLift*lk9*(1.-uJadeR*.7)+uSheenCol*(uSheen*fr9);if(uJadeR>.001)outgoingLight+=diffuseColor.rgb*(uJSt9<.5?.20:uJSt9<1.5?.30:uJSt9<3.5?.04:.05)*uJadeR;}'); // (v16 : les rondins comme le bois) // (v13) « beaucoup plus brillante » : la lumière qui traverse l émeraude — (v14) le nuage luit, le bois non
@@ -11901,7 +11901,11 @@ function buildTrack(seed){
   for(const m of trackMeshes){if(m.geometry)m.geometry.dispose();if(m.material&&m.material.dispose)MAT_SURSIS.add(m.material);} // (perf) matières en sursis : voir MAT_SURSIS
   matSursisN=3;
   trackMeshes.length=0;PISTE_LOD.length=0;NEON_RAILS.length=0;NEON_GLOW.length=0;PADS=[];PADL=[];PAD_MATS.length=0;BUMPS=[];CONES=[];FLYCONES=[];OILS=[];RAMPS=[];
-  const rnd=mulberry32(seed);VILLE_ENTREE=null;MODMARK.length=0;const JADE9=!!(LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on&&!JADE_JEU); // (2026-10-09) LES PICS DE JADE : une route nue (ni pad, ni flaque, ni plot)
+  const rnd=mulberry32(seed);VILLE_ENTREE=null;MODMARK.length=0;
+  /* (2026-10-12 soir, Léo : « tu as du mal à enlever la barre lisse : fais la route plus fine, sur deux pièces ») aux PICS DE JADE la dalle n'a
+     que DEUX PIÈCES d'épaisseur (30 cm au lieu de 2,6 m) : la tranche lisse disparaît presque derrière les pièces du bord ; la caisse est posée
+     12 cm plus haut sur la route en pièces (JADE_LEVE : sur le plan, elle avait l'air enfoncée dans les pièces). Partout ailleurs : 2,6 m. */
+  {const j9=!!(LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on);THICK=j9?.30:2.6;JADE_LEVE=j9?.12:0;}const JADE9=!!(LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on&&!JADE_JEU); // (2026-10-09) LES PICS DE JADE : une route nue (ni pad, ni flaque, ni plot)
   // (l'entrée surélevée n'existe que si genCtrl la pose : niveau VILLE généré) · (les modules aussi : le parc, l'école et la campagne n'en ont pas)
   const ctrl=PARK.on?genPark(rnd):(LVL.cur&&LVL.cur.piste==='tuto')?genTuto():(LVL.cur&&LVL.cur.piste==='camp')?genCampagne(LVL.cur.camp):(LVL.cur&&LVL.cur.piste==='paris')?genParis():(LVL.cur&&LVL.cur.piste==='jade')?genJade(rnd):genCtrl(rnd,new THREE.Vector3(0,0,0),0); // FREESTYLE : le parc de figures remplace la piste de course · (2026-09-27) CAMPAGNE : la piste dessinée du niveau
   const curve=new THREE.CatmullRomCurve3(ctrl,false,'centripetal'); // (piste v7) centripète : l'uniforme faisait des COUDES entre points inégalement espacés (liaison courte après une grande figure)
@@ -14498,7 +14502,7 @@ const JADE_PB=(function(){let tex=null,mat=null,tpl=null;
       c.lineWidth=3;c.strokeStyle='#d8dde6';c.beginPath();c.arc(C,C,C-4,0,6.2832);c.stroke();c.lineWidth=1.5;c.strokeStyle='#6a707a';c.beginPath();c.arc(C,C,C-1.2,0,6.2832);c.stroke();
       c.fillStyle='#cfd4dc';c.fillRect(C-11,C-11,22,22);c.fillStyle='#7c828c';c.fillRect(C-8,C-8,16,16);c.clearRect(C-6.5,C-6.5,13,13); // le liseré du carré, puis le TROU
       tex=new THREE.CanvasTexture(cv);tex.anisotropy=4;
-      mat=new THREE.MeshPhongMaterial({map:tex,alphaTest:.5,shininess:60,specular:0x6a6e76,envMap:envTex,reflectivity:.10,color:0x9a9ea8,emissive:0x24262c});mat.dispose=function(){};return mat;},
+      mat=new THREE.MeshPhongMaterial({map:tex,alphaTest:.5,shininess:60,specular:0x6a6e76,envMap:envTex,reflectivity:.10,color:0xa49c90,emissive:0x262420});mat.dispose=function(){};return mat;},
     tpl:function(){if(tpl)return tpl;const top=new THREE.CircleGeometry(1,12);top.rotateX(-Math.PI/2);top.translate(0,.07,0);
       const sd=new THREE.CylinderGeometry(1,1,.14,12,1,true);const u=sd.attributes.uv;for(let i=0;i<u.count;i++)u.setXY(i,.5,.03);
       const t=top.toNonIndexed(),q=sd.toNonIndexed();const n=t.attributes.position.count+q.attributes.position.count,P=new Float32Array(n*3),Nn9=new Float32Array(n*3),U=new Float32Array(n*2);
@@ -47042,7 +47046,7 @@ function loop(now){
         frameAt(s,F);
         if(side<0){F.n.multiplyScalar(-1);F.b.multiplyScalar(-1);}
         if(levreY<0){levreY*=Math.exp(-dt*16);if(levreY>-.005)levreY=0;} // (bord v2) la caisse qui a raccroché la LÈVRE finit de remonter sa marche (~0,15 s)
-        carGroup.position.copy(F.p).addScaledVector(F.b,lat).addScaledVector(F.n,(side<0?THICK:0)+hopY+levreY);
+        carGroup.position.copy(F.p).addScaledVector(F.b,lat).addScaledVector(F.n,(side<0?THICK:0)+hopY+levreY+(JROUTE.style===4?JADE_LEVE:0));
         fwdW.copy(F.t).multiplyScalar(Math.cos(psi)*driveDir).addScaledVector(F.b,Math.sin(psi)*driveDir).normalize(); // la caisse REGARDE son sens de marche (parc : peut faire face à -T)
         tmp.crossVectors(F.n,fwdW).normalize();
         mat4.makeBasis(tmp,F.n,fwdW);
