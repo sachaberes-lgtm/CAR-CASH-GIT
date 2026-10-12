@@ -29,6 +29,12 @@
        les niveaux DANS LE PLAY (play.json) tirés au hasard, chacun avec sa musique, sans redite tant que le tour n'est pas fini (le
        nouveau tour ne recommence pas par le dernier joué) ; une partie finie → le niveau suivant du tirage. ⏭ = passer au suivant (la caisse
        explose : dbgBoom). La partie sans fin après un autre niveau recharge le jeu (son JOUER rejouerait la carrière ou la jade) : un toucher.
+     · LA COURSE SEULE (Léo, 12/10 : « l'important, c'est qu'on puisse jouer dans la map : enlève l'écran d'accueil ; je dois pouvoir jouer
+       dès que je mets mon curseur sur l'image, avec mes flèches, la musique automatiquement ; si je clique, c'est juste la course ») :
+       le jeu est chargé avec `?simu=1` (pas d'écran titre : le niveau part sans toucher) ; `?nu=1` = sans la barre (la page des maps
+       pose cette page sur l'image survolée, puis en plein écran au clic) ; SIMU.lance(id) change de niveau SANS recharger (la course en
+       cours finit par dbgQuitte, la suivante part 0,25 s après) ; SIMU.pause(vrai|faux) = le panneau ⏸ du jeu (__panBascule, 3-2-1 au
+       retour) ; SIMU.relaie(type, touche) = une touche venue de la page des maps ; SIMU.geste() = le geste qui réveille la musique.
      ?muet=1 : tout se joue, rien ne sort (bancs). Console : SIMU.etat(). -->
 <style>
   :root{--sys:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif}
@@ -69,6 +75,8 @@
   #jeu{border:0;display:block;background:#000}
   #err{position:fixed;left:12px;right:12px;bottom:12px;background:#d70015;color:#fff;font:12px/1.4 ui-monospace,Menlo,monospace;padding:10px 12px;border-radius:10px;white-space:pre-wrap;z-index:3}
   @media (max-width:900px){#titre,#bpm{display:none}}
+  html.nu #barre{display:none}
+  html.nu #zone{top:0}
   [hidden]{display:none!important}
 </style>
 </head>
@@ -96,6 +104,8 @@
 const $ = id => document.getElementById(id);
 const Q = new URLSearchParams(location.search);
 const MUET = Q.get('muet') === '1';
+const NU = Q.get('nu') === '1';   // la course seule, sans la barre (la page des maps l'affiche sur l'image survolée)
+if (NU) document.documentElement.classList.add('nu');
 // le niveau en cours (en mode PLAY il change à chaque partie) et ses noms (ceux que Léo a donnés)
 const SEQ = { on: Q.get('play') === '1', ordre: [], i: -1, n: 0, saute: false, dernier: '' };
 let MAP, NIV, L;
@@ -118,18 +128,19 @@ try {
 // ——— 2) le jeu, à la taille d'un téléphone couché (debout si la fenêtre est plus haute que large) ———
 const jeu = $('jeu');
 function taille() {
-  const W = innerWidth, H = innerHeight - 44, debout = H > W * 1.1;
+  const W = innerWidth, H = innerHeight - (NU ? 0 : 44), debout = H > W * 1.1;
   const w = debout ? 390 : 844, h = debout ? 844 : 390;
   jeu.style.width = w + 'px'; jeu.style.height = h + 'px'; jeu.style.zoom = Math.min(W / w, H / h);
 }
 addEventListener('resize', taille); taille();
-jeu.src = '../index.html?play=sansfin'; // (2026-10-12) le JOUER du jeu lance désormais le SOLEIL DE JADE : la partie SANS FIN le demande sans lui
+jeu.src = '../index.html?simu=1&play=sansfin'; // (2026-10-12) le JOUER du jeu lance désormais le SOLEIL DE JADE : la partie SANS FIN le demande sans lui · simu=1 : pas d'écran titre
 const focusJeu = () => { try { jeu.focus(); jeu.contentWindow.focus(); } catch (e) {} };
 jeu.addEventListener('load', () => {
   focusJeu();
   try {
     const w = jeu.contentWindow;
     for (const t of ['pointerdown', 'keydown']) w.addEventListener(t, geste, true);
+    if (NU) w.addEventListener('keydown', ev => { if (ev.key === 'Escape') try { parent.dispatchEvent(new parent.CustomEvent('simu:echap')); } catch (e) {} }, true);
   } catch (e) { erreur('Le jeu ne se laisse pas lire : ' + e.message); }
 });
 // le doigt sur la barre (curseur, menus) reste dans la barre ; ailleurs, le focus revient au jeu
@@ -287,6 +298,7 @@ $('plus').onclick = () => { // le vrai moteur saute au 1er moteur du palier suiv
 // ——— 4) le départ, la relance, l'intensité ———
 function lancer() {
   const w = jeu.contentWindow;
+  E.vite = false;
   E.lanceDe = L;
   if (L.sansFin) {
     if (w.dbgState().gameOver) { w.dbgEco('rejouer'); return; }
@@ -304,16 +316,18 @@ function boucle(now) {
   E.st = st;
   if (!st) return;
   const enCourse = st.started && !st.gameOver;
+  pauseTick(now, st, w);
   try {
     // l'écran titre passé (le jeu l'a retiré au 1er toucher) : on part sur le niveau — on réessaie tant que la course ne tourne pas
-    if (E.phase === 'titre' && !w.document.getElementById('splash')) { E.phase = 'depart'; E.essai = 0; E.t = .9; }
+    if (E.phase === 'titre' && !w.document.getElementById('splash')) { E.phase = NU && !E.demande ? 'pret' : 'depart'; E.essai = 0; E.t = .9; } // en aperçu : prêt, on attend le survol
     if (E.phase === 'depart') {
-      if (enCourse) E.phase = 'course';
+      if (enCourse && E.lanceDe && E.lanceDe !== L) { E.vite = true; E.phase = 'course'; try { w.dbgQuitte(); } catch (e) {} } // on a changé de niveau pendant qu'il partait
+      else if (enCourse) E.phase = 'course';
       else if ((E.t -= dt) <= 0) { E.t = 1.6; if (E.essai++ < 8) lancer(); }
     }
     // une partie finie (mort, fin de monde) : 2,4 s d'écran de fin, puis le même niveau repart
     if (E.phase === 'course') {
-      if (st.started && st.gameOver) { if ((E.finT += dt) > (SEQ.saute ? .25 : 2.4)) { E.finT = 0; E.phase = 'depart'; E.essai = 0; E.t = 0; if (SEQ.on) seqSuivant(); } }
+      if (st.started && st.gameOver) { if ((E.finT += dt) > (SEQ.saute || E.vite ? .25 : 2.4)) { E.finT = 0; E.phase = 'depart'; E.essai = 0; E.t = 0; if (SEQ.on && !E.vite) seqSuivant(); E.vite = false; } }
       else E.finT = 0;
     }
   } catch (e) { erreur(e.message); }
@@ -372,7 +386,43 @@ if (SEQ.on) { $('suivant').hidden = false; $('retour').href = '../simulateur.htm
 else { peinsTitre(); musCharge(musiqueDe(NIV)); }
 requestAnimationFrame(boucle);
 
+// ——— LA PAGE DES MAPS PILOTE CETTE COURSE (survol, plein écran) ———
+function lanceNiveau(id) { // un autre niveau, sans recharger le jeu
+  if (!niveauDe(id)) return;
+  E.demande = true;
+  if (E.phase === 'pret') { niveauPose(id); const f0 = musiqueDe(NIV); if (f0 !== MUS.fichier) musCharge(f0); E.phase = 'depart'; E.essai = 0; E.t = 0; return; }
+  if (NIV && NIV.id === id && E.phase !== 'titre') { pause(false); return; }
+  E.pauseVoulue = null;
+  niveauPose(id);
+  const f = musiqueDe(NIV);
+  if (f !== MUS.fichier) musCharge(f);
+  // la partie sans fin après un autre niveau : son JOUER rejouerait la carrière ou la jade → le jeu repart de zéro
+  if (L.sansFin && E.lanceDe && !E.lanceDe.sansFin) { E.lanceDe = null; E.phase = 'titre'; try { jeu.contentWindow.location.reload(); } catch (e) {} return; }
+  const st = E.st;
+  if (st && st.started && !st.gameOver) { E.vite = true; E.phase = 'course'; try { const w = jeu.contentWindow; if (st.paused && w.__panBascule) w.__panBascule(); w.dbgQuitte(); } catch (e) {} }
+  else if (st && st.started && st.gameOver) { E.vite = true; E.phase = 'course'; E.finT = 1; }
+  else if (E.phase === 'depart') E.t = 0;
+}
+function pause(on) { E.pauseVoulue = !!on; } // le panneau ⏸ du jeu (au retour : son 3-2-1) — appliqué par la boucle, voir pauseTick
+function pauseTick(now, st, w) { // un basculement à la fois (0,7 s d'écart) : deux demandes de suite ne se contredisent plus
+  /* on lit le PANNEAU ⏸ (#tPanel.open), pas `paused` : pendant le 3-2-1 de la reprise le jeu est encore gelé (paused vrai) alors que le
+     panneau est déjà fermé — basculer là le rouvrait (MESURÉ au banc : un clic pour le plein écran remettait la pause). */
+  if (E.pauseVoulue == null) return;
+  if (!st.started || st.gameOver) { if (!E.pauseVoulue) E.pauseVoulue = null; return; }
+  let ouvert = false;
+  try { const p = w.document.getElementById('tPanel'); ouvert = !!(p && p.classList.contains('open') && !p.classList.contains('sortant')); } catch (e) {}
+  if (ouvert === E.pauseVoulue) { E.pauseVoulue = null; return; }
+  if (now - (E.pauseT || 0) < 700 || !w.__panBascule) return;
+  E.pauseT = now; try { w.__panBascule(); } catch (e) {}
+}
+function relaie(type, t) { // une touche frappée sur la page des maps
+  if (type === 'keydown') geste();
+  try { const w = jeu.contentWindow; w.document.dispatchEvent(new w.KeyboardEvent(type, { code: t.code, key: t.key, keyCode: t.keyCode, repeat: !!t.repeat, bubbles: true, cancelable: true })); } catch (e) {}
+}
+
 window.SIMU = {
+  lance: lanceNiveau, pause, relaie, geste, focus: focusJeu,
+  roule: () => !!(E.st && E.st.started && !E.st.gameOver && E.phase === 'course' && !E.vite),
   etat: () => ({ niveau: NIV.id, play: SEQ.on ? { n: SEQ.n, ordre: SEQ.ordre.slice(), i: SEQ.i } : null,
     phase: E.phase, essai: E.essai, touche, source: E.source, force: E.force, intensite: +E.x.toFixed(3), vit: E.vit,
     moteur: E.tier + 1, moteurs: E.nbMot, palier: palDe(E.tier),
