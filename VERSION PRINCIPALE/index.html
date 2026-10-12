@@ -6821,46 +6821,43 @@ html.hubOn:not(.poki) body #carr .mDock{justify-content:flex-start!important}
 </style>
 <style id="nitroEclair">
 /* =====================================================================================================================================
-   LE BOUTON NITRO v3 — L'ÉCLAIR 3D, ET LA VITESSE AU BOUT DE LA BARRE DE BOOST (2026-10-12, Léo : « à la place du carré, un éclair 3D
-   brillant, qui s'intensifie au toucher » ; puis, le soir même : « abandonne la jauge bizarre, mets juste la vitesse de la voiture à côté
-   de la jauge boost » — le cadran rond, son arc et son aiguille sont retirés).
-   · LE BOUTON (v2, Léo : « qu'elle ne s'électrifie pas, mais un rendu 3D beaucoup plus joli, qui donne envie d'appuyer ») : un bouton
-     d'ARCADE en 3D — socle de laque d'encre, capsule orange vernie, éclair doré en relief — calculé UNE fois au menu (nx3Cuire) en
-     enfoncements × éteint/allumé ; en course, deux à quatre drawImage dans une petite toile : zéro programme, zéro rendu 3D de plus.
-     Sous le pouce la capsule S'ENFONCE dans son socle et s'allume de l'intérieur, au lâcher elle remonte en rebondissant ; pleine, elle
-     respire. Une ombre d'encre floue dessous ; halo à la couleur de la poussée (--nc : orange, bleue, violette, rouge à sec).
-   · LA VITESSE (`#nxVit`, dans #nitroBar) : au bout de la barre de boost, comme le ×CASH au bout de la barre du flow juste dessous (la
-     barre se raccourcit d'autant : les deux lignes ont la même forme). Typo ombrée du HUD ; elle passe à la couleur de la poussée.
+   LE BOUTON NITRO v3 — L'ÉCLAIR EN PIXELS QUI S'ENFONCE, ET LA VITESSE À DROITE DE LA BARRE DE BOOST (2026-10-12, Léo : « à la place du
+   carré, un éclair » ; « abandonne la jauge bizarre, mets juste la vitesse de la voiture à côté de la jauge boost » ; « nan, sans rond,
+   vraiment pixels, qui s'appuie quand on appuie, et la vitesse alignée plus à droite et visible »).
+   · LE BOUTON : plus de plaque, plus de rond — l'éclair LUI-MÊME, en pixel art (nx3Dessine : contour d'encre, biseau, reflets, épaisseur
+     de 3 cases dessous) dans une toile de la taille de sa grille, agrandie SANS lissage (`--nxC` = la taille d'une case). Appuyer l'enfonce
+     case par case ; la nitro qui brûle le chauffe et l'entoure d'une lueur en cases. Aucun halo flou, aucun rond.
+   · LA VITESSE (`#nxVit`, dans #nitroBar) : COUCHÉ, à droite de la barre (qui garde toute sa longueur), en gros, chiffre + KM/H sur une
+     ligne ; DEBOUT (pas de place à droite : le ⏸), au bout de la barre qui lui laisse sa case, comme le ×CASH au bout de celle du flow.
+     Typo ombrée du HUD, blanche au repos, à la couleur de la poussée en nitro (orange · bleu · violet en nitro infinie).
    ===================================================================================================================================== */
-html body.touch{--nxD:108px;--nxV:58px}
-html body.touch #tNitro,html body.touch #tNitro:active,html body.touch #tNitro.on{width:var(--nxD)!important;height:var(--nxD)!important;padding:0!important;margin:0!important;
-  border:0!important;border-radius:50%!important;display:block!important;background:none!important;box-shadow:none!important;transform:none!important;
-  filter:none!important;clip-path:none!important;overflow:visible!important;animation:none!important;transition:none!important;opacity:1!important}
+html body.touch{--nxC:3.6px;--nxV:70px}
+html body.touch #tNitro,html body.touch #tNitro:active,html body.touch #tNitro.on{width:calc(var(--nxW,21) * var(--nxC))!important;height:calc(var(--nxH,29) * var(--nxC))!important;
+  padding:0!important;margin:0!important;border:0!important;border-radius:0!important;display:block!important;background:none!important;box-shadow:none!important;
+  transform:none!important;filter:none!important;clip-path:none!important;overflow:visible!important;animation:none!important;transition:none!important;opacity:1!important}
 html body.touch #tNitro>.pxi,html body.touch #tNitro>span,html body.touch #tNitro>.nxJauge,html body.touch #tNitro>.nxArt,html body.touch #tNitro::before{display:none!important}
-html body.coNitro #tNitro::after{inset:-6px!important;border-radius:50%!important}
+html body.coNitro #tNitro::after{inset:-4px!important;border-radius:0!important}
 .nx3{position:absolute;inset:0;pointer-events:none}
-.nx3>*{position:absolute;pointer-events:none;left:50%;top:50%;border-radius:50%}
-/* l'OMBRE d'encre : floue, un peu sous le bouton — il est posé, et il se lit sur n'importe quel ciel */
-.nx3Encre{width:calc(var(--nxD) * 1.05);height:calc(var(--nxD) * .9);margin:calc(var(--nxD) * -.38) 0 0 calc(var(--nxD) * -.525);
-  background:radial-gradient(closest-side,rgba(10,6,30,.7) 0,rgba(10,6,30,.45) 55%,rgba(10,6,30,0) 100%)}
-/* le HALO : il monte avec l'appui (opacité posée par nx3Tick) */
-.nx3Halo{width:calc(var(--nxD) * 1.25);height:calc(var(--nxD) * 1.25);margin:calc(var(--nxD) * -.625) 0 0 calc(var(--nxD) * -.625);opacity:0;will-change:opacity;
-  background:radial-gradient(circle,rgba(255,236,190,.9) 0,rgba(255,141,46,.5) 30%,rgba(255,141,46,0) 68%);
-  background:radial-gradient(circle,color-mix(in srgb,var(--nc,var(--nP)) 30%,#fff) 0,color-mix(in srgb,var(--nc,var(--nP)) 55%,transparent) 30%,transparent 68%)}
-/* le BOUTON : la toile où nx3Tick pose l'image du moment */
-.nx3Ecl{width:var(--nxD);height:var(--nxD);margin:calc(var(--nxD) * -.5) 0 0 calc(var(--nxD) * -.5);border-radius:0!important;will-change:transform}
-/* LA VITESSE : la barre de boost laisse la place au bout, le chiffre s'y range (km/h dessous) */
+.nx3Ecl{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;image-rendering:-webkit-optimize-contrast;image-rendering:crisp-edges;image-rendering:pixelated}
+/* LA VITESSE — debout : la barre laisse sa case au bout, le chiffre s'y range (km/h dessous) */
 html body.touch #nitroWrap{padding-right:var(--nxV)!important}
-html body.touch #nitroBar>#nxVit{position:absolute;left:100%;top:50%;width:var(--nxV);transform:translateY(-50%);box-sizing:border-box;padding-left:7px;
+html body.touch #nitroBar>#nxVit{position:absolute;left:100%;top:50%;width:var(--nxV);transform:translateY(-50%);box-sizing:border-box;padding-left:8px;
   display:flex;flex-direction:column;align-items:flex-end;line-height:1;pointer-events:none;font-family:var(--pix);white-space:nowrap}
-#nxVit b{font-weight:normal;font-size:14px;line-height:1.1;letter-spacing:0;text-shadow:none;color:#fff;
-  color:transparent;-webkit-text-fill-color:transparent;-webkit-background-clip:text;background-clip:text;filter:var(--contourP);
-  background-image:linear-gradient(180deg,#ffffff 0 22%,#ece6ff 22% 50%,#c9bcff 50% 82%,#9a8ae6 82%)}
-#nxVit i{font-style:normal;font-size:8px;letter-spacing:1px;margin-top:2px;color:#b9adf0;filter:var(--contourP)}
+#nxVit b{font-weight:normal;font-size:18px;line-height:1.1;letter-spacing:0;text-shadow:none;color:#fff;
+  color:transparent;-webkit-text-fill-color:transparent;-webkit-background-clip:text;background-clip:text;filter:var(--contourH);
+  background-image:linear-gradient(180deg,#ffffff 0 45%,#e4ddff 45% 75%,#b8aaf0 75%)}
+#nxVit i{font-style:normal;font-size:8px;letter-spacing:1px;margin-top:3px;color:#d8d0ff;filter:var(--contourP)}
 #nxVit.on b{background-image:linear-gradient(180deg,#fff3dc 0 22%,var(--nL) 22% 50%,var(--nP) 50% 82%,var(--nS) 82%)}
 #nxVit.bleu b{background-image:linear-gradient(180deg,#eef2ff 0 22%,var(--bL) 22% 50%,var(--bP) 50% 82%,var(--bS) 82%)}
 #nxVit.inf b{background-image:linear-gradient(180deg,#fbf3ff 0 22%,var(--vL) 22% 50%,var(--vP) 50% 82%,var(--vS) 82%)}
 #nxVit.on i{color:var(--nL)}#nxVit.bleu i{color:var(--bL)}#nxVit.inf i{color:var(--vL)}
+/* — couché : la barre reprend toute sa longueur, la vitesse se pose À DROITE, à distance, en gros sur une ligne */
+@media (orientation:landscape) and (max-height:540px){
+  html body.touch #nitroWrap{padding-right:0!important}
+  html body.touch #nitroBar>#nxVit{left:calc(100% + 18px);width:auto;padding-left:0;flex-direction:row;align-items:baseline;gap:6px}
+  #nxVit b{font-size:24px}
+  #nxVit i{font-size:9px;margin-top:0}
+}
 /* iOS < 16.2 (pas de color-mix, voir hudDA §7) : un texte découpé dans son fond peut disparaître — couleur pleine cernée d'encre */
 @supports not (color:color-mix(in srgb,red 50%,blue)){#nxVit b{color:#fff;-webkit-text-fill-color:#fff;background:none}}
 </style>
@@ -44317,143 +44314,117 @@ function pickupsTick(dt){
   }
 }
 /* =====================================================================================================================================
-   LE BOUTON NITRO v3 — L'ÉCLAIR 3D, ET LA VITESSE AU BOUT DE LA BARRE DE BOOST (2026-10-12, Léo) — voir <style id="nitroEclair">.
-   (Le soir même, Léo : « abandonne la jauge bizarre, mets juste la vitesse de la voiture à côté de la jauge boost » — le cadran rond,
-   sa jauge en arc et son aiguille sont retirés ; la jauge de boost, c'est la barre du haut.)
-   · nx3Monte : pose, une fois, le bouton DANS #tNitro (ombre d'encre, halo, toile) et la vitesse `#nxVit` au bout de #nitroBar.
-   · nx3Cuire : le BOUTON 3D (socle, capsule vernie, éclair en relief), rendu UNE fois (au menu, ~1 s après le lancement) par le
-     renderer du jeu dans un petit tampon, en NX3.D enfoncements × 2 états (éteint · allumé), relus et rangés dans une planche 2D. Ses
-     programmes sont libérés aussitôt : en course il n'y a RIEN de 3D en plus — la toile du bouton recopie une case de la planche.
-   · nx3Tick (dans la boucle, à côté de --nr/--nx) : la vitesse (12 fois par seconde, seulement si elle change), le RESSORT de la capsule
-     (elle s'enfonce sous le pouce, remonte en rebondissant), la lumière intérieure, le reflet, le halo. Rien hors course (`body.play`).
-   (Version du midi : l'éclair seul qui se balançait et crachait des arcs électriques — Léo : « qu'elle ne s'électrifie pas ».)
-   Console : `dbgNitro3()` (état) · `dbgNitro3({…})` re-cuit le bouton (NX3P) · `dbgNitro3('k',1)` force la lumière · `('p',1)` l'enfoncement.
+   LE BOUTON NITRO v3 — L'ÉCLAIR EN PIXELS QUI S'ENFONCE, ET LA VITESSE À DROITE DE LA BARRE DE BOOST (2026-10-12, Léo) — voir
+   <style id="nitroEclair">. Le chemin du jour : un éclair 3D brillant, un cadran rond (« la jauge bizarre » : retiré), des arcs électriques
+   (« qu'elle ne s'électrifie pas »), un bouton d'arcade rond et vernis (« nan, sans rond, vraiment PIXELS, qui s'appuie quand on appuie »).
+   · L'ÉCLAIR est une GRILLE (NX3_G, la même silhouette que l'icône de la barre, en grand) dessinée case par case dans une toile de la taille
+     de la grille, agrandie sans lissage (`image-rendering:pixelated`) : contour d'encre, biseau clair en haut à gauche, ombre en bas à droite,
+     un reflet en diagonale, et une ÉPAISSEUR de NX3_T cases dessous. Appuyer l'ENFONCE : il descend d'une case à la fois, l'épaisseur
+     disparaît (au lâcher il remonte, saute une case trop haut et retombe). La nitro qui BRÛLE le chauffe (palette claire) et l'entoure d'une
+     lueur en CASES (deux anneaux) ; réserve bleue = bleu, nitro infinie = violet, à sec = gris et contour qui clignote rouge ; plein, la
+     lueur respire. Un reflet blanc balaie les cases de temps en temps. Rien de 3D, aucun programme : ~700 cases, redessinées SEULEMENT
+     quand quelque chose change (enfoncement, reflet, palette, lueur).
+   · LA VITESSE (`#nxVit`, dans #nitroBar) : à droite de la barre de boost, en gros.
+   Console : `dbgNitro3()` (état) · `dbgNitro3('k',1)` force la lueur · `dbgNitro3('p',1)` force l'appui.
    ===================================================================================================================================== */
-const NX3={el:null,cv:null,cx:null,halo:null,vit:null,vN:null,v:-1,vT:0,vc:null,kmh:0,
-  atlas:null,cuit:0,D:14,C:192,p:0,pv:0,pF:null,pD:-9,k:0,kF:null,t:0,gl:-1,glT:1.6,px:0,pxW:0,dpr:0,hop:-1,sc:''};
-const NX3P={cap:0xff6410,capL:0xff8a2a,capC:0xc83c00,sh:120,refl:.24,soc:0x150c3c,ecl:0xffc42a,em:0x2a1000,eclC:0xfff4c0,emC:0xffa62a,
-  eclS:.62,roll:-.04,amb:.55,cle:1.25,rim:1.1,fov:26,haut:1.75,dist:6.9,course:.26};
+const NX3_G=[ // 15 × 20 : la silhouette de l'éclair de la barre (pente, marche, pointe qui s'effile)
+  '........######.',
+  '.......######..',
+  '......######...',
+  '.....######....',
+  '....######.....',
+  '...######......',
+  '..############.',
+  '.############..',
+  '.......######..',
+  '......######...',
+  '......#####....',
+  '.....#####.....',
+  '....#####......',
+  '....####.......',
+  '...####........',
+  '...###.........',
+  '..###..........',
+  '..##...........',
+  '.##............',
+  '.#.............'];
+const NX3_T=3,NX3_M=3; // l'épaisseur (cases) · la marge autour (lueur 2 + contour 1)
+const NX3={el:null,cv:null,cx:null,img:null,u32:null,vit:null,vN:null,v:-1,vT:0,vc:null,kmh:0,
+  W:0,H:0,p:0,pv:0,pF:null,k:0,kF:null,t:0,gl:-1,glT:1.6,cle:'',m:null};
+/* les PALETTES : [biseau, plein, reflet, ombre, épaisseur haute, épaisseur basse, lueur, contour] — l'or au repos, chauffé quand la nitro
+   brûle, bleu en réserve, violet en nitro infinie (au repos et chauffé), gris à sec */
+const NX3_PAL={
+  or:  ['#fff3b8','#ffc21f','#ffe680','#e07a00','#b45200','#6e2a00','#ff8d2e','#1c0430'],
+  feu: ['#ffffff','#fff0a0','#ffffff','#ffb02a','#ff7a1a','#b83e00','#ffb347','#1c0430'],
+  bleu:['#ffffff','#b5c4ff','#e8edff','#4a68f0','#2a44c8','#16247a','#4a68f0','#0b0a2e'],
+  vio: ['#f4e6ff','#b06bff','#dcb8ff','#8a3dff','#5a1fc2','#3e1287','#b06bff','#1c0430'],
+  vioF:['#ffffff','#e6ccff','#ffffff','#b06bff','#8a3dff','#3e1287','#b06bff','#1c0430'],
+  sec: ['#a49cc4','#6e6890','#8a84aa','#4a4468','#332e50','#211d38','#ff5a6e','#1c0430']};
+const NX3_RGB={};function nx3Rgb(h){let v=NX3_RGB[h];if(v==null){const n=parseInt(h.slice(1),16);v=NX3_RGB[h]=(255<<24|(n&255)<<16|(n>>8&255)<<8|n>>16)>>>0;}return v;} // ABGR (petit-boutiste)
 function nx3Monte(){
   const el=document.getElementById('tNitro'),bar=document.getElementById('nitroBar');if(!el||!bar||NX3.el)return!!NX3.el;NX3.el=el;
+  const gw=NX3_G[0].length,gh=NX3_G.length;NX3.W=gw+2*NX3_M;NX3.H=gh+2*NX3_M+NX3_T;
+  NX3.m=new Uint8Array(gw*gh);for(let y=0;y<gh;y++)for(let x=0;x<gw;x++)NX3.m[y*gw+x]=NX3_G[y][x]==='#'?1:0;
   const w=document.createElement('div');w.className='nx3';w.setAttribute('aria-hidden','true');
-  w.innerHTML='<i class="nx3Encre"></i><i class="nx3Halo"></i><canvas class="nx3Ecl"></canvas>';el.appendChild(w);
-  NX3.halo=w.querySelector('.nx3Halo');NX3.cv=w.querySelector('.nx3Ecl');NX3.cx=NX3.cv.getContext('2d');
+  const cv=document.createElement('canvas');cv.className='nx3Ecl';cv.width=NX3.W;cv.height=NX3.H;w.appendChild(cv);el.appendChild(w);
+  el.style.setProperty('--nxW',NX3.W);el.style.setProperty('--nxH',NX3.H);
+  NX3.cv=cv;NX3.cx=cv.getContext('2d');NX3.img=NX3.cx.createImageData(NX3.W,NX3.H);NX3.u32=new Uint32Array(NX3.img.data.buffer);
   const v=document.createElement('div');v.id='nxVit';v.setAttribute('aria-hidden','true');v.innerHTML='<b>0</b><i>KM/H</i>';bar.appendChild(v);
   NX3.vit=v;NX3.vN=v.firstChild;
-  addEventListener('resize',function(){NX3.px=0;});
   return true;
 }
-/* LE BOUTON 3D, CUIT UNE FOIS (v2, Léo : « qu'elle ne s'électrifie pas, mais un rendu 3D beaucoup plus joli, qui donne envie d'appuyer »).
-   Un bouton d'ARCADE vu presque de face : un SOCLE de laque d'encre, une CAPSULE orange vernie (dôme bombé, bord arrondi) qui s'enfonce
-   dedans, l'ÉCLAIR doré en relief dessus (chanfreins à facettes, la DA poly des caisses), une bague de lumière entre capsule et socle.
-   La planche : NX3.D enfoncements (de −,15 = le rebond du lâcher, à 1 = au fond) × 2 états (éteint · allumé de l'intérieur). Le petit studio
-   (cube peint ici, indépendant du ciel du niveau) pose une FENÊTRE de lumière sur le vernis : c'est elle qui fait « bonbon ». */
-function nx3Cuire(){
-  if(NX3.cuit)return;NX3.cuit=1;
-  try{
-    const P=NX3P,DS=NX3.D,C=NX3.C,S=Math.min(C*2,512),T=THREE;
-    // le studio : haut clair, bas d'encre ; côté caméra (+z) une FENÊTRE en haut à gauche (le reflet net du vernis) ; un filet cyan derrière
-    const cvs=[];for(let i=0;i<6;i++){const cv=document.createElement('canvas');cv.width=cv.height=128;const c=cv.getContext('2d');
-      const g=c.createLinearGradient(0,0,0,128);
-      if(i===2){g.addColorStop(0,'#ffffff');g.addColorStop(1,'#fff0d8');}
-      else if(i===3){g.addColorStop(0,'#1a0d30');g.addColorStop(1,'#07040f');}
-      else{g.addColorStop(0,'#f6eaff');g.addColorStop(.38,'#9a86c8');g.addColorStop(.62,'#2a1846');g.addColorStop(1,'#0a0616');}
-      c.fillStyle=g;c.fillRect(0,0,128,128);
-      if(i===4){c.fillStyle='rgba(255,255,255,.96)';c.beginPath();c.moveTo(18,10);c.lineTo(86,10);c.quadraticCurveTo(94,10,94,18);c.lineTo(94,44);c.quadraticCurveTo(94,52,86,52);c.lineTo(18,52);c.quadraticCurveTo(10,52,10,44);c.lineTo(10,18);c.quadraticCurveTo(10,10,18,10);c.fill();
-        c.fillStyle='rgba(255,214,150,.55)';c.fillRect(100,14,14,34);}
-      if(i===0||i===1){c.fillStyle='rgba(255,255,255,.85)';c.fillRect(i?14:86,8,26,40);}
-      if(i===5){c.fillStyle='rgba(120,220,255,.75)';c.fillRect(20,6,88,10);}
-      cvs.push(cv);}
-    const cube=new T.CubeTexture(cvs);cube.needsUpdate=true;
-    // ⚠ un profil TOURNÉ se parcourt de bas en haut / de l'extérieur vers l'axe : dans l'autre sens les faces regardent DEDANS (capsule noire, vue en capture)
-    const tour=function(pts,n){return new T.LatheGeometry(pts.map(function(p){return new T.Vector2(p[0],p[1]);}),n||64).rotateX(Math.PI/2);}; // l'axe du bouton → vers la caméra
-    // le SOCLE : une bague épaisse qui déborde, lèvre arrondie
-    const gSoc=tour([[1.41,-.5],[1.4,0],[1.36,.1],[1.27,.16],[1.16,.17],[1.08,.13],[1.05,.06],[1.05,-.5]]);
-    // la CAPSULE : dôme bombé, bord bien arrondi, flanc qui plonge dans le socle
-    const gCap=tour([[1,-.45],[1,.08],[.985,.18],[.95,.26],[.89,.32],[.78,.37],[.6,.4],[.35,.415],[0,.42]]);
-    // la BAGUE de lumière au fond de la fente
-    const gBag=new T.TorusGeometry(1.025,.035,8,64);
-    const pts=[[-.06,1],[.47,1],[.13,.24],[.52,.24],[-.36,-1],[-.06,-.17],[-.46,-.17]];
-    const sh=new T.Shape();sh.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)sh.lineTo(pts[i][0],pts[i][1]);sh.closePath();
-    const gEcl=new T.ExtrudeGeometry(sh,{depth:.3,bevelEnabled:true,bevelThickness:.08,bevelSize:.065,bevelSegments:2,curveSegments:1,steps:1});gEcl.center();
-    const mSoc=new T.MeshPhongMaterial({color:P.soc,specular:0x9a8cff,shininess:70,envMap:cube,combine:T.MixOperation,reflectivity:.18});
-    const mCap=new T.MeshPhongMaterial({color:P.cap,emissive:0x000000,specular:0xffffff,shininess:P.sh,envMap:cube,combine:T.MixOperation,reflectivity:P.refl});
-    const mEcl=new T.MeshPhongMaterial({color:P.ecl,emissive:P.em,specular:0xffffff,shininess:110,envMap:cube,combine:T.MixOperation,reflectivity:.35,flatShading:true});
-    const mBag=new T.MeshBasicMaterial({color:0x2a1206});
-    const sc=new T.Scene(),soc=new T.Mesh(gSoc,mSoc),cap=new T.Group(),mc=new T.Mesh(gCap,mCap),me=new T.Mesh(gEcl,mEcl),bag=new T.Mesh(gBag,mBag);
-    bag.position.z=.02;me.scale.setScalar(P.eclS);me.position.set(.02,0,.42+.15*P.eclS);me.rotation.set(0,0,P.roll);
-    cap.add(mc);cap.add(me);sc.add(soc);sc.add(bag);sc.add(cap);
-    sc.add(new T.HemisphereLight(0xfff2e0,0x2a1450,P.amb));
-    const k=new T.DirectionalLight(0xffffff,P.cle);k.position.set(-2.2,3.6,5);sc.add(k);
-    const r=new T.DirectionalLight(0x9fe4ff,P.rim);r.position.set(2.8,2.2,-3.5);sc.add(r);
-    const b=new T.DirectionalLight(0xff9a5a,P.rim*.5);b.position.set(0,-4,1.5);sc.add(b); // le rebond chaud par-dessous : le flan de la capsule ne tombe pas au noir
-    const cam=new T.PerspectiveCamera(P.fov,1,.1,30);cam.position.set(0,P.haut,P.dist);cam.lookAt(0,-.06,0);
-    const rt=new T.WebGLRenderTarget(S,S,{minFilter:T.LinearFilter,magFilter:T.LinearFilter,depthBuffer:true});
-    const buf=new Uint8Array(S*S*4),tmp=document.createElement('canvas');tmp.width=tmp.height=S;const tc=tmp.getContext('2d'),img=tc.createImageData(S,S),D=img.data,row=S*4;
-    const at=NX3.atlas||document.createElement('canvas');at.width=DS*C;at.height=2*C;const ac=at.getContext('2d');ac.clearRect(0,0,at.width,at.height);ac.imageSmoothingEnabled=true;ac.imageSmoothingQuality='high';
-    const cc=new T.Color();renderer.getClearColor(cc);const ca=renderer.getClearAlpha(),rt0=renderer.getRenderTarget();
-    renderer.setClearColor(0x000000,0);
-    for(let v=0;v<2;v++){ // v = 1 : allumé de l'intérieur — la capsule brûle, l'éclair chauffe à blanc, la bague s'embrase
-      mCap.emissive.setHex(v?P.capC:0x000000);mCap.color.setHex(v?P.capL:P.cap);mEcl.emissive.setHex(v?P.emC:P.em);mEcl.color.setHex(v?P.eclC:P.ecl);mBag.color.setHex(v?0xffc070:0x2a1206);
-      for(let f=0;f<DS;f++){const d=-.15+1.15*f/(DS-1);cap.position.z=-d*P.course;
-        renderer.setRenderTarget(rt);renderer.clear();renderer.render(sc,cam);renderer.readRenderTargetPixels(rt,0,0,S,S,buf);
-        for(let y=0;y<S;y++)D.set(buf.subarray((S-1-y)*row,(S-y)*row),y*row); // WebGL lit de bas en haut
-        tc.putImageData(img,0,0);ac.drawImage(tmp,0,0,S,S,f*C,v*C,C,C);}}
-    renderer.setRenderTarget(rt0);renderer.setClearColor(cc,ca);
-    rt.dispose();for(const g of [gSoc,gCap,gBag,gEcl])g.dispose();for(const m of [mSoc,mCap,mEcl,mBag])m.dispose();cube.dispose();
-    NX3.atlas=at;NX3.px=0;
-  }catch(e){console.warn('nitro 3D',e);}
-}
-function nx3Toile(){ // la toile à la densité de l'écran (plafonnée : la planche n'a pas plus de détail)
-  const cv=NX3.cv,w=cv.clientWidth||100,d=Math.min(window.devicePixelRatio||1,2.6),px=Math.max(32,Math.min(Math.round(NX3.C*1.2),Math.round(w*d)));
-  NX3.pxW=w;NX3.dpr=window.devicePixelRatio;if(cv.width!==px){cv.width=cv.height=px;}NX3.px=px;
-  const g=NX3.cx.createLinearGradient(-px*.16,0,px*.16,0);g.addColorStop(0,'rgba(255,255,255,0)');g.addColorStop(.5,'rgba(255,255,255,.85)');g.addColorStop(1,'rgba(255,255,255,0)');NX3.gg=g;
+/* LE DESSIN, case par case : d = enfoncement en cases (−1 = le saut du lâcher … NX3_T = au fond), pal = palette, a = force de la lueur,
+   g = position du reflet qui balaie (somme x+y, −1 = aucun), clig = contour rouge (à sec). Couches : l'éclair (1), son épaisseur (2), puis
+   autour, à 1 case le contour d'encre, à 2 et 3 cases les deux anneaux de lueur. */
+function nx3Dessine(d,pal,a,g,clig){
+  const W=NX3.W,H=NX3.H,u=NX3.u32,m=NX3.m,gw=NX3_G[0].length,gh=NX3_G.length,M=NX3_M,T=NX3_T,P=NX3_PAL[pal];u.fill(0);
+  const y0=M+d,ep=T-d,B=NX3.B||(NX3.B=new Uint8Array(W*H));
+  const forme=function(x,y){x-=M;y-=y0;return x>=0&&y>=0&&x<gw&&y<gh&&m[y*gw+x]===1;};
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){let b=forme(x,y)?1:0;if(!b)for(let k=1;k<=ep;k++)if(forme(x,y-k)){b=2;break;}B[y*W+x]=b;}
+  const pres=function(x,y,r){for(let j=-r;j<=r;j++)for(let i=-r;i<=r;i++){const X=x+i,Y=y+j;if(X>=0&&Y>=0&&X<W&&Y<H&&B[Y*W+X])return true;}return false;};
+  const cE=nx3Rgb(clig?'#ff5a6e':P[7]),g0=nx3Rgb(P[6])&0x00ffffff,cG1=(g0|Math.round(a*.78*255)<<24)>>>0,cG2=(g0|Math.round(a*.36*255)<<24)>>>0;
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const b=B[y*W+x],i=y*W+x;
+    if(b===1){ // l'éclair : biseau en haut à gauche, ombre en bas à droite, deux reflets en long, et le balayage blanc
+      const hg=!forme(x,y-1)||!forme(x-1,y),bd=!forme(x,y+1)||!forme(x+1,y),s=(x-M)+(y-y0);
+      let c=hg?P[0]:bd?P[3]:(s===9||s===10||s===16)?P[2]:P[1];
+      if(g>=0&&(s===g||s===g+1)&&!bd)c='#ffffff';
+      u[i]=nx3Rgb(c);}
+    else if(b===2)u[i]=nx3Rgb(forme(x,y-1)?P[4]:P[5]); // l'épaisseur : claire juste sous la face, sombre au fond
+    else if(pres(x,y,1))u[i]=cE;                       // le contour d'encre
+    else if(a>.02){if(pres(x,y,2))u[i]=cG1;else if(pres(x,y,3))u[i]=cG2;} // la lueur, en cases
+  }
+  NX3.cx.putImageData(NX3.img,0,0);
 }
 function nx3Tick(dt,kmh){
   if(!NX3.el&&!nx3Monte())return;
   if(!document.body.classList.contains('play'))return;
-  if(!NX3.atlas)nx3Cuire();
-  if(!NX3.px||NX3.dpr!==window.devicePixelRatio)nx3Toile(); // la densité change aussi sans resize (zoom de la colonne, rotation)
-  const inf=pwrNitroT>0,plein=inf||(nitroR+nitroX)>=((ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2)-.01;NX3.t+=dt;
+  const inf=pwrNitroT>0,res=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,plein=inf||(nitroR+nitroX)>=res-.01,sec=!inf&&(nitroR+nitroX)<.35;NX3.t+=dt;
   // LA VITESSE : 12 fois par seconde au plus, et seulement si le chiffre change (un texte réécrit = un recalcul de style) ; sa couleur suit la poussée
   NX3.kmh=kmh;NX3.vT-=dt;
   if(NX3.vT<=0){NX3.vT=.08;const v=Math.round(Math.max(0,kmh||0));if(v!==NX3.v){NX3.v=v;NX3.vN.textContent=v;}}
   const vc=inf?'inf':(nitroOn?(nitroBlue?'bleu':'on'):'');if(vc!==NX3.vc){NX3.vc=vc;NX3.vit.className=vc;}
-  // L'APPUI : la capsule descend sous le pouce (ressort raide, un rebond au lâcher) ; elle s'allume de l'intérieur quand la nitro BRÛLE
-  // (à sec, l'appui n'allume presque rien) ; pleine et au repos, elle RESPIRE — la lumière monte et descend doucement, elle appelle le pouce
+  // L'APPUI : un ressort raide, rendu en CASES (l'éclair descend d'une case à la fois ; au lâcher il saute une case trop haut et retombe)
   const appui=NX3.pF!=null?NX3.pF:((keys.Space||keys.ShiftLeft||keys.ShiftRight||NX3.el.classList.contains('on'))?1:0);
   const rm=REDUCED_MOTION||document.documentElement.hasAttribute('data-reduced-motion');
-  if(rm){NX3.p=appui;NX3.pv=0;}else{const h=Math.min(dt,.05)/2,w0=34,z=.42;for(let i=0;i<2;i++){NX3.pv+=(w0*w0*(appui-NX3.p)-2*z*w0*NX3.pv)*h;NX3.p+=NX3.pv*h;}
-    if(NX3.p<-.15){NX3.p=-.15;NX3.pv=0;}else if(NX3.p>1.05){NX3.p=1.05;NX3.pv=0;}}
-  const veut=NX3.kF!=null?NX3.kF:(nitroOn?1:(appui?.22:0));
-  NX3.k+=(veut-NX3.k)*Math.min(1,dt*(veut>NX3.k?16:5));
-  const souffle=(plein&&!appui&&!rm)?.1+.09*Math.sin(NX3.t*5.2):0,k=Math.max(NX3.k<.003?0:NX3.k,souffle);
-  // le REFLET qui passe sur le vernis : toutes les ~3,5 s (1,6 s quand la nitro est pleine)
-  NX3.glT-=dt;if(NX3.gl<0&&NX3.glT<=0&&!rm&&!appui){NX3.gl=0;}
-  if(NX3.gl>=0){NX3.gl+=dt/.6;if(NX3.gl>1){NX3.gl=-1;NX3.glT=plein?1.6:3.5;}}
-  const pd=Math.round(NX3.p*200);
-  if(pd!==NX3.pD||k>0||NX3.gl>=0||(NX3.t%(1/30))<dt){NX3.pD=pd;nx3Dessine(k);}
-  const ho=Math.min(1,NX3.k*(.75+.25*Math.sin(NX3.t*37))+souffle*.9);
-  if(Math.abs(ho-(NX3.halo._o||0))>.01){NX3.halo._o=ho;NX3.halo.style.opacity=ho.toFixed(2);}
+  if(rm){NX3.p=appui;NX3.pv=0;}else{const h=Math.min(dt,.05)/2,w0=30,z=.4;for(let i=0;i<2;i++){NX3.pv+=(w0*w0*(appui-NX3.p)-2*z*w0*NX3.pv)*h;NX3.p+=NX3.pv*h;}
+    if(NX3.p<-.34){NX3.p=-.34;NX3.pv=0;}else if(NX3.p>1.05){NX3.p=1.05;NX3.pv=0;}}
+  const d=Math.max(-1,Math.min(NX3_T,Math.round(NX3.p*NX3_T)));
+  // LA LUEUR : la nitro qui brûle (à sec, l'appui ne fait rien briller) ; pleine et au repos, elle respire
+  const veut=NX3.kF!=null?NX3.kF:(nitroOn?1:0);NX3.k+=(veut-NX3.k)*Math.min(1,dt*(veut>NX3.k?16:6));
+  const souffle=(plein&&!appui&&!rm)?.18+.16*Math.sin(NX3.t*5.2):0,a=Math.max(NX3.k,souffle);
+  const aQ=Math.round(a*(rm?1:(.85+.15*Math.sin(NX3.t*31)))*6)/6; // la lueur par crans (des cases qui battent, pas un dégradé)
+  const chaud=NX3.k>.5,pal=inf?(chaud?'vioF':'vio'):(chaud?(nitroBlue?'bleu':'feu'):(sec?'sec':'or'));
+  const clig=sec&&!appui&&(Math.floor(NX3.t/.3)&1)===1;
+  // le REFLET blanc qui balaie les cases : toutes les ~3,5 s (1,6 s quand la nitro est pleine)
+  NX3.glT-=dt;if(NX3.gl<0&&NX3.glT<=0&&!rm&&!appui&&!sec){NX3.gl=0;}
+  let g=-1;if(NX3.gl>=0){NX3.gl+=dt/.5;if(NX3.gl>1){NX3.gl=-1;NX3.glT=plein?1.6:3.5;}else g=Math.floor(-2+NX3.gl*36);}
+  const cle=d+'|'+pal+'|'+aQ+'|'+g+'|'+clig;
+  if(cle!==NX3.cle){NX3.cle=cle;nx3Dessine(d,pal,aQ,g,clig);}
 }
-function nx3Dessine(k){
-  const c=NX3.cx,W=NX3.px,at=NX3.atlas,C=NX3.C,DS=NX3.D;c.setTransform(1,0,0,1,0,0);c.globalCompositeOperation='source-over';c.globalAlpha=1;c.clearRect(0,0,W,W);
-  if(!at)return;
-  const q=Math.max(0,Math.min(DS-1,(NX3.p+.15)/1.15*(DS-1))),fi=Math.floor(q),fj=Math.min(DS-1,fi+1),ft=q-fi;
-  const case9=function(f,v,al){if(al<=.004)return;c.globalAlpha=al;c.drawImage(at,f*C,v*C,C,C,0,0,W,W);};
-  case9(fi,0,1);case9(fj,0,ft);
-  if(k>0){const kk=Math.min(1,k);case9(fi,1,kk);case9(fj,1,kk*ft);}
-  c.globalAlpha=1;
-  if(NX3.gl>=0){ // le reflet : une bande blanche en biais, seulement SUR le bouton (source-atop)
-    c.globalCompositeOperation='source-atop';c.globalAlpha=.55;c.translate(W*(-.3+NX3.gl*1.6),W*.5);c.rotate(.5);c.fillStyle=NX3.gg;c.fillRect(-W*.13,-W*.8,W*.26,W*1.6);
-    c.setTransform(1,0,0,1,0,0);c.globalAlpha=1;c.globalCompositeOperation='source-over';}
-}
-setTimeout(function(){try{if(!NX3.atlas&&(!started||gameOver))nx3Cuire();}catch(e){}},1400); // au MENU : l'éclair est prêt avant le 1er départ
 window.dbgNitro3=function(a,b){
   if(a==='k'){NX3.kF=b==null?null:+b;return NX3.kF;}
   if(a==='p'){NX3.pF=b==null?null:+b;return NX3.pF;}
-  if(a&&typeof a==='object'){Object.assign(NX3P,a);NX3.cuit=0;nx3Cuire();if(NX3.cx)nx3Dessine(NX3.k);return Object.assign({},NX3P);}
-  return {monte:!!NX3.el,cuit:!!NX3.atlas,k:+NX3.k.toFixed(2),enfonce:+NX3.p.toFixed(2),toile:NX3.px,kmh:Math.round(NX3.kmh||0),affiche:NX3.v,couleur:NX3.vc,nitro:nitroOn};
+  return {monte:!!NX3.el,grille:NX3.W+'×'+NX3.H,k:+NX3.k.toFixed(2),enfonce:+NX3.p.toFixed(2),dessin:NX3.cle,kmh:Math.round(NX3.kmh||0),affiche:NX3.v,couleur:NX3.vc,nitro:nitroOn};
 };
 function loopWarn(b,nom,e){if(!((loop._crWarn|0)&b)){console.warn('créatures/musique · '+nom,e);loop._crWarn=(loop._crWarn|0)|b;}} // (2026-09-30) un bit par appel gardé : chaque panne se dit UNE fois, sans masquer celle du voisin
 function loop(now){
@@ -45970,7 +45941,7 @@ function loop(now){
      // L'ANNEAU DU BOUTON NITRO : la même réserve, en arc autour du pouce
      const mx9=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,r9=Math.round(Math.min(1,nitroR/mx9)*100)/100,x9=Math.round(Math.min(1,nitroX/2)*100)/100;
      if(elNB&&(loop._nbr!==r9||loop._nbx!==x9)){loop._nbr=r9;loop._nbx=x9;elNB.style.setProperty('--nr',r9);elNB.style.setProperty('--nx',x9);}}
-    try{nx3Tick(dt,speedKmh);}catch(e){loopWarn(256,'nitro 3D',e);} // (2026-10-12, Léo) LE BOUTON NITRO v3 : l'éclair 3D, la vitesse au bout de la barre de boost
+    try{nx3Tick(dt,speedKmh);}catch(e){loopWarn(256,'nitro',e);} // (2026-10-12, Léo) LE BOUTON NITRO v3 : l'éclair en pixels qui s'enfonce, la vitesse à droite de la barre de boost
     // chip des POUVOIRS actifs : compte à rebours coloré au-dessus de la jauge nitro
     let pch='';
     // (2026-09-26, user : « le power-up affiché EN GROS avec un timer en temps réel ») : une plaque par pouvoir — bâtie quand la liste change,
