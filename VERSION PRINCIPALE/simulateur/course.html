@@ -422,7 +422,9 @@ function relaie(type, t) { // une touche frappée sur la page des maps
 
 window.SIMU = {
   lance: lanceNiveau, pause, relaie, geste, focus: focusJeu,
-  roule: () => !!(E.st && E.st.started && !E.st.gameOver && E.phase === 'course' && !E.vite),
+  // (12/10, Léo : « je clique sur une map, ça apparaît sur l'autre ») : la course qui roule doit être CELLE qu'on a demandée — pendant un
+  // changement de niveau, l'ancienne roule encore quelques images (son lancement était parti) : la page des maps la montrait sur la nouvelle carte
+  roule: () => !!(E.st && E.st.started && !E.st.gameOver && E.phase === 'course' && !E.vite && E.lanceDe === L),
   etat: () => ({ niveau: NIV.id, play: SEQ.on ? { n: SEQ.n, ordre: SEQ.ordre.slice(), i: SEQ.i } : null,
     phase: E.phase, essai: E.essai, touche, source: E.source, force: E.force, intensite: +E.x.toFixed(3), vit: E.vit,
     moteur: E.tier + 1, moteurs: E.nbMot, palier: palDe(E.tier),
