@@ -37,8 +37,10 @@
   la boîte de la chaîne (encaissement) ou de la caisse (le reste), courbe WAAPI ~0,7 s jusqu'au BOUT DU PLEIN, et c'est en arrivant qu'il
   remplit (la cellule s'éclaire, la barre bat). Petits gains regroupés (≤ 1 vol / 0,15 s), 8 en vol au plus. Montré = `auraRun` − en vol.
 - LE FLOW EN TOUT PETIT : `#flowHud` intact (frénésie, zone rouge…), un fil de 6 px, icône 11 px, nom du palier masqué, ×CASH au bout.
-- PLACEMENT : couché, bouts (vitesse, MOY/RECORD, ×CASH) à droite des barres ; debout, ils vivent dans la case `--nxV` 82 px (les trois barres
-  finissent au même x) et le ×CASH reste à gauche de l'argent (colonne ⏸/argent : x ≥ 275, y ≥ 113 sur 390 × 844).
+- PLACEMENT (Léo : « l'aura un peu plus courte, les km/h plus à droite encore, le flow même taille ») : l'aura et le flow à 80 % de la barre de
+  boost (`--ajK`, même longueur), leurs bouts (MOY/RECORD, ×CASH) juste après ; la VITESSE contre le ⏸ (couché : bord droit à 16 px du bouton,
+  calc sur --hudG/--hudD/50vw ; debout : 8 px plus loin que la case `--nxV` 82 px). Debout, rien sous l'argent (x ≥ 275, y ≥ 113 sur 390 × 844).
+  Couché, le bout de l'aura (« MOY 600 ») et le ×CASH du flow FINISSENT au x de la fin de la barre de boost (Léo). La vitesse : 34 px couché, 22 px debout (« plus gros »).
 - Console : `dbgJaugeAura()` (moyenne, record, montré, en vol, phase, cellules) · `dbgJaugeAura(n)` verse n d'aura depuis la caisse.
 
 ## LE BOUTON NITRO v3 — L'ÉCLAIR EN PIXELS QUI S'ENFONCE ET LA VITESSE À DROITE DE LA BARRE DE BOOST (2026-10-12, Léo : « à la place du carré, un éclair » ; « abandonne la jauge bizarre, mets juste la vitesse de la voiture à côté de la jauge boost » ; « nan, sans rond, vraiment pixels, qui s'appuie quand on appuie, et la vitesse alignée plus à droite et visible »)
@@ -85,10 +87,12 @@ Un outil À CÔTÉ du jeu, qui ne refait RIEN : il lance LE JEU (`index.html`, s
   · LE CHOIX est PAR NIVEAU et sur le DISQUE : `simulateur/choix-musiques.json` (`{idNiveau: 'musiques/x' | ''}`, `POST` par le serveur) —
     c'est la table que le jeu lira. Sans choix : la `musique` de la map (VILLE = French Touch). Plus de localStorage `simu.musiques`.
     Page des maps : une pastille ♪ par niveau, celle de la map les règle tous (« Plusieurs » si ça diffère).
-  · L'INTENSITÉ suit le MOTEUR par défaut : `engTier / (ENGINE_TIERS.length − 1)` ; au module, son API `setTier(engTier + 1, 30)` (au palier 1 la
-    batterie de Glisse n'est pas encore là : ses couches s'ouvrent de 5 à 90 %). « suit la vitesse » = l'ancienne jauge (FLOW.vit). Le curseur de
-    la barre MONTRE l'intensité, le tirer la FORCE (jaune), AUTO rend la main ; « + » = `dbgMoteur()` (le vrai moteur monte d'un palier, carte
-    et son compris). La pastille ♪ de la course change la musique EN DIRECT et l'écrit sur le disque. Les modules restent créés (`MODS`, un
+  · L'INTENSITÉ suit le MOTEUR par défaut, en 5 PALIERS DE MUSIQUE (moteurs 1-5 · 6-10 · 11-15 · 16-20 · 21-30, le découpage du
+    CAHIER-MUSIQUE) : (P − 1) ÷ 4 ; au module, son API `setTier(P, 5)`. ⚠ Pas `setTier(moteur, 30)` : un moteur ne bouge la cible que de 0,034
+    et GLISSE V2 (`musique-glisse-v2.js`, 12/10) ne joue sa transition (roulement de caisse claire qui monte / plongée filtrée qui descend,
+    calés sur le temps) qu'au-delà de 0,06. « suit la vitesse » = l'ancienne jauge (FLOW.vit). Le curseur de la barre MONTRE l'intensité, le
+    tirer la FORCE (jaune), AUTO rend la main ; « + » = le vrai moteur jusqu'au 1er moteur du palier suivant (`dbgMoteur()` en rafale : une
+    seule carte). ⚠ Les `const` du jeu (ENGINE_TIERS…) ne se lisent PAS depuis la page (`w.eval` → ReferenceError) : dbgState / dbg* seulement. La pastille ♪ de la course change la musique EN DIRECT et l'écrit sur le disque. Les modules restent créés (`MODS`, un
     contexte audio chacun) : y revenir reprend le même.
   · `?muet=1` (bancs) : la `destination` de chaque contexte audio passe par un gain nul (page, module, cadre de la page à jauge).
     `SIMU.musique()` = le pilote (MUS.inst = le module en cours).
