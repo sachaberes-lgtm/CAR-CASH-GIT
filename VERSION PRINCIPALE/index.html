@@ -44252,20 +44252,20 @@ function garBqBatit(){if(GBQ.grp)return; // (2026-10-12, Léo : « lâche le mag
   /* LE BLANC STRUCTURÉ (2026-10-12, Léo : « le sol blanc pareil ; un arrière de la salle, même style ») : une toile de 4 × 4 petites dalles en
      relief (arête claire en haut à gauche, ombre en bas à droite, une teinte à peine différente par dalle) — la peau du sol, du socle, des murs */
   const tuileCv=document.createElement('canvas');tuileCv.width=tuileCv.height=128;{const x=tuileCv.getContext('2d'),r=mulberry32(0x7E1E);
-    x.fillStyle='#e2e6ec';x.fillRect(0,0,128,128);for(let i=0;i<4;i++)for(let j=0;j<4;j++){const X=i*32,Y=j*32,l=(r()*6-3)|0;
+    x.fillStyle='#edf0f4';x.fillRect(0,0,128,128);for(let i=0;i<4;i++)for(let j=0;j<4;j++){const X=i*32,Y=j*32,l=(r()*6-3)|0;
       x.fillStyle='rgb('+(243+l)+','+(245+l)+','+(248+l)+')';x.fillRect(X+1,Y+1,30,30);x.fillStyle='#ffffff';x.fillRect(X+1,Y+1,30,2);x.fillRect(X+1,Y+1,2,30);
-      x.fillStyle='#e8ebf0';x.fillRect(X+1,Y+29,30,2);x.fillRect(X+29,Y+1,2,30);}}
+      x.fillStyle='#f0f2f5';x.fillRect(X+1,Y+29,30,2);x.fillRect(X+29,Y+1,2,30);}}
   const tuile=function(rx,ry){const t=new THREE.CanvasTexture(tuileCv);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(rx,ry);t.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());return t;};
   GBQ.tuile=tuile;
   // LE SOL : en blanc structuré (des dalles de ~34 cm), à perte de vue
   const tS=cvT(512,512,function(x,w,h){const gr=x.createRadialGradient(w/2,h/2,0,w/2,h/2,w/2);gr.addColorStop(0,'#ffffff');gr.addColorStop(.25,'#f8f9fa');gr.addColorStop(1,'#eceff2');x.fillStyle=gr;x.fillRect(0,0,w,h);});
-  const sol=new THREE.Mesh(new THREE.CircleGeometry(R*.97,64),B(0xffffff,{map:tuile(R*2*.97/1.36,R*2*.97/1.36)}));sol.rotation.x=-Math.PI/2;sol.material.color.setScalar(1.5);g.add(sol);
+  const sol=new THREE.Mesh(new THREE.CircleGeometry(R*.97,64),B(0xffffff,{map:tuile(R*2*.97/1.36,R*2*.97/1.36)}));sol.rotation.x=-Math.PI/2;sol.material.color.setScalar(1.75);g.add(sol);
   // (v3, Léo : « il y a juste l'ombre de la voiture ») plus de grille ni d'anneaux
   /* LE TRÔNE (2026-10-12, Léo : « une compo comme si la voiture était sur son trône ; la lueur en mode pics, comme l'iconographie de Jésus ;
      inspiré des compositions néo-classiques ; quelque chose qui met en avant la voiture ») : un socle de marbre à trois gradins cerclés d'or
      pâle, deux colonnes et une architrave derrière (le repère suit la caméra : la composition reste SYMÉTRIQUE autour de la caisse) ; la
      GLOIRE (rayons d'or pâle, longs et courts, une auréole) derrière elle — voir garBqGloire. */
-  {const Lm=function(c,e){return new THREE.MeshLambertMaterial({color:c,emissive:e||0,flatShading:true,fog:false});},marbre=new THREE.MeshLambertMaterial({color:0xf6f8fb,emissive:0x303338,map:tuile(28,1),flatShading:true,fog:false}),or=Lm(0x5a68ff,0x1b237a), /* (Léo : « autre chose que jaune clair ») */
+  {const Lm=function(c,e){return new THREE.MeshLambertMaterial({color:c,emissive:e||0,flatShading:true,fog:false});},marbre=new THREE.MeshLambertMaterial({color:0xf6f8fb,emissive:0x303338,map:tuile(28,1),flatShading:true,fog:false}),or=Lm(0xd2d8e1,0x34383f), /* (Léo : « le bleu foncé ne marche pas, la couleur est un peu forte ») un gris perle */
      C=function(r0,r1,h,n){return new THREE.CylinderGeometry(r0,r1,h,n||48);};
    let y=0;for(const t of [[2.9,.18],[2.5,.18],[2.15,.2]]){const m=new THREE.Mesh(C(t[0],t[0]+.05,t[1]),marbre);m.position.y=y+t[1]/2;g.add(m);
      const f=new THREE.Mesh(new THREE.TorusGeometry(t[0]+.012,.024,4,72),or);f.rotation.x=Math.PI/2;f.position.y=y+t[1];g.add(f);y+=t[1];}
@@ -44283,20 +44283,15 @@ function garBqBatit(){if(GBQ.grp)return; // (2026-10-12, Léo : « lâche le mag
      for(let y=.3+PAS/2;y<.3+HC;y+=PAS)for(let a9=0;a9<nA;a9++){const an=a9/nA*Math.PI*2+(Math.round(y/PAS)%2)*Math.PI/nA,rr=rC+(R9()<.12?(R9()<.5?-.05:.04):0);cube(x+Math.cos(an)*rr,y,ZC+Math.sin(an)*rr);}
      }
    bloc(0,.3+HC+.51,ZC,2*XC+1.3,.46,.95);
-   /* L'ARRIÈRE DE LA SALLE (Léo : « imagine un arrière de la salle, même style ») : un amphithéâtre de pixels — trois gradins de murs en
-      blanc structuré qui montent en reculant, et devant eux une rangée de colonnes de cubes plus petites, de part et d'autre du portique */
-   for(const t of [[-8.6,2.4,17],[-10.8,4.8,25],[-13,7.2,33]]){const mu=new THREE.Mesh(new THREE.BoxGeometry(t[2],t[1],1.4),new THREE.MeshLambertMaterial({color:0xf3f6fa,emissive:0x2a2d33,map:tuile(t[2]/1.36,t[1]/1.36),flatShading:true,fog:false}));
-     mu.position.set(0,t[1]/2,t[0]);g.add(mu);}
-   for(const x of [-8.6,-6.1,6.1,8.6]){const rC=.22,nA=Math.round(2*Math.PI*rC/PAS),h9=3.4;bloc(x,.12,-7.4,.6,.24,.6);bloc(x,.24+h9+.1,-7.4,.6,.2,.6);
-     for(let y=.24+PAS/2;y<.24+h9;y+=PAS)for(let a9=0;a9<nA;a9++){const an=a9/nA*Math.PI*2+(Math.round(y/PAS)%2)*Math.PI/nA;cube(x+Math.cos(an)*rC,y,-7.4+Math.sin(an)*rC);}}
+   // (même soir, Léo : « repars sur les piliers d'avant, on ne les voit même plus ») l'arrière de la salle est retiré : le portique se détache sur le blanc
    {const n=V.length/3,mc=new THREE.InstancedMesh(new THREE.BoxGeometry(PAS*.86,PAS*.86,PAS*.86),new THREE.MeshLambertMaterial({color:0xe8edf5,emissive:0x000000,flatShading:true,fog:false}),n),M9=new THREE.Matrix4();
     for(let k=0;k<n;k++){M9.makeTranslation(V[3*k],V[3*k+1],V[3*k+2]);mc.setMatrixAt(k,M9);}mc.frustumCulled=false;g.add(mc);GBQ.colonnes=mc;}}
   {const cv=document.createElement('canvas');cv.width=cv.height=1024;const x=cv.getContext('2d'),c0=512;
-   {const gr=x.createRadialGradient(c0,c0,0,c0,c0,340);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.42,'rgba(240,244,255,.9)');gr.addColorStop(1,'rgba(232,238,255,0)');x.fillStyle=gr;x.fillRect(0,0,1024,1024);}
+   {const gr=x.createRadialGradient(c0,c0,0,c0,c0,340);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.42,'rgba(255,246,228,.9)');gr.addColorStop(1,'rgba(255,240,215,0)');x.fillStyle=gr;x.fillRect(0,0,1024,1024);}
    const N=48;for(let i=0;i<N;i++){const a=i/N*Math.PI*2,L=i%2?330:505,w=i%2?.02:.032,gr=x.createRadialGradient(c0,c0,95,c0,c0,L);
-     gr.addColorStop(0,'rgba(74,92,255,.55)');gr.addColorStop(1,'rgba(74,92,255,0)');x.fillStyle=gr;x.beginPath();
+     gr.addColorStop(0,'rgba(255,150,40,.72)');gr.addColorStop(.45,'rgba(255,196,70,.4)');gr.addColorStop(1,'rgba(255,214,110,0)');x.fillStyle=gr;x.beginPath();
      x.moveTo(c0+Math.cos(a-w)*95,c0+Math.sin(a-w)*95);x.lineTo(c0+Math.cos(a)*L,c0+Math.sin(a)*L);x.lineTo(c0+Math.cos(a+w)*95,c0+Math.sin(a+w)*95);x.closePath();x.fill();}
-   x.strokeStyle='rgba(61,75,255,.7)';x.lineWidth=5;x.beginPath();x.arc(c0,c0,176,0,Math.PI*2);x.stroke();x.lineWidth=2;x.beginPath();x.arc(c0,c0,158,0,Math.PI*2);x.stroke();
+   x.strokeStyle='rgba(246,148,48,.72)';x.lineWidth=5;x.beginPath();x.arc(c0,c0,176,0,Math.PI*2);x.stroke();x.lineWidth=2;x.beginPath();x.arc(c0,c0,158,0,Math.PI*2);x.stroke();
    GBQ.gloire=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cv),transparent:true,opacity:0,depthWrite:false,fog:false}));
    GBQ.gloire.renderOrder=4;GBQ.gloire.visible=false;scene.add(GBQ.gloire);}
   const tOmb=cvT(128,128,function(x,w,h){const gr=x.createRadialGradient(64,64,0,64,64,64);gr.addColorStop(0,'rgba(20,24,30,.55)');gr.addColorStop(1,'rgba(20,24,30,0)');x.fillStyle=gr;x.fillRect(0,0,w,h);});
@@ -44542,8 +44537,10 @@ function bqDessous(){const k=garageI+':'+(carBody?carBody.children.length:0)+':'
         if(l1<-1e-4||l2<-1e-4||l3<-1e-4)continue;const y=l1*v.y+l2*w.y+l3*u.y,j=iz*nx+ix;if(y<H[j])H[j]=y;}}});
   for(let pass=0;pass<2;pass++){const H2=H.slice();for(let iz=1;iz<nz-1;iz++)for(let ix=1;ix<nx-1;ix++){const j=iz*nx+ix;if(H[j]<1e8)continue;let s9=0,c=0;
     for(const d of [-1,1,-nx,nx])if(H[j+d]<1e8){s9+=H[j+d];c++;}if(c>=2)H2[j]=s9/c;}H.set(H2);}
-  let mn=1e9;for(let j=0;j<H.length;j++)if(H[j]<mn)mn=H[j];
-  return GBQ.hm={k:k,P:P,nx:nx,nz:nz,x0:x0,z0:z0,H:H,max:mn+.5};} // max : le plancher seul — un aileron, un rétro, un débord haut ne se portent pas
+  let mn=1e9;for(let j=0;j<H.length;j++)if(H[j]<mn)mn=H[j];const mx=mn+.45;
+  for(let pass=0;pass<2;pass++){const H2=H.slice();for(let iz=0;iz<nz;iz++)for(let ix=0;ix<nx;ix++){const j=iz*nx+ix;if(H[j]>=mx)continue; // (Léo : « ça ne doit pas cacher la voiture du tout ») les BORDS rognés de deux cases : jamais une colonne devant un flanc
+    if(ix<1||iz<1||ix>=nx-1||iz>=nz-1||H[j-1]>=mx||H[j+1]>=mx||H[j-nx]>=mx||H[j+nx]>=mx)H2[j]=1e9;}H.set(H2);}
+  return GBQ.hm={k:k,P:P,nx:nx,nz:nz,x0:x0,z0:z0,H:H,max:mx};} // max : le plancher seul — un aileron, un rétro, un débord haut ne se portent pas
 function garBqTapis(dt,t9,ay){
   if(!GBQ.on||!GBQ.socleH){if(GBQ.tapis)GBQ.tapis.visible=false;GBQ.ta=0;return;}
   const actif=!!GBQ.drag||Math.abs(GBQ.yawV)>.2||Math.abs(GBQ.pitV)>.2;GBQ.ta=(GBQ.ta||0)+((actif?1:0)-(GBQ.ta||0))*Math.min(1,dt*(actif?7:1.7));
@@ -44552,12 +44549,11 @@ function garBqTapis(dt,t9,ay){
     m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);m.frustumCulled=false;m.renderOrder=2;scene.add(m);GBQ.tapis=m;GBQ.tapisP=P;GBQ._mt=new THREE.Matrix4();GBQ._qi=new THREE.Quaternion();GBQ._vt=new THREE.Vector3();GBQ._wt=new THREE.Vector3();}
   const m=GBQ.tapis,A=GBQ.ta;m.visible=true;
   const P=GBQ.tapisP,n=P.length/2,y0=ay+GBQ.socleH,hm=bqDessous(),p0=carGroup.position,q=carGroup.quaternion,qi=GBQ._qi.copy(q).invert(),v=GBQ._vt,w=GBQ._wt,M=GBQ._mt;
-  m.position.set(0,y0,0);
+  m.position.set(0,y0,0);const bas9=Math.max(0,p0.y-y0-.12);
   for(let k=0;k<n;k++){const x=P[2*k],z=P[2*k+1];let h=0;
     v.set(x-p0.x,0,z-p0.z).applyQuaternion(qi);const ix=Math.round((v.x-hm.x0)/hm.P),iz=Math.round((v.z-hm.z0)/hm.P);
-    if(ix>=0&&iz>=0&&ix<hm.nx&&iz<hm.nz){const hl=hm.H[iz*hm.nx+ix];if(hl<hm.max){w.set(v.x,hl,v.z).applyQuaternion(q);h=p0.y+w.y-y0-.012;}}
-    if(h<=.02&&A>.02){const r=Math.hypot(x,z);h=Math.max(0,Math.sin(r*5-t9*8))*(1-r/2.2)*.42*A;} // autour : l'onde, quand on la bouge
-    h=Math.floor(h/.05)*.05;
+    let sous=false;if(ix>=0&&iz>=0&&ix<hm.nx&&iz<hm.nz){const hl=hm.H[iz*hm.nx+ix];if(hl<hm.max){w.set(v.x,hl,v.z).applyQuaternion(q);h=p0.y+w.y-y0-.05;sous=true;}} // 5 cm sous son dessous, sans crans : il suit la houle sans sautiller
+    if(!sous&&A>.02){const r=Math.hypot(x,z);h=Math.min(.2,bas9)*Math.max(0,Math.sin(r*5-t9*8))*(1-r/2.2)*A;} // autour : l'onde, toujours plus basse que la caisse
     if(h<.03)M.makeScale(.001,.001,.001);else{M.makeScale(1,h,1);M.setPosition(x,h/2,z);}m.setMatrixAt(k,M);}
   m.instanceMatrix.needsUpdate=true;}
 function garBqLumiere(){if(!GBQ.on)return; // la lumière du magasin : blanche, sans le contre-jour du feu
