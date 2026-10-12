@@ -26,7 +26,8 @@ n'a été rebasculé. Corrigé :
   la frénésie passe par une requête HEAD (sur iPhone elle ne répondait jamais : la 1re FRÉNÉSIE coupait la musique vers le fichier absent) ;
   hors ligne la radio ne réessaie plus sans fin ; le FEU du garage revient quand on rallume le SON dans l'atelier.
 - **Gameplay récent** : les SINGES se fabriquent au menu (plus de tranches de 5 ms en pleine 1re course) ; tampons d'instances libérés
-  (FOURNAISE, DÉFERLANTE, MERCURE) ; JADE : chrono d'ARRIVÉE remis à zéro, lucioles éteintes hors de la map ; textes EN (LES SINGES !,
+  (FOURNAISE, DÉFERLANTE, MERCURE) ; JADE (le niveau du JOUER depuis 20e5fed) : `jadeRedemarre` ne remet plus en 'drive' une caisse qui
+  EXPLOSE ou une partie finie dans les 2,8 s après l'ARRIVÉE, chrono d'ARRIVÉE remis à zéro, lucioles éteintes hors de la map ; textes EN (LES SINGES !,
   ARRIVÉE, SOLEIL DE JADE, MAINTIENS TA CAISSE — la clé disait « LA CAISSE » —, aria Offres / La voiture seule / Tourner le garage).
 - **Sortie** : `poki-construire.js crazy` ÉCHOUAIT (« deux fichiers serveur.py ») — les outils locaux (maps-ciel, simulateur, salle
   blanche, boîtes) et tout `.py` sont exclus des portails ; Vercel ne publie plus salle-blanche / boîtes ni aucun `.py` ; le démarrage
@@ -36,8 +37,21 @@ n'a été rebasculé. Corrigé :
 - **À trancher par Sacha et/ou Léo (rien changé)** : `TEST_CAISSES` / `TEST_CARRIERE` (tout ouvert, pastille TEST) ; boutique sans
   StoreKit ; droits des sons/noms ; RECOMMENCER ne repart pas du DÉBUT du morceau (`playMusic(...,{garde:true})`) ; la phrase du boost
   (`INSTRU`) joue avec la MUSIQUE coupée ; sons absents de la banque (`singe.troupe`, `aura.moyenne`) ; onglets du garage à 28 px de haut
-  et rappel OFFRES à 38 px (règle des 44 px) ; après une mort lancée depuis CARRIÈRE/MISSIONS, HOME ramène à l'accueil.
+  et rappel OFFRES à 38 px (règle des 44 px) ; après une mort lancée depuis CARRIÈRE/MISSIONS, HOME ramène à l'accueil ; JADE : le 2e tour
+  après l'ARRIVÉE est VIDE (pièces et fruits ramassés ne reviennent pas, plots couchés) et `jadeChauffe()` n'est appelée nulle part.
 
+## LES GAINS QUI FLOTTENT PUIS TOMBENT DANS LEUR JAUGE — AURA ET NITRO (2026-10-12, Léo : « quand on gagne de l'aura, n'importe quoi, ça arrive dans l'écran en mode flottement, et après ça tire, la gravité, vers la jauge — quand on fait des figures, quand on tombe sur un truc de nitro la jauge part en couille »)
+- Bloc JS « LES GAINS QUI FLOTTENT… » (`VOLG`, `volgLance`, `volgNitro`, `volgTick`, `volgArrive`, `volgVide`, `nbPrend`), juste après `ajLance`,
+  appelé en fin d'`ajTick`. UN moteur, simulé à l'image (plus de keyframes WAAPI) : le gain JAILLIT de la caisse à l'écran (ou de la boîte de
+  la chaîne encaissée), FLOTTE ~0,4 s (l'air le freine, il ondule), puis la jauge l'ATTIRE (gravité qui grandit, travers freiné) jusqu'au BOUT
+  DU PLEIN suivi en direct ; arrivée ≈ 0,7-0,8 s : la jauge bat, un anneau de pixels (`#ajVols u`), et c'est LÀ qu'elle monte.
+- L'AURA : « +N » 14 px (12 avant) vers la jauge d'aura (`AJ.envol` inchangé). LA NITRO : un ÉCLAIR pixel 24 px — orange vers le bout du
+  réservoir (`nitroGain` : pose, figure, bump, pads, drift…), BLEU vers le bout de la réserve (les fruits) ; nées au même instant = une seule
+  qui grossit. La RESSOURCE est à toi dès la prise : seul l'affichage attend — la boucle dessine `nitroR − VOLG.n.r` / `nitroX − VOLG.n.x`
+  (plein, à sec, anneau du bouton compris). Fini le `.gain` (flash ×2,2 de TOUTE la barre, km/h compris : « la jauge part en couille ») →
+  `.nbPrend`, un éclat au bout du plein seulement. Gains < 0,03 (rase-bord) : directs, sans éclat.
+- 12 en vol au plus, au-delà / « Réduire les animations » / hors course : direct. Console `dbgVols()` · `dbgVols('a'|'n'|'x',q)` ·
+  `dbgVols('ralenti',.1)` (le ralenti du banc). Comparaison : `photos-gameplay/comparaison-gains-qui-flottent.jpg` (CAR CAHS V3).
 ## LE NIVEAU « SOLEIL DE JADE » — la map des PICS DE JADE en vrai niveau, au simulateur (2026-10-12, Léo : « là, il n'y a pas de fruits, tout ça : fais-en un niveau complet avec ses aspects — fruits custom, pièces ¥ yuan yen — qu'on ajoute au système audio pour tester, référencé par un nom que tu choisis »)
 - La map (section « LES PICS DE JADE » plus bas, branche `map-jade` FUSIONNÉE dans le main ce jour-là) a désormais deux usages : la BALADE
   `?map=jade` (la voiture seule, inchangée) et le NIVEAU **SOLEIL DE JADE** (`JADE_NOM` ; nom choisi par Claude — la map, elle, reste
@@ -54,6 +68,28 @@ n'a été rebasculé. Corrigé :
   d'origine). RICH_FRUIT_R allongé.
 - AU SIMULATEUR : la map « PICS DE JADE », niveau « SOLEIL DE JADE » (`lance:{jade:true}` → dbgNiveauJade, simulateur/maps.js et course.html),
   photo `maps-ciel/img/jade-volant.jpg`. Pas de musique par défaut : Léo choisit (pastille ♪).
+- (12/10, Léo : « plus de zoom, plutôt des pièces ARGENTÉES, comme celles qu'on connaît, avec un CARRÉ au milieu ; le ciel plus ORANGÉ »)
+  la route (style 4) = des pièces d'ARGENT à TROU CARRÉ, 1,5 × plus grandes (Ø 1,9-2,3 m), chacune sa nuance et l'angle de son carré ;
+  plus d'étoile. Le ciel : orange du soir (jdH/jdM/jdL orange, zénith bleu-mauve), brume et lumière orangées.
+- (12/10 soir, Léo : « le ciel, un mélange de gris, bleu, orangé ; le bord de la route pas tout lisse, ce sont les PIÈCES qui DÉPASSENT ;
+  lance-le comme la map qui se déclenche quand on appuie sur JOUER, avec CETTE musique-là ; on retouchera la map directement sur le main »)
+  · LE JOUER (accueil `mTap('play')` et garage `garJouer`) lance le SOLEIL DE JADE (`jadeJouer`, `jadePlayOk` : `JADE_PLAY`, pas Poki, pas
+    le parc/Survivant armés, et JAMAIS pour un tout premier joueur : l'auto-école d'abord). `?play=sansfin` (ou `carriere`) rend l'ancien JOUER
+    — le simulateur charge le jeu avec `?play=sansfin` et lance le jade par `dbgNiveauJade` (= jadeJouer).
+  · SA MUSIQUE : GLISSE V2 (choix de Léo au simulateur, choix-musiques.json) — la COPIE `assets/audio/music/musique-glisse-v2.js` (le
+    simulateur est retiré du site : si Léo retouche son module, recopier le fichier ici). `JMUS` : chargé dès le démarrage (import dynamique),
+    joue tant que la course tourne (pause, mort, menu, appli cachée, interrupteur MUSIQUE : il se tait), intensité = 5 paliers (moteurs 1-5 ·
+    6-10 · 11-15 · 16-20 · 21-30 → setTier(P, 5)), volume = curseur MUSIQUE (VOL.mus/.62) ; la radio se tait sur ce niveau (musicPlayCurrent,
+    musicNext, frenMus). Réveillé dans le geste du JOUER, relancé une fois au 1er toucher (Safari). Console `dbgJadeMus()`.
+  · LE CIEL : orange en bas, un gris chaud au milieu, gris-bleu en haut (sat 1,08).
+  · LES PIÈCES DU BORD (`jadePiecesBord`, `JADE_PB`, `JADE.decoPieces`, route style 4 seulement) : de vraies pièces d'argent à trou carré
+    (disque à 12 pans + tranche, la texture percée : alphaTest) tous les ~1,2 m de chaque bord, à cheval sur l'arête, penchées, une sur sept
+    avec une autre de biais dessus ; tronçons de 700 m dessinés à moins de 450 m. `dbgJadePoste('bordPieces',on)`, vue `dbgJadeVue('bord')`.
+- (12/10 nuit, Léo : « la voiture a l'air enfoncée dans les pièces » · « l'argent, mais un peu bronze ou un peu de reflet or, pour le relief de la
+  couleur » · « tu as du mal à enlever la barre lisse : fais la route plus fine, sur deux pièces ») : `THICK` devient un let — 30 cm (deux
+  pièces) aux PICS DE JADE, 2,6 m partout ailleurs (posé en tête de buildTrack) ; `JADE_LEVE` 12 cm : la caisse posée sur le DESSUS des pièces
+  (route style 4) ; les pièces : argent froid · argent chaud au reflet d'or · BRONZE · argent bleuté, leurs reflets teintés pareil ; les
+  pièces du bord en argent chaud.
 - Banc : `dbgJadePoste('ramasse')` (pièces, fruits par nom, pouvoirs, plots, plaques, flaques). MESURÉ : 650 pièces, ~16 fruits, 20 pouvoirs,
   300 plots, 8 plaques par passage ; en course : pièces ramassées, défis (« EAT 4 FRUITS »), paliers moteur, aimant, jus des fruits.
 
@@ -181,6 +217,10 @@ caisse ou un habillage à toi s'équipe quand on le touche, un achat équipe) �
 **L'INVENTAIRE D'ARRIVÉE (2026-10-12, Léo)** : le garage s'ouvre sur l'INVENTAIRE (`gGarageInv`, `#garage.modeInv`), les cinq touches dessous (HOME · INVENTAIRE au-dessus de BOUTIQUE · l'œil · JOUER) ;
 INVENTAIRE ne devient plus RETOUR ; BOUTIQUE → ◀ RETOUR, les autres touches s'effacent, RETOUR ramène à l'inventaire. Le rappel OFFRES ÉPHÉMÈRES (`#gRappel`)
 reste sous l'inventaire debout, masqué couché (pas la place). Le garage replié (`gGarageReplie`) n'est plus appelé.
+**L'ATELIER FERMÉ (même soir)** : INVENTAIRE touché (`gAtelier`, `GATL`, `#garage.atelierInv`) → la porte descend (`GATL.cs` dans garPorte), une lampe descend du plafond et
+s'allume (clé `stallKey` au-dessus, tubes baissés, cône + flaque additifs), une PINCE par roue sort du plateau (colonne, barre en travers de la jante, griffes
+jaunes, diode verte = tenue ; `garPincesPose` lit `wheels`) ; ni burn-out ni coup ; INVENTAIRE devient ◀ RETOUR à gauche, le reste s'efface, l'inventaire en grille
+de trois. `garAtelierTick` après les lampes de garageRender. Banc : `dbgAtelierInv(1|0)` (⚠ `dbgAtelier` est un autre crochet).
 TOUT le rangement vit dans **`<style id="uxPasse">`**, la DERNIÈRE feuille de la page (juste après `<style id="poki">`) : retirer le bloc = revenir.
 Le HTML, les identifiants et les écouteurs ne bougent pas, sauf HOME et l'œil (voir plus bas). Règles : on LIT en haut, on TOUCHE en bas ; un
 rôle = une place ; l'action principale = l'unique plaque d'or ; mêmes hauteurs sur une rangée ; 44 px au doigt ; la VUE flotte sur la scène,
