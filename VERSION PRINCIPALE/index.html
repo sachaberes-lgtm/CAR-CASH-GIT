@@ -6513,7 +6513,7 @@ html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT{width
 /* LA BOUTIQUE INDUSTRIELLE (essai, voir garBqIndus) — le GLITCH, l'EN-TÊTE, les ÉTIQUETTES et leurs FILS */
 #gGlitch{position:fixed;inset:0;z-index:59;pointer-events:none;opacity:0;overflow:hidden}
 #gGlitch.go{animation:gGlitchO .72s linear forwards}
-#gGlitch i{position:absolute;left:-10%;right:-10%;height:6%;mix-blend-mode:screen;background:linear-gradient(90deg,transparent,rgba(255,106,19,.42) 18%,rgba(230,236,244,.55) 52%,rgba(255,255,255,.2) 70%,transparent)}
+#gGlitch i{position:absolute;left:-10%;right:-10%;height:6%;mix-blend-mode:screen;background:linear-gradient(90deg,transparent,rgba(255,255,255,.6) 18%,rgba(200,210,222,.55) 52%,rgba(255,106,19,.25) 70%,transparent)}
 #gGlitch i:nth-child(1){top:14%;height:3%}#gGlitch i:nth-child(2){top:31%;height:8%}#gGlitch i:nth-child(3){top:47%;height:2%}#gGlitch i:nth-child(4){top:62%;height:5%}#gGlitch i:nth-child(5){top:80%;height:3%}
 #gGlitch.go i{animation:gGlitchBande .72s steps(7,end)}
 #gGlitch.go i:nth-child(2n){animation-direction:reverse}
@@ -6527,54 +6527,73 @@ body.gGlitchOn>canvas{animation:gCvJit .5s steps(5,end)}
 html.bqIndus body #garage #gBq{display:block;position:absolute;inset:0;pointer-events:none;z-index:6}
 html.bqIndus body #garage #gTop{visibility:hidden!important} /* (la place reste : la console est calée en flex sous elle) */
 html.bqIndus #gTourne{display:none!important}
+html.bqIndus body #garage::before,html.bqIndus body #garage::after{display:none!important} /* les voiles d'encre du haut et du bas du garage : l'espace reste blanc */
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gBottom{background:none!important;box-shadow:none!important;clip-path:none!important;padding-top:0}
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gBottom::before{display:none}
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) :is(#gTabs,#gRar,#gStrip,#gStrip.fnBande){display:none!important}
-#gBqTete{position:absolute;left:12px;right:12px;top:calc(var(--sT,0px) + 14px);display:grid;grid-template-columns:auto 1fr auto;grid-template-rows:auto auto;gap:8px 10px;align-items:start;font-family:var(--pix);pointer-events:none;animation:bqTete .4s var(--ease) both}
+/* L'INTERFACE v2 (voir garBqPanneau) : blanche, fine, du noir pour lire, l'orange pour ce qui est rare et pour ACHETER */
+#gBqTete{position:absolute;left:16px;right:16px;top:calc(var(--sT,0px) + 16px);display:flex;align-items:center;justify-content:space-between;font-family:var(--pix);animation:bqTete .4s var(--ease) both}
 @keyframes bqTete{from{opacity:0;translate:0 -14px}to{opacity:1;translate:0 0}}
-#gBqTete .bqT1{grid-row:1/3;display:flex;flex-direction:column;gap:7px;padding:10px 14px 10px 12px;background:#16181c;border-left:4px solid #ff6a13;box-shadow:0 5px 0 rgba(10,11,13,.3)}
-#gBqTete .bqT1 b{font-weight:400;font-size:18px;letter-spacing:3px;color:#fff}
-#gBqTete .bqT1 span{font-size:8px;letter-spacing:2px;color:#ff8a3d}
-#gBqTete .bqT2{grid-column:1;grid-row:3;justify-self:start;display:flex;align-items:center;gap:6px;padding:6px 9px;background:#f2f3f4;border:2px solid #16181c;color:#16181c;font-size:9px;letter-spacing:1px}
-#gBqTete .bqT2 .pxi{--pxs:1;color:#16181c}
-#gBqTete .bqT2 em{font-style:normal;font-variant-numeric:tabular-nums}
-#gBqTete .bqArg{grid-column:3;grid-row:1;display:flex;align-items:center;gap:7px;padding:9px 11px;background:#16181c;color:#7dff9b;font-size:11px;letter-spacing:1px;box-shadow:0 4px 0 rgba(10,11,13,.3)}
+#gBqTete .bqT1 b{display:block;font-weight:400;font-size:18px;letter-spacing:4px;color:#14171c}
+#gBqTete .bqT1 b::after{content:'';display:block;width:30px;height:3px;margin-top:9px;background:#ff6a13}
+#gBqTete .bqArg{display:flex;align-items:center;gap:7px;padding:9px 12px;background:rgba(255,255,255,.9);box-shadow:0 0 0 1px #dde1e6,0 8px 20px rgba(30,40,55,.06);color:#14171c;font-size:11px;letter-spacing:1px}
 #gBqTete .bqArg b{font-weight:400}
-#gBqTete .bqArg .pxi{--pxs:2;color:#ffd75e}
-#gBqTete .bqTout{grid-column:3;grid-row:2;justify-self:end;display:flex;align-items:center;gap:6px;min-height:36px;padding:0 10px;background:#f2f3f4;border:2px solid #16181c;color:#16181c;font-size:8px;letter-spacing:1px;pointer-events:auto;cursor:pointer;box-shadow:0 3px 0 rgba(10,11,13,.3)}
-#gBqTete .bqTout .pxi{--pxs:1;color:#ff6a13}
-#gBq:not(.cartes) .bqTout{display:none}
-#gBqFils{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none}
-#gBq:not(.cartes) #gBqFils,#gBq:not(.cartes) #gBqCartes{display:none}
-#gBqFils .bqF{fill:none;stroke:#1b1d22;stroke-width:2.6;stroke-linecap:round;opacity:.92}
-#gBqFils .bqFl{fill:none;stroke:rgba(255,255,255,.4);stroke-width:1;stroke-linecap:round}
-#gBqFils .bqF.sel{stroke:#ff6a13;stroke-width:3.2;opacity:1}
-#gBqFils .bqFl.sel{stroke:#fff6ea;stroke-width:1.4;stroke-dasharray:4 12;animation:bqCourant .55s linear infinite}
-@keyframes bqCourant{to{stroke-dashoffset:-16}}
-#gBqFils .bqFb{fill:#1b1d22;stroke:#f4f5f6;stroke-width:1.5}
-#gBqFils .bqFb.sel{fill:#ff6a13;stroke:#fff}
-#gBqCartes .bqC{position:absolute;display:flex;flex-direction:column;pointer-events:auto;cursor:pointer;background:#f4f5f6;border:2px solid #16181c;box-shadow:0 5px 0 rgba(10,11,13,.32);font-family:var(--pix);color:#16181c;overflow:hidden;
-  animation:bqPose .42s cubic-bezier(.2,1.4,.4,1) both;animation-delay:calc(.15s + var(--i) * 60ms);transition:translate .15s,box-shadow .15s}
-@keyframes bqPose{from{opacity:0;scale:.6}to{opacity:1;scale:1}}
-#gBqCartes .bqC .bqFig{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#eceef1,#d4d8dc);border-bottom:2px solid #16181c;overflow:hidden}
-#gBqCartes .bqC .bqPhC{display:flex;align-items:center;justify-content:center;width:100%;height:100%}
-#gBqCartes .bqC .bqPhC img{width:122%;max-width:none}
-#gBqCartes .bqC .bqSw{width:52%;aspect-ratio:1;border:2px solid #16181c;box-shadow:inset 0 0 0 3px rgba(255,255,255,.35)}
-#gBqCartes .bqC .bqRub{width:84%;height:12px;border:2px solid #16181c}
-#gBqCartes .bqC .bqFig .pxi{--pxs:4;color:#16181c}
-#gBqCartes .bqC .bqCat{display:flex;align-items:center;gap:5px;padding:5px 6px 0;font-size:8px;letter-spacing:1px;color:#5d636b}
-#gBqCartes .bqC .bqCat u{flex:none;width:7px;height:7px;background:var(--rc);box-shadow:0 0 0 1px #16181c}
-#gBqCartes .bqC .bqN{padding:4px 6px 5px;font-size:8px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#gBqCartes .bqC .bqP{padding:6px;background:#ff6a13;color:#16181c;font-size:9px;letter-spacing:1px;border-top:2px solid #16181c;white-space:nowrap;overflow:hidden}
-#gBqCartes .bqC .bqP.acq{background:#16181c;color:#cfd3d8}
-#gBqCartes .bqC.sel{translate:0 -3px;box-shadow:0 0 0 3px #ff6a13,0 8px 0 rgba(10,11,13,.32)}
-#gBqCartes .bqC:is(:active,.appui){translate:0 2px}
-@media (prefers-reduced-motion:reduce){#gBqCartes .bqC,#gBqTete{animation:none}#gBqFils .bqFl.sel{animation:none}}
+#gBqTete .bqArg .pxi{--pxs:2;color:#14171c}
+#gBqPan{position:absolute;display:none;flex-direction:column;justify-content:flex-end;gap:12px;pointer-events:none}
+#gBq.pan #gBqPan{display:flex;animation:bqPan .45s var(--ease) both}
+@keyframes bqPan{from{opacity:0;translate:0 18px}to{opacity:1;translate:0 0}}
+#gBqPan .bqInfo{text-align:center;font-family:var(--pix)}
+#gBqPan.cote .bqInfo{text-align:left}
+#gBqPan .bqI1{display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap}
+#gBqPan.cote .bqI1{justify-content:flex-start}
+#gBqPan .bqRar{padding:5px 9px;background:#fff;box-shadow:0 0 0 1px #dde1e6;color:#14171c;font-size:8px;letter-spacing:2px;display:inline-flex;align-items:center;gap:7px}
+#gBqPan .bqRar::before{content:'';width:8px;height:8px;background:var(--rc)}
+#gBqPan .bqLim{display:none;align-items:center;gap:6px;padding:5px 9px;background:#ff6a13;color:#14171c;font-size:8px;letter-spacing:1px}
+#gBqPan .bqLim .pxi{--pxs:1;color:#14171c}
+#gBqPan .bqLim em{font-style:normal;font-variant-numeric:tabular-nums}
+#gBqPan .bqLim::before{content:'EDITION LIMITEE ·';letter-spacing:1px}
+#gBqPan .bqInfo.lim .bqLim{display:inline-flex}
+#gBqPan .bqNom{margin-top:10px;font-size:20px;letter-spacing:2px;color:#14171c;line-height:1.2}
+#gBqPan .bqSous{margin-top:7px;font-family:var(--sans);font-size:12px;letter-spacing:.2px;color:#7f8893}
+#gBqPan .bqOng{display:flex;gap:4px;padding:4px;background:rgba(255,255,255,.75);box-shadow:0 0 0 1px #dde1e6;pointer-events:auto}
+#gBqPan .bqOng button{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;min-height:38px;padding:0 6px;border:0;background:none;font-family:var(--pix);font-size:8px;letter-spacing:1px;color:#7f8893;cursor:pointer}
+#gBqPan .bqOng button.on{background:#14171c;color:#fff}
+#gBqPan .bqOng button i{font-style:normal;color:#ff6a13}
+#gBqPan .bqRail{display:flex;gap:10px;overflow-x:auto;overflow-y:hidden;padding:2px 2px 10px;scroll-snap-type:x proximity;touch-action:pan-x;overscroll-behavior:contain;pointer-events:auto;scrollbar-width:none}
+#gBqPan .bqRail::-webkit-scrollbar{display:none}
+#gBqPan.cote .bqRail{flex-wrap:wrap;overflow-x:hidden;overflow-y:auto;touch-action:pan-y;min-height:0;flex:1;align-content:flex-start;scroll-snap-type:y proximity}
+#gBqPan .bqK{position:relative;flex:none;width:106px;display:flex;flex-direction:column;background:#fff;box-shadow:0 0 0 1px #dde1e6,0 8px 20px rgba(30,40,55,.07);scroll-snap-align:start;cursor:pointer;font-family:var(--pix);
+  animation:bqK .38s cubic-bezier(.2,1.3,.4,1) both;animation-delay:calc(var(--i) * 45ms);transition:translate .15s,box-shadow .15s}
+@keyframes bqK{from{opacity:0;translate:0 12px}to{opacity:1;translate:0 0}}
+#gBqPan .bqK::after{content:'';position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--rc)}
+#gBqPan .bqK .bqKph{height:60px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:linear-gradient(180deg,#f8f9fb,#eceff3)}
+#gBqPan .bqK .bqKph img{width:118%;max-width:none}
+#gBqPan .bqK .bqKn{padding:7px 7px 0;font-size:8px;color:#14171c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#gBqPan .bqK .bqKp{padding:6px 7px 9px;font-size:8px;color:#14171c}
+#gBqPan .bqK .bqKp.eur{color:#c4560d}
+#gBqPan .bqK .bqKp:is(.acq,.defi){color:#8a929c}
+#gBqPan .bqK .bqKl{position:absolute;top:6px;left:6px;padding:4px 6px;background:#ff6a13;color:#14171c;font-size:8px;letter-spacing:1px}
+#gBqPan .bqK.eph{width:148px}
+#gBqPan .bqK.eph .bqKph{height:84px}
+#gBqPan.cote .bqK{width:calc((100% - 20px) / 3)}
+#gBqPan.cote .bqK.eph{width:calc((100% - 20px) / 3)}
+#gBqPan.cote .bqK .bqKph,#gBqPan.cote .bqK.eph .bqKph{height:46px}
+#gBqPan.cote .bqK .bqKl{top:4px;left:4px;padding:3px 4px}
+#gBqPan.cote{gap:9px}
+#gBqPan.cote .bqNom{margin-top:7px;font-size:16px}
+#gBqPan.cote .bqSous{margin-top:5px;font-size:11px}
+#gBqPan.cote .bqOng button{min-height:32px}
+#gBqPan .bqK.sel{box-shadow:0 0 0 2px #14171c,0 10px 24px rgba(30,40,55,.16);translate:0 -2px}
+#gBqPan .bqK:is(:active,.appui){translate:0 2px}
+@media (prefers-reduced-motion:reduce){#gBqPan .bqK,#gBq.pan #gBqPan,#gBqTete{animation:none}}
 /* RETOUR et ACHETER, aux couleurs du magasin : droits, noir et orange */
-html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>:is(#gShopBas,#gEquip.achat){background:#16181c!important;background-image:none!important;outline:2px solid #16181c;outline-offset:-2px;box-shadow:0 5px 0 rgba(10,11,13,.35)!important;filter:none!important;clip-path:none!important;transform:none!important;translate:none!important;color:#fff}
+html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>:is(#gShopBas,#gEquip.achat){background:rgba(255,255,255,.92)!important;background-image:none!important;outline:2px solid #16181c;outline-offset:-2px;box-shadow:0 5px 0 rgba(10,11,13,.35)!important;filter:none!important;clip-path:none!important;transform:none!important;translate:none!important;color:#fff}
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>:is(#gShopBas,#gEquip.achat)::before,html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>:is(#gShopBas,#gEquip.achat)::after{display:none!important}
-html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas :is(span,.pxi){transform:none!important;color:#fff}
+html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas :is(span,.pxi){transform:none!important;color:#14171c!important}
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas .pxi{color:#ff6a13!important}
+html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas{background:rgba(255,255,255,.92)!important;outline:0;box-shadow:0 0 0 1px #d6dbe0,0 8px 20px rgba(30,40,55,.1)!important}
+html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas span{color:#14171c!important}
+html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gEquip.achat{outline:0;box-shadow:0 10px 24px rgba(255,106,19,.3)!important}
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gEquip.achat{background:#ff6a13!important;box-shadow:0 5px 0 #8f3305!important}
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gEquip.achat :is(.gEqV,.gEqP,.gEqP.eur){color:#16181c!important;text-shadow:none!important;transform:none!important}
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gEquip.achat .gEqP{font-size:var(--f3)!important}
@@ -42008,17 +42027,28 @@ function garPinceNeuve(hy,R,lw){ // une pince : repère local x = vers l'EXTÉRI
   P.barre=b(M.chrome,.06,.07,1);                                  // la BARRE en travers de la jante, à hauteur du moyeu
   P.gAv=b(M.jaune,1,.09,.07);P.gAr=b(M.jaune,1,.09,.07);           // les deux GRIFFES qui se referment sur la bande du pneu, devant et derrière
   return P;}
+function garRoues(){ /* (2026-10-12, Léo : « les trucs tournaient et traversaient la voiture ») les roues de la caisse AFFICHÉE, mesurées sur
+     elle : chaque ESSIEU (groupe userData.essieu) porte ses deux roues SOUDÉES en un maillage — sa boîte donne le flanc extérieur de chaque
+     côté, la hauteur du moyeu et le rayon. La liste globale `wheels` ne tient que les roues d'avant la soudure (détachées). Repli : des
+     roues encore à part (userData.R) avant la soudure. Rend un côté par entrée : {sx, xo (flanc, |x|), y, z, R}. */
+  const L=[],bb=GATL._bb||(GATL._bb=new THREE.Box3()),b9=GATL._b9||(GATL._b9=new THREE.Box3());
+  for(const o of carGroup.children){const u=o.userData||{};
+    if(u.essieu){bb.makeEmpty();for(const m of o.children){if(!m.geometry)continue;if(!m.geometry.boundingBox)m.geometry.computeBoundingBox();b9.copy(m.geometry.boundingBox).applyMatrix4(m.matrix);bb.union(b9);}
+      if(bb.isEmpty())continue;const R=Math.max(.2,(bb.max.y-bb.min.y)/2),y=o.position.y+(bb.max.y+bb.min.y)/2,z=o.position.z+(bb.max.z+bb.min.z)/2;
+      L.push({sx:1,xo:Math.max(.05,o.position.x+bb.max.x),y:y,z:z,R:R});L.push({sx:-1,xo:Math.max(.05,-(o.position.x+bb.min.x)),y:y,z:z,R:R});}
+    else if(u.R!=null&&o.children.length){const x=o.position.x,lw=u.large||.3;
+      for(const sx of (Math.abs(x)<.05?[-1,1]:[Math.sign(x)]))L.push({sx:sx,xo:Math.abs(x)+lw/2,y:o.position.y,z:o.position.z,R:u.R});}}
+  return L;}
 function garPincesPose(cle){
   GATL.cle=cle;const pg=GATL.pg;GATL.pinces.length=0;while(pg.children.length)pg.remove(pg.children[0]); // géométries et matières partagées : rien à libérer
-  for(const w of wheels){if(!w.children.length)continue;const x=w.position.x,lw=w.userData.large||.3,hy=w.position.y;
-    for(const sx of (Math.abs(x)<.05?[-1,1]:[Math.sign(x)])){const P=garPinceNeuve(hy,w.userData.R||.4,lw);P.o.position.set(sx*(Math.abs(x)+lw/2+.02),0,w.position.z);P.o.scale.x=sx;pg.add(P.o);GATL.pinces.push(P);}}}
+  for(const w of garRoues()){const P=garPinceNeuve(w.y,w.R,.3);P.o.position.set(w.sx*(w.xo+.02),0,w.z);P.o.scale.x=w.sx;pg.add(P.o);GATL.pinces.push(P);}}
 function garAtelierTick(dt,ay){
   const on=GATL.on&&garageOn&&!GAR.go&&!!gEl&&!gEl.classList.contains('menu');
   if(GATL.on&&!on&&GAR.go){GATL.on=false;try{gModeBoutons();}catch(e){}} // JOUER (clavier) : l'atelier se rouvre d'un coup, la porte suit le lâcher
   const ap=(v,t,r)=>v+Math.max(-r*dt,Math.min(r*dt,t-v)),sm=u=>{u=u<0?0:u>1?1:u;return u*u*(3-2*u);};
   GATL.c=ap(GATL.c,on?1:0,on?1/.9:1/.7);GATL.cs=sm(GATL.c);
   GATL.l=ap(GATL.l,on&&GATL.c>.5?1:0,on?1/.45:1/.3);
-  const cle=garageI+':'+(carBody?carBody.children.length:0)+':'+wheels.length,veut=on&&GATL.c>.62&&!GAR.sw&&GATL.cle===cle;
+  const cle=garageI+':'+(carBody?carBody.children.length:0)+':'+carGroup.children.length,veut=on&&GATL.c>.62&&!GAR.sw&&GATL.cle===cle;
   GATL.p=ap(GATL.p,veut?1:0,veut?1/.9:1/.4);
   if(GATL.l>.06&&!GATL.sonL){GATL.sonL=1;try{if(SONV2)sfx('ui.on');}catch(e){}}if(GATL.l<.01)GATL.sonL=0;
   if(GATL.p>.985&&!GATL.sonP){GATL.sonP=1;try{if(SONV2)sfx('garage.tole');}catch(e){}try{hap(8);}catch(e){}}if(GATL.p<.5)GATL.sonP=0;
@@ -42040,7 +42070,7 @@ function garAtelierTick(dt,ay){
   if(b>0){GATL.v.set(0,ay+yA-.6,.35);stallKey.position.lerp(GATL.v,b);stallKey.intensity+=.85*b;stallKey.color.lerp(GATL.cK,b);stallKey.distance=Math.max(stallKey.distance,22);}
   stallRim.intensity*=1-.5*GATL.cs;
   // LES PINCES : elles tournent avec le plateau, sous la caisse
-  const pg=GATL.pg;pg.position.set(carGroup.position.x,carGroup.position.y-ay,carGroup.position.z);pg.rotation.y=carGroup.rotation.y;pg.visible=GATL.p>.001;
+  const pg=GATL.pg;pg.position.set(carGroup.position.x,carGroup.position.y-ay,carGroup.position.z);pg.quaternion.copy(carGroup.quaternion); /* (2026-10-12, Léo : « les trucs tournaient avec la plaque et traversaient la voiture ») l'orientation ENTIÈRE : dès qu'un quaternion oriente la caisse (la boutique qui la fait flotter), son angle Y d'Euler n'est plus son cap (au-delà de 90° il se décompose en (π, π−θ, π)) — les pinces tournaient à l'envers du plateau */pg.visible=GATL.p>.001;
   const p=GATL.p,ouv=sm(p/.12),mo=sm((p-.08)/.45),br=sm((p-.5)/.3),se=sm((p-.8)/.2),tenu=p>.985;
   GATL.M.led.color.setHex(tenu?0x3dff8a:0x5ff0ff);GATL.M.led.emissive.setHex(tenu?0x1fb85a:0x2fb8d0);
   for(const P of GATL.pinces){const H9=P.H,dz=-(H9+.3)*(1-mo),xb=P.x0-(P.x0-.02)*br,L9=Math.max(.001,(P.x0-.02)*br);
@@ -42050,6 +42080,8 @@ function garAtelierTick(dt,ay){
     const zB=(P.R+.05)*(.08+.92*br),lg=.02+(P.lw*.75+.04)*se;P.barre.scale.z=2*zB;P.barre.position.set(xb-.01,dz+P.hy,0);P.barre.visible=br>.01;
     P.gAv.scale.x=P.gAr.scale.x=lg;P.gAv.position.set(xb+.02-lg/2,dz+P.hy,zB);P.gAr.position.set(xb+.02-lg/2,dz+P.hy,-zB);P.gAv.visible=P.gAr.visible=br>.01;}
 }
+window.dbgPincesRoues=function(){if(!GATL.pg||!GATL.pinces.length)return null;const v=new THREE.Vector3(),w=new THREE.Vector3();carGroup.updateMatrixWorld(true);GAR.root.updateMatrixWorld(true);let mx=0; // (banc) l'écart de chaque pince à la roue la plus proche (m) — ~0,2 quand elles tiennent les roues
+  for(const P of GATL.pinces){P.o.getWorldPosition(v);let d=1e9;for(const r of garRoues()){w.set(r.sx*r.xo,r.y,r.z);carGroup.localToWorld(w);d=Math.min(d,v.distanceTo(w));}mx=Math.max(mx,d);}return {max:+mx.toFixed(3),angle:+(2*Math.acos(Math.min(1,Math.abs(GATL.pg.quaternion.dot(carGroup.quaternion))))).toFixed(4),p:+GATL.p.toFixed(2)};};
 window.dbgAtelierInv=function(on){if(on!=null){if(on&&GMODE.m!=='inv')gModeVa('inv');else gAtelier(on);}return {on:GATL.on,porte:+GATL.c.toFixed(2),lampe:+GATL.l.toFixed(2),pinces:+GATL.p.toFixed(2),n:GATL.pinces.length,cle:GATL.cle,porteE:GAR.porte?+GAR.porte.e.toFixed(2):null};};
 /* LE RAPPEL DE LA BOUTIQUE (2026-10-12, Léo : « qu'est-ce qu'on pourrait mettre au-dessus de HOME, tout ça ? » → « rappel de la boutique ») :
    au garage replié, une fine bande au-dessus des cinq touches — OFFRES ÉPHÉMÈRES, le compte à rebours, un reflet qui passe ; touchée, elle
@@ -43981,170 +44013,121 @@ function garGabarit(){
    FILS à chaque partie qu'ils modifient — une couleur rouge, une voiture ; un bouton ACHETER ; la voiture, on peut la tourner dans tous
    les sens, elle est en l'air ; rapetisse un peu la voiture du point de vue ») :
    · BOUTIQUE touchée : la caisse s'enfonce une fraction de seconde (le petit coup), BOUM (onde au sol, son de choc), elle bondit et flotte
-     à ~0,95 m (ressort sous-amorti, puis houle lente) ; au boum part le GLITCH (garGlitch), à son pic l'atelier s'éteint et LE MAGASIN
-     s'allume (GBQ.grp : sol d'époxy gris moucheté, plafond de dalles blanches, néons en lignes, rails de spots noirs, piliers, tables de
-     métal blanc et bacs noirs, pancartes PROMO orange — la photo de Léo, en low-poly) ; la lumière passe au blanc neutre (BQ_BIO) ;
+     à ~0,95 m (ressort sous-amorti, puis houle lente) ; au boum part le GLITCH (garGlitch), à son pic l'atelier s'éteint et L'ESPACE
+     BLANC s'allume (GBQ.grp, même soir — Léo : « lâche le magasin, plutôt un carré blanc futuriste, hors du temps ») : une sphère blanche,
+     un sol qui s'y fond, une grille en filigrane, deux anneaux fins sous la caisse ; la lumière passe au blanc de studio (bqBio) ;
    · le haut du garage (nom, rang, argent, aura) laisse la place à l'EN-TÊTE de la boutique (#gBqTete : BOUTIQUE · CETTE SEMAINE, le compte
      à rebours jusqu'au lundi, ton argent) ; la console ne garde que ◀ RETOUR et ACHETER ;
    · LA SEMAINE (bqHebdo : tirée par bqTire sur le numéro de la semaine, lundi UTC) : trois caisses à gauche, trois habillages à droite, en
-     ÉTIQUETTES de magasin (#gBqCartes) ; chacune est reliée par un FIL (#gBqFils, SVG redessiné chaque image) à la partie qu'elle change —
+     ÉTIQUETTES ; (même soir : remplacées par L'INTERFACE v2, voir garBqPanneau) chacune était reliée par un FIL à la partie qu'elle change —
      la caisse au toit, la peinture au flanc, l'aile à l'aileron, la traînée aux pots ; touchée, on l'ESSAIE (le fil s'allume en orange) ;
    · le doigt sur la scène TOURNE la caisse dans tous les sens (lacet libre avec élan, tangage ±60° qui revient doucement) ;
    · la caisse est plus petite à l'écran (les colonnes d'étiquettes la cadrent au milieu, la caméra recule).
    RETOUR : le glitch, l'atelier revient, la caisse se repose. Banc : dbgBqIndus(). */
 var GBQ={veut:false,on:false,t:9,bascule:true,k:0,kv:0,lev:0,levV:0,coupT:-1,boum:0,yaw:0,yawV:0,pit:0,pitV:0,grp:null,drag:null,cartesOn:false,ck:'',zone:null,hebdo:null,chocT:9,lay:''};
 function bqSem(){return Math.floor((Math.floor(Date.now()/864e5)+3)/7);} // les semaines commencent le LUNDI (UTC) — le 1er janvier 1970 était un jeudi
-function bqHebdo(){const w=bqSem();if(GBQ.hebdo&&GBQ.hebdo.w===w)return GBQ.hebdo; // tirée une fois par semaine et par session : ce qu'on achète y reste (ACQUIS)
-  const T=bqTire(90001+w),pr=function(k){return k[0]==='v'&&CAR_UNLOCK[+k.slice(2)]&&CAR_UNLOCK[+k.slice(2)].k==='premium';};
-  const V=T.filter(function(k){return k[0]==='v'&&!pr(k);}).slice(0,3),C=T.filter(function(k){return k[0]!=='v';}).slice(0,3),L=[];
-  for(let i=0;i<3;i++){if(V[i])L.push(V[i]);if(C[i])L.push(C[i]);}
-  return GBQ.hebdo={w:w,l:L};}
 function bqHebdoReste(){const ms=Math.max(0,((bqSem()+1)*7-3)*864e5-Date.now()),t=Math.floor(ms/1000),d=Math.floor(t/86400),d2=function(n){return (n<10?'0':'')+n;};
   return (d>0?d+(LANG==='fr'?'J ':'D '):'')+d2(Math.floor(t/3600)%24)+':'+d2(Math.floor(t/60)%60)+':'+d2(t%60);}
 function bqIndusVoulu(){const m=gModeM();return !!gEl&&garageOn&&(m==='shop'||m==='tous')&&!GAR.go&&!gEl.classList.contains('menu')&&!gEl.classList.contains('missions')&&!gEl.classList.contains('quiet')&&!gEl.classList.contains('launching');}
-function bqBio(){if(!bqBio._b)bqBio._b=Object.assign({},BIOMES.atelier,{nm:'MAGASIN',hemiS:[.96,.97,1],hemiG:[.46,.46,.48],hemiI:1.0,sunC:[1,1,1],sunI:.6,fillC:[.82,.84,.88],fillI:.2,
-  kickC:[1,.62,.3],kickI:.05,expo:.9,sat:1.1,con:1.06,bloomS:.2,bloomT:.97,vigK:.2,vigC:[.05,.05,.06],wb:[1,1,1],sh:[0,0,.004],hi:[0,0,0],rimK:0,rimS:.22});return bqBio._b;}
+function bqBio(){if(!bqBio._b)bqBio._b=Object.assign({},BIOMES.atelier,{nm:'MAGASIN',hemiS:[.98,.99,1],hemiG:[.62,.64,.68],hemiI:1.1,sunC:[1,1,1],sunI:.62,fillC:[.82,.84,.88],fillI:.2,
+  kickC:[1,.62,.3],kickI:.05,expo:1.08,sat:1.08,con:1.04,bloomS:.16,bloomT:.98,vigK:.08,vigC:[.05,.05,.06],wb:[1,1,1],sh:[0,0,.004],hi:[0,0,0],rimK:0,rimS:.22});return bqBio._b;}
 /* LE MAGASIN : bâti une fois (à la 1re visite de la boutique), dans un repère qui suit l'azimut de la caméra (+z = vers elle, l'allée file vers −z) */
-function garBqBatit(){if(GBQ.grp)return;
+function garBqBatit(){if(GBQ.grp)return; // (2026-10-12, Léo : « lâche le magasin… plutôt un carré blanc futuriste — on a trop de salles, la boutique c'est un truc hors du temps ») L'ESPACE BLANC
   const g=new THREE.Group();g.visible=false;scene.add(g);GBQ.grp=g;
-  const BX=new THREE.BoxGeometry(1,1,1),CY=new THREE.CylinderGeometry(.5,.5,1,12),PL=new THREE.PlaneGeometry(1,1);
-  const B=function(c,o){return new THREE.MeshBasicMaterial(Object.assign({color:c,fog:false},o||{}));},
-        L=function(c,e){return new THREE.MeshLambertMaterial({color:c,emissive:e||0,flatShading:true,fog:false});}; // les programmes de l'atelier : rien de neuf à compiler
-  const add=function(geo,mat,x,y,z,sx,sy,sz,par){const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.scale.set(sx,sy,sz);(par||g).add(m);return m;};
+  const B=function(c,o){return new THREE.MeshBasicMaterial(Object.assign({color:c,fog:false},o||{}));};
   const cvT=function(w,h,f){const cv=document.createElement('canvas');cv.width=w;cv.height=h;f(cv.getContext('2d'),w,h);const t=new THREE.CanvasTexture(cv);t.anisotropy=Math.min(4,renderer.capabilities.getMaxAnisotropy());return t;};
-  const X0=-16,X1=16,Z0=-40,Z1=30,HT=5.6,W=X1-X0,D=Z1-Z0,zc=(Z0+Z1)/2,wz=function(z){return (z-Z0)/D;},wx=function(x){return (x-X0)/W;};
-  const SP=[];for(const sx of [-1,1])for(let z=Z1-3;z>Z0+2;z-=3)SP.push([sx*6.2,z]); // les spots des rails (leurs flaques sont peintes au sol)
-  // LE SOL : époxy gris clair moucheté, les flaques des spots et des néons, une traînée de lumière dans l'allée
-  const tSol=cvT(1024,1024,function(x,w,h){x.fillStyle='#9fa4aa';x.fillRect(0,0,w,h);
-    const nap=function(px,py,r,a){const gr=x.createRadialGradient(px,py,0,px,py,r);gr.addColorStop(0,'rgba(255,255,255,'+a+')');gr.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=gr;x.fillRect(px-r,py-r,2*r,2*r);};
-    for(const sx of [-2.4,2.4]){const gr=x.createLinearGradient(wx(sx-2.6)*w,0,wx(sx+2.6)*w,0);gr.addColorStop(0,'rgba(255,255,255,0)');gr.addColorStop(.5,'rgba(255,255,255,.16)');gr.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=gr;x.fillRect(wx(sx-2.6)*w,0,wx(5.2)*w-wx(0)*w,h);}
-    for(const s of SP)nap(wx(s[0]*.82)*w,wz(s[1])*h,36,.22);
-    nap(wx(0)*w,wz(0)*h,150,.3);
-    for(let i=0;i<70000;i++){const r=Math.random();x.fillStyle=r<.55?'rgba(255,255,255,'+(.12+Math.random()*.3).toFixed(2)+')':'rgba(38,42,48,'+(.08+Math.random()*.22).toFixed(2)+')';x.fillRect(Math.random()*w,Math.random()*h,1+Math.random()*1.4,1+Math.random()*1.4);}
-    x.fillStyle='rgba(60,64,70,.25)';for(let z=Z0;z<Z1;z+=1.2)x.fillRect(0,wz(z)*h,w,1);});
-  const sol=add(PL,B(0xffffff,{map:tSol}),0,0,zc,W,D,1);sol.rotation.x=-Math.PI/2;
-  // LE PLAFOND : des dalles blanches de 60 cm (grille fine), un peu plus sombres au loin
-  const tPl=cvT(256,256,function(x,w,h){x.fillStyle='#eceef0';x.fillRect(0,0,w,h);x.fillStyle='#c4c8cc';for(let i=0;i<4;i++){x.fillRect(i*64,0,2,h);x.fillRect(0,i*64,w,2);}
-    for(let i=0;i<500;i++){x.fillStyle='rgba(150,155,160,.25)';x.fillRect(Math.random()*w,Math.random()*h,1,1);}});
-  tPl.wrapS=tPl.wrapT=THREE.RepeatWrapping;tPl.repeat.set(W/2.4,D/2.4);
-  const pla=add(PL,B(0xdfe2e5,{map:tPl}),0,HT,zc,W,D,1);pla.rotation.x=Math.PI/2;
-  // LES MURS : gris clair, plinthe sombre ; au fond une bande ORANGE (le mur de la photo) et une vitrine réfrigérée noire
-  const mur=function(lg,f){return cvT(Math.min(2048,Math.round(lg*40)),184,function(x,w,h){const gr=x.createLinearGradient(0,0,0,h);gr.addColorStop(0,'#e3e5e8');gr.addColorStop(1,'#c3c6ca');x.fillStyle=gr;x.fillRect(0,0,w,h);
-    x.fillStyle='#7d8288';x.fillRect(0,h-14,w,14);if(f)f(x,w,h);});};
-  const tFond=mur(W,function(x,w,h){x.fillStyle='#f0641e';x.fillRect(w*.06,30,w*.24,h-44);x.fillStyle='#1a1b1e';x.fillRect(w*.58,22,w*.34,h-36);
-    x.fillStyle='#eef6ff';for(let i=0;i<5;i++)x.fillRect(w*.58+8,30+i*26,w*.34-16,3);x.fillStyle='#fff';x.font='bold 22px sans-serif';x.fillText('PROMO',w*.1,70);});
-  add(PL,B(0xffffff,{map:tFond}),0,HT/2,Z0,W,HT,1);
-  const tCote=mur(D,function(x,w,h){for(let i=0;i<9;i++){const x0=i*w/9+18,lw=w/9-36;
-      if(i%3===1){x.fillStyle='#16171a';x.fillRect(x0,26,lw,h-40);x.fillStyle='#d9ecff';x.fillRect(x0+6,30,lw-12,3);for(let k=0;k<4;k++){x.fillStyle='rgba(220,236,255,.18)';x.fillRect(x0+6,44+k*30,lw-12,22);}}
-      else{x.fillStyle='#b98a55';x.fillRect(x0,30,lw,h-44);x.fillStyle='#8a6237';for(let k=0;k<4;k++)x.fillRect(x0,52+k*30,lw,5);
-        for(let k=0;k<4;k++)for(let j=0;j<12;j++){x.fillStyle=['#2b2f2a','#6b1f2a','#c9b27a','#3e5a2e'][(j+k+i)%4];x.fillRect(x0+6+j*(lw-12)/12,36+k*30,(lw-12)/12-3,14);}}}});
-  for(const sx of [-1,1]){const m=add(PL,B(0xffffff,{map:tCote}),sx*X1,HT/2,zc,D,HT,1);m.rotation.y=-sx*Math.PI/2;}
-  {const m=add(PL,B(0xd7dadd),0,HT/2,Z1,W,HT,1);m.rotation.y=Math.PI;}
-  // LES NÉONS en deux lignes, LES RAILS de spots noirs
-  const neon=B(0xffffff);for(const sx of [-2.4,2.4])for(let z=Z1-2;z>Z0+2;z-=4.2)add(BX,neon,sx,HT-.03,z,.16,.05,2.7);
-  const noir=L(0x17181b,0x050506),blanc=L(0xe9ebee,0x2a2c30),metal=L(0xb9bec4,0x1e2024),bois=L(0xb98a55,0x2a1d10),oran=L(0xff6a13,0x3a1204);
-  const lampe=B(0xfff4dc);
-  for(const sx of [-1,1]){add(BX,noir,sx*6.2,HT-.28,zc,.07,.07,D-4);
-    for(let z=Z1-6;z>Z0+3;z-=4)add(BX,noir,sx*6.2,HT-.14,z,.025,.28,.025);}
-  for(const s of SP){const sp=new THREE.Group();sp.position.set(s[0],HT-.36,s[1]);sp.rotation.z=(s[0]>0?1:-1)*.42;g.add(sp);
-    add(CY,noir,0,-.12,0,.16,.26,.16,sp);add(CY,lampe,0,-.255,0,.12,.012,.12,sp);}
-  // LES PILIERS, ronds, gris clair
-  for(const sx of [-1,1])for(const z of [-7,-20,-32])add(CY,blanc,sx*8.4,HT/2,z,.66,HT,.66);
-  // LES TABLES de métal blanc (plateau, pieds fins, tablette), des bacs noirs, des fruits, des pancartes PROMO
-  const fruits=[L(0xff8a1c,0x2e1404),L(0xffb32a,0x2e2205),L(0xe0412f,0x2e0906),L(0x7ab648,0x10200a),L(0xf4d23a,0x2e2805)];
-  const tPromo=cvT(128,96,function(x,w,h){x.fillStyle='#ff6a13';x.fillRect(0,0,w,h);x.fillStyle='#1a1b1e';x.font='bold 30px sans-serif';x.textAlign='center';x.fillText('PROMO',w/2,40);x.font='bold 34px sans-serif';x.fillText('-30%',w/2,80);});
-  const promoM=B(0xffffff,{map:tPromo});
-  const table=function(x,z,cont){const t=new THREE.Group();t.position.set(x,0,z);g.add(t);
-    add(BX,blanc,0,.82,0,1.7,.04,.95,t);add(BX,metal,0,.32,0,1.6,.03,.85,t);
-    for(const a of [[-.8,-.42],[.8,-.42],[-.8,.42],[.8,.42]])add(BX,metal,a[0],.41,a[1],.035,.82,.035,t);
-    for(let i=0;i<3;i++){add(BX,noir,-.55+i*.55,.95,0,.48,.2,.78,t);
-      if(cont)for(let k=0;k<6;k++)add(BX,fruits[(i*2+k+(z|0))%5],-.55+i*.55+((k%3)-1)*.13,1.1,(k<3?-.18:.18),.12,.12,.12,t);}
-    if(cont){add(BX,noir,.7,1.25,.38,.025,.8,.025,t);const p=add(PL,promoM,.7,1.72,.4,.56,.42,1,t);p.rotation.y=-.25;}
-    return t;};
-  for(const sx of [-1,1])for(const z of [-6,-12.5,-19,-25.5])table(sx*3.7,z,((z|0)+sx)%2!==0);
-  for(const sx of [-1,1])for(const z of [-9.5,-16])add(BX,noir,sx*10.6,.5,z,1.5,1,1.1);
-  for(const sx of [-1,1])for(const z of [-9.5,-16])for(let k=0;k<12;k++)add(BX,fruits[(k+(z|0))%5],sx*10.6-.55+(k%4)*.36,1.06,z-.33+Math.floor(k/4)*.33,.18,.12,.18);
-  // L'ÉTAL DE LA CAISSE : un socle bas, un filet orange, l'ombre qui se resserre quand elle monte
-  add(CY,blanc,0,.05,0,5.4,.1,5.4);
-  const anneau=new THREE.Mesh(new THREE.TorusGeometry(2.7,.03,4,72),B(0xff6a13));anneau.rotation.x=Math.PI/2;anneau.position.y=.105;g.add(anneau);
-  const tOmb=cvT(128,128,function(x,w,h){const gr=x.createRadialGradient(64,64,0,64,64,64);gr.addColorStop(0,'rgba(0,0,0,.6)');gr.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=gr;x.fillRect(0,0,w,h);});
-  GBQ.omb=add(PL,B(0x000000,{map:tOmb,transparent:true,opacity:.5,depthWrite:false}),0,.112,0,5,5,1);GBQ.omb.rotation.x=-Math.PI/2;GBQ.omb.renderOrder=1;
+  // LE FOND : une sphère retournée, blanc pur au zénith, gris perle à l'horizon — aucun mur, aucun coin
+  const R=60,tF=cvT(4,256,function(x,w,h){const gr=x.createLinearGradient(0,0,0,h);gr.addColorStop(0,'#ffffff');gr.addColorStop(.42,'#fafbfc');gr.addColorStop(.5,'#eceff2');gr.addColorStop(1,'#eceff2');x.fillStyle=gr;x.fillRect(0,0,w,h);});
+  const fond=new THREE.Mesh(new THREE.SphereGeometry(R,32,24),B(0xffffff,{map:tF,side:THREE.BackSide}));fond.renderOrder=-10;fond.material.color.setScalar(1.5);g.add(fond); /* (×1,5 : l'étalonnage du jeu tasse les blancs — le fond doit sortir BLANC) */ // (elle écrit la profondeur : rien du monde ne passe derrière)
+  // LE SOL : un disque immense, blanc au centre, fondu dans le gris de l'horizon au bord — le sol et le fond ne font qu'un (cyclo de studio)
+  const tS=cvT(512,512,function(x,w,h){const gr=x.createRadialGradient(w/2,h/2,0,w/2,h/2,w/2);gr.addColorStop(0,'#ffffff');gr.addColorStop(.25,'#f8f9fa');gr.addColorStop(1,'#eceff2');x.fillStyle=gr;x.fillRect(0,0,w,h);});
+  const sol=new THREE.Mesh(new THREE.CircleGeometry(R*.97,64),B(0xffffff,{map:tS}));sol.rotation.x=-Math.PI/2;sol.material.color.setScalar(1.42);g.add(sol);
+  // UNE GRILLE TRÈS FINE qui s'efface autour de la caisse (le futur, en filigrane)
+  const tG=cvT(1024,1024,function(x,w,h){const pas=w/40;x.strokeStyle='rgba(120,130,145,1)';x.lineWidth=1.2;
+    for(let i=0;i<=40;i++){x.beginPath();x.moveTo(i*pas,0);x.lineTo(i*pas,h);x.stroke();x.beginPath();x.moveTo(0,i*pas);x.lineTo(w,i*pas);x.stroke();}
+    x.globalCompositeOperation='destination-in';const gr=x.createRadialGradient(w/2,h/2,0,w/2,h/2,w/2);gr.addColorStop(0,'rgba(0,0,0,.34)');gr.addColorStop(.45,'rgba(0,0,0,.16)');gr.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=gr;x.fillRect(0,0,w,h);});
+  const gri=new THREE.Mesh(new THREE.PlaneGeometry(40,40),B(0xffffff,{map:tG,transparent:true,depthWrite:false}));gri.rotation.x=-Math.PI/2;gri.position.y=.004;gri.renderOrder=1;g.add(gri);
+  // SOUS LA CAISSE : deux anneaux fins qui tournent lentement (un gris, un arc orange), l'ombre douce qui se resserre quand elle monte
+  const a1=new THREE.Mesh(new THREE.RingGeometry(2.55,2.6,96),B(0x8d96a2,{transparent:true,opacity:.55,depthWrite:false}));a1.rotation.x=-Math.PI/2;a1.position.y=.008;a1.renderOrder=2;g.add(a1);
+  const a2=new THREE.Mesh(new THREE.RingGeometry(3.05,3.11,96,1,0,Math.PI*1.3),B(0xff6a13,{transparent:true,opacity:.8,depthWrite:false}));a2.rotation.x=-Math.PI/2;a2.position.y=.009;a2.renderOrder=2;g.add(a2);
+  GBQ.anneaux=[a1,a2];
+  const tOmb=cvT(128,128,function(x,w,h){const gr=x.createRadialGradient(64,64,0,64,64,64);gr.addColorStop(0,'rgba(20,24,30,.55)');gr.addColorStop(1,'rgba(20,24,30,0)');x.fillStyle=gr;x.fillRect(0,0,w,h);});
+  GBQ.omb=new THREE.Mesh(new THREE.PlaneGeometry(1,1),B(0x000000,{map:tOmb,transparent:true,opacity:.5,depthWrite:false}));GBQ.omb.rotation.x=-Math.PI/2;GBQ.omb.position.y=.01;GBQ.omb.renderOrder=3;g.add(GBQ.omb);
   // L'ONDE DU BOUM : dans la scène (elle part encore dans l'atelier)
   GBQ.choc=new THREE.Mesh(new THREE.RingGeometry(.86,1,56),new THREE.MeshBasicMaterial({color:0xffe2b8,transparent:true,opacity:0,depthWrite:false,fog:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide}));
   GBQ.choc.rotation.x=-Math.PI/2;GBQ.choc.visible=false;scene.add(GBQ.choc);
 }
 function garBqAmbiance(on){document.documentElement.classList.toggle('bqIndus',on);if(gEl)gEl.classList.toggle('bqIndus',on);garLibre._r=null;
   try{bioApply(on?bqBio():BIOMES.atelier);}catch(e){}}
-/* le fil d'une étiquette : la partie de la caisse qu'elle change (repère de la caisse : +z l'avant, la hauteur depuis le plateau) */
-function bqPoint(k,G,cote,out){const H=G.H,a=G.a,b=G.b;
-  if(k[0]==='v')out.set(0,H*.97,0);
-  else{const c=bqCos(k).cat;if(c==='peinture')out.set(cote*b*.98,H*.42,a*.1);else if(c==='aile')out.set(0,H*.9,-a*.86);else out.set(cote*b*.45,H*.26,-a*.98);}
-  return carGroup.localToWorld(out);}
-function bqCarteHtml(k,i){const ri=rarInfo(bqRar(k)),a=bqA(k);let nom,cat,px,fig;
-  if(k[0]==='v'){const n=+k.slice(2),u=CAR_UNLOCK[n]||{};nom=TR(CARS[n].name);cat='CAISSE';px=u.k==='premium'?eurTxt(u.eur):fmtC(u.p||0);fig='<i class="bqPhC" data-ph="'+n+'"></i>';}
-  else{const o=bqCos(k),d=o.d,hx=function(c9){return '#'+(c9>>>0).toString(16).padStart(6,'0');};nom=TR(d.n);px=fmtC(d.p||0);
-    cat=o.cat==='peinture'?'PEINTURE':o.cat==='aile'?'AILE':'TRAÎNÉE';
-    if(o.cat==='peinture')fig='<i class="bqSw" style="background:'+(d.grad?'linear-gradient(150deg,'+d.grad.map(hx).join(',')+')':hx(d.c||0xff7a3a))+'"></i>';
-    else if(o.cat==='trainee')fig='<i class="bqRub" style="background:'+(d.rainbow?'linear-gradient(90deg,#ff3b3b,#ff9b1a,#ffe23a,#3bff6a,#3bb4ff,#9b5bff)':'linear-gradient(90deg,transparent,'+(d.rgb?'rgb('+d.rgb.map(function(v){return Math.round(Math.min(1,v/1.45)*255);}).join(',')+')':'#ff6a14')+' 40%,#fff)')+'"></i>';
-    else fig=pxi('aile');}
-  return '<div class="bqC" data-k="'+k+'" role="button" style="--rc:'+ri.c+';--i:'+i+'" aria-label="'+String(nom).replace(/"/g,'')+'">'
-    +'<div class="bqFig">'+fig+'</div><div class="bqCat"><u></u>'+sansAcc(TR(cat))+'</div><div class="bqN">'+sansAcc(String(nom))+'</div>'
-    +'<div class="bqP'+(a?' acq':'')+'">'+(a?sansAcc(TR('ACQUIS')):String(px).replace(/</g,''))+'</div></div>';}
+/* L'INTERFACE DE LA BOUTIQUE v2 (2026-10-12, Léo : « la voiture bien placée : elle flotte assez haut, pas trop, au milieu ; autour, un
+   maximum de place pour une interface pro — c'est pour voir toutes les voitures, et on en profite pour des offres de voitures ÉPHÉMÈRES,
+   introuvables en jeu, pour créer de la rareté ; l'interface d'avant avait ce qu'il fallait mais ne parlait pas ») : plus de fils ni de
+   colonnes. En haut : BOUTIQUE et l'argent. Au milieu : la caisse seule (garLibre : la zone entre l'en-tête et le panneau). En bas, le
+   PANNEAU (#gBqPan) : la FICHE de la caisse affichée (rareté, ÉDITION LIMITÉE + compte à rebours, nom, ce qu'elle est), deux ONGLETS
+   (ÉDITIONS LIMITÉES : les caisses premium de la semaine, bqEphemeres · TOUTES LES VOITURES : la gamme entière, famille par famille), une
+   RANGÉE de vignettes qui défile ; touchée, on l'essaie (bqEssaie) ; RETOUR et ACHETER restent la barre du bas. Couché : le panneau à droite. */
+function bqEphemeres(){const w=bqSem();if(GBQ.eph&&GBQ.eph.w===w)return GBQ.eph; // quatre caisses premium tirées sur le numéro de la semaine
+  const P=bqPayantes(),r=mulberry32(Math.imul(w+11,2654435761)^0x1E9E3),L=P.slice();
+  for(let i=L.length-1;i>0;i--){const k=Math.floor(r()*(i+1)),t=L[i];L[i]=L[k];L[k]=t;}
+  return GBQ.eph={w:w,l:L.slice(0,4)};}
+function bqToutes(){if(!GBQ.toutes)GBQ.toutes=garageListe().slice();return GBQ.toutes;} // toute la gamme, rangée par famille (commune → infinie)
+function bqPrixCaisse(i){const u=CAR_UNLOCK[i]||{};if(bqA('v:'+i))return {t:sansAcc(TR('À TOI')),c:'acq'};if(u.k==='premium')return {t:eurTxt(u.eur),c:'eur'};
+  if(u.p)return {t:fmtC(u.p),c:''};return {t:sansAcc(TR('DÉFI')),c:'defi'};}
 function garBqUI(){let ui=document.getElementById('gBq');if(ui)return ui;
   ui=document.createElement('div');ui.id='gBq';
-  ui.innerHTML='<svg id="gBqFils" aria-hidden="true"></svg><div id="gBqTete"><div class="bqT1"><b data-fr="BOUTIQUE">'+sansAcc(TR('BOUTIQUE'))+'</b><span data-fr="CETTE SEMAINE">'+sansAcc(TR('CETTE SEMAINE'))+'</span></div>'
-    +'<div class="bqT2">'+pxi('horloge')+'<em id="gBqTim"></em></div><div class="bqArg">'+pxi('piece')+'<b id="gBqArg"></b></div><div class="bqTout pbtn" role="button" tabindex="0">'+sansAcc(TR('TOUT VOIR'))+pxi('droite')+'</div></div><div id="gBqCartes"></div>';
+  ui.innerHTML='<div id="gBqTete"><div class="bqT1"><b data-fr="BOUTIQUE">'+sansAcc(TR('BOUTIQUE'))+'</b></div><div class="bqArg">'+pxi('piece')+'<b id="gBqArg"></b></div></div>'
+    +'<div id="gBqPan"><div class="bqInfo"><div class="bqI1"><span class="bqRar"></span><span class="bqLim">'+pxi('horloge')+'<em></em></span></div><div class="bqNom"></div><div class="bqSous"></div></div>'
+    +'<div class="bqOng" role="tablist"><button data-o="eph" class="on" role="tab">'+sansAcc(TR('ÉDITIONS LIMITÉES'))+'</button><button data-o="tout" role="tab">'+sansAcc(TR('TOUTES LES VOITURES'))+'<i></i></button></div>'
+    +'<div class="bqRail"></div></div>';
   gEl.insertBefore(ui,gEl.firstChild);
-  ui.querySelector('.bqTout').addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(e.currentTarget);uiClic('nav');gModeVa('tous');});
-  ui.querySelector('#gBqCartes').addEventListener('click',function(e){const t=e.target.closest&&e.target.closest('.bqC');if(!t)return;e.stopPropagation();
-    if(!garageOn||GAR.go||ecranWipe._on||!GBQ.on)return;uiPop(t);uiClic('nav');bqEssaie(t.getAttribute('data-k'));});
+  ui.querySelector('.bqOng').addEventListener('click',function(e){const b=e.target.closest&&e.target.closest('button');if(!b)return;e.stopPropagation();
+    if(!garageOn||GAR.go||ecranWipe._on||!GBQ.on)return;const o=b.getAttribute('data-o');if(o===GBQ.ong)return;uiPop(b);uiClic('onglet');GBQ.ong=o;GBQ.rk='';});
+  ui.querySelector('.bqRail').addEventListener('click',function(e){const t=e.target.closest&&e.target.closest('.bqK');if(!t)return;e.stopPropagation();
+    if(!garageOn||GAR.go||ecranWipe._on||!GBQ.on)return;uiPop(t);uiClic('nav');bqEssaie('v:'+t.getAttribute('data-i'));});
   return ui;}
+function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBqPan'),voulu=GBQ.on&&gModeM()==='shop'&&!GMODE.paye;
+  if(voulu!==GBQ.panOn){GBQ.panOn=voulu;ui.classList.toggle('pan',voulu);garLibre._r=null;GBQ.lay='';GBQ.rk='';GBQ.vu=-1;if(!voulu)GBQ.zone=null;}
+  {const a=document.getElementById('gBqArg'),v=fmtC(Math.floor(bank()));if(a&&a.textContent!==v)a.textContent=v;}
+  if(!voulu)return;
+  const E=bqEphemeres().l,ong=GBQ.ong||'eph',L=ong==='tout'?bqToutes():E,rail=pan.querySelector('.bqRail');
+  const rk=ong+':'+E.join(',')+':'+L.map(function(i){return bqA('v:'+i)?1:0;}).join('')+':'+LANG;
+  if(GBQ.rk!==rk){GBQ.rk=rk;GBQ.vu=-1;
+    pan.querySelectorAll('.bqOng button').forEach(function(b){const on=b.getAttribute('data-o')===ong;b.classList.toggle('on',on);b.setAttribute('aria-selected',on);});
+    {const n=pan.querySelector('.bqOng i');if(n)n.textContent=bqToutes().length;}
+    rail.classList.toggle('eph',ong==='eph');rail.scrollLeft=0;
+    rail.innerHTML=L.map(function(i,n){const px=bqPrixCaisse(i),ri=rarInfo(carRar(i));
+      return '<div class="bqK'+(ong==='eph'?' eph':'')+'" data-i="'+i+'" role="button" style="--rc:'+ri.c+';--i:'+Math.min(n,8)+'" aria-label="'+String(TR(CARS[i].name)).replace(/"/g,'')+'">'
+        +'<span class="bqKph" data-ph="'+i+'"></span>'+(ong==='eph'?'<span class="bqKl">'+sansAcc(TR('LIMITÉE'))+'</span>':'')
+        +'<span class="bqKn">'+sansAcc(TR(CARS[i].name))+'</span><span class="bqKp '+px.c+'">'+String(px.t).replace(/</g,'')+'</span></div>';}).join('');
+    rail.querySelectorAll('.bqKph[data-ph]').forEach(function(el){photoFile(+el.getAttribute('data-ph'),function(url){if(!el.firstChild){const im=document.createElement('img');im.alt='';im.src=url;el.appendChild(im);}});});}
+  // LA FICHE : la caisse affichée (essayée)
+  const i=garageI,lim=E.indexOf(i)>=0;
+  if(GBQ.vu!==i){GBQ.vu=i;const inf=pan.querySelector('.bqInfo'),ri=rarInfo(carRar(i)),u=CAR_UNLOCK[i]||{};
+    inf.style.setProperty('--rc',ri.c);inf.classList.toggle('lim',lim);
+    inf.querySelector('.bqRar').textContent=sansAcc(TR(ri.n1));inf.querySelector('.bqNom').textContent=sansAcc(TR(CARS[i].name));
+    inf.querySelector('.bqSous').textContent=bqA('v:'+i)?TR('Dans ton garage'):u.k==='premium'?(lim?TR('Exclusivité boutique — introuvable en jeu'):TR('Exclusivité boutique — revient en édition limitée')):u.p?TR('En vente'):TR('Se gagne aux défis');
+    rail.querySelectorAll('.bqK').forEach(function(el){el.classList.toggle('sel',+el.getAttribute('data-i')===i);});}
+  {const t=pan.querySelector('.bqLim em'),r=bqHebdoReste();if(t&&lim&&t.textContent!==r)t.textContent=r;}
+  // LA PLACE : debout le panneau en bas, la caisse entre l'en-tête et lui ; couché le panneau à droite
+  const W=VP.w,H=VP.h,te=document.getElementById('gBqTete'),ac=document.getElementById('gAct'),tr=te.getBoundingClientRect(),arc=ac&&ac.getBoundingClientRect(),cou=W>H*1.2;
+  const bas=arc&&arc.height?arc.top:H-80,lay=W+'x'+H+':'+Math.round(bas)+':'+(arc?Math.round(arc.left):0)+':'+ong;
+  if(GBQ.lay!==lay){GBQ.lay=lay;
+    if(!cou){pan.style.left='14px';pan.style.right='14px';pan.style.top='auto';pan.style.bottom=(H-bas+12)+'px';pan.classList.remove('cote');}
+    else{const x0=Math.max(W*.5,(arc&&arc.width?arc.left:W*.55)-6);pan.style.left=x0+'px';pan.style.right='12px';pan.style.top=(tr.bottom+12)+'px';pan.style.bottom=(H-bas+10)+'px';pan.classList.add('cote');}
+    garLibre._r=null;}
+  {const pr=pan.getBoundingClientRect();GBQ.zone=cou?{cote:true,x0:pr.left,y0:tr.bottom+6}:{g:14,d:W-14,y0:tr.bottom+8,y1:pr.top-8};}
+}
 function bqEssaie(k){ // la même chose qu'une carte de la vitrine du jour (voir le clic de #gStrip) : on ESSAIE ; à toi, elle s'équipe
   if(k[0]==='v'){const i=+k.slice(2);if(SHOP.tab!=='voiture')shopTab('voiture');const eq9=garEquipeCaisse(i);if(i!==garageI)garageSaute(i);else if(eq9)garageShow(i);}
   else{const o=bqCos(k),j=COSM[o.cat].indexOf(o.d);if(SHOP.tab!==o.cat)shopTab(o.cat);if(j>=0){garEquipeHabit(o.cat,j);shopShow(o.cat,j);}try{if(SONV2)sfx('ui.carte');}catch(er){}}
   try{gShopJour();}catch(e){}GBQ.ck='';}
-/* les étiquettes : construites quand la semaine (ou ce qui est à toi) change ; placées quand l'écran change de taille */
-function garBqCartes(dt,t9){const ui=garBqUI(),box=ui.querySelector('#gBqCartes'),svg=ui.querySelector('#gBqFils');
-  const voulu=GBQ.on&&gModeM()==='shop'&&!GMODE.paye;
-  if(voulu!==GBQ.cartesOn){GBQ.cartesOn=voulu;ui.classList.toggle('cartes',voulu);garLibre._r=null;GBQ.lay='';if(!voulu){GBQ.zone=null;svg.innerHTML='';}}
-  {const a=$('gBqArg'),v=fmtC(Math.floor(bank()));if(a&&a.textContent!==v)a.textContent=v;const tm=$('gBqTim'),r=bqHebdoReste();if(tm&&tm.textContent!==r)tm.textContent=r;}
-  if(!voulu)return;
-  const Hb=bqHebdo(),L=Hb.l,k=Hb.w+':'+L.map(function(x){return x+(bqA(x)?'1':'0');}).join(',')+':'+LANG;
-  if(GBQ.ck!==k){GBQ.ck=k;box.innerHTML=L.map(bqCarteHtml).join('');GBQ.lay='';
-    box.querySelectorAll('.bqPhC[data-ph]').forEach(function(el){photoFile(+el.getAttribute('data-ph'),function(url){if(!el.firstChild){const im=document.createElement('img');im.alt='';im.src=url;el.appendChild(im);}});});
-    svg.innerHTML=L.map(function(x,i){return '<path class="bqF" data-i="'+i+'"/><path class="bqFl" data-i="'+i+'"/><circle class="bqFb" data-i="'+i+'" r="4.5"/>';}).join('');}
-  // LA PLACE : debout, deux colonnes (caisses à gauche, habillages à droite) ; couché, une grille 3 × 2 à droite de la caisse
-  const W=VP.w,H=VP.h,te=$('gBqTete'),ac=$('gAct'),tr=te.getBoundingClientRect(),arc=ac&&ac.getBoundingClientRect(),cou=W>H*1.2,lay=W+'x'+H+':'+(arc?Math.round(arc.top)+','+Math.round(arc.left):'')+':'+GBQ.ck;
-  const cs=box.children,N=cs.length;
-  if(GBQ.lay!==lay&&N){GBQ.lay=lay;
-    if(!cou){const y0=tr.bottom+14,y1=(arc&&arc.height?arc.top:H-90)-16,cw=Math.min(104,W*.26),rows=Math.ceil(N/2),ch=Math.min(cw*1.32,(y1-y0)/rows-12),gap=((y1-y0)-rows*ch)/Math.max(1,rows);
-      for(let i=0;i<N;i++){const col=i%2,row=Math.floor(i/2),el=cs[i];el.style.width=cw+'px';el.style.height=ch+'px';el.style.left=(col?W-12-cw:12)+'px';el.style.top=(y0+gap/2+row*(ch+gap))+'px';el._col=col;}
-      GBQ.zone={g:12+cw*.3,d:W-12-cw*.3,y0:y0};}
-    else{const x0=W*.5,x1=(arc&&arc.width?W-10:W-10),y0=tr.bottom+10,y1=(arc&&arc.height?arc.top:H-70)-12,cols=3,rows=Math.ceil(N/cols),gx=10,cw=Math.min(118,(x1-x0-gx*(cols-1))/cols),ch=Math.min(cw*1.25,(y1-y0-gx*(rows-1))/rows);
-      const xs=x1-(cols*cw+(cols-1)*gx);
-      for(let i=0;i<N;i++){const el=cs[i],c9=i%cols,r9=Math.floor(i/cols);el.style.width=cw+'px';el.style.height=ch+'px';el.style.left=(xs+c9*(cw+gx))+'px';el.style.top=(y0+r9*(ch+gx))+'px';el._col=0;}
-      GBQ.zone={cote:true,x0:xs};}
-    garLibre._r=null;}
-  // LES FILS : de l'étiquette à la partie de la caisse (projetée à chaque image : elle flotte et tourne)
-  const G=garGabarit(),cur=bqCourant(),v=GBQ._v||(GBQ._v=new THREE.Vector3()),r=renderer.domElement.getBoundingClientRect(),sx=W/Math.max(1,r.width);
-  carGroup.updateMatrixWorld(true);
-  for(let i=0;i<N;i++){const el=cs[i],kk=el.getAttribute('data-k'),sel=kk===cur;if(sel!==el.classList.contains('sel'))el.classList.toggle('sel',sel);
-    const x1=parseFloat(el.style.left),y1=parseFloat(el.style.top),w1=parseFloat(el.style.width),h1=parseFloat(el.style.height);
-    const ax=cou?x1:(el._col?x1:x1+w1),ay9=cou?y1+h1*.5:y1+h1*.5;
-    // le côté de la caisse tourné vers l'étiquette
-    let best=null;for(const cote of [-1,1]){bqPoint(kk,G,cote,v);v.project(camera);const px=(v.x*.5+.5)*W,py=(.5-v.y*.5)*H;const d=Math.abs(px-ax);if(!best||d<best.d)best={d:d,x:px,y:py};}
-    const dx=best.x-ax,sag=18+Math.abs(dx)*.12,p='M'+ax.toFixed(1)+' '+ay9.toFixed(1)+' C'+(ax+dx*.45).toFixed(1)+' '+(ay9+sag).toFixed(1)+' '+(best.x-dx*.3).toFixed(1)+' '+(best.y+sag*.6).toFixed(1)+' '+best.x.toFixed(1)+' '+best.y.toFixed(1);
-    const f=svg.querySelector('.bqF[data-i="'+i+'"]'),fl=svg.querySelector('.bqFl[data-i="'+i+'"]'),fb=svg.querySelector('.bqFb[data-i="'+i+'"]');
-    if(f){f.setAttribute('d',p);f.classList.toggle('sel',sel);}if(fl){fl.setAttribute('d',p);fl.classList.toggle('sel',sel);}
-    if(fb){fb.setAttribute('cx',best.x.toFixed(1));fb.setAttribute('cy',best.y.toFixed(1));fb.classList.toggle('sel',sel);}}
-}
 function garBqChoc(){if(!GBQ.choc)garBqBatit();GBQ.chocT=0;}
 /* chaque image du garage, juste après la pose de la caisse sur le plateau */
 function garBqIndus(dt,ay,t9){
   dt=Math.min(.05,dt);const veut=bqIndusVoulu();
   if(veut!==GBQ.veut){GBQ.veut=veut;GBQ.t=0;GBQ.bascule=false;GBQ.boum=0;GBQ.coupT=veut?0:-1;if(!veut&&!GAR.go)garGlitch();}
   GBQ.t+=dt;
-  if(veut&&GBQ.coupT>=0){GBQ.coupT+=dt;if(GBQ.coupT>=.16&&!GBQ.boum){GBQ.boum=1;garGlitch();GBQ.levV=6.2;garBqChoc();try{if(SONV2)sfx('pose.choc');}catch(e){}try{hap(14);}catch(e){}}}
+  if(veut&&GBQ.coupT>=0){GBQ.coupT+=dt;if(GBQ.coupT>=.16&&!GBQ.boum){GBQ.boum=1;garGlitch();GBQ.levV=4.8;garBqChoc();try{if(SONV2)sfx('pose.choc');}catch(e){}try{hap(14);}catch(e){}}}
   if(!GBQ.bascule&&GBQ.t>(veut?.44:.26)){GBQ.bascule=true;GBQ.on=veut;if(veut)garBqBatit();garBqAmbiance(veut);}
   if(GAR.go&&(GBQ.on||GBQ.veut)){GBQ.on=GBQ.veut=false;GBQ.bascule=true;garBqAmbiance(false);}
   const on=GBQ.on;
@@ -44152,21 +44135,23 @@ function garBqIndus(dt,ay,t9){
   {const c=on?1:0,w=3;GBQ.kv+=(w*w*(c-GBQ.k)-2*w*GBQ.kv)*dt;GBQ.k+=GBQ.kv*dt;}
   // LA LÉVITATION : le petit coup (elle s'enfonce), le BOUM (elle bondit, dépasse), puis elle flotte
   if(veut&&GBQ.coupT>=0&&GBQ.coupT<.16){GBQ.lev=-.08*Math.sin(Math.PI*.5*GBQ.coupT/.16);GBQ.levV=0;}
-  else{const c=veut?.95:0,w=veut?7.2:5.5,z=veut?.36:1;GBQ.levV+=(w*w*(c-GBQ.lev)-2*z*w*GBQ.levV)*dt;GBQ.lev+=GBQ.levV*dt;}
+  else{const c=veut?.6:0,w=veut?7.2:5.5,z=veut?.36:1;GBQ.levV+=(w*w*(c-GBQ.lev)-2*z*w*GBQ.levV)*dt;GBQ.lev+=GBQ.levV*dt;}
   if(!veut&&Math.abs(GBQ.lev)<.002&&Math.abs(GBQ.levV)<.01){GBQ.lev=0;GBQ.levV=0;}
   // LE DOIGT : lacet libre avec élan, tangage qui revient doucement ; au retour, elle se repose à plat
   if(!GBQ.drag){GBQ.yaw+=GBQ.yawV*dt;GBQ.yawV*=Math.exp(-2.4*dt);const pw=1.7;GBQ.pitV+=(pw*pw*(0-GBQ.pit)-2*pw*GBQ.pitV)*dt;GBQ.pit+=GBQ.pitV*dt;}
   if(!veut){const tg=Math.round(GBQ.yaw/(2*Math.PI))*2*Math.PI;GBQ.yaw+=(tg-GBQ.yaw)*Math.min(1,dt*5);GBQ.yawV=0;}
-  const fl=Math.max(0,Math.min(1,GBQ.lev/.95));
+  const fl=Math.max(0,Math.min(1,GBQ.lev/.6));
   if(Math.abs(GBQ.lev)>1e-4||Math.abs(GBQ.yaw)>1e-4||Math.abs(GBQ.pit)>1e-4){
     carGroup.position.y+=GBQ.lev+Math.sin(t9*1.6)*.05*fl;
     const cA=garCamA(),q=GBQ._q||(GBQ._q=new THREE.Quaternion()),q2=GBQ._q2||(GBQ._q2=new THREE.Quaternion()),ax=GBQ._ax||(GBQ._ax=new THREE.Vector3()),Y=GBQ._Y||(GBQ._Y=new THREE.Vector3(0,1,0));
     q.setFromAxisAngle(Y,carGroup.rotation.y+GBQ.yaw);ax.set(Math.cos(cA),0,-Math.sin(cA));q2.setFromAxisAngle(ax,GBQ.pit+Math.sin(t9*1.1)*.025*fl);q.premultiply(q2);
     ax.set(Math.sin(cA),0,Math.cos(cA));q2.setFromAxisAngle(ax,Math.sin(t9*.9+1)*.03*fl+THREE.MathUtils.clamp(GBQ.yawV*.03,-.12,.12)*fl);q.premultiply(q2);carGroup.quaternion.copy(q);}
   // l'ombre sous la caisse et l'onde du boum
+  if(GBQ.anneaux&&on){GBQ.anneaux[0].rotation.z+=dt*.12;GBQ.anneaux[1].rotation.z-=dt*.22;}
+  if(!veut&&Math.abs(GBQ.lev)<.002){GBQ.yaw-=Math.round(GBQ.yaw/(2*Math.PI))*2*Math.PI;if(Math.abs(GBQ.yaw)<.002)GBQ.yaw=0;if(Math.abs(GBQ.pit)<.002){GBQ.pit=0;GBQ.pitV=0;}} // reposée : plus rien n'oriente la caisse que le plateau
   if(GBQ.omb){const s=4.6-1.4*fl;GBQ.omb.scale.set(s,s,1);GBQ.omb.material.opacity=.5-.22*fl;}
   if(GBQ.choc){GBQ.chocT+=dt;const u=GBQ.chocT/.55;GBQ.choc.visible=u<1;if(u<1){const s=1.2+4.2*(1-Math.pow(1-u,3));GBQ.choc.scale.set(s,s,s);GBQ.choc.position.set(0,ay+GAR.POD+.06,0);GBQ.choc.material.opacity=.85*(1-u);}}
-  try{garBqCartes(dt,t9);}catch(e){}
+  try{garBqPanneau(dt,t9);}catch(e){}
 }
 function garBqLumiere(){if(!GBQ.on)return; // la lumière du magasin : blanche, sans le contre-jour du feu
   stallKey.color.setHex(0xffffff);stallKey.intensity=1.45;stallKey.distance=30;stallRim.color.setHex(0xe8eef5);stallRim.intensity=.7;stallRim.distance=30;}
@@ -44179,9 +44164,9 @@ function garBqLumiere(){if(!GBQ.on)return; // la lumière du magasin : blanche, 
     GBQ.yaw+=dx*.011;GBQ.pit=THREE.MathUtils.clamp(GBQ.pit+dy*.008,-1.05,1.05);GBQ.yawV=GBQ.yawV*.5+dx*.011/ds*.5;},true);
   const fin=function(e){const d=GBQ.drag;if(!d||d.id!==e.pointerId)return;e.stopPropagation();GBQ.drag=null;if(performance.now()-d.t>90)GBQ.yawV=0;};
   addEventListener('pointerup',fin,true);addEventListener('pointercancel',fin,true);})();
-try{Object.assign(I18N,{'CETTE SEMAINE':'THIS WEEK','TOUT VOIR':'SEE ALL','TRAÎNÉE':'TRAIL','AILE':'WING','CAISSE':'CAR'});}catch(e){}
-window.dbgBqIndus=function(){const v=new THREE.Vector3();return {veut:GBQ.veut,on:GBQ.on,lev:+GBQ.lev.toFixed(2),k:+GBQ.k.toFixed(2),yaw:+GBQ.yaw.toFixed(2),pit:+GBQ.pit.toFixed(2),
-  semaine:GBQ.hebdo?GBQ.hebdo.l:null,reste:bqHebdoReste(),cartes:[...document.querySelectorAll('#gBqCartes .bqC')].map(function(el){const r=el.getBoundingClientRect();return [el.getAttribute('data-k'),Math.round(r.x),Math.round(r.y),Math.round(r.width),Math.round(r.height),el.classList.contains('sel')];})};};
+try{Object.assign(I18N,{'CETTE SEMAINE':'THIS WEEK','TOUT VOIR':'SEE ALL','TRAÎNÉE':'TRAIL','AILE':'WING','CAISSE':'CAR','ÉDITIONS LIMITÉES':'LIMITED EDITIONS','TOUTES LES VOITURES':'ALL CARS','LIMITÉE':'LIMITED','À TOI':'YOURS','Dans ton garage':'In your garage','Exclusivité boutique — introuvable en jeu':'Shop exclusive — not obtainable in game','Exclusivité boutique — revient en édition limitée':'Shop exclusive — returns as a limited edition','En vente':'For sale','Se gagne aux défis':'Earned through challenges'});}catch(e){}
+window.dbgBqIndus=function(){return {veut:GBQ.veut,on:GBQ.on,lev:+GBQ.lev.toFixed(2),k:+GBQ.k.toFixed(2),yaw:+GBQ.yaw.toFixed(2),pit:+GBQ.pit.toFixed(2),ong:GBQ.ong||'eph',eph:GBQ.eph?GBQ.eph.l:null,caisse:garageI,reste:bqHebdoReste(),
+  rail:[...document.querySelectorAll('#gBqPan .bqK')].map(function(el){const r=el.getBoundingClientRect();return [+el.getAttribute('data-i'),Math.round(r.x),Math.round(r.y),Math.round(r.width),Math.round(r.height),el.classList.contains('sel')];}),zone:GBQ.zone};};
 function garGlitch(){let el=document.getElementById('gGlitch'); // (essai boutique virtuelle, repris) le GLITCH : des bandes qui sautent, l'image qui tressaute, 0,72 s
   if(!el){el=document.createElement('div');el.id='gGlitch';el.setAttribute('aria-hidden','true');el.innerHTML='<i></i><i></i><i></i><i></i><i></i><b></b>';document.body.appendChild(el);}
   el.classList.remove('go');document.body.classList.remove('gGlitchOn');void el.offsetWidth;el.classList.add('go');document.body.classList.add('gGlitchOn');
@@ -44550,9 +44535,10 @@ function garLibre(){
     if(r.vit&&W>H*1.2){const ga=$('gAct'),gr=ga&&ga.getBoundingClientRect();if(gr&&gr.width>0&&gr.left>W*.3){r.x1=gr.left-12;r.y1=H-12;}} // (2026-10-05) couché : la pile JOUER · niveau · MISSIONS à droite, la caisse a toute la gauche
     if(INV&&INV.on){const iv=$('gInv'),ir=iv&&iv.getBoundingClientRect();     // (2026-10-04) L'INVENTAIRE ouvert : la caisse se pose au-dessus du tiroir (debout), à sa gauche (couché)
       if(ir&&ir.width>0){if(W>H*1.2&&ir.left>W*.3){r.x1=Math.min(r.x1,ir.left);r.y1=H-12;}else r.y1=Math.min(r.y1,ir.top);}}}
-  if(GBQ.zone&&r.shop){const z=GBQ.zone;if(z.cote)r.x1=Math.min(r.x1,z.x0-8);else{r.x0=Math.max(r.x0,z.g);r.x1=Math.min(r.x1,z.d);}if(z.y0!=null)r.y0=Math.max(r.y0,z.y0);} // (essai) LA BOUTIQUE INDUSTRIELLE : la caisse entre les étiquettes
+  if(GBQ.zone&&r.shop){const z=GBQ.zone;if(z.cote)r.x1=Math.min(r.x1,z.x0-8);else{r.x0=Math.max(r.x0,z.g);r.x1=Math.min(r.x1,z.d);}if(z.y0!=null)r.y0=Math.max(r.y0,z.y0);if(z.y1!=null)r.y1=Math.min(r.y1,z.y1);} // (essai) LA BOUTIQUE INDUSTRIELLE : la caisse entre les étiquettes
   const VC9=VITRINE_CAM,iv9=!!(INV&&INV.on); // (même soir, Léo : « la voiture en paysage encore calée un peu plus vers le coin bas gauche ») couché : cxL/cyL ; tiroir ouvert : au milieu de la place qui reste
-  r.cx=(r.x0+r.x1)/2;if(r.leo&&!iv9&&!GBQ.zone)r.cx=r.x0+(r.x1-r.x0)*(VC9.cxL+(VC9.cx-VC9.cxL)*POR);r.cy=(r.y0+r.y1)/2;if(r.shop)r.cy=r.y0+(r.y1-r.y0)*(r.leo&&!iv9?(VC9.cyL+(VC9.cy-VC9.cyL)*POR):r.leo?.5:.44); /* (vitrine v2) debout la caisse se pose un peu plus BAS : le feu et la porte au-dessus, moins de sol vide dessous */ /* (garage v7) la caisse se posait BAS dans sa zone (DEBUGGING) : son centre à 44 % de la zone, pas 50 */garLibre._n=r;return garLibre._r=r;
+  r.cx=(r.x0+r.x1)/2;if(r.leo&&!iv9&&!GBQ.zone)r.cx=r.x0+(r.x1-r.x0)*(VC9.cxL+(VC9.cx-VC9.cxL)*POR);r.cy=(r.y0+r.y1)/2;if(r.shop)r.cy=r.y0+(r.y1-r.y0)*(r.leo&&!iv9?(VC9.cyL+(VC9.cy-VC9.cyL)*POR):r.leo?.5:.44); /* (vitrine v2) debout la caisse se pose un peu plus BAS : le feu et la porte au-dessus, moins de sol vide dessous */ /* (garage v7) la caisse se posait BAS dans sa zone (DEBUGGING) : son centre à 44 % de la zone, pas 50 */if(GBQ.zone&&r.shop)r.cy=r.y0+(r.y1-r.y0)*(GBQ.zone.cote?.36:.5); // (essai) la boutique : la caisse au milieu de sa place
+  garLibre._n=r;return garLibre._r=r;
 }
 function garCadre(k,kx){
   const r=garLibre();camera.clearViewOffset();camera.updateMatrixWorld();
