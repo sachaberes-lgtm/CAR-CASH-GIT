@@ -24,7 +24,7 @@ Un outil À CÔTÉ du jeu, qui ne refait RIEN : il lance LE JEU (`index.html`, s
   `sw.js` : le service worker du jeu ne s'installe pas sur cette adresse — il servirait le simulateur depuis son cache).
 - `simulateur/maps.js` = LA LISTE : les vraies maps (VILLE 1-5, SKY HIGH 1-5, MER DE NUAGES) et leurs niveaux, photos de `maps-ciel/img`,
   `lance` = `{monde, n}` (carrière : `dbgCampagne(n, monde)`) ou `{sansFin}` (le JOUER `[data-m="play"]` de l'accueil, `dbgEco('rejouer')`
-  après une fin) ; `musique` par map ; `MUSIQUES` = celles qu'on peut associer. Le choix de la page est gardé dans ce navigateur (`simu.musiques`).
+  après une fin) ; `musique` = celle des niveaux de la map par défaut (le choix par niveau : voir plus bas).
 - `simulateur/course.html?niv=<id>` : le jeu dans un cadre 844 × 390 (390 × 844 si la fenêtre est debout) zoomé, comme sur l'ordi. Il écrit
   dans la sauvegarde du jeu DE CETTE ADRESSE `mus:false` (la musique du jeu coupée), `tuto:1`, `permis:1`. Au 1er toucher (l'écran titre),
   le niveau part tout seul (réessayé toutes les 1,6 s tant que la course ne tourne pas) ; une partie finie repart 2,4 s après sur le même niveau.
@@ -34,6 +34,23 @@ Un outil À CÔTÉ du jeu, qui ne refait RIEN : il lance LE JEU (`index.html`, s
   départ, 1,2-1,3 en croisière, 1,5-1,9 en nitro → 13 % · ~70 % · 90-100 % ; zéro hors course et à l'explosion ; pause du jeu = pause de la
   musique. Une nouvelle musique doit garder `#play`, `#speed`, `#bpm`. Le French Touch de Léo (`~/Downloads/french-touch.html`, non
   modifié) est sur la VILLE — une nouvelle version = remplacer le fichier. Console : `SIMU.etat()`.
+- **LA MUSIQUE DES NIVEAUX, CHOISIE EN JOUANT (12/10 soir)** — Léo : « organiser tout le système du PLAY, les maps sont éparpillées avec plein
+  de sons randoms ; tester mes nouveaux sons (adaptés à la vitesse) dans les maps pour choisir où ils vont, et l'intensité proportionnelle au
+  palier moteur, pour que le son colle au visuel ». Ce qui a changé :
+  · LA BIBLIOTHÈQUE = le dossier `simulateur/musiques/`, listé par le serveur (`GET simulateur/musiques.json` : nom = `<title>` sans « Moteur »,
+    sinon le nom du fichier sans « musique- »). Deux formats : PAGE `.html` à jauge (`#play`/`#speed`/`#bpm`, le French Touch) et MODULE `.js`
+    (`musique-glisse.js` de Léo : une fonction exportée — `create…` d'abord — qui rend `{start, stop, setTier(palier, nb), setSpeed(0-1), bpm,
+    playing}`). Ajouter = poser le fichier, ou le GLISSER sur la page des maps / « + Musique » (`POST simulateur/musiques/<f>`).
+  · LE CHOIX est PAR NIVEAU et sur le DISQUE : `simulateur/choix-musiques.json` (`{idNiveau: 'musiques/x' | ''}`, `POST` par le serveur) —
+    c'est la table que le jeu lira. Sans choix : la `musique` de la map (VILLE = French Touch). Plus de localStorage `simu.musiques`.
+    Page des maps : une pastille ♪ par niveau, celle de la map les règle tous (« Plusieurs » si ça diffère).
+  · L'INTENSITÉ suit le MOTEUR par défaut : `engTier / (ENGINE_TIERS.length − 1)` ; au module, son API `setTier(engTier + 1, 30)` (au palier 1 la
+    batterie de Glisse n'est pas encore là : ses couches s'ouvrent de 5 à 90 %). « suit la vitesse » = l'ancienne jauge (FLOW.vit). Le curseur de
+    la barre MONTRE l'intensité, le tirer la FORCE (jaune), AUTO rend la main ; « + » = `dbgMoteur()` (le vrai moteur monte d'un palier, carte
+    et son compris). La pastille ♪ de la course change la musique EN DIRECT et l'écrit sur le disque. Les modules restent créés (`MODS`, un
+    contexte audio chacun) : y revenir reprend le même.
+  · `?muet=1` (bancs) : la `destination` de chaque contexte audio passe par un gain nul (page, module, cadre de la page à jauge).
+    `SIMU.musique()` = le pilote (MUS.inst = le module en cours).
 
 ## LA MERCURE v2 (2026-10-11, Léo, « retoucheur de voitures ») — l'hypercar en MERCURE LIQUIDE, caisse ajoutée EN DERNIER (index 75), ÉPIQUE 3 800 000 $, `SHAPES.mercure`
 Née d'une planche de concepts générés en images (session « retoucheur »), « génère la mercure », « génère-la en 3D dans mon jeu ». La v1 (un loft à
