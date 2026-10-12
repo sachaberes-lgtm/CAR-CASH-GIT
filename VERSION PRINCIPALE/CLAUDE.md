@@ -147,7 +147,15 @@ TOUT le rangement vit dans **`<style id="uxPasse">`**, la DERNIÈRE feuille de l
 Le HTML, les identifiants et les écouteurs ne bougent pas, sauf HOME et l'œil (voir plus bas). Règles : on LIT en haut, on TOUCHE en bas ; un
 rôle = une place ; l'action principale = l'unique plaque d'or ; mêmes hauteurs sur une rangée ; 44 px au doigt ; la VUE flotte sur la scène,
 la CAISSE vit dans le panneau. Pas de Poki (`html:not(.poki)`), pas de vitrine de Léo (`?menu=leo`).
-- **ACCUEIL** (`#mHome.acc2`, seulement `:is(.on,.sort)` — en `display:grid!important` permanent il recouvrait les autres écrans) : `.mOutils`
+- **ACCUEIL v2 (2026-10-12, Sacha sur capture : « c'est quoi cette merde » — les portes se chevauchaient, les mots débordaient — puis
+  « JOUER doit revenir en mode flottant comme avant », GARAGE · RÉGLAGES · OFFRES « plus petits, en icônes », « le logo est trop rose,
+  remets l'ancien »)** : une grille de 5 — CARRIÈRE · MISSIONS (portes à mot) puis GARAGE · OFFRES · ⚙ en ICÔNES carrées (54 px, 46 debout
+  ≤ 400 px), et JOUER FLOTTANT dessous (le mot d'or en cubes, sans plaque). Les cinq plaques penchent autour de leur CENTRE
+  (`transform-origin:50% 50%`) : chacune penchait autour d'un point différent et leurs coins se touchaient. LE LOGO : « la brillance du
+  logo » (Léo, 98b905c : CAR du corail au violet) est neutralisée dans la couche — dégradés `.lg.gold` / `.lg.grad` et reflet `lgShine`
+  d'origine, lueur sur le titre. (Les flammes derrière le logo, retirées par Léo dans le même commit, ne sont PAS revenues.) La v1
+  ci-dessous (quatre portes égales + JOUER en plaque d'or) est REMPLACÉE.
+- *(v1, remplacée)* **ACCUEIL** (`#mHome.acc2`, seulement `:is(.on,.sort)` — en `display:grid!important` permanent il recouvrait les autres écrans) : `.mOutils`
   et `.mAccP` en `display:contents`, leurs boutons dans UNE grille de 12 : rangée 1 = GARAGE · CARRIÈRE · MISSIONS · OFFRES (la barre MISSIONS
   de 28 px devient une porte) ; rangée 2 = ⚙ + JOUER, la plaque d'OR de #gJouer (valeurs lues au navigateur ; lettres sombres). Debout : logo
   en tête, rangées au pied. Couché : bloc à droite centré en hauteur, logo posé dessus (Léo), 30 px sous le logo.
