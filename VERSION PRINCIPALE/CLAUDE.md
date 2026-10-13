@@ -146,6 +146,24 @@ MESURÉ (×4, trois manches) : ~35-48 → ~50-58 images/s, images > 40 ms divis�
   Les vignettes ne les montraient pas (`photoPropre` les cache), la salle blanche non plus : les juger dans la BOUTIQUE du garage.
   Bancs : `dbgBqVoir(i)` (pose la caisse i sur le plateau), `dbgSonde(x0,y0,x1,y1,pas)` (ce que la caméra voit de la caisse : famille
   de matière + couleur ; ⚠ le Raycaster de three ignore `visible`, la sonde filtre), scratchpad `toutes.py` (les 51 de profil en boutique).
+- LE BAS DU GARAGE REFONDU (13/10, Léo : « INVENTAIRE, MISSIONS et BOUTIQUE par-dessus PLAY, design efficace et esthétique ; le bouton
+  MISSIONS comme avant, et HOME ») — bloc « LE BAS DU GARAGE, REFONDU » en fin du <style> du garage (avant `</style>` après #ivFerme) :
+  une grille de six, EN HAUT trois portes égales INVENTAIRE (cyan) · MISSIONS (violet, `#gvMis` revenu, ses 3 cases, → garMode('missions'))
+  · BOUTIQUE (magenta) ; EN BAS HOME (carré) · PLAY · l'ŒIL (carré). ACHETER prend la place de PLAY. Les états `shopRet`/`atelierInv`
+  gardent leurs règles (exclus du bloc). Les conducteurs d'or de #gvMis (::before/::after) et #gvBranche sont masqués. Poki : sans
+  MISSIONS, INVENTAIRE et BOUTIQUE se partagent la rangée. Le SOL de la boutique : ×3,4 (mesuré 220 → 234, le blanc du fond).
+  Banc : scratchpad `gar.py W H suffixe [port] [shop]`, `garclic.py` (chaque bouton au vrai doigt).
+- LES COLONNES LISSES (14/10, Léo : « rends les piliers plus lisses et blanc brillant ») — la rotonde n'est plus une peau de cubes : fût
+  rond effilé (40 pans), socle + tore, astragale, échine, abaque, entablement en anneau plein ouvert côté caméra ; 6 InstancedMesh + 1.
+  Matière : un MATCAP peint (bandes VERTICALES : un fût se lit sur la ligne médiane du matcap) dont le reflet passe AU-DELÀ du blanc
+  (`onBeforeCompile` : `matcap*1,05 + 4,2·r^16`) — ⚠ l'étalonnage du jeu écrase les blancs contre un plafond (~237) : un blanc linéaire,
+  même ×1,7, sortait UNIFORME ; seul un reflet HDR se détache. Mesuré : corps 235-242, reflet 255, bords 200-215.
+- (14/10, suite) LE SOCLE à trois gradins prend le même blanc laqué (`bqLaqueMat()`, partagée ; filets `bqLaqueMat(.82)`, 96 pans) ; le
+  HAUT du matcap est peint blanc (les dessus regardent le ciel et lisaient le bord gris). LA TRANSITION garage ↔ boutique (Léo : « un peu
+  lourd, reviens sur le glitch ») : `garGlitch` au geste, le décor bascule à 0,16 s (avant : petit coup, lueur, éclat blanc, bascule à
+  0,95 s). L'INVENTAIRE (Léo : « arrête de le faire apparaître sans qu'on y touche ») : le garage s'ouvre REPLIÉ (`consoleCachee`,
+  GMODE 'tout') — à l'ouverture, depuis l'accueil, au RETOUR de la boutique et au RETOUR de l'inventaire ; il ne s'ouvre qu'à INVENTAIRE.
+  Banc : scratchpad `trans.py W H suffixe port` (arrivée, inventaire, glitch, retour, au vrai doigt).
 
 ## LA PASSE QUALITÉ AVANT SORTIE (2026-10-12, Sacha : « trouve des bugs et règle-les, améliore des trucs à droite à gauche, fais en sorte que le jeu soit parfait et sortable »)
 Méthode : bancs Puppeteer son coupé (rendu LOGICIEL SwiftShader : Roblox Studio tenait le GPU, le Chrome de test calait sur D3D11), un
