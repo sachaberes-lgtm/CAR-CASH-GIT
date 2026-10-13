@@ -40709,6 +40709,7 @@ function accueilRetour(){
   clearBoom();try{deathStop();annStop();}catch(e){}
   survMenage();SURV.on=false;survHudEl.style.display='none';lastAlertEl.style.display='none';
   CARR.actif=null;runStats.zones=0; // JOUER, de l'accueil, lance la course libre (la CARRIÈRE a sa porte)
+  if(!/[?&]niveau=jade\b/.test(location.search))JADE_JEU=false; // (2026-10-13, Léo : « t'as changé le ciel du menu, c'est très grave ») JOUER lance le SOLEIL DE JADE (jadeJouer le rallume) : revenu à l'accueil, il reprend SON ciel — il gardait celui du jade
   rebuildMenuScene();
   MENUV.L=-1;MENUV.sd=null;MENUV.pl=0;MENUV.pt=0; // la vitrine recadre sur la piste neuve et ouvre sur l'AFFICHE
 }
