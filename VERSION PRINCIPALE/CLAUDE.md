@@ -101,6 +101,12 @@
   bascule vers nous) ; les deux reviennent en ressort. ⚠ Repère de la caisse = `getWorldQuaternion().invert()`, jamais `rotation.y`
   (relu d'un quaternion penché, l'Euler bascule de 180°) ; centre = `localToWorld(0,.55,0)` (la Box3 de carGroup ramasse halos et
   lueurs, à 5 m). ⚠ Le PLATEAU TOURNE : au banc, viser avec `dbgPrise(x,y)` (nez, poupe, flancs, centre à l'écran + ce que le doigt attrape).
+- LES BARRES RETIRÉES (13/10, Léo : « tu as oublié d'enlever ces trucs, barres chelou blanches et d'autres couleurs ») — les longs
+  joncs, filets et bandes de FLANC et de TOIT sont retirés (une ligne de commentaire marque leur place) : ÉTERNELLE (jonc de l'arête
+  dorsale, il barrait la vitre du moteur), ANGLAISE (jonc de ceinture, seuil chromé), FÉLINE (seuil), QUEUE DE CANARD (bande bleue),
+  BAVAROISE (filets M du seuil et du capot), AIGLE DE FEU (filet d'or de flanc, du T-top, liserés et bordure du becquet), CHAUVE-SOURIS
+  (filets tricolores, jonc de vitre), ELDORADO (jonc et skeg). Restent : pare-chocs, calandres, poignées, la ligne en C de l'ÉTERNELLE,
+  l'oiseau et le shaker de l'AIGLE. ⚠ Ne plus en reposer sans qu'il le demande.
 
 ## LA PASSE QUALITÉ AVANT SORTIE (2026-10-12, Sacha : « trouve des bugs et règle-les, améliore des trucs à droite à gauche, fais en sorte que le jeu soit parfait et sortable »)
 Méthode : bancs Puppeteer son coupé (rendu LOGICIEL SwiftShader : Roblox Studio tenait le GPU, le Chrome de test calait sur D3D11), un

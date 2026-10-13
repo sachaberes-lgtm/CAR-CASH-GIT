@@ -20979,7 +20979,7 @@ const SHAPES={
       P.prism('p',[[-.45,.92],[-2.94,1.40],[-2.86,.92]],.07,sd*.955);
       P.prism('p',[[-.90,.92],[-2.90,1.16],[-2.86,.92]],.16,sd*.90);
       for(const y of [1.05,1.19])P.cyl('L',.048,.22,10,sd*.955,y,-2.84-(y-.92)*.08,'z');
-      P.box('c',.035,.03,1.70,sd*.985,.56,-1.95);                            // le SKEG : le jonc qui court derrière la roue
+      // (13/10, Léo : « les barres chelou ») le SKEG chromé RETIRÉ
     });
     // LE PARE-CHOCS À OBUS, qui s'enroule sur les ailes
     P.box('c',1.80,.20,.24,0,.42,2.94);P.box('c',1.70,.07,.18,0,.55,2.90);
@@ -20993,7 +20993,7 @@ const SHAPES={
     P.sym(sd=>{P.box('p',.52,.07,.26,sd*.74,.86,2.78);P.box('c',.50,.20,.03,sd*.74,.75,2.87);
       for(const x of [.62,.86]){P.cyl('c',.095,.04,12,sd*x,.75,2.875,'z');P.cyl('W',.072,.05,12,sd*x,.75,2.89,'z');}
       P.cyl('c',.055,.14,8,sd*.44,.43,-3.06,'z');                           // les pots, à travers le pare-chocs
-      P.box('c',.03,.035,2.26,sd*1.005,.66,.04);P.box('c',.03,.035,.36,sd*1.005,.66,2.42); // le jonc
+      // (13/10) le jonc chromé de flanc RETIRÉ
       P.box('c',.04,.12,.14,sd*.98,1.00,.40);                                // rétro chromé
       P.box('c',.02,.03,.14,sd*1.005,.82,-.30);                               // poignée
     });
@@ -23039,7 +23039,7 @@ Object.assign(SHAPES,{
     /* le bouclier : les clignotants orange aux coins, sous la bande noire */
     P.box('O',.15,.045,.02,sd*.62,.335,ZN+.092);
     /* les trois filets sur le bas de caisse */
-    P.box('b',.012,.03,1.50,sd*.803,.44,.06);P.box('v',.012,.03,1.50,sd*.803,.41,.06);P.box('r',.012,.03,1.50,sd*.803,.38,.06);
+    // (13/10, Léo : « les barres chelou ») les trois filets de bas de caisse RETIRÉS
     /* LA POUPE : les feux en bandeau (rouge, orange, recul), le joint */
     P.box('L',.34,.14,.02,sd*.58,.72,ZT-.004);P.box('O',.12,.14,.02,sd*.35,.72,ZT-.004);P.box('W',.06,.14,.02,sd*.26,.72,ZT-.004);
     for(const y of [.68,.76])P.box('n',.52,.008,.02,sd*.50,y,ZT-.01);
@@ -23059,7 +23059,7 @@ Object.assign(SHAPES,{
   {const zr=2.035,yr=yC(zr)+.004;P.cyl('c',.045,.012,14,0,yr,zr,'y');P.cyl('b',.036,.014,14,0,yr+.002,zr,'y');P.box('p',.036,.004,.036,.018,yr+.01,zr-.018);P.box('p',.036,.004,.036,-.018,yr+.01,zr+.018);}
   /* les filets sur le capot, décalés à gauche : on les voit de la poursuite */
   {const z0=1.00,z1=2.00,hz=(z0+z1)/2,ht=Math.atan2(yC(z0)-yC(z1),z1-z0),hy=yC(hz)+.006;
-   P.box('b',.05,.006,1.0,-.34,hy,hz,ht);P.box('v',.05,.006,1.0,-.28,hy,hz,ht);P.box('r',.05,.006,1.0,-.22,hy,hz,ht);}
+   /* (13/10) les filets du capot RETIRÉS */}
   for(const x of [.34,.42])P.cyl('c',.042,.12,8,x,.27,ZT-.02,'z');
   K.commit(P);
   return {hl:[.62,.665,ZN+.03],tl:[.58,.72,ZT-.02],wx:.71,wzF:ZF,wzR:-ZR,
@@ -23572,11 +23572,11 @@ Object.assign(SHAPES,{
     P.box('O',.10,.025,.03,sd*.74,.56,2.20,0,sd*.55);                               // clignotant d'angle
     // flancs : le jonc chromé qui CERNE les vitres, la poignée, le rétro, la grille d'aile, le seuil
     const seg=(k,w,h,a,b)=>{const dx=b[0]-a[0],dy=b[1]-a[1],dz=b[2]-a[2],L=Math.hypot(dx,dy,dz),be=Math.asin(dx/L),th=-Math.asin(dy/(L*Math.cos(be)));P.box(k,w,h,L+.01,(a[0]+b[0])/2,(a[1]+b[1])/2,(a[2]+b[2])/2,th,be,0);};   // (13/10, « traits maladroits ») le jonc SUIT la ceinture (il était droit et flottait hors de la tôle)
-    {const Zs=[.50,.10,-.40,-.90,-1.30,-1.48],Pt=z=>[sd*(xW(z)-.152),yB(z)+.03,z];for(let q=0;q<Zs.length-1;q++)seg('c',.02,.016,Pt(Zs[q+1]),Pt(Zs[q]));}
+    // (13/10, Léo : « les barres chelou ») le jonc chromé de ceinture RETIRÉ
     P.box('c',.02,.02,.16,sd*(xW(-.25)-.02),.84,-.25);
     P.box('p',.16,.09,.19,sd*1.00,1.07,.52);P.box('k',.07,.03,.05,sd*.90,1.03,.55);
     P.box('c',.012,.08,.20,sd*.952,.62,1.00);P.box('k',.01,.06,.17,sd*.955,.62,1.00);
-    P.box('c',.012,.016,1.50,sd*(xW(-.08)-.075),.36,-.03);
+    /* (13/10) le seuil chromé retiré */
     // LA POUPE : feux ovales couchés au bout des hanches, sorties ovales
     P.put('k',new THREE.CylinderGeometry(1,1,1,14),sd*.50,.84,-2.37,Math.PI/2,0,0,.165,.06,.095);
     P.put('L',new THREE.CylinderGeometry(1,1,1,14),sd*.50,.84,-2.395,Math.PI/2,0,0,.145,.05,.075);
@@ -23754,7 +23754,7 @@ Object.assign(SHAPES,{
     P.put('W',new THREE.CylinderGeometry(.08,.08,.07,12),sd*.58,.747,1.962,Math.PI/2-.35,0,0);
     P.box('O',.10,.05,.02,sd*.54,.42,2.07);P.box('W',.10,.05,.02,sd*.28,.42,2.07);   // clignotants, antibrouillards
     P.box('L',.20,.10,.02,sd*.60,.73,-2.035);P.box('O',.20,.05,.02,sd*.60,.655,-2.035);
-    P.box('b',.012,.065,1.40,sd*.828,.45,.07);                                 // LA BANDE BLEUE
+    // (13/10, Léo : « les barres chelou ») LA BANDE BLEUE de flanc RETIRÉE
     P.cyl('c',.05,.03,10,sd*.84,.93,.42,'x');P.box('c',.03,.03,.06,sd*.81,.91,.42); // rétro rond
     P.box('c',.012,.025,.12,sd*.83,.82,-.20);                                    // poignée
     P.cyl('c',.045,.12,8,sd*.36,.30,-2.08,'z');
@@ -24016,9 +24016,9 @@ Object.assign(SHAPES,{
     // LES AILETTES dressées sur les ailes avant
     P.box('p',.022,.09,.86,sd*.775,.885,1.66,.06);P.box('k',.032,.012,.86,sd*.775,.843,1.66,.06);
     // LES FILETS : bleu clair, violet, rouge
-    for(const [k,y] of [['B',.85],['V',.815],['E',.78]])P.box(k,.012,.03,4.10,sd*.878,y,-.10);
+    // (13/10, Léo : « les barres chelou ») les trois filets de flanc RETIRÉS
     P.box('p',.10,.07,.14,sd*.90,.98,.60);P.box('k',.08,.03,.04,sd*.85,.95,.60); // rétro de course
-    P.box('c',.02,.02,1.36,sd*.80,.905,-.03);                                // jonc de vitre
+    // (13/10) le jonc de vitre chromé RETIRÉ
     // L'ÉNORME AILERON : deux grandes flasques qui montent du coffre
     P.prism('p',[[-1.86,.98],[-2.26,.98],[-2.30,1.30],[-1.98,1.30]],.03,sd*.77);
     P.box('L',.36,.10,.03,sd*.56,.80,-2.325);P.box('O',.10,.10,.03,sd*.30,.80,-2.325); // feux arrière
@@ -24182,7 +24182,7 @@ Object.assign(SHAPES,{
     P.box('o',.24,.008,.05,sd*.11,hood(1.58),1.55,0,-sd*.6);});                    // la queue
   P.sym(sd=>{
     // flancs : filet d'or, ouïes d'aile, poignée, rétro sport
-    {const Zs=[-2.45,-1.80,-1.27,-.70,0,.70,1.47,2.20],X=z=>xW(z)+.035*fl(z)-.006;      // le filet d'or, qui suit la bouteille
+    {const Zs=[],X=z=>0;      // (13/10, Léo : « les barres chelou ») le filet d'or de flanc RETIRÉ
      for(let q=0;q<Zs.length-1;q++){const z0=Zs[q],z1=Zs[q+1],x0=X(z0),x1=X(z1);
        P.box('o',.012,.02,Math.hypot(z1-z0,x1-x0)+.01,sd*(x0+x1)/2,.80,(z0+z1)/2,0,Math.atan2(sd*(x1-x0),z1-z0),0);}}
     for(let i=0;i<3;i++)P.box('k',.02,.03,.22,sd*.90,.66+i*.05,ZF-.52);
@@ -24190,14 +24190,14 @@ Object.assign(SHAPES,{
     P.box('p',.07,.08,.18,sd*.93,.98,.38,0,sd*.2);P.box('k',.06,.03,.05,sd*.87,.96,.40);
     // T-TOP : deux dalles de verre
     P.box('g',.40,.012,.62,sd*.31,1.243,-.62,0,0,-sd*.06);
-    P.box('o',.012,.012,.62,sd*.52,1.228,-.62);
+    // (13/10) le filet d'or du T-top RETIRÉ
     // la poupe : bandeau de feux noir, pots
     P.box('L',.42,.10,.02,sd*.60,.76,-2.556);
     P.cyl('c',.05,.14,8,sd*.41,.30,-2.58,'z');
   });
-  P.box('k',1.60,.20,.02,0,.76,-2.553);P.box('o',1.62,.012,.02,0,.865,-2.556);P.box('o',1.62,.012,.02,0,.655,-2.556);
+  P.box('k',1.60,.20,.02,0,.76,-2.553); /* (13/10) ses liserés d'or retirés */
   P.box('k',1.70,.10,.14,0,.40,-2.54);
-  P.box('p',1.74,.05,.22,0,1.035,-2.40,-.18);P.box('o',1.74,.01,.02,0,1.06,-2.505); // le becquet, bordé d'or
+  P.box('p',1.74,.05,.22,0,1.035,-2.40,-.18); // le becquet (13/10 : sa bordure d'or retirée)
   K.commit(P);
   return {hl:[.64,.62,2.50],tl:[.60,.76,-2.56],wx:.77,wzF:ZF,wzR:-ZR,
           lpw:{R:R,w:.28,style:'multi',n:10,jante:0xd9a520}};
@@ -24320,7 +24320,7 @@ Object.assign(SHAPES,{
     P.box('c',.015,.05,.015,sd*.72,.93,.20);P.cyl('c',.042,.03,8,sd*.72,.965,.20,'z');
     P.box('j',.006,.28,.008,sd*(xW(.50)+.002),.60,.50,0,0,-sd*.06);                // la coupe du capot-coquille (13/10 : un fil, plus un trait noir)
     P.box('j',.006,.36,.008,sd*(xW(-.70)+.002),.60,-.70);                          // l'arrière de la porte
-    P.box('c',.012,.016,1.30,sd*(xW(.15)-.075),.31,.15);
+    // (13/10, Léo : « les barres chelou ») le jonc de seuil chromé RETIRÉ
     // la poupe ronde : petits feux sur les ailes, lames chromées, plaque
     P.put('L',new THREE.SphereGeometry(1,6,4),sd*.50,.585,-2.165,0,0,0,.075,.045,.05);
     P.put('O',new THREE.SphereGeometry(1,6,4),sd*.54,.52,-2.145,0,0,0,.045,.03,.045);
@@ -24460,7 +24460,7 @@ Object.assign(SHAPES,{
   P.box('k',1.30,.04,.12,0,.25,ZE-.08);                                           // la lame basse
   /* L'ARÊTE DORSALE : du pavillon jusqu'à la poupe, et l'aileron couché */
   P.prism('n',[[-.25,1.20],[-2.20,.99],[-2.22,.985],[-.27,1.185]],.04,0);
-  P.box('c',.012,.012,1.90,0,1.112,-1.225,-.107);
+  // (13/10, Léo : « les barres chelou ») le jonc chromé qui courait sur l'arête dorsale est RETIRÉ (il barrait la vitre du moteur)
   P.box('n',1.74,.035,.30,0,1.00,-2.10,.06);
   /* LE TRAIT DE FEUX : un seul trait rouge, d'une aile à l'autre */
   P.box('K',1.76,.09,.02,0,.90,-ZE-.004);P.box('L',1.66,.03,.03,0,.905,-ZE-.01);
