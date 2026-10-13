@@ -85,6 +85,13 @@
   avancé (pied de pare-brise 0,88), malle longue et haute, grandes vitres à montants fins, arête d'épaule, ailes élargies fondues.
   ⚠ La SALLE BLANCHE grise les noirs (studio blanc : tout noir y sort gris moyen) — un noir se juge dans le GARAGE du jeu
   (banc `garage.py` du scratchpad : vrais clics sur le splash puis sur la tuile GARAGE).
+- LES TRAITS MALADROITS (13/10, Léo : « des traits maladroits mal mis sur quelques voitures ») — joncs, seuils et lignes de porte
+  posés à un x FIXE (`sd*.95`…) alors que la coque avait bougé : ils flottaient hors de la tôle ou la traversaient. Recalés sur `xW(z)`
+  (ANGLAISE : le jonc de vitre SUIT la ceinture par segments, `seg()` ; RAIE, SILENCIEUSE, FÉLINE, TRÔNE, ROSSO : seuils raccourcis et
+  rentrés) · TAURINE : les ouïes COUCHÉES sur l'arc-boutant (un peigne qui sortait de la tôle) · ZED : les élargisseurs en LÈVRE qui
+  épouse le passage de roue (un trapèze noir posé autour) · DÉFIEUR / FÉLINE : les lignes de porte en FIL de laque foncée, d'un seul
+  tenant · BAVAROISE : montant arrière dans la couleur (triangle noir), jupe d'une roue à l'autre. ⚠ Règle : un détail de flanc se pose
+  TOUJOURS sur la fonction de largeur du gabarit (`xW(z)` ± épaisseur), jamais sur une constante.
 
 ## LA PASSE QUALITÉ AVANT SORTIE (2026-10-12, Sacha : « trouve des bugs et règle-les, améliore des trucs à droite à gauche, fais en sorte que le jeu soit parfait et sortable »)
 Méthode : bancs Puppeteer son coupé (rendu LOGICIEL SwiftShader : Roblox Studio tenait le GPU, le Chrome de test calait sur D3D11), un
