@@ -49263,11 +49263,36 @@ window.dbgJaugeAura=function(n){if(n>0&&running&&!gameOver){auraRun+=n;ajGain(n,
   return {moyenne:Math.round(AJ.moy||ajMoy()),record:Math.round(AJ.rec),montre:Math.round(AJ.vis),enVol:Math.round(AJ.envol),attend:Math.round(AJ.acc),vols:AJ.enVol,aura:Math.round(auraRun),
     phase:AJ.recB?'record battu':AJ.rev?'vers le record':'vers la moyenne',cellules:AJ.fs.slice(),bout:AJ.lbl+' '+AJ.txt,parties:(SAVE.d.ex&&SAVE.d.ex.runs)|0,auraTotale:SAVE.d.aura||0};};
 function loopWarn(b,nom,e){if(!((loop._crWarn|0)&b)){console.warn('créatures/musique · '+nom,e);loop._crWarn=(loop._crWarn|0)|b;}} // (2026-09-30) un bit par appel gardé : chaque panne se dit UNE fois, sans masquer celle du voisin
+/* (2026-10-13, passe de sortie — perf-iphone7) BANC : LE COÛT D'UNE IMAGE ENTIÈRE. `renderer.info` se remet à zéro à CHAQUE render() du
+   compositeur : seul, il ne montre que la dernière passe (l'ACES : 1 appel, 2 triangles). Armé, il additionne TOUTES les passes de l'image
+   (ombre, scène, bloom, ACES, vignette moteur) et la puce se chronomètre là où le navigateur le permet (EXT_disjoint_timer_query_webgl2 —
+   Chrome/Mac ; jamais en même temps que la sonde de la qualité). dbgCout(1) arme · dbgCout() lit · dbgCout(0) désarme. Éteint : zéro coût. */
+const COUT={on:false,der:null,q:null,ext:null,att:[],gpu:[],cpu:[]};
+function coutDebut(){const r=renderer.info;r.autoReset=false;r.reset();
+  if(COUT.ext&&!QLT.q&&!COUT.q){try{const g9=renderer.getContext(),q=g9.createQuery();if(q){g9.beginQuery(COUT.ext.TIME_ELAPSED_EXT,q);COUT.q=q;}}catch(e){COUT.ext=null;}}}
+function coutFin(){const r=renderer.info,g9=renderer.getContext();
+  COUT.der={calls:r.render.calls,tris:r.render.triangles,pts:r.render.points,lignes:r.render.lines};
+  COUT.cpu.push(performance.now()-QLR.t0);if(COUT.cpu.length>120)COUT.cpu.shift();
+  try{if(COUT.q){const q=COUT.q;COUT.q=null;g9.endQuery(COUT.ext.TIME_ELAPSED_EXT);COUT.att.push(q);}
+    for(let i=COUT.att.length-1;i>=0;i--){const q=COUT.att[i];if(g9.getQueryParameter(q,g9.QUERY_RESULT_AVAILABLE)){
+      if(!g9.getParameter(COUT.ext.GPU_DISJOINT_EXT))COUT.gpu.push(g9.getQueryParameter(q,g9.QUERY_RESULT)/1e6);g9.deleteQuery(q);COUT.att.splice(i,1);}}
+    if(COUT.gpu.length>120)COUT.gpu.splice(0,COUT.gpu.length-120);}catch(e){COUT.ext=null;COUT.q=null;}}
+window.dbgSable=function(on){SANDBOX=!!on;return SANDBOX;}; // (2026-10-13, banc perf-iphone7) le bac à sable : la caisse se replace au lieu de mourir (mesures longues sans fin de partie)
+window.dbgCout=function(on){ // (banc) — voir COUT
+  if(on!=null){COUT.on=!!on;COUT.gpu.length=0;COUT.cpu.length=0;COUT.att.length=0;
+    if(COUT.on&&COUT.ext===null){try{COUT.ext=renderer.capabilities.isWebGL2?renderer.getContext().getExtension('EXT_disjoint_timer_query_webgl2'):null;}catch(e){COUT.ext=null;}}
+    if(!COUT.on)renderer.info.autoReset=true;}
+  const st=a=>{if(!a.length)return null;const s=a.slice().sort((x,y)=>x-y);return {n:s.length,p50:+s[s.length>>1].toFixed(2),p90:+s[Math.min(s.length-1,(s.length*.9)|0)].toFixed(2),max:+s[s.length-1].toFixed(2)};};
+  const cv=renderer.domElement,m=renderer.info.memory,pa=composer?composer.passes.filter(p=>p.enabled).length:0;
+  return {on:COUT.on,image:COUT.der,gpu:st(COUT.gpu),cpu:st(COUT.cpu),chrono:!!COUT.ext,geo:m.geometries,tex:m.textures,progs:(renderer.info.programs||[]).length,
+    toile:[cv.width,cv.height],px:cv.width*cv.height,dpr:+curDPR.toFixed(2),post:POST_ON,passes:pa,bloom:bloomPass?(bloomPass.enabled?[bloomPass.renderTargetsHorizontal[0].width,bloomPass.renderTargetsHorizontal[0].height]:0):null,
+    ombre:renderer.shadowMap.enabled?sun.shadow.mapSize.x:0,ql:QL.k,vhd:VHD.on,qualite:typeof SAVE!=='undefined'&&SAVE.d?SAVE.d.q:null};};
 function loop(now){
   requestAnimationFrame(loop);
   if(BANC_ON)BANC_T0=performance.now(); // (banc ?banc=1) début de l'image chronométrée
   QLR.t0=performance.now(); // (tour 2) début de l'image, pour la sonde de la règle de qualité
   if(QLR.sN>0)qlSondeDebut(); // (2026-10-08) sonde armée : la puce chronomètre l'image (voir qlSonde)
+  if(COUT.on)coutDebut(); // (2026-10-13, banc perf-iphone7) le coût de l'image entière — voir COUT
   // ⚠ dt JAMAIS NÉGATIF (2026-09-25) : l'horodatage de rAF est celui du DÉBUT de l'image, et `last` peut avoir été posé
   // par `performance.now()` un peu plus tard (reprise d'onglet, pas-à-pas) — un dt < 0 rendait négatif le rayon
   // des taches de jus, et `arc()` lève alors une IndexSizeError qui cassait l'image entière (mesuré).
@@ -51014,6 +51039,7 @@ function loop(now){
   // quad ortho recollé par-dessus. Elle ne touche plus au viewport de la passe finale — c'était ça,
   // la déformation de l'image. ⚠ APRÈS le composer, jamais avant : il écrase le framebuffer.
   try{engVigRender(dt);}catch(e){if(!loop._vigWarn){console.warn('vignette moteur',e);loop._vigWarn=1;}}
+  if(COUT.on)coutFin(); // (banc perf-iphone7)
   if(BANC_CB)window.__bancSync(); // (banc ?banc=1) la puce finit l'image, on relève le chrono
   else if(QLR.sN>0)qlSonde(); // (tour 2) la règle de qualité veut le VRAI coût d'une image avant de baisser quoi que ce soit
 }
