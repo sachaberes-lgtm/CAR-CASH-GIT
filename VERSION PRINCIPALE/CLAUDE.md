@@ -15,6 +15,10 @@
   phares sur la pente des ailes). Les sections ont 10 points : coque (6) + verrière OU capot OU capot moteur (4).
 - ⚠ `put`/`box` : un rx POSITIF baisse le bout AVANT (+z). Une optique posée sur une aile qui plonge vers le nez prend rx > 0 —
   avec rx < 0 elle pointait vers le ciel et sortait de la tôle. Et `cyl(…,ax,r2)` : un 9e argument à 0 en fait un CÔNE.
+- Série 3 : LA DAYTONA (fastback reculé, ARÊTE de flanc sous laquelle la coque rentre, vitres qui rentrent) · LA TAURINE (coque
+  basse et galbée, ailes au-dessus du capot creusé — les cornes et les cils de Léo intacts) · LA RAIE (c'est une C3 68-72, pas une C2 :
+  la VAGUE des ailes, taille pincée, capot creusé avec bossage) · L'AIGLE DE FEU (bouteille, coup de rein de ceinture, filet d'or qui suit
+  la caisse). Réf. photos : la C3 = `ref/40_*` (cherchée pour LA VETTE, qui est en fait une C4 — à rechercher pour elle).
 
 ## LA PASSE QUALITÉ AVANT SORTIE (2026-10-12, Sacha : « trouve des bugs et règle-les, améliore des trucs à droite à gauche, fais en sorte que le jeu soit parfait et sortable »)
 Méthode : bancs Puppeteer son coupé (rendu LOGICIEL SwiftShader : Roblox Studio tenait le GPU, le Chrome de test calait sur D3D11), un
