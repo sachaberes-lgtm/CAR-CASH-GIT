@@ -44496,7 +44496,7 @@ function bqSkins(k){if(!k)return [];if(k[0]!=='v'){const c=k.slice(0,k.indexOf('
   return [{id:'original',n:'ORIGINAL',c:'linear-gradient(135deg,#fff,#d9dde3)'}];} // (2026-10-12) aucun skin n'est encore dessiné : chaque voiture, aile, traînée a son ORIGINAL
 function bqEssaie(k){ // toucher = ESSAYER (2026-10-12, Léo : « à droite un bouton ÉQUIPER / DÉSÉQUIPER / ACHETER qui change en fonction ») : c'est le bouton qui équipe (bqAction)
   if(k[0]==='v'){const i=+k.slice(2);if(SHOP.tab!=='voiture')shopTab('voiture');if(i!==garageI){garageSaute(i);try{bqGeste('voiture');}catch(e){}}}
-  else{const o=bqCos(k),j=COSM[o.cat].indexOf(o.d);if(SHOP.tab!==o.cat)shopTab(o.cat);if(j>=0)shopShow(o.cat,j);try{bqGeste(o.cat,o.d);}catch(er){try{if(SONV2)sfx('ui.carte');}catch(e9){}}} // (2026-10-13) chaque essai a son GESTE (voir bqGeste)
+  else{const o=bqCos(k),j=COSM[o.cat].indexOf(o.d);if(SHOP.tab!==o.cat)shopTab(o.cat);if(j>=0)bqOutil(o.cat,'essai',o.d,function(){shopShow(o.cat,j);try{gShopJour();}catch(e){}});} // (2026-10-13) LES BRAS D'ATELIER posent la pièce (voir bqOutil)
   try{gShopJour();}catch(e){}GBQ.ck='';}
 /* LE BOUTON QUI CHANGE (#gBqBtn, à droite de RETOUR) : ACHETER (+ le prix) · ÉQUIPER · DÉSÉQUIPER (un habillage équipé, sauf celui d'origine) ·
    ÉQUIPÉE (la caisse que tu as) · À GAGNER (défi : il le dit) — il remplace ACHETER de la console en boutique */
@@ -44509,8 +44509,8 @@ function bqEtat(){const k=bqCourant();if(!k)return null;
   if(d.p)return {e:'achat',t:'ACHETER',p:fmtC(d.p)};return {e:'defi',t:'À GAGNER'};}
 function bqAction(){const s=bqEtat(),k=bqCourant(),bt=document.getElementById('gBqBtn');if(!s||!k)return;
   if(s.e==='achat'){const b=$('gBuy');if(b)b.click();return;}
-  if(s.e==='equip'){if(k[0]==='v'){const i=+k.slice(2);if(garEquipeCaisse(i))garageShow(i);}else{const o=bqCos(k),j=COSM[o.cat].indexOf(o.d);if(garEquipeHabit(o.cat,j))shopShow(o.cat,j);}try{hap(8);}catch(e){}return;}
-  if(s.e==='desequip'){const o=bqCos(k),j=COSM[o.cat].indexOf(o.d);if(shopEquip(o.cat,0)){SHOP.prev=null;try{buildCar(CARS[equippedCar()]);}catch(e){}shopShow(o.cat,j);try{if(SONV2)sfx('ui.off');}catch(e){}}try{hap(6);}catch(e){}return;}
+  if(s.e==='equip'){if(k[0]==='v'){const i=+k.slice(2);if(garEquipeCaisse(i))garageShow(i);}else{const o=bqCos(k),j=COSM[o.cat].indexOf(o.d);if(garEquipeHabit(o.cat,j)){shopShow(o.cat,j);try{bqOutil(o.cat,'serre',o.d,null);}catch(e){}}}try{hap(8);}catch(e){}return;}
+  if(s.e==='desequip'){const o=bqCos(k),j=COSM[o.cat].indexOf(o.d);bqOutil(o.cat,'retire',o.d,function(){if(shopEquip(o.cat,0)){SHOP.prev=null;try{buildCar(CARS[equippedCar()]);}catch(e){}shopShow(o.cat,j);try{if(SONV2)sfx('ui.off');}catch(e){}}try{gShopJour();}catch(e){}});try{hap(6);}catch(e){}return;}
   if(s.e==='defi'){if(bt)gSecoue(bt);uiClic('refus');if(k[0]==='v')toast(pxi('verrou')+' '+String(carUnlockText(+k.slice(2))).replace(/</g,'&lt;'));return;}
   try{hap(6);}catch(e){}}
 function bqBoutonMaj(){const bt=document.getElementById('gBqBtn');if(!bt)return;const s=bqEtat(),cle=s?s.e+'|'+s.t+'|'+(s.p||'')+'|'+LANG:'';if(bt._k===cle)return;bt._k=cle;
@@ -44566,6 +44566,7 @@ function garBqIndus(dt,ay,t9){
   if(GBQ.omb){const s=4.2-.9*fl;GBQ.omb.scale.set(s,s,1);GBQ.omb.material.opacity=.42-.12*fl;}
   if(GBQ.choc){GBQ.chocT+=dt;const u=GBQ.chocT/.55;GBQ.choc.visible=u<1;if(u<1){const s=1.2+4.2*(1-Math.pow(1-u,3));GBQ.choc.scale.set(s,s,s);GBQ.choc.position.set(0,ay+GAR.POD+.06,0);GBQ.choc.material.opacity=.85*(1-u);}}
   try{garBqBras(dt,t9,ay);}catch(e){window.__brasErr=e;}
+  try{bqOutilTick(dt,t9,ay);}catch(e){window.__outilErr=e;}
   try{bqGesteTick(dt,t9);bqPoussiere(t9);}catch(e){window.__gesteErr=e;}
   try{garBqPanneau(dt,t9);}catch(e){}
 }
@@ -44624,6 +44625,7 @@ function garBqBrasBatit(){if(GBQ.bras)return GBQ.bras;
     chrome=new THREE.MeshPhongMaterial({color:0xf3f5f8,specular:0xffffff,shininess:300,envMap:envB,reflectivity:.85,combine:THREE.MixOperation,fog:false}),
     graph=new THREE.MeshPhongMaterial({color:0x2b2f37,specular:0x7c838e,shininess:70,flatShading:true,fog:false}),
     diode=new THREE.MeshBasicMaterial({color:0xffb347,fog:false});diode.color.setRGB(1.9,1.05,.38); // (au-delà de 1 : le halo du jeu la fait luire)
+  GBQ.matB={argent:argent,chrome:chrome,graph:graph,diode:diode}; // (les bras d'atelier les reprennent)
   const cyl=new THREE.CylinderGeometry(1,1,1,8),sph=new THREE.SphereGeometry(1,10,8),box=new THREE.BoxGeometry(1,1,1),M=function(geo,mt){const m=new THREE.Mesh(geo,mt);g.add(m);return m;};
   // le plateau tournant : un disque d'argent, douze crans de graphite sur sa tranche
   const pl=new THREE.Group();g.add(pl);GBQ.brasPl=pl;
@@ -44756,6 +44758,104 @@ function bqGesteTick(dt,t9){if(!BQG.m)return;const B=BQG,m=B.m,M=B.M,C=B.C,r=B.r
 function bqPoussiere(t9){const pt=GBQ.poussiere;if(!pt)return;const P=pt.geometry.attributes.position,A=P.array,A0=GBQ.poussP0,n=A.length/3,a=t9*.05,ca=Math.cos(a),sa=Math.sin(a);
   for(let i=0;i<n;i++){const x=A0[3*i],z=A0[3*i+2];A[3*i]=x*ca+z*sa;A[3*i+2]=-x*sa+z*ca;A[3*i+1]=A0[3*i+1]+Math.sin(t9*.6+i*1.7)*.18;}
   P.needsUpdate=true;}
+/* LES BRAS D'ATELIER (2026-10-13, Léo : « je pensais plutôt à des bras mécaniques qui apparaissent, se déplacent et accrochent les ailes,
+   ou quoi, en fonction de ce qu'on équipe, ce qu'on déséquipe ») — deux grands bras d'argent sur un RAIL autour du socle (un par flanc de la
+   caisse). Ils sortent du socle, glissent sur le rail jusqu'à leur pièce, la travaillent, puis rentrent. L'essai n'est APPLIQUÉ qu'au moment
+   où le bras touche la caisse (`apply`) :
+   · AILE — ils prennent chaque aile à sa racine et la DÉPLIENT (ils suivent son bout pendant qu'elle s'ouvre) ; déséquiper : ils l'arrachent,
+     l'emportent en l'air (une plaque d'or dans la pince) et rentrent avec ; équiper : un tour de clé à la racine, étincelles d'or.
+   · PEINTURE — un pistolet au poing, ils longent chaque flanc de l'arrière à l'avant en crachant des cubes de la couleur ; équiper : ils lustrent.
+   · TRAÎNÉE — une prise à la couleur de la traînée se BRANCHE sur les pots, la bague se charge, ils débranchent : la traînée jaillit.
+   `dbgOutil('aile'|'peinture'|'trainee', 'essai'|'serre'|'retire')` rejoue un geste (sans rien changer). */
+const BQT={L1:.82,L2:.78,hB:.3,rail:2.0,task:null};
+function garBqOutilBatit(){if(BQT.g)return BQT.g;garBqBrasBatit();bqGesteBatit();const Mt=GBQ.matB,g=new THREE.Group();g.visible=false;scene.add(g);BQT.g=g;
+  const cyl=new THREE.CylinderGeometry(1,1,1,8),sph=new THREE.SphereGeometry(1,10,8),box=new THREE.BoxGeometry(1,1,1),M=function(geo,mt,par){const m=new THREE.Mesh(geo,mt);(par||g).add(m);return m;};
+  const rail=new THREE.Mesh(new THREE.TorusGeometry(BQT.rail,.03,4,96),Mt.graph);rail.rotation.x=Math.PI/2;g.add(rail);BQT.railM=rail;
+  const rail2=new THREE.Mesh(new THREE.TorusGeometry(BQT.rail,.012,4,96),Mt.chrome);rail2.rotation.x=Math.PI/2;g.add(rail2);BQT.railM2=rail2;
+  BQT.bras=[0,1].map(function(){const A={chariot:M(box,Mt.graph),tour:M(cyl,Mt.argent),epaule:M(sph,Mt.graph),bras:M(cyl,Mt.argent),verin:M(cyl,Mt.chrome),coude:M(cyl,Mt.graph),
+      avant:M(cyl,Mt.argent),tige:M(cyl,Mt.chrome),poignet:M(sph,Mt.graph),tete:new THREE.Group(),phi:0,on:false};g.add(A.tete);
+    // la PINCE : une paume, deux doigts (+ la plaque d'or qu'elle emporte)
+    A.pince=new THREE.Group();A.tete.add(A.pince);{const pa=M(box,Mt.graph,A.pince);pa.scale.set(.17,.07,.12);pa.position.y=.035;
+      A.doigts=[-1,1].map(function(sg){const d=M(box,Mt.argent,A.pince);d.scale.set(.035,.17,.055);d.position.set(sg*.07,.15,0);return d;});
+      A.fant=M(box,null,A.pince);A.fant.material=new THREE.MeshPhongMaterial({color:0xe2b45c,specular:0xfff2c8,shininess:120,flatShading:true,fog:false});A.fant.scale.set(.62,.035,.22);A.fant.position.y=.24;A.fant.visible=false;}
+    // le PISTOLET : un bidon, une buse
+    A.buse=new THREE.Group();A.tete.add(A.buse);{const b=M(cyl,Mt.graph,A.buse);b.scale.set(.065,.13,.065);b.position.y=.065;const n=M(new THREE.CylinderGeometry(.018,.05,1,8),Mt.chrome,A.buse);n.scale.set(1,.16,1);n.position.y=.21;}
+    // la PRISE : un fût, une bague à la couleur
+    A.prise=new THREE.Group();A.tete.add(A.prise);{const f=M(cyl,Mt.argent,A.prise);f.scale.set(.055,.2,.055);f.position.y=.1;A.bague=new THREE.Mesh(new THREE.TorusGeometry(.065,.022,6,20),new THREE.MeshBasicMaterial({color:0xffffff,fog:false}));A.bague.rotation.x=Math.PI/2;A.bague.position.y=.17;A.prise.add(A.bague);}
+    const led=M(box,Mt.diode,A.tete);led.scale.set(.05,.02,.02);led.position.set(0,.02,.075);
+    return A;});
+  BQT.v=[0,1,2,3,4,5,6,7,8,9,10,11].map(function(){return new THREE.Vector3();});BQT.q=new THREE.Quaternion();BQT.q2=new THREE.Quaternion();
+  return g;}
+/* un geste : s'il en restait un à moitié, sa pièce est posée tout de suite */
+function bqOutil(k,mode,d,apply){const T=BQT.task;if(T&&!T.fait&&T.apply){T.fait=true;try{T.apply();}catch(e){}}
+  if(!(GBQ.on&&GBQ.grp&&GBQ.grp.visible)){BQT.task=null;if(apply)apply();return;}
+  garBqOutilBatit();BQT.task={k:k,mode:mode||'essai',d:d,apply:apply||null,fait:!apply,t:0,col:bqGesteCoul(k,d)||[1,.4,.8],f:0};
+  try{if(SONV2)sfx('ui.feuille');}catch(e){}}
+window.dbgOutil=function(k,mode){if(!k){const T=BQT.task;return {tache:T?{k:T.k,mode:T.mode,t:+T.t.toFixed(2),fait:T.fait}:null,pots:typeof CAR_POTS!=='undefined'?CAR_POTS.length:-1,ailes:!!carWingL,bras:BQT.bras?BQT.bras.map(function(A){return {on:A.on,vu:A.tete.visible,tete:A.tete.position.toArray().map(function(x){return +x.toFixed(2);})};}):null};}
+  bqOutil(k,mode||'essai',null,null);return BQT.task?{k:BQT.task.k,mode:BQT.task.mode}:'pas en boutique';};
+const BQT_T={monte:.24,va:.32,touche:.15,retour:.22,plie:.32,rentre:.26}; // la pièce est posée à 0,71 s du toucher
+function bqOutilDuree(T){return T.k==='aile'?(T.mode==='essai'?.75:T.mode==='retire'?.55:.6):T.k==='peinture'?(T.mode==='serre'?.6:1.0):(T.mode==='serre'?.5:.5);}
+function bqOutilTick(dt,t9,ay){const T=BQT.task;
+  if(!T||!(GBQ.grp&&GBQ.grp.visible)){if(T&&!T.fait&&T.apply){T.fait=true;try{T.apply();}catch(e){}}BQT.task=null;if(BQT.g)BQT.g.visible=false;return;}
+  const g=garBqOutilBatit(),V=BQT.v,hm=bqDessous(),bb=hm.bb,q=carGroup.quaternion,sc=carGroup.scale,p0=carGroup.position,r=BQG.r||(BQG.r=mulberry32(0x6E57));
+  const L=function(x,y,z,out){return out.set(x*sc.x,y*sc.y,z*sc.z).applyQuaternion(q).add(p0);};
+  const x0=bb?bb.min.x:-1,x1=bb?bb.max.x:1,y0=bb?bb.min.y:0,y1=bb?bb.max.y:1.3,z0=bb?bb.min.z:-2.2,z1=bb?bb.max.z:2.2,cx=(x0+x1)/2,cy=(y0+y1)/2,cz=(z0+z1)/2;
+  const ySoc=ay+GBQ.socleH,up=V[0].set(0,1,0),ax=V[1].set(1,0,0).applyQuaternion(q),az=V[2].set(0,0,1).applyQuaternion(q),ss=function(x){x=Math.max(0,Math.min(1,x));return x*x*(3-2*x);};
+  g.visible=true;g.position.set(0,0,0);BQT.railM.position.set(0,ySoc+.012,0);BQT.railM2.position.set(0,ySoc+.03,0);
+  T.t+=dt;const t=T.t,D=bqOutilDuree(T),t1=BQT_T.monte,t2=t1+BQT_T.va,t3=t2+BQT_T.touche,t4=t3+D,t5=t4+BQT_T.retour,t6=t5+BQT_T.plie,t7=t6+BQT_T.rentre;
+  if(t>=t3&&!T.fait){T.fait=true;try{if(T.apply)T.apply();}catch(e){}try{if(SONV2)sfx('ui.ok');}catch(e){}try{hap(6);}catch(e){}}
+  const ta=Math.max(0,Math.min(1,(t-t3)/D)); // l'avancée du travail
+  // les pots (traînée) : les plus à gauche et à droite
+  let pots=null;if(T.k==='trainee'){pots=[];const P9=(typeof CAR_POTS!=='undefined'&&CAR_POTS.length)?CAR_POTS:null;
+    if(P9){let a=P9[0],b=P9[0];for(const p of P9){if(p.x>a.x)a=p;if(p.x<b.x)b=p;}pots.push(a);if(Math.abs(a.x-b.x)>.25)pots.push(b);}else pots.push(new THREE.Vector3(cx,y0+.4,z0));}
+  for(let i=0;i<2;i++){const A=BQT.bras[i],sg=i?-1:1,out=V[3].copy(ax).multiplyScalar(sg),C=V[4],P=V[5],off=V[6];let on=true,outil='pince',grip=0,spin=0,fant=false;
+    // LA PIÈCE : où la toucher (C), dans quel sens pointer l'outil (P, vers la caisse), d'où l'approcher (off)
+    if(T.k==='aile'){const piv=i?carWingR:carWingL,span=(x1-x0)*.6;if(piv){piv.getWorldPosition(C);}else L(cx+sg*(x1-x0)/2,cy,cz,C);
+      let u=.15;if(T.mode==='essai')u=t<t3?.12:.12+span*(typeof wingT==='number'?wingT:1);else if(T.mode==='retire')u=span*.55;else u=.2;
+      C.addScaledVector(out,u);P.copy(out).multiplyScalar(-1).addScaledVector(up,-.35).normalize();off.copy(out).multiplyScalar(.45).addScaledVector(up,.4);
+      grip=t>=t3-.08?1:0;if(T.mode==='retire'&&t>=t3){const e=ss((t-t3)/D);C.addScaledVector(up,.55*e).addScaledVector(out,.35*e);fant=true;}
+      if(T.mode==='serre'&&t>=t3&&t<t4)spin=ss(ta)*Math.PI*4;}
+    else if(T.k==='peinture'){const zz=t<t3?z0-.05:z0-.05+(z1-z0+.1)*(T.mode==='serre'?.5:ss(ta));L(cx+sg*((x1-x0)/2+.5),cy+.05,zz,C);
+      if(T.mode==='serre'&&t>=t3&&t<t4){const a9=ta*Math.PI*6;C.addScaledVector(az,Math.cos(a9)*.18).addScaledVector(up,Math.sin(a9)*.1);}
+      outil='buse';P.copy(out).multiplyScalar(-1).normalize();off.copy(out).multiplyScalar(.4).addScaledVector(up,.3);
+      if(t>=t3&&t<t4&&T.mode!=='serre'){const c9=T.mode==='retire'?[.93,.94,.97]:T.col;for(let n=0;n<4;n++){V[7].copy(P).multiplyScalar(2.6+r()*1.6).addScaledVector(az,(r()-.5)*.8).addScaledVector(up,(r()-.3)*.9);
+        V[8].copy(C).addScaledVector(P,.24);bqPart(V[8].x,V[8].y,V[8].z,V[7].x,V[7].y,V[7].z,.28+r()*.18,.035+r()*.035,c9[0],c9[1],c9[2]);}}
+      if(T.mode==='serre'&&t>=t3&&t<t4&&r()<.4){V[8].copy(C).addScaledVector(P,.3);bqPart(V[8].x,V[8].y,V[8].z,(r()-.5),r()*.8,(r()-.5),.4,.04,BQ_OR[0],BQ_OR[1],BQ_OR[2]);}}
+    else{ // la traînée
+      if(!pots||i>=pots.length)on=false;else{const pt=pots[i];L(pt.x,pt.y,pt.z,C);const back=V[7].copy(az).multiplyScalar(-1);C.addScaledVector(back,.06);
+        outil='prise';P.copy(az).normalize();off.copy(back).multiplyScalar(.5).addScaledVector(up,.3).addScaledVector(out,.15);
+        if(T.mode==='retire'&&t>=t3){const e=ss((t-t3)/D);C.addScaledVector(back,.4*e).addScaledVector(up,.4*e);}
+        if(T.mode==='serre'&&t>=t3&&t<t4)spin=ss(ta)*Math.PI*3;
+        const c9=T.col;const pu=t>=t3&&t<t4&&T.mode!=='retire'?.6+.4*Math.sin(t*28):.35;A.bague.material.color.setRGB(c9[0]*pu,c9[1]*pu,c9[2]*pu);
+        if(T.mode==='essai'&&i===0&&t>=t4&&!(T.f&1)){T.f|=1;for(const pp of pots){L(pp.x,pp.y,pp.z,V[8]);for(let n=0;n<34;n++){V[9].copy(back).multiplyScalar(2.4+r()*2.4).addScaledVector(up,(r()-.4)*.9).addScaledVector(ax,(r()-.5)*.9);
+          bqPart(V[8].x,V[8].y,V[8].z,V[9].x,V[9].y,V[9].z,.5+r()*.45,.045+r()*.05,c9[0],c9[1],c9[2]);}}}}}
+    if(!on){A.on=false;for(const k9 of ['chariot','tour','epaule','bras','verin','coude','avant','tige','poignet'])A[k9].visible=false;A.tete.visible=false;continue;}
+    // LE CHARIOT glisse sur le rail jusque sous la pièce
+    const phiC=Math.atan2(C.x,C.z);if(!A.on){A.phi=phiC;A.on=true;}let dphi=phiC-A.phi;dphi=Math.atan2(Math.sin(dphi),Math.cos(dphi));A.phi+=dphi*Math.min(1,dt*7);
+    const mo=t<t1?ss(t/t1):t>t6?1-ss((t-t6)/BQT_T.rentre):1,yB=ySoc-(1-mo)*1.1,bx=Math.sin(A.phi)*BQT.rail,bz=Math.cos(A.phi)*BQT.rail;
+    const S=V[8].set(bx,yB+BQT.hB,bz),rad=V[9].set(Math.sin(A.phi),0,Math.cos(A.phi)),W=V[10],F=V[11].copy(S).addScaledVector(rad,.3).add(V[7].set(0,.6,0)); // F : replié
+    if(t<t1)W.copy(F);else if(t<t2)W.copy(F).lerp(V[7].copy(C).add(off),ss((t-t1)/BQT_T.va));else if(t<t3)W.copy(C).add(off).lerp(C,ss((t-t2)/BQT_T.touche));
+    else if(t<t4)W.copy(C);else if(t<t5)W.copy(C).addScaledVector(off,ss((t-t4)/BQT_T.retour));else if(t<t6)W.copy(C).add(off).lerp(F,ss((t-t5)/BQT_T.plie));else W.copy(F);
+    W.addScaledVector(P,-.2); // le poignet, en retrait de l'outil
+    A.chariot.position.set(bx,yB+.05,bz);A.chariot.rotation.set(0,A.phi,0);A.chariot.scale.set(.42,.12,.32);
+    A.tour.position.set(bx,yB+BQT.hB*.55,bz);A.tour.quaternion.identity();A.tour.scale.set(.2,BQT.hB*.9,.2);A.epaule.position.copy(S);A.epaule.scale.setScalar(.17);
+    // deux segments : le coude en haut et vers l'extérieur
+    const Dv=V[3].subVectors(W,S);let d=Dv.length();const L1=BQT.L1;let L2=BQT.L2;if(d<1e-4){d=1e-4;Dv.set(0,1e-4,0);}Dv.multiplyScalar(1/d);
+    const n=V[4].copy(rad).multiplyScalar(.45).add(V[7].set(0,1,0));n.addScaledVector(Dv,-n.dot(Dv));if(n.lengthSq()<1e-5)n.set(0,1,0).addScaledVector(Dv,-Dv.y);n.normalize();
+    let a1=0;if(d>=L1+L2)L2=d-L1;else{const c=(L1*L1+d*d-L2*L2)/(2*L1*d);a1=Math.acos(Math.max(-1,Math.min(1,c)));}
+    const E=V[6].copy(S).addScaledVector(Dv,Math.cos(a1)*L1).addScaledVector(n,Math.sin(a1)*L1);
+    bqSeg(A.bras,S,E,.12);{const p1=V[7].copy(S).addScaledVector(n,.18).addScaledVector(Dv,.06),p2=V[9].lerpVectors(S,E,.62).addScaledVector(n,.14);bqSeg(A.verin,p1,p2,.045);}
+    A.coude.position.copy(E);{const axe=V[7].crossVectors(Dv,n).normalize();A.coude.quaternion.setFromUnitVectors(bqSeg._y||(bqSeg._y=new THREE.Vector3(0,1,0)),axe);}A.coude.scale.set(.15,.3,.15);
+    {const f=V[9].subVectors(W,E),Lf=f.length();f.multiplyScalar(1/Math.max(1e-5,Lf));const m1=V[7].copy(E).addScaledVector(f,Math.min(Lf,BQT.L2*.6));bqSeg(A.avant,E,m1,.1);
+     const m2=V[3].copy(E).addScaledVector(f,Math.min(Lf,BQT.L2*.42));bqSeg(A.tige,m2,W,.055);}
+    A.poignet.position.copy(W);A.poignet.scale.setScalar(.11);
+    // l'outil, au bout, pointé sur la pièce (et qui tourne pour le tour de clé)
+    A.tete.visible=true;A.tete.position.copy(W);A.tete.scale.setScalar(1.35);BQT.q.setFromUnitVectors(bqSeg._y,P);BQT.q2.setFromAxisAngle(P,spin);A.tete.quaternion.copy(BQT.q).premultiply(BQT.q2);
+    A.pince.visible=outil==='pince';A.buse.visible=outil==='buse';A.prise.visible=outil==='prise';
+    if(outil==='pince'){A.doigts[0].position.x=-.07+.03*grip;A.doigts[1].position.x=.07-.03*grip;A.fant.visible=fant;}
+    for(const k9 of ['chariot','tour','epaule','bras','verin','coude','avant','tige','poignet'])A[k9].visible=true;
+    if(spin>0&&r()<.35){V[7].copy(W).addScaledVector(P,.3);bqPart(V[7].x,V[7].y,V[7].z,(r()-.5)*1.2,.4+r()*.8,(r()-.5)*1.2,.35+r()*.3,.035+r()*.03,BQ_OR[0],BQ_OR[1],BQ_OR[2]);}}
+  if(t>=t7){BQT.task=null;g.visible=false;}}
 function garBqLumiere(){if(!GBQ.on)return; // la lumière du magasin : blanche, sans le contre-jour du feu
   stallKey.color.setHex(0xffffff);stallKey.intensity=1.45;stallKey.distance=30;stallRim.color.setHex(0xe8eef5);stallRim.intensity=.7;stallRim.distance=30;}
 /* LE DOIGT SUR LA SCÈNE tourne la caisse (le garage ne reçoit plus le glissé : pris en capture) */
