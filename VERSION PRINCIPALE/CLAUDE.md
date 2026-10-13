@@ -1,5 +1,33 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LE MODE CLASSIQUE AU HASARD — MAP × MÉTÉO (2026-10-13, Sacha : « petite refonte du mode classique : les biomes aléatoires — montagne chinoise, nuages, ville… — et la suite aléatoire, indépendante de la météo : la pluie, l'orage avec des nuages, le soleil le matin, le soir, à midi, plusieurs éclairages. À chaque portail ou à chaque lancement, décider aléatoirement un biome ET une météo. Dans l'espace : ni nuages, ni pluie, ni orage »)
+- **JOUER (accueil et garage) = LE MODE CLASSIQUE AU HASARD** (`classiqueJouer`, `sfPlayOk`) — choix de Sacha le 13/10, qui remplace « JOUER = SOLEIL
+  DE JADE » (Léo, 12/10 ; à revoir avec Léo s'il le conteste). Le SOLEIL DE JADE reste entier : `?play=jade` (l'ancien JOUER), `?niveau=jade`,
+  `dbgNiveauJade()`. Un joueur sans auto-école (ou qui a demandé à la revoir) passe d'abord par elle (l'ancien chemin), puis le hasard reprend.
+- Bloc « LE MODE CLASSIQUE AU HASARD » (après NIVEAUX) : `SF_CARTES` = les 4 MAPS (MER DE NUAGES, LA VILLE, PICS DE JADE, EN ORBITE ; Paris reste
+  dehors, Sacha 10/10) et leurs MÉTÉOS permises (MATIN, MIDI, SOIR, NUIT, PLUIE, ORAGE ; l'orbite : MATIN, MIDI, SOIR + PLUIE DE SATELLITES,
+  la météo rare, poids ,5). `sfTire` : une map jamais deux fois de suite, puis une météo (pas deux fois la même de suite si possible).
+  `sfNiveau` fabrique le NIVEAU (id, bio, pluie, nuit, orage, route, sheen…) : les couples connus sont REPRIS tels quels (nuages × orage =
+  L'ORAGE avec ses bancs, ville × pluie = AU-DESSUS DE LA VILLE, ville × nuit = MINUIT EN VILLE sans sa pluie, orbite × midi = EN ORBITE,
+  orbite × satellites = PLUIE DE SATELLITES). `SF.tirage` = un couple par zone ; `lvlChoisir` le lit en course (et sous le voile du JOUER :
+  `SF.pret`) — le MENU garde NIVEAUX[0] et son ciel (Léo : « t'as changé le ciel du menu, c'est très grave »). REJOUER tire une suite neuve.
+- Les leviers, rendus indépendants de la map : la pluie (`LVL.pluie`), la nuit (`LVL.nuit` : les phares), l'ORAGE (`niveau.orage` : les
+  éclairs d'orageTick, le vent de la pluie, pas de pigeons) — ville et jade comprises.
+- Les AMBIANCES nouvelles (« LES MÉTÉOS DU MODE CLASSIQUE », avant `const BIO=`) : `nuagesSoir`/`nuagesNuit` (les couleurs des HEURES DU
+  TITRE, l'air de la course), `nuagesPluie` (AVERSE : plafond gris sur la mer de nuages), `villeMatin`/`villeMidi`/`villeSoir`/`villeOrage`,
+  `jadeMatin`/`jadeMidi`/`jadeNuit`/`jadePluie`/`jadeOrage` (le rouleau de Léo — `BIOMES.jade`, l'or du soir, reste le SOIR), `espaceMatin`/
+  `espaceSoir`. Le rouleau peint a un levier de plus, `jdK` → `uJdK` (soleil peint, or des kasumi et des voiles, fleuve, disque → lune) :
+  1,1,1,0 = le rouleau tel quel. Que des uniforms.
+- LA JADE DANS LE MODE CLASSIQUE = le niveau complet (pièces ¥, ses fruits, plaques et plots, GLISSE V2 : `jadeMusOn`) ; son portail mène à la
+  suite (l'ARRIVÉE reste au SOLEIL DE JADE et à la balade). La musique : entrer dans la jade fait taire la radio, en sortir la rallume
+  (`musicSuitLieu`). ⚠ La bâtir coûte cher : MESURÉ au banc (Mac, machine chargée) 1,9 à 3,6 s au portail vers elle (buildJade 1-2,5 s),
+  contre 0,2-0,7 s pour les autres maps — sous le VOILE du portail (« LE PASSAGE EN DEUX TEMPS »), qui tient d'autant. Ses gabarits
+  (~0,7 s) sont taillés une fois par session sous le voile du JOUER.
+- La vignette du garage sous JOUER (`#gvLvl`) annonce le couple tiré d'avance (`SF.prochain`) — classiqueJouer le prend ; vignette `jade` ajoutée.
+- `?play=sansfin` (le simulateur de Léo : sa PARTIE SANS FIN clique JOUER et attend la MER DE NUAGES), `?classique=cycle` et l'édition POKI
+  gardent l'ancien cycle fixe. Bancs / liens : `?carte=jade&meteo=orage` impose le 1er couple ; `dbgClassique()` (l'état, le tirage) ;
+  `dbgClassique('ville','soir')` puis `dbgSaut()` impose le suivant. sw.js → v328.
+
 ## LES VRAIS MODÈLES, PLUS RESSEMBLANTS (2026-10-13, Léo : « toutes les voitures inspirées de vrais modèles : entraîne-toi, rends-les plus réalistes et ressemblantes, super bon rendu ; montre avant / après »)
 - Méthode : chaque caisse comparée à des photos du vrai modèle (Wikimedia Commons), retouchée sur ce qui la TRAHIT (proportions, profil,
   signes), puis planche AVANT | APRÈS (trois vues de la salle blanche, même cadrage ; l'« avant » vient d'une copie intacte du main).
@@ -129,6 +157,7 @@ début — dans l'autre ça commence un peu tard ») — mesuré des DEUX côté
   plus d'étoile. Le ciel : orange du soir (jdH/jdM/jdL orange, zénith bleu-mauve), brume et lumière orangées.
 - (12/10 soir, Léo : « le ciel, un mélange de gris, bleu, orangé ; le bord de la route pas tout lisse, ce sont les PIÈCES qui DÉPASSENT ;
   lance-le comme la map qui se déclenche quand on appuie sur JOUER, avec CETTE musique-là ; on retouchera la map directement sur le main »)
+  · ⚠ REMPLACÉ le 13/10 (Sacha, voir « LE MODE CLASSIQUE AU HASARD ») : JOUER lance le mode classique au hasard ; le SOLEIL DE JADE en direct = `?play=jade`.
   · LE JOUER (accueil `mTap('play')` et garage `garJouer`) lance le SOLEIL DE JADE (`jadeJouer`, `jadePlayOk` : `JADE_PLAY`, pas Poki, pas
     le parc/Survivant armés, et JAMAIS pour un tout premier joueur : l'auto-école d'abord). `?play=sansfin` (ou `carriere`) rend l'ancien JOUER
     — le simulateur charge le jeu avec `?play=sansfin` et lance le jade par `dbgNiveauJade` (= jadeJouer).

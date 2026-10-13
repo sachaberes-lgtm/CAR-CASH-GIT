@@ -7833,7 +7833,7 @@ const skyU={uEauT:{value:0},uSous:{value:0},uSousC:{value:new THREE.Vector3(.13,
   uJour:{value:0},uMerLoin:{value:16000},uJZen:{value:new THREE.Vector3()},uJMid:{value:new THREE.Vector3()},uJHor:{value:new THREE.Vector3()},uJSol:{value:new THREE.Vector3()}, // (2026-09-30) LE JOUR D'ALTITUDE (voir cielJour) : 0 = le ciel d'avant
   uMer:{value:0}, // (2026-09-26) LA MER DE NUAGES PEINTE sous l'horizon — niveau NUAGES seulement (voir merNuages ; fondue par lvlStep comme la ville)
   uBasTex:{value:null},uBasInv:{value:new THREE.Vector2(1,1)},uBasTr:{value:0},
-  uJade:{value:0},uJMerY:{value:-420},uJPx:{value:.0015},uJdZ:{value:new THREE.Vector3(.42,.58,.66)},uJdH:{value:new THREE.Vector3(.93,.90,.80)},uJdR:{value:new THREE.Vector3(.2,.28,.27)},uJdB:{value:new THREE.Vector3(.86,.87,.82)},uJdS:{value:new THREE.Vector3(1,.88,.66)},uJdM:{value:new THREE.Vector3(.93,.90,.80)},uJdL:{value:new THREE.Vector3(.42,.58,.66)},uEauW:{value:new THREE.Vector4(0,0,0,0)},uEauP:{value:[0,1,2,3,4,5,6,7,8,9,10,11].map(function(){return new THREE.Vector4(0,0,-1,0);})}}; // (2026-10-09) LES PICS DE JADE : le ciel peint (voir COUCHES.jade) — 0 ailleurs // (2026-09-27, tour 2) LE CIEL EN DEUX TEMPS : la passe lisse (cible hors écran), 1/taille de l'image où la relire, sa trame si elle est en 8 bits (voir CIEL2)
+  uJade:{value:0},uJMerY:{value:-420},uJPx:{value:.0015},uJdZ:{value:new THREE.Vector3(.42,.58,.66)},uJdH:{value:new THREE.Vector3(.93,.90,.80)},uJdR:{value:new THREE.Vector3(.2,.28,.27)},uJdB:{value:new THREE.Vector3(.86,.87,.82)},uJdS:{value:new THREE.Vector3(1,.88,.66)},uJdM:{value:new THREE.Vector3(.93,.90,.80)},uJdL:{value:new THREE.Vector3(.42,.58,.66)},uJdK:{value:new THREE.Vector4(1,1,1,0)},uEauW:{value:new THREE.Vector4(0,0,0,0)},uEauP:{value:[0,1,2,3,4,5,6,7,8,9,10,11].map(function(){return new THREE.Vector4(0,0,-1,0);})}}; // (2026-10-09) LES PICS DE JADE : le ciel peint (voir COUCHES.jade) — 0 ailleurs // (2026-09-27, tour 2) LE CIEL EN DEUX TEMPS : la passe lisse (cible hors écran), 1/taille de l'image où la relire, sa trame si elle est en 8 bits (voir CIEL2)
 const skyDome=(function(){
   /* LE CIEL EN DEUX TEMPS (2026-09-27, passe perf iPhone, tour 2) — le pourquoi et le mesuré sont dans CIEL2 (après chauffeDivers).
      Le shader est rangé en MORCEAUX — la tête, la ville, la mer, les COUCHES (une fonction par couche) et un `main` par programme :
@@ -8155,7 +8155,7 @@ const skyDome=(function(){
        Zhangjiajie devant), chacune plus nette que celle de derrière, le pied noyé dans la brume ; sous l horizon la MER DE NUAGES (un plan
        à uJMerY : parallaxe vraie avec la caméra). Bords anticrénelés à la taille du pixel (uJPx, en radians). uJade = 0 ailleurs. */
     jade:[
-      'uniform float uJade,uJMerY,uJPx,uEauT,uSous;uniform vec3 uJdZ,uJdH,uJdR,uJdB,uJdS,uJdM,uJdL,uSousC;uniform vec4 uEauW;uniform vec4 uEauP[12];',
+      'uniform float uJade,uJMerY,uJPx,uEauT,uSous;uniform vec3 uJdZ,uJdH,uJdR,uJdB,uJdS,uJdM,uJdL,uSousC;uniform vec4 uEauW,uJdK;', /* (2026-10-13) uJdK : le TEMPS QU IL FAIT sur le rouleau (x soleil peint, y lumière d or : kasumi et voiles, z le fleuve, w le disque devient LUNE) — 1,1,1,0 = le rouleau de Léo */ 'uniform vec4 uEauP[12];',
       'float jh(float x){return fract(sin(x*127.13+.71)*43758.5453);}',
       'float jn(float x){float i=floor(x),f=fract(x);f=f*f*(3.-2.*f);return mix(jh(i),jh(i+1.),f);}',
       'float jCrete(float a,float s){float r=0.,am=.55,f=3.1;', // des crêtes déchiquetées : un bruit replié, quatre octaves
@@ -8214,14 +8214,14 @@ const skyDome=(function(){
       '  c+=uJdS*(pow(sd,6.)*.18)*(1.-.6*smoothstep(0.,.4,yy));',
 
       '  if(y>.012&&y<.4){float t=1.0/y;vec2 p=d.xz*t*1.05+vec2(uTime*.003,0.);', // les voiles de lavis, étirés
-      '    float n=vfbm(vec2(p.x*.55,p.y*2.4)+3.7);c=mix(c,mix(uJdH,vec3(1.),.35),smoothstep(.56,.86,n)*.42*smoothstep(.012,.06,y)*(1.-smoothstep(.22,.4,y)));}',
+      '    float n=vfbm(vec2(p.x*.55,p.y*2.4)+3.7);c=mix(c,mix(uJdH,mix(uJdH,vec3(1.),uJdK.y),.35),smoothstep(.56,.86,n)*.42*smoothstep(.012,.06,y)*(1.-smoothstep(.22,.4,y)));}',
       '  {vec4 lo=jLointain(az,y);c=mix(c,lo.rgb,lo.a);}',                  // (v12) le LOINTAIN, derrière les rangées de piliers
       '  {vec3 sv=normalize(vec3(uSunDir.x,0.,uSunDir.z)*.966+vec3(0.,.259,0.));float sv9=max(dot(d,sv),0.);',               // le SOLEIL vermillon, posé AU-DESSUS des monts (~15°)
       '   float dk=1.-smoothstep(.99680,.99725,sv9);vec3 ve=mix(vec3(.90,.26,.15),vec3(.97,.42,.22),smoothstep(.99725,.99990,sv9));',
-      '   c=mix(c,ve,(1.-dk)*.96);c+=vec3(.50,.16,.08)*pow(sv9,120.)*.22*dk;}',
+      '   ve=mix(ve,vec3(.80,.86,.98),uJdK.w);c=mix(c,ve,(1.-dk)*.96*uJdK.x);c+=mix(vec3(.50,.16,.08),vec3(.20,.24,.34),uJdK.w)*pow(sv9,120.)*.22*dk*uJdK.x;}',
       '  for(int i=0;i<4;i++){float fi=float(i),hc=.020+fi*.062+.014*sin(az*1.3+fi*2.1),th=.010+.005*fi;',                   // (v17 bis) les KASUMI : bandes d or couchées
       '    float on=smoothstep(.42,.58,vn(vec2(az*(1.1+fi*.35)+fi*7.3,fi*3.1)));float b=(1.-smoothstep(th*.55,th,abs(y-hc)))*on;',
-      '    vec3 kg=mix(vec3(.99,.86,.58),vec3(1.,.94,.80),.5+.5*sin(az*3.+fi));c=mix(c,kg,b*.82);}',
+      '    vec3 kg=mix(vec3(.99,.86,.58),vec3(1.,.94,.80),.5+.5*sin(az*3.+fi));c=mix(c,kg,b*.82*uJdK.y);}',
       '  vec3 B=uJdB;float azq=az;',                                         // (v3, Léo : « que du ciel et de la mer ») : plus de monts posés sur l horizon — au fond aussi, ils FLOTTENT
       // (v12) les quatre rangées de piliers peints sur l horizon sont RETIRÉES : devant le lointain elles faisaient une frise de bosses blanches
       // (v8, Léo : « un dessous, que ce soit la mer — qui fasse penser au fleuve des peintures chinoises, mais bleu ») LE FLEUVE : le bleu
@@ -8254,7 +8254,7 @@ const skyDome=(function(){
       '        cw=mix(cw,vec3(.94,.95,1.),fo*.85);}',
       '      else{cw=wc*(.50+.35*dif);cw=mix(cw,sk*.8,F*.45);}',                                            // un flanc : plus sombre
       '      wa=mix(wa,cw,1.-smoothstep(1400.,2600.,ht.w));}}',
-      '    float hz=1.-smoothstep(-.16,-.002,y);c=mix(c,wa,hz*hz*(3.-2.*hz));}',
+      '    wa*=uJdK.z;float hz=1.-smoothstep(-.16,-.002,y);c=mix(c,wa,hz*hz*(3.-2.*hz));}',
       '  c=mix(c,uFogCol,(1.-smoothstep(0.,.05,abs(y)))*.35);',              // l horizon rejoint la brume de three (les piliers 3D s y fondent)
       '  return c;}'],
     fond:[
@@ -8885,7 +8885,7 @@ let JADE_JEU=/[?&]niveau=jade\b/.test(location.search)&&!BALADE;
    la map directement sur le main ») LE JOUER = LE SOLEIL DE JADE : le JOUER de l'accueil et celui du garage lancent ce niveau (jadeJouer) —
    sauf pour un tout premier joueur (l'auto-école d'abord) et au simulateur pour ses parties SANS FIN (`?play=sansfin`). Sa musique : GLISSE V2
    (le module de Léo, `assets/audio/music/musique-glisse-v2.js` — la copie de `simulateur/musiques/`, son choix au simulateur), voir JMUS. */
-const JADE_PLAY=!/[?&]play=(sansfin|carriere)\b/.test(location.search)&&!BALADE;
+const JADE_PLAY=/[?&]play=jade\b/.test(location.search)&&!BALADE; // (2026-10-13, Sacha : « refonte du mode classique ») JOUER lance le MODE CLASSIQUE AU HASARD (classiqueJouer) — le SOLEIL DE JADE en direct : `?play=jade`
 /* (2026-10-12, Léo : « l'important avec ce simulateur, c'est qu'on puisse jouer dans la map : enlève l'écran d'accueil ») LE JEU DU SIMULATEUR —
    `?simu=1` (posé par simulateur/course.html) : pas d'écran titre (le voile s'ouvre tout seul, comme la balade), pas de rechargement automatique
    quand une nouvelle version sort (le simulateur garde la main) ; le reste est le jeu tel quel. `dbgQuitte()` finit la course sans explosion. */
@@ -10767,7 +10767,7 @@ function spawnPigeonFlock(){
    niveaux ESPACE) ou en plein déluge sous les éclairs. Là, pas d'apparition — et la volée d'avant le portail s'efface. */
 const PGBAN={c:undefined,v:false}; // mémo par niveau : le test ne se refait qu'au portail
 function pigeonsInterdits(){const c=LVL.cur;if(c===PGBAN.c)return PGBAN.v;PGBAN.c=c;
-  return PGBAN.v=!!c&&(c.id==='espace'||c.id==='orage'||/orage|tempete/i.test(String(c.bio&&c.bio[0]||'')));} // (la campagne : le niveau 9 « orage doré », le 15 « orage »)
+  return PGBAN.v=!!c&&(c.id==='espace'||c.id==='orage'||!!c.orage||/orage|tempete/i.test(String(c.bio&&c.bio[0]||'')));} // (la campagne : le niveau 9 « orage doré », le 15 « orage »)
 function updatePigeons(dt,t){
   pigeonT-=dt;
   const ban9=pigeonsInterdits();
@@ -12149,7 +12149,7 @@ function buildTrack(seed){
   /* (2026-10-12 soir, Léo : « tu as du mal à enlever la barre lisse : fais la route plus fine, sur deux pièces ») aux PICS DE JADE la dalle n'a
      que DEUX PIÈCES d'épaisseur (30 cm au lieu de 2,6 m) : la tranche lisse disparaît presque derrière les pièces du bord ; la caisse est posée
      12 cm plus haut sur la route en pièces (JADE_LEVE : sur le plan, elle avait l'air enfoncée dans les pièces). Partout ailleurs : 2,6 m. */
-  {const j9=!!(LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on)&&JROUTE.style===4;THICK=j9?.30:2.6;JADE_LEVE=j9?.12:0;} /* (2026-10-13) la route normale reprend ses 2,6 m */const JADE9=!!(LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on&&!JADE_JEU); // (2026-10-09) LES PICS DE JADE : une route nue (ni pad, ni flaque, ni plot)
+  {const j9=!!(LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on)&&JROUTE.style===4;THICK=j9?.30:2.6;JADE_LEVE=j9?.12:0;} /* (2026-10-13) la route normale reprend ses 2,6 m */const JADE9=!!(LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on&&!JADE_JEU&&!LVL.cur.sansFin); /* (2026-10-13) au mode classique aussi, la jade est un vrai niveau */ // (2026-10-09) LES PICS DE JADE : une route nue (ni pad, ni flaque, ni plot)
   // (l'entrée surélevée n'existe que si genCtrl la pose : niveau VILLE généré) · (les modules aussi : le parc, l'école et la campagne n'en ont pas)
   const ctrl=PARK.on?genPark(rnd):(LVL.cur&&LVL.cur.piste==='tuto')?genTuto():(LVL.cur&&LVL.cur.piste==='camp')?genCampagne(LVL.cur.camp):(LVL.cur&&LVL.cur.piste==='paris')?genParis():(LVL.cur&&LVL.cur.piste==='jade')?genJade(rnd):genCtrl(rnd,new THREE.Vector3(0,0,0),0); // FREESTYLE : le parc de figures remplace la piste de course · (2026-09-27) CAMPAGNE : la piste dessinée du niveau
   const curve=new THREE.CatmullRomCurve3(ctrl,false,'centripetal'); // (piste v7) centripète : l'uniforme faisait des COUDES entre points inégalement espacés (liaison courte après une grande figure)
@@ -14389,7 +14389,7 @@ function buildJade(seed){
   try{JADE_ESPRITS.visible=false;}catch(e){} // …et les lucioles s'éteignent : jadeTick ne tourne plus hors de la map, elles restaient figées dans le niveau suivant
   for(const F of JADE.fam.concat(FIN.fam.filter(Boolean))){F.im.dispose();if(F.im2&&F.im2!==F.im){F.im2.dispose();F.im3.dispose();}const g9=F.im.geometry;for(const k in g9.attributes)if(k!=='aJ')g9.deleteAttribute(k);g9.setIndex(null);g9.dispose();}JADE.fam=[];FIN.fam=[];FIN.near.length=0;FIN.sig=0;FIN.mats=new Map();FIN.dans=new Set();JADE.col=null;JADE.porte=null;JADE.pont=null;JADE.brume=null;JADE.sig=0;
   if(JADE.root){JADE.root.traverse(function(o){if(o.userData.jeter&&o.geometry)o.geometry.dispose();});JADE.root=null;}JADE.monu=[];
-  try{coinSymbole(!!(JADE_JEU&&LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on));}catch(e){} // (2026-10-12) les pièces du SOLEIL DE JADE frappées du ¥
+  try{coinSymbole(!!((JADE_JEU||(LVL.cur&&LVL.cur.sansFin))&&LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on));}catch(e){} // (2026-10-12) les pièces du SOLEIL DE JADE frappées du ¥
   try{jadeEauRaz();}catch(e){} // (2026-10-13) la mer : rien sous l'eau d'une piste à l'autre
   if(PARK.on||!LVL.cur||LVL.cur.piste!=='jade'||!(NP>1))return;
   const t00=performance.now(),M9=jadeMats(),G=jadeGabarits(),jr=mulberry32((seed^0x1ADE5EED)>>>0),Q=JADE.Q||{};
@@ -17090,7 +17090,7 @@ const BIOMES={
 const BIO_ETAL0={wb:[1.02,.985,1.03],sh:[.004,-.008,.062],hi:[.052,.008,-.014],con:1.23,bloomS:.54,bloomT:.92,vigK:.52,vigC:[.149,.047,.212],daCon:1,daExpo:1,daWbN:1,daSh:1,daHi:1,
   rimK:0,rimS:.40,fogIn:[.847,.737,.816],fogCj:[.753,.416,.329],
   jour:0,jZen:[0,0,0],jMid:[0,0,0],jHor:[0,0,0],jSol:[0,0,0],
-  jdZ:[.42,.58,.66],jdH:[.93,.90,.80],jdR:[.2,.28,.27],jdB:[.86,.87,.82],jdS:[1,.88,.66],jdM:[.93,.90,.80],jdL:[.42,.58,.66]}; // (2026-10-09) le ciel des PICS DE JADE (lu seulement là-bas : uJade) // (2026-09-30) LE JOUR D'ALTITUDE : 0 = le ciel d'avant (voir cielJour)
+  jdZ:[.42,.58,.66],jdH:[.93,.90,.80],jdR:[.2,.28,.27],jdB:[.86,.87,.82],jdS:[1,.88,.66],jdM:[.93,.90,.80],jdL:[.42,.58,.66],jdK:[1,1,1,0]}; // (2026-10-09) le ciel des PICS DE JADE (lu seulement là-bas : uJade) // (2026-09-30) LE JOUR D'ALTITUDE : 0 = le ciel d'avant (voir cielJour)
 // (vague 3) ETAL_JOUR retiré : le jour des NUAGES reprend l'étalonnage d'origine (BIO_ETAL0), voir le haut de BIOMES
 Object.assign(BIOMES.pluie,{bloomS:.55,bloomT:.88,rimK:1,rimS:.55}); // VILLE : l'étalonnage d'avant (déjà au niveau) — le liseré vient du NÉON de contre-jour
 Object.assign(BIOMES.espace,{fog:[.016,.02,.055],wb:[.98,1,1.04],sh:[.008,.008,.03],hi:[.03,.03,.03],con:1.28,bloomS:.50,bloomT:.90,vigK:.42,vigC:[.05,.012,.09],rimK:0,rimS:.62}); // ORBITE : le vide NOIR et froid, un contraste dur ; la brume n'est plus le noir absolu mais le noir bleuté #04050e de la bible (le lointain de la route s'y fond, et la brillance d'horizon du bitume, qui en prend la couleur, n'est plus nulle)
@@ -17197,6 +17197,60 @@ BIOMES.titreNuit=titreAmb({nm:'TITRE · NUIT',jZen:[.006,.012,.045],jMid:[.025,.
   fog:[.06,.08,.16],fogN:500,fogF:5200,fogCj:[.30,.36,.55],fogIn:[.30,.34,.48],hemiS:[.30,.38,.60],hemiG:[.06,.08,.16],hemiI:.5,sunC:[.62,.72,1],sunI:.75,fillC:[.30,.40,.70],
   expo:.92,sat:1.1,con:1.18,vigC:[.01,.02,.06],vigK:.42,sh:[0,.005,.03],
   env:[[0,'#04060f'],[.3,'#0a1430'],[.48,'#24345e'],[.58,'#5a6a96'],[.66,'#121a34'],[1,'#05070f']],eS1:[180,200,255,.4],eS2:[90,110,180,.3]});
+/* LES MÉTÉOS DU MODE CLASSIQUE (2026-10-13, Sacha : « la map, le biome, et la météo : la pluie, l'orage avec des nuages, le soleil le matin,
+   le soir, à midi — plusieurs éclairages — et que cette variable soit indépendante de la map »). Le mode classique tire une MAP puis une
+   MÉTÉO (voir « LE MODE CLASSIQUE AU HASARD », après NIVEAUX) ; chaque couple qui n'existait pas reçoit ici SON ambiance, faite à partir
+   de celles du jeu (rien n'est inventé à côté : les heures du titre pour la mer de nuages, la tempête pour l'orage, le rouleau de Léo pour
+   la jade). Que des uniforms : aucun programme de plus. `bioMet(base,o)` = une copie de `base` (toutes ses clés) retouchée par `o`.
+   Jade : `jdK` = le temps qu'il fait sur le rouleau peint (soleil, or des kasumi, fleuve, lune) — voir uJdK dans COUCHES.jade. */
+function bioMet(base,o){return Object.assign(JSON.parse(JSON.stringify(base)),JSON.parse(JSON.stringify(o)));}
+function bioPris(src,cles){const o={};for(const k of cles)o[k]=src[k];return o;}
+const BIO_TITRE_CLES=['jZen','jMid','jHor','jSol','sunTint','sunHalo','stars','moon','fogCj','fogIn','hemiS','hemiG','hemiI','sunC','sunI','fillC','expo','sat','con','vigC','vigK','hi','sh','env','eS1','eS2'];
+// LA MER DE NUAGES — le soir et la nuit : les couleurs des HEURES DU TITRE (golden hour, nuit), l'air et la brume de la course
+BIOMES.nuagesSoir=bioMet(BIOMES.aprem,Object.assign(bioPris(BIOMES.titreGolden,BIO_TITRE_CLES),{nm:'COUCHER DE SOLEIL',fog:[.94,.72,.58],fogN:900,fogF:5200,
+  volSun:[2.1,1.35,.8],volSky:[.52,.46,.64],volGnd:[.24,.17,.2],volAmb:.66}));
+BIOMES.nuagesNuit=bioMet(BIOMES.aprem,Object.assign(bioPris(BIOMES.titreNuit,BIO_TITRE_CLES),{nm:'NUIT D\'ALTITUDE',fog:[.06,.08,.16],fogN:700,fogF:4600,
+  volSun:[1,1.1,1.45],volSky:[.15,.19,.42],volGnd:[.04,.05,.11],volAmb:.46,kickC:[.42,.48,.87],kickI:.14,rimK:.5,rimS:.5,daExpo:1.1,daSh:.3,daWbN:.6}));
+// …sous la PLUIE : un plafond gris au-dessus de la mer de nuages, pas de soleil, la brume qui se referme à ~1,8 km (le rideau : LVL.pluie)
+BIOMES.nuagesPluie=bioMet(BIOMES.midi,{nm:'AVERSE',jZen:[.30,.34,.42],jMid:[.46,.50,.57],jHor:[.66,.68,.71],jSol:[.04,.04,.04],sunTint:[.8,.82,.9],sunHalo:.05,stars:0,moon:0,
+  fog:[.50,.53,.59],fogN:260,fogF:1900,fogCj:[.62,.64,.70],fogIn:[.66,.68,.74],hemiS:[.60,.64,.72],hemiG:[.24,.25,.30],hemiI:.78,sunC:[.78,.82,.92],sunI:.62,
+  fillC:[.45,.55,.72],fillI:.26,kickC:[.55,.62,.80],kickI:.12,volSun:[1.15,1.2,1.32],volSky:[.46,.50,.60],volGnd:[.22,.23,.28],volAmb:.7,
+  expo:.98,sat:1.02,con:1.16,vigC:[.04,.05,.08],vigK:.34,hi:[0,0,0],rimK:.3,rimS:.42,
+  env:[[0,'#3a4250'],[.3,'#58606e'],[.48,'#8a909a'],[.58,'#a2a7ae'],[.66,'#5e6470'],[1,'#30343c']],eS1:[200,210,230,.30],eS2:[150,165,190,.25]});
+// LA VILLE — au soleil (le jour d'altitude, la brume de la ville) et sous l'orage (la tempête, les néons rallumés)
+BIOMES.villeMatin=bioMet(BIOMES.matin,{nm:'VILLE · MATIN',city:.25,fogN:600,fogF:4200});
+BIOMES.villeMidi=bioMet(BIOMES.midi,{nm:'VILLE · MIDI',city:.12,fogN:650,fogF:4600});
+BIOMES.villeSoir=bioMet(BIOMES.nuagesSoir,{nm:'VILLE · SOIR',city:1.1,fogN:520,fogF:3800,kickC:[1,.38,.62],kickI:.2,rimK:.3});
+BIOMES.villeOrage=bioMet(BIOMES.tempete,{nm:'VILLE · ORAGE',city:1.2,fog:[.12,.12,.19],fogN:140,fogF:1400,kickC:[.9,.32,.8],kickI:.26,rimK:.8});
+// LES PICS DE JADE — le rouleau de Léo (BIOMES.jade : l'or du soir) repeint à quatre autres heures : la soie change, le pinceau reste
+BIOMES.jadeMatin=bioMet(BIOMES.jade,{nm:'JADE · MATIN',fog:[.86,.88,.86],fogN:260,fogF:2700,sunC:[1,.92,.76],sunI:1.25,hemiS:[.86,.90,.94],hemiG:[.56,.56,.52],hemiI:1,
+  fillC:[.62,.72,.88],fillI:.2,volSun:[2,1.9,1.7],volSky:[.70,.78,.92],
+  jdZ:[.50,.64,.82],jdL:[.72,.80,.86],jdM:[.94,.92,.84],jdH:[1,.93,.78],jdR:[.42,.46,.50],jdB:[.90,.90,.86],jdS:[1,.92,.74],jdK:[.55,.7,1.05,0],
+  fogCj:[1,.92,.76],env:[[0,'#6a92d0'],[.3,'#a8c4e4'],[.48,'#f2eadb'],[.58,'#fff0cc'],[.66,'#98a4ac'],[1,'#4a5464']],eS1:[255,244,214,.5],eS2:[170,205,240,.3]});
+BIOMES.jadeMidi=bioMet(BIOMES.jade,{nm:'JADE · MIDI',fog:[.84,.88,.92],fogN:300,fogF:3000,sunC:[1,.98,.94],sunI:1.45,hemiS:[.84,.90,1],hemiG:[.52,.54,.52],hemiI:1.02,
+  fillC:[.55,.70,.92],fillI:.18,volSun:[2.2,2.15,2.05],volSky:[.66,.76,.96],sat:1.12,
+  jdZ:[.30,.52,.84],jdL:[.56,.72,.90],jdM:[.84,.90,.94],jdH:[.94,.95,.92],jdR:[.38,.44,.52],jdB:[.88,.90,.92],jdS:[1,.98,.92],jdK:[.25,.45,1.15,0],
+  fogCj:[.96,.95,.90],env:[[0,'#3a78d0'],[.3,'#80b0e6'],[.48,'#e6f0f6'],[.58,'#ffffff'],[.66,'#a8b6c4'],[1,'#5a6a80']],eS1:[255,255,248,.48],eS2:[150,200,255,.3]});
+BIOMES.jadeNuit=bioMet(BIOMES.jade,{nm:'JADE · NUIT',fog:[.07,.09,.16],fogN:200,fogF:2300,sunTint:[.7,.78,1],sunC:[.62,.72,1],sunI:.62,hemiS:[.26,.32,.50],hemiG:[.06,.07,.12],hemiI:.5,
+  fillC:[.30,.40,.70],fillI:.2,kickC:[.55,.62,.95],kickI:.12,volSun:[1,1.1,1.45],volSky:[.16,.2,.4],volGnd:[.04,.05,.1],volAmb:.45,expo:.92,sat:1.1,con:1.12,
+  vigC:[.02,.03,.08],vigK:.4,hi:[0,0,0],sh:[0,.006,.03],rimK:.5,rimS:.5,fogCj:[.30,.36,.55],fogIn:[.30,.34,.48],daSh:.3,daWbN:.6,daExpo:1.08,
+  jdZ:[.025,.04,.10],jdL:[.06,.09,.18],jdM:[.11,.14,.25],jdH:[.19,.22,.34],jdR:[.06,.07,.12],jdB:[.16,.19,.28],jdS:[.45,.55,.85],jdK:[.85,.12,.38,1],
+  env:[[0,'#04060f'],[.3,'#0a1430'],[.48,'#24345e'],[.58,'#4a5a88'],[.66,'#121a34'],[1,'#05070f']],eS1:[180,200,255,.4],eS2:[90,110,180,.3]});
+BIOMES.jadePluie=bioMet(BIOMES.jade,{nm:'JADE · PLUIE',fog:[.50,.54,.56],fogN:150,fogF:1700,sunC:[.80,.84,.88],sunI:.6,hemiS:[.62,.68,.72],hemiG:[.30,.32,.32],hemiI:.85,
+  fillC:[.5,.6,.68],fillI:.2,kickC:[.6,.66,.74],kickI:.08,volSun:[1.2,1.25,1.3],volSky:[.5,.55,.6],volAmb:.72,expo:.94,sat:.98,con:1.04,
+  vigC:[.05,.07,.08],vigK:.32,hi:[0,0,0],fogCj:[.62,.66,.68],fogIn:[.66,.70,.72],
+  jdZ:[.36,.40,.46],jdL:[.48,.52,.56],jdM:[.58,.61,.63],jdH:[.66,.68,.69],jdR:[.30,.33,.36],jdB:[.56,.59,.61],jdS:[.3,.32,.34],jdK:[0,.1,.62,0],
+  env:[[0,'#3a4450'],[.3,'#5a646e'],[.48,'#8a9298'],[.58,'#9aa2a6'],[.66,'#5a646c'],[1,'#2e343a']],eS1:[200,214,226,.3],eS2:[150,170,186,.25]});
+BIOMES.jadeOrage=bioMet(BIOMES.jadePluie,{nm:'JADE · ORAGE',fog:[.17,.18,.25],fogN:90,fogF:1150,sunC:[.62,.66,.86],sunI:.5,hemiS:[.40,.42,.58],hemiG:[.08,.08,.13],hemiI:.6,
+  fillC:[.30,.40,.70],fillI:.28,kickC:[.55,.46,1],kickI:.24,volSun:[1.02,1.1,1.42],volSky:[.3,.33,.5],volGnd:[.08,.08,.14],volAmb:.5,expo:.88,sat:1.12,con:1.1,
+  vigC:[.02,.02,.07],vigK:.5,rimK:.7,rimS:.5,fogCj:[.28,.29,.40],fogIn:[.33,.35,.46],daCon:.4,daExpo:1.1,daWbN:.5,daSh:.35,
+  jdZ:[.12,.13,.19],jdL:[.19,.20,.27],jdM:[.25,.26,.33],jdH:[.32,.33,.40],jdR:[.12,.12,.17],jdB:[.26,.27,.34],jdS:[.2,.2,.3],jdK:[0,0,.42,0],
+  env:BIOMES.tempete.env,eS1:BIOMES.tempete.eS1,eS2:BIOMES.tempete.eS2});
+// L'ORBITE — le soleil a ses heures aussi : doré au lever sur le bord de la Terre, rouge au couchant (le noir et la Terre ne changent pas)
+BIOMES.espaceMatin=bioMet(BIOMES.espace,{nm:'ORBITE · LEVER',sunC:[1,.84,.62],sunI:1.85,sunTint:[1,.8,.6],fillC:[.36,.56,1],kickC:[.8,.7,.75],volSun:[1.5,1.2,1.0],
+  env:[[0,'#06050e'],[.3,'#120d24'],[.48,'#3a2a50'],[.58,'#7a5a6a'],[.66,'#14102a'],[1,'#030208']],eS1:[255,214,170,.48],eS2:[120,150,255,.3]});
+BIOMES.espaceSoir=bioMet(BIOMES.espace,{nm:'ORBITE · COUCHANT',sunC:[1,.56,.40],sunI:1.6,sunTint:[1,.5,.38],fillC:[.40,.42,.95],kickC:[.9,.5,.75],volSun:[1.6,.95,.8],
+  env:[[0,'#08040e'],[.3,'#1a0a22'],[.48,'#4a1e40'],[.58,'#8a3a4a'],[.66,'#180a20'],[1,'#040208']],eS1:[255,160,120,.5],eS2:[140,120,255,.3]});
 const BIO={cur:JSON.parse(JSON.stringify(BIOMES.golden)),from:null,to:BIOMES.golden,k:1,dur:4,name:'golden'};
 function bioLerp(a,b,e,out){ // mixe deux biomes champ à champ (tableaux = composantes, nombres = scalaires)
   for(const key in b){ const bv=b[key];
@@ -17226,7 +17280,7 @@ window.dbgDA=function(o){if(o)for(const k in o){if(Array.isArray(o[k]))DA[k]=o[k
 function bioApply(c){ // pousse l'ambiance mélangée dans TOUS les organes (uniforms/couleurs only)
   skyU.uSkyMul.value.fromArray(c.skyMul);skyU.uSkyLift.value.fromArray(c.skyLift);skyU.uSunTint.value.fromArray(c.sunTint);
   skyU.uSunHalo.value=c.sunHalo;skyU.uCity.value=c.city;skyU.uStars.value=c.stars;skyU.uMoon.value=c.moon;
-  if(c.jdZ){if(c.jdM){skyU.uJdM.value.fromArray(c.jdM);skyU.uJdL.value.fromArray(c.jdL);}skyU.uJdZ.value.fromArray(c.jdZ);skyU.uJdH.value.fromArray(c.jdH);skyU.uJdR.value.fromArray(c.jdR);skyU.uJdB.value.fromArray(c.jdB);skyU.uJdS.value.fromArray(c.jdS);} // (PICS DE JADE) le rouleau peint
+  if(c.jdZ){if(c.jdM){skyU.uJdM.value.fromArray(c.jdM);skyU.uJdL.value.fromArray(c.jdL);}skyU.uJdZ.value.fromArray(c.jdZ);skyU.uJdH.value.fromArray(c.jdH);skyU.uJdR.value.fromArray(c.jdR);skyU.uJdB.value.fromArray(c.jdB);skyU.uJdS.value.fromArray(c.jdS);if(c.jdK)skyU.uJdK.value.fromArray(c.jdK);} // (PICS DE JADE) le rouleau peint
   skyU.uJour.value=c.jour||0;if(c.jZen){skyU.uJZen.value.fromArray(c.jZen);skyU.uJMid.value.fromArray(c.jMid);skyU.uJHor.value.fromArray(c.jHor);skyU.uJSol.value.fromArray(c.jSol);} // (2026-09-30) le jour d'altitude
   FOG_BASE.setRGB(c.fog[0],c.fog[1],c.fog[2]);FOG_N=c.fogN;FOG_F=c.fogF;
   hemi.color.setRGB(c.hemiS[0],c.hemiS[1],c.hemiS[2]);hemi.groundColor.setRGB(c.hemiG[0],c.hemiG[1],c.hemiG[2]);hemi.intensity=c.hemiI;
@@ -17324,6 +17378,58 @@ const NIVEAUX=[ // ⚠ ORDRE (2026-09-25 au soir, user) : « remets le niveau da
 if(POKI){const ech=function(a,b){const i=NIVEAUX.findIndex(a),j=NIVEAUX.findIndex(b);if(i>=0&&j>=0&&i<j){const t=NIVEAUX[i];NIVEAUX[i]=NIVEAUX[j];NIVEAUX[j]=t;}};
   ech(function(n){return n.id==='nuages';},function(n){return n.id==='ville'&&!n.nuit;});
   ech(function(n){return n.id==='orage';},function(n){return n.id==='ville'&&n.nuit;});}
+/* ============================================================================
+   LE MODE CLASSIQUE AU HASARD (2026-10-13, Sacha : « il faut que les biomes soient aléatoires — montagne chinoise, nuages, ville… — et
+   que la suite soit aléatoire, indépendante de la météo : la map, le biome, et la météo. À chaque fois qu'on passe un portail ou qu'on
+   lance un mode classique, décider aléatoirement un des biomes ET aléatoirement une des météos. Restrictions : dans l'espace, ni nuages,
+   ni pluie, ni orage ; dans tous les autres niveaux, tu peux. »)
+   ----------------------------------------------------------------------------
+   La partie sans fin ne suit plus le cycle NIVEAUX (NUAGES → VILLE → ORBITE → ORAGE → MINUIT → SATELLITES) : au départ et à chaque
+   portail, `sfTire` prend une MAP (jamais la même deux fois de suite) puis une MÉTÉO permise dans cette map. Les couples que le jeu
+   connaissait déjà sont REPRIS tels quels, avec tout ce qui va avec : nuages × orage = L'ORAGE (ses bancs, ses éclairs, sa brume),
+   ville × pluie = AU-DESSUS DE LA VILLE, ville × nuit = MINUIT EN VILLE (sans sa pluie : la nuit n'est pas la pluie), orbite × midi =
+   EN ORBITE, et la PLUIE DE SATELLITES devient la « météo » rare de l'orbite. Les autres reçoivent leur ambiance (voir « LES MÉTÉOS DU
+   MODE CLASSIQUE », près de BIOMES) et les leviers de toujours : la pluie (LVL.pluie : le rideau, la route mouillée), la nuit (LVL.nuit :
+   les phares), l'orage (`orage` : les éclairs d'orageTick, partout sauf dans l'espace). Les PICS DE JADE y sont un niveau COMPLET (le
+   SOLEIL DE JADE : pièces ¥, ses fruits, sa musique GLISSE V2) dont le portail mène à la suite au lieu de l'ARRIVÉE.
+   PARIS reste hors de la partie sans fin (Sacha, 10/10). L'édition POKI garde son cycle fixe ; `?classique=cycle` le rend aussi ici,
+   et `?play=sansfin` (le simulateur de Léo : sa « PARTIE SANS FIN » clique JOUER et attend la MER DE NUAGES) le garde.
+   Le tirage d'une partie est tenu dans `SF.tirage` (un couple par zone) : la piste bâtie sous le voile du JOUER est celle qu'on roule.
+   Banc / lien de test : `?carte=jade&meteo=orage` impose le 1er couple ; `dbgClassique('ville','soir')` impose le suivant (puis dbgSaut()).
+   ========================================================================== */
+const SF={on:!POKI&&!/[?&](classique=cycle|play=sansfin)\b/.test(location.search),pret:false,neuf:false,tirage:[],der:null,force:null,prochain:null};
+{const q9=/[?&]carte=(\w+)/.exec(location.search),m9=/[?&]meteo=(\w+)/.exec(location.search);if(q9||m9)SF.force={carte:q9?q9[1]:null,meteo:m9?m9[1]:null};}
+const SF_NIV={nuages:NIVEAUX.find(function(n){return n.id==='nuages';}),orage:NIVEAUX.find(function(n){return n.id==='orage';}),
+  ville:NIVEAUX.find(function(n){return n.id==='ville'&&!n.nuit;}),minuit:NIVEAUX.find(function(n){return n.id==='ville'&&n.nuit;}),
+  espace:NIVEAUX.find(function(n){return n.id==='espace'&&!n.hard;}),satellites:NIVEAUX.find(function(n){return n.id==='espace'&&n.hard;}),jade:NIV_JADE};
+const SF_METEOS={matin:'MATIN',midi:'MIDI',soir:'SOIR',nuit:'NUIT',pluie:'PLUIE',orage:'ORAGE',satellites:'SATELLITES'};
+// une MAP = son niveau de base + ses météos permises (`bio` : l'ambiance, `niv` : un niveau du jeu repris tel quel, `p` : le poids au tirage, 1 par défaut)
+const SF_CARTES={
+  nuages:{nm:'MER DE NUAGES',base:'nuages',m:{matin:{bio:'matin'},midi:{bio:'midi'},soir:{bio:'nuagesSoir'},nuit:{bio:'nuagesNuit',nuit:1},
+    pluie:{bio:'nuagesPluie',pluie:.75,route:.18,sheen:.16},orage:{niv:'orage',orage:1}}},
+  ville:{nm:'LA VILLE',base:'ville',m:{matin:{bio:'villeMatin',pluie:0,cielMusical:false},midi:{bio:'villeMidi',pluie:0,cielMusical:false},soir:{bio:'villeSoir',pluie:0},
+    nuit:{niv:'minuit',pluie:0},pluie:{niv:'ville'},orage:{bio:'villeOrage',pluie:1,orage:1,route:.5,sheen:.2}}},
+  jade:{nm:'PICS DE JADE',base:'jade',m:{matin:{bio:'jadeMatin'},midi:{bio:'jadeMidi'},soir:{bio:'jade'},nuit:{bio:'jadeNuit',nuit:1},
+    pluie:{bio:'jadePluie',pluie:.75,sheen:.2},orage:{bio:'jadeOrage',pluie:1,orage:1,sheen:.2}}},
+  espace:{nm:'EN ORBITE',base:'espace',m:{matin:{bio:'espaceMatin'},midi:{bio:'espace'},soir:{bio:'espaceSoir'},satellites:{niv:'satellites',p:.5}}} // ni nuages, ni pluie, ni orage (Sacha)
+};
+function sfNiveau(c,m){ // le NIVEAU d'un couple map × météo, sous la forme que lit tout le jeu (id, bio, pluie, nuit, route…)
+  const C=SF_CARTES[c],M=C.m[m],B=SF_NIV[M.niv||C.base];
+  const o=Object.assign({},B,M,{nm:C.nm,mt:SF_METEOS[m],carte:c,meteo:m,sansFin:1,graine:0}); // graine 0 : une piste neuve à chaque fois (la jade comprise)
+  o.bio=[M.bio||B.bio[0]];delete o.niv;delete o.p;return o;}
+function sfTire(prev){ // une MAP au hasard (jamais celle d'avant), puis une MÉTÉO permise dans cette map (pas deux fois la même de suite si on peut l'éviter)
+  const cs=Object.keys(SF_CARTES).filter(function(k){return !prev||k!==prev.carte;}),c=cs[(Math.random()*cs.length)|0],M=SF_CARTES[c].m,ks=Object.keys(M);
+  const pick=function(){let tot=0;for(const k of ks)tot+=M[k].p==null?1:M[k].p;let r=Math.random()*tot;for(const k of ks){r-=M[k].p==null?1:M[k].p;if(r<=0)return k;}return ks[ks.length-1];};
+  let m=pick();if(prev&&m===prev.meteo)m=pick();
+  return {carte:c,meteo:m};}
+function sfImpose(prev){ // le couple imposé (lien de test, banc) s'il existe — la météo absente de la map est tirée
+  const f=SF.force;SF.force=null;if(!f)return sfTire(prev);
+  const c=f.carte&&SF_CARTES[f.carte]?f.carte:sfTire(prev).carte,M=SF_CARTES[c].m;
+  if(f.meteo&&M[f.meteo])return {carte:c,meteo:f.meteo};
+  let t;do{t=sfTire(null);}while(t.carte!==c);return t;}
+function sfPlayOk(){return SF.on&&!PARK.on&&!SURV.armed&&!!SAVE.d.tuto;} // le JOUER lance le mode classique au hasard (un joueur neuf, ou qui a demandé à revoir l'auto-école, passe d'abord par elle : l'ancien chemin)
+window.dbgClassique=function(c,m){if(c)SF.force={carte:c,meteo:m||null};return {on:SF.on,pret:SF.pret,tirage:SF.tirage.slice(),force:SF.force,niveau:LVL.cur?{carte:LVL.cur.carte||LVL.cur.id,meteo:LVL.cur.meteo||null,ciel:BIO.name,pluie:+LVL.pluie.toFixed(2),nuit:+LVL.nuit.toFixed(2),orage:!!(LVL.cur.orage||LVL.cur.id==='orage')}:null,
+  cartes:Object.keys(SF_CARTES).map(function(k){return k+' : '+Object.keys(SF_CARTES[k].m).join(', ');})};};
 const LVL={cur:null,n:0,k:1,dur:4,paris:0,parisDe:0,parisA:0, // paris : le CIEL DE PARIS (toits bas, lueur d'or) — fondu comme la ville
  
   espace:0,espaceDe:0,espaceA:0,       // uSpace : 0 = le ciel de toujours, 1 = le noir étoilé de l'orbite
@@ -17356,6 +17462,10 @@ function lvlChoisir(){ // appelé par newTrack AVANT buildTrack
   if(TUTO.on&&z===0){ // L'AUTO-ÉCOLE : la piste dessinée à la main, sous le ciel nu de l'aurore
     LVL.cur=Object.assign({},NIVEAUX.find(n9=>n9.id==='nuages'),{bio:['aurore'],sansNuages:1,piste:'tuto'}); // (l'auto-école garde le ciel NU de l'aurore : on y lit tout)
     LVL.n=1;lvlAstre(null);ROAD_HALF=ROAD_HALF0*2.0;return LVL.cur;}
+  /* (2026-10-13, Sacha) LE MODE CLASSIQUE AU HASARD — en course (et sous le voile du JOUER : SF.pret) ; la piste du MENU garde NIVEAUX[0] et son ciel */
+  if(SF.on&&(started||SF.pret)){const zn=Math.max(0,z-(LVL.tutoZ|0));let t=SF.tirage[zn];
+    if(!t){t=SF.tirage[zn]=SF.force?sfImpose(SF.tirage[zn-1]||null):sfTire(SF.tirage[zn-1]||SF.der);SF.der=t;}
+    LVL.cur=sfNiveau(t.carte,t.meteo);LVL.n=zn+1;lvlAstre(null);return LVL.cur;}
   {const zn=Math.max(0,z-(LVL.tutoZ|0));LVL.cur=NIVEAUX[zn%NIVEAUX.length];LVL.n=zn+1;lvlAstre(null);}
   return LVL.cur;
 }
@@ -17430,7 +17540,7 @@ function lvlMontre(){ // la bannière « NIVEAU n — LIEU » (fondu d'opacité 
   {const n9=document.getElementById('lvlNum');n9.style.display=LVL_BAN.num?'':'none';}
   document.getElementById('lvlNum').innerHTML=Array.from(TR('NIVEAU')+' '+LVL.n).map(function(c,i){return '<i style="animation-delay:'+(i*45)+'ms">'+(c===' '?'&nbsp;':c)+'</i>';}).join(''); // (2026-09-26) les lettres TOMBENT une à une
   {const nm9=document.getElementById('lvlNom'),c9=LVL.cur.carr,B9=c9&&CARRIERE[c9.b]; // (2026-09-28) en carrière « NIVEAU 2 / NUAGES — PREMIERES LUEURS » (le numéro était écrit deux fois, et la ligne composée n'était dans aucun dictionnaire : restée en français en anglais)
-   nm9.textContent=B9&&B9.niveaux[c9.i]?TR(B9.nm)+' — '+TR(B9.niveaux[c9.i].nm):TR(LVL.cur.nm);
+   nm9.textContent=B9&&B9.niveaux[c9.i]?TR(B9.nm)+' — '+TR(B9.niveaux[c9.i].nm):TR(LVL.cur.nm)+(LVL.cur.mt?' — '+TR(LVL.cur.mt):''); // (2026-10-13) le mode classique dit aussi sa MÉTÉO
    const pr9=lvlPromesse(); // (2026-09-30) lue au même endroit que la durée du couloir (lvlAnnonce)
    if(pr9){const e9=document.createElement('em');e9.textContent=TR(pr9);nm9.appendChild(e9);}} // (2026-09-27) la PROMESSE du niveau de campagne, une ligne sous le nom
   b.classList.add('on');clearTimeout(lvlBanT);lvlBanT=setTimeout(function(){b.classList.remove('on');},lvlPromesse()?LVL_BAN.msPr:LVL_BAN.ms);
@@ -17485,7 +17595,7 @@ const PLUIE=(function(){
   scene.add(l);return l;
 })();
 function pluieTick(t){ // appelée par la boucle : suit la caméra, suit le fondu — et ne dessine RIEN hors de la ville
-  const u=PLUIE.material.uniforms,U=PLUIE.userData,or9=LVL.cur&&LVL.cur.id==='orage'?1:0;u.uOp.value=Math.max(LVL.pluie*(1+.3*or9),parisPluie());u.uDens.value=1-.5*LVL.paris;u.uOr.value=LVL.paris;u.uTime.value=t;
+  const u=PLUIE.material.uniforms,U=PLUIE.userData,or9=LVL.cur&&(LVL.cur.id==='orage'||LVL.cur.orage)?1:0;u.uOp.value=Math.max(LVL.pluie*(1+.3*or9),parisPluie());u.uDens.value=1-.5*LVL.paris;u.uOr.value=LVL.paris;u.uTime.value=t;
   u.uNeon.value=LVL.ville;try{u.uEcl.value=CAMP_FLASH;}catch(e){}u.uVent.value.set(1.4+12.6*or9,0,.6+5.4*or9); // (2026-09-30, revue GAMEPLAY) sans ville, pas de gouttes-enseignes ; l'éclair allume la pluie ; l'ORAGE a du VENT et plus de pluie
   if(!U.pv){U.pv=new THREE.Vector3().copy(camera.position);U.v9=new THREE.Vector3();U.t=t;}
   const dt9=t-U.t;if(dt9>1e-4&&dt9<.25){U.v9.subVectors(camera.position,U.pv).divideScalar(dt9);if(U.v9.lengthSq()>4.9e5)U.v9.set(0,0,0); // la vitesse de la caméra (un téléport ne compte pas)
@@ -29600,7 +29710,7 @@ function mkEngine(i){
 }
 /* <<<FIN MOTEURS>>> */
 function fruitPick(rnd){ // tirage PONDÉRÉ par la fréquence (un brocoli reste rare, une pomme court les rues)
-  const J=!!(JADE_JEU&&LVL.cur&&LVL.cur.id==='jade'),fq=f=>J?(f.jf||0):(f.jf!=null?0:Math.max(0,f.freq)); // (2026-10-12) au SOLEIL DE JADE : SES fruits, et seulement eux
+  const J=!!((JADE_JEU||(LVL.cur&&LVL.cur.sansFin))&&LVL.cur&&LVL.cur.id==='jade'),fq=f=>J?(f.jf||0):(f.jf!=null?0:Math.max(0,f.freq)); // (2026-10-12) au SOLEIL DE JADE : SES fruits, et seulement eux
   let tot=0;for(const f of FRUIT_DEFS)tot+=fq(f);
   if(tot<=0)return 0;
   let r=(rnd?rnd():Math.random())*tot;
@@ -32107,8 +32217,9 @@ function musicLieuVoulu(){
    en réclame un autre que celui qui joue. */
 function musicSuitLieu(){
   if(musicMode!=='run')return;
+  if(jadeMusOn()){musicLieu=null;if(musicOn)stopMusic();return;} // (2026-10-13) la jade du mode classique : GLISSE V2 prend l'antenne (jadeMusTick)
   const v=musicLieuVoulu();
-  if(v===musicLieu)return;
+  if(v===musicLieu&&(musicOn||!SND.music||FRENM.sw))return; // (2026-10-13) …et en en sortant, la radio qu'elle avait fait taire repart
   musicLieu=v;
   if(FRENM.sw){FRENM.src='';return;} // en pleine FRÉNÉSIE : son morceau garde l'antenne — à la sortie, on reprendra sur celui du nouveau lieu
   if(DEPMUS.on&&started&&!gameOver){DEPMUS.f0=performance.now();musicVolCour=0;} // (2026-10-05, « le passage plus smooth ») le morceau du niveau suivant ENTRE en fondu (0,6 s, sous le voile) au lieu de tomber à plein
@@ -38238,6 +38349,7 @@ function die(){
   endGame();
 }
 function resetGame(){
+  if(SF.neuf)SF.neuf=false;else SF.tirage=[]; // (2026-10-13) MODE CLASSIQUE : REJOUER tire une nouvelle suite — sauf celle que le JOUER vient de bâtir sous le voile
   PORTV.att=0;if(PORTV.el){clearTimeout(PORTV.tS);PORTV.el.style.transition='none';PORTV.el.style.opacity='0';} // (le passage en deux temps) un passage en attente ne survit pas à la partie
   try{nitroooVide();}catch(e){} // (2026-09-29) NITROOO et le dragon ne débordent plus sur la partie suivante
   try{engBigCoupe();engBig.vu=null;}catch(e){} /* (2026-09-30) vu : la dernière carte moteur montrée — une partie neuve repart de zéro */ /* (débogage son 2026-09-29) RECOMMENCER pendant la carte MOTEUR : la visseuse et le NOUVEAU SOMMET ne sonnent plus dans la partie suivante */
@@ -38427,6 +38539,7 @@ function endGame(){
 }
 function start(){
   if(started||document.getElementById('splash'))return;started=true;
+  SF.neuf=false; // (2026-10-13) la 1re partie roule sur la piste bâtie sous le voile du JOUER : son tirage est consommé
   loop._rebuildT=performance.now();loop._rebuildD=5000; // (tour 2) le départ hache (1ers shaders Metal, 1res textures) : pas une lenteur — 5 s de grâce
   runxReset(); // les compteurs de CONTRAT partent de zéro dès la 1re partie de la session
   AIP.resetRun(); // (2026-09-30) …et ceux du Drivatar : seul resetGame() les remettait à zéro
@@ -39872,7 +39985,7 @@ window.dbgCoupe=function(i,ang,v,garderS){ // (dev) poser la caisse sur leg1 de 
 window.dbgSeulsBancs=function(on){for(const c of CLOUDS)c.g.visible=on?!!c.camp:true;const c=CLOUDS.find(function(c){return c.camp;});if(!c)return null;frameAt(CAMP.bancs[0]?CAMP.bancs[0].s:0,GF);c.mesh.geometry.computeBoundingBox();const bb=c.mesh.geometry.boundingBox;return {bb:[bb.min.toArray().map(Math.round),bb.max.toArray().map(Math.round)],sc:c.g.scale.toArray(),mvis:c.mesh.visible,mat:c.mesh.material.type+' op'+c.mesh.material.opacity+' side'+c.mesh.material.side,layers:c.mesh.layers.mask,parent:!!c.g.parent,c:c.g.position.toArray().map(Math.round),route:GF.p.toArray().map(Math.round),n:GF.n.toArray().map(function(v){return +v.toFixed(2);}),r:c.r,ry:c.ry,car:carGroup.position.toArray().map(Math.round),cam:camera.position.toArray().map(Math.round)};}; // (dev) isoler les bancs dessinés
 window.dbgFwd=function(){const v=CV1.set(0,0,1).applyQuaternion(carGroup.quaternion);return [v.x,v.y,v.z];}; // (dev) le cap monde de la caisse (pour cadrer une photo)
 window.dbgOrage=function(q){ // (2026-09-29) L'ORAGE du mode principal : l'état des éclairs · dbgOrage('eclair') en fait tomber un tout de suite
-  if(q==='eclair'){if(!(LVL.cur&&LVL.cur.id==='orage')||CAMP.n)return 'pas au niveau orage';eclFrappe();ECL.t=6;}
+  if(q==='eclair'){if(!(LVL.cur&&(LVL.cur.id==='orage'||LVL.cur.orage))||CAMP.n)return 'pas au niveau orage';eclFrappe();ECL.t=6;}
   return {lieu:LVL.cur&&LVL.cur.id,flash:+CAMP_FLASH.toFixed(3),brumeOuverte:Math.round(CAMP_FOG),prochain:+ECL.t.toFixed(2),pluie:+LVL.pluie.toFixed(2),brume:[Math.round(scene.fog.near),Math.round(scene.fog.far)],bancs:CLOUDS.filter(function(c){return c.onRoad||c.mesh&&c.mesh.userData.trav;}).length,nuages:CLOUDS.length};};
 window.dbgEclair=function(){if(CAMP.n!==9)return 'pas d orage';eclFrappe();ECL.t=6;return {k:ECL.k};}; // (dev) un éclair tout de suite (niveau 9)
 window.dbgFumee=function(d){CAMP.dmg=+d||0;CAMP.palier=0;return CAMP.dmg;}; // (dev) forcer les dégâts de la poursuite (la fumée suit)
@@ -39884,6 +39997,12 @@ function jadeJouer(){ // (2026-10-12) lancer le SOLEIL DE JADE — le chemin de 
   const ici=LVL.cur&&LVL.cur.id==='jade'&&!!JADE.root;
   ecranWipe(function(){runStats.zones=0;if(!ici)rebuildMenuScene();if(!garageOn)openGarage(true);},function(){garageLaunch();});return JADE_NOM;}
 window.dbgNiveauJade=jadeJouer; // (le simulateur l'appelle)
+function classiqueJouer(){ // (2026-10-13, Sacha) JOUER = le MODE CLASSIQUE AU HASARD : la 1re map et sa météo tirées, la piste bâtie sous le voile (le chemin de jadeJouer)
+  if(pendingScore!=null||(started&&!gameOver))return 'en course';if(ecranWipe._on||(typeof GAR!=='undefined'&&GAR.go))return 'occupé';
+  JADE_JEU=false;CARR.actif=null;if(PARK.on){PARK.on=false;try{modeLbl();}catch(e){}}
+  const t=SF.force?sfImpose(SF.der):(SF.prochain||sfTire(SF.der));SF.prochain=null;SF.tirage=[t];SF.der=t;SF.neuf=true;SF.pret=true; // neuf : le REJOUER de garageLaunch (resetGame) garde ce tirage · prochain : celui que la vignette du garage annonçait
+  if(t.carte==='jade')jadeMusGeste(); // GLISSE V2 naît dans le geste (Safari)
+  ecranWipe(function(){runStats.zones=0;rebuildMenuScene();if(!garageOn)openGarage(true);try{jadeGabarits();}catch(e){}},function(){garageLaunch();});return t;} // jadeGabarits : taillés une fois par session, sous le voile (≈ 0,7 s de moins au 1er portail vers la jade)
 /* LA MUSIQUE DU SOLEIL DE JADE (JMUS) — GLISSE V2, le module de Léo, joué en direct (son propre contexte audio) : la radio du jeu se tait
    sur ce niveau (musicPlayCurrent / musicNext / frenMus), le module joue tant que la course tourne (pause, mort, menu, appli cachée : il se
    tait), son intensité = les 5 PALIERS DE MUSIQUE du simulateur (moteurs 1-5 · 6-10 · 11-15 · 16-20 · 21-30 → setTier(P, 5)), son volume
@@ -39903,14 +40022,14 @@ const JMUS_NIV=1,NIT_GRONDE=.3,JMUS_TON=1; // JMUS_NIV ,4 → ,3 (2e passe : « 
    le sub (808, nappes) : 10 dB SOUS les effets du jeu (−22) sur haut-parleur. À sa sortie : −6 dB sous 160 Hz, +6 dB de niveau → −26 sur
    haut-parleur (4 dB derrière les effets), le grave à peine changé. */
 const JMUS_BASSES=0,JMUS_SORTIE=1; // (5e passe) comme le simulateur — la sortie reste réglable ici
-function jadeMusOn(){return JADE_JEU&&!!LVL.cur&&LVL.cur.id==='jade';}
+function jadeMusOn(){return (JADE_JEU||!!(LVL.cur&&LVL.cur.sansFin))&&!!LVL.cur&&LVL.cur.id==='jade';} // (2026-10-13) la jade du mode classique joue GLISSE V2 elle aussi
 function jadeMusCharge(){if(JMUS.mod||JMUS.load)return;JMUS.load=true;
   try{import('./assets/audio/music/musique-glisse-v2.js').then(function(m){JMUS.mod=m;}).catch(function(e){JMUS.err=String(e);});}catch(e){JMUS.err=String(e);}}
 function jadeMusInst(){if(!JMUS.inst&&JMUS.mod){try{JMUS.inst=(JMUS.mod.createGlisseMusic||Object.values(JMUS.mod).find(function(f){return typeof f==='function';}))({basses:JMUS_BASSES,sortie:JMUS_SORTIE});}catch(e){JMUS.err=String(e);}}return JMUS.inst;}
 function jadeMusVeut(){return jadeMusOn()&&SND.music&&started&&!gameOver&&!paused&&!document.hidden;}
 function jadeMusGeste(){const i=jadeMusInst();if(!i||!SND.music)return;try{if(i.playing)i.stop();i.start();i.setVolume(0);JMUS.vol=-1;JMUS.P=0;}catch(e){}} // réveillé dans le geste, muet jusqu'à la course
 function jadeMusTick(){
-  if(!JMUS.mod){if(JADE_PLAY||JADE_JEU)jadeMusCharge();return;}
+  if(!JMUS.mod){if(JADE_PLAY||JADE_JEU||SF.on)jadeMusCharge();return;}
   const v=jadeMusVeut(),i=v?jadeMusInst():JMUS.inst;if(!i)return;
   if(v){try{if(!i.playing){i.start();JMUS.vol=-1;JMUS.P=0;JMUS.kick=false;}
       const P=1+[5,10,15,20].filter(function(t){return engTier>=t;}).length;if(P!==JMUS.P){JMUS.P=P;i.setTier(P,5);}
@@ -40888,6 +41007,7 @@ function accueilRetour(){
   clearBoom();try{deathStop();annStop();}catch(e){}
   survMenage();SURV.on=false;survHudEl.style.display='none';lastAlertEl.style.display='none';
   CARR.actif=null;runStats.zones=0; // JOUER, de l'accueil, lance la course libre (la CARRIÈRE a sa porte)
+  SF.pret=false;SF.tirage=[]; // (2026-10-13) le menu reprend SA piste et SON ciel (NIVEAUX[0]) : le prochain JOUER tirera la sienne
   if(!/[?&]niveau=jade\b/.test(location.search))JADE_JEU=false; // (2026-10-13, Léo : « t'as changé le ciel du menu, c'est très grave ») JOUER lance le SOLEIL DE JADE (jadeJouer le rallume) : revenu à l'accueil, il reprend SON ciel — il gardait celui du jade
   rebuildMenuScene();
   MENUV.L=-1;MENUV.sd=null;MENUV.pl=0;MENUV.pt=0; // la vitrine recadre sur la piste neuve et ouvre sur l'AFFICHE
@@ -45598,7 +45718,8 @@ function garJouer(e){
     if(SHOP.tab==='voiture'){if(!carUnlocked(garageI))garageShow(equippedCar());}
     else if(SHOP.prev&&!shopOwned(SHOP.prev.cat,COSM[SHOP.prev.cat][SHOP.prev.i].id)){shopTab('voiture');garageShow(equippedCar());}
     goImmersive();
-    if(jadePlayOk()){jadeJouer();return;} // (2026-10-12, Léo) le JOUER lance le SOLEIL DE JADE
+    if(jadePlayOk()){jadeJouer();return;} // (2026-10-12, Léo) le JOUER lance le SOLEIL DE JADE — depuis le 13/10 seulement avec ?play=jade
+    if(sfPlayOk()&&!carrPlayOk()){classiqueJouer();return;} // (2026-10-13, Sacha) le JOUER lance le MODE CLASSIQUE AU HASARD
     if(carrPlayOk()){carrJouer();return;} // (2026-10-07, Léo) LE NIVEAU DES PLAY : la map de la carrière, par son départ (le voile, la piste du niveau, sa musique)
     CARR.actif=null;tutoArme();garageLaunch();};
   if(SAVE.d.facile==null&&!SAVE.d.tuto)facChoix().then(part);else part();
@@ -45823,7 +45944,7 @@ function garVitrine(on){
 /* LE CARTOUCHE DU NIVEAU (2026-10-05, Léo : « le nom du level qui va être lancé, en dessous du play ») : JOUER de l'atelier lance la partie SANS FIN
    (`garJouer` : CARR.actif = null) — son 1er niveau, `NIVEAUX[0]` ; tant que le permis n'est pas passé, c'est l'AUTO-ÉCOLE (tutoArme). Et les
    trois pastilles des MISSIONS (les défis relevés du carnet en cours, `misEtat`). */
-const GV_TEINTE={nuages:'#5ee6ff',ville:'#ff3ec8',paris:'#ffd75e',espace:'#b9a8ff',orage:'#8a7dff'};
+const GV_TEINTE={nuages:'#5ee6ff',ville:'#ff3ec8',paris:'#ffd75e',espace:'#b9a8ff',orage:'#8a7dff',jade:'#7ddcae'};
 /* LES VIGNETTES DES NIVEAUX (2026-10-05, Léo : « les niveaux affichés avec leur distance et leur titre — vignette avec un fond imagé
    représentatif, léger, agréable, kawaii mais pas abusé, pas trop gentil non plus »). Un paysage en PIXEL ART de 96 × 36, peint une fois par
    monde (cache GV_VIG), le sujet à DROITE (le texte vit à gauche, sur un voile d'encre). La touche kawaii tient en quelques pixels — et
@@ -45886,6 +46007,12 @@ function gvVignette(cle){
       R(sx-1,sy-1,3,3,'#c9cbd6');R(sx-5,sy,3,1,'#4a8cff');R(sx+3,sy,3,1,'#4a8cff');
       if(ko){R(sx-1,sy-1,1,1,'#3a2a55');R(sx+1,sy-1,1,1,'#3a2a55');}};
     sat(60,14,false);sat(86,26,true);sat(74,6,false);                                 // l'un d'eux est K.-O.
+  }else if(cle==='jade'){ // (2026-10-13) LES PICS DE JADE : le rouleau — la soie orangée, le soleil vermillon, les piliers de jade au-dessus du fleuve
+    ciel(['#7f86b0','#c9a0a8','#f2b07a','#ffcf8a']);
+    rond(30,13,5,'#e8482a');
+    const pil=function(px,w,top,c,c2){R(px,top,w,H-top-8,c);R(px,top,1,H-top-8,c2);R(px+1,top-1,w-2,1,c2);R(px+1,H-8,w-2,2,c);};
+    pil(50,6,9,'#2f6a5a','#6fb896');pil(61,4,15,'#3f7e68','#86c8a6');pil(72,8,5,'#25584a','#5aa080');pil(87,5,12,'#356f5c','#78bc9a');
+    R(0,H-5,W,5,'#3f8a9a');for(let k=2;k<W;k+=7)R(k,H-3,3,1,'#bfe6e8');               // le fleuve et ses lignes d'eau
   }else if(cle==='orage'){
     ciel(['#100c1e','#1d1730','#2a2442','#3a3456']);
     nuage(66,10,7,'#3b3555','#2a2442');nuage(88,13,5,'#332d4c','#2a2442');
@@ -45913,6 +46040,12 @@ function gvTuile(o,k){let im='';try{im=gvVignette(o.cle);}catch(e){}
   return '<div class="gvV'+(o.ok?' fait':'')+'" style="--lc:'+o.c+';--i:'+k+'"><i class="gvImg" aria-hidden="true" style="background-image:url('+im+')"></i>'+
     '<span class="gvTx"><b class="gvN">'+o.n+'</b><span class="gvT">'+sansAcc(TR(o.t))+'</span><em class="gvD">'+o.d+'</em></span>'+(o.ok?'<i class="gvOk pxi pxi-coche" aria-hidden="true"></i>':'')+'</div>';}
 function gvNiveau(){ // (2026-10-05, Léo : « le niveau comme avant ») la VIGNETTE du niveau que JOUER lance — et les pastilles des MISSIONS (branchées à JOUER)
+  {const el9=$('gvLvl');if(el9&&sfPlayOk()&&!carrPlayOk()&&!jadePlayOk()){ // (2026-10-13) MODE CLASSIQUE : la vignette annonce le couple que JOUER va lancer (tiré d'avance, classiqueJouer le prend)
+    if(!SF.prochain)SF.prochain=SF.force?sfImpose(SF.der):sfTire(SF.der);const t=SF.prochain,cle=t.meteo==='orage'&&t.carte==='nuages'?'orage':t.meteo==='nuit'&&t.carte==='ville'?'villeN':t.meteo==='satellites'?'espaceH':t.carte;
+    el9.querySelector('.gvN').textContent='1';el9.querySelector('.gvT').textContent=sansAcc(TR(SF_CARTES[t.carte].nm));el9.querySelector('.gvD').textContent=sansAcc(TR(SF_METEOS[t.meteo]));
+    el9.style.setProperty('--lc',GV_TEINTE[t.carte]||'#5ee6ff');try{el9.querySelector('.gvImg').style.backgroundImage='url('+gvVignette(cle)+')';}catch(e){}
+    gvNivs(false,true);const pp=$('gvMis');if(pp)try{const s9=misEtat();pp.querySelectorAll('.gvPips u').forEach(function(u,k){u.classList.toggle('ok',!!s9.ok[k]);});}catch(e){}
+    return;}}
   const el=$('gvLvl');if(el){const tuto=!SAVE.d.tuto,L0=NIVEAUX[0],cle=tuto?'tuto':L0.id+(L0.nuit?'N':'')+(L0.hard?'H':''),km=tuto?0:(GV_KM[cle]||GV_KM[L0.id]||0);
     el.querySelector('.gvN').textContent=tuto?'P':'1';
     el.querySelector('.gvT').textContent=sansAcc(TR(tuto?'AUTO-ECOLE':L0.nm));
@@ -49404,7 +49537,7 @@ function loop(now){
     AIP.tick(dt); // …et pendant ce temps, les IA T'OBSERVENT (même hors mode Survivant)
     debTick(dt); // (2026-09-28) L'ORBITE : la pluie de débris (tous les niveaux dans l'espace, hors parc)
     campTick(dt); // (2026-09-27) LA CAMPAGNE NUAGES : tirs et fumée (5), raccourcis (6/10), orage (9), caisse-nuage (10)
-    if(!CAMP.n&&!PARK.on&&LVL.cur&&LVL.cur.id==='orage')orageTick(dt); // (2026-09-29) L'ORAGE du mode principal : les éclairs du niveau 9 (ECL) — l'éclair RÉVÈLE : il ouvre la brume (CAMP_FOG), le tonnerre suit ; remis à zéro à chaque piste par campDebut
+    if(!CAMP.n&&!PARK.on&&LVL.cur&&(LVL.cur.id==='orage'||LVL.cur.orage))orageTick(dt); /* (2026-10-13) + l'ORAGE du mode classique, sur la ville et la jade */ // (2026-09-29) L'ORAGE du mode principal : les éclairs du niveau 9 (ECL) — l'éclair RÉVÈLE : il ouvre la brume (CAMP_FOG), le tonnerre suit ; remis à zéro à chaque piste par campDebut
     { // (perf, lot 4) la jauge de style : écrite seulement quand elle change (classe au changement d'état, largeur au pour-mille)
      const cl9=fever>0?'fever':feverArmed?'armed':'',w9=(Math.round((fever>0?Math.min(1,fever/10)*100:styleM)*10)/10)+'%';
      if(elStyleF.className!==cl9)elStyleF.className=cl9;if(loop._stW!==w9){loop._stW=w9;elStyleF.style.width=w9;}}
@@ -50473,6 +50606,8 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(a!=='snd')uiClic(mRole9(a));uiPop(el);if(a==='play'||a==='replay')pixBurst(el,16); // chaque bouton REBONDIT ; JOUER lâche une gerbe — (2026-09-28) SON : le clic part APRÈS la bascule (plus bas)
     if(a==='replay'&&started&&gameOver){ const r9=function(){ DEPMUS.sort=performance.now(); goImmersive(); ecranWipe(function(){ if(started&&gameOver){ if(!CARR.actif)tutoArme(); else{const n9=CARRIERE[CARR.actif.b]&&CARRIERE[CARR.actif.b].niveaux[CARR.actif.i];if(n9&&n9.piste==='tuto'&&!SAVE.d.tuto&&!SANDBOX&&!TUTO.on)tutoDebut();} /* (2026-10-12, passe qualité) AURORE quittée depuis la CARRIÈRE (« tu reprendras la leçon au prochain départ ») : REJOUER relançait la piste d'école SANS le coach — on réarme la leçon comme carrLancerSous */ resetGame(); } }); }; if(pkPasse(r9))r9(); } // (POKI) pkPasse : la pause pub avant de rejouer // REJOUER : tout de suite, sans repasser par l'atelier — mais par un fondu (la piste neuve se construit DESSOUS) · (2026-09-28) tutoArme : « REVOIR L'AUTO-ÉCOLE » promet le PROCHAIN départ, REJOUER compris (sans effet si elle est déjà faite ; pas en carrière : son niveau passe devant la piste d'apprentissage)
     else if(a==='play'&&jadePlayOk()){ const go9=function(){goImmersive();jadeJouer();}; // (2026-10-12, Léo) le JOUER lance le SOLEIL DE JADE, avec sa musique
+      if(SAVE.d.facile==null&&!SAVE.d.tuto)facChoix().then(go9);else go9(); }
+    else if(a==='play'&&sfPlayOk()&&!carrPlayOk()){ const go9=function(){goImmersive();classiqueJouer();}; // (2026-10-13, Sacha) le JOUER lance le MODE CLASSIQUE AU HASARD
       if(SAVE.d.facile==null&&!SAVE.d.tuto)facChoix().then(go9);else go9(); }
     else if(a==='play'&&carrPlayOk()){ const go9=function(){goImmersive();carrJouer();}; // (2026-10-07, Léo) LE NIVEAU DES PLAY : la map de la carrière (la dernière jouée, ou choisie), par le départ de la carrière — sa musique comprise
       if(SAVE.d.facile==null&&!SAVE.d.tuto)facChoix().then(go9);else go9(); } // le 1er JOUER demande toujours le mode
