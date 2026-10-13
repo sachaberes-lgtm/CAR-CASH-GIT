@@ -29,6 +29,13 @@
 - Série 6 : ROSSO 40 (rouge jusqu'au seuil — la moitié basse noire l'allongeait —, coque qui rentre sous la taille, hanches).
   Jugées déjà fidèles, PAS touchées : POSTER 84, LA VETTE (une C4), LA DOLORÈS, LE CHARGEUR 69, LE CHEVALIER NOIR, LE MUR DU SON
   (blanc et or = sa livrée de jeu, le vrai est noir), LE MASTODONTE, L'ORIGAMI.
+- LES FACES EN DÉTAIL (13/10, Léo : « retravaille le détail, observe la différence entre chaque photo ») — gros plans de face et de
+  trois-quarts serré (banc `gros.py` : la salle blanche, `TOUR.position` avancé vers le nez) contre la photo : LE SAMOURAÏ (boîtier
+  ARGENT anguleux et deux petits projecteurs au lieu de deux gros yeux, badge rouge, bouche en trapèze avec l'échangeur argent derrière
+  la grille, écopes de freins à aileron, lame qui avance, évent de capot) · LE CHARGEUR (la croix était la génération d'avant : grande
+  calandre noire à mailles d'un phare à l'autre, phares effilés depuis ses coins avec l'anneau LED en C, bouche basse à mailles, UNE
+  grande écope centrale + deux extracteurs) · LA BAVAROISE (phares chrome + réflecteur argent au lieu de disques crème, haricots
+  étroits et hauts, macaron, antibrouillards ronds). Les rétros de ces trois-là ont un pied (ils flottaient comme des cubes).
 
 ## LA PASSE QUALITÉ AVANT SORTIE (2026-10-12, Sacha : « trouve des bugs et règle-les, améliore des trucs à droite à gauche, fais en sorte que le jeu soit parfait et sortable »)
 Méthode : bancs Puppeteer son coupé (rendu LOGICIEL SwiftShader : Roblox Studio tenait le GPU, le Chrome de test calait sur D3D11), un

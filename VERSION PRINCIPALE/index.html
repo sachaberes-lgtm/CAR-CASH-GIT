@@ -22015,7 +22015,8 @@ Object.assign(SHAPES,{
      la lunette est plus longue, en pente de fastback. */
   const U=LPU,R=.365,ZF=1.56,ZR=-1.49;
   const P=K.kit({p:{g:'p',c:0x2c2f35},k:{g:'m',c:0x121316},K:{g:'g',c:0x0b0c0f},c:{g:'c',c:0xe9ecf0},
-    g:{g:'g',c:0x16202a},W:{g:'l',c:0xf2f7ff},L:{g:'l',c:0xff1a2a},r:{g:'l',c:0x9a0f1a},O:{g:'l',c:0xffa21a}});
+    g:{g:'g',c:0x16202a},W:{g:'l',c:0xf2f7ff},L:{g:'l',c:0xff1a2a},r:{g:'l',c:0x9a0f1a},O:{g:'l',c:0xffa21a},
+    m:{g:'s',c:0x3a3f47},e:{g:'m',c:0xc8102e}});
   const qz=(k,xa,xb,ya,yb,z)=>{P.tri(k,[xa,ya,z],[xb,ya,z],[xb,yb,z]);P.tri(k,[xa,ya,z],[xb,yb,z],[xa,yb,z]);};
   const AR=[[0,2*R+.05],[R*.60,2*R+.03],[R*.98,R*1.16],[R+.12,.34]];
   const CW=1.30,RF=.36,RR=-.50,RB=-1.76,ZE=2.50;
@@ -22048,28 +22049,38 @@ Object.assign(SHAPES,{
     for(const x of [.52,.64])P.cyl('c',.05,.06,8,sd*x,.37,-ZE-.02,'z');
     /* la lèvre de coffre */
     P.box('k',.80,.025,.08,sd*.40,1.10,-2.46,.25,0,0);
-    /* PHARES effilés qui filent vers l'aile, et leur signature LED en C */
-    P.box('K',.32,.10,.02,sd*.55,.745,2.502);P.box('K',.22,.10,.02,sd*.79,.745,2.43,0,sd*.72,0);
-    P.box('W',.30,.07,.02,sd*.555,.745,2.508);P.box('W',.20,.07,.02,sd*.795,.745,2.437,0,sd*.72,0);
-    P.cyl('K',.03,.02,8,sd*.52,.745,2.52,'z');P.cyl('K',.03,.02,8,sd*.62,.745,2.52,'z');
+    /* LES PHARES EFFILÉS (13/10, « retravaille le détail ») : ils partent des COINS de la calandre et s'enroulent dans l'aile,
+       boîtier noir, deux projecteurs, l'anneau LED en C autour de celui du dehors et le trait LED dessous */
+    P.plate('K',[[.50*sd,.705],[.80*sd,.722],[.80*sd,.782],[.52*sd,.778]],.03,ZE-.004);
+    P.box('K',.21,.075,.03,sd*.815,.752,2.43,0,sd*.72,0);P.box('W',.15,.012,.02,sd*.822,.725,2.44,0,sd*.72,0);
+    P.cyl('c',.032,.02,10,sd*.58,.745,ZE+.03,'z');P.cyl('W',.022,.02,10,sd*.58,.745,ZE+.036,'z');
+    P.cyl('c',.036,.02,10,sd*.71,.750,ZE+.03,'z');P.cyl('W',.025,.02,10,sd*.71,.750,ZE+.036,'z');
+    P.put('W',new THREE.TorusGeometry(1,.24,4,14,Math.PI*1.45),sd*.71,.750,ZE+.036,0,0,sd>0?.80:Math.PI-.80+Math.PI*.55,.06,.046,.05);
+    P.box('W',.26,.010,.01,sd*.64,.716,ZE+.032,0,0,sd*.05);
     P.box('O',.03,.06,.12,sd*.87,.68,2.30,0,sd*.3,0);
-    /* prises d'air basses et antibrouillards */
-    P.box('k',.24,.11,.03,sd*.58,.40,2.49,0,sd*.25,0);P.box('W',.09,.035,.02,sd*.60,.40,2.505,0,sd*.25,0);
+    /* aux coins du bouclier : la prise d'air noire et son trait LED */
+    P.plate('K',[[.60*sd,.36],[.78*sd,.37],[.77*sd,.47],[.62*sd,.46]],.02,ZE-.004);P.box('W',.14,.01,.01,sd*.69,.475,ZE+.018);
     /* rétros laqués, poignées, joints de portes */
-    P.box('p',.05,.05,.10,sd*.91,1.07,1.18);P.box('p',.08,.13,.19,sd*.975,1.10,1.16);P.box('k',.01,.10,.18,sd*1.016,1.10,1.16);
+    P.prism('k',[[1.30,1.00],[1.10,1.00],[1.14,1.05],[1.24,1.05]],.06,sd*.92);P.box('p',.08,.11,.19,sd*.975,1.07,1.16,0,sd*.10,0);
     P.box('k',.02,.025,.13,sd*.93,.95,.56);P.box('k',.02,.025,.13,sd*.93,.97,-.50);
     for(const z of [1.26,.04,-.84])P.box('k',.01,.38,.012,sd*.94,.79,z);
-    /* LES DEUX ÉCOPES DE CAPOT, en coin */
-    const za=1.66,zb=2.12,ha=yC(za)+.004,hb=yC(zb)+.004;
-    P.prism('p',[[za,ha-.02],[zb,hb-.02],[zb,hb+.055],[za,ha+.004]],.20,sd*.30);
-    P.box('k',.16,.045,.01,sd*.30,hb+.022,zb+.002);
+    /* les deux EXTRACTEURS de chaleur près du pare-brise */
+    for(let i=0;i<4;i++){const z=1.42+i*.06;P.box('K',.17,.008,.03,sd*.40,yC(z)+.005,z,.05);}
   });
-  /* LA CALANDRE NOIRE EN CROIX : grille, croisillon laqué, cadre satiné */
-  P.plate('c',[[-.56,.46],[.56,.46],[.62,.68],[-.62,.68]],.02,2.485);
-  P.plate('k',[[-.53,.48],[.53,.48],[.59,.66],[-.59,.66]],.02,2.495);
-  P.box('K',1.14,.035,.02,0,.57,2.52);P.box('K',.04,.18,.02,0,.57,2.52);
-  for(let i=1;i<6;i++)qz('K',-.55+i*.183,-.535+i*.183,.49,.65,2.517);
-  P.box('k',1.10,.08,.03,0,.34,2.48);
+  /* LA GRANDE CALANDRE NOIRE (13/10 : la croix, c'était la génération d'avant) : un trapèze d'un phare à l'autre, cadre noir
+     satiné, mailles, le monogramme rouge à gauche — et UNE grande écope au milieu du capot */
+  P.plate('k',[[-.47,.50],[.47,.50],[.53,.778],[-.53,.778]],.02,ZE-.004);
+  P.plate('K',[[-.445,.52],[.445,.52],[.50,.757],[-.50,.757]],.02,ZE+.004);
+  for(let i=0;i<5;i++)P.box('m',.90+i*.025,.008,.01,0,.545+i*.045,ZE+.026);
+  for(let i=-8;i<=8;i++)P.box('m',.008,.22,.01,i*.056,.638,ZE+.027);
+  P.box('e',.10,.026,.012,-.34,.70,ZE+.032);P.box('c',.10,.006,.012,-.34,.684,ZE+.032);
+  /* la bouche basse à mailles, sur toute la largeur */
+  P.plate('K',[[-.56,.30],[.56,.30],[.58,.44],[-.58,.44]],.02,ZE-.004);
+  for(let i=0;i<3;i++)P.box('m',1.08,.008,.01,0,.33+i*.04,ZE+.018);
+  for(let i=-9;i<=9;i++)P.box('m',.008,.13,.01,i*.058,.37,ZE+.019);
+  {const za=1.62,zb=2.18,ha=yC(za)+.004,hb=yC(zb)+.004;
+   P.prism('p',[[za,ha-.02],[zb,hb-.02],[zb,hb+.07],[za,ha+.004]],.50,0);
+   P.box('K',.42,.055,.01,0,hb+.03,zb+.002);}
   K.commit(P);
   return {hl:[.56,.745,2.51],tl:[.77,.98,-2.53],wx:.82,wzF:ZF,wzR:-ZR,
           lpw:{R:R,w:.26,style:'rayons',n:5,jante:0xa7adb5,accent:0x1b1c20}};
@@ -22138,7 +22149,7 @@ Object.assign(SHAPES,{
   /* (13/10, « plus ressemblante ») la sportive de Munich des années 80 : capot À PLAT jusqu'à une face droite (il plongeait),
      le bandeau des phares et des haricots remonté sous son bord, un pare-brise plus droit, un pavillon plus long. */
   const U=LPU,R=.33,ZF=1.34,ZR=-1.22;
-  const P=K.kit({p:{g:'p',c:0xf2f2f0},n:{g:'m',c:0x141518},K:{g:'g',c:0x0c0e12},g:{g:'g',c:0x1c2733},c:{g:'c',c:0xe9ecf0},
+  const P=K.kit({p:{g:'p',c:0xf2f2f0},n:{g:'m',c:0x141518},h:{g:'s',c:0xb4bcc6},K:{g:'g',c:0x0c0e12},g:{g:'g',c:0x1c2733},c:{g:'c',c:0xe9ecf0},
     W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a},
     b:{g:'p',c:0x3fa9f5,f:0},v:{g:'p',c:0x3a2a8c,f:0},r:{g:'p',c:0xe0201c,f:0}});
   const AR=[[0,2*R+.04],[R*.82,2*R+.03],[R+.10,.24]];
@@ -22165,12 +22176,17 @@ Object.assign(SHAPES,{
   // LA FACE : bandeau noir, quatre phares ronds, le double haricot
   P.box('K',1.46,.17,.02,0,.775,2.125);
   P.sym(sd=>{
-    P.cyl('c',.095,.03,8,sd*.62,.78,2.13,'z');P.cyl('W',.078,.04,8,sd*.62,.78,2.135,'z');
-    P.cyl('c',.080,.03,8,sd*.42,.78,2.13,'z');P.cyl('W',.064,.04,8,sd*.42,.78,2.135,'z');
-    P.box('c',.15,.20,.03,sd*.09,.79,2.135);P.box('K',.11,.16,.02,sd*.09,.79,2.15);
-    for(const x of [-.025,.025])P.box('c',.012,.15,.02,sd*.09+x,.79,2.155);
-    P.box('W',.13,.06,.02,sd*.58,.33,2.165);                                   // antibrouillards
-    P.box('O',.10,.04,.02,sd*.74,.46,2.16);
+    /* (13/10, « retravaille le détail ») les QUATRE PHARES : un cerclage chromé, un réflecteur argent, l'ampoule au milieu
+       (ils étaient quatre gros disques crème) ; le grand dehors, le petit dedans, et les lamelles noires entre eux */
+    for(const [x,r] of [[.615,.082],[.425,.068]]){P.cyl('c',r+.012,.02,14,sd*x,.78,2.13,'z');P.cyl('h',r,.02,14,sd*x,.78,2.136,'z');
+      P.cyl('W',r*.45,.02,10,sd*x,.78,2.142,'z');}
+    for(const y of [.725,.835])P.box('n',.70,.01,.01,sd*.42,y,2.138);
+    /* LES HARICOTS : étroits, hauts, serrés l'un contre l'autre, cerclés de chrome, lamelles verticales */
+    P.plate('c',[[sd*.018,.70],[sd*.118,.70],[sd*.128,.72],[sd*.128,.86],[sd*.112,.875],[sd*.018,.875]],.02,2.128);
+    P.plate('K',[[sd*.03,.712],[sd*.106,.712],[sd*.114,.726],[sd*.114,.852],[sd*.102,.863],[sd*.03,.863]],.02,2.134);
+    for(const x of [.052,.072,.092])P.box('c',.008,.14,.01,sd*x,.787,2.157);
+    P.cyl('W',.035,.02,10,sd*.58,.31,2.172,'z');                                // antibrouillards ronds
+    P.box('O',.12,.035,.02,sd*.70,.45,2.172);
     // LES AILES EN CAISSON ont leur arête ; les trois filets courent sur le bas de caisse
     P.box('b',.012,.03,1.50,sd*.795,.44,.06);P.box('v',.012,.03,1.50,sd*.795,.41,.06);P.box('r',.012,.03,1.50,sd*.795,.38,.06);
     P.box('L',.44,.15,.02,sd*.53,.87,-2.125);P.box('O',.12,.15,.02,sd*.24,.87,-2.125);
@@ -22180,7 +22196,9 @@ Object.assign(SHAPES,{
     P.box('p',.06,.08,.12,sd*.56,1.085,-1.96);                                  // pieds d'aileron
   });
   // le bouclier avant plongeant et sa bouche, le bouclier arrière, l'aileron de coffre
-  P.box('p',1.62,.22,.14,0,.31,2.10);P.box('n',.96,.07,.02,0,.30,2.175);
+  P.box('p',1.62,.22,.14,0,.31,2.10);P.box('n',.50,.07,.02,0,.36,2.172);P.box('n',1.00,.035,.02,0,.255,2.172);P.box('n',1.60,.014,.01,0,.415,2.172); // le bouclier : la bouche, la fente de lame, le jonc
+  /* LE MACARON sur le bord du capot, au-dessus des haricots */
+  {const zr=2.035,yr=yC(zr)+.004;P.cyl('c',.045,.012,14,0,yr,zr,'y');P.cyl('b',.036,.014,14,0,yr+.002,zr,'y');P.box('p',.036,.004,.036,.018,yr+.01,zr-.018);P.box('p',.036,.004,.036,-.018,yr+.01,zr+.018);}
   P.box('p',1.62,.22,.12,0,.39,-2.10);P.box('n',1.62,.06,.12,0,.26,-2.10);
   P.box('p',1.48,.035,.24,0,1.14,-1.97,.10);
   P.box('n',.46,.12,.02,0,.62,-2.125);                                          // plaque
@@ -22480,7 +22498,7 @@ Object.assign(SHAPES,{
   /* (13/10, « plus ressemblant ») la GT-R des années 2000 est HAUTE et carrée : capot presque à plat jusqu'à un nez droit (il
      plongeait en coin), pare-brise plus droit, phares en amande remontés sous le bord du capot. */
   const U=LPU,R=.34,ZF=1.37,ZR=-1.30;
-  const P=K.kit({p:{g:'p',c:0x1f4fd0},C:{g:'s',c:0x1b1d22},K:{g:'g',c:0x16181c},k:{g:'m',c:0x131417},c:{g:'c',c:0xe9ecf0},
+  const P=K.kit({p:{g:'p',c:0x1f4fd0},C:{g:'s',c:0x1b1d22},h:{g:'s',c:0xa9b1bc},e:{g:'m',c:0xc8102e},K:{g:'g',c:0x16181c},k:{g:'m',c:0x131417},c:{g:'c',c:0xe9ecf0},
     g:{g:'g',c:0x18212c},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
   const AR=[[0,2*R+.05],[R*.75,2*R+.03],[R+.08,R*1.15],[R+.14,.30]];
   const zs=[-2.30,-2.25,-2.20,-1.50,-.85,-.70,-.20,-.13,.02,.10,.62,.68,1.40,2.10,2.24,2.30];
@@ -22509,30 +22527,39 @@ Object.assign(SHAPES,{
   P.sym(sd=>{
     P.box('p',.06,.20,.14,sd*.50,1.12,-2.02);
     P.box('p',.03,.13,.32,sd*.77,1.18,-2.06);                                // les flasques
-    // LES PHARES EN AMANDE : boîtier fumé, deux optiques rondes
-    P.plate('c',[[.23*sd,.675],[.52*sd,.638],[.80*sd,.65],[.825*sd,.72],[.79*sd,.807],[.52*sd,.802],[.34*sd,.76]],.012,2.30);
-    P.plate('K',[[.26*sd,.68],[.52*sd,.65],[.79*sd,.66],[.81*sd,.72],[.78*sd,.795],[.52*sd,.79],[.36*sd,.75]],.02,2.302);
-    for(const [x,r] of [[.49,.05],[.68,.06]]){P.cyl('W',r,.03,8,sd*x,.722,2.324,'z');}
-    P.box('O',.10,.03,.02,sd*.36,.705,2.325);
-    P.plate('k',[[.56*sd,.32],[.76*sd,.32],[.78*sd,.46],[.60*sd,.46]],.02,2.30); // écopes de freins
+    // LES PHARES (13/10, « retravaille le détail ») : un bloc anguleux, pointu vers la calandre et plus haut côté aile, au BOÎTIER
+    // ARGENT (il était fumé) ; deux petits projecteurs (cerclage noir, lentille) au lieu de deux gros yeux qui brillaient
+    P.plate('K',[[.26*sd,.712],[.40*sd,.684],[.62*sd,.672],[.80*sd,.682],[.838*sd,.738],[.80*sd,.806],[.60*sd,.81],[.37*sd,.78]],.014,2.30);
+    P.plate('h',[[.29*sd,.716],[.41*sd,.694],[.62*sd,.684],[.79*sd,.692],[.822*sd,.738],[.79*sd,.795],[.60*sd,.798],[.38*sd,.771]],.014,2.306);
+    for(const [x,r] of [[.46,.042],[.66,.054]]){P.cyl('K',r+.012,.02,12,sd*x,.738,2.318,'z');P.cyl('W',r,.02,12,sd*x,.738,2.324,'z');P.cyl('h',r*.35,.02,8,sd*x,.738,2.33,'z');}
+    P.box('W',.20,.008,.01,sd*.62,.700,2.322);                                 // le liseré de veilleuse sous les projecteurs
+    P.box('O',.10,.03,.02,sd*.70,.60,2.312);                                  // le clignotant, dans le bouclier
+    // LES ÉCOPES DE FREINS aux coins du bouclier : la bouche noire en biais, et son aileron
+    P.plate('k',[[.56*sd,.30],[.78*sd,.30],[.80*sd,.50],[.62*sd,.50]],.02,2.30);P.box('p',.02,.18,.04,sd*.69,.40,2.31,0,0,-sd*.10);
     P.box('C',.02,.12,.16,sd*(.885+.012),.66,.80);                           // l'ouïe d'aile avant
-    P.box('p',.10,.08,.16,sd*.93,1.01,.70);P.box('K',.08,.03,.05,sd*.88,.98,.70); // rétro
+    P.prism('K',[[.80,.97],[.58,.97],[.62,1.02],[.74,1.02]],.06,sd*.905);P.box('p',.07,.09,.18,sd*.955,1.03,.66,0,sd*.12,0); // rétro sur son pied, contre le montant
     P.box('K',.02,.03,.12,sd*.892,.89,.00);                                  // poignée
     // LES QUATRE FEUX RONDS
     for(const x of [.46,.70]){P.cyl('L',.10,.03,12,sd*x,.83,-2.31,'z');
       P.cyl('K',.05,.02,8,sd*x,.83,-2.323,'z');P.cyl(x<.5?'W':'L',.032,.02,8,sd*x,.83,-2.328,'z');}
     P.box('K',.20,.24,.02,sd*.585,.83,-2.302);
   });
-  P.plate('k',[[-.24,.68],[.24,.68],[.26,.77],[-.26,.77]],.02,2.30);        // la petite calandre
-  P.plate('k',[[-.46,.30],[.46,.30],[.50,.55],[-.50,.55]],.02,2.30);        // la grande bouche
-  for(const y of [.38,.47])P.box('C',.92,.02,.02,0,y,2.325);
-  P.box('C',1.62,.025,.10,0,.215,2.27);                                      // la lame carbone
-  P.box('C',.48,.02,.26,0,.915,1.98,.05);                                    // l'écope de capot
+  // LA CALANDRE : une fente noire entre les phares, le BADGE rouge et chrome au milieu, une barre laquée dessous
+  P.plate('k',[[-.25,.705],[.25,.705],[.27,.785],[-.27,.785]],.02,2.30);
+  P.box('c',.11,.04,.012,0,.745,2.326);P.box('e',.075,.022,.012,0,.745,2.332);
+  // LA GRANDE BOUCHE en trapèze, plus large en bas : l'échangeur ARGENT derrière une grille noire
+  P.plate('k',[[-.52,.29],[.52,.29],[.45,.565],[-.45,.565]],.02,2.30);
+  P.plate('h',[[-.44,.33],[.44,.33],[.39,.53],[-.39,.53]],.012,2.312);
+  for(let i=0;i<7;i++)P.box('C',.92-i*.018,.012,.01,0,.33+i*.033,2.33);
+  for(let i=-6;i<=6;i++)P.box('C',.012,.22,.01,i*.068,.43,2.331);
+  P.box('C',1.66,.025,.12,0,.215,2.28);P.box('C',.70,.03,.08,0,.23,2.36);  // la lame carbone, qui avance au milieu
+  // L'ÉVENT DE CAPOT carbone : un bossage, sa bouche noire devant
+  P.prism('C',[[1.70,.935],[2.12,.905],[2.12,.935],[1.80,.955]],.46,0);P.box('K',.40,.022,.01,0,.92,2.124);
   P.box('C',1.20,.10,.20,0,.28,-2.22);                                       // diffuseur
   P.box('K',.52,.14,.02,0,.57,-2.305);                                       // plaque
   P.cyl('c',.07,.12,10,.39,.30,-2.33,'z');P.cyl('k',.05,.13,10,.39,.30,-2.33,'z'); // UN seul gros canon
   K.commit(P);
-  return {hl:[.60,.72,2.32],tl:[.70,.83,-2.32],wx:.78,wzF:ZF,wzR:-ZR,
+  return {hl:[.60,.738,2.33],tl:[.70,.83,-2.32],wx:.78,wzF:ZF,wzR:-ZR,
           lpw:{R:R,w:.28,style:'multi',n:10,jante:0xb9bec6}};
 },
   d_vette:function(K){
