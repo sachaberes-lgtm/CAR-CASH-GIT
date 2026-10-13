@@ -6611,7 +6611,7 @@ html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) :is(#gTabs,#gRar,#gS
 #gBqNom .bqLim em{font-style:normal;font-variant-numeric:tabular-nums}
 #gBqNom.lim .bqLim{display:inline-flex}
 #gBqSkins{position:absolute;display:none;align-items:center;justify-content:center;gap:10px;font-family:var(--pix);pointer-events:none}
-#gBq.pan #gBqSkins:not(.vide){display:flex;animation:bqPan .45s var(--ease) .3s both}
+#gBq.pan #gBqSkins:not(.vide){display:none} /* (2026-10-14, Léo : « enlève les couleurs skins en dessous de la voiture ») */
 #gBqSkins>b{font-weight:400;font-size:8px;letter-spacing:2px;color:#8a929c}
 #gBqSkins .bqSk{display:flex;gap:6px;pointer-events:auto}
 #gBqSkins .bqS{display:flex;align-items:center;gap:7px;height:34px;padding:0 10px 0 6px;border:0;background:#fff;box-shadow:0 0 0 1px #dde1e6;font-family:var(--pix);font-size:8px;letter-spacing:1px;color:#14171c;cursor:pointer}
@@ -6655,6 +6655,15 @@ html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) :is(#gTabs,#gRar,#gS
 #gBqPan.grille .bqK,#gBqPan.grille .bqK.off{width:calc((100% - 20px) / 3)}
 #gBqPan.grille .bqK .bqKph,#gBqPan.grille .bqK.off .bqKph{height:66px}
 #gBqPan.grille.cote .bqK .bqKph,#gBqPan.grille.cote .bqK.off .bqKph{height:50px}
+/* (2026-10-14, Léo : « chaque couleur à part : les peintures, des cubes de vente plus petits que les voitures, pour avoir du recul, mais pas
+   trop petits pour qu'on puisse choisir ») les HABILLAGES (peintures, ailes, traînées) : quatre de large, la pastille au milieu de sa case */
+#gBqPan.grille .bqRail.habs{gap:8px}
+#gBqPan.grille .bqRail.habs .bqK{width:calc((100% - 24px) / 4)}
+#gBqPan.grille .bqRail.habs .bqK .bqKph{height:46px}
+#gBqPan.grille.cote .bqRail.habs .bqK .bqKph{height:38px}
+#gBqPan.grille .bqRail.habs .bqK .bqKph .bqSw{width:24px;height:24px}
+#gBqPan.grille .bqRail.habs .bqK .bqKn{padding:6px 6px 0}
+#gBqPan.grille .bqRail.habs .bqK .bqKp{padding:4px 6px 7px}
 /* LE BOUTON QUI CHANGE (voir bqAction) et RETOUR, plus petit, plus bas */
 #gBqBtn{display:none}
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gEquip{display:none!important}
@@ -45823,6 +45832,8 @@ function garBqBatit(){if(GBQ.grp)return; // (2026-10-12, Léo : « lâche le mag
    const piece=function(geo,y){const im=new THREE.InstancedMesh(geo,lq,pos.length),M9=new THREE.Matrix4();
      pos.forEach(function(p,k){M9.makeTranslation(p[0],y,p[1]);im.setMatrixAt(k,M9);});im.frustumCulled=false;g.add(im);return im;};
    const yF0=.4+.16,yF1=.4+HC-.34;
+   const SANS_PILIERS=true; /* (2026-10-14, Léo : « essayons juste la salle blanche sans piliers ») la rotonde n'est plus posée — `false` la rend */
+   if(!SANS_PILIERS){
    piece(new THREE.BoxGeometry(1.3,.4,1.3),.2);                                                        // le socle
    piece(new THREE.TorusGeometry(.53,.08,12,40).rotateX(Math.PI/2),.4+.08);                           // son tore
    piece(new THREE.CylinderGeometry(.44,.5,yF1-yF0,40,1,true),(yF0+yF1)/2);                            // le FÛT, effilé
@@ -45834,6 +45845,7 @@ function garBqBatit(){if(GBQ.grp)return; // (2026-10-12, Léo : « lâche le mag
     for(let i=n9;i>=0;i--){const a=t0+(t1-t0)*i/n9;sh.lineTo(Math.sin(a)*ri,-Math.cos(a)*ri);}
     const ge=new THREE.ExtrudeGeometry(sh,{depth:.62,bevelEnabled:true,bevelThickness:.05,bevelSize:.05,bevelSegments:2,curveSegments:1});ge.rotateX(-Math.PI/2);ge.computeVertexNormals();
     const en=new THREE.Mesh(ge,lq);en.position.y=y1;g.add(en);}
+   }
    /* LA POUSSIÈRE D'OR (même demande, l'ambiance) : 90 grains carrés qui dérivent lentement dans la lumière autour de la caisse (bqPoussiere) */
    {const N=90,P=new Float32Array(N*3),r=mulberry32(0xD057);for(let i=0;i<N;i++){const a=r()*Math.PI*2,d=.8+r()*4.2;P[3*i]=Math.sin(a)*d;P[3*i+1]=.5+r()*4.5;P[3*i+2]=Math.cos(a)*d;}
     const ge=new THREE.BufferGeometry();ge.setAttribute('position',new THREE.BufferAttribute(P,3));
@@ -45957,7 +45969,7 @@ function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBq
     {const oc=pan.querySelector('.bqOc'),oi=pan.querySelector('.bqOi'),n1=pan.querySelector('.bqOng .n1'),n2=pan.querySelector('.bqOng .n2');
      if(oc)oc.textContent=sansAcc(TR(C9[1]));if(oi)oi.className='pxi pxi-'+C9[2]+' bqOi';if(n1)n1.textContent=bqListe(cat).length;if(n2)n2.textContent=E.length;}
     pan.querySelectorAll('.bqMenu button').forEach(function(b){const c=b.getAttribute('data-c');b.classList.toggle('on',c===cat);const n=b.querySelector('i');if(n)n.textContent=bqListe(c).length;});
-    rail.classList.toggle('off',ong==='off');rail.scrollTop=0;rail.scrollLeft=0;
+    rail.classList.toggle('off',ong==='off');rail.classList.toggle('habs',ong!=='off'&&cat!=='voiture');rail.scrollTop=0;rail.scrollLeft=0;
     rail.innerHTML=L.map(function(k,n){return bqCarteHtml(k,n,ong==='off');}).join('');bqPhotos(rail);}
   // CETTE SEMAINE : la colonne qui défile
   const S=bqSemaine().l,une=document.getElementById('gBqUne'),ur=une.querySelector('.bqUr'),uk=S.map(function(k){return k+(bqA(k)?1:0);}).join(',')+':'+LANG;
@@ -45990,7 +46002,7 @@ function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBq
       une.style.bottom=(H-(bas-10-ph)+10)+'px';}
     else{const x0=Math.max(W*.5,(arc&&arc.width?arc.left:W*.55)-6);pan.style.left=x0+'px';pan.style.right='12px';pan.style.top=Math.round(tr.top)+'px';pan.style.bottom=(H-bas+10)+'px';pan.classList.add('cote','grille');une.style.bottom='12px';}
     garLibre._r=null;}
-  {const pr=pan.getBoundingClientRect(),ru=une.getBoundingClientRect(),SH=sk.classList.contains('vide')?0:46,sb=cou?H-14:pr.top-10;
+  {const pr=pan.getBoundingClientRect(),ru=une.getBoundingClientRect(),SH=0,sb=cou?H-14:pr.top-10;
    sk.style.left=(ru.right+6)+'px';sk.style.right=(W-(cou?pr.left-8:W-12))+'px';sk.style.top=(sb-40)+'px';
    GBQ.zone=cou?{cote:true,x0:pr.left,g:ru.right+8,y0:tr.bottom+44,y1:sb-SH}:{g:ru.right+6,d:W-12,y0:tr.bottom+44,y1:sb-SH};}
   // le nom flotte AU-DESSUS de la caisse (son toit, projeté), sans sortir de sa place
@@ -46056,7 +46068,7 @@ function garBqIndus(dt,ay,t9){
     {const b9=GBQ.ba||0;GBQ.levB=.38*b9*b9*(3-2*b9);}carGroup.position.y+=GBQ.lev+GBQ.levB+(GBQ.hop||0)+Math.sin(t9*1.6)*.05*fl; // (2026-10-13) +38 cm quand les BRAS la tiennent : la place de les voir
     const cA=garCamA(),q=GBQ._q||(GBQ._q=new THREE.Quaternion()),q2=GBQ._q2||(GBQ._q2=new THREE.Quaternion()),ax=GBQ._ax||(GBQ._ax=new THREE.Vector3()),Y=GBQ._Y||(GBQ._Y=new THREE.Vector3(0,1,0));
     q.setFromAxisAngle(Y,carGroup.rotation.y+GBQ.yaw);ax.set(1,0,0);q2.setFromAxisAngle(ax,GBQ.pit+Math.sin(t9*1.1)*.025*fl);q.multiply(q2);if(GBQ.rol){ax.set(0,0,1);q2.setFromAxisAngle(ax,GBQ.rol);q.multiply(q2);} /* (13/10) le ROULIS : saisie par le flanc, elle bascule vers nous (voir bqPrise) */ /* (2026-10-13, Léo : « penchée vers le bas, capot vers l'avant ») le glissé vertical la fait TANGUER sur son propre axe (l'axe de ses roues : le nez, à +z, plonge quand on tire vers le bas) — avant, elle basculait vers la caméra (de profil : le toit, puis le ventre) */
-    ax.set(Math.sin(cA),0,Math.cos(cA));q2.setFromAxisAngle(ax,Math.sin(t9*.9+1)*.03*fl+THREE.MathUtils.clamp(GBQ.yawV*.03,-.12,.12)*fl);q.premultiply(q2);carGroup.quaternion.copy(q);}
+    ax.set(Math.sin(cA),0,Math.cos(cA));q2.setFromAxisAngle(ax,THREE.MathUtils.clamp(GBQ.yawV*.03,-.12,.12)*fl); /* (2026-10-14, Léo : « un peu penchée ») plus de roulis permanent : elle flotte DROITE */q.premultiply(q2);carGroup.quaternion.copy(q);}
   /* (2026-10-12, Léo : « la voiture passe à travers la plateforme ») penchée, elle se SOULÈVE de ce qu'il faut. (2026-10-13, Léo : « penchée
      capot vers l'avant, elle passe toujours à travers ») mesuré au banc : la levée suivait en RESSORT (×14/s) — un geste rapide la laissait 30 cm
      DANS le socle pendant quelques images ; et la boîte de garGabarit (carrosserie seule, supposée centrée) se trompait dans les deux sens (1,7 m
@@ -46790,7 +46802,10 @@ function garLibre(){
 function garCadre(k,kx){
   const r0=garLibre(),o9=(GBQ.k>.001)?bqPov():null,w9=Math.max(0,Math.min(1,GBQ.k||0)),r=o9?{cx:r0.cx+(o9.sx||0)*VP.w*w9,cy:r0.cy+(o9.sy||0)*VP.h*w9}:r0;camera.clearViewOffset();camera.updateMatrixWorld(); // (2026-10-13) le CADRAGE de la boutique déplace la place de la caisse
   const v=GAR._pc||(GAR._pc=new THREE.Vector3());v.set(0,GARAGE_Y+GAR.POD+.55+(GBQ.lev||0)+(GBQ.levB||0),0).project(camera); // le centre du plateau, à mi-hauteur de caisse
-  const sx=(v.x*.5+.5)*VP.w,sy=(.5-v.y*.5)*VP.h,cl=THREE.MathUtils.clamp;GAR.cErr=(sx-r.cx)/Math.max(1,VP.w);GAR.cErrVD=GAR.vDcam; // (vitrine) l'écart de la caisse à sa place, lu par le décalage de caméra (GAR.vD)
+  let sx=(v.x*.5+.5)*VP.w;const sy=(.5-v.y*.5)*VP.h,cl=THREE.MathUtils.clamp;
+  if(GBQ.on&&GBQ.k>.5){try{const G=garGabarit(),q=carGroup.quaternion,p=carGroup.position,c9=GAR._pc2||(GAR._pc2=new THREE.Vector3());let mn=1e9,mx=-1e9; /* (2026-10-14, Léo : « la voiture plus centrée entre les affiches d'achats ») en BOUTIQUE, on centre la SILHOUETTE de la caisse à l'écran (sa boîte projetée, nez et poupe compris), pas le centre du plateau : en trois-quarts le nez, plus proche, la tirait d'un côté */
+    for(const ax of [-1,1])for(const az of [-1,1])for(const ay of [0,1]){c9.set(ax*G.b,ay*G.H,az*G.a).applyQuaternion(q).add(p);c9.project(camera);const x9=(c9.x*.5+.5)*VP.w;if(x9<mn)mn=x9;if(x9>mx)mx=x9;}
+    if(mx>mn)sx=(mn+mx)/2;}catch(e){}}GAR.cErr=(sx-r.cx)/Math.max(1,VP.w);GAR.cErrVD=GAR.vDcam; // (vitrine) l'écart de la caisse à sa place, lu par le décalage de caméra (GAR.vD)
   const dx=cl((sx-r.cx)*k*(kx==null?1:kx),-VP.w/3,VP.w/3),dy=cl((sy-r.cy)*k,-VP.h/3,VP.h/3);
   const dt9=Math.min(.1,GAR.dtR||.016);if(GAR.vuePose){GAR.cdx=dx;GAR.cdy=dy;GAR.cvx=GAR.cvy=0;}else{garRessort(GAR,'cdx','cvx',dx,7,dt9);garRessort(GAR,'cdy','cvy',dy,7,dt9);} /* (LA MISE EN PLACE) posé d'un coup quand l'écran est caché */ // (2026-10-05) lissé dans le TEMPS, plus image par image · (2026-10-06) en RESSORT : l'inventaire qui s'ouvre déplaçait la place de la caisse de ~180 px, l'image partait de 20 px en UNE image (mesuré) — elle glisse maintenant en ~0,5 s
   if(Math.abs(GAR.cdx)<.5&&Math.abs(GAR.cdy)<.5)return;                // centré : l'objectif reste droit

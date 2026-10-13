@@ -164,6 +164,10 @@ MESURÉ (×4, trois manches) : ~35-48 → ~50-58 images/s, images > 40 ms divis�
   0,95 s). L'INVENTAIRE (Léo : « arrête de le faire apparaître sans qu'on y touche ») : le garage s'ouvre REPLIÉ (`consoleCachee`,
   GMODE 'tout') — à l'ouverture, depuis l'accueil, au RETOUR de la boutique et au RETOUR de l'inventaire ; il ne s'ouvre qu'à INVENTAIRE.
   Banc : scratchpad `trans.py W H suffixe port` (arrivée, inventaire, glitch, retour, au vrai doigt).
+- (14/10, suite) LA SALLE BLANCHE SANS PILIERS (`SANS_PILIERS=true` dans garBqBatit : la rotonde n'est plus posée ; `false` la rend) ;
+  la caisse CENTRÉE sur sa silhouette projetée (garCadre, en boutique : la boîte garGabarit tournée, nez et poupe compris) et plus de
+  roulis permanent (elle flotte droite) ; les COLORIS sous la caisse retirés (#gBqSkins masqué, la zone ne lui réserve plus de place) ;
+  les HABILLAGES (peintures, ailes, traînées) en cartes plus petites, quatre de large (`.bqRail.habs`).
 
 ## LA PASSE QUALITÉ AVANT SORTIE (2026-10-12, Sacha : « trouve des bugs et règle-les, améliore des trucs à droite à gauche, fais en sorte que le jeu soit parfait et sortable »)
 Méthode : bancs Puppeteer son coupé (rendu LOGICIEL SwiftShader : Roblox Studio tenait le GPU, le Chrome de test calait sur D3D11), un
