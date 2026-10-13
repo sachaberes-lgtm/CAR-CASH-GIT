@@ -66,6 +66,25 @@
   ses cotes : pavillon 1,30 au lieu de 1,44, capot 0,90 ; phares au fond de la calandre) · LA ZED (capot long presque à plat, phares
   dans leurs cuvettes plus hauts) · LA SILENCIEUSE (nez plus haut et rond vu de dessus, le CÔNE noir à T des premières années, phares
   qui sortent de la tôle) · LA PUCE (coins ronds vus de dessus, pavillon plus court sur une lunette couchée).
+- Série 5 : LE SAMOURAÏ (capot haut presque à plat, pare-brise plus droit, phares remontés) · LA BAVAROISE (capot à plat, face droite,
+  pare-brise plus droit) · LA STRATOS (ailes qui bombent, nez arrondi autour de la visière) · LE CHARGEUR (pavillon arrondi et resserré,
+  lunette de fastback). LE CHARGEUR 69 était déjà fidèle : pas touché.
+- Série 6 : ROSSO 40 (rouge jusqu'au seuil — la moitié basse noire l'allongeait —, coque qui rentre sous la taille, hanches).
+  Jugées déjà fidèles, PAS touchées : POSTER 84, LA VETTE (une C4), LA DOLORÈS, LE CHARGEUR 69, LE CHEVALIER NOIR, LE MUR DU SON
+  (blanc et or = sa livrée de jeu, le vrai est noir), LE MASTODONTE, L'ORIGAMI.
+- LES FACES EN DÉTAIL (13/10, Léo : « retravaille le détail, observe la différence entre chaque photo ») — gros plans de face et de
+  trois-quarts serré (banc `gros.py` : la salle blanche, `TOUR.position` avancé vers le nez) contre la photo : LE SAMOURAÏ (boîtier
+  ARGENT anguleux et deux petits projecteurs au lieu de deux gros yeux, badge rouge, bouche en trapèze avec l'échangeur argent derrière
+  la grille, écopes de freins à aileron, lame qui avance, évent de capot) · LE CHARGEUR (la croix était la génération d'avant : grande
+  calandre noire à mailles d'un phare à l'autre, phares effilés depuis ses coins avec l'anneau LED en C, bouche basse à mailles, UNE
+  grande écope centrale + deux extracteurs) · LA BAVAROISE (phares chrome + réflecteur argent au lieu de disques crème, haricots
+  étroits et hauts, macaron, antibrouillards ronds). Les rétros de ces trois-là ont un pied (ils flottaient comme des cubes).
+- RETOURS DE LÉO (13/10, même soir) : LE SAMOURAÏ passe au VIOLET NUIT de la photo (`0x3b2c4e`, il était bleu roi) et ses phares ont
+  les coins HAUTS arrondis (`rond()` : coins en Bézier dans le gabarit) · LE CHARGEUR en NOIR LAQUÉ (`p:{g:'g',c:0x020203}` : la matière
+  « verre et laqué noir ») · LA BAVAROISE REFAITE (v3) d'après un profil mesuré : capot qui descend vers une face basse (0,79), habitacle
+  avancé (pied de pare-brise 0,88), malle longue et haute, grandes vitres à montants fins, arête d'épaule, ailes élargies fondues.
+  ⚠ La SALLE BLANCHE grise les noirs (studio blanc : tout noir y sort gris moyen) — un noir se juge dans le GARAGE du jeu
+  (banc `garage.py` du scratchpad : vrais clics sur le splash puis sur la tuile GARAGE).
 
 ## LA PASSE QUALITÉ AVANT SORTIE (2026-10-12, Sacha : « trouve des bugs et règle-les, améliore des trucs à droite à gauche, fais en sorte que le jeu soit parfait et sortable »)
 Méthode : bancs Puppeteer son coupé (rendu LOGICIEL SwiftShader : Roblox Studio tenait le GPU, le Chrome de test calait sur D3D11), un
@@ -238,6 +257,19 @@ début — dans l'autre ça commence un peu tard ») — mesuré des DEUX côté
     le bas + 14-24 GOUTTES qui glissent ; entrée = un voile clair + un nuage de bulles autour de l'objectif. « Réduire les animations » : rien.
   · SON : `eauFiltre` insère UNE fois un passe-bas entre MASTER et BUSOUT (grand ouvert = Nyquist, 620 Hz quand l'objectif est sous l'eau) ;
     plouf grave (subBoom + deux noiseBurst) à l'entrée, jet à la sortie, `eauBloop` (bulles) sous l'eau.
+- (13/10, 3e passe, Léo : « pousse encore plus la physique, et mieux faite ») — la vraie physique de l'eau, réglée d'abord dans un
+  simulateur Python à part (mêmes équations et unités que le vol), voir le commentaire « 3e passe » au-dessus de `EAU` :
+  · ARCHIMÈDE à la part immergée (`f` sur `EAU.H` 1,3 m, B 3,4 g) → la caisse FLOTTE (~30 cm dedans) ; pilonnement amorti PAR RAPPORT
+    À LA SURFACE (`JEAU.vS`) ; traînée v² (`cq`) + linéaire ; GLISSE (portance ∝ v², traînée réduite) ; MOTEUR à flot (~65 km/h, `mot`/`vB`) ;
+    nitro sur l'eau = jet-ski (~170 km/h) ; un contact doux (< 12) = une ride, pas de choc.
+  · LA SURFACE DE LA PHYSIQUE (`jadeSurfPh`) : la moyenne des 9 colonnes (×,55), suivie à 4 m/s, τ 0,6 s — la mer du décor monte jusqu'à
+    ~30 m/s (MESURÉ 12,7 m en 0,4 s) ; la gravité du jeu (~8 m/s² dans le monde) ne suit pas : sans ça la caisse ne flottait jamais.
+  · JAILLISSEMENT seulement après un vrai plongeon (> `EAU.plonge` 6 m, > 0,4 s) : la remontée accélère, sortie à l'élan du 1er plongeon
+    ou à √(2·g·2,5·profondeur) — plus profond = plus haut. MESURÉ : chute de 70 m → 15 m de fond, ressort 25 m au-dessus du départ.
+  · L'ASSIETTE (`jadeEauNez`, branché dans l'orientation du vol) : dans l'eau la vrille s'arrête (`airRoll` ramené au tour entier), FLY_U se
+    redresse vers le ciel / la pente de la houle calmée, le nez garde le cap (`JEAU.cap`). La caméra suit ce nez (plus de balancement à flot).
+  · À flot plus de `EAU.ramene` 9 s sans nitro : `jadeEauRamene` (respawn, « LA MER TE RAMÈNE », la chaîne seule est perdue).
+  · `dbgEau()` rend aussi `f`, `wB`, `flot`, `hv`.
 - Banc : `dbgJadePoste('ramasse')` (pièces, fruits par nom, pouvoirs, plots, plaques, flaques). MESURÉ : 650 pièces, ~16 fruits, 20 pouvoirs,
   300 plots, 8 plaques par passage ; en course : pièces ramassées, défis (« EAT 4 FRUITS »), paliers moteur, aimant, jus des fruits.
 
@@ -4555,6 +4587,13 @@ explosion, écran de mort, `LG=en` pour l'anglais —, `set.js` réglages, `carr
   —, ombre en carte 4096 (2048 téléphone), anisotropie max de la route et de sa peinture (`ASPH_TEX`, `LIGNE_TEX`), échelle QL au cran 0
   et EN VEILLE. `qlPose` lit `VHD.on` (résolution + carte d'ombre) : UN seul chemin. Filet : p75 > 22 ms (hors 30 Hz) → ×0,8 toutes les
   1,5 s, jamais sous `DPR_CAP`. À la sortie, `qlPose(VHD.k0)` rend l'échelle telle qu'elle était. `?hd=0` coupe ; `dbgVHD()` décrit.
+- **LE FILET v2 (2026-10-13, Léo : « l'écran d'accueil ne baisse pas de qualité pour les tels qui peuvent »)** — l'ancien filet était un
+  CLIQUET : un à-coup d'une seconde suffisait à baisser de 20 %, et la netteté ne remontait JAMAIS sur l'accueil (MESURÉ : ×2,6 → ×1,0
+  en 10-20 s). Désormais : baisse seulement sur une lenteur TENUE (p75 > 22 ms pendant 2,5 s, `VHD.lT`) ET confirmée par la SONDE de la
+  course (`qlSondeArme`, vrai coût ≥ 14,5 ms ; dessous = l'écran bride → rien n'est sacrifié) ; REMONTÉE ×1,25 quand la marge revient
+  (p90 < 17,8 ms pendant 3 s) ou quand la sonde prouve qu'un cran au-dessus tiendrait sous 14 ms (coût ∝ pixels) ; jusqu'à `VHD.max`
+  (la pleine définition de l'écran) ; MUR de 45 s seulement pour un cran remonté puis retombé en < 10 s. `dbgVHD()` : max, baisses,
+  remontées, bride, mur, vrai, `journal`. MESURÉ (Mac chargé, charge 24) : ancien → ×1,0-1,34 en 20 s ; v2 → ×2,61 tenu 40 s, 0 baisse.
 - ⚠ MESURÉ sur l'ordi (colonne 844 × 390 zoomée ×2,27 sur 1 920 px) : sans VHD la 3D de l'accueil faisait 0,33 M pixels (DPR 1 en
   RAPIDE, étiré ×2,27) ; avec, 3,8 M (DPR 3,4). En COURSE rien ne change : DPR 1 / ombre 1024 / aniso 4, comme avant — c'est aussi
   pourquoi la course paraît floue sur PC en RAPIDE (NETTE = 1,5).

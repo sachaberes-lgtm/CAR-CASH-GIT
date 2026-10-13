@@ -9694,17 +9694,22 @@ function qlReprise(){ // RAPIDE⇄NETTE : le choix du joueur rend la pleine rés
    la vitrine descend d'un cran (×0,8) toutes les 1,5 s, jamais sous le plafond ordinaire. En sortant (garage, départ de course),
    tout revient À L'IDENTIQUE : l'échelle reprend le cran qu'elle avait, sa carte d'ombre et sa résolution. Les bascules tombent
    sous le volet (ecranWipe) : la réallocation des cibles ne se voit pas. `?hd=0` coupe le mode (comparer) ; `dbgVHD()` le décrit. */
-const VHD={on:false,dpr:1,ombre:2048,t:0,k0:0,off:/[?&]hd=0/.test(location.search)};
+const VHD={on:false,dpr:1,max:1,ombre:2048,t:0,k0:0,lT:0,bT:0,sT:0,mur:0,murT:0,monteT:0,bride:0,log:[],bas:0,haut:0,off:/[?&]hd=0/.test(location.search)}; // (2026-10-13) max = la pleine définition de cet écran ; lT/bT = lenteur/marge TENUES ; sT = sonde en cours ; mur = le cran qui vient d'échouer (voir LE FILET v2)
 function vhdDpr(){ const px=Math.max(1,innerWidth*innerHeight),bud=TEL_NATIF?3.2e6:8.3e6;
   return Math.max(DPR_CAP,Math.min(devicePixelRatio*(TEL_NATIF?1:1.5),Math.sqrt(bud/px),4));}
 function vhdAniso(on){ const m=renderer.capabilities.getMaxAnisotropy(),n=on?m:Math.min(IS_MOBILE?4:8,m);
   for(const t of [ASPH_TEX,LIGNE_TEX])if(t&&t.anisotropy!==n){t.anisotropy=n;t.needsUpdate=true;}}
 function vhdBascule(on){ if(VHD.off||on===VHD.on)return;
-  if(on){VHD.k0=QL.k;VHD.dpr=vhdDpr();VHD.ombre=Math.min(TEL_NATIF?2048:4096,renderer.capabilities.maxTextureSize);VHD.t=0;VHD.on=true;curDPR=-1;qlPose(0);}
+  if(on){VHD.k0=QL.k;VHD.dpr=VHD.max=vhdDpr();VHD.lT=VHD.bT=VHD.sT=0;VHD.ombre=Math.min(TEL_NATIF?2048:4096,renderer.capabilities.maxTextureSize);VHD.t=0;VHD.on=true;curDPR=-1;qlPose(0);}
   else{VHD.on=false;curDPR=-1;qlPose(VHD.k0);}
   vhdAniso(on);}
-addEventListener('resize',function(){if(VHD.on){VHD.dpr=vhdDpr();curDPR=-1;qlPose(0);}}); // téléphone tourné, fenêtre retaillée : le budget de pixels se recalcule
-window.dbgVHD=function(){return {on:VHD.on,dpr:+curDPR.toFixed(2),dprEcran:+devicePixelRatio.toFixed(2),plafondCourse:+DPR_CAP.toFixed(2),
+function vhdMonte(now,vrai){ // (2026-10-13, LE FILET v2) un cran de netteté qui revient (×1,25), jamais au-delà de l'écran ni vers le cran qui vient d'échouer ;
+  // vrai = le coût mesuré par la sonde (ms) : on ne monte que si l'image agrandie (coût ∝ pixels, pessimiste) tient encore sous 14 ms
+  const d9=Math.min(VHD.max,VHD.dpr*1.25);if(VHD.murT&&now-VHD.murT<45000&&d9>VHD.mur-.02)return false;
+  if(d9<VHD.dpr+.02||(vrai&&vrai*(d9/VHD.dpr)*(d9/VHD.dpr)>14))return false;VHD.dpr=d9;VHD.haut++;VHD.monteT=now;vhdNote(now,'monte');curDPR=-1;qlPose(0);return true;}
+function vhdNote(now,quoi){VHD.log.push([Math.round(now/100)/10,quoi,+VHD.dpr.toFixed(2),+QLR.vrai.toFixed(1),+QLR.p75.toFixed(1),+QLR.p90.toFixed(1)]);if(VHD.log.length>12)VHD.log.shift();} // (banc) dbgVHD().journal
+addEventListener('resize',function(){if(VHD.on){VHD.dpr=VHD.max=vhdDpr();VHD.murT=0;curDPR=-1;qlPose(0);}}); // téléphone tourné, fenêtre retaillée : le budget de pixels se recalcule
+window.dbgVHD=function(){return {on:VHD.on,dpr:+curDPR.toFixed(2),max:+VHD.max.toFixed(2),baisses:VHD.bas,remontees:VHD.haut,bride:VHD.bride?Math.round((performance.now()-VHD.bride)/1000)+' s':null,mur:(VHD.murT&&performance.now()-VHD.murT<45000)?+VHD.mur.toFixed(2):null,vrai:QLR.vraiT?+QLR.vrai.toFixed(1):null,journal:VHD.log,dprEcran:+devicePixelRatio.toFixed(2),plafondCourse:+DPR_CAP.toFixed(2),
   px:Math.round(innerWidth*innerHeight*curDPR*curDPR),ombre:sun.shadow.mapSize.x,aniso:ASPH_TEX?ASPH_TEX.anisotropy:null,bloom:bloomPass?(bloomPass.enabled?BLOOM_RES:0):null,crans:QL.k};};
 window.dbgDPR=function(d,sansPique){RESPIN=true;curDPR=+d;applyDPR();if(sansPique&&acesPass&&acesPass.uniforms.uSharp)acesPass.uniforms.uSharp.value=0;return {dpr:curDPR,pique:acesPass&&acesPass.uniforms.uSharp?+acesPass.uniforms.uSharp.value.toFixed(3):null};}; // (tour 2) banc : une résolution, sans rien d'autre (fige l'échelle)
 /* (2026-09-28, passe graphismes mobile) BANC : chaque petite technique s'éteint et se rallume À CHAUD (des uniformes : zéro recompilation),
@@ -15384,9 +15389,27 @@ function jadeEcume(x,y,z,r){const n=Math.min(90,30+r*1.6|0);
      glissent sur la vitre ; il y entre → un voile clair et un nuage de bulles.
    · LE SON : sous l'eau tout passe dans un passe-bas (MASTER → filtre → BUSOUT, posé à la 1re plongée, grand ouvert sinon) ; un plouf grave
      à l'entrée, un jet à la sortie, des bloups de bulles sous l'eau. */
-const EAU={pousse:2.4,freinH:.9,freinV:1.3,rend:1.06,hRend:.85,fond:420,choc:.5,ricoA:.24,ricoV:55};
-const JEAU={y0:0,dans:false,t:0,prof:0,vIn:0,vRef:0,hIn:0,n:0,rico:0,cd:0,k:0,sorti:9,goutT:0,bloop:0,bul:[],im:null}; // cd : le répit après un ricochet ou une sortie (la houle monte et descend de plusieurs mètres : sans lui, une caisse au ras de l'eau rentrait et ressortait sans arrêt)
+/* (2026-10-13, 3e passe — Léo : « pousse encore plus la physique, et mieux faite ») LA VRAIE PHYSIQUE DE L'EAU (réglée d'abord dans un
+   simulateur à part, mêmes équations, mêmes unités que le vol) :
+   · ARCHIMÈDE : la poussée suit la part IMMERGÉE de la caisse (`f`, de 0 à 1 sur EAU.H = 1,3 m) — B = 3,4 g quand elle est entière sous l'eau
+     (nette +2,4 g), et la caisse FLOTTE à l'équilibre (f = 1/B : ~30 cm sous la surface), elle monte et descend avec la houle.
+   · L'AMORTISSEMENT du pilonnement (cv) n'agit qu'au passage de la surface (f·(1−f)) : à flot, elle cesse de rebondir en ~1 s ;
+     dessous, rien ne retient la remontée.
+   · LA TRAÎNÉE ∝ v² (cq) + un peu de linéaire (cl), à proportion de l'immersion : à 600 km/h l'eau est un mur, au ralenti elle glisse.
+   · LA GLISSE (hydroplanage) : vite et à moitié dans l'eau, une portance ∝ v² la soulève et la traînée baisse — la nitro en fait un jet-ski.
+   · LE MOTEUR à flot : les roues brassent l'eau, la caisse file comme un bateau (~65 km/h) dans la direction du volant.
+   · LE CHOC (vitesse ×choc … ×choc+chocK selon la pente) et le RICOCHET restent ; un simple contact (moins de 12 de vitesse verticale) ne
+     fait qu'une ride.
+   · LE JAILLISSEMENT : seulement après un vrai plongeon (plus de EAU.plonge = 6 m) — la remontée ACCÉLÈRE (la mer recrache), et l'on sort au
+     moins à l'élan du premier plongeon du vol (×rend) ou à celui de la PROFONDEUR (on jaillit à ~2,5 × la profondeur atteinte) : plus on
+     plonge profond, plus on saute haut. Une vague qui lâche la caisse ne fait qu'un petit bond.
+   · L'ASSIETTE : dans l'eau la vrille s'arrête, la caisse se REDRESSE (le haut vers le ciel), à flot elle suit la pente de la houle et son
+     nez garde le cap (jadeEauNez, branché sur l'orientation du vol).
+   · À FLOT trop longtemps sans nitro (EAU.ramene s), la mer te RAMÈNE sur la route (pas de mort). */
+const EAU={B:3.4,H:1.3,cv:7,cl:.2,cq:.009,vPl:50,cP:1.2,mot:110,vB:95,choc:.55,chocK:.3,ricoA:.24,ricoV:55,rend:1.06,hRend:.85,profSaut:2.5,plonge:6,fond:420,ramene:9};
+const JEAU={y0:0,syF:NaN,vS:0,dans:false,f:0,wB:0,t:0,prof:0,vIn:0,vRef:0,hIn:0,n:0,rico:0,cd:0,k:0,sorti:9,goutT:0,bloop:0,flotT:0,cap:new THREE.Vector3(0,0,1),bul:[],im:null}; // cd : le répit après un ricochet ou une sortie (la houle monte et descend de plusieurs mètres)
 const JSOUS={sous:false,sous0:false,bascT:9,prof:0,uK:0,N:48,peau:null,base:{c:new THREE.Color(),n:0,f:0},w:{c:new THREE.Color(),n:-1,f:-1,ok:false},c:new THREE.Color(),cA:new THREE.Color(.22,.64,.66),cB:new THREE.Color(.09,.34,.42)};
+const JEAU_V=new THREE.Vector3(),JEAU_N=new THREE.Vector3();
 function jadeVide(y){return jadeEauOk()?y<JADE.eauY-EAU.fond-200:y<trackMinY-120;} // le plongeon fatal : sous la piste… sauf au-dessus de la mer
 function jadeEauOk(){return !!(JADE.root&&LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on&&isFinite(JADE.eauY));}
 function jMerHJ(cx,cz,T){const px=cx*4,py=cz*4;let r=Math.sin(cx*41.3+cz*289.1)*43758.5453;r-=Math.floor(r); // la houle du ciel (JADE_EAU_GLSL), case par case
@@ -15394,58 +15417,94 @@ function jMerHJ(cx,cz,T){const px=cx*4,py=cz*4;let r=Math.sin(cx*41.3+cz*289.1)*
 function jadeSurfCase(x,z){return JADE.eauY+jMerHJ(Math.floor(x/4),Math.floor(z/4),skyU.uEauT.value)*4;} // la colonne exacte (l'objectif)
 function jadeSurf(x,z){const T=skyU.uEauT.value,u=x/4-.5,v=z/4-.5,i=Math.floor(u),j=Math.floor(v),fu=u-i,fv=v-j; // lissée entre les centres des cases (la caisse : pas de marches)
   const a=jMerHJ(i,j,T),b=jMerHJ(i+1,j,T),c=jMerHJ(i,j+1,T),d=jMerHJ(i+1,j+1,T);return JADE.eauY+4*((a*(1-fu)+b*fu)*(1-fv)+(c*(1-fu)+d*fu)*fv);}
-function jadeEauRaz(){JEAU.dans=false;JEAU.t=0;JEAU.prof=0;JEAU.vIn=0;JEAU.vRef=0;JEAU.hIn=0;JEAU.n=0;JEAU.rico=0;JEAU.cd=0;JEAU.k=0;JEAU.sorti=9;JEAU.goutT=0;JEAU.bul.length=0;if(JEAU.im)JEAU.im.count=0;
+function jadeEauRaz(){JEAU.syF=NaN;JEAU.dans=false;JEAU.f=0;JEAU.wB=0;JEAU.t=0;JEAU.prof=0;JEAU.vIn=0;JEAU.vRef=0;JEAU.hIn=0;JEAU.n=0;JEAU.rico=0;JEAU.cd=0;JEAU.k=0;JEAU.sorti=9;JEAU.goutT=0;JEAU.flotT=0;JEAU.bul.length=0;if(JEAU.im)JEAU.im.count=0;
   EAUP.L.length=0;if(EAUP.im)EAUP.im.count=0;for(const r of EAUR.L){r.m.visible=false;r.t=9;}LENS.g.length=0;LENS.nappe=0;LENS.flash=0;if(LENS.cv)LENS.cv.style.visibility='hidden';
   JSOUS.sous=JSOUS.sous0=false;JSOUS.uK=0;if(JSOUS.peau)JSOUS.peau.visible=false;skyU.uSous.value=0;JADE_U.uSous.value=0;eauFiltre(false,true);}
+/* LA SURFACE DE LA PHYSIQUE : la mer en cubes du décor saute de 4 m d'une colonne à l'autre et monte jusqu'à ~30 m/s (MESURÉ : 12,7 m en
+   0,4 s sous la caisse — elle avalait une caisse à flot et la faisait « jaillir »). La caisse flotte sur une houle CALMÉE : la moyenne des
+   9 colonnes autour d'elle (12 m), deux fois moins haute, suivie à 4 m/s au plus et lissée (τ 0,6 s). Le décor, lui, ne change pas. */
+function jadeSurfMoy(x,z){const T=skyU.uEauT.value,i=Math.floor(x/4),j=Math.floor(z/4);let h=0;for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++)h+=jMerHJ(i+a,j+b,T);return JADE.eauY+2+4*h/9*.55;} // (+2 : le dessus moyen d'une colonne, son plancher étant arrondi en dessous ; ×,55 : la houle de la physique, deux fois plus calme)
+function jadeSurfPh(x,z,dt){const s9=jadeSurfMoy(x,z);if(!isFinite(JEAU.syF)||Math.abs(JEAU.syF-s9)>40||dt<=0){JEAU.syF=s9;JEAU.vS=0;return s9;}
+  const dl=Math.max(-4*dt,Math.min(4*dt,(s9-JEAU.syF)*Math.min(1,dt/.6)));JEAU.syF+=dl;JEAU.vS=dl/dt;return JEAU.syF;} // vS : la vitesse de la surface (m/s), pour flotter AVEC elle
 function jadeEauVol(dt,dtF){ // branche 'fall', AVANT que la position avance (la vitesse vient d'encaisser gravité, volant, manche, nitro)
-  if(!jadeEauOk()){if(JEAU.dans)JEAU.dans=false;return false;}
-  const sy=jadeSurf(fallPos.x,fallPos.z),prof=sy-fallPos.y,hv=Math.hypot(fallVel.x,fallVel.z),vmW=SPD*AIR_RATE; // vmW : vitesse du vol → m/s du monde
+  if(!jadeEauOk()){if(JEAU.dans)JEAU.dans=false;JEAU.f=0;return false;}
+  const sy=jadeSurfPh(fallPos.x,fallPos.z,dt),d=sy-fallPos.y,f=Math.min(1,Math.max(0,d/EAU.H)),hv=Math.hypot(fallVel.x,fallVel.z),vmW=SPD*AIR_RATE,g=FALL_G*gK(); // d : profondeur du DESSOUS de la caisse · f : sa part immergée
+  JEAU.f=f;
   if(fallPos.y<JEAU.y0-2)fallTR=Math.max(0,fallTR-dt); // sous le point de décollage, la mer rattrape : la jauge ne baisse pas
   if(JEAU.cd>0)JEAU.cd-=dt;
-  if(!JEAU.dans&&prof>0&&(fallVel.y<0||prof>3)&&(JEAU.cd<=0||prof>4)){
+  if(!JEAU.dans&&d>0&&(JEAU.cd<=0||d>EAU.plonge)){
     const v=Math.max(1,fallVel.length()),pente=-fallVel.y/v;
-    if(pente<EAU.ricoA&&hv>EAU.ricoV&&JEAU.rico<4&&prof<2.5){ // ---- LE RICOCHET : à plat et vite, l'eau renvoie la caisse comme un galet ----
+    if(fallVel.y<0&&pente<EAU.ricoA&&hv>EAU.ricoV&&JEAU.rico<4&&d<2.5){ // ---- LE RICOCHET : à plat et vite, l'eau renvoie la caisse comme un galet ----
       JEAU.rico++;JEAU.cd=.4;fallVel.y=Math.abs(fallVel.y)*.55+15;fallVel.x*=.82;fallVel.z*=.82;fallPos.y=sy+.4;
       const k9=Math.min(1,hv/160);jadeCouronne(fallPos.x,sy,fallPos.z,.25+.3*k9,fallVel);
       shake=Math.max(shake,.3);fovPunch=Math.max(fovPunch,5);hap([10,14]);
       try{noiseBurst(.28,.32,1500);subBoom(.18);if(SONV2)sfx('flaque.eau');}catch(e){}
       try{addTrick('ricochet',JEAU.rico>1?'RICOCHET ×'+JEAU.rico:'RICOCHET !',5*JEAU.rico,1,true);flowAdd(5,'risque');}catch(e){}
       return false;}
-    // ---- LE PLONGEON : le choc, la couronne, le plouf ----
-    JEAU.dans=true;JEAU.t=0;JEAU.prof=0;JEAU.n++;JEAU.vIn=Math.max(4,-fallVel.y);JEAU.hIn=hv;if(!JEAU.vRef)JEAU.vRef=JEAU.vIn;
-    const k9=Math.min(1,v/170);
-    fallVel.multiplyScalar(EAU.choc+.3*pente); // l'eau est un mur : à plat on s'écrase, à pic on la fend
-    jadeCouronne(fallPos.x,sy,fallPos.z,.12+.88*k9,null); // la taille de la gerbe suit la vitesse (un petit plongeon = une petite gerbe)
-    jadeBullesJet(fallPos,20+90*k9,4);
-    shake=Math.max(shake,.45+.5*k9);fovPunch=Math.max(fovPunch,9+10*k9);hap([20,30,40]);
-    try{subBoom(.4+.35*k9);noiseBurst(.6,.4+.25*k9,520);noiseBurst(.9,.18+.12*k9,2600);if(SONV2){sfx('flaque.eau');sfx('nuage.entre');}}catch(e){}
-    try{addTrick('plongeon',JEAU.n>1?'REPLONGEON !':'PLONGEON !',6+4*k9,1);flowAdd(6,'risque');}catch(e){}}
-  else if(JEAU.dans&&prof<-1&&fallVel.y>0){ // ---- LE JAILLISSEMENT : la colonne d'eau, la caisse qui ruisselle ----
-    JEAU.dans=false;JEAU.sorti=0;JEAU.goutT=1.6;JEAU.cd=.35;
-    const vr=Math.min(JEAU.vIn,JEAU.vRef||JEAU.vIn)*EAU.rend+4;if(fallVel.y<vr)fallVel.y=vr; // la mer rend l'élan du premier plongeon, jamais plus
-    {const hw=Math.max(hv,JEAU.hIn*EAU.hRend);if(hv>1){fallVel.x*=hw/hv;fallVel.z*=hw/hv;}else{tmp3.set(0,0,1).applyQuaternion(carGroup.quaternion);tmp3.y=0;if(tmp3.lengthSq()<1e-4)tmp3.set(1,0,0);tmp3.normalize();fallVel.x=tmp3.x*hw;fallVel.z=tmp3.z*hw;}
-     fallVH0=Math.max(fallVH0,hw);} // …et sa course : on repart vers la route
-    fallTR=0;fallT=Math.min(fallT,.5); // l'air rendu : une jauge de vol neuve pour reprendre la route
-    const k9=Math.min(1,fallVel.y/170);
-    jadeColonne(fallPos.x,sy,fallPos.z,fallVel.y*vmW,.15+.85*k9);
-    shake=Math.max(shake,.35);fovPunch=Math.max(fovPunch,11);hap([12,18,26]);airFlash=.6;
-    try{noiseBurst(.8,.34,2200);noiseBurst(.5,.3,450);subBoom(.22);if(SONV2){sfx('flaque.eau');sfx('nuage.sort');sfx('air.regain');}}catch(e){}
-    if(JEAU.t>.3){try{addTrick('jailli','HORS DE L EAU !',8+Math.min(18,JEAU.prof*.12),2);flowAdd(8,'risque');}catch(e){}}}
+    JEAU.dans=true;JEAU.t=0;JEAU.prof=0;JEAU.flotT=0;
+    const vn=-fallVel.y;
+    if(vn>12){ // ---- LE PLONGEON : le choc, la couronne, le plouf ----
+      JEAU.n++;JEAU.vIn=vn;JEAU.hIn=hv;if(!JEAU.vRef)JEAU.vRef=vn;
+      const k9=Math.min(1,v/170);
+      fallVel.multiplyScalar(EAU.choc+EAU.chocK*pente); // l'eau est un mur : à plat on s'écrase, à pic on la fend
+      jadeCouronne(fallPos.x,sy,fallPos.z,.12+.88*k9,null); // la taille de la gerbe suit la vitesse
+      jadeBullesJet(fallPos,20+90*k9,4);
+      shake=Math.max(shake,.45+.5*k9);fovPunch=Math.max(fovPunch,9+10*k9);hap([20,30,40]);
+      try{subBoom(.4+.35*k9);noiseBurst(.6,.4+.25*k9,520);noiseBurst(.9,.18+.12*k9,2600);if(SONV2){sfx('flaque.eau');sfx('nuage.entre');}}catch(e){}
+      try{addTrick('plongeon',JEAU.n>1?'REPLONGEON !':'PLONGEON !',6+4*k9,1);flowAdd(6,'risque');}catch(e){}}
+    else{eauRide(fallPos.x,sy,fallPos.z,.15);try{if(SONV2)sfx('flaque.eau');}catch(e){}}} // un simple contact : une ride
+  else if(JEAU.dans&&d<-.3&&fallVel.y>0){ // ---- ELLE QUITTE L'EAU ----
+    JEAU.dans=false;JEAU.cd=.35;JEAU.sorti=0;
+    if(JEAU.prof>EAU.plonge&&JEAU.t>.4){ // le JAILLISSEMENT : la colonne d'eau, la caisse qui ruisselle
+      JEAU.goutT=1.6;
+      const vr=Math.max(Math.min(JEAU.vIn,JEAU.vRef||JEAU.vIn)*EAU.rend+4,Math.sqrt(2*g*EAU.profSaut*JEAU.prof/SPD));if(fallVel.y<vr)fallVel.y=vr; // l'élan du premier plongeon, ou celui de la profondeur — jamais plus
+      {const h2=Math.hypot(fallVel.x,fallVel.z),hw=Math.max(h2,JEAU.hIn*EAU.hRend);if(h2>1){fallVel.x*=hw/h2;fallVel.z*=hw/h2;}else{fallVel.x=JEAU.cap.x*hw;fallVel.z=JEAU.cap.z*hw;}fallVH0=Math.max(fallVH0,hw);} // …et sa course : on repart vers la route
+      fallTR=0;fallT=Math.min(fallT,.5); // l'air rendu : une jauge de vol neuve
+      const k9=Math.min(1,fallVel.y/170);
+      jadeColonne(fallPos.x,sy,fallPos.z,fallVel.y*vmW,.15+.85*k9);
+      shake=Math.max(shake,.35);fovPunch=Math.max(fovPunch,11);hap([12,18,26]);airFlash=.6;
+      try{noiseBurst(.8,.34,2200);noiseBurst(.5,.3,450);subBoom(.22);if(SONV2){sfx('flaque.eau');sfx('nuage.sort');sfx('air.regain');}}catch(e){}
+      if(JEAU.t>.3){try{addTrick('jailli','HORS DE L EAU !',8+Math.min(18,JEAU.prof*.12),2);flowAdd(8,'risque');}catch(e){}}}
+    else{JEAU.goutT=.6;jadeColonne(fallPos.x,sy,fallPos.z,fallVel.y*vmW,.08);}} // une vague la lâche, un bond de bateau : un petit jet
   if(!JEAU.dans){ // hors de l'eau : la caisse ruisselle, et au ras de la surface elle laisse un sillage
-    if(JEAU.goutT>0){JEAU.goutT-=dt;const p=carGroup.position,n9=Math.random()<dt*70*JEAU.goutT/1.6?3:0;
+    if(JEAU.goutT>0){JEAU.goutT-=dt;const p=carGroup.position,n9=Math.random()<dt*70*Math.min(1,JEAU.goutT/1.6)?3:0;
       for(let k=0;k<n9;k++)eauP(p.x+(Math.random()-.5)*2.2,p.y-.2+(Math.random()-.5)*.8,p.z+(Math.random()-.5)*2.2,(Math.random()-.5)*1.5,-1-Math.random()*3,(Math.random()-.5)*1.5,.07+Math.random()*.13,1.6,sy);}
-    if(prof>-3&&hv>20&&Math.random()<dt*50)jadeSillage(sy,hv);
+    if(d>-3&&hv>20&&Math.random()<dt*50)jadeSillage(sy,hv);
     return false;}
-  // ---- SOUS L'EAU : l'eau épaisse — elle freine fort, la poussée remonte doucement ----
-  JEAU.t+=dt;if(prof>JEAU.prof)JEAU.prof=prof;
-  fallVel.y+=FALL_G*gK()*(1+EAU.pousse)*dtF;
-  {const kh=Math.exp(-EAU.freinH*dtF),kv=Math.exp(-EAU.freinV*dtF);fallVel.x*=kh;fallVel.z*=kh;fallVel.y*=kv;}
-  if(prof>EAU.fond&&fallVel.y<0)fallVel.y*=.85; // le fond (on n'y arrive pas : la poussée ramène bien avant)
-  fallTR=Math.max(0,fallTR-dt*3); // la jauge du vol se remplit sous l'eau
-  if(prof<2.5&&hv>20&&Math.random()<dt*40)jadeSillage(sy,hv); // juste sous la surface, elle la fend
-  if(Math.random()<dt*(nitroOn?45:18))jadeBullesJet(carGroup.position,nitroOn?5:2,1.8);
-  JEAU.bloop-=dt;if(JEAU.bloop<=0){JEAU.bloop=.12+Math.random()*(nitroOn?.15:.4);eauBloop(nitroOn?1:.6);}
+  // ---- DANS L'EAU : Archimède, l'amortissement, la traînée, la glisse, le moteur ----
+  JEAU.t+=dt;if(d>JEAU.prof)JEAU.prof=d;
+  fallVel.y+=g*EAU.B*f*dtF;                                   // ARCHIMÈDE : la part immergée porte
+  const recrache=JEAU.prof>EAU.plonge&&JEAU.t>.4&&fallVel.y>0&&f>=1;    // la remontée d'un vrai plongeon ACCÉLÈRE
+  if(recrache)fallVel.y+=g*1.5*dtF;
+  {const kk=1-Math.exp(-EAU.cv*Math.max(f*(1-f)*4,f<1?.6:0)*dtF);fallVel.y+=(JEAU.vS/vmW-fallVel.y)*kk;} // le pilonnement s'amortit PAR RAPPORT À LA SURFACE : à flot, la caisse monte et descend AVEC la houle (la gravité du jeu, ~8 m/s², est plus lente que la houle qui retombe : sans ça, elle décollait)
+  {const v=fallVel.length(),pl=Math.min(1,Math.max(0,(hv-EAU.vPl)/60)),k=(EAU.cl+EAU.cq*v)*(.25+.75*f)*(1-.5*pl*(1-f)),e=Math.exp(-k*dtF);
+   fallVel.x*=e;fallVel.z*=e;fallVel.y*=recrache?Math.exp(-k*.3*dtF):e; // la traînée ∝ v², moindre en glisse
+   if(f<.95&&hv>EAU.vPl)fallVel.y+=g*EAU.cP*pl*pl*Math.min(1,f*4)*dtF;} // LA GLISSE : vite et à moitié dans l'eau, elle se soulève
+  if(f>.04&&f<1){const h2=Math.hypot(fallVel.x,fallVel.z);if(h2<EAU.vB){const a=EAU.mot*(1-h2/EAU.vB)*dtF; // LE MOTEUR : à flot, les roues brassent l'eau
+    if(h2>2){fallVel.x+=fallVel.x/h2*a;fallVel.z+=fallVel.z/h2*a;}else{fallVel.x+=JEAU.cap.x*a;fallVel.z+=JEAU.cap.z*a;}}}
+  fallVH0=Math.max(fallVH0,Math.hypot(fallVel.x,fallVel.z)); // ce que l'eau donne (moteur, glisse) n'est pas plafonné par l'élan du décollage
+  if(d>EAU.fond&&fallVel.y<0)fallVel.y*=.85; // le fond (on n'y arrive pas : la poussée ramène bien avant)
+  fallTR=Math.max(0,fallTR-dt*3); // la jauge du vol se remplit dans l'eau
+  if(f<1&&JEAU.t>1){JEAU.flotT+=dt;if(JEAU.flotT>EAU.ramene&&!nitroOn){jadeEauRamene();return true;}}else JEAU.flotT=Math.max(0,JEAU.flotT-dt*2); // à flot trop longtemps : la mer te ramène
+  if(f<1&&hv>18&&Math.random()<dt*(30+hv*.4))jadeSillage(sy,hv); // à flot ou en glisse : l'étrave fend la surface
+  if(f>=1){if(Math.random()<dt*(nitroOn?45:18))jadeBullesJet(carGroup.position,nitroOn?5:2,1.8);
+    JEAU.bloop-=dt;if(JEAU.bloop<=0){JEAU.bloop=.12+Math.random()*(nitroOn?.15:.4);eauBloop(nitroOn?1:.6);}}
   return true;}
+function jadeEauRamene(){ // à flot depuis trop longtemps, sans nitro : la mer te ramène sur ta dernière route (comme le filet du mode facile — rien n'est perdu que la chaîne)
+  JEAU.dans=false;JEAU.flotT=0;JEAU.f=0;airPie.style.display='none';airFlash=0;
+  try{dolFin();}catch(e){}
+  chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;caseHud.style.opacity=0;caseHud.className='';caseHot=false;dolphT=0;
+  respawn();hopY=2.2;hopV=0;graceT=Math.max(graceT,2.2);loop._camDriveT=0;
+  try{popTexte(sansAcc(TR('LA MER TE RAMENE')),'#7dffec',2);}catch(e){}try{if(SONV2)sfx('air.regain');}catch(e){}}
+function jadeEauNez(nez,dt){ // dans l'orientation du vol : nez = la direction du nez (normalisée), à corriger ; FLY_U se redresse
+  const ci=JEAU.dans?1:0;JEAU.wB+=(ci-JEAU.wB)*Math.min(1,dt*(ci?5:1.5));const w=JEAU.wB;if(w<.01)return;
+  const hv=Math.hypot(fallVel.x,fallVel.z);if(hv>6)JEAU.cap.set(fallVel.x/hv,0,fallVel.z/hv);
+  const V=JEAU_V,sp=fallVel.length();
+  if(JEAU.f>=1&&sp>25)V.copy(fallVel).normalize(); // sous l'eau et vite : la trajectoire
+  else{V.copy(JEAU.cap);V.y=THREE.MathUtils.clamp(fallVel.y/Math.max(30,hv),-.6,.6);V.normalize();} // à flot ou lente : le CAP, le nez levé/baissé par la vitesse verticale
+  nez.lerp(V,w).normalize();
+  const N=JEAU_N;if(JEAU.f<1&&JADE.root){const p=fallPos,e=4,sx=(jadeSurfMoy(p.x+e,p.z)-jadeSurfMoy(p.x-e,p.z))/(2*e),sz=(jadeSurfMoy(p.x,p.z+e)-jadeSurfMoy(p.x,p.z-e))/(2*e);N.set(-sx*.5,1,-sz*.5).normalize();}else N.set(0,1,0);
+  FLY_U.lerp(N,Math.min(1,dt*3*w)).normalize();} // ARCHIMÈDE redresse la caisse ; à flot elle suit la pente de la houle
 /* LES CUBES D'EAU : couronne, gouttes, colonne, ruissellement, sillage — une réserve à eux (blancs d'écume, un peu bleutés) */
 const EAUP={L:[],im:null,max:1400};
 function eauPIm(){if(EAUP.im)return EAUP.im;const m=new THREE.MeshLambertMaterial({color:0xeaf9fc,emissive:0x3a6670});m.dispose=function(){};
@@ -15581,7 +15640,7 @@ window.dbgEau=function(o){if(o==='profil'&&JADE.root){const r=[];for(let k=0;k<=
   if(o&&jadeEauOk()){const p=carGroup.position,sy=jadeSurf(p.x,p.z);if(mode!=='fall')startFall(0,0,false);fallPos.set(p.x,sy+(o.h==null?40:o.h),p.z);fallVel.y=o.vy==null?0:o.vy;if(o.vh!=null){const hx=Math.hypot(fallVel.x,fallVel.z)||1;fallVel.x*=o.vh/hx;fallVel.z*=o.vh/hx;fallVH0=Math.max(fallVH0,o.vh);}carGroup.position.copy(fallPos);}
   const p=mode==='fall'?fallPos:carGroup.position;
   return {ok:jadeEauOk(),mode:mode,cause:mortCause,dans:JEAU.dans,n:JEAU.n,t:+JEAU.t.toFixed(2),prof:+JEAU.prof.toFixed(1),vIn:+JEAU.vIn.toFixed(1),vRef:+JEAU.vRef.toFixed(1),
-    y:+p.y.toFixed(1),surf:JADE.root?+jadeSurf(p.x,p.z).toFixed(1):null,vy:+fallVel.y.toFixed(1),fallTR:+fallTR.toFixed(2),camSous:JSOUS.sous,camProf:+JSOUS.prof.toFixed(1),peau:+JSOUS.uK.toFixed(2),bulles:JEAU.bul.length,rico:JEAU.rico,gouttes:EAUP.L.length,ondes:EAUR.L.filter(function(r){return r.t<r.l;}).length,vitre:LENS.g.length,nappe:+LENS.nappe.toFixed(2),filtre:MASTER&&MASTER._eauLp?Math.round(MASTER._eauLp.frequency.value):null,
+    y:+p.y.toFixed(1),surf:JADE.root?+(isFinite(JEAU.syF)?JEAU.syF:jadeSurf(p.x,p.z)).toFixed(1):null,vy:+fallVel.y.toFixed(1),fallTR:+fallTR.toFixed(2),camSous:JSOUS.sous,camProf:+JSOUS.prof.toFixed(1),peau:+JSOUS.uK.toFixed(2),bulles:JEAU.bul.length,rico:JEAU.rico,f:+JEAU.f.toFixed(2),wB:+JEAU.wB.toFixed(2),flot:+JEAU.flotT.toFixed(1),hv:+Math.hypot(fallVel.x,fallVel.z).toFixed(1),gouttes:EAUP.L.length,ondes:EAUR.L.filter(function(r){return r.t<r.l;}).length,vitre:LENS.g.length,nappe:+LENS.nappe.toFixed(2),filtre:MASTER&&MASTER._eauLp?Math.round(MASTER._eauLp.frequency.value):null,
     brume:scene.fog?[Math.round(scene.fog.near),Math.round(scene.fog.far),'#'+scene.fog.color.getHexString()]:null};};
 function jadeChuteRaz(){for(const c of JCH.L){if(c.orig)for(const o of c.orig)o.F.M.set(o.m,o.si*16);if(c.fo)FIN.mats.delete(c.pi);c.t0=0;c.fin=false;c.spl=false;c.orig=null;c.fo=null;}
   if(JADE.col&&JADE.col.mort)JADE.col.mort.clear();JCH.sp.length=0;if(JCH.splash)JCH.splash.count=0;for(const c of JCH.L)c.vu=false;JADE.sig=0;}
@@ -16766,7 +16825,7 @@ const CARS=[
   desc:'Un million de kilomètres au compteur, une botte de foin dans la benne. Increvable, lui aussi.'},
  {retire:1,name:'L\'AMBASSADEUR',color:0x101218,accent:0xe9ecf0,maxKmh:270,accel:30,turn:2.55,h:1.44,w:1.82,l:5,spoiler:0,shape:'a_ambassadeur',rar:'rare',
   desc:'Immunité diplomatique sur la bande d\'arrêt d\'urgence. Les radars lui envoient des excuses.'},
- {name:'LE CHARGEUR',color:0x2c2f35,accent:0x121316,maxKmh:290,accel:32,turn:2.6,h:1.48,w:1.9,l:5.1,spoiler:0,shape:'a_chargeur',rar:'rare',
+ {name:'LE CHARGEUR',color:0x050608,accent:0x121316,maxKmh:290,accel:32,turn:2.6,h:1.48,w:1.9,l:5.1,spoiler:0,shape:'a_chargeur',rar:'rare',
   desc:'Quatre portes, parce qu\'il faut bien emmener quelqu\'un pour voir la tête des autres.'},
  {name:'LE DÉFIEUR',color:0xff7a14,accent:0x121212,maxKmh:310,accel:34,turn:2.5,h:1.45,w:1.92,l:5.02,spoiler:0,shape:'a_defieur',rar:'rare',
   desc:'Né en 1970, jamais sorti de la puberté. Il te défie au feu rouge, puis au suivant, puis au suivant.'},
@@ -16782,7 +16841,7 @@ const CARS=[
   desc:'Un V8 qui chante l’opéra à chaque rapport. Les voisins adorent. Enfin, presque.'},
  {retire:1,name:'LA HUIT',color:0xb8bec6,accent:0x16171b,maxKmh:310,accel:34,turn:2.7,h:1.34,w:1.86,l:4.78,spoiler:0,shape:'c_huit',rar:'rare',
   desc:'Un V12, douze pistons, zéro montant. Les années 90 avaient tout compris.'},
- {name:'LE SAMOURAÏ',color:0x1f4fd0,accent:0x16181c,maxKmh:300,accel:33,turn:2.9,h:1.36,w:1.79,l:4.6,spoiler:0,shape:'d_samourai',rar:'rare',
+ {name:'LE SAMOURAÏ',color:0x3b2c4e,accent:0x16181c,maxKmh:300,accel:33,turn:2.9,h:1.36,w:1.79,l:4.6,spoiler:0,shape:'d_samourai',rar:'rare',
   desc:'Quatre feux ronds, un aileron, zéro pitié. Tu le vois une fois : dans ton rétro, en train de partir.'},
  {name:'LA VETTE',color:0xd01a22,accent:0x141414,maxKmh:290,accel:32,turn:2.8,h:1.18,w:1.8,l:4.48,spoiler:0,shape:'d_vette',rar:'rare',
   desc:'Phares cachés, V8 pas caché du tout. Elle se lève pour voir la route, puis elle la mange.'},
@@ -17209,7 +17268,7 @@ Object.assign(I18N,{'NITRO INFINIE — 9 s À FOND !':'INFINITE NITRO — 9 s FL
   'AURA ×2 — 12 s : TOUTE L\'AURA COMPTE DOUBLE !':'AURA ×2 — 12 s: ALL AURA COUNTS DOUBLE!','TOUTE L\'AURA COMPTE DOUBLE':'ALL AURA COUNTS DOUBLE',
   'DOUBLE POUVOIR':'DOUBLE POWER','TRIPLE POUVOIR':'TRIPLE POWER','DOUBLE POUVOIR !':'DOUBLE POWER!','TRIPLE POUVOIR !':'TRIPLE POWER!',
   'SAUVE !':'SAVED!','LE BOUCLIER A CEDE':'THE SHIELD BROKE','LE BOUCLIER T\'A SAUVE':'THE SHIELD SAVED YOU','DEMOLI':'SMASHED',
-  'SANS FAUTE':'FLAWLESS','SERIE CASSEE':'STREAK BROKEN','MIRACULE':'MIRACLE','MIRACULE !':'MIRACLE!','RECORD DE VITESSE':'SPEED RECORD','SÉRIE COMPLÈTE':'FULL SET','PLONGEON !':'DIVE!','REPLONGEON !':'DIVE AGAIN!','RICOCHET !':'SKIP!','RICOCHET':'SKIP','HORS DE L EAU !':'OUT OF THE WATER!','PLONGEON':'DIVE','REPLONGEON':'DIVE AGAIN','HORS DE L EAU':'OUT OF THE WATER'});
+  'SANS FAUTE':'FLAWLESS','SERIE CASSEE':'STREAK BROKEN','MIRACULE':'MIRACLE','MIRACULE !':'MIRACLE!','RECORD DE VITESSE':'SPEED RECORD','SÉRIE COMPLÈTE':'FULL SET','PLONGEON !':'DIVE!','REPLONGEON !':'DIVE AGAIN!','RICOCHET !':'SKIP!','RICOCHET':'SKIP','LA MER TE RAMENE':'THE SEA BRINGS YOU BACK','HORS DE L EAU !':'OUT OF THE WATER!','PLONGEON':'DIVE','REPLONGEON':'DIVE AGAIN','HORS DE L EAU':'OUT OF THE WATER'});
 Object.assign(I18N_ZH,{'NITRO INFINIE — 9 s À FOND !':'无限氮气 — 全速 9 秒！','🪂 AIRTIME INFINI — 14 s DE VOL !':'🪂 无限滞空 — 飞行 14 秒！',
   '⚡ VITESSE ×2 — 8 s !':'⚡ 速度 ×2 — 8 秒！','9 S A FOND':'全速 9 秒','14 S DE VOL':'飞行 14 秒','8 S':'8 秒',
   'AIMANT':'磁铁','BOUCLIER':'护盾','AURA ×2':'气场 ×2','L\'OR VIENT A TOI':'金币自动飞来','UNE CHUTE PARDONNEE':'免死一次',
@@ -17217,7 +17276,7 @@ Object.assign(I18N_ZH,{'NITRO INFINIE — 9 s À FOND !':'无限氮气 — 全�
   'AURA ×2 — 12 s : TOUTE L\'AURA COMPTE DOUBLE !':'气场 ×2 — 12 秒：所有气场双倍！','TOUTE L\'AURA COMPTE DOUBLE':'所有气场双倍',
   'DOUBLE POUVOIR':'双重道具','TRIPLE POUVOIR':'三重道具','DOUBLE POUVOIR !':'双重道具！','TRIPLE POUVOIR !':'三重道具！',
   'SAUVE !':'得救！','LE BOUCLIER A CEDE':'护盾碎了','LE BOUCLIER T\'A SAUVE':'护盾救了你','DEMOLI':'撞飞',
-  'SANS FAUTE':'完美连续','SERIE CASSEE':'连击中断','MIRACULE':'奇迹','MIRACULE !':'奇迹！','RECORD DE VITESSE':'速度纪录','SÉRIE COMPLÈTE':'整组收集','PLONGEON !':'潜水！','REPLONGEON !':'再次潜水！','RICOCHET !':'打水漂！','RICOCHET':'打水漂','HORS DE L EAU !':'跃出水面！','PLONGEON':'潜水','REPLONGEON':'再次潜水','HORS DE L EAU':'跃出水面'});
+  'SANS FAUTE':'完美连续','SERIE CASSEE':'连击中断','MIRACULE':'奇迹','MIRACULE !':'奇迹！','RECORD DE VITESSE':'速度纪录','SÉRIE COMPLÈTE':'整组收集','PLONGEON !':'潜水！','REPLONGEON !':'再次潜水！','RICOCHET !':'打水漂！','RICOCHET':'打水漂','LA MER TE RAMENE':'大海送你回来','HORS DE L EAU !':'跃出水面！','PLONGEON':'潜水','REPLONGEON':'再次潜水','HORS DE L EAU':'跃出水面'});
 Object.assign(I18N,{'MOY':'AVG','MOYENNE BATTUE':'AVERAGE BEATEN'});Object.assign(I18N_ZH,{'MOY':'平均','MOYENNE BATTUE':'超越平均'}); // (2026-10-12) la JAUGE D'AURA
 Object.assign(I18N,{"MISSIONS":"MISSIONS","MENU":"MENU","HOME":"HOME","ATELIER":"WORKSHOP","LES TROIS DEFIS":"THE THREE CHALLENGES",
   "DEFI":"CHALLENGE","REUSSI":"DONE","SUIVI EN COURSE":"TRACKED","MEILLEUR ESSAI":"BEST RUN","RECOMPENSE":"REWARD","ENSUITE":"NEXT","CARNET":"SET",
@@ -20918,6 +20977,8 @@ const SHAPES={
   // 5. ROSSO 40 — Ferrari F40. Rouge course, ailes qui bombent au-dessus des roues, Lexan à
   //    persiennes, NACA sur le capot, et l'aileron plateau qui NAÎT des ailes arrière.
   rosso(K){
+    /* (13/10, « plus ressemblante ») la coque est ROUGE jusqu'au seuil (la moitié basse était noire : elle paraissait longue et plate),
+       elle rentre sous la taille, et ses hanches se gonflent au-dessus des roues arrière. */
     const U=LPU,R=.37,ZF=1.30,ZR=-1.16;
     const P=K.kit({p:{g:'p',c:0xe8121c},r:{g:'p',c:0xb00d15},k:{g:'m',c:0x131417},K:{g:'g',c:0x0b0c10},
       c:{g:'c',c:0xe9ecf0},g:{g:'g',c:0x1c2733},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e}});
@@ -20928,19 +20989,20 @@ const SHAPES={
     const yC=z=>U.lin([[-2.20,.96],[-1.95,.96],[-.70,1.06],[-.52,1.12],[.10,1.09],[.74,.80],[1.00,.76],[1.95,.56],[2.18,.44]],z),
           cab=z=>z>-.71&&z<.75;
     P.loft(zs,z=>{
-      const yb=U.arch(z,[ZF,ZR],AR,.26),xw=U.lin([[-2.20,.96],[-1.90,.99],[1.40,.99],[1.95,.93],[2.18,.80]],z),
+      const yb=Math.max(U.arch(z,[ZF,ZR],AR,.26),U.lin([[-2.20,.32],[-2.00,.26],[1.95,.26],[2.18,.30]],z)),xw=U.lin([[-2.20,.94],[-1.90,.99],[ZR,1.00],[-.50,.97],[.40,.96],[1.40,.98],[1.95,.92],[2.18,.78]],z),
             yB=Math.max(U.lin([[-2.20,.94],[-1.95,.96],[-.80,.92],[-.30,.80],[.74,.78],[1.30,.74],[1.95,.58],[2.18,.46]],z),yb+.10),
             c=yC(z);
       const p3=[xw-.02,yB],p4=cab(z)?[xw-.22,yB+.04]:[xw-.10,yB+.01];
       const p5=cab(z)?[U.lin([[-.70,.60],[-.52,.56],[.10,.58],[.74,.72]],z),c-.02]:[.45,Math.max(p4[1]+.002,c-.01)];
-      return [[0,yb],[xw-.07,yb],[xw,Math.max(.52,yb+.05)],p3,p4,p5,[0,c]];
+      return [[0,yb],[xw-.09,yb],[xw-.025,Math.max(.36,yb+.04)],[xw,Math.max(.54,yb+.07)],p3,p4,p5,[0,c]];
     },(j,z)=>{
-      if(j<=1)return 'k';
-      if(j===4&&cab(z))return (z>-.36&&z<.60)?'g':'p';                       // vitre latérale, arc-boutant
-      if(j===5&&z>.10&&z<.74)return 'g';                                      // pare-brise
-      if(j===5&&z>-1.86&&z<-.70)return 'g';                                   // le Lexan du capot moteur
+      if(j===0)return 'k';
+      if(j===5&&cab(z))return (z>-.36&&z<.60)?'g':'p';                       // vitre latérale, arc-boutant
+      if(j===6&&z>.10&&z<.74)return 'g';                                      // pare-brise
+      if(j===6&&z>-1.86&&z<-.70)return 'g';                                   // le Lexan du capot moteur
       return 'p';});
     // L'AILERON PLATEAU, porté par des flasques qui prolongent les ailes
+    const xw9=z=>U.lin([[-2.20,.94],[-1.90,.99],[ZR,1.00],[-.50,.97],[.40,.96],[1.40,.98],[1.95,.92],[2.18,.78]],z);
     P.box('p',1.96,.05,.30,0,1.18,-2.06);
     P.sym(sd=>P.prism('p',[[-1.80,.92],[-2.22,.92],[-2.22,1.22],[-1.95,1.22]],.06,sd*.93));
     for(let i=0;i<6;i++){const z=-.86-i*.17;P.box('K',1.04,.02,.05,0,yC(z)+.012,z);} // persiennes
@@ -20948,8 +21010,8 @@ const SHAPES={
       P.box('k',.16,.012,.30,sd*.25,yC(1.35)+.005,1.35,.21);                 // NACA de capot
       P.box('r',.30,.012,.22,sd*.66,yC(1.82)+.004,1.82,.21);                 // trappes de phares
       P.box('W',.30,.06,.03,sd*.62,.42,2.185);
-      P.box('k',.02,.18,.36,sd*.995,.72,-.57);                                // prise d'air arrière
-      P.box('k',.02,.06,.34,sd*.995,.74,.12);                                 // NACA de portière
+      P.box('k',.02,.18,.36,sd*(xw9(-.57)+.002),.72,-.57);                                // prise d'air arrière
+      P.box('k',.02,.06,.34,sd*(xw9(.12)+.002),.74,.12);P.box('k',.012,.04,2.6,sd*(xw9(0)-.02),.30,.05);   // NACA de portière, le seuil noir                                 // NACA de portière
       P.box('p',.12,.08,.16,sd*.84,.95,.52);P.box('k',.10,.03,.04,sd*.77,.92,.52);
       for(const x of [.55,.76])P.cyl('L',.065,.03,10,sd*x,.74,-2.215,'z');     // quatre feux ronds
       P.cyl('c',.05,.14,8,sd*.44,.43,-2.26,'z');
@@ -22644,17 +22706,21 @@ Object.assign(SHAPES,{
   a_chargeur:function(K){
   /* LE CHARGEUR — la berline musclée américaine : flancs creusés d'une ÉCOPE en C sur les portières,
      ceinture haute et vitres étroites, calandre noire EN CROIX, capot à deux écopes, et à la poupe le
-     BANDEAU DE FEUX continu, d'une aile à l'autre. */
+     BANDEAU DE FEUX continu, d'une aile à l'autre.
+     (13/10, « plus ressemblant ») le pavillon s'ARRONDIT et se resserre (il était plat et large comme une berline des années 70),
+     la lunette est plus longue, en pente de fastback. */
   const U=LPU,R=.365,ZF=1.56,ZR=-1.49;
-  const P=K.kit({p:{g:'p',c:0x2c2f35},k:{g:'m',c:0x121316},K:{g:'g',c:0x0b0c0f},c:{g:'c',c:0xe9ecf0},
-    g:{g:'g',c:0x16202a},W:{g:'l',c:0xf2f7ff},L:{g:'l',c:0xff1a2a},r:{g:'l',c:0x9a0f1a},O:{g:'l',c:0xffa21a}});
+  const P=K.kit({p:{g:'g',c:0x020203},   // (13/10, Léo : « plus noir brillant ») le NOIR LAQUÉ : un noir presque pur — la laque n'y renvoie plus que le reflet, net sur les pans qui fuient (c'était un gris)
+    k:{g:'m',c:0x121316},K:{g:'g',c:0x0b0c0f},c:{g:'c',c:0xe9ecf0},
+    g:{g:'g',c:0x16202a},W:{g:'l',c:0xf2f7ff},L:{g:'l',c:0xff1a2a},r:{g:'l',c:0x9a0f1a},O:{g:'l',c:0xffa21a},
+    m:{g:'s',c:0x3a3f47},e:{g:'m',c:0xc8102e}});
   const qz=(k,xa,xb,ya,yb,z)=>{P.tri(k,[xa,ya,z],[xb,ya,z],[xb,yb,z]);P.tri(k,[xa,ya,z],[xb,yb,z],[xa,yb,z]);};
   const AR=[[0,2*R+.05],[R*.60,2*R+.03],[R*.98,R*1.16],[R+.12,.34]];
-  const CW=1.30,RF=.36,RR=-.72,RB=-1.76,ZE=2.50;
-  const zs=[-ZE,-2.44,-2.30,RB,-1.20,RR,-.02,.10,RF,CW,2.00,2.30,2.44,ZE];
+  const CW=1.30,RF=.36,RR=-.50,RB=-1.76,ZE=2.50;
+  const zs=[-ZE,-2.44,-2.30,RB,-1.20,-.86,-.80,RR,-.02,.10,RF,CW,2.00,2.30,2.44,ZE];
   for(const w of [ZF,ZR])for(const d of [R*.60,R*.98,R+.12])zs.push(w-d,w+d);
   zs.sort((a,b)=>a-b);
-  const yC=z=>U.lin([[-ZE,.98],[-2.44,1.07],[-2.30,1.08],[RB,1.09],[-1.20,1.34],[RR,1.45],[RF,1.47],[CW,1.00],[2.00,.93],[2.30,.89],[2.44,.85],[ZE,.80]],z),
+  const yC=z=>U.lin([[-ZE,.98],[-2.44,1.07],[-2.30,1.08],[RB,1.09],[-1.20,1.30],[-.80,1.415],[RR,1.45],[RF,1.47],[CW,1.00],[2.00,.93],[2.30,.89],[2.44,.85],[ZE,.80]],z),
         xW=z=>U.lin([[-ZE,.84],[-2.36,.92],[-1.90,.95],[1.90,.95],[2.30,.90],[ZE,.80]],z),
         bL=z=>U.lin([[-ZE,1.05],[CW,.98]],z),
         sC=z=>U.lin([[-1.02,0],[-.80,.04],[.80,.04],[1.08,0]],z),cab=z=>z>RB-.001&&z<CW+.001;
@@ -22662,12 +22728,12 @@ Object.assign(SHAPES,{
     const yb=U.arch(z,[ZF,ZR],AR,.32),c=yC(z),xw=xW(z),bl=bL(z),y2=Math.max(yb+.06,.40),y3=Math.max(.56,y2+.01),
           y4=Math.min(Math.max(.76,y3+.01),c-.12),y5=Math.max(y4+.01,Math.min(bl-.06,c-.08)),y6=Math.max(y5+.01,Math.min(bl,c-.03));
     const s=[[0,yb],[xw-.07,yb],[xw-.01,y2],[xw,y3],[xw-sC(z),y4],[xw,y5],[xw-.04,y6]];
-    if(cab(z)){const xr=U.lin([[RB,.78],[RR,.70],[RF,.70],[CW,.82]],z);s.push([xr,Math.max(y6+.01,c-.05)],[xr-.10,c],[0,c+.012]);}
+    if(cab(z)){const xr=U.lin([[RB,.74],[RR,.64],[RF,.64],[CW,.80]],z);s.push([xr,Math.max(y6+.01,c-.07)],[xr*.55,Math.max(y6+.02,c-.012)],[0,c+.012]);}
     else s.push([xw-.14,Math.max(y6+.002,c-.005)],[xw-.48,c+.004],[0,c+.008]);
     return s;
   },(j,z)=>{
     if(j===0||j===1)return 'k';                                      /* bas de caisse noir, jupes */
-    if(j===6&&cab(z)){if(z>.10&&z<1.24)return 'g';if(z>-.80&&z<-.02)return 'g';if(z>-.02&&z<.10)return 'K';return 'p';}
+    if(j===6&&cab(z)){if(z>.10&&z<1.24)return 'g';if(z>-.86&&z<-.02)return 'g';if(z>-.02&&z<.10)return 'K';return 'p';}
     if(j===7&&cab(z)&&z>-.86&&z<1.26)return 'K';                     /* l'entourage de vitres noir */
     if(j===8&&((z>RF&&z<CW)||(z>RB&&z<RR)))return 'g';
     return 'p';});
@@ -22680,28 +22746,38 @@ Object.assign(SHAPES,{
     for(const x of [.52,.64])P.cyl('c',.05,.06,8,sd*x,.37,-ZE-.02,'z');
     /* la lèvre de coffre */
     P.box('k',.80,.025,.08,sd*.40,1.10,-2.46,.25,0,0);
-    /* PHARES effilés qui filent vers l'aile, et leur signature LED en C */
-    P.box('K',.32,.10,.02,sd*.55,.745,2.502);P.box('K',.22,.10,.02,sd*.79,.745,2.43,0,sd*.72,0);
-    P.box('W',.30,.07,.02,sd*.555,.745,2.508);P.box('W',.20,.07,.02,sd*.795,.745,2.437,0,sd*.72,0);
-    P.cyl('K',.03,.02,8,sd*.52,.745,2.52,'z');P.cyl('K',.03,.02,8,sd*.62,.745,2.52,'z');
+    /* LES PHARES EFFILÉS (13/10, « retravaille le détail ») : ils partent des COINS de la calandre et s'enroulent dans l'aile,
+       boîtier noir, deux projecteurs, l'anneau LED en C autour de celui du dehors et le trait LED dessous */
+    P.plate('K',[[.50*sd,.705],[.80*sd,.722],[.80*sd,.782],[.52*sd,.778]],.03,ZE-.004);
+    P.box('K',.21,.075,.03,sd*.815,.752,2.43,0,sd*.72,0);P.box('W',.15,.012,.02,sd*.822,.725,2.44,0,sd*.72,0);
+    P.cyl('c',.032,.02,10,sd*.58,.745,ZE+.03,'z');P.cyl('W',.022,.02,10,sd*.58,.745,ZE+.036,'z');
+    P.cyl('c',.036,.02,10,sd*.71,.750,ZE+.03,'z');P.cyl('W',.025,.02,10,sd*.71,.750,ZE+.036,'z');
+    P.put('W',new THREE.TorusGeometry(1,.24,4,14,Math.PI*1.45),sd*.71,.750,ZE+.036,0,0,sd>0?.80:Math.PI-.80+Math.PI*.55,.06,.046,.05);
+    P.box('W',.26,.010,.01,sd*.64,.716,ZE+.032,0,0,sd*.05);
     P.box('O',.03,.06,.12,sd*.87,.68,2.30,0,sd*.3,0);
-    /* prises d'air basses et antibrouillards */
-    P.box('k',.24,.11,.03,sd*.58,.40,2.49,0,sd*.25,0);P.box('W',.09,.035,.02,sd*.60,.40,2.505,0,sd*.25,0);
+    /* aux coins du bouclier : la prise d'air noire et son trait LED */
+    P.plate('K',[[.60*sd,.36],[.78*sd,.37],[.77*sd,.47],[.62*sd,.46]],.02,ZE-.004);P.box('W',.14,.01,.01,sd*.69,.475,ZE+.018);
     /* rétros laqués, poignées, joints de portes */
-    P.box('p',.05,.05,.10,sd*.91,1.07,1.18);P.box('p',.08,.13,.19,sd*.975,1.10,1.16);P.box('k',.01,.10,.18,sd*1.016,1.10,1.16);
+    P.prism('k',[[1.30,1.00],[1.10,1.00],[1.14,1.05],[1.24,1.05]],.06,sd*.92);P.box('p',.08,.11,.19,sd*.975,1.07,1.16,0,sd*.10,0);
     P.box('k',.02,.025,.13,sd*.93,.95,.56);P.box('k',.02,.025,.13,sd*.93,.97,-.50);
     for(const z of [1.26,.04,-.84])P.box('k',.01,.38,.012,sd*.94,.79,z);
-    /* LES DEUX ÉCOPES DE CAPOT, en coin */
-    const za=1.66,zb=2.12,ha=yC(za)+.004,hb=yC(zb)+.004;
-    P.prism('p',[[za,ha-.02],[zb,hb-.02],[zb,hb+.055],[za,ha+.004]],.20,sd*.30);
-    P.box('k',.16,.045,.01,sd*.30,hb+.022,zb+.002);
+    /* les deux EXTRACTEURS de chaleur près du pare-brise */
+    for(let i=0;i<4;i++){const z=1.42+i*.06;P.box('K',.17,.008,.03,sd*.40,yC(z)+.005,z,.05);}
   });
-  /* LA CALANDRE NOIRE EN CROIX : grille, croisillon laqué, cadre satiné */
-  P.plate('c',[[-.56,.46],[.56,.46],[.62,.68],[-.62,.68]],.02,2.485);
-  P.plate('k',[[-.53,.48],[.53,.48],[.59,.66],[-.59,.66]],.02,2.495);
-  P.box('K',1.14,.035,.02,0,.57,2.52);P.box('K',.04,.18,.02,0,.57,2.52);
-  for(let i=1;i<6;i++)qz('K',-.55+i*.183,-.535+i*.183,.49,.65,2.517);
-  P.box('k',1.10,.08,.03,0,.34,2.48);
+  /* LA GRANDE CALANDRE NOIRE (13/10 : la croix, c'était la génération d'avant) : un trapèze d'un phare à l'autre, cadre noir
+     satiné, mailles, le monogramme rouge à gauche — et UNE grande écope au milieu du capot */
+  P.plate('k',[[-.47,.50],[.47,.50],[.53,.778],[-.53,.778]],.02,ZE-.004);
+  P.plate('K',[[-.445,.52],[.445,.52],[.50,.757],[-.50,.757]],.02,ZE+.004);
+  for(let i=0;i<5;i++)P.box('m',.90+i*.025,.008,.01,0,.545+i*.045,ZE+.026);
+  for(let i=-8;i<=8;i++)P.box('m',.008,.22,.01,i*.056,.638,ZE+.027);
+  P.box('e',.10,.026,.012,-.34,.70,ZE+.032);P.box('c',.10,.006,.012,-.34,.684,ZE+.032);
+  /* la bouche basse à mailles, sur toute la largeur */
+  P.plate('K',[[-.56,.30],[.56,.30],[.58,.44],[-.58,.44]],.02,ZE-.004);
+  for(let i=0;i<3;i++)P.box('m',1.08,.008,.01,0,.33+i*.04,ZE+.018);
+  for(let i=-9;i<=9;i++)P.box('m',.008,.13,.01,i*.058,.37,ZE+.019);
+  {const za=1.62,zb=2.18,ha=yC(za)+.004,hb=yC(zb)+.004;
+   P.prism('p',[[za,ha-.02],[zb,hb-.02],[zb,hb+.07],[za,ha+.004]],.50,0);
+   P.box('K',.42,.055,.01,0,hb+.03,zb+.002);}
   K.commit(P);
   return {hl:[.56,.745,2.51],tl:[.77,.98,-2.53],wx:.82,wzF:ZF,wzR:-ZR,
           lpw:{R:R,w:.26,style:'rayons',n:5,jante:0xa7adb5,accent:0x1b1c20}};
@@ -22767,61 +22843,84 @@ Object.assign(SHAPES,{
           lpw:{R:R,w:.27,style:'rayons',n:5,jante:0x2e3036,accent:0x24262b}};
  },
   b_bavaroise:function(K){
+  /* LA BAVAROISE v3 (13/10, Léo : « la blanche, toujours pas, à refondre ») — refaite d'après une photo de PROFIL de la sportive de
+     Munich des années 80 : le capot qui DESCEND vers une face basse (0,79 au nez, elle était à 0,89), l'habitacle AVANCÉ (pied de
+     pare-brise à 0,88) et donc une malle plus longue, haute, avec son becquet ; de GRANDES vitres à montants fins (ceinture à 0,90,
+     pavillon à 1,36) ; l'ARÊTE d'épaule qui court des phares aux feux ; des ailes élargies qui s'y fondent (elles faisaient des caissons
+     blancs posés sur la coque) ; un bouclier mince, sa bande noire, et la face : panneau noir, quatre phares, haricots étroits. */
   const U=LPU,R=.33,ZF=1.34,ZR=-1.22;
-  const P=K.kit({p:{g:'p',c:0xf2f2f0},n:{g:'m',c:0x141518},K:{g:'g',c:0x0c0e12},g:{g:'g',c:0x1c2733},c:{g:'c',c:0xe9ecf0},
+  const P=K.kit({p:{g:'p',c:0xf2f2f0},n:{g:'m',c:0x141518},h:{g:'s',c:0xb4bcc6},K:{g:'g',c:0x0c0e12},g:{g:'g',c:0x1c2733},c:{g:'c',c:0xe9ecf0},
     W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a},
     b:{g:'p',c:0x3fa9f5,f:0},v:{g:'p',c:0x3a2a8c,f:0},r:{g:'p',c:0xe0201c,f:0}});
   const AR=[[0,2*R+.04],[R*.82,2*R+.03],[R+.10,.24]];
-  const zs=[-2.12,-2.07,-1.75,-1.25,-1.05,-.58,-.50,-.02,.06,.70,2.07,2.12];
+  const ZT=-2.20,ZN=2.12,ZC=.88,ZM=-1.48;                                         // la poupe, le nez, pied du pare-brise, pied de la lunette
+  let zs=[ZT,-2.17,-2.10,-1.90,ZM,-1.42,-1.20,-1.05,-.62,-.47,-.40,0,.30,.36,.74,.80,ZC,.94,1.40,1.80,2.05,ZN];
   for(const w of [ZF,ZR])for(const d of [R*.82,R+.10,.48,.53])zs.push(w-d,w+d);
-  zs.sort((a,b)=>a-b);
-  const yC=z=>U.lin([[-2.12,.98],[-2.07,1.03],[-1.75,1.045],[-1.25,1.355],[-1.15,1.375],[-.02,1.375],[.06,1.35],[.70,.95],[2.07,.87],[2.12,.83]],z),
-        yB=z=>U.lin([[-2.12,.97],[-2.07,1.00],[-1.75,.985],[.70,.925],[2.07,.86],[2.12,.83]],z),
-        fl=z=>Math.min(Math.abs(z-ZF),Math.abs(z-ZR))<.50,
-        xS=z=>U.lin([[-2.12,.76],[-2.07,.79],[2.04,.79],[2.12,.74]],z),
-        cab=z=>z>-1.75&&z<.70;
+  zs.sort((a,b)=>a-b);zs=zs.filter((z,i)=>i===0||z-zs[i-1]>.012);
+  const cab=z=>z<=ZC&&z>=ZM;
+  const yC=z=>U.lin([[ZT,.92],[-2.17,.98],[-2.10,.995],[-1.90,1.00],[ZM,1.005],[-1.42,1.07],[-1.05,1.33],[-.62,1.36],[0,1.36],[.30,1.34],[ZC,.915],
+                     [1.40,.885],[1.80,.855],[2.05,.81],[ZN,.79]],z),
+        cR=z=>U.lin([[ZT,.80],[-2.0,.83],[0,.83],[1.40,.825],[2.0,.80],[ZN,.785]],z),          // l'ARÊTE d'épaule
+        bL=z=>U.lin([[ZM,.94],[-1.05,.935],[-.40,.92],[ZC,.905]],z),                          // la ceinture (bas des vitres)
+        xS=z=>U.lin([[ZT,.76],[-2.12,.79],[-1.95,.80],[1.95,.80],[ZN,.77]],z),
+        xF=z=>{let f=0;for(const w of [ZF,ZR]){const d=Math.abs(z-w);f=Math.max(f,d<.42?1:d<.56?1-(d-.42)/.14:0);}return f;}, // les AILES ÉLARGIES
+        xR=z=>U.lin([[ZM,.60],[-1.05,.62],[.30,.62],[ZC,.72]],z);
   P.loft(zs,z=>{
-    const yb=U.arch(z,[ZF,ZR],AR,.24),xs=xS(z),xw=fl(z)?.855:xs,c=yC(z),bl=yB(z);
-    const y3=Math.max(.76,yb+.08),y5=Math.max(bl,y3+.07),y6=y5+.02,y7=Math.max(y6+.004,c-.045),y8=Math.max(y7+.003,c-.01);
-    return [[0,yb],[xw-.06,yb],[xw,yb+.05],[xw,y3],[xs,y3+.03],[xs,y5],[xs-.03,y6],[xs-.09,y7],[xs-.19,y8],[0,Math.max(y8+.002,c)]];
+    const yb=Math.max(U.arch(z,[ZF,ZR],AR,.20),U.lin([[ZT,.22],[-2.05,.20],[2.00,.20],[ZN,.22]],z)),xs=xS(z),xw=xs+.032*xF(z),cr=cR(z),t=yC(z);
+    const y2=Math.max(yb+.04,.28),y3=Math.max(y2+.02,cr-.07);
+    const s=[[0,yb],[xw-.07,yb],[xw-.01,y2],[xw,y3],[xs+.008,cr]];
+    if(cab(z)){const bl=Math.max(cr+.02,bL(z)),y7=Math.max(bl+.06,t-.04);
+      s.push([xs-.015,bl],[xs-.05,bl+.02],[Math.min(xR(z),xs-.12),y7],[xR(z)*.6,Math.max(y7+.006,t-.008)],[0,Math.max(t,y7+.01)]);}
+    else{const tt=Math.max(t,cr+.006),xc=xs-.06;                                    // capot / malle à plat entre les arêtes
+      s.push([xs-.012,Math.max(cr+.004,tt-.012)],[xc,tt-.002],[xc*.6,tt],[xc*.3,tt],[0,tt]);}
+    return s;
   },(j,z)=>{
     if(j<0)return 'p';
-    if(j<=1)return 'n';
-    if(j===6&&z>-1.05&&z<.70)return (z>-.58&&z<-.50)?'n':'g';                  // vitres, montant B noir
-    if((j===5||j===7)&&z>-1.05&&z<.70)return 'n';                             // l'encadrement noir des vitres
-    if(j===8&&z>.06&&z<.70)return 'g';                                         // pare-brise
-    if(j===8&&z>-1.75&&z<-1.25)return 'g';                                     // lunette
+    if(j===0)return 'n';
+    if(cab(z)){
+      if(j===5)return 'n';                                                        // le joint noir au pied des vitres
+      if(j===6){if(z>-.47&&z<-.40)return 'n';                                    // le montant milieu, noir
+        if(z>-1.20&&z<.80)return 'g';return 'n';}                                // les grandes vitres ; encadrement noir
+      if((j===7||j===8)&&z>.30)return 'g';                                       // le pare-brise
+      if((j===7||j===8)&&z<-1.05&&z>-1.42)return 'g';                            // la lunette, droite
+    }
     return 'p';});
-  // LA FACE : bandeau noir, quatre phares ronds, le double haricot
-  P.box('K',1.46,.17,.02,0,.73,2.125);
+  /* LA FACE : le panneau noir, les quatre phares (cerclage chromé, réflecteur argent, l'ampoule), les haricots étroits et hauts */
+  P.box('K',1.50,.21,.02,0,.665,ZN+.004);
   P.sym(sd=>{
-    P.cyl('c',.095,.03,8,sd*.62,.735,2.13,'z');P.cyl('W',.078,.04,8,sd*.62,.735,2.135,'z');
-    P.cyl('c',.080,.03,8,sd*.42,.735,2.13,'z');P.cyl('W',.064,.04,8,sd*.42,.735,2.135,'z');
-    P.box('c',.15,.20,.03,sd*.09,.75,2.135);P.box('K',.11,.16,.02,sd*.09,.75,2.15);
-    for(const x of [-.025,.025])P.box('c',.012,.15,.02,sd*.09+x,.75,2.155);
-    P.box('W',.13,.06,.02,sd*.58,.33,2.165);                                   // antibrouillards
-    P.box('O',.10,.04,.02,sd*.74,.46,2.16);
-    // LES AILES EN CAISSON ont leur arête ; les trois filets courent sur le bas de caisse
-    P.box('b',.012,.03,1.50,sd*.795,.44,.06);P.box('v',.012,.03,1.50,sd*.795,.41,.06);P.box('r',.012,.03,1.50,sd*.795,.38,.06);
-    P.box('L',.44,.15,.02,sd*.53,.87,-2.125);P.box('O',.12,.15,.02,sd*.24,.87,-2.125);
-    for(const y of [.845,.895])P.box('n',.44,.008,.02,sd*.53,y,-2.13);
-    P.box('p',.05,.09,.15,sd*.87,.985,.56);P.box('n',.06,.04,.06,sd*.82,.95,.56); // rétros
-    P.box('n',.012,.03,.13,sd*.795,.88,-.12);                                   // poignée
-    P.box('p',.06,.08,.12,sd*.56,1.085,-1.96);                                  // pieds d'aileron
+    for(const [x,r] of [[.615,.082],[.425,.068]]){P.cyl('c',r+.012,.02,14,sd*x,.665,ZN+.01,'z');P.cyl('h',r,.02,14,sd*x,.665,ZN+.016,'z');
+      P.cyl('W',r*.45,.02,10,sd*x,.665,ZN+.022,'z');}
+    for(const y of [.585,.745])P.box('n',.70,.01,.01,sd*.42,y,ZN+.018);
+    P.plate('c',[[sd*.018,.555],[sd*.118,.555],[sd*.128,.575],[sd*.128,.765],[sd*.112,.785],[sd*.018,.785]],.02,ZN+.006);
+    P.plate('K',[[sd*.03,.567],[sd*.106,.567],[sd*.114,.581],[sd*.114,.757],[sd*.102,.772],[sd*.03,.772]],.02,ZN+.012);
+    for(const x of [.052,.072,.092])P.box('c',.008,.18,.01,sd*x,.668,ZN+.035);
+    /* le bouclier : les clignotants orange aux coins, sous la bande noire */
+    P.box('O',.15,.045,.02,sd*.62,.335,ZN+.092);
+    /* les trois filets sur le bas de caisse */
+    P.box('b',.012,.03,1.50,sd*.803,.44,.06);P.box('v',.012,.03,1.50,sd*.803,.41,.06);P.box('r',.012,.03,1.50,sd*.803,.38,.06);
+    /* LA POUPE : les feux en bandeau (rouge, orange, recul), le joint */
+    P.box('L',.34,.14,.02,sd*.58,.72,ZT-.004);P.box('O',.12,.14,.02,sd*.35,.72,ZT-.004);P.box('W',.06,.14,.02,sd*.26,.72,ZT-.004);
+    for(const y of [.68,.76])P.box('n',.52,.008,.02,sd*.50,y,ZT-.01);
+    /* rétros sur leur pied, poignée */
+    P.prism('n',[[.80,.90],[.64,.90],[.67,.94],[.76,.94]],.05,sd*.80);P.box('p',.06,.08,.15,sd*.85,.965,.72,0,sd*.10,0);
+    P.box('n',.012,.03,.13,sd*.805,.85,-.10);
+    for(const z of [.76,-.44])P.box('n',.006,.52,.006,sd*.806,.60,z);              // les jointures de la portière
+    P.box('n',.006,.006,3.0,sd*.81,.30,-.05);                                      // le haut de la jupe
+    P.box('p',.06,.07,.10,sd*.56,1.04,-2.00);                                   // pieds d'aileron
   });
-  // le bouclier avant plongeant et sa bouche, le bouclier arrière, l'aileron de coffre
-  P.box('p',1.62,.22,.14,0,.31,2.10);P.box('n',.96,.07,.02,0,.30,2.175);
-  P.box('p',1.62,.22,.12,0,.39,-2.10);P.box('n',1.62,.06,.12,0,.26,-2.10);
-  P.box('p',1.48,.035,.24,0,1.14,-1.97,.10);
-  P.box('n',.46,.12,.02,0,.62,-2.125);                                          // plaque
-  // les filets sur le capot, décalés à gauche : on les voit de la poursuite
-  const hz=1.385,ht=Math.atan2(.08,1.37);
-  P.box('b',.05,.006,1.36,-.34,U.lin([[.70,.95],[2.07,.87]],hz)+.006,hz,ht);
-  P.box('v',.05,.006,1.36,-.28,U.lin([[.70,.95],[2.07,.87]],hz)+.006,hz,ht);
-  P.box('r',.05,.006,1.36,-.22,U.lin([[.70,.95],[2.07,.87]],hz)+.006,hz,ht);
-  for(const x of [.34,.42])P.cyl('c',.042,.12,8,x,.29,-2.16,'z');
+  /* les boucliers minces, leur bande noire, la bouche, la lame */
+  P.box('p',1.66,.29,.12,0,.315,ZN+.03);P.box('n',1.64,.03,.01,0,.42,ZN+.091);
+  P.box('n',.48,.09,.01,0,.31,ZN+.091);P.box('n',1.00,.03,.01,0,.215,ZN+.091);
+  P.box('p',1.66,.27,.12,0,.33,ZT-.03);P.box('n',1.64,.03,.01,0,.43,ZT-.091);P.box('n',.46,.12,.02,0,.58,ZT-.006);   // plaque
+  P.box('p',1.46,.03,.22,0,1.10,-2.02,.10);                                       // le becquet de malle
+  /* LE MACARON sur le bord du capot, au-dessus des haricots */
+  {const zr=2.035,yr=yC(zr)+.004;P.cyl('c',.045,.012,14,0,yr,zr,'y');P.cyl('b',.036,.014,14,0,yr+.002,zr,'y');P.box('p',.036,.004,.036,.018,yr+.01,zr-.018);P.box('p',.036,.004,.036,-.018,yr+.01,zr+.018);}
+  /* les filets sur le capot, décalés à gauche : on les voit de la poursuite */
+  {const z0=1.00,z1=2.00,hz=(z0+z1)/2,ht=Math.atan2(yC(z0)-yC(z1),z1-z0),hy=yC(hz)+.006;
+   P.box('b',.05,.006,1.0,-.34,hy,hz,ht);P.box('v',.05,.006,1.0,-.28,hy,hz,ht);P.box('r',.05,.006,1.0,-.22,hy,hz,ht);}
+  for(const x of [.34,.42])P.cyl('c',.042,.12,8,x,.27,ZT-.02,'z');
   K.commit(P);
-  return {hl:[.62,.735,2.14],tl:[.53,.87,-2.13],wx:.71,wzF:ZF,wzR:-ZR,
+  return {hl:[.62,.665,ZN+.03],tl:[.58,.72,ZT-.02],wx:.71,wzF:ZF,wzR:-ZR,
           lpw:{R:R,w:.24,style:'multi',n:10,jante:0xd6d9de}};
 },
   b_suedoiseturbo:function(K){
@@ -23107,18 +23206,21 @@ Object.assign(SHAPES,{
           lpw:{R:R,w:.27,style:'multi',n:10,jante:0xcfd3d8}};
 },
   d_samourai:function(K){
+  /* (13/10, « plus ressemblant ») la GT-R des années 2000 est HAUTE et carrée : capot presque à plat jusqu'à un nez droit (il
+     plongeait en coin), pare-brise plus droit, phares en amande remontés sous le bord du capot. */
   const U=LPU,R=.34,ZF=1.37,ZR=-1.30;
-  const P=K.kit({p:{g:'p',c:0x1f4fd0},C:{g:'s',c:0x1b1d22},K:{g:'g',c:0x16181c},k:{g:'m',c:0x131417},c:{g:'c',c:0xe9ecf0},
+  const P=K.kit({p:{g:'p',c:0x3b2c4e},   // (13/10, Léo : « plus mauve, comme sur la photo ») le VIOLET NUIT, plus le bleu roi
+    C:{g:'s',c:0x1b1d22},h:{g:'s',c:0xa9b1bc},e:{g:'m',c:0xc8102e},K:{g:'g',c:0x16181c},k:{g:'m',c:0x131417},c:{g:'c',c:0xe9ecf0},
     g:{g:'g',c:0x18212c},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
   const AR=[[0,2*R+.05],[R*.75,2*R+.03],[R+.08,R*1.15],[R+.14,.30]];
-  const zs=[-2.30,-2.25,-2.20,-1.50,-.80,-.70,-.20,-.13,.10,.72,.78,2.10,2.24,2.30];
+  const zs=[-2.30,-2.25,-2.20,-1.50,-.85,-.70,-.20,-.13,.02,.10,.62,.68,1.40,2.10,2.24,2.30];
   for(const w of [ZF,ZR])for(const d of [R*.75,R+.08,R+.14])zs.push(w-d,w+d);
   zs.sort((a,b)=>a-b);
-  const yC=z=>U.lin([[-2.30,1.00],[-2.25,1.025],[-2.20,1.035],[-1.50,1.05],[-.80,1.345],[.10,1.36],[.78,.96],[2.10,.845],[2.24,.815],[2.30,.79]],z),
-        yB=z=>U.lin([[-2.30,.95],[-2.20,.98],[-1.50,1.00],[-.80,1.00],[.78,.94],[2.10,.81],[2.24,.79],[2.30,.765]],z),
+  const yC=z=>U.lin([[-2.30,1.00],[-2.25,1.025],[-2.20,1.035],[-1.50,1.05],[-.85,1.345],[.02,1.36],[.68,.975],[1.40,.955],[2.10,.915],[2.24,.895],[2.30,.86]],z),
+        yB=z=>U.lin([[-2.30,.95],[-2.20,.98],[-1.50,1.00],[-.80,1.00],[.68,.955],[1.40,.93],[2.10,.885],[2.24,.865],[2.30,.835]],z),
         xW=z=>U.lin([[-2.30,.83],[-2.24,.87],[-2.00,.885],[2.00,.885],[2.24,.86],[2.30,.82]],z),
-        xR=z=>U.lin([[-1.50,.80],[-.80,.70],[.10,.68],[.78,.78]],z),
-        cab=z=>z>-1.50&&z<.78;
+        xR=z=>U.lin([[-1.50,.80],[-.85,.70],[.02,.68],[.68,.78]],z),
+        cab=z=>z>-1.50&&z<.68;
   P.loft(zs,z=>{
     const yb=U.arch(z,[ZF,ZR],AR,.30),xw=xW(z),c=yC(z),b=Math.max(yB(z),yb+.14);
     const s=[[0,yb],[xw-.06,yb],[xw,Math.max(yb+.05,.40)],[xw+.015,Math.max(yb+.08,.62)],[xw,b],[xw-.06,b+.02]];
@@ -23129,38 +23231,51 @@ Object.assign(SHAPES,{
     if(j===0)return 'k';
     if(j===1&&z>-2.0&&z<2.0)return 'C';                                      // la jupe latérale
     if(j<0||j<=4||!cab(z))return 'p';
-    if(j===5){if(z<-.70||z>.72)return 'p';return (z>-.20&&z<-.13)?'K':'g';}  // custode, pied B noir, portière
-    return (z>.10||z<-.80)?'g':'p';});                                       // pare-brise, lunette, pavillon
+    if(j===5){if(z<-.70||z>.62)return 'p';return (z>-.20&&z<-.13)?'K':'g';}  // custode, pied B noir, portière
+    return (z>.02||z<-.85)?'g':'p';});                                       // pare-brise, lunette, pavillon
   // LE GRAND AILERON sur deux mâts, et son volet
   P.box('p',1.54,.045,.28,0,1.225,-2.04,-.06);
   P.box('C',1.48,.03,.09,0,1.262,-2.18,-.35);
   P.sym(sd=>{
     P.box('p',.06,.20,.14,sd*.50,1.12,-2.02);
     P.box('p',.03,.13,.32,sd*.77,1.18,-2.06);                                // les flasques
-    // LES PHARES EN AMANDE : boîtier fumé, deux optiques rondes
-    P.plate('c',[[.23*sd,.625],[.52*sd,.588],[.80*sd,.60],[.825*sd,.67],[.79*sd,.757],[.52*sd,.752],[.34*sd,.71]],.012,2.30);
-    P.plate('K',[[.26*sd,.63],[.52*sd,.60],[.79*sd,.61],[.81*sd,.67],[.78*sd,.745],[.52*sd,.74],[.36*sd,.70]],.02,2.302);
-    for(const [x,r] of [[.49,.05],[.68,.06]]){P.cyl('W',r,.03,8,sd*x,.672,2.324,'z');}
-    P.box('O',.10,.03,.02,sd*.36,.655,2.325);
-    P.plate('k',[[.56*sd,.32],[.76*sd,.32],[.78*sd,.46],[.60*sd,.46]],.02,2.30); // écopes de freins
+    // LES PHARES (13/10, « retravaille le détail ») : un bloc anguleux, pointu vers la calandre et plus haut côté aile, au BOÎTIER
+    // ARGENT (il était fumé) ; deux petits projecteurs (cerclage noir, lentille) au lieu de deux gros yeux qui brillaient
+    // (13/10, Léo : « un peu plus arrondie sur les coins des phares, en haut ») les deux coins HAUTS en arrondi
+    const rond=Q=>{const o=[];for(let i=0;i<Q.length;i++){const [x,y,r]=Q[i],a=Q[(i+Q.length-1)%Q.length],c=Q[(i+1)%Q.length];if(!r){o.push([x,y]);continue;}
+      const la=Math.hypot(a[0]-x,a[1]-y),lc=Math.hypot(c[0]-x,c[1]-y),p0=[x+(a[0]-x)*r/la,y+(a[1]-y)*r/la],p2=[x+(c[0]-x)*r/lc,y+(c[1]-y)*r/lc];
+      for(let k=0;k<=5;k++){const t=k/5,u=1-t;o.push([u*u*p0[0]+2*u*t*x+t*t*p2[0],u*u*p0[1]+2*u*t*y+t*t*p2[1]]);}}return o.map(p=>[sd*p[0],p[1]]);};
+    P.plate('K',rond([[.262,.716,.012],[.60,.671,0],[.812,.683,.03],[.842,.806,.075],[.40,.796,.07]]),.014,2.30);
+    P.plate('h',rond([[.288,.718,.01],[.60,.683,0],[.80,.692,.024],[.828,.795,.065],[.41,.785,.06]]),.014,2.306);
+    for(const [x,r] of [[.46,.042],[.66,.054]]){P.cyl('K',r+.012,.02,12,sd*x,.738,2.318,'z');P.cyl('W',r,.02,12,sd*x,.738,2.324,'z');P.cyl('h',r*.35,.02,8,sd*x,.738,2.33,'z');}
+    P.box('W',.20,.008,.01,sd*.62,.700,2.322);                                 // le liseré de veilleuse sous les projecteurs
+    P.box('O',.10,.03,.02,sd*.70,.60,2.312);                                  // le clignotant, dans le bouclier
+    // LES ÉCOPES DE FREINS aux coins du bouclier : la bouche noire en biais, et son aileron
+    P.plate('k',[[.56*sd,.30],[.78*sd,.30],[.80*sd,.50],[.62*sd,.50]],.02,2.30);P.box('p',.02,.18,.04,sd*.69,.40,2.31,0,0,-sd*.10);
     P.box('C',.02,.12,.16,sd*(.885+.012),.66,.80);                           // l'ouïe d'aile avant
-    P.box('p',.10,.08,.16,sd*.93,1.01,.70);P.box('K',.08,.03,.05,sd*.88,.98,.70); // rétro
+    P.prism('K',[[.80,.97],[.58,.97],[.62,1.02],[.74,1.02]],.06,sd*.905);P.box('p',.07,.09,.18,sd*.955,1.03,.66,0,sd*.12,0); // rétro sur son pied, contre le montant
     P.box('K',.02,.03,.12,sd*.892,.89,.00);                                  // poignée
     // LES QUATRE FEUX RONDS
     for(const x of [.46,.70]){P.cyl('L',.10,.03,12,sd*x,.83,-2.31,'z');
       P.cyl('K',.05,.02,8,sd*x,.83,-2.323,'z');P.cyl(x<.5?'W':'L',.032,.02,8,sd*x,.83,-2.328,'z');}
     P.box('K',.20,.24,.02,sd*.585,.83,-2.302);
   });
-  P.plate('k',[[-.24,.63],[.24,.63],[.26,.71],[-.26,.71]],.02,2.30);        // la petite calandre
-  P.plate('k',[[-.46,.30],[.46,.30],[.50,.55],[-.50,.55]],.02,2.30);        // la grande bouche
-  for(const y of [.38,.47])P.box('C',.92,.02,.02,0,y,2.325);
-  P.box('C',1.62,.025,.10,0,.215,2.27);                                      // la lame carbone
-  P.box('C',.48,.02,.26,0,.862,1.98,.11);                                    // l'écope de capot
+  // LA CALANDRE : une fente noire entre les phares, le BADGE rouge et chrome au milieu, une barre laquée dessous
+  P.plate('k',[[-.25,.705],[.25,.705],[.27,.785],[-.27,.785]],.02,2.30);
+  P.box('c',.11,.04,.012,0,.745,2.326);P.box('e',.075,.022,.012,0,.745,2.332);
+  // LA GRANDE BOUCHE en trapèze, plus large en bas : l'échangeur ARGENT derrière une grille noire
+  P.plate('k',[[-.52,.29],[.52,.29],[.45,.565],[-.45,.565]],.02,2.30);
+  P.plate('h',[[-.44,.33],[.44,.33],[.39,.53],[-.39,.53]],.012,2.312);
+  for(let i=0;i<7;i++)P.box('C',.92-i*.018,.012,.01,0,.33+i*.033,2.33);
+  for(let i=-6;i<=6;i++)P.box('C',.012,.22,.01,i*.068,.43,2.331);
+  P.box('C',1.66,.025,.12,0,.215,2.28);P.box('C',.70,.03,.08,0,.23,2.36);  // la lame carbone, qui avance au milieu
+  // L'ÉVENT DE CAPOT carbone : un bossage, sa bouche noire devant
+  P.prism('C',[[1.70,.935],[2.12,.905],[2.12,.935],[1.80,.955]],.46,0);P.box('K',.40,.022,.01,0,.92,2.124);
   P.box('C',1.20,.10,.20,0,.28,-2.22);                                       // diffuseur
   P.box('K',.52,.14,.02,0,.57,-2.305);                                       // plaque
   P.cyl('c',.07,.12,10,.39,.30,-2.33,'z');P.cyl('k',.05,.13,10,.39,.30,-2.33,'z'); // UN seul gros canon
   K.commit(P);
-  return {hl:[.60,.67,2.32],tl:[.70,.83,-2.32],wx:.78,wzF:ZF,wzR:-ZR,
+  return {hl:[.60,.738,2.33],tl:[.70,.83,-2.32],wx:.78,wzF:ZF,wzR:-ZR,
           lpw:{R:R,w:.28,style:'multi',n:10,jante:0xb9bec6}};
 },
   d_vette:function(K){
@@ -23658,18 +23773,21 @@ Object.assign(SHAPES,{
           lpw:{R:R,w:.27,style:'multi',n:12,jante:0xd8c9a2}};
 },
   c_stratos:function(K){
+  /* (13/10, « plus ressemblante ») la berlinette de rallye de Turin : des AILES qui bombent au-dessus des roues (avant comme arrière)
+     et un nez arrondi vu de dessus, autour de la visière. */
+  const hmp=(z,w,r)=>{const d=Math.abs(z-w)/r;return d>=1?0:1-d*d;};
   const U=LPU,R=.33,ZF=1.07,ZR=-1.11,LF=1.855;
   const P=K.kit({p:{g:'p',c:0xe9eae4,grad:[0xa7aab0,0xdcded9,0xf4f4f0]},v:{g:'p',c:0x006b2c,f:0},r:{g:'p',c:0xc4000e,f:0},
     k:{g:'m',c:0x121317},K:{g:'g',c:0x0b0c10},c:{g:'c',c:0xe9ecf0},g:{g:'g',c:0x1c2733},
     W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a},Y:{g:'l',c:0xffe08a}});
   const AR=[[0,2*R+.05],[R*.70,2*R+.04],[R+.04,R*1.15],[R+.14,.24]];
-  const zs=[-LF,-1.80,-1.66,-1.30,-.80,-.26,-.12,.15,.55,.97,1.40,1.72,1.80,LF];
+  const zs=[-LF,-1.80,-1.66,-1.30,-.80,-.26,-.12,.15,.55,.97,1.40,1.62,1.72,1.76,1.80,LF];
   for(const w of [ZF,ZR])for(const d of [R*.70,R+.04,R+.14])zs.push(w-d,w+d);
   zs.sort((a,b)=>a-b);
-  const yB=z=>U.lin([[-LF,.72],[-1.80,.80],[-1.66,.84],[-.26,.80],[.97,.72],[1.40,.66],[1.72,.58],[1.80,.52],[LF,.46]],z),
+  const yB=z=>U.lin([[-LF,.72],[-1.80,.80],[-1.66,.84],[-.26,.80],[.97,.72],[1.40,.66],[1.72,.58],[1.80,.52],[LF,.46]],z)+.06*hmp(z,ZF,.75)+.05*hmp(z,ZR,.8),
         yT=z=>U.lin([[-LF,.76],[-1.80,.84],[-1.66,.88],[-1.30,.95],[-.80,1.03],[-.26,1.095],[.15,1.105],[.55,.98],[.97,.76],
                      [1.40,.67],[1.72,.60],[1.80,.54],[LF,.47]],z),
-        xW=z=>U.lin([[-LF,.80],[-1.78,.86],[-1.30,.875],[-.60,.84],[.20,.83],[.80,.85],[1.40,.855],[1.72,.82],[LF,.72]],z),
+        xW=z=>U.lin([[-LF,.80],[-1.78,.86],[-1.30,.875],[-.60,.84],[.20,.83],[.80,.85],[1.40,.855],[1.62,.82],[1.76,.74],[LF,.58]],z)+.03*hmp(z,ZF,.6)+.03*hmp(z,ZR,.6),
         cab=z=>z>-.27&&z<.98;
   P.loft(zs,z=>{
     const yb=U.arch(z,[ZF,ZR],AR,.22),xw=xW(z),B=yB(z),t=yT(z),y2=Math.max(.32,yb+.05);
@@ -23698,8 +23816,8 @@ Object.assign(SHAPES,{
   for(const x of [-.36,-.12,.12,.36]){P.cyl('c',.09,.07,10,x,yT(1.30)+.155,1.33,'z');P.cyl('Y',.07,.075,10,x,yT(1.30)+.155,1.345,'z');}
   P.sym(sd=>{
     P.box('k',.34,.012,.34,sd*.52,yT(1.55)+.002,1.55,-.12);                    // trappes de phares
-    P.box('k',.44,.08,.03,sd*.56,.38,LF-.005);P.box('O',.10,.05,.03,sd*.74,.46,LF-.01);
-    P.box('W',.12,.05,.03,sd*.40,.46,LF-.01);
+    P.box('k',.34,.08,.03,sd*.42,.38,LF-.005);P.box('O',.08,.05,.03,sd*.52,.46,LF-.02);
+    P.box('W',.10,.05,.03,sd*.34,.46,LF-.01);
     // LA POUPE : deux feux ronds par côté dans la face noire, le pot unique
     for(const x of [.46,.66]){P.cyl('c',.075,.03,10,sd*x,.66,-LF-.005,'z');P.cyl('L',.058,.035,10,sd*x,.66,-LF-.01,'z');}
     P.box('k',.02,.14,.40,sd*(xW(-.70)+.004),.72,-.70);                      // prise d'air latérale
@@ -38629,7 +38747,7 @@ function poseParfaiteFx(divin){
 }
 function startFall(impU,impF,bord){ // bord : sortie par le CÔTÉ de la route (physique du bord v2) — pas de pop, bascule vers le vide
   const roll0=carRoll9; // (bord v2) le roulis de la carrosserie AVANT la remise à zéro : la bascule part de là
-  ECH=0;figSnd._ess=0;pitchS=0;JEAU.dans=false;JEAU.vRef=0;JEAU.n=0;JEAU.t=0;JEAU.rico=0;JEAU.cd=0;JEAU.y0=carGroup.position.y; // (2026-10-13) la mer : un vol neuf, un premier plongeon neuf
+  ECH=0;figSnd._ess=0;pitchS=0;JEAU.dans=false;JEAU.vRef=0;JEAU.n=0;JEAU.t=0;JEAU.rico=0;JEAU.cd=0;JEAU.syF=NaN;JEAU.y0=carGroup.position.y; // (2026-10-13) la mer : un vol neuf, un premier plongeon neuf
   // (console de son) une gamme neuve à chaque vol — (2026-10-09) pitchS : le manche repart du neutre
   traceTick(false); // (2026-09-26) le ruban de gomme se coupe au décollage
   loop._nAir=nitroOn; // (2026-09-26) l'impulsion est celle de l'ALLUMAGE en vol : tenue depuis le sol, elle ne compte pas — mais elle ne dépend plus du vol d'avant
@@ -48809,8 +48927,33 @@ function loop(now){
      16,7 ms — le seuil est 17,8 ms (« on tient la synchro 60 »). */
   dprT-=dt;
   // (2026-09-28) L'ACCUEIL EN HAUTE DÉFINITION (VHD) : l'échelle dort, c'est la vitrine qui tient la résolution — et son FILET la
-  // redescend (×0,8, toutes les 1,5 s, jamais sous le plafond ordinaire) si plus d'un quart des images passe 22 ms
-  if(VHD.on){VHD.t+=dt;if(VHD.t>1.5&&calme9&&QLR.p75>22&&VHD.dpr>DPR_CAP+.02){VHD.t=0;VHD.dpr=Math.max(DPR_CAP,VHD.dpr*.8);curDPR=-1;qlPose(0);}}
+  // redescend (×0,8, jamais sous le plafond ordinaire) quand le téléphone ne suit vraiment pas
+  /* LE FILET v2 (2026-10-13, Léo : « l'écran d'accueil ne baisse pas de qualité pour les tels qui peuvent ») — MESURÉ au banc : l'ancien
+     filet était un CLIQUET. Un à-coup d'une seconde (une compilation, la pluie de richesse, un onglet voisin) suffisait à faire passer plus
+     d'un quart des images au-dessus de 22 ms : la résolution perdait 20 %… et ne remontait JAMAIS tant qu'on restait sur l'accueil
+     (×2,6 → ×1,0 en 10-20 s, 7 fois moins de pixels — le ciel flou). Désormais :
+     · on ne baisse que sur une lenteur TENUE (2,5 s d'affilée, `lT`) — un à-coup passe sans rien coûter ;
+     · avant de baisser, la SONDE de la course (qlSonde) mesure le VRAI coût d'une image : sous 14,5 ms, la puce tiendrait le 60 i/s,
+       c'est l'ÉCRAN qui bride (économie d'énergie, chaleur) → on ne sacrifie rien, et ce qui avait été baissé remonte ;
+     · la marge revenue (moins d'une image sur dix ratée pendant 3 s, `bT` — ou la sonde qui prouve qu'une image agrandie d'un cran
+       tiendrait sous 14 ms), la résolution REMONTE d'un cran (×1,25) jusqu'à la pleine
+       définition de l'écran (`max`) — sauf vers un cran qui vient d'échouer (remonté puis retombé en moins de 10 s : un MUR de 45 s,
+       l'anti-yoyo de l'échelle de course). */
+  if(VHD.on){VHD.t+=dt;
+    VHD.lT=(calme9&&QLR.p75>22)?VHD.lT+dt:0;VHD.bT=(calme9&&QLR.p90<17.8)?VHD.bT+dt:0;
+    const sonde9=VHD.sT&&QLR.vraiT>VHD.sT; // la sonde lancée par le filet a parlé
+    if(VHD.lT>2.5&&VHD.t>1.5){
+      if(!sonde9){if(!VHD.sT||now-VHD.sT>3000){VHD.sT=now;qlSondeArme();}} // la SONDE d'abord : on décide quand elle a parlé
+      else{VHD.sT=0;VHD.lT=0;VHD.bT=0;
+        if(QLR.vrai<14.5){VHD.bride=now;VHD.t=-6.5;vhdNote(now,'bride');vhdMonte(now,QLR.vrai);} // l'écran bride, pas la puce : rien n'est sacrifié (et la sonde se tait 8 s)
+        else if(VHD.dpr>DPR_CAP+.02){VHD.t=0;if(VHD.monteT&&now-VHD.monteT<10000){VHD.mur=VHD.dpr;VHD.murT=now;}VHD.dpr=Math.max(DPR_CAP,VHD.dpr*.8);VHD.bas++;vhdNote(now,'baisse');curDPR=-1;qlPose(0);}
+        else VHD.t=-6.5;}} // déjà au plancher : rien à baisser, la sonde se tait 8 s
+    else if(VHD.dpr<VHD.max-.02&&VHD.t>1.5){
+      if(VHD.bT>3){if(vhdMonte(now,0)){VHD.t=0;VHD.bT=0;}}
+      /* entre les deux (quelques images ratées, pas assez pour baisser — souvent le reste de la machine, pas le jeu) : la sonde dit
+         combien coûte VRAIMENT une image ; si, agrandie au cran du dessus (coût ∝ pixels), elle tient encore sous 14 ms, on remonte */
+      else if(sonde9){VHD.sT=0;VHD.t=-10;if(vhdMonte(now,QLR.vrai))VHD.t=0;} // pas de marge : la sonde se tait ~12 s
+      else if(!VHD.sT||now-VHD.sT>3000){VHD.sT=now;qlSondeArme();}}}
   else if(!RESPIN&&dprT<=0&&now>4000){dprT=1.1;const fort9=QLR.p50>24,tire9=QLR.p75>24||QLR.p50>18.5;
     /* LA NETTETÉ NE SE SACRIFIE QUE SI ÇA PAIE (tour 2) : un cran de RÉSOLUTION posé, on regarde 3 s plus tard si la médiane a
        baissé. Si non (le téléphone bute ailleurs : processeur, affichage), la résolution revient et ce cran devient un MUR — on ne
@@ -49637,6 +49780,7 @@ function loop(now){
       // orientation stable : le nez suit la trajectoire, PAS de vrille surprise
       carGroup.scale.set(1,1,1);
       tmp.copy(fallVel).normalize();
+      if(JEAU.dans||JEAU.wB>.01)jadeEauNez(tmp,dt); // (2026-10-13) DANS L'EAU : le nez garde le cap, la caisse se redresse et suit la houle
       // (vol libre) le HAUT est transporté avec la trajectoire (on lui retire sa part le long de la vitesse) : aucun (0,1,0) du monde,
       // donc plus de repère qui dégénère en piqué à pic ni de caisse qui se remet d'elle-même à l'endroit
       FLY_U.addScaledVector(tmp,-FLY_U.dot(tmp));
@@ -49655,7 +49799,8 @@ function loop(now){
          de LACET (`yawAcc`) et n'a rien à voir avec cette rotation visuelle. */
       // (bord v2) après une sortie par le BORD la vrille tourne du côté du vide (`bascDir`) et DÉMARRE comme une vraie bascule : le pivot sur
       // la lèvre l'accélère de 25 % à 100 % en ~0,4 s. Hors bord : bascDir = 1, facteur 1 → la formule de toujours, au chiffre près.
-      airRoll+=(bascDir*(3.0+Math.min(2,fallT*.5))*(bascOn?Math.min(1,.25+bascT*1.9):1)+steer*2.2)*dtF; // VRILLE : la caisse tourne sur elle-même (suit le vol accéléré)
+      {const r9=(bascDir*(3.0+Math.min(2,fallT*.5))*(bascOn?Math.min(1,.25+bascT*1.9):1)+steer*2.2)*dtF;airRoll+=r9*(1-JEAU.wB); // VRILLE : la caisse tourne sur elle-même (suit le vol accéléré) — (2026-10-13) l'eau l'arrête et la remet à l'endroit
+       if(JEAU.wB>.01){const r0=Math.round(airRoll/6.2832)*6.2832;airRoll+=(r0-airRoll)*Math.min(1,dt*3.5*JEAU.wB);}}
       qTmp2.setFromAxisAngle(tmp,airRoll);
       qTmp.premultiply(qTmp2);
       carGroup.quaternion.slerp(qTmp,Math.min(1,dt*8));
