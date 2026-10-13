@@ -36,6 +36,12 @@
   calandre noire à mailles d'un phare à l'autre, phares effilés depuis ses coins avec l'anneau LED en C, bouche basse à mailles, UNE
   grande écope centrale + deux extracteurs) · LA BAVAROISE (phares chrome + réflecteur argent au lieu de disques crème, haricots
   étroits et hauts, macaron, antibrouillards ronds). Les rétros de ces trois-là ont un pied (ils flottaient comme des cubes).
+- RETOURS DE LÉO (13/10, même soir) : LE SAMOURAÏ passe au VIOLET NUIT de la photo (`0x3b2c4e`, il était bleu roi) et ses phares ont
+  les coins HAUTS arrondis (`rond()` : coins en Bézier dans le gabarit) · LE CHARGEUR en NOIR LAQUÉ (`p:{g:'g',c:0x020203}` : la matière
+  « verre et laqué noir ») · LA BAVAROISE REFAITE (v3) d'après un profil mesuré : capot qui descend vers une face basse (0,79), habitacle
+  avancé (pied de pare-brise 0,88), malle longue et haute, grandes vitres à montants fins, arête d'épaule, ailes élargies fondues.
+  ⚠ La SALLE BLANCHE grise les noirs (studio blanc : tout noir y sort gris moyen) — un noir se juge dans le GARAGE du jeu
+  (banc `garage.py` du scratchpad : vrais clics sur le splash puis sur la tuile GARAGE).
 
 ## LA PASSE QUALITÉ AVANT SORTIE (2026-10-12, Sacha : « trouve des bugs et règle-les, améliore des trucs à droite à gauche, fais en sorte que le jeu soit parfait et sortable »)
 Méthode : bancs Puppeteer son coupé (rendu LOGICIEL SwiftShader : Roblox Studio tenait le GPU, le Chrome de test calait sur D3D11), un
