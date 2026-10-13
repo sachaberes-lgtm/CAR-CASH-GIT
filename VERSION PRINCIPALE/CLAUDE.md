@@ -1,5 +1,14 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LES VRAIS MODÈLES, PLUS RESSEMBLANTS (2026-10-13, Léo : « toutes les voitures inspirées de vrais modèles : entraîne-toi, rends-les plus réalistes et ressemblantes, super bon rendu ; montre avant / après »)
+- Méthode : chaque caisse comparée à des photos du vrai modèle (Wikimedia Commons), retouchée sur ce qui la TRAHIT (proportions, profil,
+  signes), puis planche AVANT | APRÈS (trois vues de la salle blanche, même cadrage ; l'« avant » vient d'une copie intacte du main).
+- Série 1 : ELDORADO (flancs galbés, quatre phares sous visière, calandre à bijoux, obus, pare-brise panoramique) · LE CAÏD (capot court,
+  élargisseurs noirs, baguette, bouclier AMG) · LA BULLE (cotes de la Coccinelle : ailes serrées, le dôme sur toute la longueur) · LE COMBI
+  (face BOMBÉE en facettes avec le V exact, hublots séparés, ouïes) · LA QUEUE DE CANARD (épaule basse, flancs galbés, ailes gonflées,
+  grande custode, capot entre les ailes).
+- ⚠ Une vitre par montant demande une STATION de loft de part et d'autre du montant (sinon la bande prend la couleur de son milieu).
+
 ## LA PASSE QUALITÉ AVANT SORTIE (2026-10-12, Sacha : « trouve des bugs et règle-les, améliore des trucs à droite à gauche, fais en sorte que le jeu soit parfait et sortable »)
 Méthode : bancs Puppeteer son coupé (rendu LOGICIEL SwiftShader : Roblox Studio tenait le GPU, le Chrome de test calait sur D3D11), un
 parcours COMPLET au vrai doigt (accueil → garage → réglages → missions → carrière → offres → course → pause → mort → REJOUER → HOME), le
