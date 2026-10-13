@@ -8,6 +8,13 @@
   (face BOMBÉE en facettes avec le V exact, hublots séparés, ouïes) · LA QUEUE DE CANARD (épaule basse, flancs galbés, ailes gonflées,
   grande custode, capot entre les ailes).
 - ⚠ Une vitre par montant demande une STATION de loft de part et d'autre du montant (sinon la bande prend la couleur de son milieu).
+- Série 2 : LA FÉLINE (relevée sur un profil du coupé 64 : capot bas en goutte, coque en tonneau, fastback, ceinture qui redescend,
+  phares sous bulle au bout des ailes) · LA GRANDE ANGLAISE (un seul arc du pare-brise à la malle, ceinture haute, pavillon bombé, nez
+  arrondi en plan, calandre à mailles en saillie) · LE TRÔNE CENTRAL (nez bas, ailes plus hautes que le capot creusé, phares en goutte,
+  verrière, écope de toit, ouïes de flanc) · L'ÉTERNELLE (habitacle en goutte, nez qui porte le fer à cheval, arête dorsale, quatre
+  phares sur la pente des ailes). Les sections ont 10 points : coque (6) + verrière OU capot OU capot moteur (4).
+- ⚠ `put`/`box` : un rx POSITIF baisse le bout AVANT (+z). Une optique posée sur une aile qui plonge vers le nez prend rx > 0 —
+  avec rx < 0 elle pointait vers le ciel et sortait de la tôle. Et `cyl(…,ax,r2)` : un 9e argument à 0 en fait un CÔNE.
 
 ## LA PASSE QUALITÉ AVANT SORTIE (2026-10-12, Sacha : « trouve des bugs et règle-les, améliore des trucs à droite à gauche, fais en sorte que le jeu soit parfait et sortable »)
 Méthode : bancs Puppeteer son coupé (rendu LOGICIEL SwiftShader : Roblox Studio tenait le GPU, le Chrome de test calait sur D3D11), un
