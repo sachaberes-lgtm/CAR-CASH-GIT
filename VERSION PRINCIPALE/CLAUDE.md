@@ -1,5 +1,22 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LE GARAGE ÉPURÉ ET LA BOUTIQUE SANS ONGLET OFFRES (2026-10-13, Sacha : « enlève ce bouton dans le shop, il existe déjà sur l'écran d'accueil en mieux » ; « le bouton œil prend beaucoup trop de place, mets-le en petit flottant en dessous du nom de la voiture, supprime le bouton inventaire et refais le bouton HOME mieux — dans la peau d'un designer UX/UI pro »)
+- BOUTIQUE du garage (`garBqUI`) : plus d'onglet OFFRES (`data-o="off"`) — la page OFFRES de l'accueil reste ; la catégorie (VOITURES ·
+  PEINTURES · AILES · TRAÎNÉES ▼) prend toute la largeur. Le code des offres dans `garBqPanneau` (`ong==='off'`) ne sert plus (inoffensif).
+- LE GARAGE (`<style id="garageEpure">`, dernier bloc avant `#splash` ; seulement l'état normal : `:not(.shopRet):not(.atelierInv)`, et
+  `html:not(.poki)` — Poki inchangé) : trois touches, une hiérarchie. HOME et BOUTIQUE = deux TUILES jumelles de la laque des portes
+  (filet bleu `#5b95ff` / magenta, icône ×4, mot dessous), JOUER = le lingot d'or sur toute la hauteur ; ACHETER (`#gEquip.achat`, seul
+  état encore affiché : ÉQUIPER se fait au toucher) se pose en barre au-dessus de JOUER, mot et prix sur une ligne. Bloc de 96 px debout,
+  84 couché (au lieu de ~120 / 113).
+- INVENTAIRE (`#gvCof`) caché partout hors Poki : la console montre toujours l'inventaire à l'arrivée ; l'ATELIER FERMÉ (`gAtelier`) n'a
+  plus de porte d'entrée.
+- HOME : plus le grand pan de ciel pâle (le mot s'y perdait ; c'était la touche la plus voyante pour l'action la moins importante). Le
+  VRAI ciel du menu (`homeCielPrise`, l'idée de Léo du 11/10 : jour, couchant ou nuit) est recopié DANS la maison : sa toile est rangée
+  dans `.gLueur` et masquée par le pictogramme (`mask:var(--pxi-maison)`) — la maison est une fenêtre sur le ciel, qui luit en bleu.
+  Avant la 1re prise, un ciel peint qui défile (`gEpCiel`).
+- L'ŒIL (`#gOeil`) quitte la console pour la fiche (`#gCard`, dans `#gTop` : le doigt n'y fait pas tourner la vue) : une pastille de
+  verre « VUE » (I18N VIEW) sous le nom de la caisse, cible de 44 px ; allumée (`vueSeule`), elle se remplit d'orange et reste seule.
+
 ## LA PASSE QUALITÉ AVANT SORTIE (2026-10-12, Sacha : « trouve des bugs et règle-les, améliore des trucs à droite à gauche, fais en sorte que le jeu soit parfait et sortable »)
 Méthode : bancs Puppeteer son coupé (rendu LOGICIEL SwiftShader : Roblox Studio tenait le GPU, le Chrome de test calait sur D3D11), un
 parcours COMPLET au vrai doigt (accueil → garage → réglages → missions → carrière → offres → course → pause → mort → REJOUER → HOME), le
