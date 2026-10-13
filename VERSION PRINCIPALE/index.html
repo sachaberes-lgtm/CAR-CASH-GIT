@@ -7235,6 +7235,90 @@ html body.touch #nitroBar>#nxVit{width:calc(var(--nxV) + 8px)}
   #nxVit i{font-size:11px}
 }
 </style>
+<style id="garageEpure">
+/* LE GARAGE ÉPURÉ (2026-10-13, Sacha : « le bouton œil prend beaucoup trop de place, mets-le en petit flottant en dessous du nom de la voiture ;
+   supprime le bouton INVENTAIRE ; refais le bouton HOME mieux — dans la peau d'un designer UX/UI pro, quelque chose de magnifique »).
+   · Trois touches, une hiérarchie : HOME et BOUTIQUE, deux TUILES jumelles de la même laque (filet de couleur, icône en grand), JOUER le
+     lingot d'or qui prend toute la hauteur (ÉQUIPER / ACHETER se pose en barre au-dessus quand il y a un choix — JOUER rétrécit d'autant).
+     Le bloc est moins haut qu'avant (96 px debout, 84 couché, au lieu de ~120 / 113) : la bande des vignettes respire.
+   · INVENTAIRE retiré (l'inventaire reste ce que montre la console à l'arrivée ; le geste « doigt tenu » est le BURN-OUT de Léo, intouché).
+   · HOME : plus le grand pan de ciel pâle (le mot blanc s'y perdait, et c'était la touche la plus voyante de l'écran pour l'action la moins
+     importante) — la laque de BOUTIQUE, filet BLEU ; le ciel de Léo (le VRAI ciel du menu, jour / couchant / nuit, recopié par homeCielPrise)
+     vit désormais DANS la maison : le pictogramme est une fenêtre sur le ciel, qui luit. Avant la 1re prise, un ciel peint qui défile.
+   · L'ŒIL : une petite pastille de verre sous le nom de la caisse (œil orange + « VUE »), cible de 44 px ; allumée, elle se remplit d'orange.
+   Seulement l'état normal du garage : la BOUTIQUE (shopRet), l'atelier et l'édition POKI gardent leurs règles. */
+html:not(.poki) body #garage #gAct>#gvCof{display:none!important}
+html:not(.poki) body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct{
+  grid-template-columns:auto auto minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);column-gap:12px;row-gap:0;height:96px;align-items:stretch}
+/* les deux tuiles */
+html:not(.poki) body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) :is(#gRang1>#gHomeBas,#gAct>#gShopBas){
+  grid-row:1/3;align-self:stretch;width:86px;min-width:86px;height:auto;min-height:0;margin:0;padding:8px 4px 7px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  font-size:var(--f0);letter-spacing:1px;color:#fff7ee;text-shadow:0 1px 0 rgba(7,5,15,.9);animation:none!important;
+  background:linear-gradient(112deg,transparent 0 37%,rgba(255,255,255,.055) 37% 45%,transparent 45% 49%,rgba(255,255,255,.03) 49% 51%,transparent 51%),
+    linear-gradient(180deg,#272049 0%,#1c1738 46%,#141029 100%);
+  box-shadow:inset 3px 0 0 var(--nc),inset 40px 0 34px -30px color-mix(in srgb,var(--nc) 70%,transparent),inset 0 1px 0 rgba(255,255,255,.16),inset 0 0 0 1px rgba(255,255,255,.06),
+    0 0 0 1px rgba(3,1,9,.92),0 5px 0 #0a0818,0 5px 0 1px rgba(3,1,9,.92),0 14px 24px -10px rgba(0,0,0,.72)}
+html:not(.poki) body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gRang1>#gHomeBas{grid-column:1;--nc:#5b95ff;--lu:rgba(110,160,255,.9)}
+html:not(.poki) body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gShopBas{grid-column:2;--nc:var(--neoM)}
+html:not(.poki) body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) :is(#gRang1>#gHomeBas,#gAct>#gShopBas):is(:active,.appui){transform:skewX(var(--sk)) translateY(3px);
+  box-shadow:inset 3px 0 0 var(--nc),inset 40px 0 34px -30px color-mix(in srgb,var(--nc) 85%,transparent),inset 0 1px 0 rgba(255,255,255,.16),inset 0 0 0 1px rgba(255,255,255,.08),
+    0 0 0 1px rgba(3,1,9,.92),0 2px 0 #0a0818,0 2px 0 1px rgba(3,1,9,.92),0 8px 16px -10px rgba(0,0,0,.72)}
+@media (hover:hover){html:not(.poki) body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) :is(#gRang1>#gHomeBas,#gAct>#gShopBas):hover{filter:brightness(1.14)}}
+html:not(.poki) body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gShopBas>.pxi{--pxs:4;color:var(--neoM);filter:none}
+html:not(.poki) body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gShopBas{filter:drop-shadow(0 0 0 transparent)}
+/* HOME : la maison, fenêtre sur le ciel du menu */
+html:not(.poki) body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gRang1>#gHomeBas .gLueur{position:relative;display:inline-flex;line-height:0;width:36px;height:36px;
+  filter:drop-shadow(1px 0 0 #b9d0ff) drop-shadow(-1px 0 0 #b9d0ff) drop-shadow(0 1px 0 #b9d0ff) drop-shadow(0 -1px 0 #b9d0ff) drop-shadow(0 0 7px var(--lu))} /* un liseré clair net : la maison se lit même remplie du ciel de NUIT */
+html.cielNuit:not(.poki) body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gRang1>#gHomeBas .gLueur>.gHomeCielCv{filter:brightness(1.45) saturate(1.15)}
+html:not(.poki) body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gRang1>#gHomeBas .gLueur .pxi{--pxs:4;margin:0;filter:none;
+  background:radial-gradient(ellipse 7px 2.6px at 9px 13px,#fff 90%,transparent),radial-gradient(ellipse 5px 2px at 30px 20px,rgba(255,250,244,.92) 90%,transparent),
+    radial-gradient(ellipse 8px 2.6px at 52px 27px,rgba(255,240,232,.9) 90%,transparent),
+    linear-gradient(180deg,#2c5fcf 0%,#5d8fe8 34%,#a8b4f0 62%,#f6c6a2 88%,#ffd9b0 100%);
+  background-size:72px 100%,72px 100%,72px 100%,100% 100%;background-repeat:repeat-x;animation:gEpCiel 12s linear infinite}
+@keyframes gEpCiel{from{background-position:0 0,0 0,0 0,0 0}to{background-position:72px 0,72px 0,72px 0,0 0}}
+html:not(.poki) body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gRang1>#gHomeBas .gLueur>.gHomeCielCv{display:block;position:absolute;left:0;top:0;width:100%;height:100%;
+  object-fit:cover;pointer-events:none;opacity:0;transition:opacity .6s;transform:none;animation:none;
+  -webkit-mask:var(--pxi-maison) center/100% 100% no-repeat;mask:var(--pxi-maison) center/100% 100% no-repeat}
+html:not(.poki) body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gRang1>#gHomeBas .gLueur>.gHomeCielCv.on{opacity:1}
+@media (prefers-reduced-motion:reduce){html body #garage #gRang1>#gHomeBas .gLueur .pxi{animation:none}}
+html[data-reduced-motion="1"] body #garage #gRang1>#gHomeBas .gLueur .pxi{animation:none}
+/* JOUER : le lingot sur toute la hauteur ; ÉQUIPER / ACHETER en barre au-dessus quand il est là */
+html:not(.poki) body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gJouer{grid-column:3;grid-row:2;align-self:stretch;height:auto;min-height:0;min-width:0}
+html:not(.poki) body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gEquip,
+html:not(.poki) body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gEquip.achat{grid-column:3;grid-row:1;justify-self:stretch;align-self:end;width:auto;height:30px;min-height:30px;margin:0 0 8px;padding:0 8px}
+html:not(.poki) body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gEquip.achat{flex-direction:row;align-items:center;gap:12px;font-size:var(--f1);letter-spacing:1px}
+/* L'ŒIL : la pastille sous le nom */
+html:not(.poki) body #garage:not(.menu):not(.vitrine) #gCard>#gOeil{position:absolute;left:2px;top:calc(100% + 12px);z-index:3;display:flex;align-items:center;justify-content:center;gap:8px;
+  width:auto;min-width:0;height:30px;min-height:30px;margin:0;padding:0 13px 0 10px;pointer-events:auto;cursor:pointer;
+  font-family:var(--pix);font-size:var(--f0);letter-spacing:2px;line-height:1;color:#ffe3c4;text-shadow:0 1px 0 rgba(7,5,15,.9);
+  transform:skewX(var(--sk));transition:filter var(--t-fast,.15s) var(--ease),background var(--t-fast,.15s) var(--ease);--lu:rgba(255,138,31,.85);
+  background:linear-gradient(180deg,rgba(39,32,73,.70),rgba(20,16,41,.80));-webkit-backdrop-filter:blur(8px) saturate(1.3);backdrop-filter:blur(8px) saturate(1.3);
+  box-shadow:inset 2px 0 0 #ff8a1f,inset 24px 0 18px -18px rgba(255,138,31,.55),inset 0 1px 0 rgba(255,255,255,.14),inset 0 0 0 1px rgba(255,255,255,.05),
+    0 0 0 1px rgba(3,1,9,.85),0 3px 0 #0a0818,0 3px 0 1px rgba(3,1,9,.85),0 10px 18px -10px rgba(0,0,0,.7);
+  animation:gEpOeil .5s var(--ease) both}
+@keyframes gEpOeil{from{opacity:0;translate:-8px 0}to{opacity:1;translate:0 0}}
+html:not(.poki) body #garage:not(.menu):not(.vitrine) #gCard>#gOeil::after{content:'';position:absolute;left:-6px;right:-6px;top:-8px;bottom:-8px}
+html:not(.poki) body #garage:not(.menu):not(.vitrine) #gCard>#gOeil .gLueur{position:relative;display:inline-flex;line-height:0;filter:drop-shadow(0 0 2px var(--lu)) drop-shadow(0 0 5px var(--lu))}
+html:not(.poki) body #garage:not(.menu):not(.vitrine) #gCard>#gOeil .gLueur .pxi{--pxs:2;margin:0;color:#ffa23a;filter:none}
+html:not(.poki) body #garage:not(.menu):not(.vitrine) #gCard>#gOeil:is(:active,.appui){transform:skewX(var(--sk)) translateY(2px);box-shadow:inset 2px 0 0 #ff8a1f,inset 24px 0 18px -18px rgba(255,138,31,.7),inset 0 1px 0 rgba(255,255,255,.14),
+  0 0 0 1px rgba(3,1,9,.85),0 1px 0 #0a0818,0 1px 0 1px rgba(3,1,9,.85)}
+@media (hover:hover){html:not(.poki) body #garage:not(.menu):not(.vitrine) #gCard>#gOeil:hover{filter:brightness(1.2)}}
+html:not(.poki) body #garage.vueSeule:not(.menu):not(.vitrine) #gCard>#gOeil{color:#3a1400;text-shadow:0 1px 0 rgba(255,236,200,.6);--lu:rgba(255,246,226,.9);
+  background:linear-gradient(180deg,#ffb867,#f07a1c 60%,#c4520c);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.6),inset 0 0 0 1px rgba(150,60,0,.35),0 0 0 1px rgba(51,18,0,.9),0 3px 0 #7a3000,0 3px 0 1px rgba(51,18,0,.9),0 0 22px -4px rgba(255,138,31,.8)}
+html:not(.poki) body #garage.vueSeule:not(.menu):not(.vitrine) #gCard>#gOeil .gLueur .pxi{color:#fff6e6}
+@media (prefers-reduced-motion:reduce){html body #garage #gCard>#gOeil{animation:none}}
+html[data-reduced-motion="1"] body #garage #gCard>#gOeil{animation:none}
+/* COUCHÉ : un cran plus compact */
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html:not(.poki) body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct{height:84px;column-gap:10px}
+  html:not(.poki) body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) :is(#gRang1>#gHomeBas,#gAct>#gShopBas){width:76px;min-width:76px;gap:8px;padding:6px 3px 5px}
+  html:not(.poki) body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gRang1>#gHomeBas .gLueur{width:32px;height:32px}
+  html:not(.poki) body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) :is(#gRang1>#gHomeBas .gLueur .pxi,#gAct>#gShopBas>.pxi){--pxs:3.5556}
+  html:not(.poki) body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) :is(#gAct>#gEquip,#gAct>#gEquip.achat){height:28px;min-height:28px;margin-bottom:6px}
+  html:not(.poki) body #garage:not(.menu):not(.vitrine) #gCard>#gOeil{top:calc(100% + 10px);height:28px;min-height:28px}}
+</style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
   <div id="spStage">
@@ -42343,7 +42427,7 @@ try{Object.assign(I18N,{'RECORD|PERSO':'PERSONAL|BEST','RECORDS|MONDIAUX':'WORLD
 // (2026-10-12, passe qualité) les textes arrivés depuis le 9/10 sans anglais (VoiceOver lisait du français, « LES SINGES +150 » en EN) ;
 // « MAINTIENS TA CAISSE » : la clé existait en « LA CAISSE », le texte de l'aide du burn-out ne la trouvait jamais
 try{Object.assign(I18N,{'Offres':'Offers','La voiture seule':'Car only','Cacher la console':'Hide the console','Tourner le garage':'Turn the garage',
-  'MAINTIENS TA CAISSE':'HOLD YOUR CAR','BIENTOT':'SOON','CACHER':'HIDE','LES SINGES !':'MONKEYS!','ARRIVÉE':'FINISH','SOLEIL DE JADE':'JADE SUN','PICS DE JADE':'JADE PEAKS'});}catch(e){}
+  'MAINTIENS TA CAISSE':'HOLD YOUR CAR','BIENTOT':'SOON','CACHER':'HIDE','VUE':'VIEW','LES SINGES !':'MONKEYS!','ARRIVÉE':'FINISH','SOLEIL DE JADE':'JADE SUN','PICS DE JADE':'JADE PEAKS'});}catch(e){}
 const shopRay=new THREE.Raycaster(),shopNdc=new THREE.Vector2();
 window.dbgAffiche=function(k){GAR.dbgAff=k||null;return GAR.affiches?GAR.affiches.map(a=>a.k):null;}; // 'perso' | 'monde' : la caméra face à l'affiche ; rien = rend la main
 function afficheVise(e){ // l'affiche sous le pointeur — sauf si la caisse est devant
@@ -43806,8 +43890,12 @@ function gVueSeule(on){if(!gEl)return;on=!!on;if(gEl.classList.contains('vueSeul
 /* (2026-10-11, Léo : « reviens comme avant : l'argent et l'aura à leur place, HOME et l'œil au-dessus d'INVENTAIRE · BOUTIQUE ») le coin #gCoin est retiré ;
    (même soir) HOME et l'ŒIL dans leur rangée à eux (#gRang1), au-dessus d'INVENTAIRE · BOUTIQUE, sur la largeur des deux : voir « LA RANGÉE HOME + ŒIL » */
 try{if(!POKI&&gEl){const ac=document.getElementById('gAct'),r1=document.createElement('div');r1.id='gRang1';
-  for(const id of ['gHomeBas','gOeil']){const b9=document.getElementById(id);if(b9)r1.appendChild(b9);}
-  if(ac)ac.insertBefore(r1,ac.firstChild);}}catch(e){}
+  for(const id of ['gHomeBas']){const b9=document.getElementById(id);if(b9)r1.appendChild(b9);}
+  if(ac)ac.insertBefore(r1,ac.firstChild);
+  /* (2026-10-13, Sacha : « l'œil prend beaucoup trop de place : en petit, flottant, sous le nom de la voiture ») l'ŒIL quitte la console pour la
+     fiche (#gCard, dans #gTop : le doigt n'y fait pas tourner la vue) — une pastille « VUE » (voir <style id="garageEpure">) */
+  const oe=document.getElementById('gOeil'),ca=document.getElementById('gCard');
+  if(oe&&ca){if(!oe.querySelector('span[data-fr]')){const sp=document.createElement('span');sp.dataset.fr='VUE';sp.textContent=TR('VUE');oe.appendChild(sp);}ca.appendChild(oe);}}}catch(e){}
 try{document.getElementById('gOeil').addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(e.currentTarget);uiClic(gEl.classList.contains('vueSeule')?'on':'off');gVueSeule(!gEl.classList.contains('vueSeule'));});}catch(e){}
 function gConsoleCache(on){if(!gEl)return;gEl.classList.toggle('consoleCachee',!!on);garLibre._r=null;
   const b=document.getElementById('gCache');if(b){b.setAttribute('aria-pressed',on?'true':'false');const sp=b.querySelector('span');if(sp){sp.dataset.fr=on?'VOIR':'CACHER';sp.textContent=TR(sp.dataset.fr);}}}
@@ -43875,7 +43963,8 @@ function homeCielPrise(now){
   if(now-(homeCielPrise._t||0)<3000)return; // toutes les 3 s : le ciel change lentement, et relire l'image WebGL coûte un peu sur iPhone
   homeCielPrise._t=now; // (2026-10-12, passe qualité) cette pose était collée DERRIÈRE le « // » : la relecture GPU→CPU tournait à CHAQUE image au menu
   let cv=homeCielPrise._cv;
-  if(!cv){const b=document.getElementById('gHomeBas');if(!b)return;cv=homeCielPrise._cv=document.createElement('canvas');cv.className='gHomeCielCv';cv.width=160;cv.height=210;cv.setAttribute('aria-hidden','true');b.insertBefore(cv,b.firstChild);}
+  if(!cv){const b=document.getElementById('gHomeBas');if(!b)return;cv=homeCielPrise._cv=document.createElement('canvas');cv.className='gHomeCielCv';cv.width=160;cv.height=210;cv.setAttribute('aria-hidden','true');
+    const lu=POKI?null:b.querySelector('.gLueur');if(lu)lu.appendChild(cv);else b.insertBefore(cv,b.firstChild);} // (2026-10-13, Sacha : « refais le HOME mieux ») le ciel vit DANS la maison (le pictogramme est sa fenêtre)
   const src=renderer.domElement,W=src.width,H=src.height;if(!(W>8&&H>8))return;
   const a=cv.width/cv.height;let sh=H*.34,sw=sh*a;if(sw>W){sw=W;sh=W/a;}
   const cx=cv.getContext('2d',{willReadFrequently:true});cx.drawImage(src,(W-sw)/2,0,sw,sh,0,0,cv.width,cv.height);cv.classList.add('on');
@@ -45875,7 +45964,7 @@ function bqPrixCaisse(i){const u=CAR_UNLOCK[i]||{};if(bqA('v:'+i))return {t:sans
 /* L'INTERFACE v4 (2026-10-12, Léo : « l'argent à côté de BOUTIQUE, et la boutique peut encore prendre tout cet espace ; le bouton VOITURES
    laisse choisir entre les traînées… ; sur le côté gauche qui défile, ce sont les objets hebdomadaires ») :
    · en-tête : BOUTIQUE et, juste à côté, l'argent ; dessous en petit ce qu'on regarde ; couché, la boutique monte jusqu'en haut à droite ;
-   · onglets : le 1er dit la CATÉGORIE (VOITURES · PEINTURES · AILES · TRAÎNÉES) — retouché, il ouvre le choix (#gBqPan .bqMenu) —, le 2e les OFFRES ;
+   · onglets : le 1er dit la CATÉGORIE (VOITURES · PEINTURES · AILES · TRAÎNÉES) — retouché, il ouvre le choix (#gBqPan .bqMenu) —, (plus d'onglet OFFRES depuis le 13/10 : l'accueil a le sien) ;
    · la colonne de gauche, qui défile : CETTE SEMAINE — trois caisses et trois habillages tirés sur la semaine (bqSemaine). */
 const BQ_CATS=[['voiture','VOITURES','voiture'],['peinture','PEINTURES','pinceau'],['aile','AILES','aile'],['trainee','TRAÎNÉES','trainee']];
 function bqListe(cat){if(cat==='voiture')return bqPieces().map(function(i){return 'v:'+i;});return (COSM[cat]||[]).map(function(d){return cat+':'+d.id;});}
@@ -45893,8 +45982,7 @@ function garBqUI(){let ui=document.getElementById('gBq');if(ui)return ui;
     +'<div id="gBqNom"><span class="bqRar"></span><span class="bqNom"></span><span class="bqLim">'+pxi('horloge')+'<em></em></span></div>'
     +'<div id="gBqSkins"><b>'+sansAcc(TR('COLORIS'))+'</b><div class="bqSk"></div></div>'
     +'<div id="gBqUne"><div class="bqUt"><b>'+sansAcc(TR('CETTE SEMAINE'))+'</b><em>'+pxi('horloge')+'<i></i></em></div><div class="bqUv"><div class="bqUr"></div></div></div>'
-    +'<div id="gBqPan"><div class="bqOng" role="tablist"><button data-o="cat" class="on" role="tab"><i class="pxi bqOi"></i><span class="bqOc"></span><i class="n1"></i><u class="bqChev"></u></button>'
-      +'<button data-o="off" role="tab">'+sansAcc(TR('OFFRES'))+'<i class="n2"></i></button></div>'
+    +'<div id="gBqPan"><div class="bqOng" role="tablist"><button data-o="cat" class="on" role="tab"><i class="pxi bqOi"></i><span class="bqOc"></span><i class="n1"></i><u class="bqChev"></u></button></div>' // (2026-10-13, Sacha : « enlève ce bouton dans le shop, il existe déjà sur l'écran d'accueil en mieux ») plus d'onglet OFFRES : la catégorie seule
       +'<div class="bqMenu" role="menu">'+BQ_CATS.map(function(c){return '<button data-c="'+c[0]+'" role="menuitem">'+pxi(c[2])+'<span>'+sansAcc(TR(c[1]))+'</span><i></i></button>';}).join('')+'</div>'
       +'<div class="bqRail"></div></div>';
   gEl.insertBefore(ui,gEl.firstChild);

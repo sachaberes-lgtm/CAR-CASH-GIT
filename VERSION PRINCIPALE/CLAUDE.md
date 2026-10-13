@@ -1,5 +1,24 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LE GARAGE ÉPURÉ ET LA BOUTIQUE SANS ONGLET OFFRES (2026-10-13, Sacha : « enlève ce bouton dans le shop, il existe déjà sur l'écran d'accueil en mieux » ; « le bouton œil prend beaucoup trop de place, mets-le en petit flottant en dessous du nom de la voiture, supprime le bouton inventaire et refais le bouton HOME mieux — dans la peau d'un designer UX/UI pro »)
+- BOUTIQUE du garage (`garBqUI`) : plus d'onglet OFFRES (`data-o="off"`) — la page OFFRES de l'accueil reste ; la catégorie (VOITURES ·
+  PEINTURES · AILES · TRAÎNÉES ▼) prend toute la largeur. Le code des offres dans `garBqPanneau` (`ong==='off'`) ne sert plus (inoffensif).
+- LE GARAGE (`<style id="garageEpure">`, dernier bloc avant `#splash` ; seulement l'état normal : `:not(.shopRet):not(.atelierInv)`, et
+  `html:not(.poki)` — Poki inchangé) : trois touches, une hiérarchie. HOME et BOUTIQUE = deux TUILES jumelles de la laque des portes
+  (filet bleu `#5b95ff` / magenta, icône ×4, mot dessous), JOUER = le lingot d'or sur toute la hauteur ; ACHETER (`#gEquip.achat`, seul
+  état encore affiché : ÉQUIPER se fait au toucher) se pose en barre au-dessus de JOUER, mot et prix sur une ligne. Bloc de 96 px debout,
+  84 couché (au lieu de ~120 / 113).
+- INVENTAIRE (`#gvCof`) caché partout hors Poki : la console montre toujours l'inventaire à l'arrivée ; l'ATELIER FERMÉ (`gAtelier`) n'a
+  plus de porte d'entrée.
+- HOME : plus le grand pan de ciel pâle (le mot s'y perdait ; c'était la touche la plus voyante pour l'action la moins importante). Le
+  VRAI ciel du menu (`homeCielPrise`, l'idée de Léo du 11/10 : jour, couchant ou nuit) est recopié DANS la maison : sa toile est rangée
+  dans `.gLueur` et masquée par le pictogramme (`mask:var(--pxi-maison)`) — la maison est une fenêtre sur le ciel, qui luit en bleu. Un liseré clair net (quatre drop-shadow d'1 px) la détoure : la NUIT, remplie de bleu nuit (toile ×1,45 sous `html.cielNuit`), elle se lit encore.
+  Avant la 1re prise, un ciel peint qui défile (`gEpCiel`).
+- ⚠ À TRANCHER AVEC LÉO : le 13/10 au soir (5caa40b, « la Nyan Cat n'est plus dans le shop »), Léo a fait du CHAT POP-TART l'offre TOUJOURS
+  en tête des OFFRES de la boutique — l'onglet que Sacha a fait retirer le même jour. Le chat reste en VITRINE DE LÉGENDE sur la page OFFRES
+  de l'accueil (`u.une`), mais n'est plus dans la boutique du garage (les caisses en € n'y passaient que par cet onglet).
+- L'ŒIL (`#gOeil`) quitte la console pour la fiche (`#gCard`, dans `#gTop` : le doigt n'y fait pas tourner la vue) : une pastille de
+  verre « VUE » (I18N VIEW) sous le nom de la caisse, cible de 44 px ; allumée (`vueSeule`), elle se remplit d'orange et reste seule.
 ## CRYPTOCITY — LA VILLE EN BULL RUN + LA PLUIE D'ARGENT v2 (2026-10-13, Léo : « avec le même système de génération automatique que les autres maps, génère une ville mais avec un twist majeur : c'est CRYPTOCITY, mais en BULL RUN — ciel joyeux, trouve plein de détails émerveillants du bull run, toute l'ambiance est différente, ça respire la réussite et l'argent ; un immeuble BULL ; et pour la peine ramène la pluie d'argent que t'as enlevée entretemps, et augmente la qualité »)
 - LE NIVEAU `NIV_CRYPTO` (id 'ville' + `crypto:1`, comme MINUIT EN VILLE : genCtrl, buildVoxCity, tours dures, loi 15 du flow suivent).
   `CRYPTO_JEU` (lvlChoisir le rend à chaque portail : un autre quartier, une autre graine). Lancement : `dbgNiveauCrypto()` = `cryptoJouer`
