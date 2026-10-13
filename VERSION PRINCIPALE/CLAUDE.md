@@ -26,6 +26,9 @@
 - Série 5 : LE SAMOURAÏ (capot haut presque à plat, pare-brise plus droit, phares remontés) · LA BAVAROISE (capot à plat, face droite,
   pare-brise plus droit) · LA STRATOS (ailes qui bombent, nez arrondi autour de la visière) · LE CHARGEUR (pavillon arrondi et resserré,
   lunette de fastback). LE CHARGEUR 69 était déjà fidèle : pas touché.
+- Série 6 : ROSSO 40 (rouge jusqu'au seuil — la moitié basse noire l'allongeait —, coque qui rentre sous la taille, hanches).
+  Jugées déjà fidèles, PAS touchées : POSTER 84, LA VETTE (une C4), LA DOLORÈS, LE CHARGEUR 69, LE CHEVALIER NOIR, LE MUR DU SON
+  (blanc et or = sa livrée de jeu, le vrai est noir), LE MASTODONTE, L'ORIGAMI.
 
 ## LA PASSE QUALITÉ AVANT SORTIE (2026-10-12, Sacha : « trouve des bugs et règle-les, améliore des trucs à droite à gauche, fais en sorte que le jeu soit parfait et sortable »)
 Méthode : bancs Puppeteer son coupé (rendu LOGICIEL SwiftShader : Roblox Studio tenait le GPU, le Chrome de test calait sur D3D11), un

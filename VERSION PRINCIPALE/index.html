@@ -20281,6 +20281,8 @@ const SHAPES={
   // 5. ROSSO 40 — Ferrari F40. Rouge course, ailes qui bombent au-dessus des roues, Lexan à
   //    persiennes, NACA sur le capot, et l'aileron plateau qui NAÎT des ailes arrière.
   rosso(K){
+    /* (13/10, « plus ressemblante ») la coque est ROUGE jusqu'au seuil (la moitié basse était noire : elle paraissait longue et plate),
+       elle rentre sous la taille, et ses hanches se gonflent au-dessus des roues arrière. */
     const U=LPU,R=.37,ZF=1.30,ZR=-1.16;
     const P=K.kit({p:{g:'p',c:0xe8121c},r:{g:'p',c:0xb00d15},k:{g:'m',c:0x131417},K:{g:'g',c:0x0b0c10},
       c:{g:'c',c:0xe9ecf0},g:{g:'g',c:0x1c2733},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e}});
@@ -20291,19 +20293,20 @@ const SHAPES={
     const yC=z=>U.lin([[-2.20,.96],[-1.95,.96],[-.70,1.06],[-.52,1.12],[.10,1.09],[.74,.80],[1.00,.76],[1.95,.56],[2.18,.44]],z),
           cab=z=>z>-.71&&z<.75;
     P.loft(zs,z=>{
-      const yb=U.arch(z,[ZF,ZR],AR,.26),xw=U.lin([[-2.20,.96],[-1.90,.99],[1.40,.99],[1.95,.93],[2.18,.80]],z),
+      const yb=Math.max(U.arch(z,[ZF,ZR],AR,.26),U.lin([[-2.20,.32],[-2.00,.26],[1.95,.26],[2.18,.30]],z)),xw=U.lin([[-2.20,.94],[-1.90,.99],[ZR,1.00],[-.50,.97],[.40,.96],[1.40,.98],[1.95,.92],[2.18,.78]],z),
             yB=Math.max(U.lin([[-2.20,.94],[-1.95,.96],[-.80,.92],[-.30,.80],[.74,.78],[1.30,.74],[1.95,.58],[2.18,.46]],z),yb+.10),
             c=yC(z);
       const p3=[xw-.02,yB],p4=cab(z)?[xw-.22,yB+.04]:[xw-.10,yB+.01];
       const p5=cab(z)?[U.lin([[-.70,.60],[-.52,.56],[.10,.58],[.74,.72]],z),c-.02]:[.45,Math.max(p4[1]+.002,c-.01)];
-      return [[0,yb],[xw-.07,yb],[xw,Math.max(.52,yb+.05)],p3,p4,p5,[0,c]];
+      return [[0,yb],[xw-.09,yb],[xw-.025,Math.max(.36,yb+.04)],[xw,Math.max(.54,yb+.07)],p3,p4,p5,[0,c]];
     },(j,z)=>{
-      if(j<=1)return 'k';
-      if(j===4&&cab(z))return (z>-.36&&z<.60)?'g':'p';                       // vitre latérale, arc-boutant
-      if(j===5&&z>.10&&z<.74)return 'g';                                      // pare-brise
-      if(j===5&&z>-1.86&&z<-.70)return 'g';                                   // le Lexan du capot moteur
+      if(j===0)return 'k';
+      if(j===5&&cab(z))return (z>-.36&&z<.60)?'g':'p';                       // vitre latérale, arc-boutant
+      if(j===6&&z>.10&&z<.74)return 'g';                                      // pare-brise
+      if(j===6&&z>-1.86&&z<-.70)return 'g';                                   // le Lexan du capot moteur
       return 'p';});
     // L'AILERON PLATEAU, porté par des flasques qui prolongent les ailes
+    const xw9=z=>U.lin([[-2.20,.94],[-1.90,.99],[ZR,1.00],[-.50,.97],[.40,.96],[1.40,.98],[1.95,.92],[2.18,.78]],z);
     P.box('p',1.96,.05,.30,0,1.18,-2.06);
     P.sym(sd=>P.prism('p',[[-1.80,.92],[-2.22,.92],[-2.22,1.22],[-1.95,1.22]],.06,sd*.93));
     for(let i=0;i<6;i++){const z=-.86-i*.17;P.box('K',1.04,.02,.05,0,yC(z)+.012,z);} // persiennes
@@ -20311,8 +20314,8 @@ const SHAPES={
       P.box('k',.16,.012,.30,sd*.25,yC(1.35)+.005,1.35,.21);                 // NACA de capot
       P.box('r',.30,.012,.22,sd*.66,yC(1.82)+.004,1.82,.21);                 // trappes de phares
       P.box('W',.30,.06,.03,sd*.62,.42,2.185);
-      P.box('k',.02,.18,.36,sd*.995,.72,-.57);                                // prise d'air arrière
-      P.box('k',.02,.06,.34,sd*.995,.74,.12);                                 // NACA de portière
+      P.box('k',.02,.18,.36,sd*(xw9(-.57)+.002),.72,-.57);                                // prise d'air arrière
+      P.box('k',.02,.06,.34,sd*(xw9(.12)+.002),.74,.12);P.box('k',.012,.04,2.6,sd*(xw9(0)-.02),.30,.05);   // NACA de portière, le seuil noir                                 // NACA de portière
       P.box('p',.12,.08,.16,sd*.84,.95,.52);P.box('k',.10,.03,.04,sd*.77,.92,.52);
       for(const x of [.55,.76])P.cyl('L',.065,.03,10,sd*x,.74,-2.215,'z');     // quatre feux ronds
       P.cyl('c',.05,.14,8,sd*.44,.43,-2.26,'z');
