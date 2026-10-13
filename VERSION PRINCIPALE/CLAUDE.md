@@ -137,6 +137,27 @@ début — dans l'autre ça commence un peu tard ») — mesuré des DEUX côté
   pièces) aux PICS DE JADE, 2,6 m partout ailleurs (posé en tête de buildTrack) ; `JADE_LEVE` 12 cm : la caisse posée sur le DESSUS des pièces
   (route style 4) ; les pièces : argent froid · argent chaud au reflet d'or · BRONZE · argent bleuté, leurs reflets teintés pareil ; les
   pièces du bord en argent chaud.
+- (13/10, Léo : « remets la route normale comme d'hab ; fais en sorte que la voiture puisse PLONGER dans l'eau, RESSORTIR, que ce soit comme
+  le ciel ») :
+  · LA ROUTE NORMALE = style 5 de `jadeRouteStyle`, le défaut (`JROUTE`, `?route=normale`) : bitume du jeu (`uJadeR` à 0), rails + lueur
+    (valeurs de buildTrack gardées dans `userData.c0/o0`), liseré jade, flancs d'encre, ligne centrale ; `THICK` 2,6 m (la dalle de 30 cm et
+    `JADE_LEVE` ne valent plus que pour la route en pièces, style 4 : `?route=pieces` ou la touche R de la balade, cycle 5→4→3→2→1→0).
+  · LA MER COMME UN DEUXIÈME CIEL (bloc `EAU`/`JEAU`/`JSOUS` après `jadeEcume`) : `jadeEauVol` (branche 'fall', avant que la position avance) —
+    sous la surface la gravité s'inverse (poussée nette `EAU.pousse` = 2 g), l'eau freine peu (`freinH` .12, `freinV` .25), volant/manche/nitro
+    marchent ; au JAILLISSEMENT la vitesse verticale remonte au moins à celle du 1er plongeon du vol × `EAU.rend` 1,06 (+4) : on remonte un peu
+    plus haut que d'où l'on est tombé (les rebonds suivants ne grandissent pas). La JAUGE DE VOL : sous l'eau elle se remplit, et plus bas que
+    le point de décollage (`JEAU.y0`, posé par startFall) elle ne baisse pas (la route est à 45-230 m au-dessus de l'eau : 200 m de chute =
+    7 s > 6 s). Plongeon fatal (`jadeVide`) : 620 m sous l'eau (jamais atteint). `MIR` à 0 au-dessus de la mer. Figures PLONGEON / REPLONGEON
+    et HORS DE L EAU (chaîne + flow). Les PIEDS IMMERGÉS des montagnes TUENT (`jadeHeurt`, comme en l'air) : on les voit sous l'eau.
+    Surface : `jMerHJ` = la houle `jMerH` du ciel en JS (lissée entre les cases pour la caisse : `jadeSurf` ; exacte pour l'objectif : `jadeSurfCase`).
+  · SOUS L'EAU (`jadeSousTick`, après jadeTick, juste avant le rendu) : la BRUME devient l'eau (turquoise → plus profond, near 2 / far 150-230 ;
+    rendue d'elle-même si personne ne la réécrit), le dôme peint `jadeSous` (uSous : fenêtre de Snell, rais qui bougent), les montagnes
+    inversent leur découpe (`JADE_U.uSous` : le pied immergé visible, plus rien au-dessus), la PEAU `jadePeau` (48 × 48 colonnes de 4 m qui
+    suivent la houle, 5 faces chacune, dans le vertex shader : vue d'en dessous le miroir + la fenêtre sur le ciel, vue d'au-dessus l'eau
+    translucide où la caisse plongée se devine ; visible seulement autour d'un plongeon), BULLES en petits cubes (`jadeBulles*`), GERBE de
+    petits cubes d'écume à l'entrée et à la sortie (`jadeGerbe`, la réserve JCH.sp), musique −55 % et vent coupé sous l'eau (`JEAU.k`).
+    Programmes compilés dans `jadeChauffe`. Console : `dbgEau()` (état), `dbgEau({h,vy,vh})` lâche la caisse au-dessus de l'eau,
+    `dbgEau('profil')` (hauteur de la route au-dessus de l'eau, 41 points).
 - Banc : `dbgJadePoste('ramasse')` (pièces, fruits par nom, pouvoirs, plots, plaques, flaques). MESURÉ : 650 pièces, ~16 fruits, 20 pouvoirs,
   300 plots, 8 plaques par passage ; en course : pièces ramassées, défis (« EAT 4 FRUITS »), paliers moteur, aimant, jus des fruits.
 

@@ -7800,7 +7800,8 @@ const MER_MOTIF=false; // (2026-09-28) false = sous l'horizon des NUAGES, l'ABÎ
    sur la pierre tombe pile sur les cubes de la mer. Plus agitée qu'en v16 : des houles plus rapides, un clapot en plus (uEauT : l'horloge
    de l'eau, figée en pause). */
 const JADE_EAU_GLSL='const float JMS=4.;float jMerH(vec2 c){vec2 p=c*JMS;float r=fract(sin(dot(c,vec2(41.3,289.1)))*43758.5453);float h=1.6*sin(p.x*.0105+uEauT*.95)+1.1*sin(p.y*.0165-uEauT*1.3+p.x*.004)+.8*sin((p.x+p.y)*.024+uEauT*1.9)+.7*sin(p.x*.031-p.y*.027+uEauT*1.6)+.55*sin(p.x*.061+p.y*.047+uEauT*2.7)+1.5*(r-.5)+.6*sin(uEauT*3.2+r*6.28);return floor(h);}\n';
-const skyU={uEauT:{value:0},uTime:{value:0},uSunDir:{value:SUN_DIR},
+const skyU={uEauT:{value:0},uSous:{value:0},uSousC:{value:new THREE.Vector3(.13,.47,.50)}, // (2026-10-13) SOUS LA MER du SOLEIL DE JADE (voir jadeSousTick)
+  uTime:{value:0},uSunDir:{value:SUN_DIR},
   uSkyMul:{value:new THREE.Vector3(1,1,1)},uSkyLift:{value:new THREE.Vector3(0,0,0)},
   uSunTint:{value:new THREE.Vector3(1,.40,.28)},uSunHalo:{value:1},uCity:{value:1},uStars:{value:1},uMoon:{value:1},
   uSpace:{value:0}, // NIVEAU ORBITE (2026-09-24) : 0 = le ciel de toujours AU PIXEL PRÈS, 1 = le noir étoilé (piloté par lvlStep)
@@ -8154,7 +8155,7 @@ const skyDome=(function(){
        Zhangjiajie devant), chacune plus nette que celle de derrière, le pied noyé dans la brume ; sous l horizon la MER DE NUAGES (un plan
        à uJMerY : parallaxe vraie avec la caméra). Bords anticrénelés à la taille du pixel (uJPx, en radians). uJade = 0 ailleurs. */
     jade:[
-      'uniform float uJade,uJMerY,uJPx,uEauT;uniform vec3 uJdZ,uJdH,uJdR,uJdB,uJdS,uJdM,uJdL;uniform vec4 uEauW;uniform vec4 uEauP[12];',
+      'uniform float uJade,uJMerY,uJPx,uEauT,uSous;uniform vec3 uJdZ,uJdH,uJdR,uJdB,uJdS,uJdM,uJdL,uSousC;uniform vec4 uEauW;uniform vec4 uEauP[12];',
       'float jh(float x){return fract(sin(x*127.13+.71)*43758.5453);}',
       'float jn(float x){float i=floor(x),f=fract(x);f=f*f*(3.-2.*f);return mix(jh(i),jh(i+1.),f);}',
       'float jCrete(float a,float s){float r=0.,am=.55,f=3.1;', // des crêtes déchiquetées : un bruit replié, quatre octaves
@@ -8196,6 +8197,13 @@ const skyDome=(function(){
       '    float tx=min(tm.x,tm.y);if(p.y+d.y*tx<=top){float th=(top-p.y)/d.y;N=vec3(0.,1.,0.);cc=c;hh=h;return vec4(p+d*th,t0+th);}', // le DESSUS
       '    if(tm.x<tm.y){c.x+=st.x;tm.x+=tdl.x;nr=vec2(1.,0.);}else{c.y+=st.y;tm.y+=tdl.y;nr=vec2(0.,1.);}tc=tx;if(t0+tc>t1)break;}',
       '  return vec4(-1.);}',
+      /* (2026-10-13) LE DESSOUS DE LA MER (l objectif sous l eau, uSous) : le bleu de l eau, sombre vers le fond, clair vers la surface ; la
+         FENÊTRE DE SNELL au-dessus (le ciel, à moins de ~48° de la verticale) ; des RAIS de lumière qui bougent avec la houle. */
+      'vec3 jadeSous(vec3 d){d=normalize(d);float up=d.y,az=atan(d.x,-d.z);',
+      '  vec3 c=mix(uSousC*.62,uSousC*1.22,smoothstep(-.75,.35,up));',
+      '  float ry=pow(max(up,0.),1.6)*pow(.5+.5*sin(az*17.+uEauT*.55)*sin(az*6.-uEauT*.37+1.3),2.);c+=vec3(.50,.80,.72)*ry*.30;',
+      '  float win=smoothstep(.56,.82,up);c=mix(c,mix(uJdH,uJdZ,.35)*1.06+vec3(.05,.08,.07)*sin(az*9.+uEauT*1.3),win*.88);',
+      '  return c;}',
       'vec3 jadeCiel(vec3 d){d=normalize(d);',                                // (v17 bis) vDir arrive interpolé entre les sommets du dôme : renormalisé, le soleil est un DISQUE (il sortait en goutte)
       '  float y=d.y,yy=max(y,0.),az=atan(d.x,-d.z),sd=max(dot(d,uSunDir),0.);',
       /* (v17 bis, Léo : « un ciel asiatique ») LE CIEL DES PARAVENTS ET DES ROULEAUX : un dégradé de SOIE (bleu doux en haut, céladon, crème,
@@ -8523,7 +8531,7 @@ const skyDome=(function(){
          dégradé, le soleil, la lune, les étoiles, la guirlande et le voile étaient calculés sur chaque pixel du dôme pour être jetés.
          On saute directement au ciel de la ville (même fonction, même tramage) : même image. Pendant le fondu d'entrée/sortie du
          niveau (uVille ou uPluie < 1), le chemin complet reprend, inchangé. */
-      '  if(uJade>.9999){gl_FragColor=vec4(jadeCiel(vDir)+vec3(cielTrame()),1.);return;}', // LES PICS DE JADE : le rouleau peint, seul
+      '  if(uJade>.9999){gl_FragColor=vec4((uSous>.5?jadeSous(vDir):jadeCiel(vDir))+vec3(cielTrame()),1.);return;}', // (2026-10-13) sous la mer : son dessous // LES PICS DE JADE : le rouleau peint, seul
       '  if(uVille>.9999&&uPluie>.9999){',
       '    vec3 cv=villeCiel(vDir,atan(vDir.x,-vDir.z),vec3(0.));',
       '    cv+=vec3(cielTrame());', // le même tramage que plus bas
@@ -12028,7 +12036,7 @@ function routeTick(){ // le bitume suit le NIVEAU (fondu du portail : LVL.route 
   renderer.getDrawingBufferSize(_px9);TRAIT_U.uPx.value=2*Math.tan(camera.fov*Math.PI/360)/Math.max(1,_px9.y); // la taille d'un pixel à 1 m (suit le FOV de vol et la résolution adaptative)
   const r=LVL.route,pa9=LVL.paris||0;ROAD_U.uLift.value.setRGB(.010+.15*r+(.004-.006*r)*pa9,.009+.13*r+(.005+.012*r)*pa9,.016+.16*r-(.004+.03*r)*pa9); // (Paris) un gris d'asphalte NEUTRE, pas le violet de la nuit // ⚠ l'étalonnage de la pluie écrase le rouge et le vert : la clarté doit être NEUTRE et franche pour se lire (mesuré : (0,0,17) → (2,0,47) avec une clarté bleutée de .05)
   ROAD_U.uSheen.value=LVL.sheen;ROAD_U.uWet.value=Math.max(LVL.pluie,parisPluie()*1.8);ROAD_U.uVil.value=LVL.ville;try{ROAD_U.uEcl.value=CAMP_FLASH;}catch(e){} /* (2026-09-30) les enseignes reflétées : en VILLE seulement · l'éclair dans les flaques (CAMP_FLASH est déclaré plus bas : le try couvre l'init) */ // (2026-09-26) le bitume se mouille avec la pluie du niveau, au même fondu
-  ROAD_U.uGlace.value=GLACE.k*(GLACE.nuages*LVL.mer+GLACE.espace*LVL.espace+GLACE.jade*(LVL.jade||0))*(1-LVL.pluie);ROAD_U.uJadeR.value=LVL.jade||0;ROAD_U.uHalf.value=ROAD_HALF;ROAD_U.uGlace.value*=1-(LVL.jade||0)*(ROAD_U.uJStyle.value<.5?0:ROAD_U.uJStyle.value<1.5?.85:ROAD_U.uJStyle.value<2.5?.7:ROAD_U.uJStyle.value<3.5?.9:.95);
+  ROAD_U.uGlace.value=GLACE.k*(GLACE.nuages*LVL.mer+GLACE.espace*LVL.espace+GLACE.jade*(LVL.jade||0))*(1-LVL.pluie);ROAD_U.uJadeR.value=ROAD_U.uJStyle.value>4.5?0:LVL.jade||0;ROAD_U.uHalf.value=ROAD_HALF;ROAD_U.uGlace.value*=1-(LVL.jade||0)*(ROAD_U.uJStyle.value<.5?0:ROAD_U.uJStyle.value<1.5?.85:ROAD_U.uJStyle.value<2.5?.7:ROAD_U.uJStyle.value<3.5?.9:ROAD_U.uJStyle.value<4.5?.95:0); /* (2026-10-13) 5 = la route NORMALE : le bitume du jeu */
   {const j9=LVL.mer*skyU.uJour.value,jd9=LVL.jade||0;ROAD_U.uTeinte.value.setRGB((1+(ROUTE_JOUR[0]-1)*j9)*(1+(ROUTE_JADE[0]-1)*jd9),(1+(ROUTE_JOUR[1]-1)*j9)*(1+(ROUTE_JADE[1]-1)*jd9),(1+(ROUTE_JOUR[2]-1)*j9)*(1+(ROUTE_JADE[2]-1)*jd9));} // (2026-09-30) LE JOUR D'ALTITUDE : l'asphalte des NUAGES en gris d'anthracite (le violet de la nuit, sous un ciel turquoise, se lisait en encre violette) // (passe graphismes mobile) le bitume GLACÉ des routes sèches — voir roadMat
   coneBandMat.emissiveIntensity=.25+.6*LVL.pluie; // (2026-09-26) la nuit de pluie, les bandes des plots RÉTRORÉFLÉCHISSENT : on les lit de loin (un uniforme, zéro recompilation)
   ROAD_U.uSheenCol.value.copy(scene.fog.color).multiplyScalar(.9); // (2026-09-26) ×1,5 → ×0,9 : la brillance rasante blanchissait tout le lointain
@@ -12141,7 +12149,7 @@ function buildTrack(seed){
   /* (2026-10-12 soir, Léo : « tu as du mal à enlever la barre lisse : fais la route plus fine, sur deux pièces ») aux PICS DE JADE la dalle n'a
      que DEUX PIÈCES d'épaisseur (30 cm au lieu de 2,6 m) : la tranche lisse disparaît presque derrière les pièces du bord ; la caisse est posée
      12 cm plus haut sur la route en pièces (JADE_LEVE : sur le plan, elle avait l'air enfoncée dans les pièces). Partout ailleurs : 2,6 m. */
-  {const j9=!!(LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on);THICK=j9?.30:2.6;JADE_LEVE=j9?.12:0;}const JADE9=!!(LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on&&!JADE_JEU); // (2026-10-09) LES PICS DE JADE : une route nue (ni pad, ni flaque, ni plot)
+  {const j9=!!(LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on)&&JROUTE.style===4;THICK=j9?.30:2.6;JADE_LEVE=j9?.12:0;} /* (2026-10-13) la route normale reprend ses 2,6 m */const JADE9=!!(LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on&&!JADE_JEU); // (2026-10-09) LES PICS DE JADE : une route nue (ni pad, ni flaque, ni plot)
   // (l'entrée surélevée n'existe que si genCtrl la pose : niveau VILLE généré) · (les modules aussi : le parc, l'école et la campagne n'en ont pas)
   const ctrl=PARK.on?genPark(rnd):(LVL.cur&&LVL.cur.piste==='tuto')?genTuto():(LVL.cur&&LVL.cur.piste==='camp')?genCampagne(LVL.cur.camp):(LVL.cur&&LVL.cur.piste==='paris')?genParis():(LVL.cur&&LVL.cur.piste==='jade')?genJade(rnd):genCtrl(rnd,new THREE.Vector3(0,0,0),0); // FREESTYLE : le parc de figures remplace la piste de course · (2026-09-27) CAMPAGNE : la piste dessinée du niveau
   const curve=new THREE.CatmullRomCurve3(ctrl,false,'centripetal'); // (piste v7) centripète : l'uniforme faisait des COUDES entre points inégalement espacés (liaison courte après une grande figure)
@@ -13795,7 +13803,7 @@ const NIV_JADE={graine:(+((/[?&]graine=(\d+)/.exec(location.search)||[])[1])||0x
 const JADE={root:null,Q:null,fam:[],col:null,porte:null,pont:null,brume:null,n:{},ms:0,merY:-420,t:0,sig:0,geos:null,cl:null};
 const JADE_U={uSunDir:{value:SUN_DIR},uSunC:{value:new THREE.Color()},uSky:{value:new THREE.Color()},uGnd:{value:new THREE.Color()},
   uFillD:{value:new THREE.Vector3(0,-1,0)},uFillC:{value:new THREE.Color()},uMist:{value:new THREE.Color(.86,.87,.82)},
-  uMerY:{value:-420},uEauT:skyU.uEauT,uTime:{value:0},uCam:{value:new THREE.Vector3()},uY0:{value:0},uYH:{value:1},uGhost:{value:new THREE.Color(.70,.92,1.)}};
+  uMerY:{value:-420},uSous:{value:0},uEauT:skyU.uEauT,uTime:{value:0},uCam:{value:new THREE.Vector3()},uY0:{value:0},uYH:{value:1},uGhost:{value:new THREE.Color(.70,.92,1.)}};
 /* LA ROUTE — même outillage que genParis (droites, arcs ≤ 9° par point), mais tirée à la graine de la piste : chaque vallée est neuve.
    Le cap reste dans ±85° de l'axe de départ (aucun retour sur ses pas : la route ne recroise jamais un de ses tronçons). */
 function genJade(rnd){
@@ -14161,7 +14169,7 @@ const JADE_VR_VS=[
   '#include <fog_vertex>',
   '}'].join('\n');
 const JADE_VR_FS=[
-  'uniform vec3 uSunDir,uSunC,uSky,uGnd,uFillD,uFillC,uMist,uGhost,uCielH,uCielZ;uniform float uMerY,uBump,uTime,uEcart;',
+  'uniform vec3 uSunDir,uSunC,uSky,uGnd,uFillD,uFillC,uMist,uGhost,uCielH,uCielZ;uniform float uMerY,uBump,uTime,uEcart,uSous;',
   'varying vec3 vW,vO,vN,vNo;varying float vM,vAO;varying vec4 vJ;',
   '#include <fog_pars_fragment>',
   'float rh(vec3 p){p=fract(p*.1031);p+=dot(p,p.yzx+33.33);return fract((p.x+p.y)*p.z);}',
@@ -14170,7 +14178,7 @@ const JADE_VR_FS=[
   '             mix(mix(rh(i+vec3(0,0,1)),rh(i+vec3(1,0,1)),f.x),mix(rh(i+vec3(0,1,1)),rh(i+vec3(1,1,1)),f.x),f.y),f.z);}',
   JADE_ONDE,'uniform float uEauT;',JADE_EAU_GLSL,
   'void main(){',
-  '  float wl9=vW.y-(uMerY+jMerH(floor(vW.xz/JMS))*JMS);if(wl9<0.)discard;',     // (v17) SOUS L EAU, plus rien : la mer du ciel prend la place
+  '  float wl9=vW.y-(uMerY+jMerH(floor(vW.xz/JMS))*JMS);if(uSous<.5?wl9<0.:wl9>0.)discard;',     // (2026-10-13) l objectif SOUS l eau : le pied immergé, plus rien au-dessus (la peau de l eau le cache)     // (v17) SOUS L EAU, plus rien : la mer du ciel prend la place
   '#ifdef PREPASS',
   '  gl_FragColor=vec4(1.);return;',                                                // la profondeur de la face la plus proche (rien à peindre)
   '#endif',
@@ -14382,6 +14390,7 @@ function buildJade(seed){
   for(const F of JADE.fam.concat(FIN.fam.filter(Boolean))){F.im.dispose();if(F.im2&&F.im2!==F.im){F.im2.dispose();F.im3.dispose();}const g9=F.im.geometry;for(const k in g9.attributes)if(k!=='aJ')g9.deleteAttribute(k);g9.setIndex(null);g9.dispose();}JADE.fam=[];FIN.fam=[];FIN.near.length=0;FIN.sig=0;FIN.mats=new Map();FIN.dans=new Set();JADE.col=null;JADE.porte=null;JADE.pont=null;JADE.brume=null;JADE.sig=0;
   if(JADE.root){JADE.root.traverse(function(o){if(o.userData.jeter&&o.geometry)o.geometry.dispose();});JADE.root=null;}JADE.monu=[];
   try{coinSymbole(!!(JADE_JEU&&LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on));}catch(e){} // (2026-10-12) les pièces du SOLEIL DE JADE frappées du ¥
+  try{jadeEauRaz();}catch(e){} // (2026-10-13) la mer : rien sous l'eau d'une piste à l'autre
   if(PARK.on||!LVL.cur||LVL.cur.piste!=='jade'||!(NP>1))return;
   const t00=performance.now(),M9=jadeMats(),G=jadeGabarits(),jr=mulberry32((seed^0x1ADE5EED)>>>0),Q=JADE.Q||{};
   const root=new THREE.Group();root.matrixAutoUpdate=false;scene.add(root);JADE.root=root;trackMeshes.push(root);
@@ -14546,7 +14555,7 @@ function buildJade(seed){
    · NUAGE : des CUBES de nuage (1-2,6 m) qui débordent des deux bords, dessus et dessous — le ruban devient un nuage ;
    · PLANCHES : une RAMBARDE en bois laqué rouge (poteaux tous les 6 m, deux lisses), et des LANTERNES rouges qui luisent tous les ~42 m,
      accrochées au bout d'un bras au-dessus de la route, d'un côté puis de l'autre. Aucune collision (décor). */
-const JROUTE={style:(function(){const m=/[?&]route=(nuage|planches|emeraude|rondins|pieces)\b/.exec(location.search);return m?{emeraude:0,nuage:1,planches:2,rondins:3,pieces:4}[m[1]]:4;})()}; // (v17, Léo : « on roule sur des pièces d'or ») les PIÈCES D'OR par défaut // (v16, « une vibe Chihiro, des troncs d'arbres collés ») les RONDINS par défaut // (v15, Léo : « planche en bois ») le CHEMIN DE PLANCHES par défaut ; nuage et émeraude restent (touche R, ?route=)
+const JROUTE={style:(function(){const m=/[?&]route=(nuage|planches|emeraude|rondins|pieces|normale)\b/.exec(location.search);return m?{emeraude:0,nuage:1,planches:2,rondins:3,pieces:4,normale:5}[m[1]]:5;})()}; // (2026-10-13, Léo : « remets la route normale comme d'hab ») la ROUTE DU JEU par défaut (bitume, rails, ligne) — les pièces restent au ?route=pieces et à la touche R // (v17, Léo : « on roule sur des pièces d'or ») les PIÈCES D'OR par défaut // (v16, « une vibe Chihiro, des troncs d'arbres collés ») les RONDINS par défaut // (v15, Léo : « planche en bois ») le CHEMIN DE PLANCHES par défaut ; nuage et émeraude restent (touche R, ?route=)
 function jadeBoite(P,N,C,c,ax,ay,az,hx,hy,hz,col){ // une boîte orientée (axes unitaires, demi-tailles), 36 sommets, normales plates
   const F=[[ax,ay,az,hx,hy,hz],[ax.clone().negate(),ay,az.clone().negate(),hx,hy,hz],[az,ay,ax.clone().negate(),hz,hy,hx],[az.clone().negate(),ay,ax,hz,hy,hx],[ay,az,ax,hy,hz,hx],[ay.clone().negate(),az.clone().negate(),ax,hy,hz,hx]];
   const QA=[[-1,-1],[1,-1],[1,1],[-1,-1],[1,1],[-1,1]],QB=[[-1,-1],[1,1],[1,-1],[-1,-1],[-1,1],[1,1]],X9=new THREE.Vector3();
@@ -14585,19 +14594,20 @@ function jadeRouteStyle(k){ // 0 émeraude · 1 nuage · 2 planches : la surface
   JROUTE.style=k;ROAD_U.uJStyle.value=k;
   /* (2026-10-12, Léo : « enlève les bords de la route et les trucs en bois asiatiques ») plus aucun bord en volume (planches laquées et lanternes,
      rondins, volutes) ni rail, ni lueur, ni liseré sur les tranches : la route seule */
-  for(const m of NEON_RAILS)m.visible=false;for(const m of NEON_GLOW)m.visible=false;
+  const nrm=k===5; // (2026-10-13) 5 = la route NORMALE : rails, lueur, liseré, flancs et ligne comme partout ailleurs (leurs valeurs de buildTrack)
+  for(const m of NEON_RAILS){if(!m.userData.c0)m.userData.c0=m.color.getHex();m.visible=nrm;}for(const m of NEON_GLOW){if(m.userData.o0==null)m.userData.o0=m.opacity;m.visible=nrm;}
   if(JADE.root&&k===4&&!JADE.decoPieces){try{jadePiecesBord(JADE.root,mulberry32(0x5ECE));}catch(e){console.warn('pieces du bord',e);}} // (12/10 soir) les PIÈCES QUI DÉPASSENT du bord
   if(JADE.decoPieces)JADE.decoPieces.visible=k===4;
   if(JADE.decoNuage)JADE.decoNuage.visible=k===1;if(JADE.decoPlanches)JADE.decoPlanches.visible=k===2;if(JADE.decoRondins)JADE.decoRondins.visible=k===3;
-  const ac=[0x4fe0a8,0xf2f5ff,0x5a1a10,0x2a1a0e,0xa8acb4][k],gl=[.78,.30,0,0,.22][k];
+  const ac=nrm?(NEON_RAILS[0]&&NEON_RAILS[0].userData.c0||0x4fe0a8):[0x4fe0a8,0xf2f5ff,0x5a1a10,0x2a1a0e,0xa8acb4][k],gl=nrm?(NEON_GLOW[0]&&NEON_GLOW[0].userData.o0!=null?NEON_GLOW[0].userData.o0:.6):[.78,.30,0,0,.22][k];
   if(NEON_RAILS[0]){NEON_RAILS[0].color.setHex(ac);if(NEON_RAILS[0].userData.base)NEON_RAILS[0].userData.base.setHex(ac);NEON_RAILS[0].userData.hsl=null;} // (le caméléon garde la teinte mesurée : on la lui fait remesurer)
   if(NEON_GLOW[0]){NEON_GLOW[0].opacity=gl;NEON_GLOW[0].userData.base=gl;}
-  {const fl=[0x1c0430,0xd9deec,0x2a140a,0x1e140c,0x2a2c32][k];ROAD_U.uAcc.value.setHex(0);if(JADE.flank)JADE.flank.color.setHex(fl);} // le liseré et les catadioptres des tranches s'éteignent (accent noir : rien ne s'ajoute)
-  if(JADE.ligne)JADE.ligne.opacity=[.42,0,0,0,0][k];
-  return ['EMERAUDE','NUAGE','PLANCHES','RONDINS','PIECES D ARGENT'][k];}
+  {const fl=[0x1c0430,0xd9deec,0x2a140a,0x1e140c,0x2a2c32,0x1c0430][k];if(nrm)ROAD_U.uAcc.value.setHex(0x4fe0a8);else ROAD_U.uAcc.value.setHex(0);if(JADE.flank)JADE.flank.color.setHex(fl);} // le liseré et les catadioptres des tranches s'éteignent (accent noir : rien ne s'ajoute)
+  if(JADE.ligne)JADE.ligne.opacity=[.42,0,0,0,0,.42][k];
+  return ['EMERAUDE','NUAGE','PLANCHES','RONDINS','PIECES D ARGENT','NORMALE'][k];}
 window.dbgEffondre=function(){return {montagnes:JCH.L.length,tombees:JCH.L.filter(function(c){return c.t0;}).length,finies:JCH.L.filter(function(c){return c.fin;}).length,ecume:JCH.sp.length,sChute:JCH.L.length?Math.round(Math.min.apply(null,JCH.L.map(function(c){return c.sN;}))):null,L:Math.round(L)};};
-window.dbgRoute=function(k){return jadeRouteStyle(k==null?(JROUTE.style+1)%5:k);};
-addEventListener('keydown',function(e){if(e.code!=='KeyR'||e.repeat||!BALADE||!JADE.root)return;const k=JROUTE.style===4?3:JROUTE.style===3?2:JROUTE.style===2?1:JROUTE.style===1?0:4;const nm=jadeRouteStyle(k);try{slam('ROUTE '+nm,'',null,null,null,2);}catch(e9){}}); // (v17) la touche R : pièces → rondins → planches → nuage → émeraude
+window.dbgRoute=function(k){return jadeRouteStyle(k==null?(JROUTE.style+1)%6:k);};
+addEventListener('keydown',function(e){if(e.code!=='KeyR'||e.repeat||!BALADE||!JADE.root)return;const k=JROUTE.style===5?4:JROUTE.style===4?3:JROUTE.style===3?2:JROUTE.style===2?1:JROUTE.style===1?0:5;const nm=jadeRouteStyle(k);try{slam('ROUTE '+nm,'',null,null,null,2);}catch(e9){}}); // (v17) la touche R : pièces → rondins → planches → nuage → émeraude
 /* (v14, Léo : « crée un début et une fin du niveau, moyen, ni trop court ni trop long ») LES DEUX PORTIQUES — le 牌坊 des entrées de
    temple, en cubes d'un mètre : deux piliers laqués rouges sur leurs socles de pierre (hors de la route), deux linteaux, une plaque d'or au
    milieu, un toit de tuiles débordant aux coins RELEVÉS, l'or au faîte. Le DÉPART à 120 m, l'ARRIVÉE à 140 m du bout (avant le portail). */
@@ -14677,6 +14687,134 @@ function jadeEauTick(dt){const E=JADE.eauPil;if(!E||!E.length)return;const cp=ca
 function jadeEcume(x,y,z,r){const n=Math.min(90,30+r*1.6|0);
   for(let k=0;k<n;k++){const a=Math.random()*6.2832,rr=r*(.4+Math.random()*.8),v=8+Math.random()*16;
     JCH.sp.push({x:x+Math.cos(a)*rr,y:y+2,z:z+Math.sin(a)*rr,vx:Math.cos(a)*v*.5,vy:14+Math.random()*30,vz:Math.sin(a)*v*.5,sz:1.5+Math.random()*3.5,t:0,l:2+Math.random()*1.6});}}
+/* (2026-10-13, Léo : « fais en sorte que la voiture puisse plonger dans l'eau, ressortir, que ce soit comme le ciel ») LA MER COMME UN
+   DEUXIÈME CIEL — au SOLEIL DE JADE (et dans la balade), tomber dans l'eau ne tue plus : on y VOLE.
+   · LA POUSSÉE (jadeEauVol, dans la branche 'fall') : sous la surface, la gravité s'INVERSE (la poussée d'Archimède la retourne : +1 g
+     vers le haut) et l'eau freine un peu ; le volant, le manche et la nitro marchent comme en l'air. On plonge, on ralentit, on remonte.
+   · LE JAILLISSEMENT : la mer rend l'élan — on ressort au moins aussi vite qu'on est entré au PREMIER plongeon du vol (×EAU.rend) : on
+     remonte jusqu'à la hauteur d'où l'on est tombé, de quoi reprendre la route. Les rebonds suivants ne grandissent jamais au-delà.
+   · L'AIR : sous l'eau la jauge du vol se REMPLIT, et plus bas que le point de décollage elle ne baisse pas (la route est à 45-230 m
+     au-dessus de l'eau : 200 m de chute durent 7 s, plus que les 6 s de la jauge) — on n'explose de temps de vol qu'en traînant AU-DESSUS, et le plongeon fatal sous la piste n'existe plus
+     ici (le fond est à EAU.fond m — la poussée y ramène bien avant). Plongeon et jaillissement sont des FIGURES de la chaîne.
+   · LA SURFACE suit la mer en cubes du ciel (jMerH, la même houle, lissée entre les cases pour la caisse, exacte pour l'objectif).
+   · SOUS L'EAU (jadeSousTick) : la brume devient l'eau (turquoise, plus sombre en profondeur), le ciel du dôme devient le dessous de
+     la mer (jadeSous : la fenêtre de Snell au-dessus, les rais de lumière), la PEAU (une grille de colonnes de 4 m qui suit la houle :
+     vue d'en dessous, le miroir de l'eau et la fenêtre sur le ciel ; vue d'au-dessus, l'eau qui laisse deviner la caisse plongée), les
+     montagnes montrent leur pied immergé, la caisse lâche des BULLES en petits cubes, la musique s'étouffe. */
+const EAU={pousse:2,freinH:.12,freinV:.25,rend:1.06,fond:420}; // pousse : la poussée NETTE en g (2 : un plongeon de 90 m reste ~2 s sous l'eau, ~20 m de fond ; 200 m : ~4 s) · freinH faible : l'élan reste (comme en l'air)
+const JEAU={y0:0,dans:false,t:0,prof:0,vIn:0,vRef:0,n:0,k:0,sorti:9,bul:[],im:null};
+const JSOUS={sous:false,prof:0,uK:0,N:48,peau:null,base:{c:new THREE.Color(),n:0,f:0},w:{c:new THREE.Color(),n:-1,f:-1,ok:false},c:new THREE.Color(),cA:new THREE.Color(.22,.64,.66),cB:new THREE.Color(.09,.34,.42)};
+function jadeVide(y){return jadeEauOk()?y<JADE.eauY-EAU.fond-200:y<trackMinY-120;} // le plongeon fatal : sous la piste… sauf au-dessus de la mer
+function jadeEauOk(){return !!(JADE.root&&LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on&&isFinite(JADE.eauY));}
+function jMerHJ(cx,cz,T){const px=cx*4,py=cz*4;let r=Math.sin(cx*41.3+cz*289.1)*43758.5453;r-=Math.floor(r); // la houle du ciel (JADE_EAU_GLSL), case par case
+  return Math.floor(1.6*Math.sin(px*.0105+T*.95)+1.1*Math.sin(py*.0165-T*1.3+px*.004)+.8*Math.sin((px+py)*.024+T*1.9)+.7*Math.sin(px*.031-py*.027+T*1.6)+.55*Math.sin(px*.061+py*.047+T*2.7)+1.5*(r-.5)+.6*Math.sin(T*3.2+r*6.28));}
+function jadeSurfCase(x,z){return JADE.eauY+jMerHJ(Math.floor(x/4),Math.floor(z/4),skyU.uEauT.value)*4;} // la colonne exacte (l'objectif)
+function jadeSurf(x,z){const T=skyU.uEauT.value,u=x/4-.5,v=z/4-.5,i=Math.floor(u),j=Math.floor(v),fu=u-i,fv=v-j; // lissée entre les centres des cases (la caisse : pas de marches)
+  const a=jMerHJ(i,j,T),b=jMerHJ(i+1,j,T),c=jMerHJ(i,j+1,T),d=jMerHJ(i+1,j+1,T);return JADE.eauY+4*((a*(1-fu)+b*fu)*(1-fv)+(c*(1-fu)+d*fu)*fv);}
+function jadeEauRaz(){JEAU.dans=false;JEAU.t=0;JEAU.prof=0;JEAU.vIn=0;JEAU.vRef=0;JEAU.n=0;JEAU.k=0;JEAU.sorti=9;JEAU.bul.length=0;if(JEAU.im)JEAU.im.count=0;
+  JSOUS.sous=false;JSOUS.uK=0;if(JSOUS.peau)JSOUS.peau.visible=false;skyU.uSous.value=0;JADE_U.uSous.value=0;}
+function jadeEauVol(dt,dtF){ // branche 'fall', AVANT que la position avance (la vitesse vient d'encaisser gravité, volant, manche, nitro)
+  if(!jadeEauOk()){if(JEAU.dans)JEAU.dans=false;return false;}
+  const sy=jadeSurf(fallPos.x,fallPos.z),prof=sy-fallPos.y;
+  if(fallPos.y<JEAU.y0-2)fallTR=Math.max(0,fallTR-dt); // sous le point de décollage, la mer rattrape : la jauge ne baisse pas
+  if(!JEAU.dans&&prof>0&&(fallVel.y<0||prof>3)){ // ---- LE PLONGEON ----
+    JEAU.dans=true;JEAU.t=0;JEAU.prof=0;JEAU.n++;JEAU.vIn=Math.max(4,-fallVel.y);if(!JEAU.vRef)JEAU.vRef=JEAU.vIn;
+    fallVel.multiplyScalar(.86);
+    const k9=Math.min(1,JEAU.vIn/60);
+    jadeGerbe(fallPos.x,sy,fallPos.z,18+30*k9);
+    jadeBullesJet(fallPos,40+60*k9,7);
+    shake=Math.max(shake,.25+.45*k9);fovPunch=Math.max(fovPunch,6+8*k9);hap([14,20,30]);
+    try{if(SONV2){sfx('flaque.eau');sfx('nuage.entre');}}catch(e){}
+    try{addTrick('plongeon',JEAU.n>1?'REPLONGEON !':'PLONGEON !',6+4*k9,1);flowAdd(6,'risque');}catch(e){}}
+  else if(JEAU.dans&&prof<-1&&fallVel.y>0){ // ---- LE JAILLISSEMENT ----
+    JEAU.dans=false;JEAU.sorti=0;
+    const vr=Math.min(JEAU.vIn,JEAU.vRef||JEAU.vIn)*EAU.rend+4;if(fallVel.y<vr)fallVel.y=vr; // la mer rend l'élan du premier plongeon, jamais plus
+    fallTR=0;fallT=Math.min(fallT,.5); // l'air rendu : une jauge de vol neuve pour reprendre la route
+    const k9=Math.min(1,fallVel.y/60);
+    jadeGerbe(fallPos.x,sy,fallPos.z,22+30*k9);
+    shake=Math.max(shake,.3);fovPunch=Math.max(fovPunch,10);hap([10,16,24]);airFlash=.6;
+    try{if(SONV2){sfx('flaque.eau');sfx('nuage.sort');sfx('air.regain');}}catch(e){}
+    if(JEAU.t>.3){try{addTrick('jailli','HORS DE L EAU !',8+Math.min(18,JEAU.prof*.12),2);flowAdd(8,'risque');}catch(e){}}}
+  if(!JEAU.dans)return false;
+  // ---- SOUS L'EAU : la gravité retournée, l'eau qui freine ----
+  JEAU.t+=dt;if(prof>JEAU.prof)JEAU.prof=prof;
+  fallVel.y+=FALL_G*gK()*(1+EAU.pousse)*dtF;
+  {const kh=Math.exp(-EAU.freinH*dtF),kv=Math.exp(-EAU.freinV*dtF);fallVel.x*=kh;fallVel.z*=kh;fallVel.y*=kv;}
+  if(prof>EAU.fond&&fallVel.y<0)fallVel.y*=.85; // le fond (on n'y arrive pas : la poussée ramène bien avant)
+  fallTR=Math.max(0,fallTR-dt*3); // la jauge du vol se remplit sous l'eau
+  if(Math.random()<dt*(nitroOn?40:16))jadeBullesJet(carGroup.position,nitroOn?4:2,1.6);
+  return true;}
+function jadeGerbe(x,y,z,n){ // la GERBE de la caisse : la réserve d'écume des montagnes, en cubes plus petits (l'objectif la traverse)
+  for(let k=0;k<n&&JCH.sp.length<650;k++){const a=Math.random()*6.2832,rr=Math.random()*3.2,v=3+Math.random()*9;
+    JCH.sp.push({x:x+Math.cos(a)*rr,y:y+1.5,z:z+Math.sin(a)*rr,vx:Math.cos(a)*v,vy:10+Math.random()*24,vz:Math.sin(a)*v,sz:.45+Math.random()*1.25,t:0,l:1.1+Math.random()*1.1});}}
+function jadeBullesIm(){if(JEAU.im)return JEAU.im;
+  const m=new THREE.MeshBasicMaterial({color:0xd6fbff,transparent:true,opacity:.62,depthWrite:false,fog:true});m.dispose=function(){};
+  const im=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),m,320);im.count=0;im.frustumCulled=false;im.renderOrder=7;im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  scene.add(im);JEAU.im=im;return im;}
+function jadeBullesJet(p,n,r){jadeBullesIm();for(let k=0;k<n&&JEAU.bul.length<320;k++){const a=Math.random()*6.2832,rr=Math.random()*r;
+  JEAU.bul.push({x:p.x+Math.cos(a)*rr,y:p.y+(Math.random()-.5)*r,z:p.z+Math.sin(a)*rr,v:3+Math.random()*7,s:.12+Math.random()*.38,t:0,l:1.2+Math.random()*1.8,ph:Math.random()*6.28});}}
+function jadeBullesTick(dt){const im=JEAU.im;if(!im)return;const B9=JEAU.bul;if(!B9.length){if(im.count)im.count=0;return;}let n=0;const M9=JCH_M;
+  for(let i=B9.length-1;i>=0;i--){const b=B9[i];if(!paused){b.t+=dt;b.v=Math.min(14,b.v+6*dt);b.y+=b.v*dt;b.x+=Math.sin(b.t*5+b.ph)*dt*.9;b.z+=Math.cos(b.t*4.3+b.ph)*dt*.9;}
+    if(b.t>b.l||b.y>jadeSurfCase(b.x,b.z)){B9.splice(i,1);continue;}
+    const k=b.s*(1-Math.pow(b.t/b.l,4));M9.makeScale(k,k,k).setPosition(b.x,b.y,b.z);if(n<320)im.setMatrixAt(n++,M9);}
+  im.count=n;im.instanceMatrix.needsUpdate=true;}
+const JADE_MERP_VS=['uniform float uMerY,uEauT,uN;uniform vec2 uO;attribute vec2 aCell;attribute float aFace;varying vec3 vW,vNo;varying float vEd,vH;',
+  JADE_EAU_GLSL,
+  'void main(){vec2 c=uO+aCell;float h=jMerH(c),top=uMerY+h*JMS;',
+  '  vec2 dn=aFace<.5?vec2(0.):aFace<1.5?vec2(1.,0.):aFace<2.5?vec2(-1.,0.):aFace<3.5?vec2(0.,1.):vec2(0.,-1.);',
+  '  float yb=top;if(aFace>.5)yb=min(top,uMerY+jMerH(c+dn)*JMS);',                 // un flanc ne descend que jusqu au dessus de sa voisine plus basse
+  '  vW=vec3((uO.x+position.x)*JMS,mix(yb,top,position.y),(uO.y+position.z)*JMS);',
+  '  vNo=aFace<.5?vec3(0.,1.,0.):vec3(dn.x,0.,dn.y);vH=h;',
+  '  vEd=max(abs(aCell.x+.5-uN*.5),abs(aCell.y+.5-uN*.5))/(uN*.5);',
+  '  gl_Position=projectionMatrix*viewMatrix*vec4(vW,1.);}'].join('\n');
+const JADE_MERP_FS=['uniform float uSous,uK,uFogN,uFogF,uEauT;uniform vec3 uFogC,uCielH,uCielZ,uSunDir;varying vec3 vW,vNo;varying float vEd,vH;',
+  'float cau(vec2 p,float t){vec2 q=p*.11;float a=sin(q.x+t*1.1+sin(q.y*1.7+t*.8))*sin(q.y*1.3-t*.9+sin(q.x*1.4-t*.7));return pow(1.-abs(a),6.);}',
+  'void main(){vec3 D=vW-cameraPosition;float dist=length(D);vec3 V=D/max(dist,1e-3);vec3 col;float a;',
+  '  if(uSous>.5){',                                                                     // VUE D EN DESSOUS : le miroir de l eau, et la fenêtre sur le ciel
+  '    float cs=cau(vW.xz,uEauT),win=smoothstep(.55,.80,V.y)*step(.5,vNo.y);',
+  '    vec3 tir=uFogC*1.45+vec3(.10,.24,.22)*cs,sk=mix(uCielH,uCielZ,.35)*1.12+vec3(.22,.26,.24)*cs;',
+  '    col=mix(tir,sk,win);a=mix(.93,.38,win);if(vNo.y<.5){col=uFogC*1.2+vec3(.05,.10,.10)*cs;a=.88;}',
+  '  }else{',                                                                           // VUE D AU-DESSUS : la mer en cubes du ciel, translucide (la caisse plongée s y devine)
+  '    float hn=clamp((vH+5.)/9.,0.,1.);vec3 wc=mix(vec3(.03,.18,.27),vec3(.20,.58,.64),hn);',
+  '    float F=.03+.97*pow(1.-abs(dot(V,vNo)),5.);vec3 Rf=reflect(V,vNo),sk=mix(uCielH,uCielZ,smoothstep(0.,.6,Rf.y));',
+  '    float dif=max(dot(vNo,uSunDir),0.)*.5+.5;col=mix(wc*dif,sk,F*.8);if(vNo.y<.5)col*=.72;a=mix(.6,.95,F);}',
+  '  col=mix(col,uFogC,smoothstep(uFogN,uFogF,dist));',
+  '  a*=(1.-smoothstep(.70,1.,vEd))*uK;if(a<.004)discard;',
+  '  gl_FragColor=vec4(col,a);}'].join('\n');
+function jadePeau(){if(JSOUS.peau)return JSOUS.peau;const N=JSOUS.N,P=[],A=[],F=[],I=[];let v=0;
+  const Q=[[0,[[0,1,0],[1,1,0],[1,1,1],[0,1,1]]],[1,[[1,0,0],[1,0,1],[1,1,1],[1,1,0]]],[2,[[0,0,0],[0,0,1],[0,1,1],[0,1,0]]],[3,[[0,0,1],[1,0,1],[1,1,1],[0,1,1]]],[4,[[0,0,0],[1,0,0],[1,1,0],[0,1,0]]]];
+  for(let ix=0;ix<N;ix++)for(let iz=0;iz<N;iz++)for(const q of Q){for(const c of q[1]){P.push(ix+c[0],c[1],iz+c[2]);A.push(ix,iz);F.push(q[0]);}I.push(v,v+1,v+2,v,v+2,v+3);v+=4;}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('aCell',new THREE.Float32BufferAttribute(A,2));g.setAttribute('aFace',new THREE.Float32BufferAttribute(F,1));g.setIndex(I);
+  const m=new THREE.ShaderMaterial({uniforms:{uMerY:JADE_U.uMerY,uEauT:skyU.uEauT,uN:{value:N},uO:{value:new THREE.Vector2()},uSous:{value:0},uK:{value:0},uFogN:{value:2},uFogF:{value:200},
+    uFogC:{value:new THREE.Color()},uCielH:{value:new THREE.Color()},uCielZ:{value:new THREE.Color()},uSunDir:{value:SUN_DIR}},vertexShader:JADE_MERP_VS,fragmentShader:JADE_MERP_FS,transparent:true,depthWrite:false,side:THREE.DoubleSide});
+  m.dispose=function(){};const me=new THREE.Mesh(g,m);me.frustumCulled=false;me.renderOrder=8;me.visible=false;me.matrixAutoUpdate=false;scene.add(me);JSOUS.peau=me;return me;}
+function jadeSousTick(dt){ // fin de jadeTick (après la caméra et la brume de updateClouds, juste avant le rendu)
+  const f=scene.fog,W=JSOUS.w;
+  if(W.ok&&f&&f.near===W.n&&f.far===W.f&&f.color.equals(W.c)){f.color.copy(JSOUS.base.c);f.near=JSOUS.base.n;f.far=JSOUS.base.f;} // personne n'a réécrit la brume depuis l'image d'avant : on rend la sienne
+  W.ok=false;
+  const ok=jadeEauOk()&&started;let sous=false,prof=0;
+  if(ok){const cp=camera.position;prof=jadeSurfCase(cp.x,cp.z)-cp.y;sous=prof>0;}
+  JSOUS.sous=sous;JSOUS.prof=prof;skyU.uSous.value=sous?1:0;JADE_U.uSous.value=sous?1:0;
+  JEAU.sorti+=dt;JEAU.k+=(((JEAU.dans||sous)?1:0)-JEAU.k)*Math.min(1,dt*6);
+  if(sous&&f){JSOUS.base.c.copy(f.color);JSOUS.base.n=f.near;JSOUS.base.f=f.far;
+    const dp=Math.min(1,prof/260);JSOUS.c.copy(JSOUS.cA).lerp(JSOUS.cB,dp);
+    {const h=BIO.cur.jdH||[.9,.9,.85];JSOUS.c.r=JSOUS.c.r*.9+h[0]*.1*(1-dp);JSOUS.c.g=JSOUS.c.g*.9+h[1]*.1*(1-dp);JSOUS.c.b=JSOUS.c.b*.9+h[2]*.1*(1-dp);} // près de la surface, un peu du ciel
+    f.color.copy(JSOUS.c);f.near=2;f.far=230-80*dp;W.c.copy(f.color);W.n=f.near;W.f=f.far;W.ok=true;
+    skyU.uSousC.value.set(JSOUS.c.r,JSOUS.c.g,JSOUS.c.b);}
+  const want=ok&&(sous||JEAU.dans||(mode==='fall'&&JEAU.sorti<.8));
+  JSOUS.uK+=((want?1:0)-JSOUS.uK)*Math.min(1,dt*(want?12:3));
+  if(JSOUS.uK>.01||want){const pe=jadePeau(),u=pe.material.uniforms,cp=camera.position,N=JSOUS.N;pe.visible=true;
+    u.uO.value.set(Math.floor(cp.x/4)-N/2,Math.floor(cp.z/4)-N/2);u.uSous.value=sous?1:0;u.uK.value=JSOUS.uK;
+    if(f){u.uFogC.value.copy(f.color);u.uFogN.value=f.near;u.uFogF.value=f.far;}
+    const h=BIO.cur.jdH||[.9,.9,.85],z=BIO.cur.jdZ||[.48,.66,.8];u.uCielH.value.setRGB(h[0],h[1],h[2]);u.uCielZ.value.setRGB(z[0],z[1],z[2]);}
+  else if(JSOUS.peau&&JSOUS.peau.visible)JSOUS.peau.visible=false;
+  if(JEAU.im){if(!ok&&JEAU.bul.length)JEAU.bul.length=0;jadeBullesTick(dt);}}
+window.dbgEau=function(o){if(o==='profil'&&JADE.root){const r=[];for(let k=0;k<=40;k++){const i=Math.min(NP-1,Math.round(k/40*(NP-1)));r.push(Math.round(pts[i].y-JADE.eauY));}return r;} // (banc) o = {h:hauteur au-dessus de l'eau, vy, vh} : lâche la caisse au-dessus de la mer ; sans argument : l'état
+  if(o&&jadeEauOk()){const p=carGroup.position,sy=jadeSurf(p.x,p.z);if(mode!=='fall')startFall(0,0,false);fallPos.set(p.x,sy+(o.h==null?40:o.h),p.z);fallVel.y=o.vy==null?0:o.vy;if(o.vh!=null){const hx=Math.hypot(fallVel.x,fallVel.z)||1;fallVel.x*=o.vh/hx;fallVel.z*=o.vh/hx;fallVH0=Math.max(fallVH0,o.vh);}carGroup.position.copy(fallPos);}
+  const p=mode==='fall'?fallPos:carGroup.position;
+  return {ok:jadeEauOk(),mode:mode,cause:mortCause,dans:JEAU.dans,n:JEAU.n,t:+JEAU.t.toFixed(2),prof:+JEAU.prof.toFixed(1),vIn:+JEAU.vIn.toFixed(1),vRef:+JEAU.vRef.toFixed(1),
+    y:+p.y.toFixed(1),surf:JADE.root?+jadeSurf(p.x,p.z).toFixed(1):null,vy:+fallVel.y.toFixed(1),fallTR:+fallTR.toFixed(2),camSous:JSOUS.sous,camProf:+JSOUS.prof.toFixed(1),peau:+JSOUS.uK.toFixed(2),bulles:JEAU.bul.length,
+    brume:scene.fog?[Math.round(scene.fog.near),Math.round(scene.fog.far),'#'+scene.fog.color.getHexString()]:null};};
 function jadeChuteRaz(){for(const c of JCH.L){if(c.orig)for(const o of c.orig)o.F.M.set(o.m,o.si*16);if(c.fo)FIN.mats.delete(c.pi);c.t0=0;c.fin=false;c.spl=false;c.orig=null;c.fo=null;}
   if(JADE.col&&JADE.col.mort)JADE.col.mort.clear();JCH.sp.length=0;if(JCH.splash)JCH.splash.count=0;for(const c of JCH.L)c.vu=false;JADE.sig=0;}
 /* L'ARRIVÉE : au portail, l'annonce (et le temps), puis — sous le volet — le niveau repart du départ, les montagnes remises debout */
@@ -15165,7 +15303,7 @@ function jadeChauffe(){ // une instance de chaque matière, compilée hors écra
     {const i0=new THREE.InstancedMesh(b1,M9.vrO,1);i0.setMatrixAt(0,new THREE.Matrix4());g.add(i0);const b4=bx.clone();b4.setAttribute('aJ',new THREE.Float32BufferAttribute(new Float32Array(b4.attributes.position.count*4),4));g.add(new THREE.Mesh(b4,M9.vrOM));} // (v17) le loin opaque
     const b2=bx.clone();b2.setAttribute('aJ',new THREE.Float32BufferAttribute(new Float32Array(b2.attributes.position.count*4),4));g.add(new THREE.Mesh(b2,M9.vrM));
     const pl=new THREE.PlaneGeometry(1,1);pl.setAttribute('aB',new THREE.InstancedBufferAttribute(new Float32Array(4),4));const i3=new THREE.InstancedMesh(pl,JADE_BRUME_M,1);i3.setMatrixAt(0,new THREE.Matrix4());g.add(i3);
-    g.traverse(function(o){o.frustumCulled=false;});scene.add(g);renderer.compile(scene,camera);scene.remove(g);}catch(e){console.warn('jadeChauffe',e);}
+    g.traverse(function(o){o.frustumCulled=false;});scene.add(g);const pe9=jadePeau();jadeBullesIm();pe9.visible=true;renderer.compile(scene,camera);pe9.visible=false;scene.remove(g);}catch(e){console.warn('jadeChauffe',e);} // (2026-10-13) la peau de la mer et les bulles aussi
 }
 window.dbgFin=function(v,nu){ // (banc) v : les cubes minuscules on/off ; nu : les nuages en volutes on/off
   if(v!==undefined&&v!==null){FIN.on=!!v&&!TEL_NATIF;if(!FIN.on){FIN.dans.clear();for(const FF of FIN.fam)if(FF)FF.im.visible=FF.im2.visible=FF.im3.visible=false;}JADE.sig=0;}
@@ -16292,7 +16430,7 @@ Object.assign(I18N,{'NITRO INFINIE — 9 s À FOND !':'INFINITE NITRO — 9 s FL
   'AURA ×2 — 12 s : TOUTE L\'AURA COMPTE DOUBLE !':'AURA ×2 — 12 s: ALL AURA COUNTS DOUBLE!','TOUTE L\'AURA COMPTE DOUBLE':'ALL AURA COUNTS DOUBLE',
   'DOUBLE POUVOIR':'DOUBLE POWER','TRIPLE POUVOIR':'TRIPLE POWER','DOUBLE POUVOIR !':'DOUBLE POWER!','TRIPLE POUVOIR !':'TRIPLE POWER!',
   'SAUVE !':'SAVED!','LE BOUCLIER A CEDE':'THE SHIELD BROKE','LE BOUCLIER T\'A SAUVE':'THE SHIELD SAVED YOU','DEMOLI':'SMASHED',
-  'SANS FAUTE':'FLAWLESS','SERIE CASSEE':'STREAK BROKEN','MIRACULE':'MIRACLE','MIRACULE !':'MIRACLE!','RECORD DE VITESSE':'SPEED RECORD','SÉRIE COMPLÈTE':'FULL SET'});
+  'SANS FAUTE':'FLAWLESS','SERIE CASSEE':'STREAK BROKEN','MIRACULE':'MIRACLE','MIRACULE !':'MIRACLE!','RECORD DE VITESSE':'SPEED RECORD','SÉRIE COMPLÈTE':'FULL SET','PLONGEON !':'DIVE!','REPLONGEON !':'DIVE AGAIN!','HORS DE L EAU !':'OUT OF THE WATER!','PLONGEON':'DIVE','REPLONGEON':'DIVE AGAIN','HORS DE L EAU':'OUT OF THE WATER'});
 Object.assign(I18N_ZH,{'NITRO INFINIE — 9 s À FOND !':'无限氮气 — 全速 9 秒！','🪂 AIRTIME INFINI — 14 s DE VOL !':'🪂 无限滞空 — 飞行 14 秒！',
   '⚡ VITESSE ×2 — 8 s !':'⚡ 速度 ×2 — 8 秒！','9 S A FOND':'全速 9 秒','14 S DE VOL':'飞行 14 秒','8 S':'8 秒',
   'AIMANT':'磁铁','BOUCLIER':'护盾','AURA ×2':'气场 ×2','L\'OR VIENT A TOI':'金币自动飞来','UNE CHUTE PARDONNEE':'免死一次',
@@ -16300,7 +16438,7 @@ Object.assign(I18N_ZH,{'NITRO INFINIE — 9 s À FOND !':'无限氮气 — 全�
   'AURA ×2 — 12 s : TOUTE L\'AURA COMPTE DOUBLE !':'气场 ×2 — 12 秒：所有气场双倍！','TOUTE L\'AURA COMPTE DOUBLE':'所有气场双倍',
   'DOUBLE POUVOIR':'双重道具','TRIPLE POUVOIR':'三重道具','DOUBLE POUVOIR !':'双重道具！','TRIPLE POUVOIR !':'三重道具！',
   'SAUVE !':'得救！','LE BOUCLIER A CEDE':'护盾碎了','LE BOUCLIER T\'A SAUVE':'护盾救了你','DEMOLI':'撞飞',
-  'SANS FAUTE':'完美连续','SERIE CASSEE':'连击中断','MIRACULE':'奇迹','MIRACULE !':'奇迹！','RECORD DE VITESSE':'速度纪录','SÉRIE COMPLÈTE':'整组收集'});
+  'SANS FAUTE':'完美连续','SERIE CASSEE':'连击中断','MIRACULE':'奇迹','MIRACULE !':'奇迹！','RECORD DE VITESSE':'速度纪录','SÉRIE COMPLÈTE':'整组收集','PLONGEON !':'潜水！','REPLONGEON !':'再次潜水！','HORS DE L EAU !':'跃出水面！','PLONGEON':'潜水','REPLONGEON':'再次潜水','HORS DE L EAU':'跃出水面'});
 Object.assign(I18N,{'MOY':'AVG','MOYENNE BATTUE':'AVERAGE BEATEN'});Object.assign(I18N_ZH,{'MOY':'平均','MOYENNE BATTUE':'超越平均'}); // (2026-10-12) la JAUGE D'AURA
 Object.assign(I18N,{"MISSIONS":"MISSIONS","MENU":"MENU","HOME":"HOME","ATELIER":"WORKSHOP","LES TROIS DEFIS":"THE THREE CHALLENGES",
   "DEFI":"CHALLENGE","REUSSI":"DONE","SUIVI EN COURSE":"TRACKED","MEILLEUR ESSAI":"BEST RUN","RECOMPENSE":"REWARD","ENSUITE":"NEXT","CARNET":"SET",
@@ -36783,6 +36921,7 @@ function respawn(){
   for(const t9 of SILS)t9.init=false;rainbowCoupe(); // (2026-09-26) pas de ruban tendu jusqu'au point de replacement
   LIGNE.sPk=null;LIGNE.sPd=LIGNE.sPd0=s; // (LIGNE PARFAITE, audit GAMEPLAY) le balayage de trajet repart d'ici : sinon il ramassait, sans contact, l'objet qu'on venait de rater
   dolKill(); // (dauphin v3) replacer, repartir, recommencer : l'étiquette s'éteint, rien n'est versé
+  JEAU.dans=false; // (2026-10-13) replacé sur la route : plus sous l'eau
   momT=0; // (momentum v2) repartir = réserve vide
   if(introD){introD=false;if(pigGroup){scene.remove(pigGroup);pigGroup=null;}} // R pendant le largage : on annule proprement
   s=THREE.MathUtils.clamp(safeS-8,0,Math.max(0,L-80));
@@ -37552,7 +37691,8 @@ function poseParfaiteFx(divin){
 }
 function startFall(impU,impF,bord){ // bord : sortie par le CÔTÉ de la route (physique du bord v2) — pas de pop, bascule vers le vide
   const roll0=carRoll9; // (bord v2) le roulis de la carrosserie AVANT la remise à zéro : la bascule part de là
-  ECH=0;figSnd._ess=0;pitchS=0; // (console de son) une gamme neuve à chaque vol — (2026-10-09) pitchS : le manche repart du neutre
+  ECH=0;figSnd._ess=0;pitchS=0;JEAU.dans=false;JEAU.vRef=0;JEAU.n=0;JEAU.t=0;JEAU.y0=carGroup.position.y; // (2026-10-13) la mer : un vol neuf, un premier plongeon neuf
+  // (console de son) une gamme neuve à chaque vol — (2026-10-09) pitchS : le manche repart du neutre
   traceTick(false); // (2026-09-26) le ruban de gomme se coupe au décollage
   loop._nAir=nitroOn; // (2026-09-26) l'impulsion est celle de l'ALLUMAGE en vol : tenue depuis le sol, elle ne compte pas — mais elle ne dépend plus du vol d'avant
   lastNearS=s;        // (2026-09-26) le couloir de proximité (LOD, aimant) part d'ICI, pas de la fin du vol précédent (les pièces clignotaient une image)
@@ -39735,7 +39875,7 @@ function jadeMusTick(){
   const v=jadeMusVeut(),i=v?jadeMusInst():JMUS.inst;if(!i)return;
   if(v){try{if(!i.playing){i.start();JMUS.vol=-1;JMUS.P=0;JMUS.kick=false;}
       const P=1+[5,10,15,20].filter(function(t){return engTier>=t;}).length;if(P!==JMUS.P){JMUS.P=P;i.setTier(P,5);}
-      const vo=VOL.mus/.62*JMUS_NIV;if(Math.abs(vo-JMUS.vol)>.01){JMUS.vol=vo;i.setVolume(vo);}}catch(e){JMUS.err=String(e);}}
+      const vo=VOL.mus/.62*JMUS_NIV*(1-.55*JEAU.k); /* (2026-10-13) sous l'eau, la musique s'étouffe */if(Math.abs(vo-JMUS.vol)>.01){JMUS.vol=vo;i.setVolume(vo);}}catch(e){JMUS.err=String(e);}}
   else if(i.playing){try{i.stop();}catch(e){}JMUS.P=0;}}
 // (2026-10-12, Léo : « on entend parfois la musique, et il y a des coupures ») le 1er toucher de la course la REDÉMARRAIT (stop + start : coupure,
 // le morceau repartait du début) — désormais chaque toucher se contente de RÉVEILLER son contexte s'il dort (Safari ne réveille que dans un geste)
@@ -48489,6 +48629,7 @@ function loop(now){
          maxSp : la portée d'un saut ne dépend que de la vitesse d'éjection. */
       {const hx9=Math.hypot(fallVel.x,fallVel.z);if(fallVH0<0)fallVH0=Math.max(hx9,fallVel.length()); // (vol libre) plafond = la vitesse d'ÉJECTION entière : sortir d'un piqué à l'horizontale reste possible (le manche n'a plus de butée), jamais plus vite qu'au décollage
        if(hx9>fallVH0&&hx9>1){const f9=fallVH0/hx9;fallVel.x*=f9;fallVel.z*=f9;}}
+      try{jadeEauVol(dt,dtF);}catch(e){loopWarn(8192,'eau',e);} // (2026-10-13) LA MER COMME LE CIEL (voir EAU)
       if(PARK.on&&fallVel.lengthSq()>PARK_VCAP*PARK_VCAP)fallVel.setLength(PARK_VCAP); // PARC : la nitro infinie ne t'emballe pas non plus EN L'AIR — vol rapide mais pilotable
       fallPos.addScaledVector(fallVel,dtF*SPD);
       carGroup.position.copy(fallPos);
@@ -48664,7 +48805,7 @@ function loop(now){
           }
         }
       }
-      mirTick(dt); // (2026-09-28) MIRACULÉ : depuis combien de temps cette chute est-elle perdue d'avance ?
+      mirTick(dt);if(JADE.root&&jadeEauOk()){MIR.t=0;MIR.max=0;} // (2026-10-13) au-dessus de la mer, aucune chute n'est perdue d'avance // (2026-09-28) MIRACULÉ : depuis combien de temps cette chute est-elle perdue d'avance ?
       LM.a+=((LM.vu?1:0)-LM.a)*Math.min(1,dt*(LM.vu?14:7));landMark.visible=LM.a>.02;landMark.material.opacity=.85*LM.a;
       landMark.material.color.lerp(LM.c,Math.min(1,dt*12));
       // camembert de temps de vol (cyan plein pendant AIRTIME INFINI : c'est le pouvoir qui s'égrène)
@@ -48682,7 +48823,7 @@ function loop(now){
       else if(JADE.col&&jadeHeurt(fallPos)){airPie.style.display='none';try{dolFin();}catch(e){}shake=Math.max(shake,1.2);explode('pic');} // (2026-10-09) LES PICS DE JADE : un pilier, la muraille, l'arche
       else if(CITY.col&&villeHeurt(fallPos)){airPie.style.display='none';try{dolFin();}catch(e){}shake=Math.max(shake,1.2);if(PARK.on)parkRespawn();else{try{villeImpact(fallPos,fallVel);}catch(e){}explode('tour');}} // (passe graphismes) l'IMPACT sur la façade, avant explode (le bouclier le laisse jouer aussi) // (2026-09-26) DANS UNE TOUR : on meurt
       else if(tryLand(dtF)){airPie.style.display='none';dolFin();dolPose();mirPose();} // posé : le total du DAUPHIN se fige et s'encaisse — (v5) et s'ÉCRIT enfin
-      else if((fallTR>airMax()&&pwrAirT<=0&&!BALADE)||fallPos.y<trackMinY-120||(facFilet()&&MIR.t>2.2&&!PARK.on)){airPie.style.display='none';if(PARK.on)parkRespawn();else explode(fallPos.y<trackMinY-120||MIR.t>2.2?'vide':'air');} // (MODE FACILE) avec une vie en réserve, une chute perdue d'avance depuis 2,2 s est rattrapée tout de suite (on n'attend pas d'être tombé 120 m sous la piste) // FREESTYLE : trop long en l'air ou chute dans le vide = on repart, jamais de mort // plongeon fatal : sous le point le plus BAS de la piste — comparer à la route « la plus proche » tuait injustement en plein plongeon de crête (elle référençait la crête au-dessus)
+      else if((fallTR>airMax()&&pwrAirT<=0&&!BALADE)||jadeVide(fallPos.y)||(facFilet()&&MIR.t>2.2&&!PARK.on)){airPie.style.display='none';if(PARK.on)parkRespawn();else explode(jadeVide(fallPos.y)||MIR.t>2.2?'vide':'air');} // (MODE FACILE) avec une vie en réserve, une chute perdue d'avance depuis 2,2 s est rattrapée tout de suite (on n'attend pas d'être tombé 120 m sous la piste) // FREESTYLE : trop long en l'air ou chute dans le vide = on repart, jamais de mort // plongeon fatal : sous le point le plus BAS de la piste — comparer à la route « la plus proche » tuait injustement en plein plongeon de crête (elle référençait la crête au-dessus)
     }else if(mode==='boom'){ // ---- EXPLOSION ----
       boomT+=dt;
       for(const d of debris){
@@ -49045,7 +49186,7 @@ function loop(now){
            qui frappe la carrosserie. Sous 500 km/h, rien ne change. */
         {const vg9=spd3<500?spd3*.0001:.05+.025*Math.log(spd3/500)/Math.log(3.6),vC9=Math.max(1,vCroisiere()),rf9=.22*THREE.MathUtils.clamp((spd3-vC9)/vC9,0,1)*(mode==='drive'?1:.5),
                raf9=1+rf9*(.6*Math.sin(t*13.19)+.4*Math.sin(t*20.73+1.7));
-         stt(windG.gain,mode==='boom'?0:Math.min(.075,vg9+(mode==='fall'?.018:0)+cloudInS*.02)*raf9*dk*(SONV2?1-Math.min(1,LVL.espace):1),AC.currentTime,mode==='boom'?.08:rf9>.01?.06:.15);} // coef ÷2 (SPD .25→.5 : spd3 a doublé) — le vent garde sa montée progressive au lieu de saturer dès le mid-game
+         stt(windG.gain,mode==='boom'?0:Math.min(.075,vg9+(mode==='fall'?.018:0)+cloudInS*.02)*raf9*dk*(SONV2?1-Math.min(1,LVL.espace):1)*(1-.85*JEAU.k),AC.currentTime,mode==='boom'?.08:rf9>.01?.06:.15);} // coef ÷2 (SPD .25→.5 : spd3 a doublé) — le vent garde sa montée progressive au lieu de saturer dès le mid-game
         stt(windF.frequency,Math.min(16000,(280+spd3*1.25)*(1-.6*cloudInS)+(mode==='fall'?260:0)),AC.currentTime,.15); // ⚠ plafonné : au-delà de 24 kHz le navigateur crachait un avertissement PAR IMAGE // le nuage étouffe le vent, l'air libre l'aère (coef ÷2 : même pitch au même état-caisse)
       }
       if(whG){ // sifflement d'air : la signature des vitesses folles (>330 km/h)
@@ -49374,7 +49515,7 @@ function loop(now){
   try{updateSerpent(dt);}catch(e){loopWarn(8,'serpent',e);}
   try{updateBoomArt(dt);}catch(e){loopWarn(16,'boule de feu',e);}
   if(PARIS.meshes.length)parisTick(dt);
-  if(JADE.root)jadeTick(dt);else{try{jadeMusTick();}catch(e){}} // (2026-10-12) la musique du SOLEIL DE JADE se charge dès le départ, et se tait hors du niveau — (2026-10-09) LES PICS DE JADE : lumières de la matière, vent des pins, brume
+  if(JADE.root){jadeTick(dt);try{jadeSousTick(dt);}catch(e){loopWarn(16384,'sous la mer',e);}}else{try{jadeMusTick();}catch(e){}} // (2026-10-12) la musique du SOLEIL DE JADE se charge dès le départ, et se tait hors du niveau — (2026-10-09) LES PICS DE JADE : lumières de la matière, vent des pins, brume
   if(GRUE.L.length||JADE.root)grueTick(dt); // …et les vols de grues // (Paris) le scintillement et le phare
   if(POST_ON&&composer)composer.render(); // ACES + bloom
   else renderer.render(scene,camera);      // repli si le post n'a pas pu se charger
