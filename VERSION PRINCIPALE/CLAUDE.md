@@ -387,8 +387,9 @@ Un outil À CÔTÉ du jeu, qui ne refait RIEN : il lance LE JEU (`index.html`, s
     ⚠ `choix-musiques.json` et `play.json` sont les DONNÉES de Léo (pas commitées tant qu'il range) — ne pas les écraser en test.
   · **L'ÉCOUTE DES MAPS** — `simulateur/ecoute.html` (13/10, Léo : « la même page blanche avec toutes les maps ayant un système de génération
     aléatoire qui suit la vitesse, sans la jauge manuelle : le nom de la musique et un play qui fait défiler de la plus petite à la plus
-    grande vitesse, une photo représentative ») : une carte par musique distincte d'une map (d'après choix-musiques.json), photo du 1er
-    niveau ; ▶ = la musique seule, vitesse 0 → 100 % en 40 s (`MONTEE`) puis 6 s au maximum (`TENUE`), un fil sous la photo. La montée
+    grande vitesse, une photo représentative ») : UNE CARTE PAR MUSIQUE de la bibliothèque, toutes (« on les entend pas toutes » : une
+    carte par map montrait French Touch deux fois et cachait Glisse), les maps où elle joue dessous (choix-musiques.json), photo du 1er
+    niveau qui la joue ; ▶ = la musique seule, vitesse 0 → 100 % en 40 s (`MONTEE`) puis au maximum jusqu'à l'arrêt, un fil sous la photo. La montée
     suit l'HORLOGE (setInterval), pas les images : panneau caché = plus d'images, la musique continue. `ECOUTE.etat()`, `?muet=1`.
   · `?muet=1` (bancs) : la `destination` de chaque contexte audio passe par un gain nul (page, module, cadre de la page à jauge).
     `SIMU.musique()` = le pilote (MUS.inst = le module en cours).
