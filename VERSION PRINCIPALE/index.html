@@ -62,6 +62,8 @@ const POKI=POKI_BUILD||/[?&](poki|crazy|playgama)=1\b/.test(location.search);
 const PORTAIL=/[?&]crazy=1\b/.test(location.search)?'crazy':/[?&]playgama=1\b/.test(location.search)?'playgama':PORTAIL_SDK;
 const FACILE_OK=!(POKI&&PORTAIL==='crazy');
 if(POKI)document.documentElement.classList.add('poki');
+/* (2026-10-14, session INTERFACE) LA CHARTE 6 — ENCRE · BLANC · OR : toutes ses règles commencent par html.c6 ; ?ui=5 = l'ancienne interface, pour comparer (voir <style id="charte6">) */
+if(!/[?&]ui=5\b/.test(location.search))document.documentElement.classList.add('c6');
 /* PLUS AUCUNE VOIX (2026-10-07, Sacha : « masque complètement du code de main toutes les voix ») : la coupure de l'édition Poki vaut
    désormais PARTOUT — l'annonceur naît `dead` (annSpeak rend toujours son texte, rien ne se charge ni ne se joue), le « ewww » des morts
    et le « WOW » des combos sont retirés, l'interrupteur VOIX et son curseur disparaissent des réglages. Les fichiers restent dans le
@@ -7274,6 +7276,147 @@ html body.touch #nitroBar>#nxVit{width:calc(var(--nxV) + 8px)}
   #nxVit b{font-size:34px}
   #nxVit i{font-size:11px}
 }
+</style>
+<style id="charte6">
+/* =====================================================================================================================
+   LA CHARTE 6 — ENCRE · BLANC · OR (2026-10-14, session INTERFACE)
+   ---------------------------------------------------------------------------------------------------------------------
+   Sacha : « refonte totale de l'interface, ça fait trop IA — que tous les boutons soient mieux, que tous les écrans
+   soient plus cohérents, pas de boutons au mauvais endroit, pas de boutons qui se répètent, pas de trucs inutiles ; le
+   plus clair, le plus simple, le plus agréable ».
+   LE DIAGNOSTIC (40 captures, couché et debout) : cinq langages visuels dans le même jeu (la laque néon des menus, la
+   console du garage, les missions « sci-fi », la boutique blanche de Léo, le HUD) ; et la laque néon — noir violet,
+   magenta + cyan + or, plaques penchées, lueurs, reflets, dégradés, trame de points — est exactement ce qu'on reconnaît
+   comme « fait par une IA ». Le seul écran qui ne le fait pas : la BOUTIQUE de Léo (encre et blanc, à plat, droit).
+   LA RÉPONSE : toute l'interface parle la langue de la boutique.
+     · TROIS MATIÈRES, À PLAT : l'ENCRE (les plaques), le BLANC (le texte, les filets), l'OR (LA décision de l'écran,
+       une seule). Le vert = l'argent, le violet = l'aura, le rouge = le danger : sur des CHIFFRES, jamais en décor.
+     · AUCUN dégradé, AUCUNE lueur, AUCUN reflet animé, AUCUNE trame, AUCUN coin coupé, RIEN de penché.
+     · UNE touche : face pleine, filet de 2 px, épaisseur de 4 px dessous ; à l'appui elle descend de son épaisseur.
+     · Le pixel reste la voix (Press Start 2P), DROIT, sans chasse ajoutée.
+   OÙ : ce bloc est le DERNIER <style> de la page et toutes ses règles commencent par `html.c6` (posée dans le <head>,
+   retirée par `?ui=5` : l'ancienne interface, pour comparer). Les règles propres à un écran vivent dans leur propre
+   bloc `<style id="c6-…">`, posés juste après celui-ci. Les anciennes feuilles (charte4, hubGarage, uxPasse…) restent
+   dessous : elles portent encore la MISE EN PLACE ; leur matière est neutralisée ici, jeton par jeton.
+   ===================================================================================================================== */
+html.c6{
+  /* l'ENCRE (neutre, plus de violet) — du fond au filet */
+  --c6-e0:#0b0d12;--c6-e1:#13161d;--c6-e2:#1c2029;--c6-e3:#2a303c;--c6-e4:#404858;
+  /* le BLANC et ses gris */
+  --c6-b0:#ffffff;--c6-b1:#eceae4;--c6-g1:#b3b8c4;--c6-g2:#7a8292;
+  /* l'OR — face, lumière (le trait du haut), tranche, encre posée dessus */
+  --c6-or:#ffc62b;--c6-orL:#ffe389;--c6-orT:#b07a00;--c6-orE:#1d1300;
+  /* le SENS : sur des chiffres et des états, jamais en décor */
+  --c6-cash:#58e08c;--c6-aura:#b9a2ff;--c6-rouge:#ff5648;
+  --c6-t:4px;                                   /* l'épaisseur d'une touche */
+  --c6-bord:2px;                                /* le filet */
+  --c6-vite:90ms;--c6-pose:200ms;--c6-courbe:cubic-bezier(.2,.8,.2,1);
+  /* ---- les jetons de la charte 5, REMIS À PLAT : toute règle ancienne qui les lit suit sans qu'on la réécrive ---- */
+  --sk:0deg;--skI:0deg;
+  --k0:#0b0d12;--k1:#0f1218;--k2:#13161d;--k3:#1c2029;--k4:#2a303c;--kl:#404858;--kl2:#5a6376;
+  --au0:#ffe389;--au1:#ffc62b;--au2:#ffc62b;--au3:#ffc62b;--auE:#b07a00;--auO:#1d1300;--auT:#1d1300;--auG:transparent;
+  --neoM:#ffffff;--neoC:#ffffff;--neoV:#58e08c;--neoR:#ff5648;--neoA:#ffc62b;--neoL:#b3b8c4;
+  --cash:#58e08c;--cashO:#0b0d12;--aura:#b9a2ff;
+  --tx:#ffffff;--tx2:#b3b8c4;--tx3:#7a8292;--txO:#0b0d12;
+  --laque:linear-gradient(#13161d,#13161d);--laqueP:linear-gradient(#13161d,#13161d);--carbone:linear-gradient(#13161d,#13161d);
+  --tresse:linear-gradient(transparent,transparent);
+  --matrice:linear-gradient(transparent,transparent) 0 0/8px 8px;
+  --fondEcran:linear-gradient(#0b0d12,#0b0d12);
+  --fil:#2a303c;--filF:#404858;
+  --levre:inset 0 0 0 0 transparent;--tranche:#000;--anneau:#000;--ombreSol:0 0 0 0 transparent;
+  --coupe:0px;
+  --livree:linear-gradient(transparent,transparent);
+}
+
+/* ============================================ LA TOUCHE =============================================================
+   .pbtn — UNE construction. Par défaut : encre, filet blanc, épaisseur noire. --c6-f la face, --c6-l le filet,
+   --c6-tr la tranche, --c6-x le texte. Les variantes ne changent QUE ces quatre couleurs. */
+html.c6 .pbtn{--nc:var(--c6-b0);--c6-f:var(--c6-e1);--c6-l:var(--c6-b0);--c6-tr:#000;--c6-x:var(--c6-b0);
+  min-height:48px;padding:0 16px;gap:10px;border:0;border-radius:0;outline:0;
+  font-family:var(--pix);font-size:12px;line-height:1;letter-spacing:0;font-style:normal;color:var(--c6-x);text-shadow:none;
+  transform:none;filter:none;animation:none;clip-path:none;
+  background:var(--c6-f);
+  box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-l),0 var(--c6-t) 0 0 var(--c6-tr);
+  transition:transform var(--c6-vite) linear,box-shadow var(--c6-vite) linear,background-color var(--c6-vite) linear,opacity var(--c6-pose) linear}
+html.c6 .pbtn::before,html.c6 .pbtn::after{filter:none;text-shadow:none}
+html.c6 .pbtn .pxi{color:currentColor;filter:none}
+html.c6 .pbtn>span,html.c6 .pbtn>b,html.c6 .pbtn>i{font-style:normal;transform:none;text-shadow:none}
+html.c6 .pbtn:active,html.c6 .pbtn.appui{transform:translateY(var(--c6-t));filter:none;
+  box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-l),0 0 0 0 var(--c6-tr)}
+html.c6 .pbtn:focus-visible{outline:2px solid var(--c6-or);outline-offset:4px}
+html.c6 .pb-cyan,html.c6 .pb-mag{--nc:var(--c6-b0)}
+/* l'OR — LA décision de l'écran : face d'or, encre dessus, un trait de lumière en haut, tranche d'or sombre */
+html.c6 .pb-gold{--nc:var(--c6-orE);--c6-f:var(--c6-or);--c6-l:var(--c6-orE);--c6-tr:var(--c6-orT);--c6-x:var(--c6-orE);
+  background:var(--c6-or);background-size:auto;background-position:0 0;animation:none;text-shadow:none;
+  box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-orE),inset 0 calc(var(--c6-bord) + 2px) 0 0 var(--c6-orL),0 var(--c6-t) 0 0 var(--c6-orT),0 var(--c6-t) 0 var(--c6-bord) var(--c6-orE),0 0 0 var(--c6-bord) var(--c6-orE)}
+html.c6 .pb-gold:active,html.c6 .pb-gold.appui{transform:translateY(var(--c6-t));
+  box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-orE),inset 0 calc(var(--c6-bord) + 2px) 0 0 var(--c6-orL),0 0 0 0 var(--c6-orT),0 0 0 var(--c6-bord) var(--c6-orE),0 0 0 var(--c6-bord) var(--c6-orE)}
+html.c6 .pb-gold .pxi{color:var(--c6-orE)}
+/* le ROUGE — détruire (dans la confirmation seulement) · le VERT — valider */
+html.c6 .pb-red{--c6-f:var(--c6-rouge);--c6-l:#000;--c6-tr:#8e1c12;--c6-x:#fff;background:var(--c6-rouge);text-shadow:none}
+html.c6 .pb-green{--c6-f:var(--c6-cash);--c6-l:#000;--c6-tr:#1f7a45;--c6-x:var(--c6-e0);background:var(--c6-cash);text-shadow:none}
+html.c6 .pb-red .pxi,html.c6 .pb-green .pxi{color:currentColor}
+/* ÉTEINTE : elle répond encore au doigt, elle n'appelle plus l'œil */
+html.c6 .pbtn.off{--c6-f:var(--c6-e1);--c6-l:var(--c6-e4);--c6-tr:#000;--c6-x:var(--c6-g2);background:var(--c6-e1);text-shadow:none}
+/* les tailles : 48 (la touche), 64 (la décision), 48 × 48 (l'icône seule) */
+html.c6 .pbtn.big{min-height:64px;font-size:24px;letter-spacing:0}
+html.c6 .pbCarre{width:48px;min-width:48px;min-height:48px;padding:0}
+html.c6 .pbtn.ico{min-height:64px;padding:8px 10px;gap:8px;font-size:8px;letter-spacing:0}
+/* le RELÂCHER : la face s'éclaire un instant — pas de rebond */
+html.c6 .pbtn.pop,html.c6 .gTab.pop,html.c6 .gR.pop,html.c6 .gT.pop,html.c6 .mLigne.pop,html.c6 .mMode.pop{animation:c6Pop 160ms linear}
+@keyframes c6Pop{0%{filter:brightness(1.6)}100%{filter:brightness(1)}}
+/* les PASTILLES : un chiffre ou NEW — un carré d'or, droit, sans lueur */
+html.c6 .mBadge,html.c6 #bdShop{top:-8px;right:-8px;min-width:20px;padding:4px 5px 3px;font-size:8px;letter-spacing:0;transform:none;
+  color:var(--c6-orE);background:var(--c6-or);box-shadow:0 0 0 2px #000;text-shadow:none;animation:none}
+
+/* ============================================ CE QU'ON LIT ==========================================================
+   Le panneau : encre pleine, filet sourd (un panneau ne crie pas : seules les touches ont le filet blanc). */
+html.c6 :is(.mPanel,.tpPanel,.mMode,.hCard,.mObj,.modIn,#carr .carrBiome,.misPrix,.misDef){--c:0px;
+  background:var(--c6-e1);clip-path:none;box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-e3)}
+/* le TITRE D'ÉCRAN : blanc, droit, seul — plus de livrée dessous */
+html.c6 .mHead{gap:0;margin:0 0 16px}
+html.c6 :is(.mHead h3,.tpH:first-child){transform:none;font-size:16px;letter-spacing:0;color:var(--c6-b0);text-shadow:none}
+html.c6 .mHead::after,html.c6 .tpH:first-child::after{content:none}
+/* le TITRE DE SECTION : petites capitales grises, un trait plein */
+html.c6 :is(.mSec,.tpH){gap:10px;margin:16px 0 8px;font-size:8px;letter-spacing:0;color:var(--c6-g2)}
+html.c6 :is(.mSec,.tpH)::after{height:2px;background:var(--c6-e3)}
+/* les LIGNES de réglage : plus de puits autour de l'icône, un trait plein entre deux lignes */
+html.c6 :is(.mLigne,.tp.ligne){min-height:56px;gap:12px;padding:0 16px;font-size:10px;letter-spacing:0;border-top:2px solid var(--c6-e3);transition:background-color var(--c6-vite) linear}
+html.c6 :is(.mLigne,.tp.ligne):is(:active,.appui){background:var(--c6-e2)}
+html.c6 :is(.mLigne,.tp.ligne)::before{content:none}
+html.c6 :is(.mLigne,.tp.ligne)>.pxi{margin:0;color:var(--c6-b0)}
+html.c6 .mLigne.lien::after{background:var(--c6-g2)}
+/* l'INTERRUPTEUR : allumé = BLANC, patin d'encre à droite ; éteint = encre, patin gris à gauche */
+html.c6 b.bascule{width:64px;height:28px;padding:0 8px;transform:none;font-size:8px;letter-spacing:0;color:var(--c6-e0);text-shadow:none;
+  background:var(--c6-b0);box-shadow:none}
+html.c6 b.bascule::before{top:4px;right:4px;width:20px;height:20px;background:var(--c6-e0);box-shadow:none;transition:transform var(--c6-vite) linear}
+html.c6 :is(.mLigne.off b.bascule,b.bascule.ko){color:var(--c6-g2);background:var(--c6-e0);box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-e4);text-shadow:none}
+html.c6 :is(.mLigne.off b.bascule,b.bascule.ko)::before{transform:translateX(-36px);background:var(--c6-e4);box-shadow:none}
+/* la VALEUR : blanche, son chevron */
+html.c6 b.valeur{gap:8px;font-size:10px;color:var(--c6-b0);text-shadow:none}
+/* le CURSEUR : un rail plein, blanc jusqu'au patin */
+html.c6 .volRow{padding:0 16px 10px 16px}
+html.c6 .volRow.mute,html.c6 .mLigne.off+.volRow{opacity:.35;filter:none}
+html.c6 .volHd{font-size:8px;letter-spacing:0;color:var(--c6-g2)}
+html.c6 .volS{transform:none}
+html.c6 .volS::-webkit-slider-runnable-track{height:4px;background:linear-gradient(90deg,var(--c6-b0) 0,var(--c6-b0) var(--v,50%),var(--c6-e4) var(--v,50%));box-shadow:none}
+html.c6 .volS::-moz-range-track{height:4px;background:linear-gradient(90deg,var(--c6-b0) 0,var(--c6-b0) var(--v,50%),var(--c6-e4) var(--v,50%));box-shadow:none}
+html.c6 .volS::-webkit-slider-thumb{width:12px;height:24px;margin-top:-10px;background:var(--c6-b0);box-shadow:0 0 0 2px #000}
+html.c6 .volS::-moz-range-thumb{width:12px;height:24px;background:var(--c6-b0);box-shadow:0 0 0 2px #000}
+
+/* ============================================ LA FENÊTRE, LE TOAST =================================================== */
+html.c6 .modIn{--c:0px;padding:20px 16px 16px;gap:12px;box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-b0)}
+html.c6 .modB{gap:12px}
+html.c6 .modB .pbtn{min-height:48px;font-size:10px}
+html.c6 #toast{background:var(--c6-e1);clip-path:none;text-shadow:none;letter-spacing:0;box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-b0),0 var(--c6-t) 0 0 #000}
+html.c6 #toast:has(.pxi-coche){box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-cash),0 var(--c6-t) 0 0 #000}
+html.c6 #toast:has(.pxi-croix){box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-rouge),0 var(--c6-t) 0 0 #000}
+html.c6 #toast .pxi{color:var(--c6-b0)}
+html.c6 #toast .pxi-coche{color:var(--c6-cash)}
+html.c6 #toast .pxi-croix{color:var(--c6-rouge)}
+
+/* ============================================ « RÉDUIRE LES ANIMATIONS » ============================================= */
+@media (prefers-reduced-motion:reduce){html.c6 .pbtn,html.c6 .pbtn:active{transition:none}}
 </style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
