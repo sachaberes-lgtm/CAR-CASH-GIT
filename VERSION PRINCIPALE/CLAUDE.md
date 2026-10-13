@@ -1,5 +1,48 @@
 # CASH CAR — guide projet pour Claude Code
 
+## CRYPTOCITY — LA VILLE EN BULL RUN + LA PLUIE D'ARGENT v2 (2026-10-13, Léo : « avec le même système de génération automatique que les autres maps, génère une ville mais avec un twist majeur : c'est CRYPTOCITY, mais en BULL RUN — ciel joyeux, trouve plein de détails émerveillants du bull run, toute l'ambiance est différente, ça respire la réussite et l'argent ; un immeuble BULL ; et pour la peine ramène la pluie d'argent que t'as enlevée entretemps, et augmente la qualité »)
+- LE NIVEAU `NIV_CRYPTO` (id 'ville' + `crypto:1`, comme MINUIT EN VILLE : genCtrl, buildVoxCity, tours dures, loi 15 du flow suivent).
+  `CRYPTO_JEU` (lvlChoisir le rend à chaque portail : un autre quartier, une autre graine). Lancement : `dbgNiveauCrypto()` = `cryptoJouer`
+  (le chemin du jade : piste sous le voile, atelier, lâcher), ou l'adresse `?niveau=crypto` (son JOUER, accueil ET garage, lance CRYPTOCITY :
+  `cryptoPlayOk`). Remis à faux par la carrière, le jade, le retour à l'accueil. Le JOUER normal ne change pas (SOLEIL DE JADE). Simulateur :
+  map « CRYPTOCITY », niveau « BULL RUN » (`lance:{crypto}`, photo `maps-ciel/img/crypto-volant.jpg`, `play:false`).
+- À GRAINE ÉGALE C'EST LA MÊME VILLE QUE « AU-DESSUS DE LA VILLE » (vérifié : même piste, mêmes tours ; la VILLE elle-même est identique au
+  pixel près à avant) : tout ce qui est crypto tire dans son flux (`cr`, `CRYPTO.rf`). Les sites (`cryptoPlace`, appelé dans buildVoxCity
+  AVANT les tours) se RÉSERVENT (`CRYPTO.res`) : une tour qui tombe dessus est bâtie (ses tirages ont lieu) puis retirée (`cryptoTour`).
+- LE CIEL `BIOMES.bullrun` : le jour d'altitude du midi (azur, horizon et brume d'or pâle), `LVL.merA` vrai → la ville sort d'une MER DE
+  NUAGES ; `LVL.villeA` faux (ni skyline de nuit, ni abîme, ni reflets d'enseignes) ; `LVL.crypto` (fondu) : bitume anthracite + glacé
+  (`GLACE.crypto`). Accent de route vert « profit » 0x35ff9e. Pièces de la route frappées du ₿ (`coinPeint('B')`, champ orange bitcoin).
+- LES TOURS DE VERRE `cryptoMatTours` (le sommet de la ville : tri, portée des lampes ; la façade `CRYPTO_VERRE`) : 32 % émeraude · 14 % or ·
+  28 % azur · 26 % marbre, Fresnel (de face l'intérieur sombre, de biais le ciel ; l'or renvoie la LUMIÈRE du ciel, sinon il tournait olive),
+  éclat du soleil, sous l'horizon la ville sombre dans les vitres ; BANDEAU DE COURS (chiffres verts et ▲ qui défilent) sur une haute tour sur
+  deux ; parapets d'or. Pied dans la brume d'or (`cryptoPied` : la lueur violette des rues de nuit faisait des voiles ROSES). `cryptoMatToursLoin`.
+  Structures (couleur d'instance) : acier vert, or, argent, marbre ; mâts SOMBRES (dorés : des sucettes partout). Néons : vert, or, orange
+  bitcoin, menthe, blanc chaud, couronnes d'or. Réclames `cryptoMatPub` : 16 écrans LED OPAQUES (BTC +420 %, TO THE MOON, HODL, ATH, BULL RUN,
+  WAGMI, 100X, ETH, LAMBO, PUMP, GM, $1 000 000, NUMBER GO UP, CASH CAR, BUY, MOON — pictos dessinés `cryptoPicto`).
+- LES TAUREAUX (`cryptoTaureau`, géométrie `cryptoTaureauGeo` : lofts octogonaux `crLoft`, pattes-tours `crPatte`, cornes et queue `crTube`,
+  faces orientées par `crTri`) : deux (30 % et 70 % de la piste), ×1,35 (`TAUREAU_K` : dos ~250 m au-dessus de la route, cornes ~340), à
+  ~300 m de l'axe, tête BASSE tournée vers la caisse qui arrive, grandes cornes ivoire en lyre, yeux LASER qui balaient le ciel, anneau d'or
+  au mufle, queue en fouet ; verre d'or (`TAUREAU_VERRE`, Phong) et un RUBAN DE COURS vert autour du ventre à hauteur de route (`uBand`, le
+  taureau le plus proche). Une ESPLANADE (3 réserves entre lui et la route) : pas une tour devant. DURS (`cryptoHeurt`, appelé par villeHeurt).
+- LE GRAPHIQUE : trois rangées de BOUGIES qui montent le long de la route (deux petites rouges par rangée), et une tour sur huit de la forêt
+  du lointain devient une bougie ; prismes de verre sombre aux arêtes allumées, mèche pleine (`cryptoMatBougie`) ; DURES (`cryptoColBougies`
+  dans CITY.col). 12 PIÈCES ₿ GÉANTES qui tournent (la traverser en vol = « JACKPOT ! », aura, averse : `cryptoJackpot`), 8 DIAMANTS,
+  3 DIRIGEABLES à écran (`cryptoTickerTex`, le cours qui défile), la LUNE ₿ (un sprite : la face de la pièce, à la place de la lune du dôme),
+  des FUSÉES « TO THE MOON » (3, depuis les toits devant la caméra, vers la lune, sillage de fumée), des FEUX D'ARTIFICE (10 gerbes de 120
+  étoiles calculées par la puce, `cryptoFeu`). LE NOUVEL ATH toutes les 32-46 s : « NOUVEL ATH ! · BTC $ … » (slam), 5 gerbes, l'averse.
+- LA PLUIE D'ARGENT v2 (`PLA`, avant elle l'averse de glyphes de startMoneyRain ne tombait plus que passé 4 000 $ × ECO3.gain en UNE partie) :
+  billets de la pluie de richesse (les 7 couleurs + le billet ₿ `plaBilletBtc`) en feuille morte ou en culbute, courbés ; pièces ₿ et Ξ qui
+  voilent et flashent (`plaTexPieces`) ; confettis. TOUT dans le sommet (aO/aR une fois) : chute, vent, rotation, flexion, lumière ; repliés
+  dans une boîte 120 × 70 × 160 m qui suit la caméra ; fondu en trame (aucun tri). 2 appels de dessin. iPhone 900 billets + 220 pièces
+  (ordi 1 400 + 360). `PLA.dens` : CRYPTOCITY .5 en fond, 1 à chaque ATH / jackpot ; AILLEURS elle remplace l'averse de glyphes (même
+  déclencheur, `plaSurge(4.5)`). Compilée au menu (`cryptoChauffe` dans chauffeDivers) : 0 programme en course (mesuré).
+- ⚠ Piège du 13/10 : une directive `#ifdef` collée derrière du code sur la même ligne = shader refusé EN SILENCE (la pluie n'apparaissait pas).
+  `dbgCrypto('progs')` liste les programmes qui n'ont pas compilé.
+- Console : `dbgCrypto()` (comptes), `('ath')`, `('feu')`, `('fusee')`, `('pluie',s)`, `('sansPluie')`, `('taureaux')`, `('sites')`,
+  `('photo',{p,c,fov})` (caméra libre, en pause), `('cam')`, `('masque','fam'|'pla'|'taureaux'…)`, `('progs')`, `('pla')`.
+  Bancs (scratchpad de la session d53e6fe4) : `studio.py`, `studio2.py`, `route.py`, `bull.py`, `compare.py` (AVANT/APRÈS à graine égale :
+  `Math.random` forcé une fois avant `dbgSaut()`), `perf.py`, `jscheck.py` (syntaxe via Chrome, pas de node ici).
+
 ## LES VRAIS MODÈLES, PLUS RESSEMBLANTS (2026-10-13, Léo : « toutes les voitures inspirées de vrais modèles : entraîne-toi, rends-les plus réalistes et ressemblantes, super bon rendu ; montre avant / après »)
 - Méthode : chaque caisse comparée à des photos du vrai modèle (Wikimedia Commons), retouchée sur ce qui la TRAHIT (proportions, profil,
   signes), puis planche AVANT | APRÈS (trois vues de la salle blanche, même cadrage ; l'« avant » vient d'une copie intacte du main).

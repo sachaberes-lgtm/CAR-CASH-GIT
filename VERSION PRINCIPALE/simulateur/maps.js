@@ -2,7 +2,7 @@
    Le simulateur ne refait rien : il lance le jeu lui-même (index.html, tel que sur le main) directement sur le niveau choisi.
    · Une MAP = un décor du jeu, avec ses niveaux (les mêmes que la page des Niveaux, maps-ciel.html, et leurs photos).
    · `lance` : comment le jeu part sur ce niveau — { monde, n } = la CARRIÈRE (dbgCampagne(n, monde)) ; { sansFin } = la partie sans fin
-     (le JOUER de l'accueil) ; { jade } = le niveau SOLEIL DE JADE (dbgNiveauJade()).
+     (le JOUER de l'accueil) ; { jade } = le niveau SOLEIL DE JADE (dbgNiveauJade()) ; { crypto } = CRYPTOCITY (dbgNiveauCrypto()).
    · `musique` : la musique PAR DÉFAUT des niveaux de la map, ou null.
    LA MUSIQUE DES NIVEAUX (Léo, 12/10 soir : « je dois pouvoir tester mes nouveaux sons dans les maps pour choisir où ils vont, et tester
    l'intensité de la musique proportionnelle au palier moteur ») :
@@ -40,6 +40,11 @@ const MAPS = [
   // la map des PICS DE JADE en vrai niveau : `lance: { jade }` = dbgNiveauJade() du jeu
   { id: 'jade', nom: 'PICS DE JADE', musique: null, play: true, niveaux: [
     { id: 'jade', nom: 'SOLEIL DE JADE', photo: IMG + 'jade-volant.jpg', lance: { jade: true } },
+  ] },
+  // (2026-10-13, Léo : « génère une ville avec le même système que les autres maps, mais en BULL RUN — CRYPTOCITY ») la ville générée,
+  // en plein jour, en verre et en or : `lance: { crypto }` = dbgNiveauCrypto() du jeu. Pas dans le tirage du PLAY tant que Léo ne l'y met pas (pastille).
+  { id: 'crypto', nom: 'CRYPTOCITY', musique: null, play: false, niveaux: [
+    { id: 'crypto', nom: 'BULL RUN', photo: IMG + 'crypto-volant.jpg', lance: { crypto: true } },
   ] },
 ];
 
