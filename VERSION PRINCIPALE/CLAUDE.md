@@ -187,6 +187,19 @@ début — dans l'autre ça commence un peu tard ») — mesuré des DEUX côté
     le bas + 14-24 GOUTTES qui glissent ; entrée = un voile clair + un nuage de bulles autour de l'objectif. « Réduire les animations » : rien.
   · SON : `eauFiltre` insère UNE fois un passe-bas entre MASTER et BUSOUT (grand ouvert = Nyquist, 620 Hz quand l'objectif est sous l'eau) ;
     plouf grave (subBoom + deux noiseBurst) à l'entrée, jet à la sortie, `eauBloop` (bulles) sous l'eau.
+- (13/10, 3e passe, Léo : « pousse encore plus la physique, et mieux faite ») — la vraie physique de l'eau, réglée d'abord dans un
+  simulateur Python à part (mêmes équations et unités que le vol), voir le commentaire « 3e passe » au-dessus de `EAU` :
+  · ARCHIMÈDE à la part immergée (`f` sur `EAU.H` 1,3 m, B 3,4 g) → la caisse FLOTTE (~30 cm dedans) ; pilonnement amorti PAR RAPPORT
+    À LA SURFACE (`JEAU.vS`) ; traînée v² (`cq`) + linéaire ; GLISSE (portance ∝ v², traînée réduite) ; MOTEUR à flot (~65 km/h, `mot`/`vB`) ;
+    nitro sur l'eau = jet-ski (~170 km/h) ; un contact doux (< 12) = une ride, pas de choc.
+  · LA SURFACE DE LA PHYSIQUE (`jadeSurfPh`) : la moyenne des 9 colonnes (×,55), suivie à 4 m/s, τ 0,6 s — la mer du décor monte jusqu'à
+    ~30 m/s (MESURÉ 12,7 m en 0,4 s) ; la gravité du jeu (~8 m/s² dans le monde) ne suit pas : sans ça la caisse ne flottait jamais.
+  · JAILLISSEMENT seulement après un vrai plongeon (> `EAU.plonge` 6 m, > 0,4 s) : la remontée accélère, sortie à l'élan du 1er plongeon
+    ou à √(2·g·2,5·profondeur) — plus profond = plus haut. MESURÉ : chute de 70 m → 15 m de fond, ressort 25 m au-dessus du départ.
+  · L'ASSIETTE (`jadeEauNez`, branché dans l'orientation du vol) : dans l'eau la vrille s'arrête (`airRoll` ramené au tour entier), FLY_U se
+    redresse vers le ciel / la pente de la houle calmée, le nez garde le cap (`JEAU.cap`). La caméra suit ce nez (plus de balancement à flot).
+  · À flot plus de `EAU.ramene` 9 s sans nitro : `jadeEauRamene` (respawn, « LA MER TE RAMÈNE », la chaîne seule est perdue).
+  · `dbgEau()` rend aussi `f`, `wB`, `flot`, `hv`.
 - Banc : `dbgJadePoste('ramasse')` (pièces, fruits par nom, pouvoirs, plots, plaques, flaques). MESURÉ : 650 pièces, ~16 fruits, 20 pouvoirs,
   300 plots, 8 plaques par passage ; en course : pièces ramassées, défis (« EAT 4 FRUITS »), paliers moteur, aimant, jus des fruits.
 

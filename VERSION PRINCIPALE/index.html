@@ -14715,9 +14715,27 @@ function jadeEcume(x,y,z,r){const n=Math.min(90,30+r*1.6|0);
      glissent sur la vitre ; il y entre → un voile clair et un nuage de bulles.
    · LE SON : sous l'eau tout passe dans un passe-bas (MASTER → filtre → BUSOUT, posé à la 1re plongée, grand ouvert sinon) ; un plouf grave
      à l'entrée, un jet à la sortie, des bloups de bulles sous l'eau. */
-const EAU={pousse:2.4,freinH:.9,freinV:1.3,rend:1.06,hRend:.85,fond:420,choc:.5,ricoA:.24,ricoV:55};
-const JEAU={y0:0,dans:false,t:0,prof:0,vIn:0,vRef:0,hIn:0,n:0,rico:0,cd:0,k:0,sorti:9,goutT:0,bloop:0,bul:[],im:null}; // cd : le répit après un ricochet ou une sortie (la houle monte et descend de plusieurs mètres : sans lui, une caisse au ras de l'eau rentrait et ressortait sans arrêt)
+/* (2026-10-13, 3e passe — Léo : « pousse encore plus la physique, et mieux faite ») LA VRAIE PHYSIQUE DE L'EAU (réglée d'abord dans un
+   simulateur à part, mêmes équations, mêmes unités que le vol) :
+   · ARCHIMÈDE : la poussée suit la part IMMERGÉE de la caisse (`f`, de 0 à 1 sur EAU.H = 1,3 m) — B = 3,4 g quand elle est entière sous l'eau
+     (nette +2,4 g), et la caisse FLOTTE à l'équilibre (f = 1/B : ~30 cm sous la surface), elle monte et descend avec la houle.
+   · L'AMORTISSEMENT du pilonnement (cv) n'agit qu'au passage de la surface (f·(1−f)) : à flot, elle cesse de rebondir en ~1 s ;
+     dessous, rien ne retient la remontée.
+   · LA TRAÎNÉE ∝ v² (cq) + un peu de linéaire (cl), à proportion de l'immersion : à 600 km/h l'eau est un mur, au ralenti elle glisse.
+   · LA GLISSE (hydroplanage) : vite et à moitié dans l'eau, une portance ∝ v² la soulève et la traînée baisse — la nitro en fait un jet-ski.
+   · LE MOTEUR à flot : les roues brassent l'eau, la caisse file comme un bateau (~65 km/h) dans la direction du volant.
+   · LE CHOC (vitesse ×choc … ×choc+chocK selon la pente) et le RICOCHET restent ; un simple contact (moins de 12 de vitesse verticale) ne
+     fait qu'une ride.
+   · LE JAILLISSEMENT : seulement après un vrai plongeon (plus de EAU.plonge = 6 m) — la remontée ACCÉLÈRE (la mer recrache), et l'on sort au
+     moins à l'élan du premier plongeon du vol (×rend) ou à celui de la PROFONDEUR (on jaillit à ~2,5 × la profondeur atteinte) : plus on
+     plonge profond, plus on saute haut. Une vague qui lâche la caisse ne fait qu'un petit bond.
+   · L'ASSIETTE : dans l'eau la vrille s'arrête, la caisse se REDRESSE (le haut vers le ciel), à flot elle suit la pente de la houle et son
+     nez garde le cap (jadeEauNez, branché sur l'orientation du vol).
+   · À FLOT trop longtemps sans nitro (EAU.ramene s), la mer te RAMÈNE sur la route (pas de mort). */
+const EAU={B:3.4,H:1.3,cv:7,cl:.2,cq:.009,vPl:50,cP:1.2,mot:110,vB:95,choc:.55,chocK:.3,ricoA:.24,ricoV:55,rend:1.06,hRend:.85,profSaut:2.5,plonge:6,fond:420,ramene:9};
+const JEAU={y0:0,syF:NaN,vS:0,dans:false,f:0,wB:0,t:0,prof:0,vIn:0,vRef:0,hIn:0,n:0,rico:0,cd:0,k:0,sorti:9,goutT:0,bloop:0,flotT:0,cap:new THREE.Vector3(0,0,1),bul:[],im:null}; // cd : le répit après un ricochet ou une sortie (la houle monte et descend de plusieurs mètres)
 const JSOUS={sous:false,sous0:false,bascT:9,prof:0,uK:0,N:48,peau:null,base:{c:new THREE.Color(),n:0,f:0},w:{c:new THREE.Color(),n:-1,f:-1,ok:false},c:new THREE.Color(),cA:new THREE.Color(.22,.64,.66),cB:new THREE.Color(.09,.34,.42)};
+const JEAU_V=new THREE.Vector3(),JEAU_N=new THREE.Vector3();
 function jadeVide(y){return jadeEauOk()?y<JADE.eauY-EAU.fond-200:y<trackMinY-120;} // le plongeon fatal : sous la piste… sauf au-dessus de la mer
 function jadeEauOk(){return !!(JADE.root&&LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on&&isFinite(JADE.eauY));}
 function jMerHJ(cx,cz,T){const px=cx*4,py=cz*4;let r=Math.sin(cx*41.3+cz*289.1)*43758.5453;r-=Math.floor(r); // la houle du ciel (JADE_EAU_GLSL), case par case
@@ -14725,58 +14743,94 @@ function jMerHJ(cx,cz,T){const px=cx*4,py=cz*4;let r=Math.sin(cx*41.3+cz*289.1)*
 function jadeSurfCase(x,z){return JADE.eauY+jMerHJ(Math.floor(x/4),Math.floor(z/4),skyU.uEauT.value)*4;} // la colonne exacte (l'objectif)
 function jadeSurf(x,z){const T=skyU.uEauT.value,u=x/4-.5,v=z/4-.5,i=Math.floor(u),j=Math.floor(v),fu=u-i,fv=v-j; // lissée entre les centres des cases (la caisse : pas de marches)
   const a=jMerHJ(i,j,T),b=jMerHJ(i+1,j,T),c=jMerHJ(i,j+1,T),d=jMerHJ(i+1,j+1,T);return JADE.eauY+4*((a*(1-fu)+b*fu)*(1-fv)+(c*(1-fu)+d*fu)*fv);}
-function jadeEauRaz(){JEAU.dans=false;JEAU.t=0;JEAU.prof=0;JEAU.vIn=0;JEAU.vRef=0;JEAU.hIn=0;JEAU.n=0;JEAU.rico=0;JEAU.cd=0;JEAU.k=0;JEAU.sorti=9;JEAU.goutT=0;JEAU.bul.length=0;if(JEAU.im)JEAU.im.count=0;
+function jadeEauRaz(){JEAU.syF=NaN;JEAU.dans=false;JEAU.f=0;JEAU.wB=0;JEAU.t=0;JEAU.prof=0;JEAU.vIn=0;JEAU.vRef=0;JEAU.hIn=0;JEAU.n=0;JEAU.rico=0;JEAU.cd=0;JEAU.k=0;JEAU.sorti=9;JEAU.goutT=0;JEAU.flotT=0;JEAU.bul.length=0;if(JEAU.im)JEAU.im.count=0;
   EAUP.L.length=0;if(EAUP.im)EAUP.im.count=0;for(const r of EAUR.L){r.m.visible=false;r.t=9;}LENS.g.length=0;LENS.nappe=0;LENS.flash=0;if(LENS.cv)LENS.cv.style.visibility='hidden';
   JSOUS.sous=JSOUS.sous0=false;JSOUS.uK=0;if(JSOUS.peau)JSOUS.peau.visible=false;skyU.uSous.value=0;JADE_U.uSous.value=0;eauFiltre(false,true);}
+/* LA SURFACE DE LA PHYSIQUE : la mer en cubes du décor saute de 4 m d'une colonne à l'autre et monte jusqu'à ~30 m/s (MESURÉ : 12,7 m en
+   0,4 s sous la caisse — elle avalait une caisse à flot et la faisait « jaillir »). La caisse flotte sur une houle CALMÉE : la moyenne des
+   9 colonnes autour d'elle (12 m), deux fois moins haute, suivie à 4 m/s au plus et lissée (τ 0,6 s). Le décor, lui, ne change pas. */
+function jadeSurfMoy(x,z){const T=skyU.uEauT.value,i=Math.floor(x/4),j=Math.floor(z/4);let h=0;for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++)h+=jMerHJ(i+a,j+b,T);return JADE.eauY+2+4*h/9*.55;} // (+2 : le dessus moyen d'une colonne, son plancher étant arrondi en dessous ; ×,55 : la houle de la physique, deux fois plus calme)
+function jadeSurfPh(x,z,dt){const s9=jadeSurfMoy(x,z);if(!isFinite(JEAU.syF)||Math.abs(JEAU.syF-s9)>40||dt<=0){JEAU.syF=s9;JEAU.vS=0;return s9;}
+  const dl=Math.max(-4*dt,Math.min(4*dt,(s9-JEAU.syF)*Math.min(1,dt/.6)));JEAU.syF+=dl;JEAU.vS=dl/dt;return JEAU.syF;} // vS : la vitesse de la surface (m/s), pour flotter AVEC elle
 function jadeEauVol(dt,dtF){ // branche 'fall', AVANT que la position avance (la vitesse vient d'encaisser gravité, volant, manche, nitro)
-  if(!jadeEauOk()){if(JEAU.dans)JEAU.dans=false;return false;}
-  const sy=jadeSurf(fallPos.x,fallPos.z),prof=sy-fallPos.y,hv=Math.hypot(fallVel.x,fallVel.z),vmW=SPD*AIR_RATE; // vmW : vitesse du vol → m/s du monde
+  if(!jadeEauOk()){if(JEAU.dans)JEAU.dans=false;JEAU.f=0;return false;}
+  const sy=jadeSurfPh(fallPos.x,fallPos.z,dt),d=sy-fallPos.y,f=Math.min(1,Math.max(0,d/EAU.H)),hv=Math.hypot(fallVel.x,fallVel.z),vmW=SPD*AIR_RATE,g=FALL_G*gK(); // d : profondeur du DESSOUS de la caisse · f : sa part immergée
+  JEAU.f=f;
   if(fallPos.y<JEAU.y0-2)fallTR=Math.max(0,fallTR-dt); // sous le point de décollage, la mer rattrape : la jauge ne baisse pas
   if(JEAU.cd>0)JEAU.cd-=dt;
-  if(!JEAU.dans&&prof>0&&(fallVel.y<0||prof>3)&&(JEAU.cd<=0||prof>4)){
+  if(!JEAU.dans&&d>0&&(JEAU.cd<=0||d>EAU.plonge)){
     const v=Math.max(1,fallVel.length()),pente=-fallVel.y/v;
-    if(pente<EAU.ricoA&&hv>EAU.ricoV&&JEAU.rico<4&&prof<2.5){ // ---- LE RICOCHET : à plat et vite, l'eau renvoie la caisse comme un galet ----
+    if(fallVel.y<0&&pente<EAU.ricoA&&hv>EAU.ricoV&&JEAU.rico<4&&d<2.5){ // ---- LE RICOCHET : à plat et vite, l'eau renvoie la caisse comme un galet ----
       JEAU.rico++;JEAU.cd=.4;fallVel.y=Math.abs(fallVel.y)*.55+15;fallVel.x*=.82;fallVel.z*=.82;fallPos.y=sy+.4;
       const k9=Math.min(1,hv/160);jadeCouronne(fallPos.x,sy,fallPos.z,.25+.3*k9,fallVel);
       shake=Math.max(shake,.3);fovPunch=Math.max(fovPunch,5);hap([10,14]);
       try{noiseBurst(.28,.32,1500);subBoom(.18);if(SONV2)sfx('flaque.eau');}catch(e){}
       try{addTrick('ricochet',JEAU.rico>1?'RICOCHET ×'+JEAU.rico:'RICOCHET !',5*JEAU.rico,1,true);flowAdd(5,'risque');}catch(e){}
       return false;}
-    // ---- LE PLONGEON : le choc, la couronne, le plouf ----
-    JEAU.dans=true;JEAU.t=0;JEAU.prof=0;JEAU.n++;JEAU.vIn=Math.max(4,-fallVel.y);JEAU.hIn=hv;if(!JEAU.vRef)JEAU.vRef=JEAU.vIn;
-    const k9=Math.min(1,v/170);
-    fallVel.multiplyScalar(EAU.choc+.3*pente); // l'eau est un mur : à plat on s'écrase, à pic on la fend
-    jadeCouronne(fallPos.x,sy,fallPos.z,.12+.88*k9,null); // la taille de la gerbe suit la vitesse (un petit plongeon = une petite gerbe)
-    jadeBullesJet(fallPos,20+90*k9,4);
-    shake=Math.max(shake,.45+.5*k9);fovPunch=Math.max(fovPunch,9+10*k9);hap([20,30,40]);
-    try{subBoom(.4+.35*k9);noiseBurst(.6,.4+.25*k9,520);noiseBurst(.9,.18+.12*k9,2600);if(SONV2){sfx('flaque.eau');sfx('nuage.entre');}}catch(e){}
-    try{addTrick('plongeon',JEAU.n>1?'REPLONGEON !':'PLONGEON !',6+4*k9,1);flowAdd(6,'risque');}catch(e){}}
-  else if(JEAU.dans&&prof<-1&&fallVel.y>0){ // ---- LE JAILLISSEMENT : la colonne d'eau, la caisse qui ruisselle ----
-    JEAU.dans=false;JEAU.sorti=0;JEAU.goutT=1.6;JEAU.cd=.35;
-    const vr=Math.min(JEAU.vIn,JEAU.vRef||JEAU.vIn)*EAU.rend+4;if(fallVel.y<vr)fallVel.y=vr; // la mer rend l'élan du premier plongeon, jamais plus
-    {const hw=Math.max(hv,JEAU.hIn*EAU.hRend);if(hv>1){fallVel.x*=hw/hv;fallVel.z*=hw/hv;}else{tmp3.set(0,0,1).applyQuaternion(carGroup.quaternion);tmp3.y=0;if(tmp3.lengthSq()<1e-4)tmp3.set(1,0,0);tmp3.normalize();fallVel.x=tmp3.x*hw;fallVel.z=tmp3.z*hw;}
-     fallVH0=Math.max(fallVH0,hw);} // …et sa course : on repart vers la route
-    fallTR=0;fallT=Math.min(fallT,.5); // l'air rendu : une jauge de vol neuve pour reprendre la route
-    const k9=Math.min(1,fallVel.y/170);
-    jadeColonne(fallPos.x,sy,fallPos.z,fallVel.y*vmW,.15+.85*k9);
-    shake=Math.max(shake,.35);fovPunch=Math.max(fovPunch,11);hap([12,18,26]);airFlash=.6;
-    try{noiseBurst(.8,.34,2200);noiseBurst(.5,.3,450);subBoom(.22);if(SONV2){sfx('flaque.eau');sfx('nuage.sort');sfx('air.regain');}}catch(e){}
-    if(JEAU.t>.3){try{addTrick('jailli','HORS DE L EAU !',8+Math.min(18,JEAU.prof*.12),2);flowAdd(8,'risque');}catch(e){}}}
+    JEAU.dans=true;JEAU.t=0;JEAU.prof=0;JEAU.flotT=0;
+    const vn=-fallVel.y;
+    if(vn>12){ // ---- LE PLONGEON : le choc, la couronne, le plouf ----
+      JEAU.n++;JEAU.vIn=vn;JEAU.hIn=hv;if(!JEAU.vRef)JEAU.vRef=vn;
+      const k9=Math.min(1,v/170);
+      fallVel.multiplyScalar(EAU.choc+EAU.chocK*pente); // l'eau est un mur : à plat on s'écrase, à pic on la fend
+      jadeCouronne(fallPos.x,sy,fallPos.z,.12+.88*k9,null); // la taille de la gerbe suit la vitesse
+      jadeBullesJet(fallPos,20+90*k9,4);
+      shake=Math.max(shake,.45+.5*k9);fovPunch=Math.max(fovPunch,9+10*k9);hap([20,30,40]);
+      try{subBoom(.4+.35*k9);noiseBurst(.6,.4+.25*k9,520);noiseBurst(.9,.18+.12*k9,2600);if(SONV2){sfx('flaque.eau');sfx('nuage.entre');}}catch(e){}
+      try{addTrick('plongeon',JEAU.n>1?'REPLONGEON !':'PLONGEON !',6+4*k9,1);flowAdd(6,'risque');}catch(e){}}
+    else{eauRide(fallPos.x,sy,fallPos.z,.15);try{if(SONV2)sfx('flaque.eau');}catch(e){}}} // un simple contact : une ride
+  else if(JEAU.dans&&d<-.3&&fallVel.y>0){ // ---- ELLE QUITTE L'EAU ----
+    JEAU.dans=false;JEAU.cd=.35;JEAU.sorti=0;
+    if(JEAU.prof>EAU.plonge&&JEAU.t>.4){ // le JAILLISSEMENT : la colonne d'eau, la caisse qui ruisselle
+      JEAU.goutT=1.6;
+      const vr=Math.max(Math.min(JEAU.vIn,JEAU.vRef||JEAU.vIn)*EAU.rend+4,Math.sqrt(2*g*EAU.profSaut*JEAU.prof/SPD));if(fallVel.y<vr)fallVel.y=vr; // l'élan du premier plongeon, ou celui de la profondeur — jamais plus
+      {const h2=Math.hypot(fallVel.x,fallVel.z),hw=Math.max(h2,JEAU.hIn*EAU.hRend);if(h2>1){fallVel.x*=hw/h2;fallVel.z*=hw/h2;}else{fallVel.x=JEAU.cap.x*hw;fallVel.z=JEAU.cap.z*hw;}fallVH0=Math.max(fallVH0,hw);} // …et sa course : on repart vers la route
+      fallTR=0;fallT=Math.min(fallT,.5); // l'air rendu : une jauge de vol neuve
+      const k9=Math.min(1,fallVel.y/170);
+      jadeColonne(fallPos.x,sy,fallPos.z,fallVel.y*vmW,.15+.85*k9);
+      shake=Math.max(shake,.35);fovPunch=Math.max(fovPunch,11);hap([12,18,26]);airFlash=.6;
+      try{noiseBurst(.8,.34,2200);noiseBurst(.5,.3,450);subBoom(.22);if(SONV2){sfx('flaque.eau');sfx('nuage.sort');sfx('air.regain');}}catch(e){}
+      if(JEAU.t>.3){try{addTrick('jailli','HORS DE L EAU !',8+Math.min(18,JEAU.prof*.12),2);flowAdd(8,'risque');}catch(e){}}}
+    else{JEAU.goutT=.6;jadeColonne(fallPos.x,sy,fallPos.z,fallVel.y*vmW,.08);}} // une vague la lâche, un bond de bateau : un petit jet
   if(!JEAU.dans){ // hors de l'eau : la caisse ruisselle, et au ras de la surface elle laisse un sillage
-    if(JEAU.goutT>0){JEAU.goutT-=dt;const p=carGroup.position,n9=Math.random()<dt*70*JEAU.goutT/1.6?3:0;
+    if(JEAU.goutT>0){JEAU.goutT-=dt;const p=carGroup.position,n9=Math.random()<dt*70*Math.min(1,JEAU.goutT/1.6)?3:0;
       for(let k=0;k<n9;k++)eauP(p.x+(Math.random()-.5)*2.2,p.y-.2+(Math.random()-.5)*.8,p.z+(Math.random()-.5)*2.2,(Math.random()-.5)*1.5,-1-Math.random()*3,(Math.random()-.5)*1.5,.07+Math.random()*.13,1.6,sy);}
-    if(prof>-3&&hv>20&&Math.random()<dt*50)jadeSillage(sy,hv);
+    if(d>-3&&hv>20&&Math.random()<dt*50)jadeSillage(sy,hv);
     return false;}
-  // ---- SOUS L'EAU : l'eau épaisse — elle freine fort, la poussée remonte doucement ----
-  JEAU.t+=dt;if(prof>JEAU.prof)JEAU.prof=prof;
-  fallVel.y+=FALL_G*gK()*(1+EAU.pousse)*dtF;
-  {const kh=Math.exp(-EAU.freinH*dtF),kv=Math.exp(-EAU.freinV*dtF);fallVel.x*=kh;fallVel.z*=kh;fallVel.y*=kv;}
-  if(prof>EAU.fond&&fallVel.y<0)fallVel.y*=.85; // le fond (on n'y arrive pas : la poussée ramène bien avant)
-  fallTR=Math.max(0,fallTR-dt*3); // la jauge du vol se remplit sous l'eau
-  if(prof<2.5&&hv>20&&Math.random()<dt*40)jadeSillage(sy,hv); // juste sous la surface, elle la fend
-  if(Math.random()<dt*(nitroOn?45:18))jadeBullesJet(carGroup.position,nitroOn?5:2,1.8);
-  JEAU.bloop-=dt;if(JEAU.bloop<=0){JEAU.bloop=.12+Math.random()*(nitroOn?.15:.4);eauBloop(nitroOn?1:.6);}
+  // ---- DANS L'EAU : Archimède, l'amortissement, la traînée, la glisse, le moteur ----
+  JEAU.t+=dt;if(d>JEAU.prof)JEAU.prof=d;
+  fallVel.y+=g*EAU.B*f*dtF;                                   // ARCHIMÈDE : la part immergée porte
+  const recrache=JEAU.prof>EAU.plonge&&JEAU.t>.4&&fallVel.y>0&&f>=1;    // la remontée d'un vrai plongeon ACCÉLÈRE
+  if(recrache)fallVel.y+=g*1.5*dtF;
+  {const kk=1-Math.exp(-EAU.cv*Math.max(f*(1-f)*4,f<1?.6:0)*dtF);fallVel.y+=(JEAU.vS/vmW-fallVel.y)*kk;} // le pilonnement s'amortit PAR RAPPORT À LA SURFACE : à flot, la caisse monte et descend AVEC la houle (la gravité du jeu, ~8 m/s², est plus lente que la houle qui retombe : sans ça, elle décollait)
+  {const v=fallVel.length(),pl=Math.min(1,Math.max(0,(hv-EAU.vPl)/60)),k=(EAU.cl+EAU.cq*v)*(.25+.75*f)*(1-.5*pl*(1-f)),e=Math.exp(-k*dtF);
+   fallVel.x*=e;fallVel.z*=e;fallVel.y*=recrache?Math.exp(-k*.3*dtF):e; // la traînée ∝ v², moindre en glisse
+   if(f<.95&&hv>EAU.vPl)fallVel.y+=g*EAU.cP*pl*pl*Math.min(1,f*4)*dtF;} // LA GLISSE : vite et à moitié dans l'eau, elle se soulève
+  if(f>.04&&f<1){const h2=Math.hypot(fallVel.x,fallVel.z);if(h2<EAU.vB){const a=EAU.mot*(1-h2/EAU.vB)*dtF; // LE MOTEUR : à flot, les roues brassent l'eau
+    if(h2>2){fallVel.x+=fallVel.x/h2*a;fallVel.z+=fallVel.z/h2*a;}else{fallVel.x+=JEAU.cap.x*a;fallVel.z+=JEAU.cap.z*a;}}}
+  fallVH0=Math.max(fallVH0,Math.hypot(fallVel.x,fallVel.z)); // ce que l'eau donne (moteur, glisse) n'est pas plafonné par l'élan du décollage
+  if(d>EAU.fond&&fallVel.y<0)fallVel.y*=.85; // le fond (on n'y arrive pas : la poussée ramène bien avant)
+  fallTR=Math.max(0,fallTR-dt*3); // la jauge du vol se remplit dans l'eau
+  if(f<1&&JEAU.t>1){JEAU.flotT+=dt;if(JEAU.flotT>EAU.ramene&&!nitroOn){jadeEauRamene();return true;}}else JEAU.flotT=Math.max(0,JEAU.flotT-dt*2); // à flot trop longtemps : la mer te ramène
+  if(f<1&&hv>18&&Math.random()<dt*(30+hv*.4))jadeSillage(sy,hv); // à flot ou en glisse : l'étrave fend la surface
+  if(f>=1){if(Math.random()<dt*(nitroOn?45:18))jadeBullesJet(carGroup.position,nitroOn?5:2,1.8);
+    JEAU.bloop-=dt;if(JEAU.bloop<=0){JEAU.bloop=.12+Math.random()*(nitroOn?.15:.4);eauBloop(nitroOn?1:.6);}}
   return true;}
+function jadeEauRamene(){ // à flot depuis trop longtemps, sans nitro : la mer te ramène sur ta dernière route (comme le filet du mode facile — rien n'est perdu que la chaîne)
+  JEAU.dans=false;JEAU.flotT=0;JEAU.f=0;airPie.style.display='none';airFlash=0;
+  try{dolFin();}catch(e){}
+  chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;caseHud.style.opacity=0;caseHud.className='';caseHot=false;dolphT=0;
+  respawn();hopY=2.2;hopV=0;graceT=Math.max(graceT,2.2);loop._camDriveT=0;
+  try{popTexte(sansAcc(TR('LA MER TE RAMENE')),'#7dffec',2);}catch(e){}try{if(SONV2)sfx('air.regain');}catch(e){}}
+function jadeEauNez(nez,dt){ // dans l'orientation du vol : nez = la direction du nez (normalisée), à corriger ; FLY_U se redresse
+  const ci=JEAU.dans?1:0;JEAU.wB+=(ci-JEAU.wB)*Math.min(1,dt*(ci?5:1.5));const w=JEAU.wB;if(w<.01)return;
+  const hv=Math.hypot(fallVel.x,fallVel.z);if(hv>6)JEAU.cap.set(fallVel.x/hv,0,fallVel.z/hv);
+  const V=JEAU_V,sp=fallVel.length();
+  if(JEAU.f>=1&&sp>25)V.copy(fallVel).normalize(); // sous l'eau et vite : la trajectoire
+  else{V.copy(JEAU.cap);V.y=THREE.MathUtils.clamp(fallVel.y/Math.max(30,hv),-.6,.6);V.normalize();} // à flot ou lente : le CAP, le nez levé/baissé par la vitesse verticale
+  nez.lerp(V,w).normalize();
+  const N=JEAU_N;if(JEAU.f<1&&JADE.root){const p=fallPos,e=4,sx=(jadeSurfMoy(p.x+e,p.z)-jadeSurfMoy(p.x-e,p.z))/(2*e),sz=(jadeSurfMoy(p.x,p.z+e)-jadeSurfMoy(p.x,p.z-e))/(2*e);N.set(-sx*.5,1,-sz*.5).normalize();}else N.set(0,1,0);
+  FLY_U.lerp(N,Math.min(1,dt*3*w)).normalize();} // ARCHIMÈDE redresse la caisse ; à flot elle suit la pente de la houle
 /* LES CUBES D'EAU : couronne, gouttes, colonne, ruissellement, sillage — une réserve à eux (blancs d'écume, un peu bleutés) */
 const EAUP={L:[],im:null,max:1400};
 function eauPIm(){if(EAUP.im)return EAUP.im;const m=new THREE.MeshLambertMaterial({color:0xeaf9fc,emissive:0x3a6670});m.dispose=function(){};
@@ -14912,7 +14966,7 @@ window.dbgEau=function(o){if(o==='profil'&&JADE.root){const r=[];for(let k=0;k<=
   if(o&&jadeEauOk()){const p=carGroup.position,sy=jadeSurf(p.x,p.z);if(mode!=='fall')startFall(0,0,false);fallPos.set(p.x,sy+(o.h==null?40:o.h),p.z);fallVel.y=o.vy==null?0:o.vy;if(o.vh!=null){const hx=Math.hypot(fallVel.x,fallVel.z)||1;fallVel.x*=o.vh/hx;fallVel.z*=o.vh/hx;fallVH0=Math.max(fallVH0,o.vh);}carGroup.position.copy(fallPos);}
   const p=mode==='fall'?fallPos:carGroup.position;
   return {ok:jadeEauOk(),mode:mode,cause:mortCause,dans:JEAU.dans,n:JEAU.n,t:+JEAU.t.toFixed(2),prof:+JEAU.prof.toFixed(1),vIn:+JEAU.vIn.toFixed(1),vRef:+JEAU.vRef.toFixed(1),
-    y:+p.y.toFixed(1),surf:JADE.root?+jadeSurf(p.x,p.z).toFixed(1):null,vy:+fallVel.y.toFixed(1),fallTR:+fallTR.toFixed(2),camSous:JSOUS.sous,camProf:+JSOUS.prof.toFixed(1),peau:+JSOUS.uK.toFixed(2),bulles:JEAU.bul.length,rico:JEAU.rico,gouttes:EAUP.L.length,ondes:EAUR.L.filter(function(r){return r.t<r.l;}).length,vitre:LENS.g.length,nappe:+LENS.nappe.toFixed(2),filtre:MASTER&&MASTER._eauLp?Math.round(MASTER._eauLp.frequency.value):null,
+    y:+p.y.toFixed(1),surf:JADE.root?+(isFinite(JEAU.syF)?JEAU.syF:jadeSurf(p.x,p.z)).toFixed(1):null,vy:+fallVel.y.toFixed(1),fallTR:+fallTR.toFixed(2),camSous:JSOUS.sous,camProf:+JSOUS.prof.toFixed(1),peau:+JSOUS.uK.toFixed(2),bulles:JEAU.bul.length,rico:JEAU.rico,f:+JEAU.f.toFixed(2),wB:+JEAU.wB.toFixed(2),flot:+JEAU.flotT.toFixed(1),hv:+Math.hypot(fallVel.x,fallVel.z).toFixed(1),gouttes:EAUP.L.length,ondes:EAUR.L.filter(function(r){return r.t<r.l;}).length,vitre:LENS.g.length,nappe:+LENS.nappe.toFixed(2),filtre:MASTER&&MASTER._eauLp?Math.round(MASTER._eauLp.frequency.value):null,
     brume:scene.fog?[Math.round(scene.fog.near),Math.round(scene.fog.far),'#'+scene.fog.color.getHexString()]:null};};
 function jadeChuteRaz(){for(const c of JCH.L){if(c.orig)for(const o of c.orig)o.F.M.set(o.m,o.si*16);if(c.fo)FIN.mats.delete(c.pi);c.t0=0;c.fin=false;c.spl=false;c.orig=null;c.fo=null;}
   if(JADE.col&&JADE.col.mort)JADE.col.mort.clear();JCH.sp.length=0;if(JCH.splash)JCH.splash.count=0;for(const c of JCH.L)c.vu=false;JADE.sig=0;}
@@ -16529,7 +16583,7 @@ Object.assign(I18N,{'NITRO INFINIE — 9 s À FOND !':'INFINITE NITRO — 9 s FL
   'AURA ×2 — 12 s : TOUTE L\'AURA COMPTE DOUBLE !':'AURA ×2 — 12 s: ALL AURA COUNTS DOUBLE!','TOUTE L\'AURA COMPTE DOUBLE':'ALL AURA COUNTS DOUBLE',
   'DOUBLE POUVOIR':'DOUBLE POWER','TRIPLE POUVOIR':'TRIPLE POWER','DOUBLE POUVOIR !':'DOUBLE POWER!','TRIPLE POUVOIR !':'TRIPLE POWER!',
   'SAUVE !':'SAVED!','LE BOUCLIER A CEDE':'THE SHIELD BROKE','LE BOUCLIER T\'A SAUVE':'THE SHIELD SAVED YOU','DEMOLI':'SMASHED',
-  'SANS FAUTE':'FLAWLESS','SERIE CASSEE':'STREAK BROKEN','MIRACULE':'MIRACLE','MIRACULE !':'MIRACLE!','RECORD DE VITESSE':'SPEED RECORD','SÉRIE COMPLÈTE':'FULL SET','PLONGEON !':'DIVE!','REPLONGEON !':'DIVE AGAIN!','RICOCHET !':'SKIP!','RICOCHET':'SKIP','HORS DE L EAU !':'OUT OF THE WATER!','PLONGEON':'DIVE','REPLONGEON':'DIVE AGAIN','HORS DE L EAU':'OUT OF THE WATER'});
+  'SANS FAUTE':'FLAWLESS','SERIE CASSEE':'STREAK BROKEN','MIRACULE':'MIRACLE','MIRACULE !':'MIRACLE!','RECORD DE VITESSE':'SPEED RECORD','SÉRIE COMPLÈTE':'FULL SET','PLONGEON !':'DIVE!','REPLONGEON !':'DIVE AGAIN!','RICOCHET !':'SKIP!','RICOCHET':'SKIP','LA MER TE RAMENE':'THE SEA BRINGS YOU BACK','HORS DE L EAU !':'OUT OF THE WATER!','PLONGEON':'DIVE','REPLONGEON':'DIVE AGAIN','HORS DE L EAU':'OUT OF THE WATER'});
 Object.assign(I18N_ZH,{'NITRO INFINIE — 9 s À FOND !':'无限氮气 — 全速 9 秒！','🪂 AIRTIME INFINI — 14 s DE VOL !':'🪂 无限滞空 — 飞行 14 秒！',
   '⚡ VITESSE ×2 — 8 s !':'⚡ 速度 ×2 — 8 秒！','9 S A FOND':'全速 9 秒','14 S DE VOL':'飞行 14 秒','8 S':'8 秒',
   'AIMANT':'磁铁','BOUCLIER':'护盾','AURA ×2':'气场 ×2','L\'OR VIENT A TOI':'金币自动飞来','UNE CHUTE PARDONNEE':'免死一次',
@@ -16537,7 +16591,7 @@ Object.assign(I18N_ZH,{'NITRO INFINIE — 9 s À FOND !':'无限氮气 — 全�
   'AURA ×2 — 12 s : TOUTE L\'AURA COMPTE DOUBLE !':'气场 ×2 — 12 秒：所有气场双倍！','TOUTE L\'AURA COMPTE DOUBLE':'所有气场双倍',
   'DOUBLE POUVOIR':'双重道具','TRIPLE POUVOIR':'三重道具','DOUBLE POUVOIR !':'双重道具！','TRIPLE POUVOIR !':'三重道具！',
   'SAUVE !':'得救！','LE BOUCLIER A CEDE':'护盾碎了','LE BOUCLIER T\'A SAUVE':'护盾救了你','DEMOLI':'撞飞',
-  'SANS FAUTE':'完美连续','SERIE CASSEE':'连击中断','MIRACULE':'奇迹','MIRACULE !':'奇迹！','RECORD DE VITESSE':'速度纪录','SÉRIE COMPLÈTE':'整组收集','PLONGEON !':'潜水！','REPLONGEON !':'再次潜水！','RICOCHET !':'打水漂！','RICOCHET':'打水漂','HORS DE L EAU !':'跃出水面！','PLONGEON':'潜水','REPLONGEON':'再次潜水','HORS DE L EAU':'跃出水面'});
+  'SANS FAUTE':'完美连续','SERIE CASSEE':'连击中断','MIRACULE':'奇迹','MIRACULE !':'奇迹！','RECORD DE VITESSE':'速度纪录','SÉRIE COMPLÈTE':'整组收集','PLONGEON !':'潜水！','REPLONGEON !':'再次潜水！','RICOCHET !':'打水漂！','RICOCHET':'打水漂','LA MER TE RAMENE':'大海送你回来','HORS DE L EAU !':'跃出水面！','PLONGEON':'潜水','REPLONGEON':'再次潜水','HORS DE L EAU':'跃出水面'});
 Object.assign(I18N,{'MOY':'AVG','MOYENNE BATTUE':'AVERAGE BEATEN'});Object.assign(I18N_ZH,{'MOY':'平均','MOYENNE BATTUE':'超越平均'}); // (2026-10-12) la JAUGE D'AURA
 Object.assign(I18N,{"MISSIONS":"MISSIONS","MENU":"MENU","HOME":"HOME","ATELIER":"WORKSHOP","LES TROIS DEFIS":"THE THREE CHALLENGES",
   "DEFI":"CHALLENGE","REUSSI":"DONE","SUIVI EN COURSE":"TRACKED","MEILLEUR ESSAI":"BEST RUN","RECOMPENSE":"REWARD","ENSUITE":"NEXT","CARNET":"SET",
@@ -37890,7 +37944,7 @@ function poseParfaiteFx(divin){
 }
 function startFall(impU,impF,bord){ // bord : sortie par le CÔTÉ de la route (physique du bord v2) — pas de pop, bascule vers le vide
   const roll0=carRoll9; // (bord v2) le roulis de la carrosserie AVANT la remise à zéro : la bascule part de là
-  ECH=0;figSnd._ess=0;pitchS=0;JEAU.dans=false;JEAU.vRef=0;JEAU.n=0;JEAU.t=0;JEAU.rico=0;JEAU.cd=0;JEAU.y0=carGroup.position.y; // (2026-10-13) la mer : un vol neuf, un premier plongeon neuf
+  ECH=0;figSnd._ess=0;pitchS=0;JEAU.dans=false;JEAU.vRef=0;JEAU.n=0;JEAU.t=0;JEAU.rico=0;JEAU.cd=0;JEAU.syF=NaN;JEAU.y0=carGroup.position.y; // (2026-10-13) la mer : un vol neuf, un premier plongeon neuf
   // (console de son) une gamme neuve à chaque vol — (2026-10-09) pitchS : le manche repart du neutre
   traceTick(false); // (2026-09-26) le ruban de gomme se coupe au décollage
   loop._nAir=nitroOn; // (2026-09-26) l'impulsion est celle de l'ALLUMAGE en vol : tenue depuis le sol, elle ne compte pas — mais elle ne dépend plus du vol d'avant
@@ -48890,6 +48944,7 @@ function loop(now){
       // orientation stable : le nez suit la trajectoire, PAS de vrille surprise
       carGroup.scale.set(1,1,1);
       tmp.copy(fallVel).normalize();
+      if(JEAU.dans||JEAU.wB>.01)jadeEauNez(tmp,dt); // (2026-10-13) DANS L'EAU : le nez garde le cap, la caisse se redresse et suit la houle
       // (vol libre) le HAUT est transporté avec la trajectoire (on lui retire sa part le long de la vitesse) : aucun (0,1,0) du monde,
       // donc plus de repère qui dégénère en piqué à pic ni de caisse qui se remet d'elle-même à l'endroit
       FLY_U.addScaledVector(tmp,-FLY_U.dot(tmp));
@@ -48908,7 +48963,8 @@ function loop(now){
          de LACET (`yawAcc`) et n'a rien à voir avec cette rotation visuelle. */
       // (bord v2) après une sortie par le BORD la vrille tourne du côté du vide (`bascDir`) et DÉMARRE comme une vraie bascule : le pivot sur
       // la lèvre l'accélère de 25 % à 100 % en ~0,4 s. Hors bord : bascDir = 1, facteur 1 → la formule de toujours, au chiffre près.
-      airRoll+=(bascDir*(3.0+Math.min(2,fallT*.5))*(bascOn?Math.min(1,.25+bascT*1.9):1)+steer*2.2)*dtF; // VRILLE : la caisse tourne sur elle-même (suit le vol accéléré)
+      {const r9=(bascDir*(3.0+Math.min(2,fallT*.5))*(bascOn?Math.min(1,.25+bascT*1.9):1)+steer*2.2)*dtF;airRoll+=r9*(1-JEAU.wB); // VRILLE : la caisse tourne sur elle-même (suit le vol accéléré) — (2026-10-13) l'eau l'arrête et la remet à l'endroit
+       if(JEAU.wB>.01){const r0=Math.round(airRoll/6.2832)*6.2832;airRoll+=(r0-airRoll)*Math.min(1,dt*3.5*JEAU.wB);}}
       qTmp2.setFromAxisAngle(tmp,airRoll);
       qTmp.premultiply(qTmp2);
       carGroup.quaternion.slerp(qTmp,Math.min(1,dt*8));
