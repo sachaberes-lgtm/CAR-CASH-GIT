@@ -12,8 +12,11 @@
   plus de porte d'entrée.
 - HOME : plus le grand pan de ciel pâle (le mot s'y perdait ; c'était la touche la plus voyante pour l'action la moins importante). Le
   VRAI ciel du menu (`homeCielPrise`, l'idée de Léo du 11/10 : jour, couchant ou nuit) est recopié DANS la maison : sa toile est rangée
-  dans `.gLueur` et masquée par le pictogramme (`mask:var(--pxi-maison)`) — la maison est une fenêtre sur le ciel, qui luit en bleu.
+  dans `.gLueur` et masquée par le pictogramme (`mask:var(--pxi-maison)`) — la maison est une fenêtre sur le ciel, qui luit en bleu. Un liseré clair net (quatre drop-shadow d'1 px) la détoure : la NUIT, remplie de bleu nuit (toile ×1,45 sous `html.cielNuit`), elle se lit encore.
   Avant la 1re prise, un ciel peint qui défile (`gEpCiel`).
+- ⚠ À TRANCHER AVEC LÉO : le 13/10 au soir (5caa40b, « la Nyan Cat n'est plus dans le shop »), Léo a fait du CHAT POP-TART l'offre TOUJOURS
+  en tête des OFFRES de la boutique — l'onglet que Sacha a fait retirer le même jour. Le chat reste en VITRINE DE LÉGENDE sur la page OFFRES
+  de l'accueil (`u.une`), mais n'est plus dans la boutique du garage (les caisses en € n'y passaient que par cet onglet).
 - L'ŒIL (`#gOeil`) quitte la console pour la fiche (`#gCard`, dans `#gTop` : le doigt n'y fait pas tourner la vue) : une pastille de
   verre « VUE » (I18N VIEW) sous le nom de la caisse, cible de 44 px ; allumée (`vueSeule`), elle se remplit d'orange et reste seule.
 ## CRYPTOCITY — LA VILLE EN BULL RUN + LA PLUIE D'ARGENT v2 (2026-10-13, Léo : « avec le même système de génération automatique que les autres maps, génère une ville mais avec un twist majeur : c'est CRYPTOCITY, mais en BULL RUN — ciel joyeux, trouve plein de détails émerveillants du bull run, toute l'ambiance est différente, ça respire la réussite et l'argent ; un immeuble BULL ; et pour la peine ramène la pluie d'argent que t'as enlevée entretemps, et augmente la qualité »)

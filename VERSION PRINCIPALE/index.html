@@ -7269,7 +7269,8 @@ html:not(.poki) body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelier
 html:not(.poki) body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gShopBas{filter:drop-shadow(0 0 0 transparent)}
 /* HOME : la maison, fenêtre sur le ciel du menu */
 html:not(.poki) body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gRang1>#gHomeBas .gLueur{position:relative;display:inline-flex;line-height:0;width:36px;height:36px;
-  filter:drop-shadow(0 0 1px rgba(170,205,255,.95)) drop-shadow(0 0 7px var(--lu))}
+  filter:drop-shadow(1px 0 0 #b9d0ff) drop-shadow(-1px 0 0 #b9d0ff) drop-shadow(0 1px 0 #b9d0ff) drop-shadow(0 -1px 0 #b9d0ff) drop-shadow(0 0 7px var(--lu))} /* un liseré clair net : la maison se lit même remplie du ciel de NUIT */
+html.cielNuit:not(.poki) body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gRang1>#gHomeBas .gLueur>.gHomeCielCv{filter:brightness(1.45) saturate(1.15)}
 html:not(.poki) body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gRang1>#gHomeBas .gLueur .pxi{--pxs:4;margin:0;filter:none;
   background:radial-gradient(ellipse 7px 2.6px at 9px 13px,#fff 90%,transparent),radial-gradient(ellipse 5px 2px at 30px 20px,rgba(255,250,244,.92) 90%,transparent),
     radial-gradient(ellipse 8px 2.6px at 52px 27px,rgba(255,240,232,.9) 90%,transparent),
