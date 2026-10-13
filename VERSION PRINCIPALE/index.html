@@ -21953,17 +21953,19 @@ Object.assign(SHAPES,{
   a_chargeur:function(K){
   /* LE CHARGEUR — la berline musclée américaine : flancs creusés d'une ÉCOPE en C sur les portières,
      ceinture haute et vitres étroites, calandre noire EN CROIX, capot à deux écopes, et à la poupe le
-     BANDEAU DE FEUX continu, d'une aile à l'autre. */
+     BANDEAU DE FEUX continu, d'une aile à l'autre.
+     (13/10, « plus ressemblant ») le pavillon s'ARRONDIT et se resserre (il était plat et large comme une berline des années 70),
+     la lunette est plus longue, en pente de fastback. */
   const U=LPU,R=.365,ZF=1.56,ZR=-1.49;
   const P=K.kit({p:{g:'p',c:0x2c2f35},k:{g:'m',c:0x121316},K:{g:'g',c:0x0b0c0f},c:{g:'c',c:0xe9ecf0},
     g:{g:'g',c:0x16202a},W:{g:'l',c:0xf2f7ff},L:{g:'l',c:0xff1a2a},r:{g:'l',c:0x9a0f1a},O:{g:'l',c:0xffa21a}});
   const qz=(k,xa,xb,ya,yb,z)=>{P.tri(k,[xa,ya,z],[xb,ya,z],[xb,yb,z]);P.tri(k,[xa,ya,z],[xb,yb,z],[xa,yb,z]);};
   const AR=[[0,2*R+.05],[R*.60,2*R+.03],[R*.98,R*1.16],[R+.12,.34]];
-  const CW=1.30,RF=.36,RR=-.72,RB=-1.76,ZE=2.50;
-  const zs=[-ZE,-2.44,-2.30,RB,-1.20,RR,-.02,.10,RF,CW,2.00,2.30,2.44,ZE];
+  const CW=1.30,RF=.36,RR=-.50,RB=-1.76,ZE=2.50;
+  const zs=[-ZE,-2.44,-2.30,RB,-1.20,-.86,-.80,RR,-.02,.10,RF,CW,2.00,2.30,2.44,ZE];
   for(const w of [ZF,ZR])for(const d of [R*.60,R*.98,R+.12])zs.push(w-d,w+d);
   zs.sort((a,b)=>a-b);
-  const yC=z=>U.lin([[-ZE,.98],[-2.44,1.07],[-2.30,1.08],[RB,1.09],[-1.20,1.34],[RR,1.45],[RF,1.47],[CW,1.00],[2.00,.93],[2.30,.89],[2.44,.85],[ZE,.80]],z),
+  const yC=z=>U.lin([[-ZE,.98],[-2.44,1.07],[-2.30,1.08],[RB,1.09],[-1.20,1.30],[-.80,1.415],[RR,1.45],[RF,1.47],[CW,1.00],[2.00,.93],[2.30,.89],[2.44,.85],[ZE,.80]],z),
         xW=z=>U.lin([[-ZE,.84],[-2.36,.92],[-1.90,.95],[1.90,.95],[2.30,.90],[ZE,.80]],z),
         bL=z=>U.lin([[-ZE,1.05],[CW,.98]],z),
         sC=z=>U.lin([[-1.02,0],[-.80,.04],[.80,.04],[1.08,0]],z),cab=z=>z>RB-.001&&z<CW+.001;
@@ -21971,12 +21973,12 @@ Object.assign(SHAPES,{
     const yb=U.arch(z,[ZF,ZR],AR,.32),c=yC(z),xw=xW(z),bl=bL(z),y2=Math.max(yb+.06,.40),y3=Math.max(.56,y2+.01),
           y4=Math.min(Math.max(.76,y3+.01),c-.12),y5=Math.max(y4+.01,Math.min(bl-.06,c-.08)),y6=Math.max(y5+.01,Math.min(bl,c-.03));
     const s=[[0,yb],[xw-.07,yb],[xw-.01,y2],[xw,y3],[xw-sC(z),y4],[xw,y5],[xw-.04,y6]];
-    if(cab(z)){const xr=U.lin([[RB,.78],[RR,.70],[RF,.70],[CW,.82]],z);s.push([xr,Math.max(y6+.01,c-.05)],[xr-.10,c],[0,c+.012]);}
+    if(cab(z)){const xr=U.lin([[RB,.74],[RR,.64],[RF,.64],[CW,.80]],z);s.push([xr,Math.max(y6+.01,c-.07)],[xr*.55,Math.max(y6+.02,c-.012)],[0,c+.012]);}
     else s.push([xw-.14,Math.max(y6+.002,c-.005)],[xw-.48,c+.004],[0,c+.008]);
     return s;
   },(j,z)=>{
     if(j===0||j===1)return 'k';                                      /* bas de caisse noir, jupes */
-    if(j===6&&cab(z)){if(z>.10&&z<1.24)return 'g';if(z>-.80&&z<-.02)return 'g';if(z>-.02&&z<.10)return 'K';return 'p';}
+    if(j===6&&cab(z)){if(z>.10&&z<1.24)return 'g';if(z>-.86&&z<-.02)return 'g';if(z>-.02&&z<.10)return 'K';return 'p';}
     if(j===7&&cab(z)&&z>-.86&&z<1.26)return 'K';                     /* l'entourage de vitres noir */
     if(j===8&&((z>RF&&z<CW)||(z>RB&&z<RR)))return 'g';
     return 'p';});
@@ -22076,16 +22078,18 @@ Object.assign(SHAPES,{
           lpw:{R:R,w:.27,style:'rayons',n:5,jante:0x2e3036,accent:0x24262b}};
  },
   b_bavaroise:function(K){
+  /* (13/10, « plus ressemblante ») la sportive de Munich des années 80 : capot À PLAT jusqu'à une face droite (il plongeait),
+     le bandeau des phares et des haricots remonté sous son bord, un pare-brise plus droit, un pavillon plus long. */
   const U=LPU,R=.33,ZF=1.34,ZR=-1.22;
   const P=K.kit({p:{g:'p',c:0xf2f2f0},n:{g:'m',c:0x141518},K:{g:'g',c:0x0c0e12},g:{g:'g',c:0x1c2733},c:{g:'c',c:0xe9ecf0},
     W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a},
     b:{g:'p',c:0x3fa9f5,f:0},v:{g:'p',c:0x3a2a8c,f:0},r:{g:'p',c:0xe0201c,f:0}});
   const AR=[[0,2*R+.04],[R*.82,2*R+.03],[R+.10,.24]];
-  const zs=[-2.12,-2.07,-1.75,-1.25,-1.05,-.58,-.50,-.02,.06,.70,2.07,2.12];
+  const zs=[-2.12,-2.07,-1.75,-1.25,-1.05,-.58,-.50,.10,.18,.70,1.40,2.07,2.12];
   for(const w of [ZF,ZR])for(const d of [R*.82,R+.10,.48,.53])zs.push(w-d,w+d);
   zs.sort((a,b)=>a-b);
-  const yC=z=>U.lin([[-2.12,.98],[-2.07,1.03],[-1.75,1.045],[-1.25,1.355],[-1.15,1.375],[-.02,1.375],[.06,1.35],[.70,.95],[2.07,.87],[2.12,.83]],z),
-        yB=z=>U.lin([[-2.12,.97],[-2.07,1.00],[-1.75,.985],[.70,.925],[2.07,.86],[2.12,.83]],z),
+  const yC=z=>U.lin([[-2.12,.98],[-2.07,1.03],[-1.75,1.045],[-1.25,1.355],[-1.15,1.375],[.10,1.375],[.18,1.35],[.70,.955],[1.40,.94],[2.07,.915],[2.12,.885]],z),
+        yB=z=>U.lin([[-2.12,.97],[-2.07,1.00],[-1.75,.985],[.70,.93],[2.07,.89],[2.12,.865]],z),
         fl=z=>Math.min(Math.abs(z-ZF),Math.abs(z-ZR))<.50,
         xS=z=>U.lin([[-2.12,.76],[-2.07,.79],[2.04,.79],[2.12,.74]],z),
         cab=z=>z>-1.75&&z<.70;
@@ -22098,16 +22102,16 @@ Object.assign(SHAPES,{
     if(j<=1)return 'n';
     if(j===6&&z>-1.05&&z<.70)return (z>-.58&&z<-.50)?'n':'g';                  // vitres, montant B noir
     if((j===5||j===7)&&z>-1.05&&z<.70)return 'n';                             // l'encadrement noir des vitres
-    if(j===8&&z>.06&&z<.70)return 'g';                                         // pare-brise
+    if(j===8&&z>.18&&z<.70)return 'g';                                         // pare-brise
     if(j===8&&z>-1.75&&z<-1.25)return 'g';                                     // lunette
     return 'p';});
   // LA FACE : bandeau noir, quatre phares ronds, le double haricot
-  P.box('K',1.46,.17,.02,0,.73,2.125);
+  P.box('K',1.46,.17,.02,0,.775,2.125);
   P.sym(sd=>{
-    P.cyl('c',.095,.03,8,sd*.62,.735,2.13,'z');P.cyl('W',.078,.04,8,sd*.62,.735,2.135,'z');
-    P.cyl('c',.080,.03,8,sd*.42,.735,2.13,'z');P.cyl('W',.064,.04,8,sd*.42,.735,2.135,'z');
-    P.box('c',.15,.20,.03,sd*.09,.75,2.135);P.box('K',.11,.16,.02,sd*.09,.75,2.15);
-    for(const x of [-.025,.025])P.box('c',.012,.15,.02,sd*.09+x,.75,2.155);
+    P.cyl('c',.095,.03,8,sd*.62,.78,2.13,'z');P.cyl('W',.078,.04,8,sd*.62,.78,2.135,'z');
+    P.cyl('c',.080,.03,8,sd*.42,.78,2.13,'z');P.cyl('W',.064,.04,8,sd*.42,.78,2.135,'z');
+    P.box('c',.15,.20,.03,sd*.09,.79,2.135);P.box('K',.11,.16,.02,sd*.09,.79,2.15);
+    for(const x of [-.025,.025])P.box('c',.012,.15,.02,sd*.09+x,.79,2.155);
     P.box('W',.13,.06,.02,sd*.58,.33,2.165);                                   // antibrouillards
     P.box('O',.10,.04,.02,sd*.74,.46,2.16);
     // LES AILES EN CAISSON ont leur arête ; les trois filets courent sur le bas de caisse
@@ -22124,13 +22128,13 @@ Object.assign(SHAPES,{
   P.box('p',1.48,.035,.24,0,1.14,-1.97,.10);
   P.box('n',.46,.12,.02,0,.62,-2.125);                                          // plaque
   // les filets sur le capot, décalés à gauche : on les voit de la poursuite
-  const hz=1.385,ht=Math.atan2(.08,1.37);
-  P.box('b',.05,.006,1.36,-.34,U.lin([[.70,.95],[2.07,.87]],hz)+.006,hz,ht);
-  P.box('v',.05,.006,1.36,-.28,U.lin([[.70,.95],[2.07,.87]],hz)+.006,hz,ht);
-  P.box('r',.05,.006,1.36,-.22,U.lin([[.70,.95],[2.07,.87]],hz)+.006,hz,ht);
+  const hz=1.385,ht=Math.atan2(.04,1.37),hy=yC(hz)+.006;
+  P.box('b',.05,.006,1.36,-.34,hy,hz,ht);
+  P.box('v',.05,.006,1.36,-.28,hy,hz,ht);
+  P.box('r',.05,.006,1.36,-.22,hy,hz,ht);
   for(const x of [.34,.42])P.cyl('c',.042,.12,8,x,.29,-2.16,'z');
   K.commit(P);
-  return {hl:[.62,.735,2.14],tl:[.53,.87,-2.13],wx:.71,wzF:ZF,wzR:-ZR,
+  return {hl:[.62,.78,2.14],tl:[.53,.87,-2.13],wx:.71,wzF:ZF,wzR:-ZR,
           lpw:{R:R,w:.24,style:'multi',n:10,jante:0xd6d9de}};
 },
   b_suedoiseturbo:function(K){
@@ -22416,18 +22420,20 @@ Object.assign(SHAPES,{
           lpw:{R:R,w:.27,style:'multi',n:10,jante:0xcfd3d8}};
 },
   d_samourai:function(K){
+  /* (13/10, « plus ressemblant ») la GT-R des années 2000 est HAUTE et carrée : capot presque à plat jusqu'à un nez droit (il
+     plongeait en coin), pare-brise plus droit, phares en amande remontés sous le bord du capot. */
   const U=LPU,R=.34,ZF=1.37,ZR=-1.30;
   const P=K.kit({p:{g:'p',c:0x1f4fd0},C:{g:'s',c:0x1b1d22},K:{g:'g',c:0x16181c},k:{g:'m',c:0x131417},c:{g:'c',c:0xe9ecf0},
     g:{g:'g',c:0x18212c},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
   const AR=[[0,2*R+.05],[R*.75,2*R+.03],[R+.08,R*1.15],[R+.14,.30]];
-  const zs=[-2.30,-2.25,-2.20,-1.50,-.80,-.70,-.20,-.13,.10,.72,.78,2.10,2.24,2.30];
+  const zs=[-2.30,-2.25,-2.20,-1.50,-.85,-.70,-.20,-.13,.02,.10,.62,.68,1.40,2.10,2.24,2.30];
   for(const w of [ZF,ZR])for(const d of [R*.75,R+.08,R+.14])zs.push(w-d,w+d);
   zs.sort((a,b)=>a-b);
-  const yC=z=>U.lin([[-2.30,1.00],[-2.25,1.025],[-2.20,1.035],[-1.50,1.05],[-.80,1.345],[.10,1.36],[.78,.96],[2.10,.845],[2.24,.815],[2.30,.79]],z),
-        yB=z=>U.lin([[-2.30,.95],[-2.20,.98],[-1.50,1.00],[-.80,1.00],[.78,.94],[2.10,.81],[2.24,.79],[2.30,.765]],z),
+  const yC=z=>U.lin([[-2.30,1.00],[-2.25,1.025],[-2.20,1.035],[-1.50,1.05],[-.85,1.345],[.02,1.36],[.68,.975],[1.40,.955],[2.10,.915],[2.24,.895],[2.30,.86]],z),
+        yB=z=>U.lin([[-2.30,.95],[-2.20,.98],[-1.50,1.00],[-.80,1.00],[.68,.955],[1.40,.93],[2.10,.885],[2.24,.865],[2.30,.835]],z),
         xW=z=>U.lin([[-2.30,.83],[-2.24,.87],[-2.00,.885],[2.00,.885],[2.24,.86],[2.30,.82]],z),
-        xR=z=>U.lin([[-1.50,.80],[-.80,.70],[.10,.68],[.78,.78]],z),
-        cab=z=>z>-1.50&&z<.78;
+        xR=z=>U.lin([[-1.50,.80],[-.85,.70],[.02,.68],[.68,.78]],z),
+        cab=z=>z>-1.50&&z<.68;
   P.loft(zs,z=>{
     const yb=U.arch(z,[ZF,ZR],AR,.30),xw=xW(z),c=yC(z),b=Math.max(yB(z),yb+.14);
     const s=[[0,yb],[xw-.06,yb],[xw,Math.max(yb+.05,.40)],[xw+.015,Math.max(yb+.08,.62)],[xw,b],[xw-.06,b+.02]];
@@ -22438,8 +22444,8 @@ Object.assign(SHAPES,{
     if(j===0)return 'k';
     if(j===1&&z>-2.0&&z<2.0)return 'C';                                      // la jupe latérale
     if(j<0||j<=4||!cab(z))return 'p';
-    if(j===5){if(z<-.70||z>.72)return 'p';return (z>-.20&&z<-.13)?'K':'g';}  // custode, pied B noir, portière
-    return (z>.10||z<-.80)?'g':'p';});                                       // pare-brise, lunette, pavillon
+    if(j===5){if(z<-.70||z>.62)return 'p';return (z>-.20&&z<-.13)?'K':'g';}  // custode, pied B noir, portière
+    return (z>.02||z<-.85)?'g':'p';});                                       // pare-brise, lunette, pavillon
   // LE GRAND AILERON sur deux mâts, et son volet
   P.box('p',1.54,.045,.28,0,1.225,-2.04,-.06);
   P.box('C',1.48,.03,.09,0,1.262,-2.18,-.35);
@@ -22447,10 +22453,10 @@ Object.assign(SHAPES,{
     P.box('p',.06,.20,.14,sd*.50,1.12,-2.02);
     P.box('p',.03,.13,.32,sd*.77,1.18,-2.06);                                // les flasques
     // LES PHARES EN AMANDE : boîtier fumé, deux optiques rondes
-    P.plate('c',[[.23*sd,.625],[.52*sd,.588],[.80*sd,.60],[.825*sd,.67],[.79*sd,.757],[.52*sd,.752],[.34*sd,.71]],.012,2.30);
-    P.plate('K',[[.26*sd,.63],[.52*sd,.60],[.79*sd,.61],[.81*sd,.67],[.78*sd,.745],[.52*sd,.74],[.36*sd,.70]],.02,2.302);
-    for(const [x,r] of [[.49,.05],[.68,.06]]){P.cyl('W',r,.03,8,sd*x,.672,2.324,'z');}
-    P.box('O',.10,.03,.02,sd*.36,.655,2.325);
+    P.plate('c',[[.23*sd,.675],[.52*sd,.638],[.80*sd,.65],[.825*sd,.72],[.79*sd,.807],[.52*sd,.802],[.34*sd,.76]],.012,2.30);
+    P.plate('K',[[.26*sd,.68],[.52*sd,.65],[.79*sd,.66],[.81*sd,.72],[.78*sd,.795],[.52*sd,.79],[.36*sd,.75]],.02,2.302);
+    for(const [x,r] of [[.49,.05],[.68,.06]]){P.cyl('W',r,.03,8,sd*x,.722,2.324,'z');}
+    P.box('O',.10,.03,.02,sd*.36,.705,2.325);
     P.plate('k',[[.56*sd,.32],[.76*sd,.32],[.78*sd,.46],[.60*sd,.46]],.02,2.30); // écopes de freins
     P.box('C',.02,.12,.16,sd*(.885+.012),.66,.80);                           // l'ouïe d'aile avant
     P.box('p',.10,.08,.16,sd*.93,1.01,.70);P.box('K',.08,.03,.05,sd*.88,.98,.70); // rétro
@@ -22460,16 +22466,16 @@ Object.assign(SHAPES,{
       P.cyl('K',.05,.02,8,sd*x,.83,-2.323,'z');P.cyl(x<.5?'W':'L',.032,.02,8,sd*x,.83,-2.328,'z');}
     P.box('K',.20,.24,.02,sd*.585,.83,-2.302);
   });
-  P.plate('k',[[-.24,.63],[.24,.63],[.26,.71],[-.26,.71]],.02,2.30);        // la petite calandre
+  P.plate('k',[[-.24,.68],[.24,.68],[.26,.77],[-.26,.77]],.02,2.30);        // la petite calandre
   P.plate('k',[[-.46,.30],[.46,.30],[.50,.55],[-.50,.55]],.02,2.30);        // la grande bouche
   for(const y of [.38,.47])P.box('C',.92,.02,.02,0,y,2.325);
   P.box('C',1.62,.025,.10,0,.215,2.27);                                      // la lame carbone
-  P.box('C',.48,.02,.26,0,.862,1.98,.11);                                    // l'écope de capot
+  P.box('C',.48,.02,.26,0,.915,1.98,.05);                                    // l'écope de capot
   P.box('C',1.20,.10,.20,0,.28,-2.22);                                       // diffuseur
   P.box('K',.52,.14,.02,0,.57,-2.305);                                       // plaque
   P.cyl('c',.07,.12,10,.39,.30,-2.33,'z');P.cyl('k',.05,.13,10,.39,.30,-2.33,'z'); // UN seul gros canon
   K.commit(P);
-  return {hl:[.60,.67,2.32],tl:[.70,.83,-2.32],wx:.78,wzF:ZF,wzR:-ZR,
+  return {hl:[.60,.72,2.32],tl:[.70,.83,-2.32],wx:.78,wzF:ZF,wzR:-ZR,
           lpw:{R:R,w:.28,style:'multi',n:10,jante:0xb9bec6}};
 },
   d_vette:function(K){
@@ -22967,18 +22973,21 @@ Object.assign(SHAPES,{
           lpw:{R:R,w:.27,style:'multi',n:12,jante:0xd8c9a2}};
 },
   c_stratos:function(K){
+  /* (13/10, « plus ressemblante ») la berlinette de rallye de Turin : des AILES qui bombent au-dessus des roues (avant comme arrière)
+     et un nez arrondi vu de dessus, autour de la visière. */
+  const hmp=(z,w,r)=>{const d=Math.abs(z-w)/r;return d>=1?0:1-d*d;};
   const U=LPU,R=.33,ZF=1.07,ZR=-1.11,LF=1.855;
   const P=K.kit({p:{g:'p',c:0xe9eae4,grad:[0xa7aab0,0xdcded9,0xf4f4f0]},v:{g:'p',c:0x006b2c,f:0},r:{g:'p',c:0xc4000e,f:0},
     k:{g:'m',c:0x121317},K:{g:'g',c:0x0b0c10},c:{g:'c',c:0xe9ecf0},g:{g:'g',c:0x1c2733},
     W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a},Y:{g:'l',c:0xffe08a}});
   const AR=[[0,2*R+.05],[R*.70,2*R+.04],[R+.04,R*1.15],[R+.14,.24]];
-  const zs=[-LF,-1.80,-1.66,-1.30,-.80,-.26,-.12,.15,.55,.97,1.40,1.72,1.80,LF];
+  const zs=[-LF,-1.80,-1.66,-1.30,-.80,-.26,-.12,.15,.55,.97,1.40,1.62,1.72,1.76,1.80,LF];
   for(const w of [ZF,ZR])for(const d of [R*.70,R+.04,R+.14])zs.push(w-d,w+d);
   zs.sort((a,b)=>a-b);
-  const yB=z=>U.lin([[-LF,.72],[-1.80,.80],[-1.66,.84],[-.26,.80],[.97,.72],[1.40,.66],[1.72,.58],[1.80,.52],[LF,.46]],z),
+  const yB=z=>U.lin([[-LF,.72],[-1.80,.80],[-1.66,.84],[-.26,.80],[.97,.72],[1.40,.66],[1.72,.58],[1.80,.52],[LF,.46]],z)+.06*hmp(z,ZF,.75)+.05*hmp(z,ZR,.8),
         yT=z=>U.lin([[-LF,.76],[-1.80,.84],[-1.66,.88],[-1.30,.95],[-.80,1.03],[-.26,1.095],[.15,1.105],[.55,.98],[.97,.76],
                      [1.40,.67],[1.72,.60],[1.80,.54],[LF,.47]],z),
-        xW=z=>U.lin([[-LF,.80],[-1.78,.86],[-1.30,.875],[-.60,.84],[.20,.83],[.80,.85],[1.40,.855],[1.72,.82],[LF,.72]],z),
+        xW=z=>U.lin([[-LF,.80],[-1.78,.86],[-1.30,.875],[-.60,.84],[.20,.83],[.80,.85],[1.40,.855],[1.62,.82],[1.76,.74],[LF,.58]],z)+.03*hmp(z,ZF,.6)+.03*hmp(z,ZR,.6),
         cab=z=>z>-.27&&z<.98;
   P.loft(zs,z=>{
     const yb=U.arch(z,[ZF,ZR],AR,.22),xw=xW(z),B=yB(z),t=yT(z),y2=Math.max(.32,yb+.05);
@@ -23007,8 +23016,8 @@ Object.assign(SHAPES,{
   for(const x of [-.36,-.12,.12,.36]){P.cyl('c',.09,.07,10,x,yT(1.30)+.155,1.33,'z');P.cyl('Y',.07,.075,10,x,yT(1.30)+.155,1.345,'z');}
   P.sym(sd=>{
     P.box('k',.34,.012,.34,sd*.52,yT(1.55)+.002,1.55,-.12);                    // trappes de phares
-    P.box('k',.44,.08,.03,sd*.56,.38,LF-.005);P.box('O',.10,.05,.03,sd*.74,.46,LF-.01);
-    P.box('W',.12,.05,.03,sd*.40,.46,LF-.01);
+    P.box('k',.34,.08,.03,sd*.42,.38,LF-.005);P.box('O',.08,.05,.03,sd*.52,.46,LF-.02);
+    P.box('W',.10,.05,.03,sd*.34,.46,LF-.01);
     // LA POUPE : deux feux ronds par côté dans la face noire, le pot unique
     for(const x of [.46,.66]){P.cyl('c',.075,.03,10,sd*x,.66,-LF-.005,'z');P.cyl('L',.058,.035,10,sd*x,.66,-LF-.01,'z');}
     P.box('k',.02,.14,.40,sd*(xW(-.70)+.004),.72,-.70);                      // prise d'air latérale

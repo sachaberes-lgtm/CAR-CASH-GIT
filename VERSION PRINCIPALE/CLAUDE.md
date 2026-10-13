@@ -23,6 +23,9 @@
   ses cotes : pavillon 1,30 au lieu de 1,44, capot 0,90 ; phares au fond de la calandre) · LA ZED (capot long presque à plat, phares
   dans leurs cuvettes plus hauts) · LA SILENCIEUSE (nez plus haut et rond vu de dessus, le CÔNE noir à T des premières années, phares
   qui sortent de la tôle) · LA PUCE (coins ronds vus de dessus, pavillon plus court sur une lunette couchée).
+- Série 5 : LE SAMOURAÏ (capot haut presque à plat, pare-brise plus droit, phares remontés) · LA BAVAROISE (capot à plat, face droite,
+  pare-brise plus droit) · LA STRATOS (ailes qui bombent, nez arrondi autour de la visière) · LE CHARGEUR (pavillon arrondi et resserré,
+  lunette de fastback). LE CHARGEUR 69 était déjà fidèle : pas touché.
 
 ## LA PASSE QUALITÉ AVANT SORTIE (2026-10-12, Sacha : « trouve des bugs et règle-les, améliore des trucs à droite à gauche, fais en sorte que le jeu soit parfait et sortable »)
 Méthode : bancs Puppeteer son coupé (rendu LOGICIEL SwiftShader : Roblox Studio tenait le GPU, le Chrome de test calait sur D3D11), un
