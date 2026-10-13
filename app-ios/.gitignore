@@ -1,0 +1,4 @@
+# CAR CASH iOS — ce qui se refait tout seul
+node_modules/
+# entrées de @capacitor/assets, refaites par generer-icones.js depuis ressources/
+/assets/

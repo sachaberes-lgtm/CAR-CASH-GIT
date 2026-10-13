@@ -5,6 +5,9 @@ avant d'y toucher. `ROBLOX/` est un autre jeu, le portage Roblox : un commit ROB
 **L'édition POKI** (2026-10-04) n'est pas un autre jeu : c'est `VERSION PRINCIPALE` sans missions, carrière ni boutique, avec le SDK de
 Poki. `node poki-construire.js [crazy|itch]` en tire `POKI/`+`POKI.zip`, `CRAZY/`+`CRAZY.zip` (CrazyGames) ou `ITCH/`+`ITCH.zip` (itch.io, sans kit) — ignorés par git, à refaire après chaque changement du jeu ; `?poki=1` (`?crazy=1`)
 la montre sur n'importe quelle copie. Le détail : « L'ÉDITION POKI » dans `VERSION PRINCIPALE/CLAUDE.md`.
+**L'APP iOS** (2026-10-13, branche `ios-capacitor`) n'est pas un autre jeu non plus : `app-ios/` = Capacitor 8, appId `com.sachaberes.carcash`.
+Son `www/` est GÉNÉRÉ depuis `VERSION PRINCIPALE/` (`cd app-ios && npm run sync`, jamais à la main) ; la colle native vit dans
+`app-ios/natif/natif.js` (inerte hors de l'app). Mode d'emploi : `app-ios/LISEZ-MOI.md`.
 
 ## ⚠ LE BURN-OUT EST À LÉO (2026-10-07, Léo : « quand Sacha fait des trucs qui suppriment mes changements, code un truc qui bloque ; remets mon burn-out »)
 - Le BURN-OUT du garage (doigt tenu 0,8 s sur la caisse : le PREMIER burn-out — fumée en gros pixels, dérapage au ressort —, donut au doigt, cubes

@@ -1,0 +1,27 @@
+{
+  "name": "car-cash-ios",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CAR CASH — l'app iOS (Capacitor) qui emballe le jeu web de VERSION PRINCIPALE/",
+  "scripts": {
+    "www": "node preparer-www.js",
+    "sync": "node preparer-www.js && npx cap sync ios",
+    "icones": "node generer-icones.js && npx capacitor-assets generate --ios",
+    "ouvrir": "npx cap open ios"
+  },
+  "dependencies": {
+    "@capacitor/core": "^8.5.3",
+    "@capacitor/haptics": "^8.0.2",
+    "@capacitor/ios": "^8.5.3",
+    "@capacitor/preferences": "^8.0.1",
+    "@capacitor/splash-screen": "^8.0.2",
+    "@capacitor/status-bar": "^8.0.4"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.5.3"
+  },
+  "allowScripts": {
+    "sharp@0.32.6": true
+  }
+}
