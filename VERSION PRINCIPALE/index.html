@@ -7415,8 +7415,70 @@ html.c6 #toast .pxi{color:var(--c6-b0)}
 html.c6 #toast .pxi-coche{color:var(--c6-cash)}
 html.c6 #toast .pxi-croix{color:var(--c6-rouge)}
 
+/* ============================================ LES COMPOSANTS COMMUNS =================================================
+   Ce que plusieurs écrans partagent : ils le prennent ICI, ils ne le redessinent pas chacun (c'est comme ça qu'on avait
+   cinq langages). Le balisage type est dans ui/BRIEF.md §3. */
+/* L'EN-TÊTE d'un sous-écran : ◀ en haut à gauche (au même pixel partout), le titre, les comptes à droite.
+   Dans le flux d'une page qui défile, il colle en haut (.plein = fond d'encre, le contenu passe dessous) ;
+   .flotte = posé sur une scène 3D (garage, boutique, missions) : transparent, il ne prend que ses touches. */
+html.c6 .c6Tete{position:sticky;top:0;z-index:20;flex:none;box-sizing:border-box;display:flex;align-items:center;gap:12px;width:100%;
+  height:calc(var(--sT) + 64px);padding:calc(var(--sT) + 8px) calc(var(--sR) + 16px) 8px calc(var(--sL) + 16px);margin:0}
+html.c6 .c6Tete.plein{background:var(--c6-e0)}
+html.c6 .c6Tete.flotte{position:fixed;left:0;right:0;pointer-events:none}
+html.c6 .c6Tete.flotte>*{pointer-events:auto}
+html.c6 .c6Titre{font-family:var(--pix);font-weight:400;font-style:normal;font-size:16px;line-height:1;letter-spacing:0;color:var(--c6-b0);white-space:nowrap;text-shadow:none}
+html.c6 .c6Tete.flotte .c6Titre{text-shadow:0 2px 0 #000}
+html.c6 .c6Comptes{display:flex;align-items:center;gap:8px;margin-left:auto}
+/* LE COMPTE : la même plaquette partout (accueil, garage, boutique, fin) — l'argent vert, l'aura violette */
+html.c6 .c6Sou{display:flex;align-items:center;gap:8px;box-sizing:border-box;height:32px;padding:0 10px;background:var(--c6-e1);box-shadow:inset 0 0 0 2px var(--c6-e3);
+  font-family:var(--pix);font-size:10px;line-height:1;letter-spacing:0;color:var(--c6-b0);white-space:nowrap;text-shadow:none}
+html.c6 .c6Sou b{font-weight:400}
+html.c6 .c6Sou .pxi{--pxs:1.5}
+html.c6 .c6Sou.cash :is(b,.pxi){color:var(--c6-cash)}
+html.c6 .c6Sou.aura :is(b,.pxi){color:var(--c6-aura)}
+/* LES ONGLETS : des mots ; celui qu'on regarde est blanc et souligné de 4 px */
+html.c6 .c6Onglets{display:flex;box-shadow:inset 0 -2px 0 var(--c6-e3)}
+html.c6 .c6Onglet{flex:1 1 0;min-width:0;min-height:44px;margin:0;padding:0 8px;border:0;border-radius:0;background:none;cursor:pointer;transform:none;
+  font-family:var(--pix);font-size:10px;line-height:1;letter-spacing:0;color:var(--c6-g2);text-shadow:none;box-shadow:none;-webkit-tap-highlight-color:transparent;
+  transition:color var(--c6-vite) linear,box-shadow var(--c6-vite) linear}
+html.c6 .c6Onglet.on{color:var(--c6-b0);box-shadow:inset 0 -4px 0 var(--c6-b0)}
+/* LA CARTE D'OBJET : l'image, le nom, le prix ; la rareté = la barre de 4 px du bas (--rc) ; choisie = filet blanc */
+html.c6 .c6Carte{--rc:var(--c6-e4);position:relative;display:flex;flex-direction:column;box-sizing:border-box;min-width:0;cursor:pointer;
+  background:var(--c6-e1);box-shadow:inset 0 -4px 0 0 var(--rc),inset 0 0 0 2px var(--c6-e3);-webkit-tap-highlight-color:transparent;transition:transform var(--c6-vite) linear}
+html.c6 .c6Carte:active{transform:translateY(2px)}
+html.c6 .c6Carte.on{box-shadow:inset 0 -4px 0 0 var(--rc),inset 0 0 0 2px var(--c6-b0)}
+html.c6 .c6Carte .c6Img{display:block;width:100%;aspect-ratio:16/9;background:center/contain no-repeat}
+html.c6 .c6Carte .c6Nom{display:block;padding:8px 8px 0;font-family:var(--pix);font-weight:400;font-size:8px;line-height:12px;letter-spacing:0;color:var(--c6-b0);overflow-wrap:anywhere}
+html.c6 .c6Carte .c6Prix{display:block;padding:4px 8px 12px;font-family:var(--pix);font-weight:400;font-size:8px;line-height:12px;letter-spacing:0;color:var(--c6-cash)}
+/* UN CHIFFRE ET SA LÉGENDE · UNE JAUGE (--v de 0 à 1, --jc sa couleur) · UNE PHRASE D'AIDE */
+html.c6 .c6Stat{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
+html.c6 .c6Stat b{font-family:var(--pix);font-weight:400;font-size:16px;line-height:1;letter-spacing:0;color:var(--c6-b0)}
+html.c6 .c6Stat small{font-family:var(--pix);font-size:8px;line-height:1;letter-spacing:0;color:var(--c6-g2);white-space:nowrap}
+html.c6 .c6Jauge{display:block;height:8px;box-shadow:0 0 0 2px #000;
+  background:linear-gradient(90deg,var(--jc,var(--c6-b0)) 0,var(--jc,var(--c6-b0)) calc(var(--v,0)*100%),var(--c6-e3) calc(var(--v,0)*100%))}
+html.c6 .c6Aide{font-family:var(--sans);font-size:13px;line-height:18px;font-weight:500;letter-spacing:0;color:var(--c6-g1);text-shadow:none}
+/* SUR UNE SCÈNE CLAIRE (la boutique blanche de Léo) : les mêmes pièces, en blanc à filet d'encre */
+html.c6 .c6Clair .pbtn:not(.pb-gold):not(.pb-red):not(.pb-green){--c6-f:#fff;--c6-l:var(--c6-e0);--c6-tr:#a9aebb;--c6-x:var(--c6-e0)}
+html.c6 .c6Clair .pbtn.off{--c6-f:#fff;--c6-l:#a9aebb;--c6-tr:#d5d8df;--c6-x:#8c93a3;background:#fff}
+html.c6 .c6Clair :is(.c6Titre,.c6Onglet.on){color:var(--c6-e0);text-shadow:none}
+html.c6 .c6Clair .c6Onglet.on{box-shadow:inset 0 -4px 0 var(--c6-e0)}
+html.c6 .c6Clair .c6Onglets{box-shadow:inset 0 -2px 0 #c9ccd4}
+html.c6 .c6Clair .c6Sou{background:#fff;color:var(--c6-e0);box-shadow:inset 0 0 0 2px var(--c6-e0)}
+html.c6 .c6Clair .c6Sou.cash :is(b,.pxi){color:#12813f}
+html.c6 .c6Clair .c6Carte{background:#fff;box-shadow:inset 0 -4px 0 0 var(--rc),inset 0 0 0 2px #d5d8df}
+html.c6 .c6Clair .c6Carte.on{box-shadow:inset 0 -4px 0 0 var(--rc),inset 0 0 0 2px var(--c6-e0)}
+html.c6 .c6Clair .c6Carte .c6Nom{color:var(--c6-e0)}
+html.c6 .c6Clair .c6Carte .c6Prix{color:#12813f}
+/* UN ÉCRAN QUI ENTRE : ses blocs montent de 8 px en fondu, en cascade (5 au plus) — poser .c6Entre sur le conteneur */
+@keyframes c6Entre{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+html.c6 .c6Entre>*{animation:c6Entre var(--c6-pose) var(--c6-courbe) both}
+html.c6 .c6Entre>*:nth-child(2){animation-delay:30ms}
+html.c6 .c6Entre>*:nth-child(3){animation-delay:60ms}
+html.c6 .c6Entre>*:nth-child(4){animation-delay:90ms}
+html.c6 .c6Entre>*:nth-child(n+5){animation-delay:120ms}
+
 /* ============================================ « RÉDUIRE LES ANIMATIONS » ============================================= */
-@media (prefers-reduced-motion:reduce){html.c6 .pbtn,html.c6 .pbtn:active{transition:none}}
+@media (prefers-reduced-motion:reduce){html.c6 .pbtn,html.c6 .pbtn:active,html.c6 .c6Carte,html.c6 .c6Onglet{transition:none}html.c6 .c6Entre>*{animation:none}}
 </style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
