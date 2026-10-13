@@ -43575,8 +43575,8 @@ function gModeVa(m){
      ramène plus à la vue des raretés ; touchée repliée, elle la rouvre (ligne du dessus). TOUT ne reste que la vue d'ouverture du garage. */
   if(GMODE.m===m){ // (2026-10-11, Léo : « enlève le double-clic INVENTAIRE ou BOUTIQUE qui enlève la page, l'œil fait déjà ça ») la touche allumée, retouchée, ne replie plus rien —
     if(m==='shop'&&GMODE.paye){GMODE.paye=false;const b9=$('gRar'),s9=$('gStrip');if(b9)b9._k=null;if(s9){s9._r=null;s9.scrollTop=0;}gShopJour();return;} // (2026-10-12) RETOUR depuis les offres payantes : la vitrine du jour
-    if(m==='shop'){gGarageInv();return;} // (2026-10-12, Léo : « BOUTIQUE devient RETOUR quand on appuie dessus ») RETOUR : l'INVENTAIRE (la vue d'arrivée), les cinq touches
-    if(m==='inv'){gAtelier(!GATL.on);return;} // (2026-10-12, Léo) INVENTAIRE ferme l'atelier ; la même touche, devenue ◀ RETOUR, le rouvre
+    if(m==='shop'){gGarageReplie();return;} /* (2026-10-14) le garage REPLIÉ, plus l'inventaire */ // (2026-10-12, Léo : « BOUTIQUE devient RETOUR quand on appuie dessus ») RETOUR : l'INVENTAIRE (la vue d'arrivée), les cinq touches
+    if(m==='inv'){if(GATL.on){gAtelier(false);gGarageReplie();}else gAtelier(true);return;} /* (2026-10-14) RETOUR de l'inventaire : le garage REPLIÉ */ // (2026-10-12, Léo) INVENTAIRE ferme l'atelier ; la même touche, devenue ◀ RETOUR, le rouvre
     return;}
   GMODE.m=m;GMODE.paye=false;GMODE.fam=m==='shop'?gShopFam():null; // (2026-10-10) la famille montrée en BOUTIQUE, détachée de la caisse affichée
   const bar=$('gRar'),st=$('gStrip');if(bar)bar._k=null;if(st){st._r=null;if(m==='tous'){st.scrollTop=0;st.classList.remove('finBas');}}
@@ -43906,7 +43906,7 @@ function gStripHabits(cat,i){
 // menu s'est mis à traverser tout l'étal). Le garage RESTE la scène du départ (porte qui s'ouvre,
 // boost, logo) ; c'est seulement le PAPIER PEINT du shop qui n'a rien à faire sur un lancement rapide.
 function openGarage(quiet){
-  try{GMODE.m='inv';GMODE.paye=false;GMODE.fam=null;gConsoleCache(false);gVueSeule(false);}catch(e){} // (2026-10-12, Léo, le soir : « mets directement l'inventaire dès qu'on arrive dans le garage ») le garage s'ouvre sur l'INVENTAIRE (voir gGarageInv) — avant : (2026-10-12, Léo : « quand on appuie GARAGE, juste les 5 boutons en bas, pas la marge, la voiture encadrée ; seulement quand j'appuie INVENTAIRE s'affiche l'inventaire — pareil pour la BOUTIQUE ») le garage s'ouvre REPLIÉ, aucun mode allumé : INVENTAIRE ou BOUTIQUE déplient leur panneau (gModeVa) // (2026-10-09) la console à trois modes repart dépliée — (2026-10-10) et l'œil rouvert ; (même soir, Léo : « quand j'arrive direct dans le garage, ça montre l'ancien truc avec les raretés, enlève ça ») elle s'ouvre sur l'INVENTAIRE, plus sur la vue par familles (TOUT)
+  try{GMODE.m='tout';GMODE.paye=false;GMODE.fam=null;gConsoleCache(true);gVueSeule(false);}catch(e){} /* (2026-10-14, Léo : « l'inventaire, arrête de le faire apparaître sans qu'on y touche ») le garage s'ouvre REPLIÉ : les touches seules, la caisse a la place ; l'inventaire ne s'ouvre qu'à INVENTAIRE */ // (2026-10-12, Léo, le soir : « mets directement l'inventaire dès qu'on arrive dans le garage ») le garage s'ouvre sur l'INVENTAIRE (voir gGarageInv) — avant : (2026-10-12, Léo : « quand on appuie GARAGE, juste les 5 boutons en bas, pas la marge, la voiture encadrée ; seulement quand j'appuie INVENTAIRE s'affiche l'inventaire — pareil pour la BOUTIQUE ») le garage s'ouvre REPLIÉ, aucun mode allumé : INVENTAIRE ou BOUTIQUE déplient leur panneau (gModeVa) // (2026-10-09) la console à trois modes repart dépliée — (2026-10-10) et l'œil rouvert ; (même soir, Léo : « quand j'arrive direct dans le garage, ça montre l'ancien truc avec les raretés, enlève ça ») elle s'ouvre sur l'INVENTAIRE, plus sur la vue par familles (TOUT)
   try{if(PHQ.q.length&&!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}catch(e){} // (2026-09-26) les photos en attente reprennent
   if(started&&!gameOver){showMsg('Le garage se visite depuis le menu');return;} // ⚠ gameOver = on EST au menu : refuser ici bloquait le bouton apres la 1re partie
   try{if(SONV2&&!openGarage._amb)openGarage._amb=sfx('garage.ambiance',{loop:true});}catch(e){} // (console de son) l'ATELIER a sa voix : néons, tube qui grésille, la ville au loin
@@ -45674,6 +45674,25 @@ function bqPovPanneau(){if(!BQ_CADRAGE||bqPovPanneau._el)return;
 window.dbgPov=function(o){if(o&&typeof o==='object'){const l=bqPovLu()||{};l[bqPovSens()]=Object.assign({},BQ_POV_DEF,o);try{localStorage.setItem('ccCadrageBq',JSON.stringify(l));}catch(e){}}
   return {sens:bqPovSens(),actif:bqPov(),regle:bqPovLu(),retenu:BQ_POV,cadrage:BQ_CADRAGE};};
 if(BQ_CADRAGE){if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bqPovPanneau);else setTimeout(bqPovPanneau,0);}
+/* LE BLANC LAQUÉ de la boutique (2026-10-14, Léo : « les piliers lisses et blanc brillant », puis « le triple sol aussi blanc et lisse que
+   les piliers ») : une matière partagée par les colonnes et le socle à gradins ; `k` assombrit à peine (les filets entre les gradins). */
+function bqLaqueMat(k){bqLaqueMat._m=bqLaqueMat._m||{};const cle=String(k||1);if(bqLaqueMat._m[cle])return bqLaqueMat._m[cle];
+  const lq=new THREE.MeshMatcapMaterial({color:0xffffff,fog:false,matcap:(function(){ /* le VERNIS PEINT (matcap) : base blanche, bords gris perle, un large reflet et un point
+      de brillance net en haut à gauche — le blanc laqué se lit quelle que soit la lampe (avec Phong, la lampe du studio ne donnait qu'un blanc mat lavande) */
+     const cv=document.createElement('canvas');cv.width=cv.height=256;const x=cv.getContext('2d');
+     /* un fût vertical se lit sur la LIGNE MÉDIANE du matcap (ses normales sont presque horizontales) : les reflets y sont donc des BANDES
+        verticales — un large reflet doux et un trait de brillance net côté lampe, un contre-reflet de l'autre côté, le bord qui s'assombrit */
+     let gr=x.createRadialGradient(128,128,0,128,128,128);gr.addColorStop(0,'#f4f6f9');gr.addColorStop(.7,'#e9edf2');gr.addColorStop(.9,'#cfd6e0');gr.addColorStop(1,'#aeb8c6');x.fillStyle=gr;x.fillRect(0,0,256,256);
+     const bande=function(cx,w,a){const g9=x.createLinearGradient(cx-w,0,cx+w,0);g9.addColorStop(0,'rgba(255,255,255,0)');g9.addColorStop(.5,'rgba(255,255,255,'+a+')');g9.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g9;x.fillRect(cx-w,0,2*w,256);};
+     bande(96,46,.85);bande(92,9,1);bande(92,4,1);bande(186,22,.45);
+     x.globalCompositeOperation='destination-in';gr=x.createRadialGradient(128,128,120,128,128,128);gr.addColorStop(0,'#000');gr.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=gr;x.fillRect(0,0,256,256);
+     x.globalCompositeOperation='destination-over';x.fillStyle='#aeb8c6';x.fillRect(0,0,256,256);x.globalCompositeOperation='source-over';
+     {const g9=x.createLinearGradient(0,0,0,84);g9.addColorStop(0,'rgba(250,251,253,1)');g9.addColorStop(.55,'rgba(250,251,253,.9)');g9.addColorStop(1,'rgba(250,251,253,0)');x.fillStyle=g9;x.fillRect(0,0,256,84);} /* le HAUT du matcap en blanc brillant : les dessus (gradins du socle) regardent vers le ciel et lisaient le bord gris */
+     const t=new THREE.CanvasTexture(cv);return t;})()});lq.onBeforeCompile=function(sh){sh.fragmentShader=sh.fragmentShader.replace('vec3 outgoingLight = diffuseColor.rgb * matcapColor.rgb;',
+     'vec3 outgoingLight = diffuseColor.rgb * (matcapColor.rgb*1.05 + 4.2*pow(matcapColor.r,16.));');}; /* le reflet passe AU-DELÀ du blanc : l'étalonnage du jeu
+     écrase les blancs contre un plafond (le sol a dû monter à ×3,4) — un vernis linéaire y sortait uniforme ; là, le corps reste un blanc doux et
+     le reflet claque */
+  if(k)lq.color.setScalar(k);return bqLaqueMat._m[cle]=lq;}
 function garBqBatit(){if(GBQ.grp)return; // (2026-10-12, Léo : « lâche le magasin… plutôt un carré blanc futuriste — on a trop de salles, la boutique c'est un truc hors du temps ») L'ESPACE BLANC
   const g=new THREE.Group();g.visible=false;scene.add(g);GBQ.grp=g;
   const B=function(c,o){return new THREE.MeshBasicMaterial(Object.assign({color:c,fog:false},o||{}));};
@@ -45697,10 +45716,10 @@ function garBqBatit(){if(GBQ.grp)return; // (2026-10-12, Léo : « lâche le mag
      inspiré des compositions néo-classiques ; quelque chose qui met en avant la voiture ») : un socle de marbre à trois gradins cerclés d'or
      pâle, deux colonnes et une architrave derrière (le repère suit la caméra : la composition reste SYMÉTRIQUE autour de la caisse) ; la
      GLOIRE (rayons d'or pâle, longs et courts, une auréole) derrière elle — voir garBqGloire. */
-  {const Lm=function(c,e){return new THREE.MeshLambertMaterial({color:c,emissive:e||0,flatShading:true,fog:false});},marbre=new THREE.MeshLambertMaterial({color:0xf6f8fb,emissive:0x303338,map:tuile(28,1),flatShading:true,fog:false}),or=Lm(0xd2d8e1,0x34383f), /* (Léo : « le bleu foncé ne marche pas, la couleur est un peu forte ») un gris perle */
-     C=function(r0,r1,h,n){return new THREE.CylinderGeometry(r0,r1,h,n||48);};
+  {const Lm=function(c,e){return new THREE.MeshLambertMaterial({color:c,emissive:e||0,flatShading:true,fog:false});},marbre=bqLaqueMat(),or=bqLaqueMat(.82), /* (2026-10-14, Léo : « le triple sol aussi blanc et lisse que les piliers ») le blanc laqué des colonnes ; les filets un ton plus bas — avant : marbre en dalles, Lambert à facettes, filets gris perle */
+     C=function(r0,r1,h,n){return new THREE.CylinderGeometry(r0,r1,h,n||96);}; /* 96 pans : lisse */
    let y=0;for(const t of [[2.9,.18],[2.5,.18],[2.15,.2]]){const m=new THREE.Mesh(C(t[0],t[0]+.05,t[1]),marbre);m.position.y=y+t[1]/2;g.add(m);
-     const f=new THREE.Mesh(new THREE.TorusGeometry(t[0]+.012,.024,4,72),or);f.rotation.x=Math.PI/2;f.position.y=y+t[1];g.add(f);y+=t[1];}
+     const f=new THREE.Mesh(new THREE.TorusGeometry(t[0]+.012,.024,10,120),or);f.rotation.x=Math.PI/2;f.position.y=y+t[1];g.add(f);y+=t[1];}
    GBQ.socleH=y;
    /* LA ROTONDE (2026-10-13, Léo : « un cercle de piliers, comme si on était au Panthéon autour de la voiture, un peu ambiance Assassin's Creed »)
       — avant : deux colonnes et une architrave derrière la caisse. Seize colonnes sur un cercle de 8,2 m, chacune une peau de petits cubes (le
@@ -45716,20 +45735,7 @@ function garBqBatit(){if(GBQ.grp)return; // (2026-10-12, Léo : « lâche le mag
       (effilé, 40 pans lissés), un socle carré et son tore, l'échine évasée et l'abaque du chapiteau, l'entablement en anneau plein ; tout
       dans un BLANC LAQUÉ (Phong : spéculaire franc et large, un peu de ciel blanc dans le vernis) qui accroche la lampe du studio. Une
       pièce = un maillage instancié (une instance par colonne posée) : 6 appels de dessin. */
-   const lq=new THREE.MeshMatcapMaterial({color:0xffffff,fog:false,matcap:(function(){ /* le VERNIS PEINT (matcap) : base blanche, bords gris perle, un large reflet et un point
-      de brillance net en haut à gauche — le blanc laqué se lit quelle que soit la lampe (avec Phong, la lampe du studio ne donnait qu'un blanc mat lavande) */
-     const cv=document.createElement('canvas');cv.width=cv.height=256;const x=cv.getContext('2d');
-     /* un fût vertical se lit sur la LIGNE MÉDIANE du matcap (ses normales sont presque horizontales) : les reflets y sont donc des BANDES
-        verticales — un large reflet doux et un trait de brillance net côté lampe, un contre-reflet de l'autre côté, le bord qui s'assombrit */
-     let gr=x.createRadialGradient(128,128,0,128,128,128);gr.addColorStop(0,'#f4f6f9');gr.addColorStop(.7,'#e9edf2');gr.addColorStop(.9,'#cfd6e0');gr.addColorStop(1,'#aeb8c6');x.fillStyle=gr;x.fillRect(0,0,256,256);
-     const bande=function(cx,w,a){const g9=x.createLinearGradient(cx-w,0,cx+w,0);g9.addColorStop(0,'rgba(255,255,255,0)');g9.addColorStop(.5,'rgba(255,255,255,'+a+')');g9.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g9;x.fillRect(cx-w,0,2*w,256);};
-     bande(96,46,.85);bande(92,9,1);bande(92,4,1);bande(186,22,.45);
-     x.globalCompositeOperation='destination-in';gr=x.createRadialGradient(128,128,120,128,128,128);gr.addColorStop(0,'#000');gr.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=gr;x.fillRect(0,0,256,256);
-     x.globalCompositeOperation='destination-over';x.fillStyle='#aeb8c6';x.fillRect(0,0,256,256);x.globalCompositeOperation='source-over';
-     const t=new THREE.CanvasTexture(cv);return t;})()}),pos=[];lq.onBeforeCompile=function(sh){sh.fragmentShader=sh.fragmentShader.replace('vec3 outgoingLight = diffuseColor.rgb * matcapColor.rgb;',
-     'vec3 outgoingLight = diffuseColor.rgb * (matcapColor.rgb*1.05 + 4.2*pow(matcapColor.r,16.));');}; /* le reflet passe AU-DELÀ du blanc : l'étalonnage du jeu
-     écrase les blancs contre un plafond (le sol a dû monter à ×3,4) — un vernis linéaire y sortait uniforme ; là, le corps reste un blanc doux et
-     le reflet claque */
+   const lq=bqLaqueMat(),pos=[];
    for(let c=0;c<NC;c++){const a0=c/NC*Math.PI*2+Math.PI/NC;if(ang(a0))continue;pos.push([Math.sin(a0)*RC,Math.cos(a0)*RC]);}
    const piece=function(geo,y){const im=new THREE.InstancedMesh(geo,lq,pos.length),M9=new THREE.Matrix4();
      pos.forEach(function(p,k){M9.makeTranslation(p[0],y,p[1]);im.setMatrixAt(k,M9);});im.frustumCulled=false;g.add(im);return im;};
@@ -45941,14 +45947,15 @@ function garBqIndus(dt,ay,t9){
      elle ; il ne reste que son ombre ; après, la page de vente ») LE TEMPS DU GESTE : 0 → 0,12 s elle s'enfonce, puis se DÉCOLLE (ressort doux) ;
      0,3 s la LUEUR naît derrière elle et grandit ; 0,8 s l'ÉCLAT blanc monte (pic à ~0,95 s) : dessous, l'atelier laisse place au blanc ;
      puis la page de vente. Au retour : un éclat bref, l'atelier revient dessous, elle se repose. */
-  if(veut!==GBQ.veut){GBQ.veut=veut;GBQ.t=0;GBQ.bascule=false;GBQ.boum=0;GBQ.eclat=0;GBQ.coupT=veut?0:-1;bqClasses(veut);
-    if(veut){garBqBatit();garBqLueurBatit();}else if(!GAR.go&&GBQ.on)bqEclat(.5,.2);}
+  /* (2026-10-14, Léo : « la transition entre les deux, c'est peut-être un peu lourd ; reviens sur le truc glitch ») LE GLITCH revient : le
+     geste lance garGlitch (0,72 s de bandes et de tressauts), le décor BASCULE dessous à son pic (0,16 s) ; la caisse décolle aussitôt
+     (plus de petit coup, ni de lueur blanche, ni d'éclat). Au retour, pareil, à l'envers. */
+  if(veut!==GBQ.veut){const avant=GBQ.on;GBQ.veut=veut;GBQ.t=0;GBQ.bascule=false;GBQ.eclat=0;GBQ.coupT=-1;bqClasses(veut);
+    if(veut){garBqBatit();garBqLueurBatit();GBQ.boum=1;GBQ.levV=2.6;}if(!GAR.go&&(veut||avant))garGlitch();}
   GBQ.t+=dt;
   if(veut&&GBQ.coupT>=0){GBQ.coupT+=dt;if(GBQ.coupT>=.12&&!GBQ.boum){GBQ.boum=1;GBQ.levV=3.4;garBqChoc();try{if(SONV2)sfx('ui.volet');}catch(e){}try{hap(10);}catch(e){}}}
-  if(veut){GBQ.lueur=Math.max(0,Math.min(1,(GBQ.t-.3)/.65));if(GBQ.t>=.8&&!GBQ.eclat){GBQ.eclat=1;bqEclat(.65,.22);}}
-  else GBQ.lueur=Math.max(0,(GBQ.lueur||0)-dt*4);
-  if(!GBQ.bascule&&GBQ.t>(veut?.95:.1)){GBQ.bascule=true;GBQ.on=veut;garBqAmbiance(veut);}
-  if(GBQ.on&&GBQ.t>1.4)GBQ.lueur=Math.max(0,1-(GBQ.t-1.4)/.5); // basculée : la lueur se retire (blanc sur blanc)
+  GBQ.lueur=0;
+  if(!GBQ.bascule&&GBQ.t>.16){GBQ.bascule=true;GBQ.on=veut;garBqAmbiance(veut);}
   if(GAR.go&&(GBQ.on||GBQ.veut)){GBQ.on=GBQ.veut=false;GBQ.bascule=true;bqClasses(false);garBqAmbiance(false);GBQ.lueur=0;}
   try{garBqLueur(ay);garBqGloire(dt,t9);}catch(e){}
   const on=GBQ.on;
@@ -48179,7 +48186,7 @@ function garMode(m){
   if(menu){if(SHOP.tab!=='voiture'||SHOP.prev)shopTab('voiture');const eq=equippedCar();if(garageI!==eq&&!GAR.sw)garageShow(eq);try{gVueSeule(false);}catch(e){}} // au menu : TA caisse, sans essai — (2026-10-12, passe qualité) et l'ŒIL éteint : Échap depuis la vue seule laissait #garage caché, MISSIONS devenait un ciel sans aucun bouton
   const deMenu9=gEl.classList.contains('menu')||gEl.classList.contains('missions');
   gEl.classList.toggle('menu',menu);gEl.classList.toggle('missions',mis);garLibre._r=null;
-  if(!menu&&deMenu9){try{gVueSeule(false);gGarageInv();}catch(e){}} // (2026-10-12, Léo) de l'accueil au garage : l'INVENTAIRE et les cinq touches (avant : replié)
+  if(!menu&&deMenu9){try{gVueSeule(false);gGarageReplie();}catch(e){}} // (2026-10-14, Léo) de l'accueil au garage : REPLIÉ (l'inventaire ne s'ouvre plus tout seul)
   document.body.classList.toggle('garMenuH',MENU_SACHA&&menu&&!mis); // (2026-09-30, Sacha) au MENU, ses boutons — (même soir, Léo : « remets ma version sketch ») seulement avec ?menu=sacha, voir MENU_SACHA : l'accueil #mHome par-dessus l'atelier (voir « LE MENU = LE GARAGE + LES BOUTONS DE SACHA »)
   if(MENU_SACHA&&menu&&!mis&&window.__mHomeSur)try{window.__mHomeSur();}catch(e){}
   if(menu)garMenuMaj();

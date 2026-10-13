@@ -126,6 +126,12 @@
   Matière : un MATCAP peint (bandes VERTICALES : un fût se lit sur la ligne médiane du matcap) dont le reflet passe AU-DELÀ du blanc
   (`onBeforeCompile` : `matcap*1,05 + 4,2·r^16`) — ⚠ l'étalonnage du jeu écrase les blancs contre un plafond (~237) : un blanc linéaire,
   même ×1,7, sortait UNIFORME ; seul un reflet HDR se détache. Mesuré : corps 235-242, reflet 255, bords 200-215.
+- (14/10, suite) LE SOCLE à trois gradins prend le même blanc laqué (`bqLaqueMat()`, partagée ; filets `bqLaqueMat(.82)`, 96 pans) ; le
+  HAUT du matcap est peint blanc (les dessus regardent le ciel et lisaient le bord gris). LA TRANSITION garage ↔ boutique (Léo : « un peu
+  lourd, reviens sur le glitch ») : `garGlitch` au geste, le décor bascule à 0,16 s (avant : petit coup, lueur, éclat blanc, bascule à
+  0,95 s). L'INVENTAIRE (Léo : « arrête de le faire apparaître sans qu'on y touche ») : le garage s'ouvre REPLIÉ (`consoleCachee`,
+  GMODE 'tout') — à l'ouverture, depuis l'accueil, au RETOUR de la boutique et au RETOUR de l'inventaire ; il ne s'ouvre qu'à INVENTAIRE.
+  Banc : scratchpad `trans.py W H suffixe port` (arrivée, inventaire, glitch, retour, au vrai doigt).
 
 ## LA PASSE QUALITÉ AVANT SORTIE (2026-10-12, Sacha : « trouve des bugs et règle-les, améliore des trucs à droite à gauche, fais en sorte que le jeu soit parfait et sortable »)
 Méthode : bancs Puppeteer son coupé (rendu LOGICIEL SwiftShader : Roblox Studio tenait le GPU, le Chrome de test calait sur D3D11), un
