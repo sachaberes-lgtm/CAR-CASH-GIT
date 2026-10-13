@@ -14595,80 +14595,157 @@ function voxAt(G,x,y,z){return (x<0||y<0||z<0||x>=G.nx||y>=G.ny||z>=G.nz)?0:G.d[
 function voxSet(G,x,y,z,m){if(x>=0&&y>=0&&z>=0&&x<G.nx&&y<G.ny&&z<G.nz)G.d[x+G.nx*(z+G.nz*y)]=m;}
 /* LE MAILLAGE GLOUTON — pour chaque axe et chaque sens, plan par plan : un masque des faces (matière + ombre des 4 coins), puis les plus
    grands rectangles identiques. Sortie : position (en cubes), normale, aM (matière), aAO (0 = coin enfoui, 1 = à l'air). */
-function voxMesh(G,inner){ // inner : une face INTÉRIEURE (matière 10) tous les `inner` cubes, entre deux cubes pleins — on la voit à travers le verre
-  const dims=[G.nx,G.ny,G.nz],P=[],Nm=[],Ma=[],Ao=[],I=[],at=[0,0,0],q=[0,0,0];
-  const sol=(a,b,c)=>voxAt(G,a,b,c)>0;
-  for(let d=0;d<3;d++){const u=(d+1)%3,v=(d+2)%3,nu=dims[u],nv=dims[v],mask=new Int32Array(nu*nv);
-    for(const sg of [1,-1])for(let x=0;x<=dims[d];x++){
-      let n=0;const xi=sg>0?x-1:x,xo=sg>0?x:x-1;
-      for(let j=0;j<nv;j++)for(let i=0;i<nu;i++,n++){
-        at[d]=xi;at[u]=i;at[v]=j;const m=voxAt(G,at[0],at[1],at[2]);if(!m||m===255){mask[n]=0;continue;} // 255 : une case FANTÔME (refaite en cubes fins) — pleine pour ses voisines, sans faces
-        at[d]=xo;if(voxAt(G,at[0],at[1],at[2])){mask[n]=inner&&sg>0&&x%inner===0?(10|(255<<8)|(1<<20)):0;continue;}
-        let key=m;const co=[[-1,-1],[1,-1],[1,1],[-1,1]];
-        for(let c=0;c<4;c++){q[d]=xo;q[u]=i+co[c][0];q[v]=j;const s1=sol(q[0],q[1],q[2])?1:0;q[u]=i;q[v]=j+co[c][1];const s2=sol(q[0],q[1],q[2])?1:0;
-          q[u]=i+co[c][0];q[v]=j+co[c][1];const cc=sol(q[0],q[1],q[2])?1:0;key|=(s1&&s2?0:3-(s1+s2+cc))<<(8+c*2);}
-        mask[n]=key|(1<<20);}
-      n=0;
-      for(let j=0;j<nv;j++)for(let i=0;i<nu;){const c=mask[n];if(!c){i++;n++;continue;}
-        let w=1;while(i+w<nu&&mask[n+w]===c)w++;
-        let h=1;grand:while(j+h<nv){for(let k=0;k<w;k++)if(mask[n+k+h*nu]!==c)break grand;h++;}
-        const base=P.length/3,m=c&255,a=[(c>>8)&3,(c>>10)&3,(c>>12)&3,(c>>14)&3];
-        const crn=[[i,j],[i+w,j],[i+w,j+h],[i,j+h]];
-        for(let k=0;k<4;k++){q[d]=x;q[u]=crn[k][0];q[v]=crn[k][1];P.push(q[0],q[1],q[2]);const nn=[0,0,0];nn[d]=sg;Nm.push(nn[0],nn[1],nn[2]);Ma.push(m);Ao.push(a[k]/3);}
-        const fl=a[0]+a[2]<a[1]+a[3]; // la diagonale suit l'ombre (sinon un coin sombre s'étire en losange)
-        let t=fl?[1,2,3,1,3,0]:[0,1,2,0,2,3];if(sg<0)t=[t[0],t[2],t[1],t[3],t[5],t[4]];
-        for(const e of t)I.push(base+e);
-        for(let l=0;l<h;l++)for(let k=0;k<w;k++)mask[n+k+l*nu]=0;
-        i+=w;n+=w;}}}
-  const g=new THREE.BufferGeometry();
-  g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(Nm,3));
-  g.setAttribute('aM',new THREE.Float32BufferAttribute(Ma,1));g.setAttribute('aAO',new THREE.Float32BufferAttribute(Ao,1));
-  g.setIndex(P.length/3>65535?new THREE.Uint32BufferAttribute(I,1):new THREE.Uint16BufferAttribute(I,1));g.computeBoundingSphere();
+/* (2026-10-13, passe perf « le JOUER qui gèle ») MÊME maillage, au bit près (banc test-vox : grilles au hasard avec cases fantômes, les
+   13 gabarits, des montagnes au hasard, la grille de la Porte ; et l'empreinte de la carte), ~4× plus vite. MESURÉ : le masque et la passe
+   gloutonne balayaient chaque plan EN ENTIER — 6 × le volume de la grille (20 M de cases pour la plus grande montagne, 80 M pour la Porte),
+   dont quelques % portent une face, chaque case par voxAt et des tableaux créés à la volée. Désormais :
+   · un premier passage relève, pour chaque rang de chaque plan, sa première et sa dernière case pleine ;
+   · chaque TRANCHE (le long de chaque axe) est lue UNE fois en INTERVALLES par rang : les cases pleines (S) et celles qui portent des faces
+     (F : pleines et pas fantômes) ;
+   · un plan ne regarde que F(dedans) \ S(dehors) — les faces de bord, avec l'ombre de leurs coins — et, sur un plan intérieur, F ∩ S rempli
+     d'un trait ; la passe gloutonne ne parcourt que ces intervalles (même ordre, mêmes rectangles : le masque est vide partout ailleurs) ;
+   · les cases lues à plat (bornes testées au bord seulement), aucun tableau créé par case ni par face, sorties en tampons typés.
+   LES TRANCHES : voxMeshG, voxPilierG, colMeshG… sont des GÉNÉRATEURS qui rendent la main dès que l'échéance JF.lim est passée — Infinity
+   d'ordinaire (ils vont d'une traite : `jadeFini`, exactement comme avant), quelques ms quand la carte se prépare AU MENU (jadeFondTick). */
+const JF={lim:Infinity};
+function jadeFini(it){let r;do{r=it.next();}while(!r.done);return r.value;} // un générateur mené d'un trait
+const VOXM={P:null,N:null,M:null,A:null,I:null,pris:false};
+function voxMesh(G,inner){return jadeFini(voxMeshG(G,inner));}
+function* voxMeshG(G,inner){ // inner : une face INTÉRIEURE (matière 10) tous les `inner` cubes, entre deux cubes pleins — on la voit à travers le verre
+  const nx=G.nx,ny=G.ny,nz=G.nz,dims=[nx,ny,nz],ST=[1,nx*nz,nx],GD=G.d,INN=10|(255<<8)|(1<<20),NUL=(3<<8)|(3<<10)|(3<<12)|(3<<14)|(1<<20),q=[0,0,0];
+  const own=!VOXM.pris;if(own)VOXM.pris=true; // les tampons de sortie partagés (un maillage suspendu en tranche garde les siens)
+  try{
+  let P=own&&VOXM.P||new Float32Array(3<<14),Nm=own&&VOXM.N||new Int8Array(3<<14),Ma=own&&VOXM.M||new Uint8Array(1<<14),Ao=own&&VOXM.A||new Uint8Array(1<<14),I=own&&VOXM.I||new Uint32Array(3<<14),nv4=0,ni=0;
+  // L'ÉTENDUE DES RANGS : pour l'axe d, le plan c et le rang j (le long de v), la première et la dernière case non vide le long de u
+  const LO=[new Int32Array(nx*nz).fill(1<<30),new Int32Array(ny*nx).fill(1<<30),new Int32Array(nz*ny).fill(1<<30)],HI=[new Int32Array(nx*nz).fill(-1),new Int32Array(ny*nx).fill(-1),new Int32Array(nz*ny).fill(-1)];
+  {const L0=LO[0],H0=HI[0],L1=LO[1],H1=HI[1],L2=LO[2],H2=HI[2];let k=0;
+   for(let y=0;y<ny;y++){if(performance.now()>JF.lim)yield;for(let z=0;z<nz;z++)for(let x=0;x<nx;x++,k++)if(GD[k]){ // d=0 : plan x, rang z, le long de y · d=1 : plan y, rang x, le long de z · d=2 : plan z, rang y, le long de x
+     const a=x*nz+z,b=y*nx+x,c=z*ny+y;if(L0[a]>y)L0[a]=y;H0[a]=y;if(L1[b]>z)L1[b]=z;H1[b]=z;if(L2[c]>x)L2[c]=x;H2[c]=x;}}}
+  let RS=new Int32Array(4096),RF=new Int32Array(4096),CA=new Int32Array(4096);
+  const grand9=(A,n)=>{const B=new Int32Array(Math.max(n,A.length*2));B.set(A);return B;};
+  for(let d=0;d<3;d++){const u=(d+1)%3,v=(d+2)%3,nu=dims[u],nv=dims[v],nd=dims[d],sd=ST[d],su=ST[u],sv=ST[v],mask=new Int32Array(nu*nv),Ld=LO[d],Hd=HI[d];
+    // LES INTERVALLES de chaque rang de chaque tranche : S (cases pleines) et F (pleines, pas fantômes), [a, b) le long de u
+    const OS=new Int32Array(nd*nv+1),OF=new Int32Array(nd*nv+1);let nS=0,nF=0;
+    for(let c=0;c<nd;c++){if(performance.now()>JF.lim)yield;
+      for(let j=0;j<nv;j++){const r=c*nv+j,ia=Ld[r],ib=Hd[r];OS[r]=nS;OF[r]=nF;if(ia>ib)continue;
+        if(nS+2*(ib-ia+2)>RS.length)RS=grand9(RS,nS+2*(ib-ia+2));if(nF+2*(ib-ia+2)>RF.length)RF=grand9(RF,nF+2*(ib-ia+2));
+        let s0=-1,f0=-1,k=c*sd+j*sv+ia*su;
+        for(let i=ia;i<=ib;i++,k+=su){const m=GD[k];
+          if(m){if(s0<0)s0=i;}else if(s0>=0){RS[nS++]=s0;RS[nS++]=i;s0=-1;}
+          if(m&&m!==255){if(f0<0)f0=i;}else if(f0>=0){RF[nF++]=f0;RF[nF++]=i;f0=-1;}}
+        if(s0>=0){RS[nS++]=s0;RS[nS++]=ib+1;}if(f0>=0){RF[nF++]=f0;RF[nF++]=ib+1;}}}
+    OS[nd*nv]=nS;OF[nd*nv]=nF;
+    const OC=new Int32Array(nv+1);
+    for(const sg of [1,-1])for(let x=0;x<=nd;x++){
+      const xi=sg>0?x-1:x,xo=sg>0?x:x-1;if(xi<0||xi>=nd)continue; // le plan des cases hors de la grille : aucune face
+      if(performance.now()>JF.lim)yield;
+      const okO=xo>=0&&xo<nd,dO=(xo-xi)*sd,inn=inner&&sg>0&&x%inner===0?INN:0,rI=xi*nv,rO=okO?xo*nv:0;let nC=0;
+      // LE MASQUE : les faces de bord F(dedans) \ S(dehors), une à une (l'ombre de leurs coins) ; sur un plan intérieur, F ∩ S d'un trait
+      for(let j=0;j<nv;j++){OC[j]=nC;let fa=OF[rI+j];const fb=OF[rI+j+1];if(fa===fb)continue;
+        let sa=okO?OS[rO+j]:0;const sb=okO?OS[rO+j+1]:0,jD=j>0,jU=j<nv-1,base9=j*nu;
+        if(nC+(fb-fa)*2+4>CA.length)CA=grand9(CA,nC+(fb-fa)*2+4);
+        if(inn){for(let t=fa;t<fb;t+=2){CA[nC++]=RF[t];CA[nC++]=RF[t+1];}} // un plan intérieur : la passe gloutonne parcourt tout F
+        for(;fa<fb;fa+=2){let a=RF[fa];const b=RF[fa+1];
+          while(sa<sb&&RS[sa+1]<=a)sa+=2;
+          for(let t=sa;a<b;t+=2){const c0=t<sb?Math.min(b,Math.max(a,RS[t])):b,c1=t<sb?Math.min(b,RS[t+1]):b; // [a, c0) : du bord (rien dehors) · [c0, c1) : plein dehors
+            if(c0>a){if(!inn){CA[nC++]=a;CA[nC++]=c0;}
+              let n=base9+a,k=xi*sd+j*sv+a*su;
+              for(let i=a;i<c0;i++,n++,k+=su){const m=GD[k];
+                if(!okO){mask[n]=m|NUL;continue;}               // la voisine dehors est hors de la grille : rien autour, les 4 coins à l'air
+                const ko=k+dO,iL=i>0,iR=i<nu-1; // l'ombre des 4 coins (−1,−1) (1,−1) (1,1) (−1,1) : le côté u, le côté v, la diagonale — dans le plan du dehors
+                const Lf=iL&&GD[ko-su]?1:0,Rt=iR&&GD[ko+su]?1:0,Dn=jD&&GD[ko-sv]?1:0,Up=jU&&GD[ko+sv]?1:0;
+                mask[n]=m|((Lf&&Dn?0:3-(Lf+Dn+(iL&&jD&&GD[ko-su-sv]?1:0)))<<8)|((Rt&&Dn?0:3-(Rt+Dn+(iR&&jD&&GD[ko+su-sv]?1:0)))<<10)
+                         |((Rt&&Up?0:3-(Rt+Up+(iR&&jU&&GD[ko+su+sv]?1:0)))<<12)|((Lf&&Up?0:3-(Lf+Up+(iL&&jU&&GD[ko-su+sv]?1:0)))<<14)|(1<<20);}}
+            if(c1>c0&&inn)mask.fill(INN,base9+c0,base9+c1);
+            a=Math.max(a,c1);if(t>=sb)break;}}}
+      OC[nv]=nC;
+      // LA PASSE GLOUTONNE — seulement sur ces intervalles (le masque est vide ailleurs, et il ressort vide : chaque case est mangée)
+      for(let j=0;j<nv;j++)for(let t=OC[j],te=OC[j+1];t<te;t+=2){const ib=CA[t+1];let i=CA[t],n=j*nu+i;
+        while(i<ib){const c=mask[n];if(!c){i++;n++;continue;}
+          let w=1;while(i+w<nu&&mask[n+w]===c)w++;
+          let h=1;grand:while(j+h<nv){for(let k=0,o=n+h*nu;k<w;k++)if(mask[o+k]!==c)break grand;h++;}
+          if(nv4+4>Ma.length){const k2=Ma.length*2,g9=(A,k)=>{const B=new A.constructor(k);B.set(A);return B;};P=g9(P,k2*3);Nm=g9(Nm,k2*3);Ma=g9(Ma,k2);Ao=g9(Ao,k2);if(own){VOXM.P=P;VOXM.N=Nm;VOXM.M=Ma;VOXM.A=Ao;}}
+          if(ni+6>I.length){const B=new Uint32Array(I.length*2);B.set(I);I=B;if(own)VOXM.I=B;}
+          const base=nv4,m=c&255,a0=(c>>8)&3,a1=(c>>10)&3,a2=(c>>12)&3,a3=(c>>14)&3;
+          for(let k=0;k<4;k++){q[d]=x;q[u]=k===1||k===2?i+w:i;q[v]=k>=2?j+h:j;const o=nv4*3;P[o]=q[0];P[o+1]=q[1];P[o+2]=q[2];Nm[o]=d===0?sg:0;Nm[o+1]=d===1?sg:0;Nm[o+2]=d===2?sg:0;Ma[nv4]=m;Ao[nv4]=k===0?a0:k===1?a1:k===2?a2:a3;nv4++;}
+          if(a0+a2<a1+a3){if(sg>0){I[ni]=base+1;I[ni+1]=base+2;I[ni+2]=base+3;I[ni+3]=base+1;I[ni+4]=base+3;I[ni+5]=base;}else{I[ni]=base+1;I[ni+1]=base+3;I[ni+2]=base+2;I[ni+3]=base+1;I[ni+4]=base;I[ni+5]=base+3;}} // la diagonale suit l'ombre (sinon un coin sombre s'étire en losange)
+          else if(sg>0){I[ni]=base;I[ni+1]=base+1;I[ni+2]=base+2;I[ni+3]=base;I[ni+4]=base+2;I[ni+5]=base+3;}else{I[ni]=base;I[ni+1]=base+2;I[ni+2]=base+1;I[ni+3]=base;I[ni+4]=base+3;I[ni+5]=base+2;}
+          ni+=6;
+          for(let l=0;l<h;l++)mask.fill(0,n+l*nu,n+l*nu+w);
+          i+=w;n+=w;}}}}
+  if(performance.now()>JF.lim)yield;
+  const g=new THREE.BufferGeometry(),Ao9=new Float32Array(nv4),A3=[0,1/3,2/3,1];for(let k=0;k<nv4;k++)Ao9[k]=A3[Ao[k]]; // (a/3 : les mêmes flottants)
+  g.setAttribute('position',new THREE.BufferAttribute(P.slice(0,nv4*3),3));g.setAttribute('normal',new THREE.BufferAttribute(new Float32Array(Nm.subarray(0,nv4*3)),3));
+  g.setAttribute('aM',new THREE.BufferAttribute(new Float32Array(Ma.subarray(0,nv4)),1));g.setAttribute('aAO',new THREE.BufferAttribute(Ao9,1));
+  g.setIndex(nv4>65535?new THREE.BufferAttribute(I.slice(0,ni),1):new THREE.BufferAttribute(new Uint16Array(I.subarray(0,ni)),1));g.computeBoundingSphere();
   return g;
+  }finally{if(own)VOXM.pris=false;}
 }
 // UN NIVEAU DE DÉTAIL : la grille divisée par 2 (un cube plein si 3 de ses 8 enfants le sont ; la vie l'emporte en haut)
-function voxDemi(G){const H=voxG(Math.ceil(G.nx/2),Math.ceil(G.ny/2),Math.ceil(G.nz/2));
-  for(let y=0;y<H.ny;y++)for(let z=0;z<H.nz;z++)for(let x=0;x<H.nx;x++){let n=0,v=0,r=0;
-    for(let k=0;k<8;k++){const m=voxAt(G,2*x+(k&1),2*y+((k>>1)&1),2*z+(k>>2));if(m){n++;if(m===JM.feuille||m===JM.herbe)v++;else if(m===JM.rouille)r++;}}
-    if(n>=3)H.d[x+H.nx*(z+H.nz*y)]=v>=2?JM.herbe:r>=3?JM.rouille:JM.roche;}
+function voxDemi(G){return jadeFini(voxDemiG(G));}
+function* voxDemiG(G){const H=voxG(Math.ceil(G.nx/2),Math.ceil(G.ny/2),Math.ceil(G.nz/2)),gx=G.nx,gy=G.ny,gz=G.nz,D=G.d,Fe=JM.feuille,He=JM.herbe,Ro=JM.rouille; // (perf) mêmes cases, lues à plat
+  for(let y=0;y<H.ny;y++){if(performance.now()>JF.lim)yield;for(let z=0;z<H.nz;z++)for(let x=0;x<H.nx;x++){let n=0,v=0,r=0;
+    for(let k=0;k<8;k++){const X=2*x+(k&1),Y=2*y+((k>>1)&1),Z=2*z+(k>>2);if(X>=gx||Y>=gy||Z>=gz)continue;const m=D[X+gx*(Z+gz*Y)];if(m){n++;if(m===Fe||m===He)v++;else if(m===Ro)r++;}}
+    if(n>=3)H.d[x+H.nx*(z+H.nz*y)]=v>=2?JM.herbe:r>=3?JM.rouille:JM.roche;}}
   return H;}
 /* UNE MONTAGNE FLOTTANTE EN CUBES — R : rayon moyen, H : hauteur (en cubes) ; kind : 0 colonne · 1 aiguille · 2 gradins · 3 tête large.
    Le DESSOUS (Hb, ~30 % de la hauteur) : des tranches d'un ou deux cubes qui rétrécissent en escalier vers une pointe décentrée. */
-function voxPilier(R,H,kind,graine){
+function voxPilier(R,H,kind,graine){return jadeFini(voxPilierG(R,H,kind,graine));}
+function* voxPilierG(R,H,kind,graine){
   const rg=mulberry32(graine),M=2*Math.ceil((R*1.55+2)/2),N=2*M,G=voxG(N,H+5,N);
   const harm=[];for(let k=2;k<=5;k++)harm.push([k,(.05+rg()*.11)*(k===2?1.35:1),rg()*6.283]);
   const can=[];for(let k=0,nc=2+((rg()*2.6)|0);k<nc;k++)can.push([rg()*6.283,.18+rg()*.2,.22+rg()*.2]); // les CANNELURES
   const tr=[];for(let k=0,nt=1+((rg()*2.4)|0);k<nt;k++)tr.push([rg()*6.283,.12+rg()*.14,(.4+rg()*.55)*H,(.15+rg()*.3)*H]); // les TRAÎNÉES de rouille
   const Hb=Math.max(3,Math.round(H*(.26+rg()*.12))),bA=rg()*6.283,bK=.22+rg()*.3;
+  /* (2026-10-13, passe perf) LE CONTOUR ENCADRÉ — les mêmes cases au bit près (banc test-vox), sans les cosinus là où c'est sûr : f(angle) est
+     encadré globalement (1 ± les harmoniques, moins toutes les cannelures) et par SECTEUR d'angle (256 : harmoniques et cannelures sont
+     lipschitziennes — au milieu du secteur ± la pente × la demi-largeur, marges comprises) ; une case nettement dehors ou dedans est tranchée
+     d'emblée, près du bord le calcul exact d'avant, au même angle. */
+  let fHi=1,fLo=1;for(const hq of harm){fHi+=hq[1];fLo-=hq[1];}for(const c of can)fLo-=c[2];
+  const NS=256,WS=6.283185307179586/NS,SH=new Float64Array(NS),SL=new Float64Array(NS);
+  {const h=WS/2*1.000001+1e-9;for(let s9=0;s9<NS;s9++){const am=-Math.PI+(s9+.5)*WS;let b9=1,hv=0,cLo=0,cHi=0;
+     for(const hq of harm){b9+=hq[1]*Math.cos(hq[0]*am+hq[2]);hv+=hq[1]*hq[0]*h;}
+     for(const c of can){const da=Math.abs(((am-c[0])%6.2832+9.4248)%6.2832-3.1416),S0=da<c[1]?c[2]*(1-da/c[1]):0,dv=c[2]/c[1]*h;cLo+=Math.max(0,S0-dv);cHi+=Math.min(c[2],S0+dv);}
+     SH[s9]=b9+hv-cLo+1e-9;SL[s9]=b9-hv-cHi-1e-9;}}
   let y=0,cx=M,cz=M,rw=0;const LY=[]; // les COUCHES, gardées pour les cubes fins (voxPilierFin)
-  while(y<H){const bas=y<Hb,h=bas?1+((rg()*1.6)|0):2+((rg()*5)|0),v=(y+h/2)/H;
+  while(y<H){if(performance.now()>JF.lim)yield;const bas=y<Hb,h=bas?1+((rg()*1.6)|0):2+((rg()*5)|0),v=(y+h/2)/H;
     rw=rw*.6+(rg()-.5)*.17;let s;
     if(kind===0)s=1+rw;else if(kind===1)s=1.14-.44*v+rw*.6;else if(kind===2)s=(((y/3)|0)%2?.82:1)+rw*.5;else s=.86+.34*v*v+rw*.5;
     let ox=0,oz=0;
     if(bas){const t=Math.min(1,(y+h/2)/Hb);s*=Math.pow(t,.62)*(.82+.18*t);const k9=(1-t)*(1-t)*bK*R;ox=Math.cos(bA)*k9;oz=Math.sin(bA)*k9;} // la POINTE, décentrée
     else{cx=Math.max(M-R*.25,Math.min(M+R*.25,cx+(rg()-.5)*.7));cz=Math.max(M-R*.25,Math.min(M+R*.25,cz+(rg()-.5)*.7));}
     const rr=Math.max(bas?.55:1.15,R*s),y1=Math.min(H,y+h);LY.push([y,y1,cx+ox,cz+oz,rr,bas?1:0]);
-    for(let i=0;i<N;i++)for(let j=0;j<N;j++){const dx=i+.5-cx-ox,dz=j+.5-cz-oz,d=Math.hypot(dx,dz),an=Math.atan2(dz,dx);
-      let f=1;for(const hq of harm)f+=hq[1]*Math.cos(hq[0]*an+hq[2]);
-      for(const c of can){const da=Math.abs(((an-c[0])%6.2832+9.4248)%6.2832-3.1416);if(da<c[1])f-=c[2]*(1-da/c[1]);}
-      if(d<rr*f)for(let yy=y;yy<y1;yy++)G.d[i+N*(j+N*yy)]=JM.roche;}
+    const dOut=rr*fHi*1.000001,dIn=fLo>0?rr*fLo*.999999:-1;
+    for(let i=0;i<N;i++)for(let j=0;j<N;j++){const dx=i+.5-cx-ox,dz=j+.5-cz-oz,d=Math.hypot(dx,dz);if(d>dOut)continue;
+      if(d>=dIn){const an=Math.atan2(dz,dx);let s9=((an+Math.PI)/WS)|0;if(s9>=NS)s9=NS-1;else if(s9<0)s9=0;
+        if(d>rr*SH[s9]*1.000001+1e-9)continue; // nettement dehors
+        if(!(d<rr*SL[s9]*.999999-1e-9)){ // ni nettement dedans : le contour exact
+          let f=1;for(const hq of harm)f+=hq[1]*Math.cos(hq[0]*an+hq[2]);
+          for(const c of can){const da=Math.abs(((an-c[0])%6.2832+9.4248)%6.2832-3.1416);if(da<c[1])f-=c[2]*(1-da/c[1]);}
+          if(!(d<rr*f))continue;}}
+      for(let yy=y;yy<y1;yy++)G.d[i+N*(j+N*yy)]=JM.roche;}
     y=y1;}
   // LA ROUILLE en coulées sur la peau
-  for(let yy=0;yy<H;yy++)for(let i=0;i<N;i++)for(let j=0;j<N;j++){const k0=i+N*(j+N*yy);if(G.d[k0]!==JM.roche)continue;
-    if(voxAt(G,i+1,yy,j)&&voxAt(G,i-1,yy,j)&&voxAt(G,i,yy,j+1)&&voxAt(G,i,yy,j-1))continue;
-    const an=Math.atan2(j+.5-M,i+.5-M);
-    for(const t of tr){const da=Math.abs(((an-t[0])%6.2832+9.4248)%6.2832-3.1416);if(da<t[1]&&yy<t[2]&&yy>t[2]-t[3]&&rg()<.9){G.d[k0]=JM.rouille;break;}}}
+  const D9=G.d,NN=N*N,AN=new Float64Array(NN);for(let i=0;i<N;i++)for(let j=0;j<N;j++)AN[i+N*j]=Math.atan2(j+.5-M,i+.5-M); // (perf) les mêmes passes, lues à plat (voxAt sans bornes là où la case est forcément dans la grille)
+  for(let yy=0;yy<H;yy++){if(!(yy&15)&&performance.now()>JF.lim)yield;for(let i=0;i<N;i++)for(let j=0;j<N;j++){const k0=i+N*(j+N*yy);if(D9[k0]!==JM.roche)continue;
+    if((i+1<N&&D9[k0+1])&&(i>0&&D9[k0-1])&&(j+1<N&&D9[k0+N])&&(j>0&&D9[k0-N]))continue;
+    const an=AN[i+N*j];
+    for(const t of tr){const da=Math.abs(((an-t[0])%6.2832+9.4248)%6.2832-3.1416);if(da<t[1]&&yy<t[2]&&yy>t[2]-t[3]&&rg()<.9){D9[k0]=JM.rouille;break;}}}}
   // LA VIE : l'herbe sur ce qui regarde le ciel, des touffes de feuilles, des buissons accrochés ; dessous, des LIANES de feuilles qui pendent
   const tops=[],cor=[],des=[];
-  for(let yy=Hb;yy<H;yy++)for(let i=0;i<N;i++)for(let j=0;j<N;j++){const k0=i+N*(j+N*yy),m=G.d[k0];if(!m||voxAt(G,i,yy+1,j))continue;
-    G.d[k0]=JM.herbe;(yy>=H-1?tops:cor).push([i,yy,j]);}
+  if(performance.now()>JF.lim)yield;
+  for(let yy=Hb;yy<H;yy++)for(let i=0;i<N;i++)for(let j=0;j<N;j++){const k0=i+N*(j+N*yy),m=D9[k0];if(!m||D9[k0+NN])continue;
+    D9[k0]=JM.herbe;(yy>=H-1?tops:cor).push([i,yy,j]);}
   // (v7) plus de touffes, de buissons ni de lianes EN CUBES (c'était le Minecraft) : la forêt et les lianes sont peintes (jadeArbresTex)
-  for(let yy=1;yy<Math.min(H,Hb+4);yy++)for(let i=0;i<N;i++)for(let j=0;j<N;j++){const m=voxAt(G,i,yy,j);if(m!==JM.roche&&m!==JM.rouille)continue;if(voxAt(G,i,yy-1,j))continue;
+  for(let yy=1;yy<Math.min(H,Hb+4);yy++)for(let i=0;i<N;i++)for(let j=0;j<N;j++){const k0=i+N*(j+N*yy),m=D9[k0];if(m!==JM.roche&&m!==JM.rouille)continue;if(D9[k0-NN])continue;
     des.push([i,yy,j]);} // les dessous, d'où pendent les lianes peintes
-  let yTop=0,rmax=0;for(let yy=0;yy<G.ny;yy++)for(let i=0;i<N;i++)for(let j=0;j<N;j++)if(G.d[i+N*(j+N*yy)]){yTop=Math.max(yTop,yy+1);rmax=Math.max(rmax,Math.hypot(i+.5-M,j+.5-M)+.71);}
-  const G1=VIT?null:voxDemi(G),G2=VIT?null:voxDemi(G1),G3=VIT?null:voxDemi(G2);
+  let yTop=0,rmax=0;for(let i=0;i<N;i++)for(let j=0;j<N;j++){let yh=-1;for(let yy=G.ny-1;yy>=0;yy--)if(D9[i+N*(j+N*yy)]){yh=yy;break;} // la colonne : sa case pleine la plus haute
+    if(yh>=0){yTop=Math.max(yTop,yh+1);rmax=Math.max(rmax,Math.hypot(i+.5-M,j+.5-M)+.71);}}
+  if(performance.now()>JF.lim)yield;
+  const G1=VIT?null:yield* voxDemiG(G),G2=VIT?null:yield* voxDemiG(G1),G3=VIT?null:yield* voxDemiG(G2);
+  const geo=VIT?null:[yield* voxMeshG(G,4),yield* voxMeshG(G1,2),yield* voxMeshG(G2,1),yield* voxMeshG(G3)];
   return {G:G,M:M,H:H,Hb:Hb,yTop:yTop,rmax:rmax,N:N,ly:LY,harm:harm,can:can,tr:tr,graine:graine,tops:tops.filter(function(c){return !voxAt(G,c[0],c[1]+1,c[2]);}),cor:cor.filter(function(c){return !voxAt(G,c[0],c[1]+1,c[2]);}),des:des,
-    geo:VIT?null:[voxMesh(G,4),voxMesh(G1,2),voxMesh(G2,1),voxMesh(G3)]}; // les plans intérieurs tous les 7 m à chaque niveau (le verre garde la même teinte) — en vitrail : la peau et le cœur lisses (jadeLisse)
+    geo:geo}; // les plans intérieurs tous les 7 m à chaque niveau (le verre garde la même teinte) — en vitrail : la peau et le cœur lisses (jadeLisse) // les plans intérieurs tous les 7 m à chaque niveau (le verre garde la même teinte) — en vitrail : la peau et le cœur lisses (jadeLisse)
 }
 /* ---- LES CUBES MINUSCULES (v8, Léo : « trois fois plus petit ») — un niveau de détail de PLUS, de près seulement (≤ FIN.D de la caméra) :
    des cubes de VX/3 (58 cm sur l'ordi). Une grille pleine à ce pas pèserait ~250 millions de cases : la montagne est donc relue telle
@@ -14752,7 +14829,8 @@ function* voxPilierFin(T9){ // un GÉNÉRATEUR : il rend la main après chaque c
    entre deux colonnes voisines, ce que l'une a et pas l'autre = faces ±u / ±v (fusionnées le long du rang) ; `nb(u,v)` donne la colonne
    d'à côté quand elle sort de la grille (la région refaite en cubes fins touche la muraille en cubes de 2,5 m : les marches entre les deux
    sont posées ici, dans les deux sens). Plans intérieurs tous les `inner` cubes. */
-function colMesh(NU,NV,LO,HI,perm,mat,nb,inner){
+function colMesh(NU,NV,LO,HI,perm,mat,nb,inner){return jadeFini(colMeshG(NU,NV,LO,HI,perm,mat,nb,inner));}
+function* colMeshG(NU,NV,LO,HI,perm,mat,nb,inner){ // (passe perf) en tranches au menu, d'une traite sinon (voir LES TRANCHES)
   const P=[],Nm=[],Ma=[],I=[],q=[0,0,0],Rg=[null,null,null],au=perm[0],av=perm[1],aw=perm[2];
   const Q=(d,sg,pl,m)=>{const e1=(d+1)%3,e2=(d+2)%3,b=P.length/3,a0=Rg[e1][0],a1=Rg[e1][1],b0=Rg[e2][0],b1=Rg[e2][1];
     q[d]=pl;q[e1]=a0;q[e2]=b0;P.push(q[0],q[1],q[2]);q[e1]=a1;P.push(q[0],q[1],q[2]);q[e2]=b1;P.push(q[0],q[1],q[2]);q[e1]=a0;P.push(q[0],q[1],q[2]);
@@ -14762,16 +14840,16 @@ function colMesh(NU,NV,LO,HI,perm,mat,nb,inner){
   const col=(u,v)=>{if(u>=0&&u<NU&&v>=0&&v<NV){const k=u+NU*v;return HI[k]>LO[k]?[LO[k],HI[k]]:null;}return nb?nb(u,v):null;};
   // 1. les bouts des colonnes (faces ±w)
   for(const sg of [-1,1]){const V=sg<0?LO:HI,fait=new Uint8Array(NU*NV);
-    for(let v=0;v<NV;v++)for(let u=0;u<NU;u++){const k=u+NU*v;if(fait[k]||!plein(k))continue;const h=V[k],m=mat('w',u,v,sg);
+    for(let v=0;v<NV;v++){if(performance.now()>JF.lim)yield;for(let u=0;u<NU;u++){const k=u+NU*v;if(fait[k]||!plein(k))continue;const h=V[k],m=mat('w',u,v,sg);
       let w=1;while(u+w<NU){const k2=k+w;if(fait[k2]||!plein(k2)||V[k2]!==h||mat('w',u+w,v,sg)!==m)break;w++;}
       let hh=1;grand:while(v+hh<NV){for(let i=0;i<w;i++){const k2=u+i+NU*(v+hh);if(fait[k2]||!plein(k2)||V[k2]!==h||mat('w',u+i,v+hh,sg)!==m)break grand;}hh++;}
       for(let j=0;j<hh;j++)fait.fill(1,u+NU*(v+j),u+w+NU*(v+j));
-      Rg[au]=[u,u+w];Rg[av]=[v,v+hh];Q(aw,sg,h,m);}}
+      Rg[au]=[u,u+w];Rg[av]=[v,v+hh];Q(aw,sg,h,m);}}}
   // 2. les flancs : entre la colonne d'avant et celle-ci, le long de u (along 0) puis de v (along 1)
   const pieces=[];
   const dif=(A,B)=>{pieces.length=0;if(!A)return;if(!B){pieces.push(A[0],A[1]);return;}if(A[0]<B[0])pieces.push(A[0],Math.min(A[1],B[0]));if(A[1]>B[1])pieces.push(Math.max(A[0],B[1]),A[1]);};
   for(const along of [0,1]){const NA=along?NV:NU,NB=along?NU:NV,dAx=along?av:au,rAx=along?au:av,kind=along?'v':'u';
-    for(let pl=0;pl<=NA;pl++){const op=new Map(),vu=new Set();
+    for(let pl=0;pl<=NA;pl++){if(performance.now()>JF.lim)yield;const op=new Map(),vu=new Set();
       const ouvre=(sg,w0,w1,m,b,cu,cv)=>{const key=((sg>0?1:0)*65536+w0)*65536*16+w1*16+m;vu.add(key);if(!op.has(key))op.set(key,[b,sg,w0,w1,m]);};
       for(let b=0;b<=NB;b++){
         if(b<NB){const A=along?col(b,pl-1):col(pl-1,b),B=along?col(b,pl):col(pl,b);
@@ -14782,7 +14860,7 @@ function colMesh(NU,NV,LO,HI,perm,mat,nb,inner){
         vu.clear();}}}
   // 3. les plans intérieurs le long de w
   if(inner){let wmin=1e9,wmax=-1e9;for(let k=0;k<NU*NV;k++)if(plein(k)){if(LO[k]<wmin)wmin=LO[k];if(HI[k]>wmax)wmax=HI[k];}
-    for(let W9=Math.ceil((wmin+1)/inner)*inner;W9<wmax;W9+=inner){const op=new Map(),vu=new Set();
+    for(let W9=Math.ceil((wmin+1)/inner)*inner;W9<wmax;W9+=inner){if(performance.now()>JF.lim)yield;const op=new Map(),vu=new Set();
       for(let v=0;v<=NV;v++){
         if(v<NV){let u=0;while(u<NU){const k=u+NU*v;if(!(plein(k)&&LO[k]<W9&&HI[k]>W9)){u++;continue;}let u1=u+1;while(u1<NU){const k2=u1+NU*v;if(!(plein(k2)&&LO[k2]<W9&&HI[k2]>W9))break;u1++;}
           const key=u*65536+u1;vu.add(key);if(!op.has(key))op.set(key,v);u=u1;}}
