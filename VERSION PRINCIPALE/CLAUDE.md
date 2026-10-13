@@ -95,8 +95,12 @@
 - LA BOUTIQUE DU GARAGE (13/10, Léo : « la Nyan Cat n'est plus dans le shop » puis « inverse le sens : quand on tire la voiture vers
   le bas, ça tire l'endroit qu'on appuie vers le bas ») — `bqEphemeres` : l'offre de lancement (`une:1`, le CHAT POP-TART) reste TOUJOURS
   en tête de l'onglet OFFRES, seules les 3 autres places tournent chaque semaine (les 4 étaient tirées : elle en sortait).
-  `bqCoteDoigt(e)` : au pointerdown, le côté de la caisse sous le doigt (nez/poupe projetés par la caméra) donne le signe du tangage —
-  doigt sur l'avant, le nez plonge ; sur l'arrière, la poupe descend (avant : le nez plongeait toujours). Banc : `bq2.py`/`off.py`.
+  LA PRISE (`bqPrise(e)`, même soir, Léo : « en tirant le côté vers le bas, on peut la pivoter, le capot vers nous ») : au pointerdown un
+  rayon trouve le POINT touché ; tirer vers le bas tourne la caisse dans le sens qui fait descendre ce point (axe = bras × bas de l'écran,
+  dans le repère de la caisse), ramené sur le TANGAGE (`GBQ.pit`, nez/poupe) et le ROULIS (`GBQ.rol`, nouveau, le flanc : le dessus
+  bascule vers nous) ; les deux reviennent en ressort. ⚠ Repère de la caisse = `getWorldQuaternion().invert()`, jamais `rotation.y`
+  (relu d'un quaternion penché, l'Euler bascule de 180°) ; centre = `localToWorld(0,.55,0)` (la Box3 de carGroup ramasse halos et
+  lueurs, à 5 m). ⚠ Le PLATEAU TOURNE : au banc, viser avec `dbgPrise(x,y)` (nez, poupe, flancs, centre à l'écran + ce que le doigt attrape).
 
 ## LA PASSE QUALITÉ AVANT SORTIE (2026-10-12, Sacha : « trouve des bugs et règle-les, améliore des trucs à droite à gauche, fais en sorte que le jeu soit parfait et sortable »)
 Méthode : bancs Puppeteer son coupé (rendu LOGICIEL SwiftShader : Roblox Studio tenait le GPU, le Chrome de test calait sur D3D11), un
