@@ -1984,7 +1984,7 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
   @media (prefers-reduced-motion:reduce){body #engBig.gain .ebGain{animation:none;opacity:1;transform:none}}
   /* tant que la carte parle, le couloir se tait (filet de la file) ; pendant la plongée, le geste attend encore */
   body.ebOn #lvlBan,body.ebOn #slam9,body.ebOn #misBan,body.ebOn #dolHud,body.ebOn #launchLogo,body.ebOn #avRec,body.ebPlonge #popTxt{visibility:hidden}
-  body:has(#misBan.on) #dolHud{visibility:hidden}   /* le compteur du DAUPHIN vit dans le même couloir : il laisse parler la carte de défi / d'astuce (3 s), puis revient */
+  body.hMisBan:not(#ccH) #dolHud{visibility:hidden}   /* le compteur du DAUPHIN vit dans le même couloir : il laisse parler la carte de défi / d'astuce (3 s), puis revient */
   @media (prefers-reduced-motion:reduce){body #engBig.on .ebCarte,body #engBig.plonge .ebCarte,body #engBig .ebRuban{animation:none}
     body #engBig.plonge .ebCarte{opacity:0}}
   /* LA GRANDE ANNONCE (H9) : couleur pleine, contour d'encre de 3 px, épaisseur dessous, lèvre claire */
@@ -2104,7 +2104,7 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
   #verdHud.on .vTags{animation:verdMt .45s var(--ease) .24s both}
   @keyframes verdMt{from{opacity:0;transform:translateY(10px) scale(1.35)}to{opacity:1;transform:none}}
   body:not(.play) #verdHud{display:none}
-  body.ebOn #verdHud,body:has(#tPanel.open) #verdHud{visibility:hidden}   /* la carte moteur tient le couloir ; la pause fait taire le HUD */
+  body.ebOn #verdHud,body.hTp:not(#ccH) #verdHud{visibility:hidden}   /* la carte moteur tient le couloir ; la pause fait taire le HUD */
   body.verdOn #lvlBan,body.verdOn #dolHud,body.verdOn #misBan,body.verdOn #launchLogo{visibility:hidden}   /* UNE voix au centre */
   @media (prefers-reduced-motion:reduce){#verdHud.on{animation:verdRM 1.3s linear forwards;transform:translateX(-50%)}#verdHud.on .vM,#verdHud.on .vTags{animation:none}
     @keyframes verdRM{0%{opacity:0}10%{opacity:1}82%{opacity:1}100%{opacity:0}}}
@@ -2119,7 +2119,7 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
   #campFx .cfB{background:radial-gradient(130% 55% at 50% 112%,rgba(70,120,255,.8),rgba(70,120,255,0) 62%)}
   #campFx .cfF{background:radial-gradient(150% 100% at 50% 50%,rgba(255,62,200,0) 58%,rgba(255,62,200,.6) 100%)}
   #campFx .cfG{background:radial-gradient(150% 100% at 50% 50%,rgba(255,214,130,0) 50%,rgba(255,214,130,.65) 100%)}
-  body.dead #campFx,body:has(#tPanel.open) #campFx{visibility:hidden}
+  body.dead #campFx,body.hTp:not(#ccH) #campFx{visibility:hidden}
   /* (2026-09-27) LA PLAQUE DE LA CAMPAGNE VILLE (#campChip) : ce qu'on LIT, en haut (sous la jauge de nitro au téléphone) — un CADRE
      d'arcade opaque (charte : ni verre dépoli ni dégradé sur le texte, coins coupés, couleur pleine), deux lignes : l'objectif et son
      chiffre (rang, distance, pourcentage). Elle ne se touche pas. Fondu d'opacité seul ; « alerte » = le liseré bat rouge (dernier, courant). */
@@ -2134,7 +2134,7 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
   #campChip.alerte{animation:ccAlerte .6s steps(2) infinite}
   @keyframes ccAlerte{50%{box-shadow:inset 0 0 0 2px var(--neoR),inset 3px 3px 0 rgba(255,255,255,.10),inset -3px -3px 0 rgba(0,0,0,.45)}}
   @media (prefers-reduced-motion:reduce){#campChip.alerte{animation:none;box-shadow:inset 0 0 0 2px var(--neoR)}}
-  body.dead #campChip,body:has(#tPanel.open) #campChip,body.touch:not(.play) #campChip{visibility:hidden}
+  body.dead #campChip,body.hTp:not(#ccH) #campChip,body.touch:not(.play) #campChip{visibility:hidden}
 </style>
 </head>
 <body>
@@ -2675,7 +2675,7 @@ body.touch #overlay[data-ecran="dead"]::before{opacity:.9}
 #tPanel .tp:not(.ligne) .pxi{--pxs:2;color:var(--nc)}
 #tPanel .tp:not(.ligne):active,#tPanel .tp:not(.ligne).appui{transform:skewX(var(--sk)) translateY(5px);box-shadow:inset 3px 0 0 var(--nc),inset 60px 0 44px -34px color-mix(in srgb,var(--nc) 80%,transparent),var(--levre),0 0 0 1px var(--anneau),0 4px 10px rgba(0,0,0,.5)}
 #tPanel .tp.rouge{--nc:var(--neoR);color:var(--neoR)}
-body:has(#tPanel.open) #tGear,body:has(#tPanel.open) #touchCtl{visibility:hidden}
+body.hTp:not(#ccH) #tGear,body.hTp:not(#ccH) #touchCtl{visibility:hidden}
 #tPanel .tp.go{--nc:var(--auT);color:var(--auT);position:sticky;bottom:calc(var(--sB) + 12px);z-index:2;margin:auto 0 6px;min-height:72px;font-size:var(--f5);letter-spacing:4px;
   background:linear-gradient(105deg,transparent 0 38%,rgba(255,255,255,.78) 46%,rgba(255,255,255,0) 54%) no-repeat,
     linear-gradient(180deg,#fffadf 0%,#ffe78e 15%,#ffd044 40%,#f7ae16 68%,#ea930a 86%,#ffc84e 100%);
@@ -2702,8 +2702,8 @@ body #tGear .pxi{--pxs:2;color:var(--neoC);filter:none!important}
 body #tGear:active,body #tGear.appui{transform:skewX(var(--sk)) translateY(5px)!important;
   box-shadow:inset 3px 0 0 var(--neoC),inset 60px 0 44px -34px rgba(0,234,255,.7),var(--levre),0 0 0 1px var(--anneau),0 4px 10px rgba(0,0,0,.5)!important}
 /* sous la pause, le HUD de course se tait (il se lisait à travers le voile) */
-body:has(#tPanel.open) :is(#flowHud,#auraV2,#pwrChip,#pwrFx,#airPie,#nitroWrap,#lvlBan,#slam9){visibility:hidden}
-body:has(#tPanel.open) #coach,body:has(#tPanel.open) #misBan,body:has(#tPanel.open) #engBig{display:none}
+body.hTp:not(#ccH) :is(#flowHud,#auraV2,#pwrChip,#pwrFx,#airPie,#nitroWrap,#lvlBan,#slam9){visibility:hidden}
+body.hTp:not(#ccH) #coach,body.hTp:not(#ccH) #misBan,body.hTp:not(#ccH) #engBig{display:none}
 
 /* ============================================ LE BOUTON NITRO (course) ===============================================
    Rond : c'est une JAUGE (le compteur de boost de Rocket League). La lecture --nr (orange = la nitro) / --nx (réserve
@@ -2781,7 +2781,7 @@ html .carrBiome .mmT::after{display:none}
 .carrNiv b{display:flex;align-items:center;gap:8px;font-weight:400;font-size:var(--f5)}
 .carrNiv b small{font-size:var(--f0);color:var(--tx3)}
 .carrNiv span{font-size:var(--f0);line-height:1.5}
-body:has(#carr.on) #garage{visibility:hidden}
+body.hCarr:not(#ccH) #garage{visibility:hidden}
 #carr .mDock{margin:26px calc(-1 * var(--gut)) calc(-24px - var(--sB))}
 
 /* ============================================ LE GARAGE ============================================================= */
@@ -3410,10 +3410,10 @@ html body #campChip.alerte{animation:k5CampAlerte .6s steps(2) infinite}
 /* ---- 9. LA COLONNE DE DROITE ne saute plus : la case du chrono de vol est RÉSERVÉE (sous le ⏸), les pouvoirs vivent toujours
    dessous — ils descendaient de 88 px à chaque décollage. L'objectif de campagne s'intercale entre les deux. */
 html body.touch #pwrChip,html body.touch #pwrChip.sousPie{top:calc(var(--hudH) + 184px)}
-html body.touch:has(#campChip.on) #pwrChip{top:calc(var(--hudH) + 248px)}
+html body.touch.hCampChip:not(#ccH) #pwrChip{top:calc(var(--hudH) + 248px)}
 /* en campagne la colonne de droite descend plus bas (objectif + pouvoirs) : le couloir des annonces descend d'autant, la bannière
    « NIVEAU 4 » passait derrière les pouvoirs */
-html body.touch:has(#campChip.on){--laneA:max(44%,calc(var(--ccT,env(safe-area-inset-top,0px)) + 384px))}
+html body.touch.hCampChip:not(#ccH){--laneA:max(44%,calc(var(--ccT,env(safe-area-inset-top,0px)) + 384px))}
 
 /* ---- 10. LA FRÉNÉSIE, REFAITE (2026-09-28 au soir, Sacha : « retravaille l'effet frénésie / dark triad, beaucoup beaucoup ; une
    petite part rouge dans la barre de flow = une zone de tolérance pour rester en frénésie plus souvent ; la barre devient toute rouge
@@ -3568,10 +3568,10 @@ html body #triade.mesure{display:block;visibility:hidden;animation:none}
 html body #flowHud.arme .fSeg .fZ s{animation:frBrule .3s steps(2) infinite}
 @keyframes trMeurt{0%{opacity:1;transform:scale(1)}25%{opacity:1;transform:scale(1.12)}100%{opacity:0;transform:scale(.2)}}
 /* la barre du RECORD se contracte pour laisser passer ses pointes (le texte, lui, ne bouge pas) */
-html body.touch.play:has(#triade.on) #avRec{max-width:calc(100vw - var(--hudD) - var(--frenD) - var(--frenT) - var(--hudG) - 6px)}
-html body.touch.play:has(#triade.on) #avRec i{flex:0 1 70px;width:auto;min-width:18px}
-html body.touch.play:has(#triade.on) #auraV2{z-index:7}   /* le « +820 » d'aura versée court à droite du mot AURA et passe sur l'emblème : l'INFORMATION (1,4 s) gagne sur la décoration */
-body:has(#tPanel.open) #triade,body.dead #triade,body.coOn #triade{visibility:hidden}
+html body.touch.play.hTriade:not(#ccH) #avRec{max-width:calc(100vw - var(--hudD) - var(--frenD) - var(--frenT) - var(--hudG) - 6px)}
+html body.touch.play.hTriade:not(#ccH) #avRec i{flex:0 1 70px;width:auto;min-width:18px}
+html body.touch.play.hTriade:not(#ccH) #auraV2{z-index:7}   /* le « +820 » d'aura versée court à droite du mot AURA et passe sur l'emblème : l'INFORMATION (1,4 s) gagne sur la décoration */
+body.hTp:not(#ccH) #triade,body.dead #triade,body.coOn #triade{visibility:hidden}
 /* « Réduire les animations » (iOS ou réglage) : la zone, le rouge et l'emblème restent ; plus rien ne tourne, ne bat ni ne clignote */
 html[data-reduced-motion="1"] #triade.on,html[data-reduced-motion="1"] #triade .trPiece,html[data-reduced-motion="1"] #triade .trPouls,
 html[data-reduced-motion="1"] #triade .trAura,html[data-reduced-motion="1"] #triade .trBat,html[data-reduced-motion="1"] #triade .trTr,
@@ -3906,9 +3906,9 @@ html #spNote{position:fixed;bottom:calc(var(--sB) + 84px)}
 /* (l) LE PAYSAGE, suite */
 @media (orientation:landscape) and (max-height:540px){
   /* le couloir des annonces remonte au tiers (il tombait à 338 px sur 390 : « NIVEAU 1 » sur la caisse, le verdict coupé en bas) */
-  html body.touch,html body.touch:has(#campChip.on){--laneA:40%}
+  html body.touch,html body.touch.hCampChip:not(#ccH){--laneA:40%}
   /* les pouvoirs s'installent en haut à droite, à gauche du chrono de vol (ils descendaient sur le disque NITRO) */
-  html body.touch #pwrChip,html body.touch #pwrChip.sousPie,html body.touch:has(#campChip.on) #pwrChip,html body.touch.coOn #pwrChip{top:calc(var(--hudH) + 64px);right:calc(var(--hudD) + 92px)}
+  html body.touch #pwrChip,html body.touch #pwrChip.sousPie,html body.touch.hCampChip:not(#ccH) #pwrChip,html body.touch.coOn #pwrChip{top:calc(var(--hudH) + 64px);right:calc(var(--hudD) + 92px)}
   /* l'invitation du volant descend sous le pouce */
   html body.touch.play #tSteer:not(.used)::after{bottom:calc(var(--sB) + 34px)}
   /* le dock de sortie va d'un bord à l'autre, et RETOUR tombe toujours au même endroit */
@@ -4541,11 +4541,11 @@ html body.touch.play.facile #facVies{display:flex;position:fixed;top:calc(var(--
 @media (orientation:landscape) and (max-height:540px){html body.touch.play.facile #facVies{top:calc(var(--hudH) + 103px)}}
 /* (29/09, re-mesuré) le compteur d'argent a une 2e ligne, le GAIN (« +$ 43 ») : il descend à 111 debout / 97 couché → les vies à 115 / 101.
    Debout, le chrono de vol (#airHud, 118) prend leur place en l'air : elles s'effacent le temps du vol (couché, le chrono est plus bas). */
-@media not ((orientation:landscape) and (max-height:540px)){html body.touch:has(#airPie[style*="block"]) #facVies{visibility:hidden}}
+@media not ((orientation:landscape) and (max-height:540px)){html body.touch.hAirPie:not(#ccH) #facVies{visibility:hidden}}
 #facVies .pxi.vide{color:var(--tx3);opacity:.45}
 #facVies .pxi.perd{animation:facPerd var(--t-slow) var(--ease)}
 @keyframes facPerd{from{scale:2;color:#fff}to{scale:1}}
-body.coOn #facVies,body.dead #facVies,body:has(#tPanel.open) #facVies{visibility:hidden}
+body.coOn #facVies,body.dead #facVies,body.hTp:not(#ccH) #facVies{visibility:hidden}
 @media (prefers-reduced-motion:reduce){#facVies .pxi.perd{animation:none}}
 /* ---- 28. LE DAUPHIN EN EAU (2026-09-29, Sacha : « plus petit, avec une police aquatique avec des vagues ») ---- */
 html body #dolHud .dNom.eau{font-size:clamp(10px,2.9vw,13px)!important;letter-spacing:.12em;background:none!important;display:block;
@@ -4682,7 +4682,7 @@ html body #dolHud.vol .dNom{display:none}
 /* il ne vit pas dans le couloir du haut (défis, carte moteur, annonces le masquaient pendant tout le vol, mesuré) : JUSTE SOUS la caisse,
    au niveau des dauphins qui nagent — et il reste visible quand le couloir parle */
 html body #dolHud.vol{top:calc(50% + max(48px,7vh))} /* en vol la caméra CENTRE la caisse : juste dessous */
-html body:is(.slamOn,.ebOn):not(.verdOn) #dolHud.vol.on,html body:has(#misBan.on):not(.verdOn) #dolHud.vol.on{visibility:visible}
+html body:is(.slamOn,.ebOn):not(.verdOn) #dolHud.vol.on,html body.hMisBan:not(#ccH):not(.verdOn) #dolHud.vol.on{visibility:visible}
 html body #dolHud.vol .dAura{font-size:clamp(13px,3.9vw,17px)!important;gap:7px}
 html body #dolHud.vol .dAura .pxi{--pxs:3}
 html body #dolHud.vol .dAura small{font-size:9px}
@@ -4940,7 +4940,7 @@ html body #flowHud.arme .fSeg{animation:hmArme .5s steps(2) infinite}
 @keyframes hmArme{50%{box-shadow:inset 0 0 0 3px #ff2a3d,0 3px 0 #170f55,0 0 16px rgba(255,42,61,.8)}}
 /* EN FRÉNÉSIE, l'emblème porte son chrono et ses trois traits dessous : les POUVOIRS descendent pour ne pas s'y poser (portrait) */
 @media not ((orientation:landscape) and (max-height:540px)){
-  html body.touch.play:has(#triade.on) #pwrChip{top:calc(var(--hudH) + 262px)}
+  html body.touch.play.hTriade:not(#ccH) #pwrChip{top:calc(var(--hudH) + 262px)}
 }
 @media (prefers-reduced-motion:reduce){html body #flowHud.arme .fSeg{animation:none}}
 /* ---------------------------------------------- 17. LES TRAITS PARLENT SUR LA LIGNE DU FLOW ------------------------- */
@@ -4976,7 +4976,7 @@ html body #flowHud .fT.trois{gap:5px}
 /* EN PORTRAIT l'emblème DARK TRIAD descend d'un cran : sa pointe se posait sur la ligne des traits */
 @media not ((orientation:landscape) and (max-height:540px)){
   html body.touch{--frenH:88px}
-  html body.touch.play:has(#triade.on) #pwrChip{top:calc(var(--hudH) + 278px)}
+  html body.touch.play.hTriade:not(#ccH) #pwrChip{top:calc(var(--hudH) + 278px)}
 }
 @media (prefers-reduced-motion:reduce){html body #flowHud .fT i.on,html body #flowHud .fT i.on2,html body #flowHud .fT i.moins.on,html body #flowHud .fT i.moins.on2{animation:none}}
 /* ---------------------------------------------- « RÉDUIRE LES ANIMATIONS » ------------------------------------------- */
@@ -5181,7 +5181,7 @@ html body.touch #airPie[style*="block"]+#airHud{display:block}
 html body.touch #airPie.danger+#airHud{animation:k6PieDanger .12s steps(2) infinite}
 html body.touch #airPie.danger+#airHud .ahBar{animation:daSecA .3s steps(2) infinite}
 @keyframes daSecA{50%{box-shadow:inset 0 0 0 3px var(--rP),0 4px 0 var(--jEncre),0 0 12px color-mix(in srgb,var(--rP) 70%,transparent)}}
-body:has(#tPanel.open) #airHud,body.dead #airHud{visibility:hidden}
+body.hTp:not(#ccH) #airHud,body.dead #airHud{visibility:hidden}
 /* ---- 4. L'EMBLÈME DARK TRIAD : l'icône pixel (triangle et œil) et le nom dans la typo du compteur, en bandes ROUGES (TRIPLE MONSTER) ---- */
 :root{--frenTh:60px}
 html body #triade .trPiece,html body #triade .trOnde,html body #triade .trAura{display:none!important}
@@ -5228,7 +5228,7 @@ html body.touch.play #cashHud{display:block;position:fixed;top:calc(var(--hudH) 
 #cashHud .chD.t1{animation-name:daCashDA}#cashHud .chD.t2{animation-name:daCashDB}
 @keyframes daCashDA{0%{transform:translateY(-4px)}100%{transform:none}}
 @keyframes daCashDB{0%{transform:translateY(-4px)}100%{transform:none}}
-body:has(#tPanel.open) #cashHud,body.dead #cashHud,body.coOn #cashHud{visibility:hidden}
+body.hTp:not(#ccH) #cashHud,body.dead #cashHud,body.coOn #cashHud{visibility:hidden}
 @media (orientation:landscape) and (max-height:540px){
   html body.touch.play #cashHud{top:calc(var(--hudH) + 66px)}
   /* l'emblème DARK TRIAD, à droite des barres : sa place se compte en coordonnées ZOOMÉES (hudTaille) — calculée à l'échelle 1 elle
@@ -5240,7 +5240,7 @@ body:has(#tPanel.open) #cashHud,body.dead #cashHud,body.coOn #cashHud{visibility
   html body.touch #triade{top:calc(var(--hudH) + 4px + min(30px, var(--ccR, env(safe-area-inset-right, 0px))))!important}
   #cashHud .chV span{font-size:var(--f5)}#cashHud .chV i{font-size:var(--f3)}#cashHud .chD{font-size:var(--f1);margin-top:5px}
   /* les plaques de pouvoir (à gauche du chrono de vol) descendent sous le compteur : elles s'y posaient */
-  html body.touch #pwrChip,html body.touch #pwrChip.sousPie,html body.touch:has(#campChip.on) #pwrChip,html body.touch.coOn #pwrChip{top:calc(var(--hudH) + 124px)}
+  html body.touch #pwrChip,html body.touch #pwrChip.sousPie,html body.touch.hCampChip:not(#ccH) #pwrChip,html body.touch.coOn #pwrChip{top:calc(var(--hudH) + 124px)}
 }
 @media (prefers-reduced-motion:reduce){#cashHud.b1 .chV,#cashHud.b2 .chV,#cashHud .chD.t1,#cashHud .chD.t2{animation:none}}
 /* ---- 7. LE REPLI DES VIEUX iPHONE (iOS < 16.2 : pas de color-mix()) — audit de sortie d'INTERFACE : un texte du HUD en
@@ -5264,20 +5264,20 @@ body:has(#tPanel.open) #cashHud,body.dead #cashHud,body.coOn #cashHud{visibility
 /* ---- 6. L'ASTUCE / LE DÉFI (#misBan) NE SE POSE PLUS SUR LES POUVOIRS (portrait) : centrée, elle couvrait la colonne de droite (plaques
    NITRO MAX, AIR MAX…). Tant qu'une plaque de pouvoir est affichée, elle se range à GAUCHE et s'arrête avant la colonne. ---- */
 @media not ((orientation:landscape) and (max-height:540px)){
-  html body.touch:has(#pwrChip .pw) #misBan{max-width:calc(100vw - var(--hudG) - var(--hudD) - 148px);margin-left:calc((var(--hudG) - var(--hudD) - 148px) / 2)}
+  html body.touch.hPwr:not(#ccH) #misBan{max-width:calc(100vw - var(--hudG) - var(--hudD) - 148px);margin-left:calc((var(--hudG) - var(--hudD) - 148px) / 2)}
 }
 /* (paysage) les plaques de pouvoir vivent à GAUCHE du chrono de vol : elles le touchaient bord à bord — 10 px d'air */
 @media (orientation:landscape) and (max-height:540px){
-  html body.touch #pwrChip,html body.touch #pwrChip.sousPie,html body.touch:has(#campChip.on) #pwrChip,html body.touch.coOn #pwrChip{right:calc(var(--hudD) + var(--ahW) + 10px)}
+  html body.touch #pwrChip,html body.touch #pwrChip.sousPie,html body.touch.hCampChip:not(#ccH) #pwrChip,html body.touch.coOn #pwrChip{right:calc(var(--hudD) + var(--ahW) + 10px)}
 }
 /* SA PLACE (portrait) : la COLONNE DE DROITE, sous le ⏸ — ⏸ · DARK TRIAD · chrono de vol · pouvoirs. Au milieu du haut, il coupait le
    compteur d'aura en deux lignes (« 1 » puis « 418 ») et contractait la barre du record ; le compteur retrouve sa largeur. */
 @media not ((orientation:landscape) and (max-height:540px)){
   html body.touch #triade{top:calc(var(--hudH) + 130px)!important;right:var(--hudD)!important;left:auto!important}
-  html body.touch.play:has(#triade.on) #airHud{top:calc(var(--hudH) + 224px)}
-  html body.touch.play:has(#triade.on) #avRec{max-width:calc(100vw - var(--hudD) - var(--frenT) - var(--hudG) - 16px)}
-  html body.touch.play:has(#triade.on) #campChip{top:calc(var(--hudH) + 290px)}
-  html body.touch.play:has(#triade.on):has(#campChip.on) #pwrChip{top:calc(var(--hudH) + 354px)}
+  html body.touch.play.hTriade:not(#ccH) #airHud{top:calc(var(--hudH) + 224px)}
+  html body.touch.play.hTriade:not(#ccH) #avRec{max-width:calc(100vw - var(--hudD) - var(--frenT) - var(--hudG) - 16px)}
+  html body.touch.play.hTriade:not(#ccH) #campChip{top:calc(var(--hudH) + 290px)}
+  html body.touch.play.hTriade:not(#ccH).hCampChip:not(#ccH) #pwrChip{top:calc(var(--hudH) + 354px)}
 }
 /* ---- 4 bis. LE COMPTEUR D'AURA TIENT SUR UNE LIGNE : il resserre son corps quand le nombre s'allonge (data-l, posé à l'écriture) ---- */
 html body #avVal{white-space:nowrap}
@@ -5404,7 +5404,7 @@ html body.touch #flowHud[data-lv="4"] .fM.cj2{animation:fx3Bat .9s steps(1,end) 
 .fx3.on2{animation:fx3Monte2 .7s var(--ease) both}
 @keyframes fx3Monte1{0%{opacity:1;transform:translate(-50%,-50%) scale(1.6)}18%{opacity:1;transform:translate(-50%,calc(-50% - 10px)) scale(1)}65%{opacity:1;transform:translate(-50%,calc(-50% - 26px)) scale(1)}100%{opacity:0;transform:translate(-50%,calc(-50% - 34px)) scale(.9)}}
 @keyframes fx3Monte2{0%{opacity:1;transform:translate(-50%,-50%) scale(1.6)}18%{opacity:1;transform:translate(-50%,calc(-50% - 10px)) scale(1)}65%{opacity:1;transform:translate(-50%,calc(-50% - 26px)) scale(1)}100%{opacity:0;transform:translate(-50%,calc(-50% - 34px)) scale(.9)}}
-body.dead .fx3,body:has(#tPanel.open) .fx3{visibility:hidden}
+body.dead .fx3,body.hTp:not(#ccH) .fx3{visibility:hidden}
 @keyframes fx3Fondu{0%,65%{opacity:1;transform:translate(-50%,-50%)}100%{opacity:0;transform:translate(-50%,-50%)}}
 @media (prefers-reduced-motion:reduce){
   html body.touch #flowHud[data-lv="4"] .fM,html body.touch #flowHud[data-lv="4"] .fM.cj1,html body.touch #flowHud[data-lv="4"] .fM.cj2{animation:none}
@@ -7209,7 +7209,7 @@ html body.touch #nitroBar>.nbPrend.on{animation:nbPrendK .34s var(--ease)}
 html body.touch #nitroR,html body.touch #nitroX{transition:none!important}   /* le RESSORT de la boucle porte la largeur (la transition en crans le hachait) */
 @keyframes nbPrendK{0%{opacity:1;scale:1 1.4}100%{opacity:0;scale:1 1}}
 /* la pause passe devant : la jauge et ce qui vole se cachent comme le reste du HUD */
-body:has(#tPanel.open) :is(#ajCourse,#ajVols){visibility:hidden}
+body.hTp:not(#ccH) :is(#ajCourse,#ajVols){visibility:hidden}
 body.coOn :is(#ajCourse,#ajVols){visibility:hidden} /* (2026-10-12, passe qualité) l'auto-école garde le haut de l'écran pour elle, comme le flow et l'aura (voir body.coOn #flowHud) */
 @media (prefers-reduced-motion:reduce){#ajVols u.on,html body.touch #nitroBar>.nbPrend.on,#ajCourse .ajSeg::after,html body.touch #nitroBar.boost #nitroR,html body.touch #nitroBar.bleu #nitroX,html body.touch #nitroBar.inf #nitroR,html body.touch #nitroBar.inf #nitroX,html body.touch #nitroBar #nitroR::after{animation:none!important}}
 /* ---- 4. (2026-10-12, Léo : « l'aura un peu plus courte, les km/h plus à droite encore, et le flow même taille ») : la jauge d'aura et le flow à
@@ -7234,6 +7234,13 @@ html body.touch #nitroBar>#nxVit{width:calc(var(--nxV) + 8px)}
   #nxVit b{font-size:34px}
   #nxVit i{font-size:11px}
 }
+</style>
+<style id="passeMobile">
+/* (2026-10-14, passe mobile — « jouer en NETTE sans que ça bug, pour tout le monde ») LE LOGO DU LANCEMENT NE BRILLE PLUS DANS LE NOIR.
+   MESURÉ (document.getAnimations en course) : `#launchLogo` reste à opacité 0 pendant toute la partie, et le reflet `lgShine` de ses deux mots
+   (un background-position, que la puce ne sait pas animer seule) tournait à chaque image : un recalcul de style et une repeinture du texte
+   détouré, pour rien. Logo éteint → reflet en pause ; rallumé → il reprend. */
+html body #launchLogo:not(.on) .lg::after{animation-play-state:paused}
 </style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
@@ -9550,7 +9557,7 @@ function padsInstancier(){
     PAD_IM.frustumCulled=false;PAD_IM.matrixAutoUpdate=false;scene.add(PAD_IM); // ⚠ la sphère englobante r128 ne couvre pas les instances
   }
   for(let i=0;i<n;i++){const m=L9[i];m.updateMatrix();PAD_IM.setMatrixAt(i,m.matrix);scene.remove(m);}
-  PAD_IM.count=n;PAD_IM.instanceMatrix.needsUpdate=true;
+  PAD_IM.count=n;PAD_IM.visible=n>0;PAD_IM.instanceMatrix.needsUpdate=true; // (2026-10-14) une piste sans plaque (le Soleil de jade) : plus de dessin de zéro exemplaire à chaque image
 }
 function conesListe(fr,L9){ // les plots (non percutés) dont la sphère (1,05 m : socle 0,72 m en diagonale, 1,40 m de haut) touche ce champ
   let n=0;CONE_SPH.radius=1.05;
@@ -10744,6 +10751,8 @@ window.dbgNuage=function(i,k){const c=CLOUDS[i|0];if(!c)return {nuages:CLOUDS.le
   if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);
   return {nuages:CLOUDS.length,r:Math.round(c.r),ry:Math.round(c.ry),dedans:c.mesh.material===CLOUD_MAT_IN||c.mesh.material===CLOUD_MAT_IN8,trav:!!c.mesh.userData.trav};};
 // (dev, 2026-09-26) `dbgProgs()` : les programmes GPU compilés (nombre + ceux du ciel) — une hausse en pleine course = une recompilation (un hoquet)
+window.dbgProgsQui=function(id){const o=[];scene.traverse(function(x){const ms=x.material?(Array.isArray(x.material)?x.material:[x.material]):[];for(const m of ms){const pr=renderer.properties.get(m).currentProgram;if(pr&&pr.id===id){let p=x,ch=[];for(let k=0;k<5&&p;k++){ch.push((p.name||p.type)+(p.userData&&Object.keys(p.userData).length?'{'+Object.keys(p.userData).join(',')+'}':''));p=p.parent;}o.push(ch.join(' < ')+' vis:'+x.visible);}}});return o.slice(0,12);}; // (2026-10-14, banc) QUI utilise le programme n°id
+window.dbgProgsListe=function(){return (renderer.info.programs||[]).map(function(p){return [p.id,p.name,p.cacheKey.length,p.cacheKey.slice(0,60).replace(/\s+/g,' '),p.cacheKey.slice(-160).replace(/\s+/g,' ')];});}; // (2026-10-14, banc) la liste des programmes liés : qui compile EN COURSE ?
 window.dbgProgs=function(cles){const P=renderer.info.programs||[];if(cles)return P.filter(function(p){return /nuageV\d|globeJourNuit/.test(p.cacheKey);}).map(function(p){return p.cacheKey;});return {n:P.length,ciel:P.filter(function(p){return /nuageV\d|globeJourNuit|an\*5\.-q\.y\*11/.test(p.cacheKey);}).map(function(p){return /nuageV\ddedans/.test(p.cacheKey)?'nuage-dedans':/nuageV\d/.test(p.cacheKey)?'nuage':/globe/.test(p.cacheKey)?'globe':'portail';})};};
 // ---------- PIGEONS RAMIERS : rares traversées d'oiseaux — un peu de vie dans le ciel ----------
 const PIGEONS=[];let pigeonT=12+Math.random()*14;
@@ -15179,6 +15188,7 @@ function buildJade(seed){
     items.sort(function(a,b){return a.q.k-b.q.k;});
     const n=items.length,F={n:n,M:new Float32Array(n*16),J:new Float32Array(n*4),r:new Map(),b0:b0,b1:b1,tri:(geo.index?geo.index.count:geo.attributes.position.count)/3};
     let a=0;for(let i=0;i<n;i++){const it=items[i];F.M.set(it.m,i*16);F.J.set(it.j,i*4);if(i===n-1||items[i+1].q!==it.q){F.r.set(it.q.k,[a,i+1]);a=i+1;}}
+    {const nr=F.r.size;F.rK=new Int32Array(nr);F.rA=new Int32Array(nr);F.rB=new Int32Array(nr);let i9=0;for(const [k,r] of F.r){F.rK[i9]=k;F.rA[i9]=r[0];F.rB[i9]=r[1];i9++;}} // (2026-10-14) la même liste en tableaux : jadeTri la parcourt sans rien allouer (voir jadeTri)
     if(items.some(function(it){return it.pq;}))F.tq=items.map(function(it){return it.pq||null;}); // (v14) les arbres : leur montagne (l'effondrement les emporte)
     if(items[0].pi!==undefined){F.pidx=new Map();F.qk=new Int32Array(n);F.dst=new Map();for(let i=0;i<n;i++){F.pidx.set(items[i].pi,i);F.qk[i]=items[i].q.k;}} // (v8) pour céder une montagne aux cubes fins
     const g=vue(geo);F.im=new THREE.InstancedMesh(g,mat,n);F.im.frustumCulled=false;F.im.matrixAutoUpdate=false;
@@ -15368,7 +15378,7 @@ function jadeChuteTick(dt){
   const S9=JCH.sp,im=JCH.splash;if(im&&S9.length){let n=0;const M9=JCH_M;
     for(let i=S9.length-1;i>=0;i--){const p=S9[i];p.t+=dt;if(p.t>p.l){S9.splice(i,1);continue;}p.vy-=22*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.z+=p.vz*dt;
       if(p.y<JADE.eauY-4){S9.splice(i,1);continue;}const k=p.sz*(1-Math.pow(p.t/p.l,3));M9.makeScale(k,k,k).setPosition(p.x,p.y,p.z);if(n<700)im.setMatrixAt(n++,M9);}
-    im.count=n;im.instanceMatrix.needsUpdate=true;}else if(im&&im.count){im.count=0;}}
+    im.count=n;im.visible=n>0;im.instanceMatrix.needsUpdate=true;}else if(im&&(im.count||im.visible)){im.count=0;im.visible=false;}}
 function jadeChuteOrig(c){c.orig=[];
   for(const F of JADE.fam){if(F.pidx){const si=F.pidx.get(c.pi);if(si!==undefined)c.orig.push({F:F,si:si,m:F.M.slice(si*16,si*16+16)});}
     if(F.tq)for(let si=0;si<F.tq.length;si++)if(F.tq[si]===c.q)c.orig.push({F:F,si:si,m:F.M.slice(si*16,si*16+16)});}
@@ -15564,13 +15574,13 @@ function jadeSillage(sy,hv,dt,d){eauPIm();const p=fallPos,vx=fallVel.x/hv,vz=fal
   if(k>.45){const m=Math.min(10,Math.round(n*.6));for(let i=0;i<m;i++){const al=-2.6-Math.random()*1.5; // la QUEUE DE COQ derrière, à grande vitesse
     eauP(p.x+vx*al+(Math.random()-.5)*.8,sy+.2,p.z+vz*al+(Math.random()-.5)*.8,vx*vW*.35+(Math.random()-.5)*2,5+Math.random()*12*k,vz*vW*.35+(Math.random()-.5)*2,.05+Math.random()*.14,.7+Math.random()*.6,sy,(Math.random()*2)|0);}}
   sillonPose(p.x,sy,p.z,vx,vz,hv,dt,kh);eauBrume(p,vx,vz,px,pz,vW,k,kh,sy,dt);} // le V d'écume derrière elle, la brume de la gerbe
-function eauPTick(dt){const im=EAUP.im;if(!im)return;const L9=EAUP.L;if(!L9.length){if(im.count)im.count=0;return;}let n=0;const M9=JCH_M,dr=Math.exp(-.5*dt),cp=camera.position;
+function eauPTick(dt){const im=EAUP.im;if(!im)return;const L9=EAUP.L;if(!L9.length){if(im.count||im.visible){im.count=0;im.visible=false;}return;} // (2026-10-14) vide = caché : un dessin de zéro exemplaire coûte sa préparation à chaque imagelet n=0;const M9=JCH_M,dr=Math.exp(-.5*dt),cp=camera.position;
   for(let i=L9.length-1;i>=0;i--){const p=L9[i];if(!paused){p.t+=dt;p.vy-=24*dt;p.vx*=dr;p.vz*=dr;p.x+=p.vx*dt;p.y+=p.vy*dt;p.z+=p.vz*dt;}
     if(p.t>p.l||(p.vy<0&&p.y<p.y0-.5)){L9[i]=L9[L9.length-1];L9.pop();continue;}
     let k=p.sz*(1-Math.pow(p.t/p.l,3));{const dx=p.x-cp.x,dy=p.y-cp.y,dz=p.z-cp.z,d2=dx*dx+dy*dy+dz*dz;if(d2<36)k*=Math.max(.15,Math.sqrt(d2)/6);} // près de l'objectif, la goutte rapetisse
     const st=Math.min(2.4,1+Math.abs(p.vy)*.06);M9.makeScale(k,k*st,k).setPosition(p.x,p.y,p.z); // une goutte qui file s'étire
     if(n<EAUP.max){im.setMatrixAt(n,M9);im.setColorAt(n,EAUP.cols[p.c]);n++;}}
-  im.count=n;im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;}
+  im.count=n;im.visible=n>0;im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;}
 /* LE SILLAGE EN V (Kelvin) : la trace de la caisse sur l'eau, un point toutes les 45 ms ; chaque point s'écarte de l'axe à ~19,5° (la vitesse
    × 0,354 × son âge) et s'élargit — deux bandes d'écume en PETITS CARRÉS de 50 cm, la crête blanche côté intérieur, qui s'éteignent en 1,8 s. */
 const SILL={P:[],mesh:null,N:48,acc:0};
@@ -15602,12 +15612,12 @@ function eauBIm(){if(EAUB.im)return EAUB.im;const m=new THREE.MeshBasicMaterial(
 function eauBrume(p,vx,vz,px,pz,vW,k,kh,sy,dt){eauBIm();const taux=(5+vW*.45)*kh*dt;let n=Math.floor(taux);if(Math.random()<taux-n)n++;n=Math.min(n,6);
   for(const sd of [-1,1])for(let i=0;i<n;i++){const al=-1.8+Math.random()*2.6,vo=(1.5+vW*.16)*(.6+Math.random()*.6),s0=.45+k*.7+Math.random()*.4;
     if(EAUB.L.length<EAUB.max)EAUB.L.push({x:p.x+vx*al+px*sd*1.1,y:sy+.5,z:p.z+vz*al+pz*sd*1.1,vx:px*sd*vo+vx*vW*.25,vy:.8+Math.random()*(1.5+2*k),vz:pz*sd*vo+vz*vW*.25,s:s0,t:0,l:.6+Math.random()*.5});}}
-function eauBTick(dt){const im=EAUB.im;if(!im)return;const L9=EAUB.L;if(!L9.length){if(im.count)im.count=0;return;}let n=0;const M9=JCH_M,dr=Math.exp(-1.6*dt),cp=camera.position;
+function eauBTick(dt){const im=EAUB.im;if(!im)return;const L9=EAUB.L;if(!L9.length){if(im.count||im.visible){im.count=0;im.visible=false;}return;}let n=0;const M9=JCH_M,dr=Math.exp(-1.6*dt),cp=camera.position;
   for(let i=L9.length-1;i>=0;i--){const b=L9[i];if(!paused){b.t+=dt;b.vx*=dr;b.vz*=dr;b.vy*=dr;b.x+=b.vx*dt;b.y+=b.vy*dt;b.z+=b.vz*dt;}
     if(b.t>b.l){L9[i]=L9[L9.length-1];L9.pop();continue;}const u=b.t/b.l;let k=b.s*(1+2.2*u)*(1-u*u);
     {const dx=b.x-cp.x,dy=b.y-cp.y,dz=b.z-cp.z,d2=dx*dx+dy*dy+dz*dz;if(d2<64)k*=Math.max(.1,Math.sqrt(d2)/8);} // jamais un voile plein écran
     M9.makeScale(k,k*.7,k).setPosition(b.x,b.y,b.z);if(n<EAUB.max)im.setMatrixAt(n++,M9);}
-  im.count=n;im.instanceMatrix.needsUpdate=true;}
+  im.count=n;im.visible=n>0;im.instanceMatrix.needsUpdate=true;}
 /* LA COURONNE LISSE : une gerbe d'eau translucide (un cylindre ouvert déformé dans le vertex shader) qui s'ouvre, monte, s'évase en lobes et
    retombe — à l'entrée large et basse, à la sortie étroite et haute (la colonne). Des filets clairs, l'éclat du soleil, le bord blanc. */
 const COUR_VS=['uniform float uU,uR0,uR1,uH,uS,uFl;varying float vV,vA;varying vec3 vW;',
@@ -15713,11 +15723,11 @@ function jadeBullesIm(){if(JEAU.im)return JEAU.im;
   scene.add(im);JEAU.im=im;return im;}
 function jadeBullesJet(p,n,r){jadeBullesIm();for(let k=0;k<n&&JEAU.bul.length<320;k++){const a=Math.random()*6.2832,rr=Math.random()*r;
   JEAU.bul.push({x:p.x+Math.cos(a)*rr,y:p.y+(Math.random()-.5)*r,z:p.z+Math.sin(a)*rr,v:3+Math.random()*7,s:.12+Math.random()*.38,t:0,l:1.2+Math.random()*1.8,ph:Math.random()*6.28});}}
-function jadeBullesTick(dt){const im=JEAU.im;if(!im)return;const B9=JEAU.bul;if(!B9.length){if(im.count)im.count=0;return;}let n=0;const M9=JCH_M;
+function jadeBullesTick(dt){const im=JEAU.im;if(!im)return;const B9=JEAU.bul;if(!B9.length){if(im.count||im.visible){im.count=0;im.visible=false;}return;}let n=0;const M9=JCH_M;
   for(let i=B9.length-1;i>=0;i--){const b=B9[i];if(!paused){b.t+=dt;b.v=Math.min(14,b.v+6*dt);b.y+=b.v*dt;b.x+=Math.sin(b.t*5+b.ph)*dt*.9;b.z+=Math.cos(b.t*4.3+b.ph)*dt*.9;}
     if(b.t>b.l||b.y>jadeSurfCase(b.x,b.z)){B9.splice(i,1);continue;}
     const k=b.s*(1-Math.pow(b.t/b.l,4));M9.makeScale(k,k,k).setPosition(b.x,b.y,b.z);if(n<320)im.setMatrixAt(n++,M9);}
-  im.count=n;im.instanceMatrix.needsUpdate=true;}
+  im.count=n;im.visible=n>0;im.instanceMatrix.needsUpdate=true;}
 const JADE_MERP_VS=['uniform float uMerY,uEauT,uN;uniform vec2 uO;attribute vec2 aCell;attribute float aFace;varying vec3 vW,vNo;varying float vEd,vH;',
   JADE_EAU_GLSL,
   'void main(){vec2 c=uO+aCell;float h=jMerH(c),top=uMerY+h*JMS;',
@@ -16034,17 +16044,24 @@ function jadeTri(cam){
      écrire la profondeur ne dépendent pas de l'ordre) — écrasées en un point, leurs sommets passaient encore trois fois par le GPU. */
   if(sig!==JADE.sig||JADE.sale){const tout=JADE.sig===0;JADE.sig=sig;JADE.sale=false;JT.up++;
     for(const F of JADE.fam){let fs=7;
-      for(const [k,r] of F.r){const v=JT.vis[k];if(v<F.b0||v>F.b1)continue;fs=(Math.imul(fs,31)+k+1)|0;}
+      const RK=F.rK,RA=F.rA,RB=F.rB,nR=RK.length; /* (2026-10-14, passe mobile) MESURÉ (échantillonneur du tas, course au pilote) : jadeTri jetait ~7 Mo/s — `for(const [k,r] of F.r)`
+         fabrique un tableau [clé, valeur] par quartier, pour chaque famille, à chaque changement de signature. Le ramasse-miettes passait
+         sans cesse (des à-coups). Mêmes quartiers, même ordre (celui de la Map), lus dans trois tableaux d'entiers. */
+      for(let i=0;i<nR;i++){const k=RK[i],v=JT.vis[k];if(v<F.b0||v>F.b1)continue;fs=(Math.imul(fs,31)+k+1)|0;}
       if(F.pidx&&FIN.dans.size)for(const pi of FIN.dans)if(F.pidx.has(pi))fs=(Math.imul(fs,17)+pi+3)|0;
       if(!tout&&!F.sale&&fs===F.sig)continue;F.sig=fs;F.sale=false;JT.fam++;
       let w=0;const A=F.im.instanceMatrix.array,J=F.aJ.array;
-      for(const [k,r] of F.r){const v=JT.vis[k];if(v<F.b0||v>F.b1)continue;if(F.dst)F.dst.set(k,w);
-        A.set(F.M.subarray(r[0]*16,r[1]*16),w*16);J.set(F.J.subarray(r[0]*4,r[1]*4),w*4);w+=r[1]-r[0];}
+      for(let i=0;i<nR;i++){const k=RK[i],v=JT.vis[k];if(v<F.b0||v>F.b1)continue;if(F.dst)F.dst.set(k,w);const r0=RA[i],r1=RB[i];
+        A.set(F.M.subarray(r0*16,r1*16),w*16);J.set(F.J.subarray(r0*4,r1*4),w*4);w+=r1-r0;}
       if(F.pidx&&FIN.dans.size){const ds=JT.ds||(JT.ds=[]);ds.length=0;
         for(const pi of FIN.dans){const si=F.pidx.get(pi);if(si===undefined)continue;const k=F.qk[si],v=JT.vis[k];if(v<F.b0||v>F.b1)continue;const d0=F.dst.get(k);if(d0===undefined)continue;ds.push(d0+si-F.r.get(k)[0]);}
         ds.sort(function(a,b){return b-a;});
         for(const d of ds){w--;if(d!==w){A.copyWithin(d*16,w*16,w*16+16);J.copyWithin(d*4,w*4,w*4+4);}}}
       F.im.count=w;if(F.im2){F.im2.count=w;F.im3.count=w;}
+      /* (2026-10-14, passe mobile) VIDE = INVISIBLE. MESURÉ (dbgAppels, départ du Soleil de jade) : 47 des 269 appels de dessin de l'image
+         étaient des familles à ZÉRO montagne — three les prépare quand même (programme, uniformes, tampons) et lance un dessin de 0 exemplaire :
+         17 % du travail de rendu du processeur pour rien. Les cubes fins (FIN, plus bas) le faisaient déjà. F.coupe = les bancs dbgJadePoste. */
+      F.im.visible=w>0&&!F.coupe;if(F.im2)F.im2.visible=F.im3.visible=w>0&&!F.coupe&&!F.coupeV;
       if(w){F.im.instanceMatrix.updateRange.offset=0;F.im.instanceMatrix.updateRange.count=w*16;F.im.instanceMatrix.needsUpdate=true;F.aJ.updateRange.offset=0;F.aJ.updateRange.count=w*4;F.aJ.needsUpdate=true;}}
     for(const FF of FIN.fam){if(!FF)continue;let n=0,fs=7;for(const pi of FIN.dans)if(JADE.col.P[pi][5]===FF.t)fs=(Math.imul(fs,31)+pi+1)|0; // les CUBES MINUSCULES
       if(!tout&&!FIN.sale&&fs===FF.sig)continue;FF.sig=fs;const A=FF.im.instanceMatrix.array,J=FF.aJ.array;
@@ -16266,6 +16283,27 @@ function jadeHeurt(p){
     if(JADE.pont&&jadeDansGrille(JADE.pont,V9J))return true;}
   return false;
 }
+/* (2026-10-14, passe mobile) LE SOLEIL DE JADE NE COMPILE PLUS EN PLEINE COURSE. MESURÉ (dbgProgsListe, course au pilote) : un programme
+   naissait vers 8 s (les GRUES, fabriquées à leur premier vol) et TROIS d'un coup vers 3 km (les matières du MONUMENT, cachées jusqu'à ce qu'on
+   l'approche — `chauffeRendu` laisse caché ce qui n'a jamais été compilé). Sur iPhone, chacun fige l'image ~0,1-0,3 s. Au départ du niveau
+   (avec la chauffe de la piste, 120 ms après newTrack) : tout le sous-arbre de la map, caché compris, plus une grue, compilé et dessiné une
+   fois hors écran — sous l'éclairage de la course, donc les mêmes programmes. */
+function jadeChauffeNiveau(){ if(!JADE.root||!JADE.root.parent)return;
+  let g=null;const eau=[],vu=[];
+  try{grueGeos();g=new THREE.Group();g.add(new THREE.Mesh(GRUE.gC,GRUE.M));
+    const m0=JADE.monu&&JADE.monu.find(function(o){return o.L&&o.L[0];}); // les monuments changent de matière à 450 m (vrOM au loin → vrM de près) : la matière de PRÈS aussi
+    if(m0)g.add(new THREE.Mesh(m0.L[0].geometry,m0.L[0].material===JADE_M.vrM?JADE_M.vrOM:JADE_M.vrM));
+    scene.add(g);
+    // LA MER : ses effets naissent au PREMIER PLONGEON (couronne, rides, gouttes, bulles, brume, sillon, peau) — mesuré : deux programmes
+    // compilés pile au moment de l'éclaboussure. Fabriqués ici (comme jadeChauffe, qui n'était appelée nulle part) et compilés avec le reste.
+    try{eau.push(jadePeau(),sillonMesh(),jadeBullesIm(),eauPIm(),eauBIm());eauRide(0,-1e5,0,0);eauCouronne(0,-1e5,0,{r0:1,r1:2,h:1,fl:0,d:1,fx:0,fz:0});
+      for(const r9 of EAUR.L)eau.push(r9.m);for(const r9 of COUR.L)eau.push(r9.m);}catch(e){}
+    const haut=function(o){while(o&&o.parent&&o.parent!==scene)o=o.parent;return o&&o.parent===scene?o:null;},Q=[JADE.root,g];
+    for(const o of eau){if(!o)continue;vu.push([o,o.visible]);o.visible=true;const h=haut(o);if(h&&Q.indexOf(h)<0)Q.push(h);}
+    chauffeRendu(Q);}
+  catch(e){console.warn('jadeChauffeNiveau',e);}
+  finally{if(g)scene.remove(g);for(const v of vu)v[0].visible=v[1];
+    try{for(const r9 of EAUR.L){r9.t=9;r9.m.visible=false;}for(const r9 of COUR.L){r9.t=9;r9.m.visible=false;}}catch(e){}} }
 function jadeChauffe(){ // une instance de chaque matière, compilée hors écran (la balade arrive directement dans la map : c'est surtout un filet)
   try{const M9=jadeMats(),g=new THREE.Group(),G=voxG(1,1,1);G.d[0]=1;const bx=voxMesh(G);
     const b1=bx.clone();b1.setAttribute('aJ',new THREE.InstancedBufferAttribute(new Float32Array(4),4));const i1=new THREE.InstancedMesh(b1,M9.vr,1);i1.setMatrixAt(0,new THREE.Matrix4());g.add(i1);
@@ -16286,11 +16324,12 @@ window.dbgJadePoste=function(k,on){if(!JADE.root)return 'pas de map';on=!!on;
   if(k==='lod'){JADE_LOD.r0=+arguments[1];JADE.sig=0;return JADE_LOD.r0;}
   if(k==='liste'){const o=[];JADE.root.traverse(function(x){if(!x.visible||!x.isMesh||x.isInstancedMesh)return;const g=x.geometry;const n=(g.index?g.index.count:g.attributes.position.count)/3;if(n>5000)o.push([x.name||(x.material&&x.material.type),Math.round(n/1000)+'k',x.frustumCulled,x.parent===JADE.root?'root':'sous',JADE.porte&&JADE.porte.mF&&JADE.porte.mF.indexOf(x)>=0?'porteF':JADE.porte&&JADE.porte.mL&&JADE.porte.mL.indexOf(x)>=0?'porteL':JADE.pont&&JADE.pont.mF&&JADE.pont.mF.indexOf(x)>=0?'pontF':JADE.pont&&JADE.pont.mL&&JADE.pont.mL.indexOf(x)>=0?'pontL':'']);});return o;}
   if(k==='scene'){const o={};scene.traverse(function(x){if(!x.visible||!(x.isMesh||x.isPoints||x.isLine))return;const g=x.geometry;if(!g)return;const n=(g.index?g.index.count:(g.attributes.position?g.attributes.position.count:0))/3*(x.isInstancedMesh?x.count:1);const kk=(x.material&&x.material.type)+(x.isInstancedMesh?'I':'')+(x.parent===JADE.root?'J':'');o[kk]=(o[kk]||0)+n;});for(const kk in o)o[kk]=Math.round(o[kk]/1000)+'k';return o;}
-  if(k==='cout'){const r=renderer.info;r.autoReset=false;r.reset();renderer.render(scene,camera);r.autoReset=true;return [r.render.calls,r.render.triangles];} // (banc) éteindre un poste pour mesurer ce qu'il coûte
+  if(k==='cout'){const r=renderer.info;r.autoReset=false;r.reset();renderer.render(scene,camera);r.autoReset=true;return [r.render.calls,r.render.triangles];}
+  if(k==='coutOmbre'){const r=renderer.info,au=renderer.shadowMap.autoUpdate;r.autoReset=false;renderer.shadowMap.autoUpdate=false;renderer.shadowMap.needsUpdate=false;r.reset();renderer.render(scene,camera);const sans=[r.render.calls,r.render.triangles];renderer.shadowMap.needsUpdate=true;r.reset();renderer.render(scene,camera);const avec=[r.render.calls,r.render.triangles];renderer.shadowMap.autoUpdate=au;r.autoReset=true;const L={};scene.traverse(function(o){if(!o.visible||!o.castShadow||!(o.isMesh))return;const g=o.geometry;const n=(g.index?g.index.count:g.attributes.position.count)/3*(o.isInstancedMesh?o.count:1);const kk=(o.name||o.material&&o.material.type||'?')+(o.isInstancedMesh?'I':'')+(o.parent===JADE.root?'J':'');L[kk]=(L[kk]||0)+Math.round(n);});return {passeOmbre:[avec[0]-sans[0],avec[1]-sans[1]],ecran:sans,lanceurs:L};} // (2026-10-14, banc) ce que coûte la passe d'ombre, et qui y jette son ombre // (banc) éteindre un poste pour mesurer ce qu'il coûte
   if(k==='mer'){if(!on){if(JADE.merSv===undefined)JADE.merSv=skyU.uJMerY.value;skyU.uJMerY.value=-1e7;}else if(JADE.merSv!==undefined){skyU.uJMerY.value=JADE.merSv;JADE.merSv=undefined;}}
   else if(k==='ciel'){skyDome.visible=on;}
-  else if(k==='verre'){for(const F of JADE.fam)if(F.im2){F.im2.visible=on;F.im3.visible=on;}}
-  else if(k==='piliers'){for(const F of JADE.fam)F.im.visible=on;for(const F of JADE.fam)if(F.im2){F.im2.visible=on;F.im3.visible=on;}}
+  else if(k==='verre'){for(const F of JADE.fam){F.coupeV=!on;if(F.im2){F.im2.visible=on&&F.im.count>0;F.im3.visible=on&&F.im.count>0;}}}
+  else if(k==='piliers'){for(const F of JADE.fam){F.coupe=!on;F.im.visible=on&&F.im.count>0;if(F.im2){F.im2.visible=on&&F.im.count>0&&!F.coupeV;F.im3.visible=on&&F.im.count>0&&!F.coupeV;}}}
   else if(k==='fins')dbgFin(on);
   else if(k==='nuages'){JADE_NUVOX_M.visible=on;JADE.root.children.forEach(function(o){if(o.material===JADE_NUAGE_M)o.visible=on;});}
   else if(k==='route'){for(const nm of ['decoRondins','decoPlanches','decoNuage'])if(JADE[nm])JADE[nm].visible=on&&JADE[nm].visible!==undefined&&(JROUTE.style===({decoRondins:3,decoPlanches:2,decoNuage:1})[nm]);}
@@ -16298,6 +16337,18 @@ window.dbgJadePoste=function(k,on){if(!JADE.root)return 'pas de map';on=!!on;
   else if(k==='rayons'||k==='chutes'){const M=k==='rayons'?JADE_RAYON_M:JADE_CHUTE_M;JADE.root.children.forEach(function(o){if(o.material===M)o.visible=on;});}
   else if(k==='esprits'){JADE_ESPRITS.material.visible=on;}
   return k+' '+on;};
+window.dbgAppels=function(n){ // (2026-10-14, banc) QUI fait les appels de dessin d'une image : chaque appel compté par objet (nom, matière, parent) — n = combien en rendre
+  const o=renderer.renderBufferDirect,C={};let tot=0,tri=0;
+  renderer.renderBufferDirect=function(cam,sc,geo,mat,obj,grp){tot++;const g=geo.index?geo.index.count:(geo.attributes.position?geo.attributes.position.count:0);const t=g/3*(obj.isInstancedMesh?obj.count:1);tri+=t;
+    let p=obj.parent,ch=obj.name||'';for(let k=0;k<3&&p&&!ch;k++){ch=p.name||'';p=p.parent;}
+    if(!ch&&typeof JADE!=='undefined'&&JADE.fam){for(const F of JADE.fam){if(F.im===obj||F.im2===obj||F.im3===obj){ch='jade '+F.b0+'-'+F.b1+(F.im2===obj?' absorption':F.im3===obj?' profondeur':'');break;}}if(!ch&&typeof NUVOX!=='undefined'&&NUVOX.ims&&NUVOX.ims.indexOf(obj)>=0)ch='nuages-cubes';if(!ch&&typeof FIN!=='undefined'&&FIN.fam&&FIN.fam.some(function(F){return F&&F.im===obj;}))ch='cubes-fins';}
+    if(obj.isInstancedMesh&&obj.count===0)ch+=' VIDE';
+    if(window.__appelsDetail&&obj.parent===scene)ch+=' {'+(geo.type||'')+' ro'+obj.renderOrder+(mat.transparent?' T':'')+(mat.blending===THREE.AdditiveBlending?' add':'')+' '+Object.keys(obj.userData||{}).join(',')+' '+(mat.color?mat.color.getHexString():'')+'}';
+    const kk=(mat.type||'?')+(mat.name?':'+mat.name:'')+(obj.isInstancedMesh?'[I]':'')+(ch?' <'+ch+'>':'')+(obj.parent===scene?' (scène)':'');const e=C[kk]||(C[kk]={n:0,tri:0});e.n++;e.tri+=t;
+    return o.apply(this,arguments);};
+  try{renderer.render(scene,camera);}finally{renderer.renderBufferDirect=o;}
+  const L=Object.keys(C).map(function(k){return [C[k].n,Math.round(C[k].tri/1000)+'k',k];}).sort(function(a,b){return b[0]-a[0];});
+  return {appels:tot,triangles:Math.round(tri/1000)+'k',liste:L.slice(0,n||40)};};
 window.dbgJade=function(){let tri=0;for(const F of JADE.fam)tri+=F.im.count*F.tri;
   let triF=0;for(const FF of FIN.fam)if(FF)triF+=FF.im.count*FF.tri;
   return Object.assign({},JADE.n,{fins:FIN.dans.size,triFins:Math.round(triF),finPrets:JADE.geos?JADE.geos.p.filter(function(T9){return T9.fin;}).length+'/'+JADE.geos.p.length:0,finMs:JADE.geos&&JADE.geos.p.map(function(T9){return T9.finMs||0;}),triFinGab:JADE.geos&&JADE.geos.p.map(function(T9){return T9.fin?T9.fin.index.count/3:0;}),triangles:Math.round(tri+triF)+(JADE.porte?JADE.porte.tri:0)+(JADE.pont?JADE.pont.tri:0),porteFin:JADE.porte&&JADE.porte.triF,nuTri:JADE.nuTri,msPorte:JADE.msPorte,tPorte:JADE.tPorte,msPont:JADE.msPont,pontFin:JADE.pont&&JADE.pont.triF,appels:JADE.fam.filter(function(F){return F.im.count>0;}).length,
@@ -17761,17 +17812,48 @@ function cashEcrit(force){
    l'autre — ce qui est caché ne laisse pas de trou. Un bloc rétréci par `zoom` reçoit un `top` divisé par son zoom (zK), mesuré à l'écran
    (zRect.leg : l'ancien WebKit rend les boîtes divisées par le zoom). Couché, l'emblème DARK TRIAD garde sa place en haut au milieu (la
    colonne n'a pas la hauteur). Les VIES du mode FACILE (#facVies) prennent leur rang sous l'argent. Dix fois par seconde. */
-const HUDCOL={t:0,els:null};
+const HUDCOL={t:0,els:null,p:[]};
+/* (2026-10-14, passe mobile) LIRE D'ABORD, ÉCRIRE ENSUITE — et en TÊTE d'image. MESURÉ (profil, téléphone émulé, processeur ×4) : c'était
+   la fonction la plus lourde du jeu (8 % du processeur en course). Appelée APRÈS que le HUD de l'image avait écrit ses styles, chaque
+   lecture (getComputedStyle, getBoundingClientRect) forçait un recalcul complet des styles — et chaque `top` écrit dans la boucle salissait
+   tout pour la lecture suivante (jusqu'à six recalculs par passage, dix fois par seconde : une image sur six payait l'addition).
+   Désormais : appelée en tête de `loop` (les styles sont encore propres : le navigateur vient de peindre l'image d'avant), toutes les
+   lectures d'un bloc, puis les écritures — seulement celles qui changent. La colonne suit avec une image de retard : invisible. */
 function hudColonne(dt){
   HUDCOL.t-=dt;if(HUDCOL.t>0)return;HUDCOL.t=.1;
   if(!HUDCOL.els)HUDCOL.els=['cashHud','facVies','triade','airHud','pwrChip','campChip'].map(function(i){return document.getElementById(i);});
-  const pay=innerWidth>innerHeight,g=document.getElementById('tGear');
-  let y=g?zRect(g).bottom+10:66;
+  const pay=VP.w>VP.h,g=document.getElementById('tGear'),P=HUDCOL.p; // VP et non innerWidth : lire innerWidth force une mise en page (voir VP)
+  let y=g?zRect(g).bottom+10:66;P.length=0;
   for(const e of HUDCOL.els){if(!e||(pay&&e.id==='triade'))continue;
     const cs=getComputedStyle(e);if(cs.display==='none'||cs.visibility==='hidden')continue;
     const z=parseFloat(cs.zoom)||1,r=e.getBoundingClientRect();if(zRect.leg===undefined)zRect(e);const h=r.height*(zRect.leg?z:1);if(h<2)continue;
-    e.style.setProperty('top',(y/z).toFixed(1)+'px','important');y+=h+8;}
+    P.push(e,(y/z).toFixed(1)+'px');y+=h+8;}
+  for(let i=0;i<P.length;i+=2){const e=P[i],t=P[i+1];if(e.style.getPropertyValue('top')!==t||e.style.getPropertyPriority('top')!=='important')e.style.setProperty('top',t,'important');}
+  P.length=0;
 }
+/* LES « :has() » DU HUD DEVENUS DES CLASSES DU <body> (2026-10-14, passe mobile — « jouer en NETTE sans que ça bug, pour tout le monde »).
+   MESURÉ (téléphone émulé, micro-banc : une seule écriture de style sur un seul élément, puis sa lecture) : ~500 µs par écriture
+   sur le Mac du banc — 6 µs sans la règle `body:has(#airPie[style*="block"]) #facVies`. Pour un `:has()` qui regarde l'attribut
+   `style`, le navigateur ne sait pas QUI peut le faire changer : CHAQUE style écrit n'importe où (le HUD en écrit des dizaines par image)
+   relance l'examen du <body> et le recalcul d'une trentaine de blocs du HUD visés par ces règles ; les `:has(#x.on)` faisaient de même à
+   chaque classe `on` posée ou ôtée ailleurs (flash, annonce, gerbe…). En course, au processeur ralenti ×4 (un téléphone modeste), le
+   recalcul des styles prenait le TIERS du fil principal. Désormais l'état se lit à la SOURCE : un observateur sur ces sept éléments-là
+   pose la classe sur le <body> (`hTp` · `hMisBan` · `hCarr` · `hCampChip` · `hTriade` · `hAirPie` · `hPwr`) quand — et seulement
+   quand — il change. Dans le CSS, `:has(#tPanel.open)` est devenu `.hTp:not(#ccH)` : le `:not(#ccH)` (aucun élément ne porte cet id)
+   garde EXACTEMENT la spécificité de l'ancien `:has(#…)` (un id + une classe) — la cascade ne bouge pas d'un iota.
+   ⚠ Une nouvelle règle qui veut « le HUD quand X est allumé » : une classe de plus ici, pas un `body:has(…)`. */
+const HAS_D=[['hTp','tPanel',function(e){return e.classList.contains('open');}],['hMisBan','misBan',function(e){return e.classList.contains('on');}],
+  ['hCarr','carr',function(e){return e.classList.contains('on');}],['hCampChip','campChip',function(e){return e.classList.contains('on');}],
+  ['hTriade','triade',function(e){return e.classList.contains('on');}],['hAirPie','airPie',function(e){return (e.getAttribute('style')||'').indexOf('block')>=0;}],
+  ['hPwr','pwrChip',function(e){return !!e.querySelector('.pw');}]];
+const HAS_H={k:{},el:{},obs:null};
+function hasMaj(){const b=document.body;if(!b)return;
+  if(!HAS_H.obs)HAS_H.obs=new MutationObserver(hasMaj);
+  for(const d of HAS_D){const e=document.getElementById(d[1]),v=!!(e&&d[2](e));
+    if(HAS_H.k[d[0]]!==v){HAS_H.k[d[0]]=v;b.classList.toggle(d[0],v);}
+    if(e&&HAS_H.el[d[1]]!==e){HAS_H.el[d[1]]=e;const sous=d[1]==='pwrChip'; // #pwrChip : ses plaques (.pw) naissent et meurent dedans
+      HAS_H.obs.observe(e,sous?{attributes:true,attributeFilter:['class'],childList:true,subtree:true}:{attributes:true,attributeFilter:[d[1]==='airPie'?'style':'class']});}}}
+hasMaj();
 function cashHudTick(dt){
   const m=money;
   if(m<CASH.last-.001){cashSnap();return;} // l'argent a DIMINUÉ (nouvelle partie) : on recale sans défiler
@@ -29087,7 +29169,7 @@ function misBanniere(titre,texte,prime,ico){hautPasse(function(){misBanMontre(ti
 function misBanMontre(titre,texte,prime,ico){
   try{if(SONV2&&titre==='DÉFI RÉUSSI')sfx('ui.mission');}catch(e){} /* (débogage son 2026-09-29) pendant l'auto-école la bannière attend la fin : le son l'attend aussi */
   let b=document.getElementById('misBan');
-  if(!b){b=document.createElement('div');b.id='misBan';b.setAttribute('role','status');document.body.appendChild(b);}
+  if(!b){b=document.createElement('div');b.id='misBan';b.setAttribute('role','status');document.body.appendChild(b);hasMaj();} // hasMaj : la bannière née, son état se suit (voir HAS_D)
   b.innerHTML='<i class="mbIco">'+pxi(ico||'coche')+'</i><div class="mbTx"><small>'+TR(titre)+'</small><span>'+texte+'</span></div>'
     +(prime?'<b class="mbPrime">'+prime+'</b>':'');
   b.classList.toggle('astuce',titre==='ASTUCE'); // (vague 2) l'astuce parle en cyan (l'information), le défi en vert (la validation)
@@ -29711,6 +29793,7 @@ function tutoTick(dt){
 const PIX_OR=['#ffd75e','#ffffff','#ffd75e','#b8860b'],PIX_MAG=['#ff3ec8','#ffffff','#ff7ad5','#ff3ec8'],PIX_VERT=['#62e062','#ffffff','#62e062','#ffd75e'];
 const PIX_FREN=['#ff2a3d','#ffffff','#ffb000','#ff2a3d'];
 function pixCouleurs(el){
+  if(!el.closest)return PIX_OR; // (2026-10-14) un point d'écran (la gerbe de l'impact moteur AU CAPOT, engImpact) n'est pas un élément : el.closest levait une erreur avalée, la gerbe ne partait JAMAIS — elle part en or, comme l'éclair de l'impact
   const sl=el.closest('#slam9');
   if(sl){const a=sl.style.getPropertyValue('--s1').trim()||'#ffd75e',b=sl.style.getPropertyValue('--s2').trim()||'#ff3ec8';return [a,'#ffffff',b,a];}
   const vd=el.closest('#verdHud');if(vd){const c=vd.style.getPropertyValue('--vc').trim()||'#ffd75e';return [c,'#ffffff',c,'#ffd75e'];} // (vague 3) le verdict éclate à la couleur de son rang
@@ -41159,7 +41242,7 @@ function vEtiquette(txt,col){
 // ---- LA PLAQUE : ce qu'on LIT, en haut de l'écran (charte : le haut est pour lire, le bas pour toucher) ----
 let vChipEl=null;
 function vChip(txt,sous,col,alerte){
-  if(!vChipEl){vChipEl=document.createElement('div');vChipEl.id='campChip';vChipEl.setAttribute('aria-hidden','true');vChipEl.innerHTML='<b></b><small></small>';document.body.appendChild(vChipEl);}
+  if(!vChipEl){vChipEl=document.createElement('div');vChipEl.id='campChip';vChipEl.setAttribute('aria-hidden','true');vChipEl.innerHTML='<b></b><small></small>';document.body.appendChild(vChipEl);hasMaj();}
   const k=(txt||'')+'|'+(sous||'')+'|'+(col||'')+'|'+(alerte?1:0);if(k===VC.chip)return;VC.chip=k;
   if(!txt){vChipEl.classList.remove('on','alerte');return;}
   vChipEl.firstChild.textContent=txt;vChipEl.lastChild.textContent=sous||'';vChipEl.lastChild.style.display=sous?'':'none';
@@ -46233,12 +46316,13 @@ function bqPrise(e){const R={kp:1,kr:0};try{
   const mx=(V[0].x+1)/2*cv.width+cv.left,my=(1-V[0].y)/2*cv.height+cv.top,nx=(V[1].x+1)/2*cv.width+cv.left-mx,ny=(1-V[1].y)/2*cv.height+cv.top-my;
   if(nx*nx+ny*ny>=400)R.kp=((e.clientX-mx)*nx+(e.clientY-my)*ny)>=0?1:-1;}catch(er){}
   return R;}
-window.dbgSonde=function(x0,y0,x1,y1,st){st=st||4;const cv=renderer.domElement.getBoundingClientRect(),rc=new THREE.Raycaster(),m=new THREE.Vector2(),out={};carGroup.updateMatrixWorld(true); // (banc, 13/10) ce que la caméra voit de la caisse dans un rectangle de l'écran : matière (famille) et couleur de facette, avec quelques points
+window.dbgSonde=(function(ql){return function(x0,y0,x1,y1,st){if(arguments.length<4)return ql(x0); // (2026-10-14) DEUX bancs portaient ce nom : celui-ci écrasait la SONDE de la règle de qualité (dbgSonde(), dbgSonde(1), dbgSonde('sync')) — moins de quatre arguments, c'est elle
+  st=st||4;const cv=renderer.domElement.getBoundingClientRect(),rc=new THREE.Raycaster(),m=new THREE.Vector2(),out={};carGroup.updateMatrixWorld(true); // (banc, 13/10) ce que la caméra voit de la caisse dans un rectangle de l'écran : matière (famille) et couleur de facette, avec quelques points
   for(let y=y0;y<y1;y+=st)for(let x=x0;x<x1;x+=st){m.set((x-cv.left)/cv.width*2-1,-((y-cv.top)/cv.height)*2+1);rc.setFromCamera(m,camera);const vu=function(o){for(;o;o=o.parent)if(!o.visible)return false;return true;},h=rc.intersectObject(carGroup,true).find(function(x){return vu(x.object);});if(!h)continue; // (le Raycaster de three ne regarde pas `visible`)
     const mt=Array.isArray(h.object.material)?h.object.material[0]:h.object.material,g=(mt&&mt.userData&&mt.userData.g)||(mt&&mt.type)||'?';let col='';const ca=h.object.geometry&&h.object.geometry.attributes.color;
     if(ca&&h.face){const i=h.face.a;col=[ca.getX(i),ca.getY(i),ca.getZ(i)].map(function(v){return Math.round(Math.min(1,v)*255).toString(16).padStart(2,'0');}).join('');}
     const lp=carGroup.worldToLocal(h.point.clone()),k=g+':'+col;out[k]=out[k]||{n:0,p:[]};out[k].n++;if(out[k].p.length<5)out[k].p.push([x,y,+lp.x.toFixed(2),+lp.y.toFixed(2),+lp.z.toFixed(2)]);}
-  return out;};
+  return out;};})(window.dbgSonde);
 window.dbgBqVoir=function(i){if(!GBQ.on)return 'boutique fermée';bqEssaie('v:'+(i|0));return CARS[i|0]&&CARS[i|0].name;}; // (banc) pose la caisse i sur le plateau de la boutique
 window.dbgPrise=function(x,y){const k=bqPrise({clientX:x,clientY:y}),cv=renderer.domElement.getBoundingClientRect(),P=function(lx,ly,lz){const v=new THREE.Vector3(lx,ly,lz);carGroup.localToWorld(v);v.project(camera);return [Math.round((v.x+1)/2*cv.width+cv.left),Math.round((1-v.y)/2*cv.height+cv.top)];};
   carGroup.updateMatrixWorld(true);return {kp:+k.kp.toFixed(2),kr:+k.kr.toFixed(2),nez:P(0,.5,2),poupe:P(0,.5,-2),gauche:P(1,.5,0),droite:P(-1,.5,0),centre:P(0,.55,0),toit:P(0,1.4,0)};}; // (banc) ce que le doigt attrape en (x, y), et où sont le nez, la poupe, les flancs à l'écran
@@ -49063,6 +49147,7 @@ function loop(now){
   // par `performance.now()` un peu plus tard (reprise d'onglet, pas-à-pas) — un dt < 0 rendait négatif le rayon
   // des taches de jus, et `arc()` lève alors une IndexSizeError qui cassait l'image entière (mesuré).
   let dt=Math.max(0,Math.min((now-last)/1000,.05));last=Math.max(last,now);
+  if(TCTL.on&&running&&!paused&&!gameOver)hudColonne(dt); // (2026-10-14) la colonne de droite se MESURE ici, avant toute écriture du HUD de l'image (voir hudColonne)
   // qualité auto : si le GPU peine (<45 fps soutenus après l'échauffement), on allège la ouate une fois pour toutes
   const rawMs=Math.min(100,now-(loop._pn||now));
   loop._ms=(loop._ms||16)*.96+rawMs*.04;loop._pn=now;
@@ -49140,7 +49225,13 @@ function loop(now){
        floute pas l'image pour rien. */
     if(QL.essai&&now-QL.essai.t>3300){const e9=QL.essai;QL.essai=null;
       if(QLR.p50>e9.p50-1.5&&QLR.p75>e9.p75-1.5&&(loop._ms||16)>e9.ms*.92){QL.plafK=e9.k0;QL.plafT=now;QL.up=0;qlPose(e9.k0);}}
-    else if(calme9&&tire9&&QL.k<qb9.kMax&&!QL.essai&&!(QLR.vraiT&&now-QLR.vraiT<8000)){qlSondeArme();QL.up=0;} // d'abord la SONDE : on décidera au pas suivant
+    else if(calme9&&tire9&&QL.k<qb9.kMax&&!QL.essai&&!(QLR.vraiT&&now-QLR.vraiT<(((QL.k>=qb9.kNet&&!QL.effondre)||(QL.k>=QL.N_EFF&&QL.plafT&&now-QL.plafT<45000&&QL.k>=QL.plafK))&&!qlChrono(renderer.getContext())?30000:8000))){qlSondeArme();QL.up=0;} // d'abord la SONDE : on décidera au pas suivant
+    /* (2026-10-14, passe mobile — « jouer en NETTE sans que ça bug ») QUAND L'ÉCHELLE NE PEUT PLUS DESCENDRE, SUR IPHONE : au plancher net (on ne
+       passe dessous que sur effondrement, qui a son propre chrono) ou sous un PLAFOND (un cran de résolution qui n'a rien rapporté : le
+       téléphone bute sur le processeur), la sonde ne décide plus rien vers le bas — elle ne sert qu'à voir si l'écran bride. Or sans
+       chronomètre de la puce (Safari) ce sont CINQ images synchronisées, le processeur qui attend la puce à chaque fois : MESURÉ au banc
+       (Safari simulé, processeur ralenti ×6) — l'image se figeait ainsi toutes les 8 s, pour toujours. Là : toutes les 30 s. Ailleurs
+       (chrono non bloquant, ou une échelle qui peut encore descendre) : inchangé. */
     else if(calme9&&tire9&&QL.k<qb9.kMax&&!QL.essai&&QLR.vrai<14.5){QL.bride=now;QL.up++; // l'ÉCRAN bride (économie d'énergie, chaleur) : on ne sacrifie rien…
       if(QL.k>0&&QL.up>=3){QL.up=0;QL.effondre=false;qlPose(QL.k-1);}} // …et ce qui aurait été baissé remonte
     else if(calme9&&tire9&&QL.k<qb9.kMax&&!QL.essai){
@@ -50574,7 +50665,7 @@ function loop(now){
     if(!REDUCED_MOTION){const o9=Math.max(0,Math.min(.95,(speedKmh-280)/560)).toFixed(2);if(loop._sfO!==o9){loop._sfO=o9;speedFx.style.opacity=o9;}} // reduced-motion : vignette vitesse coupée
     // panneaux HUD MASQUÉS (#carInfo/#cpInfo/#record en display:none) : on ne reconstruit leur texte (fmtC/fmt alloue) QUE quand la valeur change
     paintCarHud();
-    if(TCTL.on){cashHudTick(dt);hudColonne(dt);} // (2026-09-29) le compteur d'argent du téléphone (#cashHud) · (2026-09-30) la colonne de droite s'empile
+    if(TCTL.on)cashHudTick(dt); // (2026-09-29) le compteur d'argent du téléphone (#cashHud) · (2026-09-30) la colonne de droite s'empile
     if(loop._money!==money){loop._money=money;elMoney.innerHTML=fmtGta(money); // un parse HTML seulement quand le compte bouge
       for(const u of unitsL())if(money>=u[0]){ // on vient de changer d'ordre de grandeur ? ça se FÊTE (une fois par session)
         if(u[0]>unitSeen){unitSeen=u[0];if(SONV2)sfx('argent.palier');showMsg(TR('💸 TU COMPTES EN ')+u[2]+TR(' MAINTENANT !'),'#7dff9a');}
@@ -50799,7 +50890,7 @@ function loop(now){
   else renderer.render(scene,camera);      // repli si le post n'a pas pu se charger
   try{homeCielPrise(now);}catch(e){} // (2026-10-11) le CIEL DU MENU, recopié en vignette pour le HOME du garage (voir homeCielPrise)
   matSursisTick(); // (perf) les matières de la piste d'avant partent une fois la neuve rendue
-  if(CHAUFFE_R.t&&now>CHAUFFE_R.t){CHAUFFE_R.t=0;chauffeRendu();} // (tour 2) niveau neuf : la puce le voit une fois en entier, hors écran
+  if(CHAUFFE_R.t&&now>CHAUFFE_R.t){CHAUFFE_R.t=0;jadeChauffeNiveau();chauffeRendu();} // (tour 2) niveau neuf : la puce le voit une fois en entier, hors écran
   if(!started||gameOver)engChauffe(); // (perf) au menu et à l'écran de mort : les shaders des moteurs se préparent, un palier par image
   // VIGNETTE MOTEUR — RÉACTIVÉE (2026-08-02) : elle passe désormais par un RenderTarget dédié puis un
   // quad ortho recollé par-dessus. Elle ne touche plus au viewport de la passe finale — c'était ça,
@@ -51993,6 +52084,15 @@ if(BANC_ON)(function(){
     ['sans caisse',()=>cache([carGroup])],
     ['sans transparents',()=>{const L=[];scene.traverse(o=>{const m=o.material;if(m&&!Array.isArray(m)&&m.transparent&&o!==skyDome)L.push(o);});return cache(L);}],
     ['sans ville',()=>cache([CITY.root])],
+    // (2026-10-14, passe mobile) LE SOLEIL DE JADE — le niveau du JOUER depuis le 12/10 : ses postes à lui (sans effet ailleurs)
+    ['jade : sans mer',()=>{if(JADE.root)dbgJadePoste('mer',0);return ()=>{if(JADE.root)dbgJadePoste('mer',1);};}],
+    ['jade : sans montagnes',()=>{if(JADE.root)dbgJadePoste('piliers',0);return ()=>{if(JADE.root)dbgJadePoste('piliers',1);};}],
+    ['jade : sans verre',()=>{if(JADE.root)dbgJadePoste('verre',0);return ()=>{if(JADE.root)dbgJadePoste('verre',1);};}],
+    ['jade : sans nuages',()=>{if(JADE.root)dbgJadePoste('nuages',0);return ()=>{if(JADE.root)dbgJadePoste('nuages',1);};}],
+    ['jade : sans brume',()=>{if(JADE.root)dbgJadePoste('brume',0);return ()=>{if(JADE.root)dbgJadePoste('brume',1);};}],
+    ['jade : sans rayons',()=>{if(JADE.root)dbgJadePoste('rayons',0);return ()=>{if(JADE.root)dbgJadePoste('rayons',1);};}],
+    ['jade : sans chutes',()=>{if(JADE.root)dbgJadePoste('chutes',0);return ()=>{if(JADE.root)dbgJadePoste('chutes',1);};}],
+    ['jade : sans lucioles',()=>{if(JADE.root)dbgJadePoste('esprits',0);return ()=>{if(JADE.root)dbgJadePoste('esprits',1);};}],
     ['sans ombre (recompile)',()=>{sun.castShadow=false;return ()=>{sun.castShadow=true;};},40],
   ];
   // L'AFFICHAGE RÉEL, image figée : le tempo de l'écran (arrondi à 16,7 / 33,3 ms, mais sa MOYENNE sur 2 s dit la part d'images
@@ -52044,8 +52144,9 @@ if(BANC_ON)(function(){
     try{document.getElementById('gPlayMain').click();}catch(e){}
     for(let i=0;i<80&&!started;i++)await Z(250);
     RESPIN=true;DPR_CAP=Math.min(devicePixelRatio,1.5);qlPose(0);setDPR(1.5);dbgAuto(true,0);
-    try{await Z(3500);await vue('NUAGES sol');await vol();await vue('NUAGES vol');
-      await vivant();dbgSaut();dbgAuto(true,0);await Z(4000);await vue('VILLE sol');await vol();await vue('VILLE vol');}
+    const lieu=()=>((LVL.cur&&LVL.cur.id)||'?').toUpperCase().slice(0,7); // (2026-10-14) les colonnes portent le VRAI niveau (le JOUER lance le Soleil de jade : « NUAGES » mentait)
+    try{await Z(3500);const L1=lieu();await vue(L1+' sol');await vol();await vue(L1+' vol');
+      await vivant();dbgSaut();dbgAuto(true,0);await Z(4000);const L2=lieu();if(L2!==L1){await vue(L2+' sol');await vol();await vue(L2+' vol');}}
     catch(e){R.err=String(e&&e.message);}
     BANC_FIGE=true;garde(true);const txt=rendu()+(R.err?'\nERREUR : '+R.err:'');
     box.textContent=txt+'\nFINI — fais une capture d\'écran, ou COPIER puis colle le texte. (Gardé : rouvrir ce lien le remontre.)\n';

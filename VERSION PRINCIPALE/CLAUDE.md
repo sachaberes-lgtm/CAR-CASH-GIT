@@ -1,5 +1,37 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LA PASSE MOBILE — DÉBOGAGE ET FLUIDITÉ EN NETTE (2026-10-14, Léo : « il y a plein de bugs ; il faudrait pouvoir jouer au graphisme NET sans que ça bug » · « peu importe le téléphone, il faut que tout le monde puisse jouer »)
+Banc : Chrome sans fenêtre DÉGUISÉ EN IPHONE (390 × 844 ×3, tactile, `mobile:true` → le vrai chemin `TEL_NATIF`, pas la colonne), son coupé,
+NETTE, JOUER → Soleil de jade au pilote auto ; processeur ralenti ×4 = un téléphone modeste ; A/B contre `origin/main` servi à côté.
+MESURÉ (×4, trois manches) : ~35-48 → ~50-58 images/s, images > 40 ms divisées par 4 à 9 ; zéro pixel changé (planche AVANT | APRÈS).
+- **LES `body:has(…)` DU HUD → DES CLASSES** (`HAS_D`, `hasMaj`, juste avant `cashHudTick`). La règle `body:has(#airPie[style*="block"])
+  #facVies` rendait CHAQUE écriture de style (le HUD en fait des dizaines par image) ~80× plus chère : micro-banc 500 µs → 6 µs sur le Mac,
+  2 ms → 0,02 ms sous charge ; les `:has(#x.on)` relançaient le <body> à chaque classe `on` posée ailleurs. Le recalcul des styles prenait
+  le TIERS du fil principal (×4). Un observateur sur 7 éléments pose `hTp · hMisBan · hCarr · hCampChip · hTriade · hAirPie · hPwr` sur le
+  <body> ; le CSS dit `.hTp:not(#ccH)` (même spécificité qu'un `:has(#…)`). Équivalence VÉRIFIÉE état par état (styles calculés de tous
+  les éléments à id). ⚠ **Plus jamais de `body:has(…)` pour le HUD** : une classe de plus dans `HAS_D`.
+- **`hudColonne`** (la colonne de droite) : mesurée en TÊTE de `loop` (styles encore propres), toutes les lectures puis les écritures qui
+  changent ; `VP` au lieu d'`innerWidth`. C'était la fonction la plus lourde du jeu (8 % du processeur).
+- **Soleil de jade, appels de dessin VIDES** : 47 des 269 appels d'une image dessinaient zéro montagne → `F.im.visible=w>0` dans `jadeTri`
+  (`F.coupe`/`F.coupeV` = les bancs dbgJadePoste) ; idem plaques turbo (`PAD_IM`), gouttes, brume, bulles, écume de la mer.
+- **Soleil de jade, plus aucune compilation en course** (`jadeChauffeNiveau`, avec la chauffe 120 ms après newTrack, sous le volet) : les
+  GRUES (~8 s), les matières du MONUMENT (vrOM → vrM à 450 m : 3 programmes vers 3 km) et les effets de la MER (au 1er plongeon) naissaient en
+  pleine course — chacun fige un iPhone 0,1-0,3 s. `jadeChauffe()` (jamais appelée) reste pour la balade.
+- **`jadeTri` n'alloue plus** (`F.rK/rA/rB`) : ~7 Mo/s jetés au ramasse-miettes par `for(const [k,r] of F.r)` (un tableau par quartier).
+  Course : 22 → 15 Mo/s de déchets. Reste surtout `loop` (trop grosse pour être optimisée par V8 : ses doubles s'emballent).
+- **La SONDE sur iPhone** (sans chrono de la puce : 5 images synchronisées) ne fige plus l'image toutes les 8 s quand l'échelle ne peut plus
+  descendre (plancher net, ou PLAFOND d'un cran de résolution inutile = téléphone limité par le processeur) : toutes les 30 s.
+- **Le reflet du logo du lancement** (`lgShine`) tournait toute la partie sous opacité 0 → en pause hors `.on` (`<style id="passeMobile">`).
+- **Bugs** : `pixCouleurs` sur le faux élément de l'impact moteur (la gerbe AU CAPOT ne partait jamais, erreur avalée) ; `dbgSonde` écrasée par
+  le banc des voitures réalistes (les deux coexistent : < 4 arguments = la sonde de qualité).
+- **`?banc=1` mis à jour** : colonnes au nom du VRAI niveau (« NUAGES » était le Soleil de jade), + 8 lignes `jade : sans …` (mer, montagnes,
+  verre, nuages, brume, rayons, chutes, lucioles). Sur le Mac M2 : JADE sol 11,3 ms (DPR 1,0 −2,8 · ciel −2,1 · transparents −2,1 · nuages
+  en cubes −1,6 · post −1,0). **C'est le banc à faire tourner sur un vrai téléphone avant de toucher au rendu** (puce graphique).
+- Bancs (dev) : `dbgAppels(n)` (qui fait chaque appel de dessin ; `window.__appelsDetail=1` détaille la scène), `dbgProgsListe()` /
+  `dbgProgsQui(id)` (programmes liés, et qui les utilise : traquer une compilation en course), `dbgJadePoste('coutOmbre')`.
+- Vu, pas touché : Soleil de jade ≈ 220 appels et 0,8-1,0 M triangles par image (nuages en cubes : 300 k, 37 %) ; la piste en 15 tranches
+  × 3-4 matières ; `loop` (1 700 lignes) jamais optimisée par V8 ; le lancement bâtit la map ~0,9 s sous le volet (×4 : 3,5 s).
+
 ## CRYPTOCITY — LA VILLE EN BULL RUN + LA PLUIE D'ARGENT v2 (2026-10-13, Léo : « avec le même système de génération automatique que les autres maps, génère une ville mais avec un twist majeur : c'est CRYPTOCITY, mais en BULL RUN — ciel joyeux, trouve plein de détails émerveillants du bull run, toute l'ambiance est différente, ça respire la réussite et l'argent ; un immeuble BULL ; et pour la peine ramène la pluie d'argent que t'as enlevée entretemps, et augmente la qualité »)
 - LE NIVEAU `NIV_CRYPTO` (id 'ville' + `crypto:1`, comme MINUIT EN VILLE : genCtrl, buildVoxCity, tours dures, loi 15 du flow suivent).
   `CRYPTO_JEU` (lvlChoisir le rend à chaque portail : un autre quartier, une autre graine). Lancement : `dbgNiveauCrypto()` = `cryptoJouer`
