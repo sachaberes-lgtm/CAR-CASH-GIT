@@ -19,6 +19,10 @@
   basse et galbée, ailes au-dessus du capot creusé — les cornes et les cils de Léo intacts) · LA RAIE (c'est une C3 68-72, pas une C2 :
   la VAGUE des ailes, taille pincée, capot creusé avec bossage) · L'AIGLE DE FEU (bouteille, coup de rein de ceinture, filet d'or qui suit
   la caisse). Réf. photos : la C3 = `ref/40_*` (cherchée pour LA VETTE, qui est en fait une C4 — à rechercher pour elle).
+- Série 4 : LA CHAUVE-SOURIS (capot à plat jusqu'au nez de requin, verrière sans montant jusqu'à la custode) · LE DÉFIEUR (baissé à
+  ses cotes : pavillon 1,30 au lieu de 1,44, capot 0,90 ; phares au fond de la calandre) · LA ZED (capot long presque à plat, phares
+  dans leurs cuvettes plus hauts) · LA SILENCIEUSE (nez plus haut et rond vu de dessus, le CÔNE noir à T des premières années, phares
+  qui sortent de la tôle) · LA PUCE (coins ronds vus de dessus, pavillon plus court sur une lunette couchée).
 
 ## LA PASSE QUALITÉ AVANT SORTIE (2026-10-12, Sacha : « trouve des bugs et règle-les, améliore des trucs à droite à gauche, fais en sorte que le jeu soit parfait et sortable »)
 Méthode : bancs Puppeteer son coupé (rendu LOGICIEL SwiftShader : Roblox Studio tenait le GPU, le Chrome de test calait sur D3D11), un

@@ -22018,21 +22018,23 @@ Object.assign(SHAPES,{
   a_defieur:function(K){
   /* LE DÉFIEUR — le coupé muscle rétro : capot interminable et plat, flancs taillés d'une arête qui
      remonte sur la hanche, calandre pleine largeur en retrait avec ses QUATRE PHARES RONDS, la prise
-     d'air noire plantée dans le capot, et les DEUX BANDES noires du nez au coffre. */
+     d'air noire plantée dans le capot, et les DEUX BANDES noires du nez au coffre.
+     (13/10, « plus ressemblant ») BAISSÉ à ses vraies cotes : pavillon 1,30 (il montait à 1,44), capot 0,90, malle 0,99 —
+     il était haut sur pattes comme un jouet ; l'arête de flanc descend à 0,72. */
   const U=LPU,R=.365,ZF=1.51,ZR=-1.44;
   const P=K.kit({p:{g:'p',c:0xff7a14},n:{g:'p',c:0x121212,f:0},k:{g:'m',c:0x131417},K:{g:'g',c:0x0b0c0f},
     c:{g:'c',c:0xe9ecf0},g:{g:'g',c:0x16202a},W:{g:'l',c:0xf4f8ff},L:{g:'l',c:0xff1a2a},r:{g:'l',c:0x9a0f1a},O:{g:'l',c:0xffa21a}});
   const AR=[[0,2*R+.05],[R*.62,2*R+.04],[R*.98,R*1.16],[R+.13,.34]];
   const CW=1.06,RF=.26,RR=-.56,RB=-1.56,ZE=2.46;
-  const zs=[-ZE,-2.40,-2.26,RB,RR,-.34,RF,CW,2.30,2.40,ZE];
+  const zs=[-ZE,-2.40,-2.26,RB,-1.10,RR,-.34,RF,.70,CW,1.80,2.30,2.40,ZE];
   for(const w of [ZF,ZR])for(const d of [R*.62,R*.98,R+.13])zs.push(w-d,w+d);
   zs.sort((a,b)=>a-b);
-  const yC=z=>U.lin([[-ZE,1.02],[-2.40,1.10],[-2.26,1.07],[RB,1.07],[RR,1.43],[RF,1.44],[CW,1.00],[2.30,.90],[2.40,.88],[ZE,.84]],z),
+  const yC=z=>U.lin([[-ZE,.95],[-2.40,1.00],[-2.26,.99],[RB,.99],[-1.10,1.17],[RR,1.29],[RF,1.30],[.70,1.10],[CW,.925],[1.80,.905],[2.30,.875],[2.40,.86],[ZE,.83]],z),
         xW=z=>U.lin([[-ZE,.90],[-2.36,.95],[2.30,.95],[ZE,.92]],z),
-        bL=z=>U.lin([[-ZE,1.03],[-1.90,1.06],[-.60,1.02],[CW,.98],[ZE,.90]],z),cab=z=>z>RB-.001&&z<CW+.001;
+        bL=z=>U.lin([[-ZE,.95],[-1.90,.985],[-.60,.95],[CW,.91],[ZE,.84]],z),cab=z=>z>RB-.001&&z<CW+.001;
   P.loft(zs,z=>{
     const yb=U.arch(z,[ZF,ZR],AR,.32),c=yC(z),xw=xW(z),bl=Math.min(bL(z),c-.03),y2=Math.max(yb+.06,.40),
-          y3=Math.max(.80,y2+.01),y4=Math.max(y3+.01,Math.min(bl-.07,c-.07));
+          y3=Math.max(.72,y2+.01),y4=Math.max(y3+.01,Math.min(bl-.07,c-.07));
     const s=[[0,yb],[xw-.07,yb],[xw-.02,y2],[xw+.015,y3],[xw,y4],[xw-.04,bl]];
     if(cab(z)){const xr=U.lin([[RB,.80],[RR,.72],[RF,.72],[CW,.84]],z);
       s.push([xr,Math.max(bl+.01,c-.05)],[xr-.10,c-.006],[.36,c],[.16,c+.004],[0,c+.006]);}
@@ -22047,21 +22049,20 @@ Object.assign(SHAPES,{
     return 'p';});
   /* LA CALANDRE PLEINE LARGEUR, en retrait, et ses quatre phares ronds */
   P.box('k',1.72,.26,.04,0,.70,ZE+.005);P.box('K',1.10,.02,.02,0,.70,ZE+.028);
-  P.sym(sd=>{for(const x of [.58,.76]){P.cyl('c',.095,.03,12,sd*x,.70,ZE+.02,'z');P.cyl('W',.075,.04,12,sd*x,.70,ZE+.03,'z');
-      P.cyl('K',.03,.02,8,sd*x,.70,ZE+.052,'z');}
+  P.sym(sd=>{for(const x of [.58,.76]){P.cyl('c',.092,.03,12,sd*x,.70,ZE+.008,'z');P.cyl('W',.074,.03,12,sd*x,.70,ZE+.014,'z');}   // les phares AU FOND de la calandre
     P.box('O',.10,.04,.02,sd*.66,.50,ZE+.04);
     /* feux arrière : deux blocs rouges dans le panneau noir */
-    P.box('L',.66,.14,.03,sd*.44,.93,-ZE-.02);for(let i=0;i<3;i++)P.box('r',.66,.012,.012,sd*.44,.885+i*.045,-ZE-.037);
+    P.box('L',.66,.12,.03,sd*.44,.86,-ZE-.02);for(let i=0;i<3;i++)P.box('r',.66,.012,.012,sd*.44,.82+i*.04,-ZE-.037);
     /* grosses sorties trapèze aux coins */
     P.box('c',.20,.08,.06,sd*.62,.40,-ZE-.02);P.box('k',.16,.05,.02,sd*.62,.40,-ZE-.045);
     /* rétros, poignée, arête de caisse */
-    P.box('p',.05,.05,.10,sd*.91,1.05,.98);P.box('p',.07,.12,.18,sd*.955,1.08,.96);
-    P.box('k',.02,.03,.16,sd*.955,.95,.14);P.box('k',.01,.40,.012,sd*.965,.78,1.00);P.box('k',.01,.40,.012,sd*.965,.78,-.44);
+    P.box('p',.05,.05,.10,sd*.91,.95,.98);P.box('p',.07,.11,.18,sd*.955,.99,.96);
+    P.box('k',.02,.03,.16,sd*.955,.87,.14);P.box('k',.01,.40,.012,sd*.965,.78,1.00);P.box('k',.01,.40,.012,sd*.965,.78,-.44);
     /* la bouche basse */
     P.box('k',.30,.10,.03,sd*.52,.44,ZE+.01);
   });
-  P.box('n',1.86,.22,.02,0,.93,-ZE-.004);P.box('p',.30,.12,.035,0,.93,-ZE-.022);
-  P.box('p',1.76,.035,.12,0,1.105,-2.40,-.12);                       /* le becquet de coffre */
+  P.box('n',1.86,.20,.02,0,.86,-ZE-.004);P.box('p',.30,.11,.035,0,.86,-ZE-.022);
+  P.box('p',1.76,.035,.12,0,1.015,-2.40,-.12);                       /* le becquet de coffre */
   P.box('k',1.10,.12,.04,0,.44,ZE+.005);P.box('k',1.70,.04,.10,0,.33,ZE-.02);
   P.box('k',1.30,.09,.04,0,.36,-ZE-.004);
   /* LA PRISE D'AIR NOIRE, plantée au milieu du capot */
@@ -22069,9 +22070,9 @@ Object.assign(SHAPES,{
   P.prism('n',[[za,yC(za)-.01],[zb,yC(zb)-.01],[zb,yC(zb)+.10],[za+.10,yC(za)+.07],[za,yC(za)+.03]],.28,0);
   P.box('k',.24,.07,.01,0,yC(zb)+.05,zb+.004);
   /* le bouchon de réservoir de course, sur l'aile arrière droite */
-  P.cyl('c',.07,.02,10,.955,.93,-1.90,'x');
+  P.cyl('c',.07,.02,10,.955,.89,-1.90,'x');
   K.commit(P);
-  return {hl:[.76,.70,ZE+.05],tl:[.60,.93,-ZE-.04],wx:.82,wzF:ZF,wzR:-ZR,
+  return {hl:[.76,.70,ZE+.05],tl:[.60,.86,-ZE-.04],wx:.82,wzF:ZF,wzR:-ZR,
           lpw:{R:R,w:.27,style:'rayons',n:5,jante:0x2e3036,accent:0x24262b}};
  },
   b_bavaroise:function(K){
@@ -22226,18 +22227,21 @@ Object.assign(SHAPES,{
           lpw:{R:R,w:.24,style:'cadran',jante:0xd2d6dc}};
 },
   c_silencieuse:function(K){
+  /* (13/10, « plus ressemblante ») la berline électrique de Palo Alto : un nez plus HAUT et ROND vu de dessus (c'était un coin
+     plat), la coque qui rentre sous la taille, une hanche arrière qui se gonfle, les phares en amande qui suivent l'aile. */
+  const hmp=(z,w,r)=>{const d=Math.abs(z-w)/r;return d>=1?0:1-d*d;};
   const U=LPU,R=.355,ZF=1.52,ZR=-1.44,LF=2.485;
   const P=K.kit({p:{g:'p',c:0xc5cbd3,grad:[0x7f8894,0xbcc3cc,0xeef0f2]},T:{g:'s',c:0x141a24},k:{g:'m',c:0x131417},K:{g:'g',c:0x0c0e12},c:{g:'c',c:0xe9ecf0},
     g:{g:'g',c:0x1c2733},W:{g:'l',c:0xf2f7ff},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
   const AR=[[0,2*R+.05],[R*.62,2*R+.03],[R*.98,R*1.22],[R+.12,.24]];
-  const zs=[-LF,-2.44,-2.34,-2.20,-2.05,-1.80,-1.40,-.40,-.30,.05,.80,.95,1.60,2.10,2.34,2.44,LF];
+  const zs=[-LF,-2.44,-2.34,-2.20,-2.05,-1.80,-1.40,-.40,-.30,.05,.80,.95,1.60,2.10,2.25,2.36,2.44,LF];
   for(const w of [ZF,ZR])for(const d of [R*.62,R*.98,R+.12])zs.push(w-d,w+d);
   zs.sort((a,b)=>a-b);
   const yC=z=>U.lin([[-LF,.62],[-2.44,.84],[-2.34,.97],[-2.20,1.03],[-2.05,1.05],[-1.40,1.30],[-.60,1.43],[-.20,1.445],[.05,1.43],
-                     [.95,1.00],[1.60,.925],[2.10,.845],[2.34,.775],[2.44,.69],[LF,.58]],z),
-        yB=z=>U.lin([[-LF,.60],[-2.44,.82],[-2.34,.95],[-2.05,.99],[-1.40,1.00],[.95,.94],[1.60,.90],[2.10,.82],[2.34,.745],[2.44,.66],[LF,.56]],z),
+                     [.95,1.00],[1.60,.935],[2.10,.875],[2.25,.85],[2.36,.815],[2.44,.76],[LF,.66]],z),
+        yB=z=>U.lin([[-LF,.60],[-2.44,.82],[-2.34,.95],[-2.05,.99],[-1.40,1.00],[.95,.94],[1.60,.905],[2.10,.845],[2.25,.815],[2.36,.78],[2.44,.715],[LF,.62]],z)+.025*hmp(z,ZR,.9),
         yR=z=>U.lin([[-2.05,1.02],[-1.80,1.12],[-1.40,1.27],[-.60,1.385],[.05,1.37],[.95,.99]],z),
-        xW=z=>U.lin([[-LF,.84],[-2.40,.93],[-2.20,.975],[1.90,.975],[2.30,.92],[2.44,.84],[LF,.72]],z),
+        xW=z=>U.lin([[-LF,.80],[-2.42,.90],[-2.30,.95],[-2.15,.975],[1.90,.975],[2.10,.96],[2.25,.92],[2.36,.85],[2.44,.76],[LF,.62]],z)+.012*hmp(z,ZR,.8),
         xR=z=>U.lin([[-2.05,.74],[-1.40,.68],[-.40,.65],[.05,.67],[.95,.80]],z),
         cab=z=>z>-2.06&&z<.96;
   P.loft(zs,z=>{
@@ -22246,7 +22250,7 @@ Object.assign(SHAPES,{
     if(cab(z)){const yG=B+.025,r=Math.max(yG+.012,yR(z)),xr=xR(z),xG=xw-.09;
       s5=[xG+.012,yG-.012];s6=[xG,yG];s7=[xr+.012,Math.max(yG+.004,r-.02)];s8=[xr,r];s9=[xr*.5,Math.max(r+.004,c-.012)];}
     else{s5=[xw-.06,B+.008];s6=[xw-.08,B+.012];s7=[xw-.26,Math.max(B+.016,c-.03)];s8=[xw-.28,Math.max(B+.02,c-.025)];s9=[.30,Math.max(B+.024,c-.008)];}
-    return [[0,yb],[xw-.07,yb],[xw,y2],[xw+.005,yM],[xw-.02,B],s5,s6,s7,s8,s9,[0,Math.max(s9[1]+.002,c)]];
+    return [[0,yb],[xw-.09,yb],[xw-.025,y2],[xw+.005,yM],[xw-.02,B],s5,s6,s7,s8,s9,[0,Math.max(s9[1]+.002,c)]];
   },(j,z)=>{
     if(j===0)return 'k';
     if(j<0)return 'p';
@@ -22258,15 +22262,17 @@ Object.assign(SHAPES,{
       if(j>=8)return (z>.05)?'g':(z>-1.40?'T':'g');                              // pare-brise · TOIT DE VERRE fumé · lunette
     }
     return 'p';});
-  // LE NEZ SANS CALANDRE : juste une fente basse, deux écopes de coin et les phares effilés
-  P.plate('k',[[-.62,.30],[.62,.30],[.70,.37],[.64,.45],[-.64,.45],[-.70,.37]],.03,LF-.02);P.plate('c',[[-.60,.455],[.60,.455],[.60,.47],[-.60,.47]],.03,LF-.018);
+  // LE NEZ : le CÔNE noir des premières années (un ovale laqué cerclé de chrome, le T au milieu), une fente basse, deux écopes de coin, les phares effilés
+  P.plate('c',[[-.36,.55],[.36,.55],[.40,.60],[.37,.66],[-.37,.66],[-.40,.60]],.02,LF-.006);P.plate('K',[[-.33,.565],[.33,.565],[.37,.60],[.34,.648],[-.34,.648],[-.37,.60]],.02,LF+.002);
+  P.box('c',.10,.016,.01,0,.632,LF+.026);P.box('c',.016,.06,.01,0,.605,LF+.026);
+  P.plate('k',[[-.46,.30],[.46,.30],[.52,.37],[.48,.45],[-.48,.45],[-.52,.37]],.03,LF-.02);P.plate('c',[[-.44,.455],[.44,.455],[.44,.47],[-.44,.47]],.03,LF-.018);
   P.sym(sd=>{
-    P.prism('k',[[LF-.02,.30],[LF-.05,.46],[LF-.14,.47],[LF-.12,.30]],.16,sd*.74);
+    P.prism('k',[[LF-.10,.30],[LF-.13,.44],[LF-.22,.45],[LF-.20,.30]],.14,sd*.70);
     // PHARES EFFILÉS : une amande couchée sur la pente du nez, deux projecteurs dedans
     const eye=new THREE.Shape();eye.moveTo(-.19,.02);eye.lineTo(.12,.05);eye.lineTo(.21,.03);eye.lineTo(.19,-.02);eye.lineTo(.02,-.04);eye.lineTo(-.18,-.02);
-    P.put('k',new THREE.ExtrudeGeometry(eye,{depth:.02,bevelEnabled:false}),sd*.62,.752,2.335,-1.13,0,0,sd*1.25,1.45,1);
-    P.put('W',new THREE.ExtrudeGeometry(eye,{depth:.02,bevelEnabled:false}),sd*.625,.786,2.318,-1.13,0,0,sd*1.12,.30,1);
-    for(const x of [.55,.69])P.put('W',new THREE.CylinderGeometry(.03,.03,.02,8),sd*x,.752,2.342,-1.13+Math.PI/2,0,0);
+    P.put('k',new THREE.ExtrudeGeometry(eye,{depth:.02,bevelEnabled:false}),sd*.62,.826,2.30,-1.13,0,0,sd*1.25,1.45,1);
+    P.put('W',new THREE.ExtrudeGeometry(eye,{depth:.02,bevelEnabled:false}),sd*.622,.838,2.29,-1.13,0,0,sd*1.10,.85,1);
+    for(const x of [.55,.69])P.put('W',new THREE.CylinderGeometry(.03,.03,.02,8),sd*x,.84,2.305,-1.13+Math.PI/2,0,0);
     // FLANCS : poignées affleurantes (un trait d'alu), rétros, bas de caisse noir
     for(const z of [.40,-.75])P.box('c',.012,.025,.20,sd*.965,.975,z);
     P.box('p',.10,.08,.20,sd*1.02,1.03,.78);P.box('k',.08,.03,.14,sd*.96,.99,.80);
@@ -22283,7 +22289,7 @@ Object.assign(SHAPES,{
   P.box('k',.40,.12,.02,0,.60,-2.465);                                         // plaque (vierge)
   P.box('p',1.20,.014,.06,0,yC(.05)+.006,.05);                                 // la barre de pavillon
   K.commit(P);
-  return {hl:[.66,.72,2.33],tl:[.62,.90,-2.37],wx:.83,wzF:ZF,wzR:-ZR,
+  return {hl:[.66,.80,2.31],tl:[.62,.90,-2.37],wx:.83,wzF:ZF,wzR:-ZR,
           lpw:{R:R,w:.26,style:'multi',n:10,jante:0x4a5059}};
 },
   c_trident:function(K){
@@ -23017,6 +23023,8 @@ Object.assign(SHAPES,{
           lpw:{R:R,w:.30,style:'rayons',n:5,jante:0xe0b84a,accent:0xe0b84a}};
 },
   d_batmobile:function(K){
+  /* (13/10, « plus ressemblante ») le coupé de Munich a un capot À PLAT jusqu'au nez de requin (il plongeait en coin), une
+     verrière haute et sans montant qui court jusqu'à la custode, et un coffre à plat. */
   const U=LPU,R=.32,ZF=1.35,ZR=-1.28;
   const P=K.kit({p:{g:'p',c:0xf4f4f0},B:{g:'p',c:0x4f9be8,f:0},V:{g:'p',c:0x3b2a8c,f:0},E:{g:'p',c:0xd01a22,f:0},
     k:{g:'m',c:0x131417},K:{g:'g',c:0x0c0d10},c:{g:'c',c:0xe9ecf0},g:{g:'g',c:0x18212c},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
@@ -23024,13 +23032,13 @@ Object.assign(SHAPES,{
   const zs=[-2.315,-2.28,-2.22,-1.45,-.90,-.72,.05,.66,.70,2.05,2.18,2.25,2.315];
   for(const w of [ZF,ZR])for(const d of [R*.72,R+.07,R+.15])zs.push(w-d,w+d);
   zs.sort((a,b)=>a-b);
-  const yC=z=>U.lin([[-2.315,.93],[-2.28,.96],[-2.22,.975],[-1.45,.99],[-.90,1.35],[.05,1.37],[.70,.93],[2.05,.84],[2.18,.82],[2.315,.80]],z),
-        yB=z=>U.lin([[-2.315,.90],[-2.22,.94],[-1.45,.95],[-.90,.89],[.70,.87],[2.05,.80],[2.18,.78],[2.315,.76]],z),
+  const yC=z=>U.lin([[-2.315,.93],[-2.28,.96],[-2.22,.975],[-1.45,.99],[-.90,1.35],[.05,1.37],[.70,.925],[1.40,.915],[2.05,.90],[2.18,.895],[2.315,.875]],z),
+        yB=z=>U.lin([[-2.315,.90],[-2.22,.94],[-1.45,.95],[-.90,.885],[.70,.875],[2.05,.865],[2.18,.86],[2.315,.845]],z),
         xW=z=>U.lin([[-2.315,.80],[-2.26,.84],[-2.10,.855],[2.05,.855],[2.20,.82],[2.315,.76]],z),
         xR=z=>U.lin([[-1.45,.74],[-.90,.64],[.05,.63],[.70,.73]],z),
         cab=z=>z>-1.45&&z<.70,
         fl=z=>{const d=Math.min(Math.abs(z-ZF),Math.abs(z-ZR));return d<R+.16?.035:0;}, // les ailes élargies
-        nez=z=>U.lin([[2.18,.30],[2.25,.46],[2.315,.66]],z);                       // le menton qui recule : NEZ DE REQUIN
+        nez=z=>U.lin([[2.18,.30],[2.25,.48],[2.315,.70]],z);                       // le menton qui recule : NEZ DE REQUIN
   P.loft(zs,z=>{
     const yb=z>2.18?nez(z):U.arch(z,[ZF,ZR],AR,.30),xw=xW(z),c=yC(z),b=Math.max(yB(z),yb+.10),f=fl(z);
     const s=[[0,yb],[xw-.06,yb],[xw+f,Math.max(yb+.04,.38)],[xw+.012+f,Math.max(yb+.07,.64)],[xw,b],[xw-.07,b+.02]];
@@ -23041,14 +23049,14 @@ Object.assign(SHAPES,{
     if(j<=1&&z>2.18)return 'K';                                              // la face qui plonge : bandeau noir
     if(j===0)return 'k';
     if(j<0||j<=4||!cab(z))return 'p';
-    if(j===5)return (z>-.72&&z<.66)?'g':'p';                                 // pavillon SANS montant
+    if(j===5)return (z>-1.30&&z<.62)?'g':'p';                                // pavillon SANS montant, jusqu'à la custode
     return (z>.05||z<-.90)?'g':'p';});
   const TW=1.93,rx9=.36;                                                     // l'inclinaison de la face
   // LA FACE : deux haricots étroits, quatre phares ronds sur le bandeau qui penche
   P.sym(sd=>{
-    P.box('c',.15,.28,.03,sd*.095,.50,2.255,rx9);P.box('K',.11,.24,.03,sd*.095,.50,2.262,rx9);
-    for(let i=0;i<3;i++)P.box('c',.012,.22,.03,sd*(.065+i*.03),.50,2.266,rx9);
-    for(const [x,r] of [[.40,.075],[.62,.088]]){const y=.53,z=2.18+(y-.30)/.36*.135+.012;
+    P.box('c',.15,.30,.03,sd*.095,.56,2.275,rx9);P.box('K',.11,.26,.03,sd*.095,.56,2.282,rx9);
+    for(let i=0;i<3;i++)P.box('c',.012,.24,.03,sd*(.065+i*.03),.56,2.286,rx9);
+    for(const [x,r] of [[.40,.075],[.62,.088]]){const y=.56,z=2.18+(y-.30)/.36*.135+.012;
       P.put('c',new THREE.CylinderGeometry(r+.014,r+.014,.02,10),sd*x,y,z,TW,0,0);
       P.put('W',new THREE.CylinderGeometry(r,r,.03,10),sd*x,y,z+.006,TW,0,0);}
     P.box('O',.10,.05,.02,sd*.66,.35,2.215,rx9);
@@ -23070,7 +23078,7 @@ Object.assign(SHAPES,{
   P.box('p',1.08,.03,.13,0,1.36,-.93,.30);                                   // le becquet de pavillon
   P.box('c',1.50,.05,.06,0,.40,-2.33);P.box('K',1.40,.14,.02,0,.62,-2.322); // pare-chocs fin, bandeau de poupe
   K.commit(P);
-  return {hl:[.62,.53,2.29],tl:[.56,.80,-2.34],wx:.76,wzF:ZF,wzR:-ZR,
+  return {hl:[.62,.56,2.30],tl:[.56,.80,-2.34],wx:.76,wzF:ZF,wzR:-ZR,
           lpw:{R:R,w:.28,style:'multi',n:12,jante:0xd4d8de}};
 },
   d_pagode:function(K){
@@ -23242,16 +23250,18 @@ Object.assign(SHAPES,{
           lpw:{R:R,w:.28,style:'multi',n:10,jante:0xd9a520}};
 },
   e_zed:function(K){
+  /* (13/10, « plus ressemblante ») le coupé de Yokohama a un capot LONG et presque à plat (il plongeait en coin vers 0,55),
+     les phares au fond de leurs cuvettes au bout des ailes hautes, la bouche sous le nez. */
   const U=LPU,R=.31,ZF=1.19,ZR=-1.115;
   const P=K.kit({p:{g:'p',c:0xff6a14},k:{g:'m',c:0x131417},K:{g:'g',c:0x0b0c10},c:{g:'c',c:0xe9ecf0},
     g:{g:'g',c:0x1c2733},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
   const AR=[[0,2*R+.04],[R*.60,2*R+.01],[R*.98,R*1.14],[R+.12,.27]];
-  let zs=[-2.07,-1.96,-1.45,-1.05,-.62,-.58,-.35,.25,.31,.40,1.95,2.07];
+  let zs=[-2.07,-1.96,-1.45,-1.05,-.62,-.58,-.35,.25,.31,.40,1.80,1.95,2.03,2.07];
   for(const w of [ZF,ZR])for(const d of [R*.60,R*.98,R+.12])zs.push(w-d,w+d);
   zs.sort((a,b)=>a-b);zs=zs.filter((z,i)=>i===0||z-zs[i-1]>.012);
   const cab=z=>z>-1.97&&z<.32;
-  const T=z=>U.lin([[-2.07,.93],[-1.96,.96],[-1.45,1.10],[-.55,1.265],[-.35,1.28],[.31,.92],[.40,.90],[1.20,.78],[1.95,.62],[2.07,.55]],z),
-        yB=z=>U.lin([[-2.07,.91],[-1.96,.93],[-1.20,.90],[-.60,.86],[.31,.84],[1.20,.79],[1.95,.74],[2.07,.72]],z),
+  const T=z=>U.lin([[-2.07,.93],[-1.96,.96],[-1.45,1.10],[-.55,1.265],[-.35,1.28],[.31,.92],[.40,.915],[1.20,.88],[1.80,.84],[1.95,.81],[2.07,.75]],z),
+        yB=z=>U.lin([[-2.07,.91],[-1.96,.93],[-1.20,.90],[-.60,.86],[.31,.845],[1.20,.835],[1.80,.80],[1.95,.765],[2.07,.70]],z),
         xW=z=>U.lin([[-2.07,.76],[-1.95,.80],[-1.20,.815],[.50,.80],[1.60,.79],[2.07,.66]],z);
   P.loft(zs,z=>{
     const yb=U.arch(z,[ZF,ZR],AR,.27),xw=xW(z),b=yB(z),t=T(z);
@@ -23267,9 +23277,9 @@ Object.assign(SHAPES,{
     return 'p';});
   P.sym(sd=>{
     // LES CUVETTES : un fût de tôle autour du phare, qui l'enfonce
-    P.lathe('p',[[.128,0],[.128,.075],[.108,.075],[.108,0]],12,sd*.52,.585,2.06,'z');
-    P.lathe('c',[[.130,.075],[.106,.075]],12,sd*.52,.585,2.06,'z');
-    P.cyl('k',.108,.02,12,sd*.52,.585,2.07,'z');P.cyl('W',.078,.03,12,sd*.52,.585,2.075,'z');
+    P.lathe('p',[[.128,0],[.128,.075],[.108,.075],[.108,0]],12,sd*.52,.645,2.04,'z');
+    P.lathe('c',[[.130,.075],[.106,.075]],12,sd*.52,.645,2.04,'z');
+    P.cyl('k',.108,.02,12,sd*.52,.645,2.05,'z');P.cyl('W',.078,.03,12,sd*.52,.645,2.055,'z');
     // pare-chocs en deux lames, butoirs, clignotants
     P.box('c',.50,.045,.09,sd*.42,.47,2.10);P.box('c',.04,.12,.06,sd*.25,.48,2.12);
     P.box('O',.14,.05,.03,sd*.56,.39,2.075);
@@ -23286,13 +23296,13 @@ Object.assign(SHAPES,{
     P.box('c',.52,.045,.08,sd*.43,.48,-2.10);
     P.cyl('c',.04,.12,8,sd*.36,.32,-2.12,'z');
   });
-  P.box('k',.70,.12,.03,0,.40,2.07);P.box('c',.66,.02,.02,0,.41,2.09);          // la bouche et sa barrette
+  P.box('k',.70,.14,.03,0,.43,2.07);P.box('c',.66,.02,.02,0,.44,2.09);          // la bouche et sa barrette
   P.box('k',1.24,.04,.16,0,.255,2.00,-.12);                                      // la lèvre de nez, noire
   // LES ÉLARGISSEURS noirs vissés sur les arches (la version course)
   for(const w of [ZF,ZR])P.sym(sd=>P.prism('k',[[w-R-.17,.30],[w-R*.62,.73],[w+R*.62,.73],[w+R+.17,.30],[w+R+.09,.30],[w+R*.50,.665],[w-R*.50,.665],[w-R-.09,.30]],.05,sd*(xW(w)+.012)));
   P.box('k',1.44,.18,.02,0,.74,-2.072);
   K.commit(P);
-  return {hl:[.52,.585,2.10],tl:[.52,.74,-2.09],wx:.705,wzF:ZF,wzR:-ZR,
+  return {hl:[.52,.645,2.10],tl:[.52,.74,-2.09],wx:.705,wzF:ZF,wzR:-ZR,
           lpw:{R:R,w:.24,style:'rayons',n:8,jante:0xcfd3d8,accent:0x1d1f24}};
 },
   e_feline:function(K){
@@ -23994,18 +24004,20 @@ Object.assign(SHAPES,{
           lpw:{R:R,w:2*HW,style:'enjoliveur',jante:0xe6e9ee,fond:0xb81c14}};
 },
   d_puce:function(K){
+  /* (13/10, « plus ressemblante ») la petite anglaise de rallye : des coins RONDS vus de dessus (elle était carrée), le
+     pavillon qui s'arrête plus tôt sur une lunette couchée et une malle basse (elle avait l'air d'un break), le capot qui plonge. */
   const U=LPU,R=.25,ZF=.99,ZR=-.99;
   const P=K.kit({p:{g:'p',c:0xc8141e},w:{g:'p',c:0xf4f4f0,f:0},c:{g:'c',c:0xe9ecf0},k:{g:'m',c:0x131417},K:{g:'g',c:0x0c0d10},
     g:{g:'g',c:0x18212c},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
   const AR=[[0,2*R+.05],[R*.70,2*R+.03],[R+.05,R*1.10],[R+.12,.24]];
-  const zs=[-1.45,-1.415,-1.16,-1.00,-.93,.36,.66,.76,1.40,1.425,1.45];
+  const zs=[-1.45,-1.43,-1.39,-1.30,-1.10,-.92,-.86,.36,.66,.76,1.30,1.39,1.43,1.45];
   for(const w of [ZF,ZR])for(const d of [R*.70,R+.05,R+.12])zs.push(w-d,w+d);
   zs.sort((a,b)=>a-b);
-  const yC=z=>U.lin([[-1.45,.90],[-1.415,.93],[-1.16,.95],[-1.00,1.325],[.36,1.35],[.76,.90],[1.40,.78],[1.425,.755],[1.45,.72]],z),
-        yB=z=>U.lin([[-1.45,.86],[-1.16,.90],[-1.00,.885],[.76,.865],[1.40,.76],[1.45,.70]],z),
-        xW=z=>U.lin([[-1.45,.62],[-1.415,.66],[-1.33,.69],[1.33,.70],[1.415,.66],[1.45,.62]],z),
-        xR=z=>U.lin([[-1.16,.62],[-1.00,.565],[.36,.565],[.76,.64]],z),
-        cab=z=>z>-1.16&&z<.76;
+  const yC=z=>U.lin([[-1.45,.84],[-1.43,.88],[-1.39,.90],[-1.10,.92],[-.92,1.315],[-.70,1.345],[.36,1.35],[.76,.90],[1.30,.80],[1.39,.775],[1.43,.75],[1.45,.71]],z),
+        yB=z=>U.lin([[-1.45,.80],[-1.39,.86],[-1.10,.875],[-.92,.87],[.76,.86],[1.39,.75],[1.45,.69]],z),
+        xW=z=>U.lin([[-1.45,.54],[-1.43,.61],[-1.39,.655],[-1.30,.685],[-1.10,.70],[1.20,.70],[1.30,.69],[1.39,.66],[1.43,.615],[1.45,.55]],z),
+        xR=z=>U.lin([[-1.10,.60],[-.92,.565],[.36,.565],[.76,.64]],z),
+        cab=z=>z>-1.10&&z<.76;
   P.loft(zs,z=>{
     const yb=U.arch(z,[ZF,ZR],AR,.24),xw=xW(z),c=yC(z),b=Math.max(yB(z),yb+.14);
     const s=[[0,yb],[xw-.08,yb],[xw-.01,Math.max(yb+.05,.40)],[xw+.005,Math.max(yb+.08,.64)],[xw-.01,b],[xw-.06,b+.02]];
@@ -24016,9 +24028,9 @@ Object.assign(SHAPES,{
   },(j,z)=>{
     if(j===0)return 'k';
     if(j<0||j<=4||!cab(z))return 'p';
-    if(j===5)return (z>.66||z<-.93)?'p':'g';                                  // vitres, montants rouges
+    if(j===5)return (z>.66||z<-.86)?'p':'g';                                  // vitres, montants rouges
     if(z>.36)return j===6?'p':'g';                                            // pare-brise
-    if(z<-1.00)return j===6?'w':'g';                                          // lunette
+    if(z<-.92)return j===6?'w':'g';                                          // lunette
     return 'w';});                                                            // LE TOIT BLANC, gouttières comprises
   // LA FACE : calandre en moustache, deux phares ronds, deux longues-portées, la sangle de capot
   P.plate('c',[[-.44,.40],[.44,.40],[.48,.50],[.38,.64],[.20,.66],[-.20,.66],[-.38,.64],[-.48,.50]],.015,1.447);
