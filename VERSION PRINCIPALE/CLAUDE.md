@@ -227,6 +227,20 @@ début — dans l'autre ça commence un peu tard ») — mesuré des DEUX côté
     redresse vers le ciel / la pente de la houle calmée, le nez garde le cap (`JEAU.cap`). La caméra suit ce nez (plus de balancement à flot).
   · À flot plus de `EAU.ramene` 9 s sans nitro : `jadeEauRamene` (respawn, « LA MER TE RAMÈNE », la chaîne seule est perdue).
   · `dbgEau()` rend aussi `f`, `wB`, `flot`, `hv`.
+- (13/10, 4e passe, Léo : « la vague en bas doit glisser du milieu vers les côtés comme une voiture qui va vite sous la pluie ; le splash
+  d'entrée plus smooth ; la mer plus scintillante, des cubes plus petits de différentes teintes ; fais le peintre maître du réalisme technique ») :
+  · LA MER (dôme `jadeCiel`, et la PEAU près des plongeons) : chaque colonne de 4 m porte une mosaïque de PETITS CUBES de 1 m — six teintes
+    (bleu profond, sarcelle, turquoise, jade, aqua, écume pâle) mêlées à 50 % au bleu de la profondeur, un biseau, un joint, une micro-pente
+    chacun ; ÉCLATS : chaque petit cube renvoie le soleil (pow 260) et scintille à son heure ; la HOULE DE LUMIÈRE (deux bruits lents) ; la
+    crête traversée par le soleil (turquoise clair) ; le reflet du ciel plus fort. Tout s'efface quand un petit cube passe sous le pixel.
+    Le fleuve au loin : des PAILLETTES (facettes de 2 m) sur le chemin du soleil. ⚠ Essayé à 85 % de teinte et biseau fort : un carrelage de
+    piscine aux joints orange (le ciel dans les biseaux) — gardé discret.
+  · L'ENTRÉE : la COURONNE LISSE (`eauCouronne`, cylindre ouvert déformé au vertex shader : s'ouvre, monte, s'évase en lobes, filets
+    clairs, bord blanc, translucide) + des gouttes fines lancées du bord + la NAPPE au ras de l'eau qui glisse vers les côtés. La SORTIE : la
+    même, étroite et haute (la colonne). Les ONDES : disques en shader (crête blanche, deux crêtes plus faibles), plus d'anneaux durs.
+  · LE SILLAGE : deux NAPPES de gouttes qui partent du dessous de la caisse vers les côtés (+ une queue de coq à grande vitesse), une BRUME
+    de grands cubes translucides (`EAUB`), et le V d'ÉCUME de Kelvin (`SILL`, ruban de 48 points qui s'écartent à 19,5°, écume en carrés
+    de 50 cm). Gouttes `EAUP` : 1 800, quatre teintes (instanceColor posée à la création), étirées quand elles filent.
 - Banc : `dbgJadePoste('ramasse')` (pièces, fruits par nom, pouvoirs, plots, plaques, flaques). MESURÉ : 650 pièces, ~16 fruits, 20 pouvoirs,
   300 plots, 8 plaques par passage ; en course : pièces ramassées, défis (« EAT 4 FRUITS »), paliers moteur, aimant, jus des fruits.
 
