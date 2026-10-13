@@ -45712,14 +45712,39 @@ function garBqBatit(){if(GBQ.grp)return; // (2026-10-12, Léo : « lâche le mag
      for(let i=0;i<nx;i++)for(let j=0;j<ny;j++)for(let k=0;k<nz;k++){if(i>0&&i<nx-1&&j>0&&j<ny-1&&k>0&&k<nz-1)continue; // la peau seule
        cube(cx+(i-(nx-1)/2)*PAS,cy+(j-(ny-1)/2)*PAS,cz+(k-(nz-1)/2)*PAS);}};
    const ang=function(a){a=Math.atan2(Math.sin(a),Math.cos(a));return Math.abs(a)<OUV;}; // +z = vers la caméra
-   for(let c=0;c<NC;c++){const a0=c/NC*Math.PI*2+Math.PI/NC;if(ang(a0))continue;const x=Math.sin(a0)*RC,z=Math.cos(a0)*RC;
-     bloc(x,.2,z,1.3,.4,1.3);bloc(x,.4+HC+.2,z,1.3,.4,1.3);
-     const rC=.48,nA=Math.round(2*Math.PI*rC/PAS);
-     for(let y=.4+PAS/2;y<.4+HC;y+=PAS)for(let a9=0;a9<nA;a9++){const an=a9/nA*Math.PI*2+(Math.round(y/PAS)%2)*Math.PI/nA,rr=rC+(R9()<.1?(R9()<.5?-.06:.05):0);cube(x+Math.cos(an)*rr,y,z+Math.sin(an)*rr);}}
-   {const y1=.4+HC+.4,nR=Math.round(2*Math.PI*RC/PAS);for(let i=0;i<nR;i++){const an=i/nR*Math.PI*2;if(ang(an+(an>Math.PI?-.12:.12)))continue;const ca=Math.cos(an),sa=Math.sin(an);
-     for(let r=0;r<6;r++)for(let h=0;h<3;h++){if(r>0&&r<5&&h>0&&h<2)continue;const rr=RC-.5+r*PAS;cube(sa*rr,y1+PAS/2+h*PAS,ca*rr);}}}
-   {const n=V.length/3,mc=new THREE.InstancedMesh(new THREE.BoxGeometry(PAS*.86,PAS*.86,PAS*.86),new THREE.MeshLambertMaterial({color:0xe8edf5,emissive:0x000000,flatShading:true,fog:false}),n),M9=new THREE.Matrix4();
-    for(let k=0;k<n;k++){M9.makeTranslation(V[3*k],V[3*k+1],V[3*k+2]);mc.setMatrixAt(k,M9);}mc.frustumCulled=false;g.add(mc);GBQ.colonnes=mc;}
+   /* (2026-10-14, Léo : « rends les piliers plus lisses et blanc brillant ») LES COLONNES LISSES : plus de peau de cubes — un vrai fût rond
+      (effilé, 40 pans lissés), un socle carré et son tore, l'échine évasée et l'abaque du chapiteau, l'entablement en anneau plein ; tout
+      dans un BLANC LAQUÉ (Phong : spéculaire franc et large, un peu de ciel blanc dans le vernis) qui accroche la lampe du studio. Une
+      pièce = un maillage instancié (une instance par colonne posée) : 6 appels de dessin. */
+   const lq=new THREE.MeshMatcapMaterial({color:0xffffff,fog:false,matcap:(function(){ /* le VERNIS PEINT (matcap) : base blanche, bords gris perle, un large reflet et un point
+      de brillance net en haut à gauche — le blanc laqué se lit quelle que soit la lampe (avec Phong, la lampe du studio ne donnait qu'un blanc mat lavande) */
+     const cv=document.createElement('canvas');cv.width=cv.height=256;const x=cv.getContext('2d');
+     /* un fût vertical se lit sur la LIGNE MÉDIANE du matcap (ses normales sont presque horizontales) : les reflets y sont donc des BANDES
+        verticales — un large reflet doux et un trait de brillance net côté lampe, un contre-reflet de l'autre côté, le bord qui s'assombrit */
+     let gr=x.createRadialGradient(128,128,0,128,128,128);gr.addColorStop(0,'#f4f6f9');gr.addColorStop(.7,'#e9edf2');gr.addColorStop(.9,'#cfd6e0');gr.addColorStop(1,'#aeb8c6');x.fillStyle=gr;x.fillRect(0,0,256,256);
+     const bande=function(cx,w,a){const g9=x.createLinearGradient(cx-w,0,cx+w,0);g9.addColorStop(0,'rgba(255,255,255,0)');g9.addColorStop(.5,'rgba(255,255,255,'+a+')');g9.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g9;x.fillRect(cx-w,0,2*w,256);};
+     bande(96,46,.85);bande(92,9,1);bande(92,4,1);bande(186,22,.45);
+     x.globalCompositeOperation='destination-in';gr=x.createRadialGradient(128,128,120,128,128,128);gr.addColorStop(0,'#000');gr.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=gr;x.fillRect(0,0,256,256);
+     x.globalCompositeOperation='destination-over';x.fillStyle='#aeb8c6';x.fillRect(0,0,256,256);x.globalCompositeOperation='source-over';
+     const t=new THREE.CanvasTexture(cv);return t;})()}),pos=[];lq.onBeforeCompile=function(sh){sh.fragmentShader=sh.fragmentShader.replace('vec3 outgoingLight = diffuseColor.rgb * matcapColor.rgb;',
+     'vec3 outgoingLight = diffuseColor.rgb * (matcapColor.rgb*1.05 + 4.2*pow(matcapColor.r,16.));');}; /* le reflet passe AU-DELÀ du blanc : l'étalonnage du jeu
+     écrase les blancs contre un plafond (le sol a dû monter à ×3,4) — un vernis linéaire y sortait uniforme ; là, le corps reste un blanc doux et
+     le reflet claque */
+   for(let c=0;c<NC;c++){const a0=c/NC*Math.PI*2+Math.PI/NC;if(ang(a0))continue;pos.push([Math.sin(a0)*RC,Math.cos(a0)*RC]);}
+   const piece=function(geo,y){const im=new THREE.InstancedMesh(geo,lq,pos.length),M9=new THREE.Matrix4();
+     pos.forEach(function(p,k){M9.makeTranslation(p[0],y,p[1]);im.setMatrixAt(k,M9);});im.frustumCulled=false;g.add(im);return im;};
+   const yF0=.4+.16,yF1=.4+HC-.34;
+   piece(new THREE.BoxGeometry(1.3,.4,1.3),.2);                                                        // le socle
+   piece(new THREE.TorusGeometry(.53,.08,12,40).rotateX(Math.PI/2),.4+.08);                           // son tore
+   piece(new THREE.CylinderGeometry(.44,.5,yF1-yF0,40,1,true),(yF0+yF1)/2);                            // le FÛT, effilé
+   piece(new THREE.TorusGeometry(.46,.05,10,40).rotateX(Math.PI/2),yF1);                               // l'astragale
+   piece(new THREE.CylinderGeometry(.66,.46,.3,40),yF1+.17);                                           // l'échine
+   GBQ.colonnes=piece(new THREE.BoxGeometry(1.36,.24,1.36),.4+HC+.08);                                // l'abaque
+   {const y1=.4+HC+.2,t0=OUV+.12,t1=2*Math.PI-OUV-.12,sh=new THREE.Shape(),n9=96,ro=RC+.62,ri=RC-.62;   // L'ENTABLEMENT : un anneau plein, ouvert côté caméra
+    for(let i=0;i<=n9;i++){const a=t0+(t1-t0)*i/n9;const p=[Math.sin(a)*ro,-Math.cos(a)*ro];i?sh.lineTo(p[0],p[1]):sh.moveTo(p[0],p[1]);}
+    for(let i=n9;i>=0;i--){const a=t0+(t1-t0)*i/n9;sh.lineTo(Math.sin(a)*ri,-Math.cos(a)*ri);}
+    const ge=new THREE.ExtrudeGeometry(sh,{depth:.62,bevelEnabled:true,bevelThickness:.05,bevelSize:.05,bevelSegments:2,curveSegments:1});ge.rotateX(-Math.PI/2);ge.computeVertexNormals();
+    const en=new THREE.Mesh(ge,lq);en.position.y=y1;g.add(en);}
    /* LA POUSSIÈRE D'OR (même demande, l'ambiance) : 90 grains carrés qui dérivent lentement dans la lumière autour de la caisse (bqPoussiere) */
    {const N=90,P=new Float32Array(N*3),r=mulberry32(0xD057);for(let i=0;i<N;i++){const a=r()*Math.PI*2,d=.8+r()*4.2;P[3*i]=Math.sin(a)*d;P[3*i+1]=.5+r()*4.5;P[3*i+2]=Math.cos(a)*d;}
     const ge=new THREE.BufferGeometry();ge.setAttribute('position',new THREE.BufferAttribute(P,3));

@@ -121,6 +121,11 @@
   gardent leurs règles (exclus du bloc). Les conducteurs d'or de #gvMis (::before/::after) et #gvBranche sont masqués. Poki : sans
   MISSIONS, INVENTAIRE et BOUTIQUE se partagent la rangée. Le SOL de la boutique : ×3,4 (mesuré 220 → 234, le blanc du fond).
   Banc : scratchpad `gar.py W H suffixe [port] [shop]`, `garclic.py` (chaque bouton au vrai doigt).
+- LES COLONNES LISSES (14/10, Léo : « rends les piliers plus lisses et blanc brillant ») — la rotonde n'est plus une peau de cubes : fût
+  rond effilé (40 pans), socle + tore, astragale, échine, abaque, entablement en anneau plein ouvert côté caméra ; 6 InstancedMesh + 1.
+  Matière : un MATCAP peint (bandes VERTICALES : un fût se lit sur la ligne médiane du matcap) dont le reflet passe AU-DELÀ du blanc
+  (`onBeforeCompile` : `matcap*1,05 + 4,2·r^16`) — ⚠ l'étalonnage du jeu écrase les blancs contre un plafond (~237) : un blanc linéaire,
+  même ×1,7, sortait UNIFORME ; seul un reflet HDR se détache. Mesuré : corps 235-242, reflet 255, bords 200-215.
 
 ## LA PASSE QUALITÉ AVANT SORTIE (2026-10-12, Sacha : « trouve des bugs et règle-les, améliore des trucs à droite à gauche, fais en sorte que le jeu soit parfait et sortable »)
 Méthode : bancs Puppeteer son coupé (rendu LOGICIEL SwiftShader : Roblox Studio tenait le GPU, le Chrome de test calait sur D3D11), un
