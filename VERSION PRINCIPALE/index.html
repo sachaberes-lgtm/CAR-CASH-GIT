@@ -9694,17 +9694,22 @@ function qlReprise(){ // RAPIDE⇄NETTE : le choix du joueur rend la pleine rés
    la vitrine descend d'un cran (×0,8) toutes les 1,5 s, jamais sous le plafond ordinaire. En sortant (garage, départ de course),
    tout revient À L'IDENTIQUE : l'échelle reprend le cran qu'elle avait, sa carte d'ombre et sa résolution. Les bascules tombent
    sous le volet (ecranWipe) : la réallocation des cibles ne se voit pas. `?hd=0` coupe le mode (comparer) ; `dbgVHD()` le décrit. */
-const VHD={on:false,dpr:1,ombre:2048,t:0,k0:0,off:/[?&]hd=0/.test(location.search)};
+const VHD={on:false,dpr:1,max:1,ombre:2048,t:0,k0:0,lT:0,bT:0,sT:0,mur:0,murT:0,monteT:0,bride:0,log:[],bas:0,haut:0,off:/[?&]hd=0/.test(location.search)}; // (2026-10-13) max = la pleine définition de cet écran ; lT/bT = lenteur/marge TENUES ; sT = sonde en cours ; mur = le cran qui vient d'échouer (voir LE FILET v2)
 function vhdDpr(){ const px=Math.max(1,innerWidth*innerHeight),bud=TEL_NATIF?3.2e6:8.3e6;
   return Math.max(DPR_CAP,Math.min(devicePixelRatio*(TEL_NATIF?1:1.5),Math.sqrt(bud/px),4));}
 function vhdAniso(on){ const m=renderer.capabilities.getMaxAnisotropy(),n=on?m:Math.min(IS_MOBILE?4:8,m);
   for(const t of [ASPH_TEX,LIGNE_TEX])if(t&&t.anisotropy!==n){t.anisotropy=n;t.needsUpdate=true;}}
 function vhdBascule(on){ if(VHD.off||on===VHD.on)return;
-  if(on){VHD.k0=QL.k;VHD.dpr=vhdDpr();VHD.ombre=Math.min(TEL_NATIF?2048:4096,renderer.capabilities.maxTextureSize);VHD.t=0;VHD.on=true;curDPR=-1;qlPose(0);}
+  if(on){VHD.k0=QL.k;VHD.dpr=VHD.max=vhdDpr();VHD.lT=VHD.bT=VHD.sT=0;VHD.ombre=Math.min(TEL_NATIF?2048:4096,renderer.capabilities.maxTextureSize);VHD.t=0;VHD.on=true;curDPR=-1;qlPose(0);}
   else{VHD.on=false;curDPR=-1;qlPose(VHD.k0);}
   vhdAniso(on);}
-addEventListener('resize',function(){if(VHD.on){VHD.dpr=vhdDpr();curDPR=-1;qlPose(0);}}); // téléphone tourné, fenêtre retaillée : le budget de pixels se recalcule
-window.dbgVHD=function(){return {on:VHD.on,dpr:+curDPR.toFixed(2),dprEcran:+devicePixelRatio.toFixed(2),plafondCourse:+DPR_CAP.toFixed(2),
+function vhdMonte(now,vrai){ // (2026-10-13, LE FILET v2) un cran de netteté qui revient (×1,25), jamais au-delà de l'écran ni vers le cran qui vient d'échouer ;
+  // vrai = le coût mesuré par la sonde (ms) : on ne monte que si l'image agrandie (coût ∝ pixels, pessimiste) tient encore sous 14 ms
+  const d9=Math.min(VHD.max,VHD.dpr*1.25);if(VHD.murT&&now-VHD.murT<45000&&d9>VHD.mur-.02)return false;
+  if(d9<VHD.dpr+.02||(vrai&&vrai*(d9/VHD.dpr)*(d9/VHD.dpr)>14))return false;VHD.dpr=d9;VHD.haut++;VHD.monteT=now;vhdNote(now,'monte');curDPR=-1;qlPose(0);return true;}
+function vhdNote(now,quoi){VHD.log.push([Math.round(now/100)/10,quoi,+VHD.dpr.toFixed(2),+QLR.vrai.toFixed(1),+QLR.p75.toFixed(1),+QLR.p90.toFixed(1)]);if(VHD.log.length>12)VHD.log.shift();} // (banc) dbgVHD().journal
+addEventListener('resize',function(){if(VHD.on){VHD.dpr=VHD.max=vhdDpr();VHD.murT=0;curDPR=-1;qlPose(0);}}); // téléphone tourné, fenêtre retaillée : le budget de pixels se recalcule
+window.dbgVHD=function(){return {on:VHD.on,dpr:+curDPR.toFixed(2),max:+VHD.max.toFixed(2),baisses:VHD.bas,remontees:VHD.haut,bride:VHD.bride?Math.round((performance.now()-VHD.bride)/1000)+' s':null,mur:(VHD.murT&&performance.now()-VHD.murT<45000)?+VHD.mur.toFixed(2):null,vrai:QLR.vraiT?+QLR.vrai.toFixed(1):null,journal:VHD.log,dprEcran:+devicePixelRatio.toFixed(2),plafondCourse:+DPR_CAP.toFixed(2),
   px:Math.round(innerWidth*innerHeight*curDPR*curDPR),ombre:sun.shadow.mapSize.x,aniso:ASPH_TEX?ASPH_TEX.anisotropy:null,bloom:bloomPass?(bloomPass.enabled?BLOOM_RES:0):null,crans:QL.k};};
 window.dbgDPR=function(d,sansPique){RESPIN=true;curDPR=+d;applyDPR();if(sansPique&&acesPass&&acesPass.uniforms.uSharp)acesPass.uniforms.uSharp.value=0;return {dpr:curDPR,pique:acesPass&&acesPass.uniforms.uSharp?+acesPass.uniforms.uSharp.value.toFixed(3):null};}; // (tour 2) banc : une résolution, sans rien d'autre (fige l'échelle)
 /* (2026-09-28, passe graphismes mobile) BANC : chaque petite technique s'éteint et se rallume À CHAUD (des uniformes : zéro recompilation),
@@ -48201,8 +48206,33 @@ function loop(now){
      16,7 ms — le seuil est 17,8 ms (« on tient la synchro 60 »). */
   dprT-=dt;
   // (2026-09-28) L'ACCUEIL EN HAUTE DÉFINITION (VHD) : l'échelle dort, c'est la vitrine qui tient la résolution — et son FILET la
-  // redescend (×0,8, toutes les 1,5 s, jamais sous le plafond ordinaire) si plus d'un quart des images passe 22 ms
-  if(VHD.on){VHD.t+=dt;if(VHD.t>1.5&&calme9&&QLR.p75>22&&VHD.dpr>DPR_CAP+.02){VHD.t=0;VHD.dpr=Math.max(DPR_CAP,VHD.dpr*.8);curDPR=-1;qlPose(0);}}
+  // redescend (×0,8, jamais sous le plafond ordinaire) quand le téléphone ne suit vraiment pas
+  /* LE FILET v2 (2026-10-13, Léo : « l'écran d'accueil ne baisse pas de qualité pour les tels qui peuvent ») — MESURÉ au banc : l'ancien
+     filet était un CLIQUET. Un à-coup d'une seconde (une compilation, la pluie de richesse, un onglet voisin) suffisait à faire passer plus
+     d'un quart des images au-dessus de 22 ms : la résolution perdait 20 %… et ne remontait JAMAIS tant qu'on restait sur l'accueil
+     (×2,6 → ×1,0 en 10-20 s, 7 fois moins de pixels — le ciel flou). Désormais :
+     · on ne baisse que sur une lenteur TENUE (2,5 s d'affilée, `lT`) — un à-coup passe sans rien coûter ;
+     · avant de baisser, la SONDE de la course (qlSonde) mesure le VRAI coût d'une image : sous 14,5 ms, la puce tiendrait le 60 i/s,
+       c'est l'ÉCRAN qui bride (économie d'énergie, chaleur) → on ne sacrifie rien, et ce qui avait été baissé remonte ;
+     · la marge revenue (moins d'une image sur dix ratée pendant 3 s, `bT` — ou la sonde qui prouve qu'une image agrandie d'un cran
+       tiendrait sous 14 ms), la résolution REMONTE d'un cran (×1,25) jusqu'à la pleine
+       définition de l'écran (`max`) — sauf vers un cran qui vient d'échouer (remonté puis retombé en moins de 10 s : un MUR de 45 s,
+       l'anti-yoyo de l'échelle de course). */
+  if(VHD.on){VHD.t+=dt;
+    VHD.lT=(calme9&&QLR.p75>22)?VHD.lT+dt:0;VHD.bT=(calme9&&QLR.p90<17.8)?VHD.bT+dt:0;
+    const sonde9=VHD.sT&&QLR.vraiT>VHD.sT; // la sonde lancée par le filet a parlé
+    if(VHD.lT>2.5&&VHD.t>1.5){
+      if(!sonde9){if(!VHD.sT||now-VHD.sT>3000){VHD.sT=now;qlSondeArme();}} // la SONDE d'abord : on décide quand elle a parlé
+      else{VHD.sT=0;VHD.lT=0;VHD.bT=0;
+        if(QLR.vrai<14.5){VHD.bride=now;VHD.t=-6.5;vhdNote(now,'bride');vhdMonte(now,QLR.vrai);} // l'écran bride, pas la puce : rien n'est sacrifié (et la sonde se tait 8 s)
+        else if(VHD.dpr>DPR_CAP+.02){VHD.t=0;if(VHD.monteT&&now-VHD.monteT<10000){VHD.mur=VHD.dpr;VHD.murT=now;}VHD.dpr=Math.max(DPR_CAP,VHD.dpr*.8);VHD.bas++;vhdNote(now,'baisse');curDPR=-1;qlPose(0);}
+        else VHD.t=-6.5;}} // déjà au plancher : rien à baisser, la sonde se tait 8 s
+    else if(VHD.dpr<VHD.max-.02&&VHD.t>1.5){
+      if(VHD.bT>3){if(vhdMonte(now,0)){VHD.t=0;VHD.bT=0;}}
+      /* entre les deux (quelques images ratées, pas assez pour baisser — souvent le reste de la machine, pas le jeu) : la sonde dit
+         combien coûte VRAIMENT une image ; si, agrandie au cran du dessus (coût ∝ pixels), elle tient encore sous 14 ms, on remonte */
+      else if(sonde9){VHD.sT=0;VHD.t=-10;if(vhdMonte(now,QLR.vrai))VHD.t=0;} // pas de marge : la sonde se tait ~12 s
+      else if(!VHD.sT||now-VHD.sT>3000){VHD.sT=now;qlSondeArme();}}}
   else if(!RESPIN&&dprT<=0&&now>4000){dprT=1.1;const fort9=QLR.p50>24,tire9=QLR.p75>24||QLR.p50>18.5;
     /* LA NETTETÉ NE SE SACRIFIE QUE SI ÇA PAIE (tour 2) : un cran de RÉSOLUTION posé, on regarde 3 s plus tard si la médiane a
        baissé. Si non (le téléphone bute ailleurs : processeur, affichage), la résolution revient et ce cran devient un MUR — on ne

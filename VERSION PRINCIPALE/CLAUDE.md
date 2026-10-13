@@ -4538,6 +4538,13 @@ explosion, écran de mort, `LG=en` pour l'anglais —, `set.js` réglages, `carr
   —, ombre en carte 4096 (2048 téléphone), anisotropie max de la route et de sa peinture (`ASPH_TEX`, `LIGNE_TEX`), échelle QL au cran 0
   et EN VEILLE. `qlPose` lit `VHD.on` (résolution + carte d'ombre) : UN seul chemin. Filet : p75 > 22 ms (hors 30 Hz) → ×0,8 toutes les
   1,5 s, jamais sous `DPR_CAP`. À la sortie, `qlPose(VHD.k0)` rend l'échelle telle qu'elle était. `?hd=0` coupe ; `dbgVHD()` décrit.
+- **LE FILET v2 (2026-10-13, Léo : « l'écran d'accueil ne baisse pas de qualité pour les tels qui peuvent »)** — l'ancien filet était un
+  CLIQUET : un à-coup d'une seconde suffisait à baisser de 20 %, et la netteté ne remontait JAMAIS sur l'accueil (MESURÉ : ×2,6 → ×1,0
+  en 10-20 s). Désormais : baisse seulement sur une lenteur TENUE (p75 > 22 ms pendant 2,5 s, `VHD.lT`) ET confirmée par la SONDE de la
+  course (`qlSondeArme`, vrai coût ≥ 14,5 ms ; dessous = l'écran bride → rien n'est sacrifié) ; REMONTÉE ×1,25 quand la marge revient
+  (p90 < 17,8 ms pendant 3 s) ou quand la sonde prouve qu'un cran au-dessus tiendrait sous 14 ms (coût ∝ pixels) ; jusqu'à `VHD.max`
+  (la pleine définition de l'écran) ; MUR de 45 s seulement pour un cran remonté puis retombé en < 10 s. `dbgVHD()` : max, baisses,
+  remontées, bride, mur, vrai, `journal`. MESURÉ (Mac chargé, charge 24) : ancien → ×1,0-1,34 en 20 s ; v2 → ×2,61 tenu 40 s, 0 baisse.
 - ⚠ MESURÉ sur l'ordi (colonne 844 × 390 zoomée ×2,27 sur 1 920 px) : sans VHD la 3D de l'accueil faisait 0,33 M pixels (DPR 1 en
   RAPIDE, étiré ×2,27) ; avec, 3,8 M (DPR 3,4). En COURSE rien ne change : DPR 1 / ombre 1024 / aniso 4, comme avant — c'est aussi
   pourquoi la course paraît floue sur PC en RAPIDE (NETTE = 1,5).
