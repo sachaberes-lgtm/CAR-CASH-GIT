@@ -92,6 +92,11 @@
   épouse le passage de roue (un trapèze noir posé autour) · DÉFIEUR / FÉLINE : les lignes de porte en FIL de laque foncée, d'un seul
   tenant · BAVAROISE : montant arrière dans la couleur (triangle noir), jupe d'une roue à l'autre. ⚠ Règle : un détail de flanc se pose
   TOUJOURS sur la fonction de largeur du gabarit (`xW(z)` ± épaisseur), jamais sur une constante.
+- LA BOUTIQUE DU GARAGE (13/10, Léo : « la Nyan Cat n'est plus dans le shop » puis « inverse le sens : quand on tire la voiture vers
+  le bas, ça tire l'endroit qu'on appuie vers le bas ») — `bqEphemeres` : l'offre de lancement (`une:1`, le CHAT POP-TART) reste TOUJOURS
+  en tête de l'onglet OFFRES, seules les 3 autres places tournent chaque semaine (les 4 étaient tirées : elle en sortait).
+  `bqCoteDoigt(e)` : au pointerdown, le côté de la caisse sous le doigt (nez/poupe projetés par la caméra) donne le signe du tangage —
+  doigt sur l'avant, le nez plonge ; sur l'arrière, la poupe descend (avant : le nez plongeait toujours). Banc : `bq2.py`/`off.py`.
 
 ## LA PASSE QUALITÉ AVANT SORTIE (2026-10-12, Sacha : « trouve des bugs et règle-les, améliore des trucs à droite à gauche, fais en sorte que le jeu soit parfait et sortable »)
 Méthode : bancs Puppeteer son coupé (rendu LOGICIEL SwiftShader : Roblox Studio tenait le GPU, le Chrome de test calait sur D3D11), un

@@ -45734,9 +45734,12 @@ function garBqLueur(ay){const g=GBQ.lueur||0;garBqLueurBatit();const vis=g>.002;
    deux onglets — VOITURES (en pièces, pour tout le monde : bqPieces) d'abord, OFFRES (les éditions limitées de la semaine, en €,
    introuvables en jeu : bqEphemeres) à côté — et la rangée de vignettes ; RETOUR et ACHETER (noir) sous le pouce. */
 function bqEphemeres(){const w=bqSem();if(GBQ.eph&&GBQ.eph.w===w)return GBQ.eph; // quatre caisses premium tirées sur le numéro de la semaine
-  const P=bqPayantes(),r=mulberry32(Math.imul(w+11,2654435761)^0x1E9E3),L=P.slice();
+  /* (2026-10-13, Léo : « la Nyan Cat n'est plus dans le shop ») L'OFFRE DE LANCEMENT (`une:1` dans CAR_UNLOCK : le CHAT POP-TART) reste
+     TOUJOURS en tête des offres ; le tirage de la semaine ne fait tourner que les trois autres places (avant, les quatre étaient tirées
+     au hasard et elle sortait de la boutique certaines semaines). */
+  const P=bqPayantes(),U=P.filter(function(i){return CAR_UNLOCK[i]&&CAR_UNLOCK[i].une;}),r=mulberry32(Math.imul(w+11,2654435761)^0x1E9E3),L=P.filter(function(i){return U.indexOf(i)<0;});
   for(let i=L.length-1;i>0;i--){const k=Math.floor(r()*(i+1)),t=L[i];L[i]=L[k];L[k]=t;}
-  return GBQ.eph={w:w,l:L.slice(0,4)};}
+  return GBQ.eph={w:w,l:U.concat(L).slice(0,4)};}
 function bqSemaine(){const w=bqSem();if(GBQ.sem&&GBQ.sem.w===w)return GBQ.sem; // (2026-10-12, Léo : « des objets hebdomadaires ») trois habillages tirés sur le numéro de la semaine
   const T=bqTire(90001+w),pr=function(k){return k[0]==='v'&&CAR_UNLOCK[+k.slice(2)]&&CAR_UNLOCK[+k.slice(2)].k==='premium';}, // (même soir) trois caisses en pièces + trois habillages, en alternance
     V=T.filter(function(k){return k[0]==='v'&&!pr(k)&&bqValide(k);}).slice(0,3),C=T.filter(function(k){return k[0]!=='v'&&bqValide(k);}).slice(0,3),L=[];
@@ -46208,12 +46211,23 @@ function bqOutilTick(dt,t9,ay){const T=BQT.task;
 function garBqLumiere(){if(!GBQ.on)return; // la lumière du magasin : blanche, sans le contre-jour du feu
   stallKey.color.setHex(0xffffff);stallKey.intensity=1.45;stallKey.distance=30;stallRim.color.setHex(0xe8eef5);stallRim.intensity=.7;stallRim.distance=30;}
 /* LE DOIGT SUR LA SCÈNE tourne la caisse (le garage ne reçoit plus le glissé : pris en capture) */
+/* (2026-10-13, Léo : « inverse le sens : quand on tire la voiture vers le bas, ça tire l'endroit qu'on appuie vers le bas ») LE TANGAGE
+   SUIT LE DOIGT : au pointerdown on regarde de quel côté de la caisse il est posé, À L'ÉCRAN (le nez et la poupe projetés par la caméra) —
+   posé sur l'avant, tirer vers le bas fait plonger le NEZ (comme avant) ; posé sur l'arrière, c'est la POUPE qui descend (avant, le nez
+   plongeait quoi qu'il arrive : on tirait l'arrière vers le bas et il montait). +1 = côté nez, −1 = côté poupe. */
+function bqCoteDoigt(e){try{
+  const cv=renderer.domElement.getBoundingClientRect(),V=bqCoteDoigt._v||(bqCoteDoigt._v=[new THREE.Vector3(),new THREE.Vector3()]);
+  carGroup.updateMatrixWorld(true);camera.updateMatrixWorld(true);
+  V[0].set(0,.5,0);carGroup.localToWorld(V[0]);V[1].set(0,.5,1.6);carGroup.localToWorld(V[1]);V[0].project(camera);V[1].project(camera);
+  const mx=(V[0].x+1)/2*cv.width+cv.left,my=(1-V[0].y)/2*cv.height+cv.top,nx=(V[1].x+1)/2*cv.width+cv.left-mx,ny=(1-V[1].y)/2*cv.height+cv.top-my,L2=nx*nx+ny*ny;
+  if(L2<400)return 1;                                                       // vue de face ou de dos : l'avant et l'arrière se confondent, on garde le nez
+  return ((e.clientX-mx)*nx+(e.clientY-my)*ny)>=0?1:-1;}catch(er){return 1;}}
 (function(){
   addEventListener('pointerdown',function(e){if(!GBQ.on||!garageOn||GAR.go||e.target!==renderer.domElement)return;if(GBQ.drag)return;
-    GBQ.drag={id:e.pointerId,x:e.clientX,y:e.clientY,t:performance.now()};GBQ.yawV=0;GBQ.pitV=0;e.stopPropagation();},true);
+    GBQ.drag={id:e.pointerId,x:e.clientX,y:e.clientY,t:performance.now(),s:bqCoteDoigt(e)};GBQ.yawV=0;GBQ.pitV=0;e.stopPropagation();},true);
   addEventListener('pointermove',function(e){const d=GBQ.drag;if(!d||d.id!==e.pointerId)return;e.stopPropagation();
     const now=performance.now(),dx=e.clientX-d.x,dy=e.clientY-d.y,ds=Math.max(.008,(now-d.t)/1000);d.x=e.clientX;d.y=e.clientY;d.t=now;
-    GBQ.yaw+=dx*.011;GBQ.pit=THREE.MathUtils.clamp(GBQ.pit+dy*.008,-.75,.75);GBQ.yawV=GBQ.yawV*.5+dx*.011/ds*.5;},true);
+    GBQ.yaw+=dx*.011;GBQ.pit=THREE.MathUtils.clamp(GBQ.pit+(d.s||1)*dy*.008,-.75,.75);GBQ.yawV=GBQ.yawV*.5+dx*.011/ds*.5;},true);
   const fin=function(e){const d=GBQ.drag;if(!d||d.id!==e.pointerId)return;e.stopPropagation();GBQ.drag=null;if(performance.now()-d.t>90)GBQ.yawV=0;};
   addEventListener('pointerup',fin,true);addEventListener('pointercancel',fin,true);})();
 try{Object.assign(I18N,{'COLORIS':'SKINS','ORIGINAL':'ORIGINAL','PEINTURES':'PAINTS','AILES':'WINGS','TRAÎNÉES':'TRAILS','À LA UNE':'FEATURED','SEMAINE':'WEEKLY','OFFRES':'OFFERS','VOITURES':'CARS','CETTE SEMAINE':'THIS WEEK','TOUT VOIR':'SEE ALL','TRAÎNÉE':'TRAIL','AILE':'WING','CAISSE':'CAR','ÉDITIONS LIMITÉES':'LIMITED EDITIONS','TOUTES LES VOITURES':'ALL CARS','LIMITÉE':'LIMITED','À TOI':'YOURS','Dans ton garage':'In your garage','Exclusivité boutique — introuvable en jeu':'Shop exclusive — not obtainable in game','Exclusivité boutique — revient en édition limitée':'Shop exclusive — returns as a limited edition','En vente':'For sale','Se gagne aux défis':'Earned through challenges'});}catch(e){}
