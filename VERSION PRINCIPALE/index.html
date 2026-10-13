@@ -6898,6 +6898,46 @@ html body #gInv #ivFerme .pxi{--pxs:1;position:relative;color:#d6ceff;filter:non
 html body #gInv #ivFerme:is(:active,.appui){opacity:1;translate:0 1px}
 html body #gInv #ivFerme:is(:active,.appui)::before{background:rgba(214,206,255,.12);box-shadow:inset 0 0 0 1px rgba(214,206,255,.6)}
 @media (hover:hover){html body #gInv #ivFerme:hover{opacity:1}}
+/* LE BAS DU GARAGE, REFONDU (2026-10-13, Léo : « refonds l'interface du garage : INVENTAIRE, MISSIONS et BOUTIQUE placés par-dessus PLAY, de
+   manière design, efficace et esthétique ; il faut inclure le bouton MISSIONS comme avant, et HOME ») — deux rangées, une seule grille de six :
+     · EN HAUT, trois portes à parts ÉGALES : INVENTAIRE (cyan) · MISSIONS (violet, ses trois cases de défis) · BOUTIQUE (magenta) — même laque,
+       même hauteur, l'icône luit de sa couleur, le filet du bas dit le rôle ;
+     · EN BAS, sous le pouce : HOME (le ciel qui bouge) en carré à gauche · le lingot PLAY au milieu · l'ŒIL en carré à droite.
+   ACHETER (une caisse à vendre) prend la place de PLAY. Les états à part (retour de boutique, atelier) gardent leurs règles. */
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr))!important;grid-template-rows:auto auto!important;column-gap:8px!important;row-gap:8px!important;align-items:stretch}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gRang1{display:contents!important}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>:is(#gvBranche,#gvLvl,#gvNivs,#gClose,#gPerso,#gBuyRow,#gCache){display:none!important} /* les conducteurs d'or de l'ancienne vitrine dépassaient au-dessus de MISSIONS */
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>:is(#gvCof,#gvMis,#gShopBas){grid-row:1!important;display:flex!important;flex-direction:row!important;align-items:center;justify-content:center;gap:7px!important;
+  width:auto!important;min-width:0!important;height:46px!important;min-height:46px!important;margin:0!important;padding:0 6px!important;translate:none;
+  font-size:var(--f0)!important;letter-spacing:1px!important;color:#fff;text-shadow:0 1px 0 rgba(7,5,15,.9),0 0 8px var(--pc);
+  background:linear-gradient(115deg,rgba(255,255,255,.10) 0 18%,transparent 18% 100%),linear-gradient(180deg,rgba(38,30,72,.96),rgba(14,11,30,.98))!important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.14),inset 0 -3px 0 var(--pc),0 0 0 1px rgba(7,5,15,.95),0 7px 16px -9px var(--pc)!important}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gvCof{grid-column:1/3!important;--pc:#5ee6ff}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gvMis{grid-column:3/5!important;--pc:#b07bff}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gShopBas{grid-column:5/7!important;--pc:#ff4fc3}
+html.poki body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gvCof{grid-column:1/4!important}
+html.poki body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gShopBas{grid-column:4/7!important}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>:is(#gvCof,#gvMis,#gShopBas) .pxi{--pxs:2!important;color:var(--pc)!important;filter:drop-shadow(0 0 5px var(--pc))!important}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>:is(#gvCof,#gvMis,#gShopBas) .gvIco,html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gvMis .gvFx{display:none!important}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gvMis .gvPips{position:absolute;right:7px;top:5px;gap:3px}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gvMis .gvPips u{width:5px;height:5px}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gvMis{position:relative}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gvMis::before,html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gvMis::after{display:none!important} /* ses deux conducteurs d'or (la vitrine de l'atelier) dépassaient au-dessus */
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>:is(#gvCof,#gvMis,#gShopBas).modeOn{background:linear-gradient(115deg,rgba(255,255,255,.16) 0 18%,transparent 18% 100%),linear-gradient(180deg,color-mix(in srgb,var(--pc) 34%,#1b1440),rgba(14,11,30,.98))!important;
+  box-shadow:inset 0 0 0 2px var(--pc),0 0 0 1px rgba(7,5,15,.95),0 0 16px -4px var(--pc)!important;outline:0!important;filter:none!important}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>:is(#gvCof,#gvMis,#gShopBas):is(:active,.appui){translate:0 2px}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gRang1>#gHomeBas{grid-row:2!important;grid-column:1/2!important;width:auto!important;min-width:0!important;height:62px!important;min-height:62px!important;align-self:stretch;
+  flex-direction:column!important;gap:4px!important;padding:5px 2px 4px!important;font-size:var(--f0)!important;letter-spacing:0!important}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gRang1>#gHomeBas .gLueur .pxi{--pxs:2!important}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gJouer{grid-row:2!important;grid-column:2/6!important;min-width:0!important;height:62px!important;min-height:62px!important;margin:0!important}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gRang1>#gOeil{grid-row:2!important;grid-column:6/7!important;justify-self:stretch!important;width:auto!important;min-width:0!important;height:62px!important;min-height:62px!important;padding:0!important}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>#gEquip.achat{grid-row:2!important;grid-column:2/6!important;justify-self:stretch!important;width:auto!important;height:62px!important;min-height:62px!important}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct:has(>#gEquip.achat)>#gJouer{display:none!important}
+html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct:has(>#gEquip.achat) #gRang1>#gOeil{justify-self:stretch!important;width:auto!important}
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct{column-gap:6px!important;row-gap:6px!important}
+  html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct>:is(#gvCof,#gvMis,#gShopBas){height:40px!important;min-height:40px!important;gap:5px!important}
+  html body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) :is(#gRang1>#gHomeBas,#gAct>#gJouer,#gRang1>#gOeil,#gAct>#gEquip.achat){height:54px!important;min-height:54px!important}}
 </style>
 <style id="carriereV2">
 /* LA CARRIÈRE v2 (2026-10-07, Sacha : « dans l'écran carrière c'est mal fait, notamment la mauvaise police ; pas besoin de mettre
@@ -45651,7 +45691,7 @@ function garBqBatit(){if(GBQ.grp)return; // (2026-10-12, Léo : « lâche le mag
   GBQ.tuile=tuile;
   // LE SOL : en blanc structuré (des dalles de ~34 cm), à perte de vue
   const tS=cvT(512,512,function(x,w,h){const gr=x.createRadialGradient(w/2,h/2,0,w/2,h/2,w/2);gr.addColorStop(0,'#ffffff');gr.addColorStop(.25,'#f8f9fa');gr.addColorStop(1,'#eceff2');x.fillStyle=gr;x.fillRect(0,0,w,h);});
-  const sol=new THREE.Mesh(new THREE.CircleGeometry(R*.97,64),B(0xffffff,{map:tuile(R*2*.97/1.36,R*2*.97/1.36)}));sol.rotation.x=-Math.PI/2;sol.material.color.setScalar(1.75);g.add(sol); // (2026-10-13, Léo : « le reflet en bas, c'est bof ») le sol miroir est retiré
+  const sol=new THREE.Mesh(new THREE.CircleGeometry(R*.97,64),B(0xffffff,{map:tuile(R*2*.97/1.36,R*2*.97/1.36)}));sol.rotation.x=-Math.PI/2;sol.material.color.setScalar(3.4);g.add(sol); /* (2026-10-13, Léo : « le sol de la boutique plus blanc, comme les socles qui tiennent les bras robots ») ×1,75 → ×3,4 (mesuré : 220 → 234, le blanc du fond) : le gris lavande devient blanc, les joints des dalles restent à peine lisibles */ // (2026-10-13, Léo : « le reflet en bas, c'est bof ») le sol miroir est retiré
   // (v3, Léo : « il y a juste l'ombre de la voiture ») plus de grille ni d'anneaux
   /* LE TRÔNE (2026-10-12, Léo : « une compo comme si la voiture était sur son trône ; la lueur en mode pics, comme l'iconographie de Jésus ;
      inspiré des compositions néo-classiques ; quelque chose qui met en avant la voiture ») : un socle de marbre à trois gradins cerclés d'or
