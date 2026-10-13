@@ -45810,9 +45810,11 @@ function garBqBatit(){if(GBQ.grp)return; // (2026-10-12, Léo : « lâche le mag
      GLOIRE (rayons d'or pâle, longs et courts, une auréole) derrière elle — voir garBqGloire. */
   {const Lm=function(c,e){return new THREE.MeshLambertMaterial({color:c,emissive:e||0,flatShading:true,fog:false});},marbre=bqLaqueMat(),or=bqLaqueMat(.82), /* (2026-10-14, Léo : « le triple sol aussi blanc et lisse que les piliers ») le blanc laqué des colonnes ; les filets un ton plus bas — avant : marbre en dalles, Lambert à facettes, filets gris perle */
      C=function(r0,r1,h,n){return new THREE.CylinderGeometry(r0,r1,h,n||96);}; /* 96 pans : lisse */
-   let y=0;for(const t of [[2.9,.18],[2.5,.18],[2.15,.2]]){const m=new THREE.Mesh(C(t[0],t[0]+.05,t[1]),marbre);m.position.y=y+t[1]/2;g.add(m);
+   const SANS_MARCHES=true; /* (2026-10-14, Léo : « enlève les marches : la pièce blanche complète, juste les bras robots et tout ça ») les trois gradins
+      ne sont plus posés ; les bras et leur plateau sortent du SOL (socleH ≈ 0, mais jamais 0 : plusieurs tests le lisent comme « il y a un socle ») */
+   let y=0;if(!SANS_MARCHES)for(const t of [[2.9,.18],[2.5,.18],[2.15,.2]]){const m=new THREE.Mesh(C(t[0],t[0]+.05,t[1]),marbre);m.position.y=y+t[1]/2;g.add(m);
      const f=new THREE.Mesh(new THREE.TorusGeometry(t[0]+.012,.024,10,120),or);f.rotation.x=Math.PI/2;f.position.y=y+t[1];g.add(f);y+=t[1];}
-   GBQ.socleH=y;
+   GBQ.socleH=SANS_MARCHES?.01:y;
    /* LA ROTONDE (2026-10-13, Léo : « un cercle de piliers, comme si on était au Panthéon autour de la voiture, un peu ambiance Assassin's Creed »)
       — avant : deux colonnes et une architrave derrière la caisse. Seize colonnes sur un cercle de 8,2 m, chacune une peau de petits cubes (le
       blanc structuré : quelques cubes en retrait ou en saillie pour le grain), base et chapiteau en blocs de cubes, l'entablement en anneau de

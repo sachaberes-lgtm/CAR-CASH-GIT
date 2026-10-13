@@ -168,6 +168,9 @@ MESURÉ (×4, trois manches) : ~35-48 → ~50-58 images/s, images > 40 ms divis�
   la caisse CENTRÉE sur sa silhouette projetée (garCadre, en boutique : la boîte garGabarit tournée, nez et poupe compris) et plus de
   roulis permanent (elle flotte droite) ; les COLORIS sous la caisse retirés (#gBqSkins masqué, la zone ne lui réserve plus de place) ;
   les HABILLAGES (peintures, ailes, traînées) en cartes plus petites, quatre de large (`.bqRail.habs`).
+- (14/10, suite) SANS MARCHES (Léo : « la pièce blanche complète, juste les bras robots ») : `SANS_MARCHES=true` dans garBqBatit, les
+  trois gradins ne sont plus posés ; `GBQ.socleH=.01` (⚠ jamais 0 : `if(GBQ.socleH&&…)` garde les bras et la levée anti-socle) — les bras
+  et leur plateau sortent du sol.
 
 ## LA PASSE QUALITÉ AVANT SORTIE (2026-10-12, Sacha : « trouve des bugs et règle-les, améliore des trucs à droite à gauche, fais en sorte que le jeu soit parfait et sortable »)
 Méthode : bancs Puppeteer son coupé (rendu LOGICIEL SwiftShader : Roblox Studio tenait le GPU, le Chrome de test calait sur D3D11), un
