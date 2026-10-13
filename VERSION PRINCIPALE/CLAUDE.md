@@ -1,5 +1,91 @@
 # CASH CAR — guide projet pour Claude Code
 
+## CRYPTOCITY — LA VILLE EN BULL RUN + LA PLUIE D'ARGENT v2 (2026-10-13, Léo : « avec le même système de génération automatique que les autres maps, génère une ville mais avec un twist majeur : c'est CRYPTOCITY, mais en BULL RUN — ciel joyeux, trouve plein de détails émerveillants du bull run, toute l'ambiance est différente, ça respire la réussite et l'argent ; un immeuble BULL ; et pour la peine ramène la pluie d'argent que t'as enlevée entretemps, et augmente la qualité »)
+- LE NIVEAU `NIV_CRYPTO` (id 'ville' + `crypto:1`, comme MINUIT EN VILLE : genCtrl, buildVoxCity, tours dures, loi 15 du flow suivent).
+  `CRYPTO_JEU` (lvlChoisir le rend à chaque portail : un autre quartier, une autre graine). Lancement : `dbgNiveauCrypto()` = `cryptoJouer`
+  (le chemin du jade : piste sous le voile, atelier, lâcher), ou l'adresse `?niveau=crypto` (son JOUER, accueil ET garage, lance CRYPTOCITY :
+  `cryptoPlayOk`). Remis à faux par la carrière, le jade, le retour à l'accueil. Le JOUER normal ne change pas (SOLEIL DE JADE). Simulateur :
+  map « CRYPTOCITY », niveau « BULL RUN » (`lance:{crypto}`, photo `maps-ciel/img/crypto-volant.jpg`, `play:false`).
+- À GRAINE ÉGALE C'EST LA MÊME VILLE QUE « AU-DESSUS DE LA VILLE » (vérifié : même piste, mêmes tours ; la VILLE elle-même est identique au
+  pixel près à avant) : tout ce qui est crypto tire dans son flux (`cr`, `CRYPTO.rf`). Les sites (`cryptoPlace`, appelé dans buildVoxCity
+  AVANT les tours) se RÉSERVENT (`CRYPTO.res`) : une tour qui tombe dessus est bâtie (ses tirages ont lieu) puis retirée (`cryptoTour`).
+- LE CIEL `BIOMES.bullrun` : le jour d'altitude du midi (azur, horizon et brume d'or pâle), `LVL.merA` vrai → la ville sort d'une MER DE
+  NUAGES ; `LVL.villeA` faux (ni skyline de nuit, ni abîme, ni reflets d'enseignes) ; `LVL.crypto` (fondu) : bitume anthracite + glacé
+  (`GLACE.crypto`). Accent de route vert « profit » 0x35ff9e. Pièces de la route frappées du ₿ (`coinPeint('B')`, champ orange bitcoin).
+- LES TOURS DE VERRE `cryptoMatTours` (le sommet de la ville : tri, portée des lampes ; la façade `CRYPTO_VERRE`) : 32 % émeraude · 14 % or ·
+  28 % azur · 26 % marbre, Fresnel (de face l'intérieur sombre, de biais le ciel ; l'or renvoie la LUMIÈRE du ciel, sinon il tournait olive),
+  éclat du soleil, sous l'horizon la ville sombre dans les vitres ; BANDEAU DE COURS (chiffres verts et ▲ qui défilent) sur une haute tour sur
+  deux ; parapets d'or. Pied dans la brume d'or (`cryptoPied` : la lueur violette des rues de nuit faisait des voiles ROSES). `cryptoMatToursLoin`.
+  Structures (couleur d'instance) : acier vert, or, argent, marbre ; mâts SOMBRES (dorés : des sucettes partout). Néons : vert, or, orange
+  bitcoin, menthe, blanc chaud, couronnes d'or. Réclames `cryptoMatPub` : 16 écrans LED OPAQUES (BTC +420 %, TO THE MOON, HODL, ATH, BULL RUN,
+  WAGMI, 100X, ETH, LAMBO, PUMP, GM, $1 000 000, NUMBER GO UP, CASH CAR, BUY, MOON — pictos dessinés `cryptoPicto`).
+- LES TAUREAUX (`cryptoTaureau`, géométrie `cryptoTaureauGeo` : lofts octogonaux `crLoft`, pattes-tours `crPatte`, cornes et queue `crTube`,
+  faces orientées par `crTri`) : deux (30 % et 70 % de la piste), ×1,35 (`TAUREAU_K` : dos ~250 m au-dessus de la route, cornes ~340), à
+  ~300 m de l'axe, tête BASSE tournée vers la caisse qui arrive, grandes cornes ivoire en lyre, yeux LASER qui balaient le ciel, anneau d'or
+  au mufle, queue en fouet ; verre d'or (`TAUREAU_VERRE`, Phong) et un RUBAN DE COURS vert autour du ventre à hauteur de route (`uBand`, le
+  taureau le plus proche). Une ESPLANADE (3 réserves entre lui et la route) : pas une tour devant. DURS (`cryptoHeurt`, appelé par villeHeurt).
+- LE GRAPHIQUE : trois rangées de BOUGIES qui montent le long de la route (deux petites rouges par rangée), et une tour sur huit de la forêt
+  du lointain devient une bougie ; prismes de verre sombre aux arêtes allumées, mèche pleine (`cryptoMatBougie`) ; DURES (`cryptoColBougies`
+  dans CITY.col). 12 PIÈCES ₿ GÉANTES qui tournent (la traverser en vol = « JACKPOT ! », aura, averse : `cryptoJackpot`), 8 DIAMANTS,
+  3 DIRIGEABLES à écran (`cryptoTickerTex`, le cours qui défile), la LUNE ₿ (un sprite : la face de la pièce, à la place de la lune du dôme),
+  des FUSÉES « TO THE MOON » (3, depuis les toits devant la caméra, vers la lune, sillage de fumée), des FEUX D'ARTIFICE (10 gerbes de 120
+  étoiles calculées par la puce, `cryptoFeu`). LE NOUVEL ATH toutes les 32-46 s : « NOUVEL ATH ! · BTC $ … » (slam), 5 gerbes, l'averse.
+- LA PLUIE D'ARGENT v2 (`PLA`, avant elle l'averse de glyphes de startMoneyRain ne tombait plus que passé 4 000 $ × ECO3.gain en UNE partie) :
+  billets de la pluie de richesse (les 7 couleurs + le billet ₿ `plaBilletBtc`) en feuille morte ou en culbute, courbés ; pièces ₿ et Ξ qui
+  voilent et flashent (`plaTexPieces`) ; confettis. TOUT dans le sommet (aO/aR une fois) : chute, vent, rotation, flexion, lumière ; repliés
+  dans une boîte 120 × 70 × 160 m qui suit la caméra ; fondu en trame (aucun tri). 2 appels de dessin. iPhone 900 billets + 220 pièces
+  (ordi 1 400 + 360). `PLA.dens` : CRYPTOCITY .5 en fond, 1 à chaque ATH / jackpot ; AILLEURS elle remplace l'averse de glyphes (même
+  déclencheur, `plaSurge(4.5)`). Compilée au menu (`cryptoChauffe` dans chauffeDivers) : 0 programme en course (mesuré).
+- ⚠ Piège du 13/10 : une directive `#ifdef` collée derrière du code sur la même ligne = shader refusé EN SILENCE (la pluie n'apparaissait pas).
+  `dbgCrypto('progs')` liste les programmes qui n'ont pas compilé.
+- Console : `dbgCrypto()` (comptes), `('ath')`, `('feu')`, `('fusee')`, `('pluie',s)`, `('sansPluie')`, `('taureaux')`, `('sites')`,
+  `('photo',{p,c,fov})` (caméra libre, en pause), `('cam')`, `('masque','fam'|'pla'|'taureaux'…)`, `('progs')`, `('pla')`.
+  Bancs (scratchpad de la session d53e6fe4) : `studio.py`, `studio2.py`, `route.py`, `bull.py`, `compare.py` (AVANT/APRÈS à graine égale :
+  `Math.random` forcé une fois avant `dbgSaut()`), `perf.py`, `jscheck.py` (syntaxe via Chrome, pas de node ici).
+
+## LES VRAIS MODÈLES, PLUS RESSEMBLANTS (2026-10-13, Léo : « toutes les voitures inspirées de vrais modèles : entraîne-toi, rends-les plus réalistes et ressemblantes, super bon rendu ; montre avant / après »)
+- Méthode : chaque caisse comparée à des photos du vrai modèle (Wikimedia Commons), retouchée sur ce qui la TRAHIT (proportions, profil,
+  signes), puis planche AVANT | APRÈS (trois vues de la salle blanche, même cadrage ; l'« avant » vient d'une copie intacte du main).
+- Série 1 : ELDORADO (flancs galbés, quatre phares sous visière, calandre à bijoux, obus, pare-brise panoramique) · LE CAÏD (capot court,
+  élargisseurs noirs, baguette, bouclier AMG) · LA BULLE (cotes de la Coccinelle : ailes serrées, le dôme sur toute la longueur) · LE COMBI
+  (face BOMBÉE en facettes avec le V exact, hublots séparés, ouïes) · LA QUEUE DE CANARD (épaule basse, flancs galbés, ailes gonflées,
+  grande custode, capot entre les ailes).
+- ⚠ Une vitre par montant demande une STATION de loft de part et d'autre du montant (sinon la bande prend la couleur de son milieu).
+- Série 2 : LA FÉLINE (relevée sur un profil du coupé 64 : capot bas en goutte, coque en tonneau, fastback, ceinture qui redescend,
+  phares sous bulle au bout des ailes) · LA GRANDE ANGLAISE (un seul arc du pare-brise à la malle, ceinture haute, pavillon bombé, nez
+  arrondi en plan, calandre à mailles en saillie) · LE TRÔNE CENTRAL (nez bas, ailes plus hautes que le capot creusé, phares en goutte,
+  verrière, écope de toit, ouïes de flanc) · L'ÉTERNELLE (habitacle en goutte, nez qui porte le fer à cheval, arête dorsale, quatre
+  phares sur la pente des ailes). Les sections ont 10 points : coque (6) + verrière OU capot OU capot moteur (4).
+- ⚠ `put`/`box` : un rx POSITIF baisse le bout AVANT (+z). Une optique posée sur une aile qui plonge vers le nez prend rx > 0 —
+  avec rx < 0 elle pointait vers le ciel et sortait de la tôle. Et `cyl(…,ax,r2)` : un 9e argument à 0 en fait un CÔNE.
+- Série 3 : LA DAYTONA (fastback reculé, ARÊTE de flanc sous laquelle la coque rentre, vitres qui rentrent) · LA TAURINE (coque
+  basse et galbée, ailes au-dessus du capot creusé — les cornes et les cils de Léo intacts) · LA RAIE (c'est une C3 68-72, pas une C2 :
+  la VAGUE des ailes, taille pincée, capot creusé avec bossage) · L'AIGLE DE FEU (bouteille, coup de rein de ceinture, filet d'or qui suit
+  la caisse). Réf. photos : la C3 = `ref/40_*` (cherchée pour LA VETTE, qui est en fait une C4 — à rechercher pour elle).
+- Série 4 : LA CHAUVE-SOURIS (capot à plat jusqu'au nez de requin, verrière sans montant jusqu'à la custode) · LE DÉFIEUR (baissé à
+  ses cotes : pavillon 1,30 au lieu de 1,44, capot 0,90 ; phares au fond de la calandre) · LA ZED (capot long presque à plat, phares
+  dans leurs cuvettes plus hauts) · LA SILENCIEUSE (nez plus haut et rond vu de dessus, le CÔNE noir à T des premières années, phares
+  qui sortent de la tôle) · LA PUCE (coins ronds vus de dessus, pavillon plus court sur une lunette couchée).
+- Série 5 : LE SAMOURAÏ (capot haut presque à plat, pare-brise plus droit, phares remontés) · LA BAVAROISE (capot à plat, face droite,
+  pare-brise plus droit) · LA STRATOS (ailes qui bombent, nez arrondi autour de la visière) · LE CHARGEUR (pavillon arrondi et resserré,
+  lunette de fastback). LE CHARGEUR 69 était déjà fidèle : pas touché.
+- Série 6 : ROSSO 40 (rouge jusqu'au seuil — la moitié basse noire l'allongeait —, coque qui rentre sous la taille, hanches).
+  Jugées déjà fidèles, PAS touchées : POSTER 84, LA VETTE (une C4), LA DOLORÈS, LE CHARGEUR 69, LE CHEVALIER NOIR, LE MUR DU SON
+  (blanc et or = sa livrée de jeu, le vrai est noir), LE MASTODONTE, L'ORIGAMI.
+- LES FACES EN DÉTAIL (13/10, Léo : « retravaille le détail, observe la différence entre chaque photo ») — gros plans de face et de
+  trois-quarts serré (banc `gros.py` : la salle blanche, `TOUR.position` avancé vers le nez) contre la photo : LE SAMOURAÏ (boîtier
+  ARGENT anguleux et deux petits projecteurs au lieu de deux gros yeux, badge rouge, bouche en trapèze avec l'échangeur argent derrière
+  la grille, écopes de freins à aileron, lame qui avance, évent de capot) · LE CHARGEUR (la croix était la génération d'avant : grande
+  calandre noire à mailles d'un phare à l'autre, phares effilés depuis ses coins avec l'anneau LED en C, bouche basse à mailles, UNE
+  grande écope centrale + deux extracteurs) · LA BAVAROISE (phares chrome + réflecteur argent au lieu de disques crème, haricots
+  étroits et hauts, macaron, antibrouillards ronds). Les rétros de ces trois-là ont un pied (ils flottaient comme des cubes).
+- RETOURS DE LÉO (13/10, même soir) : LE SAMOURAÏ passe au VIOLET NUIT de la photo (`0x3b2c4e`, il était bleu roi) et ses phares ont
+  les coins HAUTS arrondis (`rond()` : coins en Bézier dans le gabarit) · LE CHARGEUR en NOIR LAQUÉ (`p:{g:'g',c:0x020203}` : la matière
+  « verre et laqué noir ») · LA BAVAROISE REFAITE (v3) d'après un profil mesuré : capot qui descend vers une face basse (0,79), habitacle
+  avancé (pied de pare-brise 0,88), malle longue et haute, grandes vitres à montants fins, arête d'épaule, ailes élargies fondues.
+  ⚠ La SALLE BLANCHE grise les noirs (studio blanc : tout noir y sort gris moyen) — un noir se juge dans le GARAGE du jeu
+  (banc `garage.py` du scratchpad : vrais clics sur le splash puis sur la tuile GARAGE).
+
 ## LA PASSE QUALITÉ AVANT SORTIE (2026-10-12, Sacha : « trouve des bugs et règle-les, améliore des trucs à droite à gauche, fais en sorte que le jeu soit parfait et sortable »)
 Méthode : bancs Puppeteer son coupé (rendu LOGICIEL SwiftShader : Roblox Studio tenait le GPU, le Chrome de test calait sur D3D11), un
 parcours COMPLET au vrai doigt (accueil → garage → réglages → missions → carrière → offres → course → pause → mort → REJOUER → HOME), le
@@ -137,6 +223,53 @@ début — dans l'autre ça commence un peu tard ») — mesuré des DEUX côté
   pièces) aux PICS DE JADE, 2,6 m partout ailleurs (posé en tête de buildTrack) ; `JADE_LEVE` 12 cm : la caisse posée sur le DESSUS des pièces
   (route style 4) ; les pièces : argent froid · argent chaud au reflet d'or · BRONZE · argent bleuté, leurs reflets teintés pareil ; les
   pièces du bord en argent chaud.
+- (13/10, Léo : « remets la route normale comme d'hab ; fais en sorte que la voiture puisse PLONGER dans l'eau, RESSORTIR, que ce soit comme
+  le ciel ») :
+  · LA ROUTE NORMALE = style 5 de `jadeRouteStyle`, le défaut (`JROUTE`, `?route=normale`) : bitume du jeu (`uJadeR` à 0), rails + lueur
+    (valeurs de buildTrack gardées dans `userData.c0/o0`), liseré jade, flancs d'encre, ligne centrale ; `THICK` 2,6 m (la dalle de 30 cm et
+    `JADE_LEVE` ne valent plus que pour la route en pièces, style 4 : `?route=pieces` ou la touche R de la balade, cycle 5→4→3→2→1→0).
+  · LA MER COMME UN DEUXIÈME CIEL (bloc `EAU`/`JEAU`/`JSOUS` après `jadeEcume`) : `jadeEauVol` (branche 'fall', avant que la position avance) —
+    sous la surface la gravité s'inverse (poussée nette `EAU.pousse` = 2 g), l'eau freine peu (`freinH` .12, `freinV` .25), volant/manche/nitro
+    marchent ; au JAILLISSEMENT la vitesse verticale remonte au moins à celle du 1er plongeon du vol × `EAU.rend` 1,06 (+4) : on remonte un peu
+    plus haut que d'où l'on est tombé (les rebonds suivants ne grandissent pas). La JAUGE DE VOL : sous l'eau elle se remplit, et plus bas que
+    le point de décollage (`JEAU.y0`, posé par startFall) elle ne baisse pas (la route est à 45-230 m au-dessus de l'eau : 200 m de chute =
+    7 s > 6 s). Plongeon fatal (`jadeVide`) : 620 m sous l'eau (jamais atteint). `MIR` à 0 au-dessus de la mer. Figures PLONGEON / REPLONGEON
+    et HORS DE L EAU (chaîne + flow). Les PIEDS IMMERGÉS des montagnes TUENT (`jadeHeurt`, comme en l'air) : on les voit sous l'eau.
+    Surface : `jMerHJ` = la houle `jMerH` du ciel en JS (lissée entre les cases pour la caisse : `jadeSurf` ; exacte pour l'objectif : `jadeSurfCase`).
+  · SOUS L'EAU (`jadeSousTick`, après jadeTick, juste avant le rendu) : la BRUME devient l'eau (turquoise → plus profond, near 2 / far 150-230 ;
+    rendue d'elle-même si personne ne la réécrit), le dôme peint `jadeSous` (uSous : fenêtre de Snell, rais qui bougent), les montagnes
+    inversent leur découpe (`JADE_U.uSous` : le pied immergé visible, plus rien au-dessus), la PEAU `jadePeau` (48 × 48 colonnes de 4 m qui
+    suivent la houle, 5 faces chacune, dans le vertex shader : vue d'en dessous le miroir + la fenêtre sur le ciel, vue d'au-dessus l'eau
+    translucide où la caisse plongée se devine ; visible seulement autour d'un plongeon), BULLES en petits cubes (`jadeBulles*`), GERBE de
+    petits cubes d'écume à l'entrée et à la sortie (`jadeGerbe`, la réserve JCH.sp), musique −55 % et vent coupé sous l'eau (`JEAU.k`).
+    Programmes compilés dans `jadeChauffe`. Console : `dbgEau()` (état), `dbgEau({h,vy,vh})` lâche la caisse au-dessus de l'eau,
+    `dbgEau('profil')` (hauteur de la route au-dessus de l'eau, 41 points).
+- (13/10, 2e passe, Léo : « on n'a pas l'impression d'être dans l'eau : la physique, les éclaboussures, les gouttes, quand la voiture entre et
+  ressort ») — voir le commentaire « 2e passe » au-dessus de `EAU` :
+  · PHYSIQUE : le CHOC à l'entrée (vitesse ×`EAU.choc` .5 à plat … .8 à pic), l'EAU ÉPAISSE (`freinH` .9, `freinV` 1,3, poussée 2,4 g), le
+    RICOCHET (moins de ~14° sous l'horizon et vite : rebond, 4 par vol, figure RICOCHET ×n), la sortie rend aussi la course horizontale
+    (×`EAU.hRend` .85) pour repartir vers la route ; `JEAU.cd` : un répit de .35-.4 s après un ricochet ou une sortie (la houle monte et descend
+    de plusieurs mètres : sans lui, une caisse au ras de l'eau entrait et sortait à chaque image).
+  · ÉCLABOUSSURES (`EAUP`, 1 400 cubes d'eau à eux, `eauPTick`) : COURONNE + gouttes + cœur à l'entrée (`jadeCouronne`, taille ∝ vitesse),
+    COLONNE à la sortie (`jadeColonne`), RUISSELLEMENT 1,6 s (`JEAU.goutT`), SILLAGE au ras de l'eau (`jadeSillage`), ONDES (`EAUR`, 8 anneaux).
+    Les cubes près de l'objectif rapetissent (on traverse la gerbe sans qu'elle bouche l'écran).
+  · L'OBJECTIF (`LENS`, canvas `#eauCv` au 1/3 de l'écran, sans lissage, juste après #juiceCv) : sortie de l'eau = la NAPPE qui s'égoutte vers
+    le bas + 14-24 GOUTTES qui glissent ; entrée = un voile clair + un nuage de bulles autour de l'objectif. « Réduire les animations » : rien.
+  · SON : `eauFiltre` insère UNE fois un passe-bas entre MASTER et BUSOUT (grand ouvert = Nyquist, 620 Hz quand l'objectif est sous l'eau) ;
+    plouf grave (subBoom + deux noiseBurst) à l'entrée, jet à la sortie, `eauBloop` (bulles) sous l'eau.
+- (13/10, 3e passe, Léo : « pousse encore plus la physique, et mieux faite ») — la vraie physique de l'eau, réglée d'abord dans un
+  simulateur Python à part (mêmes équations et unités que le vol), voir le commentaire « 3e passe » au-dessus de `EAU` :
+  · ARCHIMÈDE à la part immergée (`f` sur `EAU.H` 1,3 m, B 3,4 g) → la caisse FLOTTE (~30 cm dedans) ; pilonnement amorti PAR RAPPORT
+    À LA SURFACE (`JEAU.vS`) ; traînée v² (`cq`) + linéaire ; GLISSE (portance ∝ v², traînée réduite) ; MOTEUR à flot (~65 km/h, `mot`/`vB`) ;
+    nitro sur l'eau = jet-ski (~170 km/h) ; un contact doux (< 12) = une ride, pas de choc.
+  · LA SURFACE DE LA PHYSIQUE (`jadeSurfPh`) : la moyenne des 9 colonnes (×,55), suivie à 4 m/s, τ 0,6 s — la mer du décor monte jusqu'à
+    ~30 m/s (MESURÉ 12,7 m en 0,4 s) ; la gravité du jeu (~8 m/s² dans le monde) ne suit pas : sans ça la caisse ne flottait jamais.
+  · JAILLISSEMENT seulement après un vrai plongeon (> `EAU.plonge` 6 m, > 0,4 s) : la remontée accélère, sortie à l'élan du 1er plongeon
+    ou à √(2·g·2,5·profondeur) — plus profond = plus haut. MESURÉ : chute de 70 m → 15 m de fond, ressort 25 m au-dessus du départ.
+  · L'ASSIETTE (`jadeEauNez`, branché dans l'orientation du vol) : dans l'eau la vrille s'arrête (`airRoll` ramené au tour entier), FLY_U se
+    redresse vers le ciel / la pente de la houle calmée, le nez garde le cap (`JEAU.cap`). La caméra suit ce nez (plus de balancement à flot).
+  · À flot plus de `EAU.ramene` 9 s sans nitro : `jadeEauRamene` (respawn, « LA MER TE RAMÈNE », la chaîne seule est perdue).
+  · `dbgEau()` rend aussi `f`, `wB`, `flot`, `hv`.
 - Banc : `dbgJadePoste('ramasse')` (pièces, fruits par nom, pouvoirs, plots, plaques, flaques). MESURÉ : 650 pièces, ~16 fruits, 20 pouvoirs,
   300 plots, 8 plaques par passage ; en course : pièces ramassées, défis (« EAT 4 FRUITS »), paliers moteur, aimant, jus des fruits.
 
@@ -225,6 +358,11 @@ Un outil À CÔTÉ du jeu, qui ne refait RIEN : il lance LE JEU (`index.html`, s
     Vérifié : VILLE 1 → 5 → 3 (renommé) → SKY HIGH 2 → JADE → SKY HIGH 5 (carrLancer remet JADE_JEU à faux), musique suivie.
     ⚠ Le jeu se met en PAUSE quand l'onglet est caché (visibilitychange) : un ⏭ pendant la pause attend la reprise.
     ⚠ `choix-musiques.json` et `play.json` sont les DONNÉES de Léo (pas commitées tant qu'il range) — ne pas les écraser en test.
+  · **L'ÉCOUTE DES MAPS** — `simulateur/ecoute.html` (13/10, Léo : « la même page blanche avec toutes les maps ayant un système de génération
+    aléatoire qui suit la vitesse, sans la jauge manuelle : le nom de la musique et un play qui fait défiler de la plus petite à la plus
+    grande vitesse, une photo représentative ») : une carte par musique distincte d'une map (d'après choix-musiques.json), photo du 1er
+    niveau ; ▶ = la musique seule, vitesse 0 → 100 % en 40 s (`MONTEE`) puis 6 s au maximum (`TENUE`), un fil sous la photo. La montée
+    suit l'HORLOGE (setInterval), pas les images : panneau caché = plus d'images, la musique continue. `ECOUTE.etat()`, `?muet=1`.
   · `?muet=1` (bancs) : la `destination` de chaque contexte audio passe par un gain nul (page, module, cadre de la page à jauge).
     `SIMU.musique()` = le pilote (MUS.inst = le module en cours).
 - LE JEU AU SURVOL (12/10, Léo : « l'important, c'est qu'on puisse jouer dans la map : enlève l'écran d'accueil ; je dois pouvoir jouer
@@ -4454,6 +4592,13 @@ explosion, écran de mort, `LG=en` pour l'anglais —, `set.js` réglages, `carr
   —, ombre en carte 4096 (2048 téléphone), anisotropie max de la route et de sa peinture (`ASPH_TEX`, `LIGNE_TEX`), échelle QL au cran 0
   et EN VEILLE. `qlPose` lit `VHD.on` (résolution + carte d'ombre) : UN seul chemin. Filet : p75 > 22 ms (hors 30 Hz) → ×0,8 toutes les
   1,5 s, jamais sous `DPR_CAP`. À la sortie, `qlPose(VHD.k0)` rend l'échelle telle qu'elle était. `?hd=0` coupe ; `dbgVHD()` décrit.
+- **LE FILET v2 (2026-10-13, Léo : « l'écran d'accueil ne baisse pas de qualité pour les tels qui peuvent »)** — l'ancien filet était un
+  CLIQUET : un à-coup d'une seconde suffisait à baisser de 20 %, et la netteté ne remontait JAMAIS sur l'accueil (MESURÉ : ×2,6 → ×1,0
+  en 10-20 s). Désormais : baisse seulement sur une lenteur TENUE (p75 > 22 ms pendant 2,5 s, `VHD.lT`) ET confirmée par la SONDE de la
+  course (`qlSondeArme`, vrai coût ≥ 14,5 ms ; dessous = l'écran bride → rien n'est sacrifié) ; REMONTÉE ×1,25 quand la marge revient
+  (p90 < 17,8 ms pendant 3 s) ou quand la sonde prouve qu'un cran au-dessus tiendrait sous 14 ms (coût ∝ pixels) ; jusqu'à `VHD.max`
+  (la pleine définition de l'écran) ; MUR de 45 s seulement pour un cran remonté puis retombé en < 10 s. `dbgVHD()` : max, baisses,
+  remontées, bride, mur, vrai, `journal`. MESURÉ (Mac chargé, charge 24) : ancien → ×1,0-1,34 en 20 s ; v2 → ×2,61 tenu 40 s, 0 baisse.
 - ⚠ MESURÉ sur l'ordi (colonne 844 × 390 zoomée ×2,27 sur 1 920 px) : sans VHD la 3D de l'accueil faisait 0,33 M pixels (DPR 1 en
   RAPIDE, étiré ×2,27) ; avec, 3,8 M (DPR 3,4). En COURSE rien ne change : DPR 1 / ombre 1024 / aniso 4, comme avant — c'est aussi
   pourquoi la course paraît floue sur PC en RAPIDE (NETTE = 1,5).

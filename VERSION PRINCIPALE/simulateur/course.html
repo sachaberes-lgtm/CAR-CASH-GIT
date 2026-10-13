@@ -311,6 +311,7 @@ function lancer() {
     const b = w.document.querySelector('[data-m="play"]');
     if (b) b.click();
   } else if (L.jade) w.dbgNiveauJade(); // le SOLEIL DE JADE (la map des PICS DE JADE en vrai niveau)
+  else if (L.crypto) w.dbgNiveauCrypto(); // CRYPTOCITY (la ville générée, en bull run)
   else w.dbgCampagne(L.n, L.monde);
 }
 let der = performance.now();
