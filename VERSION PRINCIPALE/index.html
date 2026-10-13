@@ -46233,6 +46233,13 @@ function bqPrise(e){const R={kp:1,kr:0};try{
   const mx=(V[0].x+1)/2*cv.width+cv.left,my=(1-V[0].y)/2*cv.height+cv.top,nx=(V[1].x+1)/2*cv.width+cv.left-mx,ny=(1-V[1].y)/2*cv.height+cv.top-my;
   if(nx*nx+ny*ny>=400)R.kp=((e.clientX-mx)*nx+(e.clientY-my)*ny)>=0?1:-1;}catch(er){}
   return R;}
+window.dbgSonde=function(x0,y0,x1,y1,st){st=st||4;const cv=renderer.domElement.getBoundingClientRect(),rc=new THREE.Raycaster(),m=new THREE.Vector2(),out={};carGroup.updateMatrixWorld(true); // (banc, 13/10) ce que la caméra voit de la caisse dans un rectangle de l'écran : matière (famille) et couleur de facette, avec quelques points
+  for(let y=y0;y<y1;y+=st)for(let x=x0;x<x1;x+=st){m.set((x-cv.left)/cv.width*2-1,-((y-cv.top)/cv.height)*2+1);rc.setFromCamera(m,camera);const vu=function(o){for(;o;o=o.parent)if(!o.visible)return false;return true;},h=rc.intersectObject(carGroup,true).find(function(x){return vu(x.object);});if(!h)continue; // (le Raycaster de three ne regarde pas `visible`)
+    const mt=Array.isArray(h.object.material)?h.object.material[0]:h.object.material,g=(mt&&mt.userData&&mt.userData.g)||(mt&&mt.type)||'?';let col='';const ca=h.object.geometry&&h.object.geometry.attributes.color;
+    if(ca&&h.face){const i=h.face.a;col=[ca.getX(i),ca.getY(i),ca.getZ(i)].map(function(v){return Math.round(Math.min(1,v)*255).toString(16).padStart(2,'0');}).join('');}
+    const lp=carGroup.worldToLocal(h.point.clone()),k=g+':'+col;out[k]=out[k]||{n:0,p:[]};out[k].n++;if(out[k].p.length<5)out[k].p.push([x,y,+lp.x.toFixed(2),+lp.y.toFixed(2),+lp.z.toFixed(2)]);}
+  return out;};
+window.dbgBqVoir=function(i){if(!GBQ.on)return 'boutique fermée';bqEssaie('v:'+(i|0));return CARS[i|0]&&CARS[i|0].name;}; // (banc) pose la caisse i sur le plateau de la boutique
 window.dbgPrise=function(x,y){const k=bqPrise({clientX:x,clientY:y}),cv=renderer.domElement.getBoundingClientRect(),P=function(lx,ly,lz){const v=new THREE.Vector3(lx,ly,lz);carGroup.localToWorld(v);v.project(camera);return [Math.round((v.x+1)/2*cv.width+cv.left),Math.round((1-v.y)/2*cv.height+cv.top)];};
   carGroup.updateMatrixWorld(true);return {kp:+k.kp.toFixed(2),kr:+k.kr.toFixed(2),nez:P(0,.5,2),poupe:P(0,.5,-2),gauche:P(1,.5,0),droite:P(-1,.5,0),centre:P(0,.55,0),toit:P(0,1.4,0)};}; // (banc) ce que le doigt attrape en (x, y), et où sont le nez, la poupe, les flancs à l'écran
 (function(){
@@ -50704,7 +50711,12 @@ function loop(now){
   if(carWingL){const tgt=((mode==='fall'&&!garageOn)||(garageOn&&(SHOP.tab==='aile'||(INV&&INV.on&&INV.cat==='aile'))))?1:0; // boutique, onglet AILES : on les montre ouvertes
     wingT+=(tgt-wingT)*Math.min(1,dt*6);
     const sc=.05+.95*wingT;carWingL.scale.x=sc;carWingR.scale.x=sc; // RÉTRACTÉES dans la caisse au sol → DÉPLOYÉES en vol (fini les ailerons parasites)
-    carWingL.rotation.z=.16*wingT;carWingR.rotation.z=-.16*wingT;}  // léger dièdre de planeur une fois sorties
+    carWingL.rotation.z=.16*wingT;carWingR.rotation.z=-.16*wingT;  // léger dièdre de planeur une fois sorties
+    /* (2026-10-13, Léo : « ces barres chelou blanches et d'autres couleurs, check chaque voiture ») RENTRÉES, ELLES DISPARAISSENT : écrasées à
+       5 % de leur largeur, les ailes restaient un panneau de 8 cm × 1,5 m à la couleur d'ACCENT de la caisse, posé à mi-hauteur du flanc — tant
+       que la coque était large, il y était caché ; depuis que les vitres rentrent (les vrais modèles), il sortait à travers la ceinture et les
+       vitres en BARRE blanche, crème, rose… Repliées, on ne les dessine plus du tout. */
+    const vu9=wingT>.04;if(carWingL.visible!==vu9){carWingL.visible=vu9;carWingR.visible=vu9;}}
   // COMÈTE : la caisse BRÛLE en permanence — la boucle est bouclée, on repart en feu (les 3 derniers paliers la gardent allumée)
   if(engTier>=ENG_CAP.comete&&running&&!gameOver&&mode!=='boom'){
     const p9=carGroup.position;

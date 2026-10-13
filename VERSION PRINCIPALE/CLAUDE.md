@@ -107,6 +107,13 @@
   BAVAROISE (filets M du seuil et du capot), AIGLE DE FEU (filet d'or de flanc, du T-top, liserés et bordure du becquet), CHAUVE-SOURIS
   (filets tricolores, jonc de vitre), ELDORADO (jonc et skeg). Restent : pare-chocs, calandres, poignées, la ligne en C de l'ÉTERNELLE,
   l'oiseau et le shaker de l'AIGLE. ⚠ Ne plus en reposer sans qu'il le demande.
+- ⚠ LA VRAIE CAUSE DES BARRES (13/10, Léo : « y en a toujours, check chaque voiture ») : les MINI-AILES repliées (`carWingL/R`,
+  style « panneaux », matière `accM` = la couleur d'ACCENT de la fiche) — écrasées à 5 % (`scale.x`), elles restaient un panneau de
+  8 cm × 1,5 m à mi-hauteur du flanc ; cachées dans les anciennes coques larges, elles sortaient à travers les vitres des vrais modèles
+  rétrécis (barre blanche sur L'ANGLAISE, crème, rose…). Rentrées (`wingT ≤ .04`), elles ne sont plus DESSINÉES (la boucle, « MINI-AILES »).
+  Les vignettes ne les montraient pas (`photoPropre` les cache), la salle blanche non plus : les juger dans la BOUTIQUE du garage.
+  Bancs : `dbgBqVoir(i)` (pose la caisse i sur le plateau), `dbgSonde(x0,y0,x1,y1,pas)` (ce que la caméra voit de la caisse : famille
+  de matière + couleur ; ⚠ le Raycaster de three ignore `visible`, la sonde filtre), scratchpad `toutes.py` (les 51 de profil en boutique).
 
 ## LA PASSE QUALITÉ AVANT SORTIE (2026-10-12, Sacha : « trouve des bugs et règle-les, améliore des trucs à droite à gauche, fais en sorte que le jeu soit parfait et sortable »)
 Méthode : bancs Puppeteer son coupé (rendu LOGICIEL SwiftShader : Roblox Studio tenait le GPU, le Chrome de test calait sur D3D11), un
