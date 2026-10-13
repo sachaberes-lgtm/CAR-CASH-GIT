@@ -14701,9 +14701,23 @@ function jadeEcume(x,y,z,r){const n=Math.min(90,30+r*1.6|0);
      la mer (jadeSous : la fenêtre de Snell au-dessus, les rais de lumière), la PEAU (une grille de colonnes de 4 m qui suit la houle :
      vue d'en dessous, le miroir de l'eau et la fenêtre sur le ciel ; vue d'au-dessus, l'eau qui laisse deviner la caisse plongée), les
      montagnes montrent leur pied immergé, la caisse lâche des BULLES en petits cubes, la musique s'étouffe. */
-const EAU={pousse:2,freinH:.12,freinV:.25,rend:1.06,fond:420}; // pousse : la poussée NETTE en g (2 : un plongeon de 90 m reste ~2 s sous l'eau, ~20 m de fond ; 200 m : ~4 s) · freinH faible : l'élan reste (comme en l'air)
-const JEAU={y0:0,dans:false,t:0,prof:0,vIn:0,vRef:0,n:0,k:0,sorti:9,bul:[],im:null};
-const JSOUS={sous:false,prof:0,uK:0,N:48,peau:null,base:{c:new THREE.Color(),n:0,f:0},w:{c:new THREE.Color(),n:-1,f:-1,ok:false},c:new THREE.Color(),cA:new THREE.Color(.22,.64,.66),cB:new THREE.Color(.09,.34,.42)};
+/* (2026-10-13, 2e passe — Léo : « on n'a pas l'impression d'être dans l'eau : la physique, les éclaboussures, les gouttes, quand la voiture entre
+   et ressort ») L'EAU SE SENT :
+   · LE CHOC : l'eau est un mur — à l'impact la vitesse tombe à ×EAU.choc (à plat) … ×EAU.choc+.3 (à pic : on fend l'eau), secousse, coup de
+     zoom, gros plouf grave. À PLAT ET VITE (moins de ~14° sous l'horizon) la caisse RICOCHE comme un galet (4 fois au plus par vol).
+   · L'EAU ÉPAISSE : sous la surface la caisse freine fort (freinH, freinV), la poussée la remonte doucement — on flotte, on ralentit, on sent
+     la masse d'eau ; la nitro y pousse comme une hélice.
+   · LE JAILLISSEMENT reste un bond de dauphin : la mer rend la vitesse d'entrée (verticale ET horizontale, ×EAU.rend / ×.85) pour reprendre la route.
+   · ÉCLABOUSSURES (EAUP, une réserve de 1 400 cubes d'eau à elle) : à l'entrée une COURONNE qui se lève + des centaines de GOUTTES qui partent
+     loin et retombent ; à la sortie une COLONNE d'eau qui suit la caisse ; la caisse RUISSELLE 1,6 s (un chapelet de gouttes derrière elle) ;
+     au ras de l'eau, un SILLAGE ; des ONDES qui s'élargissent sur la surface (EAUR).
+   · L'OBJECTIF (LENS, une toile en pixels par-dessus l'image) : il sort de l'eau → une NAPPE qui s'égoutte vers le bas et des GOUTTES qui
+     glissent sur la vitre ; il y entre → un voile clair et un nuage de bulles.
+   · LE SON : sous l'eau tout passe dans un passe-bas (MASTER → filtre → BUSOUT, posé à la 1re plongée, grand ouvert sinon) ; un plouf grave
+     à l'entrée, un jet à la sortie, des bloups de bulles sous l'eau. */
+const EAU={pousse:2.4,freinH:.9,freinV:1.3,rend:1.06,hRend:.85,fond:420,choc:.5,ricoA:.24,ricoV:55};
+const JEAU={y0:0,dans:false,t:0,prof:0,vIn:0,vRef:0,hIn:0,n:0,rico:0,cd:0,k:0,sorti:9,goutT:0,bloop:0,bul:[],im:null}; // cd : le répit après un ricochet ou une sortie (la houle monte et descend de plusieurs mètres : sans lui, une caisse au ras de l'eau rentrait et ressortait sans arrêt)
+const JSOUS={sous:false,sous0:false,bascT:9,prof:0,uK:0,N:48,peau:null,base:{c:new THREE.Color(),n:0,f:0},w:{c:new THREE.Color(),n:-1,f:-1,ok:false},c:new THREE.Color(),cA:new THREE.Color(.22,.64,.66),cB:new THREE.Color(.09,.34,.42)};
 function jadeVide(y){return jadeEauOk()?y<JADE.eauY-EAU.fond-200:y<trackMinY-120;} // le plongeon fatal : sous la piste… sauf au-dessus de la mer
 function jadeEauOk(){return !!(JADE.root&&LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on&&isFinite(JADE.eauY));}
 function jMerHJ(cx,cz,T){const px=cx*4,py=cz*4;let r=Math.sin(cx*41.3+cz*289.1)*43758.5453;r-=Math.floor(r); // la houle du ciel (JADE_EAU_GLSL), case par case
@@ -14711,42 +14725,124 @@ function jMerHJ(cx,cz,T){const px=cx*4,py=cz*4;let r=Math.sin(cx*41.3+cz*289.1)*
 function jadeSurfCase(x,z){return JADE.eauY+jMerHJ(Math.floor(x/4),Math.floor(z/4),skyU.uEauT.value)*4;} // la colonne exacte (l'objectif)
 function jadeSurf(x,z){const T=skyU.uEauT.value,u=x/4-.5,v=z/4-.5,i=Math.floor(u),j=Math.floor(v),fu=u-i,fv=v-j; // lissée entre les centres des cases (la caisse : pas de marches)
   const a=jMerHJ(i,j,T),b=jMerHJ(i+1,j,T),c=jMerHJ(i,j+1,T),d=jMerHJ(i+1,j+1,T);return JADE.eauY+4*((a*(1-fu)+b*fu)*(1-fv)+(c*(1-fu)+d*fu)*fv);}
-function jadeEauRaz(){JEAU.dans=false;JEAU.t=0;JEAU.prof=0;JEAU.vIn=0;JEAU.vRef=0;JEAU.n=0;JEAU.k=0;JEAU.sorti=9;JEAU.bul.length=0;if(JEAU.im)JEAU.im.count=0;
-  JSOUS.sous=false;JSOUS.uK=0;if(JSOUS.peau)JSOUS.peau.visible=false;skyU.uSous.value=0;JADE_U.uSous.value=0;}
+function jadeEauRaz(){JEAU.dans=false;JEAU.t=0;JEAU.prof=0;JEAU.vIn=0;JEAU.vRef=0;JEAU.hIn=0;JEAU.n=0;JEAU.rico=0;JEAU.cd=0;JEAU.k=0;JEAU.sorti=9;JEAU.goutT=0;JEAU.bul.length=0;if(JEAU.im)JEAU.im.count=0;
+  EAUP.L.length=0;if(EAUP.im)EAUP.im.count=0;for(const r of EAUR.L){r.m.visible=false;r.t=9;}LENS.g.length=0;LENS.nappe=0;LENS.flash=0;if(LENS.cv)LENS.cv.style.visibility='hidden';
+  JSOUS.sous=JSOUS.sous0=false;JSOUS.uK=0;if(JSOUS.peau)JSOUS.peau.visible=false;skyU.uSous.value=0;JADE_U.uSous.value=0;eauFiltre(false,true);}
 function jadeEauVol(dt,dtF){ // branche 'fall', AVANT que la position avance (la vitesse vient d'encaisser gravité, volant, manche, nitro)
   if(!jadeEauOk()){if(JEAU.dans)JEAU.dans=false;return false;}
-  const sy=jadeSurf(fallPos.x,fallPos.z),prof=sy-fallPos.y;
+  const sy=jadeSurf(fallPos.x,fallPos.z),prof=sy-fallPos.y,hv=Math.hypot(fallVel.x,fallVel.z),vmW=SPD*AIR_RATE; // vmW : vitesse du vol → m/s du monde
   if(fallPos.y<JEAU.y0-2)fallTR=Math.max(0,fallTR-dt); // sous le point de décollage, la mer rattrape : la jauge ne baisse pas
-  if(!JEAU.dans&&prof>0&&(fallVel.y<0||prof>3)){ // ---- LE PLONGEON ----
-    JEAU.dans=true;JEAU.t=0;JEAU.prof=0;JEAU.n++;JEAU.vIn=Math.max(4,-fallVel.y);if(!JEAU.vRef)JEAU.vRef=JEAU.vIn;
-    fallVel.multiplyScalar(.86);
-    const k9=Math.min(1,JEAU.vIn/60);
-    jadeGerbe(fallPos.x,sy,fallPos.z,18+30*k9);
-    jadeBullesJet(fallPos,40+60*k9,7);
-    shake=Math.max(shake,.25+.45*k9);fovPunch=Math.max(fovPunch,6+8*k9);hap([14,20,30]);
-    try{if(SONV2){sfx('flaque.eau');sfx('nuage.entre');}}catch(e){}
+  if(JEAU.cd>0)JEAU.cd-=dt;
+  if(!JEAU.dans&&prof>0&&(fallVel.y<0||prof>3)&&(JEAU.cd<=0||prof>4)){
+    const v=Math.max(1,fallVel.length()),pente=-fallVel.y/v;
+    if(pente<EAU.ricoA&&hv>EAU.ricoV&&JEAU.rico<4&&prof<2.5){ // ---- LE RICOCHET : à plat et vite, l'eau renvoie la caisse comme un galet ----
+      JEAU.rico++;JEAU.cd=.4;fallVel.y=Math.abs(fallVel.y)*.55+15;fallVel.x*=.82;fallVel.z*=.82;fallPos.y=sy+.4;
+      const k9=Math.min(1,hv/160);jadeCouronne(fallPos.x,sy,fallPos.z,.25+.3*k9,fallVel);
+      shake=Math.max(shake,.3);fovPunch=Math.max(fovPunch,5);hap([10,14]);
+      try{noiseBurst(.28,.32,1500);subBoom(.18);if(SONV2)sfx('flaque.eau');}catch(e){}
+      try{addTrick('ricochet',JEAU.rico>1?'RICOCHET ×'+JEAU.rico:'RICOCHET !',5*JEAU.rico,1,true);flowAdd(5,'risque');}catch(e){}
+      return false;}
+    // ---- LE PLONGEON : le choc, la couronne, le plouf ----
+    JEAU.dans=true;JEAU.t=0;JEAU.prof=0;JEAU.n++;JEAU.vIn=Math.max(4,-fallVel.y);JEAU.hIn=hv;if(!JEAU.vRef)JEAU.vRef=JEAU.vIn;
+    const k9=Math.min(1,v/170);
+    fallVel.multiplyScalar(EAU.choc+.3*pente); // l'eau est un mur : à plat on s'écrase, à pic on la fend
+    jadeCouronne(fallPos.x,sy,fallPos.z,.12+.88*k9,null); // la taille de la gerbe suit la vitesse (un petit plongeon = une petite gerbe)
+    jadeBullesJet(fallPos,20+90*k9,4);
+    shake=Math.max(shake,.45+.5*k9);fovPunch=Math.max(fovPunch,9+10*k9);hap([20,30,40]);
+    try{subBoom(.4+.35*k9);noiseBurst(.6,.4+.25*k9,520);noiseBurst(.9,.18+.12*k9,2600);if(SONV2){sfx('flaque.eau');sfx('nuage.entre');}}catch(e){}
     try{addTrick('plongeon',JEAU.n>1?'REPLONGEON !':'PLONGEON !',6+4*k9,1);flowAdd(6,'risque');}catch(e){}}
-  else if(JEAU.dans&&prof<-1&&fallVel.y>0){ // ---- LE JAILLISSEMENT ----
-    JEAU.dans=false;JEAU.sorti=0;
+  else if(JEAU.dans&&prof<-1&&fallVel.y>0){ // ---- LE JAILLISSEMENT : la colonne d'eau, la caisse qui ruisselle ----
+    JEAU.dans=false;JEAU.sorti=0;JEAU.goutT=1.6;JEAU.cd=.35;
     const vr=Math.min(JEAU.vIn,JEAU.vRef||JEAU.vIn)*EAU.rend+4;if(fallVel.y<vr)fallVel.y=vr; // la mer rend l'élan du premier plongeon, jamais plus
+    {const hw=Math.max(hv,JEAU.hIn*EAU.hRend);if(hv>1){fallVel.x*=hw/hv;fallVel.z*=hw/hv;}else{tmp3.set(0,0,1).applyQuaternion(carGroup.quaternion);tmp3.y=0;if(tmp3.lengthSq()<1e-4)tmp3.set(1,0,0);tmp3.normalize();fallVel.x=tmp3.x*hw;fallVel.z=tmp3.z*hw;}
+     fallVH0=Math.max(fallVH0,hw);} // …et sa course : on repart vers la route
     fallTR=0;fallT=Math.min(fallT,.5); // l'air rendu : une jauge de vol neuve pour reprendre la route
-    const k9=Math.min(1,fallVel.y/60);
-    jadeGerbe(fallPos.x,sy,fallPos.z,22+30*k9);
-    shake=Math.max(shake,.3);fovPunch=Math.max(fovPunch,10);hap([10,16,24]);airFlash=.6;
-    try{if(SONV2){sfx('flaque.eau');sfx('nuage.sort');sfx('air.regain');}}catch(e){}
+    const k9=Math.min(1,fallVel.y/170);
+    jadeColonne(fallPos.x,sy,fallPos.z,fallVel.y*vmW,.15+.85*k9);
+    shake=Math.max(shake,.35);fovPunch=Math.max(fovPunch,11);hap([12,18,26]);airFlash=.6;
+    try{noiseBurst(.8,.34,2200);noiseBurst(.5,.3,450);subBoom(.22);if(SONV2){sfx('flaque.eau');sfx('nuage.sort');sfx('air.regain');}}catch(e){}
     if(JEAU.t>.3){try{addTrick('jailli','HORS DE L EAU !',8+Math.min(18,JEAU.prof*.12),2);flowAdd(8,'risque');}catch(e){}}}
-  if(!JEAU.dans)return false;
-  // ---- SOUS L'EAU : la gravité retournée, l'eau qui freine ----
+  if(!JEAU.dans){ // hors de l'eau : la caisse ruisselle, et au ras de la surface elle laisse un sillage
+    if(JEAU.goutT>0){JEAU.goutT-=dt;const p=carGroup.position,n9=Math.random()<dt*70*JEAU.goutT/1.6?3:0;
+      for(let k=0;k<n9;k++)eauP(p.x+(Math.random()-.5)*2.2,p.y-.2+(Math.random()-.5)*.8,p.z+(Math.random()-.5)*2.2,(Math.random()-.5)*1.5,-1-Math.random()*3,(Math.random()-.5)*1.5,.07+Math.random()*.13,1.6,sy);}
+    if(prof>-3&&hv>20&&Math.random()<dt*50)jadeSillage(sy,hv);
+    return false;}
+  // ---- SOUS L'EAU : l'eau épaisse — elle freine fort, la poussée remonte doucement ----
   JEAU.t+=dt;if(prof>JEAU.prof)JEAU.prof=prof;
   fallVel.y+=FALL_G*gK()*(1+EAU.pousse)*dtF;
   {const kh=Math.exp(-EAU.freinH*dtF),kv=Math.exp(-EAU.freinV*dtF);fallVel.x*=kh;fallVel.z*=kh;fallVel.y*=kv;}
   if(prof>EAU.fond&&fallVel.y<0)fallVel.y*=.85; // le fond (on n'y arrive pas : la poussée ramène bien avant)
   fallTR=Math.max(0,fallTR-dt*3); // la jauge du vol se remplit sous l'eau
-  if(Math.random()<dt*(nitroOn?40:16))jadeBullesJet(carGroup.position,nitroOn?4:2,1.6);
+  if(prof<2.5&&hv>20&&Math.random()<dt*40)jadeSillage(sy,hv); // juste sous la surface, elle la fend
+  if(Math.random()<dt*(nitroOn?45:18))jadeBullesJet(carGroup.position,nitroOn?5:2,1.8);
+  JEAU.bloop-=dt;if(JEAU.bloop<=0){JEAU.bloop=.12+Math.random()*(nitroOn?.15:.4);eauBloop(nitroOn?1:.6);}
   return true;}
-function jadeGerbe(x,y,z,n){ // la GERBE de la caisse : la réserve d'écume des montagnes, en cubes plus petits (l'objectif la traverse)
-  for(let k=0;k<n&&JCH.sp.length<650;k++){const a=Math.random()*6.2832,rr=Math.random()*3.2,v=3+Math.random()*9;
-    JCH.sp.push({x:x+Math.cos(a)*rr,y:y+1.5,z:z+Math.sin(a)*rr,vx:Math.cos(a)*v,vy:10+Math.random()*24,vz:Math.sin(a)*v,sz:.45+Math.random()*1.25,t:0,l:1.1+Math.random()*1.1});}}
+/* LES CUBES D'EAU : couronne, gouttes, colonne, ruissellement, sillage — une réserve à eux (blancs d'écume, un peu bleutés) */
+const EAUP={L:[],im:null,max:1400};
+function eauPIm(){if(EAUP.im)return EAUP.im;const m=new THREE.MeshLambertMaterial({color:0xeaf9fc,emissive:0x3a6670});m.dispose=function(){};
+  const im=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),m,EAUP.max);im.count=0;im.frustumCulled=false;im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);scene.add(im);EAUP.im=im;return im;}
+function eauP(x,y,z,vx,vy,vz,sz,l,y0){if(EAUP.L.length<EAUP.max)EAUP.L.push({x:x,y:y,z:z,vx:vx,vy:vy,vz:vz,sz:sz,t:0,l:l,y0:y0});}
+function jadeCouronne(x,y,z,k,vel){eauPIm();eauRide(x,y,z,k);eauRide(x,y,z,k*.6); // la COURONNE qui se lève, les GOUTTES qui partent loin, deux ONDES
+  const R=1.4+2.2*k,fx=vel?vel.x*SPD*.25:0,fz=vel?vel.z*SPD*.25:0; // (ricochet : la gerbe part vers l'avant)
+  for(let i=0,n=(55+95*k)|0;i<n;i++){const a=Math.random()*6.2832,c=Math.cos(a),s=Math.sin(a),r=R*(.8+Math.random()*.4),vo=4+Math.random()*9*k;
+    eauP(x+c*r,y+.3,z+s*r,c*vo+fx,12+Math.random()*26*k,s*vo+fz,.3+Math.random()*.7,1.2+Math.random()*.9,y);}
+  for(let i=0,n=(90+170*k)|0;i<n;i++){const a=Math.random()*6.2832,c=Math.cos(a),s=Math.sin(a),r=Math.random()*R,vo=7+Math.random()*20*k;
+    eauP(x+c*r,y+.5,z+s*r,c*vo+fx,16+Math.random()*38*k,s*vo+fz,.09+Math.random()*.2,1.6+Math.random()*1.2,y);}
+  for(let i=0;i<30*k;i++){const a=Math.random()*6.2832,r=Math.random()*R*.6;eauP(x+Math.cos(a)*r,y+.4,z+Math.sin(a)*r,(Math.random()-.5)*3,24+Math.random()*30*k,(Math.random()-.5)*3,.5+Math.random()*.8,1+Math.random()*.6,y);}} // le cœur qui monte
+function jadeColonne(x,y,z,vyW,k){eauPIm();eauRide(x,y,z,k);eauRide(x,y,z,k*.55); // la COLONNE qui suit la caisse hors de l'eau
+  for(let i=0,n=(70+60*k)|0;i<n;i++){const a=Math.random()*6.2832,r=Math.random()*1.5;eauP(x+Math.cos(a)*r,y+.2,z+Math.sin(a)*r,Math.cos(a)*(1+Math.random()*3),vyW*(.35+Math.random()*.55),Math.sin(a)*(1+Math.random()*3),.3+Math.random()*.9,1.1+Math.random()*.9,y);}
+  for(let i=0,n=(120+120*k)|0;i<n;i++){const a=Math.random()*6.2832,c=Math.cos(a),s=Math.sin(a),r=Math.random()*2.2,vo=5+Math.random()*16*k;eauP(x+c*r,y+.4,z+s*r,c*vo,8+Math.random()*Math.max(20,vyW*.5),s*vo,.08+Math.random()*.18,1.4+Math.random()*1.2,y);}
+  for(let i=0;i<50*k;i++){const a=Math.random()*6.2832,c=Math.cos(a),s=Math.sin(a),r=1.6+Math.random()*1.8;eauP(x+c*r,y+.3,z+s*r,c*(3+Math.random()*6),8+Math.random()*16,s*(3+Math.random()*6),.25+Math.random()*.55,1+Math.random()*.7,y);}}
+function jadeSillage(sy,hv){eauPIm();const p=fallPos,vx=fallVel.x/hv,vz=fallVel.z/hv; // le SILLAGE : la surface fendue, deux gerbes en V derrière la caisse
+  for(const sd of [-1,1]){const px=-vz*sd,pz=vx*sd,o=.8+Math.random()*1.4;
+    eauP(p.x+px*o-vx*2,sy+.3,p.z+pz*o-vz*2,px*(3+Math.random()*5)-vx*2,6+Math.random()*12,pz*(3+Math.random()*5)-vz*2,.15+Math.random()*.45,.8+Math.random()*.6,sy);}}
+function eauPTick(dt){const im=EAUP.im;if(!im)return;const L9=EAUP.L;if(!L9.length){if(im.count)im.count=0;return;}let n=0;const M9=JCH_M,dr=Math.exp(-.35*dt),cp=camera.position;
+  for(let i=L9.length-1;i>=0;i--){const p=L9[i];if(!paused){p.t+=dt;p.vy-=24*dt;p.vx*=dr;p.vz*=dr;p.x+=p.vx*dt;p.y+=p.vy*dt;p.z+=p.vz*dt;}
+    if(p.t>p.l||(p.vy<0&&p.y<p.y0-1)){L9[i]=L9[L9.length-1];L9.pop();continue;}
+    let k=p.sz*(1-Math.pow(p.t/p.l,3));{const dx=p.x-cp.x,dy=p.y-cp.y,dz=p.z-cp.z,d2=dx*dx+dy*dy+dz*dz;if(d2<49)k*=Math.max(.12,Math.sqrt(d2)/7);} /* près de l'objectif, la goutte rapetisse : on traverse la gerbe sans qu'elle bouche l'écran */M9.makeScale(k,k*(p.vy<-6?1.6:1),k).setPosition(p.x,p.y,p.z);if(n<EAUP.max)im.setMatrixAt(n++,M9);} // une goutte qui tombe vite s'étire
+  im.count=n;im.instanceMatrix.needsUpdate=true;}
+/* LES ONDES : des anneaux clairs qui s'élargissent sur la surface (une réserve de 8) */
+const EAUR={L:[],geo:null};
+function eauRide(x,y,z,k){let r=null;for(const q of EAUR.L)if(q.t>=q.l){r=q;break;}
+  if(!r){if(EAUR.L.length>=8)return;if(!EAUR.geo){EAUR.geo=new THREE.RingGeometry(.88,1,56,1);EAUR.geo.rotateX(-Math.PI/2);}
+    const m=new THREE.Mesh(EAUR.geo,new THREE.MeshBasicMaterial({color:0xf2feff,transparent:true,opacity:0,depthWrite:false,side:THREE.DoubleSide,fog:true}));m.renderOrder=9;m.frustumCulled=false;scene.add(m);r={m:m,t:9,l:1};EAUR.L.push(r);}
+  r.t=0;r.l=1.3+.9*k;r.s=2+3*k;r.S=16+30*k;r.m.position.set(x,y+.25,z);r.m.visible=true;}
+function eauRideTick(dt){for(const r of EAUR.L){if(r.t>=r.l){if(r.m.visible)r.m.visible=false;continue;}if(!paused)r.t+=dt;const u=Math.min(1,r.t/r.l),e=1-(1-u)*(1-u);
+  r.m.scale.setScalar(r.s+(r.S-r.s)*e);r.m.material.opacity=.6*Math.pow(1-u,1.4);}}
+/* L'OBJECTIF MOUILLÉ : une toile en pixels (1/3 de l'écran, agrandie sans lissage) par-dessus l'image */
+const LENS={cv:null,cx:null,W:0,H:0,g:[],nappe:0,flash:0,t:0};
+function lensInit(){if(LENS.cv)return;const cv=document.createElement('canvas');cv.id='eauCv';cv.setAttribute('aria-hidden','true');
+  cv.style.cssText='position:absolute;inset:0;width:100%;height:100%;pointer-events:none;image-rendering:pixelated;visibility:hidden';
+  const j=document.getElementById('juiceCv');if(j&&j.parentNode)j.parentNode.insertBefore(cv,j.nextSibling);else document.body.appendChild(cv);LENS.cv=cv;LENS.cx=cv.getContext('2d');}
+function lensSortie(k){if(REDUCED_MOTION)return;lensInit();LENS.nappe=1;LENS.t=0;const n=14+((10*k)|0); // l'objectif sort de l'eau : la nappe qui s'égoutte, des gouttes sur la vitre
+  for(let i=0;i<n&&LENS.g.length<40;i++)LENS.g.push({x:Math.random(),y:Math.random()*.9,r:2+Math.random()*5.5,t:0,l:1.4+Math.random()*1.6,d:.15+Math.random()*.9,v:0,tr:[]});}
+function lensEntree(){if(REDUCED_MOTION)return;lensInit();LENS.flash=1;LENS.g.length=0;LENS.nappe=0;} // il y entre : un voile clair (les gouttes, elles, se fondent dans l'eau)
+function lensTick(dt){const cv=LENS.cv;if(!cv)return;const vide=!LENS.g.length&&LENS.nappe<=0&&LENS.flash<=0;
+  if(vide){if(cv.style.visibility!=='hidden'){cv.style.visibility='hidden';LENS.cx.clearRect(0,0,LENS.W,LENS.H);}return;}
+  const W=Math.max(1,Math.ceil(innerWidth/3)),H=Math.max(1,Math.ceil(innerHeight/3));if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;}LENS.W=W;LENS.H=H;
+  if(cv.style.visibility!=='visible')cv.style.visibility='visible';const x=LENS.cx;x.clearRect(0,0,W,H);LENS.t+=dt;
+  if(LENS.flash>0){LENS.flash=Math.max(0,LENS.flash-dt/.22);x.fillStyle='rgba(215,252,255,'+(.55*LENS.flash).toFixed(3)+')';x.fillRect(0,0,W,H);}
+  if(LENS.nappe>0){LENS.nappe=Math.max(0,LENS.nappe-dt/.6);const p=1-LENS.nappe,top=H*Math.pow(p,1.25);
+    for(let c=0;c<W;c+=2){const e=Math.round(top+3*Math.sin(c*.17+LENS.t*14)+2*Math.sin(c*.05-LENS.t*9));if(e>=H)continue;
+      x.fillStyle='rgba(150,225,232,'+(.30*(1-.4*p)).toFixed(3)+')';x.fillRect(c,Math.max(0,e),2,H-Math.max(0,e));
+      x.fillStyle='rgba(235,255,255,'+(.6*(1-p)).toFixed(3)+')';x.fillRect(c,e,2,1);}}
+  for(let i=LENS.g.length-1;i>=0;i--){const d=LENS.g[i];d.t+=dt;if(d.t>d.l){LENS.g.splice(i,1);continue;}
+    if(d.t>d.d){d.v=Math.min(70,d.v+90*dt);const y0=d.y;d.y+=d.v*dt/H;d.tr.push(y0);if(d.tr.length>14)d.tr.shift();}
+    const a=Math.min(1,(d.l-d.t)/.5),cx=Math.round(d.x*W),cy=Math.round(d.y*H),r=Math.round(d.r);
+    x.fillStyle='rgba(225,250,255,'+(.16*a).toFixed(3)+')';for(const ty of d.tr)x.fillRect(cx-1,Math.round(ty*H),2,2); // la traînée de la goutte qui glisse
+    for(let dy=-r;dy<=r;dy++){const w=Math.floor(Math.sqrt(r*r-dy*dy));x.fillStyle='rgba(200,244,252,'+(.24*a).toFixed(3)+')';x.fillRect(cx-w,cy+dy,2*w+1,1);
+      if(dy>r*.25){x.fillStyle='rgba(25,105,120,'+(.5*a).toFixed(3)+')';x.fillRect(cx-w,cy+dy,1,1);x.fillRect(cx+w,cy+dy,1,1);}}
+    x.fillStyle='rgba(25,105,120,'+(.5*a).toFixed(3)+')';x.fillRect(cx-Math.floor(r*.6),cy+r,Math.floor(r*1.2)+1,1); // le bord sombre du bas (la goutte réfracte)
+    x.fillStyle='rgba(255,255,255,'+(.85*a).toFixed(3)+')';x.fillRect(cx-Math.round(r*.45),cy-Math.round(r*.5),2,2);}} // l'éclat
+/* LE SON SOUS L'EAU : un passe-bas devant la sortie (grand ouvert hors de l'eau), des bloups de bulles */
+function eauFiltre(sous,net){if(!AC||!MASTER||typeof BUSOUT==='undefined'||!BUSOUT)return;
+  if(!MASTER._eauLp){if(!sous)return;try{const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=AC.sampleRate/2;lp.Q.value=.6;MASTER.disconnect(BUSOUT);MASTER.connect(lp);lp.connect(BUSOUT);MASTER._eauLp=lp;}catch(e){return;}}
+  const f=MASTER._eauLp.frequency,v=sous?620:AC.sampleRate/2;
+  if(net){try{f.cancelScheduledValues(AC.currentTime);f.setValueAtTime(v,AC.currentTime);f._s9=v;}catch(e){}}else stt(f,v,AC.currentTime,sous?.04:.12);}
+function eauBloop(k){if(!sfxOk())return;try{const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain(),f0=180+Math.random()*260;
+  o.type='sine';o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(f0*(2.2+Math.random()*1.4),t+.07);
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.05*k,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+.11);
+  o.connect(g);g.connect(MASTER);o.start(t);o.stop(t+.13);}catch(e){}}
 function jadeBullesIm(){if(JEAU.im)return JEAU.im;
   const m=new THREE.MeshBasicMaterial({color:0xd6fbff,transparent:true,opacity:.62,depthWrite:false,fog:true});m.dispose=function(){};
   const im=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),m,320);im.count=0;im.frustumCulled=false;im.renderOrder=7;im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
@@ -14795,6 +14891,8 @@ function jadeSousTick(dt){ // fin de jadeTick (après la caméra et la brume de 
   const ok=jadeEauOk()&&started;let sous=false,prof=0;
   if(ok){const cp=camera.position;prof=jadeSurfCase(cp.x,cp.z)-cp.y;sous=prof>0;}
   JSOUS.sous=sous;JSOUS.prof=prof;skyU.uSous.value=sous?1:0;JADE_U.uSous.value=sous?1:0;
+  if(sous!==JSOUS.sous0){if(JSOUS.bascT>.25&&ok){if(sous){lensEntree();jadeBullesJet(camera.position,70,5);}else lensSortie(Math.min(1,Math.abs(fallVel.y)/150));}JSOUS.bascT=0;JSOUS.sous0=sous;}JSOUS.bascT+=dt; // l'objectif passe la surface : mouillé en sortant, un voile en entrant
+  eauFiltre(sous&&ok,false); // le son passe sous l'eau avec l'objectif
   JEAU.sorti+=dt;JEAU.k+=(((JEAU.dans||sous)?1:0)-JEAU.k)*Math.min(1,dt*6);
   if(sous&&f){JSOUS.base.c.copy(f.color);JSOUS.base.n=f.near;JSOUS.base.f=f.far;
     const dp=Math.min(1,prof/260);JSOUS.c.copy(JSOUS.cA).lerp(JSOUS.cB,dp);
@@ -14808,12 +14906,13 @@ function jadeSousTick(dt){ // fin de jadeTick (après la caméra et la brume de 
     if(f){u.uFogC.value.copy(f.color);u.uFogN.value=f.near;u.uFogF.value=f.far;}
     const h=BIO.cur.jdH||[.9,.9,.85],z=BIO.cur.jdZ||[.48,.66,.8];u.uCielH.value.setRGB(h[0],h[1],h[2]);u.uCielZ.value.setRGB(z[0],z[1],z[2]);}
   else if(JSOUS.peau&&JSOUS.peau.visible)JSOUS.peau.visible=false;
-  if(JEAU.im){if(!ok&&JEAU.bul.length)JEAU.bul.length=0;jadeBullesTick(dt);}}
+  if(JEAU.im){if(!ok&&JEAU.bul.length)JEAU.bul.length=0;jadeBullesTick(dt);}
+  eauPTick(dt);eauRideTick(dt);if(!paused)lensTick(dt);}
 window.dbgEau=function(o){if(o==='profil'&&JADE.root){const r=[];for(let k=0;k<=40;k++){const i=Math.min(NP-1,Math.round(k/40*(NP-1)));r.push(Math.round(pts[i].y-JADE.eauY));}return r;} // (banc) o = {h:hauteur au-dessus de l'eau, vy, vh} : lâche la caisse au-dessus de la mer ; sans argument : l'état
   if(o&&jadeEauOk()){const p=carGroup.position,sy=jadeSurf(p.x,p.z);if(mode!=='fall')startFall(0,0,false);fallPos.set(p.x,sy+(o.h==null?40:o.h),p.z);fallVel.y=o.vy==null?0:o.vy;if(o.vh!=null){const hx=Math.hypot(fallVel.x,fallVel.z)||1;fallVel.x*=o.vh/hx;fallVel.z*=o.vh/hx;fallVH0=Math.max(fallVH0,o.vh);}carGroup.position.copy(fallPos);}
   const p=mode==='fall'?fallPos:carGroup.position;
   return {ok:jadeEauOk(),mode:mode,cause:mortCause,dans:JEAU.dans,n:JEAU.n,t:+JEAU.t.toFixed(2),prof:+JEAU.prof.toFixed(1),vIn:+JEAU.vIn.toFixed(1),vRef:+JEAU.vRef.toFixed(1),
-    y:+p.y.toFixed(1),surf:JADE.root?+jadeSurf(p.x,p.z).toFixed(1):null,vy:+fallVel.y.toFixed(1),fallTR:+fallTR.toFixed(2),camSous:JSOUS.sous,camProf:+JSOUS.prof.toFixed(1),peau:+JSOUS.uK.toFixed(2),bulles:JEAU.bul.length,
+    y:+p.y.toFixed(1),surf:JADE.root?+jadeSurf(p.x,p.z).toFixed(1):null,vy:+fallVel.y.toFixed(1),fallTR:+fallTR.toFixed(2),camSous:JSOUS.sous,camProf:+JSOUS.prof.toFixed(1),peau:+JSOUS.uK.toFixed(2),bulles:JEAU.bul.length,rico:JEAU.rico,gouttes:EAUP.L.length,ondes:EAUR.L.filter(function(r){return r.t<r.l;}).length,vitre:LENS.g.length,nappe:+LENS.nappe.toFixed(2),filtre:MASTER&&MASTER._eauLp?Math.round(MASTER._eauLp.frequency.value):null,
     brume:scene.fog?[Math.round(scene.fog.near),Math.round(scene.fog.far),'#'+scene.fog.color.getHexString()]:null};};
 function jadeChuteRaz(){for(const c of JCH.L){if(c.orig)for(const o of c.orig)o.F.M.set(o.m,o.si*16);if(c.fo)FIN.mats.delete(c.pi);c.t0=0;c.fin=false;c.spl=false;c.orig=null;c.fo=null;}
   if(JADE.col&&JADE.col.mort)JADE.col.mort.clear();JCH.sp.length=0;if(JCH.splash)JCH.splash.count=0;for(const c of JCH.L)c.vu=false;JADE.sig=0;}
@@ -15303,7 +15402,7 @@ function jadeChauffe(){ // une instance de chaque matière, compilée hors écra
     {const i0=new THREE.InstancedMesh(b1,M9.vrO,1);i0.setMatrixAt(0,new THREE.Matrix4());g.add(i0);const b4=bx.clone();b4.setAttribute('aJ',new THREE.Float32BufferAttribute(new Float32Array(b4.attributes.position.count*4),4));g.add(new THREE.Mesh(b4,M9.vrOM));} // (v17) le loin opaque
     const b2=bx.clone();b2.setAttribute('aJ',new THREE.Float32BufferAttribute(new Float32Array(b2.attributes.position.count*4),4));g.add(new THREE.Mesh(b2,M9.vrM));
     const pl=new THREE.PlaneGeometry(1,1);pl.setAttribute('aB',new THREE.InstancedBufferAttribute(new Float32Array(4),4));const i3=new THREE.InstancedMesh(pl,JADE_BRUME_M,1);i3.setMatrixAt(0,new THREE.Matrix4());g.add(i3);
-    g.traverse(function(o){o.frustumCulled=false;});scene.add(g);const pe9=jadePeau();jadeBullesIm();pe9.visible=true;renderer.compile(scene,camera);pe9.visible=false;scene.remove(g);}catch(e){console.warn('jadeChauffe',e);} // (2026-10-13) la peau de la mer et les bulles aussi
+    g.traverse(function(o){o.frustumCulled=false;});scene.add(g);const pe9=jadePeau();jadeBullesIm();eauPIm();eauRide(0,-1e5,0,0);pe9.visible=true;renderer.compile(scene,camera);pe9.visible=false;for(const r9 of EAUR.L){r9.t=9;r9.m.visible=false;}scene.remove(g);}catch(e){console.warn('jadeChauffe',e);} // (2026-10-13) la peau de la mer et les bulles aussi
 }
 window.dbgFin=function(v,nu){ // (banc) v : les cubes minuscules on/off ; nu : les nuages en volutes on/off
   if(v!==undefined&&v!==null){FIN.on=!!v&&!TEL_NATIF;if(!FIN.on){FIN.dans.clear();for(const FF of FIN.fam)if(FF)FF.im.visible=FF.im2.visible=FF.im3.visible=false;}JADE.sig=0;}
@@ -16430,7 +16529,7 @@ Object.assign(I18N,{'NITRO INFINIE — 9 s À FOND !':'INFINITE NITRO — 9 s FL
   'AURA ×2 — 12 s : TOUTE L\'AURA COMPTE DOUBLE !':'AURA ×2 — 12 s: ALL AURA COUNTS DOUBLE!','TOUTE L\'AURA COMPTE DOUBLE':'ALL AURA COUNTS DOUBLE',
   'DOUBLE POUVOIR':'DOUBLE POWER','TRIPLE POUVOIR':'TRIPLE POWER','DOUBLE POUVOIR !':'DOUBLE POWER!','TRIPLE POUVOIR !':'TRIPLE POWER!',
   'SAUVE !':'SAVED!','LE BOUCLIER A CEDE':'THE SHIELD BROKE','LE BOUCLIER T\'A SAUVE':'THE SHIELD SAVED YOU','DEMOLI':'SMASHED',
-  'SANS FAUTE':'FLAWLESS','SERIE CASSEE':'STREAK BROKEN','MIRACULE':'MIRACLE','MIRACULE !':'MIRACLE!','RECORD DE VITESSE':'SPEED RECORD','SÉRIE COMPLÈTE':'FULL SET','PLONGEON !':'DIVE!','REPLONGEON !':'DIVE AGAIN!','HORS DE L EAU !':'OUT OF THE WATER!','PLONGEON':'DIVE','REPLONGEON':'DIVE AGAIN','HORS DE L EAU':'OUT OF THE WATER'});
+  'SANS FAUTE':'FLAWLESS','SERIE CASSEE':'STREAK BROKEN','MIRACULE':'MIRACLE','MIRACULE !':'MIRACLE!','RECORD DE VITESSE':'SPEED RECORD','SÉRIE COMPLÈTE':'FULL SET','PLONGEON !':'DIVE!','REPLONGEON !':'DIVE AGAIN!','RICOCHET !':'SKIP!','RICOCHET':'SKIP','HORS DE L EAU !':'OUT OF THE WATER!','PLONGEON':'DIVE','REPLONGEON':'DIVE AGAIN','HORS DE L EAU':'OUT OF THE WATER'});
 Object.assign(I18N_ZH,{'NITRO INFINIE — 9 s À FOND !':'无限氮气 — 全速 9 秒！','🪂 AIRTIME INFINI — 14 s DE VOL !':'🪂 无限滞空 — 飞行 14 秒！',
   '⚡ VITESSE ×2 — 8 s !':'⚡ 速度 ×2 — 8 秒！','9 S A FOND':'全速 9 秒','14 S DE VOL':'飞行 14 秒','8 S':'8 秒',
   'AIMANT':'磁铁','BOUCLIER':'护盾','AURA ×2':'气场 ×2','L\'OR VIENT A TOI':'金币自动飞来','UNE CHUTE PARDONNEE':'免死一次',
@@ -16438,7 +16537,7 @@ Object.assign(I18N_ZH,{'NITRO INFINIE — 9 s À FOND !':'无限氮气 — 全�
   'AURA ×2 — 12 s : TOUTE L\'AURA COMPTE DOUBLE !':'气场 ×2 — 12 秒：所有气场双倍！','TOUTE L\'AURA COMPTE DOUBLE':'所有气场双倍',
   'DOUBLE POUVOIR':'双重道具','TRIPLE POUVOIR':'三重道具','DOUBLE POUVOIR !':'双重道具！','TRIPLE POUVOIR !':'三重道具！',
   'SAUVE !':'得救！','LE BOUCLIER A CEDE':'护盾碎了','LE BOUCLIER T\'A SAUVE':'护盾救了你','DEMOLI':'撞飞',
-  'SANS FAUTE':'完美连续','SERIE CASSEE':'连击中断','MIRACULE':'奇迹','MIRACULE !':'奇迹！','RECORD DE VITESSE':'速度纪录','SÉRIE COMPLÈTE':'整组收集','PLONGEON !':'潜水！','REPLONGEON !':'再次潜水！','HORS DE L EAU !':'跃出水面！','PLONGEON':'潜水','REPLONGEON':'再次潜水','HORS DE L EAU':'跃出水面'});
+  'SANS FAUTE':'完美连续','SERIE CASSEE':'连击中断','MIRACULE':'奇迹','MIRACULE !':'奇迹！','RECORD DE VITESSE':'速度纪录','SÉRIE COMPLÈTE':'整组收集','PLONGEON !':'潜水！','REPLONGEON !':'再次潜水！','RICOCHET !':'打水漂！','RICOCHET':'打水漂','HORS DE L EAU !':'跃出水面！','PLONGEON':'潜水','REPLONGEON':'再次潜水','HORS DE L EAU':'跃出水面'});
 Object.assign(I18N,{'MOY':'AVG','MOYENNE BATTUE':'AVERAGE BEATEN'});Object.assign(I18N_ZH,{'MOY':'平均','MOYENNE BATTUE':'超越平均'}); // (2026-10-12) la JAUGE D'AURA
 Object.assign(I18N,{"MISSIONS":"MISSIONS","MENU":"MENU","HOME":"HOME","ATELIER":"WORKSHOP","LES TROIS DEFIS":"THE THREE CHALLENGES",
   "DEFI":"CHALLENGE","REUSSI":"DONE","SUIVI EN COURSE":"TRACKED","MEILLEUR ESSAI":"BEST RUN","RECOMPENSE":"REWARD","ENSUITE":"NEXT","CARNET":"SET",
@@ -37730,7 +37829,7 @@ function poseParfaiteFx(divin){
 }
 function startFall(impU,impF,bord){ // bord : sortie par le CÔTÉ de la route (physique du bord v2) — pas de pop, bascule vers le vide
   const roll0=carRoll9; // (bord v2) le roulis de la carrosserie AVANT la remise à zéro : la bascule part de là
-  ECH=0;figSnd._ess=0;pitchS=0;JEAU.dans=false;JEAU.vRef=0;JEAU.n=0;JEAU.t=0;JEAU.y0=carGroup.position.y; // (2026-10-13) la mer : un vol neuf, un premier plongeon neuf
+  ECH=0;figSnd._ess=0;pitchS=0;JEAU.dans=false;JEAU.vRef=0;JEAU.n=0;JEAU.t=0;JEAU.rico=0;JEAU.cd=0;JEAU.y0=carGroup.position.y; // (2026-10-13) la mer : un vol neuf, un premier plongeon neuf
   // (console de son) une gamme neuve à chaque vol — (2026-10-09) pitchS : le manche repart du neutre
   traceTick(false); // (2026-09-26) le ruban de gomme se coupe au décollage
   loop._nAir=nitroOn; // (2026-09-26) l'impulsion est celle de l'ALLUMAGE en vol : tenue depuis le sol, elle ne compte pas — mais elle ne dépend plus du vol d'avant

@@ -167,6 +167,19 @@ début — dans l'autre ça commence un peu tard ») — mesuré des DEUX côté
     petits cubes d'écume à l'entrée et à la sortie (`jadeGerbe`, la réserve JCH.sp), musique −55 % et vent coupé sous l'eau (`JEAU.k`).
     Programmes compilés dans `jadeChauffe`. Console : `dbgEau()` (état), `dbgEau({h,vy,vh})` lâche la caisse au-dessus de l'eau,
     `dbgEau('profil')` (hauteur de la route au-dessus de l'eau, 41 points).
+- (13/10, 2e passe, Léo : « on n'a pas l'impression d'être dans l'eau : la physique, les éclaboussures, les gouttes, quand la voiture entre et
+  ressort ») — voir le commentaire « 2e passe » au-dessus de `EAU` :
+  · PHYSIQUE : le CHOC à l'entrée (vitesse ×`EAU.choc` .5 à plat … .8 à pic), l'EAU ÉPAISSE (`freinH` .9, `freinV` 1,3, poussée 2,4 g), le
+    RICOCHET (moins de ~14° sous l'horizon et vite : rebond, 4 par vol, figure RICOCHET ×n), la sortie rend aussi la course horizontale
+    (×`EAU.hRend` .85) pour repartir vers la route ; `JEAU.cd` : un répit de .35-.4 s après un ricochet ou une sortie (la houle monte et descend
+    de plusieurs mètres : sans lui, une caisse au ras de l'eau entrait et sortait à chaque image).
+  · ÉCLABOUSSURES (`EAUP`, 1 400 cubes d'eau à eux, `eauPTick`) : COURONNE + gouttes + cœur à l'entrée (`jadeCouronne`, taille ∝ vitesse),
+    COLONNE à la sortie (`jadeColonne`), RUISSELLEMENT 1,6 s (`JEAU.goutT`), SILLAGE au ras de l'eau (`jadeSillage`), ONDES (`EAUR`, 8 anneaux).
+    Les cubes près de l'objectif rapetissent (on traverse la gerbe sans qu'elle bouche l'écran).
+  · L'OBJECTIF (`LENS`, canvas `#eauCv` au 1/3 de l'écran, sans lissage, juste après #juiceCv) : sortie de l'eau = la NAPPE qui s'égoutte vers
+    le bas + 14-24 GOUTTES qui glissent ; entrée = un voile clair + un nuage de bulles autour de l'objectif. « Réduire les animations » : rien.
+  · SON : `eauFiltre` insère UNE fois un passe-bas entre MASTER et BUSOUT (grand ouvert = Nyquist, 620 Hz quand l'objectif est sous l'eau) ;
+    plouf grave (subBoom + deux noiseBurst) à l'entrée, jet à la sortie, `eauBloop` (bulles) sous l'eau.
 - Banc : `dbgJadePoste('ramasse')` (pièces, fruits par nom, pouvoirs, plots, plaques, flaques). MESURÉ : 650 pièces, ~16 fruits, 20 pouvoirs,
   300 plots, 8 plaques par passage ; en course : pièces ramassées, défis (« EAT 4 FRUITS »), paliers moteur, aimant, jus des fruits.
 
