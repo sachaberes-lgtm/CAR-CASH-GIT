@@ -9123,6 +9123,15 @@ ACESShader.uniforms.uBc={value:null};ACESShader.uniforms.uBa={value:0}; // (pos�
 ACESShader.uniforms.uSharp={value:0}; // (tour 2) le piqué qui compense la résolution — posé par applyDPR
 ACESShader.uniforms.uTrame={value:1/255}; // (passe graphismes mobile) le tramage de sortie — 0 = l'ancienne sortie, voir dbgGfx
 ACESShader.uniforms.uNit={value:new THREE.Vector4(1,.478,.141,0)};ACESShader.uniforms.uNitF={value:0}; // (vague 3, NITRO) la poussée sur les bords — voir nfxTick
+/* (2026-10-13, Léo : « l'effet écran quand tu ressors de l'eau, travaille-le encore plus ») L'OBJECTIF MOUILLÉ RÉFRACTE : une petite toile de
+   NORMALES (LENS.cvN, au tiers de l'écran : R/G = le décalage de chaque pixel, en pixels de la toile ÷ 16) dit où chaque goutte et la nappe
+   dévient l'image — la goutte agit comme une lentille (l'image derrière elle est retournée et grossie), la nappe qui s'égoutte ondule. Une
+   seule lecture de texture, et seulement quand l'objectif est mouillé (uLensK) : sinon l'image est identique au bit près. */
+ACESShader.uniforms.uLens={value:null};ACESShader.uniforms.uLensK={value:0};ACESShader.uniforms.uLensA={value:new THREE.Vector2(.05,.1)};
+{const fs=ACESShader.fragmentShader,k=fs.indexOf('void main(){')+12;
+ ACESShader.fragmentShader=fs.slice(0,k).replace('varying vec2 vUv;','varying vec2 vUv;uniform sampler2D uLens;uniform float uLensK;uniform vec2 uLensA;')+
+   '\n  vec2 uvL=vUv;if(uLensK>0.001){vec2 ln9=texture2D(uLens,vUv).rg*2.-1.;if(dot(ln9,ln9)>.0004)uvL=clamp(vUv-ln9*uLensA*uLensK,vec2(.001),vec2(.999));}'+
+   fs.slice(k).replace(/vUv/g,'uvL');}
 const CAN_POST=typeof THREE.EffectComposer==='function'&&typeof THREE.RenderPass==='function'&&typeof THREE.UnrealBloomPass==='function'&&typeof THREE.ShaderPass==='function';
 if(CAN_POST){ try{
   const w=innerWidth,h=innerHeight;
@@ -15438,7 +15447,7 @@ function jadeSurfCase(x,z){return JADE.eauY+jMerHJ(Math.floor(x/4),Math.floor(z/
 function jadeSurf(x,z){const T=skyU.uEauT.value,u=x/4-.5,v=z/4-.5,i=Math.floor(u),j=Math.floor(v),fu=u-i,fv=v-j; // lissée entre les centres des cases (la caisse : pas de marches)
   const a=jMerHJ(i,j,T),b=jMerHJ(i+1,j,T),c=jMerHJ(i,j+1,T),d=jMerHJ(i+1,j+1,T);return JADE.eauY+4*((a*(1-fu)+b*fu)*(1-fv)+(c*(1-fu)+d*fu)*fv);}
 function jadeEauRaz(){JEAU.syF=NaN;JEAU.dans=false;JEAU.f=0;JEAU.wB=0;JEAU.t=0;JEAU.prof=0;JEAU.vIn=0;JEAU.vRef=0;JEAU.hIn=0;JEAU.n=0;JEAU.rico=0;JEAU.cd=0;JEAU.k=0;JEAU.sorti=9;JEAU.goutT=0;JEAU.flotT=0;JEAU.bul.length=0;if(JEAU.im)JEAU.im.count=0;
-  EAUP.L.length=0;if(EAUP.im)EAUP.im.count=0;for(const r of EAUR.L){r.m.visible=false;r.t=9;}for(const c of COUR.L){c.m.visible=false;c.t=9;}SILL.P.length=0;if(SILL.mesh)SILL.mesh.visible=false;EAUB.L.length=0;if(EAUB.im)EAUB.im.count=0;LENS.g.length=0;LENS.nappe=0;LENS.flash=0;if(LENS.cv)LENS.cv.style.visibility='hidden';
+  EAUP.L.length=0;if(EAUP.im)EAUP.im.count=0;for(const r of EAUR.L){r.m.visible=false;r.t=9;}for(const c of COUR.L){c.m.visible=false;c.t=9;}SILL.P.length=0;if(SILL.mesh)SILL.mesh.visible=false;EAUB.L.length=0;if(EAUB.im)EAUB.im.count=0;LENS.g.length=0;LENS.nappe=0;LENS.flash=0;if(LENS.cv)LENS.cv.style.visibility='hidden';if(acesPass&&acesPass.uniforms.uLensK)acesPass.uniforms.uLensK.value=0;
   JSOUS.sous=JSOUS.sous0=false;JSOUS.uK=0;if(JSOUS.peau)JSOUS.peau.visible=false;skyU.uSous.value=0;JADE_U.uSous.value=0;eauFiltre(false,true);}
 /* LA SURFACE DE LA PHYSIQUE : la mer en cubes du décor saute de 4 m d'une colonne à l'autre et monte jusqu'à ~30 m/s (MESURÉ : 12,7 m en
    0,4 s sous la caisse — elle avalait une caisse à flot et la faisait « jaillir »). La caisse flotte sur une houle CALMÉE : la moyenne des
@@ -15639,31 +15648,56 @@ function eauRide(x,y,z,k){let r=null;for(const q of EAUR.L)if(q.t>=q.l){r=q;brea
   r.t=0;r.l=1.2+1.2*k;r.s=1.5+3*k;r.S=10+34*k;r.m.position.set(x,y+.2,z);r.m.visible=true;}
 function eauRideTick(dt){for(const r of EAUR.L){if(r.t>=r.l){if(r.m.visible)r.m.visible=false;continue;}if(!paused)r.t+=dt;const u=Math.min(1,r.t/r.l),e=1-(1-u)*(1-u);
   r.m.scale.setScalar(r.s+(r.S-r.s)*e);r.m.material.uniforms.uU.value=u;}}
-/* L'OBJECTIF MOUILLÉ : une toile en pixels (1/3 de l'écran, agrandie sans lissage) par-dessus l'image */
-const LENS={cv:null,cx:null,W:0,H:0,g:[],nappe:0,flash:0,t:0};
+/* L'OBJECTIF MOUILLÉ (2e version — Léo : « l'effet écran quand tu ressors de l'eau, travaille-le encore plus ») — DEUX toiles au tiers de
+   l'écran : la VISIBLE (#eauCv, sans lissage : le liseré sombre du bas de chaque goutte, son éclat, la ligne claire de la nappe) et celle des
+   NORMALES (LENS.cvN, jamais affichée : recopiée dans le post-traitement, elle y RÉFRACTE l'image — voir uLens dans l'ACES).
+   · LA NAPPE : en sortant, tout l'objectif est sous un film d'eau qui s'égoutte vers le bas en 0,75 s ; sa lèvre (le ménisque) dévie fort
+     l'image, le film l'ondule.
+   · LES GOUTTES (trois familles) : 8-14 GROSSES (5-11 px de toile) qui glissent vite en laissant une traînée d'eau, 14-24 MOYENNES qui
+     glissent plus tard ou restent, et une BUÉE de 90-150 micro-gouttelettes qui s'évaporent sur place. Chacune est une lentille : l'image
+     derrière elle est retournée et grossie. Elles rétrécissent en fin de vie (elles sèchent) au lieu de s'effacer.
+   · L'ENTRÉE dans l'eau : un voile clair bref, et l'objectif se vide de ses gouttes. */
+const LENS={cv:null,cx:null,cvN:null,cxN:null,img:null,tex:null,W:0,H:0,g:[],nappe:0,flash:0,t:0,k:0};
 function lensInit(){if(LENS.cv)return;const cv=document.createElement('canvas');cv.id='eauCv';cv.setAttribute('aria-hidden','true');
   cv.style.cssText='position:absolute;inset:0;width:100%;height:100%;pointer-events:none;image-rendering:pixelated;visibility:hidden';
-  const j=document.getElementById('juiceCv');if(j&&j.parentNode)j.parentNode.insertBefore(cv,j.nextSibling);else document.body.appendChild(cv);LENS.cv=cv;LENS.cx=cv.getContext('2d');}
-function lensSortie(k){if(REDUCED_MOTION)return;lensInit();LENS.nappe=1;LENS.t=0;const n=14+((10*k)|0); // l'objectif sort de l'eau : la nappe qui s'égoutte, des gouttes sur la vitre
-  for(let i=0;i<n&&LENS.g.length<40;i++)LENS.g.push({x:Math.random(),y:Math.random()*.9,r:2+Math.random()*5.5,t:0,l:1.4+Math.random()*1.6,d:.15+Math.random()*.9,v:0,tr:[]});}
-function lensEntree(){if(REDUCED_MOTION)return;lensInit();LENS.flash=1;LENS.g.length=0;LENS.nappe=0;} // il y entre : un voile clair (les gouttes, elles, se fondent dans l'eau)
-function lensTick(dt){const cv=LENS.cv;if(!cv)return;const vide=!LENS.g.length&&LENS.nappe<=0&&LENS.flash<=0;
-  if(vide){if(cv.style.visibility!=='hidden'){cv.style.visibility='hidden';LENS.cx.clearRect(0,0,LENS.W,LENS.H);}return;}
-  const W=Math.max(1,Math.ceil(innerWidth/3)),H=Math.max(1,Math.ceil(innerHeight/3));if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;}LENS.W=W;LENS.H=H;
+  const j=document.getElementById('juiceCv');if(j&&j.parentNode)j.parentNode.insertBefore(cv,j.nextSibling);else document.body.appendChild(cv);LENS.cv=cv;LENS.cx=cv.getContext('2d');
+  LENS.cvN=document.createElement('canvas');LENS.cvN.width=LENS.cvN.height=4;LENS.cxN=LENS.cvN.getContext('2d');
+  LENS.tex=new THREE.CanvasTexture(LENS.cvN);LENS.tex.minFilter=LENS.tex.magFilter=THREE.LinearFilter;LENS.tex.generateMipmaps=false;
+  if(acesPass&&acesPass.uniforms.uLens)acesPass.uniforms.uLens.value=LENS.tex;}
+function lensSortie(k){if(REDUCED_MOTION)return;lensInit();LENS.nappe=1;LENS.t=0;LENS.k=k;LENS.g.length=0;const R=Math.random;
+  for(let i=0,n=8+((6*k)|0);i<n;i++)LENS.g.push({x:R(),y:.05+R()*.75,r:5+R()*6,t:0,l:1.8+R()*1.4,d:.08+R()*.35,v:0,vx:(R()-.5)*6,tr:[],f:0}); // les GROSSES
+  for(let i=0,n=14+((10*k)|0);i<n;i++)LENS.g.push({x:R(),y:R()*.92,r:2.2+R()*2.8,t:0,l:1.6+R()*1.6,d:R()<.5?.5+R()*.9:99,v:0,vx:(R()-.5)*3,tr:[],f:1}); // les MOYENNES
+  for(let i=0,n=90+((60*k)|0);i<n;i++)LENS.g.push({x:R(),y:R(),r:.6+R()*1.1,t:0,l:.7+R()*1.3,d:99,v:0,vx:0,tr:null,f:2});} // la BUÉE
+function lensEntree(){if(REDUCED_MOTION)return;lensInit();LENS.flash=1;LENS.g.length=0;LENS.nappe=0;}
+function lensTick(dt){const cv=LENS.cv;if(!cv)return;const U=acesPass&&acesPass.uniforms;const vide=!LENS.g.length&&LENS.nappe<=0&&LENS.flash<=0;
+  if(vide){if(cv.style.visibility!=='hidden'){cv.style.visibility='hidden';LENS.cx.clearRect(0,0,LENS.W,LENS.H);}if(U&&U.uLensK)U.uLensK.value=0;return;}
+  const W=Math.max(1,Math.ceil(innerWidth/3)),H=Math.max(1,Math.ceil(innerHeight/3));
+  if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;}if(LENS.cvN.width!==W||LENS.cvN.height!==H){LENS.cvN.width=W;LENS.cvN.height=H;LENS.img=null;}
+  if(!LENS.img)LENS.img=LENS.cxN.createImageData(W,H);LENS.W=W;LENS.H=H;
   if(cv.style.visibility!=='visible')cv.style.visibility='visible';const x=LENS.cx;x.clearRect(0,0,W,H);LENS.t+=dt;
+  const D=LENS.img.data;for(let i=0;i<D.length;i+=4){D[i]=128;D[i+1]=128;D[i+2]=0;D[i+3]=255;} // la toile des normales, au repos : aucun décalage
+  const N=function(px,py,nx,ny){if(px<0||py<0||px>=W||py>=H)return;const o=(py*W+px)*4;D[o]=Math.max(0,Math.min(255,128+nx*7.94));D[o+1]=Math.max(0,Math.min(255,128-ny*7.94));}; // (nx, ny en pixels de toile ; ÷16 → ±127)
   if(LENS.flash>0){LENS.flash=Math.max(0,LENS.flash-dt/.22);x.fillStyle='rgba(215,252,255,'+(.55*LENS.flash).toFixed(3)+')';x.fillRect(0,0,W,H);}
-  if(LENS.nappe>0){LENS.nappe=Math.max(0,LENS.nappe-dt/.6);const p=1-LENS.nappe,top=H*Math.pow(p,1.25);
-    for(let c=0;c<W;c+=2){const e=Math.round(top+3*Math.sin(c*.17+LENS.t*14)+2*Math.sin(c*.05-LENS.t*9));if(e>=H)continue;
-      x.fillStyle='rgba(150,225,232,'+(.30*(1-.4*p)).toFixed(3)+')';x.fillRect(c,Math.max(0,e),2,H-Math.max(0,e));
-      x.fillStyle='rgba(235,255,255,'+(.6*(1-p)).toFixed(3)+')';x.fillRect(c,e,2,1);}}
-  for(let i=LENS.g.length-1;i>=0;i--){const d=LENS.g[i];d.t+=dt;if(d.t>d.l){LENS.g.splice(i,1);continue;}
-    if(d.t>d.d){d.v=Math.min(70,d.v+90*dt);const y0=d.y;d.y+=d.v*dt/H;d.tr.push(y0);if(d.tr.length>14)d.tr.shift();}
-    const a=Math.min(1,(d.l-d.t)/.5),cx=Math.round(d.x*W),cy=Math.round(d.y*H),r=Math.round(d.r);
-    x.fillStyle='rgba(225,250,255,'+(.16*a).toFixed(3)+')';for(const ty of d.tr)x.fillRect(cx-1,Math.round(ty*H),2,2); // la traînée de la goutte qui glisse
-    for(let dy=-r;dy<=r;dy++){const w=Math.floor(Math.sqrt(r*r-dy*dy));x.fillStyle='rgba(200,244,252,'+(.24*a).toFixed(3)+')';x.fillRect(cx-w,cy+dy,2*w+1,1);
-      if(dy>r*.25){x.fillStyle='rgba(25,105,120,'+(.5*a).toFixed(3)+')';x.fillRect(cx-w,cy+dy,1,1);x.fillRect(cx+w,cy+dy,1,1);}}
-    x.fillStyle='rgba(25,105,120,'+(.5*a).toFixed(3)+')';x.fillRect(cx-Math.floor(r*.6),cy+r,Math.floor(r*1.2)+1,1); // le bord sombre du bas (la goutte réfracte)
-    x.fillStyle='rgba(255,255,255,'+(.85*a).toFixed(3)+')';x.fillRect(cx-Math.round(r*.45),cy-Math.round(r*.5),2,2);}} // l'éclat
+  let lens=0;
+  if(LENS.nappe>0){LENS.nappe=Math.max(0,LENS.nappe-dt/.75);const p=1-LENS.nappe,top=H*Math.pow(p,1.15),T=LENS.t;lens=1; // LA NAPPE : elle s'égoutte vers le bas
+    for(let c=0;c<W;c++){const e=Math.round(top+3*Math.sin(c*.17+T*13)+2.2*Math.sin(c*.053-T*8.5)+1.4*Math.sin(c*.31+T*21));if(e>=H)continue;const e0=Math.max(0,e);
+      for(let y=e0;y<H;y++){const dz=y-e;const m=dz<9?(1-dz/9):0; // la LÈVRE (ménisque) dévie fort, le film ondule doucement
+        N(c,y,1.6*Math.sin(y*.21+c*.07+T*11)*(1-p*.6)+m*1.5*Math.sin(c*.4),-m*7-.9*Math.sin(c*.13+y*.09-T*9)*(1-p*.6));}
+      if((c&1)===0){x.fillStyle='rgba(165,228,236,'+(.16*(1-.5*p)).toFixed(3)+')';x.fillRect(c,e0,2,H-e0);
+        if(e>=0){x.fillStyle='rgba(240,255,255,'+(.7*(1-p)).toFixed(3)+')';x.fillRect(c,e,2,1);x.fillStyle='rgba(20,90,105,'+(.35*(1-p)).toFixed(3)+')';x.fillRect(c,e+2,2,1);}}}}
+  for(let i=LENS.g.length-1;i>=0;i--){const d=LENS.g[i];d.t+=dt;if(d.t>d.l){LENS.g.splice(i,1);continue;}lens=1;
+    if(d.f<2&&d.t>d.d){d.v=Math.min(85,d.v+(d.f?55:110)*dt*(d.r/6));const y0=d.y;d.y+=d.v*dt/H;d.x+=d.vx*dt/W*Math.sin(d.t*3+i);d.r=Math.max(1.2,d.r*(1-.06*dt));
+      if(d.tr){d.tr.push(y0);if(d.tr.length>26)d.tr.shift();}}
+    const ev=Math.min(1,(d.l-d.t)/.45),r=Math.max(.5,d.r*ev),cx=Math.round(d.x*W),cy=Math.round(d.y*H),ri=Math.ceil(r);
+    if(d.tr&&d.tr.length){x.fillStyle='rgba(225,250,255,.10)';const tw=Math.max(1,Math.round(r*.35));for(const ty of d.tr){const yy=Math.round(ty*H);x.fillRect(cx-tw,yy,tw*2,2);N(cx-tw,yy,-.6,0);N(cx+tw-1,yy,.6,0);}} // la traînée d'eau : un mince filet qui dévie un peu
+    if(d.f===2){N(cx,cy,(Math.random()-.5)*.8,.8);x.fillStyle='rgba(235,252,255,'+(.2*ev).toFixed(3)+')';x.fillRect(cx,cy,1,1);continue;} // la buée : un point
+    for(let dy=-ri;dy<=ri;dy++){const w=Math.floor(Math.sqrt(Math.max(0,r*r-dy*dy)));for(let dx=-w;dx<=w;dx++)N(cx+dx,cy+dy,dx*1.45,dy*1.45); // LA LENTILLE : retournée, grossie ×2
+      if(dy>r*.2){x.fillStyle='rgba(18,80,95,'+(.42*ev).toFixed(3)+')';x.fillRect(cx-w,cy+dy,1,1);x.fillRect(cx+w,cy+dy,1,1);}}
+    x.fillStyle='rgba(18,80,95,'+(.42*ev).toFixed(3)+')';x.fillRect(cx-Math.floor(r*.55),cy+ri,Math.floor(r*1.1)+1,1);
+    x.fillStyle='rgba(255,255,255,'+(.75*ev).toFixed(3)+')';x.fillRect(cx-Math.round(r*.45),cy-Math.round(r*.5),r>6?2:1,r>6?2:1); // l'éclat
+    if(r>4){x.fillStyle='rgba(255,255,255,'+(.35*ev).toFixed(3)+')';x.fillRect(cx+Math.round(r*.3),cy+Math.round(r*.45),1,1);}}
+  LENS.cxN.putImageData(LENS.img,0,0);LENS.tex.needsUpdate=true;
+  if(U&&U.uLensK){U.uLensK.value=lens;U.uLensA.value.set(16*3/Math.max(1,innerWidth),16*3/Math.max(1,innerHeight));if(U.uLens.value!==LENS.tex)U.uLens.value=LENS.tex;}}
 /* LE SON SOUS L'EAU : un passe-bas devant la sortie (grand ouvert hors de l'eau), des bloups de bulles */
 function eauFiltre(sous,net){if(!AC||!MASTER||typeof BUSOUT==='undefined'||!BUSOUT)return;
   if(!MASTER._eauLp){if(!sous)return;try{const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=AC.sampleRate/2;lp.Q.value=.6;MASTER.disconnect(BUSOUT);MASTER.connect(lp);lp.connect(BUSOUT);MASTER._eauLp=lp;}catch(e){return;}}

@@ -284,6 +284,12 @@ début — dans l'autre ça commence un peu tard ») — mesuré des DEUX côté
   · LE SILLAGE : deux NAPPES de gouttes qui partent du dessous de la caisse vers les côtés (+ une queue de coq à grande vitesse), une BRUME
     de grands cubes translucides (`EAUB`), et le V d'ÉCUME de Kelvin (`SILL`, ruban de 48 points qui s'écartent à 19,5°, écume en carrés
     de 50 cm). Gouttes `EAUP` : 1 800, quatre teintes (instanceColor posée à la création), étirées quand elles filent.
+- (13/10, Léo : « l'effet écran quand tu ressors de l'eau, travaille-le encore plus ») L'OBJECTIF MOUILLÉ RÉFRACTE : une toile de NORMALES
+  (`LENS.cvN`, au tiers de l'écran, R/G = décalage ÷ 16 px de toile, recopiée chaque image dans une CanvasTexture) lue par l'ACES
+  (`uLens`, `uLensK`, `uLensA` ; tout le main de l'ACES lit `uvL` au lieu de `vUv` — remplacement fait au chargement) : la NAPPE qui
+  s'égoutte (0,75 s, la lèvre dévie fort, le film fait onduler toute l'image), les GOUTTES-LENTILLES (le décor retourné, grossi ×2 :
+  8-14 grosses qui glissent avec une traînée, 14-24 moyennes, 90-150 de buée qui sèchent). La toile visible (`#eauCv`) ne garde que le
+  liseré sombre du bas, l'éclat, la ligne de la lèvre. uLensK = 0 hors de l'effet : l'image est identique au bit près.
 - Banc : `dbgJadePoste('ramasse')` (pièces, fruits par nom, pouvoirs, plots, plaques, flaques). MESURÉ : 650 pièces, ~16 fruits, 20 pouvoirs,
   300 plots, 8 plaques par passage ; en course : pièces ramassées, défis (« EAT 4 FRUITS »), paliers moteur, aimant, jus des fruits.
 
