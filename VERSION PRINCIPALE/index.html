@@ -8486,6 +8486,79 @@ html.c6 body.setPause #overlay::before{opacity:1;transition:none}   /* le fond d
 @keyframes c6FondSort{to{opacity:0}}
 html.c6 body.setPause.setPauseSort #overlay{animation:c6FondSort var(--c6-sort) linear forwards}
 </style>
+<style id="nav7-pause">
+/* =====================================================================================================================
+   NAVIGATION 7 · LA PAUSE, LES RÉGLAGES, LA FIN (2026-10-14 — Sacha : « un réglage = un seul endroit », plus de fonctionnalités
+   répétées, clair pour les enfants). Toutes les règles commencent par html.nav7 : ?nav=0 rend la charte 6 d'avant, ?ui=5 l'ancienne
+   interface. Le DOM de la pause et des réglages est rangé par le script (bloc « NAVIGATION 7 — PAUSE · RÉGLAGES · FIN », juste après
+   panTapHandler), qui pose .n7 sur #tPanel et #mSet : sans lui (ordinateur sans tactile), rien ici ne s'applique à la pause.
+   ===================================================================================================================== */
+/* LA PAUSE : une décision (REPRENDRE, l'or, en bas sous le pouce), deux touches d'encre (RECOMMENCER · RÉGLAGES), et QUITTER sur sa
+   propre rangée, en contour rouge, le plus loin possible de l'or (en haut debout ; couché, au-dessus de la rangée du bas). Les cinq
+   bascules en double sont parties : elles vivent dans RÉGLAGES, et nulle part ailleurs. */
+html.nav7 #tPanel.n7 #tpIn{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"t t" "s s" "q q" "r p" "g g";gap:16px 8px}
+html.nav7 #tPanel.n7 #tpIn>.tpPanel{display:none}
+html.nav7 #tPanel.n7 #tpIn .tp[data-a="tous"]{grid-area:p}
+html.nav7 #tPanel.n7 #tpIn .tp[data-a="quit"]{margin-bottom:8px;color:var(--c6-rouge);
+  box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-rouge),0 var(--c6-t) 0 0 var(--c6-noir)}
+html.nav7 #tPanel.n7 #tpIn .tp[data-a="quit"]:is(:active,.appui){box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-rouge),0 0 0 0 var(--c6-noir)}
+/* la fenêtre QUITTER / RECOMMENCER REMPLACE la pause : le panneau (et son voile — la fenêtre a le sien) s'efface tant qu'elle est ouverte */
+html.nav7 #tPanel.n7.conf{background:transparent}
+html.nav7 #tPanel.n7.conf #tpIn{visibility:hidden}
+@media (orientation:landscape) and (max-height:540px){
+  html.nav7 #tPanel.n7 #tpIn{grid-template-columns:auto auto minmax(0,1fr) auto;grid-template-areas:"t t s s" "q . . ." "r p . g"}
+  html.nav7 #tPanel.n7 #tpIn .tp[data-a="quit"]{margin-bottom:0}
+}
+/* LES FENÊTRES (modale) : la décision d'or est TOUJOURS en bas (debout) ou à droite (couché) — CONTINUER, COPIER, VALIDER — quel que soit
+   l'ordre du DOM (le dernier bouton reste l'annulation d'Échap) ; le destructeur (QUITTER, RECOMMENCER, EFFACER) n'est plus une plaque
+   rouge pleine : un CONTOUR rouge sur l'encre — il n'est jamais le plus saillant. Le choix FACILE / NORMAL (cartes) ne bouge pas. */
+html.nav7 #modale:not(.facC6) .modB{flex-direction:column;gap:16px}
+html.nav7 #modale:not(.facC6) .modB>.pb-gold{order:2}
+html.nav7 #modale .modB>.pb-red{--c6-f:var(--c6-e1);--c6-l:var(--c6-rouge);--c6-tr:var(--c6-noir);--c6-x:var(--c6-rouge);background:var(--c6-e1);color:var(--c6-rouge)}
+html.nav7 #modale .modIn #modT{text-shadow:none}
+@media (orientation:landscape) and (max-height:540px){
+  html.nav7 #modale:not(.facC6) .modB{flex-direction:row}
+}
+/* LES RÉGLAGES (une sous-page : ◀ en haut à gauche, pas de barre d'onglets) : SON · JEU · AIDE · SAUVEGARDE, puis EFFACER seul en bas.
+   Debout une colonne (l'ordre ci-dessous) ; couché deux colonnes (SON + AIDE | JEU + SAUVEGARDE, la grille de c6-pages). */
+html.nav7 #mSet.n7 .c6Col>.oAide{order:3}
+html.nav7 #mSet.n7 .c6Col>.oSauv{order:4}
+html.nav7 #mSet.n7 .c6Pied{order:5}
+html.nav7 #mSet.n7 .mLigne[data-m="volh"] .tpL{white-space:normal;text-wrap:balance}   /* « EN VOL, POUCE EN HAUT » passe sur deux lignes plutôt que de rogner */
+html.nav7 #mSet.n7 .mLigne[data-m="facile"]{display:none}   /* (14 h 05, Sacha) le MODE FACILE est retiré du jeu (interrupteur SANS_FACILE, session IDEE) : sa ligne ne s'affiche plus */
+/* le FONDU D'INDICE : tant qu'il reste de la liste sous le bord, le bas de l'écran se fond dans l'encre (le script pose .n7Fin au bout) */
+html.nav7 #mSet.n7::after{content:'';position:fixed;left:0;right:0;bottom:0;z-index:21;height:calc(var(--sB) + 48px);pointer-events:none;
+  background:linear-gradient(rgba(11,13,18,0),var(--c6-e0) 85%);opacity:1;transition:opacity var(--c6-sort) linear}
+html.nav7 #mSet.n7.n7Fin::after{opacity:0}
+/* LA FIN : le voile d'encre est plein dès la PREMIÈRE image (plus de fondu de l'overlay ni du voile : la scène 3D se lisait à travers
+   pendant 200 ms) ; la bande de quatre chiffres tient sur une ligne à 375 (colonnes à la taille de leur légende) ; « REPRENDRE LA
+   LEÇON » (après une auto-école quittée) passe sur deux lignes dans le lingot. */
+html.nav7 body.touch #overlay[data-ecran="dead"]{animation:none}
+html.nav7 body.touch #overlay[data-ecran="dead"]::before{opacity:.95;transition:none}
+html.nav7 #overlay #mDead .mStats{display:flex;justify-content:space-evenly;gap:8px}
+html.nav7 #overlay #mDead .mStats:empty{display:none}                         /* partie courte : rien n'a progressé, pas de bande (mFill, partie dead) */
+html.nav7 #overlay #mDead .mStat{flex:0 1 auto}
+html.nav7 #overlay #mDead .mStat span{white-space:nowrap}
+@media (orientation:landscape) and (max-width:720px){
+  html.nav7 #overlay #mDead .mStats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+/* PARTAGER : une touche d'encre sous le montant (ce qu'on partage), loin de REJOUER ; elle n'existe que si le téléphone sait partager (.pret) */
+html.nav7 #overlay #mDead .mCashL>.n7Partage{order:3;display:none;align-self:center;margin-top:8px;padding:0 24px}
+html.nav7 #overlay #mDead .mCashL>.n7Partage.pret{display:flex;align-items:center;justify-content:center}
+/* LA SECONDE CHANCE (#mChance, allumée par mFill si chanceEtat().ok) : encre, 48, pleine largeur de la colonne, juste au-dessus de ⌂ · REJOUER
+   (12 = deux touches empilées) ; le prix en vert (le vert = l'argent). Éteinte, elle n'existe pas (display:none) : rien ne bouge.
+   (Hors html.nav7 : la mécanique vaut aussi sous ?nav=0 — seule sa mise en place c6 est ci-dessous.) */
+#mChance{display:none}
+#mDead #mChance.on{display:flex;align-items:center;justify-content:center}
+html.c6 #overlay #mDead #mChance{order:9;gap:8px;margin:0 0 12px;white-space:nowrap}
+html.c6 #overlay #mDead #mChance .pxi{--pxs:2;color:currentColor}
+html.c6 #overlay #mDead #mChance>b{font:inherit;color:var(--c6-cash)}
+@media (orientation:landscape){
+  html.c6 #overlay #mDead #mChance{margin:auto 0 0}
+  html.c6 #overlay #mDead #mChance.on~.mFin{margin-top:12px}
+}
+html.nav7 #overlay #mDead .mFin>[data-m="replay"].n7Long>span{font-size:var(--c6-t16);line-height:20px;white-space:normal;text-wrap:balance;text-align:center}
+</style>
 <style id="c6-transitions">
 /* CHARTE 6 · le mouvement : les passages entre écrans — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
 /* LE RIDEAU (ecranWipe : il cache un changement de SCÈNE 3D — le ciel de l'accueil ⇄ le garage ⇄ la course). Il reste, mais c'est un pan
@@ -8852,6 +8925,9 @@ html.nav7{
       <!-- (2026-09-28, Sacha : « il manque un bouton pour revenir au menu ») la paire des jeux mobiles : MAISON | REJOUER. Le lingot
            reste la seule plaque d'or et la plus large ; la maison est une touche de laque, à gauche, jamais sous le pouce du rejeu. -->
       <!-- (2026-10-14, charte 6) la maison = une touche carrée 48 × 48, icône seule (le mot HOME est parti : BRIEF §4, « plus de bouton HOME en mot ») -->
+      <!-- (2026-10-14, navigation 7) la SECONDE CHANCE (mécanique : session GENERAL, chanceEtat/chanceJoue) : une touche d'ENCRE au-dessus de ⌂ · REJOUER,
+           vide et masquée tant que mFill ne l'allume pas (.on) — absente, elle ne décale rien -->
+      <div class="pbtn" id="mChance" role="button" tabindex="0"></div>
       <div class="mFin"><div class="pbtn pbCarre mMenu" data-m="menu" role="button" tabindex="0" aria-label="Accueil"><i class="pxi pxi-maison" aria-hidden="true"></i></div><div class="pbtn pb-gold big wide" data-m="replay" role="button">REJOUER</div></div>
       <!-- (2026-09-30, Léo : « un bouton HOME qui remplacera tous les boutons GARAGE ou MENU ») la tuile GARAGE est partie : HOME, au-dessus,
            mène au garage (c'est l'accueil) — elle ne faisait plus que la même chose -->
@@ -40088,17 +40164,19 @@ $('resetBtn').addEventListener('click',()=>{if(started){carrIci();resetGame();}}
 // ---- sauvegarde : exporter / restaurer par code (le clic ne doit PAS relancer la partie) ----
 const expBtn=$('saveExp'),impBtn=$('saveImp');
 function btnFlash(b,txt){const o=b.innerHTML;b.innerHTML=txt;setTimeout(()=>{b.innerHTML=o;},1600);}
+/* (2026-10-14, navigation 7) PLUS AUCUNE BOÎTE GRISE DU SYSTÈME (prompt) : la fenêtre du jeu (modale) montre le code à copier à la main, ou
+   reçoit le code à restaurer — comme les réglages du téléphone. */
 expBtn.addEventListener('click',e=>{e.stopPropagation();
-  const code=SAVE.export();
+  const code=SAVE.export(),main=()=>modale({titre:'MA SAUVEGARDE',texte:'Sélectionne le code et copie-le à la main.',champ:code,lecture:true,boutons:[{l:'FERMER',v:0}]});
   if(navigator.clipboard&&navigator.clipboard.writeText)
-    navigator.clipboard.writeText(code).then(()=>btnFlash(expBtn,pxi('coche')+' COPIE !'),()=>prompt('Copie ce code :',code));
-  else prompt('Copie ce code :',code); // vieux navigateurs : la boîte fait le travail
+    navigator.clipboard.writeText(code).then(()=>btnFlash(expBtn,pxi('coche')+' COPIE !'),main);
+  else main(); // vieux navigateurs : le code à la main
 });
 impBtn.addEventListener('click',e=>{e.stopPropagation();
-  const c=prompt('Colle ton code de sauvegarde :');
-  if(c==null)return; // annulé
-  if(SAVE.import(c)){btnFlash(impBtn,pxi('coche')+' RESTAURE — RECHARGE…');setTimeout(()=>location.reload(),900);}
-  else btnFlash(impBtn,pxi('croix')+' CODE INVALIDE');
+  modale({titre:'RESTAURER',texte:'Colle ton code de sauvegarde.',champ:'',boutons:[{l:'RESTAURER',ic:'importer',cls:'pb-gold',v:1},{l:'ANNULER',v:0}]}).then(r=>{
+    if(!r.v||!String(r.texte||'').trim())return; // annulé
+    if(SAVE.import(r.texte.trim())){btnFlash(impBtn,pxi('coche')+' RESTAURE — RECHARGE…');setTimeout(()=>location.reload(),900);}
+    else btnFlash(impBtn,pxi('croix')+' CODE INVALIDE'); });
 });
 // ---------- MODE SURVIVANT v2 : 7 VRAIES voitures de police sur la piste — la POURSUITE ----------
 // Chaque IA est incarnée : elle roule, dépasse, défend, se rate, revient. Le classement = la DISTANCE
@@ -52085,7 +52163,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     const hd=pan.querySelector('.tpH'); if(hd)hd.textContent=run?'PAUSE':'CASH CAR'; }
   function panOpen(o,compte){ if(!pan)return;
     if(o)feuilleOuvre(pan,'open');else feuilleFerme(pan,'open'); // la pause MONTE du bas et y redescend
-    if(o){ panSync(); if(started&&!gameOver&&!paused)togglePause(); }
+    if(o){ pan.classList.remove('conf'); panSync(); if(started&&!gameOver&&!paused)togglePause(); } /* (navigation 7) une pause qui s'ouvre n'est jamais effacée par une fenêtre d'avant */
     else if(started&&!gameOver&&paused){ if(compte)repriseCompte(); else togglePause(); } }
   /* LA REPRISE EN 3-2-1 (2026-09-26, audit UX) : REPRENDRE est en BAS de l'écran — le pouce le quittait que la caisse repartait déjà
      à pleine vitesse (le ralenti de reprise est coupé par la règle « aucun ralenti »). Trois temps de 0,3 s, jeu GELÉ : ce n'est
@@ -52132,10 +52210,11 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='surv'){ clic(survBtnEl); panSync(); }
     else if(a==='tous'){ setPauseOuvre(); } // (2026-10-14, charte 6) TOUS LES REGLAGES : l'écran complet par-dessus la pause
     else if(a==='resp'){ panOpen(false); if(started&&!gameOver&&mode==='drive')respawn(); }
-    else if(a==='reset'||a==='quit'){ const q9=a==='quit'; // (2026-09-25) CONFIRMÉS : QUITTER tombait sous le pouce et terminait la partie d'un seul tap
+    else if(a==='reset'||a==='quit'){ const q9=a==='quit',n79=pan.classList.contains('n7'); // (2026-09-25) CONFIRMÉS : QUITTER tombait sous le pouce et terminait la partie d'un seul tap
+      if(n79)pan.classList.add('conf'); /* (2026-10-14, navigation 7) la fenêtre REMPLACE la pause : le panneau s'efface tant qu'elle est ouverte, il revient sur CONTINUER (voir <style id="nav7-pause">) */
       modale({titre:q9?'QUITTER LA PARTIE ?':'RECOMMENCER ?',texte:q9?(TUTO.on?(SAVE.d.permis?'Tu reprendras la leçon au prochain départ.':"Tu reprendras la leçon au prochain départ : le PERMIS et sa prime t'attendent."):'Tes gains sont versés au compte.'):'Les gains de cette partie ne seront PAS versés.', // (2026-09-29) pendant la leçon, « tes gains sont versés » taisait l'enjeu
-        boutons:[{l:q9?'QUITTER':'RECOMMENCER',ic:q9?'quitter':'rejouer',cls:'pb-red',v:1},{l:'CONTINUER',ic:'lecture',v:0}]}) // CONTINUER en DERNIER : Échap clique le dernier bouton
-      .then(function(r){ if(!r.v||!started||gameOver)return;
+        boutons:[{l:q9?'QUITTER':'RECOMMENCER',ic:q9?'quitter':'rejouer',cls:'pb-red',v:1},{l:'CONTINUER',ic:'lecture',cls:n79?'pb-gold':'',v:0}]}) // CONTINUER en DERNIER : Échap clique le dernier bouton · (2026-10-14, navigation 7) CONTINUER = l'or (la décision sûre), le destructeur passe en contour rouge : il n'est jamais le plus saillant
+      .then(function(r){ if(!r.v||!started||gameOver){pan.classList.remove('conf');return;} setTimeout(function(){pan.classList.remove('conf');},400); /* confirmé : le panneau reste effacé pendant qu'il se ferme (il ne réapparaît pas une image sous la fenêtre qui part) */
         const f9=function(){ if(!started||gameOver)return; const rc9=mode!=='boom'; if(rc9)feuilleFerme(pan,'open');else panOpen(false); // (2026-10-14, chasse aux bugs) RECOMMENCER ferme la feuille SANS dépauser : panOpen(false) passait par togglePause (« GO ! », musique de la partie abandonnée relancée, jeu qui repart) juste avant resetGame
           if(q9){if(rc9){paused=false;try{if(AC&&SND.sfx&&AC.state!=='running')AC.resume();}catch(e){}} /* (2026-10-14, chasse aux bugs) QUITTER aussi ferme la feuille SANS togglePause : la musique de la partie abandonnée repartait 0,66 s (play à la seconde où on l'avait laissée) juste pour être étranglée par le tape-stop d'endGame — on sort de la pause à la main, le son se réveille pour l'écran de fin, la musique reste arrêtée (musicStop la range proprement) */ if(TUTO.on)tutoQuitte();const sb=SANDBOX;SANDBOX=false;endGame();SANDBOX=sb;}
           else if(mode==='boom')endGame(); // (2026-10-12, passe qualité) la caisse EXPLOSE déjà : la partie est finie — RECOMMENCER sautait endGame (ni virement, ni aura, ni record, ni écran de fin). On la solde, l'écran de fin et son REJOUER suivent.
@@ -52163,6 +52242,93 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       gearTt=performance.now(); gearOpenHandler(e); },{passive:false}); }
   if(gear)gear.addEventListener('click',function(e){ if(performance.now()-gearTt<700){e.stopPropagation();return;} gearOpenHandler(e); }); // au relâcher (voir mHit) : le panneau défile, un glissé n'active rien
   if(pan)pan.addEventListener('click',panTapHandler);
+  /* (2026-10-14, NAVIGATION 7 — PAUSE · RÉGLAGES · FIN ; ordre de Sacha : « un réglage = un seul endroit », plus de fonctionnalités répétées,
+     clair pour un enfant). Ne tourne que sous html.nav7 (?nav=0 et ?ui=5 gardent le DOM d'avant) ; le style vit dans <style id="nav7-pause">.
+     · LA PAUSE ne garde que les décisions de la partie : REPRENDRE (l'or), RECOMMENCER, RÉGLAGES (la page complète #mSet, setPauseOuvre),
+       QUITTER (contour rouge, sur sa rangée). Les cinq bascules en double (son, musique, voix, image, pouce) n'existent plus qu'aux RÉGLAGES :
+       la ligne « TOUS LES REGLAGES » devient la touche RÉGLAGES, rangée avec RECOMMENCER et QUITTER (.tpRow se dissout dans la grille).
+     · LES RÉGLAGES se rangent pour un enfant : SON (son + volume, musique + volume, vibrations) · JEU (langue, qualité d'image, « en vol,
+       pouce en haut » ; la ligne MODE FACILE reste dans le DOM mais ne s'affiche plus : le mode est retiré, 14 h 05) · AIDE (l'auto-école) · SAUVEGARDE (copier mon code, ENTRER UN CODE — qui restaure AUSSI une sauvegarde :
+       RESTAURER UN CODE fait double emploi et part) · EFFACER, seul, tout en bas. Les lignes gardent leurs data-m et leurs ids : mTap et mFill
+       ne voient rien. Un fondu d'encre en bas dit « ça continue » tant qu'on n'est pas au bout de la liste. */
+  (function(){ if(!document.documentElement.classList.contains('nav7'))return;
+    try{Object.assign(I18N,{'SON (TITRE)':'SOUND','SON (LIGNE)':'SOUND','AIDE':'HELP',"QUALITE D'IMAGE":'IMAGE QUALITY','EN VOL, POUCE EN HAUT':'IN FLIGHT, THUMB UP',
+      'COPIER MON CODE':'COPY MY CODE','MON CODE':'MY CODE','Garde ce code : pour tout retrouver, RÉGLAGES › ENTRER UN CODE.':'Keep this code: to get everything back, SETTINGS › ENTER A CODE.',
+      'Un code de sauvegarde, ou un code secret.':'A save code, or a secret code.','CE CODE NE MARCHE PAS':"THIS CODE DOESN'T WORK",'REPRENDRE LA LEÇON':'RESUME THE LESSON','PARTAGER':'SHARE'});
+      Object.assign(I18N_FR,{'SON (TITRE)':'SON','SON (LIGNE)':'SON'});}catch(e){}
+    const mot=function(fr){return '<span data-fr="'+fr.replace(/"/g,'&quot;')+'">'+TR(fr)+'</span>';};
+    /* — LA PAUSE — */
+    if(pan){const tous=pan.querySelector('.tp[data-a="tous"]'),row=pan.querySelector('.tpRow');
+      if(tous&&row){tous.classList.remove('ligne','lien');tous.innerHTML=pxi('reglages')+' '+mot('REGLAGES');row.appendChild(tous);}
+      pan.classList.add('n7');}
+    /* — LES RÉGLAGES — */
+    const ms=$t('mSet'),corps=ms&&ms.querySelector('.c6Corps'),cols=corps?corps.querySelectorAll(':scope>.c6Col'):[];
+    if(!ms||cols.length<2)return;
+    const lg=function(m){return ms.querySelector('.mLigne[data-m="'+m+'"]');};
+    const nomme=function(m,fr){const l=lg(m),t=l&&l.querySelector('.tpL');if(t)t.innerHTML=mot(fr);};
+    const titre=function(fr,o){const d=document.createElement('div');d.className='mSec '+o;d.innerHTML=mot(fr);return d;};
+    const groupe=function(o,els){const d=document.createElement('div');d.className='mPanel '+o;for(const e of els)if(e)d.appendChild(e);return d;};
+    const imp=lg('imp'),code=lg('code'),boite=ms.querySelector('.mCode');
+    const gSon=groupe('oSon',[lg('snd'),$t('mVolRowSfx'),lg('mus'),$t('mVolRowMus'),lg('vox'),$t('mVolRowVox'),lg('vib')]),
+          gJeu=groupe('oJeu',[lg('lang'),lg('facile'),lg('q'),lg('volh'),$t('mvCtl')]),
+          gAide=groupe('oAide',[lg('tuto')]),
+          gSauv=groupe('oSauv',[lg('exp'),code]);
+    cols[0].textContent='';cols[0].append(titre('SON (TITRE)','oSon'),gSon,titre('AIDE','oAide'),gAide);
+    cols[1].textContent='';cols[1].append(titre('JEU','oJeu'),gJeu,titre('SAUVEGARDE','oSauv'),gSauv);
+    if(imp)imp.remove();if(boite)boite.remove();
+    nomme('snd','SON (LIGNE)');nomme('q',"QUALITE D'IMAGE");nomme('volh','EN VOL, POUCE EN HAUT');nomme('exp','COPIER MON CODE');
+    ms.classList.add('n7');
+    /* le fondu du bas : allumé tant qu'il reste de la liste sous le bord (la seule zone qui défile est l'overlay) */
+    const ov=$t('overlay'),bout=function(){if(!ms.classList.contains('on'))return;ms.classList.toggle('n7Fin',ov.scrollTop+ov.clientHeight>=ov.scrollHeight-8);};
+    if(ov){ov.addEventListener('scroll',bout,{passive:true});addEventListener('resize',bout);
+      try{new MutationObserver(function(){requestAnimationFrame(bout);}).observe(ms,{attributes:true,attributeFilter:['class']});}catch(e){}}
+  })();
+  /* LA SECONDE CHANCE (2026-10-14, navigation 7 — validée par Sacha ; la MÉCANIQUE est à la session GENERAL : chanceEtat() → {ok,prix,reste},
+     chanceJoue() → true/false, qui paie, passe le volet et relance ; son, toast, 3·2·1 et « une fois par partie » sont chez elle ; ?chance=0 éteint
+     tout). Ici, seulement SA TOUCHE sur l'écran de fin (#mChance) : de l'ENCRE au-dessus de ⌂ · REJOUER — REJOUER reste la seule plaque d'or —,
+     « SECONDE CHANCE · » + le prix en vert, sans compte à rebours (l'offre s'éteint seule 5,5 s après la mort : GENERAL émet `cc:chance` à
+     l'ouverture, à l'extinction et à l'achat, et on relit chanceEtat().ok à chaque fois, comme à chaque mFill de la fin). Même garde de 600 ms
+     que les autres touches de cet écran. Tant que chanceEtat n'existe pas, `typeof` la laisse éteinte ; éteinte, elle ne décale rien.
+     Hors du bloc nav7 : elle vit aussi sous ?nav=0. */
+  try{Object.assign(I18N,{'SECONDE CHANCE':'SECOND CHANCE'});}catch(e){}
+  function mChanceSync(){ const cb=$t('mChance');if(!cb)return;
+    if(!cb._n7){cb._n7=1;cb.addEventListener('click',function(e){e.stopPropagation();if(!cb.classList.contains('on')||(TCTL.mortT&&performance.now()-TCTL.mortT<600))return;
+      if(typeof chanceJoue==='function'){uiClic('nav');try{chanceJoue();}catch(_){}}});}
+    let ch=null;try{ch=(typeof chanceEtat==='function')?chanceEtat():null;}catch(_){}
+    const ok=!!(ch&&ch.ok&&started&&gameOver);cb.classList.toggle('on',ok);
+    if(ok)cb.innerHTML=pxi('coeur')+'<span>'+TR('SECONDE CHANCE')+' ·</span><b>'+fmtC(ch.prix)+'</b>'; }
+  document.addEventListener('cc:chance',function(){try{mChanceSync();}catch(_){}});
+  /* PARTAGER (2026-10-14, navigation 7, relevé de la session IDEE) : sur l'écran de fin, une touche SECONDAIRE d'encre, sous le montant (jamais à
+     côté de REJOUER). Elle partage une IMAGE carrée : CASH CAR, la photo de studio de la caisse si elle est déjà prise (PHOTO.cache — on ne la
+     fabrique pas ici : carPhoto reconstruit la caisse, pas sur une scène de mort), le montant versé, le nom de la caisse. L'image est faite
+     900 ms après l'arrivée de l'écran (le compte est passé), UNE fois par mort ; la touche n'apparaît que si le téléphone sait partager un
+     fichier (navigator.canShare) — aucun repli, aucune touche morte. navigator.share part dans le geste même (le fichier est déjà prêt :
+     Safari refuse un partage lancé après une attente). Rien à 0 $ : on ne partage pas une partie vide. */
+  function n7Image(montant,ci,nom){return new Promise(function(res){try{
+    const W=1080,H=1080,cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d'),PX="'Press Start 2P',monospace";
+    const ecrit=function(t,y,taille,coul){let s=taille;x.font=s+'px '+PX;while(s>16&&x.measureText(t).width>W-176){s-=4;x.font=s+'px '+PX;}x.fillStyle=coul;x.fillText(t,W/2,y);};
+    const dessine=function(im){x.fillStyle='#0b0d12';x.fillRect(0,0,W,H);x.strokeStyle='#ffffff';x.lineWidth=8;x.strokeRect(36,36,W-72,H-72);x.textAlign='center';x.textBaseline='middle';
+      if(im){ecrit('CASH CAR',150,72,'#ffc62b');const w=920,h=w*im.height/im.width;x.drawImage(im,(W-w)/2,Math.max(230,500-h/2),w,h);ecrit(montant,810,104,'#58e08c');ecrit(nom,930,40,'#ffffff');}
+      else{ecrit('CASH CAR',360,120,'#ffc62b');ecrit(montant,620,104,'#58e08c');ecrit(nom,800,40,'#ffffff');}
+      cv.toBlob(function(b){res(b);},'image/png');};
+    const go=function(){const url=PHOTO.cache&&PHOTO.cache[ci];if(!url){dessine(null);return;}const im=new Image();im.onload=function(){dessine(im);};im.onerror=function(){dessine(null);};im.src=url;};
+    if(document.fonts&&document.fonts.load)document.fonts.load("72px 'Press Start 2P'").then(go,go);else go();
+  }catch(e){res(null);}});}
+  function n7Partage(prem,v){
+    const cl=document.querySelector('#mDead .mCashL');if(!cl)return;
+    let bt=cl.querySelector('.n7Partage');
+    if(!bt){bt=document.createElement('div');bt.className='pbtn n7Partage';bt.setAttribute('role','button');bt.tabIndex=0;bt.innerHTML='<span data-fr="PARTAGER">'+TR('PARTAGER')+'</span>';cl.appendChild(bt);
+      bt.addEventListener('click',function(e){e.stopPropagation();if(TCTL.mortT&&performance.now()-TCTL.mortT<600)return;const f=n7Partage.f;if(!f)return;
+        uiClic('nav');try{const p=navigator.share({files:[f],text:n7Partage.t});if(p&&p.catch)p.catch(function(){});}catch(_){}});}
+    if(!prem)return; // revenu sur l'écran de cette mort : l'image est faite (ou en route)
+    bt.classList.remove('pret');n7Partage.f=null;
+    if(!(v>0)||typeof navigator.share!=='function'||typeof navigator.canShare!=='function'||typeof File!=='function')return;
+    const k=TCTL.mortT,ci=Math.min(CARS.length-1,Math.max(0,level|0)),nom=TR(CARS[ci].name),m=fmtC(v).replace(/[  ]/g,' ');
+    setTimeout(function(){ if(k!==TCTL.mortT)return; n7Image(m,ci,nom).then(function(b){ if(!b||k!==TCTL.mortT)return;
+      let f=null,ok=false;try{f=new File([b],'cashcar.png',{type:'image/png'});ok=navigator.canShare({files:[f]});}catch(_){}
+      if(!ok)return; n7Partage.f=f; n7Partage.t=LANG==='en'?'I banked '+m+' in CASH CAR with '+nom+'!':"J'ai encaissé "+m+' sur CASH CAR avec '+nom+' !';
+      bt.classList.add('pret'); }); },REDUCED_MOTION?0:900);
+  }
   // ---- SYNCHRO PARESSEUSE (8 Hz) : apparition des commandes, écran de mort, gel en paysage.
   //      Un petit tick plutôt qu'un branchement dans loop() — et zéro écriture DOM si rien n'a changé.
   function syncJeu(){
@@ -52377,8 +52543,8 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       mCompteSon(recT);
       // Ce qui se gagne DANS une partie, c'est le MOTEUR (la caisse, elle, se choisit au garage) :
       // c'est donc lui qu'on montre en fin de run, pas un palier de voiture qui ne veut plus rien dire.
-      {const rj=document.querySelector('#mDead [data-m="replay"]');if(rj){const k9=tq9&&!CARR.actif?'REPRENDRE':'REJOUER',tx=TR(k9);let sp=rj.querySelector('span');if(!sp){sp=document.createElement('span');rj.textContent='';rj.appendChild(sp);}
-        sp.textContent=tx;if(sp.dataset.fr)sp.dataset.fr=k9;rj.style.setProperty('--nb',Math.max(7,tx.length));}} // (le texte vit dans son <span> : c'est lui que la règle « tient dans le lingot » dimensionne sur --nb signes) // (2026-09-29) après une leçon QUITTÉE, le lingot relance la leçon : il le dit
+      {const rj=document.querySelector('#mDead [data-m="replay"]');if(rj){const k9=tq9&&!CARR.actif?(document.documentElement.classList.contains('nav7')?'REPRENDRE LA LEÇON':'REPRENDRE'):'REJOUER',tx=TR(k9);let sp=rj.querySelector('span');if(!sp){sp=document.createElement('span');rj.textContent='';rj.appendChild(sp);} /* (2026-10-14, navigation 7) « REPRENDRE » tout court ne disait pas QUOI : la leçon (deux lignes dans le lingot, .n7Long) */
+        sp.textContent=tx;if(sp.dataset.fr)sp.dataset.fr=k9;rj.style.setProperty('--nb',Math.max(7,tx.length));rj.classList.toggle('n7Long',tx.length>12);}} // (le texte vit dans son <span> : c'est lui que la règle « tient dans le lingot » dimensionne sur --nb signes) // (2026-09-29) après une leçon QUITTÉE, le lingot relance la leçon : il le dit
       {let nG=shopAPortee();for(let i=0;i<CARS.length;i++){const p9=carPrice(i);if(p9&&!carUnlockedVrai(i)&&p9<=bank())nG++;} // (2026-09-29, audit) la pastille du GARAGE vit aussi ici : le débutant enchaîne REJOUER et ne revoit pas l'accueil
        const bg=$t('bdGar2');if(bg){bg.textContent=nG||'';bg.classList.toggle('on',nG>0);}}
       const nw=$t('mNew'),E=ENGINE_TIERS[Math.min(ENGINE_TIERS.length-1,Math.max(0,engTier|0))];nw.style.display='none';
@@ -52411,6 +52577,13 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       $t('mStatsBox').innerHTML=mStatBox('×'+Math.max(1,runStats.xMax|0),TR('MULTI MAX'))+ /* (2026-09-26) « 0 FIGURES » à côté de « +820 AURA » : le compteur ne voyait que l'ancienne chaîne en $ */mStatBox(Math.round(runStats.vmax),'KM/H MAX')+mStatBox(LVL.cur?LVL.n:runStats.zones+1,TR('NIVEAU')) // (2026-09-27) en carrière : le VRAI numéro du niveau · (2026-09-30) partout : celui de la bannière (runStats.zones compte la zone de l'école : « NIVEAU 2 » après « NIVEAU 1 »)
         // (v3) la plus longue FRÉNÉSIE de la partie — .rec quand elle a battu le record (le style : session UI)
         +(function(){const t9=RUNX.frenMax||0,rc=t9>=5&&t9>=(SAVE.d.frenRec||0)-.05;return '<div class="mStat mFren'+(rc?' rec':'')+(t9<1?' zero':'')+'"><b>'+frenDuree(t9)+'</b><span>'+(document.documentElement.classList.contains('c6')?TR('FRENESIE'):TR(rc?'RECORD':'FRENESIE'))+'</span></div>';})(); // (2026-10-14, charte 6) le chiffre garde sa légende : « RECORD » à sa place le laissait sans nom (et l'écrivait une 4e fois)
+      if(document.documentElement.classList.contains('nav7')){ /* (2026-10-14, navigation 7, relevé IDEE) UNE PARTIE COURTE n'aligne plus quatre zéros (×1, niveau 1, 0:00) :
+           la bande ne garde que ce qui a PROGRESSÉ depuis le départ ; s'il ne reste rien, elle disparaît (pas de case vide). Le montant reste le héros. */
+        const xm9=Math.max(1,runStats.xMax|0),vm9=Math.round(runStats.vmax),nv9=LVL.cur?LVL.n:runStats.zones+1,fr9=RUNX.frenMax||0,rc9=fr9>=5&&fr9>=(SAVE.d.frenRec||0)-.05;
+        $t('mStatsBox').innerHTML=(xm9>1?mStatBox('×'+xm9,TR('MULTI MAX')):'')+(vm9>0?mStatBox(vm9,'KM/H MAX'):'')+(nv9>1?mStatBox(nv9,TR('NIVEAU')):'')
+          +(fr9>=1?'<div class="mStat mFren'+(rc9?' rec':'')+'"><b>'+frenDuree(fr9)+'</b><span>'+TR('FRENESIE')+'</span></div>':'');
+        try{n7Partage(prem9,RUNX.verse!=null?RUNX.verse:Math.max(0,Math.round(bank()-(RUNX.bank0||0))));}catch(e){}}
+      mChanceSync(); // (2026-10-14, navigation 7) la SECONDE CHANCE : relue à chaque apparition de l'écran (voir mChanceSync)
       objRender($t('mObj'));
     }else if(mCur==='shop'){
       if(!SAVE.d.shopVu){SAVE.d.shopVu=1;SAVE.flush();}
@@ -52520,8 +52693,8 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       keys.ArrowLeft=keys.ArrowRight=false; document.body.classList.toggle('tpad',TCTL.pad);
       SAVE.d.tctl=TCTL.pad?'pad':'stick'; SAVE.flush(); mFill(); }
     else if(a==='q'){ SAVE.d.q=(SAVE.d.q==='net')?'fast':'net'; SAVE.d.qChoisi=1; SAVE.flush(); applyQ(SAVE.d.q!=='net'); mFill(); }
-    else if(a==='exp'){ const c9=SAVE.export();
-      modale({titre:'MA SAUVEGARDE',texte:'Garde ce code : il restaure toute ta progression.',champ:c9,lecture:true,
+    else if(a==='exp'){ const c9=SAVE.export(),n79=document.documentElement.classList.contains('nav7'); /* (2026-10-14, navigation 7) COPIER MON CODE : la fenêtre dit où le code se rentre */
+      modale({titre:n79?'MON CODE':'MA SAUVEGARDE',texte:n79?'Garde ce code : pour tout retrouver, RÉGLAGES › ENTRER UN CODE.':'Garde ce code : il restaure toute ta progression.',champ:c9,lecture:true,
         boutons:[{l:'COPIER',ic:'copier',cls:'pb-gold',v:1},{l:'FERMER',v:0}]}).then(function(r){
         if(!r.v)return;
         /* (2026-09-30, R7-11) sans presse-papier (page en http, fichier local, refus du navigateur), la feuille se fermait sans un mot : le joueur
@@ -52536,10 +52709,16 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
         if(SAVE.import(r.texte.trim())){toast(pxi('coche')+' '+TR('RESTAURE — RECHARGE…'));setTimeout(function(){location.reload();},900);}
         else toast(pxi('croix')+' '+TR('CODE INVALIDE')); }); }
     else if(a==='code'){ /* LE CODE COUSIN (2026-10-14, Léo) — voir codeCousin */
-      modale({titre:'ENTRER UN CODE',texte:'',champ:'',boutons:[{l:'VALIDER',ic:'coche',cls:'pb-gold',v:1},{l:'ANNULER',v:0}]}).then(function(r){
+      /* (2026-10-14, navigation 7) ENTRER UN CODE = LA seule porte des codes : une sauvegarde copiée (SAVE.import, essayé d'abord : il ne touche à rien
+         s'il échoue) OU un code secret (codeCousin). RESTAURER UN CODE, qui faisait la moitié du même geste, n'est plus affiché (?nav=0 le garde). */
+      const n79=document.documentElement.classList.contains('nav7');
+      modale({titre:'ENTRER UN CODE',texte:n79?'Un code de sauvegarde, ou un code secret.':'',champ:'',boutons:[{l:'VALIDER',ic:'coche',cls:'pb-gold',v:1},{l:'ANNULER',v:0}]}).then(function(r){
         if(!r.v)return;
+        const t9=String(r.texte||'').trim();
+        if(n79&&!t9)return; // rien tapé : comme ANNULER
+        if(n79&&SAVE.import(t9)){toast(pxi('coche')+' '+TR('RESTAURE — RECHARGE…'));setTimeout(function(){location.reload();},900);return;}
         if(codeCousin(r.texte)){toast(pxi('coche')+' '+TR('TOUT EST DÉBLOQUÉ !'),true);try{if(SONV2)sfx('caisse.debloquee');}catch(e){}hap([20,40,20,40,60]);try{mFill();}catch(e){}}
-        else toast(pxi('croix')+' '+TR('CODE INCONNU')); }); }
+        else toast(pxi('croix')+' '+TR(n79?'CE CODE NE MARCHE PAS':'CODE INCONNU')); }); }
     else if(a==='wipe'){
       modale({titre:'TOUT EFFACER ?',texte:'Argent, caisses, habillages, missions, records, carrière et réglages : tout repart de zéro.',
         boutons:[{l:'EFFACER',ic:'corbeille',cls:'pb-red',v:1},{l:'ANNULER',v:0}]}).then(function(r){
