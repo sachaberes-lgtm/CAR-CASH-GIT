@@ -15635,15 +15635,15 @@ const BK_SOL_FS=[FG_BRUIT,BK_LUM,'varying vec3 vW,vN;varying vec2 vS;','#include
   '  float f1=1.-smoothstep(160.,700.,dist),f2=1.-smoothstep(20.,120.,dist);',
   // LE RELIEF DE LA NEIGE, en trois échelles (des pentes de bruit, pas de texture) : les DUNES (~40 m), les RIDES du vent (~7 m), le GRAIN (~1,5 m)
   '  float d0=fn2(q*.026),dx=fn2((q+vec2(1.5,0.))*.026)-d0,dz=fn2((q+vec2(0.,1.5))*.026)-d0;vec2 gr=vec2(dx,dz)*(9.5*f1);',
-  '  vec2 W=vec2(.83,.56);float ph=dot(q,W)*.85+fn2(q*.045)*7.;gr+=W*cos(ph)*.30*f1*(.45+.55*fn2(q*.017));',
+  '  vec2 W=vec2(.83,.56);float ph=dot(q,W)*.85+fn2(q*.045)*7.;gr+=W*cos(ph)*.24*(1.-smoothstep(25.,95.,dist))*(.45+.55*fn2(q*.017));',
   '  if(f2>0.){float g0=fn2(q*.75);gr+=vec2(fn2((q+vec2(.25,0.))*.75)-g0,fn2((q+vec2(0.,.25))*.75)-g0)*1.6*f2;}',
   '  vec3 Np=normalize(N-vec3(gr.x,0.,gr.y));',
   '  float n1=fn2(q*.019),n2=fn2(q*.083),sl=1.-N.y,roc=smoothstep(.40,.56,sl+(n1-.5)*.22);',
-  '  vec3 neige=mix(vec3(.80,.85,.94),vec3(.70,.77,.90),smoothstep(.45,.75,fn2(q*.012)));',                  // la neige soufflée, plus tassée, plus bleue
+  '  vec3 neige=mix(vec3(.76,.82,.93),vec3(.66,.74,.90),smoothstep(.45,.75,fn2(q*.012)));',                  // la neige soufflée, plus tassée, plus bleue
   '  vec3 pierre=vec3(.065,.075,.12)*(.65+.7*n2);pierre=mix(pierre,neige*.9,smoothstep(.58,.80,fn2(q*vec2(.05,.21)+n1*2.))*.75);',
   '  vec3 alb=mix(neige,pierre,roc);',
   '  float ndl=dot(Np,L),dif=clamp((ndl+.08)/1.08,0.,1.);dif*=dif*(3.-2.*dif);',
-  '  vec3 col=alb*(uSky*(.26+.30*Np.y)+uGnd*.08+uSunC*dif*1.08+uFillC*max(dot(Np,-uFillD),0.)*.30);',
+  '  vec3 col=alb*(uSky*(.26+.30*Np.y)+uGnd*.08+uSunC*dif*.98+uFillC*max(dot(Np,-uFillD),0.)*.30);',
   '  col+=alb*uSky*(1.-dif)*vec3(.20,.42,.75)*.55*(1.-roc);',                                                // l'OMBRE BLEUE de la neige (le ciel qu'elle diffuse)
   '  col+=alb*uSunC*pow(1.-max(dot(Np,V),0.),4.)*.10*dif;',                                                  // le lustre rasant
   // les ÉTINCELLES : chaque cristal a sa facette (une normale au hasard) ; il s'allume quand le soleil s'y reflète vers l'œil — elles naissent et meurent quand la caméra bouge
@@ -15669,7 +15669,7 @@ const BK_PIC_FS=[FG_BRUIT,BK_LUM,'varying vec3 vW,vN,vB;varying vec4 vP;','#ifnd
   '  float hf=clamp(vP.x,0.,1.),sd=vP.y,fam=vP.z;',
   '  vec3 o=vW*.035+sd*31.;float fr=0.,bu=0.;',
   '  for(int k=0;k<3;k++){float pk=float(k);vec3 pp=o-V*(.9+pk*2.1);float f=fn3(pp*vec3(1.,2.4,1.)+pk*7.3);',              // les FRACTURES (des nappes fines du bruit)
-  '    fr+=(smoothstep(.455,.5,f)-smoothstep(.5,.545,f))*(1.-pk*.27);',
+  '    fr+=(smoothstep(.472,.5,f)-smoothstep(.5,.528,f))*(1.-pk*.27);',
   '    float b=fh3(floor(pp*7.));bu+=step(.985,b)*(1.-pk*.3);}',                                                               // des BULLES prises dans la glace
   '  fr*=1.-smoothstep(120.,700.,dist);bu*=1.-smoothstep(40.,160.,dist);',
   '  vec3 deep=uIceT*vec3(.010,.085,.22),mid=uIceT*vec3(.06,.50,.76),clair=vec3(.60,.95,1.);float fv=fh3(floor(N*9.)+sd*13.);',
@@ -15679,7 +15679,7 @@ const BK_PIC_FS=[FG_BRUIT,BK_LUM,'varying vec3 vW,vN,vB;varying vec4 vP;','#ifnd
   '  float ndl=dot(N,L),dif=max(ndl,0.);',
   '  float tr=pow(max(dot(-V,L),0.),3.)*(.6+.4*(1.-th))+.22;',                                                                // la lumière qui TRAVERSE
   '  vec3 col=alb*(uSky*.42+uGnd*.10+uSunC*(.10+.95*dif))+mid*uSunC*tr*(.20+.60*hf)*vec3(.55,.92,1.)+clair*uSunC*hf*hf*.10;',
-  '  col+=clair*(fr*.95+bu*.9)*(uSunC*.55+uSky*.45);',
+  '  col+=clair*(fr*.70+bu*.9)*(uSunC*.55+uSky*.45);',
   '  col=mix(col,bCiel(R),fres*.55);',
   '  float sr=max(dot(R,L),0.);col+=uSunC*(pow(sr,110.)*2.8+pow(sr,14.)*.16);',                                              // l'ÉCLAT de la facette
   '  float e=min(min(vB.x,vB.y),vB.z),w9=fwidth(e)*1.4;float ar=1.-smoothstep(0.,w9+.010,e);',                                 // les ARÊTES
@@ -16035,7 +16035,7 @@ function banqFx(){const fx=BANQ.fx;if(fx.flo)return fx;const M=banqMats(),R=mulb
       P.push(x,y0,z,x,y0+h,z);U.push(u,0,c*1.7,u,1,c*1.7);if(i>0){const b=n-2;I.push(b,b+2,b+1,b+1,b+2,b+3);}n+=2;}}
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('aU',new THREE.Float32BufferAttribute(U,3));g.setIndex(I);
     fx.aur=new THREE.Mesh(g,M.aur);fx.aur.name='banquise aurores';fx.aur.frustumCulled=false;fx.aur.renderOrder=-1;fx.aur.visible=false;scene.add(fx.aur);}
-  fx.poudre=makePool(PAL_BK('banqPoudre',520),3.4,0xf4f8ff,.92,true,{a:[.06,.6,.75,1.35],pr:[2,6,26,0]});fx.poudre.drag=1.6;fx.poudre.acc=12;fx.poudre.mesh.name='banquise poudre';
+  fx.poudre=makePool(PAL_BK('banqPoudre',520),2.3,0xf4f8ff,.78,true,{a:[.06,.6,.75,1.35],pr:[2,6,26,0]});fx.poudre.drag=1.6;fx.poudre.acc=12;fx.poudre.mesh.name='banquise poudre';
   fx.givre=makePool(240,1.1,0xe4fbff,1,true,{a:[.02,.3,.6,1],pr:[2,6,26,0]});fx.givre.drag=2.4;fx.givre.acc=9;fx.givre.mesh.name='banquise givre';
   bkTraceMesh();
   return fx;}
@@ -16091,10 +16091,10 @@ function banqVolFx(dt){
   else if(t===1&&d>-.35)bkTrace(p.x,p.z,hx,hz,0,Math.min(1,(d+.35)/1.6),1.55+Math.min(.7,Math.max(0,d)*.45));
   else bkTraceCoupe();
   // LA GERBE : au ras, une crête de poudre derrière la caisse (la « queue de coq ») ; plus haut, le souffle lève un voile
-  if(t===1&&d>-2.8&&hv>12){const ras=d>-.35,k=Math.min(1,hv/110)*(ras?1:.22*(1+d/2.8));BANQ.em=(BANQ.em||0)+dt*90*k;
+  if(t===1&&d>-2.8&&hv>12){const ras=d>-.35,k=Math.min(1,hv/110)*(ras?1:.22*(1+d/2.8));BANQ.em=(BANQ.em||0)+dt*42*k;
     const y=(BANQ.hNow||p.y)+.3;
-    while(BANQ.em>=1){BANQ.em-=1;const sd=Math.random()<.5?-1:1,l=(Math.random()-.5)*2.6;
-      spawnP(fx.poudre,p.x-hx*2.2-hz*l,y,p.z-hz*2.2+hx*l,-hx*v9*(.08+Math.random()*.2)+(-hz)*sd*(2+Math.random()*5),(ras?7:3)+Math.random()*(ras?13:5)*k,-hz*v9*(.08+Math.random()*.2)+hx*sd*(2+Math.random()*5),.8+Math.random()*1.1);}}
+    while(BANQ.em>=1){BANQ.em-=1;const sd=Math.random()<.5?-1:1,l=sd*(1+Math.random()*1.2); // deux RIDEAUX qui partent sur les côtés (derrière la caisse, la caméra regarde à travers : jamais un mur blanc)
+      spawnP(fx.poudre,p.x-hx*1.4-hz*l,y,p.z-hz*1.4+hx*l,hx*v9*(.15+Math.random()*.2)+(-hz)*sd*(6+Math.random()*9),(ras?4:2)+Math.random()*(ras?8:3)*k,hz*v9*(.15+Math.random()*.2)+hx*sd*(6+Math.random()*9),.45+Math.random()*.6);}}
   else BANQ.em=0;
   // LE GIVRE de la glisse : les patins jettent des éclats
   if(BANQ.glisse&&hv>10){BANQ.eg=(BANQ.eg||0)+dt*36*Math.min(1,hv/90);while(BANQ.eg>=1){BANQ.eg-=1;const sd=Math.random()<.5?-1:1;
