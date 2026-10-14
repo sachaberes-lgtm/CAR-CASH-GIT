@@ -24,6 +24,9 @@ rm -rf .vercel-static/jouer/simulateur.html .vercel-static/jouer/simulateur
 # la salle blanche, la boîte à dauphins, la boîte du singe — et aucun script Python ne part en ligne
 rm -rf .vercel-static/jouer/salle-blanche.html .vercel-static/jouer/salle-blanche .vercel-static/jouer/boite-dauphins.html .vercel-static/jouer/boite-singe.html
 find .vercel-static/jouer -name '*.py' -delete
+# (2026-10-14, pôle SON) L'ATELIER DE LA MUSIQUE reste un outil LOCAL (Léo : « pour toi ») : la page musique-moteur.html (elle fige les
+# morceaux par le serveur de la page) et les sources des morceaux à paliers (paliers/*.html). La BIBLIOTHÈQUE, elle, est publiée.
+rm -f .vercel-static/jouer/musique-moteur.html .vercel-static/jouer/assets/audio/music/paliers/*.html
 # LA MÊME VERSION POUR TOUT LE MONDE (2026-10-01, Léo) : le commit publié est gravé dans le jeu (jeton __CC_BUILD__ de
 # index.html) et posé dans version.json ; le jeu compare les deux et se recharge tout seul s'il est en retard.
 # ⚠ (2026-10-03, Léo : « le jeu coupe bizarrement la musique ») L'EMPREINTE DU JEU, PLUS LE COMMIT : graver le commit faisait croire à une

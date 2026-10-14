@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nuit de velours — morceau à paliers</title>
+<style>
+:root{--fond:#fff;--tx:#17141c;--tx2:#8a8494;--fil:#e4e1ea;--acc:#5b3fd6}
+@media (prefers-color-scheme:dark){:root{--fond:#0d0b12;--tx:#f2f0f7;--tx2:#9a94a8;--fil:#2a2633;--acc:#8f7bff}}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{background:var(--fond);color:var(--tx);font:15px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:grid;place-items:center;padding:16px}
+.boite{width:100%;max-width:560px;border:1px solid var(--fil);border-radius:20px;padding:24px;display:grid;gap:18px}
+h1{margin:0;font-size:22px}.sous{color:var(--tx2);font-size:13px;margin-top:4px}
+.rang{display:flex;gap:16px;align-items:center}
+#play{width:72px;height:72px;border-radius:50%;border:0;background:var(--tx);color:var(--fond);font-weight:700;cursor:pointer;flex:none}
+.pals{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;flex:1}
+.pals button{border:1px solid var(--fil);background:none;color:var(--tx);border-radius:12px;padding:12px 0;font:inherit;font-weight:700;cursor:pointer}
+.pals button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+#ce{color:var(--tx2);font-size:13px;min-height:36px}
+</style></head><body>
+<div class="boite">
+  <div><h1>NUIT DE VELOURS</h1><div class="sous">morceau à paliers · french touch de nuit, vaporwave · 110 BPM · fa mineur · intro de 4 mesures, puis 8 paliers (un tous les 4 moteurs)</div></div>
+  <div class="rang"><button id="play">PLAY</button><div class="pals" id="pals"></div></div>
+  <div id="ce"></div>
+</div>
+
+<!-- ======================= LE MORCEAU (format CASH CAR « morceau à paliers », avec INTRO) =======================
+     Léo (2026-10-12) : « la musique french touch, mais version nuit, plus night, dark mais pas trop grave ni trop aigu, harmonieux,
+     plus vaporwave » · « ça commence intro, puis palier 1… ».
+     Ce bloc ne touche JAMAIS à la page : pas de document, window, setInterval, Math.random, ni ctx.currentTime.
+     Le jeu l'extrait tel quel et le rend hors temps réel : l'intro (p = 0) une fois, puis les paliers 1 à 5 en boucle. -->
+<script id="morceau">
+const MORCEAU = (function () {
+  const BPM = 110, SD = 60 / BPM / 4, MES = 16 * SD, PHR = 8 * MES;
+  // ⚠ toute ondulation lente fait un nombre ENTIER de tours par phrase de 8 mesures (k / PHR) : sinon la boucle ne retombe
+  // pas sur elle-même et une nappe tenue claque au bouclage (mesuré : saut de 0,21 au palier 4 avec 0,31 Hz).
+  const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
+
+  // LA GRILLE DE NUIT (fa mineur) — Réb maj9 · Do7(b9) · Fa m9 · Mib m9 | Lab13, puis la réponse qui finit sur Sib m11 | Do7(b9).
+  // Voicings SERRÉS dans le médium (mib3 → sol4) : ni grave qui bave, ni aigu qui pique ; chaque voix bouge d'un ton au plus.
+  const AC = {
+    Db:  { b: 37, v: [53, 56, 60, 63] },  // Réb maj9  : fa · lab · do · mib
+    C7:  { b: 36, v: [52, 55, 58, 61] },  // Do7(b9)   : mi · sol · sib · réb
+    Fm:  { b: 41, v: [51, 56, 60, 67] },  // Fa m9     : mib · lab · do · sol
+    Ebm: { b: 39, v: [54, 58, 61, 65] },  // Mib m9    : solb · sib · réb · fa
+    Ab:  { b: 44, v: [54, 57, 60, 63] },  // Lab7(b9)  : solb · la · do · mib — « plus dark city » (c'était Lab13, trop lumineux)
+    Bbm: { b: 34, v: [51, 56, 61, 65] },  // Sib m11   : mib · lab · réb · fa
+  };
+  const GRILLE = [['Db', 'Db'], ['C7', 'C7'], ['Fm', 'Fm'], ['Ebm', 'Ab'], ['Db', 'Db'], ['C7', 'C7'], ['Fm', 'Fm'], ['Bbm', 'C7']];
+  const INTRO = [4, 5, 6, 7];   // l'intro joue les accords de la RÉPONSE : sa dernière mesure (Sib m11 | Do7) mène pile à la mesure 1
+
+  // LE MOTIF (mesures 1-2) et sa réponse (5-8) — [double croche, note, durée] ; tout entre réb4 et mib5
+  const MELODIE = [
+    [[0, 72, 3], [3, 68, 3], [6, 65, 4], [12, 63, 2], [14, 65, 2]],
+    [[0, 64, 6], [6, 67, 2], [8, 70, 4], [12, 68, 2], [14, 67, 2]],
+    [[0, 67, 6], [8, 68, 2], [10, 67, 2], [12, 65, 4]],
+    [[0, 66, 4], [4, 65, 2], [6, 61, 2], [8, 63, 6]],
+    [[0, 72, 3], [3, 68, 3], [6, 65, 2], [8, 68, 2], [10, 72, 2], [12, 75, 4]],
+    [[0, 73, 4], [4, 72, 2], [6, 70, 2], [8, 67, 4], [12, 64, 4]],
+    [[0, 65, 4], [4, 67, 2], [6, 68, 6], [12, 72, 2], [14, 68, 2]],
+    [[0, 70, 4], [4, 68, 2], [6, 65, 2], [8, 64, 2], [10, 67, 2], [12, 70, 2], [14, 73, 2]]];   // Do7 en montée → réb5 qui tombe sur do5
+  const RELANCE = [[8, 64, 2], [10, 67, 2], [12, 70, 2], [14, 73, 2]];   // la fin de l'intro : la même montée, seule dans le vide
+
+  // LA BASSE FUNKY (sur les contretemps, elle laisse les temps à la grosse caisse) — [pas, degré, durée, force]
+  const BASSE0 = [[2, 0, 2, 1], [10, 0, 2, 1], [14, 12, 2, .8]];                // P1 : posée, trois notes
+  const BASSE1 = [[2, 0, 2, 1], [6, 0, 1, .85], [7, 12, 1, .7], [10, 0, 2, 1], [13, 7, 1, .75], [14, 12, 2, .85]];   // P2 : funky
+  const BASSE2 = [[0, 0, 1, .5], [5, 12, 1, .5], [11, 12, 1, .55]];           // P3 : les notes fantômes
+  // L'ACCORD HACHÉ (la signature french touch) : 3 · 3 · 4 · 3 · 3 — [pas, durée, force]
+  const STAB1 = [[0, 2.5, 1], [3, 2.5, .85], [6, 3, .95], [10, 2.5, .85], [13, 2.5, .8]];
+  const STAB2 = [[8, 1, .45], [15, 1, .45]];
+  const STAB_RELANCE = [[8, 1.5, .8], [10, 1.5, .85], [12, 1.5, .9], [14, 2, 1]];   // P6+ : la fin de phrase martelée en croches
+  const FILL = [[13, .5], [14, .7], [15, .95]];   // P7+ (et aussi mesure 4 au P10) : trois claps qui relancent la phrase (là où la grosse caisse se tait)
+  const MEL_P1 = [0, 1, 4, 5];                     // P1 : seulement le motif et sa reprise — la mélodie respire (comme VAPEUR)
+  const GAMME = [5, 7, 8, 10, 0, 1, 3];    // fa mineur (classes de hauteur) : les ornements de la mélodie y prennent leur note voisine
+  // LA FIN FRENCH TOUCH (Léo, 2026-10-13 : « plus énergique pour la fin, french touch, Justice, Daft Punk, et vaporwave ») :
+  const STAB8 = [[0, 1.6, 1], [2, 1.6, .6], [4, 1.6, .72], [6, 1.6, .95], [8, 1.6, .62], [10, 1.6, .9], [12, 1.6, .72], [14, 1.6, .85]];   // P5+ : l'accord haché en croches
+  const BASSE_J = [[2, 0, 1, 1], [3, 12, 1, .75], [6, 0, 1, 1], [7, 12, 1, .75], [10, 0, 1, 1], [11, 12, 1, .75], [14, 0, 1, 1], [15, 12, 1, .8]];   // P6+ : la basse Justice, en octaves sur les contretemps
+  const PORTE8 = [0, 1, 0, .8, 0, 1, 0, .85];                  // P7 : les accords saturés, à contretemps (en croches)
+  const PORTE16 = [1, 0, .6, 1, 0, .6, 1, 0, .7, 1, 0, .6, 1, 0, .8, .6];   // P8 : l'accord haché en doubles croches par une porte (3·3·2)
+  const ROULE = [[12, .45], [13, .6], [14, .78], [15, 1]];     // P6+ : le roulement de caisse claire qui relance (mesures 4 et 8)
+
+  // HUIT PALIERS, UN TOUS LES 4 MOTEURS (Léo, 2026-10-13 : « les paliers, c'est bien si on change à chaque 4 moteurs ») :
+  // 1-4 · 5-8 · 9-12 · 13-16 · 17-20 · 21-24 · 25-28 · 29-30. Les trois premiers sont VAPORWAVE (la nuit, filtrée) ; le drop tombe au
+  // moteur 13 ; puis DAFT PUNK (le phaser), JUSTICE (la basse saturée, puis les accords saturés), et le final haché.
+  // QUAND : le palier où chaque élément ENTRE (chaque cran en change plusieurs qu'on entend, + le filtre, la largeur, le pompage).
+  const MOTEURS = [4, 4, 4, 4, 4, 4, 4, 2];
+  const QUAND = { basse1: 2, clap: 2, hat: 2, stab2: 2, melTout: 2, arp: 3, shaker: 3, basse2: 3, relance: 3, envers: 3,
+                  drop: 4, phaser: 5, chop8: 5, approche: 5, justice: 6, harmo: 6, roule: 6, fantome: 6,
+                  fuzz: 7, morsure: 7, orne: 7, crash4: 7, final: 8 };
+  const NIV = {   // [intro, P1 … P8]
+    kick:   [1, .8, .9, .97, 1.12, 1.15, 1.18, 1.22, 1.25],
+    clap:   [.7, .7, .9, .92, 1.05, 1.05, 1.08, 1.1, 1.12],
+    caisse: [0, 0, 0, 0, 1, 1, 1.1, 1.12, 1.15],
+    hatO:   [.8, .65, .82, .9, 1, 1, 1.03, 1.05, 1.06],
+    hat:    [0, 0, .92, 1, 1.03, 1.05, 1.07, 1.1, 1.12],
+    shaker: [0, 0, 0, .95, 1, 1, 1.02, 1.05, 1.05],
+    crash:  [0, 0, 0, 0, 1, 1, 1.05, 1.1, 1.12],
+    vinyle: [1, 1.3, 1.05, .8, .5, .4, .35, .3, .25],
+    basse:  [1, .85, .98, 1.06, 1.12, 1.15, 1.08, 1.1, 1.12],
+    fuzzB:  [0, 0, 0, 0, 0, 0, .9, 1, 1.05],
+    rond:   [0, 0, 0, 0, .7, .75, .8, .9, 1],
+    nappe:  [1.1, 1.25, 1.1, .98, .9, .88, .85, .82, .8],
+    stab:   [1, .9, .98, 1.06, 1.15, 1.15, 1.12, 1.1, 1.08],
+    fuzzS:  [0, 0, 0, 0, 0, 0, 0, .9, 1],
+    choeur: [0, 0, 0, 0, 0, 0, 0, 0, 1],
+    arp:    [0, 0, 0, .75, 1.1, 1.15, 1.2, 1.25, 1.3],   // le synthé TRON
+    lead:   [.75, .55, .58, .65, 1, 1.02, 1.04, 1.06, 1.08],
+    leadBas:[0, 0, .5, .6, .85, .88, .9, .95, 1],   // dark city : la mélodie doublée en bas dès le P2
+    harmo:  [0, 0, 0, 0, 0, 0, .95, 1, 1.03],
+    envers: [1, 0, 0, .7, 1, 1, 1, 1, 1],
+  };
+  const STAB_F = [1100, 800, 1050, 1400, 2000, 2200, 2400, 2600, 2900];   // dark city : un cran plus sombre partout   // le filtre des accords hachés s'ouvre avec le moteur
+  const NAPPE_F = [700, 600, 700, 800, 950, 1000, 1050, 1100, 1200];
+  const BRIL_B = [1, .85, 1, 1.2, 1.35, 1.4, 1.45, 1.5, 1.55];           // la basse claque un peu plus
+  const PROF = [.5, .65, .57, .49, .38, .34, .31, .28, .25];             // la profondeur du pompage (plus bas = plus profond)
+  const GLOB_F = [0, 6000, 8000, 11000, 20000, 20000, 20000, 20000, 20000];   // LE FILTRE DE TOUT LE MORCEAU : la nuit au P1, grand ouvert au drop
+  const GLOB_Q = [0, 1.2, 1.05, .85, .7, .7, .7, .7, .7];
+  const LARG = [.6, .25, .36, .48, .7, .78, .85, .92, 1];                // la largeur du chorus : étroit la nuit, tout l'écran au final
+  const PHASE = [0, 0, 0, 0, 0, .9, .9, 1, 1];                           // le phaser (Daft Punk) sur les accords hachés
+  // NET ET SCI-FI (Léo, 2026-10-13 : « un instrument énergétique, et rends chaque instrument plus net, sci-fi ») :
+  // la bande qui pleure (le flou vaporwave) s'efface quand le moteur monte — 7 cents la nuit, presque rien au drop
+  const BANDE = [.0024, .0024, .0017, .0011, .0005, .0004, .0004, .0004, .0004];
+  // LE SYNTHÉ TRON (l'instrument énergique) : son filtre résonant claque plus haut et plus fort à chaque palier
+  const TRON_F = [0, 0, 0, 900, 1700, 2000, 2300, 2600, 2900], TRON_Q = [1, 1, 1, 6, 7, 8, 9, 10, 11];   // dark city : plus sombre
+  const TRON = [0, 4, 1, 4, 2, 4, 3, 4];   // la note de l'accord, puis la pédale à l'octave : 1 · 8ve · 2 · 8ve · 3 · 8ve · 4 · 8ve
+  const TRON2 = [0, 4, 2, 4, 3, 4, 2, 5];  // P7+, 2e moitié de phrase : la pédale saute, la dernière note monte (5 = la 2e voix à l'octave)
+
+  function preparer(ctx, sortie, alea) {
+    const G = v => { const g = ctx.createGain(); g.gain.value = v; return g; };
+    const F = (type, f, q) => { const b = ctx.createBiquadFilter(); b.type = type; b.frequency.value = f; if (q != null) b.Q.value = q; return b; };
+    const chaine = (...n) => { for (let i = 0; i < n.length - 1; i++) n[i].connect(n[i + 1]); return n[n.length - 1]; };
+    const courbeSat = k => { const c = new Float32Array(2048); for (let i = 0; i < 2048; i++) { const x = i / 1023.5 - 1; c[i] = Math.tanh(k * x) / Math.tanh(k); } return c; };
+
+    // LE BOUT DE LA CHAÎNE : chaleur de bande, aigus adoucis (vaporwave), le filtre de l'intro, la colle, le limiteur
+    const sat = ctx.createWaveShaper(); sat.curve = courbeSat(1.0); sat.oversample = '2x';
+    const master = G(0.5), doux = F('highshelf', 6000); doux.gain.value = -3;   // (net : −4 → −1,5 dB ; dark city : −3 dB, plafond 13 kHz)
+    const filtre = F('lowpass', 20000, 0.7);
+    const colle = ctx.createDynamicsCompressor(); colle.threshold.value = -18; colle.ratio.value = 2.5; colle.attack.value = 0.012; colle.release.value = 0.22; colle.knee.value = 8;
+    const lim = ctx.createDynamicsCompressor(); lim.threshold.value = -2; lim.ratio.value = 20; lim.attack.value = 0.002; lim.release.value = 0.1; lim.knee.value = 0;
+    chaine(master, F('highpass', 30, 0.7), doux, F('lowpass', 13000, 0.5), sat, filtre, colle, lim, sortie);
+
+    // LA RUE : une réverbe noire (2,8 s, la queue qui s'éteint dans le grave — les façades la nuit), 35 ms de pré-délai : le son sec reste NET devant
+    const ir = (sec, pre) => { const sr = ctx.sampleRate, n = Math.floor(sr * sec), b = ctx.createBuffer(2, n, sr), p0 = Math.floor(sr * pre);
+      for (let c = 0; c < 2; c++) { const d = b.getChannelData(c); let y = 0;
+        for (let i = p0; i < n; i++) { const t = (i - p0) / sr, fc = 1400 + 5600 * Math.exp(-t / 0.5), a = Math.exp(-2 * Math.PI * fc / sr);
+          y = (1 - a) * (alea() * 2 - 1) + a * y; d[i] = y * Math.exp(-6.9 * t / sec); } }
+      return b; };
+    const rev = ctx.createConvolver(); rev.buffer = ir(2.8, 0.035);
+    const revIn = G(1);
+    chaine(revIn, rev, F('highpass', 300, 0.7), F('lowpass', 3800, 0.6), G(0.4), master);
+
+    // L'ÉCHO EN PING-PONG (croche pointée)
+    const dIn = G(1), dl = ctx.createDelay(1), dr = ctx.createDelay(1); dl.delayTime.value = dr.delayTime.value = 3 * SD;
+    const dHp = F('highpass', 400, 0.6), dLp = F('lowpass', 3800, 0.6), fb = G(0.34), dOut = G(0.26);
+    const pl = ctx.createStereoPanner(), pr = ctx.createStereoPanner(); pl.pan.value = -0.7; pr.pan.value = 0.7;
+    chaine(dIn, dHp, dl, dLp, pl, dOut); dLp.connect(dr); dr.connect(pr); pr.connect(dOut); dr.connect(fb); fb.connect(dl);
+    dOut.connect(master); const dRev = G(0.25); dOut.connect(dRev); dRev.connect(revIn);
+
+    // LE CHORUS (deux lignes à retard qui ondulent, à gauche et à droite) : la largeur des nappes vaporwave
+    const larg = [];
+    const chorus = dest => { const inp = G(1), sec = G(0.75); inp.connect(sec); sec.connect(dest);
+      [[-0.85, 6 / PHR, 0.011], [0.85, 9 / PHR, 0.017]].forEach(([pan, vit, base]) => {
+        const d = ctx.createDelay(0.05); d.delayTime.value = base;
+        const l = ctx.createOscillator(); l.frequency.value = vit; const lg = G(0.0028); l.connect(lg); lg.connect(d.delayTime); l.start(0);
+        const p = ctx.createStereoPanner(); p.pan.value = pan; const g = G(0.6); larg.push(g);
+        chaine(inp, d, g, p, dest); });
+      return inp; };
+
+    // LA BANDE QUI PLEURE : une ligne à retard qui ondule (±7 cents, lente, + un petit tremblement) — tout ce qui chante y passe,
+    // la basse et la batterie non (le bas reste droit). Une seule ligne au lieu d'un fil vers chaque oscillateur : 10× moins de calcul.
+    const bande = ctx.createDelay(0.05); bande.delayTime.value = 0.006; bande.connect(master);
+    const wob = [[5 / PHR, 0.0024], [82 / PHR, 0.00004]].map(([f, a]) => { const o = ctx.createOscillator(); o.frequency.value = f; const g = G(a); o.connect(g); g.connect(bande.delayTime); o.start(0); return g; });
+
+    // LE POMPAGE (la grosse caisse creuse les accords et la basse) : deux gains que `jouer` fait respirer à chaque temps
+    const pompe = G(1), pompeB = G(1); pompe.connect(bande); pompeB.connect(master);
+    const chP = chorus(pompe);
+
+    // LE PHASER (Daft Punk, P5+) : six passe-tout dont la fréquence balaie de 200 à 1 600 Hz (un aller-retour toutes les 2 mesures),
+    // mêlés au son sec : des creux qui glissent dans les accords hachés. Fréquence en k-rate (le balayage est lent).
+    const phIn = G(1), phSec = G(1), phMouille = G(0), phOut = G(1);
+    phIn.connect(phSec); phSec.connect(phOut);
+    { const lfo = ctx.createOscillator(); lfo.frequency.value = 4 / PHR; const amp = G(700); lfo.connect(amp); lfo.start(0);
+      let ap = phIn; for (let k = 0; k < 6; k++) { const f = F('allpass', 900, 0.6); try { f.frequency.automationRate = 'k-rate'; } catch (e) {} amp.connect(f.frequency); ap.connect(f); ap = f; }
+      ap.connect(phMouille); phMouille.connect(phOut); }
+    phOut.connect(chP);
+
+    // LA SATURATION (Justice) : UN façonneur par bus — les notes y entrent propres, il les écrase ensemble (rien par note : c'est léger)
+    const fuzz = (dest, k, lp) => { const inp = G(1), ws = ctx.createWaveShaper(); ws.curve = courbeSat(k); ws.oversample = '2x';
+      chaine(inp, ws, F('lowpass', lp, 0.7), G(1 / Math.sqrt(k)), dest); return inp; };
+
+    const bus = {};
+    const mk = (id, dest, rv, dly, pan) => { const g = G(0); let o = g;
+      if (pan) { const p = ctx.createStereoPanner(); p.pan.value = pan; g.connect(p); o = p; }
+      o.connect(dest);
+      if (rv) { const s = G(rv); o.connect(s); s.connect(revIn); }
+      if (dly) { const s = G(dly); o.connect(s); s.connect(dIn); }
+      bus[id] = g; };
+    mk('kick', master); mk('clap', master, .22); mk('caisse', master, .15); mk('hatO', master, .06, 0, .18); mk('hat', master, 0, 0, -.22);
+    mk('shaker', master, .05, 0, .35); mk('crash', master, .25, 0, -.1); mk('vinyle', master);
+    mk('basse', pompeB); mk('rond', pompeB); mk('fuzzB', fuzz(pompeB, 6, 2400));
+    mk('nappe', chP, .4); mk('stab', phIn, .16, .1); mk('fuzzS', fuzz(phIn, 4, 3200), .1, .06); mk('choeur', chP, .55);
+    mk('arp', pompe, .1, .18, -.12); mk('lead', bande, .28, .26); mk('leadBas', bande, .2, .08, .2); mk('harmo', bande, .3, .15, -.28); mk('envers', bande, .3);
+
+    const bruit = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+    { const d = bruit.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = alea() * 2 - 1; }
+    // LE MÉTAL (charleys sci-fi) : six carrés désaccordés, les fréquences de la 808 montées ×1,9 — calculé UNE fois, rejoué par chaque coup
+    const metal = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.5), ctx.sampleRate);
+    { const d = metal.getChannelData(0), FM = [263, 400, 421, 474, 587, 845].map(f => f * 1.5);   // (×1,9 → ×1,5 : un métal plus sombre)
+      for (let i = 0; i < d.length; i++) { const t = i / ctx.sampleRate; let x = 0; for (const f of FM) x += Math.sin(2 * Math.PI * f * t) >= 0 ? 1 : -1; d[i] = x / 6; } }
+    return { bus, pompe, pompeB, filtre, larg, phMouille, wob: wob[0], bruit, metal, last: { m: null, fin: -1 }, courbes: {} };
+  }
+
+  function jouer(ctx, kit, p, t0, m0, n, alea) {
+    p = Math.max(0, Math.min(8, p | 0));
+    const b = kit.bus, intro = p === 0;
+    for (const id in NIV) b[id].gain.setValueAtTime(NIV[id][p], t0);
+    kit.larg.forEach(g => g.gain.setValueAtTime(LARG[p], t0));
+    kit.phMouille.gain.setValueAtTime(PHASE[p], t0);
+    kit.wob.gain.setTargetAtTime(BANDE[p], t0, 0.4);   // en douceur : un saut de profondeur ferait sauter la hauteur
+    const fq = kit.filtre.frequency, fQ = kit.filtre.Q;
+    if (!intro) { fq.setValueAtTime(GLOB_F[p], t0); fQ.setValueAtTime(GLOB_Q[p], t0); }
+
+    // ---- les instruments ----
+    const env = (g, t, v, a, fin) => { g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + a); g.gain.exponentialRampToValueAtTime(0.0001, t + fin); };
+    const kr = (...ps) => ps.forEach(x => { try { x.automationRate = 'k-rate'; } catch (e) {} });
+    const filt = (type, f, q) => { const fl = ctx.createBiquadFilter(); fl.type = type; fl.frequency.value = f; fl.Q.value = q; kr(fl.frequency, fl.Q); return fl; };
+    const osc = (type, f, dt) => { const o = ctx.createOscillator(); o.type = type; o.frequency.value = f; if (dt) o.detune.value = dt; return o; };
+    const bruit = (t, dest, type, f, q, v, dur, att) => { const s = ctx.createBufferSource(), fl = filt(type, f, q), g = ctx.createGain();
+      s.buffer = kit.bruit; env(g, t, v, att || 0.001, dur);
+      s.connect(fl); fl.connect(g); g.connect(dest); s.start(t, alea() * 1.5); s.stop(t + dur + 0.02); };
+    const courbe = d => { const k = d.toFixed(3); if (kit.courbes[k]) return kit.courbes[k];
+      const N = 48, c = new Float32Array(N);
+      for (let i = 0; i < N; i++) { const x = i / (N - 1); c[i] = x < .03 ? 1 - (1 - d) * (x / .03) : 1 - (1 - d) * Math.exp(-(x - .03) / .2); }
+      return (kit.courbes[k] = c); };
+    const pompe = t => { kit.pompe.gain.setValueCurveAtTime(courbe(PROF[p]), t, 4 * SD * 0.97);
+      kit.pompeB.gain.setValueCurveAtTime(courbe(1 - (1 - PROF[p]) * 0.55), t, 4 * SD * 0.97); };
+
+    const kick = (t, v) => { const o = osc('sine', 180), g = ctx.createGain();   // plus net : attaque qui claque (180 Hz → 52 en 50 ms), corps plus court
+      o.frequency.setValueAtTime(180, t); o.frequency.exponentialRampToValueAtTime(48, t + 0.05);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.95 * v, t + 0.0015); g.gain.setValueAtTime(0.95 * v, t + 0.025);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.32); o.connect(g); g.connect(b.kick); o.start(t); o.stop(t + 0.34);
+      bruit(t, b.kick, 'highpass', 3200, 0.7, 0.14 * v, 0.005); };
+    const clap = (t, v) => { const leger = p < QUAND.clap;   // d'abord un claquement de doigts plus sec, le vrai clap arrive au P2
+      (leger ? [0, 0.012] : [0, 0.011, 0.023]).forEach(d => bruit(t + d, b.clap, 'bandpass', leger ? 1700 : 1300, 0.55, 2.4 * v, 0.022));
+      bruit(t + 0.03, b.clap, 'bandpass', 1200, 0.5, 2.0 * v, leger ? 0.14 : 0.24); };
+    const caisse = (t, v) => { const o = osc('triangle', 210), g = ctx.createGain(); v = v || 1;
+      o.frequency.setValueAtTime(210, t); o.frequency.exponentialRampToValueAtTime(160, t + 0.05);
+      env(g, t, 0.5 * v, 0.002, 0.13); o.connect(g); g.connect(b.caisse); o.start(t); o.stop(t + 0.15);
+      bruit(t, b.caisse, 'highpass', 1800, 0.7, 0.6 * v, 0.2); };
+    // les charleys : le MÉTAL (sci-fi) + un peu de souffle, filtrés haut, courts
+    const metal = (t, dest, hp, v, dur) => { const s = ctx.createBufferSource(), fl = filt('highpass', hp, 0.9), g = ctx.createGain();
+      s.buffer = kit.metal; env(g, t, v, 0.001, dur); s.connect(fl); fl.connect(g); g.connect(dest); s.start(t, alea() * 0.2); s.stop(t + dur + 0.02); };
+    const hatO = (t, v) => { metal(t, b.hatO, 7000, 1.7 * v, 0.2); bruit(t, b.hatO, 'highpass', 8500, 0.8, 0.35 * v, 0.16); };
+    const hat = (t, v) => { metal(t, b.hat, 8000, 1.6 * v, 0.04); bruit(t, b.hat, 'highpass', 9500, 0.8, 0.3 * v, 0.03); };
+    const shaker = (t, v) => bruit(t, b.shaker, 'bandpass', 5600, 1.2, 0.55 * v, 0.09, 0.012);
+    const crash = t => bruit(t, b.crash, 'highpass', 3800, 0.6, 0.35, 2.2, 0.003);
+    const craque = t => { if (alea() < 0.32) bruit(t + alea() * SD, b.vinyle, 'bandpass', 2400 + alea() * 2400, 0.8, 0.016 + alea() * 0.04, 0.005); };
+
+    const basse = (t, midi, len, v) => { const f = mtof(midi), d = Math.max(len * SD - 0.02, 0.06);
+      const o1 = osc('sawtooth', f), o2 = osc('square', f, 6), o3 = osc('sine', f), mix = ctx.createGain(), rnd = ctx.createGain();
+      const fl = filt('lowpass', 320, 6), g = ctx.createGain(); mix.gain.value = 0.5; rnd.gain.value = 0.55;
+      fl.frequency.setValueAtTime(240 + 1700 * v * BRIL_B[p], t); fl.frequency.exponentialRampToValueAtTime(320, t + 0.16);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.3 * v, t + 0.003); g.gain.setValueAtTime(0.3 * v, t + d);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + d + 0.035);
+      o1.connect(mix); o2.connect(mix); mix.connect(fl); fl.connect(g); o3.connect(rnd); rnd.connect(g); g.connect(b.basse);
+      [o1, o2, o3].forEach(o => { o.start(t); o.stop(t + d + 0.06); }); };
+    // LA BASSE JUSTICE (P6+) : une scie et un carré, écrasés ensemble par le façonneur du bus
+    const basseFuzz = (t, midi, len, v) => { const d = Math.max(len * SD - 0.02, 0.05), o1 = osc('sawtooth', mtof(midi)), o2 = osc('square', mtof(midi), -8), g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.32 * v, t + 0.003); g.gain.setValueAtTime(0.32 * v, t + d); g.gain.exponentialRampToValueAtTime(0.0001, t + d + 0.04);
+      o1.connect(g); o2.connect(g); g.connect(b.fuzzB); [o1, o2].forEach(o => { o.start(t); o.stop(t + d + 0.06); }); };
+    const rond = (t, midi, len) => { const o = osc('sine', mtof(midi)), g = ctx.createGain(), d = len * SD;
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.28, t + 0.01); g.gain.setValueAtTime(0.28, t + d - 0.04);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + d); o.connect(g); g.connect(b.rond); o.start(t); o.stop(t + d + 0.02); };
+
+    // LA NAPPE DE CUIVRES (dark city, façon Blade Runner) : son filtre s'ouvre lentement sur chaque accord ; une OMBRE à l'octave grave
+    // (la note du bas de l'accord, un triangle) ; un passe-haut pour que rien ne brouille la basse
+    const nappe = (t, voix, dur) => { const fl = filt('lowpass', NAPPE_F[p] * 0.45, 1.4), hp = filt('highpass', 120, 0.7), g = ctx.createGain();
+      fl.frequency.setValueAtTime(NAPPE_F[p] * 0.45, t); fl.frequency.exponentialRampToValueAtTime(NAPPE_F[p], t + Math.min(0.9, dur * 0.5));
+      g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.055, t + 0.3); g.gain.setValueAtTime(0.055, t + dur - 0.05); g.gain.linearRampToValueAtTime(0.0001, t + dur + 0.35);
+      voix.forEach(m => [-9, 9].forEach(dt => { const o = osc('sawtooth', mtof(m), dt); o.connect(fl); o.start(t); o.stop(t + dur + 0.4); }));
+      const om = osc('triangle', mtof(voix[0] - 12)), og = ctx.createGain(); og.gain.value = 0.55; om.connect(og); og.connect(fl); om.start(t); om.stop(t + dur + 0.4);
+      fl.connect(hp); hp.connect(g); g.connect(b.nappe); };
+    const stab = (t, voix, len, v) => { const fc = STAB_F[p], fl = filt('lowpass', fc, 2.5), g = ctx.createGain(), d = len * SD;
+      fl.frequency.setValueAtTime(fc * 2.2, t); fl.frequency.exponentialRampToValueAtTime(fc, t + 0.14);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.13 * v, t + 0.003); g.gain.exponentialRampToValueAtTime(0.07 * v, t + d * 0.7);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + d + 0.05);
+      voix.forEach(m => [-10, 10].forEach(dt => { const o = osc('sawtooth', mtof(m), dt); o.connect(fl); o.start(t); o.stop(t + d + 0.12); }));
+      fl.connect(g); g.connect(b.stab); };
+    // LA PORTE (P7-P8) : UN accord tenu, une porte qui s'ouvre et se ferme en rythme — le haché de Justice / Daft Punk, sans 16 notes par mesure
+    const porte = (t, voix, dur, motif, pas, v) => { const g = ctx.createGain(), fl = filt('lowpass', STAB_F[p], 1.2), n = Math.round(dur / pas);
+      g.gain.setValueAtTime(0, t);
+      for (let k = 0; k < n; k++) { const a = motif[k % motif.length], tk = t + k * pas; if (!(a > 0)) continue;
+        g.gain.setValueAtTime(0, tk); g.gain.linearRampToValueAtTime(0.16 * v * a, tk + 0.004);
+        g.gain.setValueAtTime(0.16 * v * a, tk + pas * 0.62); g.gain.linearRampToValueAtTime(0, tk + pas * 0.62 + 0.01); }
+      voix.forEach(m => [-12, 12].forEach(dt => { const o = osc('sawtooth', mtof(m), dt); o.connect(fl); o.start(t); o.stop(t + dur + 0.05); }));
+      fl.connect(g); g.connect(b.fuzzS); };
+    // LE SYNTHÉ TRON — l'instrument énergique (Daft Punk, « Derezzed ») : un carré et une scie désaccordés, un filtre RÉSONANT qui
+    // claque à chaque double croche et retombe en 90 ms ; plus haut et plus résonant à chaque palier ; dans le pompage
+    const tron = (t, midi, v) => { const f = mtof(midi), o1 = osc('square', f, -6), o2 = osc('sawtooth', f, 6), fl = filt('lowpass', 380, TRON_Q[p]), g = ctx.createGain();
+      fl.frequency.setValueAtTime(TRON_F[p] * (0.55 + 0.45 * v), t); fl.frequency.exponentialRampToValueAtTime(380, t + 0.09);
+      env(g, t, 0.3 * v, 0.002, 0.13); o1.connect(fl); o2.connect(fl); fl.connect(g); g.connect(b.arp);
+      [o1, o2].forEach(o => { o.start(t); o.stop(t + 0.15); }); };
+    // LE LASER (P5+) : un « piou » qui plonge, là où la dernière grosse caisse de la phrase se tait
+    const laser = t => { const o = osc('sine', 2400), o2 = osc('square', 1200), g = ctx.createGain(), g2 = ctx.createGain(); g2.gain.value = 0.15;
+      [o, o2].forEach((x, k) => { x.frequency.setValueAtTime(k ? 1200 : 2400, t); x.frequency.exponentialRampToValueAtTime(k ? 90 : 180, t + 0.16); });
+      env(g, t, 0.09, 0.002, 0.18); o.connect(g); o2.connect(g2); g2.connect(g); g.connect(b.envers); [o, o2].forEach(x => { x.start(t); x.stop(t + 0.2); }); };
+    // LE CHŒUR « AAH » (P8) : des scies passées par les formants d'une voix — la brume vaporwave au sommet
+    const choeur = (t, voix, dur) => { const somme = ctx.createGain(), g = ctx.createGain();
+      [[700, 1, 6], [1150, 0.45, 7], [2700, 0.07, 6]].forEach(([fr, lv, q]) => { const bp = filt('bandpass', fr, q), fg = ctx.createGain(); fg.gain.value = lv; somme.connect(bp); bp.connect(fg); fg.connect(g); });
+      g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.18, t + 0.5); g.gain.setValueAtTime(0.18, t + dur - 0.1); g.gain.linearRampToValueAtTime(0.0001, t + dur + 0.45);
+      voix.forEach(m => [-7, 7].forEach(dt => { const o = osc('sawtooth', mtof(m), dt); o.connect(somme); o.start(t); o.stop(t + dur + 0.5); }));
+      g.connect(b.choeur); };
+    const envers = (t, voix, dur) => { const fl = filt('lowpass', 350, 1.5), g = ctx.createGain();
+      fl.frequency.setValueAtTime(350, t); fl.frequency.exponentialRampToValueAtTime(2600, t + dur);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.12, t + dur - 0.01); g.gain.linearRampToValueAtTime(0.0001, t + dur + 0.012);
+      voix.forEach(m => [-8, 8].forEach(dt => { const o = osc('sawtooth', mtof(m), dt); o.connect(fl); o.start(t); o.stop(t + dur + 0.03); }));
+      fl.connect(g); g.connect(b.envers); };
+    // LA VOIX DE VELOURS : un triangle chaud (la mélodie de VAPEUR), un soupçon de scie filtrée, vibrato qui vient tard, glissé entre notes liées.
+    // P7+ elle MORD : plus de scie, filtre plus ouvert (la mélodie French touch).
+    const mord = p >= QUAND.morsure;
+    const lead = (t, midi, len, v) => { const f = mtof(midi), d = len * SD, last = kit.last;
+      const lie = last.m != null && Math.abs(last.fin - t) < 0.012, f0 = lie ? mtof(last.m) : f;
+      const o1 = osc('triangle', f), o2 = osc('sawtooth', f, -5), o3 = osc('sine', f * 2), fl = filt('lowpass', 1700, 0.9), g = ctx.createGain();
+      const m1 = ctx.createGain(), m2 = ctx.createGain(), m3 = ctx.createGain(); m1.gain.value = 1; m2.gain.value = mord ? 0.5 : 0.22; m3.gain.value = 0.08;
+      [o1, o2, o3].forEach((o, k) => { const fr = f * (k === 2 ? 2 : 1), f0k = f0 * (k === 2 ? 2 : 1);
+        kr(o.frequency, o.detune); o.frequency.setValueAtTime(f0k, t); if (lie) o.frequency.exponentialRampToValueAtTime(fr, t + 0.05); });
+      if (d > 0.3) { const vb = osc('sine', 5.2), vg = ctx.createGain(); vg.gain.setValueAtTime(0, t); vg.gain.setValueAtTime(0, t + 0.2);
+        vg.gain.linearRampToValueAtTime(12, t + 0.55); vb.connect(vg); [o1, o2, o3].forEach(o => vg.connect(o.detune)); vb.start(t); vb.stop(t + d + 0.2); }
+      fl.frequency.setValueAtTime(mord ? 2900 : 2100, t); fl.frequency.exponentialRampToValueAtTime(mord ? 2000 : 1400, t + 0.25);   // dark city : un cran plus sombre
+      const dd = Math.max(d, 0.05), at = lie ? 0.02 : Math.min(0.03, dd * 0.4);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.36 * v, t + at); g.gain.exponentialRampToValueAtTime(0.27 * v, t + Math.max(at + 0.01, Math.min(0.3, dd)));
+      g.gain.setValueAtTime(0.27 * v, t + Math.max(dd, at + 0.012)); g.gain.exponentialRampToValueAtTime(0.0001, t + Math.max(dd, at + 0.012) + 0.16);
+      o1.connect(m1); o2.connect(m2); o3.connect(m3); [m1, m2, m3].forEach(x => x.connect(fl)); fl.connect(g); g.connect(b.lead);
+      [o1, o2, o3].forEach(o => { o.start(t); o.stop(t + dd + 0.2); });
+      kit.last = { m: midi, fin: t + d }; };
+    const leadBas = (t, midi, len) => { const f = mtof(midi), d = len * SD, o1 = osc('triangle', f), o2 = osc('sawtooth', f, 6), fl = filt('lowpass', 900, 0.7), g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.09, t + 0.03); g.gain.setValueAtTime(0.09, t + Math.max(d, 0.2));
+      g.gain.exponentialRampToValueAtTime(0.0001, t + Math.max(d, 0.2) + 0.15);
+      o1.connect(fl); o2.connect(fl); fl.connect(g); g.connect(b.leadBas); [o1, o2].forEach(o => { o.start(t); o.stop(t + Math.max(d, 0.2) + 0.18); }); };
+    // la 2e voix (P6+) : la note de l'accord la plus proche, 3 à 9 demi-tons sous la mélodie
+    const sousVoix = (mm, nom) => { const A = AC[nom], pcs = A.v.concat([A.b]).map(x => ((x % 12) + 12) % 12);
+      for (let k = 3; k <= 9; k++) if (pcs.indexOf(((mm - k) % 12 + 12) % 12) >= 0) return mm - k; return mm - 5; };
+    const harmo = (t, midi, len) => { const f = mtof(midi), d = len * SD, o1 = osc('triangle', f, 4), o2 = osc('sine', f * 2), fl = filt('lowpass', 1900, 0.7), g = ctx.createGain(), g2 = ctx.createGain();
+      g2.gain.value = 0.2; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.2, t + 0.04); g.gain.setValueAtTime(0.2, t + Math.max(d, 0.25));
+      g.gain.exponentialRampToValueAtTime(0.0001, t + Math.max(d, 0.25) + 0.18);
+      o1.connect(fl); o2.connect(g2); g2.connect(fl); fl.connect(g); g.connect(b.harmo); [o1, o2].forEach(o => { o.start(t); o.stop(t + Math.max(d, 0.25) + 0.2); }); };
+    const voisin = mm => { for (let k = 1; k <= 2; k++) if (GAMME.indexOf((mm + k) % 12) >= 0) return mm + k; return mm + 2; };
+
+    // ---- les mesures ----
+    for (let m = m0; m < m0 + n; m++) {
+      const tm = t0 + (m - m0) * MES, im = Math.max(0, Math.min(INTRO.length - 1, m));
+      const bar = intro ? INTRO[im] : m % 8, acc = GRILLE[bar], A1 = AC[acc[0]], A2 = AC[acc[1]], split = acc[0] !== acc[1];
+      const A = i => i < 8 ? A1 : A2;
+      // l'intro : la boucle « derrière la porte » — le filtre s'ouvre mesure après mesure ; la grosse caisse entre à la 2e,
+      // claps et charleys à la 3e ; la 2e moitié de la 4e se vide (la nappe, l'accord à l'envers, la montée de la mélodie) et ça part
+      const batt = !intro || im >= 1, haut = !intro || im >= 2, vide = intro && im === 3;
+      if (intro) {
+        const F0 = [320, 560, 1050, 2300], F1 = [560, 1050, 2300, 5000];
+        fq.setValueAtTime(F0[im], tm); fQ.setValueAtTime(2.6, tm);
+        if (im < 3) fq.exponentialRampToValueAtTime(F1[im], tm + MES);
+        else { fq.exponentialRampToValueAtTime(F1[3], tm + 6 * SD); fq.exponentialRampToValueAtTime(GLOB_F[1], tm + 8 * SD); fQ.linearRampToValueAtTime(GLOB_Q[1], tm + 8 * SD); }
+      }
+      // les nappes (et le chœur au final), un accord par demi-mesure quand la grille change en route
+      nappe(tm, A1.v, split ? 8 * SD : MES); if (split) nappe(tm + 8 * SD, A2.v, 8 * SD);
+      if (p >= QUAND.final) { choeur(tm, A1.v, split ? 8 * SD : MES); if (split) choeur(tm + 8 * SD, A2.v, 8 * SD); }
+      // les accords SATURÉS (P7 : à contretemps en croches ; P8 : hachés en doubles croches)
+      if (p >= QUAND.fuzz) { const [mot, pas] = p >= QUAND.final ? [PORTE16, SD] : [PORTE8, 2 * SD];
+        porte(tm, A1.v, 8 * SD, mot, pas, 1); porte(tm + 8 * SD, A2.v, 8 * SD, mot, pas, 1); }
+      if ((p >= QUAND.envers && bar === 7) || vide) envers(tm + 8 * SD, AC.Db.v, 8 * SD);   // l'accord de la reprise, à l'envers
+      if (p >= QUAND.drop && (bar === 0 || (p >= QUAND.crash4 && bar === 4))) crash(tm);
+
+      for (let i = 0; i < 16; i++) {
+        const t = tm + i * SD, a = A(i), coupe = vide && i >= 8;
+        craque(t);
+        if (coupe) continue;
+        if (batt) {
+          if (i % 4 === 0 && !(bar === 7 && i === 12 && !intro)) { kick(t, intro && im === 1 ? 0.8 : 1); pompe(t); }   // la dernière grosse caisse de la phrase se tait : on respire
+          if (p >= QUAND.fantome && i === 14 && bar % 2 === 1 && bar !== 7) kick(t, 0.5);                                   // P6+ : la grosse caisse rebondit
+          if (haut) {
+            if (i % 4 === 2) hatO(t, 1);
+            if (i === 4 || i === 12) { clap(t, 1); if (p >= QUAND.drop) caisse(t); }
+            if (p >= QUAND.drop && bar === 7) [[13, .5], [14, .7], [15, .95]].forEach(([s, v]) => { if (s === i) clap(t, v); });   // les claps qui relancent la phrase
+            if (p >= QUAND.roule && (bar === 3 || bar === 7)) ROULE.forEach(([s, v]) => { if (s === i) caisse(t, v); });           // P6+ : le roulement de caisse claire
+          }
+          if (p >= QUAND.hat && i % 4 !== 2) hat(t, (i % 2 ? 0.6 : 1) * (0.85 + alea() * 0.3));
+          if (p >= QUAND.shaker) shaker(t, (i % 2 ? 0.7 : 1) * (0.85 + alea() * 0.3));
+        }
+        // la basse : posée (P1) → funky (P2-P5, qui glisse vers l'accord suivant au P5) → JUSTICE en octaves, propre + saturée (P6+)
+        const justice = p >= QUAND.justice, appro = !justice && p >= QUAND.approche;
+        (p < QUAND.basse1 ? BASSE0 : justice ? BASSE_J : BASSE1).forEach(([s, dg, len, v]) => { if (s === i) { const L = appro && s === 14 ? 1 : len;
+          basse(t, a.b + dg, L, v); if (justice) basseFuzz(t, a.b + dg, L, v); if (p >= QUAND.drop && L >= 2) rond(t, a.b + dg, L); } });
+        if (p >= QUAND.basse2 && !justice) BASSE2.forEach(([s, dg, len, v]) => { if (s === i) basse(t, a.b + dg, len, v); });
+        if (justice && i === 0) rond(t, a.b, 2);
+        if (appro && i === 15) { const nb = AC[GRILLE[(bar + 1) % 8][0]].b; basse(t, nb - 1, 1, 0.7); }   // P5 : la basse glisse vers l'accord suivant
+        // l'accord haché : 3·3·4·3·3 (P1-P4) → en croches (P5+) ; fin de phrase martelée (P3+)
+        const voixS = a.v, relance = p >= QUAND.relance && bar === 7, croches = p >= QUAND.chop8;
+        (croches ? STAB8 : STAB1).forEach(([s, len, v]) => { if (s === i && !(relance && !croches && s >= 8)) stab(t, voixS, len, v); });
+        if (relance && !croches) STAB_RELANCE.forEach(([s, len, v]) => { if (s === i) stab(t, voixS, len, v); });
+        if (p >= QUAND.stab2 && !croches) STAB2.forEach(([s, len, v]) => { if (s === i && !(relance && s >= 8)) stab(t, a.v, len, v); });
+        // le synthé TRON : en croches au P3 (il s'annonce), en doubles croches au drop, qui saute l'octave en fin de phrase au P7+
+        if (p >= QUAND.arp && (p >= QUAND.drop || i % 2 === 0)) { const T = p >= QUAND.morsure && bar >= 4 ? TRON2 : TRON, k = T[i % 8],
+          note = k === 4 ? a.v[0] + (p >= QUAND.justice ? 12 : 0) : k === 5 ? a.v[1] + 12 : a.v[k];   // la pédale : en bas (sombre), à l'octave dès le P6
+          tron(t, note, (i % 4 === 0 ? 1 : i % 2 === 0 ? 0.8 : 0.62) * (p >= QUAND.drop ? 1 : 0.7)); }
+        if (p >= QUAND.phaser && bar === 7 && i === 12) laser(t);
+      }
+      // la mélodie : en intro, seulement la montée de la fin ; P1 le motif seul (+ la montée de la mesure 8) ; P2-P3 tout, en retrait ;
+      // P4 devant et doublée à l'octave grave ; P6+ à deux voix (la tierce en dessous, prise dans l'accord) ; P7+ ornée et mordante
+      const mel = intro ? (vide ? RELANCE : []) : p < QUAND.melTout && MEL_P1.indexOf(bar) < 0 ? (bar === 7 ? RELANCE : []) : MELODIE[bar];
+      mel.forEach(([s, mm, len]) => { const t = tm + s * SD;
+        if (p >= QUAND.orne && len >= 4 && s >= 1) lead(t - SD * 0.5, voisin(mm), 0.5, 0.6);   // une petite note d'appui, d'en haut, qui glisse
+        lead(t, mm, len, s === 0 ? 1 : 0.9); if (p >= QUAND.drop) leadBas(t, mm - 12, len);
+        if (p >= QUAND.harmo) harmo(t, sousVoix(mm, GRILLE[bar][s < 8 ? 0 : 1]), len); });
+    }
+  }
+
+  return {
+    titre: 'NUIT DE VELOURS', bpm: BPM, mesures: 8, intro: INTRO.length, pas: 0.6, moteurs: MOTEURS, ton: 'fa mineur', auteur: 'Claude Code pour Léo',
+    style: 'vaporwave de nuit, ville sombre, qui finit en french touch (Daft Punk, Justice)',
+    introTxt: 'La boucle derrière la porte : le filtre s’ouvre mesure après mesure, la grosse caisse arrive, puis tout se tait deux temps et ça part.',
+    paliers: [
+      'La nuit (vaporwave) : quatre temps doux, claquements de doigts, basse posée, accords étouffés, le motif seul — tout derrière un filtre.',
+      'Ça roule : le filtre s’ouvre, vrais claps, charleys en doubles croches, basse funky, toute la mélodie.',
+      'La ville s’allume : le SYNTHÉ TRON s’annonce en croches, le shaker, les notes fantômes, la fin de phrase martelée, l’accord à l’envers.',
+      'LE DROP : le synthé Tron en doubles croches, tout grand ouvert, la mélodie devant et doublée en bas, caisse claire, cymbale, basse ronde.',
+      'Le phaser (Daft Punk) : les accords hachés en croches balaient dans le phaser, le Tron s’éclaire, un laser à chaque fin de phrase.',
+      'La basse Justice : basse saturée en octaves, la mélodie en tierces, roulements de caisse claire, la grosse caisse qui rebondit.',
+      'Les accords saturés : des accords écrasés à contretemps, la mélodie qui mord, ornée, une cymbale toutes les 4 mesures.',
+      'Le final : les accords saturés hachés en doubles croches, le chœur « aah », tout dehors — le plus large, le plus fort.'],
+    preparer, jouer };
+})();
+</script>
+
+<!-- ======================= L'ÉCOUTE (libre : ce que voit celui qui ouvre le fichier) ======================= -->
+<script>
+(function () {
+  let ctx = null, kit = null, p = 1, m = 0, mi = 0, tNext = 0, iv = 0;
+  let graine = 12345; const alea = () => { graine = (graine * 1664525 + 1013904223) >>> 0; return graine / 4294967296; };
+  const mes = 240 / MORCEAU.bpm, NI = MORCEAU.intro || 0;
+  const pals = document.getElementById('pals'), ce = document.getElementById('ce'), play = document.getElementById('play');
+  const maj = () => { [...pals.children].forEach((b, i) => b.classList.toggle('on', i + 1 === p));
+    ce.textContent = iv && mi < NI ? 'Intro · ' + MORCEAU.introTxt + ' (puis palier ' + p + ')' : 'Palier ' + p + ' · ' + MORCEAU.paliers[p - 1]; };
+  for (let i = 1; i <= MORCEAU.paliers.length; i++) { const b = document.createElement('button'); b.textContent = i; b.onclick = () => { p = i; maj(); }; pals.appendChild(b); }
+  play.onclick = () => {
+    if (iv) { clearInterval(iv); iv = 0; ctx.close(); ctx = null; play.textContent = 'PLAY'; maj(); return; }
+    ctx = new (window.AudioContext || window.webkitAudioContext)(); kit = MORCEAU.preparer(ctx, ctx.destination, alea);
+    m = 0; mi = 0; tNext = ctx.currentTime + 0.1; play.textContent = 'STOP';
+    iv = setInterval(() => { while (tNext < ctx.currentTime + 0.4) {
+      if (mi < NI) MORCEAU.jouer(ctx, kit, 0, tNext, mi++, 1, alea); else MORCEAU.jouer(ctx, kit, p, tNext, m++, 1, alea);
+      tNext += mes; } maj(); }, 60);
+  };
+  maj();
+})();
+</script>
+</body></html>

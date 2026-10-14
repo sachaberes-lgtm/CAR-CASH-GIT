@@ -15,6 +15,17 @@ avec son serveur `python3 atelier-son/serveur-moteur.py 9141` (depuis VERSION PR
   OG GINOBILI (labo). Ils vivent sur la branche locale `musique-2026-10` (CAR CAHS V3). Les sons que Léo a supprimés ne sont pas copiés
   (sauf `boucles/nuages--phrases.m4a`, un spécimen du séquenceur de phrases). `ciel/ciel-donnees.js` décrit les fichiers CIEL du JEU (40 mesures).
 - Exclue des portails (`poki-construire.js` : SAUTE / SAUTE_REL), publiée sur Vercel (~55 Mo, hors du précache de sw.js).
+- LES NOTES (même soir, Léo : « permets-moi d'ajouter des notes permanentes sur les sons ») : un crayon ✎ sur chaque son → `PREF.notes`
+  (id → texte) dans musique-moteur.json (gardé par serveur-moteur.py) ; en ligne, sur l'appareil.
+- POUCE BLEU accueille aussi des sons de la bibliothèque (glissés sur l'onglet, `PREF.place` → 'bleu') : AURA, NÉON NOIR, NUIT DE VELOURS,
+  PENTHOUSE, GLISSE FUSION y sont rangés ; là, ils se pilotent À LA MAIN, moteur 1 à 30 (`aLaMain`), le son inchangé (8 étapes figées
+  sur 30 moteurs). ⚠ Léo voulait « 30 paliers comme les autres » : 30 étapes DIFFÉRENTES = réécrire l'arrangement → refusé (« si ça
+  risque d'être moins bien, arrête-toi »). Ne pas le faire sans une écoute A/B validée par lui.
+- L'ATELIER ET LES CAHIERS DU SON (Léo : « pour toi » — préviens-le quand tu y reviens, il ne sait pas exactement ce que c'est) :
+  `musique-moteur.html` (fige les morceaux à paliers par le serveur de la page), sources `assets/audio/music/paliers/*.html`, scripts
+  `atelier-son/` (paliers_figes.py, salle-repetition.js, vrais_instruments.py, lobby_chris.py, lobby_main.py, boucle_aac.py, ciel.py…),
+  cahiers `atelier-son/CAHIER-MUSIQUE.md`, `MUSIQUE-PASSATION.md`, `CONSIGNE-MUSIQUE-PALIERS.md`, `CULTURE-MUSICALE.md`. Copiés de CAR CAHS V3
+  le 14/10 (non relancés ici ; python : venv numpy/scipy). Jamais en ligne (vercel-build.sh), jamais dans les portails.
 - Banc muet (scratchpad du pôle SON) : vrais clics, mesure au bus de la page (PALIERS −27 dB, COUCHES −24, PHRASES −25, TRENTE −31 ;
   GLISSE v2 sort directement sur la destination à −10 dB : il ignore le curseur Volume, comme sur la branche).
 
