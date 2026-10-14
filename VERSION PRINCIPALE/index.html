@@ -50953,6 +50953,7 @@ renderLeaders(-1);
   const stage=document.getElementById('spStage'),num=document.getElementById('spNum'),
         ttl=document.getElementById('spTitle'),fl9=document.getElementById('spFlash');
   cv9.width=innerWidth;cv9.height=innerHeight;
+  addEventListener('resize',function(){if(!done){cv9.width=innerWidth;cv9.height=innerHeight;}}); // (2026-10-14, chasse aux bugs) iPhone tourné sur l'écran titre : le canvas gardait l'ancienne taille, étiré par le CSS (poussière et halo écrasés) ; draw9 repose son style à chaque image
   let done=false,ph9=0,launched=false,iAC=null,master=null,tLaunch=0;
   const timers=[];const T9=(fn,ms)=>timers.push(setTimeout(fn,ms));
   const P9=[],RG=[];
