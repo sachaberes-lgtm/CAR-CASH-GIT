@@ -15908,44 +15908,72 @@ PAL.B.cyFin=[16,14,12];PAL.B.cyPlat=[96,80,64];PAL.B.cyOmbre=[36,32,27];PAL.B.cy
 const SUN_DIR0=SUN_DIR.clone(),CY_UP=new THREE.Vector3(0,1,0),CY_SD=new THREE.Vector3(); // le soleil d'origine : il revient au bit près hors du canyon
 const CY={Q:null,on:false,ms:{},yMin:-1e4,yMax:1e4,ombre:1,prof:0,mesh:null,mat:null,geo:null,aN:null,maxN:900,G:32,S0:64,R0:118,lods:7,
   F:null,Z:null,O:null,fr:new THREE.Frustum(),pm:new THREE.Matrix4(),box:new THREE.Box3(),n:0,v:new THREE.Vector3(),sol:null};
-/* LA ROUTE — droites et arcs (≤ 8° par point, comme genJade), la PENTE en grade (dy/dx). Le cap reste dans ±58° de l'axe, sauf le FER À
-   CHEVAL qui fait sa boucle et revient. LV (la vitesse du moteur) élargit les rayons et allonge les tronçons, comme partout. */
+/* LA ROUTE v2 (2026-10-14 soir, Sacha : « le but du jeu est de prendre des RACCOURCIS en coupant la route quand une autre la croise plus
+   bas » + « c'est un jeu de COURSE, pas de balade : plus de virages ») — droites et arcs (≤ 8° par point), la PENTE en grade (dy/dx).
+   Le cap reste dans ±58° de l'axe (la piste ne revient jamais sur elle-même… SAUF dans les BOUCLES, faites pour ça). LV élargit les rayons.
+   LA BOUCLE (le raccourci) — un TROMBONE qui descend : l'APPROCHE (droite, la zone de saut), un demi-tour R1, le RETOUR, un demi-tour R2
+   plus serré, la SORTIE. R2 = R1 − e/2 : la sortie court PARALLÈLE à l'approche, décalée de e (~90 m d'axe à axe, ~35 m de vide entre
+   les bords) et PLUS BAS de `dh` (~120 m) — puis elle passe SOUS le premier demi-tour (la route repasse sous elle-même). Celui qui sort
+   par le bord de l'approche retombe sur la sortie : il saute ~2 km de route. Les repères `racX0/racX1` (approche) et `racX2/racX3`
+   (la sortie, sous l'approche) sont relus par buildCanyon → `CY.rac`. */
 function genCanyon(rnd){
   GAPMARK.length=0;CAMPM.length=0;MODMARK.length=0;FILETMARK.length=0;
-  const LV=lvPiste(),RS=LV*1.25,LL=1+Math.min(1.3,(LV-1)*.5),SQ=Math.sqrt(LV),g0=(rnd()*4294967296)>>>0;
+  const LV=lvPiste(),RS=1.25+.3*(LV-1),LL=1+Math.min(1.3,(LV-1)*.5),SQ=Math.sqrt(LV),g0=(rnd()*4294967296)>>>0;
+  // LE RAYON MINIMAL TENABLE à la vitesse du palier (règle RACCOURCIS de GAMEPLAY : 40 + 0,3 × la croisière du palier en m/s — le vrai
+  // plafond du joueur, lacetMax ; dessous un virage est INFRANCHISSABLE) : rayonPalier() du jeu s'il est là, ×1,08 de marge
+  const VW=typeof vPalier==='function'?vPalier():70+(LV-1)*100,RMIN=1.08*(typeof rayonPalier==='function'?rayonPalier():40+.3*VW);CY.rmin=Math.round(RMIN);
   let best=null,bestSep=-1;
-  for(let essai=0;essai<8;essai++){
-    const r=mulberry32((g0+essai*0x9E3779B1)>>>0),C=[],Q={},P=new THREE.Vector3(0,0,0);let phi=0;const LIM=58*Math.PI/180;
+  for(let essai=0;essai<14;essai++){
+    const r=mulberry32((g0+essai*0x9E3779B1)>>>0),C=[],Q={},P=new THREE.Vector3(0,0,0),BO=[];let phi=0;const LIM=58*Math.PI/180;
     const push=()=>C.push(P.clone()),ici=k=>{Q[k]={p:P.clone(),phi:phi};};
     const droite=(l,pe,n)=>{n=n||Math.max(2,Math.round(l/90));for(let k=0;k<n;k++){P.x+=Math.sin(phi)*l/n;P.z+=Math.cos(phi)*l/n;P.y+=pe*l/n;push();}};
-    const arc=(aDeg,R,pe)=>{const n=Math.max(3,Math.ceil(Math.abs(aDeg)/8)),st=aDeg*Math.PI/180/n,ch=2*R*Math.sin(Math.abs(st)/2);
+    const arc=(aDeg,R,pe)=>{R=Math.max(R,RMIN);const n=Math.max(3,Math.ceil(Math.abs(aDeg)/8)),st=aDeg*Math.PI/180/n,ch=2*R*Math.sin(Math.abs(st)/2);
       for(let k=0;k<n;k++){phi+=st/2;P.x+=Math.sin(phi)*ch;P.z+=Math.cos(phi)*ch;P.y+=pe*ch;phi+=st/2;push();}};
-    const recentre=pe=>{if(Math.abs(phi)>.06)arc(-phi*57.2958,(650+r()*250)*RS,pe);};
+    const recentre=pe=>{if(Math.abs(phi)>.06)arc(-phi*57.2958,(520+r()*200)*RS,pe);};
+    // LES VIRAGES DE COURSE (règle RACCOURCIS de GAMEPLAY : ≥ 2,5 virages/km de rayon < 250 m, enchaînés) : gauche-droite, presque plus de droites
     const virages=(len,p0,p1)=>{let fait=0,sg=r()<.5?-1:1;
-      while(fait<len){if(r()<.7)sg=-sg;let a=28+r()*50;const R=(230+r()*320)*RS;
+      while(fait<len){if(r()<.8)sg=-sg;let a=30+r()*45;const R=(85+r()*105)*RS;
         const lib=(LIM-sg*phi)*57.2958;if(lib<18){sg=-sg;a=Math.min(a,(LIM-sg*phi)*57.2958);}else a=Math.min(a,lib);
         const pe=-(p0+r()*(p1-p0));arc(sg*a,R,pe);fait+=R*a/57.2958;
-        if(r()<.3){const l=(80+r()*170)*LL,p2=-(p0+r()*(p1-p0))*.8;droite(l,p2);fait+=l;}}};
+        if(r()<.12){const l=(50+r()*70)*LL,p2=-(p0+r()*(p1-p0))*.8;droite(l,p2);fait+=l;}}};
     const bosses=n=>{for(let k=0;k<n;k++){const l1=(70+r()*25)*LL,l2=(105+r()*30)*LL,h=(14+r()*8)*SQ,h2=(26+r()*14)*SQ;droite(l1,h/l1,2);droite(l2,-(h+h2)/l2,3);}};
+    // LA BOUCLE (le raccourci) : approche ~220 m · demi-tour R1 ~135 m · retour · demi-tour SERRÉ R2 = R1 − e/2 (~80 m) · la SORTIE, 94 m à côté
+    // de l'approche et 55 à 90 m plus bas (2,6 à 3,4 s de vol : à 70-140 m/s on retombe de 180 à 480 m plus loin — la sortie file droit
+    // sous l'approche puis sous le premier demi-tour, et s'incurve à peine : elle est là où la caisse arrive)
+    const boucle=(nm,sg)=>{const k0=C.length;if(Math.abs(phi)>.06)arc(-phi*57.2958,(200+r()*80)*RS,-.25);
+      const e=2*ROAD_HALF+32+r()*12,R1=Math.max((100+r()*20)*RS,RMIN+e/2),R2=R1-e/2,La=(200+r()*50)*LL,Lb=(140+r()*30)*LL,pa=.10,dh=55+r()*35,
+        pl=Math.max(.02,(dh-pa*Lb)/(Math.PI*(R1+R2)+Lb));
+      ici(nm+'0');droite(La,-pa,Math.max(3,Math.round(La/70)));ici(nm+'1');               // l'APPROCHE : la zone de saut
+      arc(sg*180,R1,-pl);droite(Lb,-pl,Math.max(2,Math.round(Lb/70)));arc(sg*180,R2,-pl);phi-=sg*2*Math.PI; // demi-tour, retour, demi-tour serré (le cap a fait un tour : on le ramène)
+      ici(nm+'2');droite(Lb+150*LL,-pa,Math.max(4,Math.round((Lb+150)/70)));ici(nm+'3');  // la SORTIE : sous l'approche, sous le 1er demi-tour…
+      arc(-sg*(14+r()*8),(420+r()*120)*RS,-pa);                                           // …et elle s'incurve à peine (la pose de ceux qui volent loin)
+      BO.push([k0,C.length-1]);};
+    let sg0=r()<.5?1:-1;const sens=()=>(sg0=-sg0);                            // les boucles alternent de côté : la piste ne dérive pas
     push();ici('depart');
-    droite(540*LL,-.05,6);ici('breche0');                                   // LA VALLÉE DES MITAINES : on la traverse presque à plat
-    {const a=(r()<.5?-1:1)*(5+r()*6);arc(a,900*RS,-.2);}
-    droite(380*LL,-.78,5);ici('breche1');droite(120*LL,-.25,2);             // LA BRÈCHE : le grand plongeon dans la gorge
-    virages(1700*LL,.42,.78);ici('bosses');bosses(3);virages(600*LL,.40,.70);
-    recentre(-.3);
-    {const sg=r()<.5?1:-1,b=196+r()*28,R1=(300+r()*60)*RS,R2=(240+r()*40)*RS; // LE FER À CHEVAL : épaule, la boucle, épaule — le cap revient à l'axe
-      ici('fer0');arc(-sg*b/2,R1,-.22);arc(sg*b,R2,-.22);arc(-sg*b/2,R1,-.22);ici('fer1');}
-    virages(1000*LL,.42,.75);droite(240*LL,-.85,4);recentre(-.4);
-    ici('etroit0');{let sg=r()<.5?1:-1;for(let k=0;k<4;k++){arc(sg*(9+r()*7),(650+r()*300)*RS,-.36);sg=-sg;}}ici('etroit1'); // LES ÉTROITS : presque droit
-    droite(110*LL,-.2,2);ici('arche0');droite(640*LL,-.14,7);ici('arche1');  // L'ARCHE : une droite lisible
-    {const sg=r()<.5?1:-1;arc(-sg*48,520*RS,-.35);ici('amphi0');arc(sg*104,(440+r()*100)*RS,-.48);ici('amphi1');} // L'AMPHITHÉÂTRE : un grand balayage
-    virages(1250*LL,.45,.8);
-    {const l1=(150+r()*40)*LL,h=(24+r()*10)*SQ,l2=(250+r()*60)*LL;ici('chameau');droite(l1,h/l1,3);droite(l2,-(h+80*SQ)/l2,3);} // LE DOS DE CHAMEAU : le grand saut
-    virages(700*LL,.42,.75);recentre(-.4);
-    ici('finale0');droite(330*LL,-.9,4);droite(480*LL,-.12,5);ici('fin');droite(150,-.05,2);
-    // LE CONTRÔLE : deux tronçons à plus de 1,2 km l'un de l'autre sur la route ne passent jamais à moins de ~560 m (la gorge et ses parois tiennent entre eux)
-    const n=C.length,acc=new Float32Array(n);for(let k=1;k<n;k++)acc[k]=acc[k-1]+Math.hypot(C[k].x-C[k-1].x,C[k].z-C[k-1].z);
-    let sep=1e9;for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){if(acc[j]-acc[i]<1200*LL)continue;const d=Math.hypot(C[i].x-C[j].x,C[i].z-C[j].z);if(d<sep)sep=d;}
+    droite(340*LL,-.05,4);ici('breche0');                                   // LA VALLÉE DES MITAINES, sur le plateau : presque à plat
+    {const a=(r()<.5?-1:1)*(5+r()*6);arc(a,700*RS,-.2);}
+    droite(330*LL,-.62,5);ici('breche1');droite(90*LL,-.25,2);              // LA BRÈCHE : le grand plongeon dans la gorge
+    virages(380*LL,.30,.55);
+    {ici('fer0');boucle('racA',sens());ici('fer1');}                          // les RACCOURCIS, un tous les ~1,5 km
+    virages(300*LL,.28,.5);boucle('racB',sens());
+    ici('bosses');bosses(2);boucle('racC',sens());
+    virages(300*LL,.30,.55);recentre(-.3);
+    ici('etroit0');{let sg=sens();for(let k=0;k<6;k++){arc(sg*(24+r()*16),(150+r()*60)*RS,-.30);sg=-sg;}}ici('etroit1'); // LES ÉTROITS : le COULOIR — ça serpente entre deux murs collés à la route
+    boucle('racD',sens());
+    droite(90*LL,-.2,2);ici('arche0');droite(360*LL,-.14,5);ici('arche1');  // L'ARCHE
+    {const sg=sens();arc(-sg*40,300*RS,-.35);ici('amphi0');arc(sg*96,(230+r()*40)*RS,-.42);ici('amphi1');} // L'AMPHITHÉÂTRE
+    boucle('racE',sens());virages(300*LL,.30,.55);
+    boucle('racF',sens());
+    {const l1=(150+r()*40)*LL,h=(24+r()*10)*SQ,l2=(250+r()*60)*LL;ici('chameau');droite(l1,h/l1,3);droite(l2,-(h+80*SQ)/l2,3);} // LE DOS DE CHAMEAU
+    virages(260*LL,.30,.55);boucle('racG',sens());
+    virages(260*LL,.30,.55);boucle('racH',sens());
+    virages(240*LL,.30,.55);recentre(-.4);
+    ici('finale0');droite(300*LL,-.75,4);droite(320*LL,-.12,4);ici('fin');droite(150,-.05,2);
+    // LE CONTRÔLE : deux tronçons à plus de 1,2 km l'un de l'autre sur la route ne passent jamais à moins de ~560 m — SAUF à l'intérieur
+    // d'une même boucle (c'est le raccourci, voulu)
+    const n=C.length,acc=new Float32Array(n),bo=new Int16Array(n).fill(-1);for(let k=1;k<n;k++)acc[k]=acc[k-1]+Math.hypot(C[k].x-C[k-1].x,C[k].z-C[k-1].z);
+    BO.forEach(function(q,m){for(let k=q[0];k<=q[1];k++)bo[k]=m;});
+    let sep=1e9;for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){if(acc[j]-acc[i]<1200*LL||(bo[i]>=0&&bo[i]===bo[j]))continue;const d=Math.hypot(C[i].x-C[j].x,C[i].z-C[j].z);if(d<sep)sep=d;}
     if(sep>bestSep){bestSep=sep;best={C:C,Q:Q};}
     if(sep>560*SQ)break;}
   lisserRaccords(best.C,null);adoucirCretes(best.C,null,1);
@@ -16040,6 +16068,13 @@ function buildCanyon(seed){
   {const w=Math.round(300/DS),c=new Float64Array(NS+1);for(let i=0;i<NS;i++)c[i+1]=c[i]+S.F[i]+S.H[i];
    for(let i=0;i<NS;i++){const a=Math.max(0,i-w),b=Math.min(NS,i+w+1);S.R[i]=(c[b]-c[a])/(b-a);}}
   let reach=0;for(let i=0;i<NS;i++){S.RE[i]=S.wF[i]*(1+Math.abs(S.as[i]))+S.wW[i]+160*K+S.aw[i];if(S.RE[i]>reach)reach=S.RE[i];}S.reach=reach;
+  CY.rac=[];for(const nm of Object.keys(sQ).filter(function(k){return /^rac[A-Z]0$/.test(k);}).map(function(k){return k.slice(0,4);}).sort()){const a0=sQ[nm+'0'],a1=sQ[nm+'1'],b0=sQ[nm+'2'],b1=sQ[nm+'3'];if(a0==null||a1==null||b0==null||b1==null)continue;
+    const o={nm:nm,haut:[a0,a1],bas:[b0,b1],gain:Math.round(b0-a1),dh:1e9,lat:0,ecart:[]};
+    for(let s9=a0;s9<=a1;s9+=40){const i=Math.min(NS-1,Math.round(s9/DS));let bj=-1,bd=1e18;for(let j=Math.round(b0/DS);j<=Math.min(NS-1,Math.round(b1/DS));j++){const d=(S.x[j]-S.x[i])**2+(S.z[j]-S.z[i])**2;if(d<bd){bd=d;bj=j;}}
+      if(bj<0)continue;const lat=Math.sqrt(bd),dh=S.y[i]-S.y[bj];o.ecart.push([Math.round(s9),Math.round(lat),Math.round(dh)]);if(lat<120&&dh<o.dh){o.dh=Math.round(dh);o.lat=Math.round(lat);o.cote=Math.sign((S.x[bj]-S.x[i])*-S.tz[i]+(S.z[bj]-S.z[i])*S.tx[i]);}}
+    CY.rac.push(o);}
+  CY.cou=(sQ.etroit0!=null&&sQ.etroit1!=null)?[sQ.etroit0,sQ.etroit1]:null;CY.couT=null;
+  CY.tun=[Math.max(0,L-CY_TUN.l),L+60];CY.tunT=null; // LE TUNNEL d'arrivée : ses derniers mètres de route (et un peu au-delà du bout)
   CY.S=S;CY.ms={ech:Math.round(performance.now()-t0)};
   const bio9=BIOMES[(LVL.cur.bio&&LVL.cur.bio[0])||'canyonSoir']||BIOMES.canyonSoir,cA=bio9.cyA||[6,-110,0,0];
   const opt={K:K,seed:seed,L:L,RH:ROAD_HALF,sQ:sQ,sun:[cA[0],cA[1]],pal:{cyPlat:PAL.b('cyPlat',64),cyFin:PAL.b('cyFin',12),cyOmbre:PAL.b('cyOmbre',27),cyChem:PAL.b('cyChem',300)}};
@@ -16342,6 +16377,8 @@ const CY_H9={};
 function canyonHeurt(p){if(!CY.on||!CY.Z)return '';
   for(const o of JH){const x=p.x+o[0],z=p.z+o[1],h=cyHauteur(x,z,CY_H9);if(p.y<h+.7)return CY_H9.eau?'riviere':CY_H9.rk>.35?'paroi':'canyon';}
   if(CY.monu&&cyMonuHeurt(p))return 'paroi';
+  if(CY.couT&&cyCouloirHeurt(p,CY.couT))return 'paroi';
+  if(CY.tunT&&cyCouloirHeurt(p,CY.tunT))return 'paroi';
   return '';}
 /* ---- LES MONUMENTS (2026-10-14, CANYON) — ce que le relief seul ne sait pas faire : LES MITAINES (les deux buttes à pouce de Monument
    Valley, de part et d'autre de la route au départ : des EMPREINTES dans la taille fine, canal G — elles montent du sol de la vallée), L'ARCHE
@@ -16399,7 +16436,7 @@ const CY_AFS=['uniform vec3 uSunD,uSunC,uSky,uGnd,uBnc;uniform float uWet;varyin
   '  c*=uSunC*ndl*vA.w+mix(uGnd,uSky,N.y*.5+.5)*(1.-.45*vB.z)+uBnc*(1.-.6*vA.w)*.45;gl_FragColor=vec4(c,1.);','#include <fog_fragment>','}'].join('\n');
 function cyMonuMats(){if(CY.mm)return CY.mm;const U=CY.mat.uniforms;
   const mk=()=>{const m=new THREE.ShaderMaterial({uniforms:U,vertexShader:CY_MVS,fragmentShader:CY_FS,fog:true});m.dispose=function(){};return m;};
-  CY.mm={a:mk(),i:mk(),t:(function(){const m=new THREE.ShaderMaterial({uniforms:U,vertexShader:CY_MVS,fragmentShader:CY_AFS,fog:true,vertexColors:true});m.dispose=function(){};return m;})()};return CY.mm;}
+  CY.mm={a:mk(),i:mk(),b:(function(){const m=mk();m.side=THREE.DoubleSide;return m;})(),t:(function(){const m=new THREE.ShaderMaterial({uniforms:U,vertexShader:CY_MVS,fragmentShader:CY_AFS,fog:true,vertexColors:true});m.dispose=function(){};return m;})()};return CY.mm;}
 function cyArbreGeo(){const P=[],C=[],I=[],ad=(g,col,tx,ty,tz,sx,sy,sz)=>{const b=P.length/3,p=g.attributes.position,n=g.index;for(let k=0;k<p.count;k++){const v=.88+.24*Math.abs(Math.sin(k*12.9898));P.push(p.getX(k)*sx+tx,p.getY(k)*sy+ty,p.getZ(k)*sz+tz);C.push(col[0]*v,col[1]*v,col[2]*v);}
     if(n)for(let k=0;k<n.count;k++)I.push(b+n.getX(k));else for(let k=0;k<p.count;k++)I.push(b+k);g.dispose();};
   ad(new THREE.CylinderGeometry(.05,.09,1,5),[.42,.33,.24],0,.5,0,1,1,1);
@@ -16435,9 +16472,63 @@ function cyRais(S,sQ){const e0=sQ.etroit0,e1=sQ.etroit1;if(e0==null||e1==null)re
     P.push(x0-bx,bot,z0-bz, x0+bx,bot,z0+bz, x0+bx+ax,bot+ay,z0+bz+az2, x0-bx+ax,bot+ay,z0-bz+az2);U.push(0,0,1,0,1,1,0,1);I.push(b,b+1,b+2,b,b+2,b+3);n++;}
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));g.setIndex(I);g.computeBoundingSphere();
   const m=new THREE.Mesh(g,CY_RAI_M);m.userData.jeter=1;m.renderOrder=8;m.matrixAutoUpdate=false;m.updateMatrix();return m;}
+const CY_COU={g:3.5,T:14};
+const CY_TUN={l:460,vh:34,ap:104,fw:520,fh:520};  // longueur, hauteur des murs droits, sommet de la voûte (au-dessus de la route), façade (demi-largeur, hauteur)
+function cyCouloirIci(){return CY.on&&((!!CY.cou&&s>=CY.cou[0]&&s<=CY.cou[1])||(!!CY.tun&&s>=CY.tun[0]));}
+function cyCouloir(){CY.couT=CY.cou?cyBandes(CY.cou,false):null;CY.tunT=CY.tun?cyBandes(CY.tun,true):null;}
+function cyBandes(iv,tun){const S=CY.S;if(!S)return null;const i0=Math.max(0,Math.round(iv[0]/S.ds)),i1=Math.min(S.n-1,Math.round(iv[1]/S.ds));if(i1-i0<4)return null;
+  const L0=ROAD_HALF+CY_COU.g,T=CY_COU.T,n=i1-i0+1,top=new Float32Array(n*2),bas=new Float32Array(n),o9={};
+  for(let k=0;k<n;k++){const i=i0+k;bas[k]=Math.min(S.F[i],S.y[i]-THICK-8)-6;
+    for(let c=0;c<2;c++){const sd=c?1:-1,l=sd*(L0+T+16),h=cyHauteur(S.x[i]-S.tz[i]*l,S.z[i]+S.tx[i]*l,o9);top[k*2+c]=tun?S.y[i]+CY_TUN.vh:Math.min(S.y[i]+420,Math.max(S.y[i]+50,h));}}
+  if(!tun){const t2=top.slice();for(let k=0;k<n;k++)for(let c=0;c<2;c++){let a=0,m=0;for(let j=Math.max(0,k-4);j<=Math.min(n-1,k+4);j++){a+=t2[j*2+c];m++;}top[k*2+c]=a/m;}} // le haut lissé : pas de dents de scie
+  const P=new Float32Array(n*2*4*3),N=new Float32Array(n*2*4*3),I=[];
+  for(let c=0;c<2;c++){const sd=c?1:-1;for(let k=0;k<n;k++){const i=i0+k,nx=-S.tz[i]*sd,nz=S.tx[i]*sd,b=((c*n)+k)*4,t9=top[k*2+c];
+    const V=(q,l,y,a,bb,cc)=>{const o=(b+q)*3;P[o]=S.x[i]+nx*l;P[o+1]=y;P[o+2]=S.z[i]+nz*l;N[o]=a;N[o+1]=bb;N[o+2]=cc;};
+    V(0,L0,bas[k],-nx,0,-nz);V(1,L0,t9,-nx,0,-nz);V(2,L0,t9,0,1,0);V(3,L0+T,t9,0,1,0);  // la face (vers la route) et le dessus
+    if(k<n-1){const b2=b+4;I.push(b,b2,b+1,b+1,b2,b2+1,b+2,b2+2,b+3,b+3,b2+2,b2+3);}}}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(P,3));g.setAttribute('normal',new THREE.BufferAttribute(N,3));g.setIndex(I);g.computeBoundingSphere();
+  const m=new THREE.Mesh(g,cyMonuMats().b);m.userData.jeter=1;m.matrixAutoUpdate=false;m.updateMatrix();m.frustumCulled=true;CY.grp.add(m);
+  if(tun)cyGalerie(i0,i1,L0);
+  return {i0:i0,i1:i1,top:top,bas:bas,L0:L0,tun:tun};}
+/* LA VOÛTE (une demi-ellipse de L0 à L0, de la tête des murs au sommet), LA FAÇADE (un mur de falaise percé d'une bouche en fer à cheval,
+   tourné vers celui qui arrive) et LES NÉONS (deux filets rose au pied des murs, un filet or sous la clé, la bouche cerclée de rose) */
+const CY_NEON={r:null,o:null};
+function cyGalerie(i0,i1,L0){const S=CY.S,n=i1-i0+1,NA=14,vh=CY_TUN.vh,ap=CY_TUN.ap,P=[],I=[];
+  const pt=(i,a)=>{const l=-L0*Math.cos(a),y=S.y[i]+vh+(ap-vh)*Math.sin(a);return [S.x[i]-S.tz[i]*l,y,S.z[i]+S.tx[i]*l];}; // a = 0 (un mur) → π (l'autre)
+  for(let k=0;k<n;k++)for(let q=0;q<=NA;q++){P.push.apply(P,pt(i0+k,q/NA*Math.PI));if(k<n-1&&q<NA){const a=k*(NA+1)+q,b=a+NA+1;I.push(a,b,a+1,a+1,b,b+1);}}
+  const gv=new THREE.BufferGeometry();gv.setAttribute('position',new THREE.Float32BufferAttribute(P,3));gv.setIndex(I);gv.computeVertexNormals();gv.computeBoundingSphere();
+  const mv=new THREE.Mesh(gv,cyMonuMats().b);mv.userData.jeter=1;mv.matrixAutoUpdate=false;mv.updateMatrix();CY.grp.add(mv);
+  // LA FAÇADE à la bouche : le contour de la bouche (murs + voûte) relié à un grand rectangle de falaise (en éventail)
+  {const i=i0,tx=S.tx[i],tz=S.tz[i],W=CY_TUN.fw,H=Math.max(CY_TUN.fh,S.R[i]-S.y[i]+80),yb=Math.min(S.F[i],S.y[i]-40)-10,Q=[],J=[],B=[];
+   const at=(l,y)=>[S.x[i]-tz*l,y,S.z[i]+tx*l];
+   B.push([-L0,yb]);B.push([-L0,S.y[i]+vh]);for(let q=1;q<NA;q++){const a=q/NA*Math.PI;B.push([-L0*Math.cos(a),S.y[i]+vh+(ap-vh)*Math.sin(a)]);}B.push([L0,S.y[i]+vh]);B.push([L0,yb]); // le bord de la bouche
+   const O=B.map(function(b){const l=b[0],y=b[1];const ang=Math.atan2(y-(S.y[i]+vh),l);const ex=Math.abs(Math.cos(ang))>1e-3?W/Math.abs(Math.cos(ang)):1e9,ey=Math.abs(Math.sin(ang))>1e-3?H/Math.abs(Math.sin(ang)):1e9,e=Math.min(ex,ey);
+     return [Math.max(-W,Math.min(W,Math.cos(ang)*e)),Math.max(yb,Math.min(S.y[i]+vh+H,S.y[i]+vh+Math.sin(ang)*e))];}); // le même rayon, poussé jusqu'au cadre
+   O[0]=[-W,yb];O[O.length-1]=[W,yb];
+   for(let k=0;k<B.length;k++){Q.push.apply(Q,at(B[k][0],B[k][1]));Q.push.apply(Q,at(O[k][0],O[k][1]));if(k<B.length-1){const a=k*2;J.push(a,a+1,a+2,a+2,a+1,a+3);}}
+   const nb=Q.length/3;Q.push.apply(Q,at(-W,S.y[i]+vh+H));Q.push.apply(Q,at(W,S.y[i]+vh+H));J.push(1,nb,3);for(let k=1;k<B.length-1;k++){const a=k*2+1;J.push(a,nb,a+2);}J.push((B.length-1)*2+1,nb,nb+1); // les coins du haut
+   const gf=new THREE.BufferGeometry();gf.setAttribute('position',new THREE.Float32BufferAttribute(Q,3));gf.setIndex(J);gf.computeVertexNormals();gf.computeBoundingSphere();
+   const mf=new THREE.Mesh(gf,cyMonuMats().b);mf.userData.jeter=1;mf.matrixAutoUpdate=false;mf.updateMatrix();CY.grp.add(mf);
+   CY.tunF={x:S.x[i],y:S.y[i],z:S.z[i],tx:tx,tz:tz,B:B};}
+  // LES NÉONS : des rubans additifs (deux filets rose au pied des murs, un filet or sous la clé, la bouche cerclée de rose)
+  if(!CY_NEON.r){CY_NEON.r=new THREE.MeshBasicMaterial({color:0xff3fa6,transparent:true,opacity:.95,blending:THREE.AdditiveBlending,depthWrite:false,fog:false,side:THREE.DoubleSide});
+    CY_NEON.o=new THREE.MeshBasicMaterial({color:0xffc24a,transparent:true,opacity:.9,blending:THREE.AdditiveBlending,depthWrite:false,fog:false,side:THREE.DoubleSide});CY_NEON.r.dispose=CY_NEON.o.dispose=function(){};}
+  const ruban=(fn,w,mat)=>{const R=[],K=[];for(let k=0;k<n;k+=2){const a=fn(i0+k,-w),b=fn(i0+k,w);R.push.apply(R,a);R.push.apply(R,b);const m=R.length/3;if(m>=4)K.push(m-4,m-3,m-2,m-2,m-3,m-1);}
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(R,3));g.setIndex(K);g.computeBoundingSphere();const me=new THREE.Mesh(g,mat);me.userData.jeter=1;me.matrixAutoUpdate=false;me.updateMatrix();me.renderOrder=3;CY.grp.add(me);};
+  for(const sd of [-1,1])ruban(function(i,w){const l=sd*(L0-.3);return [S.x[i]-S.tz[i]*l,S.y[i]+6+w,S.z[i]+S.tx[i]*l];},.55,CY_NEON.r);
+  ruban(function(i,w){return [S.x[i]-S.tz[i]*w*1.4,S.y[i]+ap-.6,S.z[i]+S.tx[i]*w*1.4];},1,CY_NEON.o);
+  {const F9=CY.tunF,R=[],K=[];const at=(l,y,o)=>[F9.x-F9.tz*l-F9.tx*o,y,F9.z+F9.tx*l-F9.tz*o];
+   for(let k=1;k<F9.B.length-1;k++){const b=F9.B[k],c=[b[0]*1.06,F9.y+CY_TUN.vh+(b[1]-F9.y-CY_TUN.vh)*1.06];R.push.apply(R,at(b[0],b[1],.8));R.push.apply(R,at(c[0],c[1]+(k===1||k===F9.B.length-2?0:0),.8));const m=R.length/3;if(m>=4)K.push(m-4,m-3,m-2,m-2,m-3,m-1);}
+   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(R,3));g.setIndex(K);g.computeBoundingSphere();const me=new THREE.Mesh(g,CY_NEON.r);me.userData.jeter=1;me.matrixAutoUpdate=false;me.updateMatrix();me.renderOrder=3;CY.grp.add(me);}}
+function cyCouloirHeurt(p,C){const S=CY.S;if(!C)return false;let bi=-1,bd=1e18;
+  for(let i=C.i0;i<=C.i1;i+=2){const d=(p.x-S.x[i])**2+(p.z-S.z[i])**2;if(d<bd){bd=d;bi=i;}}
+  if(bi<0||bd>(C.L0+CY_COU.T+40)**2)return false;const lt=(p.x-S.x[bi])*-S.tz[bi]+(p.z-S.z[bi])*S.tx[bi],a=Math.abs(lt),k=bi-C.i0;
+  if(C.tun){const yr=S.y[bi];if(p.y>yr+CY_TUN.vh&&a<C.L0){const u=a/C.L0;if(p.y>yr+CY_TUN.vh+(CY_TUN.ap-CY_TUN.vh)*Math.sqrt(Math.max(0,1-u*u))-1.5)return true;}}
+  return a>C.L0-1.2&&a<C.L0+CY_COU.T+2&&p.y<C.top[k*2+(lt>0?1:0)]&&p.y>C.bas[k]-2;}
 function cyMonuments(seed){
   if(CY.grp){for(const o of CY.grp.children.slice()){CY.grp.remove(o);if(o.geometry&&o.userData.jeter)o.geometry.dispose();}}
   const M9=cyMonuMats();CY.grp.visible=true;
+  try{cyCouloir();}catch(e){console.warn('canyon : couloir',e);} // les parois du COULOIR et la galerie du TUNNEL d'arrivée
   if(CY.arche){const m=new THREE.Mesh(cyArcheGeo(CY.arche),M9.a);m.userData.jeter=1;m.matrixAutoUpdate=false;m.updateMatrix();CY.grp.add(m);}
   {const S=CY.S,N9=PAL.b('cyArbres',700),rg=mulberry32((seed^0x7A33)>>>0),L9=[];
    if(S)for(let k=0;k<N9*6&&L9.length<N9;k++){const i=Math.floor(rg()*(S.n-1));if(S.zS[i]>.5)continue;const sg=rg()<.5?-1:1,lat=S.wR[i]+3+rg()*26,tx=S.tx[i],tz=S.tz[i],x=S.x[i]-tz*sg*lat,z=S.z[i]+tx*sg*lat,o9={};
@@ -16489,6 +16580,7 @@ window.dbgCanyon=function(k,a,b,c){
       if(h>y-THICK-1.5)dessous++;if(h>y+1.5)dessus++;pire=Math.min(pire,y-THICK-h);}}
     return {dessus:dessus,dessous:dessous,margeMin:+pire.toFixed(1),sep:CY.sep};}
   if(k==='reprendre'){if(paused)togglePause();return 'ok';}
+  if(k==='raccourcis')return CY.rac||[];
   if(k==='vue'||k==='vueA'){if(!CY.on)return 'pas de canyon';if(started&&!gameOver&&!paused)togglePause();const F9={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
     frameAt(Math.max(0,Math.min(L-1,(k==='vueA'?0:s)+(a||0))),F9); /* 'vueA' : à l'abscisse a de la piste (sinon a mètres devant la caisse) */const cap=(c||0)*Math.PI/180,dx=F9.t.x*Math.cos(cap)-F9.t.z*Math.sin(cap),dz=F9.t.z*Math.cos(cap)+F9.t.x*Math.sin(cap);
     camera.position.set(F9.p.x,F9.p.y+(b||12),F9.p.z);camera.up.set(0,1,0);camera.lookAt(F9.p.x+dx*200,F9.p.y+(b||12)-200*(a!=null&&arguments[4]!=null?arguments[4]:.12),F9.p.z+dz*200);camera.updateMatrixWorld();
@@ -19239,11 +19331,11 @@ function parisTick(dt){ // l'HEURE avance avec les quartiers ; le décor vit (ph
   for(const b of PARIS.bateaux){b.a+=b.v*dt;if(b.a>4500)b.a=-4500;else if(b.a<-4500)b.a=4500;
     b.g.position.set(SV.b.x+SV.r.x*b.a+SV.n.x*b.u,-7.9+Math.sin(PARIS.t*1.3+b.u)*.06,SV.b.z+SV.r.z*b.a+SV.n.z*b.u);b.g.rotation.y=yb+(b.v<0?Math.PI:0);}
 }
-function parisMur(dt){ // LES FAÇADES SONT DES MURS : un CHOC par contact (vitesse perdue selon l'angle), puis on FROTTE (étincelles) — de face à pleine vitesse, on s'encastre
+function parisMur(dt,cause){ // LES FAÇADES SONT DES MURS : un CHOC par contact (vitesse perdue selon l'angle), puis on FROTTE (étincelles) — de face à pleine vitesse, on s'encastre
   const out=Math.sign(lat)||1,lim=ROAD_HALF-1.15;lat=out*lim;
   const into=vL*driveDir*out;if(into<=0)return;
   const va=Math.abs(vA),a=Math.asin(Math.min(1,into/Math.max(1,va))),kmh=va*3.6*SPD,now=performance.now();
-  if(a>.52&&kmh>200){explode('facade');return;}
+  if(a>.52&&kmh>200){explode(cause||'facade');return;}
   psi=-psi*.3;yawR=0;slipB=0;vL=0;
   const choc=now-(PARIS.chocT||0)>220;if(choc)PARIS.chocT=now;       // (mesuré : perdre à CHAQUE image faisait tomber de 151 à 20 km/h en 3 s)
   vA*=choc?1-Math.min(.3,.03+a*.9):1-.3*(dt||.016);
@@ -56175,6 +56267,7 @@ function loop(now){
       if(side>0&&F.n.y>.5&&Math.abs(lat)<ROAD_HALF-2&&Math.abs(psi)<.5)safeS=s;
       // BORD : si la voiture dépasse le côté de la route, elle bascule et tombe dans le vide.
       if(PARIS.sol&&Math.abs(lat)>ROAD_HALF-1.15)parisMur(dt); // (Paris au sol) les façades sont des MURS : on frotte, on ne tombe pas
+      else if(cyCouloirIci()&&Math.abs(lat)>ROAD_HALF-1.15)parisMur(dt,'paroi'); // (2026-10-14, CANYON) LE COULOIR des Étroits : les parois touchent la route — même mur que Paris
       else if(Math.abs(lat)>ROAD_HALF){
         const out=Math.sign(lat);
         // (bord v2) le CENTRE DE GRAVITÉ passe la lèvre : elle BASCULE — ni saut (était +3,4 vers le haut), ni poussée (+4 %) : on ne
