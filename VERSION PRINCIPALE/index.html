@@ -8159,6 +8159,113 @@ html.c6 body #garage.atelierInv:not(.menu):not(.vitrine):not(.shopRet):not(.mode
 @media (orientation:portrait){html.c6 body #garage.atelierInv:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gStrip>.gT{aspect-ratio:4/3}}
 html.c6.hubOn.gtConsole body #garage:not(.menu)>#gTourne.on{margin:auto auto 1px}
 </style>
+<style id="n7-garage">
+/* =====================================================================================================================
+   NAVIGATION 7 · LE GARAGE = « MES CAISSES » (2026-10-14, session INTERFACE, agent GARAGE — Sacha : « le garage, il y a plein de
+   boutons au mauvais endroit, plein de fonctionnalités répétées ; il faut que ça soit beaucoup plus simple, clair pour les enfants »).
+   Plus de hub replié, plus de touches INVENTAIRE ni BOUTIQUE (la boutique est un onglet de la barre) : arriver au garage = arriver sur
+   SA collection. Un écran, une décision :
+     · en haut on LIT : le titre GARAGE (pas de ◀ : la barre d'onglets est le retour ; pas de compteurs : la pastille #n7Bank), puis la
+       FICHE de ce qui est sur le plateau (nom, rareté, ÉQUIPÉ, l'ŒIL — et l'œil a enfin une sortie : ✕ en haut à gauche) ;
+     · au milieu la caisse de Léo, porte ouverte : glisser = tourner, maintenir = burn-out (une aide aux trois premières visites) ;
+     · en bas la plaque d'encre (les cinq onglets de même largeur, la grille de ce qu'on a : toucher = ÉQUIPER), puis JOUER, seule plaque
+       d'or, à la place commune de la décision (--n7Dec*). Couché : la grille à droite, la caisse à gauche, JOUER au bout de la barre.
+   Tout est sous #garage.n7Gar (posée par n7GSync sous html.nav7 seulement) : ?nav=0 garde la charte 6 telle quelle.
+   § = html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) — la structure
+   des règles c6 de l'inventaire, quatre classes de plus : elle l'emporte sans course aux !important.
+   ===================================================================================================================== */
+html.nav7{--n7GPanH:clamp(154px,calc(100vh - var(--n7Haut) - var(--n7Res) - 290px),260px);--n7GPanW:clamp(300px,46vw,420px)}
+#gN7X,#gN7Eq,#gN7Aide,#gTabs .n7L{display:none}
+/* plus de voile en DÉGRADÉ sur la scène (couché, le noir de droite bouchait la moitié du garage) : la grille a sa propre plaque d'encre */
+html.nav7 body #garage.n7Gar.atelierInv::before,html.nav7 body #garage.n7Gar.atelierInv::after{content:none!important;display:none!important}
+/* la jauge qui tournait le garage (Léo) : le doigt sur la scène le fait déjà (un doublon de moins) — et couchée elle passait sur la barre d'onglets
+   (z 82, en bas à gauche, dans la bande réservée à la barre). Sous nav7, nulle part. */
+html.nav7 #gTourne{display:none!important}
+/* L'EN-TÊTE : le titre seul, à la place commune (48 de haut à sT + 8) */
+html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop)>#gC6Tete{display:flex!important;align-items:center!important;height:calc(var(--n7TitreY) + 48px)!important;padding:var(--n7TitreY) var(--c6-x-d) 0 var(--n7TitreX)!important}
+html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop)>#gC6Tete>:is(#gC6Ret,#gC6TitreInv,.c6Comptes){display:none!important}
+html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop)>#gC6Tete>.c6Titre:not(#gC6TitreInv){display:block!important}
+/* LA FICHE : nom (pixel 16) · rareté · ÉQUIPÉ · l'ŒIL (48 × 48) — le rang « 1 / 49 », la description et le nuancier s'effacent */
+html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gTop{box-sizing:border-box!important;width:100%!important;padding:var(--n7Haut) var(--c6-x-d) 0 var(--c6-x-g)!important}
+html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gCard{grid-template-columns:minmax(0,max-content) max-content 48px!important}
+html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gCard>:is(#gLvl,#gDesc,#gMeta,#gDots,#gSw,#gBank,#gHint){display:none!important}
+html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gCard>#gOeil{display:flex!important;grid-column:3!important;grid-row:1/3!important;align-self:center!important}
+html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gCard>#gN7Eq{grid-column:2;grid-row:2;justify-self:end;align-self:center}
+html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gCard.n7Eq>#gN7Eq{display:block;box-sizing:border-box;height:20px;margin:0;padding:0 6px;font:var(--c6-wf) var(--c6-t13)/20px var(--c6-sys);letter-spacing:var(--c6-cap);text-transform:uppercase;white-space:nowrap;color:var(--c6-e0);background:var(--c6-b0)}
+/* LA PLAQUE DU BAS : posée juste au-dessus de la décision ; sa hauteur = des rangées ENTIÈRES de cartes (--n7PanH, mesurée par n7GGrille) */
+html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gBottom,html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gBottom.c6Peu{position:absolute!important;left:var(--c6-x-g)!important;right:var(--c6-x-d)!important;top:auto!important;bottom:var(--n7Res)!important;z-index:2!important;
+  box-sizing:border-box!important;width:auto!important;height:var(--n7PanH,var(--n7GPanH))!important;min-height:0!important;max-height:none!important;margin:0!important;padding:8px!important;gap:8px!important;
+  filter:none!important;transform:none!important;translate:none!important;clip-path:none!important;contain:none!important;will-change:auto!important}
+html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gBottom>#gC6Vide{display:none!important}
+/* LES ONGLETS : cinq, de MÊME largeur, 48 de haut ; le mot en police système (les accents restent) — 13 px, 11 px si un mot ne tient pas (n7GOnglets mesure) */
+html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gTabs>.gTab{flex:1 1 0!important;min-width:0!important;padding:0 2px!important;font:var(--c6-wf) var(--c6-t13)/1 var(--c6-sys)!important;letter-spacing:var(--c6-cap)!important;text-transform:uppercase}
+html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gTabs>.gTab>:is(span,.pxi){display:none!important}
+html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gTabs>.gTab>.n7L{display:block;white-space:nowrap;font:inherit;letter-spacing:inherit;color:inherit}
+html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gTabs.n7Serre>.gTab{font-size:var(--c6-t11)!important;font-weight:var(--c6-w)!important;letter-spacing:0!important} /* 11/600 : le 600 est plus étroit, les mots gardent ~8 px d'air (667 couché : VOITURES · PEINTURE se touchaient en 800) */
+/* LA GRILLE : trois colonnes ; tout y est à toi, donc plus de coche sur chaque carte ; l'ÉQUIPÉE porte un cadre d'encre de 4 px (sur la photo blanche
+   d'une caisse comme sur la face blanche d'un habillage), posé dès le toucher (n7GSync) */
+html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gStrip{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gStrip>.gT>em{display:none!important}
+/* une seule rangée tient (n7GGrille) : elle défile de CÔTÉ, la 4e carte dépasse d'un tiers (on voit qu'il y a une suite) */
+html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gStrip.n7Ligne{grid-template-columns:none!important;grid-template-rows:none!important;grid-auto-flow:column!important;grid-auto-columns:calc((100% - 24px) / 3.35)!important;
+  overflow-x:auto!important;overflow-y:hidden!important;touch-action:pan-x!important;overscroll-behavior:contain;scrollbar-width:none;padding:0 0 4px!important}
+html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gStrip.n7Ligne::-webkit-scrollbar{display:none}
+html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gStrip>.gT.eq::after{content:''!important;display:block!important;position:absolute!important;inset:0!important;z-index:3!important;width:auto!important;height:auto!important;margin:0!important;border:0!important;border-radius:0!important;
+  pointer-events:none;background:none!important;transform:none!important;translate:none!important;rotate:none!important;clip-path:none!important;filter:none!important;opacity:1!important;animation:none!important;
+  box-shadow:inset 0 0 0 4px var(--c6-e0),inset 0 0 0 6px var(--c6-b0)!important}
+/* AILES et FIGURES : la vignette n'a qu'un pictogramme commun (l'aile, la vrille) — il se range en petit en haut à gauche, le NOM a la place (deux lignes) */
+html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gStrip>.gT:is(.c-aile,.c-figure) .gIc{left:8px!important;top:8px!important;margin:0!important;--pxs:2!important}
+/* « + DANS LA BOUTIQUE » : une catégorie vide ou presque (≤ 3) dit où trouver la suite — la même carte que les autres, un « + » à la place de l'image */
+html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gStrip>.n7Plus{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;box-sizing:border-box;min-width:0;min-height:48px;aspect-ratio:16/10;margin:0;padding:4px;cursor:pointer;
+  color:var(--c6-b0);background:var(--c6-e1);box-shadow:inset 0 0 0 2px var(--c6-b0),0 4px 0 0 var(--c6-noir);transition:transform var(--c6-vite) linear,box-shadow var(--c6-vite) linear}
+html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gStrip>.n7Plus:is(:active,.appui){transform:translateY(var(--c6-t));box-shadow:inset 0 0 0 2px var(--c6-b0),0 0 0 0 var(--c6-noir)}
+html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gStrip>.n7Plus>b{font:400 var(--c6-t24)/1 var(--c6-pixel);color:var(--c6-b0)}
+html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gStrip>.n7Plus>span{font:var(--c6-wf) var(--c6-t13)/16px var(--c6-sys);letter-spacing:var(--c6-cap);text-transform:uppercase;text-align:center}
+@media (orientation:portrait){html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gStrip>.n7Plus{aspect-ratio:4/3}}
+/* LA DÉCISION : JOUER, l'unique or, à la place commune (debout : pleine largeur au-dessus de la barre · couché : 268 × 48 au bout de la barre) */
+html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gBottom>#gAct{display:contents!important}
+html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gAct>:not(#gJouer){display:none!important}
+html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gAct>#gJouer{position:fixed!important;left:var(--n7DecL)!important;right:var(--n7DecR)!important;top:auto!important;bottom:var(--n7DecB)!important;z-index:5!important;
+  display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:16px!important;box-sizing:border-box!important;
+  width:var(--n7DecW)!important;min-width:0!important;max-width:none!important;height:var(--n7DecH)!important;min-height:0!important;margin:0!important;padding:0 16px!important;
+  translate:none!important;transform:none!important;clip-path:none!important;filter:none!important;animation:none!important;outline:0!important;opacity:1!important;
+  letter-spacing:0!important;white-space:nowrap!important;color:var(--c6-orE)!important;text-shadow:none!important;background:var(--c6-or)!important;
+  box-shadow:inset 0 0 0 2px var(--c6-orE),inset 0 4px 0 0 var(--c6-orL),0 4px 0 0 var(--c6-orT),0 4px 0 2px var(--c6-orE),0 0 0 2px var(--c6-orE)!important;
+  transition:transform var(--c6-vite) linear,box-shadow var(--c6-vite) linear!important}
+html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gAct>#gJouer::before,html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gAct>#gJouer::after{content:none!important}
+html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gAct>#gJouer:is(:active,.appui){transform:translateY(var(--c6-t))!important;box-shadow:inset 0 0 0 2px var(--c6-orE),inset 0 4px 0 0 var(--c6-orL),0 0 0 0 var(--c6-orT),0 0 0 2px var(--c6-orE),0 0 0 2px var(--c6-orE)!important}
+html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gAct>#gJouer>span{font:400 var(--c6-t24)/1 var(--c6-pixel)!important;letter-spacing:0!important;transform:none!important;font-style:normal!important;color:var(--c6-orE)!important;-webkit-text-fill-color:currentColor;background:none!important;text-shadow:none!important}
+html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gAct>#gJouer>:is(.mChev,.playNiv){display:none!important}
+/* le mot est fait de lettres d'or « .lg.gold » (le JOUER du ciel de Léo, mPlayMot) : sur la plaque d'or elles passent à plat, encre sur or — comme le JOUER
+   de l'accueil (charte : le dégradé et le relief des lettres sont réservés au logo) */
+html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gAct>#gJouer .gjMot{display:inline-flex!important;gap:0!important}
+html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gAct>#gJouer .lg{font:400 var(--c6-t24)/1 var(--c6-pixel)!important;letter-spacing:0!important;background:none!important;color:var(--c6-orE)!important;-webkit-text-fill-color:var(--c6-orE)!important;text-shadow:none!important;filter:none!important;transform:none!important;animation:none!important}
+html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gAct>#gJouer .lg::before,html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gAct>#gJouer .lg::after{content:none!important}
+/* L'AIDE DU BURN-OUT (trois premières visites, jusqu'au premier burn-out) : une ligne de lecture sous la caisse, rien à toucher */
+html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop)>#gN7Aide.on{display:block;position:absolute;left:var(--c6-x-g);right:var(--c6-x-d);bottom:calc(var(--n7Res) + var(--n7PanH,var(--n7GPanH)) + 16px);margin:0;pointer-events:none;text-align:center;
+  font:var(--c6-w) var(--c6-t13)/var(--c6-lh13) var(--c6-sys);letter-spacing:var(--c6-cap);text-transform:uppercase;color:var(--c6-b0);text-shadow:0 2px 0 var(--c6-noir);animation:n7AideIn var(--c6-pose) var(--c6-courbe) both}
+@keyframes n7AideIn{from{opacity:0}to{opacity:1}}
+/* L'ŒIL — la voiture seule : tout s'efface (la barre et la pastille aussi), il reste ✕ en haut à gauche, à la place du ◀ d'une sous-page */
+html.nav7 body #garage.n7Gar.vueSeule>#gC6Tete>#gN7X{display:flex!important;visibility:visible!important}
+html.nav7 body #garage.n7Gar.vueSeule #gCard>#gOeil{visibility:hidden!important}
+html.nav7.n7Gar.vueSeule :is(#n7Bar,#n7Bank){visibility:hidden!important}
+/* COUCHÉ (le même seuil que la décision du socle) : la plaque à droite, de l'en-tête à la barre ; la fiche et la caisse à gauche */
+@media (orientation:landscape) and (max-height:540px){
+  html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gBottom,html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gBottom.c6Peu{left:auto!important;top:var(--n7Haut)!important;bottom:auto!important;width:var(--n7GPanW)!important;height:var(--n7PanH,calc(100vh - var(--n7Haut) - var(--n7Res)))!important}
+  html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gTop{width:calc(100% - var(--c6-x-d) - var(--n7GPanW) - 16px)!important;padding-right:0!important}
+  html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop)>#gN7Aide.on{right:calc(var(--c6-x-d) + var(--n7GPanW) + 16px);bottom:var(--n7Res)}
+  html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gAct>#gJouer>span,html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gAct>#gJouer .lg{font-size:var(--c6-t16)!important}
+}
+/* COUCHÉ ÉTROIT (iPhone SE, 667 × 375) : la plaque garde 312 px (cinq mots à 11 px et leur air) ; la fiche se resserre — ÉQUIPÉ passe sous la rareté
+   (« LÉGENDAIRE » se coupait contre lui) ; les ailes et figures montrent leur nom seul (57 px de carte : le pictogramme passait sous le nom) */
+@media (orientation:landscape) and (max-height:540px) and (max-width:740px){
+  html.nav7{--n7GPanW:312px}
+  html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gCard>#gN7Eq{grid-column:1!important;grid-row:3!important;justify-self:start!important}
+  html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gCard>#gOeil{grid-row:1/4!important}
+  html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gStrip>.gT:is(.c-aile,.c-figure) .gIc{display:none!important}
+}
+@media (prefers-reduced-motion:reduce){html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop)>#gN7Aide.on{animation:none}html.nav7.c6 body #garage.n7Gar.atelierInv.modeInv:not(.menu):not(.vitrine):not(.quiet):not(.shopRet):not(.modeShop) #gStrip>.n7Plus{transition:none}}
+</style>
 <style id="c6-boutique">
 /* CHARTE 6 · la boutique (la rotonde de Léo), la fenêtre d'achat — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
 /* ===== P1 · LA BOUTIQUE (2026-10-14, charte 6) : navigation et état, pas une refonte — la scène 3D de Léo ne bouge pas ===== */
@@ -44426,7 +44533,7 @@ function gModeBoutons(){const m=gModeM(),c=document.getElementById('gvCof'),b=do
     if(gEl)gEl.classList.toggle('shopRet',ret);} // (2026-10-12) BOUTIQUE devient RETOUR
   if(GATL.on&&m!=='inv')GATL.on=false; // l'atelier fermé n'existe qu'en INVENTAIRE
   if(c){const ret=m==='inv'&&GATL.on;if(c._lib==null)c._lib=c.innerHTML;if(ret!==!!c._ret){c._ret=ret;c.innerHTML=ret?pxi('gauche')+'<span data-fr="RETOUR">'+TR('RETOUR')+'</span>':c._lib;c.setAttribute('aria-label',ret?TR('RETOUR'):'Inventaire');}}
-  if(gEl){gEl.classList.remove('invRet');gEl.classList.toggle('modeInv',m==='inv');gEl.classList.toggle('atelierInv',GATL.on);} // (2026-10-12, Léo) à l'arrivée l'INVENTAIRE en aperçu, les cinq touches ; INVENTAIRE touché = L'ATELIER FERMÉ (gAtelier) : la touche devient ◀ RETOUR, en bas à gauche, les autres s'effacent
+  if(gEl){gEl.classList.remove('invRet');gEl.classList.toggle('modeInv',m==='inv');gEl.classList.toggle('atelierInv',GATL.on||(m==='inv'&&n7Nav()));} /* (2026-10-14, nav7 GARAGE) sous html.nav7, l'INVENTAIRE est toujours la page « MES CAISSES » : la mise en page de l'atelier fermé, porte ouverte ou non (voir « MES CAISSES ») */ // (2026-10-12, Léo) à l'arrivée l'INVENTAIRE en aperçu, les cinq touches ; INVENTAIRE touché = L'ATELIER FERMÉ (gAtelier) : la touche devient ◀ RETOUR, en bas à gauche, les autres s'effacent
   if(r&&m==='tout')r.classList.remove('gModeBar');if(st){st.classList.toggle('gModeShop',m==='shop'||m==='tous');st.classList.toggle('gModeTous',m==='tous');st.classList.toggle('gModeInv',m==='inv');if(m!=='shop'&&st.classList.contains('fnBande')){st.classList.remove('fnBande');st._r=null;st._n=-1;if(r)r._k=null;}}
   if(gEl)gEl.classList.toggle('modeShop',m==='shop');} // (2026-10-10) LA BOUTIQUE DU JOUR : la console change de visage (voir gShopJour)
 function gModeTete(bar,m,n){bar.classList.add('gModeBar'); // n : un nombre, ou « 15 / 46 » en INVENTAIRE
@@ -44595,7 +44702,7 @@ function gModeVa(m){
   const bar=$('gRar'),st=$('gStrip');if(bar)bar._k=null;if(st){st._r=null;if(m==='tous'){st.scrollTop=0;st.classList.remove('finBas');}}
   gModeCale();
   if(SHOP.tab==='voiture')garageFamilles(carRar(garageI));else gStripHabits(SHOP.tab,SHOP.i[SHOP.tab]);
-  gModeBoutons();if(m==='inv')gAtelier(true);}
+  gModeBoutons();if(m==='inv'&&!(n7Nav()&&!N7_PINCES))gAtelier(true);} /* (2026-10-14, nav7 GARAGE) « MES CAISSES » garde la porte ouverte : les pinces de l'atelier fermé coupent le BURN-OUT (burnDebut refuse si GATL.on) — ?pinces=1 les rend */
 /* L'ATELIER FERMÉ (2026-10-12, Léo : « quand on appuie sur INVENTAIRE, ça ferme la porte du garage ; une petite lumière allumée vers la
    voiture ; des petits trucs robotiques attrapent les jambes de la voiture pour la fixer au sol, qu'on puisse seulement la tourner ; tous les
    autres boutons disparaissent, seul un bouton en bas à gauche, RETOUR ; on ne laisse plus d'espace — pour l'inventaire, ça déclenche un
@@ -44847,7 +44954,8 @@ function shopShow(cat,i){
   const d=L[i],a=shopOwned(cat,d.id),eq=shopEqD(cat)===d,Lg=LANG==='en'?1:0;
   gNomEntre(TR(d.n));
   gLvlEl.textContent=(i+1)+' / '+L.length;gSpdEl.textContent='';
-  {const pl=$('gRarPill');if(pl){pl.textContent=sansAcc(TR(SHOP_LBL[cat]));pl.style.removeProperty('--rc');}} // (charte v4) la pastille dit la CATÉGORIE — la fiche garde ses trois étages
+  {const pl=$('gRarPill');if(pl){pl.textContent=sansAcc(TR(SHOP_LBL[cat]));pl.style.removeProperty('--rc');
+    if(n7Nav()){const r9=rarInfo(cosmRar(cat,d));pl.textContent=sansAcc(TR(r9.n1));pl.style.setProperty('--rc',r9.c);}}} /* (2026-10-14, nav7 GARAGE) l'onglet dit déjà la catégorie : la pastille dit la RARETÉ, comme pour une caisse */ // (charte v4) la pastille dit la CATÉGORIE — la fiche garde ses trois étages
   if(a||!d.mis)gDescEl.textContent=(d.fig&&window.FIG&&FIG.par[d.id])?figDesc(FIG.par[d.id],LANG):(LANG==='fr'?d.d:TR(d.d)); // (2026-10-14) une FIGURE se décrit dans la langue du joueur // (passe qualité) police système : TR (majPix) mangeait les accents
   else gDescEl.innerHTML=defisHtml(d.mis);
   $('gCard').classList.toggle('defis',!a&&!!d.mis);$('gCard').classList.remove('verrou');
@@ -47884,6 +47992,7 @@ function garLibre(){
     if(bb&&bb.width>0){
       if(bb.left>W*.3&&(bb.height>H*.6||W>H*1.2))r.x1=bb.left; // téléphone couché : la colonne à droite — (garage v6) la CONSOLE n'en prend plus toute la hauteur
       else{r.y1=bb.top;const g9=document.documentElement.classList.contains('gtConsole')?$('gTourne'):null;if(g9&&g9.classList.contains('on')&&g9.offsetHeight>0)r.y1=Math.min(r.y1,g9.offsetTop-6);}} // sinon : les commandes en bas — (2026-10-10) debout, la JAUGE posée au-dessus de la console borne aussi la caisse (offsetTop : sa place finale, sans le glissé d'entrée)
+    if(N7G&&N7G.on){const j9=$('gJouer'),jr=j9&&j9.getBoundingClientRect();if(jr&&jr.height>0)r.y1=Math.min(r.y1,jr.top-12);} /* (2026-10-14, nav7 GARAGE) couché, la caisse se pose AU-DESSUS de la barre d'onglets (JOUER est à son bout : même hauteur) — elle passait dessous */
     if(tb&&tb.height>0&&tb.bottom<r.y1-120)r.y0=tb.bottom;r.shop=true;    // la fiche du haut (si elle laisse de la place)
     r.vit=gEl.classList.contains('vitrine');r.leo=garVueLeo(); // (2026-10-06) r.leo : la composition de la vitrine (la caisse décalée, l'entrée au milieu) — aussi dans la console de Sacha
     if(r.leo&&!r.vit&&W>H*1.2&&document.documentElement.classList.contains('hubOn')){const hb=document.documentElement.classList.contains('gtConsole')?null:$('gTourne'),hr=hb&&hb.getBoundingClientRect(); /* (2026-10-09) la barre du hub est partie : c'est la JAUGE qui tient le bas à gauche */if(hr&&hr.height>0&&hr.left<W*.3)r.y1=Math.min(r.y1,hb.offsetTop-8);} // couché, la barre du HUB tient le bas à gauche : la caisse se pose au-dessus — sa place FINALE (offsetTop ignore le glissé d'entrée `hubMonte`, qui faisait bouger le cadrage)
@@ -49364,6 +49473,7 @@ function garMode(m){
   const deMenu9=gEl.classList.contains('menu')||gEl.classList.contains('missions');
   gEl.classList.toggle('menu',menu);gEl.classList.toggle('missions',mis);garLibre._r=null;
   if(!menu&&deMenu9){try{gVueSeule(false);gGarageReplie();}catch(e){}} // (2026-10-14, Léo) de l'accueil au garage : REPLIÉ (l'inventaire ne s'ouvre plus tout seul)
+  else if(!menu&&n7Nav()&&GMODE.m!=='inv'){try{gVueSeule(false);gGarageReplie();}catch(e){}} /* (2026-10-14, nav7 GARAGE) l'onglet GARAGE touché depuis la BOUTIQUE (même scène) : on quitte la boutique ; « MES CAISSES » suit (n7GSync) */
   document.body.classList.toggle('garMenuH',MENU_SACHA&&menu&&!mis); // (2026-09-30, Sacha) au MENU, ses boutons — (même soir, Léo : « remets ma version sketch ») seulement avec ?menu=sacha, voir MENU_SACHA : l'accueil #mHome par-dessus l'atelier (voir « LE MENU = LE GARAGE + LES BOUTONS DE SACHA »)
   if(MENU_SACHA&&menu&&!mis&&window.__mHomeSur)try{window.__mHomeSur();}catch(e){}
   if(menu)garMenuMaj();
@@ -49862,6 +49972,114 @@ addEventListener('pointermove',e=>{
 // piles de pneus. Le décor est rangé POUR ce rayon (rien de posé à moins de 8,3 m du centre).
 addEventListener('wheel',e=>{if(!garageOn)return;garageDist=THREE.MathUtils.clamp(garageDist+e.deltaY*.008,4.6,8.6);},{passive:true}); // plafond 7,8→8,6 (2026-09-05) : le zoom arrière par défaut est monté, la molette doit pouvoir suivre
 addEventListener('keydown',e=>{if(!garageOn||ecranWipe._on)return;if(GATL.on&&e.code==='Escape'){e.preventDefault();gAtelier(false);return;}if(INV.on){if(e.code==='Escape'||e.code==='KeyI'){e.preventDefault();invFerme();}return;}if(e.code==='KeyI'&&!e.repeat&&garAtelierLibre()){invOuvre();return;} /* (2026-10-04) L'INVENTAIRE au clavier : I l'ouvre, I ou Échap le referme */ if(e.code==='Escape'){const cr9=$('carr');if(cr9&&cr9.classList.contains('on'))feuilleFerme(cr9,'on');else if(!GAR.go&&gEl.classList.contains('missions'))garMisRetour();else if(!GAR.go&&!gEl.classList.contains('menu')&&(gModeM()==='shop'||gModeM()==='tous')){uiClic('retour');gModeVa('shop');} /* (2026-10-12, passe qualité) en BOUTIQUE, Échap = ◀ RETOUR (le même chemin que la touche), pas la sortie du garage */ else if(!GAR.go&&!gEl.classList.contains('menu')){if(window.__mRetour)ecranWipe(closeGarage);else ecranWipe(function(){if(started&&gameOver)accueilRetour();garMode('menu');});}}else if((e.code==='ArrowLeft'||e.code==='ArrowRight')&&gEl.classList.contains('vitrine'))garVitrine(false);else if(e.code==='ArrowLeft')garageGo(-1);else if(e.code==='ArrowRight')garageGo(1);else if(e.code==='Enter'&&!e.repeat&&!document.querySelector('#modale.on,#carr.on')&&!gEl.classList.contains('shopRet')){e.preventDefault();garJouer();}}); // (passe qualité) pas de JOUER au clavier en BOUTIQUE : la touche JOUER y est masquée · même chemin que les flèches à l'écran (boutique comprise, premium exclues) · (2026-09-29) Entrée = JOUER, comme à l'accueil
+
+/* ===== « MES CAISSES » — LE GARAGE DE LA NAVIGATION 7 (2026-10-14, session INTERFACE, agent GARAGE — Sacha : « le garage, il y a plein de
+   boutons au mauvais endroit, plein de fonctionnalités répétées ; beaucoup plus simple, clair pour les enfants ») — voir <style id="n7-garage">.
+   Sous html.nav7 SEULEMENT (?nav=0 et ?ui=5 : rien ne bouge). Le hub replié (fiche + INVENTAIRE + BOUTIQUE + JOUER) n'existe plus : où qu'on y
+   tombe (l'accueil → GARAGE, l'onglet GARAGE depuis la boutique, le garage ouvert hors du menu), n7GSync le change aussitôt — sous le même voile —
+   en « MES CAISSES » : GMODE 'inv' (ce qu'on a) dans la mise en page de l'inventaire c6 (gModeBoutons y pose atelierInv) + #garage.n7Gar.
+   · la PORTE reste OUVERTE : l'atelier fermé (pinces) coupe le burn-out de Léo (burnDebut refuse si GATL.on) — ?pinces=1 le rend (N7_PINCES) ;
+   · la fiche dit ÉQUIPÉ (décision de Sacha) ; toucher une carte l'ÉQUIPE et la carte passe équipée sur-le-champ (sans attendre la bascule du plateau) ;
+   · une catégorie vide ou presque (≤ 3) propose « + DANS LA BOUTIQUE » → document 'n7:va' {onglet:'shop',cat} (la barre de NAV l'écoute) ;
+   · l'ŒIL a enfin une sortie : ✕ en haut à gauche (et Échap) ; la barre et la pastille s'effacent avec le reste ;
+   · une aide « MAINTIENS LA CAISSE : BURN-OUT » aux trois premières visites (localStorage ccN7Burn), jusqu'au premier burn-out.
+   NAV : window.__garCaisses() ouvre « MES CAISSES » d'où qu'on soit (à appeler sous le volet) ; garMode('boutique') y mène aussi. */
+var N7_PINCES=/[?&]pinces=1\b/.test(location.search); /* var : gModeVa le lit, et un var se lit avant sa ligne (undefined → la porte ouverte) */
+function n7Nav(){return document.documentElement.classList.contains('nav7');}
+var N7G={on:false,q:false,aide:false};
+try{Object.assign(I18N,{'ÉQUIPÉ':'EQUIPPED','DANS LA BOUTIQUE':'IN THE SHOP','MAINTIENS LA CAISSE : BURN-OUT':'HOLD THE CAR: BURNOUT','PEINTURE':'PAINT','TRAÎNÉES':'TRAILS'});}catch(e){}
+function n7Mot(s){return LANG==='fr'?s:TR(s);} /* police système : le français garde ses accents (TR passe par majPix, fait pour la police pixel) */
+function n7GOk(){return garageOn&&!!gEl&&!GAR.go&&gModeM()==='inv'&&!gEl.classList.contains('quiet')&&!gEl.classList.contains('launching');}
+function n7GSync(){N7G.q=false;if(!gEl||!n7Nav())return;
+  try{if(garageOn&&!GAR.go&&GMODE.m==='tout'&&gModeConsole()&&!gEl.classList.contains('quiet')&&!gEl.classList.contains('launching'))gModeVa('inv');}catch(e){console.warn('n7 garage',e);}
+  const on=n7GOk(),h=document.documentElement;
+  if(on!==N7G.on){N7G.on=on;gEl.classList.toggle('n7Gar',on);h.classList.toggle('n7Gar',on);if(on)n7GEntre();else{n7GAide(false);gEl.style.removeProperty('--n7PanH');if(gEl.classList.contains('menu'))try{gModeBoutons();}catch(e){}}} /* (au menu, gModeM() = 'tout' : modeInv et atelierInv tombent — l'accueil ne garde rien du garage) */
+  if(on){n7GFiche();n7GPlus();n7GGrille();}}
+function n7GPlan(){if(N7G.q)return;N7G.q=true;queueMicrotask(n7GSync);}
+/* l'arrivée : les mots (la langue a pu changer dans les RÉGLAGES), la mesure des onglets, l'aide du burn-out (une visite de plus) */
+function n7GEntre(){
+  const t=$('gTabs');if(t)t.querySelectorAll('.gTab').forEach(function(b){let l=b.querySelector('.n7L');if(!l){l=document.createElement('b');l.className='n7L';b.appendChild(l);}
+    const s9=b.querySelector('span[data-fr]'),m9=s9?s9.dataset.fr:'';const w=n7Mot(m9);if(l.textContent!==w)l.textContent=w;b.setAttribute('aria-label',w);});
+  const q=$('gN7Eq');if(q)q.textContent=n7Mot('ÉQUIPÉ');
+  const a=$('gN7Aide');if(a)a.textContent=n7Mot('MAINTIENS LA CAISSE : BURN-OUT').replace('BURN-OUT','BURN‑OUT'); /* trait d'union insécable : couché étroit, la ligne se coupait en « BURN- / OUT » */
+  let n=0;try{n=+localStorage.ccN7Burn||0;}catch(e){}
+  n7GAide(n<3);if(n<3)try{localStorage.ccN7Burn=String(n+1);}catch(e){}
+  requestAnimationFrame(function(){n7GGrille();n7GOnglets();n7GVoir();});}
+/* la carte ÉQUIPÉE se montre : à l'arrivée et à chaque onglet, la grille défile jusqu'à elle si elle est hors de vue (vu au banc : rangée par rareté,
+   LA HONTE d'un joueur riche était tout en bas) ; une carte qu'on vient de toucher est déjà en vue, la grille ne bouge pas sous le doigt */
+function n7GVoir(){const st=$('gStrip'),on=st&&st.querySelector('.gT.on');if(!on||!N7G.on||st.clientHeight<20)return;
+  const a=st.getBoundingClientRect(),b=on.getBoundingClientRect();
+  if(st.classList.contains('n7Ligne')){if(b.left<a.left-1||b.right>a.right+1)st.scrollLeft+=b.left-a.left-4;}
+  else if(b.top<a.top-1||b.bottom>a.bottom+1)st.scrollTop+=b.top-a.top-4;}
+/* LA PLAQUE PREND LA HAUTEUR DE RANGÉES ENTIÈRES (vu au banc : une rangée coupée à 9 px ne montrait qu'un trait blanc, comme un défaut). Debout, elle
+   se donne au plus ce qui laisse ~180 px à la caisse : toutes ses rangées si elles tiennent ; sinon des rangées entières, plus un tiers de la suivante
+   si la place le permet (on voit qu'il y a une suite). Couché, elle descend de l'en-tête au plus bas jusqu'à la barre, en rangées entières.
+   --n7PanH est posé sur #garage (la plaque et l'aide du burn-out le lisent) ; sans lui, le CSS garde sa hauteur de repli. */
+function n7GGrille(){const bo=$('gBottom'),st=$('gStrip');if(!bo||!st||!gEl)return;
+  if(!N7G.on){gEl.style.removeProperty('--n7PanH');st.classList.remove('n7Ligne');return;}
+  const cou=matchMedia('(orientation:landscape) and (max-height:540px)').matches,iw=bo.clientWidth-16;if(iw<60)return;
+  const k6=cou?.625:.75,h=(iw-16)/3*k6,hL=(iw-24)/3.35*k6,n=st.querySelectorAll('.gT,.n7Plus').length,rangs=Math.max(1,Math.ceil(n/3)),tout=rangs*(h+12)-12+4;
+  const plein=function(k){return k*(h+12)-12+4;};let G,ligne=false;
+  /* une seule rangée tient (iPhone SE debout, téléphone bas couché) et il y a plus de trois cartes : la rangée DÉFILE DE CÔTÉ (n7Ligne), la 4e carte
+     dépasse d'un tiers — sinon, défilée jusqu'à la caisse équipée (rangée par rareté, souvent la dernière), la grille ne montrait plus qu'UNE carte */
+  if(cou){const dispo=innerHeight-(parseFloat(getComputedStyle(bo).top)||0)-(innerHeight-($('gJouer')||bo).getBoundingClientRect().top+12)-72;
+    if(tout<=dispo)G=tout;else{const k=Math.max(1,Math.floor((dispo+8)/(h+12)));if(k===1){ligne=true;G=hL+4;}else G=plein(k);}}
+  else{const tc=$('gTop'),haut=tc?tc.getBoundingClientRect().bottom:0,bas=parseFloat(getComputedStyle(bo).bottom)||0,dispo=innerHeight-haut-bas-72-180;
+    if(tout<=dispo)G=tout;
+    else{const k=Math.max(1,Math.floor((dispo+8)/(h+12))),r=dispo-plein(k);
+      if(k===1&&r<.3*h+12){ligne=true;G=hL+4;}else G=(r>=.3*h+12)?k*(h+12)+.35*h:plein(k);}}
+  if(st.classList.contains('n7Ligne')!==ligne){st.classList.toggle('n7Ligne',ligne);st.scrollTop=0;st.scrollLeft=0;requestAnimationFrame(n7GVoir);}
+  const v=Math.round(72+G)+'px';if(gEl.style.getPropertyValue('--n7PanH')!==v){gEl.style.setProperty('--n7PanH',v);garLibre._r=null;}}
+function n7GAide(on){N7G.aide=!!on;const a=$('gN7Aide');if(a)a.classList.toggle('on',N7G.aide);}
+/* cinq mots dans des onglets de même largeur : 13 px s'ils tiennent tous, 11 px (le plancher) sinon — mesuré, la police du téléphone décide */
+function n7GOnglets(){const t=$('gTabs');if(!t||!N7G.on)return;t.classList.remove('n7Serre');
+  const trop=[].some.call(t.querySelectorAll('.gTab'),function(b){const l=b.querySelector('.n7L');return !!l&&b.clientWidth>0&&l.offsetWidth>b.clientWidth-6;});
+  if(trop)t.classList.add('n7Serre');}
+/* la fiche : ÉQUIPÉ quand ce qui est sur le plateau est ce qu'on a équipé */
+function n7GFiche(){const c=$('gCard');if(!c)return;let eq=false;
+  try{if(SHOP.tab==='voiture')eq=garageI===(SAVE.d.equipped|0);else{const L=COSM[SHOP.tab];eq=!!L&&shopEqD(SHOP.tab)===L[SHOP.i[SHOP.tab]];}}catch(e){}
+  if(c.classList.contains('n7Eq')!==eq)c.classList.toggle('n7Eq',eq);}
+/* « + DANS LA BOUTIQUE » au bout d'une grille vide ou presque */
+function n7GPlus(){const st=$('gStrip');if(!st)return;let p=st.querySelector('.n7Plus');const veut=N7G.on&&st.querySelectorAll('.gT').length<=3;
+  if(!veut){if(p)p.remove();return;}
+  if(!p){p=document.createElement('div');p.className='n7Plus';p.setAttribute('role','button');p.tabIndex=0;p.innerHTML='<b aria-hidden="true">+</b><span></span>';st.appendChild(p);}
+  else if(p!==st.lastElementChild)st.appendChild(p);
+  const w=n7Mot('DANS LA BOUTIQUE'),sp=p.querySelector('span');if(sp.textContent!==w)sp.textContent=w;p.setAttribute('aria-label','+ '+w);}
+try{if(gEl){
+  /* l'en-tête : ✕ (sortie de l'œil), en tête de rangée — il ne se montre que dans la voiture seule */
+  const te=$('gC6Tete');if(te&&!$('gN7X')){const x=document.createElement('div');x.id='gN7X';x.className='pbtn pbCarre';x.setAttribute('role','button');x.tabIndex=0;x.setAttribute('aria-label','Fermer');x.innerHTML=pxi('croix');te.insertBefore(x,te.firstChild);
+    const sort=function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(x);uiClic('retour');gVueSeule(false);};
+    x.addEventListener('click',sort);x.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();sort(e);}});}
+  /* la fiche : le mot ÉQUIPÉ (une étiquette, rien à toucher) */
+  const gc=$('gCard');if(gc&&!$('gN7Eq')){const q=document.createElement('span');q.id='gN7Eq';gc.appendChild(q);}
+  /* l'aide du burn-out : une ligne sous la caisse */
+  if(!$('gN7Aide')){const a=document.createElement('p');a.id='gN7Aide';a.setAttribute('aria-hidden','true');gEl.appendChild(a);}
+  /* toucher une carte : elle passe ÉQUIPÉE tout de suite (la caisse, elle, bascule sur le plateau en ~1 s) ; la carte « + » parle à la barre */
+  const st=$('gStrip');if(st){st.addEventListener('click',function(e){if(!N7G.on)return;const p=e.target.closest&&e.target.closest('.n7Plus');
+      if(p){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(p);uiClic('nav');
+        try{document.dispatchEvent(new CustomEvent('n7:va',{detail:{onglet:'shop',cat:SHOP.tab}}));}catch(er){}return;}
+      const t=e.target.closest&&e.target.closest('.gT');if(!t||t.classList.contains('lock')||t.classList.contains('eq')||!garageOn||GAR.go)return;
+      st.querySelectorAll('.gT.eq,.gT.on').forEach(function(z){z.classList.remove('eq','on');});t.classList.add('eq','on');},true);
+    st.addEventListener('keydown',function(e){const p=e.target.closest&&e.target.closest('.n7Plus');if(p&&(e.key==='Enter'||e.key===' ')){e.preventDefault();p.click();}});
+    new MutationObserver(function(){if(N7G.on){n7GPlus();n7GPlan();requestAnimationFrame(n7GVoir);}}).observe(st,{childList:true});}
+  new MutationObserver(n7GPlan).observe(gEl,{attributes:true,attributeFilter:['class']});
+  const nm=$('gName');if(nm)new MutationObserver(n7GPlan).observe(nm,{childList:true,characterData:true,subtree:true});
+  addEventListener('resize',function(){if(N7G.on)setTimeout(function(){n7GGrille();n7GOnglets();},60);});
+  /* le premier burn-out appris : l'aide se tait pour de bon */
+  setInterval(function(){if(N7G.on&&N7G.aide&&BURN.on){n7GAide(false);try{localStorage.ccN7Burn='99';}catch(e){}}},400);
+  /* le clavier (ordinateur) : Échap = sortir de l'œil, sinon l'accueil (la barre est le retour) ; ← → = la carte voisine (elle s'équipe, comme au doigt) */
+  addEventListener('keydown',function(e){if(!N7G.on||ecranWipe._on||document.querySelector('#modale.on,#carr.on,#mSet.on'))return;
+    if(e.code==='Escape'){e.preventDefault();e.stopImmediatePropagation();uiClic('retour');
+      if(gEl.classList.contains('vueSeule')){gVueSeule(false);return;}
+      ecranWipe(function(){if(started&&gameOver)accueilRetour();garMode('menu');});return;}
+    if(e.code==='KeyI'){e.stopImmediatePropagation();return;} /* l'ancien tiroir INVENTAIRE (touche I) : on y est déjà — pas de deuxième inventaire par-dessus */
+    if((e.code==='ArrowLeft'||e.code==='ArrowRight')&&!gEl.classList.contains('vueSeule')){e.preventDefault();e.stopImmediatePropagation();if(e.repeat||GAR.sw)return;
+      const L=[].slice.call(document.querySelectorAll('#gStrip>.gT'));if(!L.length)return;const i=L.findIndex(function(z){return z.classList.contains('on');});
+      const j=Math.max(0,Math.min(L.length-1,(i<0?0:i)+(e.code==='ArrowLeft'?-1:1)));if(j!==i)L[j].click();}},true);
+  n7GPlan();}}catch(e){console.warn('n7 garage',e);}
+/* POUR NAV : ouvrir « MES CAISSES » d'où qu'on soit — l'accueil (même scène), la boutique, le garage fermé. À appeler sous le volet (ecranWipe). */
+window.__garCaisses=function(){if(!n7Nav()||(started&&!gameOver)||pendingScore!=null||(garageOn&&GAR.go))return false;
+  if(!garageOn)openGarage();else garMode('boutique');n7GPlan();return true;};
 
 // ---------- BOUCLE ----------
 const fwdW=new THREE.Vector3(),tmp=new THREE.Vector3(),tmp2=new THREE.Vector3(),tmp3=new THREE.Vector3(),mat4=new THREE.Matrix4();
