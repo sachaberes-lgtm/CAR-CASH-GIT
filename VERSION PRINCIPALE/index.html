@@ -10658,6 +10658,7 @@ function portalMat(){if(PORTAL.mat)return PORTAL.mat;
   PORTAL.mat.dispose=function(){};return PORTAL.mat;}
 const trackMeshes=[];let PADS=[],PADL=[];let BUMPS=[];let CONES=[];let FLYCONES=[];let portalMesh=null;
 const PLOTS_ON=false; // ⚠ LES PLOTS DE CHANTIER SONT RETIRÉS DE LA ROUTE (2026-10-14, passe graphismes — Sacha : « enlève les cônes de chantier sur la route, ça ne sert plus ») — UN seul interrupteur : `placeCone` ne pose plus rien (chantiers, portes de frôlé, murs à porte de la campagne), `CONES` reste vide et tout ce qui le lit (choc, frôlé, instances, rival, écart des pièces) tourne à vide. Les tirages `rnd` des boucles de pose sont GARDÉS : la piste en aval ne bouge pas. `true` = les plots reviennent tels quels.
+const MOUTONS_ON=true; // (2026-10-14, gameplay) NUAGES 4 « MATIN FRAIS » = SAUTE-MOUTON (voir campMoutonsTick) — ne joue que si PLOTS_ON est faux ; false = le niveau sans idée (piste nue)
 const GAP_ON=false; // ⚠ LES TREMPLINS SONT COUPÉS (demande du user) — un seul interrupteur, voir gapRun
 // TREMPLINS HÉROS (motif « gap catapulte », voir genCtrl/gapRun) : {s:lèvre, s0/s1:couloir gardé NU, v:variante}
 let RAMPS=[];
@@ -12111,6 +12112,7 @@ const SANS_LOOPING=true;
    grisants, un looping, des tout-droits qui laissent booster ». Chaque ligne droite est une INVITATION à la
    nitro ; les virages ont de grands rayons (on les prend à fond) ; le looping arrive après une longue ligne
    droite, pour qu'on l'aborde avec de la vitesse. Mêmes briques que genCtrl (droite, arc, loop). */
+const TUTO_DOUX=true; // (2026-10-14, gameplay) le départ de l'auto-école : longue droite puis 1er virage large (voir genTuto)
 function genTuto(){
   const ctrl=[];GAPMARK.length=0;
   let P=new THREE.Vector3(0,0,0),phi=0;
@@ -12123,8 +12125,17 @@ function genTuto(){
     for(let k=1;k<=8;k++){const th=k*Math.PI/4;
       P.set(base.x+d.x*R*Math.sin(th)+sx*shift*(th-Math.sin(th))/(2*Math.PI),base.y+R*(1-Math.cos(th)),base.z+d.z*R*Math.sin(th)+sz*shift*(th-Math.sin(th))/(2*Math.PI));push();}};
   push();
+  /* (2026-10-14, gameplay — relevé du banc, BACKLOG P3) LA LEÇON « TOURNE » TOMBAIT DANS LE VIRAGE : la carte paraît 1,9 s après le départ
+     (fin du logo), à ~256 km/h, ~100 m avant la fin des 300 m de droite ; le 1er virage (R 190) sortait de la route ~3 s plus tard sans un
+     geste (« SORTI ! SUIS LA ROUTE »), avant qu'un débutant ait trouvé le volant. Le DÉBUT seulement : 520 m de droite (≈ 6 s de calme
+     après la carte pour glisser le pouce à gauche, à droite) puis le même virage de 70° deux fois plus large (R 380 : sans un geste on en
+     sort ~2 s après son entrée, au lieu de 1,4) — il donne encore un SENS au volant. Le reste du tracé est le même, déplacé d'un bloc
+     (même cap) : aucun croisement (banc outils/tuto-trace.cjs : 275 m d'écart mini, comme avant). TUTO_DOUX=false = l'ancien départ. */
+  if(TUTO_DOUX){straight(520,0,4);arc(70,380,8);}
+  else{
   straight(300,0,3);            // le départ : on sent le gaz auto
   arc(70,190,6);                // 1er virage : large, on le prend à fond
+  }
   straight(360,-24,3);          // 1re ligne droite en légère descente : « appuie sur NITRO »
   arc(-90,210,7);               // le grand virage grisant
   straight(420,0,4);            // on reprend de la vitesse…
@@ -20501,7 +20512,7 @@ const CARRIERE=[
     {nm:'SATURNE',astre:{teinte:0xd8c08a,atmo:0xfff0c0,echelle:1.35},pr:'LES ANNEAUX PLEUVENT SUR TOI'} /* (2026-09-28) 1,5 et 1,45 : la planète « mangeait tout le cadre dès qu'on plongeait » (mesuré pour lvlPlanete, d'où 1,35) */,{nm:'URANUS',astre:{teinte:0x7fd6d8,atmo:0xb8ffff,echelle:1.35},pr:'DEBRIS SERRES, GARDE LE CAP'},
     {nm:'NEPTUNE',astre:{teinte:0x3a5fd0,atmo:0x7fa8ff,echelle:1.35},pr:'LA DERNIERE PLUIE AVANT PLUTON'},{nm:'PLUTON',astre:{teinte:0xb8a48c,atmo:0xe8dccb,echelle:1.0},hard:1,pr:'ESQUIVE LES SATELLITES'}]},
 ];
-if(!PLOTS_ON)for(const B9 of CARRIERE)for(const N9 of B9.niveaux)if(N9.camp===4)N9.pr=''; // (2026-10-14, passe graphismes) le niveau 4 des NUAGES promettait « PASSE LES PORTES » : ses portes étaient des murs de plots, retirés avec eux — plus de promesse qui demande l'impossible (elle est éteinte aujourd'hui, LVL_BAN.prom 0, mais ne doit pas revenir si on la rallume)
+if(!PLOTS_ON)for(const B9 of CARRIERE)for(const N9 of B9.niveaux)if(N9.camp===4)N9.pr=MOUTONS_ON?'SAUTE LES MOUTONS':''; // (2026-10-14, gameplay) la nouvelle idée du niveau 4 : SAUTE-MOUTON (campMoutonsTick) // (2026-10-14, passe graphismes) le niveau 4 des NUAGES promettait « PASSE LES PORTES » : ses portes étaient des murs de plots, retirés avec eux — plus de promesse qui demande l'impossible (elle est éteinte aujourd'hui, LVL_BAN.prom 0, mais ne doit pas revenir si on la rallume)
 const CARR_LARG=[2,2,2,2,2,2,2,2,2,2]; // (2026-09-26) plus larges, comme la course // (2026-09-25) la carrière ne rétrécit plus non plus : c'est la vitesse qui monte
 const CARR={actif:null}; // {b: index de biome, i: niveau de départ} — null = partie sans fin
 // (2026-09-27) VERSION TEST : les dix niveaux de chaque monde se lancent sans avoir fini les précédents (Sacha teste la campagne tout de
@@ -28153,6 +28164,16 @@ function carUnlockedVrai(i){
    ⚠ Rien ici ne touche au bank-or-bust : la mallette en vol part toujours en fumée.
    ========================================================================== */
 const RUNX={coins:0,fruits:0,perfect:0,t:0,nitro:0,fren:0,frenMax:0}; // ce que `runStats` ne comptait pas (v3 : frénésies de la partie, la plus longue en s)
+/* (2026-10-14, gameplay) LES DÉFIS PARTENT DU DÉPART DE LA COURSE, PAS DE L'AUTO-ÉCOLE (relevé du banc, BACKLOG P2) : la leçon et la 1re
+   course sont UNE seule partie — RUNX comptait les pièces et les fruits mangés pendant la leçon, et les cartes « DÉFI RÉUSSI » retenues
+   pendant la leçon (hautPasse) tombaient 2 s après le permis (« CROQUE 4 FRUITS +$ 150 » sans qu'on sache pourquoi : 2 défis sur 3
+   « réussis » avant la 1re vraie course). MIS0 = ce que la partie avait déjà au PERMIS (tutoFin) : misVal le retranche, rien ne compte
+   pendant la leçon, et aucun défi ne se coche dans les 20 premières secondes de la course qui suit. RUNX lui-même ne change pas (l'écran
+   de fin compte toujours toute la partie). Hors auto-école : MIS0 reste à zéro, les défis comptent comme avant. */
+const MIS0={on:false,coins:0,fruits:0,perfect:0,t:0,nitro:0,cash:0,kmh:0,tricks:0,gaps:0,chain:0};
+function misBaseTuto(){try{MIS0.on=true;MIS0.coins=RUNX.coins;MIS0.fruits=RUNX.fruits;MIS0.perfect=RUNX.perfect;MIS0.t=RUNX.t;MIS0.nitro=RUNX.nitro;
+  MIS0.cash=Math.max(0,money-START_CASH);MIS0.kmh=runStats.vmax||0;MIS0.tricks=runStats.tricks||0;MIS0.gaps=runStats.gaps||0;MIS0.chain=runStats.chainMax||0;}catch(e){}}
+function misBaseRaz(){MIS0.on=false;MIS0.coins=MIS0.fruits=MIS0.perfect=MIS0.t=MIS0.nitro=MIS0.cash=MIS0.kmh=MIS0.tricks=MIS0.gaps=MIS0.chain=0;}
 const RAM={p0:new THREE.Vector3(),ok:false,face:1,n:[0,0,0,0,0,0,0,0]}; // (2026-09-30) LE RAMASSAGE (pickupsTick) : la caisse à l'image d'avant (un saut décroche) · la face lue · compteurs du banc : pièces/fruits/cristaux au sol, puis en vol, accrochés, filet
 /* LE NITRO SE GAGNE AU STYLE (2026-09-25) : une figure encaissée et un bump rechargent la réserve orange, dans la limite
    du réservoir du moteur. La jauge FLASHE : le joueur doit relier le geste à la récompense. */
@@ -29115,7 +29136,7 @@ function nitroGain(q,src){
   if(nitroR>av+.03&&!volgNitro('r',nitroR-av))nbPrend('r'); // (2026-10-12, Léo) elle FLOTTE puis tombe dans la barre (plus de flash blanc sur toute la barre, km/h compris)
 }
 function runxReset(){flowReset();RUNX.best0=best; // le record d'AVANT la partie : c'est lui que l'écran de mort doit battre
-RUNX.coins=RUNX.fruits=RUNX.perfect=RUNX.zf=0;RUNX.t=RUNX.nitro=0;RUNX.fren=RUNX.frenMax=0;MIS_NEW.length=0;misT=0;
+RUNX.coins=RUNX.fruits=RUNX.perfect=RUNX.zf=0;RUNX.t=RUNX.nitro=0;RUNX.fren=RUNX.frenMax=0;MIS_NEW.length=0;misT=0;misBaseRaz(); // (2026-10-14, gameplay) une partie neuve : plus de base d'auto-école (MIS0)
   RUNX.pwr=RUNX.miracles=RUNX.sfMax=0;RAM.n.fill(0);RAM.ok=false;/* (2026-09-30) le ramassage (dbgRamasse) */try{grisantRaz();}catch(e){} // (2026-09-28) pouvoirs v2 et petits trucs grisants
   try{RUNX.engAvant=(SAVE.d.ex&&SAVE.d.ex.eng)|0;}catch(e){RUNX.engAvant=0;} // le meilleur moteur AVANT la partie : l'écran de fin dit « RECORD ! » s'il est battu
   try{RUNX.bank0=bank();}catch(e){RUNX.bank0=0;}RUNX.verse=null;} // la banque AVANT la partie : l'écran de mort remplit la barre depuis là
@@ -29125,13 +29146,14 @@ RUNX.coins=RUNX.fruits=RUNX.perfect=RUNX.zf=0;RUNX.t=RUNX.nitro=0;RUNX.fren=RUNX
    Hors partie (écran de mort), la dernière part lue : la piste du menu peut se reconstruire sous `s`. */
 function misZoneFrac(){try{if(!misOn())return RUNX.zf||0;if((LVL.cur&&(LVL.cur.camp||LVL.cur.carr))||CARR.actif||TUTO.on||!(L>0))return RUNX.zf=0;return RUNX.zf=Math.min(.99,Math.max(0,s/L));}catch(e){return 0;}}
 function misVal(k){ // la valeur COURANTE d'un critère, dans la partie en cours
-  switch(k){
-    case 'coins':return RUNX.coins;      case 'fruits':return RUNX.fruits;   case 'perfect':return RUNX.perfect;
-    case 'survie':return RUNX.t;         case 'nitro':return RUNX.nitro;
-    case 'cash':return Math.max(0,money-START_CASH);
-    case 'kmh':return Math.round(runStats.vmax||0);  case 'zones':return (runStats.zones||0)+misZoneFrac();
-    case 'tricks':return runStats.tricks||0;         case 'gaps':return runStats.gaps||0;
-    case 'chain':return runStats.chainMax||0;
+  if(TUTO.on)return 0; // (2026-10-14, gameplay) pendant l'auto-école rien ne compte pour les défis (voir MIS0)
+  switch(k){ // (2026-10-14, gameplay) − MIS0 : ce que la leçon avait déjà fait ; les records (km/h, chaîne) ne comptent que battus APRÈS elle
+    case 'coins':return RUNX.coins-MIS0.coins;      case 'fruits':return RUNX.fruits-MIS0.fruits;   case 'perfect':return RUNX.perfect-MIS0.perfect;
+    case 'survie':return RUNX.t-MIS0.t;         case 'nitro':return RUNX.nitro-MIS0.nitro;
+    case 'cash':return Math.max(0,money-START_CASH-MIS0.cash);
+    case 'kmh':return (runStats.vmax||0)>MIS0.kmh?Math.round(runStats.vmax||0):0;  case 'zones':return (runStats.zones||0)+misZoneFrac();
+    case 'tricks':return (runStats.tricks||0)-MIS0.tricks;         case 'gaps':return (runStats.gaps||0)-MIS0.gaps;
+    case 'chain':return (runStats.chainMax||0)>MIS0.chain?runStats.chainMax:0;
   }
   return 0;
 }
@@ -29238,6 +29260,7 @@ function misTick(dt){ // appelée par la boucle : les contrats se cochent EN DIR
   RUNX.t+=dt;if(nitroOn)RUNX.nitro+=dt;
   if(POKI)return; // (POKI) pas de missions : les compteurs de la partie tournent (écran de fin), aucun défi ne se coche
   misT-=dt;if(misT>0)return;misT=.25;
+  if(TUTO.on||(MIS0.on&&RUNX.t-MIS0.t<20)){misTick._f=1;try{misFocusMaj();}catch(e){}return;} // (2026-10-14, gameplay) rien ne se coche pendant la leçon, ni dans les 20 premières secondes de la course qui suit le permis (MIS0)
   const s=misEtat(),c=carnet(s.n);
   for(let i=0;i<3;i++){if(s.ok[i])continue;const m=c.m[i],v9=misVal(m.k);
     if(v9>s.best[i]){s.best[i]=Math.min(m.v,v9);SAVE.mark();} // (2026-09-28) LE MEILLEUR ESSAI : la jauge de l'écran MISSIONS (une partie, jamais un cumul)
@@ -29913,6 +29936,7 @@ function tutoBravo(){ // la réussite d'une étape : coche, son, vibration, gerb
   setTimeout(function(){if(TUTO.on&&started&&!gameOver)tutoAffiche();},750); /* (débogage son 2026-09-29) QUITTER dans l'intervalle : ni carte ni son sur l'écran de fin */
 }
 function tutoFin(passe){
+  if(TUTO.on)misBaseTuto(); // (2026-10-14, gameplay) LA COURSE COMMENCE ICI pour les défis : ce que la leçon a ramassé ne compte pas (MIS0)
   TUTO.on=false;document.body.classList.remove('coNitro','coOn');
   const c=document.getElementById('coach');if(c)c.classList.remove('on','entre','bravo');
   /* (2026-09-28) L'AIRTIME PRÊTÉ PAR LA LEÇON s'arrête avec elle, sans bruit : il lui restait jusqu'à 7 s, qui ressortaient après le permis
@@ -36556,7 +36580,7 @@ function veqDouble(){ // le double-tap : au sol, le SAUT NITRO (et sa figure) ; 
 }
 function veqSaut(){ // LE SAUT NITRO : le booster plaque la route, la caisse décolle
   if(hopY>0||hopV!==0||POSE_F||performance.now()-VEQ.sautT<VEQ_K.sautCd*1000)return false;
-  const libre=pwrNitroT>0||PARK.on||startBoostT>0,cout=libre?0:VEQ_K.sautCout*nitroCap();
+  const libre=pwrNitroT>0||PARK.on||startBoostT>0||campMoutonLibre(),cout=libre?0:VEQ_K.sautCout*nitroCap(); // (2026-10-14, gameplay) campMoutonLibre : au pied d'un mouton du niveau 4 (SAUTE-MOUTON), le saut est offert
   if(!libre&&nitroR+nitroX<cout){try{if(SONV2)sfx('nitro.vide');}catch(e){}hap(6);return false;}
   if(cout>0){if(nitroR>=cout)nitroR-=cout;else{nitroX=Math.max(0,nitroX-(cout-nitroR));nitroR=0;}}
   VEQ.sautT=performance.now();
@@ -40530,6 +40554,7 @@ const CAMP_NIV={ // ce que chaque niveau garde du ciel (campNuageOk) — les ban
   7:{coussin:0,deco:1},8:{coussin:0,deco:1},9:{coussin:0,deco:1},10:{coussin:1,deco:1}};
 const CAMP={n:0,dmg:0,cause:'',garde:false,finT:0,air0:false,s0:0,coupesN:0,bancs:[],portes:[],coupes:[],cordes:[],portFerme:false,pris:false,
   pv:new THREE.Vector3(),pvOk:false,vel:new THREE.Vector3(),toux:0,tirSndT:0,hitT:0,semes:false,proche:1e9,feuT:0,palier:0,banc1:false,porteOk:0};
+CAMP.moutons=[];CAMP.mtOk=0;CAMP.mtBee=0;CAMP.mtCle=-1;CAMP.mtVu=0; // (2026-10-14, gameplay) SAUTE-MOUTON (niveau 4) : les moutons posés (moutonsPose), sautés, le « BEEE » du raté, la clé de la plaque, un saut déjà tenté
 let CORDE_ON=false,CAMP_FLASH=0,CAMP_FOG=0,KAPB=new Float32Array(1);
 const CV1=new THREE.Vector3(),CV2=new THREE.Vector3(),CV3=new THREE.Vector3(),CV4=new THREE.Vector3(),CM4=new THREE.Matrix4(); // temporaires DU MODULE (jamais tmp/tmp2/tmp3)
 const GF={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()},
@@ -40560,6 +40585,7 @@ function cordeK(sv,latB){ // facteur d'avance le long du ruban pour une caisse d
 // ---- LES REPÈRES : coordonnées monde de genCampagne → abscisse `s` sur la courbe réelle ----
 function campRepere(){
   CAMP.bancs.length=0;CAMP.portes.length=0;CAMP.coupes.length=0;CAMP.cordes.length=0;
+  CAMP.moutons.length=0; // (2026-10-14, gameplay) SAUTE-MOUTON : reposés par campNuages (moutonsPose), sur les repères des portes
   for(const k in VZ)VZ[k].length=0; // (2026-09-27) les repères de la VILLE (radars, chaînes, flaques, cellules, pannes, bouchons)
   const near=p=>{let bi=0,bd=1e18;for(let i=0;i<NP;i++){const dx=p.x-pts[i].x,dy=p.y-pts[i].y,dz=p.z-pts[i].z,dd=dx*dx+dy*dy+dz*dz;if(dd<bd){bd=dd;bi=i;}}return bi/(NP-1)*L;};
   for(const m of CAMPM){
@@ -40617,6 +40643,7 @@ function campNuages(cr){
   for(const c of CAMP.coupes){const S=c.sA1-c.sA0,lg=ROAD_HALF+(c.gap-2*ROAD_HALF)/2;
     for(let k=0;k<6;k++){frameAt(c.sA0+S*(.12+k*.14),F); // six pas japonais, la crête ~5 m au-dessus de leg1 : on les voit dépasser du bord
       mkCloud(cldV1.copy(F.p).addScaledVector(F.b,c.side*lg).addScaledVector(F.n,-.5),10.5,{onRoad:true,camp:true},cr);}}
+  if(n===4&&campMoutonsOn())try{moutonsPose(cr);}catch(e){} // (2026-10-14, gameplay) SAUTE-MOUTON : les petits moutons de ouate couchés sur la route du niveau 4
   if(n===9){ // LE GRAND CIEL : la mer se referme sous la route, des bancs frôlent le ruban, un titan barre l'horizon
     const hz=(i,d)=>{const t=T[i],l=Math.hypot(t.x,t.z)||1;return cldV1.set(pts[i].x+t.z/l*d,pts[i].y,pts[i].z-t.x/l*d);}; // décalage HORIZONTAL (jamais B[i])
     for(let k=0;k<9;k++){const i=Math.min(NP-1,Math.floor((k+.2+cr()*.6)/9*NP)),sd=k%2?1:-1;
@@ -41077,6 +41104,7 @@ function campDebut(){ // un niveau commence (newTrack, et le 1er départ de la s
   CAMP.dmg=0;CAMP.salveT=2.2;CAMP.salveOn=false;CAMP.cause='';CAMP.finT=0;CAMP.garde=false;CAMP.air0=false;CAMP.coupesN=0;CAMP.feuT=0;CAMP.semes=false;CAMP.palier=0;CAMP.proche=1e9;CAMP.pris=false;CAMP.banc1=false;CAMP.pvOk=false;
   CAMP.portFerme=CAMP.n===10&&!PARK.on;
   CAMP.porteOk=0;for(const p of CAMP.portes){p.fait=false;p.touche=false;}
+  CAMP.mtOk=0;CAMP.mtBee=0;CAMP.mtCle=-1;CAMP.mtVu=0;for(const m of CAMP.moutons){m.fait=false;m.dans=false;m.dessus=false;} // (2026-10-14, gameplay) SAUTE-MOUTON : le troupeau repart à zéro
   fumeVide();tirsVide();eclVide();ECL.t=3;ECL.dernier=false;
   fantomePrepare();
   if(started&&!gameOver&&runStats.zones>0&&(CAMP.n===5||SURV.chasse||CAMP.n===14||SURV.camp))survStart(); // on ENTRE dans la poursuite ou la meute (ou on en sort) en pleine partie
@@ -41142,6 +41170,74 @@ function campPortesTick(){ // (⚠ PAS « portesTick » : ce nom est déjà celu
   if(sp>der+160||(!n9&&d>520))vChip('');
   else vChip(TR('PORTES')+' '+CAMP.porteOk+' / '+P.length,d<420?TR('DANS')+' '+Math.max(0,Math.round(d/10)*10)+' M':'',CAMP.porteOk===n9?'#ffd75e':'#9fe8ff');
 }
+/* (2026-10-14, gameplay — Sacha, après le retrait des plots : « trouvez un autre niveau cool ») NUAGES 4 « MATIN FRAIS » = SAUTE-MOUTON.
+   Le matin, la ouate n'est pas encore montée : de PETITS MOUTONS de nuage dorment couchés sur la route, là où se dressaient les portes de
+   plots (les mêmes repères CAMP.portes : trois séquences de trois sur des droites à plat, les pads s'en écartent déjà de ±80 m). On les
+   SAUTE au double-tap NITRO (le SAUT NITRO de Léo, qui part avec sa figure) : passé AU-DESSUS sans les toucher = « SAUTE-MOUTON » (le
+   pluck qui monte d'un mouton à l'autre, l'or, la chaîne d'aura, un peu de FLOW) ; pris de face = le mouton ÉCLATE en ouate (le banc
+   défoncé qui existe : pouf, mille morceaux) et la plaque bêle « BEEE ! » — rien d'autre, aucune vie, aucune vitesse perdue. Le
+   troupeau entier (9 / 9) = « BERGER D'OR ! ». Escalade : 1re série au milieu, 2e décalée, 3e = des TROUPEAUX de trois moutons en travers.
+   · Le mouton offre son saut : à 8-170 m d'un mouton pas encore passé, le SAUT NITRO ne coûte rien (sinon 20 % de la jauge : trois
+     sauts en 7 s vidaient le réservoir, le « nitro.vide » au pied du mouton n'était ni drôle ni juste). Ailleurs, le saut coûte comme avant.
+   · Hauteur : la crête du mouton (le haut de son ellipsoïde « dedans ») est à MOUTON_H = 2,6 m du bitume ; le SAUT NITRO monte à ~3,8 m
+     (21 × SPD / (FALL_G × SPD), +0,6 de départ) en 1,27 s : on passe si le mouton tombe entre ~20 % et ~80 % du saut — ~65 m de fenêtre
+     à 330 km/h. Trop tôt ou trop tard = on retombe dedans (le plus drôle des ratés).
+   · Les nuages ne touchent toujours PAS la caisse (Sacha, 30/09) : seul le jeu COMPTE ce qu'on a fait au-dessus d'eux.
+   Rien de neuf à compiler : des nuages `mkCloud` (CLOUD_MAT, la forme cumulus), posés au chargement ; zéro allocation par image (la
+   plaque ne se réécrit que si sa clé numérique change). Interrupteur : MOUTONS_ON (et PLOTS_ON=true rend les portes). Console : dbgMoutons(). */
+const MOUTON_H=2.6,MOUTON_R=6.5,MOUTON_RT=5.5,MOUTON_TR=[-15,0,15]; // crête au-dessus du bitume · rayon d'un mouton seul · d'un mouton de troupeau · le troupeau en travers (m)
+function campMoutonsOn(){return MOUTONS_ON&&!PLOTS_ON&&campN()===4&&!PARK.on;}
+function moutonsPose(cr){ // dans campNuages (buildClouds) : un mouton (ou un troupeau) par repère de porte
+  CAMP.moutons.length=0;
+  const P=CAMP.portes;
+  for(let i=0;i<P.length;i++){const p=P[i],tr=i>=6,lats=tr?MOUTON_TR:[p.c],r=tr?MOUTON_RT:MOUTON_R;
+    frameAt(p.s,F);
+    const m={s:p.s,cl:[],t:F.t.clone(),fait:false,dans:false,dessus:false};
+    for(const lt of lats){const nC=CLOUDS.length;
+      mkCloud(cldV1.copy(F.p).addScaledVector(F.b,lt),r,{onRoad:true,camp:true},cr);
+      if(CLOUDS.length>nC){const c=CLOUDS[CLOUDS.length-1],up=MOUTON_H-c.ry;
+        c.g.position.addScaledVector(F.n,up);c.c.addScaledVector(F.n,up); // couché : seul son dos dépasse du bitume, le ventre dort dans la dalle
+        c.camp=true;c.mouton=true;m.cl.push(c);}}
+    if(m.cl.length)CAMP.moutons.push(m);}
+}
+function campMoutonLibre(){ // le SAUT NITRO est offert au pied d'un mouton (veqSaut)
+  if(mode!=='drive'||CAMP.n!==4||!campMoutonsOn())return false;
+  const M=CAMP.moutons;for(let i=0;i<M.length;i++){const m=M[i],d=m.s-s;if(!m.fait&&d>8&&d<170)return true;}
+  return false;
+}
+function campMoutonsTick(dt){
+  const M=CAMP.moutons;if(!M.length)return;
+  const sp=vPos(),cp=carGroup.position;let nx=null,n9=0,der=0;
+  if(CAMP.mtBee>0)CAMP.mtBee-=dt;
+  for(let i=0;i<M.length;i++){const m=M[i];if(m.s>der)der=m.s;
+    if(!m.fait&&sp>m.s-60){
+      let passe=true; // passé = la caisse a dépassé TOUS les moutons de ce repère, le long de la route (ils dérivent de ±4 m au vent)
+      for(let k=0;k<m.cl.length;k++){const c=m.cl[k],gp=c.g.position,dx=cp.x-gp.x,dy=cp.y-gp.y,dz=cp.z-gp.z;
+        if(c.wasIn)m.dans=true;
+        if(mode==='fall'&&dx*dx+dz*dz<c.r*c.r*1.1)m.dessus=true;
+        if(dx*m.t.x+dy*m.t.y+dz*m.t.z<c.r+1.5)passe=false;}
+      if(sp>m.s+60)passe=true; // un replacement, un portail : on ne reste pas accroché à un mouton laissé derrière
+      if(passe){m.fait=true;
+        if(m.dans){CAMP.mtBee=1.4;} // pris de face : le mouton a éclaté tout seul (le banc défoncé) — la plaque bêle
+        else if(m.dessus){CAMP.mtOk++;const k=CAMP.mtOk;
+          try{if(SONV2)sfx('pad.neon',{st:sonPd(k-1)});else chimeNote(noteP(Math.min(7,k-1),1),0,.09,.2);}catch(e){}
+          try{sparkBurst(sparkGold,cp,10,9);}catch(e){}hap([10,20,14]);flowAdd(6,'style','p');
+          try{chaineAura('SAUTE-MOUTON',30,'mouton',false,SONV2);}catch(e){}
+          if(k===M.length){ // le troupeau entier
+            slam("BERGER D'OR !",k+' / '+k,'#ffd75e','#9fe8ff',38,2,14);vPaie(30,10);nitroPct(.5,'campagne');flowAdd(15,'style','p');hap([14,30,14,30,40]);
+            try{chaineAura("BERGER D'OR",120,'berger',true,SONV2);if(SONV2)sfx('victoire');}catch(e){}}}}}
+    if(m.fait)n9++;else if(!nx||m.s<nx.s)nx=m;}
+  const d=nx?nx.s-sp:1e9;
+  if(mode==='fall'&&d<220)CAMP.mtVu=1; // il a trouvé le saut : l'aide se tait
+  const dm=d<420?Math.max(0,Math.round(d/10)):999,bee=CAMP.mtBee>0?1:0,aide=!CAMP.mtOk&&!CAMP.mtVu&&d<320?1:0;
+  const cle=(sp>der+160||(!n9&&d>600))?0:1+((((CAMP.mtOk*16+n9)*1000+dm)*2+bee)*2+aide);
+  if(cle===CAMP.mtCle)return;CAMP.mtCle=cle;
+  if(!cle){vChip('');return;}
+  vChip(TR('MOUTONS')+' '+CAMP.mtOk+' / '+M.length,bee?TR('BEEE !'):aide?TR('DOUBLE-TAP NITRO'):dm<999?TR('DANS')+' '+dm*10+' M':'',CAMP.mtOk===n9?'#ffd75e':'#9fe8ff',!!bee);
+}
+window.dbgMoutons=function(){return {on:campMoutonsOn(),ok:CAMP.mtOk,n:CAMP.moutons.length,libre:campMoutonLibre(),s:Math.round(vPos()),
+  moutons:CAMP.moutons.map(function(m){const c=m.cl[0];frameAt(m.s,GF);return {s:Math.round(m.s),nb:m.cl.length,r:c?+c.r.toFixed(1):0,ry:c?+c.ry.toFixed(2):0,
+    crete:c?+(c.g.position.clone().sub(GF.p).dot(GF.n)+c.ry).toFixed(2):0,fait:m.fait,dans:m.dans,dessus:m.dessus};})};};
 function campTick(dt){
   if(!CAMP.n||gameOver)return;
   // LE RACCOURCI : un vol parti de leg1 d'un ovale (niveaux 6, 10, 18) et posé sur leg3 — (2026-09-30) et plus « tout vol posé > 300 m
@@ -41153,6 +41249,7 @@ function campTick(dt){
   if(gameOver)return;
   fumeTick(dt);tirsEcrit(dt);
   if(CAMP.n===4)campPortesTick();
+  if(CAMP.n===4&&campMoutonsOn())campMoutonsTick(dt); // (2026-10-14, gameplay) SAUTE-MOUTON
   if(CAMP.n===9)orageTick(dt);
   if(CAMP.n===10)fantomeTick(dt);
   if(CAMP.n>10)villeTick(dt); // (2026-09-27) la campagne VILLE
@@ -41174,6 +41271,7 @@ for(const [k,v] of Object.entries({'GRAVITE REDUITE : SAUTS 2 FOIS PLUS LONGS':'
 for(const [k,v] of [['SILLAGE','SLIPSTREAM'],['ELLE MENE DE','SHE LEADS BY'],['ELLE REVIENT',"SHE'S COMING BACK"],['DERRIERE TOI','BEHIND YOU'],
   ["TU L'AS DOUBLEE",'YOU PASSED HER'],['IL FALLAIT LA SUIVRE','YOU HAD TO FOLLOW HER'],["TU L'AS DOUBLEE — IL FALLAIT LA SUIVRE",'YOU PASSED HER — YOU HAD TO FOLLOW HER'],
   ['LA CAISSE-NUAGE','THE CLOUD CAR'],['PORTES','GATES'],['PORTE','GATE'],['DANS','IN'],['RADAR','SPEED CAMERA'],
+  ['SAUTE LES MOUTONS','JUMP THE SHEEP'],['MOUTONS','SHEEP'],['SAUTE-MOUTON','LEAPFROG'],["BERGER D'OR !",'GOLDEN SHEPHERD!'],["BERGER D'OR",'GOLDEN SHEPHERD'],['BEEE !','BAAA!'],['DOUBLE-TAP NITRO','DOUBLE-TAP NITRO'], // (2026-10-14, gameplay) SAUTE-MOUTON, le niveau 4 des NUAGES
   ['GRAVITE REDUITE : VOLE PLUS LONG','LOW GRAVITY: FLY LONGER'],['LES DEBRIS VISENT TA LIGNE','THE DEBRIS AIM AT YOUR LINE'],
   ["SOUS LA DALLE, TU ES A L'ABRI","UNDER THE ROAD, YOU'RE SAFE"],['ESQUIVE DE PRES : LA SERIE PAIE','DODGE CLOSE: THE STREAK PAYS'],
   ['LA PLUIE DE DEBRIS SE DURCIT','THE DEBRIS RAIN GETS HARDER'],['LA GEANTE ATTIRE LES DEBRIS','THE GIANT PULLS IN DEBRIS'],
