@@ -8812,13 +8812,13 @@ function modale(o){return new Promise(function(res){
     e.innerHTML=(k.ic?pxi(k.ic):'')+'<span>'+TR(k.l)+'</span>';
     const arme=k.cls==='pb-red'; // (2026-09-26, charte v4) EFFACER / QUITTER / RECOMMENCER s'arment après 420 ms : le 2e tap d'un double appui tombe dans le vide
     if(arme){e.classList.add('arme');setTimeout(function(){e.classList.remove('arme');},420);}
-    e.addEventListener('click',function(ev){ev.stopPropagation();if(e.classList.contains('arme')){hap(6);return;}uiClic(k.cls==='pb-red'?'danger':k.v?'':'retour');try{c.blur();}catch(_){}feuilleFerme(m,'on');res({v:k.v,texte:c.value});});b.appendChild(e);}
+    e.addEventListener('click',function(ev){ev.stopPropagation();if(e.classList.contains('arme')){hap(6);return;}uiClic(k.cls==='pb-red'?'danger':(k.v||o.titre==='CHOISIS TON MODE')?'':'retour');try{c.blur();}/* (2026-10-14, session SON) CHOISIS TON MODE : NORMAL (v:0) est un CHOIX, pas un ANNULER — il valide comme FACILE, il ne « recule » plus */catch(_){}feuilleFerme(m,'on');res({v:k.v,texte:c.value});});b.appendChild(e);}
   feuilleOuvre(m,'on');try{typeof sfx==='function'&&sfx('ui.modale');}catch(e){}
   if(o.champ!=null)setTimeout(function(){try{c.focus();if(o.lecture)c.select();}catch(e){}},60);
 });}
 let toastT=0;
-function toast(h){const t=document.getElementById('toast');if(!t)return;t.innerHTML=h;t.classList.add('on');
-  try{if(SONV2){if(/pxi-coche/.test(h))sfx('ui.ok');else if(/pxi-croix/.test(h))sfx('ui.erreur');}}catch(e){} /* (2026-09-28) session SON */ clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove('on');},1900);}
+function toast(h,muet){const t=document.getElementById('toast');if(!t)return;t.innerHTML=h;t.classList.add('on');
+  try{if(SONV2&&!muet){if(/pxi-coche/.test(h))sfx('ui.ok');else if(/pxi-croix/.test(h))sfx('ui.erreur');}}catch(e){} /* (2026-09-28) session SON */ /* (2026-10-14, session SON) `muet` : l'appelant a DÉJÀ sonné ce que le toast dit (refus, déblocage, achat) — pas de 2e « non-non » ni de ui.ok sous une récompense */ clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove('on');},1900);}
 // une ligne de panneau : icône · libellé · pastille d'état (l'ÉTAT se lit dans la pastille, la plaque ne se grise plus)
 function tpLbl(ic,txt,etat,on){const tg=(etat==='ON'||etat==='OFF'); // ON/OFF → un INTERRUPTEUR pixel ; une valeur → une étiquette or à chevron
   return pxi(ic)+'<span class="tpL">'+TR(txt)+'</span>'+(etat==null?'':tg?'<b class="bascule'+(on?'':' ko')+'">'+etat+'</b>':'<b class="valeur">'+TR(etat)+'</b>');}
@@ -29638,8 +29638,8 @@ function shopPopEl(){
     if(b.classList.contains('off'))return;
     uiClic('');hap(12);b.classList.add('off');el.classList.add('attend');
     shopPaye(i).then(function(){
-      shopDonne(i);el.classList.remove('attend');uiClic('ok');hap([12,40,12,40,30]);try{pixBurst(b,18);}catch(_){}
-      try{shopRender();}catch(_){}shopPopFerme();toast(pxi('coche')+' '+insec(TR(CARS[i].name))+' — '+TR('À TOI'));
+      shopDonne(i);el.classList.remove('attend');try{if(SONV2)sfx('ui.achat');else uiClic('');}catch(_){}hap([12,40,12,40,30]);/* (2026-10-14, session SON) 'ok' n'est pas un rôle d'uiClic (il retombait sur ui.tap, un 2e appui) : une caisse ACHETÉE sonne le tiroir-caisse, comme tout achat du garage — et le toast d'après se tait */try{pixBurst(b,18);}catch(_){}
+      try{shopRender();}catch(_){}shopPopFerme();toast(pxi('coche')+' '+insec(TR(CARS[i].name))+' — '+TR('À TOI'),true);
     },function(){ // pas encore branché : on le DIT, dans la fenêtre, et rien n'est donné
       el.classList.remove('attend');el.classList.add('refus');uiClic('refus');hap([10,40,10]);
       const s=b.querySelector('span');if(s)s.textContent=sansAcc(TR('BIENTÔT DISPONIBLE'));
@@ -37172,6 +37172,7 @@ function setBestChip(){
 }
 function commitName(){
   if(pendingScore==null)return;
+  try{uiClic('');}catch(e){} // (2026-10-14, session SON) VALIDER son nom (bouton ou Entrée) était muet : l'appui principal, comme tout « valider »
   var nm=(nameInput.value||'').trim().toUpperCase().replace(/\s+/g,' ').slice(0,8);
   if(!nm)nm='???';
   SAVE.d.pseudo=nm;
@@ -43259,12 +43260,13 @@ function playViaGarage(tuto){
   if(garageOn){if(tuto)tutoArme();garageLaunch();return;}
   ecranWipe(function(){if(tuto)tutoArme();openGarage(true);},function(){garageLaunch();});
 }
+let GSON9=false; // (2026-10-14, session SON) vrai quand une ACTION sonore (équiper, bascule de la caisse, carte, geste de l'atelier) vient de jouer dans CE geste : le clic « nav » se tait alors (il ne reste que la vibration) — remis à faux au début de chaque geste de vignette
 function garageGo(d){
   if(GAR.go)return; // (2026-09-28) pendant la SORTIE (1,7 s), un glissé remplaçait la caisse qui roule vers la porte
-  uiClic('nav'); // ◀ ▶, glissé, clavier : le doigt sent qu'on change de caisse — et l'oreille aussi (2026-09-26, charte règle 8)
+  hap(8); // ◀ ▶, glissé, clavier : le doigt sent qu'on change de caisse (2026-09-26, charte règle 8) — (2026-10-14, session SON) l'oreille l'entend par l'ACTION (carte / bascule), plus par un tick nav EN PLUS ; le tick ne reste que là où rien d'autre ne sonne
   if(SHOP.tab!=='voiture'){ // BOUTIQUE : on feuillette les articles, la caisse reste la tienne
     shopShow(SHOP.tab,SHOP.i[SHOP.tab]+d);try{if(SONV2)sfx('ui.carte',{vol:-3});else chimeNote(d>0?880:660,0,.16,.14);}catch(e){}return;}
-  if(!garageOn||!GAR.root||GAR.sw){garageShow(garageVoisin(garageI,d));return;}
+  if(!garageOn||!GAR.root||GAR.sw){uiClic('nav');garageShow(garageVoisin(garageI,d));return;}
   GAR.sw={t:0,fait:false,to:garageVoisin(garageI,d)};
   try{if(SONV2)sfx('garage.bascule');else{chimeNote(d>0?880:660,0,.16,.14);noiseBurst(.35,.09,900);}}catch(e){} /* (console de son) LA BASCULE, calée sur le retourneur de 1,06 s */
 }
@@ -43558,9 +43560,10 @@ function bqPhotos(st){
 try{$('gStrip').addEventListener('click',function(e){const v=e.target.closest&&e.target.closest('.fnTout');if(v){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(v);uiClic('nav');gModeVa('tous');return;}
   const po=e.target.closest&&e.target.closest('.fnPorte');if(po){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(po);uiClic('nav');gOffresPage();return;} // (2026-10-10) la PORTE DES OFFRES : l'écran rose (page OFFRES)
   const t=e.target.closest&&e.target.closest('.fnC');if(!t)return;e.stopPropagation();
-  if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(t);uiClic('nav');const k=t.getAttribute('data-fn');
+  if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(t);GSON9=false;const k=t.getAttribute('data-fn');
   if(k[0]==='v'){const i=+k.slice(2);if(SHOP.tab!=='voiture')shopTab('voiture');const eq9=garEquipeCaisse(i);if(i!==garageI)garageSaute(i);else if(eq9)garageShow(i);}
-  else{const o=bqCos(k),j=COSM[o.cat].indexOf(o.d);if(SHOP.tab!==o.cat)shopTab(o.cat);if(j>=0){garEquipeHabit(o.cat,j);shopShow(o.cat,j);}try{if(SONV2)sfx('ui.carte',{vol:-3});}catch(er){}} /* (2026-10-14, session SON) ui.carte −3 : feuilleter (−34, bus rec) sonnait plus fort que valider (ui.tap −35) — rangé avec ui.equipe (−37) */
+  else{const o=bqCos(k),j=COSM[o.cat].indexOf(o.d);if(SHOP.tab!==o.cat)shopTab(o.cat);if(j>=0){garEquipeHabit(o.cat,j);shopShow(o.cat,j);}try{if(SONV2&&!GSON9){sfx('ui.carte',{vol:-3});GSON9=true;}}catch(er){}} /* (2026-10-14, session SON) ui.carte −3 : feuilleter (−34, bus rec) sonnait plus fort que valider (ui.tap −35) — rangé avec ui.equipe (−37) */
+  if(GSON9)hap(8);else uiClic('nav'); /* (2026-10-14, session SON) l'action (équiper, bascule, carte) a sonné : le tick se tait — sinon nav + équipe + carte sur UNE vignette */
   gShopJour();});}catch(e){}
 setInterval(function(){try{if(!garageOn||gModeM()!=='shop')return;const B=SAVE.d.bq;if(!B||B.j!==bqJour()){const bar=$('gRar'),st=$('gStrip');if(bar)bar._k=null;if(st)st._r=null;gShopJour();return;}
   const v=bqReste();document.querySelectorAll('#gRar .fnT i:not(.pxi),#gStrip .fpTim i:not(.pxi)').forEach(function(t){if(t.textContent!==v)t.textContent=v;});}catch(e){}},1000);
@@ -45927,7 +45930,7 @@ function garBqUI(){let ui=document.getElementById('gBq');if(ui)return ui;
     pan.classList.remove('menu');if(o!==GBQ.ong){GBQ.ong=o;GBQ.rk='';}});
   ui.querySelector('.bqMenu').addEventListener('click',function(e){const b=e.target.closest&&e.target.closest('button');if(!b)return;e.stopPropagation();if(!ok())return;
     uiPop(b);uiClic('onglet');pan.classList.remove('menu');GBQ.cat=b.getAttribute('data-c');GBQ.ong='cat';GBQ.rk='';});
-  const essaie=function(sel){return function(e){const t=e.target.closest&&e.target.closest(sel);if(!t)return;e.stopPropagation();if(!ok())return;uiPop(t);uiClic('nav');pan.classList.remove('menu');bqEssaie(t.getAttribute('data-k'));};};
+  const essaie=function(sel){return function(e){const t=e.target.closest&&e.target.closest(sel);if(!t)return;e.stopPropagation();if(!ok())return;uiPop(t);GSON9=false;pan.classList.remove('menu');bqEssaie(t.getAttribute('data-k'));if(GSON9)hap(8);else uiClic('nav');/* (2026-10-14, session SON) essayer un objet = la bascule / le geste de l'atelier / la figure : le tick nav ne s'y ajoute plus */};};
   ui.querySelector('.bqRail').addEventListener('click',essaie('.bqK'));ui.querySelector('.bqUr').addEventListener('click',essaie('.bqU'));
   return ui;}
 function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBqPan'),voulu=GBQ.on&&gModeM()==='shop'&&!GMODE.paye;
@@ -46008,7 +46011,7 @@ function bqAction(){const s=bqEtat(),k=bqCourant(),bt=document.getElementById('g
   if(s.e==='equip'){if(k[0]==='v'){const i=+k.slice(2);if(garEquipeCaisse(i))garageShow(i);}else{const o=bqCos(k),j=COSM[o.cat].indexOf(o.d);if(garEquipeHabit(o.cat,j)){shopShow(o.cat,j);try{bqOutil(o.cat,'serre',o.d,null);}catch(e){}}}try{hap(8);}catch(e){}return;}
   if(s.e==='desequip'){const o=bqCos(k),j=COSM[o.cat].indexOf(o.d);bqOutil(o.cat,'retire',o.d,function(){if(shopEquip(o.cat,0)){SHOP.prev=null;try{buildCar(CARS[equippedCar()]);}catch(e){}shopShow(o.cat,j);try{if(SONV2)sfx('ui.off');}catch(e){}}try{gShopJour();}catch(e){}});try{hap(6);}catch(e){}return;}
   if(s.e==='defi'){if(bt)gSecoue(bt);uiClic('refus');if(k[0]==='v')toast(pxi('verrou')+' '+String(carUnlockText(+k.slice(2))).replace(/</g,'&lt;'));return;}
-  try{hap(6);}catch(e){}}
+  try{uiClic('nav');}catch(e){}}
 /* LES FIGURES AU SHOP ET À L'INVENTAIRE (2026-10-14) — possédées : SAVE.d.figs ; achetées en pièces (la banque) ; toucher = la caisse la fait */
 function figAchat(i){const d=COSM.figure[i];if(!d||!d.p)return {ok:false,raison:'pas-a-vendre'};if(figPossede(d.id))return {ok:false,raison:'deja-possedee'};
   if(bank()<d.p)return {ok:false,raison:'fonds-insuffisants',manque:d.p-bank()};
@@ -46018,10 +46021,10 @@ const L=SAVE.d.figs;return id==='tonneau'||(Array.isArray(L)&&L.indexOf(id)>=0);
 function figAchete(id,bt){const f=window.FIG&&FIG.par[id];if(!f||figPossede(id))return false;
   if(bank()<f.p){if(bt)gSecoue(bt);uiClic('refus');toast(pxi('piece')+' '+sansAcc(TR('IL MANQUE'))+' '+fmtC(f.p-bank()));return false;}
   SAVE.d.bank=bank()-f.p;if(!Array.isArray(SAVE.d.figs))SAVE.d.figs=['tonneau'];SAVE.d.figs.push(id);SAVE.flush();
-  try{if(SONV2)sfx('ui.achat');}catch(e){}try{gTampon(sansAcc(TR('À TOI !')));}catch(e){}hap([10,40,10]);GBQ.rk='';garFigEssai(id);return true;}
+  try{if(SONV2){sfx('ui.achat');if(!REDUCED_MOTION)sfx('ui.tampon',{t:.266});}}catch(e){}try{gTampon(sansAcc(TR('À TOI !')));}catch(e){}hap([10,40,10]);GBQ.rk='';garFigEssai(id);return true;} /* (2026-10-14, session SON) le même « À TOI ! » que l'achat d'une peinture ou d'une caisse : le même tampon qui s'abat (il manquait à la figure) */
 const GFIG={lect:null,t:0,D:0};
 function garFigEssai(id){const f=window.FIG&&FIG.par[id];if(!f)return;if(!GFIG.lect)GFIG.lect=new FIG.Lecteur();GFIG.lect.vide();GFIG.lect.lance(f,1,f.D*1.25);GFIG.t=0;GFIG.D=f.D*1.25;
-  try{if(SONV2)sfx('fig.vrille',{st:2});}catch(e){}}
+  try{if(SONV2){sfx('fig.vrille',{st:2});GSON9=true;}}catch(e){}}
 function garFigTick(dt){const L9=GFIG.lect;if(!L9||!L9.occupe())return;L9.tick(Math.min(dt,.05));GFIG.t+=Math.min(dt,.05);
   const x=Math.min(1,GFIG.t/GFIG.D),hc=(CARS[equippedCar()].h||1.3)*.5,lev=1.5*Math.sin(Math.PI*x); // elle saute du plateau, tourne, se repose
   carGroup.position.y+=lev;VEQ.pv.set(0,hc,0).applyQuaternion(carGroup.quaternion);
@@ -46308,7 +46311,7 @@ function garBqOutilBatit(){if(BQT.g)return BQT.g;garBqBrasBatit();bqGesteBatit()
 function bqOutil(k,mode,d,apply){const T=BQT.task;if(T&&!T.fait&&T.apply){T.fait=true;try{T.apply();}catch(e){}}
   if(!(GBQ.on&&GBQ.grp&&GBQ.grp.visible)){BQT.task=null;if(apply)apply();return;}
   garBqOutilBatit();BQT.task={k:k,mode:mode||'essai',d:d,apply:apply||null,fait:!apply,t:0,col:bqGesteCoul(k,d)||[1,.4,.8],f:0};
-  try{if(SONV2)sfx('ui.feuille');}catch(e){}}
+  try{if(SONV2){sfx('ui.feuille');GSON9=true;}}catch(e){}}
 const BQT_T={monte:.24,va:.32,touche:.15,retour:.22,plie:.32,rentre:.26}; // la pièce est posée à 0,71 s du toucher
 function bqOutilDuree(T){return T.k==='aile'?(T.mode==='essai'?.75:T.mode==='retire'?.55:.6):T.k==='peinture'?(T.mode==='serre'?.6:1.0):(T.mode==='serre'?.5:.5);}
 function bqOutilTick(dt,t9,ay){const T=BQT.task;
@@ -47303,7 +47306,7 @@ function gvNivs(on,sec){
       h+='<div class="gnP">'+pxi('droite')+'<b>'+sansAcc(TR('A BATTRE'))+' : '+nx.n+' · '+sansAcc(TR(nx.t))+'</b>'+(reste>0?'<i>+'+reste+' '+sansAcc(TR('A DECOUVRIR'))+'</i>':'')+'</div>';}
     else h+='<div class="gnP">'+pxi('etoile')+'<b>'+sansAcc(TR('TOUT EST TERMINE'))+'</b></div>';
     el.innerHTML=h;el.scrollTop=0;el.classList.remove('sortant');void el.offsetWidth;feuilleOuvre(el,'on');
-    if(v)v.setAttribute('aria-expanded','true');try{if(SONV2)sfx('ui.feuille');}catch(e){}
+    if(v)v.setAttribute('aria-expanded','true'); /* (2026-10-14, session SON) feuilleOuvre sonne DÉJÀ ui.feuille : le 2e appel faisait sonner le tiroir deux fois */
   }else{if(!el.classList.contains('on'))return;if(v)v.setAttribute('aria-expanded','false');
     if(sec){el.classList.remove('on','sortant');return;}feuilleFerme(el,'on');}
 }
@@ -47546,9 +47549,9 @@ function invFerme(sec){
 function invEquipe(i,el){
   if(!INV.on||GAR.go)return;uiPop(el);const cat=INV.cat;
   if(cat==='figure'){const f=window.FIG&&FIG.liste[i];if(f)garFigEssai(f.id);hap(8);return;} // (2026-10-14) toucher une figure : la caisse la fait sur le plateau
-  if(cat==='voiture'){if(i===equippedCar()){hap(8);return;}if(!carUnlocked(i))return;
+  if(cat==='voiture'){if(i===equippedCar()){uiClic('nav');return;}if(!carUnlocked(i))return;
     SAVE.d.equipped=i;SAVE.flush();level=i;levelCash=0;garageSaute(i);}       // le même geste que ÉQUIPER : la caisse de départ — et la bascule du plateau
-  else{const d=COSM[cat][i];if(!d)return;if(shopEqD(cat)===d){hap(8);return;}if(!shopEquip(cat,i))return;
+  else{const d=COSM[cat][i];if(!d)return;if(shopEqD(cat)===d){uiClic('nav');return;}if(!shopEquip(cat,i))return; /* (2026-10-14, session SON) toucher ce qui est DÉJÀ équipé répond d'un tick (muet avant) */
     SHOP.prev=null;buildCar(CARS[equippedCar()]);GAR.pressT=GAR.PRESS_D;}     // l'habillage se pose sur la caisse (elle accuse le coup)
   try{if(SONV2)sfx('ui.equipe');else fanfare();}catch(er){}hap(10);
   try{if(cat==='peinture'){const d9=COSM.peinture[i]||{},c9=d9.c!=null?d9.c:(d9.grad?d9.grad[1]:0xff7a3a);ATL.c=new THREE.Color(c9);}atlConstruit(cat);}catch(er){} // (même soir) LES OUTILS construisent l'objet
@@ -48200,7 +48203,7 @@ function atlVise(e){if(GAR.go||!garAtelierLibre()||e.button>0)return false;
   const B=atlBoutonEcran();return !!B&&Math.hypot(e.clientX-B.x,e.clientY-B.y)<B.r;}
 function atlPresse(){ // le bouton est enfoncé : l'inventaire s'ouvre (ou se ferme)
   ATL.press=1;hap([12,24,10]);
-  try{if(SONV2)sfx('ui.equipe');else chimeNote(520,0,.06,.12);}catch(e){}
+  try{uiClic(INV.on?'retour':'nav');}catch(e){} // (2026-10-14, session SON) ouvrir / fermer l'inventaire = nav / retour, comme le COFFRE et le ✕ (c'était ui.equipe : « équiper » pour ouvrir un tiroir)
   if(INV.on)invFerme();else invOuvre();
 }
 function atlConstruit(cat){ATL.cons=1.1;ATL.cat=cat;ATL.t=0;}
@@ -48515,12 +48518,12 @@ $('gEquip').addEventListener('click',e=>{e.stopPropagation();
   const b=e.currentTarget;if(b.classList.contains('arme')&&e.isTrusted)return; // (2026-09-29) le 2e tap d'un double-tap sur ACHETER n'équipe pas la caisse
   if(b.getAttribute('aria-disabled')==='true'){
     const vt=SHOP.tab==='voiture',ferme=vt?!carUnlocked(garageI):!shopOwned(SHOP.tab,COSM[SHOP.tab][SHOP.i[SHOP.tab]].id);
-    if(!ferme){hap(8);return;}                               // ÉQUIPÉE : un simple accusé (sinon on rejouait la fanfare et réécrivait la sauvegarde)
+    if(!ferme){uiClic('nav');return;}                               // ÉQUIPÉE : un simple accusé — (2026-10-14, session SON) un tick, plus muet : tout bouton répond (sinon on rejouait la fanfare et réécrivait la sauvegarde)
     gSecoue(b);uiClic('refus');
     if(vt)toast(pxi('verrou')+' '+String(carUnlockText(garageI)).replace(/</g,'&lt;')); // boutique : les défis sont déjà listés sur la fiche
     return;}
   uiPop(b);
-  if(SHOP.tab!=='voiture'){const c9=SHOP.tab,i9=SHOP.i[c9];if(shopEquip(c9,i9)){shopShow(c9,i9);uiClic();try{if(SONV2)sfx('ui.equipe');else fanfare();}catch(err){}}return;}
+  if(SHOP.tab!=='voiture'){const c9=SHOP.tab,i9=SHOP.i[c9];if(shopEquip(c9,i9)){shopShow(c9,i9);hap(8);try{if(SONV2)sfx('ui.equipe');else fanfare();}catch(err){}}return;} /* (2026-10-14, session SON) équiper un habillage = ui.equipe SEUL (avant : appui principal PUIS equipe — la caisse, elle, n'avait que equipe) */
   if(!carUnlocked(garageI))return;                          // pas encore débloquée (condition propre à CETTE caisse)
   SAVE.d.equipped=garageI;SAVE.flush();
   level=garageI;levelCash=0;                                // la caisse choisie devient la caisse de départ — ⚠ plus de levelCash pré-rempli : il offrait un magot de départ égal au seuil de la caisse (la tirelire à 320 000 d'anciennes sessions venait de là)
@@ -48537,21 +48540,21 @@ $('gRar').addEventListener('click',e=>{const b=e.target.closest('.gR');if(!b)ret
   garageSaute(L0.indexOf(eq)>=0?eq:L0[0]);});
 $('gStrip').addEventListener('click',e=>{const t=e.target.closest('.gT');if(!t)return;e.stopPropagation();uiPop(t);
   if(t.classList.contains('gMys')){uiClic('refus');toast(pxi('horloge')+' '+sansAcc(TR(t.getAttribute('aria-label')))+' — '+sansAcc(TR('BIENTÔT')));return;} // (2026-10-10) une rareté à venir
-  uiClic('nav');
-  if(t.hasAttribute('data-cos')){const j=+t.getAttribute('data-cos');if(SHOP.tab==='voiture')return;const eq9=garEquipeHabit(SHOP.tab,j);
-    if(eq9||j!==SHOP.i[SHOP.tab]){shopShow(SHOP.tab,j);if(!eq9)try{if(SONV2)sfx('ui.carte',{vol:-3});else chimeNote(880,0,.16,.14);}catch(er){}}return;} // un habillage : à toi, il s'ÉQUIPE ; sinon on l'ESSAIE sur la caisse
-  const i9=+t.getAttribute('data-car'),eq9=garEquipeCaisse(i9);if(i9!==garageI)garageSaute(i9);else if(eq9)garageShow(i9);}); // (2026-10-11) une caisse à toi s'ÉQUIPE au toucher
+  GSON9=false; /* (2026-10-14, session SON) le tick « nav » ne part qu'à la FIN du geste, et seulement si rien n'a sonné (équiper, bascule, carte) */
+  if(t.hasAttribute('data-cos')){const j=+t.getAttribute('data-cos');if(SHOP.tab==='voiture'){uiClic('nav');return;}const eq9=garEquipeHabit(SHOP.tab,j);
+    if(eq9||j!==SHOP.i[SHOP.tab]){shopShow(SHOP.tab,j);if(!eq9)try{if(SONV2){sfx('ui.carte',{vol:-3});GSON9=true;}else chimeNote(880,0,.16,.14);}catch(er){}}if(GSON9)hap(8);else uiClic('nav');return;} // un habillage : à toi, il s'ÉQUIPE ; sinon on l'ESSAIE sur la caisse
+  const i9=+t.getAttribute('data-car'),eq9=garEquipeCaisse(i9);if(i9!==garageI)garageSaute(i9);else if(eq9)garageShow(i9);if(GSON9)hap(8);else uiClic('nav');}); // (2026-10-11) une caisse à toi s'ÉQUIPE au toucher
 /* ÉQUIPER AU TOUCHER (2026-10-11, Léo : « quand on clique sur une voiture, ça l'équipe ; donc enlève le bouton ÉQUIPER ») : toucher une caisse
    ou un habillage À TOI (vraiment : pas seulement ouvert pour le TEST) l'équipe tout de suite ; le bouton ÉQUIPER ne se montre plus que pour
    ACHETER (voir « LE COIN DU GARAGE » : #gEquip:not(.achat) masqué) ; un achat équipe aussi. */
 function garEquipeCaisse(i){const eq=SAVE.d.equipped|0;if(!(i>=0)||!CARS[i]||!(carUnlockedVrai(i)||i===eq))return false;
-  if(i!==eq){SAVE.d.equipped=i;SAVE.flush();level=i;levelCash=0;try{if(SONV2)sfx('ui.equipe');}catch(e){}}return true;}
+  if(i!==eq){SAVE.d.equipped=i;SAVE.flush();level=i;levelCash=0;try{if(SONV2){sfx('ui.equipe');GSON9=true;}}catch(e){}}return true;}
 function garEquipeHabit(cat,j){const d=COSM[cat]&&COSM[cat][j];if(!d||!shopOwned(cat,d.id))return false;
-  if(shopEqD(cat)!==d&&shopEquip(cat,j)){SHOP.prev=null;try{buildCar(CARS[equippedCar()]);}catch(e){}try{if(SONV2)sfx('ui.equipe');}catch(e){}}return true;}
+  if(shopEqD(cat)!==d&&shopEquip(cat,j)){SHOP.prev=null;try{buildCar(CARS[equippedCar()]);}catch(e){}try{if(SONV2){sfx('ui.equipe');GSON9=true;}}catch(e){}}return true;}
 // aller DIRECTEMENT à une caisse (vignette, famille) — avec la bascule du plateau, comme les flèches
 function garageSaute(i){if(GAR.go||i===garageI||!(i>=0))return; // (2026-09-28) GAR.go : même garde que garageGo — la caisse qui sort ne se change plus
   if(!garageOn||!GAR.root||GAR.sw){garageShow(i);return;}
-  GAR.sw={t:0,fait:false,to:i};try{if(SONV2)sfx('garage.bascule');else{chimeNote(880,0,.16,.14);noiseBurst(.35,.09,900);}}catch(e){}}
+  GAR.sw={t:0,fait:false,to:i};GSON9=true;try{if(SONV2)sfx('garage.bascule');else{chimeNote(880,0,.16,.14);noiseBurst(.35,.09,900);}}catch(e){}}
 $('gBuy').addEventListener('click',e=>{e.stopPropagation();
   if(SHOP.tab==='voiture'&&e.currentTarget.dataset.bout==='1'&&garageOn&&!gEl.classList.contains('menu')){hap(8); // (2026-10-10) les OFFRES vivent dans la boutique du garage : ACHETER + le prix en € ouvre la fenêtre d'achat ICI, sur la caisse affichée
     let src=document.querySelector('#gStrip .fnC[data-fn="v:'+garageI+'"]')||document.querySelector('#gStrip .gT[data-car="'+garageI+'"]');if(!src)src=e.currentTarget;src.setAttribute('data-car',garageI);
@@ -48562,12 +48565,12 @@ $('gBuy').addEventListener('click',e=>{e.stopPropagation();
     // (bloc mobile) repose l'accueil juste après closeGarage et écraserait la boutique.
     ecranWipe(function(){closeGarage();},function(){if(!garageOn&&window.__mGo)window.__mGo('shop');});return;}
   if(SHOP.tab!=='voiture'){const c9=SHOP.tab,i9=SHOP.i[c9],r9=shopBuy(c9,i9);
-    if(!r9.ok){if(r9.raison==='fonds-insuffisants'){gSecoue(e.currentTarget);uiClic('refus');toast(pxi('croix')+' '+TR('IL TE MANQUE')+' '+fmtC(r9.manque));}return;}
+    if(!r9.ok){if(r9.raison==='fonds-insuffisants'){gSecoue(e.currentTarget);uiClic('refus');toast(pxi('croix')+' '+TR('IL TE MANQUE')+' '+fmtC(r9.manque),true);}return;} /* (2026-10-14, session SON) toast muet : le refus a déjà dit « non » (avant : refus + erreur, deux non-non identiques) */
     garEquipeHabit(c9,i9);shopShow(c9,i9);hap([10,30,20,30,40]);pixBurst($('gCard'),26);gTampon(TR('À TOI !')); /* (2026-10-11) acheté = équipé */
     try{if(SONV2){sfx('ui.achat');if(!REDUCED_MOTION)sfx('ui.tampon',{t:.266});}else fanfare();}catch(err){}return;} /* (console de son) le tiroir-caisse, puis le TAMPON quand il s'abat (14 % de 1,9 s) — en mouvement réduit c'est un toast (ui.ok) */
   const r=carBuy(garageI);
   if(!r.ok){
-    if(r.raison==='fonds-insuffisants'){gSecoue(e.currentTarget);uiClic('refus');toast(pxi('croix')+' '+TR('IL TE MANQUE')+' '+fmtC(r.manque));} // #msg est masqué au garage : c'est un toast qui parle
+    if(r.raison==='fonds-insuffisants'){gSecoue(e.currentTarget);uiClic('refus');toast(pxi('croix')+' '+TR('IL TE MANQUE')+' '+fmtC(r.manque),true);} // #msg est masqué au garage : c'est un toast qui parle
     return;
   }
   garEquipeCaisse(garageI); /* (2026-10-11) achetée = équipée : plus de bouton ÉQUIPER */
@@ -51871,7 +51874,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
           else if(mode==='boom')endGame(); // (2026-10-12, passe qualité) la caisse EXPLOSE déjà : la partie est finie — RECOMMENCER sautait endGame (ni virement, ni aura, ni record, ni écran de fin). On la solde, l'écran de fin et son REJOUER suivent.
           else {carrIci();resetGame();} };
         if(q9||mode==='boom'||pkPasse(f9))f9(); }); } // (POKI) RECOMMENCER passe par la pause pub, le panneau reste ouvert (jeu en pause) pendant qu'elle passe // carrIci : la carrière repart du niveau en cours · (2026-09-28) tutoQuitte : la leçon quittée sera reproposée
-    uiClic(a==='close'?'retour':a==='snd'?(SND.sfx?'on':'off'):a==='vox'?(SND.voice?'on':'off'):a==='mus'?(SND.music?'on':'off'):a==='surv'?(SURV.armed?'on':'off'):(a==='ctl'||a==='q'||a==='volh')?'onglet':(a==='reset'||a==='quit')?'danger':''); /* (console de son) le RÔLE — ici le clic part APRÈS la bascule : l'interrupteur sonne son nouvel état */ // ⚠ EN DERNIER : un bouton qui SORT de la pause (reprendre, recommencer, quitter) garde son clic ; en pause il reste le visuel et la vibration
+    uiClic(a==='close'?'retour':a==='tous'?'nav':a==='snd'?(SND.sfx?'on':'off'):a==='vox'?(SND.voice?'on':'off'):a==='mus'?(SND.music?'on':'off'):a==='surv'?(SURV.armed?'on':'off'):(a==='ctl'||a==='q'||a==='volh')?'onglet':(a==='reset'||a==='quit')?'danger':''); /* (console de son) le RÔLE — ici le clic part APRÈS la bascule : l'interrupteur sonne son nouvel état */ // ⚠ EN DERNIER : un bouton qui SORT de la pause (reprendre, recommencer, quitter) garde son clic ; en pause il reste le visuel et la vibration
   }
   if(gear)gear.addEventListener('click',gearOpenHandler); // au relâcher (voir mHit) : le panneau défile, un glissé n'active rien
   if(pan)pan.addEventListener('click',panTapHandler);
@@ -51981,7 +51984,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
      à la place de l'écran), mTap('back') et Échap le lisent. Ouvert depuis l'accueil, #mSet ne passe pas par ici : son ◀ ramène toujours à l'accueil. */
   function setPauseOuvre(){
     if(window.__setPause||!(started&&!gameOver&&paused)||!document.documentElement.classList.contains('c6'))return;
-    window.__setPause=true;uiClic('nav');
+    window.__setPause=true; // (2026-10-14, session SON) plus de uiClic('nav') ici : panTapHandler sonne déjà « nav » pour TOUS LES REGLAGES (c'était nav PUIS appui principal)
     document.body.classList.add('setPause');document.body.classList.remove('setPauseSort');
     overlay.setAttribute('data-ecran','set'); // AVANT l'affichage : mGo force un reflow avant de le poser, et le fond (transition d'opacité de ::before) partait de l'accueil (transparent) → la pause se lisait derrière les réglages
     TCTL.ov=true;overlay.style.display='flex';
@@ -52154,7 +52157,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     return 'nav';
   }
   function mTap(a,el){
-    if(a!=='snd')uiClic(mRole9(a));uiPop(el);if(a==='play'||a==='replay')pixBurst(el,16); // chaque bouton REBONDIT ; JOUER lâche une gerbe — (2026-09-28) SON : le clic part APRÈS la bascule (plus bas)
+    if(a!=='snd'){ if(a==='tuto'||a==='shopRestore')hap(8); /* (2026-10-14, session SON) ces deux-là répondent par un toast coche (ui.ok) : le résultat passe devant le clic (avant : nav + ok, deux sons) */ else uiClic(a==='shopSoon'&&!(el&&el.hasAttribute('data-car'))?'refus':mRole9(a)); /* « BIENTÔT DISPONIBLE » = refus, comme le même mot sur la plaque verrouillée du garage */ }uiPop(el);if(a==='play'||a==='replay')pixBurst(el,16); // chaque bouton REBONDIT ; JOUER lâche une gerbe — (2026-09-28) SON : le clic part APRÈS la bascule (plus bas)
     if(a==='replay'&&started&&gameOver){ const r9=function(){ DEPMUS.sort=performance.now(); goImmersive(); ecranWipe(function(){ if(started&&gameOver){ if(!CARR.actif)tutoArme(); else{const n9=CARRIERE[CARR.actif.b]&&CARRIERE[CARR.actif.b].niveaux[CARR.actif.i];if(n9&&n9.piste==='tuto'&&!SAVE.d.tuto&&!SANDBOX&&!TUTO.on)tutoDebut();} /* (2026-10-12, passe qualité) AURORE quittée depuis la CARRIÈRE (« tu reprendras la leçon au prochain départ ») : REJOUER relançait la piste d'école SANS le coach — on réarme la leçon comme carrLancerSous */ resetGame(); } }); }; if(pkPasse(r9))r9(); } // (POKI) pkPasse : la pause pub avant de rejouer // REJOUER : tout de suite, sans repasser par l'atelier — mais par un fondu (la piste neuve se construit DESSOUS) · (2026-09-28) tutoArme : « REVOIR L'AUTO-ÉCOLE » promet le PROCHAIN départ, REJOUER compris (sans effet si elle est déjà faite ; pas en carrière : son niveau passe devant la piste d'apprentissage)
     else if(a==='play'&&cryptoPlayOk()){ const go9=function(){goImmersive();cryptoJouer();}; // (2026-10-13) ?niveau=crypto : le JOUER lance CRYPTOCITY
       if(SAVE.d.facile==null&&!SAVE.d.tuto)facChoix().then(go9);else go9(); }
@@ -52225,7 +52228,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='code'){ /* LE CODE COUSIN (2026-10-14, Léo) — voir codeCousin */
       modale({titre:'ENTRER UN CODE',texte:'',champ:'',boutons:[{l:'VALIDER',ic:'coche',cls:'pb-gold',v:1},{l:'ANNULER',v:0}]}).then(function(r){
         if(!r.v)return;
-        if(codeCousin(r.texte)){toast(pxi('coche')+' '+TR('TOUT EST DÉBLOQUÉ !'));try{if(SONV2)sfx('caisse.debloquee');}catch(e){}hap([20,40,20,40,60]);try{mFill();}catch(e){}}
+        if(codeCousin(r.texte)){toast(pxi('coche')+' '+TR('TOUT EST DÉBLOQUÉ !'),true);try{if(SONV2)sfx('caisse.debloquee');}catch(e){}hap([20,40,20,40,60]);try{mFill();}catch(e){}}
         else toast(pxi('croix')+' '+TR('CODE INCONNU')); }); }
     else if(a==='wipe'){
       modale({titre:'TOUT EFFACER ?',texte:POKI?'Argent, caisses, habillages, records et réglages : tout repart de zéro.':'Argent, caisses, habillages, missions, records, carrière et réglages : tout repart de zéro.',
