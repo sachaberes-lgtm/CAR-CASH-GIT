@@ -93,14 +93,20 @@ une('</head>','<style id="appStore">/* (app iOS) pas de page OFFRES en € : ni 
   '/* le vieux panneau RÉGLAGES de l\'écran-titre d\'ordinateur (déjà caché au doigt) : ses boutons de sauvegarde ouvrent un prompt() du système */\n'+
   '#setBtn,#settings{display:none!important}\n'+
   '/* la ligne ENTRER UN CODE des réglages (le code COUSIN, coupé plus haut) */\n'+
-  '.mCode{display:none!important}</style>\n</head>','page OFFRES');
+  '.mCode{display:none!important}\n'+
+  '/* la rangée de l\'accueil sans la case OFFRES : MISSIONS s\'élargit d\'un cran et la voiture du garage le suit (debout et couché), plus de trou */\n'+
+  'html.c6.hub:not(.poki) body #mHome.acc2 .mMisBarre{grid-column:2 / 4!important}html.c6.hub:not(.poki) body #mHome.acc2 .mHubPorte{grid-column:4!important}\n'+
+  '@media (orientation:landscape) and (max-height:540px){html.c6.hub:not(.poki) body #mHome.acc2 .mMisBarre{grid-column:3 / 5!important}'+
+  'html.c6.hub:not(.poki) body #mHome.acc2 .mHubPorte{grid-column:5!important}}</style>\n</head>','page OFFRES');
 une("const SANS_VOIX=POKI||!/[?&]voix=1\\b/.test(location.search);","const SANS_VOIX=true; /* (app iOS) les voix ne sont pas livrées */",'règle SANS_VOIX (les voix ne sont pas livrées)');
 /* LES TÉMOINS — une coupe faite en CSS ne casse rien si sa cible change de nom : elle cesse juste de couper, en silence. Chaque porte
    masquée ci-dessus doit donc encore exister dans le jeu ; sinon l'écran a été refait et la coupe est à revoir (au navigateur). */
 for(const[t,quoi]of[['data-m="shop"','la tuile OFFRES de l\'accueil'],['id="mShop"','la page OFFRES (#mShop)'],['id="bdShop"','le fond de la page OFFRES (#bdShop)'],
   ['<button data-o="off"','l\'onglet OFFRES de la boutique du garage'],["k:'premium'",'les caisses vendues en €'],["k:'pubs'",'la caisse aux 100 pubs'],
   ["k:'bientot'",'les caisses « DÉFI À VENIR »'],['class="pbtn gVerrou"','le bouton verrouillé BIENTÔT du menu du garage'],
-  ['class="mPanel mCode"','la ligne ENTRER UN CODE des réglages']])
+  ['class="mPanel mCode"','la ligne ENTRER UN CODE des réglages'],
+  ['grid-template-columns:minmax(0,1fr) minmax(0,1fr) 48px 48px 48px','la grille de la rangée de l\'accueil (debout)'],
+  ['grid-template-columns:minmax(0,1fr) 96px 96px 48px 48px 48px','la grille de la rangée de l\'accueil (couché)']])
   if(h.indexOf(t)<0)meurt('témoin perdu — '+quoi+' : « '+t+' » n\'existe plus dans le jeu. L\'écran a changé : revoir la coupe de l\'édition App Store.');
 fs.writeFileSync(path.join(WWW,'index.html'),h);
 
