@@ -33460,7 +33460,7 @@ const SFX_SOUS_MUS=.7; // (2026-10-03, Léo : « les MONSTRE ne doivent pas cach
    poses, figures « qu'on n'entend pas »). Là où le volume est verrouillé, les effets gardent donc leur plein : le rapport musique / effets
    retrouve à peu près celui de l'ordi. Même sonde que `VOL_LOCKED` (déclarée plus bas, illisible ici avant sa ligne). */
 const SON_VOL_VERROU=(function(){try{const a=new Audio();a.volume=.42;return Math.abs(a.volume-.42)>.01;}catch(e){return false;}})();
-function sfxVol(){return VOL.sfx*(SON_VOL_VERROU?1:SFX_SOUS_MUS);}
+function sfxVol(){return VOL.sfx*((SON_VOL_VERROU&&!musWaTient())?1:SFX_SOUS_MUS);} // (2026-10-14, session SON) musique branchée en WebAudio (MUS_WA) : elle est mixée comme à l'ordi, les effets reprennent leur −3 dB
 function musVol(){return musicBaseVol*VOL.mus*musTrim();} // le niveau accordé × le curseur, en un seul endroit — (2026-10-14, session SON) × la sonie du morceau
 /* (2026-10-14, session SON) LES MORCEAUX À LA MÊME SONIE. Mesuré (BS.1770, fichiers d'assets/audio/music, `son/notes/sonie-fichiers.tsv`) :
    de −12,4 LUFS (VITESSE) à −16,0 (NOITE) en plein spectre, et de −13,6 à −20,4 « haut-parleur » (passe-haut 200 Hz : ce que rend un
@@ -33494,6 +33494,103 @@ musTrim._s=null;musTrim._g=1;
    ET UN FILET : la musique sait si elle DEVRAIT jouer (`musicVoulue`). Le premier toucher libère le lecteur ; chaque
    toucher suivant la relance si elle s'est tue (refus, interruption, appel, retour d'arrière-plan). */
 let musicVoulue=false,musicEnAttente=false,musicVolCible=1,musicVolCour=1,musicAnaEl=null;
+/* (2026-10-14, session SON) LA MUSIQUE REPASSE PAR WEBAUDIO — MAIS SEULEMENT LÀ OÙ L'ON TIENT LE RISQUE (Sacha : « le curseur MUSIQUE doit
+   marcher sur iPhone »). Sur iPhone `el.volume` est en lecture seule : la musique y sortait à 100 % de son fichier partout (ciel, garage,
+   course), le curseur MUSIQUE ne faisait rien, ni fondu ni table de sonie. Brancher l'élément dans le graphe (createMediaElementSource →
+   un gain) rend tout ce mixage. ⚠ L'HISTOIRE (« LA MUSIQUE v4 ») : en septembre ce chemin rendait la musique MUETTE — bouton silencieux
+   (catégorie « ambient »), contexte né suspendu, lecture refusée hors geste. D'où les quatre gardes :
+   · allumé PAR DÉFAUT seulement si le volume est verrouillé (`SON_VOL_VERROU`, la sonde de `VOL_LOCKED`) ET si `navigator.audioSession`
+     existe (iOS 17+ : `musicSession` y pose 'playback' quand la musique joue — le bouton silencieux ne coupe plus le WebAudio ; il est
+     reposé AVANT le branchement et à chaque `musicJoue`) ET si l'analyseur sait lire des flottants (sinon pas de chien de garde : pas d'essai).
+     Ailleurs (ordi, Android, iOS < 17) : éteint, le chemin <audio> d'avant au bit près ;
+   · forçable : `?muswa=1` / `?muswa=0` dans l'adresse, ou `localStorage.cc_muswa='1'|'0'` (l'appli de test, sans recompiler) — le
+     forçage ne passe jamais outre le volume verrouillé ;
+   · le branchement se fait DANS UN GESTE (fin du bus de `initAudio`, ou `musicDeverrouille`) : le contexte peut y être relancé ;
+   · LE CHIEN DE GARDE (`musWaGarde`, 2×/s) : 2,5 s où l'élément joue vraiment (pas en pause, pas muet, son temps avance, contexte qui
+     tourne, volume voulu > .05) et où le graphe reçoit un zéro EXACT → `localStorage.cc_muswa_ko='1'`, on débranche, l'élément capturé
+     quitte la page et un neuf (non capturé) le remplace, au même endroit du morceau — retour DÉFINITIF au chemin <audio>.
+   `MUS_WA.br` = branché ; tout ce qui change ailleurs est gardé par `musWaTient()` (faux tant que rien n'est branché). Console : dbgMusWa(). */
+const MUS_WA_ON='auto'; // 'auto' = la règle ci-dessus · true / false = forcé dans le code (le volume verrouillé reste exigé)
+var MUS_WA=(function(){
+  let f=MUS_WA_ON,ko=false,aS=false,flt=false;
+  try{aS=!!(navigator.audioSession&&'type' in navigator.audioSession);}catch(e){}
+  try{flt=typeof AnalyserNode!=='undefined'&&!!AnalyserNode.prototype.getFloatTimeDomainData;}catch(e){}
+  try{const m=/[?&]muswa=([01])/.exec(location.search);if(m)f=m[1]==='1';else if(localStorage.cc_muswa==='1')f=true;else if(localStorage.cc_muswa==='0')f=false;}catch(e){}
+  try{ko=localStorage.cc_muswa_ko==='1';}catch(e){}
+  if(f==='auto')f=aS;
+  return {on:!!(SON_VOL_VERROU&&f&&flt&&!ko),ko:ko,force:f,sess:aS,cmpOn:true,rythme:true,MAX:1.41,
+    br:false,el:null,src:null,g:null,cmp:null,e:null,an:null,buf:null,rms:-1,muet:0,tChk:0,tPrec:-1,vu:false,pq:''};})();
+/* MAX 1,41 (+3 dB) : la table de sonie (`MUS_SONIE`) monte jusqu'à +3 dB ; à l'ordi `el.volume` plafonne à 1 et l'écrête — c'est une limite
+   de l'élément, pas une intention. Le limiteur −1 dBFS commun et le compresseur doux tiennent les crêtes (le compresseur ne sort jamais
+   au-dessus de −4,6 dBFS en régime : banc `son/banc/muswa/compresseur.cjs`). */
+function musWaTient(){return !!(MUS_WA&&MUS_WA.br);} // (déclarée en fonction, `MUS_WA` en var : sfxVol peut la lire sans zone morte)
+function musWaReveil(){ // le contexte doit tourner pour qu'on entende la musique (appel, Siri, iOS « interrupted ») — au toucher, avant de relancer l'élément
+  if(!musWaTient()||!AC||AC.state==='running'||paused||document.hidden||window.CC_PUB||window.CC_MUET)return;
+  try{const p=AC.resume();if(p&&p.catch)p.catch(function(){});}catch(e){}
+}
+function musWaSon(){ // le bouton SON coupe les EFFETS (et les voix du graphe) par l'entrée du limiteur, jamais par AC.suspend : la musique y passe à côté
+  if(!musWaTient()||!AC||!MASTER)return;
+  try{const p=MASTER._limIn&&MASTER._limIn.gain;if(p){const t=AC.currentTime;p.cancelScheduledValues(t);p.setTargetAtTime(SND.sfx?.937:0,t,.015);}}catch(e){}
+  try{if(paused||document.hidden||window.CC_PUB||window.CC_MUET){if(AC.state==='running')AC.suspend();}else musWaReveil();}catch(e){} // en pause / caché / pub : la musique est déjà en pause, le contexte peut dormir
+}
+function musWaBranche(){
+  const W=MUS_WA;
+  if(!W.on||W.br||!AC||!MASTER||!musicEl)return;
+  try{musicSession();}catch(e){} // 'playback' AVANT : le bouton silencieux ne doit pas couper ce qu'on branche
+  try{
+    W.el=musicEl;W.src=AC.createMediaElementSource(musicEl);
+    W.g=AC.createGain();W.g.gain.value=(musicEl.paused||musicEl.muted)?0:1; // branchée en pleine lecture, elle sortait à 100 % du fichier : on part de là, musicTick la ramène au mixage
+    W.an=AC.createAnalyser();W.an.fftSize=256;W.an.smoothingTimeConstant=.55;W.buf=new Float32Array(W.an.fftSize); // le chien de garde (et le rythme du décor) écoutent AVANT le gain : on juge l'élément, pas le curseur
+    W.src.connect(W.g);W.src.connect(W.an);
+    let d=W.g;
+    /* LE COMPRESSEUR DOUX (−24 dB, 2,5:1, genou 10, 20 ms / 0,4 s) : avec son rattrapage automatique (+6,9 dB, noyau Chrome/WebKit),
+       les CREUX des morceaux (sous −24 dBFS) remontent de 6,9 dB, un passage plein (enveloppe vers −8 dBFS) reste à l'unité, les crêtes
+       reculent — sur un haut-parleur de téléphone, les intros et les ponts ne disparaissent plus. `MUS_WA.cmpOn=false` = sans. */
+    if(W.cmpOn){W.cmp=AC.createDynamicsCompressor();W.cmp.threshold.value=-24;W.cmp.ratio.value=2.5;W.cmp.knee.value=10;W.cmp.attack.value=.02;W.cmp.release.value=.4;W.g.connect(W.cmp);d=W.cmp;}
+    /* Elle rejoint le LIMITEUR commun (−1 dBFS) avec la même compensation que `MASTER._limIn` (.937), mais À CÔTÉ de lui : c'est l'entrée
+       `_limIn` que le bouton SON ferme (effets + voix), la musique ne doit jamais se taire parce qu'on a coupé les effets. Jamais MASTER._vol. */
+    W.e=AC.createGain();W.e.gain.value=.937;d.connect(W.e);W.e.connect(MASTER._lim||AC.destination);
+    W.br=true;
+  }catch(e){console.warn('musique WebAudio : branchement refusé',e);if(W.src)musWaCondamne('branchement');else W.on=false;return;}
+  if(W.rythme&&!musicAna){musicAna=W.an;musicData=new Uint8Array(W.an.frequencyBinCount);} // (bonus) le décor bat sur la VRAIE musique, plus sur le métronome (iPhone n'a pas captureStream)
+  musWaSon();try{volApply();}catch(e){} // les effets retrouvent leur −3 dB sous la musique, comme à l'ordi (voir sfxVol)
+}
+function musWaCondamne(pq){ // retour DÉFINITIF au chemin <audio> (la prochaine ouverture de l'appli ne réessaiera pas)
+  const W=MUS_WA,el=W.el;W.pq=pq;W.ko=true;
+  try{localStorage.cc_muswa_ko='1';}catch(e){}
+  console.warn('musique WebAudio condamnée ('+pq+') : retour au chemin <audio>');
+  for(const n of [W.src,W.g,W.cmp,W.e,W.an])if(n)try{n.disconnect();}catch(e){}
+  if(musicAna&&musicAna===W.an){musicAna=null;musicData=null;}
+  W.br=false;W.on=false;
+  try{if(AC&&MASTER&&MASTER._limIn){const p=MASTER._limIn.gain,t=AC.currentTime;p.cancelScheduledValues(t);p.setValueAtTime(.937,t);p._s9=undefined;}}catch(e){} // le bouton SON reprend son chemin d'avant…
+  try{if(AC&&!SND.sfx&&AC.state==='running')AC.suspend();}catch(e){}                                                                      // …(contexte suspendu = effets coupés)
+  try{volApply();}catch(e){}
+  if(!el||el!==musicEl)return;
+  // l'élément est capturé pour toujours par le graphe : on en pose un neuf, au même endroit du morceau ; il repart tout de suite si iOS veut bien, sinon au prochain toucher
+  const s=el.src,t=el.currentTime||0,lp=el.loop;
+  try{el.pause();}catch(e){}try{el.remove();}catch(e){}
+  musicEl=null;musicOn=false;const n=musicElGet();n.loop=lp;
+  if(s){n.src=s;if(t>0)n.addEventListener('loadedmetadata',function(){try{n.currentTime=t;}catch(e){}},{once:true});}
+  if(musicVoulue){musicEnAttente=true;try{musicJoue();}catch(e){}}
+}
+function musWaGarde(){ // 2 fois par seconde au plus, zéro allocation (tampon créé au branchement)
+  const W=MUS_WA;if(!W.br||!W.an)return;
+  const now=performance.now();if(now-W.tChk<500)return;
+  const dtc=W.tChk?Math.min(1,(now-W.tChk)/1000):0;W.tChk=now;
+  const el=musicEl;
+  if(!el||el!==W.el||el.paused||el.muted||document.hidden||!AC||AC.state!=='running'||!(musicVolCour>.05)){W.tPrec=-1;return;}
+  const ct=el.currentTime,av=W.tPrec>=0&&ct>W.tPrec+.05;W.tPrec=ct;if(!av)return; // un élément qui charge (le temps n'avance pas) n'est pas un élément muet
+  try{W.an.getFloatTimeDomainData(W.buf);}catch(e){return;}
+  let q=0;const b=W.buf;for(let i=0;i<b.length;i++)q+=b[i]*b[i];W.rms=Math.sqrt(q/b.length);
+  if(W.rms>=1e-7){W.muet=0;W.vu=true;return;} // un vrai son remet le compte à zéro : les silences de tête des morceaux ne s'additionnent jamais
+  W.muet+=dtc;if(W.muet>=2.5)musWaCondamne('silence');
+}
+window.dbgMusWa=function(k){ // console : l'état · dbgMusWa('raz') efface la condamnation (au prochain lancement)
+  if(k==='raz'){try{delete localStorage.cc_muswa_ko;}catch(e){}return 'cc_muswa_ko effacé : relancer l\'appli';}
+  const W=MUS_WA;let lim=null;try{lim=MASTER&&MASTER._limIn?+MASTER._limIn.gain.value.toFixed(3):null;}catch(e){}
+  return {on:W.on,force:W.force,session:W.sess,verrou:SON_VOL_VERROU,ko:W.ko,pq:W.pq,branche:W.br,gain:W.g?+W.g.gain.value.toFixed(3):null,voulu:+musicVolCour.toFixed(3),
+    rms:W.rms<0?null:+W.rms.toExponential(2),muet:+W.muet.toFixed(2),entendu:W.vu,ctx:AC?AC.state:null,limIn:lim,
+    el:musicEl?{pause:musicEl.paused,muet:musicEl.muted,t:+(musicEl.currentTime||0).toFixed(2)}:null,rythme:!!(musicAna&&musicAna===W.an)};};
 /* (2026-10-14, Léo : « la musique se lance seulement quand j'appuie sur le mode garage ; quand on est — et quand on revient — dans le menu
    ciel, un bruit de chute libre doux ») LE LOBBY SE TAIT AU CIEL : `MUS_TAIT` (posé par musicTick en mode menu : le ciel de LA CHUTE ou
    la boutique) — la musique s'efface en fondu puis se met en PAUSE (elle garde sa place), et RIEN ne la relance tant qu'il vaut vrai
@@ -33531,6 +33628,7 @@ function musicJoue(){ // lance (ou relance) la lecture — un refus n'est jamais
   if(document.hidden&&musicJoue._vu){musicEnAttente=true;return;}
   const el=musicElGet();musicSession();
   try{el.volume=Math.max(0,Math.min(1,musicVolCour));}catch(e){}
+  if(musWaTient()){musWaReveil();try{const p9=MUS_WA.g.gain,t9=AC.currentTime;p9.cancelScheduledValues(t9);p9.setValueAtTime(Math.max(0,Math.min(MUS_WA.MAX,musicVolCour)),t9);p9._s9=undefined;}catch(e){}} // (2026-10-14, session SON) branchée : le contexte d'abord, et le gain au niveau voulu AVANT de jouer (un fondu d'entrée part de 0, pas du niveau d'avant la pause)
   if(el.muted)el.muted=false; // (2026-10-05) on VEUT la musique : jamais muette (le déverrouillage peut l'avoir laissée muette, voir musicDeverrouille)
   const p=el.play();
   if(p&&p.catch)p.catch(function(){musicOn=false;musicEnAttente=true;});
@@ -33538,6 +33636,7 @@ function musicJoue(){ // lance (ou relance) la lecture — un refus n'est jamais
 function musicDeverrouille(){ // appelé à CHAQUE toucher/touche (en capture) : le 1er libère le lecteur, les suivants relancent si besoin
   musicJoue._vu=1; // un toucher : la page est à l'écran (voir la garde de musicJoue)
   const el=musicElGet();musicSession();
+  if(MUS_WA.on){try{musWaBranche();musWaReveil();}catch(e){}} // (2026-10-14, session SON) dans le geste : brancher la musique au graphe, relancer un contexte « interrupted » (appel, Siri) avant l'élément
   if(!musicDeverrouille._ok){musicDeverrouille._ok=true;
     if(!el.src)el.src=MUSIC.menu||musicPremier();           // le morceau de l'ACCUEIL se charge dès le 1er toucher : aucun blanc au départ — ⚠ (Léo, 2026-09-27) celui du 1er niveau s'entendait une seconde avant l'intro
     if(!musicVoulue){el.muted=true;const p=el.play();       // lancé une fois, en silence, PENDANT le geste : l'élément est libre
@@ -33692,6 +33791,7 @@ function musicStop(tape){ // fin de partie : « tape-stop » (la bande ralentit 
   try{el.preservesPitch=false;el.webkitPreservesPitch=false;}catch(e){} // (2026-09-26) sans ça, le navigateur GARDE la hauteur : pas de chute de bande
   musicStop._iv=setInterval(function(){r-=.08;v*=.84;
     try{el.playbackRate=Math.max(.12,r);el.volume=Math.max(0,Math.min(1,v));}catch(e){}
+    if(musWaTient()&&el===MUS_WA.el)try{stt(MUS_WA.g.gain,Math.max(0,Math.min(MUS_WA.MAX,v)),AC.currentTime,.02);}catch(e){} // (2026-10-14, session SON) branchée : le fondu du tape-stop passe par le gain
     if(r<=.12){clearInterval(musicStop._iv);musicStop._iv=0;try{el.pause();}catch(e){}musicBandeNette(el);musicOn=false;}},55);
 }
 function musicBandeNette(el){if(el)try{el.playbackRate=1;el.preservesPitch=true;el.webkitPreservesPitch=true;}catch(e){}} // la bande à SA vitesse et SA hauteur
@@ -33949,13 +34049,14 @@ function musicTick(dt,mvt){
       d'un <audio> y est verrouillé — la musique y joue au même niveau partout, comme avant.) */
    const ciel9=musicMode==='menu'&&typeof CHUTE!=='undefined'&&!!CHUTE.on,tait9=bq9;MUS_TAIT=tait9;
    if(ciel9){const h9=(typeof CHDOUX!=='undefined'&&CHDOUX.h)||.78;musicVolCible*=MUS_CIEL*Math.max(.5,1-(h9-.78)*1.6);} // la rafale la couvre, l'accalmie la ramène : on l'entend de loin, en tombant
-   if(tait9){musicVolCible=0;if(!musicTick._pz&&(VOL_LOCKED||musicVolCour<.012)){musicTick._pz=true;musicPause(true);}}
+   if(tait9){musicVolCible=0;if(!musicTick._pz&&((VOL_LOCKED&&!musWaTient())||musicVolCour<.012)){ /* (2026-10-14, session SON) branchée en WebAudio, l'iPhone fait comme l'ordi : un fondu, puis la pause */musicTick._pz=true;musicPause(true);}}
    else if(musicTick._pz){musicTick._pz=false;musicVolCour=0;musicPause(false);} // on rentre au garage : elle repart, en fondu depuis zéro
    musicTick._bq=bq9;}
   if(DEPMUS.f0>=0&&musicMode==='run'){const k9=(performance.now()-DEPMUS.f0)/(DEPMUS.fondu*1000); // (LE DÉPART EN MUSIQUE) l'entrée en fondu : une courbe en S, pas le ressort ordinaire (il bondissait de 0 à 60 % en 0,15 s)
     if(k9>=1)DEPMUS.f0=-1;else musicVolCour=musicVolCible*k9*k9*(3-2*k9);}
   if(musicMode!=='none'){if(!(DEPMUS.f0>=0))musicVolCour+=(musicVolCible-musicVolCour)*Math.min(1,dt*6);
-    if(musicEl&&!musicEl.paused&&!VOL_LOCKED){try{const v9=Math.max(0,Math.min(1,musicVolCour));if(Math.abs(musicEl.volume-v9)>.002)musicEl.volume=v9;}catch(e){}}}
+    if(musWaTient()){try{stt(MUS_WA.g.gain,Math.max(0,Math.min(MUS_WA.MAX,musicVolCour)),AC.currentTime,.03);}catch(e){}try{musWaGarde();}catch(e){}} // (2026-10-14, session SON) branchée : le volume passe par le gain du graphe (curseur, ciel, fondus, sonie) — et le chien de garde écoute
+    else if(musicEl&&!musicEl.paused&&!VOL_LOCKED){try{const v9=Math.max(0,Math.min(1,musicVolCour));if(Math.abs(musicEl.volume-v9)>.002)musicEl.volume=v9;}catch(e){}}}
   // BOOST : le morceau S'AMPLIFIE — bass boost + chorus qui épaissit (distinct du filtre-mouvement)
   const boostAmt=(running&&!gameOver)?Math.min(1,(nitroOn?0.85:0)+Math.min(1,boost)*0.5):0;
   musChorusEnv+=(boostAmt-musChorusEnv)*Math.min(1,dt*6);
@@ -34879,6 +34980,7 @@ function initAudio(){
   MASTER._lim=AC.createDynamicsCompressor();MASTER._lim.threshold.value=-1;MASTER._lim.knee.value=0;MASTER._lim.ratio.value=20;MASTER._lim.attack.value=.001;MASTER._lim.release.value=.1;
   {const e9=AC.createGain();e9.gain.value=.937;MASTER._vol.connect(e9);e9.connect(MASTER._lim);MASTER._limIn=e9;}MASTER._lim.connect(AC.destination);
   // (la bande-son ne passe plus par ce graphe : voir « LA MUSIQUE v4 »)
+  if(MUS_WA.on)try{musWaBranche();}catch(e){} // (2026-10-14, session SON) …sauf là où MUS_WA l'y rebranche : ici, dans le geste qui crée le contexte, avant que le morceau ne s'entende
   // MOTEUR v2 : 2 oscillateurs à onde harmonique (le timbre de la caisse) désaccordés de 7 cents
   // + sub sinus à f/2 (la poitrine) + souffle d'admission → SATURATION (grain) → filtre (brillance)
   osc=AC.createOscillator();osc2=AC.createOscillator();
@@ -35999,7 +36101,7 @@ function sndRefresh(){
   sndBtnEl.innerHTML=pxi(SND.sfx?'son':'muet')+' <span class="blabel">'+TR('SON')+'</span>';sndBtnEl.classList.toggle('off',!SND.sfx); // garde le span → masquable en icône seule sur mobile ; TR() sinon le libellé revient au français à chaque bascule, même en anglais
   voxBtnEl.innerHTML=pxi('voix')+' <span class="blabel">'+TR('VOIX')+'</span>';voxBtnEl.classList.toggle('off',!SND.voice);
   if(musBtnEl){musBtnEl.innerHTML=pxi('musique')+' <span class="blabel">'+TR('MUS')+'</span>';musBtnEl.classList.toggle('off',!SND.music);} // ⚠ plus de « LVL 1 » (radio à morceau unique par niveau supprimée) : ce libellé est RECONSTRUIT à chaque bascule
-  try{if(AC){if(SND.sfx&&!paused)AC.resume();else AC.suspend();}}catch(e){} // suspend = silence total du moteur audio — ⚠ en PAUSE c'est la reprise qui rallume (sinon le moteur ronronnait sur un jeu figé)
+  try{if(AC){if(musWaTient())musWaSon();else if(SND.sfx&&!paused)AC.resume();else AC.suspend();}}catch(e){} /* (2026-10-14, session SON) musique branchée : SON ne suspend plus le contexte, il ferme l'entrée des effets (musWaSon) */ // suspend = silence total du moteur audio — ⚠ en PAUSE c'est la reprise qui rallume (sinon le moteur ronronnait sur un jeu figé)
   if(!SND.voice)annStop();
   if(!SND.sfx){deathStop();fxStop();if(ANN.playing&&ANN.playing.els[0]&&!(ANN.playing.els[0] instanceof HTMLMediaElement))annStop();} // ⚠ les sons de mort sont des HTMLAudio : `AC.suspend()` ne les atteint PAS, il faut les couper à la main
   try{volUI();}catch(e){} // les curseurs se grisent quand leur famille est coupée — et c'est ici qu'on l'apprend
@@ -51351,7 +51453,7 @@ function togglePause(){ if(!started||gameOver)return;
        (busPlein efface la rampe programmée, clearTimeout la suspension). Onglet caché (retour d'appli) : ni son ni délai. */
       let d9=0;try{if(SONV2&&!document.hidden)d9=.42;if(SONV2){window.CCSON.annuleFutur(d9);window.CCSON.stopJeu();}}catch(e){}try{instruCoupe(0);}catch(e){} /* (2026-10-07) la phrase du nitro se tait TOUT DE SUITE (le clic ⏸ et la feuille, eux, sonnent jusqu'au bout) */ /* (débogage son 2026-09-29) les queues longues (explosion, fanfare, scène moteur) ne repartent plus pendant le 3-2-1 */
       if(BUSOUT)BUSOUT.gain.setTargetAtTime(0,T8+d9,.012);togglePause._t=setTimeout(function(){try{if(paused&&AC.state==='running')AC.suspend();}catch(e){}},70+d9*1000);}
-    else{busPlein();if(SND.sfx)AC.resume();} } }catch(e){}
+    else{busPlein();if(SND.sfx||musWaTient())AC.resume();} } }catch(e){} // (2026-10-14, session SON) musique branchée : SON coupé, le contexte doit quand même se réveiller (les effets restent fermés par musWaSon)
   if(paused){annStop();fxStop();deathStop();} // (2026-09-26) les voix et les samples sont des HTMLAudio : suspendre le contexte ne les arrêtait pas — (2026-09-28) le son de MORT non plus : une pause pendant l'explosion le laissait hurler par-dessus le panneau
   musicPause(paused); // la musique ne passe plus par l'AudioContext : elle se met en pause elle-même
 }
@@ -51378,7 +51480,7 @@ function applyDPR(){ try{ const W=innerWidth,H=innerHeight;
 // PAUSE AUTO : l'appli passe en arrière-plan (onglet caché, app minimisée) → on gèle + on coupe le son
 addEventListener('visibilitychange',function(){ if(document.hidden&&started&&!gameOver&&!paused)togglePause();
   // (2026-09-26) au menu, au garage ou sur l'écran de mort, une vingtaine de sources en boucle tournaient encore en arrière-plan
-  try{ if(AC){ if(document.hidden){if(AC.state==='running')AC.suspend();} else if(SND.sfx&&!paused&&AC.state!=='running')AC.resume(); } }catch(e){}
+  try{ if(AC){ if(document.hidden){if(AC.state==='running')AC.suspend();} else if((SND.sfx||musWaTient())&&!paused&&AC.state!=='running')AC.resume(); } }catch(e){} // (2026-10-14, session SON) …et au retour d'arrière-plan aussi
   if(document.hidden)try{enCoursPose();SAVE.flush();}catch(e){} // (2026-09-28) l'appli part en arrière-plan : ce qui attendait le filet de 30 s (record de frénésie, meilleur moteur…) est écrit TOUT DE SUITE — iOS peut la tuer sans prévenir · (2026-09-30) et la PARTIE en cours avec (enCoursPose)
   // (2026-09-30) au retour la partie continue : l'instantané part — SAUF contexte 3D perdu, que suit un rechargement (voir webglcontextlost) : il est alors le seul à porter la partie
   if(!document.hidden){let perdu=false;try{perdu=renderer.getContext().isContextLost();}catch(e){}if(!perdu)enCoursRetire();}
@@ -51775,7 +51877,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   // ---- iOS : le contexte audio ne démarre QUE sur un geste — on le relance tant qu'il dort ----
   // Il peut être 'suspended' (politique navigateur) MAIS AUSSI 'interrupted' — l'état d'après un
   // appel, Siri ou une alarme. Ne tester que 'suspended' laissait le jeu muet pour toute la partie.
-  function audioKick(){ try{ if(AC&&SND.sfx&&!paused&&AC.state!=='running')AC.resume(); }catch(e){} }
+  function audioKick(){ try{ if(AC&&(SND.sfx||musWaTient())&&!paused&&AC.state!=='running')AC.resume(); }catch(e){} } // (2026-10-14, session SON) musique branchée : un contexte « interrupted » se relance même SON coupé
   addEventListener('touchend',audioKick,{passive:true});
   addEventListener('touchstart',audioKick,{passive:true}); // au plus tôt : dès que le doigt se pose
   // ---- retour dans l'appli : l'écran se rendormirait, l'audio resterait suspendu ----
@@ -52378,7 +52480,7 @@ let pkDeja=false; // une partie a déjà été jouée dans cette session : la pa
 function pkMuet(on){
   window.CC_PUB=!!on; // lu par le <head> : AudioContext.resume, media.play et le clavier refusés tant qu'il est vrai
   try{ if(on){ if(AC&&AC.state==='running')AC.suspend(); pkMuet._m=!!(musicEl&&!musicEl.paused); if(pkMuet._m)musicEl.pause(); }
-    else{ if(AC&&SND.sfx&&!paused&&AC.state!=='running')AC.resume(); if(pkMuet._m){pkMuet._m=false;musicJoue();} } }catch(e){}
+    else{ if(AC&&(SND.sfx||musWaTient())&&!paused&&AC.state!=='running')AC.resume(); if(pkMuet._m){pkMuet._m=false;musicJoue();} } }catch(e){}
 }
 function pkPasse(f){ // vrai = on enchaîne tout de suite ; faux = la pause pub passe d'abord, et f() suivra
   if(!POKI||!pkDeja||pkPasse._dedans)return true;
@@ -52392,7 +52494,7 @@ function pkPasse(f){ // vrai = on enchaîne tout de suite ; faux = la pause pub 
 function pkSilence(on){ // (CrazyGames) leur réglage « son coupé » passe avant les nôtres : même coupure qu'une pub, le clavier en moins
   window.CC_MUET=!!on;
   try{ if(on){ if(AC&&AC.state==='running')AC.suspend(); if(musicEl&&!musicEl.paused){pkSilence._m=true;musicEl.pause();} }
-    else{ if(AC&&SND.sfx&&!paused&&!window.CC_PUB&&AC.state!=='running')AC.resume(); if(pkSilence._m&&!window.CC_PUB){pkSilence._m=false;musicJoue();} } }catch(e){}
+    else{ if(AC&&(SND.sfx||musWaTient())&&!paused&&!window.CC_PUB&&AC.state!=='running')AC.resume(); if(pkSilence._m&&!window.CC_PUB){pkSilence._m=false;musicJoue();} } }catch(e){}
 }
 if(POKI){
   if(!FACILE_OK){SAVE.d.facile=0;} // (CrazyGames) pas de mode facile : le choix du 1er JOUER ne se pose plus, l'interrupteur est masqué (html.sansFacile)
@@ -52417,7 +52519,7 @@ if(POKI){
         if(ok9){location.reload();return;}SAVE.natif=0;}
       SAVE.portail=1;SAVE.flush();}).catch(function(){SAVE.portail=1;});});}catch(e){}
   // pas d'intro à toucher (voir le splash) : le contexte audio naît au PREMIER geste, et se réveille aux suivants
-  const g9=function(){if(window.CC_PUB)return;try{if(!AC){if(typeof initAudio==='function')initAudio();}else if(SND.sfx&&!paused&&AC.state!=='running')AC.resume();}catch(e){}};
+  const g9=function(){if(window.CC_PUB)return;try{if(!AC){if(typeof initAudio==='function')initAudio();}else if((SND.sfx||musWaTient())&&!paused&&AC.state!=='running')AC.resume();}catch(e){}};
   ['pointerdown','touchend','keydown'].forEach(function(ev){addEventListener(ev,g9,{capture:true,passive:true});});
   setInterval(function(){const p=pk();if(!p)return;const on=started&&!gameOver&&!paused&&!window.CC_PUB;if(on)pkDeja=true;p.jeu(on);},250);
   // l'ACCUEIL : la porte des MISSIONS devient la porte du GARAGE (même place, à côté du ⚙), avec la pastille des caisses à portée (voir <style id="poki">)
