@@ -7637,6 +7637,122 @@ html:not(.c6) #mSet .c6Ver{font-family:var(--sans);font-size:12px;color:var(--tx
 </style>
 <style id="c6-carriere-missions">
 /* CHARTE 6 · la carrière, les missions — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
+
+/* ====== LA CARRIÈRE #carr (2026-10-14, charte 6) ====================================================================
+   Markup posé par carrVueC6 : .c6Tete.plein (◀ + titre, colle en haut) · .cmCorps (la grille de cartes, SEULE zone qui défile : #carr) · .c6Bas (colle en bas :
+   JOUER, l'unique or). Carte = encre, filet blanc 2 px, tranche noire 4 px ; fait = coche · en cours = face blanche · verrouillé = cadenas, atténué. */
+html.c6 #carr{padding:0;background:var(--c6-e0);overflow-y:auto}
+html.c6 #carr .carrIn{display:flex;flex-direction:column;width:100%;max-width:none;min-height:100%;margin:0}
+html.c6 #carr .carrIn>.c6Tete{position:sticky;top:0;animation:none}
+html.c6 #carr .cmCorps{flex:1 0 auto;box-sizing:border-box;padding:8px calc(var(--sR) + 16px) 16px calc(var(--sL) + 16px)}
+html.c6 #carr .c6Bas{position:sticky;bottom:0;z-index:20;flex:none;box-sizing:border-box;display:flex;justify-content:flex-end;animation:none;
+  padding:8px calc(var(--sR) + 16px) calc(var(--sB) + 8px) calc(var(--sL) + 16px);background:var(--c6-e0)}
+html.c6 #carr .cmJouer{min-width:192px;justify-content:center}
+html.c6 #carr .cmGrille{display:grid;gap:8px;grid-template-columns:repeat(2,minmax(0,1fr))}
+html.c6 #carr .cmCarte{position:relative;box-sizing:border-box;display:flex;flex-direction:column;gap:8px;min-width:0;min-height:96px;padding:12px;cursor:pointer;
+  font-family:var(--pix);font-weight:400;font-style:normal;letter-spacing:0;text-shadow:none;color:var(--c6-b0);background:var(--c6-e1);
+  box-shadow:inset 0 0 0 2px var(--c6-b0),0 4px 0 0 #000;-webkit-tap-highlight-color:transparent;
+  transition:transform var(--c6-vite) linear,box-shadow var(--c6-vite) linear}
+html.c6 #carr .cmCarte:active{transform:translateY(4px);box-shadow:inset 0 0 0 2px var(--c6-b0),0 0 0 0 #000}
+html.c6 #carr .cmCarte:focus-visible{outline:2px solid var(--c6-or);outline-offset:4px}
+html.c6 #carr .cmCarte.choisi{box-shadow:inset 0 0 0 4px var(--c6-b0),0 4px 0 0 #000}
+html.c6 #carr .cmCarte .pxi{--pxs:2;color:currentColor;filter:none}
+html.c6 #carr .cmHaut{display:flex;align-items:center;gap:8px}
+html.c6 #carr .cmHaut .pxi-coche,html.c6 #carr .cmNum .pxi-coche{margin-left:auto}
+html.c6 #carr .cmNom{display:block;font-size:12px;line-height:16px;white-space:normal;overflow-wrap:normal;word-break:normal;color:inherit}
+html.c6 #carr .cmFrac{display:block;font-size:8px;line-height:8px;color:var(--c6-g1)}
+html.c6 #carr .cmCarte .c6Jauge{margin-top:auto}
+html.c6 #carr .cmNum{display:flex;align-items:center;gap:8px;font-size:16px;line-height:16px;font-weight:400;color:inherit}
+html.c6 #carr .cmNiv .cmNom{font-size:8px;line-height:12px}
+html.c6 #carr .cmNiv .cmNom i.nw{white-space:nowrap;font-style:normal}
+/* en cours : la face blanche, texte d'encre */
+html.c6 #carr .cmCarte.cours{color:var(--c6-e0);background:var(--c6-b0)}
+html.c6 #carr .cmCarte.cours .cmFrac{color:var(--c6-e4)}
+html.c6 #carr .cmCarte.cours .c6Jauge{background:linear-gradient(90deg,var(--c6-e0) 0,var(--c6-e0) calc(var(--v,0)*100%),#c9ccd4 calc(var(--v,0)*100%))}
+/* verrouillé : cadenas, atténué, filet sourd */
+html.c6 #carr .cmCarte.verr{opacity:.5;cursor:default;box-shadow:inset 0 0 0 2px var(--c6-e4),0 4px 0 0 #000}
+@media (orientation:landscape) and (max-height:540px){
+  html.c6 #carr .cmMondes{grid-template-columns:repeat(4,minmax(0,1fr))}
+  html.c6 #carr .cmNivs{grid-template-columns:repeat(5,minmax(0,1fr))}
+}
+@media (orientation:landscape) and (max-width:700px){
+  html.c6 #carr .cmCarte{padding:8px}
+  html.c6 #carr .cmNom{font-size:10px;line-height:12px}
+  html.c6 #carr .cmNiv .cmNom{font-size:8px}
+}
+@media (orientation:portrait){html.c6 #carr .cmJouer{width:100%}}
+
+/* ====== LES MISSIONS #gMis (2026-10-14, charte 6) ===================================================================
+   L'idée de Léo reste (le garage vu de face, les défis posés à côté de leurs meubles, reliés par des fils) ; la peau change : un voile d'encre plat, des cartes d'encre à filet
+   blanc, des fils blancs pleins, des points carrés. L'en-tête ◀ + titre + UNE phrase vit dans #gmHead (le script y lit la place des cartes : on garde ses dimensions) ;
+   HOME disparaît (◀ le remplace), JOUER est l'unique or. fait = coche · suivi = face blanche · à venir = cadenas. Il n'y a pas de « réclamer » dans le jeu : la récompense
+   se voit dans la boutique en touchant sa carte. */
+html.c6 #gMis::before{background:rgba(11,13,18,.45);animation:none}
+html.c6 #gMis::after{content:none}
+html.c6 #gMis #gmHead{left:calc(var(--sL) + 16px);top:calc(var(--sT) + 8px);display:grid;grid-template-columns:48px minmax(0,1fr);column-gap:12px;row-gap:8px;align-items:center;
+  width:calc(100vw - var(--sL) - var(--sR) - 32px);max-width:none}
+html.c6 #gMis #gmHead .c6Ret{display:flex;pointer-events:auto}
+html.c6 #gMis #gmHead b{font-weight:400;font-size:16px;line-height:16px;letter-spacing:0;color:var(--c6-b0);text-shadow:0 2px 0 #000;white-space:nowrap}
+html.c6 #gMis #gmHead #gmSous{display:none}
+html.c6 #gMis #gmHead #gmAide{grid-column:1/-1;font-family:var(--sans);font-size:13px;line-height:18px;font-weight:500;letter-spacing:0;color:var(--c6-b0);text-shadow:0 1px 0 #000}
+@media (orientation:landscape) and (max-height:540px){html.c6 #gMis #gmHead{width:200px}}
+html.c6 #gMis #gmBas{left:calc(var(--sL) + 16px);right:calc(var(--sR) + 16px);bottom:calc(var(--sB) + 16px);transform:none;width:auto;justify-content:flex-end;gap:8px}
+@media (orientation:landscape) and (max-height:540px){html.c6 #gMis #gmBas{left:auto}}
+html.c6 #gMis #gmBas .gmHome{display:none}
+html.c6 #gMis #gmBas .gmJouer{flex:1 1 auto;min-width:192px;max-width:none;justify-content:center}
+@media (orientation:landscape) and (max-height:540px){html.c6 #gMis #gmBas .gmJouer{flex:none;width:192px}}
+html.c6 #gMis #gmBas .gmJouer .mChev{display:none}
+/* les cartes */
+html.c6 #gMis .gmC{--bc:var(--c6-b0);padding:12px;font-size:8px;line-height:12px;letter-spacing:0;color:var(--c6-b0);background:var(--c6-e1);animation:none;
+  box-shadow:inset 0 0 0 2px var(--c6-b0),0 4px 0 0 #000}
+html.c6 #gMis .gmC::before,html.c6 #gMis .gmC::after{content:none}
+html.c6 #gMis .gmC:active{translate:0 4px;box-shadow:inset 0 0 0 2px var(--c6-b0),0 0 0 0 #000}
+html.c6 #gMis .gmC.d:hover{box-shadow:inset 0 0 0 2px var(--c6-b0),0 4px 0 0 #000}
+html.c6 #gMis .gmC.flash{animation:none}
+html.c6 #gMis .gmT{gap:8px;margin-bottom:8px;font-size:8px;line-height:12px;letter-spacing:0;color:var(--c6-g1)}
+html.c6 #gMis .gmX{font-size:10px;line-height:12px;letter-spacing:0;color:var(--c6-b0)}
+html.c6 #gMis .gmT b{font-size:8px;line-height:12px;letter-spacing:0}
+/* cartes étroites (3 colonnes sur 390 px debout ; iPhone 7 couché) : marge de 8, « 25 PIECES » tient (9 lettres × 10 = 90 ≤ 98) ; à 103 px couché, corps 8 */
+@media (orientation:portrait){html.c6 #gMis .gmC{padding:12px 8px}}
+@media (orientation:landscape) and (max-width:700px){html.c6 #gMis .gmC{padding:12px 6px}html.c6 #gMis .gmX{font-size:8px}}
+/* « CHALLENGE 2 » (EN : 11 lettres × 8 = 88) + sa case ne tiennent pas sur une ligne de 91-98 px : la case reste en haut, le libellé passe dessous, entier (vu coupé au banc à 667 px) */
+@media (orientation:portrait),(orientation:landscape) and (max-width:700px){html.c6 #gMis .gmT{flex-wrap:wrap;row-gap:4px}}
+html.c6 #gMis .gmP{display:flex;align-items:center;gap:8px;margin:8px 0 0}
+html.c6 #gMis .gmP b{flex:none;font-weight:400;font-size:8px;line-height:12px;letter-spacing:0;color:var(--c6-cash);white-space:nowrap}
+html.c6 #gMis .gmC u{display:block;height:8px;margin:0;background:var(--c6-e3);box-shadow:0 0 0 2px #000}
+html.c6 #gMis .gmP u{flex:1 1 auto;min-width:0}
+html.c6 #gMis .gmC u em{height:100%;background:var(--c6-b0);box-shadow:none}
+html.c6 #gMis .gmC.d>small{display:none}
+/* la case à cocher : vide = à faire · pleine = suivi · coche blanche = fait */
+html.c6 #gMis .gmChk{width:12px;height:12px;box-shadow:inset 0 0 0 2px var(--c6-b0)}
+html.c6 #gMis .gmChk i{width:6px;height:6px;background:transparent;box-shadow:none}
+html.c6 #gMis .gmC.f .gmChk i{background:var(--c6-e0)}
+html.c6 #gMis .gmC.ok .gmChk{box-shadow:none}
+html.c6 #gMis .gmC.ok .gmChk i{width:12px;height:12px;background:var(--c6-b0);-webkit-mask:var(--pxi-coche) center/contain no-repeat;mask:var(--pxi-coche) center/contain no-repeat}
+/* suivi en course = la face blanche */
+html.c6 #gMis .gmC.f{color:var(--c6-e0);background:var(--c6-b0)}
+html.c6 #gMis .gmC.f .gmT,html.c6 #gMis .gmC.f .gmX{color:var(--c6-e0)}
+html.c6 #gMis .gmC.f .gmChk{box-shadow:inset 0 0 0 2px var(--c6-e0)}
+html.c6 #gMis .gmC.f .gmP b{color:#12813f}
+html.c6 #gMis .gmC.f u{background:#c9ccd4}
+html.c6 #gMis .gmC.f u em{background:var(--c6-e0)}
+/* la récompense : même carte ; le compte « 0 / 3 » en blanc (l'or est réservé à JOUER) */
+html.c6 #gMis .gmC.r .gmT b{color:var(--c6-b0)!important}
+html.c6 #gMis .gmC.r small{font-size:8px;line-height:12px;letter-spacing:0;color:var(--c6-g1)}
+html.c6 #gMis .gmNext{margin-top:8px;padding-top:8px;border-top:2px solid var(--c6-e3);font-size:8px;line-height:12px;letter-spacing:0;color:var(--c6-g1);white-space:normal}
+html.c6 #gMis .gmNext .pxi{--pxs:1;color:var(--c6-g1)}
+/* les points sur les meubles : des carrés (creux = à faire, pleins = fait / suivi), les fils : blancs, pleins, 2 px */
+html.c6 #gMis .gmPt::before{transform:none;background:var(--c6-e0);box-shadow:inset 0 0 0 2px var(--c6-b0),0 0 0 2px #000}
+html.c6 #gMis .gmPt.ok::before,html.c6 #gMis .gmPt.f::before,html.c6 #gMis .gmPt.r::before{background:var(--c6-b0);box-shadow:0 0 0 2px #000}
+html.c6 #gMis .gmPt::after{content:none}
+html.c6 #gMis #gmFils path{stroke:var(--c6-b0);stroke-width:2;stroke-dasharray:none;stroke-linecap:butt;opacity:1;animation:none}
+html.c6 #gMis #gmFils path.hl{display:none}
+html.c6 #gMis #gmFils path.ch{stroke-dasharray:4 4;opacity:.5}
+html.c6 #gMis #gmFils path.lead{opacity:1}
+/* (2026-10-14, relecture) la voiture-récompense posait encore un halo cyan (radial-gradient sous l'image) : à plat, comme tout le reste */
+html.c6 #gMis .obFig{background:none}
+/* l'aide en anglais (« TAP A CHALLENGE TO TRACK IT ») laissait un « IT » seul à la 2e ligne : on équilibre les deux lignes */
+html.c6 #gMis #gmHead #gmAide{text-wrap:balance}
 </style>
 <style id="c6-garage">
 /* CHARTE 6 · le garage : le hub, la fiche, l'inventaire — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
@@ -7826,6 +7942,10 @@ html.c6 body #garage #gAuraC :is(small,u),html.c6 body #garage #gVJ .gvU .gvR{di
 html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip{grid-auto-rows:max-content!important}
 /* (2026-10-14, ordre de Sacha, suite) le nom de rang du profil du garage (#gpRang) se tait aussi : le chiffre d'aura et sa jauge restent. */
 html.c6 body #gProfil #gpRang{display:none!important}
+/* (2026-10-14, ordre de Sacha) AUCUN « BIENTOT » à l'écran : un testeur y voit un jeu inachevé. Le bouton verrouillé du menu bas (nœud gardé : le script
+   le lit) et les blocs « ? » de raretés à venir (gMystere, aussi retirés du JS sous c6) sortent de la mise en page — display:none = pas de trou dans
+   la grille, ni de séparateur orphelin dans la rangée ; les autres touches de #gMenuBas se re-partagent la place. */
+html.c6 body #gMenuBas .gVerrou,html.c6 body #gStrip>.gT.gMys{display:none!important}
 </style>
 <style id="c6-boutique">
 /* CHARTE 6 · la boutique (la rotonde de Léo), la fenêtre d'achat — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
@@ -8127,6 +8247,19 @@ html.c6[data-reduced-motion="1"] #tPanel.open #tpIn>*,html.c6[data-reduced-motio
   html.c6 #tPanel #tpIn .tp.ligne[data-a="volh"]{gap:8px}
   html.c6 #tPanel #tpIn .tp.ligne b.valeur{min-width:56px;padding:0 6px;font-size:8px;line-height:8px}
 }
+/* TOUS LES REGLAGES (2026-10-14, demande de Sacha) : une ligne « lien » sous les réglages rapides (même peau, chevron ▶ à droite) qui ouvre l'écran
+   complet #mSet par-dessus la pause. Pleine largeur dans la grille couchée ; hors charte 6 la ligne n'existe pas. */
+html.c6 #tPanel #tpIn .tp[data-a="tous"]{grid-column:1/-1}
+html.c6 #tPanel #tpIn .tp[data-a="tous"]>span{flex:1 1 auto;min-width:0;white-space:nowrap}
+html.c6 #tPanel #tpIn .tp.ligne.lien::after{content:'';flex:none;width:9px;height:9px;background:var(--c6-g2);-webkit-mask:var(--pxi-droite) center/contain no-repeat;mask:var(--pxi-droite) center/contain no-repeat}
+html:not(.c6) #tPanel .tp[data-a="tous"]{display:none}
+/* l'écran des réglages passe AU-DESSUS de la pause (z-index 9) ; à sa fermeture son fond d'encre s'efface en fondu sec de 130 ms (opacité seule) */
+html.c6 body.setPause #overlay{z-index:12}
+/* à l'ouverture le fond d'encre est PLEIN tout de suite (pas de fondu de l'overlay : la pause et les réglages se lisaient superposés pendant ~200 ms) ; la page, elle, arrive en glissant */
+html.c6 body.setPause:not(.setPauseSort) #overlay{animation:none}
+html.c6 body.setPause #overlay::before{opacity:1;transition:none}   /* le fond d'encre est plein dès la première image (jamais le fondu d'opacité de la coque) */
+@keyframes c6FondSort{to{opacity:0}}
+html.c6 body.setPause.setPauseSort #overlay{animation:c6FondSort 120ms linear forwards}
 </style>
 <style id="c6-transitions">
 /* CHARTE 6 · le mouvement : les passages entre écrans — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
@@ -8205,7 +8338,7 @@ html.c6 body.voletSort .mscr.on,html.c6 body.voletSort .mscr.on>*,html.c6 .mscr.
       <div id="gMis" aria-label="Missions">
         <svg id="gmFils" aria-hidden="true"></svg>
         <div id="gmNoeuds"></div>
-        <div id="gmHead"><b data-fr="MISSIONS">MISSIONS</b><small id="gmSous"></small><em id="gmAide"></em></div>
+        <div id="gmHead"><div class="pbtn pbCarre c6Ret" role="button" tabindex="0" aria-label="Retour" hidden><i class="pxi pxi-gauche" aria-hidden="true"></i></div><b data-fr="MISSIONS">MISSIONS</b><small id="gmSous"></small><em id="gmAide"></em></div>
         <div id="gmBas">
           <div class="pbtn gmHome" role="button" tabindex="0" aria-label="Accueil"><i class="pxi pxi-maison" aria-hidden="true"></i><span data-fr="HOME">HOME</span></div>
           <div class="pbtn pb-gold big gmJouer" role="button" tabindex="0" aria-label="Jouer"><span data-fr="JOUER">JOUER</span><i class="mChev" aria-hidden="true"><i class="pxi pxi-droite"></i><i class="pxi pxi-droite"></i><i class="pxi pxi-droite"></i></i></div>
@@ -8602,6 +8735,7 @@ html.c6 body.voletSort .mscr.on,html.c6 body.voletSort .mscr.on>*,html.c6 .mscr.
     <div class="tp ligne" data-a="vox"><i class="pxi pxi-voix" aria-hidden="true"></i> VOIX</div>
     <div class="tp ligne" data-a="q"><i class="pxi pxi-eclair" aria-hidden="true"></i> IMAGE</div>
     <div class="tp ligne" data-a="volh"><i class="pxi pxi-aile" aria-hidden="true"></i> POUCE HAUT EN VOL</div><!-- (2026-09-30, R7-5) ce réglage n'agit qu'en VOL : c'est en pleine partie qu'on découvre qu'on préfère l'autre sens -->
+    <div class="tp ligne lien" data-a="tous" data-g="run"><i class="pxi pxi-reglages" aria-hidden="true"></i> TOUS LES REGLAGES</div><!-- (2026-10-14, charte 6) l'écran complet #mSet par-dessus la course en pause ; absent hors charte 6 (voir setPauseOuvre) -->
     </div>
     <div class="tp go" data-a="close"><i class="pxi pxi-lecture" aria-hidden="true"></i> REPRENDRE</div>
   </div></div>
@@ -19065,6 +19199,7 @@ for(const D of [I18N,I18N_ZH])for(const k of Object.keys(D)){
   const m=/^[\u2190-\u2BFF\u2600-\u27BF\uD83C-\uDBFF\uDC00-\uDFFF]+\s+(.+)$/.exec(k);
   if(m&&!(m[1] in D))D[m[1]]=String(D[k]).replace(/^[\u2190-\u2BFF\u2600-\u27BF\uD83C-\uDBFF\uDC00-\uDFFF]+\s+/,'');
 }
+Object.assign(I18N,{'TOUS LES REGLAGES':'ALL SETTINGS'});Object.assign(I18N_ZH,{'TOUS LES REGLAGES':'所有设置'}); // (2026-10-14, charte 6) la ligne de la pause qui ouvre l'écran complet
 /* ⚠ LES CAPITALES ACCENTUÉES NE PASSENT PAS EN PIXEL (2026-09-24) : la police dessine « É » comme un « é »
    minuscule — « RÉGLAGES » s'affichait « RéGLAGES » dans le panneau de pause. Tout ce qui passe par TR()
    perd donc l'accent de ses CAPITALES (À→A, É→E…) ; les minuscules accentuées, elles, sont bien dessinées. */
@@ -20923,6 +21058,7 @@ function carrCiel(N){const hx9=function(c){return '#'+(c|0).toString(16).padStar
   return a&&b?'linear-gradient(90deg,'+a[0]+','+a[1]+(b!==a?','+b[1]:'')+')':'none';}
 function carrVue(bi){
   const el=document.getElementById('carr');if(!el)return;
+  if(document.documentElement.classList.contains('c6'))return carrVueC6(bi,el); // (2026-10-14, charte 6) l'écran refait : en-tête ◀, cartes d'encre, JOUER en or ; ?ui=5 garde l'ancien
   let h='<div class="carrIn"><div class="mHead"><h3>'+TR(bi==null?'CARRIERE':CARRIERE[bi].nm)+'</h3></div>';
   const sel=PLAY_CARR&&HUB?carrSel():null; // (2026-10-07) LE NIVEAU DES PLAY — (2026-10-08) seulement avec ?play=carriere (PLAY_CARR) : la carte de son monde et sa case le portent (classe .choisi)
   if(bi==null){
@@ -20944,6 +21080,37 @@ function carrVue(bi){
   h+='<div class="mDock"><div class="pbtn mBack" data-c="'+(bi==null?'fermer':'biomes')+'" role="button" aria-label="Retour">'+pxi('gauche')+'<span>'+TR('RETOUR')+'</span></div></div>'; // (charte v4) la sortie en BAS, comme partout
   uiGarde();
   if(el.classList.contains('on')&&!el.classList.contains('sortant'))el.setAttribute('data-sens',bi==null?'retour':'avant');else el.removeAttribute('data-sens'); // (2026-09-28) la feuille est déjà là : on change de PAGE, dans le sens du geste
+  el.innerHTML=h+'</div>';feuilleOuvre(el,'on');
+}
+/* (2026-10-14, charte 6) LA CARRIÈRE REFAITE — deux pages, comme avant : les MONDES, puis les niveaux du monde touché. Rien de nouveau dans le jeu :
+   mêmes `data-c` que l'ancien écran (le même écouteur les lit), mais l'en-tête commun ◀ + titre remplace le titre et le dock RETOUR/HOME, et UNE touche d'or,
+   JOUER (en bas à droite), lance l'étape EN COURS (celle des PLAY : carrSel ; dans un monde, son niveau à finir). Toucher une carte de monde l'OUVRE (ses niveaux) ;
+   toucher un niveau le lance, comme avant. États sans couleur : fait = coche, en cours = face blanche, verrouillé = cadenas + atténué. */
+function carrVueC6(bi,el){
+  const sel=PLAY_CARR&&HUB?carrSel():null,mondes=bi==null,f=mondes?0:carrFait(bi);
+  const ret=mondes?(HUB&&garageOn&&!(started&&!gameOver)?'maison':'fermer'):'biomes';
+  const L=LANG==='en'?['Level ',' locked']:LANG==='zh'?['关卡 ',' 未解锁']:['Niveau ',' verrouillé'];
+  let h='<div class="carrIn"><div class="c6Tete plein"><div class="pbtn pbCarre c6Ret" data-c="'+ret+'" role="button" tabindex="0" aria-label="'+TR('RETOUR')+'">'+pxi('gauche')+'</div><b class="c6Titre">'+TR(mondes?'CARRIERE':CARRIERE[bi].nm)+'</b></div><div class="cmCorps">';
+  let go;
+  if(mondes){
+    const cs=carrSel();go={b:cs.b,i:cs.i};
+    h+='<div class="cmGrille cmMondes">';
+    CARRIERE.forEach(function(B,k){const fk=carrFait(k),n=B.niveaux.length,fini=fk>=n,cours=k===go.b;
+      h+='<div class="cmCarte cmMonde'+(fini?' fait':'')+(cours?' cours':'')+(sel&&sel.b===k?' choisi':'')+'" data-c="biome" data-b="'+k+'" data-id="'+B.id+'" role="button" tabindex="0" aria-label="'+TR(B.nm)+'">'
+        +'<span class="cmHaut">'+pxi(B.ic)+(fini?pxi('coche'):'')+'</span><b class="cmNom">'+TR(B.nm)+'</b><span class="cmFrac">'+fk+' / '+n+'</span>'
+        +'<i class="c6Jauge" style="--v:'+(fk/n).toFixed(3)+'"></i></div>';});
+    h+='</div>';
+  }else{
+    go={b:bi,i:Math.min(CARRIERE[bi].niveaux.length-1,f)};
+    h+='<div class="cmGrille cmNivs">';
+    CARRIERE[bi].niveaux.forEach(function(N,i){const ok=TEST_CARRIERE||i<=f,fait=i<f,cours=i===f;
+      h+='<div class="cmCarte cmNiv'+(fait?' fait':'')+(cours?' cours':'')+(ok?'':' verr')+(sel&&sel.b===bi&&sel.i===i?' choisi':'')+'" data-c="'+(ok?'niveau':'verrou')+'" data-b="'+bi+'" data-i="'+i+'" role="button" tabindex="0" aria-label="'+L[0]+(i+1)+(ok?'':L[1])+'">'
+        +'<b class="cmNum">'+(ok?'':pxi('verrou'))+String(i+1).padStart(2,'0')+(fait?pxi('coche'):'')+'</b><span class="cmNom">'+insec(TR(N.nm))+'</span></div>';});
+    h+='</div>';
+  }
+  h+='</div><div class="c6Bas"><div class="pbtn pb-gold big cmJouer" data-c="niveau" data-b="'+go.b+'" data-i="'+go.i+'" role="button" tabindex="0" aria-label="'+TR('JOUER')+'"><span>'+TR('JOUER')+'</span></div></div>';
+  uiGarde();
+  if(el.classList.contains('on')&&!el.classList.contains('sortant'))el.setAttribute('data-sens',mondes?'retour':'avant');else el.removeAttribute('data-sens');
   el.innerHTML=h+'</div>';feuilleOuvre(el,'on');
 }
 function carrLancer(bi,i){
@@ -45747,7 +45914,7 @@ function gStripModeVoitures(){
       const et=ouv?(i===eq?'':pxi('coche')):(u&&u.p?fmtC(u.p):u&&u.eur?eurTxt(u.eur):u&&u.k==='carnet'?gDefiEt(u.v):'');
       return '<div class="gT'+(ouv?'':' lock')+(i===eq?' eq':'')+'" data-car="'+i+'" role="button" aria-label="'+String(CARS[i].name).replace(/"/g,'')+'" style="--rc:'+ri.c+lg9+'">'
         +'<i class="gTl"></i><i class="gTv"></i>'+rarLogo(i)+'<em'+(!ouv&&u&&!u.p&&u.eur?' class="eur"':!ouv&&u&&u.k==='carnet'?' class="def"':'')+'>'+et+'</em></div>';}).join('');
-    if(m==='tous')st.insertAdjacentHTML('beforeend',gMystere());
+    if(m==='tous'&&!document.documentElement.classList.contains('c6'))st.insertAdjacentHTML('beforeend',gMystere()); // (2026-10-14, charte 6, ordre de Sacha) plus de blocs « ? BIENTÔT » : un testeur y voit un jeu inachevé
     st.querySelectorAll('.gT[data-car]').forEach(function(el){const i=+el.getAttribute('data-car');
       photoFile(i,function(url){const v=el.querySelector('.gTv');if(v)v.remove();if(!el.querySelector('img')){const im=document.createElement('img');im.alt='';im.src=url;el.insertBefore(im,el.firstChild);}});});}
   st.querySelectorAll('.gT').forEach(function(el){el.classList.toggle('on',+el.getAttribute('data-car')===garageI);});
@@ -50916,7 +51083,8 @@ function garAccueil(){ // appelé par le routeur à chaque arrivée sur 'home'
    el.addEventListener('keydown',function(e){if(e.code==='Enter'||e.code==='Space'){e.preventDefault();el.click();}});};
  clicM($('gReglage'),function(){uiClic('nav');ecranWipe(function(){window.__mRetour='set';closeGarage();});});   // les RÉGLAGES (retour : le menu)
  clicM($('gMisBtn'),function(){uiClic('nav');garMode('missions');});    // les MISSIONS : l'écran de l'atelier (voir « LES MISSIONS DANS L'ATELIER »)
- clicM(document.querySelector('#gmBas .gmHome'),function(){uiClic('retour');garMisRetour();});             // HOME : le menu (ou la VITRINE, si on en vient)
+ clicM(document.querySelector('#gmBas .gmHome'),function(){uiClic('retour');garMisRetour();});
+ clicM(document.querySelector('#gmHead .c6Ret'),function(){uiClic('retour');garMisRetour();}); // (2026-10-14, charte 6) le ◀ de l'en-tête = HOME (masqué sous c6)             // HOME : le menu (ou la VITRINE, si on en vient)
  clicM(document.querySelector('#gmBas .gmJouer'),function(e){garJouer();});                 // JOUER : la map des PLAY (voir « LE NIVEAU DES PLAY » ; la partie sans fin hors du hub), la mission suivie à l'écran
  {const nd=$('gmNoeuds');if(nd)nd.addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go)return;
    const c9=e.target.closest&&e.target.closest('.gmC');if(!c9)return;const a=GMIS.ancres[+c9.getAttribute('data-k')];if(!a)return;const s=misEtat();
@@ -54294,6 +54462,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='q'){ SAVE.d.q=(SAVE.d.q==='net')?'fast':'net'; SAVE.flush(); applyQ(SAVE.d.q!=='net'); panSync(); }
     else if(a==='volh'){ volhBascule(); panSync(); }
     else if(a==='surv'){ clic(survBtnEl); panSync(); }
+    else if(a==='tous'){ setPauseOuvre(); } // (2026-10-14, charte 6) TOUS LES REGLAGES : l'écran complet par-dessus la pause
     else if(a==='resp'){ panOpen(false); if(started&&!gameOver&&mode==='drive')respawn(); }
     else if(a==='reset'||a==='quit'){ const q9=a==='quit'; // (2026-09-25) CONFIRMÉS : QUITTER tombait sous le pouce et terminait la partie d'un seul tap
       modale({titre:q9?'QUITTER LA PARTIE ?':'RECOMMENCER ?',texte:q9?(TUTO.on?(SAVE.d.permis?'Tu reprendras la leçon au prochain départ.':"Tu reprendras la leçon au prochain départ : le PERMIS et sa prime t'attendent."):'Tes gains sont versés au compte.'):'Les gains de cette partie ne seront PAS versés.', // (2026-09-29) pendant la leçon, « tes gains sont versés » taisait l'enjeu
@@ -54408,6 +54577,26 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(overlay){overlay.scrollTop=0;overlay.setAttribute('data-ecran',id);} // le fond suit l'écran : l'accueil laisse voir le monde
     mFill();
     if(id==='home')try{garAccueil();}catch(e){} } // (2026-09-30, sketch de Léo) « le garage devient le nouveau menu » : l'ACCUEIL ouvre l'atelier
+  /* (2026-10-14, charte 6, demande de Sacha) TOUS LES REGLAGES DEPUIS LA PAUSE. La ligne du panneau de pause ouvre l'écran complet #mSet PAR-DESSUS
+     la course en pause (la pause reste ouverte dessous, `paused` ne bouge pas) ; son ◀ referme l'écran et rend la pause, mise à jour (panSync).
+     `window.__setPause` est le drapeau : TCTL.ov est posé à la main (l'observateur de l'overlay et le tick de 140 ms ne rouvrent pas la racine
+     à la place de l'écran), mTap('back') et Échap le lisent. Ouvert depuis l'accueil, #mSet ne passe pas par ici : son ◀ ramène toujours à l'accueil. */
+  function setPauseOuvre(){
+    if(window.__setPause||!(started&&!gameOver&&paused)||!document.documentElement.classList.contains('c6'))return;
+    window.__setPause=true;uiClic('nav');
+    document.body.classList.add('setPause');document.body.classList.remove('setPauseSort');
+    overlay.setAttribute('data-ecran','set'); // AVANT l'affichage : mGo force un reflow avant de le poser, et le fond (transition d'opacité de ::before) partait de l'accueil (transparent) → la pause se lisait derrière les réglages
+    TCTL.ov=true;overlay.style.display='flex';
+    mGo('set','avant',true); }
+  function setPauseFerme(){
+    if(!window.__setPause)return;
+    window.__setPause=false;
+    const fin=function(){ document.body.classList.remove('setPause','setPauseSort'); overlay.style.display='none'; TCTL.ov=false;
+      for(const k in mScr){const e=mScr[k];if(!e)continue;clearTimeout(e._sortT);e.classList.remove.apply(e.classList,SENS);}
+      mCur=mRoot(); overlay.setAttribute('data-ecran',mCur);
+      try{panSync();}catch(e){} };
+    if(REDUCED_MOTION){fin();return;}
+    document.body.classList.add('setPauseSort'); setTimeout(fin,130); } // le fond d'encre s'efface en fondu sec (opacité seule), la pause réapparaît dessous
   window.__mHomeSur=function(){if(mCur!=='home')mGo('home','racine',true);else{try{mFill();}catch(e){}}}; // (passe qualité) déjà sur l'accueil (retour du garage) : on remplit quand même — la pastille GARAGE gardait le compte d'avant un achat // (2026-09-30) le garage-menu montre l'ACCUEIL, d'où que vienne le routeur (mGo('home') rappelle garAccueil → garMode('menu') : ici, mCur vaut déjà 'home')
   function mStatBox(v,l){return '<div class="mStat"><b>'+v+'</b><span>'+l+'</span></div>';}
   let mCntT=0;
@@ -54581,6 +54770,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       if(a==='play'&&SAVE.d.facile==null&&!SAVE.d.tuto){facChoix().then(function(){goImmersive();playViaGarage(true);});} // (2026-09-29) le 1er JOUER demande le mode
       else{goImmersive(); playViaGarage(true);} } // 1re partie = AUTO-ÉCOLE : tutoArme passe SOUS le voile (la reconstruction de la piste figeait le bouton avant qu'il monte)
     else if(a==='tuto'){ SAVE.d.tuto=0;SAVE.flush();toast(pxi('coche')+' '+TR('L\'AUTO-ÉCOLE T\'ATTEND AU PROCHAIN JOUER')); }
+    else if(a==='back'&&window.__setPause){ setPauseFerme(); } // (2026-10-14, charte 6) le ◀ des réglages ouverts depuis la pause rend la pause
     else if(a==='back'&&mCur==='shop'&&window.__offGar){ window.__offGar=false; ecranWipe(function(){ openGarage(); try{gModeVa('shop');}catch(e){} }); } // (2026-10-10) venue de la PORTE DES OFFRES du garage : le RETOUR y ramène
     else if(a==='back')mGo(mRoot());
     else if(a==='carr'){ carrVue(null); } // (2026-09-27) la CARRIÈRE : les mondes, puis les dix niveaux (feuille #carr)
@@ -54686,6 +54876,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(ecranWipe._on)return; // (2026-09-29) sous un voile, l'écran qu'on quitte n'est plus à nous
     const md=$t('modale'),cr=$t('carr');
     if(md&&md.classList.contains('on')&&!md.classList.contains('sortant')){const bs=md.querySelectorAll('.modB .pbtn');if(bs.length)bs[bs.length-1].click();return;} // le DERNIER bouton d'une fenêtre est toujours l'annulation
+    if(window.__setPause){uiClic('retour');setPauseFerme();return;} // (2026-10-14, charte 6) les réglages ouverts depuis la pause : Échap = leur ◀
     if(pan&&pan.classList.contains('open')&&!pan.classList.contains('sortant')){panOpen(false,true);uiClic('retour');return;}
     if(cr&&cr.classList.contains('on')&&!cr.classList.contains('sortant')){uiClic('retour');feuilleFerme(cr,'on');return;}
     if(garageOn||(typeof stallOn!=='undefined'&&stallOn))return; // l'atelier et l'étal ont déjà leur Échap
@@ -54698,6 +54889,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   window.__mGo=function(id){if(mScr[id])mGo(id);};
   window.__panBascule=function(){
     const md=$t('modale');if(md&&md.classList.contains('on'))return; // une fenêtre ouverte (RECOMMENCER ?, QUITTER ?) garde la main
+    if(window.__setPause)return; // (2026-10-14, charte 6) les réglages complets sont ouverts par-dessus la pause : P ne reprend pas la course dessous
     if(pan&&pan.classList.contains('open')&&!pan.classList.contains('sortant')){panOpen(false,true);return;} // comme REPRENDRE : le 3-2-1
     if(started&&!gameOver&&mode==='boom'){boomSkip();return;} // (passe qualité) P / Échap pendant l'explosion : comme le ⏸ (voir gearOpenHandler)
     if(started&&!gameOver){panOpen(true);hap(10);}
