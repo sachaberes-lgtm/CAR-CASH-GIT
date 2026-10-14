@@ -56,7 +56,7 @@ une('<meta charset="UTF-8">','<meta charset="UTF-8">\n<script src="natif.js"></s
 let ver='ios';try{ver=execSync('git log -1 --format=%h -- "VERSION PRINCIPALE"',{cwd:path.join(SRC,'..'),stdio:['ignore','pipe','ignore']}).toString().trim()||ver;}catch(e){}
 une("const CC_BUILD='__CC_BUILD__';","const CC_BUILD='"+ver+"';",'version');
 for(const u of['https://game-cdn.poki.com/scripts/v2/poki-sdk.js','https://sdk.crazygames.com/crazygames-sdk-v3.js','https://bridge.playgama.com/v2/stable/playgama-bridge.js'])
-  une("src:'"+u+"'","src:''",'kit de portail');
+  if(h.indexOf(u)>=0)une("src:'"+u+"'","src:''",'kit de portail'); // (T4 du 14/10 : l'édition des portails est retirée du jeu ; l'inventaire plus bas garde l'œil)
 /* L'ÉDITION APP STORE (2026-10-13, Sacha : « couper dans l'app seulement ») — le jeu web de main n'est pas touché.
    · plus de mode TEST : les caisses et la carrière se GAGNENT (Apple refuse une version de test) ;
    · plus de vrai argent (pas d'achats intégrés pour l'instant) : les caisses vendues en € et L'ÉTERNELLE (100 pubs : l'app n'a pas
@@ -70,13 +70,13 @@ for(const u of['https://game-cdn.poki.com/scripts/v2/poki-sdk.js','https://sdk.c
    · pas de déblocage par CODE (2026-10-14, règle 3.1.1 d'Apple : on ne débloque pas de contenu par un code hors achat intégré) : la ligne
      ENTRER UN CODE des réglages (Léo, « LE CODE COUSIN ») est masquée, le code n'est plus reconnu, et un `cousin` venu d'une sauvegarde
      restaurée (code de sauvegarde du jeu web) ne débloque rien. */
-une("const TEST_CAISSES=!POKI;","const TEST_CAISSES=false; /* (app iOS) */",'mode TEST des caisses');
+une("const TEST_CAISSES=true;","const TEST_CAISSES=false; /* (app iOS) */",'mode TEST des caisses'); // (T4 du 14/10 : plus de POKI dans le jeu)
 une("const TEST_CARRIERE=true;","const TEST_CARRIERE=false; /* (app iOS) */",'mode TEST de la carrière');
-une("if(POKI){const PRIX_CARNET=",
+une("function carUnlockedVrai(i){",
   "/* (app iOS) le vrai argent passe à l'argent du jeu */CAR_UNLOCK.forEach(function(u,i){if(!u||(u.k!=='premium'&&u.k!=='pubs'&&u.k!=='bientot'))return;const c=CARS[i];"+
   "if(u.k==='bientot'){CAR_UNLOCK[i]={p:(c&&{'REQUIN':6.5e6,'COMÈTE':4.2e6,'LA RAIE':2.5e6}[c.name])||3e6};if(c&&c.rar==='defi')delete c.rar;return;}"+
   "const e=u.k==='pubs'?9.99:(parseFloat(String(u.eur).replace(',','.'))||5);CAR_UNLOCK[i]={p:Math.round((2e6+e*450e3)/1e5)*1e5};if(c){c.rar='legendaire';}});\n"+
-  "if(POKI){const PRIX_CARNET=",'caisses en €');
+  "function carUnlockedVrai(i){",'caisses en €'); // (T4 du 14/10 : l'ancrage d'avant, le bloc des prix de l'édition POKI, est parti avec elle)
 /* (l'annonce « BIENTÔT EN DÉTAIL / EN LIGNE » de l'affiche du garage : retirée du jeu lui-même au train T2 du 14/10, coupe ôtée) */
 /* (les blocs « ? — BIENTÔT » de SEE ALL ITEMS : le jeu ne les pose plus sous la charte 6 depuis le train T2 du 14/10, coupe ôtée) */
 toutes('on vient de doubler une Ferrari.','on vient de doubler une voiture de course.',2,'phrase « Ferrari » (CARS + clé de traduction)');
@@ -98,7 +98,7 @@ une('</head>','<style id="appStore">/* (app iOS) pas de page OFFRES en € : ni 
   'html.c6.hub:not(.poki) body #mHome.acc2 .mMisBarre{grid-column:2 / 4!important}html.c6.hub:not(.poki) body #mHome.acc2 .mHubPorte{grid-column:4!important}\n'+
   '@media (orientation:landscape) and (max-height:540px){html.c6.hub:not(.poki) body #mHome.acc2 .mMisBarre{grid-column:3 / 5!important}'+
   'html.c6.hub:not(.poki) body #mHome.acc2 .mHubPorte{grid-column:5!important}}</style>\n</head>','page OFFRES');
-une("const SANS_VOIX=POKI||!/[?&]voix=1\\b/.test(location.search);","const SANS_VOIX=true; /* (app iOS) les voix ne sont pas livrées */",'règle SANS_VOIX (les voix ne sont pas livrées)');
+une("const SANS_VOIX=!/[?&]voix=1\\b/.test(location.search);","const SANS_VOIX=true; /* (app iOS) les voix ne sont pas livrées */",'règle SANS_VOIX (les voix ne sont pas livrées)');
 /* LES TÉMOINS — une coupe faite en CSS ne casse rien si sa cible change de nom : elle cesse juste de couper, en silence. Chaque porte
    masquée ci-dessus doit donc encore exister dans le jeu ; sinon l'écran a été refait et la coupe est à revoir (au navigateur). */
 for(const[t,quoi]of[['data-m="shop"','la tuile OFFRES de l\'accueil'],['id="mShop"','la page OFFRES (#mShop)'],['id="bdShop"','le fond de la page OFFRES (#bdShop)'],
