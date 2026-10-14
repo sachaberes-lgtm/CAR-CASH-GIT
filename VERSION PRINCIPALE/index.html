@@ -38696,6 +38696,7 @@ function respawn(){
   if(introD){introD=false;if(pigGroup){scene.remove(pigGroup);pigGroup=null;}} // R pendant le largage : on annule proprement
   s=THREE.MathUtils.clamp(safeS-8,0,Math.max(0,L-80));
   lat=0;psi=0;vA=26;vL=0;side=1;driveDir=1;graceT=1.6;prevTvalid=false;yawAcc=0;hopY=0;hopV=0;levreY=0;bascOn=false;bascT=0;mode='drive';yawR=0;slipB=0;glisse9=0;driftYaw=0;driftEnCours=false;driftC=0;driftLv=0;driftT=0;carRoll9=0;rollV=0;pitch9=0;
+  if(SENS)try{SENS_PA.rs=1;}catch(e){} // (2026-10-14, sensations · passages) un replacement vient d'avoir lieu : sensPassages le lit à l'image suivante (rien n'est joué ici — respawn sert aussi au chargement et au départ)
 }
 // FREESTYLE : on ne MEURT jamais dans le parc — on repart sur la piste. La chaîne en cours est perdue
 // (on n'a pas su reposer), mais aucune explosion, aucun game over : c'est un bac à sable de figures.
@@ -49305,12 +49306,22 @@ window.dbgPin=function(on){RESPIN=(on===undefined)?true:!!on;
      voile couvre l'écran. C'est à l'ARRIVÉE, voile en train de s'ouvrir (½ s de jeu après), que la caisse S'ASSOIT sur ses ressorts
      (nez levé ≈ 2°, ≈ 3 cm) : elle débarque dans le nouveau monde au lieu d'y être collée. Au sol seulement.
    `tr` : secondes de course vivante (borné) · `z` : les zones déjà vues · `tp` : le compte avant le coup d'arrivée (s de jeu). */
-const SENS_PA={rs:0,tr:0,z:0,tp:0};
+const SENS_PA={rs:0,tr:0,z:0,tp:0,ro:null};
 function sensPassages(dt){
   const vit=started&&!gameOver&&(mode==='drive'||mode==='fall');
   SENS_PA.tr=vit?Math.min(9,SENS_PA.tr+dt):0;
+  if(SENS_PA.ro!==runStats){SENS_PA.ro=runStats;SENS_PA.tr=0;SENS_PA.tp=0;} // une partie NEUVE (resetGame refait `runStats`) : la boucle ne tourne pas pendant l'écran de fin, `tr` n'y retombait pas tout seul — le rejeu ne doit pas passer pour un replacement
   if(runStats.zones!==SENS_PA.z){if(runStats.zones>SENS_PA.z&&vit)SENS_PA.tp=.5;SENS_PA.z=runStats.zones;} // (une partie neuve remet zones à 0 : on se recale sans rien jouer)
   if(SENS_PA.tp>0){SENS_PA.tp-=dt;if(SENS_PA.tp<=0&&vit&&!REDUCED_MOTION)sensCoup(0,-.8,-.7);}
+  /* LE REPLACEMENT (touche R, bouton « replacer » du menu de pause) : la caisse apparaissait FIGÉE sur sa ligne, à plat, comme collée.
+     Elle se POSE : elle s'écrase sur ses ressorts (≈ 5 cm), le nez pique un rien (≈ 1,3°), deux bouffées de poussière aux roues arrière,
+     un tic dans la main. Seulement en pleine course (`tr` > 1 s : ni au chargement, ni au départ, ni au rejeu — l'élan du départ est
+     voulu sans cérémonie) et seulement si elle est posée à plat : les replacements qui la LÂCHENT de 2,2 m (bac à sable, parc, repêchage)
+     ont déjà leur retombée (la retombée d'un petit saut, dans la boucle). */
+  if(SENS_PA.rs){const ok9=SENS_PA.tr>1&&mode==='drive'&&hopY<=0&&!introD;SENS_PA.rs=0;
+    if(ok9){sensHap(10,1);
+      if(!REDUCED_MOTION){sensCoup(0,.5,-1.2);const sp9=CARS[level];
+        if(sp9)for(let sd=-1;sd<2;sd+=2){DRIFT_V.set(sd*sp9.w*.45,.06,-sp9.l*.32);carGroup.localToWorld(DRIFT_V);sparkBurst(dust,DRIFT_V,2,2.5);}}}}
 }
 /* ===== LE RAMASSAGE — pickupsTick, AU SOL ET EN VOL (2026-09-30) =====
    ⚠ BUG DE STRUCTURE : cette boucle vivait DANS la branche `if(mode==='drive'){…}` de `loop`. Sa garde (`mode==='drive'||mode==='fall'`)
