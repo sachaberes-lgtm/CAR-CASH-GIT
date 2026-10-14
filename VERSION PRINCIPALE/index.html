@@ -26127,11 +26127,22 @@ Object.assign(SHAPES,{
      P.sym(sd=>{P.cyl('o',.075,.30,14,sd*.24,.42,-.95,'z');P.cyl('k',.055,.31,14,sd*.24,.42,-.955,'z');});
      const gs=P.done();for(const k in gs)mesh(gs[k],g);}
     // ---- 2. LA GROSSE TÊTE ----
-    if(!SHAPES.doge._tete)SHAPES.doge._tete=dogeTete();
+    if(!SHAPES.doge._tete)SHAPES.doge._tete=dogeTeteObtient(); // (OPTIMISATION) celle de l'OUVRIER DU DOGE si elle est prête
     const DT=SHAPES.doge._tete,tete=new THREE.Group();tete.position.set(0,HY,HZ);tete.scale.setScalar(KT);g.add(tete);
     const pivot=new THREE.Group();tete.add(pivot);
-    {const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(DT.P,3));geo.setAttribute('normal',new THREE.BufferAttribute(DT.N,3));
-     geo.setAttribute('color',new THREE.BufferAttribute(DT.C,3));geo.setIndex(new THREE.BufferAttribute(DT.I,1));geo.computeBoundingSphere();mesh(geo,pivot);}
+    /* (2026-10-14, OPTIMISATION — relevé par GENERAL dans le code de Léo : « poseGueule renvoie 18 907 sommets à la carte graphique PAR IMAGE
+       pour en bouger 673 ») LA LÈVRE DU HAUT EN QUEUE DU TAMPON : les sommets qui bougent (poidsU) sont rangés à la FIN, l'index renuméroté —
+       mêmes sommets, mêmes triangles dans le même ordre : la même image. À chaque image, seule la queue repart (updateRange : ~16 Ko au lieu
+       de ~450 Ko, position + normale). Rangé une fois par session (DT.U) ; `d0` = le premier sommet qui bouge. */
+    if(!DT.U){const n=DT.P.length/3,W=DT.poidsU,bouge=new Uint8Array(n);for(let k=0;k<W.length;k+=2)bouge[W[k]]=1;
+      const ord=new Int32Array(n),neu=new Int32Array(n);let q=0;for(let i=0;i<n;i++)if(!bouge[i])ord[q++]=i;const d0=q;for(let i=0;i<n;i++)if(bouge[i])ord[q++]=i;
+      const P=new Float32Array(n*3),N=new Float32Array(n*3),C=new Float32Array(n*3),I=new Uint32Array(DT.I.length),WU=new Float32Array(W.length);
+      for(let k=0;k<n;k++){neu[ord[k]]=k;const i=ord[k]*3,j=k*3;P[j]=DT.P[i];P[j+1]=DT.P[i+1];P[j+2]=DT.P[i+2];N[j]=DT.N[i];N[j+1]=DT.N[i+1];N[j+2]=DT.N[i+2];C[j]=DT.C[i];C[j+1]=DT.C[i+1];C[j+2]=DT.C[i+2];}
+      for(let k=0;k<I.length;k++)I[k]=neu[DT.I[k]];for(let k=0;k<W.length;k+=2){WU[k]=neu[W[k]];WU[k+1]=W[k+1];}
+      DT.U={P:P,N:N,C:C,I:I,WU:WU,d0:d0};}
+    const U9=DT.U;
+    {const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(U9.P,3));geo.setAttribute('normal',new THREE.BufferAttribute(U9.N,3));
+     geo.setAttribute('color',new THREE.BufferAttribute(U9.C,3));geo.setIndex(new THREE.BufferAttribute(U9.I,1));geo.computeBoundingSphere();mesh(geo,pivot);}
     // les YEUX : blanc, iris brun, pupille, éclat — la sphère TOURNE (le regard)
     const oeilGeo=(()=>{const s=new THREE.SphereGeometry(1,28,20),p=s.attributes.position,c=new Float32Array(p.count*3);
       for(let i=0;i<p.count;i++){const z=p.getZ(i),x=p.getX(i),y=p.getY(i);let col=[1,1,1];
@@ -26147,7 +26158,7 @@ Object.assign(SHAPES,{
     const geoN=G9=>{const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(G9.P,3));geo.setAttribute('normal',new THREE.BufferAttribute(G9.N,3));
       geo.setAttribute('color',new THREE.BufferAttribute(G9.C,3));geo.setIndex(new THREE.BufferAttribute(G9.I,1));geo.computeBoundingSphere();return geo;};
     const CH=DT.charniere,YC=DT.YC,fJ=DT.fJ;
-    const geoU=pivot.children[0].geometry,PU0=DT.P,NU0=DT.N,PU=new Float32Array(PU0),NU=new Float32Array(NU0),WU=DT.poidsU;   // le crâne : ses sommets de la lèvre du haut bougent
+    const geoU=pivot.children[0].geometry,PU0=U9.P,NU0=U9.N,PU=new Float32Array(PU0),NU=new Float32Array(NU0),WU=U9.WU;   // le crâne : ses sommets de la lèvre du haut bougent (rangés en queue : U9.d0)
     geoU.setAttribute('position',new THREE.BufferAttribute(PU,3).setUsage(THREE.DynamicDrawUsage));geoU.setAttribute('normal',new THREE.BufferAttribute(NU,3).setUsage(THREE.DynamicDrawUsage));
     const DJ=DT.machoire,PJ=new Float32Array(DJ.P),NJ=new Float32Array(DJ.N),WJ=DT.poidsJ,geoJ=geoN({P:PJ,N:NJ,C:DJ.C,I:DJ.I});
     geoJ.attributes.position.setUsage(THREE.DynamicDrawUsage);geoJ.attributes.normal.setUsage(THREE.DynamicDrawUsage);mesh(geoJ,pivot);
@@ -26159,7 +26170,8 @@ Object.assign(SHAPES,{
       geoJ.attributes.position.needsUpdate=true;geoJ.attributes.normal.needsUpdate=true;
       for(let k=0;k<WU.length;k+=2){const i=WU[k],a=-th*.32*WU[k+1],c=Math.cos(a),sn=Math.sin(a),j=i*3,dy=PU0[j+1]-CH[1],dz=PU0[j+2]-CH[2],ny=NU0[j+1],nz=NU0[j+2];
         PU[j+1]=CH[1]+dy*c-dz*sn;PU[j+2]=CH[2]+dy*sn+dz*c;NU[j+1]=ny*c-nz*sn;NU[j+2]=ny*sn+nz*c;}
-      geoU.attributes.position.needsUpdate=true;geoU.attributes.normal.needsUpdate=true;
+      {const o9=U9.d0*3,c9=PU.length-o9,aP=geoU.attributes.position,aN=geoU.attributes.normal; // (OPTIMISATION) seule la queue qui bouge repart à la carte graphique
+       aP.updateRange.offset=aN.updateRange.offset=o9;aP.updateRange.count=aN.updateRange.count=c9;aP.needsUpdate=true;aN.needsUpdate=true;}
       for(const d of DENTS){tourne(d.p,d.s*th*fJ(d.p[0],d.p[2])*(d.s<0?.32:1),d.q);d.m.position.set(d.q[0],d.q[1],d.q[2]);d.m.rotation.x=d.r+(d.s<0?-.32:1)*th*fJ(d.p[0],d.p[2]);}};
     const dentG=(()=>{const c=new THREE.ConeGeometry(1,1,8),n=c.attributes.position.count,a=new Float32Array(n*3);for(let i=0;i<n;i++)a.set([.98,.96,.91],i*3);
       c.setAttribute('color',new THREE.BufferAttribute(a,3));return c;})();
