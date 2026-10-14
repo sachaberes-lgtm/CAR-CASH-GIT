@@ -20,7 +20,7 @@
   l'événement `cc:chance` sur document. Sans plaque, l'offre existe mais ne se voit pas.
 - IDEE (FINAL SPIN, machine à sous après la mort) : il passe APRÈS l'offre. Lui donner `chanceAttend()` (vrai tant que l'offre
   est à l'écran), `chanceRefuse()` et `cc:chance`. Sa spec n'est pas encore arrivée.
-- GAMEPLAY : barème validé (k 0,5 → 0,8, moteur −1). Mon calcul : pour un bon joueur, −18 % / +25 % / +65 % de revenu par
+- GAMEPLAY : barème validé (k 0,6 → 0,8, moteur −1). Mon calcul : pour un bon joueur, −18 % / +25 % / +65 % de revenu par
   minute s'il survit 2 / 4 / 6 min de plus après la reprise. GAMEPLAY visait moins de +25 %. À lui renvoyer si besoin.
 
 ## Suite possible

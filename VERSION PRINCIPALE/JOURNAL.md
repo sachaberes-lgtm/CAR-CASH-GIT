@@ -5,7 +5,7 @@
 
 ## LA SECONDE CHANCE (2026-10-14, Sacha au quiz de 14 h 35 : « façon Subway Surfers », contre de l'argent du jeu — barème de GAMEPLAY, plaque d'INTERFACE)
 À la mort, UNE fois par partie, l'écran de fin propose de CONTINUER (bloc `CHANCE`, juste avant `finSonsCoupe`). Payé sur le COMPTE,
-jamais en euros ni en pub. **Prix** = k × l'encaissé de la partie (`money − START_CASH`), avec k = 0,5 jusqu'à 3 min, puis +0,05 par
+jamais en euros ni en pub. **Prix** = k × l'encaissé de la partie (`money − START_CASH`), avec k = 0,6 jusqu'à 3 min (GAMEPLAY, relevé de 0,5), puis +0,05 par
 minute, plafond 0,8. Minimum 300 $, arrondi à deux chiffres (`chanceJoli`). Pas d'offre sur une partie de moins de 20 s, si le compte
 ne couvre pas le prix, au bac à sable, à l'auto-école, au parc, au Survivant, ni sur une fin de règle (endGame sans explosion).
 L'offre **s'éteint seule** 5,5 s après endGame, sans chrono affiché (INTERFACE : pas de fausse urgence). Quitter l'écran la ferme aussi.
