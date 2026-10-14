@@ -8849,98 +8849,122 @@ html.c6.hub.sansCarr body #mHome.acc2 .mAccP>.mMisBarre{grid-column:1/-1}
 html.sansFacile [data-m="facile"]{display:none!important}
 </style>
 <style id="finalSpin">
-/* LE FINAL SPIN (2026-10-14, Sacha : « fais la même machine [que Jetpack Joyride] … la bonne DA, HUD, lumières, bonnes animations et un vrai
-   niveau de finition ») — la machine à sous de l'écran de fin, voir SPIN dans le script. Charte : laque pour la caisse de la machine, l'or pour
-   le seul geste (TIRER, puis CONTINUER), le néon magenta pour la ligne de gain, la police pixel partout, les marges sûres sur les quatre côtés.
-   Taille : --spH (la hauteur d'un symbole) suit l'écran — debout il respire, couché il tient sous 390 px. */
-#spinM{position:fixed;inset:0;z-index:250;display:none;align-items:center;justify-content:center;box-sizing:border-box;
-  padding:calc(var(--sT) + 10px) calc(var(--sR) + 16px) calc(var(--sB) + 14px) calc(var(--sL) + 16px);
-  background:radial-gradient(120% 80% at 50% 45%,rgba(27,22,52,.94),rgba(7,5,15,.975) 70%); /* dense : l'écran de fin ne se lit plus au travers (banc : le montant du jackpot chevauchait un texte) */font-family:var(--pix);color:var(--tx);
-  opacity:0;transition:opacity var(--t-slow) var(--ease);--spH:clamp(40px,10.4vh,74px);--spW:calc(var(--spH)*1.16);-webkit-user-select:none;user-select:none}
+/* LE FINAL SPIN v2 (2026-10-14 soir, Sacha sur la v1 : « c'est ÇA la roulette, sérieux ? ») — la machine à sous de l'écran de fin, voir SPIN.
+   Charte : police pixel, laque · or · néon ; l'or pour le seul geste (TIRER / CONTINUER) et les garnitures ; le fond est OPAQUE (plus rien de
+   l'écran de mort ne transparaît) ; aucun flou d'arrière-plan. --spH = la hauteur d'un symbole : elle se règle sur la hauteur ET la largeur. */
+#spinM{position:fixed;inset:0;z-index:250;display:none;align-items:center;justify-content:center;box-sizing:border-box;overflow:hidden;
+  padding:calc(var(--sT) + 10px) calc(var(--sR) + 14px) calc(var(--sB) + 14px) calc(var(--sL) + 14px);
+  background:radial-gradient(90% 60% at 50% 42%,#2a1f52 0%,#160f2e 48%,#07050f 100%);font-family:var(--pix);color:var(--tx);
+  opacity:0;transition:opacity var(--t-slow) var(--ease);-webkit-user-select:none;user-select:none;touch-action:none;
+  --spH:clamp(46px,min(9.2vh,calc((100vw - var(--sL) - var(--sR) - 40px)/4.95)),96px);--spW:calc(var(--spH)*1.12)}
 #spinM.on{display:flex}
 #spinM.vu{opacity:1}
-#spinM .spBox{display:flex;flex-direction:column;align-items:center;gap:clamp(6px,1.5vh,14px);width:min(100%,420px);
-  transform:translateY(18px) scale(.94);transition:transform var(--t-slow) var(--ease)}
+#spinM .spBox{display:flex;flex-direction:column;align-items:center;gap:clamp(8px,1.6vh,16px);transform:translateY(22px) scale(.94);transition:transform var(--t-slow) var(--ease)}
 #spinM.vu .spBox{transform:none}
-#spinM .spTitre{font-size:var(--f7);line-height:1;color:var(--au1);letter-spacing:2px;text-shadow:0 3px 0 var(--auE),0 6px 0 var(--auO),0 0 22px var(--auG)}
-#spinM .spJet{display:flex;align-items:center;gap:8px;font-size:var(--f1);color:var(--tx2);min-height:18px}
-#spinM .spJet .pxi{--pxs:2;color:var(--au1)}
-#spinM .spJet b{font-weight:400;color:var(--au1);font-size:var(--f3)}
-#spinM .spJet em{font-style:normal;color:var(--cash);margin-left:10px}
-/* LA MACHINE : une caisse laquée, cerclée d'or, ses ampoules autour */
-#spinM .spMachine{position:relative;padding:calc(var(--spH)*.36) calc(var(--spH)*.3);background:var(--laque);
-  box-shadow:inset 0 0 0 2px var(--au2),inset 0 0 0 5px var(--k0),inset 0 0 0 6px var(--auE),0 6px 0 var(--k0),0 0 46px rgba(255,62,200,.22)}
-#spinM .spBulbs{position:absolute;inset:7px;pointer-events:none}
-#spinM .spBulbs i{position:absolute;width:7px;height:7px;transform:translate(-50%,-50%);background:var(--auE);
-  animation:spBulbe 1.4s steps(1,end) infinite;animation-delay:calc(var(--i)*-.05s)}
-@keyframes spBulbe{0%,30%{background:var(--au0);box-shadow:0 0 6px 2px var(--au2)}31%,100%{background:var(--auE);box-shadow:none}}
-#spinM.roule .spBulbs i{animation-duration:.42s;animation-delay:calc(var(--i)*-.015s)}
-#spinM.tease .spBulbs i{animation-duration:.2s}
-#spinM.gagne .spBulbs i{animation:spBulbeG .24s steps(1,end) infinite;animation-delay:0s}
-@keyframes spBulbeG{0%{background:var(--au0);box-shadow:0 0 9px 3px var(--au2)}50%{background:var(--neoM);box-shadow:0 0 9px 3px var(--neoM)}}
-#spinM .spFens{position:relative;display:flex;gap:calc(var(--spH)*.12);z-index:1}
-#spinM .spRou{position:relative;width:var(--spW);height:calc(var(--spH)*3);overflow:hidden;background:var(--k0);
-  box-shadow:inset 0 0 0 2px var(--k0),inset 0 0 0 3px var(--kl)}
-/* le galbe du rouleau : l'ombre en haut et en bas (un cylindre, pas une fenêtre plate) */
-#spinM .spRou::after{content:'';position:absolute;inset:0;pointer-events:none;
-  background:linear-gradient(180deg,rgba(7,5,15,.92) 0%,rgba(7,5,15,.25) 26%,transparent 40%,transparent 60%,rgba(7,5,15,.25) 74%,rgba(7,5,15,.92) 100%)}
+/* L'ENSEIGNE : la plaque sombre, le nom en or néon, ses ampoules */
+#spinM .spEnseigne{position:relative;padding:calc(var(--spH)*.2) calc(var(--spH)*.5);background:linear-gradient(180deg,#1b1634,#07050f);
+  box-shadow:inset 0 0 0 2px var(--auE),inset 0 0 0 4px var(--k0),0 0 0 3px var(--au2),0 6px 0 var(--k0),0 0 34px rgba(255,62,200,.28)}
+#spinM .spNeon{display:block;font-weight:400;font-size:calc(var(--spH)*.42);line-height:1;letter-spacing:2px;color:var(--au1);white-space:nowrap;
+  text-shadow:0 3px 0 var(--auE),0 0 10px var(--au2),0 0 26px rgba(255,62,200,.65)}
+#spinM.gagne .spNeon{animation:spNeon .34s steps(1,end) infinite}
+@keyframes spNeon{50%{color:var(--au0);text-shadow:0 3px 0 var(--auE),0 0 14px var(--au0),0 0 32px var(--neoM)}}
+/* LES AMPOULES : elles chassent ; plus vite pendant le tirage, en fou pendant le suspense, or/magenta au gain */
+#spinM .spBulbs{position:absolute;inset:-1px;pointer-events:none;z-index:3}
+#spinM .spBulbs i{position:absolute;width:calc(var(--spH)*.12);height:calc(var(--spH)*.12);min-width:7px;min-height:7px;transform:translate(-50%,-50%);
+  background:#5a3a10;box-shadow:0 0 0 1px var(--k0);animation:spBulbe 1.5s steps(1,end) infinite;animation-delay:calc(var(--i)*-.06s)}
+@keyframes spBulbe{0%,33%{background:var(--au0);box-shadow:0 0 0 1px var(--k0),0 0 8px 2px var(--au2)}34%,100%{background:#5a3a10;box-shadow:0 0 0 1px var(--k0)}}
+#spinM.roule .spBulbs i{animation-duration:.45s;animation-delay:calc(var(--i)*-.015s)}
+#spinM.tease .spBulbs i{animation-duration:.18s}
+#spinM.gagne .spBulbs i{animation:spBulbeG .34s steps(1,end) infinite;animation-delay:0s}
+@keyframes spBulbeG{0%{background:var(--au0);box-shadow:0 0 0 1px var(--k0),0 0 10px 3px var(--au2)}50%{background:var(--neoM);box-shadow:0 0 0 1px var(--k0),0 0 10px 3px var(--neoM)}}
+/* LE CORPS : la caisse et son levier */
+#spinM .spCorps{position:relative;display:flex;align-items:center;padding-right:calc(var(--spH)*.72)}
+/* LA CAISSE : laque violette en relief — biseau clair en haut à gauche, ombre en bas à droite, épaisseur dessous, cerclage d'or */
+#spinM .spCab{position:relative;display:flex;flex-direction:column;align-items:center;gap:calc(var(--spH)*.16);
+  padding:calc(var(--spH)*.34) calc(var(--spH)*.3) calc(var(--spH)*.3);
+  background:linear-gradient(112deg,transparent 0 30%,rgba(255,255,255,.07) 30% 36%,transparent 36%),linear-gradient(180deg,#3a2a6e 0%,#251b4c 40%,#160f30 100%);
+  box-shadow:inset 3px 3px 0 rgba(255,255,255,.12),inset -4px -6px 0 rgba(0,0,0,.45),inset 0 0 0 2px var(--au2),inset 0 0 0 5px var(--k0),inset 0 0 0 6px var(--auE),
+    0 calc(var(--spH)*.16) 0 #0b0818,0 calc(var(--spH)*.16 + 3px) 0 var(--auE),0 18px 30px rgba(0,0,0,.65),0 0 46px rgba(255,62,200,.2)}
+/* LA VITRE : le cadre d'or biseauté, les rouleaux ivoire */
+#spinM .spVitre{position:relative;padding:calc(var(--spH)*.12);background:#07050f;
+  box-shadow:0 0 0 3px var(--auE),0 0 0 6px var(--au2),0 0 0 8px var(--k0),inset 0 0 0 2px var(--k0)}
+#spinM .spFens{position:relative;display:flex;gap:calc(var(--spH)*.1)}
+#spinM .spRou{position:relative;width:var(--spW);height:calc(var(--spH)*3);overflow:hidden;
+  background:linear-gradient(90deg,#c9b88e 0%,#f6ecd2 22%,#fffaee 50%,#f6ecd2 78%,#c9b88e 100%);box-shadow:inset 0 0 0 2px #7a6440}
+#spinM .spRou::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:2;
+  background:linear-gradient(180deg,rgba(28,12,8,.78) 0%,rgba(28,12,8,.22) 24%,transparent 40%,transparent 60%,rgba(28,12,8,.22) 76%,rgba(28,12,8,.8) 100%)}
+#spinM .spRou.file::before{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;opacity:.55;
+  background:repeating-linear-gradient(90deg,transparent 0 9px,rgba(90,60,30,.18) 9px 11px)}
 #spinM .spBande{position:absolute;left:0;right:0;top:0;will-change:transform}
-#spinM .spSym{height:var(--spH);display:flex;align-items:center;justify-content:center}
-#spinM .spSym .pxi{--pxs:var(--spX,4);filter:drop-shadow(0 2px 0 var(--k0))}
-#spinM .spSym.s0 .pxi{color:var(--au2)}
-#spinM .spSym.s1 .pxi{color:var(--neoC)}
-#spinM .spSym.s2 .pxi{color:var(--neoA)}
-#spinM .spSym.s3 .pxi{color:var(--neoM)}
-#spinM .spSym.s4 .pxi{color:var(--au0);filter:drop-shadow(0 2px 0 var(--auE)) drop-shadow(0 0 6px var(--au2))}
-#spinM .spRou.pose{animation:spPose var(--t-slow) var(--ease)}
-@keyframes spPose{0%{transform:translateY(3px)}100%{transform:none}}
-/* la LIGNE de gain : le néon */
-#spinM .spLigne{position:absolute;left:calc(var(--spH)*.18);right:calc(var(--spH)*.18);top:50%;height:var(--spH);transform:translateY(-50%);z-index:2;pointer-events:none;
-  box-shadow:inset 0 0 0 2px var(--neoM),0 0 12px var(--neoM),inset 0 0 12px rgba(255,62,200,.35)}
-#spinM.gagne .spLigne{box-shadow:inset 0 0 0 3px var(--au1),0 0 18px var(--au2),inset 0 0 16px rgba(255,199,42,.45)}
-/* LE GAIN : le titre en petit, le montant en vert billet (le jackpot en or) */
-#spinM .spGain{min-height:calc(var(--f6) + 20px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+#spinM .spSym{display:block;height:var(--spH);background-repeat:no-repeat;background-position:center;image-rendering:pixelated;
+  background-size:calc(var(--spPx,60px)*var(--z,1)) calc(var(--spPx,60px)*var(--z,1))}
+#spinM .spRou.pose{animation:spPose .32s var(--ease)}
+@keyframes spPose{0%{transform:translateY(4px)}100%{transform:none}}
+#spinM .spLigne{position:absolute;left:4px;right:4px;top:50%;height:var(--spH);transform:translateY(-50%);z-index:3;pointer-events:none;
+  box-shadow:inset 0 0 0 2px var(--neoM),0 0 12px var(--neoM)}
+#spinM .spLigne i{position:absolute;top:50%;width:0;height:0;border:calc(var(--spH)*.14) solid transparent;transform:translateY(-50%)}
+#spinM .spLigne i:first-child{left:calc(var(--spH)*-.3);border-left-color:var(--au1)}
+#spinM .spLigne i:last-child{right:calc(var(--spH)*-.3);border-right-color:var(--au1)}
+#spinM.gagne .spLigne{box-shadow:inset 0 0 0 3px var(--au1),0 0 20px var(--au2)}
+#spinM .spReflet{position:absolute;inset:0;z-index:4;pointer-events:none;
+  background:linear-gradient(118deg,transparent 0 18%,rgba(255,255,255,.16) 18% 24%,transparent 24% 30%,rgba(255,255,255,.08) 30% 32%,transparent 32%)}
+/* L'ÉCRAN DES LOTS : le petit écran sous la vitre */
+#spinM .spEcran{width:100%;min-height:calc(var(--spH)*.9);display:flex;align-items:center;justify-content:center;padding:6px 10px;box-sizing:border-box;
+  background:linear-gradient(180deg,#05030c,#120b26);box-shadow:inset 0 0 0 2px var(--k0),inset 0 0 0 3px var(--kl),inset 0 6px 12px rgba(0,0,0,.6)}
+#spinM .spGain{display:flex;align-items:center;justify-content:center;gap:10px;text-align:center}
+#spinM .spGain.attente span{font-size:var(--f1);color:var(--tx2);letter-spacing:1px;animation:spRespire 1.6s var(--ease) infinite}
+@keyframes spRespire{50%{opacity:.45}}
+#spinM .spGTx{display:flex;flex-direction:column;align-items:flex-start;gap:6px}
 #spinM .spGain small{font-size:var(--f1);color:var(--tx2);letter-spacing:1px}
 #spinM .spGain b{font-weight:400;font-size:var(--f6);color:var(--cash);text-shadow:0 2px 0 var(--cashO)}
-#spinM .spGain.brelan b{font-size:var(--f9)}
+#spinM .spGain b.bon{font-size:var(--f1);color:var(--neoC);text-shadow:none}
+#spinM .spGain.gros small,#spinM .spGain.lot small{color:var(--au1)}
+#spinM .spGain.gros b{font-size:var(--f9)}
 #spinM .spGain.jackpot small{color:var(--au1);font-size:var(--f3)}
 #spinM .spGain.jackpot b{font-size:var(--f7);color:var(--au1);text-shadow:0 3px 0 var(--auE),0 0 18px var(--auG);animation:spJack .5s var(--ease) 3}
-@keyframes spJack{0%{transform:scale(1)}40%{transform:scale(1.14)}100%{transform:scale(1)}}
-#spinM .spGain:not(.rien) b{animation:spMonte var(--t-slow) var(--ease)}
+@keyframes spJack{40%{transform:scale(1.14)}}
+#spinM .spGain:not(.attente){animation:spMonte var(--t-slow) var(--ease)}
 @keyframes spMonte{0%{transform:translateY(8px);opacity:0}100%{transform:none;opacity:1}}
-#spinM .spTire{width:min(100%,320px);min-height:56px;justify-content:center;font-size:var(--f5)}
+#spinM .spGIco{width:calc(var(--spH)*.7);height:calc(var(--spH)*.7)}
+/* LA FENTE : où tombe le jeton */
+#spinM .spFente{position:absolute;top:calc(var(--spH)*.1);right:calc(var(--spH)*.36);width:calc(var(--spH)*.36);height:5px;background:var(--k0);box-shadow:0 0 0 2px var(--auE)}
+/* LE LEVIER : le socle d'or vissé au flanc, la tige d'acier doré, la boule de laque rouge — il se TIRE au doigt (voir SPIN.lv) */
+#spinM .spLevier{position:absolute;right:0;top:50%;width:calc(var(--spH)*.72);height:calc(var(--spH)*3.4);transform:translateY(-50%);cursor:grab;touch-action:none;z-index:5}
+#spinM .spLevier.mort{opacity:.35;pointer-events:none}
+#spinM .spSocle{position:absolute;left:0;top:50%;width:calc(var(--spH)*.42);height:calc(var(--spH)*.7);transform:translateY(-50%);
+  background:linear-gradient(90deg,var(--auE),var(--au2) 40%,var(--au1) 60%,var(--auE));box-shadow:0 0 0 2px var(--k0),inset -3px 0 0 rgba(0,0,0,.3)}
+#spinM .spBras{position:absolute;left:calc(var(--spH)*.3);top:0;width:calc(var(--spH)*.36);height:50%;--L:calc(var(--spH)*1.7)}
+#spinM .spTige{position:absolute;left:50%;bottom:0;width:calc(var(--spH)*.14);height:var(--L);margin-left:calc(var(--spH)*-.07);transform-origin:50% 100%;transform:scaleY(var(--lc,1));
+  background:linear-gradient(90deg,#6b4a10,#ffe27a 40%,#fff8d6 55%,#c08a1a 80%,#6b4a10);box-shadow:0 0 0 2px var(--k0)}
+#spinM .spBoule{position:absolute;border-radius:50%;left:50%;bottom:var(--L);width:calc(var(--spH)*.62);height:calc(var(--spH)*.62);
+  transform:translate(-50%,calc(50% + var(--lb,0)*2*var(--L))) scale(calc(1 + var(--lb,0)*.18));
+  background:radial-gradient(circle at 34% 30%,#fff 0 10%,#ff8a9a 20%,#ff2a4a 46%,#8a0f24 92%);box-shadow:0 0 0 2px var(--k0),0 4px 0 rgba(0,0,0,.35),0 0 16px rgba(255,42,74,.5)}
+#spinM .spBoule::before{content:'';position:absolute;left:50%;top:50%;width:64px;height:64px;transform:translate(-50%,-50%)} /* la cible du doigt : 64 px, plus grande que la boule */
+/* LE PLATEAU : les jetons qui restent, des pièces à couronne sur un rail d'or (plus de compteur « ×0 ») */
+#spinM .spPlateau{display:flex;gap:6px;align-items:center;justify-content:center;min-height:calc(var(--spH)*.5);padding:4px 12px;
+  background:linear-gradient(180deg,#120b26,#07050f);box-shadow:inset 0 0 0 2px var(--auE),0 3px 0 var(--k0)}
+#spinM .spPlateau.vide{visibility:hidden}
+#spinM .spIco{display:inline-block;flex:none;background-repeat:no-repeat;background-position:center;background-size:contain;image-rendering:pixelated}
+#spinM .spPiece{width:calc(var(--spH)*.42);height:calc(var(--spH)*.42)}
+#spinM .spVole{position:absolute;z-index:6;width:calc(var(--spH)*.42);height:calc(var(--spH)*.42);pointer-events:none}
+#spinM .spTire{width:min(100%,340px);min-height:58px;justify-content:center;font-size:var(--f5)}
 #spinM.roule .spTire{opacity:.45;pointer-events:none}
-/* LE LEVIER (finition 1) : la tige d'or et la boule de laque rouge sur le flanc droit ; elle descend au tirage. Sa cible de doigt dépasse le
-   dessin (::before, 48 px), comme le veut la charte. */
-#spinM .spLevier{position:absolute;right:calc(var(--spH)*-.46);top:14%;width:calc(var(--spH)*.3);height:46%;z-index:3;cursor:pointer}
-#spinM .spLevier::before{content:'';position:absolute;left:50%;top:-10px;width:48px;height:calc(100% + 20px);transform:translateX(-50%)}
-#spinM .spTige{position:absolute;left:50%;bottom:0;width:6px;height:100%;transform:translateX(-50%);transform-origin:50% 100%;
-  background:linear-gradient(90deg,var(--auE),var(--au1) 45%,var(--au2) 60%,var(--auE));box-shadow:0 0 0 2px var(--k0)}
-#spinM .spBoule{position:absolute;left:50%;top:0;width:calc(var(--spH)*.3);height:calc(var(--spH)*.3);transform:translate(-50%,-50%);
-  background:radial-gradient(circle at 35% 30%,#fff 0 12%,var(--neoR) 30%,#8a0f24 100%);box-shadow:0 0 0 2px var(--k0),0 0 12px rgba(255,74,100,.5)}
-#spinM .spLevier.tire .spTige{animation:spTige .62s var(--ease)}
-#spinM .spLevier.tire .spBoule{animation:spBoule .62s var(--ease)}
-@keyframes spTige{0%{transform:translateX(-50%)}32%{transform:translateX(-50%) scaleY(-.2)}100%{transform:translateX(-50%)}}
-@keyframes spBoule{0%{top:0}32%{top:120%}100%{top:0}}
-/* LE FILÉ : un rouleau lancé à pleine vitesse s'étire et se brouille (un élément, pas l'arrière-plan : la règle du flou reste tenue) */
-#spinM .spRou.file .spSym .pxi{filter:blur(1.4px);transform:scaleY(1.3);opacity:.85}
-/* le flash et les éclats du jackpot */
-#spinM .spFlash{position:absolute;inset:0;background:var(--au0);opacity:0;pointer-events:none;z-index:3}
-#spinM .spPart{position:absolute;z-index:4;pointer-events:none;will-change:transform,opacity}
-#spinM .spPart .pxi{--pxs:3;color:var(--au2)}
-#spinM .spPart.liasse{width:22px;height:12px;background:var(--neoV);box-shadow:inset 0 0 0 2px var(--cashO),inset 0 0 0 4px var(--cash)}
-/* COUCHÉ : 390 px de haut — le titre et les marges se serrent */
-/* COUCHÉ : deux colonnes — la machine à gauche, aussi grande que la hauteur le permet ; le titre, le gain et l'or à droite. Le symbole se
-   règle sur la hauteur ET la largeur (667 × 375 compris). */
+/* LE JACKPOT : les éclats (3 par seconde au plus, voir spinFlash), la pluie de billets, les pièces */
+#spinM .spFlash{position:absolute;inset:0;background:var(--au0);opacity:0;pointer-events:none;z-index:7}
+#spinM .spPluie{position:absolute;inset:0;pointer-events:none;z-index:8;overflow:hidden}
+#spinM .spBillet{position:absolute;top:0;width:30px;height:16px;background:var(--neoV);box-shadow:inset 0 0 0 2px var(--cashO),inset 0 0 0 4px var(--cash)}
+#spinM .spPart{position:absolute;z-index:8;width:calc(var(--spH)*.4);height:calc(var(--spH)*.4);pointer-events:none}
+.spIco.mini{display:inline-block;width:18px;height:18px;vertical-align:-4px;background-size:contain;background-repeat:no-repeat;image-rendering:pixelated}
+/* COUCHÉ : la machine à gauche, aussi haute que l'écran le permet ; l'enseigne, le plateau et l'or à droite */
 @media (orientation:landscape) and (max-height:540px){
-  #spinM{--spH:clamp(36px,min(calc((100vh - var(--sT) - var(--sB) - 60px)/3.75),calc((100vw - var(--sL) - var(--sR) - 330px)/4.4)),80px)}
-  #spinM .spBox{display:grid;grid-template-columns:auto minmax(0,250px);grid-template-rows:auto auto 1fr auto;column-gap:28px;row-gap:8px;width:auto;align-items:center;justify-items:center}
-  #spinM .spMachine{grid-column:1;grid-row:1/5}
-  #spinM .spTitre{grid-column:2;grid-row:1;font-size:var(--f6)}
-  #spinM .spJet{grid-column:2;grid-row:2;flex-wrap:wrap;justify-content:center}
-  #spinM .spGain{grid-column:2;grid-row:3}
-  #spinM .spTire{grid-column:2;grid-row:4;width:100%;min-height:52px}}
-@media (prefers-reduced-motion:reduce){#spinM .spBulbs i{animation-duration:2.8s}}
+  #spinM{--spH:clamp(40px,min(calc((100vh - var(--sT) - var(--sB) - 48px)/5.1),calc((100vw - var(--sL) - var(--sR) - 290px)/4.95)),90px)}
+  #spinM .spBox{display:grid;grid-template-columns:auto minmax(0,240px);grid-template-rows:1fr auto auto 1fr;column-gap:22px;row-gap:12px;align-items:center;justify-items:center}
+  #spinM .spCorps{grid-column:1;grid-row:1/5}
+  #spinM .spEnseigne{grid-column:2;grid-row:1;align-self:end}
+  #spinM .spNeon{font-size:var(--f6)}
+  #spinM .spPlateau{grid-column:2;grid-row:2}
+  #spinM .spTire{grid-column:2;grid-row:3;width:100%;min-height:52px}}
+@media (prefers-reduced-motion:reduce){#spinM .spBulbs i{animation-duration:3s}#spinM.gagne .spNeon{animation:none}}
 </style>
 <style id="ux8-menus">
 /* UX 8 · LES MENUS (2026-10-14, Sacha : « on repasse à l'ancienne version des boutons avec la bonne charte graphique ; mets-toi dans la peau d'un
@@ -36356,37 +36380,68 @@ function mkPower(kind,dir){
   const ha=new THREE.Sprite(d.haloM);ha.scale.set(6,6,1);ha.renderOrder=2;ha.updateMatrix();ha.matrixAutoUpdate=false;g.add(ha); // (vague 2) le HALO additif (sprite : 4 sommets, zéro lumière)
   return g;
 }
-/* ===== LE FINAL SPIN (2026-10-14, Sacha au quiz de 14 h 50 : « le final spin [de Jetpack Joyride] est une bonne inspi, fais la même machine
-   exactement, mais travaille-la très bien avec la bonne DA, HUD, lumières, bonnes animations et un vrai niveau de finition ; ça ne doit pas se
-   déclencher à chaque partie ») — session IDEE, version 1.
-   · LES JETONS : rares sur la route (`spinPose`, appelé à la fin de spawnPickups) — une chance sur ~3,5 par zone, 3 au plus par partie,
-     souvent aucun. Tirés par Math.random, JAMAIS par `rnd` : la piste ne bouge pas d'un mètre. Une pièce d'or debout qui tourne sur elle-même,
-     cerclée de clair, son halo et son étiquette « JETON SPIN » — matières sur les recettes des cristaux de pouvoir (mêmes programmes : rien ne
-     compile en course ; la chauffe du menu monte la texture). Miroir des deux faces : prendre l'un retire son jumeau.
-   · RAMASSÉ = GARDÉ : `SAVE.d.spinJ` (9 au plus). Un jeton ne se perd jamais : REJOUER trop tôt, appli tuée — il attend l'écran de fin suivant.
-   · LA MACHINE (#spinM, <style id="finalSpin">) s'ouvre sur l'écran de fin (#mDead.on) 1,1 s après lui, et seulement quand l'offre de
-     SECONDE CHANCE de GENERAL est retombée (`chanceAttend()`) : mort → seconde chance éventuelle → machine. Un tirage par jeton : TIRER
-     (l'unique or) ; trois rouleaux qui reculent d'un cran (l'élan), filent, puis se posent l'un après l'autre avec du POIDS (un léger
-     dépassement, easeOutBack raccordé à la vitesse) ; le 3e traîne quand les deux premiers sont pareils. Les ampoules chassent autour de
-     la machine, accélèrent pendant le tirage, clignotent toutes au gain.
-   · LE RÉSULTAT est tiré AVANT (`spinTire`, `SPIN.proba`), les rouleaux s'y posent. Gains en ARGENT DU JEU (`SPIN.gains`, à caler par
-     GAMEPLAY) : rien = une pièce de consolation · une PAIRE · un BRELAN (selon le symbole) · le JACKPOT (trois couronnes) qui explose :
-     flash, pièces et liasses, vibration, `spin.jackpot` (les sons de la machine : spin.*, session SON). Versé au compte tout de suite (SAVE.flush) ; l'écran de fin relit.
-   · `?spin=0` éteint tout. Banc : `dbgSpin(n,'jackpot'|'brelan'|'paire'|'rien')` donne n jetons et impose le prochain tirage. */
-Object.assign(I18N,{'FINAL SPIN':'FINAL SPIN','JETON SPIN':'SPIN TOKEN','JETONS':'TOKENS','TIRER':'PULL','CONTINUER':'CONTINUE','JACKPOT !':'JACKPOT!',
-  'BRELAN':'THREE OF A KIND','PAIRE':'PAIR','CONSOLATION':'CONSOLATION','TOTAL':'TOTAL','JETON':'TOKEN'});
-const SPIN={on:!/[?&]spin=0\b/.test(location.search),pZone:.28,max:3,pose:0,ouvert:false,vu0:0,roule:false,force:null,total:0,el:null,
-  syms:['piece','gemme','flamme','etoile','couronne'],             // l'index 4 = la COURONNE : trois couronnes = le jackpot
-  gains:{rien:15,paire:80,brelan:[350,500,650,900],jackpot:3000},  // brelan[i] : trois fois le symbole i (pièce, gemme, flamme, étoile) — (GENERAL, validé par Sacha : en moyenne ≤ 10 % du gain d'une partie)
-  proba:{jackpot:.025,brelan:.14,paire:.38},                        // le reste : rien (une pièce de consolation) — espérance ≈ 196 $ le jeton, ~0,4 jeton par partie ≈ 80 $
-  N:15,bandes:[[0,1,2,0,3,1,4,2,0,1,3,2,0,3,1],[1,0,3,2,0,4,1,3,0,2,1,0,3,2,1],[2,3,0,1,4,0,2,1,3,0,2,1,0,3,2]]}; // une couronne par rouleau
-const SPIN_D=(function(){const d={};
-  d.orM=new THREE.MeshPhongMaterial({color:0xffc72a,emissive:0x9c5200,emissiveIntensity:.9,shininess:260,specular:0xffffff,envMap:envTex,reflectivity:.6,transparent:true,opacity:.97,depthWrite:false,flatShading:true}); // la recette exacte du verre des cristaux : même programme
+/* ===== LE FINAL SPIN v2 (2026-10-14 soir — Sacha, sur la v1 : « c'est ÇA la roulette, sérieux ? » ; l'ordre du matin : « le final spin [de
+   Jetpack Joyride] … la bonne DA, HUD, lumières, bonnes animations et un vrai niveau de finition ; ça ne doit pas se déclencher à chaque
+   partie ») — session IDEE. La v1 (une petite grille d'icônes sur l'écran de mort en transparence) est REFAITE :
+   · UNE GRANDE MACHINE qui tient l'écran, en relief : enseigne lumineuse « FINAL SPIN », caisse en laque cerclée d'or, ampoules qui chassent,
+     vitre aux rouleaux IVOIRE (des cylindres : les symboles s'écrasent et s'éteignent vers le haut et le bas), ligne de gain néon, un écran de
+     lots sous la vitre, un GROS LEVIER à boule rouge sur le flanc. Le fond est OPAQUE (plus rien de l'écran de mort ne transparaît).
+   · LE LEVIER SE TIRE AU DOIGT : il suit le pouce vers le bas avec une résistance qui monte, cliquette au cran (passé 55 %), part en
+     tirage au lâcher et revient en ressort ; lâché trop tôt, il remonte sans rien tirer. Un toucher simple, ou TIRER (l'unique or), le tirent
+     d'un coup. Les jetons attendent sur un PLATEAU (des pièces à couronne) : il n'y a plus de compteur « ×0 ».
+   · LES ROULEAUX : l'élan (un cran en arrière), la course (19 symboles/s, filé : les symboles s'étirent), la pose un par un avec du poids
+     (easeOutBack raccordée à la vitesse), le 3e qui fait durer le suspense quand les deux premiers sont pareils (ampoules en folie).
+   · LES LOTS SONT LES SYMBOLES (`SPIN.lots`, une ligne par lot, réglée par GENERAL) : trois PETITS SACS, trois SACS, trois GROS SACS (de
+     l'argent du jeu), trois CŒURS = une SECONDE CHANCE GRATUITE (un bon `SAVE.d.chanceG`, servi par l'offre de GENERAL à la prochaine
+     explosion), trois ÉCLAIRS = un DÉPART BOOSTÉ (`SAVE.d.spinBoost` : la partie suivante part nitro pleine, moteur au palier 1), trois
+     JETONS = un tirage de plus, trois 7 = le JACKPOT (flash à 3 éclats par seconde au plus, pluie de billets, pièces, vibration). Sans
+     brelan : un lot de consolation. Symboles en pixel art de couleur (`SPIN_SPR`, peints une fois dans des canvas).
+   · Sons de la session SON : spin.levier, spin.cran, spin.arret (une note par rouleau), spin.piece, spin.gain, spin.jackpot.
+   · INCHANGÉ depuis la v1 : les jetons rares sur la route (spinPose / spinPrend / mkJeton), gardés dans `SAVE.d.spinJ`, la machine qui
+     s'ouvre sur l'écran de fin après l'offre de seconde chance (`chanceAttend()`), `?spin=0`, `dbgSpin(n,lot)` (lot = un id de SPIN.lots,
+     'rien', ou les anciens 'jackpot'/'brelan'/'paire'), `dbgJeton(d)`. */
+Object.assign(I18N,{'FINAL SPIN':'FINAL SPIN','JETON SPIN':'SPIN TOKEN','TIRER':'PULL','CONTINUER':'CONTINUE','JACKPOT !':'JACKPOT!',
+  'PETIT SAC':'SMALL BAG',"SAC D'ARGENT":'MONEY BAG','GROS SAC':'BIG BAG','SECONDE CHANCE GRATUITE':'FREE SECOND CHANCE','DÉPART BOOSTÉ':'BOOSTED START',
+  '+1 JETON':'+1 TOKEN','LOT DE CONSOLATION':'CONSOLATION PRIZE','TIRE LE LEVIER':'PULL THE LEVER','À TA PROCHAINE CHUTE':'ON YOUR NEXT CRASH',
+  'NITRO PLEINE · MOTEUR +1':'FULL NITRO · ENGINE +1','UN TIRAGE DE PLUS':'ONE MORE PULL','GRATUIT':'FREE','À LA PROCHAINE PARTIE':'ON YOUR NEXT RUN'});
+const SPIN={on:!/[?&]spin=0\b/.test(location.search),pZone:.28,max:3,pose:0,ouvert:false,vu0:0,roule:false,force:null,total:0,el:null,N:20,
+  /* LES LOTS — une ligne par lot, l'index = le symbole des rouleaux. p = probabilité par tirage (le reste : la consolation). GENERAL en règle
+     l'économie (plafond validé par Sacha : en moyenne ≤ 10 % du gain d'une partie) : argent ≈ 178 $ d'espérance par tirage, ~0,4 jeton par partie. */
+  lots:[{id:'petit',nm:'PETIT SAC',p:.20,cash:120},
+        {id:'sac',nm:"SAC D'ARGENT",p:.12,cash:300},
+        {id:'gros',nm:'GROS SAC',p:.04,cash:1000},
+        {id:'coeur',nm:'SECONDE CHANCE GRATUITE',p:.05,bon:'chanceG',sous:'À TA PROCHAINE CHUTE'},
+        {id:'boost',nm:'DÉPART BOOSTÉ',p:.07,bon:'spinBoost',sous:'NITRO PLEINE · MOTEUR +1'},
+        {id:'jeton',nm:'+1 JETON',p:.05,jeton:1,sous:'UN TIRAGE DE PLUS'},
+        {id:'sept',nm:'JACKPOT !',p:.012,cash:5000}],
+  conso:{nm:'LOT DE CONSOLATION',cash:40},
+  bandeN:[4,4,2,2,3,3,2]};                                          // combien de fois chaque symbole sur un rouleau de 20
+// LES SYMBOLES — pixel art 12 × 12, une palette par symbole (k = l'encre), `z` = la taille dans la fenêtre (les sacs grossissent avec le lot)
+const SPIN_SPR=[
+  {z:.72,pal:{k:'#1c0430',b:'#b8743a',B:'#e8a860',d:'#6b3a14',v:'#3fd06a',V:'#c9ffd8'},r:['....kkkk....','....kBBk....','.....kk.....','...kkkkkk...','..kbBBBBbk..','.kbBBvvBBbk.','.kbBvVVvBbk.','.kbBBvvBBbk.','.kbbBBBBbbk.','.kdbbbbbbdk.','..kddddddk..','...kkkkkk...']},
+  {z:.9,pal:{k:'#1c0430',b:'#a8622a',B:'#e09a50',d:'#5a2e0c',v:'#ffc72a',V:'#fff3c0'},r:['....kkkk....','....kBBk....','.....kk.....','...kkkkkk...','..kbBBBBbk..','.kbBBvvBBbk.','.kbBvVVvBbk.','.kbBBvvBBbk.','.kbbBBBBbbk.','.kdbbbbbbdk.','..kddddddk..','...kkkkkk...']},
+  {z:1.06,pal:{k:'#2a1200',b:'#ffc72a',B:'#fff3c0',d:'#9c5200',v:'#ffffff',V:'#5ee6ff'},r:['....kkkk....','....kBBk....','.....kk.....','...kkkkkk...','..kbBBBBbk..','.kbBBvvBBbk.','.kbBvVVvBbk.','.kbBBvvBBbk.','.kbbBBBBbbk.','.kdbbbbbbdk.','..kddddddk..','...kkkkkk...']},
+  {z:.92,pal:{k:'#1c0430',r:'#ff3b5c',R:'#ffb3c0',m:'#a3122f',w:'#ffffff'},r:['............','..kkk..kkk..','.kRRrkkrrrk.','kRwRrrrrrrrk','kRRrrrrrrrrk','krrrrrrrrrmk','.krrrrrrrmk.','..krrrrrmk..','...krrrmk...','....krmk....','.....kk.....','............']},
+  {z:.95,pal:{k:'#1c0430',Y:'#fff6b0',y:'#ffd23a',o:'#e07800'},r:['......kkkk..','.....kYyk...','....kYyk....','...kYyok....','..kYyyykkk..','.kYyyyyyyk..','.kkkkYyyk...','....kYyk....','...kYyok....','..kYyok.....','..kyok......','..kkk.......']},
+  {z:.88,pal:{k:'#2a1200',g:'#ffc72a',G:'#fff3c0',o:'#9c5200'},r:['...kkkkkk...','.kkggggggkk.','.kgGGGGGGgk.','kgGGGGGGGGgk','kgGoGooGoGgk','kgGooooooGgk','kgGooooooGgk','kgGGGGGGGGgk','.kgGGGGGGgk.','.kkooooookk.','...kkkkkk...','............']},
+  {z:1,pal:{k:'#2a1200',R:'#ffd0d8',r:'#ff2a4a',m:'#8a0f24'},r:['............','.kkkkkkkkkk.','.kRRRRRRRrk.','.krrrrrrrrk.','.kkkkkkkrmk.','......krmk..','.....krmk...','....krrmk...','....krmk....','...krrmk....','...krmk.....','...kkkk.....']}];
+function spinSprites(){ // les sept symboles peints UNE fois (canvas → data URL) ; la feuille <style id="spinSpr"> les pose sur .spS0 … .spS6
+  if(spinSprites.ok)return;spinSprites.ok=true;let css='';
+  SPIN_SPR.forEach(function(S,i){const Z=8,cv=document.createElement('canvas');cv.width=cv.height=12*Z;const c=cv.getContext('2d');
+    for(let y=0;y<12;y++)for(let x=0;x<12;x++){const ch=S.r[y][x];if(ch==='.')continue;c.fillStyle=S.pal[ch]||'#ff00ff';c.fillRect(x*Z,y*Z,Z,Z);}
+    let u='';try{u=cv.toDataURL('image/png');}catch(e){}
+    css+='#spinM .spS'+i+',.spIco.spS'+i+'{background-image:url('+u+');--z:'+S.z+'}';});
+  const st=document.createElement('style');st.id='spinSpr';st.textContent=css;document.head.appendChild(st);}
+function spinIco(i,cl){return '<i class="spIco spS'+i+(cl?' '+cl:'')+'" aria-hidden="true"></i>';}
+SPIN.bandes=[0,1,2].map(function(){const L=[];SPIN.bandeN.forEach(function(n,i){for(let k=0;k<n;k++)L.push(i);});
+  for(let i=L.length-1;i>0;i--){const j=(Math.random()*(i+1))|0,t=L[i];L[i]=L[j];L[j]=t;}return L;}); // trois rouleaux, trois ordres
+const SPIN_D=(function(){const d={}; // LE JETON SUR LA ROUTE (v1) : les recettes exactes des cristaux de pouvoir — mêmes programmes, rien ne compile en course
+  d.orM=new THREE.MeshPhongMaterial({color:0xffc72a,emissive:0x9c5200,emissiveIntensity:.9,shininess:260,specular:0xffffff,envMap:envTex,reflectivity:.6,transparent:true,opacity:.97,depthWrite:false,flatShading:true});
   d.ringM=new THREE.MeshBasicMaterial({color:0xfff3c0,transparent:true,opacity:.85});
   d.haloM=new THREE.SpriteMaterial({map:lampTex,color:0xffc72a,transparent:true,opacity:.5,depthWrite:false,blending:THREE.AdditiveBlending});
   const cv=document.createElement('canvas');cv.width=cv.height=128;
   d.icoM=new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthWrite:false});
-  d.icoM.onBeforeCompile=PWR_DEFS.x.icoM.onBeforeCompile;d.icoM.customProgramCacheKey=PWR_DEFS.x.icoM.customProgramCacheKey; // l'étiquette qui s'efface au loin : le programme des cristaux
+  d.icoM.onBeforeCompile=PWR_DEFS.x.icoM.onBeforeCompile;d.icoM.customProgramCacheKey=PWR_DEFS.x.icoM.customProgramCacheKey;
   d.icoDessine=function(){const c=cv.getContext('2d');c.clearRect(0,0,128,128);c.textAlign='center';
     const g=PXI_G.couronne;if(g){const rows=g.split('|'),Z=5,X0=64-4.5*Z,Y0=12;
       for(const o of [[-2,0],[2,0],[0,-2],[0,2],[0,0]]){c.fillStyle=o[0]||o[1]?'#2a1200':'#ffd75e';
@@ -36395,19 +36450,19 @@ const SPIN_D=(function(){const d={};
     c.strokeText(lb,64,102);c.fillStyle='#ffd75e';c.fillText(lb,64,102);d.icoM.map.needsUpdate=true;};
   d.icoDessine();
   try{if(document.fonts&&document.fonts.load)document.fonts.load('11px "Press Start 2P"').then(function(){d.icoDessine();}).catch(function(){});}catch(e){}
-  d.geo=new THREE.CylinderGeometry(1.7,1.7,.46,24);d.geo.rotateX(Math.PI/2); // la pièce DEBOUT, face à la caisse
+  d.geo=new THREE.CylinderGeometry(1.7,1.7,.46,24);d.geo.rotateX(Math.PI/2);
   d.rimGeo=new THREE.TorusGeometry(1.78,.17,6,28);
   return d;})();
 function mkJeton(dir){const d=SPIN_D,g=new THREE.Group();
   g.add(new THREE.Mesh(d.geo,d.orM),new THREE.Mesh(d.rimGeo,d.ringM));
-  const ic=new THREE.Sprite(d.icoM);ic.scale.set(6,6,1);ic.position.y=(dir||1)*4.3;g.add(ic); // sous la route : l'étiquette côté joueur
+  const ic=new THREE.Sprite(d.icoM);ic.scale.set(6,6,1);ic.position.y=(dir||1)*4.3;g.add(ic);
   const ha=new THREE.Sprite(d.haloM);ha.scale.set(7.5,7.5,1);ha.renderOrder=2;ha.updateMatrix();ha.matrixAutoUpdate=false;g.add(ha);
   return g;}
 function spinPose(){ // fin de spawnPickups : AU PLUS un jeton par zone, et seulement si le hasard le veut (souvent non)
   if(!SPIN.on||BALADE||PARK.on||SANDBOX||TUTO.on||SURV.on||SPIN.pose>=SPIN.max||(LVL.cur&&(LVL.cur.piste==='tuto'||LVL.cur.camp)))return;
   if(Math.random()>SPIN.pZone)return;
   let ss=-1;for(let k=0;k<8&&ss<0;k++){const c9=L*(.22+Math.random()*.6);if(holeAtS(c9))continue;let ok=true;
-    for(const p of pickups)if(p.pow&&Math.abs(p.s-c9)<60){ok=false;break;}if(ok)ss=c9;} // jamais collé à un cristal : on vise l'un OU l'autre
+    for(const p of pickups)if(p.pow&&Math.abs(p.s-c9)<60){ok=false;break;}if(ok)ss=c9;}
   if(ss<0)return;
   const lt=(Math.random()*2-1)*(ROAD_HALF-5);
   frameAt(ss,F);mat4b.makeBasis(F.b,F.n,F.t);
@@ -36420,64 +36475,108 @@ function spinPrend(p){ // le ramassage (boucle) : le jumeau de l'autre face part
   for(const q of pickups)if(q.spin&&q!==p&&!q.taken&&q.s===p.s){q.taken=true;scene.remove(q.mesh);}
   SAVE.d.spinJ=Math.min(9,(SAVE.d.spinJ|0)+1);SAVE.mark();
   try{if(SONV2)sfx('pwr.autre');}catch(e){}hap([14,40,22]);
-  try{toast(pxi('couronne')+' '+sansAcc(TR('JETON SPIN'))+' ×'+SAVE.d.spinJ,true);}catch(e){}}
-function spinTire(){ // le résultat, AVANT que les rouleaux ne tournent
-  const f=SPIN.force;SPIN.force=null;const P=SPIN.proba,r=Math.random(),R=function(n){return (Math.random()*n)|0;};
-  const k=f||(r<P.jackpot?'jackpot':r<P.jackpot+P.brelan?'brelan':r<P.jackpot+P.brelan+P.paire?'paire':'rien');let s;
-  if(k==='jackpot')s=[4,4,4];
-  else if(k==='brelan'){const a=R(4);s=[a,a,a];}
-  else if(k==='paire'){const a=R(5);let b=R(5);while(b===a)b=R(5);s=[a,a,a];s[R(3)]=b;}
-  else{const L9=[0,1,2,3,4];for(let i=4;i>0;i--){const j=R(i+1),t=L9[i];L9[i]=L9[j];L9[j]=t;}s=L9.slice(0,3);}
-  return {k:k,s:s,g:k==='jackpot'?SPIN.gains.jackpot:k==='brelan'?SPIN.gains.brelan[s[0]]:k==='paire'?SPIN.gains.paire:SPIN.gains.rien};}
-function spinDom(){ // la machine, fabriquée UNE fois (au premier tirage de la session)
-  if(SPIN.el)return SPIN.el;
+  try{spinSprites();toast(spinIco(5,'mini')+' '+sansAcc(TR('JETON SPIN'))+' ×'+SAVE.d.spinJ,true);}catch(e){}}
+function spinTire(){ // le résultat, AVANT que les rouleaux ne tournent : un lot (brelan) ou la consolation (deux pareils au plus)
+  const f=SPIN.force;SPIN.force=null;const R=function(n){return (Math.random()*n)|0;},Lo=SPIN.lots,N=Lo.length;
+  let i=-1;
+  if(f!=null){const al={jackpot:'sept',brelan:'gros',paire:null,rien:null}[f];const id=al!==undefined?al:f;i=id==null?-1:Lo.findIndex(function(l){return l.id===id;});}
+  else{let r=Math.random();for(let k=0;k<N;k++){if(r<Lo[k].p){i=k;break;}r-=Lo[k].p;}}
+  if(i>=0)return {i:i,lot:Lo[i],s:[i,i,i]};
+  // la consolation : souvent un « presque » (deux gros symboles sur les deux premiers rouleaux, le 3e qui fait durer), sinon trois différents
+  let s;if(f==='paire'||(f==null&&Math.random()<.38)){const a=2+R(N-2);let b=R(N);while(b===a)b=R(N);s=[a,a,b];}
+  else{const L9=[];for(let k=0;k<N;k++)L9.push(k);for(let k=N-1;k>0;k--){const j=R(k+1),t=L9[k];L9[k]=L9[j];L9[j]=t;}s=L9.slice(0,3);}
+  return {i:-1,lot:SPIN.conso,s:s};}
+function spinDom(){ // LA MACHINE, fabriquée une fois (au premier tirage de la session)
+  if(SPIN.el)return SPIN.el;spinSprites();
   const el=document.createElement('div');el.id='spinM';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-label','Final spin');
-  let rou='';for(let r=0;r<3;r++){let b='';for(let k=0;k<SPIN.N*2;k++){const i=SPIN.bandes[r][k%SPIN.N];b+='<div class="spSym s'+i+'">'+pxi(SPIN.syms[i])+'</div>';}
-    rou+='<div class="spRou"><div class="spBande">'+b+'</div></div>';}
-  let bu='';const pts=[];for(let i=0;i<9;i++)pts.push([4+i*11.5,0]);for(let i=1;i<5;i++)pts.push([100,i*20]);for(let i=8;i>=0;i--)pts.push([4+i*11.5,100]);for(let i=4;i>0;i--)pts.push([0,i*20]);
-  pts.forEach(function(q,i){bu+='<i style="left:'+q[0]+'%;top:'+q[1]+'%;--i:'+i+'"></i>';});
-  el.innerHTML='<div class="spFlash"></div><div class="spBox"><div class="spTitre"></div><div class="spJet"></div>'
-    +'<div class="spMachine"><div class="spBulbs">'+bu+'</div><div class="spFens">'+rou+'</div><div class="spLigne"></div>'
-    +'<div class="spLevier" role="button" aria-label="Levier"><i class="spTige"></i><i class="spBoule"></i></div></div>'
-    +'<div class="spGain" aria-live="polite"></div><div class="pbtn pb-gold big wide spTire" role="button" tabindex="0"></div></div>';
+  const bulbes=function(n,cl){let h='<div class="spBulbs '+cl+'">';const per=[];const a=Math.round(n*.32),b=Math.round(n*.18);
+    for(let i=0;i<a;i++)per.push([(i+.5)/a*100,0]);for(let i=0;i<b;i++)per.push([100,(i+.5)/b*100]);for(let i=a-1;i>=0;i--)per.push([(i+.5)/a*100,100]);for(let i=b-1;i>=0;i--)per.push([0,(i+.5)/b*100]);
+    per.forEach(function(q,i){h+='<i style="left:'+q[0].toFixed(1)+'%;top:'+q[1].toFixed(1)+'%;--i:'+i+'"></i>';});return h+'</div>';};
+  let rou='';for(let r=0;r<3;r++){let b='';for(let k=0;k<SPIN.N*2;k++)b+='<i class="spSym spS'+SPIN.bandes[r][k%SPIN.N]+'"></i>';rou+='<div class="spRou"><div class="spBande">'+b+'</div></div>';}
+  el.innerHTML='<div class="spFlash"></div><div class="spPluie" aria-hidden="true"></div><div class="spBox">'
+    +'<div class="spEnseigne">'+bulbes(22,'spB1')+'<b class="spNeon"></b></div>'
+    +'<div class="spCorps"><div class="spCab">'+bulbes(30,'spB2')
+      +'<div class="spVitre"><div class="spFens">'+rou+'</div><div class="spLigne"><i></i><i></i></div><div class="spReflet"></div></div>'
+      +'<div class="spEcran"><div class="spGain" aria-live="polite"></div></div><i class="spFente"></i></div>'
+      +'<div class="spLevier" role="button" tabindex="0" aria-label="Levier"><i class="spSocle"></i><div class="spBras"><i class="spTige"></i><i class="spBoule"></i></div></div></div>'
+    +'<div class="spPlateau" aria-hidden="true"></div>'
+    +'<div class="pbtn pb-gold big wide spTire" role="button" tabindex="0"></div></div>';
   document.body.appendChild(el);
   SPIN.el=el;SPIN.rous=[].slice.call(el.querySelectorAll('.spRou'));SPIN.bds=[].slice.call(el.querySelectorAll('.spBande'));
-  SPIN.btn=el.querySelector('.spTire');SPIN.gEl=el.querySelector('.spGain');SPIN.jEl=el.querySelector('.spJet');
-  SPIN.p=[0,0,0].map(function(){return ((Math.random()*SPIN.N)|0);}); // positions en SYMBOLES (le symbole du milieu = index + 1)
-  SPIN.btn.addEventListener('click',function(e){e.stopPropagation();spinAppui();});
-  SPIN.lev=el.querySelector('.spLevier');SPIN.lev.addEventListener('click',function(e){e.stopPropagation();if((SAVE.d.spinJ|0)>0)spinAppui();}); // (finition) le levier se tire aussi au doigt
+  SPIN.symEls=SPIN.bds.map(function(b){return [].slice.call(b.children);});SPIN.vus=[[],[],[]];
+  SPIN.btn=el.querySelector('.spTire');SPIN.gEl=el.querySelector('.spGain');SPIN.plat=el.querySelector('.spPlateau');
+  SPIN.lev=el.querySelector('.spLevier');SPIN.bras=el.querySelector('.spBras');SPIN.fente=el.querySelector('.spFente');
+  SPIN.p=[0,0,0].map(function(){return (Math.random()*SPIN.N)|0;});SPIN.lv={th:0,v:0,drag:false,y0:0,cran:false,anim:0};
+  SPIN.btn.addEventListener('click',function(e){e.stopPropagation();spinTirer(false);});
   el.addEventListener('click',function(e){e.stopPropagation();});
+  // LE LEVIER AU DOIGT : il suit le pouce (résistance qui monte), cliquette au cran, part au lâcher passé 55 % ; un simple toucher le tire d'un coup
+  const lv=SPIN.lev,LV=SPIN.lv;
+  lv.addEventListener('pointerdown',function(e){e.preventDefault();e.stopPropagation();if(SPIN.roule||LV.anim||(SAVE.d.spinJ|0)<=0)return;
+    LV.drag=true;LV.y0=e.clientY;LV.dy=0;LV.cran=false;try{lv.setPointerCapture(e.pointerId);}catch(_){}});
+  lv.addEventListener('pointermove',function(e){if(!LV.drag)return;LV.dy=e.clientY-LV.y0;const d=Math.max(0,LV.dy)/(SPIN.H*2.3);
+    const th=1-Math.exp(-d*2.2);levierPose(th);if(th>.55&&!LV.cran){LV.cran=true;hap(6);try{if(SONV2)sfx('spin.cran',{vol:-4});}catch(_){}}});
+  const lache=function(e){if(!LV.drag)return;LV.drag=false;try{lv.releasePointerCapture(e.pointerId);}catch(_){}
+    if(LV.dy<8&&LV.th<.12){spinTirer(false);return;} // un simple toucher
+    if(LV.th>=.55)spinTirer(true);else levierRessort();};
+  lv.addEventListener('pointerup',lache);lv.addEventListener('pointercancel',lache);
   return el;}
-function spinH(){return SPIN.rous[0].offsetHeight/3||60;} /* la hauteur de MISE EN PAGE : à l'ouverture la machine est encore réduite à 94 % par son entrée (transform), getBoundingClientRect donnait un symbole trop court et le décalage s'accumulait à chaque cran (banc : une PAIRE affichée avec trois symboles différents) */
-addEventListener('resize',function(){if(SPIN.ouvert&&SPIN.rous){SPIN.H=spinH();spinPeint();}}); // l'iPhone qu'on tourne : les rouleaux se remesurent
-function spinPeint(){ // les trois bandes à leur position (une bande = deux tours : le défilement boucle sans couture)
-  const H=SPIN.H||spinH();for(let r=0;r<3;r++){const p=((SPIN.p[r]%SPIN.N)+SPIN.N)%SPIN.N;SPIN.bds[r].style.transform='translate3d(0,'+(-p*H).toFixed(1)+'px,0)';}}
-function spinLabels(){const n=SAVE.d.spinJ|0;
-  SPIN.el.querySelector('.spTitre').textContent=sansAcc(TR('FINAL SPIN'));
-  SPIN.jEl.innerHTML=pxi('couronne')+'<span>'+sansAcc(TR('JETONS'))+'</span><b>×'+n+'</b>'+(SPIN.total>0?'<em>'+sansAcc(TR('TOTAL'))+' '+fmtC(SPIN.total)+'</em>':'');
-  SPIN.btn.textContent=sansAcc(TR(n>0?'TIRER':'CONTINUER'));SPIN.btn.classList.toggle('fin',n<=0);}
-function spinOuvre(){
-  spinDom();SPIN.ouvert=true;SPIN.total=0;SPIN.roule=false;SPIN.gEl.innerHTML='';SPIN.gEl.className='spGain';
-  SPIN.el.classList.add('on');spinLabels();
-  const H9=SPIN.H=spinH(),px=Math.max(2,Math.min(6,Math.floor(H9*.62/9)));SPIN.el.style.setProperty('--spX',px); // le pictogramme suit la taille des fenêtres
-  spinPeint();requestAnimationFrame(function(){SPIN.el.classList.add('vu');});
-  try{if(SONV2)sfx('ui.banniere');}catch(e){}hap(12);}
-function spinFerme(){if(!SPIN.el)return;SPIN.ouvert=false;SPIN.roule=false;SPIN.vu0=0;SPIN.el.classList.remove('vu','roule','gagne');
-  setTimeout(function(){if(!SPIN.ouvert)SPIN.el.classList.remove('on');},420);try{mFill();}catch(e){}}
-function spinAppui(){
-  if(SPIN.roule)return;
-  try{SPIN.btn.classList.add('appui');setTimeout(function(){SPIN.btn.classList.remove('appui');},140);}catch(e){}
+function levierPose(th){const c=Math.cos(Math.min(1,th)*Math.PI);SPIN.lv.th=th;
+  SPIN.bras.style.setProperty('--lc',c.toFixed(3));SPIN.bras.style.setProperty('--lb',(th<0?th*.35:(1-c)/2).toFixed(3));}
+function levierRessort(){ // le retour en RESSORT (amorti, un léger dépassement au-dessus de la butée)
+  const LV=SPIN.lv;let x=LV.th,v=0,prev=performance.now();LV.anim=1;
+  (function pas(now){const dt=Math.min(.033,(now-prev)/1000);prev=now;v+=(-170*x-13*v)*dt;x+=v*dt;levierPose(x);
+    if((Math.abs(x)>.003||Math.abs(v)>.02)&&SPIN.ouvert)requestAnimationFrame(pas);else{levierPose(0);LV.anim=0;}})(prev);}
+function spinTirer(dejaBas){ // le levier part (geste ou bouton) : il finit sa course en ~0,12 s, le tirage démarre, il revient en ressort
+  if(SPIN.roule||SPIN.lv.anim)return;
   if((SAVE.d.spinJ|0)<=0){uiClic('');hap(8);spinFerme();return;}
-  try{if(SONV2)sfx('spin.levier');else uiClic('');}catch(e){} /* (2026-10-14, session SON) le LEVIER a son clac mécanique (avant : le clic d'interface) */
-  hap(16);SAVE.d.spinJ=(SAVE.d.spinJ|0)-1;SAVE.flush();spinLabels();
-  try{SPIN.lev.classList.remove('tire');void SPIN.lev.offsetWidth;SPIN.lev.classList.add('tire');}catch(e){} // le levier s'abaisse
+  try{SPIN.btn.classList.add('appui');setTimeout(function(){SPIN.btn.classList.remove('appui');},140);}catch(e){}
+  const LV=SPIN.lv,t0=performance.now(),th0=dejaBas?LV.th:0,D=dejaBas?90:170;LV.anim=1;
+  (function bas(now){const u=Math.min(1,(now-t0)/D);levierPose(th0+(1-th0)*u*u);
+    if(u<1)requestAnimationFrame(bas);else{LV.anim=0;spinAppui();levierRessort();}})(t0);}
+function spinH(){return SPIN.rous[0].offsetHeight/3||60;} /* la hauteur de MISE EN PAGE (v1 : getBoundingClientRect, faussé par l'entrée en scale .94 — les rouleaux se décalaient) */
+addEventListener('resize',function(){if(SPIN.ouvert&&SPIN.rous){SPIN.H=spinH();spinPeint();}});
+function spinPeint(){ // les bandes à leur position, et le CYLINDRE : chaque symbole visible s'écrase et s'éteint vers les bords de la vitre
+  const H=SPIN.H||spinH(),N=SPIN.N;
+  for(let r=0;r<3;r++){const p=((SPIN.p[r]%N)+N)%N,E=SPIN.symEls[r],V=SPIN.vus[r],f=SPIN.rous[r].classList.contains('file');
+    SPIN.bds[r].style.transform='translate3d(0,'+(-p*H).toFixed(1)+'px,0)';
+    const k0=Math.floor(p)-1,nv=[];
+    for(let k=k0;k<=k0+5;k++){if(k<0||k>=E.length)continue;const u=k-p-1,cy=Math.cos(Math.max(-1.6,Math.min(1.6,u*.62)));
+      E[k].style.transform='scaleY('+(cy*(f?1.32:1)).toFixed(3)+')';E[k].style.opacity=(f?.72:1)*(.35+.65*cy).toFixed(3);nv.push(k);}
+    for(const k of V)if(nv.indexOf(k)<0){E[k].style.transform='';E[k].style.opacity='';}
+    SPIN.vus[r]=nv;}}
+function spinPlateau(prend){ // le plateau des jetons : une pièce à couronne par tirage restant (plus de compteur « ×0 »)
+  const n=SAVE.d.spinJ|0;let h='';for(let i=0;i<Math.min(9,n);i++)h+=spinIco(5,'spPiece');SPIN.plat.innerHTML=h;
+  SPIN.plat.classList.toggle('vide',n<=0);
+  if(prend){const fe=SPIN.fente.getBoundingClientRect(),pl=SPIN.plat.getBoundingClientRect(),t=document.createElement('i');
+    t.className='spIco spS5 spVole';t.style.left=(pl.left+pl.width/2)+'px';t.style.top=(pl.top+pl.height/2)+'px';SPIN.el.appendChild(t);
+    try{t.animate([{transform:'translate(-50%,-50%)',opacity:1},{transform:'translate(calc(-50% + '+(fe.left+fe.width/2-pl.left-pl.width/2).toFixed(0)+'px),calc(-50% + '+(fe.top+fe.height/2-pl.top-pl.height/2).toFixed(0)+'px)) scale(.55)',opacity:.2}],
+      {duration:420,easing:'cubic-bezier(.32,.72,0,1)'}).onfinish=function(){t.remove();};}catch(e){t.remove();}}}
+function spinLabels(){const n=SAVE.d.spinJ|0;
+  SPIN.el.querySelector('.spNeon').textContent=sansAcc(TR('FINAL SPIN'));
+  SPIN.btn.textContent=sansAcc(TR(n>0?'TIRER':'CONTINUER'));SPIN.btn.classList.toggle('fin',n<=0);SPIN.lev.classList.toggle('mort',n<=0);
+  spinPlateau(false);}
+function spinOuvre(){
+  spinDom();SPIN.ouvert=true;SPIN.total=0;SPIN.roule=false;SPIN.el.classList.remove('gagne','jackpot','tease','roule');
+  SPIN.gEl.className='spGain attente';SPIN.gEl.innerHTML='<span>'+sansAcc(TR('TIRE LE LEVIER'))+'</span>';
+  SPIN.el.classList.add('on');spinLabels();levierPose(0);
+  SPIN.H=spinH();SPIN.el.style.setProperty('--spPx',(SPIN.H*.82).toFixed(0)+'px');spinPeint();
+  requestAnimationFrame(function(){SPIN.el.classList.add('vu');});
+  try{if(SONV2)sfx('ui.banniere');}catch(e){}hap(12);}
+function spinFerme(){if(!SPIN.el)return;SPIN.ouvert=false;SPIN.roule=false;SPIN.vu0=0;SPIN.el.classList.remove('vu','roule','gagne','jackpot','tease');
+  setTimeout(function(){if(!SPIN.ouvert)SPIN.el.classList.remove('on');},420);try{mFill();}catch(e){}}
+function spinAppui(){ // le tirage : un jeton du plateau part dans la fente, le levier a claqué, les rouleaux partent
+  if(SPIN.roule)return;
+  if((SAVE.d.spinJ|0)<=0){spinFerme();return;}
+  hap(16);SAVE.d.spinJ=(SAVE.d.spinJ|0)-1;SAVE.flush();
+  try{if(SONV2)sfx('spin.levier');else uiClic('');}catch(e){} /* (session SON) le levier a son clac mécanique */
+  spinPlateau(true);spinLabels();
   spinLance(spinTire());}
 function spinLance(R){ // les trois rouleaux : l'élan, la course, la pose — positions en SYMBOLES, vitesse en symboles par seconde
-  SPIN.roule=true;SPIN.el.classList.add('roule');SPIN.el.classList.remove('gagne');SPIN.gEl.innerHTML='';SPIN.gEl.className='spGain';
+  SPIN.roule=true;SPIN.el.classList.add('roule');SPIN.el.classList.remove('gagne','jackpot');SPIN.gEl.className='spGain';SPIN.gEl.innerHTML='';
   const V=19,T0=performance.now(),tease=R.s[0]===R.s[1],N=SPIN.N;
-  /* la POSE : passé son heure (stop[r]), un rouleau file jusqu'à ce que son symbole soit à 6-7,5 crans, puis freine en ~1,3 s (easeOutBack
-     raccordée à la vitesse : f'(0)=4) — et jamais avant que son voisin de gauche ne soit posé depuis 0,3 s (l'ordre se lit de gauche à droite) */
-  const stop=[.95,1.4,tease?2.6:1.85],st=[0,1,2].map(function(r){return {p0:SPIN.p[r],v:0,ph:0,ps:0,pe:0,ts:0,D:0,fin:false,tf:0};});
+  /* la POSE : passé son heure (stop[r]), un rouleau file jusqu'à ce que son symbole soit à 6-7,5 crans (9-11 pour le suspense), puis freine
+     (easeOutBack raccordée à la vitesse : f'(0)=4) — jamais avant que son voisin de gauche ne soit posé depuis 0,3 s */
+  const stop=[.95,1.4,tease?2.9:1.85],st=[0,1,2].map(function(r){return {p0:SPIN.p[r],v:0,ph:0,ps:0,pe:0,ts:0,D:0,fin:false,tf:0,file:false};});
   let tic=0,prev=T0;
   function pas(now){
     const t=(now-T0)/1000,dt=Math.min(.05,(now-prev)/1000);prev=now;let tous=true;
@@ -36485,51 +36584,76 @@ function spinLance(R){ // les trois rouleaux : l'élan, la course, la pose — p
       if(S.ph===0){
         if(t<.09)SPIN.p[r]=S.p0-.22*Math.sin(t/.09*Math.PI/2); // l'élan : un cran en arrière
         else{S.v=Math.min(V,S.v+V*dt/.32);SPIN.p[r]+=S.v*dt;if(S.v>9&&!S.file){S.file=true;SPIN.rous[r].classList.add('file');}}
-        const P=r>0?st[r-1]:null,fPrev=!P?0:P.fin?P.tf:P.ph===1?P.ts+P.D:-1;
+        const P=r>0?st[r-1]:null,fPrev=!P?0:P.fin?P.tf:P.ph===1?P.ts+P.D:-1,dMin=r===2&&tease?9:6;
         if(t>=stop[r]&&fPrev>=0){
-          const B=SPIN.bandes[r];let pe=Math.ceil(SPIN.p[r]+6);while(B[((pe+1)%N+N)%N]!==R.s[r])pe++;
+          const B=SPIN.bandes[r];let pe=Math.ceil(SPIN.p[r]+dMin);while(B[((pe+1)%N+N)%N]!==R.s[r])pe++;
           const d=pe-SPIN.p[r],D=4*d/Math.max(6,S.v);
-          if(d<=7.5&&t+D>=fPrev+.3){S.ph=1;S.ps=SPIN.p[r];S.pe=pe;S.ts=t;S.D=D;}}}
-      else{const u=Math.min(1,(t-S.ts)/S.D),w=u-1;SPIN.p[r]=S.ps+(S.pe-S.ps)*(1+2*w*w*w+w*w);if(S.file&&u>.42){S.file=false;SPIN.rous[r].classList.remove('file');}
-        if(u>=1){S.fin=true;S.tf=t;SPIN.p[r]=S.pe;try{if(SONV2)sfx('spin.arret',{st:[0,4,7][r]|0});}catch(e){}hap(9); /* (session SON) le TCHONK du rouleau, une note plus haut à chaque rouleau */
+          if(d<=dMin+1.5&&t+D>=fPrev+.3){S.ph=1;S.ps=SPIN.p[r];S.pe=pe;S.ts=t;S.D=D;}}}
+      else{const u=Math.min(1,(t-S.ts)/S.D),w=u-1;SPIN.p[r]=S.ps+(S.pe-S.ps)*(1+2*w*w*w+w*w);
+        if(S.file&&u>.42){S.file=false;SPIN.rous[r].classList.remove('file');}
+        if(u>=1){S.fin=true;S.tf=t;SPIN.p[r]=S.pe;try{if(SONV2)sfx('spin.arret',{st:[0,4,7][r]|0});}catch(e){}hap(9); /* (session SON) le TCHONK, une note plus haut à chaque rouleau */
           const ro=SPIN.rous[r];ro.classList.remove('pose');void ro.offsetWidth;ro.classList.add('pose');
           if(r===1&&tease)SPIN.el.classList.add('tease');}}}
-    const q=Math.floor(SPIN.p[0]+SPIN.p[1]+SPIN.p[2]);if(q!==tic&&now-(spinLance._t||0)>55){tic=q;spinLance._t=now;try{if(SONV2)sfx('spin.cran');}catch(e){} /* (session SON) un CRAN par symbole qui passe : le cliquetis ralentit avec les rouleaux */}
+    const q=Math.floor(SPIN.p[0]+SPIN.p[1]+SPIN.p[2]);if(q!==tic&&now-(spinLance._t||0)>55){tic=q;spinLance._t=now;try{if(SONV2)sfx('spin.cran');}catch(e){}} /* (session SON) un cran par symbole : le cliquetis ralentit avec les rouleaux */
     spinPeint();
     if(!tous&&SPIN.ouvert)requestAnimationFrame(pas);
-    else if(SPIN.ouvert){SPIN.el.classList.remove('roule','tease');for(let r=0;r<3;r++)SPIN.p[r]=((SPIN.p[r]%N)+N)%N;spinPaye(R);}
-    else{SAVE.d.bank=Math.min(1e30,bank()+R.g);SAVE.flush();SPIN.roule=false;}} /* machine fermée en plein tirage (garage, partie relancée) : le gain est versé quand même */
+    else if(SPIN.ouvert){SPIN.el.classList.remove('roule','tease');for(let r=0;r<3;r++)SPIN.p[r]=((SPIN.p[r]%N)+N)%N;spinPeint();spinPaye(R);}
+    else{spinDonne(R);SPIN.roule=false;}} /* machine fermée en plein tirage : le lot est donné quand même */
   requestAnimationFrame(pas);}
-function spinPaye(R){ // le gain : au compte TOUT DE SUITE, puis le compteur monte à l'écran
-  SAVE.d.bank=Math.min(1e30,bank()+R.g);SAVE.flush();SPIN.total+=R.g;
-  const titre=R.k==='jackpot'?'JACKPOT !':R.k==='brelan'?'BRELAN':R.k==='paire'?'PAIRE':'CONSOLATION';
-  SPIN.gEl.className='spGain '+R.k;SPIN.gEl.innerHTML='<small>'+sansAcc(TR(titre))+'</small><b>+'+fmtC(0)+'</b>';
-  const b=SPIN.gEl.querySelector('b'),T0=performance.now(),D=R.k==='jackpot'?1400:R.k==='brelan'?900:550;let last=0;
-  (function monte(now){const u=Math.min(1,(now-T0)/D),v=R.g*(1-Math.pow(1-u,3));b.textContent='+'+fmtC(v);
-    if(u<1&&now-last>70){last=now;try{if(SONV2)sfx('spin.piece');}catch(e){} /* (session SON) les pièces qui tombent dans le bac */}
-    if(u<1&&SPIN.ouvert)requestAnimationFrame(monte);else b.textContent='+'+fmtC(R.g);})(T0);
-  if(R.k!=='rien'){SPIN.el.classList.add('gagne');setTimeout(function(){if(SPIN.el)SPIN.el.classList.remove('gagne');},R.k==='jackpot'?2600:1400);}
-  try{if(SONV2){if(R.k==='jackpot')sfx('spin.jackpot'); /* (2026-10-14, session SON) les GAINS de la machine ont leurs sons (avant : fig.jackpot + pluie.billets, argent.*, piece.recolte) */
-    else sfx('spin.gain',{var:R.k==='brelan'?1:0,vol:R.k==='rien'?-6:0});}}catch(e){}
-  if(R.k==='jackpot'){hap([30,60,40,80,60,120,90]);spinExplose(46);}else if(R.k==='brelan'){hap([20,40,30]);spinExplose(14);}else if(R.k==='paire')hap(14);
+function spinDonne(R){ // le lot, dans la sauvegarde — l'argent au compte, les bons dans leurs tiroirs, le jeton au plateau
+  const L=R.lot;
+  if(L.cash){SAVE.d.bank=Math.min(1e30,bank()+L.cash);SPIN.total+=L.cash;}
+  if(L.bon)SAVE.d[L.bon]=Math.min(3,(SAVE.d[L.bon]|0)+1);
+  if(L.jeton)SAVE.d.spinJ=Math.min(9,(SAVE.d.spinJ|0)+L.jeton);
+  SAVE.flush();}
+function spinPaye(R){ // le gain : donné TOUT DE SUITE, puis l'écran de la machine le raconte
+  spinDonne(R);const L=R.lot,gros=R.i>=2,jack=L.id==='sept';
+  SPIN.gEl.className='spGain '+(jack?'jackpot':gros?'gros':R.i>=0?'lot':'conso');
+  SPIN.gEl.innerHTML=(R.i>=0?spinIco(R.i,'spGIco'):'')+'<div class="spGTx"><small>'+sansAcc(TR(L.nm))+'</small>'
+    +(L.cash?'<b>+'+fmtC(0)+'</b>':'<b class="bon">'+sansAcc(TR(L.sous||''))+'</b>')+'</div>';
+  if(L.cash){const b=SPIN.gEl.querySelector('b'),T0=performance.now(),D=jack?1500:gros?950:600;let last=0;
+    (function monte(now){const u=Math.min(1,(now-T0)/D),v=L.cash*(1-Math.pow(1-u,3));b.textContent='+'+fmtC(v);
+      if(u<1&&now-last>70){last=now;try{if(SONV2)sfx('spin.piece');}catch(e){}} /* (session SON) les pièces qui tombent dans le bac */
+      if(u<1&&SPIN.ouvert)requestAnimationFrame(monte);else b.textContent='+'+fmtC(L.cash);})(T0);}
+  if(R.i>=0){SPIN.el.classList.add('gagne');if(jack)SPIN.el.classList.add('jackpot');
+    setTimeout(function(){if(SPIN.el)SPIN.el.classList.remove('gagne','jackpot');},jack?3200:1600);}
+  try{if(SONV2){if(jack)sfx('spin.jackpot');else sfx('spin.gain',{var:gros?1:0,vol:R.i<0?-6:0});}}catch(e){} /* (session SON) les gains de la machine */
+  if(jack){hap([30,60,40,80,60,120,90]);spinFlash(3);spinPluie(46);spinExplose(40);}
+  else if(gros){hap([20,40,30]);spinExplose(16);}
+  else if(R.i>=0)hap(14);
   spinLabels();try{mFill();}catch(e){}SPIN.roule=false;}
-function spinExplose(n){ // le gros lot : un flash, puis des pièces et des liasses qui jaillissent de la machine
-  const el=SPIN.el,fl=el.querySelector('.spFlash'),m=el.querySelector('.spMachine').getBoundingClientRect(),cx=m.left+m.width/2,cy=m.top+m.height/2;
-  if(n>20)try{fl.animate([{opacity:0},{opacity:.85},{opacity:0}],{duration:420,easing:'ease-out'});}catch(e){}
-  for(let i=0;i<n;i++){const d=document.createElement('div');const liasse=i%3===2;d.className='spPart'+(liasse?' liasse':'');if(!liasse)d.innerHTML=pxi('piece');
-    d.style.left=cx+'px';d.style.top=cy+'px';el.appendChild(d);
-    const a=Math.random()*Math.PI*2,R9=(n>20?160:90)+Math.random()*(n>20?260:120),dx=Math.cos(a)*R9,dy=Math.sin(a)*R9-60,rot=(Math.random()*2-1)*540;
-    try{const an=d.animate([{transform:'translate(-50%,-50%) scale(.4) rotate(0deg)',opacity:1},{transform:'translate(calc(-50% + '+(dx*.7).toFixed(0)+'px),calc(-50% + '+(dy*.7).toFixed(0)+'px)) scale(1.15) rotate('+(rot*.6).toFixed(0)+'deg)',opacity:1,offset:.55},
-      {transform:'translate(calc(-50% + '+dx.toFixed(0)+'px),calc(-50% + '+(dy+140).toFixed(0)+'px)) scale(.9) rotate('+rot.toFixed(0)+'deg)',opacity:0}],{duration:1100+Math.random()*700,easing:'cubic-bezier(.32,.72,0,1)',delay:Math.random()*120});
-      an.onfinish=function(){d.remove();};}catch(e){d.remove();}}}
-setInterval(function(){try{ // le guetteur : l'écran de fin est là, l'offre de seconde chance est tombée, il reste des jetons → la machine
+function spinFlash(n){ // les éclats du jackpot : 3 PAR SECONDE AU PLUS (règle des flashs), de l'or pâle, jamais du blanc plein
+  const fl=SPIN.el.querySelector('.spFlash');for(let i=0;i<n;i++)setTimeout(function(){try{fl.animate([{opacity:0},{opacity:.55},{opacity:0}],{duration:260,easing:'ease-out'});}catch(e){}},i*340);}
+function spinPluie(n){ // la pluie de billets : des liasses qui tombent sur tout l'écran en se balançant
+  const P=SPIN.el.querySelector('.spPluie'),W=VP.w||innerWidth,Hh=VP.h||innerHeight;
+  for(let i=0;i<n;i++){const d=document.createElement('i');d.className='spBillet';d.style.left=(Math.random()*W).toFixed(0)+'px';P.appendChild(d);
+    const dx=(Math.random()*2-1)*60,r0=Math.random()*360,du=1600+Math.random()*1300;
+    try{d.animate([{transform:'translate(-50%,-40px) rotate('+r0.toFixed(0)+'deg)',opacity:1},{transform:'translate(calc(-50% + '+(dx*.5).toFixed(0)+'px),'+(Hh*.5).toFixed(0)+'px) rotate('+(r0+180).toFixed(0)+'deg)',opacity:1,offset:.5},
+      {transform:'translate(calc(-50% + '+dx.toFixed(0)+'px),'+(Hh+40).toFixed(0)+'px) rotate('+(r0+360).toFixed(0)+'deg)',opacity:.9}],{duration:du,delay:Math.random()*900,easing:'linear'}).onfinish=function(){d.remove();};}catch(e){d.remove();}}}
+function spinExplose(n){ // les pièces qui jaillissent de la machine
+  const el=SPIN.el,m=el.querySelector('.spVitre').getBoundingClientRect(),cx=m.left+m.width/2,cy=m.top+m.height/2;
+  for(let i=0;i<n;i++){const d=document.createElement('i');d.className='spIco spS5 spPart';d.style.left=cx+'px';d.style.top=cy+'px';el.appendChild(d);
+    const a=Math.random()*Math.PI*2,R9=(n>20?150:90)+Math.random()*(n>20?240:120),dx=Math.cos(a)*R9,dy=Math.sin(a)*R9-70,rot=(Math.random()*2-1)*540;
+    try{d.animate([{transform:'translate(-50%,-50%) scale(.4) rotate(0deg)',opacity:1},{transform:'translate(calc(-50% + '+(dx*.7).toFixed(0)+'px),calc(-50% + '+(dy*.7).toFixed(0)+'px)) scale(1.1) rotate('+(rot*.6).toFixed(0)+'deg)',opacity:1,offset:.55},
+      {transform:'translate(calc(-50% + '+dx.toFixed(0)+'px),calc(-50% + '+(dy+160).toFixed(0)+'px)) scale(.85) rotate('+rot.toFixed(0)+'deg)',opacity:0}],{duration:1100+Math.random()*700,easing:'cubic-bezier(.32,.72,0,1)',delay:Math.random()*120}).onfinish=function(){d.remove();};}catch(e){d.remove();}}}
+/* LE DÉPART BOOSTÉ : appliqué quand une partie DÉMARRE (le guetteur voit passer « fin ou menu » → « en course », hors reprise de seconde chance),
+   après les remises à zéro de resetGame — la nitro pleine du palier, le moteur au palier 1 (ses pièces comptées). */
+function spinDepart(){
+  if(!((SAVE.d.spinBoost|0)>0)||SANDBOX||TUTO.on||PARK.on||BALADE)return;
+  SAVE.d.spinBoost=(SAVE.d.spinBoost|0)-1;SAVE.mark();
+  const T=ENGINE_TIERS[1];if(T){coinsGot=Math.max(coinsGot,T.coins|0);engTier=Math.max(engTier,1);}
+  nitroR=Math.max(nitroR,(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2);
+  try{spinSprites();toast(spinIco(4,'mini')+' '+sansAcc(TR('DÉPART BOOSTÉ')),true);}catch(e){}try{if(SONV2)sfx('nitro.pleine');}catch(e){}hap([10,30,20]);}
+setInterval(function(){try{ // le guetteur : la machine après l'écran de fin (et l'offre de seconde chance) ; le départ boosté au début d'une partie
   if(!SPIN.on)return;
+  const enCourse=started&&!gameOver;
+  if(enCourse&&!SPIN.enCourse&&!(typeof CHANCE!=='undefined'&&CHANCE.used))spinDepart();SPIN.enCourse=enCourse;
   if(SPIN.ouvert){if(!(started&&gameOver)||garageOn)spinFerme();return;}
   const ok=(SAVE.d.spinJ|0)>0&&started&&gameOver&&!SANDBOX&&!garageOn&&!chanceAttend()&&!!document.querySelector('#mDead.on');
   if(!ok){SPIN.vu0=0;return;}
   if(!SPIN.vu0)SPIN.vu0=performance.now();else if(performance.now()-SPIN.vu0>1100)spinOuvre();
 }catch(e){}},200);
-addEventListener('keydown',function(e){if(!SPIN.ouvert)return;if(e.code==='Enter'||e.code==='Space'){e.preventDefault();e.stopPropagation();if(!e.repeat)spinAppui();}},true); // au clavier : la machine prend la main (sinon Entrée relançait une partie DERRIÈRE elle)
+addEventListener('keydown',function(e){if(!SPIN.ouvert)return;if(e.code==='Enter'||e.code==='Space'){e.preventDefault();e.stopPropagation();if(!e.repeat)spinTirer(false);}},true); // au clavier : la machine prend la main
 window.dbgJeton=function(d){ /* (banc) un jeton posé d mètres devant la caisse, sur sa face — pour le voir et le prendre */
   const ss=s+(d||70),lt=0;frameAt(ss,F);mat4b.makeBasis(F.b,F.n,F.t);
   for(const face of [1,-1]){const m=mkJeton(face);m.position.copy(F.p).addScaledVector(F.b,lt).addScaledVector(F.n,face>0?2.6:-(THICK+2.6));
@@ -36538,6 +36662,7 @@ window.dbgJeton=function(d){ /* (banc) un jeton posé d mètres devant la caisse
   return ss;};
 window.dbgSpin=function(n,force){if(n!=null){SAVE.d.spinJ=Math.max(0,Math.min(9,n|0));SAVE.mark();}if(force)SPIN.force=force;
   return {on:SPIN.on,jetons:SAVE.d.spinJ|0,ouvert:SPIN.ouvert,roule:SPIN.roule,pose:SPIN.pose,total:SPIN.total,force:SPIN.force,
+    bons:{chanceG:SAVE.d.chanceG|0,spinBoost:SAVE.d.spinBoost|0},levier:SPIN.lv?+SPIN.lv.th.toFixed(2):0,
     surPiste:pickups.filter(function(p){return p.spin&&!p.taken&&p.face===1;}).length};};
 /* ===== POUVOIRS v2 — LE MOTEUR (2026-09-28) ===== voir la fiche PWR_DEFS. Un seul endroit lit et écrit les cinq minuteurs
    (`pwrT`/`pwrSet`) : la plaque du HUD, les bords d'écran, le ramassage et le tirage passent par ici. */
@@ -41687,7 +41812,7 @@ const SAVE={
     if(d.combos&&typeof d.combos==='object'){c.combos={};for(const k of Object.keys(d.combos).slice(0,40))if(/^[MPST]{3}$/.test(k))c.combos[k]=Math.min(1e6,Math.max(0,Math.round(+d.combos[k])||0));} // (2026-10-14) LE CARNET DES COMBOS À TROIS
     if(Array.isArray(d.figEq))c.figEq=[...new Set(d.figEq.filter(k=>typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k)))].slice(0,3); // (2026-10-14, LES FIGURES v2) les TROIS emplacements
     if(typeof d.pseudo==='string')c.pseudo=d.pseudo.slice(0,8);
-    c.tuto=d.tuto===0?0:(d.tuto||c.ex.runs>0)?1:0;c.permis=d.permis?1:0;c.cousin=d.cousin?1:0;c.spinJ=Math.max(0,Math.min(9,d.spinJ|0)); /* (2026-10-14) LE FINAL SPIN : les jetons gardés */ /* (2026-10-14) LE CODE COUSIN */ /* (2026-09-28) un 0 ÉCRIT est respecté : c'est « REVOIR L'AUTO-ÉCOLE » (le « qui a déjà joué » ne vaut que pour les sauvegardes d'avant l'auto-école, sans champ) · `permis` : la prime de 500 déjà versée (une seule fois) */ c.shopVu=d.shopVu?1:0;c.ast=Math.max(0,Math.min(255,Math.round(+d.ast)||0)); // `ast` : les ASTUCES déjà montrées (bits : 1 drift, 2 assiette en vol) // (2026-09-25) la pastille NEW de la boutique ne s'allume que tant qu'on n'y est jamais entré // qui a déjà joué ne refait pas la partie guidée
+    c.tuto=d.tuto===0?0:(d.tuto||c.ex.runs>0)?1:0;c.permis=d.permis?1:0;c.cousin=d.cousin?1:0;c.spinJ=Math.max(0,Math.min(9,d.spinJ|0));c.chanceG=Math.max(0,Math.min(3,d.chanceG|0));c.spinBoost=Math.max(0,Math.min(3,d.spinBoost|0)); /* (2026-10-14) FINAL SPIN v2 : les bons gagnés à la machine */ /* (2026-10-14) LE FINAL SPIN : les jetons gardés */ /* (2026-10-14) LE CODE COUSIN */ /* (2026-09-28) un 0 ÉCRIT est respecté : c'est « REVOIR L'AUTO-ÉCOLE » (le « qui a déjà joué » ne vaut que pour les sauvegardes d'avant l'auto-école, sans champ) · `permis` : la prime de 500 déjà versée (une seule fois) */ c.shopVu=d.shopVu?1:0;c.ast=Math.max(0,Math.min(255,Math.round(+d.ast)||0)); // `ast` : les ASTUCES déjà montrées (bits : 1 drift, 2 assiette en vol) // (2026-09-25) la pastille NEW de la boutique ne s'allume que tant qu'on n'y est jamais entré // qui a déjà joué ne refait pas la partie guidée
     c.aura=Math.max(0,Math.min(1e12,Math.round(+d.aura)||0));
     c.auraMax=Math.max(0,Math.min(1e12,Math.round(+d.auraMax)||0));
     c.bankMax=Math.max(c.bank||0,Math.min(1e30,Math.round(+d.bankMax)||0));c.bankMaxVu=Math.max(0,Math.min(c.bankMax,Math.round(+d.bankMaxVu)||0)); // (2026-10-06) LE RECORD DE FORTUNE (la jauge d'argent) : jamais sous la banque ; vu = celui que la jauge a déjà fêté
