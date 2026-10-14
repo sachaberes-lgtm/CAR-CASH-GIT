@@ -39403,6 +39403,7 @@ function portailPasse(){
     chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;caseHud.style.opacity=0;caseHud.className='';caseHot=false;}
   flashEcran('rgba(255,79,216,.6)'); // l'annonce, c'est « NIVEAU n — LIEU » (lvlAnnonce, couloir des annonces) : une seule voix au centre
   portalSnd();if(!SONV2)boostSnd();shake=.5; /* (console de son) `portail` porte tout le passage : plus le souffle d'un pad dessous */
+  if(SENS)try{sensHap([22,36,12],3);}catch(e){} // (2026-10-14, sensations · passages) le portail CLAQUE dans la main : un coup lourd puis son écho — le plus gros passage du jeu avait son flash, son souffle et sa secousse, mais pas une vibration (les finales et l'auto-école sortent plus haut : rien)
   const zb=denom()*24*(fever>0?2:1)*flowMult();money+=zb;levelCash+=zb;livre('$:portail',zb);checkUpgrade();frenCash(zb,carGroup.position); // portail : 40→24 (régulation 2026-07-30) · (2026-09-29) × le FLOW comme les pièces : franchi en FRÉNÉSIE, il paie ×3
   runStats.zones++;
   if(SONV2&&nitroR<nitroCap()-.05)sfx('nitro.plein',{t:.45}); // (console de son) le portail refait le plein : on l'entend, après l'aspiration
@@ -49298,6 +49299,19 @@ let last=performance.now();
 let RESPIN=false;
 window.dbgPin=function(on){RESPIN=(on===undefined)?true:!!on;
   return {resolution_et_paliers_figes:RESPIN,dpr:+curDPR.toFixed(3),stepBase:null};};
+/* (2026-10-14, sensations · passages) LES PASSAGES SE SENTENT DANS LA TÔLE. Une fonction qui ne fait que REGARDER (runStats.zones, mode,
+   hopY) et répond par les outils communs, une fois par image ; elle ne calcule rien du jeu.
+   · LE PORTAIL : le coup dans la main part à l'instant du passage (portailPasse). La tôle, elle, ne peut rien dire à cet instant — le
+     voile couvre l'écran. C'est à l'ARRIVÉE, voile en train de s'ouvrir (½ s de jeu après), que la caisse S'ASSOIT sur ses ressorts
+     (nez levé ≈ 2°, ≈ 3 cm) : elle débarque dans le nouveau monde au lieu d'y être collée. Au sol seulement.
+   `tr` : secondes de course vivante (borné) · `z` : les zones déjà vues · `tp` : le compte avant le coup d'arrivée (s de jeu). */
+const SENS_PA={rs:0,tr:0,z:0,tp:0};
+function sensPassages(dt){
+  const vit=started&&!gameOver&&(mode==='drive'||mode==='fall');
+  SENS_PA.tr=vit?Math.min(9,SENS_PA.tr+dt):0;
+  if(runStats.zones!==SENS_PA.z){if(runStats.zones>SENS_PA.z&&vit)SENS_PA.tp=.5;SENS_PA.z=runStats.zones;} // (une partie neuve remet zones à 0 : on se recale sans rien jouer)
+  if(SENS_PA.tp>0){SENS_PA.tp-=dt;if(SENS_PA.tp<=0&&vit&&!REDUCED_MOTION)sensCoup(0,-.8,-.7);}
+}
 /* ===== LE RAMASSAGE — pickupsTick, AU SOL ET EN VOL (2026-09-30) =====
    ⚠ BUG DE STRUCTURE : cette boucle vivait DANS la branche `if(mode==='drive'){…}` de `loop`. Sa garde (`mode==='drive'||mode==='fall'`)
    et tout son code de vol (couloir `lastNearS`, face du vol, AIMANT v3 « au sol comme en vol ») ne tournaient donc qu'à l'image EXACTE du
@@ -49955,6 +49969,7 @@ function loop(now){
     if(SONV2&&!nitroOn&&loop._nOn&&wantN&&mode!=='boom')sfx('nitro.sec'); // (console de son) PANNE SÈCHE : la jauge lâche sous le doigt
     if(!nitroOn&&loop._nOn)nitroEteint(); // (vague 3) la dernière bouffée (lit nitroHeldT : avant sa remise à zéro)
     if(SENS)try{sensNitro(dt,!!wantN);}catch(e){} // (2026-10-14, sensations · nitro) la coupure, la panne sèche, les rapports, les paliers : dans la tôle et la main (lit nitroHeldT avant sa remise à zéro)
+    if(SENS)try{sensPassages(dt);}catch(e){} // (2026-10-14, sensations · passages) l'arrivée d'un portail, le replacement : la caisse se pose sur ses ressorts
     if(!nitroOn)nitroHeldT=0;
     loop._nOn=nitroOn;
     if(keys.KeyR&&mode==='drive'){respawn();keys.KeyR=false;if(SONV2)sfx('respawn');}
