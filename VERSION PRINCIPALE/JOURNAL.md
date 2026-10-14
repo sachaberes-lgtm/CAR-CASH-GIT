@@ -3,6 +3,131 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA SECONDE CHANCE (2026-10-14, Sacha au quiz de 14 h 35 : « façon Subway Surfers », contre de l'argent du jeu — barème de GAMEPLAY, plaque d'INTERFACE)
+À la mort, UNE fois par partie, l'écran de fin propose de CONTINUER (bloc `CHANCE`, juste avant `finSonsCoupe`). Payé sur le COMPTE,
+jamais en euros ni en pub. **Prix** = k × l'encaissé de la partie (`money − START_CASH`), avec k = 0,6 jusqu'à 3 min (GAMEPLAY, relevé de 0,5), puis +0,05 par
+minute, plafond 0,8. Minimum 300 $, arrondi à deux chiffres (`chanceJoli`). Pas d'offre sur une partie de moins de 20 s, si le compte
+ne couvre pas le prix, au bac à sable, à l'auto-école, au parc, au Survivant, ni sur une fin de règle (endGame sans explosion).
+L'offre **s'éteint seule** 5,5 s après endGame, sans chrono affiché (INTERFACE : pas de fausse urgence). Quitter l'écran la ferme aussi.
+**La reprise** (`chanceJoue` → `chanceRepart`, sous le volet) : la caisse retombe sur la dernière route sûre (`respawn`). Elle garde la
+zone et le compteur, mais le MOTEUR perd un palier (`moteurPerte`, ses pièces avec : GAMEPLAY, pour casser la pente ≈ T^2,1 de l'argent).
+Puis 3 · 2 · 1 avec le prix sous le « 3 », et 3 s de BOUCLIER où la caisse clignote (`chanceTick` dans la porte de simulation).
+Pendant le bouclier, un choc est ignoré et une chute replace sans frais (`chanceProtege`, en tête d'`explode`). 2 s de nitro offerte.
+**La comptabilité** : endGame a déjà versé la 1re moitié. On ne rembourse rien, on décale les BASES : `chanceBase()` (argent),
+`CHANCE.a0` (aura) et `CHANCE.rs` (figures, gaps, bumps, survie), relues par commitExploits et enCoursPose. `ex.runs` ne compte
+qu'une partie. La ligne du Top 10 de la 1re fin est retirée (le score final la remplace). ⚠ La reprise n'appelle JAMAIS
+`runxReset` ni `resetGame` : l'argent du début (ECOD), le ×2 du jour et les défis secrets (SEC) de GAMEPLAY y vivent.
+**Contrat** : `chanceEtat()` → {ok, prix, reste}, `chanceJoue()`, `chanceRefuse()` et `chanceAttend()` (pour le FINAL SPIN d'IDEE,
+qui passe APRÈS l'offre), et l'événement `cc:chance` sur document (ouverture, extinction, achat). `?chance=0` coupe tout.
+Banc : `dbgChance()` · ('mort') · ('joue') · ('t',s) · ('$',n) · ('choc'). Mesuré : prix 1 100 à 4 min pour 2 000 $, compte
+débité, Top 10 remplacé, runs = 1, choc ignoré sous bouclier, 2e mort sans offre, partie courte sans offre, extinction à 5,5 s.
+Effet estimé sur le revenu par minute d'un BON joueur (mort à 6 min, prix 9 750 $) : −18 % s'il survit 2 min de plus, +25 % s'il
+en survit 4, +65 % s'il en survit 6. À juger sur de vraies parties.
+
+## LA REVUE DES IDÉES DE LÉO — CORRECTIFS 7, 13, 14 + LE CODE COUSIN SANS LE PAYANT (2026-10-14)
+- **Point 7, l'eau du Soleil de jade** : `JEAU.wB` repart de zéro au décollage et au `respawn` (il restait vers 1 et coupait la
+  vrille du saut suivant). Le rebond plonger / jaillir s'amortit (`EAU.amorti` .85 par plongeon du même vol) et seuls les 4 premiers
+  paient (`EAU.paye`) : avant, la caisse rebondissait SEULE en payant REPLONGEON + HORS DE L'EAU sans fin. `jadeEauRamene` fige
+  l'élan (`fallVel`/`fallPos`) : la suite de la branche du vol la remettait dans l'eau. « HORS DE L'EAU » retrouve son apostrophe.
+- **Point 13** : le billet ₿ de la pluie d'argent ne porte plus CRYPTOCITY / BULL RUN (le niveau est retiré) : CASH CAR · 1 BITCOIN.
+- **Point 14** : `FLOW.poseA` était collé derrière un `//` dans tryLand, donc jamais écrit. Et `endGame` éteint la nitro : le DOGE
+  gardait sa gueule de nitro ouverte au garage.
+- **Code cousin** (Sacha : « il ne débloque PLUS rien de ce qui se paie en euros ») : `carEuros(i)` exclut les caisses premium / en €
+  de `carUnlockedVrai`. La photo des caisses acquises se refait au moment du code, ce qui évite une fanfare de 70 caisses.
+
+**La carte de l'auto-école passe dans la CHARTE 6 d'INTERFACE** (bloc en fin de `<style id="ecoleV2">`, sous `html.c6`). Même carte,
+mêmes gestes, mêmes films, mais À PLAT : l'encre, un filet blanc de 2 px et une épaisseur noire de 4 px, sans dégradé, sans lueur
+et sans coin coupé. Le mot est en pixel (≥ 16 px), le reste en police système. Le film passe à 56 px (`zoom:.737`) et la carte à
+~74 px : elle ne cache plus la caisse. Réussi = filet de 4 px, raté = filet rouge. Banc : couché FR et debout EN, 0 erreur, permis +500.
+
+## L'AUTO-ÉCOLE v2 — PLUS BELLE, PLUS ANIMÉE, PLUS CLAIRE + L'ÉTAPE FIGURE (2026-10-14, Sacha : « refais le tutoriel, il est un peu intimidant, il n'est pas très beau ; mets plus d'animation, plus de trucs clairs ; rajoute un truc pour leur apprendre à faire des figures ; les carrés qui donnent des instructions pourraient être plus animés, plus clean, plus clairs »)
+Avant (capturé) : un rectangle sombre, un en-tête « AUTO-ÉCOLE · 1/5 PASSER », un titre, une phrase de deux lignes, une barre, une
+petite icône — du texte figé au milieu de l'écran, cinq étapes, rien sur les commandes elles-mêmes.
+**La carte v2** (`#coach.v2`, `<style id="ecoleV2">` juste après `passeMobile`) : à gauche un PETIT FILM du geste en pixels qui tourne
+en boucle (`TUTO_FILMS` : la route qui file et la caisse qui va et vient sous le pouce ; le doigt tenu sur NITRO et la caisse qui
+crache le feu ; la route qui s'arrête net et la caisse qui part en l'air ; le vol sur la flamme ; la caisse qui se pose dans l'anneau
+qui flambe en or ; deux tapes « ×2 » et la caisse qui saute en tonneau) ; à droite UN MOT en or qui arrive lettre par lettre
+(`tutoMot`), UNE ligne courte où les mots à retenir sont surlignés (`*mot*`) et les touches dessinées (`[ESPACE]`) — `d` au doigt,
+`dk` au clavier (« pouce » ne veut rien dire au clavier) ; six pastilles ; PASSER au coin (toujours en deux temps : « VRAIMENT ? »).
+Un reflet passe sur la carte. Réussite : elle vire au VERT, le mot devient l'éloge (BIEN ! · PARFAIT ! · ÇA DÉCOLLE ! · TU VOLES ! ·
+POSÉ ! · STYLÉ ! — le seul rebond de la carte : c'est une célébration), la coche claque sur le film, la pastille se remplit, les
+confettis partent ; puis elle s'efface et la suivante descend. Raté : elle TREMBLE et l'en-tête dit pourquoi en rouge (2,6 s).
+**L'accueil** (`TUTO_ACCUEIL`) : la toute 1re carte rassure — « 6 gestes. Ici, impossible de perdre ! » — 2,4 s pendant lesquelles
+la leçon n'exige rien (`.intro`).
+**La main fantôme** (`#ecMain`, `tutoMain`) fait le geste LÀ où il se fait : sur le cercle du volant au repos (le `::after` de
+`#tSteer` ; sous le doigt, `#tStick`) elle glisse de gauche à droite entre deux flèches (TOURNE) ou pousse vers le bord (DÉCOLLE) ;
+sur `#tNitro` elle appuie et tient avec une onde (NITRO, VOLE) ou tape deux fois avec un badge « ×2 » (FIGURE). Elle s'efface quand
+le joueur fait déjà le geste (`TCTL.act`, `nitroOn`), au clavier, en pause, quand une grande carte passe en haut. Repositionnée 4×/s.
+**L'étape FIGURE** (6e, une fois posé) : le double-tap NITRO — au sol la caisse SAUTE et fait sa figure. Il était FERMÉ pendant toute
+la leçon (`veqDouble`) : il ne s'ouvre qu'à cette étape (`tutoFigOuverte()`, que GAMEPLAY lit aussi pour ses boutons de figure en vol,
+FIGURES v2). Réussie = une figure plantée ; accordée après 3 sauts. La leçon se finit LES ROUES SUR LA ROUTE : une figure faite en
+l'air hors de la route terminait la leçon en plein vol, et le joueur explosait juste après « PERMIS OBTENU » (vu au banc) — on attend
+la pose (vol infini), replacée au bout de 8 s. Un crash à l'étape FIGURE n'y renvoie plus à DÉCOLLE.
+**Sous la pause et les réglages** (vu par INTERFACE) : carte et main s'effacent (`body.hTp`, `body.setPause`).
+Bancs (scratchpad de la session) : `pop/tuto2.js <racine> <préfixe> [debout] [en]` — un joueur neuf, JOUER, l'accueil, chaque carte
+(`dbgTuto(n)` va à l'étape n), puis la vraie FIGURE au double-tap ; couché et debout, FR et EN : zéro erreur, permis obtenu (+500 $).
+## LA FORÊT NOIRE — LA MAP DES CONTES (2026-10-14, session FORÊT — Sacha : « fais une autre map en mode forêt européenne allemande un peu fantaisie un peu hantée où la route doit slalomer entre les arbres toujours en étant en descente ; en journée la forêt doit être belle, ensoleillée, verdoyante, avec des fleurs et des papillons, et la nuit ce doivent être les mêmes arbres mais avec plutôt une ambiance forêt hantée, avec des effets hantés et des bruits de loup-garou ; fais un truc magnifique, une variété d'arbres jolie et magnifique ; regarde que toutes les heures et les météos sont bien comprises » · « il faut que ça soit magnifique du premier coup »)
+Une 5e map au tirage du MODE CLASSIQUE (`SF_CARTES.foret`, niveau de base `NIV_FORET`, id `'foret'`, piste `'foret'`), nom validé par Sacha.
+Tout le code est dans le bloc « LA FORÊT NOIRE — LA MAP DES CONTES » (balises `<<<FORET>>>` … `<<<FIN FORET>>>`, avant « LA VILLE SOUS LES
+NUAGES ») ; les branchements, un par endroit : `buildTrack` (genForet, buildForet), `SF_NIV`/`SF_CARTES`, `lvlNuageOk` (pas de nuages),
+la boucle (`foretTick`, après jadeTick), le vol (`foretHeurt` → `explode('arbre'|'sousbois')`), `CAUSES` + `facileSauve`, `chauffeDivers`
+(`foretChauffe`), `I18N`, `accC` (or 0xd8b45a, les reflets mouillés), `BIOMES.foret*`, `MUSIC_LIEU` (une ligne commentée : la place du
+morceau de Léo — Sacha : « la musique, c'est Léo qui la gère » ; d'ici là la radio joue).
+- LA ROUTE (`genForet`) : un SLALOM — virages enchaînés qui changent de côté 84 fois sur 100 (R 190-360 m × l'échelle du moteur, 13 % de
+  chicanes R 150-190), une respiration droite tous les six virages, une droite pour l'ARCHE ; la pente (positive = on descend) ondule
+  entre 3,5 et 12 %, intégrée tous les 10 m : AUCUN point ne remonte ; deux ou trois PLONGEONS (`FORET.plg` : 140 m de replat à 2,5 %
+  puis 190 m à 17-20 % — la cassure fait décoller la caisse lancée) ; 380 premiers mètres en douceur ; l'arche sur un replat à 5 %.
+- LE RELIEF (`foretSol`, grille de 24-32 m selon le palier) : la route est un sentier des cimes au fond d'une VALLÉE — le fond 60-90 m
+  sous la dalle, les flancs qui montent jusqu'à ~50 m au-dessus d'elle à 430 m, des collines au-delà ; la hauteur de route LISSÉE
+  (gaussienne de 180 m : pas de marche entre deux tronçons du slalom) ; prairies (`pr`) et densité de forêt (`f`) en bruit lent ;
+  au-delà de 650 m, une grille grossière floutée. Le TORRENT (`foretTorrent`) serpente au fond, décalé de la route.
+- LES ARBRES (`FOR_ESP`, six essences × trois niveaux de détail, bâties une fois par session : `foretProtos`) : épicéa (étages qui
+  retombent), sapin (étages plats, bleuté), hêtre (dôme, écorce grise à lichens), chêne (bras tordus, couronne large), bouleau (blanc à
+  tirets noirs, couronne légère), pin sylvestre (fût saumon, parasol) ; 6 % des hêtres en ÉRABLES D'OR. Touffes = icosphères bosselées dont
+  la normale est mêlée à celle de la couronne (`fbTouffe`) ; écorces, mousse, feuilles et lumière dans UN shader (`FOR_ARB_*`) :
+  contre-jour à travers les feuilles, rosée, lisière de lune la nuit, PHARES de la caisse sur les troncs (`fPhare`), éclairs, brume du fond.
+  Répartition : feuillus et bouleaux au fond (clairières fleuries), épicéas et sapins sur les flancs (la Forêt-Noire), aucune cime à
+  moins de 32 m sous la dalle près de la route.
+- LES GÉANTS DU SLALOM (`FOR_GEANTS` : chêne, hêtre, épicéa, VIEUX CHÊNE AU VISAGE ; ~60 par piste) : un à la CORDE de chaque virage
+  (courbure lissée, `geant`), parfois un second à la sortie de l'autre côté, et en quinconce tous les ~95-165 m des droites ; pied au fond
+  de la vallée, tronc à 5-12 m du bord, couronne ≥ 16 m au-dessus de la dalle partout sous elle. Le vieux chêne TOURNE son visage vers la
+  route (deux orbites et une bouche, des noeuds le jour, des braises la nuit — partie 5 du shader).
+- LES DÉCORS : l'ARCHE (`foretArche` : un géant tombé qui enjambe la route, souche et couronne brisée, amanites qui luisent, lierre qui
+  pend — ≥ 20 m d'air au-dessus de la dalle), les ROCHERS DU LOUP (`foretRocherGeo` : aiguilles de grès qui crèvent la canopée sur les
+  flancs, tous les ~520-840 m), une ou deux CHAUMIÈRES de la Forêt-Noire (`foretChaumiereGeo` : colombages, géraniums, l'immense toit
+  moussu ; fenêtres orange le soir et la nuit), des RONDS DE SORCIÈRES d'amanites au fond.
+- LE JOUR : FLEURS des deux bords (8 cases peintes `forFleursTex` : digitale, coquelicots, marguerites, boutons d'or, jacinthes, fougère,
+  lierre, amanites — elles s'ÉCARTENT au passage de la caisse), plantes géantes du fond, LIERRE qui pend sous la dalle, RAYONS de soleil
+  (`FOR_RAYONS`, additifs, éteints à moins de 40 m de l'objectif), PAPILLONS (`FOR_PAP` : citron, paon du jour, azuré, vulcain — une boîte
+  qui suit la caisse, tout dans le shader), POLLEN dans la lumière, oiseaux et pic.
+- LA NUIT, LES MÊMES ARBRES HANTÉS : la LUNE pleine (`foretLuneTick`, sprite à la place de celle du dôme), la brume qui monte du fond,
+  les FEUX FOLLETS qui fuient la caisse (`foretFollets`), les LUCIOLES, les YEUX rouges/ambrés qui clignent et se ferment quand on
+  approche, les papillons devenus CHAUVES-SOURIS, les fleurs qui luisent, le VISAGE du vieux chêne, et LE LOUP-GAROU (`foretLoupTick` :
+  toutes les 26-48 s, sur le prochain rocher entre 260 et 900 m, une ombre chinoise devant un halo de lune, le hurlement de son côté).
+- LES SIX TEMPS : `BIOMES.foretMatin/foretMidi/foretSoir/foretNuit/foretPluie/foretOrage` (dans « LES MÉTÉOS DU MODE CLASSIQUE », écrits
+  d'après la CHARTE : jour:1, couleurs du ciel et brume en linéaire, saturations et contrastes sous les plafonds) et `FOR_MET` (la lumière
+  de la FORÊT elle-même : hauteur du soleil `el`, rayons, brume du fond, papillons, lucioles, pollen, hantise, phares, teinte des feuilles,
+  rosée, vent, lune, voix). La nuit : promesse « LA FORÊT EST HANTÉE » ; l'orage : « LES LOUPS HURLENT » (les éclairs blanchissent la
+  forêt : `uFlash` = CAMP_FLASH).
+- LE SON (`atelier-son/recettes.js`, bloc `<<<FORET>>>`, `sons-banque.js?v=15`) : `foret.loup` (voix à FORMANTS « ou-a-ou », l'octave qui
+  monte, le vibrato, la chute brisée, un grognement à l'attaque ; 3 variantes dont un DUO), `foret.chouette`, `foret.corbeau`,
+  `foret.oiseau` (4), `foret.pic`, `foret.craque`, et deux boucles très basses `foret.jourAmb` / `foret.nuitAmb` (rien de continu
+  au-dessus de ~2 kHz : la leçon du « son parasite » des nuages). À juger à l'oreille par Sacha ou Léo dans `sons.html`.
+- PERF : tri par QUARTIERS de 150 m (`foretTri`, chaîné sur scene.onBeforeRender, la recette de jadeTri) ; une famille par essence et par
+  détail (InstancedMesh) ; budgets par palier `PAL.B.foret*` (densité, portée, bandes de détail, pas des fleurs/plantes/rayons/brume,
+  yeux, papillons, lucioles, feux follets, taille des toiles) ; toiles rendues après l'envoi (`texLibere`) ; matières compilées au menu
+  (`foretChauffe`), aucune lumière ajoutée.
+- MESURÉ (banc muet, PC de Sacha, en course au pilote) — palier ANCIEN : construction 108-183 ms (budget 250), forêt 71-122 k triangles et
+  14 familles ; image entière 422 k triangles / 149 appels, dont la ROUTE ~280 k / ~70 appels (le slalom met beaucoup de tranches de piste
+  dans le champ — système de la route, pas de la forêt). Palier RÉCENT (avant la coupe du terrain à la brume) : construction 270 ms, forêt
+  ~550 k triangles, image 1,02 M / 204 appels → le terrain se dessinait jusqu'au plan lointain (38 appels) : coupé à la brume (`FORET.solM`),
+  lointain allégé (62 % des arbres, 2 familles) → APRÈS : midi 817 k / 164 appels, nuit 653 k / 179, construction
+  271-333 ms. 0 erreur JS sur les six météos.
+- Console : `dbgForet()` (comptes, triangles par famille, temps de construction), `dbgForet('meteo','nuit')`, `dbgForet('loup')` (le
+  loup-garou tout de suite), `dbgForet('geant'|'rocher'|'arche',{d,h})` (photos posées), `dbgForet('vue',{p,c,fov})`, `dbgForet('reprend')`,
+  `dbgForet('coupe',1)`. Lancer : `?carte=foret&meteo=nuit` puis JOUER, ou `dbgClassique('foret','soir');dbgSaut()`.
+- À trancher par Sacha ou Léo : la musique de la forêt (Léo, la ligne `foret:` de MUSIC_LIEU) ; l'écoute des voix (`sons.html`) ;
+  l'étalonnage final des six temps (GRAPHISME, section « ÉTALONNAGE · FORÊT »).
 ## PLUS DE CARRIÈRE + PLUS DE MODE FACILE, POUR LA SORTIE (2026-10-14, Sacha : « supprime complètement de main le mode challenge pour l'instant » · « non, carrière c'est les niveaux, les missions c'est bien » · « on le fera dans des MAJ, donc garde-le dans le git quelque part » · Paris : « laisse-le quelque part sur le git, mais plus dans le jeu » ; puis, relayé par PILOTAGE : « enlève le mode facile du jeu »)
 Session IDEE. Deux interrupteurs dans le `<head>`, sur le modèle de `SANS_VOIX` : COUPÉ, pas arraché. Main a34aa1d (commits 48e3687 et 2fef557,
 fusionnés sur la nuit d'assemblage T9).
@@ -58,6 +183,10 @@ Porte du ciel 363 ms, dont 272 ms pour le seul `voxMesh(G,4)`), portail → vill
 5. **LES GABARITS DE LA JADE TAILLÉS AU MENU** (`jadeGabaritsG`, `jadeGabFond`, `GAB_FOND`, `PAL.B.gabFondMs=[5,6,8]`, `dbgGabarits`) :
    après la chauffe du menu, hors volet, quelques ms par image ; un JOUER pressé les finit d'un trait là où elles en sont (mêmes gabarits
    au bit près). Le JOUER ne paie plus 389 ms quand le menu a eu le temps.
+7. **LE RELEVÉ DES À-COUPS** (`?perf=1`, `perfAcoup`) — pour les tests de Sacha sur iPhone (« la version mobile saccade ») : le moniteur
+   compte depuis l'ouverture les images de plus de 50 / 100 / 250 ms (intervalle VRAI, non plafonné : `loop._brut`) et montre les 5
+   dernières avec ce qui se passait (écran, niveau, construction, programmes compilés, textures envoyées). Une capture suffit.
+   Protocole : Économie d'énergie COUPÉE, `/jouer/?perf=1`, une minute de jeu, une capture du cadre en haut à gauche.
 6. **L'OBJECTIF MOUILLÉ** (relevé par GENERAL, `lensTick`) : la toile des normales remise au repos par UNE copie mémoire (au lieu de 4
    écritures par pixel à chaque image) ; `VP.w/VP.h` au lieu d'`innerWidth/innerHeight` (piège n° 11). Même image.
 
@@ -68,6 +197,120 @@ avant, espace après) ; DOGE : 1re construction **532 → 24 ms** servie par l'o
 0 erreur. Aucun programme compilé de plus au JOUER ni au REJOUER (172 liens avant et après). À REMESURER AU CALME : la boutique (le banc n'a pas ouvert l'écran OFFRES).
 Bancs (scratchpad de la session) : `banc.cjs` (JOUER · portail · REJOUER · boutique, profils CPU, tâches longues, compilations),
 `banc-doge.cjs`, `doge-banc.cjs` (node, empreinte), `doge-perm.cjs`, `lot.cjs` (un seul créneau de banc pour plusieurs bancs).
+## L'ARGENT DU DÉBUT (2026-10-14, Sacha : « le premier achat — la PEINTURE la moins chère — doit tomber à la 4e PARTIE d'un joueur MOYEN, sans toucher aux PRIX de Léo ; les gains du début sont relevés, et ce relèvement s'éteint après le 1er achat »)
+Session GAMEPLAY (worktree `CCG-eco`, branche `eco-debut`, tirée de `origin/assemblage`). Rien n'est poussé : la session qui intègre relit et pousse.
+
+**Ce qui a changé** (`index.html`, ~35 lignes ; aucun prix, aucune prime, aucun champ de sauvegarde)
+- `denom()` est multiplié par `ECOD.k`. C'est le robinet UNIQUE de la paie de course : pièces (`denom()*2.2*récolte*flowMult()`), portail, fins de monde,
+  butins de la ville passent tous par lui. Pas de deuxième chemin d'argent.
+- `ECOD={coup:1.5,k:1,raison}` : `coup` est LE réglage (×1,5), `k` ce que la partie en cours applique, `raison` pourquoi. `ecoDebutEtat()` (pur) décide,
+  `ecoDebutMaj()` pose `k` UNE fois au départ de chaque partie (appelée par `runxReset`, donc par `start()` et `resetGame()`, auto-école comprise) : constant pendant toute la partie.
+- Il vaut (`raison:'actif'`) tant que : (1) rien n'a été acheté (`ecoDebutAchat()` : `SAVE.d.owned` non vide, `SAVE.d.figs` au-delà du TONNEAU offert, ou un `SAVE.d.shop.own`
+  dont l'habillage a un prix `p` — un habillage GAGNÉ par un carnet n'est pas un achat) ; (2) la banque n'atteint pas la peinture la moins chère (`ecoDebutPrix()`, lue sur
+  `COSM.peinture` : `'assez'` — le filet : qui peut déjà se l'offrir n'a plus besoin d'aide, même s'il garde son argent) ; (3) ni `?eco=ancien` (`'ancien'`) ni le code cousin (`'cousin'`).
+  Un achat, de n'importe quoi (caisse, peinture, aile, traînée, figure), l'éteint pour toujours. Tout se relit sur l'état : une vieille sauvegarde qui a déjà acheté n'est pas touchée.
+- `paintCarHud` : sa clé de cache suit `ECOD.k` (« pièces de $ N »).
+- Crochets : **`?eco=ancien`** (strictement l'économie d'avant : `ECOD.k` reste à 1, le test du banc compare au dollar près) et **`window.dbgEcoDebut()`** →
+  `{actif, k, raison, prochain, raisonProchaine, coup, parties, achatFait, banque, peintureMin, manque, ancien}`.
+- Banc : `outils/eco-debut-modele.cjs` (le modèle ci-dessous ; **les constantes sont LUES dans `index.html`** — DENOMS, ECO3, ENGINE_TIERS, COSM, CARNETS, ecoRond/ecoCash, la prime du permis,
+  `ECOD.coup` —, donc elles ne dérivent pas d'une copie) et `outils/eco-debut-test.cjs` (16 cas sur le VRAI bloc ECOD extrait : joueur neuf, banque 2 499 / 2 500, achat de chaque
+  famille, habillage gagné, `?eco=ancien` / `ancienne`, cousin, SAVE absent, achat en cours de partie). `node outils/eco-debut-modele.cjs --n=4000 --seed=7` ; `--k=2` force un autre coup.
+  Aucun navigateur, aucun serveur : le jeu n'est pas exécuté, le modèle recalcule la paie à partir des formules du code.
+
+**Le joueur MOYEN (le cahier ; chaque hypothèse est une ligne `PROFILS` du banc, marquée [H])**
+1. Il tient **45 à 90 s** par partie (tirage uniforme à chaque partie), prend **la moitié** des pièces et des fruits rencontrés (±20 % d'une partie à l'autre), à la croisière du palier
+   (`vCroisiere` = 2,75 × maxSp × push × SPD, comme `lvPiste` ; 69,7 m/s au palier 0).
+2. La route est celle de `spawnPickups` en zone 0 (`rich` .88) : la boucle est recopiée ligne à ligne et tirée sur 40 graines → **20,4 pièces et 4,8 fruits au km** (les fruits remplacent des
+   pièces : `rnd()<.34` / `.45`). Une pièce vaut `denom() × 2,2 × récolte × flowMult()`, la récolte vient des combos réels (+.5 toutes les 5 pièces, fenêtre `comboT=3` s), le palier moteur monte
+   avec les pièces prises (`engineFor`, `ENGINE_TIERS[].coins`) et le flow I (×1,3) arrive entre 25 et 60 s (la route seule nourrit mal le flow : `FLOW2.fam.route`).
+3. Banque : `commitExploits` verse `money − START_CASH` ; l'auto-école verse **+500** (`tutoFin`, une fois) ; les défis versent leur prime à l'instant (`misTick`) — **carnet 1 : 25 pièces
+   +300, 4 fruits +300, encaisser 200 $ +400 (`ECO3.prime` 1, `ecoCash(1000)`=200), chacun DANS UNE partie** ; il le remplit vers la 1re-3e partie.
+4. Le carnet 2 (2 figures / 10 s de nitro / 672 km/h, 1 800 $) n'est PAS dans le cahier : il est compté à part (sensibilité).
+5. Il ne dépense rien en route : la banque est un cumul ; il achète la peinture à la 1re partie où elle atteint 2 500 $. Calibrage : le même modèle, réglé sur le pilote « humain » du banc
+   de l'autre session (25 s : 74 $, 40 s : 218, 50 s : 433, 55 s : 546), retombe à +24 % (40 s), −12 % (50 s) et −16 % (55 s) avec p = 0,8 et k = 1,2 (+57 % à 25 s : la montée du flow est plus tardive dans le modèle) ;
+   le moyen du cahier (p = 0,5, k = 1) gagne à 55 s 127 $, soit un quart de ce pilote.
+
+**Chiffres** (4 000 joueurs simulés par ligne, graine 7 ; banque = médiane du cumul après les parties 1 à 6, sans rien dépenser)
+
+| cahier (carnet 1 seul) | argent / partie | banque après 1 · 2 · 3 · 4 · 5 · 6 | MENTHE GLACÉE 2 500 $ achetable à… |
+|---|---|---|---|
+| faible (25-45 s, 40 % des pièces) AVANT | 31 $ | 817 · 856 · 893 · 932 · 987 · 1 275 | jamais avant la 30e |
+| faible APRÈS ×1,5 | 47 $ | 826 · 887 · 941 · 1 003 · 1 158 · 1 365 | la 29e |
+| **moyen AVANT** | 175 $ | 1 273 · 1 854 · 2 049 · 2 234 · 2 416 · 2 602 | **la 6e** (1 % dès la 3e, 11 % au plus tard à la 4e, 35 % à la 5e) |
+| **moyen APRÈS ×1,5** | 263 $ | 1 750 · 2 033 · 2 316 · 2 590 · 2 803 · 2 992 | **la 4e** (25 % dès la 3e, 62 % au plus tard à la 4e, 89 % à la 5e) |
+| fort (2-4 min, 75 % des pièces) AVANT | 1 754 $ | 3 196 · 4 951 · 6 703 · 8 437 · 10 207 · 11 968 | la 1re |
+| fort APRÈS | 2 631 $ | 4 044 · 5 802 · 7 564 · 9 304 · 11 071 · 12 823 | la 1re (le relèvement s'éteint dès la partie 2 : banque ≥ 2 500) |
+
+Le coup de pouce, pour le moyen du cahier : ×1 → 6e · ×1,25 → 5e · **×1,5 → 4e** · ×1,75 → 4e (43 % dès la 3e) · ×2 → 3e · ×2,5 → 3e. ×1,5 est le plus petit coup qui met la médiane à la 4e.
+La traînée MENTHE et la figure SHIMMY (2 000 $, moins chères que toute peinture) tombent une partie plus tôt : la 3e → la 2e pour le moyen.
+
+**Sensibilité — à lire avant de croire le chiffre** (partie médiane de la peinture, AVANT → APRÈS ×1,5)
+- Cahier p = 0,5 : 6 → 4 · plus maladroit (p = 0,4) : 9 → 6 · plus adroit (p = 0,65) : 4 → 3 · parties de 35-70 s : 9 → 6 · parties de 60-120 s : 4 → 3.
+- Le « débutant » du rapport du 14/10 (p = 0,68, k = 1,2) : 3 → 2. Il saute l'auto-école (pas de permis) : 9 → 6.
+- **Les PRIMES pèsent plus que les pièces.** S'il fait aussi la moitié du carnet 2 : 3 → 2 (53 % ont déjà la peinture à la 3e SANS relèvement) ; le carnet 2 « plausible » : 3 → 2.
+  Dans ce monde-là le relèvement n'est pas nécessaire. ×1,5 est le compromis entre le monde « carnet 1 seul » (6e → 4e) et le monde « carnet 2 fait » (3e → 2e). `ECOD.coup` est LE bouton.
+- Le faible (il meurt avant 45 s) gagne 30-45 $ par partie : aucun coup de pouce raisonnable ne l'amène à la peinture, et le défi « encaisser 200 $ en UNE partie » lui échappe. Son problème est la
+  survie, pas le prix.
+
+**À trancher / à vérifier en vrai** (Sacha, GAMEPLAY)
+- Un vrai test : jouer quatre parties « en moyen » (45-90 s, sans chercher les défis du carnet 2) avec `dbgEcoDebut()` ouvert ; si la banque est déjà > 2 500 $ à la 3e, baisser `ECOD.coup`.
+- `best` (le record d'argent d'une partie) enregistre l'argent relevé : les 3-4 premières parties peuvent poser un record ×1,5 que les suivantes, sans relèvement, battent un peu moins vite.
+- Proposition, NON faite (à valider) : une ligne sobre sous « VERSÉS AU COMPTE » (`#mCashTot`) à l'écran de fin — « MENTHE GLACÉE · $ 2 500 — IL TE MANQUE $ 800 » — visant la peinture la moins chère
+  tant que rien n'est acheté ; aujourd'hui l'écran de fin montre la porte des missions et l'objectif d'achat ne vit qu'au garage.
+- Proposition, NON faite : un plancher pour le joueur qui meurt avant 45 s (prime proportionnelle au temps tenu, seulement tant qu'il n'a rien acheté).
+- Le tout premier achat probable est la traînée MENTHE ou la figure SHIMMY (2 000 $) : elles éteignent le relèvement avant la peinture. Si Sacha veut vraiment « la peinture d'abord », le seuil
+  du filet (`ecoDebutPrix`) devrait viser l'objet le moins cher de TOUTE la boutique.
+- `sw.js` (`CACHE` +1) est laissé à la session qui intègre, comme demandé.
+## LES FIGURES v2 — LA PHYSIQUE, TROIS EMPLACEMENTS, LE NITRO D'ASPHALT (2026-10-14, Sacha : « refonte totale du système de figures : il faut qu'on puisse équiper jusqu'à 3 figures différentes, mais c'est surtout la physique qui pourrait être exceptionnelle et super fun, et quand on est dans les airs la voiture garde l'inertie de son mouvement » · « inspiration Asphalt 8, où les figures dans les airs rapportent du nitro, et de l'aura en cumulant les figures comme un jeu de BMX — front flip, spin ×2… — et gagner de l'aura si tu te poses » · « que le double-tap n'exécute pas juste une animation mais que ça donne une impulsion : le front flip, une sorte de petite explosion au niveau des roues arrière pour propulser l'arrière de la voiture vers l'avant, et la figure d'après, un spin, doit s'additionner à l'impulsion du front flip, de manière fun, réaliste et jouissive »)
+Le moteur : **`FIG.Corps`** dans `figures.js` (v2). Le jeu : le bloc « LES FIGURES v2 — LA PHYSIQUE » juste avant `// TREMPLIN HÉROS` (`FIGV2`, `FX2`,
+`fig*`), le style `<style id="figuresV2">` (après `passeMobile`), les boutons `#tFig` dans `#touchCtl`. `?fig=ancien` / `dbgFig('ancien')` = les figures de Léo
+(le lecteur animé `FIG.Lecteur`, tiré au hasard) au chiffre près.
+- **LE CORPS** : la caisse a une assiette `q` (par rapport au vol) et une vitesse de rotation `w` (rad/s, dans son repère). Une figure = une EXPLOSION en un
+  point de la caisse (`boums` : sous les roues ARRIÈRE pour le salto avant, sous les roues avant pour le salto arrière, sous un flanc pour le tonneau, un
+  coup de côté devant et derrière pour la toupie) qui AJOUTE un vecteur à `w` en 0,08 s. Deux figures s'ADDITIONNENT : un spin pendant un salto penche
+  l'axe de rotation (la caisse part en vrille penchée, que personne n'a dessinée). Entre deux explosions rien ne la freine : l'INERTIE ; les équations
+  d'Euler (inerties d'une caisse : tangage 1 · lacet 1,12 · roulis 0,46) la font précesser quand deux rotations se mêlent (`gyro` .12 : on le sent,
+  sans chaos). Le doigt TENU sur le bouton = poussée continue (`aHold` 12 rad/s², plafond 22) : la toupie accélère, ×2, ×3…
+- **LA PRISE ET LE PLANTÉ** : les tours prévus faits (82 %) et plus rien de tenu, la caisse CONTINUE dans son sens jusqu'à l'endroit le plus proche
+  devant elle (jamais de marche arrière, sauf si le sol arrive avant — alors elle revient : sauver sa peau), freine (`aCtl` 85 rad/s²) et s'y PLANTE
+  avec un rebond (ressort ω 13, ~7°). Calée (deux explosions qui s'annulent), annulée sur son axe, ou emmêlée au-delà de 2,2 fois sa durée : elle se
+  replace sans payer. Plus le temps (le budget = le viseur, ou la PARABOLE le long de la normale de la route tant qu'on s'en éloigne — `figBudget`) :
+  on lâche tout et on se replace.
+- **L'INERTIE AU DÉCOLLAGE** (`figMemo` à chaque image de conduite, `figDepart` dans `startFall`) : la caisse emporte son écart à la trajectoire et sa
+  rotation de route mesurée entre ses deux dernières images (le lacet du virage, la crête qui fait plonger le nez, la route qui vrille), moins la
+  rotation du vol lui-même ; l'air (`aero` ω 3,2 ζ .36) la range en se balançant (MESURÉ : 1,5 rad/s de lacet + 17° → 27° au plus à 0,3 s, −8° de
+  retour, rangée à ~2 s). Un DRIFT qui décolle part en **TOUPIE DE DRIFT** (le flat spin d'Asphalt 8, `FIG.auto.derive`) si le vol dure assez (0,95 s).
+  La sortie par le BORD garde la bascule de Léo (VEQ). L'assiette lissée de Léo (`VEQ.qb`) part de celle du vol : l'écart n'est compté qu'une fois.
+- **TROIS EMPLACEMENTS** (`SAVE.d.figEq`, `san` le garde ; `figEquipees` / `figEquipe` / `figRetire` / `figEqToast`) : l'inventaire du garage (onglet
+  FIGURES) — toucher une figure l'équipe ou la retire (jamais la dernière), sa tuile porte le NUMÉRO de son emplacement ; la boutique dit ÉQUIPER /
+  DÉSÉQUIPER (1/3…) ; une figure achetée s'équipe d'office ; pleins, la plus ancienne laisse sa place. Jamais choisis : le TONNEAU + les deux dernières
+  achetées.
+- **EN VOL, TROIS BOUTONS** (`#tFig`, `figHud` / `figHudMaj`, au clavier 1 · 2 · 3) : n'existent qu'en vol (`body.figVol`) ; couché à gauche de NITRO,
+  debout au-dessus ; plaques penchées de la charte, liseré couleur aura, pictogramme du geste (flèche tournante : telle quelle = salto avant, miroir =
+  arrière, aplatie = toupie, pincée = tonneau, penchée = combiné), nom court (`c`/`ce` dans `BASE`), numéro. Tenu = s'embrase ; refus (trop tard) =
+  rouge qui tremble. Le double-tap NITRO joue l'emplacement SUIVANT ; au sol, le SAUT NITRO et sa figure (lancée une image plus tard, quand le viseur
+  a mesuré le vol : une route qui plonge reprenait la caisse en 0,1 s). Toupies et tonneaux partent du côté où l'on braque. Le coup de réacteur du
+  1er appui d'un double-tap est RENDU (vitesse et nitro — la règle des FIGURES LIBRES de GAMEPLAY) ; le saut nitro ne vibre qu'une fois.
+- **LES EXPLOSIONS** (`figBoum`, `figJet`) : flammes et cœur blanc à l'opposé de la poussée, anneau de souffle perpendiculaire, gerbe d'or, secousse,
+  `turbo.super`/`turbo.mini` ; une poussée vers le haut donne un COUP DE REIN (+2,4 de vitesse verticale : un peu de vol en plus, jamais vers le bas).
+  Tenue : le jet brûle aux mêmes points et `nitrooo.palier` monte d'un degré toutes les 0,28 s.
+- **LA PAIE** (`figPaye`) : une figure PLANTÉE entre dans la chaîne d'aura sous son nom et ses tours (« TOUPIE 360 ×2 » : aura × 2,25, ×3 : × 3,5) et
+  rend du NITRO tout de suite (`NITRO2.figAir` : ,22 + ,12 par tour de plus, × ,8 par figure déjà payée dans le vol). Posée à moins de 20° et presque
+  arrêtée : elle compte. **LA CHUTE** (BMX) : posée à plus de 52° ou en tournant encore à plus de 9 rad/s (le bouton tenu jusqu'au sol) — FIGURE RATÉE,
+  le flow tombe ET les figures de ce vol quittent la chaîne (`figChute`). La pose garde ses règles (verdict, nitro de pose, PARFAIT).
+- **Corrigé en passant** : une ligne de banc avalée par un `//` au milieu de `tryLand` (`FLOW.poseA`, piège n° 1).
+- **La boîte à figures** (`boite-figures.html`) joue le MÊME `FIG.Corps` : explosions en boules orange au point qui pousse, ENCHAÎNER ×3 = trois
+  explosions à 0,22 s d'écart qui s'additionnent, le saut dure le temps que tout se plante. L'essai au garage (`garFigEssai`) aussi.
+- **MESURÉ** — banc Node du corps (`banc-corps.js`, 14 scènes, 60 et 30 i/s identiques) : salto plantée à 0,75 s (rebond 7°) ; salto + toupie à 0,3 s :
+  les deux plantées à 1,13 s ; toupie tenue 0,9 s : ×3 ; deux saltos opposés : se replacent sans payer ; trois empilées : plantées à 1,35 s. Bancs du
+  JEU (Chrome sans fenêtre, son coupé, boucle pas à pas, 844 × 390 puis 390 × 844, souris sur les vrais boutons) : saut nitro → SALTO AVANT planté (+90,
+  nitro +0,23) ; cumul salto + toupie → 2 plantées (150 d'aura, nitro 1,65 → 2,28) ; toupie tenue 0,8 s → 20 rad/s, « ×3 » ; tenue jusqu'au sol →
+  CHUTE, figures du vol retirées ; inventaire : défaut TONNEAU + 2 dernières, retirer / jamais la dernière, numéros sur les tuiles ; 0 erreur.
+- **À trancher par Sacha** : la chute qui retire les figures du vol (choix BMX, défaut OUI) ; le nitro tout de suite à chaque figure plantée (OUI) ; les
+  boutons seulement en vol (OUI). **À savoir** : `origin/assemblage` porte LES FIGURES LIBRES de GAMEPLAY (même demande, plus tôt dans la nuit) : au
+  portage, v2 par défaut, `?fig=libre` les rend, `?fig=script` / `?fig=ancien` = Léo.
+- Console : `dbgFig()` (emplacements, mode du corps, écart, `w`, figures en cours et leurs tours, hérité, payées, chutes, points du vol, budget),
+  `dbgFig('lance',s)`, `dbgFig('equipe',id)`, `dbgFig('phy')` (les réglages, modifiables à chaud), `dbgFig('ancien'|'neuf')`.
 
 ## LES HABILLAGES POP + L'ÉQUILIBRAGE ARGENT / AURA + LES TEXTES FR / EN + LE GUIDE (2026-10-14, Sacha : « sois très inventif et invente plusieurs traînées, ailes et trucs cool à acheter, inspirés de la pop culture, pour la boutique à différentes raretés ou gagnables ; soigne le design des traînées et des ailes et rajoute une dizaine de chaque » · « regarde si absolument chaque texte du jeu est écrit de la bonne manière, en anglais et en français » · « fais une petite session d'équilibrage et de progression quant à l'argent et l'aura » · « fais un guide pour Claude, un CLAUDE.md »)
 **Trente habillages neufs** (dix peintures, dix ailes, dix traînées), chacun avec sa rareté écrite (`r`), son prix calé sur la grille de
