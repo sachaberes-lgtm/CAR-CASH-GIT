@@ -39414,6 +39414,7 @@ function resetGame(){
   nitroAirT=0;fallUnder=false;pureT=0;pureArmed=true;gapArmed=0;rampCd=0;annStop();deathStop();fxStop(); // la mort précédente se tait : on repart, elle n'a plus rien à dire
   auraRun=0;auraPop=0;auraFlash=0;figCombo=0;figComboT=0;figComboAura=0;chaReset();CHA.v=0;CHA.vAff=-1;recInit();pureNext=0;pureLvl=0; // l'aura de la partie repart de zéro — la banque et le total à vie, eux, restent
   bounceN=0;airFlash=0;flightId=0;
+  VEQ.sautF=-1;VEQ.dReq=false;if(VEQ.lect)VEQ.lect.vide(); // (2026-10-14, chasse aux bugs) le saut NITRO / la figure d'une partie ne passent pas à la suivante : flightId repart de 0 mais VEQ.sautF gardait le n° du dernier saut → le même n° de vol (normal) rendait 30 % de nitro à la pose ; double-tap et figure en cours périmés effacés
   chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;
   caseHud.style.opacity=0;caseHud.className='';caseHot=false;dolphT=0;trkDolph=false;
   dolKill();serpShow=0; // créatures de figure au repos
