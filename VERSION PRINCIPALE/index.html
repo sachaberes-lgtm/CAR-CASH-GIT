@@ -10167,6 +10167,29 @@ ACESShader.uniforms.uBc={value:null};ACESShader.uniforms.uBa={value:0}; // (pos�
 ACESShader.uniforms.uSharp={value:0}; // (tour 2) le piqué qui compense la résolution — posé par applyDPR
 ACESShader.uniforms.uTrame={value:1/255}; // (passe graphismes mobile) le tramage de sortie — 0 = l'ancienne sortie, voir dbgGfx
 ACESShader.uniforms.uNit={value:new THREE.Vector4(1,.478,.141,0)};ACESShader.uniforms.uNitF={value:0}; // (vague 3, NITRO) la poussée sur les bords — voir nfxTick
+/* (2026-10-14, passe graphismes — flou-vitesse) UN FLOU DE VITESSE PROPRE : il DIT la vitesse sans détruire l'image. MESURÉ sur les
+   planches de la nuit : au boost (uSpeed .6) le coin de l'image filait sur ~200 px (amt = uSpeed·(.04+1,7·rb²)), le warp agrandissait
+   le bord de 30 %, le tunnel noircissait les coins de moitié — les tours de la ville, les pics, les cumulus n'étaient plus que des
+   traînées ; et en simple croisière (le voile CAM_HEROS, uSpeed .075-.2) le bord filait déjà de 30 px, sans FXAA. V2 :
+   · la force suit une courbe `sp` (uFv.w) : croisière → presque rien (sous .02 l'image reste NETTE et repasse par le FXAA), boost
+     → ~ moitié, nitro pleine → plein ;
+   · flou ET warp ne commencent qu'au-delà d'un rayon (uFv.x, distance à la caisse ramenée au coin) et montent en carré : la caisse,
+     la route devant et le point de fuite restent nets, seuls les bords filent ;
+   · force max (uFv.y) et warp (uFv.z) à ~la moitié d'avant ; aberration chromatique (ordi seul) ÷ 2,5 et repoussée au bord ; tunnel
+     .55 → .30 et plus loin du centre.
+   Même nombre de lectures, même programme pour tous les paliers (palier 0 : FLOU_OK coupe déjà tout), aucune compilation en course.
+   `?sans=flou` → FLOU_V2 faux : le programme d'avant au caractère près. Banc : dbgFlou({v,s,fv}). */
+const FLOU_V2=!/[?&]sans=flou\b/.test(location.search);
+ACESShader.uniforms.uFv={value:new THREE.Vector4(.26,2.0,.8,.25)}; // rayon où le flou commence · force · warp · courbe de vitesse (part linéaire)
+const FLOU_R=[['uniform float uSafe,uRn;','uniform float uSafe,uRn;uniform vec4 uFv;'],
+  ['  if(uSpeed>0.004){','  float sp=uSpeed*(uFv.w+(1.0-uFv.w)*uSpeed); if(sp>0.02){'],
+  ['    vec2 buv=uCtr+dc*(1.0+uSpeed*0.60*rb*rb*ms);','    float e=max(rb-uFv.x,0.0); e*=e; vec2 buv=uCtr+dc*(1.0+sp*uFv.z*e*ms);'],
+  ['    float amt=uSpeed*(0.04+rb*rb*1.7)*ms; vec3 acc=vec3(0.0);','    float amt=sp*uFv.y*e*ms; vec3 acc=vec3(0.0);'],
+  ['c*=1.0-uSpeed*smoothstep(0.30,0.85,r)*0.55;','c*=1.0-sp*smoothstep(0.42,0.95,r)*0.30;']],
+  FLOU_RO=[['ca=dc*amt*0.015*smoothstep(.45,.9,rb);','ca=dc*amt*0.006*smoothstep(.55,.95,rb);']]; // (ordi seul : absente du programme du téléphone)
+function flouFS(f,v){const a=v?0:1,b=v?1:0;for(const r of FLOU_R)if(f.indexOf(r[a])<0)return f; // une ligne retouchée ailleurs : on ne touche à rien
+  for(const r of FLOU_R.concat(FLOU_RO))f=f.replace(r[a],r[b]);return f;}
+if(FLOU_V2)ACESShader.fragmentShader=flouFS(ACESShader.fragmentShader,1);
 /* (2026-10-13, Léo : « l'effet écran quand tu ressors de l'eau, travaille-le encore plus ») L'OBJECTIF MOUILLÉ RÉFRACTE : une petite toile de
    NORMALES (LENS.cvN, au tiers de l'écran : R/G = le décalage de chaque pixel, en pixels de la toile ÷ 16) dit où chaque goutte et la nappe
    dévient l'image — la goutte agit comme une lentille (l'image derrière elle est retournée et grossie), la nappe qui s'égoutte ondule. Une
@@ -11427,6 +11450,10 @@ function nuage8Mat(){ if(COTON.mat8)return COTON.mat8;
 function nuage8Solo(){ if(COTON.mat8s)return COTON.mat8s; // (v8) la même matière pour un maillage seul (bancs de route, coussins de vol, tours) — chauffée au menu (nuageChauffe)
   const m=nuage8Mat().clone();m.uniforms=nuage8Mat().uniforms;m.defines={};m.customProgramCacheKey=function(){return 'nuage8solo';};return (COTON.mat8s=m);}
 window.dbgNet=function(on){FLOU_OK=!on;if(on&&acesPass)acesPass.uniforms.uSpeed.value=0;return !FLOU_OK;}; // (dev) une image NETTE pour les bancs (le flou de vitesse coupé)
+let FLOU_ON=FLOU_V2;window.dbgFlou=function(o){o=o||{};if(!acesPass)return null;const U=acesPass.uniforms; // (2026-10-14, flou-vitesse) BANC : v = le flou v2/v1 (une recompilation : jamais en course), s = une vitesse d'effet forcée sur l'image figée, fv = [rayon,force,warp,courbe]
+  if(o.v!=null&&!!o.v!==FLOU_ON){FLOU_ON=!!o.v;acesPass.material.fragmentShader=flouFS(acesPass.material.fragmentShader,FLOU_ON);acesPass.material.needsUpdate=true;}
+  if(o.fv)U.uFv.value.fromArray(o.fv);if(o.s!=null){loop._sfx=+o.s;U.uSpeed.value=+o.s;postCaisse(U);}
+  if(o.s!=null&&paused&&POST_ON&&composer)composer.render();return {v:FLOU_ON,s:+U.uSpeed.value.toFixed(3),fv:U.uFv.value.toArray()};};
 window.dbgN8Regen=function(o){if(o)Object.assign(N8_OPT,o);if(!COTON.root||!NUAGE8)return null;COTON.pret.fill(0);COTON.msPret=0; // (dev) refaire toutes les surfaces avec d'autres réglages
   for(let f=0;f<4;f++)for(let k=0;k<COTON_KINDS;k++)nuage8Async(COTON.S[k],N8_FIN[f],function(r){cotonFinesse(k,f,cotonBuf(r));});return Object.assign({},N8_OPT);};
 window.dbgN8=function(o){if(o){for(const k of ['x','y','z','w'])if(o[k]!=null)N8_U.uK.value[k]=o[k];if(o.r)N8_U.uR.value.fromArray(o.r);if(o.near)GFX_U.uNearF.value.set(o.near[0],o.near[1]);}return {uK:N8_U.uK.value.toArray(),v8:NUAGE8};}; // (dev) albédo, soleil, lisière, vapeur
