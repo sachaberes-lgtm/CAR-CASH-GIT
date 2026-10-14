@@ -33426,7 +33426,11 @@ function musicPickNext(excludeIdx){
 // VIEILLE FORTUNE (rock cyberpunk, façon jeu vidéo), TEMPLE DE JADE (DJ tech au temple). MÉTRO et FILTRE D'OR abandonnés.
 // (2026-10-03, Léo : « enlève TEMPLE DE JADE ») : le tirage se fait entre les trois.
 // (2026-10-03, Léo : « enlève VIEILLE FORTUNE aussi ») : le tirage se fait entre les deux.
-const MUSIC_LOBBY=['assets/audio/music/lobby/vapeur-salon.m4a','assets/audio/music/lobby/lobby-ascenseur.m4a'];
+// (2026-10-14, Léo : « applique les lobby Chris dans la musique lobby du main ») : LE LOBBY « CHRIS » — six musiques dans l'esprit de Chris
+// (C418), chacune son monde : PREMIER MATIN (piano feutré + groove doux) · DIMANCHE (bossa) · GARAGE DE NUIT (lo-fi) · POLAROÏD (synthés) ·
+// GRAND CIEL (ambiant) · SIFFLEUR (soul 12/8). 1 min 35 à 2 min 40 chacune, bouclées sans couture (atelier : atelier-son/lobby_chris.py
+// et petites_musiques.py de la branche musique). Toujours une tirée au hasard à chaque lancement. Avant : VAPEUR · SALON et ASCENSEUR DORÉ.
+const MUSIC_LOBBY=['matin','dimanche','nuit','polaroid','ciel','siffleur'].map(k=>'assets/audio/music/lobby/chris-'+k+'.m4a');
 const MUSIC={menu:MUSIC_LOBBY[Math.floor(Math.random()*MUSIC_LOBBY.length)]}; // avant : 'assets/audio/music/nocturnal-groove.mp3' · (2026-09-29, Léo : « la musique du lobby c'est NOCTURNAL GROOVE ») LA MUSIQUE DE L'ACCUEIL — accueil, garage, écran de fin ; jouée à .8 (un extrait de niveau jouait à .5). SWAG CASH CAR, qui tenait l'accueil quelques heures, est parti à L'ORAGE. Vide = le morceau du 1er niveau (musicPremier)
 // musicBaseVol .85→1 (2026-09-24, « la musique pas assez forte comparé au moteur ») : on relève le
 // NIVEAU ACCORDÉ et pas la valeur par défaut du curseur — celle-ci est sauvegardée chez le joueur
@@ -34901,7 +34905,7 @@ function sonConsole(){ // branche la console sur le contexte du jeu (fin d'initA
   try{waPrecharge();}catch(e){} // les voix et les samples, décodés pour le mixage (voir LES VOIX ET LES SAMPLES DANS LE MIXAGE)
 }
 addEventListener('load',function(){try{sonConsole();}catch(e){}});
-const SON_TON={'ville-n':5,'glassy-plucks':-2,'ciel-n5':1,'ciel':-1,'vapeur-salon':-1,'lobby-ascenseur':-4,'lvl1-neon-cash-car':-1,'lvl2-cash-car-vitesse':-2,'nocturnal-groove':0,'noite-de-velocidade':2,'swag-cash-car-2':-1,'addictive-loop':1}; // (2026-09-29) SWAG do m → −1, ADDICTIVE la m → +1 : énergie par gamme majeure (chroma des partiels), la plus petite des trois pentatoniques de la gamme gagnante — la méthode retrouve NÉON, NOCTURNAL et NOITE (pas VITESSE)
+const SON_TON={'chris-matin':-2,'chris-dimanche':1,'chris-nuit':-1,'chris-polaroid':3,'chris-ciel':-1,'chris-siffleur':-1,'ville-n':5,'glassy-plucks':-2,'ciel-n5':1,'ciel':-1,'vapeur-salon':-1,'lobby-ascenseur':-4,'lvl1-neon-cash-car':-1,'lvl2-cash-car-vitesse':-2,'nocturnal-groove':0,'noite-de-velocidade':2,'swag-cash-car-2':-1,'addictive-loop':1}; // (2026-09-29) SWAG do m → −1, ADDICTIVE la m → +1 : énergie par gamme majeure (chroma des partiels), la plus petite des trois pentatoniques de la gamme gagnante — la méthode retrouve NÉON, NOCTURNAL et NOITE (pas VITESSE)
 /* (2026-10-04) GLASSY PLUCKS −2 : MESURÉ (chroma de harmonie.py) — si, la, ré, mi, fa# dominent, ré♯ et la♯ presque absents : si mineur /
    ré majeur (comme VITESSE), pas le « do# dorien » noté sur la branche de Léo (0). Sa fiche d'harmonie (la phrase du boost) est dans harmonie.js. */
 function sonTonSuit(){

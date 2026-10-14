@@ -1,5 +1,16 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LE LOBBY « CHRIS » (2026-10-14, Léo : « applique les lobby Chris dans la musique lobby du main »)
+- `MUSIC_LOBBY` = six musiques dans l'esprit de « Chris » (C418), composées sur la branche musique (`CAR CAHS V3/atelier-son/lobby_chris.py`
+  et `petites_musiques.py`), chacune son monde : PREMIER MATIN (piano feutré + groove doux, ré) · DIMANCHE (bossa, fa) · GARAGE DE NUIT
+  (lo-fi, do m) · POLAROÏD (synthés, sol) · GRAND CIEL (ambiant, mi♭) · SIFFLEUR (soul 12/8, mi♭). Une tirée au hasard à chaque lancement
+  (comme avant). `SON_TON` a leurs six tonalités. Avant : VAPEUR · SALON et ASCENSEUR DORÉ (fichiers gardés, plus tirés).
+- Fichiers `assets/audio/music/lobby/chris-*.m4a`, 1 min 14 à 2 min 38, −15,5 dB RMS (≈ les anciens), **recousus pour boucler sans
+  couture** comme LES BOUCLES DU LOBBY RECOUSUES (plus bas) mais sans ffmpeg : `atelier-son/boucle_aac.py` de la branche musique —
+  encodés AVEC DÉBORD (fin devant, début derrière), paquets utiles seulement (un d'avance), liste d'édition `elst` (saut 1024, durée
+  EXACTE en 44 100e), iTunSMPB retiré. Mesuré dans Chrome (<audio loop>, capture muette) : durée exacte, aucun creux à la reprise.
+  Pour les refaire : `<venv>/python atelier-son/lobby_main.py "<…>/VERSION PRINCIPALE/assets/audio/music/lobby"`.
+
 ## LA PASSE MOBILE — DÉBOGAGE ET FLUIDITÉ EN NETTE (2026-10-14, Léo : « il y a plein de bugs ; il faudrait pouvoir jouer au graphisme NET sans que ça bug » · « peu importe le téléphone, il faut que tout le monde puisse jouer »)
 Banc : Chrome sans fenêtre DÉGUISÉ EN IPHONE (390 × 844 ×3, tactile, `mobile:true` → le vrai chemin `TEL_NATIF`, pas la colonne), son coupé,
 NETTE, JOUER → Soleil de jade au pilote auto ; processeur ralenti ×4 = un téléphone modeste ; A/B contre `origin/main` servi à côté.
