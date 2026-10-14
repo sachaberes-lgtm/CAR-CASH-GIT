@@ -2742,6 +2742,9 @@ body.inGarage #hud>:not(#garage):not(#gFade){display:none!important}
 .gT .gSwc.chrome{background:linear-gradient(160deg,#fff 0%,#b9c3d2 30%,#f4f7fb 48%,#7d8796 70%,#e9eef5 100%)!important}
 .gT .gSwc.or{background:linear-gradient(160deg,#fff4c2 0%,#ffc93a 35%,#fff0a8 50%,#b87400 78%,#ffd65a 100%)!important}
 .gT .gSwc.mat{box-shadow:inset 0 0 0 1px rgba(255,255,255,.06),0 0 0 1px var(--anneau)}
+/* (2026-10-14, passe graphismes · palette) MÉTALLISÉ : un biseau clair en haut-gauche, une ombre dure en bas-droite — NACRE : un liseré blanc rosé (aucun flou) */
+.gSwc.metal,.obSw.metal,.ivSw.metal,.fnSw.metal{box-shadow:inset 2px 2px 0 rgba(255,255,255,.42),inset -2px -2px 0 rgba(0,0,0,.32)!important}
+.gSwc.nacre,.obSw.nacre,.ivSw.nacre,.fnSw.nacre{box-shadow:inset 0 0 0 2px rgba(255,255,255,.55),inset 3px 3px 0 rgba(255,232,246,.45)!important}
 .gT .gRub{position:absolute;left:10px;right:10px;top:24px;height:10px;transform:skewX(-20deg);filter:drop-shadow(0 0 6px currentColor)}
 .gT .gIc{position:absolute;left:50%;top:10px;margin-left:-18px;--pxs:4;transform:skewX(var(--skI))}
 .gT b{position:absolute;left:6px;right:6px;bottom:5px;font-weight:400;font-size:var(--f0);letter-spacing:0;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left}
@@ -22247,6 +22250,8 @@ const LP_MAT={p:{sh:44,sp:0x4a4a4a,rf:.24,gl:.06,v:[.25,1.5,3,.2]},   // LAQUE
               // la lunette arrière une BOULE blanche qui passait au bloom — une vitre qui ÉMET. Le reflet du ciel (et l'éclat du soleil, peint
               // dans le cube) reste : c'est lui qui fait la vitre.
               g:{sh:260,sp:0x5c5c5c,rf:.55,gl:.04,v:[.15,1.3,3,.35]}, // VERRE et laqué noir (vernis teinté : le reflet s'assombrit d'un tiers, la vitre reste une vitre)
+              k:{sh:90, sp:0x8a8a8a,rf:.34,gl:.07,v:[.55,2.2,2.4,.55]}, // (2026-10-14, passe graphismes · palette) MÉTALLISÉ : plus de reflet de face qu'une laque, reflet TEINTÉ à 55 % par la couleur (le métal colore son reflet) — même programme que p/c/o/g
+              n:{sh:70, sp:0xfff4fa,rf:.30,gl:.12,v:[.4,2.6,1.6,.1]},   // (2026-10-14, passe graphismes · palette) NACRE : un voile de ciel LARGE et doux en rasant (courbe 1,6), à peine teinté — même programme
               f:{sh:34, sp:0x5c5c5c,rf:.12,gl:.32}};// FRUITS : vernis + plancher lumineux haut (lisibles de nuit) — (2026-09-26) reflet adouci : les grosses taches BLANCHES mangeaient les fruits redessinés — (vernis : aucun, les fruits ne sont pas des caisses)
 function lpMat(g){
   if(g==='l'){const m=new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide});m.userData.lp=1;return m;}
@@ -29905,7 +29910,7 @@ function objFig(o){ try{
   const hx9=function(c){return '#'+((c>>>0)&0xffffff).toString(16).padStart(6,'0');},rg9=function(v){return 'rgb('+v.map(function(x){return Math.round(Math.min(1,x/1.45)*255);}).join(',')+')';};
   if(o.car!=null){const ph=carPhoto(o.car);return '<i class="obFig">'+(ph?'<img src="'+ph+'" alt="">':pxi('voiture'))+'</i>';}
   const d=COSM[o.cat]&&COSM[o.cat][o.i];if(!d)return '';
-  if(o.cat==='peinture')return '<i class="obFig"><b class="obSw'+(d.g==='c'?' chrome':d.g==='o'?' or':'')+'" style="background:'+(d.grad?'linear-gradient(160deg,'+d.grad.map(hx9).join(',')+')':hx9(d.c||0))+'"></b></i>';
+  if(o.cat==='peinture')return '<i class="obFig"><b class="obSw'+cosmSwCl(d)+'" style="background:'+(d.grad?'linear-gradient(160deg,'+d.grad.map(hx9).join(',')+')':hx9(d.c||0))+'"></b></i>';
   if(o.cat==='trainee')return '<i class="obFig"><b class="obRub" style="color:'+(d.rgb?rg9(d.rgb):'#ff8a24')+';background:'+(d.rainbow?'linear-gradient(90deg,#ff3b3b,#ff9b1a,#ffe23a,#3bff6a,#3bb4ff,#9b5bff)':'linear-gradient(90deg,transparent,'+(d.rgb?rg9(d.rgb):'#ff6a14')+' 35%,#fff 100%)')+'"></b>'+pxi('voiture')+'</i>'; // (2026-09-28) le ruban part d'une caisse : sans elle, une barre qui flotte
   return '<i class="obFig">'+pxi('aile')+'</i>';
 }catch(e){return '';} }
@@ -30183,7 +30188,7 @@ function shopRender(){
 Object.assign(I18N,{"ÉQUIPER":"EQUIP","Achat unique, via ton compte App Store. À toi pour toujours.":"One-time purchase through your App Store account. Yours forever.",
   "Elle t'attend à l'atelier.":"It's waiting for you in the garage.","Les achats ouvriront à la sortie sur l'App Store.":"Purchases open when the game launches on the App Store."});
 const SPOP={el:null,src:null,i:-1,t:0};
-function shopPaye(i){return Promise.reject(new Error('storekit'));} // ⚠ LA porte de StoreKit : tenir la promesse QUAND Apple a encaissé — jamais avant
+function shopPaye(i){return Promise.reject(new Error('storekit'));} // `i` = l'index d'une caisse OU 'palette' (PALETTE_PACK.produit) — (2026-10-14, palette) puis palDonne() ; ⚠ LA porte de StoreKit : tenir la promesse QUAND Apple a encaissé — jamais avant
 function shopDonne(i){ // la caisse payée en vrai argent : posée dans `owned`, sans toucher à la banque du jeu
   if(!Array.isArray(SAVE.d.owned))SAVE.d.owned=[];
   if(SAVE.d.owned.indexOf(i)<0){SAVE.d.owned.push(i);carWas[i]=true;}
@@ -30331,6 +30336,79 @@ const COSM={
     {id:'billets',  n:'FAIS PLEUVOIR',     p:500000,r:'legendaire',pop:'billets',rgb:[.45,1.3,.55],ico:'tr_billets',col:'#5cd685',d:'Des liasses qui s\'envolent à chaque nitro. Ce n\'est pas du gaspillage, c\'est de la communication.'},
     {id:'foudre',   n:'FOUDRE DIVINE',     mis:11,pk:450000,r:'mythique',pop:'foudre',rgb:[.85,.55,1.7],ico:'eclair',col:'#b98aff',d:'Des éclairs crépitent derrière toi. Le marteau, tu l\'as laissé au garage.'}]
 };
+/* (2026-10-14, Sacha : « une grande palette de peintures, façon Geometry Dash » — passe graphismes · palette) LA PALETTE : 40 peintures AJOUTÉES après
+   les 17 (qui ne bougent pas : prix, carnets, possessions). le PACK les donne TOUTES les 40, argent réel (PALETTE_PACK : 0,99 €, UNIQUEMENT par shopPaye('palette') puis palDonne) ; 30 d'entre elles sont
+   rangées en grille 10 teintes × 3 valeurs — PASTELS laqués · FRANCS laqués · MÉTALLISÉS profonds ; colonnes : rouge, orange, jaune, anis, vert, sarcelle,
+   azur, violet, rose, neutre. Les 10 autres sont SECRÈTES : chacune se gagne GRATUITEMENT par un DÉFI caché (GAMEPLAY appelle secDonne(id)), ou avec le pack. Tant qu'une secrète n'est pas
+   gagnée, ses champs VISIBLES (n, d, c, grad, g) se masquent d'eux-mêmes (« ? ? ? », l'indice, une pastille ardoise mate) : toutes les listes qui dérivent
+   de COSM la cachent sans qu'on y touche. `window.PAL_REVELE=1` (bancs, planche) lève le masque. Les finitions k (MÉTALLISÉ) et n (NACRE) sont de simples
+   clés LP_MAT (Phong + vernis en uniform) : zéro programme de plus. `?palette=0` = le jeu d'avant (rien n'est ajouté). */
+const PALETTE_ON=!/[?&]palette=0\b/.test(location.search);
+const PALETTE_PACK={id:'palette',produit:'cashcar.palette40',eur:'0,99 €',n:'LA PALETTE',ids:[]}; // `produit` = l'identifiant App Store Connect, écrit ICI seulement
+const PAL_MASQUE=0x2a2d36; // la pastille d'une secrète pas encore gagnée : ardoise mate
+if(PALETTE_ON){
+  for(const e of [ // [id, nom, couleur, finition (rien = laque), rareté, description] — rangée par rangée, dans l'ordre de la grille
+    ["dragee","ROSE DRAG\u00c9E",0xffb6bd,null,"rare","Le rose des bapt\u00eames. Tu roules quand m\u00eame \u00e0 300."],
+    ["abricot","ABRICOT",0xffc596,null,"rare","Doux comme un fruit, rapide comme un vol."],
+    ["vanille","VANILLE",0xfff0a6,null,"rare","Une boule de glace qui ne fond pas \u00e0 1 000 km/h."],
+    ["pistache","PISTACHE",0xd6f2a0,null,"rare","Le vert des glaciers italiens. Les pneus, eux, sont chauds."],
+    ["amande","VERT AMANDE",0xbfe9c4,null,"rare","Le vert de la voiture de ta grand-m\u00e8re. En plus nerveux."],
+    ["ecume","\u00c9CUME",0xa6ebe2,null,"rare","La mousse sur la vague. La vague, c'est toi."],
+    ["piscine","BLEU PISCINE",0xa9d6ff,null,"rare","Le bleu d'une piscine de palace. Plongeoir compris."],
+    ["lilas","LILAS",0xd3c2ff,null,"rare","Une fleur de printemps qui double par la droite."],
+    ["barbapapa","BARBE \u00c0 PAPA",0xffc2e4,null,"rare","Sucre fil\u00e9, carrosserie dure. Ne l\u00e8che pas."],
+    ["neige","BLANC NEIGE",0xf3f5f7,null,"rare","Propre comme un compte en Suisse."],
+    ["bolide","ROUGE BOLIDE",0xe3242b,null,"rare","Le rouge des grandes marques. Sans le cheval, avec l'arrogance."],
+    ["emeute","ORANGE \u00c9MEUTE",0xff6b14,null,"rare","Visible depuis l'espace. C'est le but."],
+    ["taxi","JAUNE TAXI",0xffc61a,null,"rare","Tout le monde te fait signe. Tu ne t'arr\u00eates pas."],
+    ["citron","CITRON VERT",0xa6df22,null,"rare","Acide. Comme tes d\u00e9passements."],
+    ["billet","VERT BILLET",0x22b45a,null,"rare","La couleur pr\u00e9f\u00e9r\u00e9e de ton banquier."],
+    ["lagon","LAGON",0x12b4ac,null,"rare","L'eau des \u00eeles o\u00f9 tu d\u00e9penses tes primes."],
+    ["azur","AZUR",0x2b8cff,null,"rare","Le ciel sans un nuage. Le tien."],
+    ["royal","VIOLET ROYAL",0x7a3cf0,null,"rare","La couleur des rois. Et de ceux qui roulent comme eux."],
+    ["fuchsia","FUCHSIA",0xe61e78,null,"rare","Trop voyant ? Juste assez."],
+    ["argent","ARGENT BROSS\u00c9",0xc3c9d1,"k","rare","M\u00e9tal bross\u00e9, reflet discret. L'argent ne crie pas, il brille."],
+    ["bordeaux","BORDEAUX",0x6c0e1e,"k","exotique","Un grand cru, mis en bouteille dans de la t\u00f4le."],
+    ["cuivre","CUIVRE",0xa8481c,"k","exotique","Le m\u00e9tal des vieux tuyaux. Pass\u00e9 au polish."],
+    ["bronze","BRONZE",0x8c6a22,"k","exotique","La troisi\u00e8me marche du podium ? Pas ce soir."],
+    ["olive","OLIVE",0x525c1c,"k","exotique","Du kaki m\u00e9tallis\u00e9. Une jeep qui serait all\u00e9e \u00e0 l'op\u00e9ra."],
+    ["anglais","VERT ANGLAIS",0x0f4a2e,"k","exotique","Le vert des bolides d'avant-guerre. Le th\u00e9 est en option."],
+    ["petrole","BLEU P\u00c9TROLE",0x0b4e58,"k","exotique","Profond comme une nappe de p\u00e9trole. En plus propre."],
+    ["abysse","BLEU ABYSSE",0x152a5c,"k","exotique","Le bleu du fond des oc\u00e9ans. Personne ne t'y trouve."],
+    ["aubergine","AUBERGINE",0x3c1a50,"k","exotique","Un violet presque noir. Classe sans le faire expr\u00e8s."],
+    ["framboise","FRAMBOISE",0x7c1242,"k","exotique","Un rouge m\u00fbri au soleil. Sucr\u00e9, pas mou."],
+    ["graphite","GRAPHITE",0x33373e,"k","exotique","Le gris des voitures de direction. Celles qui ne s'arr\u00eatent jamais."],
+  ]){COSM.peinture.push(Object.assign({id:e[0],n:e[1],c:e[2],r:e[4],pack:'palette',d:e[5]},e[3]?{g:e[3]}:{}));PALETTE_PACK.ids.push(e[0]);}
+  for(const e of [ // [id, nom, couleur | dégradé [bas, milieu, haut], finition, rareté, description, INDICE]
+    ["prisme","PRISME",[0xff4a3a,0xffd23a,0x3a8cff],"c","legendaire","La lumi\u00e8re se casse en trois sur ta carrosserie.","Six en l'air, sans toucher terre."],
+    ["fantome","FANT\u00d4ME",0xe8eef8,"n","epique","Blanc nacr\u00e9, presque transparent. Personne ne t'a vu passer.","Deux minutes. Pas un bord."],
+    ["orrose","OR ROSE",0xf0a890,"o","legendaire","L'or des montres dont personne ne regarde l'heure.","Divin, et tr\u00e8s, tr\u00e8s vite."],
+    ["eclair","\u00c9CLAIR",[0x1a2a8a,0x3a7bff,0xe8f4ff],"c","legendaire","Du bleu nuit au blanc \u00e9lectrique : la foudre qui monte.","Le compteur a une limite. Pas toi."],
+    ["nacre","NACRE",[0xe6dcef,0xfbf8f2,0xdcefff],"n","epique","L'int\u00e9rieur d'un coquillage, poli par cinq vagues parfaites.","Cinq fois parfait. \u00c0 la suite."],
+    ["orage","CIEL D'ORAGE",[0x1c2230,0x4a5670,0xdde6ff],"k","epique","Ardoise en bas, \u00e9clair en haut. Le ciel quand il se f\u00e2che.","Sous l'orage, le pied loin du bouton."],
+    ["jadeimperial","JADE IMP\u00c9RIAL",[0x08382a,0x1a9c6c,0xa6f0cc],"n","legendaire","La pierre des empereurs, taill\u00e9e sur le plus long chemin.","Les pics gardent le chemin le plus long."],
+    ["lunaire","LUNAIRE",[0x2a2c34,0x9a9da6,0xf2f2f6],"s","epique","Poussi\u00e8re de crat\u00e8re, sans un grain d'atmosph\u00e8re.","En orbite, passe la troisi\u00e8me porte."],
+    ["lampadaire","LAMPADAIRE",[0x101422,0x2a3a6a,0xffc85a],"g","legendaire","La nuit en bas, le r\u00e9verb\u00e8re sur le toit. La ville t'\u00e9claire.","La ville, la nuit, applaudit les acrobates."],
+    ["cameleon","CAM\u00c9L\u00c9ON",[0x0e6a48,0x1d5ed0,0x8a2bd0],"c","mythique","Vert, bleu, violet : elle change de peau \u00e0 chaque monde.","Quatre mondes, une seule vie."],
+  ]){const o={id:e[0],sec:e[0],pack:'palette',r:e[4],ind:e[6]},vu=function(){return !!window.PAL_REVELE||shopOwned('peinture',o.id);},gr=Array.isArray(e[2]);
+    Object.defineProperties(o,{n:{get:function(){return vu()?e[1]:'? ? ?';},enumerable:true},d:{get:function(){return vu()?e[5]:e[6];},enumerable:true},
+      c:{get:function(){return vu()?(gr?undefined:e[2]):PAL_MASQUE;},enumerable:true},grad:{get:function(){return vu()&&gr?e[2]:undefined;},enumerable:true},
+      g:{get:function(){return vu()?e[3]:'s';},enumerable:true}});
+    COSM.peinture.push(o);PALETTE_PACK.ids.push(e[0]);}
+  Object.assign(I18N,{"LA PALETTE": "THE PALETTE", "COULEUR SECRÈTE": "SECRET COLOUR", "LES 40 COULEURS SONT À TOI": "ALL 40 COLOURS ARE YOURS", "COULEUR": "COLOUR", "ROSE DRAGÉE": "SUGAR PINK", "Le rose des baptêmes. Tu roules quand même à 300.": "Christening pink. You're still doing 300.", "ABRICOT": "APRICOT", "Doux comme un fruit, rapide comme un vol.": "Soft as a fruit, fast as a flight.", "VANILLE": "VANILLA", "Une boule de glace qui ne fond pas à 1 000 km/h.": "A scoop of ice cream that won't melt at 1,000 km/h.", "PISTACHE": "PISTACHIO", "Le vert des glaciers italiens. Les pneus, eux, sont chauds.": "Italian gelato green. The tyres, though, are hot.", "VERT AMANDE": "ALMOND GREEN", "Le vert de la voiture de ta grand-mère. En plus nerveux.": "Your grandma's car green. With more attitude.", "ÉCUME": "SEA FOAM", "La mousse sur la vague. La vague, c'est toi.": "The foam on the wave. You are the wave.", "BLEU PISCINE": "POOL BLUE", "Le bleu d'une piscine de palace. Plongeoir compris.": "Five-star hotel pool blue. Diving board included.", "LILAS": "LILAC", "Une fleur de printemps qui double par la droite.": "A spring flower that overtakes on the right.", "BARBE À PAPA": "CANDY FLOSS", "Sucre filé, carrosserie dure. Ne lèche pas.": "Spun sugar, hard shell. Don't lick it.", "BLANC NEIGE": "SNOW WHITE", "Propre comme un compte en Suisse.": "Clean as a Swiss bank account.", "ROUGE BOLIDE": "RACING RED", "Le rouge des grandes marques. Sans le cheval, avec l'arrogance.": "The red of the big brands. Without the horse, with the arrogance.", "ORANGE ÉMEUTE": "RIOT ORANGE", "Visible depuis l'espace. C'est le but.": "Visible from space. That's the point.", "JAUNE TAXI": "TAXI YELLOW", "Tout le monde te fait signe. Tu ne t'arrêtes pas.": "Everyone waves at you. You don't stop.", "CITRON VERT": "LIME", "Acide. Comme tes dépassements.": "Sour. Like your overtakes.", "VERT BILLET": "CASH GREEN", "La couleur préférée de ton banquier.": "Your banker's favourite colour.", "LAGON": "LAGOON", "L'eau des îles où tu dépenses tes primes.": "The water of the islands where you spend your bonuses.", "AZUR": "AZURE", "Le ciel sans un nuage. Le tien.": "A sky without a single cloud. Yours.", "VIOLET ROYAL": "ROYAL PURPLE", "La couleur des rois. Et de ceux qui roulent comme eux.": "The colour of kings. And of those who drive like them.", "FUCHSIA": "FUCHSIA", "Trop voyant ? Juste assez.": "Too loud? Exactly loud enough.", "ARGENT BROSSÉ": "BRUSHED SILVER", "Métal brossé, reflet discret. L'argent ne crie pas, il brille.": "Brushed metal, quiet shine. Money doesn't shout, it gleams.", "BORDEAUX": "BURGUNDY", "Un grand cru, mis en bouteille dans de la tôle.": "A great vintage, bottled in sheet metal.", "CUIVRE": "COPPER", "Le métal des vieux tuyaux. Passé au polish.": "Old-pipe metal. Freshly polished.", "BRONZE": "BRONZE", "La troisième marche du podium ? Pas ce soir.": "Third step of the podium? Not tonight.", "OLIVE": "OLIVE", "Du kaki métallisé. Une jeep qui serait allée à l'opéra.": "Metallic khaki. A jeep that went to the opera.", "VERT ANGLAIS": "BRITISH GREEN", "Le vert des bolides d'avant-guerre. Le thé est en option.": "Pre-war racing green. Tea is optional.", "BLEU PÉTROLE": "PETROL BLUE", "Profond comme une nappe de pétrole. En plus propre.": "Deep as an oil slick. Only cleaner.", "BLEU ABYSSE": "ABYSS BLUE", "Le bleu du fond des océans. Personne ne t'y trouve.": "Deep-ocean blue. Nobody finds you down there.", "AUBERGINE": "AUBERGINE", "Un violet presque noir. Classe sans le faire exprès.": "Almost-black purple. Classy without trying.", "FRAMBOISE": "RASPBERRY", "Un rouge mûri au soleil. Sucré, pas mou.": "A red that ripened in the sun. Sweet, not soft.", "GRAPHITE": "GRAPHITE", "Le gris des voitures de direction. Celles qui ne s'arrêtent jamais.": "Boardroom grey. Those cars never stop.", "PRISME": "PRISM", "La lumière se casse en trois sur ta carrosserie.": "Light splits in three on your bodywork.", "Six en l'air, sans toucher terre.": "Six in the air, without touching down.", "FANTÔME": "GHOST", "Blanc nacré, presque transparent. Personne ne t'a vu passer.": "Pearl white, almost see-through. Nobody saw you pass.", "Deux minutes. Pas un bord.": "Two minutes. Not one edge.", "OR ROSE": "ROSE GOLD", "L'or des montres dont personne ne regarde l'heure.": "The gold of watches nobody checks the time on.", "Divin, et très, très vite.": "Divine, and very, very fast.", "ÉCLAIR": "LIGHTNING", "Du bleu nuit au blanc électrique : la foudre qui monte.": "From night blue to electric white: lightning on the rise.", "Le compteur a une limite. Pas toi.": "The speedometer has a limit. You don't.", "NACRE": "PEARL", "L'intérieur d'un coquillage, poli par cinq vagues parfaites.": "The inside of a shell, polished by five perfect waves.", "Cinq fois parfait. À la suite.": "Perfect five times. In a row.", "CIEL D'ORAGE": "STORM SKY", "Ardoise en bas, éclair en haut. Le ciel quand il se fâche.": "Slate below, lightning above. The sky when it's angry.", "Sous l'orage, le pied loin du bouton.": "In the storm, keep your foot off the button.", "JADE IMPÉRIAL": "IMPERIAL JADE", "La pierre des empereurs, taillée sur le plus long chemin.": "The emperors' stone, cut on the longest road.", "Les pics gardent le chemin le plus long.": "The peaks guard the longest road.", "LUNAIRE": "LUNAR", "Poussière de cratère, sans un grain d'atmosphère.": "Crater dust, without a grain of atmosphere.", "En orbite, passe la troisième porte.": "In orbit, pass the third gate.", "LAMPADAIRE": "STREETLIGHT", "La nuit en bas, le réverbère sur le toit. La ville t'éclaire.": "Night below, the lamp on the roof. The city lights you up.", "La ville, la nuit, applaudit les acrobates.": "The city, at night, cheers for acrobats.", "CAMÉLÉON": "CHAMELEON", "Vert, bleu, violet : elle change de peau à chaque monde.": "Green, blue, purple: it changes skin in every world.", "Quatre mondes, une seule vie.": "Four worlds, one life."});
+}
+function palPossede(){const o=SAVE.d.shop.own;return PALETTE_PACK.ids.length>0&&PALETTE_PACK.ids.every(function(id){return o.indexOf('peinture:'+id)>=0;});} // le pack est acquis
+function palDonne(){ // APRÈS le succès de shopPaye('palette') (ou une restauration d'achats) : les 40 dans `own` (Sacha, quiz 14 h 10 : les secrètes sont AUSSI dans le pack ; leur DÉFI reste la voie gratuite), jamais la banque du jeu
+  if(!PALETTE_ON)return false;const o=SAVE.d.shop.own;let n9=0;for(const id of PALETTE_PACK.ids)if(o.indexOf('peinture:'+id)<0){o.push('peinture:'+id);n9++;}
+  SAVE.flush();if(n9){toast(pxi('coche')+' '+TR('LA PALETTE')+' — '+TR('LES 40 COULEURS SONT À TOI'),true);try{hap([20,40,20,40,60]);}catch(e){}}return true;}
+function secDonne(id){ // GAMEPLAY : un DÉFI (secret) réussi → sa couleur. Rien en balade ni au bac à sable ; rien si elle est déjà à toi
+  if(!PALETTE_ON||(typeof BALADE!=='undefined'&&BALADE)||(typeof SANDBOX!=='undefined'&&SANDBOX))return false;
+  const d=COSM.peinture.find(function(x){return x.sec===id;});if(!d||shopOwned('peinture',d.id))return false;
+  SAVE.d.shop.own.push('peinture:'+d.id);SAVE.flush();
+  toast(pxi('coche')+' '+TR('DÉFI RÉUSSI')+' · '+TR('COULEUR')+' '+TR(d.n),true);try{hap([20,40,20,40,60]);}catch(e){}try{if(typeof SONV2!=='undefined'&&SONV2)sfx('victoire');}catch(e){}return true;}
+function cosmVu(cat,d){ // la VUE d'un habillage pour une liste (contrat avec INTERFACE) : une secrète pas encore gagnée → masquée (les accesseurs le font déjà ; `masque` le dit)
+  if(d&&d.sec&&!window.PAL_REVELE&&!shopOwned(cat,d.id))return {id:d.id,sec:d.sec,n:d.n,d:d.d,c:d.c,g:d.g,r:d.r,ind:d.ind,masque:true};return d;}
+function cosmSwCl(d){return d.g==='c'?' chrome':d.g==='o'?' or':d.g==='s'?' mat':d.g==='k'?' metal':d.g==='n'?' nacre':'';} // la classe de finition d'une pastille de peinture (une seule table pour toutes les listes)
 /* (2026-10-14) LES FIGURES dans la console du garage : COSM.figure est la VUE du catalogue figures.js (même id, nom, prix) — la console
    (onglet, bande, fiche, ACHETER) la traite comme un habillage. Possédées : SAVE.d.figs (figPossede), achetées par shopBuy → figAchat ;
    « équipée » ne veut rien dire pour une figure : toutes celles qu'on a JOUENT (le double-tap tire au hasard parmi elles). */
@@ -30346,7 +30424,7 @@ const SHOP_CATS=['voiture','peinture','aile','trainee','figure'];
 const SHOP={tab:'voiture',i:{peinture:0,aile:0,trainee:0},prev:null}; // prev : l'article ESSAYÉ (pas forcément à toi)
 function shopOwned(cat,id){if(cat==='figure')return figPossede(id);if(cousin())return !!COSM[cat].find(x=>x.id===id); // (2026-10-14) LE CODE COUSIN : tous les habillages
 const d=COSM[cat].find(x=>x.id===id);if(!d)return false;
-  if(!d.p&&!d.mis)return true;return SAVE.d.shop.own.indexOf(cat+':'+id)>=0;}
+  if(!d.p&&!d.mis&&!d.pack&&!d.sec)return true;return SAVE.d.shop.own.indexOf(cat+':'+id)>=0;} // (2026-10-14, palette) pack et secrètes : possédées seulement une fois données
 function shopEqD(cat){const id=SAVE.d.shop.eq[cat],d=COSM[cat].find(x=>x.id===id);return (d&&shopOwned(cat,d.id))?d:COSM[cat][0];}
 function cosm(cat){return (SHOP.prev&&SHOP.prev.cat===cat)?COSM[cat][SHOP.prev.i]:shopEqD(cat);} // ce que la caisse PORTE (essai compris)
 // ⚠ le TOUT PREMIER `buildCar` tourne à l'init, AVANT que `SAVE`/`SHOP` ne soient déclarés (zone morte) : on rend alors l'origine
@@ -44351,7 +44429,7 @@ function bqVitrine(){const j=bqJour();let b=SAVE.d.bq;
 function bqReste(){const ms=Math.max(0,(bqJour()+1-(BQ_DECALE|0))*864e5-Date.now()),t=Math.floor(ms/1000),d2=function(n){return (n<10?'0':'')+n;};
   return d2(Math.floor(t/3600))+':'+d2(Math.floor(t/60)%60)+':'+d2(t%60);}
 function bqFig(cat,d){const hx=function(c){return '#'+(c>>>0).toString(16).padStart(6,'0');},rg=function(v){return 'rgb('+v.map(function(x){return Math.round(Math.min(1,x/1.45)*255);}).join(',')+')';};
-  if(cat==='peinture')return '<i class="fnSw'+(d.g==='c'?' chrome':d.g==='o'?' or':d.g==='s'?' mat':'')+'" style="background:'+(d.grad?'linear-gradient(160deg,'+d.grad.map(hx).join(',')+')':hx(d.c||0xff7a3a))+'"></i>';
+  if(cat==='peinture')return '<i class="fnSw'+cosmSwCl(d)+'" style="background:'+(d.grad?'linear-gradient(160deg,'+d.grad.map(hx).join(',')+')':hx(d.c||0xff7a3a))+'"></i>';
   if(cat==='trainee')return '<i class="fnRub" style="background:'+(d.rainbow?'linear-gradient(90deg,#ff3b3b,#ff9b1a,#ffe23a,#3bff6a,#3bb4ff,#9b5bff)':'linear-gradient(90deg,transparent,'+(d.rgb?rg(d.rgb):'#ff6a14')+' 35%,#fff 100%)')+'"></i>';
   return '<i class="pxi pxi-aile fnAile"></i>';}
 function bqCarte(k,une,sansRuban){const ri=rarInfo(bqRar(k)),c=ri.c,a=bqA(k);let nom='',ty='',px='',eur=false,fig='';
@@ -44761,12 +44839,12 @@ function gStripHabits(cat,i){
     st.innerHTML=L.map(function(d,j){const a=shopOwned(cat,d.id),eqd=shopEqD(cat)===d;
       let fig='';
       if(cat==='peinture'){const c9=d.id==='usine'?CARS[equippedCar()].color:d.c;
-        fig='<i class="gSwc'+(d.grad?'':d.g==='c'?' chrome':d.g==='o'?' or':d.g==='s'?' mat':'')+'" style="background:'+(d.grad?'linear-gradient(160deg,'+d.grad.map(hx).join(',')+')':hx(c9))+'"></i>';}
+        fig='<i class="gSwc'+(d.grad?'':cosmSwCl(d))+'" style="background:'+(d.grad?'linear-gradient(160deg,'+d.grad.map(hx).join(',')+')':hx(c9))+'"></i>';}
       else if(cat==='trainee'&&d.ico)fig='<i class="pxi pxi-'+d.ico+' gIc" style="color:'+(a?d.col:'#6c6390')+'"></i>'; // (2026-10-14) une traînée POP : son pictogramme et son nom, comme les ailes
       else if(cat==='trainee')fig='<i class="gRub" style="color:'+(d.rainbow?'#ff9b1a':d.rgb?rg(d.rgb):'#ff8a24')+';background:'+(d.rainbow?'linear-gradient(90deg,#ff3b3b,#ff9b1a,#ffe23a,#3bff6a,#3bb4ff,#9b5bff)':'linear-gradient(90deg,transparent,'+(d.rgb?rg(d.rgb):'#ff6a14')+' 35%,#fff 100%)')+'"></i>';
       else if(cat==='figure')fig='<i class="pxi pxi-rotation gIc" style="color:'+(a?rarInfo(cosmRar(cat,d)).c:'#6c6390')+'"></i>'; // (2026-10-14) une FIGURE
       else fig='<i class="pxi pxi-'+(d.ico||'aile')+' gIc" style="color:'+(a?(d.col||'#dff6ff'):'#6c6390')+'"></i>'; // (2026-10-14) les ailes POP ont leur pictogramme
-      const et=a?(eqd?'':pxi('coche')):(d.p?fmtC(d.p):sansAcc(TR('DÉFI'))); // (à gagner : le cadenas est déjà au coin)
+      const et=a?(eqd?'':pxi('coche')):(d.p?fmtC(d.p):d.pack?eurTxt(PALETTE_PACK.eur):sansAcc(TR('DÉFI'))); // (2026-10-14, palette) un article du PACK dit son prix en euros // (à gagner : le cadenas est déjà au coin)
       if(!garde(d))return '';
       const rc9=md==='shop'?' style="--rc:'+rarInfo(cosmRar(cat,d)).c+'"':md==='inv'?' style="--rc:#5ee6ff"':md==='tous'?' style="--rc:#ff3ec8"':''; // (2026-10-09) BOUTIQUE : la couleur de la rareté ; INVENTAIRE : le cyan de l'inventaire (« enlève la rareté de l'inventaire »)
       return '<div class="gT cos c-'+cat+(d.ico&&cat==='trainee'?' pop':'')+(a?'':' lock')+(eqd?' eq':'')+'" data-cos="'+j+'" role="button" aria-label="'+String(TR(d.n)).replace(/"/g,'')+'"'+rc9+'>'+fig+(cat==='aile'||cat==='figure'||d.ico?'<b>'+sansAcc(TR(d.n))+'</b>':'')+'<em>'+et+'</em></div>';}).join('');} // (le nom se lit en grand sur la fiche : la vignette montre la MATIÈRE — sauf l'aile, que seul son nom distingue)
@@ -48467,7 +48545,7 @@ function invRender(){
     g.innerHTML=L.map(function(o,n){const ri=rarInfo(o.r),lu=INV_LUEUR[o.r]||.5;let fig='',nm='';
       if(o.cat==='voiture'){nm=TR(CARS[o.i].name);fig=PHOTO.cache[o.i]?'<img alt="" src="'+PHOTO.cache[o.i]+'">':'<i class="ivPh"></i>';}
       else{const d=o.d;nm=TR(d.n);
-        if(o.cat==='peinture'){const c9=d.id==='usine'?CARS[equippedCar()].color:d.c;fig='<i class="ivSw'+(d.g==='c'?' chrome':d.g==='o'?' or':d.g==='s'?' mat':'')+'" style="background:'+(d.grad?'linear-gradient(160deg,'+d.grad.map(hx).join(',')+')':hx(c9))+'"></i>';}
+        if(o.cat==='peinture'){const c9=d.id==='usine'?CARS[equippedCar()].color:d.c;fig='<i class="ivSw'+cosmSwCl(d)+'" style="background:'+(d.grad?'linear-gradient(160deg,'+d.grad.map(hx).join(',')+')':hx(c9))+'"></i>';}
         else if(o.cat==='trainee')fig='<i class="ivRub" style="color:'+(d.rainbow?'#ff9b1a':d.rgb?rg(d.rgb):'#ff8a24')+';background:'+(d.rainbow?'linear-gradient(90deg,#ff3b3b,#ff9b1a,#ffe23a,#3bff6a,#3bb4ff,#9b5bff)':'linear-gradient(90deg,transparent,'+(d.rgb?rg(d.rgb):'#ff6a14')+' 35%,#fff 100%)')+'"></i>';
         else if(o.cat==='figure')fig='<i class="pxi pxi-rotation ivAile" style="color:'+ri.c+'"></i>';
         else fig='<i class="pxi pxi-aile ivAile" style="color:#dff6ff"></i>';}
