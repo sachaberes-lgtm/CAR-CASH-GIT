@@ -35618,11 +35618,14 @@ const SAVE={
       if(ec.f>=5&&ec.f>(this.d.frenRec||0))this.d.frenRec=ec.f; // la frénésie qui tenait encore (endGame : frenFin)
       if(ec.s>0&&(L.length<10||ec.s>L[L.length-1].s)){L.push({n:this.d.pseudo||'TOI',s:ec.s});L.sort(function(a,b){return b.s-a.s;});if(L.length>10)L.length=10;} // le Top 10, comme lbQualifies
       this.repris={v:ec.v,a:ec.a};}
-    this.flush();
+    /* (2026-10-14, chasse aux bugs) APRÈS UNE PURGE (natif===1 : le secours n'est pas encore lu) ce flush écrivait une sauvegarde VIERGE dans localStorage : si l'appli était tuée avant la
+       réponse de `Preferences.get` (l'init synchrone dure des secondes), le lancement suivant trouvait un localStorage NON vide, ne consultait plus le miroir, puis l'écrasait — perte totale.
+       Rien à écrire à ce stade (pas d'instantané : localStorage était vide) ; la réponse vide, ou le 1er flush de jeu, écrivent. */
+    if(!(this.natif===1&&!ec))this.flush();
   },
   mark(){this.dirty=true;},
   natif:0, // (2026-09-30) le miroir natif : 0 libre · 1 suspendu (on attend la lecture du secours) · 2 restauration en cours, plus AUCUNE écriture (voir plus bas)
-  flush(){if(this.natif===2)return;try{this.d.v=this.V;const s=JSON.stringify(this.d);localStorage[this.K]=s;this.dirty=false;
+  flush(){if(this.natif===2)return;try{this.d.v=this.V;const s=JSON.stringify(this.d);try{localStorage[this.K]=s;this.dirty=false;}catch(e){} /* (2026-10-14, chasse aux bugs) localStorage plein/refusé : le miroir natif doit partir quand même (avant, l'exception sautait Preferences.set) ; `dirty` reste levé, le filet de 30 s réessaie */
     // P0-03 : miroir natif sous Capacitor — NSUserDefaults (Preferences) survit aux purges WKWebView.
     // Le web n'a pas ce plugin : la garde saute et on reste sur localStorage seul.
     if(this.natif===0&&window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences){try{window.Capacitor.Plugins.Preferences.set({key:this.K,value:s});}catch(e){}}
@@ -39274,6 +39277,7 @@ function resetGame(){
   MENUV.retour=false; // (2026-09-28) on repart : l'accueil d'après-mort (accueilRetour) n'est plus la racine
   clearBoom();
   mortCause='';loop._nAir=false;facDepart(); // (MODE FACILE) trois vies neuves à chaque partie // (2026-09-26) rien ne passe d'une partie à l'autre
+  nitroOn=false;nitroBlue=false;nitroHeldT=0;loop._nOn=false;loop._nBl=false;SENS_NI.on=false; // (2026-10-14, chasse aux bugs) la NITRO ne passe pas d'une partie à l'autre : la porte de simulation de `loop` se ferme à `gameOver`/`paused`, donc mourir (ou ⏸) en tenant NITRO laissait nitroOn / loop._nOn / nitroHeldT à leur valeur — à la 1re image de la partie neuve le bloc nitro croyait la nitro VIENT de s'éteindre : PSSHT de relâche, langues de feu + pétarade aux pots, nez qui pique + vibration ; et, doigt posé dès le départ, le coup d'allumage était perdu (loop._nOn déjà vrai)
   TUTO.quitte=0;                 // (2026-09-28) la leçon quittée ne concerne que l'écran de fin qui la suit (une carrière relancée ne repasse pas par tutoDebut)
   if(TUTO.on)tutoDebut();        // (2026-09-26) RECOMMENCER à l'auto-école repart de la 1re consigne
   money=START_CASH; // on repart avec la mise de départ, jamais à sec
@@ -39340,7 +39344,7 @@ function commitExploits(){
      ⚠ ET ON NE VERSE QUE CE QUI A ÉTÉ ENCAISSÉ : la mallette en cours n'a jamais touché `money`,
      donc mourir en vol la perd, exactement comme avant. La banque ne rachète pas le bank-or-bust,
      elle en est la conséquence logique. */
-  const vire=Math.max(0,money-START_CASH);
+  const vire=Math.max(0,money-START_CASH)||0; // (2026-10-14, chasse aux bugs) un `money` NaN faisait bank=NaN (Math.max/min propagent NaN) : écrit null dans le JSON, relu 0 — TOUTE la banque perdue, pas seulement la partie · `||0` : une partie au montant illisible ne verse rien, la banque reste
   SAVE.d.bank=Math.min(1e30,bank()+vire);bankMaxMaj();
   const rangAvant=auraRank();
   if(!lecon){SAVE.d.aura=(SAVE.d.aura||0)+Math.round(auraRun);
@@ -49280,7 +49284,7 @@ function loop(now){
     else if(nitroOn&&nitroBlue&&!loop._nBl&&mode!=='boom')nitroAllume(true,true); // …et le 2e étage : on bascule dans la réserve bleue
     loop._nBl=nitroBlue;
     if(nitroOn){nitroHeldT+=dt;styleFromBoost(dt);} // TENIR le boost remplit la jauge rose — la seule source
-    if(!nitroOn&&loop._nOn&&nitroHeldT>.35)blowOff();
+    if(!nitroOn&&loop._nOn&&nitroHeldT>.35&&mode!=='boom')blowOff(); // (2026-10-14, chasse aux bugs) pas de soupape de turbo sur la caisse qui EXPLOSE : la porte de simulation reste ouverte les 1,8 s de 'boom', un pouce levé (ou la panne sèche) y jouait le PSSHT + flutter par-dessus l'explosion — tous les autres sons de fin de nitro (nitroEteint, nitro.sec, sensNitro) sont déjà gardés mode!=='boom'
     if(SONV2&&!nitroOn&&loop._nOn&&wantN&&mode!=='boom')sfx('nitro.sec'); // (console de son) PANNE SÈCHE : la jauge lâche sous le doigt
     if(!nitroOn&&loop._nOn)nitroEteint(); // (vague 3) la dernière bouffée (lit nitroHeldT : avant sa remise à zéro)
     if(SENS)try{sensNitro(dt,!!wantN);}catch(e){} // (2026-10-14, sensations · nitro) la coupure, la panne sèche, les rapports, les paliers : dans la tôle et la main (lit nitroHeldT avant sa remise à zéro)
@@ -51296,7 +51300,7 @@ function applyDPR(){ try{ const W=innerWidth,H=innerHeight;
   if(slCv.width!==W||slCv.height!==H){slCv.width=W;slCv.height=H;}
   if(juiceCv&&(juiceCv.width!==W||juiceCv.height!==H)){juiceCv.width=W;juiceCv.height=H;} }catch(e){} }
 // PAUSE AUTO : l'appli passe en arrière-plan (onglet caché, app minimisée) → on gèle + on coupe le son
-addEventListener('visibilitychange',function(){ if(document.hidden&&started&&!gameOver&&!paused)togglePause();
+addEventListener('visibilitychange',function(){ if(document.hidden&&started&&!gameOver&&!paused&&mode!=='boom')togglePause(); /* (2026-10-14, chasse aux bugs) PAS pendant l'EXPLOSION : la pause figeait la boule de feu, coupait le son de mort et rouvrait le panneau PAUSE au retour sur une partie déjà perdue — l'arrière-plan gèle déjà tout (plus d'images, contexte audio suspendu) ; au retour la mort avance comme au ⏸ (boomSkip, plus bas) */
   // (2026-09-26) au menu, au garage ou sur l'écran de mort, une vingtaine de sources en boucle tournaient encore en arrière-plan
   try{ if(AC){ if(document.hidden){if(AC.state==='running')AC.suspend();} else if((SND.sfx||musWaTient())&&!paused&&AC.state!=='running')AC.resume(); } }catch(e){} // (2026-10-14, session SON) …et au retour d'arrière-plan aussi
   if(document.hidden)try{enCoursPose();SAVE.flush();}catch(e){} // (2026-09-28) l'appli part en arrière-plan : ce qui attendait le filet de 30 s (record de frénésie, meilleur moteur…) est écrit TOUT DE SUITE — iOS peut la tuer sans prévenir · (2026-09-30) et la PARTIE en cours avec (enCoursPose)
@@ -51637,8 +51641,8 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       modale({titre:q9?'QUITTER LA PARTIE ?':'RECOMMENCER ?',texte:q9?(TUTO.on?(SAVE.d.permis?'Tu reprendras la leçon au prochain départ.':"Tu reprendras la leçon au prochain départ : le PERMIS et sa prime t'attendent."):'Tes gains sont versés au compte.'):'Les gains de cette partie ne seront PAS versés.', // (2026-09-29) pendant la leçon, « tes gains sont versés » taisait l'enjeu
         boutons:[{l:q9?'QUITTER':'RECOMMENCER',ic:q9?'quitter':'rejouer',cls:'pb-red',v:1},{l:'CONTINUER',ic:'lecture',v:0}]}) // CONTINUER en DERNIER : Échap clique le dernier bouton
       .then(function(r){ if(!r.v||!started||gameOver)return;
-        const f9=function(){ if(!started||gameOver)return; const rc9=!q9&&mode!=='boom'; if(rc9)feuilleFerme(pan,'open');else panOpen(false); // (2026-10-14, chasse aux bugs) RECOMMENCER ferme la feuille SANS dépauser : panOpen(false) passait par togglePause (« GO ! », musique de la partie abandonnée relancée, jeu qui repart) juste avant resetGame
-          if(q9){if(TUTO.on)tutoQuitte();const sb=SANDBOX;SANDBOX=false;endGame();SANDBOX=sb;}
+        const f9=function(){ if(!started||gameOver)return; const rc9=mode!=='boom'; if(rc9)feuilleFerme(pan,'open');else panOpen(false); // (2026-10-14, chasse aux bugs) RECOMMENCER ferme la feuille SANS dépauser : panOpen(false) passait par togglePause (« GO ! », musique de la partie abandonnée relancée, jeu qui repart) juste avant resetGame
+          if(q9){if(rc9){paused=false;try{if(AC&&SND.sfx&&AC.state!=='running')AC.resume();}catch(e){}} /* (2026-10-14, chasse aux bugs) QUITTER aussi ferme la feuille SANS togglePause : la musique de la partie abandonnée repartait 0,66 s (play à la seconde où on l'avait laissée) juste pour être étranglée par le tape-stop d'endGame — on sort de la pause à la main, le son se réveille pour l'écran de fin, la musique reste arrêtée (musicStop la range proprement) */ if(TUTO.on)tutoQuitte();const sb=SANDBOX;SANDBOX=false;endGame();SANDBOX=sb;}
           else if(mode==='boom')endGame(); // (2026-10-12, passe qualité) la caisse EXPLOSE déjà : la partie est finie — RECOMMENCER sautait endGame (ni virement, ni aura, ni record, ni écran de fin). On la solde, l'écran de fin et son REJOUER suivent.
           else { /* (2026-10-14, chasse aux bugs) …et passe par le VOLET comme REJOUER : la piste neuve se construisait à l'écran, sous la feuille qui descendait. Le jeu reste gelé sous le voile ; le son (endormi par la pause) se réveille pour le volet — la musique abandonnée, elle, reste en pause : resetGame lance la neuve en fondu */
             let r9=null;try{busPlein();if(AC&&SND.sfx&&AC.state!=='running')r9=AC.resume();}catch(e){}
@@ -51723,7 +51727,8 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(document.hidden){ if(started&&!gameOver&&paused&&pan&&(!pan.classList.contains('open')||pan.classList.contains('sortant'))){feuilleOuvre(pan,'open');panSync();} return; } // (2026-09-29) « sortant » : parti pendant le 3-2-1 qui suit REPRENDRE — le compte s'annule, le panneau revient
     // (2026-09-29) une course qui a DÉMARRÉ pendant que l'appli dormait (REJOUER puis bouton d'accueil dans la foulée) : au retour elle
     // roule sans pause ni panneau — on la met en pause, REPRENDRE sous le pouce
-    if(started&&!gameOver&&!paused&&pan&&!pan.classList.contains('open'))panOpen(true);
+    if(started&&!gameOver&&mode==='boom')boomSkip(); // (2026-10-14, chasse aux bugs) retour pendant l'explosion : comme le ⏸ (gearOpenHandler) — vers l'écran de fin, jamais une PAUSE sur la caisse qui brûle
+    else if(started&&!gameOver&&!paused&&pan&&!pan.classList.contains('open'))panOpen(true);
     wakeAsk(); audioKick(); });
   // ---- BASCULE D'ORIENTATION : iOS annonce des dimensions PÉRIMÉES — on recadre après le pivot ----
   const reflow=function(){ clearTimeout(reflow._t); reflow._t=setTimeout(function(){ // (2026-09-29) une seule fois par rafale (clavier, barre d'adresse) : applyDPR réalloue toutes les cibles de rendu
