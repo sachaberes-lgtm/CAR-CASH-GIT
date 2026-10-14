@@ -35330,7 +35330,7 @@ window.dbgBord=function(o){ // (banc) LE BORD DE LA ROUTE : pose la caisse à un
   if(o&&mode==='fall'&&o.rentre!=null&&tryLand._bi>=0)fallVel.addScaledVector(B[tryLand._bi],-Math.sign(curLatOff||1)*(+o.rentre)*vitMult()); // (banc) en vol : une vitesse vers la route (le joueur qui braque déjà)
   return {mode:mode,lat:+lat.toFixed(2),demi:ROAD_HALF,vL:+vL.toFixed(2),bumps:bounceN,fallT:+fallT.toFixed(2),side:side,hOff:+curHOff.toFixed(2),latOff:+curLatOff.toFixed(2),steer:+steer.toFixed(2),basc:bascOn};};
 function flowSnd(lv){
-  if(SONV2){if(lv>=4)sfx('frenesie.entre');else if(lv>0)sfx('flow.'+lv);return;} // (console) le palier 4 = la FRÉNÉSIE qui part
+  if(SONV2){if(lv>=4)sfx('frenesie.entre');else if(lv>0)sfx('flow.'+lv,{vol:2});return;} /* (2026-10-14, session SON) flow.1-3 +2 : un palier de flow (−30/−29/−28) sonnait au niveau d'une pièce (−30, son +4) ; frenesie.entre (−23) reste devant */ // (console) le palier 4 = la FRÉNÉSIE qui part
   if(!AC||!(lv>0))return;
   const I=FLOW_ACC[lv]; // (même tonalité que les pièces : mi · fa# · sol# · si)
   chimeNote(noteP(I[0],1),0,.08,.22);chimeNote(noteP(I[1],1),.06,.07,.24);chimeNote(noteP(I[2],1),.12,.07,.3);
