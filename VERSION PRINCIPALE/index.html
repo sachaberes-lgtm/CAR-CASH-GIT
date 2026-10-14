@@ -34953,6 +34953,14 @@ function flamePop(dur,vol,freq){ // pop de combustion : tranche de bruit BROWN f
    ⚠ La porte lit la CONSIGNE (`_cib`, posée à chaque setTargetAtTime) et non la valeur courante : un nœud débranché ne fait plus avancer
    sa valeur, elle resterait figée — on ne se rebrancherait jamais. ⚠ Tout écrivain de ces gains passe par setTargetAtTime (vérifié :
    `stt` et les coupures du menu) ; un `.value=` ou une rampe n'ouvriraient PAS la porte. */
+/* (2026-10-14, session SON, audit oreille-neuve §7) LA PLUIE S'ENTEND. Le rideau `PLUIE` (VILLE, MINUIT EN VILLE, L'ORAGE, la pluie du JOUER, la bruine de Paris)
+   se voyait sans rien dire : une incohérence. Une seule boucle de bruit rose, SYNTHÉTISÉE (aucun fichier) : passe-haut 1,4 kHz → passe-bas 7,5 kHz (le crépitement
+   d'une pluie sur la tôle, sans le grave qui est celui du moteur et du vent). `pluieG` est bâti UNE fois dans initAudio, comme `windG`/`whG`, et passe par `porte()` :
+   débranché de MASTER tant que sa consigne est nulle (coût zéro hors pluie). `PLUIE_SON=false` = comme avant. PLUIE_NIV est le gain pour LVL.pluie = 1 : le bruit
+   rose normalisé et filtré 1,4-7,5 kHz sort à −21 dB RMS avant gain (MESURÉ hors ligne, mêmes filtres) ; .055 → ≈ −46 dBFS RMS, à 17 dB sous le moteur seul (−29)
+   et 10 sous le vent à 300 km/h (−56) : on l'entend quand rien ne couvre, jamais en premier. (Le .0075 de l'audit ne donnait que −64 dBFS : inaudible.) */
+const PLUIE_SON=true,PLUIE_NIV=.055;
+let pluieG=null;
 const PORTES=[];
 function porteOuvre(P){if(P.on)return;try{P.g.connect(P.d);}catch(e){}P.on=true;}
 function porteMarque(prm,P){prm._P=P;if(prm._pm)return;prm._pm=1;prm._cib=prm.value;prm._fin=0;const o=AudioParam.prototype.setTargetAtTime;
@@ -34970,7 +34978,7 @@ function portesTick(){ // à chaque image, hors de la simulation (la porte doit 
 }
 // (2026-10-12, banc du son) `dbgVu()` : le niveau (dB RMS) de chaque chaîne continue à sa sortie (ordre des portes) et du MASTER — pour trouver
 // QUI fait « le bruit » au lieu de deviner. Les analyseurs se posent au 1er appel (ils n'écoutent qu'en dérivation, rien n'est rebranché).
-window.dbgVu=function(){if(!AC||!MASTER)return null;const N=['moteur','vent','sifflet','crisse','nitroGronde','nitroJet','nitroBas','nitroOsc'];
+window.dbgVu=function(){if(!AC||!MASTER)return null;const N=['moteur','vent','sifflet','crisse','nitroGronde','nitroJet','nitroBas','nitroOsc','pluie'];
   if(!dbgVu.A)dbgVu.A=[];while(dbgVu.A.length<PORTES.length){const a=AC.createAnalyser();a.fftSize=1024;try{PORTES[dbgVu.A.length].g.connect(a);}catch(e){}dbgVu.A.push(a);}
   if(!dbgVu.M){dbgVu.M=AC.createAnalyser();dbgVu.M.fftSize=1024;MASTER.connect(dbgVu.M);dbgVu.b=new Float32Array(1024);}
   const db=function(a){a.getFloatTimeDomainData(dbgVu.b);let q=0;for(const v of dbgVu.b)q+=v*v;return Math.round(10*Math.log10(q/1024+1e-12));};
@@ -35124,6 +35132,12 @@ function initAudio(){
   whF=AC.createBiquadFilter();whF.type='bandpass';whF.frequency.value=2600;whF.Q.value=14;
   whG=AC.createGain();whG.gain.value=0;
   wsrc2.connect(whF);whF.connect(whG);whG.connect(MASTER);wsrc2.start();
+  // LA PLUIE (voir PLUIE_SON) : bruit rose bouclé → passe-haut 1,4 kHz → passe-bas 7,5 kHz (Q .4) → gain mené par la boucle (LVL.pluie)
+  {const rsrc=AC.createBufferSource();rsrc.buffer=pinkBuf(3);rsrc.loop=true;
+   const rhp=AC.createBiquadFilter();rhp.type='highpass';rhp.frequency.value=1400;rhp.Q.value=.7;
+   const rlp=AC.createBiquadFilter();rlp.type='lowpass';rlp.frequency.value=7500;rlp.Q.value=.4;
+   pluieG=AC.createGain();pluieG.gain.value=0;
+   rsrc.connect(rhp);rhp.connect(rlp);rlp.connect(pluieG);pluieG.connect(MASTER);rsrc.start();}
   // réacteur nitro : souffle + grondement grave + sifflement de turbine (3 couches)
   // + FILTRE EN PEIGNE sur le souffle : rebouclé fort AU SOL = la flamme qui rugit ;
   // en l'air le peigne s'ouvre et un LFO lent module le délai = le whoosh flangé du jet
@@ -35164,6 +35178,7 @@ function initAudio(){
   jrLfo.connect(jrDep);jrDep.connect(jrG.gain);jrLfo.start();
   sonConsole(); // (2026-09-28) LA CONSOLE DE SON se branche sur ce contexte et ce MASTER
   try{porte(gainN,MASTER,engLfoG);porte(windG,MASTER);porte(whG,MASTER);porte(skidG,MASTER);porte(jrG,MASTER,jrDep);porte(jetG,MASTER);porte(jetLowG,MASTER);porte(jetOscG,MASTER);}catch(e){} // (optimisation) les PORTES du graphe
+  try{porte(pluieG,MASTER);}catch(e){} // (2026-10-14) la pluie : débranchée de MASTER tant qu'il ne pleut pas (9e porte de dbgVu)
   /* (optimisation 2026-09-29) LES PARAMÈTRES PILOTÉS À CHAQUE IMAGE PASSENT EN k-rate. La boucle pose une consigne par image sur les
      fréquences du moteur, du vent, de la nitro : en a-rate (le défaut) un filtre biquad AUTOMATISÉ recalcule ses coefficients à CHAQUE
      ÉCHANTILLON (sinus, cosinus, racine — 48 000 fois par seconde et par filtre), un oscillateur recalcule son pas de phase pareil.
@@ -39715,7 +39730,7 @@ function endGame(){
   // frein moteur y sont branchés en parallèle). Les oublier laissait un sifflement de boîte
   // tourner en boucle sur l'écran de fin, sans rien à l'écran pour l'expliquer.
   for(const n9 of [transG,diffG,ovrG,engTickG,pinkG])if(n9)n9.gain.setTargetAtTime(0,AC.currentTime,.2);
-  for(const n9 of [whG,skidG,jrG,jrDep,jetG,jetLowG,jetOscG])if(n9)n9.gain.setTargetAtTime(0,AC.currentTime,.12); // (2026-09-26) sifflement d'air, crissement et flamme nitro : QUITTER en plein boost les laissait tourner au menu
+  for(const n9 of [whG,pluieG,skidG,jrG,jrDep,jetG,jetLowG,jetOscG])if(n9)n9.gain.setTargetAtTime(0,AC.currentTime,.12); // (2026-09-26) sifflement d'air, crissement et flamme nitro : QUITTER en plein boost les laissait tourner au menu
   nA=0;loop._jetWas=false;
   pwrNitroT=pwrAirT=pwrSpdT=0;pwrMagT=pwrAurT=0;pwrV2Raz();pwrChip.style.display='none';loop._pch='';loop._pfx='';{const f9=avE('pwrFx');if(f9)f9.classList.remove('on');} // les pouvoirs meurent avec la caisse
   if(DRS)DRS.g.gain.setTargetAtTime(0,AC.currentTime,.05);if(RSN)RSN.g.gain.setTargetAtTime(0,AC.currentTime,.05); // QUITTER depuis la pause : la charge du drift et la bande rugueuse ne ronflent plus sur l'écran de mort
@@ -50804,6 +50819,12 @@ function loop(now){
         stt(whG.gain,mode==='boom'?0:(spd3<824?Math.max(0,(spd3-560)/4400):Math.min(.085,.06+.025*Math.log(spd3/824)/Math.log(2.2)))*(1-.7*cloudInS)*(1-.5*nA)*dk*(SONV2?1-Math.min(1,LVL.espace):1),AC.currentTime,mode==='boom'?.08:.12); /* (2026-10-07) le sifflement, saturé à 824 km/h, continue lui aussi (logarithme, .085 à 1 800) */ // seuil+pente ×2 (SPD .25→.5 : spd3 a doublé) — le sifflement reste la signature des VITESSES FOLLES, pas un fond permanent
         stt(whF.frequency,2000+spd3*1.2,AC.currentTime,.1); // coef ÷2 : même pitch au même état-caisse
       }
+      if(pluieG){ /* (2026-10-14, session SON, audit oreille-neuve §7) LA PLUIE : suit ce que le rideau montre (LVL.pluie, fondu du portail ; la bruine de Paris), se tait à la
+        mort, sous l'eau (comme le vent) et s'étouffe dans un nuage (comme le sifflement). Coupée sous .02 : la porte se ferme, zéro coût hors pluie. Elle respecte le creux des
+        grands moments (dk). Fondu .4 s (l'orage qui s'installe ne saute pas) ; PLUIE_SON=false la rend muette. */
+        const pl9=PLUIE_SON&&mode!=='boom'&&!gameOver?Math.max(LVL.pluie||0,parisPluie()):0;
+        stt(pluieG.gain,pl9<.02?0:PLUIE_NIV*Math.min(1,pl9)*dk*(1-.85*JEAU.k)*(1-.6*cloudInS),AC.currentTime,mode==='boom'?.08:.4);
+      }
       if(cloudInS>.45&&!loop._cldWas&&!SONV2)noiseBurst(.45,.08,520); // percée dans la ouate : fwoosh de coton
       loop._cldWas=cloudInS>.45;
       if(skidG){ // crissement v2 : ZONE MORTE (il signale LA LIMITE, pas la conduite normale), pitch qui monte avec la glisse
@@ -51507,7 +51528,7 @@ function togglePause(){ if(!started||gameOver)return;
      sans ça, à la reprise, la boucle croirait la cible déjà envoyée et laisserait tout à zéro. `jrDep`/`engLfoG` en font partie :
      ce sont des LFO branchés sur un gain, ils rendraient un trémolo audible même gain principal à zéro. */
   if(paused&&AC){ try{ const T9=AC.currentTime;
-    for(const n9 of [gainN,windG,whG,skidG,jrG,jrDep,jetG,jetLowG,jetOscG,engLfoG,engWhineG,transG,diffG,ovrG,engTickG,pinkG,DRS&&DRS.g,RSN&&RSN.g,sirG])
+    for(const n9 of [gainN,windG,whG,pluieG,skidG,jrG,jrDep,jetG,jetLowG,jetOscG,engLfoG,engWhineG,transG,diffG,ovrG,engTickG,pinkG,DRS&&DRS.g,RSN&&RSN.g,sirG])
       if(n9){const p9=n9.gain;p9.cancelScheduledValues(T9);p9.setTargetAtTime(0,T9,.012);p9._s9=undefined;} }catch(e){} }
   /* (2026-09-28) …et en FONDU : un `suspend()` sec coupait le moteur en plein cycle — un « tic » à chaque pause. La sortie commune
      (`BUSOUT`) descend en ~40 ms, le contexte s'endort derrière ; la reprise (ou le compte 3-2-1) remet la sortie à plein. */
