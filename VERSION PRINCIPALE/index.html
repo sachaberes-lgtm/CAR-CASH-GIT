@@ -9257,7 +9257,7 @@ html:not(.c6).hub:not(.poki) body #mHome.acc2 #mCadeau{grid-row:3;grid-column:1/
          [verrouillé pour l'instant] [LEVEL] [BOUTIQUE]. La BOUTIQUE est l'ancien atelier (onglets, vignettes, achat) : `garMode`. -->
     <div id="gMenu">
       <div id="gProfil"><div class="gpAv"><svg viewBox="0 0 12 12" aria-hidden="true" shape-rendering="crispEdges"><rect x="4" y="1" width="4" height="1" fill="#ffd75e"/><rect x="3" y="2" width="6" height="4" fill="#ffd75e"/><rect x="4" y="3" width="1" height="1" fill="#1b1433"/><rect x="7" y="3" width="1" height="1" fill="#1b1433"/><rect x="5" y="5" width="2" height="1" fill="#c07a2a"/><rect x="5" y="6" width="2" height="1" fill="#ffd75e"/><rect x="2" y="7" width="8" height="5" fill="#5ff0ff"/><rect x="5" y="7" width="2" height="2" fill="#f24aa0"/></svg></div><div class="gpJ">
-        <div class="gpL gpArgent"><i class="pxi pxi-piece" aria-hidden="true"></i><b id="gpArg">$0</b><u><em id="gpArgF"></em></u></div>
+        <div class="gpL gpArgent"><b id="gpArg">$0</b><u><em id="gpArgF"></em></u></div>
         <div class="gpL gpAura"><i class="pxi pxi-etoile" aria-hidden="true"></i><b id="gpAur">0</b><small id="gpRang"></small><u><em id="gpAurF"></em></u></div>
       </div></div>
       <div id="gReglage" class="pbtn pbCarre" role="button" tabindex="0" aria-label="Réglages"><i class="pxi pxi-reglages" aria-hidden="true"></i></div>
@@ -9286,7 +9286,7 @@ html:not(.c6).hub:not(.poki) body #mHome.acc2 #mCadeau{grid-row:3;grid-column:1/
     <!-- (2026-10-14, charte 6) L'EN-TÊTE COMMUN du hub : ◀ (retour à l'accueil, le geste de HOME), le titre, les comptes — `hidden` : sans html.c6 (?ui=5) il n'existe pas ; ses chiffres recopient #gCompteur / #gAuraC (voir « L'EN-TÊTE DU HUB » dans le script) -->
     <div id="gC6Tete" class="c6Tete flotte" hidden><div id="gC6Ret" class="pbtn pbCarre c6Ret" role="button" tabindex="0" aria-label="Retour"><i class="pxi pxi-gauche" aria-hidden="true"></i></div><b class="c6Titre">GARAGE</b><b class="c6Titre" id="gC6TitreInv" data-fr="INVENTAIRE">INVENTAIRE</b><div class="c6Comptes"><span class="c6Sou cash"><i class="pxi pxi-piece" aria-hidden="true"></i><b id="gC6Cash">$0</b></span><span class="c6Sou aura"><i class="pxi pxi-etoile" aria-hidden="true"></i><b id="gC6Aura">0</b></span></div></div>
     <div id="gTop">
-      <div id="gTopRow"><span id="gTitle" hidden>GARAGE</span><div id="gCompteur" aria-label="Compte"><i class="pxi pxi-piece" aria-hidden="true"></i><b>$0</b></div><!-- (2026-09-29, Léo : « reprends les boutons du menu d'après le crash et mets-les dans le garage ») BOUTIQUE · RÉGLAGES, en haut à droite (le coin vide) ; GARAGE n'est pas repris : on y est --><div id="gOutils"><div class="pbtn pbCarre pb-mag" data-go="shop" role="button" tabindex="0" aria-label="Boutique"><i class="pxi pxi-panier" aria-hidden="true"></i></div><div class="pbtn pbCarre" data-go="set" role="button" tabindex="0" aria-label="Réglages"><svg class="boulon" viewBox="3 8 42 40" aria-hidden="true"></svg></div><div class="pbtn pbCarre" id="gvHome" role="button" tabindex="0" aria-label="Accueil"><i class="pxi pxi-maison" aria-hidden="true"></i></div></div></div>
+      <div id="gTopRow"><span id="gTitle" hidden>GARAGE</span><div id="gCompteur" aria-label="Compte"><b>$0</b></div><!-- (2026-09-29, Léo : « reprends les boutons du menu d'après le crash et mets-les dans le garage ») BOUTIQUE · RÉGLAGES, en haut à droite (le coin vide) ; GARAGE n'est pas repris : on y est --><div id="gOutils"><div class="pbtn pbCarre pb-mag" data-go="shop" role="button" tabindex="0" aria-label="Boutique"><i class="pxi pxi-panier" aria-hidden="true"></i></div><div class="pbtn pbCarre" data-go="set" role="button" tabindex="0" aria-label="Réglages"><svg class="boulon" viewBox="3 8 42 40" aria-hidden="true"></svg></div><div class="pbtn pbCarre" id="gvHome" role="button" tabindex="0" aria-label="Accueil"><i class="pxi pxi-maison" aria-hidden="true"></i></div></div></div>
       <div id="gAuraC" aria-label="Aura"><i class="pxi pxi-etoile" aria-hidden="true"></i><b>0</b><small></small><u><em></em></u></div>
       <div id="gPlayMain" role="button" tabindex="0" aria-label="Jouer"></div><!-- (le JOUER en lettres de l'ancien garage : masqué, gardé pour le câblage) -->
       <div id="gCarr" class="pbtn" role="button" tabindex="0" style="display:none"><i class="pxi pxi-trophee" aria-hidden="true"></i><span data-fr="CARRIERE">CARRIERE</span></div>
@@ -22619,6 +22619,37 @@ function fmtGta(v){
   const dec=(v<1000&&cts>0)?'<span class="cts">'+(LANG==='fr'?',':'.')+String(cts).padStart(2,'0')+'</span>':''; // le point décimal anglais : « $1,61 » se lit comme des milliers
   return (i<0?c+'<span class="dz">'+s+'</span>':c+'<span class="dz">'+s.slice(0,i)+'</span>'+s.slice(i))+dec;
 }
+/* LE SOLDE PRÉCIS (2026-10-14, GAMEPLAY — Sacha : « un compteur d'argent PRÉCIS avec TOUS les chiffres, inspiré de celui de GTA ; pas de double S »).
+   PARTOUT où le SOLDE s'affiche (accueil, garage, profil, boutique, écran de fin, compteur de course) : le montant COMPLET, à l'écriture du
+   compteur du garage de Léo (« $ 48 250 » en français, « $48,250 » en anglais ; l'espace de fr-FR devient une espace simple, la police pixel
+   n'a pas U+202F), UN SEUL symbole (le « $ » : la pièce des plaques est retirée), et il ROULE quand il change (0,7 s, départ vif, arrivée posée ;
+   un seul rAF pour toutes les plaques, aucun objet alloué par image). Les grands montants tiennent : quand le NOMBRE de signes change, la police
+   descend par crans jusqu'à ce que la plaque tienne dans son cadre et dans l'écran (soldeFit, une mesure par changement de longueur, pas par image).
+   Les messages d'événement gardent leurs unités compactes (fmtC) : seul le SOLDE est précis. */
+function fmtSolde(x){return CUR()+(LANG==='fr'?' ':'')+Math.max(0,Math.round(x)).toLocaleString(LOC()).replace(/[\u202f\u00a0]/g,' ');}
+const SOLDE={l:[],on:false,D:700};
+function soldeFit(el){const p=el.parentElement;if(!p)return true;el.style.fontSize='';
+  let fs=parseFloat(getComputedStyle(el).fontSize)||14;
+  for(let i=0;i<10;i++){const r=p.getBoundingClientRect();if(r.width<1)return false; /* caché : on réessaiera à la prochaine écriture */
+    if(p.scrollWidth<=p.clientWidth+1&&r.right<=VP.w-4&&r.left>=4)return true;
+    fs=Math.max(7,fs-1.5);el.style.fontSize=fs+'px';if(fs<=7)return true;}
+  return true;}
+function soldeTxt(el,v){const t=fmtSolde(v);el._sl=LANG;if(el.textContent!==t){el.textContent=t;if(el._sn!==t.length){el._sn=t.length;if(!soldeFit(el))el._sn=-1;}}}
+function soldeEcrit(el,v,net){if(!el)return;v=Math.max(0,Math.floor(v));
+  if(el._sv==null||net||REDUCED_MOTION){el._sv=el._sc=v;soldeTxt(el,v);return;}
+  if(el._sn===-1){const n9=performance.now();if(!(n9-(el._sr||0)<500)){el._sr=n9;if(soldeFit(el))el._sn=el.textContent.length;}} /* la plaque était cachée au dernier changement de longueur : on remesure, deux fois par seconde au plus */
+  if(v===el._sc){if(el._sl!==LANG&&SOLDE.l.indexOf(el)<0)soldeTxt(el,v);return;} /* la langue a changé : même montant, autre écriture */
+  el._s0=el._sv;el._sc=v;el._st=performance.now();
+  if(SOLDE.l.indexOf(el)<0)SOLDE.l.push(el);
+  if(!SOLDE.on){SOLDE.on=true;requestAnimationFrame(soldeRoule);}}
+function soldeRoule(){const n=performance.now(),L=SOLDE.l;let j=0;
+  for(let i=0;i<L.length;i++){const el=L[i],k=Math.min(1,(n-el._st)/SOLDE.D),e=1-Math.pow(1-k,3);
+    el._sv=Math.round(el._s0+(el._sc-el._s0)*e);soldeTxt(el,el._sv);if(k<1)L[j++]=el;}
+  L.length=j;SOLDE.on=j>0;if(SOLDE.on)requestAnimationFrame(soldeRoule);}
+/* (banc) dbgSolde({banque, course}) : pose le compte et/ou l'argent de la partie, puis rend ce que chaque plaque de SOLDE affiche (texte, corps, bords) */
+window.dbgSolde=function(o){o=o||{};if(o.banque!=null){SAVE.d.bank=Math.max(0,+o.banque);try{SAVE.mark();}catch(e){}try{gBankPaint();}catch(e){}try{garMenuMaj();}catch(e){}}if(o.course!=null)money=Math.max(0,+o.course);
+  const q=function(s){const e=document.querySelector(s);if(!e)return null;const r=e.getBoundingClientRect();return {t:e.textContent,vu:r.width>0,fs:getComputedStyle(e).fontSize,x0:Math.round(r.left),x1:Math.round(r.right)};};
+  return {banque:bank(),course:money,ux8:q('#ux8Arg b'),gar:q('#gCompteur b'),gp:q('#gpArg'),bq:q('#gBqArg'),gBank:q('#gBank'),fin:q('#mCashTot'),hud:q('#cashHud .chV span'),VPw:VP.w};};
 // ---- UNITÉS COMPACTES : « $ 1,4 M » se lit d'un œil, « $ 1 400 000 » est du bruit. Échelle
 // longue française (million, milliard, billion, billiard, trillion) — assez folle toute seule.
 const UNITS=[[1e30,'Qn','QUINTILLIONS 🛸'],[1e27,'Qd','QUADRILLIARDS'],[1e24,'Q','QUADRILLIONS 🤑'],[1e21,'Td','TRILLIARDS'],[1e18,'T','TRILLIONS 🤯'],[1e15,'Bd','BILLIARDS'],[1e12,'Bn','BILLIONS'],[1e9,'Md','MILLIARDS'],[1e6,'M','MILLIONS'],[1e3,'k','MILLIERS']];
@@ -22644,7 +22675,6 @@ function paintMoney(){try{elMoney.innerHTML=fmtGta(money);loop._money=money;}cat
    « ×3 ». On n'écrit le DOM que quand le texte change. `cashSnap` (via paintMoney : départ, reset, langue) recale sans défilement. */
 const CASH={el:null,v:null,d:null,disp:0,last:0,delta:0,dT:0,tv:'',td:'',k:false,kd:false};
 function cashTxt(v){v=Math.max(0,v);
-  if(v>=1e5)return fmtC(v).replace(/^\$\s?/,'');
   const e=Math.floor(v+1e-6);
   if(v<10&&v-e>.004){const t=v.toFixed(2);return LANG==='fr'?t.replace('.',','):t;} // la mise de départ (1,61) garde ses centimes
   return e.toLocaleString(LOC()).replace(/[\u202f\u00a0]/g,' ');}
@@ -22653,7 +22683,7 @@ function cashEcrit(force){
   const e=CASH.el||(CASH.el=document.getElementById('cashHud'));if(!e)return;
   if(!CASH.v){CASH.v=e.querySelector('.chV span');CASH.d=null;} /* (2026-10-14, Sacha) le « +$ » sous le total est ÉTEINT (le « +1 » flotte à côté de la caisse, piece1Plus) : CASH.d nul = plus aucune écriture */
   const kv=Math.round(CASH.disp*100); // (débogage 29/09) on ne FORMATE que si la valeur affichée a bougé d'un centime : cashTxt (toLocaleString) tournait à chaque image
-  if(force||kv!==CASH.kv){CASH.kv=kv;const t=cashTxt(CASH.disp);if(force||t!==CASH.tv){CASH.tv=t;CASH.v.textContent=t;}}
+  if(force||kv!==CASH.kv){CASH.kv=kv;const t=cashTxt(CASH.disp);if(force||t!==CASH.tv){CASH.tv=t;CASH.v.textContent=t;if(CASH.vn!==t.length){CASH.vn=t.length;if(document.body.classList.contains('play'))soldeFit(CASH.v);}}}
   if(!CASH.d)return;
   const vu=CASH.dT>0&&CASH.delta>0;
   if(vu){const x3=FLOW.lv===4,kd=Math.round(CASH.delta*100)*2+(x3?1:0);
@@ -50074,7 +50104,7 @@ function photoTour(){
   requestAnimationFrame(photoTour);
 }
 function gBankPaint(){const gb=$('gBank');
-  if(gb)gb.innerHTML=TR('COMPTE')+' : '+fmtC(bank())+'<span class="aura">'+pxi('etoile')+' '+fmtAura(SAVE.d.aura||0)+'</span>';
+  if(gb)gb.innerHTML=TR('COMPTE')+' : '+fmtSolde(bank())+'<span class="aura">'+pxi('etoile')+' '+fmtAura(SAVE.d.aura||0)+'</span>';
   gCompteur();}
 /* LE COMPTEUR DU GARAGE, FAÇON GTA (2026-09-25, user : « trop de texte — mets le prix en haut, joliment, avec un vrai
    compteur comme GTA »). Le solde en chiffres COMPLETS (« $35,850 », pas « 35,9 k »), vert, contour noir, en haut à
@@ -50089,14 +50119,14 @@ function gCompteur(){
   const el=$('gCompteur');if(!el)return;const b=el.querySelector('b'),v=Math.floor(bank()),v0=gCompteur._v;
   // (2026-09-26) chiffres COMPLETS façon GTA, mais au format de la LANGUE : en français « $42,000 » se lisait 42 dollars.
   // Les espaces insécables de fr-FR deviennent des espaces simples (la police pixel n'a pas U+202F).
-  const fmt=function(x){return CUR()+(LANG==='fr'?' ':'')+Math.round(x).toLocaleString(LOC()).replace(/[\u202f\u00a0]/g,' ');}; // (2026-09-28) \u00ab $ 48 250 \u00bb : la m\u00eame \u00e9criture que l'\u00e9cran de mort et les annonces
-  if(v0==null||REDUCED_MOTION){b.textContent=fmt(v);gCompteur._v=v;return;}
+  const fmt=fmtSolde; /* (2026-10-14) l'écriture du SOLDE PRÉCIS, partagée par toutes les plaques */ // (2026-09-28) \u00ab $ 48 250 \u00bb : la m\u00eame \u00e9criture que l'\u00e9cran de mort et les annonces
+  if(v0==null||REDUCED_MOTION){soldeTxt(b,v);gCompteur._v=v;return;}
   if(v===v0)return;
   if(v<v0){const d=document.createElement('i');d.className='gcMoins';d.textContent='-'+fmt(v0-v);el.appendChild(d);setTimeout(function(){d.remove();},1400);}
   el.classList.remove('bouge');void el.offsetWidth;el.classList.add('bouge');
   if(v<v0&&garageOn&&!gEl.classList.contains('quiet')&&!gEl.classList.contains('launching'))try{sfx('ui.compteur');}catch(e){} // (console de son) la DÉPENSE qui défile (0,9 s) : la liasse qui se compte, la note qui descend — vitrine visible seulement
   const t0=performance.now(),D=900;gCompteur._v=v;
-  (function f(){const k=Math.min(1,(performance.now()-t0)/D),e=1-Math.pow(1-k,3);b.textContent=fmt(v0+(v-v0)*e);if(k<1&&gCompteur._v===v)requestAnimationFrame(f);})();
+  (function f(){const k=Math.min(1,(performance.now()-t0)/D),e=1-Math.pow(1-k,3);soldeTxt(b,v0+(v-v0)*e);if(k<1&&gCompteur._v===v)requestAnimationFrame(f);})();
 }
 // les PASTILLES sous le nom : où on est dans la liste, ce qui est à toi (plein), ce que tu portes (or)
 function gDots(L){const el=$('gDots');if(!el)return;
@@ -52292,7 +52322,7 @@ function bqPhotos(el){
   el.querySelectorAll('[data-ph]').forEach(function(x){photoFile(+x.getAttribute('data-ph'),function(url){if(!x.firstChild){const im=document.createElement('img');im.alt='';im.src=url;x.appendChild(im);}});});}
 function garBqUI(){let ui=document.getElementById('gBq');if(ui)return ui;
   ui=document.createElement('div');ui.id='gBq';
-  ui.innerHTML='<div id="gBqTete"><div class="bqT1"><div class="bqTl"><b data-fr="BOUTIQUE">'+sansAcc(TR('BOUTIQUE'))+'</b><div class="bqArg">'+pxi('piece')+'<b id="gBqArg"></b></div></div>'
+  ui.innerHTML='<div id="gBqTete"><div class="bqT1"><div class="bqTl"><b data-fr="BOUTIQUE">'+sansAcc(TR('BOUTIQUE'))+'</b><div class="bqArg"><b id="gBqArg"></b></div></div>'
       +'</div></div>'
     +'<div id="gBqNom"><span class="bqRar"></span><span class="bqNom"></span><span class="bqLim">'+pxi('horloge')+'<em></em></span></div>'
     +'<div id="gBqSkins"><b>'+sansAcc(TR('COLORIS'))+'</b><div class="bqSk"></div></div>'
@@ -52316,7 +52346,7 @@ function garBqUI(){let ui=document.getElementById('gBq');if(ui)return ui;
   return ui;}
 function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBqPan'),voulu=GBQ.on&&gModeM()==='shop'&&!GMODE.paye;
   if(voulu!==GBQ.panOn){GBQ.panOn=voulu;ui.classList.toggle('pan',voulu);pan.classList.remove('menu');garLibre._r=null;GBQ.lay='';GBQ.rk='';GBQ.uk='';GBQ.vu=-1;if(!voulu)GBQ.zone=null;}
-  {const a=document.getElementById('gBqArg'),v=fmtC(Math.floor(bank()));if(a&&a.textContent!==v)a.textContent=v;}
+  soldeEcrit(document.getElementById('gBqArg'),bank()); /* (2026-10-14) le SOLDE PRÉCIS */
   if(!voulu)return;
   // LA BOUTIQUE : la catégorie choisie, ou les offres
   const E=bqEphemeres().l,ong=GBQ.ong||'cat',cat=GBQ.cat||'voiture',L=ong==='off'?E.map(function(n){return 'v:'+n;}):bqListe(cat),rail=pan.querySelector('.bqRail');
@@ -53215,7 +53245,7 @@ function ux8T(fr,en){return LANG==='en'?en:fr;}
 function ux8Bati(){if(UX8.el||!gEl)return;
   const d=document.createElement('div');d.id='ux8';
   d.innerHTML='<div id="ux8Ret" class="pbtn" role="button" tabindex="0" aria-label="Accueil">'+pxi('gauche')+'</div>'
-    +'<div id="ux8Arg" aria-label="Compte">'+pxi('piece')+'<b></b></div>'
+    +'<div id="ux8Arg" aria-label="Compte"><b></b></div>'
     +'<div id="ux8Col"><div id="ux8Nom"><b class="nm"></b><span class="pills"><span class="rar"></span><span class="eqp"></span></span>'
       +'<div id="ux8Eye" class="pbtn" role="button" tabindex="0" aria-label="La voiture seule" aria-pressed="false">'+pxi('oeil')+'<span class="rev"></span></div></div>'
     +'<div id="ux8Bas"><div id="ux8Sw" role="tablist" data-s="g"><span data-s="g" role="tab"></span><span data-s="s" role="tab"></span></div>'
@@ -53271,7 +53301,7 @@ function ux8Tick(){try{
   if(UX8.lang!==LANG){UX8.lang=LANG;UX8.tabK='';UX8.dirty=true;
     const sw=$$('#ux8Sw');sw.children[0].textContent=ux8T('MON GARAGE','MY GARAGE');sw.children[1].textContent=sansAcc(TR('BOUTIQUE'));
     $$('#ux8Ret').setAttribute('aria-label',TR('Accueil'));$$('#ux8Eye .rev').textContent=ux8T('TOUCHE POUR REVENIR','TAP TO GO BACK');UX8.nomK='';}
-  {const v=fmtC(Math.floor(bank())),b=$$('#ux8Arg b');if(b.textContent!==v)b.textContent=v;}
+  soldeEcrit($$('#ux8Arg b'),bank()); /* (2026-10-14) le SOLDE PRÉCIS */
   {const c=ux8Cur(),k=c.k+'|'+c.eq+'|'+LANG;if(UX8.nomK!==k){UX8.nomK=k;
     $$('#ux8Nom .nm').textContent=c.nm;const r=$$('#ux8Nom .rar');r.textContent=c.ri?sansAcc(TR(c.ri.n1)):'';r.style.setProperty('--rc',c.ri?c.ri.c:'#fff');
     const e=$$('#ux8Nom .eqp');e.innerHTML=c.eq?pxi('coche')+'<span>'+ux8T('EQUIPEE','EQUIPPED')+'</span>':'';e.hidden=!c.eq;}}
@@ -54812,7 +54842,7 @@ function garMode(m){
 }
 function garMenuMaj(){ // le profil (argent, aura), le niveau de la carrière, les missions
   const b=bank(),o=objectif(),pc=function(x){return Math.round(100*Math.max(0,Math.min(1,x)))+'%';};
-  const ga=$('gpArg');if(ga)ga.textContent=fmtC(b);
+  soldeEcrit($('gpArg'),b); /* (2026-10-14) le SOLDE PRÉCIS */
   const af=$('gpArgF');if(af)af.style.width=pc(o&&o.prix?b/o.prix:1);                 // la jauge d'argent : vers la prochaine caisse à vendre
   const au=SAVE.d.aura||0,r=auraRank(),lo=AURA_RANKS[r].v,nx=AURA_RANKS[r+1];
   const gu=$('gpAur');if(gu)gu.textContent=fmtAura(au);
@@ -58682,7 +58712,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       const prem9=mFill._mort!==TCTL.mortT;mFill._mort=TCTL.mortT; // (2026-09-29) le compte (montant, aura) ne se joue qu'à la PREMIÈRE apparition de l'écran de cette mort
       {const v9=RUNX.verse!=null?RUNX.verse:Math.max(0,Math.round(bank()-(RUNX.bank0||0))),c9=$t('mCash'),t9=$t('mCashTot');
        if(c9)c9.style.setProperty('--n',fmtC(v9).length); // le corps du montant se règle sur sa longueur finale (« $ 128,4 k » tient debout)
-       if(t9)t9.textContent=TR('COMPTE')+(LANG==='fr'?' : ':': ')+fmtC(bank())+jourFinTexte(); /* (2026-10-14, GAMEPLAY) le ×2 du jour et la prime de série se disent dans la ligne qui existe déjà */
+       if(t9)t9.textContent=TR('COMPTE')+(LANG==='fr'?' : ':': ')+fmtSolde(bank())+jourFinTexte(); /* (2026-10-14, GAMEPLAY) le ×2 du jour et la prime de série se disent dans la ligne qui existe déjà */
        mCount(c9,v9,!prem9);}
       const ot=$t('mOverT');
       // (2026-09-26, audit UX) LES RECORDS NE SE CONTREDISENT PLUS : le jeu criait « RECORD BATTU » sur l'AURA en course, et
@@ -58745,7 +58775,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       if(!(started&&!gameOver)&&!SANDBOX){const r9=misFin(); // un carnet rempli mais pas refermé (partie quittée, app tuée) : on le referme ici, et ça se FÊTE
         if(r9){MIS_REC=r9;misBanniere('MISSIONS RÉUSSIES !',r9.nom,TR('DÉBLOQUÉ'),'cadeau');try{if(SONV2)sfx('ui.carnet');else fanfare();}catch(e){}}}
       {const pp=$t('mMisPips'),s9=misEtat();if(pp)pp.querySelectorAll('u').forEach(function(u,i){u.classList.toggle('ok',!!s9.ok[i]);});} // la porte MISSIONS : une case allumée par défi relevé
-      const bv=$t('mBankV');if(bv)bv.textContent=fmtC(bank());
+      soldeEcrit($t('mBankV'),bank()); /* (2026-10-14) le SOLDE PRÉCIS */
       let nG=shopAPortee();for(let i=0;i<CARS.length;i++){const p9=carPrice(i);if(p9&&!carUnlockedVrai(i)&&p9<=bank())nG++;}
       const bg=$t('bdGar'),bs=$t('bdShop'),c6=document.documentElement.classList.contains('c6'); // (2026-10-14, charte 6) la pastille = un carré d'or SANS chiffre ni mot (« 39 » ne disait rien)
       if(bg){bg.textContent=c6?'':(nG||'');bg.classList.toggle('on',nG>0);} // tout ce qui s'achète en argent du jeu est au GARAGE
