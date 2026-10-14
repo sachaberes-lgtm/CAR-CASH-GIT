@@ -18,7 +18,12 @@ const ICI=__dirname,SORTIE=path.join(ICI,'..','sons-banque.js'),MESURES=path.joi
 eval(fs.readFileSync(path.join(ICI,'recettes.js'),'utf8'));
 const DEFS=globalThis.CCSON_DEFS,cuireBrut=globalThis.CCSON_cuireBrut,sonie=globalThis.CCSON_sonie,crete=globalThis.CCSON_crete;
 const SR=32000,TETE=Math.round(.03*SR);
-const filtre=process.argv[2]?new RegExp(process.argv[2].replace(/\./g,'\\.')):null;
+const filtre=process.argv[2]?new RegExp(process.argv[2].replace(/(^|[^\\])\./g,'$1\\.')):null; // (2026-10-14, session SON) un point déjà échappé (« singe\.troupe ») le reste : on n'échappe que les points nus
+/* (2026-10-14, session SON) LES SONS RETIRÉS DE LA BANQUE. Leurs recettes restent dans recettes.js (archive, banc d'écoute), mais ils ne
+   sont plus cuits : sans cette liste, toute cuisson (complète OU filtrée — le filtre recuit tout id absent de l'ancienne banque) les
+   faisait revenir. Train T2 (e0b0ba0) : ui.pop, ui.compteFin, fig.goutte, ui.pause plus appelés ; nuages.ambiance coupée par Léo
+   (« son parasite »). Le BOUCLIER retiré du jeu (29/09, PWR_ORDRE sans 'b') : pwr.b, pwr.bouclierCasse/Fin/Plot, jamais appelés. */
+const RETIRES=new Set(['ui.pop','ui.compteFin','fig.goutte','nuages.ambiance','ui.pause','pwr.b','pwr.bouclierCasse','pwr.bouclierFin','pwr.bouclierPlot']);
 const TMP=fs.mkdtempSync(path.join(os.tmpdir(),'ccson-'));
 const WAVDIR=process.env.WAV?path.join(ICI,'_wav'):null;if(WAVDIR)fs.mkdirSync(WAVDIR,{recursive:true});
 
@@ -72,6 +77,7 @@ const meta={},donnees={},lignes=[];let total=0,dureeT=0;
  cp.execFileSync('ffmpeg',['-v','error','-y','-i',w,'-codec:a','libmp3lame','-q:a','5','-ar',String(SR),m]);
  donnees['__etalon']=fs.readFileSync(m).toString('base64');}
 for(const id in DEFS){
+  if(RETIRES.has(id))continue;
   const f=DEFS[id];
   meta[id]={bus:f.bus,db:f.db,max:f.max,cd:f.cd,v:f.v,rj:f.rj,vj:f.vj,key:f.key?1:0,bases:f.bases||[0],grp:f.grp||null,prio:f.prio||0,cede:f.cede?1:0,pre:f.pre?1:0,fam:f.fam||'?',dit:f.dit||''};
   for(const base of (f.bases||[0]))for(let v=0;v<f.v;v++){
