@@ -9020,6 +9020,7 @@ const PAL=(function(){
     if(!P.ios&&P.mem){if(P.mem<=2&&P.n>0){P.n=0;P.src+=' · '+P.mem+' Go';}else if(P.mem<=4&&P.n>1){P.n=1;P.src+=' · '+P.mem+' Go';}}
   }
   P.bas=P.n===0;P.moyen=P.n<=1;
+  try{document.documentElement.dataset.palier=String(P.n);}catch(e){} // `html[data-palier="0"]` : le CSS peut s'alléger sur les vieux appareils
   /* LES BUDGETS — une ligne par chose qui se taille, [ANCIEN, MOYEN, RÉCENT]. La 3e colonne = le jeu d'avant : on n'y touche pas.
      Chaque zone du jeu AJOUTE ses lignes ici (une seule table à régler), et lit `PAL.b('cle')`. */
   P.B={};
@@ -9031,7 +9032,7 @@ function palPuce(gl9){ // (après la création du contexte) la puce graphique, l
   try{const x=gl9.getExtension('WEBGL_debug_renderer_info'),r=x?String(gl9.getParameter(x.UNMASKED_RENDERER_WEBGL)||''):'';PAL.puce=r;
     if(PAL.src==='?palier'||PAL.src==='appris en course'||!IS_MOBILE||FORCE_TEL)return;
     const vieux=/Adreno \(TM\) [1-5]\d\d|Mali-(4|T\d|G5[127]|G3\d|G71|G72)|PowerVR (SGX|Rogue G[6E])|Apple A(7|8|9|10)\b/i.test(r),moyenne=/Adreno \(TM\) 6[0-4]\d|Mali-G(7[6-8]|6[18])/i.test(r);
-    const n=vieux?0:moyenne?Math.min(PAL.n,1):PAL.n;if(n<PAL.n){PAL.n=n;PAL.bas=n===0;PAL.moyen=n<=1;PAL.src+=' · '+r.slice(0,40);}}catch(e){}}
+    const n=vieux?0:moyenne?Math.min(PAL.n,1):PAL.n;if(n<PAL.n){PAL.n=n;PAL.bas=n===0;PAL.moyen=n<=1;PAL.src+=' · '+r.slice(0,40);try{document.documentElement.dataset.palier=String(n);}catch(e){}}}catch(e){}}
 window.dbgPalier=function(n){ if(n!=null){const u=new URL(location.href);u.searchParams.set('palier',String(n|0));location.href=u.toString();return 'rechargement au palier '+(n|0);}
   return {n:PAL.n,nom:['ANCIEN','MOYEN','RÉCENT'][PAL.n],src:PAL.src,ios:PAL.ios,banc:PAL.banc,mem:PAL.mem,puce:PAL.puce,appris:PAL.appris,budgets:Object.keys(PAL.B).reduce(function(o,k){o[k]=PAL.B[k][PAL.n];return o;},{})};}; // (banc)
 const REDUCED_MOTION=(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)||false; // ACCESSIBILITÉ : iOS « Réduire les animations » → coupe bloom + grain + effets de vitesse
@@ -9815,7 +9816,7 @@ function qlDpr(k,b){ // la résolution que vaut le cran k
   if(k<=QL.N_EFF)return b.cap;
   if(k<=b.kNet)return b.cap-(b.cap-b.pl)*(k-QL.N_EFF)/Math.max(1,b.nA);
   return Math.max(b.bas,b.pl-(b.pl-b.bas)*(k-b.kNet)/Math.max(1,b.nB));}
-function qlPose(k){ const b=qlBornes();k=Math.max(0,Math.min(b.kMax,k|0));QL.k=k;
+function qlPose(k){ const b=qlBornes();k=Math.max((VHD.on||QL.force)?0:PAL.b('qlMin',0),Math.min(b.kMax,k|0));QL.k=k; // (2026-10-14, passe perf mobile) le cran sous lequel ce palier ne remonte pas — voir LE DÉPART AU BON CRAN
   const om=VHD.on?VHD.ombre:k>=4?512:k>=2?768:QL.ombre0; // (2026-09-28) l'ACCUEIL en haute définition a sa carte d'ombre à lui (voir VHD)
   if(sun.shadow.mapSize.x!==om){if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;}sun.shadow.mapSize.set(om,om);} // recrée la carte, zéro recompilation
   const br=k>=3?.75:1;if(br!==BLOOM_RES){BLOOM_RES=br;if(bloomPass&&bloomPass._W)bloomPass.setSize(bloomPass._W,bloomPass._H);}
@@ -9842,12 +9843,12 @@ function qlReprise(){ // RAPIDE⇄NETTE : le choix du joueur rend la pleine rés
    tout revient À L'IDENTIQUE : l'échelle reprend le cran qu'elle avait, sa carte d'ombre et sa résolution. Les bascules tombent
    sous le volet (ecranWipe) : la réallocation des cibles ne se voit pas. `?hd=0` coupe le mode (comparer) ; `dbgVHD()` le décrit. */
 const VHD={on:false,dpr:1,max:1,ombre:2048,t:0,k0:0,lT:0,bT:0,sT:0,mur:0,murT:0,monteT:0,bride:0,log:[],bas:0,haut:0,off:/[?&]hd=0/.test(location.search)}; // (2026-10-13) max = la pleine définition de cet écran ; lT/bT = lenteur/marge TENUES ; sT = sonde en cours ; mur = le cran qui vient d'échouer (voir LE FILET v2)
-function vhdDpr(){ const px=Math.max(1,innerWidth*innerHeight),bud=TEL_NATIF?3.2e6:8.3e6;
+function vhdDpr(){ const px=Math.max(1,innerWidth*innerHeight),bud=TEL_NATIF?PAL.b('vhdPx',3.2e6):8.3e6; // (2026-10-14) le budget du téléphone se taille sur son palier (voir LE DÉPART AU BON CRAN)
   return Math.max(DPR_CAP,Math.min(devicePixelRatio*(TEL_NATIF?1:1.5),Math.sqrt(bud/px),4));}
 function vhdAniso(on){ const m=renderer.capabilities.getMaxAnisotropy(),n=on?m:Math.min(IS_MOBILE?4:8,m);
   for(const t of [ASPH_TEX,LIGNE_TEX])if(t&&t.anisotropy!==n){t.anisotropy=n;t.needsUpdate=true;}}
 function vhdBascule(on){ if(VHD.off||on===VHD.on)return;
-  if(on){VHD.k0=QL.k;VHD.dpr=VHD.max=vhdDpr();VHD.lT=VHD.bT=VHD.sT=0;VHD.ombre=Math.min(TEL_NATIF?2048:4096,renderer.capabilities.maxTextureSize);VHD.t=0;VHD.on=true;curDPR=-1;qlPose(0);}
+  if(on){VHD.k0=QL.k;VHD.dpr=VHD.max=vhdDpr();VHD.lT=VHD.bT=VHD.sT=0;VHD.ombre=Math.min(TEL_NATIF?PAL.b('vhdOmbre',2048):4096,renderer.capabilities.maxTextureSize);VHD.t=0;VHD.on=true;curDPR=-1;qlPose(0);}
   else{VHD.on=false;curDPR=-1;qlPose(VHD.k0);}
   vhdAniso(on);}
 function vhdMonte(now,vrai){ // (2026-10-13, LE FILET v2) un cran de netteté qui revient (×1,25), jamais au-delà de l'écran ni vers le cran qui vient d'échouer ;
@@ -9856,6 +9857,23 @@ function vhdMonte(now,vrai){ // (2026-10-13, LE FILET v2) un cran de netteté qu
   if(d9<VHD.dpr+.02||(vrai&&vrai*(d9/VHD.dpr)*(d9/VHD.dpr)>14))return false;VHD.dpr=d9;VHD.haut++;VHD.monteT=now;vhdNote(now,'monte');curDPR=-1;qlPose(0);return true;}
 function vhdNote(now,quoi){VHD.log.push([Math.round(now/100)/10,quoi,+VHD.dpr.toFixed(2),+QLR.vrai.toFixed(1),+QLR.p75.toFixed(1),+QLR.p90.toFixed(1)]);if(VHD.log.length>12)VHD.log.shift();} // (banc) dbgVHD().journal
 addEventListener('resize',function(){if(VHD.on){VHD.dpr=VHD.max=vhdDpr();VHD.murT=0;curDPR=-1;qlPose(0);}}); // téléphone tourné, fenêtre retaillée : le budget de pixels se recalcule
+/* LE DÉPART AU BON CRAN, PAR PALIER (2026-10-14, passe perf mobile — voir PAL). MESURÉ (iPhone 7 émulé 667×375, avant) : l'accueil était
+   calculé en 1067×600 avec une carte d'ombre 2048 (le budget VHD « téléphone » = 3,2 M de pixels, celui d'un iPhone 15 Pro), l'écran de fin
+   de partie pareil — avec le niveau entier derrière (~1 M de triangles) —, puis chaque course repartait du cran 0 (ombre 1024, halo plein,
+   flou radial) et l'échelle QL mettait des dizaines de secondes de saccades à redescendre, un cran toutes les 1,1 s. À CHAQUE partie.
+   Un vieux téléphone commence désormais LÀ OÙ IL FINISSAIT :
+     · qlDepart : le cran posé au démarrage — ANCIEN : les 5 allègements « invisibles » d'emblée (ombre 512, halo ¾, plus de flou radial) ;
+       MOYEN : ombre ½ en vol + ombre 768 ; RÉCENT : cran 0, comme avant. L'échelle descend toujours plus bas si besoin ;
+     · qlMin : le cran sous lequel l'échelle ne REMONTE pas. Sur l'ANCIEN, 4 (ombre 512 + halo ¾ tenus) : chaque remontée réalloue une carte
+       d'ombre et des cibles — un à-coup — pour les reperdre dix secondes plus tard au premier envol. Le flou radial, lui, peut revenir ;
+     · vhdPx / vhdOmbre : l'accueil haute définition garde sa belle caisse (Léo, 10/10) mais à la mesure de la puce — ANCIEN : 0,45 M de
+       pixels (≈ densité 1,3 sur un iPhone 7) et ombre 1024 ; MOYEN : 1,6 M et 2048 ; RÉCENT : 3,2 M et 2048, comme avant. Le FILET de VHD
+       (baisse ×0,8 si l'image traîne) reste par-dessus ;
+     · vhdMort : l'écran de fin de partie en haute définition ? RÉCENT seulement — sur les deux autres il garde la résolution et les crans
+       de la course (plus de réallocation des cibles et de la carte d'ombre à chaque mort ET à chaque REJOUER).
+   `dbgQual(k)` (banc) passe outre qlMin. `?palier=2` rend exactement le comportement d'avant. */
+PAL.B.qlDepart=[5,2,0];PAL.B.qlMin=[4,0,0];PAL.B.vhdPx=[.45e6,1.6e6,3.2e6];PAL.B.vhdOmbre=[1024,2048,2048];PAL.B.vhdMort=[0,0,1];
+if(PAL.b('qlDepart',0)>0){try{qlPose(PAL.b('qlDepart',0));}catch(e){}}
 window.dbgVHD=function(){return {on:VHD.on,dpr:+curDPR.toFixed(2),max:+VHD.max.toFixed(2),baisses:VHD.bas,remontees:VHD.haut,bride:VHD.bride?Math.round((performance.now()-VHD.bride)/1000)+' s':null,mur:(VHD.murT&&performance.now()-VHD.murT<45000)?+VHD.mur.toFixed(2):null,vrai:QLR.vraiT?+QLR.vrai.toFixed(1):null,journal:VHD.log,dprEcran:+devicePixelRatio.toFixed(2),plafondCourse:+DPR_CAP.toFixed(2),
   px:Math.round(innerWidth*innerHeight*curDPR*curDPR),ombre:sun.shadow.mapSize.x,aniso:ASPH_TEX?ASPH_TEX.anisotropy:null,bloom:bloomPass?(bloomPass.enabled?BLOOM_RES:0):null,crans:QL.k};};
 window.dbgDPR=function(d,sansPique){RESPIN=true;curDPR=+d;applyDPR();if(sansPique&&acesPass&&acesPass.uniforms.uSharp)acesPass.uniforms.uSharp.value=0;return {dpr:curDPR,pique:acesPass&&acesPass.uniforms.uSharp?+acesPass.uniforms.uSharp.value.toFixed(3):null};}; // (tour 2) banc : une résolution, sans rien d'autre (fige l'échelle)
@@ -9868,7 +9886,7 @@ window.dbgGfx=function(o){
     if(o.pique!=null&&acesPass){RESPIN=true;acesPass.uniforms.uSharp.value=+o.pique;}}
   return {coeur:GFX_U.uCoeur.value,glace:+ROAD_U.uGlace.value.toFixed(3),trame:acesPass?+(acesPass.uniforms.uTrame.value*255).toFixed(2):null,pique:acesPass?+acesPass.uniforms.uSharp.value.toFixed(3):null,dpr:curDPR,natif:devicePixelRatio};};
 window.dbgSonde=function(go){if(go){QLR.sync=go==='sync'?1:0;qlSondeArme();}return {vrai:+QLR.vrai.toFixed(2),age:QLR.vraiT?Math.round(performance.now()-QLR.vraiT):null,mesures:QLR.dern&&QLR.dern.map(function(x){return +x.toFixed(1);}),cpuGpu:QLR.cg,chrono:!!QLT.ok,sN:QLR.sN,enRoute:QLR.S.pend};}; // (banc) dbgSonde(1) lance la sonde, dbgSonde() la lit
-window.dbgQual=function(k){ if(k!=null){qlPose(k);RESPIN=true;} const b=qlBornes(); // dbgQual(k) force le cran k ET fige (dbgPin(false) relâche)
+window.dbgQual=function(k){ if(k!=null){QL.force=true;qlPose(k);RESPIN=true;} const b=qlBornes(); // dbgQual(k) force le cran k ET fige (dbgPin(false) relâche)
   const al=[];for(let i=0;i<QL.N_EFF&&i<QL.k;i++)al.push(QL.nom[i]);
   return {k:QL.k,kNet:b.kNet,kMax:b.kMax,plancher:+b.pl.toFixed(2),dpr:+curDPR.toFixed(3),effondre:QL.effondre,mur:(QL.murT&&performance.now()-QL.murT<45000)?QL.mur:0,
     ombre:sun.shadow.mapSize.x,ombreVolDemi:renderer.shadowMap.autoUpdate===false,bloom:bloomPass?(bloomPass.enabled?BLOOM_RES:0):null,flou:FLOU_OK,allege:al};};
@@ -51221,7 +51239,7 @@ function loop(now){
     if(msgT>0){msgT-=dt;if(msgT<=0)elMsg.style.opacity=0;}
   } }catch(err){window.__loopErr=err.message+' | '+(err.stack||'').split('\n').slice(0,3).join(' ¶ ');if(!loop._warned){console.error('loop error',err);loop._warned=true;}}
   // ciel : dôme, soleil « 1.61 », lueur d'horizon et rayons crépusculaires suivent la caméra
-  vhdBascule((!garageOn||(!!gEl&&!gEl.classList.contains('quiet')&&!GAR.go))&&(!started||gameOver||MENUV.retour)&&!(typeof stallOn!=='undefined'&&stallOn)); // (2026-09-28) l'ACCUEIL en haute définition — tant que la vitrine tourne (voir VHD) — (2026-10-10, Léo : « assure-toi que la voiture soit de bonne qualité dans le menu ciel et tout ») depuis le 30/09 l'accueil EST le garage (mode menu, le ciel) : `!garageOn` éteignait la HD sur tout l'accueil et le garage — mesuré : DPR 1, ombre 1024, aniso 4, la qualité de course. Allumée désormais au menu et à l'atelier, hors course (ni le garage « quiet » du départ rapide, ni l'envol GAR.go)
+  vhdBascule((!garageOn||(!!gEl&&!gEl.classList.contains('quiet')&&!GAR.go))&&(!started||(gameOver&&!!PAL.b('vhdMort',1))||MENUV.retour)&&!(typeof stallOn!=='undefined'&&stallOn)); // (2026-09-28) l'ACCUEIL en haute définition — tant que la vitrine tourne (voir VHD) — (2026-10-10, Léo : « assure-toi que la voiture soit de bonne qualité dans le menu ciel et tout ») depuis le 30/09 l'accueil EST le garage (mode menu, le ciel) : `!garageOn` éteignait la HD sur tout l'accueil et le garage — mesuré : DPR 1, ombre 1024, aniso 4, la qualité de course. Allumée désormais au menu et à l'atelier, hors course (ni le garage « quiet » du départ rapide, ni l'envol GAR.go)
   if(garageOn)garageRender(dt);
   else if(!started||MENUV.retour)menuVitrine(dt); else if(MENUV.bio)menuVitrineFin(); // L'ACCUEIL (au couchant — rendu au niveau dès qu'on le quitte) : la caisse en vitrine sur la route de la ville // GARAGE : place la caisse + oriente la caméra AVANT que le ciel suive
   else if(stallOn)stallRender(dt); // ÉTAL : même showroom, mais c'est un fruit qui tourne
