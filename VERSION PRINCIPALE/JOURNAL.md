@@ -3,6 +3,30 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## PLUS DE CARRIÈRE + PLUS DE MODE FACILE, POUR LA SORTIE (2026-10-14, Sacha : « supprime complètement de main le mode challenge pour l'instant » · « non, carrière c'est les niveaux, les missions c'est bien » · « on le fera dans des MAJ, donc garde-le dans le git quelque part » · Paris : « laisse-le quelque part sur le git, mais plus dans le jeu » ; puis, relayé par PILOTAGE : « enlève le mode facile du jeu »)
+Session IDEE. Deux interrupteurs dans le `<head>`, sur le modèle de `SANS_VOIX` : COUPÉ, pas arraché. Main a34aa1d (commits 48e3687 et 2fef557,
+fusionnés sur la nuit d'assemblage T9).
+- **`SANS_CARRIERE`** (classe `html.sansCarr`, `?carriere=1` la rend) : la carte CARRIÈRE de l'accueil n'est plus fabriquée et MISSIONS prend
+  la rangée du haut en pleine largeur (`<style id="sansCarriere">`, charte 6 et `?ui=5`) ; `#gCarr`, `.gLevel`, `#carr`, l'onglet du hub et
+  tout `[data-m="carr"]` cachés ; `carrVue()` sort tout de suite ; `PLAY_CARR` forcé faux (`?play=carriere` ne fait plus rien) ; `menuCadre`
+  mesure aussi `.mMisBarre` sous c6 (sans la carte CARRIÈRE, la caisse de l'accueil n'avait plus de bord bas) ; TOUT EFFACER sans « carrière ».
+- **Ses deux trophées** : LA CAISSE-NUAGE (`carrN`) et LE LINGOT (`carrV`) passent à l'argent du jeu, 1,8 M / 2,2 M (les prix de l'ancienne
+  édition Poki ; famille = épique par le prix). `exK`/`exV` gardent l'ancienne condition : une caisse déjà gagnée entre dans `owned` juste
+  après `SAVE.load()` (la boutique ne la revend pas). Leurs descriptions (« tu l'as chassée… ») sont gardées : choix de Sacha.
+- **Paris** (carrière seule) ne se joue plus : `parisChauffe` sauté au menu (16 programmes de moins). Le moteur des niveaux reste ENTIER :
+  `carrLancer`/`dbgCampagne` vivent (le simulateur de Léo lance toujours SKY HIGH et la VILLE).
+- **La carrière telle qu'elle était** : branche `garde/carriere` (= main 3ca83ec, avant T9). Pour la rendre dans une mise à jour :
+  `const SANS_CARRIERE=false;` (+ revoir les prix des deux caisses).
+- **`SANS_FACILE`** (classe `html.sansFacile`, `?facile=1` le rend) : `facOn()` répond toujours non → plus d'aide au virage (`FAC_CAP`), de
+  bord élargi (`facBord`), de 10 s en l'air (`FAC_AIR`), de 3 vies ni de filet (`facileSauve`) ; `facChoix()` rend NORMAL sans ouvrir la
+  question du 1er JOUER ; la ligne MODE FACILE quitte les réglages (`<style id="sansFacile">`). La sauvegarde n'est pas touchée
+  (`SAVE.d.facile` garde sa valeur : rien n'est perdu). Commit à part (2fef557) : il s'annule seul.
+- **Mesuré au banc** (Chrome muet, profil iPhone, couché 844×390 + debout 390×844) : accueil et garage sans aucune porte ni texte de
+  carrière ; JOUER → course → mort → écran de fin → REJOUER → course, 0 erreur JS (seul 404 : `dark-triad.mp3`, faux positif connu) ;
+  ancien joueur FACILE → ligne cachée, `dbgFacile().on` faux, `airMax` 6, pas de cœurs, sauvegarde `facile:1` intacte ; joueur neuf → 1er
+  JOUER sans question. Fumée commune (`cc-banc/fumee.cjs`) OK avant la poussée.
+- **À trancher** : rien de bloquant. Si la carrière revient, ses deux caisses repassent-elles en trophées ? (`exK`/`exV` le permettent.)
+
 ## LES HABILLAGES POP + L'ÉQUILIBRAGE ARGENT / AURA + LES TEXTES FR / EN + LE GUIDE (2026-10-14, Sacha : « sois très inventif et invente plusieurs traînées, ailes et trucs cool à acheter, inspirés de la pop culture, pour la boutique à différentes raretés ou gagnables ; soigne le design des traînées et des ailes et rajoute une dizaine de chaque » · « regarde si absolument chaque texte du jeu est écrit de la bonne manière, en anglais et en français » · « fais une petite session d'équilibrage et de progression quant à l'argent et l'aura » · « fais un guide pour Claude, un CLAUDE.md »)
 **Trente habillages neufs** (dix peintures, dix ailes, dix traînées), chacun avec sa rareté écrite (`r`), son prix calé sur la grille de
 l'équilibrage, son nom et sa description en français ET en anglais, un pictogramme pixel (`ico`, grilles `tr_*` / `ai_*` dans `PXI_G`).
