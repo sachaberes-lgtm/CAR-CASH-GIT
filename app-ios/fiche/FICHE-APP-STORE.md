@@ -138,8 +138,8 @@ First release of CASH CAR. Enjoy the ride!
 | Prix | Gratuit |
 | Disponibilité | ⚠ tous les pays, ou la France d'abord |
 | Copyright | ⚠ `2026 Sacha Beres` (ou `2026 Sacha Beres & Léo …` — Apple ajoute le © tout seul) |
-| URL de l'assistance (obligatoire) | ⚠ l'adresse publique de `assistance.html` (voir § 7) |
-| URL de la politique de confidentialité (obligatoire) | ⚠ l'adresse publique de `confidentialite.html` (voir § 7) |
+| URL de l'assistance (obligatoire) | `https://car-cash-git.vercel.app/assistance.html` |
+| URL de la politique de confidentialité (obligatoire) | `https://car-cash-git.vercel.app/confidentialite.html` |
 | URL marketing | (laisser vide) |
 | Version | `1.0.0` — build `1` |
 | Appareils | iPhone uniquement, iOS 15 ou plus récent |
@@ -187,9 +187,9 @@ The game language follows the device language (French or English) and can be cha
 
 ## 7. Ce qu'il reste à fournir
 
-1. **Deux adresses publiques** pour `confidentialite.html` et `assistance.html` (ce dossier). Elles sont prêtes ; il manque
-   (a) l'adresse e-mail d'assistance est posée : `16180contact@gmail.com` (Sacha, 14/10 ; pour la changer : `sh poser-adresse.sh autre@adresse`) ;
-   (b) ⚠ la mise en ligne : le site Vercel (un commit sur `main` : `pages-app/` + une ligne de `vercel-build.sh`), au oui de Sacha.
+1. ~~Deux adresses publiques~~ — FAIT le 14/10 (Sacha : « publie ») : https://car-cash-git.vercel.app/confidentialite.html et
+   https://car-cash-git.vercel.app/assistance.html (contact `16180contact@gmail.com`). Elles sont servies depuis `pages-app/` sur `main`
+   (commit cc61d24) : une retouche ici doit être recopiée là-bas, puis poussée.
 2. **Captures d'écran** iPhone 6,9 pouces (1320 × 2868, ou 2868 × 1320 couché), de 3 à 10. À faire sur le **code final**, au
    simulateur iPhone 17 Pro Max : accueil, course dans les nuages, ville de nuit, NITRO, garage.
 3. **L'archive** envoyée depuis Xcode (Product › Archive › Distribute App › App Store Connect), une fois `www/` refait sur le code final.
