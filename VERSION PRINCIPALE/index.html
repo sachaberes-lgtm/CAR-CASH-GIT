@@ -17367,7 +17367,7 @@ function vlcTrace(rnd,LV){
      palier vw (le calcul de lvPiste, à rebours) et son rayon mini rM = 40 + 0,3·vw (sous rM : infranchissable). Les virages SERRÉS entre 1 et 1,4 rM,
      les autres entre 1,55 rM et 240 m (au-delà de 250 m, ce n'est plus un virage) ; les élans et lignes droites × √(vw/78) ; la SORTIE d'une boucle
      mesure la portée du saut (vw × 2,5 s) : à toutes les vitesses on se pose dessus. */
-  const Rs=()=>rM*(1.2+rnd()*.25),Rn=()=>{const a=rM*1.55,b=Math.max(a+25,240);return a+rnd()*(b-a);};
+  const Rs=()=>rM*(1.26+rnd()*.2),Rn=()=>{const a=rM*1.55,b=Math.max(a+25,240);return a+rnd()*(b-a);};
   const vw=70+100*(LV-1),rM=40+.3*vw,KV=Math.sqrt(Math.max(1,vw/78)),ctrl=[],RH=(typeof ROAD_HALF==='number'&&ROAD_HALF>0)?ROAD_HALF:28,plg=[],ph1=rnd()*6.283,DN=[];let gF=null;
   /* LA PENTE (positive = on descend) : 5-9 % dans les virages, la boucle à sa propre pente (gF : 46-58 m sur le tour), le saut du cratère
      (un replat de 140 m puis 15-17 % sur 190 m), les 280 premiers mètres en douceur (le portail). Jamais une remontée. */
@@ -17393,7 +17393,7 @@ function vlcTrace(rnd,LV){
       if(lib<15){sg=-sg;a=Math.min(a,(LIM-sg*rel)*57.2958);}else a=Math.min(a,lib);arc(sg*a,R);if(rnd()<.3)droite(40+rnd()*60);}};
   const nB=LV<1.8?5:4;
   for(let b=0;b<nB;b++){
-    virages((b?4:3)+Math.round((KV-1)*6));
+    virages((b?4:3)+Math.round((KV-1)*9));
     if(b===1){droite(100*KV);ici('arche0');droite(110*KV);ici('arche');droite(110*KV);ici('arche1');virages(1);} // L'ARCHE, entre deux boucles (une droite de 340 m : jamais plus de 400)
     {const a=wrap((rnd()-.5)*.6-phi)*57.2958;if(Math.abs(a)>3)arc(a,Math.max(220,rM*2)+rnd()*60);}   // l'élan se prend dans l'axe de la descente
     droite(140*KV);
