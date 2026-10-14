@@ -1,21 +1,20 @@
 # CASH CAR — guide projet pour Claude Code
 
-## LE DOGE (2026-10-14, Léo : « fais une voiture tête de doge » · « dans le même esprit que la nyan cat ») — caisse ajoutée EN DERNIER (index 76), ÉPIQUE 4 000 000 $, `SHAPES.doge`
-Le mème du shiba en VOXELS, avec les outils du CHAT POP-TART : `voxGrille` (faces à l'air fusionnées), `nyLaque` (couleurs cuites par face d/h/c, brillant
-de studio, un seul programme), dessous noir. Gabarit dans `Object.assign(SHAPES,{…})`, juste après LA MERCURE.
-- CORPS (cases de 10 cm) court et bombé (`dansC` : la section), selle sombre, ventre crème, BULLE de verre sur le dos, COLLIER rouge clouté d'or
-  (l'anneau = la section élargie d'une case moins la section), CUISSES arrière en demi-boule sur les roues. Roues : pièces d'or (`cadran`), voie avant
-  plus large (`wxF` .98 : la tête de 1,6 m passe entre les roues). Feux sur la croupe, deux canons d'or sous la queue (`pots` déclarés).
-- TÊTE (cases de 8,5 cm, `HY`/`HZ`) : crâne + museau + joues en ellipsoïdes ; `S9` = la surface AVANT relevée avant tout relief ; `relief()` pose
-  un voxel UNE case devant (yeux, sourcils, truffe, langue : jamais coplanaires avec la tête). Bouche en coin et paupières PEINTES sur la surface.
-  Oreilles dans leur groupe (pivot à la base, elles tressaillent).
-- LE REGARD : 3 dessins d'yeux (`YEUX`, pupille dans un coin) — side-eye du côté de la caméra (`camera` en repère caisse), coup d'œil de l'autre côté
-  par moments ; sourcils levés d'une case (deux fois parfois, et pour de bon à la nitro) ; LANGUE en deux dessins à la nitro. Pas entiers à 8 i/s :
-  la queue (tire-bouchon en spirale qui se resserre, l'aileron) bat d'une case, la tête hoche quand il roule.
-- LES PHRASES DU MÈME (sa signature, comme l'arc-en-ciel du chat) : 12 textures Comic Sans (« wow », « such speed »…) cuites UNE fois
-  (`SHAPES.doge._tx`), 10 sprites ; une toutes les 1,5 s au garage, 1,8 s en course, 0,8 s en vol, RAFALE à la nitro (0,38 s) ; en course ×3 et plus
-  loin de la caisse (la caméra de poursuite est loin). Mesuré au banc : 60 i/s en course, comme LA DÉFERLANTE.
-- ⚠ À trancher avant une sortie : c'est un mème (le shiba « Doge »), même question que le CHAT POP-TART (Nyan Cat).
+## LE DOGE v2 (2026-10-14, Léo : « fais une voiture tête de doge » · « dans le même esprit que la nyan cat ») — index 76, ÉPIQUE 4 000 000 $, `SHAPES.doge`
+La v1 (gros voxels, un kart) : « nul » — pas une vraie voiture, pas assez Doge, trop cubique et cheap — et « les textes à ajouter en trail carrément ».
+La v2 = le principe du CHAT POP-TART (une vraie caisse + la tête du mème devant, tout en `nyLaque`), main plus fine :
+- LA CAISSE : coupé en loft à facettes, livrée shiba (fauve dessus, CRÈME en bas = l'urajiro, selle sombre sur le pavillon), jantes bronze, deux
+  sorties d'or, bandeau rose. Les couleurs sont dans la palette `nyl` (cuites, sans lumière) : jamais de teinte qui vire sous les ciels.
+- LA TÊTE (`dogeTete`, juste avant `const SHAPES`) : champ de distance (`DOGE_SDF` : crâne, joues, museau `rcone`, menton, oreilles creusées,
+  orbites, PAUPIÈRES, truffe, BOUCHE EN COIN posée par lancer de rayon puis creusée) → `dogeNets` (surface nets, lisse), couleurs par région
+  moyennées sur 7 prises (bords doux). Une fois par session (`SHAPES.doge._tete`, ~0,2 s). Échelle 1,25, posée en (0,.77,1.80).
+- LE REGARD : vrais yeux (sphères colorées : blanc, iris, pupille, éclat) qui TOURNENT vers la caméra (repère `pivot`), coup d'œil de l'autre côté ;
+  sourcils (points crème) qui se lèvent ; tête PENCHÉE qui hoche en roulant ; LANGUE à la nitro ; queue en tire-bouchon (`dogeQueue`) qui remue.
+- LA TRAÎNÉE WOW (`WOWT`, `wowStep`, `wowApercu`, après `rainbowApercu`) : les phrases du mème en Comic Sans sortent des pots à la NITRO et filent
+  derrière (sprites monde, 18 max, 86 % de l'élan de la caisse). Traînée d'origine du DOGE (`fx.wow`) ET traînée de la boutique « WOW » (30 000 $,
+  `COSM.trainee`, `FX_EFF.wow`). Coupée avec l'arc-en-ciel (`rainbowCoupe`). Aperçu au garage (onglet TRAÎNÉES). Console `dbgWow()`.
+- Mesuré au banc : 60 i/s en course. ⚠ pas de `THREE.CapsuleGeometry` (r128). ⚠ c'est un mème (Kabosu / Doge) : même question que la Nyan avant une sortie.
+
 ## LE LOBBY « CHRIS » (2026-10-14, Léo : « applique les lobby Chris dans la musique lobby du main »)
 - `MUSIC_LOBBY` = six musiques dans l'esprit de « Chris » (C418), composées sur la branche musique (`CAR CAHS V3/atelier-son/lobby_chris.py`
   et `petites_musiques.py`), chacune son monde : PREMIER MATIN (piano feutré + groove doux, ré) · DIMANCHE (bossa, fa) · GARAGE DE NUIT

@@ -17189,8 +17189,8 @@ const CARS=[
   desc:'Un miroir qui coule. Elle reflète le ciel, et elle en perd un peu à chaque virage : derrière elle, il pleut du chrome.'},
  // (2026-10-14, Léo : « fais une voiture tête de doge » · « dans le même esprit que la nyan cat ») LE DOGE (voir SHAPES.doge) : le mème du
  // shiba en voxels, regard en coin, queue en tire-bouchon, et les phrases du mème qui surgissent autour de lui. Ajoutée EN DERNIER.
- {name:'LE DOGE',shape:'doge',color:0xdc9a48,accent:0xf7e8c8,maxKmh:440,accel:53,turn:3.1,h:1.5,w:2.25,l:3.3,spoiler:0,rar:'epique',
-  fx:{jet:0xffc83a,core:0xfff2c0,trail:[1.5,1.1,.3],light:0xffb43a},
+ {name:'LE DOGE',shape:'doge',color:0xd99545,accent:0xf6e6c6,maxKmh:440,accel:53,turn:3.1,h:1.5,w:2.0,l:4.5,spoiler:0,rar:'epique',
+  fx:{jet:0xffc83a,core:0xfff2c0,trail:[1.5,1.1,.3],light:0xffb43a,wow:1}, // sa traînée : les phrases du mème (voir LA TRAÎNÉE WOW)
   desc:'Wow. Très voiture. Beaucoup vitesse. Il te regarde de côté, et il a raison.'},
 ];
 // ---- VALEUR D'UNE PIÈCE — UNE ENTRÉE PAR PALIER MOTEUR (30) ---------------------------------
@@ -17672,6 +17672,7 @@ Object.assign(I18N,{
 // (2026-10-14) LE DOGE
 Object.assign(I18N,{
  "LE DOGE":"DOGE",
+ "Much sillage. Very mots. Wow.":"Much trail. Very words. Wow.",
  "Wow. Très voiture. Beaucoup vitesse. Il te regarde de côté, et il a raison.":"Wow. Such car. Much speed. He side-eyes you, and he is right.",
 });
 // (2026-10-11) LA MERCURE
@@ -19879,7 +19880,7 @@ function arcEmet(dt,k,vx,vy,vz){ // les étincelles naissent dans les tranches j
     arcEtincelle(p.x+R.S.x*off,p.y+R.S.y*off+.1,p.z+R.S.z*off,b,vx+(Math.random()-.5)*2.4,1+Math.random()*2.2,vz+(Math.random()-.5)*2.4);}
 }
 function arcAvance(dt){const R=rainbow;for(let i=0;i<ARC_NS;i++)R.age[i]+=dt;R.phT+=dt;if(R.phT>=.14){R.phT=0;R.ph^=1;}} // l'escalier bascule ~7 fois par seconde
-function rainbowCoupe(){const R=rainbow;R.init=false;R.emet=false;arcVis(false);R.k0.fill(0);R.vp.fill(0);R.ne=0;R.m.count=R.h.count=0;} // replacement, piste neuve, fin de partie : plus rien ne traîne
+function rainbowCoupe(){if(typeof wowCoupe==='function')wowCoupe();const R=rainbow;R.init=false;R.emet=false;arcVis(false);R.k0.fill(0);R.vp.fill(0);R.ne=0;R.m.count=R.h.count=0;} // replacement, piste neuve, fin de partie : plus rien ne traîne
 function rainbowStep(px,py,pz,k,t,dt,fx,fy,fz){
   const R=rainbow,P=R.P,t0=performance.now();dt=dt||0;
   if(R.apercu)return; // l'aperçu du garage a la main
@@ -19931,6 +19932,52 @@ function rainbowApercu(dt,on,cam,k9){
   const nv=arcPose(0,0,1,cam||camera,T,dt);arcVis(true);
   if(!on&&nv===0){R.apercu=false;rainbowCoupe();} // tout est parti en étincelles : l'aperçu rend la main
 }
+/* LA TRAÎNÉE WOW (2026-10-14, Léo, sur LE DOGE : « les textes à ajouter en trail carrément ») — les phrases du mème du shiba, en Comic Sans
+   de toutes les couleurs (« wow », « such speed », « much nitro »…), SORTENT DES POTS à la nitro et filent derrière la caisse : c'est la
+   traînée d'origine du DOGE (`fx.wow`) et une traînée de la boutique (`COSM.trainee` « WOW ») pour toutes les caisses. Comme l'arc-en-ciel :
+   seulement à la nitro (`loop._arcK`), éteinte en réserve bleue, en nitro infinie et à l'explosion ; coupée avec lui (`rainbowCoupe`).
+   Des sprites posés dans le MONDE (18 au plus, matières créées une fois, textures cuites une fois) : ils gardent 86 % de l'élan de la
+   caisse et prennent du retard — ils s'écartent, grossissent d'un coup, et passent à côté de la caméra en s'effaçant. Au garage (onglet
+   TRAÎNÉES) : `wowApercu`. Console : `dbgWow()`. */
+var WOWT={sp:[],tx:null,acc:0,mi:0,der:-1,caisse:false,n:0,p0:null,vx:0,vy:0,vz:0};
+function wowTex(){if(WOWT.tx)return WOWT.tx;WOWT.tx=[];
+  const MOTS=['wow','such speed','much fast','very nitro','so car','many coin','amaze','such drift','much aura','very vroom','excite','wow'],
+        TEINTES=['#ff3ec8','#5ee6ff','#7dff5a','#ffe25a','#ff8a2a','#c07bff'];
+  MOTS.forEach(function(m9,n){const cv=document.createElement('canvas'),x=cv.getContext('2d'),F='bold 64px "Comic Sans MS","Comic Sans","Chalkboard SE","Comic Neue",cursive';
+    x.font=F;const w=Math.ceil(x.measureText(m9).width)+28;cv.width=w;cv.height=96;x.font=F;x.textBaseline='middle';x.lineJoin='round';
+    x.lineWidth=9;x.strokeStyle='#1c0430';x.strokeText(m9,14,50);x.fillStyle=TEINTES[n%TEINTES.length];x.fillText(m9,14,50);
+    const tx=new THREE.CanvasTexture(cv);tx.minFilter=THREE.LinearFilter;tx.generateMipmaps=false;WOWT.tx.push({tx:tx,a:w/96});});
+  return WOWT.tx;}
+function wowPool(){if(WOWT.sp.length)return;const T=wowTex();
+  for(let n=0;n<18;n++){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:T[0].tx,transparent:true,depthWrite:false,fog:false}));
+    sp.visible=false;sp.renderOrder=8;sp.frustumCulled=false;scene.add(sp);WOWT.sp.push({sp:sp,v:0});}}
+function wowLance(x,y,z,vx,vy,vz,big){wowPool();let o=null;for(const q of WOWT.sp)if(q.v<=0){o=q;break;}if(!o)return;
+  const T=wowTex();let n;do{n=Math.random()*T.length|0;}while(n===WOWT.der&&T.length>1);WOWT.der=n;
+  o.sp.material.map=T[n].tx;o.sp.material.rotation=(Math.random()-.5)*.4;o.a=T[n].a;o.h=(.55+Math.random()*.3)*big;
+  o.x=x;o.y=y;o.z=z;o.vx=vx;o.vy=vy;o.vz=vz;o.v=o.v0=1.4+Math.random()*.4;o.sp.visible=true;}
+function wowTick(dt){let n=0;
+  for(const o of WOWT.sp){if(o.v<=0)continue;o.v-=dt;o.x+=o.vx*dt;o.y+=o.vy*dt;o.z+=o.vz*dt;
+    const u=o.v0-o.v,p=u<.12?u/.12*1.15:u<.2?1.15-(u-.12)/.08*.15:1,f=o.v<.5?Math.max(0,o.v/.5):1;                    // il SURGIT (un rebond), puis s'efface
+    o.sp.position.set(o.x,o.y,o.z);o.sp.scale.set(o.h*o.a*p,o.h*p,1);o.sp.material.opacity=f;if(o.v<=0)o.sp.visible=false;else n++;}
+  WOWT.n=n;}
+function wowCoupe(){for(const o of WOWT.sp){o.v=0;o.sp.visible=false;}WOWT.n=0;WOWT.p0=null;WOWT.acc=0;}
+// la caisse : ses axes (monde) lus sur sa matrice — l'avant est +z, le flanc +x, le toit +y
+function wowAxes(){const e=carGroup.matrixWorld.elements;return [e[8],e[9],e[10],e[0],e[1],e[2],e[4],e[5],e[6]];}
+function wowStep(px,py,pz,k,dt,big){
+  if(WOWT.p0&&dt>0){const iv=1/Math.max(dt,1e-3);WOWT.vx=(px-WOWT.p0[0])*iv;WOWT.vy=(py-WOWT.p0[1])*iv;WOWT.vz=(pz-WOWT.p0[2])*iv;}else{WOWT.p0=[0,0,0];WOWT.vx=WOWT.vy=WOWT.vz=0;}
+  WOWT.p0[0]=px;WOWT.p0[1]=py;WOWT.p0[2]=pz;
+  if(k>.05){const A=wowAxes(),gar=big<1;WOWT.acc+=dt*(gar?3.2:7)*k;
+    while(WOWT.acc>=1){WOWT.acc-=1;const sd=(WOWT.mi++%2?1:-1),lat=sd*(.45+Math.random()*.9),up=.25+Math.random()*.75,ar=gar?1.6:2.6,ou=sd*(gar?.35:.7);
+      wowLance(px+A[3]*lat+A[6]*up-A[0]*.2,py+A[4]*lat+A[7]*up-A[1]*.2,pz+A[5]*lat+A[8]*up-A[2]*.2,
+        WOWT.vx*.86-A[0]*ar+A[3]*ou+A[6]*.35,WOWT.vy*.86-A[1]*ar+A[4]*ou+A[7]*.35,WOWT.vz*.86-A[2]*ar+A[5]*ou+A[8]*.35,big);}}
+  else WOWT.acc=Math.min(WOWT.acc,.7);                                                                                  // le premier mot part à l'appui
+  wowTick(dt);}
+const WOW_V=new THREE.Vector3();
+function wowApercu(dt,on){ // au garage (onglet TRAÎNÉES) : la caisse est posée, les mots sortent de la poupe et s'en vont
+  if(!on&&!WOWT.n)return;
+  potMonde(typeof CAR_POT_C!=='undefined'?CAR_POT_C:WOW_V.set(0,.5,-2),WOW_V);const A=wowAxes();
+  wowStep(WOW_V.x+A[6]*.2,WOW_V.y+A[7]*.2,WOW_V.z+A[8]*.2,on?1:0,dt,.75);}
+window.dbgWow=function(){return {vivants:WOWT.n,caisse:WOWT.caisse,textures:WOWT.tx?WOWT.tx.length:0,fx:!!(FX_EFF?FX_EFF.wow:(CARS[level]&&CARS[level].fx&&CARS[level].fx.wow))};};
 window.dbgArc=function(q){const R=rainbow;
   if(q==='obj')return R; // (banc) l'objet lui-même
   if(q==='banc'){const T=performance.now.bind(performance),t9=T()*.001;for(let i=0;i<ARC_NS;i++){R.k0[i]=1;R.age[i]=i*.01;}let a9=T();for(let i=0;i<60;i++)arcPose(0,0,1,camera,t9+i*.016,.016);return {pose:(T()-a9)/60,cubes:R.m.count};} // (banc) ms par image, traînée pleine
@@ -21168,6 +21215,87 @@ function nyLaque(){
         'outgoingLight=outgoingLight*(.66+.5*nD)*(.84+.3*nH)+vec3(1.,.96,.9)*nS+vec3(.92,.94,1.)*nF*.34*(.35+.65*nH);');
   };
   m.userData.lp=1;return m;}
+/* (2026-10-14) LE DOGE v2 — LES PIÈCES SCULPTÉES (voir SHAPES.doge). Un champ de distance → un maillage LISSE (surface nets : un sommet par
+   case traversée, normales = gradient du champ), coloré par une fonction de la position. Calculé UNE fois par session (SHAPES.doge._tete). */
+function dogeNets(F,X0,Y0,Z0,h,nx,ny,nz,coul){
+  const N=nx*ny*nz,V=new Float32Array(N);
+  for(let k=0;k<nz;k++)for(let j=0;j<ny;j++)for(let i=0;i<nx;i++)V[i+nx*(j+ny*k)]=F(X0+i*h,Y0+j*h,Z0+k*h);
+  const CI=new Int32Array((nx-1)*(ny-1)*(nz-1)).fill(-1),P=[],Nn=[],C=[],IX=[],c3=[0,0,0];
+  const EDG=[[0,1],[2,3],[4,5],[6,7],[0,2],[1,3],[4,6],[5,7],[0,4],[1,5],[2,6],[3,7]],CO=[[0,0,0],[1,0,0],[0,1,0],[1,1,0],[0,0,1],[1,0,1],[0,1,1],[1,1,1]],v8=new Float32Array(8);
+  for(let k=0;k<nz-1;k++)for(let j=0;j<ny-1;j++)for(let i=0;i<nx-1;i++){let m=0;
+    for(let c=0;c<8;c++){const o=CO[c];v8[c]=V[(i+o[0])+nx*((j+o[1])+ny*(k+o[2]))];if(v8[c]<0)m|=1<<c;}
+    if(m===0||m===255)continue;let sx=0,sy=0,sz=0,n=0;
+    for(const e of EDG){const a=v8[e[0]],b=v8[e[1]];if((a<0)===(b<0))continue;const t=a/(a-b),A=CO[e[0]],B=CO[e[1]];
+      sx+=A[0]+(B[0]-A[0])*t;sy+=A[1]+(B[1]-A[1])*t;sz+=A[2]+(B[2]-A[2])*t;n++;}
+    const x=X0+(i+sx/n)*h,y=Y0+(j+sy/n)*h,z=Z0+(k+sz/n)*h;CI[i+(nx-1)*(j+(ny-1)*k)]=P.length/3;P.push(x,y,z);
+    const e9=h*.35,gx=F(x+e9,y,z)-F(x-e9,y,z),gy=F(x,y+e9,z)-F(x,y-e9,z),gz=F(x,y,z+e9)-F(x,y,z-e9),l=Math.hypot(gx,gy,gz)||1;Nn.push(gx/l,gy/l,gz/l);
+    coul(x,y,z,c3);C.push(c3[0],c3[1],c3[2]);}
+  const ci=(i,j,k)=>(i<0||j<0||k<0||i>=nx-1||j>=ny-1||k>=nz-1)?-1:CI[i+(nx-1)*(j+(ny-1)*k)];
+  const quad=(a,b,c,d,fl)=>{if(a<0||b<0||c<0||d<0)return;if(fl)IX.push(a,b,c,a,c,d);else IX.push(a,c,b,a,d,c);};
+  for(let k=1;k<nz-1;k++)for(let j=1;j<ny-1;j++)for(let i=1;i<nx-1;i++){const in0=V[i+nx*(j+ny*k)]<0;
+    if(in0!==(V[(i+1)+nx*(j+ny*k)]<0))quad(ci(i,j-1,k-1),ci(i,j,k-1),ci(i,j,k),ci(i,j-1,k),in0);
+    if(in0!==(V[i+nx*((j+1)+ny*k)]<0))quad(ci(i-1,j,k-1),ci(i-1,j,k),ci(i,j,k),ci(i,j,k-1),in0);
+    if(in0!==(V[i+nx*(j+ny*(k+1))]<0))quad(ci(i-1,j-1,k),ci(i,j-1,k),ci(i,j,k),ci(i-1,j,k),in0);}
+  return {P:new Float32Array(P),N:new Float32Array(Nn),C:new Float32Array(C),I:new Uint32Array(IX)};}
+const DOGE_SDF=(()=>{
+  const sm=(a,b,k)=>{const h=Math.max(k-Math.abs(a-b),0)/k;return Math.min(a,b)-h*h*k*.25;},sM=(a,b,k)=>-sm(-a,-b,k);
+  const ell=(x,y,z,cx,cy,cz,rx,ry,rz)=>{const px=(x-cx)/rx,py=(y-cy)/ry,pz=(z-cz)/rz,k0=Math.sqrt(px*px+py*py+pz*pz),
+    k1=Math.sqrt(px*px/(rx*rx)+py*py/(ry*ry)+pz*pz/(rz*rz))||1e-6;return k0*(k0-1)/k1;};
+  const rcone=(x,y,z,ax,ay,az,bx,by,bz,r1,r2)=>{const bax=bx-ax,bay=by-ay,baz=bz-az,l2=bax*bax+bay*bay+baz*baz,rr=r1-r2,a2=l2-rr*rr,il2=1/l2,
+    pax=x-ax,pay=y-ay,paz=z-az,yy=pax*bax+pay*bay+paz*baz,zz=yy-l2,qx=pax*l2-bax*yy,qy=pay*l2-bay*yy,qz=paz*l2-baz*yy,x2=qx*qx+qy*qy+qz*qz,
+    y2=yy*yy*l2,z2=zz*zz*l2,k=Math.sign(rr)*rr*rr*x2;
+    if(Math.sign(zz)*a2*z2>k)return Math.sqrt(x2+z2)*il2-r2;if(Math.sign(yy)*a2*y2<k)return Math.sqrt(x2+y2)*il2-r1;return (Math.sqrt(x2*a2*il2)+yy*rr)*il2-r1;};
+  const capsule=(x,y,z,a,b,r)=>{const bax=b[0]-a[0],bay=b[1]-a[1],baz=b[2]-a[2],pax=x-a[0],pay=y-a[1],paz=z-a[2],
+    h=Math.max(0,Math.min(1,(pax*bax+pay*bay+paz*baz)/(bax*bax+bay*bay+baz*baz))),dx=pax-bax*h,dy=pay-bay*h,dz=paz-baz*h;return Math.sqrt(dx*dx+dy*dy+dz*dz)-r;};
+  return {sm,sM,ell,rcone,capsule};})();
+function dogeTete(){
+  const {sm,sM,ell,rcone,capsule}=DOGE_SDF;
+  const EYE=[[.185,.075,.312],[-.185,.075,.312]],RE=.086;
+  // les oreilles : un cône aplati (épaisseur ÷2,4), creusé devant
+  const oreille=(x,y,z,s,creux)=>{const zc=creux?.005:-.05,zz=zc+(z-zc)*2.4;
+    return creux?rcone(x,y,zz,s*.255,.27,zc,s*.335,.60,zc,.10,.012)/2:rcone(x,y,zz,s*.255,.24,zc,s*.36,.67,zc,.175,.016)/2;};
+  const museau=(x,y,z)=>rcone(x,y,z,0,-.10,.20,0,-.15,.50,.22,.12);
+  const base=(x,y,z)=>{const ax=Math.abs(x),s=x<0?-1:1;
+    let f=ell(x,y,z,0,.06,0,.47,.40,.40);                                         // le crâne
+    f=sm(f,ell(ax,y,z,.25,-.15,.17,.25,.21,.23),.10);                              // les joues bombées
+    f=sm(f,museau(x,y,z),.10);                                                     // le museau effilé
+    f=sm(f,ell(x,y,z,0,-.29,.18,.22,.13,.20),.08);                                 // le menton
+    f=sm(f,oreille(x,y,z,s,false),.06);f=sM(f,-oreille(x,y,z,s,true),.02);         // l'oreille, et son creux
+    const e=EYE[x<0?1:0],de=Math.hypot(x-e[0],y-e[1],z-e[2]);
+    f=sM(f,-(de-RE-.012),.02);                                                     // l'orbite
+    f=sm(f,Math.max(de-RE-.016,(e[1]+.032-.22*(ax-.185))-y),.012);                 // la PAUPIÈRE : le haut de l'œil couvert (le regard blasé)
+    f=sm(f,ell(x,y,z,0,-.072,.585,.072,.05,.045),.02);                             // la truffe
+    return f;};
+  // la BOUCHE EN COIN : la ligne est posée sur la surface (lancer de rayon), puis creusée
+  const trace=(x,y)=>{let z=1;for(let i=0;i<220;i++){const d=base(x,y,z);if(d<.0015)return z;z-=Math.max(d*.6,.002);if(z<-.2)break;}return null;};
+  const LIG=[[0,-.118],[0,-.19],[-.125,-.215],[-.06,-.222],[0,-.21],[.07,-.20],[.135,-.155]],PTS=LIG.map(([x,y])=>{const z=trace(x,y);return z==null?null:[x,y,z+.004];});
+  const SEG=[[0,1],[2,3],[3,4],[4,5],[5,6]].filter(([a,b])=>PTS[a]&&PTS[b]).map(([a,b])=>[PTS[a],PTS[b]]);
+  const bouche=(x,y,z)=>{let d=1e9;for(const s of SEG)d=Math.min(d,capsule(x,y,z,s[0],s[1],0));return d;};
+  const F=(x,y,z)=>sM(base(x,y,z),-(bouche(x,y,z)-.011),.008);
+  const H=(c,o)=>{const q=new THREE.Color(c);o[0]=q.r;o[1]=q.g;o[2]=q.b;return o;};
+  const coul=(x,y,z,o)=>{const ax=Math.abs(x),s=x<0?-1:1,e=EYE[x<0?1:0],de=Math.hypot(x-e[0],y-e[1],z-e[2]);
+    if(ell(x,y,z,0,-.072,.585,.072,.05,.045)<.012)return H(0x121014,o);              // la truffe
+    if(bouche(x,y,z)<.024)return H(0x3a1f14,o);                                       // la bouche
+    if(de<RE+.03&&y<e[1]+.03)return H(0x2a1810,o);                                    // le tour des yeux, sombre (le trait du shiba)
+    if(oreille(x,y,z,s,true)<.03&&z>-.06&&y>.30)return H(0xf0b0a2,o);                 // le dedans des oreilles
+    const mu=museau(x,y,z)<.03,arete=ax<.075&&y>-.11&&z>.22;
+    if((mu&&!arete)||y<-.14||(ell(ax,y,z,.25,-.15,.17,.25,.21,.23)<.03&&y<.0)||(ax>.08&&ax<.34&&y<e[1]-.06&&y>e[1]-.2&&z>.18))return H(0xf6e6c6,o); // le MASQUE crème
+    if(y>.30&&ax<.20&&z>-.1)return H(0xb8702e,o);                                     // le front, plus sombre
+    return H(0xd99545,o);};
+  // les couleurs : la moyenne de 7 prises autour du point — les bords des taches se fondent au lieu de faire des dents de scie
+  const c1=[0,0,0],coulD=(x,y,z,o)=>{o[0]=o[1]=o[2]=0;const e=.009;for(const d of [[0,0,0],[e,0,0],[-e,0,0],[0,e,0],[0,-e,0],[0,0,e],[0,0,-e]]){coul(x+d[0],y+d[1],z+d[2],c1);o[0]+=c1[0]/7;o[1]+=c1[1]/7;o[2]+=c1[2]/7;}return o;};
+  const h=.016,X0=-.62,Y0=-.47,Z0=-.47,nx=78,ny=78,nz=74,G=dogeNets(F,X0,Y0,Z0,h,nx,ny,nz,coulD);
+  G.yeux=EYE.map(e=>[e[0],e[1],e[2]+.004,RE]);
+  G.sourcils=EYE.map(e=>[e[0]*.92,e[1]+.13,(trace(e[0]*.92,e[1]+.13)||.33)+.006]);
+  G.bouche=[0,-.215,(trace(0,-.215)||.55)-.01];
+  return G;}
+function dogeQueue(){
+  const {capsule}=DOGE_SDF,S=[],RQ=.25;
+  for(let n=0;n<=36;n++){const u=n/36,ph=(-35+335*u)*Math.PI/180,r=RQ-.14*u;S.push([.05*u,r*Math.sin(ph),-r*Math.cos(ph),.15-.06*u,u]);} // dodue : le creux se referme
+  const F=(x,y,z)=>{let d=1e9;for(let i=1;i<S.length;i++){const a=S[i-1],b=S[i];d=Math.min(d,capsule(x,y,z,a,b,(a[3]+b[3])/2));}return d;};
+  const coul=(x,y,z,o)=>{let bi=0,bd=1e9;for(let i=0;i<S.length;i++){const d=Math.hypot(x-S[i][0],y-S[i][1],z-S[i][2]);if(d<bd){bd=d;bi=i;}}
+    const c=S[bi],r=Math.hypot(c[1],c[2]),rp=Math.hypot(y,z),cr=rp<r-.02||c[4]>.86;const q=new THREE.Color(cr?0xf6e6c6:0xd99545);o[0]=q.r;o[1]=q.g;o[2]=q.b;return o;};
+  return dogeNets(F,-.2,-.44,-.44,.016,26,56,56,coul);}
 const SHAPES={
   // 1. L'ÉPAVE — tôle froissée, une roue voilée, un phare mort. Le point de départ de chaque run.
   epave(K){
@@ -25894,143 +26022,113 @@ Object.assign(SHAPES,{
     return {hl:[.22,.45,2.30],tl:[.40,.66,-2.40],lamps:0,halos:0,wx:WX,wzF:ZF,wzR:-ZR,pots:[pot(1),pot(-1)],
             lpw:{R:R,w:.30,style:'multi',n:12,jante:0x3a3d47,accent:0x8a4dff,pneu:0x0e0d12}};
   },
-/* LE DOGE (2026-10-14, Léo : « fais une voiture tête de doge » · « dans le même esprit que la nyan cat ») — le mème du shiba en VOXELS,
-   comme le CHAT POP-TART : la même grille (`voxGrille`), la même laque (`nyLaque` : couleurs cuites par face, brillant de studio), le
-   même dessous noir, et une animation en PAS ENTIERS (jamais interpolée).
-   · LA CAISSE (cases de 10 cm) : le corps du chien couché en châssis — dos fauve, selle plus sombre sur l'échine, ventre crème — une
-     BULLE de verre sur le dos (c'est une voiture), un COLLIER rouge clouté d'or au cou, et les PATTES en ailes au-dessus des roues
-     (bouts crème : les chaussettes du shiba). Les roues : des PIÈCES d'or.
-   · LA TÊTE (cases de 7 cm) dressée à l'avant : crâne fauve, museau et joues crème, truffe noire en relief, bouche en coin, les deux
-     points crème au-dessus des yeux (les « sourcils » du shiba), oreilles en triangle à l'intérieur rose.
-   · LE REGARD : les yeux sont en relief, trois dessins (à gauche · au milieu · à droite) — il te regarde DE CÔTÉ (le side-eye du mème) :
-     au garage, du côté où est la caméra, avec un coup d'œil de l'autre côté de temps en temps ; les sourcils se LÈVENT d'une case par
-     moments, et pour de bon à la nitro, où la langue sort (deux dessins qui battent).
-   · LA QUEUE en tire-bouchon sur la croupe (c'est l'aileron) bat d'une case, plus vite quand il roule, à fond à la nitro ; la tête
-     hoche d'une case sur le tempo quand il roule ; une oreille tressaille.
-   · SA SIGNATURE (comme l'arc-en-ciel du chat) : les PHRASES DU MÈME en Comic Sans, de toutes les couleurs, qui surgissent autour de lui
-     — « wow », « such speed », « much nitro »… — une de temps en temps au garage, en RAFALE à la nitro (sprites, textures cuites une fois).
+/* LE DOGE v2 (2026-10-14, Léo : « fais une voiture tête de doge » · « dans le même esprit que la nyan cat », puis sur la v1 en gros voxels :
+   « nul » — pas une vraie voiture, pas assez Doge, trop cubique et cheap — et « les textes à ajouter en trail carrément »).
+   Le principe du CHAT POP-TART (une vraie caisse + la tête du mème devant, laquée `nyLaque`), avec une main plus fine :
+   · LA CAISSE : un coupé de sport japonais (le shiba est japonais) en loft à FACETTES, comme la gamme — capot court, pavillon bas, ailes
+     élargies, malle en coin. La livrée du shiba : laque FAUVE dessus, CRÈME en bas (l'« urajiro », le ventre clair du chien), selle plus
+     sombre sur le pavillon, vitres fumées ; jantes bronze à rayons fins, deux sorties d'or, un bandeau de feux rose sous la malle.
+   · LA TÊTE (`DOGE_TETE`, sculptée, plus aucun cube) : un champ de distance fondu — crâne, joues bombées, museau effilé, menton, oreilles
+     en triangle creusées devant, orbites, truffe — maillé en surface nets (normales = gradient : lisse), UNE fois par session. Les couleurs
+     sont celles de Kabosu, posées par région : masque crème (museau, joues, menton), arête du nez fauve, front plus sombre, intérieur des
+     oreilles rose, truffe noire, la BOUCHE EN COIN creusée (le sourire en biais du mème). PAUPIÈRES en haut des yeux (le regard blasé).
+   · LE REGARD : de vrais yeux (sphères laquées : blanc, iris brun, pupille, éclat) qui TOURNENT — il te regarde de côté, du côté de la
+     caméra, avec un coup d'œil de l'autre côté de temps en temps ; les deux points crème des SOURCILS se lèvent ; la tête est PENCHÉE
+     (la tête du mème) et hoche quand il roule ; la LANGUE sort à la nitro ; une oreille tressaille.
+   · LA QUEUE en tire-bouchon (sculptée elle aussi) est l'AILERON, sur deux mâts ; elle remue.
+   · SA TRAÎNÉE : « WOW » (voir LA TRAÎNÉE WOW) — les phrases du mème sortent des pots à la nitro (`fx.wow`).
    Ce qui bouge : `BLING.anim` (jeu) et `userData.anime` (salle blanche). */
   doge:function(K){
-    const BU=.1,HU=.085,R=.36,ZF=1.05,ZR=-.85,WX=.86,WXF=.98;
-    let rs=0x0d06e5;const rnd=()=>{rs^=rs<<13;rs^=rs>>>17;rs^=rs<<5;return (rs>>>0)/4294967296;};
-    const COUL={T:0xdc9a48,S:0xb06c2a,C:0xf7e8c8,E:0xf2b9b0,W:0xffffff,N:0x141118,D:0x4e2c1a,P:0xff7a9a,R:0xe8283e,O:0xffc93a,V:0x182036,v:0x6d86b8,L:0xff2a3a},
-      TEINTE=[['d',1.1],['h',1.0],['c',.86]],pal={B:{g:'nyl',c:0x14141c}},cc=new THREE.Color();
-    for(const k in COUL)for(const [f,m] of TEINTE){cc.setHex(COUL[k]);cc.setRGB(Math.min(1,cc.r*m),Math.min(1,cc.g*m),Math.min(1,cc.b*m));pal[k+f]={g:'nyl',c:cc.getHex()};}
-    const mL=nyLaque();
-    const emitG=(G,u,o,plan,par)=>{const kt=lpKit(pal);
-      G.emit(kt,u,o,(c,ax,sg)=>(c==='B'||(ax===1&&sg<0))?'B':c+(ax===plan?'d':(ax===1?'h':'c')));   // tout ce qui regarde le SOL est noir
-      const gs=kt.done();for(const g in gs){const m=new THREE.Mesh(gs[g],mL);m.userData.lp=1;par.add(m);}return par;};
-    const grp=par=>{const g9=new THREE.Group();par.add(g9);return g9;};
+    const U=LPU,R=.36,ZF=1.32,ZR=-1.30,ZN=2.0,ZT=-2.12;
+    if(typeof WOWT==='object'&&WOWT)WOWT.caisse=true;
+    const PAL={T:0xd99545,C:0xf6e6c6,S:0xa8642a,G:0x10141f,k:0x111015,L:0xff3a8c,o:0xe0a83a,N:0x121014,P:0xff7b97,E:0xf1b6a6,D:0x3d2216,W:0xffffff,I:0x4a2a12};
+    const pal={};for(const k in PAL)pal[k]={g:'nyl',c:PAL[k]};
+    const mL=nyLaque(),mesh=(geo,par)=>{const m=new THREE.Mesh(geo,mL);m.userData.lp=1;(par||K).add(m);return m;};
     const g=K.add(new THREE.Group());
-    // ---- 1. LE CORPS (cases de 10 cm ; i → x centré, j → y, k → z) : court et bombé, la grosse tête devant (les proportions du mème)
-    const Bv=voxGrille(),LARG=[0,0,0,5,6,6,6,5,4],dansC=(a,j,k,m)=>{if(j<3-m||j>8+m||k<-13-m||k>4+m)return false;const jj=Math.max(3,Math.min(8,j));
-      let w=LARG[jj]+m;if(k<=-12)w-=1;if(k<=-13)w-=1;if((k<=-13)&&(j>=8||j<=3))return false;return a<=w;};
-    for(let k=-13;k<=4;k++)for(let j=3;j<=8;j++)for(let i=-6;i<=6;i++){const a=Math.abs(i);if(!dansC(a,j,k,0))continue;
-      let c=j<=4?'C':'T';if(j===8&&a<=2)c='S';if(k>=2&&j<=6)c='C';                             // ventre crème, selle sombre, poitrail
-      if(k===-13&&j===6&&a===2)c='L';                                                           // les feux, sur la croupe
-      Bv.set(i,j,k,c);}
-    for(let k=-7;k<=-2;k++)for(let j=9;j<=10;j++)for(let i=-3;i<=3;i++){const a=Math.abs(i);    // LA BULLE de verre sur le dos
-      if(j===10&&(a===3||k===-7||k===-2))continue;if((k===-7||k===-2)&&a===3)continue;
-      Bv.set(i,j,k,(j===10&&i===-1&&k>=-5&&k<=-4)||(j===9&&a===3&&k===-4)?'v':'V');}
-    for(let j=2;j<=9;j++)for(let i=-7;i<=7;i++){const a=Math.abs(i);                            // LE COLLIER : l'anneau autour du cou
-      if(dansC(a,j,3,0)||!dansC(a,j,3,1))continue;Bv.set(i,j,3,((i+j)%3===0)?'O':'R');}
-    for(const sx of [-1,1]){const k0=Math.round((ZR-.40)/BU),k1=Math.round((ZR+.40)/BU)-1;    // les CUISSES arrière, bombées, sur la roue
-      for(let k=k0;k<=k1;k++)for(let a=7;a<=9;a++)for(let j=5;j<=8;j++){const bout=k===k0||k===k1;   // une demi-boule : elle bombe dehors, pas une planche
-        if(j===8&&(a===9||bout))continue;if(j===5&&a>7)continue;if(bout&&a===9)continue;Bv.set(sx*a,j,k,(k===k1&&j<=6)?'C':'T');}}
-    emitG(Bv,BU,[-BU/2,0,0],1,g);
-    // ---- 2. LA TÊTE (cases de 7 cm) : crâne, museau, joues ----
-    const HY=.30,HZ=.32,oH=[-HU/2,HY,HZ],tete=grp(g),Hv=voxGrille(),E9=(x,y,z,cx,cy,cz,rx,ry,rz)=>((x-cx)/rx)**2+((y-cy)/ry)**2+((z-cz)/rz)**2<=1;
-    for(let i=-11;i<=11;i++)for(let j=0;j<=16;j++)for(let k=-1;k<=19;k++){const x=i,y=j+.5,z=k+.5;
-      const crane=E9(x,y,z,0,7.5,7,9.2,6.2,6.6),museau=E9(x,y,z,0,4.6,12.6,4.6,3.2,5),joue=E9(x,y,z,5.6,4.6,9.5,3.8,3.4,3.8)||E9(x,y,z,-5.6,4.6,9.5,3.8,3.4,3.8);
-      if(!(crane||museau||joue))continue;
-      Hv.set(i,j,k,(museau&&z>9)||joue||(y<6.2&&z>8)||(y<3.5)?'C':'T');}
-    const kS=(i,j)=>{for(let k=20;k>=-1;k--)if(Hv.has(i,j,k))return k;return null;};
-    const peint=(i,j,c)=>{const k=kS(i,j);if(k!=null)Hv.set(i,j,k,c);};
-    const S9={};for(let i=-6;i<=6;i++)for(let j=0;j<=14;j++)S9[i+','+j]=kS(i,j);               // la surface AVANT, avant tout relief
-    const relief=(G,i,j,c,d)=>{const k=S9[i+','+j];if(k!=null)G.set(i,j,k+(d||1),c);};
-    for(const s of [-1,1])for(const a of [2,3,4])peint(s*a,10,'D');                             // les paupières
-    for(const [i,j] of [[0,4],[0,5],[-3,3],[-2,3],[-1,3],[0,3],[1,3],[2,3],[3,4]])peint(i,j,'D'); // la bouche EN COIN (le sourire en biais du mème)
-    for(let i=-1;i<=1;i++)for(let j=6;j<=7;j++)relief(Hv,i,j,j===7&&i===-1?'W':'N');            // la truffe, en relief (et son reflet)
-    emitG(Hv,HU,oH,2,tete);
-    // les OREILLES : un triangle épais, l'intérieur rose ; chacune dans son groupe (elle tressaille)
-    const ORE=[];
-    for(const s of [-1,1]){const piv=[s*5.2*HU,HY+11*HU,HZ+6*HU],og=grp(tete);og.position.set(piv[0],piv[1],piv[2]);
-      const Ov=voxGrille(),dans=(x,y,m)=>{const t=(y-10.5)/(17.6-10.5-m*.9);if(t<0||t>1)return false;const c=5.2,hw=(1-t)*(2.8-m);return Math.abs(s*x-c)<=hw;};
-      for(let i=-11;i<=11;i++)for(let j=9;j<=19;j++)for(let k=4;k<=7;k++){const x=i,y=j+.5;
-        if(!dans(x,y,0)||Hv.has(i,j,k))continue;Ov.set(i,j,k,(k===7&&dans(x,y,1.1))?'E':'T');}
-      emitG(Ov,HU,[oH[0]-piv[0],oH[1]-piv[1],oH[2]-piv[2]],2,og);ORE.push(og);}
-    // les YEUX en relief : trois dessins (le regard à gauche · au milieu · à droite)
-    const YEUX=[-1,0,1].map(gz=>{const Y=voxGrille();
-      for(const s of [-1,1]){const cs=[s*2,s*3,s*4].sort((a,b)=>a-b);
-        const pup=gz===0?[cs[1]]:gz>0?[cs[1],cs[2]]:[cs[0],cs[1]];
-        for(const i of cs)for(const j of [8,9])relief(Y,i,j,pup.indexOf(i)>=0?'N':'W');}   // la pupille dans le COIN, le blanc de l'autre côté
-      const yg=grp(tete);emitG(Y,HU,oH,2,yg);yg.visible=gz===1;return yg;});
-    // les SOURCILS (les deux points crème) : un dessin, qui monte d'une case
-    const Sv=voxGrille();for(const s of [-1,1])for(const a of [3,4])relief(Sv,s*a,11,'C');
-    const sourcils=grp(tete);emitG(Sv,HU,oH,2,sourcils);
-    // la LANGUE (deux dessins qui battent), cachée hors de la nitro
-    const LANGUE=[[[0,2],[1,2],[0,1],[1,1]],[[0,2],[1,2],[0,1],[1,1],[0,0],[1,0]]].map(cs=>{const Lv=voxGrille();
-      for(const [i,j] of cs){const k=S9[i+',3'];if(k!=null)Lv.set(i,j,k+(j<2?2:1),'P');}
-      const lg=grp(tete);emitG(Lv,HU,oH,2,lg);lg.visible=false;return lg;});
-    // ---- 3. LA QUEUE en tire-bouchon sur la croupe : l'aileron ----
-    const queue=grp(g),Qv=voxGrille(),QC=[0,4.4,0];
-    for(let n=0;n<=160;n++){const u=n/160,ph=(-35+335*u)*Math.PI/180,r=3.5-1.9*u,ep=1.95-.75*u,                // de la croupe, par-dessus, et elle s'enroule
-      cz=QC[2]-r*Math.cos(ph),cy=QC[1]+r*Math.sin(ph);
-      for(let i=-3;i<=3;i++)for(let j=Math.floor(cy-ep);j<=Math.ceil(cy+ep);j++)for(let k=Math.floor(cz-ep);k<=Math.ceil(cz+ep);k++){
-        const y=j+.5,z=k+.5;if(Math.hypot(i,y-cy,z-cz)>ep)continue;
-        const dd=Math.hypot(y-QC[1],z-QC[2]);if(Qv.has(i,j,k)&&dd>=r-.3)continue;Qv.set(i,j,k,(dd<r-.35||u>.86)?'C':'T');}}
-    emitG(Qv,HU,[-HU/2,.86,-1.12],0,queue);
-    // ---- 4. LES SORTIES : deux canons d'or sous la queue ----
-    const P=K.kit({o:{g:'o',c:0xd9a520},k:{g:'m',c:0x08080a}});
-    P.sym(sd=>{P.cyl('o',.075,.22,12,sd*.22,.42,-1.36,'z');P.cyl('k',.055,.23,12,sd*.22,.42,-1.37,'z');});
-    K.commit(P);
-    // ---- 5. LES PHRASES DU MÈME (cuites une fois par session) ----
-    if(!SHAPES.doge._tx){SHAPES.doge._tx=[];
-      const MOTS=['wow','such speed','much fast','very nitro','so car','many coin','amaze','such drift','much aura','very vroom','excite','wow'],
-            TEINTES=['#ff3ec8','#5ee6ff','#7dff5a','#ffe25a','#ff8a2a','#c07bff'];
-      MOTS.forEach((m9,n)=>{const cv=document.createElement('canvas'),x=cv.getContext('2d'),F='bold 64px "Comic Sans MS","Comic Sans","Chalkboard SE","Comic Neue",cursive';
-        x.font=F;const w=Math.ceil(x.measureText(m9).width)+28;cv.width=w;cv.height=96;x.font=F;x.textBaseline='middle';x.lineJoin='round';
-        x.lineWidth=9;x.strokeStyle='#1c0430';x.strokeText(m9,14,50);x.fillStyle=TEINTES[n%TEINTES.length];x.fillText(m9,14,50);
-        const tx=new THREE.CanvasTexture(cv);tx.minFilter=THREE.LinearFilter;tx.generateMipmaps=false;SHAPES.doge._tx.push({tx,a:w/96});});}
-    const TX=SHAPES.doge._tx,MOT=[];
-    for(let n=0;n<10;n++){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:TX[0].tx,transparent:true,depthWrite:false,fog:false}));
-      sp.visible=false;sp.renderOrder=7;g.add(sp);MOT.push({sp,v:0});}
-    let mi=0,mDer=-1;
-    let enC=false;
-    const crie=()=>{const o=MOT.find(q=>q.v<=0);if(!o)return;let n;do{n=rnd()*TX.length|0;}while(n===mDer&&TX.length>1);mDer=n;
-      const T9=TX[n];o.sp.material.map=T9.tx;o.sp.material.rotation=(rnd()-.5)*.35;o.h=(.30+rnd()*.12)*(enC?3.0:1);o.a=T9.a;                                                    // en course : la caméra est loin, elles grossissent
-      const sx=(mi++%2?1:-1);o.x=sx*(enC?1.9+rnd()*1.2:1.15+rnd()*.9);o.y=enC?1.7+rnd()*1.0:.95+rnd()*1.0;o.z=enC?0+rnd()*2.6:-1.0+rnd()*2.4;o.v=1.5;o.sp.visible=true;};
-    // ---- 6. LA VIE ----
-    let t=0,F=0,sV=0,pPrev=null,regard=1,coupT=2+rnd()*3,coupD=0,sourT=2.5,sourD=0,sourD0=0,oreT=3,oreD=0,oreS=1,crieT=.6,acc=0,pas=0;
+    // ---- 1. LA CAISSE : le coupé ----
+    const P=lpKit(pal),bosse=d=>Math.max(0,1-d*d);
+    const T=z=>U.lin([[ZT,.84],[-1.95,.93],[-1.6,.96],[-1.15,1.02],[-.8,1.18],[-.3,1.24],[.15,1.22],[.5,1.06],[.8,.90],[1.2,.86],[1.7,.82],[ZN,.76]],z),
+          Bt=z=>U.lin([[ZT,.78],[-1.7,.88],[-.8,.90],[.8,.87],[1.6,.82],[ZN,.74]],z),
+          XW=z=>U.lin([[ZT,.80],[-1.9,.92],[1.75,.92],[ZN,.78]],z)+.07*(bosse((z-ZF)/.62)+bosse((z-ZR)/.62)),
+          AR=[[0,2*R+.06],[R*.6,2*R+.04],[R*.95,R*1.3],[R+.12,.25]];
+    const zs=[ZT,-2.05,-1.95,-1.75,-1.6,-1.45,-1.15,-1.0,-.8,-.55,-.3,0,.15,.3,.5,.7,.8,1.0,1.2,1.5,1.7,1.9,ZN];
+    for(const w of [ZF,ZR])for(const d of [R*.6,R*.95,R+.12])zs.push(w-d,w+d);
+    zs.sort((a,b)=>a-b);
+    const S=z=>{const yb=U.arch(z,[ZF,ZR],AR,.25),xw=XW(z),t=T(z),b=Bt(z),h=Math.max(0,t-b-.03),gq=Math.min(1,h/.2);
+      const y2=Math.max(yb+.06,.36),y3=Math.max(y2+.04,.58),y4=Math.max(y3+.04,b);
+      return [[0,yb],[xw-.10,yb],[xw-.01,y2],[xw+.02,y3],[xw-.02,y4],[xw-.12,y4+.04],[xw-.22-.10*gq,y4+.04+h*.6],[.56-.06*gq,Math.max(t,y4+.06)],[0,Math.max(t,y4+.06)+.01]];};
+    P.loft(zs,S,(j,z)=>{
+      if(j<0)return j===-1?'C':'T';                                                          // le nez crème (le menton), la poupe fauve
+      if(j===0)return 'k';
+      if(j<=2)return 'C';                                                                    // le ventre clair du shiba
+      if(j<=4)return 'T';
+      const pil=z>-.36&&z<-.24;
+      if(j===5)return (z>-1.0&&z<.48&&!pil)?'G':'T';                                         // les vitres
+      if(j===6)return ((z>.15&&z<.72)||(z<-.85&&z>-1.45))?'G':'T';                          // pare-brise, lunette
+      return (z>-1.6&&z<1.0)?'S':'T';});                                                     // la selle sombre du pavillon
+    P.box('L',1.30,.05,.02,0,.72,ZT-.004);P.sym(sd=>P.box('L',.05,.12,.02,sd*.62,.68,ZT-.004));  // le bandeau des feux
+    P.box('k',1.40,.10,.16,0,.30,ZT+.04);                                                    // le diffuseur
+    P.sym(sd=>{P.cyl('o',.07,.20,14,sd*.24,.36,ZT-.04,'z');P.cyl('k',.052,.21,14,sd*.24,.36,ZT-.045,'z');});
+    P.box('k',1.3,.02,3.8,0,.252,0);
+    const gs=P.done();for(const k in gs)mesh(gs[k],g);
+    // ---- 2. LA TÊTE (sculptée une fois par session) ----
+    if(!SHAPES.doge._tete)SHAPES.doge._tete=dogeTete();
+    const DT=SHAPES.doge._tete,tete=new THREE.Group();tete.position.set(0,.77,1.80);tete.scale.setScalar(1.25);g.add(tete);
+    const pivot=new THREE.Group();tete.add(pivot);
+    {const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(DT.P,3));geo.setAttribute('normal',new THREE.BufferAttribute(DT.N,3));
+     geo.setAttribute('color',new THREE.BufferAttribute(DT.C,3));geo.setIndex(new THREE.BufferAttribute(DT.I,1));geo.computeBoundingSphere();mesh(geo,pivot);}
+    // les YEUX : blanc, iris brun, pupille, éclat — la sphère TOURNE (le regard)
+    const oeilGeo=(()=>{const s=new THREE.SphereGeometry(1,28,20),p=s.attributes.position,c=new Float32Array(p.count*3);
+      for(let i=0;i<p.count;i++){const z=p.getZ(i),x=p.getX(i),y=p.getY(i);let col=[1,1,1];
+        if(z>.70)col=[.42,.24,.10];if(z>.86)col=[.07,.05,.05];if(z>.86&&x<-.12&&y>.12)col=[1,1,1];c.set(col,i*3);}
+      s.setAttribute('color',new THREE.BufferAttribute(c,3));return s;})();
+    const YEUX=DT.yeux.map(e=>{const o=new THREE.Group();o.position.set(e[0],e[1],e[2]);pivot.add(o);const m=mesh(oeilGeo,o);m.scale.setScalar(e[3]);return o;});
+    // les SOURCILS : les deux points crème
+    const sGeo=new THREE.SphereGeometry(1,16,10),sc=new Float32Array(sGeo.attributes.position.count*3);for(let i=0;i<sc.length;i+=3){sc[i]=.97;sc[i+1]=.91;sc[i+2]=.78;}
+    sGeo.setAttribute('color',new THREE.BufferAttribute(sc,3));
+    const SOUR=DT.sourcils.map(e=>{const m=mesh(sGeo,pivot);m.position.set(e[0],e[1],e[2]);m.scale.set(.078,.044,.034);m.rotation.z=e[0]>0?-.25:.25;m.userData.y0=e[1];return m;});
+    // la LANGUE (cachée hors de la nitro)
+    const lGeo=new THREE.SphereGeometry(1,16,12),lc=new Float32Array(lGeo.attributes.position.count*3);
+    for(let i=0;i<lc.length;i+=3){lc[i]=1;lc[i+1]=.48;lc[i+2]=.6;}lGeo.setAttribute('color',new THREE.BufferAttribute(lc,3));
+    const langue=new THREE.Group();langue.position.set(DT.bouche[0],DT.bouche[1],DT.bouche[2]);pivot.add(langue);
+    {const m=mesh(lGeo,langue);m.scale.set(.06,.085,.024);m.position.set(0,-.07,.012);}
+    langue.scale.setScalar(.001);
+    // ---- 3. LA QUEUE en tire-bouchon : l'aileron ----
+    if(!SHAPES.doge._queue)SHAPES.doge._queue=dogeQueue();
+    const DQ=SHAPES.doge._queue,queue=new THREE.Group();queue.position.set(0,1.14,-1.78);queue.rotation.z=.18;g.add(queue);
+    {const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(DQ.P,3));geo.setAttribute('normal',new THREE.BufferAttribute(DQ.N,3));
+     geo.setAttribute('color',new THREE.BufferAttribute(DQ.C,3));geo.setIndex(new THREE.BufferAttribute(DQ.I,1));geo.computeBoundingSphere();mesh(geo,queue);}
+    // ---- 4. LA VIE ----
+    let rs=0x0d06e5;const rnd=()=>{rs^=rs<<13;rs^=rs>>>17;rs^=rs<<5;return (rs>>>0)/4294967296;};
+    let t=0,F=0,sV=0,pPrev=null,regard=1,gz=1,coupT=2+rnd()*3,coupD=0,sourT=2,sourD=0,sourD0=0,sourY=0,oreT=3,oreD=0;
     const V9=new THREE.Vector3();
     const anime=dt=>{dt=Math.min(dt,.1);t+=dt;
       const fort=(typeof nitroOn!=='undefined'&&nitroOn)?1:0;F+=(fort-F)*Math.min(1,dt*6);
       const e=g.matrixWorld.elements;
       if(pPrev){const d=Math.hypot(e[12]-pPrev[0],e[13]-pPrev[1],e[14]-pPrev[2])/Math.max(dt,1e-3);sV+=(Math.min(1,d/40)-sV)*Math.min(1,dt*3);}else pPrev=[0,0,0];
       pPrev[0]=e[12];pPrev[1]=e[13];pPrev[2]=e[14];
-      let course=false,vol=false;try{course=enC=typeof started!=='undefined'&&started&&typeof gameOver!=='undefined'&&!gameOver;vol=course&&typeof mode!=='undefined'&&mode==='fall';}catch(_){}
-      // le REGARD : du côté de la caméra (au garage), un coup d'œil de l'autre côté de temps en temps
-      try{if(typeof camera!=='undefined'&&camera&&camera.isCamera){V9.copy(camera.position);g.worldToLocal(V9);if(V9.x>.5)regard=1;else if(V9.x<-.5)regard=-1;}}catch(_){}
-      coupT-=dt;if(coupT<=0){coupD=.55;coupT=3+rnd()*4;}let gz=regard;if(coupD>0){coupD-=dt;gz=-regard;}
-      for(let q=0;q<3;q++)YEUX[q].visible=(q-1)===gz;
-      // les SOURCILS se lèvent (et restent levés à la nitro) ; la LANGUE sort à la nitro
-      sourT-=dt;if(sourT<=0){sourD=rnd()<.35?.9:.5;sourD0=sourD;sourT=2.5+rnd()*3.5;}if(sourD>0)sourD-=dt;
-      sourcils.position.y=(F>.5||(sourD>0&&!(sourD0>.6&&sourD>.40&&sourD<.52)))?HU:0;                       // levés (deux fois de suite, parfois)
-      acc+=dt;if(acc>=1/8){acc=0;pas++;
-        const lg=F>.5?pas%2:-1;LANGUE[0].visible=lg===0;LANGUE[1].visible=lg===1;
-        const bat=F>.5?1:sV>.15?2:4;queue.position.x=[0,HU,0,-HU][Math.floor(pas/bat)%4];                     // la queue bat (plus vite en roulant, à fond à la nitro)
-        tete.position.y=(sV>.15||F>.5)&&(Math.floor(pas/(F>.5?1:2))%2)?HU:0;}                                // la tête hoche sur le tempo
-      oreT-=dt;if(oreT<=0){oreD=.16;oreS=rnd()<.5?0:1;oreT=2+rnd()*4;}if(oreD>0)oreD-=dt;
-      ORE[0].rotation.z=oreD>0&&oreS===0?.22:0;ORE[1].rotation.z=oreD>0&&oreS===1?-.22:0;
-      // les PHRASES : une de temps en temps, en rafale à la nitro, plus souvent en vol
-      crieT-=dt;if(crieT<=0){crie();crieT=F>.5?.38:vol?.8:course?1.8:1.5;}
-      for(const o of MOT){if(o.v<=0)continue;o.v-=dt;const u=1.5-o.v,p=u<.12?u/.12*1.15:u<.2?1.15-(u-.12)/.08*.15:1,f=o.v<.4?o.v/.4:1;
-        o.y+=dt*.18;o.sp.position.set(o.x,o.y,o.z);o.sp.scale.set(o.h*o.a*p,o.h*p,1);o.sp.material.opacity=f;if(o.v<=0)o.sp.visible=false;}};
+      // le REGARD : du côté de la caméra, et un coup d'œil de l'autre côté par moments (l'œil saute, il ne glisse pas)
+      try{if(typeof camera!=='undefined'&&camera&&camera.isCamera){V9.copy(camera.position);pivot.worldToLocal(V9);if(V9.x>.4)regard=1;else if(V9.x<-.4)regard=-1;}}catch(_){}
+      coupT-=dt;if(coupT<=0){coupD=.6;coupT=3+rnd()*4;}const vise=coupD>0?-regard:regard;if(coupD>0)coupD-=dt;
+      gz+=(vise-gz)*Math.min(1,dt*22);
+      for(const o of YEUX){o.rotation.y=gz*.62;o.rotation.x=-.10;}
+      // les SOURCILS se lèvent (deux fois de suite, parfois), et restent levés à la nitro
+      sourT-=dt;if(sourT<=0){sourD=rnd()<.35?.9:.5;sourD0=sourD;sourT=2+rnd()*3.5;}if(sourD>0)sourD-=dt;
+      const lev=F>.5||(sourD>0&&!(sourD0>.6&&sourD>.40&&sourD<.52));sourY+=((lev?.035:0)-sourY)*Math.min(1,dt*20);
+      for(const m of SOUR)m.position.y=m.userData.y0+sourY;
+      // la LANGUE à la nitro, qui bat
+      const lk=F>.5?1:0;langue.scale.setScalar(Math.max(.001,langue.scale.x+((lk?1:.001)-langue.scale.x)*Math.min(1,dt*12)));langue.rotation.x=lk?.25+.18*Math.sin(t*22):0;
+      // la tête PENCHÉE du mème, qui hoche en roulant ; un à-coup d'oreille de temps en temps
+      oreT-=dt;if(oreT<=0){oreD=.14;oreT=2.5+rnd()*4;}if(oreD>0)oreD-=dt;
+      pivot.rotation.z=.10+(oreD>0?.05:0)+Math.sin(t*(F>.5?14:7))*.025*Math.max(sV,F);
+      pivot.position.y=Math.abs(Math.sin(t*(F>.5?14:7)))*.025*Math.max(sV,F);
+      // la QUEUE remue
+      queue.rotation.y=Math.sin(t*(F>.5?18:sV>.15?11:6))*.16;queue.rotation.z=.18;};
     anime(1/30);
     g.userData.anime=anime;
     if(typeof BLING==='object'&&BLING&&BLING.anim)BLING.anim.push(anime);
-    return {hl:[.30,.50,1.80],tl:[.20,.65,-1.32],lamps:0,halos:0,wx:WX,wxF:WXF,wzF:ZF,wzR:-ZR,pots:[[.22,.42,-1.48],[-.22,.42,-1.48]],
-            lpw:{R:R,w:.30,style:'cadran',jante:0xffc93a,accent:0xffc93a,pneu:0x141118}};
+    return {hl:[.30,.55,2.2],tl:[.45,.72,ZT-.02],lamps:0,halos:0,wx:.86,wzF:ZF,wzR:-ZR,pots:[[.24,.36,ZT-.14],[-.24,.36,ZT-.14]],
+            lpw:{R:R,w:.30,style:'multi',n:10,jante:0xc8913a,accent:0xc8913a,pneu:0x141118}};
   }
 });
 /* ===== LA GAMME DES 50 — FIN ===== */
@@ -26736,7 +26834,7 @@ function buildCar(spec){
   carFins.length=0;
   ATCH.on=false;ATCH.ph=0;ATCH.k=0;ATCH.t=3+Math.random()*2; // (2026-10-06) ATCHOUM s'allume dans son gabarit
   BLING.s=[];BLING.anim=[]; // (2026-10-10) L'ICEBERG pose ses éclats, LA FOURNAISE son feu, pendant leur gabarit
-  NYAN.on=false;NYAN.tete=null;NYAN.pattes.length=0;NYAN.queue.length=0;NYAN.feux.length=0;NYAN.roues.length=0;NYAN.rf='';NYAN.pas=-1;NYAN.hb=-1; // (2026-10-06) le chat pop-tart remplit ses pièces animées pendant son gabarit
+  WOWT.caisse=false;NYAN.on=false;NYAN.tete=null;NYAN.pattes.length=0;NYAN.queue.length=0;NYAN.feux.length=0;NYAN.roues.length=0;NYAN.rf='';NYAN.pas=-1;NYAN.hb=-1; // (2026-10-06) le chat pop-tart remplit ses pièces animées pendant son gabarit
   HALO.h.length=0;HALO.t.length=0;ROUES.flou=null; // (2026-09-26) halos et flou de jante de l'ancienne caisse
   const lvl=CARS.indexOf(spec),wreck=lvl===0;
   // brillance qui explose avec le niveau — l'épave est mate et rouillée
@@ -26805,7 +26903,7 @@ function buildCar(spec){
   const hlX=A.hl[0],hlY=A.hl[1],hlZ=A.hl[2],tlX=A.tl[0],tlY=A.tl[1],tlZ=A.tl[2];
   carGroup.userData.capot=[0,y0+H9*.78,L9*.28]; // (2026-09-28) le CAPOT, en repère caisse : c'est là que le nouveau moteur RENTRE (voir engBigSuit)
   try{const tD=cosmSur('trainee'); // LA TRAÎNÉE DE LA BOUTIQUE : elle se pose PAR-DESSUS la signature de la caisse
-   FX_EFF=(tD&&tD.id!=='nitro')?Object.assign({},spec.fx||{},tD.rainbow?{rainbow:true,trail:null}:{trail:tD.rgb,rainbow:false}):null;
+   FX_EFF=(tD&&tD.id!=='nitro')?Object.assign({},spec.fx||{},tD.rainbow?{rainbow:true,trail:null,wow:false}:tD.wow?{wow:true,rainbow:false,trail:tD.rgb}:{trail:tD.rgb,rainbow:false,wow:false}):null;
   }catch(e){} // ⚠ 1er buildCar à l'init : `FX_EFF` n'est pas encore déclaré (zone morte) — il vaut null de toute façon
   // ---- MINI-AILES / PLANEURS : repliées dans le flanc au sol, déployées en vol (la boucle les anime
   // via carWingL/carWingR). Le REQUIN remplace les panneaux par ses QUATRE BRAS D'HÉLICES sur les
@@ -29916,7 +30014,8 @@ const COSM={
     {id:'menthe',  n:'MENTHE',            p:2000,  rgb:[.30,1.30,.92],d:'Un sillage vert d\'eau qui sent le propre.'},
     {id:'rose',    n:'ROSE NÉON',         p:4000,  rgb:[1.45,.22,1.05],d:'Le rose des enseignes. On te suit à la trace.'},
     {id:'or',      n:'POUDRE D\'OR',      p:15000, rgb:[1.45,1.05,.22],d:'Tu ne laisses pas de la fumée derrière toi. Tu laisses de l\'or.'},
-    {id:'arcenciel',n:'ARC-EN-CIEL',      mis:5,   rainbow:1,d:'Ne s\'achète pas : elle se gagne en relevant des défis.'}]
+    {id:'arcenciel',n:'ARC-EN-CIEL',      mis:5,   rainbow:1,d:'Ne s\'achète pas : elle se gagne en relevant des défis.'},
+    {id:'wow',     n:'WOW',               p:30000, wow:1,rgb:[1.45,.35,1.25],d:'Much sillage. Very mots. Wow.'}] // (2026-10-14) LA TRAÎNÉE WOW (voir wowStep) — la signature du DOGE
 };
 if(POKI){ // (POKI) sans missions, les deux habillages des carnets s'achètent, au sommet de leur rayon
   const o9=COSM.peinture.find(function(d){return d.id==='or';}),a9=COSM.trainee.find(function(d){return d.id==='arcenciel';});
@@ -44336,6 +44435,7 @@ function trailApercu(dt,on,k9){ // k9 (2026-09-30, LA CHUTE) : l'intensité, 1 p
   {const d9=on?cosmSur('trainee'):null,a9=!!(d9&&(d9.rainbow||(d9.id==='nitro'&&NYAN.on))), // (2026-10-07) l'ARC-EN-CIEL s'essaie en vrai : le feu de pixels de la course — celui de la boutique, ou la traînée d'origine du chat
          bk9=(NYAN.on&&garageOn&&BURN.k>.03)?BURN.k:0; // …et au BURN-OUT le chat boost sur place : son arc-en-ciel sort de la poupe et suit la caisse dans le donut
    rainbowApercu(dt,a9||bk9>0,camera,Math.max(a9?(k9==null?1:k9):0,bk9));if(a9)on=false;}
+  {const d9=on?cosmSur('trainee'):null,w9=!!(d9&&(d9.wow||(d9.id==='nitro'&&WOWT.caisse)));wowApercu(dt,w9);if(w9)on=false;} // (2026-10-14) LA TRAÎNÉE WOW s'essaie en vrai
   if(!on){for(const r of TRPV.r)r.m.visible=false;return;}
   const N=36;
   if(!TRPV.r.length)for(let k=0;k<2;k++){
@@ -50848,6 +50948,10 @@ function loop(now){
         if(nyan9)potMonde(NYAN.arc,tmp2);else potMonde(CAR_POT_C,tmp2).addScaledVector(hsU,.19); // le chat : la poupe de la pop-tart, à mi-hauteur
         rainbowStep(tmp2.x,tmp2.y,tmp2.z,rk,t,dt,-hsF.x,-hsF.y,-hsF.z);
       }else if(rainbow.m.visible&&!rainbow.apercu)rainbowCoupe();
+    }
+    { // (2026-10-14) LA TRAÎNÉE WOW (voir wowStep) : le DOGE, ou toute caisse qui porte la traînée WOW — à la nitro, comme l'arc-en-ciel
+      const wow9=!!(FXT&&FXT.wow);
+      if(wow9||WOWT.n){const wk=(!wow9||mode==='boom'||nitroBlue||pwrNitroT>0)?0:(loop._arcK||0);potMonde(CAR_POT_C,tmp2).addScaledVector(hsU,.25);wowStep(tmp2.x,tmp2.y,tmp2.z,wk,dt,1);}
     }
     // LA GERBE D'EAU : la caisse qui déclare `fx.spray` ne crache pas du feu mais de l'EAU. On sème
     // à la tuyère, en cône, avec une composante latérale franche — une gerbe s'ÉVASE, un jet de
