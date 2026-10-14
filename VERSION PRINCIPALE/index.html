@@ -43439,7 +43439,7 @@ function gModeVa(m){
     if(m==='shop'){gGarageReplie();return;} /* (2026-10-14) le garage REPLIÉ, plus l'inventaire */ // (2026-10-12, Léo : « BOUTIQUE devient RETOUR quand on appuie dessus ») RETOUR : l'INVENTAIRE (la vue d'arrivée), les cinq touches
     if(m==='inv'){if(GATL.on){gAtelier(false);gGarageReplie();}else gAtelier(true);return;} /* (2026-10-14) RETOUR de l'inventaire : le garage REPLIÉ */ // (2026-10-12, Léo) INVENTAIRE ferme l'atelier ; la même touche, devenue ◀ RETOUR, le rouvre
     return;}
-  GMODE.m=m;GMODE.paye=false;GMODE.fam=m==='shop'?gShopFam():null; // (2026-10-10) la famille montrée en BOUTIQUE, détachée de la caisse affichée
+  GBQ.deAcc=0;GMODE.m=m;GMODE.paye=false;GMODE.fam=m==='shop'?gShopFam():null; // (2026-10-10) la famille montrée en BOUTIQUE, détachée de la caisse affichée
   const bar=$('gRar'),st=$('gStrip');if(bar)bar._k=null;if(st){st._r=null;if(m==='tous'){st.scrollTop=0;st.classList.remove('finBas');}}
   gModeCale();
   if(SHOP.tab==='voiture')garageFamilles(carRar(garageI));else gStripHabits(SHOP.tab,SHOP.i[SHOP.tab]);
@@ -45871,16 +45871,19 @@ function bqOffreAuto(E){if(!bqC6()||!E.length)return;if(GAR.go||ecranWipe._on){G
 /* LE ◀ DE LA BOUTIQUE (BRIEF §0 bis 5) : carré, en haut à gauche, comme partout — il fait ce que faisait RETOUR (#gShopBas, masqué sous c6) */
 function bqRetourC6(ui){if(!bqC6()||document.getElementById('gBqRet'))return;ui.classList.add('c6Clair');
   const r=document.createElement('div');r.id='gBqRet';r.className='pbtn pbCarre c6Ret';r.setAttribute('role','button');r.tabIndex=0;r.setAttribute('aria-label',sansAcc(TR('RETOUR')));r.innerHTML=pxi('gauche');ui.appendChild(r);
-  r.addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on||!GBQ.on)return;uiPop(r);uiClic('retour');gModeVa('shop');});}
+  r.addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on||!GBQ.on)return;uiPop(r);uiClic('retour');
+    if(GBQ.deAcc){GBQ.deAcc=0;ecranWipe(function(){if(started&&gameOver)accueilRetour();garMode('menu');});return;} /* (2026-10-14, vérif P1) venu du CADEAU de l'accueil : ◀ ramène à l'ACCUEIL d'un coup (plus de détour par le garage replié) ; venu du garage, ◀ y revient (ligne suivante) */
+    gModeVa('shop');});}
 /* LA COLONNE « CETTE SEMAINE » ne montre que des cartes ENTIÈRES : sa hauteur = n cartes + écarts (elle se feuillette au doigt, plus de défilé qui coupe) */
 function bqColonneCale(une){if(!bqC6())return;const uv=une.querySelector('.bqUv'),c=une.querySelector('.bqU');if(!uv||!c)return;uv.style.flex='';uv.style.height='';
   const dispo=uv.getBoundingClientRect().height,pas=c.getBoundingClientRect().height+8;if(dispo<20||pas<30)return;
   const n=Math.max(1,Math.floor((dispo+8)/pas));uv.style.flex='none';uv.style.height=(n*pas-8)+'px';}
 /* la caisse regardée → la boutique, onglet OFFRES : le cadeau de l'accueil (plus d'écran #mShop néon sous c6) */
-function bqVaOffres(){if(ecranWipe._on)return;
+function bqVaOffres(deAcc){if(ecranWipe._on)return;
   if(started&&gameOver&&!garageOn){ecranWipe(function(){accueilRetour();try{window.__mGo('home');}catch(e){}});return;}
   ecranWipe(function(){GBQ.ong='off';GBQ.rk='';
-    if(!garageOn){openGarage();gModeVa('shop');}else if(GMODE.m!=='shop'){garMode('boutique');gModeVa('shop');}});}
+    if(!garageOn){openGarage();gModeVa('shop');}else if(GMODE.m!=='shop'||gEl.classList.contains('menu')){garMode('boutique');gModeVa('shop');} /* (2026-10-14, vérif P1) GMODE.m reste « shop » quand ◀/HOME ramène à l'accueil depuis la boutique : sans le test « menu », le 2e cadeau ne faisait rien */
+    GBQ.deAcc=deAcc?1:0;});}
 function bqEtat(){const k=bqCourant();if(!k)return null;
   {const c6=bqEtatC6(k);if(c6)return c6;} // (2026-10-14, charte 6, boutique P1) OFFRES sans choix · pas assez d'argent : voir bqEtatC6
   if(k[0]==='v'){const i=+k.slice(2),u=CAR_UNLOCK[i]||{},eq=(SAVE.d.equipped|0)===i,a=carUnlockedVrai(i)||eq;
@@ -52060,7 +52063,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='misVoir'){ const c9=carnet(misEtat().n).r; // la récompense des MISSIONS, sur la vraie caisse, au garage (sa fiche porte ses trois défis)
       window.__mRetour=PROF[mCur]?mCur:null; // (2026-09-29) le RETOUR de l'atelier ramène aux MISSIONS
       ecranWipe(function(){ openGarage(); if(c9.car!=null){shopTab('voiture');garageShow(c9.car);} else if(c9.cat){shopTab(c9.cat);shopShow(c9.cat,COSM[c9.cat].findIndex(x=>x.id===c9.id));} }); }
-    else if(a==='shop'&&bqC6()&&!POKI){ bqVaOffres(); } // (2026-10-14, charte 6) le cadeau de l'accueil = la boutique, onglet OFFRES (UN seul écran OFFRES ; l'ancien #mShop reste pour ?ui=5)
+    else if(a==='shop'&&bqC6()&&!POKI){ bqVaOffres(1); } // (2026-10-14, charte 6) le cadeau de l'accueil = la boutique, onglet OFFRES (UN seul écran OFFRES ; l'ancien #mShop reste pour ?ui=5)
     else if(a==='shop'){ ecranWipe(function(){ if(garageOn){window.__mRetour='shop';closeGarage();} else mGo('shop'); }); } // LA BOUTIQUE : l'écran des caisses en vrai argent (depuis le garage-menu : l'atelier se ferme d'abord)
     else if(a==='custom'){ ecranWipe(function(){openGarage();shopTab('peinture');}); } // la PERSONNALISATION (peinture, ailes, traînées) vit au GARAGE
     else if(a==='shopSoon'){ if(el&&el.hasAttribute('data-car'))shopPop(el); else toast(pxi('panier')+' '+TR('BIENTÔT DISPONIBLE')); } // (2026-10-01) la caisse SORT de la vitrine : la fenêtre d'achat (shopPop)
