@@ -16,6 +16,16 @@ de studio, un seul programme), dessous noir. Gabarit dans `Object.assign(SHAPES,
   (`SHAPES.doge._tx`), 10 sprites ; une toutes les 1,5 s au garage, 1,8 s en course, 0,8 s en vol, RAFALE à la nitro (0,38 s) ; en course ×3 et plus
   loin de la caisse (la caméra de poursuite est loin). Mesuré au banc : 60 i/s en course, comme LA DÉFERLANTE.
 - ⚠ À trancher avant une sortie : c'est un mème (le shiba « Doge »), même question que le CHAT POP-TART (Nyan Cat).
+## LE LOBBY « CHRIS » (2026-10-14, Léo : « applique les lobby Chris dans la musique lobby du main »)
+- `MUSIC_LOBBY` = six musiques dans l'esprit de « Chris » (C418), composées sur la branche musique (`CAR CAHS V3/atelier-son/lobby_chris.py`
+  et `petites_musiques.py`), chacune son monde : PREMIER MATIN (piano feutré + groove doux, ré) · DIMANCHE (bossa, fa) · GARAGE DE NUIT
+  (lo-fi, do m) · POLAROÏD (synthés, sol) · GRAND CIEL (ambiant, mi♭) · SIFFLEUR (soul 12/8, mi♭). Une tirée au hasard à chaque lancement
+  (comme avant). `SON_TON` a leurs six tonalités. Avant : VAPEUR · SALON et ASCENSEUR DORÉ (fichiers gardés, plus tirés).
+- Fichiers `assets/audio/music/lobby/chris-*.m4a`, 1 min 14 à 2 min 38, −15,5 dB RMS (≈ les anciens), **recousus pour boucler sans
+  couture** comme LES BOUCLES DU LOBBY RECOUSUES (plus bas) mais sans ffmpeg : `atelier-son/boucle_aac.py` de la branche musique —
+  encodés AVEC DÉBORD (fin devant, début derrière), paquets utiles seulement (un d'avance), liste d'édition `elst` (saut 1024, durée
+  EXACTE en 44 100e), iTunSMPB retiré. Mesuré dans Chrome (<audio loop>, capture muette) : durée exacte, aucun creux à la reprise.
+  Pour les refaire : `<venv>/python atelier-son/lobby_main.py "<…>/VERSION PRINCIPALE/assets/audio/music/lobby"`.
 
 ## LA PASSE MOBILE — DÉBOGAGE ET FLUIDITÉ EN NETTE (2026-10-14, Léo : « il y a plein de bugs ; il faudrait pouvoir jouer au graphisme NET sans que ça bug » · « peu importe le téléphone, il faut que tout le monde puisse jouer »)
 Banc : Chrome sans fenêtre DÉGUISÉ EN IPHONE (390 × 844 ×3, tactile, `mobile:true` → le vrai chemin `TEL_NATIF`, pas la colonne), son coupé,
@@ -201,6 +211,11 @@ MESURÉ (×4, trois manches) : ~35-48 → ~50-58 images/s, images > 40 ms divis�
 - LE 1.61 (14/10, Léo : « un petit 1.61 blanc en 3D qui ressort du mur blanc ») — `bq161(g)` : chiffres pixel 3 × 5 en cubes (P .38,
   profondeur .5, InstancedMesh, blanc laqué bqLaqueMat), devant un pan blanc invisible qui porte leur OMBRE floutée (décalée en bas à
   droite) : sans elle, blanc sur blanc, on ne le lisait pas. Posé loin derrière la caisse (z −22, y 7,2), un peu tourné (−0,18) pour la tranche.
+- (14/10) LE PLATEAU DES BRAS à la taille de celui de l'atelier (rayon 4,4, 12 cm, `GBQ.socleH=.12` = son dessus) et FIXE (il suivait le cap
+  de la caisse) ; LE POINT DE VUE retenu dans `BQ_POV` : couché {h −0,7, d 0,92}, debout {h −0,6, d 0,95} (la caméra plus basse, plus près) ;
+  le 1.61 remonté (y 9,6, z −24 : il chevauchait le nom).
+  ⚠ REVENU le même jour (Léo : « c'était mieux avant, juste le socle un tout petit peu plus grand, 1,5× ») : point de vue d'avant
+  (`BQ_POV` null), 1.61 à sa place (y 7,2, z −22), le plateau d'avant ×1,5 (rayon 1,83, socleH .01) ; il reste FIXE (ne suit plus le cap).
 
 ## LA PASSE QUALITÉ AVANT SORTIE (2026-10-12, Sacha : « trouve des bugs et règle-les, améliore des trucs à droite à gauche, fais en sorte que le jeu soit parfait et sortable »)
 Méthode : bancs Puppeteer son coupé (rendu LOGICIEL SwiftShader : Roblox Studio tenait le GPU, le Chrome de test calait sur D3D11), un
