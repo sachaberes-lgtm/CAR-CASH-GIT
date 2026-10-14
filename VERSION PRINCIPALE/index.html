@@ -43838,7 +43838,7 @@ function menuZoneSure(){ // les marges d'encoche du moment, en px (--sT/--sB/--s
 }
 function menuCadre(){ // la zone de l'écran que l'interface laisse libre → où poser la caisse (NDC) et quelle place elle y prend
   const W=innerWidth,H=Math.max(1,innerHeight),C=MENUV.cadre,T0=performance.now();
-  if(T0-C.t<1000)return C;C.t=T0;
+  if(T0-C.t<1000&&C.W===W&&C.H===H)return C;C.t=T0;C.W=W;C.H=H; // (2026-10-14, chasse aux bugs) le cache tient 1 s À TAILLE ÉGALE : iPhone tourné, la caisse gardait 1 s le cadrage de l'ancienne orientation
   const home=document.getElementById('mHome');
   let x0=W,x1=0,tB=H*.22,iT=H*.74,vu=false;
   if(home&&home.classList.contains('on')&&home.getClientRects().length){
@@ -46529,7 +46529,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
    décentre l'objectif (`setViewOffset`) pour le poser au milieu de cette place — n'importe quel écran, n'importe quel onglet. Lissé ; `k`
    (0 → 1) le fond au lâcher ; plafonné au tiers de l'écran. GAR_DECY / GAR_DECX restent pour la mémoire, plus lus. */
 function garLibre(){
-  const n=performance.now();if(garLibre._r&&n-garLibre._t<250)return garLibre._r;garLibre._t=n;
+  const n=performance.now();if(garLibre._r&&n-garLibre._t<250&&garLibre._W===VP.w&&garLibre._H===VP.h)return garLibre._r;garLibre._t=n;garLibre._W=VP.w;garLibre._H=VP.h; // (2026-10-14, chasse aux bugs) idem menuCadre : pas de cache à travers une rotation
   const W=VP.w,H=VP.h,r={x0:0,x1:W,y0:0,y1:H};
   /* (2026-10-11, passe UX — Sacha : « quand on clique sur l'œil, la caméra doit recentrer sur la voiture ») LA VOITURE SEULE : la caisse
      au CENTRE de l'écran, à la MÊME taille — on reprend la place mesurée d'avant (sa demi-largeur, sa hauteur) et on la recentre : le
