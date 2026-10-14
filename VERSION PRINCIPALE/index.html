@@ -9818,7 +9818,7 @@ const NEON_V=!/[?&]sans=([^&]*,)?neon(,|&|$)/.test(location.search);
 const skyU={uEauT:{value:0},uSous:{value:0},uSousC:{value:new THREE.Vector3(.13,.47,.50)}, // (2026-10-13) SOUS LA MER du SOLEIL DE JADE (voir jadeSousTick)
   uTime:{value:0},uSunDir:{value:SUN_DIR},
   uSkyMul:{value:new THREE.Vector3(1,1,1)},uSkyLift:{value:new THREE.Vector3(0,0,0)},
-  uSunTint:{value:new THREE.Vector3(1,.40,.28)},uSunHalo:{value:1},uCity:{value:1},uStars:{value:1},uMoon:{value:1},uMoonD:{value:new THREE.Vector3(-.52,.40,-.72).normalize()},
+  uSunTint:{value:new THREE.Vector3(1,.40,.28)},uSunHalo:{value:1},uCity:{value:1},uStars:{value:1},uMoon:{value:1},
   uSpace:{value:0}, // NIVEAU ORBITE (2026-09-24) : 0 = le ciel de toujours AU PIXEL PRÈS, 1 = le noir étoilé (piloté par lvlStep)
   uPulse:{value:0}, // MUSIQUE : le ciel respire en rythme (piloté par l'analyseur audio, 0 = neutre = rendu d'origine)
   /* ---- LE FOND DU NIVEAU (2026-08-08) : le décor JOUE la musique, façon Geometry Dash / Super Hexagon.
@@ -9862,7 +9862,7 @@ const skyDome=(function(){
   const VS='varying vec3 vDir;void main(){vDir=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);gl_Position.z=gl_Position.w;}';
   const TETE=[
       'varying vec3 vDir;uniform vec3 uSunDir;uniform float uTime;',
-      'uniform vec3 uSkyMul,uSkyLift,uSunTint;uniform float uSunHalo,uCity,uStars,uMoon,uPulse;uniform vec3 uMoonD;', // grade biome (identité par défaut) + uPulse musique
+      'uniform vec3 uSkyMul,uSkyLift,uSunTint;uniform float uSunHalo,uCity,uStars,uMoon,uPulse;', // grade biome (identité par défaut) + uPulse musique
       'uniform float uSpace;', // NIVEAU ORBITE : 0 = aucun effet
       'uniform float uJour,uMerLoin;uniform vec3 uJZen,uJMid,uJHor,uJSol;uniform vec4 uMzA,uMzB,uMzT,uMzO,uMzH;', // (2026-09-30) LE JOUR D ALTITUDE : 0 = le ciel d avant, au bit près
       'uniform float uLvl,uSpin,uBeatK,uFlip,uBar,uHi,uWave,uHueAmp;uniform vec3 uAcc,uAcc2;uniform vec4 uRingR,uRingA;', // LE FOND DU NIVEAU
@@ -10545,7 +10545,7 @@ const skyDome=(function(){
     lune:[
       // LUNE pâle à l opposé du couchant — le témoin du presque-nuit
       'void cielLune(inout vec3 col){',
-      '  vec3 mdir=uMoonD;',
+      '  vec3 mdir=normalize(vec3(-.52,.40,-.72));',
       '  float md=dot(vDir,mdir);',
       '  if(md>.88){',                                                    // sa calotte : hors d elle, .88^90 × .2 = 2e-6 (perf iPhone)
       '  col+=vec3(.93,.96,1.06)*smoothstep(.9976,.9988,md)*1.05*uMoon;', // VRAI disque (~3°) : l ancre céleste du cadre, règle Alto
@@ -50279,14 +50279,7 @@ if(TITRE_V2){
   // APRÈS-MIDI : mer de nuages crème chaud au lieu de lavande, bleu un peu plus profond en haut, sat 1,15
   T2('aprem',{ciel:{z:[.12,.32,.68],m:[.40,.62,.86],mo:[.74,.70,.72]},amb:{sat:1.15,con:1.15},P:{mzO:[.74,.70,.72,.25],amb:.75,sol:.7,sk:2.1,cjA:1.1,cjF:1.6},v:['40,70,120',.24,.42,'40,70,120',.5]});
 }
-/* (2026-10-14, passe graphismes · lune2) LA LUNE DU TITRE, LA NUIT : sa direction était FIGÉE dans le shader (−.52,.40,−.72) — hors du cadre de l'écran titre, donc
-   « quasi invisible ». Elle devient l'uniforme uMoonD (même valeur par défaut : la course ne bouge pas) ; au titre de NUIT, on la pose en haut à gauche du champ
-   de la caméra (loin du logo et des boutons). `?sans=lune2` = l'image d'avant. */
-const LUNE2_V=!/[?&]sans=([^&]*,)?lune2(,|&|$)/.test(location.search),_lu9=new THREE.Vector3(),_lr9=new THREE.Vector3(),_lh9=new THREE.Vector3();
-function lunePose(on){const D=skyU.uMoonD.value;if(!(LUNE2_V&&on)){D.set(-.52,.40,-.72).normalize();return;}
-  camera.getWorldDirection(_lu9);_lr9.crossVectors(_lu9,camera.up).normalize();_lh9.crossVectors(_lr9,_lu9).normalize();
-  D.copy(_lu9).multiplyScalar(.9).addScaledVector(_lh9,.40).addScaledVector(_lr9,-.30).normalize();}
-function titreCiel(on){const U=skyU,T=TITRE_CIEL[TITRE_HF.h]||TITRE_CIEL.matin;U.uTi.value.set(on?1:0,T.ca,0,T.hz);U.uTi2.value.set(T.tw||0,T.ry||0,T.cr||.35,0);lunePose(on&&TITRE_HF.h==='nuit');if(!on)return T;
+function titreCiel(on){const U=skyU,T=TITRE_CIEL[TITRE_HF.h]||TITRE_CIEL.matin;U.uTi.value.set(on?1:0,T.ca,0,T.hz);U.uTi2.value.set(T.tw||0,T.ry||0,T.cr||.35,0);if(!on)return T;
   U.uTZen.value.fromArray(T.z);U.uTMid.value.fromArray(T.m);U.uTHor.value.fromArray(T.h);U.uTSol.value.fromArray(T.s);
   U.uTMerH.value.fromArray(T.mh);U.uTMerO.value.fromArray(T.mo);U.uTCir.value.fromArray(T.c);return T;}
 // l'heure du TÉLÉPHONE → l'ambiance : nuit 22 h-5 h · matin 5 h-10 h · midi 10 h-14 h · après-midi 14 h-17 h · golden hour 17 h-19 h 30 · soir 19 h 30-22 h
