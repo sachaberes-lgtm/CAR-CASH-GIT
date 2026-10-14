@@ -14062,9 +14062,9 @@ const FOR_U={uSunDir:{value:new THREE.Vector3(0,1,0)},uSunC:{value:new THREE.Col
 /* LES BUDGETS PAR PALIER (PAL : [ANCIEN, MOYEN, RÉCENT] — la 3e colonne est le rendu de référence) : densité et portée de la forêt, détail des
    géants, pas des fleurs, des plantes du fond, des rayons et de la brume, papillons, lucioles, feux follets, yeux, taille des toiles. */
 const FOR_LUNE=new THREE.Vector3(-.52,.40,-.72).normalize(); // la lune du dôme (cielLune) : la forêt pose la sienne au même endroit
-try{Object.assign(PAL.B,{foretArbres:[.42,.66,1],foretRayon:[700,900,1150],foretMarge:[1300,1600,2100],foretSolC:[32,28,26],foretB0:[150,190,230],foretB1:[420,540,650],
+try{Object.assign(PAL.B,{foretArbres:[.42,.66,1],foretRayon:[700,900,1150],foretMarge:[1300,1600,2100],foretSolC:[32,28,26],foretB0:[150,190,215],foretB1:[420,520,600],
   foretGeantFin:[0,1,1],foretFleurs:[2.2,1.6,1.1],foretPlantes:[8,6,4.2],foretRayons:[46,36,28],foretBrume:[70,55,42],foretYeux:[50,70,90],foretPap:[50,100,150],
-  foretLuc:[300,560,900],foretFollets:[8,11,14],foretTex:[.5,.75,1]});}catch(e){}
+  foretLuc:[300,560,900],foretFollets:[8,11,14],foretTex:[.5,.75,1],foretLierre:[0,1,1],foretChampi:[0,1,1],foretSolCh:[64,52,44],foretPres:[1,0,0]});}catch(e){}
 /* ---------------- LA ROUTE : LE SLALOM QUI DESCEND ---------------- */
 function genForet(rnd){
   const ctrl=[];GAPMARK.length=0;CAMPM.length=0;MODMARK.length=0;
@@ -14134,7 +14134,7 @@ function fbTube(K,pts,rad,sides,o){
       let rr=r*(1+rug*(.5*Math.sin(an*7+ph+i*.4)+.3*Math.sin(an*13+ph*2)));
       const nx=U[i].x*c+W[i].x*s,ny=U[i].y*c+W[i].y*s,nz=U[i].z*c+W[i].z*s;
       const hy=p[1]/ytop,ao=Math.min(1,.42+.58*Math.min(1,hy*2.2+(o.aoK||0)));
-      fbV(K,p[0]+nx*rr,p[1]+ny*rr,p[2]+nz*rr,nx,ny,nz,[part,ao,rg(),Math.max(0,hy)],col,[ec,mo*(1-Math.min(1,hy*1.6))]);}}
+      fbV(K,p[0]+nx*rr,p[1]+ny*rr,p[2]+nz*rr,nx,ny,nz,[part,ao,rg(),o.fixe?0:Math.max(0,hy)],col,[ec,o.fixe?mo:mo*(1-Math.min(1,hy*1.6))]);}}
   for(let i=0;i<n-1;i++)for(let k=0;k<sides;k++){const a=base+i*(sides+1)+k,b=a+sides+1;K.I.push(a,a+1,b,a+1,b+1,b);} // (faces tournées vers l'extérieur)
   if(cap){const p=pts[n-1],t=T[n-1],c0=fbV(K,p[0]+t.x*rad[n-1]*.6,p[1]+t.y*rad[n-1]*.6,p[2]+t.z*rad[n-1]*.6,t.x,t.y,t.z,[part,.8,rg(),p[1]/ytop],col,[ec,0]);
     const r0=base+(n-1)*(sides+1);for(let k=0;k<sides;k++)K.I.push(r0+k,r0+k+1,c0);}
@@ -14160,7 +14160,7 @@ function fbTouffe(K,c,r,det,o){
     let gx=p[0]-cc[0],gy=(p[1]-cc[1])*1.15,gz=p[2]-cc[2];const gl=Math.hypot(gx,gy,gz)||1;gx/=gl;gy/=gl;gz/=gl;
     let nx=n[0]*(1-mix)+gx*mix,ny=n[1]*(1-mix)+gy*mix,nz=n[2]*(1-mix)+gz*mix;const nl=Math.hypot(nx,ny,nz)||1;nx/=nl;ny/=nl;nz/=nl;
     const ext=Math.min(1,gl/cr),ao=Math.max(.18,Math.min(1,.30+.55*ext+.32*gy)); // le cœur et le dessous de la couronne dans l'ombre
-    fbV(K,p[0],p[1],p[2],nx,ny,nz,[part,ao,rg(),p[1]/ytop],[col[0]*tint,col[1]*tint,col[2]*tint],[0,0]);}
+    fbV(K,p[0],p[1],p[2],nx,ny,nz,[part,ao,rg(),o.fixe?0:p[1]/ytop],[col[0]*tint,col[1]*tint,col[2]*tint],[0,o.mousse||0]);}
   for(const f of I.F)K.I.push(base+f[0],base+f[1],base+f[2]);
 }
 /* L'ÉTAGE DE CONIFÈRE : une jupe en étoile — `nb` branches dont la pointe RETOMBE, un sommet au-dessus, un dessous creusé ; les étages
@@ -14299,8 +14299,12 @@ function foretLoin(k,K,rg){const H=k==='epicea'?37:33,o=FOR_LOIN[k];
   fbTouffe(K,[0,o[0],0],o[1],0,{rg:rg,cc:[0,o[0],0],cr:o[1],col:FC[k],ytop:o[0]+o[1],bos:.12,sq:o[2]});}
 /* LES PROTOTYPES (une fois par session : la géométrie ne dépend pas de la piste) */
 function foretProtos(){if(FORET.protos)return FORET.protos;const t0=performance.now(),P={esp:{},geant:{}};
-  for(const k of FOR_ESP_N){P.esp[k]=[];for(let l=0;l<3;l++){const K=fbNew(),rg=mulberry32(0xF0E5+k.length*977+l*31);let m;if(l===2){foretLoin(k,K,rg);m=P.esp[k][0].m;}else m=FOR_ESP[k](K,l,rg);P.esp[k].push({g:fbGeo(K),m:m,tri:K.I.length/3});}}
+  for(const k of FOR_ESP_N){P.esp[k]=[];for(let l=0;l<2;l++){const K=fbNew(),rg=mulberry32(0xF0E5+k.length*977+l*31);let m;if(l===2){foretLoin(k,K,rg);m=P.esp[k][0].m;}else m=FOR_ESP[k](K,l,rg);P.esp[k].push({g:fbGeo(K),m:m,tri:K.I.length/3});}}
   for(const k of FOR_GEANTS_N){P.geant[k]=[];for(let l=0;l<2;l++){const K=fbNew(),m=FOR_GEANTS[k](K,l,mulberry32(0x6EA7+k.length*131));P.geant[k].push({g:fbGeo(K),m:m,tri:K.I.length/3});}} // même graine aux deux détails : mêmes branches, mêmes collisions
+  // LE LOIN, EN DEUX FAMILLES SEULEMENT (toutes essences) : une boule unité (feuillus) et un cône unité (conifères), blancs — l'albédo de
+  // chaque arbre voyage dans son exemplaire (aI.yzw, voir FOR_ARB_VS) : 2 appels de dessin au lieu de 6
+  {const K=fbNew(),rg=mulberry32(0x10A1);fbTouffe(K,[0,0,0],1,0,{rg:rg,cc:[0,0,0],cr:1,col:[1,1,1],ytop:1,bos:.12,sq:1});P.boule={g:fbGeo(K),tri:K.I.length/3};}
+  {const K=fbNew(),rg=mulberry32(0x10A2);fbTube(K,[[0,0,0],[0,1,0]],[1,.02],6,{col:[1,1,1],ec:0,ytop:1,rg:rg,part:2,fixe:1});P.cone={g:fbGeo(K),tri:K.I.length/3};}
   P.ms=Math.round(performance.now()-t0);return FORET.protos=P;}
 /* ---------------- LES PEINTURES : fleurs, papillons, lune, loup-garou, brume (des canvas, cuits une fois) ---------------- */
 function forTex(cv,mip){const t=new THREE.CanvasTexture(cv);t.generateMipmaps=mip!==false;t.minFilter=mip===false?THREE.LinearFilter:THREE.LinearMipmapLinearFilter;t.magFilter=THREE.LinearFilter;
@@ -14402,27 +14406,36 @@ function forLuneTex(){if(FORET.tex.lu)return FORET.tex.lu;const S=512,cv=documen
   for(const m of [[.44,.42,.07],[.55,.47,.05],[.5,.58,.06],[.41,.55,.035],[.58,.38,.03]]){g.fillStyle='rgba(150,150,140,.35)';g.beginPath();g.ellipse(S*m[0],S*m[1],S*m[2],S*m[2]*.8,R()*3,0,6.283);g.fill();}
   for(let k=0;k<40;k++){const x=S*(.32+R()*.36),y=S*(.32+R()*.36),r=1+R()*5;g.strokeStyle='rgba(120,120,110,.3)';g.lineWidth=1;g.beginPath();g.arc(x,y,r,0,6.283);g.stroke();}
   g.restore();return FORET.tex.lu=forTex(cv,false);}
-/* LE LOUP-GAROU (une ombre chinoise : debout sur un rocher, la tête renversée, il hurle à la lune) */
-function forLoupTex(){if(FORET.tex.lg)return FORET.tex.lg;const W=256,H=512,cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
-  g.fillStyle='#05060a';
-  g.beginPath(); // le rocher
-  g.moveTo(10,512);g.lineTo(28,452);g.lineTo(70,430);g.lineTo(150,436);g.lineTo(206,424);g.lineTo(240,460);g.lineTo(252,512);g.closePath();g.fill();
-  g.beginPath(); // les jambes repliées, en appui
-  g.moveTo(92,438);g.bezierCurveTo(88,400,76,372,94,336);g.lineTo(118,338);g.bezierCurveTo(112,372,120,404,118,438);g.closePath();g.fill();
-  g.beginPath();g.moveTo(150,438);g.bezierCurveTo(160,404,168,380,150,340);g.lineTo(126,342);g.bezierCurveTo(140,376,136,404,128,438);g.closePath();g.fill();
-  g.beginPath();g.moveTo(84,440);g.lineTo(120,440);g.lineTo(122,448);g.lineTo(78,448);g.fill();g.beginPath();g.moveTo(124,440);g.lineTo(164,440);g.lineTo(170,448);g.lineTo(124,448);g.fill();
-  g.beginPath(); // le torse voûté, la fourrure du dos hérissée
-  g.moveTo(92,340);g.bezierCurveTo(70,300,72,240,96,200);g.lineTo(104,196);g.lineTo(100,188);g.lineTo(110,184);g.lineTo(108,176);g.lineTo(118,172);
-  g.bezierCurveTo(150,170,166,200,160,240);g.bezierCurveTo(156,280,160,310,150,342);g.closePath();g.fill();
-  g.beginPath(); // la queue
-  g.moveTo(94,330);g.bezierCurveTo(50,340,30,380,40,420);g.bezierCurveTo(52,396,70,370,100,352);g.closePath();g.fill();
-  g.beginPath(); // les bras, griffes ouvertes
-  g.moveTo(150,232);g.bezierCurveTo(182,250,196,282,192,318);g.lineTo(204,330);g.lineTo(196,332);g.lineTo(206,342);g.lineTo(192,340);g.lineTo(196,352);g.lineTo(184,342);g.bezierCurveTo(176,310,168,282,144,262);g.closePath();g.fill();
-  g.beginPath();g.moveTo(98,226);g.bezierCurveTo(78,252,74,282,82,312);g.lineTo(76,326);g.lineTo(86,320);g.lineTo(84,334);g.lineTo(94,322);g.lineTo(98,330);g.bezierCurveTo(98,300,100,270,112,248);g.closePath();g.fill();
-  g.beginPath(); // le cou tendu et la tête renversée, museau vers la lune, gueule ouverte
-  g.moveTo(112,190);g.bezierCurveTo(118,150,130,120,146,98);g.lineTo(140,74);g.lineTo(150,88);g.lineTo(156,66);g.lineTo(160,90); // les oreilles
-  g.bezierCurveTo(172,84,186,68,200,44);g.lineTo(208,40);g.lineTo(196,64);g.lineTo(214,60);g.lineTo(206,70);g.bezierCurveTo(188,94,176,112,170,132);
-  g.bezierCurveTo(166,160,160,184,154,198);g.closePath();g.fill();
+/* LE LOUP-GAROU (une ombre chinoise : dressé sur un rocher, la tête renversée, la gueule ouverte, il hurle à la lune) — pattes de loup
+   (digitigrades), dos voûté hérissé, crinière, longs bras griffus, queue en panache. Chaque contour POILU est un tracé dont les segments
+   reçoivent des mèches pointues vers l'extérieur (`poils`). */
+function forLoupTex(){if(FORET.tex.lg)return FORET.tex.lg;const W=256,H=512,cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d'),R=mulberry32(0x7011);
+  g.fillStyle='#05060a';g.strokeStyle='#05060a';g.lineJoin='round';
+  const poly=(P)=>{g.beginPath();g.moveTo(P[0][0],P[0][1]);for(let i=1;i<P.length;i++)g.lineTo(P[i][0],P[i][1]);g.closePath();g.fill();};
+  const poils=(P,amp,dens)=>{for(let i=0;i<P.length-1;i++){const a=P[i],b=P[i+1],dx=b[0]-a[0],dy=b[1]-a[1],l=Math.hypot(dx,dy),nx=-dy/l,ny=dx/l,n=Math.max(1,Math.round(l/dens));
+    for(let k=0;k<n;k++){const u0=k/n,u1=(k+1)/n,um=(u0+u1)/2+(R()-.5)*.2,h=amp*(.6+R()*.8);g.beginPath();g.moveTo(a[0]+dx*u0,a[1]+dy*u0);
+      g.lineTo(a[0]+dx*um+nx*h+dx/l*h*.35,a[1]+dy*um+ny*h+dy/l*h*.35);g.lineTo(a[0]+dx*u1,a[1]+dy*u1);g.closePath();g.fill();}}};
+  poly([[8,512],[22,458],[58,436],[110,442],[168,430],[214,438],[246,470],[254,512]]);                               // le rocher
+  poly([[84,300],[116,306],[112,348],[94,378],[104,416],[130,428],[132,438],[86,438],[80,420],[66,380],[72,334]]);    // la patte arrière
+  poly([[114,304],[150,300],[154,346],[138,382],[150,418],[176,428],[178,438],[130,438],[126,422],[116,384],[112,342]]); // la patte avant
+  for(const x of [128,174]){g.lineWidth=2.5;g.beginPath();g.moveTo(x,436);g.lineTo(x+6,440);g.stroke();}            // les griffes des pieds
+  const dos=[[84,300],[70,262],[72,222],[86,188],[108,164],[130,150]];
+  poly([[84,300]].concat(dos.slice(1)).concat([[150,148],[172,164],[178,204],[168,248],[156,300]]));                 // le torse voûté
+  poils(dos,15,9);                                                                                                       // le dos hérissé
+  const queue=[[82,292],[56,306],[34,340],[24,388],[30,412]];poly([[86,312]].concat(queue).concat([[46,404],[50,372],[66,338],[90,318]]));poils(queue,12,8); // la queue
+  // le bras de derrière, puis celui de devant (longs, les griffes ouvertes)
+  poly([[104,176],[90,214],[86,256],[94,290],[106,296],[104,258],[110,222],[120,190]]);
+  for(let k=0;k<4;k++){g.lineWidth=2.2;g.beginPath();g.moveTo(98,292);g.lineTo(90+k*5,312+(k%2)*4);g.stroke();}
+  const bras=[[156,168],[184,196],[198,236],[202,276]];poly(bras.concat([[214,300],[204,306],[190,282],[184,244],[170,212],[150,190]]));poils(bras,8,9);
+  for(let k=0;k<4;k++){g.lineWidth=2.4;g.beginPath();g.moveTo(206,298);g.quadraticCurveTo(214+k*3,306+k*2,210+k*6,322+(k%2)*5);g.stroke();}
+  // le cou et la crinière, la tête renversée vers la lune (museau vers le haut à droite), la gueule OUVERTE
+  const criniere=[[128,152],[136,118],[150,92],[166,74]];
+  poly([[126,156]].concat(criniere).concat([[184,70],[196,92],[184,118],[172,150],[170,172]]));poils(criniere,13,8);
+  poly([[162,82],[176,64],[192,58],[202,70],[198,86],[182,96]]);                                                    // le crâne
+  poly([[160,72],[146,36],[170,64]]);poly([[170,64],[166,30],[184,60]]);                                             // les oreilles couchées en arrière
+  poly([[186,62],[214,34],[234,22],[230,34],[204,60],[196,74]]);                                                     // la mâchoire du haut
+  poly([[196,86],[220,58],[230,50],[228,60],[208,82],[200,94]]);                                                     // la mâchoire du bas (la gueule s'ouvre entre les deux)
+  poils([[196,96],[178,130],[172,160]],7,8);                                                                          // le poitrail
   return FORET.tex.lg=forTex(cv,false);}
 /* ---------------- LES MATIÈRES (ShaderMaterial : aucune lumière de three, aucun programme qui dépende de la scène) ---------------- */
 const FG_BRUIT=['float fh3(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}',
@@ -14440,11 +14453,12 @@ const FG_LUM=['uniform vec3 uSunDir,uSunC,uSky,uGnd,uFillC,uFillD,uCam,uCarP,uCa
   'float fBrume(vec3 w,float dist){return uMistK*smoothstep(uMistY-6.,uMistY-95.,w.y)*(1.-exp(-dist*.0042));}'].join('\n');
 const FOR_ARB_VS=['attribute vec4 aA;attribute vec3 aC;attribute vec2 aB;','#ifdef USE_INSTANCING','attribute vec4 aI;','#endif',
   'uniform float uTime,uVent;varying vec3 vW,vN,vO,vC;varying vec4 vA,vI;varying vec2 vB;','#include <fog_pars_vertex>',
-  'void main(){vec4 I=vec4(0.,0.,1.,0.);mat4 M=modelMatrix;','#ifdef USE_INSTANCING','I=aI;M=modelMatrix*instanceMatrix;','#endif',
+  'void main(){vec4 I=vec4(0.);mat4 M=modelMatrix;','#ifdef USE_INSTANCING','I=aI;M=modelMatrix*instanceMatrix;','#endif',
   '  vec3 p=position;float h=aA.w,sw=uVent*h*h*(aA.x>.5&&aA.x<2.5?1.:.35);',
   '  p.x+=sin(uTime*1.05+I.x*31.+p.y*.04)*sw*.9;p.z+=sin(uTime*.83+I.x*17.+p.y*.05)*sw*.7;',              // le vent : tout l'arbre se balance
   '  if(aA.x>.5&&aA.x<2.5)p+=normal*sin(uTime*3.3+dot(p,vec3(.6,.4,.5))+I.x*9.)*.10*uVent;',               // …et le feuillage frissonne
   '  vec4 wp=M*vec4(p,1.);vW=wp.xyz;vN=normalize((M*vec4(normal,0.)).xyz);vO=p+I.x*vec3(71.3,13.7,37.1);vC=aC;vA=aA;vB=aB;vI=I;',
+  '  if(I.z>0.){vC=aC*I.yzw;vI=vec4(I.x,0.,0.,0.);vO=wp.xyz*.15;}',                                   // le LOIN : l'albédo de l'arbre est dans son exemplaire
   '  vec4 mvPosition=viewMatrix*wp;gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n');
 const FOR_ARB_FS=[FG_BRUIT,FG_LUM,'uniform float uFen;varying vec3 vW,vN,vO,vC;varying vec4 vA,vI;varying vec2 vB;','#include <fog_pars_fragment>',
   'void main(){float part=floor(vA.x+.5);vec3 N=normalize(vN);vec3 V=uCam-vW;float dist=length(V);V/=max(dist,.001);vec3 L=uSunDir;',
@@ -14638,7 +14652,7 @@ function canTampon(x,z,r,top){const S=FORET.sol,C=S.C,ci=Math.round((x-S.x0)/C),
   for(let b=-rc;b<=rc;b++)for(let a=-rc;a<=rc;a++){const i=ci+a,j=cj+b;if(i<0||j<0||i>=S.nx||j>=S.nz)continue;const k=i+j*S.nx;if(top>S.can[k])S.can[k]=top;}}
 function canH(x,z){const S=FORET.sol,i=Math.round((x-S.x0)/S.C),j=Math.round((z-S.z0)/S.C);if(i<0||j<0||i>=S.nx||j>=S.nz)return -1e9;return S.can[i+j*S.nx];}
 function foretSolMesh(root){
-  const S=FORET.sol,M=FORET.mats,CH=44,out=[];let tri=0; // des morceaux de ~1,1 km : peu d'appels de dessin, le tri par champ de three les jette encore
+  const S=FORET.sol,M=FORET.mats,CH=PAL_B9('foretSolCh',44),out=[];let tri=0; // des morceaux de ~1,1 km : peu d'appels de dessin, le tri par champ de three les jette encore
   for(let cj=0;cj<S.nz-1;cj+=CH)for(let ci=0;ci<S.nx-1;ci+=CH){
     const i1=Math.min(S.nx-1,ci+CH),j1=Math.min(S.nz-1,cj+CH),w=i1-ci+1,hh=j1-cj+1;let ok=false;
     for(let j=cj;j<=j1&&!ok;j+=2)for(let i=ci;i<=i1;i+=2)if(S.d[i+j*S.nx]<S.MARG){ok=true;break;}
@@ -14652,7 +14666,7 @@ function foretSolMesh(root){
     for(let j=0;j<hh-1;j++)for(let i=0;i<w-1;i++){const k=(ci+i)+(cj+j)*S.nx;if(S.d[k]>S.MARG+120&&S.d[k+1+S.nx]>S.MARG+120)continue;const a=i+j*w;I.push(a,a+w,a+1,a+1,a+w,a+w+1);}
     if(!I.length)continue;
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(P,3));g.setAttribute('normal',new THREE.BufferAttribute(Nm,3));g.setAttribute('aS',new THREE.BufferAttribute(A,4));
-    g.setIndex(I);g.computeBoundingSphere();const m=new THREE.Mesh(g,M.sol);m.matrixAutoUpdate=false;m.userData.jeter=true;root.add(m);out.push(m);tri+=I.length/3;}
+    g.setIndex(I);g.computeBoundingSphere();const m=new THREE.Mesh(g,M.sol);m.name='forêt sol';m.matrixAutoUpdate=false;m.userData.jeter=true;root.add(m);out.push(m);tri+=I.length/3;}
   FORET.n.sol=tri;return out;}
 /* LE TORRENT : il serpente au fond, décalé de la route (on le voit, il n'est pas caché sous la dalle) */
 function foretTorrent(root,fr){
@@ -14663,9 +14677,9 @@ function foretTorrent(root,fr){
     if(n>0){const a=(n-1)*2;I.push(a,a+2,a+1,a+1,a+2,a+3);}n++;}
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('aU',new THREE.Float32BufferAttribute(U,2));g.setIndex(I);g.computeBoundingSphere();
   // le lit du torrent : la grille se creuse un peu dessous (le ruban reste au-dessus du sol)
-  const m=new THREE.Mesh(g,FORET.mats.eau);m.matrixAutoUpdate=false;m.userData.jeter=true;m.renderOrder=1;root.add(m);return m;}
+  const m=new THREE.Mesh(g,FORET.mats.eau);m.name='forêt torrent';m.matrixAutoUpdate=false;m.userData.jeter=true;m.renderOrder=1;root.add(m);return m;}
 /* ---------------- LES DÉCORS DU CONTE ---------------- */
-function fbBoite(K,x0,y0,z0,x1,y1,z1,col,part,ytop){const f=(a,b,c,d,n)=>{const i=K.n;for(const v of [a,b,c,d])fbV(K,v[0],v[1],v[2],n[0],n[1],n[2],[part,.9,Math.random(),v[1]/ytop],col,[5,0]);K.I.push(i,i+1,i+2,i,i+2,i+3);};
+function fbBoite(K,x0,y0,z0,x1,y1,z1,col,part,ytop){const f=(a,b,c,d,n)=>{const i=K.n;for(const v of [a,b,c,d])fbV(K,v[0],v[1],v[2],n[0],n[1],n[2],[part,.9,Math.random(),0],col,[5,0]);K.I.push(i,i+1,i+2,i,i+2,i+3);};
   f([x0,y1,z0],[x0,y1,z1],[x1,y1,z1],[x1,y1,z0],[0,1,0]);f([x0,y0,z1],[x1,y0,z1],[x1,y1,z1],[x0,y1,z1],[0,0,1]);f([x1,y0,z0],[x0,y0,z0],[x0,y1,z0],[x1,y1,z0],[0,0,-1]);
   f([x1,y0,z1],[x1,y0,z0],[x1,y1,z0],[x1,y1,z1],[1,0,0]);f([x0,y0,z0],[x0,y0,z1],[x0,y1,z1],[x0,y1,z0],[-1,0,0]);}
 /* LA CHAUMIÈRE DE LA FORÊT-NOIRE (la maison de la sorcière, si l'on veut) : soubassement de pierre, colombages, l'immense toit à quatre
@@ -14681,16 +14695,16 @@ function foretChaumiereGeo(){const K=fbNew(),Y=20,pierre=[.42,.40,.36],enduit=[.
   // LE TOIT : un tronc de pyramide à quatre pans, moussu, l'égout à 4 m du sol, le faîtage à 17 m
   const e=[[-11.5,4,-9.5],[11.5,4,-9.5],[11.5,4,9.5],[-11.5,4,9.5]],r=[[-5,17,-1],[5,17,-1],[5,17,1],[-5,17,1]];
   const pan=(a,b,c,d)=>{const ux=b[0]-a[0],uy=b[1]-a[1],uz=b[2]-a[2],vx=d[0]-a[0],vy=d[1]-a[1],vz=d[2]-a[2];let nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx;const l=Math.hypot(nx,ny,nz);nx/=l;ny/=l;nz/=l;
-    const i=K.n;for(const v of [a,b,c,d]){const m9=v[1]<6?.6:.15;fbV(K,v[0],v[1],v[2],nx,ny,nz,[3,.85,Math.random(),v[1]/Y],[toit[0]*(1-m9)+mousse[0]*m9,toit[1]*(1-m9)+mousse[1]*m9,toit[2]*(1-m9)+mousse[2]*m9],[5,.8]);}K.I.push(i,i+1,i+2,i,i+2,i+3);};
+    const i=K.n;for(const v of [a,b,c,d]){const m9=v[1]<6?.6:.15;fbV(K,v[0],v[1],v[2],nx,ny,nz,[3,.85,Math.random(),0],[toit[0]*(1-m9)+mousse[0]*m9,toit[1]*(1-m9)+mousse[1]*m9,toit[2]*(1-m9)+mousse[2]*m9],[5,.8]);}K.I.push(i,i+1,i+2,i,i+2,i+3);};
   pan(e[3],e[2],r[2],r[3]);pan(e[1],e[0],r[0],r[1]);pan(e[2],e[1],r[1],r[2]);pan(e[0],e[3],r[3],r[0]);pan(r[3],r[2],r[1],r[0]);
   fbBoite(K,3.5,12,-3,5.5,20,-1,pierre,7,Y); // la cheminée
   return fbGeo(K);}
 /* LE ROCHER DU LOUP : une aiguille de grès qui crève la canopée sur le flanc de la vallée (le jour un belvédère, la nuit le perchoir du
    loup-garou). Origine au pied, sommet vers 52 m. */
 function foretRocherGeo(){const K=fbNew(),rg=mulberry32(0x0C1E),col=[.46,.38,.33];
-  fbTube(K,[[0,-8,0],[1.5,14,.5],[-1,30,1.5],[1,44,-.5],[0,52,0]],[15,12,9.5,7,3],12,{col:col,ec:5,mousse:.9,ytop:52,rg:rg,rug:.16,part:7,cap:1});
-  for(let k=0;k<5;k++){const an=k*1.26+rg(),x=Math.cos(an),z=Math.sin(an);fbTouffe(K,[x*11,4+rg()*14,z*11],6+rg()*4,1,{rg:rg,cc:[0,10,0],cr:16,col:col,ytop:52,part:7,bos:.3,mix:.2});}
-  fbTouffe(K,[0,50,0],5.5,1,{rg:rg,cc:[0,48,0],cr:6,col:col,ytop:52,part:7,bos:.25,sq:.5,mix:.2});
+  fbTube(K,[[0,-8,0],[1.5,14,.5],[-1,30,1.5],[1,44,-.5],[0,52,0]],[15,12,9.5,7,3],12,{col:col,ec:5,mousse:.45,ytop:52,rg:rg,rug:.16,part:7,cap:1,fixe:1,aoK:.4});
+  for(let k=0;k<5;k++){const an=k*1.26+rg(),x=Math.cos(an),z=Math.sin(an);fbTouffe(K,[x*11,4+rg()*14,z*11],6+rg()*4,1,{rg:rg,cc:[0,10,0],cr:16,col:col,ytop:52,part:7,bos:.3,mix:.2,fixe:1});}
+  fbTouffe(K,[0,50,0],5.5,1,{rg:rg,cc:[0,48,0],cr:6,col:col,ytop:52,part:7,bos:.25,sq:.5,mix:.2,fixe:1});
   return fbGeo(K);}
 /* L'AMANITE (pour les ronds de sorcières, au fond de la vallée) : un pied blanc, un chapeau rouge, ses points luisent la nuit (partie 6) */
 function foretChampiGeo(){const K=fbNew(),rg=mulberry32(0xA3A);
@@ -14704,23 +14718,24 @@ function foretArche(root,fr,M){const Q=FORET.Q;if(!Q||!Q.arche)return null;
   const p=pts[ia],t=T[ia],hl=Math.hypot(t.x,t.z)||1,bx=-t.z/hl,bz=t.x/hl,sg=fr()<.5?-1:1,K=fbNew(),C=[];
   const A=[p.x-bx*sg*(ROAD_HALF+95)+t.x/hl*30,0,p.z-bz*sg*(ROAD_HALF+95)+t.z/hl*30],B9=[p.x+bx*sg*(ROAD_HALF+110)-t.x/hl*25,0,p.z+bz*sg*(ROAD_HALF+110)-t.z/hl*25];
   A[1]=solH(A[0],A[2])+6;B9[1]=solH(B9[0],B9[2])+4;const top=p.y+24+8.5;
-  const cp=[],rad=[],n=16;
+  const cp=[],rad=[],n=26,ph=fr()*6.28;
   for(let k=0;k<=n;k++){const u=k/n,x=A[0]+(B9[0]-A[0])*u,z=A[2]+(B9[2]-A[2])*u,yl=A[1]+(B9[1]-A[1])*u,arc=Math.sin(u*Math.PI);
-    cp.push([x,yl+(top-(A[1]+B9[1])/2)*Math.pow(arc,.62)+(fr()-.5)*2,z]);rad.push(9.5-3.5*arc+(k===0?2:0));}
+    cp.push([x+Math.sin(u*9+ph)*3,yl+(top-(A[1]+B9[1])/2)*Math.pow(arc,.62)+Math.sin(u*13+ph)*1.2,z+Math.cos(u*7+ph)*3]);rad.push((10.5-4.2*arc+(k===0?3:0))*(1+.14*Math.sin(k*1.9+ph)+.07*Math.sin(k*4.3+ph*2)));}
   const o=[cp[n>>1][0],0,cp[n>>1][2]];
   for(const q of cp){q[0]-=o[0];q[2]-=o[2];}
-  fbTube(K,cp,rad,16,{col:[.30,.25,.20],ec:2,mousse:1.6,ytop:top-o[1],rg:fr,rug:.1});
+  fbTube(K,cp,rad,18,{col:[.27,.22,.17],ec:2,mousse:.75,ytop:1e4,rg:fr,rug:.13,fixe:1,aoK:.6});
+  for(let k=0;k<9;k++){const j=2+((fr()*(n-4))|0),q=cp[j],r=rad[j],an=fr()*6.28;fbTouffe(K,[q[0]+Math.cos(an)*r*.8,q[1]+Math.sin(an)*r*.7,q[2]+Math.sin(an)*r*.5],r*(.28+fr()*.2),1,{rg:fr,cc:q,cr:r,col:[.25,.2,.15],ytop:1e4,part:0,bos:.3,mix:.3,fixe:1,mousse:.5});} // les NOEUDS
   for(let k=0;k<n;k++)C.push([cp[k][0]+o[0],cp[k][1],cp[k][2]+o[2],cp[k+1][0]+o[0],cp[k+1][1],cp[k+1][2]+o[2],rad[k+1]*1.02]);
   // la souche : un éventail de racines dressées
   for(let k=0;k<9;k++){const an=k/9*6.283,x=Math.cos(an),y9=Math.sin(an),d=[B9[0]-A[0],B9[2]-A[2]],dl=Math.hypot(d[0],d[1]),ux=-d[0]/dl,uz=-d[1]/dl,px=-uz,pz=ux;
-    const c0=[cp[0][0],cp[0][1]+2,cp[0][2]],e=[c0[0]+ux*10+px*x*20,c0[1]+y9*20+6,c0[2]+uz*10+pz*x*20];fbTube(K,[c0,[(c0[0]+e[0])/2,(c0[1]+e[1])/2+3,(c0[2]+e[2])/2],e],[3.6,2.2,.6],7,{col:[.26,.21,.16],ec:2,mousse:.8,ytop:top,rg:fr});}
+    const c0=[cp[0][0],cp[0][1]+2,cp[0][2]],e=[c0[0]+ux*10+px*x*20,c0[1]+y9*20+6,c0[2]+uz*10+pz*x*20];fbTube(K,[c0,[(c0[0]+e[0])/2,(c0[1]+e[1])/2+3,(c0[2]+e[2])/2],e],[3.6,2.2,.6],7,{col:[.26,.21,.16],ec:2,mousse:.5,ytop:1e4,rg:fr,fixe:1,aoK:.6});}
   // la couronne brisée : quelques touffes encore vertes
-  for(let k=0;k<6;k++){const q=cp[n],c=[q[0]+(fr()-.5)*24,q[1]+6+fr()*14,q[2]+(fr()-.5)*24];fbTouffe(K,c,8+fr()*5,1,{rg:fr,cc:q,cr:22,col:FC.chene,ytop:top,sq:.8});}
+  for(let k=0;k<6;k++){const q=cp[n],c=[q[0]+(fr()-.5)*24,q[1]+6+fr()*14,q[2]+(fr()-.5)*24];fbTouffe(K,c,8+fr()*5,1,{rg:fr,cc:q,cr:22,col:FC.chene,ytop:1e4,sq:.8,fixe:1});}
   // les amanites du dos de l'arbre
-  for(let k=0;k<14;k++){const q=cp[2+((fr()*(n-4))|0)],r=rad[n>>1];fbTouffe(K,[q[0]+(fr()-.5)*r,q[1]+r*.85,q[2]+(fr()-.5)*r],.9+fr()*.8,1,{rg:fr,cc:[q[0],q[1]+r,q[2]],cr:2,col:[.78,.08,.04],ytop:top,part:6,sq:.5,bos:.05,mix:.4});}
+  for(let k=0;k<14;k++){const q=cp[2+((fr()*(n-4))|0)],r=rad[n>>1];fbTouffe(K,[q[0]+(fr()-.5)*r,q[1]+r*.85,q[2]+(fr()-.5)*r],.9+fr()*.8,1,{rg:fr,cc:[q[0],q[1]+r,q[2]],cr:2,col:[.78,.08,.04],ytop:1e4,part:6,sq:.5,bos:.05,mix:.4,fixe:1});}
   const m=new THREE.Mesh(fbGeo(K),M.arb);m.position.set(o[0],0,o[2]);m.updateMatrix();m.matrixAutoUpdate=false;m.userData.jeter=true;root.add(m);
   // le lierre qui pend sous l'arche (jamais plus bas que 12 m au-dessus de la dalle)
-  const LI=[];for(let k=2;k<n-1;k++){const q=cp[k],r=rad[k];for(let j=0;j<3;j++){const x=q[0]+o[0]+(fr()-.5)*r*1.4,z=q[2]+o[2]+(fr()-.5)*r*1.4,y=q[1]-r*.7,lg=Math.min(14,y-(p.y+12));if(lg>3)LI.push([x,y,z,lg]);}}
+  const LI=[];if(0)for(let k=2;k<n-1;k++){const q=cp[k],r=rad[k];for(let j=0;j<3;j++){const x=q[0]+o[0]+(fr()-.5)*r*1.4,z=q[2]+o[2]+(fr()-.5)*r*1.4,y=q[1]-r*.7,lg=Math.min(14,y-(p.y+12));if(lg>3)LI.push([x,y,z,lg]);}}
   FORET.zonesNu.push([o[0],o[2],60]);FORET.zonesNu.push([A[0],A[2],45]);FORET.zonesNu.push([B9[0],B9[2],45]);
   return {C:C,LI:LI,c:new THREE.Vector3(o[0],top,o[2])};}
 /* ---------------- LA CONSTRUCTION (appelée en fin de buildTrack ; no-op hors de la forêt) ---------------- */
@@ -14807,7 +14822,7 @@ function buildForet(seed){
        const m=new THREE.Mesh(geo,M.arb);m.position.set(x,y-.6,z);m.rotation.y=Math.atan2(pts[i].x-x,pts[i].z-z);m.updateMatrix();m.matrixAutoUpdate=false;root.add(m);
        FORET.chaum.push(m);zone(x,z,30);canTampon(x,z,22,y+18);break;}}}
   // ---- 5. LA FORÊT ----
-  const ESP={};for(const k of FOR_ESP_N)ESP[k]=[];
+  const ESP={},LOINF=[],LOINC=[];for(const k of FOR_ESP_N)ESP[k]=[];
   const cell=15/Math.sqrt(Math.min(1,MOB*1.25)),Rt=PAL_B9('foretRayon',1650),metaE={};for(const k of FOR_ESP_N)metaE[k]=PT.esp[k][0].m;
   const choix=(d,r)=>{if(d<175)return r<.30?'hetre':r<.52?'bouleau':r<.70?'chene':r<.82?'epicea':r<.92?'pin':'sapin';
     if(d<620)return r<.40?'epicea':r<.58?'sapin':r<.82?'hetre':r<.90?'pin':r<.95?'chene':'bouleau';
@@ -14824,7 +14839,10 @@ function buildForet(seed){
     const y=solH(x,z)-.4;
     if(d<me.cr*sxz+ROAD_HALF+14){const lim=solBil(S.yn,x,z)-32;if(y+me.h*s>lim){s=(lim-y)/me.h;if(s<.48)continue;sxz=Math.min(sxz,s*1.15);}}
     const ry=fr()*6.2832,q=qDe(x,z),tint=sp==='hetre'&&fr()<.04?2:(fr()*2-1)*.6;
-    ESP[sp].push({q:q,m:mat(x,y,z,ry,sxz,s,sxz),j:[fr(),tint,0,0]});ext(q,x,y,y+me.h*s,z,me.cr*sxz);canTampon(x,z,me.cr*sxz,y+me.h*s-2.5);nArb++;}}
+    ESP[sp].push({q:q,m:mat(x,y,z,ry,sxz,s,sxz),j:[fr(),tint,0,0]});
+    {const fc=FC[sp],k9=tint>1.5?[1.35,1.12,.7]:[1+tint*.16,1+tint*.06,1-tint*.18],al=[fc[0]*k9[0]*.78,fc[1]*k9[1]*.78,fc[2]*k9[2]*.78],lo=FOR_LOIN[sp];
+     if(lo)LOINF.push({q:q,m:mat(x,y+lo[0]*s,z,ry,lo[1]*sxz,lo[1]*lo[2]*s,lo[1]*sxz),j:[fr(),al[0],al[1],al[2]]});
+     else{const H9=sp==='epicea'?37:33,r9=sp==='epicea'?6.6:6;LOINC.push({q:q,m:mat(x,y+3*s,z,ry,r9*sxz,(H9-2.5)*s,r9*sxz),j:[fr(),al[0],al[1],al[2]]});}}ext(q,x,y,y+me.h*s,z,me.cr*sxz);canTampon(x,z,me.cr*sxz,y+me.h*s-2.5);nArb++;}}
   FORET.n.arbres=nArb;
   // les géants entrent dans les familles (même tri), et leurs collisions dans la liste
   const GES={};for(const k of ge)GES[k]=[];
@@ -14856,11 +14874,15 @@ function buildForet(seed){
   FORET.n.fleurs=FLE.length;FORET.n.lierre=LIE.length;
   // ---- 7. LES FAMILLES (prototype × détail) ----
   const BANDE=[[0,0],[1,1],[2,2]];
-  for(const k of FOR_ESP_N){const lot=forLot(ESP[k]);for(let l=0;l<3;l++){const F=forFamille(root,PT.esp[k][l].g,M.arb,lot,BANDE[l][0],BANDE[l][1],'aI');if(F)F.nom=k+l;}}
-  for(const k of ge){const lot=forLot(GES[k]);const F1=forFamille(root,PT.geant[k][PAL_B9('foretGeantFin',1)?0:1].g,M.arb,lot,0,1,'aI'),F2=forFamille(root,PT.geant[k][1].g,M.arb,lot,2,2,'aI');if(F1)F1.nom='G'+k+'0';if(F2)F2.nom='G'+k+'1';}
-  {const lot=forLot(ROI);const gR=FORET.geoRoc||(FORET.geoRoc=foretRocherGeo());forFamille(root,gR,M.arb,lot,0,2,'aI');}
-  {const lot=forLot(CHI);const gC=FORET.geoChi||(FORET.geoChi=foretChampiGeo());forFamille(root,gC,M.arb,lot,0,1,'aI');}
-  {const gF=FORET.geoFl||(FORET.geoFl=forCroixGeo(false)),gL=FORET.geoLi||(FORET.geoLi=forCroixGeo(true));forFamille(root,gF,M.fleur,forLot(FLE),0,1,'aF');forFamille(root,gL,M.fleur,forLot(LIE),0,1,'aF');}
+  const PRES=PAL_B9('foretPres',0); // palier ancien : le détail MOYEN de près aussi (une famille par essence au lieu de deux)
+  for(const k of FOR_ESP_N){const lot=forLot(ESP[k]);if(PRES){const F=forFamille(root,PT.esp[k][1].g,M.arb,lot,0,1,'aI');if(F)F.nom=k+'1';}else for(let l=0;l<2;l++){const F=forFamille(root,PT.esp[k][l].g,M.arb,lot,BANDE[l][0],BANDE[l][1],'aI');if(F)F.nom=k+l;}}
+  {const F1=forFamille(root,PT.boule.g,M.arb,forLot(LOINF),2,2,'aI'),F2=forFamille(root,PT.cone.g,M.arb,forLot(LOINC),2,2,'aI');if(F1)F1.nom='loin-feuillus';if(F2)F2.nom='loin-coniferes';}
+  for(const k of ge){const lot=forLot(GES[k]);if(PAL_B9('foretGeantFin',1)){const F1=forFamille(root,PT.geant[k][0].g,M.arb,lot,0,1,'aI'),F2=forFamille(root,PT.geant[k][1].g,M.arb,lot,2,2,'aI');if(F1)F1.nom='G'+k+'0';if(F2)F2.nom='G'+k+'1';}
+    else{const F=forFamille(root,PT.geant[k][1].g,M.arb,lot,0,2,'aI');if(F)F.nom='G'+k+'1';}} // palier ancien : un seul détail pour les géants
+  {const lot=forLot(ROI);const gR=FORET.geoRoc||(FORET.geoRoc=foretRocherGeo());const F=forFamille(root,gR,M.arb,lot,0,2,'aI');if(F)F.nom='rochers';}
+  if(PAL_B9('foretChampi',1)){const lot=forLot(CHI);const gC=FORET.geoChi||(FORET.geoChi=foretChampiGeo());const F=forFamille(root,gC,M.arb,lot,0,1,'aI');if(F)F.nom='amanites';}
+  {const gF=FORET.geoFl||(FORET.geoFl=forCroixGeo(false)),gL=FORET.geoLi||(FORET.geoLi=forCroixGeo(true));const F=forFamille(root,gF,M.fleur,forLot(FLE),0,1,'aF');if(F)F.nom='fleurs';
+   if(PAL_B9('foretLierre',1)){const F2=forFamille(root,gL,M.fleur,forLot(LIE),0,1,'aF');if(F2)F2.nom='lierre';}}
   // ---- 8. LES RAYONS, LA BRUME, LES YEUX (des tampons entiers, sans tri : peu d'exemplaires, peu de triangles) ----
   {const pr9=Math.max(1,Math.round(PAL_B9('foretRayons',28)/ds)),R9=[],L9=[];
    for(let i=Math.round(80/ds);i<NP;i+=pr9){const l9=lat9(i),sd=fr()<.5?-1:1,lat=fr()*150,x=pts[i].x+l9[0]*sd*lat,z=pts[i].z+l9[1]*sd*lat;
@@ -14886,6 +14908,7 @@ function buildForet(seed){
      const i0=Math.floor((Math.min.apply(null,xs)-r)/CG),i1=Math.floor((Math.max.apply(null,xs)+r)/CG),j0=Math.floor((Math.min.apply(null,zs)-r)/CG),j1=Math.floor((Math.max.apply(null,zs)+r)/CG);
      for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++){const k=i+','+j;let a=G.get(k);if(!a)G.set(k,a=[]);a.push(c);}}
    FORET.gcol={CG:CG,G:G,n:COL.length};}
+  for(const F of FORET.fam)F.im.name='forêt '+(F.nom||'?');if(FORET.rayons)FORET.rayons.name='forêt rayons';if(FORET.brume)FORET.brume.name='forêt brume';if(FORET.yeux)FORET.yeux.name='forêt yeux';
   FORET.n.geants=GE.length;FORET.n.rochers=RO.length;FORET.n.quartiers=QL.length;FORET.n.familles=FORET.fam.length;
   FORET.ms=Math.round(performance.now()-t0);FORET.msSol=Math.round(tS-t0);FORET.sig=0;
   foretMeteo(FORET.met,started?BIO_PORTAIL:.01);
@@ -14933,14 +14956,14 @@ function foretFx(){const fx=FORET.fx;if(fx.pap)return fx;const M=foretMats(),R=m
     const g=new THREE.InstancedBufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));g.setIndex(I);
     const aR=new Float32Array(nP*4),aP=new Float32Array(nP*2);for(let k=0;k<nP;k++){aR[k*4]=R();aR[k*4+1]=R();aR[k*4+2]=R();aR[k*4+3]=R();aP[k*2]=(R()*4)|0;aP[k*2+1]=1.25+R()*1.15; /* des papillons de CONTE (2,5-4,8 m d'envergure) : à 65 m devant une caisse lancée, un vrai papillon ne fait pas un pixel */}
     g.setAttribute('aR',new THREE.InstancedBufferAttribute(aR,4));g.setAttribute('aP',new THREE.InstancedBufferAttribute(aP,2));g.instanceCount=nP;
-    fx.pap=new THREE.Mesh(g,M.pap);fx.pap.frustumCulled=false;fx.pap.matrixAutoUpdate=false;fx.pap.visible=false;scene.add(fx.pap);}
+    fx.pap=new THREE.Mesh(g,M.pap);fx.pap.name='forêt papillons';fx.pap.frustumCulled=false;fx.pap.matrixAutoUpdate=false;fx.pap.visible=false;scene.add(fx.pap);}
   { // les LUCIOLES et le POLLEN
     const nL=PAL_B9('foretLuc',900),g=new THREE.BufferGeometry(),aR=new Float32Array(nL*4);for(let k=0;k<nL*4;k++)aR[k]=R();
     g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(nL*3),3));g.setAttribute('aR',new THREE.BufferAttribute(aR,4));
-    fx.luc=new THREE.Points(g,M.luc);fx.luc.frustumCulled=false;fx.luc.matrixAutoUpdate=false;fx.luc.visible=false;fx.luc.renderOrder=8;scene.add(fx.luc);}
+    fx.luc=new THREE.Points(g,M.luc);fx.luc.name='forêt lucioles';fx.luc.frustumCulled=false;fx.luc.matrixAutoUpdate=false;fx.luc.visible=false;fx.luc.renderOrder=8;scene.add(fx.luc);}
   { // les FEUX FOLLETS
     const n=PAL_B9('foretFollets',14),g=new THREE.PlaneGeometry(1,1),aL=new Float32Array(n*4);for(let k=0;k<n;k++){aL[k*4]=0;aL[k*4+1]=R();aL[k*4+2]=2.4+R()*2.2;aL[k*4+3]=R();}
-    g.setAttribute('aL',new THREE.InstancedBufferAttribute(aL,4));fx.fol=new THREE.InstancedMesh(g,M.lueur,n);fx.fol.frustumCulled=false;fx.fol.matrixAutoUpdate=false;fx.fol.visible=false;fx.fol.renderOrder=7;
+    g.setAttribute('aL',new THREE.InstancedBufferAttribute(aL,4));fx.fol=new THREE.InstancedMesh(g,M.lueur,n);fx.fol.name='forêt follets';fx.fol.frustumCulled=false;fx.fol.matrixAutoUpdate=false;fx.fol.visible=false;fx.fol.renderOrder=7;
     fx.folL=[];for(let k=0;k<n;k++)fx.folL.push({p:new THREE.Vector3(0,-1e5,0),v:new THREE.Vector3(),a:0,vie:0,ph:R()*6.28,fuit:false});scene.add(fx.fol);}
   // la LUNE, le LOUP-GAROU et son halo de lune
   fx.lune=new THREE.Sprite(M.lune);fx.lune.visible=false;fx.lune.renderOrder=-1;fx.lune.frustumCulled=false;scene.add(fx.lune);
@@ -20228,7 +20251,7 @@ BIOMES.foretMidi=bioMet(BIOMES.midi,{nm:'FORÊT · MIDI',jour:1,jZen:[.05,.28,.7
   fog:[.60,.77,.84],fogN:140,fogF:2100,fogCj:[.92,.93,.86],fogIn:[.86,.92,.90],hemiS:[.68,.80,.98],hemiG:[.32,.42,.22],hemiI:.78,sunC:[1,.98,.92],sunI:1.6,fillC:[.48,.64,.90],fillI:.2,kickC:[1,.94,.82],kickI:.06,
   expo:.98,sat:1.02,con:1.18,rtK:.85,wb:[1,1,1],sh:[0,.008,.03],hi:[.01,.006,-.006],vigK:.2,vigC:[.03,.045,.05],bloomS:.42,bloomT:.95,
   env:[[0,'#3F8FE0'],[.3,'#7FB8EA'],[.48,'#D8ECF2'],[.58,'#FFFFFF'],[.66,'#6E8A5E'],[1,'#2A3A24']],eS1:[255,255,248,.46],eS2:[150,205,250,.3]});
-BIOMES.foretSoir=bioMet(BIOMES.nuagesSoir,{nm:'FORÊT · SOIR',jour:1,jZen:[.10,.115,.39],jMid:[.43,.25,.35],jHor:[1,.49,.25],jSol:[1,.50,.20],sunTint:[1,.62,.38],sunHalo:1,stars:.15,moon:0,city:0,
+BIOMES.foretSoir=bioMet(BIOMES.nuagesSoir,{nm:'FORÊT · SOIR',jour:1,jZen:[.10,.115,.39],jMid:[.46,.30,.32],jHor:[1,.49,.25],jSol:[1,.50,.20],sunTint:[1,.62,.38],sunHalo:1,stars:.15,moon:0,city:0,
   fog:[.92,.50,.28],fogN:100,fogF:1700,fogCj:[1,.72,.48],fogIn:[1,.88,.78],hemiS:[.52,.50,.70],hemiG:[.30,.24,.16],hemiI:.55,sunC:[1,.68,.42],sunI:1.7,fillC:[.42,.40,.66],fillI:.2,kickC:[1,.6,.35],kickI:.12,
   expo:.94,sat:1.05,con:1.2,rtK:.9,wb:[1,1,1],sh:[0,.004,.02],hi:[.02,.008,-.01],vigK:.26,vigC:[.06,.04,.05],bloomS:.46,bloomT:.92,
   env:[[0,'#3C4C8C'],[.3,'#8C7CAA'],[.48,'#FFB98A'],[.58,'#FFD6A8'],[.66,'#5A4A3A'],[1,'#2A2018']],eS1:[255,190,130,.5],eS2:[150,140,210,.28]});
