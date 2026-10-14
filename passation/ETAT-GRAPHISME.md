@@ -3,6 +3,11 @@
 Branche `gfx-integration` (worktree `C:/Users/sacha/Documents/GitHub/CCG-gfx-integration`). Je pousse moi-même sur main (protocole PILOTAGE : fumée → cc-push.lock → merge → syntaxe + garde → push → recopie Downloads → « POUSSÉ »).
 La passation longue (règles, plafonds de la charte, outils dbg) reste `passation/GRAPHISME.md`.
 
+## POUSSER = LE TRAIN (depuis le 14/10, 23 h) — lire C:/Users/sacha/cc-train/LISEZMOI.txt
+Branche prête → merge origin/main → syntaxe + garde-burnout + garde-charte → NE PAS monter sw.js → planche → `git push origin gfx-integration`
+→ `echo "GRAPHISME gfx-integration" >> /c/Users/sacha/cc-train/file.txt`. PILOTAGE fusionne, fume, monte le cache, pousse (à :05 et :35) et répond PARTI / ÉCARTÉE.
+Un seul créneau de banc par session. REPORTÉ par PILOTAGE (fin de séance du 14/10) : orage de la ville en rose, lune du titre, midi du canyon.
+
 ## ⭐ MISSION PRINCIPALE : LA BIBLE CAR CASH (`passation/DA-CARCASH.md`, VALIDÉE par Sacha) — état au 14/10, 20 h 15
 - Le trio NÉON ROSE / OR / LAQUE BLEU NUIT + la SIGNATURE DE ROUTE commune : `routeSig()` (bords et nappe roses, ligne centrale or, accent rose) + `SIG_V`
   (un interrupteur par map). Contre-jour rose (`kickC`) sur toutes les maps passées à la bible.
