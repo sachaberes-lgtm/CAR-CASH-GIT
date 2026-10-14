@@ -15496,7 +15496,7 @@ function* jadeBatit(seed,cle){
        for(const n of NU){const yaw=Math.atan2(n[7]-n[0],n[8]-n[2])+(n[6]>.5?Math.PI:0),sc=n[3]/NUVOX.GX;
          par[n[5]].push(new THREE.Matrix4().makeTranslation(n[0],n[1],n[2]).multiply(Mr.makeRotationY(yaw)).multiply(Ms.makeScale(sc*1.7,sc*.55,sc*1.15)).multiply(Mo));}
        NUVOX.L=[];NUVOX.ims=[];NUVOX.sig=0;NUVOX.S=NUVOX.S||new THREE.Sphere();
-       par.forEach(function(L9,t){for(const g9 of [GV[t],NUVOX.loin[t]]){const im=new THREE.InstancedMesh(g9,JADE_NUVOX_M,Math.max(1,L9.length));im.count=0;im.visible=false;im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+       par.forEach(function(L9,t){for(const g9 of (NUVOX.pas>2?[GV[t],NUVOX.loin[t],NUVOX.quart[t]]:[GV[t],NUVOX.loin[t]])){const im=new THREE.InstancedMesh(g9,JADE_NUVOX_M,Math.max(1,L9.length));im.count=0;im.visible=false;im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
            im.frustumCulled=false;im.renderOrder=4.5;root.add(im);NUVOX.ims.push(im);}
          for(const M9 of L9){const c9=new THREE.Vector3().setFromMatrixPosition(M9);NUVOX.L.push({t:t,m:Float32Array.from(M9.elements),c:c9,r:M9.getMaxScaleOnAxis()*NUVOX.GX*.56,v:0});}});
        JADE.nuages=NU.length;JADE.nuTri=NUVOX.L.reduce(function(a,n){return a+GV[n.t].index.count/3;},0);}
@@ -16436,22 +16436,31 @@ const JADE_NUAGE_M=(function(){const m=new THREE.ShaderMaterial({transparent:tru
    « miroir » d'un dessin, c'est le même vu de l'autre côté (le volume est symétrique). Éclairés au soleil de la map, une ombre jade-lavande,
    chaque cube sa nuance, la perspective aérienne du loin. */
 const NUVOX={GX:96,GY:48,geos:null};
+/* (2026-10-14, passe perf mobile) LES VOLUTES PAR PALIER — MESURÉ (iPhone 7 émulé, Soleil de jade) : 353 000 triangles par image rien que
+   pour les nuages en cubes (un tiers de l'image ; la puce d'un iPhone 7 souffre au-delà de ~300 000 en tout). On garde TOUS les nuages, à
+   la même place et à la même taille ; seuls leurs cubes grossissent sur les vieux appareils (chaque cran = ¼ des triangles) :
+     jadeNuvoxPres  : en deçà, les petits cubes (avant : 2 500 m). De là à 2 500 m, les cubes DOUBLES posés à l'échelle ×2 (même volume).
+     jadeNuvoxQuart : au-delà, les cubes QUADRUPLES (grille ÷ 4, posés ×2 : la carrure exacte du nuage lointain d'avant, 1/16 des triangles).
+   Palier 2 : 2 500 / jamais = le tri d'avant, au triangle près (le 3e jeu de maillages n'est même pas construit). */
+PAL.B.jadeNuvoxPres=[0,1500,2500];PAL.B.jadeNuvoxQuart=[2500,5000,1e9];
+NUVOX.pres=PAL.b('jadeNuvoxPres',2500);NUVOX.qd=PAL.b('jadeNuvoxQuart',1e9);NUVOX.pas=NUVOX.qd<1e8?3:2; // pas = maillages par dessin (petits, doubles[, quadruples])
 function jadeNuagesVox(){if(NUVOX.geos)return NUVOX.geos;
   const T=JADE_NUAGE_M.uniforms.uTex.value||(JADE_NUAGE_M.uniforms.uTex.value=jadeCumulusTex()),D=T.image.data,W=T.image.width,H=T.image.height,CW=512,CH=256,HS=90,GX=NUVOX.GX,GY=NUVOX.GY,k=CW/GX,mi=Math.ceil(HS/k)+1,NZ=2*mi;
   NUVOX.mid=mi;NUVOX.geos=[];
-  NUVOX.loin=[];
+  NUVOX.loin=[];NUVOX.quart=[];
   for(let t=0;t<16;t++){const x0=(t%4)*CW,y0=((t/4)|0)*CH,G=voxG(GX,GY,NZ);
     for(let gy=0;gy<GY;gy++)for(let gx=0;gx<GX;gx++){const px=Math.min(CW-1,Math.round(gx*k+k/2)),py=Math.min(CH-1,Math.round(CH-1-(gy*k+k/2))),o=((H-1-(y0+py))*W+x0+px)*4;
       if(D[o+3]<128)continue;const th=Math.max(1,Math.round(D[o]/255*HS/k*.85)),m=D[o+1]>110?2:1;
       for(let z=mi-th;z<mi+th;z++)G.d[gx+GX*(z+NZ*gy)]=m;}
-    NUVOX.geos.push(voxMesh(G));NUVOX.loin.push(voxMesh(voxDemi(G)));} // de LOIN (> 2,5 km) : des cubes deux fois plus gros (le même nuage, ¼ des triangles)
+    const G2=voxDemi(G);NUVOX.geos.push(voxMesh(G));NUVOX.loin.push(voxMesh(G2));if(NUVOX.pas>2)NUVOX.quart.push(voxMesh(voxDemi(G2)));} // de LOIN (> 2,5 km) : des cubes deux fois plus gros (le même nuage, ¼ des triangles)
   return NUVOX.geos;}
 /* LE TRI DES VOLUTES (à chaque rendu, chaîné sur jadeTri) : seules celles dans le champ partent au GPU, de près en petits cubes, de loin en gros */
+function nuvoxM2(n){const m=n.m2=Float32Array.from(n.m);for(let i=0;i<12;i++)m[i]*=2;return m;} // la même pose, les trois axes doublés (la grille ÷ 2 retrouve sa taille) — fait une fois par nuage, à la demande
 function nuvoxTri(cam){const N9=NUVOX.L;if(!N9||!N9.length)return;let sg=7;
-  for(let i=0;i<N9.length;i++){const n=N9[i];NUVOX.S.center.copy(n.c);NUVOX.S.radius=n.r;let v=0;if(JT.fr.intersectsSphere(NUVOX.S))v=cam.position.distanceTo(n.c)<2500?1:2;n.v=v;sg=(Math.imul(sg,31)+v)|0;}
+  for(let i=0;i<N9.length;i++){const n=N9[i];NUVOX.S.center.copy(n.c);NUVOX.S.radius=n.r;let v=0;if(JT.fr.intersectsSphere(NUVOX.S)){const d9=cam.position.distanceTo(n.c);v=d9<NUVOX.pres?1:d9<2500?(NUVOX.pres<2500?3:1):d9<NUVOX.qd?2:4;}n.v=v;sg=(Math.imul(sg,31)+v)|0;}
   if(sg===NUVOX.sig)return;NUVOX.sig=sg;
   for(const im of NUVOX.ims){im.count=0;}
-  for(const n of N9){if(!n.v)continue;const im=NUVOX.ims[n.t*2+(n.v-1)];im.instanceMatrix.array.set(n.m,im.count*16);im.count++;}
+  for(const n of N9){if(!n.v)continue;const v=n.v,im=NUVOX.ims[n.t*NUVOX.pas+(v===1?0:v===4?2:1)];im.instanceMatrix.array.set(v>2?(n.m2||nuvoxM2(n)):n.m,im.count*16);im.count++;} // (2026-10-14, passe perf mobile) v : 1 petits cubes · 2 doubles (le lointain d'avant) · 3 doubles à l'échelle ×2 · 4 quadruples à l'échelle ×2
   for(const im of NUVOX.ims){imEnvoi(im,im.count);im.visible=im.count>0;}} // (2026-10-14, passe perf mobile) [0,count) vient d'être réécrit : seul ce bout part (et rien pour un jeu vide)
 const JADE_NUVOX_M=(function(){const m=new THREE.ShaderMaterial({transparent:true,depthWrite:true,
   uniforms:{uTeinte:JADE_NUAGE_M.uniforms.uTeinte,uFogC:JADE_NUAGE_M.uniforms.uFogC,uSunD:JADE_U.uSunDir,uSunC:JADE_U.uSunC},
