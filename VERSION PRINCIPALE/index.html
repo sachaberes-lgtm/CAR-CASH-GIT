@@ -49865,7 +49865,7 @@ function loop(now){
         if(b9>=Math.min(sDe9,s)-2.2&&b9<=Math.max(sDe9,s)+2.2){ // (BALAYAGE) sur le trajet de l'image : à 30 i/s, il passait entre deux images au-delà de ~475 km/h
           hopV=2.4+Math.min(3.2,Math.abs(vF)*.045);
           vA*=.97;shake=Math.max(shake,.15);if(SONV2)sfx('dosdane');else noiseBurst(.12,.1,300);
-          if(SENS)try{sensCoup(0,-1.2-Math.min(.8,Math.abs(vF)*.012),0);sensHap(14,2);}catch(e){} // (2026-10-14, sensations) les roues avant montent les premières : le nez se lève (plus sec quand on arrive vite) — avant, la caisse sautait à plat, sans un mot dans la main
+          if(SENS)try{sensCoup(0,-1.2-Math.min(.8,Math.abs(vF)*.012),0);sensHap(12,1);}catch(e){} /* (2026-10-14, accord) 14 → 12, force 1 : un dos d'âne fait SAUTILLER — un tic léger à la montée, un autre à la retombée (SCOUP.hop) ; à 14 / force 2 il passait pour un coup net et faisait taire sa propre retombée (220 ms) */ // (2026-10-14, sensations) les roues avant montent les premières : le nez se lève (plus sec quand on arrive vite) — avant, la caisse sautait à plat, sans un mot dans la main
           if(Math.random()<.5)dropChip(1);
           break;
         }
@@ -49907,8 +49907,8 @@ function loop(now){
           coneVole(c9); // (perf) il quitte l'instance : un vrai plot part valser
           FLYCONES.push({m:c9.mesh,v:kv,rx:(Math.random()-.5)*16,rz:(Math.random()-.5)*16,life:1.6,p0:c9.mesh.position.clone(),n0:F.n.clone().multiplyScalar(side),b0:F.b.clone()});
           try{if(SONV2&&c9.dur)sfx('porte');else coneSnd();}catch(e){}
-          vA*=.985;shake=Math.max(shake,.14);hap(10);
-          if(SENS)try{const d9=c9.dur?1.6:1;sensCoup((dl9>0?1:-1)*d9,.6*d9,0);if(c9.dur)sensHap([16,24,10],2);}catch(e){} // (2026-10-14, sensations) le plot tape un coin de la caisse : elle penche à l'opposé et pique du nez, le temps d'un ressort (une PORTE dure cogne plus fort, et se sent dans la main)
+          vA*=.985;shake=Math.max(shake,.14);hap(SENS&&c9.dur?16:10); // (2026-10-14, gameplay · accord) la PORTE dure : un COUP NET (16) à la place du tic — une seule vibration ; avant, le tic ET un motif [16,24,10] partaient à la même image
+          if(SENS)try{const d9=c9.dur?1.6:1;sensCoup((dl9>0?1:-1)*d9,.6*d9,0);}catch(e){} // (2026-10-14, sensations) le plot tape un coin de la caisse : elle penche à l'opposé et pique du nez, le temps d'un ressort (une PORTE dure cogne plus fort, et se sent dans la main)
           sparkBurst(boomRed,c9.mesh.position,5,6); // (2026-09-28) un plot percuté COÛTE : éclats rouges (l'or, c'est l'argent)
           addStyle(2);flowFaute('n',0,.25); // (v5) un plot percuté : -NARCISSE, le répit saute
           if(c9.dur){if(c9.pt)c9.pt.touche=true;vA*=.9;momT=0;FLOW.v=Math.max(0,FLOW.v-12);FLOW.idle=2;popTexte('TOUCHE !','#ff5e7a',1);} // (2026-09-30) la porte touchée ne se compte pas propre (campPortesTick) · (2026-09-27) une PORTE du niveau 4 : la toucher ne tue pas, elle coûte (vitesse, élan, FLOW)
