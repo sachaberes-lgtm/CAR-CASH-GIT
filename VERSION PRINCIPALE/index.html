@@ -62,6 +62,13 @@ if(SANS_VOIX)document.documentElement.classList.add('sansVoix');
    jour : `const SANS_CARRIERE=false;`. */
 const SANS_CARRIERE=!/[?&]carriere=1\b/.test(location.search);
 if(SANS_CARRIERE)document.documentElement.classList.add('sansCarr');
+/* PLUS DE MODE FACILE (2026-10-14, Sacha, relayé par PILOTAGE : « enlève le mode facile du jeu ») : même recette que la carrière — COUPÉ,
+   pas arraché. `facOn()` répond toujours non : plus d'aide au virage (FAC_CAP), plus de bord élargi (facBord), plus de 10 s en l'air
+   (FAC_AIR), plus de 3 vies ni de filet (facileSauve) ; le choix FACILE / NORMAL du 1er JOUER ne s'ouvre plus (facChoix rend NORMAL) et la
+   ligne MODE FACILE quitte les réglages (<style id="sansFacile">). La sauvegarde n'est PAS touchée : `SAVE.d.facile` reste ce qu'il était
+   (un joueur en FACILE joue désormais en NORMAL, sans rien perdre — argent, caisses, records). `?facile=1` le rend, pour le tester. */
+const SANS_FACILE=!/[?&]facile=1\b/.test(location.search);
+if(SANS_FACILE)document.documentElement.classList.add('sansFacile');
 /* LA MÊME VERSION POUR TOUT LE MONDE (2026-10-01, Léo : « trouve un moyen pour qu'on joue au même jeu, juste ») : `vercel-build.sh`
    remplace ce jeton par le commit publié et pose `version.json` à côté du jeu. Le jeu compare les deux et se recharge tout seul
    s'il est en retard (voir « LA MISE À JOUR TOUTE SEULE », près du service worker). En copie locale le jeton reste tel quel : rien ne se vérifie. */
@@ -8550,6 +8557,11 @@ html.c6.hub.sansCarr body #mHome.acc2 .mAccP>.mMisBarre{grid-column:1/-1}
   html.hub.sansCarr:not(.c6) body #mHome.acc2 .mAccP>.mMisBarre{grid-column:2/4}
   html.c6.hub.sansCarr body #mHome.acc2 .mAccP>.mMisBarre{grid-column:2/-1}}
 </style>
+<style id="sansFacile">
+/* (2026-10-14, Sacha, relayé par PILOTAGE : « enlève le mode facile du jeu » — voir SANS_FACILE dans le <head>) la ligne MODE FACILE des
+   réglages disparaît ; les cœurs (#facVies) suivent déjà body.facile, que facDepart ne pose plus. */
+html.sansFacile [data-m="facile"]{display:none!important}
+</style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
   <div id="spStage">
@@ -9089,6 +9101,7 @@ function feuilleFerme(el,cls){ if(!el||!el.classList.contains(cls))return; try{u
    RÉGLAGES. Échap clique le dernier bouton : NORMAL. */
 function facChoix(){ /* (2026-10-14, charte 6 · règles de 6 h) deux CARTES égales, une promesse chacune ; FACILE (conseillée à un nouveau) en or,
      NORMAL en encre — plus de vert (le vert = l'argent), plus de paragraphe qui n'expliquait que FACILE. ?ui=5 : l'ancienne fenêtre. */
+  if(SANS_FACILE)return Promise.resolve({v:0}); // (2026-10-14, Sacha) plus de mode facile : pas de question, on part en NORMAL (la sauvegarde n'est pas écrite)
   if(document.documentElement.classList.contains('c6'))return modale({titre:'CHOISIS TON MODE',texte:'Tu pourras changer dans les réglages.',cartes:true,
     boutons:[{l:'FACILE',ic:'coeur',cls:'pb-gold',sous:'Virages aidés, 3 vies',v:1},{l:'NORMAL',ic:'eclair',cls:'c6Neutre',sous:'Sans aide, une seule vie',v:0}]}).then(function(r){SAVE.d.facile=r.v?1:0;SAVE.flush();});
   return modale({titre:'CHOISIS TON MODE',texte:"En FACILE, la voiture suit mieux les virages, tu restes plus longtemps en l'air et tu as 3 vies. Tu pourras changer dans les réglages.",
@@ -36891,7 +36904,7 @@ function gK(){return (LVL.espaceA>=.5&&!PARK.on)?ORB_G:1;}
    · 3 VIES — une chute, un vol trop long, une tour : la caisse repart de sa ligne sûre (facileSauve — le filet du BOUCLIER, pouvoir retiré le 29/09) ;
    · POSE — 5 m de bitume en plus de chaque côté pour se poser (la caisse est ramenée dans la largeur), angle de pose ratée +30°. */
 const FAC={coeurs:3},FAC_AIR=10/6,FAC_BORD=5,FAC_VIRAGE=.8,FAC_CAP=1.6;
-function facOn(){return !!(SAVE.d&&SAVE.d.facile)&&!PARK.on;}
+function facOn(){return !SANS_FACILE&&!!(SAVE.d&&SAVE.d.facile)&&!PARK.on;} // (2026-10-14, Sacha) SANS_FACILE : toujours non — toutes les aides suivent
 function facBord(){return facOn()?FAC_BORD:0;}
 function facFilet(){return facOn()&&FAC.coeurs>1&&!TUTO.on;} // il reste une vie à perdre : la chute perdue d'avance est rattrapée tout de suite
 function volSens(){return SAVE.d&&SAVE.d.volH==='plonge'?1:-1;} // (2026-10-10) absent = MONTE
@@ -53240,7 +53253,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='vox'){ clic(voxBtnEl); mFill(); }
     else if(a==='vib'){ SND.vib=!SND.vib; SAVE.d.vib=SND.vib; SAVE.flush(); if(SND.vib)hap(14); mFill(); } // rallumées : elles se présentent d'une impulsion
     else if(a==='lang'){ langNext(); applyLangDOM(); mFill(); try{const v9=document.getElementById('mvVer');if(v9)v9.textContent=TR('VERSION')+' '+CC_VER.replace(/^LOCALE/,TR('LOCALE'));}catch(e9){} }
-    else if(a==='facile'){ SAVE.d.facile=SAVE.d.facile?0:1; SAVE.flush(); if(SAVE.d.facile)hap(14); mFill(); }
+    else if(a==='facile'&&!SANS_FACILE){ SAVE.d.facile=SAVE.d.facile?0:1; SAVE.flush(); if(SAVE.d.facile)hap(14); mFill(); }
     else if(a==='volh'){ volhBascule(); mFill(); }
     else if(a==='ctl'){ TCTL.pad=!TCTL.pad; TCTL.act=false; TCTL.id=null; TCTL.st=0; TCTL.sv=0;
       keys.ArrowLeft=keys.ArrowRight=false; document.body.classList.toggle('tpad',TCTL.pad);
