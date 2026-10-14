@@ -648,7 +648,7 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
     filter:drop-shadow(0 0 6px rgba(0,234,255,.55))}
   /* ⚠ MÊME RÈGLE que le garage : l'icône vit en `::before` (contenu fixe), jamais dans le
      `textContent` réécrit par `applyLangDOM` à chaque bascule de langue — sinon un `<i>` enfant
-     serait effacé au premier passage en anglais/chinois et ne reviendrait jamais. */
+     serait effacé au premier passage en anglais et ne reviendrait jamais. */
   #setBtn::before{content:'\2699\FE0F';margin-right:8px;font-size:11px;
     filter:drop-shadow(0 0 6px rgba(0,234,255,.55))}
   /* LE BUTIN : ce que le logo lâche quand on le casse (voir logoCasse) */
@@ -4528,7 +4528,7 @@ html body #coach.passe .coN{color:var(--or);white-space:nowrap}html body #coach 
 #mvTuto{color:var(--neoV);text-shadow:none}#mvTuto::after{display:none}#mvTuto[hidden]{display:none}
 /* (29/09, DEBUGGING) « POUCE HAUT EN VOL » passait sur deux lignes avec PLONGE et sur une avec MONTE : la ligne sautait à chaque appui —
    la valeur prend toujours la place de la plus longue, l'interlettrage de la ligne se resserre d'un demi-pixel */
-.mLigne[data-m="volh"],.tp.ligne[data-a="volh"]{letter-spacing:.5px;gap:12px}.mLigne[data-m="volh"]>.pxi,.tp.ligne[data-a="volh"]>.pxi{margin-right:8px} /* (2026-09-30, revue) l'icône rend les 4 px : le libellé retombe dans l'alignement des autres lignes */#mvVolH{min-width:calc(6.6em + 18px);justify-content:flex-end}html:lang(en) #mvVolH{min-width:calc(5.5em + 18px)}html:lang(en) .mLigne[data-m="volh"]{letter-spacing:0}html:lang(zh) #mvVolH{min-width:0}
+.mLigne[data-m="volh"],.tp.ligne[data-a="volh"]{letter-spacing:.5px;gap:12px}.mLigne[data-m="volh"]>.pxi,.tp.ligne[data-a="volh"]>.pxi{margin-right:8px} /* (2026-09-30, revue) l'icône rend les 4 px : le libellé retombe dans l'alignement des autres lignes */#mvVolH{min-width:calc(6.6em + 18px);justify-content:flex-end}html:lang(en) #mvVolH{min-width:calc(5.5em + 18px)}html:lang(en) .mLigne[data-m="volh"]{letter-spacing:0}
 /* ---- 27. MODE FACILE (2026-09-29) : les trois vies, en haut à droite, sous la pause (zone de LECTURE) ---- */
 #facVies{display:none}
 html body.touch.play.facile #facVies{display:flex;position:fixed;top:calc(var(--hudH) + 120px);right:var(--hudD);z-index:6;gap:5px;pointer-events:none;zoom:var(--hudK);
@@ -18098,15 +18098,14 @@ function denom(){return DENOMS[Math.min(engTier,DENOMS.length-1)]*ECO3.gain;} //
 // LANGUE & DEVISE (2026-09-03) : la devise est désormais UNIQUE — le dollar, quelle que soit la
 // langue d'affichage (avant : le français comptait en euros). `CUR()` ne dépend donc plus de `LANG` ;
 // seul `LOC()` (le séparateur des milliers/décimales) suit encore la langue.
-// ⚠ TROIS LANGUES DÉSORMAIS (FR/EN/ZH) : `LANG_CYCLE` est la SEULE liste à tenir à jour — le
+// ⚠ DEUX LANGUES (FR/EN) : `LANG_CYCLE` est la SEULE liste à tenir à jour — le
 // sélecteur (desktop ET mobile) boucle dessus via `langNext()`, un seul écrivain pour ne pas
 // diverger entre les deux (même piège que `modeLbl`).
-const LANG_CYCLE=['fr','en','zh'];
+// (2026-10-14, Sacha : « enlève le chinois ») un `ccLang` qui n'est plus proposé (l'ancien 'zh') retombe sur la langue de l'appareil (`langAuto`).
+const LANG_CYCLE=['fr','en'];
 /* (2026-09-28, passe de lancement) LA LANGUE DU TÉLÉPHONE PAR DÉFAUT : sans choix enregistré, TOUT LE MONDE démarrait en anglais —
-   un iPhone réglé en français ou en chinois compris. On lit les langues préférées de l'appareil, la 1re que le jeu parle gagne ;
-   le choix fait dans les réglages (`langNext` → `ccLang`) reste maître, et l'automatique n'est jamais écrit : il suit l'appareil.
-   ⚠ LE CHINOIS N'EST PAS CHOISI D'OFFICE : sa traduction est incomplète (mesuré : l'accueil y affiche encore « JOUER ») — un téléphone
-   chinois reçoit l'anglais, complet, et le chinois reste au sélecteur. Quand I18N_ZH sera complet : l'ajouter à LANG_AUTO. */
+   un iPhone réglé en français compris. On lit les langues préférées de l'appareil, la 1re que le jeu parle gagne (sinon l'anglais) ;
+   le choix fait dans les réglages (`langNext` → `ccLang`) reste maître, et l'automatique n'est jamais écrit : il suit l'appareil. */
 const LANG_AUTO=['fr','en'];
 function langAuto(){
   try{const L=(navigator.languages&&navigator.languages.length)?navigator.languages:[navigator.language||''];
@@ -18114,7 +18113,7 @@ function langAuto(){
   return 'en';
 }
 function decFr(x,d){const t=(+x).toFixed(d);return LANG==='fr'?t.replace('.',','):t;} // (passe qualité) « 5,3 » en français, « 5.3 » ailleurs
-let LANG=(function(){try{if(LANG_CYCLE.indexOf(localStorage.ccLang)>=0)return localStorage.ccLang;}catch(e){}return langAuto();})();
+let LANG=(function(){try{const c=localStorage.ccLang;if(LANG_CYCLE.indexOf(c)>=0)return c;}catch(e){}return langAuto();})();
 function langNext(){
   const i=LANG_CYCLE.indexOf(LANG);
   LANG=LANG_CYCLE[(i+1)%LANG_CYCLE.length];
@@ -18122,7 +18121,7 @@ function langNext(){
   return LANG;
 }
 const CUR=()=>'$';
-const LOC=()=>LANG==='zh'?'zh-CN':LANG==='fr'?'fr-FR':'en-US';
+const LOC=()=>LANG==='fr'?'fr-FR':'en-US';
 const fmt=v=>CUR()+' '+Math.round(v).toLocaleString(LOC());
 /* ============================================================================
    TRADUCTION FR / EN (2026-08-03)
@@ -18289,52 +18288,37 @@ const I18N={
  'Pas de course, pas de police, pas de mort : un terrain de figures avec ses rampes. On y va pour apprendre à voler.':'No race, no cops, no death: a trick park with its ramps. Go there to learn to fly.',
  'On s\'entraîne sur la vraie piste : la caisse se replace au lieu de mourir. Idéal pour les sauts — mais aucun score n\'est enregistré.':'Practice on the real track: the car respawns instead of dying. Great for jumps — but no score is saved.'
 };
-const I18N_ZH={
- "GARAGE":"车库","AU-DESSUS DE LA VILLE":"城市上空","MER DE NUAGES":"云海","EN ORBITE":"轨道上","TOURNE TON TELEPHONE":"请竖起手机","CASH CAR SE JOUE A LA VERTICALE":"CASH CAR 需竖屏游玩","ÉQUIPER":"装备","✓ ÉQUIPÉE":"✓ 已装备","🔒 VERROUILLÉE":"🔒 未解锁","glisse pour tourner · molette pour zoomer":"拖动旋转 · 滚轮缩放","clique sur CASH CAR — le son s'allume avec toi":"点击 CASH CAR — 声音与你同步点亮","cours après le cash · ne tombe jamais":"追钱不停 · 绝不摔落","GAME OVER":"游戏结束","VALIDER":"确认","★ NOUVEAU RECORD — TON NOM":"★ 新纪录 — 输入你的名字","Prêt à repartir ?":"准备好再来一局？","Jouer":"开始","Garage":"车库","Réglages":"设置","Freestyle · off":"花式模式 · 关","Survivant · off":"生存模式 · 关","Réglages":"设置","Langue":"语言","Freestyle":"花式模式","Survivant":"生存模式","on":"开","off":"关","Audio":"音频","Effets sonores":"音效","Voix de l'annonceur":"解说声音","Devise":"货币","Commandes":"操作","Sauvegarde":"存档","📋 Copier ma sauvegarde":"📋 复制我的存档","conduire · piloter en vol":"驾驶 · 飞行中操控","nitro · double-tap = DÉCOLLAGE":"氮气 · 双击 = 起飞","drift":"漂移","replacer la caisse":"重置座驾位置","pause":"暂停","rejouer":"重新开始","Espace":"空格键","Entrée":"回车键","Pad gauche":"左侧摇杆","Pad + frein":"摇杆 + 刹车","En vol":"飞行中","volant · tirer vers le bas = frein":"方向 · 下拉 = 刹车","le pad devient un joystick (haut/bas)":"摇杆变成操纵杆（上/下）","pouce droit · double-tap = DÉCOLLAGE":"右拇指 · 双击 = 起飞","NITRO INFINIE — 6 s À FOND !":"无限氮气 — 6秒全力冲刺！","NITRO ∞":"氮气 ∞","🪂 AIRTIME INFINI — 10 s DE VOL !":"🪂 无限滞空 — 10秒飞行！","AIR ∞":"滞空 ∞","⚡ VITESSE +60% — 6 s !":"⚡ 速度 +60% — 6秒！","VITESSE +60%":"速度 +60%","Volumes":"音量","Musique":"音乐","Effets et moteur":"音效与引擎","Voix":"语音","Sur iPhone, le volume de la voix est verrouillé par le système.":"在iPhone上，语音音量由系统锁定。","NITRO (ESPACE)":"氮气（空格键）","km/h":"km/h","SON":"音效","VOIX":"语音","RESET":"重置","MUS":"音乐","🏆 TOP 10":"🏆 排行榜前十","Aucun score — sois le premier !":"暂无记录 — 抢占第一！","AUCUN RECORD — À TOI DE JOUER":"暂无纪录 — 该你上场了","RECORD":"纪录","MEILLEURE CAISSE":"最佳座驾","record : ":"纪录：","Prochaine voiture à":"下一辆车需要","🛝 Parc freestyle":"🛝 花式公园","🏁 Survivant":"🏁 生存模式","ON":"开","OFF":"关","Le garage se visite depuis le menu":"车库要从菜单进入","Ça se visite depuis le menu":"这个要从菜单进入","MODE SURVIVANT AU PROCHAIN DÉPART":"生存模式将在下局启动","SURVIVANT DÉSARMÉ":"生存模式已关闭","PAUSE":"暂停","GO !":"出发！","MOTEUR MAX":"满级引擎","PIÈCES":"金币","pièces de ":"价值 ","FIGURES":"花式","CHAÎNE MAX":"最长连击","BUMPS":"弹跳","ZONES":"区域","GAPS":"缺口","VMAX":"最高时速","🔑 DÉBLOQUÉ : ":"🔑 已解锁：","PALIER":"等级","CAISSE":"座驾","NIVEAU":"关卡","COMPTE":"账户","VIREMENT":"转账","AURA":"灵气","NOUVEAU RANG !":"新段位！","IL TE MANQUE":"还差","EST À TOI":"归你了","débités":"已扣除","JOUER AVEC CELLE-CI":"就开这辆车","ACHETER — ":"购买 — ","IL MANQUE ":"还差 ","ANONYME":"无名之辈","REMARQUÉ":"小有名气","ON PARLE DE TOI":"大家都在聊你","RÉPUTÉ":"声名在外","LÉGENDE LOCALE":"本地传奇","STAR DU BITUME":"柏油路巨星","MYTHE":"神话","DIVINITÉ DU CIEL":"天空之神","↻ ON REPART":"↻ 重新出发","✦ NOUVEAU SECTEUR":"✦ 新区域","LA NUIT TOMBE…":"夜幕降临…","🚀 CATAPULTE !":"🚀 弹射起飞！","🚀 DÉCOLLAGE — TOUT ×2 ! ★":"🚀 起飞 — 一切 ×2！★","★ DÉCOLLAGE PRÊT — double-tape NITRO ! ★":"★ 起飞就绪 — 双击氮气！★","🪦 ÉLIMINÉ — DERNIER DE LA MINUTE !":"🪦 出局 — 本分钟垫底！","PILE AU CENTRE 🎯":"正中靶心 🎯","À RECULONS — MÊME PAS REGARDÉ !":"倒着来的 — 看都没看！","FACE CACHÉE ×2":"隐藏面 ×2","🚀 GAP FRANCHI !":"🚀 缺口飞跃成功！","🚀 DOUBLE GAP — MONSTRUEUX !":"🚀 双重缺口 — 简直变态！","CHAÎNE PERDUE":"连击中断","REPORT +":"结转 +","⚠ ROULE OU CRÈVE — ":"⚠ 不跑就死 — ","🐷 TIRELIRE ÉVENTRÉE +":"🐷 存钱罐爆了 +","💸 TU COMPTES EN ":"💸 你现在的单位是","🐷 TIRELIRE ÉVENTRÉE — ":"🐷 存钱罐爆了 — "," EN POCHE":" 到手","🛡 L'ASSURANCE RÉPOND — ":"🛡 保险生效 — ","POUSSÉE ×":"推力 ×","ELLE EST À TOI":"她是你的了","CLÉS EN MAIN":"钥匙在手","LIVRÉE, RODÉE, VOLÉE":"交付、磨合、偷来的","TU CHANGES DE MONDE":"你换了个世界","SIGNÉ, EMBARQUÉ":"签了字，上车了","ELLE T'ATTENDAIT":"她一直在等你","NOUVEAU JOUET":"新玩具到手","ENCARTÉE AU GARAGE":"已停进车库","GO ! NE MEURS PAS":"出发！别死了","PIED AU PLANCHER — QUESTIONS APRÈS":"油门踩到底 — 问题晚点再说","LA PRUDENCE RESTE AU GARAGE":"谨慎这东西留在车库里","ROULE COMME SI L'ESSENCE ÉTAIT GRATUITE":"开得像油不要钱一样","LE FREIN, C'EST LA PÉDALE DES AUTRES":"刹车？那是别人的踏板","VAS-Y. LE CIEL REGARDE.":"冲吧，天空在看着你。","NOUVELLE ZONE !":"新区域！","ZONE AVALÉE — SUIVANTE !":"区域吞下 — 下一个！","ENCORE UNE ZONE AU COMPTEUR !":"计数器又多了一个区域！","LA ROUTE EST À TOI !":"这条路是你的！","ZONE SUIVANTE — ON RALENTIT PAS !":"下一区域 — 绝不减速！","💸 IL PLEUT DES BILLETS — PARAPLUIE INUTILE":"💸 钞票如雨 — 雨伞没用","💸 LA BANQUE A APPELÉ : ELLE ABANDONNE":"💸 银行打来电话：它投降了","💸 TON COMPTE A LE VERTIGE":"💸 你的账户开始眩晕","💸 L'ARGENT TOMBE PLUS VITE QUE TOI":"💸 钱掉得比你还快","LA ROUTE GAGNE. CETTE FOIS.":"这次，路赢了。","LE BITUME SE SOUVIENDRA DE TOI":"柏油路会记住你","MÊME LES LÉGENDES TOUCHENT LE SOL":"传奇也会落地","CRASH TEST RÉUSSI. ENFIN… TEST.":"碰撞测试成功。呃…算是测试吧。","LA GRAVITÉ : 1 — TOI : 0":"重力：1 — 你：0","T'ES MORT. LES THUNES, ELLES, RESTENT.":"你死了。钱倒是留下了。","REVIENS. LA VITESSE S'ENNUIE DÉJÀ.":"回来吧，速度已经无聊了。","🏆 RECORD — LES AUTRES JOUENT À UN AUTRE JEU":"🏆 破纪录了 — 别人都在玩另一个游戏","🏆 LE LEADERBOARD A DEMANDÉ TON AUTOGRAPHE":"🏆 排行榜找你要签名了","🏆 RECORD ÉCRASÉ — COMME TES SUSPENSIONS":"🏆 纪录被碾碎 — 跟你的悬挂一样","🏆 HISTORIQUE. LA ROUTE S'EN REMET À PEINE.":"🏆 载入史册。这条路差点缓不过来。","MOTEUR ROUILLÉ":"生锈引擎","BICYLINDRE":"双缸","3 CYLINDRES":"三缸","4 EN LIGNE":"直列四缸","4 SOUPAPES":"四气门","4 EN LIGNE TURBO":"涡轮直列四缸","5 CYLINDRES":"五缸","V6 BITURBO":"双涡轮V6","BOXER À PLAT":"水平对置","V8 ATMO":"自然吸气V8","V8 COMPRESSÉ":"机械增压V8","QUADRITURBO":"四涡轮","ROTATIF TRIPLE":"三转子","TURBINE À GAZ":"燃气涡轮","TURBINE À PLASMA":"等离子涡轮","STATORÉACTEUR":"冲压喷气发动机","PULSORÉACTEUR":"脉冲喷气发动机","RÉACTEUR NUCLÉAIRE":"核反应堆","CŒUR À FUSION":"聚变核心","MOTEUR À DISTORSION":"曲速引擎","COMÈTE":"彗星","TROU NOIR":"黑洞","Il tousse, il fume, il prie. Mais il tourne.":"它咳嗽，冒烟，祈祷。但它还在转。","Deux cylindres. Un qui pousse, un qui regarde.":"两个气缸，一个卖力推，一个袖手看。","Deux qui toussent, un qui prie.":"两个咳嗽的，外加一个祈祷的。","Le premier moteur qui ne s'excuse pas.":"第一台不会道歉的引擎。","Il respire enfin par le nez.":"它终于学会了用鼻子呼吸。","Le premier vrai souffle. Ça siffle.":"第一口真正的呼吸，还带哨音。","Un chiffre impair, un bruit inoubliable.":"一个奇数缸，一种忘不掉的声音。","La forme fait le son. Le son fait le reste.":"形状决定声音，声音决定一切。","Deux turbos, zéro patience.":"两个涡轮，零耐心。","Le centre de gravité au ras du bitume.":"重心几乎贴着地面。","Le grondement qui fait trembler la dalle.":"那声轰鸣，震得路面发抖。","Un compresseur, et la dalle demande grâce.":"加一个机械增压，路面求饶。","Dix cylindres, zéro argument.":"十个气缸，没什么好争的。","Douze cylindres qui hurlent à l'unisson.":"十二个气缸齐声怒吼。","Deux V6 mariés de force. Ça marche.":"两台V6被硬凑成一对，但真管用。","Seize. Parce que quinze, c'était ridicule.":"十六缸。十五缸？太荒唐了。","Seize cylindres en H. Interdit en course. Logique.":"H型十六缸，赛场禁用，合情合理。","Quatre escargots, une seule idée.":"四只蜗牛，一个念头。","Pas de pistons. Que du hurlement.":"没有活塞，只有咆哮。","L'hélicoptère a appelé. Il veut son moteur.":"直升机打来电话，要回它的引擎。","Plus de pistons. Un souffle continu, bleu.":"不再有活塞，只剩一道持续的蓝色气流。","Il n'avale plus l'air. Il l'agresse.":"它不再吸入空气，它在攻击空气。","Un battement par milliseconde. C'est le tien qui suit.":"每毫秒跳动一次。跟不上的，是你的心跳。","Tu roules avec un cœur de centrale sous le capot.":"引擎盖下装着一座发电站的心脏。","Une petite étoile, sanglée sous le capot.":"一颗小小的恒星，被绑在引擎盖下。","Un gramme. Un seul. Ne freine pas.":"一克。仅仅一克。别踩刹车。","Ce n'est plus toi qui avances. C'est la route qui recule.":"不是你在前进，是这条路在后退。","La caisse est EN FEU. Comme au premier jour.":"座驾着火了。跟第一天一样。","Tu ne brûles plus le carburant. Tu brûles le ciel.":"你烧的不再是燃料，是整片天空。","Plus rien ne s'échappe. Même pas toi.":"什么都逃不掉了。连你也不例外。","LA HONTE":"耻辱","ELDORADO":"黄金国","LE CAÏD":"老大哥","SA MAJESTÉ":"女王陛下","ROSSO 40":"红色40","POSTER 84":"海报84","Rose bonbon, ailerons de requin et une banquette pour trois avocats.":"糖果粉，鲨鱼尾鳍，外加一张够坐三个律师的长椅。","Trois tonnes de cube. Personne ne t'a jamais demandé de te pousser.":"三吨重的方块。从来没人敢叫你让开。","Tu ne conduis pas. On te conduit. Même quand c'est toi qui conduis.":"你不是在开车，是车在伺候你。哪怕握方向盘的是你。","Rouge course, aileron plateau. Elle ne s'achète pas : elle se gagne en course.":"赛道红，托盘尾翼。她买不到：只能在比赛里赢回来。","Elle était punaisée au mur de ta chambre. Maintenant, c'est toi qui la conduis.":"她曾被钉在你卧室的墙上。现在，开她的人是你。","CAISSE À SAVON":"肥皂盒车","PAPA MOBILE":"老爸座驾","LE FRELON":"大黄蜂","DIVA BLANCHE":"白色天后","GROS BLOC":"大块头","SCALPEL VERT":"绿色手术刀","BALLE D'ARGENT":"银色子弹","VEUVE NOIRE":"黑寡妇","EL PATRON 🏁":"老大 🏁","FORMULE OR 🏎️":"黄金方程式 🏎️","NÉON OUTLAW":"霓虹亡命徒","COMBUSTION 🚀":"燃爆 🚀","COMÈTE 👑":"彗星 👑","INTERDITE":"禁品","ONDE DE CHOC":"冲击波","GOUDRON FANTÔME":"幽灵沥青","TÊTE CHERCHEUSE":"追踪导弹","PLASMA ROYAL":"皇家等离子","ANTIMATIÈRE":"反物质","ÉCLIPSE VII":"日蚀七号","SINGULARITÉ":"奇点","DIEU-VITESSE 👑":"速度之神 👑","Trois cylindres : deux qui toussent, un qui prie. Elle démarre par pitié. Fais des thunes et oublie-la vite.":"三个气缸：两个咳嗽，一个祈祷。它是靠可怜才发动的。赶紧赚钱，然后忘了它。","Le moteur d'une tondeuse, le charisme d'un caddie. Mais ça roule — et vu d'où tu viens, c'est déjà un miracle.":"割草机的引擎，购物车的魅力。但它能跑——鉴于你的出身，这已经是奇迹了。","Sièges chauffants, porte-gobelets, zéro gloire. Conçue pour conduire prudemment. Toi ? Prudent ? On y croit très fort.":"座椅加热，杯架齐全，毫无荣耀。专为谨慎驾驶设计。你？谨慎？我们非常、非常相信。","Petite, teigneuse, elle pétarade comme un 14 juillet. Le premier vrai sourire du compteur.":"小巧凶悍，噼里啪啦像国庆烟花。仪表盘上第一次真正的微笑。","Elle refuse de rouler à moins de 200. Toi aussi, maintenant. Vous allez très bien vous entendre.":"它拒绝以低于200的速度行驶。现在你也一样。你们会处得很好。","Un V8 qui boit de l'essence et crache du respect. L'écologie te fait coucou dans le rétro. Tu n'as pas de rétro.":"一台V8，喝汽油，吐尊重。环保主义在后视镜里跟你招手。可惜你没有后视镜。","Chirurgicale. Elle découpe les virages pendant que les autres les négocient. Toi, tu ne négocies plus rien.":"精准如手术刀。别人在弯道里谈判，它直接切开弯道。而你，什么都不用谈了。","Une balle avec des sièges. Le pare-brise sert surtout à voir le futur arriver beaucoup trop vite.":"一颗装了座椅的子弹。挡风玻璃的作用，主要是看着未来来得太快。","Ceux qui l'ont doublée en parlent encore. Ah non, pardon : personne ne l'a jamais doublée.":"超过它的人至今还在津津乐道。啊不，抱歉：从来没人超过它。","Le taureau doré. 449 au compteur, l'assurance résiliée d'office. C'est ici que les vrais chiffres commencent.":"金色公牛。时速表449，保险自动作废。真正的数字，从这里开始。","Un aileron, un baquet, et tes économies peintes en doré. Le circuit appelle ça de la triche. Nous, du talent.":"一片尾翼，一张桶形座椅，还有你被喷成金色的存款。赛道称之为作弊。我们叫它天赋。","Prototype volé d'un labo qui nie son existence. Le néon rose ? Pour qu'on sache QUI vient de te mettre 3 secondes.":"从一个否认自身存在的实验室偷来的原型车。粉色霓虹灯？是为了让大家知道是谁把你甩开了三秒。","Homologuée nulle part, immatriculée par erreur. Le rétroviseur est en option : rien ne revient jamais de derrière.":"哪里都没有通过认证，注册纯属失误。后视镜是选配——反正没什么东西能从后面追上来。","657 km/h. Longtemps la reine incontestée du ciel. Aujourd'hui : l'échauffement. Bienvenue dans le vrai jeu.":"时速657公里。曾长期统治天空，无可争议。而今天，这只是热身。欢迎来到真正的游戏。","Le dossier d'homologation a explosé en vol. Littéralement. Première caisse officiellement bannie dans 194 pays.":"认证文件在飞行中爆炸了。字面意义上的爆炸。史上第一辆被194个国家正式封禁的座驾。","Elle klaxonne en BANG supersonique. Les pigeons ont porté plainte. Le mur du son a demandé une protection rapprochée.":"它按喇叭的方式是超音速爆音。鸽子已经报了警。音障申请了贴身保护。","Neuf turbines, zéro compromis. L'ingénieur qui l'a conçue s'est enfui en courant. Pas assez vite.":"九台涡轮，零妥协。设计它的工程师拔腿就跑。可惜跑得不够快。","Si rapide que les radars flashent une image vide. Les amendes sont envoyées à ton ombre. Elle non plus ne suit pas.":"快到测速摄像头只拍到一片空白。罚单寄给了你的影子。它也跟不上。","Techniquement, un missile avec des clignotants. Jamais utilisés, évidemment. L'horizon a officiellement peur.":"严格来说，这是一枚装了转向灯的导弹。当然，从没用过。地平线已经正式感到害怕。","Le moteur tourne au plasma pur et au mépris. Les vitres sont teintées pour protéger les témoins.":"引擎靠纯等离子和轻蔑运转。车窗贴膜是为了保护目击者。","Deux grammes d'antimatière et un mépris total des lois de la physique. Newton s'est retourné. Trop lentement.":"两克反物质，加上对物理定律的彻底蔑视。牛顿在棺材里翻了个身。可惜翻得太慢。","Quand elle passe devant le soleil : trois secondes de nuit. Les astronomes l'ont classée phénomène céleste.":"当它从太阳前掠过：黑夜降临三秒。天文学家已将其列为天文现象。","La lumière a demandé un délai. Le temps s'excuse au passage. Tu ne conduis plus : tu plies la carte.":"光都申请了延期。时间经过时连声道歉。你已经不是在开车了：你在折叠地图。","Plus de route. Plus de son. Plus de rivaux. Juste toi, et l'univers qui essaie de suivre. Il n'y arrive pas.":"没有路了。没有声音了。没有对手了。只剩你，和一个拼命想跟上的宇宙。它跟不上。"
-};
 
 
 // ---- L'ÉCONOMIE v3 (2026-09-25) : boutique, contrats, objectif ----
 Object.assign(I18N,{"BOUTIQUE": "SHOP", "CONTRAT": "CONTRACT", "REMPLI !": "COMPLETE!", "OBJECTIF": "GOAL", "TU PEUX TE L'OFFRIR": "YOU CAN AFFORD IT", "ACHETER": "BUY", "ARTICLES À TA PORTÉE": "ITEMS YOU CAN AFFORD", "ARTICLE À TA PORTÉE": "ITEM YOU CAN AFFORD", "EST À TOI — VA LA VOIR": "IS YOURS — GO SEE IT", "EST À TOI — ESSAIE-LA": "IS YOURS — TRY IT ON", "VERSÉS SUR TON COMPTE": "PAID INTO YOUR ACCOUNT", "VOITURES": "CARS", "PEINTURE": "PAINT", "AILES": "WINGS", "TRAÎNÉES": "TRAILS", "TRAÎNÉE": "TRAIL", "ÉQUIPÉE": "EQUIPPED", "D'ORIGINE": "FACTORY", "MENTHE GLACÉE": "ICE MINT", "BLEU MINUIT": "MIDNIGHT BLUE", "NOIR MAT": "MATTE BLACK", "COUCHER DE SOLEIL": "SUNSET", "CHROME MIROIR": "MIRROR CHROME", "OR MASSIF": "SOLID GOLD", "PANNEAUX": "PANELS", "HÉLICES": "PROPELLERS", "PLUMES D'ANGE": "ANGEL FEATHERS", "CHAUVE-SOURIS": "BAT", "NITRO": "NITRO", "MENTHE": "MINT", "ROSE NÉON": "NEON PINK", "POUDRE D'OR": "GOLD DUST", "ARC-EN-CIEL": "RAINBOW", "LA BULLE": "THE BUBBLE", "LE COMBI": "THE CAMPER", "LA DOLORÈS": "LA DOLORES", "La teinte du constructeur. Elle a fait ses preuves.": "The factory color. It has proved itself.", "Fraîche comme un billet qui sort du distributeur.": "Fresh as a bill straight out of the ATM.", "Le bleu des néons de la ville, à trois heures du matin.": "The blue of the city neons, at 3 a.m.", "Pas un reflet. Même la police hésite.": "Not a single reflection. Even the cops hesitate.", "Du miel en bas, du violet en haut : le ciel de 19 h, en laque.": "Honey at the bottom, violet on top: the 7 p.m. sky, in lacquer.", "Tu te vois dedans. Les autres aussi.": "You can see yourself in it. So can everyone else.", "Ne s'achète pas : se mérite au contrat n° 4.": "Not for sale: earned with contract #4.", "Deux planches de planeur qui sortent des flancs. Sobre.": "Two glider boards sliding out of the sides. Understated.", "Quatre rotors. Ça ne vole pas mieux, mais ça brasse de l'air.": "Four rotors. It does not fly any better, but it moves a lot of air.", "Blanches, en éventail. Le ciel te prend pour un des siens.": "White, fanned out. The sky takes you for one of its own.", "Membranes noires et doigts d'os. Pour les vols de nuit.": "Black membranes and bony fingers. For night flights.", "Orange brûlé. Le classique des tuyères.": "Burnt orange. The exhaust classic.", "Un sillage vert d'eau qui sent le propre.": "A sea-green wake that smells clean.", "Le rose des enseignes. On te suit à la trace.": "Neon-sign pink. Everyone can follow you.", "Tu ne laisses pas de la fumée derrière toi. Tu laisses de l'or.": "You do not leave smoke behind. You leave gold.", "Ne s'achète pas : se mérite au contrat n° 5.": "Not for sale: earned with contract #5.", "Ronde comme un sou neuf. Tout le monde lui sourit, même la police.": "Round as a shiny penny. Everyone smiles at it, even the cops.", "Planche sur le toit, la paix dans le cœur, et 45 chevaux qui font de leur mieux.": "Board on the roof, peace in the heart, and 45 horses doing their best.", "Inox brossé, portes papillon. À 88 à l'heure elle remonte le temps, paraît-il. Toi, tu vas plus vite.": "Brushed steel, gullwing doors. At 88 it travels back in time, apparently. You go faster.", "IL TE MANQUE": "YOU ARE SHORT", "COMPTE": "ACCOUNT"});
-Object.assign(I18N,{"DAUPHIN":"DOLPHIN"});Object.assign(I18N_ZH,{"DAUPHIN":"海豚"}); // (dauphin v3) l'étiquette
+Object.assign(I18N,{"DAUPHIN":"DOLPHIN"}); // (dauphin v3) l'étiquette
 Object.assign(I18N,{"SORTI ! GLISSE TON POUCE POUR SUIVRE LA ROUTE": "OFF THE ROAD! SLIDE YOUR THUMB TO FOLLOW IT", "TROP LONGTEMPS EN L'AIR : POSE-TOI AVANT": "TOO LONG IN THE AIR: LAND SOONER", "TOMBE DANS LE VIDE": "FELL INTO THE VOID", "ENCASTRE DANS UNE TOUR": "CRASHED INTO A TOWER", "6 S A L'ARRET : ROULE OU CREVE": "6 S STANDING STILL: DRIVE OR DIE", "DERNIER DE LA MEUTE": "LAST OF THE PACK", "CHAINE MAX": "BEST CHAIN", "ASTUCE": "TIP", "Tire le pouce vers le BAS en tournant : DRIFT !": "Pull your thumb DOWN while steering: DRIFT!", "En l'air : pouce en HAUT = plonge, en BAS = monte.": "In the air: thumb UP = dive, DOWN = climb.", "AUTO-ÉCOLE": "DRIVING SCHOOL", "PASSER": "SKIP", "TOURNE": "STEER", "DÉCOLLE": "TAKE OFF", "VOLE À LA NITRO": "FLY ON NITRO", "POSE-TOI": "LAND IT", "Glisse ton pouce à gauche… puis à droite.": "Slide your thumb left… then right.", "Maintiens NITRO : ça pousse fort.": "Hold NITRO: it pushes hard.", "Fonce hors de la route, par le bord. N'aie pas peur.": "Drive off the road, over the edge. Don't be scared.", "En l'air, MAINTIENS NITRO et reviens au-dessus de la route.": "In the air, HOLD NITRO and steer back over the road.", "Au-dessus de la route, l'anneau apparaît : pose-toi dessus (or = parfait).": "Over the road, the ring appears: land on it (gold = perfect).", "PERMIS OBTENU !": "LICENSE EARNED!", "ENCORE ! ET CETTE FOIS, NITRO EN L'AIR": "AGAIN! AND THIS TIME, NITRO IN THE AIR", "RATÉ ! ON RECOMMENCE": "MISSED! TRY AGAIN", "L'AUTO-ÉCOLE T'ATTEND AU PROCHAIN JOUER": "DRIVING SCHOOL AWAITS ON YOUR NEXT PLAY", "REVOIR L'AUTO-ECOLE": "REPLAY DRIVING SCHOOL"});
-Object.assign(I18N_ZH,{"SORTI ! GLISSE TON POUCE POUR SUIVRE LA ROUTE": "冲出赛道！滑动拇指，沿着路走", "TROP LONGTEMPS EN L'AIR : POSE-TOI AVANT": "空中 6 秒：早点着陆", "TOMBE DANS LE VIDE": "坠入虚空", "ENCASTRE DANS UNE TOUR": "撞上高楼", "6 S A L'ARRET : ROULE OU CREVE": "停车 6 秒：开起来，不然就爆", "DERNIER DE LA MEUTE": "垫底出局", "CHAINE MAX": "最长连击", "ASTUCE": "提示", "Tire le pouce vers le BAS en tournant : DRIFT !": "转向时拇指向下拉：漂移！", "En l'air : pouce en HAUT = plonge, en BAS = monte.": "空中：拇指向上 = 俯冲，向下 = 爬升。", "AUTO-ÉCOLE": "驾校", "PASSER": "跳过", "TOURNE": "转向", "NITRO": "氮气", "DÉCOLLE": "起飞", "VOLE À LA NITRO": "氮气飞行", "POSE-TOI": "着陆", "Glisse ton pouce à gauche… puis à droite.": "拇指向左滑……再向右滑。", "Maintiens NITRO : ça pousse fort.": "按住氮气：推力很猛。", "Fonce hors de la route, par le bord. N'aie pas peur.": "从路边冲出去，别怕。", "En l'air, MAINTIENS NITRO et reviens au-dessus de la route.": "在空中按住氮气，飞回赛道上方。", "Au-dessus de la route, l'anneau apparaît : pose-toi dessus (or = parfait).": "飞到赛道上方，圆环就会出现：落在上面（金色＝完美）。", "PERMIS OBTENU !": "驾照到手！", "RATÉ ! ON RECOMMENCE": "失败！再来", "REVOIR L'AUTO-ECOLE": "重温驾校"});
 Object.assign(I18N,{"ENCORE ! NITRO EN L'AIR": "AGAIN! NITRO IN THE AIR"});
-Object.assign(I18N,{"AUTO-ECOLE INTERROMPUE":"DRIVING SCHOOL STOPPED"});Object.assign(I18N_ZH,{"AUTO-ECOLE INTERROMPUE":"驾校已中断"}); // (2026-09-28) l'écran de fin d'une leçon QUITTÉE (mFill)
+Object.assign(I18N,{"AUTO-ECOLE INTERROMPUE":"DRIVING SCHOOL STOPPED"}); // (2026-09-28) l'écran de fin d'une leçon QUITTÉE (mFill)
 Object.assign(I18N,{"RECORD DE FRÉNÉSIE !":"FRENZY RECORD!","NITRO !":"NITRO!","FRENESIE":"FRENZY"});
 Object.assign(I18N,{"NARCISSE":"NARCISSIST","MACHIAVEL":"MACHIAVELLI","PSYCHO":"PSYCHO","UNE FIGURE !":"DO A TRICK!","RACCOURCI !":"SHORTCUT!","TIENS LES TROIS TRAITS":"HOLD ALL THREE TRAITS","FIGURE · RACCOURCI · NITRO":"TRICK · SHORTCUT · NITRO","DRIFT OU FIGURE !":"DRIFT OR TRICK!","DE TRAVERS !":"SIDEWAYS!","À CONTRESENS !":"WRONG WAY!","POSE UNE FIGURE !":"LAND A TRICK!"});
-Object.assign(I18N_ZH,{"NARCISSE":"自恋","MACHIAVEL":"权谋","PSYCHO":"疯狂","UNE FIGURE !":"来个花式！","RACCOURCI !":"捷径！","TIENS LES TROIS TRAITS":"守住三种特质","FIGURE · RACCOURCI · NITRO":"花式 · 捷径 · 氮气","DRIFT OU FIGURE !":"漂移或花式！","DE TRAVERS !":"歪了！","À CONTRESENS !":"逆行！","POSE UNE FIGURE !":"落地一个花式！"}); // (v4) la triade
-Object.assign(I18N_ZH,{"RECORD DE FRÉNÉSIE !":"狂热纪录！","NITRO !":"氮气！","FRENESIE":"狂热","FRÉNÉSIE":"狂热"}); // (v3) la frénésie, un but en soi
-Object.assign(I18N_ZH,{"ENCORE ! NITRO EN L'AIR": "再来！空中开氮气"});
-Object.assign(I18N_ZH,{"BOUTIQUE": "商店", "CONTRAT": "合同", "REMPLI !": "完成！", "OBJECTIF": "目标", "TU PEUX TE L'OFFRIR": "你买得起了", "ACHETER": "购买", "ARTICLES À TA PORTÉE": "件商品可购买", "ARTICLE À TA PORTÉE": "件商品可购买", "EST À TOI — VA LA VOIR": "归你了 — 去看看", "EST À TOI — ESSAIE-LA": "归你了 — 试试看", "VERSÉS SUR TON COMPTE": "已存入账户", "VOITURES": "车辆", "PEINTURE": "涂装", "AILES": "翅膀", "TRAÎNÉES": "尾迹", "TRAÎNÉE": "尾迹", "ÉQUIPÉE": "已装备", "D'ORIGINE": "原厂", "MENTHE GLACÉE": "冰薄荷", "BLEU MINUIT": "午夜蓝", "NOIR MAT": "哑光黑", "COUCHER DE SOLEIL": "日落", "CHROME MIROIR": "镜面铬", "OR MASSIF": "纯金", "PANNEAUX": "滑翔板", "HÉLICES": "螺旋桨", "PLUMES D'ANGE": "天使之羽", "CHAUVE-SOURIS": "蝙蝠", "NITRO": "氮气", "MENTHE": "薄荷", "ROSE NÉON": "霓虹粉", "POUDRE D'OR": "金粉", "ARC-EN-CIEL": "彩虹", "LA BULLE": "泡泡", "LE COMBI": "露营车", "LA DOLORÈS": "多洛蕾丝"});
 Object.assign(I18N,{"OFFRE DE LANCEMENT": "LAUNCH OFFER", "LA CAISSE DU MOIS": "CAR OF THE MONTH", "Une voiture exclusive, sa peinture et sa traînée. Introuvable ailleurs.": "An exclusive car, its paint and its trail. Found nowhere else.", "BIENTÔT": "SOON", "VOITURES PREMIUM": "PREMIUM CARS", "LÉGENDAIRE": "LEGENDARY", "ÉPIQUE": "EPIC", "RARE": "RARE", "RESTAURER MES ACHATS": "RESTORE PURCHASES", "BIENTÔT DISPONIBLE — À LA SORTIE SUR L'APP STORE": "COMING SOON — AT THE APP STORE LAUNCH", "AUCUN ACHAT À RESTAURER": "NO PURCHASES TO RESTORE", "CONTRAT RÉUSSI": "CONTRACT DONE", "DÉBLOQUÉ": "UNLOCKED"});
-Object.assign(I18N_ZH,{"OFFRE DE LANCEMENT": "首发优惠", "LA CAISSE DU MOIS": "本月座驾", "BIENTÔT": "即将推出", "VOITURES PREMIUM": "高级车辆", "LÉGENDAIRE": "传说", "ÉPIQUE": "史诗", "RARE": "稀有", "RESTAURER MES ACHATS": "恢复购买", "CONTRAT RÉUSSI": "合同完成", "DÉBLOQUÉ": "已解锁"});
 Object.assign(I18N,{"DÉFI RÉUSSI": "CHALLENGE DONE", "DÉFIS RÉUSSIS !": "CHALLENGES DONE!", "À GAGNER": "TO WIN", "Ne s'achète pas : elle se gagne en relevant des défis.": "Not for sale: won by beating challenges."});
-Object.assign(I18N_ZH,{"DÉFI RÉUSSI": "挑战完成", "DÉFIS RÉUSSIS !": "挑战全部完成！", "À GAGNER": "待赢取"});
 Object.assign(I18N,{"NOUVEAU MOTEUR": "NEW ENGINE"});
-Object.assign(I18N_ZH,{"NOUVEAU MOTEUR": "新引擎"});
 Object.assign(I18N,{"VERSÉS AU COMPTE": "PAID INTO YOUR ACCOUNT", "MOTEUR": "ENGINE", "NOUVEAU RANG !": "NEW RANK!", "RECORD !": "RECORD!", "AURA": "AURA"});
-Object.assign(I18N_ZH,{"VERSÉS AU COMPTE": "已存入账户", "MOTEUR": "引擎", "NOUVEAU RANG !": "新段位！", "RECORD !": "新纪录！", "AURA": "灵气"});
 Object.assign(I18N,{"À TOI": "YOURS", "CHAT POP-TART": "POP-TART CAT", "REQUIN": "SHARK", "COMÈTE": "COMET", "FORMULE OR": "GOLD FORMULA", "LE MANS 24": "LE MANS 24", "EL PATRON": "EL PATRON", "ACIDE": "ACID"});
-Object.assign(I18N_ZH,{"À TOI": "已拥有"});
 Object.assign(I18N,{"Une pâtisserie industrielle avec une tête de chat et quatre roulettes. Personne n'a demandé pourquoi. Tout le monde a demandé comment.": "An industrial pastry with a cat's head and four little wheels. Nobody asked why. Everybody asked how.", "Bulle de verre, museau de grand blanc, quatre bras d'hélices repliés dans les flancs. Au sol il roule. En l'air, il chasse.": "Glass bubble, great-white snout, four propeller arms folded into its flanks. On the ground it drives. In the air, it hunts.", "Coin furtif, bulle de verre, dérive dorsale. La reine du ciel, et elle le sait. Personne ne l'a jamais vue de face.": "Stealth wedge, glass bubble, dorsal fin. Queen of the sky, and she knows it. No one has ever seen her from the front.", "Un aileron, un baquet, et tes économies peintes en doré. Le circuit appelle ça de la triche. Nous, du talent.": "One wing, one bucket seat, and your savings painted gold. The track calls it cheating. We call it talent.", "Prototype d'endurance : quatre phares longue portée, dérive dorsale, aileron de porte-avions. Faite pour rouler une nuit entière.": "Endurance prototype: four long-range lights, dorsal fin, aircraft-carrier wing. Built to drive all night.", "Le taureau doré, arche de toit bicolore et fer à cheval en calandre. L'assurance a été résiliée d'office.": "The golden bull, two-tone roof arch and horseshoe grille. The insurance was cancelled on sight.", "Compacte japonaise passée au bain d'acide : capot vitré sur le bloc, aileron de table à repasser, échappement qui crache vert.": "A Japanese compact dipped in acid: glass bonnet over the engine, ironing-board wing, exhaust that spits green."});
-Object.assign(I18N_ZH,{"MINI-TURBO": "迷你涡轮", "SUPER TURBO": "超级涡轮", "ULTRA TURBO": "极限涡轮"});
-Object.assign(I18N,{"RASE-BORD": "EDGE RIDER"});Object.assign(I18N_ZH,{"RASE-BORD": "贴边疾驰"});
-Object.assign(I18N,{"FRONDE": "SLINGSHOT"});Object.assign(I18N_ZH,{"FRONDE": "弹弓"}); /* (2026-09-30) LA FRONDE : le nom de l'aura, dans la chaîne */
+Object.assign(I18N,{"RASE-BORD": "EDGE RIDER"});
+Object.assign(I18N,{"FRONDE": "SLINGSHOT"}); /* (2026-09-30) LA FRONDE : le nom de l'aura, dans la chaîne */
 // (2026-09-28, chasse aux détails) les figures les plus fréquentes restaient en français en anglais (au-dessus de la caisse et dans la liste de chaîne)
-Object.assign(I18N,{'VIBRATIONS':'VIBRATION'});Object.assign(I18N,{'APPRENDS A VOLER':'LEARN TO FLY','ESPACE TERMINE':'SPACE COMPLETE','PARIS TERMINE':'PARIS COMPLETE','LE SYSTEME SOLAIRE EST A TOI':'THE SOLAR SYSTEM IS YOURS'});Object.assign(I18N_ZH,{'APPRENDS A VOLER':'学会飞翔','ESPACE TERMINE':'太空完成','PARIS TERMINE':'巴黎完成','LE SYSTEME SOLAIRE EST A TOI':'太阳系归你了'});Object.assign(I18N_ZH,{'VIBRATIONS':'震动'});
 Object.assign(I18N,{'TONNEAU':'BARREL ROLL','TONNEAU !':'BARREL ROLL!','PAR-DESSUS':'OVER IT','PAR-DESSUS !':'OVER IT!','AIR MONSTRE':'MONSTER AIR','DAUPHIN EN VOL':'DOLPHIN RUN','POSE PARFAITE':'PERFECT LANDING','POSE DIVINE':'DIVINE LANDING','IMPACT METEORE':'METEOR IMPACT'});
+Object.assign(I18N,{'VIBRATIONS':'VIBRATION'});Object.assign(I18N,{'APPRENDS A VOLER':'LEARN TO FLY','ESPACE TERMINE':'SPACE COMPLETE','PARIS TERMINE':'PARIS COMPLETE','LE SYSTEME SOLAIRE EST A TOI':'THE SOLAR SYSTEM IS YOURS'});
 try{if(window.FIG)FIG.liste.forEach(function(f){if(f.en&&f.en!==f.n)I18N[f.n]=f.en;});}catch(e){} // (2026-10-14) les noms des FIGURES (figures.js) en anglais
 Object.assign(I18N,{'ENTRER UN CODE':'ENTER A CODE','TOUT EST DÉBLOQUÉ !':'EVERYTHING UNLOCKED!','CODE INCONNU':'UNKNOWN CODE','FIGURE RATEE !':'BOTCHED TRICK!','FIGURES':'TRICKS','FIGURE':'TRICK','ACQUISE':'OWNED','AIR MONSTRE':'MONSTER AIR','DAUPHIN EN VOL':'DOLPHIN RUN','POSE PARFAITE':'PERFECT LANDING','POSE DIVINE':'DIVINE LANDING','IMPACT METEORE':'METEOR IMPACT'});
-Object.assign(I18N_ZH,{'FIGURE RATEE !':'特技失败！','FIGURES':'特技','AIR MONSTRE':'怪兽腾空','DAUPHIN EN VOL':'海豚飞行','POSE PARFAITE':'完美着陆','POSE DIVINE':'神级着陆','IMPACT METEORE':'流星撞击'});
-Object.assign(I18N,{"FRÉNÉSIE": "FRENZY", "FRÉNÉSIE !": "FRENZY!", "RESTE DANS LE ROUGE": "STAY IN THE RED", "PLUS VITE !": "FASTER!", "RISQUE + VITESSE": "RISK + SPEED"});Object.assign(I18N_ZH,{"FRÉNÉSIE": "狂热", "FRÉNÉSIE !": "狂热！", "RESTE DANS LE ROUGE": "守住红区"});
+Object.assign(I18N,{"FRÉNÉSIE": "FRENZY", "FRÉNÉSIE !": "FRENZY!", "RESTE DANS LE ROUGE": "STAY IN THE RED", "PLUS VITE !": "FASTER!", "RISQUE + VITESSE": "RISK + SPEED"});
 /* (2026-09-28, passe de lancement) CE QU'UN JOUEUR ANGLOPHONE LISAIT ENCORE EN FRANÇAIS, relevé à l'écran par un banc qui note chaque
    texte affiché pendant 3 minutes de jeu : la liste d'aura, les trois pouvoirs, la fête des ordres de grandeur, la meute du Survivant. */
-Object.assign(I18N,{'RATÉ ! GARDE LE NITRO, VISE LE DESSUS':'MISSED! HOLD NITRO, AIM FOR THE TOP'});Object.assign(I18N_ZH,{'RATÉ ! GARDE LE NITRO, VISE LE DESSUS':'失败！按住氮气，瞄准路面'});
-Object.assign(I18N,{'LES NUAGES CACHENT LES VIRAGES':'CLOUDS HIDE THE TURNS','LES TOURS NE PARDONNENT PAS':'TOWERS SHOW NO MERCY'});Object.assign(I18N_ZH,{'LES NUAGES CACHENT LES VIRAGES':'云朵遮住弯道','LES TOURS NE PARDONNENT PAS':'高楼绝不留情'}); // (2026-09-30) les promesses des NUAGES et de la VILLE
-Object.assign(I18N,{'MINUIT EN VILLE':'MIDNIGHT CITY','PLEINS PHARES':'HIGH BEAMS','LES FACADES SONT DES MURS':'THE FACADES ARE WALLS'});Object.assign(I18N_ZH,{'LES FACADES SONT DES MURS':'外墙就是墙'});Object.assign(I18N_ZH,{'MINUIT EN VILLE':'午夜城市','PLEINS PHARES':'远光灯'});
-Object.assign(I18N,{'PLUIE DE SATELLITES':'SATELLITE STORM','ESQUIVE LES SATELLITES':'DODGE THE SATELLITES','PERCUTE PAR UN SATELLITE':'HIT BY A SATELLITE'});Object.assign(I18N_ZH,{'PLUIE DE SATELLITES':'卫星雨','ESQUIVE LES SATELLITES':'躲开卫星','PERCUTE PAR UN SATELLITE':'撞上卫星'}); // (2026-09-30) le 6e niveau
-Object.assign(I18N,{'L\'ORAGE':'THE STORM','TEMPÊTE':'STORM','LA ROUTE SE CACHE : L\'ECLAIR LA MONTRE':'THE ROAD HIDES: LIGHTNING SHOWS IT'});Object.assign(I18N_ZH,{'L\'ORAGE':'暴风雨','TEMPÊTE':'风暴','LA ROUTE SE CACHE : L\'ECLAIR LA MONTRE':'道路隐没：闪电照亮它'}); // (2026-09-29) le 4e niveau
+Object.assign(I18N,{'RATÉ ! GARDE LE NITRO, VISE LE DESSUS':'MISSED! HOLD NITRO, AIM FOR THE TOP'});
+Object.assign(I18N,{'LES NUAGES CACHENT LES VIRAGES':'CLOUDS HIDE THE TURNS','LES TOURS NE PARDONNENT PAS':'TOWERS SHOW NO MERCY'}); // (2026-09-30) les promesses des NUAGES et de la VILLE
+Object.assign(I18N,{'MINUIT EN VILLE':'MIDNIGHT CITY','PLEINS PHARES':'HIGH BEAMS','LES FACADES SONT DES MURS':'THE FACADES ARE WALLS'});
+Object.assign(I18N,{'PLUIE DE SATELLITES':'SATELLITE STORM','ESQUIVE LES SATELLITES':'DODGE THE SATELLITES','PERCUTE PAR UN SATELLITE':'HIT BY A SATELLITE'}); // (2026-09-30) le 6e niveau
+Object.assign(I18N,{'L\'ORAGE':'THE STORM','TEMPÊTE':'STORM','LA ROUTE SE CACHE : L\'ECLAIR LA MONTRE':'THE ROAD HIDES: LIGHTNING SHOWS IT'}); // (2026-09-29) le 4e niveau
 Object.assign(I18N,{'VIRAGE A FOND':'FULL THROTTLE TURN','RATTRAPE':'CAUGHT','RATTRAPE !':'CAUGHT!'}); // (2026-09-29) LA ROUTE QUI TE RATTRAPE
 Object.assign(I18N,{'FRÔLÉ':'CLOSE CALL','RÉCOLTE':'COIN RUSH','RAFALE':'FRUIT RUSH','VIRAGE SERRÉ':'TIGHT TURN','MÉTÉORE':'METEOR',
   'AU CHEVEU':'BY A HAIR','ARRACHÉE':'CLUTCH','EN FEU !!':'ON FIRE!!','DEMENT !!!':'INSANE!!!','ÇA CHAUFFE !':'HEATING UP!',
@@ -18344,16 +18328,9 @@ Object.assign(I18N,{'FRÔLÉ':'CLOSE CALL','RÉCOLTE':'COIN RUSH','RAFALE':'FRUI
   'RETOUR À LA COURSE':'BACK TO RACING','L\'AUTO-ÉCOLE T\'ATTEND AU PROCHAIN JOUER':'DRIVING SCHOOL AWAITS ON YOUR NEXT RUN',
   'POSÉ LOURD — AÏE… ':'HEAVY LANDING — OUCH… ','PARFAIT (BOOST ×2) ! ':'PERFECT (BOOST ×2)! ','🐬 LE DAUPHIN !':'🐬 THE DOLPHIN!',
   'VRILLE 360 — LAVE-LINGE !':'360 SPIN — WASHING MACHINE!','TRIPLE BUMP — LA DALLE EN PLEURE':'TRIPLE BUMP — THE ROAD IS CRYING'});
-Object.assign(I18N_ZH,{'FRÔLÉ':'擦边','RÉCOLTE':'金币连收','RAFALE':'水果连吃','VIRAGE SERRÉ':'急弯','MÉTÉORE':'流星','AU CHEVEU':'千钧一发',
-  'ARRACHÉE':'险胜','EN FEU !!':'火力全开！！','DEMENT !!!':'疯了！！！','ÇA CHAUFFE !':'热起来了！','IL PLEUT DES BILLETS':'钞票雨','AURA EN FUSION':'气场熔化','MULTI MAX !!':'倍数封顶！！','DRIFT !':'漂移！','DRIFT · RACCOURCI · VITESSE':'漂移 · 捷径 · 速度',
-  'NITRO ILLIMITEE':'无限氮气','6 S A FOND':'全速 6 秒','AIRTIME INFINI':'无限滞空','10 S DE VOL':'飞行 10 秒','VITESSE ×2':'速度 ×2',
-  'TOI':'你','EN TÊTE':'领先','PLUS VITE !':'再快点！',
-  'RISQUE + VITESSE':'冒险 + 速度','RACCOURCI':'捷径','RETOUR À LA COURSE':'回到比赛'});
 // ---- la charte v4 (2026-09-26) : les libellés neufs de l'interface (et ceux qui retombaient en français) ----
 Object.assign(I18N,{"LÉGENDAIRES":"LEGENDARIES","EXOTIQUES":"EXOTICS","EXOTIQUE":"EXOTIC","MYTHIQUES":"MYTHICS","MYTHIQUE":"MYTHIC","INFINIS":"INFINITE","INFINI":"INFINITE","BIENTÔT":"SOON"}); // (2026-10-10) les sept raretés
-Object.assign(I18N_ZH,{"LÉGENDAIRES":"传奇","EXOTIQUES":"异域","EXOTIQUE":"异域","MYTHIQUES":"神话","MYTHIQUE":"神话","INFINIS":"无限","INFINI":"无限"});
 Object.assign(I18N,{"COMMUNES":"COMMONS","COMMUNE":"COMMON","RARES":"RARES","ÉPIQUES":"EPICS","ÉPIQUE":"EPIC","LÉGENDES":"LEGENDS","LÉGENDAIRE":"LEGENDARY","DÉFIS":"CHALLENGES","TOUT":"ALL","À MOI":"MINE","À ACHETER":"FOR SALE","TRAÎNÉE":"TRAIL","PEINTURE":"PAINT","AILES":"WINGS"});
-Object.assign(I18N_ZH,{"COMMUNES":"普通","COMMUNE":"普通","RARES":"稀有","RARE":"稀有","ÉPIQUES":"史诗","ÉPIQUE":"史诗","LÉGENDES":"传奇","LÉGENDAIRE":"传奇","DÉFIS":"挑战","TOUT":"全部","À MOI":"已拥有","À ACHETER":"可购买","TRAÎNÉE":"尾迹","PEINTURE":"涂装","AILES":"翅膀"});
 Object.assign(I18N,{"PIÈCE":"COIN","RETOUR":"BACK","EN BOUTIQUE":"IN THE SHOP","VERROUILLÉE":"LOCKED","ÉQUIPÉE":"EQUIPPED","IL MANQUE":"SHORT BY","LES LEGENDAIRES":"LEGENDARIES","DÉFI":"CHALLENGE"});
 // (2026-09-28, pouvoirs v2) les six pouvoirs, leurs durées, le cumul, le bouclier qui sauve
 Object.assign(I18N,{'NITRO INFINIE — 9 s À FOND !':'INFINITE NITRO — 9 s FLAT OUT!','🪂 AIRTIME INFINI — 14 s DE VOL !':'🪂 INFINITE AIRTIME — 14 s OF FLIGHT!',
@@ -18365,24 +18342,11 @@ Object.assign(I18N,{'NITRO INFINIE — 9 s À FOND !':'INFINITE NITRO — 9 s FL
   'DOUBLE POUVOIR':'DOUBLE POWER','TRIPLE POUVOIR':'TRIPLE POWER','DOUBLE POUVOIR !':'DOUBLE POWER!','TRIPLE POUVOIR !':'TRIPLE POWER!',
   'SAUVE !':'SAVED!','LE BOUCLIER A CEDE':'THE SHIELD BROKE','LE BOUCLIER T\'A SAUVE':'THE SHIELD SAVED YOU','DEMOLI':'SMASHED',
   'SANS FAUTE':'FLAWLESS','SERIE CASSEE':'STREAK BROKEN','MIRACULE':'MIRACLE','MIRACULE !':'MIRACLE!','RECORD DE VITESSE':'SPEED RECORD','SÉRIE COMPLÈTE':'FULL SET','PLONGEON !':'DIVE!','REPLONGEON !':'DIVE AGAIN!','RICOCHET !':'SKIP!','RICOCHET':'SKIP','LA MER TE RAMENE':'THE SEA BRINGS YOU BACK','HORS DE L EAU !':'OUT OF THE WATER!','PLONGEON':'DIVE','REPLONGEON':'DIVE AGAIN','HORS DE L EAU':'OUT OF THE WATER'});
-Object.assign(I18N_ZH,{'NITRO INFINIE — 9 s À FOND !':'无限氮气 — 全速 9 秒！','🪂 AIRTIME INFINI — 14 s DE VOL !':'🪂 无限滞空 — 飞行 14 秒！',
-  '⚡ VITESSE ×2 — 8 s !':'⚡ 速度 ×2 — 8 秒！','9 S A FOND':'全速 9 秒','14 S DE VOL':'飞行 14 秒','8 S':'8 秒',
-  'AIMANT':'磁铁','BOUCLIER':'护盾','AURA ×2':'气场 ×2','L\'OR VIENT A TOI':'金币自动飞来','UNE CHUTE PARDONNEE':'免死一次',
-  'AIMANT — 12 s : TOUT L\'OR VIENT À TOI !':'磁铁 — 12 秒：金币自动飞来！','BOUCLIER — 20 s : UNE CHUTE PARDONNÉE !':'护盾 — 20 秒：免死一次！',
-  'AURA ×2 — 12 s : TOUTE L\'AURA COMPTE DOUBLE !':'气场 ×2 — 12 秒：所有气场双倍！','TOUTE L\'AURA COMPTE DOUBLE':'所有气场双倍',
-  'DOUBLE POUVOIR':'双重道具','TRIPLE POUVOIR':'三重道具','DOUBLE POUVOIR !':'双重道具！','TRIPLE POUVOIR !':'三重道具！',
-  'SAUVE !':'得救！','LE BOUCLIER A CEDE':'护盾碎了','LE BOUCLIER T\'A SAUVE':'护盾救了你','DEMOLI':'撞飞',
-  'SANS FAUTE':'完美连续','SERIE CASSEE':'连击中断','MIRACULE':'奇迹','MIRACULE !':'奇迹！','RECORD DE VITESSE':'速度纪录','SÉRIE COMPLÈTE':'整组收集','PLONGEON !':'潜水！','REPLONGEON !':'再次潜水！','RICOCHET !':'打水漂！','RICOCHET':'打水漂','LA MER TE RAMENE':'大海送你回来','HORS DE L EAU !':'跃出水面！','PLONGEON':'潜水','REPLONGEON':'再次潜水','HORS DE L EAU':'跃出水面'});
-Object.assign(I18N,{'MOY':'AVG','MOYENNE BATTUE':'AVERAGE BEATEN'});Object.assign(I18N_ZH,{'MOY':'平均','MOYENNE BATTUE':'超越平均'}); // (2026-10-12) la JAUGE D'AURA
+Object.assign(I18N,{'MOY':'AVG','MOYENNE BATTUE':'AVERAGE BEATEN'}); // (2026-10-12) la JAUGE D'AURA
 Object.assign(I18N,{"MISSIONS":"MISSIONS","MENU":"MENU","HOME":"HOME","ATELIER":"WORKSHOP","LES TROIS DEFIS":"THE THREE CHALLENGES",
   "DEFI":"CHALLENGE","REUSSI":"DONE","SUIVI EN COURSE":"TRACKED","MEILLEUR ESSAI":"BEST RUN","RECOMPENSE":"REWARD","ENSUITE":"NEXT","CARNET":"SET",
   "CHAQUE DEFI EN UNE PARTIE":"EACH CHALLENGE IN ONE RUN","SUIVI":"TRACKING","TOUCHE UN DEFI POUR LE SUIVRE EN COURSE":"TAP A CHALLENGE TO TRACK IT","LES 3 DEFIS D'ABORD":"THE 3 CHALLENGES FIRST"}); // (2026-09-30) l'écran MISSIONS de l'atelier // (2026-09-28) la porte et l'écran des MISSIONS, la sortie MENU de l'écran de mort
-Object.assign(I18N_ZH,{"MISSIONS":"任务","MENU":"菜单","HOME":"主页","ATELIER":"改装","LES TROIS DEFIS":"三项挑战",
-  "DEFI":"挑战","REUSSI":"完成","SUIVI EN COURSE":"比赛中追踪","MEILLEUR ESSAI":"最佳一局","RECOMPENSE":"奖励","ENSUITE":"下一个","CARNET":"任务册",
-  "CHAQUE DEFI EN UNE PARTIE":"每项挑战须单局完成","SUIVI":"追踪中","TOUCHE UN DEFI POUR LE SUIVRE EN COURSE":"点击挑战，在比赛中追踪","LES 3 DEFIS D'ABORD":"先完成 3 项挑战"});
 Object.assign(I18N,{"LES DEFIS · CHACUN EN UNE PARTIE":"CHALLENGES · EACH IN ONE RUN","A GAGNER":"TO WIN","ENSUITE":"NEXT","VOIR":"SEE","RELEVÉ":"DONE","À TENTER":"NOT TRIED YET","CETTE PARTIE":"THIS RUN","DÉFI RÉUSSI !":"CHALLENGE DONE!","BONUS":"BONUS"}); // (2026-09-28, soir) MISSIONS v2 et la porte de l'écran de mort
-Object.assign(I18N_ZH,{"LES DEFIS · CHACUN EN UNE PARTIE":"挑战 · 每项单局完成","A GAGNER":"可赢取","ENSUITE":"下一个","VOIR":"查看","RELEVÉ":"已完成","À TENTER":"尚未尝试","CETTE PARTIE":"本局","DÉFI RÉUSSI !":"挑战完成！","BONUS":"奖金"});
-Object.assign(I18N_ZH,{"PIÈCE":"金币","RETOUR":"返回","EN BOUTIQUE":"商店有售","VERROUILLÉE":"未解锁","ÉQUIPÉE":"已装备","IL MANQUE":"还差","LES LEGENDAIRES":"传奇座驾","DÉFI":"挑战","ACHETER":"购买"});
 // (2026-09-29, relecture de sortie) les 50 fiches du garage : noms et punchlines en anglais
 Object.assign(I18N,{
  "LA POSTIÈRE":"THE MAIL LADY",
@@ -18574,50 +18538,41 @@ Object.assign(I18N,{
 Object.assign(I18N,{"CASH CAR — toucher pour jouer":"CASH CAR — tap to play","Compte":"Account","Familles":"Rarities","Vignettes":"Thumbnails","Précédente":"Previous","Suivante":"Next","Retour":"Back","Fermer":"Close","Carrière":"Career","Menu principal CASH CAR":"CASH CAR main menu","Missions":"Missions","Menu":"Menu","Volant — glisse pour tourner":"Steering — swipe to steer","Gauche":"Left","Droite":"Right","Nitro":"Nitro","La partie en cours":"Current run","Fruit précédent":"Previous fruit","Fruit suivant":"Next fruit","Réglages":"Settings"});
 // (2026-09-29, les dix premières minutes) PASSER qui demande, le permis fêté, la carrière qui passe par l'auto-école
 Object.assign(I18N,{"VRAIMENT ?": "SURE?", "PERMIS": "LICENSE", "SORTI ! SUIS LA ROUTE": "OFF THE ROAD! FOLLOW IT", "RATÉ ! NITRO, VISE LE DESSUS": "MISSED! NITRO, AIM ABOVE IT", "Fini l'entraînement : UNE SEULE VIE. En l'air, pose-toi avant la fin du chrono.": "Training's over: ONE LIFE. In the air, land before the timer runs out.", "Tu reprendras la leçon au prochain départ.": "You'll pick the lesson up on your next start.", "Tu reprendras la leçon au prochain départ : le PERMIS et sa prime t'attendent.": "You'll pick the lesson up on your next start: the LICENSE and its bonus are waiting.", "PASSE D'ABORD TON PERMIS": "GET YOUR LICENSE FIRST"});
-Object.assign(I18N_ZH,{"VRAIMENT ?": "确定？", "PERMIS": "驾照", "SORTI ! SUIS LA ROUTE": "冲出赛道！沿着路走", "RATÉ ! NITRO, VISE LE DESSUS": "失败！用氮气，瞄准路面上方", "Fini l'entraînement : UNE SEULE VIE. En l'air, pose-toi avant la fin du chrono.": "训练结束：只有一条命。空中要在计时结束前着陆。", "Tu reprendras la leçon au prochain départ.": "下次出发时继续课程。", "Tu reprendras la leçon au prochain départ : le PERMIS et sa prime t'attendent.": "下次出发时继续课程：驾照和奖金在等你。", "PASSE D'ABORD TON PERMIS": "先考驾照", "MOTEUR ATTEINT": "达到的引擎"});
 // (2026-09-29) MODE FACILE + pouce haut en vol
 Object.assign(I18N,{"MULTI MAX":"BEST MULTI","Fini l'entraînement : tu as 3 VIES. En l'air, pose-toi avant la fin du chrono.":"Training's over: you have 3 LIVES. In the air, land before the timer runs out.","IL MENE DE":"BANKER AHEAD BY","Argent, caisses, habillages, missions, records, carrière et réglages : tout repart de zéro.":"Money, cars, cosmetics, missions, records, career and settings: everything starts over."}); // (2026-09-29, passe qualité)
-Object.assign(I18N_ZH,{"MULTI MAX":"最高倍数","Fini l'entraînement : tu as 3 VIES. En l'air, pose-toi avant la fin du chrono.":"训练结束：你有 3 条命。空中要在计时结束前着陆。","IL MENE DE":"银行家领先","Argent, caisses, habillages, missions, records, carrière et réglages : tout repart de zéro.":"金钱、赛车、外观、任务、纪录、生涯和设置：全部清零。"});
 Object.assign(I18N,{"MODE FACILE": "EASY MODE", "POUCE HAUT EN VOL": "THUMB UP IN THE AIR", "PLONGE": "DIVE", "MONTE": "CLIMB", "CHOISIS TON MODE": "PICK YOUR MODE", "En FACILE, la voiture suit mieux les virages, tu restes plus longtemps en l'air et tu as 3 vies. Tu pourras changer dans les réglages.": "In EASY, the car follows the turns better, you stay longer in the air and you get 3 lives. You can change it in the settings.", "FACILE": "EASY", "NORMAL": "NORMAL", "VIES": "LIVES", "DERNIERE VIE !": "LAST LIFE!", "ON REPART !": "BACK ON THE ROAD!", "En l'air : pouce en HAUT = monte, en BAS = plonge.": "In the air: thumb UP = climb, DOWN = dive."});
-Object.assign(I18N,{"POUCE HAUT":"THUMB UP","REVOIR":"REPLAY"});Object.assign(I18N_ZH,{"POUCE HAUT":"拇指向上","REVOIR":"重温","AUTO-ECOLE":"驾校"}); /* (2026-10-14, charte 6) les réglages : « POUCE HAUT EN VOL » et « REVOIR L'AUTO-ECOLE » raccourcis (une ligne = un nom + une valeur) */
-Object.assign(I18N_ZH,{"MODE FACILE": "简单模式", "POUCE HAUT EN VOL": "空中拇指向上", "PLONGE": "俯冲", "MONTE": "爬升", "CHOISIS TON MODE": "选择模式", "En FACILE, la voiture suit mieux les virages, tu restes plus longtemps en l'air et tu as 3 vies. Tu pourras changer dans les réglages.": "简单模式：车更容易过弯，空中停留更久，还有 3 条命。可以在设置里更改。", "FACILE": "简单", "NORMAL": "普通", "VIES": "条命", "DERNIERE VIE !": "最后一条命！", "ON REPART !": "重新上路！", "En l'air : pouce en HAUT = monte, en BAS = plonge.": "空中：拇指向上 = 爬升，向下 = 俯冲。"});
+Object.assign(I18N,{"POUCE HAUT":"THUMB UP","REVOIR":"REPLAY"}); /* (2026-10-14, charte 6) les réglages : « POUCE HAUT EN VOL » et « REVOIR L'AUTO-ECOLE » raccourcis (une ligne = un nom + une valeur) */
 // (POKI) les textes propres à l'édition Poki (les habillages des anciens carnets, l'effacement sans missions ni carrière)
 if(POKI){Object.assign(I18N,{"Vingt-quatre carats sur la carrosserie. Discret, comme toi.":"Twenty-four carats on the bodywork. Subtle, like you.",
   "Toutes les couleurs à la fois. Personne ne t'oublie.":"Every colour at once. Nobody forgets you.",
-  "Argent, caisses, habillages, records et réglages : tout repart de zéro.":"Money, cars, cosmetics, records and settings: everything starts over."});
- Object.assign(I18N_ZH,{"Vingt-quatre carats sur la carrosserie. Discret, comme toi.":"车身镀上二十四K金。低调，就像你。",
-  "Toutes les couleurs à la fois. Personne ne t'oublie.":"所有颜色一次到齐。没人会忘记你。",
-  "Argent, caisses, habillages, records et réglages : tout repart de zéro.":"金钱、赛车、外观、纪录和设置：全部清零。"});}
+  "Argent, caisses, habillages, records et réglages : tout repart de zéro.":"Money, cars, cosmetics, records and settings: everything starts over."});}
 // (2026-09-29) écran de fin v5
-Object.assign(I18N_ZH,{"MEILLEUR": "最佳", "COMPTE": "账户"});
 // ⚠ nommée TR et non T : `T` est DÉJÀ le tableau des tangentes de la piste (T[bi].y) — la
 // collision faisait planter tout le script au parsing, écran noir muet.
 /* LES CLÉS SANS LEUR SYMBOLE (2026-09-24) : les symboles de tête (✓ 🔒 ★ 📋…) sont devenus des ICÔNES PIXEL
    posées à côté du texte. Chaque clé « symbole + espace + texte » reçoit donc un ALIAS « texte » seul, qui
    traduit pareil — sans ça, retirer l'emoji d'un libellé lui aurait fait perdre sa traduction. */
 for(const [k,v] of Object.entries({"JOUER": "PLAY", "CARRIERE": "CAREER", "MODES": "MODES", "REGLAGES": "SETTINGS", "REJOUER": "PLAY AGAIN", "MEILLEUR :": "BEST:", "MEILLEUR": "BEST", "CAISSE": "CAR", "UNE SEULE VIE · TOUT LE CIEL": "ONE LIFE · THE WHOLE SKY", "AUDIO": "AUDIO", "JEU": "GAME", "SAUVEGARDE": "SAVE", "SON": "SOUND", "MUSIQUE": "MUSIC", "VOIX": "VOICE", "VOLUME": "VOLUME", "COMMANDES": "CONTROLS", "IMAGE": "GRAPHICS", "LANGUE": "LANGUAGE", "DEVISE": "CURRENCY", "COPIER MA SAUVEGARDE": "COPY MY SAVE", "RESTAURER UN CODE": "RESTORE A CODE", "EFFACER MA PROGRESSION": "ERASE MY PROGRESS", "SURVIVANT": "SURVIVOR", "PARC FREESTYLE": "FREESTYLE PARK", "BAC A SABLE": "SANDBOX", "REPRENDRE": "RESUME", "FERMER": "CLOSE", "REPLACER LA CAISSE": "RESET THE CAR", "RECOMMENCER": "RESTART", "QUITTER": "QUIT", "PAUSE": "PAUSE", "LA PARTIE": "THIS RUN", "VOLANT": "WHEEL", "FLECHES": "ARROWS", "RAPIDE": "FAST", "NETTE": "SHARP", "FIGURES": "TRICKS", "ENTRAINEMENT TERMINE": "TRAINING OVER", "NOUVEAU RECORD !": "NEW RECORD!", "MOTEUR ATTEINT": "ENGINE REACHED", "GLISSE POUR TOURNER": "SWIPE TO STEER", "glisse pour tourner · pince pour zoomer": "drag to turn · pinch to zoom", "touche CASH CAR — le son s'allume avec toi": "tap CASH CAR — sound comes alive with you", "MA SAUVEGARDE": "MY SAVE", "Garde ce code : il restaure toute ta progression.": "Keep this code: it restores all your progress.", "COPIER": "COPY", "COPIE !": "COPIED!", "RESTAURER": "RESTORE", "Colle ton code de sauvegarde.": "Paste your save code.", "ANNULER": "CANCEL", "RESTAURE — RECHARGE…": "RESTORED — RELOADING…", "CODE INVALIDE": "INVALID CODE", "TOUT EFFACER ?": "ERASE EVERYTHING?", "Records, caisses débloquées, carrière et réglages repartent de zéro.": "Records, unlocked cars, career and settings start over.", "EFFACER": "ERASE", "TERMINE LE NIVEAU": "FINISH LEVEL", "NUAGES": "SKY HIGH", "SKY HIGH": "SKY HIGH", "SKY HIGH TERMINE": "SKY HIGH COMPLETE", "De l'aurore au matin, cinq niveaux au-dessus des nuages.": "From dawn to morning, five levels above the clouds.", "Du coucher du soleil à l'orage, au-dessus du village caché de la pluie.": "From sunset to the storm, above the hidden rain village.", "VILLE": "CITY", "ESPACE": "SPACE", "10 heures du jour, de l'aurore au coucher du soleil.": "10 hours of the day, from dawn to sunset.", "Du coucher du soleil à midi, au-dessus du village caché de la pluie.": "From sunset to noon, above the hidden rain village.", "Au plus près des planètes du système solaire.": "Up close to the planets of the solar system.", "AURORE": "DAWN", "PREMIERES LUEURS": "FIRST LIGHT", "LEVER DU SOLEIL": "SUNRISE", "MATIN FRAIS": "CRISP MORNING", "MATIN": "MORNING", "MIDI": "NOON", "APRES-MIDI": "AFTERNOON", "FIN D'APRES-MIDI": "LATE AFTERNOON", "HEURE DOREE": "GOLDEN HOUR", "COUCHER DE SOLEIL": "SUNSET", "SOIREE": "EVENING", "PLUIE NEON": "NEON RAIN", "MINUIT": "MIDNIGHT", "ORAGE": "STORM", "AVANT L'AUBE": "BEFORE DAWN", "AUBE": "DAYBREAK", "LEVER": "SUNRISE", "MERCURE": "MERCURY", "VENUS": "VENUS", "TERRE": "EARTH", "LUNE": "MOON", "MARS": "MARS", "JUPITER": "JUPITER", "SATURNE": "SATURN", "URANUS": "URANUS", "NEPTUNE": "NEPTUNE", "PLUTON": "PLUTO", "Elle démarre par pitié. Fais des thunes et oublie-la vite.": "It starts out of pity. Make cash and forget it fast.", "Ça roule. Vu d'où tu viens, c'est déjà un miracle.": "It runs. Given where you're from, that's already a miracle.", "Conçue pour rouler prudemment. Toi, prudent ? On y croit fort.": "Built to drive carefully. You, careful? Sure.", "Elle ne double pas. Elle DÉPLACE.": "It doesn't overtake. It RELOCATES.", "L'écologie te fait coucou dans le rétro. T'as pas de rétro.": "Ecology waves at you in the mirror. You don't have mirrors.", "Refuse de rouler sous 200. Toi aussi, maintenant.": "Refuses to go under 200. So do you, now.", "Elle découpe les virages. Les autres les négocient.": "It carves corners. Others negotiate them.", "Ceux qui l'ont doublée en parlent encore. Ah non : personne.": "Those who passed it still talk about it. Oh wait: nobody.", "Le taureau doré. Assurance résiliée d'office.": "The golden bull. Insurance cancelled on sight.", "Le circuit appelle ça tricher. Nous, du talent.": "The track calls it cheating. We call it talent.", "Prototype d'endurance. Faite pour rouler la nuit entière.": "Endurance prototype. Built to run all night.", "La reine du ciel, et elle le sait.": "Queen of the sky, and she knows it.", "Passée au bain d'acide. Ça se voit.": "Dipped in acid. It shows.", "Personne n'a demandé pourquoi. Tout le monde a demandé comment.": "Nobody asked why. Everybody asked how.", "Au sol, il roule. En l'air, il chasse.": "On the ground, it drives. In the air, it hunts."}))if(!(k in I18N))I18N[k]=v; // la coque mobile, la carrière, les fenêtres, les fiches des caisses (2026-09-24)
-for(const D of [I18N,I18N_ZH])for(const k of Object.keys(D)){
+for(const k of Object.keys(I18N)){
   const m=/^[\u2190-\u2BFF\u2600-\u27BF\uD83C-\uDBFF\uDC00-\uDFFF]+\s+(.+)$/.exec(k);
-  if(m&&!(m[1] in D))D[m[1]]=String(D[k]).replace(/^[\u2190-\u2BFF\u2600-\u27BF\uD83C-\uDBFF\uDC00-\uDFFF]+\s+/,'');
+  if(m&&!(m[1] in I18N))I18N[m[1]]=String(I18N[k]).replace(/^[\u2190-\u2BFF\u2600-\u27BF\uD83C-\uDBFF\uDC00-\uDFFF]+\s+/,'');
 }
-Object.assign(I18N,{'TOUS LES REGLAGES':'ALL SETTINGS'});Object.assign(I18N_ZH,{'TOUS LES REGLAGES':'所有设置'}); // (2026-10-14, charte 6) la ligne de la pause qui ouvre l'écran complet
+Object.assign(I18N,{'TOUS LES REGLAGES':'ALL SETTINGS'}); // (2026-10-14, charte 6) la ligne de la pause qui ouvre l'écran complet
 /* ⚠ LES CAPITALES ACCENTUÉES NE PASSENT PAS EN PIXEL (2026-09-24) : la police dessine « É » comme un « é »
    minuscule — « RÉGLAGES » s'affichait « RéGLAGES » dans le panneau de pause. Tout ce qui passe par TR()
    perd donc l'accent de ses CAPITALES (À→A, É→E…) ; les minuscules accentuées, elles, sont bien dessinées. */
 /* (2026-09-29, audit) « PLUS QUE 2 PIÈCES ▲ 3 CYLINDRES » se lisait « il m'en faut 2 pour l'ACHETER » : le moteur repart de zéro à chaque
    partie, la carte dit à quelle distance du palier suivant on est MORT */
-function presqueTxt(mq){if(LANG==='en')return mq+' '+(mq>1?'COINS':'COIN')+' SHORT OF';if(LANG==='zh')return '差 '+mq+' 枚金币';return majPix('ENCORE '+mq+' '+(mq>1?'PIÈCES':'PIÈCE')+' POUR');} // (passe qualité) « À 2 PIÈCES DU TURBINE À GAZ » : le moteur est souvent féminin
+function presqueTxt(mq){if(LANG==='en')return mq+' '+(mq>1?'COINS':'COIN')+' SHORT OF';return majPix('ENCORE '+mq+' '+(mq>1?'PIÈCES':'PIÈCE')+' POUR');} // (passe qualité) « À 2 PIÈCES DU TURBINE À GAZ » : le moteur est souvent féminin
 function majPix(s){return typeof s==='string'?s.replace(/[\u00C0-\u00D6\u00D8-\u00DE]/g,c=>c.normalize('NFD')[0]):s;}
 function TR(s){ // traduction EXACTE, repli français silencieux
   if(s==null)return s;
   if(LANG==='fr')return majPix(s);
-  const dict=LANG==='zh'?I18N_ZH:I18N;
-  let t=dict[s];
-  if(t===undefined&&LANG==='zh')t=I18N[s]; // (2026-09-28) une clé chinoise manquante retombe sur l'ANGLAIS (plus lisible pour un joueur chinois que le français)
+  let t=I18N[s];
   // (2026-09-28, passe de lancement) LES COMPTEURS : « RÉCOLTE ×5 », « CHAÎNE ×3 » — une phrase + un nombre composé à l'exécution n'était
   // JAMAIS dans le dictionnaire (en anglais, la liste d'aura restait en français). Seulement si la recherche exacte échoue : la tête se
   // traduit, la queue (× ou +, puis des chiffres) passe telle quelle.
-  if(t===undefined&&typeof s==='string'){const m=/^(.*?\S)(\s*[×+][\s\d.,×+%°]*)$/.exec(s);if(m&&dict[m[1]]!==undefined)t=dict[m[1]]+m[2];}
+  if(t===undefined&&typeof s==='string'){const m=/^(.*?\S)(\s*[×+][\s\d.,×+%°]*)$/.exec(s);if(m&&I18N[m[1]]!==undefined)t=I18N[m[1]]+m[2];}
   return majPix(t===undefined?s:t);
 }
 // LE HTML STATIQUE — le texte d'origine est mémorisé au premier passage (`data-fr`), sinon rebasculer
@@ -18641,7 +18596,7 @@ function modeLbl(){
 function applyLangDOM(){
   try{const w9=window.parent||window;if(w9.__tourneLbl)w9.__tourneLbl();}catch(e){} // (2026-10-07) le bouton TOURNER de la colonne PC suit la langue (il vit dans la page CADRE : le jeu tourne dans l'iframe)
   try{for(const e of document.querySelectorAll('[aria-label]')){if(e.dataset.frAria===undefined)e.dataset.frAria=e.getAttribute('aria-label');e.setAttribute('aria-label',LANG==='fr'?e.dataset.frAria:TR(e.dataset.frAria));}}catch(e){} // (2026-09-29) VoiceOver : « Back », plus « Retour », pour un joueur anglais
-  try{document.documentElement.lang=LANG==='zh'?'zh-Hans':LANG;}catch(e){} // (2026-09-28) VoiceOver lisait l'anglais avec la voix française (<html lang="fr"> ne bougeait jamais)
+  try{document.documentElement.lang=LANG;}catch(e){} // (2026-09-28) VoiceOver lisait l'anglais avec la voix française (<html lang="fr"> ne bougeait jamais)
   try{for(const k in PWR_DEFS)PWR_DEFS[k].icoDessine();}catch(e){} // (pouvoirs v2) l'étiquette des cristaux suit la langue (PWR_DEFS n'existe pas encore au tout premier appel : ignoré, il se dessine à sa naissance)
   const put=(sel,txt)=>{const e=document.querySelector(sel);if(e)e.textContent=txt;};
   // ⚠ que des éléments à texte PUR : #cpInfo par exemple contient <span id=cpDist> et #cpBar,
@@ -18675,7 +18630,7 @@ function fmtGta(v){
   const s=String(ent).padStart(8,'0');
   const i=s.search(/[1-9]/);
   const c=CUR();
-  const dec=(v<1000&&cts>0)?'<span class="cts">'+(LANG==='fr'?',':'.')+String(cts).padStart(2,'0')+'</span>':''; // le point décimal anglais/chinois : « $1,61 » se lit comme des milliers
+  const dec=(v<1000&&cts>0)?'<span class="cts">'+(LANG==='fr'?',':'.')+String(cts).padStart(2,'0')+'</span>':''; // le point décimal anglais : « $1,61 » se lit comme des milliers
   return (i<0?c+'<span class="dz">'+s+'</span>':c+'<span class="dz">'+s.slice(0,i)+'</span>'+s.slice(i))+dec;
 }
 // ---- UNITÉS COMPACTES : « $ 1,4 M » se lit d'un œil, « $ 1 400 000 » est du bruit. Échelle
@@ -18683,7 +18638,7 @@ function fmtGta(v){
 const UNITS=[[1e30,'Qn','QUINTILLIONS 🛸'],[1e27,'Qd','QUADRILLIARDS'],[1e24,'Q','QUADRILLIONS 🤑'],[1e21,'Td','TRILLIARDS'],[1e18,'T','TRILLIONS 🤯'],[1e15,'Bd','BILLIARDS'],[1e12,'Bn','BILLIONS'],[1e9,'Md','MILLIARDS'],[1e6,'M','MILLIONS'],[1e3,'k','MILLIERS']];
 /* (2026-09-28, passe de lancement) L'ÉCHELLE COURTE POUR QUI NE PARLE PAS FRANÇAIS. En anglais on lisait « $ 1,4 Md » (inconnu) et
    « $ 2 Bn » — qu'un Américain lit DEUX MILLIARDS alors que c'est 2×10¹² ici : mille fois faux, sur la grandeur la plus importante
-   du jeu. Anglais et chinois comptent en k · M · B · T · Qa… avec un POINT décimal ; le français garde son échelle longue. Mêmes
+   du jeu. L'anglais compte en k · M · B · T · Qa… avec un POINT décimal ; le français garde son échelle longue. Mêmes
    seuils dans les deux tables (unitSeen les compare) et mêmes pictos aux mêmes crans. */
 const UNITS_EN=[[1e30,'No','NONILLIONS 🛸'],[1e27,'Oc','OCTILLIONS'],[1e24,'Sp','SEPTILLIONS 🤑'],[1e21,'Sx','SEXTILLIONS'],[1e18,'Qi','QUINTILLIONS 🤯'],[1e15,'Qa','QUADRILLIONS'],[1e12,'T','TRILLIONS'],[1e9,'B','BILLIONS'],[1e6,'M','MILLIONS'],[1e3,'k','THOUSANDS']];
 function unitsL(){return LANG==='fr'?UNITS:UNITS_EN;}
@@ -20607,7 +20562,7 @@ function carrVue(bi){
   }else{
     const f=carrFait(bi);h+='<div class="carrGrille">';
     CARRIERE[bi].niveaux.forEach(function(N,i){const ok=TEST_CARRIERE||cousin()||i<=f; // (2026-09-27) version TEST : tous les niveaux se lancent (la couleur dit toujours la vraie progression)
-      h+='<div class="pbtn '+(i<f?'pb-green':i===f?'pb-gold':ok?'pb-cyan':'pb-cyan off')+' carrNiv'+(sel&&sel.b===bi&&sel.i===i?' choisi':'')+'" data-c="'+(ok?'niveau':'verrou')+'" data-b="'+bi+'" data-i="'+i+'" style="--sky:'+carrCiel(N)+'" role="button" aria-label="'+(LANG==='en'?'Level ':LANG==='zh'?'关卡 ':'Niveau ')+(i+1)+(ok?'':(LANG==='en'?' locked':LANG==='zh'?' 未解锁':' verrouillé'))+'"><b>'+(ok?String(i+1).padStart(2,'0'):pxi('verrou')+'<small>'+String(i+1).padStart(2,'0')+'</small>')+'</b><span><i class="nwB">'+insec(TR(N.nm))+'</i></span>'+(sel&&sel.b===bi&&sel.i===i?'<i class="carrSel">'+TR('JOUER')+'</i>':'')+'</div>';}); // (2026-09-30, revue) « D'APRES-MIDI » reste d'un bloc (nwB : le span est en flex, voir i.nwB)
+      h+='<div class="pbtn '+(i<f?'pb-green':i===f?'pb-gold':ok?'pb-cyan':'pb-cyan off')+' carrNiv'+(sel&&sel.b===bi&&sel.i===i?' choisi':'')+'" data-c="'+(ok?'niveau':'verrou')+'" data-b="'+bi+'" data-i="'+i+'" style="--sky:'+carrCiel(N)+'" role="button" aria-label="'+(LANG==='en'?'Level ':'Niveau ')+(i+1)+(ok?'':(LANG==='en'?' locked':' verrouillé'))+'"><b>'+(ok?String(i+1).padStart(2,'0'):pxi('verrou')+'<small>'+String(i+1).padStart(2,'0')+'</small>')+'</b><span><i class="nwB">'+insec(TR(N.nm))+'</i></span>'+(sel&&sel.b===bi&&sel.i===i?'<i class="carrSel">'+TR('JOUER')+'</i>':'')+'</div>';}); // (2026-09-30, revue) « D'APRES-MIDI » reste d'un bloc (nwB : le span est en flex, voir i.nwB)
     h+='</div>';
   }
   if(bi==null&&HUB&&garageOn&&!(started&&!gameOver))h+='<div class="mDock"><div class="pbtn mBack" data-c="maison" role="button" aria-label="Accueil">'+pxi('maison')+'<span>'+TR('HOME')+'</span></div></div>'; else // (2026-10-06) LE HUB : la carrière est un onglet du garage — sa sortie est la MAISON
@@ -20623,7 +20578,7 @@ function carrVue(bi){
 function carrVueC6(bi,el){
   const sel=PLAY_CARR&&HUB?carrSel():null,mondes=bi==null,f=mondes?0:carrFait(bi);
   const ret=mondes?(HUB&&garageOn&&!(started&&!gameOver)?'maison':'fermer'):'biomes';
-  const L=LANG==='en'?['Level ',' locked']:LANG==='zh'?['关卡 ',' 未解锁']:['Niveau ',' verrouillé'];
+  const L=LANG==='en'?['Level ',' locked']:['Niveau ',' verrouillé'];
   let h='<div class="carrIn"><div class="c6Tete plein"><div class="pbtn pbCarre c6Ret" data-c="'+ret+'" role="button" tabindex="0" aria-label="'+TR('RETOUR')+'">'+pxi('gauche')+'</div><b class="c6Titre">'+TR(mondes?'CARRIERE':CARRIERE[bi].nm)+'</b></div><div class="cmCorps">';
   let go;
   if(mondes){
@@ -29228,20 +29183,20 @@ function carnetBrut(n){ // au-delà des carnets écrits : une suite SANS FIN, ti
 }
 function misDuree(s){s=Math.round(s);return s>=60?(Math.floor(s/60)+' MIN'+(s%60?' '+String(s%60).padStart(2,'0'):'')):s+' S';}
 function misTxt(m,brut){ // la mission en une ligne, dans la langue du joueur — `brut` : sans majPix (la bannière est en police SYSTÈME, elle garde ses accents)
-  const L=LANG==='zh'?2:LANG==='en'?1:0,v=m.v,pl=v>1;
+  const L=LANG==='en'?1:0,v=m.v,pl=v>1;
   let s;
   switch(m.k){
-    case 'coins':  s=['RAMASSE '+v+' PIÈCES','GRAB '+v+' COINS','收集 '+v+' 枚硬币'][L];break;
-    case 'fruits': s=['CROQUE '+v+' FRUITS','EAT '+v+' FRUITS','吃掉 '+v+' 个水果'][L];break;
-    case 'cash':   s=['ENCAISSE ','BANK ','赚到 '][L]+fmtC(v);break;
-    case 'tricks': s=['RÉUSSIS '+v+' FIGURE'+(pl?'S':''),'LAND '+v+' TRICK'+(pl?'S':''),'完成 '+v+' 个花式'][L];break;
-    case 'perfect':s=[pl?v+' POSES PARFAITES':'UNE POSE PARFAITE',pl?v+' PERFECT LANDINGS':'A PERFECT LANDING',v+' 次完美落地'][L];break;
-    case 'kmh':    s=['ATTEINS '+v+' KM/H','HIT '+v+' KM/H','达到 '+v+' KM/H'][L];break;
-    case 'zones':  s=['FRANCHIS '+v+' PORTAIL'+(v>1?'S':''),'CROSS '+v+' PORTAL'+(v>1?'S':''),'穿过 '+v+' 个传送门'][L];break; // (2026-09-28) il compte les PORTAILS : parti du NUAGES 5, « ATTEINS LE NIVEAU 2 » se cochait au niveau 6
-    case 'gaps':   s=['FRANCHIS '+v+' GAP'+(pl?'S':''),'CLEAR '+v+' GAP'+(pl?'S':''),'飞越 '+v+' 个缺口'][L];break;
-    case 'survie': s=['TIENS ','SURVIVE ','存活 '][L]+misDuree(v);break;
-    case 'chain':  s=['ENCHAÎNE '+v+' FIGURES D\'UN VOL','CHAIN '+v+' TRICKS IN ONE JUMP','一次飞行连击 '+v+' 个花式'][L];break;
-    case 'nitro':  s=['BRÛLE '+v+' S DE NITRO','BURN '+v+' S OF NITRO','氮气累计 '+v+' 秒'][L];break; // (passe qualité) le temps est CUMULÉ (« TIENS » faisait croire à 20 s d'une traite)
+    case 'coins':  s=['RAMASSE '+v+' PIÈCES','GRAB '+v+' COINS'][L];break;
+    case 'fruits': s=['CROQUE '+v+' FRUITS','EAT '+v+' FRUITS'][L];break;
+    case 'cash':   s=['ENCAISSE ','BANK '][L]+fmtC(v);break;
+    case 'tricks': s=['RÉUSSIS '+v+' FIGURE'+(pl?'S':''),'LAND '+v+' TRICK'+(pl?'S':'')][L];break;
+    case 'perfect':s=[pl?v+' POSES PARFAITES':'UNE POSE PARFAITE',pl?v+' PERFECT LANDINGS':'A PERFECT LANDING'][L];break;
+    case 'kmh':    s=['ATTEINS '+v+' KM/H','HIT '+v+' KM/H'][L];break;
+    case 'zones':  s=['FRANCHIS '+v+' PORTAIL'+(v>1?'S':''),'CROSS '+v+' PORTAL'+(v>1?'S':'')][L];break; // (2026-09-28) il compte les PORTAILS : parti du NUAGES 5, « ATTEINS LE NIVEAU 2 » se cochait au niveau 6
+    case 'gaps':   s=['FRANCHIS '+v+' GAP'+(pl?'S':''),'CLEAR '+v+' GAP'+(pl?'S':'')][L];break;
+    case 'survie': s=['TIENS ','SURVIVE '][L]+misDuree(v);break;
+    case 'chain':  s=['ENCHAÎNE '+v+' FIGURES D\'UN VOL','CHAIN '+v+' TRICKS IN ONE JUMP'][L];break;
+    case 'nitro':  s=['BRÛLE '+v+' S DE NITRO','BURN '+v+' S OF NITRO'][L];break; // (passe qualité) le temps est CUMULÉ (« TIENS » faisait croire à 20 s d'une traite)
     default:s=m.k;
   }
   return (brut?s:majPix(s)).replace(/(\d|\$) /g,'$1\u00a0'); // (2026-09-28) le nombre ne quitte plus son mot : « 672 KM/H », « 2 FIGURES », « $ 2 k » (espaces insécables)
@@ -29260,10 +29215,10 @@ function misEtat(){const s=SAVE.d.mis||(SAVE.d.mis={n:0,ok:[0,0,0]});if(!s.best)
    une caisse (ou un habillage) à gagner montre SES trois défis, cochés au fur et à mesure. Ils se relèvent dans l'ordre :
    la suivante attend que la précédente soit gagnée. `n` = numéro du carnet (1 = LA BULLE). */
 function defisHtml(n){
-  const s=misEtat(),Lg=LANG==='zh'?2:LANG==='en'?1:0;
+  const s=misEtat(),Lg=LANG==='en'?1:0;
   if(s.n+1<n){const prev=carnet(n-2);
-    return pxi('verrou')+' '+['SE GAGNE EN RELEVANT 3 DEFIS — APRES ','WON BY BEATING 3 CHALLENGES — AFTER ','完成 3 项挑战即可获得 — 需先获得 '][Lg]+misRecompense(prev);}
-  const c=carnet(n-1);let h='<span class="gDfT">'+['SE GAGNE EN RELEVANT 3 DEFIS (CHACUN EN UNE PARTIE)','WON BY BEATING 3 CHALLENGES (EACH IN ONE RUN)','完成 3 项挑战（每项单局内完成）'][Lg]+'</span>';
+    return pxi('verrou')+' '+['SE GAGNE EN RELEVANT 3 DEFIS — APRES ','WON BY BEATING 3 CHALLENGES — AFTER '][Lg]+misRecompense(prev);}
+  const c=carnet(n-1);let h='<span class="gDfT">'+['SE GAGNE EN RELEVANT 3 DEFIS (CHACUN EN UNE PARTIE)','WON BY BEATING 3 CHALLENGES (EACH IN ONE RUN)'][Lg]+'</span>';
   // (2026-09-25) juste après une partie, chaque défi ouvert dit où l'on s'est arrêté (« 21 / 25 ») : la meilleure raison de relancer.
   // ⚠ !MIS_REC : si le carnet vient de se refermer à cette mort, RUNX porte les scores d'une partie qui ne compte plus pour le suivant
   const apres=started&&gameOver&&!SANDBOX&&!PARK.on&&!MIS_REC&&n===s.n+1;
@@ -30067,41 +30022,37 @@ function carBuy(i){
 }
 function carUnlockText(i){ // ce qu'il reste à faire, en une ligne — affiché sur la caisse verrouillée
   const u=CAR_UNLOCK[i];if(!u)return '';
-  // ⚠ TROIS LANGUES (2026-09-03) : cette fonction a TOUJOURS traduit en dur (avant : un ternaire
-  // FR/EN par ligne), jamais via I18N — un `en=LANG==='en'` binaire ne suffit plus à trois langues,
-  // d'où le passage à un index 0/1/2 sur `L`.
-  const L=LANG==='zh'?2:LANG==='en'?1:0;
+  // (2026-09-03) cette fonction traduit en dur (FR/EN), jamais via I18N : `L` vaut 0 en français, 1 en anglais.
+  const L=LANG==='en'?1:0;
   // À VENDRE : on annonce le prix ET ce qu'il manque. « il te manque X » est la seule information
   // qui donne envie de rejouer ; un prix seul laisse le joueur faire la soustraction lui-même.
   if(u.p){
     const manque=u.p-bank();
-    return ['PRIX : ','PRICE: ','价格：'][L]+fmtC(u.p)+(manque>0
-      ? ['\n(il te manque ','\n(short by ','\n（还差 '][L]+fmtC(manque)+')'
-      : ['\nTU PEUX TE LA PAYER !','\nYOU CAN AFFORD IT!','\n你买得起了！'][L]); // (2026-09-29) la 2e moitié sur SA ligne (#gDesc en pre-line) : « — tu peux » tombait seul en tête de ligne
+    return ['PRIX : ','PRICE: '][L]+fmtC(u.p)+(manque>0
+      ? ['\n(il te manque ','\n(short by '][L]+fmtC(manque)+')'
+      : ['\nTU PEUX TE LA PAYER !','\nYOU CAN AFFORD IT!'][L]); // (2026-09-29) la 2e moitié sur SA ligne (#gDesc en pre-line) : « — tu peux » tombait seul en tête de ligne
   }
   const v=u.v,cur=carStat(u.k);
-  if(u.k==='carnet')return ['SE GAGNE EN RELEVANT 3 DEFIS', /* (2026-09-28) police pixel : pas de capitale accentuée (« DéFIS ») */'WON BY BEATING 3 CHALLENGES','完成 3 项挑战即可获得'][L];
-  if(u.k==='carrN')return ['TERMINE SKY HIGH  ('+cur+' / 5)','FINISH SKY HIGH  ('+cur+' / 5)','完成 SKY HIGH  （'+cur+' / 5）'][L]; // (2026-09-27)
-  if(u.k==='carrV')return ['TERMINE LA VILLE  ('+cur+' / 5)','FINISH THE CITY  ('+cur+' / 5)','完成城市  （'+cur+' / 5）'][L]; // (2026-09-27)
+  if(u.k==='carnet')return ['SE GAGNE EN RELEVANT 3 DEFIS', /* (2026-09-28) police pixel : pas de capitale accentuée (« DéFIS ») */'WON BY BEATING 3 CHALLENGES'][L];
+  if(u.k==='carrN')return ['TERMINE SKY HIGH  ('+cur+' / 5)','FINISH SKY HIGH  ('+cur+' / 5)'][L]; // (2026-09-27)
+  if(u.k==='carrV')return ['TERMINE LA VILLE  ('+cur+' / 5)','FINISH THE CITY  ('+cur+' / 5)'][L]; // (2026-09-27)
   switch(u.k){
-    case 'aura':  if(auraSansNom()){const s9=fmtAura((AURA_RANKS[v]||AURA_RANKS[0]).v),t9=fmtAura(SAVE.d.aura||0);return ['AURA '+s9+'   (la tienne : '+t9+')','AURA '+s9+'   (yours: '+t9+')','灵气 '+s9+'   （你的：'+t9+'）'][L];}
+    case 'aura':  if(auraSansNom()){const s9=fmtAura((AURA_RANKS[v]||AURA_RANKS[0]).v),t9=fmtAura(SAVE.d.aura||0);return ['AURA '+s9+'   (la tienne : '+t9+')','AURA '+s9+'   (yours: '+t9+')'][L];}
                   return [ 'RANG D\'AURA « '+auraRankName(v)+' »   (le tien : « '+auraRankName()+' »)',
-                           'AURA RANK "'+auraRankName(v)+'"   (yours: "'+auraRankName()+'")', // (2026-09-28) guillemets anglais
-                           '灵气段位「'+auraRankName(v)+'」   （你的段位：「'+auraRankName()+'」）' ][L];
-    case 'cash':  return [ 'RECORD DE PARTIE : ','BEST RUN: ','单局最高纪录：' ][L]+fmtC(v)+'  ('+fmtC(cur)+')';
+                           'AURA RANK "'+auraRankName(v)+'"   (yours: "'+auraRankName()+'")'][L];
+    case 'cash':  return [ 'RECORD DE PARTIE : ','BEST RUN: '][L]+fmtC(v)+'  ('+fmtC(cur)+')';
     case 'eng':   return [ 'ATTEINDRE LE MOTEUR « '+(ENGINE_TIERS[v]||ENGINE_TIERS[0]).n+' »  (palier '+(v+1)+' / '+ENGINE_TIERS.length+', ton record : '+(cur+1)+')',
-                           'REACH THE « '+TR((ENGINE_TIERS[v]||ENGINE_TIERS[0]).n)+' » ENGINE  (tier '+(v+1)+' / '+ENGINE_TIERS.length+', your best: '+(cur+1)+')',
-                           '达到「'+TR((ENGINE_TIERS[v]||ENGINE_TIERS[0]).n)+'」引擎  （第 '+(v+1)+' / '+ENGINE_TIERS.length+' 级，你的最佳：第 '+(cur+1)+' 级）' ][L];
-    case 'tricks':return v+[ ' FIGURES RÉUSSIES EN TOUT  (',' TRICKS LANDED IN TOTAL  (','次花式动作总计  （已有 ' ][L]+cur+')';
-    case 'gaps':  return v+[ ' GAPS FRANCHIS  (',' GAPS CLEARED  (','个缺口飞跃成功  （已有 ' ][L]+cur+')';
-    case 'bumps': return v+[ ' BUMPS SUR LA TRANCHE  (',' BUMPS OFF THE EDGE  (','次边缘弹跳  （已有 ' ][L]+cur+')';
-    case 'zones': return v+[ ' ZONES DANS UNE SEULE PARTIE  (record : ',' ZONES IN A SINGLE RUN  (best: ','个区域，单局内完成  （最佳：' ][L]+cur+')';
-    case 'chain': return [ 'UNE CHAÎNE DE ','A CHAIN OF ','连续 ' ][L]+v+[ ' FIGURES  (record : ',' TRICKS  (best: ','次花式连击  （最佳：' ][L]+cur+')';
-    case 'kmh':   return [ 'ATTEINDRE ','REACH ','达到 ' ][L]+v+[ ' KM/H  (record : ',' KM/H  (best: ',' KM/H  （最佳：' ][L]+cur+')';
-    case 'surv':  return [ 'GAGNER UNE PARTIE EN MODE SURVIVANT','WIN A RUN IN SURVIVOR MODE','在生存模式中赢得一局' ][L];
-    case 'prem':  return [ 'CAISSE PREMIUM — offerte pour l\'instant','PREMIUM CAR — free for now','高级座驾 — 目前免费开放' ][L];
-    case 'bientot':return [ 'DEFI A VENIR','CHALLENGE COMING SOON','挑战即将推出' ][L]; // (2026-10-06) LA RAIE, COMÈTE, REQUIN : le défi reste à écrire (police pixel : pas de capitale accentuée)
-    case 'pubs':  return [ 'REGARDE '+v+' PUBS  ('+Math.min(cur,v)+' / '+v+')','WATCH '+v+' ADS  ('+Math.min(cur,v)+' / '+v+')','观看 '+v+' 个广告  （'+Math.min(cur,v)+' / '+v+'）' ][L]; // (2026-10-06) L'ÉTERNELLE
+                           'REACH THE « '+TR((ENGINE_TIERS[v]||ENGINE_TIERS[0]).n)+' » ENGINE  (tier '+(v+1)+' / '+ENGINE_TIERS.length+', your best: '+(cur+1)+')'][L];
+    case 'tricks':return v+[ ' FIGURES RÉUSSIES EN TOUT  (',' TRICKS LANDED IN TOTAL  ('][L]+cur+')';
+    case 'gaps':  return v+[ ' GAPS FRANCHIS  (',' GAPS CLEARED  ('][L]+cur+')';
+    case 'bumps': return v+[ ' BUMPS SUR LA TRANCHE  (',' BUMPS OFF THE EDGE  ('][L]+cur+')';
+    case 'zones': return v+[ ' ZONES DANS UNE SEULE PARTIE  (record : ',' ZONES IN A SINGLE RUN  (best: '][L]+cur+')';
+    case 'chain': return [ 'UNE CHAÎNE DE ','A CHAIN OF '][L]+v+[ ' FIGURES  (record : ',' TRICKS  (best: '][L]+cur+')';
+    case 'kmh':   return [ 'ATTEINDRE ','REACH '][L]+v+[ ' KM/H  (record : ',' KM/H  (best: '][L]+cur+')';
+    case 'surv':  return [ 'GAGNER UNE PARTIE EN MODE SURVIVANT','WIN A RUN IN SURVIVOR MODE'][L];
+    case 'prem':  return [ 'CAISSE PREMIUM — offerte pour l\'instant','PREMIUM CAR — free for now'][L];
+    case 'bientot':return [ 'DEFI A VENIR','CHALLENGE COMING SOON'][L]; // (2026-10-06) LA RAIE, COMÈTE, REQUIN : le défi reste à écrire (police pixel : pas de capitale accentuée)
+    case 'pubs':  return [ 'REGARDE '+v+' PUBS  ('+Math.min(cur,v)+' / '+v+')','WATCH '+v+' ADS  ('+Math.min(cur,v)+' / '+v+')'][L]; // (2026-10-06) L'ÉTERNELLE
   }
   return '';
 }
@@ -31229,7 +31180,7 @@ function facileSauve(cause){
   respawn();hopY=2.2;hopV=0;graceT=Math.max(graceT,2.2);loop._camDriveT=0;
   nitroR=Math.max(nitroR,nitroCap()*.5); // on repart avec de quoi voler
   if(HAUT.cur&&HAUT.cur.ferme)HAUT.cur.ferme=false; // (2026-09-30) une vie perdue vaut une mort : comme l'explosion, elle passe le VERROU de la bannière de niveau (voir lvlAnnonce)
-  slam(FAC.coeurs>1?(LANG==='en'?FAC.coeurs+' LIVES LEFT':LANG==='zh'?'还剩 '+FAC.coeurs+' 条命':'PLUS QUE '+FAC.coeurs+' VIES'):'DERNIERE VIE !','ON REPART !','#ff5e7a','#ffd75e',44,3,12);
+  slam(FAC.coeurs>1?(LANG==='en'?FAC.coeurs+' LIVES LEFT':'PLUS QUE '+FAC.coeurs+' VIES'):'DERNIERE VIE !','ON REPART !','#ff5e7a','#ffd75e',44,3,12);
   shake=Math.max(shake,.5);hap([30,50,70]);
   try{if(SONV2)sfx('tuto.rate');else{chimeNote(noteP(4,1),0,.08,.3);chimeNote(noteP(0,1),.1,.1,.4);}}catch(e){}
   sparkBurst(sparkGold,p9,20,12);
@@ -36039,7 +35990,7 @@ const SAVE_VIDE=(function(){try{return !localStorage[SAVE.K];}catch(e){return tr
 SAVE.load();
 if(BALADE){SAVE.d.tuto=1;SAVE.d.permis=1;if(SAVE.d.facile==null)SAVE.d.facile=0;SAVE.flush=function(){};SAVE.mark=function(){};} // (2026-10-09) LA BALADE n'écrit rien : ni leçon, ni question du mode, ni sauvegarde
 /* (2026-09-30) la partie tuée en arrière-plan vient d'être versée (SAVE.load) : le menu le DIT, une fois, à son apparition */
-Object.assign(I18N,{'PARTIE INTERROMPUE':'RUN INTERRUPTED','COPIE IMPOSSIBLE : COPIE-LE A LA MAIN':'COPY FAILED: COPY IT BY HAND','Sélectionne le code et copie-le à la main.':'Select the code and copy it by hand.'});Object.assign(I18N_ZH,{'COPIE IMPOSSIBLE : COPIE-LE A LA MAIN':'复制失败：请手动复制','Sélectionne le code et copie-le à la main.':'请选中代码并手动复制。'});Object.assign(I18N_ZH,{'PARTIE INTERROMPUE':'对局中断'});
+Object.assign(I18N,{'PARTIE INTERROMPUE':'RUN INTERRUPTED','COPIE IMPOSSIBLE : COPIE-LE A LA MAIN':'COPY FAILED: COPY IT BY HAND','Sélectionne le code et copie-le à la main.':'Select the code and copy it by hand.'});
 if(SAVE.repris)document.addEventListener('cc:revele',function(){const r=SAVE.repris;if(!r||!(r.v>=1||r.a>=1))return;
   try{toast(pxi('coche')+' '+TR('PARTIE INTERROMPUE')+' : +'+(r.v>=1?fmtC(r.v)+' '+TR('VERSÉS AU COMPTE'):fmtAura(r.a)+' '+TR('AURA')));}catch(e){}},{once:true});
 setInterval(()=>{if(SAVE.dirty)SAVE.flush();},30000); // le filet : rien ne se perd plus de 30 s
@@ -37499,7 +37450,6 @@ const VERD_TAILLE=[22,30,34,38,40,44]; // le mot du rang (px) : carte simple · 
 HAUT_MIN.ver=700; // le temps de lecture garanti d'un verdict (le mot, puis le montant)
 HAUT_COUPE.ver=function(){if(VERD.el)VERD.el.classList.remove('on');document.body.classList.remove('verdOn');clearTimeout(VERD.t);};
 Object.assign(I18N,{'MONSTRE':'MONSTER','METEORE':'METEOR','POSÉ LOURD':'HEAVY LANDING'});
-Object.assign(I18N_ZH,{'MONSTRE':'怪兽','DOUBLE':'双倍','TRIPLE':'三倍','METEORE':'流星','MEGA':'超级','SNAKE':'蛇形','LOOP':'回环','POSÉ LOURD':'重着陆'});
 function verdNet(t){ // traduit, sans emoji (la police pixel n'en a pas), sans la vanne après le tiret, sans capitale accentuée
   return sansAcc(String(TR(t)).replace(/[\u2190-\u2BFF\uD83C-\uDBFF\uDC00-\uDFFF\uFE0F]/g,'').split(' — ')[0]).replace(/[<>&"]/g,'').trim();
 }
@@ -37634,8 +37584,6 @@ function recSurplus(a){const t=avE('avRecT');if(!t)return;const s='+'+fmtAura(Ma
 Object.assign(I18N,{'NOUVEAU SOMMET':'NEW PEAK','AU-DESSUS':'ABOVE','ASTUCE':'TIP'});
 Object.assign(I18N,{'NOUVEL ATH !':'NEW ATH!','JACKPOT !':'JACKPOT!','CRYPTOCITY':'CRYPTOCITY'}); // (2026-10-13) CRYPTOCITY
 Object.assign(I18N,{'PLUIE DE BILLETS':'CASH RAIN','AIMANT À PIÈCES':'COIN MAGNET','CAISSE EN FEU':'CAR ON FIRE'}); // (2026-09-30) les capacités moteur, dans le titre de la carte
-Object.assign(I18N_ZH,{'PLUIE DE BILLETS':'钞票雨','AIMANT À PIÈCES':'金币磁铁','CAISSE EN FEU':'烈焰车身'});
-Object.assign(I18N_ZH,{'NOUVEAU SOMMET':'新巅峰','AU-DESSUS':'超出','RECORD BATTU !':'打破纪录！','PALIER':'档位','ASTUCE':'提示','CHAÎNE PERDUE':'连击中断','NOUVEAU MOTEUR':'新引擎'});
 function avPlusPop(t){const e=avE('avPlus');if(!e)return;e.textContent=t;e.classList.remove('on');void e.offsetWidth;e.classList.add('on');}
 /* LE HUD DISCRET — la veille des plaques qui DURENT (voir hudDA §9, repris de Léo) : présente depuis plus de 3 s → `.discret` ; cachée →
    remise à zéro ; `hudReveil(id)` = un événement fort, elle se rallume et repart pour 3 s. Lecture de classes seulement (aucune mise en
@@ -41221,15 +41169,15 @@ for(const [k,v] of Object.entries({'GRAVITE REDUITE : SAUTS 2 FOIS PLUS LONGS':'
   'SEMES !':'LOST THEM!','SEMES':'LOST THEM','LA POLICE EST AU TAPIS':'THE COPS ARE DOWN','FLIC AU TAPIS !':'COP DOWN!',"LE PORTAIL S'OUVRE":'THE PORTAL OPENS',
   'HORS DE VUE':'OUT OF SIGHT',"A L'INSTINCT !":'ON INSTINCT!',"A L'INSTINCT":'ON INSTINCT','PERCE-NUAGE !':'CLOUD PIERCER!','PERCE-NUAGE':'CLOUD PIERCER','LE MOTEUR TOUSSE':'ENGINE COUGHING','CA VA LACHER !':'SHE\'S GONNA BLOW!',
   'Tu l\'as chassée tout un coucher de soleil. Elle est douce comme un nuage et elle file comme un orage.':'You chased her through a whole sunset. Soft as a cloud, fast as a storm.'}))if(!(k in I18N))I18N[k]=v;
-// (2026-09-30) les mots de la passe CAMPAGNE : la plaque de la caisse-nuage, les portes du niveau 4, les promesses de l'ESPACE — anglais et chinois
-for(const [k,v,z] of [['SILLAGE','SLIPSTREAM','尾流'],['ELLE MENE DE','SHE LEADS BY','她领先'],['ELLE REVIENT',"SHE'S COMING BACK",'她追上来了'],['DERRIERE TOI','BEHIND YOU','在你身后'],
-  ["TU L'AS DOUBLEE",'YOU PASSED HER','你超过了她'],['IL FALLAIT LA SUIVRE','YOU HAD TO FOLLOW HER','应该跟在她后面'],["TU L'AS DOUBLEE — IL FALLAIT LA SUIVRE",'YOU PASSED HER — YOU HAD TO FOLLOW HER','你超过了她 — 应该跟在她后面'],
-  ['LA CAISSE-NUAGE','THE CLOUD CAR',null],['PORTES','GATES','门'],['PORTE','GATE','门'],['DANS','IN','还有'],['RADAR','SPEED CAMERA','测速'],
-  ['GRAVITE REDUITE : VOLE PLUS LONG','LOW GRAVITY: FLY LONGER','低重力：飞得更久'],['LES DEBRIS VISENT TA LIGNE','THE DEBRIS AIM AT YOUR LINE','碎片瞄准你的路线'],
-  ["SOUS LA DALLE, TU ES A L'ABRI","UNDER THE ROAD, YOU'RE SAFE",'在路面下方最安全'],['ESQUIVE DE PRES : LA SERIE PAIE','DODGE CLOSE: THE STREAK PAYS','贴身闪避：连击有奖'],
-  ['LA PLUIE DE DEBRIS SE DURCIT','THE DEBRIS RAIN GETS HARDER','碎片雨越来越猛'],['LA GEANTE ATTIRE LES DEBRIS','THE GIANT PULLS IN DEBRIS','巨行星吸来更多碎片'],
-  ['LES ANNEAUX PLEUVENT SUR TOI','THE RINGS RAIN DOWN ON YOU','光环碎片砸向你'],['DEBRIS SERRES, GARDE LE CAP','TIGHT DEBRIS, HOLD YOUR LINE','碎片密集，稳住方向'],
-  ['LA DERNIERE PLUIE AVANT PLUTON','THE LAST RAIN BEFORE PLUTO','冥王星前的最后一场雨']]){if(!(k in I18N))I18N[k]=v;if(z&&!(k in I18N_ZH))I18N_ZH[k]=z;} // (LA CAISSE-NUAGE garde son nom anglais en chinois, comme les 49 autres caisses)
+// (2026-09-30) les mots de la passe CAMPAGNE : la plaque de la caisse-nuage, les portes du niveau 4, les promesses de l'ESPACE — en anglais
+for(const [k,v] of [['SILLAGE','SLIPSTREAM'],['ELLE MENE DE','SHE LEADS BY'],['ELLE REVIENT',"SHE'S COMING BACK"],['DERRIERE TOI','BEHIND YOU'],
+  ["TU L'AS DOUBLEE",'YOU PASSED HER'],['IL FALLAIT LA SUIVRE','YOU HAD TO FOLLOW HER'],["TU L'AS DOUBLEE — IL FALLAIT LA SUIVRE",'YOU PASSED HER — YOU HAD TO FOLLOW HER'],
+  ['LA CAISSE-NUAGE','THE CLOUD CAR'],['PORTES','GATES'],['PORTE','GATE'],['DANS','IN'],['RADAR','SPEED CAMERA'],
+  ['GRAVITE REDUITE : VOLE PLUS LONG','LOW GRAVITY: FLY LONGER'],['LES DEBRIS VISENT TA LIGNE','THE DEBRIS AIM AT YOUR LINE'],
+  ["SOUS LA DALLE, TU ES A L'ABRI","UNDER THE ROAD, YOU'RE SAFE"],['ESQUIVE DE PRES : LA SERIE PAIE','DODGE CLOSE: THE STREAK PAYS'],
+  ['LA PLUIE DE DEBRIS SE DURCIT','THE DEBRIS RAIN GETS HARDER'],['LA GEANTE ATTIRE LES DEBRIS','THE GIANT PULLS IN DEBRIS'],
+  ['LES ANNEAUX PLEUVENT SUR TOI','THE RINGS RAIN DOWN ON YOU'],['DEBRIS SERRES, GARDE LE CAP','TIGHT DEBRIS, HOLD YOUR LINE'],
+  ['LA DERNIERE PLUIE AVANT PLUTON','THE LAST RAIN BEFORE PLUTO']]){if(!(k in I18N))I18N[k]=v;}
 window.dbgOrage=function(q){ // (2026-09-29) L'ORAGE du mode principal : l'état des éclairs · dbgOrage('eclair') en fait tomber un tout de suite
   if(q==='eclair'){if(!(LVL.cur&&(LVL.cur.id==='orage'||LVL.cur.orage))||CAMP.n)return 'pas au niveau orage';eclFrappe();ECL.t=6;}
   return {lieu:LVL.cur&&LVL.cur.id,flash:+CAMP_FLASH.toFixed(3),brumeOuverte:Math.round(CAMP_FOG),prochain:+ECL.t.toFixed(2),pluie:+LVL.pluie.toFixed(2),brume:[Math.round(scene.fog.near),Math.round(scene.fog.far)],bancs:CLOUDS.filter(function(c){return c.onRoad||c.mesh&&c.mesh.userData.trav;}).length,nuages:CLOUDS.length};};
@@ -41693,8 +41641,6 @@ function debTick(dt){
   D.beam.scale.set(2.2+u*1.6,34+u*20,1);D.beam.material.opacity=(.55+.4*u)*(.2+.8*kO);
   if(u>=1)debFrappe();
 }
-for(const [k,v] of Object.entries({'ESQUIVE LES DEBRIS':'躲开太空碎片','ESQUIVE !':'躲开了！','ESQUIVE':'闪避','TOUCHE !':'被击中！',"A L'ABRI":'安全',
-  'GRAVITE REDUITE : SAUTS 2 FOIS PLUS LONGS':'低重力：跳跃时间翻倍'}))if(!(k in I18N_ZH))I18N_ZH[k]=v; // l'orbite se joue aussi en partie sans fin : ses mots ont leur chinois
 // ============ 6 · LA PANNE ============
 // UN uniforme (CITY.uC) éteint les fenêtres, les liserés des toits, les enseignes et les réclames ; le néon de la route est baissé
 // APRÈS musicTick (qui le repeint à chaque image, voir villeApres) ; les phares portent plus loin. Les CATADIOPTRES (ambre à gauche,
@@ -42208,7 +42154,6 @@ for(const [k,v] of Object.entries({'FAIS-TOI FLASHER':'GET FLASHED','SUIS LA LIG
   "COUP D'EPAULE":'SHOULDER BUMP','LE BANQUIER A GAGNE':'THE BANKER WON',"LE BANQUIER T'A BATTU":'THE BANKER BEAT YOU','LE LINGOT EST A TOI':'THE GOLD BAR IS YOURS',
   'VILLE TERMINEE':'CITY COMPLETE','LE LINGOT':'THE GOLD BAR',
   'Le banquier l\'avait mis au coffre. Tu l\'as gagné à la course : 999,9 millièmes de pure arrogance.':'The banker kept it in the vault. You won it in a race: 999.9 parts per thousand of pure arrogance.'}))if(!(k in I18N))I18N[k]=v;
-for(const [k,v] of Object.entries({'RANG':'排名','DERNIER !':'垫底！','EXPLOSION DANS':'爆炸倒计时','COUPERET DANS':'淘汰倒计时','SURVIVANT':'幸存者','CHAMPION !':'冠军！','CHAMPION':'冠军','LA MEUTE EST AU TAPIS':'警车全军覆没'}))if(!(k in I18N_ZH))I18N_ZH[k]=v; // (2026-09-30) la plaque du Survivant se lit aussi en partie sans fin au téléphone : ses mots ont leur chinois (sinon repli anglais)
 window.dbgVille=function(){ // (dev) l'état de la campagne VILLE
   const sp=vPos();
   return {niveau:villeN(),s:Math.round(sp),L:Math.round(L),plaque:VC.chip,
@@ -42319,16 +42264,6 @@ Object.assign(I18N,{'PARIS LA NUIT':'PARIS BY NIGHT','La nuit sur les toits de P
   'PARIS S\'ALLUME':'PARIS LIGHTS UP','SALUE LA DAME DE FER':'SALUTE THE IRON LADY','VOLE AU-DESSUS DES TOITS':'FLY OVER THE ROOFTOPS','SUIS LE FLEUVE':'FOLLOW THE RIVER',
   'FILE SOUS LES DORURES':'RACE UNDER THE GOLD','TOURNE AUTOUR DE L\'OBELISQUE':'CIRCLE THE OBELISK','LA PLUS BELLE AVENUE':'THE FINEST AVENUE',
   'PASSE LA GRANDE PORTE':'THROUGH THE GREAT ARCH','PARIS A TES PIEDS':'PARIS AT YOUR FEET','LA TOUR SCINTILLE POUR TOI':'THE TOWER SPARKLES FOR YOU'});
-Object.assign(I18N_ZH,{'PARIS':'巴黎','PARIS LA NUIT':'巴黎之夜','La nuit sur les toits de Paris, jusqu\'à la tour Eiffel.':'夜晚飞越巴黎屋顶，直抵埃菲尔铁塔。',
-  'HEURE BLEUE':'蓝调时刻','CHAMP DE MARS':'战神广场','TROCADERO':'特罗卡德罗','QUAIS DE SEINE':'塞纳河畔','PONT ALEXANDRE III':'亚历山大三世桥',
-  'CONCORDE':'协和广场','CHAMPS-ELYSEES':'香榭丽舍','ARC DE TRIOMPHE':'凯旋门','MONTMARTRE':'蒙马特','MINUIT':'午夜',
-  'PASSE SOUS LA DAME DE FER':'从铁塔下穿过','RASE LES FACADES':'贴着墙面飞驰','SALUE L\'OBELISQUE':'向方尖碑致敬','FAIS LE TOUR DE L\'ETOILE':'绕星形广场一圈',
-  'De la Concorde au Sacré-Cœur : les Champs, la Seine, Montmartre.':'从协和广场到圣心堂：香街、塞纳河、蒙马特。',
-  'LES CHAMPS-ELYSEES':'香榭丽舍大街','HEURE DOREE':'黄金时刻','LA SEINE':'塞纳河','MONTMARTRE':'蒙马特','LA NUIT':'夜晚','FROTTE !':'擦墙！',
-  'ENCASTRE DANS UNE FACADE':'撞进了墙面','A LA SEINE !':'掉进塞纳河！','ECRASE SUR LE PAVE':'摔在石板路上',
-  'PARIS S\'ALLUME':'巴黎亮起来了','SALUE LA DAME DE FER':'向铁娘子致敬','VOLE AU-DESSUS DES TOITS':'飞越屋顶','SUIS LE FLEUVE':'沿着河流',
-  'FILE SOUS LES DORURES':'在金饰下飞驰','TOURNE AUTOUR DE L\'OBELISQUE':'绕着方尖碑','LA PLUS BELLE AVENUE':'最美的大道',
-  'PASSE LA GRANDE PORTE':'穿过凯旋之门','PARIS A TES PIEDS':'巴黎在你脚下','LA TOUR SCINTILLE POUR TOI':'铁塔为你闪耀'});
 // LE GUIDE DU JEU — traductions (ici : I18N n'existe pas encore là où vit GUIDE)
 Object.assign(I18N,{'GUIDE DU JEU':'GAME GUIDE','COMPRIS !':'GOT IT!','VOLANT':'STEER','DRIFT':'DRIFT','NITRO':'NITRO','VOL':'AIR','AURA':'AURA','NIVEAUX':'LEVELS','GARAGE':'GARAGE',
   'Pouce gauche : glisse à gauche ou à droite. Lâche, la caisse file tout droit.':'Left thumb: slide left or right. Let go and the car keeps its line.',
@@ -42338,14 +42273,6 @@ Object.assign(I18N,{'GUIDE DU JEU':'GAME GUIDE','COMPRIS !':'GOT IT!','VOLANT':'
   'Chaque figure rapporte ; des figures différentes font monter le ×. Pose-toi pour encaisser — si tu exploses, tout est perdu.':'Every trick scores; different tricks raise the ×. Land to cash in — explode and it is all lost.',
   'Passe le portail pour finir le niveau. Choisis-le au garage : chaque niveau garde ton record.':'Go through the portal to clear the level. Pick it in the garage: each level keeps your record.',
   'Le lapin ouvre la boutique. Garde le doigt sur ta voiture : elle charge un boost.':'The bunny opens the shop. Hold your finger on your car: it charges a boost.','ESPACE':'SPACE'});
-Object.assign(I18N_ZH,{'GUIDE DU JEU':'游戏指南','COMPRIS !':'明白了！','VOLANT':'转向','DRIFT':'漂移','NITRO':'氮气','VOL':'飞行','AURA':'光环','NIVEAUX':'关卡','GARAGE':'车库',
-  'Pouce gauche : glisse à gauche ou à droite. Lâche, la caisse file tout droit.':'左手拇指：左右滑动。松开，车子保持直线。',
-  'Tire le pouce vers le bas en tournant : la caisse glisse et charge le turbo.':'转弯时拇指向下拉：车子漂移并蓄满涡轮。',
-  'Pouce droit : ça pousse. En l’air, la nitro fait planer.':'右手拇指：加速。空中使用氮气可以滑翔。',
-  'Sans nitro, le pouce redresse la caisse. Pose-toi à plat : PARFAIT.':'没有氮气时，拇指能扶正车身。平稳落地：完美。',
-  'Chaque figure rapporte ; des figures différentes font monter le ×. Pose-toi pour encaisser — si tu exploses, tout est perdu.':'每个特技都得分；不同的特技提高倍数。落地才能入账——爆炸就全部失去。',
-  'Passe le portail pour finir le niveau. Choisis-le au garage : chaque niveau garde ton record.':'穿过传送门完成关卡。在车库选择关卡：每关都保留你的纪录。',
-  'Le lapin ouvre la boutique. Garde le doigt sur ta voiture : elle charge un boost.':'小兔子打开商店。按住你的车：它会蓄力加速。','ESPACE':'空格'});
 function buildAffiches(g){
   const hd=GAR.D/2;GAR.affiches=[];
   for(const a of [{k:'perso',x:6.45,cad:0xffc83d}]){  // x > 0 = à GAUCHE vu de la caisse — (2026-09-30, Sacha : « enlève le truc de classement mondial ») l'affiche RECORDS MONDIAUX ({k:'monde',x:-8.5,cad:0x5fd8ff}) est retirée : il reste le RECORD PERSO
@@ -42413,7 +42340,7 @@ function affichesMaj(){
    Sans niveau choisi au garage (GSEL n'existe pas sur main), l'affiche PERSO montre les records de toujours. */
 /* (2026-10-07, campagne de debug avant publication) LES AFFICHES EN ANGLAIS — elles passaient bien par TR, mais aucune de leurs clés
    n'était au dictionnaire : l'atelier anglais affichait « RECORD PERSO / MEILLEURE PARTIE ». Avec, les étiquettes VoiceOver (aria-label,
-   traduites par applyLangDOM) qui lisaient « Accueil », « Boutique »... en français. Le chinois retombe sur l'anglais (voir TR). */
+   traduites par applyLangDOM) qui lisaient « Accueil », « Boutique »... en français. */
 try{Object.assign(I18N,{'RECORD|PERSO':'PERSONAL|BEST','RECORDS|MONDIAUX':'WORLD|RECORDS','SANS FIN':'ENDLESS','AURA RECORD':'BEST AURA',
   'STATUT':'STATUS','TERMINE':'CLEARED','A TERMINER':'TO CLEAR','VERROUILLE':'LOCKED','MEILLEURE PARTIE':'BEST RUN','AURA MAX':'MAX AURA',
   'PALIER MOTEUR':'ENGINE TIER','VITESSE MAX':'TOP SPEED','BIENTOT EN LIGNE':'COMING SOON','TES RECORDS : BIENTOT EN DETAIL':'YOUR RECORDS: DETAILS SOON',
@@ -43884,7 +43811,7 @@ function shopShow(cat,i){
   SHOP.i[cat]=i;SHOP.prev={cat:cat,i:i};
   if(cat==='figure'&&garageOn)try{garFigEssai(L[i].id);}catch(e){} // (2026-10-14) la caisse FAIT la figure qu'on regarde
   const eqC=equippedCar();garageI=eqC;buildCar(CARS[eqC]);
-  const d=L[i],a=shopOwned(cat,d.id),eq=shopEqD(cat)===d,Lg=LANG==='zh'?2:LANG==='en'?1:0;
+  const d=L[i],a=shopOwned(cat,d.id),eq=shopEqD(cat)===d,Lg=LANG==='en'?1:0;
   gNomEntre(TR(d.n));
   gLvlEl.textContent=(i+1)+' / '+L.length;gSpdEl.textContent='';
   {const pl=$('gRarPill');if(pl){pl.textContent=sansAcc(TR(SHOP_LBL[cat]));pl.style.removeProperty('--rc');}} // (charte v4) la pastille dit la CATÉGORIE — la fiche garde ses trois étages
@@ -46894,7 +46821,7 @@ function setRefresh(){
   const lg=$('tgLang');if(lg){lg.textContent=LANG.toUpperCase();lg.className='';}
   volUI();
 }
-// LANGUE : boucle FR → EN → ZH → FR (`langNext()`, seul écrivain — voir sa définition). La devise
+// LANGUE : boucle FR → EN → FR (`langNext()`, seul écrivain — voir sa définition). La devise
 // est désormais fixe (dollar, quelle que soit la langue) ; seul le texte bascule.
 $('langRow').addEventListener('click',e=>{
   e.stopPropagation();
@@ -47384,8 +47311,7 @@ try{const v9=$('gvLvl');const go9=function(e){e.stopPropagation();if(!garageOn||
 // (même soir) HOME est monté en haut à droite, à côté des réglages (même geste que l'ancien HOME)
 try{const h9=$('gvHome');const go9=function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(h9);const c=$('gClose');if(c)c.click();};
   h9.addEventListener('click',go9);h9.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go9(e);}});}catch(e){}
-try{Object.assign(I18N,{'PERMIS':'LICENSE','AUTO-ECOLE':'DRIVING SCHOOL','NIVEAUX ACCOMPLIS':'LEVELS CLEARED','AUCUN NIVEAU TERMINE':'NO LEVEL CLEARED YET','FRANCHIS TON 1ER PORTAIL':'CROSS YOUR FIRST PORTAL','A BATTRE':'NEXT UP','A DECOUVRIR':'TO DISCOVER','A DECOUVRIR1':'TO DISCOVER','TOUT EST TERMINE':'ALL CLEARED'});
-  Object.assign(I18N_ZH,{'NIVEAUX ACCOMPLIS':'已完成关卡','AUCUN NIVEAU TERMINE':'还没有完成关卡','FRANCHIS TON 1ER PORTAIL':'穿过你的第一个传送门','A BATTRE':'下一关','A DECOUVRIR':'待发现','A DECOUVRIR1':'待发现','TOUT EST TERMINE':'全部完成'});}catch(e){}
+try{Object.assign(I18N,{'PERMIS':'LICENSE','AUTO-ECOLE':'DRIVING SCHOOL','NIVEAUX ACCOMPLIS':'LEVELS CLEARED','AUCUN NIVEAU TERMINE':'NO LEVEL CLEARED YET','FRANCHIS TON 1ER PORTAIL':'CROSS YOUR FIRST PORTAL','A BATTRE':'NEXT UP','A DECOUVRIR':'TO DISCOVER','A DECOUVRIR1':'TO DISCOVER','TOUT EST TERMINE':'ALL CLEARED'});}catch(e){}
 /* LES JAUGES DE LA VITRINE (voir « LES JAUGES » dans <style id="garageVitrine">) : l'ARGENT vers la prochaine caisse à vendre (`objectif()`, ce
    que vise le menu de Léo), l'AURA vers le rang suivant. `anim` : elles partent de zéro et se remplissent, les chiffres défilent (0,9 s). */
 /* LE RECORD DE FORTUNE (2026-10-06, Léo : « une barre money sur le total jamais atteint ») : `SAVE.d.bankMax` = le plus haut total que la banque
@@ -47488,8 +47414,7 @@ function gveBoucle(n){GVE.raf=0;if(!garageOn)return;
   const vis=!!(gEl&&gEl.classList.contains('vitrine')&&!gEl.classList.contains('menu')&&!gEl.classList.contains('inv')&&!document.hidden);
   if(vis){if(!(GVE.k++%30))GVE.bars.forEach(gveTaille);const t=n/1000;GVE.bars.forEach(function(B){gveAvance(B,dt);gveDessine(B,t,dt);});}
   GVE.raf=requestAnimationFrame(gveBoucle);}
-try{Object.assign(I18N,{'SOMMET':'PEAK','RECORD !':'RECORD!','CASH':'CASH','AURA':'AURA','ENCORE':'NEED','A TA PORTEE !':'IT\'S YOURS!','COLLECTION COMPLETE':'FULL COLLECTION','INTOUCHABLE':'UNTOUCHABLE','A TA PORTEE':'AFFORDABLE','VERS':'TO','TOUT EST A TOI':'YOU OWN IT ALL','SOMMET ATTEINT':'TOP RANK','TUNING':'TUNING','SHOP':'SHOP','INVENTAIRE':'INVENTORY','MAINTIENS LA CAISSE':'HOLD YOUR CAR','OBJETS':'ITEMS','OBJET':'ITEM'});
-  Object.assign(I18N_ZH,{'A TA PORTEE':'买得起','VERS':'距','TOUT EST A TOI':'全部拥有','SOMMET ATTEINT':'最高等级','SHOP':'商店','INVENTAIRE':'库存','MAINTIENS LA CAISSE':'长按你的车','OBJETS':'件物品','OBJET':'件物品'});}catch(e){}
+try{Object.assign(I18N,{'SOMMET':'PEAK','RECORD !':'RECORD!','CASH':'CASH','AURA':'AURA','ENCORE':'NEED','A TA PORTEE !':'IT\'S YOURS!','COLLECTION COMPLETE':'FULL COLLECTION','INTOUCHABLE':'UNTOUCHABLE','A TA PORTEE':'AFFORDABLE','VERS':'TO','TOUT EST A TOI':'YOU OWN IT ALL','SOMMET ATTEINT':'TOP RANK','TUNING':'TUNING','SHOP':'SHOP','INVENTAIRE':'INVENTORY','MAINTIENS LA CAISSE':'HOLD YOUR CAR','OBJETS':'ITEMS','OBJET':'ITEM'});}catch(e){}
 /* ================= LE BOULON (2026-10-06, Léo : « mets un boulon 3D à la place du setting ») =================
    Le ⚙ de l'atelier devient un BOULON en vraie 3D : l'écrou (un prisme hexagonal) sur sa rondelle, la vis filetée qui dépasse, vu d'au-dessus (44°), redessiné à
    chaque pas de sa rotation — les pans tournés vers nous seulement, chacun éclairé par la lampe de l'atelier (la clé en haut à gauche), un filet
@@ -47811,7 +47736,7 @@ function burnPop(f){ // une PÉTARADE : du feu en pixels qui crache des pots, et
 }
 /* (2026-10-07, Léo : « il n'y a que les voitures qu'on possède qui peuvent faire le burn-out ») — la caisse du plateau doit être À TOI ou
    celle que tu as ÉQUIPÉE ; sinon le doigt tenu ne fait pas partir le moteur : le cadenas parle et le relâcher est avalé. */
-try{Object.assign(I18N,{'PAS ENCORE À TOI':'NOT YOURS YET'});Object.assign(I18N_ZH,{'PAS ENCORE À TOI':'还不是你的'});}catch(e){}
+try{Object.assign(I18N,{'PAS ENCORE À TOI':'NOT YOURS YET'});}catch(e){}
 function burnPermis(){const i=garageI|0;return carUnlockedVrai(i)||i===equippedCar();}
 function burnRefus(){ // le doigt a tenu sur une caisse qui n'est pas à toi
   uiClic('refus');toast(pxi('verrou')+' '+TR('PAS ENCORE À TOI'));
@@ -47929,7 +47854,6 @@ function burnTours(dt){ // compte les tours complets du donut (dans un sens : re
   else{BURN.nT+=dt;if(BURN.nT>.9){BURN.acc=0;BURN.n=0;}}
 }
 Object.assign(I18N,{'DONUT !':'DONUT!','TOURNE AUTOUR · DONUT':'CIRCLE AROUND · DONUT'});
-Object.assign(I18N_ZH,{'DONUT !':'甜甜圈！','TOURNE AUTOUR · DONUT':'绕圈 · 甜甜圈'});
 /* LE VOLUME DE LA FUMÉE (2026-10-08, Léo : « les cubes blancs ne doivent pas être une entité séparée de la première fumée : qu'ils
    l'ENRICHISSENT, pour lui donner du volume — sinon ça fait deux fumées différentes ; une seule, avec les deux »). Les cubes n'ont plus de
    vie à eux : chaque image, chaque BOUFFÉE en pixels vivante porte en elle `BURN_CUB.par` petits cubes — placés DANS sa boule (des
@@ -48097,7 +48021,7 @@ addEventListener('keydown',function(e){if(!garageOn||!BURN.on)return; // (en CAP
 addEventListener('keyup',function(e){
   if(e.code==='Space'||e.code==='KeyN'){BURN.nitro=false;const el=BURN.btn&&BURN.btn.querySelector('#gbNitro');if(el&&el._p==null)el.classList.remove('on');}
   else if(e.code==='ArrowDown'||e.code==='KeyR'||e.code==='KeyS'){BURN.recul=false;const el=BURN.btn&&BURN.btn.querySelector('#gbRecul');if(el&&el._p==null)el.classList.remove('on');}},true);
-try{Object.assign(I18N,{'ARRIERE':'REVERSE','ESPACE':'SPACE'});Object.assign(I18N_ZH,{'ARRIERE':'倒车','ESPACE':'空格'});}catch(e){}
+try{Object.assign(I18N,{'ARRIERE':'REVERSE','ESPACE':'SPACE'});}catch(e){}
 function burnNitroTick(dt,now){
   burnBtnsVoir(BURN_NITRO.boutons&&BURN.on&&!GAR.go);
   const n0=BURN.nk>.5,nv=BURN.on&&BURN.nitro&&!GAR.go?1:0,rv=BURN.on&&BURN.recul&&!GAR.go?1:0;
