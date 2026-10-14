@@ -19,7 +19,7 @@ abrupts » ; (2) à 20 h 40 : « ça devrait s'appeler GLACIER et être une MONT
 - Gardé de la banquise : poudreuse (porte, trace, gerbe, mort > 2,4 m), glisse (lacs, pics, dérive), aurores, six temps, six sons, tranches.
 
 ## Reste
-1. CONSTRUCTION : navigateur 130 ms (neige 81, cristaux 29) avant l'allègement de la grille (34 m, marge 1,7 km) — cible 60 ms. Pistes :
+1. CONSTRUCTION (ARRÊTÉ le 14/10 à ~23 h 15 sur ordre de PILOTAGE : « la pré-construction de la semaine prochaine s'en chargera ») : navigateur 130 ms (neige 81, cristaux 29) avant l'allègement de la grille (34 m, marge 1,7 km) — cible 60 ms. Pistes :
    la neige lointaine en grille grossière À PART (la grille fine seulement < 1,1 km), la pose des cristaux en tâches (la grille de physique
    remplie au fil de l'eau), `vPalier`/`rayonPalier` de GAMEPLAY quand ils sont dans le jeu (les rayons suivent aujourd'hui `lvPiste`).
 2. Banc de GAMEPLAY passé (`raccourcis.cjs --depuis` sur des traces Node, `trace-node.cjs` du scratchpad) : paliers 0 et 10 → 40/40 ;
