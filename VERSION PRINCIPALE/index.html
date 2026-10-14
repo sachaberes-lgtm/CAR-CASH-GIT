@@ -28738,6 +28738,10 @@ function buildCar(spec){
   try{const tD=cosmSur('trainee'); // LA TRAÎNÉE DE LA BOUTIQUE : elle se pose PAR-DESSUS la signature de la caisse
    FX_EFF=(tD&&tD.id!=='nitro')?Object.assign({},spec.fx||{},tD.rainbow?{rainbow:true,trail:null,wow:false}:tD.wow?{wow:true,rainbow:false,trail:tD.rgb}:{trail:tD.rgb,rainbow:false,wow:false,pop:tD.pop||null,rubOff:!!tD.rubOff}):null; // (2026-10-14) une traînée POP : son moteur (TRX) et, ou non, son ruban
   }catch(e){} // ⚠ 1er buildCar à l'init : `FX_EFF` n'est pas encore déclaré (zone morte) — il vaut null de toute façon
+  /* (2026-10-14, session PERF) LA TRAÎNÉE WOW CHOISIE AU GARAGE. chauffeDivers ne prépare la traînée WOW que pour la caisse équipée AU
+     CHARGEMENT : une caisse ou une traînée WOW prise ensuite au garage peignait ses 12 toiles et créait ses 18 sprites à la 1re NITRO,
+     en pleine course. On les prépare ici, hors course, une image plus tard (la même préparation que l'étape de chauffeDivers). */
+  try{if(FX_EFF&&FX_EFF.wow&&!WOWT.sp.length&&(!started||gameOver))setTimeout(function(){try{if(started&&!gameOver)return;wowPool();for(const q9 of wowTex())renderer.initTexture(q9.tx);}catch(e){}},60);}catch(e){}
   // ---- MINI-AILES / PLANEURS : repliées dans le flanc au sol, déployées en vol (la boucle les anime
   // via carWingL/carWingR). Le REQUIN remplace les panneaux par ses QUATRE BRAS D'HÉLICES sur les
   // MÊMES pivots : rien à ajouter dans la boucle, la caisse volante était déjà prévue par le jeu.
