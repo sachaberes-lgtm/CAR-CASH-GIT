@@ -8243,6 +8243,16 @@ html.c6[data-reduced-motion="1"] #tPanel.open #tpIn>*,html.c6[data-reduced-motio
   html.c6 #tPanel #tpIn .tp.ligne[data-a="volh"]{gap:8px}
   html.c6 #tPanel #tpIn .tp.ligne b.valeur{min-width:56px;padding:0 6px;font-size:8px;line-height:8px}
 }
+/* TOUS LES REGLAGES (2026-10-14, demande de Sacha) : une ligne « lien » sous les réglages rapides (même peau, chevron ▶ à droite) qui ouvre l'écran
+   complet #mSet par-dessus la pause. Pleine largeur dans la grille couchée ; hors charte 6 la ligne n'existe pas. */
+html.c6 #tPanel #tpIn .tp[data-a="tous"]{grid-column:1/-1}
+html.c6 #tPanel #tpIn .tp[data-a="tous"]>span{flex:1 1 auto;min-width:0;white-space:nowrap}
+html.c6 #tPanel #tpIn .tp.ligne.lien::after{content:'';flex:none;width:9px;height:9px;background:var(--c6-g2);-webkit-mask:var(--pxi-droite) center/contain no-repeat;mask:var(--pxi-droite) center/contain no-repeat}
+html:not(.c6) #tPanel .tp[data-a="tous"]{display:none}
+/* l'écran des réglages passe AU-DESSUS de la pause (z-index 9) ; à sa fermeture son fond d'encre s'efface en fondu sec de 130 ms (opacité seule) */
+html.c6 body.setPause #overlay{z-index:12}
+@keyframes c6FondSort{to{opacity:0}}
+html.c6 body.setPause.setPauseSort #overlay{animation:c6FondSort 120ms linear forwards}
 </style>
 <style id="c6-transitions">
 /* CHARTE 6 · le mouvement : les passages entre écrans — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
@@ -8718,6 +8728,7 @@ html.c6 body.voletSort .mscr.on,html.c6 body.voletSort .mscr.on>*,html.c6 .mscr.
     <div class="tp ligne" data-a="vox"><i class="pxi pxi-voix" aria-hidden="true"></i> VOIX</div>
     <div class="tp ligne" data-a="q"><i class="pxi pxi-eclair" aria-hidden="true"></i> IMAGE</div>
     <div class="tp ligne" data-a="volh"><i class="pxi pxi-aile" aria-hidden="true"></i> POUCE HAUT EN VOL</div><!-- (2026-09-30, R7-5) ce réglage n'agit qu'en VOL : c'est en pleine partie qu'on découvre qu'on préfère l'autre sens -->
+    <div class="tp ligne lien" data-a="tous" data-g="run"><i class="pxi pxi-reglages" aria-hidden="true"></i> TOUS LES REGLAGES</div><!-- (2026-10-14, charte 6) l'écran complet #mSet par-dessus la course en pause ; absent hors charte 6 (voir setPauseOuvre) -->
     </div>
     <div class="tp go" data-a="close"><i class="pxi pxi-lecture" aria-hidden="true"></i> REPRENDRE</div>
   </div></div>
@@ -19158,6 +19169,7 @@ for(const D of [I18N,I18N_ZH])for(const k of Object.keys(D)){
   const m=/^[\u2190-\u2BFF\u2600-\u27BF\uD83C-\uDBFF\uDC00-\uDFFF]+\s+(.+)$/.exec(k);
   if(m&&!(m[1] in D))D[m[1]]=String(D[k]).replace(/^[\u2190-\u2BFF\u2600-\u27BF\uD83C-\uDBFF\uDC00-\uDFFF]+\s+/,'');
 }
+Object.assign(I18N,{'TOUS LES REGLAGES':'ALL SETTINGS'});Object.assign(I18N_ZH,{'TOUS LES REGLAGES':'所有设置'}); // (2026-10-14, charte 6) la ligne de la pause qui ouvre l'écran complet
 /* ⚠ LES CAPITALES ACCENTUÉES NE PASSENT PAS EN PIXEL (2026-09-24) : la police dessine « É » comme un « é »
    minuscule — « RÉGLAGES » s'affichait « RéGLAGES » dans le panneau de pause. Tout ce qui passe par TR()
    perd donc l'accent de ses CAPITALES (À→A, É→E…) ; les minuscules accentuées, elles, sont bien dessinées. */
@@ -53973,6 +53985,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='q'){ SAVE.d.q=(SAVE.d.q==='net')?'fast':'net'; SAVE.flush(); applyQ(SAVE.d.q!=='net'); panSync(); }
     else if(a==='volh'){ volhBascule(); panSync(); }
     else if(a==='surv'){ clic(survBtnEl); panSync(); }
+    else if(a==='tous'){ setPauseOuvre(); } // (2026-10-14, charte 6) TOUS LES REGLAGES : l'écran complet par-dessus la pause
     else if(a==='resp'){ panOpen(false); if(started&&!gameOver&&mode==='drive')respawn(); }
     else if(a==='reset'||a==='quit'){ const q9=a==='quit'; // (2026-09-25) CONFIRMÉS : QUITTER tombait sous le pouce et terminait la partie d'un seul tap
       modale({titre:q9?'QUITTER LA PARTIE ?':'RECOMMENCER ?',texte:q9?(TUTO.on?(SAVE.d.permis?'Tu reprendras la leçon au prochain départ.':"Tu reprendras la leçon au prochain départ : le PERMIS et sa prime t'attendent."):'Tes gains sont versés au compte.'):'Les gains de cette partie ne seront PAS versés.', // (2026-09-29) pendant la leçon, « tes gains sont versés » taisait l'enjeu
@@ -54087,6 +54100,25 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(overlay){overlay.scrollTop=0;overlay.setAttribute('data-ecran',id);} // le fond suit l'écran : l'accueil laisse voir le monde
     mFill();
     if(id==='home')try{garAccueil();}catch(e){} } // (2026-09-30, sketch de Léo) « le garage devient le nouveau menu » : l'ACCUEIL ouvre l'atelier
+  /* (2026-10-14, charte 6, demande de Sacha) TOUS LES REGLAGES DEPUIS LA PAUSE. La ligne du panneau de pause ouvre l'écran complet #mSet PAR-DESSUS
+     la course en pause (la pause reste ouverte dessous, `paused` ne bouge pas) ; son ◀ referme l'écran et rend la pause, mise à jour (panSync).
+     `window.__setPause` est le drapeau : TCTL.ov est posé à la main (l'observateur de l'overlay et le tick de 140 ms ne rouvrent pas la racine
+     à la place de l'écran), mTap('back') et Échap le lisent. Ouvert depuis l'accueil, #mSet ne passe pas par ici : son ◀ ramène toujours à l'accueil. */
+  function setPauseOuvre(){
+    if(window.__setPause||!(started&&!gameOver&&paused)||!document.documentElement.classList.contains('c6'))return;
+    window.__setPause=true;uiClic('nav');
+    document.body.classList.add('setPause');document.body.classList.remove('setPauseSort');
+    TCTL.ov=true;overlay.style.display='flex';
+    mGo('set','avant',true); }
+  function setPauseFerme(){
+    if(!window.__setPause)return;
+    window.__setPause=false;
+    const fin=function(){ document.body.classList.remove('setPause','setPauseSort'); overlay.style.display='none'; TCTL.ov=false;
+      for(const k in mScr){const e=mScr[k];if(!e)continue;clearTimeout(e._sortT);e.classList.remove.apply(e.classList,SENS);}
+      mCur=mRoot(); overlay.setAttribute('data-ecran',mCur);
+      try{panSync();}catch(e){} };
+    if(REDUCED_MOTION){fin();return;}
+    document.body.classList.add('setPauseSort'); setTimeout(fin,130); } // le fond d'encre s'efface en fondu sec (opacité seule), la pause réapparaît dessous
   window.__mHomeSur=function(){if(mCur!=='home')mGo('home','racine',true);else{try{mFill();}catch(e){}}}; // (passe qualité) déjà sur l'accueil (retour du garage) : on remplit quand même — la pastille GARAGE gardait le compte d'avant un achat // (2026-09-30) le garage-menu montre l'ACCUEIL, d'où que vienne le routeur (mGo('home') rappelle garAccueil → garMode('menu') : ici, mCur vaut déjà 'home')
   function mStatBox(v,l){return '<div class="mStat"><b>'+v+'</b><span>'+l+'</span></div>';}
   let mCntT=0;
@@ -54260,6 +54292,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       if(a==='play'&&SAVE.d.facile==null&&!SAVE.d.tuto){facChoix().then(function(){goImmersive();playViaGarage(true);});} // (2026-09-29) le 1er JOUER demande le mode
       else{goImmersive(); playViaGarage(true);} } // 1re partie = AUTO-ÉCOLE : tutoArme passe SOUS le voile (la reconstruction de la piste figeait le bouton avant qu'il monte)
     else if(a==='tuto'){ SAVE.d.tuto=0;SAVE.flush();toast(pxi('coche')+' '+TR('L\'AUTO-ÉCOLE T\'ATTEND AU PROCHAIN JOUER')); }
+    else if(a==='back'&&window.__setPause){ setPauseFerme(); } // (2026-10-14, charte 6) le ◀ des réglages ouverts depuis la pause rend la pause
     else if(a==='back'&&mCur==='shop'&&window.__offGar){ window.__offGar=false; ecranWipe(function(){ openGarage(); try{gModeVa('shop');}catch(e){} }); } // (2026-10-10) venue de la PORTE DES OFFRES du garage : le RETOUR y ramène
     else if(a==='back')mGo(mRoot());
     else if(a==='carr'){ carrVue(null); } // (2026-09-27) la CARRIÈRE : les mondes, puis les dix niveaux (feuille #carr)
@@ -54365,6 +54398,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(ecranWipe._on)return; // (2026-09-29) sous un voile, l'écran qu'on quitte n'est plus à nous
     const md=$t('modale'),cr=$t('carr');
     if(md&&md.classList.contains('on')&&!md.classList.contains('sortant')){const bs=md.querySelectorAll('.modB .pbtn');if(bs.length)bs[bs.length-1].click();return;} // le DERNIER bouton d'une fenêtre est toujours l'annulation
+    if(window.__setPause){uiClic('retour');setPauseFerme();return;} // (2026-10-14, charte 6) les réglages ouverts depuis la pause : Échap = leur ◀
     if(pan&&pan.classList.contains('open')&&!pan.classList.contains('sortant')){panOpen(false,true);uiClic('retour');return;}
     if(cr&&cr.classList.contains('on')&&!cr.classList.contains('sortant')){uiClic('retour');feuilleFerme(cr,'on');return;}
     if(garageOn||(typeof stallOn!=='undefined'&&stallOn))return; // l'atelier et l'étal ont déjà leur Échap
@@ -54377,6 +54411,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   window.__mGo=function(id){if(mScr[id])mGo(id);};
   window.__panBascule=function(){
     const md=$t('modale');if(md&&md.classList.contains('on'))return; // une fenêtre ouverte (RECOMMENCER ?, QUITTER ?) garde la main
+    if(window.__setPause)return; // (2026-10-14, charte 6) les réglages complets sont ouverts par-dessus la pause : P ne reprend pas la course dessous
     if(pan&&pan.classList.contains('open')&&!pan.classList.contains('sortant')){panOpen(false,true);return;} // comme REPRENDRE : le 3-2-1
     if(started&&!gameOver&&mode==='boom'){boomSkip();return;} // (passe qualité) P / Échap pendant l'explosion : comme le ⏸ (voir gearOpenHandler)
     if(started&&!gameOver){panOpen(true);hap(10);}
