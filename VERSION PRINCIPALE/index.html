@@ -210,7 +210,7 @@ html.nav7 #n7Bank .pxi{--pxs:2;color:currentColor;filter:none}
 /* ---------- L'ACCUEIL : le logo, la caisse, JOUER. Les quatre cartes (CARRIÈRE · MISSIONS · GARAGE · OFFRES) sont devenues la barre ----------
    RÉGLAGES reste en haut à gauche (icône + mot) ; JOUER prend l'emplacement de décision, au-dessus de la barre (couché : au bout, à droite). */
 html.nav7.c6.hub:not(.poki) body #mHome.acc2 :is(.mAccB[data-m="carr"],.mAccP>.mMisBarre,.mHubPorte,.mOffres){display:none!important}
-html.nav7.c6.hub:not(.poki) body #mHome.acc2{grid-template-rows:48px 8px auto minmax(0,1fr);padding-bottom:var(--n7Res)}
+html.nav7.c6.hub:not(.poki) body #mHome.acc2{grid-template-rows:48px 24px auto minmax(0,1fr);padding-bottom:var(--n7Res)} /* 24 sous RÉGLAGES : à 8, la touche collait au haut du logo (~5 px vus au banc 390×844 — le relief des lettres déborde de leur boîte) */
 html.nav7.c6.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay{position:fixed!important;left:var(--n7DecL);right:var(--n7DecR);bottom:var(--n7DecB);
   width:var(--n7DecW)!important;height:var(--n7DecH)!important;min-height:0!important;box-sizing:border-box;z-index:2}
 @media (orientation:landscape) and (max-height:540px){
