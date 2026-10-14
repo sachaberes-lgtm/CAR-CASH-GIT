@@ -37078,7 +37078,7 @@ function nitroEteint(){ // LA DERNIÈRE BOUFFÉE : une langue de feu aux pots + 
    la COUPURE, elle, n'avait que du son et une langue de feu : la caisse accroupie (pitch9 −1,7°) se relevait en fondu, sans poids.
    `sensNitro` ne fait que REGARDER (nitroOn, nitroHeldT, engGear, VPAL.n) et répond par les outils communs : elle ne calcule rien du jeu.
    Appelée une fois par image, juste avant la remise à zéro de `nitroHeldT`. `on` : l'état de l'image d'avant. */
-const SENS_NI={on:false,ts:0,h:0};
+const SENS_NI={on:false,ts:0,h:0,g:1,tg:0};
 function sensNitro(dt,veut){
   const n9=performance.now();
   if(!nitroOn&&SENS_NI.on&&mode!=='boom'&&!gameOver){
@@ -37098,6 +37098,12 @@ function sensNitro(dt,veut){
   }
   if(SENS_NI.h>0){SENS_NI.h-=dt; // le 2e raté de la panne sèche (compté en secondes : même écart à 30, 60 et 120 i/s) — annulé si la flamme est revenue ou si la caisse a sauté
     if(SENS_NI.h<=0&&!nitroOn&&mode!=='boom'&&!gameOver){if(!REDUCED_MOTION)sensCoup(0,.7,-.2);sensSecoue(.07);}}
+  /* LE RAPPORT PASSE DANS LA CAISSE : chaque passage claquait déjà à l'oreille, au pouce (hap 5) et au champ (+1,8°) — la carrosserie, elle,
+     ne bronchait pas. Le couple se coupe un instant : le nez SALUE (≈ 1,2°), puis la poussée le reprend. Vu à l'image suivante (la boîte
+     tourne plus bas dans la boucle). Un seul cran monté (un recalage de palier en saute plusieurs, ou retombe en 1re : muet), au plus un
+     tous les 350 ms comme la cérémonie sonore, et pas pendant le cabrage de l'allumage (il le contredirait). Aucune vibration : elle existe. */
+  if(engGear===SENS_NI.g+1&&mode==='drive'&&n9-SENS_NI.tg>350&&NFX.ign<.3){SENS_NI.tg=n9;if(!REDUCED_MOTION)sensCoup(0,.45,0);}
+  SENS_NI.g=engGear;
   SENS_NI.on=nitroOn;
 }
 /* LE BOOST JOUE UN ARPÈGE (2026-10-03, Léo : « que le boost joue directement un instrument qu'on peut SPAMMER, APPUYER LONGTEMPS,
