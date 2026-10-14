@@ -18,8 +18,10 @@ const fs=require('fs'),path=require('path'),os=require('os'),{execSync}=require(
    Joue TOUTE la fabrication (copie, retouches, inventaire) sur le jeu d'une autre branche, dans un dossier jetable : www/ n'est pas
    touché. Sert à savoir, AVANT de fusionner, si les retouches trouvent encore leurs cibles dans un jeu qui a bougé. */
 const iE=process.argv.indexOf('--essai'), ESSAI=iE>=0?path.resolve(process.argv[iE+1]||''):null;
-const ICI=__dirname, SRC=ESSAI||path.join(ICI,'..','VERSION PRINCIPALE'), WWW=ESSAI?fs.mkdtempSync(path.join(os.tmpdir(),'cashcar-essai-')):path.join(ICI,'www');
-if(ESSAI)process.on('exit',()=>{try{fs.rmSync(WWW,{recursive:true,force:true});}catch(e){}});
+//   … --sortie "<dossier>" : l'essai est GARDÉ dans ce dossier (pour le regarder au navigateur) au lieu d'être effacé.
+const iS=process.argv.indexOf('--sortie'), SORTIE=ESSAI&&iS>=0?path.resolve(process.argv[iS+1]||''):null;
+const ICI=__dirname, SRC=ESSAI||path.join(ICI,'..','VERSION PRINCIPALE'), WWW=SORTIE||(ESSAI?fs.mkdtempSync(path.join(os.tmpdir(),'cashcar-essai-')):path.join(ICI,'www'));
+if(ESSAI&&!SORTIE)process.on('exit',()=>{try{fs.rmSync(WWW,{recursive:true,force:true});}catch(e){}});
 const meurt=m=>{console.error('\n✗ preparer-www'+(ESSAI?' (essai sur '+SRC+')':'')+' : '+m+'\n');process.exit(1);};
 if(!fs.existsSync(path.join(SRC,'index.html')))meurt(SRC+'/index.html introuvable');
 
@@ -36,6 +38,11 @@ const copie=(a,b)=>{if(SANS_LIVRER.has(path.relative(SRC,a).split(path.sep).join
   if(s.isDirectory()){fs.mkdirSync(b,{recursive:true});for(const n of fs.readdirSync(a))if(!JAMAIS.test(n))copie(path.join(a,n),path.join(b,n));}
   else{fs.copyFileSync(a,b);nFic++;nOct+=s.size;}};
 for(const n of GARDE){const a=path.join(SRC,n);if(!fs.existsSync(a))meurt('manque '+n+' dans VERSION PRINCIPALE');copie(a,path.join(WWW,n));}
+// (2026-10-14) LES SCRIPTS QUE LA PAGE CHARGE ELLE-MÊME suivent tout seuls : un nouveau fichier du jeu (figures.js, Léo, cette nuit) manquait
+// à l'app sans bruit (404, les FIGURES absentes). Tout <script src="…"> local de index.html est copié ; s'il n'existe pas, la fabrication s'arrête.
+for(const m of fs.readFileSync(path.join(SRC,'index.html'),'utf8').matchAll(/<script[^>]*\ssrc=["']([^"'?#]+)/g)){const n=m[1];
+  if(/^[a-z]+:|^\/\//i.test(n)||n==='natif.js')continue;const a=path.join(SRC,n);if(!fs.existsSync(a))meurt('la page charge '+n+', absent de VERSION PRINCIPALE');
+  if(!fs.existsSync(path.join(WWW,n))){fs.mkdirSync(path.dirname(path.join(WWW,n)),{recursive:true});copie(a,path.join(WWW,n));console.log('  + '+n+' (chargé par la page)');}}
 // l'icône du web : le mot-symbole pixel CASH CAR (icon.svg du jeu = l'émoji 💰 d'Apple, une image protégée : refus App Store)
 fs.copyFileSync(path.join(ICI,'ressources','icon.svg'),path.join(WWW,'icon.svg'));nFic++;
 fs.copyFileSync(path.join(ICI,'natif','natif.js'),path.join(WWW,'natif.js'));nFic++;
@@ -57,9 +64,12 @@ for(const u of['https://game-cdn.poki.com/scripts/v2/poki-sdk.js','https://sdk.c
    · plus de « BIENTÔT » (2026-10-14) : Apple refuse ce qui est annoncé mais absent. Les trois caisses « DÉFI À VENIR » (REQUIN, COMÈTE,
      LA RAIE : leur défi n'est pas écrit) passent aussi à l'argent du jeu — REQUIN et COMÈTE au prix POKI de leur ancien prix en €
      (9,99 et 4,99), LA RAIE à ses 2,5 M d'avant ; le bouton verrouillé « BIENTÔT » du menu du garage est masqué ; l'affiche RECORD
-     PERSO touchée ne dit plus « BIENTÔT EN DÉTAIL » ; les blocs « ? » des raretés à venir, au bout de SEE ALL ITEMS, ne sont plus posés ;
+     PERSO touchée ne disait plus « BIENTÔT EN DÉTAIL » (le jeu lui-même l'a retiré depuis) ; les blocs « ? » des raretés à venir, au bout de SEE ALL ITEMS, ne sont plus posés ;
    · plus de marque d'autrui dans un texte (2026-10-14, audit « regard d'Apple », règle 5.2) : la phrase du MONOSPACE ne double plus
-     « une Ferrari » mais « une voiture de course » (la phrase de CARS et sa clé de traduction changent ensemble, puis l'anglais). */
+     « une Ferrari » mais « une voiture de course » (la phrase de CARS et sa clé de traduction changent ensemble, puis l'anglais) ;
+   · pas de déblocage par CODE (2026-10-14, règle 3.1.1 d'Apple : on ne débloque pas de contenu par un code hors achat intégré) : la ligne
+     ENTRER UN CODE des réglages (Léo, « LE CODE COUSIN ») est masquée, le code n'est plus reconnu, et un `cousin` venu d'une sauvegarde
+     restaurée (code de sauvegarde du jeu web) ne débloque rien. */
 une("const TEST_CAISSES=!POKI;","const TEST_CAISSES=false; /* (app iOS) */",'mode TEST des caisses');
 une("const TEST_CARRIERE=true;","const TEST_CARRIERE=false; /* (app iOS) */",'mode TEST de la carrière');
 une("if(POKI){const PRIX_CARNET=",
@@ -67,11 +77,12 @@ une("if(POKI){const PRIX_CARNET=",
   "if(u.k==='bientot'){CAR_UNLOCK[i]={p:(c&&{'REQUIN':6.5e6,'COMÈTE':4.2e6,'LA RAIE':2.5e6}[c.name])||3e6};if(c&&c.rar==='defi')delete c.rar;return;}"+
   "const e=u.k==='pubs'?9.99:(parseFloat(String(u.eur).replace(',','.'))||5);CAR_UNLOCK[i]={p:Math.round((2e6+e*450e3)/1e5)*1e5};if(c){c.rar='legendaire';}});\n"+
   "if(POKI){const PRIX_CARNET=",'caisses en €');
-une("toast(sansAcc(TR(a.k==='perso'?'TES RECORDS : BIENTOT EN DETAIL':'CLASSEMENT MONDIAL : BIENTOT EN LIGNE')));",
-  "/* (app iOS) l'affiche saute et tinte, sans annoncer de « bientôt » */",'annonce de l\'affiche du garage');
-une("if(m==='tous')st.insertAdjacentHTML('beforeend',gMystere());","/* (app iOS) pas de blocs « ? — BIENTÔT » */",'blocs des raretés à venir');
+/* (l'annonce « BIENTÔT EN DÉTAIL / EN LIGNE » de l'affiche du garage : retirée du jeu lui-même au train T2 du 14/10, coupe ôtée) */
+/* (les blocs « ? — BIENTÔT » de SEE ALL ITEMS : le jeu ne les pose plus sous la charte 6 depuis le train T2 du 14/10, coupe ôtée) */
 toutes('on vient de doubler une Ferrari.','on vient de doubler une voiture de course.',2,'phrase « Ferrari » (CARS + clé de traduction)');
 une('we just passed a Ferrari.','we just passed a race car.','phrase « Ferrari » en anglais');
+une("if(k!=='cousin'&&k!=='cousin161')return false;","return false; /* (app iOS) pas de déblocage par code */",'code COUSIN (saisie)');
+une("function cousin(){try{return !!SAVE.d.cousin;}catch(e){return false;}}","function cousin(){return false;} /* (app iOS) pas de déblocage par code */",'code COUSIN (effet)');
 une('</head>','<style id="appStore">/* (app iOS) pas de page OFFRES en € : ni l\'écran, ni ses portes (mêmes sélecteurs que l\'édition POKI ; les deux :not(#…) passent devant\n'+
   '   la règle de l\'accueil v2 qui réaffiche la tuile OFFRES) */\n'+
   'html:not(#ccA):not(#ccB) :is([data-m="shop"],[data-go="shop"],.gBoutique,#mShop,#bdShop){display:none!important}\n'+
@@ -80,13 +91,16 @@ une('</head>','<style id="appStore">/* (app iOS) pas de page OFFRES en € : ni 
   '/* le bouton verrouillé « BIENTÔT » du menu du garage */\n'+
   '#gMenuBas .gVerrou{display:none!important}\n'+
   '/* le vieux panneau RÉGLAGES de l\'écran-titre d\'ordinateur (déjà caché au doigt) : ses boutons de sauvegarde ouvrent un prompt() du système */\n'+
-  '#setBtn,#settings{display:none!important}</style>\n</head>','page OFFRES');
+  '#setBtn,#settings{display:none!important}\n'+
+  '/* la ligne ENTRER UN CODE des réglages (le code COUSIN, coupé plus haut) */\n'+
+  '.mCode{display:none!important}</style>\n</head>','page OFFRES');
 une("const SANS_VOIX=POKI||!/[?&]voix=1\\b/.test(location.search);","const SANS_VOIX=true; /* (app iOS) les voix ne sont pas livrées */",'règle SANS_VOIX (les voix ne sont pas livrées)');
 /* LES TÉMOINS — une coupe faite en CSS ne casse rien si sa cible change de nom : elle cesse juste de couper, en silence. Chaque porte
    masquée ci-dessus doit donc encore exister dans le jeu ; sinon l'écran a été refait et la coupe est à revoir (au navigateur). */
 for(const[t,quoi]of[['data-m="shop"','la tuile OFFRES de l\'accueil'],['id="mShop"','la page OFFRES (#mShop)'],['id="bdShop"','le fond de la page OFFRES (#bdShop)'],
   ['<button data-o="off"','l\'onglet OFFRES de la boutique du garage'],["k:'premium'",'les caisses vendues en €'],["k:'pubs'",'la caisse aux 100 pubs'],
-  ["k:'bientot'",'les caisses « DÉFI À VENIR »'],['class="pbtn gVerrou"','le bouton verrouillé BIENTÔT du menu du garage']])
+  ["k:'bientot'",'les caisses « DÉFI À VENIR »'],['class="pbtn gVerrou"','le bouton verrouillé BIENTÔT du menu du garage'],
+  ['class="mPanel mCode"','la ligne ENTRER UN CODE des réglages']])
   if(h.indexOf(t)<0)meurt('témoin perdu — '+quoi+' : « '+t+' » n\'existe plus dans le jeu. L\'écran a changé : revoir la coupe de l\'édition App Store.');
 fs.writeFileSync(path.join(WWW,'index.html'),h);
 
