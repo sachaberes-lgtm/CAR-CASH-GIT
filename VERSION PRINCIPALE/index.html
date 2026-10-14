@@ -28280,11 +28280,11 @@ let driftC=0,driftLv=0,driftSpk=0,driftEnCours=false,driftArm=0,driftCd=0,fovPun
 const SCOUP={p:0,pv:0,ht:0,hf:0,hop:0,hopP:false}; // le tangage EN PLUS du jeu (rad, rad/s) — le roulis et le débattement ont déjà leurs ressorts (rollV, susV) · ht/hf : la dernière vibration · hop/hopP : la hauteur du petit saut en cours (dos d'âne, replacement) et s'il porte une pose déclarée en l'air
 function sensCoup(versLat,nez,pompe){if(!SENS||mode!=='drive')return;rollV=THREE.MathUtils.clamp(rollV-(versLat||0),-5,5);SCOUP.pv=THREE.MathUtils.clamp(SCOUP.pv+(nez||0),-4,4);susV=THREE.MathUtils.clamp(susV+(pompe||0),-4,4);}
 SCOUP.vp=0;SCOUP.vt=0; // (2026-10-14, gameplay · accord) la vibration du verdict de pose qui attend le contact (motif, heure) — voir tryLand
-function sensHap(p,force){if(!SENS)return;const t=performance.now(),f=force||1;if(t-SCOUP.ht<(f>=SCOUP.hf?70:220))return;if(t-(hap._t||-1e9)<70)return;SCOUP.ht=t;SCOUP.hf=f;hap(p);}
+function sensHap(p,force){if(!SENS)return;const t=performance.now(),f=force||1;if(t-SCOUP.ht<(f>=SCOUP.hf?70:220))return;if(t-(hap._t||-1e9)<70&&(hap._k||0)>=f)return;SCOUP.ht=t;SCOUP.hf=f;hap(p);}
 /* (2026-10-14, gameplay · accord) LA MAIN N'A QU'UNE VOIX PAR ÉVÉNEMENT. Le limiteur ne voyait que les vibrations de la passe : un détail
    SENS pouvait doubler, à la même image, le coup que le jeu venait de donner (le braquage qui arrache la caisse : [16,40,16] PUIS le tic
    du décollage). `hap` note désormais l'heure de sa dernière impulsion (`hap._t`) et un détail SENS se TAIT dans les 70 ms qui suivent
-   n'importe quelle vibration : le geste d'origine garde la parole. L'échelle, la même partout (sol, air, eau, menu) — le Taptic d'iOS
+   une vibration du jeu AU MOINS aussi forte (`hap._k`) : le geste d'origine garde la parole — un tic de pièce ne fait pas taire une pose. L'échelle, la même partout (sol, air, eau, menu) — le Taptic d'iOS
    la lit ainsi (hap) : TIC LÉGER ≤ 12 ms (une lèvre, une crête, une pièce, une petite retombée) · COUP NET 14-24 ms (une pose, un bump,
    une porte, la lèvre rattrapée) · COUP LOURD ≥ 45 ms (la pose lourde, la flaque, la mort) · MOTIF DOUBLE [coup, 20-40 ms, coup] pour
    les gestes à deux temps (la catapulte, le saut nitro, la figure, le train de boosts, la panne sèche). */
@@ -36112,7 +36112,7 @@ let SANDBOX=false; // BAC À SABLE : la caisse se replace au lieu de mourir — 
    en impacts — une impulsion courte = LÉGÈRE, moyenne = MOYENNE, longue = LOURDE, et un motif [on,off,on…] rejoue
    chaque impulsion à son heure. Hors app (navigateur Android), le vibreur d'origine reste la voie. */
 function hap(p){
-  if(!TCTL.on||!SND.vib)return;hap._t=performance.now(); // (2026-10-14, gameplay · accord) l'heure de la dernière impulsion : le limiteur des détails SENS la lit (sensHap) // (2026-09-28) son interrupteur à lui (réglages › VIBRATIONS) : beaucoup jouent son coupé et gardent le retour haptique
+  if(!TCTL.on||!SND.vib)return;hap._t=performance.now();{let m=0;if(Array.isArray(p)){for(let i=0;i<p.length;i+=2)if(+p[i]>m)m=+p[i];}else m=+p||0;hap._k=m<=12?1:m<=40?2:3;} // (2026-10-14, gameplay · accord) l'heure et la CLASSE (1 léger · 2 moyen · 3 lourd, comme le Taptic) de la dernière impulsion : le limiteur des détails SENS les lit (sensHap) // (2026-09-28) son interrupteur à lui (réglages › VIBRATIONS) : beaucoup jouent son coupé et gardent le retour haptique
   const H=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Haptics;
   if(H){try{
     const L=Array.isArray(p)?p:[p];let at=0;
