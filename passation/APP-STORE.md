@@ -15,7 +15,13 @@
   nom anglais = « CASH CAR - Sky Runner » (« CASH CAR » déjà pris en en-US) ; sous-titres FR/EN ; Jeux › Course + Action (Arcade n'est pas
   proposé en 2e sous-catégorie) ; droits : « Oui, contenus tiers, droits détenus » ; âge 9+ (violence cartoon peu fréquente) ; confidentialité :
   URL FR + « Données non collectées » PUBLIÉ ; gratuit, 175 pays ; Mac et Vision Pro DÉCOCHÉS.
-- MANQUE (Sacha) : téléphone du contact testeur (la section ne s'enregistre pas sans) ; captures (le navigateur intégré ne joint pas de fichier :
+- 16 h 57 : sur les OUI de Sacha (« oui envoie le build, main ») : BUILD 1 (1.0.0, jeu T8) ENVOYÉ à App Store Connect (« Upload succeeded ») ;
+  pages corrigées poussées sur main (ea1af76) ; contact testeur rempli (Sacha Beres, téléphone, 16180contact@gmail.com) + notes, enregistré.
+- ⚠ À 16 h 45-53, main a changé le jeu : PLUS DE CARRIÈRE, PLUS DE MODE FACILE, retour à l'interface PIXEL (charte 6 éteinte, ?ui=6).
+  Le build 1 (T8) a encore tout ça → NE PAS le soumettre. À faire quand Sacha dit que le jeu est figé : fusionner origin/main dans
+  ios-capacitor, essai (passe sur 5326836), revoir au simulateur l'accueil pixel sans OFFRES ni CARRIÈRE, refaire les captures, monter
+  CURRENT_PROJECT_VERSION à 2, archiver + envoyer le build 2 ; fiche : retirer « MISSIONS ET CARRIÈRE » → « MISSIONS » (FR + EN).
+- MANQUE (Sacha) : captures (APRÈS le build 2) (le navigateur intégré ne joint pas de fichier :
   Sacha les choisit, dossier « Bureau/CASH CAR captures App Store/1 - FRANCAIS » et « 2 - ANGLAIS », format 6,3" 1206×2622 OBLIGATOIRE) ;
   OUI pour l'envoi du build (refusé sans accord explicite) ; nouveau contrat Apple Developer à accepter (titulaire) ; statut de commerçant UE (DSA) ;
   OUI final pour « Ajouter pour vérification ». URL de confidentialité EN pas encore posée.
