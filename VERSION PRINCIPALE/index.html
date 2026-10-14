@@ -15867,11 +15867,29 @@ function jadeMats(){if(!JADE_M.vr){JADE_M.vr=jadeVRMat('A');JADE_M.vrO=jadeVRMat
     JADE_M.arb=new THREE.ShaderMaterial({uniforms:Object.assign(THREE.UniformsUtils.clone(THREE.UniformsLib.fog),JADE_U,{uTex:{value:jadeArbresTex()}}),vertexShader:JADE_ARB_VS,fragmentShader:JADE_ARB_FS,fog:true,side:THREE.DoubleSide});JADE_M.arb.dispose=function(){};}
   return JADE_M;}
 /* LES GABARITS : bâtis une fois par session — dix montagnes, trois rochers flottants (à la suite : `JADE_NTPL` les sépare), les temples */
-function jadeGabarits(){if(JADE.geos)return JADE.geos;const t0=performance.now();
-  const p=JADE_TPL.map(function(q,k){return voxPilier(q[0]/VX,Math.round(q[1]/VX),q[2],0x51A0+k*131);});
-  for(let v=0;v<3;v++)p.push(voxPilier((6.5+v*2.2)/VX,Math.round((20+v*7.5)/VX),v%3,0xCA11+v*71)); // les ROCHERS qui flottent (6,5-11 m, 20-35 m)
-  
-  JADE.geos={p:p,pag:jadeTempleGeo(5),pav:jadeTempleGeo(1),arbreQ:new THREE.PlaneGeometry(1,1),ms:Math.round(performance.now()-t0)};return JADE.geos;}
+/* LES GABARITS TAILLÉS AU MENU (2026-10-14, session OPTIMISATION — passation perf n° 2 : « JOUER ~1,0-1,3 s : 1 280 ms de JavaScript dans le
+   fn() du volet »). MESURÉ (profil, PC, palier 0) : le volet du JOUER figeait 641 ms, dont 389 ms pour jadeGabarits — les gabarits de la jade,
+   taillés « une fois par session, sous le voile » quel que soit le niveau tiré. Ce sont déjà des générateurs à échéance (voxPilierG, voir LES
+   TRANCHES) : au MENU, une fois la chauffe finie (CHAUFFE_R.fait), hors volet et hors lâcher, jadeGabFond en taille quelques ms par image
+   (gabFondMs). Un JOUER qui arrive avant la fin les finit d'un trait (jadeGabarits) là où elles en sont : les mêmes gabarits au bit près (le
+   hasard de chacune est sa graine, une tranche ne fait que suspendre). `ms` = le travail cumulé. dbgGabarits() : l'état. */
+PAL.B.gabFondMs=[5,6,8];
+const GAB_FOND={it:null,ms:0,n:0,fini:false,sync:0};
+function* jadeGabaritsG(){const p=[];
+  for(let k=0;k<JADE_TPL.length;k++){const q=JADE_TPL[k];p.push(yield* voxPilierG(q[0]/VX,Math.round(q[1]/VX),q[2],0x51A0+k*131));}
+  for(let v=0;v<3;v++)p.push(yield* voxPilierG((6.5+v*2.2)/VX,Math.round((20+v*7.5)/VX),v%3,0xCA11+v*71)); // les ROCHERS qui flottent (6,5-11 m, 20-35 m)
+  if(performance.now()>JF.lim)yield;
+  return {p:p,pag:jadeTempleGeo(5),pav:jadeTempleGeo(1),arbreQ:new THREE.PlaneGeometry(1,1),ms:0};}
+function jadeGabarits(){if(JADE.geos)return JADE.geos;
+  const t0=performance.now(),it=GAB_FOND.it||jadeGabaritsG(),l0=JF.lim;GAB_FOND.it=null;GAB_FOND.fini=true;JF.lim=Infinity;
+  try{const g=jadeFini(it);GAB_FOND.sync=performance.now()-t0;GAB_FOND.ms+=GAB_FOND.sync;g.ms=Math.round(GAB_FOND.ms);JADE.geos=g;}finally{JF.lim=l0;}
+  return JADE.geos;}
+function jadeGabFond(){ // une tranche par image, au menu (voir LES GABARITS TAILLÉS AU MENU)
+  if(JADE.geos||GAB_FOND.fini||(started&&!gameOver)||!CHAUFFE_R.fait||ecranWipe._on||(typeof GAR!=='undefined'&&GAR.go))return;
+  const t=performance.now(),l0=JF.lim;if(!GAB_FOND.it)GAB_FOND.it=jadeGabaritsG();JF.lim=t+PAL.b('gabFondMs',6);chauffeGrace(); // (la qualité auto ne lit pas une tranche comme une faiblesse)
+  let r;try{r=GAB_FOND.it.next();}catch(e){GAB_FOND.it=null;GAB_FOND.fini=true;console.warn('gabarits',e);return;}finally{JF.lim=l0;GAB_FOND.ms+=performance.now()-t;GAB_FOND.n++;}
+  if(r.done){GAB_FOND.it=null;GAB_FOND.fini=true;r.value.ms=Math.round(GAB_FOND.ms);JADE.geos=r.value;}}
+window.dbgGabarits=function(){return {pret:!!JADE.geos,tranches:GAB_FOND.n,msTravail:Math.round(GAB_FOND.ms),msFinSurPlace:Math.round(GAB_FOND.sync),enCours:!!GAB_FOND.it};}; // (banc)
 function jadeTplDe(r){let bi=0,bd=1e9;for(let k=0;k<JADE_NTPL;k++){const d=Math.abs(JADE_TPL[k][0]-r);if(d<bd){bd=d;bi=k;}}return bi;}
 /* ---- LA MATIÈRE DES TEMPLES (couleur par sommet, lumière du niveau, brume) ---- */
 const JADE_COL_VS=['attribute vec3 aCol;attribute vec4 aJ;varying vec3 vW,vN,vC;','#include <fog_pars_vertex>','void main(){',
@@ -16616,11 +16634,12 @@ function lensSortie(k){if(REDUCED_MOTION)return;lensInit();LENS.nappe=1;LENS.t=0
 function lensEntree(){if(REDUCED_MOTION)return;lensInit();LENS.flash=1;LENS.g.length=0;LENS.nappe=0;}
 function lensTick(dt){const cv=LENS.cv;if(!cv)return;const U=acesPass&&acesPass.uniforms;const vide=!LENS.g.length&&LENS.nappe<=0&&LENS.flash<=0;
   if(vide){if(cv.style.visibility!=='hidden'){cv.style.visibility='hidden';LENS.cx.clearRect(0,0,LENS.W,LENS.H);}if(U&&U.uLensK)U.uLensK.value=0;return;}
-  const W=Math.max(1,Math.ceil(innerWidth/3)),H=Math.max(1,Math.ceil(innerHeight/3));
+  const W=Math.max(1,Math.ceil(VP.w/3)),H=Math.max(1,Math.ceil(VP.h/3)); // (2026-10-14, OPTIMISATION — relevé par GENERAL) VP au lieu d'innerWidth : la lecture forçait une mise en page à chaque image (piège n° 11)
   if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;}if(LENS.cvN.width!==W||LENS.cvN.height!==H){LENS.cvN.width=W;LENS.cvN.height=H;LENS.img=null;}
   if(!LENS.img)LENS.img=LENS.cxN.createImageData(W,H);LENS.W=W;LENS.H=H;
   if(cv.style.visibility!=='visible')cv.style.visibility='visible';const x=LENS.cx;x.clearRect(0,0,W,H);LENS.t+=dt;
-  const D=LENS.img.data;for(let i=0;i<D.length;i+=4){D[i]=128;D[i+1]=128;D[i+2]=0;D[i+3]=255;} // la toile des normales, au repos : aucun décalage
+  const D=LENS.img.data; // la toile des normales, au repos : aucun décalage — (OPTIMISATION) recopiée d'un modèle (une copie mémoire) au lieu de 4 écritures par pixel à chaque image
+  if(!LENS.rep||LENS.rep.length!==D.length){const R9=LENS.rep=new Uint8ClampedArray(D.length);for(let i=0;i<R9.length;i+=4){R9[i]=128;R9[i+1]=128;R9[i+2]=0;R9[i+3]=255;}}D.set(LENS.rep);
   const N=function(px,py,nx,ny){if(px<0||py<0||px>=W||py>=H)return;const o=(py*W+px)*4;D[o]=Math.max(0,Math.min(255,128+nx*7.94));D[o+1]=Math.max(0,Math.min(255,128-ny*7.94));}; // (nx, ny en pixels de toile ; ÷16 → ±127)
   if(LENS.flash>0){LENS.flash=Math.max(0,LENS.flash-dt/.22);x.fillStyle='rgba(215,252,255,'+(.55*LENS.flash).toFixed(3)+')';x.fillRect(0,0,W,H);}
   let lens=0;
@@ -16642,7 +16661,7 @@ function lensTick(dt){const cv=LENS.cv;if(!cv)return;const U=acesPass&&acesPass.
     x.fillStyle='rgba(255,255,255,'+(.75*ev).toFixed(3)+')';x.fillRect(cx-Math.round(r*.45),cy-Math.round(r*.5),r>6?2:1,r>6?2:1); // l'éclat
     if(r>4){x.fillStyle='rgba(255,255,255,'+(.35*ev).toFixed(3)+')';x.fillRect(cx+Math.round(r*.3),cy+Math.round(r*.45),1,1);}}
   LENS.cxN.putImageData(LENS.img,0,0);LENS.tex.needsUpdate=true;
-  if(U&&U.uLensK){U.uLensK.value=lens;U.uLensA.value.set(16*3/Math.max(1,innerWidth),16*3/Math.max(1,innerHeight));if(U.uLens.value!==LENS.tex)U.uLens.value=LENS.tex;}}
+  if(U&&U.uLensK){U.uLensK.value=lens;U.uLensA.value.set(16*3/Math.max(1,VP.w),16*3/Math.max(1,VP.h));if(U.uLens.value!==LENS.tex)U.uLens.value=LENS.tex;}}
 /* LE SON SOUS L'EAU : un passe-bas devant la sortie (grand ouvert hors de l'eau), des bloups de bulles */
 function eauFiltre(sous,net){if(!AC||!MASTER||typeof BUSOUT==='undefined'||!BUSOUT)return;
   if(!MASTER._eauLp){if(!sous)return;try{const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=AC.sampleRate/2;lp.Q.value=.6;MASTER.disconnect(BUSOUT);MASTER.connect(lp);lp.connect(BUSOUT);MASTER._eauLp=lp;}catch(e){return;}}
@@ -22618,8 +22637,9 @@ function dogeNets(F,X0,Y0,Z0,h,nx,ny,nz,coul){
   for(let k=0;k<nz;k++)for(let j=0;j<ny;j++)for(let i=0;i<nx;i++)V[i+nx*(j+ny*k)]=F(X0+i*h,Y0+j*h,Z0+k*h);
   const CI=new Int32Array((nx-1)*(ny-1)*(nz-1)).fill(-1),P=[],Nn=[],C=[],IX=[],c3=[0,0,0];
   const EDG=[[0,1],[2,3],[4,5],[6,7],[0,2],[1,3],[4,6],[5,7],[0,4],[1,5],[2,6],[3,7]],CO=[[0,0,0],[1,0,0],[0,1,0],[1,1,0],[0,0,1],[1,0,1],[0,1,1],[1,1,1]],v8=new Float32Array(8);
-  for(let k=0;k<nz-1;k++)for(let j=0;j<ny-1;j++)for(let i=0;i<nx-1;i++){let m=0;
-    for(let c=0;c<8;c++){const o=CO[c];v8[c]=V[(i+o[0])+nx*((j+o[1])+ny*(k+o[2]))];if(v8[c]<0)m|=1<<c;}
+  const OFF=CO.map(o=>o[0]+nx*(o[1]+ny*o[2])); // (2026-10-14, OPTIMISATION) le décalage de chaque coin dans V, calculé une fois (mêmes cases lues)
+  for(let k=0;k<nz-1;k++)for(let j=0;j<ny-1;j++)for(let i=0;i<nx-1;i++){let m=0;const b0=i+nx*(j+ny*k);
+    for(let c=0;c<8;c++){v8[c]=V[b0+OFF[c]];if(v8[c]<0)m|=1<<c;}
     if(m===0||m===255)continue;let sx=0,sy=0,sz=0,n=0;
     for(const e of EDG){const a=v8[e[0]],b=v8[e[1]];if((a<0)===(b<0))continue;const t=a/(a-b),A=CO[e[0]],B=CO[e[1]];
       sx+=A[0]+(B[0]-A[0])*t;sy+=A[1]+(B[1]-A[1])*t;sz+=A[2]+(B[2]-A[2])*t;n++;}
@@ -22633,7 +22653,7 @@ function dogeNets(F,X0,Y0,Z0,h,nx,ny,nz,coul){
     if(in0!==(V[i+nx*((j+1)+ny*k)]<0))quad(ci(i-1,j,k-1),ci(i-1,j,k),ci(i,j,k),ci(i,j,k-1),in0);
     if(in0!==(V[i+nx*(j+ny*(k+1))]<0))quad(ci(i-1,j-1,k),ci(i,j-1,k),ci(i,j,k),ci(i-1,j,k),in0);}
   return {P:new Float32Array(P),N:new Float32Array(Nn),C:new Float32Array(C),I:new Uint32Array(IX)};}
-const DOGE_SDF=(()=>{
+function dogeSdf(){ // (2026-10-14, OPTIMISATION) une fonction nommée, plus une IIFE : l'OUVRIER DU DOGE se bâtit depuis sa source (voir DOGE_OUV)
   const sm=(a,b,k)=>{const h=Math.max(k-Math.abs(a-b),0)/k;return Math.min(a,b)-h*h*k*.25;},sM=(a,b,k)=>-sm(-a,-b,k);
   const ell=(x,y,z,cx,cy,cz,rx,ry,rz)=>{const px=(x-cx)/rx,py=(y-cy)/ry,pz=(z-cz)/rz,k0=Math.sqrt(px*px+py*py+pz*pz),
     k1=Math.sqrt(px*px/(rx*rx)+py*py/(ry*ry)+pz*pz/(rz*rz))||1e-6;return k0*(k0-1)/k1;};
@@ -22643,38 +22663,59 @@ const DOGE_SDF=(()=>{
     if(Math.sign(zz)*a2*z2>k)return Math.sqrt(x2+z2)*il2-r2;if(Math.sign(yy)*a2*y2<k)return Math.sqrt(x2+y2)*il2-r1;return (Math.sqrt(x2*a2*il2)+yy*rr)*il2-r1;};
   const capsule=(x,y,z,a,b,r)=>{const bax=b[0]-a[0],bay=b[1]-a[1],baz=b[2]-a[2],pax=x-a[0],pay=y-a[1],paz=z-a[2],
     h=Math.max(0,Math.min(1,(pax*bax+pay*bay+paz*baz)/(bax*bax+bay*bay+baz*baz))),dx=pax-bax*h,dy=pay-bay*h,dz=paz-baz*h;return Math.sqrt(dx*dx+dy*dy+dz*dz)-r;};
-  return {sm,sM,ell,rcone,capsule};})();
-function dogeTete(){
-  const {sm,sM,ell,rcone,capsule}=DOGE_SDF;
+  /* (2026-10-14, OPTIMISATION — « le DOGE fige 3-4 s un iPhone 7 à sa 1re construction ») LA SPHÈRE ENGLOBANTE. Un cône arrondi (ou un
+     trait) tient dans la sphère centrée au milieu de ses bouts, de rayon demi-longueur + le plus grand rayon : sa distance vaut AU MOINS
+     « distance au centre − rayon ». Quand ce plancher dépasse déjà ce qu'un mélange peut prendre (sm(f, d, k) avec d ≥ f + k rend f tel
+     quel, h = 0), la pièce est trop loin pour compter : `loin` le prouve sans racine carrée, et la pièce rend 1e9 au lieu de se calculer —
+     le mélange rend alors EXACTEMENT le même f, au bit près (vérifié : même empreinte du maillage, banc node doge-banc). `sph` : [cx,cy,cz,R]
+     (+1e-6 de marge sur les arrondis). */
+  const sph=(ax,ay,az,bx,by,bz,r1,r2)=>[(ax+bx)/2,(ay+by)/2,(az+bz)/2,Math.hypot(bx-ax,by-ay,bz-az)/2+Math.max(r1,r2)+1e-6];
+  const loin=(x,y,z,S,lim)=>{const t=lim+S[3];if(t<=0)return true;const dx=x-S[0],dy=y-S[1],dz=z-S[2];return dx*dx+dy*dy+dz*dz>=t*t;};
+  /* `ellG` = ell, avec le même `lim` : hors de l'ellipsoïde (k0 ≥ 1), ell = k0(k0−1)/k1 ≥ (k0−1)·rmin (k1 ≤ k0/rmin) et k0 ≥ |p−c|/rmax —
+     donc |p−c| ≥ rmax·(1 + lim/rmin) suffit à prouver ell ≥ lim : rend 1e9 sans racine. */
+  const ellG=(x,y,z,cx,cy,cz,rx,ry,rz,lim)=>{const rM=Math.max(rx,ry,rz),T=rM*(1+Math.max(lim,0)/Math.min(rx,ry,rz))+1e-6,dx=x-cx,dy=y-cy,dz=z-cz;
+    return dx*dx+dy*dy+dz*dz>=T*T?1e9:ell(x,y,z,cx,cy,cz,rx,ry,rz);};
+  return {sm,sM,ell,rcone,capsule,sph,loin,ellG};}
+const DOGE_SDF=dogeSdf();
+function dogeTete(pre){ // pre (facultatif) = {tete, mach} : les deux maillages déjà calculés par l'OUVRIER DU DOGE (les mêmes, au bit près) — le reste se refait ici, il ne coûte rien
+  const {sm,sM,ell,rcone,capsule,sph,loin,ellG}=DOGE_SDF;
   const EYE=[[.185,.075,.312],[-.185,.075,.312]],RE=.086;
-  // les oreilles : un cône aplati (épaisseur ÷2,4), creusé devant
-  const oreille=(x,y,z,s,creux)=>{const zc=creux?.005:-.05,zz=zc+(z-zc)*2.4;
-    return creux?rcone(x,y,zz,s*.255,.27,zc,s*.335,.60,zc,.10,.012)/2:rcone(x,y,zz,s*.255,.24,zc,s*.36,.67,zc,.175,.016)/2;};
-  const museau=(x,y,z)=>rcone(x,y,z,0,-.10,.20,0,-.15,.50,.22,.12);
+  // les oreilles : un cône aplati (épaisseur ÷2,4), creusé devant — ORE = [plein, creux] : zc, x et y des deux bouts, leurs rayons
+  // (2026-10-14, OPTIMISATION) `lim` (facultatif) : au-delà, prouvé par la sphère englobante (ORB, dans l'espace aplati), elle rend 1e9 (voir loin)
+  const ORE=[[-.05,.255,.24,.36,.67,.175,.016],[.005,.255,.27,.335,.60,.10,.012]],ORB=ORE.map(o=>[1,-1].map(s=>sph(s*o[1],o[2],o[0],s*o[3],o[4],o[0],o[5],o[6])));
+  const oreille=(x,y,z,s,creux,lim)=>{const o=ORE[creux?1:0],zc=o[0],zz=zc+(z-zc)*2.4;
+    if(lim!==undefined&&loin(x,y,zz,ORB[creux?1:0][s>0?0:1],2*lim))return 1e9;
+    return rcone(x,y,zz,s*o[1],o[2],zc,s*o[3],o[4],zc,o[5],o[6])/2;};
+  const MUS=[0,-.10,.20,0,-.15,.50,.22,.12],MUSB=sph(MUS[0],MUS[1],MUS[2],MUS[3],MUS[4],MUS[5],MUS[6],MUS[7]);
+  const museau=(x,y,z,lim)=>lim!==undefined&&loin(x,y,z,MUSB,lim)?1e9:rcone(x,y,z,MUS[0],MUS[1],MUS[2],MUS[3],MUS[4],MUS[5],MUS[6],MUS[7]);
   const base=(x,y,z)=>{const ax=Math.abs(x),s=x<0?-1:1;
     let f=ell(x,y,z,0,.06,0,.47,.40,.40);                                         // le crâne
-    f=sm(f,ell(ax,y,z,.25,-.15,.17,.25,.21,.23),.10);                              // les joues bombées
-    f=sm(f,museau(x,y,z),.10);                                                     // le museau effilé
-    f=sm(f,ell(x,y,z,0,-.29,.18,.22,.13,.20),.08);                                 // le menton
-    f=sm(f,oreille(x,y,z,s,false),.06);f=sM(f,-oreille(x,y,z,s,true),.02);         // l'oreille, et son creux
-    const e=EYE[x<0?1:0],de=Math.hypot(x-e[0],y-e[1],z-e[2]);
+    f=sm(f,ellG(ax,y,z,.25,-.15,.17,.25,.21,.23,f+.10),.10);                       // les joues bombées
+    f=sm(f,museau(x,y,z,f+.10),.10);                                               // le museau effilé
+    f=sm(f,ellG(x,y,z,0,-.29,.18,.22,.13,.20,f+.08),.08);                          // le menton
+    f=sm(f,oreille(x,y,z,s,false,f+.06),.06);f=sM(f,-oreille(x,y,z,s,true,.02-f),.02); // l'oreille, et son creux (sM(f,-o,k) = -sm(-f,o,k) : o compte en deçà de k − f)
+    const e=EYE[x<0?1:0],ex=x-e[0],ey=y-e[1],ez=z-e[2],T9=Math.max(RE+.032-f,RE+.028+f)+1e-6; // (OPTIMISATION) l'œil ne touche f qu'en deçà de T9 (orbite : de < RE+.032−f · paupière : de < RE+.028+f)
+    if(T9>0&&ex*ex+ey*ey+ez*ez<T9*T9){const de=Math.hypot(ex,ey,ez);
     f=sM(f,-(de-RE-.012),.02);                                                     // l'orbite
-    f=sm(f,Math.max(de-RE-.016,(e[1]+.032-.22*(ax-.185))-y),.012);                 // la PAUPIÈRE : le haut de l'œil couvert (le regard blasé)
-    f=sm(f,ell(x,y,z,0,-.072,.585,.072,.05,.045),.02);                             // la truffe
+    f=sm(f,Math.max(de-RE-.016,(e[1]+.032-.22*(ax-.185))-y),.012);}                // la PAUPIÈRE : le haut de l'œil couvert (le regard blasé)
+    f=sm(f,ellG(x,y,z,0,-.072,.585,.072,.05,.045,f+.02),.02);                      // la truffe
     return f;};
   // la BOUCHE EN COIN : la ligne est posée sur la surface (lancer de rayon), puis creusée
   const trace=(x,y)=>{let z=1;for(let i=0;i<220;i++){const d=base(x,y,z);if(d<.0015)return z;z-=Math.max(d*.6,.002);if(z<-.2)break;}return null;};
   const LIG=[[0,-.118],[0,-.19],[-.125,-.215],[-.06,-.222],[0,-.21],[.07,-.20],[.135,-.155]],PTS=LIG.map(([x,y])=>{const z=trace(x,y);return z==null?null:[x,y,z+.004];});
   const SEG=[[0,1],[2,3],[3,4],[4,5],[5,6]].filter(([a,b])=>PTS[a]&&PTS[b]).map(([a,b])=>[PTS[a],PTS[b]]);
-  const bouche=(x,y,z)=>{let d=1e9;for(const s of SEG)d=Math.min(d,capsule(x,y,z,s[0],s[1],0));return d;};
-  const F=(x,y,z)=>sM(base(x,y,z),-(bouche(x,y,z)-.011),.008);
-  const H=(c,o)=>{const q=new THREE.Color(c);o[0]=q.r;o[1]=q.g;o[2]=q.b;return o;};
+  // (2026-10-14, OPTIMISATION) BOUB : la sphère qui tient tout le trait — `lim` comme pour les oreilles (1e9 quand le trait est trop loin pour compter)
+  const BOUB=(()=>{if(!SEG.length)return [0,0,0,-1e9];const a=[1e9,1e9,1e9],b=[-1e9,-1e9,-1e9];for(const s of SEG)for(const p of s)for(let i=0;i<3;i++){a[i]=Math.min(a[i],p[i]);b[i]=Math.max(b[i],p[i]);}
+    const c=[(a[0]+b[0])/2,(a[1]+b[1])/2,(a[2]+b[2])/2];let R=0;for(const s of SEG)for(const p of s)R=Math.max(R,Math.hypot(p[0]-c[0],p[1]-c[1],p[2]-c[2]));return [c[0],c[1],c[2],R+1e-6];})();
+  const bouche=(x,y,z,lim)=>{if(lim!==undefined&&loin(x,y,z,BOUB,lim))return 1e9;let d=1e9;for(const s of SEG)d=Math.min(d,capsule(x,y,z,s[0],s[1],0));return d;};
+  const F=(x,y,z)=>{const a=base(x,y,z);return sM(a,-(bouche(x,y,z,.019-a)-.011),.008);}; // le trait ne creuse qu'en deçà de .011 + .008 − a
+  const HC=new Map(),H=(c,o)=>{let q=HC.get(c);if(!q){const k=new THREE.Color(c);HC.set(c,q=[k.r,k.g,k.b]);}o[0]=q[0];o[1]=q[1];o[2]=q[2];return o;}; // (OPTIMISATION) une couleur lue une fois (il en naissait ~260 000)
   const coul=(x,y,z,o)=>{const ax=Math.abs(x),s=x<0?-1:1,e=EYE[x<0?1:0],de=Math.hypot(x-e[0],y-e[1],z-e[2]);
     if(ell(x,y,z,0,-.072,.585,.072,.05,.045)<.012)return H(0x121014,o);              // la truffe
-    if(bouche(x,y,z)<.024)return H(0x3a1f14,o);                                       // la bouche
+    if(bouche(x,y,z,.024)<.024)return H(0x3a1f14,o);                                  // la bouche
     if(de<RE+.03&&y<e[1]+.03)return H(0x2a1810,o);                                    // le tour des yeux, sombre (le trait du shiba)
-    if(oreille(x,y,z,s,true)<.03&&z>-.06&&y>.30)return H(0xf0b0a2,o);                 // le dedans des oreilles
-    const mu=museau(x,y,z)<.03,arete=ax<.075&&y>-.11&&z>.22;
+    if(oreille(x,y,z,s,true,.03)<.03&&z>-.06&&y>.30)return H(0xf0b0a2,o);             // le dedans des oreilles
+    const mu=museau(x,y,z,.03)<.03,arete=ax<.075&&y>-.11&&z>.22;
     if((mu&&!arete)||y<-.14||(ell(ax,y,z,.25,-.15,.17,.25,.21,.23)<.03&&y<.0)||(ax>.08&&ax<.34&&y<e[1]-.06&&y>e[1]-.2&&z>.18))return H(0xf6e6c6,o); // le MASQUE crème
     if(y>.30&&ax<.20&&z>-.1)return H(0xb8702e,o);                                     // le front, plus sombre
     return H(0xd99545,o);};
@@ -22689,12 +22730,13 @@ function dogeTete(){
   const LB=LIG.slice(2),YC=x=>{if(x<=LB[0][0])return LB[0][1];for(let i=1;i<LB.length;i++)if(x<=LB[i][0]){const a=LB[i-1],b=LB[i];return a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0]);}return LB[LB.length-1][1];};
   const EC=.46,EA=.15,EZ=.34,ell9=(x,z)=>Math.hypot(x/EA,(z-EC)/EZ),J=(x,y,z)=>Math.max(y-YC(x),(ell9(x,z)-1)*EA),
         Fu=(x,y,z)=>Math.max(F(x,y,z),-J(x,y,z)),Fj=(x,y,z)=>Math.max(F(x,y,z),J(x,y,z));
-  const moy=f=>(x,y,z,o)=>{o[0]=o[1]=o[2]=0;const e=.009;for(const d of [[0,0,0],[e,0,0],[-e,0,0],[0,e,0],[0,-e,0],[0,0,e],[0,0,-e]]){f(x+d[0],y+d[1],z+d[2],c1);o[0]+=c1[0]/7;o[1]+=c1[1]/7;o[2]+=c1[2]/7;}return o;};
-  const dedans=(x,y,z)=>F(x,y,z)<-.004&&Math.abs(y-YC(x))<.02&&ell9(x,z)<1.02,levre=(x,y,z)=>F(x,y,z)>-.022;   // une COUPE (l'intérieur) ; son bord = les BABINES noires
+  const D7=[[0,0,0],[.009,0,0],[-.009,0,0],[0,.009,0],[0,-.009,0],[0,0,.009],[0,0,-.009]]; // (OPTIMISATION) les 7 prises, posées une fois
+  const moy=f=>(x,y,z,o)=>{o[0]=o[1]=o[2]=0;for(const d of D7){f(x+d[0],y+d[1],z+d[2],c1);o[0]+=c1[0]/7;o[1]+=c1[1]/7;o[2]+=c1[2]/7;}return o;};
+  const dedans=(x,y,z)=>Math.abs(y-YC(x))<.02&&ell9(x,z)<1.02&&F(x,y,z)<-.004,levre=(x,y,z)=>F(x,y,z)>-.022;   // une COUPE (l'intérieur) ; son bord = les BABINES noires — (OPTIMISATION) les tests bon marché d'abord : F ne se calcule plus que près du trait
   const coulU=moy((x,y,z,o)=>dedans(x,y,z)?H(levre(x,y,z)?0x1e1214:0x5a1820,o):coul(x,y,z,o)),       // le palais
         coulJ=moy((x,y,z,o)=>dedans(x,y,z)?H(levre(x,y,z)?0x1e1214:0x9a3040,o):coul(x,y,z,o));       // le plancher de la bouche
-  const h=.016,X0=-.62,Y0=-.47,Z0=-.47,nx=78,ny=78,nz=74,G=dogeNets(Fu,X0,Y0,Z0,h,nx,ny,nz,coulU);
-  G.machoire=dogeNets(Fj,-.20,-.47,EC-EZ-.04,h,27,23,49,coulJ);G.charniere=[0,-.23,EC-EZ+.02];G.YC=YC;
+  const h=.016,X0=-.62,Y0=-.47,Z0=-.47,nx=78,ny=78,nz=74,G=pre&&pre.tete||dogeNets(Fu,X0,Y0,Z0,h,nx,ny,nz,coulU);
+  G.machoire=pre&&pre.mach||dogeNets(Fj,-.20,-.47,EC-EZ-.04,h,27,23,49,coulJ);G.charniere=[0,-.23,EC-EZ+.02];G.YC=YC;
   const fJ=(x,z)=>{const e=Math.min(1,ell9(x,z));return Math.pow(1-e*e,1.4);};                        // le poids de la lèvre du bas : 1 au milieu, 0 au bord
   G.poidsJ=(()=>{const P=G.machoire.P,w=new Float32Array(P.length/3);for(let i=0;i<w.length;i++)w[i]=fJ(P[i*3],P[i*3+2]);return w;})();
   G.poidsU=(()=>{const P=G.P,L=[];for(let i=0;i<P.length/3;i++){const x=P[i*3],y=P[i*3+1],z=P[i*3+2],e=ell9(x,z);if(e>=1)continue;const dy=y-YC(x);   // la lèvre du HAUT, juste au-dessus du trait
@@ -22715,6 +22757,41 @@ function dogeQueue(){
   const coul=(x,y,z,o)=>{let bi=0,bd=1e9;for(let i=0;i<S.length;i++){const d=Math.hypot(x-S[i][0],y-S[i][1],z-S[i][2]);if(d<bd){bd=d;bi=i;}}
     const c=S[bi],r=Math.hypot(c[1],c[2]),rp=Math.hypot(y,z),cr=rp<r-.02||c[4]>.86;const q=new THREE.Color(cr?0xf6e6c6:0xd99545);o[0]=q.r;o[1]=q.g;o[2]=q.b;return o;};
   return dogeNets(F,-.2,-.44,-.44,.016,26,56,56,coul);}
+/* L'OUVRIER DU DOGE (2026-10-14, OPTIMISATION — Sacha via PILOTAGE : « les idées de Léo bien intégrées » ; passation perf : « dogeTete ~1 s de
+   processeur sur Mac = ~3-4 s figées sur iPhone 7 à sa 1re construction »). La tête sculptée se calculait d'un bloc sur le fil principal à la
+   PREMIÈRE apparition du DOGE (atelier, boutique, photo d'inventaire) : l'écran gelait. Désormais :
+   · ses deux maillages (la tête, la mâchoire : les deux surface nets, ~99 % du coût) se calculent dans un Web Worker bâti depuis la source
+     même (dogeSdf, dogeNets, dogeTete : un seul code, pas de copie — le modèle de L'OUVRIER DES NUAGES), lancé UNE fois par session, au menu,
+     DOGE_OUV_MS après le démarrage ; three n'y entre pas : son `THREE.Color` y est l'équivalent exact de celui de r128 (setHex) ;
+   · le DOGE demandé avant la fin (ou l'ouvrier refusé) : calcul sur place, comme avant — et l'ouvrier, devenu inutile, s'arrête ;
+   · même moteur JavaScript des deux côtés : les mêmes nombres au bit près. `dbgDoge()` : l'état · `dbgDoge('compare')` : recalcule sur place
+     et compare octet par octet. La forme et les couleurs de Léo ne changent pas d'un bit ; la tête elle-même calcule aussi ~1,6× plus vite
+     (sphères englobantes, voir dogeSdf) : le repli coûte moins. */
+const DOGE_OUV={w:null,pret:null,etat:'',ms:0,t0:0,msFil:0,u:''};const DOGE_OUV_MS=5000;
+function dogeOuvFin(){if(DOGE_OUV.w){try{DOGE_OUV.w.terminate();}catch(e){}DOGE_OUV.w=null;}if(DOGE_OUV.u){try{URL.revokeObjectURL(DOGE_OUV.u);}catch(e){}DOGE_OUV.u='';}}
+function dogeOuvrier(){
+  if(DOGE_OUV.w||DOGE_OUV.pret||DOGE_OUV.etat||SHAPES.doge._tete)return;
+  try{const src='"use strict";const THREE={Color:function(h){h=Math.floor(h);this.r=(h>>16&255)/255;this.g=(h>>8&255)/255;this.b=(h&255)/255;}};'
+      +'const DOGE_SDF=('+dogeSdf.toString()+')();'+dogeNets.toString()+';'+dogeTete.toString()+';'
+      +'self.onmessage=function(){const G=dogeTete(),t={P:G.P,N:G.N,C:G.C,I:G.I},m=G.machoire,j={P:m.P,N:m.N,C:m.C,I:m.I};'
+      +'self.postMessage({tete:t,mach:j},[t.P.buffer,t.N.buffer,t.C.buffer,t.I.buffer,j.P.buffer,j.N.buffer,j.C.buffer,j.I.buffer]);};';
+    DOGE_OUV.u=URL.createObjectURL(new Blob([src],{type:'text/javascript'}));const w=new Worker(DOGE_OUV.u);
+    DOGE_OUV.w=w;DOGE_OUV.etat='calcul';DOGE_OUV.t0=performance.now();
+    w.onmessage=function(e){DOGE_OUV.ms=Math.round(performance.now()-DOGE_OUV.t0);dogeOuvFin();if(SHAPES.doge._tete)return;DOGE_OUV.pret=e.data;DOGE_OUV.etat='pret';};
+    w.onerror=function(ev){try{ev.preventDefault();}catch(e9){}dogeOuvFin();DOGE_OUV.etat='refuse';};
+    w.postMessage(0);
+  }catch(e){dogeOuvFin();DOGE_OUV.etat='refuse';}}
+function dogeTeteObtient(){ // la tête pour SHAPES.doge : celle de l'ouvrier si elle est prête, sinon calculée ici
+  if(DOGE_OUV.pret){const p=DOGE_OUV.pret;DOGE_OUV.pret=null;DOGE_OUV.etat='servi';return dogeTete(p);}
+  if(DOGE_OUV.w){dogeOuvFin();DOGE_OUV.etat='devance';}
+  const t0=performance.now(),G=dogeTete();DOGE_OUV.msFil=Math.round(performance.now()-t0);return G;}
+setTimeout(dogeOuvrier,DOGE_OUV_MS);
+window.dbgDoge=function(q){ // (banc) l'OUVRIER DU DOGE — voir plus haut
+  const T=SHAPES.doge._tete;
+  if(q==='compare'){if(!T)return 'pas encore de tete';const R=dogeTete(),oct=a=>new Uint8Array(a.buffer,a.byteOffset,a.byteLength),
+      eq=(a,b)=>{if(!a||!b||a.byteLength!==b.byteLength)return false;const x=oct(a),y=oct(b);for(let i=0;i<x.length;i++)if(x[i]!==y[i])return false;return true;};
+    return {tete:['P','N','C','I'].every(k=>eq(T[k],R[k])),machoire:['P','N','C','I'].every(k=>eq(T.machoire[k],R.machoire[k])),poids:eq(T.poidsU,R.poidsU)&&eq(T.poidsJ,R.poidsJ)};}
+  return {etat:DOGE_OUV.etat||'attente',msOuvrier:DOGE_OUV.ms,msFil:DOGE_OUV.msFil,tete:!!T,sommets:T?T.P.length/3:0};};
 const SHAPES={
   // 1. L'ÉPAVE — tôle froissée, une roue voilée, un phare mort. Le point de départ de chaque run.
   epave(K){
@@ -26146,11 +26223,22 @@ Object.assign(SHAPES,{
      P.sym(sd=>{P.cyl('o',.075,.30,14,sd*.24,.42,-.95,'z');P.cyl('k',.055,.31,14,sd*.24,.42,-.955,'z');});
      const gs=P.done();for(const k in gs)mesh(gs[k],g);}
     // ---- 2. LA GROSSE TÊTE ----
-    if(!SHAPES.doge._tete)SHAPES.doge._tete=dogeTete();
+    if(!SHAPES.doge._tete)SHAPES.doge._tete=dogeTeteObtient(); // (OPTIMISATION) celle de l'OUVRIER DU DOGE si elle est prête
     const DT=SHAPES.doge._tete,tete=new THREE.Group();tete.position.set(0,HY,HZ);tete.scale.setScalar(KT);g.add(tete);
     const pivot=new THREE.Group();tete.add(pivot);
-    {const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(DT.P,3));geo.setAttribute('normal',new THREE.BufferAttribute(DT.N,3));
-     geo.setAttribute('color',new THREE.BufferAttribute(DT.C,3));geo.setIndex(new THREE.BufferAttribute(DT.I,1));geo.computeBoundingSphere();mesh(geo,pivot);}
+    /* (2026-10-14, OPTIMISATION — relevé par GENERAL dans le code de Léo : « poseGueule renvoie 18 907 sommets à la carte graphique PAR IMAGE
+       pour en bouger 673 ») LA LÈVRE DU HAUT EN QUEUE DU TAMPON : les sommets qui bougent (poidsU) sont rangés à la FIN, l'index renuméroté —
+       mêmes sommets, mêmes triangles dans le même ordre : la même image. À chaque image, seule la queue repart (updateRange : ~16 Ko au lieu
+       de ~450 Ko, position + normale). Rangé une fois par session (DT.U) ; `d0` = le premier sommet qui bouge. */
+    if(!DT.U){const n=DT.P.length/3,W=DT.poidsU,bouge=new Uint8Array(n);for(let k=0;k<W.length;k+=2)bouge[W[k]]=1;
+      const ord=new Int32Array(n),neu=new Int32Array(n);let q=0;for(let i=0;i<n;i++)if(!bouge[i])ord[q++]=i;const d0=q;for(let i=0;i<n;i++)if(bouge[i])ord[q++]=i;
+      const P=new Float32Array(n*3),N=new Float32Array(n*3),C=new Float32Array(n*3),I=new Uint32Array(DT.I.length),WU=new Float32Array(W.length);
+      for(let k=0;k<n;k++){neu[ord[k]]=k;const i=ord[k]*3,j=k*3;P[j]=DT.P[i];P[j+1]=DT.P[i+1];P[j+2]=DT.P[i+2];N[j]=DT.N[i];N[j+1]=DT.N[i+1];N[j+2]=DT.N[i+2];C[j]=DT.C[i];C[j+1]=DT.C[i+1];C[j+2]=DT.C[i+2];}
+      for(let k=0;k<I.length;k++)I[k]=neu[DT.I[k]];for(let k=0;k<W.length;k+=2){WU[k]=neu[W[k]];WU[k+1]=W[k+1];}
+      DT.U={P:P,N:N,C:C,I:I,WU:WU,d0:d0};}
+    const U9=DT.U;
+    {const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(U9.P,3));geo.setAttribute('normal',new THREE.BufferAttribute(U9.N,3));
+     geo.setAttribute('color',new THREE.BufferAttribute(U9.C,3));geo.setIndex(new THREE.BufferAttribute(U9.I,1));geo.computeBoundingSphere();mesh(geo,pivot);}
     // les YEUX : blanc, iris brun, pupille, éclat — la sphère TOURNE (le regard)
     const oeilGeo=(()=>{const s=new THREE.SphereGeometry(1,28,20),p=s.attributes.position,c=new Float32Array(p.count*3);
       for(let i=0;i<p.count;i++){const z=p.getZ(i),x=p.getX(i),y=p.getY(i);let col=[1,1,1];
@@ -26166,7 +26254,7 @@ Object.assign(SHAPES,{
     const geoN=G9=>{const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(G9.P,3));geo.setAttribute('normal',new THREE.BufferAttribute(G9.N,3));
       geo.setAttribute('color',new THREE.BufferAttribute(G9.C,3));geo.setIndex(new THREE.BufferAttribute(G9.I,1));geo.computeBoundingSphere();return geo;};
     const CH=DT.charniere,YC=DT.YC,fJ=DT.fJ;
-    const geoU=pivot.children[0].geometry,PU0=DT.P,NU0=DT.N,PU=new Float32Array(PU0),NU=new Float32Array(NU0),WU=DT.poidsU;   // le crâne : ses sommets de la lèvre du haut bougent
+    const geoU=pivot.children[0].geometry,PU0=U9.P,NU0=U9.N,PU=new Float32Array(PU0),NU=new Float32Array(NU0),WU=U9.WU;   // le crâne : ses sommets de la lèvre du haut bougent (rangés en queue : U9.d0)
     geoU.setAttribute('position',new THREE.BufferAttribute(PU,3).setUsage(THREE.DynamicDrawUsage));geoU.setAttribute('normal',new THREE.BufferAttribute(NU,3).setUsage(THREE.DynamicDrawUsage));
     const DJ=DT.machoire,PJ=new Float32Array(DJ.P),NJ=new Float32Array(DJ.N),WJ=DT.poidsJ,geoJ=geoN({P:PJ,N:NJ,C:DJ.C,I:DJ.I});
     geoJ.attributes.position.setUsage(THREE.DynamicDrawUsage);geoJ.attributes.normal.setUsage(THREE.DynamicDrawUsage);mesh(geoJ,pivot);
@@ -26178,7 +26266,8 @@ Object.assign(SHAPES,{
       geoJ.attributes.position.needsUpdate=true;geoJ.attributes.normal.needsUpdate=true;
       for(let k=0;k<WU.length;k+=2){const i=WU[k],a=-th*.32*WU[k+1],c=Math.cos(a),sn=Math.sin(a),j=i*3,dy=PU0[j+1]-CH[1],dz=PU0[j+2]-CH[2],ny=NU0[j+1],nz=NU0[j+2];
         PU[j+1]=CH[1]+dy*c-dz*sn;PU[j+2]=CH[2]+dy*sn+dz*c;NU[j+1]=ny*c-nz*sn;NU[j+2]=ny*sn+nz*c;}
-      geoU.attributes.position.needsUpdate=true;geoU.attributes.normal.needsUpdate=true;
+      {const o9=U9.d0*3,c9=PU.length-o9,aP=geoU.attributes.position,aN=geoU.attributes.normal; // (OPTIMISATION) seule la queue qui bouge repart à la carte graphique
+       aP.updateRange.offset=aN.updateRange.offset=o9;aP.updateRange.count=aN.updateRange.count=c9;aP.needsUpdate=true;aN.needsUpdate=true;}
       for(const d of DENTS){tourne(d.p,d.s*th*fJ(d.p[0],d.p[2])*(d.s<0?.32:1),d.q);d.m.position.set(d.q[0],d.q[1],d.q[2]);d.m.rotation.x=d.r+(d.s<0?-.32:1)*th*fJ(d.p[0],d.p[2]);}};
     const dentG=(()=>{const c=new THREE.ConeGeometry(1,1,8),n=c.attributes.position.count,a=new Float32Array(n*3);for(let i=0;i<n;i++)a.set([.98,.96,.91],i*3);
       c.setAttribute('color',new THREE.BufferAttribute(a,3));return c;})();
@@ -29794,7 +29883,8 @@ function misProg(m){ // « 18 / 25 » — l'avancement DANS la partie en cours (
 function misEtat(){const s=SAVE.d.mis||(SAVE.d.mis={n:0,ok:[0,0,0]});if(!s.best)s.best=[0,0,0];if(!misEtat._pop){misEtat._pop=1;try{popCarnets(s);}catch(e){}}return s;}
 /* (2026-10-14) LES CARNETS POP (10 à 12) sont arrivés APRÈS la suite sans fin : un joueur déjà au-delà les a relevés avec d'autres défis —
    on lui remet leur habillage, une fois (sinon il ne pourrait plus jamais l'avoir). */
-function popCarnets(s){const o=SAVE.d.shop&&SAVE.d.shop.own;if(!o)return;let n=0;for(let i=9;i<CARNETS.length;i++){const r=CARNETS[i].r;
+function popCarnets(s){if(!s.pop){s.pop=1;if(s.n>=9&&s.n<CARNETS.length){s.ok=[0,0,0];s.best=[0,0,0];s.f=-1;}SAVE.mark();} /* (2026-10-14, chasse aux bugs) un joueur AU carnet 10-12 au moment de la mise à jour gardait les coches et meilleurs essais du carnet de la suite sans fin qui occupait cette place : le carnet POP s'ouvrait avec des défis cochés qu'il n'avait pas faits. Remis à zéro UNE fois (`pop`, gardé par san) */
+  const o=SAVE.d.shop&&SAVE.d.shop.own;if(!o)return;let n=0;for(let i=9;i<CARNETS.length;i++){const r=CARNETS[i].r;
   if(s.n>i&&r.cat){const k=r.cat+':'+r.id;if(o.indexOf(k)<0){o.push(k);n++;}}}if(n)SAVE.mark();}
 /* LES DÉFIS SUR LA FICHE (2026-09-25, user : « les missions ne doivent pas être aussi visibles — dans le garage, certaines
    voitures s'achètent, d'autres se gagnent en faisant des défis »). Plus de panneau sur l'accueil ni sur l'écran de mort :
@@ -30065,9 +30155,17 @@ function photoPropre(){if(carWingL){carWingL.visible=false;carWingR.visible=fals
    (rose, cyan) qui la DÉTOURENT, peu d'ambiance (du modelé) ; une relève douce avec une ÉPAULE (les couleurs vives gardent leur dégradé) ;
    une ombre de contact et le reflet d'un sol verni sous les roues. Mêmes appels, même cache : garage, missions et boutique en profitent. */
 const PHOTO_W=720,PHOTO_H=440,PHOTO_SS=2,PHOTO_ROT=-.12,PHOTO_AZ=.70,PHOTO_EL=.27;
-function carPhoto(i){
-  if(PHOTO.cache[i])return PHOTO.cache[i];
-  if(started&&!gameOver)return null;
+/* (2026-10-14, OPTIMISATION — passation perf : « BOUTIQUE ~400 ms à l'ouverture = shopPhotoTour : 8 toDataURL 164 ms + 8 readPixels 66 ms ») —
+   `carPhoto(i, cb)` : avec un rappel, la photo finit en `toBlob` (l'encodage PNG part hors du fil, le rappel reçoit une adresse `blob:` d'une
+   soixantaine de caractères) au lieu de `toDataURL` (encodage sur place + ~400 Ko de base64 par photo, recopiés dans chaque innerHTML de la
+   vitrine, de l'inventaire, des missions). Même PNG, même image. Les deux toiles de travail (5 Mo et 1,3 Mo) sont rendues aussitôt (toileRend).
+   Sans rappel : comme avant (data: URL, synchrone). Une photo déjà en cours d'encodage n'est pas reprise : le rappel attend la même.
+   `dbgPhoto()` : les temps de la dernière photo (caisse, rendu + lecture, pellicule, montage, caisse rendue). */
+function carPhoto(i,cb){
+  if(PHOTO.cache[i]){if(cb)cb(PHOTO.cache[i]);return PHOTO.cache[i];}
+  if(started&&!gameOver){if(cb)cb(null);return null;}
+  if(cb&&PHOTO.att&&PHOTO.att[i]){PHOTO.att[i].push(cb);return null;}
+  const T9=PHOTO.ms={i:i,t0:performance.now()};
   const W=PHOTO_W,H=PHOTO_H,SS=PHOTO_SS,RW=W*SS,RH=H*SS;
   if(!PHOTO.rt){PHOTO.rt=new THREE.WebGLRenderTarget(RW,RH);PHOTO.scene=new THREE.Scene();PHOTO.cam=new THREE.PerspectiveCamera(24,W/H,.1,400);
     const hemi=new THREE.HemisphereLight(0xdfe6ff,0x281a40,.62),key=new THREE.DirectionalLight(0xfff4e6,1.75),
@@ -30076,9 +30174,9 @@ function carPhoto(i){
     PHOTO.scene.add(hemi,key,rim,rim2,bas);PHOTO.key=key;}
   const par=carGroup.parent,pos=carGroup.position.clone(),rot=carGroup.rotation.clone(),sc=carGroup.scale.clone(),vis=carGroup.visible;
   PHOTO.avant=carGroup.userData.lvl; // la caisse montée avant la photo (voir la fin)
-  let url=null;
+  let url=null,asy=false;
   try{
-    buildCar(CARS[i]);
+    buildCar(CARS[i]);T9.caisse=performance.now()-T9.t0;
     PHOTO.scene.add(carGroup);carGroup.position.set(0,0,0);carGroup.rotation.set(0,PHOTO_ROT,0);carGroup.scale.set(1,1,1);carGroup.visible=true;photoPropre();
     carGroup.updateMatrixWorld(true);
     // LA BOÎTE de ce qu'on voit (maillages visibles seulement : les halos cachés gonfleraient le cadre)
@@ -30100,7 +30198,7 @@ function carPhoto(i){
     const cc=new THREE.Color();renderer.getClearColor(cc);const ca=renderer.getClearAlpha(),prt=renderer.getRenderTarget();
     renderer.setRenderTarget(PHOTO.rt);renderer.setClearColor(0x000000,0);renderer.clear();renderer.render(PHOTO.scene,cam);
     const buf=new Uint8Array(RW*RH*4);renderer.readRenderTargetPixels(PHOTO.rt,0,0,RW,RH,buf);
-    renderer.setRenderTarget(prt);renderer.setClearColor(cc,ca);
+    renderer.setRenderTarget(prt);renderer.setClearColor(cc,ca);T9.rendu=performance.now()-T9.t0;
     // la PELLICULE : retournée, relevée sur la LUMINANCE (la teinte ne bouge pas), une ÉPAULE au-dessus de .82 (les vifs gardent leur modelé), un soupçon de saturation
     const gros=document.createElement('canvas');gros.width=RW;gros.height=RH;const gx=gros.getContext('2d'),im=gx.createImageData(RW,RH),dd=im.data;
     for(let y=0;y<RH;y++){const s0=(RH-1-y)*RW*4,d0=y*RW*4;for(let k=0;k<RW*4;k+=4){const al=buf[s0+k+3];if(!al){dd[d0+k+3]=0;continue;}
@@ -30109,7 +30207,7 @@ function carPhoto(i){
       const l2=.2126*r+.7152*g+.0722*bl;r=Math.max(0,l2+(r-l2)*1.14);g=Math.max(0,l2+(g-l2)*1.14);bl=Math.max(0,l2+(bl-l2)*1.14);
       const m=Math.max(r,g,bl);if(m>1){r/=m;g/=m;bl/=m;}
       dd[d0+k]=r*255;dd[d0+k+1]=g*255;dd[d0+k+2]=bl*255;dd[d0+k+3]=al;}}
-    gx.putImageData(im,0,0);
+    gx.putImageData(im,0,0);T9.pellicule=performance.now()-T9.t0;
     const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';
     const yb=Math.round((1-(ymin*.5+.5))*H); // la ligne du sol, en pixels de la photo
     // L'OMBRE DE CONTACT, douce, sous la caisse
@@ -30119,14 +30217,23 @@ function carPhoto(i){
     {const rf=document.createElement('canvas');rf.width=W;rf.height=H;const rx=rf.getContext('2d');rx.imageSmoothingQuality='high';
      rx.save();rx.translate(0,2*yb);rx.scale(1,-1);rx.drawImage(gros,0,0,W,H);rx.restore();
      rx.globalCompositeOperation='destination-in';const gr=rx.createLinearGradient(0,yb,0,yb+H*.18);gr.addColorStop(0,'rgba(0,0,0,.26)');gr.addColorStop(1,'rgba(0,0,0,0)');
-     rx.fillStyle=gr;rx.fillRect(0,0,W,H);x.drawImage(rf,0,0);}
-    x.drawImage(gros,0,0,W,H);
-    url=cv.toDataURL('image/png');
-  }catch(e){console.warn('photo',e);}
+     rx.fillStyle=gr;rx.fillRect(0,0,W,H);x.drawImage(rf,0,0);toileRend(rf);}
+    x.drawImage(gros,0,0,W,H);toileRend(gros);
+    if(cb&&cv.toBlob&&window.URL&&URL.createObjectURL){asy=true;(PHOTO.att||(PHOTO.att={}))[i]=[cb];
+      cv.toBlob(function(b){let u=null;try{if(b)u=URL.createObjectURL(b);}catch(e){}toileRend(cv);
+        if(u){if(PHOTO.cache[i]){try{URL.revokeObjectURL(u);}catch(e){}u=PHOTO.cache[i];}else PHOTO.cache[i]=u;}
+        const L9=PHOTO.att[i]||[];delete PHOTO.att[i];for(const f of L9)try{f(u);}catch(e){console.warn('photo',e);}},'image/png');}
+    else{url=cv.toDataURL('image/png');toileRend(cv);}
+    T9.montage=performance.now()-T9.t0;
+  }catch(e){console.warn('photo',e);if(asy&&PHOTO.att)delete PHOTO.att[i];asy=false;}
   if(par)par.add(carGroup);carGroup.position.copy(pos);carGroup.rotation.copy(rot);carGroup.scale.copy(sc);carGroup.visible=vis;
   {const av=PHOTO.avant;buildCar(CARS[(av!=null&&av>=0&&av<CARS.length)?av:equippedCar()]);} // on rend la caisse qu'on regardait (au garage : la feuilletée)
-  if(url)PHOTO.cache[i]=url;return url;
+  T9.total=performance.now()-T9.t0;
+  if(url)PHOTO.cache[i]=url;
+  if(cb&&!asy)cb(url);
+  return url;
 }
+window.dbgPhoto=function(){const T=PHOTO.ms;if(!T)return 'aucune photo';const r=v=>v==null?null:Math.round(v);return {caisse:CARS[T.i]&&CARS[T.i].name,msCaisse:r(T.caisse),msRendu:r(T.rendu),msPellicule:r(T.pellicule),msMontage:r(T.montage),msTotal:r(T.total),enAttente:PHOTO.att?Object.keys(PHOTO.att).length:0,enCache:Object.keys(PHOTO.cache).length};}; // (banc) le détail de la dernière photo
 /* L'ATELIER DES CAISSES (dev, 2026-09-26) — `dbgEssaiCaisse(src, fiche, vues)` : essaie un gabarit ÉCRIT EN TEXTE (une expression
    `function(K){…}` au format de SHAPES — ou le nom d'un gabarit existant, pour comparer) sur une fiche, et rend des PHOTOS de studio
    720 × 440 (dataURL) sous les angles demandés (rotation Y de la caisse, en radians), plus le nombre de facettes et le hors-tout.
@@ -30324,9 +30431,10 @@ function shopPhotoVeut(i){if(SHQ.q.indexOf(i)<0)SHQ.q.push(i);if(!SHQ.on){SHQ.on
 function shopPhotoTour(){
   const sc=document.getElementById('mShop');
   if(!SHQ.q.length||!sc||!sc.classList.contains('on')||(started&&!gameOver)){SHQ.on=false;return;} // hors de la boutique (ou en course) : la file attend la prochaine ouverture
-  const i=SHQ.q.shift();let u=PHOTO.cache[i];if(!u)try{u=carPhoto(i);}catch(e){u=null;}
-  if(u)sc.querySelectorAll('[data-car="'+i+'"] .shPhoto,[data-car="'+i+'"].shUne .shPhoto').forEach(function(ph){if(ph.querySelector('img'))return;const at=ph.querySelector('.shAttente');if(at)at.remove();
-    const im=document.createElement('img');im.alt='';im.src=u;im.className='shArrive';ph.insertBefore(im,ph.firstChild);});
+  const i=SHQ.q.shift();
+  const pose=function(u){if(u)sc.querySelectorAll('[data-car="'+i+'"] .shPhoto,[data-car="'+i+'"].shUne .shPhoto').forEach(function(ph){if(ph.querySelector('img'))return;const at=ph.querySelector('.shAttente');if(at)at.remove();
+    const im=document.createElement('img');im.alt='';im.src=u;im.className='shArrive';ph.insertBefore(im,ph.firstChild);});};
+  if(PHOTO.cache[i])pose(PHOTO.cache[i]);else try{carPhoto(i,pose);}catch(e){} // (OPTIMISATION) la photo s'encode hors du fil (toBlob) : elle se pose à son arrivée
   setTimeout(shopPhotoTour,40); // une photo, puis on rend la main : l'écran respire entre deux
 }
 function shopAPortee(){let n=0;for(const cat in COSM)for(const d of COSM[cat])if(d.p&&!shopOwned(cat,d.id)&&d.p<=bank())n++;return n;}
@@ -36673,7 +36781,7 @@ const SAVE={
   san(d){ // désinfection : quoi qu'on charge (storage rongé, code importé), la forme est GARANTIE
     const c=this.def();
     if(!d||typeof d!=='object')return c;
-    c.best=Math.max(0,Math.round(+d.best)||0);
+    c.best=Math.max(0,Math.min(1e30,Math.round(+d.best)||0)); // (2026-10-14, chasse aux bugs) borné comme la banque : un code importé à « 1e999 » posait un record INFINI (« Infinity » à l'écran, puis null → 0 au flush suivant)
     // ⚠ `equipped` NE SE BORNE PLUS À `bestCar` (2026-08-05). Ce clamp datait de l'époque où les
     // caisses se gagnaient DANS L'ORDRE : `bestCar` était alors le plus haut index atteint, donc un
     // plafond valable. Depuis que chaque caisse a sa condition — et surtout depuis que les trois
@@ -36735,7 +36843,7 @@ const SAVE={
     if(d.mis&&typeof d.mis==='object'){c.mis.n=Math.max(0,Math.min(999,Math.round(+d.mis.n)||0));
       if(Array.isArray(d.mis.ok))c.mis.ok=[0,1,2].map(i=>d.mis.ok[i]?1:0);
       if(Array.isArray(d.mis.best))c.mis.best=[0,1,2].map(i=>Math.max(0,Math.min(1e30,+d.mis.best[i]||0)));
-      c.mis.f=[0,1,2].indexOf(d.mis.f)>=0?d.mis.f:-1;} // (2026-09-30) la mission SUIVIE (cochée à l'écran MISSIONS du garage), -1 = aucune // (2026-09-28) le meilleur essai de chaque défi (la jauge de l'écran MISSIONS)
+      c.mis.f=[0,1,2].indexOf(d.mis.f)>=0?d.mis.f:-1;if(d.mis.pop)c.mis.pop=1;} // (2026-10-14, chasse aux bugs) `pop` : la remise à zéro des carnets POP est faite (voir popCarnets) // (2026-09-30) la mission SUIVIE (cochée à l'écran MISSIONS du garage), -1 = aucune // (2026-09-28) le meilleur essai de chaque défi (la jauge de l'écran MISSIONS)
     if(d.shop&&typeof d.shop==='object'){
       if(Array.isArray(d.shop.own))c.shop.own=[...new Set(d.shop.own.filter(k=>typeof k==='string'&&/^(peinture|aile|trainee):[a-z]{2,12}$/.test(k)))];
       if(d.shop.eq&&typeof d.shop.eq==='object')for(const k of ['peinture','aile','trainee'])if(typeof d.shop.eq[k]==='string'&&/^[a-z]{2,12}$/.test(d.shop.eq[k]))c.shop.eq[k]=d.shop.eq[k];}
@@ -36754,8 +36862,10 @@ const SAVE={
       .map(x=>Math.round(+x)).filter(x=>isFinite(x)&&x>=0&&x<CARS.length))].slice(0,CARS.length);
     /* (2026-10-02) LES CAISSES RETIRÉES (`retire`, voir CARS) : qui en avait acheté une est REMBOURSÉ au prix payé — une mise à jour ne
        confisque pas — et elle sort de `owned` (le remboursement ne joue donc qu'une fois) ; qui roulait avec repart en LA HONTE. */
-    {let rb=0;c.owned=c.owned.filter(x=>{if(!CARS[x].retire)return true;rb+=(CAR_UNLOCK[x]&&CAR_UNLOCK[x].p)||0;return false;});
-     if(rb)c.bank=Math.min(1e30,c.bank+rb);if(CARS[c.equipped]&&CARS[c.equipped].retire)c.equipped=0;}
+    /* (2026-10-14, Sacha) LA RAIE (cachée cette nuit) n'avait plus de prix (`k:'bientot'` depuis le 6/10) : qui l'avait achetée 2,5 M$ la
+       perdait SANS remboursement. Son ancien prix est rendu ici, une fois (elle sort de `owned`), et le menu le DIT (`SAVE.remb`, voir cc:revele). */
+    {let rb=0;const RB_RETIRE={'LA RAIE':2.5e6},nm=[];c.owned=c.owned.filter(x=>{if(!CARS[x].retire)return true;const p9=(CAR_UNLOCK[x]&&CAR_UNLOCK[x].p)||RB_RETIRE[CARS[x].name]||0;if(p9){rb+=p9;nm.push(CARS[x].name);}return false;});
+     if(rb){c.bank=Math.min(1e30,c.bank+rb);this.remb={n:nm,v:rb};}if(CARS[c.equipped]&&CARS[c.equipped].retire)c.equipped=0;}
     if(d.ai&&typeof d.ai==='object'){const a=d.ai,g=(k,dv,lo,hi)=>THREE.MathUtils.clamp(isFinite(+a[k])?+a[k]:dv,lo,hi);
       c.ai={air:g('air',.5,0,1),boost:g('boost',.35,0,1),caution:g('caution',.5,0,1),
         skill:g('skill',.86,.5,1.1),aggr:g('aggr',.55,0,1),airDur:g('airDur',1.1,.4,4),
@@ -36834,7 +36944,7 @@ const SAVE={
    rattrape le miroir ; réponse pleine → 2 : plus AUCUNE écriture jusqu'au rechargement (le passage en arrière-plan qui accompagne
    un rechargement flushait la sauvegarde vierge PAR-DESSUS celle qu'on venait de semer). Lecture en échec : on reste à 1 — on
    n'écrase pas un secours qu'on n'a pas pu lire. Et on ne recharge que si le localStorage a GARDÉ la valeur (sinon : boucle). */
-if(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences&&!localStorage[SAVE.K]){
+if(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences&&!(function(){try{const x=JSON.parse(localStorage[SAVE.K]||'null');return !!x&&typeof x==='object';}catch(e){return false;}})()){ // (2026-10-14, chasse aux bugs) une sauvegarde locale ILLISIBLE (écriture tronquée) comptait comme présente : le miroir n'était pas lu, load repartait à neuf et le 1er flush écrasait le secours natif — perte totale. Illisible = absente
   SAVE.natif=1;
   try{window.Capacitor.Plugins.Preferences.get({key:SAVE.K}).then(function(r){
     if(r&&r.value){SAVE.natif=2;let ok=false;try{localStorage[SAVE.K]=r.value;ok=localStorage[SAVE.K]===r.value;}catch(e){}
@@ -36853,6 +36963,10 @@ if(BALADE){SAVE.d.tuto=1;SAVE.d.permis=1;if(SAVE.d.facile==null)SAVE.d.facile=0;
 Object.assign(I18N,{'PARTIE INTERROMPUE':'RUN INTERRUPTED','COPIE IMPOSSIBLE : COPIE-LE A LA MAIN':'COPY FAILED: COPY IT BY HAND','Sélectionne le code et copie-le à la main.':'Select the code and copy it by hand.'});
 if(SAVE.repris)document.addEventListener('cc:revele',function(){const r=SAVE.repris;if(!r||!(r.v>=1||r.a>=1))return;
   try{toast(pxi('coche')+' '+TR('PARTIE INTERROMPUE')+' : +'+(r.v>=1?fmtC(r.v)+' '+TR('VERSÉS AU COMPTE'):fmtAura(r.a)+' '+TR('AURA')));}catch(e){}},{once:true});
+/* (2026-10-14, Sacha) une caisse retirée de la gamme vient d'être remboursée (san) : le menu le DIT, une fois — « LA RAIE EST PARTIE : 2,5 M$ REMBOURSÉS » */
+Object.assign(I18N,{'EST PARTIE':'IS GONE','SONT PARTIES':'ARE GONE','REMBOURSÉS':'REFUNDED'});
+if(SAVE.remb)document.addEventListener('cc:revele',function(){const r=SAVE.remb;if(!r)return;
+  try{toast(pxi('coche')+' '+r.n.map(function(x){return TR(x);}).join(' · ')+' '+TR(r.n.length>1?'SONT PARTIES':'EST PARTIE')+' : '+fmtC(r.v)+' '+TR('REMBOURSÉS'));}catch(e){}},{once:true});
 setInterval(()=>{if(SAVE.dirty)SAVE.flush();},30000); // le filet : rien ne se perd plus de 30 s
 SND.sfx=SAVE.d.sfx;SND.voice=SAVE.d.vox;SND.music=SAVE.d.mus;SND.vib=SAVE.d.vib!==false;
 VOL.mus=SAVE.d.vol.mus;VOL.sfx=SAVE.d.vol.sfx;VOL.vox=SAVE.d.vol.vox;
@@ -44750,8 +44864,9 @@ function photoFile(i,cb){if(PHOTO.cache[i]){cb(PHOTO.cache[i]);return;}PHQ.q.pus
 function photoTour(){
   if(!PHQ.q.length||!garageOn||gEl.classList.contains('quiet')){PHQ.on=false;return;} // (2026-09-26) garage fermé : la file attend le prochain passage (openGarage la relance) — (2026-09-28, chasse aux gels) et le garage du JOUER (`quiet`) n'affiche aucune vignette : MESURÉ, il y prenait 2 à 3 photos pendant le fondu (chacune reconstruit deux caisses, ~200 ms et 4 programmes) pour une bande que personne ne voit
   if(GAR.sw||GAR.go){requestAnimationFrame(photoTour);return;}
-  const it=PHQ.q.shift();let u=PHOTO.cache[it[0]];if(!u)try{u=carPhoto(it[0]);}catch(e){u=null;}
-  if(u)it[1](u);requestAnimationFrame(photoTour);
+  const it=PHQ.q.shift(),u=PHOTO.cache[it[0]];
+  if(u)it[1](u);else try{carPhoto(it[0],function(u9){if(u9)it[1](u9);});}catch(e){} // (OPTIMISATION) encodée hors du fil (toBlob), posée à son arrivée
+  requestAnimationFrame(photoTour);
 }
 function gBankPaint(){const gb=$('gBank');
   if(gb)gb.innerHTML=TR('COMPTE')+' : '+fmtC(bank())+'<span class="aura">'+pxi('etoile')+' '+auraRankName()+'</span>';
@@ -52239,6 +52354,7 @@ function loop(now){
   try{updateBoomArt(dt);}catch(e){loopWarn(16,'boule de feu',e);}
   if(PARIS.meshes.length&&!mortS9)parisTick(dtA9);
   if(JADE.root&&!mortS9){jadeTick(dtA9);try{jadeSousTick(dtA9);}catch(e){loopWarn(16384,'sous la mer',e);}}else{try{jadeMusTick();}catch(e){}} // (2026-10-12) la musique du SOLEIL DE JADE se charge dès le départ, et se tait hors du niveau — (2026-10-09) LES PICS DE JADE : lumières de la matière, vent des pins, brume
+  if(!JADE.geos)try{jadeGabFond();}catch(e){loopWarn(131072,'gabarits',e);} // (2026-10-14, OPTIMISATION) les gabarits de la jade, taillés au menu (voir LES GABARITS TAILLÉS AU MENU)
   try{plaTick(dt,running&&!paused&&!BANC_FIGE);}catch(e){loopWarn(65536,'pluie d argent',e);} // (2026-10-13) LA PLUIE D'ARGENT v2
   if((GRUE.L.length||JADE.root)&&!mortS9)grueTick(dtA9); // …et les vols de grues // (Paris) le scintillement et le phare
   if(mortS9){}else
