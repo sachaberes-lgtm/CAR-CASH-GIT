@@ -16838,6 +16838,44 @@ function jadeChauffeNiveau(){ if(!JADE.root||!JADE.root.parent)return;
   catch(e){console.warn('jadeChauffeNiveau',e);}
   finally{if(g)scene.remove(g);for(const v of vu)v[0].visible=v[1];
     try{for(const r9 of EAUR.L){r9.t=9;r9.m.visible=false;}for(const r9 of COUR.L){r9.t=9;r9.m.visible=false;}}catch(e){}} }
+/* (2026-10-14, passe perf mobile) LES PROGRAMMES DU SOLEIL DE JADE COMPILÉS AU MENU, SANS BÂTIR LA CARTE. MESURÉ (iPhone 7 émulé, ×4) : au
+   portail ville → jade, 17 programmes naissaient d'un coup (163 → 180 liens, une image de ~580 ms ; 6,1 s vue au REJOUER tiré sur le jade) —
+   jadeChauffeNiveau ne compile la carte qu'une fois BÂTIE, donc sous le voile du portail. Ici : les MÊMES instances de matière (jadeMats,
+   JADE_*_M, la mer, la grue) posées sur de petits maillages du MÊME GENRE (instancié ou seul : USE_INSTANCING change le programme), compilées
+   sous les lumières de la scène par chauffeRendu (comme cryptoChauffe) : au portail la clé est la même, le programme est déjà là. Quatre étapes
+   de chauffeDivers (~4 programmes chacune). Les objets de la mer sont ceux que jadeChauffeNiveau fabrique (dans la scène, cachés : l'état
+   d'après une course au jade). La Lambert de l'écume des effondrements (JCH.splash, instanciée sans teinte) : une jumelle gardée (jamais
+   libérée : libérer une matière peut détruire son programme). `dbgJadeProgs()` (banc) : attendus, compilés, manquants. */
+const JADE_CHP={fait:0,lam:null,m:new THREE.Matrix4(),v:new THREE.Vector3()};
+function jadeChauffeLots(){const M9=jadeMats();return [
+  [['vr','I',M9.vr],['vrX','I',M9.vrX],['vrP','I',M9.vrP],['vrO','I',M9.vrO]],                  // les familles des montagnes (verre en trois passes ; opaque au loin) et les cubes fins
+  [['arb','I',M9.arb],['vrM','M',M9.vrM],['vrXM','M',M9.vrXM],['vrPM','M',M9.vrPM]],              // la forêt peinte ; la Porte du ciel et les monuments de près
+  [['vrOM','M',M9.vrOM],['chute','M',JADE_CHUTE_M],['rayon','M',JADE_RAYON_M],['brume','I',JADE_BRUME_M]], // le monument de loin, les cascades, les rayons, la brume
+  [['mer','E',null]]];}                                                                           // la mer (peau, sillon, bulles, écume, brume d'eau, rides, couronnes), la grue, l'écume des chutes
+function jadeChauffeProgs(k){const lots=jadeChauffeLots();if(k>=lots.length)return;
+  const L9=[],tmp=[],vu=[];let box=null;
+  try{box=new THREE.BoxGeometry(1,1,1);
+    if(lots[k][0][1]==='E'){
+      try{grueGeos();tmp.push(new THREE.Mesh(GRUE.gC,GRUE.M));}catch(e){}
+      try{if(!JADE_CHP.lam)JADE_CHP.lam=new THREE.MeshLambertMaterial({color:0xf4f8fa,emissive:0x2a3238});const im=new THREE.InstancedMesh(box,JADE_CHP.lam,1);im.setMatrixAt(0,JADE_CHP.m.identity());tmp.push(im);}catch(e){}
+      try{const eau=[jadePeau(),sillonMesh(),jadeBullesIm(),eauPIm(),eauBIm()];eauRide(0,-1e5,0,0);eauCouronne(0,-1e5,0,{r0:1,r1:2,h:1,fl:0,d:1,fx:0,fz:0});
+        for(const r9 of EAUR.L)eau.push(r9.m);for(const r9 of COUR.L)eau.push(r9.m);
+        for(const o of eau){if(!o||o.parent!==scene||L9.indexOf(o)>=0)continue;vu.push([o,o.visible]);o.visible=true;L9.push(o);}}catch(e){}}
+    else for(const q of lots[k]){if(!q[2])continue;let o;
+      if(q[1]==='I'){o=new THREE.InstancedMesh(box,q[2],1);o.setMatrixAt(0,JADE_CHP.m.identity());}else o=new THREE.Mesh(box,q[2]);tmp.push(o);}
+    camera.getWorldDirection(JADE_CHP.v);
+    for(const o of tmp){o.frustumCulled=false;o.position.copy(camera.position).addScaledVector(JADE_CHP.v,30);scene.add(o);L9.push(o);}
+    if(L9.length)chauffeRendu(L9);}
+  catch(e){console.warn('jadeChauffeProgs',e);}
+  finally{for(const o of tmp){scene.remove(o);if(o.isInstancedMesh&&o.dispose)o.dispose();}if(box)box.dispose();for(const v of vu)v[0].visible=v[1];
+    if(lots[k][0][1]==='E')try{for(const r9 of EAUR.L){r9.t=9;r9.m.visible=false;}for(const r9 of COUR.L){r9.t=9;r9.m.visible=false;}}catch(e){}
+    JADE_CHP.fait=Math.max(JADE_CHP.fait,k+1);} }
+window.dbgJadeProgs=function(){ // (banc) les programmes du jade attendus et déjà compilés — au portail ville → jade, `liens` ne doit pas bouger
+  const L=[],nb=function(m){const p=m&&renderer.properties.get(m);return p&&p.programs?(p.programs.size!==undefined?p.programs.size:1):0;};
+  try{for(const lot of jadeChauffeLots())for(const q of lot)if(q[1]!=='E')L.push({nom:q[0],genre:q[1]==='I'?'instancie':'seul',programmes:nb(q[2])});
+    for(const q of [['peau',JSOUS.peau],['sillon',SILL.mesh],['bulles',JEAU.im],['ecume',EAUP.im],['brumeEau',EAUB.im],['ride',EAUR.L[0]&&EAUR.L[0].m],['couronne',COUR.L[0]&&COUR.L[0].m],['grue',GRUE.M&&{material:GRUE.M}],['ecumeChute',JADE_CHP.lam&&{material:JADE_CHP.lam}]])
+      L.push({nom:q[0],genre:'mer/grue',programmes:nb(q[1]&&q[1].material)});}catch(e){L.push({nom:'erreur',programmes:0,e:String(e)});}
+  return {liens:renderer.info.programs?renderer.info.programs.length:-1,etapes:JADE_CHP.fait+'/4',attendus:L.length,manquants:L.filter(function(o){return !o.programmes;}).map(function(o){return o.nom;}),liste:L};};
 window.dbgFin=function(v,nu){ // (banc) v : les cubes minuscules on/off ; nu : les nuages en volutes on/off
   if(v!==undefined&&v!==null){FIN.on=!!v&&!TEL_NATIF;if(!FIN.on){FIN.dans.clear();for(const FF of FIN.fam)if(FF)FF.im.visible=FF.im2.visible=FF.im3.visible=false;}JADE.sig=0;}
   if(nu!==undefined&&JADE.root)for(const o of JADE.root.children)if(o.material===JADE_NUAGE_M)o.visible=!!nu;
@@ -27219,6 +27257,7 @@ function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image
   function(){if(!TRACE.pos)traceInit();const p=mkPigeon();scene.add(p);renderer.compile(scene,camera);scene.remove(p);},
   function(){const L9=[];for(let i=0;i<FRUIT_DEFS.length;i++){const m=mkFruit(i);scene.add(m);L9.push(m);}const pd=new THREE.Mesh(padGeo,PAD_MAT);scene.add(pd);L9.push(pd); // (2026-09-29) LA LIGNE PARFAITE pose ses fruits et ses pads EN COURSE : leurs programmes et leurs géométries sont prêts dès le menu
     chauffeRendu(L9);for(const m of L9)scene.remove(m);},
+  function(){jadeChauffeProgs(0);},function(){jadeChauffeProgs(1);},function(){jadeChauffeProgs(2);},function(){jadeChauffeProgs(3);}, // (2026-10-14, passe perf mobile) LE SOLEIL DE JADE : ses 17 programmes compilés au menu, ~4 par étape (jadeChauffeProgs) — plus rien ne naît au portail vers le jade ni au REJOUER tiré sur lui
   function(){engCarteQuad.visible=engHalo.visible=true;renderer.compile(engVigQuadScene,engVigQuadCam);engCarteQuad.visible=engHalo.visible=false; // (vague 2) le recollage de la carte MOTEUR (sinon son programme naît au 1er palier)
     renderer.initTexture(engHaloMat.map);renderer.setRenderTarget(engRTc);renderer.setRenderTarget(null);}]; // …et son halo et son tampon montent au GPU dès le menu
   if(k<E.length)try{E[k]();}catch(e){}
