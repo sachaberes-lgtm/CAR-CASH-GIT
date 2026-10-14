@@ -56404,7 +56404,7 @@ function loop(now){
       const momF=1+Math.min(1.8,momT*momT*.1);
       let a=0;
       if(up)a=acc9*(vA<maxSp*(1+FLOW.lv*.05)?1:.55)*(boost>0?1.5:1)*momF*(1+FLOW.lv*.06); // ça pousse TOUJOURS sur la route — et le FLOW pousse plus loin
-      if(dn&&!driftEnCours)a=vA>2?-acc9*1.5:-acc9*.5; /* (2026-10-09) au clavier ↓ est AUSSI le geste du drift : en drift il ne freine plus — au doigt et à la souris le drift ne freinait pas, au clavier il coûtait ~3× plus de vitesse */
+      if(dn&&!driftEnCours)a=vA>2?-acc9*1.5:-acc9*.75; /* (2026-10-14, Sacha : « la MARCHE ARRIÈRE doit être plus rapide ») en recul .5 → .75 : 1,5× plus vive */ /* (2026-10-09) au clavier ↓ est AUSSI le geste du drift : en drift il ne freine plus — au doigt et à la souris le drift ne freinait pas, au clavier il coûtait ~3× plus de vitesse */
       vA+=a*dt;
       if(nitroOn)vA+=(nitroBlue?48:30)*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*dt; // LE MOTEUR pousse : le palier multiplie la nitro
       else if(startBoostT>0)vA+=30*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*dt; // (2026-10-08) L'ÉLAN DU DÉPART : la poussée de la nitro, sans la nitro — de la vitesse, rien d'autre
@@ -56414,7 +56414,7 @@ function loop(now){
       vA*=Math.max(0,1-.03*dt);
       if(!up&&!dn&&!nitroOn)vA*=Math.max(0,1-.4*dt);
       if(PARK.on&&vA>PARK_VCAP)vA=PARK_VCAP; // PARC : gouverneur de vitesse — la nitro infinie POUSSE mais ne s'emballe pas (contrôlable)
-      if(vA<-8)vA=-8;
+      if(vA<-16)vA=-16; // (2026-10-14, Sacha : « la MARCHE ARRIÈRE doit être plus rapide ») -8 → -16 : 13,8 → 27,6 km/h affichés en recul (×3,6×SPD)
       if(introD){vA=0;momT=0;steer=0;psi=0;} // LARGAGE : chute verticale, contrôles gelés
       if(Math.abs(target)>.1)steerHold=Math.min(.3,steerHold+dt);else steerHold=0;
       // LE DRIFT : braquage FORT à bonne vitesse, ou pouce tiré vers le bas (le geste du frein) en braquant
