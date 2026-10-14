@@ -24,7 +24,10 @@ Lire aussi `passation/SON.md` (passation du Mac : mission, règles, décisions d
   en course (radio) : verrouillage = pause + musique arrêtée, déverrouillage = reste en pause · curseur en PAUSE : aperçu ~1,4 s puis se
   rendort, à 0 rien · REPRENDRE : la radio repart, running · 0 erreur JS. Carte JADE non tirée ce passage-là (JOUER = carte au hasard).
 - WebKit de Playwright : absent du PC, non téléchargé sans l'accord de Sacha (il ne simulerait ni le Silencieux ni le volume verrouillé).
-- Trou connu : au SOLEIL DE JADE (musique JMUS), le curseur MUSIQUE en PAUSE ne donne pas d'aperçu (musApercu ne connaît que la radio).
+- CORRIGÉ (19 h, PILOTAGE : « c'est un bug ») : au SOLEIL DE JADE, le curseur MUSIQUE en PAUSE joue l'aperçu par GLISSE V2 (`JMUS.ap`
+  ouvre `jadeMusVeut` 1,4 s, relance dans le geste, fondu de fin). Banc `banc-jade-apercu.cjs` (lance la jade par `dbgNiveauJade`) : GLISSE joue en course, s'éteint au verrouillage,
+  aperçu à 40 % en pause puis se rendort, rien à 0, REPRENDRE la relance ; 0 erreur JS. (J7 noté KO par un critère trop strict : le curseur
+  va par pas de 5, 62 → 60 %, GLISSE repart bien à 60/62.)
 
 ## À VÉRIFIER SUR UN VRAI IPHONE (rien de ceci ne se simule sur PC)
 - Bouton Silencieux : MUSIQUE ON = session 'playback' → la musique joue malgré le Silencieux (règle de toujours) ; coupée = 'ambient'.
