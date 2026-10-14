@@ -1,3 +1,5 @@
+# MISE À JOUR — 14/10, 18 h 50 : `ios-iphone-max` sur main 1fce80c (la musique revient après 24 h d'absence) — www refait, réinstallé sur l'iPhone 13 Pro de Sacha et LANCÉ (Release, build 2), branche poussée.
+
 # MISE À JOUR — 14/10, 18 h 35 : L'APP SUR LE JEU DE MAIN + PASSE « iPHONE AU MAX » (branche `ios-iphone-max`, Sacha : « prends la dernière version de main, optimise-la pour iPhone au max, mets-la sur l'iPhone »)
 - Branche NEUVE `ios-iphone-max` (worktree `~/cash-car/iphone-max`), partie de `ios-capacitor` (non touchée) + `origin/main` a10d46c fusionnée
   (1 conflit, CLAUDE.md racine : les deux gardés ; garde burn-out OK). Rien de poussé. Pour la reprendre : fusionner `ios-iphone-max` dans `ios-capacitor`.
