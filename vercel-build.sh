@@ -7,6 +7,9 @@ set -e
 # (2026-10-07, Léo) LA GARDE DU BURN-OUT : une version sans le burn-out du garage n'est PAS publiée — la construction échoue, le site
 # garde la version d'avant (voir garde-burnout.sh, « LE BURN-OUT EST À LÉO » dans CLAUDE.md ; GARDE_BURNOUT=0 la coupe).
 sh garde-burnout.sh
+# (2026-10-14, Sacha) LA GARDE DE LA CHARTE : logo de l'accueil figé par empreinte, police pixel, charte 6 en opt-in (garde-charte.sh ;
+# GARDE_CHARTE=0 la coupe).
+sh garde-charte.sh
 rm -rf .vercel-static
 mkdir -p .vercel-static
 cp -R demo/cash-car-demo .vercel-static/demo
