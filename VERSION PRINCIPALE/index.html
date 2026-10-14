@@ -18126,7 +18126,7 @@ function applyLangDOM(){
 function fmtGta(v){
   // LES CENTIMES : le compteur 8 chiffres arrondissait la mise de départ (1,61 s'affichait « 2 »).
   // On les montre en petit tant qu'on est sous les 1 000 — après, ils ne veulent plus rien dire.
-  const ent=Math.floor(v),cts=Math.round((v-ent)*100);
+  let ent=Math.floor(v),cts=Math.round((v-ent)*100);if(cts>=100){ent++;cts=0;} // (2026-10-14, chasse aux bugs) x,995 et plus arrondissait à 100 centimes (« 5.100 ») : on reporte sur l'entier
   const s=String(ent).padStart(8,'0');
   const i=s.search(/[1-9]/);
   const c=CUR();
