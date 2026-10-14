@@ -9036,6 +9036,12 @@ html:not(.c6) #tPanel #tpIn .tp.rouge:is(:active,.appui){transform:skewX(var(--s
   html:not(.c6) #tPanel #tpIn .tp[data-a="quit"]{grid-column:2;grid-row:4;margin:0}
   html:not(.c6) #tPanel #tpIn>.tp.go{grid-column:1;grid-row:3/span 3;align-self:end;margin:0 0 6px}
 }
+/* ===== 1 bis. RÉGLAGES OUVERTS DEPUIS LA PAUSE — la page passe AU-DESSUS (l'overlay est à z-index 5, le panneau de pause à 9 : sans ceci les deux se lisaient l'un à travers l'autre) ===== */
+html:not(.c6) body.setPause #overlay{z-index:12}
+html:not(.c6) body.setPause:not(.setPauseSort) #overlay{animation:none}
+html:not(.c6) body.setPause #overlay::before{opacity:1;transition:none}
+html:not(.c6) body.setPause:not(.setPauseSort) #tPanel{visibility:hidden} /* la pause se retire derrière la page opaque ; elle reparaît au fondu de sortie */
+html:not(.c6) body.setPause.setPauseSort #overlay::before{opacity:0;transition:opacity 100ms linear}
 /* ===== 2. LA FENÊTRE QUITTER / RECOMMENCER — CONTINUER est la touche principale (or), le destructeur passe dessous, en contour rouge ===== */
 html:not(.c6):has(#modale.on) #tPanel{visibility:hidden} /* la pause se retire tant que la fenêtre est ouverte (visibility : elle ne bouge pas, elle ne reçoit plus rien) */
 @media (orientation:portrait),(min-height:541px){
@@ -55502,6 +55508,10 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     syncJeu(); const play=(started&&!gameOver);
     /* (2026-09-27, user : « je veux un mode horizontal et vertical ») : plus de gel quand le téléphone se couche — on joue dans
        les DEUX sens. La caméra suit toute seule (`fovFit` → `POR` : 0 en paysage, 1 en portrait, recalculé à chaque rotation). */
+    if(window.__setPause&&!(started&&!gameOver&&paused)){ /* (2026-10-14, UX 8) RÉGLAGES ouverts depuis la pause, mais la pause n'existe plus (QUITTER confirmé pendant qu'ils étaient ouverts, ou reprise par un autre chemin) : on referme TOUT l'état d'un coup — sinon TCTL.ov restait vrai, l'observateur ne rouvrait pas la racine et l'écran de fin affichait #mSet au lieu de #mDead */
+      window.__setPause=false; document.body.classList.remove('setPause','setPauseSort');
+      for(const k in mScr){const e=mScr[k];if(!e)continue;clearTimeout(e._sortT);e.classList.remove.apply(e.classList,SENS);}
+      if(overlay.style.display!=='none'){ TCTL.ov=true; mGo(mRoot(),'racine',true); } else TCTL.ov=false; }
     const ovOpen=(overlay.style.display!=='none'); // le menu vient d'apparaître (mort, retour du garage, premier lancement) ?
     if(ovOpen!==TCTL.ov){ TCTL.ov=ovOpen; if(ovOpen)mGo(mRoot(),'racine',true); } // filet : l'observateur plus bas l'a normalement déjà fait
   },140);
@@ -55603,6 +55613,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(!window.__setPause)return;
     window.__setPause=false;
     try{uiGarde();}catch(e){} // (2026-10-14, chasse aux bugs) même verrou à la sortie : le 2e tap du double-tap sur le ◀ rejouait mTap('back') → mGo('home') (accueil qui clignote), puis tombait sur la pause
+    if(!document.documentElement.classList.contains('c6')&&mScr.set)mScr.set.classList.remove('on','sort','avant','retour'); /* (2026-10-14, UX 8) interface par défaut : la page RÉGLAGES s'éteint à l'instant (seul le fond s'efface en fondu) — ses lignes restaient lisibles sous la pause translucide */
     const fin=function(){ document.body.classList.remove('setPause','setPauseSort'); overlay.style.display='none'; TCTL.ov=false;
       for(const k in mScr){const e=mScr[k];if(!e)continue;clearTimeout(e._sortT);e.classList.remove.apply(e.classList,SENS);}
       mCur=mRoot(); overlay.setAttribute('data-ecran',mCur);
