@@ -33889,23 +33889,6 @@ window.dbgDauphin=function(a,b,c,d){
   if(mode!=='drive')return 'déjà en vol : '+mode;
   lat=d||0;vA=b||15;vL=c||0;startFall(a||60,1);return window.dbgState();
 }; // forcer le banc de dauphins
-/* `dbgBeat(v)` — force un coup de grosse caisse (0..1) pour VOIR la réaction sans dépendre de
-   l'audio. Indispensable : en test automatisé il n'y a pas de sortie son, l'analyseur ne rend que
-   des zéros, et le réactif serait donc invérifiable. Rend l'état des rails néon avant/après. */
-window.dbgBeat=function(v,aigus){
-  const k=v==null?1:Math.max(0,Math.min(1,v));
-  if(aigus!=null)MUSIC_HI=Math.max(0,Math.min(1,aigus)); // injecte aussi des AIGUS : sans eux le grésil et le limbe restent muets en test
-  const avant=NEON_RAILS.length?NEON_RAILS[0].color.clone():null;
-  MUSIC_BEAT=k;MUSIC_PULSE=Math.max(MUSIC_PULSE,k*.6);
-  BCLK.force=k; // le coup emprunte le chemin de l'analyseur (détection d'onset dans musicTick) : on teste le VRAI code
-  try{musicTick(1/60,0);}catch(e){return {erreur:String(e.message)};}
-  const r=NEON_RAILS[0],g=NEON_GLOW[0];
-  return {beatForce:k,rails:NEON_RAILS.length,nappes:NEON_GLOW.length,
-    railAvant:avant?[+avant.r.toFixed(3),+avant.g.toFixed(3),+avant.b.toFixed(3)]:null,
-    railApres:r?[+r.color.r.toFixed(3),+r.color.g.toFixed(3),+r.color.b.toFixed(3)]:null,
-    railBase:r&&r.userData.base?[+r.userData.base.r.toFixed(3),+r.userData.base.g.toFixed(3),+r.userData.base.b.toFixed(3)]:null,
-    nappeOpacite:g?+g.opacity.toFixed(3):null,ciel:+skyU.uPulse.value.toFixed(3)};
-};
 window.dbgMusic=function(){return {on:musicOn,pulse:+MUSIC_PULSE.toFixed(3),beat:+MUSIC_BEAT.toFixed(3),sky:+skyU.uPulse.value.toFixed(3),
   boostEnv:+musicBoostEnv.toFixed(3),filtHz:musicFilt?Math.round(musicFilt.frequency.value):null,mode:musicMode};};
 /* `dbgLvl()` — l'état du FOND DU NIVEAU : présence, tempo verrouillé, phase, roue, ondes vivantes.
@@ -33952,72 +33935,6 @@ window.dbgPlanet=function(){const v=planetGroup.position.clone().project(camera)
   return {ecran:[Math.round((v.x*.5+.5)*W),Math.round((1-(v.y*.5+.5))*H)],dansLeCadre:(Math.abs(v.x)<1&&Math.abs(v.y)<1&&v.z<1),
     tailleEcranPx:Math.round(2*PLANET_R/planetGroup.position.distanceTo(camera.position)/(2*Math.tan(camera.fov*Math.PI/360))*H),buffer:[W,H]};};
 window.dbgBoom=function(){explode();return {variante:BOOMV.n,rings:BOOMV.rings,volutes:VOLU.filter(p=>p.on).length,dards:DARD.filter(p=>p.on).length};}; // déclenche une mort et dit quelle signature est sortie
-// (vague 3, caméra) `dbgBoomCam()` : le PLAN de la mort mesuré — instant, distance caméra→foyer, où tombe le foyer à l'écran (y −1 bas → +1 haut)
-window.dbgBoomCam=function(){if(boomT<0)return {boomT:-1};const v=boomPos.clone().project(camera);
-  return {boomT:+boomT.toFixed(2),dMax:BOOM_CAM.dMax,coupe:BOOM_CAM.coupe,cote:BOOM_CAM.cote,dist:+camera.position.distanceTo(boomPos).toFixed(1),xEcran:+v.x.toFixed(2),yEcran:+v.y.toFixed(2),fov:Math.round(camera.fov),upY:+camera.up.y.toFixed(2)};};
-window.dbgHudCar=function(){ // VIGNETTE MOTEUR : lit-elle vraiment des pixels dans le RenderTarget, et où atterrit le quad ?
-  // On lit le RENDERTARGET (pas le coin de l'écran comme l'ancienne version) : c'est la seule preuve
-  // que le moteur est bien dessiné, indépendamment de l'endroit où le quad va le recoller ensuite.
-  const w=engRT.width,h=engRT.height,buf=new Uint8Array(w*h*4);
-  engVigRender(.016);
-  renderer.readRenderTargetPixels(engRT,0,0,w,h,buf);
-  let somme=0,opaques=0;
-  for(let i=0;i<buf.length;i+=4){somme+=buf[i]+buf[i+1]+buf[i+2];if(buf[i+3]>8)opaques++;}
-  let meshes=0;if(engVigMesh)engVigMesh.traverse(o=>{if(o.isMesh)meshes++;});
-  const bb=engVigMesh?new THREE.Box3().setFromObject(engVigMesh):null;
-  const r=engVigEl?engVigEl.getBoundingClientRect():null;
-  return {palier:engTier+1+' / '+ENGINE_TIERS.length,moteur:(ENGINE_TIERS[engTier]||{}).n,meshes,
-    // état de la VIE du moteur : sans ça, « on ne voit pas la flamme » est indébuggable à l'œil
-    feu:engVigFeu?{visible:engVigFeu.visible,opacite:+engVigFeu.material.opacity.toFixed(3),
-      echelle:engVigFeu.scale.toArray().map(n=>+n.toFixed(2)),
-      pos:engVigFeu.position.toArray().map(n=>+n.toFixed(2)),base:+engVigFeuBase.toFixed(2)}:null,
-    chaleur:+engVigHeat.toFixed(3),nitro:nitroOn,
-    rt:[w,h],somme,pixelsDessines:opaques,tauxRemplissage:+(opaques/(w*h)).toFixed(3),
-    dessine:opaques>500,
-    cadreDOM:r?{x:Math.round(r.left),y:Math.round(r.top),w:Math.round(r.width),h:Math.round(r.height),visible:engVigEl.style.display}:null,
-    quad:{pos:engVigQuad.position.toArray().map(n=>+n.toFixed(3)),scale:engVigQuad.scale.toArray().map(n=>+n.toFixed(3))},
-    boite:bb?{min:bb.min.toArray().map(n=>+n.toFixed(2)),max:bb.max.toArray().map(n=>+n.toFixed(2))}:null};};
-// DENSITÉ DE PIÈCES par zone : le seul moyen de régler leur arrivée autrement qu'au ressenti.
-// `dbgPieces(z)` regénère les ramassages comme si on était à la zone z et compte ce qui tombe.
-window.dbgPieces=function(zmax){
-  const memo=runStats.zones,out=[];
-  for(let z=0;z<=(zmax==null?6:zmax);z++){
-    runStats.zones=z;
-    spawnPickups(mulberry32(12345));
-    let pi=0,fr=0;
-    for(const p of pickups){if(p.face!==1)continue;if(p.nitro)fr++;else pi++;} // une seule face : l'autre est un miroir
-    out.push({zone:z+1,pieces:pi,fruits:fr,par1000m:+(pi/(L/1000)).toFixed(1)});
-  }
-  runStats.zones=memo;spawnPickups(mulberry32(12345));
-  return out;
-};
-// console : `dbgTier()` monte d'un palier, `dbgTier(12)` saute au palier 12 (index 0..29).
-// Déclenche TOUTE l'animation — son de bricolage, étincelles au capot, vignette qui s'emballe.
-window.dbgTier=function(n){
-  const cible=n==null?Math.min(ENGINE_TIERS.length-1,engTier+1):Math.max(0,Math.min(ENGINE_TIERS.length-1,n|0));
-  if(cible<=engTier){engTier=Math.max(0,cible-1);coinsGot=ENGINE_TIERS[engTier].coins;} // pour rejouer un palier déjà passé
-  coinsGot=Math.max(coinsGot,ENGINE_TIERS[cible].coins-1);
-  addCoins(1);
-  return {palier:engTier+1+' / '+ENGINE_TIERS.length,nom:ENGINE_TIERS[engTier].n,
-    pieces:coinsGot,animation:+engSwapT.toFixed(2)};
-};
-window.dbgEngine=function(i){ // console : dbgEngine(27) → la vignette montre CE palier (visuel pur, ne touche pas à ta progression) · dbgEngine(null) → elle resuit le tien
-  engVigForce=(i==null)?null:Math.max(0,Math.min(ENGINE_TIERS.length-1,i|0));
-  const t=engVigTier(),E=ENGINE_TIERS[t];
-  engVigBuild();
-  let meshes=0;const bb=new THREE.Box3();
-  if(engVigMesh){engVigMesh.traverse(o=>{if(o.isMesh)meshes++;});bb.setFromObject(engVigMesh);}
-  // CADRAGE : la pièce TOURNE autour de Y, donc ce qui compte est son rayon dans le plan XZ (il balaie
-  // la largeur du cadre) et sa demi-hauteur — pas le rayon de coin de la boîte, qui surestime.
-  const rx=Math.max(Math.abs(bb.min.x),Math.abs(bb.max.x)),rz=Math.max(Math.abs(bb.min.z),Math.abs(bb.max.z)),
-        ry=Math.max(Math.abs(bb.min.y),Math.abs(bb.max.y)),rxz=Math.hypot(rx,rz);
-  const halfV=engVigCam.position.z*Math.tan(engVigCam.fov*Math.PI/360),halfH=halfV*engVigCam.aspect;
-  return {palier:(t+1)+' / '+ENGINE_TIERS.length,nom:E.n,poussee:E.push,reserve:E.res,cylindres:E.cyl,
-    pieces:E.coins,piece:fmtC(DENOMS[Math.min(t,DENOMS.length-1)]*ECO3.gain),meshes,
-    rayonXZ:+rxz.toFixed(2),demiHauteur:+ry.toFixed(2),champ:[+halfH.toFixed(2),+halfV.toFixed(2)],
-    deborde:rxz>halfH||ry>halfV,
-    reculNecessaire:+Math.max(rxz/(Math.tan(engVigCam.fov*Math.PI/360)*engVigCam.aspect),ry/Math.tan(engVigCam.fov*Math.PI/360)).toFixed(2),
-    suitTaProgression:engVigForce==null};};
 /* `dbgTakeoff(face)` — force un décollage. `face=-1` teste la FACE DU DESSOUS, le cas qui faisait
    traverser la dalle. ⚠ ce qu'il faut lire, c'est `vitesseSurNormale` : elle doit être POSITIVE
    (on s'éloigne du bitume). `vy` en Y monde, lui, est NÉGATIF sous la route — et c'est normal. */
@@ -34031,7 +33948,6 @@ window.dbgTakeoff=function(face){
     vitesseSurNormale:+vn.toFixed(1), sEloigneDuBitume:vn>0,
     vyMonde:+fallVel.y.toFixed(1),slowT:+slowT.toFixed(2),fever:+fever.toFixed(1)};
 };
-window.dbgSlow=function(v){if(v!=null)slowT=v;return {slowT:+slowT.toFixed(2),s:+s.toFixed(2),fallTR:+fallTR.toFixed(2),mode:mode};};
 window.dbgDrift=function(){return {driftYaw:+driftYaw.toFixed(3),degres:Math.round(driftYaw*57.3),nitro:nitroOn,mode:mode,kmh:Math.round(Math.abs(vA)*3.6*SPD)};};
 // LA SIGNATURE D'ÉCHAPPEMENT, en lecture seule. Sans ce hook, vérifier qu'une caisse crache bien
 // SA couleur demandait de regarder l'écran — impossible en test automatisé, et à l'œil on confond
@@ -34043,22 +33959,6 @@ window.dbgNitro=function(r,x){if(r==='bords'){NFX.dbgB=x;return 'bords ×'+x;} /
   return {nitroR:+nitroR.toFixed(2),nitroX:+nitroX.toFixed(2),on:nitroOn,bleu:nitroBlue,ign:+NFX.ign.toFixed(2),ignK:+NFX.ignK.toFixed(2),off:+NFX.off.toFixed(2),
     len:+NFX.len.toFixed(2),bords:+NFX.edge.toFixed(2),onde:NFX.ring.visible,vent:(function(){let c=0;for(let i=0;i<ventN.n;i++)if(ventN.life[i]>0)c++;return c;})(),
     fov:+camera.fov.toFixed(1),fovPunch:+fovPunch.toFixed(1),plume:JETS.shells.length?+JETS.shells[0].scale.z.toFixed(2):0};};
-window.dbgJet=function(){const c=CARS[level];return {
-  caisse:c.name,fx:c.fx?{jet:'#'+(c.fx.jet||0).toString(16).padStart(6,'0'),rainbow:!!c.fx.rainbow}:null,
-  plume:'#'+jetShellM.color.getHexString(),coeur:'#'+jetCoreM.color.getHexString(),k:+JETS.k.toFixed(2),
-  ruban:{k:+trailK.toFixed(2),visible:trailL.m.visible,points:SILS.map(function(t){return t.n;}).join('/')},
-  arcEnCiel:{visible:rainbow.m.visible,arme:!!(c.fx&&c.fx.rainbow)},
-  helices:carProps.length,deploiement:+wingT.toFixed(2),
-  reflet:'#'+nitroLight.color.getHexString()};};
-window.dbgFx=function(){return {uSpeed:acesPass?+acesPass.uniforms.uSpeed.value.toFixed(3):null,post:(typeof POST_ON!=='undefined')?POST_ON:'?',sunVis:(typeof sunSprite!=='undefined')?sunSprite.visible:'?',sunOp:(typeof sunSprite!=='undefined')?+sunSprite.material.opacity.toFixed(2):'?',splash:!!document.getElementById('splash')};};
-window.dbgCreatures=function(){return {
-  dolShow:+dolShow.toFixed(2),dolVis:dolphins[0].visible,kS:+dolKS.toFixed(2),W:+dolW.toFixed(1),dol2:dolphins[2].position.toArray().map(n=>+n.toFixed(2)),
-  dol0:dolphins[0].position.toArray().map(n=>+n.toFixed(2)),
-  dol1:dolphins[1].position.toArray().map(n=>+n.toFixed(2)),
-  serpShow:+serpShow.toFixed(2),serpVis:serpent.visible,serpScale:+serpent.scale.x.toFixed(2),
-  serpHead:snNodes[0].toArray().map(n=>+n.toFixed(2)),
-  rigPos:dolphinRig.position.toArray().map(n=>+n.toFixed(1))
-};};
 // billets de dollars qui volettent
 const billNoteTex=(function(){
   const cv=document.createElement('canvas');cv.width=64;cv.height=32;
@@ -34566,11 +34466,6 @@ function figSnd(id){ // chaque figure a SA matière, posée sur l'échelle du vo
   sfx(id==='vrille'?'fig.vrille':id==='meteo'?'fig.meteore':id==='dauphin'?'fig.dauphin':id==='bump'?'fig.bump':'fig.maillon',{st:echSt()});
   if(id==='vrille'&&spinHalf>=4&&!figSnd._ess){figSnd._ess=1;sfx('fig.essoreuse');} /* (débogage son 2026-09-29) une fois par vol */
 }
-// console : `dbgSon()` l'état · `dbgSon('piece',{st:4})` joue un son
-window.dbgSon=function(id,o){
-  if(id==='voix'){const k=o||'m1';if(!ANN_LIB[k])return 'clés : '+Object.keys(ANN_LIB).join(' ');ANN_LIB[k].cool=0;annSpeak(k,9,true);const e9=ANN.playing&&ANN.playing.els[0];return e9?(e9 instanceof HTMLMediaElement?'voix <audio>':'voix WebAudio'):'muette';} // `dbgSon('voix','m3')` : fait parler l'annonceur et dit par quel chemin
-  if(id)return sfx(id,o||{})?'joué':'muet (console '+SONV2+', contexte '+(AC&&AC.state)+')';
-  return window.CCSON?Object.assign({console:SONV2,echelle:ECH,decodesWA:Object.keys(WA_BUF).filter(function(k){return WA_BUF[k];}).length+'/'+Object.keys(WA_BUF).length},window.CCSON.etat()):'sfx.js absent';};
 /* ---- LES VOIX ET LES SAMPLES DANS LE MIXAGE (2026-09-28, console de son) ----
    ⚠ SUR IPHONE `HTMLAudio.volume` EST EN LECTURE SEULE : l'annonceur y sortait à 100 % du fichier (−8 LUFS, ~5 dB au-dessus du
    réglage), SANS sa doublure démon ni ses échos d'or (écartés par VOL_LOCKED), et les curseurs VOIX / EFFETS n'y pouvaient rien ;
@@ -34704,7 +34599,6 @@ function portesTick(){ // à chaque image, hors de la simulation (la porte doit 
     if(a._cib>1e-4||n<a._fin||(b&&(b._cib>1e-4||n<b._fin)))continue;
     try{P.g.disconnect(P.d);}catch(e){}P.on=false;}
 }
-window.dbgPortes=function(){return PORTES.map(function(P,i){return i+':'+(P.on?'ouverte':'fermée');}).join(' ');}; // console : l'état des portes
 // (2026-10-12, banc du son) `dbgVu()` : le niveau (dB RMS) de chaque chaîne continue à sa sortie (ordre des portes) et du MASTER — pour trouver
 // QUI fait « le bruit » au lieu de deviner. Les analyseurs se posent au 1er appel (ils n'écoutent qu'en dérivation, rien n'est rebranché).
 window.dbgVu=function(){if(!AC||!MASTER)return null;const N=['moteur','vent','sifflet','crisse','nitroGronde','nitroJet','nitroBas','nitroOsc'];
@@ -35164,31 +35058,6 @@ window.dbgBord=function(o){ // (banc) LE BORD DE LA ROUTE : pose la caisse à un
   if(o&&mode==='drive'){if(o.lat!=null)lat=+o.lat;if(o.vL!=null)vL=+o.vL;if(o.grace!=null)graceT=+o.grace;if(o.psi!=null){psi=+o.psi;yawR=0;}if(o.vA!=null)vA=+o.vA;if(o.s!=null){s=+o.s;prevTvalid=false;}if(o.saut)startFall(+o.saut,1);}
   if(o&&mode==='fall'&&o.rentre!=null&&tryLand._bi>=0)fallVel.addScaledVector(B[tryLand._bi],-Math.sign(curLatOff||1)*(+o.rentre)*vitMult()); // (banc) en vol : une vitesse vers la route (le joueur qui braque déjà)
   return {mode:mode,lat:+lat.toFixed(2),demi:ROAD_HALF,vL:+vL.toFixed(2),bumps:bounceN,fallT:+fallT.toFixed(2),side:side,hOff:+curHOff.toFixed(2),latOff:+curLatOff.toFixed(2),steer:+steer.toFixed(2),basc:bascOn};};
-/* (banc, 2026-10-01 — Sacha : « il y a des bugs quand on essaye de se poser sur la route, lance des debug ») LA POSE AU BANC : lâche la caisse
-   au-dessus de la route, au point `s` (ou `ds` devant, ou le prochain point `cherche` : 'plat' | 'montee' | 'descente' | 'virage'), à `h` mètres
-   de la dalle (face −1 : dessous), à l'écart latéral `lat`, avec ses vitesses DANS LE REPÈRE DE LA DALLE (vT le long, vB de côté, vN vers
-   la dalle si < 0). Le banc avance ensuite image par image (dbgStep) et lit dbgBord() / window.__poseJ (le journal des poses : hauteur à
-   laquelle la pose a été déclarée, point de traversée, vitesse normale, face). Aucun effet hors banc. */
-window.dbgPose=function(o){o=o||{};if(!started||gameOver)return null;
-  const ds=L/(NP-1);let i=Math.max(6,Math.min(NP-7,Math.round((o.s!=null?+o.s:s+(o.ds==null?60:+o.ds))/ds)));
-  const ka=function(k){return T[Math.min(NP-1,k+4)].distanceTo(T[Math.max(0,k-4)])/(8*ds);};
-  if(o.cherche)for(let k=i;k<NP-60;k++){const ty=T[k].y,ny=Nn[k].y,c=ka(k);
-    const ok=o.cherche==='plat'?(Math.abs(ty)<.04&&ny>.97&&c<.002):o.cherche==='montee'?(ty>.12&&ny>.8):o.cherche==='descente'?(ty<-.12&&ny>.8):o.cherche==='virage'?(c>.006&&ny>.9&&Math.abs(ty)<.1):false;
-    if(o.cherche==='droit'){let d9=Math.abs(ty)<.05&&ny>.97;for(let q=k;d9&&q<Math.min(NP-8,k+Math.round(160/ds));q+=3)d9=ka(q)<.0012&&Math.abs(T[q].y)<.06&&!holeAtS(q*ds);if(d9){i=k;break;}continue;} /* 'droit' : 160 m de route droite et plate devant */
-    if(ok&&!holeAtS(k*ds)){i=k;break;}}
-  const f=o.face<0?-1:1,h=o.h==null?6:+o.h;
-  if(mode!=='fall')startFall(0,1);
-  fallPos.copy(pts[i]).addScaledVector(Nn[i],f>0?h:-THICK-h).addScaledVector(B[i],+o.lat||0);
-  fallVel.copy(T[i]).multiplyScalar(o.vT==null?120:+o.vT).addScaledVector(B[i],+o.vB||0).addScaledVector(Nn[i],(o.vN==null?-6:+o.vN)*f);
-  fallT=fallTR=o.t==null?1:+o.t;fallStartSide=f;fallUnder=false;bascOn=false;sideCd=0;graceT=0;bounceN=0;tryLand._bi=i;carGroup.position.copy(fallPos);
-  return {i:i,s:Math.round(i*ds),pente:+T[i].y.toFixed(3),ny:+Nn[i].y.toFixed(3),courbure:+ka(i).toFixed(4),demi:ROAD_HALF,ep:THICK,largeur:CARS[level].w,L:Math.round(L)};};
-window.dbgConduite=function(q){
-  if(q==='son'){const E=[];for(const f of [function(){blip();},function(){boostSnd(1.5);},function(){froleSnd(1,3);},function(){flowSnd(4);}])
-    try{f();}catch(e){E.push(String(e));}return E.length?E:'ok';}
-  if(q==='frole'){try{frole({mesh:{position:carGroup.position}},1.8);return 'ok · chaîne '+FROLE.n;}catch(e){return String(e);}} // un plot imaginaire frôlé à 20 cm
-  return {ctx:AC?AC.state:null,charge:DRS===null?'pas encore':DRS?'ok':'échec',bande:RSN===null?'pas encore':RSN?'ok':'échec',
-    froles:FROLE.n,driftC:+driftC.toFixed(2),driftLv:driftLv,raseT:+raseT.toFixed(2),flow:FLOW.lv};
-};
 function flowSnd(lv){
   if(SONV2){if(lv>=4)sfx('frenesie.entre');else if(lv>0)sfx('flow.'+lv);return;} // (console) le palier 4 = la FRÉNÉSIE qui part
   if(!AC||!(lv>0))return;
@@ -35914,7 +35783,6 @@ function uiClic(k){ try{ const f9=function(){if(SONV2)sfx(UI_CLIC[typeof k==='st
   if(SND.sfx&&!paused){ if(AC&&AC.state!=='running')AC.resume().then(f9).catch(function(){}); else f9(); }
   else if(SND.sfx&&paused&&SONV2){const r9=k==='retour',t9=performance.now(),w9=function(){if((!paused||r9)&&AC&&AC.state==='running')f9();else if(performance.now()-t9<(r9?1200:700))setTimeout(w9,60);};setTimeout(w9,60);} /* (QA 2026-09-29) REPRENDRE (« retour ») n'attend plus la fin de la pause : le 3-2-1 la tient ≥ 0,9 s, le clic était perdu — il part dès que le compte a réveillé le son */ /* (débogage son 2026-09-29) en pause : le clic attend (0,7 s au plus) que REPRENDRE réveille le son ; un interrupteur du panneau, lui, reste muet */
   }catch(e){} hap(8); } // (2026-09-26) REPRENDRE : le contexte se réveille en asynchrone — la note attend qu'il tourne // en pause le moteur audio dort : la note s'empilerait et partirait en rafale à la reprise
-window.dbgSens=function(l,n,p){if(l!=null||n!=null||p!=null)sensCoup(l||0,n||0,p||0);return{on:SENS,volant:VOLANT_PX,lissage:TCTL.doigt?VOL_LIS_D:VOL_LIS,tangage:+SCOUP.p.toFixed(3),roulis:+carRoll9.toFixed(3),pompe:+susY.toFixed(3)};}; // (2026-10-14, sensations) banc : dbgSens() = l'état · dbgSens(versLat,nez,pompe) = un coup dans la carrosserie
 window.dbgTouch=function(){return{on:TCTL.on,pad:TCTL.pad,act:TCTL.act,st:+TCTL.st.toFixed(3),sv:+TCTL.sv.toFixed(3),dy:+(TCTL.dy||0).toFixed(1),seuil:+(driftEnCours?DRIFT_PX:Math.max(DRIFT_PX,TCTL.dyS)).toFixed(1),arc:TCTL.ar<0?null:+TCTL.ar.toFixed(1),exces:+(TCTL.tr>0?TCTL.ab/TCTL.tr*Math.max(0,TCTL.ox-TCTL.x0):0).toFixed(1),drift:driftEnCours,play:TCTL.play,steer:+steer.toFixed(3)};}; // console : l'état du volant tactile (un téléphone ne s'inspecte pas) — `seuil` : les px vers le bas qu'il faut dépasser pour entrer (ou rester) en drift · `arc` : la descente de l'arc du pouce à la butée droite, lue aux glissés · `exces` : ce que le bout de l'arc descend en plus, retiré à la butée
 // LE GAZ, exposé : la vignette a besoin de savoir qu'on POUSSE, pas seulement qu'on va vite.
 // (posé une fois par frame dans la physique, à côté de son `up` — une seule vérité, pas deux
@@ -36184,31 +36052,6 @@ function vmaxShow(){return CARS[0].maxKmh*SPD*lateMul()*(ENGINE_TIERS[engTier]||
 // (tremblement, filés, champ) se jugent sur ELLE : calés sur vmaxShow, ils saturaient 3-4 s après le départ et restaient plats toute la
 // partie — le momentum, un pad, le FLOW, le mini-turbo ne changeaient plus RIEN à l'écran. (vmaxShow reste la référence de l'économie.)
 function vCroisiere(){return vmaxShow()*1.55;}
-/* (2026-09-30, session SON) LE TERRAIN FACE À LA VITESSE — `dbgTerrain(kmh, mult)` : sur la piste en cours, la part de la longueur qu'on ne peut
-   PAS tenir au volant à `kmh` (défaut : la croisière du moteur) avec un multiplicateur d'avance `mult` (NITROOO/VITESSE ×2, défaut 1) —
-   lacet demandé v·κ contre lacetMax —, le plus petit rayon, et les CRÊTES qu'une vraie voiture ne tiendrait pas (v²·κ > g·gK). */
-window.dbgTerrain=function(kmh,mult){
-  if(!pts||!NP)return 'pas de piste';
-  const m=mult||1,k0=kmh||vCroisiere(),v=k0/3.6/SPD,om=lacetMax(v),vw=k0/3.6*m,g=FALL_G*SPD*gK();
-  let hors=0,tot=0,rMin=1e9,cretes=0,loop=0,pire=0;
-  for(let i=0;i<NP-1;i++){const d=pts[i+1].distanceTo(pts[i]);if(!(d>1e-3)||holeAtI(i))continue;tot+=d;
-    const dx=T[i+1].x-T[i].x,dy=T[i+1].y-T[i].y,dz=T[i+1].z-T[i].z,kl=Math.abs(dx*B[i].x+dy*B[i].y+dz*B[i].z)/d,kv=(dx*Nn[i].x+dy*Nn[i].y+dz*Nn[i].z)/d;
-    if(kl>1e-6)rMin=Math.min(rMin,1/kl);
-    const r9=vw*kl/om;if(r9>1)hors+=d;if(r9>pire)pire=r9;
-    if(kv<0&&vw*vw*-kv>g)cretes+=d;
-    if(Math.abs(T[i].y)>.87)loop+=d;}
-  // la pente : part de la longueur au-delà de 10° et de 20° ; les CROISEMENTS : deux passages à moins d'une largeur en plan, à moins de 16 m
-  // en hauteur, éloignés de plus de 600 m le long du ruban (la route se traverserait) — grille de 60 m
-  let p10=0,p20=0,cr=0;const G=new Map(),c9=60,pas=Math.max(1,Math.round(6/Math.max(.5,L/NP)));
-  for(let i=0;i<NP-1;i++){const h=Math.hypot(pts[i+1].x-pts[i].x,pts[i+1].z-pts[i].z),dy=Math.abs(pts[i+1].y-pts[i].y);if(h>.01){const g9=dy/h;if(g9>.176)p10+=h;if(g9>.364)p20+=h;}}
-  for(let i=0;i<NP;i+=pas){const k=Math.floor(pts[i].x/c9)+','+Math.floor(pts[i].z/c9);(G.get(k)||G.set(k,[]).get(k)).push(i);}
-  const dS9=L/NP,lim9=2*ROAD_HALF+6;
-  for(let i=0;i<NP;i+=pas*4){const p=pts[i],gx=Math.floor(p.x/c9),gz=Math.floor(p.z/c9);let vu=false;
-    for(let a=-1;a<=1&&!vu;a++)for(let b2=-1;b2<=1&&!vu;b2++){const l9=G.get((gx+a)+','+(gz+b2));if(!l9)continue;
-      for(const j of l9){if(Math.abs(j-i)*dS9<600)continue;const q=pts[j];if(Math.hypot(q.x-p.x,q.z-p.z)<lim9&&Math.abs(q.y-p.y)<16){cr++;vu=true;break;}}}}
-  return {pente10:+(p10/tot*100).toFixed(1),pente20:+(p20/tot*100).toFixed(1),croisements:cr,lieu:LVL.cur?LVL.cur.id+(LVL.cur.hard?'-hard':''):'?',palier:engTier,lv:+lvPiste().toFixed(2),kmh:Math.round(k0*m),L:Math.round(tot),
-    horsVolant:+(hors/tot*100).toFixed(1),pireRatio:+pire.toFixed(2),rayonMin:Math.round(rMin),rayonTenable:Math.round(vw/om),cretesVolantes:+(cretes/tot*100).toFixed(1),loop_m:Math.round(loop)};
-};
 let mode='drive',s=0,lat=0,psi=0,vA=0,vL=0,side=1,driveDir=1; // driveDir : sens de conduite le long du ruban (+1/-1). TOUJOURS 1 en course ; dans le PARC il suit le sens d'atterrissage → les routes se roulent dans les DEUX sens (pas de sens imposé)
 const START_CASH=1.61; // la mise de depart, clin d'oeil au studio 1.61
 let steer=0,pitchS=0,money=START_CASH,levelCash=0,boost=0,fallT=0,fallTR=0,padCd=0,shake=0,combo=0,comboT=0,graceT=0,safeS=0,yawAcc=0,edgeT=0,squashT=0,momT=0,styleM=0,fever=0,streak=0,slowT=0,steerHold=0,aheadV=0,sideCd=0,slipT=0,oilCd=0,hitT=0,insUsed=false,feverArmed=false,lastSpaceT=0,rollover=0,idleT=0,driftT=0,driftYaw=0;
@@ -36596,17 +36439,6 @@ function instruDemarre(){
   if(!INSTRU.iv)INSTRU.iv=setInterval(instruPlanifie,25);instruPlanifie();
 }
 function instruOff(){INSTRU.doigt=false;clearTimeout(INSTRU.att);if(!INSTRU.tient)return;INSTRU.tient=false;INSTRU.tDer=performance.now();INSTRU.queue=(4-INSTRU.k%4)%4+4;} // lâché : on finit le temps + un temps, en s'éteignant
-window.dbgInstru=function(a){if(a==='bus'){try{const b=instruBus();let et='-';if(AC.state!=='running'&&INSTRU.etin){instruEtincelle(440,AC.currentTime,0,.1);et='ok';}return{bus:!!b,echo:!!INSTRU.dL,etincelle:et,contour:!!INSTRU.contour};}catch(e){return String(e);}}if(a===0||a===1){INSTRU.on=!!a;if(!a)instruOff();}
-  if(a==='tenu'){ // banc MUET : un appui TENU de 64 doubles croches (4 mesures) — fréquences et écarts de temps
-    if(!AC)return'pas de contexte';const sb=INSTRU.bus,sv=SND.sfx;INSTRU.bus=AC.createGain();SND.sfx=true;INSTRU.tDer=0;INSTRU.essai=true;INSTRU.essaiTenu=true;INSTRU.essaiN=64;INSTRU.vu=[];INSTRU.der=0;
-    
-    try{instruOn();}finally{INSTRU.essai=false;INSTRU.essaiTenu=false;INSTRU.bus=sb;SND.sfx=sv;}
-    return{pas:+INSTRU.pas.toFixed(3),calee:INSTRU.off!=null,notes:INSTRU.vu.slice(),ton:sonTonSuit._t|0};}
-  if(a==='essai'){INSTRU.essaiN=1e9; // banc MUET : quatre appuis brefs sur un bus débranché, rend les fréquences
-    if(!AC)return'pas de contexte';const sb=INSTRU.bus,sv=SND.sfx;INSTRU.bus=AC.createGain();SND.sfx=true;INSTRU.tDer=0;INSTRU.essai=true;INSTRU.vu=[];
-    try{for(let k=0;k<4;k++){instruOn();}}finally{INSTRU.essai=false;INSTRU.bus=sb;SND.sfx=sv;}
-    return{notes:INSTRU.vu.slice(),ton:sonTonSuit._t|0,etat:AC.state};}
-  return{on:INSTRU.on,tient:INSTRU.tient,mesure:INSTRU.k>>4,ton:sonTonSuit._t|0,dernieres:INSTRU.vu.slice(-8),contexte:AC&&AC.state,effets:!!SND.sfx};};
 function nfxTick(dt){ // chaque image (après hsF/hsU) : l'onde, la teinte des bords, les enveloppes
   const vit=running&&!gameOver&&mode!=='boom';
   NFX.ign=Math.max(0,NFX.ign-dt/.55);NFX.off=Math.max(0,NFX.off-dt/1.2);
@@ -36976,7 +36808,6 @@ function padTrain(sp){
   PADCH.n=rate?1:PADCH.n+1;PADCH.sL=sp;if(PADCH.n>PADCH.max)PADCH.max=PADCH.n;
   return PADCH.n;
 }
-window.dbgRoule=function(){return {fronde:FRONDE.n,frondeMax:+FRONDE.pMax.toFixed(2),virT:+virT.toFixed(2),virC:+virC.toFixed(2),virD:virD,train:PADCH.n,trainMax:PADCH.max,boost:+boost.toFixed(2)};}; /* banc : la fronde et le train */
 function chaineAuraMuette(nom,base,fam,brut,muet){const s9=CHA.sansPop;CHA.sansPop=true;try{return chaineAura(nom,base,fam,brut,muet);}finally{CHA.sansPop=s9;}}
 function chaineAura(nom,base,fam,brut,muet,rob){ // rob : un ROBINET (récolte, rafale, palier de NITROOO, nage du dauphin) — payé au compteur, hors chaîne · brut : pas de décote de redite (les échelles qui grimpent déjà : vrilles, bumps) · muet : l'appelant sonne déjà (figure en vol, pose)
   if(!(base>0)||!running||gameOver||(typeof PARK!=='undefined'&&PARK.on))return 0;
@@ -37273,12 +37104,6 @@ window.dbgHud=function(k,n){
   if(k==='file'){const c=HAUT.cur,t=performance.now();return {voix:c&&t<HAUT.fin?c.k+':'+c.p:null,attente:HAUT.q.map(function(q){return q.k+':'+q.p;}),moteur:engBig.on?(engBig.plonge?'plonge':'couloir'):null};}
   return {flow:{v:FLOW.v,lv:FLOW.lv,idle:FLOW.idle},cha:{pts:CHA.pts,x:CHA.x,n:CHA.n,t:CHA.t},rec:CHA.rec,recB:CHA.recB,aura:Math.round(auraRun)};
 };
-/* `dbgLooping()` — (2026-09-28, SANS_LOOPING) la piste EN COURS a-t-elle un looping ? Un looping, c'est une portion où la route
-   passe la verticale : tangente horizontale < 0,5 (plus de 60° de pente). Rend le nombre de points et de portions concernés. */
-window.dbgLooping=function(){let n=0,por=0,dans=false,pire=0;
-  for(let i=0;i<NP;i++){const t=T[i];if(!t)continue;const hl=Math.hypot(t.x,t.z),v=hl<.5;pire=Math.max(pire,Math.acos(Math.min(1,hl))*57.3);
-    if(v){n++;if(!dans)por++;}dans=v;}
-  return {lieu:LVL.cur?LVL.cur.id:null,parc:!!PARK.on,points:NP,verticaux:n,portions:por,penteMax:Math.round(pire)};};
 /* `dbgFren(k,n)` — (2026-09-28) LA FRÉNÉSIE au banc : 'v' n = pose le remplissage (le palier suit, zone rouge comprise ; 100 = y entrer
    par le vrai chemin) · 'nourrit' n = une goutte de style de n points · 'idle' s = s secondes sans style. Rend l'état : zone, emblème.
    (v3) rend aussi `nit` (le nitro gèle la jauge), `tenue` (s de la frénésie en cours), `record` (SAVE.d.frenRec), `partie` {fren, max}. */
@@ -37354,7 +37179,6 @@ function frenTitre(){ try{
 }catch(e){} }
 (function(){const tr=document.getElementById('triade');if(!tr||!window.MutationObserver)return;let av=tr.classList.contains('on');
   new MutationObserver(function(){const on=tr.classList.contains('on');if(on&&!av)frenTitre();av=on;}).observe(tr,{attributes:true,attributeFilter:['class']});})();
-window.dbgFrenTitre=function(){frenTitre();return 'ok';}; // banc : le titre seul, sans passer par la frénésie
 function avGainPop(petit,grand,perdu){
   const g=avE('avGain');if(!g)return;
   g.innerHTML='<small>'+sansAcc(petit).replace(/[<>&]/g,'')+'</small>'+grand;g.classList.toggle('perdu',!!perdu);
@@ -38565,7 +38389,6 @@ function dragonTick(dt){
       spawnP(flames,DRG.a.x,DRG.a.y,DRG.a.z,EXV.x+H9.x*v+(Math.random()-.5)*4,EXV.y+H9.y*v+(Math.random()-.3)*3,EXV.z+H9.z*v+(Math.random()-.5)*4,.24+Math.random()*.16);
       if(i<6)spawnP(flameCore,DRG.a.x,DRG.a.y,DRG.a.z,EXV.x+H9.x*v*.8,EXV.y+H9.y*v*.8+.5,EXV.z+H9.z*v*.8,.16+Math.random()*.08);}}}
 }
-window.dbgFace=function(f){if(f)side=f<0?-1:1;return side;}; // (banc) rouler sur la face du DESSOUS (−1) ou du dessus (1)
 window.dbgDragon=function(q){
   if(q==='pres'){if(arguments[1]!=null)NTR_PRES.k=+arguments[1];return {de:NTR_PRES.de,a:NTR_PRES.a,k:NTR_PRES.k,por:+POR.toFixed(2),part:NTR.shell?+ntrShellM.uniforms.uPres.value.z.toFixed(2):null};} // (debout) dbgDragon('pres',0) : la comète d'avant, qui voilait l'écran (A/B)
   if(q==='tick'){if(DRG.m&&DRG.m.visible)dragonTick(1/60);return DRG.vu.slice();} // (banc, v6) en PAUSE photo : une image de dragon recalculée pour la caméra de la photo (les yeux dépendent de l'angle)
@@ -38640,9 +38463,6 @@ function portPasseNiveau(){
 const CAMV={off:new THREE.Vector3(),look:new THREE.Vector3(),t:0,hang:0,side:1,soon:0,eta:99,zoom:0,zp:0,s0:.2};
 function volR(){const sp=CARS[level]||CARS[0];return .5*Math.hypot(sp.l||4.2,sp.w||1.9,(sp.h||.8)+.6);} // la sphère englobante de la caisse (roues et aileron compris)
 function volTaille(d,fov){return volR()/(Math.max(.5,d)*Math.tan(fov*Math.PI/360));} // sa taille à l'écran : part de la demi-hauteur
-// (dev) dbgCamVol() : la caméra de vol mesurée — distance à la caisse, champ, taille de la caisse à l'écran (part de la hauteur et de
-// la largeur), et où tombent la caisse et l'anneau d'atterrissage à l'écran (NDC, −1..1). Console seulement.
-window.dbgVise=function(){return {mode:mode,vu:!!LM.vu,eta:+(+CAMV.eta).toFixed(2),p:landMark.visible?landMark.position.toArray().map(function(v){return +v.toFixed(2);}):null,car:carGroup.position.toArray().map(function(v){return +v.toFixed(2);}),fvy:+fallVel.y.toFixed(2),nitro:nitroOn,pitchS:+pitchS.toFixed(3),parfaites:RUNX.perfect,vA:+vA.toFixed(1)};}; // (banc, 2026-10-09) le viseur lu : où l'anneau promet la pose, où est la caisse
 window.dbgCamVol=function(){try{const b=new THREE.Box3().setFromObject(carGroup),v=new THREE.Vector3();let x0=9,x1=-9,y0=9,y1=-9;
   for(let i=0;i<8;i++){v.set(i&1?b.max.x:b.min.x,i&2?b.max.y:b.min.y,i&4?b.max.z:b.min.z).project(camera);x0=Math.min(x0,v.x);x1=Math.max(x1,v.x);y0=Math.min(y0,v.y);y1=Math.max(y1,v.y);}
   const c=carGroup.position.clone().project(camera),r=landMark.visible?landMark.position.clone().project(camera):null;
@@ -39292,14 +39112,6 @@ function enCoursPose(){
   }catch(e){return false;}
 }
 function enCoursRetire(){try{if(SAVE.d&&SAVE.d.enCours){delete SAVE.d.enCours;SAVE.flush();}}catch(e){}} // l'appli est revenue : la partie continue, c'est elle qui versera
-/* `dbgEnCours(a)` — (2026-09-30) la sauvegarde d'arrière-plan : sans argument, l'état (mémoire, disque, miroir natif, ce que ce
-   lancement a versé) · 'pose' = ce que ferait la mise en arrière-plan (+ flush) · 'retire' = le retour. Pour le banc « appli tuée » :
-   en course, dbgEnCours('pose'), puis RECHARGER la page — dbgEnCours().repris dit ce qui a été versé. */
-window.dbgEnCours=function(a){
-  if(a==='pose'){enCoursPose();SAVE.flush();}else if(a==='retire')enCoursRetire();
-  let dq=null;try{dq=(JSON.parse(localStorage[SAVE.K]||'null')||{}).enCours||null;}catch(e){}
-  return {memoire:SAVE.d.enCours||null,disque:dq,natif:SAVE.natif,repris:SAVE.repris||null,banque:bank(),aura:SAVE.d.aura||0,parties:SAVE.d.ex.runs};
-};
 function endGame(){
   try{nitroooVide();}catch(e){} // (2026-09-29) …ni sur l'écran de fin
   try{busPlein();}catch(e){} // (2026-09-28) même filet : QUITTER depuis la pause (sortie en fondu) ne doit pas rendre le menu muet
@@ -40116,18 +39928,6 @@ function survRender(){
   }
   svRowsEl.innerHTML=h;
 }
-// (dev, 2026-09-30) dbgSurv() : l'état du Survivant — rang, minute, verdict, où l'on en est (s / lastNearS), la plaque · dbgSurv('arme') : armé
-// pour le prochain départ (le bouton du menu, sans le menu) · dbgSurv('minute',57) : la minute avancée (le couperet dans 3 s) ·
-// dbgSurv('dernier') : toute la meute vivante 60-80 m devant toi (tu deviens le condamné) · dbgSurv('seul') : il n'en reste qu'un, derrière.
-// Console seulement.
-window.dbgSurv=function(k,v){
-  if(k==='arme')SURV.armed=true; // (hors parc et hors campagne : survStart les écarte)
-  else if(k==='minute'&&SURV.on)SURV.t=+v||57;
-  else if(k==='dernier'&&SURV.on){const p9=survPTot();for(const b of SURV.bots)if(b.alive)b.totD=Math.max(b.totD,p9+60+Math.random()*20);}
-  else if(k==='seul'&&SURV.on){const p9=survPTot();let n9=0;for(const b of SURV.bots)if(b.alive){if(n9++){b.alive=false;b.mesh.g.visible=false;}else b.totD=Math.min(b.totD,p9-60);}} // un seul survivant, 60 m derrière : + 'minute' = le CHAMPION
-  const p=survPTot();let rk=1,vv=0;for(const b of SURV.bots)if(b.alive){vv++;if(b.totD>p)rk++;}
-  return {on:SURV.on,arme:SURV.armed,fini:SURV.over,t:+SURV.t.toFixed(2),mode,rang:rk+'/'+(vv+1),dernier:SURV.last,pBase:Math.round(SURV.pBase),
-    pTot:Math.round(p),s:Math.round(s),lastNearS:Math.round(lastNearS),L:Math.round(L),plaque:VC.chip};};
 /* ============================================================================
    LA CAMPAGNE NUAGES — LES SYSTÈMES (2026-09-27)
    ----------------------------------------------------------------------------
@@ -40800,35 +40600,6 @@ for(const [k,v,z] of [['SILLAGE','SLIPSTREAM','尾流'],['ELLE MENE DE','SHE LEA
   ['LA PLUIE DE DEBRIS SE DURCIT','THE DEBRIS RAIN GETS HARDER','碎片雨越来越猛'],['LA GEANTE ATTIRE LES DEBRIS','THE GIANT PULLS IN DEBRIS','巨行星吸来更多碎片'],
   ['LES ANNEAUX PLEUVENT SUR TOI','THE RINGS RAIN DOWN ON YOU','光环碎片砸向你'],['DEBRIS SERRES, GARDE LE CAP','TIGHT DEBRIS, HOLD YOUR LINE','碎片密集，稳住方向'],
   ['LA DERNIERE PLUIE AVANT PLUTON','THE LAST RAIN BEFORE PLUTO','冥王星前的最后一场雨']]){if(!(k in I18N))I18N[k]=v;if(z&&!(k in I18N_ZH))I18N_ZH[k]=z;} // (LA CAISSE-NUAGE garde son nom anglais en chinois, comme les 49 autres caisses)
-/* `dbgFilet()` — les filets de la piste · `dbgFilet(i,f,v,ang)` : pose la caisse dans le virage i à la fraction f (0-1), au BORD
-   extérieur, à v m/s MONDE (défaut : sa vitesse de calcul), cap tourné de `ang` rad vers le vide — le vol fait le reste (banc).
-   `dbgFilet('neuf',visite)` : une nouvelle piste NUAGES (visite 0 = la 1re, la plus garnie). */
-window.dbgFilet=function(i,f,v,ang){
-  if(i==='pts'){const o=[];for(let k=0;k<NP;k+=(f|0)||6)o.push([Math.round(pts[k].x),Math.round(pts[k].y),Math.round(pts[k].z)]);return {pts:o,pas:L/(NP-1)*((f|0)||6)};} // (banc) la piste pour la dessiner vue de dessus
-  if(i==='vol')return {mode:mode,s:Math.round(s),y:mode==='fall'?+fallPos.y.toFixed(1):null,t:+fallTR.toFixed(2),mort:gameOver,x:Math.round(fallPos.x),z:Math.round(fallPos.z),h:+curHOff.toFixed(1),lo:+curLatOff.toFixed(1),sn:Math.round(lastNearS),vh:Math.round(Math.hypot(fallVel.x,fallVel.z)*SPD)};
-  if(i==='va'){if(!started||gameOver)return 'pas de course';s=Math.max(5,Math.min(L-100,+f||0));side=1;lat=0;psi=0;yawR=0;slipB=0;vA=(v||70)/SPD;vL=0;mode='drive';prevTvalid=false;graceT=.3;return Math.round(s);} // (banc) poser la caisse à s, au milieu, à v m/s
-  if(i==='neuf'){FILET.visite=f==null?0:f;runStats.zones=(runStats.zones|0)+3;SURV.pBase+=s;newTrack();FILET.visite=null;return FILETS.length;}
-  if(i==null)return {filets:FILETS.map(function(q){return {sC0:Math.round(q.sC0),sC1:Math.round(q.sC1),sN0:Math.round(q.sN0),sN1:Math.round(q.sN1),cote:q.cote,R:Math.round(q.R),vN:Math.round(q.vN),paye:q.paye,yN:Math.round(q.yN)};}),
-    s:Math.round(s),mode:mode,v:Math.round(Math.abs(vA)*SPD),lieu:LVL.cur&&LVL.cur.id,L:Math.round(L)};
-  const q=FILETS[i|0];if(!q||!started||gameOver)return 'pas de filet';
-  s=q.sC0+(q.sC1-q.sC0)*(f==null?.4:f);side=1;lat=q.cote*(ROAD_HALF-3);psi=q.cote*(ang==null?.25:ang);yawR=0;slipB=0;
-  vA=(v||q.vN)/SPD;vL=0;mode='drive';prevTvalid=false;graceT=0;
-  return {s:Math.round(s),lat:+lat.toFixed(1),cote:q.cote,v:Math.round(Math.abs(vA)*SPD)};};
-window.dbgPisteCamp=function(){ // (dev) la piste courante au banc : croisements (dégagement vertical), rayon mini, pente maxi, longueur
-  const cell=48,H=new Map(),seg=L/(NP-1),key=(x,z)=>Math.floor(x/cell)+'_'+Math.floor(z/cell);
-  for(let i=0;i<NP;i+=2){const k=key(pts[i].x,pts[i].z);let a=H.get(k);if(!a){a=[];H.set(k,a);}a.push(i);}
-  let dyMin=1e9,where=-1,cnt=0;const lim=2*ROAD_HALF+6;
-  for(let i=0;i<NP;i+=2){const p=pts[i],cx=Math.floor(p.x/cell),cz=Math.floor(p.z/cell);
-    for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++){const a=H.get((cx+dx)+'_'+(cz+dz));if(!a)continue;
-      for(const j of a){if(j<=i||(j-i)*seg<250)continue;const q=pts[j],h=Math.hypot(q.x-p.x,q.z-p.z);if(h>lim)continue;
-        cnt++;const dy=Math.abs(q.y-p.y);if(dy<dyMin){dyMin=dy;where=Math.round(i*seg);}}}}
-  let kMax=0,tyMax=0;for(let i=5;i<NP-5;i++){kMax=Math.max(kMax,Math.abs(KAPB[i]));tyMax=Math.max(tyMax,Math.abs(T[i].y));}
-  return {L:Math.round(L),croisements:cnt,degagementMin:dyMin<1e9?+dyMin.toFixed(1):null,a:where,rayonMin:kMax>0?Math.round(1/kMax):null,penteMaxDeg:+(Math.asin(tyMax)*57.3).toFixed(1),minY:Math.round(trackMinY)};};
-window.dbgCoupe=function(i,ang,v,garderS){ // (dev) poser la caisse sur leg1 de la coupe i, au bord qui regarde leg3, cap `ang` rad vers lui — le vol fait le reste (garderS : sans téléporter le long de la piste)
-  const c=CAMP.coupes[i|0];if(!c||!started||gameOver)return 'pas de coupe';
-  if(!garderS)s=c.sA0+(c.sA1-c.sA0)*.4;side=1;lat=c.side*(ROAD_HALF-4);psi=c.side*(ang==null?.3:ang);yawR=0;slipB=0;vA=v||Math.max(Math.abs(vA),200);vL=0;mode='drive';prevTvalid=false;graceT=0;
-  return {s:Math.round(s),lat:+lat.toFixed(1),cote:c.side,ecart:+c.gap.toFixed(1)};};
-window.dbgSeulsBancs=function(on){for(const c of CLOUDS)c.g.visible=on?!!c.camp:true;const c=CLOUDS.find(function(c){return c.camp;});if(!c)return null;frameAt(CAMP.bancs[0]?CAMP.bancs[0].s:0,GF);c.mesh.geometry.computeBoundingBox();const bb=c.mesh.geometry.boundingBox;return {bb:[bb.min.toArray().map(Math.round),bb.max.toArray().map(Math.round)],sc:c.g.scale.toArray(),mvis:c.mesh.visible,mat:c.mesh.material.type+' op'+c.mesh.material.opacity+' side'+c.mesh.material.side,layers:c.mesh.layers.mask,parent:!!c.g.parent,c:c.g.position.toArray().map(Math.round),route:GF.p.toArray().map(Math.round),n:GF.n.toArray().map(function(v){return +v.toFixed(2);}),r:c.r,ry:c.ry,car:carGroup.position.toArray().map(Math.round),cam:camera.position.toArray().map(Math.round)};}; // (dev) isoler les bancs dessinés
 window.dbgFwd=function(){const v=CV1.set(0,0,1).applyQuaternion(carGroup.quaternion);return [v.x,v.y,v.z];}; // (dev) le cap monde de la caisse (pour cadrer une photo)
 window.dbgOrage=function(q){ // (2026-09-29) L'ORAGE du mode principal : l'état des éclairs · dbgOrage('eclair') en fait tomber un tout de suite
   if(q==='eclair'){if(!(LVL.cur&&(LVL.cur.id==='orage'||LVL.cur.orage))||CAMP.n)return 'pas au niveau orage';eclFrappe();ECL.t=6;}
