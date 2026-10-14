@@ -16,15 +16,16 @@ oreilles sur le capot (« terrifiant ») → Léo : « LA GROSSE TÊTE DE SHIBA,
   0xffc42e), deux sorties d'or sous la nuque. Fiche : h 2,0 · w 2,0 · l 2,3 (la caméra recule pour les caisses hautes).
 - LE REGARD : yeux-sphères (blanc, iris, pupille, éclat) qui suivent la caméra (repère `pivot`), coup d'œil de l'autre côté ; sourcils crème qui se
   lèvent ; tête PENCHÉE (le mème) qui hoche en roulant.
-- LA GUEULE (Léo : « qu'il ouvre la bouche quand il roule ou au burn-out, des dents, la langue tirée », puis « sa bouche c'est le TRAIT NOIR :
-  ça doit s'ouvrir depuis là ; le HAUT de la bouche part en arrière, comme un chien à la fenêtre, la langue qui pend sur le côté ») : `dogeTete` coupe
-  la tête le long du TRAIT (`YC(x)` = la ligne du sourire `LIG`, prolongée à plat le long des joues) jusqu'à une charnière à l'ARRIÈRE (z = ZH −,30)
-  → CRÂNE (`Fu` : yeux, sourcils, oreilles, truffe, dents du haut — groupe `crane`, qui BASCULE en arrière de `ouv`×,46) + MÂCHOIRE (`G.machoire`,
-  fixe sur le châssis : dents du bas). Coupes peintes seulement sur la coupe (`dedans`) : BABINES noires au bord (`levre`), palais, gorge, plancher.
-  Dents = cônes au bord (`bord(a)`). LA LANGUE = un ruban (20 anneaux × 10) recalculé à chaque image (`posLangue`) : posée sur le plancher, elle
-  sort par le coin GAUCHE et pend le long de la joue, filant en arrière avec la vitesse (`wind`) et claquant (onde) ; elle rentre en se fermant.
-  `ouv` : 0 au repos (le sourire), ,85 en roulant et au BURN-OUT (`BURN.k`), 1 à la nitro ; il halète. `dbgDoge(1)` / salle `window.DOGE_GUEULE=1`.
-  La plaque du châssis recule et plus d'essieu avant. ⚠ Burn-out pas vérifié au banc (geste réel requis).
+- LA GUEULE (Léo : « qu'il ouvre la bouche, des dents, la langue tirée » · « sa bouche c'est le TRAIT NOIR, ça doit s'ouvrir depuis là » ·
+  « progressivement, pas découpé brutalement de manière permanente ») : seule la BOUCHE est découpée — sous le trait (`YC(x)`, la ligne du sourire
+  `LIG`), dans un cylindre elliptique sous le museau (`ell9` : EC ,46 · EA ,15 · EZ ,34) → la LÈVRE DU BAS + le menton (`G.machoire`) ; le reste
+  de la tête est d'un seul tenant. Elle s'ouvre en se DÉFORMANT sur le processeur (`poseGueule` : chaque sommet tourne autour de la charnière de
+  `th × poidsJ`, 1 au milieu de la lèvre → 0 au bord du cylindre : les coins restent attachés, l'ouverture grandit en amande) ; la lèvre du HAUT
+  se retrousse (`G.poidsU`, ×,32). Seule la coupe SOUS LE TRAIT est peinte (babines noires `levre`, palais, plancher) : le bord du cylindre garde
+  la peau → aucune couture visible, bouche fermée. Dents (`DENTS`) et langue suivent la déformation. LA LANGUE = un ruban (20 × 10) recalculé à
+  chaque image (`posLangue`), elle sort par le côté gauche et file au vent. `ouv` monte doucement (×3,2/s) : 0 au repos, ,85 en roulant et au
+  BURN-OUT (`BURN.k`), 1 à la nitro ; il halète. `dbgDoge(1)` / salle `window.DOGE_GUEULE=1`. ⚠ Essayés et refusés : la mâchoire rigide qui tombe
+  (« problème de physique »), le crâne coupé tout autour qui bascule (« découpé brutalement »). ⚠ Burn-out pas vérifié au banc (geste réel requis).
 - LA TRAÎNÉE WOW (`WOWT`, `wowStep`, `wowApercu`, après `rainbowApercu`) : les phrases du mème en Comic Sans sortent des pots à la NITRO et filent
   derrière (sprites monde, 18 max). Traînée d'origine du DOGE (`fx.wow`) ET traînée de boutique « WOW » (30 000 $). Coupée avec l'arc-en-ciel.
 - Mesuré au banc : 60 i/s en course. ⚠ r128 : pas de `CapsuleGeometry`. ⚠ c'est un mème (Kabosu / Doge) : même question que la Nyan avant une sortie.
