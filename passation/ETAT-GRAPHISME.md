@@ -12,12 +12,15 @@ La passation longue (règles, plafonds de la charte, outils dbg) reste `passatio
   jade (`?sans=jade2`, soir et forme de Léo intacts), forêt (`?sans=foret2`), orbite (`?sans=orbite3`, expo +15 %), banquise et volcan (`?sans=banquise2` / `volcan2`).
   Planche nuages : `passation/graphisme-nuages-jour.jpg` ; jade/forêt/orbite : banc `shots/jfo/` du scratchpad (mur.cjs).
 - POUSSÉ aussi 87b22350 (cache v413) : nuages de jour, jade, forêt, orbite, banquise, volcan.
-- RESTE, dans l'ordre : (1) ciel du CANYON encore crème : L* 92-94, chroma 11-15, IDENTIQUE au matin, à midi ET au soir (qui devrait être orange). Ce n'est PAS le dôme
-  `canyonCiel` (bleu dès 7-12°, l. ~10309), ni le voile de cumulus `cyC`/`cyK`, ni `fogN` : les changer ne bouge rien (essai revert d5aac9de). Une surface
-  constante recouvre le dôme → à trancher au banc : `skyDome.visible=false` (crochet `k==='ciel'` ~l.21146), puis chercher un plan/sprite de fond, la
-  brume de scène appliquée au dôme, ou un « fond » du canyon (CIEL2.mode, dbgCanyon()). Le défaut existait AVANT la passe (captures cy-avant) ; (2) A/B propre d'ORBITE2 et
-  d'orbite3 ; (3) cumulus de nuit/pluie (worktree CCG-gfx-cumulus, non committé, captures `cumulus/shots2/`) ; (4) lune du titre la nuit (hors cadre) ; (5) MONTAGNE
-  et toute nouvelle map : leur passer routeSig + kick rose + les plafonds de la bible.
+- POUSSÉ ensuite (21 h 40) : e4ccd87a (v419) cumulus nuit/pluie/orage + banquise ; 98961b11 (v420) VILLE LA NUIT EN ROSE (nuit, orage, pluie : `villeRose()`),
+  CIEL DU CANYON réparé (le masque du disque solaire était inversé : `?sans=cysoleil`), béton de l'orbite ; 032f2361 (v422) NUAGES DE NUIT EN CLAIR DE LUNE (`?sans=clairdelune`).
+  Planches : graphisme-ville-nuit-rose.jpg, graphisme-canyon-ciel.jpg, graphisme-orbite-ab.jpg, graphisme-cumulus.jpg, graphisme-nuages-nuit-lune.jpg.
+- POUSSÉ 591544f5 (v426, 22 h 12) : le CIEL DES NUAGES SANS POMMELÉ (`cielMotif` retiré des passes pleine ET basse `basN`, `?sans=ciel2`) et la mer lointaine
+  fondue plus tôt (`uMerLoin` 16 000 → 8 000). Sonde en vol : `sonde-vol.cjs` du scratchpad (fige la caméra en l'air, coupe les couches une à une).
+- RESTE, dans l'ordre : (1) l'ORAGE de la ville encore peu rose : son plafond de nuages lilas/éclair a été retiré par `NEON_V` à la COMPILATION (l. ~9364/9367,
+  le plafond sous la pluie) → il faut un uniforme pour le rendre à la ville seule ; (2) le MIDI du canyon peut-être trop saturé (ciel chroma 88) : baisser `cyZ`/`cyM`
+  de canyonMidi si Sacha le juge ; (3) la LUNE du titre la nuit : la direction en uniforme ne suffit pas (essai retiré) → vérifier si le ciel du titre dessine
+  `cielLune` (variante du shader) et si `titreCiel` est appelé la nuit ; (4) MONTAGNE / toute nouvelle map : routeSig + contre-jour rose + plafonds de la bible.
 - Pièges vus : `</style>` collé dans un commentaire (fusion boutique-pop) = CSS affiché en texte ; les fusions de maps se percutent toujours aux mêmes endroits
   (ctrl, build*, SF_NIV, SF_CARTES, chauffe, musique, CAUSES, accC) : garder tous les côtés (script `resout_volcan.py` du scratchpad) ; motif du cache dans sw.js.
 
