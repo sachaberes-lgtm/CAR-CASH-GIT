@@ -3,6 +3,92 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LES ÉVÉNEMENTS RARES (2026-10-14, Sacha : « les morceaux de bravoure de l'ex-carrière — le BANQUIER au portail, la chasse de la CAISSE-NUAGE, « SAUTE LES MOUTONS » — surgissent de temps en temps, PAR SURPRISE, pendant une partie NORMALE. Rares, annoncés CLAIREMENT, jamais mortels de façon injuste, avec une RÉCOMPENSE »)
+Le bloc `EVT` (juste avant `dbgVille`, repère : « LES ÉVÉNEMENTS RARES ») rejoue les trois morceaux de la campagne TELS QUELS (`fantomeTick`,
+`banquierTick`, `campMoutonsTick`, leur plaque `vChip`) dans la partie CLASSIQUE ; seul ce qui les finissait change de main quand ils viennent d'ici
+(`GH.evt`, `VBQ.evt`, l'argument `ev` du troupeau). Perdre ne coûte RIEN (la partie continue), gagner paie la prime ; la caisse-nuage et le lingot
+restent les trophées de la carrière. Interrupteur `?evt=0` : le jeu d'avant au chiffre près (`EVT_ON` faux : aucun appel au hasard, aucune chauffe,
+aucun crochet actif).
+- **Quand** : tirage au départ de la partie (`evtPartie`, `Math.random` HORS génération — `rnd` n'est jamais touché) : 75 % des parties sont « armées »
+  (`EVT_P`). Une partie armée pose son événement dans la PREMIÈRE zone qui en porte un (`evtZone`, appelée en fin de `campDebut`) : MER DE NUAGES →
+  les MOUTONS (1 fois sur 2, hors orage) ou la CAISSE-NUAGE ; LA VILLE → le BANQUIER ; jade, forêt, banquise, orbite : rien. Jamais avant 20 s de
+  course, jamais deux fois par partie (`EVT.fait`), jamais hors partie classique (`evtLieuOk` : ni auto-école, balade, jade-jeu, bac à sable, parc,
+  Survivant, carrière, campagne, ni `?classique=cycle`). Rareté mesurée au modèle (`outils/evt-test.cjs`) : ≈ 30 % des parties en voient un
+  (1 sur 3,3), 23-39 % selon la vie des joueurs — 2 maps sur 7 seulement en portent, et il faut vivre jusqu'au point de l'événement.
+- **Annonce** : la bannière de niveau prêtée (`evtAnnonce` : le NOM en gros, la consigne en or), puis la plaque de la campagne qui suit la course.
+  Textes courts, FR + EN dans `I18N`, sans capitale accentuée (police pixel).
+- **Jamais mortel** : un mouton pris de face éclate (BEEE !, rien d'autre) et se voit de loin (tête noire, laine claire, nom + distance sur la plaque) ;
+  les moutons ne se posent jamais à moins de 70 m avant / 35 m après un plot, une flaque, un pad, un dos d'âne, ni dans un module, un filet ou un banc,
+  sur du droit et du plat seulement (3 à 5 repères) ; la caisse-nuage ne touche personne (elle te tire dans son sillage) ; le coup d'épaule du
+  banquier est bridé : il ne te sort jamais de la route (`clamp` à ROAD_HALF−1,6) ; perdre = « ELLE T'A SEME » / « LE BANQUIER A GAGNE ».
+  Sans route droite pour les moutons, la caisse-nuage prend la place.
+- **Prime** : un PORTAIL (`EVT_PRIME` = 120 × `denom()`, par `vPaie` : × FLOW, × frénésie, ligne `$:evt` du grand livre) + 200 d'aura (`chaineAura`) ;
+  la caisse-nuage rend 60 % de nitro (`nitroPct` → `nitroGain(q,'evt')`), les moutons paient au prorata des sauts (BERGER D'OR pour le troupeau entier).
+- **Console** : `dbgEvt()` = l'état · `dbgEvt('moutons'|'caisse'|'banquier')` = le forcer TOUT DE SUITE sur la zone en cours (les moutons exigent la MER
+  DE NUAGES) · `dbgEvt('arme')` = armer la partie et poser l'événement de la zone comme à la naissance d'une zone. Test Node : `node outils/evt-test.cjs`.
+- **Reste à juger en jeu** (pas de navigateur à l'écriture) : les moutons trouvent-ils 3-5 repères sur une vraie piste NUAGES ? la caisse-nuage, sans
+  ses coupes, se rattrape-t-elle en ~15 s ? le banquier (4 km avant le portail) arrive-t-il au portail en ~40 s ? aucun programme neuf compilé à la
+  naissance des moutons (têtes noires : `campChauffe` les pré-compile) ?
+
+## LE ROYAUME DE FEU — LA MAP DU VOLCAN (2026-10-14, session VOLCAN — Sacha : « fais une nouvelle map en mode royaume des flammes dans Adventure Time ou Mustafar dans Star Wars, avec une map volcanique, des lacs de lave, de volcan et tout » · « il faut qu'il se passe des choses cool, pas d'élément de gameplay trop bizarre (lac de lave tue bien sûr), mais sinon une génération de map qui descend le long du volcan, des lacs de lave et tout ; il faut une ambiance et des couleurs bien travaillées »)
+Une 6e map au tirage du MODE CLASSIQUE (`SF_CARTES.volcan`, niveau de base `NIV_VOLCAN`, id `'volcan'`, piste `'volcan'`). Nom proposé :
+LE ROYAUME DE FEU (aucun nom de marque) — à faire valider par Sacha. Tout le code est dans le bloc « LE ROYAUME DE FEU — LA MAP DU VOLCAN »
+(balises `<<<VOLCAN>>>` … `<<<FIN VOLCAN>>>`, juste après la forêt) ; les branchements, un par endroit, sur le modèle de la forêt :
+`buildTrack` (genVolcan, buildVolcan), `SF_NIV`/`SF_CARTES` (+ `sfNiveau` lit `M.mt` : la météo peut s'appeler CENDRES), `lvlNuageOk`
+(pas de nuages), la boucle (`volcanTick`, après foretTick), le vol (`volcanHeurt` → `explode('lave'|'roche')`), `CAUSES` + `facileSauve`,
+`chauffeDivers` (`volcanChauffe`), `I18N`, `accC` (orange 0xff6a1e), `BIOMES.volcan*`, `MUSIC_LIEU` (une ligne commentée : la place du
+morceau de Léo ; d'ici là la radio joue). Le gameplay est celui de toujours : la route, les sauts, les pièces. Le volcan est un DÉCOR qui
+vit, et la lave TUE.
+- LA ROUTE (`genVolcan`) : départ HAUT sur le flanc du grand volcan (`VOLCAN.K` : sommet 250-320 m au-dessus du départ, pied à −820,
+  profil concave de stratovolcan `vlcConeY`/`vlcConeR`) ; elle en fait le tour sur 130-170° en DESCENDANT, posée 26 m au-dessus de la
+  pente (son rayon = `vlcConeR(y−26)` : elle s'écarte du cône à mesure qu'elle descend), avec des S (deux sinus de 40-56 m et 12-20 m ×
+  √échelle) qui la font entrer et sortir du flanc — sauf autour des plongeons (la courbe douce du volcan). Puis elle quitte le flanc vers
+  le large, traverse la PLAINE DES LACS (slalom R 230-430 m × échelle, cap tenu à ±58° d'une direction « vers le large »), une ligne droite
+  sous l'ARCHE, et finit au pied du SECOND VOLCAN (`VOLCAN.K2`), posé droit devant la fin de piste. Toujours en descente (3,5-9 %), trois
+  PLONGEONS (`VOLCAN.plg` : deux au flanc, un dans la plaine loin de l'arche). Mesuré (Node, 12 graines × échelles 1 / 2 / 3,2) : 6,8 à
+  10,2 km, 450 à 630 m de dénivelé.
+- LE RELIEF (`volcanSol`, grille de 26-34 m selon le palier, construite en ~250 ms dans Node) : la vallée de la forêt, OUVERTE — le fond
+  40-100 m sous la route, des berges qui ne remontent qu'au ras de la lave (une plaine d'îles de basalte), des MESAS, les deux CÔNES
+  (ravines, lèvre du cratère, cuvette), coupés par le COULOIR de la route (à 18 m du bord, le sol reste 20 m sous la dalle). Le bruit est
+  un bruit de valeur fractal à octaves tournées (`vlcB`) : le bruit de la forêt (des produits de sinus) dessinait des lacs en RAYURES.
+  LE NIVEAU DE LA LAVE (`sol.yl`) suit la route lissée, 62 m dessous ; partout où le sol passe dessous, c'est un lac ; le cratère a son lac.
+  Mesuré : sol ≥ 17 m sous le bord de la dalle, lave ≥ 52 m sous la route, 25-56 % de la route au-dessus de la lave, ~35 % de lave à 700 m.
+- LA LAVE (`VLC_LAVE_*`, un seul programme pour les lacs, les coulées et les chutes) : plaques de croûte noire qui dérivent dans le sens de
+  la pente (le gradient du niveau de lave), lave vive entre elles (rouge → orange → jaune, émission > 1 : la bloom s'en empare), veines qui
+  fendent la croûte, rive qui fige ; elle PERCE le brouillard (l'émission ne prend que 62 % de la brume). Les COULÉES (`vlcCoulee` : la plus
+  grande pente, pas de 10 m, un peu d'inertie, un méandre ; elles creusent leur lit et chauffent la roche) partent des cratères — la
+  plupart dans l'arc que longe la route : elles passent SOUS elle — et des mesas (des cascades) ; sur les à-pics elles deviennent des chutes.
+- LA ROCHE (`VLC_SOL_*`) : basalte noir, cendre grise sur le plat, oxyde rouille sur les pentes, soufre jaune autour des bouches chaudes,
+  croûte vitreuse au bord des lacs ; la lave l'éclaire PAR EN DESSOUS (`uLue`), des fissures couvent où elle est chaude.
+- LES DÉCORS : les AIGUILLES D'OBSIDIENNE (`vlcGeos().aig`, trois variantes, verre noir à veines de feu, souvent plantées dans un lac) à la
+  CORDE des virages de la plaine, au large des S du flanc (jamais côté paroi), en quinconce sur les droites — en vol elles TUENT
+  ('roche') ; L'ARCHE DE FEU (`vlcArche` : basalte fendu de veines, ≥ 28 m d'air sur la route, une chute de lave à chacun de ses pieds) ;
+  les ORGUES DE BASALTE (faisceaux de colonnes hexagonales à faces nettes) ; les HORNITOS (petits cônes de scories au bord de la route) et
+  leurs GEYSERS ; deux VOLCANS DU LOIN (`vlcLoin` : cônes en anneaux à 3-4,3 km, coulées qui luisent sur leurs flancs, halo au cratère).
+- CE QUI SE PASSE (« des choses cool », sans gameplay bizarre) : les ÉRUPTIONS (`vlcEruption`, toutes les 15-29 s ÷ `VLC_MET.eru` — le
+  grand volcan tant qu'on est sur son flanc, le second ensuite) : le cratère s'embrase (`uErupt` éclaire les flancs, le pied du panache,
+  la lave), une FONTAINE de lave jaillit du cratère, 22-30 BOMBES partent en grands arcs au-dessus de la route et s'écrasent dans les
+  lacs DEVANT la caisse, côté vide (éclaboussures) — décor, elles ne touchent jamais la caisse —, le sol tremble ; les GEYSERS (`VLC_GEY` :
+  chaque goutte vit sa parabole dans le shader, une rafale toutes les 6-11 s) ; les PANACHES (`vlcPanaches` : des bouffées qui montent sans
+  fin le long d'une colonne penchée par le vent, le pied orange) ; les BRAISES qui montent et la CENDRE qui tombe autour de la caisse.
+- LES SIX TEMPS : `BIOMES.volcanMatin/Midi/Soir/Nuit/Cendre/Orage` (la grammaire de la forêt : jour:1, couleurs du ciel et brume en
+  linéaire, sat et con sous les plafonds de la charte ; le rebond du sol et le FILL par en dessous prennent le rouge de la lave) et
+  `VLC_MET` (hauteur du soleil, lueur de la roche, éclat de la lave, cendre, braises, panache, brume basse, geysers, éruptions, phares).
+  MATIN : aube rose et violette sur le basalte · MIDI : bleu profond, brume de soufre · SOIR : le ciel ROUGE SANG (la carte postale,
+  tiré un peu plus souvent : p 1,4) · NUIT : la lave est la seule lumière · PLUIE → PLUIE DE CENDRES (`mt:'CENDRES'`, `pluie` à 0 : pas une
+  goutte d'eau, la cendre brune tombe, la lave brille plus fort) · ORAGE → ORAGE VOLCANIQUE (les éclairs d'orageTick, éruptions ×1,6).
+- LES SONS (bloc `<<<VOLCAN>>>` de `atelier-son/recettes.js`, cuits, `sons-banque.js?v=19`) : `volcan.eruption` (coup de canon, souffle,
+  pluie de pierres, grondement qui roule), `volcan.gronde`, `volcan.geyser` (le gaz qui monte, les éclats), `volcan.lave` (le « bloup »),
+  `volcan.amb` (boucle très basse, rien d'aigu en continu). Joués par `vlcEruption`, `vlcSons` (le calendrier des geysers proches est
+  celui du shader), `vlcEruptTick` (les bombes qui tombent).
+- PERF : tout en ShaderMaterial (aucune lumière ajoutée, 0 programme compilé en course : `volcanChauffe` au menu) ; le relief et les lacs
+  en morceaux de ~1,1 km éteints au-delà de la brume ; aiguilles, orgues, hornitos en instances ; panaches, geysers, braises, cendre
+  calculés dans les shaders ; paliers `PAL.B.volcan*` (maille, portée, particules, bouffées, geysers, orgues, coulées).
+- Console : `dbgVolcan()` (comptes, temps de construction), `dbgVolcan('eruption')` (`'eruption',1` : le second), `dbgVolcan('meteo','nuit')`,
+  `dbgVolcan('vue',{p,c})`, photos en pause `dbgVolcan('volcan'|'second'|'aiguille'|'arche',{d,h})`, `dbgVolcan('reprend')`.
+  Lancer : `?carte=volcan&meteo=soir` (le 1er niveau du JOUER), ou `dbgClassique('volcan','nuit')` puis `dbgSaut()`.
+- À TRANCHER PAR SACHA : le nom ; la musique (Léo) ; la fréquence des éruptions ; la teinte du SOIR (rouge sang : la plus « Mustafar »).
+
 ## LA BANQUISE — LA DESCENTE DES PICS DE GLACE (2026-10-14, session MONTAGNE — Sacha : « fais une nouvelle map en mode banquise, mais genre la route dévale une montagne au-dessus du sol, avec d'immenses pics de glace partout ; on peut faire des traces dans la poudreuse en frôlant le sol, mais on meurt si on va trop profondément, et on doit pouvoir glisser de manière ultra stylée sur les lacs gelés et les pics de glace pas trop abrupts » · « fais une map absolument magnifique bien sûr »)
 Une 6e map au tirage du MODE CLASSIQUE (`SF_CARTES.banquise`, niveau de base `NIV_BANQ`, id `'banquise'`, piste `'banquise'`). Nom provisoire
 « LA BANQUISE » (le mot de Sacha) — à valider. Tout le code est dans le bloc « LA BANQUISE — LA DESCENTE DES PICS DE GLACE » (balises
