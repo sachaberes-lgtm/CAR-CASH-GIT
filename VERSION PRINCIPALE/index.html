@@ -9622,7 +9622,7 @@ html[data-reduced-motion="1"]:not(.c6) :is(#modale.sortant .modIn,#tPanel.sortan
 <script src="vendor/postprocessing/UnrealBloomPass.js"></script>
 <!-- (2026-09-28) LA CONSOLE DE SON : la banque de sons (générée par atelier-son/cuire.js) et son lecteur. `defer` : ils ne retardent
      pas le démarrage (on n'en a besoin qu'au premier geste) ; changer `?v=` à chaque nouvelle banque (le service worker garde l'ancienne sinon). -->
-<script defer src="sons-banque.js?v=21"></script>
+<script defer src="sons-banque.js?v=22"></script>
 <script defer src="assets/audio/music/harmonie.js?v=17"></script> <!-- (2026-10-03) l'harmonie des morceaux, temps par temps : la phrase du boost la lit (atelier-son/harmonie.py) -->
 <script defer src="sfx.js?v=5"></script>
 <script>
@@ -39071,13 +39071,15 @@ function figSnd(id){ // chaque figure a SA matière, posée sur l'échelle du vo
   if(!SONV2){trickPop(chain);return;}
   if(id.indexOf('fig_combo_')===0)return; /* (2026-10-14, session SON) le COMBO a SA signature (sonCombo, appelée par comboNote) : pas le maillon par-dessus */
   const sg=id.indexOf('fig_')===0?FIG_SIGNE[id.slice(4)]:null;
-  if(sg!=null){sfx('fig.signe',{st:echSt(),var:sg});return;} /* (2026-10-14, session SON) une figure du CATALOGUE payée sonne SA phrase (fig.signe), plus le maillon commun aux douze */
+  if(sg!=null){sfx('fig.signe',{st:echSt(),var:sg});return;}
+  const sm=FIG_MONDE[id];if(typeof sm==='number'){sfx('fig.monde',{st:echSt(),var:sm});return;} /* (2026-10-14, session SON — étape 2) une figure de MONDE (banquise, eau) sonne SA phrase */ /* (2026-10-14, session SON) une figure du CATALOGUE payée sonne SA phrase (fig.signe), plus le maillon commun aux douze */
   sfx(id==='vrille'?'fig.vrille':id==='meteo'?'fig.meteore':id==='dauphin'?'fig.dauphin':id==='bump'?'fig.bump':'fig.maillon',{st:echSt()});
   if(id==='vrille'&&spinHalf>=4&&!figSnd._ess){figSnd._ess=1;sfx('fig.essoreuse');} /* (débogage son 2026-09-29) une fois par vol */
 }
 /* (2026-10-14, session SON) LA SIGNATURE DE CHAQUE FIGURE : la variante de `fig.signe` (atelier-son/recettes.js) de chaque figure du catalogue
    (figures.js). Une figure inventée par le joueur, ou une figure automatique (la toupie de drift), garde le maillon. */
 const FIG_SIGNE={tonneau:0,toupie:1,shimmy:2,chandelle:3,saltoa:4,saltov:5,double:6,tirebouchon:7,helico:8,penche:9,rodeo:10,cosmique:11};
+const FIG_MONDE={bk_trp:0,bk_glace:1,bk_pou:2,bk_trace:3,bk_pat:4,bk_der:5,ricochet:6,plongeon:7,surf:8}; // (étape 2) les figures de LA BANQUISE et de l'eau : variantes de `fig.monde`
 /* (2026-10-14, session SON ; les combos : GENERAL, comboNote) LA SIGNATURE DES COMBOS. La clé = les trois AXES triés (T tonneau, P toupie,
    S salto, M mixte). Trois FRAPPES (une matière par axe, dans l'ordre de la clé) qui montent la pentatonique du vol, puis le SCEAU : pur
    (trois fois le même axe), mélangé, LE GYROSCOPE (PST, les trois axes : le roi) ou LE GRAND CHAOS (MMM). Vingt clés, vingt phrases.
