@@ -46,6 +46,8 @@ const EDITION='mobile';
 if(/[?&](map=jade|balade=1)\b/.test(location.search)){document.documentElement.classList.add('balade');document.write('<style id="baladeIntro">html.balade #splash,html.balade #overlay,html.balade #garage,html.balade #wipe{visibility:hidden!important}html.balade body{background:#07050f}html.balade:not(.parti) body>canvas{visibility:hidden!important}</style>');}
 /* (2026-10-14, session INTERFACE) LA CHARTE 6 — ENCRE · BLANC · OR : toutes ses règles commencent par html.c6 ; ?ui=5 = l'ancienne interface, pour comparer (voir <style id="charte6">) */
 if(!/[?&]ui=5\b/.test(location.search))document.documentElement.classList.add('c6');
+/* (2026-10-14, session INTERFACE, ordre de Sacha 13 h 20 : « chaque écran revu à zéro, plus simple, sans doublons, clair pour les enfants ») LA NAVIGATION 7 : une barre d'onglets fixe en bas (ACCUEIL · GARAGE · CARRIÈRE · DÉFIS · BOUTIQUE) et UNE plaque de décision toujours au même endroit ; voir <style id="nav7">. `?nav=0` la coupe (retour à la charte 6 seule), `?ui=5` coupe tout. */
+if(!/[?&](ui=5|nav=0)\b/.test(location.search))document.documentElement.classList.add('nav7');
 /* PLUS AUCUNE VOIX (2026-10-07, Sacha : « masque complètement du code de main toutes les voix ») : la coupure de l'ancienne édition Poki
    vaut désormais PARTOUT — l'annonceur naît `dead` (annSpeak rend toujours son texte, rien ne se charge ni ne se joue), le « ewww » des morts
    et le « WOW » des combos sont retirés, l'interrupteur VOIX et son curseur disparaissent des réglages. Les fichiers restent dans le
@@ -8523,6 +8525,34 @@ html.c6[data-reduced-motion="1"] #wipe.in::before,html.c6[data-reduced-motion="1
 @media (prefers-reduced-motion:reduce){
   html.c6 #wipe.in::before,html.c6 #wipe.out::before{animation-duration:1ms!important}
   html.c6 #wipe.in{background:var(--c6-e0)}
+}
+</style>
+<style id="nav7">
+/* =====================================================================================================================
+   LA NAVIGATION 7 (2026-10-14, session INTERFACE — Sacha : « là c'est trop éparpillé partout ; beaucoup plus simple d'accéder à
+   tous les trucs, clair pour les enfants, pour tout le monde »). La charte 6 reste la MATIÈRE (encre · blanc · or, ses jetons) ;
+   la navigation 7 en est la STRUCTURE, la même sur tous les écrans de menu :
+     · EN HAUT, ce qu'on LIT : le titre de l'onglet à gauche (à la place du ◀), l'argent et l'aura à droite (#n7Bank).
+     · AU MILIEU, la scène et le contenu de l'onglet.
+     · EN BAS, ce qu'on TOUCHE : UNE plaque d'or de décision (JOUER, ACHETER…), TOUJOURS au même endroit, puis la BARRE
+       d'onglets (#n7Bar) : ACCUEIL · GARAGE · CARRIÈRE · DÉFIS · BOUTIQUE. Tout est à un toucher de partout.
+   Un ONGLET n'a pas de ◀ (la barre EST le retour). Une SOUS-PAGE (les niveaux d'un monde, les réglages, l'œil) a son ◀ en haut à
+   gauche et revient à son onglet. Debout : la décision pleine largeur au-dessus de la barre. Couché : la décision au bout de la
+   barre, à droite. Chaque écran lit les variables ci-dessous au lieu de recopier des nombres.
+   ===================================================================================================================== */
+html.nav7{
+  --n7H:56px;                                             /* la barre, hors zone sûre (touches de 48 + 8) */
+  --n7DecH:64px;                                          /* la plaque de décision (64 debout, 48 couché) */
+  --n7DecB:calc(var(--sB) + var(--n7H) + 12px);          /* le bas de sa FACE (sa tranche de 4 dort dessous) */
+  --n7DecL:calc(var(--sL) + 16px);--n7DecR:calc(var(--sR) + 16px);--n7DecW:auto;
+  --n7Res:calc(var(--n7DecB) + var(--n7DecH) + 16px);    /* ce qu'un ONGLET réserve en bas (barre + décision + 16) */
+  --n7ResBar:calc(var(--sB) + var(--n7H) + 12px);        /* ce qu'il réserve s'il n'a pas de décision */
+  --n7Haut:calc(var(--sT) + 64px);                       /* le haut du contenu, sous l'en-tête (titre ou ◀ à sT+8, 48 de haut) */
+  --n7TitreX:calc(var(--sL) + 16px);--n7TitreY:calc(var(--sT) + 8px);
+}
+@media (orientation:landscape) and (max-height:540px){
+  html.nav7{--n7DecH:48px;--n7DecW:268px;--n7DecB:calc(var(--sB) + 4px);--n7DecL:auto;
+    --n7Res:calc(var(--sB) + var(--n7H) + 8px);--n7ResBar:var(--n7Res);--n7Haut:calc(var(--sT) + 60px)}
 }
 </style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
