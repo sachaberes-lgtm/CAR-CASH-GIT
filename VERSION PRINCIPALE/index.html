@@ -35163,6 +35163,8 @@ function heartBeat(){ // la mallette est lourde : le cœur du pilote cogne — t
    ni avec celle d'avant ni avec la musique. Le combo (fenêtre de 3 s) EST la portée : lâche la ligne et la mélodie
    repart d'en bas. C'est ce qui donne envie de ne plus la lâcher (le même ressort que les anneaux d'un hérisson bleu). */
 const GAMME_P=[0,2,4,7,9,12,14,16,19,21,24];
+// (2026-10-14, session SON) au-delà du sommet (+24), la série ne rejoue plus la même note : elle redescend et remonte l'octave haute (aller-retour, période 10)
+const SON_P_AR=[21,19,16,14,12,14,16,19,21,24];
 /* (2026-09-25) UNE SEULE LANGUE pour toute la famille des récompenses : les pièces étaient en mi pentatonique, mais le FLOW jouait en
    do/ré/mi/sol majeur, le frôlé une gamme par tons, la chaîne du chromatique, l'échelle des tons depuis la5, le drift la/ré/sol…
    Or ces sons se SUPERPOSENT sans arrêt (ligne de pièces + slalom + palier de FLOW) : pièce n°3 (sol#5) contre l'accord de do du FLOW
@@ -35171,7 +35173,11 @@ const TON=330; // mi4 : la tonique EXACTE des pièces (660) et de rewardSfx (660
 function noteP(i,oct){return TON*Math.pow(2,GAMME_P[Math.max(0,Math.min(GAMME_P.length-1,i|0))]/12+(oct||0));}
 const FLOW_ACC=[null,[0,2,3],[1,3,5],[2,4,6],[3,5,7]]; // mi majeur · fa#-si-mi · sol#-do#-fa# · si-mi-si : la basse monte d'un degré par palier
 function blip(){
-  if(SONV2){if(!sfxOk())return;const k9=Math.max(0,combo-1);sfx('piece',{st:GAMME_P[Math.min(k9,GAMME_P.length-1)],vol:4}); /* (2026-10-12, Léo : « quand je vais sur une pièce, je l'entends pas forcément ») +4 dB : sous GLISSE elles se perdaient */if(combo>0&&combo%5===0)sfx('piece.recolte');return;} // (console de son)
+  if(SONV2){if(!sfxOk())return;const k9=Math.max(0,combo-1),st9=k9<GAMME_P.length?GAMME_P[k9]:SON_P_AR[(k9-GAMME_P.length)%SON_P_AR.length];
+    // (2026-10-14, session SON) toutes les 10 pièces d'affilée, le PALIER : la quinte de la note (st−5, une octave sous st+7 : reste sous la base haute), −7 dB, 30 ms après.
+    // Jouée AVANT la pièce et seulement si la pièce passera son délai minimal (cd .018, chronométré ici) : on ne double jamais une pièce avalée
+    try{if(combo>0&&combo%10===0&&AC.currentTime-(blip._t||-1)>=.018)sfx('piece',{st:st9-5,vol:-3,t:.03});}catch(e){}
+    if(sfx('piece',{st:st9,vol:4}))try{blip._t=AC.currentTime;}catch(e){} /* (2026-10-12, Léo : « quand je vais sur une pièce, je l'entends pas forcément ») +4 dB : sous GLISSE elles se perdaient */if(combo>0&&combo%5===0)sfx('piece.recolte');return;} // (console de son)
   if(!sfxOk())return;
   try{
     const k=Math.max(0,combo-1),st=GAMME_P[Math.min(k,GAMME_P.length-1)],f=660*Math.pow(2,st/12);
