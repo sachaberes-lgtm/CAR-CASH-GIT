@@ -7719,10 +7719,10 @@ html.c6 body #garage>#gC6Tete{display:none}
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop):not(.quiet):not(.launching):not(.missions)>#gC6Tete{display:flex}
 html.c6 body #garage>#gC6Tete .pxi{--pxs:2}
 html.c6 body #garage>#gC6Tete .c6Sou .pxi{--pxs:1}
-/* (2026-10-14, charte 6, p2) les comptes : deux pastilles de MÊME largeur (colonnes égales), l'icône à gauche, le chiffre calé à droite, 12 px (aucun texte sous 11 px) ;
+/* (2026-10-14, charte 6, p2) les comptes : deux pastilles de MÊME largeur (colonnes égales), l'icône à gauche, le chiffre calé à droite, 13 px (le compte du socle) ;
    côte à côte couché, empilées debout (voir la requête portrait plus bas) : le bord gauche ne fait plus d'escalier */
 html.c6 body #garage>#gC6Tete .c6Comptes{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;align-items:center;gap:8px}
-html.c6 body #garage>#gC6Tete .c6Sou{justify-content:space-between;gap:12px;min-width:112px;font-size:12px}
+html.c6 body #garage>#gC6Tete .c6Sou{justify-content:space-between;gap:12px;min-width:112px} /* (accord) le corps du socle : 13/800 (le 12 de p2 sort de l'échelle 11 · 13 · 15) */
 /* le haut : plus de plaques néon (compteur, aura + rang, outils) — la fiche seule, sous l'en-tête */
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gTop{box-sizing:border-box;width:min(60%,480px)!important;max-width:none!important;margin:0!important;padding:calc(var(--sT) + 72px) 0 0 calc(var(--sL) + 16px)!important;background:none!important}
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gTop>:is(#gTopRow,#gAuraC,#gVJ,#gPlayMain,#gCarr){display:none!important}
@@ -7733,9 +7733,9 @@ html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gCard>#gName{grid-column:1;grid-row:1;align-self:center!important;min-width:0;margin:0!important;padding:0!important;font-family:var(--pix);font-size:16px!important;line-height:24px!important;letter-spacing:0!important;font-style:normal!important;
   white-space:normal!important;overflow-wrap:normal;color:var(--c6-b0)!important;-webkit-text-fill-color:currentColor;background:none!important;text-shadow:0 2px 0 #000!important;transform:none!important;filter:none!important;animation:none!important}
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gCard>#gName::before,html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gCard>#gName::after{content:none!important}
-html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gCard>#gLvl{grid-column:3;grid-row:1;align-self:center!important;justify-self:start;margin:0!important;padding:0!important;font-size:8px!important;line-height:1!important;letter-spacing:0!important;white-space:nowrap;
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gCard>#gLvl{grid-column:3;grid-row:1;align-self:center!important;justify-self:start;margin:0!important;padding:0!important;font-size:var(--c6-t13)!important;line-height:1!important;letter-spacing:0!important;white-space:nowrap;
   color:var(--c6-g1)!important;text-shadow:0 2px 0 #000!important;transform:none!important;font-style:normal!important}
-html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gCard>#gRarPill{display:block!important;box-sizing:border-box;height:16px!important;min-height:0!important;grid-column:1/-1;grid-row:2;justify-self:start;margin:0!important;padding:4px 0 4px 12px!important;font-size:8px!important;line-height:8px!important;letter-spacing:0!important;white-space:nowrap;
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gCard>#gRarPill{display:block!important;box-sizing:border-box;height:16px!important;min-height:0!important;grid-column:1/-1;grid-row:2;justify-self:start;margin:0!important;padding:4px 0 4px 12px!important;font-size:var(--c6-t13)!important;line-height:16px!important;letter-spacing:0!important;white-space:nowrap;
   color:var(--c6-b0)!important;background:none!important;border:0!important;border-radius:0!important;clip-path:none!important;transform:none!important;font-style:normal!important;text-shadow:0 2px 0 #000!important;
   box-shadow:inset 4px 0 0 0 var(--rc,var(--c6-e4))!important}
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gCard>#gRarPill::before,html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gCard>#gRarPill::after{content:none!important}
@@ -7756,7 +7756,7 @@ html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>:is(#gvMis,#gvBranche,#gvLvl,#gvNivs,#gClose,#gPerso,#gBuyRow,#gCache),html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gBottom>#gRappel,html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct #gHomeBas{display:none!important}
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>:is(#gvCof,#gShopBas){grid-row:1!important;display:flex!important;flex-direction:row!important;align-items:center;justify-content:center;gap:8px!important;box-sizing:border-box;width:auto!important;min-width:0!important;height:48px!important;min-height:48px!important;
   margin:0!important;padding:0 8px!important;translate:none;transform:none!important;clip-path:none!important;filter:none!important;animation:none!important;outline:0!important;
-  font-size:12px!important;line-height:1!important;letter-spacing:0!important;white-space:nowrap;color:var(--c6-x)!important;text-shadow:none!important;
+  font-family:var(--c6-sys)!important;font-size:var(--c6-t15)!important;line-height:var(--c6-lh15)!important;font-weight:var(--c6-wf)!important;letter-spacing:var(--c6-cap)!important;text-transform:uppercase;white-space:nowrap;color:var(--c6-x)!important;text-shadow:none!important; /* (accord n° 20) le libellé de touche du socle : 15/800 */
   background:var(--c6-f)!important;box-shadow:inset 0 0 0 2px var(--c6-l),0 4px 0 0 var(--c6-tr)!important}
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>#gvCof{grid-column:1/2!important}
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>#gShopBas{grid-column:2/3!important}
@@ -7776,7 +7776,7 @@ html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>#gJouer>span{font-size:24px!important;line-height:1!important;letter-spacing:0!important;transform:none!important;font-style:normal!important;color:var(--c6-orE)!important;-webkit-text-fill-color:currentColor;background:none!important;text-shadow:none!important}
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>#gJouer>.mChev{display:none!important}
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>#gEquip.achat :is(.gEqV,.gEqP,.gEqP.eur){display:inline-block;margin:0!important;padding:0!important;line-height:1!important;letter-spacing:0!important;transform:none!important;font-style:normal!important;font-weight:400;color:var(--c6-orE)!important;-webkit-text-fill-color:currentColor;background:none!important;text-shadow:none!important}
-html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>#gEquip.achat .gEqV{font-size:12px!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>#gEquip.achat .gEqV{font-size:var(--c6-t16)!important} /* (accord n° 21) pixel 16 : plus de pixel 12 */
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>#gEquip.achat .gEqP{font-size:16px!important}
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>#gEquip.achat .pxi{color:var(--c6-orE)!important;filter:none!important}
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct:has(>#gEquip.achat)>#gJouer{display:none!important}
@@ -7788,7 +7788,7 @@ html.c6 body #bdGar2{top:-4px!important;right:-4px!important;width:8px;height:8p
 /* COUCHÉ : le bloc des touches ne s'élargit pas (la caisse garde la place), calé à droite */
 @media (orientation:landscape){
   html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct{width:min(100%,328px)!important;margin-left:auto!important;margin-right:-10px!important}
-  /* (p2) INVENTAIRE · BOUTIQUE passent à 12 px (la taille d'une touche du socle, aucun texte sous 11 px) : couché, 10 lettres × 12 = 120 px remplissent la touche (144-160 px) → le mot seul, sans l'icône */
+  /* (p2, accord) INVENTAIRE · BOUTIQUE en 15/800 : couché, 10 lettres ≈ 112 px remplissent la touche (144 px utiles) → le mot seul, sans l'icône */
   html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>:is(#gvCof,#gShopBas) .pxi{display:none!important} /* son bord droit = celui des comptes (16 px + zone sûre) : #gBottom garde 12 px de marge intérieure et déborde de 2 */
 }
 /* DEBOUT : les deux comptes s'empilent à droite (ils ne tiennent pas à côté du titre sur 390 px) ; la fiche passe dessous, sur toute la largeur */
@@ -7817,9 +7817,9 @@ html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gCard{display:grid!imp
 html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gCard>#gName{grid-column:1;grid-row:1;align-self:center!important;min-width:0;margin:0!important;padding:0!important;font-family:var(--pix);font-size:16px!important;line-height:24px!important;letter-spacing:0!important;font-style:normal!important;
   white-space:normal!important;overflow-wrap:normal;color:var(--c6-b0)!important;-webkit-text-fill-color:currentColor;background:none!important;text-shadow:0 2px 0 #000!important;transform:none!important;filter:none!important;animation:none!important}
 html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gCard>#gName::before,html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gCard>#gName::after{content:none!important}
-html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gCard>#gLvl{grid-column:2;grid-row:1;align-self:center!important;justify-self:start;margin:0!important;padding:0!important;font-size:8px!important;line-height:1!important;letter-spacing:0!important;white-space:nowrap;
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gCard>#gLvl{grid-column:2;grid-row:1;align-self:center!important;justify-self:start;margin:0!important;padding:0!important;font-size:var(--c6-t13)!important;line-height:1!important;letter-spacing:0!important;white-space:nowrap;
   color:var(--c6-g1)!important;text-shadow:0 2px 0 #000!important;transform:none!important;font-style:normal!important}
-html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gCard>#gRarPill{display:block!important;box-sizing:border-box;height:16px!important;min-height:0!important;grid-column:1/-1;grid-row:2;justify-self:start;margin:0!important;padding:4px 0 4px 12px!important;font-size:8px!important;line-height:8px!important;letter-spacing:0!important;white-space:nowrap;
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gCard>#gRarPill{display:block!important;box-sizing:border-box;height:16px!important;min-height:0!important;grid-column:1/-1;grid-row:2;justify-self:start;margin:0!important;padding:4px 0 4px 12px!important;font-size:var(--c6-t13)!important;line-height:16px!important;letter-spacing:0!important;white-space:nowrap;
   color:var(--c6-b0)!important;background:none!important;border:0!important;border-radius:0!important;clip-path:none!important;transform:none!important;font-style:normal!important;text-shadow:0 2px 0 #000!important;
   box-shadow:inset 4px 0 0 0 var(--rc,var(--c6-e4))!important}
 html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gCard>#gRarPill::before,html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gCard>#gRarPill::after{content:none!important}
@@ -7914,8 +7914,8 @@ html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.
   box-sizing:border-box;width:max-content!important;max-width:100%!important;margin:0!important;padding:8px!important;background:rgba(11,13,18,.8)!important;box-shadow:inset 0 0 0 2px var(--c6-e3)!important}
 html.c6 body #garage.atelierInv:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard{grid-template-columns:max-content max-content}
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard>#gName{grid-column:1/3;grid-row:1;text-shadow:none!important}
-html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard>#gRarPill{grid-column:1;grid-row:2;justify-self:start;height:auto!important;padding:0 0 0 12px!important;font:800 13px/16px var(--sans)!important;text-transform:uppercase;text-shadow:none!important}
-html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard>#gLvl{grid-column:2;grid-row:2;justify-self:end;font:700 13px/16px var(--sans)!important;text-shadow:none!important;color:var(--c6-g1)!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard>#gRarPill{grid-column:1;grid-row:2;justify-self:start;height:auto!important;padding:0 0 0 12px!important;font:var(--c6-wf) var(--c6-t13)/16px var(--c6-sys)!important;letter-spacing:var(--c6-cap)!important;text-transform:uppercase;text-shadow:none!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard>#gLvl{grid-column:2;grid-row:2;justify-self:end;font:var(--c6-wf) var(--c6-t13)/16px var(--c6-sys)!important;font-variant-numeric:tabular-nums;text-shadow:none!important;color:var(--c6-g1)!important} /* (accord) deux graisses : 800 (700 sortait de l'échelle) */
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard>#gOeil{grid-column:3;grid-row:1/3;align-self:center}
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard>:is(#gMeta,#gDesc){text-shadow:none!important}
 /* l'inventaire à peu de cartes (≤ 3, classe posée par le script) : la plaque prend la hauteur de son contenu (au moins 200 px : la même sur tous les onglets, la rangée d'onglets ne saute pas) */
