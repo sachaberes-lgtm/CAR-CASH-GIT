@@ -17240,7 +17240,7 @@ const CARS=[
   desc:'Elle a des cils. Et un V12 juste derrière ta nuque. Elle te fait les yeux doux, pas de cadeaux.'},
  {name:'LA STRATOS',color:0xf4f4f0,accent:0x1ea050,maxKmh:340,accel:38,turn:3.2,h:1.11,w:1.75,l:3.71,spoiler:0,shape:'c_stratos',rar:'epique',
   desc:'Trois titres mondiaux, un mètre onze de haut. La visière, c’est pour voir les autres dans le rétro.'},
- {name:'LA CHAUVE-SOURIS',color:0xf4f4f0,accent:0x3b2a8c,maxKmh:360,accel:40,turn:2.9,h:1.37,w:1.73,l:4.63,spoiler:0,shape:'d_batmobile',rar:'rare',
+ {name:'LA NOCTAMBULE',color:0xf4f4f0,accent:0x3b2a8c,maxKmh:360,accel:40,turn:2.9,h:1.37,w:1.73,l:4.63,spoiler:0,shape:'d_batmobile',rar:'rare',
   desc:'Un aileron si grand qu\'on l\'a interdite sur route. Toi, tu roules dans le ciel : personne ne dira rien.'},
  {retire:1,name:'LA PAGODE',color:0xf1e9d6,accent:0xb81a22,maxKmh:330,accel:37,turn:2.7,h:1.32,w:1.76,l:4.29,spoiler:0,shape:'d_pagode',rar:'epique',
   desc:'Son toit est creux, son pedigree ne l\'est pas. Elle te double en gants de cuir, sans transpirer.'},
@@ -17260,8 +17260,8 @@ const CARS=[
   desc:'Un seul siège, au milieu. Les passagers regardent de côté : ils ne sont pas là pour conduire.'},
  {name:'LE SPECTRE',color:0x1a1d22,accent:0x5cff1e,maxKmh:560,accel:62,turn:3,h:1.13,w:2,l:4.5,spoiler:0,shape:'c_spectre',rar:'legendaire',
   desc:'Tu l’as vu passer ? Non. Personne ne l’a jamais vu passer. D’où le nom.'},
- {name:'LE CHEVALIER NOIR',color:0x17181b,accent:0x4a4e56,maxKmh:520,accel:58,turn:2.6,h:1.6,w:2.6,l:4.6,spoiler:0,shape:'d_chevalier',rar:'legendaire',
-  desc:'Pas de capot, pas de pitié, pas de feu rouge. La ville a appelé à l\'aide : c\'est lui qui a répondu.'},
+ {name:'LE BLINDÉ NOIR',color:0x17181b,accent:0x4a4e56,maxKmh:520,accel:58,turn:2.6,h:1.6,w:2.6,l:4.6,spoiler:0,shape:'d_chevalier',rar:'legendaire',
+  desc:'Pas de capot, pas de pitié, pas de feu rouge. Quand il passe, la rue se range toute seule.'},
  {name:'LE MUR DU SON',color:0xf4f4f0,accent:0xd9a520,maxKmh:620,accel:68,turn:2.4,h:1.4,w:2.2,l:6,spoiler:0,shape:'e_murduson',rar:'legendaire',
   desc:'Deux réacteurs de chasseur, zéro complexe. Le bang que tu entends, c\'est elle qui passe.'},
  {name:'LE DRAGON D\'OR',color:0xd9a520,accent:0x121316,maxKmh:650,accel:72,turn:2.9,h:1.1,w:2.1,l:4.7,spoiler:0,shape:'e_dragon',rar:'legendaire',
@@ -17734,7 +17734,7 @@ Object.assign(I18N,{
  "Elle a des cils. Et un V12 juste derrière ta nuque. Elle te fait les yeux doux, pas de cadeaux.":"She has eyelashes. And a V12 right behind your neck. She bats her eyes at you, but don't expect favors.",
  "LA STRATOS":"THE STRATOS",
  "Trois titres mondiaux, un mètre onze de haut. La visière, c’est pour voir les autres dans le rétro.":"Three world titles, 1.11 meters tall. The visor is for watching everyone else in the mirror.",
- "LA CHAUVE-SOURIS":"THE BAT",
+ "LA NOCTAMBULE":"THE NIGHT OWL",
  "Un aileron si grand qu'on l'a interdite sur route. Toi, tu roules dans le ciel : personne ne dira rien.":"A wing so big it got banned from the road. You drive in the sky: nobody's going to say a word.",
  "LA PAGODE":"THE PAGODA",
  "Son toit est creux, son pedigree ne l'est pas. Elle te double en gants de cuir, sans transpirer.":"Its roof is hollow; its pedigree isn't. It passes you in leather gloves without breaking a sweat.",
@@ -17754,8 +17754,8 @@ Object.assign(I18N,{
  "Un seul siège, au milieu. Les passagers regardent de côté : ils ne sont pas là pour conduire.":"One seat, dead center. The passengers sit off to the side: they're not here to drive.",
  "LE SPECTRE":"THE SPECTER",
  "Tu l’as vu passer ? Non. Personne ne l’a jamais vu passer. D’où le nom.":"Did you see it go by? No. Nobody's ever seen it go by. Hence the name.",
- "LE CHEVALIER NOIR":"THE BLACK KNIGHT",
- "Pas de capot, pas de pitié, pas de feu rouge. La ville a appelé à l'aide : c'est lui qui a répondu.":"No hood, no mercy, no red lights. The city called for help: it's the one that answered.",
+ "LE BLINDÉ NOIR":"BLACK ARMOR",
+ "Pas de capot, pas de pitié, pas de feu rouge. Quand il passe, la rue se range toute seule.":"No hood, no mercy, no red lights. When it rolls by, the street clears itself.",
  "LE MUR DU SON":"THE SOUND BARRIER",
  "Deux réacteurs de chasseur, zéro complexe. Le bang que tu entends, c'est elle qui passe.":"Two fighter-jet engines, zero hang-ups. That bang you hear? That's her going by.",
  "LE DRAGON D'OR":"THE GOLDEN DRAGON",
@@ -28215,17 +28215,17 @@ const CAR_UNLOCK=[
   {p:550000}, // LA DAYTONA
   {p:650000}, // LA TAURINE
   {p:750000}, // LA STRATOS
-  {p:850000}, // LA CHAUVE-SOURIS
+  {p:850000}, // LA NOCTAMBULE (ex-LA CHAUVE-SOURIS — renommée le 2026-10-14, Sacha : nom trop proche de Batman pour la revue App Store)
   {p:950000}, // LA PAGODE — (2026-10-06) RETIRÉE
   {p:1100000}, // LA DÉESSE — (2026-10-06) RETIRÉE
-  {p:800000}, // L'AIGLE DE FEU (2026-10-06 : 1,3 M → 1 M) (2026-10-09, Léo, fiche de la salle blanche) RARE à 800 000 : entre LA QUEUE DE CANARD et LA CHAUVE-SOURIS, l'ordre de la fiche
+  {p:800000}, // L'AIGLE DE FEU (2026-10-06 : 1,3 M → 1 M) (2026-10-09, Léo, fiche de la salle blanche) RARE à 800 000 : entre LA QUEUE DE CANARD et LA NOCTAMBULE (ex-LA CHAUVE-SOURIS), l'ordre de la fiche
   {p:1600000}, // LA ZED
   {k:'premium',eur:'1,61 €',rar:'leg'}, // LA FÉLINE — (2026-10-06) LÉGENDAIRE en boutique (était épique, 2 M)
   {k:'bientot',v:1}, // LA RAIE — (2026-10-06) DÉFI à définir (était épique, 2,5 M)
   {k:'pubs',v:100}, // L'ÉTERNELLE — (2026-10-06) DÉFI : 100 pubs (était en boutique, 9,99 €)
   {k:'premium',eur:'1,61 €',rar:'leg'}, // LE TRÔNE CENTRAL (2026-10-06 : 7,99 → 1,61 €)
   {k:'premium',eur:'1,61 €',rar:'leg'}, // LE SPECTRE (2026-10-06 : 7,99 → 1,61 €)
-  {k:'premium',eur:'9,99 €',rar:'leg'}, // LE CHEVALIER NOIR
+  {k:'premium',eur:'9,99 €',rar:'leg'}, // LE BLINDÉ NOIR (ex-LE CHEVALIER NOIR — renommé le 2026-10-14, Sacha : nom trop proche de Batman pour la revue App Store)
   {k:'premium',eur:'0,99 €',rar:'leg'}, // LE MUR DU SON (2026-10-06 : 6,99 → 0,99 €)
   {k:'premium',eur:'9,99 €',rar:'leg'}, // LE DRAGON D'OR
   {k:'carnet',v:9}, // LE MASTODONTE
