@@ -12899,14 +12899,6 @@ function roadMat(){
   m.customProgramCacheKey=function(){return 'bitumeV5'+(face?'f':'')+(sauts?'s':'');}; // UNE compilation pour toutes les pistes
   return m;
 }
-/* (tour 2) le bloc du DESSOUS d'une tranche de bitume, retourné ou remis à l'endroit — EN PLACE, l'opération est son propre inverse :
-   normales et couleurs niées, 2e et 3e sommet de chaque triangle échangés. Sert à `dbgBitume` (la construction, elle, le fait d'emblée). */
-function bitumeRetourne(g){
-  const n=g.attributes.position.count,N9=g.attributes.normal.array,C9=g.attributes.color.array,I=g.index.array,i0=I.length/2;
-  for(let q=n*3/2;q<n*3;q++){N9[q]=-N9[q];C9[q]=-C9[q];}
-  for(let q=i0;q<I.length;q+=3){const t=I[q+1];I[q+1]=I[q+2];I[q+2]=t;}
-  g.attributes.normal.needsUpdate=g.attributes.color.needsUpdate=g.index.needsUpdate=true;
-}
 /* LE BITUME MOUILLÉ DE LA VILLE (2026-09-26) — sous la pluie, la route n'était qu'un aplat violet : c'est pourtant LA surface qui fait
    une ville cyberpunk. Tout vit dans le shader du bitume, SANS aucune lumière (la route n'écoute plus les PointLights : LFB_SANS_PL),
    et ne coûte rien ailleurs (`uWet` = LVL.pluie, branche uniforme coupée hors de la pluie) :
@@ -36332,18 +36324,6 @@ function instruBus(){
   INSTRU.bus=g;return g;
 }
 function instruEcho(){try{const t=Math.min(.9,INSTRU.pas*6);if(INSTRU.dL){INSTRU.dL.delayTime.setTargetAtTime(t/2,AC.currentTime,.05);INSTRU.dR.delayTime.setTargetAtTime(t/2,AC.currentTime,.05);}}catch(e){}}
-/* L'ÉTINCELLE (2026-10-03, Léo : « à partir du niveau 4, remplace juste le son du boost par un truc plus ÉTINCELLE, plus discret, même
-   mélodie et arpège ») : dès la 4e mesure tenue, les MÊMES notes changent de timbre — un célesta de verre (sinus + FM au rapport 3,5 qui
-   s'éteint vite, harmonique ×4 en scintillement), plus court, plus bas, sur un bus clair. */
-function instruEtincelle(f,t,pan,vel){
-  const bus=INSTRU.etin;if(!bus)return;INSTRU.fins.push(t+.25);
-  const c=AC.createOscillator(),m=AC.createOscillator(),mg=AC.createGain(),g=AC.createGain(),sc=AC.createOscillator(),sg=AC.createGain(),p=AC.createStereoPanner?AC.createStereoPanner():null;
-  c.frequency.value=f;m.frequency.value=f*3.5;mg.gain.setValueAtTime(f*1.4,t);mg.gain.setTargetAtTime(0,t,.05);m.connect(mg);mg.connect(c.frequency);
-  sc.frequency.value=f*4;sg.gain.setValueAtTime(0,t);sg.gain.linearRampToValueAtTime(.25,t+.003);sg.gain.setTargetAtTime(0,t+.005,.04);sc.connect(sg);sg.connect(g);
-  const pk=.05*vel;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(pk,t+.004);g.gain.setTargetAtTime(0,t+.01,.22);
-  c.connect(g);if(p){p.pan.value=pan*1.4;g.connect(p);p.connect(bus);}else g.connect(bus);
-  [c,m,sc].forEach(function(o){o.start(t);o.stop(t+1.4);});INSTRU.vu.push(Math.round(f));if(INSTRU.vu.length>200)INSTRU.vu.shift();
-}
 /* LE TING (2026-10-03) : l'arpège change d'instrument — une petite cloche de verre / célesta (sinus + FM au rapport 3,5 qui s'éteint en
    ~60 ms, scintillement ×4 au contact, déclin .35 s), sur le bus clair de l'étincelle (350 Hz – 7 kHz, un peu de salle). Aucun grave. */
 function instruTing(f,t,pan,vel){
@@ -36677,7 +36657,6 @@ function addStyle(n){}
    Chacun affiche son propre éclat : on doit pouvoir dire À VOIX HAUTE pourquoi on vient de gagner. */
 let auraRun=0,auraPop=0,auraFlash=0,auraLastTxt='';
 let figCombo=0,figComboT=0,figComboAura=0; // le COMBO DE FIGURES : compteur, fenêtre restante, cumul
-const FIG_FENETRE=6.5;                     // secondes pour enchaîner — assez pour un vol, trop court pour flâner
 /* LA VITESSE MULTIPLIE, ELLE NE PRODUIT PAS (2026-08-18).
    La question posée : « plus on va vite, plus on gagne d'aura, puisque plus on risque de perdre ? »
    Le principe est juste — la vitesse EST le risque — mais la 1re version en avait fait une SOURCE
@@ -36706,33 +36685,6 @@ function addAura(n,titre,brut){ // brut : n est DÉJÀ multiplié par la vitesse
     trickMsg('✦ '+titre+'  +'+n,n>=250?3:2);
     try{chimeNote(noteP(Math.min(6,figCombo),1),0,.13,.20);}catch(e){}
   }
-}
-/* LE COMBO DE FIGURES — la source principale, et celle qui demande le plus de tenue.
-   ⚠ le gain croît avec le RANG dans le combo, pas avec la valeur de la figure : ce qu'on récompense
-   ici c'est l'ENCHAÎNEMENT. Une petite figure qui prolonge un combo à ×7 vaut plus qu'une grosse
-   figure isolée — c'est ce qui pousse à ne pas s'arrêter. */
-/* `auraFigure(n)` — n = combien de fois CETTE figure a déjà été faite dans le vol (`chainSeen`).
-   ⚠ DEUX GARDE-FOUS AJOUTÉS APRÈS AUDIT (2026-08-18), tous deux contre le FARM :
-   (1) LA REDITE DÉCOTE. Sans elle, refaire la même vrille en boucle dans un long vol faisait monter
-       le combo — donc le gain — indéfiniment. L'argent avait déjà sa décote (`.6^n`), l'aura n'en
-       avait aucune : c'était le trou. Répéter n'est pas du style, c'est une boucle.
-   (2) LE PALIER PLAFONNE À 12. La montée en escalier doit se SENTIR, pas devenir une rente : au-delà
-       le gain reste à son maximum. Un combo de 40 n'est pas quarante fois plus dur qu'un combo de 12.
-   ⚠ ET RIEN EN FREESTYLE : le parc n'a ni mort ni chute fatale (`parkRespawn`). Une monnaie qui
-   récompense le panache ne peut pas se gagner là où l'on ne risque rien — sinon c'est le mode
-   d'entraînement qui devient la meilleure façon de monter en rang. */
-function auraFigure(n){
-  if(typeof PARK!=='undefined'&&PARK.on)return;
-  figComboT=FIG_FENETRE;
-  figCombo++;
-  const rang=Math.min(12,figCombo);
-  const redite=Math.pow(.78,Math.max(0,(n|0)-1));
-  const gain=Math.round((18+rang*14)*redite);
-  if(gain<=0)return;
-  figComboAura+=gain;
-  if(figCombo>=3){addAura(gain,'COMBO ×'+figCombo);if(TCTL.on)popTexte('COMBO ×'+figCombo,'#b58cff',1);}   // en dessous de 3, ce n'est pas encore un combo
-  else addAura(gain);
-  fxWow(figCombo);                                   // le « WOW » : gate à 5 maillons + 12 s de réfractaire
 }
 /* ===== L'AURA v2 — LA CHAÎNE (2026-09-26, user : « on ne voit pas le compteur d'aura ni clairement quelle figure rapporte combien
    de points ; invente tout un système avec des multiplicateurs quand tu enchaînes ») =====
