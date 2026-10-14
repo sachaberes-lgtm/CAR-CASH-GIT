@@ -1,3 +1,16 @@
+# MISE À JOUR — 14/10, 14 h 15 (session « fais tout », sur le Mac)
+- `assemblage` T8 `27b4199` (dernier train) fusionnée dans `ios-capacitor` (1 conflit, CLAUDE.md racine : les deux gardés). Garde burn-out OK.
+- `preparer-www.js` recalé : l'accueil est en cartes 2 × 2 → sans OFFRES, GARAGE prend toute sa ligne (4 nouveaux témoins).
+- Droits, dans l'app seulement (décidé par la session sur le « fais tout » de Sacha, réversible) : LA DAYTONA → LA GRANDE FLÈCHE,
+  LA STRATOS → LA CALE, LA VETTE → LA RAPIÈRE, LE CHARGEUR (69) → LE FORBAN (69) (+ les noms anglais), phrase « 88 à l'heure » de
+  LA DOLORÈS réécrite, MOULIN ROUGE → CABARET ROUGE. Gardés : ELDORADO, ROSSO 40, LE DÉFIEUR, ATCHOUM, le CHAT POP-TART (Sacha).
+- `www/` refait + `cap sync` ; parcours VERT au simulateur iPhone 17 Pro Max en Release (démarrage, FR puis EN, auto-école, volant,
+  NITRO, PASSER, course, vol, mort, garage 1/49, boutique en $, réglages sans ENTRER UN CODE, VERSION 27b4199).
+- Captures 6,9 pouces FR + EN : `app-ios/fiche/captures-t8/jpg/` (JPEG, sans alpha ; hors git).
+- Archive Release T8 RÉUSSIE ; export ÉCHOUÉ « No Accounts » (aucun compte dans Xcode). Adhésion payante confirmée (profil d'1 an, équipe M532TDYCH2).
+- Reste : Sacha connecte son compte dans Xcode et dans App Store Connect (navigateur intégré) ; création de la fiche ; envoi sur son OUI.
+- Petit défaut du jeu vu au passage (pas une coupe d'app) : « CETTE SEMAINE » n'est pas traduit dans la boutique en anglais.
+
 # PASSATION — session APP STORE (app iPhone CASH CAR) — Mac → PC de Sacha, 14/10 vers 13 h 15
 
 Branche : `ios-capacitor` (dossier `app-ios/` = projet Capacitor 8, appId `com.sachaberes.carcash`, équipe Apple `M532TDYCH2`,

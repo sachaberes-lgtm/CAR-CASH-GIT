@@ -5,3 +5,4 @@ node_modules/
 # l'archive App Store et son .ipa, refaits par archiver.sh
 /build/
 /fiche/captures/
+/fiche/captures-t8/

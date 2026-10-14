@@ -12,7 +12,7 @@ vérifiées par `node verifier-fiche.js` (les limites d'Apple : nom 30, sous-tit
 |---|---|
 | Plateforme | iOS |
 | Nom | `CASH CAR` (aucune app de ce nom trouvée dans la recherche App Store FR et US le 14/10 ; si Apple le refuse : `CASH CAR - Sky Runner`) |
-| Langue principale | ⚠ Français (France) — ou Anglais (É.-U.) si tu vises d'abord l'étranger ; les deux textes sont ci-dessous |
+| Langue principale | Français (France) — choisi par défaut le 14/10 ; l'anglais (É.-U.) en localisation, textes ci-dessous |
 | Identifiant de lot (Bundle ID) | `com.sachaberes.carcash` |
 | SKU (référence interne, jamais affichée) | `cashcar-ios-001` |
 | Accès utilisateur | Accès complet |
@@ -136,8 +136,8 @@ First release of CASH CAR. Enjoy the ride!
 | Catégorie principale | Jeux — sous-catégories : **Course**, **Arcade** |
 | Catégorie secondaire | (aucune) |
 | Prix | Gratuit |
-| Disponibilité | ⚠ tous les pays, ou la France d'abord |
-| Copyright | ⚠ `2026 Sacha Beres` (ou `2026 Sacha Beres & Léo …` — Apple ajoute le © tout seul) |
+| Disponibilité | tous les pays (choisi par défaut le 14/10 : l'app parle français et anglais) |
+| Copyright | `2026 Sacha Beres` (Apple ajoute le © tout seul) |
 | URL de l'assistance (obligatoire) | `https://car-cash-git.vercel.app/assistance.html` |
 | URL de la politique de confidentialité (obligatoire) | `https://car-cash-git.vercel.app/confidentialite.html` |
 | URL marketing | (laisser vide) |
@@ -153,8 +153,9 @@ mesure d'audience. La fiche affichera « Aucune donnée collectée ».
 **Chiffrement** (Export Compliance) : déjà réglé dans l'app (`ITSAppUsesNonExemptEncryption = NO`) : aucune question à l'envoi.
 
 **Droits sur le contenu** (Content Rights) : ⚠ « L'app contient-elle du contenu tiers ? » — **Oui**, et « j'ai les droits » :
-les musiques viennent de Suno et les voix d'ElevenLabs. Garde les preuves d'abonnement payant (Apple peut les demander).
-Voir aussi les points de droits ouverts dans le message de la session.
+les musiques viennent de Suno (les voix d'ElevenLabs ne sont plus livrées dans l'app depuis le 14/10). Garde la preuve
+d'abonnement payant à Suno au moment de la génération (Apple peut la demander). Les sons `kaching`, `compteuse`, `cash` et
+`compteur` : ⚠ origine à confirmer par Sacha (voir `passation/APP-STORE.md`).
 
 **Identifiant publicitaire (IDFA)** : Non.
 
@@ -190,6 +191,9 @@ The game language follows the device language (French or English) and can be cha
 1. ~~Deux adresses publiques~~ — FAIT le 14/10 (Sacha : « publie ») : https://car-cash-git.vercel.app/confidentialite.html et
    https://car-cash-git.vercel.app/assistance.html (contact `16180contact@gmail.com`). Elles sont servies depuis `pages-app/` sur `main`
    (commit cc61d24) : une retouche ici doit être recopiée là-bas, puis poussée.
-2. **Captures d'écran** iPhone 6,9 pouces (1320 × 2868, ou 2868 × 1320 couché), de 3 à 10. À faire sur le **code final**, au
-   simulateur iPhone 17 Pro Max : accueil, course dans les nuages, ville de nuit, NITRO, garage.
-3. **L'archive** envoyée depuis Xcode (Product › Archive › Distribute App › App Store Connect), une fois `www/` refait sur le code final.
+2. ~~Captures d'écran~~ — FAITES le 14/10 à 14 h sur le code final (T8 `27b4199`), simulateur iPhone 17 Pro Max, 1320 × 2868,
+   en JPEG sans transparence (Apple refuse le canal alpha des PNG du simulateur) : `fiche/captures-t8/jpg/` (hors git).
+   Français : 1-accueil-fr, 2-course-orage-fr, 3-vol-nuages-fr, 4-garage-fr, 5-boutique-fr.
+   Anglais : 1-accueil-en, 2-course-ville-en, 3-vol-nuages-fr (peu de texte), 4-garage-en, 5-boutique-en.
+3. **L'archive** : FAITE le 14/10 à 14 h 11 sur T8 (`build/CASH-CAR.xcarchive`). L'export bloque tant qu'aucun compte Apple n'est
+   connecté dans Xcode (« No Accounts ») — Sacha : Xcode › Réglages › Accounts › « + ». Puis `sh archiver.sh --envoyer`.
