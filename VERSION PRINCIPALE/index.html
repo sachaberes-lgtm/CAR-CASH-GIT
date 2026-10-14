@@ -10702,6 +10702,7 @@ const skyDome=(function(){
 })();
 let FOG_N=420,FOG_F=2600; // near/far pilotés par les BIOMES (le lerp cloudInS les relit chaque frame)
 const FOG_BASE=new THREE.Color(0x5e3254),FOG_CLOUD=new THREE.Color(0xd8bcd0),fogTmp=new THREE.Color(); // FOG_BASE : l'objet reste const, les biomes mutent son RGB
+let FUMEE_K=0,FUMEE_F=250;const FOG_FUMEE=new THREE.Color(.24,.06,.07); // (2026-10-14) LE ROYAUME DE FEU : les BANCS DE FUMÉE — volcanTick pose FUMEE_K (0 hors du volcan), updateClouds referme la brume
 const FOG_CJ=new THREE.Color(0xc06a54),cjV=new THREE.Vector3(); // CONTRE-JOUR : l'air s'embrase quand on roule vers le soleil (la seule zone lumineuse)
 scene.fog=new THREE.Fog(0x5e3254,FOG_N,FOG_F); // brume MAGENTA sombre : la route lointaine fond dans le rose de la nuit qui tombe
 const camera=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,.1,9800);
@@ -13020,6 +13021,7 @@ function updateClouds(dt,t){
   scene.fog.far=FOG_F-(FOG_F-Math.min(FOG_F,820))*cloudInS+CAMP_FOG;     // (340→820)
   fogTmp.copy(FOG_BASE).lerp(FOG_CJ,cj2*.5).lerp(FOG_CLOUD,cloudInS);
   scene.fog.color.copy(fogTmp);
+  if(FUMEE_K>.002){scene.fog.near+=(Math.min(scene.fog.near,30)-scene.fog.near)*FUMEE_K;scene.fog.far+=(Math.min(scene.fog.far,FUMEE_F)-scene.fog.far)*FUMEE_K;scene.fog.color.lerp(FOG_FUMEE,FUMEE_K);} // (2026-10-14) LE ROYAUME DE FEU : dans un BANC DE FUMÉE la vue se referme (le défi de la map : voir) — les néons de la route, eux, percent encore quelques dizaines de mètres
   /* L'ADAPTATION DE L'ŒIL (2026-09-25, user : « la lumière peut être éblouissante, dans les nuages notamment »). Une ouate
      blanche éclairée plein soleil, c'est déjà du blanc pur AVANT le post ; le bloom l'étale et l'ACES le cloue au plafond :
      l'écran entier devenait blanc. Comme une vraie caméra, l'exposition BAISSE quand l'œil s'approche d'un banc, y entre,
@@ -17323,14 +17325,14 @@ const VOLCAN={root:null,Q:null,C:null,K:null,C2:null,K2:null,hand:1,sSp:0,plg:[]
   met:'soir',cur:null,de:null,to:null,k:1,dur:1,ms:0,n:{},fx:{},mats:null,graine:0,erup:{t:7,age:-1,n:0,b:0},son:{k:{}},loin:[]};
 /* LES MÉTÉOS DU VOLCAN — el : hauteur du soleil (°) · lue : la roche qui rougeoie (rives, fissures) · lav : l'éclat de la lave · cen : la
    cendre qui tombe · bra : les braises qui montent · fum/fumC : le panache · bru/bC : la brume basse des lacs · gey : les geysers ·
-   eru : la cadence des éruptions · phare : les phares sur la roche · sons */
+   eru : la cadence des éruptions · phare : les phares sur la roche · sons · fu/fuF/fuC : les BANCS DE FUMÉE (densité, portée de la vue dedans, couleur) */
 const VLC_MET={
-  matin:{el:11,lue:.85,lav:1,  cen:.10,bra:.30,fum:.80,fumC:[.62,.52,.58],bru:.62,bC:[.88,.50,.50],gey:1,  eru:1,  phare:.05,sons:'jour'},
-  midi: {el:58,lue:.62,lav:.9, cen:.06,bra:.18,fum:.85,fumC:[.64,.58,.54],bru:.38,bC:[.82,.68,.48],gey:1,  eru:1,  phare:0,  sons:'jour'},
-  soir: {el:5, lue:1.05,lav:1.08,cen:.22,bra:.6,fum:.92,fumC:[.40,.19,.15],bru:.6, bC:[1,.38,.16], gey:1.1,eru:1.1,phare:.4, sons:'soir'},
-  nuit: {el:34,lue:1.9,lav:1.75,cen:.22,bra:1, fum:1,  fumC:[.16,.08,.08],bru:.75,bC:[.36,.07,.03],gey:1.2,eru:1.3,phare:1,  sons:'nuit'},
-  pluie:{el:48,lue:1.15,lav:1.12,cen:1,  bra:.45,fum:1, fumC:[.30,.26,.24],bru:1,  bC:[.44,.35,.29],gey:.9, eru:1,  phare:.6, sons:'cendre'},
-  orage:{el:48,lue:1.25,lav:1.18,cen:.55,bra:.85,fum:1, fumC:[.14,.10,.12],bru:.9, bC:[.22,.10,.10],gey:1.1,eru:1.6,phare:.9, sons:'orage'}};
+  matin:{el:11,lue:.85,lav:1,  cen:.10,bra:.30,fum:.80,fumC:[.62,.52,.58],bru:.62,bC:[.88,.50,.50],gey:1,  eru:1,  phare:.05,sons:'jour',fu:.9, fuF:280,fuC:[.24,.08,.12]},
+  midi: {el:58,lue:.62,lav:.9, cen:.06,bra:.18,fum:.85,fumC:[.64,.58,.54],bru:.38,bC:[.82,.68,.48],gey:1,  eru:1,  phare:0,  sons:'jour',fu:.85,fuF:300,fuC:[.26,.10,.11]},
+  soir: {el:5, lue:1.05,lav:1.08,cen:.22,bra:.6,fum:.92,fumC:[.40,.19,.15],bru:.6, bC:[1,.38,.16], gey:1.1,eru:1.1,phare:.4, sons:'soir',fu:1,  fuF:250,fuC:[.24,.06,.07]},
+  nuit: {fu:1,fuF:220,fuC:[.14,.03,.06],el:34,lue:1.9,lav:1.75,cen:.22,bra:1, fum:1,  fumC:[.16,.08,.08],bru:.75,bC:[.36,.07,.03],gey:1.2,eru:1.3,phare:1,  sons:'nuit'},
+  pluie:{el:48,lue:1.15,lav:1.12,cen:1,  bra:.45,fum:1, fumC:[.30,.26,.24],bru:1,  bC:[.44,.35,.29],gey:.9, eru:1,  phare:.6, sons:'cendre',fu:1,fuF:230,fuC:[.20,.08,.08]},
+  orage:{el:48,lue:1.25,lav:1.18,cen:.55,bra:.85,fum:1, fumC:[.14,.10,.12],bru:.9, bC:[.22,.10,.10],gey:1.1,eru:1.6,phare:.9, sons:'orage',fu:1,fuF:220,fuC:[.13,.04,.09]}};
 const VLC_U={uSunDir:{value:new THREE.Vector3(0,1,0)},uSunC:{value:new THREE.Color()},uSky:{value:new THREE.Color()},uGnd:{value:new THREE.Color()},
   uFillC:{value:new THREE.Color()},uFillD:{value:new THREE.Vector3(0,-1,0)},uCam:{value:new THREE.Vector3()},uCarP:{value:new THREE.Vector3(0,-1e5,0)},
   uCarF:{value:new THREE.Vector3(0,0,1)},uTime:{value:0},uPhare:{value:0},uFlash:{value:0},uLue:{value:1},uLav:{value:1},uErupt:{value:0},
@@ -17570,7 +17572,7 @@ const VLC_FUM_VS=['attribute vec4 aC,aP;uniform float uTime;uniform vec2 uVent;v
   '  vec3 c=aC.xyz+vec3(uVent.x,0.,uVent.y)*(pow(u,1.5)*aC.w*.6+pl*uTime*1.5)+vec3(0.,u*aC.w,0.);float s=mix(aP.y,aP.z,pow(u,.7));',
   '  vec3 R=vec3(viewMatrix[0][0],viewMatrix[1][0],viewMatrix[2][0]),U=vec3(viewMatrix[0][1],viewMatrix[1][1],viewMatrix[2][1]);',
   '  float a=aP.x*6.283+uTime*.05*(fract(aP.x*7.)-.5),ca=cos(a),sa=sin(a);vec2 r2=uv-.5;vUv=vec2(r2.x*ca-r2.y*sa,r2.x*sa+r2.y*ca)+.5;',
-  '  vec3 P=c+(R*position.x+U*position.y*(1.-pl*.58))*s;vU=u;vA=smoothstep(0.,.07,u)*(1.-smoothstep(.78,1.,u))*(1.-pl*.45);vK=aP.w;',
+  '  float bc=step(3.5,aP.w);vec3 P=c+(R*position.x+U*position.y*(1.-pl*.58*(1.-bc)))*s;vU=u;vA=smoothstep(0.,.07,u)*(1.-smoothstep(.78,1.,u))*(1.-pl*.45*(1.-bc));vK=aP.w;',
   '  vec4 mv=viewMatrix*vec4(P,1.);vD=-mv.z;gl_Position=projectionMatrix*mv;}'].join('\n');
 const VLC_FUM_FS=[FG_BRUIT,'uniform vec3 uFumC,uSunC,uSky,fogColor;uniform float uFum,uErupt,uErupt2,uLue,fogNear,fogFar;varying vec2 vUv;varying float vU,vA,vD,vK;',
   'void main(){vec2 q=vUv-.5;float r=length(q);float n=fn2(vUv*3.1+vec2(vU*9.,vK*13.))*.62+fn2(vUv*7.3-vec2(vU*6.,0.))*.38;',
@@ -17579,6 +17581,7 @@ const VLC_FUM_FS=[FG_BRUIT,'uniform vec3 uFumC,uSunC,uSky,fogColor;uniform float
   '  vec3 c=uFumC*(uSky*.6+uSunC*.32*(.55+.9*clamp(q.y+.5,0.,1.)))*(.7+.6*n);',
   '  c+=vec3(1.,.30,.07)*(bas*(.18+er*1.6)*uLue+er*.18*(1.-vU));',
   '  if(vK>2.5)c=uFumC*(uSky*.5+uSunC*.22*clamp(q.y+.5,0.,1.))*(.75+.5*n)+vec3(1.,.28,.06)*uLue*.07*clamp(.5-q.y,0.,1.);', // le plafond : le dessous rougeoie
+  '  if(vK>3.5){c=vec3(.075,.03,.07)*(uSky*.9+uSunC*.25)*(.7+.6*n)+vec3(1.,.30,.07)*uLue*(.10+.22*clamp(.5-q.y,0.,1.))*(.6+.4*n);a*=1.15*smoothstep(25.,85.,vD);}', // un BANC : noir-violet, le ventre rougi par la lave ; il s'efface près de l'objectif (la brume prend le relais)
   '  c=mix(c,fogColor,smoothstep(fogNear,fogFar*3.,vD)*.55);',
   '  gl_FragColor=vec4(c,a);}'].join('\n');
 /* LES BRAISES (uK 0 : elles montent, vacillent, orange) et LA CENDRE (uK 1 : des flocons gris qui tombent) — une boîte qui suit la caisse */
@@ -17721,6 +17724,9 @@ function vlcPanaches(root,fr){const nF=PAL_B9('volcanFumee',80),C9=[],P9=[];
   const col=(c,K,kind,H,s0,s1,n)=>{for(let k=0;k<n;k++){C9.push(c.x,K.yP-K.cr*.3,c.z,H);P9.push(k/n+fr()*.6/n,s0*(.8+fr()*.4),s1*(.75+fr()*.5),kind);}};
   col(VOLCAN.C,VOLCAN.K,0,1500,110,760,nF);if(VOLCAN.C2)col(VOLCAN.C2,VOLCAN.K2,1,1150,90,600,Math.round(nF*.6));
   for(const l of VOLCAN.loin)col(l.c,l.K,2,950,60,330,Math.round(nF*.25));
+  {const R9=mulberry32((VOLCAN.graine*7919+11)>>>0),ds9=L/(NP-1),dens=TEL_NATIF?.07:.11; // les BANCS DE FUMÉE : des bouffées le long de la route, dessus, dessous, sur les côtés
+   for(const b of VOLCAN.bancs||[]){const n=Math.max(6,Math.round((b.s1-b.s0)*dens));for(let k=0;k<n;k++){const i=Math.max(0,Math.min(NP-1,Math.round((b.s0+R9()*(b.s1-b.s0))/ds9))),t=T[i],hl=Math.hypot(t.x,t.z)||1,lat=(R9()*2-1)*(ROAD_HALF+80),sz=55+R9()*60;
+     C9.push(pts[i].x-t.z/hl*lat,pts[i].y-28+R9()*72,pts[i].z+t.x/hl*lat,0);P9.push(R9(),sz,sz,4);}}}
   {const n=TEL_NATIF?6:14;for(let k=0;k<n;k++){const i=Math.round(fr()*(NP-1)),an=fr()*6.283,r=300+fr()*1500,sz=700+fr()*450; // le PLAFOND DE CENDRE
     C9.push(pts[i].x+Math.sin(an)*r,pts[i].y+620+fr()*320,pts[i].z+Math.cos(an)*r,0);P9.push(fr(),sz,sz,3);}}
   const g=new THREE.InstancedBufferGeometry(),pl=new THREE.PlaneGeometry(1,1);g.index=pl.index;g.setAttribute('position',pl.attributes.position);g.setAttribute('uv',pl.attributes.uv);
@@ -17745,7 +17751,7 @@ function vlcLoin(root,fr){VOLCAN.loin=[];const fin=VOLCAN.Q&&VOLCAN.Q.fin;if(!fi
 /* ---------------- LA CONSTRUCTION (appelée en fin de buildTrack ; no-op hors du volcan) ---------------- */
 function volcanVide(){
   if(VOLCAN.root){VOLCAN.root.traverse(function(o){if(!o.userData.jeter||!o.geometry)return;const g=o.geometry;if(o.userData.partage){for(const k in g.attributes)if(k!=='aI')g.deleteAttribute(k);g.setIndex(null);}g.dispose();});VOLCAN.root=null;}
-  VOLCAN.sol=null;VOLCAN.solM=null;VOLCAN.morc=null;VOLCAN.file=[];VOLCAN.fi=0;VOLCAN.msFile=0;VOLCAN.pret=false;VOLCAN.aig=[];VOLCAN.arche=null;VOLCAN.gcol=null;VOLCAN.loin=[];VOLCAN.gey=[];VOLCAN.yRaz=true;
+  VOLCAN.sol=null;VOLCAN.solM=null;VOLCAN.morc=null;VOLCAN.bancs=[];VOLCAN.fu=0;VOLCAN.file=[];VOLCAN.fi=0;VOLCAN.msFile=0;VOLCAN.pret=false;VOLCAN.aig=[];VOLCAN.arche=null;VOLCAN.gcol=null;VOLCAN.loin=[];VOLCAN.gey=[];VOLCAN.yRaz=true;
   const E=VOLCAN.erup;E.t=6+Math.random()*3;E.age=-1;VLC_U.uErupt.value=VLC_U.uErupt2.value=0; // (2026-10-14, chasse aux bugs) morte PENDANT une éruption puis REJOUER au volcan : le cratère et les flancs restaient embrasés 6-9 s (rien ne remettait ces uniforms à zéro tant que le volcan restait affiché)
   if(VOLCAN.fx.bL)for(const b of VOLCAN.fx.bL)b.on=false;
 }
@@ -17757,6 +17763,13 @@ function buildVolcan(seed){
   const root=new THREE.Group();root.matrixAutoUpdate=false;scene.add(root);VOLCAN.root=root;trackMeshes.push(root);
   const S=volcanSol(),COL=[];VOLCAN.morc=new Map();VOLCAN.solM=[];VOLCAN.n.sol=0;VOLCAN.n.lave=0;VOLCAN.file=[];VOLCAN.fi=0;VOLCAN.msFile=0;
   vlcMerLoin(root);
+  /* LES BANCS DE FUMÉE (14/10, Sacha : « plus de fumée dans la map volcan : le CHALLENGE vient de la DIFFICULTÉ À VOIR ») : des nappes de 180-440 m
+     (× √(vw/78)) et des FENÊTRES dégagées de 420-900 m ; jamais sur l'élan d'un raccourci ni là où l'on se pose, ni au départ, ni au portail.
+     Dedans, volcanTick referme la brume (FUMEE_K) ; leurs bouffées se dessinent avec le panache (vlcPanaches, genre 4). */
+  {const R=mulberry32((seed^0xF0E1A)>>>0),vwF=70+100*((typeof lvPiste==='function'?lvPiste():1)-1),kv=Math.sqrt(Math.max(1,vwF/78)),B=[];
+   const evite=(a,b)=>{if(a<380||b>L-320)return true;for(const S of VOLCAN.sauts||[]){if(b>S.sE-260&&a<S.sE+140)return true;if(b>S.sS-20&&a<S.sS+420)return true;}return false;};
+   for(let s9=420+R()*300;s9<L-400;){const l=(180+R()*260)*kv;if(!evite(s9,s9+l)){B.push({s0:s9,s1:s9+l,k:.8+R()*.2});s9+=l+(420+R()*480)*kv;}else s9+=60;}
+   VOLCAN.bancs=B;VOLCAN.n.bancs=B.length;}
   /* 0. TOUT DE SUITE : les rangées et les morceaux du départ (ce que la caméra voit au portail) ; 1. EN TRANCHES : les autres rangées, du plus
      proche au plus loin — la mer lointaine tient la place en attendant */
   const MO=vlcMorceaux(),pres=MO.filter(function(m){return m.dr<60;}); // (le morceau du départ — ou les deux qui le bordent : leurs seules cases ; les voisins suivent dans les premières images)
@@ -17880,7 +17893,7 @@ function vlcFx(){const fx=VOLCAN.fx;if(fx.bra)return fx;const M=volcanMats(),R=m
   fx.ecl=[];for(let k=0;k<6;k++){const m9=M.halo[4].clone();m9.dispose=function(){};const h=new THREE.Sprite(m9);h.visible=false;h.renderOrder=9;h.frustumCulled=false;scene.add(h);fx.ecl.push({sp:h,age:9});}
   return fx;}
 function vlcFxCache(){const fx=VOLCAN.fx;if(!fx.bra||!fx.on)return;fx.on=false;fx.bra.visible=fx.cen.visible=fx.bombes.visible=false;for(const h of fx.halos)h.visible=false;for(const e of fx.ecl)e.sp.visible=false;
-  VLC_U.uErupt.value=VLC_U.uErupt2.value=0;if(VOLCAN.amb){try{VOLCAN.amb.stop(.8);}catch(e){}VOLCAN.amb=null;}}
+  VLC_U.uErupt.value=VLC_U.uErupt2.value=0;VOLCAN.fu=0;FUMEE_K=0;if(VOLCAN.amb){try{VOLCAN.amb.stop(.8);}catch(e){}VOLCAN.amb=null;}}
 const VLC_V=new THREE.Vector3(),VLC_V2=new THREE.Vector3();
 /* L'ÉRUPTION : le cratère s'embrase (uErupt : la lumière sur les flancs, le pied du panache, la fontaine), puis les BOMBES partent vers
    les lacs DEVANT la caisse, du côté du vide (5,5-8,5 s de vol, ~30 m/s² : de grands arcs au-dessus de la route) — jamais sur elle. */
@@ -17931,7 +17944,12 @@ function volcanTick(dt){
   {const i=Math.max(0,Math.min(NP-1,Math.round(s/Math.max(1,L)*(NP-1))));const y9=pts[i]?pts[i].y:0;U.uBruY.value+=(y9-U.uBruY.value)*Math.min(1,dt*2+(VOLCAN.yRaz?1:0));VOLCAN.yRaz=false;}
   U.uFumC.value.setRGB(c.fumC[0],c.fumC[1],c.fumC[2]);U.uFum.value=c.fum;U.uCen.value=c.cen;U.uBra.value=c.bra;U.uGey.value=c.gey;U.uPx.value=renderer.getPixelRatio();
   {const f=U.uCarF.value,p=U.uCarP.value;U.uBoxC.value.set(p.x+f.x*70,p.y+10,p.z+f.z*70);}
-  fx.bra.visible=c.bra>.01;fx.cen.visible=c.cen>.01;
+  /* LES BANCS DE FUMÉE : où en est-on (la route sous la caisse, en vol aussi) ; la brume se referme DEDANS (FUMEE_K, lu par updateClouds),
+     les braises triplent, la cendre s'épaissit — en entrant comme en sortant, en ~0,3 s */
+  {const sc=mode==='fall'?lastNearS:s;let f=0;for(const b of VOLCAN.bancs||[]){if(sc<b.s0-80||sc>b.s1+80)continue;f=Math.max(f,b.k*THREE.MathUtils.smoothstep(sc,b.s0-70,b.s0+50)*(1-THREE.MathUtils.smoothstep(sc,b.s1-50,b.s1+70)));}
+   VOLCAN.fu+=(f*(c.fu||1)-VOLCAN.fu)*Math.min(1,dt*3);if(VOLCAN.fu<.002)VOLCAN.fu=0;FUMEE_K=VOLCAN.fu;FUMEE_F=c.fuF||250;if(c.fuC)FOG_FUMEE.setRGB(c.fuC[0],c.fuC[1],c.fuC[2]);
+   U.uBra.value=c.bra*(1+VOLCAN.fu*2.5);U.uCen.value=Math.min(1,c.cen+VOLCAN.fu*.6);}
+  fx.bra.visible=U.uBra.value>.01;fx.cen.visible=U.uCen.value>.01;
   if(VOLCAN.solM){const ff=(scene.fog&&scene.fog.far)||6000,cp=camera.position;for(const m of VOLCAN.solM){const b=m.geometry.boundingSphere,v=cp.distanceTo(b.center)-b.radius<ff+60;if(m.visible!==v)m.visible=v;}}
   vlcEruptTick(dt,c,vit);
   U.uLav.value=c.lav*(1+(U.uErupt.value+U.uErupt2.value)*.25);
@@ -17990,7 +18008,11 @@ window.dbgVolcan=function(k,o){
   if(k==='vue'&&o){if(started&&!gameOver&&!paused)togglePause();camera.position.fromArray(o.p);camera.up.set(0,1,0);camera.lookAt(new THREE.Vector3().fromArray(o.c));camera.updateMatrixWorld();
     if(o.fov){camera.fov=o.fov;camera.updateProjectionMatrix();}skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);volcanTick(0);if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return 'ok';}
   /* les PHOTOS (en pause) : 'aiguille' = la prochaine aiguille devant · 'arche' · 'volcan' = vers le grand cratère · 'second' = vers le second ; o.d m en arrière, o.h m de haut
-     · 'saut' (o.k = la boucle) : du bout de l'élan, le regard sur la sortie d'en dessous — le raccourci tel qu'on le voit avant de sauter */
+     · 'banc' (o.k, o.dedans) : devant un BANC DE FUMÉE (240 m avant) ou DEDANS · 'saut' (o.k = la boucle) : du bout de l'élan, le regard sur la sortie d'en dessous — le raccourci tel qu'on le voit avant de sauter */
+  if(k==='banc'){const b=(VOLCAN.bancs||[])[(o&&o.k)|0];if(!b)return 'pas de banc';const ds9=L/(NP-1),dd=!!(o&&o.dedans),sm=dd?(b.s0+b.s1)/2:b.s0-((o&&o.d)||240),
+    i=Math.max(0,Math.min(NP-1,Math.round(sm/ds9))),j=Math.min(NP-1,i+Math.round(160/ds9)),p=pts[i],q=pts[j],f=dd?b.k:0; // (photo : la brume du banc posée à la main — en pause, updateClouds ne tourne pas)
+    VOLCAN.fu=f;FUMEE_K=f;if(scene.fog){scene.fog.near=FOG_N+(Math.min(FOG_N,30)-FOG_N)*f;scene.fog.far=FOG_F+(Math.min(FOG_F,FUMEE_F)-FOG_F)*f;scene.fog.color.copy(FOG_BASE).lerp(FOG_FUMEE,f);}
+    return window.dbgVolcan('vue',{p:[p.x,p.y+9,p.z],c:[q.x,q.y+2,q.z],fov:o&&o.fov});}
   if(k==='saut'){const S=(VOLCAN.sauts||[])[(o&&o.k)|0];if(!S)return 'pas de boucle';const dx=Math.sin(S.phi),dz=Math.cos(S.phi),d=(o&&o.d)||90,h=(o&&o.h)||22;
     return window.dbgVolcan('vue',{p:[S.e.x-dx*d,S.e.y+h,S.e.z-dz*d],c:[S.e.x+dx*240,S.yS-10,S.e.z+dz*240],fov:o&&o.fov});}
   if(k==='aiguille'||k==='arche'||k==='volcan'||k==='second'){const ds=L/(NP-1),d=(o&&o.d)||70,h=(o&&o.h)||9;let i=-1,cible=null;
@@ -18002,7 +18024,7 @@ window.dbgVolcan=function(k,o){
   return {on:!!VOLCAN.root,met:VOLCAN.met,ms:VOLCAN.ms,msSol:VOLCAN.msSol,n:VOLCAN.n,col:VOLCAN.gcol&&VOLCAN.gcol.n,sSp:Math.round(VOLCAN.sSp),L:Math.round(L),
     sauts:(VOLCAN.sauts||[]).map(function(S){return [Math.round(S.sE),Math.round(S.sS),Math.round(S.yE-S.yS)];}),conflits:VOLCAN.conflits,croise:VOLCAN.croise,ySea:Math.round(VOLCAN.ySea||0),
     erup:{t:+VOLCAN.erup.t.toFixed(1),age:+VOLCAN.erup.age.toFixed(1),n:VOLCAN.erup.n},vit:Math.round(VOLCAN.vit||0),
-    pret:!!VOLCAN.pret,file:VOLCAN.file?VOLCAN.file.length-VOLCAN.fi:0,msFile:Math.round(VOLCAN.msFile||0),msTot:VOLCAN.msTot,
+    pret:!!VOLCAN.pret,fu:+(VOLCAN.fu||0).toFixed(2),bancs:(VOLCAN.bancs||[]).map(function(b){return [Math.round(b.s0),Math.round(b.s1)];}),file:VOLCAN.file?VOLCAN.file.length-VOLCAN.fi:0,msFile:Math.round(VOLCAN.msFile||0),msTot:VOLCAN.msTot,
     cur:VOLCAN.cur&&{lue:+VOLCAN.cur.lue.toFixed(2),lav:+VOLCAN.cur.lav.toFixed(2),cen:+VOLCAN.cur.cen.toFixed(2)}};};
 /* <<<FIN VOLCAN>>> */
 /* ---------- LA VILLE SOUS LES NUAGES — LE FOND DE SCÈNE EN VOXELS (2026-09-11) ----------------
