@@ -23566,6 +23566,7 @@ const SF_METEOS={matin:'MATIN',midi:'MIDI',soir:'SOIR',nuit:'NUIT',pluie:'PLUIE'
    manquait les invariants communs — le contre-jour ROSE sur les caisses (ici) et la signature de route rose + or (routeSig). `?sans=banquise2`, `?sans=volcan2`. */
 for(const [f9,ks9] of [['banquise',['banqMatin','banqMidi','banqSoir','banqNuit','banqNeige','banqBlizzard']],['volcan',['volcanMatin','volcanMidi','volcanSoir','volcanNuit','volcanCendre','volcanOrage']]])
   if(SIG_V[f9])for(const k of ks9)if(BIOMES[k])Object.assign(BIOMES[k],{kickC:[1,.38,.66],kickI:Math.max(BIOMES[k].kickI||0,.16)});
+if(SIG_V.banquise){if(BIOMES.banqMatin)BIOMES.banqMatin.sat=1.08;if(BIOMES.banqMidi)BIOMES.banqMidi.sat=1.08;if(BIOMES.banqSoir)BIOMES.banqSoir.sat=1.12;} // (bible · banquise2) saturation effective : jour 1,25 → 1,31, soir 1,28 → 1,35 (neige et blizzard gardent leur retenue)
 const SF_CARTES={
   nuages:{nm:'MER DE NUAGES',base:'nuages',m:{matin:{bio:'matin'},midi:{bio:'midi'},soir:{bio:'nuagesSoir'},nuit:{bio:'nuagesNuit',nuit:1},
     pluie:{bio:'nuagesPluie',pluie:.75,route:.18,sheen:.16},orage:{niv:'orage',orage:1}}},
