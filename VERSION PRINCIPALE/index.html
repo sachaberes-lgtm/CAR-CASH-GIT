@@ -7647,7 +7647,7 @@ html.c6 #carr .c6Bas{position:sticky;bottom:0;z-index:20;flex:none;box-sizing:bo
   padding:8px calc(var(--sR) + 16px) calc(var(--sB) + 8px) calc(var(--sL) + 16px);background:var(--c6-e0)}
 html.c6 #carr .cmJouer{min-width:192px;justify-content:center;font-size:16px;white-space:nowrap}
 html.c6 #carr .cmGrille{flex:1 0 auto;display:grid;gap:12px;grid-template-columns:minmax(0,1fr)}
-html.c6 #carr .cmMondes{grid-auto-rows:minmax(100px,1fr)}
+html.c6 #carr .cmMondes{grid-auto-rows:minmax(92px,1fr)}  /* (2026-10-14, vérif P1) 92 et pas 100 : à 375×667, 4 × 100 + 3 × 12 = 436 px pour ~427 de place entre l'en-tête et JOUER — la 4e carte (ESPACE) passait sous la barre ; le contenu d'une carte en demande ~88 */
 html.c6 #carr .cmNivs{grid-auto-rows:minmax(76px,1fr);gap:8px}
 html.c6 #carr .cmNiv .cmTxt{gap:4px;padding:8px 14px}
 html.c6 #carr .cmCarte{position:relative;box-sizing:border-box;display:flex;flex-direction:row;min-width:0;min-height:0;overflow:hidden;cursor:pointer;
