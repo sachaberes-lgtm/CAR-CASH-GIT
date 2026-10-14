@@ -575,6 +575,9 @@ async function joue(S) {
 function stop() { J.jeton++; if (J.L) try { J.L.arret(); } catch (e) {} const S = J.S; J.L = null; J.S = null; if (S) marque(S, false, ''); lecteurPose(); }
 
 // LE LECTEUR DU BAS : le moteur qui monte, le palier, − / +
+// (14/10, Léo : « en 30 paliers comme les autres ») : un morceau rangé dans POUCE BLEU se pilote comme les musiques du générateur — moteur 1 à
+// 30 À LA MAIN (− / +, flèches). Le son ne change pas : ses vraies étapes (8 figées, réparties sur les 30 moteurs) changent aux mêmes moteurs.
+const aLaMain = S => !!S && (S.sec === 'bleu' || !!(PREF.place && PREF.place[S.id] === 'bleu'));
 function lecteurPose() {
   const S = J.S, on = !!(S && J.L); $('lect').classList.toggle('on', on); if (!on) return;
   $('lNom').textContent = nomDe(S); const mt = S.sec === 'moteur' || S.sec === 'bleu';   // (Pouce bleu : le moteur à la main)
@@ -588,14 +591,14 @@ function lecteurMaj() {
   if (S.sec === 'bleu') { $('lMot').textContent = 'Moteur ' + (J.mot + 1) + ' / 30 · à la main : − / + (ou les flèches)' + (J.L.info && J.L.info() ? ' · ' + J.L.info() : ''); $('lBarre').firstChild.style.width = (J.mot / 29 * 100).toFixed(1) + '%'; return; }
   if (S.sec !== 'moteur') { $('lMot').textContent = meta(S); return; }
   const p = palierDuMoteur(), intro = J.L.enIntro && J.L.enIntro();
-  $('lMot').textContent = (intro ? 'Intro · ' : '') + 'Moteur ' + (J.mot + 1) + ' / 30 · ' + MOT[J.mot] + (S.nb ? ' · palier ' + (p + 1) + ' / ' + S.nb : ' · jauge ' + Math.round(J.mot / 29 * 100) + ' %') + (J.L.info && J.L.info() ? ' · ' + J.L.info() : '');
+  $('lMot').textContent = (intro ? 'Intro · ' : '') + 'Moteur ' + (J.mot + 1) + ' / 30 · ' + MOT[J.mot] + (S.nb ? ' · palier ' + (p + 1) + ' / ' + S.nb : ' · jauge ' + Math.round(J.mot / 29 * 100) + ' %') + (J.L.info && J.L.info() ? ' · ' + J.L.info() : '') + (aLaMain(S) ? ' · à la main : − / +' : '');
   [...$('lPts').children].forEach((b, i) => { b.classList.toggle('on', i === p); b.classList.toggle('passe', i < p); });
   $('lBarre').firstChild.style.width = (J.mot / 29 * 100).toFixed(1) + '%';
 }
 $('lStop').onclick = stop;
 $('lMoins').onclick = () => { J.t = Math.max(0, (J.mot - 1) * PAS); tic(true); };
 $('lPlus').onclick = () => { J.t = Math.min(29, J.mot + 1) * PAS; tic(true); };
-addEventListener('keydown', e => { if (!J.S || J.S.sec !== 'bleu' || /input|textarea|select/i.test(e.target.tagName)) return;   // Pouce bleu : les flèches (ou + / −) montent et descendent le moteur
+addEventListener('keydown', e => { if (!aLaMain(J.S) || /input|textarea|select/i.test(e.target.tagName)) return;   // Pouce bleu : les flèches (ou + / −) montent et descendent le moteur
   if (e.key === 'ArrowUp' || e.key === 'ArrowRight' || e.key === '+') { e.preventDefault(); $('lPlus').click(); } else if (e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === '-') { e.preventDefault(); $('lMoins').click(); } });
 $('lPts').onclick = e => { const i = e.target.dataset && e.target.dataset.i; if (i == null || !J.deb) return; J.t = J.deb[+i] * PAS; tic(true); };
 addEventListener('keydown', e => { if (e.key === 'Escape') stop(); });
@@ -606,7 +609,7 @@ function tic(force) {
   const now = performance.now(), dt = Math.min(1, (now - der) / 1000); der = now;
   const S = J.S, L = J.L; if (!S || !L) return;
   if (S.sec === 'moteur' || S.sec === 'bleu') {
-    if (!force && S.sec === 'moteur' && !(L.enIntro && L.enIntro())) J.t += dt;   // le moteur attend la fin de l'intro pour monter (Pouce bleu : seulement à la main)
+    if (!force && S.sec === 'moteur' && !aLaMain(S) && !(L.enIntro && L.enIntro())) J.t += dt;   // le moteur attend la fin de l'intro pour monter (Pouce bleu : seulement à la main)
     J.mot = Math.max(0, Math.min(29, Math.floor(J.t / PAS)));
     try { L.regle(palierDuMoteur(), J.mot); } catch (e) {}
     lecteurMaj();
