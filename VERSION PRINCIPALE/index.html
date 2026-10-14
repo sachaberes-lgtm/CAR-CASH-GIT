@@ -9127,6 +9127,22 @@ html:not(.c6) #gMis #gmFils path.lead.r{display:none}
   html:not(.c6) #gMis .gmC{overflow:hidden;white-space:normal;overflow-wrap:break-word;word-break:normal;padding:8px 9px}
   html:not(.c6) #gMis .gmC .gmX{overflow-wrap:break-word}
   html:not(.c6) #gMis .gmC .gmP b,html:not(.c6) #gMis .gmC .gmNext{white-space:normal}}
+/* ---- LA SECONDE CHANCE (UX 8, 14/10 soir — PILOTAGE + DEBUGING : la plaque #mChance n'était jamais montrée ; contrat de GENERAL) ----
+   Pendant les 5,5 s de l'offre, CONTINUER · prix est LA décision : la plaque d'or monte du bas, une barre qui se vide dit le VRAI temps qui reste
+   (l'offre s'éteint vraiment : ce n'est pas une fausse urgence) ; « NON MERCI » la ferme sans bruit ; REJOUER s'efface le temps de l'offre
+   (jamais deux plaques d'or), puis reprend sa place. */
+html:not(.c6) #mDead #mChance{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:12px}
+html:not(.c6) #mDead #mChance .chT,html:not(.c6) #mDead #mChance .chP{position:relative;z-index:1}
+html:not(.c6) #mDead #mChance.chOn{animation:u8ChMonte var(--t-slow) var(--ease) both}
+html:not(.c6) #mDead #mChance .chBar{position:absolute;left:0;right:0;bottom:0;height:4px;background:currentColor;opacity:.7;transform-origin:0 50%;pointer-events:none}
+html:not(.c6) #mDead #mChance.chOn .chBar{animation:u8ChBar var(--chD,5500ms) linear forwards}
+html:not(.c6) #mDead #mChanceNon{order:2;align-self:center;min-height:44px;min-width:120px;padding:0 16px;margin:6px auto 0;font-size:var(--f0);letter-spacing:1px;
+  background:none!important;box-shadow:none!important;clip-path:none!important;color:var(--tx3,#9fa6c8);text-shadow:none}
+html:not(.c6) #mDead #mChanceNon[hidden]{display:none}
+html:not(.c6) body.chOffre #mDead [data-m="replay"]{opacity:.45;transition:opacity var(--t-fast) var(--ease)}
+@keyframes u8ChMonte{from{translate:0 24px;opacity:0}to{translate:0 0;opacity:1}}
+@keyframes u8ChBar{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+@media (prefers-reduced-motion:reduce){html:not(.c6) #mDead #mChance.chOn{animation:none}}
 </style>
 <style id="ux8-mouvement">
 /* UX 8 · LE MOUVEMENT : balayage pixel, fenêtres, pause. Une courbe (--ease), deux durées (--t-fast, --t-slow). On n'anime que transform/opacity/translate. Tout sous html:not(.c6). */
@@ -57446,6 +57462,27 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
         boutons:[{l:'EFFACER',ic:'corbeille',cls:'pb-red',v:1},{l:'ANNULER',v:0}]}).then(function(r){
         if(r.v){SAVE.d=SAVE.san(null);SAVE.flush();try{localStorage.removeItem('ccLang');}catch(e){}location.reload();} }); } // (passe qualité) « …et réglages : tout repart de zéro » : la LANGUE aussi (rangée à part, ccLang) — le jeu repart sur celle du téléphone
   }
+  /* LA SECONDE CHANCE À L'ÉCRAN DE FIN (UX 8, 2026-10-14 soir — PILOTAGE et DEBUGING : la plaque #mChance existait, cachée, jamais branchée : la
+     fonction validée par Sacha était invisible). Contrat de la session GENERAL : chanceEtat() → {ok, prix, reste}, chanceJoue(), chanceRefuse(),
+     l'événement `cc:chance` à l'ouverture, à l'extinction et à l'achat. La plaque se relit à chaque événement ; même garde de 600 ms que les
+     autres touches de l'écran de fin (les pouces qui martèlent NITRO ne paient pas par erreur). */
+  try{(function(){const el=$t('mChance');if(!el||typeof chanceEtat!=='function')return;
+    Object.assign(I18N,{'CONTINUER':'CONTINUE','NON MERCI':'NO THANKS'});
+    el.removeAttribute('data-fr');el.innerHTML='<span class="chT" data-fr="CONTINUER">'+TR('CONTINUER')+'</span><b class="chP"></b><i class="chBar" aria-hidden="true"></i>';
+    const non=document.createElement('div');non.id='mChanceNon';non.className='pbtn';non.setAttribute('role','button');non.tabIndex=0;non.hidden=true;
+    non.setAttribute('data-fr','NON MERCI');non.textContent=TR('NON MERCI');el.parentNode.insertBefore(non,el.nextSibling);
+    let vu=false;
+    const maj=function(){let e=null;try{e=chanceEtat();}catch(_){e=null;}const ok=!!(e&&e.ok);
+      if(ok){el.querySelector('.chP').textContent=fmtC(e.prix);
+        if(!vu){vu=true;el.style.setProperty('--chD',Math.max(300,e.reste||5500)+'ms');el.classList.remove('chOn');void el.offsetWidth;el.classList.add('chOn');}}
+      else vu=false;
+      el.hidden=!ok;non.hidden=!ok;el.classList.toggle('pb-gold',ok);el.classList.toggle('pb-cyan',!ok);document.body.classList.toggle('chOffre',ok);};
+    const sourd=function(){return !!(TCTL.mortT&&performance.now()-TCTL.mortT<600);};
+    const go=function(e){e.preventDefault();e.stopPropagation();if(sourd()||el.hidden)return;uiPop(el);let r=false;try{r=chanceJoue();}catch(_){r=false;}if(!r){uiClic('refus');maj();}};
+    el.addEventListener('click',go);el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' ')go(e);});
+    const refuse=function(e){e.preventDefault();e.stopPropagation();if(sourd()||non.hidden)return;uiClic('retour');try{chanceRefuse();}catch(_){}maj();};
+    non.addEventListener('click',refuse);non.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' ')refuse(e);});
+    document.addEventListener('cc:chance',maj);window.__chanceMaj=maj;maj();})();}catch(e){console.warn('seconde chance',e);}
   if(mob){
     const mHit=function(e){
       const el=e.target&&e.target.closest?e.target.closest('[data-m]'):null;
