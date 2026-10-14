@@ -7628,6 +7628,10 @@ html.c6 body #garage>#gC6Tete{display:none}
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop):not(.quiet):not(.launching):not(.missions)>#gC6Tete{display:flex}
 html.c6 body #garage>#gC6Tete .pxi{--pxs:2}
 html.c6 body #garage>#gC6Tete .c6Sou .pxi{--pxs:1}
+/* (2026-10-14, charte 6, p2) les comptes : deux pastilles de MÊME largeur (colonnes égales), l'icône à gauche, le chiffre calé à droite, 12 px (aucun texte sous 11 px) ;
+   côte à côte couché, empilées debout (voir la requête portrait plus bas) : le bord gauche ne fait plus d'escalier */
+html.c6 body #garage>#gC6Tete .c6Comptes{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;align-items:center;gap:8px}
+html.c6 body #garage>#gC6Tete .c6Sou{justify-content:space-between;gap:12px;min-width:112px;font-size:12px}
 /* le haut : plus de plaques néon (compteur, aura + rang, outils) — la fiche seule, sous l'en-tête */
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gTop{box-sizing:border-box;width:min(60%,480px)!important;max-width:none!important;margin:0!important;padding:calc(var(--sT) + 72px) 0 0 calc(var(--sL) + 16px)!important;background:none!important}
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gTop>:is(#gTopRow,#gAuraC,#gVJ,#gPlayMain,#gCarr){display:none!important}
@@ -7661,7 +7665,7 @@ html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>:is(#gvMis,#gvBranche,#gvLvl,#gvNivs,#gClose,#gPerso,#gBuyRow,#gCache),html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gBottom>#gRappel,html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct #gHomeBas{display:none!important}
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>:is(#gvCof,#gShopBas){grid-row:1!important;display:flex!important;flex-direction:row!important;align-items:center;justify-content:center;gap:8px!important;box-sizing:border-box;width:auto!important;min-width:0!important;height:48px!important;min-height:48px!important;
   margin:0!important;padding:0 8px!important;translate:none;transform:none!important;clip-path:none!important;filter:none!important;animation:none!important;outline:0!important;
-  font-size:10px!important;line-height:1!important;letter-spacing:0!important;white-space:nowrap;color:var(--c6-x)!important;text-shadow:none!important;
+  font-size:12px!important;line-height:1!important;letter-spacing:0!important;white-space:nowrap;color:var(--c6-x)!important;text-shadow:none!important;
   background:var(--c6-f)!important;box-shadow:inset 0 0 0 2px var(--c6-l),0 4px 0 0 var(--c6-tr)!important}
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>#gvCof{grid-column:1/2!important}
 html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>#gShopBas{grid-column:2/3!important}
@@ -7692,11 +7696,13 @@ html.c6 body #bdGar2{top:-4px!important;right:-4px!important;width:8px;height:8p
   transform:none!important;animation:none!important;background:var(--c6-or)!important;box-shadow:0 0 0 2px #000!important}
 /* COUCHÉ : le bloc des touches ne s'élargit pas (la caisse garde la place), calé à droite */
 @media (orientation:landscape){
-  html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct{width:min(100%,328px)!important;margin-left:auto!important;margin-right:-10px!important} /* son bord droit = celui des comptes (16 px + zone sûre) : #gBottom garde 12 px de marge intérieure et déborde de 2 */
+  html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct{width:min(100%,328px)!important;margin-left:auto!important;margin-right:-10px!important}
+  /* (p2) INVENTAIRE · BOUTIQUE passent à 12 px (la taille d'une touche du socle, aucun texte sous 11 px) : couché, 10 lettres × 12 = 120 px remplissent la touche (144-160 px) → le mot seul, sans l'icône */
+  html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>:is(#gvCof,#gShopBas) .pxi{display:none!important} /* son bord droit = celui des comptes (16 px + zone sûre) : #gBottom garde 12 px de marge intérieure et déborde de 2 */
 }
 /* DEBOUT : les deux comptes s'empilent à droite (ils ne tiennent pas à côté du titre sur 390 px) ; la fiche passe dessous, sur toute la largeur */
 @media (orientation:portrait){
-  html.c6 body #garage>#gC6Tete .c6Comptes{flex-direction:column;align-items:flex-end;align-self:flex-start}
+  html.c6 body #garage>#gC6Tete .c6Comptes{grid-auto-flow:row;align-self:flex-start}
   html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct{margin-left:-6px!important;margin-right:-6px!important} /* debout : la rangée va de marge à marge (16 px), comme l'en-tête */
   html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gTop{width:100%!important;padding:calc(var(--sT) + 96px) calc(var(--sR) + 16px) 0 calc(var(--sL) + 16px)!important}
 }
@@ -7807,6 +7813,44 @@ html.c6 body #gProfil #gpRang{display:none!important}
    le lit) et les blocs « ? » de raretés à venir (gMystere, aussi retirés du JS sous c6) sortent de la mise en page — display:none = pas de trou dans
    la grille, ni de séparateur orphelin dans la rangée ; les autres touches de #gMenuBas se re-partagent la place. */
 html.c6 body #gMenuBas .gVerrou,html.c6 body #gStrip>.gT.gMys{display:none!important}
+/* ---- (2026-10-14, charte 6, p2) LE PEAUFINAGE : la fiche sur sa plaque, l'œil au bord, l'inventaire d'un joueur neuf --------------------------
+   Le relecteur : la fiche (nom, rang, rareté) flottait sur le décor 3D, l'œil s'intercalait entre le nom et « 1 / 49 », et l'inventaire d'un joueur qui n'a qu'une caisse
+   était un panneau de 430 px avec une carte et rien d'autre. Ici : (1) la fiche = UNE plaque d'encre (la même peau que la plaque de l'inventaire : rgba(11,13,18,.8) + filet 2 px) ;
+   le nom en haut, dessous la rareté (barre de 4 px) et le rang « 1 / 49 » en police système 13 px, l'ŒIL au bord droit de la plaque, sur les deux lignes ; (2) l'inventaire à peu de cartes
+   se serre sur son contenu et dit quoi faire ; (3) plus aucun texte sous 11 px dans ces deux écrans. Les comptes de l'en-tête sont réglés plus haut (pastilles de même largeur). */
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard{display:grid!important;grid-template-columns:max-content max-content 48px;grid-template-rows:auto auto;justify-content:start;align-items:center!important;column-gap:12px!important;row-gap:4px!important;
+  container-type:normal; /* l'ancienne feuille y posait inline-size : sa largeur intrinsèque tombait à 0 */
+  box-sizing:border-box;width:max-content!important;max-width:100%!important;margin:0!important;padding:8px!important;background:rgba(11,13,18,.8)!important;box-shadow:inset 0 0 0 2px var(--c6-e3)!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard{grid-template-columns:max-content max-content}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard>#gName{grid-column:1/3;grid-row:1;text-shadow:none!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard>#gRarPill{grid-column:1;grid-row:2;justify-self:start;height:auto!important;padding:0 0 0 12px!important;font:800 13px/16px var(--sans)!important;text-transform:uppercase;text-shadow:none!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard>#gLvl{grid-column:2;grid-row:2;justify-self:end;font:700 13px/16px var(--sans)!important;text-shadow:none!important;color:var(--c6-g1)!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard>#gOeil{grid-column:3;grid-row:1/3;align-self:center}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gCard>:is(#gMeta,#gDesc){text-shadow:none!important}
+/* l'inventaire à peu de cartes (≤ 3, classe posée par le script) : la plaque prend la hauteur de son contenu (au moins 200 px : la même sur tous les onglets, la rangée d'onglets ne saute pas) */
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gBottom.c6Peu{height:auto!important;min-height:200px;max-height:min(40vh,360px)!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gBottom.c6Peu>#gStrip{flex:0 1 auto!important}
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html.c6 body #garage.atelierInv:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gBottom.c6Peu{bottom:auto!important;height:auto!important;max-height:calc(100% - var(--sT) - 72px - var(--sB) - 16px)!important}
+}
+/* la ligne d'état vide : deux lignes en police système (la première en blanc, la seconde en gris) sous la rangée de cartes */
+#gC6Vide{display:none} /* sans html.c6 (?ui=5) il n'existe pas */
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gBottom.c6VideV>#gC6Vide{display:flex;flex-direction:column;gap:2px;box-sizing:border-box;margin:0;padding:8px 4px 4px;font:700 13px/18px var(--sans);letter-spacing:0;color:var(--c6-g1)}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gBottom.c6VideV>#gC6Vide>span:first-child{color:var(--c6-b0)}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gStrip>.gVide{font:700 13px/18px var(--sans)!important;text-align:center;padding:16px 8px}
+/* la jauge qui tourne le garage (Léo) : sa ZONE de toucher fait déjà 48 px (.gtZone, 9 px de plus en haut et en bas) mais son conteneur n'en mesurait que 30 (« PETIT 294×30 » à l'audit). On lui rend sa vraie
+   hauteur par une bordure transparente de 9 px : le trait, le patin et leur centre ne bougent pas ; les marges négatives rendent la place prise (debout, dans le flux, il reste 9 px de plus au total). Le comportement est intact. */
+html.c6.hubOn #gTourne.on{box-sizing:content-box;border-block:9px solid transparent;margin-block:-9px}
+/* les onglets de l'inventaire : cinq mots dans 304-384 px, en pixel 8-10 px ils se touchaient (« VOITURESPEINTURE », « TRAINEESFIGURES ») ; police système 800, 12 px (11 px sur 375-390 px debout et 667 couché),
+   chaque onglet prend la largeur de son mot + sa part du reste (AILES est plus court que TRAÎNÉES) */
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gTabs>.gTab{flex:1 1 auto!important;min-width:44px!important;padding:0 2px!important;font:800 12px/1 var(--sans)!important;text-transform:uppercase}
+@media (max-width:400px),(orientation:landscape) and (max-width:700px){
+  html.c6 body #garage.atelierInv:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gTabs>.gTab{font-size:11px!important}
+}
+/* les cartes : le nom de l'objet et le prix passent du pixel 8 px à la police système 12 px (aucun texte sous 11 px) */
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gStrip>.gT>b{font:800 12px/14px var(--sans)!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine):not(.shopRet):not(.modeShop):not(.quiet) #gStrip>.gT>em{height:20px!important;font:800 12px/20px var(--sans)!important}
+html.c6.hubOn.gtConsole body #garage:not(.menu)>#gTourne.on{margin:auto auto 1px}
 </style>
 <style id="c6-boutique">
 /* CHARTE 6 · la boutique (la rotonde de Léo), la fenêtre d'achat — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
@@ -8261,6 +8305,8 @@ html.c6 body.voletSort .mscr.on,html.c6 body.voletSort .mscr.on>*,html.c6 .mscr.
       </div>
       <div id="gRar" role="tablist" aria-label="Familles"></div>
       <div id="gStrip" aria-label="Vignettes"></div>
+      <!-- (2026-10-14, charte 6, p2) l'état presque vide de l'INVENTAIRE (joueur neuf) : une ligne qui dit quoi faire ; affichée par html.c6 + `#gBottom.c6VideV` seulement (voir « L'EN-TÊTE DU HUB » dans le script) -->
+      <p id="gC6Vide"><span data-fr="Tes caisses apparaîtront ici">Tes caisses apparaîtront ici</span><span data-fr="Gagne-les en course ou à la boutique">Gagne-les en course ou à la boutique</span></p>
       <button id="gPrev" class="gNav pbtn" aria-label="Précédente"><i class="pxi pxi-gauche" aria-hidden="true"></i></button>
       <button id="gNext" class="gNav pbtn" aria-label="Suivante"><i class="pxi pxi-droite" aria-hidden="true"></i></button>
       <div id="gAct">
@@ -16029,8 +16075,8 @@ function sensEau(dt){ // chaque image de VOL, après l'orientation de la caisse
   SEAU.k+=((flot?1:0)-SEAU.k)*(1-Math.exp(-dt*(flot?2.2:5)));
   if(SEAU.k>.01){SEAU.t+=dt;const a=SEAU.k*(1-.6*Math.min(1,hv/120)),t=SEAU.t;
     carBody.rotation.set(a*(.045*Math.sin(t*3.1)+.02*Math.sin(t*5.3+1.3)),0,a*(.07*Math.sin(t*2.3+.7)+.025*Math.sin(t*4.1)));
-    carBody.position.y=a*.07*Math.sin(t*2.7+2.1);SEAU.pose=true;}
-  else if(SEAU.pose){carBody.rotation.set(0,0,0);carBody.position.y=0;SEAU.pose=false;}
+    carBody.position.y=(VEQ.on?VEQ.ext:0)+a*.07*Math.sin(t*2.7+2.1);SEAU.pose=true;} // (2026-10-14, gameplay · accord) le pilonnement s'AJOUTE à la suspension pendante du vol de Léo (veqCorps : VEQ.ext, posée juste avant) — il l'écrasait : la carrosserie tombait de 11 cm d'un coup en touchant l'eau, et y remontait d'un coup en la quittant
+  else if(SEAU.pose){carBody.rotation.set(0,0,0);carBody.position.y=VEQ.on?VEQ.ext:0;SEAU.pose=false;}
   if(flot&&hv<EAU.vB&&isFinite(JEAU.syF)){const sy=JEAU.syF,c=JEAU.cap;
     if(Math.random()<dt*(22+hv*.3)){eauPIm();eauP(fallPos.x-c.x*2+(Math.random()-.5)*1.5,sy+.15,fallPos.z-c.z*2+(Math.random()-.5)*1.5,-c.x*(2+Math.random()*3)+(Math.random()-.5)*2,1.4+Math.random()*2.4,-c.z*(2+Math.random()*3)+(Math.random()-.5)*2,.07+Math.random()*.1,.45+Math.random()*.4,sy,0);}
     SEAU.clap-=dt;if(SEAU.clap<=0){SEAU.clap=.7+Math.random()*1.1;eauBloop(.3);}}
@@ -18685,6 +18731,7 @@ BIOMES.espaceMatin=bioMet(BIOMES.espace,{nm:'ORBITE · LEVER',sunC:[1,.84,.62],s
   env:[[0,'#06050e'],[.3,'#120d24'],[.48,'#3a2a50'],[.58,'#7a5a6a'],[.66,'#14102a'],[1,'#030208']],eS1:[255,214,170,.48],eS2:[120,150,255,.3]});
 BIOMES.espaceSoir=bioMet(BIOMES.espace,{nm:'ORBITE · COUCHANT',sunC:[1,.56,.40],sunI:1.6,sunTint:[1,.5,.38],fillC:[.40,.42,.95],kickC:[.9,.5,.75],volSun:[1.6,.95,.8],
   env:[[0,'#08040e'],[.3,'#1a0a22'],[.48,'#4a1e40'],[.58,'#8a3a4a'],[.66,'#180a20'],[1,'#040208']],eS1:[255,160,120,.5],eS2:[140,120,255,.3]});
+const OEIL_V1=!/[?&]sans=oeil\b/.test(location.search); // (2026-10-14, passe graphismes · oeil-neuf) interrupteur des correctifs de l'œil neuf : ?sans=oeil les coupe tous
 /* ================= L'ÉTALONNAGE PAR MAP × MÉTÉO (2026-10-14, passe graphismes) =================
    Sacha : « pour chaque map, pour chaque météo… la colorimétrie, l'étalonnage… que tout soit cohérent » — et la route devient un béton mat.
    Des SURCHARGES de valeurs, posées APRÈS toutes les définitions : `bioMet` COPIE son parent, donc retoucher ici une ambiance mère ne
@@ -18724,6 +18771,7 @@ Object.assign(BIOMES.villeOrage,{jZen:[.022,.028,.036],jMid:[.04,.048,.056],jHor
 Object.assign(BIOMES.jadeMatin,{rtK:.6,expo:.95,sat:1.04,wb:[1,1,1],sh:[0,.012,.03],hi:[.014,.012,-.006],hemiS:[.84,.92,.94],hemiG:[.5,.58,.56],fillC:[.56,.74,.8],volSky:[.76,.86,.9],volGnd:[.46,.5,.5],vigC:[.04,.05,.06],fog:[.86,.9,.84],fogIn:[.88,.92,.88],jdZ:[.34,.5,.62],jdL:[.58,.72,.7],jdM:[.72,.82,.72],jdH:[.95,.84,.66],jdR:[.3,.38,.36],jdB:[.82,.88,.82],jdS:[1,.9,.66],env:[[0,'#6aa6c0'],[.3,'#a8d0d0'],[.48,'#e2ecdc'],[.58,'#fff0cc'],[.66,'#98aca8'],[1,'#44564f']]}); // (2026-10-14, passe graphismes) matin céladon : azur-jade → pêche clair, brume blanc de brume, ombres bleu-vert, vignette neutre (plus de violet), béton non avalé par un ciel crème
 Object.assign(BIOMES.jadeMidi,{rtK:.6,expo:1,wb:[1,1,1],sh:[0,.012,.03],hi:[.01,.012,-.004],hemiS:[.82,.92,.98],hemiG:[.46,.56,.52],fillC:[.5,.72,.8],volSky:[.78,.86,.94],volGnd:[.5,.54,.56],vigC:[.04,.05,.06],fog:[.82,.89,.87],fogIn:[.86,.92,.9],jdZ:[.28,.5,.7],jdL:[.5,.68,.76],jdM:[.66,.82,.78],jdH:[.86,.93,.88],jdR:[.28,.4,.38],jdB:[.82,.9,.86],jdS:[1,.97,.9],env:[[0,'#4a8cc0'],[.3,'#90c4d4'],[.48,'#e2f0ee'],[.58,'#ffffff'],[.66,'#a4b8b8'],[1,'#506670']]}); // (2026-10-14, passe graphismes) midi céladon : plus de cobalt, ciel azur-jade → blanc de brume, ombres bleu-vert, vignette neutre
 Object.assign(BIOMES.jade,{sat:1.2,vigC:[.06,.045,.06]}); // (2026-10-14, passe graphismes) soir de Léo : on lui rend sa saturation d'avant la couche commune (1,08 × 1,11 → produit 1,30), vignette violette → ombre prune neutre ; rien d'autre
+if(OEIL_V1)Object.assign(BIOMES.jade,{rtK:.72}); // (2026-10-14, passe graphismes · oeil-neuf) JADE SOIR : la route la plus claire et la plus beige du jeu (L* ~62 contre ~45 aux autres soirs) → béton gris mat comme ailleurs (rtK 1 → .72) ; ?sans=oeil pour revenir
 Object.assign(BIOMES.jadeNuit,{sat:1.06,sunTint:[.7,.82,.95],sunC:[.6,.76,.92],sunI:.5,hemiI:.58,hemiS:[.16,.28,.34],hemiG:[.04,.08,.09],fillC:[.24,.42,.5],kickC:[.4,.6,.7],volSun:[.8,1,1.1],volSky:[.1,.15,.19],volGnd:[.04,.06,.07],sh:[0,.012,.024],vigC:[.012,.02,.03],fog:[.03,.075,.1],fogCj:[.2,.3,.38],fogIn:[.2,.28,.34],jdZ:[.01,.025,.045],jdL:[.02,.045,.07],jdM:[.03,.07,.1],jdH:[.05,.11,.15],jdR:[.012,.025,.035],jdB:[.04,.09,.12],jdS:[.3,.42,.55],env:[[0,'#030a0e'],[.3,'#08181f'],[.48,'#1b3440'],[.58,'#35566a'],[.66,'#0d1a22'],[1,'#04080b']],eS1:[170,205,225,.4],eS2:[80,120,140,.3]}); // (2026-10-14, passe graphismes) nuit bleu-vert sombre sans violet : lune argent-bleuté, ciel et brume du même bleu-vert, coton et ouate moins clairs (hemi/lune/vol), vignette neutre
 Object.assign(BIOMES.jadePluie,{sat:.95,wb:[1,1,1],sh:[0,.01,.022],sunC:[.84,.88,.88],hemiS:[.62,.7,.68],hemiG:[.28,.34,.32],fillC:[.5,.62,.6],kickC:[.58,.66,.66],vigC:[.04,.05,.05],fog:[.5,.56,.53],fogCj:[.6,.66,.63],fogIn:[.64,.7,.67],volSky:[.5,.56,.56],jdZ:[.3,.38,.38],jdL:[.4,.48,.47],jdM:[.5,.57,.55],jdH:[.6,.66,.62],jdR:[.26,.32,.31],jdB:[.52,.58,.55],env:[[0,'#3a4a4a'],[.3,'#5c6c68'],[.48,'#8c9a94'],[.58,'#9eaaa4'],[.66,'#5a6862'],[1,'#2e3836']],eS1:[200,216,222,.3],eS2:[150,175,175,.25]}); // (2026-10-14, passe graphismes) pluie gris-vert perle : ciel, brume et lumières du même gris à peine vert (plus de lavande), vignette neutre
 Object.assign(BIOMES.jadeOrage,{sat:1.02,wb:[1,1,1],sh:[0,.01,.02],sunC:[.58,.68,.72],hemiS:[.36,.42,.46],hemiG:[.08,.1,.11],fillC:[.28,.4,.44],kickC:[.38,.52,.58],kickI:.18,volSun:[.9,1,1.04],volSky:[.26,.32,.34],volGnd:[.07,.09,.1],vigC:[.015,.02,.025],fog:[.14,.17,.18],fogCj:[.24,.3,.32],fogIn:[.28,.34,.36],jdZ:[.09,.12,.13],jdL:[.15,.19,.2],jdM:[.19,.24,.25],jdH:[.25,.31,.32],jdR:[.09,.11,.11],jdB:[.2,.25,.26],jdS:[.2,.24,.28],env:[[0,'#1c2628'],[.3,'#2e3c40'],[.48,'#56686c'],[.58,'#6c7e82'],[.66,'#2c383a'],[1,'#141a1c']],eS1:[190,210,215,.3],eS2:[110,140,150,.25]}); // (2026-10-14, passe graphismes) orage ardoise verdie : plus d'indigo ni de kick violet, ciel/brume/lumières gris-vert sombres, vignette neutre
@@ -27776,7 +27824,15 @@ let driftC=0,driftLv=0,driftSpk=0,driftEnCours=false,driftArm=0,driftCd=0,fovPun
    · sensSecoue(k) : une petite secousse de caméra, plafonnée (.4), moitié en vol (on y vise), rien sous « Réduire les animations ». */
 const SCOUP={p:0,pv:0,ht:0,hf:0,hop:0,hopP:false}; // le tangage EN PLUS du jeu (rad, rad/s) — le roulis et le débattement ont déjà leurs ressorts (rollV, susV) · ht/hf : la dernière vibration · hop/hopP : la hauteur du petit saut en cours (dos d'âne, replacement) et s'il porte une pose déclarée en l'air
 function sensCoup(versLat,nez,pompe){if(!SENS||mode!=='drive')return;rollV=THREE.MathUtils.clamp(rollV-(versLat||0),-5,5);SCOUP.pv=THREE.MathUtils.clamp(SCOUP.pv+(nez||0),-4,4);susV=THREE.MathUtils.clamp(susV+(pompe||0),-4,4);}
-function sensHap(p,force){if(!SENS)return;const t=performance.now(),f=force||1;if(t-SCOUP.ht<(f>=SCOUP.hf?70:220))return;SCOUP.ht=t;SCOUP.hf=f;hap(p);}
+SCOUP.vp=0;SCOUP.vt=0; // (2026-10-14, gameplay · accord) la vibration du verdict de pose qui attend le contact (motif, heure) — voir tryLand
+function sensHap(p,force){if(!SENS)return;const t=performance.now(),f=force||1;if(t-SCOUP.ht<(f>=SCOUP.hf?70:220))return;if(t-(hap._t||-1e9)<70&&(hap._k||0)>=f)return;SCOUP.ht=t;SCOUP.hf=f;hap(p);}
+/* (2026-10-14, gameplay · accord) LA MAIN N'A QU'UNE VOIX PAR ÉVÉNEMENT. Le limiteur ne voyait que les vibrations de la passe : un détail
+   SENS pouvait doubler, à la même image, le coup que le jeu venait de donner (le braquage qui arrache la caisse : [16,40,16] PUIS le tic
+   du décollage). `hap` note désormais l'heure de sa dernière impulsion (`hap._t`) et un détail SENS se TAIT dans les 70 ms qui suivent
+   une vibration du jeu AU MOINS aussi forte (`hap._k`) : le geste d'origine garde la parole — un tic de pièce ne fait pas taire une pose. L'échelle, la même partout (sol, air, eau, menu) — le Taptic d'iOS
+   la lit ainsi (hap) : TIC LÉGER ≤ 12 ms (une lèvre, une crête, une pièce, une petite retombée) · COUP NET 14-24 ms (une pose, un bump,
+   une porte, la lèvre rattrapée) · COUP LOURD ≥ 45 ms (la pose lourde, la flaque, la mort) · MOTIF DOUBLE [coup, 20-40 ms, coup] pour
+   les gestes à deux temps (la catapulte, le saut nitro, la figure, le train de boosts, la panne sèche). */
 function sensSecoue(k){if(!SENS||REDUCED_MOTION)return;shake=Math.max(shake,Math.min(.4,k)*(mode==='fall'?.5:1));}
 /* (2026-10-14, sensations · glisse) LA GLISSE SE SENT DANS LA TÔLE. Le drift avait déjà ses étincelles, sa fumée, son roulis (+4°) et ses
    vibrations de palier — mais l'ACCROCHE (l'instant où l'arrière décroche) ne faisait rien : le roulis et le nez s'installaient en fondu.
@@ -35618,11 +35674,14 @@ const SAVE={
       if(ec.f>=5&&ec.f>(this.d.frenRec||0))this.d.frenRec=ec.f; // la frénésie qui tenait encore (endGame : frenFin)
       if(ec.s>0&&(L.length<10||ec.s>L[L.length-1].s)){L.push({n:this.d.pseudo||'TOI',s:ec.s});L.sort(function(a,b){return b.s-a.s;});if(L.length>10)L.length=10;} // le Top 10, comme lbQualifies
       this.repris={v:ec.v,a:ec.a};}
-    this.flush();
+    /* (2026-10-14, chasse aux bugs) APRÈS UNE PURGE (natif===1 : le secours n'est pas encore lu) ce flush écrivait une sauvegarde VIERGE dans localStorage : si l'appli était tuée avant la
+       réponse de `Preferences.get` (l'init synchrone dure des secondes), le lancement suivant trouvait un localStorage NON vide, ne consultait plus le miroir, puis l'écrasait — perte totale.
+       Rien à écrire à ce stade (pas d'instantané : localStorage était vide) ; la réponse vide, ou le 1er flush de jeu, écrivent. */
+    if(!(this.natif===1&&!ec))this.flush();
   },
   mark(){this.dirty=true;},
   natif:0, // (2026-09-30) le miroir natif : 0 libre · 1 suspendu (on attend la lecture du secours) · 2 restauration en cours, plus AUCUNE écriture (voir plus bas)
-  flush(){if(this.natif===2)return;try{this.d.v=this.V;const s=JSON.stringify(this.d);localStorage[this.K]=s;this.dirty=false;
+  flush(){if(this.natif===2)return;try{this.d.v=this.V;const s=JSON.stringify(this.d);try{localStorage[this.K]=s;this.dirty=false;}catch(e){} /* (2026-10-14, chasse aux bugs) localStorage plein/refusé : le miroir natif doit partir quand même (avant, l'exception sautait Preferences.set) ; `dirty` reste levé, le filet de 30 s réessaie */
     // P0-03 : miroir natif sous Capacitor — NSUserDefaults (Preferences) survit aux purges WKWebView.
     // Le web n'a pas ce plugin : la garde saute et on reste sur localStorage seul.
     if(this.natif===0&&window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences){try{window.Capacitor.Plugins.Preferences.set({key:this.K,value:s});}catch(e){}}
@@ -35746,7 +35805,7 @@ let SANDBOX=false; // BAC À SABLE : la caisse se replace au lieu de mourir — 
    en impacts — une impulsion courte = LÉGÈRE, moyenne = MOYENNE, longue = LOURDE, et un motif [on,off,on…] rejoue
    chaque impulsion à son heure. Hors app (navigateur Android), le vibreur d'origine reste la voie. */
 function hap(p){
-  if(!TCTL.on||!SND.vib)return; // (2026-09-28) son interrupteur à lui (réglages › VIBRATIONS) : beaucoup jouent son coupé et gardent le retour haptique
+  if(!TCTL.on||!SND.vib)return;hap._t=performance.now();{let m=0;if(Array.isArray(p)){for(let i=0;i<p.length;i+=2)if(+p[i]>m)m=+p[i];}else m=+p||0;hap._k=m<=12?1:m<=40?2:3;} // (2026-10-14, gameplay · accord) l'heure et la CLASSE (1 léger · 2 moyen · 3 lourd, comme le Taptic) de la dernière impulsion : le limiteur des détails SENS les lit (sensHap) // (2026-09-28) son interrupteur à lui (réglages › VIBRATIONS) : beaucoup jouent son coupé et gardent le retour haptique
   const H=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Haptics;
   if(H){try{
     const L=Array.isArray(p)?p:[p];let at=0;
@@ -36274,8 +36333,12 @@ function figLibreTap(gx,hy){ // le double-tap en vol : un coup de reins sur l'ax
   if(FLC.ok&&performance.now()-FLC.t<450){FLC.ok=false;if(FLC.k<1)fallVel.multiplyScalar(FLC.k);nitroR=Math.min(nitroCap(),nitroR+FLC.c);} // LE DOUBLE-TAP N'EST PAS UN BOOST : le coup de réacteur de son 1er appui est rendu (vitesse et nitro) — marteler fait tourner, pas filer
   FL.actif=true;FL.tTap=performance.now();FL.taps++;FL.cumT=(FL.cumT||0)+1;VEQ.n++;
   const p=carGroup.position; // le souffle des tuyères qui la font tourner
-  for(let j=0;j<10;j++)spawnP(j%3?flames:flameCore,p.x+(Math.random()-.5)*1.6,p.y+.5+(Math.random()-.5)*.8,p.z+(Math.random()-.5)*1.6,(Math.random()-.5)*14,(Math.random()-.5)*14,(Math.random()-.5)*14,.12+Math.random()*.12);
-  shake=Math.max(shake,.22);fovPunch=Math.max(fovPunch,3.5);hap([10,22,14]);
+  /* (2026-10-14, gameplay · accord) DANS LE SAUT NITRO, la figure part à la même image que le saut (veqSaut → veqFigure) : le souffle du
+     booster de Léo (26 flammes contre la route) et son motif dans la main ([12,30,18]) disent déjà le coup — les tuyères et leur
+     vibration ici le doublaient. Elles se taisent ; le son de la vrille reste (la caisse se met bien à tourner). */
+  const sautN9=SENS&&performance.now()-VEQ.sautT<60; // (`?sens=0` : comme avant)
+  if(!sautN9)for(let j=0;j<10;j++)spawnP(j%3?flames:flameCore,p.x+(Math.random()-.5)*1.6,p.y+.5+(Math.random()-.5)*.8,p.z+(Math.random()-.5)*1.6,(Math.random()-.5)*14,(Math.random()-.5)*14,(Math.random()-.5)*14,.12+Math.random()*.12);
+  shake=Math.max(shake,.22);fovPunch=Math.max(fovPunch,3.5);if(!sautN9)hap([10,22,14]);
   try{if(SONV2)sfx('fig.vrille',{st:echSt()});}catch(e){}
   return true;
 }
@@ -36283,7 +36346,7 @@ function figLibreDemi(i){ // un demi-tour de plus sur l'axe i (0 salto · 1 toup
   FL.cum[i]++;const n=++FL.dem[i],axes=(FL.dem[0]?1:0)+(FL.dem[1]?1:0)+(FL.dem[2]?1:0),p=carGroup.position;
   const g=Math.min(Math.max(0,FLK.nitMax-FL.nit),FLK.nit*(1+FLK.nitVar*(axes-1)))*veqNitK();
   if(g>0){FL.nit+=g;FL.cumN+=g;try{nitroPct(g,'figure');}catch(e){}}
-  sparkBurst(n%2?sparkBlue:sparkGold,p,n%2?7:16,n%2?7:11);hap(n%2?7:[8,14,10]);
+  sparkBurst(n%2?sparkBlue:sparkGold,p,n%2?7:16,n%2?7:11);if(!SENS||performance.now()-(hap._t||-1e9)>=70||(hap._k||0)<(n%2?1:2))hap(n%2?7:[8,14,10]); // (2026-10-14, accord) un demi-tour en DIAGONALE se finit sur deux axes à la même image : une vibration, pas deux (ni par-dessus le coup du double-tap)
   if(n%2)return;
   const t=n/2;fovPunch=Math.max(fovPunch,4+Math.min(4,t));shake=Math.max(shake,.25);
   let nom;
@@ -37876,7 +37939,7 @@ function dolStart(){
   dolAura=0; // (v4) la prime arrive avec la FIGURE (1 s tenue) : un saut de rien ne la touche pas
   if(dolShow<=0){dolNb=1;if(SONV2)sfx('dauphin.banc');} /* (console) le banc NEUF jaillit : clics et sifflets */ // un banc encore visible (passage précédent du même vol) garde ses dauphins
   dolShow=Math.max(dolShow,DOL_VU);dolIn=0; // LE BANC jaillit — et on a le temps de le VOIR
-  hap([10,24,10]); // (v5) plus d'étiquette en vol (Sacha : « le texte dauphin ne s'affiche qu'à l'atterrissage, avant il y a juste l'animation ») : dolPose
+  if(!SENS||performance.now()-(hap._t||-1e9)>=70||(hap._k||0)<2)hap([10,24,10]); /* (2026-10-14, gameplay · accord) le banc des dauphins part AU décollage : le « ta-tac » du décollage (startFall) vient de partir, quasi le même motif — un seul */ // (v5) plus d'étiquette en vol (Sacha : « le texte dauphin ne s'affiche qu'à l'atterrissage, avant il y a juste l'animation ») : dolPose
 }
 /* (2026-09-29, Sacha : « dauphin écrit plus petit avec une police aquatique avec des vagues ») : une lettre = un <i> qui ondule sur SA
    phase (la vague court le long du mot), en eau — lèvre d'écume blanche, bleu lagon, fond marine — et une vague de pixels coule dessous. */
@@ -38724,17 +38787,21 @@ function poseParfaiteFx(divin){
    deux impulsions sur ses ressorts (sensCoup), elle se repose seule. Le débattement reste à squashT : on ne le double pas. */
 function sensPose(imp,psi0,verdict){
   const k=Math.min(1,Math.max(0,imp||0)/10);
-  sensCoup(THREE.MathUtils.clamp((psi0||0)*3,-2,2)*(.5+.5*k),.35+1.5*k,0);
+  /* (2026-10-14, gameplay · accord) LE NEZ NE PLONGE QU'UNE FOIS : le VOL ÉQUILIBRÉ de Léo le fait plonger au même contact (veqContact →
+     VEQ.sp, ressort ω 13, dosé lui aussi par le choc) — les deux ressorts s'additionnaient (mesuré au banc, voir notes/accord.md). Sous le vol
+     de Léo, seul son nez reste ; ce détail garde le DÉVERS du crabe (que veqContact ne fait pas). `?vol=ancien` : le nez d'ici revient. */
+  sensCoup(THREE.MathUtils.clamp((psi0||0)*3,-2,2)*(.5+.5*k),VEQ.on?0:.35+1.5*k,0);
   /* LA MAIN : la vibration de pose vit dans le VERDICT (PARFAIT 15 · ordinaire 14 · LOURD 45) — qui ne juge que les vrais vols (> 0,7 s ou
      une chaîne). Une petite retombée (trou enjambé, crête, sortie courte) touchait le bitume sans que la main le sache. Celle-là, et elle
      seule, reçoit son coup au contact, dosé par le choc : plume · net · lourd. */
-  if(!verdict)sensHap(imp>=10?34:imp>=4.5?16:9,imp>=10?3:imp>=4.5?2:1);
+  if(!verdict)sensHap(imp>=10?45:imp>=4.5?16:9,imp>=10?3:imp>=4.5?2:1); // (2026-10-14, accord) lourde = 45, comme le POSÉ LOURD du verdict (34 ms passait pour un coup MOYEN sur le Taptic d'iOS)
 }
 /* (2026-10-14, sensations · pose) LE BUMP RACLE. Les étincelles du rebond naissaient au CENTRE de la caisse, en boule, et restaient sur
    place. Celles-ci partent du FLANC qui a touché (la tranche, une demi-largeur vers la route), giclent vers le vide et filent AVEC la
-   caisse le long de la dalle (elles héritent de sa vitesse d'avance) : on lit de quel côté on a cogné. 4 à 10 selon la violence. */
+   caisse le long de la dalle (elles héritent de sa vitesse d'avance) : on lit de quel côté on a cogné. 4 à 10 selon la violence.
+   (2026-10-14, accord) 8 à 14 : elle REMPLACE la boule de 12 du centre (tryLand) au lieu de s'y ajouter — une seule gerbe par bump. */
 function sensBumpFlanc(b,t,n,sg,impB){
-  const k=Math.min(1,Math.max(0,impB||0)/20),nb=4+Math.round(6*k),w=CARS[level].w*.5,vt=fallVel.dot(t)*SPD;
+  const k=Math.min(1,Math.max(0,impB||0)/20),nb=8+Math.round(6*k),w=CARS[level].w*.5,vt=fallVel.dot(t)*SPD;
   const px=fallPos.x-b.x*sg*w,py=fallPos.y-b.y*sg*w,pz=fallPos.z-b.z*sg*w;
   for(let i=0;i<nb;i++){const a=vt*(.72+Math.random()*.26),l=sg*(2+Math.random()*(4+5*k)),u=-1+Math.random()*3.5,o=(Math.random()-.5)*1.6;
     spawnP(sparkGold,px+t.x*o,py+t.y*o,pz+t.z*o,t.x*a+b.x*l+n.x*u,t.y*a+b.y*l+n.y*u,t.z*a+b.z*l+n.z*u,.2+Math.random()*.25);}
@@ -38783,6 +38850,7 @@ function startFall(impU,impF,bord){ // bord : sortie par le CÔTÉ de la route (
   // fait désormais NATIVEMENT (portée = vx·2vy/g, vx vrai).
   if(fallVel.y>70)fallVel.y=70;
   hopY=0;hopV=0;POSE_F=null; // un dos d'âne en cours ne doit pas laisser de décalage fantôme
+  SCOUP.vp=0; // (2026-10-14, accord) une pose qui n'a jamais touché (repartie en vol pendant sa descente) n'emporte pas sa vibration au vol suivant
   lastNearY=fallPos.y; // référence du plongeon fatal tant que tryLand n'a pas mieux
   {tmp.copy(fallVel).normalize();FLY_U.copy(F.n).addScaledVector(tmp,-F.n.dot(tmp)); // (vol libre) le haut du vol part de celui de la route
    if(FLY_U.lengthSq()<1e-4)FLY_U.copy(F.b).cross(tmp);FLY_U.normalize();FLY_R.crossVectors(FLY_U,tmp).normalize();}
@@ -38815,7 +38883,9 @@ function startFall(impU,impF,bord){ // bord : sortie par le CÔTÉ de la route (
   /* (2026-10-14, sensations · pose) LE SOL LÂCHE DANS LA MAIN. Le décollage avait sa poussière et son souffle, mais le pouce ne sentait rien :
      on apprenait qu'on volait en le voyant. Un tic au moment où les roues quittent le bitume — léger pour une crête, un trou ou le bord,
      et le « ta-tac » des deux essieux (avant, puis arrière) sur la lèvre d'une CATAPULTE. Une seule vibration, par le limiteur commun. */
-  if(SENS&&running&&!gameOver&&!introD)try{if(!bord&&impU>=5)sensHap([10,26,14],2);else sensHap(9,1);}catch(e){}
+  /* (2026-10-14, gameplay · accord) …sauf le SAUT NITRO de Léo : il a son motif à lui ([12,30,18], dans veqSaut, juste après cet appel) —
+     le « ta-tac » d'ici partait à la même image et se mêlait au sien. Le braquage qui arrache la caisse a déjà vibré : le limiteur le tait. */
+  if(SENS&&running&&!gameOver&&!introD&&!(performance.now()-VEQ.sautT<60))try{if(!bord&&impU>=5)sensHap([10,26,14],2);else sensHap(9,1);}catch(e){}
   if(AC&&engRpm>.42){const e9=ENG_SND[Math.max(0,engLvl)];if(e9&&e9.crk)crackle(e9.crk*.8);} // (2026-09-25) le moteur se décharge en quittant le sol
   if(SONV2){ /* (console de son) tomber n'est pas décoller : chacun son son */
     /* (bord, 1/10, Sacha : « un son de merde quand on sort de la route et qu'on va dans les airs, deux petites notes ») : la sortie par le
@@ -38940,7 +39010,7 @@ function tryLand(dt){
     thud(impB);if(!SONV2)noiseBurst(.14,.09,1100); // choc + froissement de tôle (console : pose.choc le porte)
     shake=Math.min(1.3,.3+impB*.03);
     dropChip(2+Math.floor(Math.min(4,impB*.12))); // ça casse ENCORE PLUS de bouts
-    sparkBurst(sparkGold,carGroup.position,12,10);
+    if(!SENS)sparkBurst(sparkGold,carGroup.position,12,10); // (2026-10-14, gameplay · accord) sous SENS, la gerbe naît au FLANC qui cogne (sensBumpFlanc, ligne suivante) : deux gerbes d'or à la même image — une boule au centre de la caisse ET une au flanc — n'en font plus qu'une, au bon endroit
     if(SENS)try{sensBumpFlanc(B[bestI],T[bestI],Nn[bestI],sg,impB);}catch(e){} // (2026-10-14, sensations · pose) le flanc RACLE la tranche : la gerbe part du point de contact
     squashT=Math.max(squashT,.22);
     return false; // toujours en vol — enchaîne les bumps !
@@ -39005,6 +39075,7 @@ function tryLand(dt){
      poseGerbe(carGroup.position,Nn[nI9],sd9,T[nI9],vA*SPD*driveDir,imp9); // (2026-09-26) la GERBE DE POSE : étincelles de châssis qui rasent le bitume + gomme
      thud(Math.abs(vN9)*(imp9<4.5&&lL9<.2?.75:1));shake=Math.min(1.4,.35+Math.abs(vN9)*.05+lL9*.6);squashT=Math.max(squashT,.1+Math.min(.2,imp9*.022)); // (2026-09-28) la caisse se TASSE sur ses ressorts à la pose // (2026-09-25) la pose PARFAITE ne cogne plus plus fort que la lourde
      if(SENS)try{sensPose(imp9,sensPsi9,sensVer9);}catch(e){} // (2026-10-14, sensations · pose) le nez plonge selon le choc, la caisse verse si elle arrive en crabe
+     if(SENS&&SCOUP.vp)try{const p9=SCOUP.vp,n9=performance.now();SCOUP.vp=0;if(n9-SCOUP.vt<1200&&(n9-(hap._t||-1e9)>=70||(hap._k||0)<(p9>40?3:2)))hap(p9);}catch(e){} // (2026-10-14, accord) la vibration du VERDICT, gardée depuis la déclaration : elle tombe avec les roues (et se tait si une autre, aussi forte, vient de partir)
      engRpm*=.6;charge9=1;if(imp9>2)pneuMord(Math.min(1,imp9/10));}; // la gomme MORD : le moteur reprend en charge, et ça piaille
    if(hR9>.25){hopY=hR9;hopV=(sd9>0?vN9:-vN9)*SPD;POSE_F=touche9;}else{hopY=0;hopV=0;POSE_F=null;if(sd9>0&&hR9<0)levreY=Math.max(-.6,hR9);touche9();}} /* posée SOUS le niveau du bitume (lèvre, plan percé) : elle remonte sa marche en ~0,15 s (levreY) au lieu d'y sauter */
   /* ---- LA RÉCEPTION À L'ARRACHÉE (2026-08-18) -------------------------------------------------
@@ -39027,16 +39098,21 @@ function tryLand(dt){
     }
   }
   // ---- LE VERDICT : la CHAÎNE se cashe — grade de réception × face × série ----
+  /* (2026-10-14, gameplay · accord) LA MAIN SENT LE CONTACT, PAS LA DÉCLARATION. La pose est déclarée à 3 m du bitume (voir LA POSE SANS
+     SAUT) ; la caisse finit sa descente en hopY et TOUT le choc part au contact (touche9 : gerbe, thud, secousse, suspension, nez, caméra
+     de Léo) — sauf la vibration du verdict, qui partait ici, un quart à un tiers de seconde AVANT les roues (mesuré au banc). Elle attend
+     désormais le contact (SCOUP.vp, joué par touche9). Posée tout de suite (sans descente) : rien ne change. `?sens=0` : comme avant. */
+  const hapV9=SENS&&POSE_F?function(p){SCOUP.vp=p;SCOUP.vt=performance.now();}:hap;
   if(fallT>.7||chain>0||chainVal>0){ // (2026-09-26) chainVal>0 : le REPORT annoncé au décollage se paie même sur une courte sortie
     // le grade juge tout le vol : pose soyeuse = jackpot, pose écrasée = décote
     let g=1,gTxt='';
     if(poseRatee){g=.65;gTxt='';} // (v4) de travers ou à contresens : la décote du POSÉ LOURD, et c'est la chute du flow qui parle
-    else if(impact<4.5){g=1.5;gTxt='PARFAIT ! ';hitT=.08;hap(15);} // (2026-10-09, Sacha : « plus généreuse ») PARFAIT = douce ET dans l'axe, quelle que soit la durée du vol — `landLoss<.2` l'interdisait au-delà de ~2 s (AIR MONSTRE jamais PARFAIT) ; le remboursement de nitro reste au prorata du vol réacteur coupé
-    else if(impact>=10){g=.65;gTxt='POSÉ LOURD — AÏE… ';hap(45);}
-    else hap(14); // chaque pose se SENT dans la main (la parfaite a son coup sec plus haut, la lourde son choc)
+    else if(impact<4.5){g=1.5;gTxt='PARFAIT ! ';hitT=.08;hapV9(15);} // (2026-10-09, Sacha : « plus généreuse ») PARFAIT = douce ET dans l'axe, quelle que soit la durée du vol — `landLoss<.2` l'interdisait au-delà de ~2 s (AIR MONSTRE jamais PARFAIT) ; le remboursement de nitro reste au prorata du vol réacteur coupé
+    else if(impact>=10){g=.65;gTxt='POSÉ LOURD — AÏE… ';hapV9(45);}
+    else hapV9(14); // chaque pose se SENT dans la main (la parfaite a son coup sec plus haut, la lourde son choc)
     if(fever>0&&!poseRatee){ // BRAQUAGE : tous les grades montent d'un cran — même la casse pardonne (pas la pose ratée)
       if(g===1.5){g=2;gTxt='DIVIN !! ';}
-      else if(g===1){g=1.5;gTxt='PARFAIT (BOOST ×2) ! ';hitT=.08;hap(15);}
+      else if(g===1){g=1.5;gTxt='PARFAIT (BOOST ×2) ! ';hitT=.08;hapV9(15);}
       else{g=1;gTxt='';}
     }
     if(g>=1.5)try{poseParfaiteFx(g>=2);}catch(e){} // (2026-09-28) coup de zoom + couronne dorée
@@ -39274,6 +39350,7 @@ function resetGame(){
   MENUV.retour=false; // (2026-09-28) on repart : l'accueil d'après-mort (accueilRetour) n'est plus la racine
   clearBoom();
   mortCause='';loop._nAir=false;facDepart(); // (MODE FACILE) trois vies neuves à chaque partie // (2026-09-26) rien ne passe d'une partie à l'autre
+  nitroOn=false;nitroBlue=false;nitroHeldT=0;loop._nOn=false;loop._nBl=false;SENS_NI.on=false; // (2026-10-14, chasse aux bugs) la NITRO ne passe pas d'une partie à l'autre : la porte de simulation de `loop` se ferme à `gameOver`/`paused`, donc mourir (ou ⏸) en tenant NITRO laissait nitroOn / loop._nOn / nitroHeldT à leur valeur — à la 1re image de la partie neuve le bloc nitro croyait la nitro VIENT de s'éteindre : PSSHT de relâche, langues de feu + pétarade aux pots, nez qui pique + vibration ; et, doigt posé dès le départ, le coup d'allumage était perdu (loop._nOn déjà vrai)
   TUTO.quitte=0;                 // (2026-09-28) la leçon quittée ne concerne que l'écran de fin qui la suit (une carrière relancée ne repasse pas par tutoDebut)
   if(TUTO.on)tutoDebut();        // (2026-09-26) RECOMMENCER à l'auto-école repart de la 1re consigne
   money=START_CASH; // on repart avec la mise de départ, jamais à sec
@@ -39340,7 +39417,7 @@ function commitExploits(){
      ⚠ ET ON NE VERSE QUE CE QUI A ÉTÉ ENCAISSÉ : la mallette en cours n'a jamais touché `money`,
      donc mourir en vol la perd, exactement comme avant. La banque ne rachète pas le bank-or-bust,
      elle en est la conséquence logique. */
-  const vire=Math.max(0,money-START_CASH);
+  const vire=Math.max(0,money-START_CASH)||0; // (2026-10-14, chasse aux bugs) un `money` NaN faisait bank=NaN (Math.max/min propagent NaN) : écrit null dans le JSON, relu 0 — TOUTE la banque perdue, pas seulement la partie · `||0` : une partie au montant illisible ne verse rien, la banque reste
   SAVE.d.bank=Math.min(1e30,bank()+vire);bankMaxMaj();
   const rangAvant=auraRank();
   if(!lecon){SAVE.d.aura=(SAVE.d.aura||0)+Math.round(auraRun);
@@ -43477,6 +43554,13 @@ try{if(gEl&&document.documentElement.classList.contains('c6')){const o9=document
     r9.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go9(e);}});}
   for(const pr of [['#gCompteur b','gC6Cash'],['#gAuraC b','gC6Aura']]){const a9=document.querySelector(pr[0]),b9=document.getElementById(pr[1]);if(!a9||!b9)continue;
     const cp=function(){const t=a9.textContent;if(b9.textContent!==t)b9.textContent=t;};cp();new MutationObserver(cp).observe(a9,{childList:true,characterData:true,subtree:true});}
+  /* (2026-10-14, charte 6, p2) L'INVENTAIRE D'UN JOUEUR NEUF : peu de cartes (≤ 3) → la plaque se serre sur son contenu (classe c6Peu) ; sur l'onglet VOITURES, une ligne d'état vide
+     dit quoi faire (classe c6VideV, le texte est #gC6Vide). Un observateur sur la grille et un sur les onglets : aucune fonction du jeu n'est touchée, et les classes se posent sur #gBottom,
+     que ni l'un ni l'autre n'observe (pas de boucle). */
+  const gs9=document.getElementById('gStrip'),gb9=document.getElementById('gBottom'),gt9=document.getElementById('gTabs');
+  if(gs9&&gb9&&gt9){const peu9=function(){const v=gt9.querySelector('.gTab.on'),n=gs9.querySelectorAll('.gT').length,peu=n<=3;gb9.classList.toggle('c6Peu',peu);gb9.classList.toggle('c6VideV',peu&&!!v&&v.getAttribute('data-tab')==='voiture');};
+    peu9();new MutationObserver(peu9).observe(gs9,{childList:true});new MutationObserver(peu9).observe(gt9,{attributes:true,attributeFilter:['class'],subtree:true});}
+  try{for(const k of ['Tes caisses apparaîtront ici','Gagne-les en course ou à la boutique'])if(!I18N[k])I18N[k]=k.charAt(0)==='T'?'Your crates will show up here':'Win them in a race or at the shop';}catch(e){}
 }}catch(e){}
 function gConsoleCache(on){if(!gEl)return;gEl.classList.toggle('consoleCachee',!!on);garLibre._r=null;
   const b=document.getElementById('gCache');if(b){b.setAttribute('aria-pressed',on?'true':'false');const sp=b.querySelector('span');if(sp){sp.dataset.fr=on?'VOIR':'CACHER';sp.textContent=TR(sp.dataset.fr);}}}
@@ -49280,7 +49364,7 @@ function loop(now){
     else if(nitroOn&&nitroBlue&&!loop._nBl&&mode!=='boom')nitroAllume(true,true); // …et le 2e étage : on bascule dans la réserve bleue
     loop._nBl=nitroBlue;
     if(nitroOn){nitroHeldT+=dt;styleFromBoost(dt);} // TENIR le boost remplit la jauge rose — la seule source
-    if(!nitroOn&&loop._nOn&&nitroHeldT>.35)blowOff();
+    if(!nitroOn&&loop._nOn&&nitroHeldT>.35&&mode!=='boom')blowOff(); // (2026-10-14, chasse aux bugs) pas de soupape de turbo sur la caisse qui EXPLOSE : la porte de simulation reste ouverte les 1,8 s de 'boom', un pouce levé (ou la panne sèche) y jouait le PSSHT + flutter par-dessus l'explosion — tous les autres sons de fin de nitro (nitroEteint, nitro.sec, sensNitro) sont déjà gardés mode!=='boom'
     if(SONV2&&!nitroOn&&loop._nOn&&wantN&&mode!=='boom')sfx('nitro.sec'); // (console de son) PANNE SÈCHE : la jauge lâche sous le doigt
     if(!nitroOn&&loop._nOn)nitroEteint(); // (vague 3) la dernière bouffée (lit nitroHeldT : avant sa remise à zéro)
     if(SENS)try{sensNitro(dt,!!wantN);}catch(e){} // (2026-10-14, sensations · nitro) la coupure, la panne sèche, les rapports, les paliers : dans la tôle et la main (lit nitroHeldT avant sa remise à zéro)
@@ -49506,7 +49590,7 @@ function loop(now){
         if(b9>=Math.min(sDe9,s)-2.2&&b9<=Math.max(sDe9,s)+2.2){ // (BALAYAGE) sur le trajet de l'image : à 30 i/s, il passait entre deux images au-delà de ~475 km/h
           hopV=2.4+Math.min(3.2,Math.abs(vF)*.045);
           vA*=.97;shake=Math.max(shake,.15);if(SONV2)sfx('dosdane');else noiseBurst(.12,.1,300);
-          if(SENS)try{sensCoup(0,-1.2-Math.min(.8,Math.abs(vF)*.012),0);sensHap(14,2);}catch(e){} // (2026-10-14, sensations) les roues avant montent les premières : le nez se lève (plus sec quand on arrive vite) — avant, la caisse sautait à plat, sans un mot dans la main
+          if(SENS)try{sensCoup(0,-1.2-Math.min(.8,Math.abs(vF)*.012),0);sensHap(12,1);}catch(e){} /* (2026-10-14, accord) 14 → 12, force 1 : un dos d'âne fait SAUTILLER — un tic léger à la montée, un autre à la retombée (SCOUP.hop) ; à 14 / force 2 il passait pour un coup net et faisait taire sa propre retombée (220 ms) */ // (2026-10-14, sensations) les roues avant montent les premières : le nez se lève (plus sec quand on arrive vite) — avant, la caisse sautait à plat, sans un mot dans la main
           if(Math.random()<.5)dropChip(1);
           break;
         }
@@ -49548,8 +49632,8 @@ function loop(now){
           coneVole(c9); // (perf) il quitte l'instance : un vrai plot part valser
           FLYCONES.push({m:c9.mesh,v:kv,rx:(Math.random()-.5)*16,rz:(Math.random()-.5)*16,life:1.6,p0:c9.mesh.position.clone(),n0:F.n.clone().multiplyScalar(side),b0:F.b.clone()});
           try{if(SONV2&&c9.dur)sfx('porte');else coneSnd();}catch(e){}
-          vA*=.985;shake=Math.max(shake,.14);hap(10);
-          if(SENS)try{const d9=c9.dur?1.6:1;sensCoup((dl9>0?1:-1)*d9,.6*d9,0);if(c9.dur)sensHap([16,24,10],2);}catch(e){} // (2026-10-14, sensations) le plot tape un coin de la caisse : elle penche à l'opposé et pique du nez, le temps d'un ressort (une PORTE dure cogne plus fort, et se sent dans la main)
+          vA*=.985;shake=Math.max(shake,.14);hap(SENS&&c9.dur?16:10); // (2026-10-14, gameplay · accord) la PORTE dure : un COUP NET (16) à la place du tic — une seule vibration ; avant, le tic ET un motif [16,24,10] partaient à la même image
+          if(SENS)try{const d9=c9.dur?1.6:1;sensCoup((dl9>0?1:-1)*d9,.6*d9,0);}catch(e){} // (2026-10-14, sensations) le plot tape un coin de la caisse : elle penche à l'opposé et pique du nez, le temps d'un ressort (une PORTE dure cogne plus fort, et se sent dans la main)
           sparkBurst(boomRed,c9.mesh.position,5,6); // (2026-09-28) un plot percuté COÛTE : éclats rouges (l'or, c'est l'argent)
           addStyle(2);flowFaute('n',0,.25); // (v5) un plot percuté : -NARCISSE, le répit saute
           if(c9.dur){if(c9.pt)c9.pt.touche=true;vA*=.9;momT=0;FLOW.v=Math.max(0,FLOW.v-12);FLOW.idle=2;popTexte('TOUCHE !','#ff5e7a',1);} // (2026-09-30) la porte touchée ne se compte pas propre (campPortesTick) · (2026-09-27) une PORTE du niveau 4 : la toucher ne tue pas, elle coûte (vitesse, élan, FLOW)
@@ -50668,7 +50752,7 @@ function loop(now){
     {const tr9='scale('+(1+spdP).toFixed(3)+')',co9=speedKmh>920?'#ff5040':'';
      if(loop._spT!==tr9){loop._spT=tr9;elSpeed.style.transform=tr9;}if(loop._spC!==co9){loop._spC=co9;elSpeed.style.color=co9;}}
     }
-    if(!REDUCED_MOTION){const o9=Math.max(0,Math.min(.95,(speedKmh-280)/560)).toFixed(2);if(loop._sfO!==o9){loop._sfO=o9;speedFx.style.opacity=o9;}} // reduced-motion : vignette vitesse coupée
+    if(!REDUCED_MOTION){const o9=Math.max(0,Math.min(OEIL_V1?.6:.95,(speedKmh-280)/560)).toFixed(2);if(loop._sfO!==o9){loop._sfO=o9;speedFx.style.opacity=o9;}} // reduced-motion : vignette vitesse coupée
     // panneaux HUD MASQUÉS (#carInfo/#cpInfo/#record en display:none) : on ne reconstruit leur texte (fmtC/fmt alloue) QUE quand la valeur change
     paintCarHud();
     if(TCTL.on)cashHudTick(dt); // (2026-09-29) le compteur d'argent du téléphone (#cashHud) · (2026-09-30) la colonne de droite s'empile
@@ -51296,7 +51380,7 @@ function applyDPR(){ try{ const W=innerWidth,H=innerHeight;
   if(slCv.width!==W||slCv.height!==H){slCv.width=W;slCv.height=H;}
   if(juiceCv&&(juiceCv.width!==W||juiceCv.height!==H)){juiceCv.width=W;juiceCv.height=H;} }catch(e){} }
 // PAUSE AUTO : l'appli passe en arrière-plan (onglet caché, app minimisée) → on gèle + on coupe le son
-addEventListener('visibilitychange',function(){ if(document.hidden&&started&&!gameOver&&!paused)togglePause();
+addEventListener('visibilitychange',function(){ if(document.hidden&&started&&!gameOver&&!paused&&mode!=='boom')togglePause(); /* (2026-10-14, chasse aux bugs) PAS pendant l'EXPLOSION : la pause figeait la boule de feu, coupait le son de mort et rouvrait le panneau PAUSE au retour sur une partie déjà perdue — l'arrière-plan gèle déjà tout (plus d'images, contexte audio suspendu) ; au retour la mort avance comme au ⏸ (boomSkip, plus bas) */
   // (2026-09-26) au menu, au garage ou sur l'écran de mort, une vingtaine de sources en boucle tournaient encore en arrière-plan
   try{ if(AC){ if(document.hidden){if(AC.state==='running')AC.suspend();} else if((SND.sfx||musWaTient())&&!paused&&AC.state!=='running')AC.resume(); } }catch(e){} // (2026-10-14, session SON) …et au retour d'arrière-plan aussi
   if(document.hidden)try{enCoursPose();SAVE.flush();}catch(e){} // (2026-09-28) l'appli part en arrière-plan : ce qui attendait le filet de 30 s (record de frénésie, meilleur moteur…) est écrit TOUT DE SUITE — iOS peut la tuer sans prévenir · (2026-09-30) et la PARTIE en cours avec (enCoursPose)
@@ -51342,9 +51426,10 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   // ---- BOUTONS : ils pilotent le MÊME objet `keys` que le clavier → aucune nouvelle physique ----
   function bindHold(el,code,onDown,vis){ if(!el)return; vis=vis||el; el._tenu=code; // `vis` : l'élément qui s'ENFONCE (la zone NITRO élargie enfonce le disque)
     const dn=function(e){ if(e.cancelable)e.preventDefault(); e.stopPropagation(); // un appui sur un bouton n'arme JAMAIS le volant
-      if(!keys[code]){keys[code]=true;vis.classList.add('on');hap(9);if(onDown)onDown();} };
+      if(!keys[code]){keys[code]=true;vis.classList.add('on');if(SENSG&&code==='Space'&&running&&!paused&&!gameOver&&mode!=='boom')vis._t9=performance.now();else hap(9);if(onDown)onDown();} }; // (2026-10-14, gameplay · accord) en course, la NITRO répond elle-même à l'image suivante (allumage [14,26,10], « à vide » 6, saut nitro, figure) : le tic d'appui (9) partait 16 ms avant — deux impulsions pour un seul appui. Il reste pour les flèches, et pour la nitro hors course
     const up=function(e){ if(e&&e.cancelable)e.preventDefault();
       if(e&&e.touches&&keys[code])for(let i=0;i<e.touches.length;i++){const c=e.touches[i].target;const b=c&&c.closest?c.closest('#tNitro,#tNitroZone,#tLeft,#tRight'):null;if(b&&b._tenu===code)return;} // (2026-10-14, chasse aux bugs) un AUTRE doigt tient encore cette commande (le pouce sur le disque NITRO, quand la paume quitte la zone élargie) : le lever d'un intrus ne coupe plus la nitro sous le pouce — même règle que le volant (2026-09-30)
+      if(vis._t9){if((hap._t||0)<vis._t9)hap(9);vis._t9=0;} // (2026-10-14, accord) un appui plus bref qu'une image : la nitro n'a rien vu, rien n'a vibré — le tic d'appui part au lâcher (mesuré au banc : sinon, silence)
       if(code==='Space'&&keys[code])veqDoigt(false); keys[code]=false; vis.classList.remove('on'); }; // (2026-10-14) le relâcher du doigt compte pour le TONNEAU
     el.addEventListener('touchstart',dn,{passive:false});
     el.addEventListener('touchend',up,{passive:false});
@@ -51637,8 +51722,8 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       modale({titre:q9?'QUITTER LA PARTIE ?':'RECOMMENCER ?',texte:q9?(TUTO.on?(SAVE.d.permis?'Tu reprendras la leçon au prochain départ.':"Tu reprendras la leçon au prochain départ : le PERMIS et sa prime t'attendent."):'Tes gains sont versés au compte.'):'Les gains de cette partie ne seront PAS versés.', // (2026-09-29) pendant la leçon, « tes gains sont versés » taisait l'enjeu
         boutons:[{l:q9?'QUITTER':'RECOMMENCER',ic:q9?'quitter':'rejouer',cls:'pb-red',v:1},{l:'CONTINUER',ic:'lecture',v:0}]}) // CONTINUER en DERNIER : Échap clique le dernier bouton
       .then(function(r){ if(!r.v||!started||gameOver)return;
-        const f9=function(){ if(!started||gameOver)return; const rc9=!q9&&mode!=='boom'; if(rc9)feuilleFerme(pan,'open');else panOpen(false); // (2026-10-14, chasse aux bugs) RECOMMENCER ferme la feuille SANS dépauser : panOpen(false) passait par togglePause (« GO ! », musique de la partie abandonnée relancée, jeu qui repart) juste avant resetGame
-          if(q9){if(TUTO.on)tutoQuitte();const sb=SANDBOX;SANDBOX=false;endGame();SANDBOX=sb;}
+        const f9=function(){ if(!started||gameOver)return; const rc9=mode!=='boom'; if(rc9)feuilleFerme(pan,'open');else panOpen(false); // (2026-10-14, chasse aux bugs) RECOMMENCER ferme la feuille SANS dépauser : panOpen(false) passait par togglePause (« GO ! », musique de la partie abandonnée relancée, jeu qui repart) juste avant resetGame
+          if(q9){if(rc9){paused=false;try{if(AC&&SND.sfx&&AC.state!=='running')AC.resume();}catch(e){}} /* (2026-10-14, chasse aux bugs) QUITTER aussi ferme la feuille SANS togglePause : la musique de la partie abandonnée repartait 0,66 s (play à la seconde où on l'avait laissée) juste pour être étranglée par le tape-stop d'endGame — on sort de la pause à la main, le son se réveille pour l'écran de fin, la musique reste arrêtée (musicStop la range proprement) */ if(TUTO.on)tutoQuitte();const sb=SANDBOX;SANDBOX=false;endGame();SANDBOX=sb;}
           else if(mode==='boom')endGame(); // (2026-10-12, passe qualité) la caisse EXPLOSE déjà : la partie est finie — RECOMMENCER sautait endGame (ni virement, ni aura, ni record, ni écran de fin). On la solde, l'écran de fin et son REJOUER suivent.
           else { /* (2026-10-14, chasse aux bugs) …et passe par le VOLET comme REJOUER : la piste neuve se construisait à l'écran, sous la feuille qui descendait. Le jeu reste gelé sous le voile ; le son (endormi par la pause) se réveille pour le volet — la musique abandonnée, elle, reste en pause : resetGame lance la neuve en fondu */
             let r9=null;try{busPlein();if(AC&&SND.sfx&&AC.state!=='running')r9=AC.resume();}catch(e){}
@@ -51723,7 +51808,8 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(document.hidden){ if(started&&!gameOver&&paused&&pan&&(!pan.classList.contains('open')||pan.classList.contains('sortant'))){feuilleOuvre(pan,'open');panSync();} return; } // (2026-09-29) « sortant » : parti pendant le 3-2-1 qui suit REPRENDRE — le compte s'annule, le panneau revient
     // (2026-09-29) une course qui a DÉMARRÉ pendant que l'appli dormait (REJOUER puis bouton d'accueil dans la foulée) : au retour elle
     // roule sans pause ni panneau — on la met en pause, REPRENDRE sous le pouce
-    if(started&&!gameOver&&!paused&&pan&&!pan.classList.contains('open'))panOpen(true);
+    if(started&&!gameOver&&mode==='boom')boomSkip(); // (2026-10-14, chasse aux bugs) retour pendant l'explosion : comme le ⏸ (gearOpenHandler) — vers l'écran de fin, jamais une PAUSE sur la caisse qui brûle
+    else if(started&&!gameOver&&!paused&&pan&&!pan.classList.contains('open'))panOpen(true);
     wakeAsk(); audioKick(); });
   // ---- BASCULE D'ORIENTATION : iOS annonce des dimensions PÉRIMÉES — on recadre après le pivot ----
   const reflow=function(){ clearTimeout(reflow._t); reflow._t=setTimeout(function(){ // (2026-09-29) une seule fois par rafale (clavier, barre d'adresse) : applyDPR réalloue toutes les cibles de rendu
