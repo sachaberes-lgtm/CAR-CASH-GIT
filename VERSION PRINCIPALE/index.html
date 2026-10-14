@@ -8724,7 +8724,7 @@ const sunSprite=(function(){
     const cvL=document.createElement('canvas');cvL.width=cvL.height=512;const l=cvL.getContext('2d');   // la face : or plein, reflet clair en tête
     l.font=c.font;l.textAlign='center';l.textBaseline='middle';l.fillStyle='#ffd75e';l.fillText('1.61',256,260);
     l.globalCompositeOperation='source-atop';l.fillStyle='#fff3b0';l.fillRect(0,0,512,248);
-    d.drawImage(cvL,0,0);
+    d.drawImage(cvL,0,0);toileRend(cvL); // (2026-10-14, passe perf mobile) toile de travail 512² : 1 Mo rendu tout de suite, à chaque dessin
     texO.needsUpdate=true;
   }
   draw();
@@ -8824,7 +8824,7 @@ const planetGroup=(function(){
     x.beginPath();x.ellipse(cx,cy,w,7+Math.random()*13,(Math.random()-.5)*.5,0,6.2832);x.fill();
   }
   x.globalAlpha=1;
-  const tex=new THREE.CanvasTexture(cv);tex.wrapS=THREE.RepeatWrapping;
+  const tex=new THREE.CanvasTexture(cv);tex.wrapS=THREE.RepeatWrapping;texLibere(tex); // (2026-10-14, passe perf mobile) 1024 × 512 peinte une fois : 2 Mo rendus après l'envoi (paliers 0-1)
   // ⚠ le grade final (expo + saturation + bloom) BRÛLE tout ce qui est clair : mesurée à [253,231,239],
   // la planète ressortait BLANCHE. On la rentre donc volontairement sombre — c'est le post qui la rallume.
   const globe=new THREE.Mesh(new THREE.SphereGeometry(PLANET_R,44,30),
@@ -9026,6 +9026,20 @@ const PAL=(function(){
   P.B={};
   P.b=function(k,d){const v=P.B[k];return v?v[P.n]:d;};
   return P;})();
+/* LES TOILES 2D RENDUES APRÈS L'ENVOI À LA PUCE (2026-10-14, passe perf mobile). MESURÉ (iPhone 7 émulé) : 184 toiles 2D vivantes = 52 Mo
+   avant le premier écran — et iOS plafonne la mémoire de toiles d'une page (au-delà : toiles blanches, puis la page est tuée). Une toile
+   qui n'a servi qu'à peindre UNE fois une `CanvasTexture` ne sert plus à rien dès que three l'a envoyée (`texture.onUpdate` est appelé
+   juste après l'envoi, mipmaps comprises) : `texLibere(tex)` la vide alors (largeur = hauteur = 0 → la mémoire est rendue tout de suite,
+   sans attendre le ramasse-miettes). ⚠ UNIQUEMENT pour une texture JAMAIS redessinée (aucun `needsUpdate` ultérieur, pas de redessin à
+   l'arrivée de la police, image jamais relue par un autre code, texture jamais `dispose()` puis resservie). Le contexte 3D perdu ne
+   demande rien : il RECHARGE la page (voir webglcontextrestored). Le palier se lit À L'ENVOI (pas à l'appel : des textures naissent
+   avant PAL dans le fichier). Palier 2 : inchangé (toiles gardées, outils `dbg*` qui les relisent intacts).
+   `toileRend(cv)` : pour une toile de TRAVAIL (copiée dans une autre puis jetée) — invisible, vaut pour tous les paliers. */
+PAL.B.memToiles=[1,1,0]; // rendre les toiles des textures peintes une fois : ancien, moyen = oui · récent = comme avant
+function toileRend(cv){try{if(cv&&cv.getContext)cv.width=cv.height=0;}catch(e){}}
+function texLibere(tex){if(!tex||tex._lib)return tex;tex._lib=1;const av=tex.onUpdate;
+  tex.onUpdate=function(t){if(av)av(t);t.onUpdate=av||null;if(PAL.b('memToiles',0)){toileRend(t.image);MEM_TOILES.n++;}};return tex;}
+const MEM_TOILES={n:0};window.dbgToiles=function(){return {palier:PAL.n,actif:PAL.b('memToiles',0),rendues:MEM_TOILES.n};}; // (dev) combien de toiles ont été rendues
 function palNote(n,pourquoi){ // ce que la COURSE a appris : retenu pour les prochains démarrages (le palier courant ne change pas en vol : la plupart des budgets se prennent à la construction)
   try{n=Math.max(0,Math.min(2,n|0));localStorage.setItem('cashcarPalier',JSON.stringify({v:1,n:n,src:'mesure',pourquoi:String(pourquoi||'').slice(0,80),t:Date.now()}));PAL.appris={n:n,src:'mesure'};}catch(e){}}
 function palPuce(gl9){ // (après la création du contexte) la puce graphique, là où le navigateur la dit (Android) : une puce d'entrée de gamme rabat le palier
@@ -13182,7 +13196,7 @@ function villePubAtlas(){
     const fz=Math.min(26,Math.floor((C-28)/Math.max(3,p[0].length)));x.font=fz+'px "Press Start 2P",monospace';x.fillText(p[0],ox+C/2,oy+C*.44);
     x.font='8px "Press Start 2P",monospace';x.fillStyle='#ffffff';x.fillText(p[3],ox+C/2,oy+C*.74);
     for(let i=0;i<5;i++){x.fillStyle=p[1];x.globalAlpha=.55;x.fillRect(ox+14+i*20,oy+C-22,12,4);}x.globalAlpha=1;});
-  const t=new THREE.CanvasTexture(cv);t.magFilter=THREE.NearestFilter;t.minFilter=THREE.LinearMipmapLinearFilter;
+  const t=new THREE.CanvasTexture(cv);t.magFilter=THREE.NearestFilter;t.minFilter=THREE.LinearMipmapLinearFilter;texLibere(t); // (2026-10-14, passe perf mobile) 512² : 1 Mo
   CITY.pub=t;return t;
 }
 function villeMatPub(){
@@ -13394,7 +13408,7 @@ function cryptoPubAtlas(){
     const fz=Math.min(40,Math.floor((C-44)/Math.max(3,p[0].length)));x.font=fz+'px "Press Start 2P",monospace';x.fillText(p[0],ox+C/2,oy+C*.62);
     x.font='12px "Press Start 2P",monospace';x.fillStyle='#ffffff';x.fillText(p[3],ox+C/2,oy+C*.8);
     if(p[4]==='up'||p[4]==='bougies'){x.fillStyle=p[1];x.globalAlpha=.6;for(let i=0;i<7;i++)x.fillRect(ox+30+i*28,oy+C-34-i*3,16,6+i*3);x.globalAlpha=1;}});
-  const t=new THREE.CanvasTexture(cv);t.magFilter=THREE.NearestFilter;t.minFilter=THREE.LinearMipmapLinearFilter;t.anisotropy=4;
+  const t=new THREE.CanvasTexture(cv);t.magFilter=THREE.NearestFilter;t.minFilter=THREE.LinearMipmapLinearFilter;t.anisotropy=4;texLibere(t); // (2026-10-14, passe perf mobile) 1024² : 4 Mo
   CRYPTO.mat.pubT=t;return t;
 }
 function cryptoMatPub(){
@@ -13567,6 +13581,7 @@ function cryptoTickerTex(){
     if(l[2]){x.fillStyle='#3dff9a';x.beginPath();x.moveTo(px,H/2+14);x.lineTo(px+16,H/2-16);x.lineTo(px+32,H/2+14);x.fill();px+=44;x.fillText(l[2],px,H/2);px+=x.measureText(l[2]).width;}
     px+=70;if(px>W-200)break;}
   const t=new THREE.CanvasTexture(cv);t.wrapS=THREE.RepeatWrapping;t.minFilter=THREE.LinearMipmapLinearFilter;t.magFilter=THREE.NearestFilter;t.anisotropy=4;
+  texLibere(t); // (2026-10-14, passe perf mobile) 2048 × 96 : 0,8 Mo (le défilement = `offset`, la toile n'est jamais repeinte)
   CRYPTO.mat.tick=t;CRYPTO.mat.ecran=new THREE.MeshBasicMaterial({map:t,color:new THREE.Color(1.5,1.5,1.5)});CRYPTO.mat.ecran.dispose=function(){};return t;
 }
 /* LES CONSTRUCTIONS DU NIVEAU — après les tours (buildVoxCity) : tout dans le groupe de la ville (il part avec la piste) */
@@ -13757,7 +13772,7 @@ function plaTexBillets(){ // l'atlas 4 × 3 : la série des sept billets (pluie 
   for(let k=0;k<8;k++){let t=null;try{t=k<7?richTexBillet(RICH_BILLETS[k]):plaBilletBtc();}catch(e){}
     if(t&&t.image)x.drawImage(t.image,(k%4)*512,Math.floor(k/4)*256+10,512,236);if(t&&t.dispose)t.dispose();}
   ['#2bff88','#ffd23e','#ffffff','#ff9a2e'].forEach(function(c,i){const g=x.createLinearGradient(i*512,512,i*512+512,768);g.addColorStop(0,c);g.addColorStop(1,'#ffffff');x.fillStyle=c;x.fillRect(i*512+40,552,432,176);x.globalAlpha=.35;x.fillStyle=g;x.fillRect(i*512+40,552,432,60);x.globalAlpha=1;});
-  const t=new THREE.CanvasTexture(cv);t.anisotropy=4;t.minFilter=THREE.LinearMipmapLinearFilter;PLA.texB=t;return t;
+  const t=new THREE.CanvasTexture(cv);t.anisotropy=4;t.minFilter=THREE.LinearMipmapLinearFilter;PLA.texB=texLibere(t);return t; // (2026-10-14, passe perf mobile) 2048 × 768 : 6,3 Mo rendus après l'envoi (paliers 0-1)
 }
 function plaBilletBtc(){ // le billet de CRYPTOCITY : vert billet et or, un ₿ dans la rosace, « 1 BITCOIN »
   return richCv(512,236,function(x,w,h){
@@ -19118,11 +19133,11 @@ const LUNE=(function(){
    gelée au menu, bien pire sur iPhone. Le pinceau est donc un GÉNÉRATEUR : une étape par image au menu (`luneAvance`, appelé par la
    boucle via orbiteTick), chacune de quelques ms ; les toiles de travail restent en mémoire CPU (`willReadFrequently` : les relire
    n'est plus un aller-retour GPU). `lunePeint()` finit d'une traite si on en a besoin tout de suite (orbite atteinte avant la fin). */
-function lunePeint(){if(ORB.peinte)return;if(!ORB.pinceau)ORB.pinceau=lunePinceau();while(!ORB.pinceau.next().done){}}
+function lunePeint(){if(ORB.peinte)return;if(!ORB.pinceau)ORB.pinceau=lunePinceau();while(!ORB.pinceau.next().done){}ORB.pinceau=null;}
 function luneAvance(){ // une étape du pinceau (au menu) ; la dernière monte la carte au GPU
   if(ORB.peinte)return;if(!ORB.pinceau)ORB.pinceau=lunePinceau();
   const t0=performance.now(),fin=ORB.pinceau.next().done;ORB.pireMs=Math.max(ORB.pireMs|0,Math.round(performance.now()-t0));
-  if(fin)renderer.initTexture(LUNE.userData.tex);
+  if(fin){renderer.initTexture(LUNE.userData.tex);ORB.pinceau=null;} // (2026-10-14, passe perf mobile) le générateur fini ne retient plus ses toiles ni ses tableaux
 }
 function* lunePinceau(){
   const W=1024,H=512,R=mulberry32(0x1C0430),D=Math.PI/180;
@@ -19184,6 +19199,7 @@ function* lunePinceau(){
   for(let i=0;i<o.length;i+=4){if(i&&!(i%524288))yield;const m=M9[i]/255;o[i]=A9[i]*(1-.36*m);o[i+1]=H9[i]-m*9;o[i+2]=M9[i];o[i+3]=255;} // les mers : plus sombres, un peu plus basses (en 4 fois)
   yield;
   out.putImageData(im,0,0);LUNE.userData.tex.needsUpdate=true;ORB.peinte=true;
+  toileRend(xa.canvas);toileRend(xh.canvas);toileRend(xm.canvas);toileRend(cm);texLibere(LUNE.userData.tex); // (2026-10-14, passe perf mobile) les 3 toiles de travail 1024 × 512 (6,3 Mo, pour tous) + la carte finie (2 Mo, paliers 0-1) : peinte UNE fois
 }
 /* ---- LES MAILLAGES : des pièces (boîtes, cylindres, prismes) fusionnées en UN tampon, chaque sommet porte sa PIÈCE et sa VARIANTE ----
    Les normales ne sont PAS stockées : le shader les tire des dérivées (des facettes franches, comme les rochers d'avant). */
