@@ -17607,7 +17607,7 @@ Object.assign(I18N_ZH,{"MINI-TURBO": "迷你涡轮", "SUPER TURBO": "超级涡�
 Object.assign(I18N,{"RASE-BORD": "EDGE RIDER"});Object.assign(I18N_ZH,{"RASE-BORD": "贴边疾驰"});
 Object.assign(I18N,{"FRONDE": "SLINGSHOT"});Object.assign(I18N_ZH,{"FRONDE": "弹弓"}); /* (2026-09-30) LA FRONDE : le nom de l'aura, dans la chaîne */
 // (2026-09-28, chasse aux détails) les figures les plus fréquentes restaient en français en anglais (au-dessus de la caisse et dans la liste de chaîne)
-Object.assign(I18N,{'VIBRATIONS':'VIBRATION'});Object.assign(I18N,{'APPRENDS A VOLER':'LEARN TO FLY','ESPACE TERMINE':'SPACE COMPLETE','LE SYSTEME SOLAIRE EST A TOI':'THE SOLAR SYSTEM IS YOURS'});Object.assign(I18N_ZH,{'APPRENDS A VOLER':'学会飞翔','ESPACE TERMINE':'太空完成','LE SYSTEME SOLAIRE EST A TOI':'太阳系归你了'});Object.assign(I18N_ZH,{'VIBRATIONS':'震动'});
+Object.assign(I18N,{'VIBRATIONS':'VIBRATION'});Object.assign(I18N,{'APPRENDS A VOLER':'LEARN TO FLY','ESPACE TERMINE':'SPACE COMPLETE','PARIS TERMINE':'PARIS COMPLETE','LE SYSTEME SOLAIRE EST A TOI':'THE SOLAR SYSTEM IS YOURS'});Object.assign(I18N_ZH,{'APPRENDS A VOLER':'学会飞翔','ESPACE TERMINE':'太空完成','PARIS TERMINE':'巴黎完成','LE SYSTEME SOLAIRE EST A TOI':'太阳系归你了'});Object.assign(I18N_ZH,{'VIBRATIONS':'震动'});
 Object.assign(I18N,{'AIR MONSTRE':'MONSTER AIR','DAUPHIN EN VOL':'DOLPHIN RUN','POSE PARFAITE':'PERFECT LANDING','POSE DIVINE':'DIVINE LANDING','IMPACT METEORE':'METEOR IMPACT'});
 Object.assign(I18N_ZH,{'AIR MONSTRE':'怪兽腾空','DAUPHIN EN VOL':'海豚飞行','POSE PARFAITE':'完美着陆','POSE DIVINE':'神级着陆','IMPACT METEORE':'流星撞击'});
 Object.assign(I18N,{"FRÉNÉSIE": "FRENZY", "FRÉNÉSIE !": "FRENZY!", "RESTE DANS LE ROUGE": "STAY IN THE RED", "PLUS VITE !": "FASTER!", "RISQUE + VITESSE": "RISK + SPEED"});Object.assign(I18N_ZH,{"FRÉNÉSIE": "狂热", "FRÉNÉSIE !": "狂热！", "RESTE DANS LE ROUGE": "守住红区"});
@@ -39212,6 +39212,7 @@ function portailPasse(){
   if(!PARK.on&&CARR.actif&&LVL.cur&&LVL.cur.carr&&LVL.cur.id==='nuages'&&LVL.cur.carr.i===CARRIERE[LVL.cur.carr.b].niveaux.length-1){campFinale();return;} // (2026-10-04) SKY HIGH finit au niveau 5
   if(!PARK.on&&CARR.actif&&LVL.cur&&LVL.cur.carr&&LVL.cur.id==='ville'&&LVL.cur.carr.i===CARRIERE[LVL.cur.carr.b].niveaux.length-1){villeFinale();return;} // (2026-10-05) la VILLE finit au niveau 5
   if(CAMP.n===20&&!PARK.on){if(!VBQ.fini)villeFinale();return;}
+  if(!PARK.on&&CARR.actif&&LVL.cur&&LVL.cur.carr&&LVL.cur.id==='paris'&&LVL.cur.carr.i===CARRIERE[LVL.cur.carr.b].niveaux.length-1){parisFinale();return;} // (2026-10-14, chasse aux bugs) PARIS 10 — MINUIT n'avait pas de fin non plus : lvlChoisir plafonne au dernier niveau, le portail le rejouait à l'infini (comme PLUTON le 28/09)
   if(!PARK.on&&CARR.actif&&LVL.cur&&LVL.cur.carr&&LVL.cur.id==='espace'&&LVL.cur.carr.i===9){espaceFinale();return;} // (2026-09-28) PLUTON n'avait pas de fin : le portail le rejouait à l'infini
   if(TUTO.on&&!CARR.actif&&!PARK.on){SURV.pBase+=sP;newTrack();return;} // (2026-09-28) l'auto-école ne s'échappe pas par le portail (le débutant qui n'osait pas sauter finissait la leçon dans la VILLE) : la piste d'apprentissage repart // (2026-09-27) le portail de MIDI : le premier arrivé gagne — le banquier passé avant toi, il ne mène plus nulle part // (2026-09-27) le portail du COUCHER : la campagne des NUAGES est finie, on ne va nulle part ailleurs
   if(mode==='fall'){airPie.style.display='none';try{dolFin();}catch(e){}vA=Math.max(vA,Math.hypot(fallVel.x,fallVel.z)/vitMult()); // traversé en VOL : le vol s'arrête proprement, l'élan est gardé (inertie) — (2026-09-30) ÷ vitMult : le vol porte la vitesse réelle
@@ -41278,6 +41279,13 @@ function espaceFinale(){ // (2026-09-28) le portail de PLUTON : l'ESPACE est fin
   carrMarque(Math.max(0,CARRIERE.findIndex(function(B){return B.id==='espace';})),9);runStats.zones++;
   CAMP.garde=true;mortCause='finEspace';
   endGame();CARR.actif=null; // tout est fini : REJOUER repart en partie sans fin
+}
+function parisFinale(){ // (2026-10-14, chasse aux bugs) le portail de MINUIT : PARIS est fini — la même cérémonie qu'espaceFinale (PARIS n'avait aucune fin)
+  const zb=denom()*60*flowMult();money+=zb;levelCash+=zb;livre('$:fin',zb);try{checkUpgrade();}catch(e){}
+  try{if(SONV2)sfx('monde.fin');else{portalSnd();boostSnd(2);fanfare();}}catch(e){}flashEcran('rgba(255,215,140,.75)');hap([40,40,40,40,120]);
+  {const pb9=Math.max(0,CARRIERE.findIndex(function(B){return B.id==='paris';}));carrMarque(pb9,CARRIERE[pb9].niveaux.length-1);}runStats.zones++;
+  CAMP.garde=true;mortCause='finParis';
+  endGame();CARR.actif=null; // comme l'ESPACE : REJOUER repart en partie sans fin
 }
 function campEchec(){if(gameOver)return;CAMP.garde=true;mortCause=CAMP.cause||'';endGame();}
 // ============ LES HALOS DE L'ÉCRAN : la police derrière (rouge/bleu en bas), le feu (magenta), le sillage (or) ============
@@ -52081,7 +52089,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
        0 $ versés : pas de compte (mCount affiche d'un coup), donc ni crans ni pose. La jauge des missions et le carnet : objRender. */
     if(SONV2){
       const s9=function(ms,id,o){setTimeout(function(){if(ici())try{sfx(id,o);}catch(e){}},ms);};
-      const d9=REDUCED_MOTION?0:360,cpt=!!mCntT,fin9=mortCause==='finNuages'||mortCause==='finVille'||mortCause==='finEspace';
+      const d9=REDUCED_MOTION?0:360,cpt=!!mCntT,fin9=mortCause==='finNuages'||mortCause==='finVille'||mortCause==='finEspace'||mortCause==='finParis';
       s9(80,'mort.enseigne');
       if(commitExploits._rangMonte)s9(250,'ui.debloque');
       if(cpt){for(let j=0;j<9;j++)s9(d9+Math.round(750*(1-Math.sqrt(1-j/9))),'ui.compte',{st:sonPd(j)});s9(d9+750,'mort.compteFin');}
@@ -52119,7 +52127,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       {const CAUSES={air:"TROP LONGTEMPS EN L'AIR : POSE-TOI AVANT",vide:'TOMBE DANS LE VIDE',tour:'ENCASTRE DANS UNE TOUR',sat:'PERCUTE PAR UN SATELLITE',arret:"6 S A L'ARRET : ROULE OU CREVE",police:'DERNIER DE LA MEUTE',
          feu:'CRIBLE PAR LA POLICE',facade:'ENCASTRE DANS UNE FACADE',seine:'A LA SEINE !',sol:'ECRASE SUR LE PAVE',seme:"LA CAISSE-NUAGE T'A SEME",devant:"TU L'AS DOUBLEE — IL FALLAIT LA SUIVRE",finNuages:'LA CAISSE-NUAGE EST A TOI',banquier:"LE BANQUIER T'A BATTU",finVille:'LE LINGOT EST A TOI',finEspace:'LE SYSTEME SOLAIRE EST A TOI'}; // (2026-09-27) les fins de la CAMPAGNE
        const mc9=$t('mCause'),k9=SANDBOX?'':(CAUSES[mortCause]||'');if(mc9){mc9.textContent=k9?TR(k9):'';mc9.style.display=k9?'':'none';mc9.style.color=(mortCause==='finNuages'||mortCause==='finVille'||mortCause==='finEspace')?'#ffe7a8':'';}}
-      if(mortCause==='finNuages'||mortCause==='finVille'||mortCause==='finEspace'){ot.textContent=TR(mortCause==='finEspace'?'ESPACE TERMINE':mortCause==='finVille'?'VILLE TERMINEE':'SKY HIGH TERMINE');ot.style.color='var(--neoV)';if(mCompteSon._fin!==TCTL.mortT){mCompteSon._fin=TCTL.mortT;setTimeout(function(){try{pixBurst(ot,40);}catch(e){}},700);}} // (2026-09-27) la campagne est FINIE : l'enseigne le dit en or
+      if(mortCause==='finNuages'||mortCause==='finVille'||mortCause==='finEspace'||mortCause==='finParis'){ot.textContent=TR(mortCause==='finParis'?'PARIS TERMINE':mortCause==='finEspace'?'ESPACE TERMINE':mortCause==='finVille'?'VILLE TERMINEE':'SKY HIGH TERMINE');ot.style.color='var(--neoV)';if(mCompteSon._fin!==TCTL.mortT){mCompteSon._fin=TCTL.mortT;setTimeout(function(){try{pixBurst(ot,40);}catch(e){}},700);}} // (2026-09-27) la campagne est FINIE : l'enseigne le dit en or
       mCompteSon(recT);
       // Ce qui se gagne DANS une partie, c'est le MOTEUR (la caisse, elle, se choisit au garage) :
       // c'est donc lui qu'on montre en fin de run, pas un palier de voiture qui ne veut plus rien dire.
