@@ -34582,6 +34582,16 @@ function engWave9(AC9,e){
     e.w=AC9.createPeriodicWave(re,im);}
   return e.w;
 }
+/* (2026-10-14, session SON) LE GENOU — LA NOTE NE MONTE PLUS EN MOUSTIQUE.
+   Les `r` des paliers 17-30 vont jusqu'à 3 300 : à plein régime la fondamentale grimpait à 941 Hz (palier 17), 1 342 (26), 2 081 (30),
+   le sub à 1 kHz — un sifflet continu dans la zone où l'oreille est la plus sensible, 100 % du temps de la 2e moitié du jeu (audit n°3 §2).
+   Au-dessus de ENG_GENOU la hauteur est COMPRIMÉE (puissance .30) : 30 → ~680 Hz, sub ~340 ; la montée ralenti → croisière reste un
+   vrai « spool ». Les paliers 1-12 ne passent jamais 420 Hz (palier 12 plein régime, nitro comprise : 347) : inchangés au bit près.
+   Seule la HAUTEUR est comprimée : le filtre et le souffle lisent toujours la fréquence d'origine (même timbre, même brillance).
+   ENG_DOUX=false (ou `?genou=0`, ou dbgGenou(0)) = l'ancien son, pour comparer. */
+let ENG_DOUX=true;
+const ENG_GENOU=420,ENG_GENOU_P=.30;
+function engGenou(f){return ENG_DOUX&&f>ENG_GENOU?ENG_GENOU*Math.pow(f/ENG_GENOU,ENG_GENOU_P):f;}
 /* TOUS LES RÉGLAGES D'UNE FRAME, pour un moteur `e` dans un état `st`.
    st = {rpm 0..1 · charge 0..1 · ovr 0..1 · drift −.5..+.5 · nA nitro 0..1 · thr 0|1 ·
          vsp vitesse normalisée · wob · boost · cloudIn · dk ducking} */
@@ -34602,7 +34612,8 @@ function engSndParams(e,st){
      (3) LE BOOST MONTAIT LA NOTE (+12 %) — donc plus aigu, plus moustique. Il GONFLE maintenant
          le bas (sub + battement) au lieu de monter : on sent la poussée dans le ventre. */
   const ENG_PITCH=.62;
-  const fF=(e.i+rpm*e.r)*ENG_PITCH*(1+.04*nA)*(1+(st.wob||0));
+  const fF0=(e.i+rpm*e.r)*ENG_PITCH*(1+.04*nA)*(1+(st.wob||0)); // (2026-10-14, session SON) la fréquence d'ORIGINE : le filtre et le souffle la lisent
+  const fF=engGenou(fF0);                                          // la HAUTEUR qu'on entend (oscillateurs, sub, cliquetis), comprimée au-dessus du genou
   /* ⚠ PLANCHER OBLIGATOIRE. `post` vaut `1.05/Math.pow(drv,.55)` : dès que `drv` passe à zéro ou
      dans le négatif (fort frein moteur, `ov` élevé et charge nulle), `Math.pow` d'un négatif rend
      NaN — et un NaN écrit dans un AudioParam ne se répare pas, il ÉTEINT le nœud pour toute la
@@ -34610,15 +34621,15 @@ function engSndParams(e,st){
      Le plancher coûte un `Math.max` et supprime la classe entière de pannes. */
   const nB=st.nB||0,gE=st.gE==null?.72:st.gE; // (2026-09-25) nB : part du nitro qui GONFLE le moteur (téléphone) · gE : recul face à la bande-son (1 sur iOS, où la musique est verrouillée à 100 %)
   const drv=Math.max(.08,.42+ch*2.45+ov*-.16+.55*nB*nA);
-  const lpB=Math.max(240,Math.min(2800,e.fq+fF*e.fr)); // plafond 6200→2800 : le moustique vivait au-dessus
+  const lpB=Math.max(240,Math.min(2800,e.fq+fF0*e.fr)); // (2026-10-14) fF0 : le genou ne doit pas assourdir les paliers du haut · plafond 6200→2800 : le moustique vivait au-dessus
   // ×.72 : le moteur recule d'un cran pour que la BANDE-SON passe devant (plainte du même jour)
   const ev=(.019+.026*rpm+.009*ch)*(1-.10*nA+.38*nB*nA)*e.vol*(st.dk==null?1:st.dk)*gE;
   const vsp=st.vsp||0;
   return {
     fF:fF, detune:7+ch*19, subF:Math.max(22,fF*.5),
-    nzF:Math.min(3200,Math.max(260,fF*6*(.72+ch*.62))),
+    nzF:Math.min(3200,Math.max(260,fF0*6*(.72+ch*.62))), // (2026-10-14) fF0 : le lit de bruit des turbines garde sa couleur
     nzG:(.06+.26*ch+.08*rpm)*(e.nz||1)*(1-.5*nA)*.7,
-    whineOn:!!e.whine, whineF:e.whine?Math.min(9000,fF*e.whine):2000,
+    whineOn:!!e.whine, whineF:e.whine?Math.min(9000,fF0*e.whine):2000,
     whineG:e.whine?(.10+.16*ch)*Math.pow(Math.min(1,rpm),.7)*(1-.45*nA)*(1-ov*.7)*.4:0,
     drv:drv, post:1.05/Math.pow(drv,.55), eq:-8.0+ch*7.0,
     mix:.42+.20*ch+.10*(st.thr||0)+.05*nA,
@@ -34698,6 +34709,9 @@ const ENG_SND=[
  {i:56, r:3300,h:[1,.05,.02,.07,.015],                    sub:1.00,dr:1.3, fq:900,fr:5.8,gr:1,lope:0,wob:0,crk:0,vol:1.10,nz:1.3,fLen:1.50,fHz:6, fJit:.05,whine:34,fmt:[38,0.4,2.6]}  // 30 TROU NOIR : le plus GRAVE et le plus AIGU à la fois, rien au milieu
 ];
 /* <<<FIN SON-MOTEUR>>> */
+/* (2026-10-14, session SON) COMPARER LE GENOU EN JEU : `?genou=0` dans l'adresse (iPhone compris) ou dbgGenou(0) / dbgGenou(1) à la console. */
+try{if(/[?&]genou=0\b/.test(location.search))ENG_DOUX=false;}catch(_){}
+window.dbgGenou=function(v){if(v!=null)ENG_DOUX=!!v;return {genou:ENG_DOUX,hz:ENG_GENOU,puissance:ENG_GENOU_P};};
 /* (2026-10-05) LES RÉGLAGES D'UNE IMAGE APPLIQUÉS AUX NŒUDS DU MOTEUR — sortis de la boucle de course pour que le BURN-OUT du garage
    (voir LE BURN-OUT) fasse chanter le MÊME moteur, au même timbre, sans recopier une ligne. */
 function engApplique(P9){
@@ -50758,7 +50772,7 @@ function loop(now){
              plafond du sol, 1 : pas de « moustique »), le gain gonfle de 35 % au plus (reste sous le moteur au sol en croisière),
              le battement se resserre (9 → 13 Hz). Lissage du régime en exp(dt) : même montée à 30 et 120 i/s. */
           engRpm+=((.85+.13*k9)-engRpm)*(1-Math.exp(-dt*2.2));
-          const f0=(e0.i+engRpm*e0.r)*.62;
+          const f0=engGenou((e0.i+engRpm*e0.r)*.62); // (2026-10-14, session SON) le genou vaut aussi en vol : à .98 du régime le palier 30 sifflait à 2 040 Hz
           stt(osc.frequency,f0,T0,.05);stt(osc2.frequency,f0,T0,.06);
           stt(engSub.frequency,Math.max(22,f0*.5),T0,.06);
           /* (2026-10-14, session SON) LE DÉCOLLAGE SANS TROU : le moteur ne tombe plus en tc .08 (un décrochage en ~0,25 s) mais en .18,
