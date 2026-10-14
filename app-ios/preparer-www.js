@@ -43,6 +43,8 @@ fs.copyFileSync(path.join(ICI,'natif','natif.js'),path.join(WWW,'natif.js'));nFi
 // ---- les retouches de la page ----
 let h=fs.readFileSync(path.join(WWW,'index.html'),'utf8');
 const une=(de,vers,quoi)=>{const n=h.split(de).length-1;if(n!==1)meurt(quoi+' : « '+de+' » trouvé '+n+' fois (1 attendu)');h=h.replace(de,()=>vers);};
+// la même, pour un texte qui doit changer à n endroits À LA FOIS (un texte de caisse = sa phrase dans CARS + sa clé dans la table de traduction)
+const toutes=(de,vers,n,quoi)=>{const k=h.split(de).length-1;if(k!==n)meurt(quoi+' : « '+de+' » trouvé '+k+' fois ('+n+' attendu)');h=h.split(de).join(vers);};
 une('<meta charset="UTF-8">','<meta charset="UTF-8">\n<script src="natif.js"></script>','natif.js');
 let ver='ios';try{ver=execSync('git log -1 --format=%h -- "VERSION PRINCIPALE"',{cwd:path.join(SRC,'..'),stdio:['ignore','pipe','ignore']}).toString().trim()||ver;}catch(e){}
 une("const CC_BUILD='__CC_BUILD__';","const CC_BUILD='"+ver+"';",'version');
@@ -55,7 +57,9 @@ for(const u of['https://game-cdn.poki.com/scripts/v2/poki-sdk.js','https://sdk.c
    · plus de « BIENTÔT » (2026-10-14) : Apple refuse ce qui est annoncé mais absent. Les trois caisses « DÉFI À VENIR » (REQUIN, COMÈTE,
      LA RAIE : leur défi n'est pas écrit) passent aussi à l'argent du jeu — REQUIN et COMÈTE au prix POKI de leur ancien prix en €
      (9,99 et 4,99), LA RAIE à ses 2,5 M d'avant ; le bouton verrouillé « BIENTÔT » du menu du garage est masqué ; l'affiche RECORD
-     PERSO touchée ne dit plus « BIENTÔT EN DÉTAIL ». */
+     PERSO touchée ne dit plus « BIENTÔT EN DÉTAIL » ; les blocs « ? » des raretés à venir, au bout de SEE ALL ITEMS, ne sont plus posés ;
+   · plus de marque d'autrui dans un texte (2026-10-14, audit « regard d'Apple », règle 5.2) : la phrase du MONOSPACE ne double plus
+     « une Ferrari » mais « une voiture de course » (la phrase de CARS et sa clé de traduction changent ensemble, puis l'anglais). */
 une("const TEST_CAISSES=!POKI;","const TEST_CAISSES=false; /* (app iOS) */",'mode TEST des caisses');
 une("const TEST_CARRIERE=true;","const TEST_CARRIERE=false; /* (app iOS) */",'mode TEST de la carrière');
 une("if(POKI){const PRIX_CARNET=",
@@ -65,13 +69,18 @@ une("if(POKI){const PRIX_CARNET=",
   "if(POKI){const PRIX_CARNET=",'caisses en €');
 une("toast(sansAcc(TR(a.k==='perso'?'TES RECORDS : BIENTOT EN DETAIL':'CLASSEMENT MONDIAL : BIENTOT EN LIGNE')));",
   "/* (app iOS) l'affiche saute et tinte, sans annoncer de « bientôt » */",'annonce de l\'affiche du garage');
+une("if(m==='tous')st.insertAdjacentHTML('beforeend',gMystere());","/* (app iOS) pas de blocs « ? — BIENTÔT » */",'blocs des raretés à venir');
+toutes('on vient de doubler une Ferrari.','on vient de doubler une voiture de course.',2,'phrase « Ferrari » (CARS + clé de traduction)');
+une('we just passed a Ferrari.','we just passed a race car.','phrase « Ferrari » en anglais');
 une('</head>','<style id="appStore">/* (app iOS) pas de page OFFRES en € : ni l\'écran, ni ses portes (mêmes sélecteurs que l\'édition POKI ; les deux :not(#…) passent devant\n'+
   '   la règle de l\'accueil v2 qui réaffiche la tuile OFFRES) */\n'+
   'html:not(#ccA):not(#ccB) :is([data-m="shop"],[data-go="shop"],.gBoutique,#mShop,#bdShop){display:none!important}\n'+
   '/* la BOUTIQUE du garage : plus aucune caisse en €, son onglet OFFRES resterait vide (« OFFRES 0 ») */\n'+
   '#gBqPan .bqOng button[data-o="off"]{display:none!important}\n'+
   '/* le bouton verrouillé « BIENTÔT » du menu du garage */\n'+
-  '#gMenuBas .gVerrou{display:none!important}</style>\n</head>','page OFFRES');
+  '#gMenuBas .gVerrou{display:none!important}\n'+
+  '/* le vieux panneau RÉGLAGES de l\'écran-titre d\'ordinateur (déjà caché au doigt) : ses boutons de sauvegarde ouvrent un prompt() du système */\n'+
+  '#setBtn,#settings{display:none!important}</style>\n</head>','page OFFRES');
 une("const SANS_VOIX=POKI||!/[?&]voix=1\\b/.test(location.search);","const SANS_VOIX=true; /* (app iOS) les voix ne sont pas livrées */",'règle SANS_VOIX (les voix ne sont pas livrées)');
 /* LES TÉMOINS — une coupe faite en CSS ne casse rien si sa cible change de nom : elle cesse juste de couper, en silence. Chaque porte
    masquée ci-dessus doit donc encore exister dans le jeu ; sinon l'écran a été refait et la coupe est à revoir (au navigateur). */

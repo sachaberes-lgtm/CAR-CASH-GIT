@@ -158,11 +158,11 @@ Voir aussi les points de droits ouverts dans le message de la session.
 
 **Identifiant publicitaire (IDFA)** : Non.
 
-**Classification d'âge** — toutes les réponses sont « Aucun / Non », sauf un point à trancher :
+**Classification d'âge** — toutes les réponses sont « Aucun / Non », sauf la première (détail et preuves : `pilotage/notes/regard-apple.md`, § 4) :
 
 | Question | Réponse |
 |---|---|
-| Violence de dessin animé ou fantastique | ⚠ **Aucune** (la voiture vide explose en fin de partie, personne n'est blessé) — ou « Rare/Légère » si tu préfères être prudent : la note passe alors de 4+ à 9+ |
+| Violence de dessin animé ou fantastique | **Rare / légère** — les voitures s'écrasent et explosent (en mode SURVIVANT, « le dernier explose ») ; aucun personnage, aucun sang. La note attendue est alors **9+**. ⚠ Répondre « Aucune » donnerait 4+, mais l'audit du 14/10 juge cette réponse discutable : mieux vaut la réponse honnête |
 | Violence réaliste, contenu sexuel, nudité, grossièretés, alcool/tabac/drogues, horreur, contenu médical | Aucun |
 | Jeux d'argent simulés, concours, paris | Aucun (l'argent du jeu se ramasse en course, il n'y a ni mise ni tirage payant) |
 | Navigation web libre, contenu généré par les utilisateurs, messagerie, pubs | Non |

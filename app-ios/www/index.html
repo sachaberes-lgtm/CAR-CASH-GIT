@@ -2143,7 +2143,9 @@ html:not(#ccA):not(#ccB) :is([data-m="shop"],[data-go="shop"],.gBoutique,#mShop,
 /* la BOUTIQUE du garage : plus aucune caisse en €, son onglet OFFRES resterait vide (« OFFRES 0 ») */
 #gBqPan .bqOng button[data-o="off"]{display:none!important}
 /* le bouton verrouillé « BIENTÔT » du menu du garage */
-#gMenuBas .gVerrou{display:none!important}</style>
+#gMenuBas .gVerrou{display:none!important}
+/* le vieux panneau RÉGLAGES de l'écran-titre d'ordinateur (déjà caché au doigt) : ses boutons de sauvegarde ouvrent un prompt() du système */
+#setBtn,#settings{display:none!important}</style>
 </head>
 <body>
 <!-- ================= LE MOUCHARD : un écran noir ne doit JAMAIS rester muet =================
@@ -16812,7 +16814,7 @@ const CARS=[
  {name:'LA PIZZA EXPRESS',color:0xf4f1ea,accent:0xd8261e,maxKmh:190,accel:21,turn:2.9,h:1.45,w:1.5,l:3.4,spoiler:0,shape:'b_pizza',rar:'legendaire',
   desc:'30 minutes chrono ou la pizza est offerte. Spoiler : elle n\'a jamais été offerte.'},
  {name:'LE MONOSPACE',color:0x5a7aa0,accent:0x6a6f78,maxKmh:200,accel:22,turn:2.5,h:1.66,w:1.78,l:4.25,spoiler:0,shape:'b_monospace',rar:'commun',retire:1,
-  desc:'Sept places, zéro limite. Les enfants hurlent, mais c\'est de joie : on vient de doubler une Ferrari.'},
+  desc:'Sept places, zéro limite. Les enfants hurlent, mais c\'est de joie : on vient de doubler une voiture de course.'},
  {name:'LE BREAK SUÉDOIS',color:0x1f4a36,accent:0xe9ecf0,maxKmh:210,accel:23,turn:2.4,h:1.46,w:1.72,l:4.8,spoiler:0,shape:'b_breaksuedois',rar:'commun',retire:1,
   desc:'Carré, lourd, increvable. Il a vu passer trois divorces et deux krachs boursiers, il démarre toujours.'},
  {name:'LA BOULE',color:0x5fd6a4,accent:0x7d838b,maxKmh:190,accel:21,turn:2.9,h:1.42,w:1.63,l:3.43,spoiler:0,shape:'c_boule',rar:'commun',retire:1,
@@ -17306,7 +17308,7 @@ Object.assign(I18N,{
  "LA PIZZA EXPRESS":"PIZZA EXPRESS",
  "30 minutes chrono ou la pizza est offerte. Spoiler : elle n'a jamais été offerte.":"30 minutes or it's free. Spoiler: it has never been free.",
  "LE MONOSPACE":"THE MINIVAN",
- "Sept places, zéro limite. Les enfants hurlent, mais c'est de joie : on vient de doubler une Ferrari.":"Seven seats, zero limits. The kids are screaming, but it's pure joy: we just passed a Ferrari.",
+ "Sept places, zéro limite. Les enfants hurlent, mais c'est de joie : on vient de doubler une voiture de course.":"Seven seats, zero limits. The kids are screaming, but it's pure joy: we just passed a race car.",
  "LE BREAK SUÉDOIS":"THE SWEDISH WAGON",
  "Carré, lourd, increvable. Il a vu passer trois divorces et deux krachs boursiers, il démarre toujours.":"Boxy, heavy, unkillable. It's survived three divorces and two market crashes, and it still starts every time.",
  "LA BOULE":"THE BUG",
@@ -43262,7 +43264,7 @@ function gStripModeVoitures(){
       const et=ouv?(i===eq?'':pxi('coche')):(u&&u.p?fmtC(u.p):u&&u.eur?eurTxt(u.eur):u&&u.k==='carnet'?gDefiEt(u.v):'');
       return '<div class="gT'+(ouv?'':' lock')+(i===eq?' eq':'')+'" data-car="'+i+'" role="button" aria-label="'+String(CARS[i].name).replace(/"/g,'')+'" style="--rc:'+ri.c+lg9+'">'
         +'<i class="gTl"></i><i class="gTv"></i>'+rarLogo(i)+'<em'+(!ouv&&u&&!u.p&&u.eur?' class="eur"':!ouv&&u&&u.k==='carnet'?' class="def"':'')+'>'+et+'</em></div>';}).join('');
-    if(m==='tous')st.insertAdjacentHTML('beforeend',gMystere());
+    /* (app iOS) pas de blocs « ? — BIENTÔT » */
     st.querySelectorAll('.gT[data-car]').forEach(function(el){const i=+el.getAttribute('data-car');
       photoFile(i,function(url){const v=el.querySelector('.gTv');if(v)v.remove();if(!el.querySelector('img')){const im=document.createElement('img');im.alt='';im.src=url;el.insertBefore(im,el.firstChild);}});});}
   st.querySelectorAll('.gT').forEach(function(el){el.classList.toggle('on',+el.getAttribute('data-car')===garageI);});
