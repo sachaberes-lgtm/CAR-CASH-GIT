@@ -58,6 +58,10 @@ Porte du ciel 363 ms, dont 272 ms pour le seul `voxMesh(G,4)`), portail → vill
 5. **LES GABARITS DE LA JADE TAILLÉS AU MENU** (`jadeGabaritsG`, `jadeGabFond`, `GAB_FOND`, `PAL.B.gabFondMs=[5,6,8]`, `dbgGabarits`) :
    après la chauffe du menu, hors volet, quelques ms par image ; un JOUER pressé les finit d'un trait là où elles en sont (mêmes gabarits
    au bit près). Le JOUER ne paie plus 389 ms quand le menu a eu le temps.
+7. **LE RELEVÉ DES À-COUPS** (`?perf=1`, `perfAcoup`) — pour les tests de Sacha sur iPhone (« la version mobile saccade ») : le moniteur
+   compte depuis l'ouverture les images de plus de 50 / 100 / 250 ms (intervalle VRAI, non plafonné : `loop._brut`) et montre les 5
+   dernières avec ce qui se passait (écran, niveau, construction, programmes compilés, textures envoyées). Une capture suffit.
+   Protocole : Économie d'énergie COUPÉE, `/jouer/?perf=1`, une minute de jeu, une capture du cadre en haut à gauche.
 6. **L'OBJECTIF MOUILLÉ** (relevé par GENERAL, `lensTick`) : la toile des normales remise au repos par UNE copie mémoire (au lieu de 4
    écritures par pixel à chaque image) ; `VP.w/VP.h` au lieu d'`innerWidth/innerHeight` (piège n° 11). Même image.
 
