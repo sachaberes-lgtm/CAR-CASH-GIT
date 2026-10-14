@@ -18337,7 +18337,8 @@ const BIOMES={
    · fogIn/fogCj : la couleur du white-out DANS un nuage, et celle de la brume à contre-jour.
    Un biome sans étalonnage reçoit les valeurs d'avant (`BIO_ETAL0`) : la ville, l'heure bleue, le soir… ne bougent pas d'un bit.
    ⚠ bioLerp parcourt les clés du biome d'ARRIVÉE : le remplissage ci-dessous garantit que TOUS les biomes les ont toutes. */
-const BIO_ETAL0={wb:[1.02,.985,1.03],sh:[.004,-.008,.062],hi:[.052,.008,-.014],con:1.23,bloomS:.54,bloomT:.92,vigK:.52,vigC:[.149,.047,.212],daCon:1,daExpo:1,daWbN:1,daSh:1,daHi:1,
+const BIO_ETAL0={wb:[1,1,1],sh:[0,.004,.03],hi:[.024,.014,-.008],con:1.16,bloomS:.46,bloomT:.95,vigK:.52,vigC:[.03,.045,.09],daCon:1, /* (2026-10-14, passe graphismes · étalonnage commun) avant : wb [1.02,.985,1.03] · sh [.004,-.008,.062] · hi [.052,.008,-.014] · con 1.23 · bloomS .54 · bloomT .92 · vigC [.149,.047,.212] — voir « LA COUCHE COMMUNE » plus bas */
+ daExpo:1,daWbN:1,daSh:1,daHi:1,
   rimK:0,rimS:.40,fogIn:[.847,.737,.816],fogCj:[.753,.416,.329],
   jour:0,jZen:[0,0,0],jMid:[0,0,0],jHor:[0,0,0],jSol:[0,0,0],
   jdZ:[.42,.58,.66],jdH:[.93,.90,.80],jdR:[.2,.28,.27],jdB:[.86,.87,.82],jdS:[1,.88,.66],jdM:[.93,.90,.80],jdL:[.42,.58,.66],jdK:[1,1,1,0]}; // (2026-10-09) le ciel des PICS DE JADE (lu seulement là-bas : uJade) // (2026-09-30) LE JOUR D'ALTITUDE : 0 = le ciel d'avant (voir cielJour)
@@ -18531,6 +18532,15 @@ BIOMES.espaceSoir=bioMet(BIOMES.espace,{nm:'ORBITE · COUCHANT',sunC:[1,.56,.40]
 //
 //
 // ---- ÉTALONNAGE · LA COUCHE COMMUNE (retouches de DA / BIO_ETAL0 : voir aussi `const DA=` plus bas) ----
+// (2026-10-14, passe graphismes · agent etal-commun) Ce qui a changé, pour TOUTES les ambiances d'un coup — des valeurs, rien d'autre :
+//  · `const DA=` (plus bas)  : sat 1.2 → 1.08 · con 1.14 → 1.06 · sh/hi (split sarcelle/or) ÷ 2 · vigK 1 → .6 (toutes les vignettes à 60 %) · expo 1.06 gardée.
+//  · `const BIO_ETAL0=` (plus haut, les DÉFAUTS versés dans toute ambiance qui n'a pas la clé) : la dominante magenta/violette par défaut est retirée —
+//    wb neutre, ombres bleu-nuit (plus de −vert), lumières à peine chaudes, con 1.23 → 1.16, vignette ENCRE BLEU-NUIT [.03,.045,.09] au lieu du violet,
+//    halo plus sélectif (bloomS .54 → .46, bloomT .92 → .95 : seul ce qui émet s'allume).
+//    Héritent du défaut (wb/sh/hi/con) : tempete, nuitNoire, villeOrage, pluie + les heures de l'ancien parc (aube, lever, golden, couchant, soir, nuit, orage, aurore) ;
+//    (bloomS/bloomT) : matin, midi, aprem, nuagesSoir/Nuit/Pluie, villeMatin/Midi/Soir, bullrun, les 7 titres ; (vigK/vigC) : pluie (la VILLE sous la pluie) et l'ancien parc.
+//    Les ambiances qui ont LEUR vigC/con/wb (jade*, espace*, nuages*, ville*…) ne bougent que par DA : leur réglage appartient aux équipes par map.
+//  · Les bords d'écran des BONUS (#pwrFx) : dosés à 40 % par `PWR_BORD_K` (grep), à côté de PWR_DEFS.
 // (fin COUCHE COMMUNE)
 const BIO={cur:JSON.parse(JSON.stringify(BIOMES.golden)),from:null,to:BIOMES.golden,k:1,dur:4,name:'golden'};
 function bioLerp(a,b,e,out){ // mixe deux biomes champ à champ (tableaux = composantes, nombres = scalaires)
@@ -18545,7 +18555,11 @@ function bioLerp(a,b,e,out){ // mixe deux biomes champ à champ (tableaux = comp
 /* Réglage retenu au banc (etal.js, 5 niveaux × 4 variantes, deux tours) : l'image sortait noyée dans UN violet (ciel, route, nuages et
    caisse), la caisse orange lue saumon pâle. → la chroma gardée dans les hautes lumières (vivid 1), le voile magenta retiré (wbN 1),
    un vrai split TEAL / ORANGE (ombres bleu-vert, lumières or-orange), saturation ×1,2, contraste ×1,14, exposition ×1,06. */
-const DA={on:1,expo:1.06,sat:1.2,con:1.14,vivid:1,wbN:1,sh:[-.026,.045,-.006],hi:[.02,.038,-.042],vigK:1};
+/* (2026-10-14, passe graphismes · étalonnage commun) LA COUCHE TENUE. Avant : sat 1.2 · con 1.14 · sh [-.026,.045,-.006] · hi [.02,.038,-.042] · vigK 1
+   (expo 1.06 gardée). Multipliée par des ambiances déjà poussées elle donnait jusqu'à sat 1,63 / con 1,48 : cobalt criard, orange « Cheetos »,
+   noirs bouchés, coins recolorés (Sacha : « trop IA »). → sat 1.08, con 1.06, split sarcelle/or divisé par 2, vignette de TOUTES les ambiances
+   à 60 %. Choisi à l'œil sur 5 ambiances (shots/etal-commun/planche-essais-DA.png). Le reste se règle PAR AMBIANCE (plafonds de la charte). */
+const DA={on:1,expo:1.06,sat:1.08,con:1.06,vivid:1,wbN:1,sh:[-.013,.022,-.003],hi:[.01,.019,-.021],vigK:.6};
 function daPose(U,c){
   // par ambiance (champs lerpés comme les autres) : daCon / daExpo / daWbN — les niveaux SOMBRES (tempête, minuit) prennent moins de
   // contraste, plus d'exposition et gardent la moitié de leur voile violet (MESURÉ : le contraste de la couche DA les noyait dans le noir)
