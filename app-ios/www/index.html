@@ -2137,6 +2137,11 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
   @media (prefers-reduced-motion:reduce){#campChip.alerte{animation:none;box-shadow:inset 0 0 0 2px var(--neoR)}}
   body.dead #campChip,body:has(#tPanel.open) #campChip,body.touch:not(.play) #campChip{visibility:hidden}
 </style>
+<style id="appStore">/* (app iOS) pas de page OFFRES en € : ni l'écran, ni ses portes (mêmes sélecteurs que l'édition POKI ; les deux :not(#…) passent devant
+   la règle de l'accueil v2 qui réaffiche la tuile OFFRES) */
+html:not(#ccA):not(#ccB) :is([data-m="shop"],[data-go="shop"],.gBoutique,#mShop,#bdShop){display:none!important}
+/* la BOUTIQUE du garage : plus aucune caisse en €, son onglet OFFRES resterait vide (« OFFRES 0 ») */
+#gBqPan .bqOng button[data-o="off"]{display:none!important}</style>
 </head>
 <body>
 <!-- ================= LE MOUCHARD : un écran noir ne doit JAMAIS rester muet =================
@@ -19114,7 +19119,7 @@ const CARR_LARG=[2,2,2,2,2,2,2,2,2,2]; // (2026-09-26) plus larges, comme la cou
 const CARR={actif:null}; // {b: index de biome, i: niveau de départ} — null = partie sans fin
 // (2026-09-27) VERSION TEST : les dix niveaux de chaque monde se lancent sans avoir fini les précédents (Sacha teste la campagne tout de
 // suite). ⚠ à remettre à false pour la version publique, comme TEST_CAISSES : c'est l'unique interrupteur.
-const TEST_CARRIERE=true;
+const TEST_CARRIERE=false; /* (app iOS) */
 function bioMix(a,b,t){ // un biome INTERMÉDIAIRE, bâti une fois et rangé dans BIOMES
   const k=a+'>'+b+'@'+t;
   if(!BIOMES[k]){const o=JSON.parse(JSON.stringify(BIOMES[a]));bioLerp(BIOMES[a],BIOMES[b],t,o);BIOMES[k]=o;}
@@ -27726,6 +27731,7 @@ const CAR_UNLOCK=[
    juste après les communes… LE MASTODONTE parmi les épiques), les deux trophées de la carrière en haut des épiques, les LÉGENDAIRES de la
    boutique AU-DESSUS de LA RAIE (2,5 M), rangées par leur ancien prix en euros. Leur famille suit : LÉGENDAIRE reste légendaire (la
    couleur or), une caisse « défi » devient ce que son prix dit (rare / épique). POSTER 84 (rang d'aura) reste un DÉFI : il se gagne au style. */
+/* (app iOS) le vrai argent passe à l'argent du jeu */CAR_UNLOCK.forEach(function(u,i){if(!u||(u.k!=='premium'&&u.k!=='pubs'))return;const c=CARS[i];const e=u.k==='pubs'?9.99:(parseFloat(String(u.eur).replace(',','.'))||5);CAR_UNLOCK[i]={p:Math.round((2e6+e*450e3)/1e5)*1e5};if(c){c.rar='legendaire';}});
 if(POKI){const PRIX_CARNET={1:30e3,2:80e3,3:220e3,6:420e3,7:700e3,8:1.05e6,9:1.45e6},PRIX_CARR={carrN:1.8e6,carrV:2.2e6};
   CAR_UNLOCK.forEach(function(u,i){if(!u||!u.k)return;const c=CARS[i];let p=0;
     if(u.k==='premium'){p=Math.round((2e6+(parseFloat(String(u.eur).replace(',','.'))||5)*450e3)/1e5)*1e5;if(c)c.rar='legendaire';}
@@ -27807,7 +27813,7 @@ function carOwned(i){return !!(SAVE.d.owned&&SAVE.d.owned.indexOf(i)>=0);}
 /* (2026-09-26, user : « pour la version test donne-moi accès à toutes les voitures mais en laissant les conditions d'obtention »)
    TEST_CAISSES : toutes les caisses s'ÉQUIPENT, mais la fiche du garage continue d'écrire la VRAIE condition (voir garageShow).
    ⚠ à remettre à false pour la version publique : c'est l'unique interrupteur. */
-const TEST_CAISSES=!POKI; // (POKI) la version publique : les caisses se GAGNENT
+const TEST_CAISSES=false; /* (app iOS) */ // (POKI) la version publique : les caisses se GAGNENT
 function carUnlocked(i){return !carRetiree(i)&&(TEST_CAISSES||carUnlockedVrai(i));}
 /* (2026-09-30) ⚠ carUnlocked OUVRE (équiper, JOUER) ; ce qui dit AU JOUEUR où il en est — « une caisse à ta portée » (objectif, garPortee,
    pastille du GARAGE), « nouvelle caisse gagnée » (carSnapshot/carScan) et le bouton ACHETER — lit carUnlockedVrai : en TEST tout était
