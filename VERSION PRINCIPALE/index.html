@@ -10482,6 +10482,7 @@ function portalMat(){if(PORTAL.mat)return PORTAL.mat;
       'gl_FragColor=vec4(c*(f*1.7+.12+bd*.55)+vec3(1.,.95,1.)*pow(f,6.)*.7,a);}'});
   PORTAL.mat.dispose=function(){};return PORTAL.mat;}
 const trackMeshes=[];let PADS=[],PADL=[];let BUMPS=[];let CONES=[];let FLYCONES=[];let portalMesh=null;
+const PLOTS_ON=false; // ⚠ LES PLOTS DE CHANTIER SONT RETIRÉS DE LA ROUTE (2026-10-14, passe graphismes — Sacha : « enlève les cônes de chantier sur la route, ça ne sert plus ») — UN seul interrupteur : `placeCone` ne pose plus rien (chantiers, portes de frôlé, murs à porte de la campagne), `CONES` reste vide et tout ce qui le lit (choc, frôlé, instances, rival, écart des pièces) tourne à vide. Les tirages `rnd` des boucles de pose sont GARDÉS : la piste en aval ne bouge pas. `true` = les plots reviennent tels quels.
 const GAP_ON=false; // ⚠ LES TREMPLINS SONT COUPÉS (demande du user) — un seul interrupteur, voir gapRun
 // TREMPLINS HÉROS (motif « gap catapulte », voir genCtrl/gapRun) : {s:lèvre, s0/s1:couloir gardé NU, v:variante}
 let RAMPS=[];
@@ -10972,6 +10973,20 @@ function mergeSpheres(blobs,rx,ry,rz){
 const COTON={S:[],im:[],I:null,n:0,cap:560,mat:null,grid:null,root:null,L:null,M:new THREE.Matrix4(),Q:new THREE.Quaternion(),Sc:new THREE.Vector3(), // (v4) 420 → 480 : les petits nuages en plus
   P:new THREE.Vector3(),Y:new THREE.Vector3(0,1,0),fr:new THREE.Frustum(),pv:new THREE.Matrix4(),nN:0,nF:0,tri:0,ms:0,
   SEG:[[7,5],[10,7],[16,11],[22,15]],FAC:73,CH:.45}; // les QUATRE finesses d'un gabarit ; FAC : on prend la plus légère dont une facette reste sous ~1,7° à l'écran (segments ≥ 73·R/d)
+/* (2026-10-14, passe graphismes — Sacha : « dans la map chinoise il faut les mêmes nuages que dans la map normale ») LES PICS DE JADE
+   PRENNENT LE CIEL DE COTON : les volutes en cubes (NUVOX, 353 000 triangles / 26 appels) ne sont plus bâties ni dessinées ; à leur place,
+   les cumulus de la Mer de nuages (mêmes gabarits, mêmes instances, même matière déjà compilée au menu — rien de neuf pour la puce),
+   posés par `cotonJade` ENTRE et DERRIÈRE les pics, à l'altitude de la brume. `?nucubes=1` (ou true ici) : les cubes reviennent, tels quels. */
+const JADE_NUAGES_CUBES=/[?&]nucubes=1\b/.test(location.search);
+/* LE BUDGET (session OPTIMISATION) : palier 0 ≤ 40 000 triangles / 6 appels · 1 ≤ 90 000 / 10 · 2 ≤ 180 000 / 16, par image. Tenu par
+   construction : `K` = les gabarits permis (3 pour la 1re tranche, 5 ensuite), `f` = la finesse la plus fine permise par palier (donc
+   3×2, 5×2, 5×3 lots au plus), `n` = nuages par km de piste dans chaque TRANCHE — les tranches sont posées l'une après l'autre et
+   cotonTick n'envoie que les `lim[palier]` premiers : le palier peut changer en course sans rien rebâtir. */
+const COTON_JADE={n:[3.6,3.8,5],f:[1,1,2],K:[[1,4,0],[1,4,0,2,3]],lim:[0,0,0],force:null}; // gabarits : 1 humilis · 4 stratocumulus · 0 mediocris · 2 congestus · 3 humilis
+function cotonPalier(){ // 0 ancien iPhone · 1 moyen · 2 récent — `PAL.n` (socle de la passe perf) s'il existe, sinon les crans de qualité
+  if(COTON_JADE.force!=null)return COTON_JADE.force;
+  try{if(typeof PAL==='object'&&PAL&&typeof PAL.n==='number')return Math.max(0,Math.min(2,PAL.n|0));}catch(e){}
+  return QUAL_LOW?0:QUAL_MED?1:2;}
 const NUAGE8=!/[?&]n8=0\b/.test(location.search); // (2026-09-30) LES NUAGES v8 (voir « LES NUAGES v8 ») — ?n8=0 : les nuages d'avant, pour comparer
 const N8_FIN=[12,18,26,48]; // (SON, mesuré : de près, en vol, une surface lisse « en plastique ») la finesse du tout près monte à 48 : les petits bourgeons s'y dessinent // (mesuré, banc perf de DEBUGGING : 14/22/32/46 avec des seuils trop fins = 449 k triangles au sol, contre 153 k avant)
 const N8_GENRE6=['mediocris','humilis','congestus','humilis','stratocumulus','mediocris'];
@@ -11419,8 +11434,25 @@ const COTON_POIDS=(function(){ // (v6) près · milieu · loin — les classique
     stratocumulus:[.8,1.3,1.6],altocumulus:[1.2,1.4,.6],cisaille:[.3,1,1.4],champignon:[.1,.6,1.6]},o={pres:[],mil:[],loin:[]};
   ['pres','mil','loin'].forEach(function(q,j){for(let k=0;k<6;k++)o[q].push(C[q][k]*.55);for(const g of COTON_GENRES)o[q].push(W[g][j]);});return o;})();
 function cotonKind(cr,w){let s=0;for(const x of w)s+=x;let u=cr()*s;for(let k=0;k<w.length;k++){u-=w[k];if(u<=0)return k;}return 0;}
+function cotonJade(cr){ // (2026-10-14, passe graphismes) le coton des PICS DE JADE — tiré sur `cr` (le flux des nuages : la piste et la vallée ne bougent pas)
+  const J=COTON_JADE,km=L/1000,perp=function(i){const t=T[i],l=Math.hypot(t.x,t.z)||1;return [-t.z/l,t.x/l];};
+  let yMin=1e9;for(let i=0;i<NP;i+=4)if(pts[i].y<yMin)yMin=pts[i].y;const sol=yMin-45+24; // l'eau est à yMin-45 (JADE.eauY, bâtie après) : aucun dessous de nuage dans le fleuve
+  for(let pa=0;pa<3;pa++){const KS=J.K[pa?1:0],plats=KS.slice(0,2),N=Math.max(2,Math.round(J.n[pa]*km));
+    for(let k=0;k<N;k++){const i=Math.min(NP-1,Math.floor(((k+.18+cr()*.64)/N)*NP)),p=pts[i],q=perp(i),t9=T[i],sg=cr()<.5?-1:1,u=cr(),al=(cr()-.5)*420,x0=p.x+t9.x*al,z0=p.z+t9.z*al;
+      if(u<.36){ // (a) LES BANCS ENTRE LES PICS : des cumulus plats, au niveau de la brume (du fleuve à la route), à 250-900 m du ruban
+        const r=cotonR(cr,80,200,1.3),kk=cr()<.7?plats[cr()*2|0]:KS[cr()*KS.length|0],yB=Math.max(sol,p.y-150+cr()*170),sy=.68+cr()*.24;let d=ROAD_HALF+r+230+cr()*600;
+        for(let t=0;t<3;t++,d+=150)if(cotonPose(x0+q[0]*sg*d,yB,z0+q[1]*sg*d,r,kk,cr,sy))break;}
+      else if(u<.72){ // (b) LES MASSES DERRIÈRE LES PICS : 1-2,3 km, de grands cumulus dont la base trempe dans la brume
+        const r=cotonR(cr,240,520,1.4),kk=KS[cr()*KS.length|0],d=1000+cr()*1300;cotonPose(x0+q[0]*sg*d,Math.max(sol,p.y-170+cr()*480),z0+q[1]*sg*d,r,kk,cr);}
+      else{ // (c) CEUX D'EN HAUT, au-dessus des cimes, qui se découpent sur le ciel du rouleau — jamais au-dessus du ruban (≥ 450 m de côté) ; vus à l'image : sans eux le ciel restait vide, les pics cachent les bancs
+        const r=cotonR(cr,160,380,1.4),d=450+cr()*1500;cotonPose(x0+q[0]*sg*d,p.y+330+cr()*500,z0+q[1]*sg*d,r,cr()<.6?plats[cr()*2|0]:KS[cr()*KS.length|0],cr,.7+cr()*.25);}}
+    J.lim[pa]=COTON.n;}
+  {const c=LVL.cur,t=c.nuit?[.56,.58,.68]:(c.orage?[.8,.8,.86]:null); // de NUIT, la ouate prenait la lune en plein (vue à l'image : lavande claire devant des pics noirs) — sa teinte par nuage la rentre dans l'ombre ; sous l'ORAGE, un peu
+    if(t)for(let j=0;j<COTON.n;j++){const o=j*COTON_ST;COTON.I[o+10]*=t[0];COTON.I[o+11]*=t[1];COTON.I[o+12]*=t[2];}}
+  COTON.jd=J;COTON.root.visible=COTON.n>0;}
 function buildCoton(cr){
-  cotonInit();cotonVide();if(!(NP>1)||!pts.length)return;COTON.grid=cotonGrille();
+  cotonInit();cotonVide();COTON.jd=null;if(!(NP>1)||!pts.length)return;COTON.grid=cotonGrille();
+  if(LVL.cur&&LVL.cur.piste==='jade'&&!JADE_NUAGES_CUBES&&!PARK.on&&!LVL.cur.sansNuages){cotonJade(cr);return;} // (2026-10-14, passe graphismes) LES PICS DE JADE : le ciel de coton, à leur mesure
   const okD=lvlNuageOk({deco:true}),okG=lvlNuageOk({giant:true});if(!okD&&!okG)return;
   const strat=function(k,K){return Math.min(NP-1,Math.floor(((k+.18+cr()*.64)/K)*NP));};
   const perp=function(i){const t=T[i],l=Math.hypot(t.x,t.z)||1;return [-t.z/l,t.x/l];}; // le travers HORIZONTAL du ruban (jamais B[i] : piste inclinée)
@@ -11482,16 +11514,16 @@ function buildCoton(cr){
 const COTON_T0=performance.now();
 function cotonTick(cam){ // à chaque rendu de la scène : ce qui est dans le champ, en quelle finesse, du plus loin au plus près
   if(!COTON.root||!COTON.root.visible)return;
-  const t00=performance.now(),I=COTON.I,Ls=COTON.L,n=COTON.n,tt=(t00-COTON_T0)*.001;N8_U.uTps.value=tt;for(let j=0;j<Ls.length;j++)Ls[j].n=0;
+  const t00=performance.now(),I=COTON.I,Ls=COTON.L,J=COTON.jd,pj=J?cotonPalier():2,fm=J?J.f[pj]:3,n=J?Math.min(COTON.n,J.lim[pj]):COTON.n,tt=(t00-COTON_T0)*.001; /* (2026-10-14, passe graphismes) J : les Pics de Jade — les `lim[palier]` premiers nuages, jusqu'à la finesse `fm` */N8_U.uTps.value=tt;for(let j=0;j<Ls.length;j++)Ls[j].n=0;
   COTON.pv.multiplyMatrices(cam.projectionMatrix,cam.matrixWorldInverse);COTON.fr.setFromProjectionMatrix(COTON.pv);
   const pl=COTON.fr.planes,cx=cam.position.x,cy=cam.position.y,cz=cam.position.z;
-  const fF=(LVL.cur&&LVL.cur.id==='orage'&&scene.fog)?scene.fog.far*1.02:1e9; // (2026-09-29) L'ORAGE : sa brume est à ~1 km — un nuage ENTIÈREMENT au-delà est de la brume pure : pas envoyé (mesuré : 407k triangles → voir CLAUDE.md) ; l'éclair qui ouvre la brume les fait revenir
+  const fF=((J||(LVL.cur&&LVL.cur.id==='orage'))&&scene.fog)?scene.fog.far*1.02:1e9; // (2026-09-29) L'ORAGE : sa brume est à ~1 km — un nuage ENTIÈREMENT au-delà est de la brume pure : pas envoyé (mesuré : 407k triangles → voir CLAUDE.md) ; l'éclair qui ouvre la brume les fait revenir
   for(let j=0;j<n;j++){const o=j*COTON_ST,r=I[o+3],h=I[o+7],ph=I[o+6],k=I[o+5],S=COTON.S[k];
     const x=I[o]+Math.sin(tt*.05+ph)*6,z=I[o+2]+Math.cos(tt*.04+ph)*6,yc=I[o+1]+S.base*r*I[o+9]+h*.5,R=Math.max(r*1.08*I[o+8],h*.56); // la ouate DÉRIVE au vent
     let vis=true;for(let q=0;q<6;q++){const P9=pl[q];if(P9.normal.x*x+P9.normal.y*yc+P9.normal.z*z+P9.constant<-R){vis=false;break;}}
     if(!vis)continue;
     const dx=x-cx,dy=yc-cy,dz=z-cz,d=Math.sqrt(dx*dx+dy*dy+dz*dz);if(d-R>fF)continue;const sg=COTON.FAC*R*(S.fin||1)/Math.max(1,d-R*.5); // les segments qu'il faut pour que la facette ne se voie pas — (v4) à la taille de SES bourgeons
-    const Lq=Ls[k*4+(NUAGE8?(sg<=10?0:sg<=16?1:sg<=32?2:3):(sg<=7?0:sg<=10?1:sg<=16?2:3))]; /* (v8) la surface : ~10 px par cellule à l'écran */Lq.i[Lq.n]=j;Lq.d[Lq.n]=d;Lq.n++;}
+    const Lq=Ls[k*4+Math.min(fm,NUAGE8?(sg<=10?0:sg<=16?1:sg<=32?2:3):(sg<=7?0:sg<=10?1:sg<=16?2:3))]; /* (v8) la surface : ~10 px par cellule à l'écran */Lq.i[Lq.n]=j;Lq.d[Lq.n]=d;Lq.n++;}
   let nN=0,nF=0,tri=0;
   for(let q=0;q<Ls.length;q++){const Lq=Ls[q],im=COTON.im[q],A=im.instanceMatrix.array,ii=Lq.i,dd=Lq.d,m=Lq.n;
     for(let a=1;a<m;a++){const vi=ii[a],vd=dd[a];let b=a-1;while(b>=0&&dd[b]<vd){ii[b+1]=ii[b];dd[b+1]=dd[b];b--;}ii[b+1]=vi;dd[b+1]=vd;} // du plus LOIN au plus près
@@ -11513,6 +11545,16 @@ window.dbgCotonPlanche=function(o){o=o||{}; // (banc) les 24 gabarits de nuages 
     const cx=(j%C-(C-1)/2)*W,cy=((R-1)/2-Math.floor(j/C))*W*.72,p=c0.clone().addScaledVector(r,cx).addScaledVector(u,cy);
     M.makeScale(o.s||22,o.s||22,o.s||22).setPosition(p);im.setMatrixAt(0,M);im.instanceMatrix.needsUpdate=true;im.frustumCulled=false;g.add(im);}
   scene.add(g);COTON.root.visible=false;window.__planche=g;return {gabarits:n};};
+window.dbgCotonJade=function(o){o=o||{}; // (banc, 2026-10-14, passe graphismes) le coton des PICS DE JADE : palier forcé (pal 0-2, null = le vrai), densités, et le PIRE cas par palier ({balaie:mètres entre deux poses}) en posant une caméra tout le long de la piste
+  const J=COTON_JADE;if(o.pal!==undefined)J.force=o.pal;if(o.n)J.n=o.n;if(o.f)J.f=o.f;if(o.rebati)buildCoton(mulberry32(o.rebati));
+  const mes=function(){let lots=0;for(const im of COTON.im)if(im.count>0)lots++;return [COTON.tri,lots,COTON.nN+COTON.nF];};
+  if(!o.balaie||!COTON.jd)return {jade:!!COTON.jd,cubes:JADE_NUAGES_CUBES,palier:cotonPalier(),nuages:COTON.n,lim:J.lim.slice(),km:+(L/1000).toFixed(1),image:mes(),gabarits:J.K[1].map(function(k){return [0,1,2,3].map(function(f){return COTON.im[k*4+f].userData.tri;});})};
+  const c=camera.clone(),sv=J.force,R={},pas=Math.max(1,Math.round(o.balaie/(L/(NP-1)))),av=Math.max(2,Math.round(60/(L/(NP-1))));
+  for(let pa=0;pa<3;pa++){J.force=pa;let mt=0,ml=0,mn=0,st=0,q=0;
+    for(let i=0;i+av<NP;i+=pas){c.position.copy(pts[i]);c.position.y+=7;c.lookAt(pts[i+av].x,pts[i+av].y+3,pts[i+av].z);c.updateMatrixWorld(true);c.matrixWorldInverse.copy(c.matrixWorld).invert();cotonTick(c);
+      const m=mes();if(m[0]>mt)mt=m[0];if(m[1]>ml)ml=m[1];if(m[2]>mn)mn=m[2];st+=m[0];q++;}
+    R['p'+pa]={triMax:mt,triMoy:Math.round(st/Math.max(1,q)),lotsMax:ml,nuagesMax:mn,poses:J.lim[pa]};}
+  J.force=sv;cotonTick(camera);return R;};
 window.dbgCoton=function(q){ // q = 'max' : le plus gros nuage (centre du dessous, rayon) — pour le photographier
   if(q==='max'){const st=COTON_ST;let b=-1;for(let j=0;j<COTON.n;j++)if(b<0||COTON.I[j*st+3]>COTON.I[b*st+3])b=j;if(b<0)return null;const o=b*st,S=COTON.S[COTON.I[o+5]];
     return {x:COTON.I[o],y:COTON.I[o+1]+S.base*COTON.I[o+3]*COTON.I[o+9],z:COTON.I[o+2],r:COTON.I[o+3],h:COTON.I[o+7]};}
@@ -12850,16 +12892,50 @@ function genPark(rnd){
      · une BRILLANCE D'HORIZON (fresnel) à la couleur du brouillard : la route luit vers le lointain, elle se lit ;
      · une CLARTÉ PAR NIVEAU (`uLift`) : la VILLE a un bitume plus clair, qui se détache de la ville sombre (user).
    Les uniformes vivent dans ROAD_U, PARTAGÉS par toutes les pistes : routeTick() les écrit une fois par image. */
+const BETON={col:0xa39c8e,t:[1,1,1],lift0:.012,lift:.13,amb:.22,sheen:0,mouille:.24,ville:1,espace:1}; /* (2026-10-14, passe graphismes) LE BÉTON BRUT, ses réglages : col = le gris minéral de la matière · t = teinte globale · lift0/lift = la clarté de niveau (neutre, × LVL.route) · amb = la part de l'air du lieu (la brume) dans cette clarté · sheen = brillance d'horizon À SEC (0 : mat) · mouille = ce que la pluie fonce · ville/espace = teinte par monde — voir routeTick, dbgBeton */
 const ROAD_U={uLift:{value:new THREE.Color(0,0,0)},uSheen:{value:.1},uSheenCol:{value:new THREE.Color(.4,.3,.5)},uWet:{value:0},uAcc:{value:new THREE.Color(0xf24aa0)},uVil:{value:0},uEcl:{value:0},
   uGlace:{value:0},uSunW:{value:SUN_DIR},uTeinte:{value:new THREE.Color(1,1,1)},uJadeR:{value:0},uHalf:{value:14},uJStyle:{value:1}}; // (v14) uJStyle : 0 émeraude · 1 NUAGE · 2 PLANCHES (voir jadeRouteStyle) // (v9) uJadeR : la route EN JADE (les PICS DE JADE seulement, LVL.jade) // (passe graphismes mobile) uGlace/uSunW : le BITUME GLACÉ des routes sèches (voir roadMat) — la direction du soleil est SUN_DIR lui-même (même objet) // uWet/uAcc : le bitume MOUILLÉ de la ville (voir BITUME_MOUILLE)
-let ASPH_TEX=null;const ASPH_K=1.7; // (vague 2) finesse du grain lu par le bitume (voir roadMat)
+/* ================= LE BÉTON BRUT (2026-10-14, passe graphismes) — Sacha : « retravaille la texture de la route pour que ça soit un beau béton bien brut et bien, bien mat » =====
+   GRATUIT pour la puce : la MÊME texture 256² (même lecture, même shader), REPEINTE en béton — granulat serré, laitance et coulures en paliers nets, micro-fissures, bullage,
+   et les JOINTS DE DALLE sur les bords de la tuile. ASPH_K 1,7 → .57 : une tuile = une dalle de 7 m (la route de 56 m = 8 dalles pile, un joint sous la ligne centrale). */
+function betonPeint(N){ // PUR (aucun canvas) : les octets RGBA d'une tuile N×N de BÉTON BRUT qui se raccorde sur ses 4 bords — une tuile = UNE DALLE de 7 m (voir ASPH_K) ; rejoué tel quel par gfx/banc/route-beton/apercu.cjs
+  const d=new Uint8ClampedArray(N*N*4);let sd=20261014;
+  const r=function(){sd=(sd*16807)%2147483647;return sd/2147483647;};
+  const grille=function(px,py){const g=new Float32Array(px*py);for(let i=0;i<g.length;i++)g[i]=r();return {g:g,px:px,py:py};}; // bruit de valeur BOUCLÉ
+  const lit=function(G,u,v){const x=u*G.px,y=v*G.py,xi=Math.floor(x),yi=Math.floor(y);let fx=x-xi,fy=y-yi;fx=fx*fx*(3-2*fx);fy=fy*fy*(3-2*fy);
+    const x0=xi%G.px,x1=(xi+1)%G.px,y0=(yi%G.py)*G.px,y1=((yi+1)%G.py)*G.px,g=G.g;
+    return (g[y0+x0]*(1-fx)+g[y0+x1]*fx)*(1-fy)+(g[y1+x0]*(1-fx)+g[y1+x1]*fx)*fy;};
+  // LA LAITANCE (nuages de ciment, 3 échelles) et LES COULURES (étirées dans le sens de la route : elles ne scintillent pas quand on file), en PALIERS nets (pas un flou de photo)
+  const A=grille(3,3),B=grille(7,7),C=grille(15,15),S1=grille(34,2),S2=grille(90,4),S3=grille(18,1),W=grille(2,2),V=new Float32Array(N*N);let mn=9,mx=-9;
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){const u=(x+.5)/N,v=(y+.5)/N,
+      w=.60*(.50*lit(A,u,v)+.32*lit(B,u,v)+.18*lit(C,u,v))+.40*(.45*lit(S1,u,v)+.20*lit(S2,u,v)+.35*lit(S3,u,v));
+    V[y*N+x]=w;if(w<mn)mn=w;if(w>mx)mx=w;}
+  let mV=0;for(let i=0;i<V.length;i++){const w=Math.round((V[i]-mn)/(mx-mn)*7)/7;V[i]=w;mV+=w;}mV/=V.length; // 8 paliers
+  // LES MICRO-FISSURES (marches au hasard, un texel de large, qui bifurquent) et LE BULLAGE (trous d'air en grappes)
+  const F=new Float32Array(N*N),pose=function(x,y,a){x=((Math.floor(x)%N)+N)%N;y=((Math.floor(y)%N)+N)%N;const k=y*N+x;if(a>F[k])F[k]=a;};
+  const fis=[];for(let f=0;f<3;f++)fis.push([r()*N,r()*N,r()*6.283,50+r()*90,.55+r()*.4]);
+  while(fis.length){const f=fis.pop();let x=f[0],y=f[1],th=f[2];const len=f[3],a=f[4];
+    for(let s=0;s<len;s++){th+=(r()-.5)*.55;if(r()<.03)th+=(r()-.5)*2.;x+=Math.cos(th);y+=Math.sin(th);
+      pose(x,y,a*Math.min(1,s/8,(len-s)/8)*(.7+.3*r()));if(len>60&&r()<.012)fis.push([x,y,th+(r()<.5?1:-1)*(.6+r()*.7),18+r()*len*.4,a*.8]);}}
+  for(let c=0;c<12;c++){const cx=r()*N,cy=r()*N,n=3+Math.floor(r()*8),R0=4+r()*16;
+    for(let i=0;i<n;i++){const an=r()*6.283,q=r()*R0;pose(cx+Math.cos(an)*q,cy+Math.sin(an)*q,.4+r()*.5);}}
+  // LES JOINTS DE DALLE, sur les bords de la tuile (ils se raccordent avec la tuile voisine) : le joint EN LONG (franc : il file vers l'horizon sans jamais clignoter)
+  // et le joint EN TRAVERS (plus discret : c'est lui qui défile) ; une arête claire d'un côté (le chanfrein prend la lumière), la salissure qui s'accumule autour
+  const JL=.36,JT=.22,jd=function(p){return Math.min(p,N-1-p);}; // p : distance (texels) au bord ; joint = 2 texels à cheval sur le raccord
+  for(let i=0;i<N*N;i++){const x=i%N,y=(i-x)/N,o=i*4,u=(x+.5)/N,v=(y+.5)/N;
+    let g=(r()-.5)*.20;const q=r();if(q<.045)g+=.10+r()*.10;else if(q<.075)g-=.20; // LE GRANULAT : grain serré, granulats clairs, petits trous
+    let b=1+g+(V[i]-mV)*.30-F[i]*.34;
+    const dx=jd(x),dy=jd(y);
+    b*=1-.07*Math.max(Math.max(0,1-dx/9),Math.max(0,1-dy/9)*.7);                 // la salissure autour des joints
+    if(x===1||x===N-2)b+=.05;if(y===1||y===N-2)b+=.03;                           // l'arête du chanfrein
+    if(dx<1)b*=1-JL;else if(dy<1)b*=1-JT;                                        // le joint (2 texels ≈ 5,5 cm)
+    const t=lit(W,u,v)-.5,k=204*b;                                               // la teinte : un rien plus chaude ou plus froide par grandes plages (gris minéral, jamais coloré)
+    d[o]=k*(1+t*.035);d[o+1]=k;d[o+2]=k*(1-t*.05);d[o+3]=255;}
+  return d;
+} // fin betonPeint
+let ASPH_TEX=null;const ASPH_K=.57; // (2026-10-14, passe graphismes) une tuile = une DALLE de 7 m (4 ÷ .57) — (vague 2) c'était 1,7 : la finesse du grain d'asphalte
 function asphTex(){ if(ASPH_TEX)return ASPH_TEX;
-  const N=256,cv=document.createElement('canvas');cv.width=cv.height=N;const c=cv.getContext('2d'),im=c.createImageData(N,N),d=im.data;
-  let sd=1337;const r=function(){sd=(sd*16807)%2147483647;return sd/2147483647;};
-  for(let i=0;i<N*N;i++){let v=208+(r()-.5)*44;          // le grain fin, autour de 0,8
-    if(r()<.035)v+=30+r()*30;                                // les granulats clairs : ce sont eux qui scintillent
-    if(r()<.02)v-=45;                                        // les petits trous sombres
-    v=Math.max(140,Math.min(255,v));d[i*4]=d[i*4+1]=d[i*4+2]=v;d[i*4+3]=255;}
+  const N=256,cv=document.createElement('canvas');cv.width=cv.height=N;const c=cv.getContext('2d'),im=c.createImageData(N,N);im.data.set(betonPeint(N));
   c.putImageData(im,0,0);
   const t=new THREE.CanvasTexture(cv);t.wrapS=t.wrapT=THREE.RepeatWrapping;
   t.anisotropy=Math.min(IS_MOBILE?4:8,renderer.capabilities.getMaxAnisotropy()); // la route se regarde RASANTE : sans anisotropie le grain devient une bouillie
@@ -12902,8 +12978,8 @@ function roadMat(){
      Et le grain est lu 1,7 fois plus FIN (`ASPH_K`) : à 1,6 cm le texel, de près il faisait des pâtés sous le nez de la caisse ; les
      mipmaps et l'anisotropie tiennent le lointain. Les flaques et les impacts de pluie (vUv) gardent leur échelle. */
   const face=BITUME.face,sauts=BITUME.sauts; // (tour 2) figés à la construction : la matière et la géométrie de la piste vont ensemble (voir BITUME)
-  const m=new THREE.MeshPhongMaterial({color:0x322e40,side:face?THREE.FrontSide:THREE.DoubleSide,vertexColors:true,map:asphTex(),
-    shininess:30,specular:0x16141e,envMap:envTex,reflectivity:.03}); // (2026-09-26, user : « un peu trop brillante, gère mal le reflet du soleil ») : 80/0x2c2a3a faisait une traînée de soleil DURE et granuleuse — un bitume renvoie une nappe large et sourde
+  const m=new THREE.MeshPhongMaterial({color:BETON.col,side:face?THREE.FrontSide:THREE.DoubleSide,vertexColors:true,map:asphTex(),
+    shininess:30,specular:0x000000,envMap:envTex,reflectivity:0}); /* (2026-10-14, passe graphismes) LE BÉTON EST MAT : gris minéral (c'était l'indigo 0x322e40), lobe spéculaire à ZÉRO (0x16141e), plus de mélange du cube (.03) — la lumière s'y pose en diffus pur ; la pluie garde son eau (BITUME_MOUILLE a son propre reflet) */ // (2026-09-26, user : « un peu trop brillante, gère mal le reflet du soleil ») : 80/0x2c2a3a faisait une traînée de soleil DURE et granuleuse — un bitume renvoie une nappe large et sourde
   m.userData.bitume=face?2:1;m.userData.sauts=sauts; // 2 = face cachée jetée (bloc du dessous retourné), 1 = l'ancien DoubleSide
   m.onBeforeCompile=function(sh){
     sh.uniforms.uLift=ROAD_U.uLift;sh.uniforms.uSheen=ROAD_U.uSheen;sh.uniforms.uSheenCol=ROAD_U.uSheenCol;
@@ -13076,7 +13152,7 @@ const BITUME_MOUILLE=['#if defined(USE_ENVMAP)&&defined(ENVMAP_TYPE_CUBE)',
   '  st+=bmCol(h2)*step(.45,h2)*exp(-f2*f2*6.)*.55;',
   '  st*=smoothstep(.8,.15,abs(R.y))*smoothstep(3.,22.,dz)*uVil9;',                                   /* (2026-09-30, Sacha : « dans l orage on voit le reflet de la ville dans les flaques, c est pas normal, il n y a pas de ville ») : les enseignes ne se reflètent que s il y a une VILLE (LVL.ville, au fondu du portail) */                                            // ni le zénith ni le fond de l abîme (la route de la ville DESCEND : ses reflets rasants plongent sous l horizon, et les tours y sont aussi) ; pas sous le nez
   '  vec4 ec=textureCube(envMap,vec3(flipEnvMap*R.x,R.yz),1.5);ec=envMapTexelToLinear(ec);',              // le ciel de la ville, un peu flou
-  '  float wet=uWet*(.45+.55*P);',
+  '  float wet=uWet*(.24+.76*P);', /* (2026-10-14, passe graphismes) béton mouillé : .45/.55 → .24/.76 — les FLAQUES font miroir, hors d'elles le béton reste peu brillant */
   '  col*=1.-uWet*.2*P;',                                                                                  // la flaque fonce (⚠ pas le reste : l étalonnage de la pluie ÉCRASE les sombres — 10 % de moins et le bitume proche devenait noir)
   '  vec3 refl=(ec.rgb*.7+uSheenCol*.55+st*(.9+1.7*P)*film)*F*wet;',
   '  refl+=(uSheenCol+st*.5+vec3(.04,.05,.07))*ring*uWet*.3;',
@@ -13143,9 +13219,9 @@ function trancheMat(){
   m.customProgramCacheKey=function(){return 'trancheV2';};
   return m;
 }
-const ROUTE_JOUR=[.86,.94,.86]; /* (niveau 1 v2) [1,1.12,.88] → plus SOMBRE : au banc le bitume du midi sortait gris clair (L* ~55), au niveau des nuages — la route doit être le ruban le plus sombre de l'image pour que la caisse orange et le ciel clair se lisent contre elle (L10 26 → 10) */ // (2026-09-30) la teinte du bitume au jour d'altitude (× la base violette 0x322e40 → un anthracite à peine bleuté)
+const ROUTE_JOUR=[1.10,1.07,1.0]; /* (2026-10-14, passe graphismes) LE BÉTON : la base est déjà un gris neutre — le jour d'altitude le réchauffe et le relève un peu (vu au banc : le midi le tirait vers un gris-bleu sombre) ; il reste bien sous les nuages (c'était [.86,.94,.86], qui dé-violettait l'indigo) */ /* (niveau 1 v2) [1,1.12,.88] → plus SOMBRE : au banc le bitume du midi sortait gris clair (L* ~55), au niveau des nuages — la route doit être le ruban le plus sombre de l'image pour que la caisse orange et le ciel clair se lisent contre elle (L10 26 → 10) */ // (2026-09-30) la teinte du bitume au jour d'altitude (× la base violette 0x322e40 → un anthracite à peine bleuté)
 const GLACE={k:1,nuages:.45,espace:.5,jade:.55,crypto:.5}; // (v11) l'émeraude est polie comme une pierre taillée — (v12) « beaucoup plus brillante » : .5 → .8 // (v9) le jade est POLI : il renvoie le ciel en rasant
-const ROUTE_JADE=[.95,1.04,.86]; // (2026-10-09) LES PICS DE JADE : le bitume en gris de pierre (× la base violette) // (passe graphismes mobile) la part du ciel dans le bitume sec, par niveau (la VILLE a son eau) — `dbgGfx({glace:0})` = l'ancien bitume
+const ROUTE_JADE=[1,1,.96]; /* (2026-10-14, passe graphismes) béton : un rien plus chaud aux PICS DE JADE (c'était [.95,1.04,.86] × la base violette) */ // (2026-10-09) LES PICS DE JADE : le bitume en gris de pierre (× la base violette) // (passe graphismes mobile) la part du ciel dans le bitume sec, par niveau (la VILLE a son eau) — `dbgGfx({glace:0})` = l'ancien bitume
 const _px9=new THREE.Vector2();
 function routeTick(){ // le bitume suit le NIVEAU (fondu du portail : LVL.route / LVL.sheen, voir lvlStep)
   renderer.getDrawingBufferSize(_px9);TRAIT_U.uPx.value=2*Math.tan(camera.fov*Math.PI/360)/Math.max(1,_px9.y); // la taille d'un pixel à 1 m (suit le FOV de vol et la résolution adaptative)
@@ -13155,7 +13231,14 @@ function routeTick(){ // le bitume suit le NIVEAU (fondu du portail : LVL.route 
   {const j9=Math.max(LVL.mer,LVL.crypto||0)*skyU.uJour.value,jd9=LVL.jade||0;ROAD_U.uTeinte.value.setRGB((1+(ROUTE_JOUR[0]-1)*j9)*(1+(ROUTE_JADE[0]-1)*jd9),(1+(ROUTE_JOUR[1]-1)*j9)*(1+(ROUTE_JADE[1]-1)*jd9),(1+(ROUTE_JOUR[2]-1)*j9)*(1+(ROUTE_JADE[2]-1)*jd9));} // (2026-09-30) LE JOUR D'ALTITUDE : l'asphalte des NUAGES en gris d'anthracite (le violet de la nuit, sous un ciel turquoise, se lisait en encre violette) // (passe graphismes mobile) le bitume GLACÉ des routes sèches — voir roadMat
   coneBandMat.emissiveIntensity=.25+.6*LVL.pluie; // (2026-09-26) la nuit de pluie, les bandes des plots RÉTRORÉFLÉCHISSENT : on les lit de loin (un uniforme, zéro recompilation)
   ROAD_U.uSheenCol.value.copy(scene.fog.color).multiplyScalar(.9); // (2026-09-26) ×1,5 → ×0,9 : la brillance rasante blanchissait tout le lointain
+  {const b=BETON,f=scene.fog.color,fm=Math.max(f.r,f.g,f.b,.02),k=b.lift0+b.lift*LVL.route,a9=b.amb,w9=Math.min(1,ROAD_U.uWet.value),js9=ROAD_U.uJStyle.value<4.5?(LVL.jade||0):0, // (2026-10-14, passe graphismes) LE BÉTON BRUT — tout est valeur d'uniforme, rien de plus pour la puce :
+    m9=b.t,e9=(1+(b.ville-1)*LVL.ville)*(1+(b.espace-1)*LVL.espace)*(1-b.mouille*w9);
+   ROAD_U.uLift.value.setRGB(k*(1-a9+a9*f.r/fm),k*(1-a9+a9*f.g/fm),k*(1-a9+a9*f.b/fm)); // la clarté de niveau en gris MINÉRAL (plus de violet), à peine teintée par l'air du lieu
+   ROAD_U.uTeinte.value.r*=m9[0]*e9;ROAD_U.uTeinte.value.g*=m9[1]*e9;ROAD_U.uTeinte.value.b*=m9[2]*e9; // le béton mouillé FONCE (la pluie), chaque monde sa teinte
+   ROAD_U.uSheen.value*=Math.min(1,w9+js9+b.sheen); // MAT à sec : la brillance d'horizon ne vit que sous la pluie (et sur les routes de jade de Léo)
+   if(js9<.5)ROAD_U.uGlace.value*=js9;} // … et plus de « bitume glacé » : le béton sec ne renvoie pas le ciel (les routes de jade polies gardent le leur)
 }
+window.dbgBeton=function(o){if(o){for(const k in o){if(k==='col'){BETON.col=o.col;for(const m of trackMeshes)if(m.isMesh&&m.material&&m.material.userData&&m.material.userData.bitume)m.material.color.setHex(o.col);}else if(k==='jour'||k==='jade'){const A=k==='jour'?ROUTE_JOUR:ROUTE_JADE;A[0]=o[k][0];A[1]=o[k][1];A[2]=o[k][2];}else BETON[k]=o[k];}routeTick();if(paused&&POST_ON&&composer)composer.render();}return {BETON:BETON,jour:ROUTE_JOUR,jade:ROUTE_JADE,lift:ROAD_U.uLift.value.toArray(),teinte:ROAD_U.uTeinte.value.toArray(),sheen:ROAD_U.uSheen.value,glace:ROAD_U.uGlace.value,wet:ROAD_U.uWet.value};}; // banc (2026-10-14, passe graphismes) : le béton retouché à chaud
 /* LES MATIÈRES D'UNE PISTE MEURENT APRÈS LA SUIVANTE (2026-09-26, passe perf, lot 4). MESURÉ à chaque portail et à chaque « rejouer » :
    6 shaders RECOMPILÉS (bitume, bandes, nappes…) — 40 à 160 ms d'image figée, pire sur iPhone. Libérer une matière relâche son programme ;
    s'il n'a plus d'autre utilisateur, three le DÉTRUIT, et la piste neuve (mêmes réglages, donc même programme) doit le recompiler. Les
@@ -13623,6 +13706,7 @@ function buildTrack(seed){
   // plots de chantier orange : slaloms + lignes de bord — à esquiver… ou à envoyer valser
   let grp9=0; // (revue PISTE) le GROUPE du plot (slalom, ligne, porte) : un banc de nuage retire le groupe entier, jamais une moitié de slalom
   function placeCone(cs,cl,fc){
+    if(!PLOTS_ON)return; // (2026-10-14, passe graphismes) plus AUCUN plot posé, nulle part (voir PLOTS_ON) — placeCone ne tire aucun nombre : les trois boucles qui l'appellent gardent leurs tirages, la piste est la même au plot près
     fc=fc||1;
     if(cs>L-140)return;
     frameAt(cs,F);
@@ -16438,7 +16522,7 @@ function* jadeBatit(seed,cle){
      for(let k=0;k<4;k++){const r9=jr();if(r9>.8)continue;const sg=jr()<.5?-1:1,haut=true,lat=haut?1000+Math.pow(jr(),.8)*3000:1500+jr()*2600,al=(jr()-.5)*700,w=haut?800+jr()*1100:1500+jr()*1300;
        const y=haut?pts[i].y+260+jr()*820:JADE.eauY+45+jr()*120;NU.push([pts[i].x+px*sg*lat+t9.x/hl*al,y,pts[i].z+pz*sg*lat+t9.z/hl*al,w,w*.5,(jr()*16)|0,jr(),pts[i].x,pts[i].z]);}
      if(jr()<.35){const sg=jr()<.5?-1:1,lat=250+jr()*500,w=600+jr()*600;NU.push([pts[i].x+px*sg*lat,pts[i].y+780+jr()*600,pts[i].z+pz*sg*lat,w,w*.5,(jr()*16)|0,jr(),pts[i].x,pts[i].z]);}} // au-dessus de la route
-   if(NU.length){if(!JADE_NUAGE_M.uniforms.uTex.value)JADE_NUAGE_M.uniforms.uTex.value=jadeCumulusTex(); // (v16) des CUMULUS (les volutes en spirale : un cliché)
+   if(JADE_NUAGES_CUBES&&NU.length){if(!JADE_NUAGE_M.uniforms.uTex.value)JADE_NUAGE_M.uniforms.uTex.value=jadeCumulusTex(); // (v16) des CUMULUS (les volutes en spirale : un cliché)
      const Mx=new THREE.Matrix4(),couche=(L9,ro)=>{const g=new THREE.PlaneGeometry(1,1),im=new THREE.InstancedMesh(g,JADE_NUAGE_M,L9.length),aj=new Float32Array(L9.length*4);
        L9.forEach(function(n,k){Mx.makeTranslation(n[0],n[1],n[2]);im.setMatrixAt(k,Mx);aj.set([n[3],n[4],n[5],n[6]],k*4);});
        g.setAttribute('aJ',new THREE.InstancedBufferAttribute(aj,4));im.userData.jeter=true;im.frustumCulled=false;im.renderOrder=ro;root.add(im);};
@@ -19417,7 +19501,8 @@ const BIOMES={
    · fogIn/fogCj : la couleur du white-out DANS un nuage, et celle de la brume à contre-jour.
    Un biome sans étalonnage reçoit les valeurs d'avant (`BIO_ETAL0`) : la ville, l'heure bleue, le soir… ne bougent pas d'un bit.
    ⚠ bioLerp parcourt les clés du biome d'ARRIVÉE : le remplissage ci-dessous garantit que TOUS les biomes les ont toutes. */
-const BIO_ETAL0={wb:[1.02,.985,1.03],sh:[.004,-.008,.062],hi:[.052,.008,-.014],con:1.23,bloomS:.54,bloomT:.92,vigK:.52,vigC:[.149,.047,.212],daCon:1,daExpo:1,daWbN:1,daSh:1,daHi:1,
+const BIO_ETAL0={wb:[1,1,1],sh:[0,.004,.03],hi:[.024,.014,-.008],con:1.16,bloomS:.46,bloomT:.95,vigK:.52,vigC:[.03,.045,.09],daCon:1, /* (2026-10-14, passe graphismes · étalonnage commun) avant : wb [1.02,.985,1.03] · sh [.004,-.008,.062] · hi [.052,.008,-.014] · con 1.23 · bloomS .54 · bloomT .92 · vigC [.149,.047,.212] — voir « LA COUCHE COMMUNE » plus bas */
+ daExpo:1,daWbN:1,daSh:1,daHi:1,
   rimK:0,rimS:.40,fogIn:[.847,.737,.816],fogCj:[.753,.416,.329],
   jour:0,jZen:[0,0,0],jMid:[0,0,0],jHor:[0,0,0],jSol:[0,0,0],
   jdZ:[.42,.58,.66],jdH:[.93,.90,.80],jdR:[.2,.28,.27],jdB:[.86,.87,.82],jdS:[1,.88,.66],jdM:[.93,.90,.80],jdL:[.42,.58,.66],jdK:[1,1,1,0]}; // (2026-10-09) le ciel des PICS DE JADE (lu seulement là-bas : uJade) // (2026-09-30) LE JOUR D'ALTITUDE : 0 = le ciel d'avant (voir cielJour)
@@ -19590,6 +19675,49 @@ BIOMES.espaceMatin=bioMet(BIOMES.espace,{nm:'ORBITE · LEVER',sunC:[1,.84,.62],s
   env:[[0,'#06050e'],[.3,'#120d24'],[.48,'#3a2a50'],[.58,'#7a5a6a'],[.66,'#14102a'],[1,'#030208']],eS1:[255,214,170,.48],eS2:[120,150,255,.3]});
 BIOMES.espaceSoir=bioMet(BIOMES.espace,{nm:'ORBITE · COUCHANT',sunC:[1,.56,.40],sunI:1.6,sunTint:[1,.5,.38],fillC:[.40,.42,.95],kickC:[.9,.5,.75],volSun:[1.6,.95,.8],
   env:[[0,'#08040e'],[.3,'#1a0a22'],[.48,'#4a1e40'],[.58,'#8a3a4a'],[.66,'#180a20'],[1,'#040208']],eS1:[255,160,120,.5],eS2:[140,120,255,.3]});
+/* ================= L'ÉTALONNAGE PAR MAP × MÉTÉO (2026-10-14, passe graphismes) =================
+   Sacha : « pour chaque map, pour chaque météo… la colorimétrie, l'étalonnage… que tout soit cohérent » — et la route devient un béton mat.
+   Des SURCHARGES de valeurs, posées APRÈS toutes les définitions : `bioMet` COPIE son parent, donc retoucher ici une ambiance mère ne
+   change plus ses filles — chaque couple se règle seul. Une section par map (une équipe par section). Gratuit pour la puce : des nombres. */
+// ---- ÉTALONNAGE · MER DE NUAGES (matin · midi · nuagesSoir · nuagesNuit · nuagesPluie · tempete) ----
+Object.assign(BIOMES.matin,{sat:1.10,con:1.14,expo:.98,jZen:[.12,.36,.76],jMid:[.35,.58,.85],jHor:[.97,.85,.74],jSol:[.5,.36,.2],fog:[.93,.87,.82],fogCj:[.98,.9,.76],fogIn:[.96,.95,.95],sunC:[1,.92,.78],hemiG:[.7,.72,.8],fillC:[.55,.68,.92],volSun:[2.1,2.05,2.0],volSky:[.8,.84,.94],volGnd:[.78,.78,.86],vigC:[.06,.07,.11],env:[[0,'#5E9FDD'],[.3,'#9CC4E6'],[.48,'#F4E2D0'],[.58,'#FFF1DC'],[.66,'#B9C3D2'],[1,'#8E9AB0']]}); // (2026-10-14, passe graphismes) MATIN : sat/con produits 1,19/1,21 (≤1,20/1,22), ciel azur → pêche pâle (charte #5E9FDD → #F7D9BC), brume pêche de l'horizon, clé or pâle, ombres lavande, cumulus crème clair (plus de beige/lilas), vignette neutre. NB les jZen/jMid/jHor sont LINÉAIRES (avant ACES) : les poser en sRGB les rend trop clairs
+Object.assign(BIOMES.midi,{sat:1.14,con:1.18,expo:.96,jZen:[.13,.40,.84],jMid:[.5,.74,.93],jHor:[.81,.91,.97],jSol:[.3,.28,.2],fog:[.8,.89,.96],fogCj:[.94,.93,.88],sunC:[1,.99,.96],hemiG:[.7,.72,.8],fillC:[.5,.7,.95],volSun:[2.35,2.35,2.3],volSky:[.8,.86,.95],volGnd:[.8,.82,.88],vigC:[.06,.08,.12],env:[[0,'#3F8FE0'],[.3,'#7FB8EA'],[.48,'#DDEEF8'],[.58,'#FFFFFF'],[.66,'#BCCBD8'],[1,'#90A4BC']]}); // (2026-10-14, passe graphismes) MIDI : sat/con 1,23/1,25, fini le cobalt (azur → horizon bleu très clair), brume bleu clair, cumulus BLANCS (clé blanche, ombres bleu pâle, plus de taupe), expo .96 pour que le béton reste à L* ~45, vignette neutre
+Object.assign(BIOMES.nuagesSoir,{sat:1.16,con:1.18,expo:.97,sunI:1.15,hemiI:.6,jZen:[.14,.17,.42],jMid:[.5,.38,.5],jHor:[1,.66,.46],jSol:[.9,.5,.24],sunHalo:.9,fog:[.93,.76,.66],fogCj:[1,.74,.56],sunC:[1,.78,.6],hemiG:[.46,.38,.52],volSun:[2.1,1.85,1.5],volSky:[.56,.5,.68],volGnd:[.34,.27,.34],vigC:[.07,.05,.08],env:[[0,'#3C4C8C'],[.3,'#8C7CAA'],[.48,'#FFB98A'],[.58,'#FFD6A8'],[.66,'#A88A94'],[1,'#6A6080']]}); // (2026-10-14, passe graphismes) SOIR : sat/con 1,25/1,25 (≤1,30), pêche → mauve doux (plus de violet vif ni d'orange fluo), clé pêche (#FFC79A) ADOUCIE après contrôle (sunI 1,7 → 1,15, hemi .55 → .6 : au soleil de face le béton virait au saumon L* 65, sat .5 — non revérifié à l'image), ombres prune, cumulus pêche (ventres moins noirs), halo du soleil .9, vignette neutre (plus de rose)
+Object.assign(BIOMES.nuagesNuit,{sat:1.04,con:1.14,expo:1.0,hemiI:.58,hemiS:[.4,.45,.6],sunI:.8,sunC:[.7,.76,.9],fillI:.26,fillC:[.4,.46,.64],kickC:[.48,.52,.75],jZen:[.004,.008,.035],jMid:[.008,.014,.055],jHor:[.013,.024,.09],fog:[.02,.03,.08],fogN:600,fogF:4000,volSky:[.22,.28,.5],volGnd:[.1,.12,.22],vigK:.34}); // (2026-10-14, passe graphismes) NUIT : sat/con 1,12/1,21 (≤1,15/1,25) ; lumière qui éclaire le béton remontée (hemi .5 → .58, lune .75 → .8 en #B3C2E6, fill .22 → .26, expo .92 → 1,0) : béton L* 18-34 mesuré selon l'angle avec .65/.9/.3 (avant : trou noir), puis allégé d'un cran — non revérifié, ciel linéaire charte #0B1230 → #1E2A52 (plus sombre que la route), brume bleu sombre = horizon. Reste : la mer de nuages (GLSL merZ) garde des sommets blancs
+Object.assign(BIOMES.nuagesPluie,{sat:.96,con:1.10,expo:.97,sunC:[.84,.87,.92],hemiG:[.26,.29,.38],jZen:[.2,.24,.3],jMid:[.3,.34,.4],jHor:[.42,.45,.5],fog:[.46,.5,.56],fogIn:[.5,.53,.58],fogCj:[.46,.48,.54],vigK:.3,vigC:[.05,.06,.09]}); // (2026-10-14, passe graphismes) PLUIE : sat/con 1,04/1,17 (≤1,05/1,18), gris perle (ciel et brume du même gris-bleu, plus de pervenche clair), clé diffuse #D5DEEA, la route mouillée garde le spectacle
+Object.assign(BIOMES.tempete,{sat:1.0,jour:1,jZen:[.012,.017,.05],jMid:[.025,.03,.07],jHor:[.07,.08,.14],jSol:[0,0,0],hemiS:[.38,.42,.52],hemiG:[.1,.12,.2],sunC:[.6,.66,.77],fillC:[.3,.4,.6],kickC:[.4,.5,.7],kickI:.2,fog:[.17,.2,.28],fogIn:[.3,.34,.42],fogCj:[.28,.31,.4],volSun:[1.1,1.18,1.35],volSky:[.34,.38,.5],volGnd:[.1,.11,.17],sh:[0,.008,.03],vigK:.5,vigC:[.02,.025,.045],eS1:[190,205,235,.3],eS2:[120,140,180,.25],env:[[0,'#1B2236'],[.3,'#2A3348'],[.48,'#4A5670'],[.58,'#6A7690'],[.66,'#2A3144'],[1,'#10131C']]}); // (2026-10-14, passe graphismes) ORAGE (niveau L'ORAGE) : ARDOISE — le ciel passe de l'ancien dégradé Vice City (violet/magenta, orange au zénith sous skyMul) au « jour d'altitude » gris-bleu #1E2740 → #4A5670 (jour:1, comme les 5 autres météos), contre-jour violet → bleu-gris, hemi/fill/brume/vignette sans violet, sat 1,0 × 1,08 = 1,08 (≤1,10) ; mêmes fogN/fogF (visibilité du niveau)
+// (fin MER DE NUAGES)
+//
+//
+// ---- ÉTALONNAGE · LA VILLE (villeMatin · villeMidi · villeSoir · nuitNoire · pluie · villeOrage) ----
+Object.assign(BIOMES.villeMatin,{sat:1.1,con:1.12,expo:.91,jZen:[.14,.3,.58],jMid:[.38,.54,.74],jHor:[.94,.84,.76],jSol:[.5,.36,.2],fog:[.88,.85,.84],fogCj:[.96,.88,.76],fogIn:[.94,.94,.95],sunC:[1,.92,.78],hemiG:[.66,.7,.78],fillC:[.52,.66,.88],kickC:[.9,.8,.7],volSun:[2.1,2.05,2.0],volSky:[.76,.82,.92],volGnd:[.74,.76,.84],vigK:.22,vigC:[.06,.07,.1],env:[[0,'#5E86BC'],[.3,'#9CB6D2'],[.48,'#EEE0D2'],[.58,'#FFF0DC'],[.66,'#B4BECE'],[1,'#8A96AC']]}); // (2026-10-14, passe graphismes) VILLE MATIN : mêmes signatures que le matin des Nuages (clé or pâle, ombres lavande, ciel azur → pêche) mais plus gris-bleu (zénith moins saturé, brume gris-pêche ; vu : zénith azur trop vif → [.14,.3,.58], expo .91 car béton L* ~58 à .94) ; sat/con 1,19/1,19 (≤1,20/1,22) ; vignette neutre (fini le bleu pétrole). Ciel/brume en LINÉAIRE
+Object.assign(BIOMES.villeMidi,{sat:1.12,con:1.18,expo:.92,jZen:[.17,.35,.66],jMid:[.46,.62,.8],jHor:[.8,.89,.95],jSol:[.3,.28,.2],fog:[.76,.85,.92],fogCj:[.92,.92,.88],fogIn:[.92,.94,.96],sunC:[1,.99,.96],hemiG:[.64,.67,.76],fillC:[.5,.66,.9],kickC:[.92,.9,.84],volSun:[2.3,2.3,2.25],volSky:[.78,.84,.93],volGnd:[.76,.78,.86],vigK:.22,vigC:[.06,.08,.12],env:[[0,'#4A86CC'],[.3,'#86B2DC'],[.48,'#DCE8F2'],[.58,'#FFFFFF'],[.66,'#B8C4D2'],[1,'#8C9EB4']]}); // (2026-10-14, passe graphismes) VILLE MIDI : plus de cobalt (azur → horizon bleu très clair, un cran plus gris que les Nuages), clé blanche, brume bleu clair, sat/con 1,21/1,25 (≤1,25/1,28), expo .94, vignette neutre
+Object.assign(BIOMES.villeSoir,{sat:1.16,con:1.18,expo:.96,sunI:1.15,hemiI:.6,jZen:[.14,.15,.3],jMid:[.5,.42,.5],jHor:[1,.66,.46],jSol:[.9,.5,.24],sunHalo:.9,fog:[.9,.74,.66],fogCj:[1,.74,.58],fogIn:[1,.9,.84],sunC:[1,.78,.6],hemiS:[.62,.64,.84],hemiG:[.44,.38,.5],kickC:[.9,.55,.5],kickI:.16,volSun:[2.1,1.85,1.5],volSky:[.54,.5,.66],volGnd:[.32,.27,.34],vigK:.24,vigC:[.06,.05,.08],env:[[0,'#3C4C8C'],[.3,'#8C7CAA'],[.48,'#FFB98A'],[.58,'#FFD6A8'],[.66,'#A88A94'],[1,'#6A6080']]}); // (2026-10-14, passe graphismes) VILLE SOIR : comme le soir des Nuages (pêche → mauve doux, clé #FFC79A adoucie sunI 1,15, ombres prune), sat/con 1,25/1,25 (≤1,30), brume pêche de l'horizon, contre-jour rose-magenta → ambre doux (kickC), vignette neutre (plus de rose)
+Object.assign(BIOMES.nuitNoire,{jour:1,sat:1.04,con:1.14,expo:.85,jZen:[.004,.008,.035],jMid:[.008,.014,.055],jHor:[.013,.024,.09],jSol:[0,0,0],moon:.4,fog:[.02,.03,.08],fogN:200,fogF:2200,fogIn:[.1,.12,.2],fogCj:[.1,.12,.22],hemiS:[.4,.45,.62],hemiG:[.04,.05,.09],hemiI:.4,sunC:[.7,.76,.92],sunI:.55,fillC:[.4,.48,.68],fillI:.22,kickC:[.5,.56,.82],kickI:.08,volSun:[.8,.88,1.1],volSky:[.2,.26,.46],volGnd:[.08,.1,.18],bloomS:.55,bloomT:.85,rimK:.4,vigK:.5,vigC:[.01,.02,.05],eS1:[200,215,255,.2],eS2:[120,150,210,.18],env:[[0,'#0B1230'],[.3,'#141C3A'],[.48,'#2A3A5E'],[.58,'#4A5E88'],[.66,'#10162C'],[1,'#060810']]}); // (2026-10-14, passe graphismes) VILLE NUIT (niveau MINUIT) : encre BLEUE (jour:1 avec le ciel linéaire de la charte #0B1230 → #1E2A52, plus sombre que la route, étoiles gardées), expo .62 → .85 + hemi .16 → .4 + lune sunI .14 → .55 (vu : béton bleu-nuit lisible, ciel plus noir que la route ; .95/.5/.7 le rendait trop clair) + fill .22 : le béton reste lisible (cible L* 14-20, fini le trou noir) ; plus de kick magenta, env/eS sans rose ni cyan, fog bleu sombre 200/2200 (les tours se lisent) ; sat/con 1,12/1,14 (≤1,15/1,25), vignette .5×.6
+Object.assign(BIOMES.pluie,{jour:1,sat:.96,con:1.08,expo:.8,jZen:[.12,.16,.22],jMid:[.2,.24,.31],jHor:[.34,.38,.45],jSol:[0,0,0],city:1.2,fog:[.34,.38,.45],fogN:300,fogF:2400,fogIn:[.4,.44,.5],fogCj:[.34,.37,.44],hemiS:[.5,.56,.7],hemiG:[.14,.16,.22],hemiI:.5,sunC:[.78,.83,.92],sunI:.85,fillC:[.4,.5,.68],fillI:.22,kickC:[.5,.55,.7],kickI:.15,volSun:[.95,1,1.15],volSky:[.3,.34,.44],volGnd:[.1,.11,.16],bloomS:.5,bloomT:.9,rimK:.5,vigK:.4,vigC:[.04,.05,.08],sh:[0,.006,.03],eS1:[200,215,240,.3],eS2:[140,170,210,.25],env:[[0,'#141A26'],[.3,'#2A3446'],[.48,'#6C7C94'],[.58,'#A0AEC0'],[.66,'#2A3244'],[1,'#10141E']]}); // (2026-10-14, passe graphismes) VILLE PLUIE (niveau VILLE, « pluie néon ») : gris-bleu désaturé (jour:1, ciel #6E7F96-ish assombri, brume du même gris, plus de violet-magenta dans fog/ciel/kick/fill teal), sat/con 1,04/1,15 (≤1,05/1,18), expo .72 → .8 + hemi .44 → .5 (vu : gris-bleu, béton mouillé qui reflète les enseignes ; .9/.62 était trop clair et plat) ; seules les enseignes (shaders, city 1,2) gardent de la couleur ; vignette neutre
+Object.assign(BIOMES.villeOrage,{jour:1,sat:1,con:1.16,expo:.86,jZen:[.018,.024,.048],jMid:[.032,.04,.068],jHor:[.08,.09,.14],jSol:[0,0,0],fog:[.12,.14,.2],fogIn:[.3,.34,.42],fogCj:[.28,.31,.4],hemiS:[.38,.42,.52],hemiG:[.1,.12,.2],sunC:[.6,.66,.77],fillC:[.3,.4,.6],kickC:[.4,.5,.7],kickI:.2,volSun:[1.1,1.18,1.35],volSky:[.34,.38,.5],volGnd:[.1,.11,.17],sh:[0,.008,.03],vigK:.5,vigC:[.02,.025,.045],eS1:[190,205,235,.3],eS2:[120,140,180,.25],env:[[0,'#1B2236'],[.3,'#2A3348'],[.48,'#4A5670'],[.58,'#6A7690'],[.66,'#2A3144'],[1,'#10131C']]}); // (2026-10-14, passe graphismes) VILLE ORAGE : ARDOISE comme la tempête des Nuages refaite en jour:1 (ciel gris-bleu #1E2740 → #4A5670 au lieu du dégradé Vice City violet), contre-jour magenta → bleu-gris, hemi/fill/brume/vignette sans violet, sat 1,0×1,08 (≤1,10), expo .86 inchangé (vu : .94 trop clair) ; ciel un peu moins indigo que la tempête (zénith plus gris, NON REVU) ; mêmes fogN/fogF 140/1400 (visibilité du niveau)
+// (fin LA VILLE)
+//
+//
+// ---- ÉTALONNAGE · PICS DE JADE (jadeMatin · jadeMidi · jade · jadeNuit · jadePluie · jadeOrage) ----
+// (fin PICS DE JADE)
+//
+//
+// ---- ÉTALONNAGE · EN ORBITE (espaceMatin · espace · espaceSoir) + CRYPTOCITY (bullrun) ----
+// (fin EN ORBITE)
+//
+//
+// ---- ÉTALONNAGE · LA COUCHE COMMUNE (retouches de DA / BIO_ETAL0 : voir aussi `const DA=` plus bas) ----
+// (2026-10-14, passe graphismes · agent etal-commun) Ce qui a changé, pour TOUTES les ambiances d'un coup — des valeurs, rien d'autre :
+//  · `const DA=` (plus bas)  : sat 1.2 → 1.08 · con 1.14 → 1.06 · sh/hi (split sarcelle/or) ÷ 2 · vigK 1 → .6 (toutes les vignettes à 60 %) · expo 1.06 gardée.
+//  · `const BIO_ETAL0=` (plus haut, les DÉFAUTS versés dans toute ambiance qui n'a pas la clé) : la dominante magenta/violette par défaut est retirée —
+//    wb neutre, ombres bleu-nuit (plus de −vert), lumières à peine chaudes, con 1.23 → 1.16, vignette ENCRE BLEU-NUIT [.03,.045,.09] au lieu du violet,
+//    halo plus sélectif (bloomS .54 → .46, bloomT .92 → .95 : seul ce qui émet s'allume).
+//    Héritent du défaut (wb/sh/hi/con) : tempete, nuitNoire, villeOrage, pluie + les heures de l'ancien parc (aube, lever, golden, couchant, soir, nuit, orage, aurore) ;
+//    (bloomS/bloomT) : matin, midi, aprem, nuagesSoir/Nuit/Pluie, villeMatin/Midi/Soir, bullrun, les 7 titres ; (vigK/vigC) : pluie (la VILLE sous la pluie) et l'ancien parc.
+//    Les ambiances qui ont LEUR vigC/con/wb (jade*, espace*, nuages*, ville*…) ne bougent que par DA : leur réglage appartient aux équipes par map.
+//  · Les bords d'écran des BONUS (#pwrFx) : dosés à 40 % par `PWR_BORD_K` (grep), à côté de PWR_DEFS.
+// (fin COUCHE COMMUNE)
 const BIO={cur:JSON.parse(JSON.stringify(BIOMES.golden)),from:null,to:BIOMES.golden,k:1,dur:4,name:'golden'};
 function bioLerp(a,b,e,out){ // mixe deux biomes champ à champ (tableaux = composantes, nombres = scalaires)
   for(const key in b){ const bv=b[key];
@@ -19603,7 +19731,11 @@ function bioLerp(a,b,e,out){ // mixe deux biomes champ à champ (tableaux = comp
 /* Réglage retenu au banc (etal.js, 5 niveaux × 4 variantes, deux tours) : l'image sortait noyée dans UN violet (ciel, route, nuages et
    caisse), la caisse orange lue saumon pâle. → la chroma gardée dans les hautes lumières (vivid 1), le voile magenta retiré (wbN 1),
    un vrai split TEAL / ORANGE (ombres bleu-vert, lumières or-orange), saturation ×1,2, contraste ×1,14, exposition ×1,06. */
-const DA={on:1,expo:1.06,sat:1.2,con:1.14,vivid:1,wbN:1,sh:[-.026,.045,-.006],hi:[.02,.038,-.042],vigK:1};
+/* (2026-10-14, passe graphismes · étalonnage commun) LA COUCHE TENUE. Avant : sat 1.2 · con 1.14 · sh [-.026,.045,-.006] · hi [.02,.038,-.042] · vigK 1
+   (expo 1.06 gardée). Multipliée par des ambiances déjà poussées elle donnait jusqu'à sat 1,63 / con 1,48 : cobalt criard, orange « Cheetos »,
+   noirs bouchés, coins recolorés (Sacha : « trop IA »). → sat 1.08, con 1.06, split sarcelle/or divisé par 2, vignette de TOUTES les ambiances
+   à 60 %. Choisi à l'œil sur 5 ambiances (shots/etal-commun/planche-essais-DA.png). Le reste se règle PAR AMBIANCE (plafonds de la charte). */
+const DA={on:1,expo:1.06,sat:1.08,con:1.06,vivid:1,wbN:1,sh:[-.013,.022,-.003],hi:[.01,.019,-.021],vigK:.6};
 function daPose(U,c){
   // par ambiance (champs lerpés comme les autres) : daCon / daExpo / daWbN — les niveaux SOMBRES (tempête, minuit) prennent moins de
   // contraste, plus d'exposition et gardent la moitié de leur voile violet (MESURÉ : le contraste de la couche DA les noyait dans le noir)
@@ -20721,6 +20853,7 @@ const CARRIERE=[
     {nm:'SATURNE',astre:{teinte:0xd8c08a,atmo:0xfff0c0,echelle:1.35},pr:'LES ANNEAUX PLEUVENT SUR TOI'} /* (2026-09-28) 1,5 et 1,45 : la planète « mangeait tout le cadre dès qu'on plongeait » (mesuré pour lvlPlanete, d'où 1,35) */,{nm:'URANUS',astre:{teinte:0x7fd6d8,atmo:0xb8ffff,echelle:1.35},pr:'DEBRIS SERRES, GARDE LE CAP'},
     {nm:'NEPTUNE',astre:{teinte:0x3a5fd0,atmo:0x7fa8ff,echelle:1.35},pr:'LA DERNIERE PLUIE AVANT PLUTON'},{nm:'PLUTON',astre:{teinte:0xb8a48c,atmo:0xe8dccb,echelle:1.0},hard:1,pr:'ESQUIVE LES SATELLITES'}]},
 ];
+if(!PLOTS_ON)for(const B9 of CARRIERE)for(const N9 of B9.niveaux)if(N9.camp===4)N9.pr=''; // (2026-10-14, passe graphismes) le niveau 4 des NUAGES promettait « PASSE LES PORTES » : ses portes étaient des murs de plots, retirés avec eux — plus de promesse qui demande l'impossible (elle est éteinte aujourd'hui, LVL_BAN.prom 0, mais ne doit pas revenir si on la rallume)
 const CARR_LARG=[2,2,2,2,2,2,2,2,2,2]; // (2026-09-26) plus larges, comme la course // (2026-09-25) la carrière ne rétrécit plus non plus : c'est la vitesse qui monte
 const CARR={actif:null}; // {b: index de biome, i: niveau de départ} — null = partie sans fin
 // (2026-09-27) VERSION TEST : les dix niveaux de chaque monde se lancent sans avoir fini les précédents (Sacha teste la campagne tout de
@@ -28965,8 +29098,30 @@ shadow.visible=false;
    facture « clip-art » au milieu d'un jeu en pixels et en facettes. Désormais : un OCTOGONE épais (la coupe low-poly
    des caisses), frappé d'un « $ » en VRAIS pixels (texture 16×16, filtrage au plus proche), UNE matière, UN appel. */
 const COIN_CV=document.createElement('canvas');COIN_CV.width=COIN_CV.height=16;
+/* (2026-10-14, passe graphismes) LA SAPÈQUE DES PICS DE JADE — Sacha : « dans la map montagne chinoise, change les pièces qui sont pour
+   l'instant vertes en pièces chinoises avec un carré, un trou carré à l'intérieur ». Le vert venait de la palette 'Y' de coinPeint (champ
+   de jade #6ff0ae). Sur la piste jade (mode classique ET Soleil de Jade : la clé 'Y' de coinSymbole, l'appel de buildJade ne bouge pas) la
+   MÊME toile 16 × 16 est repeinte en sapèque de LAITON doré : liseré d'encre, listel (lumière en haut à gauche, ombre en bas à droite),
+   champ, quatre marques en relief (haut · bas · droite · gauche : l'inscription d'une monnaie, sans prétendre se lire), listel du trou,
+   et le TROU CARRÉ en encre sombre très nette (4 px : le quart du diamètre). Rien de plus pour la puce : ni géométrie, ni texture, ni
+   alphaTest. ⚠ Palette PEINTE, pas celle de l'écran : la pièce émet sa texture et l'étalonnage pousse le jaune vers l'orange (coinPeint). */
+const SAPEQUE={k:'#3a2006',l:'#fff0b0',h:'#f6d065',g:'#d2a23c',d:'#8a5a22',t:'#1e1003',
+  M:{'6,3':1,'7,3':1,'9,3':1,'6,12':1,'8,12':1,'9,12':1,'3,6':1,'3,8':1,'3,9':1,'12,6':1,'12,7':1,'12,9':1}}; // les quatre marques (x,y)
+function sapequePeint(c){
+  for(let y=0;y<16;y++)for(let x=0;x<16;x++){
+    const dx=x-7.5,dy=y-7.5,r=Math.hypot(dx,dy),a=Math.max(Math.abs(dx),Math.abs(dy));let k;
+    if(r>6.9)k='k';                                   // le liseré d'encre
+    else if(r>5.7)k=(dx+dy<-1)?'l':(dx+dy>2?'d':'h'); // le listel, biseauté comme la tranche du « $ »
+    else if(a<2)k='t';                                // le TROU CARRÉ
+    else if(a<3)k=(dx+dy<0)?'l':'h';                  // le listel du trou
+    else if(SAPEQUE.M[x+','+y])k='l';                 // une marque en relief
+    else if(SAPEQUE.M[(x-1)+','+(y-1)]||(a<4&&dx+dy>1))k='d'; // son ombre, et l'ombre portée du listel du trou
+    else k='g';                                       // le champ
+    c.fillStyle=SAPEQUE[k];c.fillRect(x,y,1,1);}
+}
 function coinPeint(sym){ // (2026-10-12) le symbole frappé : « $ » partout, « ¥ » au niveau SOLEIL DE JADE (voir coinSymbole)
   const N=16,cv=COIN_CV;const c=cv.getContext('2d');
+  if(sym==='Y'){sapequePeint(c);return;} // (2026-10-14, passe graphismes) sur la piste jade : la SAPÈQUE de laiton (même toile 16 × 16, repeinte)
   /* (2026-09-26, vague 2) L'OR DE LA BIBLE À L'ÉCRAN : #ffd75e. MESURÉ en course (pixels lus après l'ACES et le grade) : l'ancienne pièce
      (#ffc12e, émissif blanc ×.42, et surtout éclairée par la scène) sortait #fe8004 au couchant — ORANGE pur, la teinte des plots
      et de la flamme — et BRONZE sombre (#682800) dans la nuit de la ville. Deux causes : (1) elle vivait de la lumière de la scène,
@@ -28993,7 +29148,8 @@ const coinTex=(function(){coinPeint('$');const cv=COIN_CV;
   const t=new THREE.CanvasTexture(cv);t.magFilter=THREE.NearestFilter;t.minFilter=THREE.LinearMipmapLinearFilter;t.generateMipmaps=true;
   return t; // (pas d'anisotropie : sous D3D/ANGLE elle force un filtrage LINÉAIRE à l'agrandissement — adieu les vrais pixels de près)
 })();
-function coinSymbole(yen){const k=yen===true?'Y':yen||'$';if(coinSymbole.k===k)return;coinSymbole.k=k;coinPeint(k);coinTex.needsUpdate=true;}
+function coinSymbole(yen){const k=yen===true?'Y':yen||'$';if(coinSymbole.k===k)return;coinSymbole.k=k;coinPeint(k);coinTex.needsUpdate=true;
+  try{coinIM.geometry=k==='Y'?pickGeoY:pickGeo;}catch(e){}} // (2026-10-14, passe graphismes, Sacha : « le vrai trou percé ») la piste jade troque aussi la FORME : deux géométries bâties UNE fois au chargement, la même instance, la même matière, le même programme
 /* (2026-09-26, user : « les items sur la route plus gros, plus beaux, mieux travaillés ») : la pièce grossit (Ø 2,6 m), passe à 12 pans
    et reçoit un JONC en relief — un tore fusionné à la galette, dont les UV lisent le pixel clair de la tranche : on voit une vraie
    pièce frappée, avec sa bordure qui accroche la lumière, et c'est toujours UNE matière, UN appel de dessin. */
@@ -29008,6 +29164,39 @@ const pickGeo=(function(){
   const uv=g.attributes.uv;for(let i=0;i<26;i++)uv.setXY(i,.47,.16); // la TRANCHE : tout le pourtour lit un pixel « ombre d'or »
   const t=new THREE.TorusGeometry(1.18,.13,6,24);const tu=t.attributes.uv;for(let i=0;i<tu.count;i++)tu.setXY(i,.47,.91); // le JONC : le pixel clair
   return geoFusion([g,t]);
+})();
+/* (2026-10-14, passe graphismes, Sacha : « le vrai trou percé ») LA FORME DE LA SAPÈQUE : un disque à 16 pans PERCÉ d'un trou carré — de vraies
+   parois, on voit la montagne au travers, sans alphaTest ni transparence. En relief : le listel du bord (chanfrein d'encre, plat, pente) et
+   celui du trou. Les faces lisent la toile 16 × 16 À PLAT (1 px = R/8 m ; au dos en miroir), la tranche et les parois lisent UN pixel.
+   304 triangles (la pièce « $ » : 336), mêmes attributs que pickGeo. Bâtie une fois ; coinSymbole la pose sur l'instance des pièces. */
+const pickGeoY=(function(){
+  const P=[],Nn=[],U=[],R=1.31,K=R/8,N=16,ZR=.15,ZE=.09,ZF=.08;
+  const tri=(a,b,c,hx,hy,hz)=>{const ux=b[0]-a[0],uy=b[1]-a[1],uz=b[2]-a[2],vx=c[0]-a[0],vy=c[1]-a[1],vz=c[2]-a[2];
+    let nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx;const l=Math.hypot(nx,ny,nz)||1;nx/=l;ny/=l;nz/=l;
+    if(nx*hx+ny*hy+nz*hz<0){const t=b;b=c;c=t;nx=-nx;ny=-ny;nz=-nz;}
+    for(const p of [a,b,c]){P.push(p[0],p[1],p[2]);Nn.push(nx,ny,nz);U.push(p[3],p[4]);}};
+  const quad=(a,b,c,d,hx,hy,hz)=>{tri(a,b,c,hx,hy,hz);tri(a,c,d,hx,hy,hz);};
+  const pt=(q,z,sz)=>[q[0]*K,q[1]*K,sz*z,.5+sz*q[0]/16,.5+q[1]/16];
+  const uni=(p,uv)=>[p[0],p[1],p[2],uv[0],uv[1]];
+  const TR=[.47,.16],TP=[.47,.53]; // la tranche : le pixel d'ombre de laiton que lit déjà pickGeo · les parois : un pixel du trou (encre)
+  const cer=(r,i)=>{const a=Math.PI/4+i*2*Math.PI/N;return [r*Math.cos(a),r*Math.sin(a)];};
+  const car=(h,j)=>{const a=Math.PI/4+j*Math.PI/2;return [h*Math.SQRT2*Math.cos(a),h*Math.SQRT2*Math.sin(a)];};
+  for(const sz of [1,-1]){
+    for(let i=0;i<N;i++){
+      quad(pt(cer(8,i),ZE,sz),pt(cer(8,i+1),ZE,sz),pt(cer(7.2,i+1),ZR,sz),pt(cer(7.2,i),ZR,sz),0,0,sz);
+      quad(pt(cer(7.2,i),ZR,sz),pt(cer(7.2,i+1),ZR,sz),pt(cer(6.5,i+1),ZR,sz),pt(cer(6.5,i),ZR,sz),0,0,sz);
+      quad(pt(cer(6.5,i),ZR,sz),pt(cer(6.5,i+1),ZR,sz),pt(cer(6,i+1),ZF,sz),pt(cer(6,i),ZF,sz),0,0,sz);}
+    for(let q=0;q<4;q++){
+      const A=pt(car(3.15,q),ZF,sz),B=pt(car(3.15,q+1),ZF,sz),v=[];for(let m=0;m<=4;m++)v.push(pt(cer(6,q*4+m),ZF,sz));
+      tri(A,v[0],v[1],0,0,sz);tri(A,v[1],v[2],0,0,sz);tri(A,v[2],B,0,0,sz);tri(B,v[2],v[3],0,0,sz);tri(B,v[3],v[4],0,0,sz);
+      const A2=pt(car(2.8,q),ZR,sz),B2=pt(car(2.8,q+1),ZR,sz);
+      quad(A,B,B2,A2,0,0,sz);quad(A2,B2,pt(car(2,q+1),ZR,sz),pt(car(2,q),ZR,sz),0,0,sz);}}
+  for(let i=0;i<N;i++){const e0=cer(8,i),e1=cer(8,i+1);
+    quad(uni(pt(e0,ZE,1),TR),uni(pt(e1,ZE,1),TR),uni(pt(e1,ZE,-1),TR),uni(pt(e0,ZE,-1),TR),e0[0]+e1[0],e0[1]+e1[1],0);}
+  for(let q=0;q<4;q++){const a=car(2,q),b=car(2,q+1);
+    quad(uni(pt(a,ZR,1),TP),uni(pt(b,ZR,1),TP),uni(pt(b,ZR,-1),TP),uni(pt(a,ZR,-1),TP),-(a[0]+b[0]),-(a[1]+b[1]),0);}
+  const o=new THREE.BufferGeometry();o.setAttribute('position',new THREE.Float32BufferAttribute(P,3));o.setAttribute('normal',new THREE.Float32BufferAttribute(Nn,3));
+  o.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));return o;
 })();
 /* (2026-09-26, vague 2) LA LUMIÈRE, C'EST L'ARGENT : la pièce ÉMET son or (émissif blanc × sa propre texture ×1,05) et ne prend plus que la
    moitié de la lumière de la scène (diffus ×.5) — elle garde son relief (facettes, jonc, reflet spéculaire) sans virer à l'orange au
@@ -32524,6 +32713,11 @@ const PWR_DEFS={ // n = nitro infinie · a = airtime infini · v = vitesse ×2 �
    VITESSE ×2 : le cristal, la plaque du HUD, les bords d'écran, la jauge et son feu, la plume, la traînée et le reflet de la caisse le portent
    tous (`NINF`, lu par la boucle). Une ligne à part : l'objet ci-dessus appartient à la logique des pouvoirs. */
 Object.assign(PWR_DEFS.n,{col:0xa45cff,core:0xf1e2ff,tint:'#b06bff',c2:'#7b34f0',fx:'rgba(164,92,255,.85)',fx2:'rgba(123,52,240,.35)'});
+/* (2026-10-14, passe graphismes · étalonnage commun) LE VOILE DES BONUS, DOSÉ : les bords d'écran qui battent pendant TOUT le pouvoir (#pwrFx :
+   deux ombres internes `fx` 50 px + `fx2` 150 px) recoloraient les coins et la moitié de l'image — vert sous l'aimant, magenta sous la vitesse ×2
+   (9 captures sur 24 à l'audit) : la palette de la météo disparaissait. Leur force (l'alpha) est divisée par 2,5 dans une copie `bd`/`bd2`,
+   lue seulement par les bords TENUS ; l'éclair bref du ramassage (`flashEcran(d.fx)`) garde la sienne. Revenir : PWR_BORD_K=1. */
+const PWR_BORD_K=1/2.5;for(const k9 in PWR_DEFS){const d9=PWR_DEFS[k9],f9=function(c){return c.replace(/,([.\d]+)\)$/,function(m,a){return ','+(+a*PWR_BORD_K).toFixed(3)+')';});};d9.bd=f9(d9.fx);d9.bd2=f9(d9.fx2);}
 const NINF={jet:0x9d4dff,core:0xf3e6ff,lum:0xa050ff,rac:0xd8b8ff,trail:[.95,.45,1.6]}; // la nitro infinie dans le monde : plume, cœur, reflet, racine du brûleur, ruban
 for(const k in PWR_DEFS){const d=PWR_DEFS[k];
   d.glassM=new THREE.MeshPhongMaterial({color:d.col,emissive:d.col,emissiveIntensity:.9,shininess:260,specular:0xffffff,envMap:envTex,reflectivity:.6,transparent:true,opacity:.78,depthWrite:false,flatShading:true});
@@ -42816,6 +43010,7 @@ function campRaccourci(d){ // se poser loin devant son décollage : la coupe est
    la boucle) est PROPRE : un pluck qui monte d'une porte à l'autre, un petit coup de FLOW et d'aura (sans texte : la liste d'aura), et la
    plaque du haut compte « PORTES 6 / 9 ». Survolée (en vol à son passage), elle ne compte pas : on l'a sautée, pas passée. Rien au centre. */
 function campPortesTick(){ // (⚠ PAS « portesTick » : ce nom est déjà celui des portes du SON, appelé à chaque image — le second l'aurait écrasé)
+  if(!PLOTS_ON)return; // (2026-10-14, passe graphismes) sans plots, les murs à porte du niveau 4 n'existent plus : on ne COMPTE pas des portes qu'on ne voit pas (ni plaque « PORTES n / 9 », ni pluck, ni flow, ni aura PORTE — elles seraient toutes « propres » d'office). Les repères CAMP.portes restent : les pads s'en écartent toujours (campPadNon), la piste du niveau est la même.
   const P=CAMP.portes;if(!P.length)return;
   const sp=vPos();let nx=null,der=0,n9=0;
   for(let i=0;i<P.length;i++){const p=P[i];if(p.s>der)der=p.s;
@@ -52789,7 +52984,7 @@ function loop(now){
     {const sp9=airPie.style.display==='block';if(sp9!==loop._psp){loop._psp=sp9;pwrChip.classList.toggle('sousPie',sp9);}}
     {const k9=(mode==='boom'||gameOver)?'':pwrNitroT>0?'n':pwrSpdT>0?'v':pwrAurT>0?'x':pwrMagT>0?'m':pwrAirT>0&&!TUTO.on?'a':''; // (HUD v3) les BORDS de l'écran battent à la couleur du pouvoir actif — (2026-09-28) pas l'airtime prêté par l'auto-école · (pouvoirs v2) le plus « chaud » d'abord
      if(k9!==loop._pfx){loop._pfx=k9;let e9=avE('pwrFx');if(!e9){e9=document.createElement('div');e9.id='pwrFx';e9.setAttribute('aria-hidden','true');document.body.appendChild(e9);avEl.pwrFx=e9;}
-       if(k9){e9.style.setProperty('--pf',PWR_DEFS[k9].fx);e9.style.setProperty('--pf2',PWR_DEFS[k9].fx2);}e9.classList.toggle('on',!!k9);}}
+       if(k9){e9.style.setProperty('--pf',PWR_DEFS[k9].bd||PWR_DEFS[k9].fx);e9.style.setProperty('--pf2',PWR_DEFS[k9].bd2||PWR_DEFS[k9].fx2);} /* (2026-10-14, passe graphismes) bd/bd2 = le voile dosé (÷ 2,5) */e9.classList.toggle('on',!!k9);}}
     // JAUGE DE PROGRESSION — elle suivait le cash vers la prochaine VOITURE ; les voitures ne se
     // gagnent plus à l'argent de la partie. Elle suit désormais les PIÈCES vers le prochain MOTEUR,
     // la seule progression qui court pendant une partie. (elCp, le texte, est géré plus haut.)
