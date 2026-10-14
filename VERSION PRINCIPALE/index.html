@@ -8253,12 +8253,13 @@ html.c6 body.setPause.setPauseSort #overlay{animation:c6FondSort var(--c6-sort) 
 /* CHARTE 6 · le mouvement : les passages entre écrans — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
 /* LE RIDEAU (ecranWipe : il cache un changement de SCÈNE 3D — le ciel de l'accueil ⇄ le garage ⇄ la course). Il reste, mais c'est un pan
    d'ENCRE plein, droit, bordé d'un trait blanc de 4 px : plus de liserés or · cyan · magenta, plus de trame, plus de marque au milieu.
-   Il passe sans s'arrêter : 150 ms pour couvrir, 240 ms pour découvrir (la main revient au script à 160 ms, inchangé).
+   Il passe sans s'arrêter : 150 ms pour couvrir, 200 ms pour découvrir (la main revient au script à 160 ms, inchangé). (accord n° 68 :
+   200 ms = la durée de tout ce qui entre ; la courbe de sortie, qui accélère, reste celle du rideau.)
    ⚠ les `!important` répondent à ceux de <style id="uxPasse"> (même propriété, même élément). */
 html.c6 #wipe::before{background:linear-gradient(90deg,var(--c6-b0) 0 4px,var(--c6-e0) 4px calc(100% - 4px),var(--c6-b0) calc(100% - 4px))!important}
 html.c6 #wipe::after{content:none!important}
 html.c6 #wipe.in::before{animation-duration:150ms!important;animation-timing-function:var(--c6-courbe)}
-html.c6 #wipe.out::before{animation-duration:240ms!important;animation-timing-function:cubic-bezier(.6,0,.8,.4)}
+html.c6 #wipe.out::before{animation-duration:var(--c6-pose)!important;animation-timing-function:cubic-bezier(.6,0,.8,.4)}
 /* LES PAGES DE LA COQUE (mGo : .on + .avant / .retour ; celle qui part garde .sort 220 ms).
    AVANCER = la page arrive de la droite (24 px, en fondu) ; REVENIR = de la gauche ; celle qui part s'éteint en 100 ms, sans bouger :
    deux pages qui glissent en même temps, c'est du bruit. Plus rien ne penche (les ±4° de la charte 5). */
@@ -8278,6 +8279,16 @@ html.c6 body.voletSort .mscr.on,html.c6 body.voletSort .mscr.on>*,html.c6 .mscr.
 @keyframes c6Retour{from{opacity:0;transform:translateX(-24px)}to{opacity:1;transform:none}}
 @keyframes c6Sort{to{opacity:0}}
 @media (prefers-reduced-motion:reduce){html.c6 .mscr.on,html.c6 .mscr.on>*,html.c6 .mscr.sort{animation:none!important}}
+/* (2026-10-14, accord n° 70) MOUVEMENT RÉDUIT : la préférence du système ET le réglage du jeu (html[data-reduced-motion="1"]) donnent la
+   même chose. Les pages ne glissent ni ne fondent (l'ancienne feuille leur rendait un fondu k4Voile sous le réglage du jeu) ; le rideau
+   COUPE net au lieu de balayer (1 ms) ; sous la préférence du système l'ancienne feuille le remplace par un voile #07050f (violet) : il
+   prend l'encre de la charte. */
+html.c6[data-reduced-motion="1"] .mscr.on,html.c6[data-reduced-motion="1"] .mscr.on>*,html.c6[data-reduced-motion="1"] .mscr.sort{animation:none!important}
+html.c6[data-reduced-motion="1"] #wipe.in::before,html.c6[data-reduced-motion="1"] #wipe.out::before{animation-duration:1ms!important}
+@media (prefers-reduced-motion:reduce){
+  html.c6 #wipe.in::before,html.c6 #wipe.out::before{animation-duration:1ms!important}
+  html.c6 #wipe.in{background:var(--c6-e0)}
+}
 </style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
