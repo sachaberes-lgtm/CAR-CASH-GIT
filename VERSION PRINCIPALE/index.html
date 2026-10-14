@@ -7826,6 +7826,10 @@ html.c6 body #garage #gAuraC :is(small,u),html.c6 body #garage #gVJ .gvU .gvR{di
 html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip{grid-auto-rows:max-content!important}
 /* (2026-10-14, ordre de Sacha, suite) le nom de rang du profil du garage (#gpRang) se tait aussi : le chiffre d'aura et sa jauge restent. */
 html.c6 body #gProfil #gpRang{display:none!important}
+/* (2026-10-14, ordre de Sacha) AUCUN « BIENTOT » à l'écran : un testeur y voit un jeu inachevé. Le bouton verrouillé du menu bas (nœud gardé : le script
+   le lit) et les blocs « ? » de raretés à venir (gMystere, aussi retirés du JS sous c6) sortent de la mise en page — display:none = pas de trou dans
+   la grille, ni de séparateur orphelin dans la rangée ; les autres touches de #gMenuBas se re-partagent la place. */
+html.c6 body #gMenuBas .gVerrou,html.c6 body #gStrip>.gT.gMys{display:none!important}
 </style>
 <style id="c6-boutique">
 /* CHARTE 6 · la boutique (la rotonde de Léo), la fenêtre d'achat — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
@@ -44671,7 +44675,7 @@ function gStripModeVoitures(){
       const et=ouv?(i===eq?'':pxi('coche')):(u&&u.p?fmtC(u.p):u&&u.eur?eurTxt(u.eur):u&&u.k==='carnet'?gDefiEt(u.v):'');
       return '<div class="gT'+(ouv?'':' lock')+(i===eq?' eq':'')+'" data-car="'+i+'" role="button" aria-label="'+String(CARS[i].name).replace(/"/g,'')+'" style="--rc:'+ri.c+lg9+'">'
         +'<i class="gTl"></i><i class="gTv"></i>'+rarLogo(i)+'<em'+(!ouv&&u&&!u.p&&u.eur?' class="eur"':!ouv&&u&&u.k==='carnet'?' class="def"':'')+'>'+et+'</em></div>';}).join('');
-    if(m==='tous')st.insertAdjacentHTML('beforeend',gMystere());
+    if(m==='tous'&&!document.documentElement.classList.contains('c6'))st.insertAdjacentHTML('beforeend',gMystere()); // (2026-10-14, charte 6, ordre de Sacha) plus de blocs « ? BIENTÔT » : un testeur y voit un jeu inachevé
     st.querySelectorAll('.gT[data-car]').forEach(function(el){const i=+el.getAttribute('data-car');
       photoFile(i,function(url){const v=el.querySelector('.gTv');if(v)v.remove();if(!el.querySelector('img')){const im=document.createElement('img');im.alt='';im.src=url;el.insertBefore(im,el.firstChild);}});});}
   st.querySelectorAll('.gT').forEach(function(el){el.classList.toggle('on',+el.getAttribute('data-car')===garageI);});
