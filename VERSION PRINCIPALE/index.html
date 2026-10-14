@@ -42599,6 +42599,7 @@ function chanceEtat(){
 }
 function chanceJoue(){ // le toucher de la plaque : on paie TOUT DE SUITE, on repart sous le volet
   if(!chanceEtat().ok)return false;
+  if(ecranWipe._on)return false; // (2026-10-14, chasse aux bugs) un volet déjà en route (REJOUER, ⌂ touchés juste avant) n'appellerait jamais la reprise (ecranWipe sort sans `go`) : on paierait pour rester sur l'écran de mort, offre éteinte et ligne du Top 10 retirée — on ne débite rien
   const P=CHANCE.prix;
   clearTimeout(CHANCE.tm);CHANCE.used=true;CHANCE.offre=false;
   SAVE.d.bank=Math.max(0,bank()-P);
