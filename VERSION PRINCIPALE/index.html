@@ -8890,10 +8890,10 @@ const skyDome=(function(){
       '  if(y>.0108&&uPluie>.001){',                               // ---- LE PLAFOND ---- (vague 2 : calculé SEULEMENT sous la pluie — sans elle, haut = ciel au pixel près)
       '    float t=520./max(y,.01);vec2 p=d.xz*t+uCam.xz+vec2(uTime*7.,uTime*3.),q=p/650.;',
       '    float n=vfbm(q+.6*vec2(vn(q*.45+3.7),vn(q*.45-5.1))),dn=smoothstep(.34,.74,n);',
-      '    vec3 cc=mix(F*.62+vec3(0.,.004,.02),F*1.3+vec3(.06,.02,.06)*nuit,dn);', // trouées plus sombres, ventres éclairés par la ville
+      '    vec3 cc=mix(F*.62+vec3(0.,.004,.02),F*1.3+'+(NEON_V?'vec3(.045,.03,.03)':'vec3(.06,.02,.06)')+'*nuit,dn);', // trouées plus sombres, ventres éclairés par la ville — (2026-10-14, neon-residuel) la lueur est un gris chaud NEUTRE (le lilas fixe +.06,.02,.06 teintait tout le plafond de l'orage et de la pluie, C 14 teinte 281 → C 9 teinte 245 : ardoise)
       '    if(lv*nuit>0.){float wv=.5+.5*sin(dot(p,vec2(.0019,.0011))-uWave*6.2831853);',
       '    cc+=A*dn*wv*wv*.22*lv*nuit;}',                                             // les néons de la ville ondulent sous les nuages
-      '    if(uBeatK*uLvl>0.)cc+=vec3(.5,.45,.75)*smoothstep(.6,.95,vn(q*.3+floor(uTime*2.)*1.7))*uBeatK*uBeatK*uBeatK*uLvl*dn*.55;', // l ÉCLAIR : seulement sur les GROSSES frappes (au cube), sinon un orage à chaque coup de grosse caisse
+      '    if(uBeatK*uLvl>0.)cc+='+(NEON_V?'vec3(.62,.62,.72)':'vec3(.5,.45,.75)')+'*smoothstep(.6,.95,vn(q*.3+floor(uTime*2.)*1.7))*uBeatK*uBeatK*uBeatK*uLvl*dn*.55;', // l ÉCLAIR : seulement sur les GROSSES frappes (au cube), sinon un orage à chaque coup de grosse caisse
       '    haut=mix(ciel,mix(F,cc,exp(-t/4200.)),uPluie);}',                          // au loin, le plafond se fond dans la brume
       // (2026-09-27, passe perf iPhone) sous 0,6° (t > 48 km) le plafond pèse exp(-t/4200) < 1e-5 : c est la brume, sans ses 7 bruits
       '  else if(y>-.03&&uPluie>.001)haut=mix(ciel,F,uPluie);',
@@ -40550,7 +40550,7 @@ function eclEcrit(){
       CV3.subVectors(b,a);CV4.subVectors(cam,a);CV4.crossVectors(CV3,CV4);const l=CV4.length();if(l>1e-6)CV4.multiplyScalar(w/l);
       P[o]=a.x-CV4.x;P[o+1]=a.y-CV4.y;P[o+2]=a.z-CV4.z;P[o+3]=a.x+CV4.x;P[o+4]=a.y+CV4.y;P[o+5]=a.z+CV4.z;
       P[o+6]=b.x-CV4.x;P[o+7]=b.y-CV4.y;P[o+8]=b.z-CV4.z;P[o+9]=b.x+CV4.x;P[o+10]=b.y+CV4.y;P[o+11]=b.z+CV4.z;
-      const f=fl*(w>6?1.5:1.05);for(let k=0;k<4;k++){C[o+k*3]=.92*f;C[o+k*3+1]=.86*f;C[o+k*3+2]=1.35*f;}}}
+      const f=fl*(w>6?1.5:1.05);for(let k=0;k<4;k++){if(NEON_V){C[o+k*3]=.95*f;C[o+k*3+1]=.97*f;C[o+k*3+2]=1.18*f;}else{C[o+k*3]=.92*f;C[o+k*3+1]=.86*f;C[o+k*3+2]=1.35*f;}}}} // (2026-10-14, neon-residuel) l'éclair : blanc-bleu (la charte), plus lilas
   for(let i=n;i<ECL.N;i++){const o=i*12;if(P[o+1]===-99999)continue;for(let k=0;k<4;k++){P[o+k*3+1]=-99999;C[o+k*3]=C[o+k*3+1]=C[o+k*3+2]=0;}}
   if(on||ECL.viv){const at=ECL.m.geometry.attributes;at.position.needsUpdate=true;at.color.needsUpdate=true;}
   ECL.viv=on;
