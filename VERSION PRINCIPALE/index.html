@@ -35724,7 +35724,7 @@ const SAVE={
   V:2,K:'cashcarSave',d:null,dirty:false,
   def(){return{v:this.V,best:0,leaders:[],bestCar:0,equipped:0,sfx:true,vox:true,mus:true,fruits:[],
     vol:{mus:.62,sfx:1,vox:1}, // les trois curseurs de volume (1 = le mixage d'origine)
-    tctl:'stick',q:'fast',sand:false,carr:{}, // MOBILE : schéma de commandes · résolution d'image · bac à sable
+    tctl:'stick',q:(PAL.b('qNetDefaut',0)?'net':'fast'),qChoisi:0,sand:false,carr:{}, // MOBILE : schéma de commandes · résolution d'image · bac à sable // (2026-10-14, passe perf mobile) q d'une sauvegarde NEUVE = le défaut du palier (RAPIDE tant que qNetDefaut=[0,0,0]) ; qChoisi = 1 quand le joueur a touché IMAGE
     volH:'monte',volHv:2, // (2026-10-10, Léo) POUCE HAUT EN VOL : MONTE d'origine (voir san)
     // EXPLOITS — les compteurs À VIE qui débloquent les caisses. Ils PERSISTENT : le moteur est la
     // progression DANS une partie (il repart à zéro), la voiture est la progression ENTRE les parties.
@@ -35770,6 +35770,10 @@ const SAVE={
     if(d.vol&&typeof d.vol==='object'){const q=(k,dv)=>{const x=+d.vol[k];return isFinite(x)?Math.min(1,Math.max(0,x)):dv;};
       c.vol={mus:q('mus',.62),sfx:q('sfx',1),vox:q('vox',1)};}
     c.tctl=(d.tctl==='pad')?'pad':'stick';c.q=(d.q==='net')?'net':'fast';c.sand=(d.sand===true);c.carr={};if(d.carr&&typeof d.carr==='object')for(const k of ['nuages','ville','espace','paris'])c.carr[k]=Math.max(0,Math.min(10,d.carr[k]|0)); // réglages MOBILE
+    /* (2026-10-14, passe perf mobile) « JAMAIS CHOISI » ≠ « A CHOISI RAPIDE » : qChoisi=1 posé par les trois bascules IMAGE. Une sauvegarde
+       d'AVANT ce champ (qChoisi absent) en 'net' a forcément choisi (le défaut a toujours été RAPIDE) ; en 'fast' on ne peut pas savoir : elle
+       suit le défaut du palier. Jamais choisi → le défaut du palier (qNetDefaut), relu à chaque chargement : qNetDefaut=[0,0,0] = RAPIDE, comme avant. */
+    c.qChoisi=(d.qChoisi===1||(d.qChoisi===undefined&&d.q==='net'))?1:0;if(!c.qChoisi)c.q=PAL.b('qNetDefaut',0)?'net':'fast';
     if(d.carrSel&&typeof d.carrSel==='object'&&['nuages','ville','espace','paris'].includes(d.carrSel.id))c.carrSel={id:d.carrSel.id,i:Math.max(0,Math.min(9,d.carrSel.i|0))}; // (2026-10-07) LE NIVEAU DES PLAY (carrSel le revérifie contre la carrière)
     if(Array.isArray(d.fruits))c.fruits=d.fruits.slice(0,32).filter(e=>e&&typeof e.n==='string').map(e=>({ // réglages de l'ÉTAL (bornés : un import bidon ne casse rien)
       n:e.n.slice(0,24),
@@ -51674,7 +51678,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       if(sz)sz.classList.remove('act'); keys.ArrowLeft=keys.ArrowRight=false;
       document.body.classList.toggle('tpad',TCTL.pad);
       SAVE.d.tctl=TCTL.pad?'pad':'stick'; SAVE.flush(); panSync(); }
-    else if(a==='q'){ SAVE.d.q=(SAVE.d.q==='net')?'fast':'net'; SAVE.flush(); applyQ(SAVE.d.q!=='net'); panSync(); }
+    else if(a==='q'){ SAVE.d.q=(SAVE.d.q==='net')?'fast':'net'; SAVE.d.qChoisi=1; SAVE.flush(); applyQ(SAVE.d.q!=='net'); panSync(); }
     else if(a==='volh'){ volhBascule(); panSync(); }
     else if(a==='surv'){ clic(survBtnEl); panSync(); }
     else if(a==='tous'){ setPauseOuvre(); } // (2026-10-14, charte 6) TOUS LES REGLAGES : l'écran complet par-dessus la pause
@@ -52023,7 +52027,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='ctl'){ TCTL.pad=!TCTL.pad; TCTL.act=false; TCTL.id=null; TCTL.st=0; TCTL.sv=0;
       keys.ArrowLeft=keys.ArrowRight=false; document.body.classList.toggle('tpad',TCTL.pad);
       SAVE.d.tctl=TCTL.pad?'pad':'stick'; SAVE.flush(); mFill(); }
-    else if(a==='q'){ SAVE.d.q=(SAVE.d.q==='net')?'fast':'net'; SAVE.flush(); applyQ(SAVE.d.q!=='net'); mFill(); }
+    else if(a==='q'){ SAVE.d.q=(SAVE.d.q==='net')?'fast':'net'; SAVE.d.qChoisi=1; SAVE.flush(); applyQ(SAVE.d.q!=='net'); mFill(); }
     else if(a==='exp'){ const c9=SAVE.export();
       modale({titre:'MA SAUVEGARDE',texte:'Garde ce code : il restaure toute ta progression.',champ:c9,lecture:true,
         boutons:[{l:'COPIER',ic:'copier',cls:'pb-gold',v:1},{l:'FERMER',v:0}]}).then(function(r){
@@ -52157,7 +52161,7 @@ if(!(IS_MOBILE||/[?&]touch=1/.test(location.search))){
     else if(a==='snd'){dClic(sndBtnEl);dPanSync();}
     else if(a==='vox'){dClic(voxBtnEl);dPanSync();}
     else if(a==='mus'){dClic(musBtnEl);dPanSync();}
-    else if(a==='q'){ SAVE.d.q=(SAVE.d.q==='net')?'fast':'net'; SAVE.flush(); applyQ9(SAVE.d.q!=='net'); dPanSync(); }
+    else if(a==='q'){ SAVE.d.q=(SAVE.d.q==='net')?'fast':'net'; SAVE.d.qChoisi=1; SAVE.flush(); applyQ9(SAVE.d.q!=='net'); dPanSync(); }
     else if(a==='surv'){ dClic(survBtnEl); dPanSync(); }
     else if(a==='resp'){ dPanOpen(false); if(started&&!gameOver&&mode==='drive')respawn(); }
     else if(a==='reset'){ dPanOpen(false); if(started){carrIci();resetGame();} } // (2026-09-28) carrIci : la carrière repart du niveau en cours
