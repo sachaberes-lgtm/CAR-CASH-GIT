@@ -21155,7 +21155,7 @@ function atchFeu(course){
   for(let i=0;i<14;i++){const s9=6+Math.random()*10,a=(Math.random()-.5)*6;
     spawnP(embers,P.x,P.y,P.z,EXV.x+F.x*s9+R.x*a+H.x*(2+Math.random()*4),EXV.y+F.y*s9+R.y*a+H.y*(2+Math.random()*4),EXV.z+F.z*s9+R.z*a+H.z*(2+Math.random()*4),.3+Math.random()*.3);}
   if(course){popTexte(TR('ATCHOUM !'),'#ffb030',0);hap&&hap(18);}else ATCH.reste=2.5; // (audit) au garage : ses flammes vivent encore 2,5 s, même si on change de caisse
-  if(!(typeof sfx==='function'&&sfx('caisse.atchoum')))noiseBurst(.2,.09,620); // (son à cuire par la session SON : « caisse.atchoum »)
+  if(!(typeof sfx==='function'&&(sfx('caisse.atchoum')||sfx('nitro.sec',{st:5,vol:2}))))noiseBurst(.2,.09,620); // (son à cuire par la session SON : « caisse.atchoum ») — (2026-10-14, session SON) pas encore cuit : la flamme qui TOUSSE de la panne sèche, une quarte plus haut (l'éternuement), au lieu du vieux souffle de bruit blanc
 }
 function atchTick(dt){
   if(!ATCH.on){if(ATCH.reste>0){ATCH.reste-=dt;if(garageOn&&!running)for(const q of [flames,flameCore,embers])updatePool(q,dt,q===embers?4.5:1);}return;} /* (2026-10-07, audit) on a changé de caisse au garage : ses dernières flammes finissent leur vie au lieu de rester plantées */
@@ -28931,7 +28931,7 @@ function frole(c9,dl,k){
   momT=Math.min(4.3,momT+.6); // (momentum v2) le style NOURRIT la réserve de vitesse
   try{chaineAuraMuette(FROLE.n>=2?'SLALOM ×'+FROLE.n:'FRÔLÉ',20,'frole',false,SONV2);}catch(e){}
   if(k===1&&FROLE.n>=2)popTexte('SLALOM ×'+FROLE.n,FROLE.n>=3?'#ffd75e':'#7dffec'); // (2026-09-29, Sacha) FRÔLÉ ! et PORTE ! ne s'écrivent plus : seul le SLALOM parle
-  try{froleSnd(pres,FROLE.n);}catch(e){}
+  try{froleSnd(pres,FROLE.n,c9);}catch(e){} // (2026-10-14, session SON) + l'objet frôlé : le souffle passe de SON côté
   hap(FROLE.n>=3?[8,20,8]:8);fovPunch=Math.max(fovPunch,1.5+2*pres);
   try{sparkBurst(sparkBlue,c9.mesh.position,3+Math.round(3*pres),5);}catch(e){}
   if(SENS)try{sensCoup((lat-side*c9.lat>0?1:-1)*(.35+.5*pres),0,0);}catch(e){} // (2026-10-14, sensations) le SOUFFLE du plot rasé : la caisse s'en écarte d'un rien (plus on rase près, plus elle tique) — le frôlé se lisait aux étincelles, pas dans la caisse
@@ -33257,7 +33257,7 @@ function singeArrive(){
   for(const m of SGC.S){const P=SGR_PL[m.i];m.ph=0;m.t=-.14*m.i;m.ds0=P.ds-7;m.lat0=P.c*(ROAD_HALF+5+3*Math.random());m.h0=-6;
     m.ds=m.ds0;m.lat=m.lat0;m.h=m.h0;m.hl=Math.max(0,Math.min(32,SGC.hC));m.vh=0;m.nd.visible=false;m.S.e.ph=Math.random()*6.28;}
   chaineAura('LES SINGES !',150,'singe');nitroGain(nitroCap()*.15,'singe');
-  try{flowAdd(8,'risque');}catch(e){}hap([10,24,10]);try{if(typeof sfx==='function')sfx('singe.troupe');}catch(e){}
+  try{flowAdd(8,'risque');}catch(e){}hap([10,24,10]);try{if(typeof sfx==='function'&&!sfx('singe.troupe'))sfx('dauphin.banc',{st:7,vol:5});}catch(e){} /* (2026-10-14, session SON) « singe.troupe » n'est pas cuit : la troupe arrivait MUETTE. En attendant : le babil de clics et de sifflets du banc de dauphins, une quinte plus haut — des petites bêtes qui jacassent */
 }
 function singePart(m){if(m.ph===2)return;m.ph=2;m.tp=m.t+.18*m.i;m.latp=m.lat;m.dsp=m.ds;m.hp=m.h;} // il s'en va (chacun à son tour)
 function singeJeu(dt){
@@ -33551,8 +33551,26 @@ let musicMode='none',musicBaseVol=1,musicBoostEnv=0;
 const VOL={mus:.62,sfx:1,vox:1};
 const ANN_MUS_DUCK=.88; // la voix parle → la bande-son recule à peine (2026-10-03, Léo : « les MONSTRE ne doivent pas cacher la musique » — c'était .34, −9 dB, la musique semblait s'arrêter à chaque pose)
 const SFX_SOUS_MUS=.7; // (2026-10-03, Léo : « les MONSTRE ne doivent pas cacher la musique — ça vaut pour TOUS les effets sonores ») : tous les effets −3 dB sous la musique (curseur EFFETS inchangé, appliqué par-dessus)
-function sfxVol(){return VOL.sfx*SFX_SOUS_MUS;}
-function musVol(){return musicBaseVol*VOL.mus;} // le niveau accordé × le curseur, en un seul endroit
+/* (2026-10-14, session SON) SUR IPHONE, LES EFFETS NE RECULENT PLUS SOUS LA MUSIQUE. Le −3 dB de `SFX_SOUS_MUS` a été réglé à l'ordi, où la
+   musique joue à `musVol()` × .62-1 (−4 à −8 dB sous son fichier). Sur iPhone le volume d'un <audio> est en lecture seule : la musique y sort
+   à 100 % de son fichier — déjà 4 à 8 dB AU-DESSUS du mixage voulu. Lui retirer encore 3 dB aux effets, c'était les noyer deux fois (pièces,
+   poses, figures « qu'on n'entend pas »). Là où le volume est verrouillé, les effets gardent donc leur plein : le rapport musique / effets
+   retrouve à peu près celui de l'ordi. Même sonde que `VOL_LOCKED` (déclarée plus bas, illisible ici avant sa ligne). */
+const SON_VOL_VERROU=(function(){try{const a=new Audio();a.volume=.42;return Math.abs(a.volume-.42)>.01;}catch(e){return false;}})();
+function sfxVol(){return VOL.sfx*(SON_VOL_VERROU?1:SFX_SOUS_MUS);}
+function musVol(){return musicBaseVol*VOL.mus*musTrim();} // le niveau accordé × le curseur, en un seul endroit — (2026-10-14, session SON) × la sonie du morceau
+/* (2026-10-14, session SON) LES MORCEAUX À LA MÊME SONIE. Mesuré (BS.1770, fichiers d'assets/audio/music, `son/notes/sonie-fichiers.tsv`) :
+   de −12,4 LUFS (VITESSE) à −16,0 (NOITE) en plein spectre, et de −13,6 à −20,4 « haut-parleur » (passe-haut 200 Hz : ce que rend un
+   téléphone) — NOITE, SWAG, ADDICTIVE et GLASSY ont leur poids dans le grave et SONNENT 4 à 6 dB plus bas que les autres sur un portable :
+   le passage d'un niveau à l'autre faisait sauter la musique. Correction en dB, moitié plein spectre / moitié haut-parleur, bornée à ±3 dB,
+   appliquée au volume de l'élément (ordi, Android ; sur iPhone le volume est verrouillé : rien ne change). Les fichiers ne sont PAS
+   réencodés (ce sont les morceaux de Léo). Un morceau absent de la table = 0 dB. */
+const MUS_SONIE={'noite-de-velocidade':3,'swag-cash-car-2':3,'glassy-plucks':2.6,'addictive-loop':2.1,'lvl1-neon':.9,'lvl2-cash-car-vitesse':0,
+  'ciel-complet':.9,'ciel-n1':-.4,'ciel-n2':-.6,'ciel-n3':1.5,'ciel-n4':.4,'ciel-n5':1.5,'ville-n1':-.5,'ville-n2':-.6,'ville-n3':1,'ville-n4':1.2,'ville-n5':.9,
+  'chris-siffleur':-1.3,'chris-polaroid':-.7,'chris-dimanche':-.6,'chris-matin':-.4,'chris-nuit':-.3,'chris-ciel':-.2};
+function musTrim(){const s9=musicEl&&musicEl.src||'';if(s9===musTrim._s)return musTrim._g;musTrim._s=s9;let d9=0;
+  for(const k in MUS_SONIE)if(s9.indexOf(k)>=0){d9=MUS_SONIE[k];break;}return musTrim._g=Math.pow(10,d9/20);}
+musTrim._s=null;musTrim._g=1;
 /* ⚠⚠ LA MUSIQUE v4 — RÉÉCRITE DE ZÉRO (2026-09-25, user : « réécriture complète du code autour de la musique, ça ne
    marche toujours pas »).
    ⚠ POURQUOI L'ANCIENNE CHAÎNE LÂCHAIT. La bande-son passait par Web Audio (`createMediaElementSource` → filtre →
@@ -33820,7 +33838,10 @@ function frenMus(on){
   const el=musicEl;
   if(on){
     if(!SND.music||musicMode!=='run'||!el)return;
-    if(MUSIC_FREN.f&&FRENM.ok!==false){ // LE MORCEAU TOMBE
+    /* (2026-10-14, session SON) on ne bascule que sur un fichier CONFIRMÉ (`ok===true`, sondé au lancement). Dans l'appli iPhone la sonde reste
+       sans réponse quand le fichier manque (`ok` null) : la 1re frénésie coupait la musique sur un fichier absent, 0,3 à 1,5 s de trou pile sur
+       la récompense, puis la radio repartait. Sans confirmation, c'est le repli surmultiplié, sans changer de source ni de silence. */
+    if(MUSIC_FREN.f&&FRENM.ok===true){ // LE MORCEAU TOMBE
       clearInterval(FRENM.iv);
       FRENM.src=el.src;FRENM.t=el.currentTime||0;FRENM.loop=el.loop;FRENM.sw=true;
       try{el.playbackRate=1;el.preservesPitch=true;el.webkitPreservesPitch=true;}catch(e){}
@@ -34751,14 +34772,20 @@ const SON_PENTA={'jeu.sansFaute':9,'jeu.dauphin':9,'jeu.palierVitesse':7}; // le
    faisaient, leurs remplaçants aussi. La valeur = la profondeur du creux (voir `dk` dans la boucle). */
 const SON_DUCK={'frenesie.entre':.6,'monde.fin':.6,'verdict.mega':.6,'cratere':.6,'impact.immeuble':.6,'verdict.3':.5,'caisse.debloquee':.5,'ui.carnet':.5,'orbite.entre':.5,
   'moteur.palier':.45,'argent.palier':.45,'fig.jackpot':.45,'portail':.4,'pwr.bouclierCasse':.4,'jeu.miracule':.4,'aura.x10':.4,'verdict.2':.35,'verdict.meteor':.35,'pad':.3,'turbo.ultra':.3,
-  'victoire':.4,'defaite':.3,'fig.monstre':.25,'pwr.n':.25,'pwr.a':.25,'pwr.v':.25,'pwr.m':.25,'pwr.b':.25,'pwr.x':.25,'pwr.triple':.35};
+  'victoire':.4,'defaite':.3,'fig.monstre':.25,'pwr.n':.25,'pwr.a':.25,'pwr.v':.25,'pwr.m':.25,'pwr.b':.25,'pwr.x':.25,'pwr.triple':.35,
+  // (2026-10-14, session SON) les grands moments qui n'écartaient pas le mix alors qu'ils sonnent aussi fort que ceux du dessus (audit oreille-neuve §6) : chaque id vérifié dans la banque et appelé
+  'aura.x5':.2,'aura.x8':.3,'fig.snake':.3,'fig.essoreuse':.25,'fig.dauphinRoyal':.3,'pwr.double':.25,'frenesie.record':.4,'verdict.1':.15,'argent.gros':.15};
 function sonPd(i){i=Math.max(0,i|0);return [0,2,4,7,9][i%5]+12*Math.floor(i/5);} // i-ème degré de la pentatonique, en demi-tons
+// (2026-10-14, session SON) passé le 9e degré (+21, le plafond des bases [0,12]), une gamme du vol ne se FIGE plus sur sa note : elle redescend
+// et remonte l'octave haute (degrés 8-7-6-5-6-7-8-9 : +19 +16 +14 +12 +14 +16 +19 +21) — jamais plus haut qu'avant
+const SON_ECH_AR=[8,7,6,5,6,7,8,9];
+function sonPdAR(i){i=Math.max(0,i|0);return sonPd(i<=9?i:SON_ECH_AR[(i-10)%SON_ECH_AR.length]);}
 function sfx(id,o){
   if(!SONV2||!sfxOk()||document.hidden)return null;
   try{if(o&&o.st!=null&&SON_PENTA[id])o.st=sonPd(Math.min(SON_PENTA[id],o.st));const h=window.CCSON.play(id,o);if(h&&SON_DUCK[id])duckT=Math.max(duckT,SON_DUCK[id]);return h;}catch(e){return null;}
 }
 function son(id,repli,o){if(SONV2&&window.CCSON.existe(id)){sfx(id,o);return true;}if(repli)try{repli();}catch(e){}return false;}
-function echSt(){return sonPd(Math.min(9,ECH++));} // plafond au 9e degré (+21 demi-tons) : au-delà la transposition dépasse l'octave de la base // le degré SUIVANT de la gamme du vol
+function echSt(){return sonPdAR(ECH++);} // (2026-10-14, session SON) aller-retour au-delà du 9e degré (sonPdAR), au lieu de Math.min(9,…) // plafond au 9e degré (+21 demi-tons) : au-delà la transposition dépasse l'octave de la base // le degré SUIVANT de la gamme du vol
 function sonConsole(){ // branche la console sur le contexte du jeu (fin d'initAudio ; rejoué si sfx.js arrive après le 1er geste)
   if(SONV2||!AC||!MASTER||!window.CCSON)return;
   try{window.CCSON.init(AC,MASTER);SONV2=!!(window.CCSON.etat().ok&&window.CCSON.existe('ui.tap'));sonTonSuit._t=null;}catch(e){SONV2=false;} // (débogage 2026-09-29) sans banque chargée, l'ancien son reprend la main
@@ -35260,6 +35287,8 @@ function heartBeat(){ // la mallette est lourde : le cœur du pilote cogne — t
    ni avec celle d'avant ni avec la musique. Le combo (fenêtre de 3 s) EST la portée : lâche la ligne et la mélodie
    repart d'en bas. C'est ce qui donne envie de ne plus la lâcher (le même ressort que les anneaux d'un hérisson bleu). */
 const GAMME_P=[0,2,4,7,9,12,14,16,19,21,24];
+// (2026-10-14, session SON) au-delà du sommet (+24), la série ne rejoue plus la même note : elle redescend et remonte l'octave haute (aller-retour, période 10)
+const SON_P_AR=[21,19,16,14,12,14,16,19,21,24];
 /* (2026-09-25) UNE SEULE LANGUE pour toute la famille des récompenses : les pièces étaient en mi pentatonique, mais le FLOW jouait en
    do/ré/mi/sol majeur, le frôlé une gamme par tons, la chaîne du chromatique, l'échelle des tons depuis la5, le drift la/ré/sol…
    Or ces sons se SUPERPOSENT sans arrêt (ligne de pièces + slalom + palier de FLOW) : pièce n°3 (sol#5) contre l'accord de do du FLOW
@@ -35268,7 +35297,11 @@ const TON=330; // mi4 : la tonique EXACTE des pièces (660) et de rewardSfx (660
 function noteP(i,oct){return TON*Math.pow(2,GAMME_P[Math.max(0,Math.min(GAMME_P.length-1,i|0))]/12+(oct||0));}
 const FLOW_ACC=[null,[0,2,3],[1,3,5],[2,4,6],[3,5,7]]; // mi majeur · fa#-si-mi · sol#-do#-fa# · si-mi-si : la basse monte d'un degré par palier
 function blip(){
-  if(SONV2){if(!sfxOk())return;const k9=Math.max(0,combo-1);sfx('piece',{st:GAMME_P[Math.min(k9,GAMME_P.length-1)],vol:4}); /* (2026-10-12, Léo : « quand je vais sur une pièce, je l'entends pas forcément ») +4 dB : sous GLISSE elles se perdaient */if(combo>0&&combo%5===0)sfx('piece.recolte');return;} // (console de son)
+  if(SONV2){if(!sfxOk())return;const k9=Math.max(0,combo-1),st9=k9<GAMME_P.length?GAMME_P[k9]:SON_P_AR[(k9-GAMME_P.length)%SON_P_AR.length];
+    // (2026-10-14, session SON) toutes les 10 pièces d'affilée, le PALIER : la quinte de la note (st−5, une octave sous st+7 : reste sous la base haute), −7 dB, 30 ms après.
+    // Jouée AVANT la pièce et seulement si la pièce passera son délai minimal (cd .018, chronométré ici) : on ne double jamais une pièce avalée
+    try{if(combo>0&&combo%10===0&&AC.currentTime-(blip._t||-1)>=.018)sfx('piece',{st:st9-5,vol:-3,t:.03});}catch(e){}
+    if(sfx('piece',{st:st9,vol:4}))try{blip._t=AC.currentTime;}catch(e){} /* (2026-10-12, Léo : « quand je vais sur une pièce, je l'entends pas forcément ») +4 dB : sous GLISSE elles se perdaient */if(combo>0&&combo%5===0)sfx('piece.recolte');return;} // (console de son)
   if(!sfxOk())return;
   try{
     const k=Math.max(0,combo-1),st=GAMME_P[Math.min(k,GAMME_P.length-1)],f=660*Math.pow(2,st/12);
@@ -35356,8 +35389,14 @@ function raseSnd(dt,kmh){
 }
 /* LE FRÔLÉ S'ENTEND : un souffle Doppler (aigu à l'approche, grave en s'éloignant — l'objet PASSE à côté de nous) et un
    « ting » qui monte d'un ton par plot enchaîné. La chaîne d'un slalom se joue comme une gamme. */
-function froleSnd(pres,n){
-  if(SONV2){sfx('frole',{st:sonPd(Math.min(9,(n|0)-1)),vol:-3+3*(pres||0)});return;}
+// (2026-10-14, session SON) LE CÔTÉ DE L'OBSTACLE : `ob` = l'objet frôlé (plot, satellite, voiture du trafic — tous ont .mesh.position, en monde).
+// Son écart sur l'axe DROIT de la caméra (celle de l'image d'avant) le place à l'écran : le souffle passe de ce côté, ±0,35 au plus.
+// Sans objet (ou sans position), pas de pan : rien n'est deviné. Vecteurs réutilisés : aucune allocation par frôlé.
+const SON_FR_D=new THREE.Vector3(),SON_FR_R=new THREE.Vector3(),SON_FR_C=new THREE.Vector3();
+function froleSnd(pres,n,ob){
+  if(SONV2){let p9=0;try{if(ob&&ob.mesh&&ob.mesh.position){SON_FR_R.setFromMatrixColumn(camera.matrixWorld,0);SON_FR_C.setFromMatrixPosition(camera.matrixWorld);
+      p9=.35*Math.max(-1,Math.min(1,SON_FR_D.copy(ob.mesh.position).sub(SON_FR_C).dot(SON_FR_R)/2.5));if(!(p9===p9))p9=0;}}catch(e){p9=0;}
+    sfx('frole',{st:sonPdAR((n|0)-1),vol:-3+3*(pres||0),pan:p9});return;} // (2026-10-14, session SON) sonPdAR : aller-retour sur l'octave haute après le 9e maillon, au lieu de figer
   if(!sfxOk())return;
   try{
     const t0=AC.currentTime,d=.32,up=Math.min(1.9,1+(n-1)*.12);
@@ -35627,11 +35666,14 @@ function annPreload(){ // réchauffe le cache HTTP dès le 1er geste : la voix p
 const DEATH_DIR='assets/audio/death/';
 // ⚠ SONS DE SYNTHÈSE (placeholders) : les originaux sous licence (minecraft/explosion/eww/gong)
 //   restent à fournir par Sacha. Format AAC .m4a (WKWebView natif — afconvert ne sait pas encoder mp3).
+/* (2026-10-14, session SON) LES MORTS AU MÊME COUP. Tirées au hasard, elles ne frappaient pas pareil — MESURÉ (crête de sonie sur 100 ms, × v) :
+   minecraft −8,0 dB, gong −8,1, déflagration −12,8 : une mort sur trois tombait 5 dB plus bas. v recalés sur −9,5 (minecraft .80 → .68,
+   déflagration .70 → .95 — pas plus : sur le chemin <audio> de repli, `volume` > 1 lèverait —, gong .85 → .72). */
 const DEATH_LIB=[
-  {f:'minecraft.m4a', v:.80, max:2.6},  // boum pixelisé (synthèse — placeholder)
-  {f:'explosion.m4a', v:.70, max:4.5},  // déflagration (synthèse — placeholder)
+  {f:'minecraft.m4a', v:.68, max:2.6},  // boum pixelisé (synthèse — placeholder)
+  {f:'explosion.m4a', v:.95, max:4.5},  // déflagration (synthèse — placeholder)
   {f:'eww.m4a',       v:.95, max:2.3, voix:1},  // « ewwwww » (voix TTS — placeholder) · `voix` : écarté quand l'annonceur parle
-  {f:'gong.m4a',      v:.85, max:3.6}   // gong (synthèse — placeholder)
+  {f:'gong.m4a',      v:.72, max:3.6}   // gong (synthèse — placeholder)
 ];
 if(SANS_VOIX)for(let i=DEATH_LIB.length-1;i>=0;i--)if(DEATH_LIB[i].voix)DEATH_LIB.splice(i,1); // (POKI) pas de voix : le « ewww » part, les trois sons de synthèse restent
 let deathLast=-1,deathEls=[];
@@ -36099,7 +36141,14 @@ function hap(p){
 }
 // LE CLIC D'INTERFACE (2026-09-24) : une note brève et haute + une micro-vibration — chaque bouton RÉPOND, comme une borne d'arcade
 const UI_CLIC={nav:'ui.nav',retour:'ui.retour',on:'ui.on',off:'ui.off',onglet:'ui.onglet',refus:'ui.refus',danger:'ui.danger'}; // (2026-09-28) uiClic(rôle) : « j'appuie » ne sonne plus comme « je gagne », et un refus ne sonne plus comme un succès
-function uiClic(k){ try{ const f9=function(){if(SONV2)sfx(UI_CLIC[typeof k==='string'?k:'']||'ui.tap');else chimeNote(1480,0,.045,.05);};
+/* (2026-10-14, session SON) LES APPUIS RAPPROCHÉS CHANTENT : un appui seul garde sa note ; des appuis à moins de 0,6 s l'un de l'autre montent
+   doucement la pentatonique du morceau (degrés 0-1-2-3 puis 2-3-2-3…), 0,6 à 1,2 s la tiennent, au-delà de 1,2 s sans appui elle repart d'en bas.
+   « retour » redescend d'un degré. Seulement les fiches key:1 (tap, nav, onglet, retour : dans la tonalité, jamais faux). +7 au plus (bases [0]). */
+const SON_UI={i:0,t:-9},SON_UI_MEL={'ui.tap':1,'ui.nav':1,'ui.onglet':1,'ui.retour':1};
+function sonUiSt(id){const t=performance.now()/1000,g=t-SON_UI.t;SON_UI.t=t;
+  if(g>1.2)SON_UI.i=0;else if(id==='ui.retour')SON_UI.i=Math.max(0,(SON_UI.i<4?SON_UI.i:2+(SON_UI.i&1))-1);else if(g<.6&&++SON_UI.i>5)SON_UI.i=4;
+  const i=SON_UI.i;return sonPd(i<4?i:2+(i&1));}
+function uiClic(k){ try{ const id9=UI_CLIC[typeof k==='string'?k:'']||'ui.tap',st9=SON_UI_MEL[id9]?sonUiSt(id9):0,f9=function(){if(SONV2)sfx(id9,st9?{st:st9}:undefined);else chimeNote(1480,0,.045,.05);}; // (2026-10-14, session SON) id9/st9 pris À L'APPUI (le son peut partir plus tard, en pause)
   if(SND.sfx&&!paused){ if(AC&&AC.state!=='running')AC.resume().then(f9).catch(function(){}); else f9(); }
   else if(SND.sfx&&paused&&SONV2){const r9=k==='retour',t9=performance.now(),w9=function(){if((!paused||r9)&&AC&&AC.state==='running')f9();else if(performance.now()-t9<(r9?1200:700))setTimeout(w9,60);};setTimeout(w9,60);} /* (QA 2026-09-29) REPRENDRE (« retour ») n'attend plus la fin de la pause : le 3-2-1 la tient ≥ 0,9 s, le clic était perdu — il part dès que le compte a réveillé le son */ /* (débogage son 2026-09-29) en pause : le clic attend (0,7 s au plus) que REPRENDRE réveille le son ; un interrupteur du panneau, lui, reste muet */
   }catch(e){} hap(8); } // (2026-09-26) REPRENDRE : le contexte se réveille en asynchrone — la note attend qu'il tourne // en pause le moteur audio dort : la note s'empilerait et partirait en rafale à la reprise
@@ -37939,6 +37988,10 @@ function juiceScreenTick(dt){
   }
   juiceCx.globalAlpha=1;
 }
+// (2026-10-14, session SON) L'ÉCHELLE DES FRUITS : le i-ème fruit de la rafale, en demi-tons — 0, 2, 4, 7 puis aller-retour 4-7 (+7 au plus :
+// le splotch reste un fruit, pas une voix de souris ; la rafale, bases [0], reste sous l'octave même tonalité comprise)
+const SON_FRUIT_ST=[0,2,4,7];
+function sonFruitSt(i){i=Math.max(0,i|0);return i<4?SON_FRUIT_ST[i]:SON_FRUIT_ST[2+(i&1)];}
 function fruitCroque(pos,col,power,nom){ // nom : le fruit — chacun a SA bouche (console de son)
   fruitRafT=FRUIT_FENETRE;fruitRaf++;
   const r=Math.min(6,fruitRaf);
@@ -37948,7 +38001,7 @@ function fruitCroque(pos,col,power,nom){ // nom : le fruit — chacun a SA bouch
   const p2=crV1.copy(pos);p2.y+=1.1;
   juiceSplash(p2,col,Math.min(1.2,power*.9+r*.18));      // la gerbe 3D reste, mais en appoint
   juiceScreen(col,power,1+Math.min(4,r));                 // …et LE JUS REPEINT L'OBJECTIF : ça, on le voit
-  if(SONV2){sfx(FRUIT_SON[nom]||'fruit.peche',{rate:1+Math.min(5,r-1)*.025});if(r>=3)sfx('fruit.rafale');}else crunchSfx(r); /* (débogage son 2026-09-29) le plein de nitro sonne à la pompe, seulement s'il y a eu plein */
+  if(SONV2){sfx(FRUIT_SON[nom]||'fruit.peche',{rate:Math.pow(2,sonFruitSt(fruitRaf-1)/12)});if(r>=3)sfx('fruit.rafale',{st:sonFruitSt(fruitRaf-3)});}else crunchSfx(r); // (2026-10-14, session SON) la série MONTE en demi-tons de pentatonique (0-2-4-7, puis 4-7…) : avant, +2,5 % par fruit (0,4 demi-ton) noyé sous le hasard de la fiche (rj ±6 %, ±1 demi-ton) ; la rafale (key:1) monte avec /* (débogage son 2026-09-29) le plein de nitro sonne à la pompe, seulement s'il y a eu plein */
   shake=Math.max(shake,Math.min(.55,.18+r*.07));
   if(fruitRaf>=3){                                    // 3 fruits d'affilée : ce n'est plus un hasard
     chaineAura('RAFALE ×'+fruitRaf,15+r*6,'rafale',true,SONV2,true); /* (2026-10-01) 40+30r → 15+6r : depuis LA LIGNE PARFAITE un fruit arrive toutes les 2,4 s, la rafale ne retombe plus — 220 points par fruit, le plus gros robinet d'aura de la route (voir LA CHAÎNE SE FERME) */
