@@ -1,5 +1,164 @@
 # CASH CAR — guide projet pour Claude Code
 
+## LE CODE COUSIN (2026-10-14, Léo : « dans les réglages, tout en bas, un bouton ENTRER UN CODE ; quand quelqu'un tape cousin, il débloque toutes les voitures et tous les trucs débloquables — c'est caché »)
+RÉGLAGES › tout en bas, sous EFFACER : ENTRER UN CODE (`data-m="code"`, la feuille `modale` avec un champ). `codeCousin(t)` : « cousin » ou
+« cousin 1.61 » (accents, majuscules, espaces et points ignorés) → `SAVE.d.cousin=1` (gardé par `san`, parti avec EFFACER MA PROGRESSION, voyage
+dans COPIER / RESTAURER). `cousin()` ouvre, sur CET appareil : toutes les caisses (`carUnlockedVrai` : en vente, en €, à défi), tous les habillages
+(`shopOwned`), toutes les FIGURES (`figPossede`, `veqFigsAMoi`), toute la carrière. L'argent, l'aura et les records ne bougent pas. Code inconnu :
+« CODE INCONNU ». ⚠ App Store (règle 2.3.1) : une fonction cachée doit être signalée dans les notes de review.
+
+## LE DOGE (2026-10-14, Léo) — LA GROSSE TÊTE DE SHIBA SUR ROUES — index 76, ÉPIQUE 4 000 000 $, `SHAPES.doge`
+Parcours (tout dans l'historique git) : gros voxels (« nul ») → coupé puis muscle car avec la tête 3D qui sort de la calandre (« nickel la tête ») →
+visage PEINT dans le pare-brise (« ne perds pas la 3D ») → tête à la place du pare-brise → visage réparti sur la caisse, yeux-globes dans la vitre,
+oreilles sur le capot (« terrifiant ») → Léo : « LA GROSSE TÊTE DE SHIBA, mais avec des roues, les mêmes roues, un peu plus jaune le truc au milieu ».
+- LA VOITURE EST LA TÊTE : `dogeTete` (juste avant `const SHAPES` ; champ de distance `DOGE_SDF` → `dogeNets` surface nets, lissé, couleurs de
+  Kabosu moyennées) ×1,75, posée en (0, 1,02, ,06) sur un châssis sombre, deux essieux, roues de bronze à 5 branches au centre JAUNE OR (`jante`
+  0xffc42e), deux sorties d'or sous la nuque. Fiche : h 2,0 · w 2,0 · l 2,3 (la caméra recule pour les caisses hautes).
+- LE REGARD : yeux-sphères (blanc, iris, pupille, éclat) qui suivent la caméra (repère `pivot`), coup d'œil de l'autre côté ; sourcils crème qui se
+  lèvent ; tête PENCHÉE (le mème) qui hoche en roulant.
+- LA GUEULE (Léo : « qu'il ouvre la bouche, des dents, la langue tirée » · « sa bouche c'est le TRAIT NOIR, ça doit s'ouvrir depuis là » ·
+  « progressivement, pas découpé brutalement de manière permanente ») : seule la BOUCHE est découpée — sous le trait (`YC(x)`, la ligne du sourire
+  `LIG`), dans un cylindre elliptique sous le museau (`ell9` : EC ,46 · EA ,15 · EZ ,34) → la LÈVRE DU BAS + le menton (`G.machoire`) ; le reste
+  de la tête est d'un seul tenant. Elle s'ouvre en se DÉFORMANT sur le processeur (`poseGueule` : chaque sommet tourne autour de la charnière de
+  `th × poidsJ`, 1 au milieu de la lèvre → 0 au bord du cylindre : les coins restent attachés, l'ouverture grandit en amande) ; la lèvre du HAUT
+  se retrousse (`G.poidsU`, ×,32). Seule la coupe SOUS LE TRAIT est peinte (babines noires `levre`, palais, plancher) : le bord du cylindre garde
+  la peau → aucune couture visible, bouche fermée. Dents (`DENTS`) et langue suivent la déformation. LA LANGUE = un ruban (20 × 10) recalculé à
+  chaque image (`posLangue`), elle sort par le côté gauche et file au vent. `ouv` monte doucement (×3,2/s) : 0 au repos, ,85 en roulant et au
+  BURN-OUT (`BURN.k`), 1 à la nitro ; il halète. `dbgDoge(1)` / salle `window.DOGE_GUEULE=1`. ⚠ Essayés et refusés : la mâchoire rigide qui tombe
+  (« problème de physique »), le crâne coupé tout autour qui bascule (« découpé brutalement »). ⚠ Burn-out pas vérifié au banc (geste réel requis).
+- LA TRAÎNÉE WOW (`WOWT`, `wowStep`, `wowApercu`, après `rainbowApercu`) : les phrases du mème en Comic Sans sortent des pots à la NITRO et filent
+  derrière (sprites monde, 18 max). Traînée d'origine du DOGE (`fx.wow`) ET traînée de boutique « WOW » (30 000 $). Coupée avec l'arc-en-ciel.
+- Mesuré au banc : 60 i/s en course. ⚠ r128 : pas de `CapsuleGeometry`. ⚠ c'est un mème (Kabosu / Doge) : même question que la Nyan avant une sortie.
+
+## LE VOL ÉQUILIBRÉ + LES FIGURES AU DOUBLE-TAP (2026-10-14, Léo : « en vol, la voiture tourne dans le sens de la route qu'elle a quittée ; il faudrait qu'elle quitte la route et qu'il y ait un effet réaliste de balance dans l'air — équilibré ; selon l'endroit du joystick, la voiture se pivote et se dirige » + « un trick que tu choisis, qui s'actionne quand j'appuie deux fois rapidement sur le booster »)
+Bloc « LE VOL ÉQUILIBRÉ » juste après `const FLY_U` (`VEQ_K` = tous les réglages, `VEQ` = l'état). `?vol=ancien` / `dbgVol('ancien'|'neuf')` = le vol
+d'avant au chiffre près (le tonneau reste) ; `dbgVol()` = l'état (verrou, lacet/tangage/roulis de la caisse, haut, tonneau).
+- **CE QUI TOURNAIT** (mesuré au banc, joystick tenu à gauche au décollage) : le braquage du virage continuait de tourner la trajectoire en l'air
+  (~98°/s, le lacet du sol) ; la VRILLE visuelle permanente faisait tourner la caisse sur elle-même (600° en 2,4 s) ; le haut du vol restait celui
+  de la route (penchée).
+- **LE VOLANT SE RÉ-ARME AU DÉCOLLAGE** (`veqVolant`, appelé pour `yawIn`) : la part tenue depuis la route s'efface en `latch` 0,7 s — la caisse
+  part tout droit sur son élan ; pousser plus / changer de côté agit tout de suite ; le pouce qui revient au centre fait descendre le verrou
+  (jamais de contre-braquage). BORD : le verrou ne part qu'à la fin de la bascule (roues sur la lèvre = le sauvetage, comme au sol).
+  Le TAUX de virage en vol ne change pas (verdict de Sacha du 09/10). Mesuré : cap +8° à 0,27 s (avant +28°), puis le virage plein.
+- **L'ÉQUILIBRE** (`veqNiveau`) : FLY_U se redresse vers ±Y autour de la trajectoire (l'hémisphère où il est) — caisse et caméra à l'horizontale.
+- **LA BALANCE** (`veqCorps`, à la place de la vrille) : ressorts amortis (lacet/tangage ω 9,5 ζ .42 · roulis ω 8 ζ .36) autour de l'assiette de
+  vol : nez qui PIVOTE devant la trajectoire du côté du pouce (`lacet` .26 rad), INCLINAISON dans le virage (`roulis` .38), nez avec le manche
+  (`tangage` .2), une houle de 1,4° ; le redressement laisse un retard (`iner`) qu'elle rattrape en se balançant ; un tremplin lève un peu le nez ;
+  BORD : coup de roulis vers le vide (`brV` 4) rattrapé. `VEQ.qb` = l'assiette lissée (×12/s). À LA POSE (`veqPose`, tryLand + lèvre) : roulis →
+  `carRoll9`/`rollV`, lacet → `driftYaw`, tangage → `pitch9` — elle se balance sur ses ressorts de conduite.
+- **LE DÉCOLLAGE ET L'ATTERRISSAGE** (2026-10-14, 2e passe, Léo : « travaille encore plus la physique de quitter et d'atterrir sur le sol, ça
+  doit être cool ») : en l'air la suspension se DÉTEND (`ext` .11 : la carrosserie monte au-dessus des roues) ; à l'approche (temps avant que la
+  pose soit DÉCLARÉE — tryLand la déclare à 3 m — sous `posB` .45 s) la caisse se met dans le plan de la route, nez dans sa trajectoire
+  (`veqRoute`, radar `VEQ.si/sh/sl/sd` posé par tryLand) ; au CONTACT (`veqContact`, en tête de `touche9`) la suspension claque (`susY/susV`),
+  le nez plonge puis rebondit (`VEQ.sp`, ressort ω 13 lu par `veqConduite` dans `carBody.rotation.x`), la caméra s'enfonce 0,36 s (`veqCamera`),
+  anneau de poussière (`dust`) sur les grosses poses. `veqPose` calcule l'écart RÉEL caisse ↔ place de conduite (quaternion → Euler YXZ).
+- **LES FIGURES S'ACCUMULENT** (2026-10-14, Léo : « au lieu de supprimer les tricks, on va les accumuler ; une boîte blanche pour les voir ; on
+  les achète au shop, on les cumule dans l'inventaire, on les enchaîne en double-cliquant, ça les pose automatiquement, aléatoirement ») :
+  · le CATALOGUE et le LECTEUR vivent dans **`figures.js`** (`window.FIG`, chargé juste après three) — PARTAGÉ avec la boîte. 12 figures
+    (TONNEAU offert, TOUPIE 360, SHIMMY, CHANDELLE, SALTO ARRIÈRE / AVANT, DOUBLE TONNEAU, TIRE-BOUCHON, HÉLICO 720, VRILLE PENCHÉE, RODÉO,
+    SALTO COSMIQUE — 2 k → 50 k pièces) ; une figure = des mouvements simultanés (n tours sur un axe, ou un aller-retour) qui finissent TOUJOURS
+    à l'identité. `FIG.Lecteur` lance la suivante à 70 % de la précédente (`CHEV`) : les rotations se composent, la caisse ne s'arrête jamais.
+  · le DOUBLE-TAP NITRO (`veqDouble`) : AU SOL = le SAUT NITRO (`veqSaut` : impulsion 21, coûte 20 % de la jauge, sa pose rend 30 % du nitro
+    d'un vrai saut, pas de verrou du volant) + une figure qui part toute seule ; EN VOL = une figure AU HASARD parmi celles qu'on a (`FIG.tire`,
+    jamais deux fois la même d'affilée), ENCHAÎNÉE derrière celle en cours (3 au plus). Elle se RACCOURCIT pour finir avant la pose (le viseur :
+    `CAMV.eta`, jusqu'à 55 % de sa durée), sinon elle ne part pas. Finie = `addTrick('fig_'+id)` (son aura dans la chaîne, payée à la pose ;
+    des figures DIFFÉRENTES font monter le ×). Posée en plein tour : < 20° = elle compte, > 50° = POSE RATÉE (« FIGURE RATÉE ! »).
+  · le SHOP : catégorie FIGURES (`BQ_CATS`, `bqListe/bqCos/bqEtat/bqAction` → `figAchete`), toucher = la caisse la fait sur le plateau
+    (`garFigEssai`/`garFigTick`). L'INVENTAIRE (la console du garage) : onglet FIGURES (`COSM.figure` = la vue du catalogue, `shopBuy` →
+    `figAchat`, la fiche dit ACQUISE). Possédées : `SAVE.d.figs` (san : le TONNEAU toujours dedans). Rareté = prix (`cosmRar`).
+  · LA BOÎTE À FIGURES : **`boite-figures.html`** (EN LIGNE : /jouer/boite-figures.html) — la caisse dans une salle blanche, la liste
+    (prix / À TOI), ENCHAÎNER ×3, RALENTI, GÉNÉRER (une figure neuve au hasard, nommée d'après son geste) → AJOUTER AU JEU (localStorage
+    « cashcarFigPerso », même origine : elle passe au shop sur cet appareil ; pour tout le monde, la recopier dans BASE de figures.js).
+  · Console : `dbgVol('tout'|'rien')` (toutes / juste le tonneau), `dbgVol('double')`, `dbgVol()` (figures en cours, radar, pose, nez…).
+- Bancs (scratchpad de la session dcadf71c) : `scen.py` (A/B joystick tenu), `bord.py` (sortie par le bord), `chaine.py` (3 double-taps
+  enchaînés), `pose2.py` (préparation de la pose, contact), `shop3.py` / `inv2.py` (shop et inventaire au vrai clic), `boite.py`, `endu3.py`.
+
+## LE DOGE (2026-10-14, Léo : « fais une voiture tête de doge » · « dans le même esprit que la nyan cat ») — caisse ajoutée EN DERNIER (index 76), ÉPIQUE 4 000 000 $, `SHAPES.doge`
+Le mème du shiba en VOXELS, avec les outils du CHAT POP-TART : `voxGrille` (faces à l'air fusionnées), `nyLaque` (couleurs cuites par face d/h/c, brillant
+de studio, un seul programme), dessous noir. Gabarit dans `Object.assign(SHAPES,{…})`, juste après LA MERCURE.
+- CORPS (cases de 10 cm) court et bombé (`dansC` : la section), selle sombre, ventre crème, BULLE de verre sur le dos, COLLIER rouge clouté d'or
+  (l'anneau = la section élargie d'une case moins la section), CUISSES arrière en demi-boule sur les roues. Roues : pièces d'or (`cadran`), voie avant
+  plus large (`wxF` .98 : la tête de 1,6 m passe entre les roues). Feux sur la croupe, deux canons d'or sous la queue (`pots` déclarés).
+- TÊTE (cases de 8,5 cm, `HY`/`HZ`) : crâne + museau + joues en ellipsoïdes ; `S9` = la surface AVANT relevée avant tout relief ; `relief()` pose
+  un voxel UNE case devant (yeux, sourcils, truffe, langue : jamais coplanaires avec la tête). Bouche en coin et paupières PEINTES sur la surface.
+  Oreilles dans leur groupe (pivot à la base, elles tressaillent).
+- LE REGARD : 3 dessins d'yeux (`YEUX`, pupille dans un coin) — side-eye du côté de la caméra (`camera` en repère caisse), coup d'œil de l'autre côté
+  par moments ; sourcils levés d'une case (deux fois parfois, et pour de bon à la nitro) ; LANGUE en deux dessins à la nitro. Pas entiers à 8 i/s :
+  la queue (tire-bouchon en spirale qui se resserre, l'aileron) bat d'une case, la tête hoche quand il roule.
+- LES PHRASES DU MÈME (sa signature, comme l'arc-en-ciel du chat) : 12 textures Comic Sans (« wow », « such speed »…) cuites UNE fois
+  (`SHAPES.doge._tx`), 10 sprites ; une toutes les 1,5 s au garage, 1,8 s en course, 0,8 s en vol, RAFALE à la nitro (0,38 s) ; en course ×3 et plus
+  loin de la caisse (la caméra de poursuite est loin). Mesuré au banc : 60 i/s en course, comme LA DÉFERLANTE.
+- ⚠ À trancher avant une sortie : c'est un mème (le shiba « Doge »), même question que le CHAT POP-TART (Nyan Cat).
+## LE LOBBY « CHRIS » (2026-10-14, Léo : « applique les lobby Chris dans la musique lobby du main »)
+- `MUSIC_LOBBY` = six musiques dans l'esprit de « Chris » (C418), composées sur la branche musique (`CAR CAHS V3/atelier-son/lobby_chris.py`
+  et `petites_musiques.py`), chacune son monde : PREMIER MATIN (piano feutré + groove doux, ré) · DIMANCHE (bossa, fa) · GARAGE DE NUIT
+  (lo-fi, do m) · POLAROÏD (synthés, sol) · GRAND CIEL (ambiant, mi♭) · SIFFLEUR (soul 12/8, mi♭). Une tirée au hasard à chaque lancement
+  (comme avant). `SON_TON` a leurs six tonalités. Avant : VAPEUR · SALON et ASCENSEUR DORÉ (fichiers gardés, plus tirés).
+- Fichiers `assets/audio/music/lobby/chris-*.m4a`, 1 min 14 à 2 min 38, −15,5 dB RMS (≈ les anciens), **recousus pour boucler sans
+  couture** comme LES BOUCLES DU LOBBY RECOUSUES (plus bas) mais sans ffmpeg : `atelier-son/boucle_aac.py` de la branche musique —
+  encodés AVEC DÉBORD (fin devant, début derrière), paquets utiles seulement (un d'avance), liste d'édition `elst` (saut 1024, durée
+  EXACTE en 44 100e), iTunSMPB retiré. Mesuré dans Chrome (<audio loop>, capture muette) : durée exacte, aucun creux à la reprise.
+  Pour les refaire : `<venv>/python atelier-son/lobby_main.py "<…>/VERSION PRINCIPALE/assets/audio/music/lobby"`.
+- **LE CIEL SE TAIT, LE GARAGE JOUE** (même jour, Léo : « la musique se lance seulement quand j'appuie sur le mode garage — un léger
+  filtre adapté ; quand on est et qu'on revient dans le menu ciel, un bruit de chute libre doux ») : `MUS_TAIT` (posé par musicTick en
+  mode menu : le ciel de LA CHUTE, ou la boutique) → le lobby s'efface (~0,8 s) puis se met en PAUSE, et musicJoue l'ignore en mode menu
+  (ni un toucher ni le retour d'arrière-plan ne le relancent). Au garage il repart en fondu (du début la 1re fois, puis là où il était).
+  Le LÉGER FILTRE est CUIT dans les six fichiers (la musique ne passe pas par Web Audio, iPhone) : aigus −4,4 dB au-dessus de ~3,5 kHz +
+  une petite pièce de 0,7 s à 15 % (`garage()` de lobby_main.py) ; la bibliothèque garde les versions sans filtre. Au ciel :
+  LA CHUTE LIBRE DOUCE (`chuteDoux`/`chuteDouxCoupe`, `CHDOUX_VOL` .15) — deux souffles de bruit filtré (grave et rond / clair, qui passe
+  d'une oreille à l'autre) qui respirent ; `chute.vent` (le claquement des tôles) et le vent du moteur ne jouent plus qu'au PIQUÉ de JOUER.
+  Vérifié au banc muet (Chrome sans fenêtre, vrais clics) : ciel → musique en pause + vent ; GARAGE → musique de 0 à .31 en 0,4 s, vent
+  coupé ; HOME → fondu, pause, vent revenu ; un toucher sur la caisse ne relance rien ; PLAY depuis le ciel → musique de course. `dbgChuteDoux()`.
+- **RÉGLÉ LE MÊME SOIR** (Léo : « le vent est fort ; joue la musique de fond derrière le vent, mais moins fort que dans le garage » ·
+  « et la boutique a son propre son ambiant ») : au ciel la musique JOUE, à `MUS_CIEL` (.4, −8 dB) du niveau du garage, derrière la chute
+  douce ramenée de .15 à .06 (`CHDOUX_VOL`, −8 dB) ; seule la boutique tait le lobby (`MUS_TAIT`). LE SON DE LA BOUTIQUE (`bqSon`/
+  `bqSonCoupe`, appelé par garBqIndus, coupé par closeGarage) : une nappe de verre à cinq voix qui glisse toutes les 9 s entre E 6/9 et
+  C#m7(11) — la pentatonique des petits sons, transposée sur `sonTonSuit._t` —, l'air de la salle, une note cristalline + écho toutes les
+  2,5-6 s ; monte en ~1 s, s'efface en 0,6 s. Mesuré au banc : ciel musique .124 / garage .31 / boutique musique en pause, son .85.
+  (iPhone : la musique y garde le même niveau partout — volume d'<audio> verrouillé.) `dbgBqSon()`.
+  Puis (Léo : « la musique vraiment très légère dans le ciel, comme si on l'entendait en tombant ») : `MUS_CIEL` .4 → .15, et elle
+  RESPIRE avec le vent — `CHDOUX.h` (la houle de la chute douce) la fait plonger sous les rafales et remonter aux accalmies (× .62 à 1,38).
+  Mesuré : au ciel .03-.055 (contre .31 au garage, −15 à −20 dB).
+- **LE BRUIT LOUCHE DE LA BOUTIQUE** (Léo : « session débogage sonore : à la boutique, au début, ça fait un bruit louche ») — trouvé au banc
+  muet (Chrome sans fenêtre, crochet `Page.addScriptToEvaluateOnNewDocument` : journal de chaque source lancée + enregistrement de la sortie
+  par une dérivation ScriptProcessor sur la destination) : à l'ouverture, l'ATELIER continuait de sonner dans la salle blanche —
+  `garage.ambiance` (le néon qui GRÉSILLE) et `garage.feu` (la porte en feu qui gronde et crépite), ~−38 dB, au niveau de la nouvelle nappe,
+  sous le glitch. `bqAtelierSourdine(on)` (appelée par bqSon) les plonge à −45 dB en ~0,35 s et les rend au retour (garFeu reprend la
+  main sur le feu ; il ne réécrit plus son gain tant que `BQSON.atelier`). La nappe attend la fin du glitch (0,35 s) avant de monter.
+  Mesuré : boutique −34/−37 dB (sa voix seule, l'atelier à −80), retour atelier −37 dB comme avant.
+
+## LA PASSE MOBILE — DÉBOGAGE ET FLUIDITÉ EN NETTE (2026-10-14, Léo : « il y a plein de bugs ; il faudrait pouvoir jouer au graphisme NET sans que ça bug » · « peu importe le téléphone, il faut que tout le monde puisse jouer »)
+Banc : Chrome sans fenêtre DÉGUISÉ EN IPHONE (390 × 844 ×3, tactile, `mobile:true` → le vrai chemin `TEL_NATIF`, pas la colonne), son coupé,
+NETTE, JOUER → Soleil de jade au pilote auto ; processeur ralenti ×4 = un téléphone modeste ; A/B contre `origin/main` servi à côté.
+MESURÉ (×4, trois manches) : ~35-48 → ~50-58 images/s, images > 40 ms divisées par 4 à 9 ; zéro pixel changé (planche AVANT | APRÈS).
+- **LES `body:has(…)` DU HUD → DES CLASSES** (`HAS_D`, `hasMaj`, juste avant `cashHudTick`). La règle `body:has(#airPie[style*="block"])
+  #facVies` rendait CHAQUE écriture de style (le HUD en fait des dizaines par image) ~80× plus chère : micro-banc 500 µs → 6 µs sur le Mac,
+  2 ms → 0,02 ms sous charge ; les `:has(#x.on)` relançaient le <body> à chaque classe `on` posée ailleurs. Le recalcul des styles prenait
+  le TIERS du fil principal (×4). Un observateur sur 7 éléments pose `hTp · hMisBan · hCarr · hCampChip · hTriade · hAirPie · hPwr` sur le
+  <body> ; le CSS dit `.hTp:not(#ccH)` (même spécificité qu'un `:has(#…)`). Équivalence VÉRIFIÉE état par état (styles calculés de tous
+  les éléments à id). ⚠ **Plus jamais de `body:has(…)` pour le HUD** : une classe de plus dans `HAS_D`.
+- **`hudColonne`** (la colonne de droite) : mesurée en TÊTE de `loop` (styles encore propres), toutes les lectures puis les écritures qui
+  changent ; `VP` au lieu d'`innerWidth`. C'était la fonction la plus lourde du jeu (8 % du processeur).
+- **Soleil de jade, appels de dessin VIDES** : 47 des 269 appels d'une image dessinaient zéro montagne → `F.im.visible=w>0` dans `jadeTri`
+  (`F.coupe`/`F.coupeV` = les bancs dbgJadePoste) ; idem plaques turbo (`PAD_IM`), gouttes, brume, bulles, écume de la mer.
+- **Soleil de jade, plus aucune compilation en course** (`jadeChauffeNiveau`, avec la chauffe 120 ms après newTrack, sous le volet) : les
+  GRUES (~8 s), les matières du MONUMENT (vrOM → vrM à 450 m : 3 programmes vers 3 km) et les effets de la MER (au 1er plongeon) naissaient en
+  pleine course — chacun fige un iPhone 0,1-0,3 s. `jadeChauffe()` (jamais appelée) reste pour la balade.
+- **`jadeTri` n'alloue plus** (`F.rK/rA/rB`) : ~7 Mo/s jetés au ramasse-miettes par `for(const [k,r] of F.r)` (un tableau par quartier).
+  Course : 22 → 15 Mo/s de déchets. Reste surtout `loop` (trop grosse pour être optimisée par V8 : ses doubles s'emballent).
+- **La SONDE sur iPhone** (sans chrono de la puce : 5 images synchronisées) ne fige plus l'image toutes les 8 s quand l'échelle ne peut plus
+  descendre (plancher net, ou PLAFOND d'un cran de résolution inutile = téléphone limité par le processeur) : toutes les 30 s.
+- **Le reflet du logo du lancement** (`lgShine`) tournait toute la partie sous opacité 0 → en pause hors `.on` (`<style id="passeMobile">`).
+- **Bugs** : `pixCouleurs` sur le faux élément de l'impact moteur (la gerbe AU CAPOT ne partait jamais, erreur avalée) ; `dbgSonde` écrasée par
+  le banc des voitures réalistes (les deux coexistent : < 4 arguments = la sonde de qualité).
+- **`?banc=1` mis à jour** : colonnes au nom du VRAI niveau (« NUAGES » était le Soleil de jade), + 8 lignes `jade : sans …` (mer, montagnes,
+  verre, nuages, brume, rayons, chutes, lucioles). Sur le Mac M2 : JADE sol 11,3 ms (DPR 1,0 −2,8 · ciel −2,1 · transparents −2,1 · nuages
+  en cubes −1,6 · post −1,0). **C'est le banc à faire tourner sur un vrai téléphone avant de toucher au rendu** (puce graphique).
+- Bancs (dev) : `dbgAppels(n)` (qui fait chaque appel de dessin ; `window.__appelsDetail=1` détaille la scène), `dbgProgsListe()` /
+  `dbgProgsQui(id)` (programmes liés, et qui les utilise : traquer une compilation en course), `dbgJadePoste('coutOmbre')`.
+- Vu, pas touché : Soleil de jade ≈ 220 appels et 0,8-1,0 M triangles par image (nuages en cubes : 300 k, 37 %) ; la piste en 15 tranches
+  × 3-4 matières ; `loop` (1 700 lignes) jamais optimisée par V8 ; le lancement bâtit la map ~0,9 s sous le volet (×4 : 3,5 s).
+
 ## CRYPTOCITY — LA VILLE EN BULL RUN + LA PLUIE D'ARGENT v2 (2026-10-13, Léo : « avec le même système de génération automatique que les autres maps, génère une ville mais avec un twist majeur : c'est CRYPTOCITY, mais en BULL RUN — ciel joyeux, trouve plein de détails émerveillants du bull run, toute l'ambiance est différente, ça respire la réussite et l'argent ; un immeuble BULL ; et pour la peine ramène la pluie d'argent que t'as enlevée entretemps, et augmente la qualité »)
 - LE NIVEAU `NIV_CRYPTO` (id 'ville' + `crypto:1`, comme MINUIT EN VILLE : genCtrl, buildVoxCity, tours dures, loi 15 du flow suivent).
   `CRYPTO_JEU` (lvlChoisir le rend à chaque portail : un autre quartier, une autre graine). Lancement : `dbgNiveauCrypto()` = `cryptoJouer`
@@ -85,6 +244,83 @@
   avancé (pied de pare-brise 0,88), malle longue et haute, grandes vitres à montants fins, arête d'épaule, ailes élargies fondues.
   ⚠ La SALLE BLANCHE grise les noirs (studio blanc : tout noir y sort gris moyen) — un noir se juge dans le GARAGE du jeu
   (banc `garage.py` du scratchpad : vrais clics sur le splash puis sur la tuile GARAGE).
+- LES TRAITS MALADROITS (13/10, Léo : « des traits maladroits mal mis sur quelques voitures ») — joncs, seuils et lignes de porte
+  posés à un x FIXE (`sd*.95`…) alors que la coque avait bougé : ils flottaient hors de la tôle ou la traversaient. Recalés sur `xW(z)`
+  (ANGLAISE : le jonc de vitre SUIT la ceinture par segments, `seg()` ; RAIE, SILENCIEUSE, FÉLINE, TRÔNE, ROSSO : seuils raccourcis et
+  rentrés) · TAURINE : les ouïes COUCHÉES sur l'arc-boutant (un peigne qui sortait de la tôle) · ZED : les élargisseurs en LÈVRE qui
+  épouse le passage de roue (un trapèze noir posé autour) · DÉFIEUR / FÉLINE : les lignes de porte en FIL de laque foncée, d'un seul
+  tenant · BAVAROISE : montant arrière dans la couleur (triangle noir), jupe d'une roue à l'autre. ⚠ Règle : un détail de flanc se pose
+  TOUJOURS sur la fonction de largeur du gabarit (`xW(z)` ± épaisseur), jamais sur une constante.
+- LA BOUTIQUE DU GARAGE (13/10, Léo : « la Nyan Cat n'est plus dans le shop » puis « inverse le sens : quand on tire la voiture vers
+  le bas, ça tire l'endroit qu'on appuie vers le bas ») — `bqEphemeres` : l'offre de lancement (`une:1`, le CHAT POP-TART) reste TOUJOURS
+  en tête de l'onglet OFFRES, seules les 3 autres places tournent chaque semaine (les 4 étaient tirées : elle en sortait).
+  LA PRISE (`bqPrise(e)`, même soir, Léo : « en tirant le côté vers le bas, on peut la pivoter, le capot vers nous ») : au pointerdown un
+  rayon trouve le POINT touché ; tirer vers le bas tourne la caisse dans le sens qui fait descendre ce point (axe = bras × bas de l'écran,
+  dans le repère de la caisse), ramené sur le TANGAGE (`GBQ.pit`, nez/poupe) et le ROULIS (`GBQ.rol`, nouveau, le flanc : le dessus
+  bascule vers nous) ; les deux reviennent en ressort. ⚠ Repère de la caisse = `getWorldQuaternion().invert()`, jamais `rotation.y`
+  (relu d'un quaternion penché, l'Euler bascule de 180°) ; centre = `localToWorld(0,.55,0)` (la Box3 de carGroup ramasse halos et
+  lueurs, à 5 m). ⚠ Le PLATEAU TOURNE : au banc, viser avec `dbgPrise(x,y)` (nez, poupe, flancs, centre à l'écran + ce que le doigt attrape).
+- LES BARRES RETIRÉES (13/10, Léo : « tu as oublié d'enlever ces trucs, barres chelou blanches et d'autres couleurs ») — les longs
+  joncs, filets et bandes de FLANC et de TOIT sont retirés (une ligne de commentaire marque leur place) : ÉTERNELLE (jonc de l'arête
+  dorsale, il barrait la vitre du moteur), ANGLAISE (jonc de ceinture, seuil chromé), FÉLINE (seuil), QUEUE DE CANARD (bande bleue),
+  BAVAROISE (filets M du seuil et du capot), AIGLE DE FEU (filet d'or de flanc, du T-top, liserés et bordure du becquet), CHAUVE-SOURIS
+  (filets tricolores, jonc de vitre), ELDORADO (jonc et skeg). Restent : pare-chocs, calandres, poignées, la ligne en C de l'ÉTERNELLE,
+  l'oiseau et le shaker de l'AIGLE. ⚠ Ne plus en reposer sans qu'il le demande.
+- ⚠ LA VRAIE CAUSE DES BARRES (13/10, Léo : « y en a toujours, check chaque voiture ») : les MINI-AILES repliées (`carWingL/R`,
+  style « panneaux », matière `accM` = la couleur d'ACCENT de la fiche) — écrasées à 5 % (`scale.x`), elles restaient un panneau de
+  8 cm × 1,5 m à mi-hauteur du flanc ; cachées dans les anciennes coques larges, elles sortaient à travers les vitres des vrais modèles
+  rétrécis (barre blanche sur L'ANGLAISE, crème, rose…). Rentrées (`wingT ≤ .04`), elles ne sont plus DESSINÉES (la boucle, « MINI-AILES »).
+  Les vignettes ne les montraient pas (`photoPropre` les cache), la salle blanche non plus : les juger dans la BOUTIQUE du garage.
+  Bancs : `dbgBqVoir(i)` (pose la caisse i sur le plateau), `dbgSonde(x0,y0,x1,y1,pas)` (ce que la caméra voit de la caisse : famille
+  de matière + couleur ; ⚠ le Raycaster de three ignore `visible`, la sonde filtre), scratchpad `toutes.py` (les 51 de profil en boutique).
+- LE BAS DU GARAGE REFONDU (13/10, Léo : « INVENTAIRE, MISSIONS et BOUTIQUE par-dessus PLAY, design efficace et esthétique ; le bouton
+  MISSIONS comme avant, et HOME ») — bloc « LE BAS DU GARAGE, REFONDU » en fin du <style> du garage (avant `</style>` après #ivFerme) :
+  une grille de six, EN HAUT trois portes égales INVENTAIRE (cyan) · MISSIONS (violet, `#gvMis` revenu, ses 3 cases, → garMode('missions'))
+  · BOUTIQUE (magenta) ; EN BAS HOME (carré) · PLAY · l'ŒIL (carré). ACHETER prend la place de PLAY. Les états `shopRet`/`atelierInv`
+  gardent leurs règles (exclus du bloc). Les conducteurs d'or de #gvMis (::before/::after) et #gvBranche sont masqués. Poki : sans
+  MISSIONS, INVENTAIRE et BOUTIQUE se partagent la rangée. Le SOL de la boutique : ×3,4 (mesuré 220 → 234, le blanc du fond).
+  Banc : scratchpad `gar.py W H suffixe [port] [shop]`, `garclic.py` (chaque bouton au vrai doigt).
+- LES COLONNES LISSES (14/10, Léo : « rends les piliers plus lisses et blanc brillant ») — la rotonde n'est plus une peau de cubes : fût
+  rond effilé (40 pans), socle + tore, astragale, échine, abaque, entablement en anneau plein ouvert côté caméra ; 6 InstancedMesh + 1.
+  Matière : un MATCAP peint (bandes VERTICALES : un fût se lit sur la ligne médiane du matcap) dont le reflet passe AU-DELÀ du blanc
+  (`onBeforeCompile` : `matcap*1,05 + 4,2·r^16`) — ⚠ l'étalonnage du jeu écrase les blancs contre un plafond (~237) : un blanc linéaire,
+  même ×1,7, sortait UNIFORME ; seul un reflet HDR se détache. Mesuré : corps 235-242, reflet 255, bords 200-215.
+- (14/10, suite) LE SOCLE à trois gradins prend le même blanc laqué (`bqLaqueMat()`, partagée ; filets `bqLaqueMat(.82)`, 96 pans) ; le
+  HAUT du matcap est peint blanc (les dessus regardent le ciel et lisaient le bord gris). LA TRANSITION garage ↔ boutique (Léo : « un peu
+  lourd, reviens sur le glitch ») : `garGlitch` au geste, le décor bascule à 0,16 s (avant : petit coup, lueur, éclat blanc, bascule à
+  0,95 s). L'INVENTAIRE (Léo : « arrête de le faire apparaître sans qu'on y touche ») : le garage s'ouvre REPLIÉ (`consoleCachee`,
+  GMODE 'tout') — à l'ouverture, depuis l'accueil, au RETOUR de la boutique et au RETOUR de l'inventaire ; il ne s'ouvre qu'à INVENTAIRE.
+  Banc : scratchpad `trans.py W H suffixe port` (arrivée, inventaire, glitch, retour, au vrai doigt).
+- (14/10, suite) LA SALLE BLANCHE SANS PILIERS (`SANS_PILIERS=true` dans garBqBatit : la rotonde n'est plus posée ; `false` la rend) ;
+  la caisse CENTRÉE sur sa silhouette projetée (garCadre, en boutique : la boîte garGabarit tournée, nez et poupe compris) et plus de
+  roulis permanent (elle flotte droite) ; les COLORIS sous la caisse retirés (#gBqSkins masqué, la zone ne lui réserve plus de place) ;
+  les HABILLAGES (peintures, ailes, traînées) en cartes plus petites, quatre de large (`.bqRail.habs`).
+- (14/10, suite) SANS MARCHES (Léo : « la pièce blanche complète, juste les bras robots ») : `SANS_MARCHES=true` dans garBqBatit, les
+  trois gradins ne sont plus posés ; `GBQ.socleH=.01` (⚠ jamais 0 : `if(GBQ.socleH&&…)` garde les bras et la levée anti-socle) — les bras
+  et leur plateau sortent du sol.
+- LA PRAIRIE (14/10, Léo : « tente un truc sur l'herbe paisible, un peu comme le fond d'écran Windows connu ; même interface de vente et
+  bras robots ») — `BQ_DECOR` ('herbe' par défaut ; `?bq=blanc` = la salle blanche), `bqPrairie(g,R)` avant garBqBatit : ciel en dégradé
+  (sphère ×1,2), NUAGES sur leur propre sphère transparente poussée à ×2,4 (sur le ciel ils sortaient gris), une colline de 116 m dont la
+  crête reste SOUS l'œil (caméra ~4,6 m : le ciel tient le haut de l'image), à plat sous la caisse, couleur cuite (soleil de gauche, taches,
+  le lointain pâlit vers le bleu) + grain d'herbe en texture ; la GLOIRE est coupée dans l'herbe (la colline la tranchait net). Rien de la photo.
+  ⚠ REFUSÉE le même jour (Léo : « reviens sur le blanc, c'est mauvais ») : la salle blanche est revenue par défaut, la prairie ne vit plus que derrière `?bq=herbe`.
+- (14/10) LA PLATE SOUS LA VOITURE (Léo : « l'ombre se pose sur un sol invisible ») : deux causes — l'EMPREINTE `contactShadow` suivait la
+  caisse qui lévite (coupée en boutique : `updateContactShadow` sort quand GBQ.on/veut/lev) ; la GLOIRE plantée derrière descendait sous
+  le sol, qui la tranchait d'un trait net (sur le blanc = un sol invisible) → elle s'efface sur la hauteur (`GBQ.gloireU` uY0/uY1, accroche
+  shader sur `<dithering_fragment>` : ⚠ three r128 n'a pas d'`output_fragment` dans MeshBasicMaterial).
+- LE 1.61 (14/10, Léo : « un petit 1.61 blanc en 3D qui ressort du mur blanc ») — `bq161(g)` : chiffres pixel 3 × 5 en cubes (P .38,
+  profondeur .5, InstancedMesh, blanc laqué bqLaqueMat), devant un pan blanc invisible qui porte leur OMBRE floutée (décalée en bas à
+  droite) : sans elle, blanc sur blanc, on ne le lisait pas. Posé loin derrière la caisse (z −22, y 7,2), un peu tourné (−0,18) pour la tranche.
+- (14/10) LE PLATEAU DES BRAS à la taille de celui de l'atelier (rayon 4,4, 12 cm, `GBQ.socleH=.12` = son dessus) et FIXE (il suivait le cap
+  de la caisse) ; LE POINT DE VUE retenu dans `BQ_POV` : couché {h −0,7, d 0,92}, debout {h −0,6, d 0,95} (la caméra plus basse, plus près) ;
+  le 1.61 remonté (y 9,6, z −24 : il chevauchait le nom).
+  ⚠ REVENU le même jour (Léo : « c'était mieux avant, juste le socle un tout petit peu plus grand, 1,5× ») : point de vue d'avant
+  (`BQ_POV` null), 1.61 à sa place (y 7,2, z −22), le plateau d'avant ×1,5 (rayon 1,83, socleH .01) ; il reste FIXE (ne suit plus le cap).
+- LES COUPS AU CIEL (14/10, Léo : « diminue la quantité d'objets déversés, garde la variété ; addictif, effort / récompense ; augmente l'impact ») :
+  RICH_TIER petit 1-2 · bon 3-5 · gros 6-9 · jackpot 14-19 (répliques 1-2 / 4-5), mélanges inchangés ; richTire : la TAILLE suit le combo
+  plus fort (seul : petit 80 % · jackpot 0,2 % ; rafale ≥ 5 : gros 23 % · jackpot 11 %). Impact : CHUTE_TAP V 10 · W 6,5 · WMAX 20,
+  secousse .85·mu (≤ 2,3), ARRÊT SUR IMAGE 70 ms (`hs`), zoom −9°, éclat ×1,45, étincelles 28+14·mu, tôle 3+2·mu, sons et vibration plus forts.
+  ⚠ Pas encore mesuré au banc (objets par coup) : la sonde a raté (RICH n'est pas global).
 
 ## LA PASSE QUALITÉ AVANT SORTIE (2026-10-12, Sacha : « trouve des bugs et règle-les, améliore des trucs à droite à gauche, fais en sorte que le jeu soit parfait et sortable »)
 Méthode : bancs Puppeteer son coupé (rendu LOGICIEL SwiftShader : Roblox Studio tenait le GPU, le Chrome de test calait sur D3D11), un
@@ -270,6 +506,26 @@ début — dans l'autre ça commence un peu tard ») — mesuré des DEUX côté
     redresse vers le ciel / la pente de la houle calmée, le nez garde le cap (`JEAU.cap`). La caméra suit ce nez (plus de balancement à flot).
   · À flot plus de `EAU.ramene` 9 s sans nitro : `jadeEauRamene` (respawn, « LA MER TE RAMÈNE », la chaîne seule est perdue).
   · `dbgEau()` rend aussi `f`, `wB`, `flot`, `hv`.
+- (13/10, 4e passe, Léo : « la vague en bas doit glisser du milieu vers les côtés comme une voiture qui va vite sous la pluie ; le splash
+  d'entrée plus smooth ; la mer plus scintillante, des cubes plus petits de différentes teintes ; fais le peintre maître du réalisme technique ») :
+  · LA MER (dôme `jadeCiel`, et la PEAU près des plongeons) : chaque colonne de 4 m porte une mosaïque de PETITS CUBES de 1 m — six teintes
+    (bleu profond, sarcelle, turquoise, jade, aqua, écume pâle) mêlées à 50 % au bleu de la profondeur, un biseau, un joint, une micro-pente
+    chacun ; ÉCLATS : chaque petit cube renvoie le soleil (pow 260) et scintille à son heure ; la HOULE DE LUMIÈRE (deux bruits lents) ; la
+    crête traversée par le soleil (turquoise clair) ; le reflet du ciel plus fort. Tout s'efface quand un petit cube passe sous le pixel.
+    Le fleuve au loin : des PAILLETTES (facettes de 2 m) sur le chemin du soleil. ⚠ Essayé à 85 % de teinte et biseau fort : un carrelage de
+    piscine aux joints orange (le ciel dans les biseaux) — gardé discret.
+  · L'ENTRÉE : la COURONNE LISSE (`eauCouronne`, cylindre ouvert déformé au vertex shader : s'ouvre, monte, s'évase en lobes, filets
+    clairs, bord blanc, translucide) + des gouttes fines lancées du bord + la NAPPE au ras de l'eau qui glisse vers les côtés. La SORTIE : la
+    même, étroite et haute (la colonne). Les ONDES : disques en shader (crête blanche, deux crêtes plus faibles), plus d'anneaux durs.
+  · LE SILLAGE : deux NAPPES de gouttes qui partent du dessous de la caisse vers les côtés (+ une queue de coq à grande vitesse), une BRUME
+    de grands cubes translucides (`EAUB`), et le V d'ÉCUME de Kelvin (`SILL`, ruban de 48 points qui s'écartent à 19,5°, écume en carrés
+    de 50 cm). Gouttes `EAUP` : 1 800, quatre teintes (instanceColor posée à la création), étirées quand elles filent.
+- (13/10, Léo : « l'effet écran quand tu ressors de l'eau, travaille-le encore plus ») L'OBJECTIF MOUILLÉ RÉFRACTE : une toile de NORMALES
+  (`LENS.cvN`, au tiers de l'écran, R/G = décalage ÷ 16 px de toile, recopiée chaque image dans une CanvasTexture) lue par l'ACES
+  (`uLens`, `uLensK`, `uLensA` ; tout le main de l'ACES lit `uvL` au lieu de `vUv` — remplacement fait au chargement) : la NAPPE qui
+  s'égoutte (0,75 s, la lèvre dévie fort, le film fait onduler toute l'image), les GOUTTES-LENTILLES (le décor retourné, grossi ×2 :
+  8-14 grosses qui glissent avec une traînée, 14-24 moyennes, 90-150 de buée qui sèchent). La toile visible (`#eauCv`) ne garde que le
+  liseré sombre du bas, l'éclat, la ligne de la lèvre. uLensK = 0 hors de l'effet : l'image est identique au bit près.
 - Banc : `dbgJadePoste('ramasse')` (pièces, fruits par nom, pouvoirs, plots, plaques, flaques). MESURÉ : 650 pièces, ~16 fruits, 20 pouvoirs,
   300 plots, 8 plaques par passage ; en course : pièces ramassées, défis (« EAT 4 FRUITS »), paliers moteur, aimant, jus des fruits.
 
@@ -360,8 +616,9 @@ Un outil À CÔTÉ du jeu, qui ne refait RIEN : il lance LE JEU (`index.html`, s
     ⚠ `choix-musiques.json` et `play.json` sont les DONNÉES de Léo (pas commitées tant qu'il range) — ne pas les écraser en test.
   · **L'ÉCOUTE DES MAPS** — `simulateur/ecoute.html` (13/10, Léo : « la même page blanche avec toutes les maps ayant un système de génération
     aléatoire qui suit la vitesse, sans la jauge manuelle : le nom de la musique et un play qui fait défiler de la plus petite à la plus
-    grande vitesse, une photo représentative ») : une carte par musique distincte d'une map (d'après choix-musiques.json), photo du 1er
-    niveau ; ▶ = la musique seule, vitesse 0 → 100 % en 40 s (`MONTEE`) puis 6 s au maximum (`TENUE`), un fil sous la photo. La montée
+    grande vitesse, une photo représentative ») : UNE CARTE PAR MUSIQUE de la bibliothèque, toutes (« on les entend pas toutes » : une
+    carte par map montrait French Touch deux fois et cachait Glisse), les maps où elle joue dessous (choix-musiques.json), photo du 1er
+    niveau qui la joue ; ▶ = la musique seule, vitesse 0 → 100 % en 40 s (`MONTEE`) puis au maximum jusqu'à l'arrêt, un fil sous la photo. La montée
     suit l'HORLOGE (setInterval), pas les images : panneau caché = plus d'images, la musique continue. `ECOUTE.etat()`, `?muet=1`.
   · `?muet=1` (bancs) : la `destination` de chaque contexte audio passe par un gain nul (page, module, cadre de la page à jauge).
     `SIMU.musique()` = le pilote (MUS.inst = le module en cours).

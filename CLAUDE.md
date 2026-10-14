@@ -67,6 +67,9 @@ Son `www/` est GÉNÉRÉ depuis `VERSION PRINCIPALE/` (`cd app-ios && npm run sy
     fait remettre), mais redessinée : caissons en laque indigo, CASH CAR en or, hublots qui laissent voir le feu.
   · (2026-10-10, Léo) EN VOL, POUCE EN HAUT = LA CAISSE MONTE par défaut (réglage « POUCE HAUT EN VOL » : MONTE ; les anciennes
     sauvegardes basculées une fois, PLONGE reste au choix ; le clavier ne change pas). Détail en tête de `VERSION PRINCIPALE/CLAUDE.md`.
+  · (2026-10-13, Sacha) JOUER = LE MODE CLASSIQUE AU HASARD : à chaque départ et à chaque portail, une MAP (nuages, ville, jade,
+    orbite) et une MÉTÉO (matin, midi, soir, nuit, pluie, orage ; l'orbite sans nuages, pluie ni orage) tirées au hasard. Le SOLEIL DE
+    JADE direct (le JOUER de Léo du 12/10) = `?play=jade`. Détail : « LE MODE CLASSIQUE AU HASARD » dans `VERSION PRINCIPALE/CLAUDE.md`.
 - **SANS TOUT CASSER** — la règle de chaque session, avant de pousser :
   1. Partir de `origin/main` À JOUR : `git fetch origin main`, puis `git merge origin/main`. Jamais d'une vieille branche, jamais d'une copie locale.
   2. Sur `main`, on FUSIONNE. Jamais de `push --force`, de `reset` ni de revert du travail de l'autre ; dans un conflit, on garde les deux.
