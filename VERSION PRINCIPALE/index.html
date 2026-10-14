@@ -40926,7 +40926,11 @@ function campMoutonsTick(dt){
     if(!m.fait&&sp>m.s-60){
       let passe=true; // passé = la caisse a dépassé TOUS les moutons de ce repère, le long de la route (ils dérivent de ±4 m au vent)
       for(let k=0;k<m.cl.length;k++){const c=m.cl[k],gp=c.g.position,dx=cp.x-gp.x,dy=cp.y-gp.y,dz=cp.z-gp.z;
-        if(c.wasIn)m.dans=true;
+        if(c.wasIn&&(!SENS||mode!=='fall')){if(!m.dans&&SENS&&mode==='drive'&&(c.brokenT||0)<=0){c.brokenT=4.5;try{if(SONV2)sfx('nuage.defonce');}catch(e){}}m.dans=true;}
+        /* (2026-10-14, gameplay · œil) LE BEEE SE VOIT. Au banc (moutons-tous.log, 1739 « DANS DESSUS ») : la caisse qui EFFLEURE la laine en plein
+           saut était comptée « prise de face » — BEEE ! — alors que le mouton ne bougeait pas (il n'éclate que touché AU SOL, updateClouds).
+           Désormais seul le contact au sol compte (de face, ou retombé DEDANS) ; et retombé dedans, le mouton éclate comme pris de face
+           (sans cela la plaque bêlait sur un mouton intact). Le vol qui frôle son dos reste un SAUTE-MOUTON s'il passe au-dessus. `?sens=0` : comme avant. */
         if(mode==='fall'&&dx*dx+dz*dz<c.r*c.r*1.1)m.dessus=true;
         if(dx*m.t.x+dy*m.t.y+dz*m.t.z<c.r+1.5)passe=false;}
       if(sp>m.s+60)passe=true; // un replacement, un portail : on ne reste pas accroché à un mouton laissé derrière
