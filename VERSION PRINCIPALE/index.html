@@ -15820,11 +15820,29 @@ function jadeMats(){if(!JADE_M.vr){JADE_M.vr=jadeVRMat('A');JADE_M.vrO=jadeVRMat
     JADE_M.arb=new THREE.ShaderMaterial({uniforms:Object.assign(THREE.UniformsUtils.clone(THREE.UniformsLib.fog),JADE_U,{uTex:{value:jadeArbresTex()}}),vertexShader:JADE_ARB_VS,fragmentShader:JADE_ARB_FS,fog:true,side:THREE.DoubleSide});JADE_M.arb.dispose=function(){};}
   return JADE_M;}
 /* LES GABARITS : bâtis une fois par session — dix montagnes, trois rochers flottants (à la suite : `JADE_NTPL` les sépare), les temples */
-function jadeGabarits(){if(JADE.geos)return JADE.geos;const t0=performance.now();
-  const p=JADE_TPL.map(function(q,k){return voxPilier(q[0]/VX,Math.round(q[1]/VX),q[2],0x51A0+k*131);});
-  for(let v=0;v<3;v++)p.push(voxPilier((6.5+v*2.2)/VX,Math.round((20+v*7.5)/VX),v%3,0xCA11+v*71)); // les ROCHERS qui flottent (6,5-11 m, 20-35 m)
-  
-  JADE.geos={p:p,pag:jadeTempleGeo(5),pav:jadeTempleGeo(1),arbreQ:new THREE.PlaneGeometry(1,1),ms:Math.round(performance.now()-t0)};return JADE.geos;}
+/* LES GABARITS TAILLÉS AU MENU (2026-10-14, session OPTIMISATION — passation perf n° 2 : « JOUER ~1,0-1,3 s : 1 280 ms de JavaScript dans le
+   fn() du volet »). MESURÉ (profil, PC, palier 0) : le volet du JOUER figeait 641 ms, dont 389 ms pour jadeGabarits — les gabarits de la jade,
+   taillés « une fois par session, sous le voile » quel que soit le niveau tiré. Ce sont déjà des générateurs à échéance (voxPilierG, voir LES
+   TRANCHES) : au MENU, une fois la chauffe finie (CHAUFFE_R.fait), hors volet et hors lâcher, jadeGabFond en taille quelques ms par image
+   (gabFondMs). Un JOUER qui arrive avant la fin les finit d'un trait (jadeGabarits) là où elles en sont : les mêmes gabarits au bit près (le
+   hasard de chacune est sa graine, une tranche ne fait que suspendre). `ms` = le travail cumulé. dbgGabarits() : l'état. */
+PAL.B.gabFondMs=[5,6,8];
+const GAB_FOND={it:null,ms:0,n:0,fini:false,sync:0};
+function* jadeGabaritsG(){const p=[];
+  for(let k=0;k<JADE_TPL.length;k++){const q=JADE_TPL[k];p.push(yield* voxPilierG(q[0]/VX,Math.round(q[1]/VX),q[2],0x51A0+k*131));}
+  for(let v=0;v<3;v++)p.push(yield* voxPilierG((6.5+v*2.2)/VX,Math.round((20+v*7.5)/VX),v%3,0xCA11+v*71)); // les ROCHERS qui flottent (6,5-11 m, 20-35 m)
+  if(performance.now()>JF.lim)yield;
+  return {p:p,pag:jadeTempleGeo(5),pav:jadeTempleGeo(1),arbreQ:new THREE.PlaneGeometry(1,1),ms:0};}
+function jadeGabarits(){if(JADE.geos)return JADE.geos;
+  const t0=performance.now(),it=GAB_FOND.it||jadeGabaritsG(),l0=JF.lim;GAB_FOND.it=null;GAB_FOND.fini=true;JF.lim=Infinity;
+  try{const g=jadeFini(it);GAB_FOND.sync=performance.now()-t0;GAB_FOND.ms+=GAB_FOND.sync;g.ms=Math.round(GAB_FOND.ms);JADE.geos=g;}finally{JF.lim=l0;}
+  return JADE.geos;}
+function jadeGabFond(){ // une tranche par image, au menu (voir LES GABARITS TAILLÉS AU MENU)
+  if(JADE.geos||GAB_FOND.fini||(started&&!gameOver)||!CHAUFFE_R.fait||ecranWipe._on||(typeof GAR!=='undefined'&&GAR.go))return;
+  const t=performance.now(),l0=JF.lim;if(!GAB_FOND.it)GAB_FOND.it=jadeGabaritsG();JF.lim=t+PAL.b('gabFondMs',6);chauffeGrace(); // (la qualité auto ne lit pas une tranche comme une faiblesse)
+  let r;try{r=GAB_FOND.it.next();}catch(e){GAB_FOND.it=null;GAB_FOND.fini=true;console.warn('gabarits',e);return;}finally{JF.lim=l0;GAB_FOND.ms+=performance.now()-t;GAB_FOND.n++;}
+  if(r.done){GAB_FOND.it=null;GAB_FOND.fini=true;r.value.ms=Math.round(GAB_FOND.ms);JADE.geos=r.value;}}
+window.dbgGabarits=function(){return {pret:!!JADE.geos,tranches:GAB_FOND.n,msTravail:Math.round(GAB_FOND.ms),msFinSurPlace:Math.round(GAB_FOND.sync),enCours:!!GAB_FOND.it};}; // (banc)
 function jadeTplDe(r){let bi=0,bd=1e9;for(let k=0;k<JADE_NTPL;k++){const d=Math.abs(JADE_TPL[k][0]-r);if(d<bd){bd=d;bi=k;}}return bi;}
 /* ---- LA MATIÈRE DES TEMPLES (couleur par sommet, lumière du niveau, brume) ---- */
 const JADE_COL_VS=['attribute vec3 aCol;attribute vec4 aJ;varying vec3 vW,vN,vC;','#include <fog_pars_vertex>','void main(){',
@@ -52191,6 +52209,7 @@ function loop(now){
   try{updateBoomArt(dt);}catch(e){loopWarn(16,'boule de feu',e);}
   if(PARIS.meshes.length&&!mortS9)parisTick(dtA9);
   if(JADE.root&&!mortS9){jadeTick(dtA9);try{jadeSousTick(dtA9);}catch(e){loopWarn(16384,'sous la mer',e);}}else{try{jadeMusTick();}catch(e){}} // (2026-10-12) la musique du SOLEIL DE JADE se charge dès le départ, et se tait hors du niveau — (2026-10-09) LES PICS DE JADE : lumières de la matière, vent des pins, brume
+  if(!JADE.geos)try{jadeGabFond();}catch(e){loopWarn(131072,'gabarits',e);} // (2026-10-14, OPTIMISATION) les gabarits de la jade, taillés au menu (voir LES GABARITS TAILLÉS AU MENU)
   try{plaTick(dt,running&&!paused&&!BANC_FIGE);}catch(e){loopWarn(65536,'pluie d argent',e);} // (2026-10-13) LA PLUIE D'ARGENT v2
   if((GRUE.L.length||JADE.root)&&!mortS9)grueTick(dtA9); // …et les vols de grues // (Paris) le scintillement et le phare
   if(mortS9){}else
