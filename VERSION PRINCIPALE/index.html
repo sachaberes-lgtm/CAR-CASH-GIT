@@ -7635,7 +7635,7 @@ html:not(.c6) #mSet .c6Ver{font-family:var(--sans);font-size:12px;color:var(--tx
 
 /* ====== LA CARRIÈRE #carr (2026-10-14, charte 6 · passe iPhone) =====================================================
    Markup posé par carrVueC6 : .c6Tete.plein (◀ + titre, colle en haut) · .cmCorps (SEULE zone qui défile : #carr) · .c6Bas (colle en bas : JOUER, l'unique or).
-   MONDES = cartes pleine largeur : le CIEL du monde (la photo de maps-ciel/img pour SKY HIGH et VILLE, un ciel à bandes dures pour PARIS et ESPACE), son nom
+   MONDES = cartes pleine largeur : le CIEL du monde (la photo de assets/img/carriere, copiée de maps-ciel/img, pour SKY HIGH et VILLE, un ciel à bandes dures pour PARIS et ESPACE), son nom
    (pixel 16 px), son état (EN COURS / FINI / NOUVEAU, texte système 13 px) et sa jauge. Debout : une carte par rangée, la photo à gauche ; les rangées se
    partagent la hauteur (l'écran est rempli). Couché : quatre cartes en colonnes, la photo en haut. NIVEAUX : même carte, une par rangée debout (jamais de case
    seule sur sa ligne), cinq colonnes couché. Fait = coche · en cours = filet d'or de 4 px · verrouillé = cadenas + la condition. */
@@ -20569,10 +20569,10 @@ function carrVueC6(bi,el){
   const E=LANG==='en'?{fini:'Done',cours:'In progress',afin:'To finish',nouv:'New',fait:'Done',cond:'Finish level '}
     :LANG==='zh'?{fini:'已完成',cours:'进行中',afin:'待完成',nouv:'新',fait:'已完成',cond:'先完成关卡 '}
     :{fini:'Fini',cours:'En cours',afin:'À finir',nouv:'Nouveau',fait:'Fait',cond:'Termine le niveau '};
-  /* le CIEL d'une carte : la vraie photo de maps-ciel/img (SKY HIGH 1-5 = sh1-5, VILLE 1-5 = v1-5 : celles du jeu), sinon un ciel à BANDES DURES (PARIS : la nuit sur l'horizon ambré ;
+  /* le CIEL d'une carte : la vraie photo du ciel, COPIÉE de maps-ciel/img dans assets/img/carriere (2026-10-14 : maps-ciel est un outil retiré du site publié par vercel-build.sh et poki-construire.js) (SKY HIGH 1-5 = sh1-5, VILLE 1-5 = v1-5 : celles du jeu), sinon un ciel à BANDES DURES (PARIS : la nuit sur l'horizon ambré ;
      ESPACE : le noir, le limbe de la planète du niveau) — pas de dégradé fondu, la charte 6 le refuse */
   const ciel=function(b,i){const B=CARRIERE[b],N=B.niveaux[Math.min(i,B.niveaux.length-1)],pre=B.id==='nuages'?'sh':B.id==='ville'?'v':'';
-    if(pre)return 'background-image:url(maps-ciel/img/'+pre+(Math.min(i,B.niveaux.length-1)+1)+'-volant.jpg)';
+    if(pre)return 'background-image:url(assets/img/carriere/'+pre+(Math.min(i,B.niveaux.length-1)+1)+'-volant.jpg)';
     const hx=function(c){return '#'+(c|0).toString(16).padStart(6,'0');};
     if(N.astre)return 'background-image:linear-gradient('+'#04050c 0 58%,'+hx(N.astre.atmo)+' 58% 64%,'+hx(N.astre.teinte)+' 64%)';
     return 'background-image:repeating-linear-gradient(90deg,#04041a 0 7%,transparent 7% 29%),repeating-linear-gradient(90deg,transparent 0 10%,#04041a 10% 19%,transparent 19% 33%),linear-gradient(#0a0a24 0 46%,#2a1a5e 46% 66%,#7a3a8e 66% 82%,#ff9a5c 82%);background-size:100% 30%,100% 16%,100% 100%;background-position:bottom,bottom,center;background-repeat:no-repeat';};
