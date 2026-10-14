@@ -7915,12 +7915,7 @@ html.c6 body #coach.bravo .coTx b,html.c6 body #coach.bravo .coIco,html.c6 body 
   html.c6 body #coach.rate .coN{grid-area:1/1/2/5}
 }
 @media (prefers-reduced-motion:reduce){html.c6 body #coach .coGeste::before{animation:none!important}}
-/* (2026-10-14, vérif P1) DEBOUT, les plaques de POUVOIR reprennent leur place ordinaire (+184 : ~28 px sous la carte) pendant l'auto-école : la carte ne fait plus
-   que ~76 px (bas vers +138 à l'écran), le +290 de 5361 était calculé pour l'ancienne carte de 172 px et laissait un trou de ~110 px. Couché : inchangé (+124, déjà sous la carte). */
-/* (vérif P1, MESURÉ au banc avec dbgPwr pendant la carte) +184 posait la plaque à y 113, SOUS la carte (109-185, 202 si la phrase fait 2 lignes) ;
-   couché, le +124 ordinaire la posait à y 66, sous la carte (62-108). Valeurs refaites pour finir ~8 px sous la carte (pente du zoom .8 / .72). */
-@media (orientation:portrait){html.c6 body.touch.coOn:not(#ccH) #pwrChip{top:calc(var(--hudH) + 305px)}}
-@media (orientation:landscape) and (max-height:540px){html.c6 body.touch.coOn:not(#ccH) #pwrChip{top:calc(var(--hudH) + 194px)}}
+/* (2026-10-14, vérif P1) la plaque de POUVOIR pendant l'auto-école : c'est hudColonne (JS, top en ligne !important) qui la place — elle commence désormais sous la carte du coach. */
 </style>
 <style id="c6-pause-fin">
 /* CHARTE 6 · la pause, la fin de partie — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
@@ -18254,6 +18249,7 @@ function hudColonne(dt){
   if(!HUDCOL.els)HUDCOL.els=['cashHud','facVies','triade','airHud','pwrChip','campChip'].map(function(i){return document.getElementById(i);});
   const pay=VP.w>VP.h,g=document.getElementById('tGear'),P=HUDCOL.p; // VP et non innerWidth : lire innerWidth force une mise en page (voir VP)
   let y=g?zRect(g).bottom+10:66;P.length=0;
+  if(document.body.classList.contains('coOn')){const co=document.getElementById('coach');if(co){const rc=co.getBoundingClientRect();if(rc.height>0)y=Math.max(y,rc.bottom+8);}} // (2026-10-14, vérif P1, mesuré au banc) pendant l'AUTO-ÉCOLE la colonne commence SOUS la carte du coach : la plaque de pouvoir se posait dessous (y 113 pour une carte 109-202 debout, 66 pour 62-108 couché)
   for(const e of HUDCOL.els){if(!e||(pay&&e.id==='triade'))continue;
     const cs=getComputedStyle(e);if(cs.display==='none'||cs.visibility==='hidden')continue;
     const z=parseFloat(cs.zoom)||1,r=e.getBoundingClientRect();if(zRect.leg===undefined)zRect(e);const h=r.height*(zRect.leg?z:1);if(h<2)continue;
