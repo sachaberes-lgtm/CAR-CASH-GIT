@@ -1,4 +1,4 @@
-# ÉTAT — session OPTIMISATION (PC, 14/10/2026, ~17 h)
+# ÉTAT — session OPTIMISATION (PC, 14/10/2026, ~18 h)
 
 Lire d'abord `passation/OPTIMISATION.md` (la passe perf mobile du Mac, le socle `PAL`) puis la section « LES GELS DE CONSTRUCTION,
 VAGUE 1 » en haut de `VERSION PRINCIPALE/JOURNAL.md`. Worktree : `C:/Users/sacha/Documents/GitHub/CCG-optim`, branche `optimisation`
@@ -12,6 +12,18 @@ VAGUE 1 » en haut de `VERSION PRINCIPALE/JOURNAL.md`. Worktree : `C:/Users/sach
 - JOUER : gabarits de la jade taillés au menu (`jadeGabFond`, `dbgGabarits`) : pire tâche 641 → ~200 ms ; REJOUER 315 → 140-200 ms.
 - `lensTick` : remise au repos par copie mémoire, `VP` au lieu d'`innerWidth`.
 - ESSAYÉ PUIS RETIRÉ : la Porte du ciel maillée en tranches (elle est déjà dans la brume au départ : gel coupé en deux, pas en moins).
+
+## Livré ensuite (main 5e44827, v393) — et LA MISSION EN COURS
+- `?perf=1` garde le RELEVÉ DES À-COUPS (`perfAcoup`, intervalle vrai `loop._brut`) : > 50/100/250 ms et les 5 derniers avec leur cause.
+- MISSION (PILOTAGE, ordre de Sacha « la version mobile saccade ») : protocole envoyé à PILOTAGE (Économie d'énergie COUPÉE,
+  `/jouer/?perf=1`, 1 min de jeu, une capture). En attendant sa capture : traquer les à-coups iPhone. Vu au banc PC (palier 0) :
+  ~100-200 ms à chaque construction (JOUER, portail, REJOUER : newTrack), +1 texture envoyée à l'atelier au JOUER.
+
+- SONDE À DISTANCE (demandée par PILOTAGE, PAS FAITE) : aucun service où le téléphone peut écrire ET le PC lire sans clé : pas de
+  fonction Vercel ni de CLI vercel ici, `support-email/` (Cloudflare → Telegram) jamais déployé. Il faut qu'un humain crée un
+  stockage (Vercel Blob/KV dans le tableau de bord du projet : la clé s'injecte seule dans les fonctions). Ensuite : `api/sonde.js`
+  (POST, taille bornée) + lecture protégée, côté jeu opt-in par lien (`?sonde=on` posé en sauvegarde, `?sonde=off`), envoi en
+  `sendBeacon` à la fin de partie : modèle (UA), palier, i/s, pics > 33 ms et leur cause (`perfAcoup`), 30 i/s, durée.
 
 ## Mesurer (PC, sans fenêtre, palier 0) — outils dans le scratchpad de la session (à recopier si besoin)
 - `banc.cjs <port> tout|portail|rejouer|boutique [params] [--debout] [--noinline] --tag=x` : profil CPU, tâches longues, compilations,
