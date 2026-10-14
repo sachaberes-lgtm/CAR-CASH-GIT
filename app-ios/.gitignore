@@ -4,3 +4,4 @@ node_modules/
 /assets/
 # l'archive App Store et son .ipa, refaits par archiver.sh
 /build/
+/fiche/captures/
