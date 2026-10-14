@@ -8106,6 +8106,13 @@ html.c6 #overlay #mDead #nameEntry{order:9;grid-area:auto}
   html.c6 #overlay #mDead .mFin{order:10;margin-top:auto;padding-top:12px}
   html.c6 #overlay #mDead .mNew{display:none!important}
 }
+/* (2026-10-14, accord §2-1) COUCHÉ BAS (≤ 400 px de haut : 844 × 390, 667 × 375) : REJOUER prend la décision des autres écrans à cette
+   hauteur — 48 / pixel 16, comme JOUER de l'accueil et REPRENDRE de la pause. La maison (48) et REJOUER ont alors la même hauteur, et
+   la colonne de droite (moteur · défi · touches) regagne 16 px. Au-dessus de 400 px de haut (et debout), REJOUER reste 64 / 24. */
+@media (orientation:landscape) and (max-height:400px){
+  html.c6 #overlay #mDead .mFin>[data-m="replay"]{min-height:var(--c6-h)}
+  html.c6 #overlay #mDead .mFin>[data-m="replay"]>span{font-size:var(--c6-t16)}
+}
 /* COUCHÉ ÉTROIT (iPhone SE/8 : 667) : une colonne n'a que ~258 px — « FRENESIE » en 13 px n'entre pas dans un quart : la bande passe en 2 × 2 */
 @media (orientation:landscape) and (max-width:720px){
   html.c6 #overlay #mDead .mStats{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:12px}
@@ -8233,13 +8240,14 @@ html.c6 #tPanel #tpIn .tp[data-a="tous"]{grid-column:1/-1}
 html.c6 #tPanel #tpIn .tp[data-a="tous"]>span{flex:1 1 auto;min-width:0;white-space:nowrap}
 html.c6 #tPanel #tpIn .tp.ligne.lien::after{content:'';flex:none;width:9px;height:9px;background:var(--c6-g2);-webkit-mask:var(--pxi-droite) center/contain no-repeat;mask:var(--pxi-droite) center/contain no-repeat}
 html:not(.c6) #tPanel .tp[data-a="tous"]{display:none}
-/* l'écran des réglages passe AU-DESSUS de la pause (z-index 9) ; à sa fermeture son fond d'encre s'efface en fondu sec de 130 ms (opacité seule) */
+/* l'écran des réglages passe AU-DESSUS de la pause (z-index 9) ; à sa fermeture son fond d'encre s'efface en fondu sec de 100 ms (opacité seule ;
+   accord n° 69 : la sortie de TOUT écran = --c6-sort, 100 ms ; le script retire la classe à 130 ms, après la dernière image du fondu) */
 html.c6 body.setPause #overlay{z-index:12}
 /* à l'ouverture le fond d'encre est PLEIN tout de suite (pas de fondu de l'overlay : la pause et les réglages se lisaient superposés pendant ~200 ms) ; la page, elle, arrive en glissant */
 html.c6 body.setPause:not(.setPauseSort) #overlay{animation:none}
 html.c6 body.setPause #overlay::before{opacity:1;transition:none}   /* le fond d'encre est plein dès la première image (jamais le fondu d'opacité de la coque) */
 @keyframes c6FondSort{to{opacity:0}}
-html.c6 body.setPause.setPauseSort #overlay{animation:c6FondSort 120ms linear forwards}
+html.c6 body.setPause.setPauseSort #overlay{animation:c6FondSort var(--c6-sort) linear forwards}
 </style>
 <style id="c6-transitions">
 /* CHARTE 6 · le mouvement : les passages entre écrans — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
