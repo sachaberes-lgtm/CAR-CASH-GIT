@@ -177,6 +177,10 @@ MESURÉ (×4, trois manches) : ~35-48 → ~50-58 images/s, images > 40 ms divis�
   crête reste SOUS l'œil (caméra ~4,6 m : le ciel tient le haut de l'image), à plat sous la caisse, couleur cuite (soleil de gauche, taches,
   le lointain pâlit vers le bleu) + grain d'herbe en texture ; la GLOIRE est coupée dans l'herbe (la colline la tranchait net). Rien de la photo.
   ⚠ REFUSÉE le même jour (Léo : « reviens sur le blanc, c'est mauvais ») : la salle blanche est revenue par défaut, la prairie ne vit plus que derrière `?bq=herbe`.
+- (14/10) LA PLATE SOUS LA VOITURE (Léo : « l'ombre se pose sur un sol invisible ») : deux causes — l'EMPREINTE `contactShadow` suivait la
+  caisse qui lévite (coupée en boutique : `updateContactShadow` sort quand GBQ.on/veut/lev) ; la GLOIRE plantée derrière descendait sous
+  le sol, qui la tranchait d'un trait net (sur le blanc = un sol invisible) → elle s'efface sur la hauteur (`GBQ.gloireU` uY0/uY1, accroche
+  shader sur `<dithering_fragment>` : ⚠ three r128 n'a pas d'`output_fragment` dans MeshBasicMaterial).
 
 ## LA PASSE QUALITÉ AVANT SORTIE (2026-10-12, Sacha : « trouve des bugs et règle-les, améliore des trucs à droite à gauche, fais en sorte que le jeu soit parfait et sortable »)
 Méthode : bancs Puppeteer son coupé (rendu LOGICIEL SwiftShader : Roblox Studio tenait le GPU, le Chrome de test calait sur D3D11), un

@@ -9372,6 +9372,7 @@ function updateContactShadow(){ // appelée juste avant le rendu
   // AU GARAGE ET À LA VITRINE DU MENU aussi : la caisse posée sur son plateau ou sur la route n'avait RIEN sous elle
   const vitrine=garageOn||(((!running&&!started)||MENUV.retour)&&carGroup.visible); // (2026-09-28) l'accueil d'après-mort aussi (accueilRetour)
   if(!SHADOW_ON||(mode==='boom'&&!garageOn)||(!running&&!vitrine)){contactShadow.visible=false;return;}
+  if(garageOn&&typeof GBQ!=='undefined'&&(GBQ.on||GBQ.veut||Math.abs(GBQ.lev||0)>.02)){contactShadow.visible=false;return;} /* (2026-10-14, Léo : « la plate sous la voiture : l'ombre se pose sur un sol invisible ») en BOUTIQUE la caisse lévite : l'empreinte la suivait en l'air ; l'ombre au sol, c'est GBQ.omb */
   const M9=contactShadow.material;
   if(vitrine||mode==='drive'){
     EMPR.f.set(0,0,1).applyQuaternion(carGroup.quaternion);                                   // le nez de la caisse (glisse et drift compris)
@@ -45894,7 +45895,12 @@ function garBqBatit(){if(GBQ.grp)return; // (2026-10-12, Léo : « lâche le mag
      x.moveTo(c0+Math.cos(a-w)*95,c0+Math.sin(a-w)*95);x.lineTo(c0+Math.cos(a)*L,c0+Math.sin(a)*L);x.lineTo(c0+Math.cos(a+w)*95,c0+Math.sin(a+w)*95);x.closePath();x.fill();}
    x.strokeStyle='rgba(246,148,48,.72)';x.lineWidth=5;x.beginPath();x.arc(c0,c0,176,0,Math.PI*2);x.stroke();x.lineWidth=2;x.beginPath();x.arc(c0,c0,158,0,Math.PI*2);x.stroke();
    GBQ.gloire=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cv),transparent:true,opacity:0,depthWrite:false,fog:false}));
-   GBQ.gloire.renderOrder=4;GBQ.gloire.visible=false;scene.add(GBQ.gloire);}
+   GBQ.gloire.renderOrder=4;GBQ.gloire.visible=false;scene.add(GBQ.gloire);
+   /* (2026-10-14, Léo : « la plate sous la voiture ») la gloire, plantée derrière la caisse, descend sous le sol : le sol la tranchait d'un trait
+      net (sur le blanc, on croyait voir un sol invisible). Elle s'EFFACE en approchant du sol (alpha × lissé sur la hauteur du monde). */
+   {const U=GBQ.gloireU={uY0:{value:0},uY1:{value:1}};GBQ.gloire.material.onBeforeCompile=function(sh){sh.uniforms.uY0=U.uY0;sh.uniforms.uY1=U.uY1;
+     sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying float vWy;').replace('#include <project_vertex>','#include <project_vertex>\nvWy=(modelMatrix*vec4(transformed,1.)).y;');
+     sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nvarying float vWy;uniform float uY0;uniform float uY1;').replace('#include <dithering_fragment>','gl_FragColor.a*=smoothstep(uY0,uY1,vWy);\n#include <dithering_fragment>');};}} /* (three r128 : pas d'output_fragment dans la matière de base — l'accroche est le dithering) */
   const tOmb=cvT(128,128,function(x,w,h){const gr=x.createRadialGradient(64,64,0,64,64,64);gr.addColorStop(0,'rgba(20,24,30,.55)');gr.addColorStop(1,'rgba(20,24,30,0)');x.fillStyle=gr;x.fillRect(0,0,w,h);});
   GBQ.omb=new THREE.Mesh(new THREE.PlaneGeometry(1,1),B(0x000000,{map:tOmb,transparent:true,opacity:.5,depthWrite:false}));GBQ.omb.rotation.x=-Math.PI/2;GBQ.omb.position.y=(GBQ.socleH||0)+.006;GBQ.omb.renderOrder=3;g.add(GBQ.omb);
   // L'ONDE DU BOUM : dans la scène (elle part encore dans l'atelier)
@@ -45920,7 +45926,7 @@ function garBqLueurBatit(){if(GBQ.halo)return;
   const t=new THREE.CanvasTexture(cv),m=function(){const mt=new THREE.MeshBasicMaterial({map:t,transparent:true,opacity:0,depthWrite:false,fog:false});mt.color.setScalar(1.3);return mt;};
   GBQ.halo=new THREE.Mesh(new THREE.PlaneGeometry(1,1),m());GBQ.halo.visible=false;GBQ.halo.renderOrder=5;scene.add(GBQ.halo);
   GBQ.nappe=new THREE.Mesh(new THREE.PlaneGeometry(1,1),m());GBQ.nappe.rotation.x=-Math.PI/2;GBQ.nappe.visible=false;GBQ.nappe.renderOrder=4;scene.add(GBQ.nappe);}
-function garBqGloire(dt,t9){const G9=GBQ.gloire;if(!G9)return;if(BQ_DECOR==='herbe'){G9.visible=false;return;} /* (prairie) pas de gloire dans l'herbe : la colline la coupait net */
+function garBqGloire(dt,t9){const G9=GBQ.gloire;if(!G9)return;if(GBQ.gloireU&&GBQ.grp){const y0=GBQ.grp.position.y+(GBQ.socleH||0);GBQ.gloireU.uY0.value=y0+.15;GBQ.gloireU.uY1.value=y0+1.6;}if(BQ_DECOR==='herbe'){G9.visible=false;return;} /* (prairie) pas de gloire dans l'herbe : la colline la coupait net */
   const kg=GBQ.on?Math.min(1,Math.max(0,(GBQ.t-.95)/.75)):Math.max(0,(GBQ.gk||0)-dt*5);GBQ.gk=kg;G9.visible=kg>.01;if(!G9.visible)return;
   const v=GBQ._vg||(GBQ._vg=new THREE.Vector3()),d=GBQ._dg||(GBQ._dg=new THREE.Vector3());carGroup.getWorldPosition(v);v.y+=.5;
   d.copy(v).sub(camera.position);d.y=0;d.normalize();G9.position.copy(v).addScaledVector(d,3.6);G9.quaternion.copy(camera.quaternion);G9.rotateZ(t9*.045);
