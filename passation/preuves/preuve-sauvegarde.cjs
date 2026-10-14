@@ -58,7 +58,7 @@ function fauxCap(valeur,opt){const o=opt||{};const P={store:{},sets:[],gets:0,pe
 function boot(initLS,opt){const o=opt||{};const L=fauxLS(initLS,o);const cap=o.cap||null;const reloads={n:0};
   const sb={localStorage:L.ls,window:{Capacitor:cap},location:{reload(){reloads.n++;}},console,
     THREE:{MathUtils:{clamp:(x,a,b)=>Math.min(b,Math.max(a,x))}},ECO3:{gain:ECOGAIN},ENGINE_TIERS:new Array(NE).fill(0),
-    CARS:RETIRE.map(r=>r?{retire:1}:{}),CAR_UNLOCK:RETIRE.map(r=>r?{p:1000}:null),pk:()=>null,PAL:{b:(k,d)=>d}}; // PAL (T5, passe perf) : défaut = le palier « fast »
+    CARS:RETIRE.map(r=>r?{retire:1}:{}),CAR_UNLOCK:RETIRE.map(r=>r?{p:1000}:null),pk:()=>null,SANS_CARRIERE:false,PAL:{b:(k,d)=>d}}; // PAL (T5, passe perf) : défaut = le palier « fast »
   const ctx=vm.createContext(sb);let err=null;
   try{vm.runInContext(blocSave+';',ctx);}catch(e){err=e;}
   return {ctx,store:L.store,reloads,err,cap,get S(){return vm.runInContext('SAVE',ctx);},run:t=>vm.runInContext(t,ctx)};}
