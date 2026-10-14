@@ -17996,12 +17996,12 @@ const CARS=[
  // devient à toi quand tu tiens son sillage une seconde. Ajoutée APRÈS le bloc généré des 50 : aucun index existant ne bouge.
  {name:'LA CAISSE-NUAGE',shape:'nuage',color:0xfff6ee,accent:0xffd9b8,maxKmh:360,accel:40,turn:2.9,h:1.3,w:2.1,l:4.1,spoiler:0,rar:'defi',
   fx:{jet:0xfff0f6,core:0xffffff,trail:[1.25,1.05,.9],light:0xffe6f2},
-  desc:'Tu l\'as chassée tout un coucher de soleil. Elle est douce comme un nuage et elle file comme un orage.'},
+  desc:'Douce comme un nuage, elle file comme un orage. Un coucher de soleil, rien que pour toi.'},
  // (2026-09-27) LE LINGOT — la récompense de la CAMPAGNE VILLE : un lingot d'or de 1 kg (poinçon 999,9) monté sur roues. Il ne s'achète
  // pas : on le GAGNE en battant le banquier au portail du niveau 10 (voir banquierTick). Ajouté en dernier : aucun index ne bouge.
  {name:'LE LINGOT',shape:'lingot',color:0xffc33a,accent:0x3a2400,maxKmh:380,accel:42,turn:2.9,h:1.5,w:2.1,l:4.3,spoiler:0,rar:'defi',
   fx:{jet:0xffd75e,core:0xffffff,trail:[1.35,1.02,.36],light:0xffd27a},
-  desc:'Le banquier l\'avait mis au coffre. Tu l\'as gagné à la course : 999,9 millièmes de pure arrogance.'},
+  desc:'Le banquier l\'avait mis au coffre. Tu viens de le sortir : 999,9 millièmes de pure arrogance.'},
  // (2026-10-02) L'ORIGAMI — Sacha, photo du pick-up d'inox : « mets cette voiture dans le jeu, fais-la exceptionnellement belle et parfaite ».
  // Le pick-up plié dans une feuille d'acier, sans son nom ni son logo (comme toute la gamme). Cotes réelles : 5,68 × 2,03 × 1,79 m.
  // Ajoutée EN DERNIER : aucun index de sauvegarde ne bouge. Son sillage est un courant froid (elle est électrique).
@@ -18307,7 +18307,7 @@ Object.assign(I18N,{"AUTO-ECOLE INTERROMPUE":"DRIVING SCHOOL STOPPED"}); // (202
 Object.assign(I18N,{"RECORD DE FRÉNÉSIE !":"FRENZY RECORD!","NITRO !":"NITRO!","FRENESIE":"FRENZY"});
 Object.assign(I18N,{"NARCISSE":"NARCISSIST","MACHIAVEL":"MACHIAVELLI","PSYCHO":"PSYCHO","UNE FIGURE !":"DO A TRICK!","RACCOURCI !":"SHORTCUT!","TIENS LES TROIS TRAITS":"HOLD ALL THREE TRAITS","FIGURE · RACCOURCI · NITRO":"TRICK · SHORTCUT · NITRO","DRIFT OU FIGURE !":"DRIFT OR TRICK!","DE TRAVERS !":"SIDEWAYS!","À CONTRESENS !":"WRONG WAY!","POSE UNE FIGURE !":"LAND A TRICK!"});
 Object.assign(I18N,{"OFFRE DE LANCEMENT": "LAUNCH OFFER", "LA CAISSE DU MOIS": "CAR OF THE MONTH", "Une voiture exclusive, sa peinture et sa traînée. Introuvable ailleurs.": "An exclusive car, its paint and its trail. Found nowhere else.", "BIENTÔT": "SOON", "VOITURES PREMIUM": "PREMIUM CARS", "LÉGENDAIRE": "LEGENDARY", "ÉPIQUE": "EPIC", "RARE": "RARE", "RESTAURER MES ACHATS": "RESTORE PURCHASES", "BIENTÔT DISPONIBLE — À LA SORTIE SUR L'APP STORE": "COMING SOON — AT THE APP STORE LAUNCH", "AUCUN ACHAT À RESTAURER": "NO PURCHASES TO RESTORE", "CONTRAT RÉUSSI": "CONTRACT DONE", "DÉBLOQUÉ": "UNLOCKED"});
-Object.assign(I18N,{"DÉFI RÉUSSI": "CHALLENGE DONE", "DÉFIS RÉUSSIS !": "CHALLENGES DONE!", "À GAGNER": "TO WIN", "Ne s'achète pas : elle se gagne en relevant des défis.": "Not for sale: won by beating challenges."});
+Object.assign(I18N,{"DÉFI RÉUSSI": "CHALLENGE DONE", "DÉFIS RÉUSSIS !": "CHALLENGES DONE!", "MISSION RÉUSSIE": "MISSION DONE", "MISSIONS RÉUSSIES !": "MISSIONS DONE!", "MISSION RÉUSSIE !": "MISSION DONE!", "À GAGNER": "TO WIN", "Ne s'achète pas : elle se gagne en relevant des défis.": "Not for sale: won by beating challenges.","Ne s'achète pas : elle se gagne en relevant des missions.": "Not for sale: won by completing missions."});
 Object.assign(I18N,{"NOUVEAU MOTEUR": "NEW ENGINE"});
 Object.assign(I18N,{"VERSÉS AU COMPTE": "PAID INTO YOUR ACCOUNT", "MOTEUR": "ENGINE", "NOUVEAU RANG !": "NEW RANK!", "RECORD !": "RECORD!", "AURA": "AURA"});
 Object.assign(I18N,{"À TOI": "YOURS", "CHAT POP-TART": "POP-TART CAT", "REQUIN": "SHARK", "COMÈTE": "COMET", "FORMULE OR": "GOLD FORMULA", "LE MANS 24": "LE MANS 24", "EL PATRON": "EL PATRON", "ACIDE": "ACID"});
@@ -18338,8 +18338,8 @@ Object.assign(I18N,{'FRÔLÉ':'CLOSE CALL','RÉCOLTE':'COIN RUSH','RAFALE':'FRUI
   'VRILLE 360 — LAVE-LINGE !':'360 SPIN — WASHING MACHINE!','TRIPLE BUMP — LA DALLE EN PLEURE':'TRIPLE BUMP — THE ROAD IS CRYING'});
 // ---- la charte v4 (2026-09-26) : les libellés neufs de l'interface (et ceux qui retombaient en français) ----
 Object.assign(I18N,{"LÉGENDAIRES":"LEGENDARIES","EXOTIQUES":"EXOTICS","EXOTIQUE":"EXOTIC","MYTHIQUES":"MYTHICS","MYTHIQUE":"MYTHIC","INFINIS":"INFINITE","INFINI":"INFINITE","BIENTÔT":"SOON"}); // (2026-10-10) les sept raretés
-Object.assign(I18N,{"COMMUNES":"COMMONS","COMMUNE":"COMMON","RARES":"RARES","ÉPIQUES":"EPICS","ÉPIQUE":"EPIC","LÉGENDES":"LEGENDS","LÉGENDAIRE":"LEGENDARY","DÉFIS":"CHALLENGES","TOUT":"ALL","À MOI":"MINE","À ACHETER":"FOR SALE","TRAÎNÉE":"TRAIL","PEINTURE":"PAINT","AILES":"WINGS"});
-Object.assign(I18N,{"PIÈCE":"COIN","RETOUR":"BACK","EN BOUTIQUE":"IN THE SHOP","VERROUILLÉE":"LOCKED","ÉQUIPÉE":"EQUIPPED","IL MANQUE":"SHORT BY","LES LEGENDAIRES":"LEGENDARIES","DÉFI":"CHALLENGE"});
+Object.assign(I18N,{"COMMUNES":"COMMONS","COMMUNE":"COMMON","RARES":"RARES","ÉPIQUES":"EPICS","ÉPIQUE":"EPIC","LÉGENDES":"LEGENDS","LÉGENDAIRE":"LEGENDARY","DÉFIS":"MISSIONS","TOUT":"ALL","À MOI":"MINE","À ACHETER":"FOR SALE","TRAÎNÉE":"TRAIL","PEINTURE":"PAINT","AILES":"WINGS"});
+Object.assign(I18N,{"PIÈCE":"COIN","RETOUR":"BACK","EN BOUTIQUE":"IN THE SHOP","VERROUILLÉE":"LOCKED","ÉQUIPÉE":"EQUIPPED","IL MANQUE":"SHORT BY","LES LEGENDAIRES":"LEGENDARIES","DÉFI":"CHALLENGE","MISSION":"MISSION","FAITES":"DONE"});
 // (2026-09-28, pouvoirs v2) les six pouvoirs, leurs durées, le cumul, le bouclier qui sauve
 Object.assign(I18N,{'NITRO INFINIE — 9 s À FOND !':'INFINITE NITRO — 9 s FLAT OUT!','🪂 AIRTIME INFINI — 14 s DE VOL !':'🪂 INFINITE AIRTIME — 14 s OF FLIGHT!',
   '⚡ VITESSE ×2 — 8 s !':'⚡ SPEED ×2 — 8 s!','9 S A FOND':'9 S FLAT OUT','14 S DE VOL':'14 S OF FLIGHT','8 S':'8 S',
@@ -18351,10 +18351,10 @@ Object.assign(I18N,{'NITRO INFINIE — 9 s À FOND !':'INFINITE NITRO — 9 s FL
   'SAUVE !':'SAVED!','LE BOUCLIER A CEDE':'THE SHIELD BROKE','LE BOUCLIER T\'A SAUVE':'THE SHIELD SAVED YOU','DEMOLI':'SMASHED',
   'SANS FAUTE':'FLAWLESS','SERIE CASSEE':'STREAK BROKEN','MIRACULE':'MIRACLE','MIRACULE !':'MIRACLE!','RECORD DE VITESSE':'SPEED RECORD','SÉRIE COMPLÈTE':'FULL SET','PLONGEON !':'DIVE!','REPLONGEON !':'DIVE AGAIN!','RICOCHET !':'SKIP!','RICOCHET':'SKIP','LA MER TE RAMENE':'THE SEA BRINGS YOU BACK','HORS DE L EAU !':'OUT OF THE WATER!','PLONGEON':'DIVE','REPLONGEON':'DIVE AGAIN','HORS DE L EAU':'OUT OF THE WATER'});
 Object.assign(I18N,{'MOY':'AVG','MOYENNE BATTUE':'AVERAGE BEATEN'}); // (2026-10-12) la JAUGE D'AURA
-Object.assign(I18N,{"MISSIONS":"MISSIONS","MENU":"MENU","HOME":"HOME","ATELIER":"WORKSHOP","LES TROIS DEFIS":"THE THREE CHALLENGES",
+Object.assign(I18N,{"MISSIONS":"MISSIONS","MENU":"MENU","HOME":"HOME","ATELIER":"WORKSHOP","LES TROIS DEFIS":"THE THREE MISSIONS",
   "DEFI":"CHALLENGE","REUSSI":"DONE","SUIVI EN COURSE":"TRACKED","MEILLEUR ESSAI":"BEST RUN","RECOMPENSE":"REWARD","ENSUITE":"NEXT","CARNET":"SET",
-  "CHAQUE DEFI EN UNE PARTIE":"EACH CHALLENGE IN ONE RUN","SUIVI":"TRACKING","TOUCHE UN DEFI POUR LE SUIVRE EN COURSE":"TAP A CHALLENGE TO TRACK IT","LES 3 DEFIS D'ABORD":"FINISH THE 3 CHALLENGES FIRST"}); // (2026-09-30) l'écran MISSIONS de l'atelier // (2026-09-28) la porte et l'écran des MISSIONS, la sortie MENU de l'écran de mort
-Object.assign(I18N,{"LES DEFIS · CHACUN EN UNE PARTIE":"CHALLENGES · EACH IN ONE RUN","A GAGNER":"TO WIN","ENSUITE":"NEXT","VOIR":"VIEW","RELEVÉ":"DONE","À TENTER":"NOT TRIED YET","CETTE PARTIE":"THIS RUN","DÉFI RÉUSSI !":"CHALLENGE DONE!","BONUS":"BONUS"}); // (2026-09-28, soir) MISSIONS v2 et la porte de l'écran de mort
+  "CHAQUE DEFI EN UNE PARTIE":"EACH MISSION IN ONE RUN","CHAQUE MISSION EN UNE PARTIE":"EACH MISSION IN ONE RUN","TOUCHE UNE MISSION POUR LA SUIVRE EN COURSE":"TAP A MISSION TO TRACK IT","LES 3 MISSIONS D'ABORD":"FINISH THE 3 MISSIONS FIRST","SUIVI":"TRACKING","TOUCHE UN DEFI POUR LE SUIVRE EN COURSE":"TAP A CHALLENGE TO TRACK IT","LES 3 DEFIS D'ABORD":"FINISH THE 3 CHALLENGES FIRST"}); // (2026-09-30) l'écran MISSIONS de l'atelier // (2026-09-28) la porte et l'écran des MISSIONS, la sortie MENU de l'écran de mort
+Object.assign(I18N,{"LES DEFIS · CHACUN EN UNE PARTIE":"MISSIONS · EACH IN ONE RUN","A GAGNER":"TO WIN","ENSUITE":"NEXT","VOIR":"VIEW","RELEVÉ":"DONE","À TENTER":"NOT TRIED YET","CETTE PARTIE":"THIS RUN","DÉFI RÉUSSI !":"CHALLENGE DONE!","BONUS":"BONUS"}); // (2026-09-28, soir) MISSIONS v2 et la porte de l'écran de mort
 // (2026-09-29, relecture de sortie) les 50 fiches du garage : noms et punchlines en anglais
 Object.assign(I18N,{
  "LA POSTIÈRE":"THE MAIL LADY",
@@ -29901,8 +29901,8 @@ function popCarnets(s){if(!s.pop){s.pop=1;if(s.n>=9&&s.n<CARNETS.length){s.ok=[0
 function defisHtml(n){
   const s=misEtat(),Lg=LANG==='en'?1:0;
   if(s.n+1<n){const prev=carnet(n-2);
-    return pxi('verrou')+' '+['SE GAGNE EN RELEVANT 3 DEFIS — APRES ','WON BY BEATING 3 CHALLENGES — AFTER '][Lg]+misRecompense(prev);}
-  const c=carnet(n-1);let h='<span class="gDfT">'+['SE GAGNE EN RELEVANT 3 DEFIS (CHACUN EN UNE PARTIE)','WON BY BEATING 3 CHALLENGES (EACH IN ONE RUN)'][Lg]+'</span>';
+    return pxi('verrou')+' '+['SE GAGNE EN RELEVANT 3 MISSIONS — APRES ','WON BY COMPLETING 3 MISSIONS — AFTER '][Lg]+misRecompense(prev);}
+  const c=carnet(n-1);let h='<span class="gDfT">'+['SE GAGNE EN RELEVANT 3 MISSIONS (CHACUNE EN UNE PARTIE)','WON BY COMPLETING 3 MISSIONS (EACH IN ONE RUN)'][Lg]+'</span>';
   // (2026-09-25) juste après une partie, chaque défi ouvert dit où l'on s'est arrêté (« 21 / 25 ») : la meilleure raison de relancer.
   // ⚠ !MIS_REC : si le carnet vient de se refermer à cette mort, RUNX porte les scores d'une partie qui ne compte plus pour le suivant
   const apres=started&&gameOver&&!SANDBOX&&!PARK.on&&!MIS_REC&&n===s.n+1;
@@ -29927,7 +29927,7 @@ function misTick(dt){ // appelée par la boucle : les contrats se cochent EN DIR
     if(v9>s.best[i]){s.best[i]=Math.min(m.v,v9);SAVE.mark();} // (2026-09-28) LE MEILLEUR ESSAI : la jauge de l'écran MISSIONS (une partie, jamais un cumul)
     if(v9>=m.v){
       s.ok[i]=1;SAVE.d.bank=Math.min(1e30,bank()+m.p);bankMaxMaj();MIS_NEW.push(i);
-      misBanniere('DÉFI RÉUSSI',misTxt(m,true),'+'+fmtC(m.p),'coche');
+      misBanniere('MISSION RÉUSSIE',misTxt(m,true),'+'+fmtC(m.p),'coche');
       try{if(!SONV2)fxArgent();}catch(e){}hap([12,40,18]); /* (débogage son 2026-09-29) le son (ui.mission) part quand la bannière S'AFFICHE : misBanMontre */
       SAVE.flush();
     }}
@@ -30034,7 +30034,7 @@ function hautVide(){ // l'explosion, l'écran de mort : plus personne ne parle �
 }
 function misBanniere(titre,texte,prime,ico){hautPasse(function(){misBanMontre(titre,texte,prime,ico);},titre==='ASTUCE'?2800:1800,'mis',titre==='ASTUCE'?1:2);} // un défi payé vaut un moteur ; une astuce, un niveau
 function misBanMontre(titre,texte,prime,ico){
-  try{if(SONV2&&titre==='DÉFI RÉUSSI')sfx('ui.mission');}catch(e){} /* (débogage son 2026-09-29) pendant l'auto-école la bannière attend la fin : le son l'attend aussi */
+  try{if(SONV2&&titre==='MISSION RÉUSSIE')sfx('ui.mission');}catch(e){} /* (débogage son 2026-09-29) pendant l'auto-école la bannière attend la fin : le son l'attend aussi */
   let b=document.getElementById('misBan');
   if(!b){b=document.createElement('div');b.id='misBan';b.setAttribute('role','status');document.body.appendChild(b);hasMaj();} // hasMaj : la bannière née, son état se suit (voir HAS_D)
   b.innerHTML='<i class="mbIco">'+pxi(ico||'coche')+'</i><div class="mbTx"><small>'+TR(titre)+'</small><span>'+texte+'</span></div>'
@@ -30072,7 +30072,7 @@ function objRender(el){
     el.className='mObj rec';el.setAttribute('data-m','voirRec');el.style.removeProperty('--rc');
     // (2026-09-28, console de son) CARNET BOUCLÉ — la récompense la plus rare : la carte arrive à 490 ms, UNE fois par mort
     if(TCTL.mortT&&objRender._c!==TCTL.mortT){objRender._c=TCTL.mortT;setTimeout(function(){try{if(started&&gameOver&&overlay.style.display!=='none')sfx('ui.carnet');}catch(e){}},REDUCED_MOTION?0:490);}
-    el.innerHTML='<div class="obHd"><span>'+pxi('cadeau')+' '+TR('DÉFIS RÉUSSIS !')+'</span></div>'
+    el.innerHTML='<div class="obHd"><span>'+pxi('cadeau')+' '+TR('MISSIONS RÉUSSIES !')+'</span></div>'
       +'<div class="obBig">'+r.nom+'</div><div class="obFt"><span>'+TR(r.car!=null?'EST À TOI — VA LA VOIR':r.cat?'EST À TOI — ESSAIE-LA':'VERSÉS AU COMPTE')+'</span>'+pxi('droite')+'</div>';
     return;}
   /* (2026-09-28, Sacha : « à la place de "tu peux te l'offrir", un bouton qui montre l'accès aux missions, avec la mission où tu as le
@@ -30088,7 +30088,7 @@ function objRender(el){
     el.innerHTML='<div class="obHd"><span>'+pxi('cible')+' '+TR('MISSIONS')+'</span><b class="mMisPips">'+pips+'</b></div>'
       +'<div class="obBig obGain">'+g.nom+'</div><div class="obFt"><span>3 / 3</span><span>'+TR('VOIR')+' '+pxi('droite')+'</span></div>';return;}
   const m=c.m[bi],nf=MIS_NEW.indexOf(bi)>=0,v=nf?m.v:Math.min(m.v,misVal(m.k)),w=nf?100:misPart(m,v)*100;
-  el.innerHTML='<div class="obHd"><span>'+pxi(nf?'coche':'cible')+' '+TR(nf?'DÉFI RÉUSSI !':'MISSIONS')+'</span><b class="mMisPips">'+pips+'</b></div>'
+  el.innerHTML='<div class="obHd"><span>'+pxi(nf?'coche':'cible')+' '+TR(nf?'MISSION RÉUSSIE !':'MISSIONS')+'</span><b class="mMisPips">'+pips+'</b></div>'
     +'<div class="obBig">'+misTxt(m)+'</div>'
     +'<div class="obBar'+(nf?' ok':'')+'"><i style="width:0%" data-w="'+w.toFixed(1)+'"></i></div>'
     +'<div class="obFt"><span>'+(nf?'<em class="obPrime">+'+fmtC(m.p)+'</em>':TR('CETTE PARTIE')+' · '+misProgV(m,v))+'</span>'
@@ -30837,7 +30837,7 @@ function carUnlockText(i){ // ce qu'il reste à faire, en une ligne — affiché
       : ['\nTU PEUX TE LA PAYER !','\nYOU CAN AFFORD IT!'][L]); // (2026-09-29) la 2e moitié sur SA ligne (#gDesc en pre-line) : « — tu peux » tombait seul en tête de ligne
   }
   const v=u.v,cur=carStat(u.k);
-  if(u.k==='carnet')return ['SE GAGNE EN RELEVANT 3 DEFIS', /* (2026-09-28) police pixel : pas de capitale accentuée (« DéFIS ») */'WON BY BEATING 3 CHALLENGES'][L];
+  if(u.k==='carnet')return ['SE GAGNE EN RELEVANT 3 MISSIONS', /* (2026-09-28) police pixel : pas de capitale accentuée (« DéFIS ») */'WON BY COMPLETING 3 MISSIONS'][L];
   if(u.k==='carrN')return ['TERMINE SKY HIGH  ('+cur+' / 5)','FINISH SKY HIGH  ('+cur+' / 5)'][L]; // (2026-09-27)
   if(u.k==='carrV')return ['TERMINE LA VILLE  ('+cur+' / 5)','FINISH THE CITY  ('+cur+' / 5)'][L]; // (2026-09-27)
   switch(u.k){
@@ -42295,7 +42295,7 @@ for(const [k,v] of Object.entries({'GRAVITE REDUITE : SAUTS 2 FOIS PLUS LONGS':'
   'LA CAISSE-NUAGE EST A TOI':'THE CLOUD CAR IS YOURS','CRIBLE PAR LA POLICE':'SHOT DOWN BY THE COPS',"LA CAISSE-NUAGE T'A SEME":'THE CLOUD CAR LOST YOU',
   'SEMES !':'LOST THEM!','SEMES':'LOST THEM','LA POLICE EST AU TAPIS':'THE COPS ARE DOWN','FLIC AU TAPIS !':'COP DOWN!',"LE PORTAIL S'OUVRE":'THE PORTAL OPENS',
   'HORS DE VUE':'OUT OF SIGHT',"A L'INSTINCT !":'ON INSTINCT!',"A L'INSTINCT":'ON INSTINCT','PERCE-NUAGE !':'CLOUD PIERCER!','PERCE-NUAGE':'CLOUD PIERCER','LE MOTEUR TOUSSE':'ENGINE COUGHING','CA VA LACHER !':'SHE\'S GONNA BLOW!',
-  'Tu l\'as chassée tout un coucher de soleil. Elle est douce comme un nuage et elle file comme un orage.':'You chased her through a whole sunset. Soft as a cloud, fast as a storm.'}))if(!(k in I18N))I18N[k]=v;
+  'Douce comme un nuage, elle file comme un orage. Un coucher de soleil, rien que pour toi.':'Soft as a cloud, fast as a storm. A whole sunset, just for you.'}))if(!(k in I18N))I18N[k]=v;
 // (2026-09-30) les mots de la passe CAMPAGNE : la plaque de la caisse-nuage, les portes du niveau 4, les promesses de l'ESPACE — en anglais
 for(const [k,v] of [['SILLAGE','SLIPSTREAM'],['ELLE MENE DE','SHE LEADS BY'],['ELLE REVIENT',"SHE'S COMING BACK"],['DERRIERE TOI','BEHIND YOU'],
   ["TU L'AS DOUBLEE",'YOU PASSED HER'],['IL FALLAIT LA SUIVRE','YOU WERE SUPPOSED TO FOLLOW HER'],["TU L'AS DOUBLEE — IL FALLAIT LA SUIVRE",'YOU PASSED HER — YOU WERE SUPPOSED TO FOLLOW HER'],
@@ -43280,7 +43280,7 @@ for(const [k,v] of Object.entries({'FAIS-TOI FLASHER':'GET FLASHED','SUIS LA LIG
   '1ER':'1ST','2E':'2ND','LE BANQUIER A':'BANKER AHEAD BY','TU MENES DE':'YOU LEAD BY','TU MENES !':'YOU LEAD!','IL REPASSE DEVANT':"HE'S BACK IN FRONT",
   "COUP D'EPAULE":'SHOULDER BUMP','LE BANQUIER A GAGNE':'THE BANKER WON',"LE BANQUIER T'A BATTU":'THE BANKER BEAT YOU','LE LINGOT EST A TOI':'THE GOLD BAR IS YOURS',
   'VILLE TERMINEE':'CITY COMPLETE','LE LINGOT':'THE GOLD BAR',
-  'Le banquier l\'avait mis au coffre. Tu l\'as gagné à la course : 999,9 millièmes de pure arrogance.':'The banker kept it in the vault. You won it in a race: 999.9 fine, and pure arrogance.'}))if(!(k in I18N))I18N[k]=v;
+  'Le banquier l\'avait mis au coffre. Tu viens de le sortir : 999,9 millièmes de pure arrogance.':'The banker kept it in the vault. You just took it out: 999.9 fine, and pure arrogance.'}))if(!(k in I18N))I18N[k]=v;
 window.dbgVille=function(){ // (dev) l'état de la campagne VILLE
   const sp=vPos();
   return {niveau:villeN(),s:Math.round(sp),L:Math.round(L),plaque:VC.chip,
@@ -47067,7 +47067,7 @@ function bqFigHab(k){const o=bqCos(k),d=o.d,hx=function(c9){return '#'+(c9>>>0).
 function bqPieces(){if(!GBQ.pieces){const L=[];for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(u&&u.p>0&&u.k!=='premium'&&!carRetiree(i))L.push(i);} // les caisses qui s'achètent en PIÈCES, de la moins chère à la plus chère
   GBQ.pieces=L.sort(function(a,b){return (CAR_UNLOCK[a].p-CAR_UNLOCK[b].p)||(a-b);});}return GBQ.pieces;}
 function bqPrixCaisse(i){const u=CAR_UNLOCK[i]||{};if(bqA('v:'+i))return {t:sansAcc(TR('À TOI')),c:'acq'};if(u.k==='premium')return {t:eurTxt(u.eur),c:'eur'};
-  if(u.p)return {t:fmtC(u.p),c:'pc'};return {t:sansAcc(TR('DÉFI')),c:'defi'};}
+  if(u.p)return {t:fmtC(u.p),c:'pc'};return {t:sansAcc(TR('MISSION')),c:'defi'};}
 /* L'INTERFACE v4 (2026-10-12, Léo : « l'argent à côté de BOUTIQUE, et la boutique peut encore prendre tout cet espace ; le bouton VOITURES
    laisse choisir entre les traînées… ; sur le côté gauche qui défile, ce sont les objets hebdomadaires ») :
    · en-tête : BOUTIQUE et, juste à côté, l'argent ; dessous en petit ce qu'on regarde ; couché, la boutique monte jusqu'en haut à droite ;
@@ -47077,7 +47077,7 @@ const BQ_CATS=[['voiture','VOITURES','voiture'],['peinture','PEINTURES','pinceau
 function bqListe(cat){if(cat==='voiture')return bqPieces().map(function(i){return 'v:'+i;});if(cat==='figure')return window.FIG?FIG.liste.map(function(f){return 'figure:'+f.id;}):[];return (COSM[cat]||[]).map(function(d){return cat+':'+d.id;});}
 function bqCarteHtml(k,n,lim){const vo=k[0]==='v',i=vo?+k.slice(2):-1,o=vo?null:bqCos(k),d=o&&o.d,a=bqA(k),ri=rarInfo(vo?carRar(i):cosmRar(o.cat,d)),nom=vo?TR(CARS[i].name):TR(d.n);
   let px,c='';if(vo){const p9=bqPrixCaisse(i);px=(p9.c==='pc'?pxi('piece'):'')+String(p9.t).replace(/</g,'');c=p9.c;}
-  else if(a){px=sansAcc(TR('À TOI'));c='acq';}else if(d.p){px=pxi('piece')+fmtC(d.p);c='pc';}else{px=sansAcc(TR('DÉFI'));c='defi';}
+  else if(a){px=sansAcc(TR('À TOI'));c='acq';}else if(d.p){px=pxi('piece')+fmtC(d.p);c='pc';}else{px=sansAcc(TR('MISSION'));c='defi';}
   return '<div class="bqK'+(lim?' off':'')+(vo?'':' hab')+'" data-k="'+k+'" role="button" style="--rc:'+ri.c+';--i:'+Math.min(n,8)+'" aria-label="'+String(nom).replace(/"/g,'')+'">'
     +(vo?'<span class="bqKph" data-ph="'+i+'"></span>':'<span class="bqKph c-'+o.cat+'">'+bqFigHab(k)+'</span>')+(lim&&!(vo&&CAR_UNLOCK[i]&&CAR_UNLOCK[i].une)?'<span class="bqKl">'+sansAcc(TR('LIMITÉE'))+'</span>':'')
     +'<span class="bqKn">'+sansAcc(String(nom))+'</span><span class="bqKp '+c+'">'+px+'</span></div>';}
@@ -49554,7 +49554,7 @@ function gmRender(vu){ // vu : l'écran est déjà là (un défi coché) — les
   GMIS.ancres.forEach(function(a,k){let cls,pt,in9;
     if(a.k==='d'){const m=c.m[a.i],ok=!!s.ok[a.i],f=s.f===a.i,b=Math.min(m.v,s.best[a.i]||0);
       cls='d'+(ok?' ok':'')+(f?' f':'');pt=ok?'ok':f?'f':'';
-      in9='<div class="gmT"><span class="gmChk"><i></i></span>'+TR('DEFI')+' '+(a.i+1)+'<b>+'+fmtC(m.p)+'</b></div><div class="gmX">'+misTxt(m)+'</div><u><em style="width:'+Math.round(100*(ok?1:misPart(m,b)))+'%"></em></u><small>'+(ok?TR('REUSSI'):f?TR('SUIVI EN COURSE'):TR('MEILLEUR ESSAI')+' '+misProgV(m,b))+'</small>';}
+      in9='<div class="gmT"><span class="gmChk"><i></i></span>'+TR('MISSION')+' '+(a.i+1)+'<b>+'+fmtC(m.p)+'</b></div><div class="gmX">'+misTxt(m)+'</div><u><em style="width:'+Math.round(100*(ok?1:misPart(m,b)))+'%"></em></u><small>'+(ok?TR('REUSSI'):f?TR('SUIVI EN COURSE'):TR('MEILLEUR ESSAI')+' '+misProgV(m,b))+'</small>';}
     else if(a.k==='r'){cls=pt='r';
       in9='<div class="gmT">'+pxi('etoile')+' '+TR('RECOMPENSE')+'<b style="color:#ffd75e">'+s.ok.filter(Boolean).length+' / 3</b></div>'+misGainFig(g)+'<div class="gmX" style="color:'+g.col+'">'+sansAcc(g.nom)+'</div><small>'+sansAcc(g.fam||'')+'</small>';}
     else{const gN=misGain(carnet(s.n+a.j));cls=pt='n';
@@ -49567,8 +49567,8 @@ function gmRender(vu){ // vu : l'écran est déjà là (un défi coché) — les
   GMIS.cards=[].slice.call(el.querySelectorAll('.gmC'));GMIS.pts=[].slice.call(el.querySelectorAll('.gmPt'));
   GMIS.paths=[].slice.call(sv.querySelectorAll('path'));GMIS.sz=GMIS.cards.map(function(c9){return [c9.offsetWidth||150,c9.offsetHeight||60];});
   GMIS.last=null;
-  const sous=$('gmSous');if(sous)sous.textContent=TR('CARNET')+' '+(s.n+1)+' · '+TR('CHAQUE DEFI EN UNE PARTIE');
-  const aide=$('gmAide');if(aide)aide.textContent=s.f>=0?TR('SUIVI')+(LANG==='fr'?' : ':': ')+misTxt(c.m[s.f]):TR('TOUCHE UN DEFI POUR LE SUIVRE EN COURSE');
+  const sous=$('gmSous');if(sous)sous.textContent=TR('CARNET')+' '+(s.n+1)+' · '+TR('CHAQUE MISSION EN UNE PARTIE');
+  const aide=$('gmAide');if(aide)aide.textContent=s.f>=0?TR('SUIVI')+(LANG==='fr'?' : ':': ')+misTxt(c.m[s.f]):TR('TOUCHE UNE MISSION POUR LA SUIVRE EN COURSE');
 }
 function gmSuit(){ // chaque image : les points sur leurs meubles, les cartes à côté (écartées, dans l'écran), les fils
   if(MENU_SACHA)return gmSuitS();
@@ -49605,7 +49605,7 @@ function gmRenderS(vu){ // (Sacha, f474c51) l'écran MISSIONS RANGÉ — voir ME
   GMIS.ancres.forEach(function(a,k){let cls,pt,in9;
     if(a.k==='d'){const m=c.m[a.i],ok=!!s.ok[a.i],f=s.f===a.i,b=Math.min(m.v,s.best[a.i]||0);
       cls='d'+(ok?' ok':'')+(f?' f':'');pt=ok?'ok':f?'f':'';
-      in9='<div class="gmT"><span class="gmChk"><i></i></span>'+TR('DEFI')+' '+(a.i+1)+'</div><div class="gmX">'+misTxt(m)+'</div><div class="gmP"><u><em style="width:'+Math.round(100*(ok?1:misPart(m,b)))+'%"></em></u><b>+'+fmtC(m.p)+'</b></div><small>'+(ok?TR('REUSSI'):f?TR('SUIVI EN COURSE'):TR('MEILLEUR ESSAI')+' '+misProgV(m,b))+'</small>';}
+      in9='<div class="gmT"><span class="gmChk"><i></i></span>'+TR('MISSION')+' '+(a.i+1)+'</div><div class="gmX">'+misTxt(m)+'</div><div class="gmP"><u><em style="width:'+Math.round(100*(ok?1:misPart(m,b)))+'%"></em></u><b>+'+fmtC(m.p)+'</b></div><small>'+(ok?TR('REUSSI'):f?TR('SUIVI EN COURSE'):TR('MEILLEUR ESSAI')+' '+misProgV(m,b))+'</small>';}
     else{const gN=misGain(carnet(s.n+1));cls=pt='r';
       in9='<div class="gmT">'+pxi('etoile')+' '+TR('RECOMPENSE')+'<b style="color:#ffd75e">'+s.ok.filter(Boolean).length+' / 3</b></div>'
         +'<div class="gmRw">'+misGainFig(g)+'<div><div class="gmX" style="color:'+g.col+'">'+sansAcc(g.nom)+'</div><small>'+sansAcc(g.fam||'')+'</small></div></div>'
@@ -49618,8 +49618,8 @@ function gmRenderS(vu){ // (Sacha, f474c51) l'écran MISSIONS RANGÉ — voir ME
   GMIS.cards=[].slice.call(el.querySelectorAll('.gmC'));GMIS.pts=[].slice.call(el.querySelectorAll('.gmPt'));
   GMIS.paths=[].slice.call(sv.querySelectorAll('path'));
   GMIS.last=null;GMIS.lw=0; // les cases se recalculent (nouvelles cartes, nouveaux textes)
-  const sous=$('gmSous');if(sous)sous.textContent=TR('CARNET')+' '+(s.n+1)+' · '+TR('CHAQUE DEFI EN UNE PARTIE');
-  const aide=$('gmAide');if(aide)aide.textContent=s.f>=0?TR('SUIVI')+(LANG==='fr'?' : ':': ')+misTxt(c.m[s.f]):TR('TOUCHE UN DEFI POUR LE SUIVRE EN COURSE');
+  const sous=$('gmSous');if(sous)sous.textContent=TR('CARNET')+' '+(s.n+1)+' · '+TR('CHAQUE MISSION EN UNE PARTIE');
+  const aide=$('gmAide');if(aide)aide.textContent=s.f>=0?TR('SUIVI')+(LANG==='fr'?' : ':': ')+misTxt(c.m[s.f]):TR('TOUCHE UNE MISSION POUR LA SUIVRE EN COURSE');
 }
 /* LES CASES (2026-09-30, Sacha : « missions, c'est pas mal mais un peu brouillon »). Les cartes flottaient À CÔTÉ de leur meuble et
    s'écartaient les unes des autres (8 passes) : elles se chevauchaient quand même, le fil de la constellation les traversait, deux cartes
@@ -49710,7 +49710,7 @@ function garAccueil(){ // appelé par le routeur à chaque arrivée sur 'home'
      const c2=GMIS.cards[GMIS.ancres.indexOf(a)];if(c2)c2.classList.add('flash');}
    else if(a.k==='r'){const g=misGain(carnet(s.n));if(!g.voir){uiClic('refus');return;}uiClic('nav');
      ecranWipe(function(){garMode('boutique');if(g.car!=null){shopTab('voiture');garageShow(g.car);}else if(g.cat){shopTab(g.cat);shopShow(g.cat,g.i);}});}
-   else{uiClic('refus');toast(pxi('verrou')+' '+TR("LES 3 DEFIS D'ABORD"));}});}
+   else{uiClic('refus');toast(pxi('verrou')+' '+TR("LES 3 MISSIONS D'ABORD"));}});}
  clicM(document.querySelector('#gMenuBas .gBoutique'),function(){uiClic('nav');ecranWipe(function(){garMode('boutique');});}); // la BOUTIQUE : l'atelier et ses vitrines
  clicM(document.querySelector('#gMenuBas .gLevel'),function(){uiClic('nav');carrVue(GAR.lvlW||0);});            // le NIVEAU : la carrière, sur le monde en cours
 }
@@ -53310,7 +53310,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     const ci=Math.min(CARS.length-1,Math.max(0,level|0)),nm=CARS[ci]&&CARS[ci].name||'';
     let px=Infinity,pe='';for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(!u||u.k!=='premium'||carRetiree(i)||carOwned(i))continue;const v=parseFloat(String(u.eur).replace(',','.'));if(v<px){px=v;pe=u.eur;}}
     pose('.mAccB[data-m="carr"]',T('CARRIÈRE','CAREER'),niv);
-    pose('.mMisBarre',T('MISSIONS','MISSIONS'),ok9+' / '+n9+' '+T('DÉFIS','DONE'),ok9>=n9);
+    pose('.mMisBarre',T('MISSIONS','MISSIONS'),ok9+' / '+n9+' '+T('FAITES','DONE'),ok9>=n9);
     pose('.mHubPorte',T('GARAGE','GARAGE'),LANG==='fr'?nm:TR(nm));
     pose('.mOffres',T('OFFRES','OFFERS'),!SAVE.d.shopVu?T('NOUVEAU','NEW'):pe?T('DÈS ','FROM ')+eurTxt(pe):'',!SAVE.d.shopVu);
     pose('.mGear',T('RÉGLAGES','SETTINGS'));}
@@ -53387,7 +53387,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       misRender();
     }else if(mCur==='home'){
       if(!(started&&!gameOver)&&!SANDBOX){const r9=misFin(); // un carnet rempli mais pas refermé (partie quittée, app tuée) : on le referme ici, et ça se FÊTE
-        if(r9){MIS_REC=r9;misBanniere('DÉFIS RÉUSSIS !',r9.nom,TR('DÉBLOQUÉ'),'cadeau');try{if(SONV2)sfx('ui.carnet');else fanfare();}catch(e){}}}
+        if(r9){MIS_REC=r9;misBanniere('MISSIONS RÉUSSIES !',r9.nom,TR('DÉBLOQUÉ'),'cadeau');try{if(SONV2)sfx('ui.carnet');else fanfare();}catch(e){}}}
       {const pp=$t('mMisPips'),s9=misEtat();if(pp)pp.querySelectorAll('u').forEach(function(u,i){u.classList.toggle('ok',!!s9.ok[i]);});} // la porte MISSIONS : une case allumée par défi relevé
       const bv=$t('mBankV');if(bv)bv.textContent=fmtC(bank());
       let nG=shopAPortee();for(let i=0;i<CARS.length;i++){const p9=carPrice(i);if(p9&&!carUnlockedVrai(i)&&p9<=bank())nG++;}
