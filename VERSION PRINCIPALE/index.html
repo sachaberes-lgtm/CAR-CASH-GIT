@@ -8049,6 +8049,9 @@ html.c6 body #coach.bravo .coTx b,html.c6 body #coach.bravo .coIco,html.c6 body 
   html.c6 body #coach.rate .coN{grid-area:1/1/2/5}
 }
 @media (prefers-reduced-motion:reduce){html.c6 body #coach .coGeste::before{animation:none!important}}
+/* (2026-10-14, vérif P1) DEBOUT, les plaques de POUVOIR reprennent leur place ordinaire (+184 : ~28 px sous la carte) pendant l'auto-école : la carte ne fait plus
+   que ~76 px (bas vers +138 à l'écran), le +290 de 5361 était calculé pour l'ancienne carte de 172 px et laissait un trou de ~110 px. Couché : inchangé (+124, déjà sous la carte). */
+@media (orientation:portrait){html.c6 body.touch.coOn:not(#ccH) #pwrChip{top:calc(var(--hudH) + 184px)}}
 </style>
 <style id="c6-pause-fin">
 /* CHARTE 6 · la pause, la fin de partie — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
