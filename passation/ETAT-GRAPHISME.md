@@ -17,6 +17,10 @@ La passation longue (règles, plafonds de la charte, outils dbg) reste `passatio
   Planches : graphisme-ville-nuit-rose.jpg, graphisme-canyon-ciel.jpg, graphisme-orbite-ab.jpg, graphisme-cumulus.jpg, graphisme-nuages-nuit-lune.jpg.
 - POUSSÉ 591544f5 (v426, 22 h 12) : le CIEL DES NUAGES SANS POMMELÉ (`cielMotif` retiré des passes pleine ET basse `basN`, `?sans=ciel2`) et la mer lointaine
   fondue plus tôt (`uMerLoin` 16 000 → 8 000). Sonde en vol : `sonde-vol.cjs` du scratchpad (fige la caméra en l'air, coupe les couches une à une).
+- POUSSÉ 48e8ae58 (v432, 23 h 33) : LA MÉTROPOLE DE JOUR (`?sans=metropole`, matin et midi seulement : `metroJour()`) : palette des tours par `metroH(x,z)`
+  (verre bleu / acier / béton clair / sombres) dans la boucle `colT` de buildVoxCity, GRUES (genre 3 rouge, 4 jaune) dans `batir()`, enseignes jaunes (NEON 0 et 4),
+  `CITY.uPied` (voile violet au pied des tours : 1 la nuit, .12 de jour), le VERRE DE JOUR qui reflète le bleu du ciel (il divisait la tour par 2 + horizon crème = beige),
+  béton de jour neutre, ciel azur → pêche pâle (jSol et sunHalo bas). Planche : graphisme-metropole.jpg. Sonde utile : `sonde-ville.cjs` (couleurs d'instance réelles).
 - RESTE, dans l'ordre : (1) l'ORAGE de la ville encore peu rose : son plafond de nuages lilas/éclair a été retiré par `NEON_V` à la COMPILATION (l. ~9364/9367,
   le plafond sous la pluie) → il faut un uniforme pour le rendre à la ville seule ; (2) le MIDI du canyon peut-être trop saturé (ciel chroma 88) : baisser `cyZ`/`cyM`
   de canyonMidi si Sacha le juge ; (3) la LUNE du titre la nuit : la direction en uniforme ne suffit pas (essai retiré) → vérifier si le ciel du titre dessine
