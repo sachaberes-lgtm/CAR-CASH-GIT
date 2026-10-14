@@ -1,3 +1,18 @@
+# MISE À JOUR — 14/10, 18 h 35 : L'APP SUR LE JEU DE MAIN + PASSE « iPHONE AU MAX » (branche `ios-iphone-max`, Sacha : « prends la dernière version de main, optimise-la pour iPhone au max, mets-la sur l'iPhone »)
+- Branche NEUVE `ios-iphone-max` (worktree `~/cash-car/iphone-max`), partie de `ios-capacitor` (non touchée) + `origin/main` a10d46c fusionnée
+  (1 conflit, CLAUDE.md racine : les deux gardés ; garde burn-out OK). Rien de poussé. Pour la reprendre : fusionner `ios-iphone-max` dans `ios-capacitor`.
+- `www/` = jeu a10d46c (sans carrière, sans mode facile, interface pixel). Essai à blanc vert, aucune coupe à réparer.
+- NOUVEAU dans l'app (détail : `app-ios/LISEZ-MOI.md`, « Ce qui est réglé pour l'iPhone ») : jeu COMPACTÉ par esbuild (index.html 5,9 → 3,4 Mo,
+  espaces et commentaires seuls) ; palier graphique EXACT par le modèle (`__ccAppareil`, Swift) ; Mode Jeu d'iOS (catégorie racing-games +
+  GCSupportsGameMode) ; écran gardé allumé pendant qu'on joue (plugin `Eveil`, natif.js partie 8) ; accueil PIXEL sans OFFRES : GARAGE prend
+  sa case, MISSIONS s'allonge (le trou avant ⚙ comblé, debout et couché ; 4 témoins de plus).
+- VÉRIFIÉ : navigateur (jeu compacté : démarrage, accueil debout/couché, JOUER → course, 0 erreur JS) ; simulateur iPhone 17 Pro Max Debug
+  (palier RÉCENT « modèle iPhone18,2 (app) », 0 adresse hors de l'app, course à 56-57 i/s, son actif, `Eveil garde` appelé).
+- INSTALLÉ en Release (1.0.0 build 2, signature Apple Development) sur l'iPhone 13 Pro de Sacha (nommé « iPad » dans Xcode). Pas lancé à
+  distance : téléphone verrouillé. Pas encore joué sur le vrai téléphone.
+- Pas fait (à décider) : 120 Hz ProMotion (double le travail de la puce, l'échelle de qualité du jeu vise 60 i/s) ; session audio
+  « ambiante » (laisser la musique du joueur) ; sons-banque.js (4,2 Mo de MP3 en base64) en vrais fichiers.
+
 # MISE À JOUR — 14/10, 17 h 40 : LES MISES À JOUR EN DIRECT (oui de Sacha) · le jeu sera figé dans ~1 mois (Sacha)
 - Sacha a accepté le nouveau contrat Apple. 18 h 15 : DÉCLARATION DSA faite (statut COMMERÇANT, choix de Sacha ; EI SIREN 104 067 996,
   adresse de l'attestation RNE, +33 6 51 96 89 02, 16180contact@gmail.com ; justificatifs chargés par Sacha) → « En cours de vérification »

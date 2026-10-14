@@ -12,7 +12,10 @@
    5. l'écran de lancement natif retiré dès que le jeu a peint son propre écran ;
    6. en version DEBUG seulement (Xcode ▶) : chaque requête qui sortirait de l'app est écrite dans la console de Xcode,
       plus un bilan à 15 s et à 60 s — c'est le banc du « mode hors ligne ». La version App Store n'écrit rien ;
-   7. les mises à jour en direct du jeu (sans l'App Store), placées avant le 6 qui s'arrête hors DEBUG. */
+   7. les mises à jour en direct du jeu (sans l'App Store), placées avant le 6 qui s'arrête hors DEBUG ;
+   8. l'écran qui reste allumé pendant qu'on joue (avant le 6, lui aussi).
+   Et, côté Swift (JeuViewController.swift), le modèle exact de l'iPhone dans `window.__ccAppareil` avant tout script : preparer-www.js
+   le branche dans le palier graphique du jeu (PAL). */
 (function(){
   'use strict';
   var C=window.Capacitor;
@@ -135,6 +138,19 @@
     // une version qui ne démarre jamais ne donne pas le feu vert ; au lancement d'après (la version d'avant), bilanEssai la classe
   }
 
+  /* ---- 8. L'ÉCRAN RESTE ALLUMÉ PENDANT QU'ON JOUE (2026-10-14, passe « iPhone au max ») ----
+     Un pouce posé sans bouger (volant, NITRO) n'envoie aucun toucher à iOS : avec le verrouillage automatique à 30 s, l'écran
+     s'assombrissait en pleine course. Le plugin natif Eveil (JeuViewController.swift) coupe la mise en veille au premier toucher et la
+     rend à iOS après 3 minutes sans toucher, ou quand l'app passe en arrière-plan : un menu oublié sur la table ne vide pas la batterie. */
+  var E=P.Eveil;
+  if(E){var eveil=false,dernier=0;
+    var garde=function(on){if(on===eveil)return;eveil=on;try{E.garde({on:on}).catch(function(){});}catch(e){}};
+    var touche=function(){dernier=Date.now();if(!eveil)garde(true);};
+    ['touchstart','pointerdown','keydown'].forEach(function(t){addEventListener(t,touche,{capture:true,passive:true});});
+    setInterval(function(){if(eveil&&Date.now()-dernier>180000)garde(false);},15000);
+    document.addEventListener('visibilitychange',function(){if(document.hidden)garde(false);});
+  }
+
   /* ---- 6. LE BANC DU HORS-LIGNE (DEBUG seulement) ---- */
   if(!DEBUG)return;
   var dehors={},nDehors=0,nIci=0;
@@ -156,7 +172,8 @@
   addEventListener('unhandledrejection',function(e){var r=e.reason;console.warn('[natif] promesse rejetée : '+(r&&r.message||r));});
   var bilan=function(t){console.log('[natif] BILAN RÉSEAU '+t+' : '+nDehors+' adresse(s) hors de l’app, '+nIci+' chargement(s) locaux'+
     ' · localStorage cashcarSave '+(function(){try{return localStorage.cashcarSave?'présent':'absent';}catch(e){return 'illisible';}})()+
-    ' · langue de l’appareil vue par la page : '+navigator.language+' ['+(navigator.languages||[]).join(',')+'] → jeu en '+document.documentElement.lang);};
+    ' · langue de l’appareil vue par la page : '+navigator.language+' ['+(navigator.languages||[]).join(',')+'] → jeu en '+document.documentElement.lang+
+    ' · palier '+(function(){try{var p=window.dbgPalier();return p.nom+' ('+p.src+')';}catch(e){return '?';}})());};
   setTimeout(function(){bilan('15 s');},15000);setTimeout(function(){bilan('60 s');},60000);
   // le pouls : images par seconde, ce qui couvre le milieu de l'écran, l'état du jeu (toutes les 4 s)
   var nIm=0;(function f(){nIm++;requestAnimationFrame(f);})();

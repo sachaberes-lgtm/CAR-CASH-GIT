@@ -118,8 +118,22 @@ une('</head>','<style id="appStore">/* (app iOS) pas de page OFFRES en € : ni 
   '/* l\'accueil en cartes 2 × 2 (CARRIÈRE · MISSIONS / GARAGE · OFFRES, train T8 du 14/10) sans la carte OFFRES : GARAGE prend toute sa ligne\n'+
   '   (debout : les deux colonnes ; couché : les deux colonnes du bloc de droite), plus de trou */\n'+
   'html.c6.hub:not(.poki) body #mHome.acc2 .mHubPorte{grid-column:1 / -1!important}\n'+
-  '@media (orientation:landscape) and (max-height:540px){html.c6.hub:not(.poki) body #mHome.acc2 .mHubPorte{grid-column:2 / -1!important}}</style>\n</head>','page OFFRES');
+  '@media (orientation:landscape) and (max-height:540px){html.c6.hub:not(.poki) body #mHome.acc2 .mHubPorte{grid-column:2 / -1!important}}\n'+
+  '/* l\'accueil PIXEL (charte par défaut depuis le 14/10 au soir : une rangée MISSIONS · GARAGE · OFFRES · ⚙) sans OFFRES : GARAGE prend sa\n'+
+  '   case, MISSIONS s\'allonge d\'une case (avec ou sans la carte CARRIÈRE devant elle) — plus de trou avant ⚙ */\n'+
+  'html.hub:not(.c6):not(.poki) body #mHome.acc2 .mHubPorte{grid-column:4!important}\n'+
+  'html.hub:not(.c6):not(.poki) body #mHome.acc2 .mAccP>.mMisBarre{grid-column-end:4!important}\n'+
+  '@media (orientation:landscape) and (max-height:540px){html.hub:not(.c6):not(.poki) body #mHome.acc2 .mHubPorte{grid-column:5!important}\n'+
+  '  html.hub:not(.c6):not(.poki) body #mHome.acc2 .mAccP>.mMisBarre{grid-column-end:5!important}}</style>\n</head>','page OFFRES');
 une("const SANS_VOIX=!/[?&]voix=1\\b/.test(location.search);","const SANS_VOIX=true; /* (app iOS) les voix ne sont pas livrées */",'règle SANS_VOIX (les voix ne sont pas livrées)');
+/* LE PALIER DE L'APPAREIL, SANS DEVINER (2026-10-14, passe « iPhone au max ») : l'app connaît le modèle exact de l'iPhone
+   (JeuViewController.swift le pose dans `window.__ccAppareil` avant tout script) — il remplace le petit banc du processeur, qui, couru
+   téléphone chaud ou en mode économie d'énergie, classait un iPhone récent « ancien » pour 7 jours. Rang : après `?palier` et après
+   « appris en course » (la mesure réelle prime toujours), avant le banc. Hors iPhone (palier nul), le banc décide comme avant. */
+une("else if(appris&&appris.src==='mesure'){P.n=appris.n;P.src='appris en course';}",
+  "else if(appris&&appris.src==='mesure'){P.n=appris.n;P.src='appris en course';}\n"+
+  "  else if(window.__ccAppareil&&window.__ccAppareil.palier!=null){P.n=window.__ccAppareil.palier;P.src='modèle '+window.__ccAppareil.modele+' (app)';} /* (app iOS) */",
+  'palier de l\'appareil (le modèle exact donné par l\'app)');
 /* LES TÉMOINS — une coupe faite en CSS ne casse rien si sa cible change de nom : elle cesse juste de couper, en silence. Chaque porte
    masquée ci-dessus doit donc encore exister dans le jeu ; sinon l'écran a été refait et la coupe est à revoir (au navigateur). */
 for(const[t,quoi]of[['data-m="shop"','la tuile OFFRES de l\'accueil'],['id="mShop"','la page OFFRES (#mShop)'],['id="bdShop"','le fond de la page OFFRES (#bdShop)'],
@@ -129,7 +143,12 @@ for(const[t,quoi]of[['data-m="shop"','la tuile OFFRES de l\'accueil'],['id="mSho
   ['html.c6.hub:not(.poki) body #mHome.acc2 .mOffres{grid-row:7;grid-column:2}','la carte OFFRES de l\'accueil en 2 × 2 (debout)'],
   ['html.c6.hub:not(.poki) body #mHome.acc2 .mHubPorte{grid-row:7;grid-column:1}','la carte GARAGE de l\'accueil en 2 × 2 (debout)'],
   ['html.c6.hub:not(.poki) body #mHome.acc2 .mOffres{grid-row:7;grid-column:3}','la carte OFFRES de l\'accueil en 2 × 2 (couché)'],
-  ['html.c6.hub:not(.poki) body #mHome.acc2 .mHubPorte{grid-row:7;grid-column:2}','la carte GARAGE de l\'accueil en 2 × 2 (couché)']])
+  ['html.c6.hub:not(.poki) body #mHome.acc2 .mHubPorte{grid-row:7;grid-column:2}','la carte GARAGE de l\'accueil en 2 × 2 (couché)'],
+  ['html.hub:not(.poki) body #mHome.acc2 .mHubPorte{grid-row:4;grid-column:3}','l\'icône GARAGE de l\'accueil pixel (debout)'],
+  ['html.hub:not(.poki) body #mHome.acc2 .mOffres{grid-row:4;grid-column:4}','l\'icône OFFRES de l\'accueil pixel (debout)'],
+  ['html.hub:not(.poki) body #mHome.acc2 .mGear{grid-row:4;grid-column:5}','l\'icône ⚙ de l\'accueil pixel (debout)'],
+  ['html.hub:not(.poki) body #mHome.acc2 .mHubPorte{grid-column:4}\n  html.hub:not(.poki) body #mHome.acc2 .mOffres{grid-column:5}\n  html.hub:not(.poki) body #mHome.acc2 .mGear{grid-column:6}',
+   'les icônes GARAGE · OFFRES · ⚙ de l\'accueil pixel (couché)']])
   if(h.indexOf(t)<0)meurt('témoin perdu — '+quoi+' : « '+t+' » n\'existe plus dans le jeu. L\'écran a changé : revoir la coupe de l\'édition App Store.');
 fs.writeFileSync(path.join(WWW,'index.html'),h);
 
@@ -149,6 +168,48 @@ fouille(WWW);
 if(trouve.length)meurt('adresses réseau restantes dans www/ :\n  '+trouve.join('\n  '));
 if(notes.length)console.log('  (adresses en commentaire, jamais chargées : '+notes.length+')\n    '+notes.join('\n    '));
 if(permis.length!==1)meurt('l\'adresse des mises à jour en direct est citée '+permis.length+' fois dans www/ (1 attendue, dans natif.js)');
+/* LE COMPACTAGE (2026-10-14, passe « iPhone au max ») — la page du jeu pèse ~5,9 Mo, dont ~43 % de commentaires et d'espaces (le journal
+   du jeu vit dans son code). Sur l'iPhone, tout ce texte est lu au démarrage, GARDÉ en mémoire par le moteur JavaScript (en UTF-16 :
+   2 octets par caractère, à cause des accents) et retéléchargé à chaque mise à jour en direct. esbuild retire commentaires et espaces
+   des scripts et des styles de la page, des commentaires HTML, et des scripts du jeu que la page charge (figures.js, sfx.js,
+   sons-banque.js, harmonie.js) — RIEN d'autre : aucun nom raccourci, aucun code réécrit (minifyWhitespace seul) : le jeu reste le même,
+   ses crochets `dbg*` marchent. vendor/ n'est pas touché (three.min.js reste identique à l'officiel), natif.js non plus (lisible).
+   Fait APRÈS l'inventaire (il lit les commentaires pour classer les adresses), AVANT l'empreinte (maj.json suit le contenu livré).
+   Le découpage suit les règles du navigateur : un <script> finit au premier « </script », un <style> au premier « </style ».
+   `--sans-compacter` : la page telle quelle (pour lire une erreur à sa vraie ligne dans la console de Safari). */
+let compacte='non (--sans-compacter)';
+if(process.argv.indexOf('--sans-compacter')<0){
+  let esb=null;try{esb=require('esbuild');}catch(e){}
+  if(!esb){compacte='NON (esbuild absent : npm install dans app-ios/)';console.warn('  ⚠ esbuild absent (npm install dans app-ios/) : la page part NON compactée — même jeu, plus lourd');}
+  else{
+    const min=(code,loader,quoi)=>{try{return esb.transformSync(code,{loader,minifyWhitespace:true,legalComments:'none',charset:'utf8'}).code;}
+      catch(e){const x=e.errors&&e.errors[0];meurt('compactage de '+quoi+' : '+(x?x.text+(x.location?' (ligne '+x.location.line+')':''):e.message));}};
+    const morceaux=t=>{const P=[],re=/<!--|<(script|style)\b([^>]*)>/gi;let i=0;
+      for(;;){re.lastIndex=i;const m=re.exec(t);if(!m){P.push({k:'html',s:t.slice(i)});break;}
+        P.push({k:'html',s:t.slice(i,m.index)});
+        if(m[0]==='<!--'){const e=t.indexOf('-->',m.index+4);if(e<0)meurt('compactage : commentaire HTML non fermé');P.push({k:'com',s:t.slice(m.index,e+3)});i=e+3;continue;}
+        const fin=new RegExp('</'+m[1],'gi');fin.lastIndex=re.lastIndex;const f=fin.exec(t);if(!f)meurt('compactage : <'+m[1]+'> non fermé');
+        P.push({k:'html',s:m[0]});P.push({k:m[1].toLowerCase(),a:m[2],s:t.slice(re.lastIndex,f.index)});i=f.index;}
+      return P;};
+    const pIn=path.join(WWW,'index.html'),t0=fs.readFileSync(pIn,'utf8'),P=morceaux(t0);let nJs=0,nCss=0;
+    const sortie=P.map(p=>{
+      if(p.k==='com')return '';
+      if(p.k==='script'&&!/\bsrc\s*=/i.test(p.a)&&!/\btype\s*=/i.test(p.a)&&p.s.trim()){nJs++;return min(p.s,'js','un script de la page');}
+      if(p.k==='style'&&p.s.trim()){nCss++;return min(p.s,'css','un style de la page');}
+      return p.s;}).join('');
+    // contre-épreuve : le même nombre de scripts et de styles, et natif.js toujours en tête
+    const Q=morceaux(sortie),compte=(L,k)=>L.filter(p=>p.k===k).length;
+    if(compte(Q,'script')!==compte(P,'script')||compte(Q,'style')!==compte(P,'style'))meurt('compactage : la page n\'a plus le même nombre de <script>/<style>');
+    if(sortie.indexOf('<meta charset="UTF-8">\n<script src="natif.js"></script>')<0)meurt('compactage : natif.js n\'est plus en tête');
+    fs.writeFileSync(pIn,sortie);
+    let nAvant=Buffer.byteLength(t0),nApres=Buffer.byteLength(sortie);
+    for(const m of sortie.matchAll(/<script[^>]*\ssrc=["']([^"'?#]+)/g)){const n=m[1];
+      if(/^[a-z]+:|^\/\//i.test(n)||n==='natif.js'||/^vendor\//.test(n))continue;
+      const p=path.join(WWW,n),a=fs.readFileSync(p,'utf8'),b=min(a,'js',n);fs.writeFileSync(p,b);nAvant+=Buffer.byteLength(a);nApres+=Buffer.byteLength(b);}
+    compacte=(nAvant/1048576).toFixed(1)+' → '+(nApres/1048576).toFixed(1)+' Mo ('+nJs+' scripts, '+nCss+' styles, '+compte(P,'com')+' commentaires HTML)';
+  }
+}
+console.log('  compactage : '+compacte);
 /* LA VERSION DU CONTENU (maj.json) : le commit du jeu + l'empreinte de TOUS les fichiers de www/ (chemin et contenu). Deux fabrications
    identiques donnent la même version ; un octet changé en donne une autre. natif.js la compare à latest.json. */
 const crypto=require('crypto'),liste=[];

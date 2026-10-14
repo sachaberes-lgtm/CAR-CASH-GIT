@@ -90,6 +90,19 @@ npm run essai -- "/chemin/vers/une/autre/VERSION PRINCIPALE"   # joue toute la f
   stockage web, il la relit au lancement et recharge la page (code « P0-03 » de `VERSION PRINCIPALE/index.html`).
   Vérifié au simulateur : stockage web effacé → sauvegarde retrouvée.
 - **Chiffrement** : `ITSAppUsesNonExemptEncryption = NO` (pas de question export à chaque envoi).
+- **Le jeu compacté** (14/10, passe « iPhone au max ») : `preparer-www.js` retire commentaires et espaces de la page et des scripts du
+  jeu avec esbuild (`minifyWhitespace` seul : aucun nom raccourci, aucun code réécrit, `dbg*` intacts) — `index.html` 5,9 → 3,4 Mo :
+  moins à lire au démarrage, moins de mémoire, des mises à jour en direct plus légères. `vendor/` et `natif.js` ne sont pas touchés.
+  `node preparer-www.js --sans-compacter` : la page telle quelle (lire une erreur à sa vraie ligne dans Safari). Sans esbuild
+  (`npm install` pas fait), la page part non compactée avec un avertissement.
+- **Le palier graphique exact** : `JeuViewController.swift` pose `window.__ccAppareil = {modele, palier}` avant tout script (iPhone 6s → X :
+  0 · XS/XR/11/SE 2 : 1 · iPhone 12 et après : 2), branché dans `PAL` par `preparer-www.js`. Fini le petit banc du processeur qui, couru
+  téléphone chaud ou en économie d'énergie, classait un iPhone récent « ancien » pour 7 jours. La mesure en course (« appris en
+  course ») prime toujours. En Debug, le bilan de 15 s dit « palier RÉCENT (modèle iPhone14,2 (app)) ».
+- **Mode Jeu d'iOS** : `LSApplicationCategoryType = public.app-category.racing-games` + `GCSupportsGameMode` — iOS 18+ donne la priorité
+  au processeur et à la puce graphique pendant qu'on joue, et calme le reste du téléphone.
+- **L'écran reste allumé pendant qu'on joue** (plugin natif `Eveil` + `natif.js` partie 8) : un pouce posé sans bouger sur le volant ou
+  la NITRO n'éteignait plus l'écran au bout de 30 s ; rendu à iOS après 3 minutes sans toucher ou en arrière-plan.
 
 ## La fiche App Store et les deux pages qu'Apple exige
 
