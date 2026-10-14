@@ -1482,6 +1482,9 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
   #dolHud.sansAura .dAura{display:none}
   #dolHud.fige .dAura{color:var(--dolNom);transform:scale(1.12)} /* le total se FIGE : il blanchit d'un cran — encaissé */
   body:not(.play) #dolHud{display:none}
+  #slideHud{position:fixed;left:50%;top:max(22vh,calc(env(safe-area-inset-top,0px) + 150px));transform:translateX(-50%);z-index:7;pointer-events:none;
+    font:14px/1 var(--pix);color:#ffd75e;text-shadow:0 2px 0 #3a1a00;opacity:0;transition:opacity .12s}
+  body:not(.play) #slideHud{display:none}
   @media (prefers-reduced-motion:reduce){#dolHud.on{animation:none}#dolHud.fige .dAura{transform:none}}
   /* ---- L'AURA v2 — LA CHAÎNE (2026-09-26) : le compteur TOUJOURS visible, et la chaîne en cours dessous — points, multiplicateur,
      temps restant, et les trois derniers gestes AVEC leurs points. À GAUCHE, sous la pastille FLOW : à droite vit le chrono de vol. ---- */
@@ -19513,9 +19516,50 @@ function parisTick(dt){ // l'HEURE avance avec les quartiers ; le décor vit (ph
   for(const b of PARIS.bateaux){b.a+=b.v*dt;if(b.a>4500)b.a=-4500;else if(b.a<-4500)b.a=4500;
     b.g.position.set(SV.b.x+SV.r.x*b.a+SV.n.x*b.u,-7.9+Math.sin(PARIS.t*1.3+b.u)*.06,SV.b.z+SV.r.z*b.a+SV.n.z*b.u);b.g.rotation.y=yb+(b.v<0?Math.PI:0);}
 }
+/* LA FIGURE SLIDE (2026-10-14 soir, Sacha via PILOTAGE : « quand on vient VRAIMENT de frotter contre le bord de la route, ça doit faire
+   des ÉTINCELLES et rapporter de l'AURA en fonction de la VITESSE et de la DURÉE »). ⚠ Le jeu n'avait AUCUN contact avec le bord :
+   le dépasser fait tomber la caisse. Le frottement, c'est donc le FLANC qui déborde de la route quand les roues tiennent encore
+   (|lat| + demi-largeur > ROAD_HALF), plus serré que le RASE-BORD (80 % de la demi-route), plus les vraies façades de Paris (parisMur).
+   · Tant qu'on frotte : étincelles OR au point de contact, côté bord, plus denses avec la vitesse ; l'aura MONTE (SLD.base + SLD.v × vitesse
+     / vmax, par seconde) dans une petite étiquette « SLIDE +X » en haut (jamais au centre) ; la caisse perd un peu de vitesse (SLD.frein,
+     la sanction : il n'y en avait pas au bord).
+   · À la fin (SLD.lache s sans contact) : payée dans la CHAÎNE d'aura comme un geste (famille 'slide', brut) si on a frotté au moins
+     SLD.tMin s. Explosion, replacement ou partie neuve : perdue (slideRaz).
+   · Les COMBOS À TROIS sont des trios de figures d'un même VOL : un geste au sol n'y entre pas.
+   · Le son : `sonSlide(etat,k)` ('debut' | 'tick' | 'fin', k = vitesse/vmax), livré par la session SON — muet tant qu'il n'existe pas.
+   `?slide=0` l'éteint. Banc : dbgSlide() · dbgSlide('force',kmh) colle la caisse au bord à cette vitesse · dbgSlide('stop'). */
+const SLD={on:!/[?&]slide=0\b/.test(location.search),base:20,v:120,frein:.12,tMin:.35,lache:.15,kmhMin:40,
+  t:0,hors:0,aura:0,cote:1,mur:0,etiq:null,force:0,son:false,k:0};
+function slideRaz(){SLD.t=0;SLD.hors=0;SLD.aura=0;SLD.mur=0;if(SLD.son){SLD.son=false;try{sonSlide('fin',0);}catch(e){}}if(SLD.etiq)SLD.etiq.style.opacity='0';}
+function slideEtiq(){let e=SLD.etiq;if(!e){e=SLD.etiq=document.createElement('div');e.id='slideHud';e.setAttribute('aria-hidden','true');document.body.appendChild(e);}return e;}
+function slideTick(dt){ // boucle de conduite, chaque image, après le RASE-BORD
+  if(!SLD.on)return;
+  const w=CARS[level].w*.5,va=Math.abs(vA),kmh=va*3.6*SPD;
+  if(SLD.force>0){lat=(Math.sign(lat)||1)*(ROAD_HALF-w+.12);vA=Math.sign(vA||1)*SLD.force/(3.6*SPD);graceT=Math.max(graceT,.2);}
+  SLD.mur=Math.max(0,SLD.mur-dt);
+  const bord=Math.abs(lat)+w>ROAD_HALF-.02&&Math.abs(lat)<ROAD_HALF,contact=!introD&&!PARK.on&&hopY<=.05&&kmh>SLD.kmhMin&&(bord||SLD.mur>0);
+  if(contact){
+    SLD.hors=0;SLD.t+=dt;SLD.cote=Math.sign(lat)||1;
+    const k=SLD.k=Math.max(0,Math.min(1.3,kmh/Math.max(1,vmaxShow())));
+    SLD.aura+=(SLD.base+SLD.v*k)*dt;
+    if(!SLD.mur)vA*=1-SLD.frein*dt; // la sanction : le flanc frotte (les façades de Paris ont la leur)
+    if(Math.random()<dt*(14+46*k)){DRIFT_V.set(SLD.cote*w,.15,(Math.random()-.5)*CARS[level].l*.6);carGroup.localToWorld(DRIFT_V);sparkBurst(sparkGold,DRIFT_V,1+(k>.6?1:0),5+9*k);}
+    try{if(!SLD.son){SLD.son=true;sonSlide('debut',k);}else sonSlide('tick',k);}catch(e){}
+    if(SLD.t>=SLD.tMin){const e=slideEtiq();e.textContent='SLIDE +'+Math.round(SLD.aura);e.style.opacity='1';}
+    return;}
+  if(SLD.t<=0)return;
+  SLD.hors+=dt;if(SLD.hors<SLD.lache)return;
+  const n=Math.round(SLD.aura),ok=SLD.t>=SLD.tMin&&n>0;slideRaz();
+  if(ok){try{chaineAura('SLIDE',n,'slide',true,false);}catch(e){}try{sonSlide('paye',n);}catch(e){}hap([8,20,8]);} // (SON) 'paye' : le tchak du paiement ; 'fin' (slideRaz) : la queue du crissement
+}
+function slideContact(){SLD.mur=.12;} // le crochet des MURS : une paroi qui touche le flanc ce tour-ci (Paris, les couloirs du CANYON…) — à rappeler à chaque image de contact
+window.slideContact=slideContact;
+window.dbgSlide=function(k,v){if(k==='force')SLD.force=+v||200;if(k==='stop'){SLD.force=0;lat=0;vL=0;}
+  return {on:SLD.on,t:+SLD.t.toFixed(2),aura:Math.round(SLD.aura),k:+SLD.k.toFixed(2),force:SLD.force,lat:+lat.toFixed(2),bord:+ROAD_HALF.toFixed(2),kmh:Math.round(Math.abs(vA)*3.6*SPD),mode:mode,vmax:Math.round(vmaxShow()),chaine:Math.round(CHA.pts||0),auraRun:Math.round(auraRun)};};
 function parisMur(dt){ // LES FAÇADES SONT DES MURS : un CHOC par contact (vitesse perdue selon l'angle), puis on FROTTE (étincelles) — de face à pleine vitesse, on s'encastre
   const out=Math.sign(lat)||1,lim=ROAD_HALF-1.15;lat=out*lim;
   const into=vL*driveDir*out;if(into<=0)return;
+  SLD.mur=.12; // (SLIDE) la façade frotte : la figure le sait
   const va=Math.abs(vA),a=Math.asin(Math.min(1,into/Math.max(1,va))),kmh=va*3.6*SPD,now=performance.now();
   if(a>.52&&kmh>200){explode('facade');return;}
   psi=-psi*.3;yawR=0;slipB=0;vL=0;
@@ -37689,6 +37733,7 @@ let mortCause=''; // (2026-09-26, audit UX) POURQUOI on est mort — dit sous GA
    d'une partie que l'écran de mort va couronner « NOUVEAU RECORD ! ». */
 function partieRecord(){try{return !SANDBOX&&((money>(RUNX.best0||0)&&money>START_CASH+.5)||!!CHA.recB||engTier>(RUNX.engAvant|0));}catch(e){return false;}}
 function explode(cause){
+  try{slideRaz();}catch(e){} // (SLIDE) le frottement part avec la caisse
   if(chanceProtege(cause))return; // (2026-10-14) LA SECONDE CHANCE : le bouclier de la reprise (voir CHANCE)
   if(facileSauve(cause))return; // (MODE FACILE) une vie de moins au lieu de la partie (le BOUCLIER, qui pardonnait une chute, est retiré le 29/09)
   RALENTI.t=0; // (passe qualité) le ralenti de la frénésie s'arrête net à l'explosion : sinon le plan de la mort passait à ×0,3 et l'écran de fin arrivait 2× plus tard
@@ -44605,6 +44650,7 @@ function dolHudTick(dt){ // gate de course, quel que soit le mode
     dolHudAtt=0;dolHudT-=dt;if(dolHudT<=0)dolHudOff();}
 }
 function respawn(){
+  try{slideRaz();}catch(e){} // (SLIDE) replacé : le frottement en cours est perdu
   SVOL.t=0;SVOL.k=0; // (2026-10-14, session SON) replacé : la tension du vol ne survit pas
   for(const t9 of SILS)t9.init=false;rainbowCoupe(); // (2026-09-26) pas de ruban tendu jusqu'au point de replacement
   LIGNE.sPk=null;LIGNE.sPd=LIGNE.sPd0=s; // (LIGNE PARFAITE, audit GAMEPLAY) le balayage de trajet repart d'ici : sinon il ramassait, sans contact, l'objet qu'on venait de rater
@@ -45952,7 +45998,7 @@ const FIN_SONS=['explosion','explosion.loin','impact.immeuble','mort.vide','mort
    on repart d'où l'on est tombé (`respawn` : la dernière route sûre) avec le MOTEUR, la zone et le compteur de la partie ; la chaîne d'aura,
    le flow et les pouvoirs sont partis avec l'explosion, une part des gains avec le prix, et le MOTEUR perd un palier (CHANCE.moteurPerte :
    la caisse a explosé) — la mort reste une vraie sanction.
-   · LE PRIX monte avec la partie (barème de GAMEPLAY) : k × ce qu'elle a encaissé (`money − START_CASH`), k = 0,6 jusqu'à 3 min (GAMEPLAY, qui l'a relevé de 0,5 : le joueur moyen
+   · LE PRIX — ⚠ REMPLACÉ le 14/10 soir par Sacha : 100 % de l'encaissé de la partie (voir chanceOuvre). Avant (barème de GAMEPLAY) : k × ce qu'elle a encaissé (`money − START_CASH`), k = 0,6 jusqu'à 3 min (GAMEPLAY, qui l'a relevé de 0,5 : le joueur moyen
      triplait son revenu par minute), puis +0,05 par minute, plafond 0,8 ; CHANCE.plancher au moins, arrondi à deux chiffres (2 437 → 2 400). Le moteur perdu casse la pente de
      l'argent (≈ T^2,1 : continuer une longue partie vaut bien plus que d'en recommencer une). Il se paie sur le COMPTE — qui contient déjà la partie, commitExploits vient de la verser. Jamais
      proposée si le compte ne couvre pas le prix, ni sur une partie de moins de CHANCE.tMin secondes (on ne vend rien à qui a raté le 1er virage).
@@ -45966,17 +46012,17 @@ const FIN_SONS=['explosion','explosion.loin','impact.immeuble','mort.vide','mort
      secondes de course : un choc est ignoré, une chute (vide, trop d'air) la replace sans frais. 2 s de nitro offerte, comme au départ.
    Contrat avec l'écran de mort (INTERFACE, plaque #mChance) : `chanceEtat()` → {ok, prix, reste} et `chanceJoue()`. L'événement `cc:chance`
    (sur document) part quand l'offre s'ouvre, s'éteint ou sert : la plaque relit alors chanceEtat(). `?chance=0` éteint tout. Banc : dbgChance(). */
-const CHANCE={on:!/[?&]chance=0\b/.test(location.search),k0:.6,kPente:.05,kMax:.8,plancher:300,tMin:20,moteurPerte:1,fen:5500,invD:3,
+const CHANCE={on:!/[?&]chance=0\b/.test(location.search),plancher:300,tMin:20,moteurPerte:1,fen:5500,invD:3,
   offre:false,used:false,fin:0,prix:0,m0:0,a0:0,v1:0,rs:null,lb:null,inv:0,tm:0};
-function chanceJoli(x){if(!(x>0))return 0;const p=Math.pow(10,Math.max(0,Math.floor(Math.log10(x))-1));return Math.round(x/p)*p;} // deux chiffres qui comptent
 function chanceBase(){return CHANCE.used?CHANCE.m0:START_CASH;} // ce que la prochaine fin de partie NE verse PAS (déjà versé avant la reprise)
 function chanceSignal(){try{document.dispatchEvent(new Event('cc:chance'));}catch(e){}}
-function chanceRaz(){clearTimeout(CHANCE.tm);const f=CHANCE.offre;CHANCE.offre=false;CHANCE.used=false;CHANCE.inv=0;CHANCE.fin=0;CHANCE.prix=0;CHANCE.m0=0;CHANCE.a0=0;CHANCE.v1=0;CHANCE.rs=null;CHANCE.lb=null;if(f)chanceSignal();}
+function chanceRaz(){clearTimeout(CHANCE.tm);CHANCE.gratuit=false;const f=CHANCE.offre;CHANCE.offre=false;CHANCE.used=false;CHANCE.inv=0;CHANCE.fin=0;CHANCE.prix=0;CHANCE.m0=0;CHANCE.a0=0;CHANCE.v1=0;CHANCE.rs=null;CHANCE.lb=null;if(f)chanceSignal();}
 function chanceOuvre(boom,sc,q){ // fin de endGame : la partie est versée, l'écran de mort s'ouvre — l'offre aussi, si elle a lieu d'être
   clearTimeout(CHANCE.tm);CHANCE.offre=false;
-  if(!CHANCE.on||CHANCE.used||!boom||SANDBOX||TUTO.on||TUTO.quitte||PARK.on||SURV.on||CAMP.garde||BALADE||(RUNX.t||0)<CHANCE.tMin)return;
-  const k=Math.min(CHANCE.kMax,CHANCE.k0+CHANCE.kPente*Math.max(0,(RUNX.t||0)/60-3));
-  CHANCE.prix=chanceJoli(Math.max(CHANCE.plancher,k*Math.max(0,money-START_CASH)));
+  const bon=(SAVE.d.chanceG|0)>0; // (FINAL SPIN d'IDEE) un BON de seconde chance GRATUITE gagné à la machine : pas de prix, pas de durée minimale — il faut toujours une explosion
+  CHANCE.gratuit=false;
+  if(!CHANCE.on||CHANCE.used||!boom||SANDBOX||TUTO.on||TUTO.quitte||PARK.on||SURV.on||CAMP.garde||BALADE||(!bon&&(RUNX.t||0)<CHANCE.tMin))return;
+  CHANCE.prix=bon?0:Math.max(CHANCE.plancher,Math.round(Math.max(0,money-START_CASH)));CHANCE.gratuit=bon; /* (2026-10-14 soir, Sacha : « continuer doit coûter la même somme que ce qu'il a gagné durant la partie ») le prix = 100 % de l'encaissé, au dollar près ; CHANCE.plancher seulement pour une partie qui n'a presque rien rapporté (sinon la reprise serait gratuite) */
   CHANCE.lb=q?sc:null;CHANCE.v1=commitExploits._vire||0;CHANCE.a0=commitExploits._aura||0;
   CHANCE.offre=true;CHANCE.fin=performance.now()+CHANCE.fen;
   CHANCE.tm=setTimeout(function(){CHANCE.offre=false;chanceSignal();},CHANCE.fen+30);
@@ -45984,14 +46030,14 @@ function chanceOuvre(boom,sc,q){ // fin de endGame : la partie est versée, l'é
 }
 function chanceEtat(){
   const ok=!!(CHANCE.on&&CHANCE.offre&&!CHANCE.used&&started&&gameOver&&performance.now()<CHANCE.fin&&overlay.style.display!=='none'&&!garageOn&&!MENUV.retour&&bank()>=CHANCE.prix);
-  return {ok:ok,prix:CHANCE.prix,reste:ok?Math.max(0,Math.round(CHANCE.fin-performance.now())):0};
+  return {ok:ok,prix:CHANCE.prix,gratuit:!!CHANCE.gratuit,reste:ok?Math.max(0,Math.round(CHANCE.fin-performance.now())):0};
 }
 function chanceJoue(){ // le toucher de la plaque : on paie TOUT DE SUITE, on repart sous le volet
   if(!chanceEtat().ok)return false;
   if(ecranWipe._on)return false; // (2026-10-14, chasse aux bugs) un volet déjà en route (REJOUER, ⌂ touchés juste avant) n'appellerait jamais la reprise (ecranWipe sort sans `go`) : on paierait pour rester sur l'écran de mort, offre éteinte et ligne du Top 10 retirée — on ne débite rien
   const P=CHANCE.prix;
   clearTimeout(CHANCE.tm);CHANCE.used=true;CHANCE.offre=false;
-  SAVE.d.bank=Math.max(0,bank()-P);
+  if(CHANCE.gratuit)SAVE.d.chanceG=Math.max(0,(SAVE.d.chanceG|0)-1); /* le bon sert */ else SAVE.d.bank=Math.max(0,bank()-P);
   CHANCE.m0=money;CHANCE.rs={tr:runStats.tricks|0,ga:runStats.gaps|0,bu:runStats.bumps|0,sv:runStats.surv|0};
   if(CHANCE.lb!=null){const i9=leaders.findIndex(function(e){return e.s===CHANCE.lb;});if(i9>=0)leaders.splice(i9,1);} // la ligne de la 1re fin part : la fin suivante posera le score de toute la partie
   saveLeaders(); // (flush : le paiement et le Top 10 partent ensemble sur le disque)
@@ -46025,7 +46071,7 @@ function chanceRepart(P){ // sous le volet : la course reprend où elle s'est ar
     if(!started||gameOver){if(s9)s9.classList.remove('compte','on');return;}
     if(paused){CHANCE.tm=setTimeout(pas,200);return;} // la pause pendant le compte : il attend
     if(n===0){if(s9)s9.classList.remove('compte','on');try{if(SONV2)sfx('ui.go');}catch(e){}return;}
-    slam(String(n),n===3?'−'+fmtC(P):'','#ffd75e','#ff7ad5',64,9);{const s8=avE('slam9');if(s8)s8.classList.add('compte');}
+    slam(String(n),n===3?(P>0?'−'+fmtC(P):(LANG==='en'?'FREE':'GRATUIT')):'','#ffd75e','#ff7ad5',64,9);{const s8=avE('slam9');if(s8)s8.classList.add('compte');}
     try{if(SONV2)sfx('ui.bip');else chimeNote(noteP(n===1?4:2,1),0,.08,.1);}catch(e){}hap(6);
     n--;CHANCE.tm=setTimeout(pas,500);};
   CHANCE.tm=setTimeout(pas,120);
@@ -56654,6 +56700,7 @@ function loop(now){
         if(raseT>.6&&!raseAnn){raseAnn=true;hap(12);try{chaineAuraMuette('RASE-BORD',40,'rase');}catch(e){}} // (2026-09-29, Sacha) ne s'écrit plus
         if(Math.random()<dt*14){DRIFT_V.set(Math.sign(lat)*CARS[level].w*.5,.1,-.3);carGroup.localToWorld(DRIFT_V);sparkBurst(sparkBlue,DRIFT_V,1,4);}}
       else{raseT=0;raseAnn=false;}
+      slideTick(dt); // (2026-10-14 soir) LA FIGURE SLIDE (voir SLD)
       // ---- DRIFT : FREIN + BRAQUAGE à bonne vitesse = le train arrière décroche ----
       // (mobile OK : le frein = tirer le pad vers le bas, déjà mappé sur ArrowDown)
       // Le CAP part plus vite que la TRAJECTOIRE (psi grimpe) mais la caisse continue de filer

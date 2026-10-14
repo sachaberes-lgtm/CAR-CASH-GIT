@@ -70,3 +70,8 @@ Ma recommandation : **A seul**, puis on re-mesure. Ajouter B seulement si les 3 
 - Ce que je note sans y toucher : de 550 k à 900 k, sept caisses se suivent à ×1,07-1,17, puis cinq de 3 M à 4 M à ×1,06. Ce sont
   des plateaux : on choisit sa caisse plutôt que de « monter ». À garder si c'est voulu (la rareté épique les distingue), sinon les
   espacer à ×1,3 environ.
+
+## 8. SECONDE CHANCE : 100 % DE LA PARTIE (Sacha, 14/10 soir)
+Continuer coûte exactement ce que la partie a encaissé (300 $ minimum si elle n'a presque rien rapporté). Elle ne crée donc plus
+rien : on rend toute la partie pour la prolonger, et le moteur perd un palier. Le calcul « +25 % / +65 % de revenu » du §4 ne
+tient plus : la reprise ne vaut le coup que si l'on compte gagner plus que ce que l'on a déjà en survivant après elle.
