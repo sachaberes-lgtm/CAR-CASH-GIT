@@ -15626,6 +15626,10 @@ function jadeChutePrep(PIL,jr,root){
   // L'ÉCUME EN CUBES : une réserve de 700 cubes blancs (une instance), lancés à l'impact
   const g=new THREE.BoxGeometry(1,1,1),im=new THREE.InstancedMesh(g,new THREE.MeshLambertMaterial({color:0xf4f8fa,emissive:0x2a3238}),700);im.count=0;im.frustumCulled=false;im.userData.jeter=true;
   im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);root.add(im);JCH.splash=im;}
+/* (2026-10-14, passe perf mobile) ENVOI BORNÉ d'une InstancedMesh recopiée en tête chaque image : seules les n premières instances (réécrites
+   cette image) partent à la puce — pas les 700 / 1 800 places du tampon — et RIEN quand n===0 (le mesh est caché). coul : la teinte aussi (3 par instance). */
+function imEnvoi(im,n,coul){if(!(n>0))return;const a=im.instanceMatrix;a.updateRange.offset=0;a.updateRange.count=n*16;a.needsUpdate=true;
+  if(coul&&im.instanceColor){const c=im.instanceColor;c.updateRange.offset=0;c.updateRange.count=n*3;c.needsUpdate=true;}}
 const JCH_M=new THREE.Matrix4(),JCH_R=new THREE.Matrix4(),JCH_T=new THREE.Matrix4(),JCH_A=new THREE.Matrix4(),JCH_V=new THREE.Vector3(),JCH_Z=new Float32Array(16);
 function jadeChuteTick(dt){
   if(!JCH.L.length||!JADE.root||!started||gameOver)return;let chg=false;const tn=JADE_U.uTime.value;
@@ -15644,7 +15648,7 @@ function jadeChuteTick(dt){
   const S9=JCH.sp,im=JCH.splash;if(im&&S9.length){let n=0;const M9=JCH_M;
     for(let i=S9.length-1;i>=0;i--){const p=S9[i];p.t+=dt;if(p.t>p.l){S9.splice(i,1);continue;}p.vy-=22*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.z+=p.vz*dt;
       if(p.y<JADE.eauY-4){S9.splice(i,1);continue;}const k=p.sz*(1-Math.pow(p.t/p.l,3));M9.makeScale(k,k,k).setPosition(p.x,p.y,p.z);if(n<700)im.setMatrixAt(n++,M9);}
-    im.count=n;im.visible=n>0;im.instanceMatrix.needsUpdate=true;}else if(im&&(im.count||im.visible)){im.count=0;im.visible=false;}}
+    im.count=n;im.visible=n>0;imEnvoi(im,n);}else if(im&&(im.count||im.visible)){im.count=0;im.visible=false;}}
 function jadeChuteOrig(c){c.orig=[];
   for(const F of JADE.fam){if(F.pidx){const si=F.pidx.get(c.pi);if(si!==undefined)c.orig.push({F:F,si:si,m:F.M.slice(si*16,si*16+16)});}
     if(F.tq)for(let si=0;si<F.tq.length;si++)if(F.tq[si]===c.q)c.orig.push({F:F,si:si,m:F.M.slice(si*16,si*16+16)});}
@@ -15846,7 +15850,7 @@ function eauPTick(dt){const im=EAUP.im;if(!im)return;const L9=EAUP.L;if(!L9.leng
     let k=p.sz*(1-Math.pow(p.t/p.l,3));{const dx=p.x-cp.x,dy=p.y-cp.y,dz=p.z-cp.z,d2=dx*dx+dy*dy+dz*dz;if(d2<36)k*=Math.max(.15,Math.sqrt(d2)/6);} // près de l'objectif, la goutte rapetisse
     const st=Math.min(2.4,1+Math.abs(p.vy)*.06);M9.makeScale(k,k*st,k).setPosition(p.x,p.y,p.z); // une goutte qui file s'étire
     if(n<EAUP.max){im.setMatrixAt(n,M9);im.setColorAt(n,EAUP.cols[p.c]);n++;}}
-  im.count=n;im.visible=n>0;im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;}
+  im.count=n;im.visible=n>0;imEnvoi(im,n,true);}
 /* LE SILLAGE EN V (Kelvin) : la trace de la caisse sur l'eau, un point toutes les 45 ms ; chaque point s'écarte de l'axe à ~19,5° (la vitesse
    × 0,354 × son âge) et s'élargit — deux bandes d'écume en PETITS CARRÉS de 50 cm, la crête blanche côté intérieur, qui s'éteignent en 1,8 s. */
 const SILL={P:[],mesh:null,N:48,acc:0};
@@ -15883,7 +15887,7 @@ function eauBTick(dt){const im=EAUB.im;if(!im)return;const L9=EAUB.L;if(!L9.leng
     if(b.t>b.l){L9[i]=L9[L9.length-1];L9.pop();continue;}const u=b.t/b.l;let k=b.s*(1+2.2*u)*(1-u*u);
     {const dx=b.x-cp.x,dy=b.y-cp.y,dz=b.z-cp.z,d2=dx*dx+dy*dy+dz*dz;if(d2<64)k*=Math.max(.1,Math.sqrt(d2)/8);} // jamais un voile plein écran
     M9.makeScale(k,k*.7,k).setPosition(b.x,b.y,b.z);if(n<EAUB.max)im.setMatrixAt(n++,M9);}
-  im.count=n;im.visible=n>0;im.instanceMatrix.needsUpdate=true;}
+  im.count=n;im.visible=n>0;imEnvoi(im,n);}
 /* LA COURONNE LISSE : une gerbe d'eau translucide (un cylindre ouvert déformé dans le vertex shader) qui s'ouvre, monte, s'évase en lobes et
    retombe — à l'entrée large et basse, à la sortie étroite et haute (la colonne). Des filets clairs, l'éclat du soleil, le bord blanc. */
 const COUR_VS=['uniform float uU,uR0,uR1,uH,uS,uFl;varying float vV,vA;varying vec3 vW;',
@@ -15993,7 +15997,7 @@ function jadeBullesTick(dt){const im=JEAU.im;if(!im)return;const B9=JEAU.bul;if(
   for(let i=B9.length-1;i>=0;i--){const b=B9[i];if(!paused){b.t+=dt;b.v=Math.min(14,b.v+6*dt);b.y+=b.v*dt;b.x+=Math.sin(b.t*5+b.ph)*dt*.9;b.z+=Math.cos(b.t*4.3+b.ph)*dt*.9;}
     if(b.t>b.l||b.y>jadeSurfCase(b.x,b.z)){B9.splice(i,1);continue;}
     const k=b.s*(1-Math.pow(b.t/b.l,4));M9.makeScale(k,k,k).setPosition(b.x,b.y,b.z);if(n<320)im.setMatrixAt(n++,M9);}
-  im.count=n;im.visible=n>0;im.instanceMatrix.needsUpdate=true;}
+  im.count=n;im.visible=n>0;imEnvoi(im,n);}
 const JADE_MERP_VS=['uniform float uMerY,uEauT,uN;uniform vec2 uO;attribute vec2 aCell;attribute float aFace;varying vec3 vW,vNo;varying float vEd,vH;',
   JADE_EAU_GLSL,
   'void main(){vec2 c=uO+aCell;float h=jMerH(c),top=uMerY+h*JMS;',
@@ -16448,7 +16452,7 @@ function nuvoxTri(cam){const N9=NUVOX.L;if(!N9||!N9.length)return;let sg=7;
   if(sg===NUVOX.sig)return;NUVOX.sig=sg;
   for(const im of NUVOX.ims){im.count=0;}
   for(const n of N9){if(!n.v)continue;const im=NUVOX.ims[n.t*2+(n.v-1)];im.instanceMatrix.array.set(n.m,im.count*16);im.count++;}
-  for(const im of NUVOX.ims){im.instanceMatrix.needsUpdate=true;im.visible=im.count>0;}}
+  for(const im of NUVOX.ims){imEnvoi(im,im.count);im.visible=im.count>0;}} // (2026-10-14, passe perf mobile) [0,count) vient d'être réécrit : seul ce bout part (et rien pour un jeu vide)
 const JADE_NUVOX_M=(function(){const m=new THREE.ShaderMaterial({transparent:true,depthWrite:true,
   uniforms:{uTeinte:JADE_NUAGE_M.uniforms.uTeinte,uFogC:JADE_NUAGE_M.uniforms.uFogC,uSunD:JADE_U.uSunDir,uSunC:JADE_U.uSunC},
   vertexShader:['attribute float aM,aAO;varying vec3 vO,vNo,vN;varying float vM,vAO,vD;',
@@ -20076,7 +20080,7 @@ function arcPose(cx,cy,cz,cam,t,dt){
     const g=R.e[o+6]/R.e[o+7],sz=c*R.e[o+9]*(g<.5?1:g<.8?.7:.4)*R.ech*fe;
     me[0]=sz;me[1]=me[2]=me[4]=0;me[5]=sz;me[6]=me[8]=me[9]=0;me[10]=sz;me[12]=R.e[o];me[13]=R.e[o+1];me[14]=R.e[o+2];
     R.m.setMatrixAt(n,M);const C9=ARC_COL[R.e[o+8]|0],j=n*3,K=g<.3?1.25:1;col[j]=C9[0]*K;col[j+1]=C9[1]*K;col[j+2]=C9[2]*K;n++;}
-  R.m.count=R.h.count=n;R.m.instanceMatrix.needsUpdate=true;R.m.instanceColor.needsUpdate=true;
+  R.m.count=R.h.count=n;imEnvoi(R.m,n,true); // (2026-10-14, passe perf mobile) seules les n premières instances partent (672 places) — le halo partage les mêmes tampons
   return n;
 }
 function arcEmet(dt,k,vx,vy,vz){ // les étincelles naissent dans les tranches jeunes, à la poupe — avec l'élan du chemin
@@ -34752,7 +34756,7 @@ function billsTick(dt){
     if(b9.life<=0){b9.m.userData.pris=false;bills.splice(i9,1);continue;}
     b9.m.updateMatrix();BILL_IM.setMatrixAt(n++,b9.m.matrix);
   }
-  if(n||BILL_IM.count){BILL_IM.count=n;BILL_IM.instanceMatrix.needsUpdate=true;}
+  if(n||BILL_IM.count){BILL_IM.count=n;imEnvoi(BILL_IM,n);} // (2026-10-14) n premières seulement (150 places) ; rien quand la dernière vient de s'éteindre
   const v=n>0||!BILL_IM.userData.chaud;if(BILL_IM.visible!==v)BILL_IM.visible=v;
 }
 function billsClear(){for(const b of bills)b.m.userData.pris=false;bills.length=0;BILL_IM.count=0;if(BILL_IM.userData.chaud)BILL_IM.visible=false;}
