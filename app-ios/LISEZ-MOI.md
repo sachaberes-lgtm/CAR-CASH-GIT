@@ -35,6 +35,16 @@ dans `www/` **seulement** — `VERSION PRINCIPALE/` (le jeu web de `main`, celui
 - **plus de vrai argent** : les caisses vendues en € et L'ÉTERNELLE (100 pubs — l'app n'a pas de pubs) passent à l'argent
   du jeu, au prix que l'édition POKI leur donne déjà ;
 - **plus de page OFFRES** : la tuile de l'accueil, la page `#mShop` et l'onglet OFFRES de la boutique du garage sont masqués.
+- **plus de « BIENTÔT »** (Apple refuse ce qui est annoncé mais absent) : les trois caisses « DÉFI À VENIR » (REQUIN, COMÈTE,
+  LA RAIE) passent à l'argent du jeu ; le bouton verrouillé du menu du garage, l'annonce de l'affiche RECORD PERSO et les
+  blocs « ? » des raretés à venir disparaissent ;
+- **pas de voix livrées** : l'annonceur, le « ewww » et le « WOW » ne sont jamais joués dans l'app (`SANS_VOIX`) ; leurs onze
+  fichiers ne sont plus copiés (comme dans l'édition POKI) ;
+- **pas de marque d'autrui dans un texte** : « on vient de doubler une Ferrari » devient « une voiture de course ».
+
+L'audit complet (« le regard du testeur d'Apple », 14/10) est dans `~/cash-car/pilotage/notes/regard-apple.md` : ses coupes
+C4, C6 à C10 sont faites ; C1, C2, C3 et C5 (CHAT POP-TART, les deux caisses « Batman », ATCHOUM, les noms de vrais modèles)
+attendent une décision de Sacha et Léo.
 
 Chaque coupe **vérifie sa cible** : si le jeu a changé et qu'une cible n'est plus trouvée, la fabrication s'arrête avec un
 message (elle ne passe jamais en silence). Pour le savoir **avant** de fusionner une autre branche du jeu :
@@ -57,6 +67,13 @@ npm run essai -- "/chemin/vers/une/autre/VERSION PRINCIPALE"   # joue toute la f
   stockage web, il la relit au lancement et recharge la page (code « P0-03 » de `VERSION PRINCIPALE/index.html`).
   Vérifié au simulateur : stockage web effacé → sauvegarde retrouvée.
 - **Chiffrement** : `ITSAppUsesNonExemptEncryption = NO` (pas de question export à chaque envoi).
+
+## La fiche App Store et les deux pages qu'Apple exige
+
+`fiche/FICHE-APP-STORE.md` : tous les champs d'App Store Connect prêts à coller (textes FR et EN, catégories, classification
+d'âge, confidentialité, notes pour le testeur). `node fiche/verifier-fiche.js` contrôle les longueurs. `fiche/confidentialite.html`
+et `fiche/assistance.html` sont les pages à mettre en ligne (leur adresse va dans la fiche) ; `sh fiche/poser-adresse.sh
+adresse@domaine` y écrit l'e-mail d'assistance. Rien de `fiche/` ne part dans l'app.
 
 ## Icône et écran de lancement
 
