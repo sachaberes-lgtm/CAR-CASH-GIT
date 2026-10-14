@@ -3,6 +3,131 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## LA SECONDE CHANCE (2026-10-14, Sacha au quiz de 14 h 35 : « façon Subway Surfers », contre de l'argent du jeu — barème de GAMEPLAY, plaque d'INTERFACE)
+À la mort, UNE fois par partie, l'écran de fin propose de CONTINUER (bloc `CHANCE`, juste avant `finSonsCoupe`). Payé sur le COMPTE,
+jamais en euros ni en pub. **Prix** = k × l'encaissé de la partie (`money − START_CASH`), avec k = 0,6 jusqu'à 3 min (GAMEPLAY, relevé de 0,5), puis +0,05 par
+minute, plafond 0,8. Minimum 300 $, arrondi à deux chiffres (`chanceJoli`). Pas d'offre sur une partie de moins de 20 s, si le compte
+ne couvre pas le prix, au bac à sable, à l'auto-école, au parc, au Survivant, ni sur une fin de règle (endGame sans explosion).
+L'offre **s'éteint seule** 5,5 s après endGame, sans chrono affiché (INTERFACE : pas de fausse urgence). Quitter l'écran la ferme aussi.
+**La reprise** (`chanceJoue` → `chanceRepart`, sous le volet) : la caisse retombe sur la dernière route sûre (`respawn`). Elle garde la
+zone et le compteur, mais le MOTEUR perd un palier (`moteurPerte`, ses pièces avec : GAMEPLAY, pour casser la pente ≈ T^2,1 de l'argent).
+Puis 3 · 2 · 1 avec le prix sous le « 3 », et 3 s de BOUCLIER où la caisse clignote (`chanceTick` dans la porte de simulation).
+Pendant le bouclier, un choc est ignoré et une chute replace sans frais (`chanceProtege`, en tête d'`explode`). 2 s de nitro offerte.
+**La comptabilité** : endGame a déjà versé la 1re moitié. On ne rembourse rien, on décale les BASES : `chanceBase()` (argent),
+`CHANCE.a0` (aura) et `CHANCE.rs` (figures, gaps, bumps, survie), relues par commitExploits et enCoursPose. `ex.runs` ne compte
+qu'une partie. La ligne du Top 10 de la 1re fin est retirée (le score final la remplace). ⚠ La reprise n'appelle JAMAIS
+`runxReset` ni `resetGame` : l'argent du début (ECOD), le ×2 du jour et les défis secrets (SEC) de GAMEPLAY y vivent.
+**Contrat** : `chanceEtat()` → {ok, prix, reste}, `chanceJoue()`, `chanceRefuse()` et `chanceAttend()` (pour le FINAL SPIN d'IDEE,
+qui passe APRÈS l'offre), et l'événement `cc:chance` sur document (ouverture, extinction, achat). `?chance=0` coupe tout.
+Banc : `dbgChance()` · ('mort') · ('joue') · ('t',s) · ('$',n) · ('choc'). Mesuré : prix 1 100 à 4 min pour 2 000 $, compte
+débité, Top 10 remplacé, runs = 1, choc ignoré sous bouclier, 2e mort sans offre, partie courte sans offre, extinction à 5,5 s.
+Effet estimé sur le revenu par minute d'un BON joueur (mort à 6 min, prix 9 750 $) : −18 % s'il survit 2 min de plus, +25 % s'il
+en survit 4, +65 % s'il en survit 6. À juger sur de vraies parties.
+
+## LA REVUE DES IDÉES DE LÉO — CORRECTIFS 7, 13, 14 + LE CODE COUSIN SANS LE PAYANT (2026-10-14)
+- **Point 7, l'eau du Soleil de jade** : `JEAU.wB` repart de zéro au décollage et au `respawn` (il restait vers 1 et coupait la
+  vrille du saut suivant). Le rebond plonger / jaillir s'amortit (`EAU.amorti` .85 par plongeon du même vol) et seuls les 4 premiers
+  paient (`EAU.paye`) : avant, la caisse rebondissait SEULE en payant REPLONGEON + HORS DE L'EAU sans fin. `jadeEauRamene` fige
+  l'élan (`fallVel`/`fallPos`) : la suite de la branche du vol la remettait dans l'eau. « HORS DE L'EAU » retrouve son apostrophe.
+- **Point 13** : le billet ₿ de la pluie d'argent ne porte plus CRYPTOCITY / BULL RUN (le niveau est retiré) : CASH CAR · 1 BITCOIN.
+- **Point 14** : `FLOW.poseA` était collé derrière un `//` dans tryLand, donc jamais écrit. Et `endGame` éteint la nitro : le DOGE
+  gardait sa gueule de nitro ouverte au garage.
+- **Code cousin** (Sacha : « il ne débloque PLUS rien de ce qui se paie en euros ») : `carEuros(i)` exclut les caisses premium / en €
+  de `carUnlockedVrai`. La photo des caisses acquises se refait au moment du code, ce qui évite une fanfare de 70 caisses.
+
+**La carte de l'auto-école passe dans la CHARTE 6 d'INTERFACE** (bloc en fin de `<style id="ecoleV2">`, sous `html.c6`). Même carte,
+mêmes gestes, mêmes films, mais À PLAT : l'encre, un filet blanc de 2 px et une épaisseur noire de 4 px, sans dégradé, sans lueur
+et sans coin coupé. Le mot est en pixel (≥ 16 px), le reste en police système. Le film passe à 56 px (`zoom:.737`) et la carte à
+~74 px : elle ne cache plus la caisse. Réussi = filet de 4 px, raté = filet rouge. Banc : couché FR et debout EN, 0 erreur, permis +500.
+
+## L'AUTO-ÉCOLE v2 — PLUS BELLE, PLUS ANIMÉE, PLUS CLAIRE + L'ÉTAPE FIGURE (2026-10-14, Sacha : « refais le tutoriel, il est un peu intimidant, il n'est pas très beau ; mets plus d'animation, plus de trucs clairs ; rajoute un truc pour leur apprendre à faire des figures ; les carrés qui donnent des instructions pourraient être plus animés, plus clean, plus clairs »)
+Avant (capturé) : un rectangle sombre, un en-tête « AUTO-ÉCOLE · 1/5 PASSER », un titre, une phrase de deux lignes, une barre, une
+petite icône — du texte figé au milieu de l'écran, cinq étapes, rien sur les commandes elles-mêmes.
+**La carte v2** (`#coach.v2`, `<style id="ecoleV2">` juste après `passeMobile`) : à gauche un PETIT FILM du geste en pixels qui tourne
+en boucle (`TUTO_FILMS` : la route qui file et la caisse qui va et vient sous le pouce ; le doigt tenu sur NITRO et la caisse qui
+crache le feu ; la route qui s'arrête net et la caisse qui part en l'air ; le vol sur la flamme ; la caisse qui se pose dans l'anneau
+qui flambe en or ; deux tapes « ×2 » et la caisse qui saute en tonneau) ; à droite UN MOT en or qui arrive lettre par lettre
+(`tutoMot`), UNE ligne courte où les mots à retenir sont surlignés (`*mot*`) et les touches dessinées (`[ESPACE]`) — `d` au doigt,
+`dk` au clavier (« pouce » ne veut rien dire au clavier) ; six pastilles ; PASSER au coin (toujours en deux temps : « VRAIMENT ? »).
+Un reflet passe sur la carte. Réussite : elle vire au VERT, le mot devient l'éloge (BIEN ! · PARFAIT ! · ÇA DÉCOLLE ! · TU VOLES ! ·
+POSÉ ! · STYLÉ ! — le seul rebond de la carte : c'est une célébration), la coche claque sur le film, la pastille se remplit, les
+confettis partent ; puis elle s'efface et la suivante descend. Raté : elle TREMBLE et l'en-tête dit pourquoi en rouge (2,6 s).
+**L'accueil** (`TUTO_ACCUEIL`) : la toute 1re carte rassure — « 6 gestes. Ici, impossible de perdre ! » — 2,4 s pendant lesquelles
+la leçon n'exige rien (`.intro`).
+**La main fantôme** (`#ecMain`, `tutoMain`) fait le geste LÀ où il se fait : sur le cercle du volant au repos (le `::after` de
+`#tSteer` ; sous le doigt, `#tStick`) elle glisse de gauche à droite entre deux flèches (TOURNE) ou pousse vers le bord (DÉCOLLE) ;
+sur `#tNitro` elle appuie et tient avec une onde (NITRO, VOLE) ou tape deux fois avec un badge « ×2 » (FIGURE). Elle s'efface quand
+le joueur fait déjà le geste (`TCTL.act`, `nitroOn`), au clavier, en pause, quand une grande carte passe en haut. Repositionnée 4×/s.
+**L'étape FIGURE** (6e, une fois posé) : le double-tap NITRO — au sol la caisse SAUTE et fait sa figure. Il était FERMÉ pendant toute
+la leçon (`veqDouble`) : il ne s'ouvre qu'à cette étape (`tutoFigOuverte()`, que GAMEPLAY lit aussi pour ses boutons de figure en vol,
+FIGURES v2). Réussie = une figure plantée ; accordée après 3 sauts. La leçon se finit LES ROUES SUR LA ROUTE : une figure faite en
+l'air hors de la route terminait la leçon en plein vol, et le joueur explosait juste après « PERMIS OBTENU » (vu au banc) — on attend
+la pose (vol infini), replacée au bout de 8 s. Un crash à l'étape FIGURE n'y renvoie plus à DÉCOLLE.
+**Sous la pause et les réglages** (vu par INTERFACE) : carte et main s'effacent (`body.hTp`, `body.setPause`).
+Bancs (scratchpad de la session) : `pop/tuto2.js <racine> <préfixe> [debout] [en]` — un joueur neuf, JOUER, l'accueil, chaque carte
+(`dbgTuto(n)` va à l'étape n), puis la vraie FIGURE au double-tap ; couché et debout, FR et EN : zéro erreur, permis obtenu (+500 $).
+## LA FORÊT NOIRE — LA MAP DES CONTES (2026-10-14, session FORÊT — Sacha : « fais une autre map en mode forêt européenne allemande un peu fantaisie un peu hantée où la route doit slalomer entre les arbres toujours en étant en descente ; en journée la forêt doit être belle, ensoleillée, verdoyante, avec des fleurs et des papillons, et la nuit ce doivent être les mêmes arbres mais avec plutôt une ambiance forêt hantée, avec des effets hantés et des bruits de loup-garou ; fais un truc magnifique, une variété d'arbres jolie et magnifique ; regarde que toutes les heures et les météos sont bien comprises » · « il faut que ça soit magnifique du premier coup »)
+Une 5e map au tirage du MODE CLASSIQUE (`SF_CARTES.foret`, niveau de base `NIV_FORET`, id `'foret'`, piste `'foret'`), nom validé par Sacha.
+Tout le code est dans le bloc « LA FORÊT NOIRE — LA MAP DES CONTES » (balises `<<<FORET>>>` … `<<<FIN FORET>>>`, avant « LA VILLE SOUS LES
+NUAGES ») ; les branchements, un par endroit : `buildTrack` (genForet, buildForet), `SF_NIV`/`SF_CARTES`, `lvlNuageOk` (pas de nuages),
+la boucle (`foretTick`, après jadeTick), le vol (`foretHeurt` → `explode('arbre'|'sousbois')`), `CAUSES` + `facileSauve`, `chauffeDivers`
+(`foretChauffe`), `I18N`, `accC` (or 0xd8b45a, les reflets mouillés), `BIOMES.foret*`, `MUSIC_LIEU` (une ligne commentée : la place du
+morceau de Léo — Sacha : « la musique, c'est Léo qui la gère » ; d'ici là la radio joue).
+- LA ROUTE (`genForet`) : un SLALOM — virages enchaînés qui changent de côté 84 fois sur 100 (R 190-360 m × l'échelle du moteur, 13 % de
+  chicanes R 150-190), une respiration droite tous les six virages, une droite pour l'ARCHE ; la pente (positive = on descend) ondule
+  entre 3,5 et 12 %, intégrée tous les 10 m : AUCUN point ne remonte ; deux ou trois PLONGEONS (`FORET.plg` : 140 m de replat à 2,5 %
+  puis 190 m à 17-20 % — la cassure fait décoller la caisse lancée) ; 380 premiers mètres en douceur ; l'arche sur un replat à 5 %.
+- LE RELIEF (`foretSol`, grille de 24-32 m selon le palier) : la route est un sentier des cimes au fond d'une VALLÉE — le fond 60-90 m
+  sous la dalle, les flancs qui montent jusqu'à ~50 m au-dessus d'elle à 430 m, des collines au-delà ; la hauteur de route LISSÉE
+  (gaussienne de 180 m : pas de marche entre deux tronçons du slalom) ; prairies (`pr`) et densité de forêt (`f`) en bruit lent ;
+  au-delà de 650 m, une grille grossière floutée. Le TORRENT (`foretTorrent`) serpente au fond, décalé de la route.
+- LES ARBRES (`FOR_ESP`, six essences × trois niveaux de détail, bâties une fois par session : `foretProtos`) : épicéa (étages qui
+  retombent), sapin (étages plats, bleuté), hêtre (dôme, écorce grise à lichens), chêne (bras tordus, couronne large), bouleau (blanc à
+  tirets noirs, couronne légère), pin sylvestre (fût saumon, parasol) ; 6 % des hêtres en ÉRABLES D'OR. Touffes = icosphères bosselées dont
+  la normale est mêlée à celle de la couronne (`fbTouffe`) ; écorces, mousse, feuilles et lumière dans UN shader (`FOR_ARB_*`) :
+  contre-jour à travers les feuilles, rosée, lisière de lune la nuit, PHARES de la caisse sur les troncs (`fPhare`), éclairs, brume du fond.
+  Répartition : feuillus et bouleaux au fond (clairières fleuries), épicéas et sapins sur les flancs (la Forêt-Noire), aucune cime à
+  moins de 32 m sous la dalle près de la route.
+- LES GÉANTS DU SLALOM (`FOR_GEANTS` : chêne, hêtre, épicéa, VIEUX CHÊNE AU VISAGE ; ~60 par piste) : un à la CORDE de chaque virage
+  (courbure lissée, `geant`), parfois un second à la sortie de l'autre côté, et en quinconce tous les ~95-165 m des droites ; pied au fond
+  de la vallée, tronc à 5-12 m du bord, couronne ≥ 16 m au-dessus de la dalle partout sous elle. Le vieux chêne TOURNE son visage vers la
+  route (deux orbites et une bouche, des noeuds le jour, des braises la nuit — partie 5 du shader).
+- LES DÉCORS : l'ARCHE (`foretArche` : un géant tombé qui enjambe la route, souche et couronne brisée, amanites qui luisent, lierre qui
+  pend — ≥ 20 m d'air au-dessus de la dalle), les ROCHERS DU LOUP (`foretRocherGeo` : aiguilles de grès qui crèvent la canopée sur les
+  flancs, tous les ~520-840 m), une ou deux CHAUMIÈRES de la Forêt-Noire (`foretChaumiereGeo` : colombages, géraniums, l'immense toit
+  moussu ; fenêtres orange le soir et la nuit), des RONDS DE SORCIÈRES d'amanites au fond.
+- LE JOUR : FLEURS des deux bords (8 cases peintes `forFleursTex` : digitale, coquelicots, marguerites, boutons d'or, jacinthes, fougère,
+  lierre, amanites — elles s'ÉCARTENT au passage de la caisse), plantes géantes du fond, LIERRE qui pend sous la dalle, RAYONS de soleil
+  (`FOR_RAYONS`, additifs, éteints à moins de 40 m de l'objectif), PAPILLONS (`FOR_PAP` : citron, paon du jour, azuré, vulcain — une boîte
+  qui suit la caisse, tout dans le shader), POLLEN dans la lumière, oiseaux et pic.
+- LA NUIT, LES MÊMES ARBRES HANTÉS : la LUNE pleine (`foretLuneTick`, sprite à la place de celle du dôme), la brume qui monte du fond,
+  les FEUX FOLLETS qui fuient la caisse (`foretFollets`), les LUCIOLES, les YEUX rouges/ambrés qui clignent et se ferment quand on
+  approche, les papillons devenus CHAUVES-SOURIS, les fleurs qui luisent, le VISAGE du vieux chêne, et LE LOUP-GAROU (`foretLoupTick` :
+  toutes les 26-48 s, sur le prochain rocher entre 260 et 900 m, une ombre chinoise devant un halo de lune, le hurlement de son côté).
+- LES SIX TEMPS : `BIOMES.foretMatin/foretMidi/foretSoir/foretNuit/foretPluie/foretOrage` (dans « LES MÉTÉOS DU MODE CLASSIQUE », écrits
+  d'après la CHARTE : jour:1, couleurs du ciel et brume en linéaire, saturations et contrastes sous les plafonds) et `FOR_MET` (la lumière
+  de la FORÊT elle-même : hauteur du soleil `el`, rayons, brume du fond, papillons, lucioles, pollen, hantise, phares, teinte des feuilles,
+  rosée, vent, lune, voix). La nuit : promesse « LA FORÊT EST HANTÉE » ; l'orage : « LES LOUPS HURLENT » (les éclairs blanchissent la
+  forêt : `uFlash` = CAMP_FLASH).
+- LE SON (`atelier-son/recettes.js`, bloc `<<<FORET>>>`, `sons-banque.js?v=15`) : `foret.loup` (voix à FORMANTS « ou-a-ou », l'octave qui
+  monte, le vibrato, la chute brisée, un grognement à l'attaque ; 3 variantes dont un DUO), `foret.chouette`, `foret.corbeau`,
+  `foret.oiseau` (4), `foret.pic`, `foret.craque`, et deux boucles très basses `foret.jourAmb` / `foret.nuitAmb` (rien de continu
+  au-dessus de ~2 kHz : la leçon du « son parasite » des nuages). À juger à l'oreille par Sacha ou Léo dans `sons.html`.
+- PERF : tri par QUARTIERS de 150 m (`foretTri`, chaîné sur scene.onBeforeRender, la recette de jadeTri) ; une famille par essence et par
+  détail (InstancedMesh) ; budgets par palier `PAL.B.foret*` (densité, portée, bandes de détail, pas des fleurs/plantes/rayons/brume,
+  yeux, papillons, lucioles, feux follets, taille des toiles) ; toiles rendues après l'envoi (`texLibere`) ; matières compilées au menu
+  (`foretChauffe`), aucune lumière ajoutée.
+- MESURÉ (banc muet, PC de Sacha, en course au pilote) — palier ANCIEN : construction 108-183 ms (budget 250), forêt 71-122 k triangles et
+  14 familles ; image entière 422 k triangles / 149 appels, dont la ROUTE ~280 k / ~70 appels (le slalom met beaucoup de tranches de piste
+  dans le champ — système de la route, pas de la forêt). Palier RÉCENT (avant la coupe du terrain à la brume) : construction 270 ms, forêt
+  ~550 k triangles, image 1,02 M / 204 appels → le terrain se dessinait jusqu'au plan lointain (38 appels) : coupé à la brume (`FORET.solM`),
+  lointain allégé (62 % des arbres, 2 familles) → APRÈS : midi 817 k / 164 appels, nuit 653 k / 179, construction
+  271-333 ms. 0 erreur JS sur les six météos.
+- Console : `dbgForet()` (comptes, triangles par famille, temps de construction), `dbgForet('meteo','nuit')`, `dbgForet('loup')` (le
+  loup-garou tout de suite), `dbgForet('geant'|'rocher'|'arche',{d,h})` (photos posées), `dbgForet('vue',{p,c,fov})`, `dbgForet('reprend')`,
+  `dbgForet('coupe',1)`. Lancer : `?carte=foret&meteo=nuit` puis JOUER, ou `dbgClassique('foret','soir');dbgSaut()`.
+- À trancher par Sacha ou Léo : la musique de la forêt (Léo, la ligne `foret:` de MUSIC_LIEU) ; l'écoute des voix (`sons.html`) ;
+  l'étalonnage final des six temps (GRAPHISME, section « ÉTALONNAGE · FORÊT »).
 ## PLUS DE CARRIÈRE + PLUS DE MODE FACILE, POUR LA SORTIE (2026-10-14, Sacha : « supprime complètement de main le mode challenge pour l'instant » · « non, carrière c'est les niveaux, les missions c'est bien » · « on le fera dans des MAJ, donc garde-le dans le git quelque part » · Paris : « laisse-le quelque part sur le git, mais plus dans le jeu » ; puis, relayé par PILOTAGE : « enlève le mode facile du jeu »)
 Session IDEE. Deux interrupteurs dans le `<head>`, sur le modèle de `SANS_VOIX` : COUPÉ, pas arraché. Main a34aa1d (commits 48e3687 et 2fef557,
 fusionnés sur la nuit d'assemblage T9).
@@ -58,6 +183,10 @@ Porte du ciel 363 ms, dont 272 ms pour le seul `voxMesh(G,4)`), portail → vill
 5. **LES GABARITS DE LA JADE TAILLÉS AU MENU** (`jadeGabaritsG`, `jadeGabFond`, `GAB_FOND`, `PAL.B.gabFondMs=[5,6,8]`, `dbgGabarits`) :
    après la chauffe du menu, hors volet, quelques ms par image ; un JOUER pressé les finit d'un trait là où elles en sont (mêmes gabarits
    au bit près). Le JOUER ne paie plus 389 ms quand le menu a eu le temps.
+7. **LE RELEVÉ DES À-COUPS** (`?perf=1`, `perfAcoup`) — pour les tests de Sacha sur iPhone (« la version mobile saccade ») : le moniteur
+   compte depuis l'ouverture les images de plus de 50 / 100 / 250 ms (intervalle VRAI, non plafonné : `loop._brut`) et montre les 5
+   dernières avec ce qui se passait (écran, niveau, construction, programmes compilés, textures envoyées). Une capture suffit.
+   Protocole : Économie d'énergie COUPÉE, `/jouer/?perf=1`, une minute de jeu, une capture du cadre en haut à gauche.
 6. **L'OBJECTIF MOUILLÉ** (relevé par GENERAL, `lensTick`) : la toile des normales remise au repos par UNE copie mémoire (au lieu de 4
    écritures par pixel à chaque image) ; `VP.w/VP.h` au lieu d'`innerWidth/innerHeight` (piège n° 11). Même image.
 

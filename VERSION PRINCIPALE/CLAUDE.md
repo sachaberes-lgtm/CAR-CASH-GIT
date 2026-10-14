@@ -45,7 +45,7 @@ Les sessions Claude de Sacha portent un nom (GRAPHISME, GAMEPLAY, SON, INTERFACE
 **Une demande = un cycle complet livré, sans qu'on le redemande** : faire → vérifier → commit → push → recopie. Une demande à la
 fois, livrée au fil de l'eau, pas en lot.
 - **Vérifier** : la syntaxe (§5), puis menu → JOUER → course SANS ERREUR, couché ET debout ET dans le cadre de l'ordi.
-  `sh garde-burnout.sh` (racine) doit répondre OK.
+  `sh garde-burnout.sh` ET `sh garde-charte.sh` (racine) doivent répondre OK.
 - **Versions** : `CACHE` de `sw.js` +1 (`'cashcar-vNNN'`, avec sa ligne de commentaire) dans chaque commit qui touche le jeu.
   Un fichier chargé avec `?v=N` (`sons-banque.js`, `sfx.js`, `figures.js`, `harmonie.js`) : N +1 quand il change.
   Sinon les joueurs gardent l'ancien fichier, indéfiniment, sans erreur.
@@ -99,7 +99,8 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
 
 **Les systèmes et leurs noms**
 - **Boucle et états** : `loop` (son try/catch avale les erreurs : `window.__loopErr`), `start`, `resetGame`, `endGame`,
-  `explode(cause)`, `mode` = 'drive' | 'fall' | 'boom', `togglePause`, `repriseCompte`.
+  `explode(cause)`, `mode` = 'drive' | 'fall' | 'boom', `togglePause`, `repriseCompte`, `CHANCE` (la seconde chance : la reprise
+  n'appelle ni `runxReset` ni `resetGame`, elle décale les bases de commitExploits — `chanceBase`).
 - **Conduite** : `TCTL` (volant tactile et souris), `keys`, `steer`, `yawR`, `lacetMax`, `driftYaw`, `momT`, `SPD` (vitesse globale),
   `ASSIST_VIRAGE` (= 0), `bindHold`, `CAM_ROUTE`, `fovFit`.
 - **Vol et pose** : `startFall`, `tryLand`, `AIR_RATE` (= 1), `FALL_G`, `fallVH0`, `FLY_U`, `VEQ`/`VEQ_K` (le vol équilibré),
@@ -108,7 +109,7 @@ On cherche par NOM : `grep -n "function buildCar" index.html`. Les numéros de l
   `figDepart`/`figMemo` (l'élan emporté au décollage), `figBudget`, `figPaye`/`figChute`, les emplacements `SAVE.d.figEq`/`figEquipees`,
   les boutons `#tFig`/`figHud`. `?fig=ancien` = le lecteur de Léo.
 - **Piste et niveaux** : `newTrack` → `lvlChoisir` → `genCtrl` → `buildTrack` ; `frameAt`, `rnd`/`mulberry32`, `NIVEAUX`, `LVL`,
-  mode classique `SF`/`SF_CARTES`/`sfTire`/`sfNiveau`, carrière `CARRIERE`/`carNiveau`/`CARR`, `NIV_JADE`/`buildJade`, `NIV_CRYPTO`,
+  mode classique `SF`/`SF_CARTES`/`sfTire`/`sfNiveau`, carrière `CARRIERE`/`carNiveau`/`CARR`, `NIV_JADE`/`buildJade`, `NIV_FORET`/`genForet`/`buildForet`/`FORET` (la forêt), `NIV_CRYPTO`,
   `buildVoxCity`/`CITY`, `orbiteBuild`, `PORTAL`/`portailPasse`, `spawnPickups`, `LIGNE`/`ligneTick`, `SANS_LOOPING`.
 - **Ciel et décor** : `BIOMES`/`bioApply` (le SEUL écrivain des lumières), `skyDome`, `CIEL2`, `COTON`/`CLOUDS`/`buildClouds`/
   `updateClouds`, `paintEnv`.
@@ -348,6 +349,7 @@ Retirer une caisse = `retire:1` dans sa fiche (`san` rembourse les acheteurs).
 - « L'ÉDITION POKI » (04/10) · « LA MÊME VERSION POUR TOUT LE MONDE — LA MISE À JOUR TOUTE SEULE » (01/10)
 - « LE MENU = LE GARAGE + LES BOUTONS DE SACHA » (30/09) · « JOUER = LE MODE CLASSIQUE » (08/10) · « L'iPHONE PAR DÉFAUT SUR L'ORDI » (06/10)
 - « PLUS AUCUNE VOIX » (07/10) · « LE CODE COUSIN » (14/10) · « PLUS DE CARRIÈRE + PLUS DE MODE FACILE » (14/10)
+- « LA SECONDE CHANCE » (14/10) · « LA REVUE DES IDÉES DE LÉO — CORRECTIFS 7, 13, 14 » (14/10) · « L'AUTO-ÉCOLE v2 » (14/10)
 - Le mode classique au hasard (13/10) n'a pas de section : le commentaire « LE MODE CLASSIQUE AU HASARD » au-dessus de `const SF` fait foi.
 
 **Débogage, perf, bancs**
@@ -368,6 +370,7 @@ Retirer une caisse = `retire:1` dans sa fiche (`san` rembourse les acheteurs).
 - « LE FLOW v2 » (28/09) · « LA TRIADE v5 » et « LA TRIADE SIMPLIFIÉE » (28/09) · « LA FRÉNÉSIE ×3 » (29/09)
 
 **Niveaux et maps**
+- « LA FORÊT NOIRE — LA MAP DES CONTES » (14/10) — la vallée en slalom qui descend, les géants, le jour fleuri, la nuit hantée, le loup-garou
 - « LE NIVEAU « SOLEIL DE JADE » » (12/10) · « LES PICS DE JADE + LA BALADE `?map=jade` » (09/10) · « CRYPTOCITY » (13/10)
 - « LES NIVEAUX — la page `maps-ciel.html` » (09-10/10) · « LE SIMULATEUR — `simulateur.html` » (12/10) · « PARIS SORT DU MODE INFINI » (10/10)
 - « L'ORAGE — LE 4e NIVEAU, LE NIVEAU DUR » (29/09) · « LES NUAGES v8 — REFAITS À ZÉRO » (01/10) · « L'AUTOROUTE ORBITALE » (30/09)
