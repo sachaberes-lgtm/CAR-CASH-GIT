@@ -36693,7 +36693,7 @@ function uiClic(k){ try{ const f9=function(){if(SONV2)sfx(UI_CLIC[typeof k==='st
   else if(SND.sfx&&paused&&SONV2){const r9=k==='retour',t9=performance.now(),w9=function(){if((!paused||r9)&&AC&&AC.state==='running')f9();else if(performance.now()-t9<(r9?1200:700))setTimeout(w9,60);};setTimeout(w9,60);} /* (QA 2026-09-29) REPRENDRE (« retour ») n'attend plus la fin de la pause : le 3-2-1 la tient ≥ 0,9 s, le clic était perdu — il part dès que le compte a réveillé le son */ /* (débogage son 2026-09-29) en pause : le clic attend (0,7 s au plus) que REPRENDRE réveille le son ; un interrupteur du panneau, lui, reste muet */
   }catch(e){} hap(8); } // (2026-09-26) REPRENDRE : le contexte se réveille en asynchrone — la note attend qu'il tourne // en pause le moteur audio dort : la note s'empilerait et partirait en rafale à la reprise
 window.dbgSens=function(l,n,p){if(l!=null||n!=null||p!=null)sensCoup(l||0,n||0,p||0);return{on:SENS,volant:VOLANT_PX,lissage:TCTL.doigt?VOL_LIS_D:VOL_LIS,tangage:+SCOUP.p.toFixed(3),roulis:+carRoll9.toFixed(3),pompe:+susY.toFixed(3)};}; // (2026-10-14, sensations) banc : dbgSens() = l'état · dbgSens(versLat,nez,pompe) = un coup dans la carrosserie
-window.dbgTouch=function(){return{on:TCTL.on,pad:TCTL.pad,act:TCTL.act,st:+TCTL.st.toFixed(3),sv:+TCTL.sv.toFixed(3),dy:+(TCTL.dy||0).toFixed(1),seuil:+(driftEnCours?DRIFT_PX:Math.max(DRIFT_PX,TCTL.dyS)).toFixed(1),arc:TCTL.ar<0?null:+TCTL.ar.toFixed(1),exces:+(TCTL.tr>0?TCTL.ab/TCTL.tr*Math.max(0,TCTL.ox-TCTL.x0):0).toFixed(1),drift:driftEnCours,play:TCTL.play,steer:+steer.toFixed(3)};}; // console : l'état du volant tactile (un téléphone ne s'inspecte pas) — `seuil` : les px vers le bas qu'il faut dépasser pour entrer (ou rester) en drift · `arc` : la descente de l'arc du pouce à la butée droite, lue aux glissés · `exces` : ce que le bout de l'arc descend en plus, retiré à la butée
+window.dbgTouch=function(){return{relais:TCTL.nHer||0,coupes:TCTL.nAnn||0,on:TCTL.on,pad:TCTL.pad,act:TCTL.act,st:+TCTL.st.toFixed(3),sv:+TCTL.sv.toFixed(3),dy:+(TCTL.dy||0).toFixed(1),seuil:+(driftEnCours?DRIFT_PX:Math.max(DRIFT_PX,TCTL.dyS)).toFixed(1),arc:TCTL.ar<0?null:+TCTL.ar.toFixed(1),exces:+(TCTL.tr>0?TCTL.ab/TCTL.tr*Math.max(0,TCTL.ox-TCTL.x0):0).toFixed(1),drift:driftEnCours,play:TCTL.play,steer:+steer.toFixed(3)};}; // console : l'état du volant tactile (un téléphone ne s'inspecte pas) — `seuil` : les px vers le bas qu'il faut dépasser pour entrer (ou rester) en drift · `arc` : la descente de l'arc du pouce à la butée droite, lue aux glissés · `exces` : ce que le bout de l'arc descend en plus, retiré à la butée
 // LE GAZ, exposé : la vignette a besoin de savoir qu'on POUSSE, pas seulement qu'on va vite.
 // (posé une fois par frame dans la physique, à côté de son `up` — une seule vérité, pas deux
 // façons de relire les touches qui divergeraient le jour où on remappe le clavier)
@@ -52205,7 +52205,29 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     const stNote=function(e){ let tenu=false; stDoigts=[];
       for(let i=0;i<e.touches.length;i++){const t=e.touches[i];stDoigts.push({id:t.identifier,x:t.clientX,y:t.clientY,tg:t.target});if(t.identifier===TCTL.id)tenu=true;}
       if(stIntrus.length)stIntrus=stIntrus.filter(function(id){for(let i=0;i<stDoigts.length;i++)if(stDoigts[i].id===id)return true;return false;});
-      if(TCTL.act&&TCTL.id!=='souris'&&!tenu)stUp(); }; // FILET : le doigt du volant n'est plus sur le verre (lever perdu, doigt adopté qui se lève) → le volant se rend, il ne reste jamais braqué tout seul
+      if(TCTL.act&&TCTL.id!=='souris'&&!tenu){ if(e.type==='touchcancel'){TCTL.nAnn=(TCTL.nAnn||0)+1;stStat();} if(!stHerite())stUp(); } }; // FILET : le doigt du volant n'est plus sur le verre (lever perdu, doigt adopté qui se lève) → le volant se rend, il ne reste jamais braqué tout seul
+    /* (2026-10-14, Sacha : « dans l'app, souvent, quand mon pouce se déplace trop, il se détache ») LE POUCE QUI ROULE. Dans Chrome un
+       pouce tiré très loin reste accroché (banc volant-doigts : jusqu'à x = 90 %). Sur le verre d'un iPhone, un pouce qui s'étire se
+       couche : sa surface de contact change, et l'écran peut le compter un instant comme DEUX doigts, puis lâcher le premier. Le second,
+       arrivé pendant que le premier tenait, était un « intrus » (la règle de la paume, 30/09) : il n'héritait jamais → volant mort sous
+       un pouce toujours posé. Désormais, quand le doigt du volant disparaît, un contact né il y a moins de 0,45 s À MOINS DE 90 px de lui
+       REPREND le volant sans à-coup (la base glisse de l'écart : même braquage à l'instant du relais). Une paume posée depuis
+       longtemps, ou loin, n'hérite toujours pas. ⚠ Non reproduit sur un vrai téléphone : TCTL.nHer / TCTL.nAnn comptent les relais et
+       les doigts coupés par le système (dbgTouch, et la ligne VERSION des réglages) pour le savoir. */
+    const stNe={};
+    const stStat=function(){ try{const v=document.getElementById('mvVer');if(v)v.textContent=v.textContent.replace(/ · VOLANT.*$/,'')+' · VOLANT R'+(TCTL.nHer||0)+' C'+(TCTL.nAnn||0);}catch(_){} }; // R = relais du pouce, C = doigts coupés par le système
+    const stHerite=function(){
+      const n9=performance.now(); let r=null;
+      for(let i=0;i<stDoigts.length;i++){ const d=stDoigts[i];
+        if(d.id===TCTL.id||!stLibre(d.tg)||!(n9-(stNe[d.id]||0)<450))continue;
+        const dx=d.x-TCTL.lx,dy=d.y-TCTL.ly; if(dx*dx+dy*dy>8100)continue;
+        if(!r)r=sz.getBoundingClientRect();
+        if(d.x<r.left||d.x>r.right||d.y<r.top||d.y>r.bottom)continue;
+        TCTL.ox+=dx;TCTL.oy+=dy;TCTL.x0+=dx;TCTL.lx=d.x;TCTL.ly=d.y;TCTL.id=d.id;
+        stk.style.left=(TCTL.ox-sL)+'px';stk.style.top=(TCTL.oy-sT)+'px';
+        const k=stIntrus.indexOf(d.id); if(k>=0)stIntrus.splice(k,1);
+        TCTL.nHer=(TCTL.nHer||0)+1; stStat(); return true; }
+      return false; };
     const stLibre=function(tg){ return !!(tg&&tg.isConnected)&&!(tg.closest&&tg.closest('.tbtn,#tNitroZone,#tSet,#modale,button,[data-a],[data-m]')); }; // le doigt d'un bouton (NITRO, pause, PASSER) reste à son bouton
     const stAdopte=function(){
       if(TCTL.act||TCTL.pad||!started||gameOver||paused||mode==='boom')return;
@@ -52222,7 +52244,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       if(TCTL.act&&TCTL.id!=='souris'){ let tient=false; // le volant est tenu par un doigt toujours posé : ceux qui arrivent sont des intrus, pour toute leur vie
         for(let i=0;i<e.touches.length;i++)if(e.touches[i].identifier===TCTL.id)tient=true;
         for(let i=0;i<e.changedTouches.length;i++)if(e.changedTouches[i].identifier===TCTL.id)tient=false;
-        if(tient)for(let i=0;i<e.changedTouches.length;i++)stIntrus.push(e.changedTouches[i].identifier); }
+        if(tient)for(let i=0;i<e.changedTouches.length;i++){stIntrus.push(e.changedTouches[i].identifier);stNe[e.changedTouches[i].identifier]=performance.now();} }
       stNote(e); stAdopte(); },{capture:true,passive:true});
     addEventListener('touchmove',function(e){
       stNote(e);
