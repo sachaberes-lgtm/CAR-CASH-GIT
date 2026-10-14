@@ -24,7 +24,10 @@ Lire aussi `passation/SON.md` (passation du Mac : mission, règles, décisions d
   en course (radio) : verrouillage = pause + musique arrêtée, déverrouillage = reste en pause · curseur en PAUSE : aperçu ~1,4 s puis se
   rendort, à 0 rien · REPRENDRE : la radio repart, running · 0 erreur JS. Carte JADE non tirée ce passage-là (JOUER = carte au hasard).
 - WebKit de Playwright : absent du PC, non téléchargé sans l'accord de Sacha (il ne simulerait ni le Silencieux ni le volume verrouillé).
-- Trou connu : au SOLEIL DE JADE (musique JMUS), le curseur MUSIQUE en PAUSE ne donne pas d'aperçu (musApercu ne connaît que la radio).
+- CORRIGÉ (19 h, PILOTAGE : « c'est un bug ») : au SOLEIL DE JADE, le curseur MUSIQUE en PAUSE joue l'aperçu par GLISSE V2 (`JMUS.ap`
+  ouvre `jadeMusVeut` 1,4 s, relance dans le geste, fondu de fin). Banc `banc-jade-apercu.cjs` (lance la jade par `dbgNiveauJade`) : GLISSE joue en course, s'éteint au verrouillage,
+  aperçu à 40 % en pause puis se rendort, rien à 0, REPRENDRE la relance ; 0 erreur JS. (J7 noté KO par un critère trop strict : le curseur
+  va par pas de 5, 62 → 60 %, GLISSE repart bien à 60/62.)
 
 ## À VÉRIFIER SUR UN VRAI IPHONE (rien de ceci ne se simule sur PC)
 - Bouton Silencieux : MUSIQUE ON = session 'playback' → la musique joue malgré le Silencieux (règle de toujours) ; coupée = 'ambient'.
@@ -34,6 +37,15 @@ Lire aussi `passation/SON.md` (passation du Mac : mission, règles, décisions d
 - Curseur MUSIQUE sans MUS_WA : volume <audio> verrouillé → curseur sans effet audible, aperçu volontairement muet (VOL_LOCKED).
 - Curseur MUSIQUE avec MUS_WA : l'aperçu s'entend-il au bon volume, et 0 = silence ?
 - Appli tuée en arrière-plan : `SAVE.d.vu` survit-il (miroir Preferences) → retour à 24 h+ = musique ON ?
+
+## SON PAR FIGURE (ordre de Sacha via PILOTAGE, 14/10 soir)
+- Étape 1 : `fig.signe` (12 variantes, `FIG_SIGNE` dans figSnd) · combos de GENERAL : `sonCombo(cle,neuf)` = 3 `combo.frappe` (T verre, P bois,
+  S tambour, M métal) + `combo.sceau` (pur, mélangé, PST GYROSCOPE, MMM CHAOS), figSnd tait le maillon des `fig_combo_*` · `pose.divin`.
+  Banque ?v=21. Crochet `dbgSonJoue(id,o)`. Demandé à GENERAL : `sfx('ui.debloque',{t:.6})` dans comboNote (après le sceau).
+- Étape 2 (à faire) : tricks banquise `bk_*` et eau (RICOCHET, PLONGEON, HORS DE L'EAU, SURF) encore au maillon ; SHIMMY/CHANDELLE muets en
+  vol (pas de tic : mv vide) ; les explosions de figure partagent turbo.super avec le drift ; GAP/DOUBLE GAP sans son ; pose ordinaire = choc seul.
+- Un merge peut CONFLITER sur sons-banque.js (une autre session a cuit) : prendre la banque de main (`checkout --theirs`), recuire SES ids
+  (`node atelier-son/cuire.js "^(fig\.signe|combo\.|pose\.divin)"` : un id absent est recuit), ?v = celui de main + 1.
 
 ## SUITE
 1. Plus de test demandé à Sacha (14/10 : « fais-le toi-même ») : ce qui exige un iPhone attend un iPhone, liste ci-dessus.
