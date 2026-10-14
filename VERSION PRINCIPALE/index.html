@@ -51864,7 +51864,21 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
         if(q9||mode==='boom'||pkPasse(f9))f9(); }); } // (POKI) RECOMMENCER passe par la pause pub, le panneau reste ouvert (jeu en pause) pendant qu'elle passe // carrIci : la carrière repart du niveau en cours · (2026-09-28) tutoQuitte : la leçon quittée sera reproposée
     uiClic(a==='close'?'retour':a==='snd'?(SND.sfx?'on':'off'):a==='vox'?(SND.voice?'on':'off'):a==='mus'?(SND.music?'on':'off'):a==='surv'?(SURV.armed?'on':'off'):(a==='ctl'||a==='q'||a==='volh')?'onglet':(a==='reset'||a==='quit')?'danger':''); /* (console de son) le RÔLE — ici le clic part APRÈS la bascule : l'interrupteur sonne son nouvel état */ // ⚠ EN DERNIER : un bouton qui SORT de la pause (reprendre, recommencer, quitter) garde son clic ; en pause il reste le visuel et la vibration
   }
-  if(gear)gear.addEventListener('click',gearOpenHandler); // au relâcher (voir mHit) : le panneau défile, un glissé n'active rien
+  /* (2026-10-14, chasse aux bugs) LE ⏸ AU DEUXIÈME DOIGT. Un doigt qui tape ⏸ pendant qu'un autre TIENT le volant ou la NITRO ne produit AUCUN `click`
+     (le navigateur n'en synthétise pas pour un toucher secondaire en multi-touch — Chrome comme Safari iOS) : impossible de mettre en pause sans lâcher la
+     commande. On lit donc le `touchend` du doigt NÉ sur le ⏸ (suivi par son identifiant) ; seul le cas « un autre doigt est encore posé » est pris ici —
+     un doigt seul garde son `click` d'avant, inchangé. `gearTt` écarte le click éventuel qui suivrait quand même (pas de double déclenchement). */
+  let gearId=null,gearTt=0;
+  if(gear){
+    gear.addEventListener('touchstart',function(e){ if(gearId===null&&e.changedTouches.length)gearId=e.changedTouches[0].identifier; },{passive:true});
+    gear.addEventListener('touchcancel',function(){ gearId=null; },{passive:true});
+    gear.addEventListener('touchend',function(e){
+      let t=null; for(let i=0;i<e.changedTouches.length;i++)if(e.changedTouches[i].identifier===gearId)t=e.changedTouches[i];
+      if(!t)return; gearId=null;
+      if(!e.touches.length)return; // dernier doigt levé : le click suit, c'est lui qui ouvre
+      const r=gear.getBoundingClientRect(); if(t.clientX<r.left-12||t.clientX>r.right+12||t.clientY<r.top-12||t.clientY>r.bottom+12)return; // le doigt a glissé hors du bouton : rien
+      gearTt=performance.now(); gearOpenHandler(e); },{passive:false}); }
+  if(gear)gear.addEventListener('click',function(e){ if(performance.now()-gearTt<700){e.stopPropagation();return;} gearOpenHandler(e); }); // au relâcher (voir mHit) : le panneau défile, un glissé n'active rien
   if(pan)pan.addEventListener('click',panTapHandler);
   // ---- SYNCHRO PARESSEUSE (8 Hz) : apparition des commandes, écran de mort, gel en paysage.
   //      Un petit tick plutôt qu'un branchement dans loop() — et zéro écriture DOM si rien n'a changé.
