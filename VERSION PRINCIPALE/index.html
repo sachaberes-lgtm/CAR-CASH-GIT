@@ -16385,7 +16385,7 @@ function jadeEauVol(dt,dtF){ // branche 'fall', AVANT que la position avance (la
       JEAU.rico++;JEAU.cd=.4;fallVel.y=Math.abs(fallVel.y)*.55+15;fallVel.x*=.82;fallVel.z*=.82;fallPos.y=sy+.4;
       const k9=Math.min(1,hv/160);jadeCouronne(fallPos.x,sy,fallPos.z,.25+.3*k9,fallVel);
       shake=Math.max(shake,.3);fovPunch=Math.max(fovPunch,5);hap([10,14]);
-      try{noiseBurst(.28,.32,1500);subBoom(.18);if(SONV2)sfx('flaque.eau');}catch(e){}
+      try{noiseBurst(.28,.13,1500);subBoom(.07);if(SONV2)sfx('flaque.eau',{vol:-3});}catch(e){} // (2026-10-14, session SON) un galet qui rebondit : ≈ −33 dBFS (était −25, au niveau d'un verdict) — le plus léger des trois bruits d'eau (ricochet < sortie < plongeon), audit oreille-neuve n°3 §1
       try{addTrick('ricochet',JEAU.rico>1?'RICOCHET ×'+JEAU.rico:'RICOCHET !',5*JEAU.rico,1,true);flowAdd(5,'risque');}catch(e){}
       return false;}
     JEAU.dans=true;JEAU.t=0;JEAU.prof=0;JEAU.flotT=0;
@@ -16397,7 +16397,10 @@ function jadeEauVol(dt,dtF){ // branche 'fall', AVANT que la position avance (la
       jadeCouronne(fallPos.x,sy,fallPos.z,.12+.88*k9,null); // la taille de la gerbe suit la vitesse
       jadeBullesJet(fallPos,20+90*k9,4);
       shake=Math.max(shake,.45+.5*k9);fovPunch=Math.max(fovPunch,9+10*k9);hap([20,30,40]);
-      try{subBoom(.4+.35*k9);noiseBurst(.6,.4+.25*k9,520);noiseBurst(.9,.18+.12*k9,2600);if(SONV2){sfx('flaque.eau');sfx('nuage.entre');}}catch(e){}
+      // (2026-10-14, session SON) le plouf de Léo (subBoom + deux noiseBurst) est GARDÉ, mais ramené au rang d'une grosse éclaboussure : il sortait à −17,5…−14,7 dBFS (presque l'explosion, −16),
+      // maintenant −26…−22 (sous le cratère −20, au-dessus d'une pose −30), dosé par la force k9. Plus de doublon : le « pouf » d'ouate `nuage.entre` (−36, inaudible sous le plouf) est retiré ;
+      // `flaque.eau` (le vrai son d'eau, les bulles) reste dessous, dosé aussi (−34 → −28). Et le moteur se creuse un peu, comme pour un grand moment (audit oreille-neuve n°3 §1).
+      try{subBoom(.14+.14*k9);noiseBurst(.6,.14+.10*k9,520);noiseBurst(.9,.06+.05*k9,2600);if(SONV2)sfx('flaque.eau',{vol:-6+6*k9});duckT=Math.max(duckT,.15+.25*k9);}catch(e){}
       try{addTrick('plongeon',JEAU.n>1?'REPLONGEON !':'PLONGEON !',6+4*k9,1);flowAdd(6,'risque');}catch(e){}}
     else{eauRide(fallPos.x,sy,fallPos.z,.15);try{if(SONV2)sfx('flaque.eau');}catch(e){}}} // un simple contact : une ride
   else if(JEAU.dans&&d<-.3&&fallVel.y>0){ // ---- ELLE QUITTE L'EAU ----
@@ -16410,7 +16413,8 @@ function jadeEauVol(dt,dtF){ // branche 'fall', AVANT que la position avance (la
       const k9=Math.min(1,fallVel.y/170);
       jadeColonne(fallPos.x,sy,fallPos.z,fallVel.y*vmW,.15+.85*k9);
       shake=Math.max(shake,.35);fovPunch=Math.max(fovPunch,11);hap([12,18,26]);airFlash=.6;
-      try{noiseBurst(.8,.34,2200);noiseBurst(.5,.3,450);subBoom(.22);if(SONV2){sfx('flaque.eau');sfx('nuage.sort');sfx('air.regain');}}catch(e){}
+      // (2026-10-14, session SON) le jet de Léo est gardé, ramené de −23 à −30…−26 dBFS selon k9 (toujours sous le plongeon, ≈ −22) ; `nuage.sort` (−42) redisait le jet : retiré, `flaque.eau` et `air.regain` restent dessous
+      try{noiseBurst(.8,.14+.08*k9,2200);noiseBurst(.5,.12+.08*k9,450);subBoom(.08+.06*k9);if(SONV2){sfx('flaque.eau',{vol:-4});sfx('air.regain');}}catch(e){}
       if(JEAU.t>.3){try{addTrick('jailli','HORS DE L EAU !',8+Math.min(18,JEAU.prof*.12),2);flowAdd(8,'risque');}catch(e){}}}
     else{JEAU.goutT=.6;jadeColonne(fallPos.x,sy,fallPos.z,fallVel.y*vmW,.08);}} // une vague la lâche, un bond de bateau : un petit jet
   if(!JEAU.dans){ // hors de l'eau : la caisse ruisselle, et au ras de la surface elle laisse un sillage
