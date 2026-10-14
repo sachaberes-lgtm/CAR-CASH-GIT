@@ -19276,7 +19276,7 @@ function slideTick(dt){ // boucle de conduite, chaque image, après le RASE-BORD
   if(SLD.t<=0)return;
   SLD.hors+=dt;if(SLD.hors<SLD.lache)return;
   const n=Math.round(SLD.aura),ok=SLD.t>=SLD.tMin&&n>0;slideRaz();
-  if(ok){try{chaineAura('SLIDE',n,'slide',true,false);}catch(e){}hap([8,20,8]);}
+  if(ok){try{chaineAura('SLIDE',n,'slide',true,false);}catch(e){}try{sonSlide('paye',n);}catch(e){}hap([8,20,8]);} // (SON) 'paye' : le tchak du paiement ; 'fin' (slideRaz) : la queue du crissement
 }
 function slideContact(){SLD.mur=.12;} // le crochet des MURS : une paroi qui touche le flanc ce tour-ci (Paris, les couloirs du CANYON…) — à rappeler à chaque image de contact
 window.slideContact=slideContact;
