@@ -44306,7 +44306,7 @@ function afficheVise(e){ // l'affiche sous le pointeur — sauf si la caisse est
 function afficheTap(a){ // ⚠ LE POINT D'EXTENSION des affiches : leurs vraies fonctions viendront ici
   a.pop=.45;
   try{uiClic();chimeNote(a.k==='perso'?659:587,0,.12,.12);chimeNote(a.k==='perso'?988:880,.06,.18,.1);}catch(e){}
-  toast(sansAcc(TR(a.k==='perso'?'TES RECORDS : BIENTOT EN DETAIL':'CLASSEMENT MONDIAL : BIENTOT EN LIGNE')));
+  /* (2026-10-14, nettoyage, Sacha : « ce qui dit bientôt : on cache ») plus de toast « TES RECORDS : BIENTOT EN DETAIL » ni « CLASSEMENT MONDIAL : BIENTOT EN LIGNE » : l'affiche rebondit et tinte, c'est tout. L'affiche MONDE n'existe plus dans buildAffiches depuis le 2026-09-30. */
 }
 /* (2026-09-30) UNE BOÎTE CHANFREINÉE à la vraie taille w × h × d, chanfrein b : 6 faces, 12 biseaux, 8 coins (44 triangles), non indexée
    (facettes franches, comme la caisse). NEUVE à chaque appel : les meubles du garage la versent dans leur kit (lpKit.put la déplace EN
