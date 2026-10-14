@@ -36403,6 +36403,7 @@ function musicTick(dt,mvt){
      GRAIN. Attaque quasi instantanée (dt*24), retombée franche (dt*11). */
   MUSIC_HI+=(hiT-MUSIC_HI)*Math.min(1,dt*(hiT>MUSIC_HI?24:11));
   MUSIC_PULSE+=(target-MUSIC_PULSE)*Math.min(1,dt*8);        // énergie : montée/descente douce
+  musicTick._bc=Math.max(0,(musicTick._bc||0)-dt);if(beat>.05){if(musicTick._bc>0)beat=0;else musicTick._bc=.34;} // (2026-10-14, chasse aux bugs · WCAG 2.3.1) 0,34 s de temps mort entre deux montées : au plus ~3 flashs/s pour le voile de beat, le ciel, le bloom et les rails (un morceau dense en faisait 8-10)
   MUSIC_BEAT=Math.max(0,MUSIC_BEAT-dt*3.4);if(beat>MUSIC_BEAT)MUSIC_BEAT=Math.min(1,beat); // beat : attaque nette, chute rapide
   musicTick._onset=beat; // la nouveauté de basse brute part telle quelle au métronome du fond (voir <<<FOND>>>)
   // ---- LE MOUVEMENT OUVRE LE SON : rouler = musique dans les oreilles, s'arrêter = filtre feutré + volume qui baisse ----
@@ -43810,7 +43811,7 @@ function eclFrappe(){
 }
 function eclEcrit(){
   const P=ECL.pos,C=ECL.col,cam=camera.position,on=ECL.vie>0;let n=0;
-  if(on){const fl=ECL.vie>.2?1:(Math.sin(ECL.vie*90)>0?.85:.25); // il claque, puis vacille
+  if(on){const fl=ECL.vie>.2?1:.2+.8*(ECL.vie/.2); /* (2026-10-14, WCAG 2.3.1) fondu continu : l'alternance à 14 Hz faisait 3 flashs en 0,2 s */ // il claque, puis vacille
     for(let j=0;j<ECL.seg.length&&n<ECL.N;j+=3,n++){const a=ECL.P[ECL.seg[j]],b=ECL.P[ECL.seg[j+1]],w=ECL.seg[j+2],o=n*12;
       CV3.subVectors(b,a);CV4.subVectors(cam,a);CV4.crossVectors(CV3,CV4);const l=CV4.length();if(l>1e-6)CV4.multiplyScalar(w/l);
       P[o]=a.x-CV4.x;P[o+1]=a.y-CV4.y;P[o+2]=a.z-CV4.z;P[o+3]=a.x+CV4.x;P[o+4]=a.y+CV4.y;P[o+5]=a.z+CV4.z;
@@ -43825,7 +43826,7 @@ function orageTick(dt){
   if(ECL.vie>0)ECL.vie-=dt;
   ECL.k=Math.max(0,ECL.k-dt*1.9);
   const e=ECL.k*ECL.k;
-  CAMP_FLASH=.8*e*(ECL.vie>0&&Math.sin(ECL.vie*70)<-.6?.55:1); // le ciel s'allume (et vacille avec l'éclair)
+  CAMP_FLASH=.8*e; /* (2026-10-14, chasse aux bugs · WCAG 2.3.1) plus de vacillation à 11 Hz pendant la vie de l'éclair (plage des crises d'épilepsie, motif de refus Apple) : UN flash qui s'éteint en douceur */ // le ciel s'allume (et vacille avec l'éclair)
   CAMP_FOG=1900*e;                                            // …et le brouillard recule : la route, le portail se montrent
   eclEcrit();
   if(ECL.tonT>=0){ECL.tonT-=dt;if(ECL.tonT<0){try{if(SONV2)sfx('tonnerre',{vol:-10+10*ECL.ton});else{subBoom(.14+.16*ECL.ton);noiseBurst(1.5,.07+.1*ECL.ton,150);noiseBurst(.35,.05*ECL.ton,900);}}catch(e){}if(ECL.ton>.7)shake=Math.max(shake,.25);}}
@@ -44592,7 +44593,7 @@ function foudreTick(dt,sp){
     if(VFOU.tele<=0)foudreFrappe();}
   if(ECL.vie>0)ECL.vie-=dt;
   ECL.k=Math.max(0,ECL.k-dt*1.9);const e=ECL.k*ECL.k;
-  CAMP_FLASH=.8*e*(ECL.vie>0&&Math.sin(ECL.vie*70)<-.6?.55:1);CAMP_FOG=1900*e;
+  CAMP_FLASH=.8*e; /* (2026-10-14, chasse aux bugs · WCAG 2.3.1) plus de vacillation à 11 Hz pendant la vie de l'éclair (plage des crises d'épilepsie, motif de refus Apple) : UN flash qui s'éteint en douceur */CAMP_FOG=1900*e;
   eclEcrit();
   if(ECL.tonT>=0){ECL.tonT-=dt;if(ECL.tonT<0){try{if(SONV2)sfx('tonnerre',{vol:-10+10*ECL.ton});else{subBoom(.14+.16*ECL.ton);noiseBurst(1.5,.07+.1*ECL.ton,150);noiseBurst(.35,.05*ECL.ton,900);}}catch(e9){}if(ECL.ton>.7)shake=Math.max(shake,.25);}}
   if(cel)vChip(TR('CELLULE D\'ORAGE')+' '+(ci+1)+'/'+VZ.cellules.length,TR('LIS LE CERCLE'),'#b58cff');else vChip('');
