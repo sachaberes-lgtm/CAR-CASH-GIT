@@ -7,11 +7,17 @@
 - Arbre CPU moyen d'un portail (8 portails) : newTrack 313 ms sous profileur = buildTrack 241 (jade 116 en moyenne, forêt 33,
   pisteTranches 19, normales9 9, voxCity 9, nuages 8) + spawnPickups 9 + ~60 ms non attribués (fonctions inlinées).
 
-## Fait (branche `foret`, PAS ENCORE MESURÉ NI POUSSÉ au moment d'écrire)
+## Fait (branche `foret` → main)
 - Grilles de construction : clés de Map en CHAÎNE (`x+','+z`) → clés NUMÉRIQUES (`x*100003+z`) dans buildForet (grille + zones nues),
   buildParis (+ sa lecture en course PARIS.grille ~l.16740), buildJade, buildVoxCity. Injectif (|z/HB| ≪ 50 001), ordre d'insertion
-  des Map inchangé, aucune itération de clés : constructions identiques au bit. Banc d'égalité : `egal2.cjs` (scratchpad) — graines fixes,
-  empreinte FNV des tampons de trackMeshes, ancienne contre nouvelle version.
+  des Map inchangé, aucune itération de clés : identique par construction.
+- Forêt : bruit du sol en deux moitiés (les sinus séparables lus dans des tables, mêmes opérandes) + index du sol en tableau typé.
+- MESURÉ (banc d'égalité `egal2.cjs`, 3 graines fixes, empreinte FNV de TOUS les tampons de trackMeshes, ancienne contre nouvelle) :
+  forêt IDENTIQUE AU BIT sur les 3 graines ; newTrack forêt 484 → 398 ms en moyenne (−18 %, PC). Jade et ville : pas repassés au banc
+  (file d'attente) — le changement y est la seule substitution de clé, sûre par construction.
+- Signaux `cc:portail` / `cc:construction` (debut, fin, chauffe) pour les voiles d'INTERFACE (voir LES SIGNAUX DE CONSTRUCTION).
+- Axe B : la traînée WOW choisie au garage préparée hors course (buildCar), plus à la 1re nitro.
+- Plan de la pré-construction du niveau suivant : `passation/PLAN-PREBUILD.md`.
 
 ## Reste, par rendement
 1. JOUER : voile peint → 2 rAF → resetGame (INTERFACE l'a inscrit en tête de sa passation).
