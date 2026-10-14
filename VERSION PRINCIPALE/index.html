@@ -37886,7 +37886,10 @@ function figPose(dt){const C=FX2.corps;if(!C)return; // en vol, chaque image, un
   FX2.img++;C.budget=figBudget();C.poseK=VEQ.pose;
   if(FX2.att&&FX2.img>=2){const a=FX2.att;FX2.att=null;figLance(a.s,a.o);} // la figure demandée À L'IMAGE DU DÉCOLLAGE part maintenant que le viseur a mesuré le vol
   if(FX2.deriveArm&&window.FIG&&FIG.auto&&(CAMV.eta<90||fallTR>.1)){const s9=FX2.deriveArm;FX2.deriveArm=0; // la TOUPIE DE DRIFT : seulement si on a le temps de la planter
-    if(C.budget>.95&&C.occupe()<3){C.lance(FIG.auto.derive,s9,Math.min(1.05,Math.max(.62,(C.budget-.3)/.85)),{vise:true});figCoup(.9,true);}}
+    if(C.budget>.95&&C.occupe()<3){C.lance(FIG.auto.derive,s9,Math.min(1.05,Math.max(.62,(C.budget-.3)/.85)),{vise:true});C.evts.length=0; // pas d'explosion : c'est le DRIFT qui la lance — une bouffée de gomme aux roues arrière
+      const sp9=CARS[level]||CARS[0];for(const sd of [-1,1]){FX2.v.set(sd*sp9.w*.45,.3,-sp9.l*.38);carGroup.localToWorld(FX2.v);
+        for(let k9=0;k9<7;k9++)spawnP(dust,FX2.v.x,FX2.v.y,FX2.v.z,fallVel.x*SPD*.7+(Math.random()-.5)*6,fallVel.y*SPD*.7+(Math.random()-.5)*4,fallVel.z*SPD*.7+(Math.random()-.5)*6,.35+Math.random()*.25);}
+      try{if(SONV2)sfx('turbo.mini',{vol:-6});}catch(e){}hap([8,16]);}}
   for(let i=0;i<3;i++){const r=FX2.slots[i];if(r&&r.tient&&!FX2.tenus[i])C.tiens(r,false);}
   const fin=C.tick(dt);
   for(let i=0;i<C.evts.length;i++)figBoum(C.evts[i]);C.evts.length=0;
