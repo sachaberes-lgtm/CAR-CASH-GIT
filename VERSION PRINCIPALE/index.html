@@ -40750,7 +40750,10 @@ function tirSnd(gap){ // le « piou » néon : un carré qui plonge (arcade, jam
     g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.005);g.gain.exponentialRampToValueAtTime(.0001,t+.085);
     o.connect(g);g.connect(MASTER);o.start(t);o.stop(t+.1);}catch(e){}
 }
-function impactSnd(){try{noiseBurst(.05,.07,3400);}catch(e){}} // le « tink » de tôle
+// (2026-10-14, session SON, audit oreille-neuve §10) le « tink » de tôle de la poursuite (une touche toutes les 0,13 s sous le feu) passe par la banque :
+// `debris.tole` (cliquetis de tôle, −40 LUFS, dans la table de niveaux) à −6 dB — il revient 7 fois par seconde, il ne doit pas devenir un crépitement.
+// Sans banque, le noiseBurst d'avant. (`tirSnd`, le « piou » néon voulu par le brief de la poursuite, n'a pas d'équivalent en banque : gardé.)
+function impactSnd(){try{if(!(SONV2&&sfx('debris.tole',{vol:-6})))noiseBurst(.05,.07,3400);}catch(e){}} // le « tink » de tôle
 // LA LIGNE DE VUE : la dalle protège (sous la route, on est à l'abri), et un nuage opaque coupe le tir — le canon DANS un banc ne voit rien
 function campVue(a,b){
   if(mode==='drive'&&side<0)return false;
