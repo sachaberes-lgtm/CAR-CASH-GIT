@@ -53237,7 +53237,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
      `window.__setPause` est le drapeau : TCTL.ov est posé à la main (l'observateur de l'overlay et le tick de 140 ms ne rouvrent pas la racine
      à la place de l'écran), mTap('back') et Échap le lisent. Ouvert depuis l'accueil, #mSet ne passe pas par ici : son ◀ ramène toujours à l'accueil. */
   function setPauseOuvre(){
-    if(window.__setPause||!(started&&!gameOver&&paused)||!document.documentElement.classList.contains('c6'))return;
+    if(window.__setPause||!(started&&!gameOver&&paused))return;
     window.__setPause=true; // (2026-10-14, session SON) plus de uiClic('nav') ici : panTapHandler sonne déjà « nav » pour TOUS LES REGLAGES (c'était nav PUIS appui principal)
     try{uiGarde();}catch(e){} // (2026-10-14, chasse aux bugs) mGo(…,true) saute le verrou du double-tap : le 2e tap d'un double-tap sur la ligne tombait sur une ligne de RÉGLAGES (bascule en silence)
     document.body.classList.add('setPause');document.body.classList.remove('setPauseSort');
@@ -53319,7 +53319,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(b1)b1.textContent=fmtC(best); if(b2)b2.textContent=fmtC(best);
     if(mc)mc.textContent=TR('CAISSE')+' : '+TR(CARS[Math.min(CARS.length-1,Math.max(0,level|0))].name);
     if(mCur==='dead'){
-      const c6f=document.documentElement.classList.contains('c6'),m9=Math.round(money),rec=!SANDBOX&&money>(RUNX.best0||0)&&money>START_CASH+.5&&(!c6f||(RUNX.best0||0)>0); // (2026-10-14, charte 6, Sacha : les badges restent) un record bat un record PRÉCÉDENT (> 0) : à la toute 1re partie, aucun // (2026-09-25) montants BRUTS : l'arrondi manquait un record sur deux, et 1,61 $ n'est pas un record
+      const c6f=document.documentElement.classList.contains('c6'),m9=Math.round(money),rec=!SANDBOX&&money>(RUNX.best0||0)&&money>START_CASH+.5&&(RUNX.best0||0)>0; // (2026-10-14, charte 6, Sacha : les badges restent) un record bat un record PRÉCÉDENT (> 0) : à la toute 1re partie, aucun // (2026-09-25) montants BRUTS : l'arrondi manquait un record sur deux, et 1,61 $ n'est pas un record
       /* VERSÉS AU COMPTE = ce que la banque a VRAIMENT gagné depuis le départ — le magot MONTE au lieu de s'afficher : 750 ms qui font le sel de
          la fin de run. (2026-09-28) C'était le seul virement de la course (`_vire`) : « $ 37 VERSÉS » au-dessus d'une barre d'objectif « +$ 537 »,
          qui compte aussi la prime du permis et celles des défis. Même calcul que la barre (objRender) : les deux chiffres ne se contredisent plus. */
@@ -53332,7 +53332,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       // (2026-09-26, audit UX) LES RECORDS NE SE CONTREDISENT PLUS : le jeu criait « RECORD BATTU » sur l'AURA en course, et
       // l'écran de fin ne jugeait que l'argent. Le titre s'allume pour l'argent, l'AURA ou le MOTEUR — les héros de cet écran.
       // (2026-09-28) une AUTO-ÉCOLE QUITTÉE n'est pas une partie : ni « NOUVEAU RECORD ! » ni fanfare pour qui vient d'abandonner la leçon
-      const tq9=!SANDBOX&&!!TUTO.quitte,recA=!SANDBOX&&!!CHA.recB&&(!c6f||CHA.rec>0),recM=!SANDBOX&&engTier>(RUNX.engAvant|0)&&(!c6f||(RUNX.engAvant|0)>0),recT=!tq9&&(rec||recA||recM);
+      const tq9=!SANDBOX&&!!TUTO.quitte,recA=!SANDBOX&&!!CHA.recB&&CHA.rec>0,recM=!SANDBOX&&engTier>(RUNX.engAvant|0)&&(RUNX.engAvant|0)>0,recT=!tq9&&(rec||recA||recM);
       ot.textContent=TR(SANDBOX?'ENTRAINEMENT TERMINE':tq9?'AUTO-ECOLE INTERROMPUE':(recT?'NOUVEAU RECORD !':'GAME OVER'));
       {const c9=$t('mCash'),cl=c9&&c9.parentNode;if(cl){let em=cl.querySelector('em.mCashRec');if(!em){em=document.createElement('em');em.className='mCashRec';cl.appendChild(em);}
         em.textContent=TR('RECORD !');em.style.display=(rec&&!tq9)?'':'none';}} // (2026-09-30, R7-3) le record d'ARGENT se VOIT : « NOUVEAU RECORD ! » s'allumait sans dire lequel, la plaque d'argent était la seule sans badge
