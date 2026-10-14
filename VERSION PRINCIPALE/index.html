@@ -21897,7 +21897,7 @@ const CARS=[
  // pas : on le GAGNE en battant le banquier au portail du niveau 10 (voir banquierTick). Ajouté en dernier : aucun index ne bouge.
  {name:'LE LINGOT',shape:'lingot',color:0xffc33a,accent:0x3a2400,maxKmh:380,accel:42,turn:2.9,h:1.5,w:2.1,l:4.3,spoiler:0,rar:'defi',
   fx:{jet:0xffd75e,core:0xffffff,trail:[1.35,1.02,.36],light:0xffd27a},
-  desc:'Le banquier l\'avait mis au coffre. Tu viens de le sortir : 999,9 millièmes de pure arrogance.'},
+  desc:'Il dormait au fond du coffre-fort. Tu viens de le sortir : 999,9 millièmes de pure arrogance.'},
  // (2026-10-02) L'ORIGAMI — Sacha, photo du pick-up d'inox : « mets cette voiture dans le jeu, fais-la exceptionnellement belle et parfaite ».
  // Le pick-up plié dans une feuille d'acier, sans son nom ni son logo (comme toute la gamme). Cotes réelles : 5,68 × 2,03 × 1,79 m.
  // Ajoutée EN DERNIER : aucun index de sauvegarde ne bouge. Son sillage est un courant froid (elle est électrique).
@@ -48053,7 +48053,7 @@ function banquierLigne(){ // SA ligne : la corde de chaque virage, lissée sur �
   Bl.set(A);
 }
 function banquierPrepare(){
-  VBQ.evt=false;const on=CAMP.n===20&&!PARK.on;VBQ.on=on;VBQ.g.visible=on;VBQ.tr.init=false;VBQ.tr.m.visible=false;
+  const on=CAMP.n===20&&!PARK.on;VBQ.on=on;VBQ.g.visible=on;VBQ.tr.init=false;VBQ.tr.m.visible=false;
   if(!on)return;
   banquierLigne();
   VBQ.s=Math.min(L-60,60);VBQ.lat=VBQ.latP=VBQ.line[ghIdx(VBQ.s)];VBQ.v=Math.max(26,Math.abs(vA));VBQ.momT=0;VBQ.yaw=0;VBQ.fini=false;VBQ.cd=0;VBQ.mene=false;
@@ -48089,14 +48089,14 @@ function banquierTick(dt,sp){
   VBQ.yaw+=(Math.atan2(VBQ.lat-VBQ.latP,Math.max(.01,ds))-VBQ.yaw)*Math.min(1,dt*8);VBQ.latP=VBQ.lat;
   // le coup d'épaule : on se touche, on s'écarte — personne ne meurt, personne ne triche
   VBQ.cd=Math.max(0,VBQ.cd-dt);
-  if(moi&&VBQ.cd<=0&&Math.abs(gp)<5.4&&Math.abs(lat-VBQ.lat)<2.6){VBQ.cd=.8;lat=VBQ.lat+(lat>=VBQ.lat?1:-1)*2.8;if(VBQ.evt)lat=THREE.MathUtils.clamp(lat,-(ROAD_HALF-1.6),ROAD_HALF-1.6);/* (2026-10-14, GAMEPLAY) ÉVÉNEMENT RARE : son épaule ne te sort jamais de la route (le banquier tient sa ligne jusqu'à 2,5 m du bord, +2,8 m te mettait dans le vide) */vA*=.96;shake=Math.max(shake,.3);hap(18);popTexte("COUP D'EPAULE",'#ffb000',1);try{thud(6);}catch(e){}}
+  if(moi&&VBQ.cd<=0&&Math.abs(gp)<5.4&&Math.abs(lat-VBQ.lat)<2.6){VBQ.cd=.8;lat=VBQ.lat+(lat>=VBQ.lat?1:-1)*2.8;vA*=.96;shake=Math.max(shake,.3);hap(18);popTexte("COUP D'EPAULE",'#ffb000',1);try{thud(6);}catch(e){}}
   const mene=VBQ.mene?gp<3:gp<-3;if(mene!==VBQ.mene){ /* (débogage son 2026-09-29) hystérésis de 3 m : au coude à coude, TU MÈNES / IL REPASSE ne s'alternent plus deux fois par seconde */
  VBQ.mene=mene;if(mene){try{if(SONV2)sfx('rival.devant');else chimeNote(noteP(5,1),0,.08,.2);}catch(e){}}else{if(SONV2)sfx('rival.passe');}} /* (2026-09-30) plus de « TU MÈNES ! / IL REPASSE DEVANT » au milieu : la plaque (1ER / 2E) le dit déjà — le son reste */
   if(VBQ.s>=L-45){ // IL PASSE LE PORTAIL LE PREMIER
     VBQ.fini=true;VBQ.g.visible=false;trailStep(VBQ.tr,0,0,0,0,0,0,0);
     flashEcran('rgba(255,200,90,.55)');try{if(SONV2)sfx('defaite');else portalSnd();}catch(e){}
     slam('LE BANQUIER A GAGNE','','#ffd75e','#ff5e7a',38,3);
-    if(VBQ.evt)evtFin('rate');else{CAMP.finT=1.6;CAMP.cause='banquier';} /* (2026-10-14, GAMEPLAY) l'ÉVÉNEMENT RARE perdu ne finit pas la partie */vChip(TR('2E'),TR('LE BANQUIER A GAGNE'),'#ff5e7a');return;}
+    CAMP.finT=1.6;CAMP.cause='banquier';vChip(TR('2E'),TR('LE BANQUIER A GAGNE'),'#ff5e7a');return;}
   banquierPose(dt);
   const e=Math.round(Math.abs(gp)/5)*5;
   if(gp>0)vChip(TR('2E'),TR('IL MENE DE')+' '+e+' M','#9fe8ff');else vChip(TR('1ER'),TR('TU MENES DE')+' '+e+' M','#ffd75e');
@@ -48222,7 +48222,7 @@ for(const [k,v] of Object.entries({'FAIS-TOI FLASHER':'GET FLASHED','SUIS LA LIG
   '1ER':'1ST','2E':'2ND','LE BANQUIER A':'BANKER AHEAD BY','TU MENES DE':'YOU LEAD BY','TU MENES !':'YOU LEAD!','IL REPASSE DEVANT':"HE'S BACK IN FRONT",
   "COUP D'EPAULE":'SHOULDER BUMP','LE BANQUIER A GAGNE':'THE BANKER WON',"LE BANQUIER T'A BATTU":'THE BANKER BEAT YOU','LE LINGOT EST A TOI':'THE GOLD BAR IS YOURS',
   'VILLE TERMINEE':'CITY COMPLETE','LE LINGOT':'THE GOLD BAR',
-  'Le banquier l\'avait mis au coffre. Tu viens de le sortir : 999,9 millièmes de pure arrogance.':'The banker kept it in the vault. You just took it out: 999.9 fine, and pure arrogance.'}))if(!(k in I18N))I18N[k]=v;
+  'Il dormait au fond du coffre-fort. Tu viens de le sortir : 999,9 millièmes de pure arrogance.':'It slept at the back of the vault. You just took it out: 999.9 fine, and pure arrogance.'}))if(!(k in I18N))I18N[k]=v;
 /* ============================================================================
    LES ÉVÉNEMENTS RARES (2026-10-14, GAMEPLAY — Sacha : « les morceaux de bravoure de l'ex-carrière — le BANQUIER au portail, la chasse
    de la CAISSE-NUAGE, « SAUTE LES MOUTONS » — surgissent de temps en temps, PAR SURPRISE, pendant une partie NORMALE. Rares (pas plus d'UN
@@ -48274,17 +48274,15 @@ function evtZone(){ // campDebut : une zone commence — l'événement de la zon
   EVT.mt.length=0;EVT.mtOk=0;EVT.mtBee=0;EVT.mtCle=-1;EVT.mtVu=0;
   if(!EVT_ON||!EVT.arme||EVT.fait||!evtLieuOk())return;
   const c=LVL.cur,ca=c.carte||c.id;
-  if(ca==='ville')evtPrepare('banquier',false);
-  else if(ca==='nuages'){if(!(c.id==='nuages'&&Math.random()<.5&&evtPrepare('moutons',false)))evtPrepare('caisse',false);} // (les moutons ne trouvent pas toujours leur ligne droite : la caisse-nuage prend la place)
+  /* (2026-10-14, Sacha : « c'est quoi ces conneries de BANQUIER BATTU, enlève ça ») l'événement du BANQUIER est RETIRÉ : la VILLE n'en pose plus aucun (les moutons et la caisse-nuage gardent leur chance, inchangée, sur la mer de nuages) */ if(ca==='nuages'){if(!(c.id==='nuages'&&Math.random()<.5&&evtPrepare('moutons',false)))evtPrepare('caisse',false);} // (les moutons ne trouvent pas toujours leur ligne droite : la caisse-nuage prend la place)
 }
 function evtPrepare(nom,ici){ // pose l'événement sur la zone en cours — ici : tout de suite, là où l'on est (dbgEvt)
   const sp=vPos();let s0,sM;
   if(nom==='moutons'){const S=evtMoutonsPose(ici?sp+450:L*.3);if(!S)return false;s0=S-650;sM=L;} // annoncé 650 m avant le 1er mouton (la plaque prend le relais à 600 m)
   else if(nom==='caisse'){s0=ici?sp:L*(.3+Math.random()*.25);sM=Math.min(L-1500,s0+1500);}
-  else{s0=ici?sp:Math.max(L*.3,L-EVT_COURSE);sM=L-(ici?600:2500);}
+  else return false; // (2026-10-14) plus de banquier
   if(sM<=s0&&!ici)return false;
   if(nom==='caisse'){CAMP.coupes.length=0;CAMP.bancs.length=0;fantomeLigne();} /* les coupes et les bancs d'une campagne jouée AVANT dans la session n'ont rien à faire ici : sa ligne est la corde nue ; gravée dès la naissance de la zone (rien d'alloué en course) */
-  else if(nom==='banquier')banquierLigne();
   EVT.nom=nom;EVT.etat=1;EVT.ici=!!ici;EVT.s0=s0;EVT.sMax=Math.max(sM,s0+200);EVT.fini=false;EVT.res='';
   return true;
 }
@@ -48343,7 +48341,6 @@ function evtTick(dt){ // la boucle, juste après campTick — rien quand ?evt=0
   else if(EVT.nom==='caisse'){
     if(CAMP.pvOk&&dt>0){CAMP.vel.subVectors(carGroup.position,CAMP.pv).divideScalar(dt);if(CAMP.vel.lengthSq()>2.5e5)CAMP.vel.set(0,0,0);}CAMP.pv.copy(carGroup.position);CAMP.pvOk=true; // la ouate du sillage suit la caisse (fumeTick le fait en campagne)
     fantomeTick(dt);campFx(0,0,0,GH.on&&!GH.pris&&!GH.fini?Math.min(1,GH.prise)*.9:0);}
-  else if(EVT.nom==='banquier')banquierTick(dt,vPos());
 }
 function evtDemarre(){ // l'événement SURGIT
   EVT.etat=2;EVT.fait=true;EVT.fini=false;EVT.res='';EVT.t0=EVT.tRun;
@@ -48355,27 +48352,12 @@ function evtDemarre(){ // l'événement SURGIT
     GH.prise=0;GH.pris=false;GH.fini=false;GH.accr=false;GH.noteT=0;
     fantomePose(0);try{shatterCloud(GH.g.position,1.2);}catch(e){}
     evtAnnonce('CAISSE-NUAGE','ACCROCHE SON SILLAGE');}
-  else if(EVT.nom==='banquier'){ // il déboule de 70 m DERRIÈRE, à ta vitesse : son aspiration et ses 7 % le feront passer — la course au portail commence
-    VBQ.evt=true;VBQ.on=true;VBQ.tr.init=false;
-    banquierLigne();
-    VBQ.s=Math.max(0,sp-70);VBQ.lat=VBQ.latP=VBQ.line[ghIdx(VBQ.s)];VBQ.v=Math.max(26,Math.abs(vA));VBQ.momT=Math.min(4.3,momT);VBQ.yaw=0;VBQ.fini=false;VBQ.cd=0;VBQ.mene=true;
-    banquierPose(0);
-    evtAnnonce('LE BANQUIER','PREMIER AU PORTAIL');}
   else evtAnnonce('LES MOUTONS','SAUTE-LES !');
 }
-function evtFin(res){EVT.fini=true;EVT.res=res;EVT.finT=2.6;if(GH.evt)GH.on=false;if(VBQ.evt)VBQ.on=false;campFx(0,0,0,0);} // perdu : rien n'est dû, rien n'est retiré — la partie continue (la caisse-nuage et le banquier sont rangés, le halo d'écran éteint)
+function evtFin(res){EVT.fini=true;EVT.res=res;EVT.finT=2.6;if(GH.evt)GH.on=false;campFx(0,0,0,0);} // perdu : rien n'est dû, rien n'est retiré — la partie continue (la caisse-nuage et le banquier sont rangés, le halo d'écran éteint)
 function evtPortail(){ // portailPasse : franchir le portail pendant la course
   if(EVT.etat!==2||EVT.fini)return;
-  if(EVT.nom==='banquier'&&VBQ.on&&!VBQ.fini)evtBqGagne();
-  else if(EVT.nom==='caisse'&&GH.on&&!GH.pris&&!GH.fini){GH.fini=true;GH.g.visible=false;trailStep(GH.tr,0,0,0,0,0,0,0);vChip('');evtFin('rate');} // le portail l'emporte : sans bruit, il parle déjà
-}
-function evtBqGagne(){ // le portail franchi AVANT le banquier
-  VBQ.fini=true;VBQ.g.visible=false;trailStep(VBQ.tr,0,0,0,0,0,0,0);vChip('');
-  const g=vPaie(EVT_PRIME,12,'$:evt');EVT.paye+=g;
-  try{chaineAura('BANQUIER BATTU',EVT_AURA,'evt',true,SONV2);}catch(e){}flowAdd(20,'risque');
-  try{if(SONV2)sfx('victoire');else fanfare();}catch(e){}flashEcran('rgba(255,215,140,.75)');hap([30,40,30,40,90]);
-  slam('BANQUIER BATTU !','+'+fmtC(g),'#ffd75e','#9fe8ff',40,3,26);
-  evtFin('gagne');
+  if(EVT.nom==='caisse'&&GH.on&&!GH.pris&&!GH.fini){GH.fini=true;GH.g.visible=false;trailStep(GH.tr,0,0,0,0,0,0,0);vChip('');evtFin('rate');} // le portail l'emporte : sans bruit, il parle déjà
 }
 function evtCnPris(){ // ACCROCHÉE : la caisse-nuage se rend — l'argent, l'aura, la nitro (la caisse elle-même reste le trophée de la carrière)
   GH.pris=true;GH.prise=1;vChip('');
@@ -48403,7 +48385,6 @@ function evtEtat(){const sp=vPos(),o={on:EVT_ON,arme:EVT.arme,fait:EVT.fait,nom:
   plaque:VC.chip,carte:LVL.cur?(LVL.cur.carte||LVL.cur.id):null,lieuOk:evtLieuOk(),mode:mode,kmh:Math.round(Math.abs(vA)*3.6*SPD)};
   if(EVT.nom==='moutons')o.moutons={ok:EVT.mtOk,n:EVT.mt.length,libre:campMoutonLibre(),liste:EVT.mt.map(function(m){return {s:Math.round(m.s),d:Math.round(m.s-sp),nb:m.cl.length,fait:m.fait,dans:m.dans,dessus:m.dessus};})};
   if(EVT.nom==='caisse')o.caisse={on:GH.on,ecart:Math.round(GH.s-sp),lat:+GH.lat.toFixed(1),kmh:Math.round(GH.v*SPD*3.6),prise:+GH.prise.toFixed(2),pris:GH.pris,fini:GH.fini,vis:GH.g.visible};
-  if(EVT.nom==='banquier')o.banquier={on:VBQ.on,ecart:Math.round(VBQ.s-sp),lat:+VBQ.lat.toFixed(1),kmh:Math.round(VBQ.v*SPD*3.6),fini:VBQ.fini,vis:VBQ.g.visible};
   return o;}
 window.dbgEvt=function(a){ // dbgEvt() l'état · dbgEvt('moutons'|'caisse'|'banquier') le forcer ICI · dbgEvt('arme') armer la partie et poser celui de la zone
   if(!a)return evtEtat();
@@ -48411,14 +48392,14 @@ window.dbgEvt=function(a){ // dbgEvt() l'état · dbgEvt('moutons'|'caisse'|'ban
   if(!started||gameOver)return 'pas de course';
   if(!evtLieuOk())return 'hors partie classique (auto-ecole, balade, bac a sable, parc, survivant, carriere, campagne, jade, ?classique=cycle)';
   if(a==='arme'){EVT.arme=true;EVT.fait=false;EVT.etat=0;evtZone();return evtEtat();}
-  const nom={moutons:'moutons',mouton:'moutons',caisse:'caisse','caisse-nuage':'caisse',nuage:'caisse',banquier:'banquier',lingot:'banquier'}[a];
-  if(!nom)return ['moutons','caisse','banquier','arme'];
+  const nom={moutons:'moutons',mouton:'moutons',caisse:'caisse','caisse-nuage':'caisse',nuage:'caisse'}[a];
+  if(!nom)return ['moutons','caisse','arme'];
   if(EVT.etat===2&&!EVT.fini)return 'un evenement est deja en cours';
   EVT.fait=false;EVT.arme=true;EVT.mt.length=0;EVT.mtOk=0;EVT.mtBee=0;EVT.mtCle=-1;EVT.mtVu=0;
   if(!evtPrepare(nom,true))return 'impossible ici (les moutons vivent dans la MER DE NUAGES, sur une route droite)';
   return evtEtat();};
-Object.assign(I18N,{'LE BANQUIER':'THE BANKER','PREMIER AU PORTAIL':'FIRST TO THE PORTAL','CAISSE-NUAGE':'CLOUD CAR','ACCROCHE SON SILLAGE':'CATCH HER SLIPSTREAM',
-  'LES MOUTONS':'THE SHEEP','SAUTE-LES !':'JUMP THEM!','BANQUIER BATTU !':'BANKER BEATEN!','BANQUIER BATTU':'BANKER BEATEN','ATTRAPEE !':'CAUGHT!'}); // (2026-10-14, GAMEPLAY) LES ÉVÉNEMENTS RARES
+Object.assign(I18N,{'CAISSE-NUAGE':'CLOUD CAR','ACCROCHE SON SILLAGE':'CATCH HER SLIPSTREAM',
+  'LES MOUTONS':'THE SHEEP','SAUTE-LES !':'JUMP THEM!','ATTRAPEE !':'CAUGHT!'}); // (2026-10-14, GAMEPLAY) LES ÉVÉNEMENTS RARES
 window.dbgVille=function(){ // (dev) l'état de la campagne VILLE
   const sp=vPos();
   return {niveau:villeN(),s:Math.round(sp),L:Math.round(L),plaque:VC.chip,
