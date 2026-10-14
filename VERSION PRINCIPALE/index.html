@@ -48559,6 +48559,13 @@ function sensPassages(dt){
    côte dans `pickups` (face +1 puis −1 : `place`, cristaux, `ligneFruit`) → `pickups[i+face]` : EN VOL, un objet dont le jumeau est
    pris ou accroché est ignoré. AU SOL, RIEN NE CHANGE.
    Banc : `dbgRamasse()` (pris au sol / en vol, accrochés, filet), `dbgRamasse('raz')`. */
+function ramD(P,Q,ax,R){ // (2026-10-14, chasse aux bugs) la distance caisse ↔ objet sur le TRAJET de l'image : Q (l'objet AVANT l'attraction de l'image) au segment RAM.pA → la caisse,
+  // et P (après) à la caisse comme avant — la plus petite, comparée ensuite au MÊME rayon R. Un point si le trajet n'est pas balayé (RAM.bal).
+  const B=carGroup.position,d0=P.distanceTo(B);if(!RAM.bal)return d0;
+  const A=RAM.pA,dx=B.x-A.x,dy=B.y-A.y,dz=B.z-A.z,l2=dx*dx+dy*dy+dz*dz;
+  if(ax){const hv=(Q.x-B.x)*ax.x+(Q.y-B.y)*ax.y+(Q.z-B.z)*ax.z,c=R*R-hv*hv;if(c>0&&l2<=4*c)return d0;} // le pas tient dans la corde d'un objet PILE dans l'axe (à sa hauteur) : le test en un point ne pouvait pas le sauter — rien ne change (60/120 i/s identiques)
+  let t=((Q.x-A.x)*dx+(Q.y-A.y)*dy+(Q.z-A.z)*dz)/l2;t=t<0?0:t>1?1:t;
+  const x=A.x+dx*t-Q.x,y=A.y+dy*t-Q.y,z=A.z+dz*t-Q.z;return Math.min(d0,Math.sqrt(x*x+y*y+z*z));}
 const RAM_K=5.5,RAM_A=30,RAM_T=.5; // l'accroche : tirage de base (/s), sa montée par seconde d'accroche, le filet (s)
 function pickupsTick(dt){
   const enVol=(mode==='fall');
@@ -48566,7 +48573,12 @@ function pickupsTick(dt){
   // ne décrit plus la caisse ; le balayage repart de zéro au décollage (startFall) et reprend à la pose
   const sA9=LIGNE.sPk==null?s:LIGNE.sPk;if(!enVol)LIGNE.sPk=s;
   if(!enVol&&mode!=='drive')return;
-  const saut9=RAM.ok&&RAM.p0.distanceToSquared(carGroup.position)>22500;RAM.p0.copy(carGroup.position);RAM.ok=true; // > 150 m d'un appel à l'autre : la caisse a SAUTÉ (replacement, portail) — le plus grand pas légitime, 2 images à 0,05 s et 2 500 km/h, fait ~70 m
+  const sg9=RAM.ok?RAM.p0.distanceTo(carGroup.position):0,saut9=sg9>150;(RAM.pA||(RAM.q=new THREE.Vector3(),RAM.pA=new THREE.Vector3())).copy(RAM.p0);RAM.p0.copy(carGroup.position);RAM.ok=true; // > 150 m d'un appel à l'autre : la caisse a SAUTÉ (replacement, portail) — le plus grand pas légitime, 2 images à 0,05 s et 2 500 km/h, fait ~70 m
+  /* (2026-10-14, chasse aux bugs, cadence 30 i/s) LE RAMASSAGE BALAYÉ — comme traficTick/satHard : tout se testait en UN point par image ; à 30 i/s (dt jusqu'à 0,05)
+     la caisse fait 10-28 m par image, la portée de 3,8 m tombait entre deux images (au sol l'ancien code ratait dès ~1 080 km/h à 30 i/s, ~720 à 20 i/s ; preuve :
+     banc/preuve-ramasse.cjs). On teste la distance de l'objet (avant l'attraction de l'image) au SEGMENT parcouru (ramD), même rayon, et seulement quand le pas dépasse la corde d'un objet dans l'axe (60/120 i/s inchangés). Seulement si ce segment est un trajet LÉGITIME : pas plus de 2 pas
+     d'image à la vitesse du moment (+2 m) — un replacement (vA 26), un portail, un saut de 150 m retombent sur le test en un point, rien ne se ramasse en route. */
+  RAM.bal=sg9>1e-6&&sg9<=(enVol?fallVel.length()*AIR_RATE:Math.abs(vA)*vitMult())*SPD*Math.max(dt,.05)*2+2;
   /* ⚠ BUG CORRIGÉ (2026-08-18) — ON NE POUVAIT PAS ATTRAPER LES FRUITS EN L'AIR, et c'était
      une CONTRADICTION DANS LE CODE, pas un réglage : le tour de boucle entier était gardé par
      `mode==='drive'`, et une ligne plus bas les grappes du ciel exigeaient `mode==='fall'`.
@@ -48593,7 +48605,7 @@ function pickupsTick(dt){
   for(let i9=0;i9<pickups.length;i9++){
     const p=pickups[i9];
     if(p.taken)continue;
-    const mag=engTier>=ENG_CAP.aimant?1:0,gros9=MAG9&&!p.pow;
+    const mag=engTier>=ENG_CAP.aimant?1:0,gros9=MAG9&&!p.pow;RAM.q.copy(p.mesh.position); // (2026-10-14, chasse aux bugs) l'objet AVANT l'attraction de l'image (ramD)
     if(p.hk>0){if(saut9){p.hk=0;continue;}} // un saut de caisse DÉCROCHE : rien ne traverse la carte pour payer
     else if(enVol){ // EN VOL : le couloir, TA face, pas de jumeau — puis la sphère ACCROCHE
       if(Math.abs(p.s-lastNearS)>(gros9?MAG_R+40:70))continue; // pré-filtre bon marché le long de la piste, AVANT toute distance 3D
@@ -48602,7 +48614,7 @@ function pickupsTick(dt){
       // EN VOL L'AIMANT EST PLUS LARGE : viser une grappe en pleine parabole, sans volant, est déjà difficile — sans coup de pouce on
       // ne les attrape jamais. (v3) sous L'AIMANT, la sphère de MAG_R m.
       const d9=p.mesh.position.distanceTo(carGroup.position);
-      if(d9>=(gros9?MAG_R:11+mag*3))continue;
+      if(ramD(p.mesh.position,RAM.q,p.ax,gros9?MAG_R:11+mag*3)>=(gros9?MAG_R:11+mag*3))continue; // (2026-10-14, chasse aux bugs) le TRAJET de l'image (ramD), même rayon ; hkD reste l'écart réel
       p.hk=1e-4;p.hkD=d9;RAM.n[6]++; // ACCROCHÉ
     }else if(gros9){ // (v3) L'AIMANT AU SOL : la sphère
       if(Math.abs(p.s-s)>MAG_R+8)continue; // pré-filtre bon marché le long de la piste
@@ -48612,7 +48624,7 @@ function pickupsTick(dt){
     }else{
       if(p.face!==side)continue;
       const ds9=Math.abs(p.s-s);
-      if(ds9>22)continue;
+      if(ds9>22+(RAM.bal?Math.abs(s-sA9)+sg9:0))continue; // (2026-10-14, chasse aux bugs) + le trajet balayé : sans lui, à 30 i/s et grande vitesse, la pièce sortait du couloir avant d'être testée
       if(p.air)continue;                        // les grappes du CIEL ne s'attrapent qu'en vol
       // CAPACITÉ MOTEUR (V12 atmosphérique) : L'AIMANT À PIÈCES — elles viennent à toi de bien plus
       // loin, et plus vite. Sans lui, on garde l'attraction d'origine, discrète.
@@ -48627,7 +48639,7 @@ function pickupsTick(dt){
       p.hkD=Math.min(d9,dM);
       if(p.hk>RAM_T){P9.copy(carGroup.position);RAM.n[7]++;} // le filet (jamais atteint en simulation)
     }
-    if(p.mesh.position.distanceTo(carGroup.position)<3.8+mag*.5||(p.ligne&&mode==='drive'&&p.face===side&&Math.abs(p.lat-side*lat)<4.5&&Math.abs(s-sA9)<60&&(p.s-sA9)*(p.s-s)<=0)){ // (2026-09-26) portée FIXE (les objets ont grossi)
+    if(ramD(p.mesh.position,RAM.q,p.ax,3.8+mag*.5)<3.8+mag*.5||(p.ligne&&mode==='drive'&&p.face===side&&Math.abs(p.lat-side*lat)<4.5&&Math.abs(s-sA9)<60&&(p.s-sA9)*(p.s-s)<=0)){ // (2026-09-26) portée FIXE (les objets ont grossi)
       const vol9=enVol||p.hk>0;p.taken=true;p.hk=0;scene.remove(p.mesh); // (une pièce instanciée sort d'elle-même du couloir au prochain LOD)
       RAM.n[(vol9?3:0)+(p.pow?2:p.nitro?1:0)]++; // (banc) pris au sol ou EN VOL — accroché en vol et arrivé après la pose, il compte en vol
       if(p.pow){ // POUVOIR : le minuteur démarre (ou se CUMULE), l'écran l'annonce en couleur — (pouvoirs v2) tout vit dans pwrPrend
