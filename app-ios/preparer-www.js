@@ -81,6 +81,19 @@ une("function carUnlockedVrai(i){",
 /* (les blocs « ? — BIENTÔT » de SEE ALL ITEMS : le jeu ne les pose plus sous la charte 6 depuis le train T2 du 14/10, coupe ôtée) */
 toutes('on vient de doubler une Ferrari.','on vient de doubler une voiture de course.',2,'phrase « Ferrari » (CARS + clé de traduction)');
 une('we just passed a Ferrari.','we just passed a race car.','phrase « Ferrari » en anglais');
+/* (2026-10-14, audit « regard d'Apple » § 1-4 et 1-9, règle 5.2) les noms qui SONT ceux d'un vrai modèle de constructeur, en français ET en
+   anglais (la table TR traduit le nom : « THE CHARGER » = la Dodge, mot pour mot), la phrase de LA DOLORÈS qui cite Retour vers le futur
+   (« 88 à l'heure »), et l'enseigne MOULIN ROUGE de la carte PARIS (marque du cabaret). Dans l'app seulement. Gardés : ELDORADO (la cité
+   d'or, un mot courant), ROSSO 40 (« rouge » en italien), LE DÉFIEUR, ATCHOUM (l'éternuement, la caisse éternue du feu). Chaque nom est
+   remplacé PARTOUT (CARS, clés de TR, commentaires) : le compte exact protège d'un nom qui aurait bougé dans le jeu. */
+toutes('LA DAYTONA','LA GRANDE FLÈCHE',4,'nom LA DAYTONA (Ferrari)');une('"THE DAYTONA"','"THE GREAT ARROW"','nom LA DAYTONA en anglais');
+toutes('LA STRATOS','LA CALE',4,'nom LA STRATOS (Lancia)');une('"THE STRATOS"','"THE WEDGE"','nom LA STRATOS en anglais');
+toutes('LA VETTE','LA RAPIÈRE',3,'nom LA VETTE (Corvette)');une('"THE VETTE"','"THE RAPIER"','nom LA VETTE en anglais');
+toutes('LE CHARGEUR','LE FORBAN',8,'noms LE CHARGEUR et LE CHARGEUR 69 (Dodge)');toutes('"THE CHARGER','"THE CORSAIR',2,'noms LE CHARGEUR et LE CHARGEUR 69 en anglais');
+une("À 88 à l\\'heure elle remonte le temps, paraît-il.","On la dit en avance sur son époque.",'phrase de LA DOLORÈS (CARS)');
+une("À 88 à l'heure elle remonte le temps, paraît-il.","On la dit en avance sur son époque.",'phrase de LA DOLORÈS (clé de traduction)');
+une('At 88 it travels back in time, apparently.','Ahead of its time, they say.','phrase de LA DOLORÈS en anglais');
+une("x.fillText('MOULIN ROUGE',256,34)","x.fillText('CABARET ROUGE',256,34)",'enseigne MOULIN ROUGE (carte PARIS)');
 une("if(k!=='cousin'&&k!=='cousin161')return false;","return false; /* (app iOS) pas de déblocage par code */",'code COUSIN (saisie)');
 une("function cousin(){try{return !!SAVE.d.cousin;}catch(e){return false;}}","function cousin(){return false;} /* (app iOS) pas de déblocage par code */",'code COUSIN (effet)');
 une('</head>','<style id="appStore">/* (app iOS) pas de page OFFRES en € : ni l\'écran, ni ses portes (mêmes sélecteurs que l\'édition POKI ; les deux :not(#…) passent devant\n'+
@@ -94,10 +107,10 @@ une('</head>','<style id="appStore">/* (app iOS) pas de page OFFRES en € : ni 
   '#setBtn,#settings{display:none!important}\n'+
   '/* la ligne ENTRER UN CODE des réglages (le code COUSIN, coupé plus haut) */\n'+
   '.mCode{display:none!important}\n'+
-  '/* la rangée de l\'accueil sans la case OFFRES : MISSIONS s\'élargit d\'un cran et la voiture du garage le suit (debout et couché), plus de trou */\n'+
-  'html.c6.hub:not(.poki) body #mHome.acc2 .mMisBarre{grid-column:2 / 4!important}html.c6.hub:not(.poki) body #mHome.acc2 .mHubPorte{grid-column:4!important}\n'+
-  '@media (orientation:landscape) and (max-height:540px){html.c6.hub:not(.poki) body #mHome.acc2 .mMisBarre{grid-column:3 / 5!important}'+
-  'html.c6.hub:not(.poki) body #mHome.acc2 .mHubPorte{grid-column:5!important}}</style>\n</head>','page OFFRES');
+  '/* l\'accueil en cartes 2 × 2 (CARRIÈRE · MISSIONS / GARAGE · OFFRES, train T8 du 14/10) sans la carte OFFRES : GARAGE prend toute sa ligne\n'+
+  '   (debout : les deux colonnes ; couché : les deux colonnes du bloc de droite), plus de trou */\n'+
+  'html.c6.hub:not(.poki) body #mHome.acc2 .mHubPorte{grid-column:1 / -1!important}\n'+
+  '@media (orientation:landscape) and (max-height:540px){html.c6.hub:not(.poki) body #mHome.acc2 .mHubPorte{grid-column:2 / -1!important}}</style>\n</head>','page OFFRES');
 une("const SANS_VOIX=!/[?&]voix=1\\b/.test(location.search);","const SANS_VOIX=true; /* (app iOS) les voix ne sont pas livrées */",'règle SANS_VOIX (les voix ne sont pas livrées)');
 /* LES TÉMOINS — une coupe faite en CSS ne casse rien si sa cible change de nom : elle cesse juste de couper, en silence. Chaque porte
    masquée ci-dessus doit donc encore exister dans le jeu ; sinon l'écran a été refait et la coupe est à revoir (au navigateur). */
@@ -105,8 +118,10 @@ for(const[t,quoi]of[['data-m="shop"','la tuile OFFRES de l\'accueil'],['id="mSho
   ['<button data-o="off"','l\'onglet OFFRES de la boutique du garage'],["k:'premium'",'les caisses vendues en €'],["k:'pubs'",'la caisse aux 100 pubs'],
   ["k:'bientot'",'les caisses « DÉFI À VENIR »'],['class="pbtn gVerrou"','le bouton verrouillé BIENTÔT du menu du garage'],
   ['class="mPanel mCode"','la ligne ENTRER UN CODE des réglages'],
-  ['grid-template-columns:minmax(0,1fr) minmax(0,1fr) 48px 48px 48px','la grille de la rangée de l\'accueil (debout)'],
-  ['grid-template-columns:minmax(0,1fr) 96px 96px 48px 48px 48px','la grille de la rangée de l\'accueil (couché)']])
+  ['html.c6.hub:not(.poki) body #mHome.acc2 .mOffres{grid-row:7;grid-column:2}','la carte OFFRES de l\'accueil en 2 × 2 (debout)'],
+  ['html.c6.hub:not(.poki) body #mHome.acc2 .mHubPorte{grid-row:7;grid-column:1}','la carte GARAGE de l\'accueil en 2 × 2 (debout)'],
+  ['html.c6.hub:not(.poki) body #mHome.acc2 .mOffres{grid-row:7;grid-column:3}','la carte OFFRES de l\'accueil en 2 × 2 (couché)'],
+  ['html.c6.hub:not(.poki) body #mHome.acc2 .mHubPorte{grid-row:7;grid-column:2}','la carte GARAGE de l\'accueil en 2 × 2 (couché)']])
   if(h.indexOf(t)<0)meurt('témoin perdu — '+quoi+' : « '+t+' » n\'existe plus dans le jeu. L\'écran a changé : revoir la coupe de l\'édition App Store.');
 fs.writeFileSync(path.join(WWW,'index.html'),h);
 
