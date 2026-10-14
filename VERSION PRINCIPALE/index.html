@@ -37078,16 +37078,26 @@ function nitroEteint(){ // LA DERNIÈRE BOUFFÉE : une langue de feu aux pots + 
    la COUPURE, elle, n'avait que du son et une langue de feu : la caisse accroupie (pitch9 −1,7°) se relevait en fondu, sans poids.
    `sensNitro` ne fait que REGARDER (nitroOn, nitroHeldT, engGear, VPAL.n) et répond par les outils communs : elle ne calcule rien du jeu.
    Appelée une fois par image, juste avant la remise à zéro de `nitroHeldT`. `on` : l'état de l'image d'avant. */
-const SENS_NI={on:false};
+const SENS_NI={on:false,ts:0,h:0};
 function sensNitro(dt,veut){
   const n9=performance.now();
   if(!nitroOn&&SENS_NI.on&&mode!=='boom'&&!gameOver){
+    /* LA PANNE SÈCHE HOQUETTE : le doigt tient encore, la jauge lâche — le son tousse (`nitro.sec`) mais rien ne le disait à la main ni à la
+       tôle. DEUX RATÉS : le nez pique sec, 130 ms plus tard il repique plus petit ; la main reçoit les deux mêmes coups ([12,118,12], moyen),
+       l'écran un frémissement (moitié en vol, où la panne coûte le plané). Au plus une fois par 1,2 s : doigt tenu, le réservoir se rallume
+       à ,3 et retombe à sec en boucle — le hoquet ne doit pas devenir un bourdon. Elle REMPLACE alors le transfert de charge ci-dessous. */
+    if(veut&&n9-(SENS_NI.ts||0)>1200){SENS_NI.ts=n9;SENS_NI.h=.13;
+      if(!REDUCED_MOTION)sensCoup(0,1.1,-.3);
+      sensHap([12,118,12],2);sensSecoue(.1);}
+    else
     if(nitroHeldT>.35){ /* LE TRANSFERT DE CHARGE : la poussée lâche, le poids repasse sur l'avant — le nez PLONGE d'un coup (≈ 1,6° après un coup
         bref → 3,6° après 1,5 s tenue), la caisse se tasse (1 → 2 cm), puis se repose seule ; un tic léger dans le pouce qui vient de lâcher */
       const k=Math.min(1,(nitroHeldT-.35)/1.15);
       if(!REDUCED_MOTION)sensCoup(0,.6+.8*k,-(.25+.25*k));
       sensHap(9,1);}
   }
+  if(SENS_NI.h>0){SENS_NI.h-=dt; // le 2e raté de la panne sèche (compté en secondes : même écart à 30, 60 et 120 i/s) — annulé si la flamme est revenue ou si la caisse a sauté
+    if(SENS_NI.h<=0&&!nitroOn&&mode!=='boom'&&!gameOver){if(!REDUCED_MOTION)sensCoup(0,.7,-.2);sensSecoue(.07);}}
   SENS_NI.on=nitroOn;
 }
 /* LE BOOST JOUE UN ARPÈGE (2026-10-03, Léo : « que le boost joue directement un instrument qu'on peut SPAMMER, APPUYER LONGTEMPS,
