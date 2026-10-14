@@ -8881,6 +8881,8 @@ html:not(.c6).hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear) .p
   html:not(.c6).hub:not(.poki) body #mHome.acc2 .mGear{grid-column:4}
   html:not(.c6).hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay{grid-column:2/-1}
   html:not(.c6).hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear){gap:4px!important}}
+/* (vu au banc 390×844) la pastille NEW de la tuile OFFRES passait SOUS la plaque MISSIONS (posée après elle) et se coupait : la tuile passe devant */
+html:not(.c6).hub:not(.poki) body #mHome.acc2 .mOffres{position:relative;z-index:2}
 </style>
 <style id="ux8-garage">
 /* ===== UX 8 · LE GARAGE ET LA BOUTIQUE — un seul cadre de boutons (voir « LE CADRE COMMUN » dans le script, ux8Bati/ux8Tick) =====
