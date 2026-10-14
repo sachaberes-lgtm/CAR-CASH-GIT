@@ -62,6 +62,8 @@ const POKI=POKI_BUILD||/[?&](poki|crazy|playgama)=1\b/.test(location.search);
 const PORTAIL=/[?&]crazy=1\b/.test(location.search)?'crazy':/[?&]playgama=1\b/.test(location.search)?'playgama':PORTAIL_SDK;
 const FACILE_OK=!(POKI&&PORTAIL==='crazy');
 if(POKI)document.documentElement.classList.add('poki');
+/* (2026-10-14, session INTERFACE) LA CHARTE 6 — ENCRE · BLANC · OR : toutes ses règles commencent par html.c6 ; ?ui=5 = l'ancienne interface, pour comparer (voir <style id="charte6">) */
+if(!/[?&]ui=5\b/.test(location.search))document.documentElement.classList.add('c6');
 /* PLUS AUCUNE VOIX (2026-10-07, Sacha : « masque complètement du code de main toutes les voix ») : la coupure de l'édition Poki vaut
    désormais PARTOUT — l'annonceur naît `dead` (annSpeak rend toujours son texte, rien ne se charge ni ne se joue), le « ewww » des morts
    et le « WOW » des combos sont retirés, l'interrupteur VOIX et son curseur disparaissent des réglages. Les fichiers restent dans le
@@ -7291,6 +7293,871 @@ html body.touch #nitroBar>#nxVit{width:calc(var(--nxV) + 8px)}
    détouré, pour rien. Logo éteint → reflet en pause ; rallumé → il reprend. */
 html body #launchLogo:not(.on) .lg::after{animation-play-state:paused}
 </style>
+<style id="charte6">
+/* =====================================================================================================================
+   LA CHARTE 6 — ENCRE · BLANC · OR (2026-10-14, session INTERFACE)
+   ---------------------------------------------------------------------------------------------------------------------
+   Sacha : « refonte totale de l'interface, ça fait trop IA — que tous les boutons soient mieux, que tous les écrans
+   soient plus cohérents, pas de boutons au mauvais endroit, pas de boutons qui se répètent, pas de trucs inutiles ; le
+   plus clair, le plus simple, le plus agréable ».
+   LE DIAGNOSTIC (40 captures, couché et debout) : cinq langages visuels dans le même jeu (la laque néon des menus, la
+   console du garage, les missions « sci-fi », la boutique blanche de Léo, le HUD) ; et la laque néon — noir violet,
+   magenta + cyan + or, plaques penchées, lueurs, reflets, dégradés, trame de points — est exactement ce qu'on reconnaît
+   comme « fait par une IA ». Le seul écran qui ne le fait pas : la BOUTIQUE de Léo (encre et blanc, à plat, droit).
+   LA RÉPONSE : toute l'interface parle la langue de la boutique.
+     · TROIS MATIÈRES, À PLAT : l'ENCRE (les plaques), le BLANC (le texte, les filets), l'OR (LA décision de l'écran,
+       une seule). Le vert = l'argent, le violet = l'aura, le rouge = le danger : sur des CHIFFRES, jamais en décor.
+     · AUCUN dégradé, AUCUNE lueur, AUCUN reflet animé, AUCUNE trame, AUCUN coin coupé, RIEN de penché.
+     · UNE touche : face pleine, filet de 2 px, épaisseur de 4 px dessous ; à l'appui elle descend de son épaisseur.
+     · Le pixel reste la voix (Press Start 2P), DROIT, sans chasse ajoutée.
+   OÙ : ce bloc est le DERNIER <style> de la page et toutes ses règles commencent par `html.c6` (posée dans le <head>,
+   retirée par `?ui=5` : l'ancienne interface, pour comparer). Les règles propres à un écran vivent dans leur propre
+   bloc `<style id="c6-…">`, posés juste après celui-ci. Les anciennes feuilles (charte4, hubGarage, uxPasse…) restent
+   dessous : elles portent encore la MISE EN PLACE ; leur matière est neutralisée ici, jeton par jeton.
+   ===================================================================================================================== */
+html.c6{
+  /* l'ENCRE (neutre, plus de violet) — du fond au filet */
+  --c6-e0:#0b0d12;--c6-e1:#13161d;--c6-e2:#1c2029;--c6-e3:#2a303c;--c6-e4:#404858;
+  /* le BLANC et ses gris */
+  --c6-b0:#ffffff;--c6-b1:#eceae4;--c6-g1:#b3b8c4;--c6-g2:#7a8292;
+  /* l'OR — face, lumière (le trait du haut), tranche, encre posée dessus */
+  --c6-or:#ffc62b;--c6-orL:#ffe389;--c6-orT:#b07a00;--c6-orE:#1d1300;
+  /* le SENS : sur des chiffres et des états, jamais en décor */
+  --c6-cash:#58e08c;--c6-aura:#b9a2ff;--c6-rouge:#ff5648;
+  --c6-t:4px;                                   /* l'épaisseur d'une touche */
+  --c6-bord:2px;                                /* le filet */
+  --c6-vite:90ms;--c6-pose:200ms;--c6-courbe:cubic-bezier(.2,.8,.2,1);
+  /* ---- les jetons de la charte 5, REMIS À PLAT : toute règle ancienne qui les lit suit sans qu'on la réécrive ---- */
+  --sk:0deg;--skI:0deg;
+  --k0:#0b0d12;--k1:#0f1218;--k2:#13161d;--k3:#1c2029;--k4:#2a303c;--kl:#404858;--kl2:#5a6376;
+  --au0:#ffe389;--au1:#ffc62b;--au2:#ffc62b;--au3:#ffc62b;--auE:#b07a00;--auO:#1d1300;--auT:#1d1300;--auG:transparent;
+  --neoM:#ffffff;--neoC:#ffffff;--neoV:#58e08c;--neoR:#ff5648;--neoA:#ffc62b;--neoL:#b3b8c4;
+  --cash:#58e08c;--cashO:#0b0d12;--aura:#b9a2ff;
+  --tx:#ffffff;--tx2:#b3b8c4;--tx3:#7a8292;--txO:#0b0d12;
+  --laque:linear-gradient(#13161d,#13161d);--laqueP:linear-gradient(#13161d,#13161d);--carbone:linear-gradient(#13161d,#13161d);
+  --tresse:linear-gradient(transparent,transparent);
+  --matrice:linear-gradient(transparent,transparent) 0 0/8px 8px;
+  --fondEcran:linear-gradient(#0b0d12,#0b0d12);
+  --fil:#2a303c;--filF:#404858;
+  --levre:inset 0 0 0 0 transparent;--tranche:#000;--anneau:#000;--ombreSol:0 0 0 0 transparent;
+  --coupe:0px;
+  --livree:linear-gradient(transparent,transparent);
+}
+
+/* ============================================ LA TOUCHE =============================================================
+   .pbtn — UNE construction. Par défaut : encre, filet blanc, épaisseur noire. --c6-f la face, --c6-l le filet,
+   --c6-tr la tranche, --c6-x le texte. Les variantes ne changent QUE ces quatre couleurs. */
+html.c6 .pbtn{--nc:var(--c6-b0);--c6-f:var(--c6-e1);--c6-l:var(--c6-b0);--c6-tr:#000;--c6-x:var(--c6-b0);
+  min-height:48px;padding:0 16px;gap:10px;border:0;border-radius:0;outline:0;
+  font-family:var(--pix);font-size:12px;line-height:1;letter-spacing:0;font-style:normal;color:var(--c6-x);text-shadow:none;
+  transform:none;filter:none;animation:none;clip-path:none;
+  background:var(--c6-f);
+  box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-l),0 var(--c6-t) 0 0 var(--c6-tr);
+  transition:transform var(--c6-vite) linear,box-shadow var(--c6-vite) linear,background-color var(--c6-vite) linear,opacity var(--c6-pose) linear}
+html.c6 .pbtn::before,html.c6 .pbtn::after{filter:none;text-shadow:none}
+html.c6 .pbtn .pxi{color:currentColor;filter:none}
+html.c6 .pbtn>span,html.c6 .pbtn>b,html.c6 .pbtn>i{font-style:normal;transform:none;text-shadow:none}
+html.c6 .pbtn:active,html.c6 .pbtn.appui{transform:translateY(var(--c6-t));filter:none;
+  box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-l),0 0 0 0 var(--c6-tr)}
+html.c6 .pbtn:focus-visible{outline:2px solid var(--c6-or);outline-offset:4px}
+html.c6 .pb-cyan,html.c6 .pb-mag{--nc:var(--c6-b0)}
+/* l'OR — LA décision de l'écran : face d'or, encre dessus, un trait de lumière en haut, tranche d'or sombre */
+html.c6 .pb-gold{--nc:var(--c6-orE);--c6-f:var(--c6-or);--c6-l:var(--c6-orE);--c6-tr:var(--c6-orT);--c6-x:var(--c6-orE);
+  background:var(--c6-or);background-size:auto;background-position:0 0;animation:none;text-shadow:none;
+  box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-orE),inset 0 calc(var(--c6-bord) + 2px) 0 0 var(--c6-orL),0 var(--c6-t) 0 0 var(--c6-orT),0 var(--c6-t) 0 var(--c6-bord) var(--c6-orE),0 0 0 var(--c6-bord) var(--c6-orE)}
+html.c6 .pb-gold:active,html.c6 .pb-gold.appui{transform:translateY(var(--c6-t));
+  box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-orE),inset 0 calc(var(--c6-bord) + 2px) 0 0 var(--c6-orL),0 0 0 0 var(--c6-orT),0 0 0 var(--c6-bord) var(--c6-orE),0 0 0 var(--c6-bord) var(--c6-orE)}
+html.c6 .pb-gold .pxi{color:var(--c6-orE)}
+/* le ROUGE — détruire (dans la confirmation seulement) · le VERT — valider */
+html.c6 .pb-red{--c6-f:var(--c6-rouge);--c6-l:#000;--c6-tr:#8e1c12;--c6-x:#fff;background:var(--c6-rouge);text-shadow:none}
+html.c6 .pb-green{--c6-f:var(--c6-cash);--c6-l:#000;--c6-tr:#1f7a45;--c6-x:var(--c6-e0);background:var(--c6-cash);text-shadow:none}
+html.c6 .pb-red .pxi,html.c6 .pb-green .pxi{color:currentColor}
+/* ÉTEINTE : elle répond encore au doigt, elle n'appelle plus l'œil */
+html.c6 .pbtn.off{--c6-f:var(--c6-e1);--c6-l:var(--c6-e4);--c6-tr:#000;--c6-x:var(--c6-g2);background:var(--c6-e1);text-shadow:none}
+/* les tailles : 48 (la touche), 64 (la décision), 48 × 48 (l'icône seule) */
+html.c6 .pbtn.big{min-height:64px;font-size:24px;letter-spacing:0}
+html.c6 .pbCarre{width:48px;min-width:48px;min-height:48px;padding:0}
+html.c6 .pbtn.ico{min-height:64px;padding:8px 10px;gap:8px;font-size:8px;letter-spacing:0}
+/* le RELÂCHER : la face s'éclaire un instant — pas de rebond */
+html.c6 .pbtn.pop,html.c6 .gTab.pop,html.c6 .gR.pop,html.c6 .gT.pop,html.c6 .mLigne.pop,html.c6 .mMode.pop{animation:c6Pop 160ms linear}
+@keyframes c6Pop{0%{filter:brightness(1.6)}100%{filter:brightness(1)}}
+/* les PASTILLES : un chiffre ou NEW — un carré d'or, droit, sans lueur */
+html.c6 .mBadge,html.c6 #bdShop{top:-8px;right:-8px;min-width:20px;padding:4px 5px 3px;font-size:8px;letter-spacing:0;transform:none;
+  color:var(--c6-orE);background:var(--c6-or);box-shadow:0 0 0 2px #000;text-shadow:none;animation:none}
+
+/* ============================================ CE QU'ON LIT ==========================================================
+   Le panneau : encre pleine, filet sourd (un panneau ne crie pas : seules les touches ont le filet blanc). */
+html.c6 :is(.mPanel,.tpPanel,.mMode,.hCard,.mObj,.modIn,#carr .carrBiome,.misPrix,.misDef){--c:0px;
+  background:var(--c6-e1);clip-path:none;box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-e3)}
+/* le TITRE D'ÉCRAN : blanc, droit, seul — plus de livrée dessous */
+html.c6 .mHead{gap:0;margin:0 0 16px}
+html.c6 :is(.mHead h3,.tpH:first-child){transform:none;font-size:16px;letter-spacing:0;color:var(--c6-b0);text-shadow:none}
+html.c6 .mHead::after,html.c6 .tpH:first-child::after{content:none}
+/* le TITRE DE SECTION : petites capitales grises, un trait plein */
+html.c6 :is(.mSec,.tpH){gap:10px;margin:16px 0 8px;font-size:8px;letter-spacing:0;color:var(--c6-g2)}
+html.c6 :is(.mSec,.tpH)::after{height:2px;background:var(--c6-e3)}
+/* les LIGNES de réglage : plus de puits autour de l'icône, un trait plein entre deux lignes */
+html.c6 :is(.mLigne,.tp.ligne){min-height:56px;gap:12px;padding:0 16px;font-size:10px;letter-spacing:0;border-top:2px solid var(--c6-e3);transition:background-color var(--c6-vite) linear}
+html.c6 :is(.mLigne,.tp.ligne):is(:active,.appui){background:var(--c6-e2)}
+html.c6 :is(.mLigne,.tp.ligne)::before{content:none}
+html.c6 :is(.mLigne,.tp.ligne)>.pxi{margin:0;color:var(--c6-b0)}
+html.c6 .mLigne.lien::after{background:var(--c6-g2)}
+/* l'INTERRUPTEUR : allumé = BLANC, patin d'encre à droite ; éteint = encre, patin gris à gauche */
+html.c6 b.bascule{width:64px;height:28px;padding:0 8px;transform:none;font-size:8px;letter-spacing:0;color:var(--c6-e0);text-shadow:none;
+  background:var(--c6-b0);box-shadow:none}
+html.c6 b.bascule::before{top:4px;right:4px;width:20px;height:20px;background:var(--c6-e0);box-shadow:none;transition:transform var(--c6-vite) linear}
+html.c6 :is(.mLigne.off b.bascule,b.bascule.ko){color:var(--c6-g2);background:var(--c6-e0);box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-e4);text-shadow:none}
+html.c6 :is(.mLigne.off b.bascule,b.bascule.ko)::before{transform:translateX(-36px);background:var(--c6-e4);box-shadow:none}
+/* la VALEUR : blanche, son chevron */
+html.c6 b.valeur{gap:8px;font-size:10px;color:var(--c6-b0);text-shadow:none}
+/* le CURSEUR : un rail plein, blanc jusqu'au patin */
+html.c6 .volRow{padding:0 16px 10px 16px}
+html.c6 .volRow.mute,html.c6 .mLigne.off+.volRow{opacity:.35;filter:none}
+html.c6 .volHd{font-size:8px;letter-spacing:0;color:var(--c6-g2)}
+html.c6 .volS{transform:none}
+html.c6 .volS::-webkit-slider-runnable-track{height:4px;background:linear-gradient(90deg,var(--c6-b0) 0,var(--c6-b0) var(--v,50%),var(--c6-e4) var(--v,50%));box-shadow:none}
+html.c6 .volS::-moz-range-track{height:4px;background:linear-gradient(90deg,var(--c6-b0) 0,var(--c6-b0) var(--v,50%),var(--c6-e4) var(--v,50%));box-shadow:none}
+html.c6 .volS::-webkit-slider-thumb{width:12px;height:24px;margin-top:-10px;background:var(--c6-b0);box-shadow:0 0 0 2px #000}
+html.c6 .volS::-moz-range-thumb{width:12px;height:24px;background:var(--c6-b0);box-shadow:0 0 0 2px #000}
+
+/* ============================================ LA FENÊTRE, LE TOAST =================================================== */
+html.c6 .modIn{--c:0px;padding:20px 16px 16px;gap:12px;box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-b0)}
+html.c6 .modB{gap:12px}
+html.c6 .modB .pbtn{min-height:48px;font-size:10px}
+html.c6 #toast{background:var(--c6-e1);clip-path:none;text-shadow:none;letter-spacing:0;box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-b0),0 var(--c6-t) 0 0 #000}
+html.c6 #toast:has(.pxi-coche){box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-cash),0 var(--c6-t) 0 0 #000}
+html.c6 #toast:has(.pxi-croix){box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-rouge),0 var(--c6-t) 0 0 #000}
+html.c6 #toast .pxi{color:var(--c6-b0)}
+html.c6 #toast .pxi-coche{color:var(--c6-cash)}
+html.c6 #toast .pxi-croix{color:var(--c6-rouge)}
+
+/* ============================================ LES COMPOSANTS COMMUNS =================================================
+   Ce que plusieurs écrans partagent : ils le prennent ICI, ils ne le redessinent pas chacun (c'est comme ça qu'on avait
+   cinq langages). Le balisage type est dans ui/BRIEF.md §3. */
+/* L'EN-TÊTE d'un sous-écran : ◀ en haut à gauche (au même pixel partout), le titre, les comptes à droite.
+   Dans le flux d'une page qui défile, il colle en haut (.plein = fond d'encre, le contenu passe dessous) ;
+   .flotte = posé sur une scène 3D (garage, boutique, missions) : transparent, il ne prend que ses touches. */
+html.c6 .c6Tete{position:sticky;top:0;z-index:20;flex:none;box-sizing:border-box;display:flex;align-items:center;gap:12px;width:100%;
+  height:calc(var(--sT) + 64px);padding:calc(var(--sT) + 8px) calc(var(--sR) + 16px) 8px calc(var(--sL) + 16px);margin:0}
+html.c6 .c6Tete.plein{background:var(--c6-e0)}
+html.c6 .c6Tete.flotte{position:fixed;left:0;right:0;pointer-events:none}
+html.c6 .c6Tete.flotte>*{pointer-events:auto}
+html.c6 .c6Titre{font-family:var(--pix);font-weight:400;font-style:normal;font-size:16px;line-height:1;letter-spacing:0;color:var(--c6-b0);white-space:nowrap;text-shadow:none}
+html.c6 .c6Tete.flotte .c6Titre{text-shadow:0 2px 0 #000}
+html.c6 .c6Comptes{display:flex;align-items:center;gap:8px;margin-left:auto}
+/* LE COMPTE : la même plaquette partout (accueil, garage, boutique, fin) — l'argent vert, l'aura violette */
+html.c6 .c6Sou{display:flex;align-items:center;gap:8px;box-sizing:border-box;height:32px;padding:0 10px;background:var(--c6-e1);box-shadow:inset 0 0 0 2px var(--c6-e3);
+  font-family:var(--pix);font-size:10px;line-height:1;letter-spacing:0;color:var(--c6-b0);white-space:nowrap;text-shadow:none}
+html.c6 .c6Sou b{font-weight:400}
+html.c6 .c6Sou .pxi{--pxs:1.5}
+html.c6 .c6Sou.cash :is(b,.pxi){color:var(--c6-cash)}
+html.c6 .c6Sou.aura :is(b,.pxi){color:var(--c6-aura)}
+/* LES ONGLETS : des mots ; celui qu'on regarde est blanc et souligné de 4 px */
+html.c6 .c6Onglets{display:flex;box-shadow:inset 0 -2px 0 var(--c6-e3)}
+html.c6 .c6Onglet{flex:1 1 0;min-width:0;min-height:44px;margin:0;padding:0 8px;border:0;border-radius:0;background:none;cursor:pointer;transform:none;
+  font-family:var(--pix);font-size:10px;line-height:1;letter-spacing:0;color:var(--c6-g2);text-shadow:none;box-shadow:none;-webkit-tap-highlight-color:transparent;
+  transition:color var(--c6-vite) linear,box-shadow var(--c6-vite) linear}
+html.c6 .c6Onglet.on{color:var(--c6-b0);box-shadow:inset 0 -4px 0 var(--c6-b0)}
+/* LA CARTE D'OBJET : l'image, le nom, le prix ; la rareté = la barre de 4 px du bas (--rc) ; choisie = filet blanc */
+html.c6 .c6Carte{--rc:var(--c6-e4);position:relative;display:flex;flex-direction:column;box-sizing:border-box;min-width:0;cursor:pointer;
+  background:var(--c6-e1);box-shadow:inset 0 -4px 0 0 var(--rc),inset 0 0 0 2px var(--c6-e3);-webkit-tap-highlight-color:transparent;transition:transform var(--c6-vite) linear}
+html.c6 .c6Carte:active{transform:translateY(2px)}
+html.c6 .c6Carte.on{box-shadow:inset 0 -4px 0 0 var(--rc),inset 0 0 0 2px var(--c6-b0)}
+html.c6 .c6Carte .c6Img{display:block;width:100%;aspect-ratio:16/9;background:center/contain no-repeat}
+html.c6 .c6Carte .c6Nom{display:block;padding:8px 8px 0;font-family:var(--pix);font-weight:400;font-size:8px;line-height:12px;letter-spacing:0;color:var(--c6-b0);overflow-wrap:anywhere}
+html.c6 .c6Carte .c6Prix{display:block;padding:4px 8px 12px;font-family:var(--pix);font-weight:400;font-size:8px;line-height:12px;letter-spacing:0;color:var(--c6-cash)}
+/* UN CHIFFRE ET SA LÉGENDE · UNE JAUGE (--v de 0 à 1, --jc sa couleur) · UNE PHRASE D'AIDE */
+html.c6 .c6Stat{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
+html.c6 .c6Stat b{font-family:var(--pix);font-weight:400;font-size:16px;line-height:1;letter-spacing:0;color:var(--c6-b0)}
+html.c6 .c6Stat small{font-family:var(--pix);font-size:8px;line-height:1;letter-spacing:0;color:var(--c6-g2);white-space:nowrap}
+html.c6 .c6Jauge{display:block;height:8px;box-shadow:0 0 0 2px #000;
+  background:linear-gradient(90deg,var(--jc,var(--c6-b0)) 0,var(--jc,var(--c6-b0)) calc(var(--v,0)*100%),var(--c6-e3) calc(var(--v,0)*100%))}
+html.c6 .c6Aide{font-family:var(--sans);font-size:13px;line-height:18px;font-weight:500;letter-spacing:0;color:var(--c6-g1);text-shadow:none}
+/* SUR UNE SCÈNE CLAIRE (la boutique blanche de Léo) : les mêmes pièces, en blanc à filet d'encre */
+html.c6 .c6Clair .pbtn:not(.pb-gold):not(.pb-red):not(.pb-green){--c6-f:#fff;--c6-l:var(--c6-e0);--c6-tr:#a9aebb;--c6-x:var(--c6-e0)}
+html.c6 .c6Clair .pbtn.off{--c6-f:#fff;--c6-l:#a9aebb;--c6-tr:#d5d8df;--c6-x:#8c93a3;background:#fff}
+html.c6 .c6Clair :is(.c6Titre,.c6Onglet.on){color:var(--c6-e0);text-shadow:none}
+html.c6 .c6Clair .c6Onglet.on{box-shadow:inset 0 -4px 0 var(--c6-e0)}
+html.c6 .c6Clair .c6Onglets{box-shadow:inset 0 -2px 0 #c9ccd4}
+html.c6 .c6Clair .c6Sou{background:#fff;color:var(--c6-e0);box-shadow:inset 0 0 0 2px var(--c6-e0)}
+html.c6 .c6Clair .c6Sou.cash :is(b,.pxi){color:#12813f}
+html.c6 .c6Clair .c6Carte{background:#fff;box-shadow:inset 0 -4px 0 0 var(--rc),inset 0 0 0 2px #d5d8df}
+html.c6 .c6Clair .c6Carte.on{box-shadow:inset 0 -4px 0 0 var(--rc),inset 0 0 0 2px var(--c6-e0)}
+html.c6 .c6Clair .c6Carte .c6Nom{color:var(--c6-e0)}
+html.c6 .c6Clair .c6Carte .c6Prix{color:#12813f}
+/* UN ÉCRAN QUI ENTRE : ses blocs montent de 8 px en fondu, en cascade (5 au plus) — poser .c6Entre sur le conteneur */
+@keyframes c6Entre{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+html.c6 .c6Entre>*{animation:c6Entre var(--c6-pose) var(--c6-courbe) both}
+html.c6 .c6Entre>*:nth-child(2){animation-delay:30ms}
+html.c6 .c6Entre>*:nth-child(3){animation-delay:60ms}
+html.c6 .c6Entre>*:nth-child(4){animation-delay:90ms}
+html.c6 .c6Entre>*:nth-child(n+5){animation-delay:120ms}
+
+/* ============================================ « RÉDUIRE LES ANIMATIONS » ============================================= */
+@media (prefers-reduced-motion:reduce){html.c6 .pbtn,html.c6 .pbtn:active,html.c6 .c6Carte,html.c6 .c6Onglet{transition:none}html.c6 .c6Entre>*{animation:none}}
+</style>
+<style id="c6-accueil">
+/* CHARTE 6 · l'accueil, le splash, la fenêtre, le toast, « a calé », le cadre de l'ordi — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
+
+/* ====== L'ACCUEIL #mHome (2026-10-14, charte 6) ======================================================================
+   La structure de Sacha (12/10) est GARDÉE : le logo, UNE rangée de cinq touches, JOUER en mot d'or flottant. Ce qui change :
+   · les cinq touches ont la MÊME peau (encre, filet blanc de 2 px, tranche noire de 4 px), la même hauteur (48 px), 8 px d'écart ;
+     plus de couleur par tuile, plus de dégradé ni de reflet (hubGarage les posait en !important : on répond de même, un cran plus haut) ;
+   · CARRIÈRE et MISSIONS : l'icône au-dessus du mot, en 8 px sans chasse = 64 px de mot — il tient ENTIER dans la case la plus étroite
+     (debout 375 : (375 − 32 − 3×48 − 4×8) / 2 = 83 px ; debout 390 : 91 px ; couché : 96 px). L'ancien corps + 1 px de chasse le coupait ;
+   · GARAGE · OFFRES · RÉGLAGES : 48 × 48, l'icône seule ;
+   · la pastille : un carré d'or de 8 px SANS chiffre (« 39 » ne disait rien) ; les trois cases des missions : trois carrés de 4 px ;
+   · JOUER : le halo flou devient un cerne dur + une ombre portée dure (lisible sur ciel clair comme sur ciel de nuit) ;
+   · la livrée tricolore sous le logo part. Le LOGO lui-même n'est pas touché. */
+html.c6 #mHome .mTitle::after{content:none!important}
+html.c6.hub:not(.poki) body #mHome.acc2{padding:calc(var(--sT) + 16px) calc(var(--sR) + 16px) calc(var(--sB) + 16px) calc(var(--sL) + 16px);
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr) 48px 48px 48px;column-gap:8px;
+  grid-template-rows:0 auto minmax(16px,1fr) 48px 16px 64px 0}
+/* la peau commune des cinq touches */
+html.c6.hub:not(.poki) body #mHome.acc2 :is(.mOutils>.mAccB,.mOutils>.mGear,.mAccP>.mMisBarre){--nc:var(--c6-b0)!important;border-radius:0;clip-path:none!important;filter:none!important;
+  color:var(--c6-b0)!important;text-shadow:none!important;background:var(--c6-e1)!important;
+  box-shadow:inset 0 0 0 2px var(--c6-b0),0 4px 0 0 #000!important}
+html.c6.hub:not(.poki) body #mHome.acc2 :is(.mOutils>.mAccB,.mOutils>.mGear,.mAccP>.mMisBarre):is(:active,.appui){transform:translateY(4px)!important;
+  box-shadow:inset 0 0 0 2px var(--c6-b0),0 0 0 0 #000!important}
+html.c6.hub:not(.poki) body #mHome.acc2 :is(.mOutils>.mAccB,.mOutils>.mGear,.mAccP>.mMisBarre)::before,
+html.c6.hub:not(.poki) body #mHome.acc2 :is(.mOutils>.mAccB,.mOutils>.mGear,.mAccP>.mMisBarre)::after{content:none!important}
+html.c6.hub:not(.poki) body #mHome.acc2 :is(.mOutils>.mAccB,.mOutils>.mGear,.mAccP>.mMisBarre) .pxi{--pxs:2!important;color:var(--c6-b0)!important;filter:none!important}
+/* les deux touches à mot : l'icône, 4 px, le mot en 8 px — rien n'est rogné (overflow visible : un mot ne se coupe jamais) */
+html.c6.hub:not(.poki) body #mHome.acc2 :is(.mOutils>.mAccB[data-m="carr"],.mAccP>.mMisBarre){gap:4px!important;padding:0!important;overflow:visible;
+  font-size:8px!important;line-height:8px;letter-spacing:0!important}
+html.c6.hub:not(.poki) body #mHome.acc2 :is(.mOutils>.mAccB[data-m="carr"],.mAccP>.mMisBarre)>span{font-size:8px;line-height:8px;letter-spacing:0;color:var(--c6-b0);text-shadow:none}
+/* les trois cases des missions : trois carrés ; plein (blanc) = défi réussi */
+html.c6.hub:not(.poki) body #mHome.acc2 .mAccP>.mMisBarre .mMisPips{top:6px;right:6px;gap:2px}
+html.c6.hub:not(.poki) body #mHome.acc2 .mAccP>.mMisBarre .mMisPips u{width:4px;height:4px;background:var(--c6-e4);box-shadow:none}
+html.c6.hub:not(.poki) body #mHome.acc2 .mAccP>.mMisBarre .mMisPips u.ok{background:var(--c6-b0);box-shadow:none}
+/* la pastille : un carré d'or, sans chiffre (le script n'y écrit plus rien sous la charte 6) */
+html.c6 body #mHome .mBadge,html.c6.hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mOffres) .mBadge{top:-4px!important;right:-4px!important;width:8px;height:8px;min-width:0!important;padding:0!important;font-size:0!important;line-height:0;overflow:hidden;
+  transform:none!important;animation:none!important;background:var(--c6-or)!important;box-shadow:0 0 0 2px #000!important}
+/* JOUER : le mot d'or en cubes, sans plaque — un cerne dur de 2 px et une ombre dure de 4 px à la place du halo */
+html.c6.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay{min-height:0!important;
+  filter:drop-shadow(0 2px 0 #000) drop-shadow(0 -2px 0 #000) drop-shadow(2px 0 0 #000) drop-shadow(-2px 0 0 #000) drop-shadow(0 4px 0 #000)!important}
+html.c6.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay .lg{font-size:40px!important}
+/* l'ombre FLOUE des lettres (.lg::before, 0 .16em .3em) part : il ne reste que l'extrusion en marches — sinon le cerne dur entourait un nuage */
+html.c6 body #mHome .mPlay.mMot .lg::before{text-shadow:0 .015em 0 #6e3f00,0 .03em 0 #5c3300,0 .05em 0 #472700,0 .07em 0 #331c00}
+html.c6.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay:is(:active,.appui){transform:translateY(4px)!important}
+/* L'ÉDITION POKI (ni missions, ni carrière, ni offres : GARAGE · RÉGLAGES puis JOUER) : la même peau, 48 px, 8 px d'écart, la même ombre dure */
+html.c6.poki body #mHome .mOutils{gap:8px}
+html.c6.poki body #mHome :is(.mMisBtn,.mGear){--nc:var(--c6-b0);height:48px;min-height:48px!important;font-size:12px;letter-spacing:0;color:var(--c6-b0);text-shadow:none;
+  clip-path:none!important;filter:none!important;background:var(--c6-e1)!important;box-shadow:inset 0 0 0 2px var(--c6-b0),0 4px 0 0 #000!important}
+html.c6.poki body #mHome .mGear{width:48px;min-width:48px;padding:0}
+html.c6.poki body #mHome :is(.mMisBtn,.mGear):is(:active,.appui){transform:translateY(4px);box-shadow:inset 0 0 0 2px var(--c6-b0),0 0 0 0 #000!important}
+html.c6.poki body #mHome :is(.mMisBtn,.mGear)::before,html.c6.poki body #mHome :is(.mMisBtn,.mGear)::after{content:none!important}
+html.c6.poki body #mHome :is(.mMisBtn,.mGear) .pxi{--pxs:2;color:var(--c6-b0)!important;filter:none!important}
+html.c6.poki body #mHome .mPlay.mMot{filter:drop-shadow(0 2px 0 #000) drop-shadow(0 -2px 0 #000) drop-shadow(2px 0 0 #000) drop-shadow(-2px 0 0 #000) drop-shadow(0 4px 0 #000)!important}
+/* DEBOUT TRÈS ÉTROIT (320 px) : les carrés à 44, 4 px d'écart — les mots gardent leurs 64 px */
+@media (orientation:portrait) and (max-width:350px){
+  html.c6.hub:not(.poki) body #mHome.acc2{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 44px 44px 44px;column-gap:4px}}
+@media (orientation:portrait) and (min-width:351px) and (max-width:400px){
+  html.c6.hub:not(.poki) body #mHome.acc2{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 48px 48px 48px;column-gap:8px}}
+/* COUCHÉ : le bloc à droite — 96 + 96 + 3 × 48 + 4 × 8 = 368 px, sous le logo */
+@media (orientation:landscape) and (max-height:540px){
+  html.c6.hub:not(.poki) body #mHome.acc2{grid-template-columns:minmax(0,1fr) 96px 96px 48px 48px 48px;
+    grid-template-rows:minmax(0,1fr) auto 24px 48px 16px 64px minmax(0,1fr)}
+  html.c6.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay .lg{font-size:32px!important}}
+</style>
+<style id="c6-pages">
+/* CHARTE 6 · réglages, offres, modes — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
+
+/* ====== LES RÉGLAGES #mSet (2026-10-14, charte 6) ====================================================================
+   L'en-tête commun (◀ + REGLAGES) colle en haut ; le corps défile dessous (une seule zone qui défile : l'overlay).
+   Une ligne = un plaque d'encre de 48 px (filet sourd), 8 px d'écart ; sa commande est à DROITE et partage UNE peau : encre,
+   filet blanc 2 px ; allumé / appuyé = face blanche, texte d'encre. Pas d'or (aucune vraie décision ici) ; du rouge seulement
+   pour EFFACER (détruit la progression). Couché : deux colonnes (AUDIO + SAUVEGARDE | JEU) ; debout : une (AUDIO, JEU, SAUVEGARDE). */
+html.c6 #mSet{padding:0;min-height:100%}
+html.c6 #mSet.on{max-width:none;align-self:stretch}
+html.c6 #mSet.on>.c6Tete{animation:none}
+html.c6 #mSet .c6Corps{box-sizing:border-box;display:flex;flex-direction:column;gap:8px;width:100%;max-width:640px;margin:0 auto;
+  padding:8px calc(var(--sR) + 16px) calc(var(--sB) + 24px) calc(var(--sL) + 16px)}
+html.c6 #mSet .c6Col{display:contents}
+html.c6 #mSet .c6Col>.mSec{margin:16px 0 0}
+html.c6 #mSet .c6Col:first-child>:nth-child(-n+2){order:1}
+html.c6 #mSet .c6Col>.oJeu{order:2}
+html.c6 #mSet .c6Col>.oSauv{order:3}
+html.c6 #mSet .c6Pied{order:4}
+/* les groupes : plus de plaque autour, des lignes séparées de 8 px */
+html.c6 #mSet .mPanel{display:flex;flex-direction:column;gap:8px;padding:0;overflow:visible;background:none;box-shadow:none;clip-path:none}
+html.c6 #mSet .mPanel::before,html.c6 #mSet .mPanel::after{content:none}
+/* la LIGNE */
+html.c6 #mSet .mLigne{box-sizing:border-box;min-height:48px;padding:0 8px 0 12px;gap:12px;border:0;color:var(--c6-b0);font-size:10px;letter-spacing:0;
+  text-shadow:none;background:var(--c6-e1);box-shadow:inset 0 0 0 2px var(--c6-e3)}
+html.c6 #mSet .mLigne:is(:active,.appui){background:var(--c6-e2)}
+html.c6 #mSet .mLigne .tpL{flex:1 1 auto;min-width:0;font-size:10px;line-height:12px;letter-spacing:0;white-space:nowrap;color:var(--c6-b0)}
+html.c6 #mSet .mLigne>.pxi{flex:none;--pxs:2;color:var(--c6-b0)}
+html.c6 #mSet .mLigne.lien{padding-right:12px}
+/* le curseur est SOUDÉ à sa ligne (sa moitié basse) : on lit « SON · ON · volume » comme un seul bloc */
+html.c6 #mSet .mLigne.avecVol{box-shadow:inset 2px 0 0 0 var(--c6-e3),inset -2px 0 0 0 var(--c6-e3),inset 0 2px 0 0 var(--c6-e3)}
+html.c6 #mSet .volRow{display:flex;align-items:center;gap:8px;box-sizing:border-box;min-height:44px;margin-top:-8px;padding:0 12px 0 20px;
+  background:var(--c6-e1);box-shadow:inset 2px 0 0 0 var(--c6-e3),inset -2px 0 0 0 var(--c6-e3),inset 0 -2px 0 0 var(--c6-e3)}
+html.c6 #mSet .volS{flex:1 1 auto;width:auto;min-width:0;height:44px}
+html.c6 #mSet .volV{flex:none;min-width:40px;font-family:var(--pix);font-weight:400;font-size:10px;line-height:12px;letter-spacing:0;text-align:right;color:var(--c6-b0)}
+html.c6 #mSet .volS::-webkit-slider-thumb{width:28px;height:42px;margin-top:-19px;border:solid transparent;border-width:9px 8px;background:var(--c6-b0);background-clip:padding-box;box-shadow:none}
+/* l'INTERRUPTEUR : ON = face blanche, texte d'encre, patin d'encre à droite ; OFF = encre, filet blanc, patin blanc à gauche */
+html.c6 #mSet b.bascule{box-sizing:border-box;flex:none;width:64px;height:32px;padding:0 8px;justify-content:flex-start;font-size:8px;line-height:8px;
+  color:var(--c6-e0);background:var(--c6-b0);box-shadow:inset 0 0 0 2px var(--c6-b0)}
+html.c6 #mSet b.bascule::before{top:8px;right:8px;width:16px;height:16px;background:var(--c6-e0);box-shadow:none}
+html.c6 #mSet .mLigne.off b.bascule{justify-content:flex-end;color:var(--c6-b0);background:var(--c6-e1);box-shadow:inset 0 0 0 2px var(--c6-b0)}
+html.c6 #mSet .mLigne.off b.bascule::before{transform:translateX(-32px);background:var(--c6-b0);box-shadow:none}
+/* le SÉLECTEUR (image, langue, pouce, auto-école) : la même peau, la valeur au centre ; au doigt il passe en blanc */
+html.c6 #mSet b.valeur{box-sizing:border-box;flex:none;min-width:64px;height:32px;padding:0 8px;justify-content:center;gap:0;font-size:10px;line-height:12px;
+  color:var(--c6-b0);text-shadow:none;background:var(--c6-e1);box-shadow:inset 0 0 0 2px var(--c6-b0)}
+html.c6 #mSet b.valeur::after{content:none}
+html.c6 #mSet .mLigne:is(:active,.appui) b.valeur{color:var(--c6-e0);background:var(--c6-b0)}
+/* le pied : EFFACER, seule, sourde, en rouge (c'est la seule chose qu'on ne rattrape pas) ; la version dessous */
+html.c6 #mSet .c6Pied{display:flex;flex-direction:column;align-items:center;gap:16px;margin-top:16px}
+html.c6 #mSet .c6Efface{--c6-l:var(--c6-rouge);--c6-x:var(--c6-rouge);box-sizing:border-box;width:100%;max-width:320px;justify-content:center;gap:12px;padding:0 12px;font-size:10px}
+html.c6 #mSet .c6Efface .tpL{flex:none;white-space:nowrap;font-size:10px;color:var(--c6-rouge)}
+html.c6 #mSet .c6Efface .pxi{--pxs:2;color:var(--c6-rouge)}
+html.c6 #mSet .c6Ver{display:block;font-family:var(--pix);font-size:8px;line-height:8px;letter-spacing:0;color:var(--c6-g2);text-align:center}
+@media (orientation:landscape) and (max-height:540px){
+  html.c6 #mSet .c6Corps{max-width:none;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:16px;row-gap:0;align-items:start}
+  html.c6 #mSet .c6Col{display:flex;flex-direction:column;gap:8px;min-width:0}
+  html.c6 #mSet .c6Col>.mSec:first-child{margin-top:0}
+  html.c6 #mSet .c6Col>*{order:0}
+  html.c6 #mSet .c6Pied{grid-column:1/-1;order:0}
+}
+/* couché étroit (iPhone 7/8 : colonne de 262 px) : « COPIER MA SAUVEGARDE » = 200 px de mot, le chevron cède sa place — le libellé ne se coupe jamais */
+@media (orientation:landscape) and (max-width:700px){
+  html.c6 #mSet .mLigne.lien::after{display:none}
+  /* et « AUTO-ECOLE / DRIVING SCHOOL » (14 lettres = 140 px) + sa commande doivent tenir sur 263 px : écarts et marges de la ligne à 8, sélecteur en 8 px (comme l'interrupteur) */
+  html.c6 #mSet .mLigne{gap:8px;padding:0 8px}
+  html.c6 #mSet b.valeur{min-width:56px;padding:0 6px;font-size:8px;line-height:8px}
+}
+/* ?ui=5 (l'ancienne interface) : le DOM des réglages est celui de la charte 6 (en-tête ◀ + titre, colonnes, pied). Sans la charte, on lui rend l'allure d'avant :
+   le titre en tête, une seule colonne, la touche EFFACER et la version en bas — la 2e colonne couché et le dock RETOUR ne reviennent pas (voir notes/pages.md) */
+html:not(.c6) #mSet .c6Tete{display:flex;align-items:center;gap:14px;margin:6px 0 24px}
+html:not(.c6) #mSet .c6Titre{font-family:var(--pix);font-weight:400;font-size:var(--f9);color:#fff}
+html:not(.c6) #mSet :is(.c6Corps,.c6Col){display:flex;flex-direction:column;width:100%}
+html:not(.c6) #mSet .c6Pied{display:flex;flex-direction:column;align-items:center;gap:12px;margin:22px 0 0}
+html:not(.c6) #mSet .c6Ver{font-family:var(--sans);font-size:12px;color:var(--tx3)}
+</style>
+<style id="c6-carriere-missions">
+/* CHARTE 6 · la carrière, les missions — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
+</style>
+<style id="c6-garage">
+/* CHARTE 6 · le garage : le hub, la fiche, l'inventaire — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
+/* ---- LE HUB DU GARAGE (2026-10-14, charte 6) -------------------------------------------------------------------------
+   Sacha : « pas de boutons au mauvais endroit, pas de boutons qui se répètent ». Le hub sert à CHOISIR et AMÉLIORER sa caisse :
+   · l'en-tête commun #gC6Tete (◀ = l'accueil, GARAGE, cash vert / aura violette à droite) remplace HOME, le compteur et la jauge d'aura ;
+   · MISSIONS (#gvMis) et « OFFRES ÉPHÉMÈRES » (#gRappel) quittent le hub : elles sont à l'accueil (nœuds gardés, le script les lit) ;
+   · l'ŒIL (#gOeil, déplacé dans #gCard par le script) = une touche carrée 48 × 48 à côté du nom ;
+   · en bas à droite : INVENTAIRE · BOUTIQUE (jumelles, encre) au-dessus de LA décision, seule en or (JOUER, ou ACHETER).
+   H = le hub (ni menu, ni vitrine, ni retour de boutique, ni atelier fermé, ni boutique : ces états gardent leurs règles). */
+html.c6 body #garage>#gC6Tete{display:none}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop):not(.quiet):not(.launching):not(.missions)>#gC6Tete{display:flex}
+html.c6 body #garage>#gC6Tete .pxi{--pxs:2}
+html.c6 body #garage>#gC6Tete .c6Sou .pxi{--pxs:1}
+/* le haut : plus de plaques néon (compteur, aura + rang, outils) — la fiche seule, sous l'en-tête */
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gTop{box-sizing:border-box;width:min(60%,480px)!important;max-width:none!important;margin:0!important;padding:calc(var(--sT) + 72px) 0 0 calc(var(--sL) + 16px)!important;background:none!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gTop>:is(#gTopRow,#gAuraC,#gVJ,#gPlayMain,#gCarr){display:none!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gTop::before,html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gTop::after{content:none!important}
+/* la fiche : NOM · ŒIL · rang « 1 / 51 », la famille dessous (une barre de 4 px à sa couleur, pas un halo) */
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gCard{display:grid!important;grid-template-columns:minmax(0,max-content) 48px max-content;justify-content:start;align-items:center!important;gap:12px 8px!important;width:100%!important;margin:0!important;padding:0!important;
+  background:none!important;box-shadow:none!important;clip-path:none!important;transform:none!important;filter:none!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gCard>#gName{grid-column:1;grid-row:1;align-self:center!important;min-width:0;margin:0!important;padding:0!important;font-family:var(--pix);font-size:16px!important;line-height:24px!important;letter-spacing:0!important;font-style:normal!important;
+  white-space:normal!important;overflow-wrap:normal;color:var(--c6-b0)!important;-webkit-text-fill-color:currentColor;background:none!important;text-shadow:0 2px 0 #000!important;transform:none!important;filter:none!important;animation:none!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gCard>#gName::before,html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gCard>#gName::after{content:none!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gCard>#gLvl{grid-column:3;grid-row:1;align-self:center!important;justify-self:start;margin:0!important;padding:0!important;font-size:8px!important;line-height:1!important;letter-spacing:0!important;white-space:nowrap;
+  color:var(--c6-g1)!important;text-shadow:0 2px 0 #000!important;transform:none!important;font-style:normal!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gCard>#gRarPill{display:block!important;box-sizing:border-box;height:16px!important;min-height:0!important;grid-column:1/-1;grid-row:2;justify-self:start;margin:0!important;padding:4px 0 4px 12px!important;font-size:8px!important;line-height:8px!important;letter-spacing:0!important;white-space:nowrap;
+  color:var(--c6-b0)!important;background:none!important;border:0!important;border-radius:0!important;clip-path:none!important;transform:none!important;font-style:normal!important;text-shadow:0 2px 0 #000!important;
+  box-shadow:inset 4px 0 0 0 var(--rc,var(--c6-e4))!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gCard>#gRarPill::before,html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gCard>#gRarPill::after{content:none!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gCard>:is(#gMeta,#gDesc){grid-column:1/-1;margin:0!important;letter-spacing:0!important;font-style:normal!important;transform:none!important;text-shadow:0 2px 0 #000!important}
+/* l'ŒIL : petite touche carrée d'encre à côté du nom ; allumé (vue seule) = face blanche, œil d'encre */
+html.c6 body #garage #gCard>#gOeil{grid-column:2;grid-row:1;display:flex!important;align-items:center;justify-content:center;box-sizing:border-box;width:48px!important;min-width:48px!important;height:48px!important;min-height:48px!important;margin:0!important;padding:0!important;
+  translate:none;transform:none!important;clip-path:none!important;filter:none!important;animation:none!important;outline:0;color:var(--c6-x)!important;
+  background:var(--c6-f)!important;box-shadow:inset 0 0 0 2px var(--c6-l),0 4px 0 0 var(--c6-tr)!important}
+html.c6 body #garage #gCard>#gOeil::before,html.c6 body #garage #gCard>#gOeil::after,html.c6 body #garage #gCard>#gOeil .gLueur::after{content:none!important}
+html.c6 body #garage #gCard>#gOeil .gLueur{display:flex;line-height:0;filter:none!important}
+html.c6 body #garage #gCard>#gOeil .gLueur .pxi{--pxs:2!important;color:currentColor!important;filter:none!important}
+html.c6 body #garage #gCard>#gOeil:is(:active,.appui){translate:0 4px!important;box-shadow:inset 0 0 0 2px var(--c6-l),0 0 0 0 var(--c6-tr)!important}
+html.c6 body #garage.vueSeule #gCard>#gOeil{--c6-f:var(--c6-b0);--c6-l:var(--c6-e0);--c6-x:var(--c6-e0)}
+html.c6 body #garage:is(.menu,.vitrine,.shopRet,.atelierInv,.modeShop) #gCard>#gOeil{display:none!important}
+/* le bas : deux rangées — INVENTAIRE | BOUTIQUE (48), puis LA décision (64, l'or) ; 8 px entre deux touches, la tranche de 4 px en plus sous la rangée */
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-template-rows:48px 64px!important;column-gap:8px!important;row-gap:12px!important;align-items:stretch}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>#gRang1{display:contents!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>:is(#gvMis,#gvBranche,#gvLvl,#gvNivs,#gClose,#gPerso,#gBuyRow,#gCache),html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gBottom>#gRappel,html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct #gHomeBas{display:none!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>:is(#gvCof,#gShopBas){grid-row:1!important;display:flex!important;flex-direction:row!important;align-items:center;justify-content:center;gap:8px!important;box-sizing:border-box;width:auto!important;min-width:0!important;height:48px!important;min-height:48px!important;
+  margin:0!important;padding:0 8px!important;translate:none;transform:none!important;clip-path:none!important;filter:none!important;animation:none!important;outline:0!important;
+  font-size:10px!important;line-height:1!important;letter-spacing:0!important;white-space:nowrap;color:var(--c6-x)!important;text-shadow:none!important;
+  background:var(--c6-f)!important;box-shadow:inset 0 0 0 2px var(--c6-l),0 4px 0 0 var(--c6-tr)!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>#gvCof{grid-column:1/2!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>#gShopBas{grid-column:2/3!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>:is(#gvCof,#gShopBas)::before,html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>:is(#gvCof,#gShopBas)::after{content:none!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>:is(#gvCof,#gShopBas) .pxi{--pxs:2!important;color:currentColor!important;filter:none!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>:is(#gvCof,#gShopBas)>span{transform:none!important;font-style:normal!important;text-shadow:none!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>:is(#gvCof,#gShopBas) :is(.gvIco,.gvFx){display:none!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>:is(#gvCof,#gShopBas).modeOn{--c6-f:var(--c6-b0);--c6-l:var(--c6-e0);--c6-x:var(--c6-e0);color:var(--c6-x)!important;background:var(--c6-f)!important;box-shadow:inset 0 0 0 2px var(--c6-l),0 4px 0 0 var(--c6-tr)!important;outline:0!important;filter:none!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>:is(#gvCof,#gShopBas):is(:active,.appui){translate:0 4px!important;box-shadow:inset 0 0 0 2px var(--c6-l),0 0 0 0 var(--c6-tr)!important}
+/* LA décision : JOUER — ou ACHETER (verbe + prix) quand la caisse montrée est à vendre ; un seul or à l'écran */
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>:is(#gJouer,#gEquip.achat){grid-row:2!important;grid-column:1/3!important;display:flex!important;flex-direction:row!important;align-items:center;justify-content:center;gap:16px!important;justify-self:stretch!important;box-sizing:border-box;
+  width:auto!important;min-width:0!important;height:64px!important;min-height:64px!important;margin:0!important;padding:0 16px!important;translate:none;transform:none!important;clip-path:none!important;filter:none!important;animation:none!important;outline:0!important;
+  letter-spacing:0!important;white-space:nowrap;color:var(--c6-orE)!important;text-shadow:none!important;background:var(--c6-or)!important;
+  box-shadow:inset 0 0 0 2px var(--c6-orE),inset 0 4px 0 0 var(--c6-orL),0 4px 0 0 var(--c6-orT),0 4px 0 2px var(--c6-orE),0 0 0 2px var(--c6-orE)!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>:is(#gJouer,#gEquip.achat)::before,html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>:is(#gJouer,#gEquip.achat)::after{content:none!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>:is(#gJouer,#gEquip.achat):is(:active,.appui){translate:0 4px!important;box-shadow:inset 0 0 0 2px var(--c6-orE),inset 0 4px 0 0 var(--c6-orL),0 0 0 0 var(--c6-orT),0 0 0 2px var(--c6-orE),0 0 0 2px var(--c6-orE)!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>#gJouer>span{font-size:24px!important;line-height:1!important;letter-spacing:0!important;transform:none!important;font-style:normal!important;color:var(--c6-orE)!important;-webkit-text-fill-color:currentColor;background:none!important;text-shadow:none!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>#gJouer>.mChev{display:none!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>#gEquip.achat :is(.gEqV,.gEqP,.gEqP.eur){display:inline-block;margin:0!important;padding:0!important;line-height:1!important;letter-spacing:0!important;transform:none!important;font-style:normal!important;font-weight:400;color:var(--c6-orE)!important;-webkit-text-fill-color:currentColor;background:none!important;text-shadow:none!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>#gEquip.achat .gEqV{font-size:12px!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>#gEquip.achat .gEqP{font-size:16px!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct>#gEquip.achat .pxi{color:var(--c6-orE)!important;filter:none!important}
+html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct:has(>#gEquip.achat)>#gJouer{display:none!important}
+/* la jauge qui tourne le garage (Léo) : gardée, à plat — un patin blanc droit cerné d'encre */
+html.c6 body #gTourne .gtPouce{transform:none!important;border-radius:0!important;background:var(--c6-b0)!important;box-shadow:0 0 0 2px #000!important}
+/* la pastille du garage (écran de fin) : un carré d'or 8 × 8 sans chiffre, comme #bdGar à l'accueil */
+html.c6 body #bdGar2{top:-4px!important;right:-4px!important;width:8px;height:8px;min-width:0!important;padding:0!important;font-size:0!important;line-height:0;overflow:hidden;
+  transform:none!important;animation:none!important;background:var(--c6-or)!important;box-shadow:0 0 0 2px #000!important}
+/* COUCHÉ : le bloc des touches ne s'élargit pas (la caisse garde la place), calé à droite */
+@media (orientation:landscape){
+  html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct{width:min(100%,328px)!important;margin-left:auto!important;margin-right:-10px!important} /* son bord droit = celui des comptes (16 px + zone sûre) : #gBottom garde 12 px de marge intérieure et déborde de 2 */
+}
+/* DEBOUT : les deux comptes s'empilent à droite (ils ne tiennent pas à côté du titre sur 390 px) ; la fiche passe dessous, sur toute la largeur */
+@media (orientation:portrait){
+  html.c6 body #garage>#gC6Tete .c6Comptes{flex-direction:column;align-items:flex-end;align-self:flex-start}
+  html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct{margin-left:-6px!important;margin-right:-6px!important} /* debout : la rangée va de marge à marge (16 px), comme l'en-tête */
+  html.c6 body #garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gTop{width:100%!important;padding:calc(var(--sT) + 96px) calc(var(--sR) + 16px) 0 calc(var(--sL) + 16px)!important}
+}
+@media (prefers-reduced-motion:reduce){html.c6 body #garage #gCard>#gOeil{transition:none}}
+/* ---- L'INVENTAIRE = L'ATELIER FERMÉ (#garage.atelierInv) (2026-10-14, charte 6) ---------------------------------------
+   Il doit être le MÊME écran que le hub : le même en-tête (#gC6Tete : ◀ = retour au hub, le geste de la touche RETOUR #gvCof, qui
+   quitte le bas ; le titre devient INVENTAIRE ; cash vert / aura violette), la même fiche à gauche (nom 16 px, rang, famille).
+   À droite (en bas debout) UNE plaque d'encre : les onglets (actif = face blanche, texte d'encre) puis la grille, seule zone qui défile.
+   Toucher une carte l'ÉQUIPE (Léo, 11/10) : pas de décision à prendre ici, donc AUCUN or. Les états se lisent sans couleur :
+   équipée = face blanche · à toi = coche blanche · fermée = cadenas + prix (vert, c'est de l'argent) ou condition (blanc). */
+html.c6 body #garage>#gC6Tete>#gC6TitreInv{display:none}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.missions)>#gC6Tete{display:flex}
+html.c6 body #garage.atelierInv>#gC6Tete>.c6Titre:not(#gC6TitreInv){display:none}
+html.c6 body #garage.atelierInv>#gC6Tete>#gC6TitreInv{display:block}
+/* la fiche, comme au hub (sans l'œil : l'atelier tient la caisse) */
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gTop{box-sizing:border-box;width:100%!important;max-width:none!important;margin:0!important;padding:calc(var(--sT) + 72px) calc(var(--sR) + 16px) 0 calc(var(--sL) + 16px)!important;background:none!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gTop>:is(#gTopRow,#gAuraC,#gVJ,#gPlayMain,#gCarr){display:none!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gTop::before,html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gTop::after{content:none!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gCard{display:grid!important;grid-template-columns:minmax(0,max-content) max-content;grid-template-rows:48px;justify-content:start;align-items:center!important;gap:12px 16px!important;width:100%!important;margin:0!important;padding:0!important;
+  background:none!important;box-shadow:none!important;clip-path:none!important;transform:none!important;filter:none!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gCard>#gName{grid-column:1;grid-row:1;align-self:center!important;min-width:0;margin:0!important;padding:0!important;font-family:var(--pix);font-size:16px!important;line-height:24px!important;letter-spacing:0!important;font-style:normal!important;
+  white-space:normal!important;overflow-wrap:normal;color:var(--c6-b0)!important;-webkit-text-fill-color:currentColor;background:none!important;text-shadow:0 2px 0 #000!important;transform:none!important;filter:none!important;animation:none!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gCard>#gName::before,html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gCard>#gName::after{content:none!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gCard>#gLvl{grid-column:2;grid-row:1;align-self:center!important;justify-self:start;margin:0!important;padding:0!important;font-size:8px!important;line-height:1!important;letter-spacing:0!important;white-space:nowrap;
+  color:var(--c6-g1)!important;text-shadow:0 2px 0 #000!important;transform:none!important;font-style:normal!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gCard>#gRarPill{display:block!important;box-sizing:border-box;height:16px!important;min-height:0!important;grid-column:1/-1;grid-row:2;justify-self:start;margin:0!important;padding:4px 0 4px 12px!important;font-size:8px!important;line-height:8px!important;letter-spacing:0!important;white-space:nowrap;
+  color:var(--c6-b0)!important;background:none!important;border:0!important;border-radius:0!important;clip-path:none!important;transform:none!important;font-style:normal!important;text-shadow:0 2px 0 #000!important;
+  box-shadow:inset 4px 0 0 0 var(--rc,var(--c6-e4))!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gCard>#gRarPill::before,html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gCard>#gRarPill::after{content:none!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gCard>:is(#gMeta,#gDesc){grid-column:1/-1;margin:0!important;letter-spacing:0!important;font-style:normal!important;transform:none!important;text-shadow:0 2px 0 #000!important}
+/* la plaque : sous l'en-tête, calée à droite jusqu'en bas ; RETOUR (#gvCof, tout #gAct), le bandeau « INVENTAIRE · n » (#gRar : le titre est en haut) et le rappel s'effacent */
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gBottom{position:relative!important;display:flex!important;flex-direction:column!important;justify-content:flex-start!important;align-items:stretch!important;gap:8px!important;box-sizing:border-box;
+  top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;flex:none!important;align-self:stretch!important;width:auto!important;height:min(40vh,360px)!important;max-width:none!important;max-height:none!important;
+  margin:0 calc(var(--sR) + 16px) calc(var(--sB) + 16px) calc(var(--sL) + 16px)!important;padding:8px!important;background:rgba(11,13,18,.8)!important;box-shadow:inset 0 0 0 2px var(--c6-e3)!important;clip-path:none!important;transform:none!important;translate:none!important;animation:none!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gBottom::before,html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gBottom::after{content:none!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gBottom>:is(#gRar,#gAct,#gPrev,#gNext,#gRappel){display:none!important}
+/* les onglets : une rangée de 48 px posée sur un filet blanc ; l'actif = face blanche, texte d'encre (pas une couleur) ; le mot seul, entier */
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gTabs{display:flex!important;flex:none!important;gap:0!important;box-sizing:border-box;width:auto!important;height:48px!important;min-height:48px!important;margin:0!important;padding:0!important;overflow:visible!important;
+  background:none!important;box-shadow:inset 0 -2px 0 0 var(--c6-b0)!important;clip-path:none!important;transform:none!important;-webkit-mask:none!important;mask:none!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gTabs::before,html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gTabs::after,html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gTabs>.gTab::before,html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gTabs>.gTab::after{content:none!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gTabs>.gTab{flex:1 1 0!important;display:flex!important;align-items:center;justify-content:center;box-sizing:border-box;width:auto!important;min-width:0!important;height:48px!important;min-height:48px!important;margin:0!important;padding:0 4px!important;
+  border:0!important;border-radius:0!important;outline:0!important;font-family:var(--pix);font-size:8px!important;line-height:1!important;letter-spacing:0!important;white-space:nowrap;color:var(--c6-g1)!important;text-shadow:none!important;
+  background:none!important;box-shadow:none!important;clip-path:none!important;transform:none!important;translate:none!important;filter:none!important;animation:none!important;opacity:1!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gTabs>.gTab>span{transform:none!important;font-style:normal!important;letter-spacing:0!important;text-shadow:none!important;color:inherit!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gTabs>.gTab>.pxi{display:none!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gTabs>.gTab.on{color:var(--c6-e0)!important;background:var(--c6-b0)!important}
+/* la grille : trois colonnes, LA zone qui défile (8 px entre deux cartes, + la tranche de 4 px sous chaque rangée) */
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;grid-template-rows:none!important;grid-auto-rows:auto!important;grid-auto-columns:auto!important;grid-auto-flow:row!important;align-content:start;gap:12px 8px!important;
+  flex:1 1 0!important;box-sizing:border-box;width:auto!important;height:auto!important;min-height:0!important;max-height:none!important;margin:0!important;padding:0 0 4px!important;overflow-x:hidden!important;overflow-y:auto!important;touch-action:pan-y;overscroll-behavior:contain;scroll-snap-type:none!important;
+  background:none!important;box-shadow:none!important;-webkit-mask:none!important;mask:none!important;clip-path:none!important;transform:none!important;translate:none!important;animation:none!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip::before,html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip::after{content:none!important}
+/* la carte (caisse ou pièce) : UNE peau — encre, filet blanc 2 px, tranche noire 4 px */
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gT{position:relative;display:block;box-sizing:border-box;width:auto!important;min-width:0!important;max-width:none!important;height:auto!important;min-height:48px!important;aspect-ratio:16/10;margin:0!important;padding:0!important;overflow:hidden;
+  border-radius:0!important;outline:0!important;transform:none!important;translate:none;clip-path:none!important;filter:none!important;animation:none!important;scroll-snap-align:none!important;
+  background:var(--c6-e1)!important;box-shadow:inset 0 0 0 2px var(--c6-b0),0 4px 0 0 #000!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gT:active{translate:0 4px;box-shadow:inset 0 0 0 2px var(--c6-b0),0 0 0 0 #000!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gT::after,html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gT:not(.lock)::before{content:none!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gT.lock::before{left:8px!important;top:8px!important;width:12px!important;height:12px!important;z-index:2;background-color:var(--c6-b0)!important;transform:none!important;filter:none!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gT>.gTl{display:none!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gT>.gTv{inset:16px 24px!important;background:var(--c6-e3)!important;animation:none!important;transform:none!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gT>img{position:absolute!important;left:0!important;top:0!important;width:100%!important;height:100%!important;object-fit:contain;transform:none!important;filter:none!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gT.lock>img{opacity:.4}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gT>.rarLogo{top:8px!important;right:8px!important;transform:none!important;filter:none!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gT>em{position:absolute!important;left:auto!important;right:4px!important;top:auto!important;bottom:4px!important;display:flex;align-items:center;justify-content:flex-end;gap:4px;box-sizing:border-box;width:auto!important;height:16px!important;margin:0!important;padding:0 4px!important;
+  font-family:var(--pix);font-style:normal!important;font-size:8px!important;line-height:1!important;letter-spacing:0!important;white-space:nowrap;color:var(--c6-cash)!important;background:var(--c6-e0)!important;box-shadow:none!important;text-shadow:none!important;transform:none!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gT>em:empty{display:none!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gT>em:is(.def,.eur),html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gT:not(.lock)>em{color:var(--c6-b0)!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gT>em .pxi{--pxs:1!important;margin:0!important;color:currentColor!important;filter:none!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gT>b{left:8px!important;right:8px!important;bottom:8px!important;font-family:var(--pix);font-weight:400;font-size:8px!important;line-height:12px!important;letter-spacing:0!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;
+  color:var(--c6-b0)!important;text-shadow:none!important;transform:none!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gT .gSwc{left:16px!important;right:16px!important;top:12px!important;bottom:24px!important;transform:none!important;box-shadow:0 0 0 2px #000!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gT :is(.gRub,.gIc){transform:none!important;filter:none!important}
+/* choisie (montrée sur le plateau, pas encore à toi) = filet blanc PLEIN ; équipée = face BLANCHE, encre dessus */
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gT.on{box-shadow:inset 0 0 0 4px var(--c6-b0),0 4px 0 0 #000!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gT.eq{background:var(--c6-b0)!important;box-shadow:inset 0 0 0 2px var(--c6-b0),0 4px 0 0 #000!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gT.eq>b,html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gT.eq .gIc{color:var(--c6-e0)!important}
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip>.gVide{grid-column:1/-1;display:flex;align-items:center;justify-content:center;min-height:48px;font-family:var(--pix);font-size:8px!important;letter-spacing:0!important;color:var(--c6-g1)!important;text-shadow:none!important;transform:none!important}
+/* COUCHÉ (la même condition que la console de l'ancienne feuille : là, la jauge de Léo est fixe en bas à gauche) : la plaque à droite, de l'en-tête au bas ; la fiche à gauche.
+   Ailleurs (debout, tablette) la plaque reste DANS LE FLUX, en bas : la jauge (#gTourne, rangée dans #garage par gtPlace) reste posée juste au-dessus d'elle. */
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gBottom{position:absolute!important;top:calc(var(--sT) + 72px)!important;right:calc(var(--sR) + 16px)!important;bottom:calc(var(--sB) + 16px)!important;width:min(48%,400px)!important;height:auto!important;margin:0!important}
+  html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gTop{width:48%!important;padding-right:0!important}
+}
+/* (2026-10-14, ordre de Sacha) plus AUCUN surnom / nom de rang d'aura à l'écran (« DIVINITE DU CIEL »…) ni sa jauge : seulement le chiffre, en violet. Les nœuds restent (le script les écrit). */
+html.c6 body #garage #gAuraC :is(small,u),html.c6 body #garage #gVJ .gvU .gvR{display:none!important}
+@media (orientation:landscape) and (min-width:800px){
+  html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gTabs>.gTab{font-size:10px!important} /* 8 lettres × 10 = 80 px dans 96 : tient ; en dessous (667) on reste à 8 */
+}
+/* DEBOUT : la fiche sous l'en-tête à deux étages ; INVENTAIRE (10 lettres) passe à 12 px pour ne pas toucher les comptes */
+@media (orientation:portrait){
+  html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gTop{width:100%!important;padding:calc(var(--sT) + 96px) calc(var(--sR) + 16px) 0 calc(var(--sL) + 16px)!important}
+  html.c6 body #garage.atelierInv>#gC6Tete>#gC6TitreInv{font-size:12px}
+}
+/* (2026-10-14, vu au banc) COUCHÉ : la fiche s'arrête 8 px AVANT la plaque (à 48 % elle passait dessous de 24 px à 844 et de 36 px à 667 : un nom long y aurait disparu).
+   Sous 700 px de large il reste ~150 px au nom : il passe à 12 px sur des lignes de 16 (12 lettres × 12 = 144 : « TOUT-TERRAIN » tient sans être coupé). */
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gTop{width:calc(100% - var(--sR) - 24px - min(48%,400px))!important}
+}
+@media (orientation:landscape) and (max-height:540px) and (max-width:700px){
+  html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gCard>#gName{font-size:12px!important;line-height:16px!important}
+}
+/* (2026-10-14, vu au banc, grille pleine SIMULÉE de 14 cartes) dès que la grille déborde, ses rangées « auto » retombaient à la hauteur mini des cartes (48 px) alors que les
+   cartes gardent leur 16/10 (77 px) : elles se CHEVAUCHAIENT. Les rangées prennent la hauteur vraie des cartes ; la grille défile. */
+html.c6 body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip{grid-auto-rows:max-content!important}
+/* (2026-10-14, ordre de Sacha, suite) le nom de rang du profil du garage (#gpRang) se tait aussi : le chiffre d'aura et sa jauge restent. */
+html.c6 body #gProfil #gpRang{display:none!important}
+</style>
+<style id="c6-boutique">
+/* CHARTE 6 · la boutique (la rotonde de Léo), la fenêtre d'achat — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
+</style>
+<style id="c6-hud">
+/* CHARTE 6 · le HUD de course, les commandes tactiles, les annonces — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
+/* ---- 1. LE ⏸ (2026-10-14, charte 6) : c'était une plaque de laque penchée à bande cyan et lueur — la seule touche du HUD qui parlait
+   encore néon. Une touche d'encre 48 × 48, DROITE, filet blanc 2 px, épaisseur noire 4 px, l'icône blanche à plat. Même place (5451),
+   même clic. Les anciennes règles (2699-2705, 5318-5326) sont en !important : on les domine par html.c6. */
+html.c6 body #tGear{--nc:#fff;transform:none!important;background:var(--c6-e1)!important;clip-path:none!important;filter:none!important;
+  box-shadow:inset 0 0 0 2px var(--c6-b0),0 4px 0 0 #000!important}
+html.c6 body #tGear:active,html.c6 body #tGear.appui{transform:translateY(4px)!important;background:var(--c6-e2)!important;
+  box-shadow:inset 0 0 0 2px var(--c6-b0),0 0 0 0 #000!important}
+html.c6 body #tGear>.pxi,html.c6 body #tGear:active>.pxi,html.c6 body #tGear.appui>.pxi{transform:none!important;color:var(--c6-b0)!important;
+  background:var(--c6-b0)!important;filter:none!important}
+/* ---- 2. LA PLAQUETTE DU POUVOIR ACTIF (2026-10-14, charte 6) : c'était une laque à coin coupé, bande de couleur et lueur intérieure
+   qui BATTAIT (k5PwBat animait un box-shadow, interdit en course). Encre pleine, filet blanc 2 px, à plat ; le nom et le temps en
+   BLANC (plus de texte découpé en bandes ni de filter de contour : deux filtres de moins par plaquette) ; la couleur du pouvoir
+   (--pc) ne reste que sur son icône et sa barre : c'est du sens. Ni la place ni les tailles ne changent. */
+@keyframes c6PwIn{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+html.c6 body.touch #pwrChip .pw{background:var(--c6-e1);clip-path:none;box-shadow:inset 0 0 0 2px var(--c6-b0);
+  animation:c6PwIn var(--c6-pose) var(--c6-courbe) both}
+html.c6 body.touch #pwrChip .pw.fin{animation:chipFin .24s steps(2) infinite}   /* la fin qui clignote : opacité seule, gardée */
+html.c6 body.touch #pwrChip .pw>.pxi{filter:none}
+html.c6 body.touch #pwrChip .pw span small,html.c6 body.touch #pwrChip .pw span b{   /* un contour d'encre DUR (text-shadow sans flou, pas un filter) : la plaquette passe à 45 % quand elle se fait discrète (hudDiscret), le blanc doit rester lisible sur un ciel clair */
+  text-shadow:1px 0 0 #000,-1px 0 0 #000,0 1px 0 #000,0 -1px 0 #000!important}
+html.c6 body.touch #pwrChip .pw span small{--tc:#fff;color:var(--c6-b0)!important;-webkit-text-fill-color:var(--c6-b0)!important;background:none!important;filter:none;letter-spacing:0}
+html.c6 body.touch #pwrChip .pw span b{color:var(--c6-b0)!important;-webkit-text-fill-color:var(--c6-b0)!important;background:none!important;filter:none!important}   /* !important : le repli des vieux iPhone (5262) le remettait à la couleur du pouvoir */
+html.c6 body.touch #pwrChip .pw u{left:10px;right:10px;height:4px;background:var(--pc);box-shadow:none}
+html.c6 body.touch #pwrChip .pw.cumul u{height:4px;background:var(--c6-b0);box-shadow:none}   /* cumulé au-delà de sa durée : la barre passe au blanc (elle « brillait plus fort ») */
+@media (prefers-reduced-motion:reduce){html.c6 body.touch #pwrChip .pw{animation:none}}
+html.c6[data-reduced-motion="1"] body.touch #pwrChip .pw{animation:none}
+/* ---- 3. LES BANDEAUX D'ANNONCE (2026-10-14, charte 6) : l'étiquette au-dessus du grand mot (« NOUVEAU SOMMET », « NOUVEAU MOTEUR »,
+   « + CAPACITE ») était un octogone à pointes à la couleur du moteur ; le ruban du record, penché de 4° en dégradé. Une étiquette
+   d'OR à plat, rectangulaire, encre dessus, sans chasse. Le grand mot dessous ne change pas. (Toutes en or, même hors record :
+   la couleur du moteur reste sur le nom et sur le moteur 3D.) */
+html.c6 body #engBig .ebTit,html.c6 body #engBig.rec .ebTit{clip-path:none;filter:none;letter-spacing:0!important;
+  background:var(--c6-or)!important;color:var(--c6-orE)!important;-webkit-text-fill-color:var(--c6-orE);text-shadow:none!important;box-shadow:none!important}
+@keyframes c6Ruban{from{opacity:0;transform:scale(1.25)}to{opacity:1;transform:none}}
+html.c6 body #engBig .ebRuban{transform:none;clip-path:none;background:var(--c6-or);box-shadow:inset 0 0 0 2px var(--c6-orE);
+  animation:c6Ruban var(--c6-pose) var(--c6-courbe) both}
+html.c6 body #engBig .ebRuban b,html.c6 body #engBig .ebRuban small{color:var(--c6-orE);-webkit-text-fill-color:var(--c6-orE);letter-spacing:0;text-shadow:none;filter:none}
+@media (prefers-reduced-motion:reduce){html.c6 body #engBig .ebRuban{animation:none}}
+/* ---- 4. LA CONSIGNE « GLISSE POUR TOURNER » (2026-10-14, charte 6) : couché, elle était serrée dans 100 px à gauche de l'anneau
+   (5466) et passait sur TROIS lignes (11 lettres × 10 px = 110 > 100). Sans chasse (19 lettres × 8 px = 152 px) elle tient sur UNE
+   ligne : on la pose juste AU-DESSUS de l'anneau (dont le haut est à --sB + 126 px, + 4 px quand il respire), départ sur la marge
+   du HUD (--hudG = encoche + 14 px : rien dans l'encoche). Debout : une ligne, comme avant, sans chasse. Blanche, plus lilas. */
+html.c6 body #tSteerHint{--tc:#fff;letter-spacing:0!important;white-space:nowrap!important}
+@media (orientation:landscape) and (max-height:540px){html.c6 body.touch #tSteerHint{width:auto!important;line-height:1!important;
+  bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 136px)!important}}
+</style>
+<style id="c6-pause-fin">
+/* CHARTE 6 · la pause, la fin de partie — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
+/* =====================================================================================================================
+   LA FIN DE PARTIE (#mDead) — UNE HIÉRARCHIE AU LIEU DE SEPT BOÎTES (2026-10-14, charte 6)
+   Sacha : « l'argent doit être mis plus en avant ». On lit de haut en bas : 1) le VERDICT (16 px ; « NOUVEAU RECORD ! » n'est
+   écrit QUE là, sinon la cause en gris dessous) · 2) LE HÉROS : l'argent gagné, 32 px, vert, SANS cadre, le compte dessous ·
+   3) AURA et MOTEUR, deux cartes d'encre JUMELLES (légende, valeur, sous-ligne) · 4) UNE bande de petits chiffres, sans boîte ·
+   5) le défi (une carte d'encre). En bas, toujours à l'écran : la maison 48 × 48 + REJOUER (l'or, la seule décision).
+   OFFRES et RÉGLAGES quittent l'écran (ils sont à l'accueil). Le DOM reste À PLAT (le script y range #nameEntry après .mFin et
+   la cascade d'entrée de c6-transitions compte les enfants directs) : debout = une colonne (flex + order), couché = une grille
+   de deux colonnes sur les MÊMES lignes (le haut de AURA/MOTEUR = le haut du défi, leur bas = le bas de REJOUER).
+   ⚠ Le préfixe `html.c6 #overlay #mDead` (deux id) domine les ~270 anciennes règles (charte4, uxPasse : au plus un id) sans !important ;
+   les rares !important répondent à un !important ancien ou à un style posé EN LIGNE par le script (couleur du titre, display de la cause).
+   Les corps qui dépendent d'une longueur (--n le montant / l'aura, --nb REJOUER) se calculent en crans 32·24·16 / 24·16·12 :
+   pas d'unité de conteneur (iPhone 7 = iOS 15), et jamais un corps hors de la gamme.
+   ===================================================================================================================== */
+html:not(.c6) .hNxC6{display:none}  /* seule règle hors html.c6 : l'ancienne interface (?ui=5) garde son badge RECORD ! seul, sans la sous-ligne ajoutée pour les cartes jumelles */
+html.c6 #overlay #mDead{gap:0;padding:calc(var(--sT) + 16px) calc(var(--sR) + 16px) calc(var(--sB) + 16px) calc(var(--sL) + 16px);font-family:var(--pix);text-align:center}
+html.c6 #overlay #mDead.on{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start}
+html.c6 #overlay #mDead>*{order:0;grid-area:auto;align-self:auto;transform:none}
+/* l'entrée : la cascade de la charte (30 ms), dans l'ordre où on lit — plus les délais de 250 à 660 ms ni les glissés de côté */
+html.c6 #overlay #mDead.on>*{animation:c6Entre var(--c6-pose) var(--c6-courbe) backwards;animation-delay:0ms}
+html.c6 #overlay #mDead.on>.mCashL{animation-delay:30ms}
+html.c6 #overlay #mDead.on>.mHero{animation-delay:60ms}
+html.c6 #overlay #mDead.on>.mStats{animation-delay:90ms}
+html.c6 #overlay #mDead.on>:is(.mObj,.mFin){animation-delay:120ms}
+html.c6 #overlay #mDead .mHero>.hCard,html.c6 #overlay #mDead .mFin>*{animation:none!important}   /* (répond aux !important de charte4 : le reflet k4Lingot en boucle sur l'or, les cartes distribuées) */
+/* 1 — LE VERDICT */
+html.c6 #overlay #mDead .mOver{order:1;margin:0;font-size:16px;line-height:24px;letter-spacing:0;color:var(--c6-b0)!important;text-shadow:none;text-wrap:balance}
+html.c6 #overlay #mDead .mCause{order:2;display:block!important;margin:4px 0 0;font-size:8px;line-height:12px;letter-spacing:0;color:var(--c6-g2)!important;text-shadow:none;text-wrap:balance}
+html.c6 #overlay #mDead .mCause:empty,html.c6 #overlay #mDead.c6Rec .mCause{display:none!important}
+/* 2 — LE HÉROS : l'argent, seul, en grand — plus de cadre vert, plus de dégradé, plus de coin coupé, plus de légende espacée */
+html.c6 #overlay #mDead .mCashL{order:3;position:static;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-wrap:nowrap;gap:8px;margin:16px 0 0;padding:8px 0;
+  background:none;clip-path:none;box-shadow:none;letter-spacing:0;container-type:normal}
+html.c6 #overlay #mDead .mCashL::before,html.c6 #overlay #mDead .mCashL::after{content:none}
+html.c6 #overlay #mDead .mCashL>span,html.c6 #overlay #mDead .mCashL>em{display:none}
+html.c6 #overlay #mDead .mCashL>b{order:0;font-size:calc(32px - 8px*clamp(0,var(--n,6) - 8,1) - 8px*clamp(0,var(--n,6) - 10,1));line-height:1;letter-spacing:0;word-spacing:-.5em;white-space:nowrap;
+  color:var(--c6-cash);text-shadow:none;transform:none}
+html.c6 #overlay #mDead .mCashL>small{order:1;font-size:8px;line-height:1;letter-spacing:0;color:var(--c6-g2)}
+/* 3 — AURA · MOTEUR : deux cartes JUMELLES — la légende en haut, la valeur au milieu, la sous-ligne en bas */
+html.c6 #overlay #mDead .mHero{order:4;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;width:auto;min-height:176px;margin:16px 0 0}
+html.c6 #overlay #mDead .hCard{display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:8px;min-width:0;min-height:0;padding:12px 8px;container-type:normal;text-align:center}
+html.c6 #overlay #mDead .hCard::before,html.c6 #overlay #mDead .hCard::after{content:none}
+html.c6 #overlay #mDead .hCard>*{margin:0}
+html.c6 #overlay #mDead .hCard>small{flex:none;font-size:8px;line-height:1;letter-spacing:0;color:var(--c6-g2);white-space:nowrap}
+html.c6 #overlay #mDead .hCard>em{display:none}                                   /* « RECORD ! » : une fois, dans le titre */
+html.c6 #overlay #mDead .hCard.hAura>b{flex:1 1 0;display:flex;align-items:center;justify-content:center;min-height:0;white-space:nowrap;line-height:1;letter-spacing:0;
+  font-size:calc(24px - 8px*clamp(0,var(--n,3) - 6,1) - 4px*clamp(0,var(--n,3) - 9,1));color:var(--c6-aura);text-shadow:none}
+html.c6 #overlay #mDead .hCard.hAura>b.zero{color:var(--c6-g2);text-shadow:none}
+html.c6 #overlay #mDead .hNx{flex:none;display:flex;align-items:baseline;justify-content:center;flex-wrap:wrap;gap:4px 8px;font-size:8px;line-height:12px;letter-spacing:0;color:var(--c6-g2)}
+html.c6 #overlay #mDead .hNx>span{white-space:nowrap;color:var(--c6-g1)}
+html.c6 #overlay #mDead .hNx .pxi{color:currentColor}
+html.c6 #overlay #mDead .hMot .hNx.hPres>span{color:var(--c6-b0)}                 /* « à 3 pièces du V6 » : ce qui donne envie de relancer se lit en blanc (l'or reste à REJOUER) */
+html.c6 #overlay #mDead .hMot3 .hMotCv{flex:1 1 0;display:block;width:100%;max-width:176px;min-height:0;height:auto;aspect-ratio:auto;margin:0;object-fit:contain;filter:none;animation:none}
+html.c6 #overlay #mDead .hMotN{flex:none;display:flex;align-items:baseline;justify-content:center;gap:8px;font-size:8px;line-height:12px;letter-spacing:0;color:var(--c6-b0);text-shadow:none}
+html.c6 #overlay #mDead .hMotN i{font-style:normal;font-size:8px;letter-spacing:0;color:var(--c6-g2)}
+/* 4 — LA BANDE : quatre petits chiffres, sans boîte ni filet — elle se lit, elle ne pèse pas */
+html.c6 #overlay #mDead .mStats{order:5;display:grid;grid-template-columns:repeat(4,auto);justify-content:space-between;align-content:center;align-items:start;gap:0;box-sizing:border-box;width:auto;min-width:0;margin:16px 0 0;padding:0 8px;
+  background:none;clip-path:none;box-shadow:none}
+html.c6 #overlay #mDead .mStat{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:8px;min-width:0;min-height:0;padding:0;background:none;box-shadow:none}
+html.c6 #overlay #mDead .mStat::before{content:none}
+html.c6 #overlay #mDead .mStat b,html.c6 #overlay #mDead .mStat.mFren b{font-size:16px;line-height:1;letter-spacing:0;color:var(--c6-b0);text-shadow:none;transform:none}
+html.c6 #overlay #mDead .mStat.mFren.zero b{color:var(--c6-g2);text-shadow:none}
+html.c6 #overlay #mDead .mStat span,html.c6 #overlay #mDead .mStat.mFren.rec span{font-size:8px;line-height:1;letter-spacing:0;color:var(--c6-g2);white-space:nowrap}
+/* 5 — LE DÉFI / L'OBJET GAGNÉ : une carte d'encre (elle se touche : le chevron le dit), sa jauge, sa prime en vert */
+html.c6 #overlay #mDead .mNew{order:5}
+html.c6 #overlay #mDead .mObj{order:6;display:flex;flex-direction:column;justify-content:center;gap:8px;width:auto;min-height:0;margin:16px 0 0;padding:12px 16px;text-align:left;
+  background:var(--c6-e1);clip-path:none;box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-e3);filter:none}
+html.c6 #overlay #mDead .mObj:empty{display:none}
+html.c6 #overlay #mDead .mObj.aFig{padding-right:108px}
+html.c6 #overlay #mDead .mObj:is(:active,.appui){filter:none;background:var(--c6-e2)}
+html.c6 #overlay #mDead .mObj .obHd{gap:8px;font-size:8px;line-height:12px;letter-spacing:0;color:var(--c6-g2);text-shadow:none}
+html.c6 #overlay #mDead .mObj .obHd .pxi{--pxs:1;color:currentColor}
+html.c6 #overlay #mDead .mObj .mMisPips{gap:4px;margin-left:auto}
+html.c6 #overlay #mDead .mObj .mMisPips u{width:8px;height:8px;background:var(--c6-e3);box-shadow:none}
+html.c6 #overlay #mDead .mObj .mMisPips u.ok{background:var(--c6-cash);box-shadow:none}
+html.c6 #overlay #mDead .mObj .obBig{font-size:12px;line-height:16px;letter-spacing:0;color:var(--c6-b0);text-shadow:none}
+html.c6 #overlay #mDead .mObj .obBig .obCat{font-size:8px;letter-spacing:0;color:var(--c6-g2)}
+html.c6 #overlay #mDead .mObj .obBar{height:8px;margin:2px;transform:none;background:var(--c6-e3);box-shadow:0 0 0 2px #000}
+html.c6 #overlay #mDead .mObj .obBar i{background:var(--c6-b0);box-shadow:none}
+html.c6 #overlay #mDead .mObj .obBar.ok i{background:var(--c6-cash);box-shadow:none}
+html.c6 #overlay #mDead .mObj .obFt{gap:4px 8px;font-size:8px;line-height:12px;letter-spacing:0;color:var(--c6-g2);text-shadow:none}
+html.c6 #overlay #mDead .mObj .obFt>span:first-child{color:var(--c6-g1)}
+html.c6 #overlay #mDead .mObj .obFt .pxi{--pxs:1;color:var(--c6-b0)}
+html.c6 #overlay #mDead .mObj .obPrime{color:var(--c6-cash)}
+html.c6 #overlay #mDead .mObj .obGain{color:var(--rc,var(--c6-b0));text-shadow:none}   /* la couleur de rareté de l'objet : du sens, sans halo */
+html.c6 #overlay #mDead .mObj:is(.rec,.pret) .obFt>span:first-child{color:var(--c6-cash)}
+/* LE RESSORT, puis LES DEUX TOUCHES : la maison (carrée, icône seule) et REJOUER (l'or, sur tout le reste) */
+html.c6 #overlay #mDead .mEsp{order:7;flex:1 0 16px;max-height:none;min-height:16px}
+html.c6 #overlay #mDead .mFin{order:8;display:flex;align-items:flex-end;gap:8px;width:auto;margin:0;padding:0 0 var(--c6-t)}   /* (le bas de la rangée = le bas de l'épaisseur des touches) */
+html.c6 #overlay #mDead .mFin>.mMenu{flex:none;flex-direction:row;gap:0;width:48px;min-width:48px;height:48px;min-height:48px;padding:0;font-size:12px}
+html.c6 #overlay #mDead .mFin>.mMenu .pxi{--pxs:2;color:currentColor}
+html.c6 #overlay #mDead .mFin>.mMenu>span{display:none}
+html.c6 #overlay #mDead .mFin>[data-m="replay"]{flex:1 1 0;min-width:0;width:auto;min-height:64px;margin:0;padding:0 8px;container-type:normal}
+html.c6 #overlay #mDead .mFin>[data-m="replay"]>span{font-size:calc(24px - 8px*clamp(0,var(--nb,7) - 7,1));line-height:1;letter-spacing:0;white-space:nowrap}
+html.c6 #overlay #mDead>.mRow{display:none}                                       /* OFFRES · RÉGLAGES : à l'accueil, pas ici (le script ne les lit pas) */
+html.c6 #overlay #mDead #nameEntry{order:9;grid-column:1/-1;grid-area:auto}
+/* DEBOUT, grand écran (≥ 760 px de haut) : on a la place — les blocs respirent (24 px), les jumelles prennent de la hauteur ; REJOUER reste en bas, sous le pouce */
+@media (orientation:portrait) and (min-height:760px){
+  html.c6 #overlay #mDead .mCashL{margin-top:24px;padding:16px 0}
+  html.c6 #overlay #mDead .mHero{min-height:216px;margin-top:24px}
+  html.c6 #overlay #mDead .mStats,html.c6 #overlay #mDead .mObj{margin-top:24px}
+  html.c6 #overlay #mDead .mObj{padding:16px}
+}
+/* DEBOUT, écran très court : le contenu défile SOUS les deux touches, qui restent collées en bas sur un fond d'encre */
+@media (orientation:portrait) and (max-height:620px){
+  html.c6 #overlay #mDead .mHero{min-height:144px}
+  html.c6 #overlay #mDead .mFin{position:sticky;bottom:0;z-index:2;margin:0 -16px calc(-1*(var(--sB) + 16px));padding:8px 16px calc(var(--sB) + 16px + var(--c6-t));background:var(--c6-e0)}
+}
+/* COUCHÉ : deux colonnes sur la même grille (gouttière 16 px). À gauche le verdict, l'argent, les jumelles ; à droite la bande,
+   le défi, les touches. Les lignes sont COMMUNES : la bande tient la hauteur du verdict + de l'argent, le défi commence où
+   commencent les jumelles, REJOUER finit où elles finissent. L'écran prend exactement la hauteur visible : rien ne défile. */
+@media (orientation:landscape){
+  html.c6 #overlay #mDead.on{display:grid;flex:1 1 0%;min-height:0;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto auto auto minmax(0,1fr) auto;column-gap:16px;row-gap:0;
+    align-content:stretch;justify-content:stretch;grid-template-areas:"over stats" "cause stats" "cash stats" "hero obj" "hero fin"}
+  html.c6 #overlay #mDead .mOver{grid-area:over}
+  html.c6 #overlay #mDead .mCause{grid-area:cause}
+  html.c6 #overlay #mDead .mCashL{grid-area:cash;margin:8px 0 16px}
+  html.c6 #overlay #mDead .mHero{grid-area:hero;min-height:0;margin:0}
+  html.c6 #overlay #mDead .mStats{grid-area:stats;margin:0 0 16px}
+  html.c6 #overlay #mDead .mObj{grid-area:obj;margin:0 0 16px;padding:8px 12px;overflow:hidden}
+  html.c6 #overlay #mDead .mObj.aFig{padding-right:108px}
+  html.c6 #overlay #mDead .mFin{grid-area:fin}
+  html.c6 #overlay #mDead .mEsp,html.c6 #overlay #mDead .mNew{display:none!important}
+  html.c6 #overlay #mDead #nameEntry{grid-area:auto;grid-column:1/-1}
+}
+/* COUCHÉ ÉTROIT (iPhone 7 : 667 px) : une carte jumelle n'a plus que 13 lettres de large — l'aura descend d'un cran plus tôt ; la bande se serre */
+@media (orientation:landscape) and (max-width:720px){
+  html.c6 #overlay #mDead .hCard.hAura>b{font-size:calc(24px - 8px*clamp(0,var(--n,3) - 4,1) - 4px*clamp(0,var(--n,3) - 6,1))}
+  html.c6 #overlay #mDead .mStat span,html.c6 #overlay #mDead .mStat.mFren.rec span{width:min-content;white-space:normal;line-height:12px;text-align:center}   /* « MULTI MAX » + « KM/H MAX » + NIVEAU + FRENESIE = 248 px pour 247 : les légendes de deux mots passent sur deux lignes, toutes pareil */
+}
+/* (2026-10-14, Sacha via PILOTAGE : « les badges RECORD !, je veux les revoir ») LES TROIS BADGES « RECORD ! » REVIENNENT (argent · aura · moteur), en charte 6 :
+   une petite étiquette d'OR à plat (encre dessus, 8 px, 12 px de haut, ni lueur ni coin coupé), HORS FLUX : rien ne bouge dessous. Celle de l'argent est posée
+   au-dessus du montant (dans la marge du héros), celles des cartes à cheval sur leur bord haut, à droite (la légende centrée et la valeur restent libres).
+   Seule exception, avec REJOUER, à « un seul or par écran ». Le badge d'argent garde son style en ligne display:none hors record (pas de !important sur display). */
+html.c6 #overlay #mDead .mCashL{position:relative}
+html.c6 #overlay #mDead .mCashL>em{display:block}
+html.c6 #overlay #mDead .hCard>em{display:block}
+html.c6 #overlay #mDead .mCashL>em,html.c6 #overlay #mDead .hCard>em{position:absolute!important;z-index:2;inset:auto!important;top:-6px!important;right:8px!important;box-sizing:border-box;width:auto!important;height:12px!important;min-height:0!important;margin:0!important;padding:2px 4px!important;
+  font-family:var(--pix);font-size:8px!important;line-height:8px!important;font-style:normal!important;font-weight:400;letter-spacing:0!important;white-space:nowrap;color:var(--c6-orE)!important;-webkit-text-fill-color:currentColor;background:var(--c6-or)!important;
+  border:0!important;border-radius:0!important;clip-path:none!important;box-shadow:none!important;text-shadow:none!important;filter:none!important;transform:none!important;rotate:none!important;translate:none!important;animation:none!important;opacity:1!important;order:0}
+html.c6 #overlay #mDead .mCashL>em{top:-8px!important;right:auto!important;left:50%!important;translate:-50% 0!important}
+html.c6 #overlay #mDead .mCashL>em::before,html.c6 #overlay #mDead .mCashL>em::after,html.c6 #overlay #mDead .hCard>em::before,html.c6 #overlay #mDead .hCard>em::after{content:none!important}
+
+/* =====================================================================================================================
+   LA PAUSE (#tPanel) — UN PANNEAU D'ENCRE, UNE SEULE DÉCISION (2026-10-14, charte 6)
+   Avant : titre en laque penchée + livrée tricolore, deux touches à coins coupés (cyan / rouge), un résumé à coins coupés, une liste
+   de réglages à lueurs, un lingot d'or à reflet animé, le tout sur un voile magenta + trame. Maintenant, À PLAT : le jeu figé derrière
+   un voile d'encre uni (pas de flou), UN panneau d'encre (filet blanc 2 px, tranche noire 4 px) : PAUSE · le résumé (AURA / MOTEUR /
+   NIVEAU) · les cinq réglages rapides · RECOMMENCER, QUITTER (touches d'encre 48 px) · REPRENDRE (l'or, seul).
+   Couché : le panneau est centré, les réglages sur deux colonnes (3 + 2) et la rangée du bas = les deux touches à gauche, l'or à
+   droite. Debout : une feuille collée en bas (sous le pouce), une colonne, REPRENDRE pleine largeur tout en bas.
+   Les lignes de réglage ont EXACTEMENT la peau de celles de #mSet (c6-pages) : plaque d'encre 48 px, filet sourd 2 px, libellé à
+   gauche, commande à droite (ON = face blanche + texte d'encre ; OFF = encre + filet blanc ; sélecteur = filet blanc).
+   Le DOM ne change pas (on déplace par `grid-area`) ; `.tpRow` se dissout (display:contents) pour que RECOMMENCER et QUITTER
+   rejoignent la grille. « LA PARTIE » et « REGLAGES » (les intertitres) disparaissent : les touches et les lignes parlent seules.
+   Le préfixe `html.c6 #tPanel #tpIn` (deux id) domine les anciennes règles sans !important ; les seuls !important répondent à celui de
+   `.tpRow .tp` (corps et marges, plus haut dans la page).
+   ===================================================================================================================== */
+html.c6 #tPanel{box-sizing:border-box;background:rgba(11,13,18,.88);
+  padding:calc(var(--sT) + 16px) calc(var(--sR) + 16px) calc(var(--sB) + 16px) calc(var(--sL) + 16px)}
+html.c6 #tPanel.open{display:flex;flex-direction:column}
+html.c6 #tPanel #tpIn{box-sizing:border-box;display:grid;flex:none;width:100%;max-width:440px;min-height:0;margin:auto auto 0;padding:16px;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"t t" "s s" "p p" "r q" "g g";gap:16px 8px;
+  background:var(--c6-e0);box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-b0),0 var(--c6-t) 0 0 #000;clip-path:none;filter:none}
+html.c6 #tPanel #tpIn::before,html.c6 #tPanel #tpIn::after{content:none}
+html.c6 #tPanel #tpIn>.tpRow{display:contents}
+/* le TITRE ; les deux intertitres s'en vont */
+html.c6 #tPanel #tpIn>.tpH:first-child{grid-area:t;align-self:center;margin:0;font-size:16px;line-height:24px;letter-spacing:0;color:var(--c6-b0);text-shadow:none;transform:none}
+html.c6 #tPanel #tpIn>.tpH:not(:first-child){display:none}
+/* le RÉSUMÉ : trois chiffres, sans boîte (l'aura en violet : c'est un chiffre qui dit quelque chose) */
+html.c6 #tPanel #tpIn>.tpResume{grid-area:s;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;width:auto;margin:0;padding:0;
+  background:none;clip-path:none;box-shadow:none}
+html.c6 #tPanel #tpIn .tpResume .mStat{min-height:0;padding:0;gap:4px;background:none;clip-path:none;box-shadow:none}
+html.c6 #tPanel #tpIn .tpResume .mStat+.mStat::before{content:none}
+html.c6 #tPanel #tpIn .tpResume .mStat b{font-size:16px;line-height:16px;letter-spacing:0;color:var(--c6-b0);text-shadow:none;transform:none}
+html.c6 #tPanel #tpIn .tpResume .mStat:first-child b{color:var(--c6-aura)}
+html.c6 #tPanel #tpIn .tpResume .mStat span{font-size:8px;line-height:8px;letter-spacing:0;white-space:nowrap;color:var(--c6-g2)}
+/* les RÉGLAGES : une colonne debout ; couché trois lignes par colonne, deux colonnes */
+html.c6 #tPanel #tpIn>.tpPanel{grid-area:p;display:grid;grid-template-columns:minmax(0,1fr);gap:8px;padding:0;overflow:visible;
+  background:none;clip-path:none;box-shadow:none}
+html.c6 #tPanel #tpIn>.tpPanel::before,html.c6 #tPanel #tpIn>.tpPanel::after{content:none}
+html.c6 #tPanel #tpIn .tp.ligne{box-sizing:border-box;display:flex;align-items:center;height:48px;min-height:48px;margin:0;padding:0 8px 0 12px;gap:12px;border:0;
+  font-family:var(--pix);font-size:10px;line-height:12px;letter-spacing:0;color:var(--c6-b0);text-shadow:none;transform:none;clip-path:none;
+  background:var(--c6-e1);box-shadow:inset 0 0 0 2px var(--c6-e3);transition:background-color var(--c6-vite) linear}
+html.c6 #tPanel #tpIn .tp.ligne:is(:active,.appui){background:var(--c6-e2)}
+html.c6 #tPanel #tpIn .tp.ligne>.pxi{flex:none;--pxs:2;margin:0;color:var(--c6-b0)}
+html.c6 #tPanel #tpIn .tp.ligne .tpL{flex:1 1 auto;min-width:0;font-size:10px;line-height:12px;letter-spacing:0;white-space:nowrap;color:var(--c6-b0)}
+html.c6 #tPanel #tpIn .tp.ligne[data-a="volh"]{gap:12px;letter-spacing:0}
+html.c6 #tPanel #tpIn .tp.ligne[data-a="volh"]>.pxi{margin:0}
+html.c6 #tPanel #tpIn .tp.ligne b.bascule{box-sizing:border-box;flex:none;width:64px;height:32px;padding:0 8px;justify-content:flex-start;transform:none;font-size:8px;line-height:8px;letter-spacing:0;
+  color:var(--c6-e0);text-shadow:none;background:var(--c6-b0);box-shadow:inset 0 0 0 2px var(--c6-b0)}
+html.c6 #tPanel #tpIn .tp.ligne b.bascule::before{top:8px;right:8px;width:16px;height:16px;background:var(--c6-e0);box-shadow:none}
+html.c6 #tPanel #tpIn .tp.ligne b.bascule.ko{justify-content:flex-end;color:var(--c6-b0);background:var(--c6-e1);box-shadow:inset 0 0 0 2px var(--c6-b0)}
+html.c6 #tPanel #tpIn .tp.ligne b.bascule.ko::before{transform:translateX(-32px);background:var(--c6-b0);box-shadow:none}
+html.c6 #tPanel #tpIn .tp.ligne b.valeur{box-sizing:border-box;flex:none;min-width:64px;height:32px;padding:0 8px;justify-content:center;gap:0;font-size:10px;line-height:12px;
+  letter-spacing:0;color:var(--c6-b0);text-shadow:none;background:var(--c6-e1);box-shadow:inset 0 0 0 2px var(--c6-b0)}
+html.c6 #tPanel #tpIn .tp.ligne b.valeur::after{content:none}
+html.c6 #tPanel #tpIn .tp.ligne:is(:active,.appui) b.valeur{color:var(--c6-e0);background:var(--c6-b0)}
+/* les TOUCHES de la partie (RECOMMENCER, QUITTER) : la touche du socle, 48 px, rien de rouge (une fenêtre demande confirmation) */
+html.c6 #tPanel #tpIn .tp:not(.ligne){box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:10px;min-height:48px;margin:0;padding:0 16px;
+  font-family:var(--pix);font-size:12px;line-height:1;letter-spacing:0;white-space:nowrap;color:var(--c6-b0);text-shadow:none;transform:none;clip-path:none;filter:none;animation:none;
+  background:var(--c6-e1);box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-b0),0 var(--c6-t) 0 0 #000;
+  transition:transform var(--c6-vite) linear,box-shadow var(--c6-vite) linear,background-color var(--c6-vite) linear}
+html.c6 #tPanel #tpIn .tp:not(.ligne):is(:active,.appui){transform:translateY(var(--c6-t));
+  box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-b0),0 0 0 0 #000}
+html.c6 #tPanel #tpIn .tp:not(.ligne)>.pxi{--pxs:2;margin:0;color:currentColor}
+html.c6 #tPanel #tpIn .tp:not(.ligne) .tpL{flex:none;font-size:inherit;line-height:1;letter-spacing:0;color:inherit}
+html.c6 #tPanel #tpIn .tp.rouge{color:var(--c6-b0)}
+html.c6 #tPanel #tpIn .tpRow>.tp{min-width:0;font-size:10px!important;padding:0 8px!important}
+html.c6 #tPanel #tpIn .tpRow>.tp>.pxi{display:none}
+html.c6 #tPanel #tpIn .tp[data-a="reset"]{grid-area:r}
+html.c6 #tPanel #tpIn .tp[data-a="quit"]{grid-area:q}
+/* REPRENDRE : l'or, la seule décision (pleine largeur, 64 px, debout) */
+html.c6 #tPanel #tpIn>.tp.go{grid-area:g;position:relative;bottom:auto;z-index:auto;margin:0;min-height:64px;padding:0 16px;font-size:24px;
+  color:var(--c6-orE);background:var(--c6-or);outline:0;
+  box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-orE),inset 0 calc(var(--c6-bord) + 2px) 0 0 var(--c6-orL),0 var(--c6-t) 0 0 var(--c6-orT),0 var(--c6-t) 0 var(--c6-bord) var(--c6-orE),0 0 0 var(--c6-bord) var(--c6-orE)}
+html.c6 #tPanel #tpIn>.tp.go:is(:active,.appui){transform:translateY(var(--c6-t));
+  box-shadow:inset 0 0 0 var(--c6-bord) var(--c6-orE),inset 0 calc(var(--c6-bord) + 2px) 0 0 var(--c6-orL),0 0 0 0 var(--c6-orT),0 0 0 var(--c6-bord) var(--c6-orE),0 0 0 var(--c6-bord) var(--c6-orE)}
+html.c6 #tPanel #tpIn>.tp.go>.pxi{--pxs:3;color:var(--c6-orE)}
+html.c6 #tPanel #tpIn .tp:not(.go):not(.ligne):focus-visible{outline:2px solid var(--c6-or);outline-offset:4px}
+/* l'entrée : le voile fond (200 ms), les blocs montent de 8 px en cascade de 30 ms ; la sortie = le voile qui s'efface (le panneau ne glisse plus) */
+html.c6 #tPanel.open #tpIn>*,html.c6 #tPanel.open #tpIn .tpRow>.tp{animation:c6Entre var(--c6-pose) var(--c6-courbe) backwards;animation-delay:90ms}
+html.c6 #tPanel.open #tpIn>.tpH:first-child{animation-delay:0ms}
+html.c6 #tPanel.open #tpIn>.tpResume{animation-delay:30ms}
+html.c6 #tPanel.open #tpIn>.tpPanel{animation-delay:60ms}
+html.c6 #tPanel.sortant #tpIn{animation:none}
+@media (prefers-reduced-motion:reduce){html.c6 #tPanel.open #tpIn>*,html.c6 #tPanel.open #tpIn .tpRow>.tp{animation:none}}
+html.c6[data-reduced-motion="1"] #tPanel.open #tpIn>*,html.c6[data-reduced-motion="1"] #tPanel.open #tpIn .tpRow>.tp{animation:none}
+/* COUCHÉ : un panneau centré ; le titre à gauche, le résumé à droite ; les réglages sur deux colonnes (3 + 2) ; en bas les deux touches à gauche, l'or à droite */
+@media (orientation:landscape) and (max-height:540px){
+  html.c6 #tPanel.open{justify-content:center}
+  html.c6 #tPanel #tpIn{max-width:720px;margin:auto;grid-template-columns:auto auto minmax(0,1fr) auto;grid-template-rows:none;grid-template-areas:"t t s s" "p p p p" "r q . g"}  /* rows:none : l'ancienne règle couchée posait 5 rangées explicites (32 px de vide sous les touches) */
+  html.c6 #tPanel #tpIn>.tpResume{grid-template-columns:repeat(3,auto);gap:24px;justify-self:end}
+  html.c6 #tPanel #tpIn .tpResume .mStat{align-items:flex-end}
+  html.c6 #tPanel #tpIn>.tpPanel{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:none;grid-auto-rows:48px;grid-auto-flow:row;column-gap:16px}  /* 4 lignes (sans voix) = 2 × 2 ; 5 = 2 + 2 + 1 */
+  html.c6 #tPanel #tpIn .tpRow>.tp{padding:0 16px!important}
+  html.c6 #tPanel #tpIn>.tp.go{min-height:48px;min-width:192px;padding:0 24px;font-size:16px}
+  html.c6 #tPanel #tpIn>.tp.go>.pxi{--pxs:2}
+}
+/* grand téléphone couché : de la place pour les icônes des deux touches */
+@media (orientation:landscape) and (max-height:540px) and (min-width:800px){
+  html.c6 #tPanel #tpIn .tpRow>.tp>.pxi{display:block}
+}
+/* couché étroit (iPhone 7/8) : comme les réglages — écarts à 8, sélecteurs en 8 px (« POUCE HAUT » + « PLONGE » tiennent sur 246 px) */
+@media (orientation:landscape) and (max-width:700px){
+  html.c6 #tPanel #tpIn .tp.ligne{gap:8px;padding:0 8px}
+  html.c6 #tPanel #tpIn .tp.ligne[data-a="volh"]{gap:8px}
+  html.c6 #tPanel #tpIn .tp.ligne b.valeur{min-width:56px;padding:0 6px;font-size:8px;line-height:8px}
+}
+</style>
+<style id="c6-transitions">
+/* CHARTE 6 · le mouvement : les passages entre écrans — (2026-10-14) les règles propres à cette zone ; toutes commencent par html.c6 (voir <style id="charte6">) */
+/* LE RIDEAU (ecranWipe : il cache un changement de SCÈNE 3D — le ciel de l'accueil ⇄ le garage ⇄ la course). Il reste, mais c'est un pan
+   d'ENCRE plein, droit, bordé d'un trait blanc de 4 px : plus de liserés or · cyan · magenta, plus de trame, plus de marque au milieu.
+   Il passe sans s'arrêter : 150 ms pour couvrir, 240 ms pour découvrir (la main revient au script à 160 ms, inchangé).
+   ⚠ les `!important` répondent à ceux de <style id="uxPasse"> (même propriété, même élément). */
+html.c6 #wipe::before{background:linear-gradient(90deg,var(--c6-b0) 0 4px,var(--c6-e0) 4px calc(100% - 4px),var(--c6-b0) calc(100% - 4px))!important}
+html.c6 #wipe::after{content:none!important}
+html.c6 #wipe.in::before{animation-duration:150ms!important;animation-timing-function:var(--c6-courbe)}
+html.c6 #wipe.out::before{animation-duration:240ms!important;animation-timing-function:cubic-bezier(.6,0,.8,.4)}
+/* LES PAGES DE LA COQUE (mGo : .on + .avant / .retour ; celle qui part garde .sort 220 ms).
+   AVANCER = la page arrive de la droite (24 px, en fondu) ; REVENIR = de la gauche ; celle qui part s'éteint en 100 ms, sans bouger :
+   deux pages qui glissent en même temps, c'est du bruit. Plus rien ne penche (les ±4° de la charte 5). */
+html.c6 .mscr.on{animation:c6Ecran var(--c6-pose) var(--c6-courbe) both}
+html.c6 .mscr.on.avant{animation-name:c6Avant}
+html.c6 .mscr.on.retour{animation-name:c6Retour}
+html.c6 .mscr.sort,html.c6 .mscr.sort.avant,html.c6 .mscr.sort.retour{animation:c6Sort 100ms linear forwards}
+/* ses BLOCS montent de 8 px en cascade de 30 ms (5 crans au plus : au-delà on attend pour rien) ; le reflet du lingot ne passe plus */
+html.c6 .mscr.on>*,html.c6 .mscr.on>.mPlay{animation:c6Entre var(--c6-pose) var(--c6-courbe) backwards;animation-delay:calc(min(var(--i,0),5)*30ms)}
+html.c6 .mscr.on>.c6Tete{animation:none}                         /* l'en-tête est déjà là : le ◀ ne bouge jamais */
+html.c6 #mDead.on>.mOver{animation:c6Entre var(--c6-pose) var(--c6-courbe) backwards}   /* plus de néon qui clignote à la fin */
+html.c6 .mscr.sort>*{animation:none!important}
+/* (charte 5, gardé) l'écran que le RIDEAU a découvert ne rejoue pas son entrée : mêmes gardes .revu / body.voletSort, mêmes !important */
+html.c6 body.voletSort .mscr.on,html.c6 body.voletSort .mscr.on>*,html.c6 .mscr.on.revu,html.c6 .mscr.on.revu>*,html.c6 .mscr.on.revu>.mPlay{animation:none!important}
+@keyframes c6Ecran{from{opacity:0}to{opacity:1}}
+@keyframes c6Avant{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+@keyframes c6Retour{from{opacity:0;transform:translateX(-24px)}to{opacity:1;transform:none}}
+@keyframes c6Sort{to{opacity:0}}
+@media (prefers-reduced-motion:reduce){html.c6 .mscr.on,html.c6 .mscr.on>*,html.c6 .mscr.sort{animation:none!important}}
+</style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
   <div id="spStage">
@@ -7348,6 +8215,8 @@ html body #launchLogo:not(.on) .lg::after{animation-play-state:paused}
          rang, nom, et la condition quand la caisse est à gagner), ce qu'on TOUCHE en bas (onglets, familles, vignettes, et la
          barre d'action : la SORTIE sous le pouce gauche, LA décision — un seul lingot — sous le pouce droit). La caisse,
          au milieu, reste nue. Les ids n'ont pas bougé : tout le câblage JS les retrouve. -->
+    <!-- (2026-10-14, charte 6) L'EN-TÊTE COMMUN du hub : ◀ (retour à l'accueil, le geste de HOME), le titre, les comptes — `hidden` : sans html.c6 (?ui=5) il n'existe pas ; ses chiffres recopient #gCompteur / #gAuraC (voir « L'EN-TÊTE DU HUB » dans le script) -->
+    <div id="gC6Tete" class="c6Tete flotte" hidden><div id="gC6Ret" class="pbtn pbCarre c6Ret" role="button" tabindex="0" aria-label="Retour"><i class="pxi pxi-gauche" aria-hidden="true"></i></div><b class="c6Titre">GARAGE</b><b class="c6Titre" id="gC6TitreInv" data-fr="INVENTAIRE">INVENTAIRE</b><div class="c6Comptes"><span class="c6Sou cash"><i class="pxi pxi-piece" aria-hidden="true"></i><b id="gC6Cash">$0</b></span><span class="c6Sou aura"><i class="pxi pxi-etoile" aria-hidden="true"></i><b id="gC6Aura">0</b></span></div></div>
     <div id="gTop">
       <div id="gTopRow"><span id="gTitle" hidden>GARAGE</span><div id="gCompteur" aria-label="Compte"><i class="pxi pxi-piece" aria-hidden="true"></i><b>$0</b></div><!-- (2026-09-29, Léo : « reprends les boutons du menu d'après le crash et mets-les dans le garage ») BOUTIQUE · RÉGLAGES, en haut à droite (le coin vide) ; GARAGE n'est pas repris : on y est --><div id="gOutils"><div class="pbtn pbCarre pb-mag" data-go="shop" role="button" tabindex="0" aria-label="Boutique"><i class="pxi pxi-panier" aria-hidden="true"></i></div><div class="pbtn pbCarre" data-go="set" role="button" tabindex="0" aria-label="Réglages"><svg class="boulon" viewBox="3 8 42 40" aria-hidden="true"></svg></div><div class="pbtn pbCarre" id="gvHome" role="button" tabindex="0" aria-label="Accueil"><i class="pxi pxi-maison" aria-hidden="true"></i></div></div></div>
       <div id="gAuraC" aria-label="Aura"><i class="pxi pxi-etoile" aria-hidden="true"></i><b>0</b><small></small><u><em></em></u></div>
@@ -7580,7 +8449,8 @@ html body #launchLogo:not(.on) .lg::after{animation-play-state:paused}
       <div class="mEsp" aria-hidden="true"></div>
       <!-- (2026-09-28, Sacha : « il manque un bouton pour revenir au menu ») la paire des jeux mobiles : MAISON | REJOUER. Le lingot
            reste la seule plaque d'or et la plus large ; la maison est une touche de laque, à gauche, jamais sous le pouce du rejeu. -->
-      <div class="mFin"><div class="pbtn mMenu" data-m="menu" role="button" aria-label="Accueil"><i class="pxi pxi-maison" aria-hidden="true"></i><span data-fr="HOME">HOME</span></div><div class="pbtn pb-gold big wide" data-m="replay" role="button">REJOUER</div></div>
+      <!-- (2026-10-14, charte 6) la maison = une touche carrée 48 × 48, icône seule (le mot HOME est parti : BRIEF §4, « plus de bouton HOME en mot ») -->
+      <div class="mFin"><div class="pbtn pbCarre mMenu" data-m="menu" role="button" tabindex="0" aria-label="Accueil"><i class="pxi pxi-maison" aria-hidden="true"></i></div><div class="pbtn pb-gold big wide" data-m="replay" role="button">REJOUER</div></div>
       <!-- (2026-09-30, Léo : « un bouton HOME qui remplacera tous les boutons GARAGE ou MENU ») la tuile GARAGE est partie : HOME, au-dessus,
            mène au garage (c'est l'accueil) — elle ne faisait plus que la même chose -->
       <div class="mRow">
@@ -7627,37 +8497,47 @@ html body #launchLogo:not(.on) .lg::after{animation-play-state:paused}
       <div class="shRestaurer" data-m="shopRestore" role="button">RESTAURER MES ACHATS</div>
       <div class="mDock"><div class="pbtn mBack" data-m="back" role="button" aria-label="Retour"><i class="pxi pxi-gauche" aria-hidden="true"></i>RETOUR</div></div>
     </div>
-    <div class="mscr" id="mSet">
-      <div class="mHead"><h3>REGLAGES</h3></div>
-      <div class="mSet">
-        <div class="mSec">AUDIO</div>
-        <div class="mPanel">
-          <div class="mLigne avecVol" data-m="snd"><i class="pxi pxi-son" aria-hidden="true"></i><span class="tpL">SON</span><b id="mvSnd" class="bascule">ON</b></div>
-          <div class="volRow" id="mVolRowSfx"><div class="volHd"><span>VOLUME</span><b id="mVolSfxV">100%</b></div><input type="range" class="volS" id="mVolSfx" min="0" max="100" step="5" value="100"></div>
-          <div class="mLigne avecVol" data-m="mus"><i class="pxi pxi-musique" aria-hidden="true"></i><span class="tpL">MUSIQUE</span><b id="mvMus" class="bascule">ON</b></div>
-          <div class="volRow" id="mVolRowMus"><div class="volHd"><span>VOLUME</span><b id="mVolMusV">62%</b></div><input type="range" class="volS" id="mVolMus" min="0" max="100" step="5" value="62"></div>
-          <div class="mLigne avecVol" data-m="vox"><i class="pxi pxi-voix" aria-hidden="true"></i><span class="tpL">VOIX</span><b id="mvVox" class="bascule">ON</b></div>
-          <div class="volRow" id="mVolRowVox"><div class="volHd"><span>VOLUME</span><b id="mVolVoxV">100%</b></div><input type="range" class="volS" id="mVolVox" min="0" max="100" step="5" value="100"></div>
+    <!-- (2026-10-14, charte 6) LES RÉGLAGES : l'en-tête commun (◀ en haut à gauche, le titre) remplace le titre .mHead et le dock RETOUR
+         du bas (couché il mangeait un tiers de l'écran et MASQUAIT des lignes) ; le corps prend toute la hauteur et défile dessous.
+         Deux colonnes couché (AUDIO + SAUVEGARDE | JEU), une debout (AUDIO, JEU, SAUVEGARDE : .c6Col se dissout, voir <style id="c6-pages">).
+         Le curseur de volume vit sous sa ligne, son pourcentage au bout (le mot « VOLUME » répété est parti). EFFACER n'est plus une
+         plaque rouge au milieu : une touche sourde, seule, tout en bas. Mêmes data-m, mêmes ids (mv*, mVol*) : le routeur ne voit rien. -->
+    <div class="mscr c6Page" id="mSet">
+      <div class="c6Tete plein"><div class="pbtn pbCarre c6Ret" data-m="back" role="button" tabindex="0" aria-label="Retour"><i class="pxi pxi-gauche" aria-hidden="true"></i></div><b class="c6Titre" data-fr="REGLAGES">REGLAGES</b></div>
+      <div class="c6Corps c6Set">
+        <div class="c6Col">
+          <div class="mSec">AUDIO</div>
+          <div class="mPanel">
+            <div class="mLigne avecVol" data-m="snd"><i class="pxi pxi-son" aria-hidden="true"></i><span class="tpL">SON</span><b id="mvSnd" class="bascule">ON</b></div>
+            <div class="volRow" id="mVolRowSfx"><input type="range" class="volS" id="mVolSfx" min="0" max="100" step="5" value="100" aria-label="Volume du son"><b class="volV" id="mVolSfxV">100%</b></div>
+            <div class="mLigne avecVol" data-m="mus"><i class="pxi pxi-musique" aria-hidden="true"></i><span class="tpL">MUSIQUE</span><b id="mvMus" class="bascule">ON</b></div>
+            <div class="volRow" id="mVolRowMus"><input type="range" class="volS" id="mVolMus" min="0" max="100" step="5" value="62" aria-label="Volume de la musique"><b class="volV" id="mVolMusV">62%</b></div>
+            <div class="mLigne avecVol" data-m="vox"><i class="pxi pxi-voix" aria-hidden="true"></i><span class="tpL">VOIX</span><b id="mvVox" class="bascule">ON</b></div>
+            <div class="volRow" id="mVolRowVox"><input type="range" class="volS" id="mVolVox" min="0" max="100" step="5" value="100" aria-label="Volume des voix"><b class="volV" id="mVolVoxV">100%</b></div>
+          </div>
+          <div class="mSec oSauv">SAUVEGARDE</div>
+          <div class="mPanel oSauv">
+            <div class="mLigne lien" data-m="exp"><i class="pxi pxi-copier" aria-hidden="true"></i><span class="tpL">COPIER MA SAUVEGARDE</span></div>
+            <div class="mLigne lien" data-m="imp"><i class="pxi pxi-importer" aria-hidden="true"></i><span class="tpL">RESTAURER UN CODE</span></div>
+          </div>
         </div>
-        <div class="mSec">JEU</div>
-        <div class="mPanel">
-          <b id="mvCtl" hidden></b><!-- (COMMANDES retiré des réglages : user, 2026-09-25 — un seul schéma, le volant) -->
-          <div class="mLigne" data-m="q"><i class="pxi pxi-eclair" aria-hidden="true"></i><span class="tpL">IMAGE</span><b id="mvQ" class="valeur">RAPIDE</b></div>
-          <div class="mLigne" data-m="lang"><i class="pxi pxi-bulle" aria-hidden="true"></i><span class="tpL">LANGUE</span><b id="mvLang" class="valeur">FR</b></div>
-          <div class="mLigne" data-m="facile"><i class="pxi pxi-coeur" aria-hidden="true"></i><span class="tpL">MODE FACILE</span><b id="mvFacile" class="bascule">OFF</b></div>
-          <div class="mLigne" data-m="volh"><i class="pxi pxi-aile" aria-hidden="true"></i><span class="tpL">POUCE HAUT EN VOL</span><b id="mvVolH" class="valeur">MONTE</b></div>
-          <div class="mLigne" data-m="vib"><i class="pxi pxi-vibre" aria-hidden="true"></i><span class="tpL">VIBRATIONS</span><b id="mvVib" class="bascule">ON</b></div><!-- (2026-09-28) la charte, règle 8 : SON et VIBRATIONS sont deux interrupteurs -->
-          <div class="mLigne lien" data-m="tuto"><i class="pxi pxi-volant" aria-hidden="true"></i><span class="tpL">REVOIR L'AUTO-ECOLE</span><b id="mvTuto" class="valeur" hidden></b></div>
+        <div class="c6Col">
+          <div class="mSec oJeu">JEU</div>
+          <div class="mPanel oJeu">
+            <b id="mvCtl" hidden></b><!-- (COMMANDES retiré des réglages : user, 2026-09-25 — un seul schéma, le volant) -->
+            <div class="mLigne" data-m="q"><i class="pxi pxi-eclair" aria-hidden="true"></i><span class="tpL">IMAGE</span><b id="mvQ" class="valeur">RAPIDE</b></div>
+            <div class="mLigne" data-m="lang"><i class="pxi pxi-bulle" aria-hidden="true"></i><span class="tpL">LANGUE</span><b id="mvLang" class="valeur">FR</b></div>
+            <div class="mLigne" data-m="facile"><i class="pxi pxi-coeur" aria-hidden="true"></i><span class="tpL">MODE FACILE</span><b id="mvFacile" class="bascule">OFF</b></div>
+            <div class="mLigne" data-m="volh"><i class="pxi pxi-aile" aria-hidden="true"></i><span class="tpL">POUCE HAUT</span><b id="mvVolH" class="valeur">MONTE</b></div><!-- (2026-10-14, charte 6) « POUCE HAUT EN VOL » passait sur deux lignes : l'aile dit déjà « en vol » -->
+            <div class="mLigne" data-m="vib"><i class="pxi pxi-vibre" aria-hidden="true"></i><span class="tpL">VIBRATIONS</span><b id="mvVib" class="bascule">ON</b></div><!-- (2026-09-28) la charte, règle 8 : SON et VIBRATIONS sont deux interrupteurs -->
+            <div class="mLigne" data-m="tuto"><i class="pxi pxi-volant" aria-hidden="true"></i><span class="tpL">AUTO-ECOLE</span><b id="mvTuto" class="valeur">REVOIR</b></div><!-- (2026-10-14, charte 6) « REVOIR L'AUTO-ECOLE » + la prime ne tenaient pas sur une ligne : le nom à gauche, le geste à droite, comme les autres lignes (mFill écrit REVOIR ou la prime) -->
+          </div>
         </div>
-        <div class="mSec">SAUVEGARDE</div>
-        <div class="mPanel">
-          <div class="mLigne lien" data-m="exp"><i class="pxi pxi-copier" aria-hidden="true"></i><span class="tpL">COPIER MA SAUVEGARDE</span></div>
-          <div class="mLigne lien" data-m="imp"><i class="pxi pxi-importer" aria-hidden="true"></i><span class="tpL">RESTAURER UN CODE</span></div>
+        <div class="c6Pied">
+          <div class="pbtn c6Efface" data-m="wipe" role="button"><i class="pxi pxi-corbeille" aria-hidden="true"></i><span class="tpL">EFFACER MA PROGRESSION</span></div>
+          <span class="c6Ver" id="mvVer"></span>
         </div>
-        <div class="pbtn pb-red wide mWipe" data-m="wipe" role="button"><i class="pxi pxi-corbeille" aria-hidden="true"></i><span class="tpL">EFFACER MA PROGRESSION</span></div>
-        <p class="ccVer" id="mvVer"></p>
       </div>
-      <div class="mDock"><div class="pbtn mBack" data-m="back" role="button" aria-label="Retour"><i class="pxi pxi-gauche" aria-hidden="true"></i>RETOUR</div></div>
     </div>
   </div>
 </div>
@@ -18057,6 +18937,7 @@ Object.assign(I18N_ZH,{"VRAIMENT ?": "确定？", "PERMIS": "驾照", "SORTI ! S
 Object.assign(I18N,{"MULTI MAX":"BEST MULTI","Fini l'entraînement : tu as 3 VIES. En l'air, pose-toi avant la fin du chrono.":"Training's over: you have 3 LIVES. In the air, land before the timer runs out.","IL MENE DE":"BANKER AHEAD BY","Argent, caisses, habillages, missions, records, carrière et réglages : tout repart de zéro.":"Money, cars, cosmetics, missions, records, career and settings: everything starts over."}); // (2026-09-29, passe qualité)
 Object.assign(I18N_ZH,{"MULTI MAX":"最高倍数","Fini l'entraînement : tu as 3 VIES. En l'air, pose-toi avant la fin du chrono.":"训练结束：你有 3 条命。空中要在计时结束前着陆。","IL MENE DE":"银行家领先","Argent, caisses, habillages, missions, records, carrière et réglages : tout repart de zéro.":"金钱、赛车、外观、任务、纪录、生涯和设置：全部清零。"});
 Object.assign(I18N,{"MODE FACILE": "EASY MODE", "POUCE HAUT EN VOL": "THUMB UP IN THE AIR", "PLONGE": "DIVE", "MONTE": "CLIMB", "CHOISIS TON MODE": "PICK YOUR MODE", "En FACILE, la voiture suit mieux les virages, tu restes plus longtemps en l'air et tu as 3 vies. Tu pourras changer dans les réglages.": "In EASY, the car follows the turns better, you stay longer in the air and you get 3 lives. You can change it in the settings.", "FACILE": "EASY", "NORMAL": "NORMAL", "VIES": "LIVES", "DERNIERE VIE !": "LAST LIFE!", "ON REPART !": "BACK ON THE ROAD!", "En l'air : pouce en HAUT = monte, en BAS = plonge.": "In the air: thumb UP = climb, DOWN = dive."});
+Object.assign(I18N,{"POUCE HAUT":"THUMB UP","REVOIR":"REPLAY"});Object.assign(I18N_ZH,{"POUCE HAUT":"拇指向上","REVOIR":"重温","AUTO-ECOLE":"驾校"}); /* (2026-10-14, charte 6) les réglages : « POUCE HAUT EN VOL » et « REVOIR L'AUTO-ECOLE » raccourcis (une ligne = un nom + une valeur) */
 Object.assign(I18N_ZH,{"MODE FACILE": "简单模式", "POUCE HAUT EN VOL": "空中拇指向上", "PLONGE": "俯冲", "MONTE": "爬升", "CHOISIS TON MODE": "选择模式", "En FACILE, la voiture suit mieux les virages, tu restes plus longtemps en l'air et tu as 3 vies. Tu pourras changer dans les réglages.": "简单模式：车更容易过弯，空中停留更久，还有 3 条命。可以在设置里更改。", "FACILE": "简单", "NORMAL": "普通", "VIES": "条命", "DERNIERE VIE !": "最后一条命！", "ON REPART !": "重新上路！", "En l'air : pouce en HAUT = monte, en BAS = plonge.": "空中：拇指向上 = 爬升，向下 = 俯冲。"});
 // (POKI) les textes propres à l'édition Poki (les habillages des anciens carnets, l'effacement sans missions ni carrière)
 if(POKI){Object.assign(I18N,{"Vingt-quatre carats sur la carrosserie. Discret, comme toi.":"Twenty-four carats on the bodywork. Subtle, like you.",
@@ -28637,6 +29518,7 @@ function auraRank(total){ // l'index de rang atteint pour une aura donnée
   return r;
 }
 function auraRankName(r){return TR((AURA_RANKS[r==null?auraRank():r]||AURA_RANKS[0]).n);}
+function auraSansNom(){return document.documentElement.classList.contains('c6');} // (2026-10-14, ordre de Sacha : « plus de surnom bizarre, juste l'aura ») sous la charte 6 on n'ÉCRIT plus aucun nom de rang : le chiffre d'aura seul. Les paliers (auraRank, déblocages) ne changent pas.
 function auraNext(){ // ce qu'il reste pour le rang suivant (null au sommet)
   const r=auraRank();if(r>=AURA_RANKS.length-1)return null;
   const n=AURA_RANKS[r+1];return {n:n.n,reste:Math.max(0,n.v-(SAVE.d.aura||0)),seuil:n.v};
@@ -30607,7 +31489,8 @@ function carUnlockText(i){ // ce qu'il reste à faire, en une ligne — affiché
   if(u.k==='carrN')return ['TERMINE SKY HIGH  ('+cur+' / 5)','FINISH SKY HIGH  ('+cur+' / 5)','完成 SKY HIGH  （'+cur+' / 5）'][L]; // (2026-09-27)
   if(u.k==='carrV')return ['TERMINE LA VILLE  ('+cur+' / 5)','FINISH THE CITY  ('+cur+' / 5)','完成城市  （'+cur+' / 5）'][L]; // (2026-09-27)
   switch(u.k){
-    case 'aura':  return [ 'RANG D\'AURA « '+auraRankName(v)+' »   (le tien : « '+auraRankName()+' »)',
+    case 'aura':  if(auraSansNom()){const s9=fmtAura((AURA_RANKS[v]||AURA_RANKS[0]).v),t9=fmtAura(SAVE.d.aura||0);return ['AURA '+s9+'   (la tienne : '+t9+')','AURA '+s9+'   (yours: '+t9+')','灵气 '+s9+'   （你的：'+t9+'）'][L];}
+                  return [ 'RANG D\'AURA « '+auraRankName(v)+' »   (le tien : « '+auraRankName()+' »)',
                            'AURA RANK "'+auraRankName(v)+'"   (yours: "'+auraRankName()+'")', // (2026-09-28) guillemets anglais
                            '灵气段位「'+auraRankName(v)+'」   （你的段位：「'+auraRankName()+'」）' ][L];
     case 'cash':  return [ 'RECORD DE PARTIE : ','BEST RUN: ','单局最高纪录：' ][L]+fmtC(v)+'  ('+fmtC(cur)+')';
@@ -37902,7 +38785,7 @@ function renderLeaders(hl){
 function setBestChip(){
   bestChip.textContent=(best>0?(TR('RECORD')+'  '+fmt(best)):TR('AUCUN RECORD — À TOI DE JOUER'))+
     (bank()>0?('  ·  '+TR('COMPTE')+' '+fmtC(bank())):'')+
-    ((SAVE.d.aura||0)>0?('  ·  ✦ '+auraRankName()):'');
+    ((SAVE.d.aura||0)>0?('  ·  ✦ '+(auraSansNom()?fmtAura(SAVE.d.aura||0):auraRankName())):'');
 }
 function commitName(){
   if(pendingScore==null)return;
@@ -40535,7 +41418,7 @@ function endGame(){
   runStatsEl.textContent=TR('FIGURES')+' '+runStats.tricks+' · '+TR('CHAÎNE MAX')+' '+(runStats.chainMax||0)+' · '+TR('BUMPS')+' '+runStats.bumps
     +' · '+TR('ZONES')+' '+runStats.zones+' · '+TR('GAPS')+' '+runStats.gaps+' · '+TR('VMAX')+' '+Math.round(runStats.vmax)+' KM/H'
     +'\n'+TR('VIREMENT')+' +'+fmtC(vire)+'  →  '+TR('COMPTE')+' '+fmtC(bank())
-    +'   ✦ '+TR('AURA')+' +'+auraG+'  →  '+auraRankName()
+    +'   ✦ '+TR('AURA')+' +'+auraG+(auraSansNom()?'':'  →  '+auraRankName())
     +(commitExploits._rangMonte?'   ★ '+TR('NOUVEAU RANG !'):'')
     +(gagnees.length?'\n'+TR('🔑 DÉBLOQUÉ : ')+gagnees.map(i=>TR(CARS[i].name)).join(' · '):'');
   finalScore.style.display='block';
@@ -44679,6 +45562,15 @@ try{if(!POKI&&gEl){const ac=document.getElementById('gAct'),r1=document.createEl
   for(const id of ['gHomeBas','gOeil']){const b9=document.getElementById(id);if(b9)r1.appendChild(b9);}
   if(ac)ac.insertBefore(r1,ac.firstChild);}}catch(e){}
 try{document.getElementById('gOeil').addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(e.currentTarget);uiClic(gEl.classList.contains('vueSeule')?'on':'off');gVueSeule(!gEl.classList.contains('vueSeule'));});}catch(e){}
+/* L'EN-TÊTE DU HUB (2026-10-14, charte 6) — sous html.c6 seulement (?ui=5 : rien ne bouge) : l'ŒIL quitte la rangée du bas pour la fiche (à côté du nom : « en petit flottant sous le nom », Sacha) —
+   même nœud, mêmes écouteurs ; le ◀ de l'en-tête fait le geste de HOME (#gClose) ; ses deux comptes RECOPIENT le texte de #gCompteur / #gAuraC (un observateur : le défilement du compteur suit, aucune fonction du jeu n'est touchée). */
+try{if(gEl&&document.documentElement.classList.contains('c6')){const o9=document.getElementById('gOeil'),c9=document.getElementById('gCard'),r9=document.getElementById('gC6Ret');
+  if(o9&&c9)c9.appendChild(o9);
+  if(r9){const go9=function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(r9);const c=$(gEl.classList.contains('atelierInv')?'gvCof':'gClose');if(c)c.click();};r9.addEventListener('click',go9); /* (2026-10-14, charte 6) dans l'INVENTAIRE (atelier fermé) le ◀ fait le geste de RETOUR (#gvCof, masqué là-bas) : retour au hub, pas à l'accueil */
+    r9.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go9(e);}});}
+  for(const pr of [['#gCompteur b','gC6Cash'],['#gAuraC b','gC6Aura']]){const a9=document.querySelector(pr[0]),b9=document.getElementById(pr[1]);if(!a9||!b9)continue;
+    const cp=function(){const t=a9.textContent;if(b9.textContent!==t)b9.textContent=t;};cp();new MutationObserver(cp).observe(a9,{childList:true,characterData:true,subtree:true});}
+}}catch(e){}
 function gConsoleCache(on){if(!gEl)return;gEl.classList.toggle('consoleCachee',!!on);garLibre._r=null;
   const b=document.getElementById('gCache');if(b){b.setAttribute('aria-pressed',on?'true':'false');const sp=b.querySelector('span');if(sp){sp.dataset.fr=on?'VOIR':'CACHER';sp.textContent=TR(sp.dataset.fr);}}}
 try{document.getElementById('gCache').addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(e.currentTarget);uiClic('onglet');gConsoleCache(!gEl.classList.contains('consoleCachee'));});
@@ -48278,7 +49170,7 @@ function gvJauges(anim){
   else{rA.textContent=ac('RECORD')+' ';const e9=document.createElement('em');e9.textContent=fmtC(R);rA.appendChild(e9);}
   rU.innerHTML='';if(nx){rU.textContent='▸ '+ac(nx.n)+' ';const e9=document.createElement('em');e9.textContent=Math.floor(fU*100)+' %';rU.appendChild(e9);}else rU.textContent=ac('INTOUCHABLE');
   U.classList.toggle('sommet',!nx);
-  A.title=ac('RECORD')+' '+fmtC(R);U.title=ac(AURA_RANKS[r].n)+(nx?' → '+ac(nx.n)+' · '+fmtAura(Math.max(0,nx.v-au)):'');
+  A.title=ac('RECORD')+' '+fmtC(R);U.title=auraSansNom()?'AURA '+fmtAura(au):ac(AURA_RANKS[r].n)+(nx?' → '+ac(nx.n)+' · '+fmtAura(Math.max(0,nx.v-au)):'');
   const o=objectif(),pe=$('gPerso');if(pe)pe.toggleAttribute('data-portee',!!(o&&o.prix&&b>=o.prix)); // une caisse est à ta portée : le SHOP le dit
   gveInit();const BA=GVE.bars[0],BU=GVE.bars[1];BA.cible=fA;BU.cible=fU;
   if(anim&&!REDUCED_MOTION){
@@ -49616,7 +50508,7 @@ const SWIPE_PX=64; // (2026-10-06) plus lu : le glissé ne change plus de caisse
 /* (2026-09-29, audit de sortie) UN SEUL DOIGT fait tourner l'atelier : le 2e (le pincement) écrasait le point de départ, l'orbite sautait
    d'un doigt à l'autre, et au relâcher le premier comptait pour un glissé — la caisse changeait. Rien ne passe à travers le voile. */
 let gpId=null,gPince=false;
-addEventListener('pointerdown',e=>{if(!garageOn||ecranWipe._on)return;if(e.target.closest&&e.target.closest('#gTop,#gBottom,#gFlot,#gMenu,#gMis .gmC,#gmBas,#wipe,#carr,#modale,[data-m],#gInv,#gHub,#gTourne,#gHomeMini,#gBurnBtns'))return; /* (2026-10-11) #gFlot : HOME et l'ŒIL flottants ne sont pas un glissé de la vue */
+addEventListener('pointerdown',e=>{if(!garageOn||ecranWipe._on)return;if(e.target.closest&&e.target.closest('#gTop,#gC6Tete,#gBottom,#gFlot,#gMenu,#gMis .gmC,#gmBas,#wipe,#carr,#modale,[data-m],#gInv,#gHub,#gTourne,#gHomeMini,#gBurnBtns'))return; /* (2026-10-11) #gFlot : HOME et l'ŒIL flottants ne sont pas un glissé de la vue */
   if(!garageDrag&&atlVise(e)){ATL.appui=e.pointerId;return;} // (même soir) LE BOUTON ROUGE du plateau : ni vue ni plateau, il s'enfonce // (2026-09-30) [data-m] : un bouton de l'accueil n'est pas un glissé · (2026-10-04) le tiroir de l'INVENTAIRE non plus
   if(garageDrag){gPince=true;return;}
   garageDrag=true;gpId=e.pointerId;gPince=false;gpx=gpx0=e.clientX;gpy=gpy0=e.clientY;
@@ -49655,7 +50547,7 @@ addEventListener('pointerup',e=>{
 });
 addEventListener('pointermove',e=>{
   if(!garageDrag){ // (affiches) LE SURVOL à la souris : l'affiche s'allume, le curseur devient une main
-    if(garageOn&&e.pointerType==='mouse'&&!GAR.go&&!(e.target.closest&&e.target.closest('#gTop,#gBottom,#gFlot,#gMenu,#wipe,#carr,#modale,#gInv,#gHub,#gTourne,#gHomeMini'))){let af=null;try{af=afficheVise(e);}catch(_){}
+    if(garageOn&&e.pointerType==='mouse'&&!GAR.go&&!(e.target.closest&&e.target.closest('#gTop,#gC6Tete,#gBottom,#gFlot,#gMenu,#wipe,#carr,#modale,#gInv,#gHub,#gTourne,#gHomeMini'))){let af=null;try{af=afficheVise(e);}catch(_){}
       if(af!==GAR.affH){GAR.affH=af;document.body.style.cursor=af?'pointer':'';}}
     return;}
   if(e.pointerId!==gpId||gPince)return;
@@ -52687,7 +53579,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       else if(a==='mus')e.innerHTML=tpLbl('musique','MUSIQUE',SND.music?'ON':'OFF',SND.music);
       else if(a==='ctl')e.innerHTML=tpLbl(TCTL.pad?'fleches':'volant','COMMANDES',TCTL.pad?'FLECHES':'VOLANT',true);
       else if(a==='q'){const f=SAVE.d.q!=='net';e.innerHTML=tpLbl('eclair','IMAGE',f?'RAPIDE':'NETTE',true);}
-      else if(a==='volh')e.innerHTML=tpLbl('aile','POUCE HAUT EN VOL',volSens()<0?'MONTE':'PLONGE',true);
+      else if(a==='volh')/* (2026-10-14, charte 6) « POUCE HAUT » seul, comme dans les réglages : la ligne tient sur 246 px (iPhone 7 couché) */e.innerHTML=tpLbl('aile',document.documentElement.classList.contains('c6')?'POUCE HAUT':'POUCE HAUT EN VOL',volSens()<0?'MONTE':'PLONGE',true);
       else if(a==='surv')e.innerHTML=tpLbl('drapeau','SURVIVANT',SURV.armed?'ON':'OFF',SURV.armed); }
     const hd=pan.querySelector('.tpH'); if(hd)hd.textContent=run?'PAUSE':'CASH CAR'; }
   function panOpen(o,compte){ if(!pan)return;
@@ -52920,6 +53812,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
          feu:'CRIBLE PAR LA POLICE',facade:'ENCASTRE DANS UNE FACADE',seine:'A LA SEINE !',sol:'ECRASE SUR LE PAVE',seme:"LA CAISSE-NUAGE T'A SEME",devant:"TU L'AS DOUBLEE — IL FALLAIT LA SUIVRE",finNuages:'LA CAISSE-NUAGE EST A TOI',banquier:"LE BANQUIER T'A BATTU",finVille:'LE LINGOT EST A TOI',finEspace:'LE SYSTEME SOLAIRE EST A TOI'}; // (2026-09-27) les fins de la CAMPAGNE
        const mc9=$t('mCause'),k9=SANDBOX?'':(CAUSES[mortCause]||'');if(mc9){mc9.textContent=k9?TR(k9):'';mc9.style.display=k9?'':'none';mc9.style.color=(mortCause==='finNuages'||mortCause==='finVille'||mortCause==='finEspace')?'#ffe7a8':'';}}
       if(mortCause==='finNuages'||mortCause==='finVille'||mortCause==='finEspace'||mortCause==='finParis'){ot.textContent=TR(mortCause==='finParis'?'PARIS TERMINE':mortCause==='finEspace'?'ESPACE TERMINE':mortCause==='finVille'?'VILLE TERMINEE':'SKY HIGH TERMINE');ot.style.color='var(--neoV)';if(mCompteSon._fin!==TCTL.mortT){mCompteSon._fin=TCTL.mortT;setTimeout(function(){try{pixBurst(ot,40);}catch(e){}},700);}} // (2026-09-27) la campagne est FINIE : l'enseigne le dit en or
+      {const d9=$t('mDead');if(d9)d9.classList.toggle('c6Rec',ot.textContent===TR('NOUVEAU RECORD !'));} // (2026-10-14, charte 6) UNE hiérarchie : le record se dit dans le titre et nulle part ailleurs ; sinon la cause passe sous le titre (#mCause) — la feuille c6-pause-fin lit cette classe
       mCompteSon(recT);
       // Ce qui se gagne DANS une partie, c'est le MOTEUR (la caisse, elle, se choisit au garage) :
       // c'est donc lui qu'on montre en fin de run, pas un palier de voiture qui ne veut plus rien dire.
@@ -52941,8 +53834,8 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
            plus de « + » (qui se lisait « ajouté à un total »), plus de total de carrière, plus de rang ni de jauge ; dessous, le meilleur
            score (ou RECORD ! quand il vient de tomber). */
         if(h){h.innerHTML='<div class="hCard hAura"><small>'+TR('AURA')+'</small><b id="mAuraV" style="--n:'+fA(au).length+'">0</b>'
-            +(recA&&!tq9&&au>0?'<em>'+TR('RECORD !')+'</em>':'<div class="hNx">'+TR('MEILLEUR')+' <span>'+fA(Math.max(SAVE.d.auraMax||0,au))+'</span></div>')+'</div>'
-          +'<div class="hCard hMot hMot3" style="--ec:'+hx+'"><small>'+TR('MOTEUR ATTEINT')+'</small><canvas class="hMotCv" width="480" height="321"></canvas>'
+            +(recA&&!tq9&&au>0?'<em>'+TR('RECORD !')+'</em><div class="hNx hNxC6">'+TR('MEILLEUR')+' <span>'+fA(Math.max(SAVE.d.auraMax||0,au))+'</span></div>':'<div class="hNx">'+TR('MEILLEUR')+' <span>'+fA(Math.max(SAVE.d.auraMax||0,au))+'</span></div>')+'</div>' /* (2026-10-14, charte 6) cartes JUMELLES : la sous-ligne MEILLEUR est toujours là (.hNxC6 = celle que seule la charte 6 montre, quand le badge RECORD ! se tait) */
+          +'<div class="hCard hMot hMot3" style="--ec:'+hx+'"><small>'+TR(document.documentElement.classList.contains('c6')?'MOTEUR':'MOTEUR ATTEINT')+'</small><canvas class="hMotCv" width="480" height="321"></canvas>'
             +'<div class="hMotN"><i>'+TR('PALIER')+'</i>'+(engTier+1)+'</div>'+(eN&&!tq9?'<em>'+TR('RECORD !')+'</em>':'')
             +(pr?'<div class="hNx hPres"><span>'+presqueTxt(mq)+'</span><span>'+pxi('haut')+' '+TR(nx.n)+'</span></div>':ci?'<div class="hNx hRec"><span>'+TR('RECORD')+'</span><span>'+TR('PALIER')+' '+(ea+1)+'</span></div>':'' /* (29/09, DEBUGGING) deux morceaux insécables : le chiffre ne tombe plus seul à la ligne */)+'</div>'; // (2026-09-28) « RECORD · PALIER 18 » : le nom du moteur (STATOREACTEUR) cassait la ligne ; la carte parle déjà en paliers
           {const cv9=h.querySelector('.hMotCv');ENG_MORT.cv=cv9;ENG_MORT.ctx=cv9?cv9.getContext('2d'):null;} // le moteur 3D y tourne (engVigRender)
@@ -52952,7 +53845,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       }
       $t('mStatsBox').innerHTML=mStatBox('×'+Math.max(1,runStats.xMax|0),TR('MULTI MAX'))+ /* (2026-09-26) « 0 FIGURES » à côté de « +820 AURA » : le compteur ne voyait que l'ancienne chaîne en $ */mStatBox(Math.round(runStats.vmax),'KM/H MAX')+mStatBox(LVL.cur?LVL.n:runStats.zones+1,TR('NIVEAU')) // (2026-09-27) en carrière : le VRAI numéro du niveau · (2026-09-30) partout : celui de la bannière (runStats.zones compte la zone de l'école : « NIVEAU 2 » après « NIVEAU 1 »)
         // (v3) la plus longue FRÉNÉSIE de la partie — .rec quand elle a battu le record (le style : session UI)
-        +(function(){const t9=RUNX.frenMax||0,rc=t9>=5&&t9>=(SAVE.d.frenRec||0)-.05;return '<div class="mStat mFren'+(rc?' rec':'')+(t9<1?' zero':'')+'"><b>'+frenDuree(t9)+'</b><span>'+TR(rc?'RECORD':'FRENESIE')+'</span></div>';})();
+        +(function(){const t9=RUNX.frenMax||0,rc=t9>=5&&t9>=(SAVE.d.frenRec||0)-.05;return '<div class="mStat mFren'+(rc?' rec':'')+(t9<1?' zero':'')+'"><b>'+frenDuree(t9)+'</b><span>'+(document.documentElement.classList.contains('c6')?TR('FRENESIE'):TR(rc?'RECORD':'FRENESIE'))+'</span></div>';})(); // (2026-10-14, charte 6) le chiffre garde sa légende : « RECORD » à sa place le laissait sans nom (et l'écrivait une 4e fois)
       objRender($t('mObj'));
     }else if(mCur==='shop'){
       if(!SAVE.d.shopVu){SAVE.d.shopVu=1;SAVE.flush();}
@@ -52965,9 +53858,9 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       {const pp=$t('mMisPips'),s9=misEtat();if(pp)pp.querySelectorAll('u').forEach(function(u,i){u.classList.toggle('ok',!!s9.ok[i]);});} // la porte MISSIONS : une case allumée par défi relevé
       const bv=$t('mBankV');if(bv)bv.textContent=fmtC(bank());
       let nG=shopAPortee();for(let i=0;i<CARS.length;i++){const p9=carPrice(i);if(p9&&!carUnlockedVrai(i)&&p9<=bank())nG++;}
-      const bg=$t('bdGar'),bs=$t('bdShop');
-      if(bg){bg.textContent=nG||'';bg.classList.toggle('on',nG>0);} // tout ce qui s'achète en argent du jeu est au GARAGE
-      if(bs){bs.textContent='NEW';bs.classList.toggle('on',!SAVE.d.shopVu);} // allumée en permanence, elle apprenait à l'œil à ignorer les pastilles
+      const bg=$t('bdGar'),bs=$t('bdShop'),c6=document.documentElement.classList.contains('c6'); // (2026-10-14, charte 6) la pastille = un carré d'or SANS chiffre ni mot (« 39 » ne disait rien)
+      if(bg){bg.textContent=c6?'':(nG||'');bg.classList.toggle('on',nG>0);} // tout ce qui s'achète en argent du jeu est au GARAGE
+      if(bs){bs.textContent=c6?'':'NEW';bs.classList.toggle('on',!SAVE.d.shopVu);} // allumée en permanence, elle apprenait à l'œil à ignorer les pastilles
     }else if(mCur==='modes'){
       const set9=function(id,sid,on){const c=$t(id),s=$t(sid);
         if(c){c.classList.toggle('on',on);c.classList.toggle('off',!on);} if(s)s.textContent=on?'ON':'OFF';};
@@ -52987,7 +53880,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       sv('mvQ',TR(SAVE.d.q==='net'?'NETTE':'RAPIDE'),true);
       sv('mvLang',LANG.toUpperCase(),true);
 
-      {const e9=$t('mvTuto');if(e9){const on9=!SAVE.d.permis;e9.hidden=!on9;e9.textContent=on9?'+'+fmtC(500):'';}} // (2026-09-29, audit) tant que la prime n'a pas été versée, REVOIR L'AUTO-ÉCOLE le dit
+      {const e9=$t('mvTuto');if(e9){const on9=!SAVE.d.permis;e9.hidden=false;e9.textContent=on9?'+'+fmtC(500):TR('REVOIR');}} /* (2026-10-14, charte 6) la ligne s'appelle AUTO-ECOLE, sa valeur dit le geste (REVOIR) — ou la prime */ // (2026-09-29, audit) tant que la prime n'a pas été versée, REVOIR L'AUTO-ÉCOLE le dit
       volUI();
     }
   }catch(e){} }
