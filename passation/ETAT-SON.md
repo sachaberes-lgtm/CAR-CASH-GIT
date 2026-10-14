@@ -11,13 +11,17 @@ Lire aussi `passation/SON.md` (passation du Mac : mission, règles, décisions d
 - Banc : `cc-banc\lib.cjs` (file, 2 créneaux, Chrome muet). Crochets : `dbgMusAp()` (+ jade/jmus/jap), `dbgMusRetour(h)`, `dbgSonJoue(id,o)`.
   Mes bancs (scratchpad SON) : banc-musique-iphone, banc-jade-apercu, banc-son-figures(2). La file du banc attend 15 à 35 min le soir.
 
-## FAIT LE 14/10 SUR LE PC (tout est sur main 541c6f30)
+## FAIT LE 14/10 SUR LE PC (tout est sur main, étape 3 comprise)
 - Curseur MUSIQUE : 1,4 s d'aperçu au relâcher (`musApercu`) — radio, ET au SOLEIL DE JADE par GLISSE V2 (`JMUS.ap` ouvre `jadeMusVeut`).
 - LA MUSIQUE REVIENT : au lancement / retour d'arrière-plan, visite (`SAVE.d.vu`) à plus de `MUS_RETOUR_H`=24 h ET MUSIQUE coupée ou à 0
   → ON au volume d'usine, une fois par retour ; EFFETS/VOIX intacts ; `musBascule()` = le bouton. Test `?retour=1`, `dbgMusRetour(26)`.
 - SON PAR FIGURE : `fig.signe` (12 figures du catalogue, `FIG_SIGNE`) · `fig.monde` (9 figures banquise/eau, `FIG_MONDE`) · combos de
   GENERAL : `sonCombo(cle,neuf)` = 3 `combo.frappe` (T verre, P bois, S tambour, M métal) + `combo.sceau` (pur, mélangé, PST GYROSCOPE,
-  MMM CHAOS), figSnd tait le maillon des `fig_combo_*`, `ui.debloque` à t:.6 · `pose.divin` (tchak + chœur + cloches + or). Banque ?v=22.
+  MMM CHAOS), figSnd tait le maillon des `fig_combo_*`, `ui.debloque` à t:.6 · `pose.divin` (tchak + chœur + cloches + or).
+- ÉTAPE 3 : `fig.battement` (SHIMMY wik g/d par aller-retour, CHANDELLE au sommet ; tic dans figPose via `r.osc`, sans consommer ECH) ·
+  `fig.explose` (petite/grosse, dans figCoup et le saut nitro ; le drift garde turbo.*) · `fig.gap` (GAP / DOUBLE GAP) · `pose.nette`
+  (pose ordinaire, g===1, pas ratée, pas de gap, vol > 0,35 s). Banque ?v=23. Banc `banc-son-etape3.cjs` : pilote auto qui saute
+  (`dbgAuto(true,0,{saut:1.4})`) + `dbgFig('lance',k)` en vol, `window.CCSON.play` enveloppé pour compter les sons joués.
 - Avant : sons cuits singe/atchoum/aura, matières de figures v2, banque sans le BOUCLIER, ciel iPhone sans MUS_WA muet, sourdine atelier.
 - Bancs : musique iPhone 17/17, jade 7/7 (J7 « KO » = critère trop strict, curseur au pas de 5), sons des figures 7/7, toutes fumées OK.
 - RIEN N'A ÉTÉ ÉCOUTÉ : tout est vérifié par cuisson, mesure LUFS et banc. L'oreille de Sacha au banc d'écoute `sons.html`.
@@ -33,8 +37,7 @@ Lire aussi `passation/SON.md` (passation du Mac : mission, règles, décisions d
 - Appli tuée en arrière-plan : `SAVE.d.vu` survit-il (miroir Preferences) → retour à 24 h+ = musique ON ?
 
 ## SUITE
-1. Son par figure, ce qui RESTE : SHIMMY/CHANDELLE muets EN VOL (pas de tic, mv vide) ; explosions de figure = turbo.super partagé avec
-   le drift ; GAP/DOUBLE GAP sans son ; pose ordinaire = choc seul ; figures inventées par le joueur = maillon.
+1. Son par figure : FINI (3 étapes). Restent au maillon : les figures inventées par le joueur (pas de catalogue) — volontaire.
 2. À l'oreille : niveau des matières de tour (vol −8 dans figPose) ; figJet et `echSt()` toutes les 0,28 s pendant le tenu.
 3. Relire les sons des écrans d'INTERFACE à chaque SHA envoyé (un geste = un son). Idées à PROPOSER : habillages POP / DOGE muets.
 
