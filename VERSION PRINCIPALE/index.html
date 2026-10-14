@@ -8965,7 +8965,7 @@ html.nav7{
          objets suivants. Rempli par `misRender`. -->
     <div class="mscr" id="mMis">
       <div class="mHead"><h3>MISSIONS</h3></div>
-      <div class="mSec"><span data-fr="LES DEFIS · CHACUN EN UNE PARTIE">LES DEFIS · CHACUN EN UNE PARTIE</span></div>
+      <div class="mSec"><span data-fr="LES MISSIONS · CHACUNE EN UNE PARTIE">LES MISSIONS · CHACUNE EN UNE PARTIE</span></div>
       <div class="misTab" id="misTab"></div>
       <div class="mDock"><div class="pbtn mBack" data-m="back" role="button" aria-label="Retour"><i class="pxi pxi-gauche" aria-hidden="true"></i>RETOUR</div></div>
     </div>
@@ -29250,8 +29250,8 @@ function misEtat(){const s=SAVE.d.mis||(SAVE.d.mis={n:0,ok:[0,0,0]});if(!s.best)
 function defisHtml(n){
   const s=misEtat(),Lg=LANG==='en'?1:0;
   if(s.n+1<n){const prev=carnet(n-2);
-    return pxi('verrou')+' '+['SE GAGNE EN RELEVANT 3 DEFIS — APRES ','WON BY BEATING 3 CHALLENGES — AFTER '][Lg]+misRecompense(prev);}
-  const c=carnet(n-1);let h='<span class="gDfT">'+['SE GAGNE EN RELEVANT 3 DEFIS (CHACUN EN UNE PARTIE)','WON BY BEATING 3 CHALLENGES (EACH IN ONE RUN)'][Lg]+'</span>';
+    return pxi('verrou')+' '+['SE GAGNE EN FAISANT 3 MISSIONS — APRÈS ','WON BY COMPLETING 3 MISSIONS — AFTER '][Lg]+misRecompense(prev);}
+  const c=carnet(n-1);let h='<span class="gDfT">'+['SE GAGNE EN FAISANT 3 MISSIONS (CHACUNE EN UNE PARTIE)','WON BY COMPLETING 3 MISSIONS (EACH IN ONE RUN)'][Lg]+'</span>';
   // (2026-09-25) juste après une partie, chaque défi ouvert dit où l'on s'est arrêté (« 21 / 25 ») : la meilleure raison de relancer.
   // ⚠ !MIS_REC : si le carnet vient de se refermer à cette mort, RUNX porte les scores d'une partie qui ne compte plus pour le suivant
   const apres=started&&gameOver&&!SANDBOX&&!PARK.on&&!MIS_REC&&n===s.n+1;
@@ -30058,7 +30058,7 @@ function carUnlockText(i){ // ce qu'il reste à faire, en une ligne — affiché
       : ['\nTU PEUX TE LA PAYER !','\nYOU CAN AFFORD IT!'][L]); // (2026-09-29) la 2e moitié sur SA ligne (#gDesc en pre-line) : « — tu peux » tombait seul en tête de ligne
   }
   const v=u.v,cur=carStat(u.k);
-  if(u.k==='carnet')return ['SE GAGNE EN RELEVANT 3 DEFIS', /* (2026-09-28) police pixel : pas de capitale accentuée (« DéFIS ») */'WON BY BEATING 3 CHALLENGES'][L];
+  if(u.k==='carnet')return ['SE GAGNE EN FAISANT 3 MISSIONS','WON BY COMPLETING 3 MISSIONS'][L]; /* (2026-10-14, règle de Sacha) une MISSION n'est plus jamais un « défi » (le mot est réservé aux défis secrets de la palette) */
   if(u.k==='carrN')return ['TERMINE SKY HIGH  ('+cur+' / 5)','FINISH SKY HIGH  ('+cur+' / 5)'][L]; // (2026-09-27)
   if(u.k==='carrV')return ['TERMINE LA VILLE  ('+cur+' / 5)','FINISH THE CITY  ('+cur+' / 5)'][L]; // (2026-09-27)
   switch(u.k){
@@ -30076,7 +30076,7 @@ function carUnlockText(i){ // ce qu'il reste à faire, en une ligne — affiché
     case 'kmh':   return [ 'ATTEINDRE ','REACH '][L]+v+[ ' KM/H  (record : ',' KM/H  (best: '][L]+cur+')';
     case 'surv':  return [ 'GAGNER UNE PARTIE EN MODE SURVIVANT','WIN A RUN IN SURVIVOR MODE'][L];
     case 'prem':  return [ 'CAISSE PREMIUM — offerte pour l\'instant','PREMIUM CAR — free for now'][L];
-    case 'bientot':return [ 'DEFI A VENIR','CHALLENGE COMING SOON'][L]; // (2026-10-06) LA RAIE, COMÈTE, REQUIN : le défi reste à écrire (police pixel : pas de capitale accentuée)
+    case 'bientot':return [ 'MISSION À VENIR','MISSION COMING SOON'][L]; // (2026-10-06) LA RAIE, COMÈTE, REQUIN : la mission reste à écrire — (2026-10-14) #gDesc est en police SYSTÈME sous la charte 6 : l'accent reste
     case 'pubs':  return [ 'REGARDE '+v+' PUBS  ('+Math.min(cur,v)+' / '+v+')','WATCH '+v+' ADS  ('+Math.min(cur,v)+' / '+v+')'][L]; // (2026-10-06) L'ÉTERNELLE
   }
   return '';
@@ -48732,7 +48732,7 @@ function gmRender(vu){ // vu : l'écran est déjà là (un défi coché) — les
   GMIS.ancres.forEach(function(a,k){let cls,pt,in9;
     if(a.k==='d'){const m=c.m[a.i],ok=!!s.ok[a.i],f=s.f===a.i,b=Math.min(m.v,s.best[a.i]||0);
       cls='d'+(ok?' ok':'')+(f?' f':'');pt=ok?'ok':f?'f':'';
-      in9='<div class="gmT"><span class="gmChk"><i></i></span>'+TR('DEFI')+' '+(a.i+1)+'<b>+'+fmtC(m.p)+'</b></div><div class="gmX">'+misTxt(m)+'</div><u><em style="width:'+Math.round(100*(ok?1:misPart(m,b)))+'%"></em></u><small>'+(ok?TR('REUSSI'):f?TR('SUIVI EN COURSE'):TR('MEILLEUR ESSAI')+' '+misProgV(m,b))+'</small>';}
+      in9='<div class="gmT"><span class="gmChk"><i></i></span>'+TR('MISSION')+' '+(a.i+1)+'<b>+'+fmtC(m.p)+'</b></div><div class="gmX">'+misTxt(m)+'</div><u><em style="width:'+Math.round(100*(ok?1:misPart(m,b)))+'%"></em></u><small>'+(ok?TR('REUSSIE'):f?TR('SUIVIE EN COURSE'):TR('MEILLEUR ESSAI')+' '+misProgV(m,b))+'</small>';}
     else if(a.k==='r'){cls=pt='r';
       in9='<div class="gmT">'+pxi('etoile')+' '+TR('RECOMPENSE')+'<b style="color:#ffd75e">'+s.ok.filter(Boolean).length+' / 3</b></div>'+misGainFig(g)+'<div class="gmX" style="color:'+g.col+'">'+sansAcc(g.nom)+'</div><small>'+sansAcc(g.fam||'')+'</small>';}
     else{const gN=misGain(carnet(s.n+a.j));cls=pt='n';
@@ -48784,7 +48784,7 @@ function gmRenderS(vu){ // (Sacha, f474c51) l'écran MISSIONS RANGÉ — voir ME
   GMIS.ancres.forEach(function(a,k){let cls,pt,in9;
     if(a.k==='d'){const m=c.m[a.i],ok=!!s.ok[a.i],f=s.f===a.i,b=Math.min(m.v,s.best[a.i]||0);
       cls='d'+(ok?' ok':'')+(f?' f':'');pt=ok?'ok':f?'f':'';
-      in9='<div class="gmT"><span class="gmChk"><i></i></span>'+TR('DEFI')+' '+(a.i+1)+'</div><div class="gmX">'+misTxt(m)+'</div><div class="gmP"><u><em style="width:'+Math.round(100*(ok?1:misPart(m,b)))+'%"></em></u><b>+'+fmtC(m.p)+'</b></div><small>'+(ok?TR('REUSSI'):f?TR('SUIVI EN COURSE'):TR('MEILLEUR ESSAI')+' '+misProgV(m,b))+'</small>';}
+      in9='<div class="gmT"><span class="gmChk"><i></i></span>'+TR('MISSION')+' '+(a.i+1)+'</div><div class="gmX">'+misTxt(m)+'</div><div class="gmP"><u><em style="width:'+Math.round(100*(ok?1:misPart(m,b)))+'%"></em></u><b>+'+fmtC(m.p)+'</b></div><small>'+(ok?TR('REUSSIE'):f?TR('SUIVIE EN COURSE'):TR('MEILLEUR ESSAI')+' '+misProgV(m,b))+'</small>';}
     else{const gN=misGain(carnet(s.n+1));cls=pt='r';
       in9='<div class="gmT">'+pxi('etoile')+' '+TR('RECOMPENSE')+'<b style="color:#ffd75e">'+s.ok.filter(Boolean).length+' / 3</b></div>'
         +'<div class="gmRw">'+misGainFig(g)+'<div><div class="gmX" style="color:'+g.col+'">'+sansAcc(g.nom)+'</div><small>'+sansAcc(g.fam||'')+'</small></div></div>'
@@ -48797,8 +48797,8 @@ function gmRenderS(vu){ // (Sacha, f474c51) l'écran MISSIONS RANGÉ — voir ME
   GMIS.cards=[].slice.call(el.querySelectorAll('.gmC'));GMIS.pts=[].slice.call(el.querySelectorAll('.gmPt'));
   GMIS.paths=[].slice.call(sv.querySelectorAll('path'));
   GMIS.last=null;GMIS.lw=0; // les cases se recalculent (nouvelles cartes, nouveaux textes)
-  const sous=$('gmSous');if(sous)sous.textContent=TR('CARNET')+' '+(s.n+1)+' · '+TR('CHAQUE DEFI EN UNE PARTIE');
-  const aide=$('gmAide');if(aide)aide.textContent=s.f>=0?TR('SUIVI')+(LANG==='fr'?' : ':': ')+misTxt(c.m[s.f]):TR('TOUCHE UN DEFI POUR LE SUIVRE EN COURSE');
+  const sous=$('gmSous');if(sous)sous.textContent=TR('CARNET')+' '+(s.n+1)+' · '+TR('CHAQUE MISSION EN UNE PARTIE');
+  const aide=$('gmAide');if(aide)aide.textContent=s.f>=0?TR('SUIVIE')+(LANG==='fr'?' : ':': ')+misTxt(c.m[s.f]):TR('TOUCHE UNE MISSION POUR LA SUIVRE EN COURSE');
 }
 /* LES CASES (2026-09-30, Sacha : « missions, c'est pas mal mais un peu brouillon »). Les cartes flottaient À CÔTÉ de leur meuble et
    s'écartaient les unes des autres (8 passes) : elles se chevauchaient quand même, le fil de la constellation les traversait, deux cartes
@@ -48862,7 +48862,7 @@ function misFocusMaj(){ // LA MISSION SUIVIE, en course (appelée par misTick) :
   const m=carnet(s.n).m[f];if(!m)return;const ok=!!s.ok[f];
   if(ok&&!e._okT)e._okT=performance.now();
   if(ok&&performance.now()-e._okT>3200){if(e._on){e.classList.remove('on','ok');e._on=0;}return;}
-  const t9=misTxt(m),p9=ok?TR('REUSSI'):misProg(m),w9=Math.round(100*(ok?1:misPart(m,misVal(m.k))))+'%';
+  const t9=misTxt(m),p9=ok?TR('REUSSIE'):misProg(m),w9=Math.round(100*(ok?1:misPart(m,misVal(m.k))))+'%';
   if(e._t!==t9){e._t=t9;e.children[1].textContent=t9;}
   if(e._p!==p9){e._p=p9;e.children[2].textContent=p9;}
   if(e._w!==w9){e._w=w9;e.children[3].style.width=w9;}
@@ -48889,7 +48889,7 @@ function garAccueil(){ // appelé par le routeur à chaque arrivée sur 'home'
      const c2=GMIS.cards[GMIS.ancres.indexOf(a)];if(c2)c2.classList.add('flash');}
    else if(a.k==='r'){const g=misGain(carnet(s.n));if(!g.voir){uiClic('refus');return;}uiClic('nav');
      ecranWipe(function(){garMode('boutique');if(g.car!=null){shopTab('voiture');garageShow(g.car);}else if(g.cat){shopTab(g.cat);shopShow(g.cat,g.i);}});}
-   else{uiClic('refus');toast(pxi('verrou')+' '+TR("LES 3 DEFIS D'ABORD"));}});}
+   else{uiClic('refus');toast(pxi('verrou')+' '+TR("LES 3 MISSIONS D'ABORD"));}});}
  clicM(document.querySelector('#gMenuBas .gBoutique'),function(){uiClic('nav');ecranWipe(function(){garMode('boutique');});}); // la BOUTIQUE : l'atelier et ses vitrines
  clicM(document.querySelector('#gMenuBas .gLevel'),function(){uiClic('nav');carrVue(GAR.lvlW||0);});            // le NIVEAU : la carrière, sur le monde en cours
  clicM(document.querySelector('#gMenuBas .gVerrou'),function(){uiClic('refus');toast(pxi('verrou')+' '+TR('BIENTÔT DISPONIBLE'));}); // verrouillé pour l'instant
