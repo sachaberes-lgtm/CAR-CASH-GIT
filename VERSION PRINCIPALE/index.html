@@ -39475,6 +39475,10 @@ function startFall(impU,impF,bord){ // bord : sortie par le CÔTÉ de la route (
     if(k<8)spawnP(flameCore,fallPos.x,fallPos.y,fallPos.z,
       (Math.random()-.5)*9,-2-Math.random()*3,(Math.random()-.5)*9,.25);
   }
+  /* (2026-10-14, sensations · pose) LE SOL LÂCHE DANS LA MAIN. Le décollage avait sa poussière et son souffle, mais le pouce ne sentait rien :
+     on apprenait qu'on volait en le voyant. Un tic au moment où les roues quittent le bitume — léger pour une crête, un trou ou le bord,
+     et le « ta-tac » des deux essieux (avant, puis arrière) sur la lèvre d'une CATAPULTE. Une seule vibration, par le limiteur commun. */
+  if(SENS&&running&&!gameOver&&!introD)try{if(!bord&&impU>=5)sensHap([10,26,14],2);else sensHap(9,1);}catch(e){}
   if(AC&&engRpm>.42){const e9=ENG_SND[Math.max(0,engLvl)];if(e9&&e9.crk)crackle(e9.crk*.8);} // (2026-09-25) le moteur se décharge en quittant le sol
   if(SONV2){ /* (console de son) tomber n'est pas décoller : chacun son son */
     /* (bord, 1/10, Sacha : « un son de merde quand on sort de la route et qu'on va dans les airs, deux petites notes ») : la sortie par le
