@@ -74,6 +74,13 @@ de studio, un seul programme), dessous noir. Gabarit dans `Object.assign(SHAPES,
   d'une oreille à l'autre) qui respirent ; `chute.vent` (le claquement des tôles) et le vent du moteur ne jouent plus qu'au PIQUÉ de JOUER.
   Vérifié au banc muet (Chrome sans fenêtre, vrais clics) : ciel → musique en pause + vent ; GARAGE → musique de 0 à .31 en 0,4 s, vent
   coupé ; HOME → fondu, pause, vent revenu ; un toucher sur la caisse ne relance rien ; PLAY depuis le ciel → musique de course. `dbgChuteDoux()`.
+- **RÉGLÉ LE MÊME SOIR** (Léo : « le vent est fort ; joue la musique de fond derrière le vent, mais moins fort que dans le garage » ·
+  « et la boutique a son propre son ambiant ») : au ciel la musique JOUE, à `MUS_CIEL` (.4, −8 dB) du niveau du garage, derrière la chute
+  douce ramenée de .15 à .06 (`CHDOUX_VOL`, −8 dB) ; seule la boutique tait le lobby (`MUS_TAIT`). LE SON DE LA BOUTIQUE (`bqSon`/
+  `bqSonCoupe`, appelé par garBqIndus, coupé par closeGarage) : une nappe de verre à cinq voix qui glisse toutes les 9 s entre E 6/9 et
+  C#m7(11) — la pentatonique des petits sons, transposée sur `sonTonSuit._t` —, l'air de la salle, une note cristalline + écho toutes les
+  2,5-6 s ; monte en ~1 s, s'efface en 0,6 s. Mesuré au banc : ciel musique .124 / garage .31 / boutique musique en pause, son .85.
+  (iPhone : la musique y garde le même niveau partout — volume d'<audio> verrouillé.) `dbgBqSon()`.
 
 ## LA PASSE MOBILE — DÉBOGAGE ET FLUIDITÉ EN NETTE (2026-10-14, Léo : « il y a plein de bugs ; il faudrait pouvoir jouer au graphisme NET sans que ça bug » · « peu importe le téléphone, il faut que tout le monde puisse jouer »)
 Banc : Chrome sans fenêtre DÉGUISÉ EN IPHONE (390 × 844 ×3, tactile, `mobile:true` → le vrai chemin `TEL_NATIF`, pas la colonne), son coupé,

@@ -33838,7 +33838,7 @@ let musicVoulue=false,musicEnAttente=false,musicVolCible=1,musicVolCour=1,musicA
    ciel, un bruit de chute libre doux ») LE LOBBY SE TAIT AU CIEL : `MUS_TAIT` (posé par musicTick en mode menu : le ciel de LA CHUTE ou
    la boutique) — la musique s'efface en fondu puis se met en PAUSE (elle garde sa place), et RIEN ne la relance tant qu'il vaut vrai
    (ni le toucher, ni le retour d'arrière-plan : musicJoue l'ignore en mode menu). Le garage la rallume : elle repart de zéro en fondu. */
-let MUS_TAIT=false;
+let MUS_TAIT=false;const MUS_CIEL=.4; // au ciel, la musique à 40 % de celle du garage (−8 dB), derrière le vent
 const MUSIC_PASSIF={passive:true,capture:true};
 function musicElGet(){
   if(!musicEl){
@@ -34283,8 +34283,12 @@ function musicTick(dt,mvt){
     if(DEPMUS.sort){const d9=performance.now()-DEPMUS.sort;if(d9>3000)DEPMUS.sort=0;else musicVolCible*=Math.max(0,1-d9/350);}} // …et sous le fondu au noir du REJOUER
   {const bq9=musicMode==='menu'&&typeof GBQ!=='undefined'&&!!GBQ.veut; /* (2026-10-13, Léo, dans la boutique : « le sound design est terrifiant, change ou enlève ») LA BOUTIQUE SE TAIT : la musique du
      lobby s'efface en fondu dès qu'on touche BOUTIQUE et revient au retour (seuls les petits clics restent) ; sur iPhone (volume en lecture seule) elle se met en pause */
-   /* (2026-10-14) …et LE CIEL aussi (LA CHUTE, l'écran titre : on y entend la chute libre douce, `chuteDoux`) — le lobby ne part qu'au GARAGE */
-   const ciel9=musicMode==='menu'&&typeof CHUTE!=='undefined'&&!!CHUTE.on,tait9=bq9||ciel9;MUS_TAIT=tait9;
+   /* (2026-10-14) LE CIEL (LA CHUTE, l'écran titre) : d'abord muet (« la musique se lance quand j'appuie sur le mode garage »), puis, le
+      même soir (Léo : « le vent est fort ; joue la musique de fond derrière le vent, mais moins fort que dans le garage ») : la musique
+      joue au ciel, à MUS_CIEL du niveau du garage, DERRIÈRE la chute libre douce. Seule la boutique se tait encore. (iPhone : le volume
+      d'un <audio> y est verrouillé — la musique y joue au même niveau partout, comme avant.) */
+   const ciel9=musicMode==='menu'&&typeof CHUTE!=='undefined'&&!!CHUTE.on,tait9=bq9;MUS_TAIT=tait9;
+   if(ciel9)musicVolCible*=MUS_CIEL;
    if(tait9){musicVolCible=0;if(!musicTick._pz&&(VOL_LOCKED||musicVolCour<.012)){musicTick._pz=true;musicPause(true);}}
    else if(musicTick._pz){musicTick._pz=false;musicVolCour=0;musicPause(false);} // on rentre au garage : elle repart, en fondu depuis zéro
    musicTick._bq=bq9;}
@@ -44522,6 +44526,7 @@ function closeGarage(){
   invFerme(true);invHoldFin(); // (2026-10-04) l'INVENTAIRE ne survit pas à l'atelier
   GAR.vD=0;GAR.wD=0;GAR.preE=0;GAR.misVit=false; // (2026-10-05) la composition de la vitrine repart de zéro à la prochaine visite
   chuteSort(true); // (2026-09-30) LA CHUTE : les nuages, les filets de vent et le vent s'en vont avec le menu
+  try{bqSonCoupe(.4);}catch(e){} // (2026-10-14) …et la voix de la boutique
   try{if(openGarage._amb){openGarage._amb.stop(.35);openGarage._amb=null;}}catch(e){}
   try{if(openGarage._feu){openGarage._feu.stop(.35);openGarage._feu=null;}}catch(e){}
   trailApercu(0,false);
@@ -45958,7 +45963,7 @@ function chuteVoileEl(){ // le banc de nuage traversé au JOUER : un voile blanc
    un GRAND, grave et rond (bruit passé deux fois sous ~350 Hz), et un plus CLAIR et léger (une bande autour de 900 Hz) qui passe lentement
    d'une oreille à l'autre ; tous deux RESPIRENT (des houles de 2 à 15 s), jamais le claquement des tôles de `chute.vent` (gardé pour le
    piqué de JOUER). Bus des effets (MASTER : curseur EFFETS, interrupteur SON). Créé au 1er passage au ciel, éteint 0,4 s après qu'on le quitte. */
-const CHDOUX={n:null,off:0},CHDOUX_VOL=.15;
+const CHDOUX={n:null,off:0},CHDOUX_VOL=.06; // (même soir, Léo : « le vent est fort ») .15 → .06 (−8 dB)
 function chuteDoux(t,u){
   if(!AC||AC.state!=='running'||!SND.sfx)return;
   let n=CHDOUX.n;
@@ -46460,6 +46465,48 @@ function garBqBatit(){if(GBQ.grp)return; // (2026-10-12, Léo : « lâche le mag
   GBQ.choc=new THREE.Mesh(new THREE.RingGeometry(.86,1,56),new THREE.MeshBasicMaterial({color:0xdfe7ff,transparent:true,opacity:0,depthWrite:false,fog:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide}));
   GBQ.choc.rotation.x=-Math.PI/2;GBQ.choc.visible=false;scene.add(GBQ.choc);
 }
+/* LE SON DE LA BOUTIQUE (2026-10-14, Léo : « et la boutique a son propre son ambiant ») : la musique du lobby s'y tait toujours (13/10 :
+   « le sound design est terrifiant ») — la salle blanche a désormais SA voix, douce : une NAPPE DE VERRE (cinq voix, chacune un sinus et un
+   triangle à peine désaccordés, sous 1,9 kHz) qui glisse toutes les 9 s entre deux accords de la pentatonique des petits sons (E 6/9 ↔
+   C#m7(11), transposés sur la tonalité du moment, `sonTonSuit._t` : les clics restent justes), l'AIR de la salle (un souffle très aigu,
+   très bas) et, toutes les 2,5-6 s, une petite note CRISTALLINE avec son écho. Bus des effets (MASTER). Monte en 1,2 s quand la boutique
+   s'ouvre, s'efface en 0,6 s quand on en sort. */
+const BQSON={n:null,off:0,acc:0,tP:0},BQSON_VOL=1;
+const BQSON_ACC=[[52,59,66,68,73],[49,56,64,66,71]]; // E 6/9 (mi · si · fa# · sol# · do#) ↔ C#m7(11) (do# · sol# · mi · fa# · si) : chaque voix glisse d'un pas
+function bqSon(dt,on){
+  if(!on){if(BQSON.n&&!BQSON.off)bqSonCoupe(.6);return;}
+  if(!AC||AC.state!=='running'||!SND.sfx)return;
+  let n=BQSON.n;const now=AC.currentTime,ton=(sonTonSuit._t|0);
+  if(!n){
+    const g=AC.createGain();g.gain.value=0;g.connect(MASTER);
+    const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1900;lp.Q.value=.3;lp.connect(g);
+    const V=[];BQSON.acc=0;
+    for(const m of BQSON_ACC[0]){const f=440*Math.pow(2,(m+ton-69)/12),gv=AC.createGain();gv.gain.value=.006;gv.connect(lp);
+      const a=AC.createOscillator(),b=AC.createOscillator();a.type='sine';b.type='triangle';a.frequency.value=f;b.frequency.value=f;b.detune.value=6;a.detune.value=-4;
+      a.connect(gv);b.connect(gv);a.start();b.start();V.push({a:a,b:b,g:gv});}
+    const air=AC.createBufferSource();air.buffer=noiseBuf(2.7);air.loop=true;
+    const ah=AC.createBiquadFilter();ah.type='highpass';ah.frequency.value=4200;const al=AC.createBiquadFilter();al.type='lowpass';al.frequency.value=9000;
+    const ag=AC.createGain();ag.gain.value=.004;air.connect(ah);ah.connect(al);al.connect(ag);ag.connect(g);air.start();
+    const ec=AC.createDelay(1);ec.delayTime.value=.38;const eg=AC.createGain();eg.gain.value=.35;const pg=AC.createGain();pg.gain.value=1;
+    pg.connect(g);pg.connect(ec);ec.connect(eg);eg.connect(ec);eg.connect(g);
+    n=BQSON.n={g:g,lp:lp,V:V,air:air,pg:pg,ec:ec,eg:eg,t:0,tA:0};BQSON.tP=1.5;
+  }
+  if(BQSON.off){clearTimeout(BQSON.off);BQSON.off=0;}
+  n.t+=dt;stt(n.g.gain,BQSON_VOL*(.85+.15*Math.sin(n.t*.31)),now,.4);
+  n.tA+=dt;if(n.tA>9){n.tA=0;BQSON.acc^=1;}                                   // l'accord change toutes les 9 s, chaque voix glisse en ~1,5 s
+  const A=BQSON_ACC[BQSON.acc];
+  for(let i=0;i<n.V.length;i++){const f=440*Math.pow(2,(A[i]+ton-69)/12);stt(n.V[i].a.frequency,f,now,.5);stt(n.V[i].b.frequency,f,now,.5);
+    stt(n.V[i].g.gain,.006*(.75+.25*Math.sin(n.t*(.13+.07*i)+i)),now,.6);}
+  BQSON.tP-=dt;if(BQSON.tP<=0){BQSON.tP=2.5+Math.random()*3.5;              // la note cristalline : une note de la pentatonique, haut, qui s'éteint en ~2,5 s
+    const PENTA=[0,2,4,7,9],m=76+PENTA[(Math.random()*5)|0]+12*((Math.random()*2)|0)+ton;
+    try{const o=AC.createOscillator(),og=AC.createGain(),t0=AC.currentTime+.02;o.type='sine';o.frequency.value=440*Math.pow(2,(m-69)/12);
+      og.gain.setValueAtTime(0,t0);og.gain.linearRampToValueAtTime(.022,t0+.006);og.gain.setTargetAtTime(0,t0+.01,.8);
+      o.connect(og);og.connect(n.pg);o.start(t0);o.stop(t0+4);}catch(e){}}
+}
+function bqSonCoupe(d){const n=BQSON.n;if(!n||!AC)return;
+  try{n.g.gain.cancelScheduledValues(AC.currentTime);n.g.gain.setTargetAtTime(0,AC.currentTime,d/3);n.g.gain._s9=0;}catch(e){}
+  clearTimeout(BQSON.off);BQSON.off=setTimeout(function(){if(BQSON.n!==n)return;try{for(const v of n.V){v.a.stop();v.b.stop();}n.air.stop();n.g.disconnect();n.eg.disconnect();}catch(e){}BQSON.n=null;BQSON.off=0;},d*1000+500);}
+window.dbgBqSon=function(){return {on:!!BQSON.n,gain:BQSON.n?+BQSON.n.g.gain.value.toFixed(4):0,acc:BQSON.acc,veut:!!(typeof GBQ!=='undefined'&&GBQ.veut)};}; // (dev)
 function garBqAmbiance(on){garLibre._r=null; // (v3) au BASCULEMENT (pic de la lueur) : la lumière, et les voiles d'encre du garage retirés (#garage.bqBlanc)
   if(gEl)gEl.classList.toggle('bqBlanc',on);try{bioApply(on?bqBio():BIOMES.atelier);}catch(e){}}
 function bqClasses(on){document.documentElement.classList.toggle('bqIndus',on);if(gEl)gEl.classList.toggle('bqIndus',on);garLibre._r=null;} // dès le geste : l'interface du garage s'efface
@@ -46641,6 +46688,7 @@ function garBqIndus(dt,ay,t9){
   /* (2026-10-14, Léo : « la transition entre les deux, c'est peut-être un peu lourd ; reviens sur le truc glitch ») LE GLITCH revient : le
      geste lance garGlitch (0,72 s de bandes et de tressauts), le décor BASCULE dessous à son pic (0,16 s) ; la caisse décolle aussitôt
      (plus de petit coup, ni de lueur blanche, ni d'éclat). Au retour, pareil, à l'envers. */
+  try{bqSon(dt,veut&&!GAR.go);}catch(e){} // (2026-10-14) la boutique a sa voix (voir LE SON DE LA BOUTIQUE)
   if(veut!==GBQ.veut){const avant=GBQ.on;GBQ.veut=veut;GBQ.t=0;GBQ.bascule=false;GBQ.eclat=0;GBQ.coupT=-1;bqClasses(veut);
     if(veut){garBqBatit();garBqLueurBatit();GBQ.boum=1;GBQ.levV=2.6;}if(!GAR.go&&(veut||avant))garGlitch();}
   GBQ.t+=dt;
