@@ -125,3 +125,16 @@
 - POUR INTERFACE / LÉO : les lavis violets restants sont DOM (`#pwrFx`, `#speedFx`, les taches JUS, la jauge et l'AURA du HUD). Les taches de jus DOMINENT encore toutes les captures (question 266 de QUESTIONS.md).
 - orbite-finitions (port 8330, `?sans=orbite2`) : rebond de lumière qui suit la planète, béton modelé par une clé rasante, noir profond.
 - En vol (3) : nuages-jour, garage-lumiere, orbite-finitions.
+
+### 13:30 — PASSATION VERS LE PC (ordre de Sacha relayé par INTERFACE, 13:10) — SESSION ARRÊTÉE
+- Branche poussée : `origin/gfx-integration` = **5e15978** (jamais main, sans force). Elle contient assemblage T7 (d8af462) et TOUT le travail graphisme vérifié.
+- Fusionnés juste avant le départ : garage-lumiere (`?sans=garage`) et nuages-jour (`?sans=nujour`, ombre des cumulus = uniforme uLav au lieu de la constante lavande).
+- orbite-finitions : diagnostic seulement, 0 commit. Le plan est dans la passation (§3.7). Aucune autre branche gfx/* ne porte de travail non intégré.
+- Contrôles au départ :
+  - syntaxe des 14 scripts : 0 erreur ;
+  - garde-burnout : OK ;
+  - chinois / POKI : 0 ;
+  - fumée 8300 couché + debout : OK, 0 erreur JS.
+- Passation : `passation/GRAPHISME.md` à la racine de la branche, avec 2 planches réduites (graphisme-titre.jpg, graphisme-ville.jpg).
+- POUR INTERFACE : le dégradé CSS `html #garage::after` bouche la moitié droite du garage 3D (proposition : alpha .55/.35, bleu-nuit).
+- Plus aucun agent en vol. La suite se fait sur le PC.

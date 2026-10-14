@@ -195,3 +195,33 @@ CONSIGNE : chaque session : `git merge assemblage` avant sa prochaine vague.
 - AUCUNE (origin/main toujours à `65e43bc`).
 
 CONSIGNE : chaque session : `git merge assemblage` avant sa prochaine vague.
+
+## T7 — 13 h 26
+- **SHA final : `676a3ad`** (branche `assemblage`, poussée) · AVANT = `242da07` (T6).
+- Fusionnées : origin/main (+2, Léo : habillages POP, équilibrage, textes FR/EN ; guide CLAUDE.md + JOURNAL.md) → `d8af462` · debug-integration (+6) → `103e2eb` · sensations-integration (+6) → `53b6196` · perf-integration (+1 : image nette par défaut sur iPhone récent, 30 i/s, programmes du jade compilés au menu ; ajoute passation/OPTIMISATION.md + banc-perf) → `6d88beb` · **origin/ui-integration (+63, INTERFACE, autre machine ; passation/ gardé tel quel)** → `76043aa` · gfx-integration (+20) → `1c40806` · son-integration (+1) → `9f6cb8e`.
+- Conflits : SEULE origin/main (index.html ×12, sw.js, poki-construire.js supprimé chez nous / modifié chez main), résolue selon la revue DEBUGGING (`debug/trouvailles/revue-main-pop.json`) : côté assemblage pour cryptoPubAtlas (CRYPTOCITY), HORS DE L'EAU de jadeEauVol, I18N_ZH, ligne DAUPHIN, bloc SANS FAUTE / MISSIONS, `if(POKI)` de l'I18N et de COSM, boucle campagne `[k,v,z]`, ligne du lingot ; côté main pour les blocs ajoutés TRX et AILES_POP ; portailPasse : les DEUX lignes (sensHap + zb ×120) ; les deux lignes `Object.assign(I18N,…)` de main gardées (habillages EN) ; quelques textes EN de Léo repris dans nos lignes (« FINISH THE 3 CHALLENGES FIRST », « VIEW », « YOU WERE SUPPOSED TO FOLLOW HER », « 999.9 fine, and pure arrogance »). Les autres fusions : 0 conflit. Reportées : AUCUNE.
+- Réintroductions retirées : CRYPTOCITY (cryptoPubAtlas, 361 l), I18N_ZH / chinois, POKI (I18N, COSM, `pk`), dbgFilet & co (déjà retirés chez nous), poki-construire.js. Les diffs des 6 autres fusions : 0 ajout de pkPasse / POKI / I18N_ZH / zh / CRYPTOCITY / pk(. Casses réparées : aucune. À noter : les « traductions ZH » de Léo sont perdues (le chinois est retiré) ; TRX_FORCE, trxApercu, AILES_POP, pubLangue définis.
+- Syntaxe 0 erreur (14 scripts) · garde du burn-out OK · 0 marqueur — après chaque fusion. Fumées (serveur 8600) : couche + debout OK après origin/main, puis sur `676a3ad` couche + debout OK, `?play=jade` OK, 0 erreur JS.
+- Contrôles : `POKI\b|CRYPTO_JEU|I18N_ZH` = 1 (commentaire d'ANN_LIB) · cryptoJouer/NIV_CRYPTO/CC_PUB/SAVE.portail = 0 · `LANG==='zh'` = 0 · html.c6.poki = 0 · CRYPTOCITY ×1 (billet ₿) · LA NOCTAMBULE ×4.
+- Cache : `cashcar-v381` (max(origin/main v378, assemblage v380) + 1), commit séparé `676a3ad`.
+- Poids d'index.html : 5 656 255 octets (≈ 5,66 Mo ; 5 497 125 à T6 → +159 Ko : habillages POP + charte 6).
+- Non traité (revue DEBUGGING) : carnets POP 10-12 (joueur au carnet 9-11 garde des coches d'autres défis), coût mobile TRX/ailes (aucun cran PAL), #auraSub / span .aura sans auraSansNom.
+
+### LES POUSSÉES DE LÉO depuis T6
+- 2 commits sur origin/main (tête `3ca83ec`) : `2289498` HABILLAGES POP (10 traînées au moteur TRX, 10 ailes AILES_POP, 10 peintures), ÉQUILIBRAGE argent/aura (1re caisse 10 k, 4 rangs d'aura, portail ×5), TEXTES FR/EN ; `3ca83ec` CLAUDE.md = guide court, journal passé dans JOURNAL.md.
+
+### Synchro (sync.sh)
+```
+poussée : assemblage (676a3ad)
+poussée : debug-integration (759fc5b)
+poussée : perf-integration (e809d5b)
+poussée : gfx-integration (1ce9473)
+poussée : sensations-integration (a3524e7)
+poussée : son-integration (dd997e9)
+poussée : ui-integration (245ac62)
+poussée : ios-capacitor (16a6ac5)
+pilotage-notes poussées : b2d4106
+origin/ui-integration (autre machine) : 245ac62 — 14/10 12:58 Passation de la session INTERFACE pour la reprise sur le PC
+```
+
+CONSIGNE : chaque session : `git merge assemblage` (ou `origin/assemblage` sur l'autre machine) avant sa prochaine vague.
