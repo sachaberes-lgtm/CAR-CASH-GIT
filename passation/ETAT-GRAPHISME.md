@@ -24,7 +24,7 @@ La passation longue (règles, plafonds de la charte, outils dbg) reste `passatio
 - RESTE, dans l'ordre : (1) l'ORAGE de la ville encore peu rose : son plafond de nuages lilas/éclair a été retiré par `NEON_V` à la COMPILATION (l. ~9364/9367,
   le plafond sous la pluie) → il faut un uniforme pour le rendre à la ville seule ; (2) le MIDI du canyon peut-être trop saturé (ciel chroma 88) : baisser `cyZ`/`cyM`
   de canyonMidi si Sacha le juge ; (3) la LUNE du titre la nuit : la direction en uniforme ne suffit pas (essai retiré) → vérifier si le ciel du titre dessine
-  `cielLune` (variante du shader) et si `titreCiel` est appelé la nuit ; (4) MONTAGNE / toute nouvelle map : routeSig + contre-jour rose + plafonds de la bible.
+  `cielLune` (variante du shader) et si `titreCiel` est appelé la nuit ; (4) MONTAGNE / toute nouvelle map : routeSig + contre-jour rose + plafonds de la bible. (5) Les GRUES de la métropole : à vérifier EN VOL au-dessus des toits (densité `metroH<.11`, `.07` téléphone ; taille du mât 36-76 m, flèche 46-82 m) — rarement dans le cadre du banc au sol.
 - Pièges vus : `</style>` collé dans un commentaire (fusion boutique-pop) = CSS affiché en texte ; les fusions de maps se percutent toujours aux mêmes endroits
   (ctrl, build*, SF_NIV, SF_CARTES, chauffe, musique, CAUSES, accC) : garder tous les côtés (script `resout_volcan.py` du scratchpad) ; motif du cache dans sw.js.
 
