@@ -9975,6 +9975,20 @@ function mergeSpheres(blobs,rx,ry,rz){
 const COTON={S:[],im:[],I:null,n:0,cap:560,mat:null,grid:null,root:null,L:null,M:new THREE.Matrix4(),Q:new THREE.Quaternion(),Sc:new THREE.Vector3(), // (v4) 420 → 480 : les petits nuages en plus
   P:new THREE.Vector3(),Y:new THREE.Vector3(0,1,0),fr:new THREE.Frustum(),pv:new THREE.Matrix4(),nN:0,nF:0,tri:0,ms:0,
   SEG:[[7,5],[10,7],[16,11],[22,15]],FAC:73,CH:.45}; // les QUATRE finesses d'un gabarit ; FAC : on prend la plus légère dont une facette reste sous ~1,7° à l'écran (segments ≥ 73·R/d)
+/* (2026-10-14, passe graphismes — Sacha : « dans la map chinoise il faut les mêmes nuages que dans la map normale ») LES PICS DE JADE
+   PRENNENT LE CIEL DE COTON : les volutes en cubes (NUVOX, 353 000 triangles / 26 appels) ne sont plus bâties ni dessinées ; à leur place,
+   les cumulus de la Mer de nuages (mêmes gabarits, mêmes instances, même matière déjà compilée au menu — rien de neuf pour la puce),
+   posés par `cotonJade` ENTRE et DERRIÈRE les pics, à l'altitude de la brume. `?nucubes=1` (ou true ici) : les cubes reviennent, tels quels. */
+const JADE_NUAGES_CUBES=/[?&]nucubes=1\b/.test(location.search);
+/* LE BUDGET (session OPTIMISATION) : palier 0 ≤ 40 000 triangles / 6 appels · 1 ≤ 90 000 / 10 · 2 ≤ 180 000 / 16, par image. Tenu par
+   construction : `K` = les gabarits permis (3 pour la 1re tranche, 5 ensuite), `f` = la finesse la plus fine permise par palier (donc
+   3×2, 5×2, 5×3 lots au plus), `n` = nuages par km de piste dans chaque TRANCHE — les tranches sont posées l'une après l'autre et
+   cotonTick n'envoie que les `lim[palier]` premiers : le palier peut changer en course sans rien rebâtir. */
+const COTON_JADE={n:[3.2,3.2,4.2],f:[1,1,2],K:[[1,4,0],[1,4,0,2,3]],lim:[0,0,0],force:null}; // gabarits : 1 humilis · 4 stratocumulus · 0 mediocris · 2 congestus · 3 humilis
+function cotonPalier(){ // 0 ancien iPhone · 1 moyen · 2 récent — `PAL.n` (socle de la passe perf) s'il existe, sinon les crans de qualité
+  if(COTON_JADE.force!=null)return COTON_JADE.force;
+  try{if(typeof PAL==='object'&&PAL&&typeof PAL.n==='number')return Math.max(0,Math.min(2,PAL.n|0));}catch(e){}
+  return QUAL_LOW?0:QUAL_MED?1:2;}
 const NUAGE8=!/[?&]n8=0\b/.test(location.search); // (2026-09-30) LES NUAGES v8 (voir « LES NUAGES v8 ») — ?n8=0 : les nuages d'avant, pour comparer
 const N8_FIN=[12,18,26,48]; // (SON, mesuré : de près, en vol, une surface lisse « en plastique ») la finesse du tout près monte à 48 : les petits bourgeons s'y dessinent // (mesuré, banc perf de DEBUGGING : 14/22/32/46 avec des seuils trop fins = 449 k triangles au sol, contre 153 k avant)
 const N8_GENRE6=['mediocris','humilis','congestus','humilis','stratocumulus','mediocris'];
@@ -10422,8 +10436,23 @@ const COTON_POIDS=(function(){ // (v6) près · milieu · loin — les classique
     stratocumulus:[.8,1.3,1.6],altocumulus:[1.2,1.4,.6],cisaille:[.3,1,1.4],champignon:[.1,.6,1.6]},o={pres:[],mil:[],loin:[]};
   ['pres','mil','loin'].forEach(function(q,j){for(let k=0;k<6;k++)o[q].push(C[q][k]*.55);for(const g of COTON_GENRES)o[q].push(W[g][j]);});return o;})();
 function cotonKind(cr,w){let s=0;for(const x of w)s+=x;let u=cr()*s;for(let k=0;k<w.length;k++){u-=w[k];if(u<=0)return k;}return 0;}
+function cotonJade(cr){ // (2026-10-14, passe graphismes) le coton des PICS DE JADE — tiré sur `cr` (le flux des nuages : la piste et la vallée ne bougent pas)
+  const J=COTON_JADE,km=L/1000,perp=function(i){const t=T[i],l=Math.hypot(t.x,t.z)||1;return [-t.z/l,t.x/l];};
+  let yMin=1e9;for(let i=0;i<NP;i+=4)if(pts[i].y<yMin)yMin=pts[i].y;const sol=yMin-45+24; // l'eau est à yMin-45 (JADE.eauY, bâtie après) : aucun dessous de nuage dans le fleuve
+  for(let pa=0;pa<3;pa++){const KS=J.K[pa?1:0],plats=KS.slice(0,2),N=Math.max(2,Math.round(J.n[pa]*km));
+    for(let k=0;k<N;k++){const i=Math.min(NP-1,Math.floor(((k+.18+cr()*.64)/N)*NP)),p=pts[i],q=perp(i),t9=T[i],sg=cr()<.5?-1:1,u=cr(),al=(cr()-.5)*420,x0=p.x+t9.x*al,z0=p.z+t9.z*al;
+      if(u<.46){ // (a) LES BANCS ENTRE LES PICS : des cumulus plats, au niveau de la brume (du fleuve à la route), à 250-900 m du ruban
+        const r=cotonR(cr,70,175,1.3),kk=cr()<.7?plats[cr()*2|0]:KS[cr()*KS.length|0],yB=Math.max(sol,p.y-150+cr()*170),sy=.68+cr()*.24;let d=ROAD_HALF+r+230+cr()*600;
+        for(let t=0;t<3;t++,d+=150)if(cotonPose(x0+q[0]*sg*d,yB,z0+q[1]*sg*d,r,kk,cr,sy))break;}
+      else if(u<.86){ // (b) LES MASSES DERRIÈRE LES PICS : 1-2,3 km, de grands cumulus dont la base trempe dans la brume
+        const r=cotonR(cr,210,450,1.4),kk=KS[cr()*KS.length|0],d=1000+cr()*1300;cotonPose(x0+q[0]*sg*d,Math.max(sol,p.y-190+cr()*330),z0+q[1]*sg*d,r,kk,cr);}
+      else{ // (c) QUELQUES-UNS EN HAUT, qui se découpent sur le ciel du rouleau — jamais au-dessus du ruban (≥ 500 m de côté)
+        const r=cotonR(cr,120,280,1.4),d=500+cr()*1500;cotonPose(x0+q[0]*sg*d,p.y+380+cr()*420,z0+q[1]*sg*d,r,plats[cr()*2|0],cr,.7+cr()*.25);}}
+    J.lim[pa]=COTON.n;}
+  COTON.jd=J;COTON.root.visible=COTON.n>0;}
 function buildCoton(cr){
-  cotonInit();cotonVide();if(!(NP>1)||!pts.length)return;COTON.grid=cotonGrille();
+  cotonInit();cotonVide();COTON.jd=null;if(!(NP>1)||!pts.length)return;COTON.grid=cotonGrille();
+  if(LVL.cur&&LVL.cur.piste==='jade'&&!JADE_NUAGES_CUBES&&!PARK.on&&!LVL.cur.sansNuages){cotonJade(cr);return;} // (2026-10-14, passe graphismes) LES PICS DE JADE : le ciel de coton, à leur mesure
   const okD=lvlNuageOk({deco:true}),okG=lvlNuageOk({giant:true});if(!okD&&!okG)return;
   const strat=function(k,K){return Math.min(NP-1,Math.floor(((k+.18+cr()*.64)/K)*NP));};
   const perp=function(i){const t=T[i],l=Math.hypot(t.x,t.z)||1;return [-t.z/l,t.x/l];}; // le travers HORIZONTAL du ruban (jamais B[i] : piste inclinée)
@@ -10485,16 +10514,16 @@ function buildCoton(cr){
 const COTON_T0=performance.now();
 function cotonTick(cam){ // à chaque rendu de la scène : ce qui est dans le champ, en quelle finesse, du plus loin au plus près
   if(!COTON.root||!COTON.root.visible)return;
-  const t00=performance.now(),I=COTON.I,Ls=COTON.L,n=COTON.n,tt=(t00-COTON_T0)*.001;N8_U.uTps.value=tt;for(let j=0;j<Ls.length;j++)Ls[j].n=0;
+  const t00=performance.now(),I=COTON.I,Ls=COTON.L,J=COTON.jd,pj=J?cotonPalier():2,fm=J?J.f[pj]:3,n=J?Math.min(COTON.n,J.lim[pj]):COTON.n,tt=(t00-COTON_T0)*.001; /* (2026-10-14, passe graphismes) J : les Pics de Jade — les `lim[palier]` premiers nuages, jusqu'à la finesse `fm` */N8_U.uTps.value=tt;for(let j=0;j<Ls.length;j++)Ls[j].n=0;
   COTON.pv.multiplyMatrices(cam.projectionMatrix,cam.matrixWorldInverse);COTON.fr.setFromProjectionMatrix(COTON.pv);
   const pl=COTON.fr.planes,cx=cam.position.x,cy=cam.position.y,cz=cam.position.z;
-  const fF=(LVL.cur&&LVL.cur.id==='orage'&&scene.fog)?scene.fog.far*1.02:1e9; // (2026-09-29) L'ORAGE : sa brume est à ~1 km — un nuage ENTIÈREMENT au-delà est de la brume pure : pas envoyé (mesuré : 407k triangles → voir CLAUDE.md) ; l'éclair qui ouvre la brume les fait revenir
+  const fF=((J||(LVL.cur&&LVL.cur.id==='orage'))&&scene.fog)?scene.fog.far*1.02:1e9; // (2026-09-29) L'ORAGE : sa brume est à ~1 km — un nuage ENTIÈREMENT au-delà est de la brume pure : pas envoyé (mesuré : 407k triangles → voir CLAUDE.md) ; l'éclair qui ouvre la brume les fait revenir
   for(let j=0;j<n;j++){const o=j*COTON_ST,r=I[o+3],h=I[o+7],ph=I[o+6],k=I[o+5],S=COTON.S[k];
     const x=I[o]+Math.sin(tt*.05+ph)*6,z=I[o+2]+Math.cos(tt*.04+ph)*6,yc=I[o+1]+S.base*r*I[o+9]+h*.5,R=Math.max(r*1.08*I[o+8],h*.56); // la ouate DÉRIVE au vent
     let vis=true;for(let q=0;q<6;q++){const P9=pl[q];if(P9.normal.x*x+P9.normal.y*yc+P9.normal.z*z+P9.constant<-R){vis=false;break;}}
     if(!vis)continue;
     const dx=x-cx,dy=yc-cy,dz=z-cz,d=Math.sqrt(dx*dx+dy*dy+dz*dz);if(d-R>fF)continue;const sg=COTON.FAC*R*(S.fin||1)/Math.max(1,d-R*.5); // les segments qu'il faut pour que la facette ne se voie pas — (v4) à la taille de SES bourgeons
-    const Lq=Ls[k*4+(NUAGE8?(sg<=10?0:sg<=16?1:sg<=32?2:3):(sg<=7?0:sg<=10?1:sg<=16?2:3))]; /* (v8) la surface : ~10 px par cellule à l'écran */Lq.i[Lq.n]=j;Lq.d[Lq.n]=d;Lq.n++;}
+    const Lq=Ls[k*4+Math.min(fm,NUAGE8?(sg<=10?0:sg<=16?1:sg<=32?2:3):(sg<=7?0:sg<=10?1:sg<=16?2:3))]; /* (v8) la surface : ~10 px par cellule à l'écran */Lq.i[Lq.n]=j;Lq.d[Lq.n]=d;Lq.n++;}
   let nN=0,nF=0,tri=0;
   for(let q=0;q<Ls.length;q++){const Lq=Ls[q],im=COTON.im[q],A=im.instanceMatrix.array,ii=Lq.i,dd=Lq.d,m=Lq.n;
     for(let a=1;a<m;a++){const vi=ii[a],vd=dd[a];let b=a-1;while(b>=0&&dd[b]<vd){ii[b+1]=ii[b];dd[b+1]=dd[b];b--;}ii[b+1]=vi;dd[b+1]=vd;} // du plus LOIN au plus près
@@ -15451,7 +15480,7 @@ function* jadeBatit(seed,cle){
      for(let k=0;k<4;k++){const r9=jr();if(r9>.8)continue;const sg=jr()<.5?-1:1,haut=true,lat=haut?1000+Math.pow(jr(),.8)*3000:1500+jr()*2600,al=(jr()-.5)*700,w=haut?800+jr()*1100:1500+jr()*1300;
        const y=haut?pts[i].y+260+jr()*820:JADE.eauY+45+jr()*120;NU.push([pts[i].x+px*sg*lat+t9.x/hl*al,y,pts[i].z+pz*sg*lat+t9.z/hl*al,w,w*.5,(jr()*16)|0,jr(),pts[i].x,pts[i].z]);}
      if(jr()<.35){const sg=jr()<.5?-1:1,lat=250+jr()*500,w=600+jr()*600;NU.push([pts[i].x+px*sg*lat,pts[i].y+780+jr()*600,pts[i].z+pz*sg*lat,w,w*.5,(jr()*16)|0,jr(),pts[i].x,pts[i].z]);}} // au-dessus de la route
-   if(NU.length){if(!JADE_NUAGE_M.uniforms.uTex.value)JADE_NUAGE_M.uniforms.uTex.value=jadeCumulusTex(); // (v16) des CUMULUS (les volutes en spirale : un cliché)
+   if(JADE_NUAGES_CUBES&&NU.length){if(!JADE_NUAGE_M.uniforms.uTex.value)JADE_NUAGE_M.uniforms.uTex.value=jadeCumulusTex(); // (v16) des CUMULUS (les volutes en spirale : un cliché)
      const Mx=new THREE.Matrix4(),couche=(L9,ro)=>{const g=new THREE.PlaneGeometry(1,1),im=new THREE.InstancedMesh(g,JADE_NUAGE_M,L9.length),aj=new Float32Array(L9.length*4);
        L9.forEach(function(n,k){Mx.makeTranslation(n[0],n[1],n[2]);im.setMatrixAt(k,Mx);aj.set([n[3],n[4],n[5],n[6]],k*4);});
        g.setAttribute('aJ',new THREE.InstancedBufferAttribute(aj,4));im.userData.jeter=true;im.frustumCulled=false;im.renderOrder=ro;root.add(im);};
