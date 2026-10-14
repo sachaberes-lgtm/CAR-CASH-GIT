@@ -15100,12 +15100,12 @@ function buildForet(seed){
   const mat=(x,y,z,ry,sx,sy,sz)=>{const c=Math.cos(ry),s=Math.sin(ry);return [c*sx,0,-s*sx,0,0,sy,0,0,s*sz,0,c*sz,0,x,y,z,1];}; // = compose(rotation Y, échelle) écrit à la main
   // ---- la route en grille (les règles de distance) ----
   const HB=100,grille=new Map(),pg=Math.max(1,Math.round(8/ds));
-  for(let i=0;i<NP;i+=pg){const p=pts[i],k=Math.floor(p.x/HB)+','+Math.floor(p.z/HB);let a=grille.get(k);if(!a)grille.set(k,a=[]);a.push(i);}
-  const proches=(x,z,R,cb)=>{const r=Math.ceil(R/HB),bx=Math.floor(x/HB),bz=Math.floor(z/HB);for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){const a=grille.get((bx+dx)+','+(bz+dz));if(a)for(let j=0;j<a.length;j++)cb(a[j]);}};
+  for(let i=0;i<NP;i+=pg){const p=pts[i],k=Math.floor(p.x/HB)*100003+Math.floor(p.z/HB);let a=grille.get(k);if(!a)grille.set(k,a=[]);a.push(i);}
+  const proches=(x,z,R,cb)=>{const r=Math.ceil(R/HB),bx=Math.floor(x/HB),bz=Math.floor(z/HB);for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){const a=grille.get((bx+dx)*100003+(bz+dz));if(a)for(let j=0;j<a.length;j++)cb(a[j]);}};
   const lat9=i=>{const t=T[i],hl=Math.hypot(t.x,t.z)||1;return [-t.z/hl,t.x/hl];};
   // ---- les zones nues (pas d'arbre ordinaire dedans) : une grille de 60 m ----
-  const ZG=new Map(),zone=(x,z,r)=>{FORET.zonesNu.push([x,z,r]);const c=Math.ceil(r/60);for(let a=-c;a<=c;a++)for(let b=-c;b<=c;b++){const k=(Math.floor(x/60)+a)+','+(Math.floor(z/60)+b);let L9=ZG.get(k);if(!L9)ZG.set(k,L9=[]);L9.push([x,z,r]);}};
-  const nu=(x,z,r)=>{const L9=ZG.get(Math.floor(x/60)+','+Math.floor(z/60));if(L9)for(const o of L9)if(Math.hypot(x-o[0],z-o[1])<o[2]+r)return true;return false;};
+  const ZG=new Map(),zone=(x,z,r)=>{FORET.zonesNu.push([x,z,r]);const c=Math.ceil(r/60);for(let a=-c;a<=c;a++)for(let b=-c;b<=c;b++){const k=(Math.floor(x/60)+a)*100003+(Math.floor(z/60)+b);let L9=ZG.get(k);if(!L9)ZG.set(k,L9=[]);L9.push([x,z,r]);}};
+  const nu=(x,z,r)=>{const L9=ZG.get(Math.floor(x/60)*100003+Math.floor(z/60));if(L9)for(const o of L9)if(Math.hypot(x-o[0],z-o[1])<o[2]+r)return true;return false;};
   const COL=[]; // les collisions des décors : gélules et sphères en coordonnées MONDE
   const colPose=(meta,x,y,z,ry,sxz,sy)=>{const c=Math.cos(ry),s=Math.sin(ry),tr=(px,py,pz)=>[x+(px*c+pz*s)*sxz,y+py*sy,z+(-px*s+pz*c)*sxz],rr=Math.max(sxz,sy*.6);
     for(const k of meta.C||[]){const a=tr(k[0],k[1],k[2]),b=tr(k[3],k[4],k[5]);COL.push({g:1,a:a,b:b,r:k[6]*sxz});}
@@ -16486,10 +16486,10 @@ function buildParis(seed){
   const F9={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
   // la grille de hachage des points de piste (resservira aux collisions en vol)
   const HB=120,grille=new Map(),pasP=Math.max(1,Math.round(8/(L/(NP-1))));
-  for(let i=0;i<NP;i+=pasP){const p=pts[i],k=Math.floor(p.x/HB)+','+Math.floor(p.z/HB);let a=grille.get(k);if(!a)grille.set(k,a=[]);a.push(i);}
+  for(let i=0;i<NP;i+=pasP){const p=pts[i],k=Math.floor(p.x/HB)*100003+Math.floor(p.z/HB);let a=grille.get(k);if(!a)grille.set(k,a=[]);a.push(i);}
   PARIS.grille=grille;PARIS.HB=HB;
   const proches=(x,z,R,cb)=>{const r=Math.ceil(R/HB),bx=Math.floor(x/HB),bz=Math.floor(z/HB);
-    for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){const a=grille.get((bx+dx)+','+(bz+dz));if(a)for(let j=0;j<a.length;j++)cb(a[j]);}};
+    for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){const a=grille.get((bx+dx)*100003+(bz+dz));if(a)for(let j=0;j<a.length;j++)cb(a[j]);}};
   const pisteLoin=(x,z,R)=>{let ok=true;proches(x,z,R,function(i){if(ok){const p=pts[i];if((p.x-x)*(p.x-x)+(p.z-z)*(p.z-z)<R*R)ok=false;}});return ok;};
   const FA=ROAD_HALF+PARIS_SW;
   const uDe=(x,z)=>(x-SV.b.x)*SV.n.x+(z-SV.b.z)*SV.n.z,aDe=(x,z)=>(x-SV.b.x)*SV.r.x+(z-SV.b.z)*SV.r.z; // le fleuve : en travers / le long
@@ -16737,7 +16737,7 @@ function parisHeurt(p){ // EN VOL : dans une façade ? dans la Seine ? dans le s
   if(Math.hypot(p.x-Q.arc.p.x,p.z-Q.arc.p.z)<42&&p.y<Q.arc.p.y+90)return 'facade';
   if(Math.hypot(p.x-Q.sc.p.x,p.z-Q.sc.p.z)<62&&p.y<Q.sc.p.y+92)return 'facade';
   const HB=PARIS.HB,bx=Math.floor(p.x/HB),bz=Math.floor(p.z/HB);let bi=-1,bd=1e18;
-  for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++){const a=G.get((bx+dx)+','+(bz+dz));if(a)for(let j=0;j<a.length;j++){const q=pts[a[j]],d=(q.x-p.x)*(q.x-p.x)+(q.z-p.z)*(q.z-p.z);if(d<bd){bd=d;bi=a[j];}}}
+  for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++){const a=G.get((bx+dx)*100003+(bz+dz));if(a)for(let j=0;j<a.length;j++){const q=pts[a[j]],d=(q.x-p.x)*(q.x-p.x)+(q.z-p.z)*(q.z-p.z);if(d<bd){bd=d;bi=a[j];}}}
   if(bi<0)return p.y<parisColline(p.x,p.z)+26&&u>93?'facade':'';                        // loin de toute rue : les toits de Paris
   const q=pts[bi],b=B[bi],la=(p.x-q.x)*b.x+(p.z-q.z)*b.z,h=p.y-q.y,al=Math.abs(la);
   if(al<ROAD_HALF+.4)return h<-3?'sol':'';                                                // au-dessus de la chaussée : tryLand décide
@@ -17459,9 +17459,9 @@ function* jadeBatit(seed,cle){
   JADE.merY=yMin-230;JADE.eauY=JADE.merY+185; // (v17, Léo : « l'eau plus haute, elle vient frapper les montagnes ») les montagnes sont posées comme avant (pied ≥ merY + 90) ; l'eau monte à merY + 140 : celles du bas trempent
    // LA MER DE NUAGES, loin sous les montagnes : elles flottent — (v14, Léo : « remonte le niveau de l'eau ») 470 → 230 m sous le point le plus bas de la route
   const HB=120,grille=new Map(),pas=Math.max(1,Math.round(10/(L/(NP-1))));
-  for(let i=0;i<NP;i+=pas){const p=pts[i],k=Math.floor(p.x/HB)+','+Math.floor(p.z/HB);let a=grille.get(k);if(!a)grille.set(k,a=[]);a.push(i);}
+  for(let i=0;i<NP;i+=pas){const p=pts[i],k=Math.floor(p.x/HB)*100003+Math.floor(p.z/HB);let a=grille.get(k);if(!a)grille.set(k,a=[]);a.push(i);}
   const proches=(x,z,R,cb)=>{const r=Math.ceil(R/HB),bx=Math.floor(x/HB),bz=Math.floor(z/HB);
-    for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){const a=grille.get((bx+dx)+','+(bz+dz));if(a)for(let j=0;j<a.length;j++)cb(a[j]);}};
+    for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){const a=grille.get((bx+dx)*100003+(bz+dz));if(a)for(let j=0;j<a.length;j++)cb(a[j]);}};
   const sDe=v=>{let bi=0,bd=1e18;for(let i=0;i<NP;i+=2){const d=pts[i].distanceToSquared(v);if(d<bd){bd=d;bi=i;}}return bi;};
   const zonesNu=[];let iPorte=-1,iPont=-1;
   if(Q.porte0&&Q.porte1)iPorte=Math.round((sDe(Q.porte0.p)+sDe(Q.porte1.p))/2);
@@ -18739,10 +18739,10 @@ function buildVoxCity(seed,accC){
   // LA GRILLE DE HACHAGE DE LA PISTE : un point tous les ~12 m, rangé par cases de 120 m (horizontales)
   const HB=120,grille=new Map(),pasP=Math.max(1,Math.round(12/(L/(NP-1))));
   let yMin=1e9,yMax=-1e9;
-  for(let i=0;i<NP;i+=pasP){const p=pts[i],k=Math.floor(p.x/HB)+','+Math.floor(p.z/HB);let a=grille.get(k);if(!a)grille.set(k,a=[]);a.push(i);
+  for(let i=0;i<NP;i+=pasP){const p=pts[i],k=Math.floor(p.x/HB)*100003+Math.floor(p.z/HB);let a=grille.get(k);if(!a)grille.set(k,a=[]);a.push(i);
     if(p.y<yMin)yMin=p.y;if(p.y>yMax)yMax=p.y;}
   const proches=(x,z,R,cb)=>{const r=Math.ceil(R/HB),bx=Math.floor(x/HB),bz=Math.floor(z/HB);
-    for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){const a=grille.get((bx+dx)+','+(bz+dz));if(a)for(let j=0;j<a.length;j++)cb(a[j]);}};
+    for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){const a=grille.get((bx+dx)*100003+(bz+dz));if(a)for(let j=0;j<a.length;j++)cb(a[j]);}};
   // LA RÈGLE D'OR : [pied, toit] rognés pour que la route ne traverse JAMAIS la tour (null s'il ne reste rien)
   const tourLibre=(cx,cz,hd,b,t)=>{const clr=hd+ROAD_HALF+24,c2=clr*clr; // (2026-09-26, user : « les immeubles ne doivent JAMAIS toucher la route ») marges élargies
     for(let pass=0;pass<4;pass++){let ok=true;
