@@ -19,8 +19,9 @@ Session IDEE. Tout vit dans le bloc `SPIN` (juste après `mkPower`) et dans `<st
   voisin de gauche + 0,3 s ; le 3e traîne (`tease`) quand les deux premiers sont pareils. 28 ampoules chassent autour de la machine (plus vite
   pendant le tirage, en fou pendant le suspense), clignotent or/magenta au gain ; la ligne de gain est un néon magenta qui passe à l'or.
 - **Le résultat est tiré AVANT** (`spinTire`, `SPIN.proba` : jackpot 2,5 %, brelan 14 %, paire 38 %, sinon rien). Gains en ARGENT DU JEU
-  (`SPIN.gains`) : rien 25 $ · paire 150 $ · brelan 600 / 900 / 1 100 / 1 500 $ (pièce, gemme, flamme, étoile) · JACKPOT (trois couronnes)
-  5 000 $ — espérance ≈ 320 $ le jeton. **À caler par GAMEPLAY** (les quatre constantes en tête du bloc). Versé au compte tout de suite
+  (`SPIN.gains`) : rien 15 $ · paire 80 $ · brelan 350 / 500 / 650 / 900 $ (pièce, gemme, flamme, étoile) · JACKPOT (trois couronnes)
+  3 000 $ — espérance ≈ 196 $ le jeton, ~0,4 jeton par partie ≈ 80 $ : sous le plafond de GENERAL validé par Sacha (≤ 10 % du gain
+  moyen d'une partie, passation/ECONOMIE.md). Versé au compte tout de suite
   (`SAVE.flush`), l'écran de fin relit (`mFill`). Le jackpot : flash or, 46 éclats (pièces et liasses vertes), vibration longue,
   `fig.jackpot` + `pluie.billets` ; brelan : 14 éclats. Sons : `arret.tic` à chaque pose, `ui.compteur` au défilement et au compteur,
   `argent.palier` / `argent.gros` / `piece.recolte`, `pwr.autre` au ramassage — **à juger par SON** (aucun son neuf n'a été cuit).

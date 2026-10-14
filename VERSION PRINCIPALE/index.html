@@ -33541,8 +33541,8 @@ Object.assign(I18N,{'FINAL SPIN':'FINAL SPIN','JETON SPIN':'SPIN TOKEN','JETONS'
   'BRELAN':'THREE OF A KIND','PAIRE':'PAIR','CONSOLATION':'CONSOLATION','TOTAL':'TOTAL','JETON':'TOKEN'});
 const SPIN={on:!/[?&]spin=0\b/.test(location.search),pZone:.28,max:3,pose:0,ouvert:false,vu0:0,roule:false,force:null,total:0,el:null,
   syms:['piece','gemme','flamme','etoile','couronne'],             // l'index 4 = la COURONNE : trois couronnes = le jackpot
-  gains:{rien:25,paire:150,brelan:[600,900,1100,1500],jackpot:5000},// brelan[i] : trois fois le symbole i (pièce, gemme, flamme, étoile)
-  proba:{jackpot:.025,brelan:.14,paire:.38},                        // le reste : rien (une pièce de consolation) — espérance ≈ 320 $ le jeton
+  gains:{rien:15,paire:80,brelan:[350,500,650,900],jackpot:3000},  // brelan[i] : trois fois le symbole i (pièce, gemme, flamme, étoile) — (GENERAL, validé par Sacha : en moyenne ≤ 10 % du gain d'une partie)
+  proba:{jackpot:.025,brelan:.14,paire:.38},                        // le reste : rien (une pièce de consolation) — espérance ≈ 196 $ le jeton, ~0,4 jeton par partie ≈ 80 $
   N:15,bandes:[[0,1,2,0,3,1,4,2,0,1,3,2,0,3,1],[1,0,3,2,0,4,1,3,0,2,1,0,3,2,1],[2,3,0,1,4,0,2,1,3,0,2,1,0,3,2]]}; // une couronne par rouleau
 const SPIN_D=(function(){const d={};
   d.orM=new THREE.MeshPhongMaterial({color:0xffc72a,emissive:0x9c5200,emissiveIntensity:.9,shininess:260,specular:0xffffff,envMap:envTex,reflectivity:.6,transparent:true,opacity:.97,depthWrite:false,flatShading:true}); // la recette exacte du verre des cristaux : même programme
