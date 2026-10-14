@@ -12015,23 +12015,14 @@ const CAMPM=[]; // les repères de la piste de campagne (voir campRepere)
 function genCampagne(n){
   const ctrl=[];GAPMARK.length=0;CAMPM.length=0; // aucun trou, jamais
   let P=new THREE.Vector3(0,0,0),phi=0;
-  const K=(typeof lvPiste==='function'?lvPiste():1)*(n===6||n===10||n===18||n===20?1:1.2); // ×1,2 : des niveaux d'une bonne minute (le 6 est long exprès, le 10 a sa poursuite ; en VILLE, les étages et la course du banquier)
+  const K=(typeof lvPiste==='function'?lvPiste():1)*1.2; // ×1,2 : des niveaux d'une bonne minute (le 6 est long exprès, le 10 a sa poursuite ; en VILLE, les étages et la course du banquier)
   const dir=()=>new THREE.Vector3(Math.sin(phi),0,Math.cos(phi));
   const push=()=>ctrl.push(P.clone());
   const droite=(l,dy,nn)=>{dy=dy||0;nn=nn||Math.max(2,Math.round(l/130));for(let k=0;k<nn;k++){P.addScaledVector(dir(),l/nn);P.y+=dy/nn;push();}};
   const arc=(aDeg,R,dy)=>{dy=dy||0;const nn=Math.max(3,Math.ceil(Math.abs(aDeg)/10)),a=aDeg*Math.PI/180,st=a/nn,ch=2*R*Math.sin(Math.abs(st)/2);
     for(let k=0;k<nn;k++){phi+=st/2;P.addScaledVector(dir(),ch);P.y+=dy/nn;phi+=st/2;push();}};
-  // la VAGUE : l mètres qui tournent de aDeg en passant une bosse (amp > 0) ou un creux (amp < 0) — profil en sinus,
-  // cassure de pente ≤ 0,1 d'un point à l'autre (adoucirCretes n'a rien à raboter), plus une descente de fond `dy`
-  const vague=(l,amp,aDeg,dy)=>{dy=dy==null?-Math.abs(amp)*.35:dy;const nn=Math.max(8,Math.ceil(Math.abs(aDeg||0)/8)),a=(aDeg||0)*Math.PI/180,st=a/nn,sl=l/nn,y0=P.y;
-    for(let k=1;k<=nn;k++){phi+=st/2;P.addScaledVector(dir(),sl);phi+=st/2;P.y=y0+amp*Math.sin(Math.PI*k/nn)+dy*k/nn;push();}};
   const mark=(k,o)=>{o=o||{};o.k=k;o.i=ctrl.length-1;o.phi=phi;CAMPM.push(o);return o;};
-  const ovale=(sg)=>{const S=480*K,R1=235*K,d=2*ROAD_HALF+22,R2=R1+d/2,D=12,o={k:'coupe',sg:sg}; // D=12, vide 22 m : voir la note (fenêtre de cap ET visibilité de leg3 depuis la caméra)
-    o.ia0=ctrl.length-1;droite(S,0,4);o.ia1=ctrl.length-1;
-    arc(sg*180,R1,-D*.4);droite(S,-D*.2,4);arc(sg*180,R2,-D*.4);
-    o.ib0=ctrl.length-1;droite(S,0,4);o.ib1=ctrl.length-1;CAMPM.push(o);};
   const corde=f=>{const o={k:'corde',i0:ctrl.length-1};f();o.i1=ctrl.length-1;CAMPM.push(o);}; // un grand virage dont la CORDE brillera (campPieces)
-  const liaison=(sg)=>{droite(220*K,-6);arc(sg*34,720*K,-8);arc(-sg*34,720*K,-8);droite(180*K,-4);};
   push();
   if(n===2){ // PREMIÈRES LUEURS — LE GRAND BALAYAGE : deux virages immenses qui DESCENDENT, lus en entier depuis la crête
     droite(620*K,-26,4);
@@ -12092,56 +12083,6 @@ function genCampagne(n){
     arc(-104,290*K,-30);droite(300*K,-8);
     arc(58,440*K,-20);
     droite(620*K,-24,4);
-  }else if(n===6){ // MIDI — LA TENTATION DE COUPER : quatre ovales lents, et à côté de chacun, la route d'en dessous
-    droite(440*K,-14,3);
-    arc(-36,820*K,-10);
-    droite(260*K,-6);
-    ovale(1);liaison(-1);ovale(-1);liaison(1);ovale(1);liaison(-1);ovale(-1);
-    droite(240*K,-6);
-    arc(34,820*K,-10);
-    droite(640*K,-22,4);
-  }else if(n===7){ // APRÈS-MIDI — LIRE LE RELIEF : des vagues et des esses larges, la descente commence toujours AVANT le sommet
-    droite(520*K,-18,4);
-    vague(440*K,30,28);
-    vague(440*K,-22,-24);
-    arc(46,520*K,-14);arc(-46,520*K,-14);
-    vague(520*K,38,40);
-    arc(-80,390*K,-44);           // une descente EN virage, lue d'en haut
-    droite(300*K,-46,3);          // le plongeon franc, vu de loin
-    vague(480*K,30,-36);
-    vague(480*K,34,34);
-    arc(66,420*K,-26);
-    droite(240*K,-6);
-    vague(440*K,26,-40);
-    droite(640*K,-26,4);
-  }else if(n===8){ // FIN D'APRÈS-MIDI — LE CIEL COMMENCE À MENTIR
-    // un banc au BOUT de chaque droite : il cache le virage SUIVANT (jamais celui où l'on est engagé), on le voit venir de
-    // loin (≥ 300 m de droite avant), et on en ressort ~1,5 s avant le virage — le temps de lire la courbe et d'y entrer
-    const droiteBanc=(l,r)=>{droite(l-200*K,-6);mark('banc',{r:r});droite(200*K,-4,2);};
-    droite(460*K,-16,3);
-    droiteBanc(540*K,38);arc(88,320*K,-30);droite(160*K,-4);
-    droiteBanc(500*K,36);arc(-98,300*K,-30);
-    droite(420*K,-10,3);          // RESPIRATION : pas de banc, la lumière
-    arc(60,430*K,-20);droite(120*K);
-    droiteBanc(520*K,40);arc(-86,320*K,-30);droite(180*K,-4);
-    droiteBanc(480*K,38);arc(94,320*K,-30);
-    droite(320*K,-8);
-    arc(-48,520*K,-16);
-    droite(640*K,-22,4);
-  }else if(n===9){ // HEURE DORÉE / ORAGE — LE GRAND CIEL : peu de pièges, beaucoup de ciel ; les éclairs révèlent la route
-    droite(540*K,-20,4);
-    arc(-70,430*K,-30);
-    droite(360*K,-10);
-    vague(460*K,28,38);
-    arc(-92,360*K,-36);
-    droite(260*K,-6);mark('banc',{r:32});droite(260*K,-6);
-    arc(108,340*K,-40);
-    droite(300*K,-8);
-    vague(480*K,-22,-34);
-    arc(80,380*K,-30);
-    droite(280*K,-6);mark('banc',{r:32});droite(260*K,-6);
-    arc(-62,430*K,-24);
-    droite(720*K,-30,5);          // la dernière droite : le portail surgit au dernier éclair
   }else if(n>10){ // ================= LA CAMPAGNE VILLE (11 à 20) : la route seule — les tours poussent autour (buildVoxCity) =================
     // Pas de looping, pas de nuage (la règle de la ville) ; des pentes douces (la ville descend en canyon, jamais en toboggan). Les
     // repères propres à la ville : RADAR (11), CHAÎNE de pads (12), rangée de FLAQUES (13), CELLULE d'orage (15), PANNE (16), BOUCHON (19).
@@ -12231,84 +12172,7 @@ function genCampagne(n){
       droite(220*K,-6);
       zone('cellule',()=>{droite(700*K,-16,5);arc(-40,700*K,-12);droite(400*K,-10,3);});
       droite(420*K,-10,3);
-    }else if(n===16){ // AVANT L'AUBE — LA PANNE : trois coupures de courant, des virages dedans ; on lit la route aux catadioptres
-      droite(560*K,-18,4);
-      arc(44,700*K,-14);
-      droite(300*K,-8);
-      zone('panne',()=>{droite(260*K,-6);arc(-80,420*K,-26);droite(220*K,-6);arc(62,460*K,-20);droite(200*K,-6);});
-      droite(360*K,-10,3);                 // la lumière revient
-      arc(-70,420*K,-24);
-      droite(260*K,-6);
-      zone('panne',()=>{droite(220*K,-6);corde(()=>arc(120,320*K,-40));droite(200*K,-6);arc(-94,360*K,-30);droite(220*K,-6);});
-      droite(320*K,-8);
-      arc(56,520*K,-18);
-      zone('panne',()=>{droite(240*K,-6);arc(-60,440*K,-20);arc(60,440*K,-20);droite(160*K,-4);arc(-104,340*K,-32);droite(260*K,-6);});
-      droite(560*K,-16,4);
-    }else if(n===17){ // AUBE — LE FOURGON : un fourgon blindé devant ; colle-lui au train, il sème ses billets
-      droite(640*K,-22,4);                 // il est là, devant
-      arc(-32,900*K,-10);
-      droite(420*K,-10,3);
-      corde(()=>arc(110,320*K,-38));
-      droite(480*K,-12,3);
-      arc(-70,440*K,-24);
-      droite(560*K,-14,4);
-      corde(()=>arc(-126,320*K,-42));
-      droite(360*K,-10,3);
-      arc(52,560*K,-18);arc(-52,560*K,-18);
-      droite(520*K,-14,4);
-      corde(()=>arc(140,330*K,-48));
-      droite(700*K,-22,5);
-    }else if(n===18){ // LEVER — LES ÉTAGES : trois ovales ; à côté de chacun, l'étage du dessous (la coupe du niveau 6 des NUAGES, en ville)
-      droite(460*K,-14,3);
-      arc(-36,820*K,-10);
-      droite(260*K,-6);
-      ovale(1);liaison(-1);ovale(-1);liaison(1);ovale(1);
-      droite(240*K,-6);
-      arc(34,820*K,-10);
-      droite(640*K,-22,4);
-    }else if(n===19){ // MATIN — L'HEURE DE POINTE : une voie rapide pleine de voitures ; deux bouchons plus serrés
-      droite(560*K,-18,4);
-      arc(30,1000*K,-10);
-      droite(620*K,-14,4);
-      arc(-64,520*K,-20);
-      zone('bouchon',()=>{droite(560*K,-10,4);arc(40,800*K,-10);droite(300*K,-6);});
-      arc(-88,440*K,-28);
-      droite(700*K,-16,5);
-      arc(56,620*K,-18);
-      zone('bouchon',()=>{droite(460*K,-10,3);arc(-36,900*K,-10);droite(420*K,-8,3);});
-      arc(74,480*K,-24);
-      droite(640*K,-18,4);
-    }else{ // 20 · MIDI — LE BANQUIER : une course au portail contre sa caisse d'or ; lui ne saute jamais d'un étage
-      droite(640*K,-22,4);                 // il part devant, dans SA caisse d'or
-      corde(()=>arc(-130,300*K,-44));
-      droite(240*K,-6);
-      ovale(1);                            // L'ÉTAGE A
-      droite(220*K,-6);
-      arc(-44,700*K,-12);arc(44,700*K,-12);
-      droite(300*K,-8);
-      corde(()=>arc(96,320*K,-34));
-      droite(260*K,-6);
-      arc(-30,760*K,-8);droite(180*K);
-      ovale(-1);                           // L'ÉTAGE B
-      droite(200*K,-6);
-      corde(()=>arc(160,330*K,-60));
-      droite(720*K,-26,5);                 // l'arrivée : le premier au portail gagne
     }
-  }else if(n===10){ // 10 · COUCHER — ATTRAPER LA CAISSE-NUAGE : lignes intérieures, les deux coupes du niveau 6, une traversée de nuages
-    droite(640*K,-22,4);          // elle est déjà là, devant
-    corde(()=>arc(-138,300*K,-44)); // un long virage : la corde intérieure gagne des mètres
-    droite(220*K,-6);
-    ovale(1);                     // LA COUPE A
-    droite(220*K,-6);
-    arc(-40,700*K,-10);arc(40,700*K,-10);
-    droite(260*K,-6);mark('banc',{r:36});droite(220*K,-6);
-    arc(82,330*K,-26);
-    droite(260*K,-6);mark('banc',{r:38});droite(240*K,-6);
-    arc(-30,760*K,-8);droite(180*K);
-    ovale(-1);                    // LA COUPE B
-    droite(200*K,-6);
-    corde(()=>arc(168,330*K,-70));  // le grand balayage final, dans l'or
-    droite(720*K,-26,5);          // le portail — fermé tant qu'elle n'est pas à toi
   }
   lisserRaccords(ctrl,null);adoucirCretes(ctrl,null);
   for(const m of CAMPM){ // les repères relus APRÈS le lissage (le Catmull-Rom passe exactement par les points de contrôle)
