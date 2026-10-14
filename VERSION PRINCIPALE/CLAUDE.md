@@ -9,11 +9,13 @@ La v2 = le principe du CHAT POP-TART (une vraie caisse + la tête du mème devan
   la tête sort de la calandre —, feu ROUGE sur toute la largeur avec la PIÈCE D'OR au milieu, becquet, deux sorties rectangulaires d'or, jantes
   bronze à 5 branches. Aucun nom ni insigne de marque. ⚠ LE DÉFIEUR existe déjà (le muscle car orange) : le DOGE s'en distingue par la livrée,
   le widebody riveté, les phares à anneau et la tête. Palette `nyl` (cuite, sans lumière) : jamais de teinte qui vire sous les ciels.
-- LA TÊTE (`dogeTete`, juste avant `const SHAPES`) : champ de distance (`DOGE_SDF` : crâne, joues, museau `rcone`, menton, oreilles creusées,
-  orbites, PAUPIÈRES, truffe, BOUCHE EN COIN posée par lancer de rayon puis creusée) → `dogeNets` (surface nets, lisse), couleurs par région
-  moyennées sur 7 prises (bords doux). Une fois par session (`SHAPES.doge._tete`, ~0,2 s). Échelle 1,25, posée en (0,.77,1.80).
-- LE REGARD : vrais yeux (sphères colorées : blanc, iris, pupille, éclat) qui TOURNENT vers la caméra (repère `pivot`), coup d'œil de l'autre côté ;
-  sourcils (points crème) qui se lèvent ; tête PENCHÉE qui hoche en roulant ; LANGUE à la nitro ; queue en tire-bouchon (`dogeQueue`) qui remue.
+- LE VISAGE FAÇON « CARS » (2026-10-14, Léo : « la tête au niveau de la vitre, bien intégrée, comme Cars ») — la tête sculptée qui sortait de la
+  calandre est RETIRÉE (`dogeTete` supprimée) : la voiture EST le chien. Les YEUX remplissent le pare-brise : un panneau (grille 28 × 14 posée sur
+  les points du dessus de `S(z)`, z .60 → 0, +12 mm) dessiné par `FACE_FS` (yeux en amande au trait sombre, iris brun + pupille + éclat qui filent
+  de côté `uLook`, PAUPIÈRES lourdes `uLid` .36 (blasé), .10 à la nitro, 1 au clignement ; sourcils crème `uBrow` ; joues crème ; front sombre ;
+  cadre du pare-brise). Le bouclier avant est CRÈME (le museau, cap du loft), la TRUFFE noire posée sur le bord du capot, le SOURIRE dessiné en
+  tubes bruns sur le bouclier, la LANGUE à la nitro au coin de la bouche, les OREILLES (`dogeOreille`, champ de distance → `dogeNets`) sur le
+  toit au-dessus du pare-brise (elles tressaillent, se couchent à la nitro). Un phare à anneau de chaque côté du museau ; plus de prise d'air.
 - LA TRAÎNÉE WOW (`WOWT`, `wowStep`, `wowApercu`, après `rainbowApercu`) : les phrases du mème en Comic Sans sortent des pots à la NITRO et filent
   derrière (sprites monde, 18 max, 86 % de l'élan de la caisse). Traînée d'origine du DOGE (`fx.wow`) ET traînée de la boutique « WOW » (30 000 $,
   `COSM.trainee`, `FX_EFF.wow`). Coupée avec l'arc-en-ciel (`rainbowCoupe`). Aperçu au garage (onglet TRAÎNÉES). Console `dbgWow()`.
