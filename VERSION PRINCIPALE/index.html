@@ -27138,6 +27138,11 @@ let engEndT=0,engEndBuf=null,engEndImg=null; // rapatriement GPU→CPU pour l'é
    seconde). En WebGL2 on lit dans un tampon GPU (PBO) marqué d'une barrière (`fenceSync`) : l'image arrive à la recopie SUIVANTE, 33 ms
    plus tard — invisible sur une pièce qui tourne — et personne n'attend. Repli : la lecture directe (WebGL1, ou refus du pilote). */
 const ENG_PBO={b:null,f:null,ctx:null,ko:false};
+/* (2026-10-14, passe perf mobile) LA CARTE MOTEUR DE L'ÉCRAN DE MORT, À LA CADENCE DU PALIER. Mesuré sur iPhone 7 émulé : engVigRender 23 % du
+   JavaScript de l'écran de fin + engLit 9 % + engVigRendRT 7 % — le moteur redessiné dans son tampon, relu depuis la puce (480×321 = 616 Ko)
+   et recopié dans la toile 2D, 30 fois par seconde. La pièce fait un tour en ~10 s : à 10 images/s elle avance de 3,4° par image, ça se lit
+   encore comme une rotation. `engVigMs` = l'écart en ms entre deux recopies au téléphone : ANCIEN 100 (10/s), MOYEN 66 (15/s), RÉCENT 33 (comme avant). */
+PAL.B.engVigMs=[100,66,33];
 function engPose(ctx,w,h){ // l'image lue → le <canvas> de la carte (les lignes arrivent de bas en haut : retournement, une ligne d'un bloc)
   const d=engEndImg.data,l9=w*4;for(let y=0;y<h;y++)d.set(engEndBuf.subarray((h-1-y)*l9,(h-y)*l9),y*l9);ctx.putImageData(engEndImg,0,0);}
 function engLit(w,h,ctx){
@@ -27523,7 +27528,7 @@ function engVigRender(dt){
     if(engEndEl&&engEndEl.style.display!=='none')engEndEl.style.display='none';
     // (2026-09-26, user : « dans l'écran de mort, au lieu d'avoir marqué ENGINE GAS TURBINE, il faut voir le 3D ») : le moteur tourne aussi
     // dans la carte MOTEUR de l'écran de mort, tant qu'elle est à l'écran
-    const mort9=gameOver&&ENG_MORT.ctx&&ENG_MORT.cv&&ENG_MORT.cv.isConnected&&ENG_MORT.cv.offsetParent!==null;
+    const mort9=gameOver&&ENG_MORT.ctx&&ENG_MORT.cv&&ENG_MORT.cv.isConnected; // (2026-10-14, passe perf mobile) `offsetParent` (carte affichée ?) se demande plus bas, à la cadence de la recopie : ici, à CHAQUE image, il forçait la mise en page pendant que les chiffres des cartes montent
     carte9=engBig.on&&!gameOver&&!paused; // (vague 2) la carte de course : recollée dans l'image (engQuadDraw), plus de relecture
     if(!carte9&&!mort9){if(engSwapT>0)engSwapT=Math.max(0,engSwapT-dt);return;}
     cible=null;
@@ -27602,7 +27607,8 @@ function engVigRender(dt){
   // principal est repeint à chaque image : un quad sauté = un moteur qui clignote)
   if(carte9){if(performance.now()-engEndT>33){engEndT=performance.now();engVigRendRT(engRTc);}engQuadDraw();return;}
   // (perf) téléphone et écran de fin : l'image n'est RECOPIÉE qu'à 30 (20) i/s — la rendre entre deux recopies ne servait à rien
-  if((fin||tel)&&performance.now()-engEndT<=(tel?33:50))return;
+  if((fin||tel)&&performance.now()-engEndT<=(tel?PAL.b('engVigMs',33):50))return;
+  if(tel&&ENG_MORT.cv&&ENG_MORT.cv.offsetParent===null){engEndT=performance.now();return;} // (2026-10-14, passe perf mobile) carte cachée (accueil ou atelier ouverts par-dessus la mort) : ni rendu ni relecture — et la question n'est reposée qu'à la cadence de la recopie
   // (1) le moteur dans SON framebuffer — fond transparent pour que le cadre CSS reste visible dessous
   engVigRendRT(engRT);
   /* (2a) ÉCRAN DE FIN : là, le recollage en WebGL NE MARCHE PAS. L'overlay de game over est un
@@ -27614,7 +27620,7 @@ function engVigRender(dt){
      arrivent de bas en haut, d'où le retournement. */
   if(fin||tel){ // (tel : la carte du téléphone, même recopie — 30 images/s, le temps de la carte seulement)
     const now9=performance.now(),ctx9=tel?ENG_MORT.ctx:engEndCtx; // (vague 2) la carte de course n'a plus de <canvas> : seul l'écran de mort relit
-    if(now9-engEndT>(tel?33:50)&&ctx9){
+    if(now9-engEndT>(tel?PAL.b('engVigMs',33):50)&&ctx9){
       engEndT=now9;
       const w=engRT.width,h=engRT.height;
       if(!engEndBuf){engEndBuf=new Uint8Array(w*h*4);engEndImg=ctx9.createImageData(w,h);}
