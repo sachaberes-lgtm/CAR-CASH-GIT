@@ -48858,6 +48858,12 @@
   }
  ],
  "paliers": {},
- "place": {},
- "cats": []
+ "place": {
+  "pal-aura": "bleu",
+  "pal-neon-noir": "bleu",
+  "pal-nuit-de-velours": "bleu",
+  "pal-penthouse": "bleu"
+ },
+ "cats": [],
+ "notes": {}
 }

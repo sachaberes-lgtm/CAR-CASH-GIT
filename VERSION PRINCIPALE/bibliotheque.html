@@ -83,6 +83,14 @@ h2 span{font-size:14px;color:var(--tx3);font-weight:600}
 .pouce.on{color:var(--bleu)}.pouce.on svg{fill:currentColor}
 .pouce.pop{animation:pop .32s cubic-bezier(.32,.72,0,1)}@keyframes pop{40%{transform:scale(1.35)}}
 .edit .pouce{display:none}
+/* LES NOTES (14/10, Léo : « permets-moi d'ajouter des notes permanentes sur les sons ») : le crayon à côté du pouce, la note sous le son */
+.noteB{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:var(--tx3);flex:none;align-self:center}
+.noteB svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round;stroke-linecap:round}
+.noteB:hover,.noteB.on{color:var(--bleu)}
+.edit .noteB{display:none}
+.notePerso{font-size:13px;color:var(--bleu);margin-top:4px;line-height:1.38;white-space:pre-wrap;overflow-wrap:anywhere;cursor:text}
+.noteEd{display:block;width:100%;margin-top:5px;border:0;border-radius:8px;background:var(--fond);color:var(--tx);font:inherit;font-size:13px;line-height:1.38;padding:7px 9px;resize:vertical;min-height:36px;outline:2px solid var(--bleu)}
+.noteEd::placeholder{color:var(--tx3)}
 #filtre .n{opacity:.7;margin-left:4px}
 #annule{position:fixed;left:50%;bottom:24px;translate:-50% 0;background:var(--tx);color:var(--fond);border-radius:14px;padding:11px 14px 11px 18px;display:flex;gap:16px;align-items:center;
   font-size:14px;box-shadow:0 8px 30px rgba(0,0,0,.25);z-index:5;opacity:0;pointer-events:none;transition:opacity .2s}
@@ -198,7 +206,7 @@ section.perso .catSuppr{color:var(--tx3);text-decoration:underline;cursor:pointe
       <div class="gAvis"><button class="b" id="gOui">👍 J'aime cette musique</button><button class="b" id="gNon">👎 Pas ça</button><span id="gAppris"></span></div>
     </div></section>
   <section id="secBleu"><h2>Pouce bleu <span id="nBleu"></span></h2>
-    <p class="aide">Les musiques du générateur que tu as aimées (👍), chacune rejouée par la version du générateur qui l'a faite. Le moteur se monte À LA MAIN : − / + dans le lecteur en bas (ou les flèches du clavier).</p>
+    <p class="aide">Tes morceaux préférés de la bibliothèque (glisse un son sur l'onglet pour l'y ranger), puis les musiques du générateur que tu as aimées (👍), chacune rejouée par la version qui l'a faite — leur moteur se monte À LA MAIN : − / + dans le lecteur en bas (ou les flèches du clavier). Le crayon ✎ ajoute une note sur n'importe quel son.</p>
     <div class="liste" id="gBleu"></div></section>
   <section id="secIns"><h2>Inspirations <span id="nIns"></span></h2>
     <p class="aide">Les sons qui te donnent une idée pour le générateur. Dépose-les ici et écris ce qui te plaît dedans : je m'en sers pour le faire évoluer.</p>
@@ -315,12 +323,12 @@ const M9 = 'assets/audio/music/', B9 = M9 + 'boucles/', C9 = M9 + 'compo/';
 (window.PETITS || []).forEach(p => ajoute({ id: p.id, sec: 'petits', type: 'boucle', titre: p.titre, style: p.style, bpm: p.bpm, cle: p.cle, dur: p.dur, f: p.f }));
 
 // ================================================================ NOMS ET RETRAITS DE LÉO (Modifier) — musique-moteur.json, sinon ce navigateur
-let PREF = { noms: {}, suppr: [], paliers: {}, pouces: [], gen: [], place: {}, cats: [] }, EDIT = false, FILTRE = false;
+let PREF = { noms: {}, suppr: [], paliers: {}, pouces: [], gen: [], place: {}, cats: [], notes: {} }, EDIT = false, FILTRE = false;
 // LE SERVEUR DE LA PAGE (atelier-son/serveur-moteur.py) signe chaque réponse d'un en-tête X-Serveur-Moteur : avec lui, les choix vont
 // dans musique-moteur.json (les données de Léo) ; sans lui (EN LIGNE, ou un simple http.server), RIEN ne part — pas une requête qui
 // échouerait en rouge dans la console : l'instantané publié fait foi, et ce navigateur garde ses propres retouches (PREF_SIG).
 let SERVEUR = false, PREF_SIG = '';
-const prefDe = d => ({ noms: d.noms || {}, suppr: d.suppr || [], paliers: d.paliers || {}, pouces: d.pouces || [], gen: d.gen || [], place: d.place || {}, cats: d.cats || [] });
+const prefDe = d => ({ noms: d.noms || {}, suppr: d.suppr || [], paliers: d.paliers || {}, pouces: d.pouces || [], gen: d.gen || [], place: d.place || {}, cats: d.cats || [], notes: d.notes || {} });
 async function prefLit() {
   let texte = null;
   try { const r = await fetch('musique-moteur.json', { cache: 'no-store' }); if (r.ok) { SERVEUR = !!r.headers.get('X-Serveur-Moteur'); texte = await r.text(); PREF = prefDe(JSON.parse(texte)); } } catch (e) {}
@@ -334,6 +342,30 @@ function prefEcrit() { try { localStorage.setItem('musiqueMoteurPref', JSON.stri
 const nomDe = S => PREF.noms[S.id] || S.titre, retire = S => PREF.suppr.indexOf(S.id) >= 0, aime = S => PREF.pouces.indexOf(S.id) >= 0;
 function majPouces() { const n = CAT.filter(S => aime(S) && !retire(S)).length; $('nPouce').textContent = n ? '(' + n + ')' : ''; $('filtre').classList.toggle('on', FILTRE); }
 
+// ================================================================ LES NOTES DE LÉO (14/10 : « permets-moi d'ajouter des notes permanentes sur les sons »)
+// Une note par son (PREF.notes : id → texte) : avec le serveur de la page elle va dans musique-moteur.json (sur le disque, et donc sur le
+// main) ; en ligne, sur cet appareil. Le crayon l'ouvre ; Entrée garde (Maj + Entrée = une ligne de plus), Échap annule, vide = effacée.
+const NOTE_SVG = '<svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4"/></svg>';
+const noteDe = S => (PREF.notes && PREF.notes[S.id]) || '';
+function noteBranche(el, S) { const b = el.querySelector('.noteB'); if (!b) return; b.onclick = e => { e.stopPropagation(); noteEdite(el, S); }; notePose(el, S); }
+function notePose(el, S) {   // le crayon allumé et la note sous le son
+  const tx = el.querySelector('.txt'), b = el.querySelector('.noteB'), n = noteDe(S); let p = tx.querySelector('.notePerso');
+  b.classList.toggle('on', !!n); b.title = n ? 'Modifier la note' : 'Ajouter une note';
+  if (!n) { if (p) p.remove(); return; }
+  if (!p) { p = document.createElement('div'); p.className = 'notePerso'; p.onclick = e => { e.stopPropagation(); noteEdite(el, S); }; tx.insertBefore(p, tx.querySelector('.etat')); }
+  p.textContent = n;
+}
+function noteEdite(el, S) {
+  const tx = el.querySelector('.txt'), deja = tx.querySelector('.noteEd'); if (deja) { deja.focus(); return; }
+  const p = tx.querySelector('.notePerso'), t = document.createElement('textarea'), dr = el.draggable; if (p) p.hidden = true;
+  t.className = 'noteEd'; t.maxLength = 1000; t.rows = 2; t.placeholder = 'Ta note sur ce son…'; t.value = noteDe(S); el.draggable = false;
+  ['click', 'pointerdown', 'dblclick'].forEach(k => t.addEventListener(k, e => e.stopPropagation()));
+  t.onkeydown = e => { e.stopPropagation(); if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); t.blur(); } else if (e.key === 'Escape') { t.value = noteDe(S); t.blur(); } };
+  t.onblur = () => { const v = t.value.trim(); if (v !== noteDe(S)) { PREF.notes = PREF.notes || {}; if (v) PREF.notes[S.id] = v; else delete PREF.notes[S.id]; prefEcrit(); }
+    t.remove(); el.draggable = dr; if (p) p.hidden = false; notePose(el, S); };
+  tx.insertBefore(t, tx.querySelector('.etat')); t.focus(); t.setSelectionRange(t.value.length, t.value.length);
+}
+
 // ================================================================ L'AFFICHAGE
 function meta(S) { return [S.style, S.bpm ? Math.round(S.bpm) + ' BPM' : '', S.cle || '', S.type === 'boucle' || S.type === 'unique' ? fmtDur(S.dur) : ''].filter(Boolean).join(' · '); }
 function badge(S) {
@@ -342,7 +374,7 @@ function badge(S) {
   return '<div class="badge"><span class="points">' + '<i></i>'.repeat(S.nb) + '</span>' + S.nb + ' paliers moteur</div>';
 }
 function dessine() {
-  const secs = { inspi: $('gIns'), moteur: $('gMoteur'), niv: $('gNiv'), chris: $('gChr'), pm: $('gPm'), lobby: $('gLob'), anciens: $('gAnc'), petits: $('gPet') }, n = {};
+  const secs = { inspi: $('gIns'), bleu: $('gBleu'), moteur: $('gMoteur'), niv: $('gNiv'), chris: $('gChr'), pm: $('gPm'), lobby: $('gLob'), anciens: $('gAnc'), petits: $('gPet') }, n = {};
   catsSections().forEach(c => { secs['cat-' + c.id] = $('gCat-' + c.id); });   // (14/10) les catégories de Léo
   Object.values(secs).forEach(x => { if (!x) return; x.innerHTML = ''; x.classList.toggle('edit', EDIT); });   // (14/10 : « Petites musiques » et « Lobby » retirées)
   for (const S of CAT) {
@@ -352,7 +384,7 @@ function dessine() {
     if (S.sec !== 'inspi' && !EDIT) { el.draggable = true; el.ondragstart = e => glisseDebut(e, S, el); el.ondragend = glisseFin; }
     el.innerHTML = '<button class="play" aria-label="Écouter">' + PLAY + '</button><div class="txt"><div class="nom"></div><input class="champ" maxlength="40" aria-label="Nom">' +
       '<div class="meta"></div>' + badge(S) + '<div class="etat"></div></div>' + (S.sec !== 'moteur' && S.type === 'unique' ? '<span class="tag">un coup</span>' : '') +
-      '<button class="moins" aria-label="Supprimer">−</button><button class="pouce" aria-label="Pouce en l\u2019air" title="Pouce en l\u2019air"><svg viewBox="0 0 24 24"><path d="M7 11v9H4v-9h3zM7 11l4-7c1.6 0 2.6 1.2 2.3 2.8L12.8 10H19a2 2 0 0 1 2 2.3l-1.2 6A2 2 0 0 1 17.8 20H7"/></svg></button><button class="poub" aria-label="Supprimer" title="Supprimer"><svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg></button>' + (S.sec !== 'moteur' ? '<i class="fil"></i>' : '');
+      '<button class="moins" aria-label="Supprimer">−</button>' + (S.sec !== 'inspi' ? '<button class="noteB" aria-label="Note">' + NOTE_SVG + '</button>' : '') + '<button class="pouce" aria-label="Pouce en l\u2019air" title="Pouce en l\u2019air"><svg viewBox="0 0 24 24"><path d="M7 11v9H4v-9h3zM7 11l4-7c1.6 0 2.6 1.2 2.3 2.8L12.8 10H19a2 2 0 0 1 2 2.3l-1.2 6A2 2 0 0 1 17.8 20H7"/></svg></button><button class="poub" aria-label="Supprimer" title="Supprimer"><svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg></button>' + (S.sec !== 'moteur' ? '<i class="fil"></i>' : '');
     el.querySelector('.nom').textContent = nomDe(S); el.querySelector('.meta').textContent = meta(S);
     if (S.sec === 'inspi') { const nt = document.createElement('input'); nt.className = 'note'; nt.maxLength = 500; nt.placeholder = 'Ce qui te plaît dedans…'; nt.value = S.note || '';
       nt.onclick = e => e.stopPropagation(); nt.onkeydown = e => { if (e.key === 'Enter') nt.blur(); };
@@ -362,6 +394,7 @@ function dessine() {
     ch.oninput = () => { const v = ch.value.trim(); if (v && v !== S.titre) PREF.noms[S.id] = v; else delete PREF.noms[S.id]; };
     ch.onchange = prefEcrit; ch.onkeydown = e => { if (e.key === 'Enter') ch.blur(); }; ch.onclick = e => e.stopPropagation();
     el.querySelector('.moins').onclick = el.querySelector('.poub').onclick = e => { e.stopPropagation(); supprime(S); };
+    noteBranche(el, S);
     const pc = el.querySelector('.pouce'); pc.classList.toggle('on', aime(S)); pc.setAttribute('aria-pressed', aime(S));
     pc.onclick = e => { e.stopPropagation(); const k = PREF.pouces.indexOf(S.id); if (k < 0) PREF.pouces.push(S.id); else PREF.pouces.splice(k, 1); prefEcrit();
       if (FILTRE && k >= 0) { dessine(); return; } pc.classList.toggle('on', k < 0); pc.setAttribute('aria-pressed', k < 0); pc.classList.remove('pop'); void pc.offsetWidth; if (k < 0) pc.classList.add('pop'); majPouces(); };
@@ -389,7 +422,7 @@ $('filtre').onclick = () => { FILTRE = !FILTRE; dessine(); };
 // titre, « Retirer la catégorie » renvoie ses sons chez eux. Le rangement va dans musique-moteur.json (PREF.place : id → catégorie ;
 // PREF.cats : les catégories de Léo). Le son ne change pas de nature : un morceau qui suit le moteur se joue toujours en montant.
 const GL = { S: null, el: null };
-const SEC_DE = { gIns: 'inspi', gMoteur: 'moteur', gNiv: 'niv', gChr: 'chris', gAnc: 'anciens', gPet: 'petits' };
+const SEC_DE = { gIns: 'inspi', gBleu: 'bleu', gMoteur: 'moteur', gNiv: 'niv', gChr: 'chris', gAnc: 'anciens', gPet: 'petits' };
 function placeDe(S, secs) { const p = PREF.place && PREF.place[S.id]; return p && secs[p] ? p : S.sec; }
 function secCle(sec) { const l = sec && sec.querySelector('.liste,.grille'); if (!l) return null; return sec.dataset.cat ? 'cat-' + sec.dataset.cat : SEC_DE[l.id] || null; }
 function catsSections() {   // une <section> par catégorie de Léo (au bout de la page : la barre d'onglets la voit toute seule)
@@ -508,18 +541,18 @@ function versionDe(e) { if (e.v) return e.v; const t = String(e.date || ''); for
 function fichierVersion(v) { return v && v !== 'actuelle' ? 'assets/audio/music/direct/musique-trente-' + v + '.js' : GEN_F; }
 const BLEUS = new Map();
 function dessineBleus() {
-  const L = $('gBleu'); if (!L) return; L.innerHTML = '';
+  const L = $('gBleu'); if (!L) return; L.querySelectorAll(':scope>.genv').forEach(x => x.remove());   // (les sons de la bibliothèque rangés ici restent)
   const B = (PREF.gen || []).filter(e => e.avis > 0).map(e => { const k = e.n + '|' + e.titre; let S = BLEUS.get(k);
     if (!S) { S = { id: 'bleu-' + e.n, sec: 'bleu', type: 'genv', titre: e.titre, style: (e.nom || e.style || '') + ' · n° ' + e.n, n: e.n, W: e.g || null, v: versionDe(e), da: e.da || 'cashcar', e }; BLEUS.set(k, S); } return S; });
-  B.forEach(S => { const el = document.createElement('div'); el.className = 'ligne'; S.el = el;
+  B.forEach(S => { const el = document.createElement('div'); el.className = 'ligne genv'; S.el = el;
     el.innerHTML = '<button class="play" aria-label="Écouter">' + PLAY + '</button><div class="txt"><div class="nom"></div><div class="meta"></div><div class="etat"></div></div>' +
-      '<button class="pouce on" aria-label="Retirer le pouce" title="Retirer le pouce"><svg viewBox="0 0 24 24"><path d="M7 11v9H4v-9h3zM7 11l4-7c1.6 0 2.6 1.2 2.3 2.8L12.8 10H19a2 2 0 0 1 2 2.3l-1.2 6A2 2 0 0 1 17.8 20H7"/></svg></button>';
+      '<button class="noteB" aria-label="Note">' + NOTE_SVG + '</button><button class="pouce on" aria-label="Retirer le pouce" title="Retirer le pouce"><svg viewBox="0 0 24 24"><path d="M7 11v9H4v-9h3zM7 11l4-7c1.6 0 2.6 1.2 2.3 2.8L12.8 10H19a2 2 0 0 1 2 2.3l-1.2 6A2 2 0 0 1 17.8 20H7"/></svg></button>';
     el.querySelector('.nom').textContent = S.titre; el.querySelector('.meta').textContent = S.style + ' · version ' + (S.v === 'actuelle' ? 'actuelle' : S.v.replace('v', '').replace('-', '.'));
     el.querySelector('.pouce').onclick = ev => { ev.stopPropagation(); if (J.S === S) stop(); S.e.avis = 0; prefEcrit(); goutsMaj(true); dessineBleus(); };
-    el.onclick = () => joue(S);
+    el.onclick = () => joue(S); noteBranche(el, S);
     if (J.S === S) { el.classList.add('joue'); el.querySelector('.play').innerHTML = STOP; }
     L.appendChild(el); });
-  $('nBleu').textContent = B.length || 0;
+  $('nBleu').textContent = L.children.length || 0;
 }
 
 // ================================================================ UNE LECTURE À LA FOIS (le jeton : un clic rapide sur un autre son annule celle en cours)

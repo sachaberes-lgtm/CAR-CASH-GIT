@@ -98,7 +98,9 @@ class Page(http.server.SimpleHTTPRequestHandler):
                                   for m, q in list((d.get('paliers') or {}).items())[:50]},
                       # (14/10, Léo : « laisse glisser des trucs dans différentes catégories ») : où chaque son a été glissé, et ses catégories à lui
                       'place': {str(k)[:60]: str(v)[:40] for k, v in list((d.get('place') or {}).items())[:600]},
-                      'cats': [{'id': str(c.get('id'))[:24], 'nom': str(c.get('nom') or '').strip()[:30] or 'Ma catégorie'} for c in (d.get('cats') or []) if isinstance(c, dict) and c.get('id')][:30]}
+                      'cats': [{'id': str(c.get('id'))[:24], 'nom': str(c.get('nom') or '').strip()[:30] or 'Ma catégorie'} for c in (d.get('cats') or []) if isinstance(c, dict) and c.get('id')][:30],
+                      # (14/10, Léo : « permets-moi d'ajouter des notes permanentes sur les sons ») : une note par son
+                      'notes': {str(k)[:60]: str(v).strip()[:1000] for k, v in list((d.get('notes') or {}).items())[:1000] if str(v).strip()}}
         except Exception:
             self.send_error(400); return
         with open(FICHIER, 'w', encoding='utf-8') as f:
