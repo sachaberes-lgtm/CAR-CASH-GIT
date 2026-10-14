@@ -10,6 +10,15 @@
 - Archive Release T8 RÉUSSIE ; export ÉCHOUÉ « No Accounts » (aucun compte dans Xcode). Adhésion payante confirmée (profil d'1 an, équipe M532TDYCH2).
 - 16 h 24 : compte Apple connecté dans Xcode par Sacha → EXPORT RÉUSSI : `app-ios/build/ipa/App.ipa` (78 Mo, 1.0.0 build 1, certificat
   « Cloud Managed Apple Distribution » jusqu'au 14/10/2027). Rien d'envoyé.
+- 16 h 45 : App Store Connect REMPLI par la session (Sacha connecté dans le navigateur intégré) : app « CASH CAR » créée (id 6822779484,
+  SKU cashcar-ios-001, FR principal) ; version 1.0.0 ; FR + EN : promo, description, mots-clés, assistance, copyright « 2026 Sacha Beres » ;
+  nom anglais = « CASH CAR - Sky Runner » (« CASH CAR » déjà pris en en-US) ; sous-titres FR/EN ; Jeux › Course + Action (Arcade n'est pas
+  proposé en 2e sous-catégorie) ; droits : « Oui, contenus tiers, droits détenus » ; âge 9+ (violence cartoon peu fréquente) ; confidentialité :
+  URL FR + « Données non collectées » PUBLIÉ ; gratuit, 175 pays ; Mac et Vision Pro DÉCOCHÉS.
+- MANQUE (Sacha) : téléphone du contact testeur (la section ne s'enregistre pas sans) ; captures (le navigateur intégré ne joint pas de fichier :
+  Sacha les choisit, dossier « Bureau/CASH CAR captures App Store/1 - FRANCAIS » et « 2 - ANGLAIS », format 6,3" 1206×2622 OBLIGATOIRE) ;
+  OUI pour l'envoi du build (refusé sans accord explicite) ; nouveau contrat Apple Developer à accepter (titulaire) ; statut de commerçant UE (DSA) ;
+  OUI final pour « Ajouter pour vérification ». URL de confidentialité EN pas encore posée.
 - Reste : Sacha se connecte à App Store Connect (navigateur intégré : la session ne tape jamais de mot de passe) ; création de l'app et
   de la fiche ; envoi (`xcodebuild -exportArchive` avec destination upload, ou `sh archiver.sh --envoyer`) seulement sur son OUI.
 - Petit défaut du jeu vu au passage (pas une coupe d'app) : « CETTE SEMAINE » n'est pas traduit dans la boutique en anglais.
