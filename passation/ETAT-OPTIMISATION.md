@@ -1,4 +1,4 @@
-# ÉTAT — session OPTIMISATION (PC, 14/10/2026, ~18 h)
+# ÉTAT — session OPTIMISATION (PC, 14/10/2026, ~21 h)
 
 Lire d'abord `passation/OPTIMISATION.md` (la passe perf mobile du Mac, le socle `PAL`) puis la section « LES GELS DE CONSTRUCTION,
 VAGUE 1 » en haut de `VERSION PRINCIPALE/JOURNAL.md`. Worktree : `C:/Users/sacha/Documents/GitHub/CCG-optim`, branche `optimisation`
@@ -24,6 +24,21 @@ VAGUE 1 » en haut de `VERSION PRINCIPALE/JOURNAL.md`. Worktree : `C:/Users/sach
   stockage (Vercel Blob/KV dans le tableau de bord du projet : la clé s'injecte seule dans les fonctions). Ensuite : `api/sonde.js`
   (POST, taille bornée) + lecture protégée, côté jeu opt-in par lien (`?sonde=on` posé en sauvegarde, `?sonde=off`), envoi en
   `sendBeacon` à la fin de partie : modèle (UA), palier, i/s, pics > 33 ms et leur cause (`perfAcoup`), 30 i/s, durée.
+
+## Soirée (main 679e40a4, v405) — AXE C de PILOTAGE : le temps d'image EN COURSE (PERF a A = constructions, B = shaders)
+- `bqPhotos` déclarée deux fois (la boutique de Léo écrasait les cartes du bandeau .fnC) : UNE fonction pour les deux.
+- pickupsTick : `RAM.q.copy` après les filtres bon marché (~9 000 copies de moins par image), `pwL` et les gains moteur en vol réutilisés.
+- Profil d'une course (PC, palier 0) : 66 % du JS par image = `render` three.js ; hudColonne 6 % (déjà soignée) ; pickupsTick 3 %.
+  Le reste du gain en course demande de toucher l'image (DPR, ombre, bloom) : interdit sans décision de Sacha.
+- Écartés (ne seraient pas identiques) : nuages mis à jour 1 image sur 4, moteur audio 1 image sur 2. Traits de vitesse : gain mince.
+
+## Soirée, suite (main 229acd57, v417)
+- IMAGE AUTOMATIQUE (décision de Sacha) : `qlAuto()` = TEL_NATIF + en course + pas HAUTE ; IMAGE RAPIDE → NETTE → HAUTE (`qSuivant`,
+  `qLbl`, `qHaute`) ; HAUTE = cran 0 forcé dans `qlPose`. Ordre des crans INCHANGÉ (résolution en dernier, verdict du 27/09).
+  Banc `banc.cjs qauto --q=fast|haute [--pc]` (processeur ×6).
+- `flashEcran` : plus de `void offsetWidth` (flash9/flash9b alternés, une relance par tâche).
+- Reste au profil de course (8 s, PC) : `hudColonne` → zRect/getBoundingClientRect ~10 ms/s (10 Hz), `volgTick` → zRect ~3 ms/s.
+  Piste : hauteurs du HUD par ResizeObserver au lieu de lectures forcées (zone INTERFACE : à proposer).
 
 ## Mesurer (PC, sans fenêtre, palier 0) — outils dans le scratchpad de la session (à recopier si besoin)
 - `banc.cjs <port> tout|portail|rejouer|boutique [params] [--debout] [--noinline] --tag=x` : profil CPU, tâches longues, compilations,
