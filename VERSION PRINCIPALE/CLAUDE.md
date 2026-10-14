@@ -15,7 +15,14 @@ oreilles sur le capot (« terrifiant ») → Léo : « LA GROSSE TÊTE DE SHIBA,
   Kabosu moyennées) ×1,75, posée en (0, 1,02, ,06) sur un châssis sombre, deux essieux, roues de bronze à 5 branches au centre JAUNE OR (`jante`
   0xffc42e), deux sorties d'or sous la nuque. Fiche : h 2,0 · w 2,0 · l 2,3 (la caméra recule pour les caisses hautes).
 - LE REGARD : yeux-sphères (blanc, iris, pupille, éclat) qui suivent la caméra (repère `pivot`), coup d'œil de l'autre côté ; sourcils crème qui se
-  lèvent ; tête PENCHÉE (le mème) qui hoche en roulant ; LANGUE à la nitro.
+  lèvent ; tête PENCHÉE (le mème) qui hoche en roulant.
+- LA GUEULE (Léo : « qu'il ouvre la bouche quand il roule ou au burn-out, des dents, la langue tirée ») : `dogeTete` coupe la tête par le plan de la
+  bouche (y = YC −,205, devant la charnière z = ZH ,06) → crâne (`Fu`) + MÂCHOIRE (`G.machoire`, `Fj`) ; les coupes sont peintes (palais, gorge,
+  plancher) seulement SUR le plan (`dedans` : F < 0 ET |J| petit — sinon les prises de couleur moyennées salissaient la peau). Dents en cônes au bord
+  de la coupe (`bord(a)` : 2 crocs + 4 incisives en haut, 2 crocs + 2 en bas), LANGUE plate qui pend devant le menton (`G.langue`, dans la mâchoire).
+  Ouverture `ouv` : fermée au repos (le sourire en coin), ,62 en roulant, ,85 au BURN-OUT (`BURN.k`), 1 à la nitro ; il HALÈTE (±,06) ; la langue
+  sort au-delà de ,25 et ballotte. Console : `dbgDoge(1)` force la gueule ouverte, `dbgDoge()` rend la main (salle : `window.DOGE_GUEULE=1`).
+  La plaque du châssis recule (z −,85 → ,25) et plus d'essieu avant : rien ne coupe la langue. ⚠ Burn-out pas vérifié au banc (geste réel requis).
 - LA TRAÎNÉE WOW (`WOWT`, `wowStep`, `wowApercu`, après `rainbowApercu`) : les phrases du mème en Comic Sans sortent des pots à la NITRO et filent
   derrière (sprites monde, 18 max). Traînée d'origine du DOGE (`fx.wow`) ET traînée de boutique « WOW » (30 000 $). Coupée avec l'arc-en-ciel.
 - Mesuré au banc : 60 i/s en course. ⚠ r128 : pas de `CapsuleGeometry`. ⚠ c'est un mème (Kabosu / Doge) : même question que la Nyan avant une sortie.
