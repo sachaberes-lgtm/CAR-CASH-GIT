@@ -244,6 +244,6 @@
   function retire(id){var L=perso().filter(function(x){return x.id!==id;});try{localStorage.setItem(CLE_PERSO,JSON.stringify(L));}catch(e){}rebatit();}
   var FIG={liste:[],par:{},quat:quat,tire:tire,Lecteur:Lecteur,genere:genere,ajoute:ajoute,retire:retire,rebatit:rebatit,valide:valide,CHEV:CHEV,CLE_PERSO:CLE_PERSO,
     Corps:Corps,PHY:PHY,auto:AUTO,boums:boums,nomReps:function(f,r,l){return nomReps(f,r,l);},
-    nom:function(f,lang){return (lang==='en'||lang==='zh')&&f.en?f.en:f.n;}};
+    nom:function(f,lang){return lang==='en'&&f.en?f.en:f.n;}};
   window.FIG=FIG;rebatit();
 })();
