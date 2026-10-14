@@ -14106,9 +14106,9 @@ function villeRose(){const c=typeof LVL!=='undefined'&&LVL.cur;return VILLE_ROSE
 /* (2026-10-14, LA BIBLE CAR CASH — passation/DA-CARCASH.md, validée par Sacha) LA SIGNATURE DE ROUTE : bords néon ROSE + nappe + ligne centrale OR, sur
    chaque map passée à la bible (une map à la fois, chacune son `?sans=`). routeSig() dit si la map courante la porte. La ville au néon (villeRose) garde
    sa peinture caméléon d'origine ; les autres reçoivent le rose de la marque, plein la nuit et sous la pluie, ~70 % de jour (jamais blanc ni éteint). */
-const SIG_V={villejour:!/[?&]sans=([^&]*,)?villejour(,|&|$)/.test(location.search),nuagesjour:!/[?&]sans=([^&]*,)?nuagesjour(,|&|$)/.test(location.search),jade:!/[?&]sans=([^&]*,)?jade2(,|&|$)/.test(location.search),foret:!/[?&]sans=([^&]*,)?foret2(,|&|$)/.test(location.search),orbite:!/[?&]sans=([^&]*,)?orbite3(,|&|$)/.test(location.search),canyon:!/[?&]sans=([^&]*,)?canyon2(,|&|$)/.test(location.search)};
+const SIG_V={villejour:!/[?&]sans=([^&]*,)?villejour(,|&|$)/.test(location.search),nuagesjour:!/[?&]sans=([^&]*,)?nuagesjour(,|&|$)/.test(location.search),jade:!/[?&]sans=([^&]*,)?jade2(,|&|$)/.test(location.search),foret:!/[?&]sans=([^&]*,)?foret2(,|&|$)/.test(location.search),orbite:!/[?&]sans=([^&]*,)?orbite3(,|&|$)/.test(location.search),canyon:!/[?&]sans=([^&]*,)?canyon2(,|&|$)/.test(location.search),banquise:!/[?&]sans=([^&]*,)?banquise2(,|&|$)/.test(location.search),volcan:!/[?&]sans=([^&]*,)?volcan2(,|&|$)/.test(location.search)};
 function routeSig(){const c=typeof LVL!=='undefined'&&LVL.cur;if(!c||!c.bio)return false;const b=c.bio[0];
-  return (SIG_V.canyon&&c.id==='canyon')||(SIG_V.orbite&&c.id==='espace')||(SIG_V.foret&&c.id==='foret')||(SIG_V.jade&&c.id==='jade')||(SIG_V.nuagesjour&&c.id==='nuages'&&(b==='nuagesMatinCC'||b==='nuagesMidiCC'))||(SIG_V.villejour&&c.id==='ville'&&(b==='villeMatin'||b==='villeMidi'));}
+  return (SIG_V.banquise&&c.id==='banquise')||(SIG_V.volcan&&c.id==='volcan')||(SIG_V.canyon&&c.id==='canyon')||(SIG_V.orbite&&c.id==='espace')||(SIG_V.foret&&c.id==='foret')||(SIG_V.jade&&c.id==='jade')||(SIG_V.nuagesjour&&c.id==='nuages'&&(b==='nuagesMatinCC'||b==='nuagesMidiCC'))||(SIG_V.villejour&&c.id==='ville'&&(b==='villeMatin'||b==='villeMidi'));}
 const BORDS={jour:new THREE.Color(0xc9c3b6),nuit:new THREE.Color(0xe8e4da),kJ:1,kNuit:.62,glowN:.4,jf:1}; // kNuit .62 = le « rail blanc doux » (le rail est opaque : on baisse sa couleur ; .5 sortait un peu mince au banc, le bord du vide doit rester lisible) · glowN .4 = la nappe ambre garde 40 % de son opacité la nuit
 const LIGNE_OPJ=BORDS_V2?.55:.42; // l'opacité de la ligne centrale aux PICS DE JADE (blanc cassé sur béton clair : un peu plus franche)
 const _c9=new THREE.Color(),_d9=new THREE.Color();
@@ -23501,6 +23501,10 @@ const SF_NIV={nuages:NIVEAUX.find(function(n){return n.id==='nuages';}),orage:NI
   espace:NIVEAUX.find(function(n){return n.id==='espace'&&!n.hard;}),satellites:NIVEAUX.find(function(n){return n.id==='espace'&&n.hard;}),jade:NIV_JADE,foret:NIV_FORET,canyon:NIV_CANYON,volcan:NIV_VOLCAN,banquise:NIV_BANQ};
 const SF_METEOS={matin:'MATIN',midi:'MIDI',soir:'SOIR',nuit:'NUIT',pluie:'PLUIE',orage:'ORAGE',satellites:'SATELLITES',neige:'NEIGE',blizzard:'BLIZZARD'}; // (2026-10-14) NEIGE et BLIZZARD : les temps de LA BANQUISE
 // une MAP = son niveau de base + ses météos permises (`bio` : l'ambiance, `niv` : un niveau du jeu repris tel quel, `p` : le poids au tirage, 1 par défaut)
+/* (2026-10-14, LA BIBLE CAR CASH, passe graphismes · banquise2 / volcan2) LA BANQUISE ET LE ROYAUME DE FEU avaient déjà leurs ciels saturés à horizon chaud : il leur
+   manquait les invariants communs — le contre-jour ROSE sur les caisses (ici) et la signature de route rose + or (routeSig). `?sans=banquise2`, `?sans=volcan2`. */
+for(const [f9,ks9] of [['banquise',['banqMatin','banqMidi','banqSoir','banqNuit','banqNeige','banqBlizzard']],['volcan',['volcanMatin','volcanMidi','volcanSoir','volcanNuit','volcanCendre','volcanOrage']]])
+  if(SIG_V[f9])for(const k of ks9)if(BIOMES[k])Object.assign(BIOMES[k],{kickC:[1,.38,.66],kickI:Math.max(BIOMES[k].kickI||0,.16)});
 const SF_CARTES={
   nuages:{nm:'MER DE NUAGES',base:'nuages',m:{matin:{bio:'matin'},midi:{bio:'midi'},soir:{bio:'nuagesSoir'},nuit:{bio:'nuagesNuit',nuit:1},
     pluie:{bio:'nuagesPluie',pluie:.75,route:.18,sheen:.16},orage:{niv:'orage',orage:1}}},
