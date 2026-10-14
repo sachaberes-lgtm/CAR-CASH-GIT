@@ -71,7 +71,7 @@ for(const u of['https://game-cdn.poki.com/scripts/v2/poki-sdk.js','https://sdk.c
      de pubs) passent À L'ARGENT DU JEU, au prix que l'édition POKI leur donne déjà ; la page OFFRES (en €) et ses portes disparaissent ;
    · plus de « BIENTÔT » (2026-10-14) : Apple refuse ce qui est annoncé mais absent. Les trois caisses « DÉFI À VENIR » (REQUIN, COMÈTE,
      LA RAIE : leur défi n'est pas écrit) passent aussi à l'argent du jeu — REQUIN et COMÈTE au prix POKI de leur ancien prix en €
-     (9,99 et 4,99), LA RAIE à ses 2,5 M d'avant ; le bouton verrouillé « BIENTÔT » du menu du garage est masqué ; l'affiche RECORD
+     (9,99 et 4,99), LA RAIE à ses 2,5 M d'avant ; le bouton verrouillé « BIENTÔT » du menu du garage était masqué (retiré du jeu depuis) ; l'affiche RECORD
      PERSO touchée ne disait plus « BIENTÔT EN DÉTAIL » (le jeu lui-même l'a retiré depuis) ; les blocs « ? » des raretés à venir, au bout de SEE ALL ITEMS, ne sont plus posés ;
    · plus de marque d'autrui dans un texte (2026-10-14, audit « regard d'Apple », règle 5.2) : la phrase du MONOSPACE ne double plus
      « une Ferrari » mais « une voiture de course » (la phrase de CARS et sa clé de traduction changent ensemble, puis l'anglais) ;
@@ -104,27 +104,34 @@ une('At 88 it travels back in time, apparently.','Ahead of its time, they say.',
 une("x.fillText('MOULIN ROUGE',256,34)","x.fillText('CABARET ROUGE',256,34)",'enseigne MOULIN ROUGE (carte PARIS)');
 une("if(k!=='cousin'&&k!=='cousin161')return false;","return false; /* (app iOS) pas de déblocage par code */",'code COUSIN (saisie)');
 une("function cousin(){try{return !!SAVE.d.cousin;}catch(e){return false;}}","function cousin(){return false;} /* (app iOS) pas de déblocage par code */",'code COUSIN (effet)');
+/* (14/10 au soir, UX 8 sur main : UNE ligne « ENTRER UN CODE » pour une sauvegarde OU un code secret, « RESTAURER UN CODE » masquée) — l'app garde
+   l'état d'avant : RESTAURER UN CODE visible (la sauvegarde se restaure), sa fenêtre ne parle que de sauvegarde, la ligne ENTRER UN CODE masquée
+   (CSS plus bas). Les deux lignes ouvrent la même fenêtre ; un code cousin y répond « CODE INCONNU » (coupes ci-dessus). */
+une('html:not(.c6) #mSet [data-m="imp"]{display:none}','','ligne RESTAURER UN CODE (rendue visible)');
+une('<span class="tpL">RESTAURER UN CODE</span>','<span class="tpL" data-fr="RESTAURER UN CODE">RESTAURER UN CODE</span>','ligne RESTAURER UN CODE (traduite)');
+une("modale({titre:'ENTRER UN CODE',texte:'Colle un code de sauvegarde, ou un code secret.'","modale({titre:'RESTAURER UN CODE',texte:'Colle un code de sauvegarde.'",'fenêtre du code (sauvegarde seulement)');
+une("'Colle un code de sauvegarde, ou un code secret.':'Paste a save code, or a secret code.'",
+  "'Colle un code de sauvegarde, ou un code secret.':'Paste a save code, or a secret code.','RESTAURER UN CODE':'RESTORE A CODE','Colle un code de sauvegarde.':'Paste a save code.'",'traduction de la fenêtre du code');
 une('</head>','<style id="appStore">/* (app iOS) pas de page OFFRES en € : ni l\'écran, ni ses portes (mêmes sélecteurs que l\'édition POKI ; les deux :not(#…) passent devant\n'+
   '   la règle de l\'accueil v2 qui réaffiche la tuile OFFRES) */\n'+
   'html:not(#ccA):not(#ccB) :is([data-m="shop"],[data-go="shop"],.gBoutique,#mShop,#bdShop){display:none!important}\n'+
   '/* la BOUTIQUE du garage : plus aucune caisse en €, son onglet OFFRES resterait vide (« OFFRES 0 ») */\n'+
   '#gBqPan .bqOng button[data-o="off"]{display:none!important}\n'+
-  '/* le bouton verrouillé « BIENTÔT » du menu du garage */\n'+
-  '#gMenuBas .gVerrou{display:none!important}\n'+
   '/* le vieux panneau RÉGLAGES de l\'écran-titre d\'ordinateur (déjà caché au doigt) : ses boutons de sauvegarde ouvrent un prompt() du système */\n'+
   '#setBtn,#settings{display:none!important}\n'+
-  '/* la ligne ENTRER UN CODE des réglages (le code COUSIN, coupé plus haut) */\n'+
-  '.mCode{display:none!important}\n'+
+  '/* la ligne ENTRER UN CODE des réglages (le code COUSIN, coupé plus haut ; RESTAURER UN CODE reste) */\n'+
+  '#mSet [data-m="code"]{display:none!important}\n'+
   '/* l\'accueil en cartes 2 × 2 (CARRIÈRE · MISSIONS / GARAGE · OFFRES, train T8 du 14/10) sans la carte OFFRES : GARAGE prend toute sa ligne\n'+
   '   (debout : les deux colonnes ; couché : les deux colonnes du bloc de droite), plus de trou */\n'+
   'html.c6.hub:not(.poki) body #mHome.acc2 .mHubPorte{grid-column:1 / -1!important}\n'+
   '@media (orientation:landscape) and (max-height:540px){html.c6.hub:not(.poki) body #mHome.acc2 .mHubPorte{grid-column:2 / -1!important}}\n'+
-  '/* l\'accueil PIXEL (charte par défaut depuis le 14/10 au soir : une rangée MISSIONS · GARAGE · OFFRES · ⚙) sans OFFRES : GARAGE prend sa\n'+
-  '   case, MISSIONS s\'allonge d\'une case (avec ou sans la carte CARRIÈRE devant elle) — plus de trou avant ⚙ */\n'+
-  'html.hub:not(.c6):not(.poki) body #mHome.acc2 .mHubPorte{grid-column:4!important}\n'+
-  'html.hub:not(.c6):not(.poki) body #mHome.acc2 .mAccP>.mMisBarre{grid-column-end:4!important}\n'+
-  '@media (orientation:landscape) and (max-height:540px){html.hub:not(.c6):not(.poki) body #mHome.acc2 .mHubPorte{grid-column:5!important}\n'+
-  '  html.hub:not(.c6):not(.poki) body #mHome.acc2 .mAccP>.mMisBarre{grid-column-end:5!important}}</style>\n</head>','page OFFRES');
+  '/* l\'accueil PIXEL « UX 8 » (main, 14/10 au soir : MISSIONS pleine largeur, dessous GARAGE · OFFRES · RÉGLAGES en trois touches égales)\n'+
+  '   sans OFFRES : la rangée passe à DEUX touches égales, GARAGE · RÉGLAGES — plus de trou au milieu (debout ; couché : le bloc de droite\n'+
+  '   garde sa largeur, 3 × 112 px + 2 écarts = 2 × 173 px + 1 écart) */\n'+
+  'html:not(.c6).hub:not(.poki) body #mHome.acc2{grid-template-columns:repeat(2,minmax(0,1fr))!important}\n'+
+  'html:not(.c6).hub:not(.poki) body #mHome.acc2 .mGear{grid-column:2!important}\n'+
+  '@media (orientation:landscape) and (max-height:540px){html:not(.c6).hub:not(.poki) body #mHome.acc2{grid-template-columns:minmax(0,1fr) repeat(2,minmax(0,173px))!important}\n'+
+  '  html:not(.c6).hub:not(.poki) body #mHome.acc2 .mGear{grid-column:3!important}}</style>\n</head>','page OFFRES');
 une("const SANS_VOIX=!/[?&]voix=1\\b/.test(location.search);","const SANS_VOIX=true; /* (app iOS) les voix ne sont pas livrées */",'règle SANS_VOIX (les voix ne sont pas livrées)');
 /* LE PALIER DE L'APPAREIL, SANS DEVINER (2026-10-14, passe « iPhone au max ») : l'app connaît le modèle exact de l'iPhone
    (JeuViewController.swift le pose dans `window.__ccAppareil` avant tout script) — il remplace le petit banc du processeur, qui, couru
@@ -138,17 +145,20 @@ une("else if(appris&&appris.src==='mesure'){P.n=appris.n;P.src='appris en course
    masquée ci-dessus doit donc encore exister dans le jeu ; sinon l'écran a été refait et la coupe est à revoir (au navigateur). */
 for(const[t,quoi]of[['data-m="shop"','la tuile OFFRES de l\'accueil'],['id="mShop"','la page OFFRES (#mShop)'],['id="bdShop"','le fond de la page OFFRES (#bdShop)'],
   ['<button data-o="off"','l\'onglet OFFRES de la boutique du garage'],["k:'premium'",'les caisses vendues en €'],["k:'pubs'",'la caisse aux 100 pubs'],
-  ["k:'bientot'",'les caisses « DÉFI À VENIR »'],['class="pbtn gVerrou"','le bouton verrouillé BIENTÔT du menu du garage'],
-  ['class="mPanel mCode"','la ligne ENTRER UN CODE des réglages'],
+  ["k:'bientot'",'les caisses « DÉFI À VENIR »'],
+  /* (le bouton verrouillé « BIENTÔT » du menu du garage : retiré du jeu lui-même sur main, 1b35a2b du 14/10 « Plus de BIENTOT visible », coupe ôtée) */
+  ['<div class="mLigne lien" data-m="code">','la ligne ENTRER UN CODE des réglages'],['<div class="mLigne lien" data-m="imp">','la ligne RESTAURER UN CODE des réglages'],
   ['html.c6.hub:not(.poki) body #mHome.acc2 .mOffres{grid-row:7;grid-column:2}','la carte OFFRES de l\'accueil en 2 × 2 (debout)'],
   ['html.c6.hub:not(.poki) body #mHome.acc2 .mHubPorte{grid-row:7;grid-column:1}','la carte GARAGE de l\'accueil en 2 × 2 (debout)'],
   ['html.c6.hub:not(.poki) body #mHome.acc2 .mOffres{grid-row:7;grid-column:3}','la carte OFFRES de l\'accueil en 2 × 2 (couché)'],
   ['html.c6.hub:not(.poki) body #mHome.acc2 .mHubPorte{grid-row:7;grid-column:2}','la carte GARAGE de l\'accueil en 2 × 2 (couché)'],
-  ['html.hub:not(.poki) body #mHome.acc2 .mHubPorte{grid-row:4;grid-column:3}','l\'icône GARAGE de l\'accueil pixel (debout)'],
-  ['html.hub:not(.poki) body #mHome.acc2 .mOffres{grid-row:4;grid-column:4}','l\'icône OFFRES de l\'accueil pixel (debout)'],
-  ['html.hub:not(.poki) body #mHome.acc2 .mGear{grid-row:4;grid-column:5}','l\'icône ⚙ de l\'accueil pixel (debout)'],
-  ['html.hub:not(.poki) body #mHome.acc2 .mHubPorte{grid-column:4}\n  html.hub:not(.poki) body #mHome.acc2 .mOffres{grid-column:5}\n  html.hub:not(.poki) body #mHome.acc2 .mGear{grid-column:6}',
-   'les icônes GARAGE · OFFRES · ⚙ de l\'accueil pixel (couché)']])
+  ['html:not(.c6).hub:not(.poki) body #mHome.acc2{grid-template-columns:repeat(3,minmax(0,1fr));column-gap:10px;','la grille à 3 colonnes de l\'accueil UX 8 (debout)'],
+  ['html:not(.c6).hub:not(.poki) body #mHome.acc2 .mHubPorte{grid-row:6;grid-column:1}','la touche GARAGE de l\'accueil UX 8'],
+  ['html:not(.c6).hub:not(.poki) body #mHome.acc2 .mOffres{grid-row:6;grid-column:2}','la touche OFFRES de l\'accueil UX 8'],
+  ['html:not(.c6).hub:not(.poki) body #mHome.acc2 .mGear{grid-row:6;grid-column:3}','la touche RÉGLAGES de l\'accueil UX 8'],
+  ['html:not(.c6).hub:not(.poki) body #mHome.acc2{grid-template-columns:minmax(0,1fr) repeat(3,minmax(0,112px));','la grille de l\'accueil UX 8 (couché)'],
+  ['html:not(.c6).hub:not(.poki) body #mHome.acc2 .mHubPorte{grid-column:2}\n  html:not(.c6).hub:not(.poki) body #mHome.acc2 .mOffres{grid-column:3}\n  html:not(.c6).hub:not(.poki) body #mHome.acc2 .mGear{grid-column:4}',
+   'les touches GARAGE · OFFRES · RÉGLAGES de l\'accueil UX 8 (couché)']])
   if(h.indexOf(t)<0)meurt('témoin perdu — '+quoi+' : « '+t+' » n\'existe plus dans le jeu. L\'écran a changé : revoir la coupe de l\'édition App Store.');
 fs.writeFileSync(path.join(WWW,'index.html'),h);
 

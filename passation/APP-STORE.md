@@ -1,3 +1,7 @@
+# MISE À JOUR — 14/10, 23 h 05 : `ios-iphone-max` sur main b1ce69b (sons FINAL SPIN et SLIDE, ciel sans pommelé, clair de lune, LE GLACIER, plus de BANQUIER) — réinstallé et LANCÉ sur l'iPhone 13 Pro, branche poussée.
+- main a retiré lui-même le bouton BIENTÔT du garage (1b35a2b) → coupe et témoin ôtés. Réglages UX 8 (une ligne ENTRER UN CODE = sauvegarde OU code secret) → l'app remontre RESTAURER UN CODE (fenêtre « Colle un code de sauvegarde. », traduite) et masque ENTRER UN CODE ; « cousin » → CODE INCONNU (vérifié).
+- Accueil UX 8 (GARAGE · OFFRES · RÉGLAGES en 3 touches) : ma règle d'hier (GARAGE en 4e colonne) créait une colonne fantôme qui décalait la page → remplacée : 2 touches égales GARAGE · RÉGLAGES, debout et couché (vérifié au navigateur) ; 6 témoins sur la grille UX 8.
+
 # MISE À JOUR — 14/10, 18 h 50 : `ios-iphone-max` sur main 1fce80c (la musique revient après 24 h d'absence) — www refait, réinstallé sur l'iPhone 13 Pro de Sacha et LANCÉ (Release, build 2), branche poussée.
 
 # MISE À JOUR — 14/10, 18 h 35 : L'APP SUR LE JEU DE MAIN + PASSE « iPHONE AU MAX » (branche `ios-iphone-max`, Sacha : « prends la dernière version de main, optimise-la pour iPhone au max, mets-la sur l'iPhone »)

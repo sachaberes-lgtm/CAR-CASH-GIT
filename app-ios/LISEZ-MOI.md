@@ -61,6 +61,10 @@ dans `www/` **seulement** — `VERSION PRINCIPALE/` (le jeu web de `main`, celui
 - **plus de « BIENTÔT »** (Apple refuse ce qui est annoncé mais absent) : les trois caisses « DÉFI À VENIR » (REQUIN, COMÈTE,
   LA RAIE) passent à l'argent du jeu ; le bouton verrouillé du menu du garage, l'annonce de l'affiche RECORD PERSO et les
   blocs « ? » des raretés à venir disparaissent ;
+- **pas de code secret** (règle 3.1.1) : le code COUSIN ne débloque rien ; la ligne ENTRER UN CODE des réglages est masquée et
+  RESTAURER UN CODE (une sauvegarde, rien d'autre) reste visible, sa fenêtre ne parle que de sauvegarde (le jeu de main, UX 8,
+  a fondu les deux en une ligne ; l'app garde l'état d'avant) ;
+- **l'accueil sans OFFRES** : sous MISSIONS, deux touches égales GARAGE · RÉGLAGES au lieu de trois (debout et couché) ;
 - **pas de voix livrées** : l'annonceur, le « ewww » et le « WOW » ne sont jamais joués dans l'app (`SANS_VOIX`) ; leurs onze
   fichiers ne sont plus copiés (comme dans l'édition POKI) ;
 - **pas de marque d'autrui dans un texte** : « on vient de doubler une Ferrari » devient « une voiture de course ».
