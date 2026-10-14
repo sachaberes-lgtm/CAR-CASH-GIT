@@ -28503,13 +28503,18 @@ function sensSecoue(k){if(!SENS||REDUCED_MOTION)return;shake=Math.max(shake,Math
    `sensGlisse` regarde seulement l'état que `driftTick` va traiter (on, driftLv, slipB) et répond par les outils communs : elle ne
    calcule RIEN du jeu. `ta` : l'heure de la dernière sortie (une glisse qui clignote ne recogne pas). */
 const SENS_GL={on:false,ta:0};
-SENS_GL.pk=0;SENS_GL.sg=0;SENS_GL.arm=false; // (reprise d'adhérence) le plus grand angle de glisse tenu, son côté, et « une reprise est due »
+SENS_GL.pk=0;SENS_GL.sg=0;SENS_GL.arm=false;SENS_GL.lv=0; // (reprise d'adhérence) le plus grand angle de glisse tenu, son côté, et « une reprise est due »
 function sensGlisse(on){
   if(on&&!SENS_GL.on){ // L'ACCROCHE : l'arrière part — la caisse se jette sur ses roues extérieures, le nez pique, elle se tasse ; un tic dans le pouce
     if(performance.now()-SENS_GL.ta>260){
       if(!REDUCED_MOTION)sensCoup(-Math.sign(steer)*1.3,.8,-.45); // même sens que le roulis de virage (carRoll9 du côté de `steer`) : ≈ 3° de plus, ≈ 2° de nez, ≈ 2 cm
       sensHap(8,1);}
   }
+  /* LE PALIER SE PREND DANS LES RESSORTS : bleu, or, rose — le son monte et le pouce tique déjà (driftTick), mais la caisse ne bronchait pas.
+     À chaque palier elle se TASSE d'un coup sec (≈ 1,5 cm bleu → 3 cm ULTRA) et verse un rien de plus sur l'extérieur : la charge PÈSE.
+     Vu à l'image suivante (driftLv lu avant le traitement) ; pas de vibration ici, celle du palier existe. */
+  if(on&&driftLv>(SENS_GL.lv|0)&&!REDUCED_MOTION)sensCoup(-Math.sign(slipB)*.25*driftLv,0,-(.25+.17*driftLv));
+  SENS_GL.lv=on?driftLv:0;
   if(!on&&SENS_GL.on&&driftLv>0&&!REDUCED_MOTION){ // LE RELÂCHÉ CHARGÉ : le turbo part — la caisse S'ASSOIT sur son train arrière (nez levé ≈ 2° bleu → 3,5° ULTRA, ≈ 2-3 cm), et la charge ÉCLATE aux deux roues, de sa couleur
     const lv=driftLv,pool=lv===3?sparkPink:lv===2?sparkGold:sparkBlue,sp9=CARS[level];
     sensCoup(0,-(.4+.3*lv),-(.25+.15*lv));
