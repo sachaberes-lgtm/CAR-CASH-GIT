@@ -8081,7 +8081,7 @@ html.c6 #overlay #mDead .mStat{display:flex;flex-direction:column;align-items:ce
 html.c6 #overlay #mDead .mStat::before{content:none}
 html.c6 #overlay #mDead .mStat b,html.c6 #overlay #mDead .mStat.mFren b{font-size:16px;line-height:1;letter-spacing:0;white-space:nowrap;color:var(--c6-b0);text-shadow:none;transform:none}
 html.c6 #overlay #mDead .mStat.mFren.zero b{color:var(--c6-g2);text-shadow:none}
-html.c6 #overlay #mDead .mStat span,html.c6 #overlay #mDead .mStat.mFren.rec span{color:var(--c6-g1);white-space:nowrap}
+html.c6 #overlay #mDead .mStat span,html.c6 #overlay #mDead .mStat.mFren.rec span{color:var(--c6-g1);white-space:normal;text-wrap:balance}   /* « MULTI MAX » passe sur deux lignes plutôt que déborder de son quart */
 /* 5 — LE DÉFI / L'OBJET : une carte d'encre (elle se touche : le chevron le dit) */
 html.c6 #overlay #mDead .mNew{order:6}
 html.c6 #overlay #mDead .mObj{order:7;display:flex;flex-direction:column;justify-content:center;gap:8px;width:auto;min-height:0;margin:16px 0 0;padding:12px 16px;text-align:left;
@@ -8144,6 +8144,10 @@ html.c6 #overlay #mDead #nameEntry{order:9;grid-area:auto}
 /* COUCHÉ ÉTROIT (iPhone SE/8 : 667) : une colonne n'a que ~258 px — « FRENESIE » en 13 px n'entre pas dans un quart : la bande passe en 2 × 2 */
 @media (orientation:landscape) and (max-width:720px){
   html.c6 #overlay #mDead .mStats{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:12px}
+  /* la colonne de droite doit tenir moteur + défi + touches dans 343 px : vignette 72 × 48, le nom seul (le palier se tait), défi resserré */
+  html.c6 #overlay #mDead .hMot .hMotCv{width:72px;height:48px}
+  html.c6 #overlay #mDead .hMot .hMotN i{display:none}
+  html.c6 #overlay #mDead .mObj{gap:6px;padding:8px 12px}
 }
 
 /* =====================================================================================================================
