@@ -10728,7 +10728,7 @@ const QL={k:0,mur:0,murT:0,roseT:0,up:0,efT:0,effondre:false,fr:0,N_EFF:5,ombre0
        = le départ RAPIDE / 181 000 = le plancher net RAPIDE) ; MOYEN 1,15 / 0,9 (iPhone 11 : 491 000 / 300 000) ;
      · qNetDefaut : 1 = une sauvegarde qui n'a JAMAIS choisi (SAVE.d.qChoisi absent ou 0) part en NETTE sur ce palier. Tout à 0 tant que
        Sacha n'a pas tranché : RAPIDE reste le défaut partout. RAPIDE n'est touché par AUCUNE de ces lignes. `dbgNette()` décrit. */
-PAL.B.dprNetCap=[1.25,1.35,1.5];PAL.B.dprNet=[1,1.15,1.25];PAL.B.dprNetBas=[.85,.9,1];PAL.B.qNetDefaut=[0,0,0];
+PAL.B.dprNetCap=[1.25,1.35,1.5];PAL.B.dprNet=[1,1.15,1.25];PAL.B.dprNetBas=[.85,.9,1];/* (2026-10-14 11 h 30, passe perf mobile) NETTE PAR DÉFAUT sur le palier RÉCENT seulement (sauvegarde neuve ou jamais choisie) : mesuré (perf/mesures/v10.log, iPhone émulé) — au palier 2 NETTE = 2,25× les pixels, la puce tient (le contrôle QL redescend de lui-même s il faut) ; paliers 0-1 restent RAPIDE (vieux iPhone fluides), NETTE au choix. */PAL.B.qNetDefaut=[0,0,1];
 /* (2026-10-14, passe perf mobile) ⚠ `typeof SAVE` NE PROTÈGE PAS d'un `const` encore en zone morte : au chargement, le départ au bon cran
    (`qlPose(qlDepart)`, plus bas) levait « Cannot access 'SAVE' before initialization », avalé par son try — les paliers 0-1 ne partaient
    jamais à leur cran (MOYEN au cran 0 au lieu de 2, ANCIEN au 4 de qlMin au lieu de 5). Avant la sauvegarde = RAPIDE. Palier 2 : inchangé. */
@@ -15445,6 +15445,7 @@ function jadeEtatEcrit(m){for(const k of JADE_CH)JADE[k]=m.J[k];for(const k of F
 function jadeEtatVide(){ // plus de carte en place (les valeurs que buildJade posait avant de bâtir)
   NUVOX.L=null;NUVOX.ims=[];JADE.fam=[];FIN.fam=[];FIN.near.length=0;FIN.sig=0;FIN.mats=new Map();FIN.dans=new Set();JADE.col=null;JADE.porte=null;JADE.pont=null;JADE.brume=null;JADE.sig=0;JADE.root=null;JADE.monu=[];JADE.cle=null;JADE.quart=null;JCH.L=[];JCH.splash=null;JCH.sp=[];}
 function jadeJette(m){ // libère une carte : ses familles (tampons d'instances, sans toucher aux gabarits partagés), ses maillages à elle, les tampons de ses instances
+  for(const o of m.J.monu||[])if(o.loIt){try{o.loIt.return();}catch(e){}o.loIt=null;} // (2026-10-14, passe perf mobile) le monument de loin en cours : la file fermée (VOXM rendu), rien n'est ajouté à la carte jetée
   for(const F of m.J.fam.concat(m.F.fam.filter(Boolean))){F.im.dispose();if(F.im2&&F.im2!==F.im){F.im2.dispose();F.im3.dispose();}const g9=F.im.geometry;for(const k in g9.attributes)if(k!=='aJ')g9.deleteAttribute(k);g9.setIndex(null);g9.dispose();}
   if(m.J.root)m.J.root.traverse(function(o){if(o.userData.jeter&&o.geometry)o.geometry.dispose();if(o.isInstancedMesh)o.dispose();});}
 function jadeRendGPU(m){m.J.root.traverse(function(o){if(o.userData.jeter&&o.geometry)o.geometry.dispose();if(o.isInstancedMesh)o.dispose();});} // (ses tableaux restent : three les renverra)
@@ -16241,8 +16242,26 @@ PAL.B.jadeMonuLoin=[1,1,0];
    Reste en verre plein : 150 m (300 m) avant la façade + les 170 m de l'arche + 30 m ≈ 350 m (500 m), soit ~4 s (~6 s) à 300 km/h.
    Palier RÉCENT : 450 m sur la sphère, comme avant (o.dP n'y existe pas). */
 PAL.B.jadePorteVerre=[150,300,450];JADE_LOD.mv=PAL.b('jadePorteVerre',450);
-function jadeMonuLoin(o){if(!o||!o.dG||o.lo||!o.L)return;const G=o.dG;o.dG=null; // (une seule tentative : une exception laisse le maillage plein)
-  const g=voxMesh(voxDemi(G));if(!g.index||!g.index.count)return;
+/* (2026-10-14, passe perf mobile) LE MONUMENT DE LOIN EN TRANCHES. MESURÉ (node, Mac) : voxDemi ~17 ms + voxMesh ~18 ms d'un seul bloc dans
+   la chauffe, soit ~150 ms figés sur iPhone 7 — au ras du voile du portail (~280 ms). voxDemiG et voxMeshG sont déjà des GÉNÉRATEURS à
+   échéance (JF.lim, état tout local) : jadeMonuLoin ne fait plus que préparer la file (o.loIt), jadeTick en mène UNE tranche par image
+   (jadeMonuLoinPas, budget jadeMonuLoinMs), JF.lim posé le temps de la tranche puis rendu. Même maillage au bit près (banc node : un trait
+   contre des tranches forcées à chaque échéance). Tant que ce n'est pas fini, le maillage plein reste (o.lo absent : jadeTick ne bascule pas).
+   Carte rangée (JADE_GARDE) : la file attend (jadeTick ne voit que la carte en place) et reprend avec elle ; carte jetée : jadeJette ferme la
+   file (le finally de voxMeshG rend VOXM). Cible ~40 tranches ≈ 1,3 s sur iPhone 7 au lieu d'un bloc de ~150 ms. dbgMonuLoin() : l'état. */
+PAL.B.jadeMonuLoinMs=[4,3,3];
+function* jadeMonuLoinG(G){const H=yield* voxDemiG(G);return yield* voxMeshG(H);} // = voxMesh(voxDemi(G)), en tranches
+function jadeMonuLoin(o){if(!o||!o.dG||o.lo||!o.L||o.loIt)return;const G=o.dG;o.dG=null; // (une seule tentative : une exception laisse le maillage plein)
+  o.loIt=jadeMonuLoinG(G);o.loS={t0:performance.now(),ms:0,n:0,mur:0,err:null};}
+function jadeMonuLoinPas(o){const it=o.loIt,S=o.loS,t=performance.now(),l0=JF.lim;let r;
+  JF.lim=t+PAL.b('jadeMonuLoinMs',3);
+  try{r=it.next();}catch(e){o.loIt=null;S.err=String(e);console.warn('monument de loin',e);return;}finally{JF.lim=l0;S.ms+=performance.now()-t;S.n++;}
+  if(!r.done)return;o.loIt=null;S.mur=performance.now()-S.t0;
+  try{jadeMonuLoinPose(o,r.value);}catch(e){S.err=String(e);console.warn('monument de loin',e);}}
+window.dbgMonuLoin=function(){return (JADE.monu||[]).filter(function(o){return o.loS||o.dG;}).map(function(o){const S=o.loS||{};
+  return {etat:o.lo?'pret':o.loIt?'tranche '+S.n:S.err?'erreur':S.n?'vide':'en attente',tranches:S.n||0,msTravail:+(S.ms||0).toFixed(1),msMur:Math.round(S.mur||0),tri:o.loTri||0,loin:!!o.loin,err:S.err||null};});};
+function jadeMonuLoinPose(o,g){
+  if(!g.index||!g.index.count)return;
   const aJ=new Float32Array(g.attributes.position.count*4);for(let k=0;k<aJ.length;k+=4){aJ[k]=o.dJ;aJ[k+1]=1;}g.setAttribute('aJ',new THREE.BufferAttribute(aJ,4));
   const m=new THREE.Mesh(g,jadeMats().vrOM);m.matrixAutoUpdate=false;m.matrix.copy(o.dM);m.matrixWorldNeedsUpdate=true;m.renderOrder=0;m.frustumCulled=true;m.userData.jeter=true;
   m.visible=!!o.loin;if(o.loin)o.L[0].visible=false;o.g.add(m);o.lo=m;o.loTri=g.index.count/3;}
@@ -16522,6 +16541,7 @@ function jadeTick(dt){
   if(!paused){try{jadeChuteTick(dt);}catch(e){window.__jadeErr=e;}}
   if(!JADE.t0&&started)JADE.t0=performance.now();
   if(JADE.decoPieces&&JADE.decoPieces.visible){const cp=camera.position;for(const m of JADE.decoPieces.children){const S9=m.geometry.boundingSphere,v=!!S9&&cp.distanceTo(S9.center)-S9.radius<450;if(m.visible!==v)m.visible=v;}} // (12/10) les pièces du bord : à moins de 450 m seulement
+  if(JADE.monu)for(const o of JADE.monu)if(o.loIt){jadeMonuLoinPas(o);break;} // (2026-10-14, passe perf mobile) une tranche du monument de loin par image (voir jadeMonuLoinPas)
   if(JADE.monu){const ff=(scene.fog&&scene.fog.far)||2600;for(const o of JADE.monu){const d9=camera.position.distanceTo(o.c)-o.r,v=d9<ff+80;if(o.g.visible!==v)o.g.visible=v; // (v17) au-delà de la brume : pas dessinés…
     let dv9=d9;if(o.dP){const P9=o.dP,cp=camera.position,u9=(cp.x-P9.c.x)*P9.t.x+(cp.z-P9.c.z)*P9.t.z;dv9=Math.max(d9,u9<0?-u9-P9.D/2:(u9-P9.D/2>30?1e9:0));} /* (2026-10-14, passe perf mobile) la Porte allégée : la distance à sa façade, et rien derrière soi (voir jadePorteVerre) */
     const lo=dv9>(JADE_LOD.mv||450);if(o.L&&lo!==o.loin){o.loin=lo;o.L[1].visible=o.L[2].visible=!lo;o.L[0].material=lo?JADE_M.vrOM:JADE_M.vrM;o.L[0].renderOrder=lo?0:3;if(o.lo){o.lo.visible=lo;o.L[0].visible=!lo;}/* (2026-10-14, passe perf mobile) de loin, le maillage allégé à la place du plein (jadeMonuLoin) */}}} // …et à plus de 450 m, une seule passe opaque (le verre en trois passes, de près)
@@ -26494,6 +26514,9 @@ function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image
   function(){campChauffe();},
   function(){try{plaChauffe();}catch(e){console.warn('plaChauffe',e);}}, // (2026-10-13) la pluie d'argent : ses matières compilées au menu
   function(){const F=nyanPixPool();F.o.visible=true;chauffeRendu([F.o]);F.o.visible=false;}, // (2026-10-06) les PIXELS du chat (le programme du feu du burn-out) compilés au menu
+  function(){const fx9=FX_EFF||(CARS[level]&&CARS[level].fx);if(fx9&&fx9.wow){wowPool();for(const q9 of wowTex())renderer.initTexture(q9.tx);}}, // (2026-10-14, passe perf mobile) LA TRAÎNÉE WOW (le DOGE, ou la traînée WOW) : ses 12 toiles en Comic Sans, ses 18 sprites et l'envoi des textures se faisaient à la 1re NITRO, en pleine course (~20-40 ms sur iPhone 7) — au menu, seulement si la caisse la porte (sinon rien ne change)
+  function(){if(!DRG.m)dragonInit();const L9=[DRG.m,DRG.tm,DRG.bouche].concat(DRG.yeux);for(const o of L9)o.visible=true;chauffeRendu(L9);for(const o of L9)o.visible=false; // (2026-10-14, passe perf mobile) LE DRAGON DE NITROOO naissait au 1er NITROOO, en pleine course : ses maillages, ses feuilles peintes envoyées à la puce et l'état de pipeline du programme des rubans en mélange NORMAL (jamais dessiné ainsi avant) — ~20-60 ms d'image figée sur iPhone 7, pile au moment fort. Bâti caché au menu et dessiné une fois hors écran (sommets à zéro : rien ne se voit)
+    for(const t9 of [DRG_TEX_V,DRG_PF_V,DRG_TEX_N,DRG_PF_N].concat(DRG_OEIL_V,DRG_OEIL_N))renderer.initTexture(t9);}, // …et ses feuilles VIOLETTES (nitro infinie) et NOIRES (dark triad), échangées en course
   function(){if(!TRACE.pos)traceInit();const p=mkPigeon();scene.add(p);renderer.compile(scene,camera);scene.remove(p);},
   function(){const L9=[];for(let i=0;i<FRUIT_DEFS.length;i++){const m=mkFruit(i);scene.add(m);L9.push(m);}const pd=new THREE.Mesh(padGeo,PAD_MAT);scene.add(pd);L9.push(pd); // (2026-09-29) LA LIGNE PARFAITE pose ses fruits et ses pads EN COURSE : leurs programmes et leurs géométries sont prêts dès le menu
     chauffeRendu(L9);for(const m of L9)scene.remove(m);},
@@ -48851,7 +48874,7 @@ window.dbgMortImg=function(n){if(n!=null){PAL.B.mortImg[PAL.n]=Math.max(1,n|0);M
      alors qu'il tient 60 un cran plus bas. Lui retourne d'abord à 60, PUIS remonte.
    Palier RÉCENT : `CAD.ok` = 0 → un test faux par point d'accroche, rien d'autre. Hors course (accueil, garage, écran de fin) : jamais calé.
    Banc : `dbgCadence()` décrit, `dbgCadence(30)` force, `dbgCadence(60)` coupe et fige, `dbgCadence(0)` rend la main. */
-/* (2026-10-14, décision de Sacha 3 h 30) INTERRUPTEUR FERMÉ : à 20-30 i/s la caisse TRAVERSE le trafic et les satellites (tests de choc ponctuels, prouvé par DEBUGGING). Remettre [1,1,0] seulement quand la ligne « choc balayé » est au journal des correctifs, puis vérifier sur un parcours avec trafic. `dbgCadence(30)` force toujours au banc. */PAL.B.cadence30=[0,0,0];PAL.B.cadenceDepart=[1,0,0];PAL.B.cadenceTenue=[1000,2000,2000];PAL.B.cadenceMonte=[1,0,1];
+/* (2026-10-14, décision de Sacha 3 h 30) ROUVERT (7 h 50) : le choc balayé de DEBUGGING est dans le jeu ; preuve perf/banc/chef/v13.cjs (trafic niv. 19, satellites au sol et en vol, 163 / 400 / 8 010 km/h, plein axe et de biais : 20/20 chocs à 30 i/s, 0 faux positif ; l'ancien code ratait). Avant : interrupteur fermé, à 20-30 i/s la caisse traversait le trafic. `dbgCadence(30)` force toujours au banc. */PAL.B.cadence30=[1,1,0];PAL.B.cadenceDepart=[1,0,0];PAL.B.cadenceTenue=[1000,2000,2000];PAL.B.cadenceMonte=[1,0,1];
 const CAD={ok:PAL.b('cadence30',0)?1:0,on:false,gel:false,force:0,per:1000/30,ecran:1000/60,tol:1000/120,der:0,rp:0,eMin:99,eN:0,
   w:0,wMax:10,wh:0,calT:0,lT:0,vu:0,crs:false,calme:false,essT:0,murT:0,murD:30000,entrees:0,sorties:0};
 function cadSaute(now){ // en tête de loop : rend true si cette image d'écran se saute
