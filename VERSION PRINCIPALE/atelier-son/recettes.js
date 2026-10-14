@@ -596,6 +596,25 @@ D('fig.gap',{fam:'figures',dur:1.6,st:1,key:1,db:+1,max:1,cd:.3,v:2,pre:1,bases:
    (pose.parfait), la DIVINE ouvre le ciel (pose.divin) ; celle-ci reste en dessous : propre, rien de plus. */
 D('pose.nette',{fam:'pose',dur:.45,key:1,db:-3,max:1,cd:.2,pre:1,dit:'la POSE ordinaire (ni parfaite, ni lourde) : un tock et une clochette, sous la PARFAITE',
   r:function(b,R,o){clic(b,{t0:0,f:3000,d:.004,v:.25},R);marimba(b,R,nE(19),0,.3,.18);cloche(b,{f:nE(31),r:[1,2.76],m:[1,.15],d:[.25,.08],t0:.01,v:.12},R);}});
+/* (2026-10-14, session SON ; la figure : GENERAL) LE SLIDE — le flanc qui frotte le bord de la route. Une BOUCLE de meulage (sonSlide la
+   règle en direct : plus vite = plus fort et plus aigu, par handle.gain / handle.rate), une ATTAQUE au contact, une QUEUE au lâcher, et un
+   « tchak » DOUX quand l'aura se paye. Rien de criard : les bandes de raclement restent sous 4 kHz, les étincelles sont des grains. */
+D('fig.slide',{fam:'figures',bus:'fx',dur:2.4,st:1,db:-8,max:1,cd:.1,dit:'LE SLIDE (boucle) : le métal qui meule le bord — deux bandes de raclement hachées, le chant du métal, des étincelles en grains',
+  r:function(b,R,o){bruit(b,{c:'b',t0:0,a:.001,h:2.4,d:.001,v:.22,ft:'bp',f:2900,q:2.6,am:[23,.55],pan:-.2},R);
+    bruit(b,{c:'r',t0:0,a:.001,h:2.4,d:.001,v:.26,ft:'bp',f:1300,q:1.8,am:[11.3,.5],pan:.2},R);
+    bruit(b,{c:'n',t0:0,a:.001,h:2.4,d:.001,v:.12,ft:'lp',f:420,am:[7.1,.35]},R);
+    osc(b,{f:2310,w:'sin',t0:0,a:.001,h:2.4,d:.001,v:.018,vib:[5.3,.006]});osc(b,{f:3720,w:'sin',t0:0,a:.001,h:2.4,d:.001,v:.012,vib:[6.1,.005]});
+    for(let i=0;i<46;i++)bruit(b,{c:'b',t0:R()*2.3,a:.0004,d:.004+R()*.01,v:.18+R()*.22,ft:'hp',f:4200+R()*2500,q:.7,pan:R()*1.4-.7},R);
+    O.boucle(b,.4);}});
+D('fig.slide.debut',{fam:'figures',bus:'fx',dur:.6,st:1,db:-3,max:1,cd:.15,dit:'le SLIDE commence : le métal touche (choc sec + crissement qui s’allume + gerbe d’étincelles)',
+  r:function(b,R,o){clic(b,{t0:0,f:3200,d:.005,v:.4},R);cloche(b,{f:1180,r:[1,2.41,3.87,5.6],m:[1,.5,.3,.15],d:[.22,.12,.07,.04],t0:0,v:.16,jit:.01},R);
+    bruit(b,{c:'b',t0:.005,a:.01,d:.3,v:.32,ft:'bp',f:1800,f1:3000,g:.2,q:2.2},R);crepite(b,R,.01,.35,14,.2,2600,6000);}});
+D('fig.slide.fin',{fam:'figures',bus:'fx',dur:.8,st:1,db:-6,max:1,cd:.15,dit:'le SLIDE s’arrête : le meulage retombe (le filtre se referme) + les dernières étincelles',
+  r:function(b,R,o){bruit(b,{c:'b',t0:0,a:.003,d:.35,v:.3,ft:'bp',f:2900,f1:900,g:.35,q:2.2},R);bruit(b,{c:'r',t0:0,a:.003,d:.3,v:.25,ft:'bp',f:1300,f1:500,g:.3,q:1.6},R);
+    crepite(b,R,.02,.4,6,.16,2800,5800);}});
+D('fig.slide.paye',{fam:'figures',dur:.7,key:1,db:-2,max:1,cd:.2,pre:1,dit:'le SLIDE est payé : un tchak doux + une clochette (l’aura encaissée)',
+  r:function(b,R,o){bruit(b,{c:'b',t0:0,a:.0006,d:.03,v:.3,ft:'bp',f:1500,q:1},R);clic(b,{t0:0,f:3800,d:.004,v:.18},R);
+    cloche(b,{f:nE(31),r:[1,2,2.76],m:[1,.25,.12],d:[.45,.18,.08],t0:.012,v:.2},R);scintille(b,R,.03,.25,4,.06,36,44);}});
 D('pose.lourde',{fam:'pose',bus:'fx',dur:.9,db:+2,max:1,cd:.2,grp:'r',prio:2,dit:'POSÉ LOURD : la tôle qui encaisse — craquement + ressorts en butée + grave sale',
   r:function(b,R,o){coup(b,R,o,0,1,1400,90,40,.4);tole(b,R,.005,190,.3,.5);tole(b,R,.04,135,.22,.4);
     bruit(b,{c:'r',t0:0,a:.002,d:.25,v:.4,ft:'bp',f:900,q:1.5,am:[38,.8]},R);osc(b,{f:98,f1:92,g:.3,w:'saw',t0:.02,a:.01,d:.4,v:.08,flt:['lp',600,300,.3]});}});
