@@ -17684,6 +17684,10 @@ function vlcTache(f){VOLCAN.file.push(f);}
 function vlcTranches(ms){const F=VOLCAN.file;if(!F||VOLCAN.fi>=F.length)return 0;const t0=performance.now();let n=0;
   while(VOLCAN.fi<F.length){const f=F[VOLCAN.fi++];try{f();}catch(e){window.__volcanErr=e;console.warn('Volcan (tranche)',e);}n++;if(performance.now()-t0>ms)break;}
   VOLCAN.msFile=(VOLCAN.msFile||0)+performance.now()-t0;if(VOLCAN.fi>=F.length){VOLCAN.file=[];VOLCAN.fi=0;}return n;}
+/* LA MER AU LOIN : au-delà de la grille, la lave continue jusqu'à l'horizon (un plan de 40 km, 0,6 m sous la mer : la grille le couvre partout où elle existe) */
+function vlcMerLoin(root){const S=VOLCAN.sol,g=new THREE.PlaneGeometry(40000,40000,1,1);g.rotateX(-Math.PI/2);const n=g.attributes.position.count;
+  g.setAttribute('aV',new THREE.Float32BufferAttribute(new Float32Array(n*4).map((v,i)=>i%4===2?20:0),4));const cx=S.x0+S.nx*S.C/2,cz=S.z0+S.nz*S.C/2;
+  const m=new THREE.Mesh(g,VOLCAN.mats.lave);m.position.set(cx,VOLCAN.ySea-.6,cz);m.updateMatrix();m.matrixAutoUpdate=false;m.frustumCulled=false;m.renderOrder=-1;m.userData.jeter=true;m.name='volcan mer';root.add(m);return m;}
 /* UNE COULÉE : un ruban de trois rangs (rive, cœur, rive) posé 0,9 m au-dessus de son lit ; la vitesse suit la pente (les chutes filent) */
 function vlcRuban(root,P){const S=VOLCAN.sol,Pp=[],A=[],I=[];let n=0;
   for(let k=0;k<P.length;k++){const p=P[k],a=P[Math.max(0,k-1)],b=P[Math.min(P.length-1,k+1)];let tx=b[0]-a[0],tz=b[2]-a[2];const tl=Math.hypot(tx,tz)||1;tx/=tl;tz/=tl;
