@@ -35,6 +35,9 @@ Chaque map ajoute UN accent secondaire, le sien : ville = cyan #3EE8FF · nuages
 - **LA NUIT = BLEU ET VIOLET PURS, CLAIR DE LUNE, JAMAIS GRIS** : ciel bleu profond → indigo → violet, lune et étoiles nettes, sommets argent-bleu, ventres violets,
   mer bleu nuit lumineuse, route au reflet bleuté avec la signature rose + or (`?sans=clairdelune` pour la mer de nuages).
 
+- **JAMAIS DE TEXTURE ÉTIRÉE NI DE BRUIT PLEIN CADRE DANS UN CIEL** (Sacha, 14/10 au soir) : un ciel de jour = un DÉGRADÉ propre (azur saturé → pêche à l'horizon)
+  + quelques nuages hauts NETS et rares, de vraies formes ; aucun motif répété (pommelé, grille, quinconce) ni « peinture » étalée. Se vérifie EN VOL, caméra levée.
+
 ## 4. Ce que chaque map a le droit de varier
 La géographie et les silhouettes (jamais touchées), la couleur du ciel dans les règles, l'accent secondaire, l'intensité des néons selon l'heure, la densité de la brume, la météo.
 
