@@ -40890,21 +40890,21 @@ function moutonsPose(cr){ // dans campNuages (buildClouds) : un mouton (ou un tr
 /* (2026-10-14, gameplay · œil) LE MOUTON SE LIT. Vus au banc (captures oeil/couche-m1-a*.png) : la ouate du matin prend la teinte pêche du
    ciel et du bitume — à 120 m et à 50 m le mouton ne se voyait PAS (une tache rose de quelques pixels), il n'apparaissait qu'à ~15 m, soit
    0,15 s avant le choc à 350 km/h : on ne sautait que sur la foi de la plaque « DANS 90 M ». Deux gestes, rien de neuf à compiler :
-   · sa laine est plus BLANCHE que les bancs du ciel (MOUTON_MAT : le même matériau de nuage, sa couleur partagée, une émission blanche
-     chaude en plus — même programme, aucune compilation) ;
+   · sa laine est plus CLAIRE que les bancs du ciel (MOUTON_MAT : le même matériau de nuage, sa couleur partagée, une émission blanche
+     chaude en plus — même programme, aucune compilation ; la lumière de peintre garde la teinte du ciel, l'émission monte la luminance) ;
    · une petite TÊTE noire et deux oreilles à l'avant, tournées vers la caisse : le point sombre se voit de loin sur le bitume clair, et
      dit « mouton » d'un coup d'œil. Elle suit la ouate (enfant du groupe : la dérive au vent, l'éclatement) et disparaît dès qu'il éclate.
    `?sens=0` : les moutons d'avant (ouate du ciel, sans tête). */
 var MOUTON_MAT=null,MOUTON_TETE=null; // var : updateClouds les lit (hissés, nuls avant le 1er mouton)
 function moutonTete(c,F){
-  if(!MOUTON_MAT){MOUTON_MAT=CLOUD_MAT.clone();MOUTON_MAT.color=CLOUD_MAT.color;MOUTON_MAT.specular=CLOUD_MAT.specular;MOUTON_MAT.onBeforeCompile=nuageShader;MOUTON_MAT.customProgramCacheKey=CLOUD_MAT.customProgramCacheKey;MOUTON_MAT.emissive=new THREE.Color(0xfff0e2);MOUTON_MAT.emissiveIntensity=.34;MOUTON_MAT.opacity=.9;
-    MOUTON_TETE={geo:new THREE.SphereGeometry(1,10,8),mat:new THREE.MeshLambertMaterial({color:0x2b2731,emissive:0x0c0a10})};}
+  if(!MOUTON_MAT){MOUTON_MAT=CLOUD_MAT.clone();MOUTON_MAT.color=CLOUD_MAT.color;MOUTON_MAT.specular=CLOUD_MAT.specular;MOUTON_MAT.onBeforeCompile=nuageShader;MOUTON_MAT.customProgramCacheKey=CLOUD_MAT.customProgramCacheKey;MOUTON_MAT.emissive=new THREE.Color(0xfff0e2);MOUTON_MAT.emissiveIntensity=.6;MOUTON_MAT.opacity=.9;
+    MOUTON_TETE={geo:new THREE.SphereGeometry(1,10,8),mat:new THREE.MeshBasicMaterial({color:0x1c1a21})} /* sans éclairage : éclairée, le ciel chaud du matin la rendait gris lavande (vu au banc) — il faut un vrai point SOMBRE */;}
   c.mesh.material=MOUTON_MAT;c.mesh.userData.mm=MOUTON_MAT;
   const r=c.r,g=new THREE.Group(),q=cldV1;
-  q.copy(F.t).multiplyScalar(-r*.9).addScaledVector(F.n,1.45-(MOUTON_H-c.ry));g.position.copy(q); // à l'avant du dos, au ras de la laine (le centre du groupe est à MOUTON_H − ry du bitume)
+  q.copy(F.t).multiplyScalar(-r*.9).addScaledVector(F.n,1.15-(MOUTON_H-c.ry));g.position.copy(q); // à l'avant du dos, au ras de la laine (le centre du groupe est à MOUTON_H − ry du bitume)
   g.lookAt(q.addScaledVector(F.t,-1)); // regarde la caisse qui arrive (son +Z = vers l'arrière de la route)
-  const h=new THREE.Mesh(MOUTON_TETE.geo,MOUTON_TETE.mat);h.scale.set(.95,.85,1.25);g.add(h);
-  for(const sd of [-1,1]){const o=new THREE.Mesh(MOUTON_TETE.geo,MOUTON_TETE.mat);o.scale.set(.55,.18,.3);o.position.set(sd*1.05,.45,-.15);o.rotation.z=sd*.45;g.add(o);}
+  const h=new THREE.Mesh(MOUTON_TETE.geo,MOUTON_TETE.mat);h.scale.set(.76,.68,1);g.add(h);
+  for(const sd of [-1,1]){const o=new THREE.Mesh(MOUTON_TETE.geo,MOUTON_TETE.mat);o.scale.set(.45,.15,.25);o.position.set(sd*.86,.36,-.12);o.rotation.z=sd*.45;g.add(o);}
   c.g.add(g);c.tete=g;
 }
 function campMoutonLibre(){ // le SAUT NITRO est offert au pied d'un mouton (veqSaut)
