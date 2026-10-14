@@ -216,6 +216,11 @@ MESURÉ (×4, trois manches) : ~35-48 → ~50-58 images/s, images > 40 ms divis�
   le 1.61 remonté (y 9,6, z −24 : il chevauchait le nom).
   ⚠ REVENU le même jour (Léo : « c'était mieux avant, juste le socle un tout petit peu plus grand, 1,5× ») : point de vue d'avant
   (`BQ_POV` null), 1.61 à sa place (y 7,2, z −22), le plateau d'avant ×1,5 (rayon 1,83, socleH .01) ; il reste FIXE (ne suit plus le cap).
+- LES COUPS AU CIEL (14/10, Léo : « diminue la quantité d'objets déversés, garde la variété ; addictif, effort / récompense ; augmente l'impact ») :
+  RICH_TIER petit 1-2 · bon 3-5 · gros 6-9 · jackpot 14-19 (répliques 1-2 / 4-5), mélanges inchangés ; richTire : la TAILLE suit le combo
+  plus fort (seul : petit 80 % · jackpot 0,2 % ; rafale ≥ 5 : gros 23 % · jackpot 11 %). Impact : CHUTE_TAP V 10 · W 6,5 · WMAX 20,
+  secousse .85·mu (≤ 2,3), ARRÊT SUR IMAGE 70 ms (`hs`), zoom −9°, éclat ×1,45, étincelles 28+14·mu, tôle 3+2·mu, sons et vibration plus forts.
+  ⚠ Pas encore mesuré au banc (objets par coup) : la sonde a raté (RICH n'est pas global).
 
 ## LA PASSE QUALITÉ AVANT SORTIE (2026-10-12, Sacha : « trouve des bugs et règle-les, améliore des trucs à droite à gauche, fais en sorte que le jeu soit parfait et sortable »)
 Méthode : bancs Puppeteer son coupé (rendu LOGICIEL SwiftShader : Roblox Studio tenait le GPU, le Chrome de test calait sur D3D11), un
