@@ -49180,7 +49180,7 @@ function ajTick(dt){
     AJ.el.style.setProperty('--ajI',FLOW_CEL[cur]);AJ.vols.style.setProperty('--ajI',FLOW_CEL[cur]);}
   if(rev!==AJ.rev){AJ.rev=rev;AJ.el.classList.toggle('revele',rev);
     if(rev&&!AJ.dit&&running&&!gameOver&&!TUTO.on&&((SAVE.d.ex&&SAVE.d.ex.runs)|0)>0){AJ.dit=true;try{popTexte(sansAcc(TR('MOYENNE BATTUE')),FLOW_CEL[3],2);}catch(e){}hap([10,30,14]);
-      try{typeof sfx==='function'&&sfx('aura.moyenne');}catch(e){}}} // (console de son) aura.moyenne — à sonoriser
+      try{typeof sfx==='function'&&!sfx('aura.moyenne')&&sfx('victoire',{vol:-4});}catch(e){}}} // (console de son) aura.moyenne — à sonoriser — (2026-10-14, session SON) pas encore cuit : la MOYENNE BATTUE sonnait muette ; en attendant, le stab qui monte de la VICTOIRE (une victoire sur soi), 4 dB sous sa fiche : au rang d'une récompense, pas d'un grand moment
   if(recB!==AJ.recB){AJ.recB=recB;AJ.el.classList.toggle('record',recB);}
   // (2026-10-12, passe qualité) le libellé et le chiffre ne se REFABRIQUENT que si ce qu'ils disent change (TR + majPix + toLocaleString
   // tournaient à chaque image pour une valeur qui bouge au plus une fois par seconde : des chaînes jetées au ramasse-miettes en pleine course)
