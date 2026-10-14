@@ -55,6 +55,23 @@ if(/[?&]ui=6\b/.test(location.search))document.documentElement.classList.add('c6
    dépôt ; les sons de SYNTHÈSE (chœurs, cri stylisé du dauphin, intro 1.61) ne sont pas des voix : ils restent. `?voix=1` les rend. */
 const SANS_VOIX=!/[?&]voix=1\b/.test(location.search);
 if(SANS_VOIX)document.documentElement.classList.add('sansVoix');
+/* PLUS DE CARRIÈRE, POUR LA SORTIE (2026-10-14, Sacha : « supprime complètement de main le mode challenge pour l'instant » · « non,
+   carrière c'est les niveaux, les missions c'est bien » · « on le fera dans des MAJ, donc garde-le dans le git quelque part ») : comme
+   les voix, la carrière est COUPÉE, pas arrachée — aucune porte ne mène plus à elle (la carte CARRIÈRE de l'accueil, l'onglet du hub,
+   #gCarr, la tuile NIVEAU du garage, la feuille #carr, `?play=carriere`), et ses deux caisses (LA CAISSE-NUAGE, LE LINGOT) passent à
+   l'argent du jeu aux prix de l'ancienne édition Poki — celles déjà gagnées restent à leur joueur. Le moteur des niveaux reste entier :
+   le simulateur de Léo lance toujours ses niveaux (`dbgCampagne`). La carrière telle qu'elle était : la branche `garde/carriere`
+   (= main au commit 3ca83ec, avant la nuit d'assemblage). `?carriere=1` la rend, pour la tester ; pour la remettre dans une mise à
+   jour : `const SANS_CARRIERE=false;`. */
+const SANS_CARRIERE=!/[?&]carriere=1\b/.test(location.search);
+if(SANS_CARRIERE)document.documentElement.classList.add('sansCarr');
+/* PLUS DE MODE FACILE (2026-10-14, Sacha, relayé par PILOTAGE : « enlève le mode facile du jeu ») : même recette que la carrière — COUPÉ,
+   pas arraché. `facOn()` répond toujours non : plus d'aide au virage (FAC_CAP), plus de bord élargi (facBord), plus de 10 s en l'air
+   (FAC_AIR), plus de 3 vies ni de filet (facileSauve) ; le choix FACILE / NORMAL du 1er JOUER ne s'ouvre plus (facChoix rend NORMAL) et la
+   ligne MODE FACILE quitte les réglages (<style id="sansFacile">). La sauvegarde n'est PAS touchée : `SAVE.d.facile` reste ce qu'il était
+   (un joueur en FACILE joue désormais en NORMAL, sans rien perdre — argent, caisses, records). `?facile=1` le rend, pour le tester. */
+const SANS_FACILE=!/[?&]facile=1\b/.test(location.search);
+if(SANS_FACILE)document.documentElement.classList.add('sansFacile');
 /* LA MÊME VERSION POUR TOUT LE MONDE (2026-10-01, Léo : « trouve un moyen pour qu'on joue au même jeu, juste ») : `vercel-build.sh`
    remplace ce jeton par le commit publié et pose `version.json` à côté du jeu. Le jeu compare les deux et se recharge tout seul
    s'il est en retard (voir « LA MISE À JOUR TOUTE SEULE », près du service worker). En copie locale le jeton reste tel quel : rien ne se vérifie. */
@@ -8537,6 +8554,23 @@ html.c6[data-reduced-motion="1"] #wipe.in::before,html.c6[data-reduced-motion="1
   html.c6 #wipe.in{background:var(--c6-e0)}
 }
 </style>
+<style id="sansCarriere">
+/* (2026-10-14, Sacha : « supprime complètement de main le mode challenge pour l'instant » — la CARRIÈRE, voir SANS_CARRIERE dans le <head>)
+   Toutes les portes de la carrière disparaissent sous `html.sansCarr` ; sur l'accueil, la carte CARRIÈRE n'est même plus fabriquée, et
+   MISSIONS prend sa place : charte 6, une carte pleine largeur sur la rangée du haut (GARAGE · OFFRES dessous) ; ?ui=5, les deux
+   colonnes larges de la rangée. */
+html.sansCarr [data-m="carr"],html.sansCarr #gCarr,html.sansCarr .gLevel,html.sansCarr #carr,html.sansCarr #gHub .ghT[data-h="carr"]{display:none!important}
+html.hub.sansCarr:not(.c6) body #mHome.acc2 .mAccP>.mMisBarre{grid-column:1/3}
+html.c6.hub.sansCarr body #mHome.acc2 .mAccP>.mMisBarre{grid-column:1/-1}
+@media (orientation:landscape) and (max-height:540px){
+  html.hub.sansCarr:not(.c6) body #mHome.acc2 .mAccP>.mMisBarre{grid-column:2/4}
+  html.c6.hub.sansCarr body #mHome.acc2 .mAccP>.mMisBarre{grid-column:2/-1}}
+</style>
+<style id="sansFacile">
+/* (2026-10-14, Sacha, relayé par PILOTAGE : « enlève le mode facile du jeu » — voir SANS_FACILE dans le <head>) la ligne MODE FACILE des
+   réglages disparaît ; les cœurs (#facVies) suivent déjà body.facile, que facDepart ne pose plus. */
+html.sansFacile [data-m="facile"]{display:none!important}
+</style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <canvas id="fxCv"></canvas>
   <div id="spStage">
@@ -9076,6 +9110,7 @@ function feuilleFerme(el,cls){ if(!el||!el.classList.contains(cls))return; try{u
    RÉGLAGES. Échap clique le dernier bouton : NORMAL. */
 function facChoix(){ /* (2026-10-14, charte 6 · règles de 6 h) deux CARTES égales, une promesse chacune ; FACILE (conseillée à un nouveau) en or,
      NORMAL en encre — plus de vert (le vert = l'argent), plus de paragraphe qui n'expliquait que FACILE. ?ui=5 : l'ancienne fenêtre. */
+  if(SANS_FACILE)return Promise.resolve({v:0}); // (2026-10-14, Sacha) plus de mode facile : pas de question, on part en NORMAL (la sauvegarde n'est pas écrite)
   if(document.documentElement.classList.contains('c6'))return modale({titre:'CHOISIS TON MODE',texte:'Tu pourras changer dans les réglages.',cartes:true,
     boutons:[{l:'FACILE',ic:'coeur',cls:'pb-gold',sous:'Virages aidés, 3 vies',v:1},{l:'NORMAL',ic:'eclair',cls:'c6Neutre',sous:'Sans aide, une seule vie',v:0}]}).then(function(r){SAVE.d.facile=r.v?1:0;SAVE.flush();});
   return modale({titre:'CHOISIS TON MODE',texte:"En FACILE, la voiture suit mieux les virages, tu restes plus longtemps en l'air et tu as 3 vies. Tu pourras changer dans les réglages.",
@@ -18485,7 +18520,7 @@ Object.assign(I18N,{"CASH CAR — toucher pour jouer":"CASH CAR — tap to play"
 // (2026-09-29, les dix premières minutes) PASSER qui demande, le permis fêté, la carrière qui passe par l'auto-école
 Object.assign(I18N,{"VRAIMENT ?": "SURE?", "PERMIS": "LICENSE", "SORTI ! SUIS LA ROUTE": "OFF THE ROAD! FOLLOW IT", "RATÉ ! NITRO, VISE LE DESSUS": "MISSED! NITRO, AIM ABOVE IT", "Fini l'entraînement : UNE SEULE VIE. En l'air, pose-toi avant la fin du chrono.": "Training's over: ONE LIFE. In the air, land before the timer runs out.", "Tu reprendras la leçon au prochain départ.": "You'll pick the lesson up on your next start.", "Tu reprendras la leçon au prochain départ : le PERMIS et sa prime t'attendent.": "You'll pick the lesson up on your next start: the LICENSE and its bonus are waiting.", "PASSE D'ABORD TON PERMIS": "GET YOUR LICENSE FIRST"});
 // (2026-09-29) MODE FACILE + pouce haut en vol
-Object.assign(I18N,{"MULTI MAX":"BEST MULTI","Fini l'entraînement : tu as 3 VIES. En l'air, pose-toi avant la fin du chrono.":"Training's over: you have 3 LIVES. In the air, land before the timer runs out.","IL MENE DE":"BANKER AHEAD BY","Argent, caisses, habillages, missions, records, carrière et réglages : tout repart de zéro.":"Money, cars, cosmetics, missions, records, career and settings: everything starts over."}); // (2026-09-29, passe qualité)
+Object.assign(I18N,{"MULTI MAX":"BEST MULTI","Fini l'entraînement : tu as 3 VIES. En l'air, pose-toi avant la fin du chrono.":"Training's over: you have 3 LIVES. In the air, land before the timer runs out.","IL MENE DE":"BANKER AHEAD BY","Argent, caisses, habillages, missions, records, carrière et réglages : tout repart de zéro.":"Money, cars, cosmetics, missions, records, career and settings: everything starts over.","Argent, caisses, habillages, missions, records et réglages : tout repart de zéro.":"Money, cars, cosmetics, missions, records and settings: everything starts over."}); // (2026-09-29, passe qualité)
 Object.assign(I18N,{"MODE FACILE": "EASY MODE", "POUCE HAUT EN VOL": "THUMB UP IN THE AIR", "PLONGE": "DIVE", "MONTE": "CLIMB", "CHOISIS TON MODE": "PICK YOUR MODE", "En FACILE, la voiture suit mieux les virages, tu restes plus longtemps en l'air et tu as 3 vies. Tu pourras changer dans les réglages.": "In EASY, the car follows the turns better, you stay longer in the air and you get 3 lives. You can change it in the settings.", "FACILE": "EASY", "NORMAL": "NORMAL", "VIES": "LIVES", "DERNIERE VIE !": "LAST LIFE!", "ON REPART !": "BACK ON THE ROAD!", "En l'air : pouce en HAUT = monte, en BAS = plonge.": "In the air: thumb UP = climb, DOWN = dive."});
 Object.assign(I18N,{"POUCE HAUT":"THUMB UP","REVOIR":"REPLAY"}); /* (2026-10-14, charte 6) les réglages : « POUCE HAUT EN VOL » et « REVOIR L'AUTO-ECOLE » raccourcis (une ligne = un nom + une valeur) */
 // (2026-09-29) écran de fin v5
@@ -20556,6 +20591,7 @@ function carrCiel(N){const hx9=function(c){return '#'+(c|0).toString(16).padStar
   const h=N.h,a=CIEL_H[Array.isArray(h)?h[0]:h],b=CIEL_H[Array.isArray(h)?h[1]:h];
   return a&&b?'linear-gradient(90deg,'+a[0]+','+a[1]+(b!==a?','+b[1]:'')+')':'none';}
 function carrVue(bi){
+  if(SANS_CARRIERE)return; // (2026-10-14, Sacha) la feuille de la carrière ne s'ouvre plus, d'où qu'on l'appelle
   const el=document.getElementById('carr');if(!el)return;
   if(document.documentElement.classList.contains('c6'))return carrVueC6(bi,el); // (2026-10-14, charte 6) l'écran refait : en-tête ◀, cartes d'encre, JOUER en or ; ?ui=5 garde l'ancien
   let h='<div class="carrIn"><div class="mHead"><h3>'+TR(bi==null?'CARRIERE':CARRIERE[bi].nm)+'</h3></div>';
@@ -27651,7 +27687,7 @@ function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image
   const E=[
   function(){orbiteChauffe();}, // (vague 3) la lune peinte et montée au GPU, lune + rochers compilés : rien ne naît au portail de l'orbite
   function(){if(!CITY.chaud){CITY.chaud=true;villeChauffe();}},
-  function(){try{parisChauffe();}catch(e){console.warn('parisChauffe',e);}}, // (2026-09-30) PARIS : ses matières compilées au menu (16 programmes de moins au portail)
+  function(){if(SANS_CARRIERE)return;try{parisChauffe();}catch(e){console.warn('parisChauffe',e);}}, /* (2026-10-14) sans carrière, Paris ne se joue plus : rien à compiler */ // (2026-09-30) PARIS : ses matières compilées au menu (16 programmes de moins au portail)
   function(){cratInit();renderer.initTexture(CRAT.tex);renderer.initTexture(CRAT.halo);for(const t9 of DEB.tex)renderer.initTexture(t9);}, // (2026-09-28) + les trois textures de la pluie de DÉBRIS // (2026-09-27) le cratère du MÉTÉORE : ses matières sont compilées juste en dessous, ses textures montées ici
   function(){campChauffe();},
   function(){try{plaChauffe();}catch(e){console.warn('plaChauffe',e);}}, // (2026-10-13) la pluie d'argent : ses matières compilées au menu
@@ -28556,6 +28592,12 @@ const CAR_UNLOCK=[
   {p:3800000}, // (2026-10-11, Léo : « génère-la en 3D dans mon jeu ») LA MERCURE — ÉPIQUE, juste après LA DÉFERLANTE
   {p:4000000}, // (2026-10-14, Léo : « fais une voiture tête de doge ») LE DOGE — ÉPIQUE, juste après LA MERCURE
 ]
+/* (2026-10-14, Sacha) SANS CARRIÈRE : ses deux trophées passent à l'argent du jeu, aux prix de l'ancienne édition Poki (en haut des épiques ;
+   leur famille suit le prix, comme chez Poki). `exK`/`exV` gardent l'ancienne condition : une caisse déjà GAGNÉE en carrière entre dans
+   `owned` au chargement (après SAVE.load) — une mise à jour ne confisque rien. */
+if(SANS_CARRIERE){const PRIX_CARR={carrN:1.8e6,carrV:2.2e6};
+  CAR_UNLOCK.forEach(function(u,i){if(!u||!PRIX_CARR[u.k])return;const c=CARS[i];
+    CAR_UNLOCK[i]={p:PRIX_CARR[u.k],exK:u.k,exV:u.v};if(c&&c.rar==='defi')delete c.rar;});}
 /* ============================================================================
    L'AURA ET LA BANQUE (2026-08-17) — la nouvelle règle
    ----------------------------------------------------------------------------
@@ -36801,6 +36843,11 @@ if(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferen
   }).catch(function(){});}catch(e){}
 }
 SAVE.load();
+/* (2026-10-14, Sacha) SANS CARRIÈRE : un trophée de la carrière déjà GAGNÉ (5 niveaux de SKY HIGH → LA CAISSE-NUAGE, 5 de la VILLE → LE LINGOT)
+   entre dans `owned` — il est à toi partout, boutique comprise (elle ne te le revend pas). Voir SANS_CARRIERE et `exK`/`exV` dans CAR_UNLOCK. */
+if(SANS_CARRIERE)try{const mo9={carrN:'nuages',carrV:'ville'};let m9=false;
+  CAR_UNLOCK.forEach(function(u,i){if(u&&u.exK&&mo9[u.exK]&&(((SAVE.d.carr||{})[mo9[u.exK]])|0)>=u.exV&&!carOwned(i)){SAVE.d.owned.push(i);m9=true;}});
+  if(m9)SAVE.mark();}catch(e){}
 if(BALADE){SAVE.d.tuto=1;SAVE.d.permis=1;if(SAVE.d.facile==null)SAVE.d.facile=0;SAVE.flush=function(){};SAVE.mark=function(){};} // (2026-10-09) LA BALADE n'écrit rien : ni leçon, ni question du mode, ni sauvegarde
 /* (2026-09-30) la partie tuée en arrière-plan vient d'être versée (SAVE.load) : le menu le DIT, une fois, à son apparition */
 Object.assign(I18N,{'PARTIE INTERROMPUE':'RUN INTERRUPTED','COPIE IMPOSSIBLE : COPIE-LE A LA MAIN':'COPY FAILED: COPY IT BY HAND','Sélectionne le code et copie-le à la main.':'Select the code and copy it by hand.'});
@@ -36963,7 +37010,7 @@ function gK(){return (LVL.espaceA>=.5&&!PARK.on)?ORB_G:1;}
    · 3 VIES — une chute, un vol trop long, une tour : la caisse repart de sa ligne sûre (facileSauve — le filet du BOUCLIER, pouvoir retiré le 29/09) ;
    · POSE — 5 m de bitume en plus de chaque côté pour se poser (la caisse est ramenée dans la largeur), angle de pose ratée +30°. */
 const FAC={coeurs:3},FAC_AIR=10/6,FAC_BORD=5,FAC_VIRAGE=.8,FAC_CAP=1.6;
-function facOn(){return !!(SAVE.d&&SAVE.d.facile)&&!PARK.on;}
+function facOn(){return !SANS_FACILE&&!!(SAVE.d&&SAVE.d.facile)&&!PARK.on;} // (2026-10-14, Sacha) SANS_FACILE : toujours non — toutes les aides suivent
 function facBord(){return facOn()?FAC_BORD:0;}
 function facFilet(){return facOn()&&FAC.coeurs>1&&!TUTO.on;} // il reste une vie à perdre : la chute perdue d'avance est rattrapée tout de suite
 function volSens(){return SAVE.d&&SAVE.d.volH==='plonge'?1:-1;} // (2026-10-10) absent = MONTE
@@ -45047,8 +45094,8 @@ function menuCadre(){ // la zone de l'écran que l'interface laisse libre → o�
   const home=document.getElementById('mHome');
   let x0=W,x1=0,tB=H*.22,iT=H*.74,vu=false;
   if(home&&home.classList.contains('on')&&home.getClientRects().length){
-    for(const q of ['.mTitle','.mOutils','.mIcons','.mPlay'].concat(document.documentElement.classList.contains('c6')?['.mAccB[data-m="carr"]']:[])){const e=home.querySelector(q);if(!e)continue;const r=e.getBoundingClientRect();if(r.width<2||r.height<2)continue; // (2026-10-14, charte 6) les cartes de l'accueil (rangées en grille : .mOutils n'a plus de boîte) ferment la bande de la caisse par le bas
-      vu=true;x0=Math.min(x0,r.left);x1=Math.max(x1,r.right);if(q==='.mTitle')tB=r.bottom;if(q==='.mOutils'||q==='.mIcons'||q[1]==='m'&&q.indexOf('carr')>0)iT=Math.min(iT===H*.74?1e9:iT,r.top);}} // (2026-09-28) la rangée MISSIONS · ⚙ ferme la bande de la caisse par le bas
+    for(const q of ['.mTitle','.mOutils','.mIcons','.mPlay'].concat(document.documentElement.classList.contains('c6')?['.mAccB[data-m="carr"]','.mMisBarre']:[])){ /* (2026-10-14, Sacha) + MISSIONS, sur la même rangée : sans carrière, c'est elle qui ferme la bande */const e=home.querySelector(q);if(!e)continue;const r=e.getBoundingClientRect();if(r.width<2||r.height<2)continue; // (2026-10-14, charte 6) les cartes de l'accueil (rangées en grille : .mOutils n'a plus de boîte) ferment la bande de la caisse par le bas
+      vu=true;x0=Math.min(x0,r.left);x1=Math.max(x1,r.right);if(q==='.mTitle')tB=r.bottom;if(q==='.mOutils'||q==='.mIcons'||q==='.mMisBarre'||q[1]==='m'&&q.indexOf('carr')>0)iT=Math.min(iT===H*.74?1e9:iT,r.top);}} // (2026-09-28) la rangée MISSIONS · ⚙ ferme la bande de la caisse par le bas
   if(!vu){C.nx=0;C.ny=-.12;C.fr=W>H?.34:.62;C.fh=.4;return C;} // (menu PC, ?pc=1) : au centre, comme avant
   /* (2026-10-01, Léo : « la voiture pas bien calée ») LA BANDE SE COMPTE DANS LA ZONE SÛRE : couché, l'encoche mange 47 px d'un côté
      — la bande comptait depuis le bord de l'écran, la caisse venait se coller contre l'encoche (banc cadrage.mjs : 59 px du bord de
@@ -48056,7 +48103,7 @@ const HUB=MENU_SACHA;
    Léo (PLAY = la map de carrière choisie, la carrière qui CHOISIT au lieu de lancer, la pastille JOUER, la petite ligne sous PLAY) est
    gardé entier derrière `?play=carriere` dans l'adresse : PLAY_CARR coupe ses quatre portes (carrPlayOk, le toucher de la carrière,
    la carte qui porte le niveau choisi, carrPlayMaj qui suit carrPlayOk). SAVE.d.carrSel continue d'être tenu : rien ne se perd. */
-const PLAY_CARR=/[?&]play=carriere\b/.test(location.search);
+const PLAY_CARR=!SANS_CARRIERE&&/[?&]play=carriere\b/.test(location.search); // (2026-10-14, Sacha) sans carrière, cette porte-là ferme aussi
 if(HUB){document.documentElement.classList.add('hub');
   try{const hm=$('mHome'),ou=hm&&hm.querySelector('.mOutils'),mb=ou&&ou.querySelector('.mMisBtn'),ge=ou&&ou.querySelector('.mGear'),
       sh=hm&&hm.querySelector('.mIcons [data-m="shop"]'),bd=$('bdGar');
@@ -48089,7 +48136,7 @@ if(HUB)try{const hm=$('mHome'),ou=hm&&hm.querySelector('.mOutils'),gar=ou&&ou.qu
        (puis, Léo : « branche la MISSION au PLAY comme la dernière fois » — la barre fine du 5/10 — et « au menu, remplace SHOP par OFFRES »)
        RANGÉE : ⚙ · GARAGE · CARRIÈRE · OFFRES (la boutique en €, renommée) ; dessous, MISSIONS en BARRE FINE branchée sur JOUER (deux
        conducteurs d'or), puis JOUER dans sa plaque. */
-    ou.insertBefore(ge,gar);ou.appendChild(ca);
+    ou.insertBefore(ge,gar);if(!SANS_CARRIERE)ou.appendChild(ca); /* (2026-10-14, Sacha) sans carrière : pas de carte — MISSIONS prend sa place (<style id="sansCarriere">) */
     {const bd=sh.querySelector('.mBadge');sh.className='pbtn mAccB mOffres';sh.setAttribute('aria-label','Offres');
       sh.innerHTML='<i class="pxi pxi-cadeau" aria-hidden="true"></i><span data-fr="OFFRES">'+TR('OFFRES')+'</span>';if(bd)sh.appendChild(bd);ou.appendChild(sh);}
     mi.classList.add('mMisBarre');
@@ -53312,7 +53359,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='vox'){ clic(voxBtnEl); mFill(); }
     else if(a==='vib'){ SND.vib=!SND.vib; SAVE.d.vib=SND.vib; SAVE.flush(); if(SND.vib)hap(14); mFill(); } // rallumées : elles se présentent d'une impulsion
     else if(a==='lang'){ langNext(); applyLangDOM(); mFill(); try{const v9=document.getElementById('mvVer');if(v9)v9.textContent=TR('VERSION')+' '+CC_VER.replace(/^LOCALE/,TR('LOCALE'));}catch(e9){} }
-    else if(a==='facile'){ SAVE.d.facile=SAVE.d.facile?0:1; SAVE.flush(); if(SAVE.d.facile)hap(14); mFill(); }
+    else if(a==='facile'&&!SANS_FACILE){ SAVE.d.facile=SAVE.d.facile?0:1; SAVE.flush(); if(SAVE.d.facile)hap(14); mFill(); }
     else if(a==='volh'){ volhBascule(); mFill(); }
     else if(a==='ctl'){ TCTL.pad=!TCTL.pad; TCTL.act=false; TCTL.id=null; TCTL.st=0; TCTL.sv=0;
       keys.ArrowLeft=keys.ArrowRight=false; document.body.classList.toggle('tpad',TCTL.pad);
@@ -53339,7 +53386,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
         if(codeCousin(r.texte)){toast(pxi('coche')+' '+TR('TOUT EST DÉBLOQUÉ !'),true);try{if(SONV2)sfx('caisse.debloquee');}catch(e){}hap([20,40,20,40,60]);try{mFill();}catch(e){}}
         else toast(pxi('croix')+' '+TR('CODE INCONNU')); }); }
     else if(a==='wipe'){
-      modale({titre:'TOUT EFFACER ?',texte:'Argent, caisses, habillages, missions, records, carrière et réglages : tout repart de zéro.',
+      modale({titre:'TOUT EFFACER ?',texte:SANS_CARRIERE?'Argent, caisses, habillages, missions, records et réglages : tout repart de zéro.':'Argent, caisses, habillages, missions, records, carrière et réglages : tout repart de zéro.',
         boutons:[{l:'EFFACER',ic:'corbeille',cls:'pb-red',v:1},{l:'ANNULER',v:0}]}).then(function(r){
         if(r.v){SAVE.d=SAVE.san(null);SAVE.flush();try{localStorage.removeItem('ccLang');}catch(e){}location.reload();} }); } // (passe qualité) « …et réglages : tout repart de zéro » : la LANGUE aussi (rangée à part, ccLang) — le jeu repart sur celle du téléphone
   }
