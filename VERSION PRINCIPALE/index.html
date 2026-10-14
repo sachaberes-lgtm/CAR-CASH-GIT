@@ -33454,8 +33454,26 @@ let musicMode='none',musicBaseVol=1,musicBoostEnv=0;
 const VOL={mus:.62,sfx:1,vox:1};
 const ANN_MUS_DUCK=.88; // la voix parle → la bande-son recule à peine (2026-10-03, Léo : « les MONSTRE ne doivent pas cacher la musique » — c'était .34, −9 dB, la musique semblait s'arrêter à chaque pose)
 const SFX_SOUS_MUS=.7; // (2026-10-03, Léo : « les MONSTRE ne doivent pas cacher la musique — ça vaut pour TOUS les effets sonores ») : tous les effets −3 dB sous la musique (curseur EFFETS inchangé, appliqué par-dessus)
-function sfxVol(){return VOL.sfx*SFX_SOUS_MUS;}
-function musVol(){return musicBaseVol*VOL.mus;} // le niveau accordé × le curseur, en un seul endroit
+/* (2026-10-14, session SON) SUR IPHONE, LES EFFETS NE RECULENT PLUS SOUS LA MUSIQUE. Le −3 dB de `SFX_SOUS_MUS` a été réglé à l'ordi, où la
+   musique joue à `musVol()` × .62-1 (−4 à −8 dB sous son fichier). Sur iPhone le volume d'un <audio> est en lecture seule : la musique y sort
+   à 100 % de son fichier — déjà 4 à 8 dB AU-DESSUS du mixage voulu. Lui retirer encore 3 dB aux effets, c'était les noyer deux fois (pièces,
+   poses, figures « qu'on n'entend pas »). Là où le volume est verrouillé, les effets gardent donc leur plein : le rapport musique / effets
+   retrouve à peu près celui de l'ordi. Même sonde que `VOL_LOCKED` (déclarée plus bas, illisible ici avant sa ligne). */
+const SON_VOL_VERROU=(function(){try{const a=new Audio();a.volume=.42;return Math.abs(a.volume-.42)>.01;}catch(e){return false;}})();
+function sfxVol(){return VOL.sfx*(SON_VOL_VERROU?1:SFX_SOUS_MUS);}
+function musVol(){return musicBaseVol*VOL.mus*musTrim();} // le niveau accordé × le curseur, en un seul endroit — (2026-10-14, session SON) × la sonie du morceau
+/* (2026-10-14, session SON) LES MORCEAUX À LA MÊME SONIE. Mesuré (BS.1770, fichiers d'assets/audio/music, `son/notes/sonie-fichiers.tsv`) :
+   de −12,4 LUFS (VITESSE) à −16,0 (NOITE) en plein spectre, et de −13,6 à −20,4 « haut-parleur » (passe-haut 200 Hz : ce que rend un
+   téléphone) — NOITE, SWAG, ADDICTIVE et GLASSY ont leur poids dans le grave et SONNENT 4 à 6 dB plus bas que les autres sur un portable :
+   le passage d'un niveau à l'autre faisait sauter la musique. Correction en dB, moitié plein spectre / moitié haut-parleur, bornée à ±3 dB,
+   appliquée au volume de l'élément (ordi, Android ; sur iPhone le volume est verrouillé : rien ne change). Les fichiers ne sont PAS
+   réencodés (ce sont les morceaux de Léo). Un morceau absent de la table = 0 dB. */
+const MUS_SONIE={'noite-de-velocidade':3,'swag-cash-car-2':3,'glassy-plucks':2.6,'addictive-loop':2.1,'lvl1-neon':.9,'lvl2-cash-car-vitesse':0,
+  'ciel-complet':.9,'ciel-n1':-.4,'ciel-n2':-.6,'ciel-n3':1.5,'ciel-n4':.4,'ciel-n5':1.5,'ville-n1':-.5,'ville-n2':-.6,'ville-n3':1,'ville-n4':1.2,'ville-n5':.9,
+  'chris-siffleur':-1.3,'chris-polaroid':-.7,'chris-dimanche':-.6,'chris-matin':-.4,'chris-nuit':-.3,'chris-ciel':-.2};
+function musTrim(){const s9=musicEl&&musicEl.src||'';if(s9===musTrim._s)return musTrim._g;musTrim._s=s9;let d9=0;
+  for(const k in MUS_SONIE)if(s9.indexOf(k)>=0){d9=MUS_SONIE[k];break;}return musTrim._g=Math.pow(10,d9/20);}
+musTrim._s=null;musTrim._g=1;
 /* ⚠⚠ LA MUSIQUE v4 — RÉÉCRITE DE ZÉRO (2026-09-25, user : « réécriture complète du code autour de la musique, ça ne
    marche toujours pas »).
    ⚠ POURQUOI L'ANCIENNE CHAÎNE LÂCHAIT. La bande-son passait par Web Audio (`createMediaElementSource` → filtre →
