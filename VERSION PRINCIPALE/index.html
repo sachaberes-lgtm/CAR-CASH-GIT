@@ -648,7 +648,7 @@ html.labNuages #tSet,html.labNuages #tGear{display:none!important}
     filter:drop-shadow(0 0 6px rgba(0,234,255,.55))}
   /* ⚠ MÊME RÈGLE que le garage : l'icône vit en `::before` (contenu fixe), jamais dans le
      `textContent` réécrit par `applyLangDOM` à chaque bascule de langue — sinon un `<i>` enfant
-     serait effacé au premier passage en anglais/chinois et ne reviendrait jamais. */
+     serait effacé au premier passage en anglais et ne reviendrait jamais. */
   #setBtn::before{content:'\2699\FE0F';margin-right:8px;font-size:11px;
     filter:drop-shadow(0 0 6px rgba(0,234,255,.55))}
   /* LE BUTIN : ce que le logo lâche quand on le casse (voir logoCasse) */
@@ -18032,8 +18032,7 @@ function denom(){return DENOMS[Math.min(engTier,DENOMS.length-1)]*ECO3.gain;} //
 // ⚠ DEUX LANGUES (FR/EN) : `LANG_CYCLE` est la SEULE liste à tenir à jour — le
 // sélecteur (desktop ET mobile) boucle dessus via `langNext()`, un seul écrivain pour ne pas
 // diverger entre les deux (même piège que `modeLbl`).
-// (2026-10-14, Sacha : « enlève le chinois ») Le chinois n'est plus proposé : sa traduction n'était qu'à moitié faite (578 textes sur 901)
-// et les écrans mélangeaient trois langues. Un `ccLang` resté à 'zh' (ancienne sauvegarde) retombe sur l'ANGLAIS, sans erreur.
+// (2026-10-14, Sacha : « enlève le chinois ») un `ccLang` qui n'est plus proposé (l'ancien 'zh') retombe sur la langue de l'appareil (`langAuto`).
 const LANG_CYCLE=['fr','en'];
 /* (2026-09-28, passe de lancement) LA LANGUE DU TÉLÉPHONE PAR DÉFAUT : sans choix enregistré, TOUT LE MONDE démarrait en anglais —
    un iPhone réglé en français compris. On lit les langues préférées de l'appareil, la 1re que le jeu parle gagne (sinon l'anglais) ;
@@ -18045,7 +18044,7 @@ function langAuto(){
   return 'en';
 }
 function decFr(x,d){const t=(+x).toFixed(d);return LANG==='fr'?t.replace('.',','):t;} // (passe qualité) « 5,3 » en français, « 5.3 » ailleurs
-let LANG=(function(){try{const c=localStorage.ccLang;if(c==='zh'){try{localStorage.ccLang='en';}catch(e2){}return 'en';}if(LANG_CYCLE.indexOf(c)>=0)return c;}catch(e){}return langAuto();})();
+let LANG=(function(){try{const c=localStorage.ccLang;if(LANG_CYCLE.indexOf(c)>=0)return c;}catch(e){}return langAuto();})();
 function langNext(){
   const i=LANG_CYCLE.indexOf(LANG);
   LANG=LANG_CYCLE[(i+1)%LANG_CYCLE.length];
@@ -18476,8 +18475,7 @@ Object.assign(I18N,{"POUCE HAUT":"THUMB UP","REVOIR":"REPLAY"}); /* (2026-10-14,
 // (POKI) les textes propres à l'édition Poki (les habillages des anciens carnets, l'effacement sans missions ni carrière)
 if(POKI){Object.assign(I18N,{"Vingt-quatre carats sur la carrosserie. Discret, comme toi.":"Twenty-four carats on the bodywork. Subtle, like you.",
   "Toutes les couleurs à la fois. Personne ne t'oublie.":"Every colour at once. Nobody forgets you.",
-  "Argent, caisses, habillages, records et réglages : tout repart de zéro.":"Money, cars, cosmetics, records and settings: everything starts over."});
- }
+  "Argent, caisses, habillages, records et réglages : tout repart de zéro.":"Money, cars, cosmetics, records and settings: everything starts over."});}
 // (2026-09-29) écran de fin v5
 // ⚠ nommée TR et non T : `T` est DÉJÀ le tableau des tangentes de la piste (T[bi].y) — la
 // collision faisait planter tout le script au parsing, écran noir muet.
@@ -18485,9 +18483,9 @@ if(POKI){Object.assign(I18N,{"Vingt-quatre carats sur la carrosserie. Discret, c
    posées à côté du texte. Chaque clé « symbole + espace + texte » reçoit donc un ALIAS « texte » seul, qui
    traduit pareil — sans ça, retirer l'emoji d'un libellé lui aurait fait perdre sa traduction. */
 for(const [k,v] of Object.entries({"JOUER": "PLAY", "CARRIERE": "CAREER", "MODES": "MODES", "REGLAGES": "SETTINGS", "REJOUER": "PLAY AGAIN", "MEILLEUR :": "BEST:", "MEILLEUR": "BEST", "CAISSE": "CAR", "UNE SEULE VIE · TOUT LE CIEL": "ONE LIFE · THE WHOLE SKY", "AUDIO": "AUDIO", "JEU": "GAME", "SAUVEGARDE": "SAVE", "SON": "SOUND", "MUSIQUE": "MUSIC", "VOIX": "VOICE", "VOLUME": "VOLUME", "COMMANDES": "CONTROLS", "IMAGE": "GRAPHICS", "LANGUE": "LANGUAGE", "DEVISE": "CURRENCY", "COPIER MA SAUVEGARDE": "COPY MY SAVE", "RESTAURER UN CODE": "RESTORE A CODE", "EFFACER MA PROGRESSION": "ERASE MY PROGRESS", "SURVIVANT": "SURVIVOR", "PARC FREESTYLE": "FREESTYLE PARK", "BAC A SABLE": "SANDBOX", "REPRENDRE": "RESUME", "FERMER": "CLOSE", "REPLACER LA CAISSE": "RESET THE CAR", "RECOMMENCER": "RESTART", "QUITTER": "QUIT", "PAUSE": "PAUSE", "LA PARTIE": "THIS RUN", "VOLANT": "WHEEL", "FLECHES": "ARROWS", "RAPIDE": "FAST", "NETTE": "SHARP", "FIGURES": "TRICKS", "ENTRAINEMENT TERMINE": "TRAINING OVER", "NOUVEAU RECORD !": "NEW RECORD!", "MOTEUR ATTEINT": "ENGINE REACHED", "GLISSE POUR TOURNER": "SWIPE TO STEER", "glisse pour tourner · pince pour zoomer": "drag to turn · pinch to zoom", "touche CASH CAR — le son s'allume avec toi": "tap CASH CAR — sound comes alive with you", "MA SAUVEGARDE": "MY SAVE", "Garde ce code : il restaure toute ta progression.": "Keep this code: it restores all your progress.", "COPIER": "COPY", "COPIE !": "COPIED!", "RESTAURER": "RESTORE", "Colle ton code de sauvegarde.": "Paste your save code.", "ANNULER": "CANCEL", "RESTAURE — RECHARGE…": "RESTORED — RELOADING…", "CODE INVALIDE": "INVALID CODE", "TOUT EFFACER ?": "ERASE EVERYTHING?", "Records, caisses débloquées, carrière et réglages repartent de zéro.": "Records, unlocked cars, career and settings start over.", "EFFACER": "ERASE", "TERMINE LE NIVEAU": "FINISH LEVEL", "NUAGES": "SKY HIGH", "SKY HIGH": "SKY HIGH", "SKY HIGH TERMINE": "SKY HIGH COMPLETE", "De l'aurore au matin, cinq niveaux au-dessus des nuages.": "From dawn to morning, five levels above the clouds.", "Du coucher du soleil à l'orage, au-dessus du village caché de la pluie.": "From sunset to the storm, above the hidden rain village.", "VILLE": "CITY", "ESPACE": "SPACE", "10 heures du jour, de l'aurore au coucher du soleil.": "10 hours of the day, from dawn to sunset.", "Du coucher du soleil à midi, au-dessus du village caché de la pluie.": "From sunset to noon, above the hidden rain village.", "Au plus près des planètes du système solaire.": "Up close to the planets of the solar system.", "AURORE": "DAWN", "PREMIERES LUEURS": "FIRST LIGHT", "LEVER DU SOLEIL": "SUNRISE", "MATIN FRAIS": "CRISP MORNING", "MATIN": "MORNING", "MIDI": "NOON", "APRES-MIDI": "AFTERNOON", "FIN D'APRES-MIDI": "LATE AFTERNOON", "HEURE DOREE": "GOLDEN HOUR", "COUCHER DE SOLEIL": "SUNSET", "SOIREE": "EVENING", "PLUIE NEON": "NEON RAIN", "MINUIT": "MIDNIGHT", "ORAGE": "STORM", "AVANT L'AUBE": "BEFORE DAWN", "AUBE": "DAYBREAK", "LEVER": "SUNRISE", "MERCURE": "MERCURY", "VENUS": "VENUS", "TERRE": "EARTH", "LUNE": "MOON", "MARS": "MARS", "JUPITER": "JUPITER", "SATURNE": "SATURN", "URANUS": "URANUS", "NEPTUNE": "NEPTUNE", "PLUTON": "PLUTO", "Elle démarre par pitié. Fais des thunes et oublie-la vite.": "It starts out of pity. Make cash and forget it fast.", "Ça roule. Vu d'où tu viens, c'est déjà un miracle.": "It runs. Given where you're from, that's already a miracle.", "Conçue pour rouler prudemment. Toi, prudent ? On y croit fort.": "Built to drive carefully. You, careful? Sure.", "Elle ne double pas. Elle DÉPLACE.": "It doesn't overtake. It RELOCATES.", "L'écologie te fait coucou dans le rétro. T'as pas de rétro.": "Ecology waves at you in the mirror. You don't have mirrors.", "Refuse de rouler sous 200. Toi aussi, maintenant.": "Refuses to go under 200. So do you, now.", "Elle découpe les virages. Les autres les négocient.": "It carves corners. Others negotiate them.", "Ceux qui l'ont doublée en parlent encore. Ah non : personne.": "Those who passed it still talk about it. Oh wait: nobody.", "Le taureau doré. Assurance résiliée d'office.": "The golden bull. Insurance cancelled on sight.", "Le circuit appelle ça tricher. Nous, du talent.": "The track calls it cheating. We call it talent.", "Prototype d'endurance. Faite pour rouler la nuit entière.": "Endurance prototype. Built to run all night.", "La reine du ciel, et elle le sait.": "Queen of the sky, and she knows it.", "Passée au bain d'acide. Ça se voit.": "Dipped in acid. It shows.", "Personne n'a demandé pourquoi. Tout le monde a demandé comment.": "Nobody asked why. Everybody asked how.", "Au sol, il roule. En l'air, il chasse.": "On the ground, it drives. In the air, it hunts."}))if(!(k in I18N))I18N[k]=v; // la coque mobile, la carrière, les fenêtres, les fiches des caisses (2026-09-24)
-for(const D of [I18N])for(const k of Object.keys(D)){
+for(const k of Object.keys(I18N)){
   const m=/^[\u2190-\u2BFF\u2600-\u27BF\uD83C-\uDBFF\uDC00-\uDFFF]+\s+(.+)$/.exec(k);
-  if(m&&!(m[1] in D))D[m[1]]=String(D[k]).replace(/^[\u2190-\u2BFF\u2600-\u27BF\uD83C-\uDBFF\uDC00-\uDFFF]+\s+/,'');
+  if(m&&!(m[1] in I18N))I18N[m[1]]=String(I18N[k]).replace(/^[\u2190-\u2BFF\u2600-\u27BF\uD83C-\uDBFF\uDC00-\uDFFF]+\s+/,'');
 }
 Object.assign(I18N,{'TOUS LES REGLAGES':'ALL SETTINGS'}); // (2026-10-14, charte 6) la ligne de la pause qui ouvre l'écran complet
 /* ⚠ LES CAPITALES ACCENTUÉES NE PASSENT PAS EN PIXEL (2026-09-24) : la police dessine « É » comme un « é »
@@ -18500,12 +18498,11 @@ function majPix(s){return typeof s==='string'?s.replace(/[\u00C0-\u00D6\u00D8-\u
 function TR(s){ // traduction EXACTE, repli français silencieux
   if(s==null)return s;
   if(LANG==='fr')return majPix(s);
-  const dict=I18N;
-  let t=dict[s];
+  let t=I18N[s];
   // (2026-09-28, passe de lancement) LES COMPTEURS : « RÉCOLTE ×5 », « CHAÎNE ×3 » — une phrase + un nombre composé à l'exécution n'était
   // JAMAIS dans le dictionnaire (en anglais, la liste d'aura restait en français). Seulement si la recherche exacte échoue : la tête se
   // traduit, la queue (× ou +, puis des chiffres) passe telle quelle.
-  if(t===undefined&&typeof s==='string'){const m=/^(.*?\S)(\s*[×+][\s\d.,×+%°]*)$/.exec(s);if(m&&dict[m[1]]!==undefined)t=dict[m[1]]+m[2];}
+  if(t===undefined&&typeof s==='string'){const m=/^(.*?\S)(\s*[×+][\s\d.,×+%°]*)$/.exec(s);if(m&&I18N[m[1]]!==undefined)t=I18N[m[1]]+m[2];}
   return majPix(t===undefined?s:t);
 }
 // LE HTML STATIQUE — le texte d'origine est mémorisé au premier passage (`data-fr`), sinon rebasculer
@@ -18563,7 +18560,7 @@ function fmtGta(v){
   const s=String(ent).padStart(8,'0');
   const i=s.search(/[1-9]/);
   const c=CUR();
-  const dec=(v<1000&&cts>0)?'<span class="cts">'+(LANG==='fr'?',':'.')+String(cts).padStart(2,'0')+'</span>':''; // le point décimal anglais/chinois : « $1,61 » se lit comme des milliers
+  const dec=(v<1000&&cts>0)?'<span class="cts">'+(LANG==='fr'?',':'.')+String(cts).padStart(2,'0')+'</span>':''; // le point décimal anglais : « $1,61 » se lit comme des milliers
   return (i<0?c+'<span class="dz">'+s+'</span>':c+'<span class="dz">'+s.slice(0,i)+'</span>'+s.slice(i))+dec;
 }
 // ---- UNITÉS COMPACTES : « $ 1,4 M » se lit d'un œil, « $ 1 400 000 » est du bruit. Échelle
@@ -18571,7 +18568,7 @@ function fmtGta(v){
 const UNITS=[[1e30,'Qn','QUINTILLIONS 🛸'],[1e27,'Qd','QUADRILLIARDS'],[1e24,'Q','QUADRILLIONS 🤑'],[1e21,'Td','TRILLIARDS'],[1e18,'T','TRILLIONS 🤯'],[1e15,'Bd','BILLIARDS'],[1e12,'Bn','BILLIONS'],[1e9,'Md','MILLIARDS'],[1e6,'M','MILLIONS'],[1e3,'k','MILLIERS']];
 /* (2026-09-28, passe de lancement) L'ÉCHELLE COURTE POUR QUI NE PARLE PAS FRANÇAIS. En anglais on lisait « $ 1,4 Md » (inconnu) et
    « $ 2 Bn » — qu'un Américain lit DEUX MILLIARDS alors que c'est 2×10¹² ici : mille fois faux, sur la grandeur la plus importante
-   du jeu. Anglais et chinois comptent en k · M · B · T · Qa… avec un POINT décimal ; le français garde son échelle longue. Mêmes
+   du jeu. L'anglais compte en k · M · B · T · Qa… avec un POINT décimal ; le français garde son échelle longue. Mêmes
    seuils dans les deux tables (unitSeen les compare) et mêmes pictos aux mêmes crans. */
 const UNITS_EN=[[1e30,'No','NONILLIONS 🛸'],[1e27,'Oc','OCTILLIONS'],[1e24,'Sp','SEPTILLIONS 🤑'],[1e21,'Sx','SEXTILLIONS'],[1e18,'Qi','QUINTILLIONS 🤯'],[1e15,'Qa','QUADRILLIONS'],[1e12,'T','TRILLIONS'],[1e9,'B','BILLIONS'],[1e6,'M','MILLIONS'],[1e3,'k','THOUSANDS']];
 function unitsL(){return LANG==='fr'?UNITS:UNITS_EN;}
@@ -29928,9 +29925,7 @@ function carBuy(i){
 }
 function carUnlockText(i){ // ce qu'il reste à faire, en une ligne — affiché sur la caisse verrouillée
   const u=CAR_UNLOCK[i];if(!u)return '';
-  // ⚠ TROIS LANGUES (2026-09-03) : cette fonction a TOUJOURS traduit en dur (avant : un ternaire
-  // FR/EN par ligne), jamais via I18N — un `en=LANG==='en'` binaire ne suffit plus à trois langues,
-  // d'où le passage à un index 0/1/2 sur `L`.
+  // (2026-09-03) cette fonction traduit en dur (FR/EN), jamais via I18N : `L` vaut 0 en français, 1 en anglais.
   const L=LANG==='en'?1:0;
   // À VENDRE : on annonce le prix ET ce qu'il manque. « il te manque X » est la seule information
   // qui donne envie de rejouer ; un prix seul laisse le joueur faire la soustraction lui-même.
@@ -40925,7 +40920,7 @@ for(const [k,v] of Object.entries({'GRAVITE REDUITE : SAUTS 2 FOIS PLUS LONGS':'
   'SEMES !':'LOST THEM!','SEMES':'LOST THEM','LA POLICE EST AU TAPIS':'THE COPS ARE DOWN','FLIC AU TAPIS !':'COP DOWN!',"LE PORTAIL S'OUVRE":'THE PORTAL OPENS',
   'HORS DE VUE':'OUT OF SIGHT',"A L'INSTINCT !":'ON INSTINCT!',"A L'INSTINCT":'ON INSTINCT','PERCE-NUAGE !':'CLOUD PIERCER!','PERCE-NUAGE':'CLOUD PIERCER','LE MOTEUR TOUSSE':'ENGINE COUGHING','CA VA LACHER !':'SHE\'S GONNA BLOW!',
   'Tu l\'as chassée tout un coucher de soleil. Elle est douce comme un nuage et elle file comme un orage.':'You chased her through a whole sunset. Soft as a cloud, fast as a storm.'}))if(!(k in I18N))I18N[k]=v;
-// (2026-09-30) les mots de la passe CAMPAGNE : la plaque de la caisse-nuage, les portes du niveau 4, les promesses de l'ESPACE — anglais et chinois
+// (2026-09-30) les mots de la passe CAMPAGNE : la plaque de la caisse-nuage, les portes du niveau 4, les promesses de l'ESPACE — en anglais
 for(const [k,v] of [['SILLAGE','SLIPSTREAM'],['ELLE MENE DE','SHE LEADS BY'],['ELLE REVIENT',"SHE'S COMING BACK"],['DERRIERE TOI','BEHIND YOU'],
   ["TU L'AS DOUBLEE",'YOU PASSED HER'],['IL FALLAIT LA SUIVRE','YOU HAD TO FOLLOW HER'],["TU L'AS DOUBLEE — IL FALLAIT LA SUIVRE",'YOU PASSED HER — YOU HAD TO FOLLOW HER'],
   ['LA CAISSE-NUAGE','THE CLOUD CAR'],['PORTES','GATES'],['PORTE','GATE'],['DANS','IN'],['RADAR','SPEED CAMERA'],
@@ -42096,7 +42091,7 @@ function affichesMaj(){
    Sans niveau choisi au garage (GSEL n'existe pas sur main), l'affiche PERSO montre les records de toujours. */
 /* (2026-10-07, campagne de debug avant publication) LES AFFICHES EN ANGLAIS — elles passaient bien par TR, mais aucune de leurs clés
    n'était au dictionnaire : l'atelier anglais affichait « RECORD PERSO / MEILLEURE PARTIE ». Avec, les étiquettes VoiceOver (aria-label,
-   traduites par applyLangDOM) qui lisaient « Accueil », « Boutique »... en français. Le chinois retombe sur l'anglais (voir TR). */
+   traduites par applyLangDOM) qui lisaient « Accueil », « Boutique »... en français. */
 try{Object.assign(I18N,{'RECORD|PERSO':'PERSONAL|BEST','RECORDS|MONDIAUX':'WORLD|RECORDS','SANS FIN':'ENDLESS','AURA RECORD':'BEST AURA',
   'STATUT':'STATUS','TERMINE':'CLEARED','A TERMINER':'TO CLEAR','VERROUILLE':'LOCKED','MEILLEURE PARTIE':'BEST RUN','AURA MAX':'MAX AURA',
   'PALIER MOTEUR':'ENGINE TIER','VITESSE MAX':'TOP SPEED','BIENTOT EN LIGNE':'COMING SOON','TES RECORDS : BIENTOT EN DETAIL':'YOUR RECORDS: DETAILS SOON',
@@ -47058,8 +47053,7 @@ try{const v9=$('gvLvl');const go9=function(e){e.stopPropagation();if(!garageOn||
 // (même soir) HOME est monté en haut à droite, à côté des réglages (même geste que l'ancien HOME)
 try{const h9=$('gvHome');const go9=function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(h9);const c=$('gClose');if(c)c.click();};
   h9.addEventListener('click',go9);h9.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go9(e);}});}catch(e){}
-try{Object.assign(I18N,{'PERMIS':'LICENSE','AUTO-ECOLE':'DRIVING SCHOOL','NIVEAUX ACCOMPLIS':'LEVELS CLEARED','AUCUN NIVEAU TERMINE':'NO LEVEL CLEARED YET','FRANCHIS TON 1ER PORTAIL':'CROSS YOUR FIRST PORTAL','A BATTRE':'NEXT UP','A DECOUVRIR':'TO DISCOVER','A DECOUVRIR1':'TO DISCOVER','TOUT EST TERMINE':'ALL CLEARED'});
-  }catch(e){}
+try{Object.assign(I18N,{'PERMIS':'LICENSE','AUTO-ECOLE':'DRIVING SCHOOL','NIVEAUX ACCOMPLIS':'LEVELS CLEARED','AUCUN NIVEAU TERMINE':'NO LEVEL CLEARED YET','FRANCHIS TON 1ER PORTAIL':'CROSS YOUR FIRST PORTAL','A BATTRE':'NEXT UP','A DECOUVRIR':'TO DISCOVER','A DECOUVRIR1':'TO DISCOVER','TOUT EST TERMINE':'ALL CLEARED'});}catch(e){}
 /* LES JAUGES DE LA VITRINE (voir « LES JAUGES » dans <style id="garageVitrine">) : l'ARGENT vers la prochaine caisse à vendre (`objectif()`, ce
    que vise le menu de Léo), l'AURA vers le rang suivant. `anim` : elles partent de zéro et se remplissent, les chiffres défilent (0,9 s). */
 /* LE RECORD DE FORTUNE (2026-10-06, Léo : « une barre money sur le total jamais atteint ») : `SAVE.d.bankMax` = le plus haut total que la banque
@@ -47162,8 +47156,7 @@ function gveBoucle(n){GVE.raf=0;if(!garageOn)return;
   const vis=!!(gEl&&gEl.classList.contains('vitrine')&&!gEl.classList.contains('menu')&&!gEl.classList.contains('inv')&&!document.hidden);
   if(vis){if(!(GVE.k++%30))GVE.bars.forEach(gveTaille);const t=n/1000;GVE.bars.forEach(function(B){gveAvance(B,dt);gveDessine(B,t,dt);});}
   GVE.raf=requestAnimationFrame(gveBoucle);}
-try{Object.assign(I18N,{'SOMMET':'PEAK','RECORD !':'RECORD!','CASH':'CASH','AURA':'AURA','ENCORE':'NEED','A TA PORTEE !':'IT\'S YOURS!','COLLECTION COMPLETE':'FULL COLLECTION','INTOUCHABLE':'UNTOUCHABLE','A TA PORTEE':'AFFORDABLE','VERS':'TO','TOUT EST A TOI':'YOU OWN IT ALL','SOMMET ATTEINT':'TOP RANK','TUNING':'TUNING','SHOP':'SHOP','INVENTAIRE':'INVENTORY','MAINTIENS LA CAISSE':'HOLD YOUR CAR','OBJETS':'ITEMS','OBJET':'ITEM'});
-  }catch(e){}
+try{Object.assign(I18N,{'SOMMET':'PEAK','RECORD !':'RECORD!','CASH':'CASH','AURA':'AURA','ENCORE':'NEED','A TA PORTEE !':'IT\'S YOURS!','COLLECTION COMPLETE':'FULL COLLECTION','INTOUCHABLE':'UNTOUCHABLE','A TA PORTEE':'AFFORDABLE','VERS':'TO','TOUT EST A TOI':'YOU OWN IT ALL','SOMMET ATTEINT':'TOP RANK','TUNING':'TUNING','SHOP':'SHOP','INVENTAIRE':'INVENTORY','MAINTIENS LA CAISSE':'HOLD YOUR CAR','OBJETS':'ITEMS','OBJET':'ITEM'});}catch(e){}
 /* ================= LE BOULON (2026-10-06, Léo : « mets un boulon 3D à la place du setting ») =================
    Le ⚙ de l'atelier devient un BOULON en vraie 3D : l'écrou (un prisme hexagonal) sur sa rondelle, la vis filetée qui dépasse, vu d'au-dessus (44°), redessiné à
    chaque pas de sa rotation — les pans tournés vers nous seulement, chacun éclairé par la lampe de l'atelier (la clé en haut à gauche), un filet
